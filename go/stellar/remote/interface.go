@@ -31,5 +31,4 @@ type Remoter interface {
 	ServerTimeboundsRecommendation(ctx context.Context) (stellar1.TimeboundsRecommendation, error)
 	SetInflationDestination(ctx context.Context, signedTx string) error
 	GetInflationDestinations(ctx context.Context) (ret []stellar1.PredefinedInflationDestination, err error)
-	FetchSecretlessBundle(ctx context.Context) (*stellar1.Bundle, error)
 }

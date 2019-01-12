@@ -113,8 +113,3 @@ func (r *RemoteNet) SetInflationDestination(ctx context.Context, signedTx string
 func (r *RemoteNet) GetInflationDestinations(ctx context.Context) (ret []stellar1.PredefinedInflationDestination, err error) {
 	return GetInflationDestinations(ctx, r.G())
 }
-
-func (r *RemoteNet) FetchSecretlessBundle(ctx context.Context) (*stellar1.Bundle, error) {
-	mctx := libkb.NewMetaContext(ctx, r.G())
-	return FetchSecretlessBundle(mctx)
-}
