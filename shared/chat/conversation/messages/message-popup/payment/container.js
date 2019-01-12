@@ -219,7 +219,7 @@ const requestMergeProps = (stateProps, dispatchProps, ownProps: RequestOwnProps)
     cancelButtonLabel: 'Cancel request',
     icon: 'receiving',
     loading: false,
-    onCancel: ownProps.message.author === you ? dispatchProps.onCancel : null,
+    onCancel: ownProps.message.author === you && !requestInfo.done ? dispatchProps.onCancel : null,
     onClaimLumens: null,
     onHidden: ownProps.onHidden,
     onSeeDetails: null,
