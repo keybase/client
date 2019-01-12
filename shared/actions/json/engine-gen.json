@@ -456,6 +456,9 @@
         "stellar1NotifyAccountDetailsUpdate": {
             "params": "$Exact<$PropertyType<$PropertyType<stellar1Types.MessageTypes, 'stellar.1.notify.accountDetailsUpdate'>, 'inParam'>>"
         },
+        "stellar1NotifyAccountsUpdate": {
+            "params": "$Exact<$PropertyType<$PropertyType<stellar1Types.MessageTypes, 'stellar.1.notify.accountsUpdate'>, 'inParam'>>"
+        },
         "stellar1NotifyPendingPaymentsUpdate": {
             "params": "$Exact<$PropertyType<$PropertyType<stellar1Types.MessageTypes, 'stellar.1.notify.pendingPaymentsUpdate'>, 'inParam'>>"
         },

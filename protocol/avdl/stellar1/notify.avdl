@@ -14,6 +14,9 @@ protocol notify {
 
   @notify("")
   void accountDetailsUpdate(AccountID accountID, WalletAccountLocal account);
+  
+  @notify("")
+  void accountsUpdate(array<WalletAccountLocal> accounts);
 
   @notify("")
   void pendingPaymentsUpdate(AccountID accountID, array<PaymentOrErrorLocal> pending);

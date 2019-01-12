@@ -1303,16 +1303,9 @@ func (n *NotifyRouter) HandleWalletAccountsUpdate(ctx context.Context, accounts 
 		if n.getNotificationChannels(id).Wallet {
 			// In the background do...
 			go func() {
-				/*
-					arg := stellar1.AccountDetailsUpdateArg{
-						AccountID: accountID,
-						Account:   account,
-					}
-					(stellar1.NotifyClient{
-						Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-					}).AccountDetailsUpdate(context.Background(), arg)
-				*/
-				// XXX fix this
+				(stellar1.NotifyClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).AccountsUpdate(context.Background(), accounts)
 			}()
 		}
 		return true

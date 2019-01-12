@@ -1160,7 +1160,6 @@ func (r *BackendMock) ServerTimeboundsRecommendation(ctx context.Context, tc *Te
 }
 
 func (r *BackendMock) FetchSecretlessBundle(ctx context.Context, tc *TestContext) (*stellar1.Bundle, error) {
-	// Call real timebounds endpoint for integration testing.
 	mctx := libkb.NewMetaContext(ctx, tc.G)
 	return remote.FetchSecretlessBundle(mctx)
 }
