@@ -106,22 +106,18 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         .setIn(['paymentOldestUnreadMap', action.payload.accountID], action.payload.oldestUnread)
     case WalletsGen.displayCurrenciesReceived:
       return state.merge({currencies: I.List(action.payload.currencies)})
-    case WalletsGen.displayCurrencyReceived:
-      // $FlowIssue thinks state is _State
-      return state.withMutations(stateMutable => {
-        if (action.payload.accountID) {
-          stateMutable.update('currencyMap', c => c.set(action.payload.accountID, action.payload.currency))
-        }
-        if (action.payload.setBuildingCurrency) {
-          const currency = state.lastSentXLM ? 'XLM' : action.payload.currency.code
-          logger.info(
-            `displayCurrencyReceived: setting currency to ${currency} because lastSentXLM was ${String(
-              state.lastSentXLM
-            )}`
-          )
-          stateMutable.update('building', b => b.merge({currency}))
-        }
+    case WalletsGen.displayCurrencyReceived: {
+      const account = Constants.getAccountInner(state, action.payload.accountID || Types.noAccountID)
+      if (account.accountID === Types.noAccountID) {
+        return state
+      }
+      return state.merge({
+        accountMap: state.accountMap.set(
+          account.accountID,
+          account.merge({displayCurrency: action.payload.currency})
+        ),
       })
+    }
     case WalletsGen.reviewPayment:
       return state
         .setIn(['builtPayment', 'reviewBanners'], [])
