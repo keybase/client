@@ -1990,14 +1990,26 @@ func AllWalletAccounts(mctx libkb.MetaContext, remoter remote.Remoter) ([]stella
 		return nil, err
 	}
 
+	dumpBundle := false
 	var accts []stellar1.WalletAccountLocal
 	for _, entry := range bundle.Accounts {
 		acct, err := accountLocal(mctx, remoter, entry)
 		if err != nil {
-			return nil, err
+			if err != remote.ErrAccountIDMissing {
+				return nil, err
+			}
+			mctx.CDebugf("bundle entry has empty account id: %+v", entry)
+			dumpBundle = true // log the full bundle later
+
+			// skip this entry
+			continue
 		}
 
 		accts = append(accts, acct)
+	}
+
+	if dumpBundle {
+		mctx.CDebugf("Full bundle: %+v", bundle)
 	}
 
 	// Put the primary account first, then sort by name, then by account ID
