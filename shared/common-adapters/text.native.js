@@ -147,9 +147,12 @@ function _getStyle(
   clickable?: ?boolean,
   forceUnderline: boolean
 ) {
+  if (backgroundMode === 'Normal') {
+    return forceUnderline ? {textDecorationLine: 'underline'} : {}
+  }
   const meta = metaData[type]
   const colorStyle = {color: meta.colorForBackgroundMode[backgroundMode] || defaultColor(backgroundMode)}
-  const textDecoration = meta.isLink || forceUnderline ? {textDecorationLine: 'underline'} : {}
+  const textDecoration = meta.isLink ? {textDecorationLine: 'underline'} : {}
 
   return {
     ...colorStyle,
