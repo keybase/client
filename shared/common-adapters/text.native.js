@@ -92,7 +92,13 @@ class Text extends Component<Props> {
     const dynamicStyle = {
       ...(this.props.backgroundMode === 'Normal'
         ? {}
-        : _getStyle(this.props.type, this.props.backgroundMode, this.props.lineClamp, !!this.props.onClick)),
+        : _getStyle(
+            this.props.type,
+            this.props.backgroundMode,
+            this.props.lineClamp,
+            !!this.props.onClick,
+            !!this.props.underline
+          )),
     }
 
     let style
@@ -138,12 +144,12 @@ function _getStyle(
   type: TextType,
   backgroundMode?: Background = 'Normal',
   lineClampNum?: ?number,
-  clickable?: ?boolean
+  clickable?: ?boolean,
+  forceUnderline: boolean
 ) {
-  if (backgroundMode === 'Normal') return null
   const meta = metaData[type]
   const colorStyle = {color: meta.colorForBackgroundMode[backgroundMode] || defaultColor(backgroundMode)}
-  const textDecoration = meta.isLink ? {textDecorationLine: 'underline'} : {}
+  const textDecoration = meta.isLink || forceUnderline ? {textDecorationLine: 'underline'} : {}
 
   return {
     ...colorStyle,
