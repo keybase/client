@@ -345,10 +345,7 @@ function _serverCallMap(
         }
       })
     },
-    'keybase.1.identifyUi.displayStellarAccount': (
-      {a: {accountID, federationAddress, sigID, type, family}},
-      response
-    ) => {
+    'keybase.1.identifyUi.displayStellarAccount': ({a: {accountID, federationAddress, sigID}}, response) => {
       response.result()
       addToIdleResponseQueue(() => {
         dispatch(TrackerGen.createUpdateStellarAddress({accountID, federationAddress, sigID, username}))
