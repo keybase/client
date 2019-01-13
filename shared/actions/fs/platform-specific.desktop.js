@@ -215,7 +215,8 @@ function* uninstallKBFSConfirm(_, action: FsGen.UninstallKBFSConfirmPayload) {
       )
   )
 
-  if (!resp) {
+  if (resp !== 0) {
+    // resp is the index of the button that's clicked
     return
   }
 
