@@ -2240,7 +2240,7 @@ func TestBuildPaymentLocalBidBlocked(t *testing.T) {
 			require.Equal(t, "mismatched amount: 15 != 12", errString)
 
 			errString = send(bid1, "15")
-			require.Equal(t, "this payment has been stopped", errString)
+			require.Equal(t, "This payment might have already been sent. Check your recent payments before trying again.", errString)
 
 		case "afterStoppedBySend":
 			bres, err := build(bid1, "11")
@@ -2253,7 +2253,7 @@ func TestBuildPaymentLocalBidBlocked(t *testing.T) {
 			require.Equal(t, "", errString)
 
 			errString = send(bid1, "11")
-			require.Equal(t, "this payment has been stopped", errString)
+			require.Equal(t, "This payment might have already been sent. Check your recent payments before trying again.", errString)
 
 		case "afterStoppedByStop":
 			errString := send(bid1, "11")
@@ -2263,7 +2263,7 @@ func TestBuildPaymentLocalBidBlocked(t *testing.T) {
 			require.NoError(t, err)
 
 			errString = send(bid1, "11")
-			require.Equal(t, "this payment has been stopped", errString)
+			require.Equal(t, "This payment might have already been sent. Check your recent payments before trying again.", errString)
 
 		case "afterStopppedByStopThenBuild":
 			errString := send(bid1, "11")
@@ -2275,10 +2275,10 @@ func TestBuildPaymentLocalBidBlocked(t *testing.T) {
 			_, err := build(bid1, "11")
 			_ = err // Calling build on a stopped payment is do-no-harm undefined behavior.
 
-			reviewExpectContractFailure("this payment has been stopped") // Calling review on a stopped payment is do-no-harm not gonna happen.
+			reviewExpectContractFailure("This payment might have already been sent. Check your recent payments before trying again.") // Calling review on a stopped payment is do-no-harm not gonna happen.
 
 			errString = send(bid1, "11")
-			require.Equal(t, "this payment has been stopped", errString)
+			require.Equal(t, "This payment might have already been sent. Check your recent payments before trying again.", errString)
 
 		case "build-review-build-send":
 			bres, err := build(bid1, "12")

@@ -191,7 +191,7 @@ const reviewPayment = state =>
       // ignore cancellation, which is expected in the case where we have a
       // failing review and then we build or stop a payment
     } else {
-      throw error
+      return WalletsGen.createSentPaymentError({error: error.desc})
     }
   })
 
