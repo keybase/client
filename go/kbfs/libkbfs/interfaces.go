@@ -1320,6 +1320,10 @@ type DiskBlockCache interface {
 		preferredCacheType DiskBlockCacheType) (
 		buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf,
 		prefetchStatus PrefetchStatus, err error)
+	// GetPrefetchStatus returns just the prefetchStatus for the block.
+	GetPrefetchStatus(
+		ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID,
+		cacheType DiskBlockCacheType) (PrefetchStatus, error)
 	// Put puts a block to the disk cache. Returns after it has
 	// updated the metadata but before it has finished writing the
 	// block.  If cacheType is specified, the block is put into that
@@ -2650,12 +2654,6 @@ type BlockRetriever interface {
 	Request(ctx context.Context, priority int, kmd KeyMetadata,
 		ptr BlockPointer, block Block, lifetime BlockCacheLifetime,
 		action BlockRequestAction) <-chan error
-	// RequestWithPrefetchStatus is like `Request`, but also fills in
-	// a prefetch status.
-	RequestWithPrefetchStatus(
-		ctx context.Context, priority int, kmd KeyMetadata,
-		ptr BlockPointer, block Block, prefetchStatus *PrefetchStatus,
-		lifetime BlockCacheLifetime, action BlockRequestAction) <-chan error
 	// PutInCaches puts the block into the in-memory cache, and ensures that
 	// the disk cache metadata is updated.
 	PutInCaches(ctx context.Context, ptr BlockPointer, tlfID tlf.ID,

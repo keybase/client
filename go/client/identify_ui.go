@@ -46,6 +46,11 @@ func (i *IdentifyUIServer) DisplayCryptocurrency(_ context.Context, arg keybase1
 	return nil
 }
 
+func (i *IdentifyUIServer) DisplayStellarAccount(_ context.Context, arg keybase1.DisplayStellarAccountArg) error {
+	i.ui.DisplayStellarAccount(arg.A)
+	return nil
+}
+
 func (i *IdentifyUIServer) DisplayKey(_ context.Context, arg keybase1.DisplayKeyArg) error {
 	i.ui.DisplayKey(arg.Key)
 	return nil
@@ -118,6 +123,9 @@ func (c nullIdentifyUI) Confirm(context.Context, keybase1.ConfirmArg) (keybase1.
 	return keybase1.ConfirmResult{}, nil
 }
 func (c nullIdentifyUI) DisplayCryptocurrency(context.Context, keybase1.DisplayCryptocurrencyArg) error {
+	return nil
+}
+func (c nullIdentifyUI) DisplayStellarAccount(context.Context, keybase1.DisplayStellarAccountArg) error {
 	return nil
 }
 func (c nullIdentifyUI) DisplayKey(context.Context, keybase1.DisplayKeyArg) error { return nil }

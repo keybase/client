@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
@@ -12,6 +13,8 @@ import (
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar/bundle"
 )
+
+var ErrAccountIDMissing = errors.New("account id parameter missing")
 
 type shouldCreateRes struct {
 	libkb.AppStatusEmbed
@@ -342,6 +345,11 @@ func (b *detailsResult) GetAppStatus() *libkb.AppStatus {
 }
 
 func Details(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (stellar1.AccountDetails, error) {
+	// the endpoint requires the account_id parameter, so check it exists
+	if strings.TrimSpace(accountID.String()) == "" {
+		return stellar1.AccountDetails{}, ErrAccountIDMissing
+	}
+
 	apiArg := libkb.APIArg{
 		Endpoint:        "stellar/details",
 		SessionType:     libkb.APISessionTypeREQUIRED,
@@ -868,4 +876,23 @@ func SetInflationDestination(ctx context.Context, g *libkb.GlobalContext, signed
 	}
 	_, err = g.API.Post(apiArg)
 	return err
+}
+
+type getInflationDestinationsRes struct {
+	libkb.AppStatusEmbed
+	Destinations []stellar1.PredefinedInflationDestination `json:"destinations"`
+}
+
+func GetInflationDestinations(ctx context.Context, g *libkb.GlobalContext) (ret []stellar1.PredefinedInflationDestination, err error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/inflation_destinations",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		MetaContext: libkb.NewMetaContext(ctx, g),
+	}
+	var apiRes getInflationDestinationsRes
+	err = g.API.GetDecode(apiArg, &apiRes)
+	if err != nil {
+		return ret, err
+	}
+	return apiRes.Destinations, nil
 }

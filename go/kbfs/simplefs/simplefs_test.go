@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -950,12 +951,22 @@ func TestTlfEditHistory(t *testing.T) {
 
 type subscriptionReporter struct {
 	libkbfs.Reporter
-	lastPath string
+
+	lastPathMtx sync.RWMutex
+	lastPath    string
 }
 
 func (sr *subscriptionReporter) NotifyPathUpdated(
 	_ context.Context, path string) {
+	sr.lastPathMtx.Lock()
+	defer sr.lastPathMtx.Unlock()
 	sr.lastPath = path
+}
+
+func (sr *subscriptionReporter) LastPath() string {
+	sr.lastPathMtx.RLock()
+	defer sr.lastPathMtx.RUnlock()
+	return sr.lastPath
 }
 
 func TestRefreshSubscription(t *testing.T) {
@@ -963,7 +974,7 @@ func TestRefreshSubscription(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	sfs := newSimpleFS(env.EmptyAppStateUpdater{}, config)
 	defer closeSimpleFS(ctx, t, sfs)
-	sr := &subscriptionReporter{config.Reporter(), ""}
+	sr := &subscriptionReporter{Reporter: config.Reporter()}
 	config.SetReporter(sr)
 
 	path1 := keybase1.NewPathWithKbfs(`/private/jdoe`)
@@ -971,7 +982,7 @@ func TestRefreshSubscription(t *testing.T) {
 	t.Log("Writing a file with no subscription")
 	writeRemoteFile(ctx, t, sfs, pathAppend(path1, `test1.txt`), []byte(`foo`))
 	syncFS(ctx, t, sfs, "/private/jdoe")
-	require.Equal(t, "", sr.lastPath)
+	require.Equal(t, "", sr.LastPath())
 
 	t.Log("Subscribe, and make sure we get a notification")
 	opid, err := sfs.SimpleFSMakeOpid(ctx)
@@ -987,7 +998,7 @@ func TestRefreshSubscription(t *testing.T) {
 
 	writeRemoteFile(ctx, t, sfs, pathAppend(path1, `test2.txt`), []byte(`foo`))
 	syncFS(ctx, t, sfs, "/private/jdoe")
-	require.Equal(t, "/keybase"+path1.Kbfs(), sr.lastPath)
+	require.Equal(t, "/keybase"+path1.Kbfs(), sr.LastPath())
 
 	t.Log("Make a public TLF")
 	path2 := keybase1.NewPathWithKbfs(`/public/jdoe`)
@@ -1009,11 +1020,11 @@ func TestRefreshSubscription(t *testing.T) {
 
 	writeRemoteFile(ctx, t, sfs, pathAppend(path2, `test2.txt`), []byte(`foo`))
 	syncFS(ctx, t, sfs, "/public/jdoe")
-	require.Equal(t, "/keybase"+path2.Kbfs(), sr.lastPath)
+	require.Equal(t, "/keybase"+path2.Kbfs(), sr.LastPath())
 
 	writeRemoteFile(ctx, t, sfs, pathAppend(path1, `test3.txt`), []byte(`foo`))
 	syncFS(ctx, t, sfs, "/private/jdoe")
-	require.Equal(t, "/keybase"+path2.Kbfs(), sr.lastPath)
+	require.Equal(t, "/keybase"+path2.Kbfs(), sr.LastPath())
 }
 
 func TestGetRevisions(t *testing.T) {

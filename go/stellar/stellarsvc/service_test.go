@@ -422,6 +422,7 @@ func TestSendLocalKeybase(t *testing.T) {
 	}
 	require.Equal(t, "9899.9999900", balances[0].Amount)
 
+	srvRecip.walletState.RefreshAll(tcs[1].MetaContext(), "test")
 	balances, err = srvRecip.BalancesLocal(context.Background(), accountIDRecip)
 	if err != nil {
 		t.Fatal(err)
@@ -605,8 +606,13 @@ func testRelaySBS(t *testing.T, yank bool) {
 	require.NotNil(t, fhistory[0].Payment)
 	require.NotEmpty(t, fhistory[0].Payment.Id)
 	require.NotZero(t, fhistory[0].Payment.Time)
-	require.Equal(t, stellar1.PaymentStatus_CLAIMABLE, fhistory[0].Payment.StatusSimplified)
-	require.Equal(t, "claimable", fhistory[0].Payment.StatusDescription)
+	if yank {
+		require.Equal(t, stellar1.PaymentStatus_CLAIMABLE, fhistory[0].Payment.StatusSimplified)
+		require.Equal(t, "claimable", fhistory[0].Payment.StatusDescription)
+	} else {
+		require.Equal(t, stellar1.PaymentStatus_PENDING, fhistory[0].Payment.StatusSimplified)
+		require.Equal(t, "pending", fhistory[0].Payment.StatusDescription)
+	}
 	if yank {
 		require.Equal(t, "3 XLM", fhistory[0].Payment.AmountDescription)
 		require.Equal(t, stellar1.BalanceDelta_DECREASE, fhistory[0].Payment.Delta)
@@ -767,8 +773,13 @@ func testRelayReset(t *testing.T, yank bool) {
 	require.NotNil(t, fhistory[0].Payment)
 	require.NotEmpty(t, fhistory[0].Payment.Id)
 	require.NotZero(t, fhistory[0].Payment.Time)
-	require.Equal(t, stellar1.PaymentStatus_CLAIMABLE, fhistory[0].Payment.StatusSimplified)
-	require.Equal(t, "claimable", fhistory[0].Payment.StatusDescription)
+	if yank {
+		require.Equal(t, stellar1.PaymentStatus_CLAIMABLE, fhistory[0].Payment.StatusSimplified)
+		require.Equal(t, "claimable", fhistory[0].Payment.StatusDescription)
+	} else {
+		require.Equal(t, stellar1.PaymentStatus_PENDING, fhistory[0].Payment.StatusSimplified)
+		require.Equal(t, "pending", fhistory[0].Payment.StatusDescription)
+	}
 
 	res, err := tcs[claimant].Srv.ClaimCLILocal(context.Background(), stellar1.ClaimCLILocalArg{TxID: txID.String()})
 	require.NoError(t, err)

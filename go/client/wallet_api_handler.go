@@ -268,9 +268,14 @@ func (w *walletAPIHandler) setInflation(ctx context.Context, c Call, wr io.Write
 		return w.encodeErr(c, err, wr)
 	}
 
+	destination, err := getInflationDestinationAddrFromString(w.cli, opts.AccountIDConvert(), opts.Destination)
+	if err != nil {
+		return w.encodeErr(c, err, wr)
+	}
+
 	arg := stellar1.SetInflationDestinationLocalArg{
 		AccountID:   opts.AccountIDConvert(),
-		Destination: opts.DestinationConvert(),
+		Destination: destination,
 	}
 	if err := w.cli.SetInflationDestinationLocal(ctx, arg); err != nil {
 		return w.encodeErr(c, err, wr)
@@ -306,7 +311,6 @@ func (w *walletAPIHandler) getInflationLocal(ctx context.Context, accountID stel
 	if inflation.Destination == nil {
 		var empty stellar1.AccountID
 		inflation.Destination = &empty
-		inflation.Comment = "no inflation destination set"
 	}
 	return inflation, nil
 }
@@ -388,18 +392,6 @@ func (c *inflationOptions) Check() error {
 // AccountIDConvert converts the AccountID string into a stellar1.AccountID.
 func (c *inflationOptions) AccountIDConvert() stellar1.AccountID {
 	return stellar1.AccountID(c.AccountID)
-}
-
-// DestinationConvert converts the Destination string into a stellar1.InflationDestination.
-func (c *inflationOptions) DestinationConvert() stellar1.InflationDestination {
-	switch c.Destination {
-	case "self":
-		return stellar1.NewInflationDestinationWithSelf()
-	case "lumenaut":
-		return stellar1.NewInflationDestinationWithLumenaut()
-	default:
-		return stellar1.NewInflationDestinationWithAccountid(stellar1.AccountID(c.Destination))
-	}
 }
 
 // sendOptions are the options for the send payment method.

@@ -2553,6 +2553,8 @@ func TestSetMobileOnly(t *testing.T) {
 	// service_test verifies that `SetAccountMobileOnlyLocal` behaves correctly under the covers
 }
 
+const lumenautAccID = stellar1.AccountID("GCCD6AJOYZCUAQLX32ZJF2MKFFAUJ53PVCFQI3RHWKL3V47QYE2BNAUT")
+
 func TestSetInflation(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
@@ -2574,41 +2576,73 @@ func TestSetInflation(t *testing.T) {
 	}
 	res := getInflation()
 	require.Nil(t, res.Destination)
-	require.Equal(t, "", res.Comment)
+	require.Nil(t, res.KnownDestination)
+	require.False(t, res.Self)
 
 	pub, _ := randomStellarKeypair()
 	err = tcs[0].Srv.SetInflationDestinationLocal(context.Background(), stellar1.SetInflationDestinationLocalArg{
 		AccountID:   senderAccountID,
-		Destination: stellar1.NewInflationDestinationWithAccountid(pub),
+		Destination: pub,
 	})
 	require.NoError(t, err)
 
 	res = getInflation()
 	require.NotNil(t, res.Destination)
 	require.Equal(t, pub, *res.Destination)
-	require.Equal(t, "", res.Comment)
+	require.Nil(t, res.KnownDestination)
+	require.False(t, res.Self)
 
 	err = tcs[0].Srv.SetInflationDestinationLocal(context.Background(), stellar1.SetInflationDestinationLocalArg{
 		AccountID:   senderAccountID,
-		Destination: stellar1.NewInflationDestinationWithSelf(),
+		Destination: senderAccountID,
 	})
 	require.NoError(t, err)
 
 	res = getInflation()
 	require.NotNil(t, res.Destination)
 	require.Equal(t, senderAccountID, *res.Destination)
-	require.Equal(t, "self", res.Comment)
+	require.Nil(t, res.KnownDestination)
+	require.True(t, res.Self)
 
 	err = tcs[0].Srv.SetInflationDestinationLocal(context.Background(), stellar1.SetInflationDestinationLocalArg{
 		AccountID:   senderAccountID,
-		Destination: stellar1.NewInflationDestinationWithLumenaut(),
+		Destination: lumenautAccID,
 	})
 	require.NoError(t, err)
 
 	res = getInflation()
 	require.NotNil(t, res.Destination)
-	require.Equal(t, stellar1.AccountID("GCCD6AJOYZCUAQLX32ZJF2MKFFAUJ53PVCFQI3RHWKL3V47QYE2BNAUT"), *res.Destination)
-	require.Equal(t, "https://pool.lumenaut.net/", res.Comment)
+	require.Equal(t, lumenautAccID, *res.Destination)
+	require.NotNil(t, res.KnownDestination)
+	require.Equal(t, lumenautAccID, res.KnownDestination.AccountID)
+	require.Equal(t, "https://pool.lumenaut.net/", res.KnownDestination.Url)
+	require.False(t, res.Self)
+}
+
+func TestGetInflationDestinations(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	acceptDisclaimer(tcs[0])
+	tcs[0].Backend.ImportAccountsForUser(tcs[0])
+
+	// This hits server, check if result is not empty and if lumenaut pool is
+	// there (this should not change).
+	res, err := tcs[0].Srv.GetPredefinedInflationDestinationsLocal(context.Background(), 0)
+	require.NoError(t, err)
+	require.NotEmpty(t, res)
+	var found bool
+	for _, dest := range res {
+		if dest.Tag == "lumenaut" {
+			require.False(t, found, "expecting to find only one lumenaut")
+			found = true
+			require.Equal(t, lumenautAccID, dest.AccountID)
+			require.Equal(t, "Lumenaut", dest.Name)
+			require.True(t, dest.Recommended)
+			require.Equal(t, "https://pool.lumenaut.net/", dest.Url)
+		}
+	}
+	require.True(t, found, "expecting to find lumenaut in the list")
 }
 
 type chatListener struct {
