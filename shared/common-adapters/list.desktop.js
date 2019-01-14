@@ -22,8 +22,9 @@ class List extends PureComponent<Props<any>, void> {
       // if indexAsKey is set, just use index.
       return <React.Fragment key={String(index)}>{children}</React.Fragment>
     }
-    if (item[this.props.keyProperty || 'key']) {
-      const key = item[this.props.keyProperty]
+    const keyProp = this.props.keyProperty || 'key'
+    if (item[keyProp]) {
+      const key = item[keyProp]
       // otherwise, see if key is set on item directly.
       return <React.Fragment key={key}>{children}</React.Fragment>
     }
