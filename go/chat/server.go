@@ -639,6 +639,10 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 			h.Debug(ctx, "GetThreadNonblock: queueing retry because of: %s", origErr)
 			h.G().FetchRetrier.Failure(ctx, uid,
 				NewConversationRetry(h.G(), arg.ConversationID, nil, ThreadLoad))
+		} else if res.Offline {
+			h.Debug(ctx, "GetThreadNonblock: queueing retry because result marked offline")
+			h.G().FetchRetrier.Failure(ctx, uid,
+				NewConversationRetry(h.G(), arg.ConversationID, nil, ThreadLoad))
 		} else {
 			h.G().FetchRetrier.Success(ctx, uid,
 				NewConversationRetry(h.G(), arg.ConversationID, nil, ThreadLoad))
