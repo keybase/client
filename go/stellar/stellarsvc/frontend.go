@@ -19,6 +19,8 @@ import (
 
 const WorthCurrencyErrorCode = "ERR"
 
+var ErrAccountIDMissing = errors.New("account id parameter missing")
+
 func (s *Server) GetWalletAccountsLocal(ctx context.Context, sessionID int) (accts []stellar1.WalletAccountLocal, err error) {
 	mctx, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName:       "GetWalletAccountsLocal",
@@ -46,7 +48,7 @@ func (s *Server) GetWalletAccountLocal(ctx context.Context, arg stellar1.GetWall
 
 	if arg.AccountID.IsNil() {
 		mctx.CDebugf("GetWalletAccountLocal called with an empty account id")
-		return acct, nil
+		return acct, ErrAccountIDMissing
 	}
 
 	return stellar.WalletAccount(mctx, s.remoter, arg.AccountID)
@@ -75,7 +77,7 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 
 	if arg.AccountID.IsNil() {
 		s.G().Log.CDebugf(ctx, "GetAccountAssetsLocal called with an empty account id")
-		return nil, nil
+		return nil, ErrAccountIDMissing
 	}
 
 	details, err := stellar.AccountDetails(mctx, s.remoter, arg.AccountID)
@@ -294,7 +296,7 @@ func (s *Server) GetPaymentsLocal(ctx context.Context, arg stellar1.GetPaymentsL
 
 	if arg.AccountID.IsNil() {
 		s.G().Log.CDebugf(ctx, "GetPaymentsLocal called with an empty account id")
-		return page, nil
+		return page, ErrAccountIDMissing
 	}
 
 	srvPayments, err := s.remoter.RecentPayments(ctx, arg.AccountID, arg.Cursor, 0, true)
@@ -318,7 +320,7 @@ func (s *Server) GetPendingPaymentsLocal(ctx context.Context, arg stellar1.GetPe
 
 	if arg.AccountID.IsNil() {
 		s.G().Log.CDebugf(ctx, "GetPendingPaymentsLocal called with an empty account id")
-		return payments, nil
+		return payments, ErrAccountIDMissing
 	}
 
 	pending, err := s.remoter.PendingPayments(ctx, arg.AccountID, 0)
@@ -532,7 +534,7 @@ func (s *Server) ChangeDisplayCurrencyLocal(ctx context.Context, arg stellar1.Ch
 	}
 
 	if arg.AccountID.IsNil() {
-		return errors.New("passed empty AccountID")
+		return ErrAccountIDMissing
 	}
 	return remote.SetAccountDefaultCurrency(mctx.Ctx(), s.G(), arg.AccountID, string(arg.Currency))
 }
@@ -566,7 +568,7 @@ func (s *Server) GetWalletAccountPublicKeyLocal(ctx context.Context, arg stellar
 	}
 
 	if arg.AccountID.IsNil() {
-		return res, errors.New("passed empty AccountID")
+		return res, ErrAccountIDMissing
 	}
 	return arg.AccountID.String(), nil
 }
@@ -583,7 +585,7 @@ func (s *Server) GetWalletAccountSecretKeyLocal(ctx context.Context, arg stellar
 	}
 
 	if arg.AccountID.IsNil() {
-		return res, errors.New("passed empty AccountID")
+		return res, ErrAccountIDMissing
 	}
 	return stellar.ExportSecretKey(mctx, arg.AccountID)
 }
