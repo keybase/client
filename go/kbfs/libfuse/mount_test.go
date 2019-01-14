@@ -174,6 +174,27 @@ func TestStatRoot(t *testing.T) {
 	}
 }
 
+func TestWriteLargeFile(t *testing.T) {
+	ctx := libkbfs.BackgroundContextWithCancellationDelayer()
+	defer libkbfs.CleanupCancellationDelayer(ctx)
+	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
+	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
+	mnt, _, cancelFn := makeFS(t, ctx, config)
+	defer mnt.Close()
+	defer cancelFn()
+
+	f, err := os.Create(path.Join(mnt.Dir, PrivateName, "jdoe", "large.data"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	src := bytes.NewReader(make([]byte, 16*1024*1024))
+	_,err = io.Copy(f, src)
+	if err != nil {
+		t.Fatal(err)
+	}
+	syncAndClose(t, f)
+}
+
 func TestStatPrivate(t *testing.T) {
 	ctx := libkbfs.BackgroundContextWithCancellationDelayer()
 	defer libkbfs.CleanupCancellationDelayer(ctx)
