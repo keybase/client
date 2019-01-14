@@ -20,19 +20,39 @@ export type Props = {|
   following: $ReadOnlyArray<string>,
   onBack: () => void,
   onReload: () => void,
+  onSearch: () => void,
   onEditAvatar: ?() => void,
   state: Types.DetailsState,
   username: string,
 |}
 
-const Header = ({onBack, state, backgroundColor}) => (
+const Header = p => (
   <Kb.Box2
     direction="horizontal"
     fullWidth={true}
-    style={Styles.collapseStyles([styles.header, {backgroundColor}])}
+    style={Styles.collapseStyles([styles.header, {backgroundColor: p.backgroundColor}])}
   >
-    <Kb.BackButton iconColor={Styles.globalColors.white} textStyle={styles.backButton} onClick={onBack} />
-    <Kb.Text type="Body">TODO search</Kb.Text>
+    <Kb.BackButton iconColor={Styles.globalColors.white} textStyle={styles.backButton} onClick={p.onBack} />
+    <Kb.ClickableBox onClick={p.onSearch} style={styles.searchContainer}>
+      <Kb.Box2
+        direction="horizontal"
+        centerChildren={true}
+        className="hover-opacity"
+        gap="tiny"
+        style={styles.search}
+      >
+        <Kb.Icon type="iconfont-search" color={Styles.globalColors.white} />
+        <Kb.Text type="BodySmallSemibold" style={styles.searchLabel}>
+          Search people
+        </Kb.Text>
+      </Kb.Box2>
+    </Kb.ClickableBox>
+    <Kb.BackButton
+      iconColor={Styles.globalColors.white}
+      textStyle={styles.backButton}
+      onClick={() => {}}
+      style={styles.invisible}
+    />
   </Kb.Box2>
 )
 
@@ -152,6 +172,7 @@ class User extends React.Component<Props, State> {
           onBack={this.props.onBack}
           state={this.props.state}
           backgroundColor={this.props.backgroundColor}
+          onSearch={this.props.onSearch}
         />
       )
     }
@@ -218,6 +239,7 @@ class User extends React.Component<Props, State> {
     const friends = this.state.selectedFollowing ? this.props.following : this.props.followers
     const {itemsInARow, itemWidth} = widthToDimentions(this.state.width)
     // $ForceType
+    // TODO memoize
     const chunks = this.state.width ? chunk(friends, itemsInARow) : []
 
     return (
@@ -343,6 +365,7 @@ const styles = Styles.styleSheetCreate({
     isMobile: {},
   }),
   innerContainer: {...Styles.globalStyles.fillAbsolute},
+  invisible: {opacity: 0},
   proofs: Styles.platformStyles({
     isElectron: {
       alignSelf: 'flex-start',
@@ -353,6 +376,23 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {width: '100%'},
   }),
+  search: {
+    backgroundColor: Styles.globalColors.black_10,
+    borderRadius: Styles.borderRadius,
+    minHeight: 24,
+    minWidth: Styles.isMobile ? 0 : 240,
+  },
+  searchContainer: Styles.platformStyles({
+    common: {
+      alignItems: 'center',
+      flexGrow: 1,
+      justifyContent: 'center',
+    },
+    isDesktop: {
+      ...Styles.desktopStyles.clickable,
+    },
+  }),
+  searchLabel: {color: Styles.globalColors.white_75},
   sectionList: {width: '100%'},
   sectionListContentStyle: Styles.platformStyles({
     common: {backgroundColor: Styles.globalColors.white},

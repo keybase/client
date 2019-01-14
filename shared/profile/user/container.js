@@ -4,6 +4,7 @@ import * as Constants from '../../constants/tracker2'
 import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
+import * as SearchGen from '../../actions/search-gen'
 import * as Styles from '../../styles'
 import Profile2 from '.'
 import type {RouteProps} from '../../route-tree/render-route'
@@ -52,6 +53,10 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     )
   },
   onBack: () => dispatch(ownProps.navigateUp()),
+  onSearch: () => {
+    dispatch(SearchGen.createSearchSuggestions({searchKey: 'profileSearch'}))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'search'}]}))
+  },
 })
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   assertionKeys: stateProps._assertions ? stateProps._assertions.keySeq().toArray() : null,
@@ -59,9 +64,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   followThem: stateProps.followThem,
   followers: stateProps.followers.toArray(),
   following: stateProps.following.toArray(),
-  onBack: () => dispatchProps.onBack(),
+  onBack: dispatchProps.onBack,
   onEditAvatar: stateProps._userIsYou ? dispatchProps._onEditAvatar : null,
   onReload: () => dispatchProps._onReload(stateProps.username),
+  onSearch: dispatchProps.onSearch,
   state: stateProps.state,
   username: stateProps.username,
 })

@@ -39,7 +39,7 @@ const stateToIcon = state => {
 const stateToColor = state => {
   switch (state) {
     case 'checking':
-      return Styles.globalColors.black_40
+      return Styles.globalColors.black_50
     case 'valid':
       return Styles.globalColors.blue2
     case 'error':
@@ -65,7 +65,7 @@ const assertionColorToColor = (c: Types.AssertionColor) => {
     case 'green':
       return Styles.globalColors.green
     case 'gray':
-      return Styles.globalColors.black_40
+      return Styles.globalColors.black_50
     case 'yellow':
       return Styles.globalColors.yellow2
     case 'orange':

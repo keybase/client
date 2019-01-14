@@ -10,21 +10,26 @@ type Props = {|
   width: number,
 |}
 
-const Friend = (p: Props) => (
-  <Kb.ClickableBox onClick={p.onClick} style={{width: p.width}}>
-    <Kb.Box2
-      direction="vertical"
-      style={Styles.collapseStyles([styles.container, {width: p.width}])}
-      centerChildren={true}
-    >
-      <Kb.Avatar size={64} username={p.username} style={styles.avatar} showFollowingStatus={true} />
-      <Kb.ConnectedUsernames type="Body" usernames={[p.username]} />
-      <Kb.Text type="BodySmall" lineClamp={1}>
-        {p.fullname}
-      </Kb.Text>
-    </Kb.Box2>
-  </Kb.ClickableBox>
-)
+class Friend extends React.PureComponent<Props> {
+  render() {
+    const p = this.props
+    return (
+      <Kb.ClickableBox onClick={p.onClick} style={{width: p.width}}>
+        <Kb.Box2
+          direction="vertical"
+          style={Styles.collapseStyles([styles.container, {width: p.width}])}
+          centerChildren={true}
+        >
+          <Kb.Avatar size={64} username={p.username} style={styles.avatar} showFollowingStatus={true} />
+          <Kb.ConnectedUsernames type="Body" usernames={[p.username]} />
+          <Kb.Text type="BodySmall" lineClamp={1}>
+            {p.fullname}
+          </Kb.Text>
+        </Kb.Box2>
+      </Kb.ClickableBox>
+    )
+  }
+}
 
 const styles = Styles.styleSheetCreate({
   avatar: {
