@@ -127,7 +127,7 @@ class AccountSettings extends React.Component<SettingsProps> {
             </Kb.Box2>
             <Divider />
             <Kb.Box2 direction="vertical" gap="tiny" style={styles.section} fullWidth={true}>
-              <Kb.Box style={{position: 'relative'}}>
+              <Kb.Box>
                 <Kb.Checkbox
                   checked={props.mobileOnlyMode}
                   disabled={!Styles.isMobile || props.mobileOnlyWaiting}
