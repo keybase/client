@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as I from 'immutable'
 import {namedConnect, type RouteProps} from '../util/container'
 import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as FsGen from '../actions/fs-gen'
 import * as Constants from '../constants/fs'
 import * as Types from '../constants/types/fs'
 import {isMobile} from '../constants/platform'
@@ -19,6 +20,7 @@ const mapDispatchToProps = (dispatch, {routePath}) => ({
     dispatch(RouteTreeGen.createNavigateUp()) // pop this route node before appending barePreview
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {path}, selected: 'barePreview'}]}))
   },
+  _loadPathMetadata: (path: Types.Path) => dispatch(FsGen.createLoadPathMetadata({path})),
 })
 
 const mergeProps = (stateProps, dispatchProps, {routeProps, routePath}) => {
@@ -27,6 +29,7 @@ const mergeProps = (stateProps, dispatchProps, {routeProps, routePath}) => {
   const pathItem = stateProps._pathItems.get(path, Constants.unknownPathItem)
   return {
     emitBarePreview: () => dispatchProps._emitBarePreview(path),
+    loadPathMetadata: () => dispatchProps._loadPathMetadata(path),
     mimeType: !isDefinitelyFolder && pathItem.type === 'file' ? pathItem.mimeType : null,
     path,
     pathType: isDefinitelyFolder ? 'folder' : stateProps._pathItems.get(path, Constants.unknownPathItem).type,
@@ -36,6 +39,7 @@ const mergeProps = (stateProps, dispatchProps, {routeProps, routePath}) => {
 
 type ChooseComponentProps = {
   emitBarePreview: () => void,
+  loadPathMetadata: () => void,
   mimeType: ?Types.Mime,
   path: Types.Path,
   pathType: Types.PathType,
@@ -55,10 +59,16 @@ class ChooseComponent extends React.PureComponent<ChooseComponentProps> {
     if (useBare(this.props.mimeType)) {
       this.props.emitBarePreview()
     }
+    if (this.props.pathType === 'unknown') {
+      this.props.loadPathMetadata()
+    }
   }
   componentDidUpdate(prevProps) {
     if (this.props.mimeType !== prevProps.mimeType && useBare(this.props.mimeType)) {
       this.props.emitBarePreview()
+    }
+    if (this.props.pathType !== prevProps.pathType && this.props.pathType === 'unknown') {
+      this.props.loadPathMetadata()
     }
   }
   render() {
