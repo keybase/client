@@ -266,7 +266,11 @@ const createPaymentsReceived = (accountID, payments, pending) =>
 
 const loadPayments = (state, action) =>
   !actionHasError(action) &&
-  (action.type === WalletsGen.selectAccount ||
+  (!!(
+    action.type === WalletsGen.selectAccount &&
+    action.payload.accountID &&
+    action.payload.accountID !== Types.noAccountID
+  ) ||
     Constants.getAccount(state, action.payload.accountID).accountID !== Types.noAccountID) &&
   Promise.all([
     RPCStellarTypes.localGetPendingPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
