@@ -1135,6 +1135,15 @@ func (h *Server) SetConversationStatusLocal(ctx context.Context, arg chat1.SetCo
 	}, nil
 }
 
+func (h *Server) getGregorDeviceID() (gregor1.DeviceID, error) {
+	db := make([]byte, 16)
+	deviceID := h.G().Env.GetDeviceID()
+	if err := deviceID.ToBytes(db); err != nil {
+		return nil, err
+	}
+	return gregor1.DeviceID(db), nil
+}
+
 // PostLocal implements keybase.chatLocal.postLocal protocol.
 func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res chat1.PostLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
@@ -1159,14 +1168,11 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 	}
 
 	// Make sure sender is set
-	db := make([]byte, 16)
-	deviceID := h.G().Env.GetDeviceID()
-	if err = deviceID.ToBytes(db); err != nil {
+	arg.Msg.ClientHeader.Sender = uid
+	arg.Msg.ClientHeader.SenderDevice, err = h.getGregorDeviceID()
+	if err != nil {
 		return res, err
 	}
-	arg.Msg.ClientHeader.Sender = uid
-	arg.Msg.ClientHeader.SenderDevice = gregor1.DeviceID(db)
-
 	sender := NewBlockingSender(h.G(), h.boxer, h.remoteClient)
 
 	_, msgBoxed, err := sender.Send(ctx, arg.ConversationID, arg.Msg, 0, nil)
@@ -1213,6 +1219,11 @@ func (h *Server) PostEditNonblock(ctx context.Context, arg chat1.PostEditNonbloc
 	parg.IdentifyBehavior = arg.IdentifyBehavior
 	parg.OutboxID = arg.OutboxID
 	parg.Msg.ClientHeader.MessageType = chat1.MessageType_EDIT
+	// Sending device may have changed
+	parg.Msg.ClientHeader.SenderDevice, err = h.getGregorDeviceID()
+	if err != nil {
+		return res, err
+	}
 	parg.Msg.ClientHeader.Supersedes = supersedes
 	parg.Msg.ClientHeader.TlfName = arg.TlfName
 	parg.Msg.ClientHeader.TlfPublic = arg.TlfPublic
