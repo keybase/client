@@ -16,10 +16,16 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = (dispatch, {routePath}) => ({
-  _emitBarePreview: (path: Types.Path) => {
-    dispatch(RouteTreeGen.createNavigateUp()) // pop this route node before appending barePreview
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {path}, selected: 'barePreview'}]}))
-  },
+  _emitBarePreview: (path: Types.Path) =>
+    dispatch(
+      RouteTreeGen.createPutActionIfOnPath({
+        expectedPath: routePath,
+        otherAction: RouteTreeGen.createNavigateTo({
+          parentPath: routePath.skipLast(1),
+          path: [{props: {path}, selected: 'barePreview'}],
+        }),
+      })
+    ),
   _loadPathMetadata: (path: Types.Path) => dispatch(FsGen.createLoadPathMetadata({path})),
 })
 
