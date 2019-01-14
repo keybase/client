@@ -74,6 +74,7 @@ export const keybase1IdentifyUiDelegateIdentifyUI = 'engine-gen:keybase1Identify
 export const keybase1IdentifyUiDismiss = 'engine-gen:keybase1IdentifyUiDismiss'
 export const keybase1IdentifyUiDisplayCryptocurrency = 'engine-gen:keybase1IdentifyUiDisplayCryptocurrency'
 export const keybase1IdentifyUiDisplayKey = 'engine-gen:keybase1IdentifyUiDisplayKey'
+export const keybase1IdentifyUiDisplayStellarAccount = 'engine-gen:keybase1IdentifyUiDisplayStellarAccount'
 export const keybase1IdentifyUiDisplayTLFCreateWithInvite = 'engine-gen:keybase1IdentifyUiDisplayTLFCreateWithInvite'
 export const keybase1IdentifyUiDisplayTrackStatement = 'engine-gen:keybase1IdentifyUiDisplayTrackStatement'
 export const keybase1IdentifyUiDisplayUserCard = 'engine-gen:keybase1IdentifyUiDisplayUserCard'
@@ -230,6 +231,7 @@ type _Keybase1IdentifyUiDelegateIdentifyUIPayload = $ReadOnly<{|params: $Exact<$
 type _Keybase1IdentifyUiDismissPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.dismiss'>, 'inParam'>>|}>
 type _Keybase1IdentifyUiDisplayCryptocurrencyPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayCryptocurrency'>, 'inParam'>>|}>
 type _Keybase1IdentifyUiDisplayKeyPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayKey'>, 'inParam'>>|}>
+type _Keybase1IdentifyUiDisplayStellarAccountPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayStellarAccount'>, 'inParam'>>|}>
 type _Keybase1IdentifyUiDisplayTLFCreateWithInvitePayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayTLFCreateWithInvite'>, 'inParam'>>|}>
 type _Keybase1IdentifyUiDisplayTrackStatementPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayTrackStatement'>, 'inParam'>>|}>
 type _Keybase1IdentifyUiDisplayUserCardPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayUserCard'>, 'inParam'>>|}>
@@ -386,6 +388,7 @@ export const createKeybase1IdentifyUiDelegateIdentifyUI = (payload: _Keybase1Ide
 export const createKeybase1IdentifyUiDismiss = (payload: _Keybase1IdentifyUiDismissPayload) => ({payload, type: keybase1IdentifyUiDismiss})
 export const createKeybase1IdentifyUiDisplayCryptocurrency = (payload: _Keybase1IdentifyUiDisplayCryptocurrencyPayload) => ({payload, type: keybase1IdentifyUiDisplayCryptocurrency})
 export const createKeybase1IdentifyUiDisplayKey = (payload: _Keybase1IdentifyUiDisplayKeyPayload) => ({payload, type: keybase1IdentifyUiDisplayKey})
+export const createKeybase1IdentifyUiDisplayStellarAccount = (payload: _Keybase1IdentifyUiDisplayStellarAccountPayload) => ({payload, type: keybase1IdentifyUiDisplayStellarAccount})
 export const createKeybase1IdentifyUiDisplayTLFCreateWithInvite = (payload: _Keybase1IdentifyUiDisplayTLFCreateWithInvitePayload) => ({payload, type: keybase1IdentifyUiDisplayTLFCreateWithInvite})
 export const createKeybase1IdentifyUiDisplayTrackStatement = (payload: _Keybase1IdentifyUiDisplayTrackStatementPayload) => ({payload, type: keybase1IdentifyUiDisplayTrackStatement})
 export const createKeybase1IdentifyUiDisplayUserCard = (payload: _Keybase1IdentifyUiDisplayUserCardPayload) => ({payload, type: keybase1IdentifyUiDisplayUserCard})
@@ -542,6 +545,7 @@ export type Keybase1IdentifyUiDelegateIdentifyUIPayload = {|+payload: _Keybase1I
 export type Keybase1IdentifyUiDismissPayload = {|+payload: _Keybase1IdentifyUiDismissPayload, +type: 'engine-gen:keybase1IdentifyUiDismiss'|}
 export type Keybase1IdentifyUiDisplayCryptocurrencyPayload = {|+payload: _Keybase1IdentifyUiDisplayCryptocurrencyPayload, +type: 'engine-gen:keybase1IdentifyUiDisplayCryptocurrency'|}
 export type Keybase1IdentifyUiDisplayKeyPayload = {|+payload: _Keybase1IdentifyUiDisplayKeyPayload, +type: 'engine-gen:keybase1IdentifyUiDisplayKey'|}
+export type Keybase1IdentifyUiDisplayStellarAccountPayload = {|+payload: _Keybase1IdentifyUiDisplayStellarAccountPayload, +type: 'engine-gen:keybase1IdentifyUiDisplayStellarAccount'|}
 export type Keybase1IdentifyUiDisplayTLFCreateWithInvitePayload = {|+payload: _Keybase1IdentifyUiDisplayTLFCreateWithInvitePayload, +type: 'engine-gen:keybase1IdentifyUiDisplayTLFCreateWithInvite'|}
 export type Keybase1IdentifyUiDisplayTrackStatementPayload = {|+payload: _Keybase1IdentifyUiDisplayTrackStatementPayload, +type: 'engine-gen:keybase1IdentifyUiDisplayTrackStatement'|}
 export type Keybase1IdentifyUiDisplayUserCardPayload = {|+payload: _Keybase1IdentifyUiDisplayUserCardPayload, +type: 'engine-gen:keybase1IdentifyUiDisplayUserCard'|}
@@ -700,6 +704,7 @@ export type Actions =
   | Keybase1IdentifyUiDismissPayload
   | Keybase1IdentifyUiDisplayCryptocurrencyPayload
   | Keybase1IdentifyUiDisplayKeyPayload
+  | Keybase1IdentifyUiDisplayStellarAccountPayload
   | Keybase1IdentifyUiDisplayTLFCreateWithInvitePayload
   | Keybase1IdentifyUiDisplayTrackStatementPayload
   | Keybase1IdentifyUiDisplayUserCardPayload

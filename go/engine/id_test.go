@@ -264,7 +264,12 @@ func (ui *FakeIdentifyUI) Confirm(outcome *keybase1.IdentifyOutcome) (result key
 	result.RemoteConfirmed = bypass && !outcome.TrackOptions.ExpiringLocal
 	return
 }
+
 func (ui *FakeIdentifyUI) DisplayCryptocurrency(keybase1.Cryptocurrency) error {
+	return nil
+}
+
+func (ui *FakeIdentifyUI) DisplayStellarAccount(keybase1.StellarAccount) error {
 	return nil
 }
 

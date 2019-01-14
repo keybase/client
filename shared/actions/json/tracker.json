@@ -163,6 +163,12 @@
         "Array<{|username: string, uid: string, fullname: string, followsYou: boolean, following: boolean|}>",
       "tracking":
         "Array<{|username: string, uid: string, fullname: string, followsYou: boolean, following: boolean|}>"
+    },
+    "updateStellarAddress": {
+      "username": "string",
+      "accountID": "string",
+      "federationAddress": "string",
+      "sigID": "string"
     }
   }
 }

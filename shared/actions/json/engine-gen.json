@@ -204,6 +204,9 @@
         "keybase1IdentifyUiDisplayCryptocurrency": {
             "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayCryptocurrency'>, 'inParam'>>"
         },
+        "keybase1IdentifyUiDisplayStellarAccount": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayStellarAccount'>, 'inParam'>>"
+        },
         "keybase1IdentifyUiReportTrackToken": {
             "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.reportTrackToken'>, 'inParam'>>"
         },

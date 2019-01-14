@@ -977,6 +977,14 @@ func (s *WalletStellarChainLink) VerifyReverseSig(_ ComputedKeyFamily) (err erro
 	return VerifyReverseSig(s.G(), key, "body.wallet_key.reverse_sig", s.UnmarshalPayloadJSON(), s.reverseSig)
 }
 
+func (s *WalletStellarChainLink) Display(ui IdentifyUI) error {
+	return ui.DisplayStellarAccount(keybase1.StellarAccount{
+		AccountID:         s.address,
+		FederationAddress: fmt.Sprintf("%s*keybase.io", s.GetUsername()),
+		SigID:             s.GetSigID(),
+	})
+}
+
 //
 //=========================================================================
 // UntrackChainLink
@@ -1503,6 +1511,12 @@ func (idt *IdentityTable) Identify(m MetaContext, is IdentifyState, forceRemoteC
 	allAcc := idt.AllActiveCryptocurrency()
 	for _, acc := range allAcc {
 		if err := acc.Display(ui); err != nil {
+			return err
+		}
+	}
+
+	if stellar := idt.stellar; stellar != nil {
+		if err := stellar.Display(ui); err != nil {
 			return err
 		}
 	}

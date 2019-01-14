@@ -303,6 +303,7 @@ type IdentifyUI interface {
 	FinishSocialProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult) error
 	Confirm(*keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error)
 	DisplayCryptocurrency(keybase1.Cryptocurrency) error
+	DisplayStellarAccount(keybase1.StellarAccount) error
 	DisplayKey(keybase1.IdentifyKey) error
 	ReportLastTrack(*keybase1.TrackSummary) error
 	LaunchNetworkChecks(*keybase1.Identity, *keybase1.User) error

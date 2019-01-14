@@ -75,6 +75,7 @@ export type TrackerState = {
   needTrackTokenDismiss: boolean,
   tlfs: Array<Folder>,
   selectedTeam: string,
+  stellarFederationAddress: ?string,
 }
 
 export type NonUserState = {
