@@ -124,7 +124,6 @@ export const updateMeta = (
       return old
     }
   }
-
   const participants = old.participants.equals(meta.participants) ? old.participants : meta.participants
   const rekeyers = old.rekeyers.equals(meta.rekeyers) ? old.rekeyers : meta.rekeyers
   const resetParticipants = old.resetParticipants.equals(meta.resetParticipants)
@@ -132,6 +131,16 @@ export const updateMeta = (
     : meta.resetParticipants
 
   return meta.withMutations(m => {
+    // don't downgrade trusted status for an inbox update that doesn't contain a newer version of the
+    // meta
+    m.set(
+      'trustedState',
+      old.trustedState === 'trusted' &&
+        meta.trustedState === 'untrusted' &&
+        old.inboxVersion >= meta.inboxVersion
+        ? 'trusted'
+        : meta.trustedState
+    )
     m.set('channelname', meta.channelname || old.channelname)
     m.set('participants', participants)
     m.set('rekeyers', rekeyers)
