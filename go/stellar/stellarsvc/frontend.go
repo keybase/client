@@ -44,6 +44,11 @@ func (s *Server) GetWalletAccountLocal(ctx context.Context, arg stellar1.GetWall
 		return acct, err
 	}
 
+	if arg.AccountID.IsNil() {
+		mctx.CDebugf("GetWalletAccountLocal called with an empty account id")
+		return acct, nil
+	}
+
 	return stellar.WalletAccount(mctx, s.remoter, arg.AccountID)
 }
 
@@ -66,6 +71,11 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 	defer fin()
 	if err != nil {
 		return nil, err
+	}
+
+	if arg.AccountID.IsNil() {
+		s.G().Log.CDebugf(ctx, "GetAccountAssetsLocal called with an empty account id")
+		return nil, nil
 	}
 
 	details, err := stellar.AccountDetails(mctx, s.remoter, arg.AccountID)
@@ -282,6 +292,11 @@ func (s *Server) GetPaymentsLocal(ctx context.Context, arg stellar1.GetPaymentsL
 		return page, err
 	}
 
+	if arg.AccountID.IsNil() {
+		s.G().Log.CDebugf(ctx, "GetPaymentsLocal called with an empty account id")
+		return page, nil
+	}
+
 	srvPayments, err := s.remoter.RecentPayments(ctx, arg.AccountID, arg.Cursor, 0, true)
 	if err != nil {
 		return page, err
@@ -299,6 +314,11 @@ func (s *Server) GetPendingPaymentsLocal(ctx context.Context, arg stellar1.GetPe
 	defer fin()
 	if err != nil {
 		return nil, err
+	}
+
+	if arg.AccountID.IsNil() {
+		s.G().Log.CDebugf(ctx, "GetPendingPaymentsLocal called with an empty account id")
+		return payments, nil
 	}
 
 	pending, err := s.remoter.PendingPayments(ctx, arg.AccountID, 0)
