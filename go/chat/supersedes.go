@@ -60,7 +60,7 @@ func (t *basicSupersedesTransform) transformEdit(msg chat1.MessageUnboxed, super
 	mvalid := msg.Valid()
 	var payments []chat1.TextPayment
 	typ, err := mvalid.MessageBody.MessageType()
-	if err == nil && typ == chat1.MessageType_TEXT {
+     if mvalid.MessageBody.IsType(chat1.Message_Type_TEXT) {
 		payments = mvalid.MessageBody.Text().Payments
 	}
 	mvalid.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{
