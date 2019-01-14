@@ -323,7 +323,10 @@ const handleAppLink = (_, action) => {
   const url = new URL(action.payload.link)
   const username = Constants.urlToUsername(url)
   if (username) {
-    return [RouteTreeGen.createSwitchTo({path: [Tabs.profileTab]}), ProfileGen.createShowUserProfile({username})]
+    return [
+      RouteTreeGen.createSwitchTo({path: [Tabs.profileTab]}),
+      ProfileGen.createShowUserProfile({username}),
+    ]
   }
 }
 
@@ -356,7 +359,6 @@ const updateServerConfig = (state: TypedState) =>
       const obj: {
         features: {
           admin?: {value: boolean},
-          stellar?: {value: boolean},
         },
       } = JSON.parse(str.body)
       const features = Object.keys(obj.features).reduce((map, key) => {
@@ -367,7 +369,6 @@ const updateServerConfig = (state: TypedState) =>
       const serverConfig = {
         chatIndexProfilingEnabled: !!features.admin,
         printRPCStats: !!features.admin,
-        walletsEnabled: !!features.stellar,
       }
 
       logger.info('updateServerConfig', serverConfig)

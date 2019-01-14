@@ -55,9 +55,6 @@ if (!__STORYBOOK__) {
       const serverConfig = JSON.parse(fs.readFileSync(serverConfigFileName, 'utf8'))
       if (serverConfig.lastLoggedInUser) {
         const userConfig = serverConfig[serverConfig.lastLoggedInUser] || {}
-        if (userConfig.walletsEnabled) {
-          config.featureFlagsOverride = (config.featureFlagsOverride || '') + ',walletsEnabled'
-        }
         if (userConfig.printRPCStats) {
           config.printRPCStats = true
         }
