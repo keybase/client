@@ -428,7 +428,11 @@ func (p *blockPrefetcher) request(ctx context.Context, priority int,
 			pre.parents[ptr.RefNonce] = make(map[BlockPointer]<-chan struct{})
 		}
 		pre.parents[ptr.RefNonce][parentPtr] = parentPre.waitCh
-		p.log.CDebugf(ctx, "%d blocks to prefetch %t", pre.subtreeBlockCount, isParentNew)
+		if pre.subtreeBlockCount > 0 {
+			p.log.CDebugf(ctx,
+				"Prefetching %v, action=%s, numBlocks=%d, isPrefetchNew=%t",
+				ptr, action, pre.subtreeBlockCount, isParentNew)
+		}
 		return pre.subtreeBlockCount
 	}
 	return 0
@@ -491,8 +495,6 @@ func (p *blockPrefetcher) prefetchDirectDirBlock(
 				"unknown type %d", entry.Type)
 			continue
 		}
-		p.log.CDebugf(ctx,
-			"Prefetching %v, action=%s", entry.BlockPointer, action)
 		totalChildEntries++
 		numBlocks += p.request(ctx, newPriority, kmd, entry.BlockPointer,
 			block, lifetime, parentPtr, isPrefetchNew, action, idsSeen)
