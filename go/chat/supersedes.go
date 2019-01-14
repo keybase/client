@@ -59,7 +59,8 @@ func (t *basicSupersedesTransform) transformDelete(msg chat1.MessageUnboxed, sup
 func (t *basicSupersedesTransform) transformEdit(msg chat1.MessageUnboxed, superMsg chat1.MessageUnboxed) *chat1.MessageUnboxed {
 	mvalid := msg.Valid()
 	var payments []chat1.TextPayment
-	if mvalid.ClientHeader.MessageType == chat1.MessageType_TEXT {
+	typ, err := mvalid.MessageBody.MessageType()
+	if err == nil && typ == chat1.MessageType_TEXT {
 		payments = mvalid.MessageBody.Text().Payments
 	}
 	mvalid.MessageBody = chat1.NewMessageBodyWithText(chat1.MessageText{
