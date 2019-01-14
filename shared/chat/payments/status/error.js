@@ -46,6 +46,7 @@ const styles = Styles.styleSheetCreate({
     common: {color: Styles.globalColors.red},
     isElectron: {
       textAlign: 'center',
+      wordBreak: 'break-word',
     },
   }),
   errorContainer: Styles.platformStyles({
