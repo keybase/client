@@ -397,10 +397,14 @@ func MakeLocalTeams(teams []kbname.NormalizedUsername) []TeamInfo {
 // <MaxBlockSizeBytesDefault * DefaultBlocksInMemCache>; otherwise,
 // fallback to latter.
 func getDefaultCleanBlockCacheCapacity(mode InitMode) uint64 {
+	const minCapacity = 10 * uint64(MaxBlockSizeBytesDefault) // 5mb
 	capacity := uint64(MaxBlockSizeBytesDefault) * DefaultBlocksInMemCache
 	vmstat, err := mem.VirtualMemory()
 	if err == nil {
 		ramBased := vmstat.Total / 8
+		if ramBased < minCapacity {
+			ramBased = minCapacity
+		}
 		if ramBased < capacity {
 			capacity = ramBased
 		}
