@@ -581,7 +581,7 @@ func (h *UserHandler) profileProofSuggestionsHelper(mctx libkb.MetaContext) (ret
 		suggestions[i].Priority = priorityFn(suggestions[i].Key)
 	}
 
-	sort.Slice(suggestions, func(i, j int) bool {
+	sort.SliceStable(suggestions, func(i, j int) bool {
 		return suggestions[i].Priority < suggestions[j].Priority
 	})
 	return suggestions, nil
