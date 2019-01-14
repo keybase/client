@@ -4,7 +4,6 @@ import {Box2} from './box'
 import Icon, {castPlatformStyles as iconCastPlatformStyles} from './icon'
 import Text from './text'
 import * as Styles from '../styles'
-import {memoize} from '../util/memoize'
 
 type Color = 'blue' | 'red' | 'yellow' | 'green' | 'grey'
 
@@ -18,41 +17,43 @@ type Props = {
   text: string,
 }
 
-const getContainerStyle = memoize((props: Props) =>
-  Styles.collapseStyles([styles.container, colorToBackgroundColorStyles[props.color]])
-)
-const getTextStyle = memoize((props: Props) => colorToTextColorStyles[props.color])
-
 const Banner = (props: Props) => (
-  <Box2 direction="horizontal" fullWidth={true} style={getContainerStyle(props)}>
+  <Box2
+    direction="horizontal"
+    fullWidth={true}
+    style={Styles.collapseStyles([styles.container, colorToBackgroundColorStyles[props.color]])}
+  >
     <Box2 key="textBox" direction="horizontal" style={styles.textContainer} centerChildren={true}>
-      {props.text.split(' ').map((word, index) => (
-        <Text key={`word-${index}`} type="BodySmallSemibold" style={getTextStyle(props)}>
-          {word}&nbsp;
-        </Text>
-      ))}
-      {!!props.actions &&
-        props.actions.map(({title, onClick}, index) => (
-          <React.Fragment key={String(index)}>
-            <Text
-              key="action"
-              type="BodySmallSemibold"
-              onClick={onClick}
-              style={getTextStyle(props)}
-              underline={true}
-            >
-              {title}
-            </Text>
-            <Text key="space" type="BodySmallSemibold">
-              &nbsp;
-            </Text>
-          </React.Fragment>
-        ))}
+      <Text
+        type="BodySmallSemibold"
+        style={Styles.collapseStyles([styles.text, colorToTextColorStyles[props.color]])}
+      >
+        {props.text}
+        {!!props.actions &&
+          props.actions.reduce(
+            (parts, {title, onClick}, index) => [
+              ...parts,
+              <Text key={`space-${index}`} type="BodySmallSemibold">
+                &nbsp;
+              </Text>,
+              <Text
+                key={`action-${index}`}
+                type="BodySmallSemibold"
+                onClick={onClick}
+                style={colorToTextColorStyles[props.color]}
+                underline={true}
+              >
+                {title}
+              </Text>,
+            ],
+            []
+          )}
+      </Text>
     </Box2>
     {!!props.onClose && (
       <Box2 key="iconBox" direction="vertical" style={styles.iconContainer} centerChildren={true}>
         <Icon
-          fontSize={Styles.isMobile ? undefined : 12}
+          fontSize={Styles.isMobile ? undefined : Styles.globalMargins.xsmall}
           type="iconfont-close"
           style={iconCastPlatformStyles(styles.icon)}
           color={Styles.globalColors.white_90}
@@ -66,29 +67,31 @@ const Banner = (props: Props) => (
 
 const styles = Styles.styleSheetCreate({
   container: {
-    minHeight: 40,
+    minHeight: Styles.globalMargins.large,
   },
   icon: {
     padding: Styles.globalMargins.tiny,
   },
   iconContainer: {
     alignSelf: 'flex-start',
-    height: 40,
+    height: Styles.globalMargins.large,
+  },
+  text: {
+    textAlign: 'center',
   },
   textContainer: Styles.platformStyles({
     common: {
       flex: 1,
-      flexWrap: 'wrap',
-      paddingBottom: 8,
-      paddingTop: 8,
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingTop: Styles.globalMargins.tiny,
     },
     isElectron: {
-      paddingLeft: 64,
-      paddingRight: 64,
+      paddingLeft: Styles.globalMargins.xlarge,
+      paddingRight: Styles.globalMargins.xlarge,
     },
     isMobile: {
-      paddingLeft: 24,
-      paddingRight: 24,
+      paddingLeft: Styles.globalMargins.medium,
+      paddingRight: Styles.globalMargins.medium,
     },
   }),
 })
