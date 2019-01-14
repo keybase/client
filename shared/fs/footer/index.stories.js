@@ -4,7 +4,6 @@ import * as Sb from '../../stories/storybook'
 import {Box, Box2, Text} from '../../common-adapters'
 import Downloads from './downloads'
 import Download from './download'
-import Errs from './errs'
 import Upload from './upload'
 
 export const footerProvider = {
@@ -21,9 +20,6 @@ export const footerProvider = {
     downloadKeys: ['file 1', 'blah 2', 'yo 3'],
     openDownloadFolder: Sb.action('openDownloadFolder'),
     thereAreMore: true,
-  }),
-  ConnectedErrs: () => ({
-    errs: [],
   }),
   ConnectedUpload: () => ({
     files: 0,
@@ -108,36 +104,6 @@ const load = () =>
         />
         <Box style={{height: 8}} />
       </Box>
-    ))
-    .add('Errs', () => (
-      <Errs
-        errs={[
-          {
-            dismiss: Sb.action('dismiss'),
-            error: 'long error detail blah blah SimpleFS.SimpleFSCopyRecursive has blown up',
-            key: '1',
-            msg: 'Error when downloading file blah 1.jpg',
-            time: 1534362428795,
-          },
-          {
-            dismiss: Sb.action('dismiss'),
-            error: 'long error detail blah blah SimpleFS.SimpleFSCopyRecursive has blown up',
-            key: '2',
-            msg: 'Error when downloading file blah 2.jpg',
-            retry: Sb.action('retry'),
-            time: 1534362428795,
-          },
-          {
-            dismiss: Sb.action('dismiss'),
-            error: 'long error detail blah blah SimpleFS.SimpleFSCopyRecursive has blown up',
-            key: '3',
-            msg: 'Error when downloading file blah 99.jpg',
-            retry: Sb.action('retry'),
-            time: 1534362428795,
-          },
-        ]}
-        more={2}
-      />
     ))
     .add('UploadBanner', () => (
       <Upload fileName={null} files={42} totalSyncingBytes={100} timeLeft="23 min" showing={true} />
