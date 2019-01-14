@@ -26,6 +26,7 @@ export type SettingsProps = {|
   refresh: () => void,
   saveCurrencyWaiting: boolean,
   mobileOnlyMode: boolean,
+  mobileOnlyWaiting: boolean,
 |}
 
 const HoverText = Styles.isMobile
@@ -126,12 +127,26 @@ class AccountSettings extends React.Component<SettingsProps> {
             </Kb.Box2>
             <Divider />
             <Kb.Box2 direction="vertical" gap="tiny" style={styles.section} fullWidth={true}>
-              <Kb.Checkbox
-                checked={props.mobileOnlyMode}
-                disabled={!Styles.isMobile}
-                label="Mobile only"
-                onCheck={props.onMobileOnlyModeChange}
-              />
+              <Kb.Box style={{position: 'relative'}}>
+                <Kb.Checkbox
+                  checked={props.mobileOnlyMode}
+                  disabled={!Styles.isMobile || props.mobileOnlyWaiting}
+                  label="Mobile only"
+                  onCheck={props.onMobileOnlyModeChange}
+                />
+                {props.mobileOnlyWaiting && (
+                  <Kb.Box2
+                    direction="horizontal"
+                    centerChildren={true}
+                    style={Styles.collapseStyles([
+                      Styles.globalStyles.fillAbsolute,
+                      styles.mobileOnlySpinner,
+                    ])}
+                  >
+                    <Kb.ProgressIndicator type="Small" />
+                  </Kb.Box2>
+                )}
+              </Kb.Box>
               {!Styles.isMobile && (
                 <Kb.Text type="BodySmall">This setting can only be changed from a mobile device.</Kb.Text>
               )}
@@ -217,6 +232,9 @@ const styles = Styles.styleSheetCreate({
   identityBox: {
     flexGrow: 1,
     flexShrink: 1,
+  },
+  mobileOnlySpinner: {
+    backgroundColor: Styles.globalColors.white_90,
   },
   red: {color: Styles.globalColors.red},
   remove: {
