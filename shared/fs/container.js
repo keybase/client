@@ -55,11 +55,20 @@ const useBare = isMobile
     }
 
 class ChooseComponent extends React.PureComponent<ChooseComponentProps> {
+  _needsLoadMatadata = () => {
+    if (this.props.pathType === 'unknown') {
+      return true
+    }
+    if (this.props.pathType === 'file' && !this.props.mimeType) {
+      return true
+    }
+    return false
+  }
   componentDidMount() {
     if (useBare(this.props.mimeType)) {
       this.props.emitBarePreview()
     }
-    if (this.props.pathType === 'unknown') {
+    if (this._needsLoadMatadata()) {
       this.props.loadPathMetadata()
     }
   }
@@ -67,7 +76,7 @@ class ChooseComponent extends React.PureComponent<ChooseComponentProps> {
     if (this.props.mimeType !== prevProps.mimeType && useBare(this.props.mimeType)) {
       this.props.emitBarePreview()
     }
-    if (this.props.pathType !== prevProps.pathType && this.props.pathType === 'unknown') {
+    if (this.props.path !== prevProps.path || this._needsLoadMatadata()) {
       this.props.loadPathMetadata()
     }
   }
