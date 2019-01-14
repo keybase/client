@@ -472,6 +472,8 @@ export const validateSecretKeyWaitingKey = 'wallets:validateSecretKey'
 export const getRequestDetailsWaitingKey = (id: Types.PaymentID) =>
   `wallets:requestDetailsWaitingKey:${Types.paymentIDToString(id)}`
 export const inflationDestinationWaitingKey = 'wallets:inflationDestination'
+export const setAccountMobileOnlyWaitingKey = (id: Types.AccountID) =>
+  `wallets:setAccountMobileOnly:${Types.accountIDToString(id)}`
 
 export const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().toList()
 
