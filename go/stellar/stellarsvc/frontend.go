@@ -30,35 +30,7 @@ func (s *Server) GetWalletAccountsLocal(ctx context.Context, sessionID int) (acc
 		return nil, err
 	}
 
-	bundle, err := remote.FetchSecretlessBundle(mctx)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, entry := range bundle.Accounts {
-		acct, err := s.accountLocal(mctx, entry)
-		if err != nil {
-			return nil, err
-		}
-
-		accts = append(accts, acct)
-	}
-
-	// Put the primary account first, then sort by name, then by account ID
-	sort.SliceStable(accts, func(i, j int) bool {
-		if accts[i].IsDefault {
-			return true
-		}
-		if accts[j].IsDefault {
-			return false
-		}
-		if accts[i].Name == accts[j].Name {
-			return accts[i].AccountID < accts[j].AccountID
-		}
-		return accts[i].Name < accts[j].Name
-	})
-
-	return accts, nil
+	return stellar.AllWalletAccounts(mctx, s.remoter)
 }
 
 func (s *Server) GetWalletAccountLocal(ctx context.Context, arg stellar1.GetWalletAccountLocalArg) (acct stellar1.WalletAccountLocal, err error) {
@@ -72,22 +44,12 @@ func (s *Server) GetWalletAccountLocal(ctx context.Context, arg stellar1.GetWall
 		return acct, err
 	}
 
-	bundle, err := remote.FetchSecretlessBundle(mctx)
-	if err != nil {
-		return acct, err
-	}
-
-	entry, err := bundle.Lookup(arg.AccountID)
-	if err != nil {
-		return acct, err
-	}
-
-	return s.accountLocal(mctx, entry)
+	return stellar.WalletAccount(mctx, s.remoter, arg.AccountID)
 }
 
 func (s *Server) accountLocal(mctx libkb.MetaContext, entry stellar1.BundleEntry) (stellar1.WalletAccountLocal, error) {
 	var empty stellar1.WalletAccountLocal
-	details, err := s.accountDetails(mctx.Ctx(), entry.AccountID)
+	details, err := stellar.AccountDetails(mctx, s.remoter, entry.AccountID)
 	if err != nil {
 		mctx.CDebugf("remote.Details failed for %q: %s", entry.AccountID, err)
 		return empty, err
@@ -106,7 +68,7 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 		return nil, err
 	}
 
-	details, err := s.accountDetails(ctx, arg.AccountID)
+	details, err := stellar.AccountDetails(mctx, s.remoter, arg.AccountID)
 	if err != nil {
 		s.G().Log.CDebugf(ctx, "remote.Details failed for %q: %s", arg.AccountID, err)
 		return nil, err
@@ -894,6 +856,19 @@ func (s *Server) SetAccountAllDevicesLocal(ctx context.Context, arg stellar1.Set
 	}
 
 	return s.remoter.MakeAccountAllDevices(mctx.Ctx(), arg.AccountID)
+}
+
+func (s *Server) GetPredefinedInflationDestinationsLocal(ctx context.Context, sessionID int) (ret []stellar1.PredefinedInflationDestination, err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName:       "GetPredefinedInflationDestinations",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return ret, err
+	}
+	return stellar.GetPredefinedInflationDestinations(mctx)
 }
 
 func (s *Server) SetInflationDestinationLocal(ctx context.Context, arg stellar1.SetInflationDestinationLocalArg) (err error) {

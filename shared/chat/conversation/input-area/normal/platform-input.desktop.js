@@ -424,6 +424,7 @@ const styles = Styles.styleSheetCreate({
     position: 'relative',
   },
   input: {
+    backgroundColor: Styles.globalColors.transparent,
     height: 21,
     minHeight: 21,
   },

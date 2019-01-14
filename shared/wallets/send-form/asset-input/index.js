@@ -31,6 +31,7 @@ type Props = {|
   bottomLabel: string,
   displayUnit: string,
   inputPlaceholder: string,
+  currencyLoading: boolean,
   numDecimalsAllowed: number,
   onChangeAmount: string => void,
   onChangeDisplayUnit: () => void,
@@ -81,21 +82,25 @@ class AssetInput extends React.Component<Props> {
           type="text"
           keyboardType="numeric"
           decoration={
-            <Kb.Box2 direction="vertical" style={styles.flexEnd}>
-              <Kb.Text
-                onClick={this.props.displayUnit ? this.props.onChangeDisplayUnit : null}
-                type="HeaderBigExtrabold"
-                style={styles.unit}
-              >
-                {this.props.displayUnit}
-              </Kb.Text>
-              <Kb.Text
-                type="BodySmallPrimaryLink"
-                onClick={this.props.displayUnit ? this.props.onChangeDisplayUnit : null}
-              >
-                Change
-              </Kb.Text>
-            </Kb.Box2>
+            this.props.currencyLoading ? (
+              <Kb.ProgressIndicator style={styles.currencyContainer} />
+            ) : (
+              <Kb.Box2 direction="vertical" style={styles.currencyContainer}>
+                <Kb.Text
+                  onClick={this.props.displayUnit ? this.props.onChangeDisplayUnit : null}
+                  type="HeaderBigExtrabold"
+                  style={styles.unit}
+                >
+                  {this.props.displayUnit}
+                </Kb.Text>
+                <Kb.Text
+                  type="BodySmallPrimaryLink"
+                  onClick={this.props.displayUnit ? this.props.onChangeDisplayUnit : null}
+                >
+                  Change
+                </Kb.Text>
+              </Kb.Box2>
+            )
           }
           containerStyle={styles.inputContainer}
           style={styles.input}
@@ -134,9 +139,17 @@ const styles = Styles.styleSheetCreate({
     paddingRight: Styles.globalMargins.small,
     paddingTop: Styles.globalMargins.tiny,
   },
-  flexEnd: {
-    alignItems: 'flex-end',
-  },
+  currencyContainer: Styles.platformStyles({
+    common: {
+      alignItems: 'flex-end',
+    },
+    isElectron: {
+      height: 44,
+    },
+    isMobile: {
+      height: 52,
+    },
+  }),
   input: {
     color: Styles.globalColors.purple2,
     position: 'relative',

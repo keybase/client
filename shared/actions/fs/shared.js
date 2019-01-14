@@ -11,7 +11,14 @@ import {isMobile} from '../../constants/platform'
 const fsRootRoute = isMobile ? [Tabs.settingsTab, SettingsConstants.fsTab] : [Tabs.fsTab]
 
 const _getRouteChangeActionForPermissionError = (path: Types.Path) =>
-  RouteTreeGen.createNavigateTo({path: [...fsRootRoute, {props: {path}, selected: 'oopsNoAccess'}]})
+  RouteTreeGen.createNavigateTo({
+    path: [...fsRootRoute, {props: {path, reason: 'no-access'}, selected: 'oops'}],
+  })
+
+const _getRouteChangeActionForNonExistentError = (path: Types.Path) =>
+  RouteTreeGen.createNavigateTo({
+    path: [...fsRootRoute, {props: {path, reason: 'non-existent'}, selected: 'oops'}],
+  })
 
 const makeErrorHandler = (action: FsGen.Actions, retriable: boolean) => (error: any): TypedActions => {
   // TODO: add and use proper error code for all these
@@ -24,8 +31,14 @@ const makeErrorHandler = (action: FsGen.Actions, retriable: boolean) => (error: 
       // public tlf doesn't exist
       error.desc.includes("Can't create TLF ID for non-team-backed handle")
     ) {
-      // TODO: add a real error code for this
       return _getRouteChangeActionForPermissionError(
+        // If you get a flow error here after aadding an action that has a 'path'
+        // field, try rename that field if the field is not of type FsTypes.Path.
+        (action.payload && action.payload.path) || Constants.defaultPath
+      )
+    }
+    if (error.desc.includes('file does not exist')) {
+      return _getRouteChangeActionForNonExistentError(
         // If you get a flow error here after aadding an action that has a 'path'
         // field, try rename that field if the field is not of type FsTypes.Path.
         (action.payload && action.payload.path) || Constants.defaultPath

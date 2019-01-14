@@ -550,7 +550,7 @@ const styles = Styles.styleSheetCreate({
     // don't push down content due to orange line
     backgroundColor: Styles.globalColors.orange,
     flexShrink: 0,
-    height: Styles.hairlineWidth,
+    height: 1,
     left: 0,
     position: 'absolute',
     right: 0,

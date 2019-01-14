@@ -100,6 +100,7 @@ const darwinInstall = (callback: CB) => {
   }
 
   const handleResults = (err, attempted, stdout, stderr) => {
+    logger.info(`[Installer]: got result from install-auto. stdout=${stdout || ''}, stderr=${stderr || ''}`)
     const errors = []
     const errorTypes = {
       cli: false,
@@ -125,7 +126,7 @@ const darwinInstall = (callback: CB) => {
 
     if (errors.length > 0) {
       logger.info(errors.join('\n'))
-      logger.info(`[Installer]: Install errors: stdout=${stdout || ''}, stderr=${stderr || ''}`)
+      logger.info('[Installer]: Install errorred')
       const buttons = errorTypes.fuse || errorTypes.kbnm ? ['Okay'] : ['Ignore', 'Quit']
       const detail = errors.join('\n') + `\n\nPlease run \`keybase log send\` to report the error.`
       const message = 'Keybase Install Error'

@@ -5141,6 +5141,21 @@ func (mr *MockDiskBlockCacheMockRecorder) Get(ctx, tlfID, blockID, preferredCach
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockDiskBlockCache)(nil).Get), ctx, tlfID, blockID, preferredCacheType)
 }
 
+// GetPrefetchStatus mocks base method
+func (m *MockDiskBlockCache) GetPrefetchStatus(ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID, cacheType DiskBlockCacheType) (PrefetchStatus, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetPrefetchStatus", ctx, tlfID, blockID, cacheType)
+	ret0, _ := ret[0].(PrefetchStatus)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetPrefetchStatus indicates an expected call of GetPrefetchStatus
+func (mr *MockDiskBlockCacheMockRecorder) GetPrefetchStatus(ctx, tlfID, blockID, cacheType interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetPrefetchStatus", reflect.TypeOf((*MockDiskBlockCache)(nil).GetPrefetchStatus), ctx, tlfID, blockID, cacheType)
+}
+
 // Put mocks base method
 func (m *MockDiskBlockCache) Put(ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID, buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf, cacheType DiskBlockCacheType) error {
 	m.ctrl.T.Helper()
@@ -10743,20 +10758,6 @@ func (m *MockBlockRetriever) Request(ctx context.Context, priority int, kmd KeyM
 func (mr *MockBlockRetrieverMockRecorder) Request(ctx, priority, kmd, ptr, block, lifetime, action interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Request", reflect.TypeOf((*MockBlockRetriever)(nil).Request), ctx, priority, kmd, ptr, block, lifetime, action)
-}
-
-// RequestWithPrefetchStatus mocks base method
-func (m *MockBlockRetriever) RequestWithPrefetchStatus(ctx context.Context, priority int, kmd KeyMetadata, ptr BlockPointer, block Block, prefetchStatus *PrefetchStatus, lifetime BlockCacheLifetime, action BlockRequestAction) <-chan error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "RequestWithPrefetchStatus", ctx, priority, kmd, ptr, block, prefetchStatus, lifetime, action)
-	ret0, _ := ret[0].(<-chan error)
-	return ret0
-}
-
-// RequestWithPrefetchStatus indicates an expected call of RequestWithPrefetchStatus
-func (mr *MockBlockRetrieverMockRecorder) RequestWithPrefetchStatus(ctx, priority, kmd, ptr, block, prefetchStatus, lifetime, action interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RequestWithPrefetchStatus", reflect.TypeOf((*MockBlockRetriever)(nil).RequestWithPrefetchStatus), ctx, priority, kmd, ptr, block, prefetchStatus, lifetime, action)
 }
 
 // PutInCaches mocks base method

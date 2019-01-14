@@ -41,6 +41,15 @@ type DiskBlockCacheMetadata struct {
 	Tag string
 }
 
+func (dbcm DiskBlockCacheMetadata) PrefetchStatus() PrefetchStatus {
+	if dbcm.FinishedPrefetch {
+		return FinishedPrefetch
+	} else if dbcm.TriggeredPrefetch {
+		return TriggeredPrefetch
+	}
+	return NoPrefetch
+}
+
 // lruEntry is an entry for sorting LRU times
 type lruEntry struct {
 	BlockID kbfsblock.ID

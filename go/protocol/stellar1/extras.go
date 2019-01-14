@@ -22,6 +22,7 @@ const (
 	PushPaymentStatus       = "stellar.payment_status"
 	PushPaymentNotification = "stellar.payment_notification"
 	PushRequestStatus       = "stellar.request_status"
+	PushAccountChange       = "stellar.account_change"
 )
 
 func KeybaseTransactionIDFromString(s string) (KeybaseTransactionID, error) {
