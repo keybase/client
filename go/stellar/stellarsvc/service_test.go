@@ -606,13 +606,8 @@ func testRelaySBS(t *testing.T, yank bool) {
 	require.NotNil(t, fhistory[0].Payment)
 	require.NotEmpty(t, fhistory[0].Payment.Id)
 	require.NotZero(t, fhistory[0].Payment.Time)
-	if yank {
-		require.Equal(t, stellar1.PaymentStatus_CLAIMABLE, fhistory[0].Payment.StatusSimplified)
-		require.Equal(t, "claimable", fhistory[0].Payment.StatusDescription)
-	} else {
-		require.Equal(t, stellar1.PaymentStatus_PENDING, fhistory[0].Payment.StatusSimplified)
-		require.Equal(t, "pending", fhistory[0].Payment.StatusDescription)
-	}
+	require.Equal(t, stellar1.PaymentStatus_CLAIMABLE, fhistory[0].Payment.StatusSimplified)
+	require.Equal(t, "claimable", fhistory[0].Payment.StatusDescription)
 	if yank {
 		require.Equal(t, "3 XLM", fhistory[0].Payment.AmountDescription)
 		require.Equal(t, stellar1.BalanceDelta_DECREASE, fhistory[0].Payment.Delta)
@@ -773,13 +768,8 @@ func testRelayReset(t *testing.T, yank bool) {
 	require.NotNil(t, fhistory[0].Payment)
 	require.NotEmpty(t, fhistory[0].Payment.Id)
 	require.NotZero(t, fhistory[0].Payment.Time)
-	if yank {
-		require.Equal(t, stellar1.PaymentStatus_CLAIMABLE, fhistory[0].Payment.StatusSimplified)
-		require.Equal(t, "claimable", fhistory[0].Payment.StatusDescription)
-	} else {
-		require.Equal(t, stellar1.PaymentStatus_PENDING, fhistory[0].Payment.StatusSimplified)
-		require.Equal(t, "pending", fhistory[0].Payment.StatusDescription)
-	}
+	require.Equal(t, stellar1.PaymentStatus_CLAIMABLE, fhistory[0].Payment.StatusSimplified)
+	require.Equal(t, "claimable", fhistory[0].Payment.StatusDescription)
 
 	res, err := tcs[claimant].Srv.ClaimCLILocal(context.Background(), stellar1.ClaimCLILocalArg{TxID: txID.String()})
 	require.NoError(t, err)
