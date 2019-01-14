@@ -1700,7 +1700,10 @@ const DefaultCurrencySetting = "USD"
 func GetAccountDisplayCurrency(mctx libkb.MetaContext, accountID stellar1.AccountID) (res string, err error) {
 	codeStr, err := remote.GetAccountDisplayCurrency(mctx.Ctx(), mctx.G(), accountID)
 	if err != nil {
-		return res, err
+		if err != ErrAccountIDMissing {
+			return res, err
+		}
+		codeStr = "" // to be safe so it uses default below
 	}
 	if codeStr == "" {
 		codeStr = DefaultCurrencySetting

@@ -591,6 +591,10 @@ type accountCurrencyResult struct {
 }
 
 func GetAccountDisplayCurrency(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID) (string, error) {
+	if strings.TrimSpace(accountID.String()) == "" {
+		return stellar1.AccountDetails{}, ErrAccountIDMissing
+	}
+
 	// NOTE: If you are calling this, you might want to call
 	// stellar.GetAccountDisplayCurrency instead which checks for
 	// NULLs and returns a sane default ("USD").
