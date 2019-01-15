@@ -12,9 +12,11 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbun"
 )
 
 func findGoExe() (string, error) {
@@ -44,13 +46,27 @@ func copyFile(from, to string) error {
 	if err != nil {
 		return err
 	}
+	err = tgt.Sync()
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
-func TestNoExec(t *testing.T) {
+func unames(uns []string) []kbun.NormalizedUsername {
+	res := make([]kbun.NormalizedUsername, len(uns))
+	for i, v := range uns {
+		res[i] = kbun.NormalizedUsername(v)
+	}
+	return res
+}
+
+func testNoExec(t *testing.T, users []string) error {
 	ctx := libkbfs.BackgroundContextWithCancellationDelayer()
 	defer libkbfs.CleanupCancellationDelayer(ctx)
-	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
+	config := libkbfs.MakeTestConfigOrBust(t, unames(users)...)
+	// Background flushed needed for large files.
+	config.SetDoBackgroundFlushes(true)
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 	mnt, _, cancelFn := makeFS(t, ctx, config)
 	defer mnt.Close()
@@ -61,19 +77,30 @@ func TestNoExec(t *testing.T) {
 		t.Fatal("Error finding go.exe: ", err)
 	}
 
-	targetPath := filepath.Join(mnt.Dir, PrivateName, "jdoe", "test.exe")
+	tlfName := strings.Join(users, ",")
+	targetPath := filepath.Join(mnt.Dir, PrivateName, tlfName, "test.exe")
 
 	err = copyFile(exe, targetPath)
 	if err != nil {
 		t.Fatal("Error copying go.exe to kbfs: ", err)
 	}
 
-	err = exec.Command(targetPath, "version").Run()
+	return exec.Command(targetPath, "version").Run()
+
+}
+func TestNoExec(t *testing.T) {
+	err := testNoExec(t, []string{"jdoe", "janedoe"})
 	if err == nil {
 		t.Fatal("Unexpected success executing go on kbfs, expected fail (noexec)")
 	}
 	if !os.IsPermission(err) {
 		t.Fatal("Wrong error trying to execute go on kbfs: ", err)
 	}
+}
 
+func TestNoExecWhitelist(t *testing.T) {
+	err := testNoExec(t, []string{"jdoe"})
+	if err != nil {
+		t.Fatal("Unexpected failure executing go on kbfs, expected success (whitelist): ", err)
+	}
 }
