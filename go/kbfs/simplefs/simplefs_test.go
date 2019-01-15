@@ -951,6 +951,7 @@ func TestTlfEditHistory(t *testing.T) {
 
 type subscriptionReporter struct {
 	libkbfs.Reporter
+	lastPathNotify chan struct{}
 
 	lastPathMtx sync.RWMutex
 	lastPath    string
@@ -961,6 +962,7 @@ func (sr *subscriptionReporter) NotifyPathUpdated(
 	sr.lastPathMtx.Lock()
 	defer sr.lastPathMtx.Unlock()
 	sr.lastPath = path
+	sr.lastPathNotify <- struct{}{}
 }
 
 func (sr *subscriptionReporter) LastPath() string {
@@ -969,12 +971,30 @@ func (sr *subscriptionReporter) LastPath() string {
 	return sr.lastPath
 }
 
+func (sr *subscriptionReporter) waitForNotification(t *testing.T) {
+	t.Helper()
+	select {
+	case <-sr.lastPathNotify:
+	case <-time.After(10 * time.Millisecond):
+		t.Fatal("Timed out while waiting for notification")
+	}
+}
+
+func (sr *subscriptionReporter) requireNoNotification(t *testing.T) {
+	t.Helper()
+	select {
+	case <-sr.lastPathNotify:
+		t.Fatal("Got notification but expected none")
+	case <-time.After(10 * time.Millisecond):
+	}
+}
+
 func TestRefreshSubscription(t *testing.T) {
 	ctx := context.Background()
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	sfs := newSimpleFS(env.EmptyAppStateUpdater{}, config)
 	defer closeSimpleFS(ctx, t, sfs)
-	sr := &subscriptionReporter{Reporter: config.Reporter()}
+	sr := &subscriptionReporter{Reporter: config.Reporter(), lastPathNotify: make(chan struct{}, 1<<30)}
 	config.SetReporter(sr)
 
 	path1 := keybase1.NewPathWithKbfs(`/private/jdoe`)
@@ -982,6 +1002,7 @@ func TestRefreshSubscription(t *testing.T) {
 	t.Log("Writing a file with no subscription")
 	writeRemoteFile(ctx, t, sfs, pathAppend(path1, `test1.txt`), []byte(`foo`))
 	syncFS(ctx, t, sfs, "/private/jdoe")
+	sr.requireNoNotification(t)
 	require.Equal(t, "", sr.LastPath())
 
 	t.Log("Subscribe, and make sure we get a notification")
@@ -998,6 +1019,7 @@ func TestRefreshSubscription(t *testing.T) {
 
 	writeRemoteFile(ctx, t, sfs, pathAppend(path1, `test2.txt`), []byte(`foo`))
 	syncFS(ctx, t, sfs, "/private/jdoe")
+	sr.waitForNotification(t)
 	require.Equal(t, "/keybase"+path1.Kbfs(), sr.LastPath())
 
 	t.Log("Make a public TLF")
@@ -1020,10 +1042,12 @@ func TestRefreshSubscription(t *testing.T) {
 
 	writeRemoteFile(ctx, t, sfs, pathAppend(path2, `test2.txt`), []byte(`foo`))
 	syncFS(ctx, t, sfs, "/public/jdoe")
+	sr.waitForNotification(t)
 	require.Equal(t, "/keybase"+path2.Kbfs(), sr.LastPath())
 
 	writeRemoteFile(ctx, t, sfs, pathAppend(path1, `test3.txt`), []byte(`foo`))
 	syncFS(ctx, t, sfs, "/private/jdoe")
+	sr.requireNoNotification(t)
 	require.Equal(t, "/keybase"+path2.Kbfs(), sr.LastPath())
 }
 
