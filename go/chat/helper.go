@@ -744,8 +744,7 @@ func JoinConversation(ctx context.Context, g *globals.Context, debugger utils.De
 	}
 
 	// Send the join command even if we're in.
-	_, err = ri().JoinConversation(ctx, convID)
-	if err != nil {
+	if _, err = ri().JoinConversation(ctx, convID); err != nil {
 		debugger.Debug(ctx, "JoinConversation: failed to join conversation: %s", err.Error())
 		return err
 	}
@@ -763,8 +762,7 @@ func JoinConversation(ctx context.Context, g *globals.Context, debugger utils.De
 		// Send a message to the channel after joining.
 		joinMessageBody := chat1.NewMessageBodyWithJoin(chat1.MessageJoin{})
 		debugger.Debug(ctx, "JoinConversation: sending join message to: %s", convID)
-		err := postJoinLeave(ctx, g, ri, uid, convID, joinMessageBody)
-		if err != nil {
+		if err := postJoinLeave(ctx, g, ri, uid, convID, joinMessageBody); err != nil {
 			debugger.Debug(ctx, "JoinConversation: posting join-conv message failed: %v", err)
 			// ignore the error
 		}
@@ -813,8 +811,7 @@ func PreviewConversation(ctx context.Context, g *globals.Context, debugger utils
 		return nil
 	}
 
-	_, err = ri().PreviewConversation(ctx, convID)
-	if err != nil {
+	if _, err = ri().PreviewConversation(ctx, convID); err != nil {
 		debugger.Debug(ctx, "PreviewConversation: failed to preview conversation: %s", err.Error())
 		return err
 	}
