@@ -231,50 +231,18 @@
     },
     {
       "type": "record",
-      "name": "ProfileProofSuggestionsRes",
+      "name": "ProofSuggestionsRes",
       "fields": [
         {
           "type": {
             "type": "array",
-            "items": "ProfileProofSuggestion"
+            "items": "ProofSuggestion"
           },
           "name": "suggestions"
         },
         {
           "type": "boolean",
           "name": "showMore"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "ProfileProofSuggestion",
-      "fields": [
-        {
-          "type": "string",
-          "name": "key"
-        },
-        {
-          "type": "string",
-          "name": "text"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "SizedImage"
-          },
-          "name": "icon"
-        },
-        {
-          "type": "string",
-          "name": "iconFont"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "Identify3RowMeta"
-          },
-          "name": "metas"
         }
       ]
     },
@@ -287,19 +255,34 @@
           "name": "key"
         },
         {
-          "type": "string",
-          "name": "text"
+          "type": "boolean",
+          "name": "belowFold"
         },
         {
           "type": "string",
-          "name": "subtext"
+          "name": "profileText"
         },
         {
           "type": {
             "type": "array",
             "items": "SizedImage"
           },
-          "name": "icon"
+          "name": "profileIcon"
+        },
+        {
+          "type": "string",
+          "name": "pickerText"
+        },
+        {
+          "type": "string",
+          "name": "pickerSubtext"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SizedImage"
+          },
+          "name": "pickerIcon"
         },
         {
           "type": {
@@ -671,15 +654,6 @@
       ],
       "response": null
     },
-    "profileProofSuggestions": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        }
-      ],
-      "response": "ProfileProofSuggestionsRes"
-    },
     "proofSuggestions": {
       "request": [
         {
@@ -687,10 +661,7 @@
           "type": "int"
         }
       ],
-      "response": {
-        "type": "array",
-        "items": "ProofSuggestion"
-      }
+      "response": "ProofSuggestionsRes"
     },
     "findNextMerkleRootAfterRevoke": {
       "request": [

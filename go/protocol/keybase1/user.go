@@ -220,18 +220,18 @@ func (o InterestingPerson) DeepCopy() InterestingPerson {
 	}
 }
 
-type ProfileProofSuggestionsRes struct {
-	Suggestions []ProfileProofSuggestion `codec:"suggestions" json:"suggestions"`
-	ShowMore    bool                     `codec:"showMore" json:"showMore"`
+type ProofSuggestionsRes struct {
+	Suggestions []ProofSuggestion `codec:"suggestions" json:"suggestions"`
+	ShowMore    bool              `codec:"showMore" json:"showMore"`
 }
 
-func (o ProfileProofSuggestionsRes) DeepCopy() ProfileProofSuggestionsRes {
-	return ProfileProofSuggestionsRes{
-		Suggestions: (func(x []ProfileProofSuggestion) []ProfileProofSuggestion {
+func (o ProofSuggestionsRes) DeepCopy() ProofSuggestionsRes {
+	return ProofSuggestionsRes{
+		Suggestions: (func(x []ProofSuggestion) []ProofSuggestion {
 			if x == nil {
 				return nil
 			}
-			ret := make([]ProfileProofSuggestion, len(x))
+			ret := make([]ProofSuggestion, len(x))
 			for i, v := range x {
 				vCopy := v.DeepCopy()
 				ret[i] = vCopy
@@ -242,56 +242,23 @@ func (o ProfileProofSuggestionsRes) DeepCopy() ProfileProofSuggestionsRes {
 	}
 }
 
-type ProfileProofSuggestion struct {
-	Key   string             `codec:"key" json:"key"`
-	Text  string             `codec:"text" json:"text"`
-	Icon  []SizedImage       `codec:"icon" json:"icon"`
-	Metas []Identify3RowMeta `codec:"metas" json:"metas"`
-}
-
-func (o ProfileProofSuggestion) DeepCopy() ProfileProofSuggestion {
-	return ProfileProofSuggestion{
-		Key:  o.Key,
-		Text: o.Text,
-		Icon: (func(x []SizedImage) []SizedImage {
-			if x == nil {
-				return nil
-			}
-			ret := make([]SizedImage, len(x))
-			for i, v := range x {
-				vCopy := v.DeepCopy()
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.Icon),
-		Metas: (func(x []Identify3RowMeta) []Identify3RowMeta {
-			if x == nil {
-				return nil
-			}
-			ret := make([]Identify3RowMeta, len(x))
-			for i, v := range x {
-				vCopy := v.DeepCopy()
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.Metas),
-	}
-}
-
 type ProofSuggestion struct {
-	Key     string             `codec:"key" json:"key"`
-	Text    string             `codec:"text" json:"text"`
-	Subtext string             `codec:"subtext" json:"subtext"`
-	Icon    []SizedImage       `codec:"icon" json:"icon"`
-	Metas   []Identify3RowMeta `codec:"metas" json:"metas"`
+	Key           string             `codec:"key" json:"key"`
+	BelowFold     bool               `codec:"belowFold" json:"belowFold"`
+	ProfileText   string             `codec:"profileText" json:"profileText"`
+	ProfileIcon   []SizedImage       `codec:"profileIcon" json:"profileIcon"`
+	PickerText    string             `codec:"pickerText" json:"pickerText"`
+	PickerSubtext string             `codec:"pickerSubtext" json:"pickerSubtext"`
+	PickerIcon    []SizedImage       `codec:"pickerIcon" json:"pickerIcon"`
+	Metas         []Identify3RowMeta `codec:"metas" json:"metas"`
 }
 
 func (o ProofSuggestion) DeepCopy() ProofSuggestion {
 	return ProofSuggestion{
-		Key:     o.Key,
-		Text:    o.Text,
-		Subtext: o.Subtext,
-		Icon: (func(x []SizedImage) []SizedImage {
+		Key:         o.Key,
+		BelowFold:   o.BelowFold,
+		ProfileText: o.ProfileText,
+		ProfileIcon: (func(x []SizedImage) []SizedImage {
 			if x == nil {
 				return nil
 			}
@@ -301,7 +268,20 @@ func (o ProofSuggestion) DeepCopy() ProofSuggestion {
 				ret[i] = vCopy
 			}
 			return ret
-		})(o.Icon),
+		})(o.ProfileIcon),
+		PickerText:    o.PickerText,
+		PickerSubtext: o.PickerSubtext,
+		PickerIcon: (func(x []SizedImage) []SizedImage {
+			if x == nil {
+				return nil
+			}
+			ret := make([]SizedImage, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.PickerIcon),
 		Metas: (func(x []Identify3RowMeta) []Identify3RowMeta {
 			if x == nil {
 				return nil
@@ -457,10 +437,6 @@ type UploadUserAvatarArg struct {
 	Crop     *ImageCropRect `codec:"crop,omitempty" json:"crop,omitempty"`
 }
 
-type ProfileProofSuggestionsArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
-}
-
 type ProofSuggestionsArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -516,8 +492,7 @@ type UserInterface interface {
 	// getUPAKLite returns a UPKLiteV1AllIncarnations. Used mainly for debugging.
 	GetUPAKLite(context.Context, UID) (UPKLiteV1AllIncarnations, error)
 	UploadUserAvatar(context.Context, UploadUserAvatarArg) error
-	ProfileProofSuggestions(context.Context, int) (ProfileProofSuggestionsRes, error)
-	ProofSuggestions(context.Context, int) ([]ProofSuggestion, error)
+	ProofSuggestions(context.Context, int) (ProofSuggestionsRes, error)
 	// FindNextMerkleRootAfterRevoke finds the first Merkle Root that contains the UID/KID
 	// revocation at the given SigChainLocataion. The MerkleRootV2 prev is a hint as to where
 	// we'll start our search. Usually it's the next one, but not always
@@ -847,21 +822,6 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 					return
 				},
 			},
-			"profileProofSuggestions": {
-				MakeArg: func() interface{} {
-					var ret [1]ProfileProofSuggestionsArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]ProfileProofSuggestionsArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]ProfileProofSuggestionsArg)(nil), args)
-						return
-					}
-					ret, err = i.ProfileProofSuggestions(ctx, typedArgs[0].SessionID)
-					return
-				},
-			},
 			"proofSuggestions": {
 				MakeArg: func() interface{} {
 					var ret [1]ProofSuggestionsArg
@@ -1042,13 +1002,7 @@ func (c UserClient) UploadUserAvatar(ctx context.Context, __arg UploadUserAvatar
 	return
 }
 
-func (c UserClient) ProfileProofSuggestions(ctx context.Context, sessionID int) (res ProfileProofSuggestionsRes, err error) {
-	__arg := ProfileProofSuggestionsArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.user.profileProofSuggestions", []interface{}{__arg}, &res)
-	return
-}
-
-func (c UserClient) ProofSuggestions(ctx context.Context, sessionID int) (res []ProofSuggestion, err error) {
+func (c UserClient) ProofSuggestions(ctx context.Context, sessionID int) (res ProofSuggestionsRes, err error) {
 	__arg := ProofSuggestionsArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.user.proofSuggestions", []interface{}{__arg}, &res)
 	return

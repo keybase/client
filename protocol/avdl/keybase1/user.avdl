@@ -142,28 +142,21 @@ protocol user {
 
   void uploadUserAvatar(string filename, union { null, ImageCropRect } crop);
 
-  ProfileProofSuggestionsRes profileProofSuggestions(int sessionID);
-  record ProfileProofSuggestionsRes{
-    array<ProfileProofSuggestion> suggestions;
+  ProofSuggestionsRes proofSuggestions(int sessionID);
+  record ProofSuggestionsRes{
+    array<ProofSuggestion> suggestions;
     boolean showMore;
   }
 
-  // A proof the user doesn't have for the profile screen.
-  record ProfileProofSuggestion {
-    string key;
-    string text; // "Prove your Twitter", "Add a PGP key"
-    array<SizedImage> icon; // TODO CORE-9882: this is an empty list for now
-    array<Identify3RowMeta> metas; // for 'new' proof types
-  }
-
-  array<ProofSuggestion> proofSuggestions(int sessionID);
-
-  // A proof the user doesn't have for the "Prove your" picker.
+  // A proof the user doesn't have.
   record ProofSuggestion {
     string key;
-    string text; // "Twitter", "Your own website", "octodon.xyz"
-    string subtext; // "twitter.com", "Mastodon instance"
-    array<SizedImage> icon; // TODO CORE-9882: this is an empty list for now
+    boolean belowFold;
+    string profileText; // "Prove your Twitter", "Add a PGP key"
+    array<SizedImage> profileIcon; // TODO CORE-9882: this is an empty list for now
+    string pickerText; // "Twitter", "Your own website", "octodon.xyz"
+    string pickerSubtext; // "twitter.com", "Mastodon instance"
+    array<SizedImage> pickerIcon; // TODO CORE-9882: this is an empty list for now
     array<Identify3RowMeta> metas; // for 'new' proof types
   }
 
