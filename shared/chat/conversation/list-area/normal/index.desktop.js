@@ -144,6 +144,7 @@ class Thread extends React.PureComponent<Props, State> {
   _cleanupDebounced = () => {
     this._onAfterScroll.cancel()
     this._onScrollThrottled.cancel()
+    this._checkForLoadMoreThrottled.cancel()
   }
 
   _onScroll = e => {
