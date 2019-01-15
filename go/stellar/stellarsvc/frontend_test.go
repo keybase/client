@@ -2530,8 +2530,10 @@ func TestMakeRequestLocalNotifications(t *testing.T) {
 }
 
 func TestSetMobileOnly(t *testing.T) {
-	tcs, cleanup := setupNTests(t, 1)
+	tcs, cleanup := setupTestsWithSettings(t, []usetting{usettingMobile})
 	defer cleanup()
+
+	makeActiveDeviceOlder(t, tcs[0].G)
 
 	// this only works with a v2 bundle now
 	setupWithNewBundle(t, tcs[0])
