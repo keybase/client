@@ -250,30 +250,15 @@ func (t *DebuggingHandler) Script(ctx context.Context, arg keybase1.ScriptArg) (
 		log("send mini results: %+v", results)
 		return "success", nil
 	case "proof-suggestions":
-		if len(args) > 1 {
-			return "", fmt.Errorf("require 0 or 1 args: [profile|picker]")
+		if len(args) > 0 {
+			return "", fmt.Errorf("require 0 args")
 		}
-		if len(args) == 0 {
-			args = append(args, "profile")
+		ret, err := t.userHandler.ProofSuggestions(ctx, 0)
+		if err != nil {
+			return "", err
 		}
-		switch args[0] {
-		case "profile":
-			ret, err := t.userHandler.ProfileProofSuggestions(ctx, 0)
-			if err != nil {
-				return "", err
-			}
-			log("%v", spew.Sdump(ret))
-			return "", nil
-		case "picker":
-			ret, err := t.userHandler.ProofSuggestions(ctx, 0)
-			if err != nil {
-				return "", err
-			}
-			log("%v", spew.Sdump(ret))
-			return "", nil
-		default:
-			return "", fmt.Errorf("argument must be 'profile' or 'picker'")
-		}
+		log("%v", spew.Sdump(ret))
+		return "", nil
 	case "":
 		return "", fmt.Errorf("empty script name")
 	default:

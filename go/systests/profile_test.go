@@ -17,112 +17,86 @@ func TestProofSuggestions(t *testing.T) {
 
 	alice := tt.addUser("abc")
 
-	profileProofs, err := alice.userClient.ProfileProofSuggestions(context.Background(), 0)
+	res, err := alice.userClient.ProofSuggestions(context.Background(), 0)
 	require.NoError(t, err)
-	t.Logf("profileProofs: %v", spew.Sdump(profileProofs))
-	expectedProfileProofs := keybase1.ProfileProofSuggestionsRes{
+	t.Logf("suggestions: %v", spew.Sdump(res))
+	expected := keybase1.ProofSuggestionsRes{
 		ShowMore: true,
-		Suggestions: []keybase1.ProfileProofSuggestion{{
-			Key:  "twitter",
-			Text: "Prove your Twitter",
+		Suggestions: []keybase1.ProofSuggestion{{
+			Key:           "twitter",
+			ProfileText:   "Prove your Twitter",
+			PickerText:    "Twitter",
+			PickerSubtext: "twitter.com",
 		}, {
-			Key:  "github",
-			Text: "Prove your GitHub",
+			Key:           "github",
+			ProfileText:   "Prove your GitHub",
+			PickerText:    "GitHub",
+			PickerSubtext: "github.com",
 		}, {
-			Key:  "reddit",
-			Text: "Prove your Reddit",
+			Key:           "reddit",
+			ProfileText:   "Prove your Reddit",
+			PickerText:    "Reddit",
+			PickerSubtext: "reddit.com",
 		}, {
-			Key:  "hackernews",
-			Text: "Prove your Hacker News",
+			Key:           "hackernews",
+			ProfileText:   "Prove your Hacker News",
+			PickerText:    "Hacker News",
+			PickerSubtext: "news.ycombinator.com",
 		}, {
-			Key:  "rooter",
-			Text: "Prove your Rooter",
+			Key:           "rooter",
+			ProfileText:   "Prove your Rooter",
+			PickerText:    "Rooter",
+			PickerSubtext: "",
 		}, {
-			Key:  "gubble.social",
-			Text: "Prove your Gubble.social",
+			Key:           "gubble.social",
+			ProfileText:   "Prove your Gubble.social",
+			PickerText:    "Gubble.social",
+			PickerSubtext: "Gubble instance",
 		}, {
-			Key:  "web",
-			Text: "Prove your website",
+			Key:           "web",
+			ProfileText:   "Prove your website",
+			PickerText:    "Your own website",
+			PickerSubtext: "",
 		}, {
-			Key:  "pgp",
-			Text: "Add a PGP key",
+			Key:           "pgp",
+			ProfileText:   "Add a PGP key",
+			PickerText:    "PGP key",
+			PickerSubtext: "",
 		}, {
-			Key:  "bitcoin",
-			Text: "Set a Bitcoin address",
+			Key:           "bitcoin",
+			ProfileText:   "Set a Bitcoin address",
+			PickerText:    "Bitcoin address",
+			PickerSubtext: "",
 		}, {
-			Key:  "zcash",
-			Text: "Set a Zcash address",
+			Key:           "zcash",
+			ProfileText:   "Set a Zcash address",
+			PickerText:    "Zcash address",
+			PickerSubtext: "",
+		}, {
+			Key:           "gubble.cloud",
+			BelowFold:     true,
+			ProfileText:   "Prove your Gubble.cloud",
+			PickerText:    "Gubble.cloud",
+			PickerSubtext: "Gubble instance",
+		}, {
+			Key:           "theqrl.org",
+			BelowFold:     true,
+			ProfileText:   "Prove your Quantum Resistant Ledger",
+			PickerText:    "Quantum Resistant Ledger",
+			PickerSubtext: "theqrl.org",
 		}}}
-	require.Equal(t, expectedProfileProofs.ShowMore, profileProofs.ShowMore)
-	require.Equal(t, len(expectedProfileProofs.Suggestions), len(profileProofs.Suggestions))
-	for i, b := range profileProofs.Suggestions {
+	require.Equal(t, expected.ShowMore, res.ShowMore)
+	require.Equal(t, len(expected.Suggestions), len(res.Suggestions))
+	for i, b := range res.Suggestions {
 		t.Logf("row %v", i)
-		a := expectedProfileProofs.Suggestions[i]
+		a := expected.Suggestions[i]
 		require.Equal(t, a.Key, b.Key)
-		require.Equal(t, a.Text, b.Text)
+		require.Equal(t, a.BelowFold, b.BelowFold)
+		require.Equal(t, a.ProfileText, b.ProfileText)
+		require.Equal(t, a.PickerText, b.PickerText)
+		require.Equal(t, a.PickerSubtext, b.PickerSubtext)
+		require.Nil(t, b.Metas)
 	}
-
-	pickerProofs, err := alice.userClient.ProofSuggestions(context.Background(), 0)
-	require.NoError(t, err)
-	t.Logf("pickerProofs: %v", spew.Sdump(pickerProofs))
-	expectedPickerProofs := []keybase1.ProofSuggestion{{
-		Key:     "twitter",
-		Text:    "Twitter",
-		Subtext: "twitter.com",
-	}, {
-		Key:     "github",
-		Text:    "GitHub",
-		Subtext: "github.com",
-	}, {
-		Key:     "reddit",
-		Text:    "Reddit",
-		Subtext: "reddit.com",
-	}, {
-		Key:     "hackernews",
-		Text:    "Hacker News",
-		Subtext: "news.ycombinator.com",
-	}, {
-		Key:     "rooter",
-		Text:    "Rooter",
-		Subtext: "",
-	}, {
-		Key:     "gubble.social",
-		Text:    "Gubble.social",
-		Subtext: "Gubble instance",
-	}, {
-		Key:     "web",
-		Text:    "Your own website",
-		Subtext: "",
-	}, {
-		Key:     "pgp",
-		Text:    "PGP key",
-		Subtext: "",
-	}, {
-		Key:     "bitcoin",
-		Text:    "Bitcoin address",
-		Subtext: "",
-	}, {
-		Key:     "zcash",
-		Text:    "Zcash address",
-		Subtext: "",
-	}, {
-		Key:     "gubble.cloud",
-		Text:    "Gubble.cloud",
-		Subtext: "Gubble instance",
-	}, {
-		Key:     "theqrl.org",
-		Text:    "Quantum Resistant Ledger",
-		Subtext: "theqrl.org",
-	}}
-	require.Equal(t, len(expectedPickerProofs), len(pickerProofs))
-	for i, b := range pickerProofs {
-		t.Logf("row %v", i)
-		a := expectedPickerProofs[i]
-		require.Equal(t, a.Key, b.Key)
-		require.Equal(t, a.Text, b.Text)
-		require.Equal(t, a.Subtext, b.Subtext)
-	}
-
 }
 
 func TestProofSuggestionsOmitProven(t *testing.T) {
@@ -131,14 +105,9 @@ func TestProofSuggestionsOmitProven(t *testing.T) {
 	alice := tt.addUser("abc")
 
 	assertOmitted := func(service string) {
-		profileProofs, err := alice.userClient.ProfileProofSuggestions(context.Background(), 0)
+		res, err := alice.userClient.ProofSuggestions(context.Background(), 0)
 		require.NoError(t, err)
-		for _, suggestion := range profileProofs.Suggestions {
-			require.NotEqual(t, service, suggestion.Key)
-		}
-		pickerProofs, err := alice.userClient.ProofSuggestions(context.Background(), 0)
-		require.NoError(t, err)
-		for _, suggestion := range pickerProofs {
+		for _, suggestion := range res.Suggestions {
 			require.NotEqual(t, service, suggestion.Key)
 		}
 	}

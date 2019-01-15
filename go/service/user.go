@@ -345,10 +345,10 @@ func (h *UserHandler) UploadUserAvatar(ctx context.Context, arg keybase1.UploadU
 	return avatars.UploadImage(mctx, arg.Filename, nil /* teamname */, arg.Crop)
 }
 
-func (h *UserHandler) ProfileProofSuggestions(ctx context.Context, sessionID int) (ret keybase1.ProfileProofSuggestionsRes, err error) {
+func (h *UserHandler) ProofSuggestions(ctx context.Context, sessionID int) (ret keybase1.ProofSuggestionsRes, err error) {
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("US")
-	defer mctx.CTraceTimed("ProfileProofSuggestions", func() error { return err })()
-	suggestions, err := h.profileProofSuggestionsHelper(mctx)
+	defer mctx.CTraceTimed("ProofSuggestions", func() error { return err })()
+	suggestions, err := h.proofSuggestionsHelper(mctx)
 	if err != nil {
 		return ret, err
 	}
@@ -356,46 +356,62 @@ func (h *UserHandler) ProfileProofSuggestions(ctx context.Context, sessionID int
 	for _, suggestion := range suggestions {
 		if foldPriority > 0 && suggestion.Priority >= foldPriority {
 			ret.ShowMore = true
-			continue
+			suggestion.BelowFold = true
 		}
-		ret.Suggestions = append(ret.Suggestions, keybase1.ProfileProofSuggestion{
-			Key:  suggestion.Key,
-			Text: suggestion.ProfileText,
-			Icon: suggestion.ProfileIcon,
-		})
-	}
-	return ret, nil
-}
-
-func (h *UserHandler) ProofSuggestions(ctx context.Context, sessionID int) (ret []keybase1.ProofSuggestion, err error) {
-	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("US")
-	defer mctx.CTraceTimed("ProofSuggestions", func() error { return err })()
-	suggestions, err := h.profileProofSuggestionsHelper(mctx)
-	if err != nil {
-		return ret, err
-	}
-	for _, suggestion := range suggestions {
-		ret = append(ret, keybase1.ProofSuggestion{
-			Key:     suggestion.Key,
-			Text:    suggestion.PickerText,
-			Subtext: suggestion.PickerSubtext,
-			Icon:    suggestion.PickerIcon,
-		})
+		ret.Suggestions = append(ret.Suggestions, suggestion.ProofSuggestion)
 	}
 	return ret, nil
 }
 
 type ProofSuggestion struct {
-	Key           string
-	ProfileText   string                // "Prove your Twitter", "Add a PGP key"
-	ProfileIcon   []keybase1.SizedImage // TODO CORE-9882
-	PickerText    string                // "Twitter", "Your own website", "octodon.xyz"
-	PickerSubtext string                // "twitter.com", "Mastodon instance"
-	PickerIcon    []keybase1.SizedImage // TODO CORE-9882
-	Priority      int
+	keybase1.ProofSuggestion
+	Priority int
 }
 
-func (h *UserHandler) profileProofSuggestionsHelper(mctx libkb.MetaContext) (ret []ProofSuggestion, err error) {
+var dummyIcon []keybase1.SizedImage // TODO CORE-9882: Get some icons
+var ossifiedSocialServices = map[string]keybase1.ProofSuggestion{
+	"github": {
+		Key:           "github",
+		ProfileText:   "Prove your GitHub",
+		ProfileIcon:   dummyIcon,
+		PickerText:    "GitHub",
+		PickerSubtext: "github.com",
+		PickerIcon:    dummyIcon,
+	},
+	"hackernews": {
+		Key:           "hackernews",
+		ProfileText:   "Prove your Hacker News",
+		ProfileIcon:   dummyIcon,
+		PickerText:    "Hacker News",
+		PickerSubtext: "news.ycombinator.com",
+		PickerIcon:    dummyIcon,
+	},
+	"reddit": {
+		Key:           "reddit",
+		ProfileText:   "Prove your Reddit",
+		ProfileIcon:   dummyIcon,
+		PickerText:    "Reddit",
+		PickerSubtext: "reddit.com",
+		PickerIcon:    dummyIcon,
+	},
+	"twitter": {
+		Key:           "twitter",
+		ProfileText:   "Prove your Twitter",
+		ProfileIcon:   dummyIcon,
+		PickerText:    "Twitter",
+		PickerSubtext: "twitter.com",
+		PickerIcon:    dummyIcon,
+	},
+	"rooter": {
+		Key:           "rooter",
+		ProfileText:   "Prove your Rooter",
+		ProfileIcon:   dummyIcon,
+		PickerText:    "Rooter",
+		PickerSubtext: "",
+		PickerIcon:    dummyIcon,
+	}}
+
+func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext) (ret []ProofSuggestion, err error) {
 	user, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(mctx).WithPublicKeyOptional())
 	if err != nil {
 		return ret, err
@@ -404,49 +420,7 @@ func (h *UserHandler) profileProofSuggestionsHelper(mctx libkb.MetaContext) (ret
 		return ret, fmt.Errorf("could not load logged-in user")
 	}
 
-	var dummyIcon []keybase1.SizedImage // TODO CORE-9882: Get some icons
 	var suggestions []ProofSuggestion
-	ossifiedSocial := map[string]ProofSuggestion{
-		"github": {
-			Key:           "github",
-			ProfileText:   "Prove your GitHub",
-			ProfileIcon:   dummyIcon,
-			PickerText:    "GitHub",
-			PickerSubtext: "github.com",
-			PickerIcon:    dummyIcon,
-		},
-		"hackernews": {
-			Key:           "hackernews",
-			ProfileText:   "Prove your Hacker News",
-			ProfileIcon:   dummyIcon,
-			PickerText:    "Hacker News",
-			PickerSubtext: "news.ycombinator.com",
-			PickerIcon:    dummyIcon,
-		},
-		"reddit": {
-			Key:           "reddit",
-			ProfileText:   "Prove your Reddit",
-			ProfileIcon:   dummyIcon,
-			PickerText:    "Reddit",
-			PickerSubtext: "reddit.com",
-			PickerIcon:    dummyIcon,
-		},
-		"twitter": {
-			Key:           "twitter",
-			ProfileText:   "Prove your Twitter",
-			ProfileIcon:   dummyIcon,
-			PickerText:    "Twitter",
-			PickerSubtext: "twitter.com",
-			PickerIcon:    dummyIcon,
-		},
-		"rooter": {
-			Key:           "rooter",
-			ProfileText:   "Prove your Rooter",
-			ProfileIcon:   dummyIcon,
-			PickerText:    "Rooter",
-			PickerSubtext: "",
-			PickerIcon:    dummyIcon,
-		}}
 	serviceKeys := mctx.G().GetProofServices().ListServicesThatAcceptNewProofs()
 	for _, service := range serviceKeys {
 		switch service {
@@ -464,63 +438,63 @@ func (h *UserHandler) profileProofSuggestionsHelper(mctx libkb.MetaContext) (ret
 			mctx.CDebugf("user has an active proof: %v", serviceType.Key())
 			continue
 		}
-		if suggestion, ok := ossifiedSocial[service]; ok {
+		if suggestion, ok := ossifiedSocialServices[service]; ok {
 			// Ignore the server and use hardcoded markup.
-			suggestions = append(suggestions, suggestion)
+			suggestions = append(suggestions, ProofSuggestion{ProofSuggestion: suggestion})
 		} else {
 			subtext := serviceType.DisplayGroup()
 			if len(subtext) == 0 {
 				subtext = serviceType.GetTypeName()
 			}
-			suggestions = append(suggestions, ProofSuggestion{
+			suggestions = append(suggestions, ProofSuggestion{ProofSuggestion: keybase1.ProofSuggestion{
 				Key:           service,
 				ProfileText:   fmt.Sprintf("Prove your %v", serviceType.DisplayName()),
 				ProfileIcon:   dummyIcon,
 				PickerText:    serviceType.DisplayName(),
 				PickerSubtext: subtext,
 				PickerIcon:    dummyIcon,
-			})
+			}})
 		}
 	}
 	hasPGP := len(user.GetActivePGPKeys(true)) > 0
 	if !hasPGP {
-		suggestions = append(suggestions, ProofSuggestion{
+		suggestions = append(suggestions, ProofSuggestion{ProofSuggestion: keybase1.ProofSuggestion{
 			Key:           "pgp",
 			ProfileText:   "Add a PGP key",
 			ProfileIcon:   dummyIcon,
 			PickerText:    "PGP key",
 			PickerSubtext: "",
 			PickerIcon:    dummyIcon,
-		})
+		}})
 	}
 	// Always show the option to create a new web proof.
-	suggestions = append(suggestions, ProofSuggestion{
+	suggestions = append(suggestions, ProofSuggestion{ProofSuggestion: keybase1.ProofSuggestion{
 		Key:           "web",
 		ProfileText:   "Prove your website",
 		ProfileIcon:   dummyIcon,
 		PickerText:    "Your own website",
 		PickerSubtext: "",
 		PickerIcon:    dummyIcon,
-	})
+	}})
 	if !user.IDTable().HasActiveCryptocurrencyFamily(libkb.CryptocurrencyFamilyBitcoin) {
-		suggestions = append(suggestions, ProofSuggestion{
+		suggestions = append(suggestions, ProofSuggestion{ProofSuggestion: keybase1.ProofSuggestion{
 			Key:           "bitcoin",
 			ProfileText:   "Set a Bitcoin address",
 			ProfileIcon:   dummyIcon,
 			PickerText:    "Bitcoin address",
 			PickerSubtext: "",
 			PickerIcon:    dummyIcon,
-		})
+		}})
 	}
 	if !user.IDTable().HasActiveCryptocurrencyFamily(libkb.CryptocurrencyFamilyZCash) {
-		suggestions = append(suggestions, ProofSuggestion{
+		suggestions = append(suggestions, ProofSuggestion{ProofSuggestion: keybase1.ProofSuggestion{
 			Key:           "zcash",
 			ProfileText:   "Set a Zcash address",
 			ProfileIcon:   dummyIcon,
 			PickerText:    "Zcash address",
 			PickerSubtext: "",
 			PickerIcon:    dummyIcon,
-		})
+		}})
 	}
 
 	// Alphabetize so that ties later on in SliceStable are deterministic.
