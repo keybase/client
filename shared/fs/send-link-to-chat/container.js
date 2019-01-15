@@ -26,7 +26,10 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   _send: (conversationIDKey: ChatTypes.ConversationIDKey, text: string) => {
     dispatch(ChatGen.createMessageSend({conversationIDKey, text: new HiddenString(text)}))
     dispatch(
-      RouteTreeGen.createPutActionIfOnPath({expectedPath: ownProps.routePath, otherAction: RouteTreeGen.createNavigateUp()})
+      RouteTreeGen.createPutActionIfOnPath({
+        expectedPath: ownProps.routePath,
+        otherAction: RouteTreeGen.createNavigateUp(),
+      })
     )
     dispatch(
       ChatGen.createSelectConversation({
@@ -38,7 +41,10 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
   },
   onCancel: () =>
     dispatch(
-      RouteTreeGen.createPutActionIfOnPath({expectedPath: ownProps.routePath, otherAction: RouteTreeGen.createNavigateUp()})
+      RouteTreeGen.createPutActionIfOnPath({
+        expectedPath: ownProps.routePath,
+        otherAction: RouteTreeGen.createNavigateUp(),
+      })
     ),
 })
 
@@ -46,8 +52,9 @@ const mergeProps = (stateProps, {onCancel, _send, _selectChannel}, ownProps) => 
   const pathTextToCopy = `${Constants.escapePath(stateProps._sendLinkToChat.path)} ` // append space
 
   const elems = Types.getPathElements(stateProps._sendLinkToChat.path)
-  if (elems.length < 3) {
-    // Not inside a TLF.
+  if (elems.length < 3 || elems[1] === 'public') {
+    // Not inside a TLF or a public TLF. Either way, we don't know which
+    // conversation to send to, so just let user copy path.
     return {
       conversation: {type: 'none'},
       onCancel,
