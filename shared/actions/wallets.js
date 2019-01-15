@@ -191,7 +191,7 @@ const reviewPayment = state =>
       // ignore cancellation, which is expected in the case where we have a
       // failing review and then we build or stop a payment
     } else {
-      throw error
+      return WalletsGen.createSentPaymentError({error: error.desc})
     }
   })
 
@@ -266,7 +266,11 @@ const createPaymentsReceived = (accountID, payments, pending) =>
 
 const loadPayments = (state, action) =>
   !actionHasError(action) &&
-  (action.type === WalletsGen.selectAccount ||
+  (!!(
+    action.type === WalletsGen.selectAccount &&
+    action.payload.accountID &&
+    action.payload.accountID !== Types.noAccountID
+  ) ||
     Constants.getAccount(state, action.payload.accountID).accountID !== Types.noAccountID) &&
   Promise.all([
     RPCStellarTypes.localGetPendingPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
@@ -712,7 +716,10 @@ const changeMobileOnlyMode = (state, action) => {
   let f = action.payload.enabled
     ? RPCStellarTypes.localSetAccountMobileOnlyLocalRpcPromise
     : RPCStellarTypes.localSetAccountAllDevicesLocalRpcPromise
-  return f({accountID}).then(res => WalletsGen.createLoadMobileOnlyMode({accountID}))
+  return f({accountID}, Constants.setAccountMobileOnlyWaitingKey(accountID)).then(res => [
+    WalletsGen.createLoadedMobileOnlyMode({accountID, enabled: action.payload.enabled}),
+    WalletsGen.createLoadMobileOnlyMode({accountID}),
+  ])
 }
 
 const writeLastSentXLM = (state, action) => {

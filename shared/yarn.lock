@@ -11659,10 +11659,9 @@ react-native-tab-view@^0.0.67:
   dependencies:
     prop-types "^15.5.8"
 
-react-native@0.57.8:
+"react-native@git://github.com/keybase/react-native#keybase-fixes-off-578":
   version "0.57.8"
-  resolved "https://registry.yarnpkg.com/react-native/-/react-native-0.57.8.tgz#1a840fbe144cd3902cc14313a783ce28efc48cb9"
-  integrity sha512-K6DAMTPTq+lxVYC73y4Kh/bgLajddBaIKzwsVeV4JOoS1Fdq48/ISXD3vApV+x+/IBVTXnrT9qlA+9U6MMZCqA==
+  resolved "git://github.com/keybase/react-native#b99467164fa51f014fbee954c273baf9a0c6a332"
   dependencies:
     "@babel/runtime" "^7.0.0"
     absolute-path "^0.0.0"
