@@ -127,6 +127,16 @@ protocol gregor {
         array<UnreadUpdate> unreadUpdates;
     }
 
+    record ConversationUpdate {
+      ConversationID convID;
+      ConversationExistence existence;
+    }
+
+    record UpdateConversations {
+        InboxVers inboxVers;
+        array<ConversationUpdate> convUpdates;
+    }
+
     record TeamChannelUpdate {
         TLFID teamID;
     }

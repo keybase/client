@@ -782,6 +782,7 @@ export type ConversationStatus =
   | 4 // MUTED_4
   | 5 // REPORTED_5
 
+export type ConversationUpdate = $ReadOnly<{convID: ConversationID, existence: ConversationExistence}>
 export type ConversationVers = Uint64
 export type DeleteConversationLocalRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Array<RateLimit>}>
 export type DeleteConversationRemoteRes = $ReadOnly<{rateLimit?: ?RateLimit}>
@@ -1165,6 +1166,7 @@ export type UnverifiedInboxUIItem = $ReadOnly<{convID: String, topicType: TopicT
 export type UnverifiedInboxUIItemMetadata = $ReadOnly<{channelName: String, headline: String, snippet: String, snippetDecoration: String, writerNames?: ?Array<String>, resetParticipants?: ?Array<String>}>
 export type UnverifiedInboxUIItems = $ReadOnly<{items?: ?Array<UnverifiedInboxUIItem>, pagination?: ?UIPagination, offline: Boolean}>
 export type UpdateConversationMembership = $ReadOnly<{inboxVers: InboxVers, joined?: ?Array<ConversationMember>, removed?: ?Array<ConversationMember>, reset?: ?Array<ConversationMember>, previewed?: ?Array<ConversationID>, unreadUpdate?: ?UnreadUpdate, unreadUpdates?: ?Array<UnreadUpdate>}>
+export type UpdateConversations = $ReadOnly<{inboxVers: InboxVers, convUpdates?: ?Array<ConversationUpdate>}>
 export type VersionKind = String
 
 export type IncomingCallMapType = {|
