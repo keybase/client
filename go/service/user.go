@@ -388,10 +388,10 @@ func (h *UserHandler) ProofSuggestions(ctx context.Context, sessionID int) (ret 
 type ProofSuggestion struct {
 	Key           string
 	ProfileText   string                // "Prove your Twitter", "Add a PGP key"
-	ProfileIcon   []keybase1.SizedImage // xxx fill these in
+	ProfileIcon   []keybase1.SizedImage // TODO CORE-9882
 	PickerText    string                // "Twitter", "Your own website", "octodon.xyz"
 	PickerSubtext string                // "twitter.com", "Mastodon instance"
-	PickerIcon    []keybase1.SizedImage // xxx fill these in
+	PickerIcon    []keybase1.SizedImage // TODO CORE-9882
 	Priority      int
 }
 
@@ -468,12 +468,16 @@ func (h *UserHandler) profileProofSuggestionsHelper(mctx libkb.MetaContext) (ret
 			// Ignore the server and use hardcoded markup.
 			suggestions = append(suggestions, suggestion)
 		} else {
+			subtext := serviceType.DisplayGroup()
+			if len(subtext) == 0 {
+				subtext = serviceType.GetTypeName()
+			}
 			suggestions = append(suggestions, ProofSuggestion{
 				Key:           service,
 				ProfileText:   fmt.Sprintf("Prove your %v", serviceType.DisplayName()),
 				ProfileIcon:   dummyIcon,
 				PickerText:    serviceType.DisplayName(),
-				PickerSubtext: serviceType.GetTypeName(), // xxx url or mastodon
+				PickerSubtext: subtext,
 				PickerIcon:    dummyIcon,
 			})
 		}

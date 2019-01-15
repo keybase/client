@@ -595,6 +595,7 @@ type ServiceType interface {
 	SetDisplayConfig(*keybase1.ServiceDisplayConfig)
 	CanMakeNewProofs() bool
 	DisplayPriority() int
+	DisplayGroup() string
 }
 
 type ExternalServicesCollector interface {

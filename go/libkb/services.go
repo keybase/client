@@ -149,6 +149,15 @@ func (t *BaseServiceType) DisplayPriority() int {
 	return t.displayConf.Priority
 }
 
+func (t *BaseServiceType) DisplayGroup() string {
+	t.Lock()
+	defer t.Unlock()
+	if t.displayConf == nil || t.displayConf.Group == nil {
+		return ""
+	}
+	return *t.displayConf.Group
+}
+
 func (t *BaseServiceType) CanMakeNewProofs() bool {
 	t.Lock()
 	defer t.Unlock()

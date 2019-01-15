@@ -84,7 +84,8 @@ func TestLoadParamServices(t *testing.T) {
 	for _, config := range config.DisplayConfigs {
 		if config.Key == "gubble.social" {
 			group := "gubble"
-			require.EqualValues(t, &group, config.Group)
+			require.NotNil(t, config.Group)
+			require.EqualValues(t, group, *config.Group)
 			require.False(t, config.CreationDisabled)
 			foundGubble = true
 			if foundFacebook {

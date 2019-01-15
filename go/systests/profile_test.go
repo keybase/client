@@ -88,7 +88,7 @@ func TestProofSuggestions(t *testing.T) {
 	}, {
 		Key:     "gubble.social",
 		Text:    "Gubble.social",
-		Subtext: "gubble.social",
+		Subtext: "Gubble instance",
 	}, {
 		Key:     "web",
 		Text:    "Your own website",
@@ -108,7 +108,7 @@ func TestProofSuggestions(t *testing.T) {
 	}, {
 		Key:     "gubble.cloud",
 		Text:    "Gubble.cloud",
-		Subtext: "gubble.cloud",
+		Subtext: "Gubble instance",
 	}, {
 		Key:     "theqrl.org",
 		Text:    "Quantum Resistant Ledger",
