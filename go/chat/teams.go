@@ -654,17 +654,15 @@ func (t *ImplicitTeamsNameInfoSource) EncryptionKey(ctx context.Context, name st
 	if err != nil {
 		return res, ni, err
 	}
-	idFailures, err := t.identify(ctx, teamID, impTeamName)
-	if err != nil {
+	if _, err := t.identify(ctx, teamID, impTeamName); err != nil {
 		return res, ni, err
 	}
 	if res, err = getTeamCryptKey(ctx, team, team.Generation(), public, false); err != nil {
 		return res, ni, err
 	}
 	return res, types.NameInfo{
-		ID:               teamID,
-		CanonicalName:    impTeamName.String(),
-		IdentifyFailures: idFailures,
+		ID:            teamID,
+		CanonicalName: impTeamName.String(),
 	}, nil
 }
 
