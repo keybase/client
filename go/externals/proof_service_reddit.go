@@ -99,7 +99,8 @@ func (t *RedditServiceType) NormalizeRemoteName(mctx libkb.MetaContext, s string
 	return t.NormalizeUsername(s)
 }
 
-func (t *RedditServiceType) GetTypeName() string { return "reddit" }
+func (t *RedditServiceType) GetTypeName() string   { return "reddit" }
+func (t *RedditServiceType) PickerSubtext() string { return "reddit.com" }
 
 func (t *RedditServiceType) GetPrompt() string { return "Your username on Reddit" }
 

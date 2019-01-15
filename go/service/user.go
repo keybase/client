@@ -369,47 +369,6 @@ type ProofSuggestion struct {
 }
 
 var dummyIcon []keybase1.SizedImage // TODO CORE-9882: Get some icons
-var ossifiedSocialServices = map[string]keybase1.ProofSuggestion{
-	"github": {
-		Key:           "github",
-		ProfileText:   "Prove your GitHub",
-		ProfileIcon:   dummyIcon,
-		PickerText:    "GitHub",
-		PickerSubtext: "github.com",
-		PickerIcon:    dummyIcon,
-	},
-	"hackernews": {
-		Key:           "hackernews",
-		ProfileText:   "Prove your Hacker News",
-		ProfileIcon:   dummyIcon,
-		PickerText:    "Hacker News",
-		PickerSubtext: "news.ycombinator.com",
-		PickerIcon:    dummyIcon,
-	},
-	"reddit": {
-		Key:           "reddit",
-		ProfileText:   "Prove your Reddit",
-		ProfileIcon:   dummyIcon,
-		PickerText:    "Reddit",
-		PickerSubtext: "reddit.com",
-		PickerIcon:    dummyIcon,
-	},
-	"twitter": {
-		Key:           "twitter",
-		ProfileText:   "Prove your Twitter",
-		ProfileIcon:   dummyIcon,
-		PickerText:    "Twitter",
-		PickerSubtext: "twitter.com",
-		PickerIcon:    dummyIcon,
-	},
-	"rooter": {
-		Key:           "rooter",
-		ProfileText:   "Prove your Rooter",
-		ProfileIcon:   dummyIcon,
-		PickerText:    "Rooter",
-		PickerSubtext: "",
-		PickerIcon:    dummyIcon,
-	}}
 
 func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext) (ret []ProofSuggestion, err error) {
 	user, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(mctx).WithPublicKeyOptional())
@@ -438,23 +397,18 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext) (ret []Proo
 			mctx.CDebugf("user has an active proof: %v", serviceType.Key())
 			continue
 		}
-		if suggestion, ok := ossifiedSocialServices[service]; ok {
-			// Ignore the server and use hardcoded markup.
-			suggestions = append(suggestions, ProofSuggestion{ProofSuggestion: suggestion})
-		} else {
-			subtext := serviceType.DisplayGroup()
-			if len(subtext) == 0 {
-				subtext = serviceType.GetTypeName()
-			}
-			suggestions = append(suggestions, ProofSuggestion{ProofSuggestion: keybase1.ProofSuggestion{
-				Key:           service,
-				ProfileText:   fmt.Sprintf("Prove your %v", serviceType.DisplayName()),
-				ProfileIcon:   dummyIcon,
-				PickerText:    serviceType.DisplayName(),
-				PickerSubtext: subtext,
-				PickerIcon:    dummyIcon,
-			}})
+		subtext := serviceType.DisplayGroup()
+		if len(subtext) == 0 {
+			subtext = serviceType.PickerSubtext()
 		}
+		suggestions = append(suggestions, ProofSuggestion{ProofSuggestion: keybase1.ProofSuggestion{
+			Key:           service,
+			ProfileText:   fmt.Sprintf("Prove your %v", serviceType.DisplayName()),
+			ProfileIcon:   dummyIcon,
+			PickerText:    serviceType.DisplayName(),
+			PickerSubtext: subtext,
+			PickerIcon:    dummyIcon,
+		}})
 	}
 	hasPGP := len(user.GetActivePGPKeys(true)) > 0
 	if !hasPGP {

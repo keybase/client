@@ -585,6 +585,7 @@ type ServiceType interface {
 	RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, remotename string) (warning *Markup, err error)
 	GetProofType() string
 	GetTypeName() string
+	PickerSubtext() string
 	CheckProofText(text string, id keybase1.SigID, sig string) error
 	FormatProofText(mctx MetaContext, ppr *PostProofRes,
 		kbUsername string, sigID keybase1.SigID) (string, error)
