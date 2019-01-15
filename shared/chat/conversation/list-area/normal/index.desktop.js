@@ -45,8 +45,6 @@ class Thread extends React.PureComponent<Props, State> {
   _ignoreScrollToBottomRefCount = 0
   // last height we saw from resize
   _scrollHeight = 0
-  // timeout to check for loading more messages onScroll
-  _loadMoreTimeout = null
 
   _scrollToBottom = () => {
     const list = this._listRef.current
@@ -146,11 +144,10 @@ class Thread extends React.PureComponent<Props, State> {
   _cleanupDebounced = () => {
     this._onAfterScroll.cancel()
     this._onScrollThrottled.cancel()
-    this._loadMoreTimeout && clearTimeout(this._loadMoreTimeout)
   }
 
   _onScroll = e => {
-    this._checkForLoadMoreMessages()
+    this._checkForLoadMoreThrottled()
     if (this._ignoreScrollToBottomRefCount > 0) {
       this._ignoreScrollToBottomRefCount--
       return
@@ -174,17 +171,11 @@ class Thread extends React.PureComponent<Props, State> {
       this.setState(p => (p.isLockedToBottom === isLockedToBottom ? null : {isLockedToBottom}))
     },
     100,
-    // trailing = true cause you can be on top but keep scrolling which can keep the throttle going and ultimately miss out
-    // on scrollTop being zero and not trying to load more
     {leading: true, trailing: true}
   )
 
-  _checkForLoadMoreMessages = () => {
-    if (this._loadMoreTimeout) {
-      return
-    }
-    this._loadMoreTimeout = setTimeout(() => {
-      this._loadMoreTimeout = null
+  _checkForLoadMoreThrottled = throttle(
+    () => {
       // are we at the top?
       const list = this._listRef.current
       if (list) {
@@ -192,8 +183,12 @@ class Thread extends React.PureComponent<Props, State> {
           this.props.loadMoreMessages()
         }
       }
-    }, 100)
-  }
+    },
+    100,
+    // trailing = true cause you can be on top but keep scrolling which can keep the throttle going and ultimately miss out
+    // on scrollTop being zero and not trying to load more
+    {leading: true, trailing: true}
+  )
 
   // After lets turn them back on
   _onAfterScroll = debounce(() => {
