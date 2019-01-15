@@ -101,39 +101,12 @@ const Actions = (p: Props) => {
 }
 
 const DropdownButton = Kb.OverlayParentHOC(p => {
-  const Meta = () => <Kb.Meta title="New" size="Small" backgroundColor={Styles.globalColors.blue} />
-
-  const sendLumens = flags.walletsEnabled && {
-    onClick: p.onSendLumens,
-    title: 'Send Lumens (XLM)',
-    view: (
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.menuItemBox} gap="tiny">
-        <Kb.Text style={styles.menuItemText} type={Styles.isMobile ? 'BodyBig' : 'Body'}>
-          Send Lumens (XLM)
-        </Kb.Text>
-        <Meta />
-      </Kb.Box2>
-    ),
-  }
-  const requestLumens = flags.walletsEnabled && {
-    onClick: p.onRequestLumens,
-    title: 'Request Lumens (XLM)',
-    view: (
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.menuItemBox} gap="tiny">
-        <Kb.Text style={styles.menuItemText} type={Styles.isMobile ? 'BodyBig' : 'Body'}>
-          Request Lumens (XLM)
-        </Kb.Text>
-        <Meta />
-      </Kb.Box2>
-    ),
-  }
-
   const items = [
     {onClick: p.onAddToTeam, title: 'Add to team...'},
-    sendLumens,
-    requestLumens,
-    !Styles.isMobile && {onClick: p.onOpenPrivateFolder, title: 'Open private folder'},
-    !Styles.isMobile && {onClick: p.onBrowsePublicFolder, title: 'Browse public folder'},
+    flags.walletsEnabled ? {newTag: true, onClick: p.onSendLumens, title: 'Send Lumens (XLM)'} : null,
+    flags.walletsEnabled ? {newTag: true, onClick: p.onRequestLumens, title: 'Request Lumens (XLM)'} : null,
+    !Styles.isMobile ? {onClick: p.onOpenPrivateFolder, title: 'Open private folder'} : null,
+    !Styles.isMobile ? {onClick: p.onBrowsePublicFolder, title: 'Browse public folder'} : null,
     p.onUnfollow && {onClick: p.onUnfollow && p.onUnfollow, style: {borderTopWidth: 0}, title: 'Unfollow'},
   ].filter(Boolean)
 

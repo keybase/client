@@ -13,11 +13,11 @@ import Measure from './measure'
 import Teams from './teams/container'
 
 export type Props = {|
-  assertionKeys: ?$ReadOnlyArray<string>,
+  assertionKeys: ?Array<string>,
   backgroundColor: string,
   followThem: boolean,
-  followers: $ReadOnlyArray<string>,
-  following: $ReadOnlyArray<string>,
+  followers: Array<string>,
+  following: Array<string>,
   onBack: () => void,
   onReload: () => void,
   onSearch: () => void,
@@ -76,7 +76,6 @@ const BioLayout = p => (
 const Proofs = p => {
   let assertions
   if (p.assertionKeys) {
-    // $ForceType readOnlyArray doens't like sort()
     assertions = p.assertionKeys
       .sort(Constants.sortAssertionKeys)
       .map(a => <Assertion key={a} username={p.username} assertionKey={a} />)
@@ -238,8 +237,7 @@ class User extends React.Component<Props, State> {
   render() {
     const friends = this.state.selectedFollowing ? this.props.following : this.props.followers
     const {itemsInARow, itemWidth} = widthToDimentions(this.state.width)
-    // $ForceType
-    // TODO memoize
+    // TODO memoize?
     const chunks = this.state.width ? chunk(friends, itemsInARow) : []
 
     return (
@@ -388,7 +386,7 @@ const styles = Styles.styleSheetCreate({
       flexGrow: 1,
       justifyContent: 'center',
     },
-    isDesktop: {
+    isElectron: {
       ...Styles.desktopStyles.clickable,
     },
   }),

@@ -11,6 +11,7 @@ import type {MenuItem, MenuLayoutProps} from '.'
 type MenuRowProps = {
   ...MenuItem,
   isHeader?: boolean,
+  isNew?: ?boolean,
   index: number,
   numItems: number,
   onHidden?: ?() => void,
@@ -86,6 +87,7 @@ const styleRowText = (props: {isHeader?: boolean, danger?: boolean, disabled?: b
 }
 
 const styles = Styles.styleSheetCreate({
+  badge: {},
   divider: {
     marginBottom: Styles.globalMargins.tiny,
     marginTop: Styles.globalMargins.tiny,

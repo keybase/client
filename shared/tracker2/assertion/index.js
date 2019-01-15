@@ -8,13 +8,16 @@ import * as Flow from '../../util/flow'
 type Props = {|
   color: Types.AssertionColor,
   metas: $ReadOnlyArray<Types._AssertionMeta>,
+  onCopyAddress: () => void,
+  onRequestLumens: () => void,
+  onSendLumens: () => void,
   onShowProof: () => void,
   onShowSite: () => void,
+  onWhatIsStellar: () => void,
   proofURL: string,
   siteIcon: string, // TODO handle actual urls, for now just use iconfont
   siteURL: string,
   state: Types.AssertionState,
-  tooltip: string,
   type: string,
   value: string,
 |}
@@ -106,7 +109,10 @@ const siteIcon = icon => {
   }
 }
 
-class _StellarValue extends React.PureComponent<Props> {
+class _StellarValue extends React.PureComponent<
+  Props & Kb.OverlayParentProps,
+  {storedAttachmentRef: ?Kb.Box}
+> {
   state = {storedAttachmentRef: null}
   // only set this once ever
   _storeAttachmentRef = storedAttachmentRef =>
@@ -127,13 +133,13 @@ class _StellarValue extends React.PureComponent<Props> {
           <Kb.Text
             type="BodyPrimaryLink"
             onClick={this.props.toggleShowingMenu}
-            style={Styles.collapseStyles([styles.username, {color: this.props.color}])}
+            style={Styles.collapseStyles([styles.username, {color: assertionColorToColor(this.props.color)}])}
           >
             {this.props.value}
           </Kb.Text>
         </Kb.WithTooltip>
         <Kb.FloatingMenu
-          attachTo={this.state.storedAttachmentRef && this._getAttachmentRef}
+          attachTo={this.state.storedAttachmentRef ? this._getAttachmentRef : undefined}
           closeOnSelect={true}
           containerStyle={undefined}
           items={menuItems}
@@ -170,7 +176,7 @@ const Value = p => {
       <Kb.Text
         type="BodyPrimaryLink"
         onClick={p.onShowSite}
-        style={Styles.collapseStyles([style, {color: p.color}])}
+        style={Styles.collapseStyles([style, {color: assertionColorToColor(p.color)}])}
       >
         {str}
       </Kb.Text>
@@ -186,7 +192,7 @@ const Assertion = (p: Props) => {
       <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} gapStart={true} gapEnd={true}>
         <Kb.Icon type={siteIcon(p.type)} onClick={p.onShowSite} color={Styles.globalColors.black_75} />
         <Kb.Text type="Body" style={styles.textContainer}>
-          <Value {...p} color={assertionColorToColor(p.color)} />
+          <Value {...p} />
           <Kb.Text type="Body" style={styles.site}>
             @{p.type}
           </Kb.Text>
