@@ -1080,6 +1080,14 @@ func assertFetchAccountBundles(t *testing.T, tc *TestContext, primaryAccountID s
 	}
 }
 
+func RequireAppStatusError(t *testing.T, code int, err error) {
+	require.Error(t, err)
+	require.IsType(t, err, libkb.AppStatusError{})
+	if aerr, ok := err.(libkb.AppStatusError); ok {
+		require.Equal(t, code, aerr.Code)
+	}
+}
+
 // TestMakeAccountMobileOnlyOnDesktop imports a new secret stellar key, then makes it
 // mobile only from a desktop device.  The subsequent fetch fails because it is
 // a desktop device.
@@ -1104,53 +1112,20 @@ func TestMakeAccountMobileOnlyOnDesktop(t *testing.T) {
 	require.Equal(t, stellar1.BundleRevision(2), rev2Bundle.Revision)
 	// NOTE: we're using this rev2Bundle later...
 
+	// mobile-only mode can only be set from mobile device.
 	err = tc.Srv.SetAccountMobileOnlyLocal(ctx, stellar1.SetAccountMobileOnlyLocalArg{
 		AccountID: a1,
 	})
-	require.NoError(t, err)
+	RequireAppStatusError(t, libkb.SCStellarDeviceNotMobile, err)
 
-	// this is a desktop device, so this should now fail
-	_, err = remote.FetchAccountBundle(mctx, a1)
-	require.Error(t, err)
-	aerr, ok := err.(libkb.AppStatusError)
-	if !ok {
-		t.Fatalf("invalid error type %T", err)
-	}
-	require.Equal(t, libkb.SCStellarDeviceNotMobile, aerr.Code)
+	// this will make the device older on the server
+	makeActiveDeviceOlder(t, g)
 
-	// try to make it accessible on all devices, which shouldn't work
-	err = tc.Srv.SetAccountAllDevicesLocal(ctx, stellar1.SetAccountAllDevicesLocalArg{
+	// this does not affect anything, it's still a desktop device
+	err = tc.Srv.SetAccountMobileOnlyLocal(ctx, stellar1.SetAccountMobileOnlyLocalArg{
 		AccountID: a1,
 	})
-	aerr, ok = err.(libkb.AppStatusError)
-	if !ok {
-		t.Fatalf("invalid error type %T", err)
-	}
-	require.Equal(t, libkb.SCStellarDeviceNotMobile, aerr.Code)
-
-	primaryAcctName := fmt.Sprintf("%s's account", tc.Fu.Username)
-	// can pull a secretless bundle though (not specifying an accountID)
-	rev3Bundle, err := remote.FetchSecretlessBundle(mctx)
-	require.NoError(t, err)
-	require.Equal(t, stellar1.BundleRevision(3), rev3Bundle.Revision)
-	accountID0 := rev3Bundle.Accounts[0].AccountID
-	require.Equal(t, primaryAcctName, rev3Bundle.Accounts[0].Name)
-	require.True(t, rev3Bundle.Accounts[0].IsPrimary)
-	require.Len(t, rev3Bundle.AccountBundles[accountID0].Signers, 0)
-	accountID1 := rev3Bundle.Accounts[1].AccountID
-	require.Equal(t, stellar1.AccountMode_MOBILE, rev3Bundle.Accounts[1].Mode)
-	require.False(t, rev3Bundle.Accounts[1].IsPrimary)
-	require.Len(t, rev3Bundle.AccountBundles[accountID1].Signers, 0)
-	require.Equal(t, "vault", rev3Bundle.Accounts[1].Name)
-
-	// try posting an old bundle we got previously
-	err = remote.Post(mctx, *rev2Bundle)
-	require.Error(t, err)
-
-	// tinker with it
-	rev2Bundle.Revision = 4
-	err = remote.Post(mctx, *rev2Bundle)
-	require.Error(t, err)
+	RequireAppStatusError(t, libkb.SCStellarDeviceNotMobile, err)
 }
 
 // TestMakeAccountMobileOnlyOnRecentMobile imports a new secret stellar key, then
@@ -1179,23 +1154,21 @@ func TestMakeAccountMobileOnlyOnRecentMobile(t *testing.T) {
 	t.Logf("bundle: %+v", bundle)
 	checker.assertBundle(t, bundle, 2, 1, stellar1.AccountMode_USER)
 
+	// the mobile only device is too recent, so this would fail
+	err = tc.Srv.SetAccountMobileOnlyLocal(ctx, stellar1.SetAccountMobileOnlyLocalArg{
+		AccountID: a1,
+	})
+	RequireAppStatusError(t, libkb.SCStellarMobileOnlyPurgatory, err)
+
+	// this will make the device older on the server
+	makeActiveDeviceOlder(t, g)
+	// so now the set will work
 	err = tc.Srv.SetAccountMobileOnlyLocal(ctx, stellar1.SetAccountMobileOnlyLocalArg{
 		AccountID: a1,
 	})
 	require.NoError(t, err)
 
-	// this is a recent mobile device, so this should now fail
-	_, err = remote.FetchAccountBundle(mctx, a1)
-	require.Error(t, err)
-	aerr, ok := err.(libkb.AppStatusError)
-	if !ok {
-		t.Fatalf("invalid error type %T", err)
-	}
-	require.Equal(t, libkb.SCStellarMobileOnlyPurgatory, aerr.Code)
-
-	// this will make the device older on the server
-	makeActiveDeviceOlder(t, g)
-	// so now the fetch will work
+	// and so will the fetch.
 	bundle, err = remote.FetchAccountBundle(mctx, a1)
 	require.NoError(t, err)
 	checker.assertBundle(t, bundle, 3, 2, stellar1.AccountMode_MOBILE)

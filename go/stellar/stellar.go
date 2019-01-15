@@ -322,6 +322,7 @@ func LookupSender(mctx libkb.MetaContext, accountID stellar1.AccountID) (stellar
 // `to` can be a username, social assertion, account ID, or federation address.
 func LookupRecipient(m libkb.MetaContext, to stellarcommon.RecipientInput, isCLI bool) (res stellarcommon.Recipient, err error) {
 	defer m.CTraceTimed("Stellar.LookupRecipient", func() error { return err })()
+
 	res = stellarcommon.Recipient{
 		Input: to,
 	}
@@ -844,7 +845,8 @@ func prepareMiniChatPayment(m libkb.MetaContext, remoter remote.Remoter, sp buil
 	result := &MiniPrepared{Username: payment.Username}
 	recipient, err := LookupRecipient(m, stellarcommon.RecipientInput(payment.Username.String()), false)
 	if err != nil {
-		result.Error = err
+		m.CDebugf("LookupRecipient error: %s", err)
+		result.Error = errors.New("error looking up recipient")
 		return result
 	}
 

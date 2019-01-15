@@ -134,6 +134,7 @@ func NewConfigMock(c *gomock.Controller, ctr *SafeTestReporter) *ConfigMock {
 
 	config.SetMetadataVersion(defaultClientMetadataVer)
 	config.mode = modeTest{NewInitModeFromType(InitDefault)}
+	config.conflictResolutionDB = openCRDB(config)
 
 	return config
 }

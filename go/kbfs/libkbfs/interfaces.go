@@ -18,6 +18,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	metrics "github.com/rcrowley/go-metrics"
+	"github.com/syndtr/goleveldb/leveldb"
 	"golang.org/x/net/context"
 	billy "gopkg.in/src-d/go-billy.v4"
 )
@@ -514,7 +515,6 @@ type KBFSOps interface {
 
 	// GetNodeMetadata gets metadata associated with a Node.
 	GetNodeMetadata(ctx context.Context, node Node) (NodeMetadata, error)
-
 	// Shutdown is called to clean up any resources associated with
 	// this KBFSOps instance.
 	Shutdown(ctx context.Context) error
@@ -2400,6 +2400,9 @@ type Config interface {
 	SetBlockCryptVersion(kbfscrypto.EncryptionVer)
 	DefaultBlockType() keybase1.BlockType
 	SetDefaultBlockType(blockType keybase1.BlockType)
+	// GetConflictResolutionDB gets the levelDB in which conflict resolution
+	// status is stored.
+	GetConflictResolutionDB() (db *leveldb.DB)
 	RekeyQueue() RekeyQueue
 	SetRekeyQueue(RekeyQueue)
 	// ReqsBufSize indicates the number of read or write operations

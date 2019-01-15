@@ -439,7 +439,7 @@ func newFolderBranchOps(
 		observers:     observers,
 		serviceStatus: serviceStatus,
 		status: newFolderBranchStatusKeeper(
-			config, nodeCache, quotaUsage),
+			config, nodeCache, quotaUsage, fb.Tlf.Bytes()),
 		mdWriterLock: mdWriterLock,
 		headLock:     headLock,
 		syncLock:     syncLock,

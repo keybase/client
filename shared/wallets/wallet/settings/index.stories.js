@@ -46,6 +46,7 @@ const sharedSettingsProps = {
   currencyWaiting: false,
   inflationDestination: '',
   mobileOnlyMode: false,
+  mobileOnlyWaiting: false,
   onBack: Sb.action('onBack'),
   onCurrencyChange: Sb.action('onCurrencyChange'),
   onDelete: Sb.action('onDelete'),

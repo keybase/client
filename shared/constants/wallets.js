@@ -465,6 +465,7 @@ export const setAccountAsDefaultWaitingKey = 'wallets:setAccountAsDefault'
 export const deleteAccountWaitingKey = 'wallets:deleteAccount'
 export const searchKey = 'walletSearch'
 export const loadAccountWaitingKey = (id: Types.AccountID) => `wallets:loadAccount:${id}`
+export const loadAccountsWaitingKey = `wallets:loadAccounts`
 export const cancelPaymentWaitingKey = (id: Types.PaymentID) =>
   `wallets:cancelPayment:${Types.paymentIDToString(id)}`
 export const validateAccountNameWaitingKey = 'wallets:validateAccountName'
@@ -472,6 +473,8 @@ export const validateSecretKeyWaitingKey = 'wallets:validateSecretKey'
 export const getRequestDetailsWaitingKey = (id: Types.PaymentID) =>
   `wallets:requestDetailsWaitingKey:${Types.paymentIDToString(id)}`
 export const inflationDestinationWaitingKey = 'wallets:inflationDestination'
+export const setAccountMobileOnlyWaitingKey = (id: Types.AccountID) =>
+  `wallets:setAccountMobileOnly:${Types.accountIDToString(id)}`
 
 export const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().toList()
 

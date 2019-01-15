@@ -191,7 +191,7 @@ const reviewPayment = state =>
       // ignore cancellation, which is expected in the case where we have a
       // failing review and then we build or stop a payment
     } else {
-      throw error
+      return WalletsGen.createSentPaymentError({error: error.desc})
     }
   })
 
@@ -212,11 +212,13 @@ const loadWalletDisclaimer = () =>
 
 const loadAccounts = (state, action) =>
   !actionHasError(action) &&
-  RPCStellarTypes.localGetWalletAccountsLocalRpcPromise().then(res => {
-    return WalletsGen.createAccountsReceived({
-      accounts: (res || []).map(account => Constants.accountResultToAccount(account)),
-    })
-  })
+  RPCStellarTypes.localGetWalletAccountsLocalRpcPromise(undefined, Constants.loadAccountsWaitingKey).then(
+    res => {
+      return WalletsGen.createAccountsReceived({
+        accounts: (res || []).map(account => Constants.accountResultToAccount(account)),
+      })
+    }
+  )
 
 const loadAssets = (state, action) => {
   if (actionHasError(action)) {
@@ -232,6 +234,12 @@ const loadAssets = (state, action) => {
       break
     case WalletsGen.accountUpdateReceived:
       accountID = action.payload.account.accountID
+      break
+    case WalletsGen.accountsReceived:
+      // this covers the case when you create a new account
+      // a bit overkill since it'll do this for accounts we've already loaded
+      // TODO cut loads down to only the ones we need
+      accountID = state.wallets.selectedAccount
       break
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
@@ -266,7 +274,11 @@ const createPaymentsReceived = (accountID, payments, pending) =>
 
 const loadPayments = (state, action) =>
   !actionHasError(action) &&
-  (action.type === WalletsGen.selectAccount ||
+  (!!(
+    action.type === WalletsGen.selectAccount &&
+    action.payload.accountID &&
+    action.payload.accountID !== Types.noAccountID
+  ) ||
     Constants.getAccount(state, action.payload.accountID).accountID !== Types.noAccountID) &&
   Promise.all([
     RPCStellarTypes.localGetPendingPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
@@ -697,6 +709,10 @@ const rejectDisclaimer = (state, action) =>
 
 const loadMobileOnlyMode = (state, action) => {
   let accountID = action.payload.accountID
+  if (!accountID || accountID === Types.noAccountID) {
+    logger.warn('loadMobileOnlyMode invalid account ID, bailing')
+    return
+  }
   return RPCStellarTypes.localIsAccountMobileOnlyLocalRpcPromise({
     accountID,
   }).then(res =>
@@ -712,7 +728,10 @@ const changeMobileOnlyMode = (state, action) => {
   let f = action.payload.enabled
     ? RPCStellarTypes.localSetAccountMobileOnlyLocalRpcPromise
     : RPCStellarTypes.localSetAccountAllDevicesLocalRpcPromise
-  return f({accountID}).then(res => WalletsGen.createLoadMobileOnlyMode({accountID}))
+  return f({accountID}, Constants.setAccountMobileOnlyWaitingKey(accountID)).then(res => [
+    WalletsGen.createLoadedMobileOnlyMode({accountID, enabled: action.payload.enabled}),
+    WalletsGen.createLoadMobileOnlyMode({accountID}),
+  ])
 }
 
 const writeLastSentXLM = (state, action) => {
@@ -780,6 +799,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     | WalletsGen.SelectAccountPayload
     | WalletsGen.LinkedExistingAccountPayload
     | WalletsGen.AccountUpdateReceivedPayload
+    | WalletsGen.AccountsReceivedPayload
   >(
     [
       WalletsGen.loadAssets,
@@ -787,6 +807,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
       WalletsGen.selectAccount,
       WalletsGen.linkedExistingAccount,
       WalletsGen.accountUpdateReceived,
+      WalletsGen.accountsReceived,
     ],
     loadAssets
   )

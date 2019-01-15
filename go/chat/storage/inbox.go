@@ -32,6 +32,10 @@ var defaultMemberStatusFilter = []chat1.ConversationMemberStatus{
 	chat1.ConversationMemberStatus_RESET,
 }
 
+var defaultExistences = []chat1.ConversationExistence{
+	chat1.ConversationExistence_ACTIVE,
+}
+
 type InboxFlushMode int
 
 const (
@@ -496,12 +500,11 @@ func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, rcs 
 		}
 	}
 
-	queryMemberStatusMap := map[chat1.ConversationMemberStatus]bool{}
 	memberStatus := query.MemberStatus
-	// Default allowed member statuses
 	if len(memberStatus) == 0 {
 		memberStatus = defaultMemberStatusFilter
 	}
+	queryMemberStatusMap := map[chat1.ConversationMemberStatus]bool{}
 	for _, memberStatus := range memberStatus {
 		queryMemberStatusMap[memberStatus] = true
 	}
@@ -511,10 +514,19 @@ func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, rcs 
 		queryStatusMap[status] = true
 	}
 
+	existences := query.Existences
+	if len(existences) == 0 {
+		existences = defaultExistences
+	}
+	existenceMap := map[chat1.ConversationExistence]bool{}
+	for _, status := range existences {
+		existenceMap[status] = true
+	}
+
 	for _, rc := range rcs {
 		conv := rc.Conv
 		// Existence check
-		if conv.Metadata.Existence != chat1.ConversationExistence_ACTIVE {
+		if _, ok := existenceMap[conv.Metadata.Existence]; !ok && len(existenceMap) > 0 {
 			continue
 		}
 		// Member status check
@@ -1657,6 +1669,44 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 		if cp, ok := convMap[or.ConvID.String()]; ok {
 			cp.Conv.Metadata.ResetList = append(cp.Conv.Metadata.ResetList, or.Uid)
 			cp.Conv.Metadata.Version = vers.ToConvVers()
+		}
+	}
+
+	ibox.InboxVersion = vers
+	return i.writeDiskInbox(ctx, uid, ibox)
+}
+
+func (i *Inbox) ConversationsUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+	convUpdates []chat1.ConversationUpdate) (err Error) {
+	locks.Inbox.Lock()
+	defer locks.Inbox.Unlock()
+	defer i.Trace(ctx, func() error { return err }, "ConversationsUpdate")()
+	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
+
+	i.Debug(ctx, "ConversationsUpdate: updating %d convs", len(convUpdates))
+	ibox, err := i.readDiskInbox(ctx, uid, true)
+	if err != nil {
+		if _, ok := err.(MissError); ok {
+			return nil
+		}
+		return err
+	}
+	// Check inbox versions, make sure it makes sense (clear otherwise)
+	var cont bool
+	if vers, cont, err = i.handleVersion(ctx, ibox.InboxVersion, vers); !cont {
+		return err
+	}
+
+	// Process our own changes
+	updateMap := make(map[string]chat1.ConversationUpdate)
+	for _, u := range convUpdates {
+		updateMap[u.ConvID.String()] = u
+	}
+
+	for idx, conv := range ibox.Conversations {
+		if update, ok := updateMap[conv.GetConvID().String()]; ok {
+			i.Debug(ctx, "ConversationsUpdate: changed conv: %v", update)
+			ibox.Conversations[idx].Conv.Metadata.Existence = update.Existence
 		}
 	}
 
