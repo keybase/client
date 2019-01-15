@@ -537,7 +537,7 @@ func (l *TrackChainLink) GetTrackedUID() (keybase1.UID, error) {
 func (l *TrackChainLink) GetTrackedUsername() (NormalizedUsername, error) {
 	tmp, err := l.UnmarshalPayloadJSON().AtPath("body.track.basics.username").GetString()
 	if err != nil {
-		return NormalizedUsername(""), nil
+		return NormalizedUsername(""), fmt.Errorf("no tracked username: %v", err)
 	}
 	return NewNormalizedUsername(tmp), err
 }
