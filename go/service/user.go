@@ -539,7 +539,6 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext) (ret []Proo
 		"pgp",
 		"bitcoin",
 		"zcash",
-		"~other~",
 	}
 	offlineOrderMap := make(map[string]int) // key -> offline priority
 	for i, k := range offlineOrder {
@@ -552,7 +551,7 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext) (ret []Proo
 		} else if p, ok := offlineOrderMap[key]; ok {
 			return p + maxServerPriority + 1
 		} else {
-			return offlineOrderMap["~other~"] + maxServerPriority + 1
+			return len(offlineOrderMap) + maxServerPriority
 		}
 	}
 	for i := range suggestions {
