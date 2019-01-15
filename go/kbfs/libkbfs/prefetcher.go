@@ -430,7 +430,7 @@ func (p *blockPrefetcher) request(ctx context.Context, priority int,
 		pre.parents[ptr.RefNonce][parentPtr] = parentPre.waitCh
 		if pre.subtreeBlockCount > 0 {
 			p.log.CDebugf(ctx,
-				"Prefetching %v, action=%s, numBlocks=%d, isPrefetchNew=%t",
+				"Prefetching %v, action=%s, numBlocks=%d, isParentNew=%t",
 				ptr, action, pre.subtreeBlockCount, isParentNew)
 		}
 		return pre.subtreeBlockCount
