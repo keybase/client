@@ -487,6 +487,12 @@ func (s *Server) ChangeWalletAccountNameLocal(ctx context.Context, arg stellar1.
 	if err != nil {
 		return err
 	}
+
+	if arg.AccountID.IsNil() {
+		mctx.CDebugf("ChangeWalletAccountNameLocal called with an empty account id")
+		return ErrAccountIDMissing
+	}
+
 	return stellar.ChangeAccountName(mctx, arg.AccountID, arg.NewName)
 }
 
@@ -499,6 +505,11 @@ func (s *Server) SetWalletAccountAsDefaultLocal(ctx context.Context, arg stellar
 	defer fin()
 	if err != nil {
 		return err
+	}
+
+	if arg.AccountID.IsNil() {
+		mctx.CDebugf("SetWalletAccountAsDefaultLocal called with an empty account id")
+		return ErrAccountIDMissing
 	}
 
 	return stellar.SetAccountAsPrimary(mctx, arg.AccountID)
@@ -517,6 +528,11 @@ func (s *Server) DeleteWalletAccountLocal(ctx context.Context, arg stellar1.Dele
 
 	if arg.UserAcknowledged != "yes" {
 		return errors.New("User did not acknowledge")
+	}
+
+	if arg.AccountID.IsNil() {
+		mctx.CDebugf("DeleteWalletAccountLocal called with an empty account id")
+		return ErrAccountIDMissing
 	}
 
 	return stellar.DeleteAccount(mctx, arg.AccountID)
@@ -831,6 +847,11 @@ func (s *Server) MarkAsReadLocal(ctx context.Context, arg stellar1.MarkAsReadLoc
 		return err
 	}
 
+	if arg.AccountID.IsNil() {
+		mctx.CDebugf("IsAccountMobileOnlyLocal called with an empty account id")
+		return ErrAccountIDMissing
+	}
+
 	err = s.remoter.MarkAsRead(mctx.Ctx(), arg.AccountID, stellar1.TransactionIDFromPaymentID(arg.MostRecentID))
 	if err != nil {
 		return err
@@ -851,6 +872,11 @@ func (s *Server) IsAccountMobileOnlyLocal(ctx context.Context, arg stellar1.IsAc
 		return false, err
 	}
 
+	if arg.AccountID.IsNil() {
+		mctx.CDebugf("IsAccountMobileOnlyLocal called with an empty account id")
+		return false, ErrAccountIDMissing
+	}
+
 	return s.remoter.IsAccountMobileOnly(mctx.Ctx(), arg.AccountID)
 }
 
@@ -864,6 +890,11 @@ func (s *Server) SetAccountMobileOnlyLocal(ctx context.Context, arg stellar1.Set
 		return err
 	}
 
+	if arg.AccountID.IsNil() {
+		mctx.CDebugf("SetAccountMobileOnlyLocal called with an empty account id")
+		return ErrAccountIDMissing
+	}
+
 	return s.remoter.SetAccountMobileOnly(mctx.Ctx(), arg.AccountID)
 }
 
@@ -875,6 +906,11 @@ func (s *Server) SetAccountAllDevicesLocal(ctx context.Context, arg stellar1.Set
 	defer fin()
 	if err != nil {
 		return err
+	}
+
+	if arg.AccountID.IsNil() {
+		mctx.CDebugf("SetAccountAllDevicesLocal called with an empty account id")
+		return ErrAccountIDMissing
 	}
 
 	return s.remoter.MakeAccountAllDevices(mctx.Ctx(), arg.AccountID)
@@ -916,5 +952,11 @@ func (s *Server) GetInflationDestinationLocal(ctx context.Context, arg stellar1.
 	if err != nil {
 		return res, err
 	}
+
+	if arg.AccountID.IsNil() {
+		mctx.CDebugf("GetInflationDestinationLocal called with an empty account id")
+		return res, ErrAccountIDMissing
+	}
+
 	return stellar.GetInflationDestination(mctx, arg.AccountID)
 }
