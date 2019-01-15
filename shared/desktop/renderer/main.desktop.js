@@ -85,7 +85,9 @@ function setupApp(store, runSagas) {
 
   // Run installer
   SafeElectron.getIpcRenderer().on('installed', (event, message) => {
-    store.dispatch(ConfigGen.createInstallerRan())
+    setTimeout(() => {
+      store.dispatch(ConfigGen.createInstallerRan())
+    }, 10 * 1000)
   })
   SafeElectron.getIpcRenderer().send('install-check')
 
