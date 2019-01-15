@@ -707,6 +707,10 @@ const rejectDisclaimer = (state, action) =>
 
 const loadMobileOnlyMode = (state, action) => {
   let accountID = action.payload.accountID
+  if (!accountID || accountID === Types.noAccountID) {
+    logger.warn('loadMobileOnlyMode invalid account ID, bailing')
+    return
+  }
   return RPCStellarTypes.localIsAccountMobileOnlyLocalRpcPromise({
     accountID,
   }).then(res =>
