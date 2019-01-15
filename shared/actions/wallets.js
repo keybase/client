@@ -233,6 +233,12 @@ const loadAssets = (state, action) => {
     case WalletsGen.accountUpdateReceived:
       accountID = action.payload.account.accountID
       break
+    case WalletsGen.accountsReceived:
+      // this covers the case when you create a new account
+      // a bit overkill since it'll do this for accounts we've already loaded
+      // TODO cut loads down to only the ones we need
+      accountID = state.wallets.selectedAccount
+      break
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return
@@ -787,6 +793,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     | WalletsGen.SelectAccountPayload
     | WalletsGen.LinkedExistingAccountPayload
     | WalletsGen.AccountUpdateReceivedPayload
+    | WalletsGen.AccountsReceivedPayload
   >(
     [
       WalletsGen.loadAssets,
@@ -794,6 +801,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
       WalletsGen.selectAccount,
       WalletsGen.linkedExistingAccount,
       WalletsGen.accountUpdateReceived,
+      WalletsGen.accountsReceived,
     ],
     loadAssets
   )
