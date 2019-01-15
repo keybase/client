@@ -610,9 +610,6 @@ func (t *ImplicitTeamsNameInfoSource) LookupID(ctx context.Context, name string,
 		ID:            tlfID,
 		CanonicalName: impTeamName.String(),
 	}
-	if res.IdentifyFailures, err = t.identify(ctx, tlfID, impTeamName); err != nil {
-		return res, err
-	}
 	return res, nil
 }
 
@@ -634,14 +631,9 @@ func (t *ImplicitTeamsNameInfoSource) LookupName(ctx context.Context, tlfID chat
 		return res, err
 	}
 	t.Debug(ctx, "LookupName: got name: %s", impTeamName.String())
-	idFailures, err := t.identify(ctx, tlfID, impTeamName)
-	if err != nil {
-		return res, err
-	}
 	return types.NameInfo{
-		ID:               tlfID,
-		CanonicalName:    impTeamName.String(),
-		IdentifyFailures: idFailures,
+		ID:            tlfID,
+		CanonicalName: impTeamName.String(),
 	}, nil
 }
 
