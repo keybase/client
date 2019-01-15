@@ -26,7 +26,6 @@ class UserBubbleCollection extends React.PureComponent<{
   teamSoFar: $PropertyType<Props, 'teamSoFar'>,
   onRemove: $PropertyType<Props, 'onRemove'>,
 }> {
-
   render() {
     return this.props.teamSoFar.map(u => (
       <UserBubble
@@ -41,7 +40,7 @@ class UserBubbleCollection extends React.PureComponent<{
 }
 
 const TeamBox = (props: Props) => (
-  <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.container}>
+  <Kb.Box2 direction="horizontal" style={styles.container}>
     {Styles.isMobile && <Kb.Icon fontSize={22} type={'iconfont-search'} style={styles.searchIcon} />}
     <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
     <Input
@@ -63,12 +62,13 @@ const styles = Styles.styleSheetCreate({
       borderStyle: 'solid',
       borderWidth: 1,
       flex: 1,
+      flexWrap: 'wrap',
     },
     isElectron: {
-      height: 40,
+      minHeight: 40,
     },
     isMobile: {
-      height: 45,
+      minHeight: 45,
     },
   }),
   searchIcon: {
