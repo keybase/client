@@ -1,5 +1,8 @@
 // @flow
 import * as Container from '../../util/container'
+import * as ConfigGen from '../../actions/config-gen'
+import * as WalletsGen from '../../actions/wallets-gen'
+import * as WalletsType from '../../constants/types/wallets'
 import * as Constants from '../../constants/tracker2'
 import Assertion from '.'
 import openUrl from '../../util/open-url'
@@ -25,16 +28,26 @@ const mapStateToProps = (state, ownProps) => {
     value: a.value,
   }
 }
-const mapDispatchToProps = dispatch => ({})
+const mapDispatchToProps = dispatch => ({
+  _onCopyAddress: (text: string) => dispatch(ConfigGen.createCopyToClipboard({text})),
+  _onSendOrRequestLumens: (to: string, isRequest: boolean, recipientType: WalletsType.CounterpartyType) => {
+    dispatch(
+      WalletsGen.createOpenSendRequestForm({from: WalletsType.noAccountID, isRequest, recipientType, to})
+    )
+  },
+})
+
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   color: stateProps.color,
   metas: stateProps._metas.map(({color, label}) => ({color, label})),
-  onShowProof: () => {
-    stateProps.proofURL && openUrl(stateProps.proofURL)
-  },
-  onShowSite: () => {
-    stateProps.siteURL && openUrl(stateProps.siteURL)
-  },
+  onCopyAddress: () => dispatchProps._onCopyAddress(stateProps.value),
+  onRequestLumens: () =>
+    dispatchProps._onSendOrRequestLumens(stateProps.value.split('*')[0], true, 'keybaseUser'),
+  onSendLumens: () =>
+    dispatchProps._onSendOrRequestLumens(stateProps.value.split('*')[0], false, 'keybaseUser'),
+  onShowProof: () => stateProps.proofURL && openUrl(stateProps.proofURL),
+  onShowSite: () => stateProps.siteURL && openUrl(stateProps.siteURL),
+  onWhatIsStellar: () => openUrl('https://keybase.io/what-is-stellar'),
   proofURL: stateProps.proofURL,
   siteIcon: stateProps.siteIcon,
   siteURL: stateProps.siteURL,

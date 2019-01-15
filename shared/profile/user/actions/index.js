@@ -29,6 +29,7 @@ const Actions = (p: Props) => {
 
   const dropdown = (
     <DropdownButton
+      key="dropdown"
       onAddToTeam={p.onAddToTeam}
       onOpenPrivateFolder={p.onOpenPrivateFolder}
       onBrowsePublicFolder={p.onBrowsePublicFolder}

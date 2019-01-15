@@ -226,7 +226,7 @@ class User extends React.Component<Props, State> {
   _onMeasured = width => this.setState(p => (p.width !== width ? {width} : null))
   _keyExtractor = (item, index) => index
 
-  componentWillMount() {
+  componentDidMount() {
     this.props.onReload()
   }
   componentDidUpdate(prevProps: Props) {

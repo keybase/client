@@ -4,6 +4,7 @@ import * as Styles from '../../../styles'
 import {TouchableOpacity, SafeAreaView} from 'react-native'
 import Box from '../../box'
 import Text from '../../text'
+import Meta from '../../meta'
 import Divider from '../../divider'
 import type {MenuItem, MenuLayoutProps} from '.'
 
@@ -25,9 +26,14 @@ const MenuRow = (props: MenuRowProps) => (
     style={styles.row}
   >
     {props.view || (
-      <Text type={'BodyBig'} style={styleRowText(props)}>
-        {props.title}
-      </Text>
+      <>
+        <Text type={'BodyBig'} style={styleRowText(props)}>
+          {props.title}
+        </Text>
+        {props.isNew && (
+          <Meta title="New" size="Small" backgroundColor={Styles.globalColors.blue} style={styles.badge} />
+        )}
+      </>
     )}
   </TouchableOpacity>
 )
