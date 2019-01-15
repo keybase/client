@@ -1,5 +1,8 @@
-// flow-typed signature: 2795c40d7224062bf0980781a3d4dad0
-// flow-typed version: 7f95efe47a/webpack_v4.x.x/flow_>=v0.71.x
+// flow-typed signature: 913544cc68b8b8e005726dd1e9689f85
+// flow-typed version: 5d209e063b/webpack_v4.x.x/flow_>=v0.71.x
+
+import * as http from 'http'
+import fs from 'fs'
 
 declare module 'webpack' {
   declare class WebpackError extends Error {
@@ -348,57 +351,67 @@ declare module 'webpack' {
 
   declare type FilterTypes = FilterItemTypes | Array<FilterItemTypes>;
 
-  declare type StatsOptions = {
-    all?: boolean,
-    assets?: boolean,
-    assetsSort?: string,
-    builtAt?: boolean,
-    cached?: boolean,
-    cachedAssets?: boolean,
-    children?: boolean,
-    chunkGroups?: boolean,
-    chunkModules?: boolean,
-    chunkOrigins?: boolean,
-    chunks?: boolean,
-    chunksSort?: string,
-    colors?:
-      | boolean
-      | {
-          bold?: string,
-          cyan?: string,
-          green?: string,
-          magenta?: string,
-          red?: string,
-          yellow?: string,
-        },
-    context?: string,
-    depth?: boolean,
-    entrypoints?: boolean,
-    env?: boolean,
-    errorDetails?: boolean,
-    errors?: boolean,
-    exclude?: FilterTypes | boolean,
-    excludeAssets?: FilterTypes,
-    excludeModules?: FilterTypes | boolean,
-    hash?: boolean,
-    maxModules?: number,
-    moduleAssets?: boolean,
-    moduleTrace?: boolean,
-    modules?: boolean,
-    modulesSort?: string,
-    nestedModules?: boolean,
-    optimizationBailout?: boolean,
-    outputPath?: boolean,
-    performance?: boolean,
-    providedExports?: boolean,
-    publicPath?: boolean,
-    reasons?: boolean,
-    source?: boolean,
-    timings?: boolean,
-    usedExports?: boolean,
-    version?: boolean,
-    warnings?: boolean,
-    warningsFilter?: FilterTypes,
+  declare type StatsOptions =
+    | boolean
+    | ('none' | 'errors-only' | 'minimal' | 'normal' | 'detailed' | 'verbose')
+    | {
+        all?: boolean,
+        assets?: boolean,
+        assetsSort?: string,
+        builtAt?: boolean,
+        cached?: boolean,
+        cachedAssets?: boolean,
+        children?: boolean,
+        chunkGroups?: boolean,
+        chunkModules?: boolean,
+        chunkOrigins?: boolean,
+        chunks?: boolean,
+        chunksSort?: string,
+        colors?:
+          | boolean
+          | {
+              bold?: string,
+              cyan?: string,
+              green?: string,
+              magenta?: string,
+              red?: string,
+              yellow?: string,
+            },
+        context?: string,
+        depth?: boolean,
+        entrypoints?: boolean,
+        env?: boolean,
+        errorDetails?: boolean,
+        errors?: boolean,
+        exclude?: FilterTypes | boolean,
+        excludeAssets?: FilterTypes,
+        excludeModules?: FilterTypes | boolean,
+        hash?: boolean,
+        maxModules?: number,
+        moduleAssets?: boolean,
+        moduleTrace?: boolean,
+        modules?: boolean,
+        modulesSort?: string,
+        nestedModules?: boolean,
+        optimizationBailout?: boolean,
+        outputPath?: boolean,
+        performance?: boolean,
+        providedExports?: boolean,
+        publicPath?: boolean,
+        reasons?: boolean,
+        source?: boolean,
+        timings?: boolean,
+        usedExports?: boolean,
+        version?: boolean,
+        warnings?: boolean,
+        warningsFilter?: FilterTypes,
+      };
+
+  declare type WatchOptions = {
+    aggregateTimeout?: number,
+    ignored?: { [k: string]: any },
+    poll?: boolean | number,
+    stdin?: boolean
   };
 
   declare type WebpackOptions = {
@@ -407,8 +420,117 @@ declare module 'webpack' {
     cache?: boolean | { [k: string]: any },
     context?: string,
     dependencies?: Array<string>,
-    devServer?: { [k: string]: any },
-    devtool?: string | false,
+    devServer?: {
+      after?: (app: any, server: http.Server) => void,
+      allowedHosts?: string[],
+      before?: (app: any, server: http.Server) => void,
+      bonjour?: boolean,
+      clientLogLevel?: 'none' | 'info' | 'error' | 'warning',
+      compress?: boolean,
+      contentBase?: false | string | string[] | number,
+      disableHostCheck?: boolean,
+      filename?: string,
+      headers?: { [key: string]: string },
+      historyApiFallback?:
+        | boolean
+        | {
+            rewrites?: Array<{ from: string, to: string }>,
+            disableDotRule?: boolean
+          },
+      host?: string,
+      hot?: boolean,
+      hotOnly?: boolean,
+      https?:
+        | boolean
+        | {
+            key: string,
+            cert: string,
+            ca?: string
+          },
+      index?: string,
+      inline?: boolean,
+      lazy?: boolean,
+      noInfo?: boolean,
+      open?: boolean | string,
+      openPage?: string,
+      overlay?:
+        | boolean
+        | {
+            errors?: boolean,
+            warnings?: boolean
+          },
+      pfx?: string,
+      pfxPassphrase?: string,
+      port?: number,
+      proxy?: Object | Array<Object | Function>,
+      public?: string,
+      publicPath?: string,
+      quiet?: boolean,
+      socket?: string,
+      staticOptions?: {
+        dotfiles?: string,
+        etag?: boolean,
+        extensions?: false | string[],
+        fallthrough?: boolean,
+        immutable?: boolean,
+        index?: false | string,
+        lastModified?: boolean,
+        maxAge?: number,
+        redirect?: boolean,
+        setHeaders?: (
+          res: http.OutgoingMessage,
+          path: string,
+          stat: fs.Stat
+        ) => void
+      },
+      stats?: StatsOptions,
+      useLocalIp?: boolean,
+      watchContentBase?: boolean,
+      watchOptions?: WatchOptions,
+      publicPath?: string
+    },
+    devtool?:
+      | '@cheap-eval-source-map'
+      | '@cheap-module-eval-source-map'
+      | '@cheap-module-source-map'
+      | '@cheap-source-map'
+      | '@eval-source-map'
+      | '@eval'
+      | '@hidden-source-map'
+      | '@inline-source-map'
+      | '@nosources-source-map'
+      | '@source-map'
+      | '#@cheap-eval-source-map'
+      | '#@cheap-module-eval-source-map'
+      | '#@cheap-module-source-map'
+      | '#@cheap-source-map'
+      | '#@eval-source-map'
+      | '#@eval'
+      | '#@hidden-source-map'
+      | '#@inline-source-map'
+      | '#@nosources-source-map'
+      | '#@source-map'
+      | '#cheap-eval-source-map'
+      | '#cheap-module-eval-source-map'
+      | '#cheap-module-source-map'
+      | '#cheap-source-map'
+      | '#eval-source-map'
+      | '#eval'
+      | '#hidden-source-map'
+      | '#inline-source-map'
+      | '#nosources-source-map'
+      | '#source-map'
+      | 'cheap-eval-source-map'
+      | 'cheap-module-eval-source-map'
+      | 'cheap-module-source-map'
+      | 'cheap-source-map'
+      | 'eval-source-map'
+      | 'eval'
+      | 'hidden-source-map'
+      | 'inline-source-map'
+      | 'nosources-source-map'
+      | 'source-map'
+      | false,
     entry?: Entry,
     externals?: Externals,
     loader?: { [k: string]: any },
@@ -428,17 +550,7 @@ declare module 'webpack' {
     resolve?: ResolveOptions,
     resolveLoader?: ResolveOptions,
     serve?: { [k: string]: any },
-    stats?:
-      | StatsOptions
-      | boolean
-      | (
-          | 'none'
-          | 'errors-only'
-          | 'minimal'
-          | 'normal'
-          | 'detailed'
-          | 'verbose'
-        ),
+    stats?: StatsOptions,
     target?:
       | 'web'
       | 'webworker'
@@ -449,12 +561,7 @@ declare module 'webpack' {
       | 'electron-renderer'
       | ((compiler: WebpackCompiler) => void),
     watch?: boolean,
-    watchOptions?: {
-      aggregateTimeout?: number,
-      ignored?: { [k: string]: any },
-      poll?: boolean | number,
-      stdin?: boolean,
-    },
+    watchOptions?: WatchOptions,
   };
 
   declare module.exports: (
