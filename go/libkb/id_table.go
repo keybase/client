@@ -534,12 +534,12 @@ func (l *TrackChainLink) GetTrackedUID() (keybase1.UID, error) {
 	return GetUID(l.UnmarshalPayloadJSON().AtPath("body.track.id"))
 }
 
-func (l *TrackChainLink) GetTrackedUsername() (NormalizedUsername, error) {
+func (l *TrackChainLink) GetTrackedUsername() NormalizedUsername {
 	tmp, err := l.UnmarshalPayloadJSON().AtPath("body.track.basics.username").GetString()
 	if err != nil {
-		return NormalizedUsername(""), nil
+		return NormalizedUsername("")
 	}
-	return NewNormalizedUsername(tmp), err
+	return NewNormalizedUsername(tmp)
 }
 
 func (l *TrackChainLink) IsRevoked() bool {

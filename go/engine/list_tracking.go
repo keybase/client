@@ -235,11 +235,7 @@ func condenseRecord(l *libkb.TrackChainLink) (*jsonw.Wrapper, error) {
 		fpsDisplay[i] = strings.ToUpper(trackedKey.Fingerprint.String())
 	}
 
-	un, err := l.GetTrackedUsername()
-	if err != nil {
-		return nil, err
-	}
-
+	un := l.GetTrackedUsername()
 	rp := l.RemoteKeyProofs()
 
 	out := jsonw.NewDictionary()

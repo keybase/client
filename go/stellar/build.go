@@ -574,11 +574,9 @@ func isFollowingForReview(mctx libkb.MetaContext, assertion string) (isFollowing
 		}
 		targetUsername := libkb.NewNormalizedUsername(assertion)
 		for _, track := range idTable.GetTrackList() {
-			if trackedUsername, err := track.GetTrackedUsername(); err == nil {
-				if trackedUsername.Eq(targetUsername) {
-					isFollowing = true
-					return nil
-				}
+			if track.GetTrackedUsername().Eq(targetUsername) {
+				isFollowing = true
+				return nil
 			}
 		}
 		return nil

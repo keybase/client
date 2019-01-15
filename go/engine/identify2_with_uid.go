@@ -407,8 +407,8 @@ func (e *Identify2WithUID) untrackedFastPath(m libkb.MetaContext) (ret bool) {
 
 	// check if there's a tcl in the testArgs
 	if e.testArgs != nil && e.testArgs.tcl != nil {
-		trackedUsername, err := e.testArgs.tcl.GetTrackedUsername()
-		if err == nil && trackedUsername == nun {
+		trackedUsername := e.testArgs.tcl.GetTrackedUsername()
+		if trackedUsername == nun {
 			m.CDebugf("| Test track link found for %s", nun.String())
 			return false
 		}

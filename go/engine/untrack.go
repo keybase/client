@@ -164,11 +164,7 @@ func (e *UntrackEngine) loadThem(m libkb.MetaContext) (them *libkb.User, remoteL
 			return
 		}
 
-		var trackedUsername libkb.NormalizedUsername
-		trackedUsername, err = lLink.GetTrackedUsername()
-		if err != nil {
-			return
-		}
+		trackedUsername := lLink.GetTrackedUsername()
 
 		if !e.arg.Username.Eq(trackedUsername) {
 			err = libkb.NewUntrackError("Username mismatch: expected @%s, got @%s", e.arg.Username, trackedUsername)
