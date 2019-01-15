@@ -133,6 +133,98 @@ const load = () => {
         />
       </OutlineWrapper>
     ))
+    .add('Team Building - No search string', () => (
+      <OutlineWrapper style={wrapperStyle}>
+        <TeamBuilding
+          searchString=""
+          selectedService="keybase"
+          onChangeService={Sb.action('onChangeService')}
+          onFinishTeamBuilding={Sb.action('onFinishTeamBuilding')}
+          onChangeText={Sb.action('onChangeText')}
+          onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
+          onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
+          onEnterKeyDown={Sb.action('onEnterKeyDown')}
+          onBackspace={Sb.action('onBackspace')}
+          onRemove={Sb.action('onRemove')}
+          onMakeItATeam={Sb.action('onMakeItATeam')}
+          showRecs={false}
+          recommendations={[]}
+          fetchUserRecs={() => {}}
+          onSearchForMore={() => {
+            Sb.action('onSearchForMore')
+          }}
+          teamSoFar={[
+            {
+              prettyName: 'max (Max Krohn)',
+              service: 'keybase',
+              userId: 'max',
+              username: 'max',
+            },
+            {
+              prettyName: 'marcopolo (GitHub)',
+              service: 'github',
+              userId: 'marcopolo@github',
+              username: 'marcopolo',
+            },
+            {
+              prettyName: 'chris (Chris Coyne)',
+              service: 'keybase',
+              userId: 'chris',
+              username: 'chris',
+            },
+          ]}
+          serviceResultCount={{}}
+          showServiceResultCount={false}
+          onAdd={Sb.action('onAdd')}
+          highlightedIndex={1}
+          searchResults={[
+            {
+              followingState: 'Following',
+              inTeam: true,
+              prettyName: 'Chris Coyne',
+              services: {
+                facebook: 'chriscoyne on Facebook',
+                github: 'malgorithms on GitHub',
+                hackernews: 'malgorithms on HackerNews',
+                keybase: 'chris',
+                reddit: 'malgorithms on Reddit',
+                twitter: 'malgorithms on Twitter',
+              },
+              userId: 'chris',
+              username: 'chris',
+            },
+            {
+              followingState: 'NotFollowing',
+              inTeam: false,
+              prettyName: 'Chris Mikacle',
+              services: {
+                github: 'chrismikacle on GitHub',
+                hackernews: 'chrismikacle on HackerNews',
+                keybase: 'chrismikacle',
+                reddit: 'chrismikacle on Reddit',
+                twitter: 'chrismikacle on Twitter',
+              },
+              userId: 'chrismikacle',
+              username: 'chrismikacle',
+            },
+            {
+              followingState: 'Following',
+              inTeam: false,
+              prettyName: 'Chris Nojima',
+              services: {
+                github: 'cnojima on GitHub',
+                hackernews: 'cnojima on HackerNews',
+                keybase: 'chrisnojima',
+                reddit: 'cnojima on Reddit',
+                twitter: 'cnojima on Twitter',
+              },
+              userId: 'chrisnojima',
+              username: 'chrisnojima',
+            },
+          ]}
+        />
+      </OutlineWrapper>
+    ))
 
     .add('Input', () => (
       <Input
