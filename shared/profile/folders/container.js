@@ -104,6 +104,8 @@ const mergeProps = (stateProps, dispatchProps, {profileUsername}) => ({
         ],
 })
 
+export default () => null
+/*
 export default (flags.foldersInProfileTab
   ? namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedFolders')(
       Folders
@@ -114,3 +116,4 @@ export default (flags.foldersInProfileTab
       () => ({loadTlfs: () => {}, tlfs: []}),
       'ConnectedFolders'
     )(Folders))
+    */
