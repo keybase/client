@@ -318,7 +318,7 @@ const load = () => {
           onSearchForMore={() => {
             Sb.action('onSearchForMore')
           }}
-          teamSoFar={generateTeamSofar(20)}
+          teamSoFar={generateTeamSofar(100)}
           serviceResultCount={{}}
           showServiceResultCount={false}
           onAdd={Sb.action('onAdd')}

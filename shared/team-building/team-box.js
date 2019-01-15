@@ -65,7 +65,9 @@ const styles = Styles.styleSheetCreate({
       flexWrap: 'wrap',
     },
     isElectron: {
+      maxHeight: 170,
       minHeight: 40,
+      overflowY: 'scroll',
     },
     isMobile: {
       minHeight: 45,
