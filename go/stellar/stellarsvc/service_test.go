@@ -1084,6 +1084,7 @@ func assertFetchAccountBundles(t *testing.T, tc *TestContext, primaryAccountID s
 // mobile only from a desktop device.  The subsequent fetch fails because it is
 // a desktop device.
 func TestMakeAccountMobileOnlyOnDesktop(t *testing.T) {
+	t.Skip("awaiting fix for mobile only tests that need two devices")
 	tc, cleanup := setupDesktopTest(t)
 	defer cleanup()
 	ctx := context.Background()
@@ -1157,6 +1158,7 @@ func TestMakeAccountMobileOnlyOnDesktop(t *testing.T) {
 // makes it mobile only.  The subsequent fetch fails because it is
 // a recently provisioned mobile device.  After 7 days, the fetch works.
 func TestMakeAccountMobileOnlyOnRecentMobile(t *testing.T) {
+	t.Skip("awaiting fix for mobile only tests that need two devices")
 	tc, cleanup := setupMobileTest(t)
 	defer cleanup()
 	ctx := context.Background()
