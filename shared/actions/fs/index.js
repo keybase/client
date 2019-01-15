@@ -788,8 +788,8 @@ function* showSendLinkToChat(state, action) {
         })
       : RouteTreeGen.createNavigateAppend({path: ['sendLinkToChat']})
   )
-  if (elems.length < 3) {
-    // Not a TLF; so just show the modal and let user copy the path.
+  if (elems.length < 3 || elems[1] === 'public') {
+    // Not a TLF, or a public TLF; just show the modal and let user copy the path.
     yield routeChange
     return
   }
