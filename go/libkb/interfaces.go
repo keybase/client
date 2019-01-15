@@ -97,6 +97,7 @@ type configGetter interface {
 	GetAttachmentHTTPStartPort() (int, bool)
 	GetAttachmentDisableMulti() (bool, bool)
 	GetChatOutboxStorageEngine() string
+	GetDisableTeamAuditor() (bool, bool)
 }
 
 type CommandLine interface {

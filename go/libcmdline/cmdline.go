@@ -373,6 +373,10 @@ func (p CommandLine) GetAttachmentDisableMulti() (bool, bool) {
 	return p.GetBool("attachment-disable-multi", true)
 }
 
+func (p CommandLine) GetDisableTeamAuditor() (bool, bool) {
+	return p.GetBool("disable-team-auditor", true)
+}
+
 func (p CommandLine) GetAttachmentHTTPStartPort() (int, bool) {
 	ret := p.GetGInt("attachment-httpsrv-port")
 	if ret != 0 {
@@ -643,6 +647,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.StringFlag{
 			Name:  "vdebug",
 			Usage: "Verbose debugging; takes a comma-joined list of levels and tags",
+		},
+		cli.BoolFlag{
+			Name:  "disable-team-auditor",
+			Usage: "Disable auditing of teams",
 		},
 	}
 	if extraFlags != nil {
