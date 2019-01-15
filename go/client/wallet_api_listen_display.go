@@ -88,6 +88,10 @@ func (d *walletNotificationDisplay) AccountDetailsUpdate(ctx context.Context, ar
 	return nil
 }
 
+func (d *walletNotificationDisplay) AccountsUpdate(ctx context.Context, accounts []stellar1.WalletAccountLocal) error {
+	return nil
+}
+
 func (d *walletNotificationDisplay) PendingPaymentsUpdate(ctx context.Context, arg stellar1.PendingPaymentsUpdateArg) error {
 	return nil
 }

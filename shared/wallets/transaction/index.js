@@ -350,7 +350,7 @@ export type Props = {|
   onCancelPayment: ?() => void,
   onCancelPaymentWaitingKey: string,
   // onShowProfile is used only when counterpartyType === 'keybaseUser'.
-  onSelectTransaction?: () => void,
+  onSelectTransaction?: ?() => void,
   onShowProfile: string => void,
   readState: ReadState,
   selectableText: boolean,

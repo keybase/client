@@ -652,10 +652,11 @@ const _getRouteChangeActionForOpen = (
     : routeChange
 }
 
-function* openPathItem(state, action) {
-  const {path} = action.payload
+const openPathItem = (state, action) =>
+  _getRouteChangeActionForOpen(action, {props: {path: action.payload.path}, selected: 'main'})
 
-  yield Saga.put(_getRouteChangeActionForOpen(action, {props: {path: action.payload.path}, selected: 'main'}))
+function* loadPathMetadata(state, action) {
+  const {path} = action.payload
 
   if (Types.getPathLevel(path) < 3) {
     return
@@ -787,8 +788,8 @@ function* showSendLinkToChat(state, action) {
         })
       : RouteTreeGen.createNavigateAppend({path: ['sendLinkToChat']})
   )
-  if (elems.length < 3) {
-    // Not a TLF; so just show the modal and let user copy the path.
+  if (elems.length < 3 || elems[1] === 'public') {
+    // Not a TLF, or a public TLF; just show the modal and let user copy the path.
     yield routeChange
     return
   }
@@ -894,10 +895,11 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   )
   yield* Saga.chainAction<FsGen.NotifyTlfUpdatePayload>(FsGen.notifyTlfUpdate, onTlfUpdate)
   yield* Saga.chainAction<FsGen.DeleteFilePayload>(FsGen.deleteFile, deleteFile)
-  yield* Saga.chainGenerator<FsGen.OpenPathItemPayload | FsGen.OpenPathInFilesTabPayload>(
+  yield* Saga.chainAction<FsGen.OpenPathItemPayload | FsGen.OpenPathInFilesTabPayload>(
     [FsGen.openPathItem, FsGen.openPathInFilesTab],
     openPathItem
   )
+  yield* Saga.chainGenerator<FsGen.LoadPathMetadataPayload>(FsGen.loadPathMetadata, loadPathMetadata)
   yield* Saga.chainAction<ConfigGen.SetupEngineListenersPayload>(
     ConfigGen.setupEngineListeners,
     setupEngineListeners

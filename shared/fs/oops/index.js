@@ -3,12 +3,16 @@ import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import * as Flow from '../../util/flow'
 import {withProps} from 'recompose'
 import {isMobile} from '../../constants/platform'
+
+export type Reason = 'no-access' | 'non-existent'
 
 type Props = {
   path: Types.Path,
   onCancel: () => void,
+  reason: Reason,
 }
 
 const Explain = (props: Props) => {
@@ -46,7 +50,7 @@ const Explain = (props: Props) => {
   }
 }
 
-const OopsNoAccess = (props: Props) => (
+const NoAccess = (props: Props) => (
   <Kb.Box2 direction="vertical" style={styles.container}>
     {!isMobile && (
       <Kb.Box2 direction="horizontal" centerChildren={true} fullWidth={true} style={styles.header}>
@@ -72,16 +76,66 @@ const OopsNoAccess = (props: Props) => (
   </Kb.Box2>
 )
 
+const NonExistent = (props: Props) => (
+  <Kb.Box2 direction="vertical" style={styles.container}>
+    {!isMobile && (
+      <Kb.Box2 direction="horizontal" centerChildren={true} fullWidth={true} style={styles.header}>
+        <Kb.Text type="BodySemibold" backgroundMode="HighRisk">
+          Oops.
+        </Kb.Text>
+      </Kb.Box2>
+    )}
+    <Kb.Box2 direction="vertical" style={styles.main} fullWidth={true} centerChildren={true}>
+      <Kb.Icon
+        type={
+          isMobile
+            ? 'icon-fancy-folder-file-inexistant-mobile-188-120'
+            : 'icon-fancy-folder-file-inexistant-desktop-153-94'
+        }
+      />
+      <Kb.Text type="Header" style={styles.textYouDontHave}>
+        This file or folder doesn't exist.
+      </Kb.Text>
+      <Kb.Box2 direction="horizontal" style={styles.explainBox}>
+        <Kb.Text type="Body" style={styles.explainText}>
+          Either it was deleted, or the path is incorrect.
+        </Kb.Text>
+      </Kb.Box2>
+    </Kb.Box2>
+    {!isMobile && (
+      <Kb.Box2 direction="horizontal" style={styles.footer} fullWidth={true} centerChildren={true}>
+        <Kb.Button type="Primary" label="Got it" onClick={props.onCancel} />
+      </Kb.Box2>
+    )}
+  </Kb.Box2>
+)
+
+const Oops = (props: Props) => {
+  switch (props.reason) {
+    case 'no-access':
+      return <NoAccess {...props} />
+    case 'non-existent':
+      return <NonExistent {...props} />
+    default:
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.reason)
+      return null
+  }
+}
+
 export default (isMobile
-  ? withProps<Props & {customCancelText: string}, Props>(({path, onCancel}) => ({
+  ? withProps<Props & {customCancelText: string}, Props>(({path, onCancel, reason}) => ({
       customCancelText: 'Close',
       onCancel,
       path,
-    }))(Kb.HeaderOrPopup(OopsNoAccess))
-  : Kb.HeaderOrPopup(OopsNoAccess))
+      reason,
+    }))(Kb.HeaderOrPopup(Oops))
+  : Kb.HeaderOrPopup(Oops))
 
 const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.rounded,
+    },
     isElectron: {
       height: 380,
       width: 560,
@@ -110,6 +164,8 @@ const styles = Styles.styleSheetCreate({
   },
   header: {
     backgroundColor: Styles.globalColors.red,
+    borderTopLeftRadius: 4,
+    borderTopRightRadius: 4,
     height: 40,
   },
   main: {

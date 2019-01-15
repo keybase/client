@@ -404,6 +404,13 @@ export default function(
         }))
       }
     }
+    case TrackerGen.updateStellarAddress: {
+      const {federationAddress} = action.payload
+      return updateUserState(state, action.payload.username, s => ({
+        ...s,
+        stellarFederationAddress: federationAddress,
+      }))
+    }
     // Saga only actions
     case TrackerGen.follow:
     case TrackerGen.getMyProfile:

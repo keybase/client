@@ -25,7 +25,7 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
-  copyPath: () => dispatch(ConfigGen.createCopyToClipboard({text: Types.pathToString(path)})),
+  copyPath: () => dispatch(ConfigGen.createCopyToClipboard({text: Constants.escapePath(path)})),
   deleteFileOrFolder: () => dispatch(FsGen.createDeleteFile({path})),
   ignoreFolder: () => dispatch(FsGen.createFavoriteIgnore({path})),
   loadFolderList: () => dispatch(FsGen.createFolderListLoad({path, refreshTag: 'path-item-action-popup'})),

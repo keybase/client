@@ -27,6 +27,10 @@ type AccountDetailsUpdateArg struct {
 	Account   WalletAccountLocal `codec:"account" json:"account"`
 }
 
+type AccountsUpdateArg struct {
+	Accounts []WalletAccountLocal `codec:"accounts" json:"accounts"`
+}
+
 type PendingPaymentsUpdateArg struct {
 	AccountID AccountID             `codec:"accountID" json:"accountID"`
 	Pending   []PaymentOrErrorLocal `codec:"pending" json:"pending"`
@@ -42,6 +46,7 @@ type NotifyInterface interface {
 	PaymentStatusNotification(context.Context, PaymentStatusNotificationArg) error
 	RequestStatusNotification(context.Context, KeybaseRequestID) error
 	AccountDetailsUpdate(context.Context, AccountDetailsUpdateArg) error
+	AccountsUpdate(context.Context, []WalletAccountLocal) error
 	PendingPaymentsUpdate(context.Context, PendingPaymentsUpdateArg) error
 	RecentPaymentsUpdate(context.Context, RecentPaymentsUpdateArg) error
 }
@@ -110,6 +115,21 @@ func NotifyProtocol(i NotifyInterface) rpc.Protocol {
 					return
 				},
 			},
+			"accountsUpdate": {
+				MakeArg: func() interface{} {
+					var ret [1]AccountsUpdateArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]AccountsUpdateArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]AccountsUpdateArg)(nil), args)
+						return
+					}
+					err = i.AccountsUpdate(ctx, typedArgs[0].Accounts)
+					return
+				},
+			},
 			"pendingPaymentsUpdate": {
 				MakeArg: func() interface{} {
 					var ret [1]PendingPaymentsUpdateArg
@@ -166,6 +186,12 @@ func (c NotifyClient) RequestStatusNotification(ctx context.Context, reqID Keyba
 
 func (c NotifyClient) AccountDetailsUpdate(ctx context.Context, __arg AccountDetailsUpdateArg) (err error) {
 	err = c.Cli.Notify(ctx, "stellar.1.notify.accountDetailsUpdate", []interface{}{__arg})
+	return
+}
+
+func (c NotifyClient) AccountsUpdate(ctx context.Context, accounts []WalletAccountLocal) (err error) {
+	__arg := AccountsUpdateArg{Accounts: accounts}
+	err = c.Cli.Notify(ctx, "stellar.1.notify.accountsUpdate", []interface{}{__arg})
 	return
 }
 

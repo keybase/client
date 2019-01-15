@@ -31,6 +31,8 @@ const iconNameForDeviceType = Styles.isMobile
       }
     }
 
+const headerIconHeight = Styles.isMobile ? 96 : 72
+
 const MessagePopupHeader = (props: {
   author: string,
   deviceName: string,
@@ -126,6 +128,7 @@ const styles = Styles.styleSheetCreate({
   },
   headerIcon: Styles.platformStyles({
     common: {
+      height: headerIconHeight,
       marginBottom: Styles.globalMargins.small,
       marginTop: Styles.globalMargins.small,
     },

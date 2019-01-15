@@ -2240,7 +2240,7 @@ func TestBuildPaymentLocalBidBlocked(t *testing.T) {
 			require.Equal(t, "mismatched amount: 15 != 12", errString)
 
 			errString = send(bid1, "15")
-			require.Equal(t, "this payment has been stopped", errString)
+			require.Equal(t, "This payment might have already been sent. Check your recent payments before trying again.", errString)
 
 		case "afterStoppedBySend":
 			bres, err := build(bid1, "11")
@@ -2253,7 +2253,7 @@ func TestBuildPaymentLocalBidBlocked(t *testing.T) {
 			require.Equal(t, "", errString)
 
 			errString = send(bid1, "11")
-			require.Equal(t, "this payment has been stopped", errString)
+			require.Equal(t, "This payment might have already been sent. Check your recent payments before trying again.", errString)
 
 		case "afterStoppedByStop":
 			errString := send(bid1, "11")
@@ -2263,7 +2263,7 @@ func TestBuildPaymentLocalBidBlocked(t *testing.T) {
 			require.NoError(t, err)
 
 			errString = send(bid1, "11")
-			require.Equal(t, "this payment has been stopped", errString)
+			require.Equal(t, "This payment might have already been sent. Check your recent payments before trying again.", errString)
 
 		case "afterStopppedByStopThenBuild":
 			errString := send(bid1, "11")
@@ -2275,10 +2275,10 @@ func TestBuildPaymentLocalBidBlocked(t *testing.T) {
 			_, err := build(bid1, "11")
 			_ = err // Calling build on a stopped payment is do-no-harm undefined behavior.
 
-			reviewExpectContractFailure("this payment has been stopped") // Calling review on a stopped payment is do-no-harm not gonna happen.
+			reviewExpectContractFailure("This payment might have already been sent. Check your recent payments before trying again.") // Calling review on a stopped payment is do-no-harm not gonna happen.
 
 			errString = send(bid1, "11")
-			require.Equal(t, "this payment has been stopped", errString)
+			require.Equal(t, "This payment might have already been sent. Check your recent payments before trying again.", errString)
 
 		case "build-review-build-send":
 			bres, err := build(bid1, "12")
@@ -2530,8 +2530,10 @@ func TestMakeRequestLocalNotifications(t *testing.T) {
 }
 
 func TestSetMobileOnly(t *testing.T) {
-	tcs, cleanup := setupNTests(t, 1)
+	tcs, cleanup := setupTestsWithSettings(t, []usetting{usettingMobile})
 	defer cleanup()
+
+	makeActiveDeviceOlder(t, tcs[0].G)
 
 	// this only works with a v2 bundle now
 	setupWithNewBundle(t, tcs[0])
@@ -2552,6 +2554,8 @@ func TestSetMobileOnly(t *testing.T) {
 
 	// service_test verifies that `SetAccountMobileOnlyLocal` behaves correctly under the covers
 }
+
+const lumenautAccID = stellar1.AccountID("GCCD6AJOYZCUAQLX32ZJF2MKFFAUJ53PVCFQI3RHWKL3V47QYE2BNAUT")
 
 func TestSetInflation(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 1)
@@ -2574,41 +2578,73 @@ func TestSetInflation(t *testing.T) {
 	}
 	res := getInflation()
 	require.Nil(t, res.Destination)
-	require.Equal(t, "", res.Comment)
+	require.Nil(t, res.KnownDestination)
+	require.False(t, res.Self)
 
 	pub, _ := randomStellarKeypair()
 	err = tcs[0].Srv.SetInflationDestinationLocal(context.Background(), stellar1.SetInflationDestinationLocalArg{
 		AccountID:   senderAccountID,
-		Destination: stellar1.NewInflationDestinationWithAccountid(pub),
+		Destination: pub,
 	})
 	require.NoError(t, err)
 
 	res = getInflation()
 	require.NotNil(t, res.Destination)
 	require.Equal(t, pub, *res.Destination)
-	require.Equal(t, "", res.Comment)
+	require.Nil(t, res.KnownDestination)
+	require.False(t, res.Self)
 
 	err = tcs[0].Srv.SetInflationDestinationLocal(context.Background(), stellar1.SetInflationDestinationLocalArg{
 		AccountID:   senderAccountID,
-		Destination: stellar1.NewInflationDestinationWithSelf(),
+		Destination: senderAccountID,
 	})
 	require.NoError(t, err)
 
 	res = getInflation()
 	require.NotNil(t, res.Destination)
 	require.Equal(t, senderAccountID, *res.Destination)
-	require.Equal(t, "self", res.Comment)
+	require.Nil(t, res.KnownDestination)
+	require.True(t, res.Self)
 
 	err = tcs[0].Srv.SetInflationDestinationLocal(context.Background(), stellar1.SetInflationDestinationLocalArg{
 		AccountID:   senderAccountID,
-		Destination: stellar1.NewInflationDestinationWithLumenaut(),
+		Destination: lumenautAccID,
 	})
 	require.NoError(t, err)
 
 	res = getInflation()
 	require.NotNil(t, res.Destination)
-	require.Equal(t, stellar1.AccountID("GCCD6AJOYZCUAQLX32ZJF2MKFFAUJ53PVCFQI3RHWKL3V47QYE2BNAUT"), *res.Destination)
-	require.Equal(t, "https://pool.lumenaut.net/", res.Comment)
+	require.Equal(t, lumenautAccID, *res.Destination)
+	require.NotNil(t, res.KnownDestination)
+	require.Equal(t, lumenautAccID, res.KnownDestination.AccountID)
+	require.Equal(t, "https://pool.lumenaut.net/", res.KnownDestination.Url)
+	require.False(t, res.Self)
+}
+
+func TestGetInflationDestinations(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	acceptDisclaimer(tcs[0])
+	tcs[0].Backend.ImportAccountsForUser(tcs[0])
+
+	// This hits server, check if result is not empty and if lumenaut pool is
+	// there (this should not change).
+	res, err := tcs[0].Srv.GetPredefinedInflationDestinationsLocal(context.Background(), 0)
+	require.NoError(t, err)
+	require.NotEmpty(t, res)
+	var found bool
+	for _, dest := range res {
+		if dest.Tag == "lumenaut" {
+			require.False(t, found, "expecting to find only one lumenaut")
+			found = true
+			require.Equal(t, lumenautAccID, dest.AccountID)
+			require.Equal(t, "Lumenaut", dest.Name)
+			require.True(t, dest.Recommended)
+			require.Equal(t, "https://pool.lumenaut.net/", dest.Url)
+		}
+	}
+	require.True(t, found, "expecting to find lumenaut in the list")
 }
 
 type chatListener struct {

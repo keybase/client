@@ -16,6 +16,7 @@ const routeTree = () => {
     RemoveAccountPopup,
     ReallyRemoveAccountPopup,
     RenameAccountPopup,
+    InflationDestination,
   } = require('./wallet/settings/popups')
   const Wallet = require('./wallet/container').default
 
@@ -36,13 +37,13 @@ const routeTree = () => {
     exportSecretKey: {
       children: {},
       component: ExportSecretKey,
-      tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
+      tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile, renderTopmostOnly: true}),
     },
     linkExisting,
     receive: {
       children: {},
       component: ReceiveModal,
-      tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
+      tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile, renderTopmostOnly: true}),
     },
     [Constants.sendRequestFormRouteKey]: require('./routes-send-request-form').default(),
     settings: {
@@ -54,21 +55,26 @@ const routeTree = () => {
             reallyRemoveAccount: {
               children: {},
               component: ReallyRemoveAccountPopup,
-              tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
+              tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile, renderTopmostOnly: true}),
             },
           },
           component: RemoveAccountPopup,
-          tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
+          tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile, renderTopmostOnly: true}),
         },
         renameAccount: {
           children: {},
           component: RenameAccountPopup,
-          tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
+          tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile, renderTopmostOnly: true}),
         },
         setDefaultAccount: {
           children: {},
           component: SetDefaultAccountPopup,
-          tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
+          tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile, renderTopmostOnly: true}),
+        },
+        setInflation: {
+          children: {},
+          component: InflationDestination,
+          tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile, renderTopmostOnly: true}),
         },
       },
       component: AccountSettings,

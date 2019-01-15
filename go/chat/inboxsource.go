@@ -336,6 +336,11 @@ func (s *RemoteInboxSource) MembershipUpdate(ctx context.Context, uid gregor1.UI
 	return res, err
 }
 
+func (s *RemoteInboxSource) ConversationsUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+	convUpdates []chat1.ConversationUpdate) error {
+	return nil
+}
+
 func (s *RemoteInboxSource) Expunge(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
 	expunge chat1.Expunge, maxMsgs []chat1.MessageSummary) (res *chat1.ConversationLocal, err error) {
 	return res, err
@@ -618,7 +623,9 @@ func (s *HybridInboxSource) handleInboxError(ctx context.Context, err error, uid
 	defer func() {
 		if ferr != nil {
 			// Only do this aggressive clear if the error we get is not some kind of network error
-			if ferr != context.Canceled && IsOfflineError(ferr) == OfflineErrorKindOnline {
+			_, isStorageAbort := ferr.(storage.AbortedError)
+			if ferr != context.Canceled && !isStorageAbort &&
+				IsOfflineError(ferr) == OfflineErrorKindOnline {
 				s.Debug(ctx, "handleInboxError: failed to recover from inbox error, clearing: %s", ferr)
 				s.createInbox().Clear(ctx, uid)
 			} else {
@@ -861,6 +868,19 @@ func (s *HybridInboxSource) MembershipUpdate(ctx context.Context, uid gregor1.UI
 	}
 
 	return res, nil
+}
+
+func (s *HybridInboxSource) ConversationsUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+	convUpdates []chat1.ConversationUpdate) (err error) {
+	defer s.Trace(ctx, func() error { return err }, "ConversationUpdate")()
+
+	ib := s.createInbox()
+	if cerr := ib.ConversationsUpdate(ctx, uid, vers, convUpdates); cerr != nil {
+		err = s.handleInboxError(ctx, cerr, uid)
+		return err
+	}
+
+	return nil
 }
 
 func (s *HybridInboxSource) Expunge(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,

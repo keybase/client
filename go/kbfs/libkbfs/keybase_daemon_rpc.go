@@ -225,6 +225,11 @@ func (d daemonIdentifyUI) DisplayCryptocurrency(ctx context.Context, arg keybase
 	return nil
 }
 
+func (d daemonIdentifyUI) DisplayStellarAccount(ctx context.Context, arg keybase1.DisplayStellarAccountArg) error {
+	d.log.CDebugf(ctx, "DisplayStellarAccount(%+v)", arg)
+	return nil
+}
+
 func (d daemonIdentifyUI) ReportTrackToken(ctx context.Context, arg keybase1.ReportTrackTokenArg) error {
 	d.log.CDebugf(ctx, "ReportTrackToken(%+v)", arg)
 	return nil

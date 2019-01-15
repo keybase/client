@@ -162,6 +162,8 @@ type InboxSource interface {
 	MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 		joined []chat1.ConversationMember, removed []chat1.ConversationMember,
 		resets []chat1.ConversationMember, previews []chat1.ConversationID) (MembershipUpdateRes, error)
+	ConversationsUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+		convUpdates []chat1.ConversationUpdate) error
 	TeamTypeChanged(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
 		teamType chat1.TeamType) (*chat1.ConversationLocal, error)
 	UpgradeKBFSToImpteam(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,

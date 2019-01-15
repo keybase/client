@@ -469,7 +469,7 @@ func ReviewPaymentLocal(mctx libkb.MetaContext, stellarUI stellar1.UiInterface, 
 				stickyBanners = nil
 				notify([]stellar1.SendBannerLocal{{
 					Level:   "error",
-					Message: fmt.Sprintf("Error while identifying %v", recipientAssertion),
+					Message: fmt.Sprintf("Error while identifying %v. Please check your network and try again.", recipientAssertion),
 				}}, reviewButtonDisabled)
 			case <-identifyTrackFailCh:
 				stickyBanners = nil

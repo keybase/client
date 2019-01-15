@@ -14,6 +14,7 @@ const mapStateToProps = state => {
     accountID: selectedAccount.accountID,
     isDefaultWallet: selectedAccount.isDefault,
     keybaseUser: state.config.username,
+    sendDisabled: !isMobile && !!state.wallets.mobileOnlyMap.getIn([selectedAccount.accountID]),
     unreadPayments: state.wallets.unreadPaymentsMap.get(selectedAccount.accountID, 0),
     walletName: selectedAccount.name,
   }
@@ -69,7 +70,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onSendToStellarAddress: () =>
     dispatchProps._onGoToSendReceive(stateProps.accountID, 'stellarPublicKey', false),
   onSettings: () => dispatchProps._onSettings(stateProps.accountID),
-  onShowSecretKey: () => dispatchProps._onShowSecretKey(stateProps.accountID, stateProps.walletName),
+  onShowSecretKey: stateProps.sendDisabled
+    ? null
+    : () => dispatchProps._onShowSecretKey(stateProps.accountID, stateProps.walletName),
 })
 
 export default connect<OwnProps, _, _, _, _>(

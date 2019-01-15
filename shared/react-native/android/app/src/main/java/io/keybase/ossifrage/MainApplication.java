@@ -74,7 +74,6 @@ public class MainApplication extends Application implements ReactApplication {
           new RNFetchBlobPackage(),
           new ReactNativeContacts(),
           new FastImageViewPackage(),
-          new ReactNativeContacts(),
           new LottiePackage()
         );
       }

@@ -211,5 +211,8 @@
   "stellar.1.local.startBuildPaymentLocal": {"promise": true},
   "stellar.1.local.stopBuildPaymentLocal": {"promise": true},
   "stellar.1.local.validateAccountNameLocal": {"promise": true},
+  "stellar.1.local.getPredefinedInflationDestinationsLocal": {"promise": true},
+  "stellar.1.local.setInflationDestinationLocal": {"promise": true},
+  "stellar.1.local.getInflationDestinationLocal": {"promise": true},
   "stellar.1.local.validateSecretKeyLocal": {"promise": true}
 }

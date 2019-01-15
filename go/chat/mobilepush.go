@@ -79,19 +79,25 @@ func (h *MobilePush) formatTextPush(ctx context.Context, uid gregor1.UID, convID
 	membersType chat1.ConversationMembersType, msg chat1.MessageUnboxed) (res string, err error) {
 	switch membersType {
 	case chat1.ConversationMembersType_TEAM:
+		var channelName string
 		// Try to get the channel name
 		ib, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil,
 			&chat1.GetInboxLocalQuery{
 				ConvIDs: []chat1.ConversationID{convID},
 			}, nil)
 		if err != nil || len(ib.Convs) == 0 {
+			h.Debug(ctx, "FormatPushText: failed to unbox conv: %v", convID)
+		} else {
+			channelName = utils.GetTopicName(ib.Convs[0])
+		}
+		if channelName == "" {
 			// Don't give up here, just display the team name only
-			h.Debug(ctx, "FormatPushText: failed to unbox convo, using team only")
+			h.Debug(ctx, "FormatPushText: failed to get topicName")
 			return fmt.Sprintf("%s (%s): %s", msg.Valid().SenderUsername,
 				msg.Valid().ClientHeader.TlfName, msg.Valid().MessageBody.Text().Body), nil
 		}
 		return fmt.Sprintf("%s (%s#%s): %s", msg.Valid().SenderUsername,
-			msg.Valid().ClientHeader.TlfName, utils.GetTopicName(ib.Convs[0]),
+			msg.Valid().ClientHeader.TlfName, channelName,
 			msg.Valid().MessageBody.Text().Body), nil
 	default:
 		return fmt.Sprintf("%s: %s", msg.Valid().SenderUsername, msg.Valid().MessageBody.Text().Body), nil
