@@ -44,6 +44,10 @@ func copyFile(from, to string) error {
 	if err != nil {
 		return err
 	}
+	err = tgt.Sync()
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -51,6 +55,8 @@ func TestNoExec(t *testing.T) {
 	ctx := libkbfs.BackgroundContextWithCancellationDelayer()
 	defer libkbfs.CleanupCancellationDelayer(ctx)
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
+	// Background flushed needed for large files.
+	config.SetDoBackgroundFlushes(true)
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 	mnt, _, cancelFn := makeFS(t, ctx, config)
 	defer mnt.Close()
