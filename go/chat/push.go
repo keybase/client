@@ -778,6 +778,18 @@ func (g *PushHandler) notifyMembersUpdate(ctx context.Context, uid gregor1.UID,
 	}
 }
 
+func (g *PushHandler) notifyConversationsUpdate(ctx context.Context, uid gregor1.UID,
+	updates []chat1.ConversationUpdate) {
+	var supdate []chat1.ConversationStaleUpdate
+	for _, update := range updates {
+		supdate = append(supdate, chat1.ConversationStaleUpdate{
+			ConvID:     update.ConvID,
+			UpdateType: chat1.StaleUpdateType_CLEAR,
+		})
+	}
+	g.G().Syncer.SendChatStaleNotifications(ctx, uid, supdate, true)
+}
+
 func (g *PushHandler) Typing(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
@@ -916,6 +928,47 @@ func (g *PushHandler) MembershipUpdate(ctx context.Context, m gregor.OutOfBandMe
 			}
 		}
 
+		return nil
+	}(bctx)
+
+	return nil
+}
+
+func (g *PushHandler) ConversationsUpdate(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
+		g.identNotifier)
+	defer g.Trace(ctx, func() error { return err }, "ConversationsUpdate")()
+	if m.Body() == nil {
+		return errors.New("gregor handler for conversations update: nil message body")
+	}
+
+	var update chat1.UpdateConversations
+	reader := bytes.NewReader(m.Body().Bytes())
+	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
+	if err = dec.Decode(&update); err != nil {
+		return err
+	}
+	uid := gregor1.UID(m.UID().Bytes())
+
+	// Order updates based on inbox version of the update from the server
+	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
+	bctx := BackgroundContext(ctx, g.G())
+	go func(ctx context.Context) (err error) {
+		defer g.Trace(ctx, func() error { return err }, "ConversationsUpdate(goroutine)")()
+		<-cb
+		g.Lock()
+		defer g.Unlock()
+		defer g.orderer.CompleteTurn(ctx, uid, update.InboxVers)
+
+		// Write out changes to local storage
+		if err := g.G().InboxSource.ConversationsUpdate(ctx, uid, update.InboxVers, update.ConvUpdates); err != nil {
+			g.Debug(ctx, "ConversationsUpdate: failed to update membership on inbox: %v", err)
+			return err
+		}
+
+		// Send out notifications
+		g.notifyConversationsUpdate(ctx, uid, update.ConvUpdates)
 		return nil
 	}(bctx)
 
@@ -1143,6 +1196,8 @@ func (g *PushHandler) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessag
 		return true, g.UpgradeKBFSToImpteam(ctx, obm)
 	case types.PushSubteamRename:
 		return true, g.SubteamRename(ctx, obm)
+	case types.PushConversationsUpdate:
+		return true, g.ConversationsUpdate(ctx, obm)
 	}
 
 	return false, nil

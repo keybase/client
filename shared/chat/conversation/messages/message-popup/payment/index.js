@@ -12,6 +12,8 @@ const receiveIcon = Styles.isMobile
   ? 'icon-fancy-stellar-receiving-mobile-149-129'
   : 'icon-fancy-stellar-receiving-desktop-98-86'
 
+const headerIconHeight = Styles.isMobile ? 129 : 86
+
 type HeaderProps = {|
   amountNominal: string,
   approxWorth: string,
@@ -54,7 +56,7 @@ const Header = (props: HeaderProps) =>
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.headerTop}>
         <Kb.Icon
           type={props.icon === 'sending' ? sendIcon : receiveIcon}
-          style={Kb.iconCastPlatformStyles(styles.icon)}
+          style={Kb.iconCastPlatformStyles(styles.headerIcon)}
         />
         <Kb.Text type="BodyTiny" style={styles.colorWhite}>
           {toUpper(props.topLine)}
@@ -186,6 +188,17 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.red,
     textAlign: 'center',
   },
+  headerIcon: Styles.platformStyles({
+    common: {height: headerIconHeight},
+    isAndroid: {
+      marginTop: Styles.globalMargins.tiny,
+    },
+    isElectron: {paddingBottom: Styles.globalMargins.small},
+    isMobile: {
+      marginBottom: Styles.globalMargins.small,
+      marginTop: Styles.globalMargins.small,
+    },
+  }),
   headerTop: Styles.platformStyles({
     common: {
       alignItems: 'center',
@@ -194,16 +207,6 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: {
       paddingTop: Styles.globalMargins.small,
-    },
-  }),
-  icon: Styles.platformStyles({
-    isAndroid: {
-      marginTop: Styles.globalMargins.tiny,
-    },
-    isElectron: {paddingBottom: Styles.globalMargins.small},
-    isMobile: {
-      marginBottom: Styles.globalMargins.small,
-      marginTop: Styles.globalMargins.small,
     },
   }),
   loadingHeaderTop: Styles.platformStyles({

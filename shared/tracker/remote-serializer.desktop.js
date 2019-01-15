@@ -33,6 +33,7 @@ export const serialize: any = {
   sessionID: v => v,
   shouldFollow: v => v,
   showTeam: v => v,
+  stellarFederationAddress: v => v,
   teamJoinError: v => v,
   teamJoinSuccess: v => v,
   teamname: v => v,
