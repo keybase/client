@@ -12,6 +12,7 @@ const commonItems = [
   {...commonItemProps, title: 'Two'},
   {...commonItemProps, disabled: true, title: '3'},
   {...commonItemProps, title: 'Four'},
+  {...commonItemProps, newTag: true, title: 'HasNew'},
 ]
 
 const commonProps = {

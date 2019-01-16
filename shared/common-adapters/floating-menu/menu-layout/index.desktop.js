@@ -107,7 +107,7 @@ class MenuLayout extends Component<MenuLayoutProps> {
 const styles = Styles.styleSheetCreate({
   badge: {
     alignSelf: 'center',
-    marginLeft: 8,
+    marginLeft: 'auto',
   },
   divider: {
     marginBottom: 8,
