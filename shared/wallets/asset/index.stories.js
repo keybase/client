@@ -67,8 +67,8 @@ const load = () => {
     .addDecorator(story => <Box style={{maxWidth: 520}}>{story()}</Box>)
     .add('Native currency', () => <Asset {...native} />)
     .add('Non-native currency', () => <Asset {...keyz} />)
-    .add('Native expanded', () => <Asset {...native} />)
-    .add('Non-native expanded', () => <Asset {...keyz} />)
+    .add('Native expanded', () => <Asset {...native} expanded={true} />)
+    .add('Non-native expanded', () => <Asset {...keyz} expanded={true} />)
     .add('List', () => (
       <React.Fragment>
         <Asset {...native} />
