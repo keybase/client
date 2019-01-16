@@ -62,7 +62,7 @@ func (s *Server) accountLocal(mctx libkb.MetaContext, entry stellar1.BundleEntry
 		return empty, err
 	}
 
-	return stellar.AccountDetailsToWalletAccountLocal(mctx, details, entry.IsPrimary, entry.Name)
+	return stellar.AccountDetailsToWalletAccountLocal(mctx, entry.AccountID, details, entry.IsPrimary, entry.Name)
 }
 
 func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAccountAssetsLocalArg) (assets []stellar1.AccountAssetLocal, err error) {
