@@ -22,7 +22,7 @@ class Friend extends React.PureComponent<Props> {
         >
           <Kb.Avatar size={64} username={p.username} style={styles.avatar} showFollowingStatus={true} />
           <Kb.ConnectedUsernames type="Body" usernames={[p.username]} />
-          <Kb.Text type="BodySmall" lineClamp={1}>
+          <Kb.Text type="BodySmall" lineClamp={1} style={styles.fullname}>
             {p.fullname}
           </Kb.Text>
         </Kb.Box2>
@@ -32,15 +32,16 @@ class Friend extends React.PureComponent<Props> {
 }
 
 const styles = Styles.styleSheetCreate({
-  avatar: {
-    marginBottom: Styles.globalMargins.xxtiny,
-  },
+  avatar: {marginBottom: Styles.globalMargins.xxtiny},
   container: {
     flexShrink: 0,
     height: 105,
     justifyContent: 'flex-start',
     minWidth: 0,
   },
+  fullname: Styles.platformStyles({
+    isElectron: {wordBreak: 'break-all'},
+  }),
 })
 
 export default Friend
