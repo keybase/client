@@ -40,6 +40,7 @@ export const installFuseResult = 'fs:installFuseResult'
 export const installKBFS = 'fs:installKBFS'
 export const journalUpdate = 'fs:journalUpdate'
 export const letResetUserBackIn = 'fs:letResetUserBackIn'
+export const loadPathMetadata = 'fs:loadPathMetadata'
 export const loadingPath = 'fs:loadingPath'
 export const localHTTPServerInfo = 'fs:localHTTPServerInfo'
 export const mimeTypeLoad = 'fs:mimeTypeLoad'
@@ -108,6 +109,7 @@ type _InstallFuseResultPayload = $ReadOnly<{|kextPermissionError: boolean|}>
 type _InstallKBFSPayload = void
 type _JournalUpdatePayload = $ReadOnly<{|syncingPaths: Array<Types.Path>, totalSyncingBytes: number, endEstimate?: ?number|}>
 type _LetResetUserBackInPayload = $ReadOnly<{|id: RPCTypes.TeamID, username: string|}>
+type _LoadPathMetadataPayload = $ReadOnly<{|path: Types.Path|}>
 type _LoadingPathPayload = $ReadOnly<{|path: Types.Path, id: string, done: boolean|}>
 type _LocalHTTPServerInfoPayload = $ReadOnly<{|address: string, token: string|}>
 type _MimeTypeLoadPayload = $ReadOnly<{|path: Types.Path, refreshTag?: Types.RefreshTag|}>
@@ -176,6 +178,7 @@ export const createInstallFuseResult = (payload: _InstallFuseResultPayload) => (
 export const createInstallKBFS = (payload: _InstallKBFSPayload) => ({payload, type: installKBFS})
 export const createJournalUpdate = (payload: _JournalUpdatePayload) => ({payload, type: journalUpdate})
 export const createLetResetUserBackIn = (payload: _LetResetUserBackInPayload) => ({payload, type: letResetUserBackIn})
+export const createLoadPathMetadata = (payload: _LoadPathMetadataPayload) => ({payload, type: loadPathMetadata})
 export const createLoadingPath = (payload: _LoadingPathPayload) => ({payload, type: loadingPath})
 export const createLocalHTTPServerInfo = (payload: _LocalHTTPServerInfoPayload) => ({payload, type: localHTTPServerInfo})
 export const createMimeTypeLoad = (payload: _MimeTypeLoadPayload) => ({payload, type: mimeTypeLoad})
@@ -244,6 +247,7 @@ export type InstallFuseResultPayload = {|+payload: _InstallFuseResultPayload, +t
 export type InstallKBFSPayload = {|+payload: _InstallKBFSPayload, +type: 'fs:installKBFS'|}
 export type JournalUpdatePayload = {|+payload: _JournalUpdatePayload, +type: 'fs:journalUpdate'|}
 export type LetResetUserBackInPayload = {|+payload: _LetResetUserBackInPayload, +type: 'fs:letResetUserBackIn'|}
+export type LoadPathMetadataPayload = {|+payload: _LoadPathMetadataPayload, +type: 'fs:loadPathMetadata'|}
 export type LoadingPathPayload = {|+payload: _LoadingPathPayload, +type: 'fs:loadingPath'|}
 export type LocalHTTPServerInfoPayload = {|+payload: _LocalHTTPServerInfoPayload, +type: 'fs:localHTTPServerInfo'|}
 export type MimeTypeLoadPayload = {|+payload: _MimeTypeLoadPayload, +type: 'fs:mimeTypeLoad'|}
@@ -314,6 +318,7 @@ export type Actions =
   | InstallKBFSPayload
   | JournalUpdatePayload
   | LetResetUserBackInPayload
+  | LoadPathMetadataPayload
   | LoadingPathPayload
   | LocalHTTPServerInfoPayload
   | MimeTypeLoadPayload

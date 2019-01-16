@@ -361,7 +361,6 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.EphemeralPurger = types.DummyEphemeralPurger{}
 
 	pushHandler := NewPushHandler(g)
-	pushHandler.SetClock(c.world.Fc)
 	g.PushHandler = pushHandler
 	g.TeamChannelSource = NewTeamChannelSource(g)
 	g.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}
@@ -5304,6 +5303,33 @@ func TestChatSrvDeleteConversation(t *testing.T) {
 		consumeTeamType(t, listener0)
 		consumeTeamType(t, listener1)
 
+		select {
+		case updates := <-listener0.threadsStale:
+			require.Equal(t, 1, len(updates))
+			require.Equal(t, channelConvID, updates[0].ConvID, "wrong cid")
+			require.Equal(t, chat1.StaleUpdateType_CLEAR, updates[0].UpdateType)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "failed to receive stale event")
+		}
+
+		select {
+		case updates := <-listener1.threadsStale:
+			require.Equal(t, 1, len(updates))
+			require.Equal(t, channelConvID, updates[0].ConvID, "wrong cid")
+			require.Equal(t, chat1.StaleUpdateType_CLEAR, updates[0].UpdateType)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "failed to receive stale event")
+		}
+		t.Logf("DELETED")
+		_, lconvs, _, err = storage.NewInbox(g).Read(context.TODO(), uid, &chat1.GetInboxQuery{
+			ConvID:       &channelConvID,
+			MemberStatus: []chat1.ConversationMemberStatus{chat1.ConversationMemberStatus_LEFT},
+			Existences:   []chat1.ConversationExistence{chat1.ConversationExistence_ARCHIVED},
+		}, nil)
+		require.NoError(t, err)
+		require.Equal(t, 1, len(lconvs))
+		require.Equal(t, lconvs[0].GetConvID(), channelConvID)
+
 		iboxRes, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxAndUnboxLocal(ctx,
 			chat1.GetInboxAndUnboxLocalArg{})
 		require.NoError(t, err)
@@ -5670,16 +5696,16 @@ func TestChatSrvUserResetAndDeleted(t *testing.T) {
 
 func TestChatSrvTeamChannelNameMentions(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
-		ctc := makeChatTestContext(t, "TestChatSrvTeamChannelNameMentions", 2)
-		defer ctc.cleanup()
-		users := ctc.users()
-
 		// Only run this test for teams
 		switch mt {
 		case chat1.ConversationMembersType_TEAM:
 		default:
 			return
 		}
+
+		ctc := makeChatTestContext(t, "TestChatSrvTeamChannelNameMentions", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
 
 		ctx := ctc.as(t, users[0]).startCtx
 		ctx1 := ctc.as(t, users[1]).startCtx

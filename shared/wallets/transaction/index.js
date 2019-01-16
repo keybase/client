@@ -297,7 +297,7 @@ const TimestampLine = (props: TimestampLineProps) => {
   if (!timestamp) {
     return <TimestampPending />
   }
-  const human = formatTimeForMessages(timestamp)
+  const human = formatTimeForMessages(timestamp.getTime())
   const tooltip = formatTimeForStellarTooltip(timestamp)
   let status = capitalize(props.status)
   // 'claimable' -> show 'pending' and completed -> show nothing
@@ -350,7 +350,7 @@ export type Props = {|
   onCancelPayment: ?() => void,
   onCancelPaymentWaitingKey: string,
   // onShowProfile is used only when counterpartyType === 'keybaseUser'.
-  onSelectTransaction?: () => void,
+  onSelectTransaction?: ?() => void,
   onShowProfile: string => void,
   readState: ReadState,
   selectableText: boolean,

@@ -246,6 +246,9 @@
       "github.com/keybase/client/go/service" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
+   "github.com/keybase/client/go/chat/tools/slam" : {
+      "github.com/keybase/client/go/chat/tools/slam" : 1
+   },
    "github.com/keybase/client/go/chat/types" : {
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/chat" : 1,

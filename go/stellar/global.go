@@ -461,7 +461,7 @@ func (s *Stellar) acquireBuildPayment(mctx1 libkb.MetaContext, bid stellar1.Buil
 			continue
 		}
 		if entry.Stopped {
-			return mctx, nil, release, fmt.Errorf("this payment has been stopped")
+			return mctx, nil, release, fmt.Errorf("This payment might have already been sent. Check your recent payments before trying again.")
 		}
 		mctx = mctx.WithCtx(entry.Slot.Use(mctx.Ctx(), sessionID))
 		if err = mctx.Ctx().Err(); err != nil {
@@ -491,7 +491,7 @@ func (s *Stellar) finalizeBuildPayment(mctx libkb.MetaContext, bid stellar1.Buil
 			continue
 		}
 		if entry.Stopped {
-			return nil, fmt.Errorf("this payment has been stopped")
+			return nil, fmt.Errorf("This payment might have already been sent. Check your recent payments before trying again.")
 		}
 		entry.Slot.Shutdown()
 		entry.Stopped = true

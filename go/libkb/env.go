@@ -108,6 +108,7 @@ func (n NullConfiguration) GetLevelDBNumFiles() (int, bool)                 { re
 func (n NullConfiguration) GetChatInboxSourceLocalizeThreads() (int, bool)  { return 1, false }
 func (n NullConfiguration) GetAttachmentHTTPStartPort() (int, bool)         { return 0, false }
 func (n NullConfiguration) GetAttachmentDisableMulti() (bool, bool)         { return false, false }
+func (n NullConfiguration) GetDisableTeamAuditor() (bool, bool)             { return false, false }
 func (n NullConfiguration) GetChatOutboxStorageEngine() string              { return "" }
 func (n NullConfiguration) GetBug3964RepairTime(NormalizedUsername) (time.Time, error) {
 	return time.Time{}, nil
@@ -789,6 +790,14 @@ func (e *Env) GetAttachmentDisableMulti() bool {
 		e.cmd.GetAttachmentDisableMulti,
 		func() (bool, bool) { return e.getEnvBool("KEYBASE_ATTACHMENT_DISABLE_MULTI") },
 		e.GetConfig().GetAttachmentDisableMulti,
+	)
+}
+
+func (e *Env) GetDisableTeamAuditor() bool {
+	return e.GetBool(false,
+		e.cmd.GetDisableTeamAuditor,
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_DISABLE_TEAM_AUDITOR") },
+		e.GetConfig().GetDisableTeamAuditor,
 	)
 }
 

@@ -103,7 +103,7 @@ func (p *proofServices) SuggestionFoldPriority() int {
 }
 
 func (p *proofServices) loadServiceConfigs() {
-	// TODO Remove with CORE-8969
+	// TODO Remove with CORE-9923
 	shouldRun := p.G().Env.GetFeatureFlags().Admin() || p.G().Env.GetRunMode() == libkb.DevelRunMode || p.G().Env.RunningInCI()
 
 	if !shouldRun {

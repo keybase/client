@@ -43,7 +43,7 @@ const ConfirmSend = (props: ConfirmSendProps) => (
           text={banner.bannerText}
         />
       ))}
-      <Kb.ScrollView style={styles.scrollView}>
+      <Kb.ScrollView style={styles.scrollView} alwaysBounceVertical={false}>
         <Participants />
         {(!!props.encryptedNote || !!props.publicMemo) && (
           <NoteAndMemo encryptedNote={props.encryptedNote} publicMemo={props.publicMemo} />

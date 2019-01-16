@@ -639,6 +639,10 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 			h.Debug(ctx, "GetThreadNonblock: queueing retry because of: %s", origErr)
 			h.G().FetchRetrier.Failure(ctx, uid,
 				NewConversationRetry(h.G(), arg.ConversationID, nil, ThreadLoad))
+		} else if res.Offline {
+			h.Debug(ctx, "GetThreadNonblock: queueing retry because result marked offline")
+			h.G().FetchRetrier.Failure(ctx, uid,
+				NewConversationRetry(h.G(), arg.ConversationID, nil, ThreadLoad))
 		} else {
 			h.G().FetchRetrier.Success(ctx, uid,
 				NewConversationRetry(h.G(), arg.ConversationID, nil, ThreadLoad))
@@ -706,9 +710,9 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 	var localSentThread *chat1.ThreadView
 	var uilock sync.Mutex
 	var wg sync.WaitGroup
-	bctx, cancel := context.WithCancel(ctx)
+	localCtx, cancel := context.WithCancel(ctx)
 	wg.Add(1)
-	go func() {
+	go func(ctx context.Context) {
 		defer wg.Done()
 		// Get local copy of the thread, abort the call if we have sent the full copy
 		var resThread *chat1.ThreadView
@@ -719,7 +723,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 			if h.cachedThreadDelay != nil {
 				h.clock.Sleep(*h.cachedThreadDelay)
 			}
-			localThread, err = h.G().ConvSource.PullLocalOnly(bctx, arg.ConversationID,
+			localThread, err = h.G().ConvSource.PullLocalOnly(ctx, arg.ConversationID,
 				uid, arg.Query, pagination, 10)
 			ch <- err
 		}()
@@ -731,7 +735,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 			} else {
 				resThread = &localThread
 			}
-		case <-bctx.Done():
+		case <-ctx.Done():
 			h.Debug(ctx, "GetThreadNonblock: context canceled before PullLocalOnly returned")
 			return
 		}
@@ -740,7 +744,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		defer uilock.Unlock()
 		// Check this again, since we might have waited on the lock while full sent
 		select {
-		case <-bctx.Done():
+		case <-ctx.Done():
 			resThread = nil
 			h.Debug(ctx, "GetThreadNonblock: context canceled before local copy sent")
 			return
@@ -762,17 +766,17 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 			}
 			sJSONPt := string(jsonPt)
 			pthread = &sJSONPt
-			h.applyPagerModeOutgoing(bctx, arg.ConversationID, resThread.Pagination, pagination, arg.Pgmode)
+			h.applyPagerModeOutgoing(ctx, arg.ConversationID, resThread.Pagination, pagination, arg.Pgmode)
 		} else {
 			h.Debug(ctx, "GetThreadNonblock: sending nil cached response")
 		}
 		start := time.Now()
-		chatUI.ChatThreadCached(bctx, chat1.ChatThreadCachedArg{
+		chatUI.ChatThreadCached(ctx, chat1.ChatThreadCachedArg{
 			SessionID: arg.SessionID,
 			Thread:    pthread,
 		})
 		h.Debug(ctx, "GetThreadNonblock: cached response send time: %v", time.Since(start))
-	}()
+	}(localCtx)
 
 	wg.Add(1)
 	go func() {
@@ -783,7 +787,7 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 			h.clock.Sleep(*h.remoteThreadDelay)
 		}
 		var remoteThread chat1.ThreadView
-		remoteThread, fullErr = h.G().ConvSource.Pull(bctx, arg.ConversationID,
+		remoteThread, fullErr = h.G().ConvSource.Pull(ctx, arg.ConversationID,
 			uid, arg.Reason, arg.Query, pagination)
 		if fullErr != nil {
 			h.Debug(ctx, "GetThreadNonblock: error running Pull, returning error: %s", fullErr.Error())
@@ -801,16 +805,16 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		rthread.UnreadLineID = h.getUnreadLine(ctx, arg.ConversationID, uid, rthread.Messages)
 		h.Debug(ctx, "GetThreadNonblock: sending full response: messages: %d pager: %s",
 			len(rthread.Messages), rthread.Pagination)
-		uires := utils.PresentThreadView(bctx, h.G(), uid, rthread, arg.ConversationID)
+		uires := utils.PresentThreadView(ctx, h.G(), uid, rthread, arg.ConversationID)
 		var jsonUIRes []byte
 		if jsonUIRes, fullErr = json.Marshal(uires); fullErr != nil {
 			h.Debug(ctx, "GetThreadNonblock: failed to JSON full result: %s", fullErr)
 			return
 		}
 		resultPagination = rthread.Pagination
-		h.applyPagerModeOutgoing(bctx, arg.ConversationID, rthread.Pagination, pagination, arg.Pgmode)
+		h.applyPagerModeOutgoing(ctx, arg.ConversationID, rthread.Pagination, pagination, arg.Pgmode)
 		start := time.Now()
-		chatUI.ChatThreadFull(bctx, chat1.ChatThreadFullArg{
+		chatUI.ChatThreadFull(ctx, chat1.ChatThreadFullArg{
 			SessionID: arg.SessionID,
 			Thread:    string(jsonUIRes),
 		})

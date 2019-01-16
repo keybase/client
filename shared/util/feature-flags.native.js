@@ -16,7 +16,7 @@ const ff: FeatureFlags = {
   outOfDateBanner: false,
   plansEnabled: false,
   useNewRouter: false,
-  walletsEnabled: false,
+  walletsEnabled: true,
 }
 
 // load overrides

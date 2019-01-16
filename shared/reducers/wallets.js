@@ -51,11 +51,11 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         building: initialBuilding.merge({
           amount: action.payload.amount || '',
           currency:
-            action.payload.currency ||
-            (state.lastSentXLM && 'XLM') ||
-            (action.payload.from &&
-              state.currencyMap.get(action.payload.from, Constants.makeCurrency()).code) ||
-            'XLM',
+            action.payload.currency || // explicitly set
+            (state.lastSentXLM && 'XLM') || // lastSentXLM override
+            (action.payload.from && Constants.getDisplayCurrencyInner(state, action.payload.from).code) || // display currency of explicitly set 'from' account
+            Constants.getDefaultDisplayCurrencyInner(state).code || // display currency of default account
+            '', // Empty string -> not loaded
           from: action.payload.from || Types.noAccountID,
           isRequest: !!action.payload.isRequest,
           publicMemo: action.payload.publicMemo || new HiddenString(''),
@@ -106,22 +106,18 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         .setIn(['paymentOldestUnreadMap', action.payload.accountID], action.payload.oldestUnread)
     case WalletsGen.displayCurrenciesReceived:
       return state.merge({currencies: I.List(action.payload.currencies)})
-    case WalletsGen.displayCurrencyReceived:
-      // $FlowIssue thinks state is _State
-      return state.withMutations(stateMutable => {
-        if (action.payload.accountID) {
-          stateMutable.update('currencyMap', c => c.set(action.payload.accountID, action.payload.currency))
-        }
-        if (action.payload.setBuildingCurrency) {
-          const currency = state.lastSentXLM ? 'XLM' : action.payload.currency.code
-          logger.info(
-            `displayCurrencyReceived: setting currency to ${currency} because lastSentXLM was ${String(
-              state.lastSentXLM
-            )}`
-          )
-          stateMutable.update('building', b => b.merge({currency}))
-        }
+    case WalletsGen.displayCurrencyReceived: {
+      const account = Constants.getAccountInner(state, action.payload.accountID || Types.noAccountID)
+      if (account.accountID === Types.noAccountID) {
+        return state
+      }
+      return state.merge({
+        accountMap: state.accountMap.set(
+          account.accountID,
+          account.merge({displayCurrency: action.payload.currency})
+        ),
       })
+    }
     case WalletsGen.reviewPayment:
       return state
         .setIn(['builtPayment', 'reviewBanners'], [])
@@ -343,6 +339,16 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       })
     case WalletsGen.loadedMobileOnlyMode:
       return state.setIn(['mobileOnlyMap', action.payload.accountID], action.payload.enabled)
+    case WalletsGen.inflationDestinationReceived:
+      return state.merge({
+        inflationDestination: action.payload.selected ? action.payload.selected : state.inflationDestination,
+        inflationDestinationError: action.payload.error,
+        inflationDestinations: action.payload.options
+          ? I.List(action.payload.options)
+          : state.inflationDestinations,
+      })
+    case WalletsGen.setInflationDestination:
+      return state.merge({inflationDestinationError: ''})
     case WalletsGen.rejectDisclaimer:
     case WalletsGen.didSetAccountAsDefault:
     case WalletsGen.cancelPayment:
@@ -374,6 +380,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.loadMobileOnlyMode:
     case WalletsGen.changeMobileOnlyMode:
     case WalletsGen.exitFailedPayment:
+    case WalletsGen.loadInflationDestination:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

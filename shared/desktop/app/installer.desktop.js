@@ -7,6 +7,7 @@ import {keybaseBinPath} from './paths.desktop'
 import {quit} from './ctl.desktop'
 import {isDarwin} from '../../constants/platform'
 import logger from '../../logger'
+import zlib from 'zlib'
 
 const file = path.join(SafeElectron.getApp().getPath('userData'), 'installer.json')
 
@@ -99,7 +100,24 @@ const darwinInstall = (callback: CB) => {
     timeout = 90
   }
 
+  const logOutput = (stdout, stderr) =>
+    Promise.all([
+      new Promise((resolve, reject) =>
+        zlib.gzip(stdout, (error, res) => (error ? reject(error) : resolve(res)))
+      ),
+      new Promise((resolve, reject) =>
+        zlib.gzip(stderr, (error, res) => (error ? reject(error) : resolve(res)))
+      ),
+    ]).then(([zStdout, zStderr]) =>
+      logger.info(
+        '[Installer]: got result from install-auto. To read, pipe the base64 strings to "| base64 -d | gzip -d".',
+        `stdout=${zStdout.toString('base64')}`,
+        `stderr=${zStderr.toString('base64')}`
+      )
+    )
+
   const handleResults = (err, attempted, stdout, stderr) => {
+    logOutput(stdout, stderr)
     const errors = []
     const errorTypes = {
       cli: false,
@@ -125,7 +143,7 @@ const darwinInstall = (callback: CB) => {
 
     if (errors.length > 0) {
       logger.info(errors.join('\n'))
-      logger.info(`[Installer]: Install errors: stdout=${stdout || ''}, stderr=${stderr || ''}`)
+      logger.info('[Installer]: Install errorred')
       const buttons = errorTypes.fuse || errorTypes.kbnm ? ['Okay'] : ['Ignore', 'Quit']
       const detail = errors.join('\n') + `\n\nPlease run \`keybase log send\` to report the error.`
       const message = 'Keybase Install Error'

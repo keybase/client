@@ -11,6 +11,7 @@ const provider = Sb.createPropProvider({
 })
 
 const common = {
+  currencyLoading: false,
   onChangeAmount: Sb.action('onChangeAmount'),
   onChangeDisplayUnit: Sb.action('onChangeDisplayUnit'),
   topLabel: '',

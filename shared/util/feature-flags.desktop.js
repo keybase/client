@@ -20,7 +20,7 @@ const ff: FeatureFlags = {
   outOfDateBanner: false,
   plansEnabled: false,
   useNewRouter: false,
-  walletsEnabled: false,
+  walletsEnabled: true,
 }
 
 const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
@@ -28,7 +28,6 @@ const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
   foldersInProfileTab: true,
   moveOrCopy: true,
   newTeamBuildingForChat: true,
-  walletsEnabled: true,
 }
 
 // load overrides

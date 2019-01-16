@@ -130,6 +130,9 @@ func (i *Identify2WithUIDTester) FinishWebProofCheck(keybase1.RemoteProof, keyba
 func (i *Identify2WithUIDTester) DisplayCryptocurrency(keybase1.Cryptocurrency) error {
 	return nil
 }
+func (i *Identify2WithUIDTester) DisplayStellarAccount(keybase1.StellarAccount) error {
+	return nil
+}
 func (i *Identify2WithUIDTester) DisplayKey(keybase1.IdentifyKey) error {
 	return nil
 }
