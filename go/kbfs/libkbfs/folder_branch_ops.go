@@ -5970,9 +5970,7 @@ func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
 		// them anymore
 		fbo.log.CDebugf(ctx, "notifyOneOp: GCOp with latest rev %d and %d unref'd blocks", realOp.LatestRev, len(realOp.Unrefs()))
 		bcache := fbo.config.BlockCache()
-		idsToDelete := make([]kbfsblock.ID, 0, len(realOp.Unrefs()))
 		for _, ptr := range realOp.Unrefs() {
-			idsToDelete = append(idsToDelete, ptr.ID)
 			if err := bcache.DeleteTransient(ptr.ID, fbo.id()); err != nil {
 				fbo.log.CDebugf(ctx,
 					"Couldn't delete transient entry for %v: %v", ptr, err)
