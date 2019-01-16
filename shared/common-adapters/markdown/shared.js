@@ -23,12 +23,29 @@ function createMentionRegex(meta: ?MarkdownMeta): ?RegExp {
   return new RegExp(`^@(${[...specialMentions, ...meta.mentionsAt.toArray()].join('|')})\\b`)
 }
 
+function createMentionMatcher(meta: ?MarkdownMeta) {
+  const mentionRegex = createMentionRegex(meta)
+  if (!mentionRegex) {
+    return null
+  }
+
+  return SimpleMarkdown.inlineRegex(mentionRegex)
+}
+
 function createChannelRegex(meta: ?MarkdownMeta): ?RegExp {
   if (!meta || !meta.mentionsChannelName || meta.mentionsChannelName.isEmpty()) {
     return null
   }
 
   return new RegExp(`^#(${meta.mentionsChannelName.keySeq().join('|')})\\b`)
+}
+
+function createChannelMatcher(meta: ?MarkdownMeta) {
+  const channelRegex = createChannelRegex(meta)
+  if (!channelRegex) {
+    return null
+  }
+  return SimpleMarkdown.inlineRegex(channelRegex)
 }
 
 function createKbfsPathRegex(): ?RegExp {
@@ -170,12 +187,12 @@ const rules = {
   channel: {
     // Just needs to be a higher order than mentions
     match: (source, state, lookBehind) => {
-      const channelRegex = createChannelRegex(state.markdownMeta)
-      if (!channelRegex) {
+      const channelMatcher = state.channelMatcher
+      if (!channelMatcher) {
         return null
       }
 
-      const matches = SimpleMarkdown.inlineRegex(channelRegex)(source, state, lookBehind)
+      const matches = channelMatcher(source, state, lookBehind)
       // Also check that the lookBehind is not text
       if (matches && (!lookBehind || lookBehind.match(/\B$/))) {
         return matches
@@ -311,12 +328,12 @@ const rules = {
     // We'll change most of the stuff here anyways
     ...SimpleMarkdown.defaultRules.autolink,
     match: (source, state, lookBehind) => {
-      const mentionRegex = createMentionRegex(state.markdownMeta)
-      if (!mentionRegex) {
+      const mentionMatcher = state.mentionMatcher
+      if (!mentionMatcher) {
         return null
       }
 
-      const matches = SimpleMarkdown.inlineRegex(mentionRegex)(source, state, lookBehind)
+      const matches = mentionMatcher(source, state, lookBehind)
       // Also check that the lookBehind is not text
       if (matches && (!lookBehind || lookBehind.match(/\B$/))) {
         return matches
@@ -444,11 +461,13 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: bo
     let output
     try {
       parseTree = simpleMarkdownParser((this.props.children || '').trim() + '\n', {
-        disableAutoBlockNewlines: true,
+        channelMatcher: createChannelMatcher(this.props.meta),
         // This flag adds 2 new lines at the end of our input. One is necessary to parse the text as a paragraph, but the other isn't
         // So we add our own new line
+        disableAutoBlockNewlines: true,
         inline: false,
         markdownMeta: this.props.meta,
+        mentionMatcher: createMentionMatcher(this.props.meta),
       })
 
       const state = {

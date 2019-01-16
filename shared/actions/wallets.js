@@ -212,11 +212,13 @@ const loadWalletDisclaimer = () =>
 
 const loadAccounts = (state, action) =>
   !actionHasError(action) &&
-  RPCStellarTypes.localGetWalletAccountsLocalRpcPromise().then(res => {
-    return WalletsGen.createAccountsReceived({
-      accounts: (res || []).map(account => Constants.accountResultToAccount(account)),
-    })
-  })
+  RPCStellarTypes.localGetWalletAccountsLocalRpcPromise(undefined, Constants.loadAccountsWaitingKey).then(
+    res => {
+      return WalletsGen.createAccountsReceived({
+        accounts: (res || []).map(account => Constants.accountResultToAccount(account)),
+      })
+    }
+  )
 
 const loadAssets = (state, action) => {
   if (actionHasError(action)) {

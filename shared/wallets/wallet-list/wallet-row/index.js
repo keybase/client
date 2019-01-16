@@ -3,6 +3,8 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 
+// TODO: This is now desktop-only, so remove references to isMobile.
+
 type Props = {|
   contents: string,
   isSelected: boolean,
