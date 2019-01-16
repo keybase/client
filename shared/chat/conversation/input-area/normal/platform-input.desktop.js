@@ -149,8 +149,6 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
 
   _toggleShowingMenu = () => {
     if (this.props.isEditing) return
-
-    this.props.onSeenExplodingMessages()
     this.props.toggleShowingMenu()
   }
 

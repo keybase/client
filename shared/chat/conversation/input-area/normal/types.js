@@ -13,7 +13,6 @@ type CommonProps = {|
   isEditExploded: boolean,
   isEditing: boolean,
   isExploding: boolean,
-  isExplodingNew: boolean,
   explodingModeSeconds: number,
   focusInputCounter: number,
   clearInboxFilter: () => void,
@@ -21,7 +20,6 @@ type CommonProps = {|
   onEditLastMessage: () => void,
   onCancelEditing: () => void,
   onFilePickerError: (error: Error) => void,
-  onSeenExplodingMessages: () => void,
   onSubmit: (text: string) => void,
   showWalletsIcon: boolean, // used on mobile to determine placeholder
 
