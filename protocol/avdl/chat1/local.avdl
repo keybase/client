@@ -604,7 +604,6 @@ protocol local {
     // Local analog of common:GetInboxQuery
 
     union { null, NameQuery } name;
-    union { null, TLFID } tlfID;
     union { null, string } topicName;
 
     array<ConversationID> convIDs;

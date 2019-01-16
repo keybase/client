@@ -1833,13 +1833,6 @@
         {
           "type": [
             null,
-            "TLFID"
-          ],
-          "name": "tlfID"
-        },
-        {
-          "type": [
-            null,
             "string"
           ],
           "name": "topicName"

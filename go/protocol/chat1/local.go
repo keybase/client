@@ -3258,7 +3258,6 @@ func (o NameQuery) DeepCopy() NameQuery {
 
 type GetInboxLocalQuery struct {
 	Name              *NameQuery              `codec:"name,omitempty" json:"name,omitempty"`
-	TlfID             *TLFID                  `codec:"tlfID,omitempty" json:"tlfID,omitempty"`
 	TopicName         *string                 `codec:"topicName,omitempty" json:"topicName,omitempty"`
 	ConvIDs           []ConversationID        `codec:"convIDs" json:"convIDs"`
 	TopicType         *TopicType              `codec:"topicType,omitempty" json:"topicType,omitempty"`
@@ -3281,13 +3280,6 @@ func (o GetInboxLocalQuery) DeepCopy() GetInboxLocalQuery {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Name),
-		TlfID: (func(x *TLFID) *TLFID {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.TlfID),
 		TopicName: (func(x *string) *string {
 			if x == nil {
 				return nil
