@@ -456,7 +456,6 @@ export const createNewAccountWaitingKey = `${p}createNewAccount`
 export const changeDisplayCurrencyWaitingKey = `${p}changeDisplayCurrency`
 export const getDisplayCurrencyWaitingKey = (id: Types.AccountID) => `${p}getDisplayCurrency:${id}`
 export const linkExistingWaitingKey = `${p}linkExisting`
-export const loadEverythingWaitingKey = `${p}loadEverything`
 export const buildPaymentWaitingKey = `${p}buildPayment`
 export const sendPaymentWaitingKey = `${p}stellarSend`
 export const requestPaymentWaitingKey = `${p}requestPayment`
