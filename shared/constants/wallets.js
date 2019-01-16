@@ -396,10 +396,12 @@ export const paymentToYourInfoAndCounterparty = (
     case 'none':
       // Need to guard check that sourceType is non-empty to handle the
       // case when p is the empty value.
-      if (p.sourceType && p.sourceType !== 'ownaccount') {
+      //
+      // Also, sourceType might be 'keybase' when offline.
+      if (p.sourceType && p.sourceType !== 'ownaccount' && p.sourceType !== 'keybase') {
         throw new Error(`Unexpected sourceType ${p.sourceType} with delta=none`)
       }
-      if (p.targetType && p.targetType !== 'ownaccount') {
+      if (p.targetType && p.targetType !== 'ownaccount' && p.sourceType !== 'keybase') {
         throw new Error(`Unexpected targetType ${p.targetType} with delta=none`)
       }
       if (p.source !== p.target) {
