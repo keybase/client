@@ -30,7 +30,9 @@ func newCmdWallet(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 	}
 	subcommands = append(subcommands, getBuildSpecificWalletCommands(cl, g)...)
 	return cli.Command{
-		Name:        "wallet",
-		Subcommands: subcommands,
+		Name:         "wallet",
+		Usage:        "Send and receive Stelllar XLM",
+		ArgumentHelp: "[arguments...]",
+		Subcommands:  subcommands,
 	}
 }
