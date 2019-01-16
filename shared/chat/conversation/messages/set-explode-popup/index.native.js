@@ -40,14 +40,22 @@ class SetExplodePopup extends React.Component<Props, State> {
     this.props.onHidden()
   }
 
+  onCancel = () => {
+    if (this.state.selected !== this.props.selected) {
+      // reset selection
+      this.setState({selected: this.props.selected || 0})
+    }
+    this.props.onHidden()
+  }
+
   render() {
     const items = this.props.items.map(item => ({label: item.text, value: item.seconds}))
     return (
       <FloatingPicker
         items={items}
         onSelect={this.setSelected}
-        onHidden={this.props.onHidden}
-        onCancel={this.props.onHidden}
+        onHidden={this.onCancel}
+        onCancel={this.onCancel}
         onDone={this.onDone}
         prompt={<Prompt />}
         promptString="Pick a timeout"
