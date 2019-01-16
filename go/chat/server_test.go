@@ -732,10 +732,7 @@ func TestChatSrvNewConversationMultiTeam(t *testing.T) {
 		topicName = "mi.ke"
 		_, err = tc.chatLocalHandler().NewConversationLocal(tc.startCtx, arg)
 		require.Error(t, err)
-		topicName = ""
-		if mt == chat1.ConversationMembersType_KBFS {
-			arg.TopicName = nil
-		}
+		arg.TopicName = nil
 		ncres, err = tc.chatLocalHandler().NewConversationLocal(tc.startCtx, arg)
 		switch mt {
 		case chat1.ConversationMembersType_KBFS:

@@ -884,6 +884,12 @@ func (n *newConversationHelper) getNameInfo(ctx context.Context) (res types.Name
 		chat1.ConversationMembersType_IMPTEAMUPGRADE:
 		return CreateNameInfoSource(ctx, n.G(), n.membersType).LookupID(ctx, n.tlfName, isPublic)
 	case chat1.ConversationMembersType_IMPTEAMNATIVE:
+		// NameInfoSource interface doesn't allow us to quickly lookup and create at the same time,
+		// so let's just do this manually here. Note: this will allow a user to dup impteamupgrade
+		// convs with unresolved assertions in them, the server can catch any normal convs being duped.
+		if override := GetOverrideNameInfoSource(ctx); override != nil {
+			return override.LookupID(ctx, n.tlfName, isPublic)
+		}
 		team, _, impTeamName, err := teams.LookupOrCreateImplicitTeam(ctx, n.G().ExternalG(), n.tlfName,
 			isPublic)
 		if err != nil {
