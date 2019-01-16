@@ -5052,7 +5052,6 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 			})
 		require.NoError(t, err)
-		consumeIdentify(ctx, listener0) //impteam
 		consumeIdentify(ctx, listener0) //encrypt for first message
 
 		uid := users[0].User.GetUID().ToBytes()
@@ -5080,7 +5079,6 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 		})
 		require.NoError(t, err)
 		consumeIdentify(ctx, listener0) // EncryptionKeys
-		consumeIdentify(ctx, listener0) // DecryptionKeys
 
 		// user 1 sends a message to conv
 		ctx = ctc.as(t, users[1]).startCtx
@@ -5100,7 +5098,6 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 		})
 		require.NoError(t, err)
 		consumeIdentify(ctx, listener1) // EncryptionKeys
-		consumeIdentify(ctx, listener1) // DecryptionKeys
 
 		// user 1 finds the conversation
 		res, err = ctc.as(t, users[1]).chatLocalHandler().FindConversationsLocal(ctx,
