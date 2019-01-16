@@ -38,6 +38,24 @@ const wrapperStyle = Styles.platformStyles({
   },
 })
 
+const generateTeamSofar = (count: number) => {
+  const adjs = ['shaky', 'ded', 'smol', 'big', 'breaker of chains,', 'the kind', 'the erudite']
+  const nouns = ['dino', 'frog', 'potato', 'dog', 'chris']
+  const services = ['keybase', 'twitter', 'reddit']
+  return new Array(count).fill('').map((v, i) => {
+    const adj = adjs[i % adjs.length]
+    const noun = nouns[Math.floor(i / adjs.length) % nouns.length]
+    const service = services[i % services.length]
+    const username = `${noun}${i}`
+    return {
+      prettyName: `${adj} ${noun}`,
+      service,
+      userId: `${username}${service === 'keybase' ? '' : `@${service}`}`,
+      username: `${username}`,
+    }
+  })
+}
+
 const load = () => {
   Sb.storiesOf('Team-Building', module)
     .addDecorator(provider)
@@ -173,6 +191,226 @@ const load = () => {
               username: 'chris',
             },
           ]}
+          serviceResultCount={{}}
+          showServiceResultCount={false}
+          onAdd={Sb.action('onAdd')}
+          highlightedIndex={1}
+          searchResults={[
+            {
+              followingState: 'Following',
+              inTeam: true,
+              prettyName: 'Chris Coyne',
+              services: {
+                facebook: 'chriscoyne on Facebook',
+                github: 'malgorithms on GitHub',
+                hackernews: 'malgorithms on HackerNews',
+                keybase: 'chris',
+                reddit: 'malgorithms on Reddit',
+                twitter: 'malgorithms on Twitter',
+              },
+              userId: 'chris',
+              username: 'chris',
+            },
+            {
+              followingState: 'NotFollowing',
+              inTeam: false,
+              prettyName: 'Chris Mikacle',
+              services: {
+                github: 'chrismikacle on GitHub',
+                hackernews: 'chrismikacle on HackerNews',
+                keybase: 'chrismikacle',
+                reddit: 'chrismikacle on Reddit',
+                twitter: 'chrismikacle on Twitter',
+              },
+              userId: 'chrismikacle',
+              username: 'chrismikacle',
+            },
+            {
+              followingState: 'Following',
+              inTeam: false,
+              prettyName: 'Chris Nojima',
+              services: {
+                github: 'cnojima on GitHub',
+                hackernews: 'cnojima on HackerNews',
+                keybase: 'chrisnojima',
+                reddit: 'cnojima on Reddit',
+                twitter: 'cnojima on Twitter',
+              },
+              userId: 'chrisnojima',
+              username: 'chrisnojima',
+            },
+          ]}
+        />
+      </OutlineWrapper>
+    ))
+
+    .add('Team Building - One line of users', () => (
+      <OutlineWrapper style={wrapperStyle}>
+        <TeamBuilding
+          searchString="chris"
+          selectedService="keybase"
+          onChangeService={Sb.action('onChangeService')}
+          onFinishTeamBuilding={Sb.action('onFinishTeamBuilding')}
+          onChangeText={Sb.action('onChangeText')}
+          onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
+          onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
+          onEnterKeyDown={Sb.action('onEnterKeyDown')}
+          onBackspace={Sb.action('onBackspace')}
+          onRemove={Sb.action('onRemove')}
+          onMakeItATeam={Sb.action('onMakeItATeam')}
+          showRecs={false}
+          recommendations={[]}
+          fetchUserRecs={() => {}}
+          onSearchForMore={() => {
+            Sb.action('onSearchForMore')
+          }}
+          teamSoFar={generateTeamSofar(9)}
+          serviceResultCount={{}}
+          showServiceResultCount={false}
+          onAdd={Sb.action('onAdd')}
+          highlightedIndex={1}
+          searchResults={[
+            {
+              followingState: 'Following',
+              inTeam: true,
+              prettyName: 'Chris Coyne',
+              services: {
+                facebook: 'chriscoyne on Facebook',
+                github: 'malgorithms on GitHub',
+                hackernews: 'malgorithms on HackerNews',
+                keybase: 'chris',
+                reddit: 'malgorithms on Reddit',
+                twitter: 'malgorithms on Twitter',
+              },
+              userId: 'chris',
+              username: 'chris',
+            },
+            {
+              followingState: 'NotFollowing',
+              inTeam: false,
+              prettyName: 'Chris Mikacle',
+              services: {
+                github: 'chrismikacle on GitHub',
+                hackernews: 'chrismikacle on HackerNews',
+                keybase: 'chrismikacle',
+                reddit: 'chrismikacle on Reddit',
+                twitter: 'chrismikacle on Twitter',
+              },
+              userId: 'chrismikacle',
+              username: 'chrismikacle',
+            },
+            {
+              followingState: 'Following',
+              inTeam: false,
+              prettyName: 'Chris Nojima',
+              services: {
+                github: 'cnojima on GitHub',
+                hackernews: 'cnojima on HackerNews',
+                keybase: 'chrisnojima',
+                reddit: 'cnojima on Reddit',
+                twitter: 'cnojima on Twitter',
+              },
+              userId: 'chrisnojima',
+              username: 'chrisnojima',
+            },
+          ]}
+        />
+      </OutlineWrapper>
+    ))
+    .add('Team Building - One line of users + 1', () => (
+      <OutlineWrapper style={wrapperStyle}>
+        <TeamBuilding
+          searchString="chris"
+          selectedService="keybase"
+          onChangeService={Sb.action('onChangeService')}
+          onFinishTeamBuilding={Sb.action('onFinishTeamBuilding')}
+          onChangeText={Sb.action('onChangeText')}
+          onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
+          onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
+          onEnterKeyDown={Sb.action('onEnterKeyDown')}
+          onBackspace={Sb.action('onBackspace')}
+          onRemove={Sb.action('onRemove')}
+          onMakeItATeam={Sb.action('onMakeItATeam')}
+          showRecs={false}
+          recommendations={[]}
+          fetchUserRecs={() => {}}
+          onSearchForMore={() => {
+            Sb.action('onSearchForMore')
+          }}
+          teamSoFar={generateTeamSofar(10)}
+          serviceResultCount={{}}
+          showServiceResultCount={false}
+          onAdd={Sb.action('onAdd')}
+          highlightedIndex={1}
+          searchResults={[
+            {
+              followingState: 'Following',
+              inTeam: true,
+              prettyName: 'Chris Coyne',
+              services: {
+                facebook: 'chriscoyne on Facebook',
+                github: 'malgorithms on GitHub',
+                hackernews: 'malgorithms on HackerNews',
+                keybase: 'chris',
+                reddit: 'malgorithms on Reddit',
+                twitter: 'malgorithms on Twitter',
+              },
+              userId: 'chris',
+              username: 'chris',
+            },
+            {
+              followingState: 'NotFollowing',
+              inTeam: false,
+              prettyName: 'Chris Mikacle',
+              services: {
+                github: 'chrismikacle on GitHub',
+                hackernews: 'chrismikacle on HackerNews',
+                keybase: 'chrismikacle',
+                reddit: 'chrismikacle on Reddit',
+                twitter: 'chrismikacle on Twitter',
+              },
+              userId: 'chrismikacle',
+              username: 'chrismikacle',
+            },
+            {
+              followingState: 'Following',
+              inTeam: false,
+              prettyName: 'Chris Nojima',
+              services: {
+                github: 'cnojima on GitHub',
+                hackernews: 'cnojima on HackerNews',
+                keybase: 'chrisnojima',
+                reddit: 'cnojima on Reddit',
+                twitter: 'cnojima on Twitter',
+              },
+              userId: 'chrisnojima',
+              username: 'chrisnojima',
+            },
+          ]}
+        />
+      </OutlineWrapper>
+    ))
+    .add('Team Building - Lotsa users', () => (
+      <OutlineWrapper style={wrapperStyle}>
+        <TeamBuilding
+          searchString="chris"
+          selectedService="keybase"
+          onChangeService={Sb.action('onChangeService')}
+          onFinishTeamBuilding={Sb.action('onFinishTeamBuilding')}
+          onChangeText={Sb.action('onChangeText')}
+          onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
+          onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
+          onEnterKeyDown={Sb.action('onEnterKeyDown')}
+          onBackspace={Sb.action('onBackspace')}
+          onRemove={Sb.action('onRemove')}
+          onMakeItATeam={Sb.action('onMakeItATeam')}
+          showRecs={false}
+          recommendations={[]}
+          fetchUserRecs={() => {}}
+          onSearchForMore={() => {
+            Sb.action('onSearchForMore')
+          }}
+          teamSoFar={generateTeamSofar(100)}
           serviceResultCount={{}}
           showServiceResultCount={false}
           onAdd={Sb.action('onAdd')}
