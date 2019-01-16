@@ -5219,7 +5219,7 @@ func TestChatSrvDeleteConversation(t *testing.T) {
 			return
 		}
 
-		ctc := makeChatTestContext(t, "TestChatSrvTeamTypeChanged", 2)
+		ctc := makeChatTestContext(t, "TestChatSrvDeleteConversation", 2)
 		defer ctc.cleanup()
 		users := ctc.users()
 
@@ -5317,7 +5317,7 @@ func TestChatSrvDeleteConversation(t *testing.T) {
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "failed to receive stale event")
 		}
-		t.Logf("DELETED")
+
 		_, lconvs, _, err = storage.NewInbox(g).Read(context.TODO(), uid, &chat1.GetInboxQuery{
 			ConvID:       &channelConvID,
 			MemberStatus: []chat1.ConversationMemberStatus{chat1.ConversationMemberStatus_LEFT},
