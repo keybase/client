@@ -2051,6 +2051,15 @@ func AllWalletAccounts(mctx libkb.MetaContext, remoter remote.Remoter) ([]stella
 		return accts[i].Name < accts[j].Name
 	})
 
+	// debugging empty account id
+	mctx.CDebugf("AllWalletAccounts returning %d accounts:", len(accts))
+	for i, a := range accts {
+		mctx.CDebugf("%d: %q (default: %v)", i, a.AccountID, a.IsDefault)
+		if a.AccountID.IsNil() {
+			mctx.CDebugf("%d: account id is empty!!!!!!")
+		}
+	}
+
 	return accts, nil
 }
 
