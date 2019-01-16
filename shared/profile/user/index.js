@@ -11,6 +11,7 @@ import Actions from './actions/container'
 import Friend from './friend/container'
 import Measure from './measure'
 import Teams from './teams/container'
+import Folders from '../folders/container'
 
 export type Props = {|
   assertionKeys: ?Array<string>,
@@ -212,6 +213,7 @@ class User extends React.Component<Props, State> {
         <Kb.Box2 direction="vertical" style={styles.proofs}>
           <Teams username={this.props.username} />
           <Proofs {...this.props} />
+          <Folders profileUsername={this.props.username} />
         </Kb.Box2>
       </Kb.Box2>
     )
