@@ -413,6 +413,9 @@ func ReviewPaymentLocal(mctx libkb.MetaContext, stellarUI stellar1.UiInterface, 
 				recipientAssertion = name
 			}
 		}
+	} else if strings.Contains(recipientAssertion, "@") { // assume assertion resolution happened already.
+		data.ReadyToSend = true
+		wantFollowingCheck = false
 	}
 
 	mctx.CDebugf("wantFollowingCheck: %v", wantFollowingCheck)
