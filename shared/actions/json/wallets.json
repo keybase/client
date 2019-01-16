@@ -116,7 +116,7 @@
     "setInflationDestination": {
       "_description": "Set our inflation destination",
       "accountID": "Types.AccountID",
-      "destination": "string",
+      "destination": "string"
     },
     "inflationDestinationReceived": {
       "_description": "Got inflation destination",
@@ -264,11 +264,6 @@
       "_description": "Select an account. Optionally navigate to the account page.",
       "accountID": "Types.AccountID",
       "show?": "boolean"
-    },
-    "refreshPayments": {
-      "_description": "In response to a notification, resync payment info",
-      "accountID": "Types.AccountID",
-      "paymentID": "Types.PaymentID"
     },
     "buildPayment": {
       "_description": "Send a potential payment to the service for validation"

@@ -153,6 +153,9 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         exportedSecretKeyAccountID: Types.noAccountID,
       })
     case WalletsGen.selectAccount: {
+      if (!action.payload.accountID) {
+        logger.error('Selecting empty account ID')
+      }
       const newState = state.merge({
         exportedSecretKey: new HiddenString(''),
         selectedAccount: action.payload.accountID,
@@ -371,7 +374,6 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.loadAccounts:
     case WalletsGen.loadWalletDisclaimer:
     case WalletsGen.setAccountAsDefault:
-    case WalletsGen.refreshPayments:
     case WalletsGen.sendPayment:
     case WalletsGen.sentPayment:
     case WalletsGen.requestPayment:

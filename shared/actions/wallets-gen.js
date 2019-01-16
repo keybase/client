@@ -65,7 +65,6 @@ export const paymentDetailReceived = 'wallets:paymentDetailReceived'
 export const paymentsReceived = 'wallets:paymentsReceived'
 export const pendingPaymentsReceived = 'wallets:pendingPaymentsReceived'
 export const recentPaymentsReceived = 'wallets:recentPaymentsReceived'
-export const refreshPayments = 'wallets:refreshPayments'
 export const rejectDisclaimer = 'wallets:rejectDisclaimer'
 export const requestPayment = 'wallets:requestPayment'
 export const requestedPayment = 'wallets:requestedPayment'
@@ -153,7 +152,6 @@ type _PaymentDetailReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, pay
 type _PaymentsReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, paymentCursor: ?StellarRPCTypes.PageCursor, oldestUnread: Types.PaymentID, payments: Array<Types.PaymentResult>, pending: Array<Types.PaymentResult>|}>
 type _PendingPaymentsReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, pending: Array<Types.PaymentResult>|}>
 type _RecentPaymentsReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, paymentCursor: ?StellarRPCTypes.PageCursor, oldestUnread: Types.PaymentID, payments: Array<Types.PaymentResult>|}>
-type _RefreshPaymentsPayload = $ReadOnly<{|accountID: Types.AccountID, paymentID: Types.PaymentID|}>
 type _RejectDisclaimerPayload = void
 type _RequestPaymentPayload = void
 type _RequestedPaymentPayload = $ReadOnly<{|kbRqID: HiddenString, lastSentXLM: boolean, requestee: string|}>
@@ -292,10 +290,6 @@ export const createSentPaymentError = (payload: _SentPaymentErrorPayload) => ({p
  * Got inflation destination
  */
 export const createInflationDestinationReceived = (payload: _InflationDestinationReceivedPayload) => ({payload, type: inflationDestinationReceived})
-/**
- * In response to a notification, resync payment info
- */
-export const createRefreshPayments = (payload: _RefreshPaymentsPayload) => ({payload, type: refreshPayments})
 /**
  * Initialize and navigate to the send or request form. See docs for `setBuilding*` for param semantics.
  */
@@ -582,7 +576,6 @@ export type PaymentDetailReceivedPayload = {|+payload: _PaymentDetailReceivedPay
 export type PaymentsReceivedPayload = {|+payload: _PaymentsReceivedPayload, +type: 'wallets:paymentsReceived'|}
 export type PendingPaymentsReceivedPayload = {|+payload: _PendingPaymentsReceivedPayload, +type: 'wallets:pendingPaymentsReceived'|}
 export type RecentPaymentsReceivedPayload = {|+payload: _RecentPaymentsReceivedPayload, +type: 'wallets:recentPaymentsReceived'|}
-export type RefreshPaymentsPayload = {|+payload: _RefreshPaymentsPayload, +type: 'wallets:refreshPayments'|}
 export type RejectDisclaimerPayload = {|+payload: _RejectDisclaimerPayload, +type: 'wallets:rejectDisclaimer'|}
 export type RequestPaymentPayload = {|+payload: _RequestPaymentPayload, +type: 'wallets:requestPayment'|}
 export type RequestedPaymentPayload = {|+payload: _RequestedPaymentPayload, +type: 'wallets:requestedPayment'|}
@@ -674,7 +667,6 @@ export type Actions =
   | PaymentsReceivedPayload
   | PendingPaymentsReceivedPayload
   | RecentPaymentsReceivedPayload
-  | RefreshPaymentsPayload
   | RejectDisclaimerPayload
   | RequestPaymentPayload
   | RequestedPaymentPayload
