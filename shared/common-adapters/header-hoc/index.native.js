@@ -240,7 +240,7 @@ const styles = Styles.styleSheetCreate({
       ...Styles.globalStyles.flexBoxRow,
       alignItems: 'center',
       borderBottomColor: Styles.globalColors.black_10,
-      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomWidth: 1,
       justifyContent: 'flex-start',
       width: '100%',
     },

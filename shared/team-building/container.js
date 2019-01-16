@@ -241,7 +241,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
         leftAction: 'cancel',
         onLeftAction: dispatchProps._onCancelTeamBuilding,
         rightActions: [
-          teamSoFar.length ? {label: 'start', onPress: dispatchProps.onFinishTeamBuilding} : null,
+          teamSoFar.length ? {label: 'Start', onPress: dispatchProps.onFinishTeamBuilding} : null,
         ],
         title: 'New chat',
       }
