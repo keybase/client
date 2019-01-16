@@ -5,6 +5,7 @@ import {
   Badge,
   Box2,
   ClickableBox,
+  HeaderHocHeader,
   Icon,
   iconCastPlatformStyles,
   Text,
@@ -26,26 +27,16 @@ const Wrapper = (props: {
   onBack: () => void,
   onToggleInfoPanel: () => void,
 }) => (
-  <Box2 direction="horizontal" style={styles.container}>
-    <ClickableBox onClick={props.onBack} style={styles.leftMargin}>
-      <Icon
-        type="iconfont-arrow-left"
-        fontSize={24}
-        color={globalColors.black_50}
-        style={iconCastPlatformStyles(styles.arrow)}
-      />
-      {!!props.badgeNumber && <Badge badgeNumber={props.badgeNumber} />}
-    </ClickableBox>
-    <Box2
-      direction="vertical"
-      style={collapseStyles([styles.contentContainer, !!props.badgeNumber && styles.extraCenterPadding])}
-    >
-      {props.children}
-    </Box2>
-    <ClickableBox onClick={props.onToggleInfoPanel} style={styles.rightMargin}>
-      <Icon type="iconfont-info" fontSize={24} />
-    </ClickableBox>
-  </Box2>
+  <HeaderHocHeader
+    badgeNumber={props.badgeNumber}
+    onLeftAction={props.onBack}
+    rightActions={[{
+      icon: 'iconfont-info',
+      label: 'Info',
+      onPress: props.onToggleInfoPanel,
+    }]}
+    titleComponent={props.children}
+  />
 )
 
 const ShhIcon = props => (
@@ -127,7 +118,7 @@ const styles = styleSheetCreate({
   },
   container: {
     alignItems: 'stretch',
-    backgroundColor: globalColors.fastBlank,
+    backgroundColor: globalColors.red,//globalColors.fastBlank,
     borderBottomColor: globalColors.black_10,
     borderBottomWidth: 1,
     minHeight: 44,
