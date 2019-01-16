@@ -1639,6 +1639,66 @@ func TestPrefetcherUnsyncedPrefetchChildCanceled(t *testing.T) {
 	waitForPrefetchOrBust(t, ctx, q.Prefetcher(), rootPtr)
 }
 
+func TestPrefetcherCanceledWhileQueued(t *testing.T) {
+	t.Log("Regression test for KBFS-3733: when a block is obseleted while" +
+		" waiting to be prefetched, " +
+		"it should be cancelled even if it is in a channel waiting.")
+	q, bg, config := initPrefetcherTest(t)
+	defer shutdownPrefetcherTest(q)
+	kmd := makeKMD()
+	prefetchSyncCh := make(chan struct{})
+	q.TogglePrefetcher(true, prefetchSyncCh)
+	notifySyncCh(t, prefetchSyncCh)
+
+	t.Log("Initialize a folder tree with structure: " +
+		"root -> {a}")
+	rootPtr := makeRandomBlockPointer(t)
+	root := &DirBlock{Children: map[string]DirEntry{
+		"a": makeRandomDirEntry(t, File, 10, "a"),
+	}}
+	aPtr := root.Children["a"].BlockPointer
+	a := makeFakeFileBlock(t, true)
+
+	_, contChRoot := bg.setBlockToReturn(rootPtr, root)
+	_, contChA := bg.setBlockToReturn(aPtr, a)
+
+	ctx, cancel := context.WithTimeout(
+		context.Background(), individualTestTimeout)
+	defer cancel()
+
+	t.Log("Fetch dir root.")
+	var block Block = &DirBlock{}
+	ch := q.Request(
+		ctx, defaultOnDemandRequestPriority, kmd,
+		rootPtr, block, TransientEntry, BlockRequestWithPrefetch)
+	contChRoot <- nil
+	notifySyncCh(t, prefetchSyncCh)
+	err := <-ch
+	require.NoError(t, err)
+
+	t.Log("Fetch child block \"a\" on demand.")
+	block = &FileBlock{}
+	ch = q.Request(
+		ctx, defaultOnDemandRequestPriority, kmd,
+		aPtr, block, TransientEntry, BlockRequestWithPrefetch)
+	t.Log("Cancel then release child block \"a\".")
+	contChA <- nil
+	q.prefetcher.CancelPrefetch(aPtr)
+	notifySyncCh(t, prefetchSyncCh)
+	notifySyncCh(t, prefetchSyncCh)
+	err = <-ch
+	require.NoError(t, err)
+
+	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, root,
+		FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
+	testPrefetcherCheckGet(t, config.BlockCache(), aPtr, a, FinishedPrefetch,
+		kmd.TlfID(), config.DiskBlockCache())
+
+	// Then we wait for the pending prefetches to complete.
+	close(prefetchSyncCh)
+	waitForPrefetchOrBust(t, ctx, q.Prefetcher(), rootPtr)
+}
+
 func TestPrefetcherUnsyncedPrefetchParentCanceled(t *testing.T) {
 	t.Log("Regression test for KBFS-2588: when a prefetched block has " +
 		"children waiting on a prefetch, and it is canceled, subsequent " +
