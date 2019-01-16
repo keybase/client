@@ -44,6 +44,9 @@ func (*identifyUI) FinishSocialProofCheck(keybase1.RemoteProof, keybase1.LinkChe
 func (*identifyUI) DisplayCryptocurrency(keybase1.Cryptocurrency) error {
 	return nil
 }
+func (*identifyUI) DisplayStellarAccount(keybase1.StellarAccount) error {
+	return nil
+}
 func (*identifyUI) DisplayKey(keybase1.IdentifyKey) error {
 	return nil
 }

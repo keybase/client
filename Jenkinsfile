@@ -130,7 +130,7 @@ helpers.rootLinuxNode(env, {
                   ]) {
                     if (hasGoChanges) {
                       dir("go/keybase") {
-                        sh "go build --tags=production"
+                        sh "go build -ldflags \"-s -w\" -buildmode=pie --tags=production"
                       }
                       testGo("test_linux_go_", packagesToTest)
                     }
@@ -152,14 +152,14 @@ helpers.rootLinuxNode(env, {
                     if (hasGoChanges && hasKBFSChanges) {
                       println "We have KBFS changes, so we are building kbfs-server."
                       dir('go') {
-                        sh "go install github.com/keybase/client/go/keybase"
+                        sh "go install -ldflags \"-s -w\" -buildmode=pie github.com/keybase/client/go/keybase"
                         sh "cp ${env.GOPATH}/bin/keybase ./keybase/keybase"
                         clientImage = docker.build("keybaseprivate/kbclient")
                         // TODO: only do this when we need to run at least one KBFS test.
                         dir('kbfs') {
-                          sh "go install github.com/keybase/client/go/kbfs/kbfsfuse"
+                          sh "go install -ldflags \"-s -w\" -buildmode=pie github.com/keybase/client/go/kbfs/kbfsfuse"
                           sh "cp ${env.GOPATH}/bin/kbfsfuse ./kbfsfuse/kbfsfuse"
-                          sh "go install github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase"
+                          sh "go install -ldflags \"-s -w\" -buildmode=pie github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase"
                           sh "cp ${env.GOPATH}/bin/git-remote-keybase ./kbfsgit/git-remote-keybase/git-remote-keybase"
                           withCredentials([[$class: 'StringBinding', credentialsId: 'kbfs-docker-cert-b64-new', variable: 'KBFS_DOCKER_CERT_B64']]) {
                             println "Building Docker"
@@ -466,8 +466,7 @@ def testGo(prefix, packagesToTest) {
           timeout: '30s',
         ],
         'github.com/keybase/client/go/kbfs/simplefs': [
-          // TODO: fix races and enable -race
-          flags: '',
+          flags: '-race',
           timeout: '2m',
         ],
         'github.com/keybase/client/go/kbfs/test': [

@@ -207,6 +207,37 @@ func (cache *diskBlockCacheWrapped) GetMetadata(ctx context.Context,
 	return cache.workingSetCache.GetMetadata(ctx, blockID)
 }
 
+// GetPefetchStatus implements the DiskBlockCache interface for
+// diskBlockCacheWrapped.
+func (cache *diskBlockCacheWrapped) GetPrefetchStatus(
+	ctx context.Context, _ tlf.ID, blockID kbfsblock.ID,
+	cacheType DiskBlockCacheType) (prefetchStatus PrefetchStatus, err error) {
+	cache.mtx.RLock()
+	defer cache.mtx.RUnlock()
+
+	// Try the sync cache first unless working set cache is required.
+	if cacheType != DiskBlockWorkingSetCache {
+		md, err := cache.syncCache.GetMetadata(ctx, blockID)
+		switch errors.Cause(err).(type) {
+		case nil:
+			return md.PrefetchStatus(), nil
+		case NoSuchBlockError:
+			if cacheType == DiskBlockSyncCache {
+				return NoPrefetch, err
+			}
+			// Otherwise try the working set cache below.
+		default:
+			return NoPrefetch, err
+		}
+	}
+
+	md, err := cache.workingSetCache.GetMetadata(ctx, blockID)
+	if err != nil {
+		return NoPrefetch, err
+	}
+	return md.PrefetchStatus(), nil
+}
+
 // Put implements the DiskBlockCache interface for diskBlockCacheWrapped.
 func (cache *diskBlockCacheWrapped) Put(ctx context.Context, tlfID tlf.ID,
 	blockID kbfsblock.ID, buf []byte,

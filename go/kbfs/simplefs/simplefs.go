@@ -27,7 +27,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/sync/errgroup"
-	"gopkg.in/src-d/go-billy.v4"
+	billy "gopkg.in/src-d/go-billy.v4"
 	"gopkg.in/src-d/go-billy.v4/osfs"
 )
 
@@ -1825,8 +1825,8 @@ func (k *SimpleFS) SimpleFSWait(ctx context.Context, opid keybase1.OpID) error {
 	ctx = k.makeContext(ctx)
 	k.lock.RLock()
 	w, ok := k.inProgress[opid]
-	k.lock.RUnlock()
 	k.log.CDebugf(ctx, "Wait %X -> %v, %v", opid, w, ok)
+	k.lock.RUnlock()
 	if !ok {
 		return errNoSuchHandle
 	}

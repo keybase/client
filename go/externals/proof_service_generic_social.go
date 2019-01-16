@@ -270,7 +270,8 @@ func (t *GenericSocialProofServiceType) PostInstructions(username string) *libkb
 func (t *GenericSocialProofServiceType) DisplayName() string {
 	return t.config.DisplayName
 }
-func (t *GenericSocialProofServiceType) GetTypeName() string { return t.config.Domain }
+func (t *GenericSocialProofServiceType) GetTypeName() string   { return t.config.Domain }
+func (t *GenericSocialProofServiceType) PickerSubtext() string { return t.config.Domain }
 
 func (t *GenericSocialProofServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *libkb.Markup, err error) {
 	return t.BaseRecheckProofPosting(tryNumber, status)

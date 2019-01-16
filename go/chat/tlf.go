@@ -62,7 +62,6 @@ func (t *KBFSNameInfoSource) loadAll(ctx context.Context, tlfName string, public
 			pres, err = t.PublicCanonicalTLFNameAndID(ctx, tlfName)
 			res.CanonicalName = pres.CanonicalName.String()
 			res.ID = chat1.TLFID(pres.TlfID.ToBytes())
-			res.IdentifyFailures = pres.Breaks.Breaks
 			keys[chat1.ConversationMembersType_KBFS] =
 				append(keys[chat1.ConversationMembersType_KBFS], publicCryptKey)
 		} else {
@@ -70,7 +69,6 @@ func (t *KBFSNameInfoSource) loadAll(ctx context.Context, tlfName string, public
 			cres, err = t.CryptKeys(ctx, tlfName)
 			res.CanonicalName = cres.NameIDBreaks.CanonicalName.String()
 			res.ID = chat1.TLFID(cres.NameIDBreaks.TlfID.ToBytes())
-			res.IdentifyFailures = cres.NameIDBreaks.Breaks.Breaks
 			for _, key := range cres.CryptKeys {
 				keys[chat1.ConversationMembersType_KBFS] =
 					append(keys[chat1.ConversationMembersType_KBFS], key)

@@ -58,6 +58,7 @@ func crTestInit(t *testing.T) (ctx context.Context, cancel context.CancelFunc,
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	initSuccess = true
 	return ctx, cancel, mockCtrl, config, fbo.cr
 }

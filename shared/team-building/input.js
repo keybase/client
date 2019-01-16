@@ -68,6 +68,13 @@ const styles = Styles.styleSheetCreate({
       flex: 1,
       marginLeft: Styles.globalMargins.xsmall,
     },
+    isElectron: {
+      minHeight: 32,
+    },
+    isMobile: {
+      height: '100%',
+      minWidth: 50,
+    },
   }),
   input: Styles.platformStyles({
     common: {

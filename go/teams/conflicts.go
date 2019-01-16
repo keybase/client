@@ -44,7 +44,7 @@ func (r *rawGetConflictInfo) GetAppStatus() *libkb.AppStatus {
 }
 
 func GetConflictInfo(ctx context.Context, g *libkb.GlobalContext, id keybase1.TeamID, isFullyResolved bool, name keybase1.ImplicitTeamDisplayName) (ret keybase1.ImplicitTeamDisplayName, err error) {
-	defer g.CTrace(ctx, fmt.Sprintf("GetConflictInfo(%s,%v)", id, name), func() error { return err })()
+	defer g.CTraceTimed(ctx, fmt.Sprintf("GetConflictInfo(%s,%v)", id, name), func() error { return err })()
 
 	ret = name.DeepCopy()
 

@@ -142,6 +142,29 @@ protocol user {
 
   void uploadUserAvatar(string filename, union { null, ImageCropRect } crop);
 
+  ProofSuggestionsRes proofSuggestions(int sessionID);
+  record ProofSuggestionsRes{
+    array<ProofSuggestion> suggestions;
+    boolean showMore;
+  }
+
+  // A proof the user doesn't have.
+  record ProofSuggestion {
+    string key;
+    boolean belowFold;
+    string profileText; // "Prove your Twitter", "Add a PGP key"
+    array<SizedImage> profileIcon; // TODO CORE-9882: this is an empty list for now
+    string pickerText; // "Twitter", "Your own website", "octodon.xyz"
+    string pickerSubtext; // "twitter.com", "Mastodon instance"
+    array<SizedImage> pickerIcon; // TODO CORE-9882: this is an empty list for now
+    array<Identify3RowMeta> metas; // for 'new' proof types
+  }
+
+  record SizedImage {
+    string path;
+    int width;
+  }
+
   record NextMerkleRootRes {
     union { null, MerkleRootV2 } res;
   }

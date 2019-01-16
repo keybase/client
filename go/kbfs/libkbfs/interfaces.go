@@ -18,6 +18,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	metrics "github.com/rcrowley/go-metrics"
+	"github.com/syndtr/goleveldb/leveldb"
 	"golang.org/x/net/context"
 	billy "gopkg.in/src-d/go-billy.v4"
 )
@@ -514,7 +515,6 @@ type KBFSOps interface {
 
 	// GetNodeMetadata gets metadata associated with a Node.
 	GetNodeMetadata(ctx context.Context, node Node) (NodeMetadata, error)
-
 	// Shutdown is called to clean up any resources associated with
 	// this KBFSOps instance.
 	Shutdown(ctx context.Context) error
@@ -1320,6 +1320,10 @@ type DiskBlockCache interface {
 		preferredCacheType DiskBlockCacheType) (
 		buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf,
 		prefetchStatus PrefetchStatus, err error)
+	// GetPrefetchStatus returns just the prefetchStatus for the block.
+	GetPrefetchStatus(
+		ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID,
+		cacheType DiskBlockCacheType) (PrefetchStatus, error)
 	// Put puts a block to the disk cache. Returns after it has
 	// updated the metadata but before it has finished writing the
 	// block.  If cacheType is specified, the block is put into that
@@ -2396,6 +2400,9 @@ type Config interface {
 	SetBlockCryptVersion(kbfscrypto.EncryptionVer)
 	DefaultBlockType() keybase1.BlockType
 	SetDefaultBlockType(blockType keybase1.BlockType)
+	// GetConflictResolutionDB gets the levelDB in which conflict resolution
+	// status is stored.
+	GetConflictResolutionDB() (db *leveldb.DB)
 	RekeyQueue() RekeyQueue
 	SetRekeyQueue(RekeyQueue)
 	// ReqsBufSize indicates the number of read or write operations
@@ -2650,12 +2657,6 @@ type BlockRetriever interface {
 	Request(ctx context.Context, priority int, kmd KeyMetadata,
 		ptr BlockPointer, block Block, lifetime BlockCacheLifetime,
 		action BlockRequestAction) <-chan error
-	// RequestWithPrefetchStatus is like `Request`, but also fills in
-	// a prefetch status.
-	RequestWithPrefetchStatus(
-		ctx context.Context, priority int, kmd KeyMetadata,
-		ptr BlockPointer, block Block, prefetchStatus *PrefetchStatus,
-		lifetime BlockCacheLifetime, action BlockRequestAction) <-chan error
 	// PutInCaches puts the block into the in-memory cache, and ensures that
 	// the disk cache metadata is updated.
 	PutInCaches(ctx context.Context, ptr BlockPointer, tlfID tlf.ID,

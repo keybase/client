@@ -19,7 +19,7 @@ const RadioOuterCircle = Styles.styled(ClickableBox)(
     width: RADIOBUTTON_SIZE,
   },
   ({disabled, selected}) => ({
-    borderColor: selected ? Styles.globalColors.blue : Styles.globalColors.black_10,
+    borderColor: selected ? Styles.globalColors.blue : Styles.globalColors.black_20,
     opacity: disabled ? 0.4 : 1,
   })
 )

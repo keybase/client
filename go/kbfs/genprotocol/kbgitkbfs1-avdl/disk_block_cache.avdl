@@ -37,6 +37,11 @@ protocol DiskBlockCache {
   GetBlockRes GetBlock(bytes tlfID, bytes blockID);
 
   /**
+   GetPrefetchStatus gets the prefetch status from the disk cache.
+   */
+  PrefetchStatus GetPrefetchStatus(bytes tlfID, bytes blockID);
+
+  /**
     PutBlock puts a block into the disk cache.
     */
   void PutBlock(bytes tlfID, bytes blockID, bytes buf, bytes serverHalf);

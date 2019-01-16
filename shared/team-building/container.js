@@ -19,11 +19,12 @@ type OwnProps = {
   // Supplied by StateComponent
   searchString: string,
   selectedService: ServiceIdWithContact,
-  highlightedIndex: ?number,
+  highlightedIndex: number,
   onChangeText: (newText: string) => void,
   onChangeService: (newService: ServiceIdWithContact) => void,
   incHighlightIndex: (maxIndex: number) => void,
   decHighlightIndex: () => void,
+  resetHighlightIndex: () => void,
 }
 
 type LocalState = {
@@ -138,15 +139,13 @@ const deriveOnEnterKeyDown = memoizeShallow(
     searchStringIsEmpty,
     onFinishTeamBuilding,
   }) => () => {
-    if (searchResults.length) {
-      const selectedResult = searchResults[highlightedIndex || 0]
-      if (selectedResult) {
-        if (teamSoFar.filter(u => u.userId === selectedResult.userId).length) {
-          onRemove(selectedResult.userId)
-          changeText('')
-        } else {
-          onAdd(selectedResult.userId)
-        }
+    const selectedResult = !!searchResults && searchResults[highlightedIndex]
+    if (selectedResult) {
+      if (teamSoFar.filter(u => u.userId === selectedResult.userId).length) {
+        onRemove(selectedResult.userId)
+        changeText('')
+      } else {
+        onAdd(selectedResult.userId)
       }
     } else if (searchStringIsEmpty && !!teamSoFar.length) {
       // They hit enter with an empty search string and a teamSoFar
@@ -164,16 +163,19 @@ const deriveOnSearchForMore = memoizeShallow(
   }
 )
 
-const deriveOnAdd = memoize((userFromUserId, dispatchOnAdd, changeText) => (userId: string) => {
-  const user = userFromUserId(userId)
-  if (!user) {
-    logger.error(`Couldn't find User to add for ${userId}`)
+const deriveOnAdd = memoize(
+  (userFromUserId, dispatchOnAdd, changeText, resetHighlightIndex) => (userId: string) => {
+    const user = userFromUserId(userId)
+    if (!user) {
+      logger.error(`Couldn't find User to add for ${userId}`)
+      changeText('')
+      return
+    }
     changeText('')
-    return
+    dispatchOnAdd(user)
+    resetHighlightIndex()
   }
-  changeText('')
-  dispatchOnAdd(user)
-})
+)
 
 const deriveOnChangeText = memoize(
   (
@@ -216,7 +218,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     selectedService: ownProps.selectedService,
   })
 
-  const onAdd = deriveOnAdd(userFromUserId, dispatchProps._onAdd, ownProps.onChangeText)
+  const onAdd = deriveOnAdd(
+    userFromUserId,
+    dispatchProps._onAdd,
+    ownProps.onChangeText,
+    ownProps.resetHighlightIndex
+  )
 
   const onEnterKeyDown = deriveOnEnterKeyDown({
     changeText: ownProps.onChangeText,
@@ -289,6 +296,8 @@ class StateWrapperForTeamBuilding extends React.Component<{}, LocalState> {
       highlightedIndex: state.highlightedIndex < 1 ? 0 : state.highlightedIndex - 1,
     }))
 
+  resetHighlightIndex = () => this.setState({highlightedIndex: initialState.highlightedIndex})
+
   render() {
     return (
       <Connected
@@ -296,6 +305,7 @@ class StateWrapperForTeamBuilding extends React.Component<{}, LocalState> {
         onChangeText={this.onChangeText}
         incHighlightIndex={this.incHighlightIndex}
         decHighlightIndex={this.decHighlightIndex}
+        resetHighlightIndex={this.resetHighlightIndex}
         searchString={this.state.searchString}
         selectedService={this.state.selectedService}
         highlightedIndex={this.state.highlightedIndex}

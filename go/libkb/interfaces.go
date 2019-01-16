@@ -97,6 +97,7 @@ type configGetter interface {
 	GetAttachmentHTTPStartPort() (int, bool)
 	GetAttachmentDisableMulti() (bool, bool)
 	GetChatOutboxStorageEngine() string
+	GetDisableTeamAuditor() (bool, bool)
 }
 
 type CommandLine interface {
@@ -303,6 +304,7 @@ type IdentifyUI interface {
 	FinishSocialProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult) error
 	Confirm(*keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error)
 	DisplayCryptocurrency(keybase1.Cryptocurrency) error
+	DisplayStellarAccount(keybase1.StellarAccount) error
 	DisplayKey(keybase1.IdentifyKey) error
 	ReportLastTrack(*keybase1.TrackSummary) error
 	LaunchNetworkChecks(*keybase1.Identity, *keybase1.User) error
@@ -585,6 +587,7 @@ type ServiceType interface {
 	RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, remotename string) (warning *Markup, err error)
 	GetProofType() string
 	GetTypeName() string
+	PickerSubtext() string
 	CheckProofText(text string, id keybase1.SigID, sig string) error
 	FormatProofText(mctx MetaContext, ppr *PostProofRes,
 		kbUsername string, sigID keybase1.SigID) (string, error)
@@ -595,12 +598,15 @@ type ServiceType interface {
 	SetDisplayConfig(*keybase1.ServiceDisplayConfig)
 	CanMakeNewProofs() bool
 	DisplayPriority() int
+	DisplayGroup() string
 }
 
 type ExternalServicesCollector interface {
 	GetServiceType(n string) ServiceType
 	ListProofCheckers() []string
 	ListServicesThatAcceptNewProofs() []string
+	ListDisplayConfigs() (res []keybase1.ServiceDisplayConfig)
+	SuggestionFoldPriority() int
 }
 
 // Generic store for data that is hashed into the merkle root. Used by pvl and

@@ -434,6 +434,37 @@
     },
     {
       "type": "record",
+      "name": "ConversationUpdate",
+      "fields": [
+        {
+          "type": "ConversationID",
+          "name": "convID"
+        },
+        {
+          "type": "ConversationExistence",
+          "name": "existence"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UpdateConversations",
+      "fields": [
+        {
+          "type": "InboxVers",
+          "name": "inboxVers"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationUpdate"
+          },
+          "name": "convUpdates"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "TeamChannelUpdate",
       "fields": [
         {

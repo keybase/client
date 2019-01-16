@@ -22,18 +22,27 @@ const formatNameForUserBubble = (username: string, service: ServiceIdWithContact
   return `${technicalName} ${prettyName ? `(${prettyName})` : ''}`
 }
 
-const TeamBox = (props: Props) => (
-  <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.container}>
-    {Styles.isMobile && <Kb.Icon fontSize={22} type={'iconfont-search'} style={styles.searchIcon} />}
-    {props.teamSoFar.map(u => (
+class UserBubbleCollection extends React.PureComponent<{
+  teamSoFar: $PropertyType<Props, 'teamSoFar'>,
+  onRemove: $PropertyType<Props, 'onRemove'>,
+}> {
+  render() {
+    return this.props.teamSoFar.map(u => (
       <UserBubble
         key={u.userId}
-        onRemove={() => props.onRemove(u.userId)}
+        onRemove={() => this.props.onRemove(u.userId)}
         username={u.username}
         service={u.service}
         prettyName={formatNameForUserBubble(u.username, u.service, u.prettyName)}
       />
-    ))}
+    ))
+  }
+}
+
+const TeamBox = (props: Props) => (
+  <Kb.Box2 direction="horizontal" style={styles.container}>
+    {Styles.isMobile && <Kb.Icon fontSize={22} type={'iconfont-search'} style={styles.searchIcon} />}
+    <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
     <Input
       onChangeText={props.onChangeText}
       onEnterKeyDown={props.onEnterKeyDown}
@@ -53,12 +62,15 @@ const styles = Styles.styleSheetCreate({
       borderStyle: 'solid',
       borderWidth: 1,
       flex: 1,
+      flexWrap: 'wrap',
     },
     isElectron: {
-      height: 40,
+      maxHeight: 170,
+      minHeight: 40,
+      overflowY: 'scroll',
     },
     isMobile: {
-      height: 45,
+      minHeight: 45,
     },
   }),
   searchIcon: {

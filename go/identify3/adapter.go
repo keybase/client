@@ -2,9 +2,10 @@ package identify3
 
 import (
 	"encoding/hex"
+	"sync"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	"sync"
 )
 
 // UIAdapter converts between the Identify2 UI that Identify2 engine expects, and the
@@ -194,6 +195,11 @@ func (i *UIAdapter) DisplayCryptocurrency(cc keybase1.Cryptocurrency) error {
 	return nil
 }
 
+func (i *UIAdapter) DisplayStellarAccount(s keybase1.StellarAccount) error {
+	i.plumbStellarAccount(s)
+	return nil
+}
+
 func (i *UIAdapter) DisplayKey(key keybase1.IdentifyKey) error {
 	if key.BreaksTracking {
 		i.session.SetTrackBroken()
@@ -304,6 +310,15 @@ func (i *UIAdapter) plumbCryptocurrency(crypto keybase1.Cryptocurrency) {
 	i.updateRow(keybase1.Identify3UpdateRowArg{
 		Key:   crypto.Type,
 		Value: crypto.Address,
+		State: keybase1.Identify3RowState_VALID,
+		Color: keybase1.Identify3RowColor_GREEN,
+	})
+}
+
+func (i *UIAdapter) plumbStellarAccount(str keybase1.StellarAccount) {
+	i.updateRow(keybase1.Identify3UpdateRowArg{
+		Key:   "stellar",
+		Value: str.FederationAddress,
 		State: keybase1.Identify3RowState_VALID,
 		Color: keybase1.Identify3RowColor_GREEN,
 	})
