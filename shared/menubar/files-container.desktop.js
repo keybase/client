@@ -39,6 +39,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
       updates: c.updates.map(({path, uploading}) => ({
         name: FsTypes.getPathName(path),
         onClick: () => dispatchProps._onSelectPath(path, 'file'),
+        path,
         tlfType,
         uploading,
       })),
