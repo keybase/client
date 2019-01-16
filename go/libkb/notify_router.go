@@ -1298,6 +1298,7 @@ func (n *NotifyRouter) HandleWalletAccountsUpdate(ctx context.Context, accounts 
 		return
 	}
 	n.G().Log.CDebugf(ctx, "+ Sending wallet AccountsUpdate")
+
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		// If the connection wants the `Wallet` notification type
 		if n.getNotificationChannels(id).Wallet {
