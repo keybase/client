@@ -244,11 +244,21 @@ func (s *Server) AcceptDisclaimerLocal(ctx context.Context, sessionID int) (err 
 		return err
 	}
 	stellar.InformAcceptedDisclaimer(mctx.Ctx(), s.G())
-	crg, err := stellar.CreateWalletGated(mctx)
+	cwg, err := stellar.CreateWalletGated(mctx)
 	if err != nil {
 		return err
 	}
-	if !crg.HasWallet {
+	if cwg.ErrorCreating != nil {
+		// An error was encountered while creating the wallet.
+		// This could have been due to other RPCs racing to create the wallet and
+		// colliding on the server.
+		// Just try one more time.
+		cwg, err = stellar.CreateWalletGated(mctx)
+		if err != nil {
+			return err
+		}
+	}
+	if !cwg.HasWallet {
 		return fmt.Errorf("user wallet not created")
 	}
 

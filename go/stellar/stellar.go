@@ -68,9 +68,10 @@ func CreateWallet(mctx libkb.MetaContext) (created bool, err error) {
 }
 
 type CreateWalletGatedResult struct {
-	JustCreated        bool // whether the user's wallet was created by this call
-	HasWallet          bool // whether the user now has a wallet
-	AcceptedDisclaimer bool // whether the user has accepted the disclaimer
+	JustCreated        bool  // whether the user's wallet was created by this call
+	HasWallet          bool  // whether the user now has a wallet
+	AcceptedDisclaimer bool  // whether the user has accepted the disclaimer
+	ErrorCreating      error // error encountered while attempting to create the wallet
 }
 
 // CreateWalletGated may create a wallet for the user.
@@ -110,6 +111,8 @@ func CreateWalletGated(mctx libkb.MetaContext) (res CreateWalletGatedResult, err
 	}
 	justCreated, err := CreateWallet(mctx)
 	if err != nil {
+		mctx.CDebugf("CreateWalletGated: error creating wallet: %v", err)
+		res.ErrorCreating = err
 		return res, nil
 	}
 	res.JustCreated = justCreated
