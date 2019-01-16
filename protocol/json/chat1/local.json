@@ -1804,6 +1804,13 @@
           "name": "name"
         },
         {
+          "type": [
+            null,
+            "TLFID"
+          ],
+          "name": "tlfID"
+        },
+        {
           "type": "ConversationMembersType",
           "name": "membersType"
         }

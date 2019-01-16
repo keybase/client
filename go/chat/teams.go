@@ -184,7 +184,7 @@ func (t *TeamLoader) validKBFSTLFID(tlfID chat1.TLFID, team *teams.Team) bool {
 
 func (t *TeamLoader) validateImpTeamname(ctx context.Context, tlfName string, public bool,
 	team *teams.Team) error {
-	impTeamName, err := team.ImplicitTeamDisplayName(ctx)
+	impTeamName, err := team.ImplicitTeamDisplayNameNoConflicts(ctx)
 	if err != nil {
 		return err
 	}
@@ -626,7 +626,7 @@ func (t *ImplicitTeamsNameInfoSource) LookupName(ctx context.Context, tlfID chat
 	if err != nil {
 		return res, err
 	}
-	impTeamName, err := team.ImplicitTeamDisplayName(ctx)
+	impTeamName, err := team.ImplicitTeamDisplayNameNoConflicts(ctx)
 	if err != nil {
 		return res, err
 	}
@@ -650,7 +650,7 @@ func (t *ImplicitTeamsNameInfoSource) EncryptionKey(ctx context.Context, name st
 	if err != nil {
 		return res, ni, err
 	}
-	impTeamName, err := team.ImplicitTeamDisplayName(ctx)
+	impTeamName, err := team.ImplicitTeamDisplayNameNoConflicts(ctx)
 	if err != nil {
 		return res, ni, err
 	}
@@ -676,7 +676,7 @@ func (t *ImplicitTeamsNameInfoSource) DecryptionKey(ctx context.Context, name st
 	if err != nil {
 		return res, err
 	}
-	impTeamName, err := team.ImplicitTeamDisplayName(ctx)
+	impTeamName, err := team.ImplicitTeamDisplayNameNoConflicts(ctx)
 	if err != nil {
 		return res, err
 	}
@@ -696,7 +696,7 @@ func (t *ImplicitTeamsNameInfoSource) ephemeralLoadAndIdentify(ctx context.Conte
 	if err != nil {
 		return teamID, err
 	}
-	impTeamName, err := team.ImplicitTeamDisplayName(ctx)
+	impTeamName, err := team.ImplicitTeamDisplayNameNoConflicts(ctx)
 	if err != nil {
 		return teamID, err
 	}

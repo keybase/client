@@ -3232,12 +3232,20 @@ func (o GetInboxLocalRes) DeepCopy() GetInboxLocalRes {
 
 type NameQuery struct {
 	Name        string                  `codec:"name" json:"name"`
+	TlfID       *TLFID                  `codec:"tlfID,omitempty" json:"tlfID,omitempty"`
 	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
 }
 
 func (o NameQuery) DeepCopy() NameQuery {
 	return NameQuery{
-		Name:        o.Name,
+		Name: o.Name,
+		TlfID: (func(x *TLFID) *TLFID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.TlfID),
 		MembersType: o.MembersType.DeepCopy(),
 	}
 }
