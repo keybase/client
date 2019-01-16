@@ -66,7 +66,7 @@ func (r *chatConversationResolver) makeGetInboxAndUnboxLocalArg(
 	var nameQuery *chat1.NameQuery
 	if len(req.TlfName) > 0 {
 		nameQuery = &chat1.NameQuery{
-			Name:        &req.TlfName,
+			Name:        req.TlfName,
 			MembersType: req.MembersType,
 		}
 	}
@@ -94,8 +94,8 @@ func (r *chatConversationResolver) resolveWithService(ctx context.Context, req c
 
 	// Convert argument
 	var fcArg chat1.FindConversationsLocalArg
-	if arg.Query.Name != nil && arg.Query.Name.Name != nil {
-		fcArg.TlfName = *arg.Query.Name.Name
+	if arg.Query.Name != nil && len(arg.Query.Name.Name) > 0 {
+		fcArg.TlfName = arg.Query.Name.Name
 		fcArg.MembersType = arg.Query.Name.MembersType
 	}
 	if arg.Query.TlfVisibility != nil {

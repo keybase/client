@@ -593,8 +593,8 @@ protocol local {
   }
 
   record NameQuery {
-    union { null, string } name;
-    union { null, TLFID } tlfID;
+    string name;
+    union { null, TLFID } tlfID; // pass this if we already know the TLFID
     ConversationMembersType membersType;
   }
 

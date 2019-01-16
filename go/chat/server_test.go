@@ -1063,7 +1063,7 @@ func TestChatSrvGetInboxAndUnboxLocalTlfName(t *testing.T) {
 		gilres, err := ctc.as(t, users[0]).chatLocalHandler().GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
 			Query: &chat1.GetInboxLocalQuery{
 				Name: &chat1.NameQuery{
-					Name:        &name,
+					Name:        name,
 					MembersType: mt,
 				},
 				TlfVisibility: &visibility,

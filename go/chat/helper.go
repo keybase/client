@@ -515,7 +515,7 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 
 		query := &chat1.GetInboxLocalQuery{
 			Name: &chat1.NameQuery{
-				Name:        &tlfName,
+				Name:        tlfName,
 				MembersType: membersType,
 			},
 			TlfVisibility:     &vis,
@@ -863,6 +863,7 @@ func (n *newConversationHelper) findExisting(ctx context.Context, tlfID chat1.TL
 	ib, _, err := n.G().InboxSource.Read(ctx, n.uid, types.ConversationLocalizerBlocking, true, nil,
 		&chat1.GetInboxLocalQuery{
 			Name: &chat1.NameQuery{
+				Name:        n.tlfName,
 				TlfID:       &tlfID,
 				MembersType: n.membersType,
 			},
@@ -916,6 +917,7 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 	if err != nil {
 		return res, err
 	}
+	n.tlfName = info.CanonicalName
 
 	// Find any existing conversations that match this argument specifically. We need to do this check
 	// here in the client since we can't see the topic name on the server.

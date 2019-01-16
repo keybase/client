@@ -491,7 +491,7 @@ func (c *ChatRPC) GetChannels(
 	arg := chat1.GetInboxAndUnboxLocalArg{
 		Query: &chat1.GetInboxLocalQuery{
 			Name: &chat1.NameQuery{
-				Name:        &strTlfName,
+				Name:        strTlfName,
 				MembersType: membersTypeFromTlfType(tlfType),
 			},
 			TopicType:     &chatType,

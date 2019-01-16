@@ -1800,10 +1800,7 @@
       "name": "NameQuery",
       "fields": [
         {
-          "type": [
-            null,
-            "string"
-          ],
+          "type": "string",
           "name": "name"
         },
         {

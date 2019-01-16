@@ -391,10 +391,11 @@ func (t *Team) implicitTeamDisplayName(ctx context.Context, skipConflicts bool) 
 			return res, fmt.Errorf("unrecognized invite type in implicit team: %v", invtyp)
 		}
 	}
-
-	impName, err = GetConflictInfo(ctx, t.G(), t.ID, isFullyResolved, impName)
-	if err != nil {
-		return res, err
+	if !skipConflicts {
+		impName, err = GetConflictInfo(ctx, t.G(), t.ID, isFullyResolved, impName)
+		if err != nil {
+			return res, err
+		}
 	}
 	return impName, nil
 }
