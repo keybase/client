@@ -6470,10 +6470,10 @@ flora-colossus@^1.0.0:
     debug "^3.1.0"
     fs-extra "^4.0.0"
 
-flow-bin@0.89.0:
-  version "0.89.0"
-  resolved "https://registry.yarnpkg.com/flow-bin/-/flow-bin-0.89.0.tgz#6bd29c2af7e0f429797f820662f33749105c32fa"
-  integrity sha512-DkO4PsXYrl53V6G5+t5HbRMC5ajYUQej2LEGPUZ+j9okTb41Sn5j9vfxsCpXMEAslYnQoysHhYu4GUZsQX/DrQ==
+flow-bin@0.90.0:
+  version "0.90.0"
+  resolved "https://registry.yarnpkg.com/flow-bin/-/flow-bin-0.90.0.tgz#733b6d29a8c8a22b9a5d273611d9a8402faf3445"
+  integrity sha512-/syDchjhLLL7nELK1ggyWJifGXuMCTz74kvkjR1t9DcmasMrilLl9qAAotsACcNb98etEEJpsCrvP7WL64kadw==
 
 flow-typed@2.5.1:
   version "2.5.1"
@@ -11627,7 +11627,7 @@ react-native-fast-image@5.1.1:
 
 "react-native-image-picker@git://github.com/keybase/react-native-image-picker#v0.27.1-with-keybase-fixes":
   version "0.27.1"
-  resolved "git://github.com/keybase/react-native-image-picker#5c81f1c60de50f8d5a4b883bb42208325bcc2761"
+  resolved "git://github.com/keybase/react-native-image-picker#bbbf8fdf1fb351c3e739ea6dab55b15c390430d4"
 
 react-native-mime-types@2.2.1:
   version "2.2.1"
@@ -11659,10 +11659,9 @@ react-native-tab-view@^0.0.67:
   dependencies:
     prop-types "^15.5.8"
 
-react-native@0.57.8:
+"react-native@git://github.com/keybase/react-native#keybase-fixes-off-578":
   version "0.57.8"
-  resolved "https://registry.yarnpkg.com/react-native/-/react-native-0.57.8.tgz#1a840fbe144cd3902cc14313a783ce28efc48cb9"
-  integrity sha512-K6DAMTPTq+lxVYC73y4Kh/bgLajddBaIKzwsVeV4JOoS1Fdq48/ISXD3vApV+x+/IBVTXnrT9qlA+9U6MMZCqA==
+  resolved "git://github.com/keybase/react-native#b99467164fa51f014fbee954c273baf9a0c6a332"
   dependencies:
     "@babel/runtime" "^7.0.0"
     absolute-path "^0.0.0"

@@ -93,8 +93,9 @@ func newDiskBlockCacheForTest(config *testDiskBlockCacheConfig,
 		delayFn:           defaultDoDelay,
 		freeBytesAndFilesFn: func() (int64, int64, error) {
 			// hackity hackeroni: simulate the disk cache taking up space.
-			freeBytes := maxBytes - int64(syncCache.currBytes) -
-				int64(workingSetCache.currBytes)
+			syncBytes, workingBytes := testGetDiskCacheBytes(
+				syncCache, workingSetCache)
+			freeBytes := maxBytes - syncBytes - workingBytes
 			return freeBytes, maxFiles, nil
 		},
 		quotaFn: func(

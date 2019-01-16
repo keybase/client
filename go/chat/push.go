@@ -85,7 +85,7 @@ func (g *gregorMessageOrderer) addToWaitersLocked(ctx context.Context, uid grego
 func (g *gregorMessageOrderer) waitOnWaiters(ctx context.Context, vers chat1.InboxVers,
 	waiters []messageWaiterEntry) (res chan struct{}) {
 	res = make(chan struct{})
-	go func() {
+	go func(ctx context.Context) {
 		for _, w := range waiters {
 			select {
 			case <-w.cb:
@@ -94,7 +94,7 @@ func (g *gregorMessageOrderer) waitOnWaiters(ctx context.Context, vers chat1.Inb
 			}
 		}
 		close(res)
-	}()
+	}(BackgroundContext(ctx, g.G()))
 	return res
 }
 
@@ -122,13 +122,13 @@ func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 	// Out of order update, we are going to wait a fixed amount of time for the correctly
 	// ordered update
 	deadline := g.clock.Now().Add(time.Second)
-	go func() {
+	go func(ctx context.Context) {
 		defer close(res)
 		g.Lock()
 		vers, err := g.latestInboxVersion(ctx, uid)
 		if err != nil {
-			g.Debug(ctx, "WaitForTurn: failed to get current inbox version: %v", err)
 			vers = newVers - 1
+			g.Debug(ctx, "WaitForTurn: failed to get current inbox version: %v. Proceeding with vers %d", err, vers)
 		}
 		waiters := g.addToWaitersLocked(ctx, uid, vers, newVers)
 		g.Unlock()
@@ -147,7 +147,7 @@ func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 			g.cleanupAfterTimeoutLocked(uid, newVers)
 			g.Unlock()
 		}
-	}()
+	}(BackgroundContext(ctx, g.G()))
 	return res
 }
 
@@ -219,7 +219,6 @@ func (g *PushHandler) TlfFinalize(ctx context.Context, m gregor.OutOfBandMessage
 
 	// Order updates based on inbox version of the update from the server
 	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
-	bctx := BackgroundContext(ctx, g.G())
 	go func(ctx context.Context) {
 		defer g.Trace(ctx, func() error { return err }, "TlfFinalize(goroutine)")()
 		<-cb
@@ -253,7 +252,7 @@ func (g *PushHandler) TlfFinalize(ctx context.Context, m gregor.OutOfBandMessage
 			g.G().ActivityNotifier.TLFFinalize(ctx, uid,
 				convID, topicType, update.FinalizeInfo, g.presentUIItem(ctx, conv, uid))
 		}
-	}(bctx)
+	}(BackgroundContext(ctx, g.G()))
 
 	return nil
 }
@@ -277,7 +276,6 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 
 	// Order updates based on inbox version of the update from the server
 	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
-	bctx := BackgroundContext(ctx, g.G())
 	go func(ctx context.Context) {
 		defer g.Trace(ctx, func() error { return nil }, "TlfResolve(goroutine)")()
 		<-cb
@@ -306,7 +304,7 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 			updateConv.Info.TlfName)
 		g.G().ActivityNotifier.TLFResolve(ctx, uid,
 			update.ConvID, updateConv.GetTopicType(), resolveInfo)
-	}(bctx)
+	}(BackgroundContext(ctx, g.G()))
 
 	return nil
 }
@@ -474,7 +472,6 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 
 	// Order updates based on inbox version of the update from the server
 	cb := g.orderer.WaitForTurn(ctx, uid, gm.InboxVers)
-	bctx := BackgroundContext(ctx, g.G())
 	go func(ctx context.Context) {
 		defer g.Trace(ctx, func() error { return nil }, "Activity(goroutine)")()
 		<-cb
@@ -706,7 +703,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 		} else {
 			g.Debug(ctx, "chat activity: skipping notify, activity is nil")
 		}
-	}(bctx)
+	}(BackgroundContext(ctx, g.G()))
 	return nil
 }
 
@@ -778,6 +775,18 @@ func (g *PushHandler) notifyMembersUpdate(ctx context.Context, uid gregor1.UID,
 	}
 }
 
+func (g *PushHandler) notifyConversationsUpdate(ctx context.Context, uid gregor1.UID,
+	updates []chat1.ConversationUpdate) {
+	var supdate []chat1.ConversationStaleUpdate
+	for _, update := range updates {
+		supdate = append(supdate, chat1.ConversationStaleUpdate{
+			ConvID:     update.ConvID,
+			UpdateType: chat1.StaleUpdateType_CLEAR,
+		})
+	}
+	g.G().Syncer.SendChatStaleNotifications(ctx, uid, supdate, true)
+}
+
 func (g *PushHandler) Typing(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
@@ -833,7 +842,6 @@ func (g *PushHandler) UpgradeKBFSToImpteam(ctx context.Context, m gregor.OutOfBa
 
 	// Order updates based on inbox version of the update from the server
 	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
-	bctx := BackgroundContext(ctx, g.G())
 	go func(ctx context.Context) (err error) {
 		defer g.Trace(ctx, func() error { return err }, "UpgradeKBFSToImpteam(goroutine)")()
 		<-cb
@@ -854,7 +862,7 @@ func (g *PushHandler) UpgradeKBFSToImpteam(ctx context.Context, m gregor.OutOfBa
 		}
 		g.G().ActivityNotifier.KBFSToImpteamUpgrade(ctx, uid, update.ConvID, update.TopicType)
 		return nil
-	}(bctx)
+	}(BackgroundContext(ctx, g.G()))
 
 	return nil
 }
@@ -878,7 +886,6 @@ func (g *PushHandler) MembershipUpdate(ctx context.Context, m gregor.OutOfBandMe
 
 	// Order updates based on inbox version of the update from the server
 	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
-	bctx := BackgroundContext(ctx, g.G())
 	go func(ctx context.Context) (err error) {
 		defer g.Trace(ctx, func() error { return err }, "MembershipUpdate(goroutine)")()
 		<-cb
@@ -917,7 +924,47 @@ func (g *PushHandler) MembershipUpdate(ctx context.Context, m gregor.OutOfBandMe
 		}
 
 		return nil
-	}(bctx)
+	}(BackgroundContext(ctx, g.G()))
+
+	return nil
+}
+
+func (g *PushHandler) ConversationsUpdate(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
+		g.identNotifier)
+	defer g.Trace(ctx, func() error { return err }, "ConversationsUpdate")()
+	if m.Body() == nil {
+		return errors.New("gregor handler for conversations update: nil message body")
+	}
+
+	var update chat1.UpdateConversations
+	reader := bytes.NewReader(m.Body().Bytes())
+	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
+	if err = dec.Decode(&update); err != nil {
+		return err
+	}
+	uid := gregor1.UID(m.UID().Bytes())
+
+	// Order updates based on inbox version of the update from the server
+	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
+	go func(ctx context.Context) (err error) {
+		defer g.Trace(ctx, func() error { return err }, "ConversationsUpdate(goroutine)")()
+		<-cb
+		g.Lock()
+		defer g.Unlock()
+		defer g.orderer.CompleteTurn(ctx, uid, update.InboxVers)
+
+		// Write out changes to local storage
+		if err := g.G().InboxSource.ConversationsUpdate(ctx, uid, update.InboxVers, update.ConvUpdates); err != nil {
+			g.Debug(ctx, "ConversationsUpdate: failed to update membership on inbox: %v", err)
+			return err
+		}
+
+		// Send out notifications
+		g.notifyConversationsUpdate(ctx, uid, update.ConvUpdates)
+		return nil
+	}(BackgroundContext(ctx, g.G()))
 
 	return nil
 }
@@ -941,7 +988,6 @@ func (g *PushHandler) SetConvRetention(ctx context.Context, m gregor.OutOfBandMe
 
 	// Order updates based on inbox version of the update from the server
 	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
-	bctx := BackgroundContext(ctx, g.G())
 	go func(ctx context.Context) {
 		defer g.Trace(ctx, func() error { return err }, "SetConvRetention(goroutine)")()
 		<-cb
@@ -962,7 +1008,7 @@ func (g *PushHandler) SetConvRetention(ctx context.Context, m gregor.OutOfBandMe
 		// Send notify for the conv
 		g.G().ActivityNotifier.SetConvRetention(ctx, uid,
 			conv.GetConvID(), conv.GetTopicType(), g.presentUIItem(ctx, conv, uid))
-	}(bctx)
+	}(BackgroundContext(ctx, g.G()))
 
 	return nil
 }
@@ -986,7 +1032,6 @@ func (g *PushHandler) SetTeamRetention(ctx context.Context, m gregor.OutOfBandMe
 
 	// Order updates based on inbox version of the update from the server
 	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
-	bctx := BackgroundContext(ctx, g.G())
 	go func(ctx context.Context) {
 		defer g.Trace(ctx, func() error { return err }, "SetTeamRetention(goroutine)")()
 		<-cb
@@ -1016,7 +1061,7 @@ func (g *PushHandler) SetTeamRetention(ctx context.Context, m gregor.OutOfBandMe
 		for topicType, items := range convUIItems {
 			g.G().ActivityNotifier.SetTeamRetention(ctx, uid, update.TeamID, topicType, items)
 		}
-	}(bctx)
+	}(BackgroundContext(ctx, g.G()))
 
 	return nil
 }
@@ -1040,7 +1085,6 @@ func (g *PushHandler) SetConvSettings(ctx context.Context, m gregor.OutOfBandMes
 
 	// Order updates based on inbox version of the update from the server
 	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
-	bctx := BackgroundContext(ctx, g.G())
 	go func(ctx context.Context) {
 		defer g.Trace(ctx, func() error { return err }, "SetConvSettings(goroutine)")()
 		<-cb
@@ -1061,7 +1105,7 @@ func (g *PushHandler) SetConvSettings(ctx context.Context, m gregor.OutOfBandMes
 		// Send notify for the conv
 		g.G().ActivityNotifier.SetConvSettings(ctx, uid,
 			conv.GetConvID(), conv.GetTopicType(), g.presentUIItem(ctx, conv, uid))
-	}(bctx)
+	}(BackgroundContext(ctx, g.G()))
 
 	return nil
 }
@@ -1082,7 +1126,6 @@ func (g *PushHandler) SubteamRename(ctx context.Context, m gregor.OutOfBandMessa
 
 	// Order updates based on inbox version of the update from the server
 	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
-	bctx := BackgroundContext(ctx, g.G())
 	go func(ctx context.Context) {
 		defer g.Trace(ctx, func() error { return nil }, "SubteamRename(goroutine)")()
 		<-cb
@@ -1112,7 +1155,7 @@ func (g *PushHandler) SubteamRename(ctx context.Context, m gregor.OutOfBandMessa
 			cids := convIDs[topicType]
 			g.G().ActivityNotifier.SubteamRename(ctx, uid, cids, topicType, items)
 		}
-	}(bctx)
+	}(BackgroundContext(ctx, g.G()))
 
 	return nil
 }
@@ -1143,6 +1186,8 @@ func (g *PushHandler) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessag
 		return true, g.UpgradeKBFSToImpteam(ctx, obm)
 	case types.PushSubteamRename:
 		return true, g.SubteamRename(ctx, obm)
+	case types.PushConversationsUpdate:
+		return true, g.ConversationsUpdate(ctx, obm)
 	}
 
 	return false, nil

@@ -204,6 +204,9 @@
         "keybase1IdentifyUiDisplayCryptocurrency": {
             "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayCryptocurrency'>, 'inParam'>>"
         },
+        "keybase1IdentifyUiDisplayStellarAccount": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayStellarAccount'>, 'inParam'>>"
+        },
         "keybase1IdentifyUiReportTrackToken": {
             "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.reportTrackToken'>, 'inParam'>>"
         },
@@ -455,6 +458,9 @@
         },
         "stellar1NotifyAccountDetailsUpdate": {
             "params": "$Exact<$PropertyType<$PropertyType<stellar1Types.MessageTypes, 'stellar.1.notify.accountDetailsUpdate'>, 'inParam'>>"
+        },
+        "stellar1NotifyAccountsUpdate": {
+            "params": "$Exact<$PropertyType<$PropertyType<stellar1Types.MessageTypes, 'stellar.1.notify.accountsUpdate'>, 'inParam'>>"
         },
         "stellar1NotifyPendingPaymentsUpdate": {
             "params": "$Exact<$PropertyType<$PropertyType<stellar1Types.MessageTypes, 'stellar.1.notify.pendingPaymentsUpdate'>, 'inParam'>>"

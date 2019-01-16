@@ -34,6 +34,9 @@
       "path": "Types.Path",
       "meta": "Types.PathItem"
     },
+    "loadPathMetadata": {
+      "path": "Types.Path"
+    },
     "mimeTypeLoad": {
       "path": "Types.Path",
       "refreshTag?": "Types.RefreshTag"

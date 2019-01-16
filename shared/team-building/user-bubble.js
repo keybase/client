@@ -20,6 +20,7 @@ const KeybaseUserBubble = (props: Props) => (
 
 const GeneralServiceBubble = (props: Props) => (
   <Kb.Icon
+    style={styles.generalService}
     fontSize={bubbleSize}
     type={serviceIdToIconFont(props.service)}
     colorOverride={serviceIdToAccentColor(props.service)}
@@ -106,16 +107,17 @@ const styles = Styles.styleSheetCreate({
 
   container: Styles.platformStyles({
     common: {
+      marginBottom: Styles.globalMargins.xtiny,
       marginLeft: Styles.globalMargins.tiny,
+      marginTop: Styles.globalMargins.xtiny,
     },
   }),
 
-  generalService: {
-    backgroundColor: 'grey',
-    borderRadius: 100,
-    height: bubbleSize,
-    width: bubbleSize,
-  },
+  generalService: Styles.platformStyles({
+    isElectron: {
+      lineHeight: '35px',
+    },
+  }),
 
   remove: Styles.platformStyles({
     common: {

@@ -226,6 +226,16 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-fancy-finder-enabled-132-96.png'),
   },
+  'icon-fancy-folder-file-inexistant-desktop-153-94': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-fancy-folder-file-inexistant-desktop-153-94.png'),
+  },
+  'icon-fancy-folder-file-inexistant-mobile-188-120': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-fancy-folder-file-inexistant-mobile-188-120.png'),
+  },
   'icon-fancy-no-access-desktop-96-94': {
     extension: 'png',
     isFont: false,
@@ -1555,6 +1565,16 @@ const iconMeta_ = {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-stellar-coins-stacked-16.png'),
+  },
+  'icon-stellar-coins-stacked-inflation-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-stellar-coins-stacked-inflation-48.png'),
+  },
+  'icon-stellar-coins-stacked-inflation-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-stellar-coins-stacked-inflation-64.png'),
   },
   'icon-stellar-logo-16': {
     extension: 'png',

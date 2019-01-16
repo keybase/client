@@ -19,7 +19,10 @@ const mapStateToProps = (state, ownProps) => {
   const paymentID = ownProps.routeProps.get('paymentID')
   const _transaction = Constants.getPayment(state, accountID, paymentID)
   const yourInfoAndCounterparty = Constants.paymentToYourInfoAndCounterparty(_transaction)
-  const loading = anyWaiting(state, Constants.getRequestDetailsWaitingKey(paymentID))
+  // Transaction can briefly be empty when status changes
+  const loading =
+    anyWaiting(state, Constants.getRequestDetailsWaitingKey(paymentID)) ||
+    _transaction.id === Types.noPaymentID
   return {
     _transaction,
     counterpartyMeta:

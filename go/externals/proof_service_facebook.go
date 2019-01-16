@@ -69,7 +69,7 @@ func (t *FacebookServiceType) GetPrompt() string {
 }
 
 // TODO remove this in favor of server flag when server configs are enabled
-// with CORE-8969
+// with CORE-9923
 func (t *FacebookServiceType) CanMakeNewProofs() bool { return false }
 
 func (t *FacebookServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
@@ -82,8 +82,9 @@ func (t *FacebookServiceType) PostInstructions(un string) *libkb.Markup {
 		 <p>The text can be whatever you want, but the post <strong>must be public</strong>.</p>`)
 }
 
-func (t *FacebookServiceType) DisplayName() string { return "Facebook" }
-func (t *FacebookServiceType) GetTypeName() string { return "facebook" }
+func (t *FacebookServiceType) DisplayName() string   { return "Facebook" }
+func (t *FacebookServiceType) GetTypeName() string   { return "facebook" }
+func (t *FacebookServiceType) PickerSubtext() string { return "facebook.com" }
 
 func (t *FacebookServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *libkb.Markup, err error) {
 	if status == keybase1.ProofStatus_PERMISSION_DENIED {

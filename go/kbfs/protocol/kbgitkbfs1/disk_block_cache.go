@@ -80,6 +80,11 @@ type GetBlockArg struct {
 	BlockID []byte `codec:"blockID" json:"blockID"`
 }
 
+type GetPrefetchStatusArg struct {
+	TlfID   []byte `codec:"tlfID" json:"tlfID"`
+	BlockID []byte `codec:"blockID" json:"blockID"`
+}
+
 type PutBlockArg struct {
 	TlfID      []byte `codec:"tlfID" json:"tlfID"`
 	BlockID    []byte `codec:"blockID" json:"blockID"`
@@ -100,6 +105,8 @@ type UpdateBlockMetadataArg struct {
 type DiskBlockCacheInterface interface {
 	// GetBlock gets a block from the disk cache.
 	GetBlock(context.Context, GetBlockArg) (GetBlockRes, error)
+	// GetPrefetchStatus gets the prefetch status from the disk cache.
+	GetPrefetchStatus(context.Context, GetPrefetchStatusArg) (PrefetchStatus, error)
 	// PutBlock puts a block into the disk cache.
 	PutBlock(context.Context, PutBlockArg) error
 	// DeleteBlocks deletes a set of blocks from the disk cache.
@@ -124,6 +131,21 @@ func DiskBlockCacheProtocol(i DiskBlockCacheInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetBlock(ctx, typedArgs[0])
+					return
+				},
+			},
+			"GetPrefetchStatus": {
+				MakeArg: func() interface{} {
+					var ret [1]GetPrefetchStatusArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetPrefetchStatusArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetPrefetchStatusArg)(nil), args)
+						return
+					}
+					ret, err = i.GetPrefetchStatus(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -183,6 +205,12 @@ type DiskBlockCacheClient struct {
 // GetBlock gets a block from the disk cache.
 func (c DiskBlockCacheClient) GetBlock(ctx context.Context, __arg GetBlockArg) (res GetBlockRes, err error) {
 	err = c.Cli.Call(ctx, "kbgitkbfs.1.DiskBlockCache.GetBlock", []interface{}{__arg}, &res)
+	return
+}
+
+// GetPrefetchStatus gets the prefetch status from the disk cache.
+func (c DiskBlockCacheClient) GetPrefetchStatus(ctx context.Context, __arg GetPrefetchStatusArg) (res PrefetchStatus, err error) {
+	err = c.Cli.Call(ctx, "kbgitkbfs.1.DiskBlockCache.GetPrefetchStatus", []interface{}{__arg}, &res)
 	return
 }
 

@@ -824,6 +824,7 @@ func PreviewConversation(ctx context.Context, g *globals.Context, debugger utils
 func NewConversation(ctx context.Context, g *globals.Context, uid gregor1.UID, tlfName string,
 	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
 	vis keybase1.TLFVisibility, ri func() chat1.RemoteInterface) (chat1.ConversationLocal, error) {
+	defer utils.SuspendComponent(ctx, g, g.ConvLoader)()
 	helper := newNewConversationHelper(g, uid, tlfName, topicName, topicType, membersType, vis, ri)
 	return helper.create(ctx)
 }

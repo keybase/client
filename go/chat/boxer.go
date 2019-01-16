@@ -116,16 +116,13 @@ func (b *Boxer) detectPermanentError(err error, tlfName string) types.UnboxingEr
 		switch keybase1.StatusCode(aerr.Code) {
 		case keybase1.StatusCode_SCTeamNotFound:
 			return NewPermanentUnboxingError(err)
-		case keybase1.StatusCode_SCTeamReadError:
-			// These errors get obfuscated by the server on purpose. Just mark this as permanent error
-			// since it likely means the team is in bad shape.
-			if aerr.Error() == "You are not a member of this team (error 2623)" {
-				return NewPermanentUnboxingError(err)
-			}
-			return NewTransientUnboxingError(err)
 		}
 	}
-
+	// All team read errors get marked as transient errors, since we are going to make them rekey errors
+	// later
+	if teams.IsTeamReadError(err) {
+		return NewTransientUnboxingError(err)
+	}
 	switch err := err.(type) {
 	case libkb.UserDeletedError:
 		if len(err.Msg) == 0 {

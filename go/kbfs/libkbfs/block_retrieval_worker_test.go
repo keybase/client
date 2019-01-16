@@ -93,6 +93,8 @@ func (bg *fakeBlockGetter) getBlock(
 func (bg *fakeBlockGetter) assembleBlock(ctx context.Context,
 	kmd KeyMetadata, ptr BlockPointer, block Block, buf []byte,
 	serverHalf kbfscrypto.BlockCryptKeyServerHalf) error {
+	bg.mtx.RLock()
+	defer bg.mtx.RUnlock()
 	source, ok := bg.blockMap[ptr]
 	if !ok {
 		return errors.New("Block doesn't exist in fake block map")

@@ -5,6 +5,8 @@ import {getAccount, getSelectedAccount} from '../../../constants/wallets'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import {type AccountID} from '../../../constants/types/wallets'
 
+// TODO: This is now desktop-only, so remove references to isMobile.
+
 type OwnProps = {accountID: AccountID}
 
 const mapStateToProps = (state, ownProps: {accountID: AccountID}) => {

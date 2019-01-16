@@ -19,6 +19,9 @@ import {type MenuItem} from '../../../../../common-adapters/floating-menu/menu-l
 import type {DeviceType} from '../../../../../constants/types/devices'
 import type {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 
+const headerIconType = Styles.isMobile ? 'icon-fancy-bomb-mobile-226-96' : 'icon-fancy-bomb-desktop-150-72'
+const headerIconHeight = Styles.isMobile ? 96 : 72
+
 type Props = {
   attachTo: () => ?React.Component<any>,
   author: string,
@@ -76,10 +79,7 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
     const whoRevoked = yourMessage ? 'You' : author
     return (
       <Box2 direction="vertical" fullWidth={true} style={styles.popupContainer}>
-        <Icon
-          style={styles.bombIllustration}
-          type={Styles.isMobile ? 'icon-fancy-bomb-mobile-226-96' : 'icon-fancy-bomb-desktop-150-72'}
-        />
+        <Icon style={styles.headerIcon} type={headerIconType} />
         <Box2 direction="vertical" style={styles.messageInfoContainer}>
           <Box2 direction="vertical">
             <Text type="BodySmall" style={{color: Styles.globalColors.black_75}}>
@@ -183,7 +183,8 @@ const ExplodingPopupMenu = (props: PropsWithTimer<Props>) => {
 const oneMinuteInS = 60
 
 const styles = Styles.styleSheetCreate({
-  bombIllustration: {
+  headerIcon: {
+    height: headerIconHeight,
     marginBottom: Styles.globalMargins.small,
     marginTop: Styles.globalMargins.small,
   },

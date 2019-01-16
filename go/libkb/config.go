@@ -845,6 +845,10 @@ func (f *JSONConfigFile) GetAttachmentDisableMulti() (bool, bool) {
 	return f.GetBoolAtPath("attachment_disable_multi")
 }
 
+func (f *JSONConfigFile) GetDisableTeamAuditor() (bool, bool) {
+	return f.GetBoolAtPath("disable_team_auditor")
+}
+
 func (f *JSONConfigFile) GetChatOutboxStorageEngine() string {
 	s, _ := f.GetStringAtPath("chat_outboxstorageengine")
 	return s

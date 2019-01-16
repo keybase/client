@@ -21,16 +21,12 @@ const mapStateToProps = (state, ownProps: OwnProps) => ({
 
 const mapDispatchToProps = dispatch => ({
   _onCancelPayment: (paymentID: Types.PaymentID) => dispatch(WalletsGen.createCancelPayment({paymentID})),
-  _onSelectTransaction: (
-    paymentID: Types.PaymentID,
-    accountID: Types.AccountID,
-    status: Types.StatusSimplified
-  ) =>
+  _onSelectTransaction: (paymentID: Types.PaymentID, accountID: Types.AccountID) =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
         path: [
           {
-            props: {accountID, paymentID, status},
+            props: {accountID, paymentID},
             selected: 'transactionDetails',
           },
         ],
@@ -51,6 +47,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     readState = 'read'
   }
 
+  const isRelayRecipient = tx.statusSimplified === 'claimable' && yourRole === 'receiverOnly'
+
   return {
     amountUser: tx.worth,
     amountXLM: tx.amountDescription,
@@ -59,10 +57,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     counterpartyType,
     issuerDescription: tx.issuerDescription,
     memo,
-    onCancelPayment: tx.showCancel ? () => dispatchProps._onCancelPayment(tx.id) : null,
+    onCancelPayment: tx.showCancel && !isRelayRecipient ? () => dispatchProps._onCancelPayment(tx.id) : null,
     onCancelPaymentWaitingKey: Constants.cancelPaymentWaitingKey(tx.id),
-    onSelectTransaction: () =>
-      dispatchProps._onSelectTransaction(ownProps.paymentID, ownProps.accountID, tx.statusSimplified),
+    onSelectTransaction: isRelayRecipient
+      ? null
+      : () => dispatchProps._onSelectTransaction(ownProps.paymentID, ownProps.accountID),
     onShowProfile: dispatchProps.onShowProfile,
     readState,
     selectableText: false,
