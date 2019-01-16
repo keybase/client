@@ -20,8 +20,8 @@ type State = {
 }
 
 const sizeToTeamBorderRadius = {
-  '128': 12,
   '12': 2,
+  '128': 12,
   '16': 4,
   '32': 5,
   '48': 6,
