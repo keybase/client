@@ -450,10 +450,6 @@ func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stella
 	if err != nil {
 		return empty, err
 	}
-	currencyLocal, err := GetCurrencySetting(mctx, accountID)
-	if err != nil {
-		return empty, err
-	}
 
 	acct := stellar1.WalletAccountLocal{
 		AccountID:          accountID,
@@ -461,7 +457,14 @@ func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stella
 		Name:               accountName,
 		BalanceDescription: balance,
 		Seqno:              details.Seqno,
-		CurrencyLocal:      currencyLocal,
+	}
+
+	conf, err := mctx.G().GetStellar().GetServerDefinitions(mctx.Ctx())
+	if err == nil {
+		currency, ok := conf.GetCurrencyLocal(stellar1.OutsideCurrencyCode(details.DisplayCurrency))
+		if ok {
+			acct.CurrencyLocal = currency
+		}
 	}
 
 	return acct, nil
