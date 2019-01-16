@@ -62,7 +62,7 @@ const timestampContainerStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   position: 'absolute',
-  right: 8,
+  right: isMobile ? globalMargins.tiny : globalMargins.small,
   top: 12,
 }
 

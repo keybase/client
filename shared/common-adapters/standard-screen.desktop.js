@@ -3,7 +3,7 @@ import * as React from 'react'
 import Box from './box'
 import Text from './text'
 import HeaderHoc from './header-hoc'
-import {globalStyles, globalColors, globalMargins, desktopStyles} from '../styles'
+import {globalStyles, globalColors, globalMargins, desktopStyles, collapseStyles} from '../styles'
 import type {Props, NotificationType} from './standard-screen'
 
 const StandardScreen = ({theme = 'light', ...props}: Props) => {
@@ -25,7 +25,7 @@ const StandardScreen = ({theme = 'light', ...props}: Props) => {
     <Box style={{...styleContainer, ...backgroundColorThemed[theme]}}>
       <Box style={styleTopStack}>{topStack}</Box>
       <Box style={{...styleInnerContainer, paddingBottom: topStackCount * globalMargins.large}}>
-        <Box style={{...styleContentContainer, ...props.style}}>{props.children}</Box>
+        <Box style={collapseStyles([styleContentContainer, props.style])}>{props.children}</Box>
       </Box>
     </Box>
   )

@@ -35,6 +35,9 @@ var ErrAmountMissing = errors.New("'amount' option is required")
 // ErrMessageTooLong is for lengthy payment messages.
 var ErrMessageTooLong = errors.New("message is too long")
 
+// ErrInvalidAmount is for invalid payment amounts.
+var ErrInvalidAmount = errors.New("invalid amount")
+
 // walletAPIHandler is a type that can handle all the json api
 // methods for the wallet API.
 type walletAPIHandler struct {
@@ -411,6 +414,14 @@ func (c *sendOptions) Check() error {
 	if strings.TrimSpace(c.Amount) == "" {
 		return ErrAmountMissing
 	}
+	namt, err := stellarnet.ParseStellarAmount(c.Amount)
+	if err != nil {
+		return ErrInvalidAmount
+	}
+	if namt < 0 {
+		return ErrInvalidAmount
+	}
+
 	if c.FromAccountID != "" {
 		_, err := strkey.Decode(strkey.VersionByteAccountID, c.FromAccountID)
 		if err != nil {
