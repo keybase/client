@@ -12,9 +12,7 @@ export default function(state: Types.State = initialState, action: GitGen.Action
     case GitGen.resetStore:
       return initialState
     case GitGen.loaded:
-      return state.merge({
-        idToInfo: state.idToInfo.merge(action.payload.repos),
-      })
+      return state.setIn(['idToInfo'], I.Map(action.payload.repos))
     case GitGen.setError:
       return state.merge({error: action.payload.error})
     case GitGen.badgeAppForGit:
