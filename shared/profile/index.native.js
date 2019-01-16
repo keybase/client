@@ -421,7 +421,7 @@ class Profile extends Component<Props, State> {
         <Kb.HeaderHocHeader
           borderless={true}
           onLeftAction={this.props.onBack}
-          style={{
+          headerStyle={{
             backgroundColor: trackerStateColors.header.background,
             paddingBottom: Styles.globalMargins.tiny,
           }}
