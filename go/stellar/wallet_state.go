@@ -246,7 +246,11 @@ func (w *WalletState) Details(ctx context.Context, accountID stellar1.AccountID)
 	if err != nil {
 		return stellar1.AccountDetails{}, err
 	}
-	return a.Details(ctx)
+	details, err := a.Details(ctx)
+	if err == nil && details.AccountID != accountID {
+		w.G().Log.CDebugf(ctx, "WalletState:Details account id mismatch.  returning %+v for account id %q", details, accountID)
+	}
+	return details, err
 }
 
 // PendingPayments is an override of remoter's PendingPayments that uses stored data.

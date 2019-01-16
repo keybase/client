@@ -69,7 +69,7 @@ func (t *FacebookServiceType) GetPrompt() string {
 }
 
 // TODO remove this in favor of server flag when server configs are enabled
-// with CORE-8969
+// with CORE-9923
 func (t *FacebookServiceType) CanMakeNewProofs() bool { return false }
 
 func (t *FacebookServiceType) ToServiceJSON(un string) *jsonw.Wrapper {

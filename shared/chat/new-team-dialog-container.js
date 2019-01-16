@@ -41,6 +41,7 @@ export default compose(
     (s, d, o) => ({...o, ...s, ...d})
   ),
   withStateHandlers(
+    // $FlowIssue don't use recompose
     {name: ''},
     {
       onNameChange: () => (name: string) => ({name}),

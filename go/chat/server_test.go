@@ -361,7 +361,6 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.EphemeralPurger = types.DummyEphemeralPurger{}
 
 	pushHandler := NewPushHandler(g)
-	pushHandler.SetClock(c.world.Fc)
 	g.PushHandler = pushHandler
 	g.TeamChannelSource = NewTeamChannelSource(g)
 	g.AttachmentURLSrv = types.DummyAttachmentHTTPSrv{}
@@ -5053,7 +5052,6 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 			})
 		require.NoError(t, err)
-		consumeIdentify(ctx, listener0) //impteam
 		consumeIdentify(ctx, listener0) //encrypt for first message
 
 		uid := users[0].User.GetUID().ToBytes()
@@ -5081,7 +5079,6 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 		})
 		require.NoError(t, err)
 		consumeIdentify(ctx, listener0) // EncryptionKeys
-		consumeIdentify(ctx, listener0) // DecryptionKeys
 
 		// user 1 sends a message to conv
 		ctx = ctc.as(t, users[1]).startCtx
@@ -5101,7 +5098,6 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 		})
 		require.NoError(t, err)
 		consumeIdentify(ctx, listener1) // EncryptionKeys
-		consumeIdentify(ctx, listener1) // DecryptionKeys
 
 		// user 1 finds the conversation
 		res, err = ctc.as(t, users[1]).chatLocalHandler().FindConversationsLocal(ctx,
@@ -5697,16 +5693,16 @@ func TestChatSrvUserResetAndDeleted(t *testing.T) {
 
 func TestChatSrvTeamChannelNameMentions(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
-		ctc := makeChatTestContext(t, "TestChatSrvTeamChannelNameMentions", 2)
-		defer ctc.cleanup()
-		users := ctc.users()
-
 		// Only run this test for teams
 		switch mt {
 		case chat1.ConversationMembersType_TEAM:
 		default:
 			return
 		}
+
+		ctc := makeChatTestContext(t, "TestChatSrvTeamChannelNameMentions", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
 
 		ctx := ctc.as(t, users[0]).startCtx
 		ctx1 := ctc.as(t, users[1]).startCtx

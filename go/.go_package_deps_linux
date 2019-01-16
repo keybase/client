@@ -246,6 +246,9 @@
       "github.com/keybase/client/go/service" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
+   "github.com/keybase/client/go/chat/tools/slam" : {
+      "github.com/keybase/client/go/chat/tools/slam" : 1
+   },
    "github.com/keybase/client/go/chat/types" : {
       "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/chat" : 1,
@@ -2818,6 +2821,7 @@
       "github.com/keybase/client/go/tlfupgrade" : 1,
       "github.com/keybase/client/go/tools/sigchain" : 1,
       "github.com/keybase/client/go/tools/ssss" : 1,
+      "github.com/keybase/client/go/tools/systemd" : 1,
       "github.com/keybase/client/go/tools/teamchain" : 1,
       "github.com/keybase/client/go/uidmap" : 1
    },
@@ -2862,6 +2866,9 @@
    },
    "github.com/keybase/client/go/tools/ssss" : {
       "github.com/keybase/client/go/tools/ssss" : 1
+   },
+   "github.com/keybase/client/go/tools/systemd" : {
+      "github.com/keybase/client/go/tools/systemd" : 1
    },
    "github.com/keybase/client/go/tools/teamchain" : {
       "github.com/keybase/client/go/tools/teamchain" : 1
@@ -3494,6 +3501,7 @@
       "github.com/keybase/client/go/tlfupgrade" : 1,
       "github.com/keybase/client/go/tools/sigchain" : 1,
       "github.com/keybase/client/go/tools/ssss" : 1,
+      "github.com/keybase/client/go/tools/systemd" : 1,
       "github.com/keybase/client/go/tools/teamchain" : 1,
       "github.com/keybase/client/go/uidmap" : 1
    },
@@ -3573,6 +3581,7 @@
       "github.com/keybase/client/go/tlfupgrade" : 1,
       "github.com/keybase/client/go/tools/sigchain" : 1,
       "github.com/keybase/client/go/tools/ssss" : 1,
+      "github.com/keybase/client/go/tools/systemd" : 1,
       "github.com/keybase/client/go/tools/teamchain" : 1,
       "github.com/keybase/client/go/uidmap" : 1
    },
@@ -3652,6 +3661,7 @@
       "github.com/keybase/client/go/tlfupgrade" : 1,
       "github.com/keybase/client/go/tools/sigchain" : 1,
       "github.com/keybase/client/go/tools/ssss" : 1,
+      "github.com/keybase/client/go/tools/systemd" : 1,
       "github.com/keybase/client/go/tools/teamchain" : 1,
       "github.com/keybase/client/go/uidmap" : 1
    },
@@ -12047,6 +12057,7 @@
       "github.com/keybase/client/go/tlfupgrade" : 1,
       "github.com/keybase/client/go/tools/sigchain" : 1,
       "github.com/keybase/client/go/tools/ssss" : 1,
+      "github.com/keybase/client/go/tools/systemd" : 1,
       "github.com/keybase/client/go/tools/teamchain" : 1,
       "github.com/keybase/client/go/uidmap" : 1
    },
@@ -12149,6 +12160,7 @@
       "github.com/keybase/client/go/tlfupgrade" : 1,
       "github.com/keybase/client/go/tools/sigchain" : 1,
       "github.com/keybase/client/go/tools/ssss" : 1,
+      "github.com/keybase/client/go/tools/systemd" : 1,
       "github.com/keybase/client/go/tools/teamchain" : 1,
       "github.com/keybase/client/go/uidmap" : 1
    },
@@ -12251,6 +12263,7 @@
       "github.com/keybase/client/go/tlfupgrade" : 1,
       "github.com/keybase/client/go/tools/sigchain" : 1,
       "github.com/keybase/client/go/tools/ssss" : 1,
+      "github.com/keybase/client/go/tools/systemd" : 1,
       "github.com/keybase/client/go/tools/teamchain" : 1,
       "github.com/keybase/client/go/uidmap" : 1
    },
@@ -12353,6 +12366,7 @@
       "github.com/keybase/client/go/tlfupgrade" : 1,
       "github.com/keybase/client/go/tools/sigchain" : 1,
       "github.com/keybase/client/go/tools/ssss" : 1,
+      "github.com/keybase/client/go/tools/systemd" : 1,
       "github.com/keybase/client/go/tools/teamchain" : 1,
       "github.com/keybase/client/go/uidmap" : 1
    },
@@ -12455,6 +12469,7 @@
       "github.com/keybase/client/go/tlfupgrade" : 1,
       "github.com/keybase/client/go/tools/sigchain" : 1,
       "github.com/keybase/client/go/tools/ssss" : 1,
+      "github.com/keybase/client/go/tools/systemd" : 1,
       "github.com/keybase/client/go/tools/teamchain" : 1,
       "github.com/keybase/client/go/uidmap" : 1
    },
@@ -12557,6 +12572,7 @@
       "github.com/keybase/client/go/tlfupgrade" : 1,
       "github.com/keybase/client/go/tools/sigchain" : 1,
       "github.com/keybase/client/go/tools/ssss" : 1,
+      "github.com/keybase/client/go/tools/systemd" : 1,
       "github.com/keybase/client/go/tools/teamchain" : 1,
       "github.com/keybase/client/go/uidmap" : 1
    },

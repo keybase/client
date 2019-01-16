@@ -31,7 +31,7 @@ export const itemToComponent: (Types.PeopleScreenItem, Props) => React.Node = (i
           notificationTime={item.notificationTime}
           badged={item.badged}
           numAdditional={item.numAdditional}
-          key={item.notificationTime}
+          key={String(item.notificationTime.getTime())}
           onClickUser={props.onClickUser}
         />
       )

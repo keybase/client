@@ -465,6 +465,7 @@ export const setAccountAsDefaultWaitingKey = 'wallets:setAccountAsDefault'
 export const deleteAccountWaitingKey = 'wallets:deleteAccount'
 export const searchKey = 'walletSearch'
 export const loadAccountWaitingKey = (id: Types.AccountID) => `wallets:loadAccount:${id}`
+export const loadAccountsWaitingKey = `wallets:loadAccounts`
 export const cancelPaymentWaitingKey = (id: Types.PaymentID) =>
   `wallets:cancelPayment:${Types.paymentIDToString(id)}`
 export const validateAccountNameWaitingKey = 'wallets:validateAccountName'
