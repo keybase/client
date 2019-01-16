@@ -109,7 +109,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
         _paymentID: null,
         action: asset === 'currency' ? 'requested Lumens worth' : 'requested',
         amount: amountDescription,
-        approxWorth: '',
+        approxWorth: requestInfo.worthAtRequestTime,
         balanceChange: '',
         balanceChangeColor: '',
         cancelButtonInfo: '',

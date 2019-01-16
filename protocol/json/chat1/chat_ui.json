@@ -545,6 +545,10 @@
           "name": "currency"
         },
         {
+          "type": "string",
+          "name": "worthAtRequestTime"
+        },
+        {
           "type": "stellar1.RequestStatus",
           "name": "status"
         }
