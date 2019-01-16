@@ -27,7 +27,7 @@ const mapDispatchToProps = dispatch => ({
       RouteTreeGen.createNavigateAppend({path: [{props: {showOnCreation: true}, selected: 'linkExisting'}]})
     )
   },
-  onWhatIsStellar: () => openURL('https://keybase.io/what-is-stellar'),
+  onWhatIsStellar: () => openURL('https://learn.stellar.org'),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps): Props => ({
