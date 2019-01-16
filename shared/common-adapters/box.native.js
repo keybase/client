@@ -48,6 +48,8 @@ const box2 = (props: Box2Props) => {
     props.fullWidth && styles.fullWidth,
     !props.fullHeight && !props.fullWidth && styles.centered,
     props.centerChildren && styles.centeredChildren,
+    props.alignSelf === 'flex-start' && styles.alignSelfStart,
+    props.alignSelf === 'flex-end' && styles.alignSelfEnd,
     // uncomment this to get debugging colors
     // {backgroundColor: `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`},
     props.style,
@@ -68,6 +70,8 @@ const VBoxGap = ({gap}) => <View style={{flexShrink: 0, height: globalMargins[ga
 const HBoxGap = ({gap}) => <View style={{flexShrink: 0, width: globalMargins[gap]}} />
 
 const styles = {
+  alignSelfEnd: {alignSelf: 'flex-end'},
+  alignSelfStart: {alignSelf: 'flex-start'},
   centered: {alignSelf: 'center'},
   centeredChildren: {
     alignItems: 'center',
@@ -78,21 +82,25 @@ const styles = {
   hbox: {
     ...globalStyles.flexBoxRow,
     alignItems: 'stretch',
+    flexShrink: 0,
     justifyContent: 'flex-start',
   },
   hrbox: {
     ...globalStyles.flexBoxRowReverse,
     alignItems: 'stretch',
+    flexShrink: 0,
     justifyContent: 'flex-start',
   },
   vbox: {
     ...globalStyles.flexBoxColumn,
     alignItems: 'stretch',
+    flexShrink: 0,
     justifyContent: 'flex-start',
   },
   vrbox: {
     ...globalStyles.flexBoxColumnReverse,
     alignItems: 'stretch',
+    flexShrink: 0,
     justifyContent: 'flex-start',
   },
 }

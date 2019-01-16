@@ -3,24 +3,28 @@
   align-items: stretch;
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
   justify-content: flex-start;
 }
 .box2_verticalReverse {
   align-items: stretch;
   display: flex;
   flex-direction: column-reverse;
+  flex-shrink: 0;
   justify-content: flex-start;
 }
 .box2_horizontal {
   align-items: stretch;
   display: flex;
   flex-direction: row;
+  flex-shrink: 0;
   justify-content: flex-start;
 }
 .box2_horizontalReverse {
   align-items: stretch;
   display: flex;
   flex-direction: row-reverse;
+  flex-shrink: 0;
   justify-content: flex-start;
 }
 .box2_centered {
@@ -109,4 +113,10 @@
 .box2_gap_horizontal_xlarge {
   flex-shrink: 0;
   width: 64px;
+}
+.box2_alignSelf_flex-start {
+  align-self: flex-start;
+}
+.box2_alignSelf_flex-end {
+  align-self: flex-end;
 }

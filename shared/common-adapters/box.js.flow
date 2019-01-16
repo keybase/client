@@ -4,6 +4,7 @@ import {type StylesCrossPlatform, globalMargins} from '../styles'
 export type Props = any
 
 export type Box2Props = {|
+  alignSelf?: null | 'flex-start' | 'flex-end',
   children?: React.Node,
   centerChildren?: boolean,
   className?: ?string,
