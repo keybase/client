@@ -249,7 +249,16 @@ func (t *DebuggingHandler) Script(ctx context.Context, arg keybase1.ScriptArg) (
 		}
 		log("send mini results: %+v", results)
 		return "success", nil
-
+	case "proof-suggestions":
+		if len(args) > 0 {
+			return "", fmt.Errorf("require 0 args")
+		}
+		ret, err := t.userHandler.ProofSuggestions(ctx, 0)
+		if err != nil {
+			return "", err
+		}
+		log("%v", spew.Sdump(ret))
+		return "", nil
 	case "":
 		return "", fmt.Errorf("empty script name")
 	default:

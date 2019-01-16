@@ -82,8 +82,9 @@ func (t *FacebookServiceType) PostInstructions(un string) *libkb.Markup {
 		 <p>The text can be whatever you want, but the post <strong>must be public</strong>.</p>`)
 }
 
-func (t *FacebookServiceType) DisplayName() string { return "Facebook" }
-func (t *FacebookServiceType) GetTypeName() string { return "facebook" }
+func (t *FacebookServiceType) DisplayName() string   { return "Facebook" }
+func (t *FacebookServiceType) GetTypeName() string   { return "facebook" }
+func (t *FacebookServiceType) PickerSubtext() string { return "facebook.com" }
 
 func (t *FacebookServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *libkb.Markup, err error) {
 	if status == keybase1.ProofStatus_PERMISSION_DENIED {

@@ -169,8 +169,9 @@ func (t *WebServiceType) PostInstructions(un string) *libkb.Markup {
 	return mkp
 }
 
-func (t *WebServiceType) DisplayName() string { return "Web" }
-func (t *WebServiceType) GetTypeName() string { return "web" }
+func (t *WebServiceType) DisplayName() string   { return "Web" }
+func (t *WebServiceType) GetTypeName() string   { return "web" }
+func (t *WebServiceType) PickerSubtext() string { return t.GetTypeName() }
 
 func (t *WebServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *libkb.Markup, err error) {
 	if status == keybase1.ProofStatus_PERMISSION_DENIED {
