@@ -2,22 +2,16 @@
 import * as React from 'react'
 import {
   Avatar,
-  Badge,
   Box2,
-  ClickableBox,
   HeaderHocHeader,
   Icon,
   iconCastPlatformStyles,
   Text,
   ConnectedUsernames,
 } from '../../../../common-adapters'
-import {collapseStyles, globalStyles, globalColors, globalMargins, isMobile, styleSheetCreate} from '../../../../styles'
+import {collapseStyles, globalColors, globalMargins, isMobile, styleSheetCreate} from '../../../../styles'
 import type {Props} from './index.types'
 
-// width of containers for back button and info button.
-// must be increased if something else will go in those,
-// remember to check that nothing overflows on android!
-const marginWidth = 60
 const shhIconColor = globalColors.black_20
 const shhIconFontSize = 24
 
@@ -99,14 +93,7 @@ const UsernameHeader = (props: Props) => (
   </Wrapper>
 )
 
-const marginStyle = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  width: marginWidth,
-}
-
 const styles = styleSheetCreate({
-  arrow: {marginRight: -3, marginTop: 3},
   center: {
     justifyContent: 'center',
     textAlign: 'center',
@@ -117,31 +104,6 @@ const styles = styleSheetCreate({
   },
   channelNameLight: {
     color: globalColors.black_50,
-  },
-  container: {
-    alignItems: 'stretch',
-    backgroundColor: globalColors.red,//globalColors.fastBlank,
-    borderBottomColor: globalColors.black_10,
-    borderBottomWidth: 1,
-    minHeight: 44,
-  },
-  contentContainer: {
-    alignItems: 'center',
-    flex: 1,
-    justifyContent: 'center',
-    paddingBottom: globalMargins.tiny,
-    paddingTop: globalMargins.tiny,
-  },
-  extraCenterPadding: {paddingLeft: globalMargins.tiny, paddingRight: globalMargins.tiny},
-  leftMargin: {
-    ...marginStyle,
-    justifyContent: 'flex-start',
-    paddingLeft: globalMargins.small,
-  },
-  rightMargin: {
-    ...marginStyle,
-    justifyContent: 'flex-end',
-    paddingRight: globalMargins.small,
   },
   shhIcon: {marginLeft: globalMargins.xtiny},
   usernameHeaderContainer: {alignItems: 'center', justifyContent: 'center'},
