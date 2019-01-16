@@ -22,7 +22,7 @@ import (
 )
 
 func acceptDisclaimer(tc *TestContext) {
-	// NOTE: this also creates a v1 wallet
+	// NOTE: this also creates a wallet
 	err := tc.Srv.AcceptDisclaimerLocal(context.Background(), 0)
 	require.NoError(tc.T, err)
 }
