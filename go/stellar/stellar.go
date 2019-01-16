@@ -2030,6 +2030,10 @@ func AllWalletAccounts(mctx libkb.MetaContext, remoter remote.Remoter) ([]stella
 			continue
 		}
 
+		if acct.AccountID.IsNil() {
+			mctx.CDebugf("accountLocal for entry %+v returned nil account id", entry)
+		}
+
 		accts = append(accts, acct)
 	}
 
@@ -2056,7 +2060,7 @@ func AllWalletAccounts(mctx libkb.MetaContext, remoter remote.Remoter) ([]stella
 	for i, a := range accts {
 		mctx.CDebugf("%d: %q (default: %v)", i, a.AccountID, a.IsDefault)
 		if a.AccountID.IsNil() {
-			mctx.CDebugf("%d: account id is empty!!!!!!")
+			mctx.CDebugf("%d: account id is empty (%+v) !!!!!!", a)
 		}
 	}
 
@@ -2083,6 +2087,10 @@ func accountLocal(mctx libkb.MetaContext, remoter remote.Remoter, entry stellar1
 	if err != nil {
 		mctx.CDebugf("remote.Details failed for %q: %s", entry.AccountID, err)
 		return empty, err
+	}
+
+	if details.AccountID.IsNil() {
+		mctx.CDebugf("AccountDetails for entry.AccountID %q returned empty account id (full details: %+v)", entry.AccountID, details)
 	}
 
 	return AccountDetailsToWalletAccountLocal(mctx, details, entry.IsPrimary, entry.Name)
