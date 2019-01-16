@@ -1069,6 +1069,9 @@ func (k *KeybaseServiceBase) getCurrentSession(
 // CurrentSession implements the KeybaseService interface for KeybaseServiceBase.
 func (k *KeybaseServiceBase) CurrentSession(ctx context.Context, sessionID int) (
 	SessionInfo, error) {
+	ctx = CtxWithRandomIDReplayable(
+		ctx, CtxKeybaseServiceIDKey, CtxKeybaseServiceOpID, k.log)
+
 	s, newSession, err := k.getCurrentSession(ctx, sessionID)
 	if err != nil {
 		return SessionInfo{}, err
