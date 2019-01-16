@@ -277,6 +277,14 @@ func (t *Team) Members() (keybase1.TeamMembers, error) {
 }
 
 func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (res keybase1.ImplicitTeamDisplayName, err error) {
+	return t.implicitTeamDisplayName(ctx, false)
+}
+
+func (t *Team) ImplicitTeamDisplayNameNoConflicts(ctx context.Context) (res keybase1.ImplicitTeamDisplayName, err error) {
+	return t.implicitTeamDisplayName(ctx, true)
+}
+
+func (t *Team) implicitTeamDisplayName(ctx context.Context, skipConflicts bool) (res keybase1.ImplicitTeamDisplayName, err error) {
 	defer t.G().CTrace(ctx, "Team.ImplicitTeamDisplayName", func() error { return err })()
 
 	impName := keybase1.ImplicitTeamDisplayName{
