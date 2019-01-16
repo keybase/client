@@ -1,6 +1,5 @@
 // @flow
 import * as React from 'react'
-import {StyleSheet} from 'react-native'
 import Text from '../text'
 import BackButton from '../back-button'
 import Box from '../box'
