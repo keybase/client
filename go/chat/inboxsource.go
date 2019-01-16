@@ -106,9 +106,13 @@ func (b *baseInboxSource) GetInboxQueryLocalToRemote(ctx context.Context,
 	}
 
 	rquery = &chat1.GetInboxQuery{}
-	if lquery.Name != nil && len(lquery.Name.Name) > 0 {
+	if lquery.Name != nil && lquery.Name.TlfID != nil {
+		rquery.TlfID = lquery.Name.TlfID
+		rquery.MembersTypes = []chat1.ConversationMembersType{lquery.Name.MembersType}
+		b.Debug(ctx, "GetInboxQueryLocalToRemote: using TLFID: %v", *lquery.Name.TlfID)
+	} else if lquery.Name != nil && lquery.Name.Name != nil {
 		var err error
-		tlfName := utils.AddUserToTLFName(b.G(), lquery.Name.Name, lquery.Visibility(),
+		tlfName := utils.AddUserToTLFName(b.G(), *lquery.Name.Name, lquery.Visibility(),
 			lquery.Name.MembersType)
 		info, err = CreateNameInfoSource(ctx, b.G(), lquery.Name.MembersType).LookupID(ctx, tlfName,
 			lquery.Visibility() == keybase1.TLFVisibility_PUBLIC)
@@ -120,7 +124,6 @@ func (b *baseInboxSource) GetInboxQueryLocalToRemote(ctx context.Context,
 		rquery.MembersTypes = []chat1.ConversationMembersType{lquery.Name.MembersType}
 		b.Debug(ctx, "GetInboxQueryLocalToRemote: mapped name %q to TLFID %v", tlfName, info.ID)
 	}
-
 	rquery.After = lquery.After
 	rquery.Before = lquery.Before
 	rquery.TlfVisibility = lquery.TlfVisibility
@@ -212,11 +215,17 @@ func (b *baseInboxSource) Disconnected(ctx context.Context) {
 
 func GetInboxQueryNameInfo(ctx context.Context, g *globals.Context,
 	lquery *chat1.GetInboxLocalQuery) (res types.NameInfo, err error) {
-	if lquery.Name == nil || len(lquery.Name.Name) == 0 {
+	if lquery.Name == nil {
+		return res, errors.New("invalid name query")
+	} else if lquery.Name != nil && lquery.Name.Name != nil {
+		return CreateNameInfoSource(ctx, g, lquery.Name.MembersType).LookupID(ctx, *lquery.Name.Name,
+			lquery.Visibility() == keybase1.TLFVisibility_PUBLIC)
+	} else if lquery.Name != nil && lquery.Name.TlfID != nil {
+		return CreateNameInfoSource(ctx, g, lquery.Name.MembersType).LookupName(ctx, *lquery.Name.TlfID,
+			lquery.Visibility() == keybase1.TLFVisibility_PUBLIC)
+	} else {
 		return res, errors.New("invalid name query")
 	}
-	return CreateNameInfoSource(ctx, g, lquery.Name.MembersType).LookupID(ctx, lquery.Name.Name,
-		lquery.Visibility() == keybase1.TLFVisibility_PUBLIC)
 }
 
 type RemoteInboxSource struct {

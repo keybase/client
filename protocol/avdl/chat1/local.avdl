@@ -593,7 +593,8 @@ protocol local {
   }
 
   record NameQuery {
-    string name;
+    union { null, string } name;
+    union { null, TLFID } tlfID;
     ConversationMembersType membersType;
   }
 
@@ -603,6 +604,7 @@ protocol local {
     // Local analog of common:GetInboxQuery
 
     union { null, NameQuery } name;
+    union { null, TLFID } tlfID;
     union { null, string } topicName;
 
     array<ConversationID> convIDs;

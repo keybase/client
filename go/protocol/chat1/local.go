@@ -3231,19 +3231,34 @@ func (o GetInboxLocalRes) DeepCopy() GetInboxLocalRes {
 }
 
 type NameQuery struct {
-	Name        string                  `codec:"name" json:"name"`
+	Name        *string                 `codec:"name,omitempty" json:"name,omitempty"`
+	TlfID       *TLFID                  `codec:"tlfID,omitempty" json:"tlfID,omitempty"`
 	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
 }
 
 func (o NameQuery) DeepCopy() NameQuery {
 	return NameQuery{
-		Name:        o.Name,
+		Name: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Name),
+		TlfID: (func(x *TLFID) *TLFID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.TlfID),
 		MembersType: o.MembersType.DeepCopy(),
 	}
 }
 
 type GetInboxLocalQuery struct {
 	Name              *NameQuery              `codec:"name,omitempty" json:"name,omitempty"`
+	TlfID             *TLFID                  `codec:"tlfID,omitempty" json:"tlfID,omitempty"`
 	TopicName         *string                 `codec:"topicName,omitempty" json:"topicName,omitempty"`
 	ConvIDs           []ConversationID        `codec:"convIDs" json:"convIDs"`
 	TopicType         *TopicType              `codec:"topicType,omitempty" json:"topicType,omitempty"`
@@ -3266,6 +3281,13 @@ func (o GetInboxLocalQuery) DeepCopy() GetInboxLocalQuery {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Name),
+		TlfID: (func(x *TLFID) *TLFID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.TlfID),
 		TopicName: (func(x *string) *string {
 			if x == nil {
 				return nil

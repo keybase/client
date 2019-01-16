@@ -1800,8 +1800,18 @@
       "name": "NameQuery",
       "fields": [
         {
-          "type": "string",
+          "type": [
+            null,
+            "string"
+          ],
           "name": "name"
+        },
+        {
+          "type": [
+            null,
+            "TLFID"
+          ],
+          "name": "tlfID"
         },
         {
           "type": "ConversationMembersType",
@@ -1819,6 +1829,13 @@
             "NameQuery"
           ],
           "name": "name"
+        },
+        {
+          "type": [
+            null,
+            "TLFID"
+          ],
+          "name": "tlfID"
         },
         {
           "type": [

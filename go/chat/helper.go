@@ -515,7 +515,7 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 
 		query := &chat1.GetInboxLocalQuery{
 			Name: &chat1.NameQuery{
-				Name:        tlfName,
+				Name:        &tlfName,
 				MembersType: membersType,
 			},
 			TlfVisibility:     &vis,
@@ -858,16 +858,43 @@ func newNewConversationHelper(g *globals.Context, uid gregor1.UID, tlfName strin
 	}
 }
 
-func (n *newConversationHelper) findConversations(ctx context.Context,
-	membersType chat1.ConversationMembersType, topicName string, useLocalData bool) ([]chat1.ConversationLocal, error) {
-	onechatpertlf := true
-	return FindConversations(ctx, n.G(), n.DebugLabeler, useLocalData, n.ri, n.uid, n.tlfName, n.topicType,
-		membersType, n.vis, topicName, &onechatpertlf)
+func (n *newConversationHelper) findExisting(ctx context.Context, tlfID chat1.TLFID, topicName string,
+	useLocalData bool) (res []chat1.ConversationLocal, err error) {
+	ib, _, err := n.G().InboxSource.Read(ctx, n.uid, types.ConversationLocalizerBlocking, true, nil,
+		&chat1.GetInboxLocalQuery{
+			Name: &chat1.NameQuery{
+				TlfID:       &tlfID,
+				MembersType: n.membersType,
+			},
+			TlfVisibility: &n.vis,
+			TopicName:     &topicName,
+			TopicType:     &n.topicType,
+		}, nil)
+	if err != nil {
+		return res, err
+	}
+	return ib.Convs, nil
 }
 
-func (n *newConversationHelper) findExisting(ctx context.Context, topicName string, useLocalData bool) (res []chat1.ConversationLocal, err error) {
-	// proceed to findConversations for requested member type
-	return n.findConversations(ctx, n.membersType, topicName, useLocalData)
+func (n *newConversationHelper) getNameInfo(ctx context.Context) (res types.NameInfo, err error) {
+	isPublic := n.vis == keybase1.TLFVisibility_PUBLIC
+	switch n.membersType {
+	case chat1.ConversationMembersType_IMPTEAMUPGRADE:
+		return res, errors.New("cannot create new impteam upgrade conv")
+	case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_TEAM:
+		return CreateNameInfoSource(ctx, n.G(), n.membersType).LookupID(ctx, n.tlfName, isPublic)
+	case chat1.ConversationMembersType_IMPTEAMNATIVE:
+		team, _, impTeamName, err := teams.LookupOrCreateImplicitTeam(ctx, n.G().ExternalG(), n.tlfName,
+			isPublic)
+		if err != nil {
+			return res, err
+		}
+		return types.NameInfo{
+			ID:            chat1.TLFID(team.ID.ToBytes()),
+			CanonicalName: impTeamName.String(),
+		}, nil
+	}
+	return res, errors.New("unknown members type")
 }
 
 func (n *newConversationHelper) create(ctx context.Context) (res chat1.ConversationLocal, reserr error) {
@@ -885,6 +912,10 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 	if n.topicName != nil {
 		findConvsTopicName = *n.topicName
 	}
+	info, err := n.getNameInfo(ctx)
+	if err != nil {
+		return res, err
+	}
 
 	// Find any existing conversations that match this argument specifically. We need to do this check
 	// here in the client since we can't see the topic name on the server.
@@ -893,9 +924,11 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 	// there is a ton of logic in there to try and present a nice looking menu to help out the
 	// user and such. For the most part, the CLI just uses FindConversationsLocal though, so it
 	// should hopefully just result in a bunch of cache hits on the second invocation.
-
-	convs, err := n.findExisting(ctx, findConvsTopicName, true)
-
+	convs, err := n.findExisting(ctx, info.ID, findConvsTopicName, true)
+	if err != nil {
+		n.Debug(ctx, "error running findExisting: %s", err)
+		convs = nil
+	}
 	// If we find one conversation, then just return it as if we created it.
 	if len(convs) == 1 {
 		n.Debug(ctx, "found previous conversation that matches, returning")
@@ -914,30 +947,6 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 	}
 
 	n.Debug(ctx, "no matching previous conversation, proceeding to create new conv")
-
-	isPublic := n.vis == keybase1.TLFVisibility_PUBLIC
-	nis := CreateNameInfoSource(ctx, n.G(), n.membersType)
-	info, err := nis.LookupID(ctx, n.tlfName, isPublic)
-	if err != nil {
-		if n.membersType != chat1.ConversationMembersType_IMPTEAMNATIVE {
-			return res, err
-		}
-		if _, ok := err.(UnknownTLFNameError); !ok {
-			return res, err
-		}
-
-		// couldn't find implicit team, so make one
-		n.Debug(ctx, "making new implicit team %q", n.tlfName)
-		_, _, _, err = teams.LookupOrCreateImplicitTeam(ctx, n.G().ExternalG(), n.tlfName, isPublic)
-		if err != nil {
-			return res, err
-		}
-		info, err = nis.LookupID(ctx, n.tlfName, isPublic)
-		if err != nil {
-			return res, err
-		}
-	}
-
 	triple := chat1.ConversationIDTriple{
 		Tlfid:     info.ID,
 		TopicType: n.topicType,
@@ -947,6 +956,7 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 	// If we get a ChatStalePreviousStateError we blow away in the box cache
 	// once to allow the retry to get fresh data.
 	clearedCache := false
+	isPublic := n.vis == keybase1.TLFVisibility_PUBLIC
 	for i := 0; i < 5; i++ {
 		triple.TopicID, err = utils.NewChatTopicID()
 		if err != nil {
@@ -963,7 +973,7 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 			case DuplicateTopicNameError:
 				n.Debug(ctx, "duplicate topic name encountered, attempting to findExisting again")
 				var findErr error
-				convs, findErr = n.findExisting(ctx, findConvsTopicName, false)
+				convs, findErr = n.findExisting(ctx, info.ID, findConvsTopicName, false)
 				if len(convs) == 1 {
 					n.Debug(ctx, "found previous conversation that matches, returning")
 					return convs[0], findErr
