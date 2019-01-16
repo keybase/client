@@ -22,14 +22,17 @@ const People = (props: Props) => (
           label: 'Avatar',
         },
       ]}
-      titleComponent={(<PeoplePageSearchBar {...props} />)}
+      titleComponent={<PeoplePageSearchBar {...props} />}
     />
     <Kb.ScrollView
       style={styles.scrollView}
       refreshControl={
         // TODO set refreshing to the actual prop once the bug in RN gets fixed
         // see https://github.com/facebook/react-native/issues/5839
-        <Kb.NativeRefreshControl refreshing={isIOS ? false : props.waiting} onRefresh={() => props.getData()} />
+        <Kb.NativeRefreshControl
+          refreshing={isIOS ? false : props.waiting}
+          onRefresh={() => props.getData()}
+        />
       }
     >
       <PeoplePageList {...props} />
