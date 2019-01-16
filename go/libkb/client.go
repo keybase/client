@@ -18,6 +18,7 @@ import (
 
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc/resinit"
+	"golang.org/x/net/http2"
 
 	"h12.me/socks"
 )
@@ -145,6 +146,7 @@ func NewClient(e *Env, config *ClientConfig, needCookie bool) *Client {
 	var xprt http.Transport
 	var timeout time.Duration
 
+	http2.ConfigureTransport(&xprt)
 	xprt.Dial = func(network, addr string) (c net.Conn, err error) {
 		c, err = net.Dial(network, addr)
 		if err != nil {
