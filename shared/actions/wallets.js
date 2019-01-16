@@ -215,7 +215,16 @@ const loadAccounts = (state, action) =>
   RPCStellarTypes.localGetWalletAccountsLocalRpcPromise(undefined, Constants.loadAccountsWaitingKey).then(
     res => {
       return WalletsGen.createAccountsReceived({
-        accounts: (res || []).map(account => Constants.accountResultToAccount(account)),
+        accounts: (res || []).map(account => {
+          if (!account.accountID) {
+            logger.error(
+              `Found empty accountID in getWalletAccounts, name: ${account.name} isDefault: ${String(
+                account.isDefault
+              )}`
+            )
+          }
+          return Constants.accountResultToAccount(account)
+        }),
       })
     }
   )
@@ -228,7 +237,6 @@ const loadAssets = (state, action) => {
   switch (action.type) {
     case WalletsGen.loadAssets:
     case WalletsGen.linkedExistingAccount:
-    case WalletsGen.refreshPayments:
     case WalletsGen.selectAccount:
       accountID = action.payload.accountID
       break
@@ -272,42 +280,29 @@ const createPaymentsReceived = (accountID, payments, pending) =>
       .filter(Boolean),
   })
 
-const loadPayments = (state, action) =>
-  !actionHasError(action) &&
-  (!!(
-    action.type === WalletsGen.selectAccount &&
-    action.payload.accountID &&
-    action.payload.accountID !== Types.noAccountID
-  ) ||
-    Constants.getAccount(state, action.payload.accountID).accountID !== Types.noAccountID) &&
-  Promise.all([
-    RPCStellarTypes.localGetPendingPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
-    RPCStellarTypes.localGetPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
-  ]).then(([pending, payments]) => createPaymentsReceived(action.payload.accountID, payments, pending))
-
-// Fetch all payments for now, but in the future we may want to just
-// fetch the single payment.
-const doRefreshPayments = (state, action) =>
-  !actionHasError(action) &&
-  Constants.getAccount(state, action.payload.accountID).accountID !== Types.noAccountID &&
-  Promise.all([
-    RPCStellarTypes.localGetPendingPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
-    RPCStellarTypes.localGetPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
-  ]).then(([pending, payments]) => {
-    const {accountID, paymentID} = action.payload
-    const paymentsReceived = createPaymentsReceived(action.payload.accountID, payments, pending)
-    const found =
-      paymentsReceived.payload.payments.find(elem => elem.id === paymentID) ||
-      paymentsReceived.payload.pending.find(elem => elem.id === paymentID)
-    if (!found) {
-      logger.warn(
-        `refreshPayments could not find payment for accountID=${accountID} paymentID=${Types.paymentIDToString(
-          paymentID
-        )}`
-      )
-    }
-    return paymentsReceived
-  })
+const loadPayments = (state, action) => {
+  if (!action.payload.accountID) {
+    const account = Constants.getAccount(state, action.payload.accountID)
+    logger.error(
+      `Tried to call load with no account ID, found matching account name: ${
+        account.name
+      } isDefault: ${String(account.isDefault)}`
+    )
+  }
+  return (
+    !actionHasError(action) &&
+    (!!(
+      action.type === WalletsGen.selectAccount &&
+      action.payload.accountID &&
+      action.payload.accountID !== Types.noAccountID
+    ) ||
+      Constants.getAccount(state, action.payload.accountID).accountID !== Types.noAccountID) &&
+    Promise.all([
+      RPCStellarTypes.localGetPendingPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
+      RPCStellarTypes.localGetPaymentsLocalRpcPromise({accountID: action.payload.accountID}),
+    ]).then(([pending, payments]) => createPaymentsReceived(action.payload.accountID, payments, pending))
+  )
+}
 
 const loadMorePayments = (state, action) => {
   const cursor = state.wallets.paymentCursorMap.get(action.payload.accountID)
@@ -631,7 +626,16 @@ const setupEngineListeners = () => {
     'stellar.1.notify.accountsUpdate': ({accounts}) =>
       Saga.put(
         WalletsGen.createAccountsReceived({
-          accounts: (accounts || []).map(account => Constants.accountResultToAccount(account)),
+          accounts: (accounts || []).map(account => {
+            if (!account.accountID) {
+              logger.error(
+                `Found empty accountID in accountsUpdate, name: ${account.name} isDefault: ${String(
+                  account.isDefault
+                )}`
+              )
+            }
+            return Constants.accountResultToAccount(account)
+          }),
         })
       ),
     'stellar.1.notify.pendingPaymentsUpdate': ({accountID: _accountID, pending: _pending}) => {
@@ -779,7 +783,6 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     | WalletsGen.LoadAccountsPayload
     | WalletsGen.CreatedNewAccountPayload
     | WalletsGen.LinkedExistingAccountPayload
-    | WalletsGen.RefreshPaymentsPayload
     | WalletsGen.ChangedAccountNamePayload
     | WalletsGen.DeletedAccountPayload
   >(
@@ -787,7 +790,6 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
       WalletsGen.loadAccounts,
       WalletsGen.createdNewAccount,
       WalletsGen.linkedExistingAccount,
-      WalletsGen.refreshPayments,
       WalletsGen.changedAccountName,
       WalletsGen.deletedAccount,
     ],
@@ -795,7 +797,6 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   )
   yield* Saga.chainAction<
     | WalletsGen.LoadAssetsPayload
-    | WalletsGen.RefreshPaymentsPayload
     | WalletsGen.SelectAccountPayload
     | WalletsGen.LinkedExistingAccountPayload
     | WalletsGen.AccountUpdateReceivedPayload
@@ -803,7 +804,6 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   >(
     [
       WalletsGen.loadAssets,
-      WalletsGen.refreshPayments,
       WalletsGen.selectAccount,
       WalletsGen.linkedExistingAccount,
       WalletsGen.accountUpdateReceived,
@@ -814,7 +814,6 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<
     WalletsGen.LoadPaymentsPayload | WalletsGen.SelectAccountPayload | WalletsGen.LinkedExistingAccountPayload
   >([WalletsGen.loadPayments, WalletsGen.selectAccount, WalletsGen.linkedExistingAccount], loadPayments)
-  yield* Saga.chainAction<WalletsGen.RefreshPaymentsPayload>(WalletsGen.refreshPayments, doRefreshPayments)
   yield* Saga.chainAction<WalletsGen.LoadMorePaymentsPayload>(WalletsGen.loadMorePayments, loadMorePayments)
   yield* Saga.chainAction<WalletsGen.DeleteAccountPayload>(WalletsGen.deleteAccount, deleteAccount)
   yield* Saga.chainAction<WalletsGen.LoadPaymentDetailPayload>(
