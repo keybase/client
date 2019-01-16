@@ -449,30 +449,33 @@ export const updatePaymentsReceived = (
   )
 }
 
-export const acceptDisclaimerWaitingKey = 'wallets:acceptDisclaimer'
-export const changeAccountNameWaitingKey = 'wallets:changeAccountName'
-export const createNewAccountWaitingKey = 'wallets:createNewAccount'
-export const changeDisplayCurrencyWaitingKey = 'wallets:changeDisplayCurrency'
-export const getDisplayCurrencyWaitingKey = (id: Types.AccountID) => `wallets:getDisplayCurrency:${id}`
-export const linkExistingWaitingKey = 'wallets:linkExisting'
-export const loadEverythingWaitingKey = 'wallets:loadEverything'
-export const buildPaymentWaitingKey = 'wallets:buildPayment'
-export const sendPaymentWaitingKey = 'wallets:stellarSend'
-export const requestPaymentWaitingKey = 'wallets:requestPayment'
-export const setAccountAsDefaultWaitingKey = 'wallets:setAccountAsDefault'
-export const deleteAccountWaitingKey = 'wallets:deleteAccount'
+const p = 'wallets:'
+export const acceptDisclaimerWaitingKey = `${p}acceptDisclaimer`
+export const changeAccountNameWaitingKey = `${p}changeAccountName`
+export const createNewAccountWaitingKey = `${p}createNewAccount`
+export const changeDisplayCurrencyWaitingKey = `${p}changeDisplayCurrency`
+export const getDisplayCurrencyWaitingKey = (id: Types.AccountID) => `${p}getDisplayCurrency:${id}`
+export const linkExistingWaitingKey = `${p}linkExisting`
+export const loadEverythingWaitingKey = `${p}loadEverything`
+export const buildPaymentWaitingKey = `${p}buildPayment`
+export const sendPaymentWaitingKey = `${p}stellarSend`
+export const requestPaymentWaitingKey = `${p}requestPayment`
+export const setAccountAsDefaultWaitingKey = `${p}setAccountAsDefault`
+export const deleteAccountWaitingKey = `${p}deleteAccount`
 export const searchKey = 'walletSearch'
-export const loadAccountWaitingKey = (id: Types.AccountID) => `wallets:loadAccount:${id}`
-export const loadAccountsWaitingKey = `wallets:loadAccounts`
+export const loadAccountWaitingKey = (id: Types.AccountID) => `${p}loadAccount:${id}`
+export const loadAccountsWaitingKey = `${p}loadAccounts`
 export const cancelPaymentWaitingKey = (id: Types.PaymentID) =>
-  `wallets:cancelPayment:${Types.paymentIDToString(id)}`
-export const validateAccountNameWaitingKey = 'wallets:validateAccountName'
-export const validateSecretKeyWaitingKey = 'wallets:validateSecretKey'
+  `${p}cancelPayment:${Types.paymentIDToString(id)}`
+export const validateAccountNameWaitingKey = `${p}validateAccountName`
+export const validateSecretKeyWaitingKey = `${p}validateSecretKey`
 export const getRequestDetailsWaitingKey = (id: Types.PaymentID) =>
-  `wallets:requestDetailsWaitingKey:${Types.paymentIDToString(id)}`
-export const inflationDestinationWaitingKey = 'wallets:inflationDestination'
+  `${p}requestDetailsWaitingKey:${Types.paymentIDToString(id)}`
+export const inflationDestinationWaitingKey = `${p}inflationDestination`
 export const setAccountMobileOnlyWaitingKey = (id: Types.AccountID) =>
-  `wallets:setAccountMobileOnly:${Types.accountIDToString(id)}`
+  `${p}setAccountMobileOnly:${Types.accountIDToString(id)}`
+
+export const isWaitingKey = (key: string) => key.startsWith(p)
 
 export const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().toList()
 
