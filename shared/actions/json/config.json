@@ -107,6 +107,6 @@
     "copyToClipboard": {"text": "string"},
     "checkForUpdate": {},
     "updateInfo": {"isOutOfDate": "boolean", "critical": "boolean", "message?": "string"},
-    "updateNow": {}
+    "updateNow": {},
   }
 }

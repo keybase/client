@@ -15,7 +15,7 @@ const ff: FeatureFlags = {
   newTeamBuildingForChatAllowMakeTeam: false,
   outOfDateBanner: false,
   plansEnabled: false,
-  useNewRouter: false,
+  useNewRouter: true, // TEMP
   walletsEnabled: true,
 }
 

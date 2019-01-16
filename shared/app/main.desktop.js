@@ -23,6 +23,7 @@ type Props = {
   routeDef: RouteDefNode,
   routeState: RouteStateNode,
   setRouteState: (path: Path, partialState: {}) => void,
+  useNewRouter: boolean,
 }
 
 class Main extends Component<Props> {
@@ -55,7 +56,7 @@ class Main extends Component<Props> {
   render() {
     return (
       <RouterSwitcheroo
-        useNewRouter={false}
+        useNewRouter={this.props.useNewRouter}
         newRoutePath={[]}
         oldRouteDef={this.props.routeDef}
         oldRouteState={this.props.routeState}
@@ -69,6 +70,7 @@ const mapStateToProps = state => ({
   desktopAppBadgeCount: state.notifications.get('desktopAppBadgeCount'),
   routeDef: state.routeTree.routeDef,
   routeState: state.routeTree.routeState,
+  useNewRouter: state.config.useNewRouter,
   username: state.config.username,
   widgetBadge: state.notifications.get('widgetBadge') || false,
 })

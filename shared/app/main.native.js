@@ -18,6 +18,7 @@ type Props = {
   routeState: any,
   showPushPrompt: any,
   setRouteState: (path: any, partialState: any) => void,
+  useNewRouter: boolean,
   navigateUp: () => void,
 }
 
@@ -42,7 +43,7 @@ class Main extends React.Component<Props> {
     return (
       <React.Fragment>
         <RouterSwitcheroo
-          useNewRouter={false}
+          useNewRouter={this.props.useNewRouter}
           newRoutePath={[]}
           oldRouteDef={this.props.routeDef}
           oldRouteState={this.props.routeState}
@@ -64,6 +65,7 @@ const mapStateToProps = state => ({
   routeDef: state.routeTree.routeDef,
   routeState: state.routeTree.routeState,
   showPushPrompt: state.config.loggedIn && state.push.showPushPrompt,
+  useNewRouter: state.config.useNewRouter,
 })
 
 const mapDispatchToProps = dispatch => ({
