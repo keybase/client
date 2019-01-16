@@ -126,7 +126,8 @@ class FriendshipTabs extends React.Component<
 }
 
 const widthToDimentions = width => {
-  const itemsInARow = Math.floor(Math.max(1, width / 120))
+  const singleItemWidth = Styles.isMobile ? 130 : 120
+  const itemsInARow = Math.floor(Math.max(1, width / singleItemWidth))
   const itemWidth = Math.floor(width / itemsInARow)
   return {itemWidth, itemsInARow}
 }

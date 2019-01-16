@@ -63,7 +63,7 @@ class EditProfile extends React.Component<Props, State> {
   render() {
     return (
       <Kb.ScrollView>
-        <Kb.Box2 direction="vertical" style={styles.container}>
+        <Kb.Box2 fullWidth={true} direction="vertical" style={styles.container}>
           {Styles.isMobile ? null : (
             <Kb.Text type="Header" style={styles.header}>
               Edit Profile

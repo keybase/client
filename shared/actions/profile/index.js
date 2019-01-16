@@ -17,6 +17,7 @@ import {peopleTab} from '../../constants/tabs'
 import {pgpSaga} from './pgp'
 import {proofsSaga} from './proofs'
 import flags from '../../util/feature-flags'
+import {isMobile} from '../../constants/platform'
 
 const editProfile = (state, action) =>
   RPCTypes.userProfileEditRpcPromise(
@@ -123,6 +124,11 @@ const outputInstructionsActionLink = (state, action) => {
   }
 }
 
+const editAvatar = () =>
+  isMobile
+    ? undefined // handled in platform specific
+    : RouteTreeGen.createNavigateAppend({path: [{props: {image: null}, selected: 'editAvatar'}]})
+
 const backToProfile = () => [
   TrackerGen.createGetMyProfile({}),
   RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profile']}),
@@ -143,6 +149,7 @@ function* _profileSaga() {
     outputInstructionsActionLink
   )
   yield* Saga.chainAction<ProfileGen.ShowUserProfilePayload>(ProfileGen.showUserProfile, showUserProfile)
+  yield* Saga.chainAction<ProfileGen.EditAvatarPayload>(ProfileGen.editAvatar, editAvatar)
 }
 
 function* profileSaga(): Saga.SagaGenerator<any, any> {

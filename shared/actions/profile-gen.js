@@ -17,6 +17,7 @@ export const cancelPgpGen = 'profile:cancelPgpGen'
 export const checkProof = 'profile:checkProof'
 export const cleanupUsername = 'profile:cleanupUsername'
 export const dropPgp = 'profile:dropPgp'
+export const editAvatar = 'profile:editAvatar'
 export const editProfile = 'profile:editProfile'
 export const finishRevoking = 'profile:finishRevoking'
 export const finishedWithKeyGen = 'profile:finishedWithKeyGen'
@@ -47,6 +48,7 @@ type _CancelPgpGenPayload = void
 type _CheckProofPayload = void
 type _CleanupUsernamePayload = void
 type _DropPgpPayload = $ReadOnly<{|kid: RPCTypes.KID|}>
+type _EditAvatarPayload = void
 type _EditProfilePayload = $ReadOnly<{|bio: string, fullname: string, location: string|}>
 type _FinishRevokingPayload = void
 type _FinishedWithKeyGenPayload = $ReadOnly<{|shouldStoreKeyOnServer: boolean|}>
@@ -82,6 +84,7 @@ export const createCancelPgpGen = (payload: _CancelPgpGenPayload) => ({payload, 
 export const createCheckProof = (payload: _CheckProofPayload) => ({payload, type: checkProof})
 export const createCleanupUsername = (payload: _CleanupUsernamePayload) => ({payload, type: cleanupUsername})
 export const createDropPgp = (payload: _DropPgpPayload) => ({payload, type: dropPgp})
+export const createEditAvatar = (payload: _EditAvatarPayload) => ({payload, type: editAvatar})
 export const createEditProfile = (payload: _EditProfilePayload) => ({payload, type: editProfile})
 export const createFinishRevoking = (payload: _FinishRevokingPayload) => ({payload, type: finishRevoking})
 export const createFinishedWithKeyGen = (payload: _FinishedWithKeyGenPayload) => ({payload, type: finishedWithKeyGen})
@@ -112,6 +115,7 @@ export type CancelPgpGenPayload = {|+payload: _CancelPgpGenPayload, +type: 'prof
 export type CheckProofPayload = {|+payload: _CheckProofPayload, +type: 'profile:checkProof'|}
 export type CleanupUsernamePayload = {|+payload: _CleanupUsernamePayload, +type: 'profile:cleanupUsername'|}
 export type DropPgpPayload = {|+payload: _DropPgpPayload, +type: 'profile:dropPgp'|}
+export type EditAvatarPayload = {|+payload: _EditAvatarPayload, +type: 'profile:editAvatar'|}
 export type EditProfilePayload = {|+payload: _EditProfilePayload, +type: 'profile:editProfile'|}
 export type FinishRevokingPayload = {|+payload: _FinishRevokingPayload, +type: 'profile:finishRevoking'|}
 export type FinishedWithKeyGenPayload = {|+payload: _FinishedWithKeyGenPayload, +type: 'profile:finishedWithKeyGen'|}
@@ -145,6 +149,7 @@ export type Actions =
   | CheckProofPayload
   | CleanupUsernamePayload
   | DropPgpPayload
+  | EditAvatarPayload
   | EditProfilePayload
   | FinishRevokingPayload
   | FinishedWithKeyGenPayload

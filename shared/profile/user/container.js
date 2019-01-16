@@ -3,6 +3,7 @@ import * as I from 'immutable'
 import * as Constants from '../../constants/tracker2'
 import * as Container from '../../util/container'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as ProfileGen from '../../actions/profile-gen'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
 import * as SearchGen from '../../actions/search-gen'
 import * as Styles from '../../styles'
@@ -39,8 +40,7 @@ const mapStateToProps = (state, ownProps) => {
   }
 }
 const mapDispatchToProps = (dispatch, ownProps) => ({
-  _onEditAvatar: (image?: Response) =>
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {image}, selected: 'editAvatar'}]})),
+  _onEditAvatar: (image?: Response) => dispatch(ProfileGen.createEditAvatar()),
   _onReload: (assertion: string) => {
     dispatch(
       Tracker2Gen.createLoad({
