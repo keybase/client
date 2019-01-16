@@ -52,7 +52,12 @@ const Actions = (p: Props) => {
 
   if (p.onEditProfile) {
     buttons = [
-      <Kb.Button key="Edit profile" type="Secondary" label="Edit profile" onClick={p.onEditProfile} />,
+      <Kb.Button
+        key="Edit profile"
+        type={Styles.isMobile ? 'Primary' : 'Secondary'}
+        label="Edit profile"
+        onClick={p.onEditProfile}
+      />,
     ]
   } else if (p.followThem) {
     if (p.state === 'valid') {

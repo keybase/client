@@ -126,7 +126,7 @@ class FriendshipTabs extends React.Component<
 }
 
 const widthToDimentions = width => {
-  const itemsInARow = Math.floor(Math.max(1, width / (Styles.isMobile ? 105 : 120)))
+  const itemsInARow = Math.floor(Math.max(1, width / (Styles.isMobile ? 138 : 120)))
   const itemWidth = Math.floor(width / itemsInARow)
   return {itemWidth, itemsInARow}
 }
@@ -156,6 +156,9 @@ class BioTeamProofs extends React.PureComponent<Props> {
           ])}
         />
         <BioLayout {...this.props} />
+        <Teams username={this.props.username} />
+        <Proofs {...this.props} />
+        <Folders profileUsername={this.props.username} />
       </Kb.Box2>
     ) : (
       <Kb.Box2 key="bioTeam" direction="horizontal" fullWidth={true} style={styles.bioAndProofs}>
@@ -379,12 +382,20 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {width: '100%'},
   }),
-  search: {
-    backgroundColor: Styles.globalColors.black_10,
-    borderRadius: Styles.borderRadius,
-    minHeight: 24,
-    minWidth: Styles.isMobile ? 0 : 240,
-  },
+  search: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.black_10,
+      borderRadius: Styles.borderRadius,
+    },
+    isElectron: {
+      minHeight: 24,
+      minWidth: 240,
+    },
+    isMobile: {
+      minHeight: 32,
+      minWidth: 200,
+    },
+  }),
   searchContainer: Styles.platformStyles({
     common: {
       alignItems: 'center',

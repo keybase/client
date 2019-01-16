@@ -86,15 +86,9 @@ const load = () => {
 }
 
 const styles = Styles.styleSheetCreate({
-  otherHeader: {
-    backgroundColor: 'orange',
-  },
-  header: {
-    backgroundColor: 'grey',
-  },
-  text: {
-    width: '100%',
-  },
+  header: {backgroundColor: 'grey'},
+  otherHeader: {backgroundColor: 'orange'},
+  text: {width: '100%'},
 })
 
 export default load

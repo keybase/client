@@ -122,7 +122,6 @@ class Wallet extends React.Component<Props> {
           stickySectionHeadersEnabled={false}
           keyExtractor={this._keyExtractor}
           onEndReached={this._onEndReached}
-          stickySectionHeadersEnabled={true}
         />
         {this.props.loadingMore && <Kb.ProgressIndicator style={styles.loadingMore} />}
       </Kb.Box2>

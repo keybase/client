@@ -144,11 +144,17 @@ const styles = Styles.styleSheetCreate({
     isElectron: {display: 'unset'},
   }),
   showcase: {alignItems: 'center'},
-  showcases: {
-    alignItems: 'flex-start',
-    flexShrink: 0,
-    paddingBottom: Styles.globalMargins.small,
-  },
+  showcases: Styles.platformStyles({
+    common: {
+      alignItems: 'flex-start',
+      flexShrink: 0,
+      paddingBottom: Styles.globalMargins.small,
+    },
+    isMobile: {
+      paddingLeft: Styles.globalMargins.small,
+      paddingTop: Styles.globalMargins.small,
+    },
+  }),
   youPublishTeam: {
     alignSelf: 'center',
     color: Styles.globalColors.black_20,

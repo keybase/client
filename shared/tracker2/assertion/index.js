@@ -127,7 +127,14 @@ class _StellarValue extends React.PureComponent<
       {onClick: this.props.onWhatIsStellar, title: 'What is Stellar?'},
     ]
 
-    return (
+    return Styles.isMobile ? (
+      <Kb.Text
+        type="BodyPrimaryLink"
+        style={Styles.collapseStyles([styles.username, {color: assertionColorToColor(this.props.color)}])}
+      >
+        {this.props.value}
+      </Kb.Text>
+    ) : (
       <Kb.Box ref={r => this._storeAttachmentRef(r)} style={styles.tooltip}>
         <Kb.WithTooltip text={Styles.isMobile || this.props.showingMenu ? '' : 'Stellar Federation Address'}>
           <Kb.Text

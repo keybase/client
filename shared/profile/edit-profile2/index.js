@@ -3,7 +3,6 @@ import * as Constants from '../../constants/tracker2'
 import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../styles'
-import * as Types from '../../constants/types/tracker2'
 
 type Props = {|
   bio: string,
@@ -19,6 +18,20 @@ type State = {|
   fullname: string,
   location: string,
 |}
+
+// TODO move this concept to common adapters
+const RoundedBox = ({side, children}) => (
+  <Kb.Box2
+    direction="vertical"
+    style={Styles.collapseStyles([
+      side === 'top' && styles.roundedBoxTop,
+      side === 'bottom' && styles.roundedBoxBottom,
+      side === 'middle' && styles.roundedBoxMiddle,
+    ])}
+  >
+    {children}
+  </Kb.Box2>
+)
 
 class EditProfile extends React.Component<Props, State> {
   constructor(props: Props) {
@@ -49,55 +62,66 @@ class EditProfile extends React.Component<Props, State> {
 
   render() {
     return (
-      <Kb.Box2 direction="vertical" style={styles.container}>
-        {Styles.isMobile ? null : (
-          <Kb.Text type="Header" style={styles.header}>
-            Edit Profile
-          </Kb.Text>
-        )}
-        <Kb.PlainInput
-          value={this.state.fullname}
-          placeholder="Full name"
-          autoFocus={true}
-          style={styles.fullname}
-          onChangeText={this._updateFullname}
-        />
-        <Kb.PlainInput
-          value={this.state.bio}
-          placeholder="Bio"
-          style={styles.bio}
-          multiline={true}
-          rowsMin={7}
-          rowsMax={7}
-          onChangeText={this._updateBio}
-        />
-        <Kb.PlainInput
-          value={this.state.location}
-          placeholder="Location"
-          style={styles.location}
-          onChangeText={this._updateLocation}
-          onEnterKeyDown={this._submit}
-        />
-        <Kb.Box2 direction="vertical" style={styles.gap} />
-        <Kb.WaitingButton
-          waitingKey={Constants.waitingKey}
-          type="Primary"
-          label="Save"
-          disabled={this._disabled()}
-          onClick={this._submit}
-        />
-      </Kb.Box2>
+      <Kb.ScrollView>
+        <Kb.Box2 direction="vertical" style={styles.container}>
+          {Styles.isMobile ? null : (
+            <Kb.Text type="Header" style={styles.header}>
+              Edit Profile
+            </Kb.Text>
+          )}
+          <RoundedBox side="top">
+            <Kb.PlainInput
+              value={this.state.fullname}
+              placeholder="Full name"
+              autoFocus={true}
+              onChangeText={this._updateFullname}
+            />
+          </RoundedBox>
+          <RoundedBox side="middle">
+            <Kb.PlainInput
+              value={this.state.bio}
+              placeholder="Bio"
+              multiline={true}
+              rowsMin={7}
+              rowsMax={7}
+              onChangeText={this._updateBio}
+            />
+          </RoundedBox>
+          <RoundedBox side="bottom">
+            <Kb.PlainInput
+              value={this.state.location}
+              placeholder="Location"
+              onChangeText={this._updateLocation}
+              onEnterKeyDown={this._submit}
+            />
+          </RoundedBox>
+          <Kb.Box2 direction="vertical" style={styles.gap} />
+          <Kb.WaitingButton
+            waitingKey={Constants.waitingKey}
+            type="Primary"
+            label="Save"
+            disabled={this._disabled()}
+            onClick={this._submit}
+          />
+        </Kb.Box2>
+      </Kb.ScrollView>
     )
   }
 }
 
+const roundedBox = {
+  alignSelf: 'stretch',
+  borderBottomWidth: 1,
+  borderColor: Styles.globalColors.grey,
+  borderLeftWidth: 1,
+  borderRightWidth: 1,
+  borderStyle: 'solid',
+  borderTopWidth: 1,
+  padding: Styles.globalMargins.small,
+}
 const styles = Styles.styleSheetCreate({
   bio: {
-    borderColor: Styles.globalColors.grey,
-    borderLeftWidth: 1,
-    borderRightWidth: 1,
-    borderStyle: 'solid',
-    padding: Styles.globalMargins.small,
+    maxHeight: undefined,
   },
   container: Styles.platformStyles({
     common: {
@@ -108,23 +132,22 @@ const styles = Styles.styleSheetCreate({
       width: 350,
     },
   }),
-  fullname: {
-    borderColor: Styles.globalColors.grey,
-    borderStyle: 'solid',
-    borderTopLeftRadius: Styles.borderRadius,
-    borderTopRightRadius: Styles.borderRadius,
-    borderWidth: 1,
-    padding: Styles.globalMargins.small,
-  },
-  gap: {flexGrow: 1},
+  gap: {flexGrow: 1, minHeight: Styles.globalMargins.small},
   header: {marginBottom: Styles.globalMargins.small},
-  location: {
+  roundedBoxBottom: {
+    ...roundedBox,
     borderBottomLeftRadius: Styles.borderRadius,
     borderBottomRightRadius: Styles.borderRadius,
-    borderColor: Styles.globalColors.grey,
-    borderStyle: 'solid',
-    borderWidth: 1,
-    padding: Styles.globalMargins.small,
+  },
+  roundedBoxMiddle: {
+    ...roundedBox,
+    borderBottomWidth: 0,
+    borderTopWidth: 0,
+  },
+  roundedBoxTop: {
+    ...roundedBox,
+    borderTopLeftRadius: Styles.borderRadius,
+    borderTopRightRadius: Styles.borderRadius,
   },
 })
 

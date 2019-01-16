@@ -53,13 +53,13 @@ const mergeProps = (stateProps, dispatchProps) => {
     ...stateProps,
     ...dispatchProps,
     customCancelText: 'Close',
+    onCancel: () => dispatchProps.onCancel(stateProps._you),
     teamNameToAllowPromote: stateProps._teamNameToAllowPromote.toObject(),
     teamNameToIsOpen: stateProps._teamNameToIsOpen.toObject(),
     teamNameToIsShowcasing: stateProps._teamNameToIsShowcasing.toObject(),
     teamNameToRole: stateProps._teamNameToRole.toObject(),
     teammembercounts: stateProps._teammembercounts.toObject(),
     title: 'Publish your teams',
-    onCancel: () => dispatchProps.onCancel(stateProps._you),
     waiting: stateProps._waiting.toObject(),
   }
 }

@@ -58,7 +58,7 @@ const reducer = (state: Types.State = initialState, action: Actions): Types.Stat
         map.withMutations(m => {
           const all = [...action.payload.followers, ...action.payload.following]
           all.forEach(({username, fullname}) => {
-            m.update(username, old => (old || blankUserInfo).merge({fullname, fullname}))
+            m.update(username, old => (old || blankUserInfo).merge({fullname}))
           })
         })
       )
