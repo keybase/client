@@ -1725,10 +1725,22 @@
 			"revisionTime": "2016-06-17T13:51:20-05:00"
 		},
 		{
+			"checksumSHA1": "CbpjEkkOeh0fdM/V8xKDdI0AA88=",
+			"path": "golang.org/x/text/secure/bidirule",
+			"revision": "e6919f6577db79269a6443b9dc46d18f2238fb5d",
+			"revisionTime": "2018-12-15T12:10:58Z"
+		},
+		{
 			"checksumSHA1": "0uwDStcjVf2LGzegKmTBWsaZ6Ns=",
 			"path": "golang.org/x/text/transform",
 			"revision": "f773ec03ce334298742df7f3108fc0d402646d22",
 			"revisionTime": "2016-05-05T22:32:54Z"
+		},
+		{
+			"checksumSHA1": "kRHVIuePi38RXAJmksH3MfQzTJI=",
+			"path": "golang.org/x/text/unicode/bidi",
+			"revision": "e6919f6577db79269a6443b9dc46d18f2238fb5d",
+			"revisionTime": "2018-12-15T12:10:58Z"
 		},
 		{
 			"checksumSHA1": "n94g6qdzv0fgQFGelH4/HXOthl0=",
