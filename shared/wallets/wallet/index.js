@@ -6,6 +6,7 @@ import * as Types from '../../constants/types/wallets'
 import Header from './header/container'
 import Asset from '../asset/container'
 import Transaction from '../transaction/container'
+import {loadAccountsWaitingKey} from '../../constants/wallets'
 
 const stripePatternName = Styles.isMobile
   ? require('../../images/icons/pattern-stripes-blue-5-black-5-mobile.png')
@@ -33,14 +34,6 @@ const HistoryPlaceholder = () => (
 )
 
 class Wallet extends React.Component<Props> {
-  componentDidMount() {
-    // If we're on mobile, this is the entry point, so we need to
-    // refresh.
-    if (Styles.isMobile) {
-      this.props.refresh()
-    }
-  }
-
   componentDidUpdate(prevProps: Props) {
     if (prevProps.accountID !== this.props.accountID) {
       prevProps.onMarkAsRead()
@@ -163,4 +156,13 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-export default Wallet
+const MaybeReloadableWallet = (props: Props) =>
+  Styles.isMobile ? (
+    <Kb.Reloadable waitingKeys={loadAccountsWaitingKey} onReload={props.refresh} reloadOnMount={true}>
+      <Wallet {...props} />
+    </Kb.Reloadable>
+  ) : (
+    <Wallet {...props} />
+  )
+
+export default MaybeReloadableWallet
