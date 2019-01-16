@@ -880,9 +880,8 @@ func (n *newConversationHelper) findExisting(ctx context.Context, tlfID chat1.TL
 func (n *newConversationHelper) getNameInfo(ctx context.Context) (res types.NameInfo, err error) {
 	isPublic := n.vis == keybase1.TLFVisibility_PUBLIC
 	switch n.membersType {
-	case chat1.ConversationMembersType_IMPTEAMUPGRADE:
-		return res, errors.New("cannot create new impteam upgrade conv")
-	case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_TEAM:
+	case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_TEAM,
+		chat1.ConversationMembersType_IMPTEAMUPGRADE:
 		return CreateNameInfoSource(ctx, n.G(), n.membersType).LookupID(ctx, n.tlfName, isPublic)
 	case chat1.ConversationMembersType_IMPTEAMNATIVE:
 		team, _, impTeamName, err := teams.LookupOrCreateImplicitTeam(ctx, n.G().ExternalG(), n.tlfName,
@@ -1130,9 +1129,8 @@ func (n *newConversationHelper) makeFirstMessage(ctx context.Context, triple cha
 }
 
 func CreateNameInfoSource(ctx context.Context, g *globals.Context, membersType chat1.ConversationMembersType) types.NameInfoSource {
-	if override := ctx.Value(nameInfoOverrideKey); override != nil {
-		g.GetLog().CDebugf(ctx, "createNameInfoSource: using override: %T", override)
-		return override.(types.NameInfoSource)
+	if override := GetOverrideNameInfoSource(ctx); override != nil {
+		return override
 	}
 	switch membersType {
 	case chat1.ConversationMembersType_KBFS:
@@ -1146,4 +1144,11 @@ func CreateNameInfoSource(ctx context.Context, g *globals.Context, membersType c
 	}
 	g.GetLog().CDebugf(ctx, "createNameInfoSource: unknown members type, using KBFS: %v", membersType)
 	return NewKBFSNameInfoSource(g)
+}
+
+func GetOverrideNameInfoSource(ctx context.Context) types.NameInfoSource {
+	if override := ctx.Value(nameInfoOverrideKey); override != nil {
+		return override.(types.NameInfoSource)
+	}
+	return nil
 }
