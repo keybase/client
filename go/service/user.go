@@ -370,6 +370,42 @@ type ProofSuggestion struct {
 
 var dummyIcon []keybase1.SizedImage // TODO CORE-9882: Get some icons
 
+var pgpProofSuggestion = keybase1.ProofSuggestion{
+	Key:           "pgp",
+	ProfileText:   "Add a PGP key",
+	ProfileIcon:   dummyIcon,
+	PickerText:    "PGP key",
+	PickerSubtext: "",
+	PickerIcon:    dummyIcon,
+}
+
+var webProofSuggestion = keybase1.ProofSuggestion{
+	Key:           "web",
+	ProfileText:   "Prove your website",
+	ProfileIcon:   dummyIcon,
+	PickerText:    "Your own website",
+	PickerSubtext: "",
+	PickerIcon:    dummyIcon,
+}
+
+var bitcoinProofSuggestion = keybase1.ProofSuggestion{
+	Key:           "bitcoin",
+	ProfileText:   "Set a Bitcoin address",
+	ProfileIcon:   dummyIcon,
+	PickerText:    "Bitcoin address",
+	PickerSubtext: "",
+	PickerIcon:    dummyIcon,
+}
+
+var zcashProofSuggestion = keybase1.ProofSuggestion{
+	Key:           "zcash",
+	ProfileText:   "Set a Zcash address",
+	ProfileIcon:   dummyIcon,
+	PickerText:    "Zcash address",
+	PickerSubtext: "",
+	PickerIcon:    dummyIcon,
+}
+
 func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext) (ret []ProofSuggestion, err error) {
 	user, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(mctx).WithPublicKeyOptional())
 	if err != nil {
@@ -412,43 +448,15 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext) (ret []Proo
 	}
 	hasPGP := len(user.GetActivePGPKeys(true)) > 0
 	if !hasPGP {
-		suggestions = append(suggestions, ProofSuggestion{ProofSuggestion: keybase1.ProofSuggestion{
-			Key:           "pgp",
-			ProfileText:   "Add a PGP key",
-			ProfileIcon:   dummyIcon,
-			PickerText:    "PGP key",
-			PickerSubtext: "",
-			PickerIcon:    dummyIcon,
-		}})
+		suggestions = append(suggestions, ProofSuggestion{ProofSuggestion: pgpProofSuggestion})
 	}
 	// Always show the option to create a new web proof.
-	suggestions = append(suggestions, ProofSuggestion{ProofSuggestion: keybase1.ProofSuggestion{
-		Key:           "web",
-		ProfileText:   "Prove your website",
-		ProfileIcon:   dummyIcon,
-		PickerText:    "Your own website",
-		PickerSubtext: "",
-		PickerIcon:    dummyIcon,
-	}})
+	suggestions = append(suggestions, ProofSuggestion{ProofSuggestion: webProofSuggestion})
 	if !user.IDTable().HasActiveCryptocurrencyFamily(libkb.CryptocurrencyFamilyBitcoin) {
-		suggestions = append(suggestions, ProofSuggestion{ProofSuggestion: keybase1.ProofSuggestion{
-			Key:           "bitcoin",
-			ProfileText:   "Set a Bitcoin address",
-			ProfileIcon:   dummyIcon,
-			PickerText:    "Bitcoin address",
-			PickerSubtext: "",
-			PickerIcon:    dummyIcon,
-		}})
+		suggestions = append(suggestions, ProofSuggestion{ProofSuggestion: bitcoinProofSuggestion})
 	}
 	if !user.IDTable().HasActiveCryptocurrencyFamily(libkb.CryptocurrencyFamilyZCash) {
-		suggestions = append(suggestions, ProofSuggestion{ProofSuggestion: keybase1.ProofSuggestion{
-			Key:           "zcash",
-			ProfileText:   "Set a Zcash address",
-			ProfileIcon:   dummyIcon,
-			PickerText:    "Zcash address",
-			PickerSubtext: "",
-			PickerIcon:    dummyIcon,
-		}})
+		suggestions = append(suggestions, ProofSuggestion{ProofSuggestion: zcashProofSuggestion})
 	}
 
 	// Alphabetize so that ties later on in SliceStable are deterministic.
@@ -472,7 +480,7 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext) (ret []Proo
 		}
 		serverPriority[displayConfig.Key] = displayConfig.Priority
 		if len(altKey) > 0 {
-			if _, ok := serverPriority[altKey]; !ok {
+			if v, ok := serverPriority[altKey]; !ok || displayConfig.Priority < v {
 				serverPriority[altKey] = displayConfig.Priority
 			}
 		}
