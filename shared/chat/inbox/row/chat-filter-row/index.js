@@ -115,10 +115,7 @@ class ChatFilterRow extends React.PureComponent<Props, State> {
             color={Styles.globalColors.black_50}
             fontSize={16}
           />
-          <Kb.Text
-            type="BodySemibold"
-            style={styles.text}
-          >
+          <Kb.Text type="BodySemibold" style={styles.text}>
             Jump to chat
           </Kb.Text>
         </Kb.ClickableBox>
@@ -128,14 +125,12 @@ class ChatFilterRow extends React.PureComponent<Props, State> {
       <>
         <Kb.HeaderHocHeader
           borderless={true}
-          rightActions={[
-            {
-              icon: 'iconfont-compose',
-              label: 'New chat',
-              onPress: this.props.onNewChat,
-            },
-          ]}
-          titleComponent={(children)}
+          rightActions={[{
+            icon: 'iconfont-compose',
+            label: 'New chat',
+            onPress: this.props.onNewChat,
+          }]}
+          titleComponent={children}
         />
         {this.props.isLoading && (
           <Kb.Box style={styles.loadingContainer}>
