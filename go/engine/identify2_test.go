@@ -104,6 +104,7 @@ func (i *Identify2WithUIDTester) MakeProofChecker(_ libkb.RemoteProofChainLink) 
 	return i
 }
 func (i *Identify2WithUIDTester) GetServiceType(n string) libkb.ServiceType { return i }
+func (i *Identify2WithUIDTester) PickerSubtext() string                     { return "" }
 
 func (i *Identify2WithUIDTester) CheckStatus(m libkb.MetaContext, h libkb.SigHint,
 	pcm libkb.ProofCheckerMode, _ keybase1.MerkleStoreEntry) (*libkb.SigHint, libkb.ProofError) {
