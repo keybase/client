@@ -41,9 +41,8 @@ func NewAllCryptKeys() AllCryptKeys {
 }
 
 type NameInfo struct {
-	ID               chat1.TLFID
-	CanonicalName    string
-	IdentifyFailures []keybase1.TLFIdentifyFailure
+	ID            chat1.TLFID
+	CanonicalName string
 }
 
 func NewNameInfo() *NameInfo {

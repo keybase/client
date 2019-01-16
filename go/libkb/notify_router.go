@@ -661,7 +661,7 @@ func (n *NotifyRouter) HandleNewChatActivity(ctx context.Context, uid keybase1.U
 		return
 	}
 	var wg sync.WaitGroup
-	n.G().Log.CDebugf(ctx, "+ Sending NewChatActivity notification")
+	n.G().Log.CDebugf(ctx, "+ Sending NewChatActivity %v notification", source)
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		// If the connection wants the `Chat` notification type
@@ -1298,6 +1298,7 @@ func (n *NotifyRouter) HandleWalletAccountsUpdate(ctx context.Context, accounts 
 		return
 	}
 	n.G().Log.CDebugf(ctx, "+ Sending wallet AccountsUpdate")
+
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		// If the connection wants the `Wallet` notification type
 		if n.getNotificationChannels(id).Wallet {

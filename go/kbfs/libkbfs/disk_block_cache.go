@@ -33,6 +33,7 @@ const (
 	// 10 GB maximum storage by default
 	defaultDiskBlockCacheMaxBytes   uint64 = 10 * (1 << 30)
 	defaultBlockCacheTableSize      int    = 50 * opt.MiB
+	defaultBlockCacheBlockSize      int    = 4 * opt.MiB
 	evictionConsiderationFactor     int    = 3
 	defaultNumBlocksToEvict         int    = 10
 	defaultNumBlocksToEvictOnClear  int    = 100
@@ -196,6 +197,7 @@ func newDiskBlockCacheLocalFromStorage(
 	}()
 	blockDbOptions := *leveldbOptions
 	blockDbOptions.CompactionTableSize = defaultBlockCacheTableSize
+	blockDbOptions.BlockSize = defaultBlockCacheBlockSize
 	blockDb, err := openLevelDBWithOptions(blockStorage, &blockDbOptions)
 	if err != nil {
 		return nil, err

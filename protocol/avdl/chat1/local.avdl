@@ -594,6 +594,7 @@ protocol local {
 
   record NameQuery {
     string name;
+    union { null, TLFID } tlfID; // pass this if we already know the TLFID
     ConversationMembersType membersType;
   }
 

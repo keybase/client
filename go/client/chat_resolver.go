@@ -94,7 +94,7 @@ func (r *chatConversationResolver) resolveWithService(ctx context.Context, req c
 
 	// Convert argument
 	var fcArg chat1.FindConversationsLocalArg
-	if arg.Query.Name != nil {
+	if arg.Query.Name != nil && len(arg.Query.Name.Name) > 0 {
 		fcArg.TlfName = arg.Query.Name.Name
 		fcArg.MembersType = arg.Query.Name.MembersType
 	}

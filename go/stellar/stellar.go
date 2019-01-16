@@ -68,9 +68,10 @@ func CreateWallet(mctx libkb.MetaContext) (created bool, err error) {
 }
 
 type CreateWalletGatedResult struct {
-	JustCreated        bool // whether the user's wallet was created by this call
-	HasWallet          bool // whether the user now has a wallet
-	AcceptedDisclaimer bool // whether the user has accepted the disclaimer
+	JustCreated        bool  // whether the user's wallet was created by this call
+	HasWallet          bool  // whether the user now has a wallet
+	AcceptedDisclaimer bool  // whether the user has accepted the disclaimer
+	ErrorCreating      error // error encountered while attempting to create the wallet
 }
 
 // CreateWalletGated may create a wallet for the user.
@@ -81,12 +82,29 @@ func CreateWalletGated(mctx libkb.MetaContext) (res CreateWalletGatedResult, err
 	defer func() {
 		mctx.CDebugf("CreateWalletGated: (res:%+v, err:%v)", res, err != nil)
 	}()
+	res, err = createWalletGatedHelper(mctx)
+	if err == nil && res.ErrorCreating != nil {
+		// An error was encountered while creating the wallet.
+		// This could have been the result of losing a race against other threads.
+		// When multiple threads create a wallet only one will succeed.
+		// In that case we _do_ have a wallet now even though this thread failed,
+		// so run again for an accurate reply.
+		return createWalletGatedHelper(mctx)
+	}
+	return res, err
+}
+
+func createWalletGatedHelper(mctx libkb.MetaContext) (res CreateWalletGatedResult, err error) {
+	defer mctx.CTraceTimed("Stellar.createWalletGatedHelper", func() error { return err })()
+	defer func() {
+		mctx.CDebugf("createWalletGatedHelper: (res:%+v, err:%v)", res, err != nil)
+	}()
 	meUV, err := mctx.G().GetMeUV(mctx.Ctx())
 	if err != nil {
 		return res, err
 	}
 	if getGlobal(mctx.G()).CachedHasWallet(mctx.Ctx(), meUV) {
-		mctx.CDebugf("CreateWalletGated: local cache says we already have a wallet")
+		mctx.CDebugf("createWalletGatedHelper: local cache says we already have a wallet")
 		return CreateWalletGatedResult{
 			JustCreated:        false,
 			HasWallet:          true,
@@ -100,16 +118,18 @@ func CreateWalletGated(mctx libkb.MetaContext) (res CreateWalletGatedResult, err
 	res.HasWallet = scr.HasWallet
 	res.AcceptedDisclaimer = scr.AcceptedDisclaimer
 	if scr.HasWallet {
-		mctx.CDebugf("CreateWalletGated: server says we already have a wallet")
+		mctx.CDebugf("createWalletGatedHelper: server says we already have a wallet")
 		getGlobal(mctx.G()).InformHasWallet(mctx.Ctx(), meUV)
 		return res, nil
 	}
 	if !scr.ShouldCreate {
-		mctx.CDebugf("CreateWalletGated: server did not recommend wallet creation")
+		mctx.CDebugf("createWalletGatedHelper: server did not recommend wallet creation")
 		return res, nil
 	}
 	justCreated, err := CreateWallet(mctx)
 	if err != nil {
+		mctx.CDebugf("createWalletGatedHelper: error creating wallet: %v", err)
+		res.ErrorCreating = err
 		return res, nil
 	}
 	res.JustCreated = justCreated
@@ -2010,6 +2030,10 @@ func AllWalletAccounts(mctx libkb.MetaContext, remoter remote.Remoter) ([]stella
 			continue
 		}
 
+		if acct.AccountID.IsNil() {
+			mctx.CDebugf("accountLocal for entry %+v returned nil account id", entry)
+		}
+
 		accts = append(accts, acct)
 	}
 
@@ -2030,6 +2054,15 @@ func AllWalletAccounts(mctx libkb.MetaContext, remoter remote.Remoter) ([]stella
 		}
 		return accts[i].Name < accts[j].Name
 	})
+
+	// debugging empty account id
+	mctx.CDebugf("AllWalletAccounts returning %d accounts:", len(accts))
+	for i, a := range accts {
+		mctx.CDebugf("%d: %q (default: %v)", i, a.AccountID, a.IsDefault)
+		if a.AccountID.IsNil() {
+			mctx.CDebugf("%d: account id is empty (%+v) !!!!!!", a)
+		}
+	}
 
 	return accts, nil
 }
@@ -2056,7 +2089,11 @@ func accountLocal(mctx libkb.MetaContext, remoter remote.Remoter, entry stellar1
 		return empty, err
 	}
 
-	return AccountDetailsToWalletAccountLocal(mctx, details, entry.IsPrimary, entry.Name)
+	if details.AccountID.IsNil() {
+		mctx.CDebugf("AccountDetails for entry.AccountID %q returned empty account id (full details: %+v)", entry.AccountID, details)
+	}
+
+	return AccountDetailsToWalletAccountLocal(mctx, entry.AccountID, details, entry.IsPrimary, entry.Name)
 }
 
 // AccountDetails gets stellar1.AccountDetails for accountID.

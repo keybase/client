@@ -88,8 +88,9 @@ func (t *HackerNewsServiceType) PostInstructions(un string) *libkb.Markup {
 following text. Click here: https://news.ycombinator.com/user?id=` + un)
 }
 
-func (t *HackerNewsServiceType) DisplayName() string { return "HackerNews" }
-func (t *HackerNewsServiceType) GetTypeName() string { return "hackernews" }
+func (t *HackerNewsServiceType) DisplayName() string   { return "Hacker News" }
+func (t *HackerNewsServiceType) GetTypeName() string   { return "hackernews" }
+func (t *HackerNewsServiceType) PickerSubtext() string { return "news.ycombinator.com" }
 
 func (t *HackerNewsServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *libkb.Markup, err error) {
 	warning = libkb.FmtMarkup(`<p>We couldn't find a posted proof...<strong>yet</strong></p>`)

@@ -732,10 +732,7 @@ func TestChatSrvNewConversationMultiTeam(t *testing.T) {
 		topicName = "mi.ke"
 		_, err = tc.chatLocalHandler().NewConversationLocal(tc.startCtx, arg)
 		require.Error(t, err)
-		topicName = ""
-		if mt == chat1.ConversationMembersType_KBFS {
-			arg.TopicName = nil
-		}
+		arg.TopicName = nil
 		ncres, err = tc.chatLocalHandler().NewConversationLocal(tc.startCtx, arg)
 		switch mt {
 		case chat1.ConversationMembersType_KBFS:
@@ -5052,7 +5049,6 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 			})
 		require.NoError(t, err)
-		consumeIdentify(ctx, listener0) //impteam
 		consumeIdentify(ctx, listener0) //encrypt for first message
 
 		uid := users[0].User.GetUID().ToBytes()
@@ -5080,7 +5076,6 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 		})
 		require.NoError(t, err)
 		consumeIdentify(ctx, listener0) // EncryptionKeys
-		consumeIdentify(ctx, listener0) // DecryptionKeys
 
 		// user 1 sends a message to conv
 		ctx = ctc.as(t, users[1]).startCtx
@@ -5100,7 +5095,6 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 		})
 		require.NoError(t, err)
 		consumeIdentify(ctx, listener1) // EncryptionKeys
-		consumeIdentify(ctx, listener1) // DecryptionKeys
 
 		// user 1 finds the conversation
 		res, err = ctc.as(t, users[1]).chatLocalHandler().FindConversationsLocal(ctx,
@@ -5222,7 +5216,7 @@ func TestChatSrvDeleteConversation(t *testing.T) {
 			return
 		}
 
-		ctc := makeChatTestContext(t, "TestChatSrvTeamTypeChanged", 2)
+		ctc := makeChatTestContext(t, "TestChatSrvDeleteConversation", 2)
 		defer ctc.cleanup()
 		users := ctc.users()
 
@@ -5320,7 +5314,7 @@ func TestChatSrvDeleteConversation(t *testing.T) {
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "failed to receive stale event")
 		}
-		t.Logf("DELETED")
+
 		_, lconvs, _, err = storage.NewInbox(g).Read(context.TODO(), uid, &chat1.GetInboxQuery{
 			ConvID:       &channelConvID,
 			MemberStatus: []chat1.ConversationMemberStatus{chat1.ConversationMemberStatus_LEFT},

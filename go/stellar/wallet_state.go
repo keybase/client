@@ -192,7 +192,7 @@ func (w *WalletState) backgroundRefresh() {
 		rt := a.rtime
 		a.RUnlock()
 
-		mctx := libkb.NewMetaContextBackground(w.G())
+		mctx := libkb.NewMetaContextBackground(w.G()).WithLogTag("WABR")
 		if time.Since(rt) < 1*time.Second {
 			mctx.CDebugf("WalletState.backgroundRefresh skipping for %s due to recent refresh", accountID)
 			continue
@@ -246,7 +246,11 @@ func (w *WalletState) Details(ctx context.Context, accountID stellar1.AccountID)
 	if err != nil {
 		return stellar1.AccountDetails{}, err
 	}
-	return a.Details(ctx)
+	details, err := a.Details(ctx)
+	if err == nil && details.AccountID != accountID {
+		w.G().Log.CDebugf(ctx, "WalletState:Details account id mismatch.  returning %+v for account id %q", details, accountID)
+	}
+	return details, err
 }
 
 // PendingPayments is an override of remoter's PendingPayments that uses stored data.
@@ -448,7 +452,7 @@ func (a *AccountState) refresh(mctx libkb.MetaContext, router *libkb.NotifyRoute
 		a.Unlock()
 
 		if notify && router != nil {
-			accountLocal, err := AccountDetailsToWalletAccountLocal(mctx, details, isPrimary, name)
+			accountLocal, err := AccountDetailsToWalletAccountLocal(mctx, a.accountID, details, isPrimary, name)
 			if err == nil {
 				router.HandleWalletAccountDetailsUpdate(mctx.Ctx(), a.accountID, accountLocal)
 			}
