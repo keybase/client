@@ -4,30 +4,24 @@ import {Meta} from '../../../../common-adapters'
 import {globalColors, platformStyles, styleSheetCreate} from '../../../../styles'
 import {formatDurationShort} from '../../../../util/timestamp'
 
-export const ExplodingMeta = ({
-  explodingModeSeconds,
-  isNew,
-}: {
-  explodingModeSeconds: number,
-  isNew: boolean,
-}) => {
-  if (explodingModeSeconds === 0 && !isNew) {
+export const ExplodingMeta = ({explodingModeSeconds}: {explodingModeSeconds: number}) => {
+  if (explodingModeSeconds === 0) {
     // nothing to show
     return null
   }
   return (
     <Meta
-      backgroundColor={explodingModeSeconds === 0 ? globalColors.blue : globalColors.black_75_on_white}
-      noUppercase={explodingModeSeconds !== 0}
-      style={styles.newBadge}
+      backgroundColor={globalColors.black_75_on_white}
+      noUppercase={true}
+      style={styles.timeBadge}
       size="Small"
-      title={explodingModeSeconds === 0 ? 'New' : formatDurationShort(explodingModeSeconds * 1000)}
+      title={formatDurationShort(explodingModeSeconds * 1000)}
     />
   )
 }
 
 const styles = styleSheetCreate({
-  newBadge: platformStyles({
+  timeBadge: platformStyles({
     common: {
       borderColor: globalColors.white,
       borderRadius: 3,

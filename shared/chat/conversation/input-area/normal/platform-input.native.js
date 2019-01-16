@@ -132,7 +132,6 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
     // Hide the keyboard on mobile when showing the menu.
     NativeKeyboard.dismiss()
     this._whichMenu = menu
-    this.props.onSeenExplodingMessages()
     this.props.toggleShowingMenu()
   }
 
@@ -215,7 +214,6 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
             openFilePicker={this._openFilePicker}
             insertMentionMarker={this._insertMentionMarker}
             isExploding={this.props.isExploding}
-            isExplodingNew={this.props.isExplodingNew}
             showWalletsIcon={this.props.showWalletsIcon}
             explodingModeSeconds={this.props.explodingModeSeconds}
           />
@@ -232,7 +230,6 @@ const Action = ({
   insertMentionMarker,
   isEditing,
   isExploding,
-  isExplodingNew,
   onSubmit,
   openExplodingPicker,
   openFilePicker,
@@ -244,7 +241,6 @@ const Action = ({
         <ExplodingIcon
           explodingModeSeconds={explodingModeSeconds}
           isExploding={isExploding}
-          isExplodingNew={isExplodingNew}
           openExplodingPicker={openExplodingPicker}
         />
       )}
@@ -258,7 +254,6 @@ const Action = ({
         <ExplodingIcon
           explodingModeSeconds={explodingModeSeconds}
           isExploding={isExploding}
-          isExplodingNew={isExplodingNew}
           openExplodingPicker={openExplodingPicker}
         />
         {smallGap}
@@ -282,7 +277,7 @@ const Action = ({
     </Box2>
   )
 
-const ExplodingIcon = ({explodingModeSeconds, isExploding, isExplodingNew, openExplodingPicker}) => (
+const ExplodingIcon = ({explodingModeSeconds, isExploding, openExplodingPicker}) => (
   <NativeTouchableWithoutFeedback onPress={openExplodingPicker}>
     <Box style={explodingIconContainer}>
       <Icon
@@ -291,7 +286,7 @@ const ExplodingIcon = ({explodingModeSeconds, isExploding, isExplodingNew, openE
         type="iconfont-timer"
         fontSize={22}
       />
-      <ExplodingMeta explodingModeSeconds={explodingModeSeconds} isNew={isExplodingNew} />
+      <ExplodingMeta explodingModeSeconds={explodingModeSeconds} />
     </Box>
   </NativeTouchableWithoutFeedback>
 )
