@@ -7,7 +7,7 @@ export const anyWaiting = (state: {+waiting: Types.State}, ...keys: Array<string
   return keys.reduce((acc, k) => acc + state.waiting.counts.get(k, 0), 0) > 0
 }
 
-export const anyErrors = (state: {+waiting: Types.State}, ...keys: Array<string>): ?RPCError => {
+export const anyErrors = (state: {+waiting: Types.State}, keys: Array<string>): ?RPCError => {
   return keys.reduce((acc, k) => acc || state.waiting.errors.get(k, null), null)
 }
 

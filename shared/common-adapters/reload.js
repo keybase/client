@@ -106,7 +106,7 @@ const styles = Styles.styleSheetCreate({
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const keys = isArray(ownProps.waitingKeys) ? ownProps.waitingKeys : [ownProps.waitingKeys]
-  const error = Constants.anyErrors(state, ...keys)
+  const error = Constants.anyErrors(state, keys)
   return {
     needsReload: !!error,
     reason: error?.message ?? '',
