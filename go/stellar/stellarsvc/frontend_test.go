@@ -2647,30 +2647,6 @@ func TestGetInflationDestinations(t *testing.T) {
 	require.True(t, found, "expecting to find lumenaut in the list")
 }
 
-// TestWalletInitRace runs two wallet-creating RPCs in parallel.
-// They should both succeed. Once upon a time there was a race where
-// sometimes the two wallet creation attempts would collide on the
-// server and one would fail. The end result was that a wallet was created
-// but one of the RPCs Preamble returned an error that there was no wallet.
-func TestWalletInitRace(t *testing.T) {
-	tcs, cleanup := setupNTests(t, 1)
-	defer cleanup()
-
-	go func() {
-		err := tcs[0].Srv.AcceptDisclaimerLocal(context.Background(), 0)
-		assert.NoError(t, err)
-	}()
-
-	time.Sleep(1 * time.Second) // xxx give it a second to accept the disclaimer.
-	// To ellicit the race we want GetWalletAccountsLocal to try to post the first
-	// bundle while AcceptDiscalimerLocal is also trying to post the first bundle.
-	accounts, err := tcs[0].Srv.GetWalletAccountsLocal(context.Background(), 0)
-	require.NoError(t, err)
-	require.Len(t, accounts, 1)
-
-	check(t)
-}
-
 type chatListener struct {
 	libkb.NoopNotifyListener
 

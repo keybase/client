@@ -127,8 +127,6 @@ func PostWithChainlink(mctx libkb.MetaContext, clearBundle stellar1.Bundle) (err
 		return err
 	}
 
-	time.Sleep(10 * time.Second) // xxx temporary slowdown to ellicit race
-
 	mctx.CDebugf("Stellar.PostWithChainLink: post")
 	_, err = mctx.G().API.PostJSON(libkb.APIArg{
 		Endpoint:    "key/multi",
