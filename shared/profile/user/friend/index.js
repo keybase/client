@@ -21,7 +21,12 @@ class Friend extends React.PureComponent<Props> {
           centerChildren={true}
         >
           <Kb.Avatar size={64} username={p.username} style={styles.avatar} showFollowingStatus={true} />
-          <Kb.ConnectedUsernames type="Body" usernames={[p.username]} />
+          <Kb.ConnectedUsernames
+            type={Styles.isMobile ? 'BodySmallExtraBold' : 'Body'}
+            usernames={[p.username]}
+            colorBroken={true}
+            colorFollowing={true}
+          />
           <Kb.Text type="BodySmall" lineClamp={1} style={styles.fullname}>
             {p.fullname}
           </Kb.Text>
