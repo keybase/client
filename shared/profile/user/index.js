@@ -143,6 +143,41 @@ class FriendRow extends React.PureComponent<{|usernames: Array<string>, itemWidt
   }
 }
 
+class BioTeamProofs extends React.PureComponent<Props> {
+  render() {
+    return Styles.isMobile ? (
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.bioAndProofs}>
+        <Kb.Box2
+          direction="vertical"
+          fullWidth={true}
+          style={Styles.collapseStyles([
+            styles.backgroundColor,
+            {backgroundColor: this.props.backgroundColor},
+          ])}
+        />
+        <BioLayout {...this.props} />
+      </Kb.Box2>
+    ) : (
+      <Kb.Box2 key="bioTeam" direction="horizontal" fullWidth={true} style={styles.bioAndProofs}>
+        <Kb.Box2
+          direction="vertical"
+          fullWidth={true}
+          style={Styles.collapseStyles([
+            styles.backgroundColor,
+            {backgroundColor: this.props.backgroundColor},
+          ])}
+        />
+        <BioLayout {...this.props} />
+        <Kb.Box2 direction="vertical" style={styles.proofs}>
+          <Teams username={this.props.username} />
+          <Proofs {...this.props} />
+          <Folders profileUsername={this.props.username} />
+        </Kb.Box2>
+      </Kb.Box2>
+    )
+  }
+}
+
 type State = {|
   selectedFollowing: boolean,
   width: number,
@@ -186,43 +221,11 @@ class User extends React.Component<Props, State> {
     )
   }
 
-  _renderBioTeamProofs = () =>
-    Styles.isMobile ? (
-      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.bioAndProofs}>
-        <Kb.Box2
-          direction="vertical"
-          fullWidth={true}
-          style={Styles.collapseStyles([
-            styles.backgroundColor,
-            {backgroundColor: this.props.backgroundColor},
-          ])}
-        />
-        <BioLayout {...this.props} />
-      </Kb.Box2>
-    ) : (
-      <Kb.Box2 key="bioTeam" direction="horizontal" fullWidth={true} style={styles.bioAndProofs}>
-        <Kb.Box2
-          direction="vertical"
-          fullWidth={true}
-          style={Styles.collapseStyles([
-            styles.backgroundColor,
-            {backgroundColor: this.props.backgroundColor},
-          ])}
-        />
-        <BioLayout {...this.props} />
-        <Kb.Box2 direction="vertical" style={styles.proofs}>
-          <Teams username={this.props.username} />
-          <Proofs {...this.props} />
-          <Folders profileUsername={this.props.username} />
-        </Kb.Box2>
-      </Kb.Box2>
-    )
-
   _renderOtherUsers = ({item, section, index}) => (
     <FriendRow key={'friend' + index} usernames={item} itemWidth={section.itemWidth} />
   )
 
-  _bioTeamProofsSection = {data: ['bioTeamProofs'], renderItem: this._renderBioTeamProofs}
+  _bioTeamProofsSection = {data: ['bioTeamProofs'], renderItem: () => <BioTeamProofs {...this.props} />}
 
   _onMeasured = width => this.setState(p => (p.width !== width ? {width} : null))
   _keyExtractor = (item, index) => index
@@ -393,10 +396,9 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   searchLabel: {color: Styles.globalColors.white_75},
-  sectionList: {width: '100%'},
+  sectionList: Styles.platformStyles({common: {width: '100%'}, isElectron: {willChange: 'transform'}}),
   sectionListContentStyle: Styles.platformStyles({
     common: {backgroundColor: Styles.globalColors.white},
-    isElectron: {},
     isMobile: {minHeight: '100%'},
   }),
   teamLink: {color: Styles.globalColors.black_75},

@@ -22,7 +22,7 @@ class SectionList extends React.Component<Props, State> {
   _flat = []
   state = {currentSectionFlatIndex: 0}
   _listRef = React.createRef()
-  _timeoutID = null
+  _mounted = true
 
   componentDidUpdate(prevProps: Props, prevState: State) {
     if (this.props.items !== prevProps.items) {
@@ -32,8 +32,7 @@ class SectionList extends React.Component<Props, State> {
   }
 
   componentWillUnmount() {
-    this._timeoutID && clearTimeout(this._timeoutID)
-    this._timeoutID = null
+    this._mounted = false
   }
 
   /* Methods from native SectionList */
@@ -93,23 +92,24 @@ class SectionList extends React.Component<Props, State> {
   // This matches the way onEndReached works for sectionlist on RN
   _onEndReached = once(() => this.props.onEndReached && this.props.onEndReached())
 
+  _checkSticky = throttle(() => {
+    // need to defer this as the list itself is changing after scroll
+    if (this._listRef.current) {
+      const [firstIndex] = this._listRef.current.getVisibleRange()
+      const item = this._flat[firstIndex]
+      if (item) {
+        this.setState(p =>
+          p.currentSectionFlatIndex !== item.flatSectionIndex
+            ? {currentSectionFlatIndex: item.flatSectionIndex}
+            : null
+        )
+      }
+    }
+  }, 20)
+
   _onScroll = e => {
     e.currentTarget && this._checkOnEndReached(e.currentTarget)
-    this._timeoutID && clearTimeout(this._timeoutID)
-    // need to defer this as the list itself is changing after scroll
-    this._timeoutID = setTimeout(() => {
-      if (this._listRef.current) {
-        const [firstIndex] = this._listRef.current.getVisibleRange()
-        const item = this._flat[firstIndex]
-        if (item) {
-          this.setState(p =>
-            p.currentSectionFlatIndex !== item.flatSectionIndex
-              ? {currentSectionFlatIndex: item.flatSectionIndex}
-              : null
-          )
-        }
-      }
-    }, 10)
+    this._checkSticky()
   }
 
   _flatten = memoize(sections => {
