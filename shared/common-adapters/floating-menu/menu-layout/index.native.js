@@ -11,7 +11,7 @@ import type {MenuItem, MenuLayoutProps} from '.'
 type MenuRowProps = {
   ...MenuItem,
   isHeader?: boolean,
-  isNew?: ?boolean,
+  newTag?: ?boolean,
   index: number,
   numItems: number,
   onHidden?: ?() => void,
@@ -31,7 +31,7 @@ const MenuRow = (props: MenuRowProps) => (
         <Text type={'BodyBig'} style={styleRowText(props)}>
           {props.title}
         </Text>
-        {props.isNew && (
+        {props.newTag && (
           <Meta title="New" size="Small" backgroundColor={Styles.globalColors.blue} style={styles.badge} />
         )}
       </>
@@ -87,7 +87,10 @@ const styleRowText = (props: {isHeader?: boolean, danger?: boolean, disabled?: b
 }
 
 const styles = Styles.styleSheetCreate({
-  badge: {},
+  badge: {
+    alignSelf: 'center',
+    marginLeft: Styles.globalMargins.tiny,
+  },
   divider: {
     marginBottom: Styles.globalMargins.tiny,
     marginTop: Styles.globalMargins.tiny,
@@ -105,7 +108,7 @@ const styles = Styles.styleSheetCreate({
     justifyContent: 'flex-end',
   },
   row: {
-    ...Styles.globalStyles.flexBoxColumn,
+    ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     backgroundColor: Styles.globalColors.white,
     borderColor: Styles.globalColors.black_10,
