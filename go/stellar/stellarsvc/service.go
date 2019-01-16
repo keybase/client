@@ -82,16 +82,6 @@ func (s *Server) Preamble(inCtx context.Context, opts preambleArg) (mctx libkb.M
 		if err != nil {
 			return mctx, fin, err
 		}
-		if cwg.ErrorCreating != nil {
-			// An error was encountered while creating the wallet.
-			// This could have been due to other RPCs racing to create the wallet and
-			// colliding on the server.
-			// Just try one more time.
-			cwg, err = stellar.CreateWalletGated(mctx)
-			if err != nil {
-				return mctx, fin, err
-			}
-		}
 		if !cwg.HasWallet {
 			if !cwg.AcceptedDisclaimer {
 				// Synthesize an AppStatusError so the CLI and GUI can match on these errors.

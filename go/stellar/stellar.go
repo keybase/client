@@ -82,12 +82,29 @@ func CreateWalletGated(mctx libkb.MetaContext) (res CreateWalletGatedResult, err
 	defer func() {
 		mctx.CDebugf("CreateWalletGated: (res:%+v, err:%v)", res, err != nil)
 	}()
+	res, err = createWalletGatedHelper(mctx)
+	if err == nil && res.ErrorCreating != nil {
+		// An error was encountered while creating the wallet.
+		// This could have been the result of losing a race against other threads.
+		// When multiple threads create a wallet only one will succeed.
+		// In that case we _do_ have a wallet now even though this thread failed,
+		// so run again for an accurate reply.
+		return createWalletGatedHelper(mctx)
+	}
+	return res, err
+}
+
+func createWalletGatedHelper(mctx libkb.MetaContext) (res CreateWalletGatedResult, err error) {
+	defer mctx.CTraceTimed("Stellar.createWalletGatedHelper", func() error { return err })()
+	defer func() {
+		mctx.CDebugf("createWalletGatedHelper: (res:%+v, err:%v)", res, err != nil)
+	}()
 	meUV, err := mctx.G().GetMeUV(mctx.Ctx())
 	if err != nil {
 		return res, err
 	}
 	if getGlobal(mctx.G()).CachedHasWallet(mctx.Ctx(), meUV) {
-		mctx.CDebugf("CreateWalletGated: local cache says we already have a wallet")
+		mctx.CDebugf("createWalletGatedHelper: local cache says we already have a wallet")
 		return CreateWalletGatedResult{
 			JustCreated:        false,
 			HasWallet:          true,
@@ -101,17 +118,17 @@ func CreateWalletGated(mctx libkb.MetaContext) (res CreateWalletGatedResult, err
 	res.HasWallet = scr.HasWallet
 	res.AcceptedDisclaimer = scr.AcceptedDisclaimer
 	if scr.HasWallet {
-		mctx.CDebugf("CreateWalletGated: server says we already have a wallet")
+		mctx.CDebugf("createWalletGatedHelper: server says we already have a wallet")
 		getGlobal(mctx.G()).InformHasWallet(mctx.Ctx(), meUV)
 		return res, nil
 	}
 	if !scr.ShouldCreate {
-		mctx.CDebugf("CreateWalletGated: server did not recommend wallet creation")
+		mctx.CDebugf("createWalletGatedHelper: server did not recommend wallet creation")
 		return res, nil
 	}
 	justCreated, err := CreateWallet(mctx)
 	if err != nil {
-		mctx.CDebugf("CreateWalletGated: error creating wallet: %v", err)
+		mctx.CDebugf("createWalletGatedHelper: error creating wallet: %v", err)
 		res.ErrorCreating = err
 		return res, nil
 	}
