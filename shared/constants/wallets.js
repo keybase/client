@@ -394,14 +394,12 @@ export const paymentToYourInfoAndCounterparty = (
 } => {
   switch (p.delta) {
     case 'none':
-      // Need to guard check that sourceType is non-empty to handle the
-      // case when p is the empty value.
-      if (p.sourceType && p.sourceType !== 'ownaccount') {
-        throw new Error(`Unexpected sourceType ${p.sourceType} with delta=none`)
-      }
-      if (p.targetType && p.targetType !== 'ownaccount') {
-        throw new Error(`Unexpected targetType ${p.targetType} with delta=none`)
-      }
+      // In this case, sourceType and targetType are usually
+      // 'ownaccount', but they may be other values when offline,
+      // since the daemon has to check account names to mark them as
+      // 'ownaccount'.
+      //
+      // Also, they may be blank when p is the empty value.
       if (p.source !== p.target) {
         throw new Error(`source=${p.source} != target=${p.target} with delta=none`)
       }
