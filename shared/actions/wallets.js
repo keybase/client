@@ -266,15 +266,25 @@ const loadAssets = (state, action) => {
   // check that we've loaded the account, don't load assets if we don't have the account
   accountID = Constants.getAccount(state, accountID).accountID
   if (accountID && accountID !== Types.noAccountID) {
-    return RPCStellarTypes.localGetAccountAssetsLocalRpcPromise(
-      {accountID},
-      Constants.checkOnlineWaitingKey
-    ).then(res =>
-      WalletsGen.createAssetsReceived({
-        accountID,
-        assets: (res || []).map(assets => Constants.assetsResultToAssets(assets)),
+    return RPCStellarTypes.localGetAccountAssetsLocalRpcPromise({accountID}, Constants.checkOnlineWaitingKey)
+      .then(res =>
+        WalletsGen.createAssetsReceived({
+          accountID,
+          assets: (res || []).map(assets => Constants.assetsResultToAssets(assets)),
+        })
+      )
+      .catch(err => {
+        // Assume that for auto-selected we're on the Wallets tab.
+        if (
+          (action.type === WalletsGen.selectAccount && action.payload.reason === 'user-selected') ||
+          action.payload.reason === 'auto-selected'
+        ) {
+          // No need to throw black bars -- handled by Reloadable.
+          logger.warn(`Error selecting account: ${err.desc}`)
+        } else {
+          throw err
+        }
       })
-    )
   }
 }
 
