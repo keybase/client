@@ -11,9 +11,7 @@ import {
   NavigationProvider,
   SceneView,
 } from '@react-navigation/core'
-
-const Home = p => <p onClick={() => p.navigation.navigate('Docs')}>HOME</p>
-const Docs = p => <p onClick={() => p.navigation.navigate('Home')}>Docs</p>
+import routes from './routes'
 
 const AppView = p => {
   const activeKey = p.navigation.state.routes[p.navigation.state.index].key
@@ -26,9 +24,13 @@ const AppView = p => {
   )
 }
 
-const AppNavigator = createNavigator(AppView, SwitchRouter({Docs, Home}, {initialRouteName: 'Home'}), {
-  navigationOptions: () => ({}),
-})
+const AppNavigator = createNavigator(
+  AppView,
+  SwitchRouter(routes /* {Docs, Home} */, {initialRouteName: 'Home'}),
+  {
+    navigationOptions: () => ({}),
+  }
+)
 
 const createElectronApp = App => {
   const initAction = NavigationActions.init()
