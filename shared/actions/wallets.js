@@ -438,7 +438,7 @@ const loadPaymentDetail = (state, action) =>
       accountID: action.payload.accountID,
       id: Types.paymentIDToRPCPaymentID(action.payload.paymentID),
     },
-    Constants.getRequestDetailsWaitingKey(action.payload.paymentID)
+    [Constants.checkOnlineWaitingKey, Constants.getRequestDetailsWaitingKey(action.payload.paymentID)]
   ).then(res =>
     WalletsGen.createPaymentDetailReceived({
       accountID: action.payload.accountID,
