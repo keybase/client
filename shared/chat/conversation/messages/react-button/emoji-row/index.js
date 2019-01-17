@@ -2,10 +2,12 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
+import _emojis from './data'
+
+const emojis = _emojis.slice(0, 5)
 
 type Props = {
   attachTo: () => ?React.Component<any>,
-  emojis: Array<string>, // e.g. :smile:, :tada:
   onHidden: () => void,
   onOpenEmojiPicker: () => void,
   onReact: string => void,
@@ -64,7 +66,7 @@ const EmojiRow = (props: Props) => (
       >
         <HoverBox direction="horizontal" style={styles.innerContainer}>
           <Kb.Box2 direction="horizontal" gap="tiny" style={styles.emojisRow}>
-            {props.emojis.map(e => (
+            {emojis.map(e => (
               <HoverEmoji name={e} key={e} onClick={() => props.onReact(e)} />
             ))}
             <HoverEmoji name="" isReacjiIcon={true} onClick={props.onOpenEmojiPicker} key="reacji-icon" />
