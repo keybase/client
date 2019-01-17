@@ -479,7 +479,6 @@ func (a *AccountState) refresh(mctx libkb.MetaContext, router *libkb.NotifyRoute
 	seqno, err := a.remoter.AccountSeqno(mctx.Ctx(), a.accountID)
 	if err == nil {
 		a.Lock()
-		// XXX check pending here too?
 		if seqno > a.seqno {
 			a.seqno = seqno
 		}
@@ -571,6 +570,15 @@ func (a *AccountState) ForceSeqnoRefresh(mctx libkb.MetaContext) error {
 		mctx.CDebugf("ForceSeqnoRefresh updated seqno for %s: %d => %d", a.accountID, a.seqno, seqno)
 		a.seqno = seqno
 		return nil
+	}
+
+	// delete any stale pending tx (in case missed notification somehow)
+	for k, v := range a.pendingTxs {
+		age := time.Since(v.ctime)
+		if age > 30*time.Second {
+			mctx.CDebugf("ForceSeqnoRefresh removing pending tx %s due to old age (%s)", k, age)
+			delete(a.pendingTxs, k)
+		}
 	}
 
 	if len(a.pendingTxs) == 0 {
