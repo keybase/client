@@ -23,42 +23,14 @@ const WalletsIcon = (props: WalletsIconProps & Kb.OverlayParentProps) => (
       attachTo={props.getAttachmentRef}
       items={[
         {
+          newTag: props.isNew,
           onClick: props.onSend,
           title: 'Send Lumens (XLM)',
-          view: (
-            <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.menuItemBox} gap="small">
-              <Kb.Text type={Styles.isMobile ? 'BodySemibold' : 'Body'} style={styles.text}>
-                Send Lumens (XLM)
-              </Kb.Text>
-              {props.isNew && (
-                <Kb.Meta
-                  title="New"
-                  size="Small"
-                  backgroundColor={Styles.globalColors.blue}
-                  style={styles.badge}
-                />
-              )}
-            </Kb.Box2>
-          ),
         },
         {
+          newTag: props.isNew,
           onClick: props.onRequest,
           title: 'Request Lumens (XLM)',
-          view: (
-            <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.menuItemBox} gap="small">
-              <Kb.Text type={Styles.isMobile ? 'BodySemibold' : 'Body'} style={styles.text}>
-                Request Lumens (XLM)
-              </Kb.Text>
-              {props.isNew && (
-                <Kb.Meta
-                  title="New"
-                  size="Small"
-                  backgroundColor={Styles.globalColors.blue}
-                  style={styles.badge}
-                />
-              )}
-            </Kb.Box2>
-          ),
         },
       ]}
       onHidden={props.toggleShowingMenu}

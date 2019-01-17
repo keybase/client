@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -1234,6 +1235,47 @@ func TestAutoClaimLoop(t *testing.T) {
 
 	tcs[0].Backend.AssertBalance(getPrimaryAccountID(tcs[0]), "96.9999900")
 	tcs[1].Backend.AssertBalance(getPrimaryAccountID(tcs[1]), "2.9999800")
+}
+
+func TestShutdown(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	accountID := tcs[0].Backend.AddAccount()
+
+	_, err := tcs[0].Srv.walletState.AccountSeqnoAndBump(context.Background(), accountID)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	balances, err := tcs[0].Srv.BalancesLocal(context.Background(), accountID)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	require.Len(t, balances, 1)
+	require.Equal(t, balances[0].Asset.Type, "native")
+	require.Equal(t, balances[0].Amount, "10000")
+
+	var wg sync.WaitGroup
+	for i := 0; i < 10; i++ {
+		wg.Add(1)
+		go func() {
+			_, err := tcs[0].Srv.BalancesLocal(context.Background(), accountID)
+			if err != nil {
+				t.Fatal(err)
+			}
+			wg.Done()
+		}()
+	}
+
+	wg.Add(1)
+	go func() {
+		tcs[0].Srv.walletState.Shutdown()
+		wg.Done()
+	}()
+
+	wg.Wait()
 }
 
 func makeActiveDeviceOlder(t *testing.T, g *libkb.GlobalContext) {

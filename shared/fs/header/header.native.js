@@ -8,7 +8,7 @@ import {type FolderHeaderProps} from './header'
 const Header = ({title, path, onBack, onChat}: FolderHeaderProps) => (
   <Box style={styles.stylesFolderHeaderContainer}>
     <Box style={styles.stylesFolderHeaderRow}>
-      <BackButton onClick={onBack} />
+      <BackButton onClick={onBack} style={!onBack ? styles.onBackHidden : undefined} />
       <Box style={styles.stylesFolderHeaderRoot}>
         <Text center={true} type="BodySemibold" style={styles.stylesTitle}>
           {title}
@@ -33,6 +33,7 @@ const Header = ({title, path, onBack, onChat}: FolderHeaderProps) => (
 )
 
 const styles = styleSheetCreate({
+  onBackHidden: {opacity: 0},
   stylesAddNewBox: {
     minWidth: 50,
   },

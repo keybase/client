@@ -41,6 +41,10 @@ type prefetchRequest struct {
 	prefetchStatus PrefetchStatus
 	action         BlockRequestAction
 	sendCh         chan<- <-chan struct{}
+
+	// obseleted is a channel that can be used to cancel this request while
+	// it is waiting in the queue if the prefetch is no longer necessary.
+	obseleted <-chan struct{}
 }
 
 type ctxPrefetcherTagKey int
@@ -77,6 +81,11 @@ type rescheduledPrefetch struct {
 	timer *time.Timer
 }
 
+type queuedPrefetch struct {
+	waitingPrefetches int
+	channel           chan struct{}
+}
+
 type blockPrefetcher struct {
 	ctx    context.Context
 	config prefetcherConfig
@@ -110,6 +119,10 @@ type blockPrefetcher struct {
 	rescheduled map[kbfsblock.ID]*rescheduledPrefetch
 	// channel that's always closed, to avoid overhead on certain requests
 	closedCh <-chan struct{}
+
+	// map to channels for cancelling queued prefetches
+	queuedPrefetchHandlesLock sync.Mutex
+	queuedPrefetchHandles     map[kbfsblock.ID]queuedPrefetch
 }
 
 var _ Prefetcher = (*blockPrefetcher)(nil)
@@ -123,19 +136,20 @@ func newBlockPrefetcher(retriever BlockRetriever,
 	closedCh := make(chan struct{})
 	close(closedCh)
 	p := &blockPrefetcher{
-		config:               config,
-		makeNewBackOff:       defaultBackOffForPrefetcher,
-		retriever:            retriever,
-		prefetchRequestCh:    NewInfiniteChannelWrapper(),
-		prefetchCancelCh:     NewInfiniteChannelWrapper(),
-		prefetchRescheduleCh: NewInfiniteChannelWrapper(),
-		inFlightFetches:      NewInfiniteChannelWrapper(),
-		shutdownCh:           make(chan struct{}),
-		almostDoneCh:         make(chan struct{}, 1),
-		doneCh:               make(chan struct{}),
-		prefetches:           make(map[kbfsblock.ID]*prefetch),
-		rescheduled:          make(map[kbfsblock.ID]*rescheduledPrefetch),
-		closedCh:             closedCh,
+		config:                config,
+		makeNewBackOff:        defaultBackOffForPrefetcher,
+		retriever:             retriever,
+		prefetchRequestCh:     NewInfiniteChannelWrapper(),
+		prefetchCancelCh:      NewInfiniteChannelWrapper(),
+		prefetchRescheduleCh:  NewInfiniteChannelWrapper(),
+		inFlightFetches:       NewInfiniteChannelWrapper(),
+		shutdownCh:            make(chan struct{}),
+		almostDoneCh:          make(chan struct{}, 1),
+		doneCh:                make(chan struct{}),
+		prefetches:            make(map[kbfsblock.ID]*prefetch),
+		queuedPrefetchHandles: make(map[kbfsblock.ID]queuedPrefetch),
+		rescheduled:           make(map[kbfsblock.ID]*rescheduledPrefetch),
+		closedCh:              closedCh,
 	}
 	if config != nil {
 		p.log = config.MakeLogger("PRE")
@@ -329,6 +343,37 @@ func (p *blockPrefetcher) clearRescheduleState(blockID kbfsblock.ID) {
 	}
 }
 
+func (p *blockPrefetcher) cancelQueuedPrefetch(ptr BlockPointer) {
+	p.queuedPrefetchHandlesLock.Lock()
+	defer p.queuedPrefetchHandlesLock.Unlock()
+	qp, ok := p.queuedPrefetchHandles[ptr.ID]
+	if ok {
+		close(qp.channel)
+		delete(p.queuedPrefetchHandles, ptr.ID)
+		p.log.Debug("cancelled queued prefetch for block %s", ptr)
+	} else {
+		p.log.Debug("nothing to cancel for block %s", ptr)
+	}
+}
+
+func (p *blockPrefetcher) markQueuedPrefetchDone(ptr BlockPointer) {
+	p.queuedPrefetchHandlesLock.Lock()
+	defer p.queuedPrefetchHandlesLock.Unlock()
+	qp, present := p.queuedPrefetchHandles[ptr.ID]
+	if !present {
+		p.log.CDebugf(context.Background(), "queuedPrefetch not present in"+
+			" queuedPrefetchHandles: %s", ptr.ID)
+		return
+	}
+	if qp.waitingPrefetches == 1 {
+		delete(p.queuedPrefetchHandles, ptr.ID)
+	} else {
+		p.queuedPrefetchHandles[ptr.ID] = queuedPrefetch{
+			qp.waitingPrefetches - 1, qp.channel,
+		}
+	}
+}
+
 func (p *blockPrefetcher) cancelPrefetch(ptr BlockPointer, pp *prefetch) {
 	delete(pp.parents, ptr.RefNonce)
 	if len(pp.parents) > 0 {
@@ -390,8 +435,9 @@ func (p *blockPrefetcher) request(ctx context.Context, priority int,
 	if !isPrefetchWaiting {
 		// If the block isn't in the tree, we add it with a block count of 1 (a
 		// later TriggerPrefetch will come in and decrement it).
+		obseleted := make(chan struct{})
 		req := &prefetchRequest{ptr, block.NewEmptier(), kmd, priority,
-			lifetime, NoPrefetch, action, nil}
+			lifetime, NoPrefetch, action, nil, obseleted}
 		pre = p.newPrefetch(1, false, req)
 		p.prefetches[ptr.ID] = pre
 	}
@@ -750,6 +796,17 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 				continue
 			}
 
+			select {
+			case <-req.obseleted:
+				// This request was cancelled while it was waiting.
+				p.log.CDebugf(context.Background(),
+					"Request not processing because it was canceled already"+
+						": id=%v action=%v", req.ptr.ID, req.action)
+				continue
+			default:
+				p.markQueuedPrefetchDone(req.ptr)
+			}
+
 			ctx := context.TODO()
 			if isPrefetchWaiting {
 				ctx = pre.ctx
@@ -975,7 +1032,24 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 	}
 }
 
+func (p *blockPrefetcher) setObseletedOnQueuedPrefetch(req *prefetchRequest) {
+	p.queuedPrefetchHandlesLock.Lock()
+	defer p.queuedPrefetchHandlesLock.Unlock()
+	qp, present := p.queuedPrefetchHandles[req.ptr.ID]
+	if present {
+		req.obseleted = qp.channel
+		qp.waitingPrefetches++
+	} else {
+		obseleted := make(chan struct{})
+		req.obseleted = obseleted
+		p.queuedPrefetchHandles[req.ptr.ID] = queuedPrefetch{1, obseleted}
+	}
+}
+
 func (p *blockPrefetcher) triggerPrefetch(req *prefetchRequest) {
+	if req.obseleted == nil {
+		p.setObseletedOnQueuedPrefetch(req)
+	}
 	select {
 	case p.prefetchRequestCh.In() <- req:
 	case <-p.shutdownCh:
@@ -1004,7 +1078,8 @@ func (p *blockPrefetcher) ProcessBlockForPrefetch(ctx context.Context,
 	lifetime BlockCacheLifetime, prefetchStatus PrefetchStatus,
 	action BlockRequestAction) {
 	req := &prefetchRequest{ptr, block.NewEmptier(), kmd, priority, lifetime,
-		prefetchStatus, action, nil}
+		prefetchStatus, action, nil, nil}
+
 	if prefetchStatus == FinishedPrefetch {
 		// Finished prefetches can always be short circuited.
 		// If we're here, then FinishedPrefetch is already cached.
@@ -1039,7 +1114,7 @@ func (p *blockPrefetcher) WaitChannelForBlockPrefetch(
 	waitCh <-chan struct{}, err error) {
 	c := make(chan (<-chan struct{}), 1)
 	req := &prefetchRequest{
-		ptr, nil, nil, 0, TransientEntry, 0, BlockRequestSolo, c}
+		ptr, nil, nil, 0, TransientEntry, 0, BlockRequestSolo, c, nil}
 
 	select {
 	case p.prefetchRequestCh.In() <- req:
@@ -1060,6 +1135,7 @@ func (p *blockPrefetcher) WaitChannelForBlockPrefetch(
 }
 
 func (p *blockPrefetcher) CancelPrefetch(ptr BlockPointer) {
+	p.cancelQueuedPrefetch(ptr)
 	select {
 	case p.prefetchCancelCh.In() <- ptr:
 	case <-p.shutdownCh:

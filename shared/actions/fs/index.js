@@ -8,7 +8,6 @@ import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as ChatTypes from '../../constants/types/chat2'
 import * as Saga from '../../util/saga'
 import * as Flow from '../../util/flow'
-import * as SettingsConstants from '../../constants/settings'
 import * as Tabs from '../../constants/tabs'
 import engine from '../../engine'
 import * as NotificationsGen from '../notifications-gen'
@@ -606,8 +605,7 @@ const _getRouteChangeForOpenPathInFilesTab = (action: FsGen.OpenPathInFilesTabPa
   isMobile
     ? RouteTreeGen.createNavigateTo({
         path: [
-          Tabs.settingsTab,
-          SettingsConstants.fsTab,
+          Tabs.fsTab,
           // Construct all parent folders so back button works all the way back
           // to /keybase
           ...Types.getPathElements(action.payload.path)

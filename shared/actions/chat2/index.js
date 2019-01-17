@@ -2293,27 +2293,6 @@ function* setConvExplodingMode(_, action) {
   }
 }
 
-const handleSeeingExplodingMessages = (_, action) =>
-  RPCTypes.gregorGetStateRpcPromise().then(gregorState => {
-    const seenExplodingMessages =
-      gregorState.items && gregorState.items.find(i => i.item?.category === Constants.seenExplodingGregorKey)
-    let body = Date.now().toString()
-    if (seenExplodingMessages) {
-      const contents = seenExplodingMessages.item && seenExplodingMessages.item.body.toString()
-      if (isNaN(parseInt(contents, 10))) {
-        logger.info('handleSeeingExplodingMessages: bad seenExploding item body, updating category')
-      } else {
-        // do nothing
-        return
-      }
-    }
-    return RPCTypes.gregorUpdateCategoryRpcPromise({
-      body,
-      category: Constants.seenExplodingGregorKey,
-      dtime: {offset: 0, time: 0},
-    }).then(() => {})
-  })
-
 function* handleSeeingWallets(_, action) {
   const gregorState = yield* Saga.callPromise(RPCTypes.gregorGetStateRpcPromise)
   const seenWallets =
@@ -2516,17 +2495,6 @@ const gregorPushState = (state, action) => {
     }, [])
     actions.push(Chat2Gen.createUpdateConvExplodingModes({modes}))
   }
-
-  const seenExploding = items.find(i => i.item.category === Constants.seenExplodingGregorKey)
-  let isNew = true
-  if (seenExploding) {
-    const body = seenExploding.item.body.toString()
-    const when = parseInt(body, 10)
-    if (!isNaN(when)) {
-      isNew = Date.now() - when < Constants.newExplodingGregorOffset
-    }
-  }
-  actions.push(Chat2Gen.createSetExplodingMessagesNew({new: isNew}))
 
   const seenWallets = items.some(i => i.item.category === Constants.seenWalletsGregorKey)
   if (seenWallets && state.chat2.isWalletsNew) {
@@ -2815,10 +2783,6 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainGenerator<Chat2Gen.SetConvExplodingModePayload>(
     Chat2Gen.setConvExplodingMode,
     setConvExplodingMode
-  )
-  yield* Saga.chainAction<Chat2Gen.HandleSeeingExplodingMessagesPayload>(
-    Chat2Gen.handleSeeingExplodingMessages,
-    handleSeeingExplodingMessages
   )
   yield* Saga.chainGenerator<Chat2Gen.HandleSeeingWalletsPayload>(
     Chat2Gen.handleSeeingWallets,

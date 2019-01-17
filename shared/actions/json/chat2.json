@@ -437,13 +437,6 @@
       "_description": "Handle an update to our conversation exploding modes.",
       "modes": "Array<{conversationIDKey: Types.ConversationIDKey, seconds: number}>"
     },
-    "setExplodingMessagesNew": {
-      "_description": "Set whether exploding messages are a new feature or not.",
-      "new": "boolean"
-    },
-    "handleSeeingExplodingMessages": {
-      "_description": "Some things need to happen when the user interacts with the exploding messages feature. Trigger the handler that takes care of those things."
-    },
     "setWalletsOld": {
       "_description": "Set that wallets in chat is not new."
     },

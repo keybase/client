@@ -52,7 +52,14 @@ const (
 	conflictResolverRecordsDir           = "kbfs_conflicts"
 	conflictResolverRecordsVersionString = "v1"
 	conflictResolverRecordsDB            = "kbfsConflicts.leveldb"
+
+	// If we have failed at CR 10 times, probably it's never going to work and
+	// we should give up.
+	maxConflictResolutionAttempts = 10
 )
+
+var ErrTooManyCRAttempts = errors.New(
+	"too many attempts at conflict resolution on this TLF")
 
 // CtxCROpID is the display name for the unique operation
 // conflict resolution ID tag.
@@ -3212,7 +3219,7 @@ func getAndDeserializeConflicts(config Config, db *leveldb.DB,
 	key []byte) ([]conflictRecord, error) {
 	conflictsSoFarSerialized, err := db.Get(key, nil)
 	var conflictsSoFar []conflictRecord
-	switch err {
+	switch errors.Cause(err) {
 	case leveldb.ErrNotFound:
 		conflictsSoFar = nil
 	case nil:
@@ -3243,8 +3250,8 @@ func (cr *ConflictResolver) recordStartResolve(ci conflictInput) error {
 		return err
 	}
 
-	if len(conflictsSoFar) > 10 {
-		conflictsSoFar = conflictsSoFar[len(conflictsSoFar)-10:]
+	if len(conflictsSoFar) > maxConflictResolutionAttempts {
+		return ErrTooManyCRAttempts
 	}
 	conflictsSoFar = append(conflictsSoFar, conflictRecord{
 		Version:  conflictRecordVersion,
@@ -3330,11 +3337,16 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	defer func() { cr.config.MaybeFinishTrace(ctx, err) }()
 
 	err = cr.recordStartResolve(ci)
-	if err != nil {
+	switch errors.Cause(err) {
+	case ErrTooManyCRAttempts:
 		cr.log.CWarningf(ctx,
-			"Could not record conflict resolution attempt: %v", err)
-	} else {
+			"Too many failed CR attempts for folder: %v", cr.fbo.id())
+		return
+	case nil:
 		defer func() { cr.recordFinishResolve(ctx, ci, err) }()
+	default:
+		cr.log.CWarningf(ctx,
+			"Could not record conflict resolution attempt: %+v", err)
 	}
 
 	cr.log.CDebugf(ctx, "Starting conflict resolution with input %+v", ci)
