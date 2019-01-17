@@ -315,14 +315,14 @@ func (o ParamProofUsernameConfig) DeepCopy() ParamProofUsernameConfig {
 }
 
 type ParamProofLogoConfig struct {
-	Url    string `codec:"url" json:"url"`
-	FaIcon string `codec:"faIcon" json:"fa_icon"`
+	SvgBlack string `codec:"svgBlack" json:"svg_black"`
+	SvgFull  string `codec:"svgFull" json:"svg_full"`
 }
 
 func (o ParamProofLogoConfig) DeepCopy() ParamProofLogoConfig {
 	return ParamProofLogoConfig{
-		Url:    o.Url,
-		FaIcon: o.FaIcon,
+		SvgBlack: o.SvgBlack,
+		SvgFull:  o.SvgFull,
 	}
 }
 

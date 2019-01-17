@@ -45,8 +45,8 @@ func TestLoadParamServices(t *testing.T) {
 	}, gubbleConf.UsernameConfig)
 	require.NotZero(t, len(gubbleConf.BrandColor))
 	require.NotNil(t, gubbleConf.Logo)
-	require.NotZero(t, len(gubbleConf.Logo.Url))
-	require.NotZero(t, len(gubbleConf.Logo.FaIcon))
+	require.NotZero(t, len(gubbleConf.Logo.SvgBlack))
+	require.NotZero(t, len(gubbleConf.Logo.SvgFull))
 	require.NotZero(t, len(gubbleConf.DisplayName))
 	require.NotZero(t, len(gubbleConf.Description))
 
