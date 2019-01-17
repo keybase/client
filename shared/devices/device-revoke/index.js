@@ -26,7 +26,7 @@ class EndangeredTLFList extends React.Component<{endangeredTLFs: Array<string>}>
     if (!this.props.endangeredTLFs.length) return null
     return (
       <React.Fragment>
-        <Kb.Text type="Body" style={styles.centerText}>
+        <Kb.Text center={true} type="Body">
           You may lose access to these folders forever:
         </Kb.Text>
         <Kb.Box2 direction="vertical" style={styles.listContainer}>
@@ -71,7 +71,7 @@ const DeviceRevoke = (props: Props) => {
       style={styles.container}
     >
       <Kb.NameWithIcon icon={icon} title={props.device.name} titleStyle={styles.headerName} size="small" />
-      <Kb.Text type="Header" style={styles.centerText}>
+      <Kb.Text center={true} type="Header" >
         Are you sure you want to revoke{' '}
         {props.device.currentDevice ? (
           'your current device'
@@ -87,7 +87,7 @@ const DeviceRevoke = (props: Props) => {
       </Kb.Box2>
       <ActionButtons onCancel={props.onCancel} onSubmit={props.onSubmit} />
       {props.waiting && (
-        <Kb.Text type="BodySmallItalic" style={styles.centerText}>
+        <Kb.Text center={true} type="BodySmallItalic" >
           Calculating any side effects...
         </Kb.Text>
       )}
@@ -96,7 +96,6 @@ const DeviceRevoke = (props: Props) => {
 }
 
 const styles = Styles.styleSheetCreate({
-  centerText: {textAlign: 'center'},
   container: {padding: Styles.globalMargins.small},
   endangeredTLFContainer: Styles.platformStyles({
     isElectron: {alignSelf: 'center'},

@@ -19,17 +19,22 @@ const backgroundModes = [
   'Terminal',
 ]
 
-const styleMap = Object.keys(metaData).reduce((map, type: TextType) => {
-  const meta = metaData[type]
-  backgroundModes.forEach(mode => {
-    map[`${type}:${mode}`] = {
-      ...fontSizeToSizeStyle(meta.fontSize),
-      color: meta.colorForBackgroundMode[mode] || defaultColor(mode),
-      ...meta.styleOverride,
-    }
-  })
-  return map
-}, {})
+const styleMap = Object.keys(metaData).reduce(
+  (map, type: TextType) => {
+    const meta = metaData[type]
+    backgroundModes.forEach(mode => {
+      map[`${type}:${mode}`] = {
+        ...fontSizeToSizeStyle(meta.fontSize),
+        color: meta.colorForBackgroundMode[mode] || defaultColor(mode),
+        ...meta.styleOverride,
+      }
+    })
+    return map
+  },
+  {
+    center: {textAlign: 'center'},
+  }
+)
 
 const styles = NativeStyleSheet.create(styleMap)
 
@@ -92,9 +97,12 @@ class Text extends Component<Props> {
 
     let style
     if (!Object.keys(dynamicStyle).length) {
-      style = this.props.style ? [baseStyle, this.props.style] : baseStyle
+      style =
+        this.props.style || this.props.center
+          ? [baseStyle, this.props.center && styles.center, this.props.style]
+          : baseStyle
     } else {
-      style = [baseStyle, dynamicStyle, this.props.style]
+      style = [baseStyle, dynamicStyle, this.props.center && styles.center, this.props.style]
     }
 
     const onPress =

@@ -370,7 +370,7 @@ class Input extends React.PureComponent<Props, State> {
       <Box style={collapseStyles([containerStyle, this.props.style])}>
         <style>{inputRealCSS}</style>
         {!this.props.small && !this.props.hideLabel && (
-          <Text type="BodySmallSemibold" style={_floatingStyle}>
+          <Text center={true} type="BodySmallSemibold" style={_floatingStyle}>
             {floatingHintText}
           </Text>
         )}
@@ -381,7 +381,11 @@ class Input extends React.PureComponent<Props, State> {
         )}
         {this.props.multiline ? <textarea {...multilineProps} /> : <input {...singlelineProps} />}
         {!!this.props.errorText && !this.props.small && (
-          <Text type="BodySmallError" style={collapseStyles([_errorStyle, this.props.errorStyle])}>
+          <Text
+            center={true}
+            type="BodySmallError"
+            style={collapseStyles([_errorStyle, this.props.errorStyle])}
+          >
             {this.props.errorText}
           </Text>
         )}
@@ -397,7 +401,6 @@ const _bodySmallTextStyle = getTextStyle('BodySmall')
 
 const _errorStyle = {
   marginTop: globalMargins.xtiny,
-  textAlign: 'center',
   width: '100%',
 }
 
@@ -406,7 +409,6 @@ const _floatingStyle = platformStyles({
     color: globalColors.blue,
     display: 'block',
     minHeight: _bodySmallTextStyle.lineHeight,
-    textAlign: 'center',
   },
 })
 

@@ -198,7 +198,7 @@ class AccountSettings extends React.Component<SettingsProps> {
                 </Kb.Text>
               </Kb.ClickableBox>
               {props.isDefault && (
-                <Kb.Text style={styles.centerText} type="BodySmall">
+                <Kb.Text center={true} type="BodySmall">
                   You can’t remove your default account.
                 </Kb.Text>
               )}
@@ -216,7 +216,6 @@ const styles = Styles.styleSheetCreate({
     maxWidth: '100%',
   },
   alignSelfFlexStart: {alignSelf: 'flex-start'},
-  centerText: {textAlign: 'center'},
   deleteOpacity: {opacity: 0.3},
   divider: {
     marginBottom: Styles.globalMargins.tiny,

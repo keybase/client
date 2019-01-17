@@ -10,9 +10,15 @@ const StandardScreen = (props: Props) => {
   return (
     <NativeScrollView scrollEnabled={props.scrollEnabled}>
       {!!props.notification && (
-        <Kb.Box style={Styles.collapseStyles([styles.banner, props.notification.type === 'error' && styles.bannerError, props.styleBanner])}>
+        <Kb.Box
+          style={Styles.collapseStyles([
+            styles.banner,
+            props.notification.type === 'error' && styles.bannerError,
+            props.styleBanner,
+          ])}
+        >
           {typeof props.notification.message === 'string' ? (
-            <Kb.Text style={styles.bannerText} type="BodySmallSemibold">
+            <Kb.Text center={true} style={styles.bannerText} type="BodySmallSemibold">
               {props.notification.message}
             </Kb.Text>
           ) : (
@@ -20,7 +26,15 @@ const StandardScreen = (props: Props) => {
           )}
         </Kb.Box>
       )}
-      <Kb.Box style={Styles.collapseStyles([styles.content, !!props.notification && styles.contentMargin, props.style])}>{props.children}</Kb.Box>
+      <Kb.Box
+        style={Styles.collapseStyles([
+          styles.content,
+          !!props.notification && styles.contentMargin,
+          props.style,
+        ])}
+      >
+        {props.children}
+      </Kb.Box>
     </NativeScrollView>
   )
 }
@@ -37,13 +51,8 @@ const styles = Styles.styleSheetCreate({
     paddingLeft: Styles.globalMargins.tiny,
     paddingRight: Styles.globalMargins.tiny,
   },
-  bannerError: {
-    backgroundColor: Styles.globalColors.red,
-  },
-  bannerText: {
-    color: Styles.globalColors.white,
-    textAlign: 'center',
-  },
+  bannerError: {backgroundColor: Styles.globalColors.red},
+  bannerText: {color: Styles.globalColors.white},
   container: {
     ...Styles.globalStyles.flexBoxColumn,
     backgroundColor: Styles.globalColors.white,
@@ -55,9 +64,7 @@ const styles = Styles.styleSheetCreate({
     paddingLeft: Styles.globalMargins.medium,
     paddingRight: Styles.globalMargins.medium,
   },
-  contentMargin: {
-    marginTop: MIN_BANNER_HEIGHT,
-  },
+  contentMargin: { marginTop: MIN_BANNER_HEIGHT },
 })
 
 export default HeaderHoc(StandardScreen)

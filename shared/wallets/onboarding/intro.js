@@ -33,22 +33,22 @@ const Intro = (props: IntroProps) => {
       containerStyle={styles.container}
     >
       <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
-        <Kb.Text type="Header" style={styles.headerText}>
+        <Kb.Text center={true} type="Header" style={styles.headerText}>
           Keybase supports Stellar wallets
         </Kb.Text>
 
-        <Kb.Text type="Body" style={styles.bodyText}>
+        <Kb.Text center={true} type="Body" style={styles.bodyText}>
           You can now send or request Stellar Lumens to any Keybase user on{' '}
-          <Kb.Text type="BodyExtrabold" style={styles.bodyText}>
+          <Kb.Text center={true} type="BodyExtrabold" style={styles.bodyText}>
             Earth
           </Kb.Text>
           . Transactions settle in seconds, and cost a fraction of a penny.
         </Kb.Text>
 
-        <Kb.Text type="Body" style={styles.bodyText}>
+        <Kb.Text center={true} type="Body" style={styles.bodyText}>
           When sending and receiving Lumens, we automatically do the conversion in your favorite currency. We
           went ahead and set it to{' '}
-          <Kb.Text type="BodyExtrabold" style={styles.bodyText}>
+          <Kb.Text center={true} type="BodyExtrabold" style={styles.bodyText}>
             USD
           </Kb.Text>
           .
@@ -65,7 +65,7 @@ const Intro = (props: IntroProps) => {
 }
 
 const styles = Styles.styleSheetCreate({
-  bodyText: {color: Styles.globalColors.white, marginBottom: Styles.globalMargins.tiny, textAlign: 'center'},
+  bodyText: {color: Styles.globalColors.white, marginBottom: Styles.globalMargins.tiny},
   buttonLabelStyle: {color: Styles.globalColors.purple},
   buttonStyle: {width: '100%'},
   container: {backgroundColor: Styles.globalColors.purple2, padding: Styles.globalMargins.medium},
@@ -73,7 +73,6 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.white,
     marginBottom: Styles.globalMargins.small,
     marginTop: Styles.globalMargins.medium,
-    textAlign: 'center',
   },
   icon: {
     position: 'relative',

@@ -30,7 +30,7 @@ class Reload extends React.PureComponent<{onReload: () => void, reason: string},
   render() {
     return (
       <Box2 direction="vertical" centerChildren={true} style={styles.reload} gap="tiny">
-        <Text type="Header" style={styles.text}>
+        <Text center={true} type="Header">
           Oops... We're having a hard time loading this page. Try again?
         </Text>
         <Text type="Body" onClick={this._toggle}>
@@ -97,9 +97,6 @@ const styles = Styles.styleSheetCreate({
     maxHeight: '100%',
     maxWidth: '100%',
     width: '100%',
-  },
-  text: {
-    textAlign: 'center',
   },
 })
 

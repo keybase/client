@@ -75,7 +75,7 @@ const TabBarButton = (props: TabBarButtonProps) => {
         }}
       />
       {!!props.label && (
-        <Text type="BodySemibold" style={{textAlign: 'center', ...props.styleLabel}}>
+        <Text center={true} type="BodySemibold" style={{...props.styleLabel}}>
           {props.label}
         </Text>
       )}
