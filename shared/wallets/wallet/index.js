@@ -3,10 +3,10 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/wallets'
+import Reloadable from '../common/reloadable'
 import Header from './header/container'
 import Asset from '../asset/container'
 import Transaction from '../transaction/container'
-import {loadAccountsWaitingKey} from '../../constants/wallets'
 
 const stripePatternName = Styles.isMobile
   ? require('../../images/icons/pattern-stripes-blue-5-black-5-mobile.png')
@@ -22,7 +22,6 @@ export type Props = {
   onLoadMore: () => void,
   onMarkAsRead: () => void,
   sections: any[],
-  refresh: () => void,
 }
 
 const HistoryPlaceholder = () => (
@@ -158,9 +157,9 @@ const styles = Styles.styleSheetCreate({
 
 const MaybeReloadableWallet = (props: Props) =>
   Styles.isMobile ? (
-    <Kb.Reloadable waitingKeys={loadAccountsWaitingKey} onReload={props.refresh} reloadOnMount={true}>
+    <Reloadable>
       <Wallet {...props} />
-    </Kb.Reloadable>
+    </Reloadable>
   ) : (
     <Wallet {...props} />
   )
