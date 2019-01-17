@@ -420,31 +420,28 @@ class Profile extends Component<Props, State> {
     if (section.title === 'profile') {
       const trackerStateColors = stateColors(this.props.currentlyFollowing, this.props.trackerState)
       return (
-        <Kb.Box
-          style={{
-            ...styleHeader,
+        <Kb.HeaderHocHeader
+          borderless={true}
+          onLeftAction={this.props.onBack}
+          headerStyle={{
             backgroundColor: trackerStateColors.header.background,
             paddingBottom: Styles.globalMargins.tiny,
-            paddingLeft: Styles.globalMargins.tiny,
-            paddingRight: Styles.globalMargins.tiny,
-            paddingTop: Styles.globalMargins.tiny,
           }}
-        >
-          {this.props.onBack && (
-            <Kb.BackButton
-              title={null}
-              onClick={this.props.onBack}
-              style={styleBack}
-              iconColor={Styles.globalColors.white}
-            />
+          theme="dark"
+          titleComponent={(
+            <Kb.ClickableBox onClick={this.props.onSearch} style={styleSearchContainer}>
+              <Kb.Icon
+                color={Styles.globalColors.white_75}
+                fontSize={20}
+                style={styleSearch}
+                type="iconfont-search"
+              />
+              <Kb.Text style={styleSearchText} type="BodySemibold">
+                Search people
+              </Kb.Text>
+            </Kb.ClickableBox>
           )}
-          <Kb.ClickableBox onClick={this.props.onSearch} style={styleSearchContainer}>
-            <Kb.Icon style={styleSearch} type="iconfont-search" color={Styles.globalColors.white_75} />
-            <Kb.Text style={styleSearchText} type="BodySmallSemibold">
-              Search people
-            </Kb.Text>
-          </Kb.ClickableBox>
-        </Kb.Box>
+        />
       )
     } else {
       return (
@@ -694,17 +691,6 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-const styleBack = {
-  left: 0,
-  position: 'absolute',
-}
-
-const styleHeader = {
-  ...Styles.globalStyles.flexBoxRow,
-  alignItems: 'center',
-  justifyContent: 'center',
-}
-
 const styleProofNotice = {
   ...Styles.globalStyles.flexBoxRow,
   justifyContent: 'center',
@@ -735,20 +721,20 @@ const styleSearchContainer = {
   alignItems: 'center',
   backgroundColor: Styles.globalColors.black_10,
   borderRadius: Styles.borderRadius,
+  height: 32,
   justifyContent: 'center',
-  minHeight: 32,
-  minWidth: 200,
+  width: '100%',
 }
 
 const styleSearch = {
-  padding: Styles.globalMargins.xtiny,
+  paddingRight: Styles.globalMargins.tiny,
+  position: 'relative',
+  top: 1,
 }
 
 const styleSearchText = {
-  ...styleSearch,
   color: Styles.globalColors.white_75,
-  position: 'relative',
-  top: -1,
+  fontSize: 16,
 }
 
 const styleShowcasedTeamContainer = {

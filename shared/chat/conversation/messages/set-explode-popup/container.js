@@ -16,7 +16,6 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state, ownProps: OwnProps) => ({
-  isNew: Constants.getIsExplodingNew(state),
   items: Constants.messageExplodeDescriptions,
   selected: Constants.getConversationExplodingMode(state, ownProps.conversationIDKey),
 })
@@ -30,7 +29,6 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   attachTo: ownProps.attachTo,
-  isNew: stateProps.isNew,
   items: stateProps.items,
   onHidden: ownProps.onHidden,
   onSelect: dispatchProps.onSelect,
