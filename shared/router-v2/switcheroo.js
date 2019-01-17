@@ -3,6 +3,7 @@
 import React, {PureComponent} from 'react'
 import RenderRoute from '../route-tree/render-route'
 import type {RouteDefNode, RouteStateNode, Path} from '../route-tree'
+import Router from './router'
 
 type Props = {|
   useNewRouter: boolean,
@@ -15,7 +16,7 @@ type Props = {|
 class RouterSwitcheroo extends PureComponent<Props> {
   render() {
     if (this.props.useNewRouter) {
-      return null
+      return <Router />
     }
 
     return (
