@@ -155,13 +155,11 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-const MaybeReloadableWallet = (props: Props) =>
-  Styles.isMobile ? (
-    <Reloadable>
-      <Wallet {...props} />
-    </Reloadable>
-  ) : (
-    <Wallet {...props} />
-  )
+// If we're on mobile, this is the entry point, so we need to wrap
+// with Reloadable.
+const MaybeReloadableWallet = (props: Props) => {
+  const wallet = <Wallet {...props} />
+  return Styles.isMobile ? <Reloadable>{wallet}</Reloadable> : wallet
+}
 
 export default MaybeReloadableWallet
