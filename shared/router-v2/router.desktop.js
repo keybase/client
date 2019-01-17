@@ -26,7 +26,8 @@ const AppView = p => {
 
 const AppNavigator = createNavigator(
   AppView,
-  SwitchRouter(routes /* {Docs, Home} */, {initialRouteName: 'tabs:devicesTab:root'}),
+  // TODO don't hardcode this
+  SwitchRouter(routes, {initialRouteName: 'tabs:peopleTab:root'}),
   {
     navigationOptions: () => ({}),
   }
@@ -60,6 +61,8 @@ const createElectronApp = App => {
         </NavigationProvider>
       )
     }
+    // just so we have nice access to this in the action
+    navigate = route => this._dispatch(NavigationActions.navigate(route))
     _dispatch = action => {
       const lastState = this.state.nav
       const newState = App.router.getStateForAction(action, lastState)

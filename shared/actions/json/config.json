@@ -101,6 +101,7 @@
     },
     "setDeletedSelf": {"deletedUsername": "string"},
     "swapRouter": {"useNewRouter": "boolean"},
+    "setNavigator": {"navigator": "any"},
     "loggedOut": {},
     "loggedIn": {"causedByStartup": "boolean"},
     "updateMenubarWindowID": {"id": "number"},

@@ -20,6 +20,7 @@ import avatarSaga from './avatar'
 import {getEngine} from '../../engine'
 import {type TypedState} from '../../constants/reducer'
 import {updateServerConfigLastLoggedIn} from '../../app/server-config'
+import flags from '../../util/feature-flags'
 
 const setupEngineListeners = () => {
   getEngine().actionOnDisconnect('daemonError', () => {
@@ -378,6 +379,29 @@ const updateServerConfig = (state: TypedState) =>
       logger.info('updateServerConfig fail', e)
     })
 
+let _navigator = null
+const setNavigator = (_, action) => {
+  _navigator = action.payload.navigator
+}
+const navigateAppend = (_, action) => {
+  const p = action.payload.path.last
+    ? action.payload.path.last()
+    : action.payload.path[action.payload.path.length - 1]
+  let routeName = null
+  let params
+
+  if (typeof p === 'string') {
+    routeName = p
+  } else {
+    routeName = p.selected
+    params = p.props
+  }
+
+  routeName && _navigator && _navigator.navigate({params, routeName})
+}
+// maybe the same?
+const navigateTo = navigateAppend
+
 function* configSaga(): Saga.SagaGenerator<any, any> {
   // Tell all other sagas to register for incoming engine calls
   yield* Saga.chainAction<ConfigGen.InstallerRanPayload>(ConfigGen.installerRan, dispatchSetupEngineListeners)
@@ -437,6 +461,12 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   )
 
   yield* Saga.chainAction<ConfigGen.LinkPayload>(ConfigGen.link, handleAppLink)
+  yield* Saga.chainAction<ConfigGen.SetNavigatorPayload>(ConfigGen.setNavigator, setNavigator)
+
+  if (flags.useNewRouter) {
+    yield* Saga.chainAction<RouteTreeGen.NavigateAppendPayload>(RouteTreeGen.navigateAppend, navigateAppend)
+    yield* Saga.chainAction<RouteTreeGen.NavigateToPayload>(RouteTreeGen.navigateTo, navigateTo)
+  }
 
   // Kick off platform specific stuff
   yield Saga.spawn(PlatformSpecific.platformConfigSaga)
