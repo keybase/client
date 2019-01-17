@@ -4,6 +4,7 @@
 package libkb
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"crypto/sha512"
 	"encoding/hex"
@@ -30,6 +31,7 @@ type NodeHash interface {
 	String() string
 	bytes() []byte
 	IsNil() bool
+	Eq(h NodeHash) bool
 }
 
 type NodeHashShort [NodeHashLenShort]byte
@@ -63,8 +65,21 @@ func (h1 NodeHashShort) bytes() []byte {
 	return h1[:]
 }
 
+func (h1 NodeHashShort) IsNil() bool {
+	return false
+}
+
+func (h1 NodeHashShort) Eq(h2 NodeHash) bool {
+	return bytes.Equal(h1.bytes(), h2.bytes())
+}
+
 func (h1 NodeHashShort) ExportToHashMeta() keybase1.HashMeta {
 	return keybase1.HashMeta(h1.bytes())
+}
+
+func (h1 NodeHashLong) Check(s string) bool {
+	h2 := sha512.Sum512([]byte(s))
+	return FastByteArrayEq(h1[:], h2[:])
 }
 
 func (h1 NodeHashLong) String() string {
@@ -79,13 +94,8 @@ func (h1 NodeHashLong) IsNil() bool {
 	return false
 }
 
-func (h1 NodeHashShort) IsNil() bool {
-	return false
-}
-
-func (h1 NodeHashLong) Check(s string) bool {
-	h2 := sha512.Sum512([]byte(s))
-	return FastByteArrayEq(h1[:], h2[:])
+func (h1 NodeHashLong) Eq(h2 NodeHash) bool {
+	return bytes.Equal(h1.bytes(), h2.bytes())
 }
 
 func hashEq(h1 NodeHash, h2 NodeHash) bool {
@@ -125,6 +135,10 @@ func (h NodeHashAny) bytes() []byte {
 	default:
 		return nil
 	}
+}
+
+func (h NodeHashAny) Eq(h2 NodeHash) bool {
+	return bytes.Equal(h.bytes(), h2.bytes())
 }
 
 func (h *NodeHashAny) UnmarshalJSON(b []byte) error {
