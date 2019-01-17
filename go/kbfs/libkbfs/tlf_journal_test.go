@@ -1439,7 +1439,7 @@ func testTLFJournalPauseBlocksAndConvertBranch(t *testing.T,
 	var lock sync.Mutex
 	var puts []interface{}
 
-	unpauseBlockPutCh := make(chan struct{})
+	unpauseBlockPutCh := make(chan struct{}, 1)
 	bserver := orderedBlockServer{
 		lock:      &lock,
 		puts:      &puts,
