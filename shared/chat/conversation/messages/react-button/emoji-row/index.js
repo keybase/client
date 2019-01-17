@@ -53,29 +53,26 @@ class HoverEmoji extends React.Component<
   }
 }
 
-const EmojiRow = (props: Props) => (
-  <>
-    {props.visible && (
-      <Kb.FloatingBox
-        attachTo={props.attachTo}
-        onHidden={props.onHidden}
-        position="bottom right"
-        containerStyle={props.style}
-      >
-        <HoverBox direction="horizontal" style={styles.innerContainer}>
-          <Kb.Box2 direction="horizontal" gap="tiny" style={styles.emojisRow}>
-            {getEmojis()
-              .slice(0, 5)
-              .map(e => (
-                <HoverEmoji name={e} key={e} onClick={() => props.onReact(e)} />
-              ))}
-            <HoverEmoji name="" isReacjiIcon={true} onClick={props.onOpenEmojiPicker} key="reacji-icon" />
-          </Kb.Box2>
-        </HoverBox>
-      </Kb.FloatingBox>
-    )}
-  </>
-)
+const EmojiRow = (props: Props) =>
+  props.visible ? (
+    <Kb.FloatingBox
+      attachTo={props.attachTo}
+      onHidden={props.onHidden}
+      position="bottom right"
+      containerStyle={props.style}
+    >
+      <HoverBox direction="horizontal" style={styles.innerContainer}>
+        <Kb.Box2 direction="horizontal" gap="tiny" style={styles.emojisRow}>
+          {getEmojis()
+            .slice(0, 5)
+            .map(e => (
+              <HoverEmoji name={e} key={e} onClick={() => props.onReact(e)} />
+            ))}
+          <HoverEmoji name="" isReacjiIcon={true} onClick={props.onOpenEmojiPicker} key="reacji-icon" />
+        </Kb.Box2>
+      </HoverBox>
+    </Kb.FloatingBox>
+  ) : null
 
 const styles = Styles.styleSheetCreate({
   emojiBox: {
@@ -83,7 +80,7 @@ const styles = Styles.styleSheetCreate({
     alignItems: 'center',
     height: 16,
     justifyContent: 'center',
-    position: 'relative',
+    // position: 'relative',
     width: 16,
   },
   emojisRow: {
