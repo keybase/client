@@ -20,19 +20,33 @@ const HoverBox = Styles.styled(Kb.Box2)({
   ...Styles.transition('box-shadow'),
 })
 
-class HoverEmoji extends React.Component<{name: string, onClick: () => void}, {hovering: boolean}> {
+class HoverEmoji extends React.Component<
+  {name: string, onClick: () => void, isReacjiIcon?: boolean},
+  {hovering: boolean}
+> {
   state = {hovering: false}
   _setHovering = () => this.setState(s => (s.hovering ? null : {hovering: true}))
-  _setNotHovering = () => this.setState(s => (!s.hovering ? null : {hovering: false}))
+  _setNotHovering = () => this.setState(s => (s.hovering ? {hovering: false} : null))
   render() {
     return (
       <Kb.ClickableBox
         onClick={this.props.onClick}
         onMouseOver={this._setHovering}
         onMouseLeave={this._setNotHovering}
+        underlayColor={Styles.globalColors.transparent}
+        hoverColor={Styles.globalColors.transparent}
         style={styles.emojiBox}
       >
-        <Kb.Emoji size={this.state.hovering ? 22 : 16} emojiName={this.props.name} />
+        {this.props.isReacjiIcon ? (
+          <Kb.Icon
+            color={Styles.globalColors.black_50}
+            fontSize={this.state.hovering ? 22 : 16}
+            style={Kb.iconCastPlatformStyles(styles.reacjiIcon)}
+            type="iconfont-reacji"
+          />
+        ) : (
+          <Kb.Emoji size={this.state.hovering ? 22 : 16} emojiName={this.props.name} />
+        )}
       </Kb.ClickableBox>
     )
   }
@@ -52,6 +66,7 @@ const EmojiRow = (props: Props) => (
             {props.emojis.map(e => (
               <HoverEmoji name={e} key={e} onClick={() => props.onReact(e)} />
             ))}
+            <HoverEmoji name="" isReacjiIcon={true} onClick={() => {}} key="reacji-icon" />
           </Kb.Box2>
         </HoverBox>
       </Kb.FloatingBox>
@@ -86,6 +101,7 @@ const styles = Styles.styleSheetCreate({
       position: 'relative',
     },
   }),
+  reacjiIcon: {position: 'relative', top: 1},
 })
 
 export default EmojiRow
