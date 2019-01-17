@@ -21,6 +21,7 @@ const _FakeMessage = (props: Kb.OverlayParentProps) => (
         attachTo={props.getAttachmentRef}
         emojis={[':tada:', ':smiley:', ':slightly_smiling_face:', ':ok_hand:', ':fire:']}
         onHidden={() => props.setShowingMenu(false)}
+        onOpenEmojiPicker={Sb.action('onOpenEmojiPicker')}
         onReact={Sb.action('onReact')}
         style={{marginRight: 100, marginTop: -4}}
         visible={props.showingMenu}

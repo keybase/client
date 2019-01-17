@@ -7,6 +7,7 @@ type Props = {
   attachTo: () => ?React.Component<any>,
   emojis: Array<string>, // e.g. :smile:, :tada:
   onHidden: () => void,
+  onOpenEmojiPicker: () => void,
   onReact: string => void,
   style?: Styles.StylesCrossPlatform,
   visible: boolean,
@@ -66,7 +67,7 @@ const EmojiRow = (props: Props) => (
             {props.emojis.map(e => (
               <HoverEmoji name={e} key={e} onClick={() => props.onReact(e)} />
             ))}
-            <HoverEmoji name="" isReacjiIcon={true} onClick={() => {}} key="reacji-icon" />
+            <HoverEmoji name="" isReacjiIcon={true} onClick={props.onOpenEmojiPicker} key="reacji-icon" />
           </Kb.Box2>
         </HoverBox>
       </Kb.FloatingBox>
