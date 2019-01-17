@@ -1,5 +1,6 @@
 // @flow
 import * as Kb from '../common-adapters'
+import * as I from 'immutable'
 // import * as Styles from '../styles'
 import * as React from 'react'
 import TabBar from './tab-bar/container'
@@ -7,11 +8,34 @@ import {
   createNavigator,
   SwitchRouter,
   NavigationActions,
+  NavigationContext,
   getNavigation,
   NavigationProvider,
   SceneView,
 } from '@react-navigation/core'
 import routes from './routes'
+
+// deprecating routestate concept entirely
+const emptyMap = I.Map()
+// don't path this likely
+const emptyList = I.List()
+// TEMP component to give the old routeprops stuff
+class BridgeSceneView extends React.PureComponent {
+  render() {
+    const Component = this.props.component
+    return (
+      <NavigationContext.Provider value={this.props.navigation}>
+        <Component
+          routeProps={I.Map(this.props.screenProps)}
+          routePath={emptyList}
+          routeState={emptyMap}
+          screenProps={this.props.screenProps}
+          navigation={this.props.navigation}
+        />
+      </NavigationContext.Provider>
+    )
+  }
+}
 
 const AppView = p => {
   const activeKey = p.navigation.state.routes[p.navigation.state.index].key
@@ -19,7 +43,11 @@ const AppView = p => {
   return (
     <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
       <TabBar selectedTab={activeKey} />
-      <SceneView navigation={descriptor.navigation} component={descriptor.getComponent()} />
+      <BridgeSceneView
+        navigation={descriptor.navigation}
+        component={descriptor.getComponent()}
+        screenProps={descriptor.params}
+      />
     </Kb.Box2>
   )
 }
@@ -27,7 +55,7 @@ const AppView = p => {
 const AppNavigator = createNavigator(
   AppView,
   // TODO don't hardcode this
-  SwitchRouter(routes, {initialRouteName: 'tabs:peopleTab:root'}),
+  SwitchRouter(routes, {initialRouteName: 'tabs:peopleTab'}),
   {
     navigationOptions: () => ({}),
   }
@@ -63,6 +91,7 @@ const createElectronApp = App => {
     }
     // just so we have nice access to this in the action
     navigate = route => this._dispatch(NavigationActions.navigate(route))
+    goBack = () => this._dispatch(NavigationActions.back())
     _dispatch = action => {
       const lastState = this.state.nav
       const newState = App.router.getStateForAction(action, lastState)

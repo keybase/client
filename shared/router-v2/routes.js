@@ -21,14 +21,13 @@ const convert = ({route, tab, name}) => {
     r = r()
   }
 
-  const prefix = tab + ':'
-  let screenName = prefix + name
-  if (nameToTab[screenName]) {
+  if (nameToTab[name]) {
+    console.log('Routev2 bridge, saw dupe route, maybe a dupe?', name)
     // don't allow dupes, there are recursive routes so don't allow that
     return
   }
-  nameToTab[screenName] = tab
-  routes[screenName] = r.component
+  nameToTab[name] = tab
+  routes[name] = r.component
 
   const children = I.Map(r.children).toJS()
   Object.keys(children).forEach(name => {
@@ -37,7 +36,7 @@ const convert = ({route, tab, name}) => {
 }
 
 oldRoutes.forEach(({route, tab}) => {
-  convert({name: 'root', route, tab})
+  convert({name: tab, route, tab})
 })
 
 export default routes

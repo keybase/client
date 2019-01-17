@@ -401,6 +401,9 @@ const navigateAppend = (_, action) => {
 }
 // maybe the same?
 const navigateTo = navigateAppend
+const navigateUp = () => {
+  _navigator && _navigator.goBack()
+}
 
 function* configSaga(): Saga.SagaGenerator<any, any> {
   // Tell all other sagas to register for incoming engine calls
@@ -466,6 +469,7 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   if (flags.useNewRouter) {
     yield* Saga.chainAction<RouteTreeGen.NavigateAppendPayload>(RouteTreeGen.navigateAppend, navigateAppend)
     yield* Saga.chainAction<RouteTreeGen.NavigateToPayload>(RouteTreeGen.navigateTo, navigateTo)
+    yield* Saga.chainAction<RouteTreeGen.NavigateUpPayload>(RouteTreeGen.navigateUp, navigateUp)
   }
 
   // Kick off platform specific stuff
