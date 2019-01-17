@@ -96,20 +96,20 @@ const styles = Styles.styleSheetCreate({
   }),
 })
 
-const colorToBackgroundColorStyles = {
+const colorToBackgroundColorStyles = Styles.styleSheetCreate({
   blue: {backgroundColor: Styles.globalColors.blue},
   green: {backgroundColor: Styles.globalColors.green},
   grey: {backgroundColor: Styles.globalColors.lightGrey2},
   red: {backgroundColor: Styles.globalColors.red},
   yellow: {backgroundColor: Styles.globalColors.yellow},
-}
+})
 
-const colorToTextColorStyles = {
+const colorToTextColorStyles = Styles.styleSheetCreate({
   blue: {color: Styles.globalColors.white},
   green: {color: Styles.globalColors.white},
   grey: {color: Styles.globalColors.black_50},
   red: {color: Styles.globalColors.white},
   yellow: {color: Styles.globalColors.brown_75},
-}
+})
 
 export default Banner
