@@ -146,7 +146,6 @@ func NewClient(e *Env, config *ClientConfig, needCookie bool) *Client {
 	var xprt http.Transport
 	var timeout time.Duration
 
-	http2.ConfigureTransport(&xprt)
 	xprt.Dial = func(network, addr string) (c net.Conn, err error) {
 		c, err = net.Dial(network, addr)
 		if err != nil {
@@ -210,6 +209,7 @@ func NewClient(e *Env, config *ClientConfig, needCookie bool) *Client {
 		ret.cli.Jar = jar
 	}
 
+	http2.ConfigureTransport(&xprt)
 	ret.cli.Transport = &xprt
 	return ret
 }
