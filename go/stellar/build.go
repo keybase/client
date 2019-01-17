@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/engine"
+	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
@@ -413,7 +414,7 @@ func ReviewPaymentLocal(mctx libkb.MetaContext, stellarUI stellar1.UiInterface, 
 				recipientAssertion = name
 			}
 		}
-	} else if strings.Contains(recipientAssertion, "@") { // assume assertion resolution happened already.
+	} else if !isKeybaseAssertion(mctx, recipientAssertion) { // assume assertion resolution happened already.
 		data.ReadyToSend = true
 		wantFollowingCheck = false
 	}
@@ -587,6 +588,22 @@ func isFollowingForReview(mctx libkb.MetaContext, assertion string) (isFollowing
 		return nil
 	})
 	return isFollowing, err
+}
+
+func isKeybaseAssertion(mctx libkb.MetaContext, assertion string) bool {
+	expr, err := externals.AssertionParse(mctx.G(), string(assertion))
+	if err != nil {
+		mctx.CDebugf("error parsing assertion: %s", err)
+		return false
+	}
+	switch expr.(type) {
+	case libkb.AssertionKeybase:
+		return true
+	case *libkb.AssertionKeybase:
+		return true
+	default:
+		return false
+	}
 }
 
 func BuildRequestLocal(mctx libkb.MetaContext, arg stellar1.BuildRequestLocalArg) (res stellar1.BuildRequestResLocal, err error) {
