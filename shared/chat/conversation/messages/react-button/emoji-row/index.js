@@ -2,9 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
-import _emojis from './data'
-
-const emojis = _emojis.slice(0, 5)
+import getEmojis from './data'
 
 type Props = {
   attachTo: () => ?React.Component<any>,
@@ -66,9 +64,11 @@ const EmojiRow = (props: Props) => (
       >
         <HoverBox direction="horizontal" style={styles.innerContainer}>
           <Kb.Box2 direction="horizontal" gap="tiny" style={styles.emojisRow}>
-            {emojis.map(e => (
-              <HoverEmoji name={e} key={e} onClick={() => props.onReact(e)} />
-            ))}
+            {getEmojis()
+              .slice(0, 5)
+              .map(e => (
+                <HoverEmoji name={e} key={e} onClick={() => props.onReact(e)} />
+              ))}
             <HoverEmoji name="" isReacjiIcon={true} onClick={props.onOpenEmojiPicker} key="reacji-icon" />
           </Kb.Box2>
         </HoverBox>
