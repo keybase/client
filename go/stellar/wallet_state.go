@@ -625,11 +625,9 @@ func (a *AccountState) updateEntry(entry stellar1.BundleEntry) {
 // It doesn't attempt to add if a.done.  Should be called
 // after RLock() or Lock()
 func (a *AccountState) enqueueRefreshReq() {
-	/*
-		if a.done {
-			return
-		}
-	*/
+	if a.done {
+		return
+	}
 	select {
 	case a.refreshReqs <- a.accountID:
 	case <-time.After(5 * time.Second):
