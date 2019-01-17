@@ -516,6 +516,7 @@ const validateSecretKey = (state, action) => {
 const deletedAccount = state =>
   WalletsGen.createSelectAccount({
     accountID: state.wallets.accountMap.find(account => account.isDefault).accountID,
+    reason: 'auto-selected',
     show: true,
   })
 
@@ -525,7 +526,11 @@ const createdOrLinkedAccount = (state, action) => {
     return
   }
   if (action.payload.showOnCreation) {
-    return WalletsGen.createSelectAccount({accountID: action.payload.accountID, show: true})
+    return WalletsGen.createSelectAccount({
+      accountID: action.payload.accountID,
+      reason: 'auto-selected',
+      show: true,
+    })
   }
   if (action.payload.setBuildingTo) {
     return WalletsGen.createSetBuildingTo({to: action.payload.accountID})
@@ -568,6 +573,7 @@ const maybeSelectDefaultAccount = (state, action) => {
     if (maybeDefaultAccount) {
       return WalletsGen.createSelectAccount({
         accountID: maybeDefaultAccount.accountID,
+        reason: 'auto-selected',
       })
     }
   }
@@ -584,7 +590,11 @@ const cancelPayment = (state, action) => {
     .then(_ => {
       logger.info(`cancelPayment: successfully cancelled payment with ID ${pid}`)
       if (showAccount) {
-        return WalletsGen.createSelectAccount({accountID: Constants.getSelectedAccount(state), show: true})
+        return WalletsGen.createSelectAccount({
+          accountID: Constants.getSelectedAccount(state),
+          reason: 'auto-selected',
+          show: true,
+        })
       }
     })
     .catch(err => {
@@ -783,7 +793,7 @@ const exitFailedPayment = (state, action) => {
   const accountID = state.wallets.builtPayment.from
   return [
     WalletsGen.createAbandonPayment(),
-    WalletsGen.createSelectAccount({accountID, show: true}),
+    WalletsGen.createSelectAccount({accountID, reason: 'auto-selected', show: true}),
     WalletsGen.createLoadPayments({accountID}),
   ]
 }

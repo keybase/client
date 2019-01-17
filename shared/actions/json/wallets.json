@@ -264,7 +264,8 @@
     "selectAccount": {
       "_description": "Select an account. Optionally navigate to the account page.",
       "accountID": "Types.AccountID",
-      "show?": "boolean"
+      "reason": "'user-selected' | 'auto-selected' | 'from-chat'",
+      "show?": "boolean",
     },
     "buildPayment": {
       "_description": "Send a potential payment to the service for validation"
