@@ -257,7 +257,10 @@ const loadAssets = (state, action) => {
   // check that we've loaded the account, don't load assets if we don't have the account
   accountID = Constants.getAccount(state, accountID).accountID
   if (accountID && accountID !== Types.noAccountID) {
-    return RPCStellarTypes.localGetAccountAssetsLocalRpcPromise({accountID}).then(res =>
+    return RPCStellarTypes.localGetAccountAssetsLocalRpcPromise(
+      {accountID},
+      Constants.checkOnlineWaitingKey
+    ).then(res =>
       WalletsGen.createAssetsReceived({
         accountID,
         assets: (res || []).map(assets => Constants.assetsResultToAssets(assets)),
