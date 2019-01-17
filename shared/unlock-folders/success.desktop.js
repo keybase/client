@@ -7,10 +7,10 @@ const PaperKeyInput = ({onClose}: {onClose: () => void}) => (
   <div style={containerStyle}>
     <Icon type="icon-folders-private-success-48" />
     <Box style={globalStyles.flexBoxColumn}>
-      <Text style={successStyle} type="BodySemibold">
+      <Text center={true} type="BodySemibold">
         Success!
       </Text>
-      <Text style={{paddingLeft: 40, paddingRight: 40, textAlign: 'center'}} type="Body">
+      <Text center={true} style={{paddingLeft: 40, paddingRight: 40}} type="Body">
         Your paper key is now rekeying folders for this computer. It takes just a couple minutes but lasts
         forever, like the decision to have a child
       </Text>
@@ -30,10 +30,6 @@ const containerStyle = {
   position: 'absolute',
   right: 0,
   top: 40,
-}
-
-const successStyle = {
-  textAlign: 'center',
 }
 
 export default PaperKeyInput

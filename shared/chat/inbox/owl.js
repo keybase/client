@@ -12,19 +12,19 @@ export const Owl = () => (
       zIndex: -1,
     }}
   >
-    <Text type="BodySmall" style={{textAlign: 'center'}}>
+    <Text center={true} type="BodySmall">
       Sorry, no conversations match this.
     </Text>
-    <Text type="BodySmall" style={{textAlign: 'center'}}>
+    <Text center={true} type="BodySmall">
       ,___,
     </Text>
-    <Text type="BodySmall" style={{textAlign: 'center'}}>
+    <Text center={true} type="BodySmall">
       [O.o]
     </Text>
-    <Text type="BodySmall" style={{textAlign: 'center'}}>
+    <Text center={true} type="BodySmall">
       /)__)
     </Text>
-    <Text type="BodySmall" style={{textAlign: 'center'}}>
+    <Text center={true} type="BodySmall">
       -"--"-
     </Text>
   </Box>

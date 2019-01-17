@@ -97,21 +97,18 @@ const Header = (props: HeaderProps) =>
         <Kb.Text type="BodySmall">{props.timestamp}</Kb.Text>
       </Kb.Box2>
       {!!props.status && (
-        <Kb.Text type="BodySmall" style={styles.textAlignCenter}>
+        <Kb.Text center={true} type="BodySmall">
           {toUpper(props.status)}
         </Kb.Text>
       )}
       {!!props.balanceChange && (
-        <Kb.Text
-          type="BodyExtrabold"
-          style={Styles.collapseStyles([styles.textAlignCenter, {color: props.balanceChangeColor}])}
-        >
+        <Kb.Text center={true} type="BodyExtrabold" style={{color: props.balanceChangeColor}}>
           {props.balanceChange}
         </Kb.Text>
       )}
       {!!props.errorDetails && (
         <Kb.Box2 direction="horizontal" style={{maxWidth: 200}}>
-          <Kb.Text type="BodyExtrabold" style={styles.errorDetails}>
+          <Kb.Text center={true} type="BodyExtrabold" style={styles.errorDetails}>
             {props.errorDetails}
           </Kb.Text>
         </Kb.Box2>
@@ -181,13 +178,8 @@ const PaymentPopup = (props: Props) => {
 }
 
 const styles = Styles.styleSheetCreate({
-  colorWhite: {
-    color: Styles.globalColors.white,
-  },
-  errorDetails: {
-    color: Styles.globalColors.red,
-    textAlign: 'center',
-  },
+  colorWhite: {color: Styles.globalColors.white},
+  errorDetails: {color: Styles.globalColors.red},
   headerIcon: Styles.platformStyles({
     common: {height: headerIconHeight},
     isAndroid: {
@@ -231,9 +223,6 @@ const styles = Styles.styleSheetCreate({
   popupContainer: Styles.platformStyles({
     isElectron: {maxWidth: 240, minWidth: 200},
   }),
-  textAlignCenter: {
-    textAlign: 'center',
-  },
 })
 
 export default PaymentPopup

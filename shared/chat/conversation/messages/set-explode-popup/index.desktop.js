@@ -19,7 +19,7 @@ const Header = (props: HeaderProps) => (
           fontSize={48}
           style={platformStyles({isElectron: {display: 'block', lineHeight: '28px', maxHeight: 28}})}
         />
-        <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{textAlign: 'center'}}>
+        <Text center={true} type="BodySmallSemibold" backgroundMode="Announcements">
           Set a timeout on your messages and watch them
           E&nbsp;&nbsp;&nbsp;X&nbsp;&nbsp;&nbsp;P&nbsp;&nbsp;&nbsp;L&nbsp;&nbsp;&nbsp;O&nbsp;&nbsp;&nbsp;D&nbsp;&nbsp;&nbsp;E.
         </Text>

@@ -35,6 +35,7 @@ const box2 = (props: Box2Props) => {
     !props.fullHeight && !props.fullWidth && 'box2_centered',
     props.centerChildren && 'box2_centeredChildren',
     props.alignSelf && `box2_alignSelf_${props.alignSelf}`,
+    props.noShrink && 'box2_no_shrink',
     props.className,
   ]
     .filter(Boolean)

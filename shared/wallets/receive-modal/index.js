@@ -21,10 +21,10 @@ type Props = {|
 const ReceiveModal = (props: Props) => {
   const header = (
     <>
-      <Kb.Text type="BodySmallSemibold" style={styles.accountNameText}>
+      <Kb.Text center={true} type="BodySmallSemibold">
         {props.accountName}
       </Kb.Text>
-      <Kb.Text type={Styles.isMobile ? 'BodyBig' : 'Header'} style={styles.headerText}>
+      <Kb.Text center={true} type={Styles.isMobile ? 'BodyBig' : 'Header'} style={styles.headerText}>
         Receive
       </Kb.Text>
     </>
@@ -71,7 +71,7 @@ const ReceiveModal = (props: Props) => {
         />
       )}
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.sidePaddings}>
-        <Kb.Text type="Body" style={styles.instructionText}>
+        <Kb.Text center={true} type="Body" style={styles.instructionText}>
           People outside Keybase can send to:
         </Kb.Text>
         <Kb.Box2 direction="vertical" gap="tiny" fullWidth={true} style={styles.stellarAddressesContainer}>
@@ -115,9 +115,6 @@ const QrImage = ({address}) => {
 }
 
 const styles = Styles.styleSheetCreate({
-  accountNameText: {
-    textAlign: 'center',
-  },
   container: Styles.platformStyles({
     common: {
       paddingLeft: 0,
@@ -139,9 +136,6 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   headerText: Styles.platformStyles({
-    common: {
-      textAlign: 'center',
-    },
     isElectron: {
       marginBottom: Styles.globalMargins.small,
     },
@@ -154,13 +148,8 @@ const styles = Styles.styleSheetCreate({
       marginBottom: Styles.globalMargins.medium,
     },
   }),
-  infoNoteText: {
-    marginBottom: Styles.globalMargins.medium,
-    textAlign: 'center',
-  },
   instructionText: {
     marginBottom: Styles.globalMargins.small,
-    textAlign: 'center',
   },
   orText: {
     marginBottom: Styles.globalMargins.tiny,

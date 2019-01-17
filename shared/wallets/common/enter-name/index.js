@@ -49,7 +49,7 @@ const EnterName = (props: EnterNameProps) => {
       </Kb.Box2>
       <Kb.InfoNote>
         <Kb.Box2 direction="vertical" fullWidth={true}>
-          <Kb.Text type="BodySmall" style={styles.infoText}>
+          <Kb.Text center={true} type="BodySmall" style={styles.infoText}>
             Your account name is encrypted and only visible to you.
           </Kb.Text>
         </Kb.Box2>
@@ -74,9 +74,6 @@ const styles = Styles.styleSheetCreate({
     width: 48,
   },
   infoText: Styles.platformStyles({
-    common: {
-      textAlign: 'center',
-    },
     isMobile: {
       paddingLeft: Styles.globalMargins.medium,
       paddingRight: Styles.globalMargins.medium,

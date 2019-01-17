@@ -57,7 +57,8 @@ const AddPeople = (props: Props) => (
           {props.errorText.split('\n').map(line => (
             <Kb.Box key={line} style={Styles.globalStyles.flexBoxRow}>
               <Kb.Text
-                style={{margin: Styles.globalMargins.tiny, textAlign: 'center', width: '100%'}}
+                center={true}
+                style={{margin: Styles.globalMargins.tiny, width: '100%'}}
                 type="BodySemibold"
                 backgroundMode="HighRisk"
               >

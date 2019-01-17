@@ -19,7 +19,7 @@ const ResetUser = ({username, viewProfile, letThemIn, allowChatWithoutThem, chat
       style={{height: 64, margin: globalMargins.medium}}
     />
     <Box style={textContainerStyle}>
-      <Text type="BodySemibold" backgroundMode="Terminal" style={{textAlign: 'center'}}>
+      <Text center={true} type="BodySemibold" backgroundMode="Terminal">
         <Text type="BodySemiboldLink" backgroundMode="Terminal" onClick={viewProfile}>
           {username}{' '}
         </Text>

@@ -23,7 +23,8 @@ function Banner({error, style}: Props) {
       >
         <Text
           type="BodySmallSemibold"
-          style={{alignSelf: 'center', flex: 1, textAlign: 'center'}}
+center={true}
+          style={{alignSelf: 'center', flex: 1}}
           backgroundMode="HighRisk"
         >
           {error.message}

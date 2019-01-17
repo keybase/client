@@ -19,11 +19,12 @@ const Banner = (props: Props) => (
     centerChildren={true}
     style={collapseStyles([styles.container, {backgroundColor: backgroundModeToColor[props.background]}])}
   >
-    <Text type="BodySmallSemibold" style={styles.text} backgroundMode={props.background}>
+    <Text center={true} type="BodySmallSemibold" backgroundMode={props.background}>
       {props.text}
       {props.reviewProofs && (
         <Text
           type="BodySmallSemiboldPrimaryLink"
+          center={true}
           style={styles.secondText}
           backgroundMode={props.background}
           onClick={props.onAction}
@@ -35,6 +36,7 @@ const Banner = (props: Props) => (
     {props.sendFailed && (
       <Text
         type="BodySmallSemiboldPrimaryLink"
+        center={true}
         style={styles.secondText}
         backgroundMode={props.background}
         onClick={props.onAction}
@@ -52,13 +54,7 @@ const styles = styleSheetCreate({
     paddingBottom: globalMargins.tiny,
     paddingTop: globalMargins.tiny,
   },
-  secondText: {
-    paddingLeft: globalMargins.xtiny,
-    textAlign: 'center',
-  },
-  text: {
-    textAlign: 'center',
-  },
+  secondText: {paddingLeft: globalMargins.xtiny},
 })
 
 export default Banner

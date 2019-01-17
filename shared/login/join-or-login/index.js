@@ -29,7 +29,7 @@ const Intro = (props: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
     {!!props.bannerMessage && (
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.banner}>
-        <Kb.Text type="BodySmallSemibold" style={styles.bannerMessage}>
+        <Kb.Text center={true} type="BodySmallSemibold" style={styles.bannerMessage}>
           {props.bannerMessage}
         </Kb.Text>
       </Kb.Box2>
@@ -77,7 +77,7 @@ const styles = Styles.styleSheetCreate({
     paddingTop: Styles.globalMargins.tiny,
     position: 'absolute',
   },
-  bannerMessage: {color: Styles.globalColors.white, textAlign: 'center'},
+  bannerMessage: {color: Styles.globalColors.white},
   innerContainer: {
     alignItems: 'center',
     justifyContent: 'center',

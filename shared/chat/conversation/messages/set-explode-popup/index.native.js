@@ -12,10 +12,10 @@ const Announcement = () => (
       fontSize={64}
       style={{marginBottom: -10, marginTop: -10}}
     />
-    <Text type="BodySmallSemibold" backgroundMode="Announcements" style={styles.headline}>
+    <Text center={true} type="BodySmallSemibold" backgroundMode="Announcements" style={styles.headline}>
       Set a timeout on your messages and watch them
     </Text>
-    <Text type="BodySmallSemibold" backgroundMode="Announcements" style={styles.headline}>
+    <Text center={true} type="BodySmallSemibold" backgroundMode="Announcements" style={styles.headline}>
       E&nbsp;&nbsp;&nbsp;X&nbsp;&nbsp;&nbsp;P&nbsp;&nbsp;&nbsp;L&nbsp;&nbsp;&nbsp;O&nbsp;&nbsp;&nbsp;D&nbsp;&nbsp;&nbsp;E.
     </Text>
     <Text
@@ -40,7 +40,6 @@ const styles = styleSheetCreate({
     flexGrow: 1,
     paddingLeft: globalMargins.medium,
     paddingRight: globalMargins.medium,
-    textAlign: 'center',
   },
 })
 
