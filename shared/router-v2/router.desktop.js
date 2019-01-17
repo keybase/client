@@ -26,7 +26,7 @@ const AppView = p => {
 
 const AppNavigator = createNavigator(
   AppView,
-  SwitchRouter(routes /* {Docs, Home} */, {initialRouteName: 'Home'}),
+  SwitchRouter(routes /* {Docs, Home} */, {initialRouteName: 'tabs:devicesTab:root'}),
   {
     navigationOptions: () => ({}),
   }
