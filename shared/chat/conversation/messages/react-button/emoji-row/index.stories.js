@@ -17,13 +17,13 @@ const _FakeMessage = (props: Kb.OverlayParentProps) => (
       <Kb.Text type="HeaderExtrabold" style={{...Styles.globalStyles.italic}}>
         1-800-FAKEMESSAGE
       </Kb.Text>
+      <EmojiRow
+        attachTo={props.getAttachmentRef}
+        onHidden={() => props.setShowingMenu(false)}
+        style={{backgroundColor: Styles.globalColors.white, position: 'relative', right: 100, top: -4}}
+        visible={props.showingMenu}
+      />
     </Kb.Box2>
-    <EmojiRow
-      attachTo={props.getAttachmentRef}
-      onHidden={() => props.setShowingMenu(false)}
-      style={{backgroundColor: Styles.globalColors.white, position: 'relative', right: 100, top: -4}}
-      visible={props.showingMenu}
-    />
   </>
 )
 const FakeMessage = Kb.OverlayParentHOC(_FakeMessage)
