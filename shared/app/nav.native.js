@@ -196,7 +196,6 @@ class MainNavStack extends Component<any, {verticalOffset: number}> {
       <Kb.NativeView style={styles.content}>
         {stacks}
         {![chatTab, peopleTab].includes(props.routeSelected) ? <Offline key="offline" /> : null}
-        <GlobalError key="globalError" />
         {!props.hideNav && (
           <Kb.NativeSafeAreaView style={props.keyboardShowing ? styles.noTabSafeArea : styles.tabSafeArea}>
             <AnimatedTabBar show={!props.keyboardShowing}>
@@ -369,6 +368,7 @@ class Nav extends Component<Props, {keyboardShowing: boolean}> {
       <>
         {shim}
         {layers}
+        <GlobalError key="globalError" />
         <RpcStats />
       </>
     )
