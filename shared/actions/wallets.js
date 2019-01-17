@@ -231,8 +231,7 @@ const loadAccounts = (state, action) =>
       })
     })
     .catch(err => {
-      const reason = (action: Object).reason || ''
-      if (reason === 'initial-load') {
+      if (action.type === WalletsGen.loadAccounts && action.payload.reason === 'initial-load') {
         // No need to throw black bars -- handled by Reloadable.
         logger.warn(`Error loading accounts: ${err.desc}`)
       } else {
