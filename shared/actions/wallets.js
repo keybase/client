@@ -86,7 +86,7 @@ const openSendRequestForm = (state, action) => {
   // load accounts for default display currency
   const accountsLoaded = Constants.getAccounts(state).size > 0
   return [
-    !accountsLoaded && WalletsGen.createLoadAccounts(),
+    !accountsLoaded && WalletsGen.createLoadAccounts({reason: 'open-send-req-form'}),
     RouteTreeGen.createNavigateAppend({path: [Constants.sendRequestFormRouteKey]}),
   ]
 }

@@ -14,7 +14,7 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  reload: () => dispatch(WalletsGen.createLoadAccounts()),
+  reload: () => dispatch(WalletsGen.createLoadAccounts({reason: 'initial-load'})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
