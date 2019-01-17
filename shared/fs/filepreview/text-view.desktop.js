@@ -32,8 +32,8 @@ body{
   margin: 0;
   color: ${Styles.globalColors.black};
   line-height: 1.38;
-  font-size: 13;
-  font-family: ${Styles.collapseStyles([Styles.globalStyles.fontTerminal.fontFamily])}
+  font-size: 14;
+  font-family: ${Styles.globalStyles.fontTerminal.fontFamily}
 }
 `
 
