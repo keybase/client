@@ -27,7 +27,8 @@ body{
   color: ${Styles.globalColors.black};
   font-size: 15;
   line-height: 1.6;
-  font-family: ${Styles.collapseStyles([Styles.globalStyles.fontTerminal.fontFamily])}
+  font-family: ${Styles.globalStyles.fontTerminal.fontFamily}
+}
 `
 
 const injections: WebViewInjections = {
