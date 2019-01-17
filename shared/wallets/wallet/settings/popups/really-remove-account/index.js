@@ -65,6 +65,7 @@ class ReallyRemoveAccountPopup extends React.Component<Props, State> {
             disabled={this.props.loading}
           />,
         ]}
+        safeAreaViewTopStyle={styles.background}
       >
         <Kb.Box2 centerChildren={true} direction="vertical" style={styles.flexOne} fullWidth={true}>
           <Kb.Icon
