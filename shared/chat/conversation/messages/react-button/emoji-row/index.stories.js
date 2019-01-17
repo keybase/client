@@ -19,8 +19,9 @@ const _FakeMessage = (props: Kb.OverlayParentProps) => (
       </Kb.Text>
       <EmojiRow
         attachTo={props.getAttachmentRef}
+        emojis={[':tada:', ':smiley:', ':slightly_smiling_face:', ':ok_hand:', ':fire:']}
         onHidden={() => props.setShowingMenu(false)}
-        style={{backgroundColor: Styles.globalColors.white, position: 'relative', right: 100, top: -4}}
+        style={{marginRight: 100, marginTop: -4}}
         visible={props.showingMenu}
       />
     </Kb.Box2>
