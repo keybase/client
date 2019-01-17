@@ -447,6 +447,9 @@ const markAsRead = (state, action) =>
   RPCStellarTypes.localMarkAsReadLocalRpcPromise({
     accountID: action.payload.accountID,
     mostRecentID: Types.paymentIDToRPCPaymentID(action.payload.mostRecentID),
+  }).catch(err => {
+    // No need to throw black bars.
+    logger.warn(`Error marking as read: ${err.desc}`)
   })
 
 const linkExistingAccount = (state, action) => {
