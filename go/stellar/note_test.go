@@ -2,7 +2,6 @@ package stellar
 
 import (
 	"context"
-	"strings"
 	"testing"
 
 	"github.com/keybase/client/go/kbtest"
@@ -65,7 +64,9 @@ func TestNoteLengthLimit(t *testing.T) {
 
 	// verify we can encrypt content with max length
 	pre := sampleNote()
-	pre.Note = strings.Repeat(".", libkb.MaxStellarPaymentNoteLength)
+	note, err := libkb.RandString("", libkb.MaxStellarPaymentNoteLength)
+	require.NoError(t, err)
+	pre.Note = note[:libkb.MaxStellarPaymentNoteLength]
 	expect := pre.DeepCopy()
 	encNote, err := NoteEncryptB64(libkb.NewMetaContextForTest(tc), pre, &uv2)
 	require.NoError(t, err)
