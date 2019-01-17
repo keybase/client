@@ -7,6 +7,7 @@ type Props = {
   attachTo: () => ?React.Component<any>,
   emojis: Array<string>, // e.g. :smile:, :tada:
   onHidden: () => void,
+  onReact: string => void,
   style?: Styles.StylesCrossPlatform,
   visible: boolean,
 }
@@ -16,7 +17,26 @@ const HoverBox = Styles.styled(Kb.Box2)({
     boxShadow: 'none',
   },
   boxShadow: '0 0 15px 0 rgba(0, 0, 0, 0.2)',
+  ...Styles.transition('box-shadow'),
 })
+
+class HoverEmoji extends React.Component<{name: string, onClick: () => void}, {hovering: boolean}> {
+  state = {hovering: false}
+  _setHovering = () => this.setState(s => (s.hovering ? null : {hovering: true}))
+  _setNotHovering = () => this.setState(s => (!s.hovering ? null : {hovering: false}))
+  render() {
+    return (
+      <Kb.ClickableBox
+        onClick={this.props.onClick}
+        onMouseOver={this._setHovering}
+        onMouseLeave={this._setNotHovering}
+        style={styles.emojiBox}
+      >
+        <Kb.Emoji size={this.state.hovering ? 22 : 16} emojiName={this.props.name} />
+      </Kb.ClickableBox>
+    )
+  }
+}
 
 const EmojiRow = (props: Props) => (
   <>
@@ -28,9 +48,9 @@ const EmojiRow = (props: Props) => (
         containerStyle={props.style}
       >
         <HoverBox direction="horizontal" style={styles.innerContainer}>
-          <Kb.Box2 direction="horizontal" gap="tiny" style={styles.emojiContainer}>
+          <Kb.Box2 direction="horizontal" gap="tiny" style={styles.emojisRow}>
             {props.emojis.map(e => (
-              <Kb.EmojiIfExists size={16} lineClamp={1} emojiName={e} key={e} />
+              <HoverEmoji name={e} key={e} onClick={() => props.onReact(e)} />
             ))}
           </Kb.Box2>
         </HoverBox>
@@ -40,7 +60,15 @@ const EmojiRow = (props: Props) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  emojiContainer: {
+  emojiBox: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    height: 16,
+    justifyContent: 'center',
+    position: 'relative',
+    width: 16,
+  },
+  emojisRow: {
     paddingBottom: Styles.globalMargins.xtiny,
     paddingLeft: Styles.globalMargins.xsmall,
     paddingRight: Styles.globalMargins.xsmall,
