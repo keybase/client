@@ -104,9 +104,10 @@ type SimpleFS struct {
 	// values are removed by SimpleFSWait (or SimpleFSCancel).
 	inProgress map[keybase1.OpID]*inprogress
 
-	subscribeLock     sync.RWMutex
-	subscribeCurrPath string
-	subscribeCurrFB   libkbfs.FolderBranch
+	subscribeLock              sync.RWMutex
+	subscribeCurrPathCanonical string
+	subscribeCurrPathFromGUI   string
+	subscribeCurrFB            libkbfs.FolderBranch
 
 	localHTTPServer *libhttpserver.Server
 }
@@ -570,21 +571,21 @@ func (k *SimpleFS) refreshSubscription(
 	// TODO: when favorites caching is ready, handle folder-list paths
 	// like `/keybase/private` here.
 
-	fb, subscribePath, err := k.getFolderBranchFromPath(ctx, path)
+	fb, subscribePathCanonical, err := k.getFolderBranchFromPath(ctx, path)
 	if err != nil {
 		return err
 	}
 	if fb == (libkbfs.FolderBranch{}) {
 		k.log.CDebugf(
-			ctx, "Ignoring subscription for empty TLF %s", subscribePath)
+			ctx, "Ignoring subscription for empty TLF %s", subscribePathCanonical)
 		return nil
 	}
 
-	if k.subscribeCurrPath == subscribePath {
+	if k.subscribeCurrPathCanonical == subscribePathCanonical {
 		return nil
 	}
 
-	if k.subscribeCurrPath != "" {
+	if k.subscribeCurrPathCanonical != "" {
 		err = k.config.Notifier().UnregisterFromChanges(
 			[]libkbfs.FolderBranch{k.subscribeCurrFB}, k)
 		if err != nil {
@@ -592,13 +593,14 @@ func (k *SimpleFS) refreshSubscription(
 		}
 	}
 
-	k.log.CDebugf(ctx, "Subscribing to %s", subscribePath)
+	k.log.CDebugf(ctx, "Subscribing to %s", subscribePathCanonical)
 	err = k.config.Notifier().RegisterForChanges(
 		[]libkbfs.FolderBranch{fb}, k)
 	if err != nil {
 		return err
 	}
-	k.subscribeCurrPath = subscribePath
+	k.subscribeCurrPathCanonical = subscribePathCanonical
+	k.subscribeCurrPathFromGUI = stdpath.Join("/keybase", path.Kbfs())
 	k.subscribeCurrFB = fb
 	return nil
 }
@@ -1982,7 +1984,7 @@ func (k *SimpleFS) BatchChanges(
 		defer k.subscribeLock.RUnlock()
 		for fb := range fbs {
 			if fb == k.subscribeCurrFB {
-				k.config.Reporter().NotifyPathUpdated(ctx, k.subscribeCurrPath)
+				k.config.Reporter().NotifyPathUpdated(ctx, k.subscribeCurrPathFromGUI)
 			}
 		}
 	}()
