@@ -2169,7 +2169,7 @@ function* createConversation2(state, action) {
 }
 
 const createConversation = (state, action, afterActionCreator) => {
-  if (flags.newTeamBuildingForChat) {
+  if (action.type === Chat2Gen.createConversation && flags.newTeamBuildingForChat) {
     return
   }
 
