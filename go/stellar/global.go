@@ -244,7 +244,7 @@ func (s *Stellar) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessage) (
 func (s *Stellar) handleReconnect(ctx context.Context) {
 	defer s.G().CTraceTimed(ctx, "Stellar.handleReconnect", func() error { return nil })()
 	go func() {
-		mctx := libkb.NewMetaContextBackground(s.G())
+		mctx := libkb.NewMetaContextBackground(s.G()).WithLogTag("WARE")
 		if s.walletState.Primed() {
 			s.G().Log.CDebugf(ctx, "stellar received reconnect msg, doing delayed wallet refresh")
 			time.Sleep(4 * time.Second)
@@ -292,7 +292,7 @@ func (s *Stellar) handlePaymentNotification(ctx context.Context, obm gregor.OutO
 }
 
 func (s *Stellar) refreshPaymentFromNotification(ctx context.Context, accountID stellar1.AccountID, paymentID stellar1.PaymentID) error {
-	mctx := libkb.NewMetaContext(ctx, s.G())
+	mctx := libkb.NewMetaContext(ctx, s.G()).WithLogTag("WANO")
 	s.walletState.Refresh(mctx, accountID, "notification received")
 	DefaultLoader(s.G()).UpdatePayment(ctx, paymentID)
 
