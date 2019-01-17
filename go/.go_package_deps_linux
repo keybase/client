@@ -2911,6 +2911,17 @@
       "github.com/keybase/client/go/tools/teamchain" : 1,
       "github.com/keybase/client/go/uidmap" : 1
    },
+   "github.com/keybase/client/go/utils" : {
+      "github.com/keybase/client/go/client" : 1,
+      "github.com/keybase/client/go/install" : 1,
+      "github.com/keybase/client/go/install/libnativeinstaller" : 1,
+      "github.com/keybase/client/go/kbfs/redirector" : 1,
+      "github.com/keybase/client/go/kbnm" : 1,
+      "github.com/keybase/client/go/keybase" : 1,
+      "github.com/keybase/client/go/service" : 1,
+      "github.com/keybase/client/go/systests" : 1,
+      "github.com/keybase/client/go/utils" : 1
+   },
    "github.com/keybase/client/go/vendor/bazil.org/fuse" : {
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
       "github.com/keybase/client/go/kbfs/libfuse" : 1,
@@ -4339,15 +4350,6 @@
       "github.com/keybase/client/go/kbfs/libfuse" : 1,
       "github.com/keybase/client/go/kbfs/libgit" : 1,
       "github.com/keybase/client/go/kbfs/libpages" : 1
-   },
-   "github.com/keybase/client/go/vendor/github.com/kardianos/osext" : {
-      "github.com/keybase/client/go/client" : 1,
-      "github.com/keybase/client/go/install" : 1,
-      "github.com/keybase/client/go/install/libnativeinstaller" : 1,
-      "github.com/keybase/client/go/kbnm" : 1,
-      "github.com/keybase/client/go/keybase" : 1,
-      "github.com/keybase/client/go/service" : 1,
-      "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/vendor/github.com/kennygrant/sanitize" : {
       "github.com/keybase/client/go/chat" : 1,
