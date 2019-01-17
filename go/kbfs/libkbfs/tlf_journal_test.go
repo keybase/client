@@ -1439,7 +1439,7 @@ func testTLFJournalPauseBlocksAndConvertBranch(t *testing.T,
 	var lock sync.Mutex
 	var puts []interface{}
 
-	unpauseBlockPutCh := make(chan struct{}, 1)
+	unpauseBlockPutCh := make(chan struct{})
 	bserver := orderedBlockServer{
 		lock:      &lock,
 		puts:      &puts,
@@ -1513,11 +1513,15 @@ func testTLFJournalConvertWhileFlushing(t *testing.T, ver kbfsmd.MetadataVer) {
 	_, _, unpauseBlockPutCh, errCh, blocksLeftAfterFlush, mdsLeftAfterFlush :=
 		testTLFJournalPauseBlocksAndConvertBranch(t, ctx, tlfJournal, config)
 
-	// Now finish the block put, and let the flush finish.  We should
-	// be on a local squash branch now.
-	unpauseBlockPutCh <- struct{}{}
-	err := <-errCh
-	require.NoError(t, err)
+	for i := 0; i < 2; i++ {
+		select {
+		// Now finish the block put, and let the flush finish.  We should
+		// be on a local squash branch now.
+		case unpauseBlockPutCh <- struct{}{}:
+		case err := <-errCh:
+			require.NoError(t, err)
+		}
+	}
 
 	// Should be a full batch worth of blocks left, plus all the
 	// revision markers above.  No squash has actually happened yet,
@@ -1549,11 +1553,15 @@ func testTLFJournalSquashWhileFlushing(t *testing.T, ver kbfsmd.MetadataVer) {
 	requireJournalEntryCounts(
 		t, tlfJournal, blocksLeftAfterFlush+maxJournalBlockFlushBatchSize+1, 1)
 
-	// Now finish the block put, and let the flush finish.  We
-	// shouldn't be on a branch anymore.
-	unpauseBlockPutCh <- struct{}{}
-	err = <-errCh
-	require.NoError(t, err)
+	for i := 0; i < 2; i++ {
+		select {
+		// Now finish the block put, and let the flush finish.  We
+		// shouldn't be on a branch anymore.
+		case unpauseBlockPutCh <- struct{}{}:
+		case err = <-errCh:
+			require.NoError(t, err)
+		}
+	}
 
 	// Since flush() never saw the branch in conflict, it will finish
 	// flushing everything.
