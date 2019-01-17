@@ -212,22 +212,23 @@ const loadWalletDisclaimer = () =>
 
 const loadAccounts = (state, action) =>
   !actionHasError(action) &&
-  RPCStellarTypes.localGetWalletAccountsLocalRpcPromise(undefined, Constants.loadAccountsWaitingKey).then(
-    res => {
-      return WalletsGen.createAccountsReceived({
-        accounts: (res || []).map(account => {
-          if (!account.accountID) {
-            logger.error(
-              `Found empty accountID in getWalletAccounts, name: ${account.name} isDefault: ${String(
-                account.isDefault
-              )}`
-            )
-          }
-          return Constants.accountResultToAccount(account)
-        }),
-      })
-    }
-  )
+  RPCStellarTypes.localGetWalletAccountsLocalRpcPromise(undefined, [
+    Constants.checkOnlineWaitingKey,
+    Constants.loadAccountsWaitingKey,
+  ]).then(res => {
+    return WalletsGen.createAccountsReceived({
+      accounts: (res || []).map(account => {
+        if (!account.accountID) {
+          logger.error(
+            `Found empty accountID in getWalletAccounts, name: ${account.name} isDefault: ${String(
+              account.isDefault
+            )}`
+          )
+        }
+        return Constants.accountResultToAccount(account)
+      }),
+    })
+  })
 
 const loadAssets = (state, action) => {
   if (actionHasError(action)) {
