@@ -97,7 +97,7 @@ func (h *handlerTracker) SearchRegexpV1(context.Context, Call, io.Writer) error 
 	return nil
 }
 
-func (h *handlerTracker) NewConvV1(contxt.Context, Call, io.Writer) error {
+func (h *handlerTracker) NewConvV1(context.Context, Call, io.Writer) error {
 	h.newConvV1++
 	return nil
 }
