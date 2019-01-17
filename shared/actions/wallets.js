@@ -458,12 +458,17 @@ const loadPaymentDetail = (state, action) =>
       id: Types.paymentIDToRPCPaymentID(action.payload.paymentID),
     },
     [Constants.checkOnlineWaitingKey, Constants.getRequestDetailsWaitingKey(action.payload.paymentID)]
-  ).then(res =>
-    WalletsGen.createPaymentDetailReceived({
-      accountID: action.payload.accountID,
-      payment: Constants.rpcPaymentDetailToPaymentDetail(res),
-    })
   )
+    .then(res =>
+      WalletsGen.createPaymentDetailReceived({
+        accountID: action.payload.accountID,
+        payment: Constants.rpcPaymentDetailToPaymentDetail(res),
+      })
+    )
+    .catch(err => {
+      // No need to throw black bars -- handled by Reloadable.
+      logger.warn(`Error marking as read: ${err.desc}`)
+    })
 
 const markAsRead = (state, action) =>
   RPCStellarTypes.localMarkAsReadLocalRpcPromise({
