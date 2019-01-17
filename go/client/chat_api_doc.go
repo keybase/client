@@ -72,4 +72,7 @@ Read a team conversation channel:
 
 Send a message to a team conversation channel:
     {"method": "send", "params": {"options": {"channel": {"name": "treehouse", "members_type": "team", "topic_name": "random"}, "message": {"body": "time for lunch?"}}}}
+
+Create a new blank conversation:
+    {"method": "newconv", "params": {"options": {"channel": {"name": "you,them"}}}}
 `
