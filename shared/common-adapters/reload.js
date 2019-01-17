@@ -8,13 +8,12 @@ import ScrollView from './scroll-view'
 import Text from './text'
 import Button from './button'
 import {namedConnect} from '../util/container'
-import {isArray} from 'lodash-es'
 
 type OwnProps = {|
   children: React.Node,
   reloadOnMount?: boolean,
   onReload: () => void,
-  waitingKeys: string | Array<string>,
+  waitingKeys: string | Array<string> | (string => boolean),
 |}
 
 type Props = {|
@@ -105,8 +104,7 @@ const styles = Styles.styleSheetCreate({
 })
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
-  const keys = isArray(ownProps.waitingKeys) ? ownProps.waitingKeys : [ownProps.waitingKeys]
-  const error = Constants.anyErrors(state, ...keys)
+  const error = Constants.anyErrors(state, ownProps.waitingKeys)
   return {
     needsReload: !!error,
     reason: error?.message ?? '',
