@@ -215,20 +215,30 @@ const loadAccounts = (state, action) =>
   RPCStellarTypes.localGetWalletAccountsLocalRpcPromise(undefined, [
     Constants.checkOnlineWaitingKey,
     Constants.loadAccountsWaitingKey,
-  ]).then(res => {
-    return WalletsGen.createAccountsReceived({
-      accounts: (res || []).map(account => {
-        if (!account.accountID) {
-          logger.error(
-            `Found empty accountID in getWalletAccounts, name: ${account.name} isDefault: ${String(
-              account.isDefault
-            )}`
-          )
-        }
-        return Constants.accountResultToAccount(account)
-      }),
+  ])
+    .then(res => {
+      return WalletsGen.createAccountsReceived({
+        accounts: (res || []).map(account => {
+          if (!account.accountID) {
+            logger.error(
+              `Found empty accountID in getWalletAccounts, name: ${account.name} isDefault: ${String(
+                account.isDefault
+              )}`
+            )
+          }
+          return Constants.accountResultToAccount(account)
+        }),
+      })
     })
-  })
+    .catch(err => {
+      const reason = (action: Object).reason || ''
+      if (reason === 'initial-load') {
+        // No need to throw black bars -- handled by Reloadable.
+        logger.warn(`Error loading accounts: ${err.desc}`)
+      } else {
+        throw err
+      }
+    })
 
 const loadAssets = (state, action) => {
   if (actionHasError(action)) {
