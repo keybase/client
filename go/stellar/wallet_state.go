@@ -55,6 +55,7 @@ func NewWalletState(g *libkb.GlobalContext, r remote.Remoter) *WalletState {
 	return ws
 }
 
+// Shutdown terminates any background operations and cleans up.
 func (w *WalletState) Shutdown() error {
 	w.shutdownOnce.Do(func() {
 		mctx := libkb.NewMetaContextBackground(w.G())
@@ -304,6 +305,33 @@ func (w *WalletState) RecentPayments(ctx context.Context, accountID stellar1.Acc
 	return a.RecentPayments(ctx)
 }
 
+// AddPendingTx adds information about a tx that was submitted to the network.
+// This allows WalletState to keep track of anything pending when managing
+// the account seqno.
+func (w *WalletState) AddPendingTx(ctx context.Context, accountID stellar1.AccountID, txID stellar1.TransactionID, seqno uint64) error {
+	a, ok := w.accountState(accountID)
+	if !ok {
+		return fmt.Errorf("AddPendingTx: account id %q not in wallet state", accountID)
+	}
+
+	w.G().Log.CDebugf(ctx, "WalletState: account %s adding pending tx %s/%d", accountID, txID, seqno)
+
+	return a.AddPendingTx(ctx, txID, seqno)
+}
+
+// RemovePendingTx removes a pending tx from WalletState.  It doesn't matter
+// if it succeeded or failed, just that it is done.
+func (w *WalletState) RemovePendingTx(ctx context.Context, accountID stellar1.AccountID, txID stellar1.TransactionID) error {
+	a, ok := w.accountState(accountID)
+	if !ok {
+		return fmt.Errorf("RemovePendingTx: account id %q not in wallet state", accountID)
+	}
+
+	w.G().Log.CDebugf(ctx, "WalletState: account %s removing pending tx %s", accountID, txID)
+
+	return a.RemovePendingTx(ctx, txID)
+}
+
 // SubmitRelayClaim is an override of remoter's SubmitRelayClaim.
 func (w *WalletState) SubmitRelayClaim(ctx context.Context, post stellar1.RelayClaimPost) (stellar1.RelayClaimResult, error) {
 	result, err := w.Remoter.SubmitRelayClaim(ctx, post)
@@ -400,6 +428,11 @@ func (w *WalletState) resetWithLock(mctx libkb.MetaContext) {
 	w.accounts = make(map[stellar1.AccountID]*AccountState)
 }
 
+type txPending struct {
+	seqno uint64
+	ctime time.Time
+}
+
 // AccountState holds the current data for a stellar account.
 type AccountState struct {
 	// these are only set when AccountState created, they never change
@@ -418,6 +451,7 @@ type AccountState struct {
 	recent       *stellar1.PaymentsPage
 	rtime        time.Time // time of last refresh
 	done         bool
+	pendingTxs   map[stellar1.TransactionID]txPending
 }
 
 func newAccountState(accountID stellar1.AccountID, r remote.Remoter, reqsCh chan stellar1.AccountID) *AccountState {
@@ -426,6 +460,7 @@ func newAccountState(accountID stellar1.AccountID, r remote.Remoter, reqsCh chan
 		remoter:      r,
 		refreshGroup: &singleflight.Group{},
 		refreshReqs:  reqsCh,
+		pendingTxs:   make(map[stellar1.TransactionID]txPending),
 	}
 }
 
@@ -444,6 +479,7 @@ func (a *AccountState) refresh(mctx libkb.MetaContext, router *libkb.NotifyRoute
 	seqno, err := a.remoter.AccountSeqno(mctx.Ctx(), a.accountID)
 	if err == nil {
 		a.Lock()
+		// XXX check pending here too?
 		if seqno > a.seqno {
 			a.seqno = seqno
 		}
@@ -518,17 +554,35 @@ func (a *AccountState) refresh(mctx libkb.MetaContext, router *libkb.NotifyRoute
 // ForceSeqnoRefresh refreshes the seqno for an account.
 func (a *AccountState) ForceSeqnoRefresh(mctx libkb.MetaContext) error {
 	seqno, err := a.remoter.AccountSeqno(mctx.Ctx(), a.accountID)
-	if err == nil {
-		a.Lock()
-		if seqno != a.seqno {
-			mctx.CDebugf("ForceSeqnoRefresh updated seqno for %s: %d => %d", a.accountID, a.seqno, seqno)
-			a.seqno = seqno
-		} else {
-			mctx.CDebugf("ForceSeqnoRefresh did not update AccountState for %s (existing: %d, remote: %d)", a.accountID, a.seqno, seqno)
-		}
-		a.Unlock()
+	if err != nil {
+		return err
 	}
-	return err
+
+	a.Lock()
+	defer a.Unlock()
+
+	if seqno == a.seqno {
+		mctx.CDebugf("ForceSeqnoRefresh did not update AccountState for %s (existing: %d, remote: %d)", a.accountID, a.seqno, seqno)
+		return nil
+	}
+
+	if seqno > a.seqno {
+		// if network is greater than cached, then update
+		mctx.CDebugf("ForceSeqnoRefresh updated seqno for %s: %d => %d", a.accountID, a.seqno, seqno)
+		a.seqno = seqno
+		return nil
+	}
+
+	if len(a.pendingTxs) == 0 {
+		// if no pending tx, then network should be correct
+		mctx.CDebugf("ForceSeqnoRefresh corrected seqno for %s: %d => %d", a.accountID, a.seqno, seqno)
+		a.seqno = seqno
+		return nil
+	}
+
+	mctx.CDebugf("ForceSeqnoRefresh did not update AccountState for %s due to pending tx (existing: %d, remote: %d, pending tx: %d)", a.accountID, a.seqno, seqno, len(a.pendingTxs))
+
+	return nil
 }
 
 // AccountSeqno returns the seqno that has already been fetched for
@@ -547,6 +601,29 @@ func (a *AccountState) AccountSeqnoAndBump(ctx context.Context) (uint64, error) 
 	result := a.seqno
 	a.seqno++
 	return result, nil
+}
+
+// AddPendingTx adds information about a tx that was submitted to the network.
+// This allows AccountState to keep track of anything pending when managing
+// the account seqno.
+func (a *AccountState) AddPendingTx(ctx context.Context, txID stellar1.TransactionID, seqno uint64) error {
+	a.Lock()
+	defer a.Unlock()
+
+	a.pendingTxs[txID] = txPending{seqno: seqno, ctime: time.Now()}
+
+	return nil
+}
+
+// RemovePendingTx removes a pending tx from WalletState.  It doesn't matter
+// if it succeeded or failed, just that it is done.
+func (a *AccountState) RemovePendingTx(ctx context.Context, txID stellar1.TransactionID) error {
+	a.Lock()
+	defer a.Unlock()
+
+	delete(a.pendingTxs, txID)
+
+	return nil
 }
 
 // Balances returns the balances that have already been fetched for
