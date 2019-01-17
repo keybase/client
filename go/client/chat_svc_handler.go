@@ -33,6 +33,7 @@ type ChatServiceHandler interface {
 	MarkV1(context.Context, markOptionsV1) Reply
 	SearchInboxV1(context.Context, searchInboxOptionsV1) Reply
 	SearchRegexpV1(context.Context, searchRegexpOptionsV1) Reply
+	NewConvV1(context.Context, newConvOptionsV1) Reply
 }
 
 // chatServiceHandler implements ChatServiceHandler.
@@ -789,6 +790,40 @@ func (c *chatServiceHandler) SearchRegexpV1(ctx context.Context, opts searchRege
 	return Reply{Result: searchRes}
 }
 
+func (c *chatServiceHandler) NewConvV1(ctx context.Context, opts newConvOptionsV1) Reply {
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	vis := keybase1.TLFVisibility_PRIVATE
+	if opts.Channel.Public {
+		vis = keybase1.TLFVisibility_PUBLIC
+	}
+	topicType, err := TopicTypeFromStrDefault(opts.Channel.TopicType)
+	if err != nil {
+		return c.errReply(err)
+	}
+	res, err := client.NewConversationLocal(ctx, chat1.NewConversationLocalArg{
+		TlfName:          opts.Channel.Name,
+		TopicType:        topicType,
+		TopicName:        &opts.Channel.TopicName,
+		TlfVisibility:    vis,
+		MembersType:      opts.Channel.GetMembersType(c.G().GetEnv()),
+		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
+	})
+	if err != nil {
+		return c.errReply(err)
+	}
+	newConvRes := NewConvRes{
+		ID:               res.Conv.GetConvID().String(),
+		IdentifyFailures: res.IdentifyFailures,
+		RateLimits: RateLimits{
+			c.aggRateLimits(res.RateLimits),
+		},
+	}
+	return Reply{Result: newConvRes}
+}
+
 type sendArgV1 struct {
 	// convQuery  chat1.GetInboxLocalQuery
 	conversationID    chat1.ConversationID
@@ -1207,6 +1242,12 @@ type SearchInboxRes struct {
 
 type SearchRegexpRes struct {
 	Hits             []chat1.ChatSearchHit         `json:"hits"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `json:"identify_failures,omitempty"`
+	RateLimits
+}
+
+type NewConvRes struct {
+	ID               string                        `json:"id"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `json:"identify_failures,omitempty"`
 	RateLimits
 }
