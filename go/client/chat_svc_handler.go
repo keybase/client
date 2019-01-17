@@ -803,10 +803,15 @@ func (c *chatServiceHandler) NewConvV1(ctx context.Context, opts newConvOptionsV
 	if err != nil {
 		return c.errReply(err)
 	}
+	var topicName *string
+	if len(opts.Channel.TopicName) > 0 {
+		topicName = new(string)
+		*topicName = opts.Channel.TopicName
+	}
 	res, err := client.NewConversationLocal(ctx, chat1.NewConversationLocalArg{
 		TlfName:          opts.Channel.Name,
 		TopicType:        topicType,
-		TopicName:        &opts.Channel.TopicName,
+		TopicName:        topicName,
 		TlfVisibility:    vis,
 		MembersType:      opts.Channel.GetMembersType(c.G().GetEnv()),
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
