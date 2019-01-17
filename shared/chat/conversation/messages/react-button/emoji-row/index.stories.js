@@ -5,7 +5,7 @@ import * as Sb from '../../../../../stories/storybook'
 import * as Styles from '../../../../../styles'
 import EmojiRow from '.'
 
-const _FakeMessage = (props: Kb.OverlayParentProps) => (
+const _FakeMessage = (props: Kb.OverlayParentProps & {keepVisible?: boolean}) => (
   <>
     <Kb.Box2
       direction="horizontal"
@@ -23,13 +23,16 @@ const _FakeMessage = (props: Kb.OverlayParentProps) => (
         onOpenEmojiPicker={Sb.action('onOpenEmojiPicker')}
         onReact={Sb.action('onReact')}
         style={{marginRight: 100, marginTop: -4}}
-        visible={props.showingMenu}
+        visible={props.keepVisible || props.showingMenu}
       />
     </Kb.Box2>
   </>
 )
 const FakeMessage = Kb.OverlayParentHOC(_FakeMessage)
 
-const load = () => Sb.storiesOf('Chat/Conversation/Emoji row').add('Basic', () => <FakeMessage />)
+const load = () =>
+  Sb.storiesOf('Chat/Conversation/Emoji row')
+    .add('On hover', () => <FakeMessage />)
+    .add('Visible', () => <FakeMessage keepVisible={true} />)
 
 export default load
