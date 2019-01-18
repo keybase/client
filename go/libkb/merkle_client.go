@@ -54,7 +54,7 @@ var _ NodeHash = NodeHashAny{}
 
 func (h1 NodeHashShort) Check(s string) bool {
 	h2 := sha256.Sum256([]byte(s))
-	return FastByteArrayEq(h1[:], h2[:])
+	return subtle.ConstantTimeCompare(h1[:], h2[:]) == 1
 }
 
 func (h1 NodeHashShort) String() string {
@@ -79,7 +79,7 @@ func (h1 NodeHashShort) ExportToHashMeta() keybase1.HashMeta {
 
 func (h1 NodeHashLong) Check(s string) bool {
 	h2 := sha512.Sum512([]byte(s))
-	return FastByteArrayEq(h1[:], h2[:])
+	return subtle.ConstantTimeCompare(h1[:], h2[:]) == 1
 }
 
 func (h1 NodeHashLong) String() string {
@@ -101,7 +101,7 @@ func (h1 NodeHashLong) Eq(h2 NodeHash) bool {
 func hashEq(h1 NodeHash, h2 NodeHash) bool {
 	b1 := h1.bytes()
 	b2 := h2.bytes()
-	return FastByteArrayEq(b1[:], b2[:])
+	return subtle.ConstantTimeCompare(b1, b2) == 1
 }
 
 func (h NodeHashAny) Check(s string) bool {
