@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import features from '../../util/feature-flags'
 
 type ErrProps = {
   dismiss: () => void,
@@ -12,7 +11,7 @@ type ErrProps = {
   time: number,
 }
 
-const ErrToBanner = (props: ErrProps) => (
+const Err = (props: ErrProps) => (
   <Kb.Banner
     onClose={props.dismiss}
     text={props.msg}
@@ -23,19 +22,6 @@ const ErrToBanner = (props: ErrProps) => (
     ]}
   />
 )
-
-const Err = features.admin
-  ? (props: ErrProps) => (
-      <Kb.WithTooltip
-        containerStyle={{width: '100%'}}
-        text={`${new Date(props.time).toString()}: ${props.error}`}
-        multiline={true}
-        position="bottom center"
-      >
-        <ErrToBanner {...props} />
-      </Kb.WithTooltip>
-    )
-  : ErrToBanner
 
 type ErrsProps = {
   errs: Array<ErrProps & {key: string}>,
