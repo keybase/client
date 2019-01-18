@@ -811,12 +811,13 @@ func (d *Service) runBackgroundPerUserKeyUpgrade() {
 	}
 
 	eng := engine.NewPerUserKeyUpgradeBackground(d.G(), &engine.PerUserKeyUpgradeBackgroundArgs{})
-
-	m := libkb.NewMetaContextBackground(d.G())
-	if err := engine.RunEngine2(m, eng); err != nil {
-		m.CWarningf("per-user-key background upgrade error: %v", err)
-		return
-	}
+	go func() {
+		m := libkb.NewMetaContextBackground(d.G())
+		err := engine.RunEngine2(m, eng)
+		if err != nil {
+			m.CWarningf("per-user-key background upgrade error: %v", err)
+		}
+	}()
 
 	d.G().PushShutdownHook(func() error {
 		d.G().Log.Debug("stopping per-user-key background upgrade")
