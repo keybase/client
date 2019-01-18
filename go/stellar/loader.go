@@ -352,6 +352,11 @@ func (p *Loader) sendPaymentNotification(m libkb.MetaContext, id stellar1.Paymen
 	if info.AccountID != nil && summary.StatusSimplified != stellar1.PaymentStatus_PENDING {
 		// let WalletState know
 		p.G().GetStellar().RemovePendingTx(m, *info.AccountID, stellar1.TransactionIDFromPaymentID(id))
+		p.Lock()
+		for _, ch := range p.listeners {
+			ch <- PaymentStatusUpdate{AccountID: *info.AccountID, TxID: stellar1.TransactionIDFromPaymentID(id), Status: summary.StatusSimplified}
+		}
+		p.Unlock()
 	}
 
 	p.G().NotifyRouter.HandleChatPaymentInfo(m.Ctx(), uid, msg.convID, msg.msgID, *info)
