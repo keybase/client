@@ -92,6 +92,7 @@ a = 1
       /keybase/private/songgao/🍻
       /keybase/private/songgao/🍻/🍹.png/
       /keybase/private/songgao/囧/yo
+      /keybase/private/__songgao__@twitter,strib@github,jzila@reddit,jakob.weisbl.at@dns/file
       /keybase/private/songgao,strib#jzila,jakob223/file
       /keybase/private/songgao,strib#jzila/file
       /keybase/private/song-gao,strib#jzila/file

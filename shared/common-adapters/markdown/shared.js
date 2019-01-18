@@ -11,7 +11,9 @@ import {reactOutput, previewOutput, bigEmojiOutput, markdownStyles} from './reac
 
 function createKbfsPathRegex(): ?RegExp {
   const username = `(?:[a-zA-Z0-9]+_?)+` // from go/kbun/username.go
-  const usernames = `${username}(?:,${username})*`
+  const socialAssertion = `[-_a-zA-Z0-9.]+@[a-zA-Z.]+`
+  const user = `(?:(?:${username})|(?:${socialAssertion}))`
+  const usernames = `${user}(?:,${user})*`
   const teamName = `${username}(?:\\.${username})*`
   const tlfType = `/(?:private|public|team)`
   const tlf = `/(?:(?:private|public)/${usernames}(#${usernames})?|team/${teamName})`
