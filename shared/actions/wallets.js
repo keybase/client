@@ -239,6 +239,19 @@ const loadAccounts = (state, action) =>
       }
     })
 
+const handleSelectAccountError = (action, err) => {
+  // Assume that for auto-selected we're on the Wallets tab.
+  if (
+    (action.type === WalletsGen.selectAccount && action.payload.reason === 'user-selected') ||
+    action.payload.reason === 'auto-selected'
+  ) {
+    // No need to throw black bars -- handled by Reloadable.
+    logger.warn(`Error selecting account: ${err.desc}`)
+  } else {
+    throw err
+  }
+}
+
 const loadAssets = (state, action) => {
   if (actionHasError(action)) {
     return
@@ -273,18 +286,7 @@ const loadAssets = (state, action) => {
           assets: (res || []).map(assets => Constants.assetsResultToAssets(assets)),
         })
       )
-      .catch(err => {
-        // Assume that for auto-selected we're on the Wallets tab.
-        if (
-          (action.type === WalletsGen.selectAccount && action.payload.reason === 'user-selected') ||
-          action.payload.reason === 'auto-selected'
-        ) {
-          // No need to throw black bars -- handled by Reloadable.
-          logger.warn(`Error selecting account: ${err.desc}`)
-        } else {
-          throw err
-        }
-      })
+      .catch(err => handleSelectAccountError(action, err))
   }
 }
 
@@ -760,12 +762,14 @@ const loadMobileOnlyMode = (state, action) => {
   }
   return RPCStellarTypes.localIsAccountMobileOnlyLocalRpcPromise({
     accountID,
-  }).then(res =>
-    WalletsGen.createLoadedMobileOnlyMode({
-      accountID,
-      enabled: res,
-    })
-  )
+  })
+    .then(res =>
+      WalletsGen.createLoadedMobileOnlyMode({
+        accountID,
+        enabled: res,
+      })
+    )
+    .catch(err => handleSelectAccountError(action, err))
 }
 
 const changeMobileOnlyMode = (state, action) => {
