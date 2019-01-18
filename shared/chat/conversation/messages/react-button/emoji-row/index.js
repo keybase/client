@@ -80,7 +80,6 @@ const styles = Styles.styleSheetCreate({
     alignItems: 'center',
     height: 16,
     justifyContent: 'center',
-    // position: 'relative',
     width: 16,
   },
   emojisRow: {
