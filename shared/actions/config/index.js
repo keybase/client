@@ -402,7 +402,7 @@ const navigateAppend = (_, action) => {
 // maybe the same?
 const navigateTo = navigateAppend
 const navigateUp = () => {
-  _navigator && _navigator.goBack()
+  _navigator && _navigator.pop()
 }
 
 function* configSaga(): Saga.SagaGenerator<any, any> {

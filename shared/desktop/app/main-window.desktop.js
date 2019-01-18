@@ -42,7 +42,6 @@ export default function() {
     minHeight: 600,
     minWidth: 400,
     show: false,
-    titleBarStyle: flags.useNewRouter ? 'hidden' : 'default',
     webPreferences: {
       devTools: showDevTools,
       nodeIntegration: true,
@@ -51,6 +50,11 @@ export default function() {
     width: appState.state.width,
     x: appState.state.x,
     y: appState.state.y,
+    ...(flags.useNewRouter
+      ? {
+          titleBarStyle: 'hidden',
+        }
+      : {}),
   })
 
   const webContents = mainWindow.window.webContents

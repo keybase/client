@@ -5,6 +5,8 @@ import * as Styles from '../../styles'
 import * as Tabs from '../../constants/tabs'
 import './tab-bar.css'
 
+// TODO: badges
+
 const icons = {
   [Tabs.chatTab]: 'iconfont-nav-chat',
   [Tabs.devicesTab]: 'iconfont-nav-devices',
@@ -42,18 +44,20 @@ const tabs = [
 
 const TabBar = p => (
   <Kb.Box2 className="tab-container" direction="vertical" fullHeight={true}>
-    <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-      <Kb.Avatar
-        size={16}
-        borderColor={Styles.globalColors.blue}
-        username={p.username}
-        style={styles.avatar}
-      />
-      <Kb.Text className="username" type="BodySemibold" style={styles.username}>
-        Hi {p.username}
-      </Kb.Text>
-      <Kb.Icon type="iconfont-arrow-down" color={Styles.globalColors.blue3} />
-    </Kb.Box2>
+    <Kb.ClickableBox onClick={p.onProfileClick}>
+      <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
+        <Kb.Avatar
+          size={16}
+          borderColor={Styles.globalColors.blue}
+          username={p.username}
+          style={styles.avatar}
+        />
+        <Kb.Text className="username" type="BodySemibold" style={styles.username}>
+          Hi {p.username}
+        </Kb.Text>
+        <Kb.Icon type="iconfont-arrow-down" color={Styles.globalColors.blue3} />
+      </Kb.Box2>
+    </Kb.ClickableBox>
     <Kb.Divider style={styles.divider} />
     {tabs.map(t => (
       <Kb.ClickableBox key={t} onClick={() => p.onTabClick(t)}>

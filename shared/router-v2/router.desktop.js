@@ -26,10 +26,12 @@ class BridgeSceneView extends React.PureComponent {
   _routeProps = {
     get: key => this.props.navigation.getParam(key),
   }
+  _pop = () => this.props.navigation.pop()
   render() {
     const Component = this.props.component
     return (
       <NavigationContext.Provider value={this.props.navigation}>
+        <BackBar onBack={this._pop} />
         <Component
           routeProps={this._routeProps}
           routePath={emptyList}
@@ -41,6 +43,12 @@ class BridgeSceneView extends React.PureComponent {
     )
   }
 }
+
+const BackBar = p => (
+  <Kb.Box2 direction="horizontal" gap="small" gapStart={true} style={styles.backBar} fullWidth={true}>
+    <Kb.Icon type="iconfont-arrow-left" onClick={p.onBack} />
+  </Kb.Box2>
+)
 
 const AppView = p => {
   const activeKey = p.navigation.state.routes[p.navigation.state.index].key
@@ -94,7 +102,7 @@ const createElectronApp = App => {
     }
     // just so we have nice access to this in the action
     push = route => this._dispatch(StackActions.push(route))
-    goBack = () => this._dispatch(NavigationActions.back())
+    pop = () => this._dispatch(StackActions.pop())
     _dispatch = action => {
       const lastState = this.state.nav
       const newState = App.router.getStateForAction(action, lastState)
@@ -115,6 +123,18 @@ const createElectronApp = App => {
 const ElectronApp = createElectronApp(AppNavigator)
 
 const styles = Styles.styleSheetCreate({
+  back: Styles.platformStyles({
+    isElectron: {
+      ...Styles.desktopStyles.windowDraggingClickable,
+    },
+  }),
+  backBar: Styles.platformStyles({
+    isElectron: {
+      alignItems: 'center',
+      ...Styles.desktopStyles.windowDragging,
+      height: 36,
+    },
+  }),
   contentArea: {
     flexGrow: 1,
     position: 'relative',

@@ -16,10 +16,10 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = dispatch => ({
+  _onProfileClick: username => dispatch(ProfileGen.createShowUserProfile({username})),
   _onTabClick: tab => {
     dispatch(RouteTreeGen.createNavigateAppend({path: [tab]}))
   },
-  onProfileClick: dispatch(ProfileGen.createShowUserProfile({})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
@@ -27,8 +27,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   isNew: {
     // [walletsTab]: stateProps.isWalletsNew,
   },
+  onProfileClick: () => dispatchProps._onProfileClick(stateProps.username),
   onTabClick: (tab: Tab) => dispatchProps._onTabClick(tab),
-  onProfileClick: () => dispatchprops.onProfileClick,
   selectedTab: ownProps.selectedTab,
   username: stateProps.username,
 })
