@@ -4,12 +4,14 @@ import * as Types from '../../constants/types/chat2'
 import * as WalletTypes from '../../constants/types/wallets'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import PaymentStatus from '../../chat/payments/status/container'
+import Text from '../text'
 
 export type Props = {
   json: string,
   onClick?: () => void,
   allowFontScaling?: ?boolean,
   message: Types.MessageText,
+  styles: Object,
 }
 
 const ServiceDecoration = (props: Props) => {
@@ -44,6 +46,20 @@ const ServiceDecoration = (props: Props) => {
         allowFontScaling={props.allowFontScaling}
         message={props.message}
       />
+    )
+  } else if (parsed.typ === RPCChatTypes.chatUiUITextDecorationTyp.url && parsed.url) {
+    const {text, url} = parsed.url
+    return (
+      <Text
+        className="hover-underline"
+        type="BodyPrimaryLink"
+        style={props.styles.linkStyle}
+        title={url}
+        onClickURL={url}
+        onLongPressURL={url}
+      >
+        {text}
+      </Text>
     )
   }
   return null

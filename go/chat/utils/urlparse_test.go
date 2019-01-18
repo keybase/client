@@ -30,6 +30,10 @@ func TestDecorateURLs(t *testing.T) {
 			body:   "parens wikipedia.org/wiki/John_McLean_(Illinois_politician).",
 			result: "parens $>kb${\"typ\":1,\"url\":{\"text\":\"wikipedia.org/wiki/John_McLean_(Illinois_politician)\",\"url\":\"https://wikipedia.org/wiki/John_McLean_(Illinois_politician)\"}}$<kb$.",
 		},
+		urlDecorateTest{
+			body:   "*http://fox.io/~test*",
+			result: "*$>kb${\"typ\":1,\"url\":{\"text\":\"http://fox.io/~test*\",\"url\":\"http://fox.io/~test*\"}}$<kb$",
+		},
 	}
 	for _, c := range cases {
 		res := DecorateWithURLs(context.TODO(), c.body)
