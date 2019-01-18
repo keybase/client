@@ -211,11 +211,18 @@ protocol chatUi {
   }
 
   enum UITextDecorationTyp {
-    PAYMENT_0
+    PAYMENT_0,
+    URL_1
+  }
+
+  record UITextDecorationUrl {
+    string text;
+    string url;
   }
 
   variant UITextDecoration switch (UITextDecorationTyp typ) {
     case PAYMENT: TextPayment;
+    case URL: UITextDecorationUrl;
   }
 
   void chatAttachmentDownloadStart(int sessionID);

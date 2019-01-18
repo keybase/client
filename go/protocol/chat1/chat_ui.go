@@ -887,16 +887,19 @@ type UITextDecorationTyp int
 
 const (
 	UITextDecorationTyp_PAYMENT UITextDecorationTyp = 0
+	UITextDecorationTyp_URL     UITextDecorationTyp = 1
 )
 
 func (o UITextDecorationTyp) DeepCopy() UITextDecorationTyp { return o }
 
 var UITextDecorationTypMap = map[string]UITextDecorationTyp{
 	"PAYMENT": 0,
+	"URL":     1,
 }
 
 var UITextDecorationTypRevMap = map[UITextDecorationTyp]string{
 	0: "PAYMENT",
+	1: "URL",
 }
 
 func (e UITextDecorationTyp) String() string {
@@ -906,9 +909,22 @@ func (e UITextDecorationTyp) String() string {
 	return ""
 }
 
+type UITextDecorationUrl struct {
+	Text string `codec:"text" json:"text"`
+	Url  string `codec:"url" json:"url"`
+}
+
+func (o UITextDecorationUrl) DeepCopy() UITextDecorationUrl {
+	return UITextDecorationUrl{
+		Text: o.Text,
+		Url:  o.Url,
+	}
+}
+
 type UITextDecoration struct {
-	Typ__     UITextDecorationTyp `codec:"typ" json:"typ"`
-	Payment__ *TextPayment        `codec:"payment,omitempty" json:"payment,omitempty"`
+	Typ__     UITextDecorationTyp  `codec:"typ" json:"typ"`
+	Payment__ *TextPayment         `codec:"payment,omitempty" json:"payment,omitempty"`
+	Url__     *UITextDecorationUrl `codec:"url,omitempty" json:"url,omitempty"`
 }
 
 func (o *UITextDecoration) Typ() (ret UITextDecorationTyp, err error) {
@@ -916,6 +932,11 @@ func (o *UITextDecoration) Typ() (ret UITextDecorationTyp, err error) {
 	case UITextDecorationTyp_PAYMENT:
 		if o.Payment__ == nil {
 			err = errors.New("unexpected nil value for Payment__")
+			return ret, err
+		}
+	case UITextDecorationTyp_URL:
+		if o.Url__ == nil {
+			err = errors.New("unexpected nil value for Url__")
 			return ret, err
 		}
 	}
@@ -932,10 +953,27 @@ func (o UITextDecoration) Payment() (res TextPayment) {
 	return *o.Payment__
 }
 
+func (o UITextDecoration) Url() (res UITextDecorationUrl) {
+	if o.Typ__ != UITextDecorationTyp_URL {
+		panic("wrong case accessed")
+	}
+	if o.Url__ == nil {
+		return
+	}
+	return *o.Url__
+}
+
 func NewUITextDecorationWithPayment(v TextPayment) UITextDecoration {
 	return UITextDecoration{
 		Typ__:     UITextDecorationTyp_PAYMENT,
 		Payment__: &v,
+	}
+}
+
+func NewUITextDecorationWithUrl(v UITextDecorationUrl) UITextDecoration {
+	return UITextDecoration{
+		Typ__: UITextDecorationTyp_URL,
+		Url__: &v,
 	}
 }
 
@@ -949,6 +987,13 @@ func (o UITextDecoration) DeepCopy() UITextDecoration {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Payment__),
+		Url__: (func(x *UITextDecorationUrl) *UITextDecorationUrl {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Url__),
 	}
 }
 

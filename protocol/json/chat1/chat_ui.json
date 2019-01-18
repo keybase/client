@@ -836,7 +836,22 @@
       "type": "enum",
       "name": "UITextDecorationTyp",
       "symbols": [
-        "PAYMENT_0"
+        "PAYMENT_0",
+        "URL_1"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UITextDecorationUrl",
+      "fields": [
+        {
+          "type": "string",
+          "name": "text"
+        },
+        {
+          "type": "string",
+          "name": "url"
+        }
       ]
     },
     {
@@ -853,6 +868,13 @@
             "def": false
           },
           "body": "TextPayment"
+        },
+        {
+          "label": {
+            "name": "URL",
+            "def": false
+          },
+          "body": "UITextDecorationUrl"
         }
       ]
     },
