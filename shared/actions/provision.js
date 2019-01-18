@@ -347,7 +347,7 @@ class ProvisioningManager {
   showCodePage = () =>
     RouteTreeGen.createNavigateAppend({
       parentPath: this._addingANewDevice ? devicesRoot : [Tabs.loginTab],
-      path: ['codePage'],
+      path: this._addingANewDevice ? ['deviceCodePage'] : ['codePage'],
     })
 
   maybeCancelProvision = state => {

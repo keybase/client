@@ -6,6 +6,7 @@ import Box from '../box'
 import Icon from '../icon'
 import {collapseStyles, globalStyles, globalColors, globalMargins, desktopStyles} from '../../styles'
 import type {Props} from './types'
+import flags from '../../util/feature-flags'
 
 export const HeaderHocHeader = ({
   headerStyle,
@@ -18,7 +19,7 @@ export const HeaderHocHeader = ({
 }: Props) => (
   <Box style={collapseStyles([_headerStyle, _headerStyleThemed[theme], headerStyle])}>
     {customComponent}
-    {onBack && (
+    {onBack && !flags.useNewRouter && (
       <BackButton
         key="back"
         hideBackLabel={hideBackLabel}

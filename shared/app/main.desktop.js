@@ -26,6 +26,7 @@ type Props = {
   useNewRouter: boolean,
 }
 
+// TODO move all this badge handling to menubar side
 class Main extends Component<Props> {
   _updateBadges = () => {
     SafeElectron.getIpcRenderer().send('showTray', this.props.widgetBadge, this.props.desktopAppBadgeCount)

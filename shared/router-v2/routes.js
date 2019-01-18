@@ -3,17 +3,14 @@
 // bridging effort. After we switch over we could simplify this and just have all the routes here and just build static lists with require()/dynamic import
 //
 import * as I from 'immutable'
-import OldDeviceRoutes from '../devices/routes'
+import {newRoutes as deviceNewRoutes} from '../devices/routes'
 import OldPeopleRoutes from '../people/routes'
 import * as Tabs from '../constants/tabs'
 
 export const nameToTab = {}
 export const routes = {}
 
-const oldRoutes = [
-  {route: OldDeviceRoutes, tab: Tabs.devicesTab},
-  {route: OldPeopleRoutes, tab: Tabs.peopleTab},
-]
+const oldRoutes = [{route: OldPeopleRoutes, tab: Tabs.peopleTab}]
 
 const convert = ({route, tab, name}) => {
   let r = route
@@ -37,6 +34,18 @@ const convert = ({route, tab, name}) => {
 
 oldRoutes.forEach(({route, tab}) => {
   convert({name: tab, route, tab})
+})
+
+const newRoutes = [{route: deviceNewRoutes, tab: Tabs.devicesTab}]
+
+newRoutes.forEach(({route, tab}) => {
+  Object.keys(route).forEach(name => {
+    if (nameToTab[name]) {
+      throw new Error('New route with dupe name, disallowed! ' + name)
+    }
+    nameToTab[name] = tab
+    routes[name] = route[name]
+  })
 })
 
 // TEMP

@@ -64,4 +64,8 @@ const Connected = compose(
   safeSubmitPerMount(['onBack'])
 )(Devices)
 
+Connected.navigationOptions = {
+  skipOffline: true
+}
+
 export default Connected

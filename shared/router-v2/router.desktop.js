@@ -3,6 +3,8 @@ import * as Kb from '../common-adapters'
 import * as I from 'immutable'
 import * as Styles from '../styles'
 import * as React from 'react'
+import GlobalError from '../app/global-errors/container'
+import Offline from '../offline/container'
 import TabBar from './tab-bar/container'
 import {
   createNavigator,
@@ -29,23 +31,35 @@ class BridgeSceneView extends React.PureComponent {
   _pop = () => this.props.navigation.pop()
   render() {
     const Component = this.props.component
+    const options = Component.navigationOptions || {}
     return (
       <NavigationContext.Provider value={this.props.navigation}>
         <BackBar onBack={this._pop} />
-        <Component
-          routeProps={this._routeProps}
-          routePath={emptyList}
-          routeState={emptyMap}
-          screenProps={this.props.screenProps}
-          navigation={this.props.navigation}
-        />
+        <Kb.ErrorBoundary>
+          <Component
+            routeProps={this._routeProps}
+            routePath={emptyList}
+            routeState={emptyMap}
+            screenProps={this.props.screenProps}
+            navigation={this.props.navigation}
+          />
+        </Kb.ErrorBoundary>
+        {!options.skipOffline && <Offline />}
+        <GlobalError />
       </NavigationContext.Provider>
     )
   }
 }
 
 const BackBar = p => (
-  <Kb.Box2 direction="horizontal" gap="small" gapStart={true} style={styles.backBar} fullWidth={true}>
+  <Kb.Box2
+    noShrink={true}
+    direction="horizontal"
+    gap="small"
+    gapStart={true}
+    style={styles.backBar}
+    fullWidth={true}
+  >
     <Kb.Icon type="iconfont-arrow-left" onClick={p.onBack} />
   </Kb.Box2>
 )
