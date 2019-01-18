@@ -99,10 +99,10 @@ const AddToTeam = (props: Props) => {
               ))
             ) : (
               <Box2 direction="vertical" centerChildren={true}>
-                <Text style={{textAlign: 'center'}} type="Body">
+                <Text center={true} type="Body">
                   Looks like you haven't joined any teams yet yourself!
                 </Text>
-                <Text style={{textAlign: 'center'}} type="Body">
+                <Text center={true} type="Body">
                   You can join teams over in the Teams tab.
                 </Text>
               </Box2>

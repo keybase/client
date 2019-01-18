@@ -8,13 +8,12 @@ import ScrollView from './scroll-view'
 import Text from './text'
 import Button from './button'
 import {namedConnect} from '../util/container'
-import {isArray} from 'lodash-es'
 
 type OwnProps = {|
   children: React.Node,
   reloadOnMount?: boolean,
   onReload: () => void,
-  waitingKeys: string | Array<string>,
+  waitingKeys: string | Array<string> | (string => boolean),
 |}
 
 type Props = {|
@@ -31,7 +30,7 @@ class Reload extends React.PureComponent<{onReload: () => void, reason: string},
   render() {
     return (
       <Box2 direction="vertical" centerChildren={true} style={styles.reload} gap="tiny">
-        <Text type="Header" style={styles.text}>
+        <Text center={true} type="Header">
           Oops... We're having a hard time loading this page. Try again?
         </Text>
         <Text type="Body" onClick={this._toggle}>
@@ -99,14 +98,10 @@ const styles = Styles.styleSheetCreate({
     maxWidth: '100%',
     width: '100%',
   },
-  text: {
-    textAlign: 'center',
-  },
 })
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
-  const keys = isArray(ownProps.waitingKeys) ? ownProps.waitingKeys : [ownProps.waitingKeys]
-  const error = Constants.anyErrors(state, ...keys)
+  const error = Constants.anyErrors(state, ownProps.waitingKeys)
   return {
     needsReload: !!error,
     reason: error?.message ?? '',

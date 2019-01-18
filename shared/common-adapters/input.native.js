@@ -343,7 +343,7 @@ class Input extends Component<Props, State> {
     return (
       <Box style={[containerStyle, this.props.style]}>
         {!this.props.small && !this.props.hideLabel && (
-          <Text type="BodySmall" style={styles.floating}>
+          <Text center={true} type="BodySmall" style={styles.floating}>
             {floatingHintText}
           </Text>
         )}
@@ -365,7 +365,11 @@ class Input extends Component<Props, State> {
           <NativeTextInput {...(this.props.multiline ? multilineProps : singlelineProps)} />
         </Box>
         {!this.props.small && (
-          <Text type="BodySmallError" style={collapseStyles([styles.error, this.props.errorStyle])}>
+          <Text
+            center={true}
+            type="BodySmallError"
+            style={collapseStyles([styles.error, this.props.errorStyle])}
+          >
             {this.props.errorText || ''}
           </Text>
         )}
@@ -380,19 +384,13 @@ const _bodySmallTextStyle = getTextStyle('BodySmall')
 const _bodyErrorTextStyle = getTextStyle('BodySmallError')
 
 const styles = styleSheetCreate({
-  error: {
-    minHeight: _bodyErrorTextStyle.lineHeight,
-    textAlign: 'center',
-  },
+  error: {minHeight: _bodyErrorTextStyle.lineHeight},
   floating: {
     color: globalColors.blue,
     marginBottom: 9,
     minHeight: _bodySmallTextStyle.lineHeight,
-    textAlign: 'center',
   },
-  inputContainer: {
-    borderBottomWidth: 1,
-  },
+  inputContainer: {borderBottomWidth: 1},
   inputContainerSmall: {
     backgroundColor: globalColors.fastBlank,
     flex: 1,

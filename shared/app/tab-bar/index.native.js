@@ -11,14 +11,14 @@ const _icons = {
   [Tabs.peopleTab]: 'iconfont-nav-people',
   [Tabs.folderTab]: 'iconfont-nav-folders',
   [Tabs.settingsTab]: 'iconfont-nav-more',
-  [Tabs.teamsTab]: 'iconfont-nav-teams',
+  [Tabs.fsTab]: 'iconfont-nav-files',
 }
 
-const _tabs = [Tabs.peopleTab, Tabs.chatTab, Tabs.teamsTab, Tabs.settingsTab]
+const _tabs = [Tabs.peopleTab, Tabs.chatTab, Tabs.fsTab, Tabs.settingsTab]
 
 // Files, Git, Devices, and Wallet are under the settings tab on mobile
 // bubble badges up to the tab
-const settingsTabChildren = [Tabs.fsTab, Tabs.gitTab, Tabs.devicesTab, Tabs.walletsTab]
+const settingsTabChildren = [Tabs.teamsTab, Tabs.gitTab, Tabs.devicesTab, Tabs.walletsTab]
 const getSettingsTabBadge = (badgeNumbers: $PropertyType<Props, 'badgeNumbers'>) =>
   settingsTabChildren.reduce((res, tab) => res + (badgeNumbers[tab] || 0), 0)
 

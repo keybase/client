@@ -144,7 +144,7 @@ const RevokedHeader = ({children, onToggleExpanded, expanded}) => (
         />
       </Kb.Box2>
       {expanded && (
-        <Kb.Text type="BodySmallSemibold" style={revokedHeaderStyles.desc}>
+        <Kb.Text center={true} type="BodySmallSemibold" style={revokedHeaderStyles.desc}>
           Revoked devices will no longer be able to access your Keybase account.
         </Kb.Text>
       )}
@@ -156,7 +156,6 @@ const revokedHeaderStyles = Styles.styleSheetCreate({
     alignSelf: 'center',
     paddingLeft: Styles.globalMargins.small,
     paddingRight: Styles.globalMargins.small,
-    textAlign: 'center',
   },
   text: {color: Styles.globalColors.black_50},
   textContainer: {

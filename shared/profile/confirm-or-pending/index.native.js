@@ -35,13 +35,14 @@ const Render = (props: Props) => {
           </Text>
         )}
         <Text
+          center={true}
           type="Body"
-          style={{marginBottom: globalMargins.tiny, marginTop: globalMargins.small, textAlign: 'center'}}
+          style={{marginBottom: globalMargins.tiny, marginTop: globalMargins.small}}
         >
           {message}
         </Text>
         {!!messageSubtitle && (
-          <Text type="BodySmall" style={{textAlign: 'center'}}>
+          <Text center={true} type="BodySmall">
             {messageSubtitle}
           </Text>
         )}

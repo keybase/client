@@ -18,6 +18,7 @@ type Props = {
   allowFontScaling?: boolean,
   allowHighlightText?: boolean, // if true, highlighttext through refs works
   backgroundMode?: Background,
+  center?: boolean,
   children?: React.Node,
   className?: string,
   ellipsizeMode?: 'head' | 'middle' | 'tail' | 'clip', // mobile only, defines how ellipsis will be put in if `lineClamp` is supplied

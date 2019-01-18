@@ -22,7 +22,7 @@ import (
 func makeRandomBlockInfo(t *testing.T) BlockInfo {
 	return BlockInfo{
 		makeRandomBlockPointer(t),
-		150,
+		testFakeBlockSize,
 	}
 }
 
@@ -60,9 +60,34 @@ func makeFakeIndirectDirPtr(t *testing.T, off StringOffset) IndirectDirPtr {
 }
 
 func makeFakeDirBlock(t *testing.T, name string) *DirBlock {
-	return &DirBlock{Children: map[string]DirEntry{
-		name: makeRandomDirEntry(t, Dir, 100, name),
-	}}
+	return &DirBlock{
+		CommonBlock: CommonBlock{
+			cachedEncodedSize: testFakeBlockSize,
+		},
+		Children: map[string]DirEntry{
+			name: makeRandomDirEntry(t, Dir, 100, name),
+		},
+	}
+}
+
+func makeFakeDirBlockWithChildren(children map[string]DirEntry) *DirBlock {
+	return &DirBlock{
+		CommonBlock: CommonBlock{
+			cachedEncodedSize: testFakeBlockSize,
+		},
+		Children: children,
+	}
+}
+
+func makeFakeDirBlockWithIPtrs(iptrs []IndirectDirPtr) *DirBlock {
+	return &DirBlock{
+		CommonBlock: CommonBlock{
+			IsInd:             true,
+			cachedEncodedSize: testFakeBlockSize,
+		},
+		Children: map[string]DirEntry{},
+		IPtrs:    iptrs,
+	}
 }
 
 func initPrefetcherTestWithDiskCache(t *testing.T, dbc DiskBlockCache) (
@@ -212,8 +237,7 @@ func TestPrefetcherIndirectDirBlock(t *testing.T) {
 		makeFakeIndirectDirPtr(t, "b"),
 	}
 	rootPtr := makeRandomBlockPointer(t)
-	rootBlock := &DirBlock{IPtrs: ptrs, Children: make(map[string]DirEntry)}
-	rootBlock.IsInd = true
+	rootBlock := makeFakeDirBlockWithIPtrs(ptrs)
 	indBlock1 := makeFakeDirBlock(t, "a")
 	indBlock2 := makeFakeDirBlock(t, "b")
 
@@ -341,14 +365,14 @@ func TestPrefetcherDirectDirBlock(t *testing.T) {
 	fileA := makeFakeFileBlock(t, true)
 	fileC := makeFakeFileBlock(t, true)
 	rootPtr := makeRandomBlockPointer(t)
-	rootDir := &DirBlock{Children: map[string]DirEntry{
+	rootDir := makeFakeDirBlockWithChildren(map[string]DirEntry{
 		"a": makeRandomDirEntry(t, File, 100, "a"),
 		"b": makeRandomDirEntry(t, Dir, 60, "b"),
 		"c": makeRandomDirEntry(t, Exec, 20, "c"),
-	}}
-	dirB := &DirBlock{Children: map[string]DirEntry{
+	})
+	dirB := makeFakeDirBlockWithChildren(map[string]DirEntry{
 		"d": makeRandomDirEntry(t, File, 100, "d"),
-	}}
+	})
 	dirBfileD := makeFakeFileBlock(t, true)
 
 	_, continueChRootDir := bg.setBlockToReturn(rootPtr, rootDir)
@@ -413,12 +437,12 @@ func TestPrefetcherAlreadyCached(t *testing.T) {
 		"folder, which in turn points to 1 file.")
 	fileB := makeFakeFileBlock(t, true)
 	rootPtr := makeRandomBlockPointer(t)
-	rootDir := &DirBlock{Children: map[string]DirEntry{
+	rootDir := makeFakeDirBlockWithChildren(map[string]DirEntry{
 		"a": makeRandomDirEntry(t, Dir, 60, "a"),
-	}}
-	dirA := &DirBlock{Children: map[string]DirEntry{
+	})
+	dirA := makeFakeDirBlockWithChildren(map[string]DirEntry{
 		"b": makeRandomDirEntry(t, File, 100, "b"),
-	}}
+	})
 
 	_, continueChRootDir := bg.setBlockToReturn(rootPtr, rootDir)
 	_, continueChDirA :=
@@ -510,9 +534,9 @@ func TestPrefetcherNoRepeatedPrefetch(t *testing.T) {
 	t.Log("Initialize a direct dir block with an entry pointing to 1 file.")
 	fileA := makeFakeFileBlock(t, true)
 	rootPtr := makeRandomBlockPointer(t)
-	rootDir := &DirBlock{Children: map[string]DirEntry{
+	rootDir := makeFakeDirBlockWithChildren(map[string]DirEntry{
 		"a": makeRandomDirEntry(t, File, 60, "a"),
-	}}
+	})
 	ptrA := rootDir.Children["a"].BlockPointer
 
 	_, continueChRootDir := bg.setBlockToReturn(rootPtr, rootDir)
@@ -573,7 +597,7 @@ func TestPrefetcherEmptyDirectDirBlock(t *testing.T) {
 
 	t.Log("Initialize an empty direct dir block.")
 	rootPtr := makeRandomBlockPointer(t)
-	rootDir := &DirBlock{Children: map[string]DirEntry{}}
+	rootDir := makeFakeDirBlockWithChildren(map[string]DirEntry{})
 
 	_, continueChRootDir := bg.setBlockToReturn(rootPtr, rootDir)
 
@@ -609,20 +633,19 @@ func testPrefetcherForSyncedTLF(
 	fileA := makeFakeFileBlock(t, true)
 	fileC := makeFakeFileBlock(t, true)
 	rootPtr := makeRandomBlockPointer(t)
-	rootDir := &DirBlock{Children: map[string]DirEntry{
+	rootDir := makeFakeDirBlockWithChildren(map[string]DirEntry{
 		"a": makeRandomDirEntry(t, File, 100, "a"),
 		"b": makeRandomDirEntry(t, Dir, 60, "b"),
 		"c": makeRandomDirEntry(t, Exec, 20, "c"),
-	}}
-	dirB := &DirBlock{Children: map[string]DirEntry{
+	})
+	dirB := makeFakeDirBlockWithChildren(map[string]DirEntry{
 		"d": makeRandomDirEntry(t, File, 100, "d"),
-	}}
+	})
 	dirBfileDptrs := []IndirectFilePtr{
 		makeFakeIndirectFilePtr(t, 0),
 		makeFakeIndirectFilePtr(t, 150),
 	}
-	dirBfileD := &FileBlock{IPtrs: dirBfileDptrs}
-	dirBfileD.IsInd = true
+	dirBfileD := makeFakeFileBlockWithIPtrs(dirBfileDptrs)
 	dirBfileDblock1 := makeFakeFileBlock(t, true)
 	dirBfileDblock2 := makeFakeFileBlock(t, true)
 
@@ -659,6 +682,7 @@ func testPrefetcherForSyncedTLF(
 		context.Background(), individualTestTimeout)
 	defer cancel()
 	waitChCh := make(chan (<-chan struct{}), 1)
+	statusCh := make(chan PrefetchProgress)
 	go func() {
 		waitCh, err := q.Prefetcher().WaitChannelForBlockPrefetch(ctx, rootPtr)
 		if err != nil {
@@ -666,6 +690,8 @@ func testPrefetcherForSyncedTLF(
 		} else {
 			waitChCh <- waitCh
 		}
+		status, _ := q.Prefetcher().Status(ctx, rootPtr)
+		statusCh <- status
 		continueChFileC <- nil
 		continueChDirB <- nil
 		// After this, the prefetch worker can either pick up the third child of
@@ -689,6 +715,18 @@ func testPrefetcherForSyncedTLF(
 		t.Fatal(ctx.Err())
 	}
 	// Release after getting waitCh.
+	notifySyncCh(t, prefetchSyncCh)
+	select {
+	case status := <-statusCh:
+		// The root block has 3 children (the root block itself
+		// doesn't count in the bytes total).
+		require.Equal(t, uint64(3*testFakeBlockSize), status.SubtreeBytesTotal)
+		require.Equal(t, uint64(0), status.SubtreeBytesFetched)
+		require.Equal(t, config.Clock().Now(), status.Start)
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
+	// Release after getting status.
 	notifySyncCh(t, prefetchSyncCh)
 	// Release after prefetching fileC
 	notifySyncCh(t, prefetchSyncCh)
@@ -939,19 +977,19 @@ func TestPrefetcherBackwardPrefetch(t *testing.T) {
 	t.Log("Initialize a folder tree with structure: " +
 		"root -> {b, a -> {ab, aa -> {aab, aaa}}}")
 	rootPtr := makeRandomBlockPointer(t)
-	root := &DirBlock{Children: map[string]DirEntry{
+	root := makeFakeDirBlockWithChildren(map[string]DirEntry{
 		"a": makeRandomDirEntry(t, Dir, 10, "a"),
 		"b": makeRandomDirEntry(t, File, 20, "b"),
-	}}
-	a := &DirBlock{Children: map[string]DirEntry{
+	})
+	a := makeFakeDirBlockWithChildren(map[string]DirEntry{
 		"aa": makeRandomDirEntry(t, Dir, 30, "aa"),
 		"ab": makeRandomDirEntry(t, File, 40, "ab"),
-	}}
+	})
 	b := makeFakeFileBlock(t, true)
-	aa := &DirBlock{Children: map[string]DirEntry{
+	aa := makeFakeDirBlockWithChildren(map[string]DirEntry{
 		"aaa": makeRandomDirEntry(t, File, 50, "aaa"),
 		"aab": makeRandomDirEntry(t, File, 60, "aab"),
-	}}
+	})
 	ab := makeFakeFileBlock(t, true)
 	aaa := makeFakeFileBlock(t, true)
 	aab := makeFakeFileBlock(t, true)
@@ -1089,22 +1127,22 @@ func TestPrefetcherUnsyncedThenSyncedPrefetch(t *testing.T) {
 	t.Log("Initialize a folder tree with structure: " +
 		"root -> {b, a -> {ab, aa -> {aab, aaa}}}")
 	rootPtr := makeRandomBlockPointer(t)
-	root := &DirBlock{Children: map[string]DirEntry{
+	root := makeFakeDirBlockWithChildren(map[string]DirEntry{
 		"a": makeRandomDirEntry(t, Dir, 10, "a"),
 		"b": makeRandomDirEntry(t, File, 20, "b"),
-	}}
+	})
 	aPtr := root.Children["a"].BlockPointer
-	a := &DirBlock{Children: map[string]DirEntry{
+	a := makeFakeDirBlockWithChildren(map[string]DirEntry{
 		"aa": makeRandomDirEntry(t, Dir, 30, "aa"),
 		"ab": makeRandomDirEntry(t, File, 40, "ab"),
-	}}
+	})
 	bPtr := root.Children["b"].BlockPointer
 	b := makeFakeFileBlock(t, true)
 	aaPtr := a.Children["aa"].BlockPointer
-	aa := &DirBlock{Children: map[string]DirEntry{
+	aa := makeFakeDirBlockWithChildren(map[string]DirEntry{
 		"aaa": makeRandomDirEntry(t, File, 50, "aaa"),
 		"aab": makeRandomDirEntry(t, File, 60, "aab"),
-	}}
+	})
 	abPtr := a.Children["ab"].BlockPointer
 	ab := makeFakeFileBlock(t, true)
 	aaaPtr := aa.Children["aaa"].BlockPointer
@@ -1242,15 +1280,15 @@ func TestSyncBlockCacheWithPrefetcher(t *testing.T) {
 	t.Log("Initialize a folder tree with structure: " +
 		"root -> {b, a -> {ab, aa -> {aab, aaa}}}")
 	rootPtr := makeRandomBlockPointer(t)
-	root := &DirBlock{Children: map[string]DirEntry{
+	root := makeFakeDirBlockWithChildren(map[string]DirEntry{
 		"a": makeRandomDirEntry(t, Dir, 10, "a"),
 		"b": makeRandomDirEntry(t, File, 20, "b"),
-	}}
+	})
 	aPtr := root.Children["a"].BlockPointer
-	a := &DirBlock{Children: map[string]DirEntry{
+	a := makeFakeDirBlockWithChildren(map[string]DirEntry{
 		"aa": makeRandomDirEntry(t, Dir, 30, "aa"),
 		"ab": makeRandomDirEntry(t, File, 40, "ab"),
-	}}
+	})
 	bPtr := root.Children["b"].BlockPointer
 	b := makeFakeFileBlock(t, true)
 
@@ -1330,9 +1368,9 @@ func TestPrefetcherBasicUnsyncedPrefetch(t *testing.T) {
 	t.Log("Initialize a folder tree with structure: " +
 		"root -> {a}")
 	rootPtr := makeRandomBlockPointer(t)
-	root := &DirBlock{Children: map[string]DirEntry{
+	root := makeFakeDirBlockWithChildren(map[string]DirEntry{
 		"a": makeRandomDirEntry(t, File, 10, "a"),
-	}}
+	})
 	aPtr := root.Children["a"].BlockPointer
 	a := makeFakeFileBlock(t, true)
 
@@ -1385,9 +1423,9 @@ func TestPrefetcherBasicUnsyncedBackwardPrefetch(t *testing.T) {
 	t.Log("Initialize a folder tree with structure: " +
 		"root -> {a}")
 	rootPtr := makeRandomBlockPointer(t)
-	root := &DirBlock{Children: map[string]DirEntry{
+	root := makeFakeDirBlockWithChildren(map[string]DirEntry{
 		"a": makeRandomDirEntry(t, File, 10, "a"),
-	}}
+	})
 	aPtr := root.Children["a"].BlockPointer
 	a := makeFakeFileBlock(t, true)
 
@@ -1448,9 +1486,9 @@ func TestPrefetcherUnsyncedPrefetchEvicted(t *testing.T) {
 	t.Log("Initialize a folder tree with structure: " +
 		"root -> {a}")
 	rootPtr := makeRandomBlockPointer(t)
-	root := &DirBlock{Children: map[string]DirEntry{
+	root := makeFakeDirBlockWithChildren(map[string]DirEntry{
 		"a": makeRandomDirEntry(t, File, 10, "a"),
-	}}
+	})
 	aPtr := root.Children["a"].BlockPointer
 	a := makeFakeFileBlock(t, true)
 
@@ -1541,10 +1579,10 @@ func TestPrefetcherUnsyncedPrefetchChildCanceled(t *testing.T) {
 	t.Log("Initialize a folder tree with structure: " +
 		"root -> {a, b}")
 	rootPtr := makeRandomBlockPointer(t)
-	root := &DirBlock{Children: map[string]DirEntry{
+	root := makeFakeDirBlockWithChildren(map[string]DirEntry{
 		"a": makeRandomDirEntry(t, File, 10, "a"),
 		"b": makeRandomDirEntry(t, File, 10, "b"),
-	}}
+	})
 	aPtr := root.Children["a"].BlockPointer
 	bPtr := root.Children["b"].BlockPointer
 	a := makeFakeFileBlock(t, true)
@@ -1658,10 +1696,10 @@ func TestPrefetcherUnsyncedPrefetchParentCanceled(t *testing.T) {
 	t.Log("Initialize a folder tree with structure: " +
 		"root -> {a, b}")
 	rootPtr := makeRandomBlockPointer(t)
-	root := &DirBlock{Children: map[string]DirEntry{
+	root := makeFakeDirBlockWithChildren(map[string]DirEntry{
 		"a": makeRandomDirEntry(t, File, 10, "a"),
 		"b": makeRandomDirEntry(t, File, 10, "b"),
-	}}
+	})
 	aPtr := root.Children["a"].BlockPointer
 	bPtr := root.Children["b"].BlockPointer
 	a := makeFakeFileBlock(t, true)
@@ -1774,15 +1812,15 @@ func TestPrefetcherReschedules(t *testing.T) {
 	t.Log("Initialize a folder tree with structure: " +
 		"root -> {b, a -> {ab, aa}}")
 	rootPtr := makeRandomBlockPointer(t)
-	root := &DirBlock{Children: map[string]DirEntry{
+	root := makeFakeDirBlockWithChildren(map[string]DirEntry{
 		"a": makeRandomDirEntry(t, Dir, 10, "a"),
 		"b": makeRandomDirEntry(t, File, 20, "b"),
-	}}
+	})
 	aPtr := root.Children["a"].BlockPointer
-	a := &DirBlock{Children: map[string]DirEntry{
+	a := makeFakeDirBlockWithChildren(map[string]DirEntry{
 		"aa": makeRandomDirEntry(t, File, 30, "aa"),
 		"ab": makeRandomDirEntry(t, File, 40, "ab"),
-	}}
+	})
 	aaPtr := a.Children["aa"].BlockPointer
 	aa := makeFakeFileBlock(t, true)
 	abPtr := a.Children["ab"].BlockPointer
@@ -1824,7 +1862,6 @@ func TestPrefetcherReschedules(t *testing.T) {
 	})
 	q.TogglePrefetcher(true, prefetchSyncCh)
 	q.Prefetcher().(*blockPrefetcher).makeNewBackOff = func() backoff.BackOff {
-		t.Log("ZERO\n")
 		return &backoff.ZeroBackOff{}
 	}
 	notifySyncCh(t, prefetchSyncCh)
@@ -1924,9 +1961,9 @@ func TestPrefetcherWithDedupBlocks(t *testing.T) {
 	t.Log("Initialize a folder tree with structure: " +
 		"root -> {a, b}, where a and b are refs to the same block ID.")
 	rootPtr := makeRandomBlockPointer(t)
-	root := &DirBlock{Children: map[string]DirEntry{
+	root := makeFakeDirBlockWithChildren(map[string]DirEntry{
 		"a": makeRandomDirEntry(t, File, 10, "a"),
-	}}
+	})
 	aPtr := root.Children["a"].BlockPointer
 	childB := root.Children["a"]
 	bNonce, err := kbfsblock.MakeRefNonce()
@@ -1935,7 +1972,7 @@ func TestPrefetcherWithDedupBlocks(t *testing.T) {
 	root.Children["b"] = childB
 	bPtr := childB.BlockPointer
 
-	aBlock := &FileBlock{}
+	aBlock := makeFakeFileBlock(t, true)
 
 	encRoot, serverHalfRoot :=
 		setupRealBlockForDiskCache(t, rootPtr, root, dbcConfig)
@@ -1991,15 +2028,15 @@ func TestPrefetcherWithCanceledDedupBlocks(t *testing.T) {
 
 	t.Log("Initialize a folder tree with structure: root -> a -> b")
 	rootPtr := makeRandomBlockPointer(t)
-	root := &DirBlock{Children: map[string]DirEntry{
+	root := makeFakeDirBlockWithChildren(map[string]DirEntry{
 		"a": makeRandomDirEntry(t, Dir, 10, "a"),
-	}}
+	})
 	aPtr := root.Children["a"].BlockPointer
-	aBlock := &DirBlock{Children: map[string]DirEntry{
+	aBlock := makeFakeDirBlockWithChildren(map[string]DirEntry{
 		"b": makeRandomDirEntry(t, File, 10, "b"),
-	}}
+	})
 	bPtr := aBlock.Children["b"].BlockPointer
-	bBlock := &FileBlock{}
+	bBlock := makeFakeFileBlock(t, true)
 
 	encRoot, serverHalfRoot :=
 		setupRealBlockForDiskCache(t, rootPtr, root, dbcConfig)
@@ -2037,17 +2074,17 @@ func TestPrefetcherWithCanceledDedupBlocks(t *testing.T) {
 		"new subdir pointing to the same ID but different nonce.")
 
 	root2Ptr := makeRandomBlockPointer(t)
-	root2 := &DirBlock{Children: map[string]DirEntry{
+	root2 := makeFakeDirBlockWithChildren(map[string]DirEntry{
 		"a2": makeRandomDirEntry(t, Dir, 10, "a2"),
-	}}
+	})
 	a2Ptr := root2.Children["a2"].BlockPointer
 	childB2 := aBlock.Children["b"]
 	b2Nonce, err := kbfsblock.MakeRefNonce()
 	require.NoError(t, err)
 	childB2.RefNonce = b2Nonce
-	a2Block := &DirBlock{Children: map[string]DirEntry{
+	a2Block := makeFakeDirBlockWithChildren(map[string]DirEntry{
 		"b2": childB2,
-	}}
+	})
 	b2Ptr := a2Block.Children["b2"].BlockPointer
 	_, _ = bg.setBlockToReturn(a2Ptr, a2Block)
 	_, _ = bg.setBlockToReturn(b2Ptr, bBlock)

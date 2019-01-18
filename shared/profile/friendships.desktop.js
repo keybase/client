@@ -50,7 +50,12 @@ class UserEntry extends PureComponent<UserEntryProps> {
     return (
       <Box style={userEntryContainerStyle} onClick={this._onClick}>
         <Avatar style={userEntryAvatarStyle} size={64} username={username} showFollowingStatus={true} />
-        <Text type="BodySemibold" className="hover-underline" style={userEntryUsernameStyle(following)}>
+        <Text
+          center={true}
+          type="BodySemibold"
+          className="hover-underline"
+          style={userEntryUsernameStyle(following)}
+        >
           {username}
         </Text>
         <Text type="BodySmall" style={userEntryFullnameStyle}>
@@ -78,7 +83,6 @@ const userEntryAvatarStyle = {
 
 const userEntryUsernameStyle = following => ({
   color: following ? globalColors.green : globalColors.blue,
-  textAlign: 'center',
 })
 
 const userEntryFullnameStyle = {

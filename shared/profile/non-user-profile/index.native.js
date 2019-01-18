@@ -33,7 +33,7 @@ const NonUserRender = (props: Props) => (
       label="Start a chat"
       type="Primary"
     />
-    <Text type="BodySmall" style={styleDetails}>{`When ${
+    <Text center={true} type="BodySmall" style={styleDetails}>{`When ${
       props.username
     } connects Keybase and their ${capitalize(
       props.serviceName
@@ -85,7 +85,6 @@ const styleDetails = {
   marginLeft: globalMargins.medium,
   marginRight: globalMargins.medium,
   marginTop: globalMargins.medium,
-  textAlign: 'center',
 }
 
 export default HeaderHoc(NonUserRender)

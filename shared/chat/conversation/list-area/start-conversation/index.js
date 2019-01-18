@@ -13,7 +13,7 @@ type Props = {
 
 const StartConversation = (props: Props) => (
   <Box2 direction="vertical" style={styles.container} gap="small" gapStart={true} gapEnd={true}>
-    <Text type="BodySmall" style={styles.header}>
+    <Text center={true} type="BodySmall" style={styles.header}>
       You haven't chatted with {props.participants} yet.
     </Text>
     <Button type="Primary" label="Start chatting" onClick={props.onStart} waiting={props.isLoading}>
@@ -54,17 +54,12 @@ const styles = styleSheetCreate({
     padding: 8,
     width: '100%',
   },
-  error: {
-    color: globalColors.red,
-  },
+  error: { color: globalColors.red },
   header: {
     marginLeft: globalMargins.medium,
     marginRight: globalMargins.medium,
-    textAlign: 'center',
   },
-  spacer: {
-    flex: 1,
-  },
+  spacer: { flex: 1 },
 })
 
 export default StartConversation

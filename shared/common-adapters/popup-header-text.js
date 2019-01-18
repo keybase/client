@@ -12,6 +12,7 @@ export type HeaderTextProps = {
 
 const PopupHeaderText = (props: HeaderTextProps) => (
   <Text
+    center={true}
     type="BodySmallSemibold"
     style={Styles.collapseStyles([
       styles.text,
@@ -32,7 +33,6 @@ const styles = Styles.styleSheetCreate({
     paddingLeft: Styles.globalMargins.small,
     paddingRight: Styles.globalMargins.small,
     paddingTop: Styles.globalMargins.tiny,
-    textAlign: 'center',
   },
 })
 

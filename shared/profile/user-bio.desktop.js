@@ -111,13 +111,14 @@ class BioRender extends Component<Props> {
             >
               {username}
             </Text>
-            <Text type="BodyBig" selectable={true} style={stylesFullname} {...nameTweaks}>
+            <Text center={true} type="BodyBig" selectable={true} style={stylesFullname} {...nameTweaks}>
               {userInfo.fullname}
             </Text>
             {!userInfo.fullname && editFns && (
               <Text
                 type="BodySemibold"
                 selectable={true}
+                center={true}
                 style={{...stylesFullname, color: globalColors.black_20}}
                 {...nameTweaks}
               >
@@ -148,7 +149,14 @@ class BioRender extends Component<Props> {
               </Box>
             )}
             {userInfo.bio && (
-              <Text type="Body" selectable={true} style={stylesBio} {...bioLineClamp} {...bioTweaks}>
+              <Text
+                center={true}
+                type="Body"
+                selectable={true}
+                style={stylesBio}
+                {...bioLineClamp}
+                {...bioTweaks}
+              >
                 {userInfo.bio}
               </Text>
             )}
@@ -157,6 +165,7 @@ class BioRender extends Component<Props> {
                 type={this.props.type === 'Profile' ? 'Body' : 'BodySmall'}
                 onClick={editFns.onBioEdit}
                 selectable={true}
+                center={true}
                 style={{...stylesBio, color: globalColors.black_20}}
                 {...bioTweaks}
                 {...bioLineClamp}
@@ -169,6 +178,7 @@ class BioRender extends Component<Props> {
               <Text
                 type="BodySmall"
                 selectable={true}
+                center={true}
                 style={stylesLocation}
                 {...locationLineClamp}
                 {...locationTweaks}
@@ -180,6 +190,7 @@ class BioRender extends Component<Props> {
               <Text
                 type="BodySmall"
                 selectable={true}
+                center={true}
                 style={{...stylesLocation, color: globalColors.black_20}}
                 {...locationLineClamp}
                 {...locationTweaks}
@@ -225,7 +236,6 @@ const stylesUsername = {
 }
 const stylesFullname = {
   color: globalColors.black_75,
-  textAlign: 'center',
 }
 const stylesFollowLabel = platformStyles({
   isElectron: {
@@ -237,12 +247,10 @@ const stylesBio = {
   marginBottom: globalMargins.xtiny,
   paddingLeft: 30,
   paddingRight: 30,
-  textAlign: 'center',
 }
 const stylesLocation = {
   paddingLeft: 30,
   paddingRight: 30,
-  textAlign: 'center',
 }
 
 export default BioRender

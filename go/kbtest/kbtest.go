@@ -164,9 +164,10 @@ func FakeSalt() []byte {
 // This was adapted from engine/kex2_test.go
 // Note that it uses Errorf in goroutines, so if it fails
 // the test will not fail until later.
-// tcX is a TestContext where device X (the provisioner) is already provisioned and logged in.
-// this function will provision a new device Y inside tcY
-func ProvisionNewDeviceKex(tcX *libkb.TestContext, tcY *libkb.TestContext, userX *FakeUser) {
+// `tcX` is a TestContext where device X (the provisioner) is already provisioned and logged in.
+// this function will provision a new device Y inside `tcY`
+// `newDeviceType` is libkb.DeviceTypeMobile or libkb.DeviceTypeDesktop.
+func ProvisionNewDeviceKex(tcX *libkb.TestContext, tcY *libkb.TestContext, userX *FakeUser, newDeviceType string) {
 	// tcX is the device X (provisioner) context:
 	// tcX should already have been logged in.
 	t := tcX.T
@@ -204,7 +205,7 @@ func ProvisionNewDeviceKex(tcX *libkb.TestContext, tcY *libkb.TestContext, userX
 			device := &libkb.Device{
 				ID:          deviceID,
 				Description: &dname,
-				Type:        libkb.DeviceTypeDesktop,
+				Type:        newDeviceType,
 			}
 			provisionee := engine.NewKex2Provisionee(tcY.G, device, secretY, userX.GetUID(), FakeSalt())
 			return engine.RunEngine2(m, provisionee)

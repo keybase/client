@@ -129,6 +129,7 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
         )}
         {!!this.props.label && (
           <Text
+            center={true}
             className="title"
             type="BodyTinySemibold"
             style={{
@@ -137,7 +138,6 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
               marginTop: 3,
               ...Styles.desktopStyles.clickable,
               ...this.props.styleLabel,
-              textAlign: 'center',
             }}
           >
             {this.props.label}
@@ -206,7 +206,8 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
         {!!this.props.label && (
           <Text
             type="BodySemibold"
-            style={{color, textAlign: 'center', ...Styles.desktopStyles.clickable, ...this.props.styleLabel}}
+            center={true}
+            style={{color, ...Styles.desktopStyles.clickable, ...this.props.styleLabel}}
           >
             {this.props.label}
           </Text>

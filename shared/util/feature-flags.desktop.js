@@ -26,7 +26,6 @@ const ff: FeatureFlags = {
 
 const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
   chatIndexProfilingEnabled: true,
-  foldersInProfileTab: true,
   moveOrCopy: true,
   newTeamBuildingForChat: true,
 }

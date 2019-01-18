@@ -54,3 +54,7 @@ func (n *nullStellar) SpecMiniChatPayments(mctx MetaContext, payments []MiniChat
 func (n *nullStellar) HandleOobm(context.Context, gregor.OutOfBandMessage) (bool, error) {
 	return false, errors.New("nullStellar HandleOobm")
 }
+
+func (n *nullStellar) RemovePendingTx(MetaContext, stellar1.AccountID, stellar1.TransactionID) error {
+	return errors.New("nullStellar RemovePendingTx")
+}

@@ -117,7 +117,7 @@ class BioRender extends Component<Props> {
             {username}
           </Text>
           {!!userInfo.fullname && (
-            <Text type="BodySemibold" selectable={true} style={stylesFullname}>
+            <Text center={true} type="BodySemibold" selectable={true} style={stylesFullname}>
               {userInfo.fullname}
             </Text>
           )}
@@ -144,6 +144,7 @@ class BioRender extends Component<Props> {
           {!!userInfo.bio && (
             <Text
               type={this.props.type === 'Profile' ? 'Body' : 'BodySmall'}
+              center={true}
               selectable={true}
               style={stylesBio}
               {...bioLineClamp}
@@ -152,7 +153,13 @@ class BioRender extends Component<Props> {
             </Text>
           )}
           {!!userInfo.location && (
-            <Text type="BodySmall" selectable={true} style={stylesLocation} {...locationLineClamp}>
+            <Text
+              center={true}
+              type="BodySmall"
+              selectable={true}
+              style={stylesLocation}
+              {...locationLineClamp}
+            >
               {userInfo.location}
             </Text>
           )}
@@ -194,10 +201,7 @@ const stylesContent = {
 const stylesUsername = {
   marginTop: globalMargins.tiny,
 }
-const stylesFullname = {
-  color: globalColors.black_75,
-  textAlign: 'center',
-}
+const stylesFullname = {color: globalColors.black_75}
 const stylesFollowLabel = {
   color: globalColors.black_50,
   fontSize: 14,
@@ -216,13 +220,7 @@ const stylesFollowingCount = {
   color: globalColors.black_50,
   ...globalStyles.fontBold,
 }
-const stylesBio = {
-  color: globalColors.black_75,
-  textAlign: 'center',
-}
-const stylesLocation = {
-  marginTop: globalMargins.xtiny,
-  textAlign: 'center',
-}
+const stylesBio = {color: globalColors.black_75}
+const stylesLocation = {marginTop: globalMargins.xtiny}
 
 export default BioRender

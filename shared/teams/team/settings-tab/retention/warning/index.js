@@ -44,10 +44,10 @@ const RetentionWarning = (props: Props) => {
     <Wrapper onBack={props.onBack}>
       <Box style={containerStyle}>
         <Icon type={iconType} style={iconStyle} />
-        <Text type="Header" style={headerStyle}>
+        <Text center={true} type="Header" style={headerStyle}>
           Destroy chat messages after {policyString}?
         </Text>
-        <Text type="Body" style={bodyStyle}>
+        <Text center={true} type="Body" style={bodyStyle}>
           You are about to set the message deletion policy in this {convType} to{' '}
           <Text type="BodySemibold">{policyString}.</Text>{' '}
           {showChannelWarnings &&
@@ -124,24 +124,9 @@ const containerStyle = platformStyles({
   },
 })
 
-const iconStyle = {
-  marginBottom: 48,
-}
-
-const headerStyle = platformStyles({
-  common: {
-    marginBottom: globalMargins.small,
-    textAlign: 'center',
-  },
-})
-
-const bodyStyle = platformStyles({
-  common: {
-    marginBottom: globalMargins.small,
-    textAlign: 'center',
-  },
-})
-
+const iconStyle = {marginBottom: 48}
+const headerStyle = {marginBottom: globalMargins.small}
+const bodyStyle = {marginBottom: globalMargins.small}
 const checkboxStyle = platformStyles({
   isMobile: {
     marginLeft: globalMargins.tiny,
@@ -150,15 +135,9 @@ const checkboxStyle = platformStyles({
 })
 
 const confirmLabelStyle = platformStyles({
-  common: {
-    ...globalStyles.flexBoxColumn,
-  },
-  isElectron: {
-    marginBottom: globalMargins.xlarge,
-  },
-  isMobile: {
-    marginBottom: globalMargins.small,
-  },
+  common: {...globalStyles.flexBoxColumn},
+  isElectron: {marginBottom: globalMargins.xlarge},
+  isMobile: {marginBottom: globalMargins.small},
 })
 
 export default HeaderOnMobile(RetentionWarning)

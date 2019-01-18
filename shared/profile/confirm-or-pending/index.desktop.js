@@ -39,11 +39,11 @@ const Render = (props: Props) => {
             {usernameSubtitle}
           </Text>
         )}
-        <Text type="Body" style={{marginTop: globalMargins.large, maxWidth: 560, textAlign: 'center'}}>
+        <Text center={true} type="Body" style={{marginTop: globalMargins.large, maxWidth: 560}}>
           {message}
         </Text>
         {!!messageSubtitle && (
-          <Text type="BodySmall" style={{textAlign: 'center'}}>
+          <Text center={true} type="BodySmall">
             {messageSubtitle}
           </Text>
         )}

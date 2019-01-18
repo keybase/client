@@ -250,7 +250,7 @@ class ProfileRender extends React.PureComponent<Props, State> {
                 overlayColor={Styles.globalColors.blue}
               />
               {!!proof.mTime && (
-                <Kb.Text type="BodySmall" style={{color: Styles.globalColors.black_50, textAlign: 'center'}}>
+                <Kb.Text center={true} type="BodySmall" style={{color: Styles.globalColors.black_50}}>
                   Posted on
                   <br />
                   {moment(proof.mTime).format('ddd MMM D, YYYY')}
@@ -351,7 +351,8 @@ class ProfileRender extends React.PureComponent<Props, State> {
           >
             <Kb.Box2 direction="vertical" style={{flexGrow: 1}}>
               <Kb.Text
-                style={{margin: Styles.globalMargins.tiny, textAlign: 'center', width: '100%'}}
+                center={true}
+                style={{margin: Styles.globalMargins.tiny, width: '100%'}}
                 type="BodySemibold"
                 backgroundMode="HighRisk"
               >
@@ -709,17 +710,6 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       color: Styles.globalColors.green,
       ...Styles.desktopStyles.clickable,
-    },
-  }),
-  toastText: Styles.platformStyles({
-    common: {
-      color: Styles.globalColors.white,
-      textAlign: 'center',
-    },
-    isMobile: {
-      paddingLeft: 10,
-      paddingRight: 10,
-      paddingTop: 5,
     },
   }),
 })

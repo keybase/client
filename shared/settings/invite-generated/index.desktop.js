@@ -27,12 +27,12 @@ class InviteGeneratedRender extends Component<Props> {
         <Icon type="iconfont-close" style={iconStyle} onClick={this.props.onClose} />
         <Icon type="icon-invite-link-48" />
         {this.props.email ? (
-          <Text type="Body" style={textStyle}>
+          <Text center={true} type="Body" style={textStyle}>
             Yay! We emailed <Text type="BodySemibold">{this.props.email}</Text>, but you can also give them
             the below link:
           </Text>
         ) : (
-          <Text type="Body" style={textStyle}>
+          <Text center={true} type="Body" style={textStyle}>
             Yay! Please share the below link with your friend. It contains signup &amp; install instructions.
           </Text>
         )}
@@ -59,7 +59,6 @@ class InviteGeneratedRender extends Component<Props> {
 
 const textStyle = {
   paddingTop: globalMargins.medium,
-  textAlign: 'center',
   width: 440,
 }
 

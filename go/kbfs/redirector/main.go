@@ -24,6 +24,7 @@ import (
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
+	"github.com/keybase/client/go/utils"
 	"github.com/keybase/gomounts"
 )
 
@@ -432,7 +433,7 @@ func main() {
 		// exit immediately, before launching the new process.)
 		close(r.shutdownCh)
 
-		ex, err := os.Executable()
+		ex, err := utils.BinPath()
 		if err != nil {
 			fmt.Fprintf(os.Stderr,
 				"Couldn't get the current executable: %v", err)
