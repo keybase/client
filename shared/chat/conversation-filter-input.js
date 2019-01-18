@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 
-export type Props = {
+export type Props = {|
   isLoading: boolean,
   filter: string,
   filterFocusCount: number,
@@ -13,7 +13,7 @@ export type Props = {
   onSelectUp: () => void,
   onEnsureSelection: () => void,
   style?: Styles.StylesCrossPlatform,
-}
+|}
 
 type State = {
   isEditing: boolean,
