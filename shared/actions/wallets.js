@@ -61,11 +61,12 @@ const buildPayment = (state, action) =>
           forBuildCounter: state.wallets.buildCounter,
         })
       )
-  ).catch(error => {
-    if (error instanceof RPCError && error.code === RPCTypes.constantsStatusCode.sccanceled) {
+  ).catch(err => {
+    if (err instanceof RPCError && err.code === RPCTypes.constantsStatusCode.sccanceled) {
       // ignore cancellation
     } else {
-      throw error
+      logger.error(`buildPayment error: ${err.message}`)
+      throw err
     }
   })
 
@@ -231,23 +232,27 @@ const loadAccounts = (state, action) =>
       })
     })
     .catch(err => {
+      const msg = `Error loading accounts: ${err.desc}`
       if (action.type === WalletsGen.loadAccounts && action.payload.reason === 'initial-load') {
         // No need to throw black bars -- handled by Reloadable.
-        logger.warn(`Error loading accounts: ${err.desc}`)
+        logger.warn(msg)
       } else {
+        logger.error(msg)
         throw err
       }
     })
 
 const handleSelectAccountError = (action, msg, err) => {
+  const errMsg = `Error ${msg}: ${err.desc}`
   // Assume that for auto-selected we're on the Wallets tab.
   if (
     (action.type === WalletsGen.selectAccount && action.payload.reason === 'user-selected') ||
     action.payload.reason === 'auto-selected'
   ) {
     // No need to throw black bars -- handled by Reloadable.
-    logger.warn(`Error ${msg}: ${err.desc}`)
+    logger.warn(errMsg)
   } else {
+    logger.error(errMsg)
     throw err
   }
 }
