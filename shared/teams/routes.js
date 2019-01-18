@@ -22,14 +22,14 @@ const routeTree = () => {
   const Team = require('./team/container').default
   const RetentionWarning = require('./team/settings-tab/retention/warning/container').default
   const makeManageChannels = {
-    createChannel: {
+    chatCreateChannel: {
       children: {},
       component: CreateChannel,
       tags: makeLeafTags({hideStatusBar: true, layerOnTop: !isMobile}),
     },
-    manageChannels: {
+    chatManageChannels: {
       children: {
-        editChannel: {
+        chatEditChannel: {
           children: {},
           component: MaybePopupHoc(false)(EditChannel),
           tags: makeLeafTags({hideStatusBar: true, layerOnTop: !isMobile}),

@@ -51,7 +51,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
         path: [
           {
             props: {conversationIDKey: ownProps.message.conversationIDKey, ordinal: ownProps.message.ordinal},
-            selected: 'chooseEmoji',
+            selected: 'chatChooseEmoji',
           },
         ],
       })

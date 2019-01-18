@@ -143,7 +143,7 @@ export const isTeamConversationSelected = (state: TypedState, teamname: string) 
 }
 export const isInfoPanelOpen = (state: TypedState) => {
   const routePath = getPath(state.routeTree.routeState, [chatTab])
-  return routePath.size === 3 && routePath.get(2) === 'infoPanel'
+  return routePath.size === 3 && routePath.get(2) === 'chatInfoPanel'
 }
 
 export const waitingKeyJoinConversation = 'chat:joinConversation'

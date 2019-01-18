@@ -30,12 +30,7 @@ const mapDispatchToProps = (dispatch, {routePath, navigateUp}) => ({
   onCreateTeam: () => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {},
-            selected: 'showNewTeamDialog',
-          },
-        ],
+        path: [{props: {}, selected: 'showNewTeamDialog'}],
       })
     )
   },
@@ -44,7 +39,9 @@ const mapDispatchToProps = (dispatch, {routePath, navigateUp}) => ({
     dispatch(RouteTreeGen.createNavigateAppend({path: ['showJoinTeamDialog']}))
   },
   onManageChat: (teamname: Teamname) =>
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'manageChannels'}]})),
+    dispatch(
+      RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]})
+    ),
   onOpenFolder: (teamname: Teamname) =>
     dispatch(
       FsGen.createOpenPathInFilesTab({path: FsTypes.stringToPath(`/keybase/team/${teamname}`), routePath})

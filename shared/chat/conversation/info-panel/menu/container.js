@@ -91,7 +91,7 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'reallyLeaveTeam'}]}))
   },
   onManageChannels: () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'manageChannels'}]}))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]}))
     dispatch(TeamsGen.createAddTeamWithChosenChannels({teamname}))
   },
   onViewTeam: () => {

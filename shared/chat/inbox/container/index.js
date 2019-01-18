@@ -61,7 +61,7 @@ const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
     dispatch(
       ff.newTeamBuildingForChat
         ? RouteTreeGen.createNavigateAppend({
-            path: [{props: {}, selected: 'newChat'}],
+            path: [{props: {}, selected: 'chatNewChat'}],
           })
         : Chat2Gen.createSetPendingMode({pendingMode: 'searchingForUsers'})
     ),

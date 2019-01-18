@@ -1227,7 +1227,7 @@ function* messageSend(state, action) {
   // disable sending exploding messages if flag is false
   const ephemeralLifetime = Constants.getConversationExplodingMode(state, conversationIDKey)
   const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
-  const routeName = 'paymentsConfirm'
+  const routeName = 'chatPaymentsConfirm'
   const onShowConfirm = () => [
     Saga.put(Chat2Gen.createClearPaymentConfirmInfo()),
     Saga.put(
@@ -1698,7 +1698,7 @@ const attachmentPreviewSelect = (_, action) => {
       path: [
         {
           props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
-          selected: 'attachmentVideoFullscreen',
+          selected: 'chatAttachmentVideoFullscreen',
         },
       ],
     })
@@ -1709,7 +1709,7 @@ const attachmentPreviewSelect = (_, action) => {
         path: [
           {
             props: {},
-            selected: 'attachmentFullscreen',
+            selected: 'chatAttachmentFullscreen',
           },
         ],
       }),
@@ -1733,7 +1733,7 @@ const attachmentPasted = (_, action) => {
       },
     ]
     return RouteTreeGen.createNavigateAppend({
-      path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'attachmentGetTitles'}],
+      path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'}],
     })
   })
 }

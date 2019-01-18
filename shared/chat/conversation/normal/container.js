@@ -37,7 +37,7 @@ const mapDispatchToProps = dispatch => ({
     }))
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'attachmentGetTitles'}],
+        path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'}],
       })
     )
   },
@@ -45,10 +45,10 @@ const mapDispatchToProps = dispatch => ({
     dispatch(Chat2Gen.createAttachmentPasted({conversationIDKey, data})),
   _onToggleInfoPanel: (isOpen: boolean, conversationIDKey: Types.ConversationIDKey) => {
     if (isOpen) {
-      dispatch(RouteTreeGen.createNavigateTo({parentPath: [chatTab], path: ['conversation']}))
+      dispatch(RouteTreeGen.createNavigateTo({parentPath: [chatTab], path: ['chatConversation']}))
     } else {
       dispatch(
-        RouteTreeGen.createNavigateAppend({path: [{props: {conversationIDKey}, selected: 'infoPanel'}]})
+        RouteTreeGen.createNavigateAppend({path: [{props: {conversationIDKey}, selected: 'chatInfoPanel'}]})
       )
     }
   },

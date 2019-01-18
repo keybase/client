@@ -55,14 +55,14 @@ const mapDispatchToProps = (dispatch, {conversationIDKey, onBack}: OwnProps) => 
   _onEditChannel: (teamname: string) =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {conversationIDKey, teamname}, selected: 'editChannel'}],
+        path: [{props: {conversationIDKey, teamname}, selected: 'chatEditChannel'}],
       })
     ),
   _onShowClearConversationDialog: () => {
     dispatch(Chat2Gen.createNavigateToThread())
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {conversationIDKey}, selected: 'deleteHistoryWarning'}],
+        path: [{props: {conversationIDKey}, selected: 'chatDeleteHistoryWarning'}],
       })
     )
   },
@@ -74,7 +74,7 @@ const mapDispatchToProps = (dispatch, {conversationIDKey, onBack}: OwnProps) => 
         path: [
           {
             props: {conversationIDKey},
-            selected: 'showBlockConversationDialog',
+            selected: 'chatShowBlockConversationDialog',
           },
         ],
       })
@@ -86,7 +86,7 @@ const mapDispatchToProps = (dispatch, {conversationIDKey, onBack}: OwnProps) => 
         path: [
           {
             props: {conversationIDKey},
-            selected: 'showNewTeamDialog',
+            selected: 'chatShowNewTeamDialog',
           },
         ],
       })
