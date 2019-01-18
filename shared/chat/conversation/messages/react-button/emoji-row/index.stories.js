@@ -6,11 +6,11 @@ import * as Styles from '../../../../../styles'
 import EmojiRow from '.'
 
 const actions = {
-  onOpenEmojiPicker: Sb.action('onOpenEmojiPicker'),
   onReact: Sb.action('onReact'),
+  onShowPicker: Sb.action('onShowPicker'),
 }
 
-const _FakeMessage = (props: Kb.OverlayParentProps & {keepVisible?: boolean}) => (
+const _FakeMessage = (props: Kb.OverlayParentProps) => (
   <>
     <Kb.Box2
       direction="horizontal"
@@ -25,9 +25,8 @@ const _FakeMessage = (props: Kb.OverlayParentProps & {keepVisible?: boolean}) =>
       <EmojiRow
         {...actions}
         attachTo={props.getAttachmentRef}
-        onHidden={() => props.setShowingMenu(false)}
         style={{marginRight: 100, marginTop: -4}}
-        visible={props.keepVisible || props.showingMenu}
+        visible={props.showingMenu}
       />
     </Kb.Box2>
   </>

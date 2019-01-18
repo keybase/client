@@ -25,7 +25,7 @@ import MessagePopup from '../message-popup'
 import PendingPaymentBackground from '../account-payment/pending-background'
 import ReactButton from '../react-button/container'
 import ReactionsRow from '../reactions-row/container'
-import EmojiRow from '../react-button/emoji-row'
+import EmojiRow from '../react-button/emoji-row/container'
 import SendIndicator from './send-indicator'
 import UnfurlList from './unfurl/unfurl-list/container'
 import UnfurlPromptList from './unfurl/prompt-list/container'
@@ -191,8 +191,10 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     )
 
   _showReactionsRow = () =>
-    (this.props.message.type === 'text' || this.props.message.type === 'attachment') &&
-    this.props.message.reactions &&
+    (this.props.message.type === 'text' ||
+      this.props.message.type === 'attachment' ||
+      this.props.message.type === 'sendPayment' ||
+      this.props.message.type === 'requestPayment') &&
     !this.props.message.reactions.isEmpty()
 
   _reactionsRow = () =>
@@ -245,7 +247,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             'WrapperMessage-author': this.props.showUsername,
             'WrapperMessage-decorated': this.props.decorate,
             'WrapperMessage-hoverColor': !this.props.isPendingPayment,
-            active: this.props.showingMenu || this.state.showingPicker,
+            active: this.props.showingMenu || this.state.showingPicker || this.state.showEmojiRow,
           },
           'WrapperMessage-hoverBox'
         ),
@@ -438,9 +440,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                 </Kb.Box>
                 <EmojiRow
                   attachTo={this.props.getAttachmentRef}
-                  onHidden={() => {}}
-                  onOpenEmojiPicker={() => this._setShowingPicker(true)}
-                  onReact={() => {}}
+                  conversationIDKey={this.props.conversationIDKey}
+                  onShowPicker={this._setShowingPicker}
+                  ordinal={message.ordinal}
                   style={{marginRight: 100, marginTop: -4}}
                   visible={showEmojiRow}
                 />

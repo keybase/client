@@ -2,13 +2,14 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
+import {backgroundImageFn} from '../../../../../common-adapters/emoji'
+import {Picker} from '../picker'
 import getEmojis from './data'
 
 type Props = {
   attachTo: () => ?React.Component<any>,
-  onHidden: () => void,
-  onOpenEmojiPicker: () => void,
   onReact: string => void,
+  onShowPicker: boolean => void,
   style?: Styles.StylesCrossPlatform,
   visible: boolean,
 }
@@ -53,27 +54,65 @@ class HoverEmoji extends React.Component<
   }
 }
 
-const EmojiRow = (props: Props) =>
-  props.visible ? (
-    <Kb.FloatingBox
-      attachTo={props.attachTo}
-      onHidden={props.onHidden}
-      position="bottom right"
-      propagateOutsideClicks={true}
-      containerStyle={props.style}
-    >
-      <HoverBox direction="horizontal" style={styles.innerContainer}>
-        <Kb.Box2 direction="horizontal" gap="tiny" style={styles.emojisRow}>
-          {getEmojis()
-            .slice(0, 5)
-            .map(e => (
-              <HoverEmoji name={e} key={e} onClick={() => props.onReact(e)} />
-            ))}
-          <HoverEmoji name="" isReacjiIcon={true} onClick={props.onOpenEmojiPicker} key="reacji-icon" />
-        </Kb.Box2>
-      </HoverBox>
-    </Kb.FloatingBox>
-  ) : null
+class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
+  state = {showingPicker: false}
+  _pickerAttachment = React.createRef<Kb.Box2>()
+  _onShowPicker = showingPicker => {
+    this.props.onShowPicker(showingPicker)
+    this.setState(s => (s.showingPicker === showingPicker ? null : {showingPicker}))
+  }
+  _showPicker = () => this._onShowPicker(true)
+  _hidePicker = () => this._onShowPicker(false)
+  _onReact = emoji => {
+    this._onShowPicker(false)
+    this.props.onReact(emoji)
+  }
+  render() {
+    return (
+      <>
+        {this.props.visible ? (
+          <Kb.FloatingBox
+            attachTo={this.props.attachTo}
+            position="bottom right"
+            propagateOutsideClicks={true}
+            containerStyle={this.props.style}
+          >
+            <HoverBox direction="horizontal" style={styles.innerContainer}>
+              <Kb.Box2
+                direction="horizontal"
+                gap="tiny"
+                style={styles.emojisRow}
+                ref={this._pickerAttachment}
+              >
+                {getEmojis()
+                  .slice(0, 5)
+                  .map(e => (
+                    <HoverEmoji name={e} key={e} onClick={() => this.props.onReact(`:${e}:`)} />
+                  ))}
+                <HoverEmoji
+                  name=""
+                  isReacjiIcon={true}
+                  onClick={() => this._onShowPicker(true)}
+                  key="reacji-icon"
+                />
+              </Kb.Box2>
+            </HoverBox>
+          </Kb.FloatingBox>
+        ) : null}
+        {this.state.showingPicker && (
+          <Kb.FloatingBox
+            attachTo={() => this._pickerAttachment.current}
+            position="top right"
+            containerStyle={styles.picker}
+            onHidden={() => this._onShowPicker(false)}
+          >
+            <Picker onClick={({colons}) => this._onReact(colons)} backgroundImageFn={backgroundImageFn} />
+          </Kb.FloatingBox>
+        )}
+      </>
+    )
+  }
+}
 
 const styles = Styles.styleSheetCreate({
   emojiBox: {
@@ -99,6 +138,13 @@ const styles = Styles.styleSheetCreate({
       overflowX: 'hidden',
       overflowY: 'auto',
       position: 'relative',
+    },
+  }),
+  picker: Styles.platformStyles({
+    isElectron: {
+      borderRadius: 4,
+      boxShadow: `0 0 8px 0 ${Styles.globalColors.black_20}`,
+      margin: Styles.globalMargins.small,
     },
   }),
   reacjiIcon: {position: 'relative', top: 1},
