@@ -103,6 +103,13 @@ func MerkleAuditRound(m libkb.MetaContext) error {
 		return nil
 	}
 
+	// Figure out the first merkle root seqno with skips, fall back to 1
+	firstSeqno := m.G().MerkleClient.FirstSeqnoWithSkips(m)
+	if firstSeqno == nil {
+		val := keybase1.Seqno(1)
+		firstSeqno = &val
+	}
+
 	// Acquire the most recent merkle tree root
 	lastRoot := m.G().MerkleClient.LastRoot()
 	if lastRoot == nil {
@@ -114,7 +121,7 @@ func MerkleAuditRound(m libkb.MetaContext) error {
 	lastSeqno := *lastRoot.Seqno()
 
 	// Generate a random seqno for the starting root in the audit.
-	startSeqno, err := randSeqno(libkb.FirstProdMerkleSeqnoWithSkips, lastSeqno)
+	startSeqno, err := randSeqno(*firstSeqno, lastSeqno)
 	if err != nil {
 		return err
 	}
