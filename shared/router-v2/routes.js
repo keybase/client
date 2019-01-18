@@ -7,8 +7,8 @@ import OldDeviceRoutes from '../devices/routes'
 import OldPeopleRoutes from '../people/routes'
 import * as Tabs from '../constants/tabs'
 
-const nameToTab = {}
-const routes = {}
+export const nameToTab = {}
+export const routes = {}
 
 const oldRoutes = [
   {route: OldDeviceRoutes, tab: Tabs.devicesTab},
@@ -39,4 +39,6 @@ oldRoutes.forEach(({route, tab}) => {
   convert({name: tab, route, tab})
 })
 
-export default routes
+// TEMP
+console.log('aaa all routes', routes)
+console.log('aaa routes to tab', nameToTab)

@@ -397,7 +397,7 @@ const navigateAppend = (_, action) => {
     params = p.props
   }
 
-  routeName && _navigator && _navigator.navigate({params, routeName})
+  routeName && _navigator && _navigator.push({params, routeName})
 }
 // maybe the same?
 const navigateTo = navigateAppend

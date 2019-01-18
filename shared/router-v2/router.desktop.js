@@ -1,19 +1,21 @@
 // @flow
 import * as Kb from '../common-adapters'
 import * as I from 'immutable'
-// import * as Styles from '../styles'
+import * as Styles from '../styles'
 import * as React from 'react'
 import TabBar from './tab-bar/container'
 import {
   createNavigator,
   SwitchRouter,
+  StackRouter,
+  StackActions,
   NavigationActions,
   NavigationContext,
   getNavigation,
   NavigationProvider,
   SceneView,
 } from '@react-navigation/core'
-import routes from './routes'
+import {routes, nameToTab} from './routes'
 
 // deprecating routestate concept entirely
 const emptyMap = I.Map()
@@ -21,12 +23,15 @@ const emptyMap = I.Map()
 const emptyList = I.List()
 // TEMP component to give the old routeprops stuff
 class BridgeSceneView extends React.PureComponent {
+  _routeProps = {
+    get: key => this.props.navigation.getParam(key),
+  }
   render() {
     const Component = this.props.component
     return (
       <NavigationContext.Provider value={this.props.navigation}>
         <Component
-          routeProps={I.Map(this.props.screenProps)}
+          routeProps={this._routeProps}
           routePath={emptyList}
           routeState={emptyMap}
           screenProps={this.props.screenProps}
@@ -42,12 +47,10 @@ const AppView = p => {
   const descriptor = p.descriptors[activeKey]
   return (
     <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
-      <TabBar selectedTab={activeKey} />
-      <BridgeSceneView
-        navigation={descriptor.navigation}
-        component={descriptor.getComponent()}
-        screenProps={descriptor.params}
-      />
+      <TabBar selectedTab={nameToTab[descriptor.state.routeName]} />
+      <Kb.Box2 direction="vertical" fullHeight={true} style={styles.contentArea}>
+        <BridgeSceneView navigation={descriptor.navigation} component={descriptor.getComponent()} />
+      </Kb.Box2>
     </Kb.Box2>
   )
 }
@@ -55,7 +58,7 @@ const AppView = p => {
 const AppNavigator = createNavigator(
   AppView,
   // TODO don't hardcode this
-  SwitchRouter(routes, {initialRouteName: 'tabs:peopleTab'}),
+  StackRouter(routes, {initialRouteName: 'tabs:peopleTab'}),
   {
     navigationOptions: () => ({}),
   }
@@ -90,7 +93,7 @@ const createElectronApp = App => {
       )
     }
     // just so we have nice access to this in the action
-    navigate = route => this._dispatch(NavigationActions.navigate(route))
+    push = route => this._dispatch(StackActions.push(route))
     goBack = () => this._dispatch(NavigationActions.back())
     _dispatch = action => {
       const lastState = this.state.nav
@@ -110,5 +113,12 @@ const createElectronApp = App => {
 }
 
 const ElectronApp = createElectronApp(AppNavigator)
+
+const styles = Styles.styleSheetCreate({
+  contentArea: {
+    flexGrow: 1,
+    position: 'relative',
+  },
+})
 
 export default ElectronApp
