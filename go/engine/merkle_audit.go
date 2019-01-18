@@ -100,7 +100,6 @@ func randSeqno(lo keybase1.Seqno, hi keybase1.Seqno) (keybase1.Seqno, error) {
 func MerkleAuditRound(m libkb.MetaContext) error {
 	if m.G().ConnectivityMonitor.IsConnected(m.Ctx()) == libkb.ConnectivityMonitorNo {
 		m.CDebugf("MerkleAudit giving up offline")
-		panic("offline")
 		return nil
 	}
 
@@ -108,7 +107,6 @@ func MerkleAuditRound(m libkb.MetaContext) error {
 	lastRoot := m.G().MerkleClient.LastRoot()
 	if lastRoot == nil {
 		m.CDebugf("MerkleAudit unable to retrieve the last root")
-		panic("last root")
 		return nil
 	}
 
