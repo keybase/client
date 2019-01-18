@@ -481,6 +481,9 @@ def testGo(prefix, packagesToTest) {
       ],
       test_windows_go_: [
         '*': [],
+        'github.com/keybase/client/go/systests': [
+          disable: true,
+        ],
       ],
     ]
     def defaultPackageTestSpec = { pkg ->
