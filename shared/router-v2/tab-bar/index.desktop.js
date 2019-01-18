@@ -45,7 +45,7 @@ const tabs = [
 const TabBar = p => (
   <Kb.Box2 className="tab-container" direction="vertical" fullHeight={true}>
     <Kb.ClickableBox onClick={p.onProfileClick}>
-      <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
+      <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} style={styles.nameContainer}>
         <Kb.Avatar
           size={16}
           borderColor={Styles.globalColors.blue}
@@ -86,6 +86,7 @@ const styles = Styles.styleSheetCreate({
     marginBottom: 20,
     marginTop: Styles.globalMargins.tiny,
   },
+  nameContainer: {height: 20},
   tab: {
     alignItems: 'center',
     height: 40,
