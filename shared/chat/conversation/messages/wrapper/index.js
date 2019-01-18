@@ -23,7 +23,6 @@ import ExplodingMeta from './exploding-meta/container'
 import LongPressable from './long-pressable'
 import MessagePopup from '../message-popup'
 import PendingPaymentBackground from '../account-payment/pending-background'
-import ReactButton from '../react-button/container'
 import ReactionsRow from '../reactions-row/container'
 import EmojiRow from '../react-button/emoji-row/container'
 import SendIndicator from './send-indicator'
@@ -284,7 +283,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     const iconSizes = [
       this.props.isRevoked ? 16 : 0, // revoked
       this.props.showCoinsIcon ? 16 : 0, // coin stack
-      exploded || Styles.isMobile ? 0 : 16, // reactji
       exploded || Styles.isMobile ? 0 : 16, // ... menu
       exploding ? (Styles.isMobile ? 57 : 46) : 0, // exploding
     ].filter(Boolean)
@@ -420,14 +418,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             )}
             {showMenuButton ? (
               <Kb.Box className="WrapperMessage-buttons">
-                <ReactButton
-                  conversationIDKey={this.props.conversationIDKey}
-                  ordinal={message.ordinal}
-                  onShowPicker={this._setShowingPicker}
-                  showBorder={false}
-                  style={styles.reactButton}
-                  getAttachmentRef={this.props.getAttachmentRef}
-                />
                 <Kb.Box>
                   {this.props.shouldShowPopup && (
                     <Kb.Icon
@@ -443,7 +433,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                   conversationIDKey={this.props.conversationIDKey}
                   onShowPicker={this._setShowingPicker}
                   ordinal={message.ordinal}
-                  style={{marginRight: 100, marginTop: -4}}
+                  style={{marginRight: 82, marginTop: -4}}
                   visible={showEmojiRow}
                 />
               </Kb.Box>
@@ -579,9 +569,6 @@ const styles = Styles.styleSheetCreate({
     right: 0,
     top: Styles.isMobile ? 1 : 0, // mobile needs some breathing room for some reason
   },
-  reactButton: Styles.platformStyles({
-    isElectron: {width: 16},
-  }),
   send: Styles.platformStyles({
     common: {position: 'absolute'},
     isElectron: {
