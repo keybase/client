@@ -158,6 +158,20 @@ const load = () => {
           label="HorizontalReverse small gap full height/width"
           boxProps={{direction: 'horizontalReverse', fullHeight: true, fullWidth: true, gap: 'medium'}}
         />
+        <Inside label="Inside flex start">
+          <Box2 fullWidth={true} direction="vertical">
+            <Box2 alignSelf="flex-start" direction="horizontal" style={{backgroundColor: 'red', width: 100}}>
+              <Text type="BodySmall">Inside</Text>
+            </Box2>
+          </Box2>
+        </Inside>
+        <Inside label="Inside flex end">
+          <Box2 fullWidth={true} direction="vertical">
+            <Box2 alignSelf="flex-end" direction="horizontal" style={{backgroundColor: 'red', width: 100}}>
+              <Text type="BodySmall">Inside</Text>
+            </Box2>
+          </Box2>
+        </Inside>
       </React.Fragment>
     ))
 }
@@ -165,8 +179,9 @@ const load = () => {
 const LittleBox = () => <Box style={{backgroundColor: globalColors.red, height: 10, width: 10}} />
 const HDivider = () => <Box style={{backgroundColor: globalColors.black, height: 1, width: '100%'}} />
 const yellowStyle = {backgroundColor: globalColors.yellow}
-const Holder = ({label, boxProps}) => (
-  <React.Fragment>
+
+const Inside = ({label, children}) => (
+  <>
     <Text type="BodySmall">{label}</Text>
     <Box
       style={{
@@ -177,11 +192,18 @@ const Holder = ({label, boxProps}) => (
         width: 200,
       }}
     >
+      {children}
+    </Box>
+  </>
+)
+const Holder = ({label, boxProps}) => (
+  <React.Fragment>
+    <Inside label={label}>
       <Box2 style={yellowStyle} {...boxProps}>
         <LittleBox key="1" />
         <LittleBox key="2" />
       </Box2>
-    </Box>
+    </Inside>
     <HDivider />
   </React.Fragment>
 )

@@ -1786,7 +1786,7 @@ func (h *Server) JoinConversationByIDLocal(ctx context.Context, convID chat1.Con
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI,
 		&identBreaks, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("JoinConversationByID(%s)", convID))()
+	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("JoinConversationByIDLocal: convID: %s", convID))()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	defer func() {
@@ -1885,20 +1885,19 @@ func (h *Server) PreviewConversationByIDLocal(ctx context.Context, convID chat1.
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI,
 		&identBreaks, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("PreviewConversation(%s)", convID))()
+	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("PreviewConversationByIDLocal: convID: %s", convID))()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	defer func() {
 		if res.Offline {
-			h.Debug(ctx, "PreviewConversationLocal: result obtained offline")
+			h.Debug(ctx, "PreviewConversationByIDLocal: result obtained offline")
 		}
 	}()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
 	}
-	err = PreviewConversation(ctx, h.G(), h.DebugLabeler, h.remoteClient, uid, convID)
-	if err != nil {
+	if err = PreviewConversation(ctx, h.G(), h.DebugLabeler, h.remoteClient, uid, convID); err != nil {
 		return res, err
 	}
 	res.Offline = h.G().InboxSource.IsOffline(ctx)

@@ -394,14 +394,12 @@ export const paymentToYourInfoAndCounterparty = (
 } => {
   switch (p.delta) {
     case 'none':
-      // Need to guard check that sourceType is non-empty to handle the
-      // case when p is the empty value.
-      if (p.sourceType && p.sourceType !== 'ownaccount') {
-        throw new Error(`Unexpected sourceType ${p.sourceType} with delta=none`)
-      }
-      if (p.targetType && p.targetType !== 'ownaccount') {
-        throw new Error(`Unexpected targetType ${p.targetType} with delta=none`)
-      }
+      // In this case, sourceType and targetType are usually
+      // 'ownaccount', but they may be other values when offline,
+      // since the daemon has to check account names to mark them as
+      // 'ownaccount'.
+      //
+      // Also, they may be blank when p is the empty value.
       if (p.source !== p.target) {
         throw new Error(`source=${p.source} != target=${p.target} with delta=none`)
       }
@@ -457,7 +455,6 @@ export const createNewAccountWaitingKey = 'wallets:createNewAccount'
 export const changeDisplayCurrencyWaitingKey = 'wallets:changeDisplayCurrency'
 export const getDisplayCurrencyWaitingKey = (id: Types.AccountID) => `wallets:getDisplayCurrency:${id}`
 export const linkExistingWaitingKey = 'wallets:linkExisting'
-export const loadEverythingWaitingKey = 'wallets:loadEverything'
 export const buildPaymentWaitingKey = 'wallets:buildPayment'
 export const sendPaymentWaitingKey = 'wallets:stellarSend'
 export const requestPaymentWaitingKey = 'wallets:requestPayment'
@@ -465,7 +462,7 @@ export const setAccountAsDefaultWaitingKey = 'wallets:setAccountAsDefault'
 export const deleteAccountWaitingKey = 'wallets:deleteAccount'
 export const searchKey = 'walletSearch'
 export const loadAccountWaitingKey = (id: Types.AccountID) => `wallets:loadAccount:${id}`
-export const loadAccountsWaitingKey = `wallets:loadAccounts`
+export const loadAccountsWaitingKey = 'wallets:loadAccounts'
 export const cancelPaymentWaitingKey = (id: Types.PaymentID) =>
   `wallets:cancelPayment:${Types.paymentIDToString(id)}`
 export const validateAccountNameWaitingKey = 'wallets:validateAccountName'
@@ -475,6 +472,8 @@ export const getRequestDetailsWaitingKey = (id: Types.PaymentID) =>
 export const inflationDestinationWaitingKey = 'wallets:inflationDestination'
 export const setAccountMobileOnlyWaitingKey = (id: Types.AccountID) =>
   `wallets:setAccountMobileOnly:${Types.accountIDToString(id)}`
+
+export const isWaitingKey = (key: string) => key.startsWith('wallets:')
 
 export const getAccountIDs = (state: TypedState) => state.wallets.accountMap.keySeq().toList()
 

@@ -28,7 +28,7 @@ const MenuRow = (props: MenuRowProps) => (
   >
     {props.view || (
       <>
-        <Text type={'BodyBig'} style={styleRowText(props)}>
+        <Text center={true} type="BodyBig" style={styleRowText(props)}>
           {props.title}
         </Text>
         {props.newTag && (
@@ -83,7 +83,7 @@ class MenuLayout extends React.Component<MenuLayoutProps> {
 const styleRowText = (props: {isHeader?: boolean, danger?: boolean, disabled?: boolean}) => {
   const dangerColor = props.danger ? Styles.globalColors.red : Styles.globalColors.blue
   const color = props.isHeader ? Styles.globalColors.white : dangerColor
-  return {color, ...(props.disabled ? {opacity: 0.6} : {}), textAlign: 'center'}
+  return {color, ...(props.disabled ? {opacity: 0.6} : {})}
 }
 
 const styles = Styles.styleSheetCreate({

@@ -49,7 +49,7 @@ const renderItem = (item: MenuItem, isLast: boolean, hideMenu: () => void) => {
       }
       return (
         <Row isLast={isLast} key={item.key} onPress={onPress}>
-          <Kb.Text type="BodyBig" style={{color: Styles.globalColors.blue, textAlign: 'center'}}>
+          <Kb.Text center={true} type="BodyBig" style={{color: Styles.globalColors.blue}}>
             {item.title}
           </Kb.Text>
         </Row>
@@ -135,7 +135,7 @@ export const WalletSwitcher = (props: Props) => {
         />
         <Kb.Divider style={styles.divider} />
         <Row onPress={props.hideMenu} style={styles.cancelRow}>
-          <Kb.Text type={'BodyBig'} style={{color: Styles.globalColors.blue, textAlign: 'center'}}>
+          <Kb.Text center={true} type={'BodyBig'} style={{color: Styles.globalColors.blue}}>
             Cancel
           </Kb.Text>
         </Row>

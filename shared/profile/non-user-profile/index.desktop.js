@@ -52,7 +52,7 @@ const NonUserRender = (props: Props) => (
         </Box>
       </Box>
       <Box style={styleRightColumn}>
-        <Text type="BodySmall" style={styleDetails}>{`When ${
+        <Text center={true} type="BodySmall" style={styleDetails}>{`When ${
           props.username
         } connects Keybase and their ${capitalize(
           props.serviceName
@@ -127,7 +127,6 @@ const styleDetails = {
   marginLeft: globalMargins.medium,
   marginRight: globalMargins.medium,
   marginTop: globalMargins.large,
-  textAlign: 'center',
 }
 
 export default NonUserRender

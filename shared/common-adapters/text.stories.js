@@ -143,6 +143,13 @@ const load = () => {
         ))}
       </>
     ))
+    .add('TextCentered', () => (
+      <Box style={{backgroundColor: 'red', width: 100}}>
+        <Text type="Header" center={true}>
+          This is centered
+        </Text>
+      </Box>
+    ))
 }
 
 const outerStyle = isMobile
