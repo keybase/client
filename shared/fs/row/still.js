@@ -56,7 +56,7 @@ const Still = (props: StillProps) => (
       {props.intentIfDownloading ? (
         <Kb.Text type="BodySmall">{getDownloadingText(props.intentIfDownloading)}</Kb.Text>
       ) : (
-        props.type !== 'folder' && <PathItemInfo path={props.path} />
+        props.type !== 'folder' && <PathItemInfo path={props.path} mode="row" />
       )}
     </Kb.Box>
   </StillCommon>
