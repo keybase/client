@@ -10,6 +10,19 @@ export type PathItemInfoProps = {
   mode: 'row' | 'default',
 }
 
+const Username = ({mode, lastWriter}) =>
+  mode === 'row' && Styles.isMobile ? (
+    <Kb.Text type="BodySmall">{lastWriter}</Kb.Text>
+  ) : (
+    <Kb.ConnectedUsernames
+      type="BodySmallSecondaryLink"
+      usernames={[lastWriter]}
+      inline={true}
+      onUsernameClicked="profile"
+      underline={true}
+    />
+  )
+
 const PathItemInfo = (props: PathItemInfoProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={props.mode === 'default'}>
     <Kb.Text
@@ -23,13 +36,7 @@ const PathItemInfo = (props: PathItemInfoProps) => (
       {!!props.lastWriter && (
         <>
           &nbsp;by&nbsp;
-          <Kb.ConnectedUsernames
-            type="BodySmallSecondaryLink"
-            usernames={[props.lastWriter]}
-            inline={true}
-            onUsernameClicked="profile"
-            underline={true}
-          />
+          <Username {...props} />
         </>
       )}
     </Kb.Text>
