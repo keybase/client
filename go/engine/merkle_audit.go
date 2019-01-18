@@ -40,15 +40,6 @@ type MerkleAuditArgs struct {
 	testingRoundResCh chan<- error
 }
 
-type merkleAuditError struct {
-	from keybase1.Seqno
-	to   keybase1.Seqno
-}
-
-func (m merkleAuditError) Error() string {
-	return fmt.Sprintf("Skip of %d to %d might have been tampered with", m.from, m.to)
-}
-
 // NewMerkleAudit creates a new MerkleAudit engine.
 func NewMerkleAudit(g *libkb.GlobalContext, args *MerkleAuditArgs) *MerkleAudit {
 	task := NewBackgroundTask(g, &BackgroundTaskArgs{
@@ -159,10 +150,9 @@ func MerkleAuditRound(m libkb.MetaContext) error {
 
 		if !startHash.Eq(currentHash) {
 			// Warn the user about the possibility of the server tampering with the roots.
-			return merkleAuditError{
-				from: currentSeqno,
-				to:   startSeqno,
-			}
+			return libkb.NewClientMerkleSkipHashMismatchError(
+				fmt.Sprintf("Invalid skip hash from %d to %d", currentHash, startSeqno),
+			)
 		}
 
 		// We're doing this exponentially to make use of the skips.
