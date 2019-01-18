@@ -239,14 +239,14 @@ const loadAccounts = (state, action) =>
       }
     })
 
-const handleSelectAccountError = (action, err) => {
+const handleSelectAccountError = (action, msg, err) => {
   // Assume that for auto-selected we're on the Wallets tab.
   if (
     (action.type === WalletsGen.selectAccount && action.payload.reason === 'user-selected') ||
     action.payload.reason === 'auto-selected'
   ) {
     // No need to throw black bars -- handled by Reloadable.
-    logger.warn(`Error selecting account: ${err.desc}`)
+    logger.warn(`Error ${msg}: ${err.desc}`)
   } else {
     throw err
   }
@@ -286,7 +286,7 @@ const loadAssets = (state, action) => {
           assets: (res || []).map(assets => Constants.assetsResultToAssets(assets)),
         })
       )
-      .catch(err => handleSelectAccountError(action, err))
+      .catch(err => handleSelectAccountError(action, 'selecting account', err))
   }
 }
 
@@ -769,7 +769,7 @@ const loadMobileOnlyMode = (state, action) => {
         enabled: res,
       })
     )
-    .catch(err => handleSelectAccountError(action, err))
+    .catch(err => handleSelectAccountError(action, 'loading mobile only mode', err))
 }
 
 const changeMobileOnlyMode = (state, action) => {
