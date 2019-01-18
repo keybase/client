@@ -86,20 +86,21 @@ type homeTodoMap map[keybase1.HomeScreenTodoType]int
 type homeItemMap map[keybase1.HomeScreenItemType]homeTodoMap
 
 type homeStateBody struct {
-	Version        int           `json:"version"`
-	BadgeCountMap  homeItemMap   `json:"badge_count_map"`
-	LastViewedTime keybase1.Time `json:"last_viewed_time"`
+	Version              int           `json:"version"`
+	BadgeCountMap        homeItemMap   `json:"badge_count_map"`
+	LastViewedTime       keybase1.Time `json:"last_viewed_time"`
+	AnnouncementsVersion int           `json:"announcements_version"`
 }
 
 // countKnownBadges looks at the map sent down by gregor and considers only those
 // types that are known to the client. The rest, it assumes it cannot display,
 // and doesn't count those badges toward the badge count. Note that the shape
-// of this map is two-deep in the case of home todo items, e.g.:
+// of this map is two-deep.
 //
-//   { 1 : { 2 : 3, 4 : 5 }, 3 : 7 }
+//   { 1 : { 2 : 3, 4 : 5 }, 3 : { 10001 : 1 } }
 //
 // Implies that are 3 badges on TODO type PROOF, 5 badges on TODO type FOLLOW,
-// and 7 badges on ANNOUNCEMENTs.
+// and 1 badges in ANNOUNCEMENTs.
 //
 func countKnownBadges(m homeItemMap) int {
 	var ret int
@@ -108,13 +109,30 @@ func countKnownBadges(m homeItemMap) int {
 			continue
 		}
 		for todoType, v := range todoMap {
-			if _, found := keybase1.HomeScreenTodoTypeRevMap[todoType]; !found {
-				continue
+			_, found := keybase1.HomeScreenTodoTypeRevMap[todoType]
+			if (itemType == keybase1.HomeScreenItemType_TODO && found) ||
+				(itemType == keybase1.HomeScreenItemType_ANNOUNCEMENT && todoType >= keybase1.HomeScreenTodoType_ANNONCEMENT_PLACEHOLDER) {
+				ret += v
 			}
-			ret += v
 		}
 	}
 	return ret
+}
+
+func homeStateLessThan(a *homeStateBody, b homeStateBody) bool {
+	if a == nil {
+		return true
+	}
+	if a.Version < b.Version {
+		return true
+	}
+	if a.Version == b.Version && a.LastViewedTime < b.LastViewedTime {
+		return true
+	}
+	if a.AnnouncementsVersion < b.AnnouncementsVersion {
+		return true
+	}
+	return false
 }
 
 // UpdateWithGregor updates the badge state from a gregor state.
@@ -157,7 +175,7 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 				continue
 			}
 			sentUp := false
-			if hsb == nil || hsb.Version < tmp.Version || (hsb.Version == tmp.Version && hsb.LastViewedTime < tmp.LastViewedTime) {
+			if homeStateLessThan(hsb, tmp) {
 				hsb = &tmp
 				b.state.HomeTodoItems = countKnownBadges(hsb.BadgeCountMap)
 				sentUp = true
