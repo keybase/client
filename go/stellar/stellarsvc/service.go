@@ -542,6 +542,10 @@ func (s *Server) LookupCLILocal(ctx context.Context, arg string) (res stellar1.L
 	return res, nil
 }
 
+func (s *Server) BatchLocal(ctx context.Context, arg stellar1.BatchLocalArg) (res stellar1.BatchResultLocal, err error) {
+	return res, err
+}
+
 func percentageAmountChange(a, b int64) float64 {
 	if a == 0 && b == 0 {
 		return 0.0
