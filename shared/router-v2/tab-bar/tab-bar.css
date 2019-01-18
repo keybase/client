@@ -4,8 +4,6 @@
   padding-top: 38px;
   width: 160px;
 }
-.tab {
-}
 .tab-selected {
   transition-property: background-color;
   transition-duration: 0.4s;
@@ -42,4 +40,20 @@
   background-color: #ffffff;
   width: 3px;
   border-radius: 2px;
+}
+.tab-tooltip {
+  display: none !important;
+}
+
+@media all and (max-width: 700px) and (min-width: 0px) {
+  .tab-container {
+    width: 80px;
+  }
+  .tab-label,
+  .username {
+    display: none;
+  }
+  .tab-tooltip {
+    display: flex !important;
+  }
 }

@@ -49,27 +49,28 @@ const TabBar = p => (
         username={p.username}
         style={styles.avatar}
       />
-      <Kb.Text type="BodySemibold" style={styles.username}>
+      <Kb.Text className="username" type="BodySemibold" style={styles.username}>
         Hi {p.username}
       </Kb.Text>
       <Kb.Icon type="iconfont-arrow-down" color={Styles.globalColors.blue3} />
     </Kb.Box2>
     <Kb.Divider style={styles.divider} />
     {tabs.map(t => (
-      <Kb.ClickableBox onClick={() => p.onTabClick(t)}>
-        <Kb.Box2
-          key={t}
-          direction="horizontal"
-          fullWidth={true}
-          className={t === p.selectedTab ? 'tab-selected' : 'tab'}
-          style={styles.tab}
-        >
-          <Kb.Box2 className="tab-highlight" direction="vertical" fullHeight={true} />
-          <Kb.Icon className="tab-icon" type={icons[t]} />
-          <Kb.Text className="tab-label" type="BodySmallSemibold">
-            {labels[t]}
-          </Kb.Text>
-        </Kb.Box2>
+      <Kb.ClickableBox key={t} onClick={() => p.onTabClick(t)}>
+        <Kb.WithTooltip text={labels[t]} toastClassName="tab-tooltip">
+          <Kb.Box2
+            direction="horizontal"
+            fullWidth={true}
+            className={t === p.selectedTab ? 'tab-selected' : 'tab'}
+            style={styles.tab}
+          >
+            <Kb.Box2 className="tab-highlight" direction="vertical" fullHeight={true} />
+            <Kb.Icon className="tab-icon" type={icons[t]} />
+            <Kb.Text className="tab-label" type="BodySmallSemibold">
+              {labels[t]}
+            </Kb.Text>
+          </Kb.Box2>
+        </Kb.WithTooltip>
       </Kb.ClickableBox>
     ))}
   </Kb.Box2>
