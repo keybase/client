@@ -19,7 +19,7 @@ export default function(state: Types.State = initialState, action: Tracker2Gen.A
             assertions: I.Map(), // just remove for now, maybe keep them
             guiID,
             reason: action.payload.reason,
-            showTracker: action.payload.forceDisplay,
+            showTracker: action.payload.forceDisplay || old.showTracker, // show it or keep the last state
             state: 'checking',
             username: action.payload.assertion,
           })

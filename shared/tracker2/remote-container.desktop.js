@@ -6,10 +6,10 @@ import * as ConfigGen from '../actions/config-gen'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as Tracker2Gen from '../actions/tracker2-gen'
 import * as I from 'immutable'
-// import * as TeamsGen from '../actions/teams-gen'
 import * as Types from '../constants/types/tracker2'
 import Tracker from './index.desktop'
 import {remoteConnect} from '../util/container'
+import * as SafeElectron from '../util/safe-electron.desktop'
 
 type OwnProps = {||}
 type State = {|
@@ -33,7 +33,12 @@ const mapDispatchToProps = dispatch => ({
     dispatch(ConfigGen.createShowMain())
     dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'tracker'}))
   },
-  _onClose: (guiID: string) => dispatch(Tracker2Gen.createCloseTracker({guiID})),
+  _onClose: (guiID: string) => {
+    // close immediately
+    const w = SafeElectron.getCurrentWindowFromRemote()
+    w && w.close()
+    dispatch(Tracker2Gen.createCloseTracker({guiID}))
+  },
   _onFollow: (guiID: string) => dispatch(Tracker2Gen.createChangeFollow({follow: true, guiID})),
   _onIgnoreFor24Hours: (guiID: string) => dispatch(Tracker2Gen.createIgnore({guiID})),
   _onReload: (assertion: string) =>

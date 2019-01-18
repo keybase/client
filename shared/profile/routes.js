@@ -3,12 +3,9 @@ import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import {isMobile} from '../constants/platform'
 import flags from '../util/feature-flags'
 
-// TEMP to help HRM
-import TEMP_Profile from './user/container'
-
 const profileRoute = () => {
   const pgpRoutes = require('./pgp/routes').default
-  const Profile = flags.identify3 ? TEMP_Profile : require('./container').default
+  const Profile = flags.identify3 ? require('./user/container').default : require('./container').default
   const AddToTeam = require('./add-to-team/container').default
   // TODO deprecate
   const EditProfile = require('./edit-profile/container').default

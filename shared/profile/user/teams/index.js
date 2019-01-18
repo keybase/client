@@ -109,7 +109,7 @@ const ShowcaseTeamsOffer = p => (
   <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
     <Kb.ClickableBox onClick={p.onEdit}>
       <Kb.Box2 direction="horizontal" gap="tiny">
-        <Kb.Icon type="icon-team-placeholder-avatar-32" size={32} />
+        <Kb.Icon type="icon-team-placeholder-avatar-32" size={32} style={styles.placeholderTeam} />
         <Kb.Text style={styles.youPublishTeam} type="BodyPrimaryLink">
           Publish the teams you're in
         </Kb.Text>
@@ -140,6 +140,7 @@ const styles = Styles.styleSheetCreate({
   },
   link: {color: Styles.globalColors.black_75},
   meta: {alignSelf: 'center'},
+  placeholderTeam: {borderRadius: Styles.borderRadius},
   publicAdmins: Styles.platformStyles({
     isElectron: {display: 'unset'},
   }),

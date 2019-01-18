@@ -4,6 +4,8 @@ import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../styles'
 
+const maxBio = 255
+
 type Props = {|
   bio: string,
   fullname: string,
@@ -48,7 +50,7 @@ class EditProfile extends React.Component<Props, State> {
       (this.state.bio === this.props.bio &&
         this.state.fullname === this.props.fullname &&
         this.state.location === this.props.location) ||
-      this.state.bio.length >= 255
+      this.state.bio.length >= maxBio
     )
   }
 
@@ -60,6 +62,7 @@ class EditProfile extends React.Component<Props, State> {
     this.props.onSubmit(this.state.bio, this.state.fullname, this.state.location)
   }
 
+  // TODO use NewInput when that supports better border radius changes
   render() {
     return (
       <Kb.ScrollView>
@@ -103,6 +106,7 @@ class EditProfile extends React.Component<Props, State> {
             disabled={this._disabled()}
             onClick={this._submit}
           />
+          {this.state.bio.length > maxBio && <Kb.Text type="BodySmallError">Bio too long, sorry</Kb.Text>}
         </Kb.Box2>
       </Kb.ScrollView>
     )
