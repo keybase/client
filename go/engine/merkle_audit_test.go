@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 )
@@ -15,9 +14,6 @@ import (
 func TestMerkleAuditWork(t *testing.T) {
 	tc := SetupEngineTest(t, "merkleaudit")
 	defer tc.Cleanup()
-
-	tc.G.Env.Test.ServerURI = libkb.ProductionServerURI
-	tc.G.ConfigureAPI()
 
 	fakeClock := clockwork.NewFakeClockAt(time.Now())
 	tc.G.SetClock(fakeClock)

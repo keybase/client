@@ -187,9 +187,6 @@ type TestParameters struct {
 	// set to true to use production run mode in tests
 	UseProductionRunMode bool
 
-	// Set to override the Keybase API server URI in a test.
-	ServerURI string
-
 	// whether LogoutIfRevoked check should be skipped to avoid races
 	// during resets.
 	SkipLogoutIfRevokedCheck bool
@@ -500,7 +497,6 @@ func (e *Env) GetServerURI() string {
 	}
 
 	return e.GetString(
-		func() string { return e.Test.ServerURI },
 		func() string { return e.cmd.GetServerURI() },
 		func() string { return os.Getenv("KEYBASE_SERVER_URI") },
 		func() string { return e.GetConfig().GetServerURI() },
