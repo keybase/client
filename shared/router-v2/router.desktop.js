@@ -23,12 +23,13 @@ import {routes, nameToTab} from './routes'
 const emptyMap = I.Map()
 // don't path this likely
 const emptyList = I.List()
-// TEMP component to give the old routeprops stuff
 class BridgeSceneView extends React.PureComponent {
   _routeProps = {
     get: key => this.props.navigation.getParam(key),
   }
   _pop = () => this.props.navigation.pop()
+
+  // TODO remove all the routeprops etc
   render() {
     const Component = this.props.component
     const options = Component.navigationOptions || {}
@@ -40,7 +41,6 @@ class BridgeSceneView extends React.PureComponent {
             routeProps={this._routeProps}
             routePath={emptyList}
             routeState={emptyMap}
-            screenProps={this.props.screenProps}
             navigation={this.props.navigation}
           />
         </Kb.ErrorBoundary>
@@ -64,26 +64,58 @@ const BackBar = p => (
   </Kb.Box2>
 )
 
-const AppView = p => {
-  const activeKey = p.navigation.state.routes[p.navigation.state.index].key
-  const descriptor = p.descriptors[activeKey]
-  return (
-    <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
-      <TabBar selectedTab={nameToTab[descriptor.state.routeName]} />
-      <Kb.Box2 direction="vertical" fullHeight={true} style={styles.contentArea}>
-        <BridgeSceneView navigation={descriptor.navigation} component={descriptor.getComponent()} />
+// The app with a tab bar on the left and content area on the right
+// A single content view and n modals on top
+class AppView extends React.PureComponent {
+  render() {
+    const p = this.props
+    const index = p.navigation.state.index
+    // Find topmost non modal
+    let nonModalIndex = index
+    let modals = []
+    while (nonModalIndex >= 0) {
+      const activeKey = p.navigation.state.routes[nonModalIndex].key
+      const descriptor = p.descriptors[activeKey]
+      const Component = descriptor.getComponent()
+      const options = Component.navigationOptions || {}
+      if (!options.isModal) {
+        break
+      }
+      modals.unshift(descriptor)
+      --nonModalIndex
+    }
+
+    const activeKey = p.navigation.state.routes[nonModalIndex].key
+    const descriptor = p.descriptors[activeKey]
+
+    return (
+      <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
+        <TabBar selectedTab={nameToTab[descriptor.state.routeName]} />
+        <Kb.Box2 direction="vertical" fullHeight={true} style={styles.contentArea}>
+          <BridgeSceneView navigation={descriptor.navigation} component={descriptor.getComponent()} />
+        </Kb.Box2>
+        {modals.map(modal => {
+          const Component = modal.getComponent()
+          return (
+            <Component
+              key={modal.key}
+              routeProps={{get: key => modal.navigation.getParam(key)}}
+              routePath={emptyList}
+              routeState={emptyMap}
+              navigation={modal.navigation}
+            />
+          )
+        })}
       </Kb.Box2>
-    </Kb.Box2>
-  )
+    )
+  }
 }
 
 const AppNavigator = createNavigator(
   AppView,
   // TODO don't hardcode this
   StackRouter(routes, {initialRouteName: 'tabs:peopleTab'}),
-  {
-    navigationOptions: () => ({}),
-  }
+  {}
 )
 
 const createElectronApp = App => {
@@ -153,6 +185,7 @@ const styles = Styles.styleSheetCreate({
     flexGrow: 1,
     position: 'relative',
   },
+  modalContainer: {},
 })
 
 export default ElectronApp

@@ -183,8 +183,14 @@ const panelContainerStyle = {
   width: 320,
 }
 
-export default connect<SelectorOwnProps, _, _, _, _>(
+const InfoConnected = connect<SelectorOwnProps, _, _, _, _>(
   mapStateToSelectorProps,
   mapDispatchToSelectorProps,
   mergeSelectorProps
 )(InfoPanelSelector)
+
+InfoConnected.navigationOptions = {
+  isModal: true,
+}
+
+export default InfoConnected
