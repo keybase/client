@@ -9,6 +9,7 @@ package engine
 
 import (
 	"crypto/rand"
+	"errors"
 	"fmt"
 	"math/big"
 	"sync"
@@ -16,6 +17,11 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+)
+
+var (
+	errAuditOffline    = errors.New("Merkle audit failed to run due to the lack of connectivity.")
+	errAuditNoLastRoot = errors.New("Merkle audit failed to run due to not being able to get the last root.")
 )
 
 var MerkleAuditSettings = BackgroundTaskSettings{
@@ -38,6 +44,10 @@ type MerkleAuditArgs struct {
 	// Channels used for testing. Normally nil.
 	testingMetaCh     chan<- string
 	testingRoundResCh chan<- error
+}
+
+type merkleAuditState struct {
+	RetrySeqno *keybase1.Seqno `json:"retrySeqno"`
 }
 
 // NewMerkleAudit creates a new MerkleAudit engine.
@@ -97,34 +107,45 @@ func randSeqno(lo keybase1.Seqno, hi keybase1.Seqno) (keybase1.Seqno, error) {
 	return keybase1.Seqno(n.Int64()) + lo, nil
 }
 
-func MerkleAuditRound(m libkb.MetaContext) error {
-	if m.G().ConnectivityMonitor.IsConnected(m.Ctx()) == libkb.ConnectivityMonitorNo {
-		m.CDebugf("MerkleAudit giving up offline")
-		return nil
+var merkleAuditKey = libkb.DbKey{
+	Typ: libkb.DBMerkleAudit,
+	Key: "root",
+}
+
+func lookupMerkleAuditRetry(m libkb.MetaContext) (*keybase1.Seqno, error) {
+	var state merkleAuditState
+	found, err := m.G().LocalDb.GetInto(&state, merkleAuditKey)
+	if err != nil {
+		return nil, err
+	}
+	if !found {
+		// Nothing found, no error
+		return nil, nil
 	}
 
-	// Figure out the first merkle root seqno with skips, fall back to 1
-	firstSeqno := m.G().MerkleClient.FirstSeqnoWithSkips(m)
-	if firstSeqno == nil {
-		val := keybase1.Seqno(1)
-		firstSeqno = &val
+	// Can still be nil
+	return state.RetrySeqno, nil
+}
+
+func saveMerkleAuditState(m libkb.MetaContext, state merkleAuditState) error {
+	return m.G().LocalDb.PutObj(merkleAuditKey, nil, state)
+}
+
+func performMerkleAudit(m libkb.MetaContext, startSeqno keybase1.Seqno) error {
+	if m.G().ConnectivityMonitor.IsConnected(m.Ctx()) == libkb.ConnectivityMonitorNo {
+		m.CDebugf("MerkleAudit giving up offline")
+		return errAuditOffline
 	}
 
 	// Acquire the most recent merkle tree root
 	lastRoot := m.G().MerkleClient.LastRoot()
 	if lastRoot == nil {
 		m.CDebugf("MerkleAudit unable to retrieve the last root")
-		return nil
+		return errAuditNoLastRoot
 	}
 
 	// We can copy the pointer's value as it can only return nil if root == nil.
 	lastSeqno := *lastRoot.Seqno()
-
-	// Generate a random seqno for the starting root in the audit.
-	startSeqno, err := randSeqno(*firstSeqno, lastSeqno)
-	if err != nil {
-		return err
-	}
 
 	// Acquire the first root and calculate its hash
 	startRoot, err := m.G().MerkleClient.LookupRootAtSeqno(m, startSeqno)
@@ -161,4 +182,65 @@ func MerkleAuditRound(m libkb.MetaContext) error {
 	}
 
 	return nil
+}
+
+func MerkleAuditRound(m libkb.MetaContext) error {
+	// Look up any previously requested retries
+	startSeqno, err := lookupMerkleAuditRetry(m)
+	if err != nil {
+		m.CDebugf("MerkleAudit unable to acquire saved state from localdb")
+		return nil
+	}
+
+	// If no retry was requested
+	if startSeqno == nil {
+		// nil seqno, generate a new one:
+		// 1. Acquire the most recent merkle tree root
+		lastRoot := m.G().MerkleClient.LastRoot()
+		if lastRoot == nil {
+			m.CDebugf("MerkleAudit unable to retrieve the last root")
+			return nil
+		}
+		lastSeqno := *lastRoot.Seqno()
+
+		// 2. Figure out the first merkle root seqno with skips, fall back to 1
+		firstSeqno := m.G().MerkleClient.FirstSeqnoWithSkips(m)
+		if firstSeqno == nil {
+			val := keybase1.Seqno(1)
+			firstSeqno = &val
+		}
+
+		// 3. Generate a random seqno for the starting root in the audit.
+		randomSeqno, err := randSeqno(*firstSeqno, lastSeqno)
+		if err != nil {
+			return err
+		}
+
+		startSeqno = &randomSeqno
+	}
+
+	// If this time it fails, save it
+	err = performMerkleAudit(m, *startSeqno)
+	if err == nil {
+		// Early return for fewer ifs
+		return saveMerkleAuditState(m, merkleAuditState{
+			RetrySeqno: nil,
+		})
+	}
+
+	// All MerkleClientErrors would suggest that the server is tampering with the roots
+	if _, ok := err.(libkb.MerkleClientError); ok {
+		m.CErrorf("MerkleAudit fatally failed: %s", err)
+	} else {
+		m.CDebugf("MerkleAudit could not complete: %s", err)
+	}
+
+	// Use another error variable to prevent shadowing
+	if serr := saveMerkleAuditState(m, merkleAuditState{
+		RetrySeqno: startSeqno,
+	}); serr != nil {
+		return serr
+	}
+
+	return err
 }
