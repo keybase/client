@@ -2,7 +2,8 @@
 import {connect} from '../../util/container'
 import TabBar from '.'
 import type {Tab} from '../../constants/tabs'
-// import {createShowUserProfile} from '../../actions/profile-gen'
+import * as ProfileGen from '../../actions/profile-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 
 type OwnProps = {|
   selectedTab: Tab,
@@ -15,9 +16,10 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  _onTabClick: (_, __, ___) => {
-    console.log('todo')
+  _onTabClick: tab => {
+    dispatch(RouteTreeGen.createNavigateAppend({path: [tab]}))
   },
+  onProfileClick: dispatch(ProfileGen.createShowUserProfile({})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
@@ -25,7 +27,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   isNew: {
     // [walletsTab]: stateProps.isWalletsNew,
   },
-  onTabClick: (tab: Tab) => dispatchProps._onTabClick(tab, stateProps.username, stateProps.isWalletsNew),
+  onTabClick: (tab: Tab) => dispatchProps._onTabClick(tab),
+  onProfileClick: () => dispatchprops.onProfileClick,
   selectedTab: ownProps.selectedTab,
   username: stateProps.username,
 })

@@ -8,6 +8,7 @@ import {hideDockIcon} from './dock-icon.desktop'
 import {isWindows} from '../../constants/platform'
 import logger from '../../logger'
 import {resolveRootAsURL} from './resolve-root.desktop'
+import flags from '../../util/feature-flags'
 
 const htmlFile = resolveRootAsURL('dist', `main${__DEV__ ? '.dev' : ''}.html`)
 
@@ -41,6 +42,7 @@ export default function() {
     minHeight: 600,
     minWidth: 400,
     show: false,
+    titleBarStyle: flags.useNewRouter ? 'hidden' : 'default',
     webPreferences: {
       devTools: showDevTools,
       nodeIntegration: true,
