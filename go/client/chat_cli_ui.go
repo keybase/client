@@ -120,6 +120,10 @@ func (c *ChatCLIUI) ChatThreadFull(ctx context.Context, arg chat1.ChatThreadFull
 	return nil
 }
 
+func (c *ChatCLIUI) ChatUnreadline(ctx context.Context, arg chat1.ChatUnreadlineArg) error {
+	return nil
+}
+
 func (c *ChatCLIUI) ChatConfirmChannelDelete(ctx context.Context, arg chat1.ChatConfirmChannelDeleteArg) (bool, error) {
 	term := c.G().UI.GetTerminalUI()
 	term.Printf("WARNING: This will destroy this chat channel and remove it from all members' inbox\n\n")

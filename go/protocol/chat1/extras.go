@@ -1206,8 +1206,12 @@ func (c Conversation) MaxVisibleMsgID() MessageID {
 }
 
 func (c Conversation) IsUnread() bool {
+	return c.IsUnreadWithReadID(c.ReaderInfo.ReadMsgid)
+}
+
+func (c Conversation) IsUnreadWithReadID(readMsgID MessageID) bool {
 	maxMsgID := c.MaxVisibleMsgID()
-	return maxMsgID > 0 && maxMsgID > c.ReaderInfo.ReadMsgid
+	return maxMsgID > 0 && maxMsgID > readMsgID
 }
 
 func (c Conversation) HasMemberStatus(status ConversationMemberStatus) bool {
@@ -1321,6 +1325,10 @@ type OfflinableResult interface {
 }
 
 func (r *NonblockFetchRes) SetOffline() {
+	r.Offline = true
+}
+
+func (r *NonblockUnreadlineRes) SetOffline() {
 	r.Offline = true
 }
 
@@ -1495,6 +1503,14 @@ func (r *NonblockFetchRes) GetRateLimit() []RateLimit {
 }
 
 func (r *NonblockFetchRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *NonblockUnreadlineRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *NonblockUnreadlineRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 

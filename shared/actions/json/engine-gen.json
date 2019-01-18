@@ -30,6 +30,9 @@
         "chat1ChatUiChatThreadFull": {
             "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatThreadFull'>, 'inParam'>>"
         },
+        "chat1ChatUiChatUnreadline": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatUnreadline'>, 'inParam'>>"
+        },
         "chat1ChatUiChatSearchHit": {
             "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchHit'>, 'inParam'>>"
         },

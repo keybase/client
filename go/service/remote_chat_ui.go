@@ -52,6 +52,10 @@ func (r *RemoteChatUI) ChatThreadFull(ctx context.Context, arg chat1.ChatThreadF
 	return r.cli.ChatThreadFull(ctx, arg)
 }
 
+func (r *RemoteChatUI) ChatUnreadline(ctx context.Context, arg chat1.ChatUnreadlineArg) error {
+	return r.cli.ChatUnreadline(ctx, arg)
+}
+
 func (r *RemoteChatUI) ChatConfirmChannelDelete(ctx context.Context, arg chat1.ChatConfirmChannelDeleteArg) (bool, error) {
 	return r.cli.ChatConfirmChannelDelete(ctx, arg)
 }

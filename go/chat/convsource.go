@@ -324,6 +324,18 @@ func (s *RemoteConversationSource) GetMessagesWithRemotes(ctx context.Context,
 	return s.boxer.UnboxMessages(ctx, msgs, conv)
 }
 
+func (s *RemoteConversationSource) GetUnreadline(ctx context.Context,
+	convID chat1.ConversationID, uid gregor1.UID, readMsgID chat1.MessageID) (*chat1.MessageID, error) {
+	res, err := s.ri().GetUnreadlineRemote(ctx, chat1.GetUnreadlineRemoteArg{
+		ConvID:    convID,
+		ReadMsgID: readMsgID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return res.MsgID, nil
+}
+
 func (s *RemoteConversationSource) Expunge(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, expunge chat1.Expunge) error {
 	return nil
@@ -1083,6 +1095,34 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 
 	sort.Sort(utils.ByMsgUnboxedMsgID(res))
 	return res, nil
+}
+
+func (s *HybridConversationSource) GetUnreadline(ctx context.Context,
+	convID chat1.ConversationID, uid gregor1.UID, readMsgID chat1.MessageID) (*chat1.MessageID, error) {
+	// If we are not in the unread state, there is no line to display
+	conv, err := storage.NewInbox(s.G()).GetConversation(ctx, uid, convID)
+	if err != nil {
+		s.Debug(ctx, "GetUnreadline: failed to get conv: %s", err)
+		return nil, nil
+	}
+	if !conv.Conv.IsUnreadWithReadID(readMsgID) {
+		return nil, nil
+	}
+	unreadlineMsgID, err := storage.New(s.G(), s).FetchUnreadlineID(ctx, convID, uid, readMsgID)
+	if err != nil {
+		return nil, err
+	}
+	if unreadlineMsgID == nil {
+		if res, err := s.ri().GetUnreadlineRemote(ctx, chat1.GetUnreadlineRemoteArg{
+			ConvID:    convID,
+			ReadMsgID: readMsgID,
+		}); err != nil {
+			return nil, err
+		} else {
+			unreadlineMsgID = res.MsgID
+		}
+	}
+	return unreadlineMsgID, nil
 }
 
 func (s *HybridConversationSource) notifyExpunge(ctx context.Context, uid gregor1.UID,

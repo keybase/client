@@ -319,6 +319,30 @@ func (o GetPublicConversationsRes) DeepCopy() GetPublicConversationsRes {
 	}
 }
 
+type GetUnreadlineRemoteRes struct {
+	MsgID     *MessageID `codec:"msgID,omitempty" json:"msgID,omitempty"`
+	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+}
+
+func (o GetUnreadlineRemoteRes) DeepCopy() GetUnreadlineRemoteRes {
+	return GetUnreadlineRemoteRes{
+		MsgID: (func(x *MessageID) *MessageID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.MsgID),
+		RateLimit: (func(x *RateLimit) *RateLimit {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.RateLimit),
+	}
+}
+
 type ChannelMention int
 
 const (
@@ -797,6 +821,11 @@ type GetThreadRemoteArg struct {
 	Pagination     *Pagination     `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
+type GetUnreadlineRemoteArg struct {
+	ConvID    ConversationID `codec:"convID" json:"convID"`
+	ReadMsgID MessageID      `codec:"readMsgID" json:"readMsgID"`
+}
+
 type GetPublicConversationsArg struct {
 	TlfID            TLFID     `codec:"tlfID" json:"tlfID"`
 	TopicType        TopicType `codec:"topicType" json:"topicType"`
@@ -986,6 +1015,7 @@ type BroadcastGregorMessageToConvArg struct {
 type RemoteInterface interface {
 	GetInboxRemote(context.Context, GetInboxRemoteArg) (GetInboxRemoteRes, error)
 	GetThreadRemote(context.Context, GetThreadRemoteArg) (GetThreadRemoteRes, error)
+	GetUnreadlineRemote(context.Context, GetUnreadlineRemoteArg) (GetUnreadlineRemoteRes, error)
 	GetPublicConversations(context.Context, GetPublicConversationsArg) (GetPublicConversationsRes, error)
 	PostRemote(context.Context, PostRemoteArg) (PostRemoteRes, error)
 	NewConversationRemote(context.Context, ConversationIDTriple) (NewConversationRemoteRes, error)
@@ -1054,6 +1084,21 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetThreadRemote(ctx, typedArgs[0])
+					return
+				},
+			},
+			"getUnreadlineRemote": {
+				MakeArg: func() interface{} {
+					var ret [1]GetUnreadlineRemoteArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetUnreadlineRemoteArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetUnreadlineRemoteArg)(nil), args)
+						return
+					}
+					ret, err = i.GetUnreadlineRemote(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -1592,6 +1637,11 @@ func (c RemoteClient) GetInboxRemote(ctx context.Context, __arg GetInboxRemoteAr
 
 func (c RemoteClient) GetThreadRemote(ctx context.Context, __arg GetThreadRemoteArg) (res GetThreadRemoteRes, err error) {
 	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getThreadRemote", []interface{}{__arg}, &res, rpc.CompressionGzip)
+	return
+}
+
+func (c RemoteClient) GetUnreadlineRemote(ctx context.Context, __arg GetUnreadlineRemoteArg) (res GetUnreadlineRemoteRes, err error) {
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getUnreadlineRemote", []interface{}{__arg}, &res, rpc.CompressionGzip)
 	return
 }
 

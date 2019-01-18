@@ -830,13 +830,6 @@
         {
           "type": [
             null,
-            "MessageID"
-          ],
-          "name": "unreadLineID"
-        },
-        {
-          "type": [
-            null,
             "UIPagination"
           ],
           "name": "pagination"
@@ -1042,6 +1035,20 @@
         },
         {
           "name": "thread",
+          "type": "string"
+        }
+      ],
+      "response": null,
+      "oneway": true
+    },
+    "chatUnreadline": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "unreadline",
           "type": "string"
         }
       ],
