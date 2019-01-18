@@ -71,6 +71,7 @@ func (o UnverifiedInboxUIItemMetadata) DeepCopy() UnverifiedInboxUIItemMetadata 
 type UnverifiedInboxUIItem struct {
 	ConvID          string                         `codec:"convID" json:"convID"`
 	TopicType       TopicType                      `codec:"topicType" json:"topicType"`
+	IsPublic        bool                           `codec:"isPublic" json:"isPublic"`
 	Name            string                         `codec:"name" json:"name"`
 	Visibility      keybase1.TLFVisibility         `codec:"visibility" json:"visibility"`
 	Status          ConversationStatus             `codec:"status" json:"status"`
@@ -93,6 +94,7 @@ func (o UnverifiedInboxUIItem) DeepCopy() UnverifiedInboxUIItem {
 	return UnverifiedInboxUIItem{
 		ConvID:       o.ConvID,
 		TopicType:    o.TopicType.DeepCopy(),
+		IsPublic:     o.IsPublic,
 		Name:         o.Name,
 		Visibility:   o.Visibility.DeepCopy(),
 		Status:       o.Status.DeepCopy(),
@@ -183,6 +185,7 @@ func (o UnverifiedInboxUIItems) DeepCopy() UnverifiedInboxUIItems {
 type InboxUIItem struct {
 	ConvID            string                        `codec:"convID" json:"convID"`
 	TopicType         TopicType                     `codec:"topicType" json:"topicType"`
+	IsPublic          bool                          `codec:"isPublic" json:"isPublic"`
 	IsEmpty           bool                          `codec:"isEmpty" json:"isEmpty"`
 	Name              string                        `codec:"name" json:"name"`
 	Snippet           string                        `codec:"snippet" json:"snippet"`
@@ -216,6 +219,7 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 	return InboxUIItem{
 		ConvID:            o.ConvID,
 		TopicType:         o.TopicType.DeepCopy(),
+		IsPublic:          o.IsPublic,
 		IsEmpty:           o.IsEmpty,
 		Name:              o.Name,
 		Snippet:           o.Snippet,

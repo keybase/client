@@ -337,6 +337,39 @@ func (h *Server) MarkAsReadLocal(ctx context.Context, arg chat1.MarkAsReadLocalA
 	}, nil
 }
 
+func (h *Server) GetInboxUILocal(ctx context.Context, arg chat1.GetInboxUILocalArg) (res chat1.GetInboxUILocalRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "GetInboxUILocal")()
+	defer func() { h.setResultRateLimit(ctx, &res) }()
+	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return res, err
+	}
+	rquery, _, err := h.G().InboxSource.GetInboxQueryLocalToRemote(ctx, arg.Query)
+	if err != nil {
+		return res, err
+	}
+	// Read inbox from the source
+	ib, err := h.G().InboxSource.ReadUnverified(ctx, uid, true, rquery, arg.Pagination)
+	if err != nil {
+		if _, ok := err.(UnknownTLFNameError); ok {
+			h.Debug(ctx, "GetInboxAndUnboxLocal: got unknown TLF name error, returning blank results")
+			ib.Convs = nil
+			ib.Pagination = nil
+		} else {
+			return res, err
+		}
+	}
+	return chat1.GetInboxUILocalRes{
+		ConversationsRemote: utils.PresentRemoteConversations(ib.ConvsUnverified),
+		Pagination:          ib.Pagination,
+		Offline:             h.G().InboxSource.IsOffline(ctx),
+		IdentifyFailures:    identBreaks,
+	}, nil
+}
+
 // GetInboxAndUnboxLocal implements keybase.chatLocal.getInboxAndUnboxLocal protocol.
 func (h *Server) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.GetInboxAndUnboxLocalArg) (res chat1.GetInboxAndUnboxLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
