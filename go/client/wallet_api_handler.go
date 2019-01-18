@@ -144,7 +144,18 @@ func (w *walletAPIHandler) batch(ctx context.Context, c Call, wr io.Writer) erro
 		return w.encodeErr(c, err, wr)
 	}
 
-	result := "not implemented"
+	arg := stellar1.BatchLocalArg{
+		BatchID:     opts.BatchID,
+		TimeoutSecs: opts.Timeout,
+	}
+	for _, p := range opts.Payments {
+		arg.Payments = append(arg.Payments, stellar1.BatchPaymentArg{Recipient: p.Recipient, Amount: p.Amount, Message: p.Message})
+	}
+
+	result, err := w.cli.BatchLocal(ctx, arg)
+	if err != nil {
+		return w.encodeErr(c, err, wr)
+	}
 
 	return w.encodeResult(c, result, wr)
 }
@@ -460,9 +471,9 @@ type batchPayment struct {
 
 // batchOptions are the options for the batch payment method.
 type batchOptions struct {
-	FromAccountID string         `json:"from-account-id"`
-	Timeout       int            `json:"timeout"`
-	Payments      []batchPayment `json:"payments"`
+	BatchID  string         `json:"batchID"`
+	Timeout  int            `json:"timeout"`
+	Payments []batchPayment `json:"payments"`
 }
 
 // Check makes sure that the batch options are valid.
@@ -486,12 +497,6 @@ func (c *batchOptions) Check() error {
 		}
 	}
 
-	if c.FromAccountID != "" {
-		_, err := strkey.Decode(strkey.VersionByteAccountID, c.FromAccountID)
-		if err != nil {
-			return ErrInvalidAccountID
-		}
-	}
 	if c.Timeout <= 0 {
 		c.Timeout = 60
 	}

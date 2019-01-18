@@ -543,7 +543,18 @@ func (s *Server) LookupCLILocal(ctx context.Context, arg string) (res stellar1.L
 }
 
 func (s *Server) BatchLocal(ctx context.Context, arg stellar1.BatchLocalArg) (res stellar1.BatchResultLocal, err error) {
-	return res, err
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName:        "BatchLocal",
+		Err:            &err,
+		RequireWallet:  true,
+		AllowLoggedOut: false,
+	})
+	defer fin()
+	if err != nil {
+		return res, err
+	}
+
+	return stellar.Batch(mctx, s.walletState, arg)
 }
 
 func percentageAmountChange(a, b int64) float64 {

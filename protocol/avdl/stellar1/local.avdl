@@ -575,10 +575,13 @@ protocol local {
     TimeMs endTime;
     TransactionID txID;
     PaymentStatus status;
+    string error;
   }
 
   record BatchResultLocal {
     TimeMs startTime;
+    TimeMs preparedTime;
+    TimeMs allSubmittedTime;
     TimeMs endTime;
     array<BatchPaymentResult> payments;
   }

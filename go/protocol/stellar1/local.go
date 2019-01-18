@@ -794,6 +794,7 @@ type BatchPaymentResult struct {
 	EndTime       TimeMs        `codec:"endTime" json:"endTime"`
 	TxID          TransactionID `codec:"txID" json:"txID"`
 	Status        PaymentStatus `codec:"status" json:"status"`
+	Error         string        `codec:"error" json:"error"`
 }
 
 func (o BatchPaymentResult) DeepCopy() BatchPaymentResult {
@@ -804,19 +805,24 @@ func (o BatchPaymentResult) DeepCopy() BatchPaymentResult {
 		EndTime:       o.EndTime.DeepCopy(),
 		TxID:          o.TxID.DeepCopy(),
 		Status:        o.Status.DeepCopy(),
+		Error:         o.Error,
 	}
 }
 
 type BatchResultLocal struct {
-	StartTime TimeMs               `codec:"startTime" json:"startTime"`
-	EndTime   TimeMs               `codec:"endTime" json:"endTime"`
-	Payments  []BatchPaymentResult `codec:"payments" json:"payments"`
+	StartTime        TimeMs               `codec:"startTime" json:"startTime"`
+	PreparedTime     TimeMs               `codec:"preparedTime" json:"preparedTime"`
+	AllSubmittedTime TimeMs               `codec:"allSubmittedTime" json:"allSubmittedTime"`
+	EndTime          TimeMs               `codec:"endTime" json:"endTime"`
+	Payments         []BatchPaymentResult `codec:"payments" json:"payments"`
 }
 
 func (o BatchResultLocal) DeepCopy() BatchResultLocal {
 	return BatchResultLocal{
-		StartTime: o.StartTime.DeepCopy(),
-		EndTime:   o.EndTime.DeepCopy(),
+		StartTime:        o.StartTime.DeepCopy(),
+		PreparedTime:     o.PreparedTime.DeepCopy(),
+		AllSubmittedTime: o.AllSubmittedTime.DeepCopy(),
+		EndTime:          o.EndTime.DeepCopy(),
 		Payments: (func(x []BatchPaymentResult) []BatchPaymentResult {
 			if x == nil {
 				return nil
