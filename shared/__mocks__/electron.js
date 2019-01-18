@@ -13,6 +13,7 @@ export const remote = {
   Menu: {},
   getCurrentWindow: () => ({
     on: () => {},
+    removeListener: () => {},
   }),
 }
 

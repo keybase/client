@@ -6513,6 +6513,19 @@ func (mr *MockPrefetcherMockRecorder) WaitChannelForBlockPrefetch(ctx, ptr inter
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "WaitChannelForBlockPrefetch", reflect.TypeOf((*MockPrefetcher)(nil).WaitChannelForBlockPrefetch), ctx, ptr)
 }
 
+// Status mocks base method
+func (m *MockPrefetcher) Status(ctx context.Context, ptr BlockPointer) (PrefetchProgress, error) {
+	ret := m.ctrl.Call(m, "Status", ctx, ptr)
+	ret0, _ := ret[0].(PrefetchProgress)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Status indicates an expected call of Status
+func (mr *MockPrefetcherMockRecorder) Status(ctx, ptr interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Status", reflect.TypeOf((*MockPrefetcher)(nil).Status), ctx, ptr)
+}
+
 // CancelPrefetch mocks base method
 func (m *MockPrefetcher) CancelPrefetch(arg0 BlockPointer) {
 	m.ctrl.T.Helper()

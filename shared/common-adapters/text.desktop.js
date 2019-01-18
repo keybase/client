@@ -45,6 +45,7 @@ class Text extends React.Component<Props> {
       underline: props.underline,
       // eslint-disable-next-line sort-keys
       'hover-underline': meta.isLink && (!props.backgroundMode || props.backgroundMode === 'Normal'),
+      text_center: props.center,
     })
   }
 

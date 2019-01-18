@@ -3,6 +3,7 @@ import * as React from 'react'
 import Box from './box'
 import Text from './text'
 import * as Styles from '../styles'
+
 export type Badge2Props = {|
   badgeNumber: number,
   fontSize: number,
@@ -25,7 +26,7 @@ export default class Badge extends React.Component<Badge2Props> {
     return (
       <Box
         style={Styles.collapseStyles([
-          badge2Styles.badge,
+          styles.badge,
           {
             borderRadius: this.props.height,
             height: this.props.height,
@@ -37,9 +38,10 @@ export default class Badge extends React.Component<Badge2Props> {
         ])}
       >
         <Text
+          center={true}
           type="BodyTinyBold"
           style={Styles.collapseStyles([
-            badge2Styles.text,
+            styles.text,
             {
               fontSize: this.props.fontSize,
               height: this.props.height,
@@ -55,7 +57,7 @@ export default class Badge extends React.Component<Badge2Props> {
   }
 }
 
-const badge2Styles = Styles.styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   badge: {
     ...Styles.globalStyles.flexBoxRow,
     ...Styles.globalStyles.flexBoxCenter,
@@ -63,6 +65,5 @@ const badge2Styles = Styles.styleSheetCreate({
   },
   text: {
     color: Styles.globalColors.white,
-    textAlign: 'center',
   },
 })

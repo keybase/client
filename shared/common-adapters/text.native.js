@@ -19,17 +19,22 @@ const backgroundModes = [
   'Terminal',
 ]
 
-const styleMap = Object.keys(metaData).reduce((map, type: TextType) => {
-  const meta = metaData[type]
-  backgroundModes.forEach(mode => {
-    map[`${type}:${mode}`] = {
-      ...fontSizeToSizeStyle(meta.fontSize),
-      color: meta.colorForBackgroundMode[mode] || defaultColor(mode),
-      ...meta.styleOverride,
-    }
-  })
-  return map
-}, {})
+const styleMap = Object.keys(metaData).reduce(
+  (map, type: TextType) => {
+    const meta = metaData[type]
+    backgroundModes.forEach(mode => {
+      map[`${type}:${mode}`] = {
+        ...fontSizeToSizeStyle(meta.fontSize),
+        color: meta.colorForBackgroundMode[mode] || defaultColor(mode),
+        ...meta.styleOverride,
+      }
+    })
+    return map
+  },
+  {
+    center: {textAlign: 'center'},
+  }
+)
 
 const styles = NativeStyleSheet.create(styleMap)
 
@@ -87,14 +92,23 @@ class Text extends Component<Props> {
     const dynamicStyle = {
       ...(this.props.backgroundMode === 'Normal'
         ? {}
-        : _getStyle(this.props.type, this.props.backgroundMode, this.props.lineClamp, !!this.props.onClick)),
+        : _getStyle(
+            this.props.type,
+            this.props.backgroundMode,
+            this.props.lineClamp,
+            !!this.props.onClick,
+            !!this.props.underline
+          )),
     }
 
     let style
     if (!Object.keys(dynamicStyle).length) {
-      style = this.props.style ? [baseStyle, this.props.style] : baseStyle
+      style =
+        this.props.style || this.props.center
+          ? [baseStyle, this.props.center && styles.center, this.props.style]
+          : baseStyle
     } else {
-      style = [baseStyle, dynamicStyle, this.props.style]
+      style = [baseStyle, dynamicStyle, this.props.center && styles.center, this.props.style]
     }
 
     const onPress =
@@ -130,9 +144,12 @@ function _getStyle(
   type: TextType,
   backgroundMode?: Background = 'Normal',
   lineClampNum?: ?number,
-  clickable?: ?boolean
+  clickable?: ?boolean,
+  forceUnderline: boolean
 ) {
-  if (backgroundMode === 'Normal') return null
+  if (backgroundMode === 'Normal') {
+    return forceUnderline ? {textDecorationLine: 'underline'} : {}
+  }
   const meta = metaData[type]
   const colorStyle = {color: meta.colorForBackgroundMode[backgroundMode] || defaultColor(backgroundMode)}
   const textDecoration = meta.isLink ? {textDecorationLine: 'underline'} : {}

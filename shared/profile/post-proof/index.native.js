@@ -46,6 +46,7 @@ const PostProof = (props: Props) => {
         size={48}
       />
       <Kb.Text
+        center={true}
         style={{
           ...stylePlatformUsername,
           ...(stylePlatformSubtitle ? {} : {marginBottom: Styles.globalMargins.tiny}),
@@ -55,13 +56,13 @@ const PostProof = (props: Props) => {
         {platformUserName}
       </Kb.Text>
       {!!platformSubtitle && (
-        <Kb.Text style={stylePlatformSubtitle} type="Body">
+        <Kb.Text center={true} style={stylePlatformSubtitle} type="Body">
           {platformSubtitle}
         </Kb.Text>
       )}
       {descriptionView ||
         (descriptionText && (
-          <Kb.Text style={styleDescriptionText} type="Body">
+          <Kb.Text center={true} style={styleDescriptionText} type="Body">
             {descriptionText}
           </Kb.Text>
         ))}
@@ -69,7 +70,7 @@ const PostProof = (props: Props) => {
         <Kb.CopyableText style={styleProofContainer} value={proofText} textStyle={styleProofText} />
       )}
       {!!noteText && (
-        <Kb.Text style={styleNoteText} type="BodySmall">
+        <Kb.Text center={true} style={styleNoteText} type="BodySmall">
           {noteText}
         </Kb.Text>
       )}
@@ -99,38 +100,23 @@ const PostProof = (props: Props) => {
   )
 }
 
-const stylePlatformIcon = {
-  alignSelf: 'center',
-}
+const stylePlatformIcon = {alignSelf: 'center'}
 
-const stylePlatformUsername = {
-  color: Styles.globalColors.blue,
-  textAlign: 'center',
-}
+const stylePlatformUsername = {color: Styles.globalColors.blue}
 
 const stylePlatformSubtitle = {
   color: Styles.globalColors.black_20,
   marginBottom: Styles.globalMargins.small,
-  textAlign: 'center',
 }
 
-const styleDescriptionText = {
-  marginTop: Styles.globalMargins.tiny,
-  textAlign: 'center',
-}
-
-const styleProofContainer = {
-  marginTop: Styles.globalMargins.tiny,
-}
+const styleDescriptionText = {marginTop: Styles.globalMargins.tiny}
+const styleProofContainer = {marginTop: Styles.globalMargins.tiny}
 
 const styleProofText = {
   maxHeight: 7 /* # lines */ * 20 /* line height */ + 2 * 10 /* padding */,
 }
 
-const styleNoteText = {
-  marginTop: Styles.globalMargins.tiny,
-  textAlign: 'center',
-}
+const styleNoteText = {marginTop: Styles.globalMargins.tiny}
 
 const styleContinueButton = {
   ...Styles.globalStyles.flexBoxRow,

@@ -755,6 +755,7 @@ type NodeMetadata struct {
 	LastWriterUnverified kbname.NormalizedUsername
 	BlockInfo            BlockInfo
 	PrefetchStatus       PrefetchStatus
+	PrefetchProgress     *PrefetchProgress `json:",omitempty"`
 }
 
 // FavoritesOp defines an operation related to favorites.

@@ -52,7 +52,7 @@ class Contents extends React.Component<Props> {
               backgroundColor: globalColors.blue,
             }}
           >
-            <Kb.Text type="BodySmallSemibold" backgroundMode="Announcements" style={{textAlign: 'center'}}>
+            <Kb.Text center={true} type="BodySmallSemibold" backgroundMode="Announcements">
               {this._headerText()}
               {this.props.isSubteam && (
                 <Kb.Text
@@ -76,7 +76,7 @@ class Contents extends React.Component<Props> {
               }}
             >
               <Kb.Text
-                style={{textAlign: 'center', width: '100%'}}
+                center={true} style={{width: '100%'}}
                 type="BodySmallSemibold"
                 backgroundMode="HighRisk"
               >

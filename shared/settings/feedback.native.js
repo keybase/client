@@ -79,7 +79,7 @@ class Feedback extends Component<Props> {
             paddingTop: globalMargins.tiny,
           }}
         >
-          <Text type="BodySmallSemibold" backgroundMode="Success" style={{flex: 1, textAlign: 'center'}}>
+          <Text center={true} type="BodySmallSemibold" backgroundMode="Success" style={{flex: 1}}>
             Thanks! Your feedback was sent.
           </Text>
         </Box>
@@ -94,7 +94,7 @@ class Feedback extends Component<Props> {
             padding: globalMargins.tiny,
           }}
         >
-          <Text style={{textAlign: 'center'}} type="HeaderBig">
+          <Text center={true} type="HeaderBig">
             {heading}
           </Text>
           <Box

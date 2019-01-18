@@ -17,7 +17,7 @@ const EntryComponent = ({errorText, name, onNameChange, onSubmit}) => (
           }}
         >
           <Text
-            style={{margin: globalMargins.tiny, textAlign: 'center', width: '100%'}}
+            center={true} style={{margin: globalMargins.tiny, width: '100%'}}
             type="BodySemibold"
             backgroundMode="HighRisk"
           >

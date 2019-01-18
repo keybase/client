@@ -4,6 +4,7 @@ import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
+import * as Kbfs from '../common'
 import Footer from '../footer/footer'
 import Header from './header-container'
 import View from './view-container'
@@ -28,6 +29,7 @@ export default class NormalPreview extends React.PureComponent<NormalPreviewProp
     return (
       <Kb.Box style={styles.outerContainer}>
         <Header path={this.props.path} routePath={this.props.routePath} />
+        <Kbfs.Errs />
         <Kb.Divider />
         <Kb.Box style={styles.greyContainer}>
           <Kb.Box style={styles.contentContainer}>

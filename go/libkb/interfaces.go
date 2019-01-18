@@ -709,6 +709,7 @@ type Stellar interface {
 	SpecMiniChatPayments(mctx MetaContext, payments []MiniChatPayment) (*MiniChatPaymentSummary, error)
 	SendMiniChatPayments(mctx MetaContext, convID chat1.ConversationID, payments []MiniChatPayment) ([]MiniChatPaymentResult, error)
 	HandleOobm(context.Context, gregor.OutOfBandMessage) (bool, error)
+	RemovePendingTx(mctx MetaContext, accountID stellar1.AccountID, txID stellar1.TransactionID) error
 }
 
 type DeviceEKStorage interface {

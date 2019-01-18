@@ -996,6 +996,7 @@ func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.Unverifie
 	}
 	res.ConvID = rawConv.GetConvID().String()
 	res.TopicType = rawConv.GetTopicType()
+	res.IsPublic = rawConv.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC
 	res.Name = tlfName
 	res.Status = rawConv.Metadata.Status
 	res.Time = GetConvMtime(rawConv)
@@ -1054,6 +1055,7 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal, currentUsername s
 	}
 	res.ConvID = rawConv.GetConvID().String()
 	res.TopicType = rawConv.GetTopicType()
+	res.IsPublic = rawConv.Info.Visibility == keybase1.TLFVisibility_PUBLIC
 	res.Name = rawConv.Info.TlfName
 	res.Snippet, res.SnippetDecoration = GetConvSnippet(rawConv, currentUsername)
 	res.Channel = GetTopicName(rawConv)

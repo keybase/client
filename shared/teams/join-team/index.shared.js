@@ -29,7 +29,8 @@ export const SuccessComponent = ({successTeamName, onBack}: Props) => (
   <Box style={globalStyles.flexBoxColumn}>
     <Box style={{...styleContainer, backgroundColor: globalColors.blue}}>
       <Text
-        style={{margin: globalMargins.tiny, textAlign: 'center', width: '100%'}}
+        style={{margin: globalMargins.tiny, width: '100%'}}
+        center={true}
         type="BodySemibold"
         backgroundMode="Announcements"
       >
@@ -65,7 +66,7 @@ export const SuccessComponent = ({successTeamName, onBack}: Props) => (
           maxWidth: isMobile ? 320 : 410,
         }}
       >
-        <Text style={{textAlign: 'center'}} type="Body">
+        <Text center={true} type="Body">
           We sent a request to{' '}
           {successTeamName ? <Text type="BodySemibold">{successTeamName}</Text> : 'the team'}
           's admins. We will notify you as soon as they let you in!

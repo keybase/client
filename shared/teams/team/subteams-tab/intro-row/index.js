@@ -76,24 +76,16 @@ const styles = styleSheetCreate({
     margin: globalMargins.small,
   },
   containerText: platformStyles({
-    common: {
-      ...globalStyles.flexBoxColumn,
-    },
+    common: { ...globalStyles.flexBoxColumn },
     isElectron: {
       marginLeft: globalMargins.medium,
       maxWidth: 330,
     },
-    isMobile: {
-      alignItems: 'center',
-    },
+    isMobile: { alignItems: 'center' },
   }),
-  iconClose: {
-    padding: globalMargins.tiny,
-  },
+  iconClose: { padding: globalMargins.tiny },
   iconCloseContainer: platformStyles({
-    common: {
-      position: 'absolute',
-    },
+    common: { position: 'absolute' },
     isElectron: {
       right: globalMargins.tiny,
       top: globalMargins.tiny,
@@ -108,12 +100,8 @@ const styles = styleSheetCreate({
     marginTop: globalMargins.small,
   },
   text: platformStyles({
-    common: {
-      marginBottom: globalMargins.small,
-    },
-    isMobile: {
-      textAlign: 'center',
-    },
+    common: {marginBottom: globalMargins.small},
+    isMobile: {textAlign: 'center'},
   }),
 })
 

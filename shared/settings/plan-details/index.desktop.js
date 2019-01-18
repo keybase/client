@@ -29,7 +29,7 @@ function PaymentOption({paymentOption}: {paymentOption: PaymentVariants}) {
       const text = `You are currently using Apple Pay. Please use your iPhone/iPad to switch plans.`
       return (
         <Box style={globalStyles.flexBoxColumn}>
-          <Text type="BodySmallError" style={{marginBottom: globalMargins.large, textAlign: 'center'}}>
+          <Text center={true} type="BodySmallError" style={{marginBottom: globalMargins.large}}>
             {text}
           </Text>
           <Button
@@ -49,15 +49,16 @@ function PlanDetails({plan, price, paymentOption, onBack, gigabytes, numStars}: 
     <StandardScreen onBack={onBack}>
       <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, justifyContent: 'center'}}>
         <Stars count={numStars} />
-        <Text type={'Header'} style={{marginTop: globalMargins.small, textAlign: 'center'}}>
+        <Text center={true} type="Header" style={{marginTop: globalMargins.small}}>
           {plan}
         </Text>
-        <Text type={'Body'} style={{marginBottom: globalMargins.medium, textAlign: 'center'}}>
+        <Text center={true} type="Body" style={{marginBottom: globalMargins.medium}}>
           {price}
         </Text>
         <Text
-          type={'BodySemibold'}
-          style={{marginBottom: globalMargins.large, textAlign: 'center'}}
+          center={true}
+          type="BodySemibold"
+          style={{marginBottom: globalMargins.large}}
         >{`You will be able to use up to ${gigabytes}GB of data.`}</Text>
         <PaymentOption paymentOption={paymentOption} />
       </Box>

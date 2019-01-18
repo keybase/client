@@ -1759,14 +1759,14 @@
     },
     {
       "type": "record",
-      "name": "GetInboxLocalRes",
+      "name": "GetInboxUILocalRes",
       "fields": [
         {
           "type": {
             "type": "array",
-            "items": "Conversation"
+            "items": "UnverifiedInboxUIItem"
           },
-          "name": "conversationsUnverified"
+          "name": "conversationsRemote"
         },
         {
           "type": [
@@ -2848,6 +2848,29 @@
         }
       ],
       "response": "NonblockFetchRes"
+    },
+    "getInboxUILocal": {
+      "request": [
+        {
+          "name": "query",
+          "type": [
+            null,
+            "GetInboxLocalQuery"
+          ]
+        },
+        {
+          "name": "pagination",
+          "type": [
+            null,
+            "Pagination"
+          ]
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": "GetInboxUILocalRes"
     },
     "getInboxAndUnboxLocal": {
       "request": [

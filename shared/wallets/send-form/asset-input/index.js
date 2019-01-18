@@ -161,9 +161,6 @@ const styles = Styles.styleSheetCreate({
     paddingTop: 0,
   },
   labelMargin: {marginLeft: 1},
-  text: {
-    textAlign: 'center',
-  },
   topLabel: {color: Styles.globalColors.blue},
   unit: {
     color: Styles.globalColors.purple2,

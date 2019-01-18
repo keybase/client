@@ -8,7 +8,7 @@ const LinkWithIcon = ({label, icon, color, onClick, style}: Props) => (
   <ClickableBox style={style} onClick={onClick}>
     <Box style={styleContainer}>
       <Icon style={styleIcon} type={icon} color={color} />
-      <Text style={{...styleLabel, color}} type="BodyPrimaryLink">
+      <Text center={true} style={{...styleLabel, color}} type="BodyPrimaryLink">
         {label}
       </Text>
     </Box>
@@ -25,9 +25,6 @@ const styleIcon = {
   marginRight: globalMargins.tiny,
 }
 
-const styleLabel = {
-  flex: -1,
-  textAlign: 'center',
-}
+const styleLabel = {flex: -1}
 
 export default LinkWithIcon

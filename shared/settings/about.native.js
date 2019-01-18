@@ -10,7 +10,8 @@ const About = ({version, onShowTerms, onShowPrivacyPolicy}: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flexGrow: 1, justifyContent: 'center'}}>
     <Icon type="icon-keybase-logo-64" />
     <Text
-      style={{marginBottom: globalMargins.large, paddingTop: globalMargins.large, textAlign: 'center'}}
+      center={true}
+      style={{marginBottom: globalMargins.large, paddingTop: globalMargins.large}}
       type="Body"
     >
       You are running version <Text type="BodySemibold">{version}</Text>

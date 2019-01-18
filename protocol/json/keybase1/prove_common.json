@@ -156,12 +156,13 @@
       "fields": [
         {
           "type": "string",
-          "name": "url"
+          "name": "svgBlack",
+          "jsonkey": "svg_black"
         },
         {
           "type": "string",
-          "name": "faIcon",
-          "jsonkey": "fa_icon"
+          "name": "svgFull",
+          "jsonkey": "svg_full"
         }
       ]
     },

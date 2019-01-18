@@ -26,7 +26,7 @@ const Explain = (props: Props) => {
     case 'private':
       return (
         <Kb.Box2 direction="horizontal" style={styles.explainBox}>
-          <Kb.Text type="Body" style={styles.explainText}>
+          <Kb.Text center={true} type="Body">
             Only people in the private folder can access this.
           </Kb.Text>
         </Kb.Box2>
@@ -34,13 +34,13 @@ const Explain = (props: Props) => {
     case 'team':
       return (
         <Kb.Box2 direction="horizontal" style={styles.explainBox}>
-          <Kb.Text type="Body" style={styles.explainText}>
+          <Kb.Text center={true} type="Body">
             Only members of
           </Kb.Text>
           <Kb.Text type="BodySemibold" style={styles.explainTextTeam}>
             {elems[2]}
           </Kb.Text>
-          <Kb.Text type="Body" style={styles.explainText}>
+          <Kb.Text center={true} type="Body">
             can access this.
           </Kb.Text>
         </Kb.Box2>
@@ -97,7 +97,7 @@ const NonExistent = (props: Props) => (
         This file or folder doesn't exist.
       </Kb.Text>
       <Kb.Box2 direction="horizontal" style={styles.explainBox}>
-        <Kb.Text type="Body" style={styles.explainText}>
+        <Kb.Text center={true} type="Body">
           Either it was deleted, or the path is incorrect.
         </Kb.Text>
       </Kb.Box2>
@@ -152,9 +152,6 @@ const styles = Styles.styleSheetCreate({
       marginTop: Styles.globalMargins.medium,
     },
   }),
-  explainText: {
-    textAlign: 'center',
-  },
   explainTextTeam: {
     marginLeft: Styles.globalMargins.xtiny,
     marginRight: Styles.globalMargins.xtiny,

@@ -22,13 +22,16 @@ const mapDispatchToProps = (dispatch, {path, routePath}: OwnProps) => ({
         ...Util.tlfToParticipantsOrTeamname(Types.pathToString(path)),
       })
     ),
-  onBack: () =>
-    dispatch(
-      RouteTreeGen.createPutActionIfOnPath({
-        expectedPath: routePath,
-        otherAction: RouteTreeGen.createNavigateUp(),
-      })
-    ),
+  onBack:
+    routePath.size > 1
+      ? () =>
+          dispatch(
+            RouteTreeGen.createPutActionIfOnPath({
+              expectedPath: routePath,
+              otherAction: RouteTreeGen.createNavigateUp(),
+            })
+          )
+      : null,
 })
 
 const mergeProps = (_, {onBack, _onChat}, {path, routePath}: OwnProps) => {
