@@ -1,7 +1,6 @@
 .tab-container {
   background-color: #3663ea;
   flex-shrink: 0;
-  padding-top: 38px;
   width: 160px;
 }
 .tab-selected {

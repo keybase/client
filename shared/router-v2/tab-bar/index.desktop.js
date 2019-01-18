@@ -44,6 +44,7 @@ const tabs = [
 
 const TabBar = p => (
   <Kb.Box2 className="tab-container" direction="vertical" fullHeight={true}>
+    <Kb.Box2 direction="horizontal" style={styles.osButtons} fullWidth={true} />
     <Kb.ClickableBox onClick={p.onProfileClick}>
       <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} style={styles.nameContainer}>
         <Kb.Avatar
@@ -87,6 +88,12 @@ const styles = Styles.styleSheetCreate({
     marginTop: Styles.globalMargins.tiny,
   },
   nameContainer: {height: 20},
+  osButtons: Styles.platformStyles({
+    isElectron: {
+      ...Styles.desktopStyles.windowDragging,
+      height: 36,
+    },
+  }),
   tab: {
     alignItems: 'center',
     height: 40,
