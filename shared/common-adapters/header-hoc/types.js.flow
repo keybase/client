@@ -26,6 +26,7 @@ export type Props = {
   leftActionText?: string, // defaults to 'cancel' when leftAction is 'cancel'
   hideBackLabel?: boolean,
   customComponent?: ?React.Node,
+  customSafeAreaBottomStyle?: StylesCrossPlatform, // mobile only
   customSafeAreaTopStyle?: StylesCrossPlatform, // mobile only; use with `underNotch` route tag
   headerStyle?: StylesCrossPlatform,
   theme?: 'light' | 'dark', // defaults to 'light'

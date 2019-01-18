@@ -6,7 +6,7 @@ import BackButton from '../back-button'
 import Box from '../box'
 import FloatingMenu from '../floating-menu'
 import Icon from '../icon'
-import {SafeAreaViewTop} from '../safe-area-view'
+import SafeAreaView, {SafeAreaViewTop} from '../safe-area-view'
 import * as Styles from '../../styles'
 import type {Action, Props} from './types'
 
@@ -205,6 +205,7 @@ function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
           <WrappedComponent {...(props: P)} />
         </Box>
       </Box>
+      {!!props.customSafeAreaBottomStyle && <SafeAreaView style={props.customSafeAreaBottomStyle} />}
     </Box>
   )
 
