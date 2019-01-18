@@ -70,7 +70,7 @@ func (h1 NodeHashShort) IsNil() bool {
 }
 
 func (h1 NodeHashShort) Eq(h2 NodeHash) bool {
-	return subtle.ConstantTimeCompare(h1.bytes(), h2.bytes())
+	return subtle.ConstantTimeCompare(h1.bytes(), h2.bytes()) == 1
 }
 
 func (h1 NodeHashShort) ExportToHashMeta() keybase1.HashMeta {
@@ -95,7 +95,7 @@ func (h1 NodeHashLong) IsNil() bool {
 }
 
 func (h1 NodeHashLong) Eq(h2 NodeHash) bool {
-	return subtle.ConstantTimeCompare(h1.bytes(), h2.bytes())
+	return subtle.ConstantTimeCompare(h1.bytes(), h2.bytes()) == 1
 }
 
 func hashEq(h1 NodeHash, h2 NodeHash) bool {
@@ -138,7 +138,7 @@ func (h NodeHashAny) bytes() []byte {
 }
 
 func (h NodeHashAny) Eq(h2 NodeHash) bool {
-	return subtle.ConstantTimeCompare(h.bytes(), h2.bytes())
+	return subtle.ConstantTimeCompare(h.bytes(), h2.bytes()) == 1
 }
 
 func (h *NodeHashAny) UnmarshalJSON(b []byte) error {
