@@ -555,16 +555,13 @@ func (d *Service) runMerkleAudit(ctx context.Context) {
 	}
 
 	eng := engine.NewMerkleAudit(d.G(), &engine.MerkleAuditArgs{})
-	go func() {
-		m := libkb.NewMetaContextBackground(d.G())
-		err := engine.RunEngine2(m, eng)
-		if err != nil {
-			m.CWarningf("merkle root background audit error: %v", err)
-		}
-	}()
+	m := libkb.NewMetaContextBackground(d.G())
+	if err := engine.RunEngine2(m, eng); err != nil {
+		m.CWarningf("merkle root background audit error: %v", err)
+	}
 
 	d.G().PushShutdownHook(func() error {
-		d.G().Log.Debug("stopping merkle root background audit engine")
+		m.CDebugf("stopping merkle root background audit engine")
 		eng.Shutdown()
 		return nil
 	})
