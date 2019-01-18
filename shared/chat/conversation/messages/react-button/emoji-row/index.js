@@ -59,6 +59,7 @@ const EmojiRow = (props: Props) =>
       attachTo={props.attachTo}
       onHidden={props.onHidden}
       position="bottom right"
+      propagateOutsideClicks={true}
       containerStyle={props.style}
     >
       <HoverBox direction="horizontal" style={styles.innerContainer}>

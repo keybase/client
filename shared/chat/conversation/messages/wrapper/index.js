@@ -25,6 +25,7 @@ import MessagePopup from '../message-popup'
 import PendingPaymentBackground from '../account-payment/pending-background'
 import ReactButton from '../react-button/container'
 import ReactionsRow from '../reactions-row/container'
+import EmojiRow from '../react-button/emoji-row'
 import SendIndicator from './send-indicator'
 import UnfurlList from './unfurl/unfurl-list/container'
 import UnfurlPromptList from './unfurl/prompt-list/container'
@@ -60,11 +61,12 @@ export type Props = {|
 |}
 
 type State = {
+  showEmojiRow: boolean,
   showingPicker: boolean,
   showMenuButton: boolean,
 }
 class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, State> {
-  state = {showMenuButton: false, showingPicker: false}
+  state = {showEmojiRow: false, showMenuButton: false, showingPicker: false}
 
   componentDidUpdate(prevProps: Props) {
     if (this.props.measure) {
@@ -76,7 +78,11 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       }
     }
   }
-  _onMouseOver = () => this.setState(o => (o.showMenuButton ? null : {showMenuButton: true}))
+  _onMouseOver = () =>
+    this.setState(o =>
+      o.showMenuButton && o.showEmojiRow ? null : {showEmojiRow: true, showMenuButton: true}
+    )
+  _onMouseLeave = () => this.setState(o => (o.showEmojiRow ? {showEmojiRow: false} : null))
   _setShowingPicker = (showingPicker: boolean) =>
     this.setState(s => (s.showingPicker === showingPicker ? null : {showingPicker}))
   _dismissKeyboard = () => dismissKeyboard()
@@ -184,10 +190,13 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       />
     )
 
-  _reactionsRow = () =>
-    // $ForceType
+  _showReactionsRow = () =>
+    (this.props.message.type === 'text' || this.props.message.type === 'attachment') &&
     this.props.message.reactions &&
-    !this.props.message.reactions.isEmpty() && (
+    !this.props.message.reactions.isEmpty()
+
+  _reactionsRow = () =>
+    this._showReactionsRow() && (
       <ReactionsRow
         key="ReactionsRow"
         conversationIDKey={this.props.conversationIDKey}
@@ -240,6 +249,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
           },
           'WrapperMessage-hoverBox'
         ),
+        onMouseLeave: this._onMouseLeave,
         onMouseOver: this._onMouseOver,
         // attach popups to the message itself
         ref: this.props.setAttachmentRef,
@@ -361,6 +371,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         return null
     }
 
+    // hovering + reactions row isn't showing it
+    const showEmojiRow = this.state.showEmojiRow && !this._showReactionsRow()
+
     const maybeExplodedChild = exploding ? (
       <ExplodingHeightRetainer
         explodedBy={explodedBy}
@@ -423,6 +436,14 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                     />
                   )}
                 </Kb.Box>
+                <EmojiRow
+                  attachTo={this.props.getAttachmentRef}
+                  onHidden={() => {}}
+                  onOpenEmojiPicker={() => this._setShowingPicker(true)}
+                  onReact={() => {}}
+                  style={{marginRight: 100, marginTop: -4}}
+                  visible={showEmojiRow}
+                />
               </Kb.Box>
             ) : null}
           </Kb.Box2>
