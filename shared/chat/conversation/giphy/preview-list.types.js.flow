@@ -1,5 +1,0 @@
-// @flow
-export type Props<Item> = {|
-  previews: Array<Item>,
-  onClick: string => void,
-|}

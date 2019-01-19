@@ -1,4 +1,0 @@
-// @flow
-import * as React from 'react'
-import type {Props} from './preview-list.types'
-export default class PreviewList extends React.Component<Props> {}

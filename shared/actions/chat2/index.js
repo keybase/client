@@ -2466,41 +2466,35 @@ const textHasGiphySearch = (text: string) => {
   return text.indexOf('/giphy ') === 0
 }
 
-const giphyRunSearch = (state, action) => {
+function* giphyRunSearch(state, action) {
   const {conversationIDKey} = action.payload
   const text = action.payload.text.stringValue()
   const showingGiphySearch = state.chat2.giphySearchMap.get(conversationIDKey)
   if (showingGiphySearch && !textHasGiphySearch(text)) {
-    return Chat2Gen.createGiphyToggle({conversationIDKey, show: false})
+    yield Saga.put(Chat2Gen.createGiphyToggle({conversationIDKey, show: false}))
   } else if (textHasGiphySearch(text)) {
-    const actions = []
     if (!showingGiphySearch) {
-      actions.push(Saga.put(Chat2Gen.createGiphyToggle({conversationIDKey, show: true})))
+      yield Saga.put(Chat2Gen.createGiphyToggle({conversationIDKey, show: true}))
     }
     const terms = text.split(' ')
     terms.shift()
     const query = terms.join(' ')
-    actions.push(
-      Saga.callUntyped(function*() {
-        try {
-          const result = yield RPCChatTypes.localGiphySearchRpcPromise({
-            query: query.length > 0 ? query : null,
-          })
-          yield Saga.put(Chat2Gen.createGiphyGotSearchResult({conversationIDKey, result}))
-        } catch (e) {
-          logger.info(`Giphy search failed: ${JSON.stringify(e)}`)
-        }
+    try {
+      const result = yield RPCChatTypes.localGiphySearchRpcPromise({
+        query: query.length > 0 ? query : null,
       })
-    )
-    return actions
+      yield Saga.put(Chat2Gen.createGiphyGotSearchResult({conversationIDKey, result}))
+    } catch (e) {
+      logger.info(`Giphy search failed: ${JSON.stringify(e)}`)
+    }
   }
 }
 
-const giphySend = (state: TypedState, action: Chat2Gen.GiphySendPayload) => {
+const giphySend = (state, action) => {
   const {conversationIDKey, url} = action.payload
   return [
-    Saga.put(Chat2Gen.createGiphyToggle({conversationIDKey, show: false})),
-    Saga.put(Chat2Gen.createMessageSend({conversationIDKey, text: url})),
+    Chat2Gen.createGiphyToggle({conversationIDKey, show: false}),
+    Chat2Gen.createMessageSend({conversationIDKey, text: url}),
   ]
 }
 
@@ -2707,7 +2701,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<Chat2Gen.SelectConversationPayload>(Chat2Gen.selectConversation, loadCanUserPerform)
 
   // Giphy
-  yield* Saga.chainAction<Chat2Gen.UnsentTextChangedPayload>(Chat2Gen.unsentTextChanged, giphyRunSearch)
+  yield* Saga.chainGenerator<Chat2Gen.UnsentTextChangedPayload>(Chat2Gen.unsentTextChanged, giphyRunSearch)
   yield* Saga.chainAction<Chat2Gen.GiphySendPayload>(Chat2Gen.giphySend, giphySend)
 
   yield* Saga.chainAction<Chat2Gen.UnfurlResolvePromptPayload>(

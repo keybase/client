@@ -31,8 +31,6 @@ const clampImageSize = ({width = 0, height = 0}, maxSize) =>
       }
 
 class UnfurlImage extends React.Component<Props> {
-  _imageRef = React.createRef()
-
   _getDimensions() {
     const maxSize =
       Math.min(imgMaxWidth(), this.props.maxSize ? this.props.maxSize : 320) - (this.props.widthPadding || 0)
@@ -47,34 +45,22 @@ class UnfurlImage extends React.Component<Props> {
     }
   }
 
-  playVideo = () => {
-    if (this._imageRef && this._imageRef.current) {
-      this._imageRef.current.playVideo()
-    }
-  }
-
-  pauseVideo = () => {
-    if (this._imageRef && this._imageRef.current) {
-      this._imageRef.current.pauseVideo()
-    }
-  }
-
   render() {
     const dims = this._getDimensions()
     const style = Styles.collapseStyles([dims, styles.image, this.props.style])
     return this.props.isVideo ? (
       <Video
-        {...dims}
         autoPlay={this.props.autoplayVideo}
+        height={dims.height}
         hidePlayButton={this.props.hidePlayButton}
         onClick={this.props.onClick}
-        ref={this._imageRef}
         style={style}
         url={this.props.url}
+        width={dims.width}
       />
     ) : (
-      <Kb.ClickableBox onClick={this.props.onClick} {...dims}>
-        <Kb.Image {...dims} ref={this._imageRef} src={this.props.url} style={style} />
+      <Kb.ClickableBox onClick={this.props.onClick} style={dims}>
+        <Kb.Image src={this.props.url} style={style} />
       </Kb.ClickableBox>
     )
   }

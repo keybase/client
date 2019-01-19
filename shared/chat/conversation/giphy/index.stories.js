@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Sb from '../../../stories/storybook'
-import GiphySearch from '.'
+import GiphySearch from './index'
 
 const common = {
   previewIsVideo: true,
