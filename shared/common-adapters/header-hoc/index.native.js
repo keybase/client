@@ -1,6 +1,5 @@
 // @flow
 import * as React from 'react'
-import {StyleSheet} from 'react-native'
 import Text from '../text'
 import BackButton from '../back-button'
 import Box from '../box'
@@ -240,7 +239,7 @@ const styles = Styles.styleSheetCreate({
       ...Styles.globalStyles.flexBoxRow,
       alignItems: 'center',
       borderBottomColor: Styles.globalColors.black_10,
-      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomWidth: 1,
       justifyContent: 'flex-start',
       width: '100%',
     },

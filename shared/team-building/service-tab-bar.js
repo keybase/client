@@ -52,7 +52,10 @@ const ServiceIconDesktop = (props: IconProps) => (
     <Kb.Box2
       direction="horizontal"
       fullWidth={true}
-      style={props.isActive ? styles.activeTabBar : styles.inactiveTabBar}
+      style={Styles.collapseStyles([
+        props.isActive ? styles.activeTabBar : styles.inactiveTabBar,
+        {backgroundColor: props.isActive ? serviceIdToAccentColor(props.service) : inactiveServiceAccentColor},
+      ])}
     />
   </Kb.ClickableBox>
 )
@@ -86,7 +89,10 @@ const ServiceIconMobile = (props: IconProps) => (
     <Kb.Box2
       direction="horizontal"
       fullWidth={true}
-      style={props.isActive ? styles.activeTabBar : styles.inactiveTabBar}
+      style={Styles.collapseStyles([
+        props.isActive ? styles.activeTabBar : styles.inactiveTabBar,
+        {backgroundColor: props.isActive ? serviceIdToAccentColor(props.service) : inactiveServiceAccentColor},
+      ])}
     />
   </Kb.ClickableBox>
 )
@@ -111,13 +117,13 @@ const ServiceTabBar = (props: Props) => (
 const styles = Styles.styleSheetCreate({
   activeTabBar: {
     backgroundColor: Styles.globalColors.blue,
-    height: 1,
+    height: 2,
   },
   clickableServiceIcon: {
     flex: 1,
   },
   inactiveTabBar: {
-    backgroundColor: Styles.globalColors.black_20,
+    backgroundColor: Styles.globalColors.black_10,
     height: 1,
   },
   pendingIcon: Styles.platformStyles({
