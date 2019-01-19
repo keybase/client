@@ -2467,6 +2467,10 @@ const textHasGiphySearch = (text: string) => {
 }
 
 function* giphyRunSearch(state, action) {
+  if (isMobile) {
+    // not supported on mobile yet
+    return
+  }
   const {conversationIDKey} = action.payload
   const text = action.payload.text.stringValue()
   const showingGiphySearch = state.chat2.giphySearchMap.get(conversationIDKey)
