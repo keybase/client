@@ -322,6 +322,7 @@ const reactComponentsForMarkdownType = {
     return (
       <ServiceDecoration
         json={node.content}
+        leading={node.leading}
         key={state.key}
         allowFontScaling={state.allowFontScaling}
         message={message}

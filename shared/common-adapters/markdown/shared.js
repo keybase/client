@@ -60,8 +60,12 @@ function createKbfsPathRegex(): ?RegExp {
 
 const kbfsPathMatcher = SimpleMarkdown.inlineRegex(createKbfsPathRegex())
 
+const serviceBeginDecorationTag = '\\$\\>kb\\$'
+const serviceEndDecorationTag = '\\$\\<kb\\$'
 function createServiceDecorationRegex(): ?RegExp {
-  return new RegExp(`^[^ ]*\\$\\>kb\\$(((?!\\$\\<kb\\$).)*)\\$\\<kb\\$`)
+  return new RegExp(
+    `^(\\S*)${serviceBeginDecorationTag}(((?!${serviceEndDecorationTag}).)*)${serviceEndDecorationTag}`
+  )
 }
 
 const serviceDecorationMatcher = SimpleMarkdown.inlineRegex(createServiceDecorationRegex())
@@ -374,7 +378,8 @@ const rules = {
     }, // high
     order: 1,
     parse: capture => ({
-      content: capture[1],
+      content: capture[2],
+      leading: capture[1],
       type: 'serviceDecoration',
     }),
   },

@@ -8,10 +8,22 @@ import Text from '../text'
 
 export type Props = {
   json: string,
+  leading: string,
   onClick?: () => void,
   allowFontScaling?: ?boolean,
   message: Types.MessageText,
   styles: Object,
+}
+
+const makeRes = (props, res) => {
+  return (
+    <React.Fragment>
+      <Text type="Body" style={props.styles.wrapStyle}>
+        {props.leading}
+      </Text>
+      {res}
+    </React.Fragment>
+  )
 }
 
 const ServiceDecoration = (props: Props) => {
@@ -38,7 +50,8 @@ const ServiceDecoration = (props: Props) => {
     } else {
       error = 'unknown text decoration'
     }
-    return (
+    return makeRes(
+      props,
       <PaymentStatus
         paymentID={paymentID}
         error={error}
@@ -49,7 +62,8 @@ const ServiceDecoration = (props: Props) => {
     )
   } else if (parsed.typ === RPCChatTypes.chatUiUITextDecorationTyp.url && parsed.url) {
     const {text, url} = parsed.url
-    return (
+    return makeRes(
+      props,
       <Text
         className="hover-underline"
         type="BodyPrimaryLink"
