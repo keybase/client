@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
-import WalletList from './index'
+import * as WalletsGen from '../../actions/wallets-gen'
+import Wallets from './index'
 import Onboarding from '../onboarding/container'
 import {connect} from '../../util/container'
 
@@ -12,18 +13,21 @@ const mapStateToProps = state => ({
   acceptedDisclaimer: state.wallets.acceptedDisclaimer,
 })
 
-const mapDispatchToProps = dispatch => ({})
+const mapDispatchToProps = dispatch => ({
+  reload: () => dispatch(WalletsGen.createLoadAccounts()),
+})
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   acceptedDisclaimer: stateProps.acceptedDisclaimer,
   children: ownProps.children,
+  reload: dispatchProps.reload,
 })
 
-const WalletOrOnboarding = props =>
-  props.acceptedDisclaimer ? <WalletList children={props.children} /> : <Onboarding />
+const WalletsOrOnboarding = props =>
+  props.acceptedDisclaimer ? <Wallets children={props.children} reload={props.reload} /> : <Onboarding />
 
 export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps
-)(WalletOrOnboarding)
+)(WalletsOrOnboarding)

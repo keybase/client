@@ -6,15 +6,15 @@ To build a package for debian from a local branch in client (on amd64):
     cd $GOPATH/src/github.com/keybase/client/packaging/linux
     # Run the following on Arch: see https://github.com/docker/for-linux/issues/480
     # echo N | sudo tee /sys/module/overlay/parameters/metacopy
-    docker build -t keybase_packaging_v16 .
+    docker build -t keybase_packaging_v17 .
     mkdir /var/tmp/keybase_build_work
-    docker run -v /var/tmp/keybase_build_work:/root -v $GOPATH/src/github.com/keybase/client:/CLIENT:ro -v $GOPATH/src/github.com/keybase/kbfs:/KBFS:ro  -e NOWAIT -ti keybase_packaging_v16 bash
+    docker run -v /var/tmp/keybase_build_work:/root -v $GOPATH/src/github.com/keybase/client:/CLIENT:ro -v $GOPATH/src/github.com/keybase/client/go/kbfs:/KBFS:ro  -e NOWAIT -ti keybase_packaging_v17 bash
 
 Then, from inside the docker environment:
 
     cd /root
     git clone https://github.com/keybase/client.git client --reference /CLIENT
-    git clone https://github.com/keybase/kbfs.git kbfs --reference /KBFS
+    git clone https://github.com/keybase/client/go/kbfs.git kbfs --reference /KBFS
     cd client
     git remote add localclient /CLIENT
     git fetch localclient
@@ -97,7 +97,8 @@ Systemd requires that the docker container be run as a daemon:
     docker exec -ti systemd bash
 
 Then inside the container you can use the same steps as above to
-install and start keybase.
+install and start keybase. Instead of `su`, you may need to `login <user>`
+so the systemd pam config runs.
 
 Centos:
 ========
@@ -167,6 +168,11 @@ Note that reinstalling will overwrite this change unless you `sudo touch
 `packaging/linux/rpm/layout_repo.sh /root/build` to create the repo (and
 comment out codesigning while testing). You also need to `rm -r /root/build/rpm
 /root/build/rpm_repo` in between `layout_repo`s.
+
+Centos with systemd:
+=======
+You can use the Dockerfile at https://github.com/xrowgmbh/docker-systemd-example-httpd, but note that centos
+doesn't support systemd user services right now, so Keybase will be using background anyway.
 
 Arch:
 =====

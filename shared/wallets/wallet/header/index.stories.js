@@ -8,12 +8,14 @@ import Header from '.'
 const defaultWalletMock = {
   isDefaultWallet: true,
   keybaseUser: 'cecileb',
+  sendDisabled: false,
   walletName: "cecileb's account",
 }
 
 const secondWalletMock = {
   isDefaultWallet: false,
   keybaseUser: 'cecileb',
+  sendDisabled: false,
   walletName: 'Second account',
 }
 

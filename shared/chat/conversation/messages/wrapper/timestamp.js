@@ -25,7 +25,7 @@ const styleBox = {
 
 const styleText = {
   backgroundColor: globalColors.fastBlank,
-  color: globalColors.black_40_on_white,
+  color: globalColors.black_50_on_white,
   padding: globalMargins.tiny,
 }
 export default Timestamp

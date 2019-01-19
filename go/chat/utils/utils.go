@@ -22,7 +22,7 @@ import (
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
-	"github.com/keybase/client/go/kbfs"
+	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -183,9 +183,9 @@ func ReorderParticipants(mctx libkb.MetaContext, g libkb.UIDMapperContext, umapp
 
 // Drive splitAndNormalizeTLFName with one attempt to follow TlfNameNotCanonical.
 func splitAndNormalizeTLFNameCanonicalize(g *libkb.GlobalContext, name string, public bool) (writerNames, readerNames []string, extensionSuffix string, err error) {
-	writerNames, readerNames, extensionSuffix, err = kbfs.SplitAndNormalizeTLFName(g, name, public)
-	if retryErr, retry := err.(kbfs.TlfNameNotCanonical); retry {
-		return kbfs.SplitAndNormalizeTLFName(g, retryErr.NameToTry, public)
+	writerNames, readerNames, extensionSuffix, err = tlf.SplitAndNormalizeTLFName(g, name, public)
+	if retryErr, retry := err.(tlf.TlfNameNotCanonical); retry {
+		return tlf.SplitAndNormalizeTLFName(g, retryErr.NameToTry, public)
 	}
 	return writerNames, readerNames, extensionSuffix, err
 }
@@ -996,6 +996,7 @@ func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.Unverifie
 	}
 	res.ConvID = rawConv.GetConvID().String()
 	res.TopicType = rawConv.GetTopicType()
+	res.IsPublic = rawConv.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC
 	res.Name = tlfName
 	res.Status = rawConv.Metadata.Status
 	res.Time = GetConvMtime(rawConv)
@@ -1005,8 +1006,9 @@ func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.Unverifie
 	res.MemberStatus = rawConv.ReaderInfo.Status
 	res.TeamType = rawConv.Metadata.TeamType
 	res.Version = rawConv.Metadata.Version
-	res.ReadMsgID = rawConv.ReaderInfo.ReadMsgid
 	res.MaxMsgID = rawConv.ReaderInfo.MaxMsgid
+	res.MaxVisibleMsgID = rawConv.MaxVisibleMsgID()
+	res.ReadMsgID = rawConv.ReaderInfo.ReadMsgid
 	res.Supersedes = rawConv.Metadata.Supersedes
 	res.SupersededBy = rawConv.Metadata.SupersededBy
 	res.FinalizeInfo = rawConv.Metadata.FinalizeInfo
@@ -1053,6 +1055,7 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal, currentUsername s
 	}
 	res.ConvID = rawConv.GetConvID().String()
 	res.TopicType = rawConv.GetTopicType()
+	res.IsPublic = rawConv.Info.Visibility == keybase1.TLFVisibility_PUBLIC
 	res.Name = rawConv.Info.TlfName
 	res.Snippet, res.SnippetDecoration = GetConvSnippet(rawConv, currentUsername)
 	res.Channel = GetTopicName(rawConv)
@@ -1074,6 +1077,7 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal, currentUsername s
 	res.TeamType = rawConv.Info.TeamType
 	res.Version = rawConv.Info.Version
 	res.MaxMsgID = rawConv.ReaderInfo.MaxMsgid
+	res.MaxVisibleMsgID = rawConv.MaxVisibleMsgID()
 	res.ReadMsgID = rawConv.ReaderInfo.ReadMsgid
 	res.ConvRetention = rawConv.ConvRetention
 	res.TeamRetention = rawConv.TeamRetention
@@ -1094,6 +1098,7 @@ func PresentThreadView(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	for _, msg := range tv.Messages {
 		res.Messages = append(res.Messages, PresentMessageUnboxed(ctx, g, msg, uid, convID))
 	}
+	res.UnreadLineID = tv.UnreadLineID
 	return res
 }
 
@@ -1499,6 +1504,12 @@ type ByMsgID []chat1.MessageID
 func (m ByMsgID) Len() int           { return len(m) }
 func (m ByMsgID) Swap(i, j int)      { m[i], m[j] = m[j], m[i] }
 func (m ByMsgID) Less(i, j int) bool { return m[i] > m[j] }
+
+type ByConversationMemberStatus []chat1.ConversationMemberStatus
+
+func (m ByConversationMemberStatus) Len() int           { return len(m) }
+func (m ByConversationMemberStatus) Swap(i, j int)      { m[i], m[j] = m[j], m[i] }
+func (m ByConversationMemberStatus) Less(i, j int) bool { return m[i] > m[j] }
 
 func GetTopicName(conv chat1.ConversationLocal) string {
 	maxTopicMsg, err := conv.GetMaxMessage(chat1.MessageType_METADATA)

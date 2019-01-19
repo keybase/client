@@ -38,7 +38,7 @@ class LoginRender extends Component<Props> {
         <Kb.Box style={styles.container}>
           {isAndroid && !isDeviceSecureAndroid && !isAndroidNewerThanM && (
             <Kb.Box style={deviceNotSecureStyle}>
-              <Kb.Text type="Body" backgroundMode="Information" style={{flex: 1, textAlign: 'center'}}>
+              <Kb.Text center={true} type="Body" backgroundMode="Information" style={{flex: 1}}>
                 Since you don't have a lock screen, you'll have to type your passphrase everytime.
               </Kb.Text>
             </Kb.Box>
@@ -57,6 +57,7 @@ class LoginRender extends Component<Props> {
               checkboxesProps={checkboxProps}
             />
             <Kb.WaitingButton
+              disabled={!this.props.passphrase}
               waitingKey={Constants.waitingKey}
               style={{marginTop: 0}}
               fullWidth={true}
@@ -67,8 +68,8 @@ class LoginRender extends Component<Props> {
             <Kb.Text
               link={true}
               type="BodySmallSecondaryLink"
-              onClick={this.props.onForgotPassphrase}
-              style={{marginTop: Styles.globalMargins.medium, textAlign: 'center'}}
+              center={true} onClick={this.props.onForgotPassphrase}
+              style={{marginTop: Styles.globalMargins.medium}}
             >
               Forgot passphrase?
             </Kb.Text>

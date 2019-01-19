@@ -82,10 +82,18 @@ const _ShowcasedTeamRow = (
 )
 const ShowcasedTeamRow = Kb.OverlayParentHOC(_ShowcasedTeamRow)
 
+type AddressState = {
+  storedAttachmentRef: any,
+}
+
 class _StellarFederatedAddress extends React.PureComponent<
-  StellarFederatedAddressProps & Kb.OverlayParentProps
+  StellarFederatedAddressProps & Kb.OverlayParentProps,
+  AddressState
 > {
-  _attachmentRef = null
+  state: AddressState = {
+    storedAttachmentRef: null,
+  }
+
   _toastRef: ?Kb._ToastContainer = null
   _onCopyAddress = () => {
     this._toastRef && this._toastRef.copy()
@@ -97,7 +105,10 @@ class _StellarFederatedAddress extends React.PureComponent<
     stellarAddress: this.props.stellarAddress,
   })
 
-  _getAttachmentRef = () => this._attachmentRef
+  _storeAttachmentRef = r => {
+    this.setState({storedAttachmentRef: r})
+  }
+  _getAttachmentRef = () => this.state.storedAttachmentRef
 
   render() {
     const stellarAddressNameStyle = {
@@ -105,8 +116,11 @@ class _StellarFederatedAddress extends React.PureComponent<
       color: this.props.currentlyFollowing ? Styles.globalColors.green : Styles.globalColors.blue,
     }
     return (
-      <Kb.Box2 direction="horizontal" ref={r => (this._attachmentRef = r)}>
-        <Kb.ToastContainer ref={r => (this._toastRef = r)} getAttachmentRef={this._getAttachmentRef} />
+      <Kb.Box2 direction="horizontal" ref={r => this._storeAttachmentRef(r)}>
+        <Kb.ToastContainer
+          ref={r => (this._toastRef = r)}
+          getAttachmentRef={this.state.storedAttachmentRef && this._getAttachmentRef}
+        />
         <Kb.Box style={styles.iconContainer}>
           <Kb.Icon
             style={styles.service}
@@ -125,7 +139,7 @@ class _StellarFederatedAddress extends React.PureComponent<
               style={styles.proofName}
               ref={this.props.setAttachmentRef}
             >
-              <Kb.WithTooltip text={this.props.showingMenu ? '' : 'Stellar Federated Address'}>
+              <Kb.WithTooltip text={this.props.showingMenu ? '' : 'Stellar Federation Address'}>
                 <Kb.Text
                   inline={true}
                   type="Body"
@@ -136,7 +150,7 @@ class _StellarFederatedAddress extends React.PureComponent<
                 </Kb.Text>
               </Kb.WithTooltip>
               <Kb.FloatingMenu
-                attachTo={this.props.getAttachmentRef}
+                attachTo={this.state.storedAttachmentRef && this._getAttachmentRef}
                 closeOnSelect={true}
                 containerStyle={styles.floatingStellarAddressMenu}
                 items={this._menuItems}
@@ -233,7 +247,7 @@ class ProfileRender extends React.PureComponent<Props, State> {
                 overlayColor={Styles.globalColors.blue}
               />
               {!!proof.mTime && (
-                <Kb.Text type="BodySmall" style={{color: Styles.globalColors.black_40, textAlign: 'center'}}>
+                <Kb.Text center={true} type="BodySmall" style={{color: Styles.globalColors.black_50}}>
                   Posted on
                   <br />
                   {moment(proof.mTime).format('ddd MMM D, YYYY')}
@@ -334,7 +348,8 @@ class ProfileRender extends React.PureComponent<Props, State> {
           >
             <Kb.Box2 direction="vertical" style={{flexGrow: 1}}>
               <Kb.Text
-                style={{margin: Styles.globalMargins.tiny, textAlign: 'center', width: '100%'}}
+                center={true}
+                style={{margin: Styles.globalMargins.tiny, width: '100%'}}
                 type="BodySemibold"
                 backgroundMode="HighRisk"
               >
@@ -343,7 +358,7 @@ class ProfileRender extends React.PureComponent<Props, State> {
             </Kb.Box2>
             <Kb.Box2 direction="vertical" style={{flexShrink: 1, justifyContent: 'center'}}>
               <Kb.Icon
-                color={Styles.globalColors.black_40}
+                color={Styles.globalColors.black_50}
                 onClick={this.props.onClearAddUserToTeamsResults}
                 style={{padding: Styles.globalMargins.tiny}}
                 type="iconfont-close"
@@ -376,8 +391,8 @@ class ProfileRender extends React.PureComponent<Props, State> {
             }
             style={{...styleSearchContainer, opacity: this.state.searchHovered ? 0.8 : 1}}
           >
-            <Kb.Icon style={styleSearch} type="iconfont-search" color={Styles.globalColors.white_75} />
-            <Kb.Text style={styleSearchText} type="Body">
+            <Kb.Icon style={styleSearch} type="iconfont-search" color={Styles.globalColors.white} />
+            <Kb.Text style={styleSearchText} type="BodySmallSemibold">
               Search people
             </Kb.Text>
           </Kb.Box>
@@ -463,10 +478,10 @@ class ProfileRender extends React.PureComponent<Props, State> {
                     showingMenuIndex={this.state.selectedProofMenuRowIndex}
                   />
                 )}
-                {!!this.props.stellarAddress && !loading && (
+                {!!this.props.stellarFederationAddress && !loading && (
                   <StellarFederatedAddress
-                    currentlyFollowing={this.props.isYou || this.props.currentlyFollowing}
-                    stellarAddress={this.props.stellarAddress}
+                    currentlyFollowing={!this.props.isYou && this.props.currentlyFollowing}
+                    stellarAddress={this.props.stellarFederationAddress}
                     onSendOrRequest={this.props.onSendOrRequestStellarAddress}
                     onCopyAddress={this.props.onCopyStellarAddress}
                   />
@@ -613,8 +628,6 @@ const styleSearch = {
 const styleSearchText = {
   ...styleSearch,
   color: Styles.globalColors.white_75,
-  position: 'relative',
-  top: -1,
 }
 
 const styleShowcasedTeamContainer = {
@@ -695,17 +708,6 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       color: Styles.globalColors.green,
       ...Styles.desktopStyles.clickable,
-    },
-  }),
-  toastText: Styles.platformStyles({
-    common: {
-      color: Styles.globalColors.white,
-      textAlign: 'center',
-    },
-    isMobile: {
-      paddingLeft: 10,
-      paddingRight: 10,
-      paddingTop: 5,
     },
   }),
 })

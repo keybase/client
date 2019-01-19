@@ -536,6 +536,7 @@ protocol local {
 
   record ThreadView {
     array<MessageUnboxed> messages;
+    union { null, MessageID } unreadLineID;
     union { null, Pagination } pagination;
   }
 
@@ -578,8 +579,8 @@ protocol local {
   }
   NonblockFetchRes getThreadNonblock(int sessionID, ConversationID conversationID, GetThreadNonblockCbMode cbMode, GetThreadReason reason, GetThreadNonblockPgMode pgmode, union { null, GetThreadQuery} query, union { null, UIPagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
 
-  record GetInboxLocalRes {
-    array<Conversation> conversationsUnverified;
+  record GetInboxUILocalRes {
+    array<UnverifiedInboxUIItem> conversationsRemote;
     union { null, Pagination } pagination;
 
     boolean offline;
@@ -590,9 +591,11 @@ protocol local {
     // GetInboxAndUnboxLocal should be used if identify failures are needed.
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
+  GetInboxUILocalRes getInboxUILocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   record NameQuery {
     string name;
+    union { null, TLFID } tlfID; // pass this if we already know the TLFID
     ConversationMembersType membersType;
   }
 
@@ -645,7 +648,7 @@ protocol local {
   }
 
   OutboxID generateOutboxID();
-  PostLocalNonblockRes postLocalNonblock(ConversationID conversationID, MessagePlaintext msg, MessageID clientPrev, union { null, OutboxID } outboxID, keybase1.TLFIdentifyBehavior identifyBehavior);
+  PostLocalNonblockRes postLocalNonblock(int sessionID, ConversationID conversationID, MessagePlaintext msg, MessageID clientPrev, union { null, OutboxID } outboxID, keybase1.TLFIdentifyBehavior identifyBehavior);
   record PostLocalNonblockRes {
     array<RateLimit> rateLimits;
     OutboxID outboxID;
@@ -761,8 +764,7 @@ protocol local {
 
   // Post an attachment from file source to conversationID.
   PostLocalRes postFileAttachmentLocal(int sessionID, PostFileAttachmentArg arg);
-  PostLocalNonblockRes postFileAttachmentMessageLocalNonblock(int sessionID, ConversationID convID, string tlfName, keybase1.TLFVisibility visibility, union { null, OutboxID } outboxID, MessageID clientPrev, string filename, string title, bytes metadata, union {null, gregor1.DurationSec} ephemeralLifetime, keybase1.TLFIdentifyBehavior identifyBehavior);
-  void postFileAttachmentUploadLocalNonblock(int sessionID, ConversationID convID, OutboxID outboxID, string filename, string title, bytes metadata, union {null, MakePreviewRes } callerPreview, keybase1.TLFIdentifyBehavior identifyBehavior);
+  PostLocalNonblockRes postFileAttachmentLocalNonblock(int sessionID, PostFileAttachmentArg arg, MessageID clientPrev);
 
   record GetNextAttachmentMessageLocalRes  {
     union { null, UIMessage } message;

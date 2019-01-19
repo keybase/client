@@ -116,10 +116,16 @@ func (e Identify3ResultType) String() string {
 	return ""
 }
 
-type Identify3RowMeta string
+type Identify3RowMeta struct {
+	Color Identify3RowColor `codec:"color" json:"color"`
+	Label string            `codec:"label" json:"label"`
+}
 
 func (o Identify3RowMeta) DeepCopy() Identify3RowMeta {
-	return o
+	return Identify3RowMeta{
+		Color: o.Color.DeepCopy(),
+		Label: o.Label,
+	}
 }
 
 type Identify3ShowTrackerArg struct {

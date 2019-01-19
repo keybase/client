@@ -18,7 +18,7 @@ class Passphrase extends Component<Props> {
         onBack={this.props.onBack}
       >
         <UserCard style={stylesCard} username={this.props.username}>
-          <Text type="Header" style={{color: globalColors.orange, ...usernameStyle}}>
+          <Text center={true} type="Header" style={{color: globalColors.orange}}>
             {this.props.username}
           </Text>
           <FormWithCheckbox
@@ -41,9 +41,14 @@ class Passphrase extends Component<Props> {
             label="Continue"
             type="Primary"
             onClick={this.props.onSubmit}
-            enabled={this.props.passphrase && this.props.passphrase.length}
+            disabled={!(this.props.passphrase && this.props.passphrase.length)}
           />
-          <Text style={stylesForgot} type="BodySmallSecondaryLink" onClick={this.props.onForgotPassphrase}>
+          <Text
+            center={true}
+            style={stylesForgot}
+            type="BodySmallSecondaryLink"
+            onClick={this.props.onForgotPassphrase}
+          >
             Forgot passphrase?
           </Text>
         </UserCard>
@@ -58,13 +63,9 @@ const stylesContainer = {
 const stylesForgot = {
   flex: 1,
   marginTop: globalMargins.medium,
-  textAlign: 'center',
 }
 const stylesCard = {
   alignItems: 'stretch',
-}
-const usernameStyle = {
-  textAlign: 'center',
 }
 
 export default Passphrase

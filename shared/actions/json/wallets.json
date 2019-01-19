@@ -36,7 +36,7 @@
     },
     "buildingPaymentIDReceived": {
       "_description": "Update our store with an ID for a new building payment",
-      "bid": "string",
+      "bid": "string"
     },
     "builtPaymentReceived": {
       "_description": "Update our store with a prepared payment",
@@ -95,6 +95,9 @@
         "error": "string"
       }
     },
+    "exitFailedPayment": {
+      "_description": "Close the send form and show the user their transactions so they can review."
+    },
     "exportSecretKey": {
       "_description": "Export a Stellar account's secret key",
       "accountID": "Types.AccountID"
@@ -105,6 +108,21 @@
     },
     "loadAccounts": {
       "_description": "Refresh our list of accounts"
+    },
+    "loadInflationDestination": {
+      "_description": "Refresh inflation destination and options",
+      "accountID": "Types.AccountID"
+    },
+    "setInflationDestination": {
+      "_description": "Set our inflation destination",
+      "accountID": "Types.AccountID",
+      "destination": "string"
+    },
+    "inflationDestinationReceived": {
+      "_description": "Got inflation destination",
+      "selected?": "string",
+      "options?": "Array<Types.InflationDestination>",
+      "error?": "string"
     },
     "loadMorePayments": {
       "_description": "Scrolled down the list of payments for a given account",
@@ -191,10 +209,6 @@
       "accountID": "Types.AccountID",
       "code": "Types.CurrencyCode"
     },
-    "loadRequestDetail": {
-      "_description": "Load a request's details",
-      "requestID": "StellarRPCTypes.KeybaseRequestID"
-    },
     "requestPayment": {
       "_description": "Request payment"
     },
@@ -229,9 +243,13 @@
       "oldestUnread": "Types.PaymentID",
       "payments": "Array<Types.PaymentResult>"
     },
-    "requestDetailReceived": {
-      "_description": "Store a request's details",
-      "request": "StellarRPCTypes.RequestDetailsLocal"
+    "reviewedPaymentReceived": {
+      "_description": "Update our store with the results of reviewing a built payment",
+      "bid": "string",
+      "reviewID": "number",
+      "seqno": "number",
+      "nextButton": "string",
+      "banners?": "?Array<StellarRPCTypes.SendBannerLocal>"
     },
     "secretKeyReceived": {
       "_description": "Update our store with an exported secret key",
@@ -246,11 +264,6 @@
       "_description": "Select an account. Optionally navigate to the account page.",
       "accountID": "Types.AccountID",
       "show?": "boolean"
-    },
-    "refreshPayments": {
-      "_description": "In response to a notification, resync payment info",
-      "accountID": "Types.AccountID",
-      "paymentID": "Types.PaymentID"
     },
     "buildPayment": {
       "_description": "Send a potential payment to the service for validation"
@@ -304,9 +317,12 @@
       "lastSentXLM": "boolean",
       "writeFile": "boolean"
     },
-    "setReadyToSend": {
-      "_description": "Set whether the payment is ready to send",
-      "readyToSend": "boolean"
+    "setReadyToReview": {
+      "_description": "Set whether the payment is ready to review",
+      "readyToReview": "boolean"
+    },
+    "reviewPayment": {
+      "_description": "Move to the confirm screen on a built payment."
     },
     "openSendRequestForm": {
       "_description": "Initialize and navigate to the send or request form. See docs for `setBuilding*` for param semantics.",

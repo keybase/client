@@ -5,6 +5,8 @@ package client
 
 import (
 	"fmt"
+	"path"
+	"strings"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -24,7 +26,7 @@ func NewCmdSimpleFSSyncEnable(
 	cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "enable",
-		ArgumentHelp: "[path-to-folder]",
+		ArgumentHelp: "[path-to-sync]",
 		Usage:        "syncs the given folder to local storage, for offline access",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSimpleFSSyncEnable{
@@ -32,6 +34,34 @@ func NewCmdSimpleFSSyncEnable(
 			cl.SetNoStandalone()
 		},
 	}
+}
+
+const minNumKeybasePathElems = 4
+
+func splitKeybasePath(p keybase1.Path) []string {
+	toSplit := p.String()
+	// Just in case the path isn't absolute.
+	if !strings.HasPrefix(toSplit, "/") {
+		toSplit = "/" + toSplit
+	}
+	return strings.SplitN(toSplit, "/", minNumKeybasePathElems)
+}
+
+func toTlfPath(p keybase1.Path) (keybase1.Path, error) {
+	split := splitKeybasePath(p)
+	if len(split) < minNumKeybasePathElems {
+		return p, nil
+	}
+	return makeSimpleFSPath(
+		path.Join(append([]string{mountDir}, split[0:3]...)...))
+}
+
+func pathMinusTlf(p keybase1.Path) string {
+	split := splitKeybasePath(p)
+	if len(split) < minNumKeybasePathElems {
+		return ""
+	}
+	return split[3]
 }
 
 // Run runs the command in client/server mode.
@@ -48,6 +78,33 @@ func (c *CmdSimpleFSSyncEnable) Run() error {
 		},
 		Path: c.path,
 	}
+
+	subpath := pathMinusTlf(c.path)
+	if subpath != "" {
+		arg.Path, err = toTlfPath(c.path)
+		if err != nil {
+			return err
+		}
+		res, err := cli.SimpleFSFolderSyncConfigAndStatus(ctx, arg.Path)
+		if err != nil {
+			return err
+		}
+
+		if res.Config.Mode == keybase1.FolderSyncMode_ENABLED {
+			return fmt.Errorf("Must disable full syncing on %s first", arg.Path)
+		}
+
+		for _, p := range res.Config.Paths {
+			if p == subpath {
+				// Already enabled.
+				return nil
+			}
+		}
+
+		arg.Config.Mode = keybase1.FolderSyncMode_PARTIAL
+		arg.Config.Paths = append(res.Config.Paths, subpath)
+	}
+
 	return cli.SimpleFSSetFolderSyncConfig(ctx, arg)
 }
 

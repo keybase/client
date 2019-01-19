@@ -383,6 +383,12 @@ func (u *RemoteIdentifyUI) DisplayCryptocurrency(c keybase1.Cryptocurrency) erro
 	return u.uicli.DisplayCryptocurrency(ctx, keybase1.DisplayCryptocurrencyArg{SessionID: u.sessionID, C: c})
 }
 
+func (u *RemoteIdentifyUI) DisplayStellarAccount(a keybase1.StellarAccount) error {
+	ctx, cancel := u.newContext()
+	defer cancel()
+	return u.uicli.DisplayStellarAccount(ctx, keybase1.DisplayStellarAccountArg{SessionID: u.sessionID, A: a})
+}
+
 func (u *RemoteIdentifyUI) DisplayKey(key keybase1.IdentifyKey) error {
 	ctx, cancel := u.newContext()
 	defer cancel()

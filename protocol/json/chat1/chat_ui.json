@@ -97,6 +97,10 @@
           "name": "topicType"
         },
         {
+          "type": "boolean",
+          "name": "isPublic"
+        },
+        {
           "type": "string",
           "name": "name"
         },
@@ -138,6 +142,10 @@
         {
           "type": "MessageID",
           "name": "maxMsgID"
+        },
+        {
+          "type": "MessageID",
+          "name": "maxVisibleMsgID"
         },
         {
           "type": "MessageID",
@@ -208,6 +216,10 @@
         {
           "type": "TopicType",
           "name": "topicType"
+        },
+        {
+          "type": "boolean",
+          "name": "isPublic"
         },
         {
           "type": "boolean",
@@ -300,6 +312,10 @@
         {
           "type": "MessageID",
           "name": "maxMsgID"
+        },
+        {
+          "type": "MessageID",
+          "name": "maxVisibleMsgID"
         },
         {
           "type": "MessageID",
@@ -467,6 +483,10 @@
         {
           "type": "string",
           "name": "worth"
+        },
+        {
+          "type": "string",
+          "name": "worthAtSendTime"
         },
         {
           "type": "stellar1.BalanceDelta",
@@ -799,6 +819,13 @@
         {
           "type": [
             null,
+            "MessageID"
+          ],
+          "name": "unreadLineID"
+        },
+        {
+          "type": [
+            null,
             "UIPagination"
           ],
           "name": "pagination"
@@ -1072,15 +1099,6 @@
       ],
       "response": "boolean"
     },
-    "chatPostReadyToSend": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        }
-      ],
-      "response": null
-    },
     "chatStellarShowConfirm": {
       "request": [
         {
@@ -1121,6 +1139,10 @@
         {
           "name": "sessionID",
           "type": "int"
+        },
+        {
+          "name": "canceled",
+          "type": "boolean"
         }
       ],
       "response": null

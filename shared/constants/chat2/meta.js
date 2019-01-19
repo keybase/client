@@ -3,6 +3,7 @@
 import * as I from 'immutable'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../types/rpc-gen'
+import * as WalletConstants from '../wallets'
 import * as Types from '../types/chat2'
 import * as TeamConstants from '../teams'
 import type {_ConversationMeta} from '../types/chat2/meta'
@@ -70,6 +71,7 @@ export const unverifiedInboxUIItemToConversationMeta = (
     inboxVersion: i.version,
     isMuted: i.status === RPCChatTypes.commonConversationStatus.muted,
     maxMsgID: i.maxMsgID,
+    maxVisibleMsgID: i.maxVisibleMsgID,
     membershipType: conversationMemberStatusToMembershipType(i.memberStatus),
     participants,
     readMsgID: i.readMsgID,
@@ -122,7 +124,6 @@ export const updateMeta = (
       return old
     }
   }
-
   const participants = old.participants.equals(meta.participants) ? old.participants : meta.participants
   const rekeyers = old.rekeyers.equals(meta.rekeyers) ? old.rekeyers : meta.rekeyers
   const resetParticipants = old.resetParticipants.equals(meta.resetParticipants)
@@ -130,6 +131,16 @@ export const updateMeta = (
     : meta.resetParticipants
 
   return meta.withMutations(m => {
+    // don't downgrade trusted status for an inbox update that doesn't contain a newer version of the
+    // meta
+    m.set(
+      'trustedState',
+      old.trustedState === 'trusted' &&
+        meta.trustedState === 'untrusted' &&
+        old.inboxVersion >= meta.inboxVersion
+        ? 'trusted'
+        : meta.trustedState
+    )
     m.set('channelname', meta.channelname || old.channelname)
     m.set('participants', participants)
     m.set('rekeyers', rekeyers)
@@ -250,6 +261,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
     inboxVersion: i.version,
     isMuted: i.status === RPCChatTypes.commonConversationStatus.muted,
     maxMsgID: i.maxMsgID,
+    maxVisibleMsgID: i.maxVisibleMsgID,
     membershipType: conversationMemberStatusToMembershipType(i.memberStatus),
     minWriterRole,
     notificationsDesktop,
@@ -280,6 +292,7 @@ export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record
   inboxVersion: -1,
   isMuted: false,
   maxMsgID: -1,
+  maxVisibleMsgID: -1,
   membershipType: 'active',
   minWriterRole: 'reader',
   notificationsDesktop: 'never',
@@ -328,10 +341,18 @@ export const getChannelSuggestions = (state: TypedState, teamname: string) =>
 
 const bgPlatform = isMobile ? globalColors.fastBlank : globalColors.blueGrey
 // show wallets icon for one-on-one conversations
-export const shouldShowWalletsIcon = (meta: Types.ConversationMeta, yourUsername: string) =>
-  flags.walletsEnabled &&
-  meta.teamType === 'adhoc' &&
-  meta.participants.filter(u => u !== yourUsername).size === 1
+export const shouldShowWalletsIcon = (state: TypedState, id: Types.ConversationIDKey) => {
+  const meta = getMeta(state, id)
+  const accountID = WalletConstants.getDefaultAccountID(state)
+  const sendDisabled = !isMobile && accountID && !!state.wallets.mobileOnlyMap.get(accountID)
+
+  return (
+    flags.walletsEnabled &&
+    !sendDisabled &&
+    meta.teamType === 'adhoc' &&
+    meta.participants.filter(u => u !== state.config.username).size === 1
+  )
+}
 
 export const getRowStyles = (meta: Types.ConversationMeta, isSelected: boolean, hasUnread: boolean) => {
   const isError = meta.trustedState === 'error'
@@ -343,7 +364,7 @@ export const getRowStyles = (meta: Types.ConversationMeta, isSelected: boolean, 
     ? globalColors.white
     : hasUnread
     ? globalColors.black_75
-    : globalColors.black_40
+    : globalColors.black_50
   const usernameColor = isSelected ? globalColors.white : globalColors.black_75
   const iconHoverColor = isSelected ? globalColors.white_75 : globalColors.black_75
 

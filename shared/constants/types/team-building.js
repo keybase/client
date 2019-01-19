@@ -3,19 +3,15 @@ import * as I from 'immutable'
 
 export type FollowingState = 'Following' | 'NotFollowing' | 'NoState' | 'You'
 
-// Use services from constants instead, here to avoid a circular dependency
-export const _services = {
-  contact: true,
-  facebook: true,
-  github: true,
-  hackernews: true,
-  keybase: true,
-  pgp: true,
-  reddit: true,
-  twitter: true,
-}
-
-export type ServiceIdWithContact = $Keys<typeof _services>
+export type ServiceIdWithContact =
+  | 'keybase'
+  | 'contact'
+  | 'twitter'
+  | 'facebook'
+  | 'github'
+  | 'reddit'
+  | 'hackernews'
+  | 'pgp'
 
 export type SearchString = string
 type UsernameOnService = string

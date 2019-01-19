@@ -131,7 +131,7 @@ func ListSubteamsUnverified(mctx libkb.MetaContext, name keybase1.TeamName) (res
 
 	emptyUID := keybase1.UID("")
 	teams, err := getTeamsListFromServer(mctx.Ctx(), mctx.G(), emptyUID,
-		false /* all */, true /* countMembers */, true /* includeImplicitTeams */)
+		false /* all */, true /* countMembers */, false /* includeImplicitTeams */)
 	if err != nil {
 		return res, libkb.LoginRequiredError{}
 	}

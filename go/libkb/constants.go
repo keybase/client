@@ -73,7 +73,7 @@ const (
 )
 
 // Right now reddit is the only site that seems to have any requirements for
-// our User-Agent string. (See https://github.com/reddit/reddit/wiki/API.)If
+// our User-Agent string. (See https://github.com/reddit/reddit/wiki/API.) If
 // something else comes up, we'll want to make this more configurable.
 var UserAgent = runtime.GOOS + ":" + "Keybase CLI (" + runtime.Version() + "):" + Version
 
@@ -427,7 +427,7 @@ var RemoteServiceTypes = map[string]keybase1.ProofType{
 	"generic_social": keybase1.ProofType_GENERIC_SOCIAL,
 }
 
-// TODO Remove with CORE-8969
+// TODO Remove with CORE-9923
 var RemoteServiceOrder = []keybase1.ProofType{
 	keybase1.ProofType_KEYBASE,
 	keybase1.ProofType_TWITTER,
@@ -660,7 +660,9 @@ const MinEphemeralKeyLifetime = MaxEphemeralContentLifetime + EphemeralKeyGenInt
 
 const MaxTeamMembersForPairwiseMAC = 100
 
-const MaxStellarPaymentNoteLength = 500
-const MaxStellarPaymentBoxedNoteLength = 1000
+const (
+	MaxStellarPaymentNoteLength      = 500
+	MaxStellarPaymentBoxedNoteLength = 2000
+)
 
 const ClientTriplesecVersion = 3

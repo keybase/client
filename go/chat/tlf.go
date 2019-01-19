@@ -3,6 +3,7 @@ package chat
 import (
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/keybase/client/go/auth"
@@ -48,17 +49,6 @@ func (t *KBFSNameInfoSource) tlfKeysClient() (*keybase1.TlfKeysClient, error) {
 	}, nil
 }
 
-func (t *KBFSNameInfoSource) LookupIDUntrusted(ctx context.Context, name string, public bool) (res types.NameInfoUntrusted, err error) {
-	ni, err := t.LookupID(ctx, name, public)
-	if err != nil {
-		return res, err
-	}
-	return types.NameInfoUntrusted{
-		ID:            ni.ID,
-		CanonicalName: ni.CanonicalName,
-	}, nil
-}
-
 func (t *KBFSNameInfoSource) loadAll(ctx context.Context, tlfName string, public bool) (res types.NameInfo, keys types.AllCryptKeys, err error) {
 	var lastErr error
 	keys = types.NewAllCryptKeys()
@@ -72,7 +62,6 @@ func (t *KBFSNameInfoSource) loadAll(ctx context.Context, tlfName string, public
 			pres, err = t.PublicCanonicalTLFNameAndID(ctx, tlfName)
 			res.CanonicalName = pres.CanonicalName.String()
 			res.ID = chat1.TLFID(pres.TlfID.ToBytes())
-			res.IdentifyFailures = pres.Breaks.Breaks
 			keys[chat1.ConversationMembersType_KBFS] =
 				append(keys[chat1.ConversationMembersType_KBFS], publicCryptKey)
 		} else {
@@ -80,7 +69,6 @@ func (t *KBFSNameInfoSource) loadAll(ctx context.Context, tlfName string, public
 			cres, err = t.CryptKeys(ctx, tlfName)
 			res.CanonicalName = cres.NameIDBreaks.CanonicalName.String()
 			res.ID = chat1.TLFID(cres.NameIDBreaks.TlfID.ToBytes())
-			res.IdentifyFailures = cres.NameIDBreaks.Breaks.Breaks
 			for _, key := range cres.CryptKeys {
 				keys[chat1.ConversationMembersType_KBFS] =
 					append(keys[chat1.ConversationMembersType_KBFS], key)
@@ -140,6 +128,15 @@ func (t *KBFSNameInfoSource) DecryptionKey(ctx context.Context, tlfName string, 
 	}
 	ni, err := t.AllCryptKeys(ctx, tlfName, public)
 	if err != nil {
+		// Banned folders are only detectable by the error string currently,
+		// hopefully we can do something better in the future.
+		if err.Error() == "Operations for this folder are temporarily throttled (error 2800)" {
+			return nil, NewDecryptionKeyNotFoundError(keyGeneration, public, kbfsEncrypted)
+		}
+		// This happens to finalized folders that are no longer being rekeyed
+		if strings.HasPrefix(err.Error(), "Can't get TLF private key for key generation") {
+			return nil, NewDecryptionKeyNotFoundError(keyGeneration, public, kbfsEncrypted)
+		}
 		return nil, err
 	}
 	for _, key := range ni[chat1.ConversationMembersType_KBFS] {

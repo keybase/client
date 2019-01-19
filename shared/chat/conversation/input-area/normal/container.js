@@ -36,7 +36,7 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
 
   const explodingModeSeconds = Constants.getConversationExplodingMode(state, conversationIDKey)
   const isExploding = explodingModeSeconds !== 0
-
+  const unsentText = state.chat2.unsentTextMap.get(conversationIDKey)
   return {
     _editOrdinal: editInfo ? editInfo.ordinal : null,
     _isExplodingModeLocked: Constants.isExplodingModeLocked(state, conversationIDKey),
@@ -47,18 +47,21 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
     explodingModeSeconds,
     isEditExploded: editInfo ? editInfo.exploded : false,
     isExploding,
-    isExplodingNew: Constants.getIsExplodingNew(state),
     quoteCounter: quoteInfo ? quoteInfo.counter : 0,
     quoteText: quoteInfo ? quoteInfo.text : '',
-    showWalletsIcon: Constants.shouldShowWalletsIcon(Constants.getMeta(state, conversationIDKey), _you),
+    showWalletsIcon: Constants.shouldShowWalletsIcon(state, conversationIDKey),
     showingGiphySearch: state.chat2.giphySearchMap.get(conversationIDKey) || false,
     suggestChannels: Constants.getChannelSuggestions(state, teamname),
     suggestUsers: Constants.getParticipantSuggestions(state, conversationIDKey),
     typing: Constants.getTyping(state, conversationIDKey),
+    unsentText: unsentText ? unsentText.stringValue() : '',
   }
 }
 
 const mapDispatchToProps = dispatch => ({
+  _clearUnsentText: (conversationIDKey: Types.ConversationIDKey) => {
+    dispatch(Chat2Gen.createSetUnsentText({conversationIDKey, text: new HiddenString('')}))
+  },
   _onAttach: (conversationIDKey: Types.ConversationIDKey, paths: Array<string>) => {
     const pathAndOutboxIDs = paths.map(p => ({
       outboxID: null,
@@ -98,7 +101,6 @@ const mapDispatchToProps = dispatch => ({
     dispatch(Chat2Gen.createUnsentTextChanged({conversationIDKey, text: new HiddenString(text)})),
   clearInboxFilter: () => dispatch(Chat2Gen.createSetInboxFilter({filter: ''})),
   onFilePickerError: (error: Error) => dispatch(ConfigGen.createFilePickerError({error})),
-  onSeenExplodingMessages: () => dispatch(Chat2Gen.createHandleSeeingExplodingMessages()),
   onSetExplodingModeLock: (conversationIDKey: Types.ConversationIDKey, unset: boolean) =>
     dispatch(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset})),
 })
@@ -109,16 +111,15 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   editText: stateProps.editText,
   explodingModeSeconds: stateProps.explodingModeSeconds,
   focusInputCounter: ownProps.focusInputCounter,
-  getUnsentText: () => getUnsentText(stateProps.conversationIDKey),
+  getUnsentText: () =>
+    stateProps.unsentText.length > 0 ? stateProps.unsentText : getUnsentText(stateProps.conversationIDKey),
   isEditExploded: stateProps.isEditExploded,
   isEditing: !!stateProps._editOrdinal,
   isExploding: stateProps.isExploding,
-  isExplodingNew: stateProps.isExplodingNew,
   onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
   onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
   onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
   onFilePickerError: dispatchProps.onFilePickerError,
-  onSeenExplodingMessages: dispatchProps.onSeenExplodingMessages,
   onSubmit: (text: string) => {
     if (stateProps._editOrdinal) {
       dispatchProps._onEditMessage(stateProps.conversationIDKey, stateProps._editOrdinal, text)
@@ -138,6 +139,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
       // alternatively, if it's not locked and we want to set it, set it
       dispatchProps.onSetExplodingModeLock(stateProps.conversationIDKey, unset)
     }
+    if (stateProps.unsentText.length > 0) {
+      dispatchProps._clearUnsentText(stateProps.conversationIDKey)
+    }
     setUnsentText(stateProps.conversationIDKey, text)
   },
   showWalletsIcon: stateProps.showWalletsIcon,
@@ -147,6 +151,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   unsentTextChanged: (text: string) => {
     dispatchProps._unsentTextChanged(stateProps.conversationIDKey, text)
   },
+  unsentTextRefresh: stateProps.unsentText.length > 0,
 })
 
 export default connect<OwnProps, _, _, _, _>(

@@ -39,7 +39,7 @@ func (rc *GithubChecker) CheckStatus(mctx libkb.MetaContext, h libkb.SigHint, _ 
 
 type GithubServiceType struct{ libkb.BaseServiceType }
 
-func (t *GithubServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
+func (t *GithubServiceType) Key() string { return t.GetTypeName() }
 
 var githubUsernameRegexp = regexp.MustCompile(`^(?i:[a-z0-9][a-z0-9-]{0,38})$`)
 
@@ -69,8 +69,9 @@ func (t *GithubServiceType) PostInstructions(un string) *libkb.Markup {
 and name it <strong><color name="red">keybase.md</color></strong>`)
 }
 
-func (t *GithubServiceType) DisplayName(un string) string { return "Github" }
-func (t *GithubServiceType) GetTypeName() string          { return "github" }
+func (t *GithubServiceType) DisplayName() string   { return "GitHub" }
+func (t *GithubServiceType) GetTypeName() string   { return "github" }
+func (t *GithubServiceType) PickerSubtext() string { return "github.com" }
 
 func (t *GithubServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *libkb.Markup, err error) {
 	if status == keybase1.ProofStatus_PERMISSION_DENIED {

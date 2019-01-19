@@ -16,13 +16,9 @@ const routeTree = () => {
     RemoveAccountPopup,
     ReallyRemoveAccountPopup,
     RenameAccountPopup,
+    InflationDestination,
   } = require('./wallet/settings/popups')
-  const SendForm = require('./send-form/container').default
-  const QRScan = require('./qr-scan/container').default
-  const ConfirmForm = require('./confirm-form/container').default
   const Wallet = require('./wallet/container').default
-  const ChooseAsset = require('./send-form/choose-asset/container').default
-  const WalletsList = require('./wallet-list/container').default
 
   const createNewAccount = {
     children: {},
@@ -41,44 +37,15 @@ const routeTree = () => {
     exportSecretKey: {
       children: {},
       component: ExportSecretKey,
-      tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
+      tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile, renderTopmostOnly: true}),
     },
     linkExisting,
     receive: {
       children: {},
       component: ReceiveModal,
-      tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
+      tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile, renderTopmostOnly: true}),
     },
-    [Constants.sendReceiveFormRouteKey]: {
-      children: {
-        [Constants.confirmFormRouteKey]: {
-          children: {},
-          component: ConfirmForm,
-          tags: makeLeafTags({
-            layerOnTop: !isMobile,
-            renderTopmostOnly: true,
-            underNotch: true,
-          }),
-        },
-        createNewAccount,
-        linkExisting,
-        [Constants.chooseAssetFormRouteKey]: {
-          children: {},
-          component: ChooseAsset,
-          tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
-        },
-        qrScan: {
-          component: QRScan,
-          tags: makeLeafTags({layerOnTop: true, underNotch: true}),
-        },
-      },
-      component: SendForm,
-      tags: makeLeafTags({
-        layerOnTop: !isMobile,
-        renderTopmostOnly: true,
-        underNotch: true,
-      }),
-    },
+    [Constants.sendRequestFormRouteKey]: require('./routes-send-request-form').default(),
     settings: {
       children: {
         createNewAccount,
@@ -88,21 +55,26 @@ const routeTree = () => {
             reallyRemoveAccount: {
               children: {},
               component: ReallyRemoveAccountPopup,
-              tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
+              tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile, renderTopmostOnly: true}),
             },
           },
           component: RemoveAccountPopup,
-          tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
+          tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile, renderTopmostOnly: true}),
         },
         renameAccount: {
           children: {},
           component: RenameAccountPopup,
-          tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
+          tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile, renderTopmostOnly: true}),
         },
         setDefaultAccount: {
           children: {},
           component: SetDefaultAccountPopup,
-          tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
+          tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile, renderTopmostOnly: true}),
+        },
+        setInflation: {
+          children: {},
+          component: InflationDestination,
+          tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile, renderTopmostOnly: true}),
         },
       },
       component: AccountSettings,
@@ -115,18 +87,14 @@ const routeTree = () => {
       component: TransactionDetails,
     },
   }
+  // On mobile we take the user directly to the wallet page, and they
+  // navigate by tapping on the wallet name which brings up a
+  // switcher. On desktop, we use a wallet list component and we don't
+  // have a wallet switcher tied to the name.
   return isMobile
     ? makeRouteDefNode({
-        children: {
-          createNewAccount,
-          linkExisting,
-          wallet: {
-            children: walletChildren,
-            component: Wallet,
-          },
-        },
-        component: WalletsList,
-        tags: makeLeafTags({title: 'Wallets'}),
+        children: walletChildren,
+        component: Wallet,
       })
     : makeRouteDefNode({
         children: {

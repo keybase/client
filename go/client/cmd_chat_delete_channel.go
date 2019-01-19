@@ -39,10 +39,7 @@ func newCmdChatDeleteChannel(cl *libcmdline.CommandLine, g *libkb.GlobalContext)
 }
 
 func (c *CmdChatDeleteChannel) Run() error {
-	ui := &ChatUI{
-		Contextified: libkb.NewContextified(c.G()),
-		terminal:     c.G().UI.GetTerminalUI(),
-	}
+	ui := NewChatCLIUI(c.G())
 	protocols := []rpc.Protocol{
 		chat1.ChatUiProtocol(ui),
 	}

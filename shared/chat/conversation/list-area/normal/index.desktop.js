@@ -144,9 +144,11 @@ class Thread extends React.PureComponent<Props, State> {
   _cleanupDebounced = () => {
     this._onAfterScroll.cancel()
     this._onScrollThrottled.cancel()
+    this._checkForLoadMoreThrottled.cancel()
   }
 
   _onScroll = e => {
+    this._checkForLoadMoreThrottled()
     if (this._ignoreScrollToBottomRefCount > 0) {
       this._ignoreScrollToBottomRefCount--
       return
@@ -165,6 +167,16 @@ class Thread extends React.PureComponent<Props, State> {
       }
       this._onAfterScroll()
 
+      // not locked to bottom while scrolling
+      const isLockedToBottom = false
+      this.setState(p => (p.isLockedToBottom === isLockedToBottom ? null : {isLockedToBottom}))
+    },
+    100,
+    {leading: true, trailing: true}
+  )
+
+  _checkForLoadMoreThrottled = throttle(
+    () => {
       // are we at the top?
       const list = this._listRef.current
       if (list) {
@@ -172,10 +184,6 @@ class Thread extends React.PureComponent<Props, State> {
           this.props.loadMoreMessages()
         }
       }
-
-      // not locked to bottom while scrolling
-      const isLockedToBottom = false
-      this.setState(p => (p.isLockedToBottom === isLockedToBottom ? null : {isLockedToBottom}))
     },
     100,
     // trailing = true cause you can be on top but keep scrolling which can keep the throttle going and ultimately miss out

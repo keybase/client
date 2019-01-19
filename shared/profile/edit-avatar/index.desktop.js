@@ -320,7 +320,7 @@ class EditAvatar extends React.Component<_Props, State> {
               </Kb.Text>
             </Kb.Box>
           )}
-          <Kb.Text type="Body" style={styles.instructions}>
+          <Kb.Text center={true} type="Body" style={styles.instructions}>
             Drag and drop a {this.props.teamname ? 'team' : 'profile'} avatar or{' '}
             <Kb.Text type="BodyPrimaryLink" className="hover-underline" onClick={this._filePickerOpen}>
               browse your computer for one
@@ -417,8 +417,8 @@ const HoverBox = Styles.styled(Kb.Box)({
     backgroundColor: Styles.globalColors.white,
     borderColor: Styles.globalColors.lightGrey2,
   },
-  '&:hover': {borderColor: Styles.globalColors.black_40},
-  '&:hover .icon': {color: Styles.globalColors.black_40},
+  '&:hover': {borderColor: Styles.globalColors.black_50},
+  '&:hover .icon': {color: Styles.globalColors.black_50},
   '.dropping &': {
     backgroundColor: Styles.globalColors.blue_60,
     borderColor: Styles.globalColors.blue_60,
@@ -466,7 +466,6 @@ const styles = Styles.styleSheetCreate({
   },
   instructions: {
     maxWidth: 200,
-    textAlign: 'center',
   },
   spinner: {
     left: '50%',

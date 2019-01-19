@@ -22,27 +22,6 @@ const load = (state: TypedState) =>
     )
     .catch(() => {})
 
-const loadGitRepo = (state, action) =>
-  state.config.loggedIn &&
-  RPCTypes.gitGetGitMetadataRpcPromise(
-    {
-      folder: {
-        created: false,
-        folderType: action.payload.teamname
-          ? RPCTypes.favoriteFolderType.team
-          : RPCTypes.favoriteFolderType.private,
-        name: action.payload.teamname || action.payload.username || '',
-        notificationsOn: false,
-        private: true,
-      },
-    },
-    Constants.loadingWaitingKey
-  )
-    .then((results: ?Array<RPCTypes.GitRepoResult>) =>
-      GitGen.createLoaded(Constants.parseRepos(results || []))
-    )
-    .catch(() => {})
-
 const surfaceGlobalErrors = (_, {payload: {errors}}: GitGen.LoadedPayload) =>
   errors.map(globalError => ConfigGen.createGlobalError({globalError}))
 
@@ -106,7 +85,7 @@ const setTeamRepoSettings = (_, action) =>
       private: true,
     },
     repoID: action.payload.repoID,
-  }).then(() => GitGen.createLoadGitRepo({teamname: action.payload.teamname, username: null}))
+  }).then(() => GitGen.createLoadGit())
 
 let _wasOnGitTab = false
 const clearBadgesAfterNav = (state, action) => {
@@ -181,7 +160,6 @@ function* gitSaga(): Saga.SagaGenerator<any, any> {
   )
 
   // Loading
-  yield* Saga.chainAction<GitGen.LoadGitRepoPayload>(GitGen.loadGitRepo, loadGitRepo)
   yield* Saga.chainAction<GitGen.LoadedPayload>(GitGen.loaded, surfaceGlobalErrors)
 
   // Team Repos

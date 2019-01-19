@@ -78,16 +78,18 @@ func newIdentify2WithUIDTester(g *libkb.GlobalContext) *Identify2WithUIDTester {
 	}
 }
 
-func (i *Identify2WithUIDTester) ListProofCheckers() []string               { return nil }
-func (i *Identify2WithUIDTester) ListServicesThatAcceptNewProofs() []string { return nil }
-func (i *Identify2WithUIDTester) AllStringKeys() []string                   { return nil }
+func (i *Identify2WithUIDTester) ListProofCheckers() []string                         { return nil }
+func (i *Identify2WithUIDTester) ListServicesThatAcceptNewProofs() []string           { return nil }
+func (i *Identify2WithUIDTester) ListDisplayConfigs() []keybase1.ServiceDisplayConfig { return nil }
+func (i *Identify2WithUIDTester) SuggestionFoldPriority() int                         { return 0 }
+func (i *Identify2WithUIDTester) Key() string                                         { return i.GetTypeName() }
 func (i *Identify2WithUIDTester) CheckProofText(text string, id keybase1.SigID, sig string) error {
 	return nil
 }
-func (i *Identify2WithUIDTester) DisplayName(n string) string { return n }
-func (i *Identify2WithUIDTester) GetPrompt() string           { return "" }
-func (i *Identify2WithUIDTester) GetProofType() string        { return "" }
-func (i *Identify2WithUIDTester) GetTypeName() string         { return "" }
+func (i *Identify2WithUIDTester) DisplayName() string  { return "Identify2WithUIDTester" }
+func (i *Identify2WithUIDTester) GetPrompt() string    { return "" }
+func (i *Identify2WithUIDTester) GetProofType() string { return "" }
+func (i *Identify2WithUIDTester) GetTypeName() string  { return "" }
 func (i *Identify2WithUIDTester) NormalizeRemoteName(_ libkb.MetaContext, name string) (string, error) {
 	return name, nil
 }
@@ -102,6 +104,7 @@ func (i *Identify2WithUIDTester) MakeProofChecker(_ libkb.RemoteProofChainLink) 
 	return i
 }
 func (i *Identify2WithUIDTester) GetServiceType(n string) libkb.ServiceType { return i }
+func (i *Identify2WithUIDTester) PickerSubtext() string                     { return "" }
 
 func (i *Identify2WithUIDTester) CheckStatus(m libkb.MetaContext, h libkb.SigHint,
 	pcm libkb.ProofCheckerMode, _ keybase1.MerkleStoreEntry) (*libkb.SigHint, libkb.ProofError) {
@@ -126,6 +129,9 @@ func (i *Identify2WithUIDTester) FinishWebProofCheck(keybase1.RemoteProof, keyba
 	return nil
 }
 func (i *Identify2WithUIDTester) DisplayCryptocurrency(keybase1.Cryptocurrency) error {
+	return nil
+}
+func (i *Identify2WithUIDTester) DisplayStellarAccount(keybase1.StellarAccount) error {
 	return nil
 }
 func (i *Identify2WithUIDTester) DisplayKey(keybase1.IdentifyKey) error {

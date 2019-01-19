@@ -17,7 +17,8 @@ type Props = {
   onSendToKeybaseUser: () => void,
   onSendToStellarAddress: () => void,
   onSettings: () => void,
-  onShowSecretKey: () => void,
+  onShowSecretKey: ?() => void,
+  sendDisabled: boolean,
   keybaseUser: string,
   walletName: ?string,
 }
@@ -69,15 +70,24 @@ const Header = (props: Props) => {
     </Kb.Box2>
   )
   return (
-    <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" gapStart={true} style={styles.noShrink}>
+    <Kb.Box2
+      direction="vertical"
+      fullWidth={true}
+      gap="tiny"
+      gapStart={true}
+      gapEnd={true}
+      style={styles.container}
+    >
       {nameAndInfo}
       <Kb.Box2 direction="horizontal" gap="tiny" centerChildren={true}>
-        <SendButton
-          onSendToKeybaseUser={props.onSendToKeybaseUser}
-          onSendToStellarAddress={props.onSendToStellarAddress}
-          onSendToAnotherAccount={props.onSendToAnotherAccount}
-          disabled={!props.walletName}
-        />
+        {!props.sendDisabled && (
+          <SendButton
+            onSendToKeybaseUser={props.onSendToKeybaseUser}
+            onSendToStellarAddress={props.onSendToStellarAddress}
+            onSendToAnotherAccount={props.onSendToAnotherAccount}
+            disabled={!props.walletName}
+          />
+        )}
         <Kb.Button type="Secondary" onClick={props.onReceive} label="Receive" disabled={!props.walletName} />
         <DropdownButton
           onSettings={props.onSettings}
@@ -85,7 +95,6 @@ const Header = (props: Props) => {
           disabled={!props.walletName}
         />
       </Kb.Box2>
-      <Kb.Divider />
     </Kb.Box2>
   )
 }
@@ -136,24 +145,27 @@ class _SendButton extends React.PureComponent<SendProps & Kb.OverlayParentProps>
 }
 
 type DropdownProps = {|
-  onShowSecretKey: () => void,
+  onShowSecretKey: ?() => void,
   onSettings: () => void,
   disabled: boolean,
 |}
 
 class _DropdownButton extends React.PureComponent<DropdownProps & Kb.OverlayParentProps> {
-  _menuItems = [
-    {
-      onClick: () => this.props.onShowSecretKey(),
-      title: 'Show secret key',
-    },
-    {
-      onClick: () => this.props.onSettings(),
-      title: 'Settings',
-    },
-  ]
-
   render() {
+    const onShowSecretKey = this.props.onShowSecretKey
+    const _menuItems = [
+      onShowSecretKey
+        ? {
+            onClick: () => onShowSecretKey(),
+            title: 'Show secret key',
+          }
+        : null,
+      {
+        onClick: () => this.props.onSettings(),
+        title: 'Settings',
+      },
+    ].filter(Boolean)
+
     return (
       <Kb.ClickableBox
         onClick={!this.props.disabled ? this.props.toggleShowingMenu : undefined}
@@ -176,7 +188,7 @@ class _DropdownButton extends React.PureComponent<DropdownProps & Kb.OverlayPare
         <Kb.FloatingMenu
           attachTo={this.props.getAttachmentRef}
           closeOnSelect={true}
-          items={this._menuItems}
+          items={_menuItems}
           onHidden={this.props.toggleShowingMenu}
           visible={this.props.showingMenu}
           position="bottom center"
@@ -195,6 +207,12 @@ const styles = Styles.styleSheetCreate({
     marginLeft: Styles.globalMargins.xtiny,
     width: 10,
   },
+  container: {
+    borderBottomColor: Styles.globalColors.black_10,
+    borderBottomWidth: 1,
+    borderStyle: 'solid',
+    flexShrink: 0,
+  },
   dropdownButton: Styles.platformStyles({
     isElectron: {
       paddingLeft: Styles.globalMargins.small,
@@ -205,7 +223,6 @@ const styles = Styles.styleSheetCreate({
       paddingRight: Styles.globalMargins.xsmall,
     },
   }),
-  noShrink: {flexShrink: 0},
   smallAccountID: {
     marginLeft: Styles.globalMargins.tiny,
     marginRight: Styles.globalMargins.tiny,

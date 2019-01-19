@@ -3,9 +3,10 @@ import * as React from 'react'
 import {intersperseFn} from '../util/arrays'
 import type {Box2Props} from './box'
 
-class Box extends React.Component<any> {
+class Box extends React.PureComponent<any> {
   render() {
-    return <div {...this.props} />
+    const {forwardedRef, ...rest} = this.props
+    return <div {...rest} ref={this.props.forwardedRef} />
   }
 }
 
@@ -33,6 +34,8 @@ const box2 = (props: Box2Props) => {
     props.fullWidth && 'box2_fullWidth',
     !props.fullHeight && !props.fullWidth && 'box2_centered',
     props.centerChildren && 'box2_centeredChildren',
+    props.alignSelf && `box2_alignSelf_${props.alignSelf}`,
+    props.noShrink && 'box2_no_shrink',
     props.className,
   ]
     .filter(Boolean)

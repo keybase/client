@@ -14,7 +14,7 @@ type Props = {|
 
 const styles = Styles.styleSheetCreate({
   amount: {
-    color: Styles.globalColors.black_40,
+    color: Styles.globalColors.black_50,
   },
   avatar: {marginRight: Styles.globalMargins.xtiny},
   containerBox: {
@@ -24,6 +24,9 @@ const styles = Styles.styleSheetCreate({
     height: 48,
     justifyContent: 'space-between',
     width: '100%',
+  },
+  firstRowContainer: {
+    alignItems: 'center',
   },
   icon: {
     height: 32,
@@ -58,7 +61,7 @@ const WalletRow = (props: Props) => {
     <Kb.ClickableBox onClick={props.onSelect} style={styles.containerBox}>
       {/* Just needed for proper centering */ emptyIcon}
       <Kb.Box2 direction="vertical" style={styles.rowContainer}>
-        <Kb.Box2 direction="horizontal" fullWidth={true}>
+        <Kb.Box2 direction="horizontal" style={styles.firstRowContainer}>
           {!!props.keybaseUser && (
             <Kb.Avatar
               size={16}
@@ -66,7 +69,7 @@ const WalletRow = (props: Props) => {
               username={props.keybaseUser}
             />
           )}
-          <Kb.Text type="BodySemibold" style={props.isSelected ? styles.titleSelected : styles.title}>
+          <Kb.Text type="BodyBig" style={props.isSelected ? styles.titleSelected : styles.title}>
             {props.name}
           </Kb.Text>
         </Kb.Box2>

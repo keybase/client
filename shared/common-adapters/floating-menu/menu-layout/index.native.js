@@ -4,11 +4,14 @@ import * as Styles from '../../../styles'
 import {TouchableOpacity, SafeAreaView} from 'react-native'
 import Box from '../../box'
 import Text from '../../text'
+import Meta from '../../meta'
+import Divider from '../../divider'
 import type {MenuItem, MenuLayoutProps} from '.'
 
 type MenuRowProps = {
   ...MenuItem,
   isHeader?: boolean,
+  newTag?: ?boolean,
   index: number,
   numItems: number,
   onHidden?: ?() => void,
@@ -24,9 +27,14 @@ const MenuRow = (props: MenuRowProps) => (
     style={styles.row}
   >
     {props.view || (
-      <Text type={'BodyBig'} style={styleRowText(props)}>
-        {props.title}
-      </Text>
+      <>
+        <Text center={true} type="BodyBig" style={styleRowText(props)}>
+          {props.title}
+        </Text>
+        {props.newTag && (
+          <Meta title="New" size="Small" backgroundColor={Styles.globalColors.blue} style={styles.badge} />
+        )}
+      </>
     )}
   </TouchableOpacity>
 )
@@ -56,7 +64,8 @@ class MenuLayout extends React.Component<MenuLayoutProps> {
               />
             ))}
           </Box>
-          <Box style={styles.closeGroup}>
+          <Divider style={styles.divider} />
+          <Box style={styles.menuGroup}>
             <MenuRow
               title="Close"
               index={0}
@@ -74,22 +83,24 @@ class MenuLayout extends React.Component<MenuLayoutProps> {
 const styleRowText = (props: {isHeader?: boolean, danger?: boolean, disabled?: boolean}) => {
   const dangerColor = props.danger ? Styles.globalColors.red : Styles.globalColors.blue
   const color = props.isHeader ? Styles.globalColors.white : dangerColor
-  return {color, ...(props.disabled ? {opacity: 0.6} : {}), textAlign: 'center'}
+  return {color, ...(props.disabled ? {opacity: 0.6} : {})}
 }
 
 const styles = Styles.styleSheetCreate({
-  closeGroup: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'stretch',
-    borderColor: Styles.globalColors.black_10,
-    borderTopWidth: 1,
-    justifyContent: 'flex-end',
+  badge: {
+    alignSelf: 'center',
+    marginLeft: Styles.globalMargins.tiny,
+  },
+  divider: {
+    marginBottom: Styles.globalMargins.tiny,
+    marginTop: Styles.globalMargins.tiny,
   },
   menuBox: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'stretch',
     backgroundColor: Styles.globalColors.white,
     justifyContent: 'flex-end',
+    paddingBottom: Styles.globalMargins.tiny,
   },
   menuGroup: {
     ...Styles.globalStyles.flexBoxColumn,
@@ -97,14 +108,16 @@ const styles = Styles.styleSheetCreate({
     justifyContent: 'flex-end',
   },
   row: {
-    ...Styles.globalStyles.flexBoxColumn,
+    ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     backgroundColor: Styles.globalColors.white,
     borderColor: Styles.globalColors.black_10,
-    height: 56,
     justifyContent: 'center',
+    minHeight: 56,
+    paddingBottom: Styles.globalMargins.tiny,
     paddingLeft: Styles.globalMargins.medium,
     paddingRight: Styles.globalMargins.medium,
+    paddingTop: Styles.globalMargins.tiny,
   },
   safeArea: {
     backgroundColor: Styles.globalColors.white,

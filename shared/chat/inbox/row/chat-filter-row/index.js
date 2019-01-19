@@ -114,13 +114,10 @@ class ChatFilterRow extends React.PureComponent<Props, State> {
             style={{
               marginLeft: Styles.globalMargins.tiny,
             }}
-            color={Styles.globalColors.black_20}
+            color={Styles.globalColors.black_50}
             fontSize={16}
           />
-          <Kb.Text
-            type="Body"
-            style={{color: Styles.globalColors.black_40, marginLeft: Styles.globalMargins.tiny}}
-          >
+          <Kb.Text type="BodySmallSemibold" style={{marginLeft: Styles.globalMargins.tiny}}>
             Jump to chat
           </Kb.Text>
         </Kb.ClickableBox>

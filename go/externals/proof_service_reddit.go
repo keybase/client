@@ -84,7 +84,7 @@ func urlReencode(s string) string {
 
 type RedditServiceType struct{ libkb.BaseServiceType }
 
-func (t *RedditServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
+func (t *RedditServiceType) Key() string { return t.GetTypeName() }
 
 var redditUsernameRegexp = regexp.MustCompile(`^(?i:[a-z0-9_-]{3,20})$`)
 
@@ -99,7 +99,8 @@ func (t *RedditServiceType) NormalizeRemoteName(mctx libkb.MetaContext, s string
 	return t.NormalizeUsername(s)
 }
 
-func (t *RedditServiceType) GetTypeName() string { return "reddit" }
+func (t *RedditServiceType) GetTypeName() string   { return "reddit" }
+func (t *RedditServiceType) PickerSubtext() string { return "reddit.com" }
 
 func (t *RedditServiceType) GetPrompt() string { return "Your username on Reddit" }
 
@@ -170,7 +171,7 @@ func (t *RedditServiceType) FormatProofText(mctx libkb.MetaContext, ppr *libkb.P
 	return
 }
 
-func (t *RedditServiceType) DisplayName(un string) string { return "Reddit" }
+func (t *RedditServiceType) DisplayName() string { return "Reddit" }
 
 func (t *RedditServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *libkb.Markup, err error) {
 	warning, err = t.BaseRecheckProofPosting(tryNumber, status)

@@ -57,6 +57,35 @@ func (c *cmdWalletSetInflation) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
+func getInflationDestinationAddrFromString(cli stellar1.LocalClient, accountID stellar1.AccountID,
+	destination string) (res stellar1.AccountID, err error) {
+	inputAcc, err := libkb.ParseStellarAccountID(destination)
+	if err == nil {
+		// User passed destination AccountID
+		return inputAcc, nil
+	}
+	// Something else, we have to figure out what it is
+	if destination == "self" {
+		return accountID, nil
+	}
+
+	// Might be a tag for predefined destination.
+	destinations, err := cli.GetPredefinedInflationDestinationsLocal(context.Background(), 0)
+	if err != nil {
+		return res, err
+	}
+
+	for _, dest := range destinations {
+		if string(dest.Tag) == destination {
+			return dest.AccountID, nil
+		}
+	}
+
+	return res, fmt.Errorf(
+		"unknown inflation destination %q: not an account ID or known destination name",
+		destination)
+}
+
 func (c *cmdWalletSetInflation) Run() (err error) {
 	defer transformStellarCLIError(&err)
 	accountID, err := libkb.ParseStellarAccountID(c.accountID)
@@ -64,21 +93,12 @@ func (c *cmdWalletSetInflation) Run() (err error) {
 		return err
 	}
 
-	var destination stellar1.InflationDestination
-	switch c.destination {
-	case "self":
-		destination = stellar1.NewInflationDestinationWithSelf()
-	case "lumenaut":
-		destination = stellar1.NewInflationDestinationWithLumenaut()
-	default:
-		acc, err := libkb.ParseStellarAccountID(c.destination)
-		if err != nil {
-			return fmt.Errorf("Error parsing Stellar address %q: %s", c.destination, err)
-		}
-		destination = stellar1.NewInflationDestinationWithAccountid(acc)
+	cli, err := GetWalletClient(c.G())
+	if err != nil {
+		return err
 	}
 
-	cli, err := GetWalletClient(c.G())
+	destination, err := getInflationDestinationAddrFromString(cli, accountID, c.destination)
 	if err != nil {
 		return err
 	}

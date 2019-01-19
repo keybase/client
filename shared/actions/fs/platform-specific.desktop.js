@@ -215,7 +215,8 @@ function* uninstallKBFSConfirm(_, action: FsGen.UninstallKBFSConfirmPayload) {
       )
   )
 
-  if (!resp) {
+  if (resp !== 0) {
+    // resp is the index of the button that's clicked
     return
   }
 
@@ -347,37 +348,37 @@ const openFilesFromWidget = (state, {payload: {path, type}}) => [
 ]
 
 function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.chainAction<FsGen.OpenLocalPathInSystemFileManagerPayload>(
+  yield* Saga.chainAction<FsGen.OpenLocalPathInSystemFileManagerPayload>(
     FsGen.openLocalPathInSystemFileManager,
     openLocalPathInSystemFileManager
   )
-  yield Saga.chainAction<FsGen.OpenPathInSystemFileManagerPayload>(
+  yield* Saga.chainAction<FsGen.OpenPathInSystemFileManagerPayload>(
     FsGen.openPathInSystemFileManager,
     openPathInSystemFileManager
   )
-  yield Saga.chainGenerator<ConfigGen.SetupEngineListenersPayload | FsGen.FuseStatusPayload>(
+  yield* Saga.chainGenerator<ConfigGen.SetupEngineListenersPayload | FsGen.FuseStatusPayload>(
     [ConfigGen.setupEngineListeners, FsGen.fuseStatus],
     fuseStatusSaga
   )
-  yield Saga.chainAction<FsGen.FuseStatusResultPayload>(FsGen.fuseStatusResult, fuseStatusResultSaga)
-  yield Saga.chainAction<FsGen.InstallKBFSPayload>(FsGen.installKBFS, installKBFS)
-  yield Saga.chainAction<FsGen.OpenAndUploadPayload>(FsGen.openAndUpload, openAndUpload)
-  yield Saga.chainAction<FsGen.UserFileEditsLoadPayload>(FsGen.userFileEditsLoad, loadUserFileEdits)
-  yield Saga.chainAction<FsGen.OpenFilesFromWidgetPayload>(FsGen.openFilesFromWidget, openFilesFromWidget)
+  yield* Saga.chainAction<FsGen.FuseStatusResultPayload>(FsGen.fuseStatusResult, fuseStatusResultSaga)
+  yield* Saga.chainAction<FsGen.InstallKBFSPayload>(FsGen.installKBFS, installKBFS)
+  yield* Saga.chainAction<FsGen.OpenAndUploadPayload>(FsGen.openAndUpload, openAndUpload)
+  yield* Saga.chainAction<FsGen.UserFileEditsLoadPayload>(FsGen.userFileEditsLoad, loadUserFileEdits)
+  yield* Saga.chainAction<FsGen.OpenFilesFromWidgetPayload>(FsGen.openFilesFromWidget, openFilesFromWidget)
   if (isWindows) {
-    yield Saga.chainAction<FsGen.InstallFusePayload>(FsGen.installFuse, installDokanSaga)
-    yield Saga.chainAction<FsGen.UninstallKBFSConfirmPayload>(
+    yield* Saga.chainAction<FsGen.InstallFusePayload>(FsGen.installFuse, installDokanSaga)
+    yield* Saga.chainAction<FsGen.UninstallKBFSConfirmPayload>(
       FsGen.uninstallKBFSConfirm,
       uninstallDokanPromise
     )
   } else {
-    yield Saga.chainGenerator<FsGen.InstallFusePayload>(FsGen.installFuse, installFuseSaga)
-    yield Saga.chainGenerator<FsGen.UninstallKBFSConfirmPayload>(
+    yield* Saga.chainGenerator<FsGen.InstallFusePayload>(FsGen.installFuse, installFuseSaga)
+    yield* Saga.chainGenerator<FsGen.UninstallKBFSConfirmPayload>(
       FsGen.uninstallKBFSConfirm,
       uninstallKBFSConfirm
     )
   }
-  yield Saga.chainAction<FsGen.OpenSecurityPreferencesPayload>(
+  yield* Saga.chainAction<FsGen.OpenSecurityPreferencesPayload>(
     FsGen.openSecurityPreferences,
     openSecurityPreferences
   )

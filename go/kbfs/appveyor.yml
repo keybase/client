@@ -1,0 +1,106 @@
+environment:
+  global:
+    GOPATH: c:\work\
+    KEYBASE_SERVER_URI: https://ci1.keybase.io
+    CGO_ENABLED: 1
+    GOARCH: amd64
+    CC: c:\msys64\mingw64\bin\gcc
+    CPATH: C:\msys64\include;C:\msys64\include\ddk
+    GOVERSION: 1.10.3
+
+install:
+  - systeminfo | findstr /C:"OS"
+  - appveyor DownloadFile https://storage.googleapis.com/golang/go%GOVERSION%.windows-amd64.zip
+  - ps: rmdir C:\go -Force -Recurse -Confirm:$false
+  - 7z x go%GOVERSION%.windows-amd64.zip -o"C:\" -y > nul
+  - set Path=c:\go\bin;%Path%
+  # Stock Dokan 1.2
+  - appveyor DownloadFile https://github.com/dokan-dev/dokany/releases/download/v1.2.1.2000/dokan.zip 
+  - 7z x dokan.zip -o"C:\dokan" -y -aoa > nul
+  - copy C:\dokan\x64\Win8.1Release\sys\dokan1.sys C:\windows\system32\drivers\
+  - pushd C:\dokan\x64\Release
+  - copy dokan1.dll C:\windows\system32\
+  - Bcdedit.exe -set TESTSIGNING ON
+  - ps: Restart-Computer -Force
+  - ps: Start-Sleep -s 10
+  - cd C:\dokan\x64\Release
+  - dokanctl /i d
+  - sc query dokan1
+
+# clone directory
+clone_folder: c:\work\src\github.com\keybase\kbfs
+
+#---------------------------------#
+#       build configuration       #
+#---------------------------------#
+
+# build platform, i.e. x86, x64, Any CPU. This setting is optional.
+platform: x64
+os: Visual Studio 2015
+
+# scripts to run before build
+before_build:
+
+# scripts to run after build
+after_build:
+
+# to run your custom scripts instead of automatic MSBuild
+build_script:
+  - SET PATH=%PATH%;c:\msys64\mingw64\bin;C:\msys64\bin
+  - cd c:\work\src\github.com\keybase\kbfs
+  - cd dokan
+  - go test -i
+  - go test -c
+  - dokan.test
+  - cd ..\kbfsdokan
+  - go install
+  - cd ..\kbfsgit\git-remote-keybase
+  - go install
+  - cd ..\..\test
+  - go test -i
+  - cd ..\kbpagesd
+  - go install
+  - cd ..\kbpagesconfig
+  - go install
+  - cd ..
+# Eventually there will be more tests, but let's just start with these for now
+#  - go list ./... | find /V "vendor" > testlist.txt
+
+  # Keep the list below in sync with the result of
+  #
+  #   for x in $(find . -mindepth 1 \( -wholename ./vendor -o -wholename ./.git \) -prune -o -type d -print); do [ -n "$(ls -A $x/*_test.go 2>/dev/null)" ] && echo $x; done | sort
+  # dokan dir is tested above.
+  - echo github.com/keybase/client/go/kbfs/kbfsblock >> testlist.txt
+  - echo github.com/keybase/client/go/kbfs/kbfscodec >> testlist.txt
+  - echo github.com/keybase/client/go/kbfs/kbfscrypto >> testlist.txt
+  - echo github.com/keybase/client/go/kbfs/kbfsedits >> testlist.txt
+  - echo github.com/keybase/client/go/kbfs/kbfsgit >> testlist.txt
+  - echo github.com/keybase/client/go/kbfs/kbfshash >> testlist.txt
+  - echo github.com/keybase/client/go/kbfs/kbfsmd >> testlist.txt
+  - echo github.com/keybase/client/go/kbfs/kbfssync >> testlist.txt
+  - echo github.com/keybase/client/go/kbfs/kbpagesconfig >> testlist.txt
+  - echo github.com/keybase/client/go/kbfs/libdokan >> testlist.txt
+  - echo github.com/keybase/client/go/kbfs/libfs >> testlist.txt
+  # libfuse is non-Windows-only.
+  - echo github.com/keybase/client/go/kbfs/libgit >> testlist.txt
+  - echo github.com/keybase/client/go/kbfs/libhttpserver >> testlist.txt
+  - echo github.com/keybase/client/go/kbfs/libkbfs >> testlist.txt
+  - echo github.com/keybase/client/go/kbfs/libpages >> testlist.txt
+  - echo github.com/keybase/client/go/kbfs/libpages/config >> testlist.txt
+  - echo github.com/keybase/client/go/kbfs/simplefs >> testlist.txt
+  # test dir is tested below.
+  - echo github.com/keybase/client/go/kbfs/tlf >> testlist.txt
+# TODO: Run the below tests with env KEYBASE_TEST_BSERVER_ADDR=tempdir.
+  - for /f %%i in (testlist.txt) do (appveyor AddTest %%i -Outcome Running -Framework gotest -Filename %%i & go test -timeout 5m %%i && appveyor UpdateTest %%i -Outcome Passed -Framework gotest -Filename %%i -Duration 0) || (appveyor UpdateTest %%i -Outcome Failed -Framework gotest -Filename %%i -Duration 0 & exit /b 1) 
+  - cd test && go test -tags dokan -timeout 300s
+
+# to disable automatic builds
+#build: off
+
+# to run your custom scripts instead of automatic tests
+test_script:
+
+# only run on pull requests and pushes to master
+branches:
+    only:
+        - master

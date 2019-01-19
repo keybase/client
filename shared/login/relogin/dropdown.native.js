@@ -105,7 +105,7 @@ class Dropdown extends React.Component<Props, State> {
 
   _renderLabelAndCaret(): Array<React.Node> {
     return [
-      <Text key="text" type="Header" style={{...styleText, ...this._itemStyle()}}>
+      <Text center={true} key="text" type="Header" style={{...styleText, ...this._itemStyle()}}>
         {this._label(this.state.value)}
       </Text>,
       <Icon key="icon" type="iconfont-caret-down" style={styleIcon} />,
@@ -194,26 +194,14 @@ const styleContainer = {
   paddingLeft: 17,
   paddingRight: 17,
 }
-
-const styleText = {
-  flex: 1,
-  textAlign: 'center',
-}
-
-const styleIcon = {
-  width: 10,
-}
-
+const styleText = {flex: 1}
+const styleIcon = {width: 10}
 const stylePickerContainer = {
-  backgroundColor: globalColors.black_40,
+  backgroundColor: globalColors.black_50,
   flex: 1,
   justifyContent: 'flex-end',
 }
-
-const stylePickerIOS = {
-  backgroundColor: globalColors.white,
-}
-
+const stylePickerIOS = {backgroundColor: globalColors.white}
 const stylePickerAndroid = {
   backgroundColor: globalColors.transparent,
   bottom: 0,

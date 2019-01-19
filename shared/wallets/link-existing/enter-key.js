@@ -46,13 +46,13 @@ const EnterKey = (props: EnterKeyProps) => (
     </Kb.Box2>
     <Kb.InfoNote>
       <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.Text type="BodySmall" lineClamp={1} style={styles.infoText}>
+        <Kb.Text center={true} type="BodySmall" lineClamp={1} style={styles.infoText}>
           Example:
         </Kb.Text>
-        <Kb.Text type="BodySmall" lineClamp={1} ellipsizeMode="middle" style={styles.infoText}>
+        <Kb.Text center={true} type="BodySmall" lineClamp={1} ellipsizeMode="middle" style={styles.infoText}>
           SDNBUWJ34218239OAOPAMBCLDLSNBSC7632
         </Kb.Text>
-        <Kb.Text type="BodySmall" style={styles.infoText}>
+        <Kb.Text center={true} type="BodySmall" style={styles.infoText}>
           This imports a Stellar secret key so you can also use it in Keybase. You can continue to use this
           Stellar account in other wallet apps.
         </Kb.Text>
@@ -73,9 +73,6 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   infoText: Styles.platformStyles({
-    common: {
-      textAlign: 'center',
-    },
     isMobile: {
       paddingLeft: Styles.globalMargins.medium,
       paddingRight: Styles.globalMargins.medium,

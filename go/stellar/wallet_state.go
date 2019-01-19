@@ -24,13 +24,14 @@ var ErrAccountNotFound = errors.New("account not found for user")
 type WalletState struct {
 	libkb.Contextified
 	remote.Remoter
-	accounts     map[stellar1.AccountID]*AccountState
-	rates        map[string]rateEntry
-	refreshGroup *singleflight.Group
-	refreshReqs  chan stellar1.AccountID
-	refreshCount int
-	rateGroup    *singleflight.Group
-	shutdownOnce sync.Once
+	accounts       map[stellar1.AccountID]*AccountState
+	rates          map[string]rateEntry
+	refreshGroup   *singleflight.Group
+	refreshReqs    chan stellar1.AccountID
+	refreshCount   int
+	backgroundDone chan struct{}
+	rateGroup      *singleflight.Group
+	shutdownOnce   sync.Once
 	sync.Mutex
 }
 
@@ -54,12 +55,21 @@ func NewWalletState(g *libkb.GlobalContext, r remote.Remoter) *WalletState {
 	return ws
 }
 
+// Shutdown terminates any background operations and cleans up.
 func (w *WalletState) Shutdown() error {
 	w.shutdownOnce.Do(func() {
 		mctx := libkb.NewMetaContextBackground(w.G())
 		mctx.CDebugf("WalletState shutting down")
+		w.Lock()
+		w.resetWithLock(mctx)
 		close(w.refreshReqs)
-		w.Reset(mctx)
+		mctx.CDebugf("waiting for background refresh requests to finish")
+		select {
+		case <-w.backgroundDone:
+		case <-time.After(5 * time.Second):
+			mctx.CDebugf("timed out waiting for background refresh requests to finish")
+		}
+		w.Unlock()
 		mctx.CDebugf("WalletState shut down complete")
 	})
 	return nil
@@ -183,6 +193,7 @@ func (w *WalletState) ForceSeqnoRefresh(mctx libkb.MetaContext, accountID stella
 // the account state if sufficient time has passed since the
 // last refresh.
 func (w *WalletState) backgroundRefresh() {
+	w.backgroundDone = make(chan struct{})
 	for accountID := range w.refreshReqs {
 		a, ok := w.accountState(accountID)
 		if !ok {
@@ -192,7 +203,7 @@ func (w *WalletState) backgroundRefresh() {
 		rt := a.rtime
 		a.RUnlock()
 
-		mctx := libkb.NewMetaContextBackground(w.G())
+		mctx := libkb.NewMetaContextBackground(w.G()).WithLogTag("WABR")
 		if time.Since(rt) < 1*time.Second {
 			mctx.CDebugf("WalletState.backgroundRefresh skipping for %s due to recent refresh", accountID)
 			continue
@@ -202,6 +213,7 @@ func (w *WalletState) backgroundRefresh() {
 			mctx.CDebugf("WalletState.backgroundRefresh error for %s: %s", accountID, err)
 		}
 	}
+	close(w.backgroundDone)
 }
 
 // AccountSeqno is an override of remoter's AccountSeqno that uses
@@ -246,7 +258,11 @@ func (w *WalletState) Details(ctx context.Context, accountID stellar1.AccountID)
 	if err != nil {
 		return stellar1.AccountDetails{}, err
 	}
-	return a.Details(ctx)
+	details, err := a.Details(ctx)
+	if err == nil && details.AccountID != accountID {
+		w.G().Log.CDebugf(ctx, "WalletState:Details account id mismatch.  returning %+v for account id %q", details, accountID)
+	}
+	return details, err
 }
 
 // PendingPayments is an override of remoter's PendingPayments that uses stored data.
@@ -287,6 +303,33 @@ func (w *WalletState) RecentPayments(ctx context.Context, accountID stellar1.Acc
 	}
 
 	return a.RecentPayments(ctx)
+}
+
+// AddPendingTx adds information about a tx that was submitted to the network.
+// This allows WalletState to keep track of anything pending when managing
+// the account seqno.
+func (w *WalletState) AddPendingTx(ctx context.Context, accountID stellar1.AccountID, txID stellar1.TransactionID, seqno uint64) error {
+	a, ok := w.accountState(accountID)
+	if !ok {
+		return fmt.Errorf("AddPendingTx: account id %q not in wallet state", accountID)
+	}
+
+	w.G().Log.CDebugf(ctx, "WalletState: account %s adding pending tx %s/%d", accountID, txID, seqno)
+
+	return a.AddPendingTx(ctx, txID, seqno)
+}
+
+// RemovePendingTx removes a pending tx from WalletState.  It doesn't matter
+// if it succeeded or failed, just that it is done.
+func (w *WalletState) RemovePendingTx(ctx context.Context, accountID stellar1.AccountID, txID stellar1.TransactionID) error {
+	a, ok := w.accountState(accountID)
+	if !ok {
+		return fmt.Errorf("RemovePendingTx: account id %q not in wallet state", accountID)
+	}
+
+	w.G().Log.CDebugf(ctx, "WalletState: account %s removing pending tx %s", accountID, txID)
+
+	return a.RemovePendingTx(ctx, txID)
 }
 
 // SubmitRelayClaim is an override of remoter's SubmitRelayClaim.
@@ -373,12 +416,21 @@ func (w *WalletState) String() string {
 func (w *WalletState) Reset(mctx libkb.MetaContext) {
 	w.Lock()
 	defer w.Unlock()
+	w.resetWithLock(mctx)
+}
 
+// resetWithLock can only be called after w.Lock().
+func (w *WalletState) resetWithLock(mctx libkb.MetaContext) {
 	for _, a := range w.accounts {
 		a.Reset(mctx)
 	}
 
 	w.accounts = make(map[stellar1.AccountID]*AccountState)
+}
+
+type txPending struct {
+	seqno uint64
+	ctime time.Time
 }
 
 // AccountState holds the current data for a stellar account.
@@ -398,6 +450,8 @@ type AccountState struct {
 	pending      []stellar1.PaymentSummary
 	recent       *stellar1.PaymentsPage
 	rtime        time.Time // time of last refresh
+	done         bool
+	pendingTxs   map[stellar1.TransactionID]txPending
 }
 
 func newAccountState(accountID stellar1.AccountID, r remote.Remoter, reqsCh chan stellar1.AccountID) *AccountState {
@@ -406,6 +460,7 @@ func newAccountState(accountID stellar1.AccountID, r remote.Remoter, reqsCh chan
 		remoter:      r,
 		refreshGroup: &singleflight.Group{},
 		refreshReqs:  reqsCh,
+		pendingTxs:   make(map[stellar1.TransactionID]txPending),
 	}
 }
 
@@ -448,7 +503,7 @@ func (a *AccountState) refresh(mctx libkb.MetaContext, router *libkb.NotifyRoute
 		a.Unlock()
 
 		if notify && router != nil {
-			accountLocal, err := AccountDetailsToWalletAccountLocal(mctx, details, isPrimary, name)
+			accountLocal, err := AccountDetailsToWalletAccountLocal(mctx, a.accountID, details, isPrimary, name)
 			if err == nil {
 				router.HandleWalletAccountDetailsUpdate(mctx.Ctx(), a.accountID, accountLocal)
 			}
@@ -498,17 +553,44 @@ func (a *AccountState) refresh(mctx libkb.MetaContext, router *libkb.NotifyRoute
 // ForceSeqnoRefresh refreshes the seqno for an account.
 func (a *AccountState) ForceSeqnoRefresh(mctx libkb.MetaContext) error {
 	seqno, err := a.remoter.AccountSeqno(mctx.Ctx(), a.accountID)
-	if err == nil {
-		a.Lock()
-		if seqno != a.seqno {
-			mctx.CDebugf("ForceSeqnoRefresh updated seqno for %s: %d => %d", a.accountID, a.seqno, seqno)
-			a.seqno = seqno
-		} else {
-			mctx.CDebugf("ForceSeqnoRefresh did not update AccountState for %s (existing: %d, remote: %d)", a.accountID, a.seqno, seqno)
-		}
-		a.Unlock()
+	if err != nil {
+		return err
 	}
-	return err
+
+	a.Lock()
+	defer a.Unlock()
+
+	if seqno == a.seqno {
+		mctx.CDebugf("ForceSeqnoRefresh did not update AccountState for %s (existing: %d, remote: %d)", a.accountID, a.seqno, seqno)
+		return nil
+	}
+
+	if seqno > a.seqno {
+		// if network is greater than cached, then update
+		mctx.CDebugf("ForceSeqnoRefresh updated seqno for %s: %d => %d", a.accountID, a.seqno, seqno)
+		a.seqno = seqno
+		return nil
+	}
+
+	// delete any stale pending tx (in case missed notification somehow)
+	for k, v := range a.pendingTxs {
+		age := time.Since(v.ctime)
+		if age > 30*time.Second {
+			mctx.CDebugf("ForceSeqnoRefresh removing pending tx %s due to old age (%s)", k, age)
+			delete(a.pendingTxs, k)
+		}
+	}
+
+	if len(a.pendingTxs) == 0 {
+		// if no pending tx, then network should be correct
+		mctx.CDebugf("ForceSeqnoRefresh corrected seqno for %s: %d => %d", a.accountID, a.seqno, seqno)
+		a.seqno = seqno
+		return nil
+	}
+
+	mctx.CDebugf("ForceSeqnoRefresh did not update AccountState for %s due to pending tx (existing: %d, remote: %d, pending tx: %d)", a.accountID, a.seqno, seqno, len(a.pendingTxs))
+
+	return nil
 }
 
 // AccountSeqno returns the seqno that has already been fetched for
@@ -529,12 +611,35 @@ func (a *AccountState) AccountSeqnoAndBump(ctx context.Context) (uint64, error) 
 	return result, nil
 }
 
+// AddPendingTx adds information about a tx that was submitted to the network.
+// This allows AccountState to keep track of anything pending when managing
+// the account seqno.
+func (a *AccountState) AddPendingTx(ctx context.Context, txID stellar1.TransactionID, seqno uint64) error {
+	a.Lock()
+	defer a.Unlock()
+
+	a.pendingTxs[txID] = txPending{seqno: seqno, ctime: time.Now()}
+
+	return nil
+}
+
+// RemovePendingTx removes a pending tx from WalletState.  It doesn't matter
+// if it succeeded or failed, just that it is done.
+func (a *AccountState) RemovePendingTx(ctx context.Context, txID stellar1.TransactionID) error {
+	a.Lock()
+	defer a.Unlock()
+
+	delete(a.pendingTxs, txID)
+
+	return nil
+}
+
 // Balances returns the balances that have already been fetched for
 // this account.
 func (a *AccountState) Balances(ctx context.Context) ([]stellar1.Balance, error) {
 	a.RLock()
 	defer a.RUnlock()
-	a.refreshReqs <- a.accountID
+	a.enqueueRefreshReq()
 	return a.balances, nil
 }
 
@@ -542,7 +647,7 @@ func (a *AccountState) Balances(ctx context.Context) ([]stellar1.Balance, error)
 func (a *AccountState) Details(ctx context.Context) (stellar1.AccountDetails, error) {
 	a.RLock()
 	defer a.RUnlock()
-	a.refreshReqs <- a.accountID
+	a.enqueueRefreshReq()
 	if a.details == nil {
 		return stellar1.AccountDetails{}, nil
 	}
@@ -554,7 +659,7 @@ func (a *AccountState) Details(ctx context.Context) (stellar1.AccountDetails, er
 func (a *AccountState) PendingPayments(ctx context.Context, limit int) ([]stellar1.PaymentSummary, error) {
 	a.RLock()
 	defer a.RUnlock()
-	a.refreshReqs <- a.accountID
+	a.enqueueRefreshReq()
 	if limit > 0 && limit < len(a.pending) {
 		return a.pending[:limit], nil
 	}
@@ -566,7 +671,7 @@ func (a *AccountState) PendingPayments(ctx context.Context, limit int) ([]stella
 func (a *AccountState) RecentPayments(ctx context.Context) (stellar1.PaymentsPage, error) {
 	a.RLock()
 	defer a.RUnlock()
-	a.refreshReqs <- a.accountID
+	a.enqueueRefreshReq()
 	if a.recent == nil {
 		return stellar1.PaymentsPage{}, nil
 	}
@@ -579,6 +684,7 @@ func (a *AccountState) Reset(mctx libkb.MetaContext) {
 	defer a.Unlock()
 
 	a.refreshReqs = nil
+	a.done = true
 }
 
 // String returns a small string representation of AccountState suitable for
@@ -598,6 +704,20 @@ func (a *AccountState) updateEntry(entry stellar1.BundleEntry) {
 
 	a.isPrimary = entry.IsPrimary
 	a.name = entry.Name
+}
+
+// enqueueRefreshReq adds an account ID to the refresh request queue.
+// It doesn't attempt to add if a.done.  Should be called
+// after RLock() or Lock()
+func (a *AccountState) enqueueRefreshReq() {
+	if a.done {
+		return
+	}
+	select {
+	case a.refreshReqs <- a.accountID:
+	case <-time.After(5 * time.Second):
+		// channel full or nil after shutdown, just ignore
+	}
 }
 
 func detailsChanged(a, b *stellar1.AccountDetails) bool {

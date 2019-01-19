@@ -38,7 +38,6 @@ type CryptKey interface {
 type AllCryptKeys map[chat1.ConversationMembersType][]CryptKey
 
 type NameInfoSource interface {
-	LookupIDUntrusted(ctx context.Context, name string, public bool) (NameInfoUntrusted, error)
 	LookupID(ctx context.Context, name string, public bool) (NameInfo, error)
 	LookupName(ctx context.Context, tlfID chat1.TLFID, public bool) (NameInfo, error)
 	AllCryptKeys(ctx context.Context, name string, public bool) (AllCryptKeys, error)
@@ -139,6 +138,7 @@ type InboxSource interface {
 	Resumable
 	Suspendable
 
+	Clear(ctx context.Context, uid gregor1.UID) error
 	Read(ctx context.Context, uid gregor1.UID, localizeTyp ConversationLocalizerTyp, useLocalData bool,
 		maxLocalize *int, query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (Inbox, chan AsyncInboxResult, error)
 	ReadUnverified(ctx context.Context, uid gregor1.UID, useLocalData bool,
@@ -162,6 +162,8 @@ type InboxSource interface {
 	MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 		joined []chat1.ConversationMember, removed []chat1.ConversationMember,
 		resets []chat1.ConversationMember, previews []chat1.ConversationID) (MembershipUpdateRes, error)
+	ConversationsUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+		convUpdates []chat1.ConversationUpdate) error
 	TeamTypeChanged(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
 		teamType chat1.TeamType) (*chat1.ConversationLocal, error)
 	UpgradeKBFSToImpteam(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
@@ -177,7 +179,7 @@ type InboxSource interface {
 	SubteamRename(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convIDs []chat1.ConversationID) ([]chat1.ConversationLocal, error)
 
 	GetInboxQueryLocalToRemote(ctx context.Context,
-		lquery *chat1.GetInboxLocalQuery) (*chat1.GetInboxQuery, NameInfoUntrusted, error)
+		lquery *chat1.GetInboxLocalQuery) (*chat1.GetInboxQuery, NameInfo, error)
 
 	SetRemoteInterface(func() chat1.RemoteInterface)
 }
@@ -248,12 +250,9 @@ type AppState interface {
 }
 
 type TeamChannelSource interface {
-	Offlinable
-
 	GetChannelsFull(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType) ([]chat1.ConversationLocal, error)
 	GetChannelsTopicName(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType) ([]chat1.ChannelNameMention, error)
 	GetChannelTopicName(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType, chat1.ConversationID) (string, error)
-	ChannelsChanged(context.Context, chat1.TLFID)
 }
 
 type ActivityNotifier interface {

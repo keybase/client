@@ -59,7 +59,6 @@ type Props = {
   isEditExploded: boolean,
   isEditing: boolean,
   isExploding: boolean,
-  isExplodingNew: boolean,
   explodingModeSeconds: number,
   pendingWaiting: boolean,
   typing: Set<string>,
@@ -92,7 +91,6 @@ const InputContainer = (props: Props) => {
     isEditExploded: props.isEditExploded,
     isEditing: props.isEditing,
     isExploding: props.isExploding,
-    isExplodingNew: props.isExplodingNew,
     onAttach: (paths: Array<string>) => {
       // This will always be called with an empty array, since some
       // browsers don't have the path property set on File.
@@ -101,7 +99,6 @@ const InputContainer = (props: Props) => {
     onCancelEditing: Sb.action('onCancelEditing'),
     onEditLastMessage: Sb.action('onEditLastMessage'),
     onFilePickerError: Sb.action('onFilePickerError'),
-    onSeenExplodingMessages: Sb.action('onSeenExplodingMessages'),
     onSubmit: (text: string) => {
       Sb.action('onSubmit')(text)
     },
@@ -119,6 +116,7 @@ const InputContainer = (props: Props) => {
     ]),
     typing: props.typing,
     unsentTextChanged: Sb.action('unsentTextChanged'),
+    unsentTextRefresh: false,
   }
 
   return (
@@ -138,7 +136,6 @@ const load = () => {
         pendingWaiting={false}
         typing={Set()}
         isExploding={false}
-        isExplodingNew={false}
         explodingModeSeconds={0}
       />
     ))
@@ -149,7 +146,6 @@ const load = () => {
         pendingWaiting={false}
         typing={Set(['chris'])}
         isExploding={false}
-        isExplodingNew={false}
         explodingModeSeconds={0}
       />
     ))
@@ -160,7 +156,6 @@ const load = () => {
         pendingWaiting={false}
         typing={Set(['chris', 'strib'])}
         isExploding={false}
-        isExplodingNew={false}
         explodingModeSeconds={0}
       />
     ))
@@ -171,7 +166,6 @@ const load = () => {
         pendingWaiting={false}
         typing={Set(['chris', 'strib', 'fred'])}
         isExploding={false}
-        isExplodingNew={false}
         explodingModeSeconds={0}
       />
     ))
@@ -182,7 +176,6 @@ const load = () => {
         pendingWaiting={false}
         typing={Set()}
         isExploding={false}
-        isExplodingNew={false}
         explodingModeSeconds={0}
       />
     ))
@@ -193,7 +186,6 @@ const load = () => {
         pendingWaiting={true}
         typing={Set()}
         isExploding={false}
-        isExplodingNew={false}
         explodingModeSeconds={0}
       />
     ))
@@ -204,7 +196,6 @@ const load = () => {
         pendingWaiting={false}
         typing={Set()}
         isExploding={true}
-        isExplodingNew={true}
         explodingModeSeconds={0}
       />
     ))

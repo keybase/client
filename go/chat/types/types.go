@@ -22,32 +22,27 @@ const (
 	ActionTeamType                   = "teamType"
 	ActionExpunge                    = "expunge"
 
-	PushActivity         = "chat.activity"
-	PushTyping           = "chat.typing"
-	PushMembershipUpdate = "chat.membershipUpdate"
-	PushTLFFinalize      = "chat.tlffinalize"
-	PushTLFResolve       = "chat.tlfresolve"
-	PushTeamChannels     = "chat.teamchannels"
-	PushKBFSUpgrade      = "chat.kbfsupgrade"
-	PushConvRetention    = "chat.convretention"
-	PushTeamRetention    = "chat.teamretention"
-	PushConvSettings     = "chat.convsettings"
-	PushSubteamRename    = "chat.subteamrename"
+	PushActivity            = "chat.activity"
+	PushTyping              = "chat.typing"
+	PushMembershipUpdate    = "chat.membershipUpdate"
+	PushTLFFinalize         = "chat.tlffinalize"
+	PushTLFResolve          = "chat.tlfresolve"
+	PushTeamChannels        = "chat.teamchannels"
+	PushKBFSUpgrade         = "chat.kbfsupgrade"
+	PushConvRetention       = "chat.convretention"
+	PushTeamRetention       = "chat.teamretention"
+	PushConvSettings        = "chat.convsettings"
+	PushSubteamRename       = "chat.subteamrename"
+	PushConversationsUpdate = "chat.conversationsupdate"
 )
 
 func NewAllCryptKeys() AllCryptKeys {
 	return make(AllCryptKeys)
 }
 
-type NameInfoUntrusted struct {
+type NameInfo struct {
 	ID            chat1.TLFID
 	CanonicalName string
-}
-
-type NameInfo struct {
-	ID               chat1.TLFID
-	CanonicalName    string
-	IdentifyFailures []keybase1.TLFIdentifyFailure
 }
 
 func NewNameInfo() *NameInfo {

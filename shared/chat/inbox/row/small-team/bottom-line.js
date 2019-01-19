@@ -23,6 +23,7 @@ type Props = {
   hasResetUsers: boolean,
   isSelected: boolean,
   isDecryptingSnippet: boolean,
+  isTypingSnippet: boolean,
 }
 
 class BottomLine extends PureComponent<Props> {
@@ -49,7 +50,7 @@ class BottomLine extends PureComponent<Props> {
     } else if (this.props.participantNeedToRekey) {
       content = (
         <Text type="BodySmall" backgroundMode="Terminal" style={{color: this.props.subColor}}>
-          Waiting for participants to rekey
+          Waiting for participants to rekey...
         </Text>
       )
     } else if (this.props.isDecryptingSnippet) {
@@ -61,6 +62,7 @@ class BottomLine extends PureComponent<Props> {
           color: this.props.subColor,
           ...(this.props.showBold ? globalStyles.fontBold : {}),
         },
+        this.props.isTypingSnippet ? styles.typingSnippet : null,
       ])
 
       let snippetDecoration
@@ -71,25 +73,19 @@ class BottomLine extends PureComponent<Props> {
       switch (this.props.snippetDecoration) {
         case '\u{1F4A5}': // Explosion (Collision) emoji (💥)
           snippetDecoration = (
-            <Icon
-              type="iconfont-boom"
-              fontSize={isMobile ? 40 : 28}
-              style={platformStyles({
-                common: {
-                  color: this.props.isSelected ? globalColors.white : globalColors.black_40,
-                },
-                isMobile: {
-                  marginTop: -8,
-                },
-              })}
-            />
+            <Text
+              type="BodySmall"
+              style={{color: this.props.isSelected ? globalColors.white : globalColors.black_50}}
+            >
+              Message exploded.
+            </Text>
           )
           exploded = true
           break
         case '\u{1F4A3}': // Bomb emoji (💣)
           snippetDecoration = (
             <Icon
-              color={this.props.isSelected ? globalColors.white : globalColors.black_40}
+              color={this.props.isSelected ? globalColors.white : globalColors.black_50}
               type="iconfont-timer"
               fontSize={isMobile ? 16 : 12}
               style={{alignSelf: 'flex-start'}}
@@ -97,9 +93,10 @@ class BottomLine extends PureComponent<Props> {
           )
           break
         default:
-          snippetDecoration = this.props.snippetDecoration ? (
-            <Text type="BodySmall">{this.props.snippetDecoration}</Text>
-          ) : null
+          snippetDecoration =
+            !!this.props.snippetDecoration && !this.props.isTypingSnippet ? (
+              <Text type="BodySmall">{this.props.snippetDecoration}</Text>
+            ) : null
       }
       content = (
         <Box2 direction="horizontal" gap="xtiny" style={styles.contentBox}>
@@ -153,7 +150,7 @@ const styles = styleSheetCreate({
       lineHeight: undefined,
     },
     isElectron: {
-      color: globalColors.black_40,
+      color: globalColors.black_50,
       display: 'block',
       fontSize: 12,
       lineHeight: 15,
@@ -166,7 +163,7 @@ const styles = styleSheetCreate({
     },
     isMobile: {
       backgroundColor: globalColors.fastBlank,
-      color: globalColors.black_40,
+      color: globalColors.black_50,
       flex: 1,
       fontSize: 14,
       paddingRight: 40,
@@ -208,6 +205,7 @@ const styles = styleSheetCreate({
       lineHeight: 14,
     },
   }),
+  typingSnippet: {},
   youAreResetText: platformStyles({
     isElectron: {
       fontSize: 12,

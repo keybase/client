@@ -9,6 +9,7 @@ import * as WalletsGen from '../../actions/wallets-gen'
 import {getFullname} from '../../constants/users'
 import openURL from '../../util/open-url'
 import TransactionDetails from '.'
+import {anyWaiting} from '../../constants/waiting'
 
 type OwnProps = RouteProps<{accountID: Types.AccountID, paymentID: Types.PaymentID}, {}>
 
@@ -18,6 +19,10 @@ const mapStateToProps = (state, ownProps) => {
   const paymentID = ownProps.routeProps.get('paymentID')
   const _transaction = Constants.getPayment(state, accountID, paymentID)
   const yourInfoAndCounterparty = Constants.paymentToYourInfoAndCounterparty(_transaction)
+  // Transaction can briefly be empty when status changes
+  const loading =
+    anyWaiting(state, Constants.getRequestDetailsWaitingKey(paymentID)) ||
+    _transaction.id === Types.noPaymentID
   return {
     _transaction,
     counterpartyMeta:
@@ -27,6 +32,7 @@ const mapStateToProps = (state, ownProps) => {
             yourInfoAndCounterparty.yourRole === 'senderOnly' ? _transaction.target : _transaction.source
           )
         : null,
+    loading,
     transactionURL: _transaction.externalTxURL,
     you,
     yourInfoAndCounterparty,
@@ -51,7 +57,7 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
 
 const mergeProps = (stateProps, dispatchProps) => {
   const tx = stateProps._transaction
-  if (!tx.txID || !tx.sourceAccountID) {
+  if (stateProps.loading) {
     return {
       loading: true,
       onBack: dispatchProps.navigateUp,
@@ -63,6 +69,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     ...stateProps.yourInfoAndCounterparty,
     amountUser: tx.worth,
     amountXLM: tx.amountDescription,
+    approxWorth: tx.worthAtSendTime,
     counterpartyMeta: stateProps.counterpartyMeta,
     issuerAccountID: tx.issuerAccountID,
     issuerDescription: tx.issuerDescription,

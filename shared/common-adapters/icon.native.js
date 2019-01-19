@@ -27,8 +27,9 @@ const styles = NativeStyleSheet.create(fontSizes)
 const Text = Styles.styled(NativeText)(
   // static styles
   {
-    color: Styles.globalColors.black_40,
+    color: Styles.globalColors.black_50, // MUST set this or it can be inherited from outside text
     fontFamily: 'kb',
+    fontWeight: 'normal', // MUST set this or it can be inherited from outside text
   },
   // dynamic styles. check for undefined and send null
   props =>
@@ -39,7 +40,10 @@ const Text = Styles.styled(NativeText)(
       : null,
   props => {
     const color =
-      props.color || Shared.defaultColor(props.type) || (props.opacity && Styles.globalColors.lightGrey)
+      props.colorOverride ||
+      props.color ||
+      Shared.defaultColor(props.type) ||
+      (props.opacity && Styles.globalColors.lightGrey)
     if (color) {
       return {color}
     } else return null
@@ -103,8 +107,8 @@ class Icon extends React.PureComponent<Props> {
 
     if (iconMeta[iconType].isFont) {
       const code = String.fromCharCode(iconMeta[iconType].charCode || 0)
-      if (props.color) {
-        iconStyle = Styles.collapseStyles([iconStyle, {color: props.color}])
+      if (props.colorOverride || props.color) {
+        iconStyle = Styles.collapseStyles([iconStyle, {color: props.colorOverride || props.color}])
       }
       icon = (
         <Text style={iconStyle} type={props.type} fontSize={props.fontSize}>

@@ -39,7 +39,7 @@ func (rc *TwitterChecker) CheckStatus(mctx libkb.MetaContext, h libkb.SigHint, _
 
 type TwitterServiceType struct{ libkb.BaseServiceType }
 
-func (t *TwitterServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
+func (t *TwitterServiceType) Key() string { return t.GetTypeName() }
 
 var twitterUsernameRegexp = regexp.MustCompile(`^(?i:[a-z0-9_]{1,20})$`)
 
@@ -68,8 +68,9 @@ func (t *TwitterServiceType) PostInstructions(un string) *libkb.Markup {
 	return libkb.FmtMarkup(`Please <strong>publicly</strong> tweet the following, and don't delete it:`)
 }
 
-func (t *TwitterServiceType) DisplayName(un string) string { return "Twitter" }
-func (t *TwitterServiceType) GetTypeName() string          { return "twitter" }
+func (t *TwitterServiceType) DisplayName() string   { return "Twitter" }
+func (t *TwitterServiceType) GetTypeName() string   { return "twitter" }
+func (t *TwitterServiceType) PickerSubtext() string { return "twitter.com" }
 
 func (t *TwitterServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *libkb.Markup, err error) {
 	if status == keybase1.ProofStatus_PERMISSION_DENIED {

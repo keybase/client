@@ -3,7 +3,7 @@ import Footer from '.'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as Constants from '../../../constants/wallets'
-import {namedConnect} from '../../../util/container'
+import {namedConnect, isMobile} from '../../../util/container'
 import {anyWaiting} from '../../../constants/waiting'
 
 type OwnProps = {
@@ -15,13 +15,16 @@ const mapStateToProps = state => {
   const {isRequest} = state.wallets.building
   const isReady = isRequest
     ? state.wallets.builtRequest.readyToRequest
-    : state.wallets.builtPayment.readyToSend
+    : state.wallets.builtPayment.readyToReview
   const currencyWaiting = anyWaiting(state, Constants.getDisplayCurrencyWaitingKey(accountID))
+  const sendDisabledDueToMobileOnly = !isMobile && !!state.wallets.mobileOnlyMap.get(accountID)
   return {
     calculating: !!state.wallets.building.amount,
-    disabled: !isReady || currencyWaiting,
+    disabled: !isReady || currencyWaiting || sendDisabledDueToMobileOnly,
     isRequest,
-    waitingKey: Constants.buildPaymentWaitingKey,
+    waitingKey: state.wallets.building.isRequest
+      ? Constants.requestPaymentWaitingKey
+      : Constants.buildPaymentWaitingKey,
     worthDescription: isRequest
       ? state.wallets.builtRequest.worthDescription
       : state.wallets.builtPayment.worthDescription,
@@ -30,17 +33,20 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = (dispatch, {onConfirm}: OwnProps) => ({
   onClickRequest: () => {
+    dispatch(WalletsGen.createBuildPayment())
     dispatch(WalletsGen.createRequestPayment())
   },
   onClickSend: () => {
-    dispatch(WalletsGen.createBuildPayment())
+    dispatch(WalletsGen.createReviewPayment())
     dispatch(
-      RouteTreeGen.createNavigateAppend({path: [
-        {
-          props: {},
-          selected: Constants.confirmFormRouteKey,
-        },
-      ]})
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {},
+            selected: Constants.confirmFormRouteKey,
+          },
+        ],
+      })
     )
   },
 })

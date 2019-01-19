@@ -179,7 +179,7 @@ const _createStyle = {
 
 const _styleCover = {
   alignItems: 'center',
-  backgroundColor: Styles.globalColors.black_60,
+  backgroundColor: Styles.globalColors.black_50,
   justifyContent: 'center',
 }
 

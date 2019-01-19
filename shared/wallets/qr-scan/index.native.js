@@ -27,13 +27,13 @@ const QRScan = (props: Props) => (
         />
         <Kb.QRLines canScan={true} color={Styles.globalColors.purple3} />
       </Kb.Box2>
-      <Kb.Text type="BodySemibold" style={styles.text}>
+      <Kb.Text center={true} type="BodySemibold" style={styles.text}>
         Scan a Stellar QR code.
       </Kb.Text>
     </Kb.Box2>
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.bottomContainer} gap="small">
       <Kb.InfoNote color={Styles.globalColors.white_20} />
-      <Kb.Text type="BodySmall" style={styles.text}>
+      <Kb.Text center={true} type="BodySmall" style={styles.text}>
         You can find your own QR code by tapping the 'Receive' button on your account page.
       </Kb.Text>
     </Kb.Box2>
@@ -80,11 +80,8 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.transparent,
     width: '100%',
   },
-  safeAreaViewTop: {color: Styles.globalColors.purple, flexGrow: 0},
-  text: {
-    color: Styles.globalColors.white,
-    textAlign: 'center',
-  },
+  safeAreaViewTop: {backgroundColor: Styles.globalColors.purple, flexGrow: 0},
+  text: { color: Styles.globalColors.white },
   topContainer: {
     alignItems: 'center',
     flexGrow: 1,

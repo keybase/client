@@ -1,6 +1,7 @@
 // @flow
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as TeamBuildingGen from '../actions/team-building-gen'
+import * as EngineGen from '../actions/engine-gen-gen'
 import * as Constants from '../constants/chat2'
 import * as I from 'immutable'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
@@ -13,6 +14,8 @@ import HiddenString from '../util/hidden-string'
 import {partition} from 'lodash-es'
 import {actionHasError} from '../util/container'
 import * as Flow from '../util/flow'
+
+type EngineActions = EngineGen.Chat1NotifyChatChatTypingUpdatePayload
 
 const initialState: Types.State = Constants.makeState()
 
@@ -365,7 +368,7 @@ const badgeKey = String(isMobile ? RPCTypes.commonDeviceType.mobile : RPCTypes.c
 
 const rootReducer = (
   state: Types.State = initialState,
-  action: Chat2Gen.Actions | TeamBuildingGen.Actions
+  action: Chat2Gen.Actions | TeamBuildingGen.Actions | EngineActions
 ): Types.State => {
   switch (action.type) {
     case Chat2Gen.resetStore:
@@ -378,27 +381,47 @@ const rootReducer = (
         return state
       }
       return state.withMutations(s => {
-        if (action.payload.conversationIDKey) {
-          const {readMsgID, maxMsgID} = state.metaMap.get(
-            action.payload.conversationIDKey,
+        const conversationIDKey = action.payload.conversationIDKey
+        if (conversationIDKey) {
+          const {readMsgID, maxVisibleMsgID} = state.metaMap.get(
+            conversationIDKey,
             Constants.makeConversationMeta()
           )
           logger.info(
-            `rootReducer: selectConversation: setting orange line: convID: ${
-              action.payload.conversationIDKey
-            } max: ${maxMsgID} read: ${readMsgID}`
+            `rootReducer: selectConversation: setting orange line: convID: ${conversationIDKey} maxVisible: ${maxVisibleMsgID} read: ${readMsgID}`
           )
-          if (maxMsgID > readMsgID) {
-            // Store the message ID that will display the orange line above it, which is the message after the last read message (hence the +1)
-            s.setIn(['orangeLineMap', action.payload.conversationIDKey], readMsgID + 1)
+          if (maxVisibleMsgID > readMsgID) {
+            // Store the message ID that will display the orange line above it,
+            // which is the first message after the last read message. We can't
+            // just increment `readMsgID` since that msgID might be a
+            // non-visible (edit, delete, reaction...) message so we scan the
+            // ordinals for the appropriate value.
+            const messageMap = state.messageMap.get(conversationIDKey, I.Map())
+            const ordinals = state.messageOrdinals.get(conversationIDKey, I.OrderedSet())
+            const ord = ordinals.find(o => {
+              const message = messageMap.get(o)
+              return message && message.id >= readMsgID + 1
+            })
+            const message = messageMap.get(ord)
+            if (message && message.id) {
+              s.setIn(['orangeLineMap', conversationIDKey], message.id)
+            } else {
+              s.deleteIn(['orangeLineMap', conversationIDKey])
+            }
           } else {
-            // If there aren't any new messages, we don't want to display an orange line so remove its entry from orangeLineMap
-            s.deleteIn(['orangeLineMap', action.payload.conversationIDKey])
+            // If there aren't any new messages, we don't want to display an
+            // orange line so remove its entry from orangeLineMap
+            s.deleteIn(['orangeLineMap', conversationIDKey])
           }
         }
-
-        s.set('selectedConversation', action.payload.conversationIDKey)
+        s.set('selectedConversation', conversationIDKey)
       })
+    case Chat2Gen.updateOrangeLine:
+      if (action.payload.messageID > 0) {
+        return state.setIn(['orangeLineMap', action.payload.conversationIDKey], action.payload.messageID)
+      } else {
+        return state.deleteIn(['orangeLineMap', action.payload.conversationIDKey])
+      }
     case Chat2Gen.unfurlTogglePrompt:
       const {show, domain} = action.payload
       return state.updateIn(
@@ -556,7 +579,7 @@ const rootReducer = (
       // Update any pending messages
       const pendingOutboxToOrdinal = oldPendingOutboxToOrdinal.withMutations(
         (map: I.Map<Types.ConversationIDKey, I.Map<Types.OutboxID, Types.Ordinal>>) => {
-          if (context.type === 'sent' || context.type === 'threadLoad') {
+          if (context.type === 'sent' || context.type === 'threadLoad' || context.type === 'incoming') {
             messages.forEach(message => {
               const m = canSendType(message)
               if (m && !m.id && m.outboxID) {
@@ -726,8 +749,15 @@ const rootReducer = (
         })
       )
     }
-    case Chat2Gen.updateTypers: {
-      return state.set('typingMap', action.payload.conversationToTypers)
+    case EngineGen.chat1NotifyChatChatTypingUpdate: {
+      const {typingUpdates} = action.payload.params
+      const typingMap = I.Map(
+        (typingUpdates || []).reduce((arr, u) => {
+          arr.push([Types.conversationIDToKey(u.convID), I.Set((u.typers || []).map(t => t.username))])
+          return arr
+        }, [])
+      )
+      return state.merge({typingMap})
     }
     case Chat2Gen.toggleLocalReaction: {
       const {conversationIDKey, emoji, targetOrdinal, username} = action.payload
@@ -877,8 +907,10 @@ const rootReducer = (
         return state.update('explodingModeLocks', el => el.delete(conversationIDKey))
       }
       return alreadyLocked ? state : state.setIn(['explodingModeLocks', conversationIDKey], mode)
-    case Chat2Gen.setExplodingMessagesNew:
-      return state.set('isExplodingNew', action.payload.new)
+    case Chat2Gen.setUnsentText:
+      return state.update('unsentTextMap', old =>
+        old.setIn([action.payload.conversationIDKey], action.payload.text)
+      )
     case Chat2Gen.staticConfigLoaded:
       return state.set('staticConfig', action.payload.staticConfig)
     case Chat2Gen.metasReceived: {
@@ -994,7 +1026,6 @@ const rootReducer = (
     case Chat2Gen.blockConversation:
     case Chat2Gen.previewConversation:
     case Chat2Gen.setConvExplodingMode:
-    case Chat2Gen.handleSeeingExplodingMessages:
     case Chat2Gen.toggleMessageReaction:
     case Chat2Gen.setMinWriterRole:
     case Chat2Gen.openChatFromWidget:

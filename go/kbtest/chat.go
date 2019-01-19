@@ -213,17 +213,6 @@ func (m *TlfMock) getTlfID(cname keybase1.CanonicalTlfName) (keybase1.TLFID, err
 	return keybase1.TLFID(hex.EncodeToString([]byte(tlfID))), nil
 }
 
-func (m *TlfMock) LookupIDUntrusted(ctx context.Context, tlfName string, public bool) (res types.NameInfoUntrusted, err error) {
-	ni, err := m.LookupID(ctx, tlfName, public)
-	if err != nil {
-		return res, err
-	}
-	return types.NameInfoUntrusted{
-		ID:            ni.ID,
-		CanonicalName: ni.CanonicalName,
-	}, nil
-}
-
 func (m *TlfMock) AllCryptKeys(ctx context.Context, tlfName string, public bool) (res types.AllCryptKeys, err error) {
 	cres, err := m.CryptKeys(ctx, tlfName)
 	if err != nil {
@@ -620,15 +609,6 @@ func (d dummyChannelSource) GetChannelTopicName(ctx context.Context, uid gregor1
 	return "", nil
 }
 
-func (d dummyChannelSource) ChannelsChanged(ctx context.Context, tlfID chat1.TLFID) {}
-
-func (d dummyChannelSource) IsOffline(ctx context.Context) bool {
-	return false
-}
-
-func (d dummyChannelSource) Connected(ctx context.Context)    {}
-func (d dummyChannelSource) Disconnected(ctx context.Context) {}
-
 func (m *ChatRemoteMock) PostRemote(ctx context.Context, arg chat1.PostRemoteArg) (res chat1.PostRemoteRes, err error) {
 	uid := arg.MessageBoxed.ClientHeader.Sender
 	conv := m.world.GetConversationByID(arg.ConversationID)
@@ -981,7 +961,6 @@ type ChatUI struct {
 	StellarDataConfirm chan chat1.UIChatPaymentSummary
 	StellarDataError   chan string
 	StellarDone        chan struct{}
-	PostReadyToSend    chan struct{}
 }
 
 func NewChatUI() *ChatUI {
@@ -996,7 +975,6 @@ func NewChatUI() *ChatUI {
 		StellarDataConfirm: make(chan chat1.UIChatPaymentSummary, 10),
 		StellarDataError:   make(chan string, 10),
 		StellarDone:        make(chan struct{}, 10),
-		PostReadyToSend:    make(chan struct{}, 100),
 	}
 }
 
@@ -1116,13 +1094,8 @@ func (c *ChatUI) ChatStellarDataError(ctx context.Context, msg string) (bool, er
 	return false, nil
 }
 
-func (c *ChatUI) ChatStellarDone(ctx context.Context) error {
+func (c *ChatUI) ChatStellarDone(ctx context.Context, canceled bool) error {
 	c.StellarDone <- struct{}{}
-	return nil
-}
-
-func (c *ChatUI) ChatPostReadyToSend(ctx context.Context) error {
-	c.PostReadyToSend <- struct{}{}
 	return nil
 }
 

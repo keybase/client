@@ -44,10 +44,14 @@ const SetDefaultAccountPopup = (props: Props) => {
           <Kb.Icon type={Styles.isMobile ? 'icon-wallet-64' : 'icon-wallet-48'} />
           <Kb.Avatar size={32} username={props.username} style={Kb.avatarCastPlatformStyles(styles.avatar)} />
         </Kb.Box>
-        <Kb.Text type="Header" style={Styles.collapseStyles([styles.mainText, styles.sidePaddings])}>
+        <Kb.Text
+          center={true}
+          type="Header"
+          style={Styles.collapseStyles([styles.mainText, styles.sidePaddings])}
+        >
           Set <Kb.Text type="HeaderItalic">{props.accountName}</Kb.Text> as your default Keybase account?
         </Kb.Text>
-        <Kb.Text type="Body" style={Styles.collapseStyles([styles.textAlignCenter, styles.sidePaddings])}>
+        <Kb.Text center={true} type="Body" style={styles.sidePaddings}>
           All transactions and overall activity with <Kb.Text type="BodyItalic">{props.accountName}</Kb.Text>{' '}
           will now be tied to your Keybase identity. Your account's name remains encrypted and only visible to
           you.
@@ -59,9 +63,7 @@ const SetDefaultAccountPopup = (props: Props) => {
 
 const styles = Styles.styleSheetCreate({
   avatar: Styles.platformStyles({
-    common: {
-      position: 'absolute',
-    },
+    common: {position: 'absolute'},
     isElectron: {
       left: -12,
       top: 26,
@@ -76,9 +78,7 @@ const styles = Styles.styleSheetCreate({
       marginBottom: Styles.globalMargins.large,
       position: 'relative',
     },
-    isMobile: {
-      marginTop: Styles.globalMargins.large,
-    },
+    isMobile: {marginTop: Styles.globalMargins.large},
   }),
   flexOne: {flex: 1},
   header: {
@@ -88,14 +88,9 @@ const styles = Styles.styleSheetCreate({
     common: {
       marginLeft: Styles.globalMargins.small,
       marginRight: Styles.globalMargins.small,
-      textAlign: 'center',
     },
-    isElectron: {
-      marginBottom: Styles.globalMargins.medium,
-    },
-    isMobile: {
-      marginBottom: Styles.globalMargins.small,
-    },
+    isElectron: {marginBottom: Styles.globalMargins.medium},
+    isMobile: {marginBottom: Styles.globalMargins.small},
   }),
   sidePaddings: Styles.platformStyles({
     isMobile: {
@@ -103,9 +98,6 @@ const styles = Styles.styleSheetCreate({
       paddingRight: Styles.globalMargins.medium,
     },
   }),
-  textAlignCenter: {
-    textAlign: 'center',
-  },
 })
 
 export default SetDefaultAccountPopup

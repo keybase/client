@@ -84,10 +84,6 @@ func (t *BaseServiceType) BaseGetProofType(st ServiceType) string {
 	return "web_service_binding." + st.GetTypeName()
 }
 
-func (t *BaseServiceType) BaseAllStringKeys(st ServiceType) []string {
-	return []string{st.GetTypeName()}
-}
-
 func (t *BaseServiceType) LastWriterWins() bool                               { return true }
 func (t *BaseServiceType) PreProofCheck(MetaContext, string) (*Markup, error) { return nil, nil }
 func (t *BaseServiceType) PreProofWarning(remotename string) *Markup          { return nil }
@@ -153,6 +149,15 @@ func (t *BaseServiceType) DisplayPriority() int {
 	return t.displayConf.Priority
 }
 
+func (t *BaseServiceType) DisplayGroup() string {
+	t.Lock()
+	defer t.Unlock()
+	if t.displayConf == nil || t.displayConf.Group == nil {
+		return ""
+	}
+	return *t.displayConf.Group
+}
+
 func (t *BaseServiceType) CanMakeNewProofs() bool {
 	t.Lock()
 	defer t.Unlock()
@@ -179,28 +184,3 @@ func (a assertionContext) NormalizeSocialName(service string, username string) (
 	}
 	return st.NormalizeUsername(username)
 }
-
-//=============================================================================
-
-// NOTE the static methods should only be used in tests or as a basic sanity
-// check for the syntactical correctness of an assertion. All other callers
-// should use the non-static versions.
-// This uses only the 'static' services which exclude any parameterized proofs.
-type staticAssertionContext struct {
-	esc ExternalServicesCollector
-}
-
-func MakeStaticAssertionContext(s ExternalServicesCollector) AssertionContext {
-	return staticAssertionContext{esc: s}
-}
-
-func (a staticAssertionContext) NormalizeSocialName(service string, username string) (string, error) {
-	st := a.esc.GetServiceType(service)
-	if st == nil {
-		// If we don't know about this service, normalize by going to lowercase
-		return strings.ToLower(username), nil
-	}
-	return st.NormalizeUsername(username)
-}
-
-//=============================================================================

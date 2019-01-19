@@ -134,18 +134,20 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.SigsProtocol(NewSigsHandler(xp, g)),
 		keybase1.TestProtocol(NewTestHandler(xp, g)),
 		keybase1.TrackProtocol(NewTrackHandler(xp, g)),
-		keybase1.UserProtocol(NewUserHandler(xp, g, d.ChatG())),
-		CancellingProtocol(g, keybase1.ApiserverProtocol(NewAPIServerHandler(xp, g))),
+		CancelingProtocol(g, keybase1.ApiserverProtocol(NewAPIServerHandler(xp, g)),
+			libkb.RPCCancelerReasonLogout),
 		keybase1.PaperprovisionProtocol(NewPaperProvisionHandler(xp, g)),
 		keybase1.SelfprovisionProtocol(NewSelfProvisionHandler(xp, g)),
 		keybase1.RekeyProtocol(NewRekeyHandler2(xp, g, d.rekeyMaster)),
 		keybase1.NotifyFSRequestProtocol(newNotifyFSRequestHandler(xp, g)),
 		keybase1.GregorProtocol(newGregorRPCHandler(xp, g, d.gregor)),
-		CancellingProtocol(g, chat1.LocalProtocol(newChatLocalHandler(xp, cg, d.gregor))),
+		CancelingProtocol(g, chat1.LocalProtocol(newChatLocalHandler(xp, cg, d.gregor)),
+			libkb.RPCCancelerReasonAll),
 		keybase1.SimpleFSProtocol(NewSimpleFSHandler(xp, g)),
 		keybase1.LogsendProtocol(NewLogsendHandler(xp, g)),
 		keybase1.AppStateProtocol(newAppStateHandler(xp, g)),
-		CancellingProtocol(g, keybase1.TeamsProtocol(NewTeamsHandler(xp, connID, cg, d.gregor))),
+		CancelingProtocol(g, keybase1.TeamsProtocol(NewTeamsHandler(xp, connID, cg, d.gregor)),
+			libkb.RPCCancelerReasonLogout),
 		keybase1.BadgerProtocol(newBadgerHandler(xp, g, d.badger)),
 		keybase1.MerkleProtocol(newMerkleHandler(xp, g)),
 		keybase1.GitProtocol(NewGitHandler(xp, g)),
@@ -156,9 +158,11 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.Identify3Protocol(newIdentify3Handler(xp, g)),
 	}
 	walletHandler := newWalletHandler(xp, g, d.walletState)
-	protocols = append(protocols, CancellingProtocol(g, stellar1.LocalProtocol(walletHandler)))
-
-	protocols = append(protocols, keybase1.DebuggingProtocol(NewDebuggingHandler(xp, g, walletHandler)))
+	protocols = append(protocols, CancelingProtocol(g, stellar1.LocalProtocol(walletHandler),
+		libkb.RPCCancelerReasonLogout))
+	userHandler := NewUserHandler(xp, g, d.ChatG())
+	protocols = append(protocols, keybase1.UserProtocol(userHandler))
+	protocols = append(protocols, keybase1.DebuggingProtocol(NewDebuggingHandler(xp, g, userHandler, walletHandler)))
 	for _, proto := range protocols {
 		if err = srv.Register(proto); err != nil {
 			return
@@ -351,7 +355,6 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	ctx := context.Background()
 	d.tryLogin(ctx)
 	d.chatOutboxPurgeCheck()
-	d.minuteChecks()
 	d.hourlyChecks()
 	d.slowChecks() // 6 hours
 	d.startupGregor()
@@ -396,7 +399,8 @@ func (d *Service) startChatModules() {
 		g.FetchRetrier.Start(context.Background(), uid)
 		g.EphemeralPurger.Start(context.Background(), uid)
 		g.InboxSource.Start(context.Background(), uid)
-		g.Indexer.Start(chat.IdentifyModeCtx(context.Background(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil), uid)
+		g.Indexer.Start(chat.Context(context.Background(), g,
+			keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, nil), uid)
 	}
 	d.purgeOldChatAttachmentData()
 }
@@ -449,7 +453,7 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	g.MessageDeliverer = chat.NewDeliverer(g, sender)
 
 	// team channel source
-	g.TeamChannelSource = chat.NewCachingTeamChannelSource(g, ri)
+	g.TeamChannelSource = chat.NewTeamChannelSource(g)
 
 	g.AttachmentURLSrv = chat.NewAttachmentHTTPSrv(g, chat.NewCachingAttachmentFetcher(g, store, 1000), ri)
 
@@ -672,33 +676,6 @@ func (d *Service) chatOutboxPurgeCheck() {
 	}()
 }
 
-func (d *Service) minuteChecks() {
-	ticker := libkb.NewBgTicker(5 * time.Minute)
-	mctx := libkb.NewMetaContextBackground(d.G()).WithLogTag("MINT")
-	d.G().PushShutdownHook(func() error {
-		mctx.CDebugf("stopping minuteChecks loop")
-		ticker.Stop()
-		return nil
-	})
-	go func() {
-		for {
-			<-ticker.C
-			mctx.CDebugf("+ 5 minute check loop")
-
-			// In theory, this periodic refresh shouldn't be necessary,
-			// but as the WalletState code is new, this is a nice insurance
-			// policy.  The gregor payment notifications should
-			// keep the WalletState refreshed properly.
-			mctx.CDebugf("| refreshing wallet state")
-			if err := d.walletState.RefreshAll(mctx, "service bg loop"); err != nil {
-				mctx.CDebugf("service walletState.RefreshAll error: %s", err)
-			}
-
-			mctx.CDebugf("- 5 minute check loop")
-		}
-	}()
-}
-
 func (d *Service) hourlyChecks() {
 	ticker := libkb.NewBgTicker(1 * time.Hour)
 	m := libkb.NewMetaContextBackground(d.G()).WithLogTag("HRLY")
@@ -881,8 +858,8 @@ func (d *Service) OnLogout(m libkb.MetaContext) (err error) {
 		m.CDebugf("Service#OnLogout: %s", s)
 	}
 
-	log("cancelling live RPCs")
-	d.G().RPCCanceller.CancelLiveContexts()
+	log("canceling live RPCs")
+	d.G().RPCCanceler.CancelLiveContexts(libkb.RPCCancelerReasonLogout)
 
 	log("shutting down chat modules")
 	d.stopChatModules(m)

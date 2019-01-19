@@ -1,6 +1,6 @@
 // @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define */
+/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
 
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -16,7 +16,6 @@ export const createTeamRepo = 'git:createTeamRepo'
 export const deletePersonalRepo = 'git:deletePersonalRepo'
 export const deleteTeamRepo = 'git:deleteTeamRepo'
 export const loadGit = 'git:loadGit'
-export const loadGitRepo = 'git:loadGitRepo'
 export const loaded = 'git:loaded'
 export const navToGit = 'git:navToGit'
 export const navigateToTeamRepo = 'git:navigateToTeamRepo'
@@ -32,7 +31,6 @@ type _CreateTeamRepoPayload = $ReadOnly<{|name: string, teamname: string, notify
 type _DeletePersonalRepoPayload = $ReadOnly<{|name: string|}>
 type _DeleteTeamRepoPayload = $ReadOnly<{|name: string, teamname: string, notifyTeam: boolean|}>
 type _LoadGitPayload = void
-type _LoadGitRepoPayload = $ReadOnly<{|username: ?string, teamname: ?string|}>
 type _LoadedPayload = $ReadOnly<{|repos: {'[key: string]': Types.GitInfo}, errors: Array<Error>|}>
 type _NavToGitPayload = $ReadOnly<{|switchTab: boolean, routeState: ?{expandedSet: I.Set<string>}|}>
 type _NavigateToTeamRepoPayload = $ReadOnly<{|repoID: string, teamname: string|}>
@@ -48,7 +46,6 @@ export const createCreateTeamRepo = (payload: _CreateTeamRepoPayload) => ({paylo
 export const createDeletePersonalRepo = (payload: _DeletePersonalRepoPayload) => ({payload, type: deletePersonalRepo})
 export const createDeleteTeamRepo = (payload: _DeleteTeamRepoPayload) => ({payload, type: deleteTeamRepo})
 export const createLoadGit = (payload: _LoadGitPayload) => ({payload, type: loadGit})
-export const createLoadGitRepo = (payload: _LoadGitRepoPayload) => ({payload, type: loadGitRepo})
 export const createLoaded = (payload: _LoadedPayload) => ({payload, type: loaded})
 export const createNavToGit = (payload: _NavToGitPayload) => ({payload, type: navToGit})
 export const createNavigateToTeamRepo = (payload: _NavigateToTeamRepoPayload) => ({payload, type: navigateToTeamRepo})
@@ -64,7 +61,6 @@ export type CreateTeamRepoPayload = {|+payload: _CreateTeamRepoPayload, +type: '
 export type DeletePersonalRepoPayload = {|+payload: _DeletePersonalRepoPayload, +type: 'git:deletePersonalRepo'|}
 export type DeleteTeamRepoPayload = {|+payload: _DeleteTeamRepoPayload, +type: 'git:deleteTeamRepo'|}
 export type LoadGitPayload = {|+payload: _LoadGitPayload, +type: 'git:loadGit'|}
-export type LoadGitRepoPayload = {|+payload: _LoadGitRepoPayload, +type: 'git:loadGitRepo'|}
 export type LoadedPayload = {|+payload: _LoadedPayload, +type: 'git:loaded'|}
 export type NavToGitPayload = {|+payload: _NavToGitPayload, +type: 'git:navToGit'|}
 export type NavigateToTeamRepoPayload = {|+payload: _NavigateToTeamRepoPayload, +type: 'git:navigateToTeamRepo'|}
@@ -82,7 +78,6 @@ export type Actions =
   | DeletePersonalRepoPayload
   | DeleteTeamRepoPayload
   | LoadGitPayload
-  | LoadGitRepoPayload
   | LoadedPayload
   | NavToGitPayload
   | NavigateToTeamRepoPayload

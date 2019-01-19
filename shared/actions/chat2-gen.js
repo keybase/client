@@ -1,6 +1,6 @@
 // @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define */
+/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
 
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -34,7 +34,6 @@ export const desktopNotification = 'chat2:desktopNotification'
 export const giphyGotSearchResult = 'chat2:giphyGotSearchResult'
 export const giphySend = 'chat2:giphySend'
 export const giphyToggle = 'chat2:giphyToggle'
-export const handleSeeingExplodingMessages = 'chat2:handleSeeingExplodingMessages'
 export const handleSeeingWallets = 'chat2:handleSeeingWallets'
 export const inboxRefresh = 'chat2:inboxRefresh'
 export const joinConversation = 'chat2:joinConversation'
@@ -84,7 +83,6 @@ export const sendTyping = 'chat2:sendTyping'
 export const setConvExplodingMode = 'chat2:setConvExplodingMode'
 export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
 export const setConversationOffline = 'chat2:setConversationOffline'
-export const setExplodingMessagesNew = 'chat2:setExplodingMessagesNew'
 export const setExplodingModeLock = 'chat2:setExplodingModeLock'
 export const setInboxFilter = 'chat2:setInboxFilter'
 export const setMinWriterRole = 'chat2:setMinWriterRole'
@@ -93,6 +91,7 @@ export const setPendingConversationExistingConversationIDKey = 'chat2:setPending
 export const setPendingConversationUsers = 'chat2:setPendingConversationUsers'
 export const setPendingMode = 'chat2:setPendingMode'
 export const setPendingStatus = 'chat2:setPendingStatus'
+export const setUnsentText = 'chat2:setUnsentText'
 export const setWalletsOld = 'chat2:setWalletsOld'
 export const staticConfigLoaded = 'chat2:staticConfigLoaded'
 export const toggleLocalReaction = 'chat2:toggleLocalReaction'
@@ -107,9 +106,9 @@ export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
 export const updateMessages = 'chat2:updateMessages'
 export const updateMoreToLoad = 'chat2:updateMoreToLoad'
 export const updateNotificationSettings = 'chat2:updateNotificationSettings'
+export const updateOrangeLine = 'chat2:updateOrangeLine'
 export const updateReactions = 'chat2:updateReactions'
 export const updateTeamRetentionPolicy = 'chat2:updateTeamRetentionPolicy'
-export const updateTypers = 'chat2:updateTypers'
 
 // Payload Types
 type _AttachmentDownloadPayload = $ReadOnly<{|message: Types.Message|}>
@@ -133,7 +132,6 @@ type _DesktopNotificationPayload = $ReadOnly<{|conversationIDKey: Types.Conversa
 type _GiphyGotSearchResultPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, result: Array<RPCChatTypes.GiphySearchResult>|}>
 type _GiphySendPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, url: HiddenString|}>
 type _GiphyTogglePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, show: boolean|}>
-type _HandleSeeingExplodingMessagesPayload = void
 type _HandleSeeingWalletsPayload = void
 type _InboxRefreshPayload = $ReadOnly<{|reason: 'bootstrap' | 'componentNeverLoaded' | 'inboxStale' | 'inboxSyncedClear' | 'inboxSyncedUnknown' | 'joinedAConversation' | 'leftAConversation' | 'teamTypeChanged'|}>
 type _JoinConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey|}>
@@ -165,7 +163,7 @@ type _MetaRequestTrustedPayload = $ReadOnly<{|force?: boolean, conversationIDKey
 type _MetaRequestingTrustedPayload = $ReadOnly<{|conversationIDKeys: Array<Types.ConversationIDKey>|}>
 type _MetasReceivedPayload = $ReadOnly<{|metas: Array<Types.ConversationMeta>, neverCreate?: boolean, clearExistingMetas?: boolean, clearExistingMessages?: boolean, fromExpunge?: boolean, fromInboxRefresh?: boolean|}>
 type _MuteConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, muted: boolean|}>
-type _NavigateToInboxPayload = $ReadOnly<{|findNewConversation: boolean|}>
+type _NavigateToInboxPayload = $ReadOnly<{|avoidConversationID?: Types.ConversationIDKey, findNewConversation: boolean|}>
 type _NavigateToThreadPayload = void
 type _NotificationSettingsUpdatedPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, settings: RPCChatTypes.ConversationNotificationInfo|}>
 type _OpenChatFromWidgetPayload = $ReadOnly<{|conversationIDKey?: Types.ConversationIDKey|}>
@@ -186,7 +184,6 @@ type _SendTypingPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey
 type _SetConvExplodingModePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, seconds: number|}>
 type _SetConvRetentionPolicyPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, policy: RetentionPolicy|}>
 type _SetConversationOfflinePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, offline: boolean|}>
-type _SetExplodingMessagesNewPayload = $ReadOnly<{|new: boolean|}>
 type _SetExplodingModeLockPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, unset?: boolean|}>
 type _SetInboxFilterPayload = $ReadOnly<{|filter: string|}>
 type _SetMinWriterRolePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, role: TeamsTypes.TeamRoleType|}>
@@ -196,6 +193,7 @@ type _SetPendingConversationExistingConversationIDKeyPayload = $ReadOnly<{|conve
 type _SetPendingConversationUsersPayload = $ReadOnly<{|users: Array<string>, fromSearch: boolean|}>
 type _SetPendingModePayload = $ReadOnly<{|pendingMode: Types.PendingMode, noneDestination?: 'inbox' | 'thread'|}>
 type _SetPendingStatusPayload = $ReadOnly<{|pendingStatus: Types.PendingStatus|}>
+type _SetUnsentTextPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, text: HiddenString|}>
 type _SetWalletsOldPayload = void
 type _StaticConfigLoadedPayload = $ReadOnly<{|staticConfig: Types.StaticConfig|}>
 type _ToggleLocalReactionPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, emoji: string, targetOrdinal: Types.Ordinal, username: string|}>
@@ -210,9 +208,9 @@ type _UpdateConvRetentionPolicyPayload = $ReadOnly<{|conv: RPCChatTypes.InboxUII
 type _UpdateMessagesPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messages: Array<{messageID: Types.MessageID, message: Types.Message}>|}>
 type _UpdateMoreToLoadPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, moreToLoad: boolean|}>
 type _UpdateNotificationSettingsPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, notificationsDesktop: Types.NotificationsType, notificationsMobile: Types.NotificationsType, notificationsGlobalIgnoreMentions: boolean|}>
+type _UpdateOrangeLinePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID|}>
 type _UpdateReactionsPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, updates: Array<{targetMsgID: RPCChatTypes.MessageID, reactions: Types.Reactions}>|}>
 type _UpdateTeamRetentionPolicyPayload = $ReadOnly<{|convs: Array<RPCChatTypes.InboxUIItem>|}>
-type _UpdateTypersPayload = $ReadOnly<{|conversationToTypers: I.Map<Types.ConversationIDKey, I.Set<string>>|}>
 
 // Action Creators
 /**
@@ -281,17 +279,13 @@ export const createSetPaymentConfirmInfoError = (payload: _SetPaymentConfirmInfo
  */
 export const createSetConvExplodingMode = (payload: _SetConvExplodingModePayload) => ({payload, type: setConvExplodingMode})
 /**
- * Set whether exploding messages are a new feature or not.
+ * Set unsent text for a conversation
  */
-export const createSetExplodingMessagesNew = (payload: _SetExplodingMessagesNewPayload) => ({payload, type: setExplodingMessagesNew})
+export const createSetUnsentText = (payload: _SetUnsentTextPayload) => ({payload, type: setUnsentText})
 /**
  * Sets the retention policy for a conversation.
  */
 export const createSetConvRetentionPolicy = (payload: _SetConvRetentionPolicyPayload) => ({payload, type: setConvRetentionPolicy})
-/**
- * Some things need to happen when the user interacts with the exploding messages feature. Trigger the handler that takes care of those things.
- */
-export const createHandleSeeingExplodingMessages = (payload: _HandleSeeingExplodingMessagesPayload) => ({payload, type: handleSeeingExplodingMessages})
 /**
  * Static configuration info was loaded from the service.
  */
@@ -324,6 +318,10 @@ export const createUpdateMessages = (payload: _UpdateMessagesPayload) => ({paylo
  * Update the minWriterRole stored with the conversation metadata.
  */
 export const createSaveMinWriterRole = (payload: _SaveMinWriterRolePayload) => ({payload, type: saveMinWriterRole})
+/**
+ * Update the orange line position for a conversation
+ */
+export const createUpdateOrangeLine = (payload: _UpdateOrangeLinePayload) => ({payload, type: updateOrangeLine})
 /**
  * User responded to the chat Stellar confirm screen
  */
@@ -411,7 +409,6 @@ export const createSetPendingStatus = (payload: _SetPendingStatusPayload) => ({p
 export const createToggleSmallTeamsExpanded = (payload: _ToggleSmallTeamsExpandedPayload) => ({payload, type: toggleSmallTeamsExpanded})
 export const createUpdateMoreToLoad = (payload: _UpdateMoreToLoadPayload) => ({payload, type: updateMoreToLoad})
 export const createUpdateNotificationSettings = (payload: _UpdateNotificationSettingsPayload) => ({payload, type: updateNotificationSettings})
-export const createUpdateTypers = (payload: _UpdateTypersPayload) => ({payload, type: updateTypers})
 
 // Action Payloads
 export type AttachmentDownloadPayload = {|+payload: _AttachmentDownloadPayload, +type: 'chat2:attachmentDownload'|}
@@ -435,7 +432,6 @@ export type DesktopNotificationPayload = {|+payload: _DesktopNotificationPayload
 export type GiphyGotSearchResultPayload = {|+payload: _GiphyGotSearchResultPayload, +type: 'chat2:giphyGotSearchResult'|}
 export type GiphySendPayload = {|+payload: _GiphySendPayload, +type: 'chat2:giphySend'|}
 export type GiphyTogglePayload = {|+payload: _GiphyTogglePayload, +type: 'chat2:giphyToggle'|}
-export type HandleSeeingExplodingMessagesPayload = {|+payload: _HandleSeeingExplodingMessagesPayload, +type: 'chat2:handleSeeingExplodingMessages'|}
 export type HandleSeeingWalletsPayload = {|+payload: _HandleSeeingWalletsPayload, +type: 'chat2:handleSeeingWallets'|}
 export type InboxRefreshPayload = {|+payload: _InboxRefreshPayload, +type: 'chat2:inboxRefresh'|}
 export type JoinConversationPayload = {|+payload: _JoinConversationPayload, +type: 'chat2:joinConversation'|}
@@ -485,7 +481,6 @@ export type SendTypingPayload = {|+payload: _SendTypingPayload, +type: 'chat2:se
 export type SetConvExplodingModePayload = {|+payload: _SetConvExplodingModePayload, +type: 'chat2:setConvExplodingMode'|}
 export type SetConvRetentionPolicyPayload = {|+payload: _SetConvRetentionPolicyPayload, +type: 'chat2:setConvRetentionPolicy'|}
 export type SetConversationOfflinePayload = {|+payload: _SetConversationOfflinePayload, +type: 'chat2:setConversationOffline'|}
-export type SetExplodingMessagesNewPayload = {|+payload: _SetExplodingMessagesNewPayload, +type: 'chat2:setExplodingMessagesNew'|}
 export type SetExplodingModeLockPayload = {|+payload: _SetExplodingModeLockPayload, +type: 'chat2:setExplodingModeLock'|}
 export type SetInboxFilterPayload = {|+payload: _SetInboxFilterPayload, +type: 'chat2:setInboxFilter'|}
 export type SetMinWriterRolePayload = {|+payload: _SetMinWriterRolePayload, +type: 'chat2:setMinWriterRole'|}
@@ -495,6 +490,7 @@ export type SetPendingConversationExistingConversationIDKeyPayload = {|+payload:
 export type SetPendingConversationUsersPayload = {|+payload: _SetPendingConversationUsersPayload, +type: 'chat2:setPendingConversationUsers'|}
 export type SetPendingModePayload = {|+payload: _SetPendingModePayload, +type: 'chat2:setPendingMode'|}
 export type SetPendingStatusPayload = {|+payload: _SetPendingStatusPayload, +type: 'chat2:setPendingStatus'|}
+export type SetUnsentTextPayload = {|+payload: _SetUnsentTextPayload, +type: 'chat2:setUnsentText'|}
 export type SetWalletsOldPayload = {|+payload: _SetWalletsOldPayload, +type: 'chat2:setWalletsOld'|}
 export type StaticConfigLoadedPayload = {|+payload: _StaticConfigLoadedPayload, +type: 'chat2:staticConfigLoaded'|}
 export type ToggleLocalReactionPayload = {|+payload: _ToggleLocalReactionPayload, +type: 'chat2:toggleLocalReaction'|}
@@ -509,9 +505,9 @@ export type UpdateConvRetentionPolicyPayload = {|+payload: _UpdateConvRetentionP
 export type UpdateMessagesPayload = {|+payload: _UpdateMessagesPayload, +type: 'chat2:updateMessages'|}
 export type UpdateMoreToLoadPayload = {|+payload: _UpdateMoreToLoadPayload, +type: 'chat2:updateMoreToLoad'|}
 export type UpdateNotificationSettingsPayload = {|+payload: _UpdateNotificationSettingsPayload, +type: 'chat2:updateNotificationSettings'|}
+export type UpdateOrangeLinePayload = {|+payload: _UpdateOrangeLinePayload, +type: 'chat2:updateOrangeLine'|}
 export type UpdateReactionsPayload = {|+payload: _UpdateReactionsPayload, +type: 'chat2:updateReactions'|}
 export type UpdateTeamRetentionPolicyPayload = {|+payload: _UpdateTeamRetentionPolicyPayload, +type: 'chat2:updateTeamRetentionPolicy'|}
-export type UpdateTypersPayload = {|+payload: _UpdateTypersPayload, +type: 'chat2:updateTypers'|}
 
 // All Actions
 // prettier-ignore
@@ -537,7 +533,6 @@ export type Actions =
   | GiphyGotSearchResultPayload
   | GiphySendPayload
   | GiphyTogglePayload
-  | HandleSeeingExplodingMessagesPayload
   | HandleSeeingWalletsPayload
   | InboxRefreshPayload
   | JoinConversationPayload
@@ -587,7 +582,6 @@ export type Actions =
   | SetConvExplodingModePayload
   | SetConvRetentionPolicyPayload
   | SetConversationOfflinePayload
-  | SetExplodingMessagesNewPayload
   | SetExplodingModeLockPayload
   | SetInboxFilterPayload
   | SetMinWriterRolePayload
@@ -597,6 +591,7 @@ export type Actions =
   | SetPendingConversationUsersPayload
   | SetPendingModePayload
   | SetPendingStatusPayload
+  | SetUnsentTextPayload
   | SetWalletsOldPayload
   | StaticConfigLoadedPayload
   | ToggleLocalReactionPayload
@@ -611,7 +606,7 @@ export type Actions =
   | UpdateMessagesPayload
   | UpdateMoreToLoadPayload
   | UpdateNotificationSettingsPayload
+  | UpdateOrangeLinePayload
   | UpdateReactionsPayload
   | UpdateTeamRetentionPolicyPayload
-  | UpdateTypersPayload
   | {type: 'common:resetStore', payload: null}

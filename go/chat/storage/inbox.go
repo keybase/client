@@ -26,6 +26,16 @@ import (
 
 const inboxVersion = 22
 
+var defaultMemberStatusFilter = []chat1.ConversationMemberStatus{
+	chat1.ConversationMemberStatus_ACTIVE,
+	chat1.ConversationMemberStatus_PREVIEW,
+	chat1.ConversationMemberStatus_RESET,
+}
+
+var defaultExistences = []chat1.ConversationExistence{
+	chat1.ConversationExistence_ACTIVE,
+}
+
 type InboxFlushMode int
 
 const (
@@ -474,12 +484,11 @@ func (i *Inbox) supersedersNotEmpty(ctx context.Context, superseders []chat1.Con
 	return false
 }
 
-func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, rcs []types.RemoteConversation) []types.RemoteConversation {
+func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, rcs []types.RemoteConversation) (res []types.RemoteConversation) {
 	if query == nil {
 		query = &chat1.GetInboxQuery{}
 	}
-	var res []types.RemoteConversation
-	filtered := 0
+
 	var queryConvIDMap map[string]bool
 	if query.ConvID != nil {
 		query.ConvIDs = append(query.ConvIDs, *query.ConvID)
@@ -490,83 +499,82 @@ func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, rcs 
 			queryConvIDMap[c.String()] = true
 		}
 	}
+
+	memberStatus := query.MemberStatus
+	if len(memberStatus) == 0 {
+		memberStatus = defaultMemberStatusFilter
+	}
+	queryMemberStatusMap := map[chat1.ConversationMemberStatus]bool{}
+	for _, memberStatus := range memberStatus {
+		queryMemberStatusMap[memberStatus] = true
+	}
+
+	queryStatusMap := map[chat1.ConversationStatus]bool{}
+	for _, status := range query.Status {
+		queryStatusMap[status] = true
+	}
+
+	existences := query.Existences
+	if len(existences) == 0 {
+		existences = defaultExistences
+	}
+	existenceMap := map[chat1.ConversationExistence]bool{}
+	for _, status := range existences {
+		existenceMap[status] = true
+	}
+
 	for _, rc := range rcs {
-		ok := true
 		conv := rc.Conv
-
 		// Existence check
-		if conv.Metadata.Existence != chat1.ConversationExistence_ACTIVE {
-			ok = false
+		if _, ok := existenceMap[conv.Metadata.Existence]; !ok && len(existenceMap) > 0 {
+			continue
 		}
-
 		// Member status check
-		switch conv.ReaderInfo.Status {
-		case chat1.ConversationMemberStatus_ACTIVE, chat1.ConversationMemberStatus_PREVIEW,
-			chat1.ConversationMemberStatus_RESET:
-			// only let these states through
-		default:
-			ok = false
+		if _, ok := queryMemberStatusMap[conv.ReaderInfo.Status]; !ok && len(memberStatus) > 0 {
+			continue
 		}
-
+		// Status check
+		if _, ok := queryStatusMap[conv.Metadata.Status]; !ok && len(query.Status) > 0 {
+			continue
+		}
 		// Basic checks
 		if queryConvIDMap != nil && !queryConvIDMap[conv.GetConvID().String()] {
-			filtered++
 			continue
 		}
 		if query.After != nil && !conv.ReaderInfo.Mtime.After(*query.After) {
-			ok = false
+			continue
 		}
 		if query.Before != nil && !conv.ReaderInfo.Mtime.Before(*query.Before) {
-			ok = false
+			continue
 		}
 		if query.TopicType != nil && *query.TopicType != conv.Metadata.IdTriple.TopicType {
-			ok = false
+			continue
 		}
 		if query.TlfVisibility != nil && *query.TlfVisibility != keybase1.TLFVisibility_ANY &&
 			*query.TlfVisibility != conv.Metadata.Visibility {
-			ok = false
+			continue
 		}
 		if query.UnreadOnly && !conv.IsUnread() {
-			ok = false
+			continue
 		}
 		if query.ReadOnly && conv.IsUnread() {
-			ok = false
+			continue
 		}
 		if query.TlfID != nil && !query.TlfID.Eq(conv.Metadata.IdTriple.Tlfid) {
-			ok = false
+			continue
 		}
-
-		// Check to see if the conv status is in the query list
-		if len(query.Status) > 0 {
-			found := false
-			for _, s := range query.Status {
-				if s == conv.Metadata.Status {
-					found = true
-					break
-				}
-			}
-			if !found {
-				ok = false
-			}
-		}
-
 		// If we are finalized and are superseded, then don't return this
 		if query.OneChatTypePerTLF == nil ||
 			(query.OneChatTypePerTLF != nil && *query.OneChatTypePerTLF) {
 			if conv.Metadata.FinalizeInfo != nil && len(conv.Metadata.SupersededBy) > 0 && len(query.ConvIDs) == 0 {
 				if i.supersedersNotEmpty(ctx, conv.Metadata.SupersededBy, rcs) {
-					ok = false
+					continue
 				}
 			}
 		}
-
-		if ok {
-			res = append(res, rc)
-		} else {
-			filtered++
-		}
+		res = append(res, rc)
 	}
-
+	filtered := len(rcs) - len(res)
 	i.Debug(ctx, "applyQuery: res size: %d filtered: %d", len(res), filtered)
 	return res
 }
@@ -664,8 +672,12 @@ func (i *Inbox) queryExists(ctx context.Context, ibox inboxDiskData, query *chat
 	// If the query is specifying a list of conversation IDs, just check to see if we have *all*
 	// of them on the disk
 	if query != nil && (len(query.ConvIDs) > 0 || query.ConvID != nil) {
-		i.Debug(ctx, "Read: queryExists: convIDs query, checking list: len: %d", len(query.ConvIDs))
-		return i.queryConvIDsExist(ctx, ibox, query.ConvIDs)
+		convIDs := query.ConvIDs
+		if query.ConvID != nil {
+			convIDs = append(convIDs, *query.ConvID)
+		}
+		i.Debug(ctx, "Read: queryExists: convIDs query, checking list: len: %d", len(convIDs))
+		return i.queryConvIDsExist(ctx, ibox, convIDs)
 	}
 
 	hquery, err := i.hashQuery(ctx, query)
@@ -1558,7 +1570,8 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 	defer i.Trace(ctx, func() error { return err }, "MembershipUpdate")()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 
-	i.Debug(ctx, "MembershipUpdate: updating userJoined: %d userRemoved: %d othersJoined: %d othersRemoved: %d", len(userJoined), len(userRemoved), len(othersJoined), len(othersRemoved))
+	i.Debug(ctx, "MembershipUpdate: updating userJoined: %d userRemoved: %d othersJoined: %d othersRemoved: %d",
+		len(userJoined), len(userRemoved), len(othersJoined), len(othersRemoved))
 	ibox, err := i.readDiskInbox(ctx, uid, true)
 	if err != nil {
 		if _, ok := err.(MissError); ok {
@@ -1656,6 +1669,44 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 		if cp, ok := convMap[or.ConvID.String()]; ok {
 			cp.Conv.Metadata.ResetList = append(cp.Conv.Metadata.ResetList, or.Uid)
 			cp.Conv.Metadata.Version = vers.ToConvVers()
+		}
+	}
+
+	ibox.InboxVersion = vers
+	return i.writeDiskInbox(ctx, uid, ibox)
+}
+
+func (i *Inbox) ConversationsUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+	convUpdates []chat1.ConversationUpdate) (err Error) {
+	locks.Inbox.Lock()
+	defer locks.Inbox.Unlock()
+	defer i.Trace(ctx, func() error { return err }, "ConversationsUpdate")()
+	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
+
+	i.Debug(ctx, "ConversationsUpdate: updating %d convs", len(convUpdates))
+	ibox, err := i.readDiskInbox(ctx, uid, true)
+	if err != nil {
+		if _, ok := err.(MissError); ok {
+			return nil
+		}
+		return err
+	}
+	// Check inbox versions, make sure it makes sense (clear otherwise)
+	var cont bool
+	if vers, cont, err = i.handleVersion(ctx, ibox.InboxVersion, vers); !cont {
+		return err
+	}
+
+	// Process our own changes
+	updateMap := make(map[string]chat1.ConversationUpdate)
+	for _, u := range convUpdates {
+		updateMap[u.ConvID.String()] = u
+	}
+
+	for idx, conv := range ibox.Conversations {
+		if update, ok := updateMap[conv.GetConvID().String()]; ok {
+			i.Debug(ctx, "ConversationsUpdate: changed conv: %v", update)
+			ibox.Conversations[idx].Conv.Metadata.Existence = update.Existence
 		}
 	}
 

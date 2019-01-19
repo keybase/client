@@ -80,21 +80,21 @@ const YouAddedToTeam = (props: Props) => {
       <Kb.Text
         type="BodySmallSemibold"
         backgroundMode="Announcements"
-        style={{color: Styles.globalColors.black_40}}
+        style={{color: Styles.globalColors.black_50}}
       >
         {formatTimeForMessages(props.timestamp)}
       </Kb.Text>
       <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, alignItems: 'center'}}>
         <Kb.Text
           type="BodySmallSemibold"
-          backgroundMode="Announcements"
-          style={{color: Styles.globalColors.black_40, textAlign: 'center'}}
+          center={true} backgroundMode="Announcements"
+          style={{color: Styles.globalColors.black_50}}
         >
           <YouOrUsername username={adder} you={you} capitalize={true} /> added{' '}
           <YouOrUsername username={addee} adder={adder} you={you} capitalize={false} /> to{' '}
           <Kb.Text
             onClick={onViewTeam}
-            style={{color: Styles.globalColors.black_60}}
+            style={{color: Styles.globalColors.black_50}}
             type="BodySmallSemiboldSecondaryLink"
           >
             {teamname}

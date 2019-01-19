@@ -99,7 +99,12 @@ class CodePage2 extends React.Component<Props, State> {
         direction="vertical"
         fullWidth={true}
         fullHeight={true}
-        style={Styles.collapseStyles([styles.codePageContainer, {backgroundColor: this._tabBackground()}])}
+        style={Styles.collapseStyles([
+          styles.codePageContainer,
+          styles.safeArea,
+          Styles.globalStyles.flexBoxColumn,
+          {backgroundColor: this._tabBackground()},
+        ])}
       >
         <Kb.SafeAreaView style={Styles.collapseStyles([styles.safeArea, Styles.globalStyles.flexBoxColumn])}>
           <Kb.Box2
@@ -144,7 +149,7 @@ class CodePage2 extends React.Component<Props, State> {
 
 const ErrorBanner = (props: {error: string}) => (
   <Kb.Box2 direction="vertical" style={styles.errorContainer}>
-    <Kb.Text type="Body" style={styles.errorText}>
+    <Kb.Text center={true} type="Body" style={styles.errorText}>
       {props.error}
     </Kb.Text>
   </Kb.Box2>
@@ -243,7 +248,7 @@ class EnterText extends React.Component<Props, {code: string}> {
 
 const ViewText = (props: Props) => (
   <Kb.Box2 direction="vertical" style={styles.viewTextContainer}>
-    <Kb.Text type="Terminal" style={styles.viewTextCode}>
+    <Kb.Text center={true} type="Terminal" style={styles.viewTextCode}>
       {props.textCode}
     </Kb.Text>
   </Kb.Box2>
@@ -253,35 +258,35 @@ const Instructions = (p: Props) => (
   <Kb.Box2 direction="vertical">
     {p.currentDeviceAlreadyProvisioned ? (
       <React.Fragment>
-        <Kb.Text type="Header" style={styles.instructions}>
+        <Kb.Text center={true} type="Header" style={styles.instructions}>
           Ready to provision using
         </Kb.Text>
-        <Kb.Text type="Header" style={styles.instructionsItalic}>
+        <Kb.Text center={true} type="Header" style={styles.instructionsItalic}>
           {p.currentDeviceName}.
         </Kb.Text>
       </React.Fragment>
     ) : (
       <React.Fragment>
-        <Kb.Text type="Header" style={styles.instructions}>
+        <Kb.Text center={true} type="Header" style={styles.instructions}>
           On
-          <Kb.Text type="Header" style={styles.instructionsItalic}>
+          <Kb.Text center={true} type="Header" style={styles.instructionsItalic}>
             {' '}
             {p.otherDeviceName}
           </Kb.Text>
           , go to
         </Kb.Text>
-        <Kb.Text type="Header" style={styles.instructions}>
+        <Kb.Text center={true} type="Header" style={styles.instructions}>
           Devices
-          <Kb.Text type="Header" style={styles.instructionsCarets}>
+          <Kb.Text center={true} type="Header" style={styles.instructionsCarets}>
             {` ${String.fromCharCode(iconMeta['iconfont-arrow-right'].charCode || 0)} `}
           </Kb.Text>
-          <Kb.Text type="Header" style={styles.instructions}>
+          <Kb.Text center={true} type="Header" style={styles.instructions}>
             Add new
           </Kb.Text>
-          <Kb.Text type="Header" style={styles.instructionsCarets}>
+          <Kb.Text center={true} type="Header" style={styles.instructionsCarets}>
             {` ${String.fromCharCode(iconMeta['iconfont-arrow-right'].charCode || 0)} `}
           </Kb.Text>
-          <Kb.Text type="Header" style={styles.instructions}>
+          <Kb.Text center={true} type="Header" style={styles.instructions}>
             New {p.currentDeviceType === 'desktop' ? 'computer' : 'phone'}.
           </Kb.Text>
         </Kb.Text>
@@ -369,10 +374,7 @@ const styles = Styles.styleSheetCreate({
     padding: Styles.isMobile ? Styles.globalMargins.tiny : Styles.globalMargins.medium,
     width: '100%',
   },
-  errorText: {
-    color: Styles.globalColors.white,
-    textAlign: 'center',
-  },
+  errorText: {color: Styles.globalColors.white},
   imageContainerOnLeft: {
     ...Styles.globalStyles.fillAbsolute,
     ...Styles.globalStyles.flexBoxColumn,
@@ -385,17 +387,13 @@ const styles = Styles.styleSheetCreate({
     alignItems: 'flex-end',
     justifyContent: 'center',
   },
-  instructions: {
-    color: Styles.globalColors.white,
-    textAlign: 'center',
-  },
+  instructions: {color: Styles.globalColors.white},
   instructionsCarets: Styles.platformStyles({
     common: {
       color: Styles.globalColors.white,
       fontFamily: 'kb',
       fontStyle: 'normal',
       fontWeight: 'normal',
-      textAlign: 'center',
     },
     isElectron: {
       WebkitFontSmoothing: 'antialiased',
@@ -411,7 +409,6 @@ const styles = Styles.styleSheetCreate({
   instructionsItalic: {
     ...Styles.globalStyles.italic,
     color: Styles.globalColors.white,
-    textAlign: 'center',
   },
   qrContainer: Styles.platformStyles({
     common: {
@@ -471,7 +468,6 @@ const styles = Styles.styleSheetCreate({
       ...Styles.globalStyles.fontTerminalSemibold,
       color: Styles.globalColors.white,
       fontSize: 16,
-      textAlign: 'center',
     },
     isElectron: {
       maxWidth: 330,

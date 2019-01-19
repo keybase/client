@@ -4,7 +4,7 @@ import React, {PureComponent} from 'react'
 import SimpleMarkdown from 'simple-markdown'
 import Text from '../text'
 import logger from '../../logger'
-import type {MarkdownMeta, Props as MarkdownProps} from '../markdown'
+import type {MarkdownMeta, Props as MarkdownProps} from '.'
 import {emojiIndexByChar, emojiRegex, tldExp, commonTlds} from './emoji-gen'
 import {isMobile} from '../../constants/platform'
 import {specialMentions} from '../../constants/chat2'
@@ -23,12 +23,29 @@ function createMentionRegex(meta: ?MarkdownMeta): ?RegExp {
   return new RegExp(`^@(${[...specialMentions, ...meta.mentionsAt.toArray()].join('|')})\\b`)
 }
 
+function createMentionMatcher(meta: ?MarkdownMeta) {
+  const mentionRegex = createMentionRegex(meta)
+  if (!mentionRegex) {
+    return null
+  }
+
+  return SimpleMarkdown.inlineRegex(mentionRegex)
+}
+
 function createChannelRegex(meta: ?MarkdownMeta): ?RegExp {
   if (!meta || !meta.mentionsChannelName || meta.mentionsChannelName.isEmpty()) {
     return null
   }
 
   return new RegExp(`^#(${meta.mentionsChannelName.keySeq().join('|')})\\b`)
+}
+
+function createChannelMatcher(meta: ?MarkdownMeta) {
+  const channelRegex = createChannelRegex(meta)
+  if (!channelRegex) {
+    return null
+  }
+  return SimpleMarkdown.inlineRegex(channelRegex)
 }
 
 function createKbfsPathRegex(): ?RegExp {
@@ -58,7 +75,7 @@ const _makeLinkRegex = () => {
   const paranthesisPaired = `([(]${valid}+[)])`
   const afterDomain = `(?:\\/|${paranthesisPaired}|${valid}|[.?]+[\\w/=])`
   return new RegExp(
-    `^( *)((https?:\\/\\/)?[\\w-]+(\\.[\\w-]+)+(:\\d+)?((?:\\/|\\?[\\w=])${afterDomain}*)?)`,
+    `^( *)(https?:\\/\\/)?([\\w-]+(\\.[\\w-]+)+(:\\d+)?((?:\\/|\\?[\\w=])${afterDomain}*)?)`,
     'i'
   )
 }
@@ -66,7 +83,7 @@ const _makeLinkRegex = () => {
 const _linkRegex = _makeLinkRegex()
 
 // TODO, when named groups are supported on mobile, we can use this instead
-// const linkRegex = /^( *)((https?:\/\/)?[\w-]+(?<tld>\.[\w-]+)+\.?(:\d+)?(\/\S*)?)\b/i
+// const linkRegex = /^( *)(https?:\/\/)?([\w-]+(?<tld>\.[\w-]+)+\.?(:\d+)?(\/\S*)?)\b/i
 // This copies the functionality of this named group
 // $FlowIssue treat this like a RegExp
 const linkRegex: RegExp = {
@@ -79,6 +96,7 @@ const linkRegex: RegExp = {
     return null
   },
 }
+
 // Only allow a small set of characters before a url
 const beforeLinkRegex = /[\s/(]/
 const inlineLinkMatch = SimpleMarkdown.inlineRegex(linkRegex)
@@ -130,6 +148,9 @@ const wordBoundryLookBehindMatch = matchFn => (source, state, lookbehind) => {
 }
 
 // Rules are defined here, the react components for these types are defined in markdown-react.js
+//
+// TODO: Type rules. In particular, use a better type for State than
+// that provided by simple-markdown, which is {[string]: any}.
 const rules = {
   blockQuote: {
     ...SimpleMarkdown.defaultRules.blockQuote,
@@ -166,12 +187,12 @@ const rules = {
   channel: {
     // Just needs to be a higher order than mentions
     match: (source, state, lookBehind) => {
-      const channelRegex = createChannelRegex(state.markdownMeta)
-      if (!channelRegex) {
+      const channelMatcher = state.channelMatcher
+      if (!channelMatcher) {
         return null
       }
 
-      const matches = SimpleMarkdown.inlineRegex(channelRegex)(source, state, lookBehind)
+      const matches = channelMatcher(source, state, lookBehind)
       // Also check that the lookBehind is not text
       if (matches && (!lookBehind || lookBehind.match(/\B$/))) {
         return matches
@@ -278,7 +299,14 @@ const rules = {
     },
     order: SimpleMarkdown.defaultRules.newline.order + 0.5,
     parse: function(capture, parse, state) {
-      return {content: capture[2], spaceInFront: capture[1]}
+      const ret = {
+        afterProtocol: capture[3],
+        content: undefined,
+        protocol: capture[2] || '',
+        spaceInFront: capture[1],
+      }
+      ret.content = ret.protocol + ret.afterProtocol
+      return ret
     },
   },
   mailto: {
@@ -300,12 +328,12 @@ const rules = {
     // We'll change most of the stuff here anyways
     ...SimpleMarkdown.defaultRules.autolink,
     match: (source, state, lookBehind) => {
-      const mentionRegex = createMentionRegex(state.markdownMeta)
-      if (!mentionRegex) {
+      const mentionMatcher = state.mentionMatcher
+      if (!mentionMatcher) {
         return null
       }
 
-      const matches = SimpleMarkdown.inlineRegex(mentionRegex)(source, state, lookBehind)
+      const matches = mentionMatcher(source, state, lookBehind)
       // Also check that the lookBehind is not text
       if (matches && (!lookBehind || lookBehind.match(/\B$/))) {
         return matches
@@ -415,7 +443,7 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: bo
     return {hasError: true}
   }
 
-  componentDidCatch(error: any) {
+  componentDidCatch(error: Error) {
     logger.error('Error rendering markdown')
     logger.debug('Error rendering markdown', error)
   }
@@ -433,18 +461,26 @@ class SimpleMarkdownComponent extends PureComponent<MarkdownProps, {hasError: bo
     let output
     try {
       parseTree = simpleMarkdownParser((this.props.children || '').trim() + '\n', {
-        disableAutoBlockNewlines: true,
+        channelMatcher: createChannelMatcher(this.props.meta),
         // This flag adds 2 new lines at the end of our input. One is necessary to parse the text as a paragraph, but the other isn't
         // So we add our own new line
+        disableAutoBlockNewlines: true,
         inline: false,
         markdownMeta: this.props.meta,
+        mentionMatcher: createMentionMatcher(this.props.meta),
       })
+
+      const state = {
+        allowFontScaling,
+        markdownMeta: this.props.meta,
+        styleOverride,
+      }
 
       output = this.props.preview
         ? previewOutput(parseTree)
         : isAllEmoji(parseTree)
-        ? bigEmojiOutput(parseTree, {allowFontScaling, markdownMeta: this.props.meta, styleOverride})
-        : reactOutput(parseTree, {allowFontScaling, markdownMeta: this.props.meta, styleOverride})
+        ? bigEmojiOutput(parseTree, state)
+        : reactOutput(parseTree, state)
     } catch (e) {
       logger.error('Error parsing markdown')
       logger.debug('Error parsing markdown', e)

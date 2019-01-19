@@ -6,7 +6,6 @@ import * as FsGen from '../../actions/fs-gen'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {namedConnect} from '../../util/container'
-import features from '../../util/feature-flags'
 import {isMobile} from '../../constants/platform'
 
 type OwnProps = {
@@ -33,7 +32,7 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-export default (features.kbfsChatIntegration && !isMobile
+export default (!isMobile
   ? namedConnect<OwnProps, _, _, _, _>(
       () => ({}),
       mapDispatchToProps,

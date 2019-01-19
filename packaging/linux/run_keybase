@@ -83,15 +83,20 @@ systemd_running() {
     # start -- it could be anything, so we treat it the same as "running". (We
     # have to `|| true` to ignore non-zero exit status errors also for that
     # reason.)
+    # In case of systems where the user manager tries to start but fails, like
+    # on AFS, make sure that at least the dbus service is running.
+    # Technically, the dbus service starts up automatically on-demand even if
+    # stopped, so don't mandate it if the user manager is in good state.
     status="$(systemctl --user is-system-running || true)"
-    if [ "$status" = "running" ] || [ "$status" = "degraded" ] ; then
+    dbus_status=$(systemctl --user is-active dbus.service || true)
+    if [ "$status" = "running" ] || { [ "$status" = "degraded" ] && [ "$dbus_status" = "active" ]; } ; then
         return 0
     elif [ -z "$status" ] ; then
         echo "WARNING: Couldn't reach the systemd user-level daemon."
         echo "Falling back to non-systemd startup."
         return 1
     else
-        echo "WARNING: Systemd reported an unexpected status: $status"
+        echo "WARNING: Systemd user manager reported status=$status and the dbus service was $dbus_status."
         echo "Falling back to non-systemd startup."
         return 1
     fi
@@ -121,8 +126,8 @@ kill_all() {
     # Remove any existing legacy mount.  This should never happen
     # because it should have already been done by post_install.sh.
     # Just in case, let the user know how to fix it.
-    echo Unmounting /keybase.  Run `sudo rmdir /keybase; sudo ln -s /opt/keybase/mount-readme /keybase; sudo chown root:root /keybase` and then run this command again.
-    exit -1
+    echo "Unmounting /keybase.  Run \`sudo rmdir /keybase; sudo ln -s /opt/keybase/mount-readme /keybase; sudo chown root:root /keybase\` and then run this command again."
+    exit 1
   fi
   if fusermount -uz $mountdir &> /dev/null ; then
     echo Unmounting $mountdir...

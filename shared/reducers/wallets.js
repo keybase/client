@@ -42,9 +42,32 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
             builtRequest: state.builtRequest.merge(Constants.makeBuiltRequest(action.payload.build)),
           })
         : state
+    case WalletsGen.openSendRequestForm:
+      if (!state.acceptedDisclaimer) {
+        return state
+      }
+      const initialBuilding = Constants.makeBuilding()
+      return state.merge({
+        building: initialBuilding.merge({
+          amount: action.payload.amount || '',
+          currency:
+            action.payload.currency || // explicitly set
+            (state.lastSentXLM && 'XLM') || // lastSentXLM override
+            (action.payload.from && Constants.getDisplayCurrencyInner(state, action.payload.from).code) || // display currency of explicitly set 'from' account
+            Constants.getDefaultDisplayCurrencyInner(state).code || // display currency of default account
+            '', // Empty string -> not loaded
+          from: action.payload.from || Types.noAccountID,
+          isRequest: !!action.payload.isRequest,
+          publicMemo: action.payload.publicMemo || new HiddenString(''),
+          recipientType: action.payload.recipientType || 'keybaseUser',
+          secretNote: action.payload.secretNote || new HiddenString(''),
+          to: action.payload.to || '',
+        }),
+        builtPayment: Constants.makeBuiltPayment(),
+        builtRequest: Constants.makeBuiltRequest(),
+      })
     case WalletsGen.abandonPayment:
     case WalletsGen.clearBuilding:
-    case WalletsGen.openSendRequestForm:
       return state.merge({building: Constants.makeBuilding()})
     case WalletsGen.clearBuiltPayment:
       return state.merge({builtPayment: Constants.makeBuiltPayment()})
@@ -83,22 +106,42 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         .setIn(['paymentOldestUnreadMap', action.payload.accountID], action.payload.oldestUnread)
     case WalletsGen.displayCurrenciesReceived:
       return state.merge({currencies: I.List(action.payload.currencies)})
-    case WalletsGen.displayCurrencyReceived:
-      // $FlowIssue thinks state is _State
-      return state.withMutations(stateMutable => {
-        if (action.payload.accountID) {
-          stateMutable.update('currencyMap', c => c.set(action.payload.accountID, action.payload.currency))
-        }
-        if (action.payload.setBuildingCurrency) {
-          const currency = state.lastSentXLM ? 'XLM' : action.payload.currency.code
-          logger.info(
-            `displayCurrencyReceived: setting currency to ${currency} because lastSentXLM was ${String(
-              state.lastSentXLM
-            )}`
-          )
-          stateMutable.update('building', b => b.merge({currency}))
-        }
+    case WalletsGen.displayCurrencyReceived: {
+      const account = Constants.getAccountInner(state, action.payload.accountID || Types.noAccountID)
+      if (account.accountID === Types.noAccountID) {
+        return state
+      }
+      return state.merge({
+        accountMap: state.accountMap.set(
+          account.accountID,
+          account.merge({displayCurrency: action.payload.currency})
+        ),
       })
+    }
+    case WalletsGen.reviewPayment:
+      return state
+        .setIn(['builtPayment', 'reviewBanners'], [])
+        .set('reviewCounter', state.reviewCounter + 1)
+        .set('reviewLastSeqno', null)
+    case WalletsGen.reviewedPaymentReceived: {
+      // paymentReviewed notifications can arrive out of order, so check their freshness.
+      const {bid, reviewID, seqno, banners, nextButton} = action.payload
+      const useable =
+        state.building.bid === bid &&
+        state.reviewCounter === reviewID &&
+        (state.reviewLastSeqno || 0) <= seqno
+      if (!useable) {
+        logger.info(`ignored stale reviewPaymentReceived`)
+        return state
+      }
+      return state.merge({
+        builtPayment: state.builtPayment.merge({
+          readyToSend: nextButton,
+          reviewBanners: banners,
+        }),
+        reviewLastSeqno: seqno,
+      })
+    }
     case WalletsGen.secretKeyReceived:
       return state.merge({
         exportedSecretKey: action.payload.secretKey,
@@ -110,6 +153,9 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         exportedSecretKeyAccountID: Types.noAccountID,
       })
     case WalletsGen.selectAccount: {
+      if (!action.payload.accountID) {
+        logger.error('Selecting empty account ID')
+      }
       const newState = state.merge({
         exportedSecretKey: new HiddenString(''),
         selectedAccount: action.payload.accountID,
@@ -192,10 +238,10 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       })
     case WalletsGen.setLastSentXLM:
       return state.merge({lastSentXLM: action.payload.lastSentXLM})
-    case WalletsGen.setReadyToSend:
+    case WalletsGen.setReadyToReview:
       return state.set(
         'builtPayment',
-        state.get('builtPayment').merge({readyToSend: action.payload.readyToSend})
+        state.get('builtPayment').merge({readyToReview: action.payload.readyToReview})
       )
     case WalletsGen.validateAccountName:
       return state.merge({
@@ -239,6 +285,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         accountName: '',
         accountNameError: '',
         accountNameValidationState: 'none',
+        builtPayment: state.get('builtPayment').merge({readyToSend: 'spinning'}),
         createNewAccountError: '',
         linkExistingAccountError: '',
         secretKey: new HiddenString(''),
@@ -276,9 +323,6 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
           })
     case WalletsGen.sentPaymentError:
       return state.merge({sentPaymentError: action.payload.error})
-    case WalletsGen.requestDetailReceived:
-      const request = Constants.requestResultToRequest(action.payload.request)
-      return request ? state.update('requests', r => r.set(request.id, request)) : state
     case WalletsGen.loadMorePayments:
       return state.paymentCursorMap.get(action.payload.accountID)
         ? state.setIn(['paymentLoadingMoreMap', action.payload.accountID], true)
@@ -298,6 +342,16 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       })
     case WalletsGen.loadedMobileOnlyMode:
       return state.setIn(['mobileOnlyMap', action.payload.accountID], action.payload.enabled)
+    case WalletsGen.inflationDestinationReceived:
+      return state.merge({
+        inflationDestination: action.payload.selected ? action.payload.selected : state.inflationDestination,
+        inflationDestinationError: action.payload.error,
+        inflationDestinations: action.payload.options
+          ? I.List(action.payload.options)
+          : state.inflationDestinations,
+      })
+    case WalletsGen.setInflationDestination:
+      return state.merge({inflationDestinationError: ''})
     case WalletsGen.rejectDisclaimer:
     case WalletsGen.didSetAccountAsDefault:
     case WalletsGen.cancelPayment:
@@ -320,8 +374,6 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.loadAccounts:
     case WalletsGen.loadWalletDisclaimer:
     case WalletsGen.setAccountAsDefault:
-    case WalletsGen.loadRequestDetail:
-    case WalletsGen.refreshPayments:
     case WalletsGen.sendPayment:
     case WalletsGen.sentPayment:
     case WalletsGen.requestPayment:
@@ -329,6 +381,8 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.loadSendAssetChoices:
     case WalletsGen.loadMobileOnlyMode:
     case WalletsGen.changeMobileOnlyMode:
+    case WalletsGen.exitFailedPayment:
+    case WalletsGen.loadInflationDestination:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

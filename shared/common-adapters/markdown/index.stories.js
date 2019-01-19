@@ -3,6 +3,7 @@ import * as I from 'immutable'
 import * as React from 'react'
 import * as ChatConstants from '../../constants/chat2'
 import * as Sb from '../../stories/storybook'
+import HiddenString from '../../util/hidden-string'
 import * as Kb from '../index'
 import {escapePath} from '../../constants/fs'
 import {stringToPath} from '../../constants/types/fs'
@@ -113,6 +114,11 @@ Include:
   https://maps.google.com?q=Goddess%20and%20the%20Baker,%20Legacy%20Tower,%20S%20Wabash%20Ave,%20Chicago,%20IL%2060603&ftid=0x880e2ca4623987cb:0x8b9a49f6050a873a&hl=en-US&gl=us
   http://abc.io
   http://cbs.io/
+  Http://cbs.io/
+  HTTP://cbs.io/
+  Https://cbs.io/
+  HTTPs://cbs.io/
+  httpS://cbs.io/
   *http://cnn.io*
   *http://fox.io/~test*
   _http://dog.io_
@@ -199,6 +205,19 @@ const mocksWithMeta = {
   'Channel Name Mention': {
     meta: mockMeta,
     text: 'Hey! I *just* posted a video of my sick jump on #general',
+  },
+  'Inline send': {
+    meta: {
+      mentionsAt: I.Set(),
+      mentionsChannel: 'none',
+      mentionsChannelName: I.Map(),
+      message: ChatConstants.makeMessageText({
+        decoratedText: new HiddenString(
+          `$>kb\${"typ":0,"payment":{"username":"chrisnojima","paymentText":"+0.001XLM@chrisnojima","result":{"resultTyp":0,"sent":"63f55e57bf53402e54b587cd035f96fb7136d0c98b46d6926e41360000000000"}}}$<kb$`
+        ),
+      }),
+    },
+    text: `$>kb\${"typ":0,"payment":{"username":"chrisnojima","paymentText":"+0.001XLM@chrisnojima","result":{"resultTyp":0,"sent":"63f55e57bf53402e54b587cd035f96fb7136d0c98b46d6926e41360000000000"}}}$<kb$`,
   },
   'User mention - Edge cases': {
     meta: {
@@ -289,7 +308,19 @@ const randomGenerated = {
   'Case 6': generateCase('case 6'),
 }
 
-export const provider = Sb.createPropProviderWithCommon({})
+export const provider = Sb.createPropProviderWithCommon({
+  PaymentPopup: p => ({}),
+  PaymentStatus: p => ({
+    allowFontScaling: true,
+    allowPopup: false,
+    errorDetail: null,
+    isSendError: false,
+    message: p.message,
+    paymentID: '123',
+    status: 'completed',
+    text: 'tada',
+  }),
+})
 
 class ShowAST extends React.Component<{text: string, meta: ?MarkdownMeta}, {visible: boolean}> {
   state = {visible: false}

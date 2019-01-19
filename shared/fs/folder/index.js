@@ -4,6 +4,7 @@ import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
+import * as Kbfs from '../common'
 import FolderHeader from '../header/container'
 import Footer from '../footer/footer'
 import {isMobile} from '../../constants/platform'
@@ -34,6 +35,8 @@ class Files extends React.PureComponent<FolderProps> {
       <Kb.Box2 direction="vertical" fullHeight={true} style={styles.container}>
         <Kb.Box2 direction="vertical" fullHeight={true}>
           <FolderHeader path={this.props.path} routePath={this.props.routePath} />
+          <Kbfs.Errs />
+          <Kb.Divider />
           {isMobile && this.props.resetParticipants.length > 0 ? (
             <Kb.ScrollView>
               <ConnectedResetBanner path={this.props.path} />

@@ -8,6 +8,7 @@ import ConnectedUsernames from '../common-adapters/usernames/remote-container'
 
 type FileUpdateProps = {|
   name: string,
+  path: FsTypes.Path,
   tlfType: FsTypes.TlfType,
   uploading: boolean,
   onClick: () => void,
@@ -99,7 +100,7 @@ const defaultNumFileOptionsShown = 3
 const FileUpdates = (props: FileUpdatesProps & FileUpdatesHocProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
     {props.updates.slice(0, props.isShowingAll ? props.updates.length : defaultNumFileOptionsShown).map(u => (
-      <FileUpdate key={u.name} {...u} />
+      <FileUpdate key={FsTypes.pathToString(u.path)} {...u} />
     ))}
     {props.updates.length > defaultNumFileOptionsShown && (
       // $FlowIssue ¯\_(ツ)_/¯
@@ -174,7 +175,7 @@ export const FilesPreview = (props: FilesPreviewProps) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  buttonText: {color: Styles.globalColors.black_60},
+  buttonText: {color: Styles.globalColors.black_50},
   fileUpdateName: Styles.platformStyles({
     isElectron: {
       wordBreak: 'break-all',
@@ -218,7 +219,7 @@ const styles = Styles.styleSheetCreate({
   },
   tlfSectionHeader: {
     backgroundColor: Styles.globalColors.black_05,
-    color: Styles.globalColors.black_40,
+    color: Styles.globalColors.black_50,
     paddingBottom: Styles.globalMargins.xtiny,
     paddingLeft: Styles.globalMargins.tiny,
     paddingTop: Styles.globalMargins.xtiny,

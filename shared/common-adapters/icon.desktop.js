@@ -38,7 +38,7 @@ class Icon extends Component<Props, void> {
       color =
         this.props.color ||
         color ||
-        (this.props.opacity ? Styles.globalColors.lightGrey : Styles.globalColors.black_40)
+        (this.props.opacity ? Styles.globalColors.lightGrey : Styles.globalColors.black_50)
       hoverColor =
         this.props.hoverColor ||
         hoverColor ||
@@ -109,6 +109,7 @@ class Icon extends Component<Props, void> {
         fontSizeHint,
         onClick && Styles.desktopStyles.clickable,
         inheritStyle,
+        this.props.colorOverride && {color: this.props.colorOverride},
         this.props.style,
       ])
 

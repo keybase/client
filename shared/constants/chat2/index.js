@@ -30,7 +30,6 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   giphySearchMap: I.Map(),
   inboxFilter: '',
   inboxHasLoaded: false,
-  isExplodingNew: true,
   isWalletsNew: true,
   messageMap: I.Map(),
   messageOrdinals: I.Map(),
@@ -51,6 +50,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   typingMap: I.Map(),
   unfurlPromptMap: I.Map(),
   unreadMap: I.Map(),
+  unsentTextMap: I.Map(),
 
   // Team Building
   ...TeamBuildingConstants.makeSubState(),
@@ -123,7 +123,7 @@ export const isUserActivelyLookingAtThisThread = (
   conversationIDKey: Types.ConversationIDKey
 ) => {
   const selectedConversationIDKey = getSelectedConversation(state)
-  const appFocused = state.config.appFocused
+
   const routePath = getPath(state.routeTree.routeState)
   let chatThreadSelected = false
   if (isMobile) {
@@ -134,7 +134,8 @@ export const isUserActivelyLookingAtThisThread = (
   }
 
   return (
-    appFocused && // app focused?
+    state.config.appFocused && // app focused?
+    state.config.userActive && // actually interacting w/ the app
     chatThreadSelected && // looking at the chat tab?
     conversationIDKey === selectedConversationIDKey // looking at the selected thread?
   )
@@ -168,18 +169,12 @@ export const waitingKeyUnboxing = (conversationIDKey: Types.ConversationIDKey) =
 export const anyChatWaitingKeys = (state: TypedState) =>
   state.waiting.counts.keySeq().some(k => k.startsWith('chat:'))
 
-// When we see that exploding messages are in the app, we set
-// seenExplodingGregorKey. Once newExplodingGregorOffset time
-// passes, we stop showing the 'NEW' tag.
-export const seenExplodingGregorKey = 'chat.seenExplodingMessages'
-export const newExplodingGregorOffset = 1000 * 3600 * 24 * 3 // 3 days in ms
-export const getIsExplodingNew = (state: TypedState) => state.chat2.get('isExplodingNew')
-export const explodingModeGregorKeyPrefix = 'exploding:'
 /**
  * Gregor key for exploding conversations
  * Used as the `category` when setting the exploding mode on a conversation
  * `body` is the number of seconds to exploding message etime
  */
+export const explodingModeGregorKeyPrefix = 'exploding:'
 export const explodingModeGregorKey = (c: Types.ConversationIDKey): string =>
   `${explodingModeGregorKeyPrefix}${c}`
 export const getConversationExplodingMode = (state: TypedState, c: Types.ConversationIDKey): number => {
@@ -228,6 +223,16 @@ export const anyToConversationMembersType = (a: any): ?RPCChatTypes.Conversation
   }
 }
 
+const successfulInlinePaymentStatuses = ['completed', 'claimable']
+export const hasSuccessfulInlinePayments = (state: TypedState, message: Types.Message) => {
+  if (message.type !== 'text' || !message.inlinePaymentIDs) {
+    return false
+  }
+  return message.inlinePaymentIDs.some(id =>
+    successfulInlinePaymentStatuses.includes(state.chat2.paymentStatusMap.get(id)?.status)
+  )
+}
+
 export const threadRoute = isMobile
   ? [chatTab, 'conversation']
   : [{props: {}, selected: chatTab}, {props: {}, selected: null}]
@@ -260,6 +265,7 @@ export {
   getMessageID,
   getRequestMessageInfo,
   getPaymentMessageInfo,
+  isPendingPaymentMessage,
   isSpecialMention,
   isVideoAttachment,
   makeChatRequestInfo,

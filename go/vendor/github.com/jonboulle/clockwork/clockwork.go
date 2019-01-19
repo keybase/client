@@ -12,7 +12,6 @@ type Clock interface {
 	Sleep(d time.Duration)
 	Now() time.Time
 	Since(t time.Time) time.Duration
-	AfterTime(t time.Time) <-chan time.Time
 }
 
 // FakeClock provides an interface for a clock which can be
@@ -64,15 +63,6 @@ func (rc *realClock) Now() time.Time {
 
 func (rc *realClock) Since(t time.Time) time.Duration {
 	return rc.Now().Sub(t)
-}
-
-func (rc *realClock) AfterTime(t time.Time) <-chan time.Time {
-	now := rc.Now()
-	var dur time.Duration
-	if t.After(now) {
-		dur = t.Sub(now)
-	}
-	return rc.After(dur)
 }
 
 type fakeClock struct {
@@ -148,27 +138,6 @@ func (fc *fakeClock) Now() time.Time {
 // Since returns the duration that has passed since the given time on the fakeClock
 func (fc *fakeClock) Since(t time.Time) time.Duration {
 	return fc.Now().Sub(t)
-}
-
-func (fc *fakeClock) AfterTime(t time.Time) <-chan time.Time {
-	fc.l.Lock()
-	defer fc.l.Unlock()
-	done := make(chan time.Time, 1)
-
-	now := fc.time
-	if !t.After(now) {
-		done <- now
-		return done
-	}
-
-	s := &sleeper{
-		until: t,
-		done:  done,
-	}
-	fc.sleepers = append(fc.sleepers, s)
-	// and notify any blockers
-	fc.blockers = notifyBlockers(fc.blockers, len(fc.sleepers))
-	return done
 }
 
 // Advance advances fakeClock to a new point in time, ensuring channels from any

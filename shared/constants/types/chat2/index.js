@@ -6,6 +6,7 @@ import * as Meta from './meta'
 import * as Message from './message'
 import * as Wallet from '../wallets'
 import * as TeamBuildingTypes from '../team-building'
+import HiddenString from '../../../util/hidden-string'
 
 export type PendingMode =
   | 'none' // no pending
@@ -52,7 +53,6 @@ export type _State = {
   inboxFilter: string, // filters 'jump to chat'
   inboxHasLoaded: boolean, // if we've ever loaded
   smallTeamsExpanded: boolean, // if we're showing all small teams
-  isExplodingNew: boolean, // controls the new-ness of exploding messages UI
   isWalletsNew: boolean, // controls new-ness of wallets in chat UI
   messageMap: I.Map<Common.ConversationIDKey, I.Map<Message.Ordinal, Message.Message>>, // messages in a thread
   messageOrdinals: I.Map<Common.ConversationIDKey, I.OrderedSet<Message.Ordinal>>, // ordered ordinals in a thread
@@ -76,6 +76,7 @@ export type _State = {
   attachmentFullscreenMessage: ?Message.Message,
   paymentConfirmInfo: ?PaymentConfirmInfo, // chat payment confirm screen data
   paymentStatusMap: I.Map<Wallet.PaymentID, Message.ChatPaymentInfo>,
+  unsentTextMap: I.Map<Common.ConversationIDKey, HiddenString>,
 } & TeamBuildingTypes.TeamBuildingSubState
 
 export type State = I.RecordOf<_State>

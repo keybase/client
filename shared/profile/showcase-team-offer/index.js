@@ -62,7 +62,7 @@ const ShowcaseTeamOfferHeader = () => (
       </Kb.Box2>
     )}
     <Kb.InfoNote containerStyle={styles.noteContainer}>
-      <Kb.Text style={styles.noteText} type="BodySmall">
+      <Kb.Text center={true} style={styles.noteText} type="BodySmall">
         Promoting a team will encourage others to ask to join. The team's description and number of members
         will be public.
       </Kb.Text>
@@ -114,15 +114,9 @@ const styles = Styles.styleSheetCreate({
     marginBottom: Styles.globalMargins.xsmall,
   },
   membershipText: Styles.platformStyles({
-    common: {
-      color: Styles.globalColors.black_40,
-    },
-    isElectron: {
-      textAlign: 'right',
-    },
-    isMobile: {
-      textAlign: 'center',
-    },
+    common: {color: Styles.globalColors.black_50},
+    isElectron: {textAlign: 'right'},
+    isMobile: {textAlign: 'center'},
   }),
   membershipTextContainer: {
     flexShrink: 1,
@@ -142,7 +136,6 @@ const styles = Styles.styleSheetCreate({
     paddingLeft: Styles.globalMargins.large,
     paddingRight: Styles.globalMargins.large,
     paddingTop: Styles.globalMargins.tiny,
-    textAlign: 'center',
   },
   teamNameContainer: {
     flexShrink: 1,

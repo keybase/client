@@ -2,7 +2,7 @@
 import {hot} from 'react-hot-loader/root'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import React, {Component} from 'react'
-import RenderRoute from '../route-tree/render-route'
+import RouterSwitcheroo from '../router-v2/switcheroo'
 import {connect} from '../util/container'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {isWindows} from '../constants/platform'
@@ -54,10 +54,12 @@ class Main extends Component<Props> {
 
   render() {
     return (
-      <RenderRoute
-        routeDef={this.props.routeDef}
-        routeState={this.props.routeState}
-        setRouteState={this.props.setRouteState}
+      <RouterSwitcheroo
+        useNewRouter={false}
+        newRoutePath={[]}
+        oldRouteDef={this.props.routeDef}
+        oldRouteState={this.props.routeState}
+        oldSetRouteState={this.props.setRouteState}
       />
     )
   }

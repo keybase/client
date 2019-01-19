@@ -33,7 +33,7 @@ go/revision
 *-fuzz.zip
 
 # Xcode
-build
+./build
 # vscode
 .vscode
 

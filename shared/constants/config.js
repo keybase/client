@@ -2,6 +2,7 @@
 import * as I from 'immutable'
 import * as Types from './types/config'
 import * as ChatConstants from './chat2'
+import flags from '../util/feature-flags'
 import {uniq} from 'lodash-es'
 import {runMode} from './platform'
 
@@ -112,6 +113,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   startupTab: null,
   startupWasFromPush: false,
   uid: '',
+  useNewRouter: flags.useNewRouter,
   userActive: true,
   username: '',
 })

@@ -22,7 +22,7 @@ const Offline = ({reachable}: Props) => {
   return (
     <Box style={containerOverlayStyle}>
       <Box style={overlayRowStyle}>
-        <Text type="BodySmallSemibold" style={textStyle}>
+        <Text center={true} type="BodySmallSemibold" style={textStyle}>
           {message}
         </Text>
       </Box>
@@ -41,10 +41,7 @@ const overlayFillStyle = {
   justifyContent: 'center',
 }
 
-const textStyle = {
-  color: globalColors.white,
-  textAlign: 'center',
-}
+const textStyle = { color: globalColors.white }
 
 const overlayRowStyle = {
   ...globalStyles.flexBoxRow,

@@ -69,29 +69,32 @@ func (o UnverifiedInboxUIItemMetadata) DeepCopy() UnverifiedInboxUIItemMetadata 
 }
 
 type UnverifiedInboxUIItem struct {
-	ConvID        string                         `codec:"convID" json:"convID"`
-	TopicType     TopicType                      `codec:"topicType" json:"topicType"`
-	Name          string                         `codec:"name" json:"name"`
-	Visibility    keybase1.TLFVisibility         `codec:"visibility" json:"visibility"`
-	Status        ConversationStatus             `codec:"status" json:"status"`
-	MembersType   ConversationMembersType        `codec:"membersType" json:"membersType"`
-	MemberStatus  ConversationMemberStatus       `codec:"memberStatus" json:"memberStatus"`
-	TeamType      TeamType                       `codec:"teamType" json:"teamType"`
-	Notifications *ConversationNotificationInfo  `codec:"notifications,omitempty" json:"notifications,omitempty"`
-	Time          gregor1.Time                   `codec:"time" json:"time"`
-	Version       ConversationVers               `codec:"version" json:"version"`
-	MaxMsgID      MessageID                      `codec:"maxMsgID" json:"maxMsgID"`
-	ReadMsgID     MessageID                      `codec:"readMsgID" json:"readMsgID"`
-	LocalMetadata *UnverifiedInboxUIItemMetadata `codec:"localMetadata,omitempty" json:"localMetadata,omitempty"`
-	FinalizeInfo  *ConversationFinalizeInfo      `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
-	Supersedes    []ConversationMetadata         `codec:"supersedes" json:"supersedes"`
-	SupersededBy  []ConversationMetadata         `codec:"supersededBy" json:"supersededBy"`
+	ConvID          string                         `codec:"convID" json:"convID"`
+	TopicType       TopicType                      `codec:"topicType" json:"topicType"`
+	IsPublic        bool                           `codec:"isPublic" json:"isPublic"`
+	Name            string                         `codec:"name" json:"name"`
+	Visibility      keybase1.TLFVisibility         `codec:"visibility" json:"visibility"`
+	Status          ConversationStatus             `codec:"status" json:"status"`
+	MembersType     ConversationMembersType        `codec:"membersType" json:"membersType"`
+	MemberStatus    ConversationMemberStatus       `codec:"memberStatus" json:"memberStatus"`
+	TeamType        TeamType                       `codec:"teamType" json:"teamType"`
+	Notifications   *ConversationNotificationInfo  `codec:"notifications,omitempty" json:"notifications,omitempty"`
+	Time            gregor1.Time                   `codec:"time" json:"time"`
+	Version         ConversationVers               `codec:"version" json:"version"`
+	MaxMsgID        MessageID                      `codec:"maxMsgID" json:"maxMsgID"`
+	MaxVisibleMsgID MessageID                      `codec:"maxVisibleMsgID" json:"maxVisibleMsgID"`
+	ReadMsgID       MessageID                      `codec:"readMsgID" json:"readMsgID"`
+	LocalMetadata   *UnverifiedInboxUIItemMetadata `codec:"localMetadata,omitempty" json:"localMetadata,omitempty"`
+	FinalizeInfo    *ConversationFinalizeInfo      `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
+	Supersedes      []ConversationMetadata         `codec:"supersedes" json:"supersedes"`
+	SupersededBy    []ConversationMetadata         `codec:"supersededBy" json:"supersededBy"`
 }
 
 func (o UnverifiedInboxUIItem) DeepCopy() UnverifiedInboxUIItem {
 	return UnverifiedInboxUIItem{
 		ConvID:       o.ConvID,
 		TopicType:    o.TopicType.DeepCopy(),
+		IsPublic:     o.IsPublic,
 		Name:         o.Name,
 		Visibility:   o.Visibility.DeepCopy(),
 		Status:       o.Status.DeepCopy(),
@@ -105,10 +108,11 @@ func (o UnverifiedInboxUIItem) DeepCopy() UnverifiedInboxUIItem {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Notifications),
-		Time:      o.Time.DeepCopy(),
-		Version:   o.Version.DeepCopy(),
-		MaxMsgID:  o.MaxMsgID.DeepCopy(),
-		ReadMsgID: o.ReadMsgID.DeepCopy(),
+		Time:            o.Time.DeepCopy(),
+		Version:         o.Version.DeepCopy(),
+		MaxMsgID:        o.MaxMsgID.DeepCopy(),
+		MaxVisibleMsgID: o.MaxVisibleMsgID.DeepCopy(),
+		ReadMsgID:       o.ReadMsgID.DeepCopy(),
 		LocalMetadata: (func(x *UnverifiedInboxUIItemMetadata) *UnverifiedInboxUIItemMetadata {
 			if x == nil {
 				return nil
@@ -181,6 +185,7 @@ func (o UnverifiedInboxUIItems) DeepCopy() UnverifiedInboxUIItems {
 type InboxUIItem struct {
 	ConvID            string                        `codec:"convID" json:"convID"`
 	TopicType         TopicType                     `codec:"topicType" json:"topicType"`
+	IsPublic          bool                          `codec:"isPublic" json:"isPublic"`
 	IsEmpty           bool                          `codec:"isEmpty" json:"isEmpty"`
 	Name              string                        `codec:"name" json:"name"`
 	Snippet           string                        `codec:"snippet" json:"snippet"`
@@ -200,6 +205,7 @@ type InboxUIItem struct {
 	CreatorInfo       *ConversationCreatorInfoLocal `codec:"creatorInfo,omitempty" json:"creatorInfo,omitempty"`
 	Version           ConversationVers              `codec:"version" json:"version"`
 	MaxMsgID          MessageID                     `codec:"maxMsgID" json:"maxMsgID"`
+	MaxVisibleMsgID   MessageID                     `codec:"maxVisibleMsgID" json:"maxVisibleMsgID"`
 	ReadMsgID         MessageID                     `codec:"readMsgID" json:"readMsgID"`
 	ConvRetention     *RetentionPolicy              `codec:"convRetention,omitempty" json:"convRetention,omitempty"`
 	TeamRetention     *RetentionPolicy              `codec:"teamRetention,omitempty" json:"teamRetention,omitempty"`
@@ -213,6 +219,7 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 	return InboxUIItem{
 		ConvID:            o.ConvID,
 		TopicType:         o.TopicType.DeepCopy(),
+		IsPublic:          o.IsPublic,
 		IsEmpty:           o.IsEmpty,
 		Name:              o.Name,
 		Snippet:           o.Snippet,
@@ -273,9 +280,10 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.CreatorInfo),
-		Version:   o.Version.DeepCopy(),
-		MaxMsgID:  o.MaxMsgID.DeepCopy(),
-		ReadMsgID: o.ReadMsgID.DeepCopy(),
+		Version:         o.Version.DeepCopy(),
+		MaxMsgID:        o.MaxMsgID.DeepCopy(),
+		MaxVisibleMsgID: o.MaxVisibleMsgID.DeepCopy(),
+		ReadMsgID:       o.ReadMsgID.DeepCopy(),
 		ConvRetention: (func(x *RetentionPolicy) *RetentionPolicy {
 			if x == nil {
 				return nil
@@ -425,6 +433,7 @@ type UIPaymentInfo struct {
 	AccountID         *stellar1.AccountID    `codec:"accountID,omitempty" json:"accountID,omitempty"`
 	AmountDescription string                 `codec:"amountDescription" json:"amountDescription"`
 	Worth             string                 `codec:"worth" json:"worth"`
+	WorthAtSendTime   string                 `codec:"worthAtSendTime" json:"worthAtSendTime"`
 	Delta             stellar1.BalanceDelta  `codec:"delta" json:"delta"`
 	Note              string                 `codec:"note" json:"note"`
 	PaymentID         stellar1.PaymentID     `codec:"paymentID" json:"paymentID"`
@@ -447,6 +456,7 @@ func (o UIPaymentInfo) DeepCopy() UIPaymentInfo {
 		})(o.AccountID),
 		AmountDescription: o.AmountDescription,
 		Worth:             o.Worth,
+		WorthAtSendTime:   o.WorthAtSendTime,
 		Delta:             o.Delta.DeepCopy(),
 		Note:              o.Note,
 		PaymentID:         o.PaymentID.DeepCopy(),
@@ -838,8 +848,9 @@ func (o UIMessage) DeepCopy() UIMessage {
 }
 
 type UIMessages struct {
-	Messages   []UIMessage   `codec:"messages" json:"messages"`
-	Pagination *UIPagination `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	Messages     []UIMessage   `codec:"messages" json:"messages"`
+	UnreadLineID *MessageID    `codec:"unreadLineID,omitempty" json:"unreadLineID,omitempty"`
+	Pagination   *UIPagination `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
 func (o UIMessages) DeepCopy() UIMessages {
@@ -855,6 +866,13 @@ func (o UIMessages) DeepCopy() UIMessages {
 			}
 			return ret
 		})(o.Messages),
+		UnreadLineID: (func(x *MessageID) *MessageID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.UnreadLineID),
 		Pagination: (func(x *UIPagination) *UIPagination {
 			if x == nil {
 				return nil
@@ -1058,10 +1076,6 @@ type ChatConfirmChannelDeleteArg struct {
 	Channel   string `codec:"channel" json:"channel"`
 }
 
-type ChatPostReadyToSendArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
-}
-
 type ChatStellarShowConfirmArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -1077,7 +1091,8 @@ type ChatStellarDataErrorArg struct {
 }
 
 type ChatStellarDoneArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
+	SessionID int  `codec:"sessionID" json:"sessionID"`
+	Canceled  bool `codec:"canceled" json:"canceled"`
 }
 
 type ChatUiInterface interface {
@@ -1095,11 +1110,10 @@ type ChatUiInterface interface {
 	ChatSearchInboxDone(context.Context, ChatSearchInboxDoneArg) error
 	ChatSearchIndexStatus(context.Context, ChatSearchIndexStatusArg) error
 	ChatConfirmChannelDelete(context.Context, ChatConfirmChannelDeleteArg) (bool, error)
-	ChatPostReadyToSend(context.Context, int) error
 	ChatStellarShowConfirm(context.Context, int) error
 	ChatStellarDataConfirm(context.Context, ChatStellarDataConfirmArg) (bool, error)
 	ChatStellarDataError(context.Context, ChatStellarDataErrorArg) (bool, error)
-	ChatStellarDone(context.Context, int) error
+	ChatStellarDone(context.Context, ChatStellarDoneArg) error
 }
 
 func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
@@ -1316,21 +1330,6 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 					return
 				},
 			},
-			"chatPostReadyToSend": {
-				MakeArg: func() interface{} {
-					var ret [1]ChatPostReadyToSendArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]ChatPostReadyToSendArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]ChatPostReadyToSendArg)(nil), args)
-						return
-					}
-					err = i.ChatPostReadyToSend(ctx, typedArgs[0].SessionID)
-					return
-				},
-			},
 			"chatStellarShowConfirm": {
 				MakeArg: func() interface{} {
 					var ret [1]ChatStellarShowConfirmArg
@@ -1387,7 +1386,7 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]ChatStellarDoneArg)(nil), args)
 						return
 					}
-					err = i.ChatStellarDone(ctx, typedArgs[0].SessionID)
+					err = i.ChatStellarDone(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -1471,12 +1470,6 @@ func (c ChatUiClient) ChatConfirmChannelDelete(ctx context.Context, __arg ChatCo
 	return
 }
 
-func (c ChatUiClient) ChatPostReadyToSend(ctx context.Context, sessionID int) (err error) {
-	__arg := ChatPostReadyToSendArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "chat.1.chatUi.chatPostReadyToSend", []interface{}{__arg}, nil)
-	return
-}
-
 func (c ChatUiClient) ChatStellarShowConfirm(ctx context.Context, sessionID int) (err error) {
 	__arg := ChatStellarShowConfirmArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "chat.1.chatUi.chatStellarShowConfirm", []interface{}{__arg}, nil)
@@ -1493,8 +1486,7 @@ func (c ChatUiClient) ChatStellarDataError(ctx context.Context, __arg ChatStella
 	return
 }
 
-func (c ChatUiClient) ChatStellarDone(ctx context.Context, sessionID int) (err error) {
-	__arg := ChatStellarDoneArg{SessionID: sessionID}
+func (c ChatUiClient) ChatStellarDone(ctx context.Context, __arg ChatStellarDoneArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.chatUi.chatStellarDone", []interface{}{__arg}, nil)
 	return
 }

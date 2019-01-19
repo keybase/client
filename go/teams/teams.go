@@ -277,6 +277,14 @@ func (t *Team) Members() (keybase1.TeamMembers, error) {
 }
 
 func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (res keybase1.ImplicitTeamDisplayName, err error) {
+	return t.implicitTeamDisplayName(ctx, false)
+}
+
+func (t *Team) ImplicitTeamDisplayNameNoConflicts(ctx context.Context) (res keybase1.ImplicitTeamDisplayName, err error) {
+	return t.implicitTeamDisplayName(ctx, true)
+}
+
+func (t *Team) implicitTeamDisplayName(ctx context.Context, skipConflicts bool) (res keybase1.ImplicitTeamDisplayName, err error) {
 	defer t.G().CTrace(ctx, "Team.ImplicitTeamDisplayName", func() error { return err })()
 
 	impName := keybase1.ImplicitTeamDisplayName{
@@ -383,10 +391,11 @@ func (t *Team) ImplicitTeamDisplayName(ctx context.Context) (res keybase1.Implic
 			return res, fmt.Errorf("unrecognized invite type in implicit team: %v", invtyp)
 		}
 	}
-
-	impName, err = GetConflictInfo(ctx, t.G(), t.ID, isFullyResolved, impName)
-	if err != nil {
-		return res, err
+	if !skipConflicts {
+		impName, err = GetConflictInfo(ctx, t.G(), t.ID, isFullyResolved, impName)
+		if err != nil {
+			return res, err
+		}
 	}
 	return impName, nil
 }

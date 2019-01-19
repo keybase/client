@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {globalColors, globalMargins} from '../../styles'
+import * as Styles from '../../styles'
 import {WebView} from '../../common-adapters'
 import {type TextViewProps} from './text-view'
 import type {WebViewInjections} from '../../common-adapters'
@@ -15,18 +15,20 @@ const TextView = ({url, onInvalidToken, onLoadingStateChange}: TextViewProps) =>
 // provides the top and bottom margin that blends with the rest of the app.
 const webviewCSS = `
 html{
-  background-color: ${globalColors.blue5};
+  background-color: ${Styles.globalColors.blue5};
   padding-top: 32; 
   padding-bottom: 32; 
   margin: 0;
 }
 body{
-  background-color: ${globalColors.white};
-  padding: ${globalMargins.medium};
+  background-color: ${Styles.globalColors.white};
+  padding: ${Styles.globalMargins.medium};
   margin: 0;
-  color: ${globalColors.black_60};
+  color: ${Styles.globalColors.black};
   font-size: 15;
   line-height: 1.6;
+  font-family: ${Styles.globalStyles.fontTerminal.fontFamily}
+}
 `
 
 const injections: WebViewInjections = {

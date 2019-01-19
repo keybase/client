@@ -111,27 +111,18 @@ func (b *Boxer) makeErrorMessage(ctx context.Context, msg chat1.MessageBoxed, er
 }
 
 func (b *Boxer) detectPermanentError(err error, tlfName string) types.UnboxingError {
-	// Banned folders are only detectable by the error string currently,
-	// hopefully we can do something better in the future.
-	if err.Error() == "Operations for this folder are temporarily throttled (error 2800)" {
-		return NewPermanentUnboxingError(err)
-	}
-
 	// Check for team not exist error that is in raw form
 	if aerr, ok := err.(libkb.AppStatusError); ok {
 		switch keybase1.StatusCode(aerr.Code) {
 		case keybase1.StatusCode_SCTeamNotFound:
 			return NewPermanentUnboxingError(err)
-		case keybase1.StatusCode_SCTeamReadError:
-			// These errors get obfuscated by the server on purpose. Just mark this as permanent error
-			// since it likely means the team is in bad shape.
-			if aerr.Error() == "You are not a member of this team (error 2623)" {
-				return NewPermanentUnboxingError(err)
-			}
-			return NewTransientUnboxingError(err)
 		}
 	}
-
+	// All team read errors get marked as transient errors, since we are going to make them rekey errors
+	// later
+	if teams.IsTeamReadError(err) {
+		return NewTransientUnboxingError(err)
+	}
 	switch err := err.(type) {
 	case libkb.UserDeletedError:
 		if len(err.Msg) == 0 {

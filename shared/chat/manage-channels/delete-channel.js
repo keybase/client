@@ -6,10 +6,10 @@ import * as Styles from '../../styles'
 const PopupHeader = ({channelName}: {channelName: string}) => {
   return (
     <Kb.Box style={styles.headerContainer}>
-      <Kb.Text type="BodySemibold" style={styles.headerTextTop}>
+      <Kb.Text center={true} type="BodySemibold" style={styles.headerTextTop}>
         Are you sure you want to delete #{channelName}?
       </Kb.Text>
-      <Kb.Text type="BodySmall" style={styles.headerTextBottom}>
+      <Kb.Text center={true} type="BodySmall" style={styles.headerTextBottom}>
         All messages will be lost. This cannot be undone.
       </Kb.Text>
     </Kb.Box>
@@ -101,8 +101,8 @@ const styles = Styles.styleSheetCreate({
       paddingTop: Styles.globalMargins.large,
     },
   }),
-  headerTextBottom: {color: Styles.globalColors.black_40, textAlign: 'center'},
-  headerTextTop: {color: Styles.globalColors.black, textAlign: 'center'},
+  headerTextBottom: {color: Styles.globalColors.black_50},
+  headerTextTop: {color: Styles.globalColors.black},
   menuContainer: {width: 196},
   trashIcon: {height: 14, marginRight: Styles.globalMargins.tiny},
 })

@@ -11,6 +11,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/keybase/client/go/protocol/chat1"
 	"golang.org/x/net/context"
 )
 
@@ -28,6 +29,7 @@ type handlerTracker struct {
 	markV1         int
 	searchInboxV1  int
 	searchRegexpV1 int
+	newConvV1      int
 }
 
 func (h *handlerTracker) ListV1(context.Context, Call, io.Writer) error {
@@ -95,6 +97,11 @@ func (h *handlerTracker) SearchRegexpV1(context.Context, Call, io.Writer) error 
 	return nil
 }
 
+func (h *handlerTracker) NewConvV1(context.Context, Call, io.Writer) error {
+	h.newConvV1++
+	return nil
+}
+
 type echoResult struct {
 	Status string `json:"status"`
 }
@@ -115,7 +122,7 @@ func (c *chatEcho) GetV1(context.Context, getOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
 
-func (c *chatEcho) SendV1(context.Context, sendOptionsV1) Reply {
+func (c *chatEcho) SendV1(context.Context, sendOptionsV1, chat1.ChatUiInterface) Reply {
 	return Reply{Result: echoOK}
 }
 
@@ -131,11 +138,12 @@ func (c *chatEcho) ReactionV1(context.Context, reactionOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
 
-func (c *chatEcho) AttachV1(context.Context, attachOptionsV1) Reply {
+func (c *chatEcho) AttachV1(context.Context, attachOptionsV1, chat1.ChatUiInterface,
+	chat1.NotifyChatInterface) Reply {
 	return Reply{Result: echoOK}
 }
 
-func (c *chatEcho) DownloadV1(context.Context, downloadOptionsV1) Reply {
+func (c *chatEcho) DownloadV1(context.Context, downloadOptionsV1, chat1.ChatUiInterface) Reply {
 	return Reply{Result: echoOK}
 }
 
@@ -152,6 +160,10 @@ func (c *chatEcho) SearchInboxV1(context.Context, searchInboxOptionsV1) Reply {
 }
 
 func (c *chatEcho) SearchRegexpV1(context.Context, searchRegexpOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) NewConvV1(context.Context, newConvOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
 

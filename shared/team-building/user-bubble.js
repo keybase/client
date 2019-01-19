@@ -1,12 +1,9 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
+import {serviceIdToIconFont, serviceIdToAccentColor} from './shared'
 import type {ServiceIdWithContact} from '../constants/types/team-building'
-
-// TODO
-// * Add service icons and colors
-// * style
 
 export type Props = {
   username: string,
@@ -22,7 +19,12 @@ const KeybaseUserBubble = (props: Props) => (
 )
 
 const GeneralServiceBubble = (props: Props) => (
-  <Kb.Box2 className="user" direction="horizontal" style={styles.generalService} />
+  <Kb.Icon
+    style={styles.generalService}
+    fontSize={bubbleSize}
+    type={serviceIdToIconFont(props.service)}
+    colorOverride={serviceIdToAccentColor(props.service)}
+  />
 )
 
 const RemoveBubble = ({onRemove, prettyName}: {onRemove: () => void, prettyName: string}) => (
@@ -38,17 +40,61 @@ const RemoveBubble = ({onRemove, prettyName}: {onRemove: () => void, prettyName:
   </Kb.WithTooltip>
 )
 
-const UserBubble = (props: Props) => {
-  const HoverComponent = Kb.HoverHoc(
-    () =>
-      props.service === 'keybase' ? <KeybaseUserBubble {...props} /> : <GeneralServiceBubble {...props} />,
-    () => <RemoveBubble prettyName={props.prettyName} onRemove={props.onRemove} />
-  )
+type SwapOnClickProps = Kb.PropsWithTimer<{
+  children: React.Node,
+  clickedLayerComponent: React.AbstractComponent<{||}>,
+  clickedLayerTimeout: number,
+  containerStyle?: Styles.StylesCrossPlatform,
+}>
 
-  return <HoverComponent containerStyle={styles.container} />
+class _SwapOnClick extends React.PureComponent<SwapOnClickProps, {showClickedLayer: boolean}> {
+  state = {showClickedLayer: false}
+  _onClick = () => {
+    if (!this.state.showClickedLayer) {
+      this.setState({showClickedLayer: true})
+      if (this.props.clickedLayerTimeout) {
+        this.props.setTimeout(() => this.setState({showClickedLayer: false}), this.props.clickedLayerTimeout)
+      }
+    }
+  }
+
+  render() {
+    const ClickedLayerComponent = this.props.clickedLayerComponent
+    return (
+      <Kb.ClickableBox onClick={this._onClick} style={this.props.containerStyle}>
+        {this.state.showClickedLayer ? <ClickedLayerComponent /> : this.props.children}
+      </Kb.ClickableBox>
+    )
+  }
+}
+const SwapOnClick = Kb.HOCTimers(_SwapOnClick)
+
+function SwapOnClickHoc<A>(
+  Component: React.AbstractComponent<{}, A>,
+  OtherComponent: React.AbstractComponent<{}, A>
+): React.AbstractComponent<{containerStyle?: Styles.StylesCrossPlatform}> {
+  return ({containerStyle}) => (
+    <SwapOnClick
+      containerStyle={containerStyle}
+      clickedLayerTimeout={5e3}
+      clickedLayerComponent={OtherComponent}
+    >
+      <Component />
+    </SwapOnClick>
+  )
 }
 
-// TODO update mobile bubble size
+const UserBubble = (props: Props) => {
+  const NormalComponent = () =>
+    props.service === 'keybase' ? <KeybaseUserBubble {...props} /> : <GeneralServiceBubble {...props} />
+  const AlternateComponent = () => <RemoveBubble prettyName={props.prettyName} onRemove={props.onRemove} />
+  const Component = Styles.isMobile
+    ? SwapOnClickHoc(NormalComponent, AlternateComponent)
+    : Kb.HoverHoc(NormalComponent, AlternateComponent)
+
+  return <Component containerStyle={styles.container} />
+}
+
 const bubbleSize = 32
 
 const styles = Styles.styleSheetCreate({
@@ -61,16 +107,17 @@ const styles = Styles.styleSheetCreate({
 
   container: Styles.platformStyles({
     common: {
+      marginBottom: Styles.globalMargins.xtiny,
       marginLeft: Styles.globalMargins.tiny,
+      marginTop: Styles.globalMargins.xtiny,
     },
   }),
 
-  generalService: {
-    backgroundColor: 'grey',
-    borderRadius: 100,
-    height: bubbleSize,
-    width: bubbleSize,
-  },
+  generalService: Styles.platformStyles({
+    isElectron: {
+      lineHeight: '35px',
+    },
+  }),
 
   remove: Styles.platformStyles({
     common: {
@@ -84,9 +131,15 @@ const styles = Styles.styleSheetCreate({
     },
   }),
 
-  removeBubbleTextAlignCenter: {
-    textAlign: 'center',
-  },
+  removeBubbleTextAlignCenter: Styles.platformStyles({
+    isElectron: {
+      textAlign: 'center',
+    },
+    isMobile: {
+      alignItems: 'center',
+      flex: 1,
+    },
+  }),
 
   removeIcon: Styles.platformStyles({
     isElectron: {

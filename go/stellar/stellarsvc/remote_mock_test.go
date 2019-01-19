@@ -515,6 +515,10 @@ func (r *RemoteClientMock) SetInflationDestination(ctx context.Context, signedTx
 	return r.Backend.SetInflationDestination(ctx, r.Tc, signedTx)
 }
 
+func (r *RemoteClientMock) GetInflationDestinations(ctx context.Context) (ret []stellar1.PredefinedInflationDestination, err error) {
+	return r.Backend.GetInflationDestinations(ctx, r.Tc)
+}
+
 var _ remote.Remoter = (*RemoteClientMock)(nil)
 
 const (
@@ -668,21 +672,25 @@ func (r *BackendMock) SubmitPayment(ctx context.Context, tc *TestContext, post s
 		return stellar1.PaymentResult{}, fmt.Errorf("could not get self UV: %v", err)
 	}
 	summary := stellar1.NewPaymentSummaryWithDirect(stellar1.PaymentSummaryDirect{
-		KbTxID:          kbTxID,
-		TxID:            stellar1.TransactionID(txIDPrecalc),
-		TxStatus:        stellar1.TransactionStatus_SUCCESS,
-		FromStellar:     extract.From,
-		From:            caller,
-		FromDeviceID:    post.FromDeviceID,
-		ToStellar:       extract.To,
-		To:              post.To,
-		Amount:          extract.Amount,
-		Asset:           extract.Asset,
-		DisplayAmount:   &post.DisplayAmount,
-		DisplayCurrency: &post.DisplayCurrency,
-		NoteB64:         post.NoteB64,
-		Ctime:           stellar1.ToTimeMs(time.Now()),
-		Rtime:           stellar1.ToTimeMs(time.Now()),
+		KbTxID:              kbTxID,
+		TxID:                stellar1.TransactionID(txIDPrecalc),
+		TxStatus:            stellar1.TransactionStatus_SUCCESS,
+		FromStellar:         extract.From,
+		From:                caller,
+		FromDeviceID:        post.FromDeviceID,
+		FromDisplayAmount:   "123.23",
+		FromDisplayCurrency: "USD",
+		ToDisplayAmount:     "18.50",
+		ToDisplayCurrency:   "JPY",
+		ToStellar:           extract.To,
+		To:                  post.To,
+		Amount:              extract.Amount,
+		Asset:               extract.Asset,
+		DisplayAmount:       &post.DisplayAmount,
+		DisplayCurrency:     &post.DisplayCurrency,
+		NoteB64:             post.NoteB64,
+		Ctime:               stellar1.ToTimeMs(time.Now()),
+		Rtime:               stellar1.ToTimeMs(time.Now()),
 	})
 
 	memo, memoType := extractMemo(unpackedTx.Tx)
@@ -1170,6 +1178,11 @@ func (r *BackendMock) SetInflationDestination(ctx context.Context, tc *TestConte
 
 	tc.T.Logf("BackendMock set inflation destination of %q to %q", accountID, account.inflationDest)
 	return nil
+}
+
+func (r *BackendMock) GetInflationDestinations(ctx context.Context, tc *TestContext) ([]stellar1.PredefinedInflationDestination, error) {
+	// Call into real server for integration testing.
+	return remote.GetInflationDestinations(ctx, tc.G)
 }
 
 // Friendbot sends someone XLM

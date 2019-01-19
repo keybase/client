@@ -52,7 +52,7 @@ const styles = Styles.styleSheetCreate({
     marginLeft: Styles.globalMargins.xtiny,
     marginRight: 0,
   },
-  buttonText: {color: Styles.globalColors.black_60},
+  buttonText: {color: Styles.globalColors.black_50},
   containerButton: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxColumn,

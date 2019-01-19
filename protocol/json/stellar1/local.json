@@ -165,7 +165,7 @@
         },
         {
           "type": "string",
-          "name": "worthCurrency"
+          "name": "worthAtSendTime"
         },
         {
           "type": "string",
@@ -328,7 +328,7 @@
         },
         {
           "type": "string",
-          "name": "worthCurrency"
+          "name": "worthAtSendTime"
         },
         {
           "type": "string",
@@ -668,42 +668,34 @@
       ]
     },
     {
-      "type": "enum",
-      "name": "InflationDestinationType",
-      "symbols": [
-        "SELF_1",
-        "ACCOUNTID_2",
-        "LUMENAUT_3"
-      ]
+      "type": "record",
+      "name": "InflationDestinationTag",
+      "fields": [],
+      "typedef": "string"
     },
     {
-      "type": "variant",
-      "name": "InflationDestination",
-      "switch": {
-        "type": "InflationDestinationType",
-        "name": "typ"
-      },
-      "cases": [
+      "type": "record",
+      "name": "PredefinedInflationDestination",
+      "fields": [
         {
-          "label": {
-            "name": "SELF",
-            "def": false
-          },
-          "body": null
+          "type": "InflationDestinationTag",
+          "name": "tag"
         },
         {
-          "label": {
-            "name": "ACCOUNTID",
-            "def": false
-          },
-          "body": "AccountID"
+          "type": "string",
+          "name": "name"
         },
         {
-          "label": {
-            "name": "LUMENAUT",
-            "def": false
-          },
-          "body": null
+          "type": "boolean",
+          "name": "recommended"
+        },
+        {
+          "type": "AccountID",
+          "name": "accountID"
+        },
+        {
+          "type": "string",
+          "name": "url"
         }
       ]
     },
@@ -719,8 +711,15 @@
           "name": "destination"
         },
         {
-          "type": "string",
-          "name": "comment"
+          "type": [
+            null,
+            "PredefinedInflationDestination"
+          ],
+          "name": "knownDestination"
+        },
+        {
+          "type": "boolean",
+          "name": "self"
         }
       ]
     },
@@ -1320,6 +1319,10 @@
           "type": "int"
         },
         {
+          "name": "reviewID",
+          "type": "int"
+        },
+        {
           "name": "bid",
           "type": "BuildPaymentID"
         }
@@ -1538,6 +1541,18 @@
       ],
       "response": "RelayClaimResult"
     },
+    "getPredefinedInflationDestinationsLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "PredefinedInflationDestination"
+      }
+    },
     "setInflationDestinationLocal": {
       "request": [
         {
@@ -1550,7 +1565,7 @@
         },
         {
           "name": "destination",
-          "type": "InflationDestination"
+          "type": "AccountID"
         }
       ],
       "response": null

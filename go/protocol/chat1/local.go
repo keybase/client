@@ -2981,8 +2981,9 @@ func (o NonblockFetchRes) DeepCopy() NonblockFetchRes {
 }
 
 type ThreadView struct {
-	Messages   []MessageUnboxed `codec:"messages" json:"messages"`
-	Pagination *Pagination      `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	Messages     []MessageUnboxed `codec:"messages" json:"messages"`
+	UnreadLineID *MessageID       `codec:"unreadLineID,omitempty" json:"unreadLineID,omitempty"`
+	Pagination   *Pagination      `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
 func (o ThreadView) DeepCopy() ThreadView {
@@ -2998,6 +2999,13 @@ func (o ThreadView) DeepCopy() ThreadView {
 			}
 			return ret
 		})(o.Messages),
+		UnreadLineID: (func(x *MessageID) *MessageID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.UnreadLineID),
 		Pagination: (func(x *Pagination) *Pagination {
 			if x == nil {
 				return nil
@@ -3168,27 +3176,27 @@ func (e GetThreadNonblockPgMode) String() string {
 	return ""
 }
 
-type GetInboxLocalRes struct {
-	ConversationsUnverified []Conversation                `codec:"conversationsUnverified" json:"conversationsUnverified"`
-	Pagination              *Pagination                   `codec:"pagination,omitempty" json:"pagination,omitempty"`
-	Offline                 bool                          `codec:"offline" json:"offline"`
-	RateLimits              []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
-	IdentifyFailures        []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
+type GetInboxUILocalRes struct {
+	ConversationsRemote []UnverifiedInboxUIItem       `codec:"conversationsRemote" json:"conversationsRemote"`
+	Pagination          *Pagination                   `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	Offline             bool                          `codec:"offline" json:"offline"`
+	RateLimits          []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
+	IdentifyFailures    []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
 
-func (o GetInboxLocalRes) DeepCopy() GetInboxLocalRes {
-	return GetInboxLocalRes{
-		ConversationsUnverified: (func(x []Conversation) []Conversation {
+func (o GetInboxUILocalRes) DeepCopy() GetInboxUILocalRes {
+	return GetInboxUILocalRes{
+		ConversationsRemote: (func(x []UnverifiedInboxUIItem) []UnverifiedInboxUIItem {
 			if x == nil {
 				return nil
 			}
-			ret := make([]Conversation, len(x))
+			ret := make([]UnverifiedInboxUIItem, len(x))
 			for i, v := range x {
 				vCopy := v.DeepCopy()
 				ret[i] = vCopy
 			}
 			return ret
-		})(o.ConversationsUnverified),
+		})(o.ConversationsRemote),
 		Pagination: (func(x *Pagination) *Pagination {
 			if x == nil {
 				return nil
@@ -3224,12 +3232,20 @@ func (o GetInboxLocalRes) DeepCopy() GetInboxLocalRes {
 
 type NameQuery struct {
 	Name        string                  `codec:"name" json:"name"`
+	TlfID       *TLFID                  `codec:"tlfID,omitempty" json:"tlfID,omitempty"`
 	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
 }
 
 func (o NameQuery) DeepCopy() NameQuery {
 	return NameQuery{
-		Name:        o.Name,
+		Name: o.Name,
+		TlfID: (func(x *TLFID) *TLFID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.TlfID),
 		MembersType: o.MembersType.DeepCopy(),
 	}
 }
@@ -4598,6 +4614,12 @@ type GetThreadNonblockArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
+type GetInboxUILocalArg struct {
+	Query            *GetInboxLocalQuery          `codec:"query,omitempty" json:"query,omitempty"`
+	Pagination       *Pagination                  `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+}
+
 type GetInboxAndUnboxLocalArg struct {
 	Query            *GetInboxLocalQuery          `codec:"query,omitempty" json:"query,omitempty"`
 	Pagination       *Pagination                  `codec:"pagination,omitempty" json:"pagination,omitempty"`
@@ -4629,6 +4651,7 @@ type GenerateOutboxIDArg struct {
 }
 
 type PostLocalNonblockArg struct {
+	SessionID        int                          `codec:"sessionID" json:"sessionID"`
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Msg              MessagePlaintext             `codec:"msg" json:"msg"`
 	ClientPrev       MessageID                    `codec:"clientPrev" json:"clientPrev"`
@@ -4775,29 +4798,10 @@ type PostFileAttachmentLocalArg struct {
 	Arg       PostFileAttachmentArg `codec:"arg" json:"arg"`
 }
 
-type PostFileAttachmentMessageLocalNonblockArg struct {
-	SessionID         int                          `codec:"sessionID" json:"sessionID"`
-	ConvID            ConversationID               `codec:"convID" json:"convID"`
-	TlfName           string                       `codec:"tlfName" json:"tlfName"`
-	Visibility        keybase1.TLFVisibility       `codec:"visibility" json:"visibility"`
-	OutboxID          *OutboxID                    `codec:"outboxID,omitempty" json:"outboxID,omitempty"`
-	ClientPrev        MessageID                    `codec:"clientPrev" json:"clientPrev"`
-	Filename          string                       `codec:"filename" json:"filename"`
-	Title             string                       `codec:"title" json:"title"`
-	Metadata          []byte                       `codec:"metadata" json:"metadata"`
-	EphemeralLifetime *gregor1.DurationSec         `codec:"ephemeralLifetime,omitempty" json:"ephemeralLifetime,omitempty"`
-	IdentifyBehavior  keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
-}
-
-type PostFileAttachmentUploadLocalNonblockArg struct {
-	SessionID        int                          `codec:"sessionID" json:"sessionID"`
-	ConvID           ConversationID               `codec:"convID" json:"convID"`
-	OutboxID         OutboxID                     `codec:"outboxID" json:"outboxID"`
-	Filename         string                       `codec:"filename" json:"filename"`
-	Title            string                       `codec:"title" json:"title"`
-	Metadata         []byte                       `codec:"metadata" json:"metadata"`
-	CallerPreview    *MakePreviewRes              `codec:"callerPreview,omitempty" json:"callerPreview,omitempty"`
-	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+type PostFileAttachmentLocalNonblockArg struct {
+	SessionID  int                   `codec:"sessionID" json:"sessionID"`
+	Arg        PostFileAttachmentArg `codec:"arg" json:"arg"`
+	ClientPrev MessageID             `codec:"clientPrev" json:"clientPrev"`
 }
 
 type GetNextAttachmentMessageLocalArg struct {
@@ -5000,6 +5004,7 @@ type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetCachedThread(context.Context, GetCachedThreadArg) (GetThreadLocalRes, error)
 	GetThreadNonblock(context.Context, GetThreadNonblockArg) (NonblockFetchRes, error)
+	GetInboxUILocal(context.Context, GetInboxUILocalArg) (GetInboxUILocalRes, error)
 	GetInboxAndUnboxLocal(context.Context, GetInboxAndUnboxLocalArg) (GetInboxAndUnboxLocalRes, error)
 	GetInboxAndUnboxUILocal(context.Context, GetInboxAndUnboxUILocalArg) (GetInboxAndUnboxUILocalRes, error)
 	GetInboxNonblockLocal(context.Context, GetInboxNonblockLocalArg) (NonblockFetchRes, error)
@@ -5023,8 +5028,7 @@ type LocalInterface interface {
 	GetConversationForCLILocal(context.Context, GetConversationForCLILocalQuery) (GetConversationForCLILocalRes, error)
 	GetMessagesLocal(context.Context, GetMessagesLocalArg) (GetMessagesLocalRes, error)
 	PostFileAttachmentLocal(context.Context, PostFileAttachmentLocalArg) (PostLocalRes, error)
-	PostFileAttachmentMessageLocalNonblock(context.Context, PostFileAttachmentMessageLocalNonblockArg) (PostLocalNonblockRes, error)
-	PostFileAttachmentUploadLocalNonblock(context.Context, PostFileAttachmentUploadLocalNonblockArg) error
+	PostFileAttachmentLocalNonblock(context.Context, PostFileAttachmentLocalNonblockArg) (PostLocalNonblockRes, error)
 	GetNextAttachmentMessageLocal(context.Context, GetNextAttachmentMessageLocalArg) (GetNextAttachmentMessageLocalRes, error)
 	DownloadAttachmentLocal(context.Context, DownloadAttachmentLocalArg) (DownloadAttachmentLocalRes, error)
 	DownloadFileAttachmentLocal(context.Context, DownloadFileAttachmentLocalArg) (DownloadFileAttachmentLocalRes, error)
@@ -5108,6 +5112,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetThreadNonblock(ctx, typedArgs[0])
+					return
+				},
+			},
+			"getInboxUILocal": {
+				MakeArg: func() interface{} {
+					var ret [1]GetInboxUILocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetInboxUILocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetInboxUILocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetInboxUILocal(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -5451,33 +5470,18 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
-			"postFileAttachmentMessageLocalNonblock": {
+			"postFileAttachmentLocalNonblock": {
 				MakeArg: func() interface{} {
-					var ret [1]PostFileAttachmentMessageLocalNonblockArg
+					var ret [1]PostFileAttachmentLocalNonblockArg
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]PostFileAttachmentMessageLocalNonblockArg)
+					typedArgs, ok := args.(*[1]PostFileAttachmentLocalNonblockArg)
 					if !ok {
-						err = rpc.NewTypeError((*[1]PostFileAttachmentMessageLocalNonblockArg)(nil), args)
+						err = rpc.NewTypeError((*[1]PostFileAttachmentLocalNonblockArg)(nil), args)
 						return
 					}
-					ret, err = i.PostFileAttachmentMessageLocalNonblock(ctx, typedArgs[0])
-					return
-				},
-			},
-			"postFileAttachmentUploadLocalNonblock": {
-				MakeArg: func() interface{} {
-					var ret [1]PostFileAttachmentUploadLocalNonblockArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]PostFileAttachmentUploadLocalNonblockArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]PostFileAttachmentUploadLocalNonblockArg)(nil), args)
-						return
-					}
-					err = i.PostFileAttachmentUploadLocalNonblock(ctx, typedArgs[0])
+					ret, err = i.PostFileAttachmentLocalNonblock(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -6014,6 +6018,11 @@ func (c LocalClient) GetThreadNonblock(ctx context.Context, __arg GetThreadNonbl
 	return
 }
 
+func (c LocalClient) GetInboxUILocal(ctx context.Context, __arg GetInboxUILocalArg) (res GetInboxUILocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.getInboxUILocal", []interface{}{__arg}, &res)
+	return
+}
+
 func (c LocalClient) GetInboxAndUnboxLocal(ctx context.Context, __arg GetInboxAndUnboxLocalArg) (res GetInboxAndUnboxLocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.getInboxAndUnboxLocal", []interface{}{__arg}, &res)
 	return
@@ -6131,13 +6140,8 @@ func (c LocalClient) PostFileAttachmentLocal(ctx context.Context, __arg PostFile
 	return
 }
 
-func (c LocalClient) PostFileAttachmentMessageLocalNonblock(ctx context.Context, __arg PostFileAttachmentMessageLocalNonblockArg) (res PostLocalNonblockRes, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.postFileAttachmentMessageLocalNonblock", []interface{}{__arg}, &res)
-	return
-}
-
-func (c LocalClient) PostFileAttachmentUploadLocalNonblock(ctx context.Context, __arg PostFileAttachmentUploadLocalNonblockArg) (err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.postFileAttachmentUploadLocalNonblock", []interface{}{__arg}, nil)
+func (c LocalClient) PostFileAttachmentLocalNonblock(ctx context.Context, __arg PostFileAttachmentLocalNonblockArg) (res PostLocalNonblockRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.postFileAttachmentLocalNonblock", []interface{}{__arg}, &res)
 	return
 }
 

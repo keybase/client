@@ -27,6 +27,7 @@ protocol chatUi {
   record UnverifiedInboxUIItem {
     string convID;
     TopicType topicType;
+    boolean isPublic;
     string name;
     keybase1.TLFVisibility visibility;
     ConversationStatus status;
@@ -37,6 +38,7 @@ protocol chatUi {
     gregor1.Time time;
     ConversationVers version;
     MessageID maxMsgID;
+    MessageID maxVisibleMsgID;
     MessageID readMsgID;
     union { null , UnverifiedInboxUIItemMetadata } localMetadata;
 
@@ -54,6 +56,7 @@ protocol chatUi {
   record InboxUIItem {
     string convID;
     TopicType topicType;
+    boolean isPublic;
     boolean isEmpty;
     string name;
     string snippet;
@@ -73,6 +76,7 @@ protocol chatUi {
     union { null, ConversationCreatorInfoLocal } creatorInfo;
     ConversationVers version;
     MessageID maxMsgID;
+    MessageID maxVisibleMsgID;
     MessageID readMsgID;
     union { null, RetentionPolicy } convRetention;
     union { null, RetentionPolicy } teamRetention;
@@ -117,6 +121,7 @@ protocol chatUi {
     union { null, stellar1.AccountID } accountID; // "GXXXXXXX..."
     string amountDescription;                     // "1,323.1234567 XLM"
     string worth;                                 // "$123.23"
+    string worthAtSendTime;                       // "$123.23 CLP", amount in current user's display currency if this is a pure XLM tx
     stellar1.BalanceDelta delta;                  // NONE/INCREASE/DECREASE (e.g. INCREASE for "+ 1,323.1234567 XLM" amount above)
     string note;                                  // secret note
     stellar1.PaymentID paymentID;                 // opaque paymentID
@@ -201,6 +206,7 @@ protocol chatUi {
 
   record UIMessages {
     array<UIMessage> messages;
+    union { null, MessageID } unreadLineID;
     union { null, UIPagination } pagination;
   }
 
@@ -232,7 +238,6 @@ protocol chatUi {
 
   boolean chatConfirmChannelDelete(int sessionID, string channel);
 
-  void chatPostReadyToSend(int sessionID);
   // Chat Stellar send confirm screen UI
   record UIChatPayment {
     string username;
@@ -249,5 +254,5 @@ protocol chatUi {
   void chatStellarShowConfirm(int sessionID);
   boolean chatStellarDataConfirm(int sessionID, UIChatPaymentSummary summary);
   boolean chatStellarDataError(int sessionID, string message);
-  void chatStellarDone(int sessionID);
+  void chatStellarDone(int sessionID, boolean canceled);
 }

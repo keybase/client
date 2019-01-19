@@ -4,7 +4,6 @@
 package stellar1
 
 import (
-	"errors"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
 )
@@ -184,7 +183,7 @@ type PaymentLocal struct {
 	AmountDescription   string          `codec:"amountDescription" json:"amountDescription"`
 	Delta               BalanceDelta    `codec:"delta" json:"delta"`
 	Worth               string          `codec:"worth" json:"worth"`
-	WorthCurrency       string          `codec:"worthCurrency" json:"worthCurrency"`
+	WorthAtSendTime     string          `codec:"worthAtSendTime" json:"worthAtSendTime"`
 	IssuerDescription   string          `codec:"issuerDescription" json:"issuerDescription"`
 	IssuerAccountID     *AccountID      `codec:"issuerAccountID,omitempty" json:"issuerAccountID,omitempty"`
 	FromType            ParticipantType `codec:"fromType" json:"fromType"`
@@ -213,7 +212,7 @@ func (o PaymentLocal) DeepCopy() PaymentLocal {
 		AmountDescription: o.AmountDescription,
 		Delta:             o.Delta.DeepCopy(),
 		Worth:             o.Worth,
-		WorthCurrency:     o.WorthCurrency,
+		WorthAtSendTime:   o.WorthAtSendTime,
 		IssuerDescription: o.IssuerDescription,
 		IssuerAccountID: (func(x *AccountID) *AccountID {
 			if x == nil {
@@ -315,7 +314,7 @@ type PaymentDetailsLocal struct {
 	AmountDescription   string          `codec:"amountDescription" json:"amountDescription"`
 	Delta               BalanceDelta    `codec:"delta" json:"delta"`
 	Worth               string          `codec:"worth" json:"worth"`
-	WorthCurrency       string          `codec:"worthCurrency" json:"worthCurrency"`
+	WorthAtSendTime     string          `codec:"worthAtSendTime" json:"worthAtSendTime"`
 	IssuerDescription   string          `codec:"issuerDescription" json:"issuerDescription"`
 	IssuerAccountID     *AccountID      `codec:"issuerAccountID,omitempty" json:"issuerAccountID,omitempty"`
 	FromType            ParticipantType `codec:"fromType" json:"fromType"`
@@ -347,7 +346,7 @@ func (o PaymentDetailsLocal) DeepCopy() PaymentDetailsLocal {
 		AmountDescription: o.AmountDescription,
 		Delta:             o.Delta.DeepCopy(),
 		Worth:             o.Worth,
-		WorthCurrency:     o.WorthCurrency,
+		WorthAtSendTime:   o.WorthAtSendTime,
 		IssuerDescription: o.IssuerDescription,
 		IssuerAccountID: (func(x *AccountID) *AccountID {
 			if x == nil {
@@ -572,96 +571,34 @@ func (o RequestDetailsLocal) DeepCopy() RequestDetailsLocal {
 	}
 }
 
-type InflationDestinationType int
+type InflationDestinationTag string
 
-const (
-	InflationDestinationType_SELF      InflationDestinationType = 1
-	InflationDestinationType_ACCOUNTID InflationDestinationType = 2
-	InflationDestinationType_LUMENAUT  InflationDestinationType = 3
-)
-
-func (o InflationDestinationType) DeepCopy() InflationDestinationType { return o }
-
-var InflationDestinationTypeMap = map[string]InflationDestinationType{
-	"SELF":      1,
-	"ACCOUNTID": 2,
-	"LUMENAUT":  3,
+func (o InflationDestinationTag) DeepCopy() InflationDestinationTag {
+	return o
 }
 
-var InflationDestinationTypeRevMap = map[InflationDestinationType]string{
-	1: "SELF",
-	2: "ACCOUNTID",
-	3: "LUMENAUT",
+type PredefinedInflationDestination struct {
+	Tag         InflationDestinationTag `codec:"tag" json:"tag"`
+	Name        string                  `codec:"name" json:"name"`
+	Recommended bool                    `codec:"recommended" json:"recommended"`
+	AccountID   AccountID               `codec:"accountID" json:"accountID"`
+	Url         string                  `codec:"url" json:"url"`
 }
 
-func (e InflationDestinationType) String() string {
-	if v, ok := InflationDestinationTypeRevMap[e]; ok {
-		return v
-	}
-	return ""
-}
-
-type InflationDestination struct {
-	Typ__       InflationDestinationType `codec:"typ" json:"typ"`
-	Accountid__ *AccountID               `codec:"accountid,omitempty" json:"accountid,omitempty"`
-}
-
-func (o *InflationDestination) Typ() (ret InflationDestinationType, err error) {
-	switch o.Typ__ {
-	case InflationDestinationType_ACCOUNTID:
-		if o.Accountid__ == nil {
-			err = errors.New("unexpected nil value for Accountid__")
-			return ret, err
-		}
-	}
-	return o.Typ__, nil
-}
-
-func (o InflationDestination) Accountid() (res AccountID) {
-	if o.Typ__ != InflationDestinationType_ACCOUNTID {
-		panic("wrong case accessed")
-	}
-	if o.Accountid__ == nil {
-		return
-	}
-	return *o.Accountid__
-}
-
-func NewInflationDestinationWithSelf() InflationDestination {
-	return InflationDestination{
-		Typ__: InflationDestinationType_SELF,
-	}
-}
-
-func NewInflationDestinationWithAccountid(v AccountID) InflationDestination {
-	return InflationDestination{
-		Typ__:       InflationDestinationType_ACCOUNTID,
-		Accountid__: &v,
-	}
-}
-
-func NewInflationDestinationWithLumenaut() InflationDestination {
-	return InflationDestination{
-		Typ__: InflationDestinationType_LUMENAUT,
-	}
-}
-
-func (o InflationDestination) DeepCopy() InflationDestination {
-	return InflationDestination{
-		Typ__: o.Typ__.DeepCopy(),
-		Accountid__: (func(x *AccountID) *AccountID {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.Accountid__),
+func (o PredefinedInflationDestination) DeepCopy() PredefinedInflationDestination {
+	return PredefinedInflationDestination{
+		Tag:         o.Tag.DeepCopy(),
+		Name:        o.Name,
+		Recommended: o.Recommended,
+		AccountID:   o.AccountID.DeepCopy(),
+		Url:         o.Url,
 	}
 }
 
 type InflationDestinationResultLocal struct {
-	Destination *AccountID `codec:"destination,omitempty" json:"destination,omitempty"`
-	Comment     string     `codec:"comment" json:"comment"`
+	Destination      *AccountID                      `codec:"destination,omitempty" json:"destination,omitempty"`
+	KnownDestination *PredefinedInflationDestination `codec:"knownDestination,omitempty" json:"knownDestination,omitempty"`
+	Self             bool                            `codec:"self" json:"self"`
 }
 
 func (o InflationDestinationResultLocal) DeepCopy() InflationDestinationResultLocal {
@@ -673,7 +610,14 @@ func (o InflationDestinationResultLocal) DeepCopy() InflationDestinationResultLo
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Destination),
-		Comment: o.Comment,
+		KnownDestination: (func(x *PredefinedInflationDestination) *PredefinedInflationDestination {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.KnownDestination),
+		Self: o.Self,
 	}
 }
 
@@ -985,6 +929,7 @@ type BuildPaymentLocalArg struct {
 
 type ReviewPaymentLocalArg struct {
 	SessionID int            `codec:"sessionID" json:"sessionID"`
+	ReviewID  int            `codec:"reviewID" json:"reviewID"`
 	Bid       BuildPaymentID `codec:"bid" json:"bid"`
 }
 
@@ -1053,10 +998,14 @@ type CancelPaymentLocalArg struct {
 	PaymentID PaymentID `codec:"paymentID" json:"paymentID"`
 }
 
+type GetPredefinedInflationDestinationsLocalArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type SetInflationDestinationLocalArg struct {
-	SessionID   int                  `codec:"sessionID" json:"sessionID"`
-	AccountID   AccountID            `codec:"accountID" json:"accountID"`
-	Destination InflationDestination `codec:"destination" json:"destination"`
+	SessionID   int       `codec:"sessionID" json:"sessionID"`
+	AccountID   AccountID `codec:"accountID" json:"accountID"`
+	Destination AccountID `codec:"destination" json:"destination"`
 }
 
 type GetInflationDestinationLocalArg struct {
@@ -1182,6 +1131,7 @@ type LocalInterface interface {
 	SetAccountAllDevicesLocal(context.Context, SetAccountAllDevicesLocalArg) error
 	IsAccountMobileOnlyLocal(context.Context, IsAccountMobileOnlyLocalArg) (bool, error)
 	CancelPaymentLocal(context.Context, CancelPaymentLocalArg) (RelayClaimResult, error)
+	GetPredefinedInflationDestinationsLocal(context.Context, int) ([]PredefinedInflationDestination, error)
 	SetInflationDestinationLocal(context.Context, SetInflationDestinationLocalArg) error
 	GetInflationDestinationLocal(context.Context, GetInflationDestinationLocalArg) (InflationDestinationResultLocal, error)
 	BalancesLocal(context.Context, AccountID) ([]Balance, error)
@@ -1747,6 +1697,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"getPredefinedInflationDestinationsLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]GetPredefinedInflationDestinationsLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetPredefinedInflationDestinationsLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetPredefinedInflationDestinationsLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetPredefinedInflationDestinationsLocal(ctx, typedArgs[0].SessionID)
+					return
+				},
+			},
 			"setInflationDestinationLocal": {
 				MakeArg: func() interface{} {
 					var ret [1]SetInflationDestinationLocalArg
@@ -2202,6 +2167,12 @@ func (c LocalClient) IsAccountMobileOnlyLocal(ctx context.Context, __arg IsAccou
 
 func (c LocalClient) CancelPaymentLocal(ctx context.Context, __arg CancelPaymentLocalArg) (res RelayClaimResult, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.cancelPaymentLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) GetPredefinedInflationDestinationsLocal(ctx context.Context, sessionID int) (res []PredefinedInflationDestination, err error) {
+	__arg := GetPredefinedInflationDestinationsLocalArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "stellar.1.local.getPredefinedInflationDestinationsLocal", []interface{}{__arg}, &res)
 	return
 }
 

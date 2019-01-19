@@ -42,7 +42,7 @@ func (rc *DNSChecker) CheckStatus(m libkb.MetaContext, h libkb.SigHint, pcm libk
 
 type DNSServiceType struct{ libkb.BaseServiceType }
 
-func (t *DNSServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
+func (t *DNSServiceType) Key() string { return t.GetTypeName() }
 
 func (t *DNSServiceType) NormalizeUsername(s string) (string, error) {
 	if !libkb.IsValidHostname(s) {
@@ -81,8 +81,9 @@ func (t *DNSServiceType) PostInstructions(un string) *libkb.Markup {
 <strong>` + un + `</strong> OR <strong>_keybase.` + un + `</strong>:`)
 }
 
-func (t *DNSServiceType) DisplayName(un string) string { return "Dns" }
-func (t *DNSServiceType) GetTypeName() string          { return "dns" }
+func (t *DNSServiceType) DisplayName() string   { return "Dns" }
+func (t *DNSServiceType) GetTypeName() string   { return "dns" }
+func (t *DNSServiceType) PickerSubtext() string { return t.GetTypeName() }
 
 func (t *DNSServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, dn string) (warning *libkb.Markup, err error) {
 	warning = libkb.FmtMarkup(`<p>We couldn't find a DNS proof for ` + dn + ` ... <strong>yet</strong></p>

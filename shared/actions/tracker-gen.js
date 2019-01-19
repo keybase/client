@@ -1,6 +1,6 @@
 // @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define */
+/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
 
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -45,6 +45,7 @@ export const updateProof = 'tracker:updateProof'
 export const updateProofState = 'tracker:updateProofState'
 export const updateReason = 'tracker:updateReason'
 export const updateSelectedTeam = 'tracker:updateSelectedTeam'
+export const updateStellarAddress = 'tracker:updateStellarAddress'
 export const updateTrackToken = 'tracker:updateTrackToken'
 export const updateTrackers = 'tracker:updateTrackers'
 export const updateUserInfo = 'tracker:updateUserInfo'
@@ -89,6 +90,7 @@ type _UpdateProofPayload = $ReadOnly<{|remoteProof: RPCTypes.RemoteProof, linkCh
 type _UpdateProofStatePayload = $ReadOnly<{|username: string|}>
 type _UpdateReasonPayload = $ReadOnly<{|username: string, reason: ?string|}>
 type _UpdateSelectedTeamPayload = $ReadOnly<{|selectedTeam: string, username: string|}>
+type _UpdateStellarAddressPayload = $ReadOnly<{|username: string, accountID: string, federationAddress: string, sigID: string|}>
 type _UpdateTrackTokenPayload = $ReadOnly<{|username: string, trackToken: RPCTypes.TrackToken|}>
 type _UpdateTrackersPayload = $ReadOnly<{|username: string|}>
 type _UpdateUserInfoPayload = $ReadOnly<{|userCard: RPCTypes.UserCard, username: string|}>
@@ -133,6 +135,7 @@ export const createUpdateProof = (payload: _UpdateProofPayload) => ({payload, ty
 export const createUpdateProofState = (payload: _UpdateProofStatePayload) => ({payload, type: updateProofState})
 export const createUpdateReason = (payload: _UpdateReasonPayload) => ({payload, type: updateReason})
 export const createUpdateSelectedTeam = (payload: _UpdateSelectedTeamPayload) => ({payload, type: updateSelectedTeam})
+export const createUpdateStellarAddress = (payload: _UpdateStellarAddressPayload) => ({payload, type: updateStellarAddress})
 export const createUpdateTrackToken = (payload: _UpdateTrackTokenPayload) => ({payload, type: updateTrackToken})
 export const createUpdateTrackers = (payload: _UpdateTrackersPayload) => ({payload, type: updateTrackers})
 export const createUpdateUserInfo = (payload: _UpdateUserInfoPayload) => ({payload, type: updateUserInfo})
@@ -177,6 +180,7 @@ export type UpdateProofPayload = {|+payload: _UpdateProofPayload, +type: 'tracke
 export type UpdateProofStatePayload = {|+payload: _UpdateProofStatePayload, +type: 'tracker:updateProofState'|}
 export type UpdateReasonPayload = {|+payload: _UpdateReasonPayload, +type: 'tracker:updateReason'|}
 export type UpdateSelectedTeamPayload = {|+payload: _UpdateSelectedTeamPayload, +type: 'tracker:updateSelectedTeam'|}
+export type UpdateStellarAddressPayload = {|+payload: _UpdateStellarAddressPayload, +type: 'tracker:updateStellarAddress'|}
 export type UpdateTrackTokenPayload = {|+payload: _UpdateTrackTokenPayload, +type: 'tracker:updateTrackToken'|}
 export type UpdateTrackersPayload = {|+payload: _UpdateTrackersPayload, +type: 'tracker:updateTrackers'|}
 export type UpdateUserInfoPayload = {|+payload: _UpdateUserInfoPayload, +type: 'tracker:updateUserInfo'|}
@@ -223,6 +227,7 @@ export type Actions =
   | UpdateProofStatePayload
   | UpdateReasonPayload
   | UpdateSelectedTeamPayload
+  | UpdateStellarAddressPayload
   | UpdateTrackTokenPayload
   | UpdateTrackersPayload
   | UpdateUserInfoPayload

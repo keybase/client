@@ -68,9 +68,9 @@ const mapStateToPropsStellarPublicKey = state => {
   const build = state.wallets.building
   const built = build.isRequest ? state.wallets.builtRequest : state.wallets.builtPayment
 
-  const curPath = RouteTree.getPath(state.routeTree.routeState, Constants.rootWalletTab).last()
+  const curPath = RouteTree.getPath(state.routeTree.routeState, [Constants.rootWalletTab]).last()
   // looking at the form now, but wasn't before
-  if (curPath === 'sendReceiveForm' && curPath !== lastPath) {
+  if (curPath === Constants.sendRequestFormRouteKey && curPath !== lastPath) {
     keyCounter++
   }
 
@@ -88,8 +88,8 @@ const mapDispatchToPropsStellarPublicKey = dispatch => ({
     dispatch(WalletsGen.createSetBuildingTo({to}))
   },
   onScanQRCode: isMobile ? () => dispatch(RouteTreeGen.createNavigateAppend({path: ['qrScan']})) : null,
-  setReadyToSend: (readyToSend: boolean) => {
-    dispatch(WalletsGen.createSetReadyToSend({readyToSend}))
+  setReadyToReview: (readyToReview: boolean) => {
+    dispatch(WalletsGen.createSetReadyToReview({readyToReview}))
   },
 })
 

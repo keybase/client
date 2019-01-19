@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/kbtest"
@@ -18,7 +19,7 @@ import (
 func newBlankConv(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext,
 	uid gregor1.UID, ri chat1.RemoteInterface, sender types.Sender, tlfName string) chat1.Conversation {
 	return newBlankConvWithMembersType(ctx, t, tc, uid, ri, sender, tlfName,
-		chat1.ConversationMembersType_KBFS)
+		chat1.ConversationMembersType_IMPTEAMUPGRADE)
 }
 
 func newBlankConvWithMembersType(ctx context.Context, t *testing.T, tc *kbtest.ChatTestContext,
@@ -91,14 +92,19 @@ func TestSyncerConnected(t *testing.T) {
 		t.Logf("index: %d conv: %s", index, conv.GetConvID())
 	}
 	// background loader will pick up all the convs from the creates above
+	convMap := make(map[string]bool)
+	for _, c := range convs {
+		convMap[c.GetConvID().String()] = true
+	}
 	for i := 0; i < len(convs); i++ {
 		select {
 		case convID := <-list.bgConvLoads:
-			require.Equal(t, convs[i].GetConvID(), convID)
+			delete(convMap, convID.String())
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no background conv loaded")
 		}
 	}
+	require.Zero(t, len(convMap))
 
 	t.Logf("test current")
 	ri.SyncInboxFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
@@ -374,11 +380,11 @@ func TestSyncerNeverJoined(t *testing.T) {
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
 		consumeNewMsgRemote(t, listener2, chat1.MessageType_SYSTEM)
 
-		doAuthedSync := func(g *libkb.GlobalContext, syncer types.Syncer, ri chat1.RemoteInterface, uid gregor1.UID) {
-			nist, err := g.ActiveDevice.NIST(context.TODO())
+		doAuthedSync := func(ctx context.Context, g *globals.Context, syncer types.Syncer, ri chat1.RemoteInterface, uid gregor1.UID) {
+			nist, err := g.ExternalG().ActiveDevice.NIST(context.TODO())
 			require.NoError(t, err)
 			sessionToken := gregor1.SessionToken(nist.Token().String())
-			res, err := ri.SyncAll(context.TODO(), chat1.SyncAllArg{
+			res, err := ri.SyncAll(ctx, chat1.SyncAllArg{
 				Uid:     uid,
 				Session: sessionToken,
 			})
@@ -386,7 +392,8 @@ func TestSyncerNeverJoined(t *testing.T) {
 			require.NoError(t, syncer.Sync(context.TODO(), ri, uid, &res.Chat))
 		}
 
-		doAuthedSync(g1.ExternalG(), syncer1, ctc1.ri, uid1)
+		ctx := context.TODO()
+		doAuthedSync(ctx, g1, syncer1, ctc1.ri, uid1)
 		select {
 		case sres := <-listener1.inboxSynced:
 			typ, err := sres.SyncType()
@@ -394,12 +401,19 @@ func TestSyncerNeverJoined(t *testing.T) {
 			require.Equal(t, chat1.SyncInboxResType_INCREMENTAL, typ)
 			require.Len(t, sres.Incremental().Items, 2)
 			require.Equal(t, convID.String(), sres.Incremental().Items[0].Conv.ConvID)
+			require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, sres.Incremental().Items[0].Conv.MemberStatus)
 			require.Equal(t, chanID.String(), sres.Incremental().Items[1].Conv.ConvID)
+			require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, sres.Incremental().Items[1].Conv.MemberStatus)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no inbox synced received")
 		}
 
-		doAuthedSync(g2.ExternalG(), syncer2, ctc2.ri, uid2)
+		// simulate an old client that doesn't understand NEVER_JOINED
+		userAgent := libkb.UserAgent
+		libkb.UserAgent = "old:ua:2.12.1"
+		ctx = Context(context.TODO(), g1, keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
+		libkb.UserAgent = userAgent // reset user agent for future tests.
+		doAuthedSync(ctx, g2, syncer2, ctc2.ri, uid2)
 		select {
 		case sres := <-listener2.inboxSynced:
 			typ, err := sres.SyncType()
@@ -407,6 +421,19 @@ func TestSyncerNeverJoined(t *testing.T) {
 			require.Equal(t, chat1.SyncInboxResType_INCREMENTAL, typ)
 			require.Len(t, sres.Incremental().Items, 1)
 			require.Equal(t, convID.String(), sres.Incremental().Items[0].Conv.ConvID)
+			require.Equal(t, chat1.ConversationMemberStatus_ACTIVE, sres.Incremental().Items[0].Conv.MemberStatus)
+		case <-time.After(20 * time.Second):
+			require.Fail(t, "no inbox synced received")
+		}
+
+		// New clients get a CLEAR here.
+		ctx = context.TODO()
+		doAuthedSync(ctx, g2, syncer2, ctc2.ri, uid2)
+		select {
+		case sres := <-listener2.inboxSynced:
+			typ, err := sres.SyncType()
+			require.NoError(t, err)
+			require.Equal(t, chat1.SyncInboxResType_CLEAR, typ)
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no inbox synced received")
 		}
@@ -424,7 +451,7 @@ func TestSyncerMembersTypeChanged(t *testing.T) {
 	syncer.isConnected = true
 	uid := gregor1.UID(u.User.GetUID().ToBytes())
 
-	conv := newConv(ctx, t, tc, uid, ri, sender, u.Username)
+	conv := newBlankConvWithMembersType(ctx, t, tc, uid, ri, sender, u.Username, chat1.ConversationMembersType_KBFS)
 	t.Logf("convID: %s", conv.GetConvID())
 	convID := conv.GetConvID()
 

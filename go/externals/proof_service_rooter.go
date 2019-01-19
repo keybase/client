@@ -41,7 +41,7 @@ func (rc *RooterChecker) CheckStatus(mctx libkb.MetaContext, h libkb.SigHint, _ 
 
 type RooterServiceType struct{ libkb.BaseServiceType }
 
-func (t *RooterServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
+func (t *RooterServiceType) Key() string { return t.GetTypeName() }
 
 var rooterUsernameRegexp = regexp.MustCompile(`^(?i:[a-z0-9_]{1,20})$`)
 
@@ -70,8 +70,9 @@ func (t *RooterServiceType) PostInstructions(un string) *libkb.Markup {
 	return libkb.FmtMarkup(`Please toot the following, and don't delete it:`)
 }
 
-func (t *RooterServiceType) DisplayName(un string) string { return "Rooter" }
-func (t *RooterServiceType) GetTypeName() string          { return "rooter" }
+func (t *RooterServiceType) DisplayName() string   { return "Rooter" }
+func (t *RooterServiceType) GetTypeName() string   { return "rooter" }
+func (t *RooterServiceType) PickerSubtext() string { return "" }
 func (t *RooterServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *libkb.Markup, err error) {
 	return t.BaseRecheckProofPosting(tryNumber, status)
 }

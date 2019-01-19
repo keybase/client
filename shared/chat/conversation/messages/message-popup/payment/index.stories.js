@@ -9,6 +9,8 @@ const receiveIcon = 'receiving'
 const sendIcon = 'sending'
 
 const commonProps = {
+  approxWorth: '',
+  bottomLine: '',
   cancelButtonLabel: '',
   loading: false,
   onCancel: null,
@@ -17,6 +19,7 @@ const commonProps = {
   onSeeDetails: null,
   position: 'bottom left',
   senderDeviceName: 'iPhone 6',
+  status: 'completed',
   timestamp: 'Yesterday 8:11 PM',
   visible: true,
 }
@@ -29,7 +32,6 @@ const theyRequestProps = {
   amountNominal: '$34',
   balanceChange: '',
   balanceChangeColor: '',
-  bottomLine: '',
   icon: receiveIcon,
   sender: 'kamel',
   topLine: 'requested Lumens worth',
@@ -41,7 +43,6 @@ const youReceiveProps = {
   amountNominal: '$1',
   balanceChange: '+5.0200803 XLM',
   balanceChangeColor: S.globalColors.green,
-  bottomLine: '',
   icon: receiveIcon,
   onSeeDetails,
   sender: 'kamel',
@@ -54,7 +55,7 @@ const youRequestProps = {
   amountNominal: '$34',
   balanceChange: '',
   balanceChangeColor: '',
-  bottomLine: '',
+  cancelButtonLabel: 'Cancel request',
   icon: receiveIcon,
   onCancel,
   sender: 'cecileb',
@@ -66,8 +67,7 @@ const youSendProps = {
   ...commonProps,
   amountNominal: '$1',
   balanceChange: '-170.6827309 XLM',
-  balanceChangeColor: S.globalColors.red,
-  bottomLine: '',
+  balanceChangeColor: S.globalColors.black_75,
   icon: sendIcon,
   onSeeDetails,
   sender: 'cecileb',
@@ -81,6 +81,7 @@ const youRequestBTCProps = {
   balanceChange: '',
   balanceChangeColor: '',
   bottomLine: 'stronghold.com',
+  cancelButtonLabel: 'Cancel request',
   icon: receiveIcon,
   onCancel,
   sender: 'cecileb',
@@ -105,8 +106,21 @@ const youSendBTCProps = {
   ...commonProps,
   amountNominal: '1 BTC',
   balanceChange: '-1 BTC',
-  balanceChangeColor: S.globalColors.red,
+  balanceChangeColor: S.globalColors.black_75,
   bottomLine: 'stronghold.com',
+  icon: sendIcon,
+  onSeeDetails,
+  sender: 'cecileb',
+  topLine: 'you sent',
+  txVerb: 'sent',
+}
+
+const youSendXLMProps = {
+  ...commonProps,
+  amountNominal: '1 XLM',
+  approxWorth: '$901.23 USD',
+  balanceChange: '-1 XLM',
+  balanceChangeColor: S.globalColors.black_75,
   icon: sendIcon,
   onSeeDetails,
   sender: 'cecileb',
@@ -119,12 +133,21 @@ const loadingProps = {
   amountNominal: '',
   balanceChange: '',
   balanceChangeColor: '',
-  bottomLine: '',
   icon: sendIcon,
   loading: true,
   sender: '',
   topLine: '',
   txVerb: 'sent',
+}
+
+const completedProps = {
+  ...theyRequestProps,
+  status: 'completed',
+}
+
+const canceledProps = {
+  ...theyRequestProps,
+  status: 'canceled',
 }
 
 const load = () => {
@@ -136,6 +159,9 @@ const load = () => {
     .add('You request BTC', () => <PaymentPopupMoved {...youRequestBTCProps} />)
     .add('You receive BTC', () => <PaymentPopupMoved {...youReceiveBTCProps} />)
     .add('You send BTC', () => <PaymentPopupMoved {...youSendBTCProps} />)
+    .add('You send XLM', () => <PaymentPopupMoved {...youSendXLMProps} />)
+    .add('Completed request', () => <PaymentPopupMoved {...completedProps} />)
+    .add('Canceled request', () => <PaymentPopupMoved {...canceledProps} />)
     .add('Loading', () => <PaymentPopupMoved {...loadingProps} />)
 }
 

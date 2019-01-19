@@ -1,18 +1,17 @@
 // @flow
 import * as React from 'react'
+import type {StylesCrossPlatform} from '../styles/css'
 
 export type NotificationType = 'error' | 'success'
 
 export type Props = {
   children?: ?any,
-  title?: ?string,
-  onCancel?: ?() => void,
-  onBack?: ?() => void,
+  borderless?: boolean,
   notification?: ?{
     message: string | React.Node,
     type: NotificationType,
   },
-  style?: ?Object,
+  style?: StylesCrossPlatform,
   theme?: 'light' | 'dark', // defaults to light
   scrollEnabled?: boolean,
   styleBanner?: ?Object,

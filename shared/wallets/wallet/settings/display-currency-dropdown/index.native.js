@@ -11,10 +11,10 @@ const makePickerItems = (currencies: I.List<Types.Currency>) =>
 
 const Prompt = () => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.promptContainer}>
-    <Kb.Text type="BodySmallSemibold" style={styles.textAlignCenter}>
+    <Kb.Text center={true} type="BodySmallSemibold">
       Pick a display currency
     </Kb.Text>
-    <Kb.Text type="BodySmall" style={styles.textAlignCenter}>
+    <Kb.Text center={true} type="BodySmall">
       Past transactions won’t be affected by this change.
     </Kb.Text>
   </Kb.Box2>
@@ -47,7 +47,7 @@ class _DisplayCurrencyDropdown extends React.Component<Kb.PropsWithTimer<Props>,
           disabled={this.props.waiting}
           selected={
             this.props.selected.description && !this.props.waiting ? (
-              <Kb.Text type="BodyBig" style={styles.textAlignCenter}>
+              <Kb.Text center={true} type="BodyBig">
                 {this.props.selected.description}
               </Kb.Text>
             ) : (
@@ -90,12 +90,7 @@ const styles = Styles.styleSheetCreate({
     paddingLeft: Styles.globalMargins.medium,
     paddingRight: Styles.globalMargins.medium,
   },
-  textAlignCenter: {
-    textAlign: 'center',
-  },
-  toastText: {
-    color: Styles.globalColors.white,
-  },
+  toastText: {color: Styles.globalColors.white},
 })
 
 export default DisplayCurrencyDropdown

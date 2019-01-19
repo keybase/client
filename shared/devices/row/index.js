@@ -54,7 +54,7 @@ const DeviceRow = (props: Props) => {
 const styles = Styles.styleSheetCreate({
   icon: {opacity: 0.2},
   text: {
-    color: Styles.globalColors.black_40,
+    color: Styles.globalColors.black_50,
     flex: 0,
     textDecorationLine: 'line-through',
     textDecorationStyle: 'solid',

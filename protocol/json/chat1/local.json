@@ -1629,6 +1629,13 @@
         {
           "type": [
             null,
+            "MessageID"
+          ],
+          "name": "unreadLineID"
+        },
+        {
+          "type": [
+            null,
             "Pagination"
           ],
           "name": "pagination"
@@ -1752,14 +1759,14 @@
     },
     {
       "type": "record",
-      "name": "GetInboxLocalRes",
+      "name": "GetInboxUILocalRes",
       "fields": [
         {
           "type": {
             "type": "array",
-            "items": "Conversation"
+            "items": "UnverifiedInboxUIItem"
           },
-          "name": "conversationsUnverified"
+          "name": "conversationsRemote"
         },
         {
           "type": [
@@ -1795,6 +1802,13 @@
         {
           "type": "string",
           "name": "name"
+        },
+        {
+          "type": [
+            null,
+            "TLFID"
+          ],
+          "name": "tlfID"
         },
         {
           "type": "ConversationMembersType",
@@ -2861,6 +2875,29 @@
       ],
       "response": "NonblockFetchRes"
     },
+    "getInboxUILocal": {
+      "request": [
+        {
+          "name": "query",
+          "type": [
+            null,
+            "GetInboxLocalQuery"
+          ]
+        },
+        {
+          "name": "pagination",
+          "type": [
+            null,
+            "Pagination"
+          ]
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": "GetInboxUILocalRes"
+    },
     "getInboxAndUnboxLocal": {
       "request": [
         {
@@ -2968,6 +3005,10 @@
     },
     "postLocalNonblock": {
       "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
         {
           "name": "conversationID",
           "type": "ConversationID"
@@ -3460,100 +3501,22 @@
       ],
       "response": "PostLocalRes"
     },
-    "postFileAttachmentMessageLocalNonblock": {
+    "postFileAttachmentLocalNonblock": {
       "request": [
         {
           "name": "sessionID",
           "type": "int"
         },
         {
-          "name": "convID",
-          "type": "ConversationID"
-        },
-        {
-          "name": "tlfName",
-          "type": "string"
-        },
-        {
-          "name": "visibility",
-          "type": "keybase1.TLFVisibility"
-        },
-        {
-          "name": "outboxID",
-          "type": [
-            null,
-            "OutboxID"
-          ]
+          "name": "arg",
+          "type": "PostFileAttachmentArg"
         },
         {
           "name": "clientPrev",
           "type": "MessageID"
-        },
-        {
-          "name": "filename",
-          "type": "string"
-        },
-        {
-          "name": "title",
-          "type": "string"
-        },
-        {
-          "name": "metadata",
-          "type": "bytes"
-        },
-        {
-          "name": "ephemeralLifetime",
-          "type": [
-            null,
-            "gregor1.DurationSec"
-          ]
-        },
-        {
-          "name": "identifyBehavior",
-          "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
       "response": "PostLocalNonblockRes"
-    },
-    "postFileAttachmentUploadLocalNonblock": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "convID",
-          "type": "ConversationID"
-        },
-        {
-          "name": "outboxID",
-          "type": "OutboxID"
-        },
-        {
-          "name": "filename",
-          "type": "string"
-        },
-        {
-          "name": "title",
-          "type": "string"
-        },
-        {
-          "name": "metadata",
-          "type": "bytes"
-        },
-        {
-          "name": "callerPreview",
-          "type": [
-            null,
-            "MakePreviewRes"
-          ]
-        },
-        {
-          "name": "identifyBehavior",
-          "type": "keybase1.TLFIdentifyBehavior"
-        }
-      ],
-      "response": null
     },
     "getNextAttachmentMessageLocal": {
       "request": [

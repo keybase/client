@@ -357,10 +357,6 @@
       "placeholderID": "RPCChatTypes.MessageID",
       "message": "Types.MessageAttachment"
     },
-    // Update who's typing in a conversation
-    "updateTypers": {
-      "conversationToTypers": "I.Map<Types.ConversationIDKey, I.Set<string>>"
-    },
     // Tell server we're typing
     "sendTyping": {
       "conversationIDKey": "Types.ConversationIDKey",
@@ -378,6 +374,7 @@
     },
     // Navigation helpers. Nav is slightly different on mobile / desktop
     "navigateToInbox": {
+      "avoidConversationID?": "Types.ConversationIDKey",
       "findNewConversation": "boolean"
     },
     "navigateToThread": {},
@@ -439,13 +436,6 @@
     "updateConvExplodingModes": {
       "_description": "Handle an update to our conversation exploding modes.",
       "modes": "Array<{conversationIDKey: Types.ConversationIDKey, seconds: number}>"
-    },
-    "setExplodingMessagesNew": {
-      "_description": "Set whether exploding messages are a new feature or not.",
-      "new": "boolean"
-    },
-    "handleSeeingExplodingMessages": {
-      "_description": "Some things need to happen when the user interacts with the exploding messages feature. Trigger the handler that takes care of those things."
     },
     "setWalletsOld": {
       "_description": "Set that wallets in chat is not new."
@@ -544,6 +534,16 @@
     "confirmScreenResponse": {
       "_description": "User responded to the chat Stellar confirm screen",
       "accept": "boolean"
+    },
+    "setUnsentText": {
+      "_description": "Set unsent text for a conversation",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "text": "HiddenString"
+    },
+    "updateOrangeLine": {
+      "_description": "Update the orange line position for a conversation",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "Types.MessageID"
     }
   }
 }

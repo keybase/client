@@ -10,24 +10,24 @@ import {type Props} from '.'
 
 type RowProps = {|
   children: React.Node,
+  isLast?: boolean,
   onPress?: () => void,
+  containerStyle?: Styles.StylesCrossPlatform,
   style?: Styles.StylesCrossPlatform,
 |}
 
 const Row = (props: RowProps) => (
-  <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.rowContainer, props.style])}>
-    <TouchableOpacity onPress={props.onPress} style={styles.row}>
+  <Kb.Box2 direction="vertical" style={Styles.collapseStyles([styles.rowContainer, props.containerStyle])}>
+    <TouchableOpacity
+      onPress={props.onPress}
+      style={Styles.collapseStyles([styles.row, props.isLast && styles.lastRow, props.style])}
+    >
       {props.children}
     </TouchableOpacity>
   </Kb.Box2>
 )
 
 type MenuItem =
-  | {|
-      key: 'whatIsStellar',
-      onPress: () => void,
-      type: 'whatIsStellar',
-    |}
   | {|
       key: string,
       onPress: () => void,
@@ -40,32 +40,16 @@ type MenuItem =
       type: 'wallet',
     |}
 
-const renderItem = (item: MenuItem, hideMenu: () => void) => {
+const renderItem = (item: MenuItem, isLast: boolean, hideMenu: () => void) => {
   switch (item.type) {
-    case 'whatIsStellar': {
-      const onPress = () => {
-        hideMenu()
-        item.onPress()
-      }
-      return (
-        <Row key={item.key} onPress={onPress} style={styles.infoTextRow}>
-          <Kb.Box2 centerChildren={true} direction="horizontal">
-            <Kb.Icon size={16} type="iconfont-info" />
-            <Kb.Text style={styles.infoText} type="BodySemibold">
-              What is Stellar?
-            </Kb.Text>
-          </Kb.Box2>
-        </Row>
-      )
-    }
     case 'item': {
       const onPress = () => {
         hideMenu()
         item.onPress()
       }
       return (
-        <Row key={item.key} onPress={onPress}>
-          <Kb.Text type={'BodyBig'} style={{color: Styles.globalColors.blue, textAlign: 'center'}}>
+        <Row isLast={isLast} key={item.key} onPress={onPress}>
+          <Kb.Text center={true} type="BodyBig" style={{color: Styles.globalColors.blue}}>
             {item.title}
           </Kb.Text>
         </Row>
@@ -74,7 +58,7 @@ const renderItem = (item: MenuItem, hideMenu: () => void) => {
     case 'wallet':
       // No need to pass down onPress.
       return (
-        <Row key={item.key}>
+        <Row isLast={isLast} key={item.key}>
           <WalletRow accountID={item.accountID} hideMenu={hideMenu} />
         </Row>
       )
@@ -84,17 +68,17 @@ const renderItem = (item: MenuItem, hideMenu: () => void) => {
   }
 }
 
+const bottomPadding = 8
+const cancelRowHeight = 48
+const infoTextRowHeight = 48
+const rowHeight = 56
+
 export const WalletSwitcher = (props: Props) => {
   if (!props.showingMenu) {
     return null
   }
 
   const menuItems = [
-    {
-      key: 'whatIsStellar',
-      onPress: props.onWhatIsStellar,
-      type: 'whatIsStellar',
-    },
     {
       key: 'newAccount',
       onPress: props.onAddNew,
@@ -114,6 +98,16 @@ export const WalletSwitcher = (props: Props) => {
     })),
   ]
 
+  // Kind of a pain we have to calculate the height manually.
+  const dividerHeight = 2 * bottomPadding + 1
+  const cancelRowHeightWithPadding = cancelRowHeight + bottomPadding
+  const height = infoTextRowHeight + rowHeight * menuItems.length + dividerHeight + cancelRowHeightWithPadding
+
+  const whatOnPress = () => {
+    props.hideMenu()
+    props.onWhatIsStellar()
+  }
+
   return (
     <Kb.Overlay
       position="bottom center"
@@ -123,44 +117,69 @@ export const WalletSwitcher = (props: Props) => {
     >
       <Kb.Box2
         direction="vertical"
-        style={Styles.collapseStyles([styles.container, {height: 48 * menuItems.length}])}
+        style={Styles.collapseStyles([styles.container, {height}])}
         fullWidth={true}
       >
+        <Row onPress={whatOnPress} containerStyle={styles.infoTextRowContainer} style={styles.infoTextRow}>
+          <Kb.Box2 centerChildren={true} direction="horizontal">
+            <Kb.Icon size={16} type="iconfont-info" />
+            <Kb.Text style={styles.infoText} type="BodySemibold">
+              What is Stellar?
+            </Kb.Text>
+          </Kb.Box2>
+        </Row>
         <Kb.List
           items={menuItems}
-          renderItem={(index, item) => renderItem(item, props.hideMenu)}
+          renderItem={(index, item) => renderItem(item, index === menuItems.length - 1, props.hideMenu)}
           bounces={false}
         />
-        {renderItem(
-          {
-            key: 'cancel',
-            onPress: () => {},
-            title: 'Cancel',
-            type: 'item',
-          },
-          props.hideMenu
-        )}
+        <Kb.Divider style={styles.divider} />
+        <Row onPress={props.hideMenu} style={styles.cancelRow}>
+          <Kb.Text center={true} type={'BodyBig'} style={{color: Styles.globalColors.blue}}>
+            Cancel
+          </Kb.Text>
+        </Row>
       </Kb.Box2>
     </Kb.Overlay>
   )
 }
 
 const styles = Styles.styleSheetCreate({
+  cancelRow: {
+    height: cancelRowHeight,
+    marginBottom: bottomPadding,
+  },
   container: {
+    backgroundColor: Styles.globalColors.white,
     justifyContent: 'flex-end',
-    maxHeight: '50%',
+    // Leave some space for the status bar.
+    maxHeight: '95%',
+  },
+  divider: {
+    backgroundColor: Styles.globalColors.black_05,
+    marginBottom: bottomPadding,
   },
   infoText: {
+    color: Styles.globalColors.black_60,
+    fontSize: 14,
     paddingLeft: Styles.globalMargins.tiny,
   },
   infoTextRow: {
+    height: infoTextRowHeight,
+  },
+  infoTextRowContainer: {
     backgroundColor: Styles.globalColors.lightGrey,
+  },
+  lastRow: {
+    // Have this instead of a top margin on the divider to maximize
+    // the area of the scrollview.
+    marginBottom: bottomPadding,
   },
   row: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'stretch',
     borderColor: Styles.globalColors.black_10,
-    height: 48,
+    height: rowHeight,
     justifyContent: 'center',
   },
   rowContainer: {

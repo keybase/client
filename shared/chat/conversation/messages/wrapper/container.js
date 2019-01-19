@@ -33,10 +33,12 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     _you: state.config.username,
     conversationIDKey: ownProps.conversationIDKey,
     hasUnfurlPrompts: !!unfurlPrompts && !unfurlPrompts.isEmpty(),
+    isPendingPayment: Constants.isPendingPaymentMessage(state, message),
     message,
     orangeLineAbove,
     previous,
     shouldShowPopup: Constants.shouldShowPopup(state, message),
+    showCoinsIcon: Constants.hasSuccessfulInlinePayments(state, message),
   }
 }
 
@@ -141,6 +143,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     failureDescription,
     forceAsh,
     hasUnfurlPrompts: stateProps.hasUnfurlPrompts,
+    isPendingPayment: stateProps.isPendingPayment,
     isRevoked: (message.type === 'text' || message.type === 'attachment') && !!message.deviceRevokedAt,
     measure: ownProps.measure,
     message: message,
@@ -151,6 +154,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     orangeLineAbove: stateProps.orangeLineAbove,
     previous: stateProps.previous,
     shouldShowPopup: stateProps.shouldShowPopup,
+    showCoinsIcon: stateProps.showCoinsIcon,
     showSendIndicator,
     showUsername,
   }

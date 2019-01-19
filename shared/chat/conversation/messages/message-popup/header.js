@@ -31,6 +31,8 @@ const iconNameForDeviceType = Styles.isMobile
       }
     }
 
+const headerIconHeight = Styles.isMobile ? 96 : 72
+
 const MessagePopupHeader = (props: {
   author: string,
   deviceName: string,
@@ -49,13 +51,13 @@ const MessagePopupHeader = (props: {
       <Kb.Box style={Styles.globalStyles.flexBoxRow}>
         <Kb.Text
           type="BodySmall"
-          style={{color: deviceRevokedAt ? Styles.globalColors.black_40 : Styles.globalColors.green}}
+          style={{color: deviceRevokedAt ? Styles.globalColors.black_50 : Styles.globalColors.green}}
         >
           ENCRYPTED
         </Kb.Text>
         <Kb.Text
           type="BodySmall"
-          style={{color: deviceRevokedAt ? Styles.globalColors.black_40 : Styles.globalColors.green}}
+          style={{color: deviceRevokedAt ? Styles.globalColors.black_50 : Styles.globalColors.green}}
         >
           &nbsp;& SIGNED
         </Kb.Text>
@@ -102,7 +104,7 @@ const MessagePopupHeader = (props: {
 
 const styles = Styles.styleSheetCreate({
   alignItemsCenter: {alignItems: 'center'},
-  colorBlack40: {color: Styles.globalColors.black_40},
+  colorBlack40: {color: Styles.globalColors.black_50},
   headerContainer: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
@@ -111,6 +113,8 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: {
       maxWidth: 240,
+      minWidth: 200,
+      paddingTop: Styles.globalMargins.small,
     },
     isMobile: {
       paddingBottom: Styles.globalMargins.medium,
@@ -124,6 +128,7 @@ const styles = Styles.styleSheetCreate({
   },
   headerIcon: Styles.platformStyles({
     common: {
+      height: headerIconHeight,
       marginBottom: Styles.globalMargins.small,
       marginTop: Styles.globalMargins.small,
     },

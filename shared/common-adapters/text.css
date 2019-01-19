@@ -169,7 +169,7 @@
 .text_BodySecondaryLink {
   font-size: 13px;
   line-height: 17px;
-  color: rgba(0, 0, 0, 0.6);
+  color: rgba(0, 0, 0, 0.5);
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -180,7 +180,7 @@
 .text_BodySmall {
   font-size: 12px;
   line-height: 16px;
-  color: rgba(0, 0, 0, 0.4);
+  color: rgba(0, 0, 0, 0.5);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -190,7 +190,7 @@
 .text_BodySmallItalic {
   font-size: 12px;
   line-height: 16px;
-  color: rgba(0, 0, 0, 0.4);
+  color: rgba(0, 0, 0, 0.5);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -212,7 +212,7 @@
 .text_BodySmallExtrabold {
   font-size: 12px;
   line-height: 16px;
-  color: rgba(0, 0, 0, 0.4);
+  color: rgba(0, 0, 0, 0.5);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -223,7 +223,7 @@
   font-size: 12px;
   font-style: italic;
   line-height: 16px;
-  color: rgba(0, 0, 0, 0.4);
+  color: rgba(0, 0, 0, 0.5);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -255,7 +255,7 @@
 .text_BodySmallSecondaryLink {
   font-size: 12px;
   line-height: 16px;
-  color: rgba(0, 0, 0, 0.6);
+  color: rgba(0, 0, 0, 0.5);
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -266,7 +266,7 @@
 .text_BodySmallExtraboldSecondaryLink {
   font-size: 12px;
   line-height: 16px;
-  color: rgba(0, 0, 0, 0.6);
+  color: rgba(0, 0, 0, 0.5);
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -307,7 +307,7 @@
 .text_BodyTiny {
   font-size: 11px;
   line-height: 15px;
-  color: rgba(0, 0, 0, 0.4);
+  color: rgba(0, 0, 0, 0.5);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -317,7 +317,7 @@
 .text_BodyTinyBold {
   font-size: 11px;
   line-height: 15px;
-  color: rgba(0, 0, 0, 0.4);
+  color: rgba(0, 0, 0, 0.5);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -327,7 +327,7 @@
 .text_BodyTinySemibold {
   font-size: 11px;
   line-height: 15px;
-  color: rgba(0, 0, 0, 0.4);
+  color: rgba(0, 0, 0, 0.5);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -337,7 +337,7 @@
 .text_BodySmallSemibold {
   font-size: 12px;
   line-height: 16px;
-  color: rgba(0, 0, 0, 0.4);
+  color: rgba(0, 0, 0, 0.5);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: OpenSans;
@@ -384,4 +384,9 @@
   height: 17px;
   padding: 2px;
   word-wrap: break-word;
+}
+
+.text_center {
+  display: inline-block;
+  text-align: center;
 }
