@@ -75,7 +75,6 @@ class List extends PureComponent<Props<any>, void> {
         <div style={globalStyles.fillAbsolute}>
           <div style={styles.innerDiv} onScroll={this.props.onEndReached ? this._onScroll : undefined}>
             <ReactList
-              axis={'x'}
               ref={this._setListRef}
               useTranslate3d={false}
               useStaticSize={!!this.props.fixedHeight}
