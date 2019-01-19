@@ -126,7 +126,9 @@ const Username = (props: {
     >
       {props.username}
     </Kb.Text>
-    {!!props.prettyName && <Kb.Text type={Styles.isMobile ? 'Body' : 'BodySmall'}>{props.prettyName}</Kb.Text>}
+    {!!props.prettyName && (
+      <Kb.Text type={Styles.isMobile ? 'Body' : 'BodySmall'}>{props.prettyName}</Kb.Text>
+    )}
   </Kb.Box2>
 )
 
@@ -272,6 +274,9 @@ const styles = Styles.styleSheetCreate({
   },
   rowContainer: Styles.platformStyles({
     common: {
+      borderBottomColor: Styles.globalColors.black_10,
+      borderBottomWidth: 1,
+      borderStyle: 'solid',
       paddingBottom: Styles.globalMargins.tiny,
       paddingTop: Styles.globalMargins.tiny,
     },
