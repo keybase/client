@@ -1,0 +1,13 @@
+// @flow
+export type GifPreview = {
+  targetUrl: string,
+  previewUrl: string,
+  previewHeight: number,
+  previewWidth: number,
+  previewIsVideo: boolean,
+}
+
+export type Props = {
+  previews: Array<GifPreview>,
+  onClick: string => void,
+}
