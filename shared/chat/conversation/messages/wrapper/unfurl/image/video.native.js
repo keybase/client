@@ -31,20 +31,6 @@ export class Video extends React.Component<Props, State> {
     this.setState({playingVideo: !this.state.playingVideo})
   }
 
-  playVideo = () => {
-    if (this._webviewRef && this._webviewRef.current) {
-      const runJS = this._webviewRef.current.injectJavaScript
-      runJS(`togglePlay("play")`)
-    }
-  }
-
-  pauseVideo = () => {
-    if (this._webviewRef && this._webviewRef.current) {
-      const runJS = this._webviewRef.current.injectJavaScript
-      runJS(`togglePlay("pause")`)
-    }
-  }
-
   render() {
     const source = {
       uri: `${this.props.url}&autoplay=${this.props.autoPlay ? 'true' : 'false'}`,

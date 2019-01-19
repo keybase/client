@@ -25,16 +25,6 @@ export class Video extends React.Component<Props, State> {
     }
     this.setState({playingVideo: !this.state.playingVideo})
   }
-  playVideo = () => {
-    if (this._videoRef && this._videoRef.current) {
-      this._videoRef.current.play()
-    }
-  }
-  pauseVideo = () => {
-    if (this._videoRef && this._videoRef.current) {
-      this._videoRef.current.pause()
-    }
-  }
   render() {
     return (
       <Kb.Box2 direction="horizontal" style={styles.container}>
