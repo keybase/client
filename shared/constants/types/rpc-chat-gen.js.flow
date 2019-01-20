@@ -371,6 +371,9 @@ export const chatUiMessageUnboxedState = {
 
 export const chatUiUITextDecorationTyp = {
   payment: 0,
+  atmention: 1,
+  channelnamemention: 2,
+  shrug: 3,
 }
 
 export const commonAssetMetadataType = {
@@ -1121,8 +1124,12 @@ export type UIMessages = $ReadOnly<{messages?: ?Array<UIMessage>, unreadLineID?:
 export type UIPagination = $ReadOnly<{next: String, previous: String, num: Int, last: Boolean}>
 export type UIPaymentInfo = $ReadOnly<{accountID?: ?Stellar1.AccountID, amountDescription: String, worth: String, worthAtSendTime: String, delta: Stellar1.BalanceDelta, note: String, paymentID: Stellar1.PaymentID, status: Stellar1.PaymentStatus, statusDescription: String, statusDetail: String, showCancel: Boolean, fromUsername: String, toUsername: String}>
 export type UIRequestInfo = $ReadOnly<{amount: String, amountDescription: String, asset?: ?Stellar1.Asset, currency?: ?Stellar1.OutsideCurrencyCode, status: Stellar1.RequestStatus}>
-export type UITextDecoration = {typ: 0, payment: ?TextPayment}
-export type UITextDecorationTyp = 0 // PAYMENT_0
+export type UITextDecoration = {typ: 0, payment: ?TextPayment} | {typ: 1, atmention: ?String} | {typ: 2, channelnamemention: ?UIChannelNameMention} | {typ: 3}
+export type UITextDecorationTyp =
+  | 0 // PAYMENT_0
+  | 1 // ATMENTION_1
+  | 2 // CHANNELNAMEMENTION_2
+  | 3 // SHRUG_3
 
 export type Unfurl = {unfurlType: 0, generic: ?UnfurlGeneric} | {unfurlType: 1, youtube: ?UnfurlYoutube} | {unfurlType: 2, giphy: ?UnfurlGiphy}
 export type UnfurlDisplay = {unfurlType: 0, generic: ?UnfurlGenericDisplay} | {unfurlType: 1, youtube: ?UnfurlYoutubeDisplay} | {unfurlType: 2, giphy: ?UnfurlGiphyDisplay}

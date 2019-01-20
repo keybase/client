@@ -836,7 +836,10 @@
       "type": "enum",
       "name": "UITextDecorationTyp",
       "symbols": [
-        "PAYMENT_0"
+        "PAYMENT_0",
+        "ATMENTION_1",
+        "CHANNELNAMEMENTION_2",
+        "SHRUG_3"
       ]
     },
     {
@@ -853,6 +856,27 @@
             "def": false
           },
           "body": "TextPayment"
+        },
+        {
+          "label": {
+            "name": "ATMENTION",
+            "def": false
+          },
+          "body": "string"
+        },
+        {
+          "label": {
+            "name": "CHANNELNAMEMENTION",
+            "def": false
+          },
+          "body": "UIChannelNameMention"
+        },
+        {
+          "label": {
+            "name": "SHRUG",
+            "def": false
+          },
+          "body": null
         }
       ]
     },

@@ -16,9 +16,6 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
 const mapDispatchToProps = dispatch => ({})
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   isEditing: stateProps.isEditing,
-  mentionsAt: ownProps.message.mentionsAt,
-  mentionsChannel: ownProps.message.mentionsChannel,
-  mentionsChannelName: ownProps.message.mentionsChannelName,
   message: ownProps.message,
   text: ownProps.message.decoratedText
     ? ownProps.message.decoratedText.stringValue()

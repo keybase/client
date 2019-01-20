@@ -886,17 +886,26 @@ func (o UIMessages) DeepCopy() UIMessages {
 type UITextDecorationTyp int
 
 const (
-	UITextDecorationTyp_PAYMENT UITextDecorationTyp = 0
+	UITextDecorationTyp_PAYMENT            UITextDecorationTyp = 0
+	UITextDecorationTyp_ATMENTION          UITextDecorationTyp = 1
+	UITextDecorationTyp_CHANNELNAMEMENTION UITextDecorationTyp = 2
+	UITextDecorationTyp_SHRUG              UITextDecorationTyp = 3
 )
 
 func (o UITextDecorationTyp) DeepCopy() UITextDecorationTyp { return o }
 
 var UITextDecorationTypMap = map[string]UITextDecorationTyp{
-	"PAYMENT": 0,
+	"PAYMENT":            0,
+	"ATMENTION":          1,
+	"CHANNELNAMEMENTION": 2,
+	"SHRUG":              3,
 }
 
 var UITextDecorationTypRevMap = map[UITextDecorationTyp]string{
 	0: "PAYMENT",
+	1: "ATMENTION",
+	2: "CHANNELNAMEMENTION",
+	3: "SHRUG",
 }
 
 func (e UITextDecorationTyp) String() string {
@@ -907,8 +916,10 @@ func (e UITextDecorationTyp) String() string {
 }
 
 type UITextDecoration struct {
-	Typ__     UITextDecorationTyp `codec:"typ" json:"typ"`
-	Payment__ *TextPayment        `codec:"payment,omitempty" json:"payment,omitempty"`
+	Typ__                UITextDecorationTyp   `codec:"typ" json:"typ"`
+	Payment__            *TextPayment          `codec:"payment,omitempty" json:"payment,omitempty"`
+	Atmention__          *string               `codec:"atmention,omitempty" json:"atmention,omitempty"`
+	Channelnamemention__ *UIChannelNameMention `codec:"channelnamemention,omitempty" json:"channelnamemention,omitempty"`
 }
 
 func (o *UITextDecoration) Typ() (ret UITextDecorationTyp, err error) {
@@ -916,6 +927,16 @@ func (o *UITextDecoration) Typ() (ret UITextDecorationTyp, err error) {
 	case UITextDecorationTyp_PAYMENT:
 		if o.Payment__ == nil {
 			err = errors.New("unexpected nil value for Payment__")
+			return ret, err
+		}
+	case UITextDecorationTyp_ATMENTION:
+		if o.Atmention__ == nil {
+			err = errors.New("unexpected nil value for Atmention__")
+			return ret, err
+		}
+	case UITextDecorationTyp_CHANNELNAMEMENTION:
+		if o.Channelnamemention__ == nil {
+			err = errors.New("unexpected nil value for Channelnamemention__")
 			return ret, err
 		}
 	}
@@ -932,10 +953,50 @@ func (o UITextDecoration) Payment() (res TextPayment) {
 	return *o.Payment__
 }
 
+func (o UITextDecoration) Atmention() (res string) {
+	if o.Typ__ != UITextDecorationTyp_ATMENTION {
+		panic("wrong case accessed")
+	}
+	if o.Atmention__ == nil {
+		return
+	}
+	return *o.Atmention__
+}
+
+func (o UITextDecoration) Channelnamemention() (res UIChannelNameMention) {
+	if o.Typ__ != UITextDecorationTyp_CHANNELNAMEMENTION {
+		panic("wrong case accessed")
+	}
+	if o.Channelnamemention__ == nil {
+		return
+	}
+	return *o.Channelnamemention__
+}
+
 func NewUITextDecorationWithPayment(v TextPayment) UITextDecoration {
 	return UITextDecoration{
 		Typ__:     UITextDecorationTyp_PAYMENT,
 		Payment__: &v,
+	}
+}
+
+func NewUITextDecorationWithAtmention(v string) UITextDecoration {
+	return UITextDecoration{
+		Typ__:       UITextDecorationTyp_ATMENTION,
+		Atmention__: &v,
+	}
+}
+
+func NewUITextDecorationWithChannelnamemention(v UIChannelNameMention) UITextDecoration {
+	return UITextDecoration{
+		Typ__:                UITextDecorationTyp_CHANNELNAMEMENTION,
+		Channelnamemention__: &v,
+	}
+}
+
+func NewUITextDecorationWithShrug() UITextDecoration {
+	return UITextDecoration{
+		Typ__: UITextDecorationTyp_SHRUG,
 	}
 }
 
@@ -949,6 +1010,20 @@ func (o UITextDecoration) DeepCopy() UITextDecoration {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Payment__),
+		Atmention__: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Atmention__),
+		Channelnamemention__: (func(x *UIChannelNameMention) *UIChannelNameMention {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Channelnamemention__),
 	}
 }
 
