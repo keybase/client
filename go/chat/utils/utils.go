@@ -1797,44 +1797,48 @@ func DecorateWithMentions(ctx context.Context, body string, atMentions []string,
 	var added int
 	offset := 0
 	inputBody := ReplaceQuotedSubstrings(body, true)
-	atMatches := parseRegexpNames(ctx, inputBody, atMentionRegExp)
-	atMap := make(map[string]bool)
-	chanMap := make(map[string]chat1.ConversationID)
-	for _, at := range atMentions {
-		atMap[at] = true
+	if len(atMentions) > 0 || chanMention != chat1.ChannelMention_NONE {
+		atMatches := parseRegexpNames(ctx, inputBody, atMentionRegExp)
+		atMap := make(map[string]bool)
+		for _, at := range atMentions {
+			atMap[at] = true
+		}
+		for _, m := range atMatches {
+			switch m.name {
+			case "here", "channel", "everyone":
+				if chanMention == chat1.ChannelMention_NONE {
+					continue
+				}
+			default:
+				if !atMap[m.name] {
+					continue
+				}
+			}
+			body, added = DecorateBody(ctx, body, m.position[0]+offset-1, m.Len()+1,
+				chat1.NewUITextDecorationWithAtmention(m.name))
+			offset += added
+		}
 	}
-	for _, m := range atMatches {
-		switch m.name {
-		case "here", "channel", "everyone":
-			if chanMention == chat1.ChannelMention_NONE {
+	if len(channelNameMentions) > 0 {
+		inputBody = ReplaceQuotedSubstrings(body, true)
+		chanMap := make(map[string]chat1.ConversationID)
+		chanMatches := parseRegexpNames(ctx, inputBody, chanNameMentionRegExp)
+		for _, c := range channelNameMentions {
+			chanMap[c.TopicName] = c.ConvID
+		}
+		offset = 0
+		for _, c := range chanMatches {
+			convID, ok := chanMap[c.name]
+			if !ok {
 				continue
 			}
-		default:
-			if !atMap[m.name] {
-				continue
-			}
+			body, added = DecorateBody(ctx, body, c.position[0]+offset-1, c.Len()+1,
+				chat1.NewUITextDecorationWithChannelnamemention(chat1.UIChannelNameMention{
+					Name:   c.name,
+					ConvID: convID.String(),
+				}))
+			offset += added
 		}
-		body, added = DecorateBody(ctx, body, m.position[0]+offset-1, m.Len()+1,
-			chat1.NewUITextDecorationWithAtmention(m.name))
-		offset += added
-	}
-	inputBody = ReplaceQuotedSubstrings(body, true)
-	chanMatches := parseRegexpNames(ctx, inputBody, chanNameMentionRegExp)
-	for _, c := range channelNameMentions {
-		chanMap[c.TopicName] = c.ConvID
-	}
-	offset = 0
-	for _, c := range chanMatches {
-		convID, ok := chanMap[c.name]
-		if !ok {
-			continue
-		}
-		body, added = DecorateBody(ctx, body, c.position[0]+offset-1, c.Len()+1,
-			chat1.NewUITextDecorationWithChannelnamemention(chat1.UIChannelNameMention{
-				Name:   c.name,
-				ConvID: convID.String(),
-			}))
-		offset += added
 	}
 	return body
 }
