@@ -44,6 +44,10 @@ jobs:
           BABEL_PLATFORM: ReactNative
         command: yarn run react-native bundle --verbose --platform android --dev false --entry-file index.android.js --bundle-output react-native/android/app/build/intermediates/assets/releaseUnsigned/index.android.bundle --assets-dest react-native/android/app/build/intermediates/res/merged/releaseUnsigned
 
+    # HACK: We should really be doing this in the Docker image.
+    - run:
+        command: yes | $ANDROID_HOME/tools/bin/sdkmanager 'build-tools;27.0.3'
+
     # Build app
     - run:
         working_directory: shared/react-native/android
