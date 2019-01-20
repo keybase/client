@@ -17,7 +17,6 @@ export const chatUiUITextDecorationTyp = {
   payment: 0,
   atmention: 1,
   channelnamemention: 2,
-  shrug: 3,
 }
 
 export const commonAssetMetadataType = {

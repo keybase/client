@@ -1297,6 +1297,7 @@ func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, msg chat1
 
 	// escape before applying xforms
 	body = EscapeForDecorate(ctx, body)
+	body = EscapeShrugs(ctx, body)
 
 	// Payment decorations
 	body = g.StellarSender.DecorateWithPayments(ctx, body, payments)
@@ -1370,11 +1371,14 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 		})
 	case chat1.MessageUnboxedState_OUTBOX:
 		var body, title, filename string
+		var decoratedBody *string
 		var preview *chat1.MakePreviewRes
 		typ := rawMsg.Outbox().Msg.ClientHeader.MessageType
 		switch typ {
 		case chat1.MessageType_TEXT:
 			body = rawMsg.Outbox().Msg.MessageBody.Text().Body
+			decoratedBody = new(string)
+			*decoratedBody = EscapeShrugs(ctx, body)
 		case chat1.MessageType_EDIT:
 			body = rawMsg.Outbox().Msg.MessageBody.Edit().Body
 		case chat1.MessageType_ATTACHMENT:
@@ -1387,15 +1391,16 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			}
 		}
 		res = chat1.NewUIMessageWithOutbox(chat1.UIMessageOutbox{
-			State:       rawMsg.Outbox().State,
-			OutboxID:    rawMsg.Outbox().OutboxID.String(),
-			MessageType: typ,
-			Body:        body,
-			Ctime:       rawMsg.Outbox().Ctime,
-			Ordinal:     computeOutboxOrdinal(rawMsg.Outbox()),
-			Preview:     preview,
-			Title:       title,
-			Filename:    filename,
+			State:             rawMsg.Outbox().State,
+			OutboxID:          rawMsg.Outbox().OutboxID.String(),
+			MessageType:       typ,
+			Body:              body,
+			DecoratedTextBody: decoratedBody,
+			Ctime:             rawMsg.Outbox().Ctime,
+			Ordinal:           computeOutboxOrdinal(rawMsg.Outbox()),
+			Preview:           preview,
+			Title:             title,
+			Filename:          filename,
 		})
 	case chat1.MessageUnboxedState_ERROR:
 		res = chat1.NewUIMessageWithError(rawMsg.Error())
@@ -1831,6 +1836,10 @@ func DecorateWithMentions(ctx context.Context, body string, atMentions []string,
 		offset += added
 	}
 	return body
+}
+
+func EscapeShrugs(ctx context.Context, body string) string {
+	return strings.Replace(body, `¯\_(ツ)_/¯`, `¯\\\_(ツ)_/¯`, -1)
 }
 
 var startQuote = ">"

@@ -67,7 +67,7 @@ const ServiceDecoration = (props: Props) => {
         allowFontScaling={props.allowFontScaling || false}
         convID={parsed.channelnamemention.convID}
         name={parsed.channelnamemention.name}
-        style={props.styles.wrapStyle}
+        style={props.styles.linkStyle}
       />
     )
   }

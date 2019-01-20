@@ -648,15 +648,16 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 }
 
 type UIMessageOutbox struct {
-	State       OutboxState     `codec:"state" json:"state"`
-	OutboxID    string          `codec:"outboxID" json:"outboxID"`
-	MessageType MessageType     `codec:"messageType" json:"messageType"`
-	Body        string          `codec:"body" json:"body"`
-	Ctime       gregor1.Time    `codec:"ctime" json:"ctime"`
-	Ordinal     float64         `codec:"ordinal" json:"ordinal"`
-	Filename    string          `codec:"filename" json:"filename"`
-	Title       string          `codec:"title" json:"title"`
-	Preview     *MakePreviewRes `codec:"preview,omitempty" json:"preview,omitempty"`
+	State             OutboxState     `codec:"state" json:"state"`
+	OutboxID          string          `codec:"outboxID" json:"outboxID"`
+	MessageType       MessageType     `codec:"messageType" json:"messageType"`
+	Body              string          `codec:"body" json:"body"`
+	DecoratedTextBody *string         `codec:"decoratedTextBody,omitempty" json:"decoratedTextBody,omitempty"`
+	Ctime             gregor1.Time    `codec:"ctime" json:"ctime"`
+	Ordinal           float64         `codec:"ordinal" json:"ordinal"`
+	Filename          string          `codec:"filename" json:"filename"`
+	Title             string          `codec:"title" json:"title"`
+	Preview           *MakePreviewRes `codec:"preview,omitempty" json:"preview,omitempty"`
 }
 
 func (o UIMessageOutbox) DeepCopy() UIMessageOutbox {
@@ -665,10 +666,17 @@ func (o UIMessageOutbox) DeepCopy() UIMessageOutbox {
 		OutboxID:    o.OutboxID,
 		MessageType: o.MessageType.DeepCopy(),
 		Body:        o.Body,
-		Ctime:       o.Ctime.DeepCopy(),
-		Ordinal:     o.Ordinal,
-		Filename:    o.Filename,
-		Title:       o.Title,
+		DecoratedTextBody: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.DecoratedTextBody),
+		Ctime:    o.Ctime.DeepCopy(),
+		Ordinal:  o.Ordinal,
+		Filename: o.Filename,
+		Title:    o.Title,
 		Preview: (func(x *MakePreviewRes) *MakePreviewRes {
 			if x == nil {
 				return nil
@@ -889,7 +897,6 @@ const (
 	UITextDecorationTyp_PAYMENT            UITextDecorationTyp = 0
 	UITextDecorationTyp_ATMENTION          UITextDecorationTyp = 1
 	UITextDecorationTyp_CHANNELNAMEMENTION UITextDecorationTyp = 2
-	UITextDecorationTyp_SHRUG              UITextDecorationTyp = 3
 )
 
 func (o UITextDecorationTyp) DeepCopy() UITextDecorationTyp { return o }
@@ -898,14 +905,12 @@ var UITextDecorationTypMap = map[string]UITextDecorationTyp{
 	"PAYMENT":            0,
 	"ATMENTION":          1,
 	"CHANNELNAMEMENTION": 2,
-	"SHRUG":              3,
 }
 
 var UITextDecorationTypRevMap = map[UITextDecorationTyp]string{
 	0: "PAYMENT",
 	1: "ATMENTION",
 	2: "CHANNELNAMEMENTION",
-	3: "SHRUG",
 }
 
 func (e UITextDecorationTyp) String() string {
@@ -991,12 +996,6 @@ func NewUITextDecorationWithChannelnamemention(v UIChannelNameMention) UITextDec
 	return UITextDecoration{
 		Typ__:                UITextDecorationTyp_CHANNELNAMEMENTION,
 		Channelnamemention__: &v,
-	}
-}
-
-func NewUITextDecorationWithShrug() UITextDecoration {
-	return UITextDecoration{
-		Typ__: UITextDecorationTyp_SHRUG,
 	}
 }
 
