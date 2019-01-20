@@ -28,7 +28,6 @@ const mapDispatchToProps = (dispatch, {navigateAppend, navigateUp}) => ({
     dispatch(WalletsGen.createMarkAsRead({accountID, mostRecentID})),
   navigateAppend,
   navigateUp,
-  refresh: () => dispatch(WalletsGen.createLoadAccounts({reason: 'initial-load'})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => {
@@ -82,7 +81,6 @@ const mergeProps = (stateProps, dispatchProps) => {
         dispatchProps._onMarkAsRead(stateProps.accountID, mostRecentID)
       }
     },
-    refresh: dispatchProps.refresh,
     sections,
   }
 }
