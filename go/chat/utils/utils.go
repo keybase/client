@@ -1784,6 +1784,7 @@ func DecorateBody(ctx context.Context, body string, offset, length int, decorati
 	if err != nil {
 		return res, 0
 	}
+	//b64out := string(out)
 	b64out := base64.StdEncoding.EncodeToString(out)
 	strDecoration := fmt.Sprintf("%s%s%s", decorateBegin, b64out, decorateEnd)
 	added = len(strDecoration) - length

@@ -185,3 +185,27 @@ func TestGetQueryRe(t *testing.T) {
 		require.True(t, ok)
 	}
 }
+
+type decorateMentionTest struct {
+	body                string
+	atMentions          []string
+	chanMention         chat1.ChannelMention
+	channelNameMentions []chat1.ChannelNameMention
+	result              string
+}
+
+func TestDecorateMentions(t *testing.T) {
+	cases := []decorateMentionTest{
+		decorateMentionTest{
+			body:       "@mikem fix something",
+			atMentions: []string{"mikem"},
+			// {"typ":1,"atmention":"mikem"}
+			result: "$>kb$eyJ0eXAiOjEsImF0bWVudGlvbiI6Im1pa2VtIn0=$<kb$ fix something",
+		},
+	}
+	for _, c := range cases {
+		res := DecorateWithMentions(context.TODO(), c.body, c.atMentions, c.chanMention,
+			c.channelNameMentions)
+		require.Equal(t, c.result, res)
+	}
+}
