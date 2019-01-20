@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+
+	"github.com/keybase/client/go/chat/utils"
 )
 
 var txPattern = regexp.MustCompile(
@@ -33,8 +35,7 @@ type ChatTxCandidate struct {
 func FindChatTxCandidates(xs string) []ChatTxCandidate {
 	// A string that does not appear in the candidate regex so we don't get
 	// false positives from concatenations.
-	replaced := replaceQuotedSubstrings(xs)
-
+	replaced := utils.ReplaceQuotedSubstrings(xs, true)
 	allRawIndices := txPattern.FindAllStringSubmatchIndex(replaced, maxTxsPerMessage)
 	matches := make([]ChatTxCandidate, 0, len(allRawIndices))
 	for _, rawIndices := range allRawIndices {
@@ -68,27 +69,4 @@ func FindChatTxCandidates(xs string) []ChatTxCandidate {
 		}
 	}
 	return matches
-}
-
-var startQuote = ">"
-var newline = []rune("\n")
-
-func replaceQuotedSubstrings(xs string) string {
-	replacer := func(s string) string {
-		return strings.Repeat("$", len(s))
-	}
-	xs = regexp.MustCompile("((?s)```.*?```)").ReplaceAllStringFunc(xs, replacer)
-	xs = regexp.MustCompile("((?s)`.*?`)").ReplaceAllStringFunc(xs, replacer)
-
-	// Remove all quoted lines. Because we removed all codeblocks
-	// before, we only need to consider single lines.
-	var ret []string
-	for _, line := range strings.Split(xs, string(newline)) {
-		if !strings.HasPrefix(strings.TrimLeft(line, " "), startQuote) {
-			ret = append(ret, line)
-		} else {
-			ret = append(ret, replacer(line))
-		}
-	}
-	return strings.Join(ret, string(newline))
 }

@@ -1304,6 +1304,7 @@ func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, msgBody c
 	body = EscapeForDecorate(ctx, body)
 
 	body = g.StellarSender.DecorateWithPayments(ctx, body, payments)
+	body = DecorateWithEmails(ctx, body)
 	body = DecorateWithURLs(ctx, body)
 	return &body
 }
@@ -1781,8 +1782,36 @@ func DecorateBody(ctx context.Context, body string, offset, length int, decorati
 	if err != nil {
 		return res, 0
 	}
-	strDecoration := fmt.Sprintf("%s%s%s", decorateBegin, string(out), decorateEnd)
+	b64out := base64.StdEncoding.EncodeToString(out)
+	strDecoration := fmt.Sprintf("%s%s%s", decorateBegin, b64out, decorateEnd)
 	added = len(strDecoration) - length
 	res = fmt.Sprintf("%s%s%s", body[:offset], strDecoration, body[offset+length:])
 	return res, added
+}
+
+var startQuote = ">"
+var newline = []rune("\n")
+
+var replaceBlockRegex = regexp.MustCompile("((?s)```.*?```)")
+var replaceQuoteRegex = regexp.MustCompile("((?s)`.*?`)")
+
+func quoteReplacer(s string) string {
+	return strings.Repeat("$", len(s))
+}
+func ReplaceQuotedSubstrings(xs string, removeQuotes bool) string {
+
+	xs = replaceBlockRegex.ReplaceAllStringFunc(xs, quoteReplacer)
+	xs = replaceQuoteRegex.ReplaceAllStringFunc(xs, quoteReplacer)
+
+	// Remove all quoted lines. Because we removed all codeblocks
+	// before, we only need to consider single lines.
+	var ret []string
+	for _, line := range strings.Split(xs, string(newline)) {
+		if !removeQuotes || !strings.HasPrefix(strings.TrimLeft(line, " "), startQuote) {
+			ret = append(ret, line)
+		} else {
+			ret = append(ret, quoteReplacer(line))
+		}
+	}
+	return strings.Join(ret, string(newline))
 }

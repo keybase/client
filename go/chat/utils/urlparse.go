@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"regexp"
 	"strings"
 
 	"github.com/keybase/client/go/protocol/chat1"
@@ -9,10 +10,12 @@ import (
 )
 
 var urlRegex = xurls.Relaxed()
+var emailRegex = regexp.MustCompile(`(([\w-_.]*)@([\w-]+(\.[\w-]+)+))\b`)
 
 type ParsedURL struct {
 	Text     string
 	Position []int
+	Schemes  []string
 }
 
 func (p ParsedURL) Len() int {
@@ -20,28 +23,40 @@ func (p ParsedURL) Len() int {
 }
 
 func (p ParsedURL) FullURL() string {
-	if strings.Contains(p.Text, "://") {
-		return p.Text
+	for _, s := range p.Schemes {
+		if strings.Contains(p.Text, s) {
+			return p.Text
+		}
 	}
-	return "https://" + p.Text
+	return p.Schemes[0] + p.Text
 }
 
-func ParseURLs(ctx context.Context, body string) (res []ParsedURL) {
-	allIndexMatches := urlRegex.FindAllStringIndex(body, -1)
+func parseURLs(ctx context.Context, body string, schemes []string, r *regexp.Regexp) (res []ParsedURL) {
+	allIndexMatches := r.FindAllStringIndex(body, -1)
 	for _, indexMatch := range allIndexMatches {
 		hit := body[indexMatch[0]:indexMatch[1]]
 		url := ParsedURL{
 			Text:     hit,
 			Position: indexMatch,
+			Schemes:  schemes,
 		}
 		res = append(res, url)
 	}
 	return res
 }
 
-func DecorateWithURLs(ctx context.Context, body string) string {
+func ParseEmails(ctx context.Context, body string) (res []ParsedURL) {
+	return parseURLs(ctx, body, []string{"mailto:"}, emailRegex)
+}
+
+func ParseURLs(ctx context.Context, body string) (res []ParsedURL) {
+	return parseURLs(ctx, body, []string{"https://", "http://"}, urlRegex)
+}
+
+func decorateWithURLs(ctx context.Context, body string, parseFn func(context.Context, string) []ParsedURL) string {
 	var added int
-	parsed := ParseURLs(ctx, body)
+	inputBody := ReplaceQuotedSubstrings(body, false)
+	parsed := parseFn(ctx, inputBody)
 	offset := 0
 	for _, p := range parsed {
 		body, added = DecorateBody(ctx, body, p.Position[0]+offset, p.Len(),
@@ -52,4 +67,12 @@ func DecorateWithURLs(ctx context.Context, body string) string {
 		offset += added
 	}
 	return body
+}
+
+func DecorateWithURLs(ctx context.Context, body string) string {
+	return decorateWithURLs(ctx, body, ParseURLs)
+}
+
+func DecorateWithEmails(ctx context.Context, body string) string {
+	return decorateWithURLs(ctx, body, ParseEmails)
 }

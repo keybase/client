@@ -64,7 +64,7 @@ const serviceBeginDecorationTag = '\\$\\>kb\\$'
 const serviceEndDecorationTag = '\\$\\<kb\\$'
 function createServiceDecorationRegex(): ?RegExp {
   return new RegExp(
-    `^(\\S*)${serviceBeginDecorationTag}(((?!${serviceEndDecorationTag}).)*)${serviceEndDecorationTag}`
+    `^${serviceBeginDecorationTag}(((?!${serviceEndDecorationTag}).)*)${serviceEndDecorationTag}`
   )
 }
 
@@ -74,36 +74,7 @@ function channelNameToConvID(meta: ?MarkdownMeta, channel: string): ?Conversatio
   return meta && meta.mentionsChannelName && meta.mentionsChannelName.get(channel)
 }
 
-const _makeLinkRegex = () => {
-  const valid = `[:,!]*[\\w=#%~\\-_~&@+\\u00c0-\\uffff]`
-  const paranthesisPaired = `([(]${valid}+[)])`
-  const afterDomain = `(?:\\/|${paranthesisPaired}|${valid}|[.?]+[\\w/=])`
-  return new RegExp(
-    `^( *)(https?:\\/\\/)?([\\w-]+(\\.[\\w-]+)+(:\\d+)?((?:\\/|\\?[\\w=])${afterDomain}*)?)`,
-    'i'
-  )
-}
-
-const _linkRegex = _makeLinkRegex()
-
-// TODO, when named groups are supported on mobile, we can use this instead
-// const linkRegex = /^( *)(https?:\/\/)?([\w-]+(?<tld>\.[\w-]+)+\.?(:\d+)?(\/\S*)?)\b/i
-// This copies the functionality of this named group
-// $FlowIssue treat this like a RegExp
-const linkRegex: RegExp = {
-  exec: source => {
-    const result = _linkRegex.exec(source)
-    if (result) {
-      result.groups = {tld: result[4]}
-      return result
-    }
-    return null
-  },
-}
-
 // Only allow a small set of characters before a url
-const beforeLinkRegex = /[\s/(]/
-const inlineLinkMatch = SimpleMarkdown.inlineRegex(linkRegex)
 const textMatch = SimpleMarkdown.anyScopeRegex(
   new RegExp(
     // [\s\S]+? any char, at least 1 - lazy
@@ -378,8 +349,7 @@ const rules = {
     }, // high
     order: 1,
     parse: capture => ({
-      content: capture[2],
-      leading: capture[1],
+      content: capture[1],
       type: 'serviceDecoration',
     }),
   },

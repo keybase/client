@@ -5,6 +5,7 @@ import * as WalletTypes from '../../constants/types/wallets'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import PaymentStatus from '../../chat/payments/status/container'
 import Text from '../text'
+import {toByteArray} from 'base64-js'
 
 export type Props = {
   json: string,
@@ -30,7 +31,8 @@ const ServiceDecoration = (props: Props) => {
   // Parse JSON to get the type of the decoration
   let parsed: RPCChatTypes.UITextDecoration
   try {
-    parsed = JSON.parse(props.json)
+    const json = Buffer.from(toByteArray(props.json)).toString()
+    parsed = JSON.parse(json)
   } catch (e) {
     return null
   }
