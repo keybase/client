@@ -160,6 +160,81 @@ Paranthesis stuff:
   (https://keybase.io/)
 `,
   mailto: `email bob@keybase.io`,
+  // see https://spec.commonmark.org/0.28/#links
+  // test vectors start at https://spec.commonmark.org/0.28/#example-459
+  // note that we don't claim that all cases work as per commonmark.org spec
+  // our implementation relies on simple-markdown.js library,
+  // we exercise all cases here to capture current behavior and spot/catch future changes in simple-markdown.js
+  markdownLinks: `
+Here is a simple inline link:
+  [link](/uri "title")
+The title may be omitted:
+  [link](/uri)
+Both the title and the destination may be omitted:
+  [link]()
+  [link](<>)
+The destination cannot contain spaces or line breaks, even if enclosed in pointy brackets:
+  [link](/my uri)
+  [link](</my uri>)
+  [link](foo\nbar)
+  [link](<foo\nbar>)
+Parentheses inside the link destination may be escaped:
+  [link](\\(foo\\))
+Any number of parentheses are allowed without escaping, as long as they are balanced:  
+  [link](foo(and(bar)))
+However, if you have unbalanced parentheses, you need to escape or use the <...> form:  
+  [link](foo\\(and\\(bar\\))
+  [link](<foo(and(bar)>)
+Parentheses and other symbols can also be escaped, as usual in Markdown:
+  [link](foo\\)\\:)
+A link can contain fragment identifiers and queries:
+  [link](#fragment)
+  [link](http://example.com#fragment)
+  [link](http://example.com?foo=3#frag)
+Note that a backslash before a non-escapable character is just a backslash:
+  [link](foo\\bar)
+URL-escaping should be left alone inside the destination:
+  [link](foo%20b&auml;)
+If you try to omit the destination and keep the title, you’ll get unexpected results:  
+  [link]("title")
+Titles may be in single quotes, double quotes, or parentheses:
+  [link](/url "title")
+  [link](/url 'title')
+  [link](/url (title))
+Backslash escapes and entity and numeric character references may be used in titles:  
+  [link](/url "title \\"&quot;")
+Titles must be separated from the link using a whitespace. Other Unicode whitespace like non-breaking space doesn’t work:
+  [link](/url\xa0"title")
+Nested balanced quotes are not allowed without escaping:
+  [link](/url "title "and" title")
+But it is easy to work around this by using a different quote type:
+  [link](/url 'title "and" title')
+Whitespace is allowed around the destination and title:  
+  [link](   /uri\n  "title"  )
+But it is not allowed between the link text and the following parenthesis:
+  [link] (/uri)
+The link text may contain balanced brackets, but not unbalanced ones, unless they are escaped:
+  [link [foo [bar]]](/uri)
+  [link] bar](/uri)
+  [link [bar](/uri)
+  [link \\[bar](/uri)
+The link text may contain inline content:
+  [link *foo **bar** \`#\`*](/uri) 
+  [![moon](moon.jpg)](/uri)
+However, links may not contain other links, at any level of nesting.
+  [foo [bar](/uri)](/uri)
+  [foo *[bar [baz](/uri)](/uri)*](/uri)
+  ![[[foo](uri1)](uri2)](uri3)
+These cases illustrate the precedence of link text grouping over emphasis grouping:  
+  *[foo*](/uri)
+  [foo *bar](baz*)
+Note that brackets that aren’t part of links do not take precedence:
+  *foo [bar* baz]  
+These cases illustrate the precedence of HTML tags, code spans, and autolinks over link grouping:
+  [foo <bar attr="](baz)">
+  [foo\`](/uri)\`
+  [foo<http://example.com/?search=](uri)>
+`,
   nonemoji: `:party-parrot:`,
   normal: `I think we should try to use \`if else\` statements \`\`\`
 if (var == "foo")

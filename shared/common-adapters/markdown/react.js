@@ -285,6 +285,27 @@ const reactComponentsForMarkdownType = {
       </React.Fragment>
     )
   },
+  markdownLink: (node, output, state) => {
+    const {content, target, title} = node
+    // note that we emit target urls into DOM when under __STORYSHOT__ testing scenario,
+    // we want those to be captured for review by Storyshot machinery
+    const debugPrefix = __STORYSHOT__ ? `|${title}|${target}|` : ''
+    return (
+      <React.Fragment key={state.key}>
+        <Text
+          className="hover-underline"
+          type="BodyPrimaryLink"
+          style={Styles.collapseStyles([linkStyle, state.styleOverride.link])}
+          title={title}
+          onClickURL={target}
+          onLongPressURL={target}
+        >
+          {debugPrefix}
+          {output(content, state)}
+        </Text>
+      </React.Fragment>
+    )
+  },
   newline: (node, output, state) =>
     !isMobile || state.inParagraph ? (
       '\n'

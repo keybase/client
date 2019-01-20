@@ -237,7 +237,7 @@ const rules = {
       }
       return null
     },
-    order: SimpleMarkdown.defaultRules.newline.order + 0.5,
+    order: SimpleMarkdown.defaultRules.newline.order + 0.5, // *** see markdownLink.order below
     parse: function(capture, parse, state) {
       const ret = {
         afterProtocol: capture[3],
@@ -262,6 +262,11 @@ const rules = {
     parse: function(capture, parse, state) {
       return {content: capture[2], mailto: `mailto:${capture[2]}`, spaceInFront: capture[1]}
     },
+  },
+  markdownLink: {
+    ...SimpleMarkdown.defaultRules.link,
+    // markdownLink should have slightly higher priority than (auto-detected) links (*** see link.order above)
+    order: SimpleMarkdown.defaultRules.newline.order + 0.5 - 0.1,
   },
   newline: {
     // handle newlines, keep this to handle \n w/ other matchers
