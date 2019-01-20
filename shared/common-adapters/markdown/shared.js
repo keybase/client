@@ -93,19 +93,6 @@ const textMatch = SimpleMarkdown.anyScopeRegex(
   )
 )
 
-const emailRegex = {
-  exec: source => {
-    const r = /^( *)(([\w-_.]*)@([\w-]+(\.[\w-]+)+))\b/i
-    const result = r.exec(source)
-    if (result) {
-      result.groups = {emailAdress: result[2], tld: result[5]}
-      return result
-    }
-    return null
-  },
-}
-const inlineEmailMatch = SimpleMarkdown.inlineRegex(emailRegex)
-
 const wrapInParagraph = (parse, content, state) => [
   {
     content: SimpleMarkdown.parseInline(parse, content, {...state, inParagraph: true}),
@@ -256,20 +243,6 @@ const rules = {
       content: capture[1],
       type: 'kbfsPath',
     }),
-  },
-  mailto: {
-    match: (source, state, lookBehind) => {
-      const matches = inlineEmailMatch(source, state, lookBehind)
-      // If there is a match, let's also check if it's a valid tld
-      if (matches && matches.groups && tldExp.exec(matches.groups.tld)) {
-        return matches
-      }
-      return null
-    },
-    order: SimpleMarkdown.defaultRules.text.order - 0.4,
-    parse: function(capture, parse, state) {
-      return {content: capture[2], mailto: `mailto:${capture[2]}`, spaceInFront: capture[1]}
-    },
   },
   mention: {
     // A decent enough starting template
