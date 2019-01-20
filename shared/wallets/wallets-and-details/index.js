@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box2} from '../../common-adapters'
-import Reloadable from '../common/reloadable'
+import AccountReloader from '../common/account-reloader'
 import WalletList from '../wallet-list/container'
 import {globalColors, styleSheetCreate} from '../../styles'
 
@@ -10,14 +10,14 @@ type Props = {|
 |}
 
 const Wallets = (props: Props) => (
-  <Reloadable>
+  <AccountReloader>
     <Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
       <Box2 direction="vertical" fullHeight={true} style={styles.walletListContainer}>
         <WalletList style={{height: '100%'}} />
       </Box2>
       {props.children}
     </Box2>
-  </Reloadable>
+  </AccountReloader>
 )
 
 const styles = styleSheetCreate({

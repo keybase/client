@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/wallets'
-import Reloadable from '../common/reloadable'
+import AccountReloader from '../common/account-reloader'
 import Header from './header/container'
 import Asset from '../asset/container'
 import Transaction from '../transaction/container'
@@ -156,10 +156,10 @@ const styles = Styles.styleSheetCreate({
 })
 
 // If we're on mobile, this is the entry point, so we need to wrap
-// with Reloadable.
-const MaybeReloadableWallet = (props: Props) => {
+// with AccountReloader.
+const MaybeReloaderWallet = (props: Props) => {
   const wallet = <Wallet {...props} />
-  return Styles.isMobile ? <Reloadable>{wallet}</Reloadable> : wallet
+  return Styles.isMobile ? <AccountReloader>{wallet}</AccountReloader> : wallet
 }
 
-export default MaybeReloadableWallet
+export default MaybeReloaderWallet

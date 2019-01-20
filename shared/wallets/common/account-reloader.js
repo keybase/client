@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as WalletsGen from '../../actions/wallets-gen'
-import {Reloadable as CommonReloadable} from '../../common-adapters'
+import {Reloadable} from '../../common-adapters'
 import {checkOnlineWaitingKey} from '../../constants/wallets'
 import {namedConnect} from '../../util/container'
 
@@ -14,10 +14,10 @@ type Props = {|
   onReload: () => void,
 |}
 
-const Reloadable = (props: Props) => (
-  <CommonReloadable waitingKeys={checkOnlineWaitingKey} onReload={props.onReload} reloadOnMount={true}>
+const AccountReloader = (props: Props) => (
+  <Reloadable waitingKeys={checkOnlineWaitingKey} onReload={props.onReload} reloadOnMount={true}>
     {props.children}
-  </CommonReloadable>
+  </Reloadable>
 )
 
 const mapStateToProps = () => ({})
@@ -35,5 +35,5 @@ export default namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps,
-  'Reloadable'
-)(Reloadable)
+  'AccountReloader'
+)(AccountReloader)
