@@ -260,23 +260,6 @@ const reactComponentsForMarkdownType = {
   kbfsPath: (node, output, state) => {
     return <KbfsPath escapedPath={node.content} key={state.key} allowFontScaling={state.allowFontScaling} />
   },
-  mailto: (node, output, state) => {
-    return (
-      <React.Fragment key={state.key}>
-        {node.spaceInFront}
-        <Text
-          className="hover-underline"
-          type="BodyPrimaryLink"
-          style={Styles.collapseStyles([linkStyle, state.styleOverride.mailto])}
-          title={node.content}
-          onClickURL={node.mailto}
-          onLongPressURL={node.mailto}
-        >
-          {node.content}
-        </Text>
-      </React.Fragment>
-    )
-  },
   mention: (node, output, state) => {
     return (
       <Mention
