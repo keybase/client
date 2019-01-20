@@ -1796,8 +1796,8 @@ func DecorateWithMentions(ctx context.Context, body string, atMentions []string,
 	chanMention chat1.ChannelMention, channelNameMentions []chat1.ChannelNameMention) string {
 	var added int
 	offset := 0
-	inputBody := ReplaceQuotedSubstrings(body, true)
 	if len(atMentions) > 0 || chanMention != chat1.ChannelMention_NONE {
+		inputBody := ReplaceQuotedSubstrings(body, true)
 		atMatches := parseRegexpNames(ctx, inputBody, atMentionRegExp)
 		atMap := make(map[string]bool)
 		for _, at := range atMentions {
@@ -1820,7 +1820,7 @@ func DecorateWithMentions(ctx context.Context, body string, atMentions []string,
 		}
 	}
 	if len(channelNameMentions) > 0 {
-		inputBody = ReplaceQuotedSubstrings(body, true)
+		inputBody := ReplaceQuotedSubstrings(body, true)
 		chanMap := make(map[string]chat1.ConversationID)
 		chanMatches := parseRegexpNames(ctx, inputBody, chanNameMentionRegExp)
 		for _, c := range channelNameMentions {
