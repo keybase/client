@@ -28,7 +28,7 @@ const mapDispatchToProps = (dispatch, {navigateAppend, navigateUp}) => ({
     dispatch(WalletsGen.createMarkAsRead({accountID, mostRecentID})),
   navigateAppend,
   navigateUp,
-  refresh: () => dispatch(WalletsGen.createLoadAccounts()),
+  refresh: () => dispatch(WalletsGen.createLoadAccounts({reason: 'initial-load'})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => {
