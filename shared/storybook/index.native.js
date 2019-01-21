@@ -17,7 +17,7 @@ const load = () => {
     host: 'localhost',
     // set this to true to show the in-app UI or just use the web ui
     // https://github.com/storybooks/storybook/pull/3746#issuecomment-416623500
-    onDeviceUI: false,
+    onDeviceUI: true,
     port: 7007,
   })
 

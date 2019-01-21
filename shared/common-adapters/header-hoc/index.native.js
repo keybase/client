@@ -1,6 +1,5 @@
 // @flow
 import * as React from 'react'
-import {StyleSheet} from 'react-native'
 import Text from '../text'
 import BackButton from '../back-button'
 import Box from '../box'
@@ -36,8 +35,11 @@ export class HeaderHocHeader extends React.Component<Props, State> {
       : []
 
     // This is used to center the title. The magic numbers were calculated from the inspector.
-    const titlePaddingLeft = leftAction === 'cancel' ? 83 : 53
-    const titlePadding = rightActions.length ? 38 * (rightActions.length > MAX_RIGHT_ACTIONS ? MAX_RIGHT_ACTIONS : rightActions.length) : titlePaddingLeft
+    const actionWidth = Styles.isIOS ? 38 : 54
+    const titlePaddingLeft = leftAction === 'cancel' ? 83 : 53 + (this.props.badgeNumber ? 23 : 0)
+    const titlePadding = rightActions.length
+      ? actionWidth * (rightActions.length > MAX_RIGHT_ACTIONS ? MAX_RIGHT_ACTIONS : rightActions.length)
+      : titlePaddingLeft
 
     return (
       <Box
@@ -49,6 +51,7 @@ export class HeaderHocHeader extends React.Component<Props, State> {
       >
         {this.props.customComponent}
         <Title
+          paddingLeft={titlePaddingLeft}
           title={this.props.title}
           titleComponent={this.props.titleComponent}
           titlePadding={titlePadding}
@@ -100,14 +103,20 @@ const LeftAction = ({
   </Box>
 )
 
-const Title = ({title, titleComponent, titlePadding}): React.Node => (
-  <Box style={Styles.collapseStyles([
-    styles.titleContainer,
-    {
-      paddingLeft: titlePadding,
-      paddingRight: titlePadding,
-    },
-  ])}>
+const Title = ({paddingLeft, title, titleComponent, titlePadding}): React.Node => (
+  <Box
+    style={Styles.collapseStyles([
+      styles.titleContainer,
+      Styles.isIOS && {
+        paddingLeft: titlePadding,
+        paddingRight: titlePadding,
+      },
+      Styles.isAndroid && {
+        paddingLeft,
+        paddingRight: titlePadding,
+      },
+    ])}
+  >
     {!!title && !titleComponent ? (
       <Text type="BodySemibold" style={styles.title} lineClamp={1}>
         {title}
@@ -273,7 +282,6 @@ const styles = Styles.styleSheetCreate({
     ...Styles.globalStyles.flexBoxRow,
   },
   title: {
-    backgroundColor: Styles.globalColors.red,
     color: Styles.globalColors.black_75,
   },
   titleContainer: Styles.platformStyles({
@@ -285,7 +293,6 @@ const styles = Styles.styleSheetCreate({
     },
     isAndroid: {
       alignItems: 'flex-start',
-      justifyContent: 'flex-start',
     },
   }),
   wrapper: {
