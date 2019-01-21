@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
+import * as Kb from '../'
 import {HeaderHocHeader} from '.'
 
 const onAction = Sb.action('onAction')
@@ -39,6 +40,7 @@ const rightActions = (length: number = 3) =>
   ].slice(0, length)
 const title = 'This is a title'
 const longTitle = 'This is an obnoxiously, over the top, ridiculously long title'
+const titleComponent = <Kb.Button label={title} small={true} style={{width: '100%'}} type="Primary" />
 
 const load = () => {
   Sb.storiesOf('Common/Header', module)
@@ -79,6 +81,12 @@ const load = () => {
     ))
     .add('Back and 6 Right Actions and Long Title', () => (
       <HeaderHocHeader title={longTitle} onLeftAction={onAction} rightActions={rightActions(6)} />
+    ))
+    .add('Back and Title Component', () => (
+      <HeaderHocHeader titleComponent={titleComponent} onLeftAction={onAction} />
+    ))
+    .add('Title Component and 1 Right Action', () => (
+      <HeaderHocHeader titleComponent={titleComponent} rightActions={rightActions(1)} />
     ))
 }
 

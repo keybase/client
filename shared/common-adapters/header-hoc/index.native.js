@@ -41,6 +41,8 @@ export class HeaderHocHeader extends React.Component<Props, State> {
       ? actionWidth * (rightActions.length > MAX_RIGHT_ACTIONS ? MAX_RIGHT_ACTIONS : rightActions.length)
       : titlePaddingLeft
 
+    const hasTextTitle = !!this.props.title && !this.props.titleComponent
+
     return (
       <Box
         style={Styles.collapseStyles([
@@ -50,23 +52,40 @@ export class HeaderHocHeader extends React.Component<Props, State> {
         ])}
       >
         {this.props.customComponent}
-        <Title
-          paddingLeft={titlePaddingLeft}
-          title={this.props.title}
-          titleComponent={this.props.titleComponent}
-          titlePadding={titlePadding}
-        />
+        {hasTextTitle && (
+          <Box
+            style={Styles.collapseStyles([
+              styles.titleContainer,
+              styles.titleTextContainer,
+              Styles.isIOS && {
+                paddingLeft: titlePadding,
+                paddingRight: titlePadding,
+              },
+              Styles.isAndroid && {
+                paddingLeft: titlePaddingLeft,
+                paddingRight: titlePadding,
+              },
+            ])}
+          >
+            <Text type="BodySemibold" style={styles.title} lineClamp={1}>
+              {this.props.title}
+            </Text>
+          </Box>
+        )}
         <LeftAction
           badgeNumber={this.props.badgeNumber}
           customCancelText={this.props.customCancelText}
+          hasTextTitle={hasTextTitle}
           hideBackLabel={this.props.hideBackLabel}
           leftAction={leftAction}
           leftActionText={this.props.leftActionText}
           onLeftAction={onLeftAction}
           theme={this.props.theme}
         />
+        {this.props.titleComponent && <Box style={styles.titleContainer}>{this.props.titleComponent}</Box>}
         <RightActions
           floatingMenuVisible={this.state.floatingMenuVisible}
+          hasTextTitle={hasTextTitle}
           hideFloatingMenu={this._hideFloatingMenu}
           rightActions={rightActions}
           showFloatingMenu={this._showFloatingMenu}
@@ -79,13 +98,14 @@ export class HeaderHocHeader extends React.Component<Props, State> {
 const LeftAction = ({
   badgeNumber,
   customCancelText,
+  hasTextTitle,
   hideBackLabel,
   leftAction,
   leftActionText,
   onLeftAction,
   theme,
 }): React.Node => (
-  <Box style={styles.leftAction}>
+  <Box style={Styles.collapseStyles([styles.leftAction, hasTextTitle && styles.grow])}>
     {onLeftAction &&
       (leftAction === 'cancel' ? (
         <Text type="BodyBigLink" style={styles.action} onClick={onLeftAction}>
@@ -103,37 +123,14 @@ const LeftAction = ({
   </Box>
 )
 
-const Title = ({paddingLeft, title, titleComponent, titlePadding}): React.Node => (
-  <Box
-    style={Styles.collapseStyles([
-      styles.titleContainer,
-      Styles.isIOS && {
-        paddingLeft: titlePadding,
-        paddingRight: titlePadding,
-      },
-      Styles.isAndroid && {
-        paddingLeft,
-        paddingRight: titlePadding,
-      },
-    ])}
-  >
-    {!!title && !titleComponent ? (
-      <Text type="BodySemibold" style={styles.title} lineClamp={1}>
-        {title}
-      </Text>
-    ) : (
-      titleComponent
-    )}
-  </Box>
-)
-
 const RightActions = ({
   floatingMenuVisible,
+  hasTextTitle,
   hideFloatingMenu,
   rightActions,
   showFloatingMenu,
 }): React.Node => (
-  <Box style={styles.rightActions}>
+  <Box style={Styles.collapseStyles([styles.rightActions, hasTextTitle && styles.grow])}>
     <Box style={styles.rightActionsWrapper}>
       {rightActions &&
         rightActions
@@ -200,7 +197,7 @@ function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
   const HeaderHocWrapper = (props: P & Props) => (
     <Box style={styles.container}>
       <HeaderHocHeader {...props} />
-      <Box style={styles.wrapper}>
+      <Box style={styles.grow}>
         <Box style={styles.innerWrapper}>
           <WrappedComponent {...(props: P)} />
         </Box>
@@ -237,6 +234,9 @@ const styles = Styles.styleSheetCreate({
     position: 'relative',
     width: '100%',
   },
+  grow: {
+    flexGrow: 1,
+  },
   header: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxRow,
@@ -260,7 +260,7 @@ const styles = Styles.styleSheetCreate({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
       alignItems: 'flex-start',
-      flexGrow: 1,
+      flexShrink: 1,
       justifyContent: 'flex-start',
     },
     isIOS: {
@@ -271,7 +271,7 @@ const styles = Styles.styleSheetCreate({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
       alignItems: 'flex-end',
-      flexGrow: 1,
+      flexShrink: 1,
       justifyContent: 'flex-end',
     },
     isIOS: {
@@ -286,17 +286,21 @@ const styles = Styles.styleSheetCreate({
   },
   titleContainer: Styles.platformStyles({
     common: {
-      ...Styles.globalStyles.fillAbsolute,
       ...Styles.globalStyles.flexBoxColumn,
       alignItems: 'center',
+      flexGrow: 1,
       justifyContent: 'center',
     },
     isAndroid: {
       alignItems: 'flex-start',
     },
+    isIOS: {
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
+    },
   }),
-  wrapper: {
-    flexGrow: 1,
+  titleTextContainer: {
+    ...Styles.globalStyles.fillAbsolute,
   },
 })
 

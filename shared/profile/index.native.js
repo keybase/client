@@ -423,10 +423,9 @@ class Profile extends Component<Props, State> {
           onLeftAction={this.props.onBack}
           headerStyle={{
             backgroundColor: trackerStateColors.header.background,
-            paddingBottom: Styles.globalMargins.tiny,
           }}
           theme="dark"
-          titleComponent={(
+          titleComponent={
             <Kb.ClickableBox onClick={this.props.onSearch} style={styleSearchContainer}>
               <Kb.Icon
                 color={Styles.globalColors.white_75}
@@ -438,7 +437,7 @@ class Profile extends Component<Props, State> {
                 Search people
               </Kb.Text>
             </Kb.ClickableBox>
-          )}
+          }
         />
       )
     } else {
