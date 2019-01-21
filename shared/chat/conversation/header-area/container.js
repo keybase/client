@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../constants/types/chat2'
-import * as Constants from '../../../constants/chat2'
+import * as SearchConstants from '../../../constants/search'
 import {connect} from '../../../util/container'
 import ConversationHeader from './normal/container'
 import Search from './search'
@@ -40,11 +40,11 @@ class HeaderArea extends React.PureComponent<Props> {
 
 const mapStateToProps = (state, {conversationIDKey, isPending}: OwnProps) => {
   const isSearching = state.chat2.pendingMode === 'searchingForUsers' && isPending
-  const meta = Constants.getMeta(state, conversationIDKey)
+  const inputResults = SearchConstants.getUserInputItemIds(state, 'chatSearch')
   return {
     isPending,
     isSearching,
-    showTeamOffer: isSearching && meta.participants.size > 1,
+    showTeamOffer: isSearching && inputResults.size > 1,
   }
 }
 
