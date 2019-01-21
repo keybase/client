@@ -1,11 +1,16 @@
 // @flow
 import * as React from 'react'
-import * as ReactDOM from 'react-dom'
 import {Picker as EmojiPicker} from 'emoji-mart'
 import {type Props} from './picker'
 
 class Picker extends React.Component<Props> {
   _picker: EmojiPicker
+
+  constructor(props: Props) {
+    super(props)
+    this._picker = React.createRef()
+    this._focus = this._focus.bind(this)
+  }
 
   // Setting autoFocus={true} on Picker doesn't work, so focus it
   // ourselves on mount/update.
@@ -14,7 +19,7 @@ class Picker extends React.Component<Props> {
     if (!this._picker) {
       return
     }
-    const node = ReactDOM.findDOMNode(this._picker)
+    const node = this._picker.current
     // eslint-disable-next-line no-undef
     if (!node || !(node instanceof Element)) {
       return
@@ -39,7 +44,7 @@ class Picker extends React.Component<Props> {
       <EmojiPicker
         autoFocus={true}
         emoji="star-struck"
-        ref={picker => (this._picker = picker)}
+        ref={this._picker}
         title="reacjibase"
         onClick={this.props.onClick}
         backgroundImageFn={this.props.backgroundImageFn}
