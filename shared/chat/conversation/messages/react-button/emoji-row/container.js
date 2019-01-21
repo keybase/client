@@ -22,8 +22,8 @@ const mapDispatchToProps = dispatch => ({
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   className: ownProps.className,
   emojis: [':tada:', ':smiley:', ':slightly_smiling_face:', ':ok_hand:', ':fire:'], // TODO
-  onOpenEmojiPicker: () => {},
   onReact: emoji => dispatchProps._onReact(emoji, ownProps.conversationIDKey, ownProps.ordinal),
+  onShowingEmojiPicker: () => {},
   style: ownProps.style,
 })
 

@@ -8,8 +8,8 @@ import EmojiRow from '.'
 const common = {
   className: 'emoji-row',
   emojis: [':tada:', ':smiley:', ':slightly_smiling_face:', ':ok_hand:', ':fire:'],
-  onOpenEmojiPicker: Sb.action('onOpenEmojiPicker'),
   onReact: Sb.action('onReact'),
+  onShowingEmojiPicker: Sb.action('onShowingEmojiPicker'),
 }
 
 const HideShowBox = Styles.styled(Kb.Box2)({
