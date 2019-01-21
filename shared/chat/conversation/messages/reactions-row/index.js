@@ -8,6 +8,7 @@ import EmojiRow from '../react-button/emoji-row/container'
 import {collapseStyles, globalMargins, isMobile, platformStyles, styleSheetCreate} from '../../../../styles'
 
 export type Props = {|
+  btnClassName?: string, // class to apply to all reacji buttons
   conversationIDKey: Types.ConversationIDKey,
   emojis: Array<string>,
   ordinal: Types.Ordinal,
@@ -60,6 +61,7 @@ class ReactionsRow extends React.Component<Props, State> {
           >
             <ReactButton
               ref={ref => (this._attachmentRefs[emoji] = ref)}
+              className={this.props.btnClassName}
               conversationIDKey={this.props.conversationIDKey}
               emoji={emoji}
               onLongPress={() => this._setShowMobileTooltip(true)}
@@ -92,6 +94,7 @@ class ReactionsRow extends React.Component<Props, State> {
           />
         ) : (
           <EmojiRow
+            className={this.props.btnClassName}
             conversationIDKey={this.props.conversationIDKey}
             ordinal={this.props.ordinal}
             style={styles.button}

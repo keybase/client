@@ -13,14 +13,6 @@ type Props = {
   style?: Styles.StylesCrossPlatform,
 }
 
-const HoverBox = Styles.styled(Kb.Box2)({
-  '&:hover': {
-    boxShadow: 'none',
-  },
-  boxShadow: '0 2px 2px 0 rgba(224, 224, 224, 0.5)',
-  ...Styles.transition('box-shadow'),
-})
-
 class HoverEmoji extends React.Component<
   {name: string, onClick: () => void, isReacjiIcon?: boolean},
   {hovering: boolean}
@@ -55,7 +47,7 @@ class HoverEmoji extends React.Component<
 
 class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
   state = {showingPicker: false}
-  _attachmentRef = React.createRef<HoverBox>()
+  _attachmentRef = React.createRef<Kb.Box2>()
   _setShowingPicker = showingPicker => {
     this.props.onShowingEmojiPicker && this.props.onShowingEmojiPicker(showingPicker)
     this.setState(s => (s.showingPicker === showingPicker ? null : {showingPicker}))
@@ -69,7 +61,7 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
   _getAttachmentRef = () => this._attachmentRef.current
   render() {
     return (
-      <HoverBox
+      <Kb.Box2
         direction="horizontal"
         ref={this._attachmentRef}
         style={Styles.collapseStyles([styles.container, this.props.style])}
@@ -91,7 +83,7 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
             <Picker backgroundImageFn={backgroundImageFn} onClick={this._onAddReaction} />
           </Kb.FloatingBox>
         )}
-      </HoverBox>
+      </Kb.Box2>
     )
   }
 }

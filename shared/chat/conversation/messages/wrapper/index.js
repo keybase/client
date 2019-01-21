@@ -193,6 +193,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     this._shouldShowReactionsRow() && (
       <ReactionsRow
         key="ReactionsRow"
+        btnClassName="WrapperMessage-emojiButton"
         conversationIDKey={this.props.conversationIDKey}
         ordinal={this.props.message.ordinal}
       />
@@ -410,6 +411,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               <Kb.Box className="WrapperMessage-buttons">
                 {!this._shouldShowReactionsRow() && (
                   <EmojiRow
+                    className="WrapperMessage-emojiButton"
                     conversationIDKey={this.props.conversationIDKey}
                     onShowingEmojiPicker={this._setShowingPicker}
                     ordinal={message.ordinal}

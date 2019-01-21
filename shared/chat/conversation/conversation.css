@@ -38,3 +38,15 @@
   padding-left: 0;
   padding-top: 8px;
 }
+.WrapperMessage-hoverBox .WrapperMessage-emojiButton {
+  transition: box-shadow 0.1s ease-out;
+}
+.WrapperMessage-hoverBox:hover .WrapperMessage-emojiButton {
+  box-shadow: 0 2px 2px 0 rgba(224, 224, 224, 0.5);
+}
+.WrapperMessage-hoverBox:hover .WrapperMessage-emojiButton.noShadow {
+  box-shadow: none;
+}
+.WrapperMessage-hoverBox:hover .WrapperMessage-emojiButton:hover {
+  box-shadow: none;
+}
