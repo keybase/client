@@ -21,10 +21,10 @@ const ResetUser = ({username, viewProfile, letThemIn, allowChatWithoutThem, chat
     <Box style={textContainerStyle}>
       <Text center={true} type="BodySemibold" backgroundMode="Terminal">
         <Text type="BodySemiboldLink" backgroundMode="Terminal" onClick={viewProfile}>
-          {username}{' '}
+          {username}
         </Text>
         <Text type="BodySemibold" backgroundMode="Terminal">
-          lost all their devices and this account has new keys. If you want to let them into this chat and
+          {' '}lost all their devices and this account has new keys. If you want to let them into this chat and
           folder's history, you should either:
         </Text>
       </Text>
