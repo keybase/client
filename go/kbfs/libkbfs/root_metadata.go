@@ -158,7 +158,12 @@ func makeInitialRootMetadata(
 	}
 	// Need to keep the TLF handle around long enough to rekey the
 	// metadata for the first time.
-	return makeRootMetadata(bareMD, nil, h), nil
+	rmd := makeRootMetadata(bareMD, nil, h)
+	// The initial revision never has any unrefs, so set the
+	// last GC revision to 1 to avoid having to walk backwards
+	// through all the MDs during the first QR for this TLF.
+	rmd.data.LastGCRevision = kbfsmd.RevisionInitial
+	return rmd, nil
 }
 
 // Data returns the private metadata of this RootMetadata.
