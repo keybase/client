@@ -24,8 +24,9 @@ const mapStateToProps = state => ({
   teamnames: getSortedTeamnames(state),
 })
 
-const mapDispatchToProps = (dispatch, {routePath}) => ({
+const mapDispatchToProps = (dispatch, {routePath, navigateUp}) => ({
   _loadTeams: () => dispatch(TeamsGen.createGetTeams()),
+  onBack: () => dispatch(navigateUp()),
   onCreateTeam: () => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
@@ -65,6 +66,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     teammembercounts: stateProps._teammembercounts.toObject(),
     teamnames: stateProps.teamnames,
     teamresetusers: stateProps._teamresetusers.toObject(),
+    title: 'Teams',
     ...dispatchProps,
   }
 }

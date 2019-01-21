@@ -20,7 +20,7 @@ const Render = ({keybaseUsername, hasAvatar, onAck}: Props) => {
       }}
     >
       <Avatar size={128} username={keybaseUsername} />
-      <Text type="Body" style={{marginTop: globalMargins.medium, maxWidth: 560, textAlign: 'center'}}>
+      <Text center={true} type="Body" style={{marginTop: globalMargins.medium, maxWidth: 560}}>
         {text}
       </Text>
       <ButtonBar>

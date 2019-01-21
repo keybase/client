@@ -6,7 +6,7 @@ import {globalStyles, globalColors, globalMargins} from '../../../styles'
 const YouAreReset = () => (
   <Box style={containerStyle}>
     <Box style={textContainerStyle}>
-      <Text type="BodySemibold" backgroundMode="Terminal" style={textStyle}>
+      <Text center={true} type="BodySemibold" backgroundMode="Terminal" >
         Since you reset your account, participants have to accept to let you back in.
       </Text>
     </Box>
@@ -23,10 +23,6 @@ const textContainerStyle = {
   alignItems: 'center',
   backgroundColor: globalColors.red,
   padding: globalMargins.small,
-}
-
-const textStyle = {
-  textAlign: 'center',
 }
 
 export default YouAreReset

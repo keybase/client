@@ -34,7 +34,7 @@ const PostProof = (props: Props) => {
       />
       {!!props.errorMessage && (
         <Kb.Box style={styleErrorBanner}>
-          <Kb.Text style={styleErrorBannerText} type="BodySemibold">
+          <Kb.Text center={true} style={styleErrorBannerText} type="BodySemibold">
             {props.errorMessage}
           </Kb.Text>
         </Kb.Box>
@@ -132,10 +132,7 @@ const styleErrorBanner = {
   zIndex: 1,
 }
 
-const styleErrorBannerText = {
-  color: Styles.globalColors.white,
-  textAlign: 'center',
-}
+const styleErrorBannerText = {color: Styles.globalColors.white}
 
 const styleContentContainer = {
   ...Styles.globalStyles.flexBoxColumn,

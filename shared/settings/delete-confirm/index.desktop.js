@@ -25,7 +25,7 @@ function DeleteConfirm(props: Props) {
       >
         {props.username}
       </Text>
-      <Text type="Header" style={{marginTop: globalMargins.medium, textAlign: 'center', width: 320}}>
+      <Text center={true} type="Header" style={{marginTop: globalMargins.medium, width: 320}}>
         Are you sure you want to permanently delete your account?
       </Text>
       <ButtonBar>

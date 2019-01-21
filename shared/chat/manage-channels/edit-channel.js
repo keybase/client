@@ -58,12 +58,11 @@ const EditChannelBare = (props: Props & TextState) => (
 
       {props.deleteRenameDisabled && (
         <Text
-          type="BodySmall"
+          center={true} type="BodySmall"
           style={{
             left: 0,
             position: 'absolute',
             right: 0,
-            textAlign: 'center',
             top: 60,
           }}
         >

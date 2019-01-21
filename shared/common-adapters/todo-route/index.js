@@ -12,7 +12,7 @@ const TODORoute = (props: Props) => (
   <Box2 direction="vertical" fullWidth={true} fullHeight={true}>
     <HeaderHocHeader onBack={props.onBack} title="T O D O" />
     <Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
-      <Text type="HeaderExtrabold" style={{textAlign: 'center'}}>
+      <Text center={true} type="HeaderExtrabold" >
         Nothing to see here...
       </Text>
     </Box2>

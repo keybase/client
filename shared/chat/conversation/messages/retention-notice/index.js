@@ -15,7 +15,7 @@ export default (props: Props) => {
   return (
     <Box style={containerStyle}>
       <Icon type={iconType} style={iconStyle} />
-      <Text type="BodySmallSemibold" style={{textAlign: 'center'}}>
+      <Text center={true} type="BodySmallSemibold" >
         {props.explanation}
       </Text>
       {props.canChange && (

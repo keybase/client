@@ -5277,6 +5277,10 @@ func TestChatSrvDeleteConversation(t *testing.T) {
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_JOIN)
 		consumeMembersUpdate(t, listener0)
 		consumeJoinConv(t, listener1)
+		// second join attempt doesn't error
+		_, err = ctc.as(t, users[1]).chatLocalHandler().JoinConversationByIDLocal(ctx1,
+			channelConvID)
+		require.NoError(t, err)
 
 		_, err = ctc.as(t, users[1]).chatLocalHandler().DeleteConversationLocal(ctx1,
 			chat1.DeleteConversationLocalArg{

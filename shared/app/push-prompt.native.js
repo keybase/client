@@ -17,7 +17,7 @@ const PushPrompt = (props: Props) => (
   <Kb.ScrollView contentContainerStyle={styles.scrollContent}>
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} gap="small" style={styles.container}>
       <Kb.Box style={styles.spacer} />
-      <Kb.Text type="Header" style={styles.text}>
+      <Kb.Text center={true} type="Header" style={styles.text}>
         Please turn on notifications!
       </Kb.Text>
       <Kb.RequireImage
@@ -25,14 +25,14 @@ const PushPrompt = (props: Props) => (
         style={styles.image}
         src={require('../images/illustrations/illustration-turn-on-notifications-460-x-252.png')}
       />
-      <Kb.Text type="BodySmallSemibold" style={styles.text}>
+      <Kb.Text center={true} type="BodySmallSemibold" style={styles.text}>
         It's{' '}
-        <Kb.Text type="BodySmallSemiboldItalic" style={styles.text}>
+        <Kb.Text center={true} type="BodySmallSemiboldItalic" style={styles.text}>
           very
         </Kb.Text>{' '}
         important you enable notifications.
       </Kb.Text>
-      <Kb.Text type="BodySmall" style={styles.text}>
+      <Kb.Text center={true} type="BodySmall" style={styles.text}>
         This phone may need to perform crypto for you, which the Keybase servers cannot do. For example, if
         you provision a new device, this phone will be contacted.
       </Kb.Text>
@@ -69,7 +69,6 @@ const styles = Styles.styleSheetCreate({
   spacer: {flexGrow: 1},
   text: {
     color: Styles.globalColors.black,
-    textAlign: 'center',
   },
 })
 

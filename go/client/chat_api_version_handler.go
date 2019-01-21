@@ -56,6 +56,8 @@ func (d *ChatAPIVersionHandler) handleV1(ctx context.Context, c Call, w io.Write
 		return d.handler.SearchInboxV1(ctx, c, w)
 	case methodSearchRegexp:
 		return d.handler.SearchRegexpV1(ctx, c, w)
+	case methodNewConv:
+		return d.handler.NewConvV1(ctx, c, w)
 	default:
 		return ErrInvalidMethod{name: c.Method, version: 1}
 	}

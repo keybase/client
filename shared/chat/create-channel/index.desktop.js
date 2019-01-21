@@ -13,7 +13,8 @@ const errorHeader = (errorText: string) => {
   return (
     <Kb.Box style={{..._boxStyle, backgroundColor: globalColors.red}}>
       <Kb.Text
-        style={{margin: globalMargins.tiny, textAlign: 'center', width: '100%'}}
+        center={true}
+        style={{margin: globalMargins.tiny, width: '100%'}}
         type="BodySemibold"
         backgroundMode={'HighRisk'}
       >

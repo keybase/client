@@ -736,17 +736,15 @@ func JoinConversation(ctx context.Context, g *globals.Context, debugger utils.De
 	}
 	defer g.ConvSource.ReleaseConversationLock(ctx, uid, convID)
 
-	alreadyIn, err := g.InboxSource.IsMember(ctx, uid, convID)
-	if err != nil {
-		debugger.Debug(ctx, "JoinConversation: IsMember err: %s", err.Error())
-		// Assume we're not in.
-		alreadyIn = false
+	if alreadyIn, err := g.InboxSource.IsMember(ctx, uid, convID); err != nil {
+		// charge forward anyway
+		debugger.Debug(ctx, "JoinConversation: IsMember err: %v", err)
+	} else if alreadyIn {
+		return nil
 	}
 
-	// Send the join command even if we're in.
-	_, err = ri().JoinConversation(ctx, convID)
-	if err != nil {
-		debugger.Debug(ctx, "JoinConversation: failed to join conversation: %s", err.Error())
+	if _, err = ri().JoinConversation(ctx, convID); err != nil {
+		debugger.Debug(ctx, "JoinConversation: failed to join conversation: %v", err)
 		return err
 	}
 
@@ -756,18 +754,14 @@ func JoinConversation(ctx context.Context, g *globals.Context, debugger utils.De
 			ConvID: convID,
 		},
 	}, nil, nil, nil); err != nil {
-		debugger.Debug(ctx, "JoinConversation: failed to apply membership update: %s", err.Error())
+		debugger.Debug(ctx, "JoinConversation: failed to apply membership update: %v", err)
 	}
-
-	if !alreadyIn {
-		// Send a message to the channel after joining.
-		joinMessageBody := chat1.NewMessageBodyWithJoin(chat1.MessageJoin{})
-		debugger.Debug(ctx, "JoinConversation: sending join message to: %s", convID)
-		err := postJoinLeave(ctx, g, ri, uid, convID, joinMessageBody)
-		if err != nil {
-			debugger.Debug(ctx, "JoinConversation: posting join-conv message failed: %v", err)
-			// ignore the error
-		}
+	// Send a message to the channel after joining.
+	joinMessageBody := chat1.NewMessageBodyWithJoin(chat1.MessageJoin{})
+	debugger.Debug(ctx, "JoinConversation: sending join message to: %s", convID)
+	if err := postJoinLeave(ctx, g, ri, uid, convID, joinMessageBody); err != nil {
+		debugger.Debug(ctx, "JoinConversation: posting join-conv message failed: %v", err)
+		// ignore the error
 	}
 	return nil
 }
@@ -813,8 +807,7 @@ func PreviewConversation(ctx context.Context, g *globals.Context, debugger utils
 		return nil
 	}
 
-	_, err = ri().PreviewConversation(ctx, convID)
-	if err != nil {
+	if _, err = ri().PreviewConversation(ctx, convID); err != nil {
 		debugger.Debug(ctx, "PreviewConversation: failed to preview conversation: %s", err.Error())
 		return err
 	}

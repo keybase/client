@@ -385,3 +385,8 @@
   padding: 2px;
   word-wrap: break-word;
 }
+
+.text_center {
+  display: inline-block;
+  text-align: center;
+}

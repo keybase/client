@@ -69,7 +69,7 @@ class SelectOtherDevice extends React.Component<Props> {
       >
         <BackButton onClick={this.props.onBack} style={styles.backButton} />
         <Box2 direction="vertical" fullWidth={true} style={styles.contentBox} gap={'medium'}>
-          <Text type={isMobile ? 'BodyBig' : 'Header'} style={styles.header}>
+          <Text center={true} type={isMobile ? 'BodyBig' : 'Header'}>
             For security reasons, you need to authorize with an existing device. Which of your existing
             devices would you like to use?
           </Text>
@@ -118,7 +118,6 @@ const styles = styleSheetCreate({
       maxWidth: 460,
     },
   }),
-  header: {textAlign: 'center'},
   list: {
     flexGrow: 1,
   },

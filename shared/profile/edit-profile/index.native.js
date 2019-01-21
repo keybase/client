@@ -32,7 +32,7 @@ const EditProfileRender = (props: Props) => (
       onChangeText={location => props.onLocationChange(location)}
     />
     {props.bioLengthLeft <= 5 && (
-      <Kb.Text style={styles.errorText} type="BodySmallError">
+      <Kb.Text center={true} type="BodySmallError">
         {props.bioLengthLeft} characters left.
       </Kb.Text>
     )}
@@ -49,12 +49,7 @@ const EditProfileRender = (props: Props) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  button: {
-    marginTop: Styles.globalMargins.medium,
-  },
-  errorText: {
-    textAlign: 'center',
-  },
+  button: {marginTop: Styles.globalMargins.medium},
 })
 
 export default EditProfileRender
