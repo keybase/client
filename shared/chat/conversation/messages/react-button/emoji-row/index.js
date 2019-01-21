@@ -96,6 +96,7 @@ const styles = Styles.styleSheetCreate({
       borderRadius: 4,
       borderStyle: 'solid',
       borderWidth: 1,
+      height: 24,
     },
   }),
   emojiBox: {

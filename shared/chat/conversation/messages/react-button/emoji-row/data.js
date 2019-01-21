@@ -6,6 +6,11 @@ const getFrequently = memoize<void, void, void, void, {get: number => Array<stri
   () => require('emoji-mart').frequently
 )
 
-const getEmojis = () => (isMobile ? [] : getFrequently().get(2))
+const getEmojis = () =>
+  isMobile
+    ? []
+    : getFrequently()
+        .get(2)
+        .map<string>(name => `:${name}:`)
 
 export default getEmojis
