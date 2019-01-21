@@ -2,6 +2,7 @@
 import * as Container from '../../../../../util/container'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Types from '../../../../../constants/types/chat2'
+import getEmojis from './data'
 import type {StylesCrossPlatform} from '../../../../../styles'
 import EmojiRow from '.'
 
@@ -22,7 +23,7 @@ const mapDispatchToProps = dispatch => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   className: ownProps.className,
-  emojis: [':tada:', ':smiley:', ':slightly_smiling_face:', ':ok_hand:', ':fire:'], // TODO
+  emojis: getEmojis().slice(0, 5),
   onReact: emoji => dispatchProps._onReact(emoji, ownProps.conversationIDKey, ownProps.ordinal),
   onShowingEmojiPicker: ownProps.onShowingEmojiPicker,
   style: ownProps.style,
