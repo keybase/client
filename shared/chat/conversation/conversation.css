@@ -7,7 +7,9 @@
   flex-direction: column;
   position: relative;
   width: 100%;
-  overflow: hidden;
+}
+.WrapperMessage-noOverflow {
+  overflow: 'hidden';
 }
 .WrapperMessage-hoverBox .WrapperMessage-buttons {
   display: none;
@@ -16,7 +18,8 @@
   width: 100%;
   margin-left: 8px;
 }
-.WrapperMessage-hoverBox:hover .WrapperMessage-buttons {
+.WrapperMessage-hoverBox:hover .WrapperMessage-buttons,
+.WrapperMessage-decorated.active .WrapperMessage-buttons {
   display: flex;
   flex-direction: row;
   max-width: 100%;
@@ -28,7 +31,7 @@
 }
 .WrapperMessage-decorated {
 }
-.WrapperMessage-decorated:active {
+.WrapperMessage-decorated.active {
   background-color: #f7f9fc;
 }
 .WrapperMessage-author {

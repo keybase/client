@@ -8,6 +8,7 @@ import EmojiRow from '.'
 type OwnProps = {|
   className?: string,
   conversationIDKey: Types.ConversationIDKey,
+  onShowingEmojiPicker: boolean => void,
   ordinal: Types.Ordinal,
   style?: StylesCrossPlatform,
 |}
@@ -23,7 +24,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   className: ownProps.className,
   emojis: [':tada:', ':smiley:', ':slightly_smiling_face:', ':ok_hand:', ':fire:'], // TODO
   onReact: emoji => dispatchProps._onReact(emoji, ownProps.conversationIDKey, ownProps.ordinal),
-  onShowingEmojiPicker: () => {},
+  onShowingEmojiPicker: ownProps.onShowingEmojiPicker,
   style: ownProps.style,
 })
 
