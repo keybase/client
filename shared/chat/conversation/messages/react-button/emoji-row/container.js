@@ -8,7 +8,7 @@ import EmojiRow from '.'
 type OwnProps = {|
   className?: string,
   conversationIDKey: Types.ConversationIDKey,
-  onShowingEmojiPicker: boolean => void,
+  onShowingEmojiPicker?: boolean => void,
   ordinal: Types.Ordinal,
   style?: StylesCrossPlatform,
 |}

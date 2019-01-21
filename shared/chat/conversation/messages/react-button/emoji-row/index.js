@@ -9,7 +9,7 @@ type Props = {
   className?: string,
   emojis: Array<string>, // e.g. ':tada:'
   onReact: string => void,
-  onShowingEmojiPicker: boolean => void,
+  onShowingEmojiPicker?: boolean => void,
   style?: Styles.StylesCrossPlatform,
 }
 
@@ -17,7 +17,7 @@ const HoverBox = Styles.styled(Kb.Box2)({
   '&:hover': {
     boxShadow: 'none',
   },
-  boxShadow: '0 0 15px 0 rgba(0, 0, 0, 0.2)',
+  boxShadow: '0 0 5px 0 rgba(0, 0, 0, 0.2)',
   ...Styles.transition('box-shadow'),
 })
 
@@ -57,7 +57,7 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
   state = {showingPicker: false}
   _attachmentRef = React.createRef<HoverBox>()
   _setShowingPicker = showingPicker => {
-    this.props.onShowingEmojiPicker(showingPicker)
+    this.props.onShowingEmojiPicker && this.props.onShowingEmojiPicker(showingPicker)
     this.setState(s => (s.showingPicker === showingPicker ? null : {showingPicker}))
   }
   _showPicker = () => this._setShowingPicker(true)
