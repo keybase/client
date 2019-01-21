@@ -112,7 +112,7 @@ var merkleAuditKey = libkb.DbKey{
 	Key: "root",
 }
 
-func lookupMerkleAuditRetry(m libkb.MetaContext) (*keybase1.Seqno, error) {
+func lookupMerkleAuditRetryFromState(m libkb.MetaContext) (*keybase1.Seqno, error) {
 	var state merkleAuditState
 	found, err := m.G().LocalDb.GetInto(&state, merkleAuditKey)
 	if err != nil {
@@ -168,11 +168,16 @@ func performMerkleAudit(m libkb.MetaContext, startSeqno keybase1.Seqno) error {
 			return err
 		}
 		currentHash := currentRoot.SkipToSeqno(startSeqno)
+		if currentHash == nil {
+			return libkb.NewClientMerkleSkipMissingError(
+				fmt.Sprintf("Root %d missing skip hash to %d", currentSeqno, startSeqno),
+			)
+		}
 
 		if !startHash.Eq(currentHash) {
 			// Warn the user about the possibility of the server tampering with the roots.
 			return libkb.NewClientMerkleSkipHashMismatchError(
-				fmt.Sprintf("Invalid skip hash from %d to %d", currentHash, startSeqno),
+				fmt.Sprintf("Invalid skip hash from %d to %d", currentSeqno, startSeqno),
 			)
 		}
 
@@ -186,7 +191,7 @@ func performMerkleAudit(m libkb.MetaContext, startSeqno keybase1.Seqno) error {
 
 func MerkleAuditRound(m libkb.MetaContext) error {
 	// Look up any previously requested retries
-	startSeqno, err := lookupMerkleAuditRetry(m)
+	startSeqno, err := lookupMerkleAuditRetryFromState(m)
 	if err != nil {
 		m.CDebugf("MerkleAudit unable to acquire saved state from localdb")
 		return nil
