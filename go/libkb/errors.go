@@ -1253,6 +1253,13 @@ func NewClientMerkleSkipHashMismatchError(m string) MerkleClientError {
 	}
 }
 
+func NewClientMerkleSkipMissingError(m string) MerkleClientError {
+	return MerkleClientError{
+		t: merkleErrorSkipMissing,
+		m: m,
+	}
+}
+
 func (m MerkleClientError) Error() string {
 	return fmt.Sprintf("Error checking merkle tree: %s", m.m)
 }
