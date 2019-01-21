@@ -185,10 +185,12 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       />
     )
 
-  _reactionsRow = () =>
+  _shouldShowReactionsRow = () =>
     // $ForceType
-    this.props.message.reactions &&
-    !this.props.message.reactions.isEmpty() && (
+    this.props.message.reactions && !this.props.message.reactions.isEmpty()
+
+  _reactionsRow = () =>
+    this._shouldShowReactionsRow() && (
       <ReactionsRow
         key="ReactionsRow"
         conversationIDKey={this.props.conversationIDKey}
@@ -406,15 +408,17 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             )}
             {showMenuButton ? (
               <Kb.Box className="WrapperMessage-buttons">
-                <EmojiRow
-                  conversationIDKey={this.props.conversationIDKey}
-                  onShowingEmojiPicker={this._setShowingPicker}
-                  ordinal={message.ordinal}
-                  style={Styles.collapseStyles([
-                    styles.emojiRow,
-                    this.props.isLastInThread ? {bottom: 0} : null,
-                  ])}
-                />
+                {!this._shouldShowReactionsRow() && (
+                  <EmojiRow
+                    conversationIDKey={this.props.conversationIDKey}
+                    onShowingEmojiPicker={this._setShowingPicker}
+                    ordinal={message.ordinal}
+                    style={Styles.collapseStyles([
+                      styles.emojiRow,
+                      this.props.isLastInThread ? styles.emojiRowLast : null,
+                    ])}
+                  />
+                )}
                 <Kb.Box>
                   {this.props.shouldShowPopup && (
                     <Kb.Icon
@@ -530,7 +534,8 @@ const styles = Styles.styleSheetCreate({
   }),
   edited: {color: Styles.globalColors.black_20},
   ellipsis: {marginLeft: Styles.globalMargins.tiny},
-  emojiRow: {bottom: -20, position: 'absolute', right: 100, zIndex: 2},
+  emojiRow: {bottom: -20, position: 'absolute', right: 82, zIndex: 2},
+  emojiRowLast: {bottom: 0},
   fail: {color: Styles.globalColors.red},
   failUnderline: {color: Styles.globalColors.red, textDecorationLine: 'underline'},
   fast,
