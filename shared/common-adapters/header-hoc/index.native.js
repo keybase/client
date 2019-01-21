@@ -32,18 +32,16 @@ export class HeaderHocHeader extends React.Component<Props, State> {
             onPress: this.props.onRightAction,
           },
         ]
-      : null
+      : []
 
-    // temp this is a short term hack to even out the spacing on the right side so the title is centered
-    // if there is no right action (most places) we add padding on the right to match the left side
-    let rightStyle = null
-    if (!rightActions) {
-      if (leftAction === 'back') {
-        rightStyle = styles.rightActionOnBack
-      } else if (leftAction === 'cancel') {
-        rightStyle = styles.rightActionOnCancel
-      }
-    }
+    // This is used to center the title. The magic numbers were calculated from the inspector.
+    const actionWidth = Styles.isIOS ? 38 : 54
+    const titlePaddingLeft = leftAction === 'cancel' ? 83 : 53 + (this.props.badgeNumber ? 23 : 0)
+    const titlePadding = rightActions.length
+      ? actionWidth * (rightActions.length > MAX_RIGHT_ACTIONS ? MAX_RIGHT_ACTIONS : rightActions.length)
+      : titlePaddingLeft
+
+    const hasTextTitle = !!this.props.title && !this.props.titleComponent
 
     return (
       <Box
@@ -54,28 +52,43 @@ export class HeaderHocHeader extends React.Component<Props, State> {
         ])}
       >
         {this.props.customComponent}
+        {hasTextTitle && (
+          <Box
+            style={Styles.collapseStyles([
+              styles.titleContainer,
+              styles.titleTextContainer,
+              Styles.isIOS && {
+                paddingLeft: titlePadding,
+                paddingRight: titlePadding,
+              },
+              Styles.isAndroid && {
+                paddingLeft: titlePaddingLeft,
+                paddingRight: titlePadding,
+              },
+            ])}
+          >
+            <Text type="BodySemibold" style={styles.title} lineClamp={1}>
+              {this.props.title}
+            </Text>
+          </Box>
+        )}
         <LeftAction
           badgeNumber={this.props.badgeNumber}
           customCancelText={this.props.customCancelText}
-          hasTitleComponent={!!this.props.titleComponent}
+          hasTextTitle={hasTextTitle}
           hideBackLabel={this.props.hideBackLabel}
           leftAction={leftAction}
           leftActionText={this.props.leftActionText}
           onLeftAction={onLeftAction}
           theme={this.props.theme}
         />
-        <Title
-          hasRightActions={!!rightActions}
-          title={this.props.title}
-          titleComponent={this.props.titleComponent}
-        />
+        {this.props.titleComponent && <Box style={styles.titleContainer}>{this.props.titleComponent}</Box>}
         <RightActions
           floatingMenuVisible={this.state.floatingMenuVisible}
-          hasTitleComponent={!!this.props.titleComponent}
+          hasTextTitle={hasTextTitle}
           hideFloatingMenu={this._hideFloatingMenu}
           rightActions={rightActions}
           showFloatingMenu={this._showFloatingMenu}
-          style={rightStyle}
         />
       </Box>
     )
@@ -85,14 +98,14 @@ export class HeaderHocHeader extends React.Component<Props, State> {
 const LeftAction = ({
   badgeNumber,
   customCancelText,
-  hasTitleComponent,
+  hasTextTitle,
   hideBackLabel,
   leftAction,
   leftActionText,
   onLeftAction,
   theme,
 }): React.Node => (
-  <Box style={Styles.collapseStyles([styles.leftAction, hasTitleComponent && styles.unflex])}>
+  <Box style={Styles.collapseStyles([styles.leftAction, hasTextTitle && styles.grow])}>
     {onLeftAction &&
       (leftAction === 'cancel' ? (
         <Text type="BodyBigLink" style={styles.action} onClick={onLeftAction}>
@@ -110,27 +123,14 @@ const LeftAction = ({
   </Box>
 )
 
-const Title = ({hasRightActions, title, titleComponent}): React.Node => (
-  <Box style={Styles.collapseStyles([styles.titleContainer, !hasRightActions && styles.titlePadding])}>
-    {!!title && !titleComponent ? (
-      <Text type="BodySemibold" style={styles.title} lineClamp={1}>
-        {title}
-      </Text>
-    ) : (
-      titleComponent
-    )}
-  </Box>
-)
-
 const RightActions = ({
   floatingMenuVisible,
-  hasTitleComponent,
+  hasTextTitle,
   hideFloatingMenu,
   rightActions,
   showFloatingMenu,
-  style,
 }): React.Node => (
-  <Box style={Styles.collapseStyles([styles.rightActions, hasTitleComponent && styles.unflex, style])}>
+  <Box style={Styles.collapseStyles([styles.rightActions, hasTextTitle && styles.grow])}>
     <Box style={styles.rightActionsWrapper}>
       {rightActions &&
         rightActions
@@ -197,7 +197,7 @@ function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
   const HeaderHocWrapper = (props: P & Props) => (
     <Box style={styles.container}>
       <HeaderHocHeader {...props} />
-      <Box style={styles.wrapper}>
+      <Box style={styles.grow}>
         <Box style={styles.innerWrapper}>
           <WrappedComponent {...(props: P)} />
         </Box>
@@ -234,6 +234,9 @@ const styles = Styles.styleSheetCreate({
     position: 'relative',
     width: '100%',
   },
+  grow: {
+    flexGrow: 1,
+  },
   header: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxRow,
@@ -244,10 +247,10 @@ const styles = Styles.styleSheetCreate({
       width: '100%',
     },
     isAndroid: {
-      minHeight: 56,
+      height: 56,
     },
     isIOS: {
-      minHeight: 44,
+      height: 44,
     },
   }),
   innerWrapper: {
@@ -264,8 +267,6 @@ const styles = Styles.styleSheetCreate({
       paddingLeft: Styles.globalMargins.tiny,
     },
   }),
-  rightActionOnBack: {minWidth: 53},
-  rightActionOnCancel: {minWidth: 83},
   rightActions: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
@@ -292,23 +293,14 @@ const styles = Styles.styleSheetCreate({
     },
     isAndroid: {
       alignItems: 'flex-start',
-      justifyContent: 'flex-start',
     },
     isIOS: {
       paddingLeft: Styles.globalMargins.tiny,
       paddingRight: Styles.globalMargins.tiny,
     },
   }),
-  titlePadding: Styles.platformStyles({
-    isMobile: {
-      paddingRight: Styles.globalMargins.small,
-    },
-  }),
-  unflex: {
-    flex: 0,
-  },
-  wrapper: {
-    flexGrow: 1,
+  titleTextContainer: {
+    ...Styles.globalStyles.fillAbsolute,
   },
 })
 
