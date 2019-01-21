@@ -314,8 +314,15 @@ func (p *Loader) sendPaymentNotification(m libkb.MetaContext, id stellar1.Paymen
 	} else {
 		m.CDebugf("sending chat notification for payment %s to %s, %s", id, msg.convID, msg.msgID)
 	}
+
 	uid := p.G().ActiveDevice.UID()
 	info := p.uiPaymentInfo(m, summary, msg)
+
+	if info.AccountID != nil && summary.StatusSimplified != stellar1.PaymentStatus_PENDING {
+		// let WalletState know
+		p.G().GetStellar().RemovePendingTx(m, *info.AccountID, stellar1.TransactionIDFromPaymentID(id))
+	}
+
 	p.G().NotifyRouter.HandleChatPaymentInfo(m.Ctx(), uid, msg.convID, msg.msgID, *info)
 }
 

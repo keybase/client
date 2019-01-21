@@ -1113,19 +1113,64 @@ func TestMakeAccountMobileOnlyOnDesktop(t *testing.T) {
 	require.Equal(t, stellar1.BundleRevision(2), rev2Bundle.Revision)
 	// NOTE: we're using this rev2Bundle later...
 
-	// mobile-only mode can only be set from mobile device.
+	// Mobile-only mode can only be set from mobile device.
 	err = tc.Srv.SetAccountMobileOnlyLocal(ctx, stellar1.SetAccountMobileOnlyLocalArg{
 		AccountID: a1,
 	})
 	RequireAppStatusError(t, libkb.SCStellarDeviceNotMobile, err)
 
-	// this will make the device older on the server
+	// This will make the device older on the server.
 	makeActiveDeviceOlder(t, g)
 
-	// this does not affect anything, it's still a desktop device
+	// This does not affect anything, it's still a desktop device.
 	err = tc.Srv.SetAccountMobileOnlyLocal(ctx, stellar1.SetAccountMobileOnlyLocalArg{
 		AccountID: a1,
 	})
+	RequireAppStatusError(t, libkb.SCStellarDeviceNotMobile, err)
+
+	// Provision a new mobile device, and then use the newly provisioned mobile
+	// device to set mobile only.
+	tc2, cleanup2 := provisionNewDeviceForTest(t, tc, libkb.DeviceTypeMobile)
+	defer cleanup2()
+
+	err = tc2.Srv.SetAccountMobileOnlyLocal(context.TODO(), stellar1.SetAccountMobileOnlyLocalArg{
+		AccountID: a1,
+	})
+	RequireAppStatusError(t, libkb.SCStellarMobileOnlyPurgatory, err)
+
+	// Make mobile older and try again, should work this time.
+	makeActiveDeviceOlder(t, tc2.G)
+
+	err = tc2.Srv.SetAccountMobileOnlyLocal(context.TODO(), stellar1.SetAccountMobileOnlyLocalArg{
+		AccountID: a1,
+	})
+	require.NoError(t, err)
+
+	// Once mobile only is ON, try some stuff from our desktop device.
+	_, err = remote.FetchAccountBundle(mctx, a1)
+	RequireAppStatusError(t, libkb.SCStellarDeviceNotMobile, err)
+
+	// Desktop can still get the secretless bundle
+	primaryAcctName := fmt.Sprintf("%s's account", tc.Fu.Username)
+	rev3Bundle, err := remote.FetchSecretlessBundle(mctx)
+	require.NoError(t, err)
+	require.Equal(t, stellar1.BundleRevision(3), rev3Bundle.Revision)
+	accountID0 := rev3Bundle.Accounts[0].AccountID
+	require.Equal(t, primaryAcctName, rev3Bundle.Accounts[0].Name)
+	require.True(t, rev3Bundle.Accounts[0].IsPrimary)
+	require.Len(t, rev3Bundle.AccountBundles[accountID0].Signers, 0)
+	accountID1 := rev3Bundle.Accounts[1].AccountID
+	require.Equal(t, stellar1.AccountMode_MOBILE, rev3Bundle.Accounts[1].Mode)
+	require.False(t, rev3Bundle.Accounts[1].IsPrimary)
+	require.Len(t, rev3Bundle.AccountBundles[accountID1].Signers, 0)
+	require.Equal(t, "vault", rev3Bundle.Accounts[1].Name)
+
+	err = remote.Post(mctx, *rev2Bundle)
+	RequireAppStatusError(t, libkb.SCStellarDeviceNotMobile, err)
+
+	// Tinker with it.
+	rev2Bundle.Revision = 4
+	err = remote.Post(mctx, *rev2Bundle)
 	RequireAppStatusError(t, libkb.SCStellarDeviceNotMobile, err)
 }
 
@@ -1183,6 +1228,14 @@ func TestMakeAccountMobileOnlyOnRecentMobile(t *testing.T) {
 	require.NoError(t, err)
 	checker.assertBundle(t, bundle, 3, 2, stellar1.AccountMode_MOBILE)
 
+	// Get a new mobile device that will be too recent to fetch
+	// MOBILE ONLY bundle.
+	tc2, cleanup2 := provisionNewDeviceForTest(t, tc, libkb.DeviceTypeMobile)
+	defer cleanup2()
+
+	_, err = remote.FetchAccountBundle(libkb.NewMetaContext(context.Background(), tc2.G), a1)
+	RequireAppStatusError(t, libkb.SCStellarMobileOnlyPurgatory, err)
+
 	// make it accessible on all devices
 	err = tc.Srv.SetAccountAllDevicesLocal(ctx, stellar1.SetAccountAllDevicesLocalArg{
 		AccountID: a1,
@@ -1190,6 +1243,11 @@ func TestMakeAccountMobileOnlyOnRecentMobile(t *testing.T) {
 	require.NoError(t, err)
 
 	bundle, err = remote.FetchAccountBundle(mctx, a1)
+	require.NoError(t, err)
+	checker.assertBundle(t, bundle, 4, 3, stellar1.AccountMode_USER)
+
+	// Now that it's AccountMode_USER, too recent mobile device can access it too.
+	bundle, err = remote.FetchAccountBundle(libkb.NewMetaContext(context.Background(), tc2.G), a1)
 	require.NoError(t, err)
 	checker.assertBundle(t, bundle, 4, 3, stellar1.AccountMode_USER)
 }
@@ -1405,6 +1463,24 @@ func setupTestsWithSettings(t *testing.T, settings []usetting) ([]*TestContext, 
 		t.Logf("U%d: %v %v", i, tc.Fu.Username, tc.Fu.GetUserVersion())
 	}
 	return tcs, cleanup
+}
+
+func provisionNewDeviceForTest(t *testing.T, tc *TestContext, newDeviceType string) (outTc *TestContext, cleanup func()) {
+	bem := tc.Backend
+	tc2 := SetupTest(t, "wall_p", 1)
+	kbtest.ProvisionNewDeviceKex(&tc.TestContext, &tc2, tc.Fu, newDeviceType)
+	outTc = &TestContext{
+		TestContext: tc2,
+		Fu:          tc.Fu,
+	}
+	rcm := NewRemoteClientMock(outTc, bem)
+	ws := stellar.NewWalletState(tc2.G, rcm)
+	outTc.Srv = New(tc2.G, newTestUISource(), ws)
+	stellar.ServiceInit(tc2.G, ws, nil)
+	cleanup = func() {
+		tc2.Cleanup()
+	}
+	return outTc, cleanup
 }
 
 func randomStellarKeypair() (pub stellar1.AccountID, sec stellar1.SecretKey) {

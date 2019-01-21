@@ -44,7 +44,7 @@ const EntryComponent = ({errorText, name, onNameChange, onSubmit}: Props) => (
           <Button type="Primary" style={styles.button} onClick={onSubmit} label="Continue" />
         </ButtonBar>
         <InfoNote>
-          <Text type="BodySmall" style={styles.info}>
+          <Text center={true} type="BodySmall" style={styles.info}>
             If you got an invitation by text, you can copy + paste the entire message here.
           </Text>
         </InfoNote>
@@ -59,16 +59,9 @@ const styles = styleSheetCreate({
     marginTop: globalMargins.small,
     width: '100%',
   },
-  container: {
-    flexGrow: 1,
-  },
-  errorText: {
-    marginTop: globalMargins.tiny,
-  },
-  info: {
-    maxWidth: 280,
-    textAlign: 'center',
-  },
+  container: { flexGrow: 1 },
+  errorText: { marginTop: globalMargins.tiny },
+  info: { maxWidth: 280 },
   input: {
     borderRadius: 4,
     borderStyle: 'solid',

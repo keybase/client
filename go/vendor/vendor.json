@@ -497,12 +497,6 @@
 			"revisionTime": "2016-06-21T22:08:13-04:00"
 		},
 		{
-			"checksumSHA1": "Y7kNMFzLQ29HoLMpd0ABFz6LRyI=",
-			"path": "github.com/kardianos/osext",
-			"revision": "6e7f843663477789fac7c02def0d0909e969b4e5",
-			"revisionTime": "2015-05-28T07:23:15-07:00"
-		},
-		{
 			"checksumSHA1": "jDV6VXi9AnVfQkiI6d6FhYWaKYs=",
 			"path": "github.com/kballard/go-shellquote",
 			"revision": "e5c918b80c17694cbc49aab32a759f9a40067f5d",

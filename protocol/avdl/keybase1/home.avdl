@@ -118,6 +118,7 @@ protocol home {
     int visits;
     array<HomeScreenItem> items;
     array<HomeUserSummary> followSuggestions;
+    int announcementsVersion;
   }
 
   /**

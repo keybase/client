@@ -579,8 +579,8 @@ protocol local {
   }
   NonblockFetchRes getThreadNonblock(int sessionID, ConversationID conversationID, GetThreadNonblockCbMode cbMode, GetThreadReason reason, GetThreadNonblockPgMode pgmode, union { null, GetThreadQuery} query, union { null, UIPagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
 
-  record GetInboxLocalRes {
-    array<Conversation> conversationsUnverified;
+  record GetInboxUILocalRes {
+    array<UnverifiedInboxUIItem> conversationsRemote;
     union { null, Pagination } pagination;
 
     boolean offline;
@@ -591,6 +591,7 @@ protocol local {
     // GetInboxAndUnboxLocal should be used if identify failures are needed.
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
+  GetInboxUILocalRes getInboxUILocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   record NameQuery {
     string name;

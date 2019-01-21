@@ -508,6 +508,10 @@ func (s *Stellar) finalizeBuildPayment(mctx libkb.MetaContext, bid stellar1.Buil
 	return nil, fmt.Errorf("payment build not found")
 }
 
+func (s *Stellar) RemovePendingTx(mctx libkb.MetaContext, accountID stellar1.AccountID, txID stellar1.TransactionID) error {
+	return s.walletState.RemovePendingTx(mctx.Ctx(), accountID, txID)
+}
+
 // getFederationClient is a helper function used during
 // initialization.
 func getFederationClient(g *libkb.GlobalContext) federation.ClientInterface {

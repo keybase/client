@@ -35,7 +35,7 @@ export default class DeviceList extends Component<Props> {
   render() {
     return (
       <div style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-        <Text type="Body" style={styles.infoText}>
+        <Text center={true} type="Body" style={styles.infoText}>
           This computer and possibly others are unable to read some of your folders. To avoid losing data
           forever, please turn on one of the devices below:
         </Text>
@@ -84,7 +84,6 @@ const styles = {
     marginTop: 5,
     paddingLeft: 55,
     paddingRight: 55,
-    textAlign: 'center',
   },
 }
 

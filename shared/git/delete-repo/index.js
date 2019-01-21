@@ -83,7 +83,7 @@ class DeleteRepo extends React.Component<Props, State> {
               {this.props.teamname ? `${this.props.teamname}/${this.props.name}` : this.props.name}
             </Text>
           </Box>
-          <Text type="Body" style={{marginBottom: globalMargins.medium, textAlign: 'center'}}>
+          <Text center={true} type="Body" style={{marginBottom: globalMargins.medium}}>
             {this.props.teamname
               ? 'This will permanently delete your remote files and history, and all members of the team will be notified.  This action cannot be undone.'
               : 'This will permanently delete your remote files and history. This action cannot be undone.'}

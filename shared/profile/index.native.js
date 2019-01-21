@@ -225,7 +225,7 @@ class Profile extends Component<Props, State> {
               overlayColor={Styles.globalColors.blue}
             />
             {!!proof.mTime && (
-              <Kb.Text type="BodySmall" style={{textAlign: 'center'}}>
+              <Kb.Text center={true} type="BodySmall">
                 Posted on {moment(proof.mTime).format('ddd MMM D, YYYY')}
               </Kb.Text>
             )}
@@ -279,7 +279,7 @@ class Profile extends Component<Props, State> {
       <Kb.Box style={{backgroundColor: Styles.globalColors.white}}>
         {proofNotice && (
           <Kb.Box style={{...styleProofNotice, backgroundColor: trackerStateColors.header.background}}>
-            <Kb.Text type="BodySmallSemibold" style={{color: Styles.globalColors.white, textAlign: 'center'}}>
+            <Kb.Text center={true} type="BodySmallSemibold" style={{color: Styles.globalColors.white}}>
               {proofNotice}
             </Kb.Text>
           </Kb.Box>
@@ -299,7 +299,7 @@ class Profile extends Component<Props, State> {
             }}
           >
             <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, paddingLeft: 8}}>
-              <Kb.Text style={{textAlign: 'center'}} type="BodySemibold" backgroundMode="HighRisk">
+              <Kb.Text center={true} type="BodySemibold" backgroundMode="HighRisk">
                 {this.props.addUserToTeamsResults}
               </Kb.Text>
             </Kb.Box>
@@ -590,13 +590,14 @@ class UserEntry extends React.PureComponent<UserEntryProps> {
           />
           <Kb.Text
             type="BodySemibold"
+center={true}
             style={
               this.props.following ? styles.userEntryUsernameFollowing : styles.userEntryUsernameNotFollowing
             }
           >
             {this.props.username}
           </Kb.Text>
-          <Kb.Text type="BodySmall" style={styles.userEntryFullname}>
+          <Kb.Text center={true} type="BodySmall" style={styles.userEntryFullname}>
             {this.props.fullname}
           </Kb.Text>
         </Kb.Box>
@@ -668,24 +669,15 @@ const styles = Styles.styleSheetCreate({
     paddingTop: Styles.globalMargins.small,
     width: 105,
   },
-  userEntryFullname: {
-    color: Styles.globalColors.black_50,
-    textAlign: 'center',
-  },
+  userEntryFullname: {color: Styles.globalColors.black_50},
   userEntryInnerContainer: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
     justifyContent: 'flex-start',
     minHeight: userEntryMinHeight,
   },
-  userEntryUsernameFollowing: {
-    color: Styles.globalColors.green,
-    textAlign: 'center',
-  },
-  userEntryUsernameNotFollowing: {
-    color: Styles.globalColors.blue,
-    textAlign: 'center',
-  },
+  userEntryUsernameFollowing: { color: Styles.globalColors.green },
+  userEntryUsernameNotFollowing: { color: Styles.globalColors.blue },
 })
 
 const styleProofNotice = {

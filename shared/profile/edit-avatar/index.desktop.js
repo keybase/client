@@ -320,7 +320,7 @@ class EditAvatar extends React.Component<_Props, State> {
               </Kb.Text>
             </Kb.Box>
           )}
-          <Kb.Text type="Body" style={styles.instructions}>
+          <Kb.Text center={true} type="Body" style={styles.instructions}>
             Drag and drop a {this.props.teamname ? 'team' : 'profile'} avatar or{' '}
             <Kb.Text type="BodyPrimaryLink" className="hover-underline" onClick={this._filePickerOpen}>
               browse your computer for one
@@ -466,7 +466,6 @@ const styles = Styles.styleSheetCreate({
   },
   instructions: {
     maxWidth: 200,
-    textAlign: 'center',
   },
   spinner: {
     left: '50%',

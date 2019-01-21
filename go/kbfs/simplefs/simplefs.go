@@ -104,9 +104,10 @@ type SimpleFS struct {
 	// values are removed by SimpleFSWait (or SimpleFSCancel).
 	inProgress map[keybase1.OpID]*inprogress
 
-	subscribeLock     sync.RWMutex
-	subscribeCurrPath string
-	subscribeCurrFB   libkbfs.FolderBranch
+	subscribeLock              sync.RWMutex
+	subscribeCurrPathCanonical string
+	subscribeCurrPathFromGUI   string
+	subscribeCurrFB            libkbfs.FolderBranch
 
 	localHTTPServer *libhttpserver.Server
 }
@@ -361,7 +362,25 @@ func (k *SimpleFS) favoriteList(ctx context.Context, path keybase1.Path, t tlf.T
 	return res, nil
 }
 
-func setStat(de *keybase1.Dirent, fi os.FileInfo) error {
+func (k *SimpleFS) prefetchProgressFromByteStatus(
+	status libkbfs.PrefetchProgress) (p keybase1.PrefetchProgress) {
+	p.BytesFetched = int64(status.SubtreeBytesFetched)
+	p.BytesTotal = int64(status.SubtreeBytesTotal)
+	p.Start = keybase1.ToTime(status.Start)
+
+	if p.BytesTotal == 0 || p.Start == 0 {
+		return p
+	}
+
+	timeRunning := k.config.Clock().Now().Sub(status.Start)
+	fracDone := float64(p.BytesFetched) / float64(p.BytesTotal)
+	totalTimeEstimate := time.Duration(float64(timeRunning) / fracDone)
+	endEstimate := status.Start.Add(totalTimeEstimate)
+	p.EndEstimate = keybase1.ToTime(endEstimate)
+	return p
+}
+
+func (k *SimpleFS) setStat(de *keybase1.Dirent, fi os.FileInfo) error {
 	de.Time = keybase1.ToTime(fi.ModTime())
 	de.Size = int(fi.Size()) // TODO: FIX protocol
 
@@ -383,6 +402,8 @@ func setStat(de *keybase1.Dirent, fi os.FileInfo) error {
 		}
 		de.LastWriterUnverified = md.LastWriter
 		de.PrefetchStatus = md.PrefetchStatus
+		de.PrefetchProgress = k.prefetchProgressFromByteStatus(
+			md.PrefetchProgress)
 	}
 	de.Name = fi.Name()
 	return nil
@@ -570,21 +591,21 @@ func (k *SimpleFS) refreshSubscription(
 	// TODO: when favorites caching is ready, handle folder-list paths
 	// like `/keybase/private` here.
 
-	fb, subscribePath, err := k.getFolderBranchFromPath(ctx, path)
+	fb, subscribePathCanonical, err := k.getFolderBranchFromPath(ctx, path)
 	if err != nil {
 		return err
 	}
 	if fb == (libkbfs.FolderBranch{}) {
 		k.log.CDebugf(
-			ctx, "Ignoring subscription for empty TLF %s", subscribePath)
+			ctx, "Ignoring subscription for empty TLF %s", subscribePathCanonical)
 		return nil
 	}
 
-	if k.subscribeCurrPath == subscribePath {
+	if k.subscribeCurrPathCanonical == subscribePathCanonical {
 		return nil
 	}
 
-	if k.subscribeCurrPath != "" {
+	if k.subscribeCurrPathCanonical != "" {
 		err = k.config.Notifier().UnregisterFromChanges(
 			[]libkbfs.FolderBranch{k.subscribeCurrFB}, k)
 		if err != nil {
@@ -592,13 +613,14 @@ func (k *SimpleFS) refreshSubscription(
 		}
 	}
 
-	k.log.CDebugf(ctx, "Subscribing to %s", subscribePath)
+	k.log.CDebugf(ctx, "Subscribing to %s", subscribePathCanonical)
 	err = k.config.Notifier().RegisterForChanges(
 		[]libkbfs.FolderBranch{fb}, k)
 	if err != nil {
 		return err
 	}
-	k.subscribeCurrPath = subscribePath
+	k.subscribeCurrPathCanonical = subscribePathCanonical
+	k.subscribeCurrPathFromGUI = stdpath.Join("/keybase", path.Kbfs())
 	k.subscribeCurrFB = fb
 	return nil
 }
@@ -674,7 +696,7 @@ func (k *SimpleFS) SimpleFSList(ctx context.Context, arg keybase1.SimpleFSListAr
 					}
 
 					var d keybase1.Dirent
-					err := setStat(&d, fi)
+					err := k.setStat(&d, fi)
 					if err != nil {
 						return err
 					}
@@ -734,7 +756,7 @@ func (k *SimpleFS) listRecursiveToDepth(opID keybase1.OpID,
 		var des []keybase1.Dirent
 		if !fi.IsDir() {
 			var d keybase1.Dirent
-			err := setStat(&d, fi)
+			err := k.setStat(&d, fi)
 			if err != nil {
 				return err
 			}
@@ -770,7 +792,7 @@ func (k *SimpleFS) listRecursiveToDepth(opID keybase1.OpID,
 				}
 
 				var de keybase1.Dirent
-				err := setStat(&de, fi)
+				err := k.setStat(&de, fi)
 				if err != nil {
 					return err
 				}
@@ -1461,7 +1483,7 @@ func (k *SimpleFS) SimpleFSStat(ctx context.Context, arg keybase1.SimpleFSStatAr
 		return keybase1.Dirent{}, err
 	}
 
-	err = setStat(&de, fi)
+	err = k.setStat(&de, fi)
 	return de, err
 }
 
@@ -1506,7 +1528,7 @@ func (k *SimpleFS) doGetRevisions(
 	}
 
 	var currRev keybase1.DirentWithRevision
-	err = setStat(&currRev.Entry, fi)
+	err = k.setStat(&currRev.Entry, fi)
 	if err != nil {
 		return nil, err
 	}
@@ -1644,7 +1666,7 @@ func (k *SimpleFS) doGetRevisions(
 			return err
 		}
 		var rev keybase1.DirentWithRevision
-		err = setStat(&rev.Entry, fi)
+		err = k.setStat(&rev.Entry, fi)
 		if err != nil {
 			return err
 		}
@@ -1982,7 +2004,7 @@ func (k *SimpleFS) BatchChanges(
 		defer k.subscribeLock.RUnlock()
 		for fb := range fbs {
 			if fb == k.subscribeCurrFB {
-				k.config.Reporter().NotifyPathUpdated(ctx, k.subscribeCurrPath)
+				k.config.Reporter().NotifyPathUpdated(ctx, k.subscribeCurrPathFromGUI)
 			}
 		}
 	}()
@@ -2064,6 +2086,8 @@ func (k *SimpleFS) SimpleFSFolderSyncConfigAndStatus(
 				return keybase1.FolderSyncConfigAndStatus{}, err
 			}
 			res.Status.PrefetchStatus = metadata.PrefetchStatus
+			res.Status.PrefetchProgress = k.prefetchProgressFromByteStatus(
+				metadata.PrefetchProgress)
 		} else {
 			k.log.CDebugf(ctx,
 				"Could not get prefetch status from filesys: %T", fi.Sys())

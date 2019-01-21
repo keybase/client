@@ -23,7 +23,7 @@ function UsernameTips({platform}: {platform: PlatformsExpandedType}) {
     return (
       <InfoNote containerStyle={styleInfoNote}>
         <Box2 direction="vertical" style={{textAlign: 'center'}}>
-          <Text type="BodySmall" style={{textAlign: 'center'}}>
+          <Text center={true} type="BodySmall">
             You can find your Facebook username at
           </Text>
           <Box2 direction="horizontal">

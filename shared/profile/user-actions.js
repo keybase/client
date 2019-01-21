@@ -114,7 +114,11 @@ const _makeDropdownButtonMenuItems = (props: DropdownProps) => [
           title: 'Send Lumens (XLM)',
           view: (
             <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.menuItemBox}>
-              <Kb.Text style={styles.menuItemText} type={Styles.isMobile ? 'BodyBig' : 'Body'}>
+              <Kb.Text
+                center={Styles.isMobile}
+                style={styles.menuItemText}
+                type={Styles.isMobile ? 'BodyBig' : 'Body'}
+              >
                 Send Lumens (XLM)
               </Kb.Text>
               <Kb.Meta
@@ -131,7 +135,11 @@ const _makeDropdownButtonMenuItems = (props: DropdownProps) => [
           title: 'Request Lumens (XLM)',
           view: (
             <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.menuItemBox}>
-              <Kb.Text style={styles.menuItemText} type={Styles.isMobile ? 'BodyBig' : 'Body'}>
+              <Kb.Text
+                center={Styles.isMobile}
+                style={styles.menuItemText}
+                type={Styles.isMobile ? 'BodyBig' : 'Body'}
+              >
                 Request Lumens (XLM)
               </Kb.Text>
               <Kb.Meta
@@ -244,7 +252,11 @@ export const makeStellarAddressMenuItems = (props: StellarFederatedAddressProps)
     view: (
       // eslint-disable-next-line no-use-before-define
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.menuItemBox}>
-        <Kb.Text style={styles.menuItemText} type={Styles.isMobile ? 'BodyBig' : 'Body'}>
+        <Kb.Text
+          center={Styles.isMobile}
+          style={styles.menuItemText}
+          type={Styles.isMobile ? 'BodyBig' : 'Body'}
+        >
           Send Lumens (XLM)
         </Kb.Text>
         <Kb.Meta title="New" size="Small" backgroundColor={Styles.globalColors.blue} style={styles.badge} />
@@ -256,7 +268,11 @@ export const makeStellarAddressMenuItems = (props: StellarFederatedAddressProps)
     title: 'Request Lumens (XLM)',
     view: (
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.menuItemBox}>
-        <Kb.Text style={styles.menuItemText} type={Styles.isMobile ? 'BodyBig' : 'Body'}>
+        <Kb.Text
+          center={Styles.isMobile}
+          style={styles.menuItemText}
+          type={Styles.isMobile ? 'BodyBig' : 'Body'}
+        >
           Request Lumens (XLM)
         </Kb.Text>
         <Kb.Meta title="New" size="Small" backgroundColor={Styles.globalColors.blue} style={styles.badge} />
@@ -322,7 +338,6 @@ const styles = Styles.styleSheetCreate({
     isMobile: {
       ...Styles.globalStyles.flexGrow,
       color: Styles.globalColors.blue,
-      textAlign: 'center',
     },
   }),
   styleService: {

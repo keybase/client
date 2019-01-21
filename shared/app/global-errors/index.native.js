@@ -91,8 +91,8 @@ class GlobalError extends React.Component<Props, State> {
             }}
           >
             <Kb.Text
-              type="BodySmallSemibold"
-              style={{color: Styles.globalColors.white, flex: 1, textAlign: 'center'}}
+              center={true} type="BodySmallSemibold"
+              style={{color: Styles.globalColors.white, flex: 1}}
               onClick={this._onExpandClick}
             >
               <Kb.Icon

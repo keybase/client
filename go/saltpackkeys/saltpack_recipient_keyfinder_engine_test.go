@@ -349,7 +349,7 @@ func TestSaltpackRecipientKeyfinderDeviceKeys(t *testing.T) {
 	require.NoError(t, err)
 	tcY := SetupKeyfinderEngineTest(t, "SaltpackRecipientKeyfinderEngine2") // context for second device
 	defer tcY.Cleanup()
-	kbtest.ProvisionNewDeviceKex(&tc, &tcY, u2)
+	kbtest.ProvisionNewDeviceKex(&tc, &tcY, u2, libkb.DeviceTypeDesktop)
 	tc.G.BustLocalUserCache(u2.GetUID())
 	tc.G.GetUPAKLoader().ClearMemory()
 	u2new, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(libkb.NewMetaContextForTest(tc)))
@@ -580,7 +580,7 @@ func TestSaltpackRecipientKeyfinderDevicePaperAndPerUserKeys(t *testing.T) {
 	require.NoError(t, err)
 	tcY := SetupKeyfinderEngineTest(t, "SaltpackRecipientKeyfinderEngine2") // context for second device
 	defer tcY.Cleanup()
-	kbtest.ProvisionNewDeviceKex(&tc, &tcY, u2)
+	kbtest.ProvisionNewDeviceKex(&tc, &tcY, u2, libkb.DeviceTypeDesktop)
 	tc.G.BustLocalUserCache(u2.GetUID())
 	tc.G.GetUPAKLoader().ClearMemory()
 	u2new, err := libkb.LoadMe(libkb.NewLoadUserArgWithMetaContext(libkb.NewMetaContextForTest(tc)))

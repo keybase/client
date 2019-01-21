@@ -28,13 +28,13 @@ const TurnOnNotifications = (props: Props) => (
     </Box>
     <Text
       type="BodySemibold"
+      center={true}
       backgroundMode="HighRisk"
       style={{
         bottom: globalMargins.medium,
         left: globalMargins.small,
         position: 'absolute',
         right: globalMargins.small,
-        textAlign: 'center',
       }}
     >
       You turned off native notifications for Keybase. It’s{' '}

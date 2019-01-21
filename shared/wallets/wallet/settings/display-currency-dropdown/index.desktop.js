@@ -11,7 +11,7 @@ const headerKey = '_header'
 const makeDropdownItems = (currencies: I.List<Types.Currency>, currency: Types.Currency) => {
   const items = [
     <Kb.Box2 centerChildren={true} direction="vertical" key={headerKey}>
-      <Kb.Text type="BodySmall" style={styles.dropdownHeader}>
+      <Kb.Text center={true} Text={true} type="BodySmall" style={styles.dropdownHeader}>
         Past transactions won't be affected by this change.
       </Kb.Text>
     </Kb.Box2>,
@@ -24,8 +24,9 @@ const makeDropdownItem = (item: Types.Currency, isSelected: boolean, waiting?: b
   <Kb.Box2 centerChildren={true} direction="vertical" fullWidth={true} key={item.code}>
     {item.description && !waiting ? (
       <Kb.Text
+        center={true}
         type="BodyBig"
-        style={Styles.collapseStyles([styles.centerText, isSelected && styles.itemSelected])}
+        style={Styles.collapseStyles([isSelected && styles.itemSelected])}
       >
         {item.description}
       </Kb.Text>
@@ -57,22 +58,14 @@ const DisplayCurrencyDropdown = (props: Props) => {
 }
 
 const styles = Styles.styleSheetCreate({
-  centerText: {
-    textAlign: 'center',
-  },
   container: {alignItems: 'center', justifyContent: 'flex-start'},
   dropdown: {
     alignItems: 'center',
     flexShrink: 1,
     marginBottom: Styles.globalMargins.xtiny,
   },
-  dropdownHeader: {
-    padding: Styles.globalMargins.xsmall,
-    textAlign: 'center',
-  },
-  itemSelected: {
-    color: Styles.globalColors.blue,
-  },
+  dropdownHeader: {padding: Styles.globalMargins.xsmall},
+  itemSelected: {color: Styles.globalColors.blue},
   progressIndicator: {
     height: 17,
     width: 17,

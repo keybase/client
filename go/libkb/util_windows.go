@@ -15,10 +15,9 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/kardianos/osext"
-
 	"unicode/utf16"
 
+	"github.com/keybase/client/go/utils"
 	"golang.org/x/sys/windows"
 	"golang.org/x/sys/windows/registry"
 )
@@ -215,7 +214,7 @@ func ChangeMountIcon(oldMount string, newMount string) error {
 	if err != nil {
 		return err
 	}
-	keybaseExe, err := osext.Executable()
+	keybaseExe, err := utils.BinPath()
 	if err != nil {
 		return err
 	}

@@ -10,7 +10,7 @@ type OwnProps = {||}
 
 const NoPGPView = props => (
   <Kb.StandardScreen style={styleContainer} onCancel={props.onCancel}>
-    <Kb.Text style={styleTitle} type="Header">
+    <Kb.Text center={true} style={styleTitle} type="Header">
       Add a PGP key
     </Kb.Text>
     <Kb.Text type="Body">For now, please use our desktop app to create PGP keys.</Kb.Text>
@@ -27,13 +27,7 @@ const routeTree = makeRouteDefNode({
   component: NoPGP,
 })
 
-const styleContainer = {
-  justifyContent: 'flex-start',
-}
-
-const styleTitle = {
-  marginBottom: Styles.globalMargins.xlarge,
-  textAlign: 'center',
-}
+const styleContainer = { justifyContent: 'flex-start' }
+const styleTitle = { marginBottom: Styles.globalMargins.xlarge }
 
 export default routeTree

@@ -991,17 +991,19 @@ func (sr *subscriptionReporter) requireNoNotification(t *testing.T) {
 
 func TestRefreshSubscription(t *testing.T) {
 	ctx := context.Background()
-	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
+	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "alice")
 	sfs := newSimpleFS(env.EmptyAppStateUpdater{}, config)
 	defer closeSimpleFS(ctx, t, sfs)
 	sr := &subscriptionReporter{Reporter: config.Reporter(), lastPathNotify: make(chan struct{}, 1<<30)}
 	config.SetReporter(sr)
 
-	path1 := keybase1.NewPathWithKbfs(`/private/jdoe`)
+	// Use a non-canonical (possibly preferred) path to make sure notification
+	// comes back with same path.
+	path1 := keybase1.NewPathWithKbfs(`/private/jdoe,alice`)
 
 	t.Log("Writing a file with no subscription")
 	writeRemoteFile(ctx, t, sfs, pathAppend(path1, `test1.txt`), []byte(`foo`))
-	syncFS(ctx, t, sfs, "/private/jdoe")
+	syncFS(ctx, t, sfs, "/private/jdoe,alice")
 	sr.requireNoNotification(t)
 	require.Equal(t, "", sr.LastPath())
 
@@ -1018,7 +1020,7 @@ func TestRefreshSubscription(t *testing.T) {
 	require.NoError(t, err)
 
 	writeRemoteFile(ctx, t, sfs, pathAppend(path1, `test2.txt`), []byte(`foo`))
-	syncFS(ctx, t, sfs, "/private/jdoe")
+	syncFS(ctx, t, sfs, "/private/jdoe,alice")
 	sr.waitForNotification(t)
 	require.Equal(t, "/keybase"+path1.Kbfs(), sr.LastPath())
 
@@ -1046,7 +1048,7 @@ func TestRefreshSubscription(t *testing.T) {
 	require.Equal(t, "/keybase"+path2.Kbfs(), sr.LastPath())
 
 	writeRemoteFile(ctx, t, sfs, pathAppend(path1, `test3.txt`), []byte(`foo`))
-	syncFS(ctx, t, sfs, "/private/jdoe")
+	syncFS(ctx, t, sfs, "/private/jdoe,alice")
 	sr.requireNoNotification(t)
 	require.Equal(t, "/keybase"+path2.Kbfs(), sr.LastPath())
 }

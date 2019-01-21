@@ -26,7 +26,7 @@ const DeleteHistoryWarning = ({onCancel, onDeleteHistory}: Props) => (
       <Text style={{padding: globalMargins.small}} type="Header">
         Delete conversation history?
       </Text>
-      <Text style={styleText} type="Body">
+      <Text center={isMobile} style={styleText} type="Body">
         You are about to delete all the messages in this conversation. For everyone.
       </Text>
       <Box style={styleButtonBox}>
@@ -50,18 +50,12 @@ const stylePadding = platformStyles({
     marginRight: 80,
     marginTop: 40,
   },
-  isMobile: {
-    paddingTop: globalMargins.xlarge,
-  },
+  isMobile: { paddingTop: globalMargins.xlarge },
 })
 
 const styleButtonBox = platformStyles({
-  common: {
-    marginTop: globalMargins.xlarge,
-  },
-  isElectron: {
-    ...globalStyles.flexBoxRow,
-  },
+  common: { marginTop: globalMargins.xlarge },
+  isElectron: { ...globalStyles.flexBoxRow },
   isMobile: {
     ...globalStyles.flexBoxColumn,
     alignItems: 'stretch',
@@ -73,21 +67,10 @@ const styleButtonBox = platformStyles({
 })
 
 const styleButton = platformStyles({
-  isElectron: {
-    marginLeft: globalMargins.tiny,
-  },
-  isMobile: {
-    marginTop: globalMargins.tiny,
-  },
+  isElectron: { marginLeft: globalMargins.tiny },
+  isMobile: { marginTop: globalMargins.tiny },
 })
 
-const styleText = platformStyles({
-  common: {
-    padding: globalMargins.small,
-  },
-  isMobile: {
-    textAlign: 'center',
-  },
-})
+const styleText = { padding: globalMargins.small }
 
 export default HeaderOnMobile(DeleteHistoryWarning)

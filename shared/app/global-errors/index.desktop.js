@@ -109,7 +109,7 @@ class GlobalError extends Component<Props, State> {
     return (
       <Box style={containerOverlayStyle}>
         <Box style={overlayRowStyle}>
-          <Text type="BodySmallSemibold" style={{color: globalColors.white, textAlign: 'center'}}>
+          <Text center={true} type="BodySmallSemibold" style={{color: globalColors.white}}>
             {message}
           </Text>
         </Box>
@@ -129,7 +129,7 @@ class GlobalError extends Component<Props, State> {
     return (
       <Box style={{...containerStyle, ...containerErrorStyle, maxHeight}} onClick={this._onExpandClick}>
         <Box style={{...summaryRowStyle, ...summaryRowErrorStyle}}>
-          <Text type="BodyBig" style={{color: globalColors.white, flex: 1, textAlign: 'center'}}>
+          <Text center={true} type="BodyBig" style={{color: globalColors.white, flex: 1}}>
             {summary}
           </Text>
           {summary && (
@@ -142,7 +142,7 @@ class GlobalError extends Component<Props, State> {
             />
           )}
         </Box>
-        <Text type="BodyBig" selectable={true} style={detailStyle}>
+        <Text center={true} type="BodyBig" selectable={true} style={detailStyle}>
           {details}
         </Text>
       </Box>
@@ -191,7 +191,6 @@ const detailStyle = {
   padding: 8,
   paddingLeft: globalMargins.xlarge,
   paddingRight: globalMargins.xlarge,
-  textAlign: 'center',
 }
 
 const containerOverlayStyle = {

@@ -29,14 +29,13 @@ function UsernameTips({platform}: {platform: PlatformsExpandedType}) {
     return (
       <InfoNote>
         <Box2 direction="vertical">
-          <Text type="BodySmall" style={{textAlign: 'center'}}>
+          <Text center={true} type="BodySmall">
             You can find your Facebook username at
           </Text>
           <Box2 direction="horizontal">
             <Text
-              type="BodySmallSecondaryLink"
+              center={true} type="BodySmallSecondaryLink"
               onClick={() => Linking.openURL('http://www.facebook.com/settings')}
-              style={{textAlign: 'center'}}
             >
               http://www.facebook.com/settings
             </Text>

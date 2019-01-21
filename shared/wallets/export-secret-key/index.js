@@ -35,7 +35,7 @@ export default class ExportSecretKeyPopup extends React.Component<Props> {
         ) : (
           <SmallAccountID accountID={this.props.accountID} />
         )}
-        <Text type={Styles.isMobile ? 'BodyBig' : 'Header'} style={styles.headerText}>
+        <Text center={true} type={Styles.isMobile ? 'BodyBig' : 'Header'} style={styles.headerText}>
           Secret key
         </Text>
       </React.Fragment>
@@ -55,7 +55,7 @@ export default class ExportSecretKeyPopup extends React.Component<Props> {
         />
         {!Styles.isMobile && header}
         <Box2 direction="horizontal" style={styles.warningContainer}>
-          <Text backgroundMode="Information" type="BodySmallSemibold" style={styles.warningText}>
+          <Text center={true} backgroundMode="Information" type="BodySmallSemibold">
             Only paste your secret key in 100% safe places. Anyone with this key could steal your
             Stellar&nbsp;account.
           </Text>
@@ -91,9 +91,6 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   headerText: Styles.platformStyles({
-    common: {
-      textAlign: 'center',
-    },
     isElectron: {
       marginBottom: Styles.globalMargins.medium,
     },
@@ -106,10 +103,6 @@ const styles = Styles.styleSheetCreate({
       marginBottom: 50,
     },
   }),
-  infoNoteText: {
-    marginBottom: Styles.globalMargins.medium,
-    textAlign: 'center',
-  },
   progressContainer: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.fillAbsolute,
@@ -143,8 +136,5 @@ const styles = Styles.styleSheetCreate({
     marginBottom: Styles.globalMargins.medium,
     padding: Styles.globalMargins.xsmall,
     width: '100%',
-  },
-  warningText: {
-    textAlign: 'center',
   },
 })

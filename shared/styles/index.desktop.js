@@ -4,6 +4,7 @@ import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
 import path from 'path'
 import {type CollapsibleStyle} from './index.types'
 import * as Shared from './shared'
+import {isEmpty} from 'lodash-es'
 
 const fontCommon = {
   WebkitFontSmoothing: 'antialiased',
@@ -144,7 +145,8 @@ export const collapseStyles = (styles: $ReadOnlyArray<CollapsibleStyle>): Object
   }
 
   const flattenedStyles = styles.reduce((a, e) => a.concat(e), [])
-  return flattenedStyles.reduce((o, e) => (e ? {...o, ...e} : o), {})
+  const style = flattenedStyles.reduce((o, e) => (e ? {...o, ...e} : o), {})
+  return isEmpty(style) ? undefined : style
 }
 export {isMobile, fileUIName, isIPhoneX, isIOS, isAndroid} from '../constants/platform'
 export {globalMargins, backgroundModeToColor, platformStyles} from './shared'

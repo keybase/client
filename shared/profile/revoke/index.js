@@ -21,7 +21,7 @@ const Revoke = (props: Props) => {
       )}
       {!!props.errorMessage && (
         <Kb.Box style={styleErrorBanner}>
-          <Kb.Text style={styleErrorBannerText} type="BodySemibold">
+          <Kb.Text center={!Styles.isMobile} style={styleErrorBannerText} type="BodySemibold">
             {props.errorMessage}
           </Kb.Text>
         </Kb.Box>
@@ -32,7 +32,7 @@ const Revoke = (props: Props) => {
           overlay={'icon-proof-broken'}
           overlayColor={Styles.globalColors.red}
         />
-        <Kb.Text style={stylePlatformUsername} type="Header">
+        <Kb.Text center={!Styles.isMobile} style={stylePlatformUsername} type="Header">
           {props.platformHandle}
         </Kb.Text>
         {!!platformHandleSubtitle && (
@@ -40,10 +40,10 @@ const Revoke = (props: Props) => {
             {platformHandleSubtitle}
           </Kb.Text>
         )}
-        <Kb.Text style={styleDescriptionText} type="Header">
+        <Kb.Text center={!Styles.isMobile} style={styleDescriptionText} type="Header">
           {formatMessage(props.platform)}
         </Kb.Text>
-        <Kb.Text style={styleReminderText} type="Body">
+        <Kb.Text center={!Styles.isMobile} style={styleReminderText} type="Body">
           You can add it again later, if you change your mind.
         </Kb.Text>
         <Kb.ButtonBar>
@@ -98,7 +98,6 @@ const styleErrorBanner = {
 const styleErrorBannerText = {
   color: Styles.globalColors.white,
   maxWidth: 512,
-  ...(Styles.isMobile ? {} : {textAlign: 'center'}),
 }
 
 const styleContentContainer = {
@@ -119,21 +118,12 @@ const stylePlatformUsername = Styles.platformStyles({
   isElectron: {
     maxWidth: 400,
     overflowWrap: 'break-word',
-    textAlign: 'center',
   },
 })
 const stylePlatformSubtitle = {
   color: Styles.globalColors.black_20,
 }
-
-const styleDescriptionText = {
-  marginTop: Styles.globalMargins.medium,
-  ...(Styles.isMobile ? {} : {textAlign: 'center'}),
-}
-
-const styleReminderText = {
-  marginTop: Styles.globalMargins.tiny,
-  ...(Styles.isMobile ? {} : {textAlign: 'center'}),
-}
+const styleDescriptionText = {marginTop: Styles.globalMargins.medium}
+const styleReminderText = {marginTop: Styles.globalMargins.tiny}
 
 export default Revoke
