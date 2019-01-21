@@ -33,18 +33,11 @@ export class HeaderHocHeader extends React.Component<Props, State> {
             onPress: this.props.onRightAction,
           },
         ]
-      : null
+      : []
 
-    // temp this is a short term hack to even out the spacing on the right side so the title is centered
-    // if there is no right action (most places) we add padding on the right to match the left side
-    let rightStyle = null
-    if (!rightActions) {
-      if (leftAction === 'back') {
-        rightStyle = styles.rightActionOnBack
-      } else if (leftAction === 'cancel') {
-        rightStyle = styles.rightActionOnCancel
-      }
-    }
+    // This is used to center the title. The magic numbers were calculated from the inspector.
+    const titlePaddingLeft = leftAction === 'cancel' ? 83 : 53
+    const titlePadding = rightActions.length ? 38 * (rightActions.length > MAX_RIGHT_ACTIONS ? MAX_RIGHT_ACTIONS : rightActions.length) : titlePaddingLeft
 
     return (
       <Box
@@ -55,28 +48,25 @@ export class HeaderHocHeader extends React.Component<Props, State> {
         ])}
       >
         {this.props.customComponent}
+        <Title
+          title={this.props.title}
+          titleComponent={this.props.titleComponent}
+          titlePadding={titlePadding}
+        />
         <LeftAction
           badgeNumber={this.props.badgeNumber}
           customCancelText={this.props.customCancelText}
-          hasTitleComponent={!!this.props.titleComponent}
           hideBackLabel={this.props.hideBackLabel}
           leftAction={leftAction}
           leftActionText={this.props.leftActionText}
           onLeftAction={onLeftAction}
           theme={this.props.theme}
         />
-        <Title
-          hasRightActions={!!rightActions}
-          title={this.props.title}
-          titleComponent={this.props.titleComponent}
-        />
         <RightActions
           floatingMenuVisible={this.state.floatingMenuVisible}
-          hasTitleComponent={!!this.props.titleComponent}
           hideFloatingMenu={this._hideFloatingMenu}
           rightActions={rightActions}
           showFloatingMenu={this._showFloatingMenu}
-          style={rightStyle}
         />
       </Box>
     )
@@ -86,14 +76,13 @@ export class HeaderHocHeader extends React.Component<Props, State> {
 const LeftAction = ({
   badgeNumber,
   customCancelText,
-  hasTitleComponent,
   hideBackLabel,
   leftAction,
   leftActionText,
   onLeftAction,
   theme,
 }): React.Node => (
-  <Box style={Styles.collapseStyles([styles.leftAction, hasTitleComponent && styles.unflex])}>
+  <Box style={styles.leftAction}>
     {onLeftAction &&
       (leftAction === 'cancel' ? (
         <Text type="BodyBigLink" style={styles.action} onClick={onLeftAction}>
@@ -111,8 +100,14 @@ const LeftAction = ({
   </Box>
 )
 
-const Title = ({hasRightActions, title, titleComponent}): React.Node => (
-  <Box style={Styles.collapseStyles([styles.titleContainer, !hasRightActions && styles.titlePadding])}>
+const Title = ({title, titleComponent, titlePadding}): React.Node => (
+  <Box style={Styles.collapseStyles([
+    styles.titleContainer,
+    {
+      paddingLeft: titlePadding,
+      paddingRight: titlePadding,
+    },
+  ])}>
     {!!title && !titleComponent ? (
       <Text type="BodySemibold" style={styles.title} lineClamp={1}>
         {title}
@@ -125,13 +120,11 @@ const Title = ({hasRightActions, title, titleComponent}): React.Node => (
 
 const RightActions = ({
   floatingMenuVisible,
-  hasTitleComponent,
   hideFloatingMenu,
   rightActions,
   showFloatingMenu,
-  style,
 }): React.Node => (
-  <Box style={Styles.collapseStyles([styles.rightActions, hasTitleComponent && styles.unflex, style])}>
+  <Box style={styles.rightActions}>
     <Box style={styles.rightActionsWrapper}>
       {rightActions &&
         rightActions
@@ -240,15 +233,15 @@ const styles = Styles.styleSheetCreate({
       ...Styles.globalStyles.flexBoxRow,
       alignItems: 'center',
       borderBottomColor: Styles.globalColors.black_10,
-      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomWidth: 1,
       justifyContent: 'flex-start',
       width: '100%',
     },
     isAndroid: {
-      minHeight: 56,
+      height: 56,
     },
     isIOS: {
-      minHeight: 44,
+      height: 44,
     },
   }),
   innerWrapper: {
@@ -258,20 +251,18 @@ const styles = Styles.styleSheetCreate({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
       alignItems: 'flex-start',
-      flexShrink: 1,
+      flexGrow: 1,
       justifyContent: 'flex-start',
     },
     isIOS: {
       paddingLeft: Styles.globalMargins.tiny,
     },
   }),
-  rightActionOnBack: {minWidth: 53},
-  rightActionOnCancel: {minWidth: 83},
   rightActions: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
       alignItems: 'flex-end',
-      flexShrink: 1,
+      flexGrow: 1,
       justifyContent: 'flex-end',
     },
     isIOS: {
@@ -282,32 +273,21 @@ const styles = Styles.styleSheetCreate({
     ...Styles.globalStyles.flexBoxRow,
   },
   title: {
+    backgroundColor: Styles.globalColors.red,
     color: Styles.globalColors.black_75,
   },
   titleContainer: Styles.platformStyles({
     common: {
+      ...Styles.globalStyles.fillAbsolute,
       ...Styles.globalStyles.flexBoxColumn,
       alignItems: 'center',
-      flexGrow: 1,
       justifyContent: 'center',
     },
     isAndroid: {
       alignItems: 'flex-start',
       justifyContent: 'flex-start',
     },
-    isIOS: {
-      paddingLeft: Styles.globalMargins.tiny,
-      paddingRight: Styles.globalMargins.tiny,
-    },
   }),
-  titlePadding: Styles.platformStyles({
-    isMobile: {
-      paddingRight: Styles.globalMargins.small,
-    },
-  }),
-  unflex: {
-    flex: 0,
-  },
   wrapper: {
     flexGrow: 1,
   },
