@@ -33,7 +33,7 @@ import {formatTimeForChat} from '../../../../util/timestamp'
 
 /**
  * WrapperMessage adds the orange line, menu button, menu, reacji
- * button, and exploding meta tag.
+ * row, and exploding meta tag.
  */
 
 export type Props = {|
@@ -43,6 +43,7 @@ export type Props = {|
   failureDescription: string,
   forceAsh: boolean,
   hasUnfurlPrompts: boolean,
+  isLastInThread: boolean,
   isPendingPayment: boolean,
   isRevoked: boolean,
   showCoinsIcon: boolean,
@@ -409,7 +410,10 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                   conversationIDKey={this.props.conversationIDKey}
                   onShowingEmojiPicker={this._setShowingPicker}
                   ordinal={message.ordinal}
-                  style={{bottom: -20, position: 'absolute', right: 100, zIndex: 2}}
+                  style={Styles.collapseStyles([
+                    styles.emojiRow,
+                    this.props.isLastInThread ? {bottom: 0} : null,
+                  ])}
                 />
                 <Kb.Box>
                   {this.props.shouldShowPopup && (
@@ -526,6 +530,7 @@ const styles = Styles.styleSheetCreate({
   }),
   edited: {color: Styles.globalColors.black_20},
   ellipsis: {marginLeft: Styles.globalMargins.tiny},
+  emojiRow: {bottom: -20, position: 'absolute', right: 100, zIndex: 2},
   fail: {color: Styles.globalColors.red},
   failUnderline: {color: Styles.globalColors.red, textDecorationLine: 'underline'},
   fast,
