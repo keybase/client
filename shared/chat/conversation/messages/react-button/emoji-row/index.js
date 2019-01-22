@@ -5,13 +5,13 @@ import * as Styles from '../../../../../styles'
 import {Picker} from '../picker'
 import {backgroundImageFn} from '../../../../../common-adapters/emoji'
 
-type Props = {
+type Props = {|
   className?: string,
   emojis: Array<string>, // e.g. ':tada:'
   onReact: string => void,
   onShowingEmojiPicker?: boolean => void,
   style?: Styles.StylesCrossPlatform,
-}
+|}
 
 class HoverEmoji extends React.Component<
   {name: string, onClick: () => void, isReacjiIcon?: boolean},
@@ -93,7 +93,7 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       backgroundColor: Styles.globalColors.white,
       borderColor: Styles.globalColors.black_10,
-      borderRadius: 4,
+      borderRadius: Styles.borderRadius,
       borderStyle: 'solid',
       borderWidth: 1,
       height: 24,
@@ -102,9 +102,9 @@ const styles = Styles.styleSheetCreate({
   emojiBox: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
-    height: 16,
+    height: Styles.globalMargins.small,
     justifyContent: 'center',
-    width: 16,
+    width: Styles.globalMargins.small,
   },
   emojisRow: {
     paddingBottom: Styles.globalMargins.xtiny,
@@ -114,7 +114,7 @@ const styles = Styles.styleSheetCreate({
   },
   pickerContainer: Styles.platformStyles({
     isElectron: {
-      borderRadius: 4,
+      borderRadius: Styles.borderRadius,
       boxShadow: `0 0 8px 0 ${Styles.globalColors.black_20}`,
       margin: Styles.globalMargins.tiny,
     },

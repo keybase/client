@@ -30,6 +30,6 @@ const FakeMessage = () => (
 const load = () =>
   Sb.storiesOf('Chat/Conversation/Emoji row')
     .add('On hover', () => <FakeMessage />)
-    .add('Visible', () => <EmojiRow {...common} attachTo={() => null} onHidden={() => {}} visible={true} />)
+    .add('Visible', () => <EmojiRow {...common} />)
 
 export default load
