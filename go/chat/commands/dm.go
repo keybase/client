@@ -16,7 +16,7 @@ type DM struct {
 
 func NewDM(g *globals.Context) *DM {
 	return &DM{
-		baseCommand: newBaseCommand(g, "msg", "@user message", "dm"),
+		baseCommand: newBaseCommand(g, "msg", "<user> <message>", "dm"),
 	}
 }
 

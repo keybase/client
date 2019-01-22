@@ -35,7 +35,9 @@ func (s *Source) makeBuiltin() {
 		Heading: "Keybase",
 		Commands: []types.ConversationCommand{
 			NewDM(s.G()),
+			NewHeadline(s.G()),
 			NewHide(s.G()),
+			NewMe(s.G()),
 			NewShrug(s.G()),
 		},
 	}

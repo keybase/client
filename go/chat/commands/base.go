@@ -39,6 +39,14 @@ func (b *baseCommand) getConvByName(ctx context.Context, uid gregor1.UID, name s
 	return convs[0], nil
 }
 
+func (n *baseCommand) commandAndMessage(text string) (cmd string, msg string, err error) {
+	toks := strings.Split(text, " ")
+	if len(toks) < 2 {
+		return "", "", ErrInvalidArguments
+	}
+	return toks[0], strings.Join(toks[1:], " "), nil
+}
+
 func (b *baseCommand) Match(ctx context.Context, text string) bool {
 	cands := append(b.aliases, b.name)
 	for _, c := range cands {
