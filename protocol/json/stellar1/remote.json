@@ -644,6 +644,22 @@
           "name": "currency"
         },
         {
+          "type": "string",
+          "name": "fromDisplayAmount"
+        },
+        {
+          "type": "string",
+          "name": "fromDisplayCurrency"
+        },
+        {
+          "type": "string",
+          "name": "toDisplayAmount"
+        },
+        {
+          "type": "string",
+          "name": "toDisplayCurrency"
+        },
+        {
           "type": "KeybaseTransactionID",
           "name": "fundingKbTxID"
         },

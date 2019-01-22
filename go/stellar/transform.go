@@ -80,6 +80,11 @@ func TransformRequestDetails(mctx libkb.MetaContext, details stellar1.RequestDet
 		var code string
 		if details.Asset.IsNativeXLM() {
 			code = "XLM"
+			if loc.FromCurrentUser {
+				loc.WorthAtRequestTime, _, _ = formatWorth(mctx, &details.FromDisplayAmount, &details.FromDisplayCurrency)
+			} else {
+				loc.WorthAtRequestTime, _, _ = formatWorth(mctx, &details.ToDisplayAmount, &details.ToDisplayCurrency)
+			}
 		} else {
 			code = details.Asset.Code
 		}
