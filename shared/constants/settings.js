@@ -10,7 +10,7 @@ const initialState: Types.State = {
     unfurl: {},
   },
   email: {
-    emails: [],
+    emails: null,
     error: null,
     newEmail: '',
   },
