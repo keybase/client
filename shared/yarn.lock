@@ -1419,6 +1419,16 @@
     react-is "^16.5.2"
     react-lifecycles-compat "^3.0.4"
 
+"@react-navigation/native@3.1.1":
+  version "3.1.1"
+  resolved "https://registry.yarnpkg.com/@react-navigation/native/-/native-3.1.1.tgz#fac445f36a70c5db10d4bc99a36c5a055f4a9318"
+  integrity sha512-qrkmcvsbhJ+RAegkmw+AX+L6gojk9Ec5F4avVUlnBYitBBv/A3GaC9Yne/XtnLbQFbxcr+7oBulLsftn/ClSzQ==
+  dependencies:
+    hoist-non-react-statics "^3.0.1"
+    react-native-gesture-handler "^1.0.12"
+    react-native-safe-area-view "^0.12.0"
+    react-native-screens "^1.0.0 || ^1.0.0-alpha"
+
 "@react-navigation/web@1.0.0-alpha.7":
   version "1.0.0-alpha.7"
   resolved "https://registry.yarnpkg.com/@react-navigation/web/-/web-1.0.0-alpha.7.tgz#262545e38c2f83f58022098a00f72b0447bc6fb2"
@@ -11682,7 +11692,7 @@ react-native-fast-image@5.1.1:
   resolved "https://registry.yarnpkg.com/react-native-fast-image/-/react-native-fast-image-5.1.1.tgz#2595323a926ade0b3a37bd627eb55e3ebf67598b"
   integrity sha512-kEzgZxbbXYhy27u5GnhrKitn+XDBFAHSDUJdYC6llMi5cDPjgcqhOAQABj0K+ga5pn+/xPZLmD882rrUGiwVVA==
 
-react-native-gesture-handler@1.0.12:
+react-native-gesture-handler@1.0.12, react-native-gesture-handler@^1.0.12:
   version "1.0.12"
   resolved "https://registry.yarnpkg.com/react-native-gesture-handler/-/react-native-gesture-handler-1.0.12.tgz#99a22f90212df299245357dbd3a9a01c788f310b"
   integrity sha512-Qp5FjRmqUFeCevSu2IYQG1Xw+YXZ9YOzqze/ZxaIvWzYAoKsRchlgHhNoxvCqElp/befrnVFIjAEQyUxcmBKJw==
@@ -11706,12 +11716,24 @@ react-native-mime-types@2.2.1:
   version "3.1.1"
   resolved "git://github.com/keybase/react-native-push-notification#9bdf1f0e50a5cef86740c3f52e8ff74b1b80a5e3"
 
+react-native-safe-area-view@^0.12.0:
+  version "0.12.0"
+  resolved "https://registry.yarnpkg.com/react-native-safe-area-view/-/react-native-safe-area-view-0.12.0.tgz#5c312f087300ecf82e8541c3eac25d560e147f22"
+  integrity sha512-UrAXmBC4KNR5K2eczIDZgqceWyKsgG9gmWFerHCvoyApfei8ceBB9u/c//PWCpS5Gt8MRLTmX5jPtzdXo2yNqg==
+  dependencies:
+    hoist-non-react-statics "^2.3.1"
+
 react-native-safe-module@^1.1.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/react-native-safe-module/-/react-native-safe-module-1.2.0.tgz#a23824ca24edc2901913694a76646475113d570d"
   integrity sha1-ojgkyiTtwpAZE2lKdmRkdRE9Vw0=
   dependencies:
     dedent "^0.6.0"
+
+"react-native-screens@^1.0.0 || ^1.0.0-alpha":
+  version "1.0.0-alpha.22"
+  resolved "https://registry.yarnpkg.com/react-native-screens/-/react-native-screens-1.0.0-alpha.22.tgz#7a120377b52aa9bbb94d0b8541a014026be9289b"
+  integrity sha512-kSyAt0AeVU6N7ZonfV6dP6iZF8B7Bce+tk3eujXhzBGsLg0VSLnU7uE9VqJF0xdQrHR91ZjGgVMieo/8df9KTA==
 
 react-native-swipe-gestures@^1.0.2:
   version "1.0.3"
@@ -11724,6 +11746,13 @@ react-native-tab-view@^0.0.67:
   integrity sha1-zdFG/l5dS6/2yJ8tXQsV+iPbOdA=
   dependencies:
     prop-types "^15.5.8"
+
+react-native-tab-view@^1.0.0:
+  version "1.3.1"
+  resolved "https://registry.yarnpkg.com/react-native-tab-view/-/react-native-tab-view-1.3.1.tgz#f9932d6bd5ba7dad75ef9335a68f13d85ba5bd56"
+  integrity sha512-QNt6VkEW8SP1UJ7yjD5P4bOTWwHQfoIMD5CqnA06pcubdNwHR1NmjiNZsVnIvp5wAEVbW6yTHjLXOh1fzab4xg==
+  dependencies:
+    prop-types "^15.6.1"
 
 "react-native@git://github.com/keybase/react-native#keybase-fixes-off-578":
   version "0.57.8"
@@ -11781,6 +11810,21 @@ react-native-tab-view@^0.0.67:
     xcode "^1.0.0"
     xmldoc "^0.4.0"
     yargs "^9.0.0"
+
+react-navigation-stack@1.0.6:
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/react-navigation-stack/-/react-navigation-stack-1.0.6.tgz#5c2b6617dccc1de6001b387cd967baa6b205132d"
+  integrity sha512-7vnoceO6d/KYvtOSi3Ui3u1gvZEF/dBrOn+Gb1zqiZ3t+0oWRPpU36OmXAh/SwI5aokQyoihAlH9UBMfp+fbEA==
+
+react-navigation-tabs@1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/react-navigation-tabs/-/react-navigation-tabs-1.0.2.tgz#cc6c61db0c61054388ef6f726a8ffc183d6095b5"
+  integrity sha512-ffWPVdo+L0GLbQlLAzH7ITYqh9V9NdqT/juj8QtESH5/2yUqfvqTxQoSowvFIrtiIHHFH6tLoQy1sZZciTxmeg==
+  dependencies:
+    hoist-non-react-statics "^2.5.0"
+    prop-types "^15.6.1"
+    react-lifecycles-compat "^3.0.4"
+    react-native-tab-view "^1.0.0"
 
 "react-navigation@git://github.com/keybase/react-navigation#keybase-fixes-off-beta-12":
   version "1.0.0-beta.12"

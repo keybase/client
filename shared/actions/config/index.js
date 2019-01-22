@@ -21,6 +21,7 @@ import {getEngine} from '../../engine'
 import {type TypedState} from '../../constants/reducer'
 import {updateServerConfigLastLoggedIn} from '../../app/server-config'
 import flags from '../../util/feature-flags'
+import {StackActions} from '@react-navigation/core'
 
 const setupEngineListeners = () => {
   getEngine().actionOnDisconnect('daemonError', () => {
@@ -396,13 +397,12 @@ const navigateAppend = (_, action) => {
     routeName = p.selected
     params = p.props
   }
-
-  routeName && _navigator && _navigator.push({params, routeName})
+  routeName && _navigator && _navigator.dispatch(StackActions.push({params, routeName}))
 }
 // maybe the same?
 const navigateTo = navigateAppend
 const navigateUp = () => {
-  _navigator && _navigator.pop()
+  _navigator && _navigator.dispatch(StackActions.pop())
 }
 
 function* configSaga(): Saga.SagaGenerator<any, any> {

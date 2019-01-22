@@ -168,7 +168,8 @@ export const newRoutes = {
   },
   chatShowNewTeamDialog: {getScreen: () => require('./new-team-dialog-container').default},
   'tabs:chatTab': {
-    getScreen: () => (isMobile ? null : require('./inbox-and-conversation-2.desktop').default),
+    getScreen: () =>
+      isMobile ? require('./inbox/container').default : require('./inbox-and-conversation-2.desktop').default,
   },
 }
 

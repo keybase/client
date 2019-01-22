@@ -135,7 +135,7 @@ const createElectronApp = App => {
       this._navigation = getNavigation(
         App.router,
         this.state.nav,
-        this._dispatch,
+        this.dispatch,
         this._actionEventSubscribers,
         () => this.props.screenProps,
         () => this._navigation
@@ -146,10 +146,7 @@ const createElectronApp = App => {
         </NavigationProvider>
       )
     }
-    // just so we have nice access to this in the action
-    push = route => this._dispatch(StackActions.push(route))
-    pop = () => this._dispatch(StackActions.pop())
-    _dispatch = action => {
+    dispatch = action => {
       const lastState = this.state.nav
       const newState = App.router.getStateForAction(action, lastState)
       const dispatchEvents = () =>
