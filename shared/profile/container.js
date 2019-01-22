@@ -52,9 +52,15 @@ class ProfileContainer extends React.PureComponent<EitherProps<Props>> {
   }
 }
 
-const mapStateToProps = (state, {routeProps, routeState, routePath}: OwnProps) => {
+// just handle locally
+let _currentFriendshipsTab = 'Followers'
+
+const mapStateToProps = (state, {routeProps, routeState, routePath, navigation}: OwnProps) => {
   const myUsername = state.config.username
-  const username = (routeProps.get('username') ? routeProps.get('username') : myUsername) || ''
+  let username = routeProps && routeProps.get('username') ? routeProps.get('username') : myUsername || ''
+  if (navigation && navigation.getParam('username')) {
+    username = navigation.getParam('username')
+  }
   if (username && username !== username.toLowerCase()) {
     throw new Error('Attempted to navigate to mixed case username.')
   }
@@ -62,9 +68,9 @@ const mapStateToProps = (state, {routeProps, routeState, routePath}: OwnProps) =
 
   return {
     addUserToTeamsResults: state.teams.addUserToTeamsResults,
-    currentFriendshipsTab: routeState.get('currentFriendshipsTab'),
+    currentFriendshipsTab: routeState ? routeState.get('currentFriendshipsTab') : _currentFriendshipsTab,
     myUsername,
-    profileIsRoot: routePath.size === 1 && routePath.first() === peopleTab,
+    profileIsRoot: routePath && routePath.size === 1 && routePath.first() === peopleTab,
     trackerState: state.tracker.userTrackers[username] || state.tracker.nonUserTrackers[username],
     username,
     youAreInTeams,
@@ -100,7 +106,10 @@ const mapDispatchToProps = (dispatch, {setRouteState}: OwnProps) => ({
   _onUnfollow: (username: string) => dispatch(TrackerGen.createUnfollow({username})),
   getProfile: (username: string) => dispatch(TrackerGen.createGetProfile({username})),
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
-  onChangeFriendshipsTab: currentFriendshipsTab => setRouteState({currentFriendshipsTab}),
+  onChangeFriendshipsTab: currentFriendshipsTab => {
+    _currentFriendshipsTab = currentFriendshipsTab
+    setRouteState && setRouteState({currentFriendshipsTab})
+  },
   onClearAddUserToTeamsResults: () => dispatch(TeamsGen.createSetAddUserToTeamsResults({results: ''})),
   onClickShowcaseOffer: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['showcaseTeamOffer']})),
   onEditAvatar: (image?: Response) =>

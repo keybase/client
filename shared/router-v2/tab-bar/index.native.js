@@ -13,14 +13,6 @@ const icons = {
   [Tabs.walletsTab]: 'iconfont-nav-wallets',
 }
 
-const labels = {
-  [Tabs.chatTab]: 'Chat',
-  [Tabs.fsTab]: 'Files',
-  [Tabs.peopleTab]: 'People',
-  [Tabs.settingsTab]: 'Settings',
-  [Tabs.walletsTab]: 'Wallet',
-}
-
 const tabs = [Tabs.peopleTab, Tabs.chatTab, Tabs.fsTab, Tabs.settingsTab]
 const TabBar = p => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
@@ -28,6 +20,8 @@ const TabBar = p => (
       <Kb.Icon
         key={t}
         type={icons[t]}
+        onClick={() => p.onTabClick(t)}
+        fontSize={32}
         style={t === p.selectedTab ? styles.tabSelected : styles.tab}
         color={t === p.selectedTab ? Styles.globalColors.white : Styles.globalColors.darkBlue4}
       />
@@ -35,9 +29,7 @@ const TabBar = p => (
   </Kb.Box2>
 )
 
-const tab = {
-  fontSize: 32,
-}
+const tab = {}
 const styles = Styles.styleSheetCreate({
   container: {
     alignItems: 'center',
