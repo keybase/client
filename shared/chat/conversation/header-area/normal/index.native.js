@@ -24,11 +24,13 @@ const Wrapper = (props: {
   <HeaderHocHeader
     badgeNumber={props.badgeNumber}
     onLeftAction={props.onBack}
-    rightActions={[{
-      icon: 'iconfont-info',
-      label: 'Info',
-      onPress: props.onToggleInfoPanel,
-    }]}
+    rightActions={[
+      {
+        icon: 'iconfont-info',
+        label: 'Info',
+        onPress: props.onToggleInfoPanel,
+      },
+    ]}
     titleComponent={props.children}
   />
 )
@@ -46,15 +48,17 @@ const ShhIcon = props => (
 const ChannelHeader = (props: Props) => (
   <Wrapper {...props}>
     <Box2 direction="horizontal" style={styles.channelHeaderContainer}>
-      <Avatar teamname={props.teamName} size={12} />
+      <Avatar teamname={props.teamName} size={props.smallTeam ? 16 : 12} />
       <Text
-        type={isMobile
-          ? props.smallTeam
-            ? 'BodySemibold'
-            : 'BodyTinySemibold'
-          : props.smallTeam
+        type={
+          isMobile
+            ? props.smallTeam
+              ? 'BodySemibold'
+              : 'BodyTinySemibold'
+            : props.smallTeam
             ? 'BodyBig'
-            : 'BodySmallSemibold'}
+            : 'BodySmallSemibold'
+        }
         lineClamp={1}
         ellipsizeMode="middle"
         style={collapseStyles([styles.channelName, !props.smallTeam && styles.channelNameLight])}

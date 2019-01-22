@@ -84,15 +84,9 @@ class ChatFilterRow extends React.PureComponent<Props, State> {
     if (this.state.isEditing || this.props.filter) {
       children = (
         <Kb.Box style={styles.inputContainer}>
-          <Kb.Icon
-            key="0"
-            type="iconfont-search"
-            style={styles.icon}
-            color={Styles.globalColors.black_20}
-          />
+          <Kb.Icon type="iconfont-search" style={styles.icon} color={Styles.globalColors.black_20} />
           <Kb.Input
             hideUnderline={true}
-            key="1"
             small={true}
             value={this.props.filter}
             hintText="Jump to..."
@@ -125,11 +119,13 @@ class ChatFilterRow extends React.PureComponent<Props, State> {
       <>
         <Kb.HeaderHocHeader
           borderless={true}
-          rightActions={[{
-            icon: 'iconfont-compose',
-            label: 'New chat',
-            onPress: this.props.onNewChat,
-          }]}
+          rightActions={[
+            {
+              icon: 'iconfont-compose',
+              label: 'New chat',
+              onPress: this.props.onNewChat,
+            },
+          ]}
           titleComponent={children}
         />
         {this.props.isLoading && (
@@ -138,7 +134,7 @@ class ChatFilterRow extends React.PureComponent<Props, State> {
           </Kb.Box>
         )}
       </>
-      ) : (
+    ) : (
       <Kb.Box style={styles.container}>
         {children}
         <Kb.Icon
