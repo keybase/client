@@ -520,8 +520,8 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "text": "HiddenString"
     },
-    "updateOrangeLine": {
-      "_description": "Update the orange line position for a conversation",
+    "updateUnreadline": {
+      "_description": "Update the unreadline line position for a conversation",
       "conversationIDKey": "Types.ConversationIDKey",
       "messageID": "Types.MessageID"
     }

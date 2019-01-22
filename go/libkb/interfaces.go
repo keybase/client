@@ -389,7 +389,6 @@ type ChatUI interface {
 	ChatInboxFailed(context.Context, chat1.ChatInboxFailedArg) error
 	ChatThreadCached(context.Context, chat1.ChatThreadCachedArg) error
 	ChatThreadFull(context.Context, chat1.ChatThreadFullArg) error
-	ChatUnreadline(context.Context, chat1.ChatUnreadlineArg) error
 	ChatConfirmChannelDelete(context.Context, chat1.ChatConfirmChannelDeleteArg) (bool, error)
 	ChatSearchHit(context.Context, chat1.ChatSearchHitArg) error
 	ChatSearchDone(context.Context, chat1.ChatSearchDoneArg) error

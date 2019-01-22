@@ -234,9 +234,6 @@ protocol chatUi {
   void chatThreadCached(int sessionID, union { null, string } thread) oneway;
   void chatThreadFull(int sessionID, string thread) oneway;
 
-  // unreadline is chat1.Unreadline serialized as a JSON string
-  void chatUnreadline(int sessionID, string unreadline) oneway;
-
   void chatSearchHit(int sessionID, ChatSearchHit searchHit);
   void chatSearchDone(int sessionID, int numHits);
 

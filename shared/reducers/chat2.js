@@ -416,7 +416,7 @@ const rootReducer = (
         }
         s.set('selectedConversation', conversationIDKey)
       })
-    case Chat2Gen.updateOrangeLine:
+    case Chat2Gen.updateUnreadline:
       if (action.payload.messageID > 0) {
         return state.setIn(['orangeLineMap', action.payload.conversationIDKey], action.payload.messageID)
       } else {

@@ -3089,23 +3089,17 @@ func TestChatSrvGetUnreadLine(t *testing.T) {
 				if i == 0 {
 					require.NoError(t, g.ConvSource.Clear(ctx, conv.Id, user.GetUID().ToBytes()))
 				}
-				_, err := ctc.as(t, user).chatLocalHandler().GetUnreadlineNonblock(ctx,
-					chat1.GetUnreadlineNonblockArg{
+				res, err := ctc.as(t, user).chatLocalHandler().GetUnreadline(ctx,
+					chat1.GetUnreadlineArg{
 						ConvID:    conv.Id,
 						ReadMsgID: readMsgID,
 					})
 				require.NoError(t, err)
-				select {
-				case res := <-ui.UnreadlineCb:
-					require.Equal(t, conv.Id, res.ConvID)
-					if unreadLineID == 0 {
-						require.Nil(t, res.UnreadlineID)
-					} else {
-						require.NotNil(t, res.UnreadlineID)
-						require.Equal(t, unreadLineID, *res.UnreadlineID)
-					}
-				case <-time.After(20 * time.Second):
-					require.Fail(t, "no unreadline cb")
+				if unreadLineID == 0 {
+					require.Nil(t, res.UnreadlineID)
+				} else {
+					require.NotNil(t, res.UnreadlineID)
+					require.Equal(t, unreadLineID, *res.UnreadlineID)
 				}
 			}
 		}

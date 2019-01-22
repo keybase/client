@@ -1752,24 +1752,7 @@
     },
     {
       "type": "record",
-      "name": "Unreadline",
-      "fields": [
-        {
-          "type": "ConversationID",
-          "name": "convID"
-        },
-        {
-          "type": [
-            null,
-            "MessageID"
-          ],
-          "name": "unreadlineID"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "NonblockUnreadlineRes",
+      "name": "UnreadlineRes",
       "fields": [
         {
           "type": "boolean",
@@ -1788,6 +1771,13 @@
             "items": "keybase1.TLFIdentifyFailure"
           },
           "name": "identifyFailures"
+        },
+        {
+          "type": [
+            null,
+            "MessageID"
+          ],
+          "name": "unreadlineID"
         }
       ]
     },
@@ -2883,7 +2873,7 @@
       ],
       "response": "NonblockFetchRes"
     },
-    "getUnreadlineNonblock": {
+    "getUnreadline": {
       "request": [
         {
           "name": "sessionID",
@@ -2902,7 +2892,7 @@
           "type": "keybase1.TLFIdentifyBehavior"
         }
       ],
-      "response": "NonblockUnreadlineRes"
+      "response": "UnreadlineRes"
     },
     "getInboxUILocal": {
       "request": [

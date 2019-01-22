@@ -1049,7 +1049,7 @@ function* getUnreadline(state, action) {
   }
 
   if (!key || !Constants.isValidConversationIDKey(key)) {
-    logger.info('Load thread bail: no conversationIDKey')
+    logger.info('Load unreadline bail: no conversationIDKey')
     return
   }
 
@@ -1057,49 +1057,25 @@ function* getUnreadline(state, action) {
 
   const convID = Types.keyToConversationID(conversationIDKey)
   if (!convID) {
-    logger.info('Load thread bail: invalid conversationIDKey')
+    logger.info('Load unreadline bail: invalid conversationIDKey')
     return
   }
 
   const {readMsgID} = state.chat2.metaMap.get(conversationIDKey, Constants.makeConversationMeta())
   logger.info(`Load unreadline: calling rpc convo: ${conversationIDKey} readMsgID: ${readMsgID}`)
-
-  const onGotUnreadline = ({unreadline}) => {
-    console.log(`onGotUnreadline unreadline ${unreadline}`)
-    if (!unreadline) {
-      return
-    }
-
-    const obj: RPCChatTypes.Unreadline = JSON.parse(unreadline)
-    const unreadlineID = obj.unreadlineID ? obj.unreadlineID : 0
-    console.log(`onGotUnreadline unreadlineID ${unreadlineID}`)
-    return Saga.put(
-      Chat2Gen.createUpdateOrangeLine({
-        conversationIDKey,
-        messageID: Types.numberToMessageID(unreadlineID),
-      })
-    )
-  }
-
-  const waitingKey = Constants.waitingKeyUnreadline(conversationIDKey)
-  try {
-    const results: RPCChatTypes.NonblockUnreadlineRes = yield RPCChatTypes.localGetUnreadlineNonblockRpcSaga({
-      incomingCallMap: {
-        'chat.1.chatUi.chatUnreadline': onGotUnreadline,
-      },
-      params: {
-        convID,
-        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-        readMsgID,
-      },
-      waitingKey,
+  const unreadlineRes = yield RPCChatTypes.localGetUnreadlineRpcPromise({
+    convID,
+    identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+    readMsgID,
+  })
+  const unreadlineID = unreadlineRes.unreadlineID ? unreadlineRes.unreadlineID : 0
+  console.log(`onGotUnreadline unreadlineID ${unreadlineID}`)
+  yield Saga.put(
+    Chat2Gen.createUpdateUnreadline({
+      conversationIDKey,
+      messageID: Types.numberToMessageID(unreadlineID),
     })
-    yield Saga.put(
-      Chat2Gen.createSetConversationOffline({conversationIDKey, offline: results && results.offline})
-    )
-  } catch (e) {
-    logger.info(`Load getUnreadline error ${e}`)
-  }
+  )
 }
 
 const clearInboxFilter = (state, action) => {
@@ -2785,7 +2761,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
 
   yield* Saga.chainAction<
     | Chat2Gen.MessagesAddPayload
-    | Chat2Gen.SelectConversationPayload
+    | Chat2Gen.UpdateUnreadlinePayload
     | Chat2Gen.MarkInitiallyLoadedThreadAsReadPayload
     | Chat2Gen.UpdateReactionsPayload
     | ConfigGen.ChangedFocusPayload
@@ -2794,7 +2770,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   >(
     [
       Chat2Gen.messagesAdd,
-      Chat2Gen.selectConversation,
+      Chat2Gen.updateUnreadline,
       Chat2Gen.markInitiallyLoadedThreadAsRead,
       Chat2Gen.updateReactions,
       ConfigGen.changedFocus,

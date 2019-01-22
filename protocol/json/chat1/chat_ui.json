@@ -1041,20 +1041,6 @@
       "response": null,
       "oneway": true
     },
-    "chatUnreadline": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "unreadline",
-          "type": "string"
-        }
-      ],
-      "response": null,
-      "oneway": true
-    },
     "chatSearchHit": {
       "request": [
         {

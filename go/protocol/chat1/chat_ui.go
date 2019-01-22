@@ -1114,11 +1114,6 @@ type ChatThreadFullArg struct {
 	Thread    string `codec:"thread" json:"thread"`
 }
 
-type ChatUnreadlineArg struct {
-	SessionID  int    `codec:"sessionID" json:"sessionID"`
-	Unreadline string `codec:"unreadline" json:"unreadline"`
-}
-
 type ChatSearchHitArg struct {
 	SessionID int           `codec:"sessionID" json:"sessionID"`
 	SearchHit ChatSearchHit `codec:"searchHit" json:"searchHit"`
@@ -1177,7 +1172,6 @@ type ChatUiInterface interface {
 	ChatInboxFailed(context.Context, ChatInboxFailedArg) error
 	ChatThreadCached(context.Context, ChatThreadCachedArg) error
 	ChatThreadFull(context.Context, ChatThreadFullArg) error
-	ChatUnreadline(context.Context, ChatUnreadlineArg) error
 	ChatSearchHit(context.Context, ChatSearchHitArg) error
 	ChatSearchDone(context.Context, ChatSearchDoneArg) error
 	ChatSearchInboxHit(context.Context, ChatSearchInboxHitArg) error
@@ -1311,21 +1305,6 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 						return
 					}
 					err = i.ChatThreadFull(ctx, typedArgs[0])
-					return
-				},
-			},
-			"chatUnreadline": {
-				MakeArg: func() interface{} {
-					var ret [1]ChatUnreadlineArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]ChatUnreadlineArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]ChatUnreadlineArg)(nil), args)
-						return
-					}
-					err = i.ChatUnreadline(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -1526,11 +1505,6 @@ func (c ChatUiClient) ChatThreadCached(ctx context.Context, __arg ChatThreadCach
 
 func (c ChatUiClient) ChatThreadFull(ctx context.Context, __arg ChatThreadFullArg) (err error) {
 	err = c.Cli.Notify(ctx, "chat.1.chatUi.chatThreadFull", []interface{}{__arg})
-	return
-}
-
-func (c ChatUiClient) ChatUnreadline(ctx context.Context, __arg ChatUnreadlineArg) (err error) {
-	err = c.Cli.Notify(ctx, "chat.1.chatUi.chatUnreadline", []interface{}{__arg})
 	return
 }
 

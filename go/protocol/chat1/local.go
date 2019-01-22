@@ -3168,32 +3168,15 @@ func (e GetThreadNonblockPgMode) String() string {
 	return ""
 }
 
-type Unreadline struct {
-	ConvID       ConversationID `codec:"convID" json:"convID"`
-	UnreadlineID *MessageID     `codec:"unreadlineID,omitempty" json:"unreadlineID,omitempty"`
-}
-
-func (o Unreadline) DeepCopy() Unreadline {
-	return Unreadline{
-		ConvID: o.ConvID.DeepCopy(),
-		UnreadlineID: (func(x *MessageID) *MessageID {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.UnreadlineID),
-	}
-}
-
-type NonblockUnreadlineRes struct {
+type UnreadlineRes struct {
 	Offline          bool                          `codec:"offline" json:"offline"`
 	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
+	UnreadlineID     *MessageID                    `codec:"unreadlineID,omitempty" json:"unreadlineID,omitempty"`
 }
 
-func (o NonblockUnreadlineRes) DeepCopy() NonblockUnreadlineRes {
-	return NonblockUnreadlineRes{
+func (o UnreadlineRes) DeepCopy() UnreadlineRes {
+	return UnreadlineRes{
 		Offline: o.Offline,
 		RateLimits: (func(x []RateLimit) []RateLimit {
 			if x == nil {
@@ -3217,6 +3200,13 @@ func (o NonblockUnreadlineRes) DeepCopy() NonblockUnreadlineRes {
 			}
 			return ret
 		})(o.IdentifyFailures),
+		UnreadlineID: (func(x *MessageID) *MessageID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.UnreadlineID),
 	}
 }
 
@@ -4640,7 +4630,7 @@ type GetThreadNonblockArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
-type GetUnreadlineNonblockArg struct {
+type GetUnreadlineArg struct {
 	SessionID        int                          `codec:"sessionID" json:"sessionID"`
 	ConvID           ConversationID               `codec:"convID" json:"convID"`
 	ReadMsgID        MessageID                    `codec:"readMsgID" json:"readMsgID"`
@@ -5033,7 +5023,7 @@ type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetCachedThread(context.Context, GetCachedThreadArg) (GetThreadLocalRes, error)
 	GetThreadNonblock(context.Context, GetThreadNonblockArg) (NonblockFetchRes, error)
-	GetUnreadlineNonblock(context.Context, GetUnreadlineNonblockArg) (NonblockUnreadlineRes, error)
+	GetUnreadline(context.Context, GetUnreadlineArg) (UnreadlineRes, error)
 	GetInboxUILocal(context.Context, GetInboxUILocalArg) (GetInboxUILocalRes, error)
 	GetInboxAndUnboxLocal(context.Context, GetInboxAndUnboxLocalArg) (GetInboxAndUnboxLocalRes, error)
 	GetInboxAndUnboxUILocal(context.Context, GetInboxAndUnboxUILocalArg) (GetInboxAndUnboxUILocalRes, error)
@@ -5144,18 +5134,18 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
-			"getUnreadlineNonblock": {
+			"getUnreadline": {
 				MakeArg: func() interface{} {
-					var ret [1]GetUnreadlineNonblockArg
+					var ret [1]GetUnreadlineArg
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]GetUnreadlineNonblockArg)
+					typedArgs, ok := args.(*[1]GetUnreadlineArg)
 					if !ok {
-						err = rpc.NewTypeError((*[1]GetUnreadlineNonblockArg)(nil), args)
+						err = rpc.NewTypeError((*[1]GetUnreadlineArg)(nil), args)
 						return
 					}
-					ret, err = i.GetUnreadlineNonblock(ctx, typedArgs[0])
+					ret, err = i.GetUnreadline(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -6047,8 +6037,8 @@ func (c LocalClient) GetThreadNonblock(ctx context.Context, __arg GetThreadNonbl
 	return
 }
 
-func (c LocalClient) GetUnreadlineNonblock(ctx context.Context, __arg GetUnreadlineNonblockArg) (res NonblockUnreadlineRes, err error) {
-	err = c.Cli.Call(ctx, "chat.1.local.getUnreadlineNonblock", []interface{}{__arg}, &res)
+func (c LocalClient) GetUnreadline(ctx context.Context, __arg GetUnreadlineArg) (res UnreadlineRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.getUnreadline", []interface{}{__arg}, &res)
 	return
 }
 

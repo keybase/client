@@ -579,18 +579,13 @@ protocol local {
   NonblockFetchRes getThreadNonblock(int sessionID, ConversationID conversationID, GetThreadNonblockCbMode cbMode, GetThreadReason reason, GetThreadNonblockPgMode pgmode, union { null, GetThreadQuery} query, union { null, UIPagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
 
 
-  // chatUnreadline method returns this result serialized as JSON
-  record Unreadline {
-    ConversationID convID;
-    union { null, MessageID } unreadlineID;
-  }
-
-  record NonblockUnreadlineRes {
+  record UnreadlineRes {
     boolean offline;
     array<RateLimit> rateLimits;
     array<keybase1.TLFIdentifyFailure> identifyFailures;
+    union { null, MessageID } unreadlineID;
   }
-  NonblockUnreadlineRes getUnreadlineNonblock(int sessionID, ConversationID convID,
+  UnreadlineRes getUnreadline(int sessionID, ConversationID convID,
     MessageID readMsgID, keybase1.TLFIdentifyBehavior identifyBehavior);
 
 

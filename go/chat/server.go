@@ -633,11 +633,11 @@ func (h *Server) dispatchOldPagesJob(ctx context.Context, convID chat1.Conversat
 	}
 }
 
-func (h *Server) GetUnreadlineNonblock(ctx context.Context, arg chat1.GetUnreadlineNonblockArg) (res chat1.NonblockUnreadlineRes, err error) {
+func (h *Server) GetUnreadline(ctx context.Context, arg chat1.GetUnreadlineArg) (res chat1.UnreadlineRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err },
-		fmt.Sprintf("GetUnreadlineNonblock: convID: %v, readMsgID: %v", arg.ConvID, arg.ReadMsgID))()
+		fmt.Sprintf("GetUnreadline: convID: %v, readMsgID: %v", arg.ConvID, arg.ReadMsgID))()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
 
@@ -646,27 +646,11 @@ func (h *Server) GetUnreadlineNonblock(ctx context.Context, arg chat1.GetUnreadl
 		return res, err
 	}
 
-	chatUI := h.getChatUI(arg.SessionID)
-	go func(ctx context.Context) {
-		unreadlineID, err := h.G().ConvSource.GetUnreadline(ctx, arg.ConvID, uid, arg.ReadMsgID)
-		if err != nil {
-			h.Debug(ctx, "GetUnreadlineNonblock: unable to run UnreadMsgID: %v", err)
-			return
-		}
-		unreadline := chat1.Unreadline{
-			ConvID:       arg.ConvID,
-			UnreadlineID: unreadlineID,
-		}
-		jsonUnreadline, err := json.Marshal(&unreadline)
-		if err != nil {
-			h.Debug(ctx, "GetUnreadlineNonblock: failed to JSON response: %v", err)
-			return
-		}
-		chatUI.ChatUnreadline(ctx, chat1.ChatUnreadlineArg{
-			SessionID:  arg.SessionID,
-			Unreadline: string(jsonUnreadline),
-		})
-	}(BackgroundContext(ctx, h.G()))
+	res.UnreadlineID, err = h.G().ConvSource.GetUnreadline(ctx, arg.ConvID, uid, arg.ReadMsgID)
+	if err != nil {
+		h.Debug(ctx, "GetUnreadline: unable to run UnreadMsgID: %v", err)
+		return res, err
+	}
 	return res, nil
 }
 
