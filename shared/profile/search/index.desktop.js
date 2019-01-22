@@ -30,10 +30,10 @@ const Search = (props: Props) => (
 
 const styleSearchContainer = {
   ...globalStyles.flexBoxColumn,
+  ...desktopStyles.boxShadow,
   alignSelf: 'center',
   backgroundColor: globalColors.white,
   borderRadius: 5,
-  boxShadow: `0 2px 5px 0 ${globalColors.black_20}`,
   flex: 1,
   minWidth: 400,
   position: 'absolute',

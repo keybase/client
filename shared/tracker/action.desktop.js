@@ -138,9 +138,9 @@ export function calcFooterHeight(loggedIn: boolean): number {
 const styleContainer = {
   ...globalStyles.flexBoxRow,
   ...desktopStyles.noSelect,
+  ...desktopStyles.boxShadow,
   alignItems: 'center',
   backgroundColor: globalColors.white_90,
-  boxShadow: '0px 0px 3px rgba(0, 0, 0, 0.15)',
   height: calcFooterHeight(true),
   justifyContent: 'center',
   padding: globalMargins.small,
@@ -160,9 +160,9 @@ const styleChatButton = {
 
 const styleLoggedOutContainer = {
   ...globalStyles.flexBoxColumn,
+  ...desktopStyles.boxShadow,
   alignItems: 'center',
   backgroundColor: globalColors.white,
-  boxShadow: '0px 0px 3px rgba(0, 0, 0, 0.15)',
   height: calcFooterHeight(false),
   justifyContent: 'space-between',
   padding: globalMargins.small,
