@@ -11,6 +11,7 @@ import type {Banner as BannerType} from '../../../constants/types/wallets'
 
 type SendBodyProps = {|
   banners: Array<BannerType>,
+  onReviewPayments: ?() => void,
   isProcessing?: boolean,
 |}
 
@@ -39,6 +40,7 @@ export const SendBody = (props: SendBodyProps) => (
       <PublicMemo />
     </Kb.ScrollView>
     <Footer />
+    {!!props.onReviewPayments && <Failure onReviewPayments={props.onReviewPayments} />}
   </Kb.Box2>
 )
 
@@ -58,10 +60,39 @@ export const RequestBody = (props: RequestBodyProps) => (
   </Kb.Box2>
 )
 
+const Failure = ({onReviewPayments}: {onReviewPayments: () => void}) => (
+  <Kb.Box2
+    direction="vertical"
+    centerChildren={true}
+    fullWidth={true}
+    fullHeight={true}
+    gap="small"
+    style={styles.failureContainer}
+  >
+    <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={true}>
+      <Kb.Text center={true} type="BodyBig">
+        PAYMENT FAILED
+      </Kb.Text>
+      <Kb.Text center={true} type="Body">
+        Or, your internet connection failed.
+      </Kb.Text>
+      <Kb.Text center={true} type="Body">
+        Please check your recent payments before trying again.
+      </Kb.Text>
+    </Kb.Box2>
+    <Kb.Button type="Primary" label="Review payments" onClick={onReviewPayments} />
+  </Kb.Box2>
+)
+
 const styles = Styles.styleSheetCreate({
   container: {
     flexGrow: 1,
     flexShrink: 1,
+  },
+  failureContainer: {
+    ...Styles.globalStyles.fillAbsolute,
+    backgroundColor: Styles.globalColors.white_90,
+    padding: Styles.globalMargins.tiny,
   },
   scrollView: Styles.platformStyles({
     common: {
