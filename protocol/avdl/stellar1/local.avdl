@@ -568,6 +568,11 @@ protocol local {
   }
   LookupResultCLILocal lookupCLILocal(string name);
 
+  record BatchPaymentError {
+    string message;
+    int code;
+  }
+
   record BatchPaymentResult {
     string username;
     TimeMs startTime;
@@ -576,7 +581,7 @@ protocol local {
     TransactionID txID;
     PaymentStatus status;
     string statusDescription;
-    string error;
+    union { null, BatchPaymentError } error;
   }
 
   record BatchResultLocal {

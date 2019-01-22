@@ -900,6 +900,20 @@
     },
     {
       "type": "record",
+      "name": "BatchPaymentError",
+      "fields": [
+        {
+          "type": "string",
+          "name": "message"
+        },
+        {
+          "type": "int",
+          "name": "code"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "BatchPaymentResult",
       "fields": [
         {
@@ -931,7 +945,10 @@
           "name": "statusDescription"
         },
         {
-          "type": "string",
+          "type": [
+            null,
+            "BatchPaymentError"
+          ],
           "name": "error"
         }
       ]

@@ -66,7 +66,7 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 		}
 		if prepared[i].Error != nil {
 			bpResult.EndTime = stellar1.ToTimeMs(time.Now())
-			bpResult.Error = prepared[i].Error.Error()
+			bpResult.Error = &stellar1.BatchPaymentError{Message: prepared[i].Error.Error()}
 			bpResult.Status = stellar1.PaymentStatus_ERROR
 		} else {
 			// submit the transaction
@@ -83,7 +83,7 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 			case prepared[i].Relay != nil:
 				submitRes, err = walletState.SubmitRelayPayment(mctx.Ctx(), *prepared[i].Relay)
 			default:
-				bpResult.Error = "no prepared direct or relay payment"
+				bpResult.Error = &stellar1.BatchPaymentError{Message: "no prepared direct or relay payment"}
 				bpResult.Status = stellar1.PaymentStatus_ERROR
 				bpResult.EndTime = stellar1.ToTimeMs(time.Now())
 			}
@@ -92,7 +92,7 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 
 			if err != nil {
 				mctx.CDebugf("error submitting batch payment seqno %d, txid %s: %s", prepared[i].Seqno, prepared[i].TxID, err)
-				bpResult.Error = err.Error()
+				bpResult.Error = &stellar1.BatchPaymentError{Message: err.Error()}
 				bpResult.Status = stellar1.PaymentStatus_ERROR
 				bpResult.EndTime = stellar1.ToTimeMs(time.Now())
 			} else if bpResult.Status != stellar1.PaymentStatus_ERROR { // check to make sure default in switch above didn't happen

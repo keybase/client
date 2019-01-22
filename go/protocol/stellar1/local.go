@@ -787,15 +787,27 @@ func (o LookupResultCLILocal) DeepCopy() LookupResultCLILocal {
 	}
 }
 
+type BatchPaymentError struct {
+	Message string `codec:"message" json:"message"`
+	Code    int    `codec:"code" json:"code"`
+}
+
+func (o BatchPaymentError) DeepCopy() BatchPaymentError {
+	return BatchPaymentError{
+		Message: o.Message,
+		Code:    o.Code,
+	}
+}
+
 type BatchPaymentResult struct {
-	Username          string        `codec:"username" json:"username"`
-	StartTime         TimeMs        `codec:"startTime" json:"startTime"`
-	SubmittedTime     TimeMs        `codec:"submittedTime" json:"submittedTime"`
-	EndTime           TimeMs        `codec:"endTime" json:"endTime"`
-	TxID              TransactionID `codec:"txID" json:"txID"`
-	Status            PaymentStatus `codec:"status" json:"status"`
-	StatusDescription string        `codec:"statusDescription" json:"statusDescription"`
-	Error             string        `codec:"error" json:"error"`
+	Username          string             `codec:"username" json:"username"`
+	StartTime         TimeMs             `codec:"startTime" json:"startTime"`
+	SubmittedTime     TimeMs             `codec:"submittedTime" json:"submittedTime"`
+	EndTime           TimeMs             `codec:"endTime" json:"endTime"`
+	TxID              TransactionID      `codec:"txID" json:"txID"`
+	Status            PaymentStatus      `codec:"status" json:"status"`
+	StatusDescription string             `codec:"statusDescription" json:"statusDescription"`
+	Error             *BatchPaymentError `codec:"error,omitempty" json:"error,omitempty"`
 }
 
 func (o BatchPaymentResult) DeepCopy() BatchPaymentResult {
@@ -807,7 +819,13 @@ func (o BatchPaymentResult) DeepCopy() BatchPaymentResult {
 		TxID:              o.TxID.DeepCopy(),
 		Status:            o.Status.DeepCopy(),
 		StatusDescription: o.StatusDescription,
-		Error:             o.Error,
+		Error: (func(x *BatchPaymentError) *BatchPaymentError {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Error),
 	}
 }
 
