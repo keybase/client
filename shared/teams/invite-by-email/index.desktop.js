@@ -151,8 +151,8 @@ const _styleCover = {
 }
 
 const _styleContainer = {
-  ...Styles.globalStyles.flexBoxColumn,
   ...Styles.desktopStyles.boxShadow,
+  ...Styles.globalStyles.flexBoxColumn,
   alignSelf: 'center',
   backgroundColor: Styles.globalColors.white,
   borderRadius: 5,

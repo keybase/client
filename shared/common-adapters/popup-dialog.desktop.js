@@ -56,8 +56,8 @@ export function PopupDialog({
 const styles = Styles.styleSheetCreate({
   clipContainer: Styles.platformStyles({
     isElectron: {
-      ...Styles.globalStyles.flexBoxColumn,
       ...Styles.desktopStyles.boxShadow,
+      ...Styles.globalStyles.flexBoxColumn,
       backgroundColor: Styles.globalColors.white,
       borderRadius: Styles.borderRadius,
       flex: 1,
