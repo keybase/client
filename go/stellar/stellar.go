@@ -1781,11 +1781,6 @@ func GetCurrencySetting(mctx libkb.MetaContext, accountID stellar1.AccountID) (r
 	return currency, nil
 }
 
-func accountIDFromSecretKey(skey stellar1.SecretKey) (stellar1.AccountID, error) {
-	_, res, _, err := libkb.ParseStellarSecretKey(skey.SecureNoLogString())
-	return res, err
-}
-
 func CreateNewAccount(mctx libkb.MetaContext, accountName string) (ret stellar1.AccountID, err error) {
 	prevBundle, err := remote.FetchSecretlessBundle(mctx)
 	if err != nil {
