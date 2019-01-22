@@ -3,6 +3,7 @@ import React from 'react'
 import * as Types from '../../constants/types/chat2'
 import * as WalletTypes from '../../constants/types/wallets'
 import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
+import * as Styles from '../../styles'
 import {toByteArray} from 'base64-js'
 import PaymentStatus from '../../chat/payments/status/container'
 import Mention from '../mention-container'
@@ -13,7 +14,7 @@ export type Props = {
   onClick?: () => void,
   allowFontScaling?: ?boolean,
   message: Types.MessageText,
-  styles: Object,
+  styles: {[key: string]: Styles.StylesCrossPlatform},
 }
 
 const ServiceDecoration = (props: Props) => {
