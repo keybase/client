@@ -5,6 +5,7 @@ import logger from '../logger'
 import {map} from 'lodash-es'
 import * as I from 'immutable'
 import * as SearchGen from './search-gen'
+import * as WaitingGen from './waiting-gen'
 import * as TeamsGen from './teams-gen'
 import * as ProfileGen from './profile-gen'
 import * as Types from '../constants/types/teams'
@@ -751,14 +752,15 @@ function* getTeams(state) {
     logger.warn('getTeams while logged out')
     return
   }
-  yield Saga.put(TeamsGen.createSetLoaded({loaded: false}))
+  yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.teamsLoadedWaitingKey}))
   try {
     const results: RPCTypes.AnnotatedTeamList = yield* Saga.callPromise(
       RPCTypes.teamsTeamListUnverifiedRpcPromise,
       {
         includeImplicitTeams: false,
         userAssertion: username,
-      }
+      },
+      Constants.teamsLoadedWaitingKey
     )
 
     const teams = results.teams || []
@@ -809,10 +811,17 @@ function* getTeams(state) {
     if (err.code === RPCTypes.constantsStatusCode.scapinetworkerror) {
       // Ignore API errors due to offline
     } else {
+      yield Saga.put(
+        WaitingGen.createDecrementWaiting({
+          error: err,
+          key: Constants.teamsLoadedWaitingKey,
+        })
+      )
+
       throw err
     }
   } finally {
-    yield Saga.put(TeamsGen.createSetLoaded({loaded: true}))
+    yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.teamsLoadedWaitingKey}))
   }
 }
 
