@@ -249,14 +249,14 @@ func calculateStats(res *stellar1.BatchResultLocal) {
 		switch p.Status {
 		case stellar1.PaymentStatus_COMPLETED:
 			countDone++
-			res.CountSuccess += 1
+			res.CountSuccess++
 			durationSuccess += duration
 		case stellar1.PaymentStatus_PENDING:
-			res.CountPending += 1
+			res.CountPending++
 		default:
 			// error
 			countDone++
-			res.CountError += 1
+			res.CountError++
 			durationError += duration
 		}
 	}
