@@ -4,7 +4,7 @@ import SelectableBigTeamChannel from './selectable-big-team-channel'
 import * as Types from '../constants/types/chat2'
 import {namedConnect} from '../util/container'
 
-export type OwnProps = {|
+type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
   isSelected: boolean,
   onSelectConversation: () => void,

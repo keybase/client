@@ -12,32 +12,32 @@ import ConversationFilterInput, {
   type Props as ConversationFilterInputProps,
 } from '../conversation-filter-input'
 
-type SmallTeamRowItem = {
+type SmallTeamRowItem = {|
   conversationIDKey: Types.ConversationIDKey,
   isSelected: boolean,
   onSelectConversation: () => void,
   type: 'small',
-}
+|}
 
-type BigTeamChannelRowItem = {
+type BigTeamChannelRowItem = {|
   conversationIDKey: Types.ConversationIDKey,
   isSelected: boolean,
   onSelectConversation: () => void,
   type: 'big',
-}
+|}
 
-type ToggleMoreRowItem = {
+type ToggleMoreRowItem = {|
   type: 'more-less',
   onClick: () => void,
   hiddenCount: number,
-}
+|}
 
 type RowItem = SmallTeamRowItem | BigTeamChannelRowItem | ToggleMoreRowItem
 
-type Props = {
+type Props = {|
   rows: Array<RowItem>,
   filter?: ConversationFilterInputProps,
-}
+|}
 
 const _itemRenderer = (index, row) => {
   switch (row.type) {
