@@ -498,7 +498,7 @@ func (c *batchOptions) Check() error {
 	}
 
 	if c.Timeout <= 0 {
-		c.Timeout = 60
+		c.Timeout = 15 * len(c.Payments)
 	}
 
 	return nil

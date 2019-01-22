@@ -37,7 +37,7 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 	mctx.CDebugf("Batch size: %d", len(arg.Payments))
 
 	// prepare the payments
-	prepared, err := prepareBatchPayments(mctx, walletState, senderSeed, arg.Payments)
+	prepared, err := PrepareBatchPayments(mctx, walletState, senderSeed, arg.Payments)
 	if err != nil {
 		return res, err
 	}
@@ -118,7 +118,10 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 	return res, nil
 }
 
-func prepareBatchPayments(mctx libkb.MetaContext, walletState *WalletState, senderSeed stellarnet.SeedStr, payments []stellar1.BatchPaymentArg) ([]*MiniPrepared, error) {
+// PrepareBatchPayments prepares a list of payments to be submitted.
+// Each payment is prepared concurrently.
+// (this is an exposed function to make testing from outside this package easier)
+func PrepareBatchPayments(mctx libkb.MetaContext, walletState *WalletState, senderSeed stellarnet.SeedStr, payments []stellar1.BatchPaymentArg) ([]*MiniPrepared, error) {
 	mctx.CDebugf("preparing %d batch payments", len(payments))
 
 	prepared := make(chan *MiniPrepared)
