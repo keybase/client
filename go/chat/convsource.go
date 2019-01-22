@@ -1105,17 +1105,14 @@ func (s *HybridConversationSource) GetUnreadline(ctx context.Context,
 		return nil, err
 	}
 	if unreadlineID == nil {
-		s.Debug(ctx, "GetUnreadline: fetching from server")
 		if res, err := s.ri().GetUnreadlineRemote(ctx, chat1.GetUnreadlineRemoteArg{
 			ConvID:    convID,
 			ReadMsgID: readMsgID,
 		}); err != nil {
 			return nil, err
-		} else {
-			unreadlineID = res.UnreadlineID
 		}
+		unreadlineID = res.UnreadlineID
 	}
-	s.Debug(ctx, "GetUnreadline: unreadlineID:%v", unreadlineID)
 	return unreadlineID, nil
 }
 

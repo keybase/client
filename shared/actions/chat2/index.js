@@ -1054,7 +1054,6 @@ function* getUnreadline(state, action) {
   }
 
   const conversationIDKey = key
-
   const convID = Types.keyToConversationID(conversationIDKey)
   if (!convID) {
     logger.info('Load unreadline bail: invalid conversationIDKey')
@@ -1062,14 +1061,12 @@ function* getUnreadline(state, action) {
   }
 
   const {readMsgID} = state.chat2.metaMap.get(conversationIDKey, Constants.makeConversationMeta())
-  logger.info(`Load unreadline: calling rpc convo: ${conversationIDKey} readMsgID: ${readMsgID}`)
   const unreadlineRes = yield RPCChatTypes.localGetUnreadlineRpcPromise({
     convID,
     identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
     readMsgID,
   })
   const unreadlineID = unreadlineRes.unreadlineID ? unreadlineRes.unreadlineID : 0
-  console.log(`onGotUnreadline unreadlineID ${unreadlineID}`)
   yield Saga.put(
     Chat2Gen.createUpdateUnreadline({
       conversationIDKey,
