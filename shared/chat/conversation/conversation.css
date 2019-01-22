@@ -9,7 +9,7 @@
   width: 100%;
 }
 .WrapperMessage-noOverflow {
-  overflow: 'hidden';
+  overflow: hidden;
 }
 .WrapperMessage-hoverBox .WrapperMessage-buttons {
   display: none;
