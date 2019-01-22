@@ -63,6 +63,12 @@ export const unverifiedInboxUIItemToConversationMeta = (
   const teamname = isTeam ? i.name : ''
   const {retentionPolicy, teamRetentionPolicy} = UIItemToRetentionPolicies(i, isTeam)
 
+  const {
+    notificationsDesktop,
+    notificationsGlobalIgnoreMentions,
+    notificationsMobile,
+  } = parseNotificationSettings(i.notifications)
+
   return makeConversationMeta({
     channelname,
     commands: i.commands,
@@ -73,6 +79,9 @@ export const unverifiedInboxUIItemToConversationMeta = (
     maxMsgID: i.maxMsgID,
     maxVisibleMsgID: i.maxVisibleMsgID,
     membershipType: conversationMemberStatusToMembershipType(i.memberStatus),
+    notificationsDesktop,
+    notificationsGlobalIgnoreMentions,
+    notificationsMobile,
     participants,
     readMsgID: i.readMsgID,
     resetParticipants,

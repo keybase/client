@@ -302,6 +302,13 @@ export type _DestinationPicker = {
 
 export type DestinationPicker = I.RecordOf<_DestinationPicker>
 
+export type _SendAttachmentToChat = {
+  filter: string,
+  path: Path,
+  convID: ChatTypes.ConversationIDKey,
+}
+export type SendAttachmentToChat = I.RecordOf<_SendAttachmentToChat>
+
 export type _SendLinkToChat = {
   path: Path,
   // This is the convID that we are sending into. So for group chats or small
@@ -369,6 +376,7 @@ export type _State = {|
   pathItemActionMenu: PathItemActionMenu,
   pathItems: PathItems,
   pathUserSettings: I.Map<Path, PathUserSetting>,
+  sendAttachmentToChat: SendAttachmentToChat,
   sendLinkToChat: SendLinkToChat,
   sfmi: SystemFileManagerIntegration,
   tlfUpdates: UserTlfUpdates,

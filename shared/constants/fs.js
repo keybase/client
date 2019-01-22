@@ -185,6 +185,12 @@ export const makeDestinationPicker: I.RecordFactory<Types._DestinationPicker> = 
   source: makeNoSource(),
 })
 
+export const makeSendAttachmentToChat: I.RecordFactory<Types._SendAttachmentToChat> = I.Record({
+  convID: ChatConstants.noConversationIDKey,
+  filter: '',
+  path: Types.stringToPath('/keybase'),
+})
+
 export const makeSendLinkToChat: I.RecordFactory<Types._SendLinkToChat> = I.Record({
   channels: I.Map(),
   convID: ChatConstants.noConversationIDKey,
@@ -236,6 +242,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   pathItemActionMenu: makePathItemActionMenu(),
   pathItems: I.Map([[Types.stringToPath('/keybase'), makeFolder()]]),
   pathUserSettings: I.Map([[Types.stringToPath('/keybase'), makePathUserSetting()]]),
+  sendAttachmentToChat: makeSendAttachmentToChat(),
   sendLinkToChat: makeSendLinkToChat(),
   sfmi: makeSystemFileManagerIntegration(),
   tlfUpdates: I.List(),

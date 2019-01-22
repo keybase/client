@@ -213,6 +213,16 @@
     },
     "move": {"destinationParentPath": "Types.Path"},
     "copy": {"destinationParentPath": "Types.Path"},
+    "showSendAttachmentToChat": {
+      "path": "Types.Path",
+      "routePath?": "?I.List<string>"
+    },
+    "setSendAttachmentToChatConvID": {
+      "convID": "ChatTypes.ConversationIDKey"
+    },
+    "setSendAttachmentToChatFilter": {
+      "filter": "string"
+    },
     "showSendLinkToChat": {
       "path": "Types.Path",
       "routePath?": "?I.List<string>"

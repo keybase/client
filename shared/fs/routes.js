@@ -10,6 +10,7 @@ const routeTree = () => {
     .default
   const DestinationPicker = require('./destination-picker/container').default
   const SendLinkToChat = require('./send-link-to-chat/container').default
+  const SendAttachmentToChat = require('./send-attachment-to-chat/container').default
   const Oops = require('./oops/container').default
 
   const _destinationPicker = {
@@ -38,6 +39,14 @@ const routeTree = () => {
             }),
           },
         }),
+    sendAttachmentToChat: {
+      component: SendAttachmentToChat,
+      tags: makeLeafTags({
+        layerOnTop: !isMobile,
+        renderTopmostOnly: !isMobile,
+        title: 'Send attachment to chat',
+      }),
+    },
     sendLinkToChat: {
       component: SendLinkToChat,
       tags: makeLeafTags({

@@ -788,6 +788,18 @@ const closeDestinationPicker = (state, action) => {
   ]
 }
 
+function* showSendAttachmentToChat(state, action) {
+  const routeChange = Saga.put(
+    action.payload.routePath
+      ? RouteTreeGen.createPutActionIfOnPath({
+          expectedPath: action.payload.routePath,
+          otherAction: RouteTreeGen.createNavigateAppend({path: ['sendAttachmentToChat']}),
+        })
+      : RouteTreeGen.createNavigateAppend({path: ['sendAttachmentToChat']})
+  )
+  yield routeChange
+}
+
 function* showSendLinkToChat(state, action) {
   const elems = Types.getPathElements(state.fs.sendLinkToChat.path)
   const routeChange = Saga.put(
@@ -958,6 +970,10 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
     closeDestinationPicker
   )
   yield* Saga.chainGenerator<FsGen.ShowSendLinkToChatPayload>(FsGen.showSendLinkToChat, showSendLinkToChat)
+  yield* Saga.chainGenerator<FsGen.ShowSendLinkToChatPayload>(
+    FsGen.showSendAttachmentToChat,
+    showSendAttachmentToChat
+  )
   yield* Saga.chainAction<FsGen.ClearRefreshTagPayload>(FsGen.clearRefreshTag, clearRefreshTag)
   yield* Saga.chainAction<FsGen.KbfsDaemonStatusChangedPayload>(
     FsGen.kbfsDaemonStatusChanged,

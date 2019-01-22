@@ -1,16 +1,17 @@
 // @flow
 import * as React from 'react'
+import * as Types from '../../constants/types/chat2'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import ConversationList from './conversation-list-container'
-import type {Position} from '../../common-adapters/relative-popup-hoc.types'
 
-export type Props = {|
-  dropdownButtonDefaultText: string,
-  dropdownButtonStyle?: Styles.StylesCrossPlatform,
-  overlayStyle?: Styles.StylesCrossPlatform,
-  disabled?: boolean,
-  position?: Position,
+type Props = {|
+  dropdownButtonStyle?: ?Styles.StylesCrossPlatform,
+  filter?: string,
+  onSelect: (conversationIDKey: Types.ConversationIDKey) => void,
+  onSetFilter?: (filter: string) => void,
+  selected: Types.ConversationIDKey,
+  selectedText: string, // TODO: make this pretty
 |}
 
 type State = {|expanded: boolean|}
@@ -22,15 +23,16 @@ class ChooseConversation extends React.Component<Props & Kb.OverlayParentProps, 
   _toggleOpen = () => {
     this.setState(prevState => ({expanded: !prevState.expanded}))
   }
-  _onSelect = () => {
+  _onSelect = (conversationIDKey: Types.ConversationIDKey) => {
     this.setState({expanded: false})
+    this.props.onSelect(conversationIDKey)
   }
   render() {
     return (
       <>
         <Kb.DropdownButton
-          disabled={this.props.disabled}
-          selected={<Kb.Text type="BodySemibold">{this.props.dropdownButtonDefaultText}</Kb.Text>}
+          disabled={false}
+          selected={<Kb.Text type="BodySemibold">{this.props.selectedText}</Kb.Text>}
           setAttachmentRef={this.props.setAttachmentRef}
           toggleOpen={this._toggleOpen}
           style={Styles.collapseStyles([styles.dropdownButton, this.props.dropdownButtonStyle])}
@@ -38,11 +40,16 @@ class ChooseConversation extends React.Component<Props & Kb.OverlayParentProps, 
         <Kb.Overlay
           attachTo={this.props.getAttachmentRef}
           onHidden={this._toggleOpen}
-          position={this.props.position || 'center center'}
-          style={Styles.collapseStyles([styles.overlay, this.props.overlayStyle])}
+          position={'center center'}
+          style={styles.overlay}
           visible={this.state.expanded}
         >
-          <ConversationList onSelect={this._onSelect} />
+          <ConversationList
+            onSelect={this._onSelect}
+            filter={this.props.filter}
+            onSetFilter={this.props.onSetFilter}
+            selected={this.props.selected}
+          />
         </Kb.Overlay>
       </>
     )
@@ -53,11 +60,11 @@ export default Kb.OverlayParentHOC(ChooseConversation)
 
 const styles = Styles.styleSheetCreate({
   dropdownButton: {
-    width: 240,
+    width: 300,
   },
   overlay: {
     backgroundColor: Styles.globalColors.white,
-    height: 350,
-    width: 240,
+    height: 360,
+    width: 300,
   },
 })

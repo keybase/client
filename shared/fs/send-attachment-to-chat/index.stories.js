@@ -2,6 +2,7 @@
 import React from 'react'
 import * as Sb from '../../stories/storybook'
 import * as Types from '../../constants/types/fs'
+import * as ChatConstants from '../../constants/chat2'
 import {commonProvider} from '../common/index.stories'
 import {provider as conversationListProvider} from '../../chat/conversation-list/index.stories'
 import SendAttachmentToChat from '.'
@@ -9,6 +10,14 @@ import SendAttachmentToChat from '.'
 export const provider = Sb.createPropProviderWithCommon({
   ...conversationListProvider,
   ...commonProvider,
+  ChooseConversationHOC: props => ({
+    ...props,
+    filter: '',
+    onSelect: Sb.action('onSelect'),
+    onSetFilter: Sb.action('onSetFilter'),
+    selected: ChatConstants.noConversationIDKey,
+    selectedText: 'Choose a conversation',
+  }),
 })
 
 const common = {
