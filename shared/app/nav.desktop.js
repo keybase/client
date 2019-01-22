@@ -61,6 +61,7 @@ class Nav extends React.Component<Props> {
             Tabs.walletsTab,
             Tabs.gitTab,
             Tabs.devicesTab,
+            Tabs.teamsTab,
           ].includes(routeSelected) && <Offline />}
           <GlobalError />
         </Box>
