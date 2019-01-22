@@ -6,6 +6,10 @@ import getEmojis from './data'
 import type {StylesCrossPlatform} from '../../../../../styles'
 import EmojiRow from '.'
 
+const hr = 1000 * 60 * 60
+const min = 1000 * 60
+const currentMinute = () => Math.floor((Date.now() % hr) / min)
+
 type OwnProps = {|
   className?: string,
   conversationIDKey: Types.ConversationIDKey,
@@ -23,7 +27,7 @@ const mapDispatchToProps = dispatch => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   className: ownProps.className,
-  emojis: getEmojis().slice(0, 5),
+  emojis: getEmojis(currentMinute()).slice(0, 5),
   onReact: emoji => dispatchProps._onReact(emoji, ownProps.conversationIDKey, ownProps.ordinal),
   onShowingEmojiPicker: ownProps.onShowingEmojiPicker,
   style: ownProps.style,
