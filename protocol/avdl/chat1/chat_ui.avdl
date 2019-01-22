@@ -138,6 +138,7 @@ protocol chatUi {
     string amountDescription;
     union { null, stellar1.Asset } asset;
     union { null, stellar1.OutsideCurrencyCode } currency;
+    string worthAtRequestTime;
     stellar1.RequestStatus status;
   }
 

@@ -328,11 +328,12 @@ func (p *Loader) sendPaymentNotification(m libkb.MetaContext, id stellar1.Paymen
 
 func (p *Loader) uiRequestInfo(m libkb.MetaContext, details *stellar1.RequestDetailsLocal, msg chatMsg) *chat1.UIRequestInfo {
 	info := chat1.UIRequestInfo{
-		Amount:            details.Amount,
-		AmountDescription: details.AmountDescription,
-		Asset:             details.Asset,
-		Currency:          details.Currency,
-		Status:            details.Status,
+		Amount:             details.Amount,
+		AmountDescription:  details.AmountDescription,
+		Asset:              details.Asset,
+		Currency:           details.Currency,
+		Status:             details.Status,
+		WorthAtRequestTime: details.WorthAtRequestTime,
 	}
 
 	return &info

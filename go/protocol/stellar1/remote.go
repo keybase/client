@@ -597,15 +597,19 @@ func (o RequestPost) DeepCopy() RequestPost {
 }
 
 type RequestDetails struct {
-	Id            KeybaseRequestID      `codec:"id" json:"id"`
-	FromUser      keybase1.UserVersion  `codec:"fromUser" json:"fromUser"`
-	ToUser        *keybase1.UserVersion `codec:"toUser,omitempty" json:"toUser,omitempty"`
-	ToAssertion   string                `codec:"toAssertion" json:"toAssertion"`
-	Amount        string                `codec:"amount" json:"amount"`
-	Asset         *Asset                `codec:"asset,omitempty" json:"asset,omitempty"`
-	Currency      *OutsideCurrencyCode  `codec:"currency,omitempty" json:"currency,omitempty"`
-	FundingKbTxID KeybaseTransactionID  `codec:"fundingKbTxID" json:"fundingKbTxID"`
-	Status        RequestStatus         `codec:"status" json:"status"`
+	Id                  KeybaseRequestID      `codec:"id" json:"id"`
+	FromUser            keybase1.UserVersion  `codec:"fromUser" json:"fromUser"`
+	ToUser              *keybase1.UserVersion `codec:"toUser,omitempty" json:"toUser,omitempty"`
+	ToAssertion         string                `codec:"toAssertion" json:"toAssertion"`
+	Amount              string                `codec:"amount" json:"amount"`
+	Asset               *Asset                `codec:"asset,omitempty" json:"asset,omitempty"`
+	Currency            *OutsideCurrencyCode  `codec:"currency,omitempty" json:"currency,omitempty"`
+	FromDisplayAmount   string                `codec:"fromDisplayAmount" json:"fromDisplayAmount"`
+	FromDisplayCurrency string                `codec:"fromDisplayCurrency" json:"fromDisplayCurrency"`
+	ToDisplayAmount     string                `codec:"toDisplayAmount" json:"toDisplayAmount"`
+	ToDisplayCurrency   string                `codec:"toDisplayCurrency" json:"toDisplayCurrency"`
+	FundingKbTxID       KeybaseTransactionID  `codec:"fundingKbTxID" json:"fundingKbTxID"`
+	Status              RequestStatus         `codec:"status" json:"status"`
 }
 
 func (o RequestDetails) DeepCopy() RequestDetails {
@@ -635,8 +639,12 @@ func (o RequestDetails) DeepCopy() RequestDetails {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Currency),
-		FundingKbTxID: o.FundingKbTxID.DeepCopy(),
-		Status:        o.Status.DeepCopy(),
+		FromDisplayAmount:   o.FromDisplayAmount,
+		FromDisplayCurrency: o.FromDisplayCurrency,
+		ToDisplayAmount:     o.ToDisplayAmount,
+		ToDisplayCurrency:   o.ToDisplayCurrency,
+		FundingKbTxID:       o.FundingKbTxID.DeepCopy(),
+		Status:              o.Status.DeepCopy(),
 	}
 }
 
