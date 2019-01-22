@@ -14,15 +14,17 @@ export default function(state: Types.State = initialState, action: Tracker2Gen.A
     case Tracker2Gen.load: {
       const guiID = action.payload.guiID
       return state.merge({
-        usernameToDetails: state.usernameToDetails.updateIn([action.payload.assertion], old =>
-          (old || Constants.makeDetails()).merge({
-            assertions: I.Map(), // just remove for now, maybe keep them
-            guiID,
-            reason: action.payload.reason,
-            showTracker: action.payload.forceDisplay || old.showTracker, // show it or keep the last state
-            state: 'checking',
-            username: action.payload.assertion,
-          })
+        usernameToDetails: state.usernameToDetails.updateIn(
+          [action.payload.assertion],
+          (old = Constants.makeDetails()) =>
+            old.merge({
+              assertions: I.Map(), // just remove for now, maybe keep them
+              guiID,
+              reason: action.payload.reason,
+              showTracker: action.payload.forceDisplay || old.showTracker, // show it or keep the last state
+              state: 'checking',
+              username: action.payload.assertion,
+            })
         ),
       })
     }
@@ -32,8 +34,8 @@ export default function(state: Types.State = initialState, action: Tracker2Gen.A
         return state
       }
       return state.merge({
-        usernameToDetails: state.usernameToDetails.updateIn([username], old =>
-          (old || Constants.makeDetails()).merge({
+        usernameToDetails: state.usernameToDetails.updateIn([username], (old = Constants.makeDetails()) =>
+          old.merge({
             bio: action.payload.bio,
             followersCount: action.payload.followersCount,
             followingCount: action.payload.followingCount,
@@ -56,8 +58,8 @@ export default function(state: Types.State = initialState, action: Tracker2Gen.A
           `Some of ${username}'s proofs have changed since you last followed them`)
 
       return state.merge({
-        usernameToDetails: state.usernameToDetails.updateIn([username], old =>
-          (old || Constants.makeDetails()).merge({
+        usernameToDetails: state.usernameToDetails.updateIn([username], (old = Constants.makeDetails()) =>
+          old.merge({
             reason: reason || old.reason,
             state: action.payload.result,
           })
@@ -70,10 +72,8 @@ export default function(state: Types.State = initialState, action: Tracker2Gen.A
         return state
       }
       return state.merge({
-        usernameToDetails: state.usernameToDetails.updateIn([username], old =>
-          (old || Constants.makeDetails()).merge({
-            showTracker: false,
-          })
+        usernameToDetails: state.usernameToDetails.updateIn([username], (old = Constants.makeDetails()) =>
+          old.merge({showTracker: false})
         ),
       })
     }
@@ -84,9 +84,9 @@ export default function(state: Types.State = initialState, action: Tracker2Gen.A
       }
       const assertionKey = `${action.payload.type}:${action.payload.value}`
       return state.merge({
-        usernameToDetails: state.usernameToDetails.updateIn([username], old =>
-          (old || Constants.makeDetails()).updateIn(['assertions', assertionKey], old =>
-            (old || Constants.makeAssertion()).merge({
+        usernameToDetails: state.usernameToDetails.updateIn([username], (old = Constants.makeDetails()) =>
+          old.updateIn(['assertions', assertionKey], (old = Constants.makeAssertion()) =>
+            old.merge({
               assertionKey,
               color: action.payload.color,
               metas: action.payload.metas.map(Constants.makeMeta),
@@ -105,11 +105,13 @@ export default function(state: Types.State = initialState, action: Tracker2Gen.A
     case Tracker2Gen.updateFollowers:
       const convert = f => f.username
       return state.merge({
-        usernameToDetails: state.usernameToDetails.updateIn([action.payload.username], old =>
-          (old || Constants.makeDetails()).merge({
-            followers: I.OrderedSet(action.payload.followers.map(convert)),
-            following: I.OrderedSet(action.payload.following.map(convert)),
-          })
+        usernameToDetails: state.usernameToDetails.updateIn(
+          [action.payload.username],
+          (old = Constants.makeDetails()) =>
+            old.merge({
+              followers: I.OrderedSet(action.payload.followers.map(convert)),
+              following: I.OrderedSet(action.payload.following.map(convert)),
+            })
         ),
       })
     // Saga only actions

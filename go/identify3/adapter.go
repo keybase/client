@@ -75,7 +75,7 @@ func (i *UIAdapter) Start(user string, reason keybase1.IdentifyReason, force boo
 		GuiID:        i.session.ID(),
 		Assertion:    keybase1.Identify3Assertion(user),
 		Reason:       reason,
-		ForceDisplay: force,
+		ForceDisplay: true,
 	}
 
 	err := i.ui.Identify3ShowTracker(i.M().Ctx(), arg)
