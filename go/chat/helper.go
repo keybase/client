@@ -1017,6 +1017,22 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 				// The triple did not exist, but a collision occurred on convID. Retry with a different topic ID.
 				n.Debug(ctx, "collision: %v", reserr)
 				continue
+			case libkb.ChatClientError:
+				// just make sure we can't find anything with FindConversations if we get this back
+				topicName := ""
+				if n.topicName != nil {
+					topicName = *n.topicName
+				}
+				fcRes, err := FindConversations(ctx, n.G(), n.DebugLabeler, true, n.ri, n.uid,
+					n.tlfName, n.topicType, n.membersType, n.vis, topicName, nil)
+				if err != nil {
+					n.Debug(ctx, "failed trying FindConversations after client error: %s", err)
+					return res, reserr
+				} else if len(fcRes) > 0 {
+					convID = fcRes[0].GetConvID()
+				} else {
+					return res, reserr
+				}
 			default:
 				return res, fmt.Errorf("error creating conversation: %s", reserr)
 			}
