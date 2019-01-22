@@ -14,8 +14,10 @@ import (
 	"github.com/stellar/go/build"
 )
 
+// Batch sends a batch of payments from the user to multiple recipients in
+// a time-efficient manner.
 func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchLocalArg) (res stellar1.BatchResultLocal, err error) {
-	mctx = mctx.WithLogTag(arg.BatchID)
+	mctx = mctx.WithLogTag("BATCH=" + arg.BatchID)
 
 	startTime := time.Now()
 	res.StartTime = stellar1.ToTimeMs(startTime)
@@ -35,7 +37,7 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 	mctx.CDebugf("Batch size: %d", len(arg.Payments))
 
 	// prepare the payments
-	prepared, err := PrepareBatchPayments(mctx, walletState, senderSeed, arg.Payments)
+	prepared, err := prepareBatchPayments(mctx, walletState, senderSeed, arg.Payments)
 	if err != nil {
 		return res, err
 	}
@@ -65,46 +67,12 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 			StartTime: stellar1.ToTimeMs(time.Now()),
 		}
 		if prepared[i].Error != nil {
-			bpResult.EndTime = stellar1.ToTimeMs(time.Now())
-			bpResult.Error = &stellar1.BatchPaymentError{Message: prepared[i].Error.Error()}
-			bpResult.Status = stellar1.PaymentStatus_ERROR
+			makeResultError(&bpResult, prepared[i].Error)
 		} else {
-			// submit the transaction
-			mctx.CDebugf("submitting batch payment seqno %d", prepared[i].Seqno)
-
-			if err := walletState.AddPendingTx(mctx.Ctx(), senderAccountID, prepared[i].TxID, prepared[i].Seqno); err != nil {
-				mctx.CDebugf("error calling AddPendingTx: %s", err)
-			}
-
-			var submitRes stellar1.PaymentResult
-			switch {
-			case prepared[i].Direct != nil:
-				submitRes, err = walletState.SubmitPayment(mctx.Ctx(), *prepared[i].Direct)
-			case prepared[i].Relay != nil:
-				submitRes, err = walletState.SubmitRelayPayment(mctx.Ctx(), *prepared[i].Relay)
-			default:
-				bpResult.Error = &stellar1.BatchPaymentError{Message: "no prepared direct or relay payment"}
-				bpResult.Status = stellar1.PaymentStatus_ERROR
-				bpResult.EndTime = stellar1.ToTimeMs(time.Now())
-			}
-
-			bpResult.SubmittedTime = stellar1.ToTimeMs(time.Now())
-
-			if err != nil {
-				mctx.CDebugf("error submitting batch payment seqno %d, txid %s: %s", prepared[i].Seqno, prepared[i].TxID, err)
-				bpResult.Error = &stellar1.BatchPaymentError{Message: err.Error()}
-				bpResult.Status = stellar1.PaymentStatus_ERROR
-				bpResult.EndTime = stellar1.ToTimeMs(time.Now())
-			} else if bpResult.Status != stellar1.PaymentStatus_ERROR { // check to make sure default in switch above didn't happen
-				bpResult.TxID = submitRes.StellarID
-				if submitRes.Pending {
-					bpResult.Status = stellar1.PaymentStatus_PENDING
-					// add the tx id and the index of this payment to a waiting list
-					waiting[bpResult.TxID] = i
-				} else {
-					bpResult.Status = stellar1.PaymentStatus_COMPLETED
-					bpResult.EndTime = stellar1.ToTimeMs(time.Now())
-				}
+			submitBatchTx(mctx, walletState, senderAccountID, prepared[i], &bpResult)
+			if bpResult.Status == stellar1.PaymentStatus_PENDING {
+				// add the tx id and the index of this payment to a waiting list
+				waiting[bpResult.TxID] = i
 			}
 		}
 
@@ -118,18 +86,15 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 	waitingCount := len(waiting)
 	mctx.CDebugf("waiting for %d payments to complete", waitingCount)
 
-	for waitingCount > 0 {
+	timedOut := false
+	for waitingCount > 0 && !timedOut {
 		select {
 		case <-time.After(5 * time.Second):
 			if time.Since(startTime) > time.Duration(arg.TimeoutSecs)*time.Second {
 				mctx.CDebugf("ran out of time waiting for tx status updates (%d remaining)", waitingCount)
-				res.Payments = resultList
-				res.EndTime = stellar1.ToTimeMs(time.Now())
-				calculateStats(&res)
-				return res, nil
+				timedOut = true
 			}
 		case update := <-listenerCh:
-			mctx.CDebugf("received update: %+v", update)
 			index, ok := waiting[update.TxID]
 			if ok {
 				mctx.CDebugf("received status update for %s: %s", update.TxID, update.Status)
@@ -153,7 +118,7 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 	return res, nil
 }
 
-func PrepareBatchPayments(mctx libkb.MetaContext, walletState *WalletState, senderSeed stellarnet.SeedStr, payments []stellar1.BatchPaymentArg) ([]*MiniPrepared, error) {
+func prepareBatchPayments(mctx libkb.MetaContext, walletState *WalletState, senderSeed stellarnet.SeedStr, payments []stellar1.BatchPaymentArg) ([]*MiniPrepared, error) {
 	mctx.CDebugf("preparing %d batch payments", len(payments))
 
 	prepared := make(chan *MiniPrepared)
@@ -303,5 +268,47 @@ func calculateStats(res *stellar1.BatchResultLocal) {
 
 	if res.CountError > 0 {
 		res.AvgErrorDurationMs = stellar1.TimeMs(int64(durationError) / int64(res.CountError))
+	}
+}
+
+func makeResultError(res *stellar1.BatchPaymentResult, err error) {
+	res.EndTime = stellar1.ToTimeMs(time.Now())
+	res.Error = &stellar1.BatchPaymentError{Message: err.Error()}
+	res.Status = stellar1.PaymentStatus_ERROR
+}
+
+func submitBatchTx(mctx libkb.MetaContext, walletState *WalletState, senderAccountID stellar1.AccountID, prepared *MiniPrepared, bpResult *stellar1.BatchPaymentResult) {
+	mctx.CDebugf("submitting batch payment seqno %d", prepared.Seqno)
+
+	err := walletState.AddPendingTx(mctx.Ctx(), senderAccountID, prepared.TxID, prepared.Seqno)
+	if err != nil {
+		// it's ok to keep going here
+		mctx.CDebugf("error calling AddPendingTx: %s", err)
+	}
+
+	var submitRes stellar1.PaymentResult
+	switch {
+	case prepared.Direct != nil:
+		submitRes, err = walletState.SubmitPayment(mctx.Ctx(), *prepared.Direct)
+	case prepared.Relay != nil:
+		submitRes, err = walletState.SubmitRelayPayment(mctx.Ctx(), *prepared.Relay)
+	default:
+		err = errors.New("no prepared direct or relay payment")
+	}
+
+	bpResult.SubmittedTime = stellar1.ToTimeMs(time.Now())
+
+	if err != nil {
+		mctx.CDebugf("error submitting batch payment seqno %d, txid %s: %s", prepared.Seqno, prepared.TxID, err)
+		makeResultError(bpResult, err)
+		return
+	}
+
+	bpResult.TxID = submitRes.StellarID
+	if submitRes.Pending {
+		bpResult.Status = stellar1.PaymentStatus_PENDING
+	} else {
+		bpResult.Status = stellar1.PaymentStatus_COMPLETED
+		bpResult.EndTime = stellar1.ToTimeMs(time.Now())
 	}
 }
