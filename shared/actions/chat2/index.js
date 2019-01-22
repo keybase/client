@@ -850,7 +850,9 @@ const reasonToRPCReason = (reason: string): RPCChatTypes.GetThreadReason => {
   }
 }
 
-// Load new messages on a thread. We call this when you select a conversation, we get a thread-is-stale notification, or when you scroll up and want more messages
+// Load new messages on a thread. We call this when you select a conversation,
+// we get a thread-is-stale notification, or when you scroll up and want more
+// messages
 function* loadMoreMessages(state, action) {
   // Get the conversationIDKey
   let key = null
@@ -1026,8 +1028,77 @@ function* loadMoreMessages(state, action) {
     yield Saga.put(
       Chat2Gen.createSetConversationOffline({conversationIDKey, offline: results && results.offline})
     )
-  } finally {
-    yield Saga.put(WaitingGen.createClearWaiting({key: Constants.waitingKeyPushLoad(conversationIDKey)}))
+  } catch (e) {
+    logger.info(`Load loadMoreMessages error ${e}`)
+  }
+}
+
+function* getUnreadline(state, action) {
+  // Get the conversationIDKey
+  let key = null
+  switch (action.type) {
+    case Chat2Gen.selectConversation:
+      key = action.payload.conversationIDKey
+      if (key === Constants.pendingConversationIDKey) {
+        key = Constants.getResolvedPendingConversationIDKey(state)
+      }
+      break
+    default:
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action.type)
+      key = action.payload.conversationIDKey
+  }
+
+  if (!key || !Constants.isValidConversationIDKey(key)) {
+    logger.info('Load thread bail: no conversationIDKey')
+    return
+  }
+
+  const conversationIDKey = key
+
+  const convID = Types.keyToConversationID(conversationIDKey)
+  if (!convID) {
+    logger.info('Load thread bail: invalid conversationIDKey')
+    return
+  }
+
+  const {readMsgID} = state.chat2.metaMap.get(conversationIDKey, Constants.makeConversationMeta())
+  logger.info(`Load unreadline: calling rpc convo: ${conversationIDKey} readMsgID: ${readMsgID}`)
+
+  const onGotUnreadline = ({unreadline}) => {
+    console.log(`onGotUnreadline unreadline ${unreadline}`)
+    if (!unreadline) {
+      return
+    }
+
+    const obj: RPCChatTypes.Unreadline = JSON.parse(unreadline)
+    const unreadlineID = obj.unreadlineID ? obj.unreadlineID : 0
+    console.log(`onGotUnreadline unreadlineID ${unreadlineID}`)
+    return Saga.put(
+      Chat2Gen.createUpdateOrangeLine({
+        conversationIDKey,
+        messageID: Types.numberToMessageID(unreadlineID),
+      })
+    )
+  }
+
+  const waitingKey = Constants.waitingKeyUnreadline(conversationIDKey)
+  try {
+    const results: RPCChatTypes.NonblockUnreadlineRes = yield RPCChatTypes.localGetUnreadlineNonblockRpcSaga({
+      incomingCallMap: {
+        'chat.1.chatUi.chatUnreadline': onGotUnreadline,
+      },
+      params: {
+        convID,
+        identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+        readMsgID,
+      },
+      waitingKey,
+    })
+    yield Saga.put(
+      Chat2Gen.createSetConversationOffline({conversationIDKey, offline: results && results.offline})
+    )
+  } catch (e) {
+    logger.info(`Load getUnreadline error ${e}`)
   }
 }
 
@@ -2631,9 +2702,11 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.metasReceived,
       ConfigGen.changedFocus,
     ],
-    // TODO get unread line
     loadMoreMessages
   )
+
+  // get the unread (orange) line
+  yield* Saga.chainGenerator<Chat2Gen.SelectConversationPayload>(Chat2Gen.selectConversation, getUnreadline)
 
   yield* Saga.chainAction<Chat2Gen.MessageRetryPayload>(Chat2Gen.messageRetry, messageRetry)
   yield* Saga.chainGenerator<Chat2Gen.MessageSendPayload>(Chat2Gen.messageSend, messageSend)

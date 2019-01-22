@@ -1098,31 +1098,25 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 }
 
 func (s *HybridConversationSource) GetUnreadline(ctx context.Context,
-	convID chat1.ConversationID, uid gregor1.UID, readMsgID chat1.MessageID) (*chat1.MessageID, error) {
-	// If we are not in the unread state, there is no line to display
-	conv, err := storage.NewInbox(s.G()).GetConversation(ctx, uid, convID)
-	if err != nil {
-		s.Debug(ctx, "GetUnreadline: failed to get conv: %s", err)
-		return nil, nil
-	}
-	if !conv.Conv.IsUnreadWithReadID(readMsgID) {
-		return nil, nil
-	}
-	unreadlineMsgID, err := storage.New(s.G(), s).FetchUnreadlineID(ctx, convID, uid, readMsgID)
+	convID chat1.ConversationID, uid gregor1.UID, readMsgID chat1.MessageID) (unreadlineID *chat1.MessageID, err error) {
+	defer s.Trace(ctx, func() error { return err }, fmt.Sprintf("GetUnreadline: convID: %v, readMsgID: %v", convID, readMsgID))()
+	unreadlineID, err = storage.New(s.G(), s).FetchUnreadlineID(ctx, convID, uid, readMsgID)
 	if err != nil {
 		return nil, err
 	}
-	if unreadlineMsgID == nil {
+	if unreadlineID == nil {
+		s.Debug(ctx, "GetUnreadline: fetching from server")
 		if res, err := s.ri().GetUnreadlineRemote(ctx, chat1.GetUnreadlineRemoteArg{
 			ConvID:    convID,
 			ReadMsgID: readMsgID,
 		}); err != nil {
 			return nil, err
 		} else {
-			unreadlineMsgID = res.UnreadlineID
+			unreadlineID = res.UnreadlineID
 		}
 	}
-	return unreadlineMsgID, nil
+	s.Debug(ctx, "GetUnreadline: unreadlineID:%v", unreadlineID)
+	return unreadlineID, nil
 }
 
 func (s *HybridConversationSource) notifyExpunge(ctx context.Context, uid gregor1.UID,

@@ -160,6 +160,8 @@ export const waitingKeyPushLoad = (conversationIDKey: Types.ConversationIDKey) =
   `chat:pushLoad:${conversationIDKeyToString(conversationIDKey)}`
 export const waitingKeyThreadLoad = (conversationIDKey: Types.ConversationIDKey) =>
   `chat:loadingThread:${conversationIDKeyToString(conversationIDKey)}`
+export const waitingKeyUnreadline = (conversationIDKey: Types.ConversationIDKey) =>
+  `chat:unreadline:${conversationIDKeyToString(conversationIDKey)}`
 export const waitingKeyUnboxing = (conversationIDKey: Types.ConversationIDKey) =>
   `chat:unboxing:${conversationIDKeyToString(conversationIDKey)}`
 

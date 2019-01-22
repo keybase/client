@@ -30,6 +30,7 @@ export const chat1ChatUiChatStellarDone = 'engine-gen:chat1ChatUiChatStellarDone
 export const chat1ChatUiChatStellarShowConfirm = 'engine-gen:chat1ChatUiChatStellarShowConfirm'
 export const chat1ChatUiChatThreadCached = 'engine-gen:chat1ChatUiChatThreadCached'
 export const chat1ChatUiChatThreadFull = 'engine-gen:chat1ChatUiChatThreadFull'
+export const chat1ChatUiChatUnreadline = 'engine-gen:chat1ChatUiChatUnreadline'
 export const chat1NotifyChatChatAttachmentUploadProgress = 'engine-gen:chat1NotifyChatChatAttachmentUploadProgress'
 export const chat1NotifyChatChatAttachmentUploadStart = 'engine-gen:chat1NotifyChatChatAttachmentUploadStart'
 export const chat1NotifyChatChatIdentifyUpdate = 'engine-gen:chat1NotifyChatChatIdentifyUpdate'
@@ -188,6 +189,7 @@ type _Chat1ChatUiChatStellarDonePayload = $ReadOnly<{|params: $Exact<$PropertyTy
 type _Chat1ChatUiChatStellarShowConfirmPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarShowConfirm'>, 'inParam'>>|}>
 type _Chat1ChatUiChatThreadCachedPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatThreadCached'>, 'inParam'>>|}>
 type _Chat1ChatUiChatThreadFullPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatThreadFull'>, 'inParam'>>|}>
+type _Chat1ChatUiChatUnreadlinePayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatUnreadline'>, 'inParam'>>|}>
 type _Chat1NotifyChatChatAttachmentUploadProgressPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatAttachmentUploadProgress'>, 'inParam'>>|}>
 type _Chat1NotifyChatChatAttachmentUploadStartPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatAttachmentUploadStart'>, 'inParam'>>|}>
 type _Chat1NotifyChatChatIdentifyUpdatePayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatIdentifyUpdate'>, 'inParam'>>|}>
@@ -346,6 +348,7 @@ export const createChat1ChatUiChatStellarDone = (payload: _Chat1ChatUiChatStella
 export const createChat1ChatUiChatStellarShowConfirm = (payload: _Chat1ChatUiChatStellarShowConfirmPayload) => ({payload, type: chat1ChatUiChatStellarShowConfirm})
 export const createChat1ChatUiChatThreadCached = (payload: _Chat1ChatUiChatThreadCachedPayload) => ({payload, type: chat1ChatUiChatThreadCached})
 export const createChat1ChatUiChatThreadFull = (payload: _Chat1ChatUiChatThreadFullPayload) => ({payload, type: chat1ChatUiChatThreadFull})
+export const createChat1ChatUiChatUnreadline = (payload: _Chat1ChatUiChatUnreadlinePayload) => ({payload, type: chat1ChatUiChatUnreadline})
 export const createChat1NotifyChatChatAttachmentUploadProgress = (payload: _Chat1NotifyChatChatAttachmentUploadProgressPayload) => ({payload, type: chat1NotifyChatChatAttachmentUploadProgress})
 export const createChat1NotifyChatChatAttachmentUploadStart = (payload: _Chat1NotifyChatChatAttachmentUploadStartPayload) => ({payload, type: chat1NotifyChatChatAttachmentUploadStart})
 export const createChat1NotifyChatChatIdentifyUpdate = (payload: _Chat1NotifyChatChatIdentifyUpdatePayload) => ({payload, type: chat1NotifyChatChatIdentifyUpdate})
@@ -504,6 +507,7 @@ export type Chat1ChatUiChatStellarDonePayload = {|+payload: _Chat1ChatUiChatStel
 export type Chat1ChatUiChatStellarShowConfirmPayload = {|+payload: _Chat1ChatUiChatStellarShowConfirmPayload, +type: 'engine-gen:chat1ChatUiChatStellarShowConfirm'|}
 export type Chat1ChatUiChatThreadCachedPayload = {|+payload: _Chat1ChatUiChatThreadCachedPayload, +type: 'engine-gen:chat1ChatUiChatThreadCached'|}
 export type Chat1ChatUiChatThreadFullPayload = {|+payload: _Chat1ChatUiChatThreadFullPayload, +type: 'engine-gen:chat1ChatUiChatThreadFull'|}
+export type Chat1ChatUiChatUnreadlinePayload = {|+payload: _Chat1ChatUiChatUnreadlinePayload, +type: 'engine-gen:chat1ChatUiChatUnreadline'|}
 export type Chat1NotifyChatChatAttachmentUploadProgressPayload = {|+payload: _Chat1NotifyChatChatAttachmentUploadProgressPayload, +type: 'engine-gen:chat1NotifyChatChatAttachmentUploadProgress'|}
 export type Chat1NotifyChatChatAttachmentUploadStartPayload = {|+payload: _Chat1NotifyChatChatAttachmentUploadStartPayload, +type: 'engine-gen:chat1NotifyChatChatAttachmentUploadStart'|}
 export type Chat1NotifyChatChatIdentifyUpdatePayload = {|+payload: _Chat1NotifyChatChatIdentifyUpdatePayload, +type: 'engine-gen:chat1NotifyChatChatIdentifyUpdate'|}
@@ -664,6 +668,7 @@ export type Actions =
   | Chat1ChatUiChatStellarShowConfirmPayload
   | Chat1ChatUiChatThreadCachedPayload
   | Chat1ChatUiChatThreadFullPayload
+  | Chat1ChatUiChatUnreadlinePayload
   | Chat1NotifyChatChatAttachmentUploadProgressPayload
   | Chat1NotifyChatChatAttachmentUploadStartPayload
   | Chat1NotifyChatChatIdentifyUpdatePayload
