@@ -371,6 +371,8 @@ export const chatUiMessageUnboxedState = {
 
 export const chatUiUITextDecorationTyp = {
   payment: 0,
+  atmention: 1,
+  channelnamemention: 2,
 }
 
 export const commonAssetMetadataType = {
@@ -1114,15 +1116,18 @@ export type UIChannelNameMention = $ReadOnly<{name: String, convID: String}>
 export type UIChatPayment = $ReadOnly<{username: String, fullName: String, xlmAmount: String, error?: ?String, displayAmount?: ?String}>
 export type UIChatPaymentSummary = $ReadOnly<{xlmTotal: String, displayTotal: String, payments?: ?Array<UIChatPayment>}>
 export type UIMessage = {state: 1, valid: ?UIMessageValid} | {state: 2, error: ?MessageUnboxedError} | {state: 3, outbox: ?UIMessageOutbox} | {state: 4, placeholder: ?MessageUnboxedPlaceholder}
-export type UIMessageOutbox = $ReadOnly<{state: OutboxState, outboxID: String, messageType: MessageType, body: String, ctime: Gregor1.Time, ordinal: Double, filename: String, title: String, preview?: ?MakePreviewRes}>
+export type UIMessageOutbox = $ReadOnly<{state: OutboxState, outboxID: String, messageType: MessageType, body: String, decoratedTextBody?: ?String, ctime: Gregor1.Time, ordinal: Double, filename: String, title: String, preview?: ?MakePreviewRes}>
 export type UIMessageUnfurlInfo = $ReadOnly<{unfurlMessageID: MessageID, url: String, unfurl: UnfurlDisplay}>
 export type UIMessageValid = $ReadOnly<{messageID: MessageID, ctime: Gregor1.Time, outboxID?: ?String, messageBody: MessageBody, decoratedTextBody?: ?String, senderUsername: String, senderDeviceName: String, senderDeviceType: String, senderUID: Gregor1.UID, senderDeviceID: Gregor1.DeviceID, superseded: Boolean, assetUrlInfo?: ?UIAssetUrlInfo, senderDeviceRevokedAt?: ?Gregor1.Time, atMentions?: ?Array<String>, channelMention: ChannelMention, channelNameMentions?: ?Array<UIChannelNameMention>, isEphemeral: Boolean, isEphemeralExpired: Boolean, explodedBy?: ?String, etime: Gregor1.Time, reactions: ReactionMap, hasPairwiseMacs: Boolean, paymentInfos?: ?Array<UIPaymentInfo>, requestInfo?: ?UIRequestInfo, unfurls?: ?Array<UIMessageUnfurlInfo>}>
 export type UIMessages = $ReadOnly<{messages?: ?Array<UIMessage>, unreadLineID?: ?MessageID, pagination?: ?UIPagination}>
 export type UIPagination = $ReadOnly<{next: String, previous: String, num: Int, last: Boolean}>
 export type UIPaymentInfo = $ReadOnly<{accountID?: ?Stellar1.AccountID, amountDescription: String, worth: String, worthAtSendTime: String, delta: Stellar1.BalanceDelta, note: String, paymentID: Stellar1.PaymentID, status: Stellar1.PaymentStatus, statusDescription: String, statusDetail: String, showCancel: Boolean, fromUsername: String, toUsername: String}>
 export type UIRequestInfo = $ReadOnly<{amount: String, amountDescription: String, asset?: ?Stellar1.Asset, currency?: ?Stellar1.OutsideCurrencyCode, worthAtRequestTime: String, status: Stellar1.RequestStatus}>
-export type UITextDecoration = {typ: 0, payment: ?TextPayment}
-export type UITextDecorationTyp = 0 // PAYMENT_0
+export type UITextDecoration = {typ: 0, payment: ?TextPayment} | {typ: 1, atmention: ?String} | {typ: 2, channelnamemention: ?UIChannelNameMention}
+export type UITextDecorationTyp =
+  | 0 // PAYMENT_0
+  | 1 // ATMENTION_1
+  | 2 // CHANNELNAMEMENTION_2
 
 export type Unfurl = {unfurlType: 0, generic: ?UnfurlGeneric} | {unfurlType: 1, youtube: ?UnfurlYoutube} | {unfurlType: 2, giphy: ?UnfurlGiphy}
 export type UnfurlDisplay = {unfurlType: 0, generic: ?UnfurlGenericDisplay} | {unfurlType: 1, youtube: ?UnfurlYoutubeDisplay} | {unfurlType: 2, giphy: ?UnfurlGiphyDisplay}

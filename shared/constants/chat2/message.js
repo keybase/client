@@ -833,6 +833,7 @@ const outboxUIMessagetoMessage = (
       return makeMessageText({
         author: state.config.username || '',
         conversationIDKey,
+        decoratedText: o.decoratedTextBody ? new HiddenString(o.decoratedTextBody) : null,
         deviceName: state.config.deviceName || '',
         deviceType: isMobile ? 'mobile' : 'desktop',
         errorReason,

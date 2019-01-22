@@ -182,6 +182,7 @@ protocol chatUi {
     string outboxID;
     MessageType messageType;
     string body;
+    union { null, string } decoratedTextBody;
     gregor1.Time ctime;
     double ordinal;
 
@@ -212,11 +213,15 @@ protocol chatUi {
   }
 
   enum UITextDecorationTyp {
-    PAYMENT_0
+    PAYMENT_0,
+    ATMENTION_1,
+    CHANNELNAMEMENTION_2
   }
 
   variant UITextDecoration switch (UITextDecorationTyp typ) {
     case PAYMENT: TextPayment;
+    case ATMENTION: string;
+    case CHANNELNAMEMENTION: UIChannelNameMention;
   }
 
   void chatAttachmentDownloadStart(int sessionID);
