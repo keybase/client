@@ -54,19 +54,19 @@ let config = {
 
 // Developer settings
 if (__DEV__) {
-  config.enableActionLogging = true
-  config.enableStoreLogging = true
+  config.enableActionLogging = false
+  config.enableStoreLogging = false
   config.immediateStateLogging = false
   // Move this outside the if statement to get notifications working
   // with a "Profile" build on a phone.
   config.isDevApplePushToken = true
-  config.printOutstandingRPCs = true
-  config.printOutstandingTimerListeners = true
+  config.printOutstandingRPCs = false
+  config.printOutstandingTimerListeners = false
   config.printRPCWaitingSession = false
-  config.printRPC = true
-  config.printRPCStats = true
+  config.printRPC = false
+  config.printRPCStats = false
   config.reduxSagaLoggerMasked = false
-  config.userTimings = true
+  config.userTimings = false
 
   // uncomment this to watch the RN bridge traffic: https://github.com/facebook/react-native/commit/77e48f17824870d30144a583be77ec5c9cf9f8c5
   // MessageQueue.spy(msg => console._log('queuespy: ', msg, JSON.stringify(msg).length))

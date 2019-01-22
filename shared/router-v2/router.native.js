@@ -1,10 +1,16 @@
 // @flow
+// // TODO modals
+// under notch
+// keyboard avoiding?
+// hiding tab bar
+// gateway
+// statusbar handling
 import * as Kb from '../common-adapters/mobile.native'
 import * as I from 'immutable'
 import * as Styles from '../styles'
 import * as React from 'react'
-// import GlobalError from '../app/global-errors/container'
-// import Offline from '../offline/container'
+import GlobalError from '../app/global-errors/container'
+import Offline from '../offline/container'
 import TabBar from './tab-bar/container'
 import {
   createNavigator,
@@ -101,8 +107,8 @@ import {routes, nameToTab} from './routes'
 // }
 
 const StackNavigator = createStackNavigator(routes, {
-  initialRouteName: 'tabs:peopleTab',
   headerMode: 'none',
+  initialRouteName: 'tabs:peopleTab',
 })
 // const tabNavigator = createBottomTabNavigator({
 // people: stackNavigator,
@@ -111,20 +117,79 @@ const StackNavigator = createStackNavigator(routes, {
 // settings: stackNavigator,
 // })
 
-// TODO
+/// / gets the current screen from navigation state
+function getActiveRouteName(navigationState) {
+  if (!navigationState) {
+    return null
+  }
+  const route = navigationState.routes[navigationState.index]
+  // dive into nested navigators
+  if (route.routes) {
+    return getActiveRouteName(route)
+  }
+  return route.routeName
+}
 class CustomStackNavigator extends React.PureComponent<any> {
   static router = StackNavigator.router
+
   render() {
+    // const p = this.props
+    // const index = p.navigation.state.index
+    // // Find topmost non modal TODO maybe we odn't need this with multiple stacks?
+    // let nonModalIndex = index
+    // let modals = []
+    // while (nonModalIndex >= 0) {
+    // const activeKey = p.navigation.state.routes[nonModalIndex].key
+    // const descriptor = p.descriptors[activeKey]
+    // const Component = descriptor.getComponent()
+    // const options = Component.navigationOptions || {}
+    // if (!options.isModal) {
+    // break
+    // }
+    // modals.unshift(descriptor)
+    // --nonModalIndex
+    // }
+    // {nameToTab[descriptor.state.routeName]}
+    // const activeKey = p.navigation.state.routes[nonModalIndex].key
+    // const descriptor = p.descriptors[activeKey]
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
         <Kb.SafeAreaViewTop />
         <StackNavigator navigation={this.props.navigation} />
-        <TabBar selectedTab={'tabs:peopleTab' /* nameToTab[descriptor.state.routeName] */} />
+        <TabBar selectedTab={this.props.selectedTab} />
+        <GlobalError />
       </Kb.Box2>
     )
   }
 }
-const RNApp = createAppContainer(CustomStackNavigator)
+const AppContainer = createAppContainer(CustomStackNavigator)
+
+class RNApp extends React.Component<any, any> {
+  state = {selectedTab: 'tabs:peopleTab'}
+  _nav = null
+  _onNavigationStateChange = (prevState, currentState) => {
+    const currentScreen = getActiveRouteName(currentState)
+    const prevScreen = getActiveRouteName(prevState)
+
+    if (prevScreen !== currentScreen) {
+      console.log('aaaa', currentScreen)
+      const selectedTab = nameToTab[currentScreen]
+      this.setState(p => (p.selectedTab === selectedTab ? null : {selectedTab}))
+    }
+  }
+
+  dispatch = p => this._nav.dispatch(p)
+
+  render() {
+    return (
+      <AppContainer
+        ref={nav => (this._nav = nav)}
+        onNavigationStateChange={this._onNavigationStateChange}
+        selectedTab={this.state.selectedTab}
+      />
+    )
+  }
+}
 
 // const AppNavigator = createNavigator(
 // AppView,
