@@ -660,7 +660,9 @@ const MinEphemeralKeyLifetime = MaxEphemeralContentLifetime + EphemeralKeyGenInt
 
 const MaxTeamMembersForPairwiseMAC = 100
 
-const MaxStellarPaymentNoteLength = 500
-const MaxStellarPaymentBoxedNoteLength = 1000
+const (
+	MaxStellarPaymentNoteLength      = 500
+	MaxStellarPaymentBoxedNoteLength = 2000
+)
 
 const ClientTriplesecVersion = 3
