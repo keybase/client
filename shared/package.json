@@ -147,6 +147,7 @@
     "purepack": "1.0.4",
     "qrcode-generator": "git://github.com/keybase/qrcode-generator#keybase-changes-off-140",
     "react": "16.6.3",
+    "react-dice-complete": "git://github.com/keybase/react-dice-complete#keybase-changes-off-102",
     "react-dom": "16.6.3",
     "react-gateway": "3.0.0",
     "react-list": "0.8.11",

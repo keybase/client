@@ -9,6 +9,7 @@ import buttonBar from './button-bar.stories'
 import checkbox from './checkbox.stories'
 import choiceList from './choice-list.stories'
 import copyText from './copy-text.stories'
+import dice from './dice.stories'
 import dropdown from './dropdown.stories'
 import formWithCheckbox from './form-with-checkbox.stories'
 import floatingMenu from './floating-menu/index.stories'
@@ -43,6 +44,7 @@ const load = () => {
     checkbox,
     choiceList,
     copyText,
+    dice,
     dropdown,
     formWithCheckbox,
     floatingMenu,
