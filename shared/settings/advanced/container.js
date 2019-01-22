@@ -16,7 +16,7 @@ import {connect, lifecycle} from '../../util/container'
 
 type OwnProps = {||}
 const mapStateToProps = state => ({
-  hasRandomPW: state.settings.passphrase.randomPW,
+  hasRandomPW: !!state.settings.passphrase.randomPW,
   lockdownModeEnabled: state.settings.lockdownModeEnabled,
   openAtLogin: state.config.openAtLogin,
   processorProfileInProgress: Constants.processorProfileInProgress(state),
