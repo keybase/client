@@ -727,6 +727,11 @@ func postJoinLeave(ctx context.Context, g *globals.Context, ri func() chat1.Remo
 	return err
 }
 
+func (h *Helper) JoinConversationByID(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (err error) {
+	defer h.Trace(ctx, func() error { return err }, "ChatHelper.JoinConversationByID")()
+	return JoinConversation(ctx, h.G(), h.DebugLabeler, h.ri, uid, convID)
+}
+
 func JoinConversation(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
 	ri func() chat1.RemoteInterface, uid gregor1.UID, convID chat1.ConversationID) (err error) {
 	if err := g.ConvSource.AcquireConversationLock(ctx, uid, convID); err != nil {
@@ -760,6 +765,44 @@ func JoinConversation(ctx context.Context, g *globals.Context, debugger utils.De
 	if err := postJoinLeave(ctx, g, ri, uid, convID, joinMessageBody); err != nil {
 		debugger.Debug(ctx, "JoinConversation: posting join-conv message failed: %v", err)
 		// ignore the error
+	}
+	return nil
+}
+
+func (h *Helper) JoinConversationByName(ctx context.Context, uid gregor1.UID, tlfName, topicName string,
+	topicType chat1.TopicType, vis keybase1.TLFVisibility) (err error) {
+	defer h.Trace(ctx, func() error { return err }, "ChatHelper.JoinConversationByName")()
+	return JoinConversationByName(ctx, h.G(), h.DebugLabeler, h.ri, uid, tlfName, topicName, topicType, vis)
+}
+
+func JoinConversationByName(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
+	ri func() chat1.RemoteInterface, uid gregor1.UID, tlfName, topicName string, topicType chat1.TopicType,
+	vis keybase1.TLFVisibility) (err error) {
+	// Fetch the TLF ID from specified name
+	nameInfo, err := CreateNameInfoSource(ctx, g, chat1.ConversationMembersType_TEAM).LookupID(ctx,
+		tlfName, vis == keybase1.TLFVisibility_PUBLIC)
+	if err != nil {
+		debugger.Debug(ctx, "JoinConversationByName: failed to get TLFID from name: %s", err.Error())
+		return err
+	}
+
+	// List all the conversations on the team
+	convs, err := g.TeamChannelSource.GetChannelsFull(ctx, uid, nameInfo.ID, topicType)
+	if err != nil {
+		return err
+	}
+	var convID chat1.ConversationID
+	for _, conv := range convs {
+		convTopicName := utils.GetTopicName(conv)
+		if convTopicName != "" && convTopicName == topicName {
+			convID = conv.GetConvID()
+		}
+	}
+	if convID.IsNil() {
+		return fmt.Errorf("no topic name %s exists on specified team", topicName)
+	}
+	if err = JoinConversation(ctx, g, debugger, ri, uid, convID); err != nil {
+		return err
 	}
 	return nil
 }

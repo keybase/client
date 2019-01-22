@@ -8,6 +8,7 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 type Join struct {
@@ -30,6 +31,8 @@ func (h *Join) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Conver
 	toks := strings.Split(text, " ")
 	if len(toks) >= 3 {
 		teamName = toks[2]
+	} else if len(toks) < 2 {
+		return ErrInvalidArguments
 	} else {
 		convs, err := h.G().ChatHelper.FindConversationsByID(ctx, []chat1.ConversationID{convID})
 		if err != nil {
@@ -44,4 +47,7 @@ func (h *Join) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Conver
 		}
 		teamName = conv.Info.TlfName
 	}
+	h.Debug(ctx, "joining channel: tlf: %s topic: %s", teamName, toks[1])
+	return h.G().ChatHelper.JoinConversationByName(ctx, uid, teamName, toks[1], chat1.TopicType_CHAT,
+		keybase1.TLFVisibility_PRIVATE)
 }
