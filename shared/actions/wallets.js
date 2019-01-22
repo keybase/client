@@ -739,7 +739,13 @@ const receivedBadgeState = (state, action) =>
   WalletsGen.createBadgesUpdated({accounts: action.payload.badgeState.unreadWalletAccounts || []})
 
 const acceptDisclaimer = (state, action) =>
-  RPCStellarTypes.localAcceptDisclaimerLocalRpcPromise(undefined, Constants.acceptDisclaimerWaitingKey)
+  RPCStellarTypes.localAcceptDisclaimerLocalRpcPromise(undefined, Constants.acceptDisclaimerWaitingKey).catch(
+    e => {
+      // disclaimer screen handles showing error
+      // reset delay state
+      return WalletsGen.createResetAcceptingDisclaimer()
+    }
+  )
 
 const checkDisclaimer = state =>
   RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise().then(accepted =>
