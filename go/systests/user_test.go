@@ -229,6 +229,10 @@ func (h *notifyHandler) UserChanged(_ context.Context, uid keybase1.UID) error {
 	return nil
 }
 
+func (h *notifyHandler) PasswordChanged(_ context.Context) error {
+	return nil
+}
+
 func TestSignupLogout(t *testing.T) {
 	tc := setupTest(t, "signup")
 	tc2 := cloneContext(tc)

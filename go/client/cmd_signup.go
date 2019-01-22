@@ -36,6 +36,10 @@ func NewCmdSignup(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 				Name:  "username",
 				Usage: "Specify a username.",
 			},
+			cli.BoolFlag{
+				Name:  "no-passphrase",
+				Usage: "Sign up without passphrase.",
+			},
 		},
 	}
 
@@ -72,6 +76,7 @@ type CmdSignup struct {
 	defaultEmail      string
 	defaultUsername   string
 	defaultPassphrase string
+	randomPassphrase  bool
 	defaultDevice     string
 	doPrompt          bool
 	skipMail          bool
@@ -96,9 +101,8 @@ func (s *CmdSignup) SetTestWithPaper(b bool) {
 	s.genPaper = b
 }
 
-func (s *CmdSignup) ParseArgv(ctx *cli.Context) error {
+func (s *CmdSignup) ParseArgv(ctx *cli.Context) (err error) {
 	nargs := len(ctx.Args())
-	var err error
 
 	s.code = ctx.String("invite-code")
 	if s.code == "" {
@@ -112,6 +116,10 @@ func (s *CmdSignup) ParseArgv(ctx *cli.Context) error {
 	s.defaultDevice = ctx.String("device")
 	if s.defaultDevice == "" {
 		s.defaultDevice = "home computer"
+	}
+	s.randomPassphrase = ctx.Bool("no-passphrase")
+	if s.randomPassphrase && s.defaultPassphrase != "" {
+		return fmt.Errorf("cannot pass both --no-passphrase and --passphrase")
 	}
 
 	if ctx.Bool("batch") {
@@ -253,12 +261,16 @@ func (s *CmdSignup) trySignup() (err error) {
 }
 
 func (s *CmdSignup) runEngine() (retry bool, err error) {
+	if s.randomPassphrase && s.passphrase != "" {
+		return false, fmt.Errorf("Requested random passphrase but passphrase was provided")
+	}
 
 	rarg := keybase1.SignupArg{
 		Username:    s.fields.username.GetValue(),
 		Email:       s.fields.email.GetValue(),
 		InviteCode:  s.fields.code.GetValue(),
 		Passphrase:  s.passphrase,
+		RandomPw:    s.randomPassphrase,
 		StoreSecret: true,
 		DeviceName:  s.fields.deviceName.GetValue(),
 		DeviceType:  keybase1.DeviceType_DESKTOP,
