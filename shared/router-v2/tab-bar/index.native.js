@@ -1,3 +1,56 @@
 // @flow
+// TODO badging
+import * as Kb from '../../common-adapters'
+import * as React from 'react'
+import * as Styles from '../../styles'
+import * as Tabs from '../../constants/tabs'
 
-export default () => null
+const icons = {
+  [Tabs.chatTab]: 'iconfont-nav-chat',
+  [Tabs.fsTab]: 'iconfont-nav-files',
+  [Tabs.peopleTab]: 'iconfont-nav-people',
+  [Tabs.settingsTab]: 'iconfont-nav-more',
+  [Tabs.walletsTab]: 'iconfont-nav-wallets',
+}
+
+const labels = {
+  [Tabs.chatTab]: 'Chat',
+  [Tabs.fsTab]: 'Files',
+  [Tabs.peopleTab]: 'People',
+  [Tabs.settingsTab]: 'Settings',
+  [Tabs.walletsTab]: 'Wallet',
+}
+
+const tabs = [Tabs.peopleTab, Tabs.chatTab, Tabs.fsTab, Tabs.settingsTab]
+const TabBar = p => (
+  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
+    {tabs.map(t => (
+      <Kb.Icon
+        key={t}
+        type={icons[t]}
+        style={t === p.selectedTab ? styles.tabSelected : styles.tab}
+        color={t === p.selectedTab ? Styles.globalColors.white : Styles.globalColors.darkBlue4}
+      />
+    ))}
+  </Kb.Box2>
+)
+
+const tab = {
+  fontSize: 32,
+}
+const styles = Styles.styleSheetCreate({
+  container: {
+    alignItems: 'center',
+    backgroundColor: Styles.globalColors.darkBlue2,
+    height: Styles.isAndroid ? 56 : 48,
+    justifyContent: 'space-around',
+  },
+  tab: {
+    ...tab,
+  },
+  tabSelected: {
+    ...tab,
+  },
+})
+
+export default TabBar

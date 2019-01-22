@@ -1,11 +1,11 @@
 // @flow
-import * as Kb from '../common-adapters'
+import * as Kb from '../common-adapters/mobile.native'
 import * as I from 'immutable'
 import * as Styles from '../styles'
 import * as React from 'react'
 // import GlobalError from '../app/global-errors/container'
 // import Offline from '../offline/container'
-// import TabBar from './tab-bar/container'
+import TabBar from './tab-bar/container'
 import {
   createNavigator,
   SwitchRouter,
@@ -100,7 +100,7 @@ import {routes, nameToTab} from './routes'
 // }
 // }
 
-const stackNavigator = createStackNavigator(routes, {
+const StackNavigator = createStackNavigator(routes, {
   initialRouteName: 'tabs:peopleTab',
   headerMode: 'none',
 })
@@ -110,7 +110,21 @@ const stackNavigator = createStackNavigator(routes, {
 // files: stackNavigator,
 // settings: stackNavigator,
 // })
-const RNApp = createAppContainer(stackNavigator)
+
+// TODO
+class CustomStackNavigator extends React.PureComponent<any> {
+  static router = StackNavigator.router
+  render() {
+    return (
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+        <Kb.SafeAreaViewTop />
+        <StackNavigator navigation={this.props.navigation} />
+        <TabBar selectedTab={'tabs:peopleTab' /* nameToTab[descriptor.state.routeName] */} />
+      </Kb.Box2>
+    )
+  }
+}
+const RNApp = createAppContainer(CustomStackNavigator)
 
 // const AppNavigator = createNavigator(
 // AppView,
