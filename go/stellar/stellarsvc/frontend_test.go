@@ -2117,6 +2117,45 @@ func TestKeybaseFederationReviewPaymentLocal(t *testing.T) {
 	require.NoError(t, err)
 }
 
+// Review a payment where recipient is an SBS twitter user.
+func TestReviewPaymentLocalSBS(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	acceptDisclaimer(tcs[0])
+	senderAccountID, err := stellar.GetOwnPrimaryAccountID(tcs[0].MetaContext())
+	require.NoError(t, err)
+	tcs[0].Backend.ImportAccountsForUser(tcs[0])
+	tcs[0].Backend.Gift(senderAccountID, "100")
+	tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), senderAccountID, "test")
+
+	t.Logf("u0 starts a payment")
+	bid1, err := tcs[0].Srv.StartBuildPaymentLocal(context.Background(), 0)
+	require.NoError(t, err)
+	amount := "11.0"
+	buildRes, err := tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
+		Bid:    bid1,
+		From:   senderAccountID,
+		To:     "torproject@twitter",
+		Amount: amount,
+	})
+	require.NoError(t, err)
+	require.Equal(t, true, buildRes.ReadyToReview)
+
+	t.Logf("u0 starts a review of the payment")
+	reviewPaymentExpectQuickSuccess(t, tcs[0], stellar1.ReviewPaymentLocalArg{Bid: bid1})
+
+	t.Logf("u0 completes the send")
+	_, err = tcs[0].Srv.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
+		Bid:    bid1,
+		From:   senderAccountID,
+		To:     "torproject@twitter",
+		Amount: amount,
+		Asset:  stellar1.AssetNative(),
+	})
+	require.NoError(t, err)
+}
+
 // Cases where Send is blocked because the build gamut wasn't run.
 func TestBuildPaymentLocalBidBlocked(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 2)
