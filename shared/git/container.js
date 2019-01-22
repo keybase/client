@@ -1,10 +1,12 @@
 // @flow
+import React from 'react'
 import Git from '.'
 import * as I from 'immutable'
 import * as GitGen from '../actions/git-gen'
 import * as Constants from '../constants/git'
+import * as Kb from '../common-adapters'
 import {anyWaiting} from '../constants/waiting'
-import {compose, lifecycle, connect, type RouteProps} from '../util/container'
+import {compose, connect, type RouteProps} from '../util/container'
 import {sortBy, partition} from 'lodash-es'
 
 type OwnProps = RouteProps<{}, {expandedSet: I.Set<string>}>
@@ -57,15 +59,33 @@ const mapDispatchToProps = (dispatch: any, {navigateAppend, setRouteState, route
   },
 })
 
+class GitReloadable extends React.PureComponent<Props> {
+  render() {
+    return (
+      <Kb.Reloadable
+        waitingKeys={Constants.loadingWaitingKey}
+        onReload={this.props._loadGit}
+        reloadOnMount={true}
+      >
+        <Git
+          expandedSet={this.props.expandedSet}
+          loading={this.props.loading}
+          onShowDelete={this.props.onShowDelete}
+          onNewPersonalRepo={this.props.onNewPersonalRepo}
+          onNewTeamRepo={this.props.onNewTeamRepo}
+          onToggleExpand={this.props.onToggleExpand}
+          personals={this.props.personals}
+          teams={this.props.teams}
+        />
+      </Kb.Reloadable>
+    )
+  }
+}
+
 export default compose(
   connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     (s, d, o) => ({...o, ...s, ...d})
-  ),
-  lifecycle({
-    componentDidMount() {
-      this.props._loadGit()
-    },
-  })
-)(Git)
+  )
+)(GitReloadable)
