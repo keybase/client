@@ -2,22 +2,16 @@
 import * as React from 'react'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
+import {Picker} from '../picker'
+import {backgroundImageFn} from '../../../../../common-adapters/emoji'
 
-type Props = {
+type Props = {|
   className?: string,
   emojis: Array<string>, // e.g. ':tada:'
-  onOpenEmojiPicker: () => void,
   onReact: string => void,
+  onShowingEmojiPicker?: boolean => void,
   style?: Styles.StylesCrossPlatform,
-}
-
-const HoverBox = Styles.styled(Kb.Box2)({
-  '&:hover': {
-    boxShadow: 'none',
-  },
-  boxShadow: '0 0 15px 0 rgba(0, 0, 0, 0.2)',
-  ...Styles.transition('box-shadow'),
-})
+|}
 
 class HoverEmoji extends React.Component<
   {name: string, onClick: () => void, isReacjiIcon?: boolean},
@@ -51,37 +45,66 @@ class HoverEmoji extends React.Component<
   }
 }
 
-const EmojiRow = (props: Props) => (
-  <HoverBox
-    direction="horizontal"
-    style={Styles.collapseStyles([styles.container, props.style])}
-    className={props.className}
-  >
-    <Kb.Box2 direction="horizontal" gap="tiny" style={styles.emojisRow}>
-      {props.emojis.map(e => (
-        <HoverEmoji name={e} key={e} onClick={() => props.onReact(e)} />
-      ))}
-      <HoverEmoji name="" isReacjiIcon={true} onClick={props.onOpenEmojiPicker} key="reacji-icon" />
-    </Kb.Box2>
-  </HoverBox>
-)
+class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
+  state = {showingPicker: false}
+  _attachmentRef = React.createRef<Kb.Box2>()
+  _setShowingPicker = showingPicker => {
+    this.props.onShowingEmojiPicker && this.props.onShowingEmojiPicker(showingPicker)
+    this.setState(s => (s.showingPicker === showingPicker ? null : {showingPicker}))
+  }
+  _showPicker = () => this._setShowingPicker(true)
+  _hidePicker = () => this._setShowingPicker(false)
+  _onAddReaction = ({colons}: {colons: string}) => {
+    this.props.onReact(colons)
+    this._setShowingPicker(false)
+  }
+  _getAttachmentRef = () => this._attachmentRef.current
+  render() {
+    return (
+      <Kb.Box2
+        direction="horizontal"
+        ref={this._attachmentRef}
+        style={Styles.collapseStyles([styles.container, this.props.style])}
+        className={this.props.className}
+      >
+        <Kb.Box2 direction="horizontal" gap="tiny" style={styles.emojisRow}>
+          {this.props.emojis.map(e => (
+            <HoverEmoji name={e} key={e} onClick={() => this.props.onReact(e)} />
+          ))}
+          <HoverEmoji name="" isReacjiIcon={true} onClick={this._showPicker} key="reacji-icon" />
+        </Kb.Box2>
+        {this.state.showingPicker && (
+          <Kb.FloatingBox
+            attachTo={this._getAttachmentRef}
+            containerStyle={styles.pickerContainer}
+            position="top right"
+            onHidden={this._hidePicker}
+          >
+            <Picker backgroundImageFn={backgroundImageFn} onClick={this._onAddReaction} />
+          </Kb.FloatingBox>
+        )}
+      </Kb.Box2>
+    )
+  }
+}
 
 const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
     isElectron: {
       backgroundColor: Styles.globalColors.white,
       borderColor: Styles.globalColors.black_10,
-      borderRadius: 4,
+      borderRadius: Styles.borderRadius,
       borderStyle: 'solid',
       borderWidth: 1,
+      height: Styles.globalMargins.medium,
     },
   }),
   emojiBox: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
-    height: 16,
+    height: Styles.globalMargins.small,
     justifyContent: 'center',
-    width: 16,
+    width: Styles.globalMargins.small,
   },
   emojisRow: {
     paddingBottom: Styles.globalMargins.xtiny,
@@ -89,6 +112,13 @@ const styles = Styles.styleSheetCreate({
     paddingRight: Styles.globalMargins.xsmall,
     paddingTop: Styles.globalMargins.xtiny,
   },
+  pickerContainer: Styles.platformStyles({
+    isElectron: {
+      borderRadius: Styles.borderRadius,
+      boxShadow: `0 0 8px 0 ${Styles.globalColors.black_20}`,
+      margin: Styles.globalMargins.tiny,
+    },
+  }),
   reacjiIcon: {position: 'relative', top: 1},
 })
 

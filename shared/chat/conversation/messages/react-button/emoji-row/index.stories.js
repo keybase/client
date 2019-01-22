@@ -8,8 +8,8 @@ import EmojiRow from '.'
 const common = {
   className: 'emoji-row',
   emojis: [':tada:', ':smiley:', ':slightly_smiling_face:', ':ok_hand:', ':fire:'],
-  onOpenEmojiPicker: Sb.action('onOpenEmojiPicker'),
   onReact: Sb.action('onReact'),
+  onShowingEmojiPicker: Sb.action('onShowingEmojiPicker'),
 }
 
 const HideShowBox = Styles.styled(Kb.Box2)({
@@ -30,6 +30,6 @@ const FakeMessage = () => (
 const load = () =>
   Sb.storiesOf('Chat/Conversation/Emoji row')
     .add('On hover', () => <FakeMessage />)
-    .add('Visible', () => <EmojiRow {...common} attachTo={() => null} onHidden={() => {}} visible={true} />)
+    .add('Visible', () => <EmojiRow {...common} />)
 
 export default load
