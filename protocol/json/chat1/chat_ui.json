@@ -553,6 +553,10 @@
           "name": "currency"
         },
         {
+          "type": "string",
+          "name": "worthAtRequestTime"
+        },
+        {
           "type": "stellar1.RequestStatus",
           "name": "status"
         }
@@ -733,6 +737,13 @@
           "name": "body"
         },
         {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "decoratedTextBody"
+        },
+        {
           "type": "gregor1.Time",
           "name": "ctime"
         },
@@ -836,7 +847,9 @@
       "type": "enum",
       "name": "UITextDecorationTyp",
       "symbols": [
-        "PAYMENT_0"
+        "PAYMENT_0",
+        "ATMENTION_1",
+        "CHANNELNAMEMENTION_2"
       ]
     },
     {
@@ -853,6 +866,20 @@
             "def": false
           },
           "body": "TextPayment"
+        },
+        {
+          "label": {
+            "name": "ATMENTION",
+            "def": false
+          },
+          "body": "string"
+        },
+        {
+          "label": {
+            "name": "CHANNELNAMEMENTION",
+            "def": false
+          },
+          "body": "UIChannelNameMention"
         }
       ]
     },

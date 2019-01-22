@@ -15,6 +15,8 @@ export const chatUiMessageUnboxedState = {
 
 export const chatUiUITextDecorationTyp = {
   payment: 0,
+  atmention: 1,
+  channelnamemention: 2,
 }
 
 export const commonAssetMetadataType = {

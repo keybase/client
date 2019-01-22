@@ -20,6 +20,7 @@ type State = {
 }
 
 const sizeToTeamBorderRadius = {
+  '12': 2,
   '128': 12,
   '16': 4,
   '32': 5,
@@ -165,7 +166,7 @@ class AvatarRender extends React.PureComponent<Props, State> {
   }
 }
 
-const sizes = [128, 96, 64, 48, 32, 16]
+const sizes = [128, 96, 64, 48, 32, 16, 12]
 
 const iconStyles = sizes.reduce((map, size) => {
   map[`icon:${size}`] = {height: size, width: size}

@@ -172,6 +172,7 @@ export type _ChatRequestInfo = {
   currencyCode: string, // set if asset === 'currency'
   done: boolean,
   type: 'requestInfo',
+  worthAtRequestTime: string,
 }
 export type ChatRequestInfo = I.RecordOf<_ChatRequestInfo>
 
