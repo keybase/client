@@ -20,7 +20,9 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 	startTime := time.Now()
 	res.StartTime = stellar1.ToTimeMs(startTime)
 	defer func() {
-		res.EndTime = stellar1.ToTimeMs(time.Now())
+		if res.EndTime == 0 {
+			res.EndTime = stellar1.ToTimeMs(time.Now())
+		}
 	}()
 
 	// look up sender account
@@ -83,6 +85,7 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 			default:
 				bpResult.Error = "no prepared direct or relay payment"
 				bpResult.Status = stellar1.PaymentStatus_ERROR
+				bpResult.EndTime = stellar1.ToTimeMs(time.Now())
 			}
 
 			bpResult.SubmittedTime = stellar1.ToTimeMs(time.Now())
@@ -91,6 +94,7 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 				mctx.CDebugf("error submitting batch payment seqno %d, txid %s: %s", prepared[i].Seqno, prepared[i].TxID, err)
 				bpResult.Error = err.Error()
 				bpResult.Status = stellar1.PaymentStatus_ERROR
+				bpResult.EndTime = stellar1.ToTimeMs(time.Now())
 			} else if bpResult.Status != stellar1.PaymentStatus_ERROR { // check to make sure default in switch above didn't happen
 				bpResult.TxID = submitRes.StellarID
 				if submitRes.Pending {
@@ -103,6 +107,8 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 				}
 			}
 		}
+
+		bpResult.StatusDescription = stellar1.PaymentStatusRevMap[bpResult.Status]
 		resultList[i] = bpResult
 	}
 
@@ -118,6 +124,7 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 			if time.Since(startTime) > time.Duration(arg.TimeoutSecs)*time.Second {
 				mctx.CDebugf("ran out of time waiting for tx status updates (%d remaining)", waitingCount)
 				res.Payments = resultList
+				res.EndTime = stellar1.ToTimeMs(time.Now())
 				calculateStats(&res)
 				return res, nil
 			}
@@ -127,6 +134,7 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 			if ok {
 				mctx.CDebugf("received status update for %s: %s", update.TxID, update.Status)
 				resultList[index].Status = update.Status
+				resultList[index].StatusDescription = stellar1.PaymentStatusRevMap[update.Status]
 				if update.Status != stellar1.PaymentStatus_PENDING {
 					waitingCount--
 					resultList[index].EndTime = stellar1.ToTimeMs(time.Now())
@@ -139,6 +147,7 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 	mctx.CDebugf("done waiting for payments to complete")
 
 	res.Payments = resultList
+	res.EndTime = stellar1.ToTimeMs(time.Now())
 	calculateStats(&res)
 
 	return res, nil
@@ -256,5 +265,43 @@ func prepareBatchPaymentRelay(mctx libkb.MetaContext, remoter remote.Remoter, sp
 }
 
 func calculateStats(res *stellar1.BatchResultLocal) {
+	res.OverallDurationMs = res.EndTime - res.StartTime
+	res.PrepareDurationMs = res.PreparedTime - res.StartTime
+	res.SubmitDurationMs = res.AllSubmittedTime - res.PreparedTime
+	res.WaitDurationMs = res.EndTime - res.AllSubmittedTime
 
+	var durationTotal stellar1.TimeMs
+	var durationSuccess stellar1.TimeMs
+	var durationError stellar1.TimeMs
+	var countDone int64
+
+	for _, p := range res.Payments {
+		duration := p.EndTime - p.StartTime
+		durationTotal += duration
+		switch p.Status {
+		case stellar1.PaymentStatus_COMPLETED:
+			countDone++
+			res.CountSuccess += 1
+			durationSuccess += duration
+		case stellar1.PaymentStatus_PENDING:
+			res.CountPending += 1
+		default:
+			// error
+			countDone++
+			res.CountError += 1
+			durationError += duration
+		}
+	}
+
+	if countDone > 0 {
+		res.AvgDurationMs = stellar1.TimeMs(int64(durationTotal) / countDone)
+	}
+
+	if res.CountSuccess > 0 {
+		res.AvgSuccessDurationMs = stellar1.TimeMs(int64(durationSuccess) / int64(res.CountSuccess))
+	}
+
+	if res.CountError > 0 {
+		res.AvgErrorDurationMs = stellar1.TimeMs(int64(durationError) / int64(res.CountError))
+	}
 }

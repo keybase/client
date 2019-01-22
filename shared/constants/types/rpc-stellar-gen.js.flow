@@ -319,8 +319,8 @@ export type BalanceDelta =
   | 2 // DECREASE_2
 
 export type BatchPaymentArg = $ReadOnly<{recipient: String, amount: String, message: String}>
-export type BatchPaymentResult = $ReadOnly<{username: String, startTime: TimeMs, submittedTime: TimeMs, endTime: TimeMs, txID: TransactionID, status: PaymentStatus, error: String}>
-export type BatchResultLocal = $ReadOnly<{startTime: TimeMs, preparedTime: TimeMs, allSubmittedTime: TimeMs, endTime: TimeMs, payments?: ?Array<BatchPaymentResult>}>
+export type BatchPaymentResult = $ReadOnly<{username: String, startTime: TimeMs, submittedTime: TimeMs, endTime: TimeMs, txID: TransactionID, status: PaymentStatus, statusDescription: String, error: String}>
+export type BatchResultLocal = $ReadOnly<{startTime: TimeMs, preparedTime: TimeMs, allSubmittedTime: TimeMs, endTime: TimeMs, payments?: ?Array<BatchPaymentResult>, overallDurationMs: TimeMs, prepareDurationMs: TimeMs, submitDurationMs: TimeMs, waitDurationMs: TimeMs, countSuccess: Int, countError: Int, countPending: Int, avgDurationMs: TimeMs, avgSuccessDurationMs: TimeMs, avgErrorDurationMs: TimeMs}>
 export type BuildPaymentID = String
 export type BuildPaymentResLocal = $ReadOnly<{readyToReview: Boolean, from: AccountID, toErrMsg: String, amountErrMsg: String, secretNoteErrMsg: String, publicMemoErrMsg: String, worthDescription: String, worthInfo: String, worthAmount: String, worthCurrency: String, displayAmountXLM: String, displayAmountFiat: String, sendingIntentionXLM: Boolean, amountAvailable: String, banners?: ?Array<SendBannerLocal>}>
 export type BuildRequestResLocal = $ReadOnly<{readyToRequest: Boolean, toErrMsg: String, amountErrMsg: String, secretNoteErrMsg: String, worthDescription: String, worthInfo: String, displayAmountXLM: String, displayAmountFiat: String, sendingIntentionXLM: Boolean, banners?: ?Array<SendBannerLocal>}>

@@ -928,6 +928,10 @@
         },
         {
           "type": "string",
+          "name": "statusDescription"
+        },
+        {
+          "type": "string",
           "name": "error"
         }
       ]
@@ -958,6 +962,46 @@
             "items": "BatchPaymentResult"
           },
           "name": "payments"
+        },
+        {
+          "type": "TimeMs",
+          "name": "overallDurationMs"
+        },
+        {
+          "type": "TimeMs",
+          "name": "prepareDurationMs"
+        },
+        {
+          "type": "TimeMs",
+          "name": "submitDurationMs"
+        },
+        {
+          "type": "TimeMs",
+          "name": "waitDurationMs"
+        },
+        {
+          "type": "int",
+          "name": "countSuccess"
+        },
+        {
+          "type": "int",
+          "name": "countError"
+        },
+        {
+          "type": "int",
+          "name": "countPending"
+        },
+        {
+          "type": "TimeMs",
+          "name": "avgDurationMs"
+        },
+        {
+          "type": "TimeMs",
+          "name": "avgSuccessDurationMs"
+        },
+        {
+          "type": "TimeMs",
+          "name": "avgErrorDurationMs"
         }
       ]
     },

@@ -575,6 +575,7 @@ protocol local {
     TimeMs endTime;
     TransactionID txID;
     PaymentStatus status;
+    string statusDescription;
     string error;
   }
 
@@ -584,6 +585,19 @@ protocol local {
     TimeMs allSubmittedTime;
     TimeMs endTime;
     array<BatchPaymentResult> payments;
+
+    TimeMs overallDurationMs;
+    TimeMs prepareDurationMs;
+    TimeMs submitDurationMs;
+    TimeMs waitDurationMs;
+
+    int countSuccess;
+    int countError;
+    int countPending;
+
+    TimeMs avgDurationMs;
+    TimeMs avgSuccessDurationMs;
+    TimeMs avgErrorDurationMs;
   }
 
   record BatchPaymentArg {

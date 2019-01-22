@@ -788,33 +788,45 @@ func (o LookupResultCLILocal) DeepCopy() LookupResultCLILocal {
 }
 
 type BatchPaymentResult struct {
-	Username      string        `codec:"username" json:"username"`
-	StartTime     TimeMs        `codec:"startTime" json:"startTime"`
-	SubmittedTime TimeMs        `codec:"submittedTime" json:"submittedTime"`
-	EndTime       TimeMs        `codec:"endTime" json:"endTime"`
-	TxID          TransactionID `codec:"txID" json:"txID"`
-	Status        PaymentStatus `codec:"status" json:"status"`
-	Error         string        `codec:"error" json:"error"`
+	Username          string        `codec:"username" json:"username"`
+	StartTime         TimeMs        `codec:"startTime" json:"startTime"`
+	SubmittedTime     TimeMs        `codec:"submittedTime" json:"submittedTime"`
+	EndTime           TimeMs        `codec:"endTime" json:"endTime"`
+	TxID              TransactionID `codec:"txID" json:"txID"`
+	Status            PaymentStatus `codec:"status" json:"status"`
+	StatusDescription string        `codec:"statusDescription" json:"statusDescription"`
+	Error             string        `codec:"error" json:"error"`
 }
 
 func (o BatchPaymentResult) DeepCopy() BatchPaymentResult {
 	return BatchPaymentResult{
-		Username:      o.Username,
-		StartTime:     o.StartTime.DeepCopy(),
-		SubmittedTime: o.SubmittedTime.DeepCopy(),
-		EndTime:       o.EndTime.DeepCopy(),
-		TxID:          o.TxID.DeepCopy(),
-		Status:        o.Status.DeepCopy(),
-		Error:         o.Error,
+		Username:          o.Username,
+		StartTime:         o.StartTime.DeepCopy(),
+		SubmittedTime:     o.SubmittedTime.DeepCopy(),
+		EndTime:           o.EndTime.DeepCopy(),
+		TxID:              o.TxID.DeepCopy(),
+		Status:            o.Status.DeepCopy(),
+		StatusDescription: o.StatusDescription,
+		Error:             o.Error,
 	}
 }
 
 type BatchResultLocal struct {
-	StartTime        TimeMs               `codec:"startTime" json:"startTime"`
-	PreparedTime     TimeMs               `codec:"preparedTime" json:"preparedTime"`
-	AllSubmittedTime TimeMs               `codec:"allSubmittedTime" json:"allSubmittedTime"`
-	EndTime          TimeMs               `codec:"endTime" json:"endTime"`
-	Payments         []BatchPaymentResult `codec:"payments" json:"payments"`
+	StartTime            TimeMs               `codec:"startTime" json:"startTime"`
+	PreparedTime         TimeMs               `codec:"preparedTime" json:"preparedTime"`
+	AllSubmittedTime     TimeMs               `codec:"allSubmittedTime" json:"allSubmittedTime"`
+	EndTime              TimeMs               `codec:"endTime" json:"endTime"`
+	Payments             []BatchPaymentResult `codec:"payments" json:"payments"`
+	OverallDurationMs    TimeMs               `codec:"overallDurationMs" json:"overallDurationMs"`
+	PrepareDurationMs    TimeMs               `codec:"prepareDurationMs" json:"prepareDurationMs"`
+	SubmitDurationMs     TimeMs               `codec:"submitDurationMs" json:"submitDurationMs"`
+	WaitDurationMs       TimeMs               `codec:"waitDurationMs" json:"waitDurationMs"`
+	CountSuccess         int                  `codec:"countSuccess" json:"countSuccess"`
+	CountError           int                  `codec:"countError" json:"countError"`
+	CountPending         int                  `codec:"countPending" json:"countPending"`
+	AvgDurationMs        TimeMs               `codec:"avgDurationMs" json:"avgDurationMs"`
+	AvgSuccessDurationMs TimeMs               `codec:"avgSuccessDurationMs" json:"avgSuccessDurationMs"`
+	AvgErrorDurationMs   TimeMs               `codec:"avgErrorDurationMs" json:"avgErrorDurationMs"`
 }
 
 func (o BatchResultLocal) DeepCopy() BatchResultLocal {
@@ -834,6 +846,16 @@ func (o BatchResultLocal) DeepCopy() BatchResultLocal {
 			}
 			return ret
 		})(o.Payments),
+		OverallDurationMs:    o.OverallDurationMs.DeepCopy(),
+		PrepareDurationMs:    o.PrepareDurationMs.DeepCopy(),
+		SubmitDurationMs:     o.SubmitDurationMs.DeepCopy(),
+		WaitDurationMs:       o.WaitDurationMs.DeepCopy(),
+		CountSuccess:         o.CountSuccess,
+		CountError:           o.CountError,
+		CountPending:         o.CountPending,
+		AvgDurationMs:        o.AvgDurationMs.DeepCopy(),
+		AvgSuccessDurationMs: o.AvgSuccessDurationMs.DeepCopy(),
+		AvgErrorDurationMs:   o.AvgErrorDurationMs.DeepCopy(),
 	}
 }
 
