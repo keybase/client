@@ -6,7 +6,7 @@ import {FilteredTopLine} from './top-line'
 import {Avatars, TeamAvatar} from './avatars'
 import {isMobile} from '../constants/platform'
 
-type Props = {
+type Props = {|
   backgroundColor: ?string,
   isMuted: boolean,
   isSelected: boolean,
@@ -16,11 +16,11 @@ type Props = {
   showBold: boolean,
   teamname: string,
   usernameColor: string,
-}
+|}
 
-type State = {
+type State = {|
   isHovered: boolean,
-}
+|}
 
 class SelectableSmallTeam extends React.PureComponent<Props, State> {
   state = {

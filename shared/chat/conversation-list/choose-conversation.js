@@ -5,15 +5,15 @@ import * as Styles from '../../styles'
 import ConversationList from './conversation-list-container'
 import type {Position} from '../../common-adapters/relative-popup-hoc.types'
 
-export type Props = {
+export type Props = {|
   dropdownButtonDefaultText: string,
   dropdownButtonStyle?: Styles.StylesCrossPlatform,
   overlayStyle?: Styles.StylesCrossPlatform,
   disabled?: boolean,
   position?: Position,
-}
+|}
 
-type State = {expanded: boolean}
+type State = {|expanded: boolean|}
 
 class ChooseConversation extends React.Component<Props & Kb.OverlayParentProps, State> {
   state = {

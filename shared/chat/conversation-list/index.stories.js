@@ -6,8 +6,6 @@ import * as Styles from '../../styles'
 import * as Types from '../../constants/types/chat2'
 import ChooseConversation from './choose-conversation'
 import ConversationList from './conversation-list'
-import type {OwnProps as SelectableSmallTeamContainerProps} from '../selectable-small-team-container'
-import type {OwnProps as SelectableBigTeamChannelContainerProps} from '../selectable-big-team-channel-container'
 
 const id = Types.stringToConversationIDKey
 const s = Types.conversationIDKeyToString
@@ -32,7 +30,7 @@ const selectableSmalls = {
   small3: {
     isLocked: false,
     isMuted: false,
-    participants: ['alice', 'bob', 'charlie', 'duh', 'eee', 'fff', 'ggg'],
+    participants: ['alice', 'bob', 'charlie', 'duh', 'eee', 'fff', 'ggg', 'hhh', 'iii', 'jjj'],
     showBold: false,
     teamname: '',
     usernameColor: Styles.globalColors.black_75,
@@ -42,7 +40,7 @@ const selectableSmalls = {
 const selectableBigs = {
   bigA1: {channelname: 'samoyed', teamname: 'we_rate_dogs'},
   bigA2: {channelname: 'golden', teamname: 'we_rate_dogs'},
-  bigA3: {channelname: 'husky', teamname: 'we_rate_dogs'},
+  bigA3: {channelname: 'husky', teamname: 'we_rate_dogs_and_we_have_loooooong_name'},
   bigA4: {channelname: 'this_is_a_super_long_channelname_situation', teamname: 'we_rate_dogs'},
   bigB1: {channelname: 'random1', teamname: 'slackers'},
   bigB2: {channelname: 'random2', teamname: 'slackers'},
@@ -55,24 +53,14 @@ const selectableBigs = {
   bigB9: {channelname: 'random9', teamname: 'slackers'},
 }
 
-const smallProvider = ({
-  conversationIDKey,
-  isSelected,
-  onSelectConversation,
-}: SelectableSmallTeamContainerProps) => ({
-  ...(selectableSmalls[s(conversationIDKey)] || {}),
-  isSelected,
-  onSelectConversation,
+const smallProvider = (props: {conversationIDKey: Types.ConversationIDKey}) => ({
+  ...(selectableSmalls[s(props.conversationIDKey)] || {}),
+  ...props,
 })
 
-const bigProvider = ({
-  conversationIDKey,
-  isSelected,
-  onSelectConversation,
-}: SelectableBigTeamChannelContainerProps) => ({
-  ...(selectableBigs[s(conversationIDKey)] || {}),
-  isSelected,
-  onSelectConversation,
+const bigProvider = (props: {conversationIDKey: Types.ConversationIDKey}) => ({
+  ...(selectableBigs[s(props.conversationIDKey)] || {}),
+  ...props,
 })
 
 const getRows = (numShown, upstreamOnSelect) => {
@@ -88,6 +76,7 @@ const getRows = (numShown, upstreamOnSelect) => {
     {conversationIDKey: id('bigA1'), isSelected: false, onSelectConversation, type: 'big'},
     {conversationIDKey: id('bigA2'), isSelected: false, onSelectConversation, type: 'big'},
     {conversationIDKey: id('bigA3'), isSelected: false, onSelectConversation, type: 'big'},
+    {conversationIDKey: id('bigA4'), isSelected: false, onSelectConversation, type: 'big'},
     {conversationIDKey: id('bigB1'), isSelected: false, onSelectConversation, type: 'big'},
     {conversationIDKey: id('bigB2'), isSelected: false, onSelectConversation, type: 'big'},
     {conversationIDKey: id('bigB3'), isSelected: false, onSelectConversation, type: 'big'},
@@ -121,7 +110,7 @@ const filter = {
 export const provider = {
   ConversationList: ({onSelect}: {onSelect?: () => void}) => ({
     filter,
-    rows: getRows(5, onSelect),
+    rows: getRows(undefined, onSelect),
   }),
   SelectableBigTeamChannel: bigProvider,
   SelectableSmallTeam: smallProvider,
@@ -130,8 +119,8 @@ export const provider = {
 export default () =>
   Sb.storiesOf('Chat/ConversationList', module)
     .addDecorator(Sb.createPropProviderWithCommon(provider))
-    .add('Collapsed - no filter', () => <ConversationList rows={getRows(5)} />)
-    .add('Collapsed', () => <ConversationList rows={getRows(5)} filter={filter} />)
+    .add('Collapsed - no filter', () => <ConversationList rows={getRows(8)} />)
+    .add('Collapsed', () => <ConversationList rows={getRows(8)} filter={filter} />)
     .add('Expanded', () => <ConversationList rows={getRows()} filter={filter} />)
     .add('ChooseConversation (Desktop)', () => (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>

@@ -5,16 +5,16 @@ import * as Styles from '../styles'
 import {TeamAvatar} from './avatars'
 import {isMobile} from '../constants/platform'
 
-type Props = {
+type Props = {|
   isSelected: boolean,
   teamname: string,
   channelname: string,
   onSelectConversation: () => void,
-}
+|}
 
-type State = {
+type State = {|
   isHovered: boolean,
-}
+|}
 
 class SelectableBigTeamChannel extends PureComponent<Props, State> {
   state = {
@@ -84,8 +84,8 @@ export const rowHeight = isMobile ? 64 : 56
 const styles = Styles.styleSheetCreate({
   channelname: Styles.platformStyles({
     common: {
-      flexBasis: '70%',
-      flexShrink: 0.3,
+      flexShrink: 0,
+      maxWidth: '70%',
     },
     isElectron: {
       overflow: 'hidden',
@@ -99,7 +99,7 @@ const styles = Styles.styleSheetCreate({
   teamname: Styles.platformStyles({
     common: {
       color: Styles.globalColors.black_75,
-      flexShrink: 0.7,
+      flexShrink: 1,
     },
     isElectron: {
       overflow: 'hidden',
@@ -110,6 +110,7 @@ const styles = Styles.styleSheetCreate({
   textContainer: {
     flexShrink: 1,
     overflow: 'hidden',
+    paddingRight: Styles.globalMargins.tiny,
   },
 })
 
