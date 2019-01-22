@@ -222,6 +222,11 @@ protocol remote {
     union { null, Asset } asset;
     union { null, OutsideCurrencyCode } currency;
 
+    string fromDisplayAmount;
+    string fromDisplayCurrency;
+    string toDisplayAmount;
+    string toDisplayCurrency;
+
     // Payment ID if funded, empty if not funded.
     KeybaseTransactionID fundingKbTxID;
     RequestStatus status;

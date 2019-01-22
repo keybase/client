@@ -1,14 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Box, Icon, Text} from '../../common-adapters'
-import {
-  styleSheetCreate,
-  platformStyles,
-  globalColors,
-  globalMargins,
-  globalStyles,
-  isMobile,
-} from '../../styles'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 
 export type Props = {
   onReadMore: () => void,
@@ -16,74 +9,83 @@ export type Props = {
 }
 
 const Banner = ({onReadMore, onHideChatBanner}: Props) => (
-  <Box style={styles.containerBanner}>
-    <Icon type={isMobile ? 'icon-illustration-teams-216' : 'icon-illustration-teams-180'} />
-    <Box style={styles.containerHeader}>
-      <Text backgroundMode="Terminal" type="Header" style={styles.header}>
+  <Kb.Box style={styles.containerBanner}>
+    <Kb.Icon type={Styles.isMobile ? 'icon-illustration-teams-216' : 'icon-illustration-teams-180'} />
+    <Kb.Box style={styles.containerHeader}>
+      <Kb.Text backgroundMode="Terminal" type="Header" style={styles.header}>
         Now supporting teams!
-      </Text>
-      <Text backgroundMode="Terminal" type="BodySmallSemibold" style={styles.text}>
+      </Kb.Text>
+      <Kb.Text
+        center={Styles.isMobile}
+        backgroundMode="Terminal"
+        type="BodySmallSemibold"
+        style={styles.text}
+      >
         Keybase team chats are encrypted - unlike Slack - and work for any size group, from casual friends to
         large communities.
-      </Text>
-      <Text
+      </Kb.Text>
+      <Kb.Text
         backgroundMode="Terminal"
         type="BodySmallSemiboldPrimaryLink"
         className="underline"
         onClick={onReadMore}
       >
         Read our announcement
-      </Text>
-    </Box>
-    <Box style={styles.closeIconContainer}>
-      <Icon type="iconfont-close" style={{padding: globalMargins.xtiny}} onClick={onHideChatBanner} />
-    </Box>
-  </Box>
+      </Kb.Text>
+    </Kb.Box>
+    <Kb.Box style={styles.closeIconContainer}>
+      <Kb.Icon
+        type="iconfont-close"
+        style={{padding: Styles.globalMargins.xtiny}}
+        onClick={onHideChatBanner}
+      />
+    </Kb.Box>
+  </Kb.Box>
 )
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   closeIcon: {
-    padding: globalMargins.xtiny,
+    padding: Styles.globalMargins.xtiny,
   },
-  closeIconContainer: platformStyles({
+  closeIconContainer: Styles.platformStyles({
     common: {
       position: 'absolute',
     },
     isElectron: {
-      right: globalMargins.tiny,
-      top: globalMargins.tiny,
+      right: Styles.globalMargins.tiny,
+      top: Styles.globalMargins.tiny,
     },
     isMobile: {
       height: 26,
-      right: globalMargins.small,
-      top: globalMargins.small,
+      right: Styles.globalMargins.small,
+      top: Styles.globalMargins.small,
       width: 26,
     },
   }),
-  containerBanner: platformStyles({
+  containerBanner: Styles.platformStyles({
     common: {
       alignItems: 'center',
-      backgroundColor: globalColors.blue,
+      backgroundColor: Styles.globalColors.blue,
       flexShrink: 0,
       justifyContent: 'center',
       position: 'relative',
       width: '100%',
     },
     isElectron: {
-      ...globalStyles.flexBoxRow,
+      ...Styles.globalStyles.flexBoxRow,
       height: 212,
     },
     isMobile: {
-      ...globalStyles.flexBoxColumn,
+      ...Styles.globalStyles.flexBoxColumn,
       padding: 24,
     },
   }),
-  containerHeader: platformStyles({
+  containerHeader: Styles.platformStyles({
     common: {
-      ...globalStyles.flexBoxColumn,
+      ...Styles.globalStyles.flexBoxColumn,
     },
     isElectron: {
-      marginLeft: globalMargins.medium,
+      marginLeft: Styles.globalMargins.medium,
       maxWidth: 330,
     },
     isMobile: {
@@ -94,12 +96,9 @@ const styles = styleSheetCreate({
     marginBottom: 15,
     marginTop: 15,
   },
-  text: platformStyles({
+  text: Styles.platformStyles({
     common: {
-      marginBottom: globalMargins.small,
-    },
-    isMobile: {
-      textAlign: 'center',
+      marginBottom: Styles.globalMargins.small,
     },
   }),
 })

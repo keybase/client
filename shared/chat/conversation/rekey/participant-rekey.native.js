@@ -34,8 +34,8 @@ const ParticipantRekey = ({rekeyers, onShowProfile: onUsernameClicked}: Props) =
   <Box style={containerStyle}>
     <Box style={{...globalStyles.flexBoxRow, backgroundColor: globalColors.red, justifyContent: 'center'}}>
       <Text
-        backgroundMode="Terminal"
-        style={{paddingBottom: 8, paddingLeft: 24, paddingRight: 24, paddingTop: 8, textAlign: 'center'}}
+        center={true} backgroundMode="Terminal"
+        style={{paddingBottom: 8, paddingLeft: 24, paddingRight: 24, paddingTop: 8}}
         type="BodySemibold"
       >
         This conversation is waiting for a participant to open their Keybase app.

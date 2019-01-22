@@ -107,7 +107,8 @@
       "accountID": "Types.AccountID"
     },
     "loadAccounts": {
-      "_description": "Refresh our list of accounts"
+      "_description": "Refresh our list of accounts",
+      "reason": "'initial-load' | 'open-send-req-form'",
     },
     "loadInflationDestination": {
       "_description": "Refresh inflation destination and options",
@@ -116,7 +117,7 @@
     "setInflationDestination": {
       "_description": "Set our inflation destination",
       "accountID": "Types.AccountID",
-      "destination": "string",
+      "destination": "string"
     },
     "inflationDestinationReceived": {
       "_description": "Got inflation destination",
@@ -263,12 +264,8 @@
     "selectAccount": {
       "_description": "Select an account. Optionally navigate to the account page.",
       "accountID": "Types.AccountID",
-      "show?": "boolean"
-    },
-    "refreshPayments": {
-      "_description": "In response to a notification, resync payment info",
-      "accountID": "Types.AccountID",
-      "paymentID": "Types.PaymentID"
+      "reason": "'user-selected' | 'auto-selected' | 'from-chat'",
+      "show?": "boolean",
     },
     "buildPayment": {
       "_description": "Send a potential payment to the service for validation"

@@ -30,7 +30,7 @@ const connectedUsernamesProps = {
 const GitPushCreate = ({pusher, repo, repoID, team, onViewGitRepo}) => {
   return (
     <Box style={globalStyles.flexBoxColumn}>
-      <Text type="BodySmallSemibold" style={{marginBottom: globalMargins.xtiny, textAlign: 'center'}}>
+      <Text center={true} type="BodySmallSemibold" style={{marginBottom: globalMargins.xtiny}}>
         <ConnectedUsernames {...connectedUsernamesProps} usernames={[pusher]} />
         {` `} created a new team repository called {` `}
         <Text
@@ -49,7 +49,7 @@ const GitPushCreate = ({pusher, repo, repoID, team, onViewGitRepo}) => {
 const GitPushDefault = ({pusher, commitRef, repo, repoID, team, branchName, onViewGitRepo}) => {
   return (
     <Box style={globalStyles.flexBoxColumn}>
-      <Text type="BodySmallSemibold" style={{marginBottom: globalMargins.xtiny, textAlign: 'center'}}>
+      <Text center={true} type="BodySmallSemibold" style={{marginBottom: globalMargins.xtiny}}>
         <ConnectedUsernames {...connectedUsernamesProps} usernames={[pusher]} /> pushed{' '}
         {!!commitRef.commits && commitRef.commits.length}{' '}
         {`commit${!!commitRef.commits && commitRef.commits.length !== 1 ? 's' : ''}`} to

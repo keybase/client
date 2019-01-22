@@ -31,6 +31,7 @@ const (
 	methodMark         = "mark"
 	methodSearchInbox  = "searchinbox"
 	methodSearchRegexp = "searchregexp"
+	methodNewConv      = "newconv"
 )
 
 type RateLimit struct {
@@ -59,6 +60,7 @@ type ChatAPIHandler interface {
 	MarkV1(context.Context, Call, io.Writer) error
 	SearchInboxV1(context.Context, Call, io.Writer) error
 	SearchRegexpV1(context.Context, Call, io.Writer) error
+	NewConvV1(context.Context, Call, io.Writer) error
 }
 
 // ChatAPI implements ChatAPIHandler and contains a ChatServiceHandler
@@ -121,10 +123,12 @@ func (c ChatMessage) Valid() bool {
 }
 
 type listOptionsV1 struct {
-	UnreadOnly  bool   `json:"unread_only,omitempty"`
-	TopicType   string `json:"topic_type,omitempty"`
-	ShowErrors  bool   `json:"show_errors,omitempty"`
-	FailOffline bool   `json:"fail_offline,omitempty"`
+	UnreadOnly  bool              `json:"unread_only,omitempty"`
+	TopicType   string            `json:"topic_type,omitempty"`
+	ShowErrors  bool              `json:"show_errors,omitempty"`
+	FailOffline bool              `json:"fail_offline,omitempty"`
+	SkipUnbox   bool              `json:"skip_unbox,omitempty"`
+	Pagination  *chat1.Pagination `json:"pagination,omitempty"`
 }
 
 func (l listOptionsV1) Check() error {
@@ -388,6 +392,17 @@ func (o searchRegexpOptionsV1) Check() error {
 	return nil
 }
 
+type newConvOptionsV1 struct {
+	Channel ChatChannel
+}
+
+func (o newConvOptionsV1) Check() error {
+	if err := checkChannelConv(methodNewConv, o.Channel, ""); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (a *ChatAPI) ListV1(ctx context.Context, c Call, w io.Writer) error {
 	var opts listOptionsV1
 	// Options are optional for list
@@ -605,6 +620,20 @@ func (a *ChatAPI) SearchRegexpV1(ctx context.Context, c Call, w io.Writer) error
 	// opts are valid for search regexp v1
 
 	return a.encodeReply(c, a.svcHandler.SearchRegexpV1(ctx, opts), w)
+}
+
+func (a *ChatAPI) NewConvV1(ctx context.Context, c Call, w io.Writer) error {
+	if len(c.Params.Options) == 0 {
+		return ErrInvalidOptions{version: 1, method: methodNewConv, err: errors.New("empty options")}
+	}
+	var opts newConvOptionsV1
+	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
+		return err
+	}
+	if err := opts.Check(); err != nil {
+		return err
+	}
+	return a.encodeReply(c, a.svcHandler.NewConvV1(ctx, opts), w)
 }
 
 func (a *ChatAPI) encodeReply(call Call, reply Reply, w io.Writer) error {

@@ -7,10 +7,7 @@ const CaptionedButton = (props: {label: string, caption: string, onClick: () => 
   <Box style={{...globalStyles.flexBoxColumn}}>
     <Button type="Primary" small={true} label={props.label} onClick={props.onClick} />
     <Text
-      style={{
-        marginTop: globalMargins.xtiny,
-        textAlign: 'center',
-      }}
+      center={true} style={{ marginTop: globalMargins.xtiny }}
       type="BodySmall"
     >
       {props.caption}

@@ -440,6 +440,9 @@ protocol local {
 
     // Formatted amount of either outside currency or stellar lumens.
     string amountDescription; // "$123.23 CAD"
+    string worthAtRequestTime; // "$123.23 CLP", amount in current user's display currency.
+                            // Set if frontend should show an (APPROXIMATELY $X.XX) message.
+
 
     RequestStatus status;
   }

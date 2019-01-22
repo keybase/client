@@ -7,7 +7,7 @@ export type FolderHeaderProps = {
   path: Types.Path,
   routePath: I.List<string>,
   title: string,
-  onBack: () => void,
+  onBack: ?() => void,
   onChat?: ?() => void,
 }
 

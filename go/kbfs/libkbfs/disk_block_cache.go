@@ -667,7 +667,8 @@ func (cache *DiskBlockCacheLocal) Put(
 	encodedLen := int64(len(entry))
 	defer func() {
 		cache.log.CDebugf(ctx, "Cache Put id=%s tlf=%s bSize=%d entrySize=%d "+
-			"err=%+v", blockID, tlfID, blockLen, encodedLen, err)
+			"cacheType=%d err=%+v", blockID, tlfID, blockLen, encodedLen,
+			cache.cacheType, err)
 	}()
 	blockKey := blockID.Bytes()
 	hasKey, err := cache.blockDb.Has(blockKey, nil)
@@ -851,6 +852,12 @@ func (cache *DiskBlockCacheLocal) Delete(ctx context.Context,
 	}
 
 	cache.log.CDebugf(ctx, "Cache Delete numBlocks=%d", len(blockIDs))
+	if cache.config.IsTestMode() {
+		for _, bID := range blockIDs {
+			cache.log.CDebugf(ctx, "Cache type=%d delete block ID %s",
+				cache.cacheType, bID)
+		}
+	}
 	return cache.deleteLocked(ctx, blockIDs)
 }
 

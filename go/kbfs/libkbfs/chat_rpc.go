@@ -487,10 +487,11 @@ func (c *ChatRPC) GetChannels(
 		expectedVisibility = keybase1.TLFVisibility_PUBLIC
 	}
 
+	strTlfName := string(tlfName)
 	arg := chat1.GetInboxAndUnboxLocalArg{
 		Query: &chat1.GetInboxLocalQuery{
 			Name: &chat1.NameQuery{
-				Name:        string(tlfName),
+				Name:        strTlfName,
 				MembersType: membersTypeFromTlfType(tlfType),
 			},
 			TopicType:     &chatType,

@@ -29,6 +29,7 @@ type handlerTracker struct {
 	markV1         int
 	searchInboxV1  int
 	searchRegexpV1 int
+	newConvV1      int
 }
 
 func (h *handlerTracker) ListV1(context.Context, Call, io.Writer) error {
@@ -96,6 +97,11 @@ func (h *handlerTracker) SearchRegexpV1(context.Context, Call, io.Writer) error 
 	return nil
 }
 
+func (h *handlerTracker) NewConvV1(context.Context, Call, io.Writer) error {
+	h.newConvV1++
+	return nil
+}
+
 type echoResult struct {
 	Status string `json:"status"`
 }
@@ -154,6 +160,10 @@ func (c *chatEcho) SearchInboxV1(context.Context, searchInboxOptionsV1) Reply {
 }
 
 func (c *chatEcho) SearchRegexpV1(context.Context, searchRegexpOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) NewConvV1(context.Context, newConvOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
 

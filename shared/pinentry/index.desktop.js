@@ -93,7 +93,7 @@ class Pinentry extends Component<Props, State> {
       >
         <Header icon={true} title="" onClose={this.props.onCancel} />
         <Box style={{...globalStyles.flexBoxColumn, paddingLeft: 30, paddingRight: 30}}>
-          <Text type="Body" style={{textAlign: 'center'}}>
+          <Text type="Body" center={true}>
             {this.props.prompt}
           </Text>
           {isPaperKey && <Icon type="icon-paper-key-48" style={{alignSelf: 'center'}} />}

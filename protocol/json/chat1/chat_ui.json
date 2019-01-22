@@ -97,6 +97,10 @@
           "name": "topicType"
         },
         {
+          "type": "boolean",
+          "name": "isPublic"
+        },
+        {
           "type": "string",
           "name": "name"
         },
@@ -212,6 +216,10 @@
         {
           "type": "TopicType",
           "name": "topicType"
+        },
+        {
+          "type": "boolean",
+          "name": "isPublic"
         },
         {
           "type": "boolean",
@@ -543,6 +551,10 @@
             "stellar1.OutsideCurrencyCode"
           ],
           "name": "currency"
+        },
+        {
+          "type": "string",
+          "name": "worthAtRequestTime"
         },
         {
           "type": "stellar1.RequestStatus",

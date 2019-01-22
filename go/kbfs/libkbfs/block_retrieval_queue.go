@@ -39,6 +39,7 @@ type blockRetrievalPartialConfig interface {
 	diskBlockCacheGetter
 	syncedTlfGetterSetter
 	initModeGetter
+	clockGetter
 }
 
 type blockRetrievalConfig interface {

@@ -100,7 +100,7 @@ class Developer extends React.Component<Props, State> {
     const props = this.props
     return (
       <Kb.Box style={styles.developerContainer}>
-        <Kb.Text type="BodySmallSemibold" onClick={this._onLabelClick} style={styles.text}>
+        <Kb.Text center={true} type="BodySmallSemibold" onClick={this._onLabelClick} style={styles.text}>
           {Styles.isMobile
             ? `Please don't do anything here unless instructed to by a developer.`
             : `Please don't do anything below here unless instructed to by a developer.`}
@@ -124,7 +124,7 @@ class Developer extends React.Component<Props, State> {
               onStart={() => props.onProcessorProfile(processorProfileDurationSeconds)}
               inProgress={props.processorProfileInProgress}
             />
-            <Kb.Text type="BodySmallSemibold" style={styles.text}>
+            <Kb.Text center={true} type="BodySmallSemibold" style={styles.text}>
               Trace and profile files are included in logs sent with feedback.
             </Kb.Text>
           </React.Fragment>
@@ -186,9 +186,6 @@ const styles = Styles.styleSheetCreate({
     flex: 1,
   },
   text: Styles.platformStyles({
-    common: {
-      textAlign: 'center',
-    },
     isElectron: {
       cursor: 'default',
     },

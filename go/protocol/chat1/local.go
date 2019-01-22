@@ -3176,27 +3176,27 @@ func (e GetThreadNonblockPgMode) String() string {
 	return ""
 }
 
-type GetInboxLocalRes struct {
-	ConversationsUnverified []Conversation                `codec:"conversationsUnverified" json:"conversationsUnverified"`
-	Pagination              *Pagination                   `codec:"pagination,omitempty" json:"pagination,omitempty"`
-	Offline                 bool                          `codec:"offline" json:"offline"`
-	RateLimits              []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
-	IdentifyFailures        []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
+type GetInboxUILocalRes struct {
+	ConversationsRemote []UnverifiedInboxUIItem       `codec:"conversationsRemote" json:"conversationsRemote"`
+	Pagination          *Pagination                   `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	Offline             bool                          `codec:"offline" json:"offline"`
+	RateLimits          []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
+	IdentifyFailures    []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 }
 
-func (o GetInboxLocalRes) DeepCopy() GetInboxLocalRes {
-	return GetInboxLocalRes{
-		ConversationsUnverified: (func(x []Conversation) []Conversation {
+func (o GetInboxUILocalRes) DeepCopy() GetInboxUILocalRes {
+	return GetInboxUILocalRes{
+		ConversationsRemote: (func(x []UnverifiedInboxUIItem) []UnverifiedInboxUIItem {
 			if x == nil {
 				return nil
 			}
-			ret := make([]Conversation, len(x))
+			ret := make([]UnverifiedInboxUIItem, len(x))
 			for i, v := range x {
 				vCopy := v.DeepCopy()
 				ret[i] = vCopy
 			}
 			return ret
-		})(o.ConversationsUnverified),
+		})(o.ConversationsRemote),
 		Pagination: (func(x *Pagination) *Pagination {
 			if x == nil {
 				return nil
@@ -3232,12 +3232,20 @@ func (o GetInboxLocalRes) DeepCopy() GetInboxLocalRes {
 
 type NameQuery struct {
 	Name        string                  `codec:"name" json:"name"`
+	TlfID       *TLFID                  `codec:"tlfID,omitempty" json:"tlfID,omitempty"`
 	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
 }
 
 func (o NameQuery) DeepCopy() NameQuery {
 	return NameQuery{
-		Name:        o.Name,
+		Name: o.Name,
+		TlfID: (func(x *TLFID) *TLFID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.TlfID),
 		MembersType: o.MembersType.DeepCopy(),
 	}
 }
@@ -4588,6 +4596,12 @@ type GetThreadNonblockArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
+type GetInboxUILocalArg struct {
+	Query            *GetInboxLocalQuery          `codec:"query,omitempty" json:"query,omitempty"`
+	Pagination       *Pagination                  `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+}
+
 type GetInboxAndUnboxLocalArg struct {
 	Query            *GetInboxLocalQuery          `codec:"query,omitempty" json:"query,omitempty"`
 	Pagination       *Pagination                  `codec:"pagination,omitempty" json:"pagination,omitempty"`
@@ -4968,6 +4982,7 @@ type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetCachedThread(context.Context, GetCachedThreadArg) (GetThreadLocalRes, error)
 	GetThreadNonblock(context.Context, GetThreadNonblockArg) (NonblockFetchRes, error)
+	GetInboxUILocal(context.Context, GetInboxUILocalArg) (GetInboxUILocalRes, error)
 	GetInboxAndUnboxLocal(context.Context, GetInboxAndUnboxLocalArg) (GetInboxAndUnboxLocalRes, error)
 	GetInboxAndUnboxUILocal(context.Context, GetInboxAndUnboxUILocalArg) (GetInboxAndUnboxUILocalRes, error)
 	GetInboxNonblockLocal(context.Context, GetInboxNonblockLocalArg) (NonblockFetchRes, error)
@@ -5074,6 +5089,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetThreadNonblock(ctx, typedArgs[0])
+					return
+				},
+			},
+			"getInboxUILocal": {
+				MakeArg: func() interface{} {
+					var ret [1]GetInboxUILocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetInboxUILocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetInboxUILocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetInboxUILocal(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -5947,6 +5977,11 @@ func (c LocalClient) GetCachedThread(ctx context.Context, __arg GetCachedThreadA
 
 func (c LocalClient) GetThreadNonblock(ctx context.Context, __arg GetThreadNonblockArg) (res NonblockFetchRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.getThreadNonblock", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) GetInboxUILocal(ctx context.Context, __arg GetInboxUILocalArg) (res GetInboxUILocalRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.getInboxUILocal", []interface{}{__arg}, &res)
 	return
 }
 

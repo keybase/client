@@ -907,8 +907,6 @@ const rootReducer = (
       return state.update('unsentTextMap', old =>
         old.setIn([action.payload.conversationIDKey], action.payload.text)
       )
-    case Chat2Gen.setExplodingMessagesNew:
-      return state.set('isExplodingNew', action.payload.new)
     case Chat2Gen.staticConfigLoaded:
       return state.set('staticConfig', action.payload.staticConfig)
     case Chat2Gen.metasReceived: {
@@ -1024,7 +1022,6 @@ const rootReducer = (
     case Chat2Gen.blockConversation:
     case Chat2Gen.previewConversation:
     case Chat2Gen.setConvExplodingMode:
-    case Chat2Gen.handleSeeingExplodingMessages:
     case Chat2Gen.toggleMessageReaction:
     case Chat2Gen.setMinWriterRole:
     case Chat2Gen.openChatFromWidget:

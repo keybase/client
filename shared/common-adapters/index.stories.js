@@ -12,8 +12,10 @@ import copyText from './copy-text.stories'
 import dropdown from './dropdown.stories'
 import formWithCheckbox from './form-with-checkbox.stories'
 import floatingMenu from './floating-menu/index.stories'
+import header from './header-hoc/index.stories'
 import icon from './icon.stories'
 import input from './input.stories'
+import list from './list.stories'
 import listItem from './list-item.stories'
 import listItem2 from './list-item2.stories'
 import markdown from './markdown/index.stories'
@@ -44,8 +46,10 @@ const load = () => {
     dropdown,
     formWithCheckbox,
     floatingMenu,
+    header,
     icon,
     input,
+    list,
     listItem,
     listItem2,
     markdown,

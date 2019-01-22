@@ -71,6 +71,7 @@ func (o UnverifiedInboxUIItemMetadata) DeepCopy() UnverifiedInboxUIItemMetadata 
 type UnverifiedInboxUIItem struct {
 	ConvID          string                         `codec:"convID" json:"convID"`
 	TopicType       TopicType                      `codec:"topicType" json:"topicType"`
+	IsPublic        bool                           `codec:"isPublic" json:"isPublic"`
 	Name            string                         `codec:"name" json:"name"`
 	Visibility      keybase1.TLFVisibility         `codec:"visibility" json:"visibility"`
 	Status          ConversationStatus             `codec:"status" json:"status"`
@@ -93,6 +94,7 @@ func (o UnverifiedInboxUIItem) DeepCopy() UnverifiedInboxUIItem {
 	return UnverifiedInboxUIItem{
 		ConvID:       o.ConvID,
 		TopicType:    o.TopicType.DeepCopy(),
+		IsPublic:     o.IsPublic,
 		Name:         o.Name,
 		Visibility:   o.Visibility.DeepCopy(),
 		Status:       o.Status.DeepCopy(),
@@ -183,6 +185,7 @@ func (o UnverifiedInboxUIItems) DeepCopy() UnverifiedInboxUIItems {
 type InboxUIItem struct {
 	ConvID            string                        `codec:"convID" json:"convID"`
 	TopicType         TopicType                     `codec:"topicType" json:"topicType"`
+	IsPublic          bool                          `codec:"isPublic" json:"isPublic"`
 	IsEmpty           bool                          `codec:"isEmpty" json:"isEmpty"`
 	Name              string                        `codec:"name" json:"name"`
 	Snippet           string                        `codec:"snippet" json:"snippet"`
@@ -216,6 +219,7 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 	return InboxUIItem{
 		ConvID:            o.ConvID,
 		TopicType:         o.TopicType.DeepCopy(),
+		IsPublic:          o.IsPublic,
 		IsEmpty:           o.IsEmpty,
 		Name:              o.Name,
 		Snippet:           o.Snippet,
@@ -466,11 +470,12 @@ func (o UIPaymentInfo) DeepCopy() UIPaymentInfo {
 }
 
 type UIRequestInfo struct {
-	Amount            string                        `codec:"amount" json:"amount"`
-	AmountDescription string                        `codec:"amountDescription" json:"amountDescription"`
-	Asset             *stellar1.Asset               `codec:"asset,omitempty" json:"asset,omitempty"`
-	Currency          *stellar1.OutsideCurrencyCode `codec:"currency,omitempty" json:"currency,omitempty"`
-	Status            stellar1.RequestStatus        `codec:"status" json:"status"`
+	Amount             string                        `codec:"amount" json:"amount"`
+	AmountDescription  string                        `codec:"amountDescription" json:"amountDescription"`
+	Asset              *stellar1.Asset               `codec:"asset,omitempty" json:"asset,omitempty"`
+	Currency           *stellar1.OutsideCurrencyCode `codec:"currency,omitempty" json:"currency,omitempty"`
+	WorthAtRequestTime string                        `codec:"worthAtRequestTime" json:"worthAtRequestTime"`
+	Status             stellar1.RequestStatus        `codec:"status" json:"status"`
 }
 
 func (o UIRequestInfo) DeepCopy() UIRequestInfo {
@@ -491,7 +496,8 @@ func (o UIRequestInfo) DeepCopy() UIRequestInfo {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Currency),
-		Status: o.Status.DeepCopy(),
+		WorthAtRequestTime: o.WorthAtRequestTime,
+		Status:             o.Status.DeepCopy(),
 	}
 }
 

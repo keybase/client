@@ -47,10 +47,10 @@ class ComplexTeamNotice extends React.PureComponent<Props> {
           {formatTimeForMessages(timestamp)}
         </Text>
         <Box style={globalStyles.flexBoxColumn}>
-          <Text type="BodySmallSemibold" style={{textAlign: 'center'}}>
+          <Text center={true} type="BodySmallSemibold">
             {authorComponent} made {team} a big team!
           </Text>
-          <Text type="BodySmallSemibold" style={{marginTop: globalMargins.tiny, textAlign: 'center'}}>
+          <Text center={true} type="BodySmallSemibold" style={{marginTop: globalMargins.tiny}}>
             Note that:
           </Text>
           <Box style={{...globalStyles.flexBoxColumn, marginTop: globalMargins.xtiny}}>

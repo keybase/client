@@ -58,7 +58,11 @@ class WithTooltip extends React.Component<Props, State> {
             attachTo={this.state.attachmentRef && this._getAttachmentRef}
             position={this.props.position || 'top center'}
           >
-            <Text type="BodySmall" style={Styles.collapseStyles([styles.text, this.props.textStyle])}>
+            <Text
+              center={!Styles.isMobile}
+              type="BodySmall"
+              style={Styles.collapseStyles([styles.text, this.props.textStyle])}
+            >
               {this.props.text}
             </Text>
           </Toast>
@@ -80,7 +84,6 @@ const styles = Styles.styleSheetCreate({
   text: Styles.platformStyles({
     isElectron: {
       color: Styles.globalColors.white,
-      textAlign: 'center',
       wordBreak: 'break-word',
     },
   }),

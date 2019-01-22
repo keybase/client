@@ -512,11 +512,12 @@ func (o HomeUserSummary) DeepCopy() HomeUserSummary {
 }
 
 type HomeScreen struct {
-	LastViewed        Time              `codec:"lastViewed" json:"lastViewed"`
-	Version           int               `codec:"version" json:"version"`
-	Visits            int               `codec:"visits" json:"visits"`
-	Items             []HomeScreenItem  `codec:"items" json:"items"`
-	FollowSuggestions []HomeUserSummary `codec:"followSuggestions" json:"followSuggestions"`
+	LastViewed           Time              `codec:"lastViewed" json:"lastViewed"`
+	Version              int               `codec:"version" json:"version"`
+	Visits               int               `codec:"visits" json:"visits"`
+	Items                []HomeScreenItem  `codec:"items" json:"items"`
+	FollowSuggestions    []HomeUserSummary `codec:"followSuggestions" json:"followSuggestions"`
+	AnnouncementsVersion int               `codec:"announcementsVersion" json:"announcementsVersion"`
 }
 
 func (o HomeScreen) DeepCopy() HomeScreen {
@@ -546,6 +547,7 @@ func (o HomeScreen) DeepCopy() HomeScreen {
 			}
 			return ret
 		})(o.FollowSuggestions),
+		AnnouncementsVersion: o.AnnouncementsVersion,
 	}
 }
 

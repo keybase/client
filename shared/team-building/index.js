@@ -81,13 +81,13 @@ class TeamBuilding extends React.PureComponent<Props, void> {
           serviceResultCount={props.serviceResultCount}
           showServiceResultCount={props.showServiceResultCount}
         />
-        {showRecs && (
-          <Kb.Text type="BodyTinySemibold" style={styles.recText}>
+        {showRecs && !showRecPending && (
+          <Kb.Text type={Styles.isMobile ? 'BodySmallSemibold' : 'BodyTinySemibold'} style={styles.recText}>
             Recommendations
           </Kb.Text>
         )}
         {showRecPending ? (
-          <Kb.Text type="BodyTinySemibold" style={styles.recText}>
+          <Kb.Text type={Styles.isMobile ? 'BodySmallSemibold' : 'BodyTinySemibold'} style={styles.recText}>
             ...
           </Kb.Text>
         ) : (
@@ -132,17 +132,30 @@ const styles = Styles.styleSheetCreate({
       width: 470,
     },
   }),
-  list: {
-    paddingBottom: Styles.globalMargins.small,
-  },
-  recText: {
-    borderBottomColor: Styles.globalColors.black_10,
-    borderBottomWidth: 1,
-    borderStyle: 'solid',
-    paddingBottom: Styles.globalMargins.xtiny,
-    paddingLeft: Styles.globalMargins.xtiny,
-    paddingTop: Styles.globalMargins.xtiny,
-  },
+  list: Styles.platformStyles({
+    common: {
+      paddingBottom: Styles.globalMargins.small,
+    },
+    isMobile: {
+      marginTop: Styles.globalMargins.xtiny,
+    },
+  }),
+  recText: Styles.platformStyles({
+    common: {
+      borderBottomColor: Styles.globalColors.black_10,
+      borderBottomWidth: 1,
+      borderStyle: 'solid',
+      paddingBottom: Styles.globalMargins.xtiny,
+    },
+    isElectron: {
+      paddingLeft: Styles.globalMargins.xtiny,
+      paddingTop: Styles.globalMargins.xtiny,
+    },
+    isMobile: {
+      paddingLeft: Styles.globalMargins.xsmall,
+      paddingTop: Styles.globalMargins.tiny,
+    },
+  }),
 })
 
 export default TeamBuilding

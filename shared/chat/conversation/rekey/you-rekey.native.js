@@ -14,8 +14,9 @@ const YouRekey = ({onEnterPaperkey, onBack}: Props) => {
       }}
     >
       <Text
+        center={true}
         backgroundMode="Terminal"
-        style={{paddingBottom: 8, paddingLeft: 24, paddingRight: 24, paddingTop: 8, textAlign: 'center'}}
+        style={{paddingBottom: 8, paddingLeft: 24, paddingRight: 24, paddingTop: 8}}
         type="BodySemibold"
       >
         This conversation needs to be rekeyed.
@@ -30,7 +31,7 @@ const YouRekey = ({onEnterPaperkey, onBack}: Props) => {
         <Box
           style={{...globalStyles.flexBoxColumn, alignItems: 'stretch', flex: 1, justifyContent: 'center'}}
         >
-          <Text type="BodySmall" style={textStyle} backgroundMode="Terminal">
+          <Text center={true} type="BodySmall" style={textStyle} backgroundMode="Terminal">
             To unlock this conversation, open one of your other devices or enter a paperkey.
           </Text>
           <Button
@@ -55,7 +56,6 @@ const containerStyle = {
 const textStyle = {
   marginBottom: globalMargins.large,
   marginTop: globalMargins.large,
-  textAlign: 'center',
 }
 
 export default YouRekey

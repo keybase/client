@@ -12,7 +12,7 @@ import TabBar from './tab-bar/container'
 import type {Props, OwnProps} from './nav.types'
 import {NavigationActions, type NavigationAction} from 'react-navigation'
 import {addSizeListener} from '../styles/status-bar'
-import {chatTab, loginTab, peopleTab} from '../constants/tabs'
+import {chatTab, loginTab, peopleTab, settingsTab} from '../constants/tabs'
 import {connect} from '../util/container'
 import {isIOS, isIPhoneX} from '../constants/platform'
 import {makeLeafTags} from '../route-tree'
@@ -195,8 +195,7 @@ class MainNavStack extends Component<any, {verticalOffset: number}> {
     const content = (
       <Kb.NativeView style={styles.content}>
         {stacks}
-        {![chatTab, peopleTab].includes(props.routeSelected) ? <Offline key="offline" /> : null}
-        <GlobalError key="globalError" />
+        {![chatTab, peopleTab, settingsTab].includes(props.routeSelected) ? <Offline key="offline" /> : null}
         {!props.hideNav && (
           <Kb.NativeSafeAreaView style={props.keyboardShowing ? styles.noTabSafeArea : styles.tabSafeArea}>
             <AnimatedTabBar show={!props.keyboardShowing}>
@@ -369,6 +368,7 @@ class Nav extends Component<Props, {keyboardShowing: boolean}> {
       <>
         {shim}
         {layers}
+        <GlobalError key="globalError" />
         <RpcStats />
       </>
     )
