@@ -54,7 +54,7 @@ class Nav extends React.Component<Props> {
           <ErrorBoundary>
             <div id="popupContainer" />
           </ErrorBoundary>
-          {![Tabs.chatTab, Tabs.loginTab, Tabs.peopleTab, Tabs.walletsTab, Tabs.gitTab].includes(
+          {![Tabs.chatTab, Tabs.loginTab, Tabs.peopleTab, Tabs.walletsTab, Tabs.gitTab, Tabs.devicesTab].includes(
             routeSelected
           ) && <Offline />}
           <GlobalError />
@@ -102,6 +102,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps): Props => {
 }
 
 export default connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(Nav)
   mapStateToProps,
   mapDispatchToProps,
   mergeProps
