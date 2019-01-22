@@ -48,3 +48,9 @@
 .WrapperMessage-hoverBox:hover .WrapperMessage-emojiButton:hover {
   box-shadow: none;
 }
+.WrapperMessage-hoverBox .WrapperMessage-newEmojiButton {
+  visibility: hidden;
+}
+.WrapperMessage-hoverBox:hover .WrapperMessage-newEmojiButton {
+  visibility: visible;
+}
