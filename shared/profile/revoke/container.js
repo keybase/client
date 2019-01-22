@@ -23,7 +23,7 @@ const mapStateToProps = (state, {routeProps}) => ({
 })
 
 const mapDispatchToProps = (dispatch, {routeProps}) => ({
-  onCancel: () => dispatch(ProfileGen.createFinishRevoking()),
+  onLeftAction: () => dispatch(ProfileGen.createFinishRevoking()),
   onRevoke: () => {
     if (routeProps.get('platform') === 'pgp') {
       dispatch(ProfileGen.createDropPgp({kid: routeProps.get('proofId')}))
@@ -33,8 +33,14 @@ const mapDispatchToProps = (dispatch, {routeProps}) => ({
   },
 })
 
+const mergeProps = (stateProps, dispatchProps) => ({
+  ...stateProps,
+  ...dispatchProps,
+  leftAction: 'cancel',
+})
+
 export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
-  (s, d) => ({...s, ...d})
+  mergeProps
 )(Revoke)

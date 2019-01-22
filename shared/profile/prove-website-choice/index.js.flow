@@ -4,8 +4,9 @@ import {Component} from 'react'
 export type Options = 'file' | 'dns'
 
 export type Props = {
+  leftAction: string,
   onOptionClick: (type: Options) => void,
-  onCancel: () => void,
+  onLeftAction: () => void,
 }
 
 export default class ProveWebsiteChoice extends Component<Props> {}

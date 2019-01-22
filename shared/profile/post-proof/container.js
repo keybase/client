@@ -27,7 +27,6 @@ const mapStateToProps = (state, {onAllowProofCheck}) => {
 
   return {
     errorMessage: profile.errorText,
-    onCancelText: 'Cancel',
     platform,
     platformUserName: profile.username,
     proofText: profile.proofText || '',
@@ -36,9 +35,15 @@ const mapStateToProps = (state, {onAllowProofCheck}) => {
 
 const mapDispatchToProps = dispatch => ({
   copyToClipboard: text => dispatch(ConfigGen.createCopyToClipboard({text})),
-  onCancel: () => dispatch(ProfileGen.createCancelAddProof()),
   onComplete: () => dispatch(ProfileGen.createCheckProof()),
+  onLeftAction: () => dispatch(ProfileGen.createCancelAddProof()),
   proofAction: () => dispatch(ProfileGen.createOutputInstructionsActionLink()),
+})
+
+const mergeProps = (stateProps, dispatchProps) => ({
+  ...stateProps,
+  ...dispatchProps,
+  leftAction: 'cancel',
 })
 
 export default (compose(
@@ -48,7 +53,7 @@ export default (compose(
   connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d})
+    mergeProps
   ),
   lifecycle({
     componentDidMount() {

@@ -7,10 +7,9 @@ export type Props = {
   fullname: string,
   title: string,
   location: string,
-  onBack: () => void,
   onBioChange: (bio: string) => void,
-  onCancel?: () => void,
   onFullnameChange: (fullname: string) => void,
+  onLeftAction: () => void,
   onLocationChange: (location: string) => void,
   onSubmit: () => void,
 }

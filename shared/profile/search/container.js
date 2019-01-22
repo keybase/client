@@ -11,13 +11,20 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
     dispatch(navigateUp())
     dispatch(createShowUserProfile({username}))
   },
-  onClose: () => {
+  onLeftAction: () => {
     dispatch(navigateUp())
   },
 })
 
+const mergeProps = (_, dispatchProps) => {
+  return {
+    ...dispatchProps,
+    leftAction: 'cancel',
+  }
+}
+
 export default connect<OwnProps, _, _, _, _>(
   () => ({}),
   mapDispatchToProps,
-  (s, d, o) => ({...o, ...s, ...d})
+  mergeProps
 )(Search)

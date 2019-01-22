@@ -72,7 +72,8 @@ class AvatarUpload extends React.Component<Props> {
   render() {
     return (
       <StandardScreen
-        onCancel={this.props.onClose}
+        leftAction={this.props.leftAction}
+        onLeftAction={this.props.onLeftAction}
         scrollEnabled={false}
         title={isIOS ? 'Zoom and pan' : 'Upload avatar'}
       >

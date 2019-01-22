@@ -75,7 +75,7 @@ const Wrapped = (props: Props) => {
   )
   return (
     <StandardScreen
-      onBack={onReloadProfile}
+      onLeftAction={onReloadProfile}
       styleBanner={{backgroundColor: titleColor}}
       notification={{message: notification, type: 'success'}}
     >

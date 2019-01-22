@@ -8,14 +8,14 @@ import type {Props} from '.'
 import {searchKey, placeholder} from './index.shared'
 
 const Search = (props: Props) => (
-  <Box style={styleCatcher} onClick={props.onClose}>
+  <Box style={styleCatcher} onClick={props.onLeftAction}>
     <Box style={styleSearchContainer} onClick={e => e.stopPropagation()}>
       <Box style={styleSearchRow}>
         <UserInput
           disableListBuilding={true}
           searchKey={searchKey}
           onSelectUser={props.onClick}
-          onExitSearch={props.onClose}
+          onExitSearch={props.onLeftAction}
           autoFocus={true}
           placeholder={placeholder}
           showServiceFilter={true}

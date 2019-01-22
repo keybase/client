@@ -118,7 +118,6 @@ const props = {
   loading: false,
   onAcceptProofs: Sb.action('onAcceptProofs'),
   onAddToTeam: Sb.action('onAddToTeam'),
-  onBack: Sb.action('onBack'),
   onBrowsePublicFolder: Sb.action('onBrowsePublicFolder'),
   onChangeFriendshipsTab: Sb.action('onChangeFriendshipsTab'),
   onChat: Sb.action('onChat'),
@@ -131,6 +130,7 @@ const props = {
   onFilePickerError: Sb.action('onFilePickerError'),
   onFolderClick: Sb.action('onFolderClick'),
   onFollow: Sb.action('onFollow'),
+  onLeftAction: Sb.action('onLeftAction'),
   onMissingProofClick: Sb.action(`Prove`),
   onOpenPrivateFolder: Sb.action('onOpenPrivateFolder'),
   onPushProfile: Sb.action('onPushProfile'),
@@ -240,7 +240,7 @@ const load = () => {
       <Profile {...props} bioEditFns={bioEditFns} isYou={true} proofs={[]} />
     ))
     .add('Your Profile - Following Tab', () => <Profile {...props} currentFriendshipsTab={'Following'} />)
-    .add('Unfollowed - Profile page', () => <Profile {...props} onBack={undefined} />)
+    .add('Unfollowed - Profile page', () => <Profile {...props} onLeftAction={undefined} />)
     .add('Unfollowed', () => <Profile {...props} />)
     .add('Unfollowed - Changed (Proofs unreachable)', () => <Profile {...props} proofs={proofsChanged} />)
     .add('Unfollowed - Changed (Proofs deleted)', () => <Profile {...props} proofs={proofsDeleted} />)

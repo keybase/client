@@ -127,7 +127,7 @@ const AddToTeam = (props: Props) => {
         />
       </Box2>
       <ButtonBar fullWidth={true} style={buttonBar}>
-        {!isMobile && <Button type="Secondary" onClick={props.onBack} label="Cancel" />}
+        {!isMobile && <Button type="Secondary" onClick={props.onLeftAction} label="Cancel" />}
         <Button
           disabled={selectedTeamCount === 0}
           fullWidth={isMobile}
@@ -223,7 +223,7 @@ const styles = styleSheetCreate({
 })
 
 const PopupWrapped = (props: Props) => (
-  <PopupDialog styleCover={{zIndex: ROLE_PICKER_ZINDEX}} onClose={props.onBack}>
+  <PopupDialog styleCover={{zIndex: ROLE_PICKER_ZINDEX}} onClose={props.onLeftAction}>
     <AddToTeam {...props} />
   </PopupDialog>
 )

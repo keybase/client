@@ -78,7 +78,7 @@ class PrivateEnterUsernameRender extends Component<Props, State> {
 
     return (
       <Box style={styleContainer}>
-        <Icon style={styleClose} type="iconfont-close" onClick={this.props.onCancel} />
+        <Icon style={styleClose} type="iconfont-close" onClick={this.props.onLeftAction} />
         {this.props.errorText && (
           <Box style={styleErrorBanner}>{customError(this.props.errorText, this.props.errorCode)}</Box>
         )}
@@ -103,7 +103,7 @@ class PrivateEnterUsernameRender extends Component<Props, State> {
         <Box style={{...globalStyles.flexBoxRow, marginTop: 32}}>
           <Button
             type="Secondary"
-            onClick={this.props.onCancel}
+            onClick={this.props.onLeftAction}
             label="Cancel"
             style={{marginRight: globalMargins.tiny}}
           />

@@ -16,18 +16,19 @@ type Props = {|
   errorEmail1: boolean,
   errorEmail2: boolean,
   errorEmail3: boolean,
+  leftAction: string,
   onChangeFullName: (next: string) => void,
   onChangeEmail1: (next: string) => void,
   onChangeEmail2: (next: string) => void,
   onChangeEmail3: (next: string) => void,
-  onCancel: () => void,
+  onLeftAction: () => void,
   onNext: () => void,
 |}
 
 const Info = (props: Props) => {
   const nextDisabled = !props.email1 || !props.fullName || !!props.errorText
   return (
-    <Kb.StandardScreen style={styleContainer} onCancel={props.onCancel}>
+    <Kb.StandardScreen style={styleContainer} onLeftAction={props.onLeftAction}>
       {/* TODO(MM) when we get the pgp icon, put it in here */}
       <Kb.PlatformIcon platform="pgp" overlay="icon-proof-unfinished" style={styleIcon} />
       <Kb.Text style={styleHeader} type="BodySemibold">
@@ -71,7 +72,7 @@ const Info = (props: Props) => {
         <Kb.Button
           type="Secondary"
           label="Cancel"
-          onClick={props.onCancel}
+          onClick={props.onLeftAction}
           style={{marginRight: Styles.globalMargins.tiny}}
         />
         <Kb.Button type="Primary" label="Let the math begin" disabled={nextDisabled} onClick={props.onNext} />{' '}
@@ -118,17 +119,20 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
   onChangeEmail1: pgpEmail1 => dispatch(ProfileGen.createUpdatePgpInfo({pgpEmail1})),
   onChangeEmail2: pgpEmail2 => dispatch(ProfileGen.createUpdatePgpInfo({pgpEmail2})),
   onChangeEmail3: pgpEmail3 => dispatch(ProfileGen.createUpdatePgpInfo({pgpEmail3})),
   onChangeFullName: pgpFullName => dispatch(ProfileGen.createUpdatePgpInfo({pgpFullName})),
+  onLeftAction: () => dispatch(RouteTreeGen.createNavigateUp()),
   onNext: () => dispatch(ProfileGen.createGeneratePgp()),
 })
 
-export default namedConnect<OwnProps, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  (s, d, o) => ({...o, ...s, ...d}),
-  'Info'
-)(Info)
+const mergeProps = (stateProps, dispatchProps) => ({
+  ...stateProps,
+  ...dispatchProps,
+  leftAction: 'cancel',
+})
+
+export default namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'Info')(
+  Info
+)

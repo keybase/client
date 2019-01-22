@@ -30,7 +30,7 @@ const PostProof = (props: Props) => {
         style={styleClose}
         type="iconfont-close"
         color={Styles.globalColors.black_10}
-        onClick={() => props.onCancel()}
+        onClick={() => props.onLeftAction()}
       />
       {!!props.errorMessage && (
         <Kb.Box style={styleErrorBanner}>
@@ -69,14 +69,12 @@ const PostProof = (props: Props) => {
             </Kb.Text>
           )}
           <Kb.Box style={styleButtonsContainer}>
-            {!!props.onCancelText && (
-              <Kb.Button
-                type="Secondary"
-                onClick={() => props.onCancel()}
-                label={props.onCancelText || 'Cancel'}
-                style={{marginRight: Styles.globalMargins.tiny}}
-              />
-            )}
+            <Kb.Button
+              type="Secondary"
+              onClick={() => props.onLeftAction()}
+              label="Cancel"
+              style={{marginRight: Styles.globalMargins.tiny}}
+            />
             {!!proofAction && !props.allowProofCheck && (
               <Kb.Button
                 type="Primary"

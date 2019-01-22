@@ -5,7 +5,7 @@ import {StandardScreen, Box, Button, Input, ButtonBar} from '../../common-adapte
 import type {Props} from '.'
 
 const EditProfileRender = (props: Props) => (
-  <StandardScreen onBack={props.onBack}>
+  <StandardScreen onLeftAction={props.onLeftAction}>
     <Box style={styleContainer}>
       <Input
         autoFocus={true}
@@ -32,7 +32,7 @@ const EditProfileRender = (props: Props) => (
         onChangeText={location => props.onLocationChange(location)}
       />
       <ButtonBar>
-        <Button type="Secondary" onClick={props.onCancel} label="Cancel" />
+        <Button type="Secondary" onClick={props.onLeftAction} label="Cancel" />
         <Button type="Primary" disabled={props.bioLengthLeft < 0} onClick={props.onSubmit} label="Save" />
       </ButtonBar>
     </Box>

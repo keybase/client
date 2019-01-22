@@ -13,7 +13,7 @@ const NonUserRender = (props: Props) => (
     <Box style={{...styleHeader, backgroundColor: globalColors.blue}} />
     <Box style={globalStyles.flexBoxColumn}>
       <BackButton
-        onClick={props.onBack}
+        onClick={props.onLeftAction}
         style={{left: 14, position: 'absolute', top: 16, zIndex: 12}}
         textStyle={{color: globalColors.white}}
         iconColor={globalColors.white}

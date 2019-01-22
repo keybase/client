@@ -9,7 +9,7 @@ const EditAvatar = ({keybaseUsername, hasAvatar, onAck}: Props) => {
   const text = !hasAvatar ? noAvatarMessage : hasAvatarMessage
 
   return (
-    <StandardScreen style={{...globalStyles.flexBoxColumn, flex: 1}} onBack={onAck}>
+    <StandardScreen style={{...globalStyles.flexBoxColumn, flex: 1}} onLeftAction={onAck}>
       <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', padding: globalMargins.small}}>
         <Avatar size={128} username={keybaseUsername} />
         <Text center={true} type="Body" style={styleCaption}>

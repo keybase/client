@@ -420,7 +420,7 @@ class Profile extends Component<Props, State> {
       return (
         <Kb.HeaderHocHeader
           borderless={true}
-          onLeftAction={this.props.onBack}
+          onLeftAction={this.props.onLeftAction}
           headerStyle={{
             backgroundColor: trackerStateColors.header.background,
           }}
@@ -509,7 +509,7 @@ class Profile extends Component<Props, State> {
 
   render() {
     if (this.props.error) {
-      return <ErrorComponent error={this.props.error} onBack={this.props.onBack} />
+      return <ErrorComponent error={this.props.error} onBack={this.props.onLeftAction} />
     }
 
     const activeMenuProof = this.state.activeMenuProof
@@ -590,7 +590,7 @@ class UserEntry extends React.PureComponent<UserEntryProps> {
           />
           <Kb.Text
             type="BodySemibold"
-center={true}
+            center={true}
             style={
               this.props.following ? styles.userEntryUsernameFollowing : styles.userEntryUsernameNotFollowing
             }
@@ -676,8 +676,8 @@ const styles = Styles.styleSheetCreate({
     justifyContent: 'flex-start',
     minHeight: userEntryMinHeight,
   },
-  userEntryUsernameFollowing: { color: Styles.globalColors.green },
-  userEntryUsernameNotFollowing: { color: Styles.globalColors.blue },
+  userEntryUsernameFollowing: {color: Styles.globalColors.green},
+  userEntryUsernameNotFollowing: {color: Styles.globalColors.blue},
 })
 
 const styleProofNotice = {

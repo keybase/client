@@ -37,13 +37,13 @@ type EitherProps<P> =
   | {
       type: 'error',
       propError: string,
-      onBack: ?() => void,
+      onLeftAction: ?() => void,
     }
 
 class ProfileContainer extends React.PureComponent<EitherProps<Props>> {
   render() {
     if (this.props.type === 'error') {
-      return <ErrorComponent error={this.props.propError} onBack={this.props.onBack} />
+      return <ErrorComponent error={this.props.propError} onBack={this.props.onLeftAction} />
     }
 
     const props = this.props.okProps
@@ -99,7 +99,6 @@ const mapDispatchToProps = (dispatch, {setRouteState}: OwnProps) => ({
   },
   _onUnfollow: (username: string) => dispatch(TrackerGen.createUnfollow({username})),
   getProfile: (username: string) => dispatch(TrackerGen.createGetProfile({username})),
-  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onChangeFriendshipsTab: currentFriendshipsTab => setRouteState({currentFriendshipsTab}),
   onClearAddUserToTeamsResults: () => dispatch(TeamsGen.createSetAddUserToTeamsResults({results: ''})),
   onClickShowcaseOffer: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['showcaseTeamOffer']})),
@@ -109,6 +108,7 @@ const mapDispatchToProps = (dispatch, {setRouteState}: OwnProps) => ({
   onFilePickerError: (error: Error) => dispatch(ConfigGen.createFilePickerError({error})),
   onFolderClick: folder =>
     dispatch(FsGen.createOpenPathInFilesTab({path: FsTypes.stringToPath(folder.path)})),
+  onLeftAction: () => dispatch(RouteTreeGen.createNavigateUp()),
   onMissingProofClick: (missingProof: MissingProof) =>
     dispatch(ProfileGen.createAddProof({platform: missingProof.type})),
   onRecheckProof: (proof: TrackerTypes.Proof) => dispatch(ProfileGen.createCheckProof()),
@@ -154,7 +154,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     const propError = 'Expected a tracker type, trying to show profile for non user'
     logger.warn(propError)
     return {
-      onBack: stateProps.profileIsRoot ? null : dispatchProps.onBack,
+      onLeftAction: stateProps.profileIsRoot ? null : dispatchProps.onLeftAction,
       propError,
       type: 'error',
     }
@@ -174,7 +174,6 @@ const mergeProps = (stateProps, dispatchProps) => {
     loading: Constants.isLoading(stateProps.trackerState) && !isTesting,
     onAcceptProofs: () => dispatchProps._onFollow(username),
     onAddToTeam: () => dispatchProps._onAddToTeam(username),
-    onBack: stateProps.profileIsRoot ? null : dispatchProps.onBack,
     onBrowsePublicFolder: () => dispatchProps._onBrowsePublicFolder(username),
     onChat: () => dispatchProps._onChat(username),
     onClearAddUserToTeamsResults: () => dispatchProps.onClearAddUserToTeamsResults(),
@@ -185,6 +184,7 @@ const mergeProps = (stateProps, dispatchProps) => {
       maybeAddr && dispatchProps._copyStellarAddress(maybeAddr)
     },
     onFollow: () => dispatchProps._onFollow(username),
+    onLeftAction: stateProps.profileIsRoot ? null : dispatchProps.onLeftAction,
     onOpenPrivateFolder: () => {
       stateProps.myUsername && dispatchProps._onOpenPrivateFolder(stateProps.myUsername || '', username || '')
     },

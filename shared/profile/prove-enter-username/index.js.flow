@@ -8,9 +8,10 @@ export type Props = {
   errorText: ?string,
   errorCode: ?number,
   canContinue: boolean,
+  leftAction: string,
   onUsernameChange?: (username: string) => void,
   onContinue: (username: string) => void,
-  onCancel: () => void,
+  onLeftAction: () => void,
 }
 
 export default class Render extends Component<Props> {}

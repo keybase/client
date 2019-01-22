@@ -25,7 +25,7 @@ const mapStateToProps = (state, ownProps) => ({
 })
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
-  onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onLeftAction: () => dispatch(RouteTreeGen.createNavigateUp()),
   onSaveTeamAvatar: (
     filename: string,
     teamname: string,
@@ -39,7 +39,8 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   createdTeam: stateProps.createdTeam,
   image: stateProps.image,
-  onClose: dispatchProps.onClose,
+  leftAction: 'cancel',
+  onLeftAction: dispatchProps.onLeftAction,
   onSave: (filename: string, crop?: RPCTypes.ImageCropRect) =>
     stateProps.teamname
       ? dispatchProps.onSaveTeamAvatar(filename, stateProps.teamname, stateProps.sendChatNotification, crop)

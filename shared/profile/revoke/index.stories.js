@@ -5,7 +5,8 @@ import Revoke from '.'
 
 const props = {
   isWaiting: false,
-  onCancel: action('onCancel'),
+  leftAction: 'cancel',
+  onLeftAction: action('onLeftAction'),
   onRevoke: action('onRevoke'),
   platformHandle: 'malgorithms',
 }

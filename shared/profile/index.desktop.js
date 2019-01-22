@@ -369,9 +369,9 @@ class ProfileRender extends React.PureComponent<Props, State> {
         <Kb.Box style={{...styleScrollHeaderBg, backgroundColor: trackerStateColors.header.background}} />
         <Kb.Box style={{...styleScrollHeaderCover, backgroundColor: trackerStateColors.header.background}} />
         <Kb.Box style={Styles.globalStyles.flexBoxColumn}>
-          {this.props.onBack && (
+          {this.props.onLeftAction && (
             <Kb.BackButton
-              onClick={this.props.onBack}
+              onClick={this.props.onLeftAction}
               style={{left: 14, position: 'absolute', top: 16, zIndex: BACK_ZINDEX}}
               textStyle={{color: Styles.globalColors.white}}
               iconColor={Styles.globalColors.white}

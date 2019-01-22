@@ -55,13 +55,14 @@ const mapDispatchToProps = dispatch => ({
       dispatch(ProfileGen.createSubmitUsername())
     }
   },
-  onCancel: () => dispatch(ProfileGen.createCancelAddProof()),
+  onLeftAction: () => dispatch(ProfileGen.createCancelAddProof()),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...stateProps,
   ...dispatchProps,
   ...ownProps,
+  leftAction: 'cancel',
   onContinue: (username: string) => dispatchProps._onContinue(username, stateProps.platform),
 })
 

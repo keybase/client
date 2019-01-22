@@ -6,7 +6,8 @@ export type Props = {|
   platform: PlatformsExpandedType,
   platformHandle: string,
   errorMessage?: ?string,
-  onCancel: () => void,
+  leftAction: string,
+  onLeftAction: () => void,
   onRevoke: () => void,
   isWaiting: boolean,
 |}

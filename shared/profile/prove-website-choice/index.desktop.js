@@ -7,7 +7,11 @@ import type {Props} from '.'
 class ProveWebsiteChoice extends Component<Props> {
   render() {
     return (
-      <StandardScreen onCancel={this.props.onCancel} style={{maxWidth: 512}}>
+      <StandardScreen
+        leftAction={this.props.leftAction}
+        onLeftAction={this.props.onLeftAction}
+        style={{maxWidth: 512}}
+      >
         <Text style={styleTitle} type="Header">
           Prove your website in two ways:
         </Text>
@@ -30,7 +34,7 @@ class ProveWebsiteChoice extends Component<Props> {
         <Button
           style={styleCancelButton}
           type="Secondary"
-          onClick={() => this.props.onCancel()}
+          onClick={() => this.props.onLeftAction()}
           label={'Cancel'}
         />
       </StandardScreen>

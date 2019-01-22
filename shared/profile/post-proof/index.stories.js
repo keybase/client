@@ -8,10 +8,10 @@ import Render from '.'
 const props = {
   allowProofCheck: true,
   copyToClipboard: action('copyToClipboard'),
+  leftAction: 'cancel',
   onAllowProofCheck: action('onAllowProofCheck'),
-  onCancel: action('onCancel'),
-  onCancelText: 'Cancel',
   onComplete: action('onComplete'),
+  onLeftAction: action('onLeftAction'),
   platformUserName: 'awendland',
 }
 

@@ -4,7 +4,9 @@ import * as Sb from '../../stories/storybook'
 import EditAvatar from '.'
 
 const props = {
-  onClose: Sb.action('onClose'),
+  leftAction: 'cancel',
+  leftActionText: 'Close',
+  onLeftAction: Sb.action('onLeftAction'),
   onSave: Sb.action('onSave'),
 }
 

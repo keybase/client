@@ -9,7 +9,7 @@ import {connect} from '../../util/container'
 type OwnProps = {||}
 
 const NoPGPView = props => (
-  <Kb.StandardScreen style={styleContainer} onCancel={props.onCancel}>
+  <Kb.StandardScreen style={styleContainer} onLeftAction={props.onLeftAction}>
     <Kb.Text center={true} style={styleTitle} type="Header">
       Add a PGP key
     </Kb.Text>
@@ -19,7 +19,7 @@ const NoPGPView = props => (
 
 const NoPGP = connect<OwnProps, _, _, _, _>(
   () => ({}),
-  dispatch => ({onCancel: () => dispatch(RouteTreeGen.createNavigateUp())}),
+  dispatch => ({onLeftAction: () => dispatch(RouteTreeGen.createNavigateUp())}),
   (s, d, o) => ({...o, ...s, ...d})
 )(NoPGPView)
 
@@ -27,7 +27,7 @@ const routeTree = makeRouteDefNode({
   component: NoPGP,
 })
 
-const styleContainer = { justifyContent: 'flex-start' }
-const styleTitle = { marginBottom: Styles.globalMargins.xlarge }
+const styleContainer = {justifyContent: 'flex-start'}
+const styleTitle = {marginBottom: Styles.globalMargins.xlarge}
 
 export default routeTree

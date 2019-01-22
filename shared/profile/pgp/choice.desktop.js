@@ -8,7 +8,7 @@ import {namedConnect} from '../../util/container'
 type OwnProps = {||}
 
 const Choice = props => (
-  <Kb.StandardScreen onCancel={props.onCancel} style={{maxWidth: 512}}>
+  <Kb.StandardScreen onLeftAction={props.onLeftAction} style={{maxWidth: 512}}>
     <Kb.Text style={styleTitle} type="Header">
       Add a PGP key
     </Kb.Text>
@@ -28,7 +28,7 @@ const Choice = props => (
         },
       ]}
     />
-    <Kb.Button style={styleCancelButton} type="Secondary" onClick={props.onCancel} label={'Cancel'} />
+    <Kb.Button style={styleCancelButton} type="Secondary" onClick={props.onLeftAction} label={'Cancel'} />
   </Kb.StandardScreen>
 )
 
@@ -41,7 +41,7 @@ const styleCancelButton = {
 }
 
 const mapDispatchToProps = dispatch => ({
-  onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onLeftAction: () => dispatch(RouteTreeGen.createNavigateUp()),
   onOptionClick: (type: 'import' | 'provideInfo') =>
     dispatch(RouteTreeGen.createNavigateAppend({path: [type]})),
 })

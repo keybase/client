@@ -15,7 +15,7 @@ const Revoke = (props: Props) => {
         <Kb.Icon
           style={styleClose}
           type="iconfont-close"
-          onClick={props.onCancel}
+          onClick={props.onLeftAction}
           color={Styles.globalColors.black_10}
         />
       )}
@@ -49,7 +49,7 @@ const Revoke = (props: Props) => {
         <Kb.ButtonBar>
           <Kb.WaitingButton
             type="Secondary"
-            onClick={props.onCancel}
+            onClick={props.onLeftAction}
             label="Cancel"
             waitingKey={Constants.waitingKey}
           />

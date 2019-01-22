@@ -32,7 +32,7 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps, navigateAppend}) 
     dispatch(navigateUp())
   },
   loadTeamList: () => dispatch(TeamsGen.createGetTeamProfileAddList({username: routeProps.get('username')})),
-  onBack: () => {
+  onLeftAction: () => {
     dispatch(navigateUp())
     dispatch(TeamsGen.createSetTeamProfileAddList({teamlist: I.List([])}))
   },
@@ -64,7 +64,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     ...dispatchProps,
     onAddToTeams: (role: TeamRoleType, teams: Array<string>) =>
       dispatchProps._onAddToTeams(role, teams, stateProps._them),
-    onBack: dispatchProps.onBack,
+    onLeftAction: dispatchProps.onLeftAction,
     teamProfileAddList: teamProfileAddList.toArray(),
     them: _them,
     title,

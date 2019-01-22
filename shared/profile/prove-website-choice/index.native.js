@@ -7,7 +7,11 @@ import type {Props} from '.'
 class ProveWebsiteChoice extends Component<Props> {
   render() {
     return (
-      <StandardScreen style={styleContainer} onCancel={this.props.onCancel}>
+      <StandardScreen
+        style={styleContainer}
+        leftAction={this.props.leftAction}
+        onLeftAction={this.props.onLeftAction}
+      >
         <Text style={styleTitle} type="Header">
           Prove your website in two ways:
         </Text>

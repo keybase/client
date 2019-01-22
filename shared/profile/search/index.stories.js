@@ -22,7 +22,7 @@ const load = () => {
     .addDecorator(provider)
     .add('Normal', () => (
       <Wrapper>
-        <Search onClick={Sb.action('onClick')} onClose={Sb.action('onClose')} />
+        <Search onClick={Sb.action('onClick')} onLeftAction={Sb.action('onLeftAction')} leftAction="cancel" />
       </Wrapper>
     ))
 }

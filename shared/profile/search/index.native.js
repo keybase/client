@@ -7,10 +7,15 @@ import type {Props} from '.'
 import {searchKey, placeholder} from './index.shared'
 
 const Search = (props: Props) => (
-  <StandardScreen style={styleContainer} onCancel={props.onClose} title="Search people">
+  <StandardScreen
+    style={styleContainer}
+    onLeftAction={props.onLeftAction}
+    leftAction={props.leftAction}
+    title="Search people"
+  >
     <UserInput
       searchKey={searchKey}
-      onExitSearch={props.onClose}
+      onExitSearch={props.onLeftAction}
       autoFocus={true}
       placeholder={placeholder}
       showServiceFilter={true}

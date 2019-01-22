@@ -34,7 +34,8 @@ function UsernameTips({platform}: {platform: PlatformsExpandedType}) {
           </Text>
           <Box2 direction="horizontal">
             <Text
-              center={true} type="BodySmallSecondaryLink"
+              center={true}
+              type="BodySmallSecondaryLink"
               onClick={() => Linking.openURL('http://www.facebook.com/settings')}
             >
               http://www.facebook.com/settings
@@ -79,7 +80,7 @@ class PrivateEnterUsernameRender extends Component<Props, State> {
       ? {notification: {message: customError(this.props.errorText, this.props.errorCode), type: 'error'}}
       : {}
     return (
-      <StandardScreen {...notification} onCancel={this.props.onCancel}>
+      <StandardScreen {...notification} onLeftAction={this.props.onLeftAction}>
         <PlatformIcon
           style={styleIcon}
           platform={this.props.platform}

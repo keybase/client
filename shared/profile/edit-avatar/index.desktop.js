@@ -290,7 +290,7 @@ class EditAvatar extends React.Component<_Props, State> {
   render() {
     return (
       <Kb.MaybePopup
-        onClose={this.props.onClose}
+        onClose={this.props.onLeftAction}
         styleCover={Styles.collapseStyles([
           styles.cover,
           {
@@ -388,7 +388,7 @@ class EditAvatar extends React.Component<_Props, State> {
             <Kb.Button
               disabled={this.state.submitting}
               label={this.props.createdTeam ? 'Later, thanks' : 'Cancel'}
-              onClick={this.props.onClose}
+              onClick={this.props.onLeftAction}
               type="Secondary"
             />
             <Kb.WaitingButton

@@ -24,7 +24,7 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   loadTeams: teamname => dispatch(TeamsGen.createGetTeams()),
-  onCancel: () => dispatch(navigateUp()),
+  onLeftAction: () => dispatch(navigateUp()),
   onPromote: (teamname, showcase) => dispatch(TeamsGen.createSetMemberPublicity({showcase, teamname})),
 })
 
@@ -32,7 +32,8 @@ const mergeProps = (stateProps, dispatchProps) => {
   return {
     ...stateProps,
     ...dispatchProps,
-    customCancelText: 'Close',
+    leftAction: 'cancel',
+    leftActionText: 'Close',
     teamNameToAllowPromote: stateProps._teamNameToAllowPromote.toObject(),
     teamNameToIsOpen: stateProps._teamNameToIsOpen.toObject(),
     teamNameToIsShowcasing: stateProps._teamNameToIsShowcasing.toObject(),

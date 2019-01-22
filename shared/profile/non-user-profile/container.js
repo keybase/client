@@ -41,7 +41,7 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
       dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'profile'}))
     }
   },
-  onBack: () => dispatch(navigateUp()),
+  onLeftAction: () => dispatch(navigateUp()),
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({

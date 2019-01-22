@@ -8,12 +8,18 @@ type OwnProps = {||}
 const mapStateToProps = state => ({})
 
 const mapDispatchToProps = dispatch => ({
-  onCancel: () => dispatch(ProfileGen.createCancelAddProof()),
+  onLeftAction: () => dispatch(ProfileGen.createCancelAddProof()),
   onOptionClick: choice => dispatch(ProfileGen.createAddProof({platform: choice === 'file' ? 'web' : 'dns'})),
+})
+
+const mergeProps = (stateProps, dispatchProps) => ({
+  ...stateProps,
+  ...dispatchProps,
+  leftAction: 'cancel',
 })
 
 export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
-  (s, d, o) => ({...o, ...s, ...d})
+  mergeProps
 )(ProveWebsiteChoice)

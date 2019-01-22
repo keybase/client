@@ -17,7 +17,7 @@ export type Props = {
   customCancelText: string,
   customComponent?: ?React.Node,
   headerStyle?: ?Object,
-  onCancel: () => void,
+  onLeftAction: () => void,
   onPromote: (name: Types.Teamname, promote: boolean) => void,
   teammembercounts: {[string]: number},
   teamnames: Array<Types.Teamname>,
