@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import Devices from '.'
 import * as DevicesGen from '../actions/devices-gen'
 import * as ProvisionGen from '../actions/provision-gen'
@@ -61,7 +61,7 @@ function mergeProps(stateProps, dispatchProps, ownProps: OwnProps) {
   }
 }
 
-class Reloadable extends React.PureComponent<Props> {
+class Reloadable extends React.PureComponent<React.ElementConfig<typeof Devices>> {
   render() {
     return (
       <Kb.Reloadable
