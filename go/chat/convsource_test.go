@@ -533,6 +533,11 @@ func (f failingRemote) GetThreadRemote(context.Context, chat1.GetThreadRemoteArg
 	require.Fail(f.t, "GetThreadRemote call")
 	return chat1.GetThreadRemoteRes{}, nil
 }
+func (f failingRemote) GetUnreadlineRemote(context.Context, chat1.GetUnreadlineRemoteArg) (chat1.GetUnreadlineRemoteRes, error) {
+
+	require.Fail(f.t, "GetUnreadlineRemote call")
+	return chat1.GetUnreadlineRemoteRes{}, nil
+}
 func (f failingRemote) GetPublicConversations(context.Context, chat1.GetPublicConversationsArg) (chat1.GetPublicConversationsRes, error) {
 	require.Fail(f.t, "GetPublicConversations call")
 	return chat1.GetPublicConversationsRes{}, nil

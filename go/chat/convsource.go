@@ -333,7 +333,7 @@ func (s *RemoteConversationSource) GetUnreadline(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	return res.MsgID, nil
+	return res.UnreadlineID, nil
 }
 
 func (s *RemoteConversationSource) Expunge(ctx context.Context,
@@ -1119,7 +1119,7 @@ func (s *HybridConversationSource) GetUnreadline(ctx context.Context,
 		}); err != nil {
 			return nil, err
 		} else {
-			unreadlineMsgID = res.MsgID
+			unreadlineMsgID = res.UnreadlineID
 		}
 	}
 	return unreadlineMsgID, nil

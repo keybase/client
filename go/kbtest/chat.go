@@ -536,6 +536,10 @@ func (m *ChatRemoteMock) GetThreadRemote(ctx context.Context, arg chat1.GetThrea
 	return res, nil
 }
 
+func (m *ChatRemoteMock) GetUnreadlineRemote(ctx context.Context, arg chat1.GetUnreadlineRemoteArg) (res chat1.GetUnreadlineRemoteRes, err error) {
+	return res, nil
+}
+
 func (m *ChatRemoteMock) GetConversationMetadataRemote(ctx context.Context, convID chat1.ConversationID) (res chat1.GetConversationMetadataRemoteRes, err error) {
 	conv := m.world.GetConversationByID(convID)
 	if conv == nil {
@@ -953,6 +957,7 @@ type NonblockSearchResult struct {
 type ChatUI struct {
 	InboxCb            chan NonblockInboxResult
 	ThreadCb           chan NonblockThreadResult
+	UnreadlineCb       chan chat1.Unreadline
 	SearchHitCb        chan chat1.ChatSearchHitArg
 	SearchDoneCb       chan chat1.ChatSearchDoneArg
 	InboxSearchHitCb   chan chat1.ChatSearchInboxHitArg
@@ -967,6 +972,7 @@ func NewChatUI() *ChatUI {
 	return &ChatUI{
 		InboxCb:            make(chan NonblockInboxResult, 50),
 		ThreadCb:           make(chan NonblockThreadResult, 50),
+		UnreadlineCb:       make(chan chat1.Unreadline, 50),
 		SearchHitCb:        make(chan chat1.ChatSearchHitArg, 50),
 		SearchDoneCb:       make(chan chat1.ChatSearchDoneArg, 50),
 		InboxSearchHitCb:   make(chan chat1.ChatSearchInboxHitArg, 50),
@@ -1048,6 +1054,15 @@ func (c *ChatUI) ChatThreadFull(ctx context.Context, arg chat1.ChatThreadFullArg
 		Thread: &thread,
 		Full:   true,
 	}
+	return nil
+}
+
+func (c *ChatUI) ChatUnreadline(ctx context.Context, arg chat1.ChatUnreadlineArg) error {
+	var unreadline chat1.Unreadline
+	if err := json.Unmarshal([]byte(arg.Unreadline), &unreadline); err != nil {
+		return err
+	}
+	c.UnreadlineCb <- unreadline
 	return nil
 }
 

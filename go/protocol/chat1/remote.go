@@ -320,19 +320,19 @@ func (o GetPublicConversationsRes) DeepCopy() GetPublicConversationsRes {
 }
 
 type GetUnreadlineRemoteRes struct {
-	MsgID     *MessageID `codec:"msgID,omitempty" json:"msgID,omitempty"`
-	RateLimit *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+	UnreadlineID *MessageID `codec:"unreadlineID,omitempty" json:"unreadlineID,omitempty"`
+	RateLimit    *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
 }
 
 func (o GetUnreadlineRemoteRes) DeepCopy() GetUnreadlineRemoteRes {
 	return GetUnreadlineRemoteRes{
-		MsgID: (func(x *MessageID) *MessageID {
+		UnreadlineID: (func(x *MessageID) *MessageID {
 			if x == nil {
 				return nil
 			}
 			tmp := (*x).DeepCopy()
 			return &tmp
-		})(o.MsgID),
+		})(o.UnreadlineID),
 		RateLimit: (func(x *RateLimit) *RateLimit {
 			if x == nil {
 				return nil

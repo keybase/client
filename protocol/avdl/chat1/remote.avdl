@@ -118,7 +118,7 @@ protocol remote {
   GetThreadRemoteRes getThreadRemote(ConversationID conversationID, GetThreadReason reason, union { null, GetThreadQuery } query, union { null, Pagination } pagination);
 
   record GetUnreadlineRemoteRes {
-    union { null, MessageID } msgID;
+    union { null, MessageID } unreadlineID;
     union { null, RateLimit } rateLimit;
   }
   GetUnreadlineRemoteRes getUnreadlineRemote(ConversationID convID, MessageID readMsgID);

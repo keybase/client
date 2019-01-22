@@ -3059,212 +3059,89 @@ func TestChatSrvGetUnreadLine(t *testing.T) {
 		defer ctc.cleanup()
 		users := ctc.users()
 
-		uid := gregor1.UID(users[0].GetUID().ToBytes())
 		ui := kbtest.NewChatUI()
 		ctc.as(t, users[0]).h.mockChatUI = ui
 		ctc.as(t, users[1]).h.mockChatUI = ui
-		ctx := ctc.as(t, users[0]).startCtx
-		<-ctc.as(t, users[1]).h.G().ConvLoader.Stop(ctx)
+		ctx1 := ctc.as(t, users[0]).startCtx
+		ctx2 := ctc.as(t, users[1]).startCtx
+		<-ctc.as(t, users[0]).h.G().ConvLoader.Stop(ctx1)
+		<-ctc.as(t, users[1]).h.G().ConvLoader.Stop(ctx2)
 		listener1 := newServerChatListener()
 		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener1)
 		listener2 := newServerChatListener()
 		ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener2)
+		g1 := ctc.world.Tcs[users[0].Username].ChatG
+		g2 := ctc.world.Tcs[users[1].Username].ChatG
 
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt, users[1])
-		cs := ctc.world.Tcs[users[0].Username].ChatG.ConvSource
 		msg := chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hi"})
 		msgID1 := mustPostLocalForTest(t, ctc, users[0], conv, msg)
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_TEXT)
 		consumeNewMsgRemote(t, listener2, chat1.MessageType_TEXT)
-		msgRes, err := ctc.as(t, users[0]).chatLocalHandler().GetMessagesLocal(ctx, chat1.GetMessagesLocalArg{
-			ConversationID:           conv.Id,
-			MessageIDs:               []chat1.MessageID{msgID1},
-			DisableResolveSupersedes: true,
-		})
-		require.NoError(t, err)
-		require.Equal(t, 1, len(msgRes.Messages))
-		msg1 := msgRes.Messages[0]
-		mustEditMsg(ctx, t, ctc, users[0], conv, msgID1)
+
+		mustEditMsg(ctx1, t, ctc, users[0], conv, msgID1)
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_EDIT)
 		consumeNewMsgRemote(t, listener2, chat1.MessageType_EDIT)
 
-		require.NoError(t, cs.Clear(context.TODO(), conv.Id, uid))
-		_, err = cs.PushUnboxed(ctx, conv.Id, uid, msg1)
-		require.NoError(t, err)
+		assertUnreadline := func(ctx context.Context, g *globals.ChatContext, user *kbtest.FakeUser,
+			readMsgID, unreadLineID chat1.MessageID) {
+			for i := 0; i < 1; i++ {
+				if i == 0 {
+					require.NoError(t, g.ConvSource.Clear(ctx, conv.Id, user.GetUID().ToBytes()))
+				}
+				_, err := ctc.as(t, user).chatLocalHandler().GetUnreadlineNonblock(ctx,
+					chat1.GetUnreadlineNonblockArg{
+						ConvID:    conv.Id,
+						ReadMsgID: readMsgID,
+					})
+				require.NoError(t, err)
+				select {
+				case res := <-ui.UnreadlineCb:
+					require.Equal(t, conv.Id, res.ConvID)
+					if unreadLineID == 0 {
+						require.Nil(t, res.UnreadlineID)
+					} else {
+						require.NotNil(t, res.UnreadlineID)
+						require.Equal(t, unreadLineID, *res.UnreadlineID)
+					}
+				case <-time.After(20 * time.Second):
+					require.Fail(t, "no unreadline cb")
+				}
+			}
+		}
 
 		// user2 will have an unread id of the TEXT message even after the edit
-		delay := 10 * time.Minute
-		clock := clockwork.NewFakeClock()
-		ctc.as(t, users[1]).h.clock = clock
-		ctc.as(t, users[1]).h.remoteThreadDelay = &delay
-		cb := make(chan struct{})
-		query := chat1.GetThreadQuery{
-			MessageTypes: []chat1.MessageType{chat1.MessageType_TEXT},
-		}
-		go func() {
-			_, err = ctc.as(t, users[1]).chatLocalHandler().GetThreadNonblock(ctx,
-				chat1.GetThreadNonblockArg{
-					ConversationID: conv.Id,
-					Query:          &query,
-					CbMode:         chat1.GetThreadNonblockCbMode_FULL,
-				},
-			)
-			require.NoError(t, err)
-			close(cb)
-		}()
-		clock.Advance(50 * time.Millisecond)
-		select {
-		case res := <-ui.ThreadCb:
-			require.False(t, res.Full)
-			require.Equal(t, 1, len(res.Thread.Messages))
-			//require.NotNil(t, res.Thread.UnreadLineID)
-			//require.Equal(t, msgID1, *res.Thread.UnreadLineID)
-		case <-time.After(20 * time.Second):
-			require.Fail(t, "no thread cb")
-		}
-		clock.Advance(20 * time.Minute)
-		select {
-		case res := <-ui.ThreadCb:
-			require.True(t, res.Full)
-			require.Equal(t, 1, len(res.Thread.Messages))
-			//require.NotNil(t, res.Thread.UnreadLineID)
-			//require.Equal(t, msgID1, *res.Thread.UnreadLineID)
-		case <-time.After(20 * time.Second):
-			require.Fail(t, "no thread cb")
-		}
-		select {
-		case <-cb:
-		case <-time.After(20 * time.Second):
-			require.Fail(t, "GetThread never finished")
-		}
+		assertUnreadline(ctx1, g1, users[0], 1, msgID1)
+		assertUnreadline(ctx1, g1, users[0], msgID1, 0)
+		assertUnreadline(ctx2, g2, users[1], 1, msgID1)
+		assertUnreadline(ctx2, g2, users[1], msgID1, 0)
 
+		// subsequent TEXT post leaves unreadline unchanged.
 		msg = chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hi"})
 		msgID2 := mustPostLocalForTest(t, ctc, users[0], conv, msg)
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_TEXT)
 		consumeNewMsgRemote(t, listener2, chat1.MessageType_TEXT)
-		cb = make(chan struct{})
-		go func() {
-			_, err := ctc.as(t, users[1]).chatLocalHandler().GetThreadNonblock(ctx,
-				chat1.GetThreadNonblockArg{
-					ConversationID: conv.Id,
-					Query:          &query,
-					CbMode:         chat1.GetThreadNonblockCbMode_FULL,
-				},
-			)
-			require.NoError(t, err)
-			close(cb)
-		}()
-		clock.Advance(50 * time.Millisecond)
-		select {
-		case res := <-ui.ThreadCb:
-			require.False(t, res.Full)
-			require.Equal(t, 2, len(res.Thread.Messages))
-			//require.NotNil(t, res.Thread.UnreadLineID)
-			//require.Equal(t, msgID1, *res.Thread.UnreadLineID)
-		case <-time.After(20 * time.Second):
-			require.Fail(t, "no thread cb")
-		}
-		clock.Advance(20 * time.Minute)
-		select {
-		case res := <-ui.ThreadCb:
-			require.True(t, res.Full)
-			require.Equal(t, 2, len(res.Thread.Messages))
-			//require.NotNil(t, res.Thread.UnreadLineID)
-			//require.Equal(t, msgID1, *res.Thread.UnreadLineID)
-		case <-time.After(20 * time.Second):
-			require.Fail(t, "no thread cb")
-		}
-		select {
-		case <-cb:
-		case <-time.After(20 * time.Second):
-			require.Fail(t, "GetThread never finished")
-		}
+		assertUnreadline(ctx2, g2, users[1], 1, msgID1)
+		// If user2 has read to msgID1, msgID2 is the next candidate
+		assertUnreadline(ctx2, g2, users[1], msgID1, msgID2)
+
+		// reaction does not affect things
+		mustReactToMsg(ctx1, t, ctc, users[0], conv, msgID2)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_REACTION)
+		consumeNewMsgRemote(t, listener2, chat1.MessageType_REACTION)
+		assertUnreadline(ctx2, g2, users[1], 1, msgID1)
 
 		// user2 will bump unreadLineID to msgID which the next visible msg
-		mustDeleteMsg(ctx, t, ctc, users[0], conv, msgID1)
+		mustDeleteMsg(ctx1, t, ctc, users[0], conv, msgID1)
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_DELETE)
 		consumeNewMsgRemote(t, listener2, chat1.MessageType_DELETE)
-		require.NoError(t, cs.Clear(context.TODO(), conv.Id, uid))
-		_, err = cs.PushUnboxed(ctx, conv.Id, uid, msg1)
-		require.NoError(t, err)
-		cb = make(chan struct{})
-		go func() {
-			_, err := ctc.as(t, users[1]).chatLocalHandler().GetThreadNonblock(ctx,
-				chat1.GetThreadNonblockArg{
-					ConversationID: conv.Id,
-					Query:          &query,
-					CbMode:         chat1.GetThreadNonblockCbMode_FULL,
-				},
-			)
-			require.NoError(t, err)
-			close(cb)
-		}()
-		clock.Advance(50 * time.Millisecond)
-		select {
-		case res := <-ui.ThreadCb:
-			require.False(t, res.Full)
-			require.Equal(t, 1, len(res.Thread.Messages))
-			//require.NotNil(t, res.Thread.UnreadLineID)
-			//require.Equal(t, msgID2, *res.Thread.UnreadLineID)
-		case <-time.After(20 * time.Second):
-			require.Fail(t, "no thread cb")
-		}
-		clock.Advance(20 * time.Minute)
-		select {
-		case res := <-ui.ThreadCb:
-			require.True(t, res.Full)
-			require.Equal(t, 3, len(res.Thread.Messages))
-			//require.NotNil(t, res.Thread.UnreadLineID)
-			//require.Equal(t, msgID2, *res.Thread.UnreadLineID)
-		case <-time.After(20 * time.Second):
-			require.Fail(t, "no thread cb")
-		}
-		select {
-		case <-cb:
-		case <-time.After(20 * time.Second):
-			require.Fail(t, "GetThread never finished")
-		}
+		assertUnreadline(ctx2, g2, users[1], 1, msgID2)
 
 		// user2 will have no unread id since the only visible message was now deleted
-		mustDeleteMsg(ctx, t, ctc, users[0], conv, msgID2)
+		mustDeleteMsg(ctx1, t, ctc, users[0], conv, msgID2)
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_DELETE)
 		consumeNewMsgRemote(t, listener2, chat1.MessageType_DELETE)
-		require.NoError(t, cs.Clear(context.TODO(), conv.Id, uid))
-		cb = make(chan struct{})
-		go func() {
-			_, err := ctc.as(t, users[1]).chatLocalHandler().GetThreadNonblock(ctx,
-				chat1.GetThreadNonblockArg{
-					ConversationID: conv.Id,
-					Query:          &query,
-					CbMode:         chat1.GetThreadNonblockCbMode_FULL,
-				},
-			)
-			require.NoError(t, err)
-			close(cb)
-		}()
-		clock.Advance(50 * time.Millisecond)
-		select {
-		case res := <-ui.ThreadCb:
-			require.False(t, res.Full)
-			require.Equal(t, 0, len(res.Thread.Messages))
-			//require.Nil(t, res.Thread.UnreadLineID)
-		case <-time.After(20 * time.Second):
-			require.Fail(t, "no thread cb")
-		}
-		clock.Advance(20 * time.Minute)
-		select {
-		case res := <-ui.ThreadCb:
-			require.True(t, res.Full)
-			require.Equal(t, 3, len(res.Thread.Messages))
-			// require.Nil(t, res.Thread.UnreadLineID)
-		case <-time.After(20 * time.Second):
-			require.Fail(t, "no thread cb")
-		}
-		select {
-		case <-cb:
-		case <-time.After(20 * time.Second):
-			require.Fail(t, "GetThread never finished")
-		}
+		assertUnreadline(ctx2, g2, users[1], 1, 0)
 	})
 }
 
@@ -3320,6 +3197,27 @@ func mustEditMsg(ctx context.Context, t *testing.T, ctc *chatTestContext, user *
 			MessageBody: chat1.NewMessageBodyWithEdit(chat1.MessageEdit{
 				MessageID: msgID,
 				Body:      "edited",
+			}),
+		},
+	})
+	require.NoError(t, err)
+	return postRes.MessageID
+}
+
+func mustReactToMsg(ctx context.Context, t *testing.T, ctc *chatTestContext, user *kbtest.FakeUser,
+	conv chat1.ConversationInfoLocal, msgID chat1.MessageID) chat1.MessageID {
+	postRes, err := ctc.as(t, user).chatLocalHandler().PostLocal(ctx, chat1.PostLocalArg{
+		ConversationID: conv.Id,
+		Msg: chat1.MessagePlaintext{
+			ClientHeader: chat1.MessageClientHeader{
+				Conv:        conv.Triple,
+				MessageType: chat1.MessageType_REACTION,
+				TlfName:     conv.TlfName,
+				Supersedes:  msgID,
+			},
+			MessageBody: chat1.NewMessageBodyWithReaction(chat1.MessageReaction{
+				MessageID: msgID,
+				Body:      ":+1:",
 			}),
 		},
 	})

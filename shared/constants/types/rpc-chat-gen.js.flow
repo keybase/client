@@ -851,7 +851,7 @@ export type GetThreadReason =
   | 8 // KBFSFILEACTIVITY_8
 
 export type GetThreadRemoteRes = $ReadOnly<{thread: ThreadViewBoxed, membersType: ConversationMembersType, visibility: Keybase1.TLFVisibility, rateLimit?: ?RateLimit}>
-export type GetUnreadlineRemoteRes = $ReadOnly<{msgID?: ?MessageID, rateLimit?: ?RateLimit}>
+export type GetUnreadlineRemoteRes = $ReadOnly<{unreadlineID?: ?MessageID, rateLimit?: ?RateLimit}>
 export type GlobalAppNotificationSetting =
   | 0 // NEWMESSAGES_0
   | 1 // PLAINTEXTMOBILE_1
@@ -1179,7 +1179,7 @@ export type UnfurlYoutubeRaw = $ReadOnly<{}>
 export type UnreadFirstNumLimit = $ReadOnly<{NumRead: Int, AtLeast: Int, AtMost: Int}>
 export type UnreadUpdate = $ReadOnly<{convID: ConversationID, unreadMessages: Int, unreadNotifyingMessages: {[key: string]: Int}, UnreadMessages /* compatUnreadMessages */: Int, diff: Boolean}>
 export type UnreadUpdateFull = $ReadOnly<{ignore: Boolean, inboxVers: InboxVers, inboxSyncStatus: SyncInboxResType, updates?: ?Array<UnreadUpdate>}>
-export type Unreadline = $ReadOnly<{convID: ConversationID, msgID?: ?MessageID}>
+export type Unreadline = $ReadOnly<{convID: ConversationID, unreadlineID?: ?MessageID}>
 export type UnverifiedInboxUIItem = $ReadOnly<{convID: String, topicType: TopicType, isPublic: Boolean, name: String, visibility: Keybase1.TLFVisibility, status: ConversationStatus, membersType: ConversationMembersType, memberStatus: ConversationMemberStatus, teamType: TeamType, notifications?: ?ConversationNotificationInfo, time: Gregor1.Time, version: ConversationVers, maxMsgID: MessageID, maxVisibleMsgID: MessageID, readMsgID: MessageID, localMetadata?: ?UnverifiedInboxUIItemMetadata, finalizeInfo?: ?ConversationFinalizeInfo, supersedes?: ?Array<ConversationMetadata>, supersededBy?: ?Array<ConversationMetadata>}>
 export type UnverifiedInboxUIItemMetadata = $ReadOnly<{channelName: String, headline: String, snippet: String, snippetDecoration: String, writerNames?: ?Array<String>, resetParticipants?: ?Array<String>}>
 export type UnverifiedInboxUIItems = $ReadOnly<{items?: ?Array<UnverifiedInboxUIItem>, pagination?: ?UIPagination, offline: Boolean}>

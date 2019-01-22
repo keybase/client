@@ -582,7 +582,7 @@ protocol local {
   // chatUnreadline method returns this result serialized as JSON
   record Unreadline {
     ConversationID convID;
-    union { null, MessageID } msgID;
+    union { null, MessageID } unreadlineID;
   }
 
   record NonblockUnreadlineRes {

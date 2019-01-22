@@ -648,14 +648,14 @@ func (h *Server) GetUnreadlineNonblock(ctx context.Context, arg chat1.GetUnreadl
 
 	chatUI := h.getChatUI(arg.SessionID)
 	go func(ctx context.Context) {
-		msgID, err := h.G().ConvSource.GetUnreadline(ctx, arg.ConvID, uid, arg.ReadMsgID)
+		unreadlineID, err := h.G().ConvSource.GetUnreadline(ctx, arg.ConvID, uid, arg.ReadMsgID)
 		if err != nil {
 			h.Debug(ctx, "GetUnreadlineNonblock: unable to run UnreadMsgID: %v", err)
 			return
 		}
 		unreadline := chat1.Unreadline{
-			ConvID: arg.ConvID,
-			MsgID:  msgID,
+			ConvID:       arg.ConvID,
+			UnreadlineID: unreadlineID,
 		}
 		jsonUnreadline, err := json.Marshal(&unreadline)
 		if err != nil {

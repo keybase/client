@@ -3169,20 +3169,20 @@ func (e GetThreadNonblockPgMode) String() string {
 }
 
 type Unreadline struct {
-	ConvID ConversationID `codec:"convID" json:"convID"`
-	MsgID  *MessageID     `codec:"msgID,omitempty" json:"msgID,omitempty"`
+	ConvID       ConversationID `codec:"convID" json:"convID"`
+	UnreadlineID *MessageID     `codec:"unreadlineID,omitempty" json:"unreadlineID,omitempty"`
 }
 
 func (o Unreadline) DeepCopy() Unreadline {
 	return Unreadline{
 		ConvID: o.ConvID.DeepCopy(),
-		MsgID: (func(x *MessageID) *MessageID {
+		UnreadlineID: (func(x *MessageID) *MessageID {
 			if x == nil {
 				return nil
 			}
 			tmp := (*x).DeepCopy()
 			return &tmp
-		})(o.MsgID),
+		})(o.UnreadlineID),
 	}
 }
 
