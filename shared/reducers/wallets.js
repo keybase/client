@@ -65,6 +65,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
         }),
         builtPayment: Constants.makeBuiltPayment(),
         builtRequest: Constants.makeBuiltRequest(),
+        sentPaymentError: '',
       })
     case WalletsGen.abandonPayment:
     case WalletsGen.clearBuilding:
