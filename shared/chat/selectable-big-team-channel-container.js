@@ -10,17 +10,18 @@ type OwnProps = {|
   onSelectConversation: () => void,
 |}
 
-const mapStateToProps = (state, {conversationIDKey}) => ({
-  _meta: Constants.getMeta(state, conversationIDKey),
-})
+const mapStateToProps = (state, {conversationIDKey}) => {
+  const {channelname, teamname} = Constants.getMeta(state, conversationIDKey)
+  return {channelname, teamname}
+}
 
 const mapDispatchToProps = () => ({})
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  channelname: stateProps._meta.channelname || '',
+  channelname: stateProps.channelname,
   isSelected: ownProps.isSelected,
   onSelectConversation: ownProps.onSelectConversation,
-  teamname: stateProps._meta.teamname || '',
+  teamname: stateProps.teamname,
 })
 
 export default namedConnect<OwnProps, _, _, _, _>(
