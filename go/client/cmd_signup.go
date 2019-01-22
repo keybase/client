@@ -155,11 +155,10 @@ Welcome to keybase.io!
    - your profile on keybase is https://keybase.io/%s
    - type 'keybase help' for more instructions
 
-Keybase is in alpha and we'll be rolling out new features soon. Report bugs
-to us at https://github.com/keybase/keybase-issues
+Found a bug? Please report it with %skeybase log send%s
 
 Enjoy!
-`, username, username)
+`, username, username, "`", "`")
 	return s.G().UI.GetTerminalUI().Output(msg)
 }
 
