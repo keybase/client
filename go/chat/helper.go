@@ -37,19 +37,18 @@ func NewHelper(g *globals.Context, ri func() chat1.RemoteInterface) *Helper {
 }
 
 func (h *Helper) SendTextByID(ctx context.Context, convID chat1.ConversationID,
-	trip chat1.ConversationIDTriple, tlfName string, text string) error {
-	return h.SendMsgByID(ctx, convID, trip, tlfName, chat1.NewMessageBodyWithText(chat1.MessageText{
+	tlfName string, text string) error {
+	return h.SendMsgByID(ctx, convID, tlfName, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: text,
 	}), chat1.MessageType_TEXT)
 }
 
-func (h *Helper) SendMsgByID(ctx context.Context, convID chat1.ConversationID,
-	trip chat1.ConversationIDTriple, tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error {
+func (h *Helper) SendMsgByID(ctx context.Context, convID chat1.ConversationID, tlfName string,
+	body chat1.MessageBody, msgType chat1.MessageType) error {
 	boxer := NewBoxer(h.G())
 	sender := NewBlockingSender(h.G(), boxer, h.ri)
 	msg := chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
-			Conv:        trip,
 			TlfName:     tlfName,
 			MessageType: msgType,
 		},
@@ -60,20 +59,19 @@ func (h *Helper) SendMsgByID(ctx context.Context, convID chat1.ConversationID,
 }
 
 func (h *Helper) SendTextByIDNonblock(ctx context.Context, convID chat1.ConversationID,
-	trip chat1.ConversationIDTriple, tlfName string, text string) error {
-	return h.SendMsgByIDNonblock(ctx, convID, trip, tlfName, chat1.NewMessageBodyWithText(chat1.MessageText{
+	tlfName string, text string) error {
+	return h.SendMsgByIDNonblock(ctx, convID, tlfName, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: text,
 	}), chat1.MessageType_TEXT)
 }
 
 func (h *Helper) SendMsgByIDNonblock(ctx context.Context, convID chat1.ConversationID,
-	trip chat1.ConversationIDTriple, tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error {
+	tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error {
 	boxer := NewBoxer(h.G())
 	baseSender := NewBlockingSender(h.G(), boxer, h.ri)
 	sender := NewNonblockingSender(h.G(), baseSender)
 	msg := chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
-			Conv:        trip,
 			TlfName:     tlfName,
 			MessageType: msgType,
 		},

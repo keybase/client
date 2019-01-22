@@ -1125,46 +1125,9 @@ func (h *Server) SetConversationStatusLocal(ctx context.Context, arg chat1.SetCo
 	if err != nil {
 		return chat1.SetConversationStatusLocalRes{}, err
 	}
-
-	_, err = h.remoteClient().SetConversationStatus(ctx, chat1.SetConversationStatusArg{
-		ConversationID: arg.ConversationID,
-		Status:         arg.Status,
-	})
-	if err != nil {
-		return chat1.SetConversationStatusLocalRes{}, err
-
+	if err := h.G().InboxSource.RemoteSetConversationStatus(ctx, uid, arg.ConversationID, arg.Status); err != nil {
+		return res, err
 	}
-	// Send word to API server about the report
-	if arg.Status == chat1.ConversationStatus_REPORTED {
-		h.Debug(ctx, "SetConversationStatusLocal: sending report to server")
-
-		tlfname := "<error fetching TLF name>"
-
-		// Get TLF name to post
-		ib, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true,
-			nil, &chat1.GetInboxLocalQuery{
-				ConvIDs: []chat1.ConversationID{arg.ConversationID},
-			}, nil)
-		if err != nil {
-			h.Debug(ctx, "SetConversationStatusLocal: failed to fetch conversation: %s", err.Error())
-		} else {
-			if len(ib.Convs) > 0 {
-				tlfname = ib.Convs[0].Info.TLFNameExpanded()
-			}
-		}
-
-		args := libkb.NewHTTPArgs()
-		args.Add("tlfname", libkb.S{Val: tlfname})
-		_, err = h.G().API.Post(libkb.APIArg{
-			Endpoint:    "report/conversation",
-			SessionType: libkb.APISessionTypeREQUIRED,
-			Args:        args,
-		})
-		if err != nil {
-			h.Debug(ctx, "SetConversationStatusLocal: failed to post report: %s", err.Error())
-		}
-	}
-
 	return chat1.SetConversationStatusLocalRes{
 		IdentifyFailures: identBreaks,
 	}, nil
@@ -1471,6 +1434,25 @@ func (h *Server) GenerateOutboxID(ctx context.Context) (res chat1.OutboxID, err 
 	return storage.NewOutboxID()
 }
 
+func (h *Server) runSlashCommands(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	tlfName string, body chat1.MessageBody) (bool, error) {
+	if !body.IsType(chat1.MessageType_TEXT) {
+		return false, nil
+	}
+	text := body.Text().Body
+	groups, err := h.G().CommandsSource.ListCommands(ctx, uid, convID)
+	if err != nil {
+		return false, err
+	}
+	for _, g := range groups {
+		if cmd, ok := g.Match(ctx, text); ok {
+			h.Debug(ctx, "runSlashCommands: matched command: %s, executing...", cmd.Name())
+			return true, cmd.Execute(ctx, uid, convID, tlfName, text)
+		}
+	}
+	return false, nil
+}
+
 func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonblockArg) (res chat1.PostLocalNonblockRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
@@ -1489,37 +1471,24 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 		return res, fmt.Errorf("no TLF name specified")
 	}
 
+	// Check for any slash command hits for an execute
+	if handled, err := h.runSlashCommands(ctx, uid, arg.ConversationID, arg.Msg.ClientHeader.TlfName,
+		arg.Msg.MessageBody); handled {
+		h.Debug(ctx, "PostLocalNonblock: handled slash command with error: %s", err)
+		return res, nil
+	}
+
 	// Determine if the messages contains any Stellar payments, and execute them if so
 	if arg.Msg.MessageBody, err = h.runStellarSendUI(ctx, arg.SessionID, uid, arg.ConversationID,
 		arg.Msg.MessageBody); err != nil {
 		return res, err
 	}
 
-	// Add outbox information
-	var prevMsgID chat1.MessageID
-	if arg.ClientPrev == 0 {
-		h.Debug(ctx, "PostLocalNonblock: ClientPrev not specified using local storage")
-		thread, err := h.G().ConvSource.PullLocalOnly(ctx, arg.ConversationID, uid, nil,
-			&chat1.Pagination{Num: 1}, 0)
-		if err != nil || len(thread.Messages) == 0 {
-			h.Debug(ctx, "PostLocalNonblock: unable to read local storage, setting ClientPrev to 1")
-			prevMsgID = 1
-		} else {
-			prevMsgID = thread.Messages[0].GetMessageID()
-		}
-	} else {
-		prevMsgID = arg.ClientPrev
-	}
-	h.Debug(ctx, "PostLocalNonblock: using prevMsgID: %d", prevMsgID)
-	arg.Msg.ClientHeader.OutboxInfo = &chat1.OutboxInfo{
-		Prev: prevMsgID,
-	}
-
 	// Create non block sender
 	sender := NewBlockingSender(h.G(), h.boxer, h.remoteClient)
 	nonblockSender := NewNonblockingSender(h.G(), sender)
 
-	obid, _, err := nonblockSender.Send(ctx, arg.ConversationID, arg.Msg, prevMsgID, arg.OutboxID)
+	obid, _, err := nonblockSender.Send(ctx, arg.ConversationID, arg.Msg, arg.ClientPrev, arg.OutboxID)
 	if err != nil {
 		return res, fmt.Errorf("PostLocalNonblock: unable to send message: err: %s", err.Error())
 	}

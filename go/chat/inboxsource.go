@@ -174,6 +174,45 @@ func (b *baseInboxSource) Localize(ctx context.Context, uid gregor1.UID, convs [
 	return res, localizeCb, err
 }
 
+func (b *baseInboxSource) RemoteSetConversationStatus(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, status chat1.ConversationStatus) (err error) {
+	defer b.Trace(ctx, func() error { return err }, "RemoteSetConversationStatus")()
+	if _, err = b.getChatInterface().SetConversationStatus(ctx, chat1.SetConversationStatusArg{
+		ConversationID: convID,
+		Status:         status,
+	}); err != nil {
+		return err
+	}
+	// Send word to API server about the report
+	if status == chat1.ConversationStatus_REPORTED {
+		b.Debug(ctx, "RemoteSetConversationStatus: sending report to server")
+		// Get TLF name to post
+		tlfname := "<error fetching TLF name>"
+		ib, _, err := b.sub.Read(ctx, uid, types.ConversationLocalizerBlocking, true,
+			nil, &chat1.GetInboxLocalQuery{
+				ConvIDs: []chat1.ConversationID{convID},
+			}, nil)
+		if err != nil {
+			b.Debug(ctx, "RemoteSetConversationStatus: failed to fetch conversation: %s", err)
+		} else {
+			if len(ib.Convs) > 0 {
+				tlfname = ib.Convs[0].Info.TLFNameExpanded()
+			}
+		}
+		args := libkb.NewHTTPArgs()
+		args.Add("tlfname", libkb.S{Val: tlfname})
+		_, err = b.G().API.Post(libkb.APIArg{
+			Endpoint:    "report/conversation",
+			SessionType: libkb.APISessionTypeREQUIRED,
+			Args:        args,
+		})
+		if err != nil {
+			b.Debug(ctx, "RemoteSetConversationStatus: failed to post report: %s", err.Error())
+		}
+	}
+	return nil
+}
+
 func (b *baseInboxSource) createConversationLocalizer(ctx context.Context, typ types.ConversationLocalizerTyp,
 	localizeCb chan types.AsyncInboxResult) conversationLocalizer {
 	switch typ {
