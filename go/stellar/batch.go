@@ -118,6 +118,7 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 			if time.Since(startTime) > time.Duration(arg.TimeoutSecs)*time.Second {
 				mctx.CDebugf("ran out of time waiting for tx status updates (%d remaining)", waitingCount)
 				res.Payments = resultList
+				calculateStats(&res)
 				return res, nil
 			}
 		case update := <-listenerCh:
@@ -128,6 +129,7 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 				resultList[index].Status = update.Status
 				if update.Status != stellar1.PaymentStatus_PENDING {
 					waitingCount--
+					resultList[index].EndTime = stellar1.ToTimeMs(time.Now())
 					mctx.CDebugf("no longer waiting for %s status updates (%d remaining)", update.TxID, waitingCount)
 				}
 			}
@@ -137,6 +139,7 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 	mctx.CDebugf("done waiting for payments to complete")
 
 	res.Payments = resultList
+	calculateStats(&res)
 
 	return res, nil
 }
@@ -250,4 +253,8 @@ func prepareBatchPaymentRelay(mctx libkb.MetaContext, remoter remote.Remoter, sp
 	result.TxID = stellar1.TransactionID(relay.FundTx.TxHash)
 
 	return result
+}
+
+func calculateStats(res *stellar1.BatchResultLocal) {
+
 }
