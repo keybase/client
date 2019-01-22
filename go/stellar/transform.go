@@ -443,20 +443,20 @@ func RemotePendingToLocal(mctx libkb.MetaContext, remoter remote.Remoter, accoun
 	return payments, nil
 }
 
-func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, details stellar1.AccountDetails, isPrimary bool, accountName string) (stellar1.WalletAccountLocal, error) {
+func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stellar1.AccountID, details stellar1.AccountDetails, isPrimary bool, accountName string) (stellar1.WalletAccountLocal, error) {
 
 	var empty stellar1.WalletAccountLocal
 	balance, err := balanceList(details.Balances).balanceDescription()
 	if err != nil {
 		return empty, err
 	}
-	currencyLocal, err := GetCurrencySetting(mctx, details.AccountID)
+	currencyLocal, err := GetCurrencySetting(mctx, accountID)
 	if err != nil {
 		return empty, err
 	}
 
 	acct := stellar1.WalletAccountLocal{
-		AccountID:          details.AccountID,
+		AccountID:          accountID,
 		IsDefault:          isPrimary,
 		Name:               accountName,
 		BalanceDescription: balance,

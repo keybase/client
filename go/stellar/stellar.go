@@ -2056,7 +2056,11 @@ func accountLocal(mctx libkb.MetaContext, remoter remote.Remoter, entry stellar1
 		return empty, err
 	}
 
-	return AccountDetailsToWalletAccountLocal(mctx, details, entry.IsPrimary, entry.Name)
+	if details.AccountID.IsNil() {
+		mctx.CDebugf("AccountDetails for entry.AccountID %q returned empty account id (full details: %+v)", entry.AccountID, details)
+	}
+
+	return AccountDetailsToWalletAccountLocal(mctx, entry.AccountID, details, entry.IsPrimary, entry.Name)
 }
 
 // AccountDetails gets stellar1.AccountDetails for accountID.
