@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import * as React from 'react'
 import Git from '.'
 import * as I from 'immutable'
 import * as GitGen from '../actions/git-gen'
@@ -59,7 +59,10 @@ const mapDispatchToProps = (dispatch: any, {navigateAppend, setRouteState, route
   },
 })
 
-class GitReloadable extends React.PureComponent<Props> {
+class GitReloadable extends React.PureComponent<{
+  ...{|_loadGit: () => void|},
+  ...React.ElementConfig<typeof Git>,
+}> {
   render() {
     return (
       <Kb.Reloadable
@@ -76,16 +79,30 @@ class GitReloadable extends React.PureComponent<Props> {
           onToggleExpand={this.props.onToggleExpand}
           personals={this.props.personals}
           teams={this.props.teams}
+          onBack={this.props.onBack}
         />
       </Kb.Reloadable>
     )
   }
 }
 
+const mergeProps = (s, d, o) => ({
+  _loadGit: d._loadGit,
+  expandedSet: s.expandedSet,
+  loading: s.loading,
+  onBack: d.onBack,
+  onNewPersonalRepo: d.onNewPersonalRepo,
+  onNewTeamRepo: d.onNewTeamRepo,
+  onShowDelete: d.onShowDelete,
+  onToggleExpand: d.onToggleExpand,
+  personals: s.personals,
+  teams: s.teams,
+})
+
 export default compose(
   connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d})
+    mergeProps
   )
 )(GitReloadable)
