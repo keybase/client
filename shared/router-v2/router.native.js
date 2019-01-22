@@ -21,6 +21,7 @@ import {
   NavigationContext,
   getNavigation,
   NavigationProvider,
+  NavigationEvents,
   SceneView,
 } from '@react-navigation/core'
 import {createAppContainer} from '@react-navigation/native'
@@ -152,11 +153,22 @@ class CustomStackNavigator extends React.PureComponent<any> {
     // {nameToTab[descriptor.state.routeName]}
     // const activeKey = p.navigation.state.routes[nonModalIndex].key
     // const descriptor = p.descriptors[activeKey]
+
+    let isUnderNotch = false
+    const route = routes[this.props.activeKey]
+    if (route) {
+      if (route.getScreen) {
+        const options = route.getScreen().navigationOptions || {}
+        if (options.isUnderNotch) {
+          isUnderNotch = true
+        }
+      }
+    }
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-        <Kb.SafeAreaViewTop />
+        {!isUnderNotch && <Kb.SafeAreaViewTop />}
         <StackNavigator navigation={this.props.navigation} />
-        <TabBar selectedTab={this.props.selectedTab} />
+        <TabBar selectedTab={nameToTab[this.props.activeKey]} />
         <GlobalError />
       </Kb.Box2>
     )
@@ -165,27 +177,30 @@ class CustomStackNavigator extends React.PureComponent<any> {
 const AppContainer = createAppContainer(CustomStackNavigator)
 
 class RNApp extends React.Component<any, any> {
-  state = {selectedTab: 'tabs:peopleTab'}
+  // state = {selectedTab: 'tabs:peopleTab'}
+  state = {activeKey: 'tabs:peopleTab'}
   _nav = null
   _onNavigationStateChange = (prevState, currentState) => {
-    const currentScreen = getActiveRouteName(currentState)
-    const prevScreen = getActiveRouteName(prevState)
+    const activeKey = getActiveRouteName(currentState)
+    // const prevScreen = getActiveRouteName(prevState)
 
-    if (prevScreen !== currentScreen) {
-      console.log('aaaa', currentScreen)
-      const selectedTab = nameToTab[currentScreen]
-      this.setState(p => (p.selectedTab === selectedTab ? null : {selectedTab}))
-    }
+    // if (prevScreen !== currentScreen) {
+    // console.log('aaaa', currentScreen)
+    // const selectedTab = nameToTab[currentScreen]
+    // this.setState(p => (p.selectedTab === selectedTab ? null : {selectedTab}))
+    // }
+    this.setState(p => (p.activeKey === activeKey ? null : {activeKey}))
   }
 
   dispatch = p => this._nav.dispatch(p)
 
   render() {
+    // selectedTab={this.state.selectedTab}
     return (
       <AppContainer
         ref={nav => (this._nav = nav)}
         onNavigationStateChange={this._onNavigationStateChange}
-        selectedTab={this.state.selectedTab}
+        activeKey={this.state.activeKey}
       />
     )
   }

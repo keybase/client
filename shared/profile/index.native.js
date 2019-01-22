@@ -591,7 +591,7 @@ class UserEntry extends React.PureComponent<UserEntryProps> {
           />
           <Kb.Text
             type="BodySemibold"
-center={true}
+            center={true}
             style={
               this.props.following ? styles.userEntryUsernameFollowing : styles.userEntryUsernameNotFollowing
             }
@@ -677,8 +677,8 @@ const styles = Styles.styleSheetCreate({
     justifyContent: 'flex-start',
     minHeight: userEntryMinHeight,
   },
-  userEntryUsernameFollowing: { color: Styles.globalColors.green },
-  userEntryUsernameNotFollowing: { color: Styles.globalColors.blue },
+  userEntryUsernameFollowing: {color: Styles.globalColors.green},
+  userEntryUsernameNotFollowing: {color: Styles.globalColors.blue},
 })
 
 const styleProofNotice = {

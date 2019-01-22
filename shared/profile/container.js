@@ -212,8 +212,14 @@ const mergeProps = (stateProps, dispatchProps) => {
   return {okProps, type: 'ok'}
 }
 
-export default connect<OwnProps, _, _, _, _>(
+const connected = connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps
 )(ProfileContainer)
+
+connected.navigationOptions = {
+  isUnderNotch: true,
+}
+
+export default connected

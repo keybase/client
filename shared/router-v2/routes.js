@@ -25,7 +25,7 @@ const convert = ({route, tab, name}) => {
     return
   }
   nameToTab[name] = tab
-  routes[name] = r.component
+  routes[name] = {getScreen: () => r.component}
 
   const children = I.Map(r.children).toJS()
   Object.keys(children).forEach(name => {
