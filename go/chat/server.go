@@ -1152,8 +1152,8 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 	}
 
 	// Check for any slash command hits for an execute
-	if handled, err := h.runSlashCommands(ctx, uid, arg.ConversationID, arg.Msg.ClientHeader.TlfName,
-		arg.Msg.MessageBody); handled {
+	if handled, err := h.G().CommandsSource.AttemptCommand(ctx, uid, arg.ConversationID,
+		arg.Msg.ClientHeader.TlfName, arg.Msg.MessageBody); handled {
 		h.Debug(ctx, "PostLocal: handled slash command with error: %s", err)
 		return res, nil
 	}
@@ -1442,25 +1442,6 @@ func (h *Server) GenerateOutboxID(ctx context.Context) (res chat1.OutboxID, err 
 	return storage.NewOutboxID()
 }
 
-func (h *Server) runSlashCommands(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	tlfName string, body chat1.MessageBody) (bool, error) {
-	if !body.IsType(chat1.MessageType_TEXT) {
-		return false, nil
-	}
-	text := body.Text().Body
-	groups, err := h.G().CommandsSource.ListCommands(ctx, uid, convID)
-	if err != nil {
-		return false, err
-	}
-	for _, g := range groups {
-		if cmd, ok := g.Match(ctx, text); ok {
-			h.Debug(ctx, "runSlashCommands: matched command: %s, executing...", cmd.Name())
-			return true, cmd.Execute(ctx, uid, convID, tlfName, text)
-		}
-	}
-	return false, nil
-}
-
 func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonblockArg) (res chat1.PostLocalNonblockRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
@@ -1480,8 +1461,8 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 	}
 
 	// Check for any slash command hits for an execute
-	if handled, err := h.runSlashCommands(ctx, uid, arg.ConversationID, arg.Msg.ClientHeader.TlfName,
-		arg.Msg.MessageBody); handled {
+	if handled, err := h.G().CommandsSource.AttemptCommand(ctx, uid, arg.ConversationID,
+		arg.Msg.ClientHeader.TlfName, arg.Msg.MessageBody); handled {
 		h.Debug(ctx, "PostLocalNonblock: handled slash command with error: %s", err)
 		return res, nil
 	}

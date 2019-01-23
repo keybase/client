@@ -47,6 +47,27 @@ func (s *Source) makeBuiltin() {
 	}
 }
 
-func (s *Source) ListCommands(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) ([]types.ConversationCommandGroup, error) {
+func (s *Source) ListCommands(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (res []types.ConversationCommandGroup, err error) {
+	defer s.Trace(ctx, func() error { return err }, "ListCommands")()
 	return []types.ConversationCommandGroup{s.builtin}, nil
+}
+
+func (s *Source) AttemptCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	tlfName string, body chat1.MessageBody) (handled bool, err error) {
+	defer s.Trace(ctx, func() error { return err }, "AttemptCommand")()
+	if !body.IsType(chat1.MessageType_TEXT) {
+		return false, nil
+	}
+	text := body.Text().Body
+	groups, err := s.ListCommands(ctx, uid, convID)
+	if err != nil {
+		return false, err
+	}
+	for _, g := range groups {
+		if cmd, ok := g.Match(ctx, text); ok {
+			s.Debug(ctx, "AttemptCommand: matched command: %s, executing...", cmd.Name())
+			return true, cmd.Execute(ctx, uid, convID, tlfName, text)
+		}
+	}
+	return false, nil
 }

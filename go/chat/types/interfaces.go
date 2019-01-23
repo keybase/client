@@ -410,6 +410,8 @@ type ConversationCommand interface {
 
 type ConversationCommandsSource interface {
 	ListCommands(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) ([]ConversationCommandGroup, error)
+	AttemptCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, tlfName string,
+		body chat1.MessageBody) (bool, error)
 }
 
 type InternalError interface {
