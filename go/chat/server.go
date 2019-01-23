@@ -1151,8 +1151,16 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 		return res, fmt.Errorf("no TLF name specified")
 	}
 
+	// Check for any slash command hits for an execute
+	if handled, err := h.runSlashCommands(ctx, uid, arg.ConversationID, arg.Msg.ClientHeader.TlfName,
+		arg.Msg.MessageBody); handled {
+		h.Debug(ctx, "PostLocal: handled slash command with error: %s", err)
+		return res, nil
+	}
+
 	// Run Stellar UI on any payments in the body
-	if arg.Msg.MessageBody, err = h.runStellarSendUI(ctx, 0, uid, arg.ConversationID, arg.Msg.MessageBody); err != nil {
+	if arg.Msg.MessageBody, err = h.runStellarSendUI(ctx, 0, uid, arg.ConversationID,
+		arg.Msg.MessageBody); err != nil {
 		return res, err
 	}
 
