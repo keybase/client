@@ -125,8 +125,8 @@ const styles = Styles.styleSheetCreate({
       alignSelf: 'center',
     },
     isElectron: {
+      ...Styles.desktopStyles.boxShadow,
       borderRadius: 4,
-      boxShadow: `0 2px 5px 0 ${Styles.globalColors.black_20}`,
       height: 520,
       margin: 40,
       width: 620,

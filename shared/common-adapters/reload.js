@@ -13,7 +13,7 @@ type OwnProps = {|
   children: React.Node,
   reloadOnMount?: boolean,
   onReload: () => void,
-  waitingKeys: string | Array<string> | (string => boolean),
+  waitingKeys: string | Array<string>,
 |}
 
 type Props = {|

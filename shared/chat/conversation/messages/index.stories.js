@@ -4,6 +4,7 @@ import * as Sb from '../../../stories/storybook'
 import {Box2, Text} from '../../../common-adapters'
 import {globalColors} from '../../../styles'
 import chooseEmoji from './react-button/emoji-picker/index.stories'
+import emojiRow from './react-button/emoji-row/index.stories'
 import placeholder from './placeholder/index.stories'
 import reactButton from './react-button/index.stories'
 import wrapper from './wrapper/index.stories'
@@ -13,8 +14,8 @@ import accountPayment from './account-payment/index.stories'
 import UserNotice from './user-notice'
 
 const load = () => {
-  ;[chooseEmoji, placeholder, reactButton, reactionTooltip, text, accountPayment, wrapper].forEach(load =>
-    load()
+  ;[chooseEmoji, emojiRow, placeholder, reactButton, reactionTooltip, text, accountPayment, wrapper].forEach(
+    load => load()
   )
   Sb.storiesOf('Chat', module)
     .addDecorator(story => (

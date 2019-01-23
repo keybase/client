@@ -1,5 +1,4 @@
 // @flow
-import * as I from 'immutable'
 import * as React from 'react'
 import * as ChatConstants from '../../constants/chat2'
 import * as Sb from '../../stories/storybook'
@@ -93,6 +92,7 @@ a = 1
       /keybase/private/songgao/🍻
       /keybase/private/songgao/🍻/🍹.png/
       /keybase/private/songgao/囧/yo
+      /keybase/private/__songgao__@twitter,strib@github,jzila@reddit,jakob.weisbl.at@dns/file
       /keybase/private/songgao,strib#jzila,jakob223/file
       /keybase/private/songgao,strib#jzila/file
       /keybase/private/song-gao,strib#jzila/file
@@ -188,12 +188,6 @@ else echo "bar";
 }
 
 const mockMeta = {
-  mentionsAt: I.Set(['following', 'notFollowing', 'myUsername', 'noTheme']),
-  mentionsChannel: 'all',
-  mentionsChannelName: I.Map({
-    // $ForceType
-    general: '0000bbbbbbbbbbbbbbaaaaaaaaaaaaadddddddddccccccc0000000ffffffeeee',
-  }),
   message: ChatConstants.makeMessageText(),
 }
 
@@ -208,9 +202,6 @@ const mocksWithMeta = {
   },
   'Inline send': {
     meta: {
-      mentionsAt: I.Set(),
-      mentionsChannel: 'none',
-      mentionsChannelName: I.Map(),
       message: ChatConstants.makeMessageText({
         decoratedText: new HiddenString(
           `$>kb\${"typ":0,"payment":{"username":"chrisnojima","paymentText":"+0.001XLM@chrisnojima","result":{"resultTyp":0,"sent":"63f55e57bf53402e54b587cd035f96fb7136d0c98b46d6926e41360000000000"}}}$<kb$`
@@ -218,42 +209,6 @@ const mocksWithMeta = {
       }),
     },
     text: `$>kb\${"typ":0,"payment":{"username":"chrisnojima","paymentText":"+0.001XLM@chrisnojima","result":{"resultTyp":0,"sent":"63f55e57bf53402e54b587cd035f96fb7136d0c98b46d6926e41360000000000"}}}$<kb$`,
-  },
-  'User mention - Edge cases': {
-    meta: {
-      ...mockMeta,
-      // This is here to test that the regex is properly not picking up some of these
-      mentionsAt: I.Set([
-        'valid_',
-        '_not',
-        'either',
-        'this_is',
-        'this',
-        'aa',
-        'a_',
-        'a',
-        'long_username',
-        '01234567890abcdef',
-        'you',
-      ]),
-    },
-    text: `hi @you, I hope you're doing well.
-
-this is @valid_
-
-this is @_not
-
-this isn't@either
-
-@this_is though
-
-and @this!
-
-this is the smallest username @aa and @a_ this is too small @a
-
-this is a @long_username
-
-this is too long: @01234567890abcdef`,
   },
   'User mention - Following': {
     meta: mockMeta,

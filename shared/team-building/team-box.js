@@ -57,19 +57,22 @@ const TeamBox = (props: Props) => (
 const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
     common: {
-      ...Styles.globalStyles.rounded,
-      borderColor: Styles.globalColors.black_20,
-      borderStyle: 'solid',
-      borderWidth: 1,
       flex: 1,
       flexWrap: 'wrap',
     },
     isElectron: {
+      ...Styles.globalStyles.rounded,
+      borderColor: Styles.globalColors.black_20,
+      borderStyle: 'solid',
+      borderWidth: 1,
       maxHeight: 170,
       minHeight: 40,
       overflowY: 'scroll',
     },
     isMobile: {
+      borderBottomColor: Styles.globalColors.black_10,
+      borderBottomWidth: 1,
+      borderStyle: 'solid',
       minHeight: 45,
     },
   }),

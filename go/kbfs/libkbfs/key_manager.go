@@ -103,11 +103,13 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 	if keyGen < kbfsmd.FirstValidKeyGen {
 		return kbfscrypto.TLFCryptKey{}, kbfsmd.InvalidKeyGenerationError{TlfID: tlfID, KeyGen: keyGen}
 	}
-	// Is this some key we don't know yet?  Shouldn't really ever happen,
-	// since we must have seen the MD that led us to this block, which
-	// should include all the latest keys.  Consider this a failsafe.
+	// Is this some key we don't know yet?  Shouldn't really ever
+	// happen, but during migration there was a race that made this
+	// possible (KBFS-3774).  If the key gen really doesn't exist,
+	// we'll return an InvalidKeyGenerationError below.
 	if keyGen > kmd.LatestKeyGeneration() {
-		return kbfscrypto.TLFCryptKey{}, kbfsmd.NewKeyGenerationError{TlfID: tlfID, KeyGen: keyGen}
+		km.log.CDebugf(ctx, "Key gen %d is bigger than latest key gen %d",
+			keyGen, kmd.LatestKeyGeneration())
 	}
 
 	// look in the cache first

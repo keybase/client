@@ -5,6 +5,7 @@ import {action, storiesOf} from '../../stories/storybook'
 
 const defaultProps = {
   badgeNumbers: {},
+  hasRandomPW: null,
   onLogout: action('onlogout'),
   onTabChange: action('ontabchange'),
   selectedTab: 'settingsTabs:landingTab',

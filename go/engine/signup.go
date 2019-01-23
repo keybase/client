@@ -4,12 +4,17 @@
 package engine
 
 import (
+	"encoding/base64"
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	triplesec "github.com/keybase/go-triplesec"
 )
+
+// For password-less signups, number of bytes that are randomly generated
+// and then encoded with base64 to be used as user's passphrase.
+const randomPassphraseLen = 16
 
 type SignupEngine struct {
 	pwsalt         []byte
@@ -27,17 +32,18 @@ type SignupEngine struct {
 var _ Engine2 = (*SignupEngine)(nil)
 
 type SignupEngineRunArg struct {
-	Username    string
-	Email       string
-	InviteCode  string
-	Passphrase  string
-	StoreSecret bool
-	DeviceName  string
-	DeviceType  keybase1.DeviceType
-	SkipGPG     bool
-	SkipMail    bool
-	SkipPaper   bool
-	GenPGPBatch bool // if true, generate and push a pgp key to the server (no interaction)
+	Username                 string
+	Email                    string
+	InviteCode               string
+	Passphrase               string
+	GenerateRandomPassphrase bool
+	StoreSecret              bool
+	DeviceName               string
+	DeviceType               keybase1.DeviceType
+	SkipGPG                  bool
+	SkipMail                 bool
+	SkipPaper                bool
+	GenPGPBatch              bool // if true, generate and push a pgp key to the server (no interaction)
 }
 
 func NewSignupEngine(g *libkb.GlobalContext, arg *SignupEngineRunArg) *SignupEngine {
@@ -78,11 +84,11 @@ func (s *SignupEngine) Run(m libkb.MetaContext) (err error) {
 
 	m = m.WithNewProvisionalLoginContext()
 
-	if err = s.genPassphraseStream(m, s.arg.Passphrase); err != nil {
+	if err = s.genPassphraseStream(m, s.arg.Passphrase, s.arg.GenerateRandomPassphrase); err != nil {
 		return err
 	}
 
-	if err = s.join(m, s.arg.Username, s.arg.Email, s.arg.InviteCode, s.arg.SkipMail); err != nil {
+	if err = s.join(m, s.arg.Username, s.arg.Email, s.arg.InviteCode, s.arg.SkipMail, s.arg.GenerateRandomPassphrase); err != nil {
 		return err
 	}
 
@@ -149,7 +155,25 @@ func (s *SignupEngine) doGPG(m libkb.MetaContext) error {
 	return nil
 }
 
-func (s *SignupEngine) genPassphraseStream(m libkb.MetaContext, passphrase string) error {
+func (s *SignupEngine) genRandomPassphrase(m libkb.MetaContext) (string, error) {
+	str, err := libkb.RandBytes(randomPassphraseLen)
+	if err != nil {
+		return "", err
+	}
+	return base64.StdEncoding.EncodeToString(str), nil
+}
+
+func (s *SignupEngine) genPassphraseStream(m libkb.MetaContext, passphrase string, randomPW bool) error {
+	if randomPW {
+		if len(passphrase) != 0 {
+			return fmt.Errorf("Tried to generate random passphrase but also provided passphrase argument")
+		}
+		var err error
+		passphrase, err = s.genRandomPassphrase(m)
+		if err != nil {
+			return err
+		}
+	}
 	if len(passphrase) < libkb.MinPassphraseLength {
 		return libkb.PassphraseError{Msg: fmt.Sprintf("Passphrase must be at least %d characters", libkb.MinPassphraseLength)}
 	}
@@ -165,7 +189,7 @@ func (s *SignupEngine) genPassphraseStream(m libkb.MetaContext, passphrase strin
 	return nil
 }
 
-func (s *SignupEngine) join(m libkb.MetaContext, username, email, inviteCode string, skipMail bool) error {
+func (s *SignupEngine) join(m libkb.MetaContext, username, email, inviteCode string, skipMail bool, randomPW bool) error {
 	m.CDebugf("SignupEngine#join")
 	joinEngine := NewSignupJoinEngine(m.G())
 
@@ -180,6 +204,7 @@ func (s *SignupEngine) join(m libkb.MetaContext, username, email, inviteCode str
 		InviteCode: inviteCode,
 		PWHash:     s.ppStream.PWHash(),
 		PWSalt:     s.pwsalt,
+		RandomPW:   randomPW,
 		SkipMail:   skipMail,
 		PDPKA5KID:  pdpkda5kid,
 	}

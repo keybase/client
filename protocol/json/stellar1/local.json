@@ -662,6 +662,10 @@
           "name": "amountDescription"
         },
         {
+          "type": "string",
+          "name": "worthAtRequestTime"
+        },
+        {
           "type": "RequestStatus",
           "name": "status"
         }

@@ -29,6 +29,7 @@ const RemoveAccountPopup = (props: Props) => {
       backButtonType="cancel"
       headerStyle={styles.header}
       bottomButtons={Styles.isMobile ? buttons.reverse() : buttons}
+      safeAreaViewBottomStyle={styles.safeAreaBottom}
     >
       <Kb.Box2 centerChildren={true} direction="vertical" style={styles.flexOne} fullWidth={true}>
         <Kb.Icon
@@ -65,6 +66,9 @@ const styles = Styles.styleSheetCreate({
     isMobile: {marginTop: Styles.globalMargins.xlarge},
   }),
   marginBottomTiny: {marginBottom: Styles.globalMargins.tiny},
+  safeAreaBottom: {
+    backgroundColor: Styles.globalColors.fastBlank,
+  },
   warningText: Styles.platformStyles({
     isElectron: {wordBreak: 'break-word'},
     isMobile: {

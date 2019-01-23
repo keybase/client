@@ -88,6 +88,10 @@
         {
           "name": "genPaper",
           "type": "boolean"
+        },
+        {
+          "name": "randomPw",
+          "type": "boolean"
         }
       ],
       "response": "SignupRes"

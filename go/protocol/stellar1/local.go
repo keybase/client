@@ -532,16 +532,17 @@ func (o BuildRequestResLocal) DeepCopy() BuildRequestResLocal {
 }
 
 type RequestDetailsLocal struct {
-	Id                KeybaseRequestID     `codec:"id" json:"id"`
-	FromAssertion     string               `codec:"fromAssertion" json:"fromAssertion"`
-	FromCurrentUser   bool                 `codec:"fromCurrentUser" json:"fromCurrentUser"`
-	ToUserType        ParticipantType      `codec:"toUserType" json:"toUserType"`
-	ToAssertion       string               `codec:"toAssertion" json:"toAssertion"`
-	Amount            string               `codec:"amount" json:"amount"`
-	Asset             *Asset               `codec:"asset,omitempty" json:"asset,omitempty"`
-	Currency          *OutsideCurrencyCode `codec:"currency,omitempty" json:"currency,omitempty"`
-	AmountDescription string               `codec:"amountDescription" json:"amountDescription"`
-	Status            RequestStatus        `codec:"status" json:"status"`
+	Id                 KeybaseRequestID     `codec:"id" json:"id"`
+	FromAssertion      string               `codec:"fromAssertion" json:"fromAssertion"`
+	FromCurrentUser    bool                 `codec:"fromCurrentUser" json:"fromCurrentUser"`
+	ToUserType         ParticipantType      `codec:"toUserType" json:"toUserType"`
+	ToAssertion        string               `codec:"toAssertion" json:"toAssertion"`
+	Amount             string               `codec:"amount" json:"amount"`
+	Asset              *Asset               `codec:"asset,omitempty" json:"asset,omitempty"`
+	Currency           *OutsideCurrencyCode `codec:"currency,omitempty" json:"currency,omitempty"`
+	AmountDescription  string               `codec:"amountDescription" json:"amountDescription"`
+	WorthAtRequestTime string               `codec:"worthAtRequestTime" json:"worthAtRequestTime"`
+	Status             RequestStatus        `codec:"status" json:"status"`
 }
 
 func (o RequestDetailsLocal) DeepCopy() RequestDetailsLocal {
@@ -566,8 +567,9 @@ func (o RequestDetailsLocal) DeepCopy() RequestDetailsLocal {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Currency),
-		AmountDescription: o.AmountDescription,
-		Status:            o.Status.DeepCopy(),
+		AmountDescription:  o.AmountDescription,
+		WorthAtRequestTime: o.WorthAtRequestTime,
+		Status:             o.Status.DeepCopy(),
 	}
 }
 

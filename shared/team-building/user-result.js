@@ -92,7 +92,7 @@ class Row extends React.Component<Props, LocalState> {
   }
 }
 
-const AvatarSize = 32
+const AvatarSize = Styles.isMobile ? 48 : 32
 const Avatar = ({
   resultForService,
   keybaseUsername,
@@ -121,12 +121,14 @@ const Username = (props: {
 }) => (
   <Kb.Box2 direction="vertical" style={styles.username}>
     <Kb.Text
-      type="BodySmallSemibold"
+      type={Styles.isMobile ? 'BodySemibold' : 'BodySmallSemibold'}
       style={followingStateToStyle(props.keybaseResult ? props.followingState : 'NoState')}
     >
       {props.username}
     </Kb.Text>
-    {!!props.prettyName && <Kb.Text type="BodySmall">{props.prettyName}</Kb.Text>}
+    {!!props.prettyName && (
+      <Kb.Text type={Styles.isMobile ? 'Body' : 'BodySmall'}>{props.prettyName}</Kb.Text>
+    )}
   </Kb.Box2>
 )
 
@@ -272,13 +274,20 @@ const styles = Styles.styleSheetCreate({
   },
   rowContainer: Styles.platformStyles({
     common: {
+      borderBottomColor: Styles.globalColors.black_10,
+      borderBottomWidth: 1,
+      borderStyle: 'solid',
       paddingBottom: Styles.globalMargins.tiny,
-      paddingLeft: Styles.globalMargins.tiny,
-      paddingRight: Styles.globalMargins.tiny,
       paddingTop: Styles.globalMargins.tiny,
     },
     isElectron: {
       height: 50,
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
+    },
+    isMobile: {
+      paddingLeft: Styles.globalMargins.xsmall,
+      paddingRight: Styles.globalMargins.xsmall,
     },
   }),
   serviceIcon: Styles.platformStyles({

@@ -9,6 +9,7 @@ import type {StylesCrossPlatform} from '../../../../styles'
 import ReactButton, {NewReactionButton} from '.'
 
 export type OwnProps = {|
+  className?: string,
   conversationIDKey: Types.ConversationIDKey,
   emoji?: string,
   onMouseLeave?: (evt: SyntheticEvent<>) => void,
@@ -35,6 +36,7 @@ const Wrapper = (props: WrapperProps) =>
   props.emoji ? (
     <ReactButton
       active={props.active}
+      className={props.className}
       conversationIDKey={props.conversationIDKey}
       count={props.count}
       getAttachmentRef={props.getAttachmentRef}
@@ -97,6 +99,7 @@ const mapDispatchToProps = (dispatch, {conversationIDKey, emoji, ordinal}: OwnPr
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   active: stateProps.active,
+  className: ownProps.className,
   conversationIDKey: ownProps.conversationIDKey,
   count: stateProps.count,
   emoji: stateProps.emoji,

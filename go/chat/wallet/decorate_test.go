@@ -26,7 +26,8 @@ func TestStellarDecorate(t *testing.T) {
 					Result:      chat1.NewTextPaymentResultWithSent(stellar1.PaymentID("stellarid")),
 				},
 			},
-			result: "$>kb${\"typ\":0,\"payment\":{\"username\":\"mikem\",\"paymentText\":\"+1XLM\",\"result\":{\"resultTyp\":0,\"sent\":\"stellarid\"}}}$<kb$ other test",
+			// {"typ":0,"payment":{"username":"mikem","paymentText":"+1XLM","result":{"resultTyp":0,"sent":"stellarid"}}}
+			result: "$>kb$eyJ0eXAiOjAsInBheW1lbnQiOnsidXNlcm5hbWUiOiJtaWtlbSIsInBheW1lbnRUZXh0IjoiKzFYTE0iLCJyZXN1bHQiOnsicmVzdWx0VHlwIjowLCJzZW50Ijoic3RlbGxhcmlkIn19fQ==$<kb$ other test",
 		},
 		decorateTest{
 			body: "`+1xlm` +1xlm other test",
@@ -37,7 +38,8 @@ func TestStellarDecorate(t *testing.T) {
 					Result:      chat1.NewTextPaymentResultWithSent(stellar1.PaymentID("stellarid")),
 				},
 			},
-			result: "`+1xlm` $>kb${\"typ\":0,\"payment\":{\"username\":\"mikem\",\"paymentText\":\"+1XLM\",\"result\":{\"resultTyp\":0,\"sent\":\"stellarid\"}}}$<kb$ other test",
+			// {"typ":0,"payment":{"username":"mikem","paymentText":"+1XLM","result":{"resultTyp":0,"sent":"stellarid"}}}
+			result: "`+1xlm` $>kb$eyJ0eXAiOjAsInBheW1lbnQiOnsidXNlcm5hbWUiOiJtaWtlbSIsInBheW1lbnRUZXh0IjoiKzFYTE0iLCJyZXN1bHQiOnsicmVzdWx0VHlwIjowLCJzZW50Ijoic3RlbGxhcmlkIn19fQ==$<kb$ other test",
 		},
 		decorateTest{
 			body: "HIHIH ```+5xlm@patrick``` +5xlm@patrick `+1xlm` +1xlm other test",
@@ -53,7 +55,9 @@ func TestStellarDecorate(t *testing.T) {
 					Result:      chat1.NewTextPaymentResultWithSent(stellar1.PaymentID("stellarid")),
 				},
 			},
-			result: "HIHIH ```+5xlm@patrick``` $>kb${\"typ\":0,\"payment\":{\"username\":\"patrick\",\"paymentText\":\"+5XLM@patrick\",\"result\":{\"resultTyp\":0,\"sent\":\"stellarid\"}}}$<kb$ `+1xlm` $>kb${\"typ\":0,\"payment\":{\"username\":\"mikem\",\"paymentText\":\"+1XLM\",\"result\":{\"resultTyp\":0,\"sent\":\"stellarid\"}}}$<kb$ other test",
+			// {"typ":0,"payment":{"username":"patrick","paymentText":"+5XLM@patrick","result":{"resultTyp":0,"sent":"stellarid"}}}
+			// {"typ":0,"payment":{"username":"mikem","paymentText":"+1XLM","result":{"resultTyp":0,"sent":"stellarid"}}}
+			result: "HIHIH ```+5xlm@patrick``` $>kb$eyJ0eXAiOjAsInBheW1lbnQiOnsidXNlcm5hbWUiOiJwYXRyaWNrIiwicGF5bWVudFRleHQiOiIrNVhMTUBwYXRyaWNrIiwicmVzdWx0Ijp7InJlc3VsdFR5cCI6MCwic2VudCI6InN0ZWxsYXJpZCJ9fX0=$<kb$ `+1xlm` $>kb$eyJ0eXAiOjAsInBheW1lbnQiOnsidXNlcm5hbWUiOiJtaWtlbSIsInBheW1lbnRUZXh0IjoiKzFYTE0iLCJyZXN1bHQiOnsicmVzdWx0VHlwIjowLCJzZW50Ijoic3RlbGxhcmlkIn19fQ==$<kb$ other test",
 		},
 		decorateTest{
 			body: "   ```   `+124.005XLM@max```  my life to yours, my breath become yours  ```   `+124.005XLM@mikem``    ",
@@ -64,7 +68,8 @@ func TestStellarDecorate(t *testing.T) {
 					Result:      chat1.NewTextPaymentResultWithSent(stellar1.PaymentID("stellarid")),
 				},
 			},
-			result: "   ```   `+124.005XLM@max```  my life to yours, my breath become yours  ```   `$>kb${\"typ\":0,\"payment\":{\"username\":\"mikem\",\"paymentText\":\"+124.005XLM@mikem\",\"result\":{\"resultTyp\":0,\"sent\":\"stellarid\"}}}$<kb$``    ",
+			// {"typ":0,"payment":{"username":"mikem","paymentText":"+124.005XLM@mikem","result":{"resultTyp":0,"sent":"stellarid"}}}
+			result: "   ```   `+124.005XLM@max```  my life to yours, my breath become yours  ```   `$>kb$eyJ0eXAiOjAsInBheW1lbnQiOnsidXNlcm5hbWUiOiJtaWtlbSIsInBheW1lbnRUZXh0IjoiKzEyNC4wMDVYTE1AbWlrZW0iLCJyZXN1bHQiOnsicmVzdWx0VHlwIjowLCJzZW50Ijoic3RlbGxhcmlkIn19fQ==$<kb$``    ",
 		},
 	}
 	for _, c := range cases {

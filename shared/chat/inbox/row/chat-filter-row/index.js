@@ -82,48 +82,59 @@ class ChatFilterRow extends React.PureComponent<Props, State> {
   render() {
     let children
     if (this.state.isEditing || this.props.filter) {
-      children = [
-        <Kb.Icon
-          key="0"
-          type="iconfont-search"
-          style={{
-            marginRight: Styles.globalMargins.tiny,
-          }}
-          color={Styles.globalColors.black_20}
-        />,
-        <Kb.Input
-          hideUnderline={true}
-          key="1"
-          small={true}
-          value={this.props.filter}
-          hintText="Jump to..."
-          onChangeText={this.props.onSetFilter}
-          onFocus={this._startEditing}
-          onBlur={this._stopEditing}
-          onKeyDown={this._onKeyDown}
-          onEnterKeyDown={this._onEnterKeyDown}
-          ref={this._setRef}
-          style={{marginRight: Styles.globalMargins.tiny}}
-        />,
-      ]
+      children = (
+        <Kb.Box style={styles.inputContainer}>
+          <Kb.Icon type="iconfont-search" style={styles.icon} color={Styles.globalColors.black_20} />
+          <Kb.Input
+            hideUnderline={true}
+            small={true}
+            value={this.props.filter}
+            hintText="Jump to..."
+            onChangeText={this.props.onSetFilter}
+            onFocus={this._startEditing}
+            onBlur={this._stopEditing}
+            onKeyDown={this._onKeyDown}
+            onEnterKeyDown={this._onEnterKeyDown}
+            ref={this._setRef}
+            style={styles.text}
+          />
+        </Kb.Box>
+      )
     } else {
       children = (
         <Kb.ClickableBox style={styles.filterContainer} onClick={this._startEditing}>
           <Kb.Icon
             type="iconfont-search"
-            style={{
-              marginLeft: Styles.globalMargins.tiny,
-            }}
+            style={styles.icon}
             color={Styles.globalColors.black_50}
             fontSize={16}
           />
-          <Kb.Text type="BodySmallSemibold" style={{marginLeft: Styles.globalMargins.tiny}}>
+          <Kb.Text type="BodySemibold" style={styles.text}>
             Jump to chat
           </Kb.Text>
         </Kb.ClickableBox>
       )
     }
-    return (
+    return Styles.isMobile ? (
+      <>
+        <Kb.HeaderHocHeader
+          borderless={true}
+          rightActions={[
+            {
+              icon: 'iconfont-compose',
+              label: 'New chat',
+              onPress: this.props.onNewChat,
+            },
+          ]}
+          titleComponent={children}
+        />
+        {this.props.isLoading && (
+          <Kb.Box style={styles.loadingContainer}>
+            <Kb.LoadingLine />
+          </Kb.Box>
+        )}
+      </>
+    ) : (
       <Kb.Box style={styles.container}>
         {children}
         <Kb.Icon
@@ -160,22 +171,42 @@ const styles = Styles.styleSheetCreate({
       alignItems: 'center',
       backgroundColor: Styles.globalColors.black_10,
       borderRadius: Styles.borderRadius,
+      justifyContent: 'center',
+    },
+    isElectron: {
+      ...Styles.desktopStyles.editable,
       flexGrow: 1,
       height: 24,
-      justifyContent: 'center',
       marginRight: Styles.globalMargins.small,
     },
-    isElectron: Styles.desktopStyles.editable,
     isMobile: {
       height: 32,
-      marginRight: Styles.globalMargins.small,
+      width: '100%',
     },
   }),
+  icon: Styles.platformStyles({
+    common: {
+      position: 'relative',
+    },
+    isElectron: {
+      top: 2,
+    },
+    isMobile: {
+      top: 1,
+    },
+  }),
+  inputContainer: {
+    ...Styles.globalStyles.flexBoxRow,
+  },
   loadingContainer: {
     bottom: 0,
     left: 0,
     position: 'absolute',
     right: 0,
+  },
+  text: {
+    color: Styles.globalColors.black_50,
+    marginLeft: Styles.globalMargins.tiny,
   },
 })
 

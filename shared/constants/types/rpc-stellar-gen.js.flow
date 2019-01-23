@@ -416,8 +416,8 @@ export type RelayDirection =
   | 0 // CLAIM_0
   | 1 // YANK_1
 
-export type RequestDetails = $ReadOnly<{id: KeybaseRequestID, fromUser: Keybase1.UserVersion, toUser?: ?Keybase1.UserVersion, toAssertion: String, amount: String, asset?: ?Asset, currency?: ?OutsideCurrencyCode, fundingKbTxID: KeybaseTransactionID, status: RequestStatus}>
-export type RequestDetailsLocal = $ReadOnly<{id: KeybaseRequestID, fromAssertion: String, fromCurrentUser: Boolean, toUserType: ParticipantType, toAssertion: String, amount: String, asset?: ?Asset, currency?: ?OutsideCurrencyCode, amountDescription: String, status: RequestStatus}>
+export type RequestDetails = $ReadOnly<{id: KeybaseRequestID, fromUser: Keybase1.UserVersion, toUser?: ?Keybase1.UserVersion, toAssertion: String, amount: String, asset?: ?Asset, currency?: ?OutsideCurrencyCode, fromDisplayAmount: String, fromDisplayCurrency: String, toDisplayAmount: String, toDisplayCurrency: String, fundingKbTxID: KeybaseTransactionID, status: RequestStatus}>
+export type RequestDetailsLocal = $ReadOnly<{id: KeybaseRequestID, fromAssertion: String, fromCurrentUser: Boolean, toUserType: ParticipantType, toAssertion: String, amount: String, asset?: ?Asset, currency?: ?OutsideCurrencyCode, amountDescription: String, worthAtRequestTime: String, status: RequestStatus}>
 export type RequestPost = $ReadOnly<{toUser?: ?Keybase1.UserVersion, toAssertion: String, amount: String, asset?: ?Asset, currency?: ?OutsideCurrencyCode}>
 export type RequestStatus =
   | 0 // OK_0

@@ -121,6 +121,7 @@ export const keybase1NotifyTeamTeamDeleted = 'engine-gen:keybase1NotifyTeamTeamD
 export const keybase1NotifyTeamTeamExit = 'engine-gen:keybase1NotifyTeamTeamExit'
 export const keybase1NotifyTrackingTrackingChanged = 'engine-gen:keybase1NotifyTrackingTrackingChanged'
 export const keybase1NotifyUnverifiedTeamListTeamListUnverifiedChanged = 'engine-gen:keybase1NotifyUnverifiedTeamListTeamListUnverifiedChanged'
+export const keybase1NotifyUsersPasswordChanged = 'engine-gen:keybase1NotifyUsersPasswordChanged'
 export const keybase1NotifyUsersUserChanged = 'engine-gen:keybase1NotifyUsersUserChanged'
 export const keybase1PgpUiFinished = 'engine-gen:keybase1PgpUiFinished'
 export const keybase1PgpUiKeyGenerated = 'engine-gen:keybase1PgpUiKeyGenerated'
@@ -278,6 +279,7 @@ type _Keybase1NotifyTeamTeamDeletedPayload = $ReadOnly<{|params: $Exact<$Propert
 type _Keybase1NotifyTeamTeamExitPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.teamExit'>, 'inParam'>>|}>
 type _Keybase1NotifyTrackingTrackingChangedPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyTracking.trackingChanged'>, 'inParam'>>|}>
 type _Keybase1NotifyUnverifiedTeamListTeamListUnverifiedChangedPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyUnverifiedTeamList.teamListUnverifiedChanged'>, 'inParam'>>|}>
+type _Keybase1NotifyUsersPasswordChangedPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyUsers.passwordChanged'>, 'inParam'>>|}>
 type _Keybase1NotifyUsersUserChangedPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyUsers.userChanged'>, 'inParam'>>|}>
 type _Keybase1PgpUiFinishedPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.pgpUi.finished'>, 'inParam'>>|}>
 type _Keybase1PgpUiKeyGeneratedPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.pgpUi.keyGenerated'>, 'inParam'>>|}>
@@ -435,6 +437,7 @@ export const createKeybase1NotifyTeamTeamDeleted = (payload: _Keybase1NotifyTeam
 export const createKeybase1NotifyTeamTeamExit = (payload: _Keybase1NotifyTeamTeamExitPayload) => ({payload, type: keybase1NotifyTeamTeamExit})
 export const createKeybase1NotifyTrackingTrackingChanged = (payload: _Keybase1NotifyTrackingTrackingChangedPayload) => ({payload, type: keybase1NotifyTrackingTrackingChanged})
 export const createKeybase1NotifyUnverifiedTeamListTeamListUnverifiedChanged = (payload: _Keybase1NotifyUnverifiedTeamListTeamListUnverifiedChangedPayload) => ({payload, type: keybase1NotifyUnverifiedTeamListTeamListUnverifiedChanged})
+export const createKeybase1NotifyUsersPasswordChanged = (payload: _Keybase1NotifyUsersPasswordChangedPayload) => ({payload, type: keybase1NotifyUsersPasswordChanged})
 export const createKeybase1NotifyUsersUserChanged = (payload: _Keybase1NotifyUsersUserChangedPayload) => ({payload, type: keybase1NotifyUsersUserChanged})
 export const createKeybase1PgpUiFinished = (payload: _Keybase1PgpUiFinishedPayload) => ({payload, type: keybase1PgpUiFinished})
 export const createKeybase1PgpUiKeyGenerated = (payload: _Keybase1PgpUiKeyGeneratedPayload) => ({payload, type: keybase1PgpUiKeyGenerated})
@@ -592,6 +595,7 @@ export type Keybase1NotifyTeamTeamDeletedPayload = {|+payload: _Keybase1NotifyTe
 export type Keybase1NotifyTeamTeamExitPayload = {|+payload: _Keybase1NotifyTeamTeamExitPayload, +type: 'engine-gen:keybase1NotifyTeamTeamExit'|}
 export type Keybase1NotifyTrackingTrackingChangedPayload = {|+payload: _Keybase1NotifyTrackingTrackingChangedPayload, +type: 'engine-gen:keybase1NotifyTrackingTrackingChanged'|}
 export type Keybase1NotifyUnverifiedTeamListTeamListUnverifiedChangedPayload = {|+payload: _Keybase1NotifyUnverifiedTeamListTeamListUnverifiedChangedPayload, +type: 'engine-gen:keybase1NotifyUnverifiedTeamListTeamListUnverifiedChanged'|}
+export type Keybase1NotifyUsersPasswordChangedPayload = {|+payload: _Keybase1NotifyUsersPasswordChangedPayload, +type: 'engine-gen:keybase1NotifyUsersPasswordChanged'|}
 export type Keybase1NotifyUsersUserChangedPayload = {|+payload: _Keybase1NotifyUsersUserChangedPayload, +type: 'engine-gen:keybase1NotifyUsersUserChanged'|}
 export type Keybase1PgpUiFinishedPayload = {|+payload: _Keybase1PgpUiFinishedPayload, +type: 'engine-gen:keybase1PgpUiFinished'|}
 export type Keybase1PgpUiKeyGeneratedPayload = {|+payload: _Keybase1PgpUiKeyGeneratedPayload, +type: 'engine-gen:keybase1PgpUiKeyGenerated'|}
@@ -751,6 +755,7 @@ export type Actions =
   | Keybase1NotifyTeamTeamExitPayload
   | Keybase1NotifyTrackingTrackingChangedPayload
   | Keybase1NotifyUnverifiedTeamListTeamListUnverifiedChangedPayload
+  | Keybase1NotifyUsersPasswordChangedPayload
   | Keybase1NotifyUsersUserChangedPayload
   | Keybase1PgpUiFinishedPayload
   | Keybase1PgpUiKeyGeneratedPayload
