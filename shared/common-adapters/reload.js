@@ -43,7 +43,7 @@ class _Reload extends React.PureComponent<ReloadProps, {expanded: boolean}> {
 
 const Reload = HeaderHoc(_Reload)
 
-type Props = {|
+export type Props = {|
   children: React.Node,
   needsReload: boolean,
   onBack?: () => void,
@@ -103,7 +103,7 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-type OwnProps = {|
+export type OwnProps = {|
   children: React.Node,
   onBack?: () => void,
   onReload: () => void,

@@ -1,6 +1,7 @@
 // @flow
 import * as _Avatar from '../common-adapters/avatar'
 import * as _Usernames from '../common-adapters/usernames'
+import type {OwnProps as ReloadableOwnProps, Props as ReloadableProps} from '../common-adapters/reload'
 import type {ConnectedProps as _UsernamesConnectedProps} from '../common-adapters/usernames/container'
 import * as _WaitingButton from '../common-adapters/waiting-button'
 import type {OwnProps as TeamDropdownMenuOwnProps} from '../chat/conversation/info-panel/menu/container'
@@ -141,12 +142,23 @@ export const NameWithIcon = () => ({
   },
 })
 
+export const Reloadable = () => ({
+  Reloadable: (p: ReloadableOwnProps): ReloadableProps => ({
+    children: p.children,
+    needsReload: false,
+    onReload: action('reload'),
+    reason: '',
+    reloadOnMount: false,
+  }),
+})
+
 export const Common = () => ({
-  ...Usernames(),
   ...Avatar(),
-  ...WaitingButton(),
   ...CopyText(),
   ...NameWithIcon(),
+  ...Reloadable(),
+  ...Usernames(),
+  ...WaitingButton(),
   Channel,
   KbfsPath,
   Mention,
