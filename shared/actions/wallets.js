@@ -168,13 +168,14 @@ const requestPayment = state =>
       recipient: state.wallets.building.to,
     },
     Constants.requestPaymentWaitingKey
-  ).then(kbRqID =>
+  ).then(kbRqID => [
+    maybeNavigateAwayFromSendForm(state),
     WalletsGen.createRequestedPayment({
       kbRqID: new HiddenString(kbRqID),
       lastSentXLM: state.wallets.building.currency === 'XLM',
       requestee: state.wallets.building.to,
-    })
-  )
+    }),
+  ])
 
 const startPayment = state =>
   state.wallets.acceptedDisclaimer && !state.wallets.building.isRequest
