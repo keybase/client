@@ -55,7 +55,7 @@ func (b *baseCommand) getConvByName(ctx context.Context, uid gregor1.UID, name s
 	return res, nil
 }
 
-func (n *baseCommand) commandAndMessage(text string) (cmd string, msg string, err error) {
+func (b *baseCommand) commandAndMessage(text string) (cmd string, msg string, err error) {
 	toks := strings.Split(text, " ")
 	if len(toks) < 2 {
 		return "", "", ErrInvalidArguments
