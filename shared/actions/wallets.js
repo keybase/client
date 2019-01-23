@@ -93,7 +93,7 @@ const openSendRequestForm = (state, action) => {
 }
 
 const maybePopulateBuildingCurrency = (state, action) =>
-  state.wallets.building.bid && !state.wallets.building.currency // building a payment and haven't set currency yet
+  (state.wallets.building.bid || state.wallets.building.isRequest) && !state.wallets.building.currency // building a payment and haven't set currency yet
     ? WalletsGen.createSetBuildingCurrency({currency: Constants.getDefaultDisplayCurrency(state).code})
     : null
 
@@ -168,13 +168,14 @@ const requestPayment = state =>
       recipient: state.wallets.building.to,
     },
     Constants.requestPaymentWaitingKey
-  ).then(kbRqID =>
+  ).then(kbRqID => [
+    maybeNavigateAwayFromSendForm(state),
     WalletsGen.createRequestedPayment({
       kbRqID: new HiddenString(kbRqID),
       lastSentXLM: state.wallets.building.currency === 'XLM',
       requestee: state.wallets.building.to,
-    })
-  )
+    }),
+  ])
 
 const startPayment = state =>
   state.wallets.acceptedDisclaimer && !state.wallets.building.isRequest
@@ -739,7 +740,13 @@ const receivedBadgeState = (state, action) =>
   WalletsGen.createBadgesUpdated({accounts: action.payload.badgeState.unreadWalletAccounts || []})
 
 const acceptDisclaimer = (state, action) =>
-  RPCStellarTypes.localAcceptDisclaimerLocalRpcPromise(undefined, Constants.acceptDisclaimerWaitingKey)
+  RPCStellarTypes.localAcceptDisclaimerLocalRpcPromise(undefined, Constants.acceptDisclaimerWaitingKey).catch(
+    e => {
+      // disclaimer screen handles showing error
+      // reset delay state
+      return WalletsGen.createResetAcceptingDisclaimer()
+    }
+  )
 
 const checkDisclaimer = state =>
   RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise().then(accepted =>

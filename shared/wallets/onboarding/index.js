@@ -5,6 +5,7 @@ import Disclaimer from './disclaimer'
 import Intro from './intro'
 
 type OnboardingProps = {|
+  acceptDisclaimerError: string,
   acceptingDisclaimerDelay: boolean,
   onAcceptDisclaimer: () => void,
   onCheckDisclaimer: (nextScreen: Types.NextScreenAfterAcceptance) => void,
@@ -26,6 +27,7 @@ class Onboarding extends React.Component<OnboardingProps, OnboardingState> {
     } else {
       return (
         <Disclaimer
+          acceptDisclaimerError={this.props.acceptDisclaimerError}
           acceptingDisclaimerDelay={this.props.acceptingDisclaimerDelay}
           onAcceptDisclaimer={this.props.onAcceptDisclaimer}
           onCheckDisclaimer={() => {

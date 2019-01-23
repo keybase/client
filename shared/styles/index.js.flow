@@ -29,6 +29,7 @@ declare export var globalStyles: {
   rounded: {|borderRadius: 3|},
 }
 declare export var desktopStyles: {
+  boxShadow?: CSS._StylesDesktop,
   clickable?: CSS._StylesDesktop,
   editable?: CSS._StylesDesktop,
   fadeOpacity?: CSS._StylesDesktop,

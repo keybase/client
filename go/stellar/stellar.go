@@ -590,6 +590,15 @@ func sendPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg SendP
 		post.To = &recipient.User.UV
 	}
 
+	// check if recipient account exists
+	funded, err := isAccountFunded(mctx.Ctx(), walletState, stellar1.AccountID(recipient.AccountID.String()))
+	if err != nil {
+		return res, fmt.Errorf("error checking destination account balance: %v", err)
+	}
+	if !funded && isAmountLessThanMin(sendArg.Amount, minAmountCreateAccountXLM) {
+		return res, fmt.Errorf("you must send at least %s XLM to fund the account for %s", minAmountCreateAccountXLM, sendArg.To)
+	}
+
 	sp := NewSeqnoProvider(mctx, walletState)
 
 	tb, err := getTimeboundsForSending(mctx, walletState)
@@ -597,17 +606,10 @@ func sendPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg SendP
 		return res, err
 	}
 
-	// check if recipient account exists
 	var txID string
 	var seqno uint64
-	funded, err := isAccountFunded(mctx.Ctx(), walletState, stellar1.AccountID(recipient.AccountID.String()))
-	if err != nil {
-		return res, fmt.Errorf("error checking destination account balance: %v", err)
-	}
 	if !funded {
 		// if no balance, create_account operation
-		// we could check here to make sure that amount is at least 1XLM
-		// but for now, just let stellar-core tell us there was an error
 		sig, err := stellarnet.CreateAccountXLMTransaction(senderSeed2, *recipient.AccountID, sendArg.Amount, sendArg.PublicMemo, sp, tb)
 		if err != nil {
 			return res, err
@@ -648,6 +650,9 @@ func sendPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg SendP
 	// submit the transaction
 	rres, err := walletState.SubmitPayment(mctx.Ctx(), post)
 	if err != nil {
+		if rerr := walletState.RemovePendingTx(mctx.Ctx(), senderAccountID, stellar1.TransactionID(txID)); rerr != nil {
+			mctx.CDebugf("error calling RemovePendingTx: %s", rerr)
+		}
 		return res, err
 	}
 	mctx.CDebugf("sent payment (direct) kbTxID:%v txID:%v pending:%v", rres.KeybaseID, rres.StellarID, rres.Pending)
@@ -788,16 +793,12 @@ func specMiniChatPayment(mctx libkb.MetaContext, walletState *WalletState, payme
 // like "+1XLM@alice +2XLM@charlie".
 func SendMiniChatPayments(m libkb.MetaContext, walletState *WalletState, convID chat1.ConversationID, payments []libkb.MiniChatPayment) (res []libkb.MiniChatPaymentResult, err error) {
 	defer m.CTraceTimed("Stellar.SendMiniChatPayments", func() error { return err })()
+
 	// look up sender account
-	senderEntry, senderAccountBundle, err := LookupSenderPrimary(m)
+	senderAccountID, senderSeed, err := LookupSenderSeed(m)
 	if err != nil {
 		return nil, err
 	}
-	senderSeed, err := stellarnet.NewSeedStr(senderAccountBundle.Signers[0].SecureNoLogString())
-	if err != nil {
-		return nil, err
-	}
-	senderAccountID := senderEntry.AccountID
 
 	prepared, err := PrepareMiniChatPayments(m, walletState, senderSeed, convID, payments)
 	if err != nil {
@@ -877,7 +878,6 @@ func PrepareMiniChatPayments(m libkb.MetaContext, walletState *WalletState, send
 	sort.Slice(preparedList, func(a, b int) bool { return preparedList[a].Seqno < preparedList[b].Seqno })
 
 	return preparedList, nil
-
 }
 
 func prepareMiniChatPayment(m libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, tb *build.Timebounds, senderSeed stellarnet.SeedStr, convID chat1.ConversationID, payment libkb.MiniChatPayment) *MiniPrepared {
@@ -933,6 +933,10 @@ func prepareMiniChatPaymentDirect(m libkb.MetaContext, remoter remote.Remoter, s
 	if funded {
 		signResult, err = stellarnet.PaymentXLMTransaction(senderSeed, *recipient.AccountID, xlmAmount, "", sp, tb)
 	} else {
+		if isAmountLessThanMin(xlmAmount, minAmountCreateAccountXLM) {
+			result.Error = fmt.Errorf("you must send at least %s XLM to fund the account", minAmountCreateAccountXLM)
+			return result
+		}
 		signResult, err = stellarnet.CreateAccountXLMTransaction(senderSeed, *recipient.AccountID, xlmAmount, "", sp, tb)
 	}
 	if err != nil {
@@ -942,8 +946,8 @@ func prepareMiniChatPaymentDirect(m libkb.MetaContext, remoter remote.Remoter, s
 	result.Direct.SignedTransaction = signResult.Signed
 	result.Seqno = signResult.Seqno
 	result.TxID = stellar1.TransactionID(signResult.TxHash)
-	return result
 
+	return result
 }
 
 func prepareMiniChatPaymentRelay(mctx libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, tb *build.Timebounds, senderSeed stellarnet.SeedStr, convID chat1.ConversationID, payment libkb.MiniChatPayment, recipient stellarcommon.Recipient) *MiniPrepared {
@@ -971,6 +975,11 @@ func prepareMiniChatPaymentRelay(mctx libkb.MetaContext, remoter remote.Remoter,
 			result.Error = err
 			return result
 		}
+	}
+
+	if isAmountLessThanMin(xlmAmount, minAmountRelayXLM) {
+		result.Error = fmt.Errorf("you must send at least %s XLM to fund the account", minAmountRelayXLM)
+		return result
 	}
 
 	relay, err := relays.Create(relays.Input{
@@ -1021,6 +1030,11 @@ func sendRelayPayment(mctx libkb.MetaContext, walletState *WalletState,
 	if err != nil {
 		return res, err
 	}
+
+	if isAmountLessThanMin(amount, minAmountRelayXLM) {
+		return res, fmt.Errorf("you must send at least %s XLM to fund the account for %s", minAmountRelayXLM, recipient.Input)
+	}
+
 	sp := NewSeqnoProvider(mctx, walletState)
 	tb, err := getTimeboundsForSending(mctx, walletState)
 	if err != nil {
@@ -1063,6 +1077,9 @@ func sendRelayPayment(mctx libkb.MetaContext, walletState *WalletState,
 	}
 	rres, err := walletState.SubmitRelayPayment(mctx.Ctx(), post)
 	if err != nil {
+		if rerr := walletState.RemovePendingTx(mctx.Ctx(), accountID, stellar1.TransactionID(relay.FundTx.TxHash)); rerr != nil {
+			mctx.CDebugf("error calling RemovePendingTx: %s", rerr)
+		}
 		return res, err
 	}
 	mctx.CDebugf("sent payment (relay) kbTxID:%v txID:%v pending:%v", rres.KeybaseID, rres.StellarID, rres.Pending)
@@ -1784,11 +1801,6 @@ func GetCurrencySetting(mctx libkb.MetaContext, accountID stellar1.AccountID) (r
 		return res, fmt.Errorf("Got unrecognized currency code %q", codeStr)
 	}
 	return currency, nil
-}
-
-func accountIDFromSecretKey(skey stellar1.SecretKey) (stellar1.AccountID, error) {
-	_, res, _, err := libkb.ParseStellarSecretKey(skey.SecureNoLogString())
-	return res, err
 }
 
 func CreateNewAccount(mctx libkb.MetaContext, accountName string) (ret stellar1.AccountID, err error) {

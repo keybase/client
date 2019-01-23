@@ -567,4 +567,49 @@ protocol local {
     union { null, string } username;
   }
   LookupResultCLILocal lookupCLILocal(string name);
+
+  record BatchPaymentError {
+    string message;
+    int code;
+  }
+
+  record BatchPaymentResult {
+    string username;
+    TimeMs startTime;
+    TimeMs submittedTime;
+    TimeMs endTime;
+    TransactionID txID;
+    PaymentStatus status;
+    string statusDescription;
+    union { null, BatchPaymentError } error;
+  }
+
+  record BatchResultLocal {
+    TimeMs startTime;
+    TimeMs preparedTime;
+    TimeMs allSubmittedTime;
+    TimeMs endTime;
+    array<BatchPaymentResult> payments;
+
+    TimeMs overallDurationMs;
+    TimeMs prepareDurationMs;
+    TimeMs submitDurationMs;
+    TimeMs waitDurationMs;
+
+    int countSuccess;
+    int countError;
+    int countPending;
+
+    TimeMs avgDurationMs;
+    TimeMs avgSuccessDurationMs;
+    TimeMs avgErrorDurationMs;
+  }
+
+  record BatchPaymentArg {
+    string recipient;
+    string amount;
+    string message;
+  }
+
+  BatchResultLocal batchLocal(string batchID, int timeoutSecs, array<BatchPaymentArg> payments);
 }

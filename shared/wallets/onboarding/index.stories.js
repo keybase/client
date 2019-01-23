@@ -6,6 +6,12 @@ import {platformStyles} from '../../styles'
 import Disclaimer from './disclaimer'
 import Intro from './intro'
 
+const actions = {
+  onAcceptDisclaimer: action('onAcceptDisclaimer'),
+  onCheckDisclaimer: action('onCheckDisclaimer'),
+  onNotNow: action('onNotNow'),
+}
+
 const load = () => {
   storiesOf('Wallets/Onboarding', module)
     .addDecorator(story => (
@@ -15,11 +21,13 @@ const load = () => {
     ))
     .add('Intro', () => <Intro onClose={action('onClose')} setNextScreen={action('setNextScreen')} />)
     .add('Disclaimer', () => (
+      <Disclaimer {...actions} acceptDisclaimerError="" acceptingDisclaimerDelay={false} />
+    ))
+    .add('Error accepting', () => (
       <Disclaimer
+        {...actions}
+        acceptDisclaimerError="There was an error accepting the disclaimer."
         acceptingDisclaimerDelay={false}
-        onAcceptDisclaimer={action('onAcceptDisclaimer')}
-        onCheckDisclaimer={action('onCheckDisclaimer')}
-        onNotNow={action('onNotNow')}
       />
     ))
 }

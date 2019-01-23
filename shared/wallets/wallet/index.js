@@ -18,7 +18,7 @@ export type Props = {
   accountID: Types.AccountID,
   loadingMore: boolean,
   navigateAppend: (...Array<any>) => any,
-  navigateUp: () => any,
+  onBack: () => void,
   onLoadMore: () => void,
   onMarkAsRead: () => void,
   sections: any[],
@@ -106,7 +106,7 @@ class Wallet extends React.Component<Props> {
   render() {
     return (
       <Kb.Box2 direction="vertical" style={{flexGrow: 1}} fullHeight={true}>
-        <Header navigateAppend={this.props.navigateAppend} navigateUp={this.props.navigateUp} />
+        <Header navigateAppend={this.props.navigateAppend} onBack={this.props.onBack} />
         <Kb.SectionList
           sections={this.props.sections}
           renderItem={this._renderItem}
@@ -159,7 +159,7 @@ const styles = Styles.styleSheetCreate({
 // with AccountReloader.
 const MaybeReloaderWallet = (props: Props) => {
   const wallet = <Wallet {...props} />
-  return Styles.isMobile ? <AccountReloader>{wallet}</AccountReloader> : wallet
+  return Styles.isMobile ? <AccountReloader onBack={props.onBack}>{wallet}</AccountReloader> : wallet
 }
 
 export default MaybeReloaderWallet

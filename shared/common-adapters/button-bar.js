@@ -73,11 +73,13 @@ class ButtonBar extends React.PureComponent<Props> {
 // Note explicitly not using globalMargins here. We don't necessarily want this spacing to change ever
 const BigSpacer = () => <Box style={bigSpacerStyle} />
 const bigSpacerStyle = {
+  flexShrink: 0,
   height: 8,
   width: 8,
 }
 const SmallSpacer = () => <Box style={smallSpacerStyle} />
 const smallSpacerStyle = {
+  flexShrink: 0,
   height: isMobile ? 8 : 4,
   width: isMobile ? 8 : 4,
 }
