@@ -32,3 +32,13 @@ export type Props = {
   theme?: 'light' | 'dark', // defaults to 'light'
   rightActions?: (?Action)[],
 }
+export type LeftActionProps = {
+  badgeNumber?: number,
+  disabled?: boolean,
+  customCancelText?: string,
+  hasTextTitle?: boolean,
+  hideBackLabel?: boolean,
+  leftAction: 'back' | 'cancel',
+  leftActionText?: string,
+  onLeftAction: ?() => void,
+}

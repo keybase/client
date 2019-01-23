@@ -27,7 +27,7 @@ import {createAppContainer} from '@react-navigation/native'
 import {createBottomTabNavigator} from 'react-navigation-tabs'
 import {createStackNavigator} from 'react-navigation-stack'
 import {routes, nameToTab} from './routes'
-import {LeftAction} from '../common-adapters/header-hoc/index.native'
+import {LeftAction} from '../common-adapters/header-hoc'
 
 // deprecating routestate concept entirely
 // const emptyMap = I.Map()

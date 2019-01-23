@@ -18,6 +18,7 @@ import {
   SceneView,
 } from '@react-navigation/core'
 import {routes, nameToTab} from './routes'
+import {LeftAction} from '../common-adapters/header-hoc'
 
 // deprecating routestate concept entirely
 const emptyMap = I.Map()
@@ -35,7 +36,14 @@ class BridgeSceneView extends React.PureComponent {
     const options = Component.navigationOptions || {}
     return (
       <NavigationContext.Provider value={this.props.navigation}>
-        <BackBar onBack={this._pop} />
+        <Kb.Box2 noShrink={true} direction="horizontal" style={styles.backBar} fullWidth={true}>
+          <LeftAction
+            badgeNumber={0}
+            leftAction="back"
+            onLeftAction={this._pop}
+            disabled={!this.props.allowBack}
+          />
+        </Kb.Box2>
         <Kb.ErrorBoundary>
           <Component
             routeProps={this._routeProps}
@@ -50,19 +58,6 @@ class BridgeSceneView extends React.PureComponent {
     )
   }
 }
-
-const BackBar = p => (
-  <Kb.Box2
-    noShrink={true}
-    direction="horizontal"
-    gap="small"
-    gapStart={true}
-    style={styles.backBar}
-    fullWidth={true}
-  >
-    <Kb.Icon type="iconfont-arrow-left" onClick={p.onBack} />
-  </Kb.Box2>
-)
 
 // The app with a tab bar on the left and content area on the right
 // A single content view and n modals on top
@@ -93,7 +88,11 @@ class AppView extends React.PureComponent {
       <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
         <TabBar selectedTab={nameToTab[descriptor.state.routeName]} />
         <Kb.Box2 direction="vertical" fullHeight={true} style={styles.contentArea}>
-          <BridgeSceneView navigation={descriptor.navigation} component={descriptor.getComponent()} />
+          <BridgeSceneView
+            allowBack={index !== 0}
+            navigation={descriptor.navigation}
+            component={descriptor.getComponent()}
+          />
         </Kb.Box2>
         {modals.map(modal => {
           const Component = modal.getComponent()
