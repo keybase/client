@@ -18,7 +18,7 @@ type OwnProps = {
 
 const mapStateToProps = state => ({
   _downloads: state.fs.downloads,
-  _fileUIEnabled: state.fs.fuseStatus ? state.fs.fuseStatus.kextStarted : false,
+  _fileUIEnabled: Constants.kbfsEnabled(state),
   _pathItems: state.fs.pathItems,
   _tlfs: state.fs.tlfs,
   _username: state.config.username,

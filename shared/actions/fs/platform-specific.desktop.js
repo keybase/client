@@ -11,7 +11,7 @@ import * as SafeElectron from '../../util/safe-electron.desktop'
 import * as Tabs from '../../constants/tabs'
 import fs from 'fs'
 import type {TypedState} from '../../constants/reducer'
-import {fileUIName, isLinux, isWindows} from '../../constants/platform'
+import {fileUIName, isWindows} from '../../constants/platform'
 import logger from '../../logger'
 import {spawn, execFileSync, exec} from 'child_process'
 import path from 'path'
@@ -112,7 +112,7 @@ const _rebaseKbfsPathToMountLocation = (kbfsPath: Types.Path, mountLocation: str
   )
 
 const openPathInSystemFileManager = (state, action) =>
-  isLinux || (state.fs.fuseStatus && state.fs.fuseStatus.kextStarted)
+  Constants.kbfsEnabled(state)
     ? RPCTypes.kbfsMountGetCurrentMountDirRpcPromise()
         .then(mountLocation =>
           _openPathInSystemFileManagerPromise(

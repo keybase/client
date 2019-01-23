@@ -1,8 +1,9 @@
 // @flow
 import * as React from 'react'
 import * as FsGen from '../../actions/fs-gen'
+import * as Constants from '../../constants/fs'
 import {connect} from '../../util/container'
-import {isLinux, isMobile} from '../../constants/platform'
+import {isMobile} from '../../constants/platform'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 
 // On desktop, SecurityPrefsPromptingHoc prompts user about going to security
@@ -20,7 +21,7 @@ type MergedProps = {|
 
 const mapStateToProps = state => {
   const {securityPrefsPrompted, kextPermissionError} = state.fs.flags
-  const kbfsEnabled = isLinux || (state.fs.fuseStatus && state.fs.fuseStatus.kextStarted)
+  const kbfsEnabled = Constants.kbfsEnabled(state)
   return {
     shouldPromptSecurityPrefs: !securityPrefsPrompted && !kbfsEnabled && kextPermissionError,
   }
