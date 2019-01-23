@@ -19,7 +19,7 @@ import SaveIndicator from '../../../../common-adapters/save-indicator'
 
 export type RetentionEntityType = 'adhoc' | 'channel' | 'small team' | 'big team'
 
-export type Props = {
+export type Props = {|
   canSetPolicy: boolean,
   containerStyle?: StylesCrossPlatform,
   dropdownStyle?: StylesCrossPlatform,
@@ -33,7 +33,7 @@ export type Props = {
   saveRetentionPolicy: (policy: RetentionPolicy) => void,
   onSelect: (policy: RetentionPolicy, changed: boolean, decreased: boolean) => void,
   onShowWarning: (days: number, onConfirm: () => void, onCancel: () => void) => void,
-}
+|}
 
 type State = {
   saving: boolean,
@@ -205,7 +205,7 @@ class RetentionPicker extends React.Component<Props, State> {
   }
 }
 
-const RetentionDisplay = (props: Props & {entityType: RetentionEntityType}) => {
+const RetentionDisplay = (props: {|...Props, entityType: RetentionEntityType|}) => {
   let convType = ''
   switch (props.entityType) {
     case 'big team':
@@ -389,11 +389,12 @@ const policyToExplanation = (convType: string, p: RetentionPolicy, parent?: Rete
 }
 
 // Switcher to avoid having RetentionPicker try to process nonexistent data
-const RetentionSwitcher = (props: Props & {entityType: RetentionEntityType}) => {
+const RetentionSwitcher = (props: {|...Props, entityType: RetentionEntityType|}) => {
   if (props.loading) {
     return <ProgressIndicator style={progressIndicatorStyle} />
   }
-  return props.canSetPolicy ? <RetentionPicker {...props} /> : <RetentionDisplay {...props} />
+  const {entityType, ...pickerProps} = props
+  return props.canSetPolicy ? <RetentionPicker {...pickerProps} /> : <RetentionDisplay {...props} />
 }
 
 export default RetentionSwitcher
