@@ -98,4 +98,22 @@ const profileRoute = () => {
   })
 }
 
+export const newRoutes = {
+  addToTeam: {getScreen: () => require('./add-to-team/container').default},
+  confirmOrPending: {getScreen: () => require('./confirm-or-pending/container').default},
+  controlledRolePicker: {getScreen: () => require('../teams/role-picker/controlled-container').default},
+  editAvatar: {getScreen: () => require('./edit-avatar/container').default},
+  editAvatarPlaceholder: {getScreen: () => require('./edit-avatar-placeholder/container').default},
+  editProfile: {getScreen: () => require('./edit-profile/container').default},
+  nonUserProfile: {getScreen: () => require('./non-user-profile/container').default},
+  postProof: {getScreen: () => require('./post-proof/container').default},
+  profile: {getScreen: () => require('./container').default},
+  proveEnterUsername: {getScreen: () => require('./prove-enter-username/container').default},
+  proveWebsiteChoice: {getScreen: () => require('./prove-website-choice/container').default},
+  revoke: {getScreen: () => require('./revoke/container').default},
+  search: {getScreen: () => require('./search/container').default},
+  showcaseTeamOffer: {getScreen: () => require('./showcase-team-offer/container').default},
+  ...require('./pgp/routes').newRoutes,
+}
+
 export default profileRoute

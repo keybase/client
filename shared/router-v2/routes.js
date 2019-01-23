@@ -5,13 +5,15 @@
 import * as I from 'immutable'
 import {newRoutes as deviceNewRoutes} from '../devices/routes'
 import {newRoutes as chatNewRoutes} from '../chat/routes'
-import OldPeopleRoutes from '../people/routes'
+import {newRoutes as peopleNewRoutes} from '../people/routes'
+import {newRoutes as profileNewRoutes} from '../profile/routes'
+// import OldPeopleRoutes from '../people/routes'
 import * as Tabs from '../constants/tabs'
 
 export const nameToTab = {}
 export const routes = {}
 
-const oldRoutes = [{route: OldPeopleRoutes, tab: Tabs.peopleTab}]
+const oldRoutes = [] //  [{route: OldPeopleRoutes, tab: Tabs.peopleTab}]
 
 const convert = ({route, tab, name}) => {
   let r = route
@@ -37,7 +39,12 @@ oldRoutes.forEach(({route, tab}) => {
   convert({name: tab, route, tab})
 })
 
-const newRoutes = [{route: deviceNewRoutes, tab: Tabs.devicesTab}, {route: chatNewRoutes, tab: Tabs.chatTab}]
+const newRoutes = [
+  {route: deviceNewRoutes, tab: Tabs.devicesTab},
+  {route: chatNewRoutes, tab: Tabs.chatTab},
+  {route: peopleNewRoutes, tab: Tabs.peopleTab},
+  {route: profileNewRoutes, tab: Tabs.peopleTab},
+]
 
 newRoutes.forEach(({route, tab}) => {
   Object.keys(route).forEach(name => {

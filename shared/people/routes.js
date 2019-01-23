@@ -10,4 +10,8 @@ const peopleRoute = () => {
   })
 }
 
+export const newRoutes = {
+  'tabs:peopleTab': {getScreen: () => require('./container').default,}
+}
+
 export default peopleRoute
