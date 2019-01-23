@@ -52,9 +52,9 @@ func (h *Join) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Conver
 	if !h.Match(ctx, text) {
 		return ErrInvalidCommand
 	}
-	toks := h.tokenize(text)
-	if len(toks) < 2 {
-		return ErrInvalidArguments
+	toks, err := h.tokenize(text, 2)
+	if err != nil {
+		return err
 	}
 	conv, err := h.findAsChannelName(ctx, uid, convID, toks[1])
 	if err != nil {

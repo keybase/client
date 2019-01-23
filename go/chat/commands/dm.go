@@ -26,9 +26,9 @@ func (d *DM) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Conversa
 	if !d.Match(ctx, text) {
 		return ErrInvalidCommand
 	}
-	toks := d.tokenize(text)
-	if len(toks) < 3 {
-		return ErrInvalidArguments
+	toks, err := d.tokenize(text, 3)
+	if err != nil {
+		return err
 	}
 	conv, err := d.getConvByName(ctx, uid, toks[1])
 	if err != nil {

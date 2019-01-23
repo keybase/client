@@ -24,9 +24,9 @@ func (h *Unhide) Execute(ctx context.Context, uid gregor1.UID, _ chat1.Conversat
 	if !h.Match(ctx, text) {
 		return ErrInvalidCommand
 	}
-	toks := h.tokenize(text)
-	if len(toks) < 2 {
-		return ErrInvalidArguments
+	toks, err := h.tokenize(text, 2)
+	if err != nil {
+		return err
 	}
 	conv, err := h.getConvByName(ctx, uid, toks[1])
 	if err != nil {

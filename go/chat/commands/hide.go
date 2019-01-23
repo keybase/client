@@ -26,7 +26,10 @@ func (h *Hide) Execute(ctx context.Context, uid gregor1.UID, inConvID chat1.Conv
 		return ErrInvalidCommand
 	}
 	var convID chat1.ConversationID
-	toks := h.tokenize(text)
+	toks, err := h.tokenize(text, 1)
+	if err != nil {
+		return err
+	}
 	if len(toks) == 1 {
 		convID = inConvID
 	} else if len(toks) == 2 {
