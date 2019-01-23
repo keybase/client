@@ -117,8 +117,11 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 					chatWaitGroup.Add(1)
 					go func(m libkb.MetaContext, recipient string, txID stellar1.TransactionID) {
 						if err := chatSendPaymentMessageTo(m, recipient, txID); err != nil {
-							m.CDebugf("chatSendPaymentMessageTo error: %s", err)
+							m.CDebugf("chatSendPaymentMessageTo %s (%s): error: %s", recipient, txID, err)
+						} else {
+							m.CDebugf("chatSendPaymentMessageTo %s (%s): success", recipient, txID)
 						}
+
 						chatWaitGroup.Done()
 					}(mctx.WithCtx(context.Background()), resultList[index].Username, update.TxID)
 				}
