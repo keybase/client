@@ -11,7 +11,11 @@ const peopleRoute = () => {
 }
 
 export const newRoutes = {
-  'tabs:peopleTab': {getScreen: () => require('./container').default},
+  'tabs:peopleTab': {
+    getScreen: () => require('./container').default,
+    getHeader: () => require('./container').header,
+    // navigationOptions: {headerTitle: 'title in route'},
+  },
 }
 
 export default peopleRoute

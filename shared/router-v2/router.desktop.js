@@ -83,7 +83,6 @@ class AppView extends React.PureComponent {
     const activeKey = p.navigation.state.routes[nonModalIndex].key
     const descriptor = p.descriptors[activeKey]
 
-    // maybe move tabbar etc to  ElectronApp
     return (
       <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
         <TabBar selectedTab={nameToTab[descriptor.state.routeName]} />

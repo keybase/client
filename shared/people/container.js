@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as Constants from '../constants/people'
 import * as Types from '../constants/types/people'
 import * as Kb from '../common-adapters'
-import People from './'
+import People, {Header} from '.'
 import * as PeopleGen from '../actions/people-gen'
 import {connect, type RouteProps} from '../util/container'
 import {createSearchSuggestions} from '../actions/search-gen'
@@ -80,8 +80,24 @@ const mergeProps = (stateProps, dispatchProps) => {
   }
 }
 
-export default connect<OwnProps, _, _, _, _>(
+// TODO reduce the props sent to header
+const ConnectedHeader = connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(Header)
+
+const connected = connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps
 )(LoadOnMount)
+
+connected.navigationOptions = {
+  headerTitle: hp => <ConnectedHeader />,
+  headerTitleContainerStyle: {
+    left: 40,
+    right: 0,
+  },
+}
+export default connected

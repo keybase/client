@@ -122,12 +122,12 @@ const StackNavigator = createStackNavigator(routes, {
     // static navigationOptions = p => {
     // return {
     // headerTitle: p.navigation.getParam('username'),
-    headerTitle: hp => (
-      <Kb.Text center={true} type="Body">
-        CUSTOM{p.navigation.getParam('username')} long long long long lonlong long long long lonlong long long
-        long longgglong long long long long
-      </Kb.Text>
-    ),
+    // headerTitle: hp => (
+    // <Kb.Text center={true} type="Body">
+    // CUSTOM{p.navigation.getParam('username')} long long long long lonlong long long long lonlong long long
+    // long longgglong long long long long
+    // </Kb.Text>
+    // ),
     headerLeft: hp => (
       <LeftAction
         badgeNumber={0}
@@ -136,13 +136,14 @@ const StackNavigator = createStackNavigator(routes, {
         disabled={hp.scene.index === 0}
       />
     ),
-    headerRight: (
-      <Kb.Box2 direction="horizontal" fullHeight={true} centerChildren={true}>
-        <Kb.Icon type="iconfont-ellipsis" />
-        <Kb.Icon type="iconfont-ellipsis" />
-        <Kb.Icon type="iconfont-ellipsis" />
-      </Kb.Box2>
-    ),
+    // headerRight: (
+    // maybe move tabbar etc to  ElectronApp
+    // <Kb.Box2 direction="horizontal" fullHeight={true} centerChildren={true}>
+    // <Kb.Icon type="iconfont-ellipsis" />
+    // <Kb.Icon type="iconfont-ellipsis" />
+    // <Kb.Icon type="iconfont-ellipsis" />
+    // </Kb.Box2>
+    // ),
     // header: hp => (
     // <Kb.SafeAreaViewTop style={hp.style}>
     // <Kb.Text center={true} type="Body">
