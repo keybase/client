@@ -25,7 +25,6 @@ const mergeProps = (stateProps, dispatchProps, {tlfType, name, routePath, destin
     isIgnored: stateProps._tlf.isIgnored,
     isNew: shouldBadge && stateProps._tlf.isNew,
     name,
-    needPathItemInfo: !!stateProps._tlf.resetParticipants.size,
     needsRekey: shouldBadge && stateProps._tlf.needsRekey,
     path,
     routePath,

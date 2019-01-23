@@ -12,6 +12,7 @@ function SettingsRender(props: Props) {
       selectedTab={props.selectedTab}
       onTabChange={props.onTabChange}
       onLogout={props.onLogout}
+      hasRandomPW={props.hasRandomPW}
     />
   )
 }

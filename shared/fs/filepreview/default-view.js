@@ -26,7 +26,7 @@ const DefaultView = (props: DefaultViewProps) => (
       {props.pathItem.name}
     </Text>
     <Text type="BodySmall">{Constants.humanReadableFileSize(props.pathItem.size)}</Text>
-    {isMobile && <PathItemInfo path={props.path} startWithLastModified={true} />}
+    {isMobile && <PathItemInfo path={props.path} mode="default" />}
     {props.pathItem.type === 'symlink' && (
       <Text type="BodySmall" style={stylesSymlink}>
         {'This is a symlink' + (props.pathItem.linkTarget ? ` to: ${props.pathItem.linkTarget}.` : '.')}

@@ -56,10 +56,10 @@ export function PopupDialog({
 const styles = Styles.styleSheetCreate({
   clipContainer: Styles.platformStyles({
     isElectron: {
+      ...Styles.desktopStyles.boxShadow,
       ...Styles.globalStyles.flexBoxColumn,
       backgroundColor: Styles.globalColors.white,
       borderRadius: Styles.borderRadius,
-      boxShadow: `0 2px 5px 0 ${Styles.globalColors.black_20}`,
       flex: 1,
       maxWidth: '100%',
       position: 'relative',

@@ -7,6 +7,7 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
 
@@ -23,7 +24,7 @@ func (v *CmdLogout) Run() error {
 	if err != nil {
 		return err
 	}
-	return cli.Logout(context.TODO(), 0)
+	return cli.Logout(context.TODO(), keybase1.LogoutArg{})
 }
 
 func NewCmdLogout(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {

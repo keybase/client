@@ -336,6 +336,9 @@
         "keybase1NotifyUsersUserChanged": {
             "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyUsers.userChanged'>, 'inParam'>>"
         },
+        "keybase1NotifyUsersPasswordChanged": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyUsers.passwordChanged'>, 'inParam'>>"
+        },
         "keybase1PgpUiOutputSignatureSuccess": {
             "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.pgpUi.outputSignatureSuccess'>, 'inParam'>>"
         },

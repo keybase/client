@@ -274,7 +274,6 @@ const load = () =>
             needsRekey={false}
             isIgnored={false}
             isNew={true}
-            needPathItemInfo={false}
             onOpen={Sb.action('onOpen')}
             onAction={Sb.action('onAction')}
           />
@@ -286,7 +285,6 @@ const load = () =>
             needsRekey={false}
             isIgnored={false}
             isNew={true}
-            needPathItemInfo={true}
             onOpen={Sb.action('onOpen')}
             onAction={Sb.action('onAction')}
           />
@@ -298,7 +296,6 @@ const load = () =>
             needsRekey={false}
             isIgnored={false}
             isNew={true}
-            needPathItemInfo={false}
             onOpen={Sb.action('onOpen')}
             onAction={Sb.action('onAction')}
           />

@@ -151,11 +151,11 @@ const _styleCover = {
 }
 
 const _styleContainer = {
+  ...Styles.desktopStyles.boxShadow,
   ...Styles.globalStyles.flexBoxColumn,
   alignSelf: 'center',
   backgroundColor: Styles.globalColors.white,
   borderRadius: 5,
-  boxShadow: `0 2px 5px 0 ${Styles.globalColors.black_20}`,
 }
 
 export {InviteByEmailDesktop}
