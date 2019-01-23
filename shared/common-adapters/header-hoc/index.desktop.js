@@ -73,7 +73,7 @@ export const LeftAction = ({
           }
           style={styles.action}
           textStyle={disabled ? styles.disabledText : undefined}
-          onClick={onLeftAction}
+          onClick={disabled ? null : onLeftAction}
         />
       ))}
   </Box>
@@ -163,9 +163,11 @@ const styles = Styles.styleSheetCreate({
       paddingTop: Styles.globalMargins.tiny,
     },
   }),
-  disabledText: {
-    color: Styles.globalColors.black_10,
-  },
+  disabledText: Styles.platformStyles({
+    isElectron: {
+      color: Styles.globalColors.black_50,
+    },
+  }),
   grow: {
     flexGrow: 1,
   },

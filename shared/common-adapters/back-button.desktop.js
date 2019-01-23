@@ -6,7 +6,7 @@ import Icon from './icon'
 import {globalStyles, desktopStyles, collapseStyles} from '../styles'
 
 class BackButton extends Component<Props> {
-  onClick(event: SyntheticEvent<>) {
+  _onClick = (event: SyntheticEvent<>) => {
     event.preventDefault()
     event.stopPropagation()
     if (this.props.onClick) {
@@ -16,10 +16,24 @@ class BackButton extends Component<Props> {
 
   render() {
     return (
-      <div style={collapseStyles([styles.container, this.props.style])} onClick={e => this.onClick(e)}>
-        <Icon type="iconfont-arrow-left" style={styles.icon} color={this.props.iconColor} />
+      <div
+        style={collapseStyles([
+          this.props.onClick ? styles.container : styles.disabledContainer,
+          this.props.style,
+        ])}
+        onClick={this._onClick}
+      >
+        <Icon
+          type="iconfont-arrow-left"
+          style={this.props.onClick ? styles.icon : styles.disabledIcon}
+          color={this.props.iconColor}
+        />
         {this.props.title !== null && !this.props.hideBackLabel && (
-          <Text type="BodyPrimaryLink" style={this.props.textStyle} onClick={e => this.onClick(e)}>
+          <Text
+            type={this.props.onClick ? 'BodyPrimaryLink' : 'Body'}
+            style={collapseStyles([!!this.props.onClick && styles.disabledText, this.props.textStyle])}
+            onClick={this.props.onClick ? this._onClick : null}
+          >
             {this.props.title || 'Back'}
           </Text>
         )}
@@ -34,6 +48,19 @@ export const styles = {
     ...desktopStyles.clickable,
     alignItems: 'center',
     zIndex: 1,
+  },
+  disabledContainer: {
+    ...globalStyles.flexBoxRow,
+    cursor: 'default',
+    alignItems: 'center',
+    zIndex: 1,
+  },
+  disabledIcon: {
+    cursor: 'default',
+    marginRight: 6,
+  },
+  disabledText: {
+    cursor: 'default',
   },
   icon: {
     marginRight: 6,
