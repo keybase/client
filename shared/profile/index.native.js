@@ -15,6 +15,7 @@ import UserActions, {makeStellarAddressMenuItems, type StellarFederatedAddressPr
 import ShowcasedTeamInfo from './showcased-team-info/container'
 import {stateColors} from '../util/tracker'
 import {ADD_TO_TEAM_ZINDEX, AVATAR_SIZE} from '../constants/profile'
+import flags from '../util/feature-flags'
 import type {UserTeamShowcase} from '../constants/types/rpc-gen'
 import type {Proof} from '../constants/types/tracker'
 import type {Props} from '.'
@@ -128,21 +129,6 @@ const _StellarFederatedAddress = (props: StellarFederatedAddressProps & Kb.Overl
 const StellarFederatedAddress = Kb.OverlayParentHOC(_StellarFederatedAddress)
 
 class Profile extends Component<Props, State> {
-  // static navigationOptions = p => {
-  // return {
-  // headerTitle: 'hi',
-  // // header: (
-  // // <Kb.SafeAreaViewTop>
-  // // <Kb.Text center={true} type="Body">
-  // // {p.navigation.getParam('username')}
-  // // </Kb.Text>
-  // // </Kb.SafeAreaViewTop>
-  // // ),
-  // headerMode: 'screen',
-  // headerTransitionPreset: 'fade-in-place',
-  // cardOverlayEnabled: true,
-  // }
-  // }
   state = {
     activeMenuProof: null,
     currentFriendshipsTab: 'Followers',
@@ -432,7 +418,7 @@ class Profile extends Component<Props, State> {
   _renderSections = ({section}) => {
     if (section.title === 'profile') {
       const trackerStateColors = stateColors(this.props.currentlyFollowing, this.props.trackerState)
-      return (
+      return flags.useNewRouter ? null : (
         <Kb.HeaderHocHeader
           borderless={true}
           onLeftAction={this.props.onBack}
@@ -768,3 +754,33 @@ const styleShowcasedTeamName = {
 }
 
 export default Profile
+
+// leaving this here as this whole file is going away
+export const Header = (props: Props) => {
+  const trackerStateColors = stateColors(props.currentlyFollowing, props.trackerState)
+  return (
+    <Kb.HeaderHocHeader
+      borderless={true}
+      onLeftAction={props.onBack}
+      headerStyle={{
+        backgroundColor: trackerStateColors.header.background,
+        paddingLeft: 40,
+        paddingTop: 20,
+      }}
+      theme="dark"
+      titleComponent={
+        <Kb.ClickableBox onClick={props.onSearch} style={styleSearchContainer}>
+          <Kb.Icon
+            color={Styles.globalColors.white_75}
+            fontSize={20}
+            style={styleSearch}
+            type="iconfont-search"
+          />
+          <Kb.Text style={styleSearchText} type="BodySemibold">
+            Search people
+          </Kb.Text>
+        </Kb.ClickableBox>
+      }
+    />
+  )
+}

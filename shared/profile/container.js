@@ -14,7 +14,7 @@ import * as WalletsGen from '../actions/wallets-gen'
 import {noAccountID, type CounterpartyType} from '../constants/types/wallets'
 import {isInSomeTeam} from '../constants/teams'
 import ErrorComponent from './error-profile'
-import Profile from './index'
+import Profile, {Header} from './index'
 import * as React from 'react'
 import {createSearchSuggestions} from '../actions/search-gen'
 import {isTesting} from '../local-debug'
@@ -218,5 +218,24 @@ const connected = connect<OwnProps, _, _, _, _>(
   mergeProps
 )(ProfileContainer)
 
-connected.navigationOptions = Profile.navigationOptions
+// TODO reduce props passed down
+const ConnectedHeader = connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(Header)
+
+connected.navigationOptions = hp => ({
+  headerTitle: <ConnectedHeader username={hp.navigation.getParam('username')} />,
+  headerForceInset: {top: 'never'},
+  headerTransparent: true,
+  headerStyle: {
+    alignItems: 'stretch',
+  },
+  headerTitleContainerStyle: {
+    left: 0,
+    right: 0,
+  },
+})
+
 export default connected

@@ -49,7 +49,7 @@ export class HeaderHocHeader extends React.Component<Props, State> {
       <Box
         style={Styles.collapseStyles([
           styles.header,
-          this.props.borderless && styles.borderless,
+          (this.props.borderless || !!flags.useNewRouter) && styles.borderless,
           this.props.headerStyle,
         ])}
       >
