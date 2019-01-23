@@ -94,6 +94,7 @@ export const makeTeamSettings: I.RecordFactory<Types._TeamSettings> = I.Record({
 
 export const makeRetentionPolicy: I.RecordFactory<_RetentionPolicy> = I.Record({
   seconds: 0,
+  title: '',
   type: 'retain',
 })
 
@@ -157,21 +158,25 @@ export const initialCanUserPerform: RPCTypes.TeamOperation = {
 }
 
 const dayInS = 3600 * 24
-const policyInherit = makeRetentionPolicy({type: 'inherit'})
-const policyRetain = makeRetentionPolicy({type: 'retain'})
-const policyThirtySeconds = makeRetentionPolicy({seconds: 30, type: 'explode'})
-const policyFiveMinutes = makeRetentionPolicy({seconds: 5 * 60, type: 'explode'})
-const policyOneHour = makeRetentionPolicy({seconds: 3600, type: 'explode'})
-const policySixHours = makeRetentionPolicy({seconds: 3600 * 6, type: 'explode'})
-const policyOneDay = makeRetentionPolicy({seconds: dayInS, type: 'explode'})
-const policyThreeDays = makeRetentionPolicy({seconds: 3 * dayInS, type: 'explode'})
-const policySevenDays = makeRetentionPolicy({seconds: 7 * dayInS, type: 'explode'})
-const policyMonth = makeRetentionPolicy({seconds: 30 * dayInS, type: 'expire'})
-const policyThreeMonths = makeRetentionPolicy({seconds: 90 * dayInS, type: 'expire'})
-const policySixMonths = makeRetentionPolicy({seconds: 180 * dayInS, type: 'expire'})
-const policyYear = makeRetentionPolicy({seconds: 365 * dayInS, type: 'expire'})
-const baseRetentionPolicies = [policyRetain, policyYear, policySixMonths, policyThreeMonths, policyMonth]
-const teamRetentionPolicies = [
+const policyInherit = makeRetentionPolicy({title: '', type: 'inherit'})
+const policyRetain = makeRetentionPolicy({title: 'Never auto-delete', type: 'retain'})
+const policyThirtySeconds = makeRetentionPolicy({seconds: 30, title: '30 seconds', type: 'explode'})
+const policyFiveMinutes = makeRetentionPolicy({seconds: 5 * 60, title: '5 minutes', type: 'explode'})
+const policyOneHour = makeRetentionPolicy({seconds: 3600, title: '60 minutes', type: 'explode'})
+const policySixHours = makeRetentionPolicy({seconds: 3600 * 6, title: '6 hours', type: 'explode'})
+const policyOneDay = makeRetentionPolicy({seconds: dayInS, title: '24 hours', type: 'explode'})
+const policyThreeDays = makeRetentionPolicy({seconds: 3 * dayInS, title: '3 days', type: 'explode'})
+const policySevenDays = makeRetentionPolicy({seconds: 7 * dayInS, title: '7 days', type: 'explode'})
+const policyMonth = makeRetentionPolicy({seconds: 30 * dayInS, title: '30 days', type: 'expire'})
+const policyThreeMonths = makeRetentionPolicy({seconds: 90 * dayInS, title: '90 days', type: 'expire'})
+const policySixMonths = makeRetentionPolicy({seconds: 180 * dayInS, title: '180 days', type: 'expire'})
+const policyYear = makeRetentionPolicy({seconds: 365 * dayInS, title: '365 days', type: 'expire'})
+const baseRetentionPolicies = [
+  policyRetain,
+  policyYear,
+  policySixMonths,
+  policyThreeMonths,
+  policyMonth,
   policySevenDays,
   policyThreeDays,
   policyOneDay,
@@ -384,6 +389,7 @@ const serviceRetentionPolicyToRetentionPolicy = (policy: ?RPCChatTypes.Retention
         }
         retentionPolicy = makeRetentionPolicy({
           seconds: policy.expire.age,
+          title: baseRetentionPolicies.find(p => p.seconds === policy.expire?.age)?.title || 'TITLELESS',
           type: 'expire',
         })
         break
@@ -393,6 +399,7 @@ const serviceRetentionPolicyToRetentionPolicy = (policy: ?RPCChatTypes.Retention
         }
         retentionPolicy = makeRetentionPolicy({
           seconds: policy.ephemeral.age,
+          title: baseRetentionPolicies.find(p => p.seconds === policy.ephemeral?.age)?.title || 'TITLELESS',
           type: 'explode',
         })
         break
@@ -475,6 +482,5 @@ export {
   serviceRetentionPolicyToRetentionPolicy,
   retentionPolicyToServiceRetentionPolicy,
   baseRetentionPolicies,
-  teamRetentionPolicies,
   retentionPolicies,
 }

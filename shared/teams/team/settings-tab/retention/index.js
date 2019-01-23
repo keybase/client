@@ -89,13 +89,15 @@ class _RetentionPicker extends React.Component<Kb.PropsWithOverlay<Props>, State
     }
     const items = policies.map(policy => {
       if (policy.type === 'retain') {
-        return {onClick: () => this._onSelect(policy), title: 'Never auto-delete'}
+        return {onClick: () => this._onSelect(policy), title: policy.title}
       } else if (policy.type === 'inherit') {
         if (this.props.teamPolicy) {
           return {onClick: () => this._onSelect(policy), title: policyToInheritLabel(this.props.teamPolicy)}
         } else {
           throw new Error(`Got policy of type 'inherit' without an inheritable parent policy`)
         }
+      } else if (policy.type === 'expire' || policy.type === 'explode') {
+        return {onClick: () => this._onSelect(policy), title: policy.title}
       }
       return {onClick: () => this._onSelect(policy), title: daysToLabel(secondsToDays(policy.seconds))}
     })
@@ -277,7 +279,8 @@ const policyToLabel = (p: RetentionPolicy, parent: ?RetentionPolicy) => {
     case 'retain':
       return 'Never auto-delete'
     case 'expire':
-      return daysToLabel(secondsToDays(p.seconds))
+    case 'explode':
+      return p.title || daysToLabel(secondsToDays(p.seconds))
     case 'inherit':
       if (!parent) {
         // Don't throw an error, as this may happen when deleting a
