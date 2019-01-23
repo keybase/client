@@ -439,6 +439,7 @@ export const commonGlobalAppNotificationSetting = {
   plaintextmobile: 1,
   plaintextdesktop: 2,
   defaultsoundmobile: 3,
+  disabletyping: 4,
 }
 
 export const commonInboxResType = {
@@ -853,6 +854,7 @@ export type GlobalAppNotificationSetting =
   | 1 // PLAINTEXTMOBILE_1
   | 2 // PLAINTEXTDESKTOP_2
   | 3 // DEFAULTSOUNDMOBILE_3
+  | 4 // DISABLETYPING_4
 
 export type GlobalAppNotificationSettings = $ReadOnly<{settings: {[key: string]: Bool}}>
 export type Hash = Bytes

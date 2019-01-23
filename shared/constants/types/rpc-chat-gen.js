@@ -79,6 +79,7 @@ export const commonGlobalAppNotificationSetting = {
   plaintextmobile: 1,
   plaintextdesktop: 2,
   defaultsoundmobile: 3,
+  disabletyping: 4,
 }
 
 export const commonInboxResType = {
