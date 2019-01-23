@@ -5,23 +5,22 @@ import {Box, Box2} from '../../../../common-adapters'
 import ReactButton from '../react-button/container'
 import ReactionTooltip from '../reaction-tooltip/container'
 import EmojiRow from '../react-button/emoji-row/container'
-import {collapseStyles, globalMargins, isMobile, platformStyles, styleSheetCreate} from '../../../../styles'
+import {classNames, globalMargins, isMobile, platformStyles, styleSheetCreate} from '../../../../styles'
 
 export type Props = {|
   btnClassName?: string, // class to apply to all reacji buttons
+  newBtnClassName?: string, // class to apply to emoji row
   conversationIDKey: Types.ConversationIDKey,
   emojis: Array<string>,
   ordinal: Types.Ordinal,
 |}
 type State = {
   activeEmoji: string,
-  showAddReaction: boolean,
   showMobileTooltip: boolean,
 }
 class ReactionsRow extends React.Component<Props, State> {
   state = {
     activeEmoji: '',
-    showAddReaction: false,
     showMobileTooltip: false,
   }
   _attachmentRefs: {[emojiName: string]: ?React.Component<any>} = {}
@@ -33,9 +32,6 @@ class ReactionsRow extends React.Component<Props, State> {
   _setActiveEmoji = (emojiName: string) =>
     this.setState(s => (s.activeEmoji === emojiName ? null : {activeEmoji: emojiName}))
 
-  _setHoveringRow = (hovering: boolean) =>
-    this.setState(s => (s.showAddReaction === hovering ? null : {showAddReaction: hovering}))
-
   _setShowMobileTooltip = (showMobileTooltip: boolean) =>
     this.setState(s => (s.showMobileTooltip === showMobileTooltip ? null : {showMobileTooltip}))
 
@@ -45,14 +41,7 @@ class ReactionsRow extends React.Component<Props, State> {
 
   render() {
     return this.props.emojis.length === 0 ? null : (
-      <Box2
-        onMouseOver={() => this._setHoveringRow(true)}
-        onMouseLeave={() => this._setHoveringRow(false)}
-        direction="horizontal"
-        gap="xtiny"
-        fullWidth={true}
-        style={styles.container}
-      >
+      <Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.container}>
         {this.props.emojis.map(emoji => (
           <Box
             onMouseOver={() => this._setHoveringButton(true, emoji)}
@@ -86,15 +75,11 @@ class ReactionsRow extends React.Component<Props, State> {
             onLongPress={() => this._setShowMobileTooltip(true)}
             ordinal={this.props.ordinal}
             showBorder={true}
-            style={collapseStyles([
-              styles.button,
-              // Important to the animation for this to be `visibility: hidden`
-              !this.state.showAddReaction && !isMobile && styles.visibilityHidden,
-            ])}
+            style={styles.button}
           />
         ) : (
           <EmojiRow
-            className={this.props.btnClassName}
+            className={classNames([this.props.btnClassName, this.props.newBtnClassName])}
             conversationIDKey={this.props.conversationIDKey}
             ordinal={this.props.ordinal}
             style={styles.button}

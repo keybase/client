@@ -584,4 +584,14 @@ func (s *stellarRetryClient) GetPredefinedInflationDestinationsLocal(ctx context
 	return res, err
 }
 
+func (s *stellarRetryClient) BatchLocal(ctx context.Context, arg stellar1.BatchLocalArg) (res stellar1.BatchResultLocal, err error) {
+	for i := 0; i < retryCount; i++ {
+		res, err = s.cli.BatchLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return res, err
+}
+
 var _ stellar1.LocalInterface = (*stellarRetryClient)(nil)
