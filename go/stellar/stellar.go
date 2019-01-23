@@ -1827,12 +1827,17 @@ func chatSendPaymentMessage(m libkb.MetaContext, recipient stellarcommon.Recipie
 		return nil
 	}
 
+	return chatSendPaymentMessageTo(m, chatRecipient, txID)
+}
+
+func chatSendPaymentMessageTo(m libkb.MetaContext, to string, txID stellar1.TransactionID) error {
+
 	m.G().StartStandaloneChat()
 	if m.G().ChatHelper == nil {
 		return errors.New("cannot send SendPayment message:  chat helper is nil")
 	}
 
-	name := strings.Join([]string{m.CurrentUsername().String(), chatRecipient}, ",")
+	name := strings.Join([]string{m.CurrentUsername().String(), to}, ",")
 
 	msg := chat1.MessageSendPayment{
 		PaymentID: stellar1.NewPaymentID(txID),

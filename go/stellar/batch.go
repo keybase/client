@@ -1,9 +1,11 @@
 package stellar
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"sort"
+	"sync"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
@@ -91,6 +93,7 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 	mctx.CDebugf("waiting for %d payments to complete", waitingCount)
 
 	timedOut := false
+	var chatWaitGroup sync.WaitGroup
 	for waitingCount > 0 && !timedOut {
 		select {
 		case <-time.After(5 * time.Second):
@@ -107,13 +110,30 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 				if update.Status != stellar1.PaymentStatus_PENDING {
 					waitingCount--
 					resultList[index].EndTime = stellar1.ToTimeMs(time.Now())
+					delete(waiting, update.TxID)
 					mctx.CDebugf("no longer waiting for %s status updates (%d remaining)", update.TxID, waitingCount)
+				}
+				if update.Status == stellar1.PaymentStatus_COMPLETED {
+					chatWaitGroup.Add(1)
+					go func(m libkb.MetaContext, recipient string, txID stellar1.TransactionID) {
+						if err := chatSendPaymentMessageTo(m, recipient, txID); err != nil {
+							m.CDebugf("chatSendPaymentMessageTo %s (%s): error: %s", recipient, txID, err)
+						} else {
+							m.CDebugf("chatSendPaymentMessageTo %s (%s): success", recipient, txID)
+						}
+
+						chatWaitGroup.Done()
+					}(mctx.WithCtx(context.Background()), resultList[index].Username, update.TxID)
 				}
 			}
 		}
 	}
 
 	mctx.CDebugf("done waiting for payments to complete")
+
+	mctx.CDebugf("waiting for chat messages to finish sending")
+	chatWaitGroup.Wait()
+	mctx.CDebugf("done waiting for chat messages to finish sending")
 
 	res.Payments = resultList
 	res.EndTime = stellar1.ToTimeMs(time.Now())
