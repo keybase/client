@@ -1169,6 +1169,10 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 
 	// Make sure sender is set
 	arg.Msg.ClientHeader.Sender = uid
+	arg.Msg.ClientHeader.SenderDevice, err = h.getGregorDeviceID()
+	if err != nil {
+		return res, err
+	}
 	sender := NewBlockingSender(h.G(), h.boxer, h.remoteClient)
 
 	_, msgBoxed, err := sender.Send(ctx, arg.ConversationID, arg.Msg, 0, nil)
@@ -1215,11 +1219,6 @@ func (h *Server) PostEditNonblock(ctx context.Context, arg chat1.PostEditNonbloc
 	parg.IdentifyBehavior = arg.IdentifyBehavior
 	parg.OutboxID = arg.OutboxID
 	parg.Msg.ClientHeader.MessageType = chat1.MessageType_EDIT
-	// Sending device may have changed
-	parg.Msg.ClientHeader.SenderDevice, err = h.getGregorDeviceID()
-	if err != nil {
-		return res, err
-	}
 	parg.Msg.ClientHeader.Supersedes = supersedes
 	parg.Msg.ClientHeader.TlfName = arg.TlfName
 	parg.Msg.ClientHeader.TlfPublic = arg.TlfPublic
