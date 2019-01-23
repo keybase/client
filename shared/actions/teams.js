@@ -79,9 +79,14 @@ function* joinTeam(_, action) {
     Saga.put(TeamsGen.createSetTeamJoinSuccess({success: false, teamname: ''})),
   ])
   try {
-    const result = yield* Saga.callPromise(RPCTypes.teamsTeamAcceptInviteOrRequestAccessRpcPromise, {
-      tokenOrName: teamname,
-    })
+    // TODO add waiting state here
+    const result = yield* Saga.callPromise(
+      RPCTypes.teamsTeamAcceptInviteOrRequestAccessRpcPromise,
+      {
+        tokenOrName: teamname,
+      },
+      Constants.teamWaitingKey(teamname)
+    )
 
     // Success
     yield Saga.put(
@@ -338,12 +343,16 @@ const editDescription = (_, action) => {
 
 const uploadAvatar = (_, action) => {
   const {crop, filename, sendChatNotification, teamname} = action.payload
-  return RPCTypes.teamsUploadTeamAvatarRpcPromise({
-    crop,
-    filename,
-    sendChatNotification,
-    teamname,
-  }).then(() => RouteTreeGen.createNavigateUp())
+  // TODO add waiting state here
+  return RPCTypes.teamsUploadTeamAvatarRpcPromise(
+    {
+      crop,
+      filename,
+      sendChatNotification,
+      teamname,
+    },
+    Constants.teamWaitingKey(teamname)
+  ).then(() => RouteTreeGen.createNavigateUp())
 }
 
 const editMembership = (_, action) => {
@@ -406,11 +415,15 @@ const generateSMSBody = (teamname: string, seitan: string): string => {
 
 const inviteToTeamByPhone = (_, action) => {
   const {teamname, role, phoneNumber, fullName = ''} = action.payload
-  return RPCTypes.teamsTeamCreateSeitanTokenV2RpcPromise({
-    label: {sms: ({f: fullName || '', n: phoneNumber}: RPCTypes.SeitanKeyLabelSms), t: 1},
-    name: teamname,
-    role: (!!role && RPCTypes.teamsTeamRole[role]) || 0,
-  }).then(seitan => {
+  // TODO add waiting state here
+  return RPCTypes.teamsTeamCreateSeitanTokenV2RpcPromise(
+    {
+      label: {sms: ({f: fullName || '', n: phoneNumber}: RPCTypes.SeitanKeyLabelSms), t: 1},
+      name: teamname,
+      role: (!!role && RPCTypes.teamsTeamRole[role]) || 0,
+    },
+    Constants.teamWaitingKey(teamname)
+  ).then(seitan => {
     /* Open SMS */
     const bodyText = generateSMSBody(teamname, seitan)
     return openSMS([phoneNumber], bodyText)
@@ -616,13 +629,18 @@ function* addUserToTeams(state, action) {
   const errorAddingTo = []
   for (const team of teams) {
     try {
-      yield* Saga.callPromise(RPCTypes.teamsTeamAddMemberRpcPromise, {
-        email: '',
-        name: team,
-        role: role ? RPCTypes.teamsTeamRole[role] : RPCTypes.teamsTeamRole.none,
-        sendChatNotification: true,
-        username: user,
-      })
+      // TODO add waiting state here
+      yield* Saga.callPromise(
+        RPCTypes.teamsTeamAddMemberRpcPromise,
+        {
+          email: '',
+          name: team,
+          role: role ? RPCTypes.teamsTeamRole[role] : RPCTypes.teamsTeamRole.none,
+          sendChatNotification: true,
+          username: user,
+        },
+        Constants.teamWaitingKey(team)
+      )
       teamsAddedTo.push(team)
     } catch (error) {
       errorAddingTo.push(team)
@@ -703,10 +721,14 @@ function* getTeamPublicity(_, action) {
 
 const getChannelInfo = (_, action) => {
   const {teamname, conversationIDKey} = action.payload
-  return RPCChatTypes.localGetInboxAndUnboxUILocalRpcPromise({
-    identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-    query: ChatConstants.makeInboxQuery([conversationIDKey]),
-  }).then(results => {
+  // TODO add waiting state here
+  return RPCChatTypes.localGetInboxAndUnboxUILocalRpcPromise(
+    {
+      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+      query: ChatConstants.makeInboxQuery([conversationIDKey]),
+    },
+    Constants.teamWaitingKey(teamname)
+  ).then(results => {
     const convs = results.conversations || []
     if (convs.length !== 1) {
       logger.warn(`Could not get channel info`)
@@ -731,6 +753,7 @@ const getChannelInfo = (_, action) => {
 
 const getChannels = (_, action) => {
   const teamname = action.payload.teamname
+  // TODO add waiting state here
   return RPCChatTypes.localGetTLFConversationsLocalRpcPromise(
     {
       membersType: RPCChatTypes.commonConversationMembersType.team,
@@ -828,10 +851,13 @@ function* getTeams(state) {
 }
 
 const checkRequestedAccess = (_, action) =>
-  RPCTypes.teamsTeamListMyAccessRequestsRpcPromise({}).then(result => {
-    const teams = (result || []).map(row => (row && row.parts ? row.parts.join('.') : ''))
-    return TeamsGen.createSetTeamAccessRequestsPending({accessRequestsPending: I.Set(teams)})
-  })
+  // TODO add waiting state here
+  RPCTypes.teamsTeamListMyAccessRequestsRpcPromise({}, Constants.teamsAccessRequestWaitingKey).then(
+    result => {
+      const teams = (result || []).map(row => (row && row.parts ? row.parts.join('.') : ''))
+      return TeamsGen.createSetTeamAccessRequestsPending({accessRequestsPending: I.Set(teams)})
+    }
+  )
 
 const _joinConversation = function*(
   teamname: Types.Teamname,
@@ -840,9 +866,14 @@ const _joinConversation = function*(
 ) {
   try {
     const convID = ChatTypes.keyToConversationID(conversationIDKey)
-    yield* Saga.callPromise(RPCChatTypes.localJoinConversationByIDLocalRpcPromise, {
-      convID,
-    })
+    // TODO add waiting state here
+    yield* Saga.callPromise(
+      RPCChatTypes.localJoinConversationByIDLocalRpcPromise,
+      {
+        convID,
+      },
+      Constants.teamWaitingKey(teamname)
+    )
     yield Saga.put(
       TeamsGen.createAddParticipant({
         conversationIDKey,
@@ -862,9 +893,14 @@ const _leaveConversation = function*(
 ) {
   try {
     const convID = ChatTypes.keyToConversationID(conversationIDKey)
-    yield* Saga.callPromise(RPCChatTypes.localLeaveConversationLocalRpcPromise, {
-      convID,
-    })
+    // TODO add waiting state here
+    yield* Saga.callPromise(
+      RPCChatTypes.localLeaveConversationLocalRpcPromise,
+      {
+        convID,
+      },
+      Constants.teamWaitingKey(teamname)
+    )
     yield Saga.put(
       TeamsGen.createRemoveParticipant({
         conversationIDKey,
@@ -1179,7 +1215,8 @@ const updateTopic = (state, action) => {
     tlfPublic: false,
   }
 
-  return RPCChatTypes.localPostHeadlineRpcPromise(param).then(() =>
+  // TODO add waiting state here
+  return RPCChatTypes.localPostHeadlineRpcPromise(param, Constants.teamWaitingKey(teamname)).then(() =>
     TeamsGen.createSetUpdatedTopic({conversationIDKey, newTopic, teamname})
   )
 }
@@ -1194,7 +1231,12 @@ function* addTeamWithChosenChannels(state, action) {
   const logPrefix = `[addTeamWithChosenChannels]:${teamname}`
   let pushState
   try {
-    pushState = yield* Saga.callPromise(RPCTypes.gregorGetStateRpcPromise)
+    // TODO add waiting state here
+    pushState = yield* Saga.callPromise(
+      RPCTypes.gregorGetStateRpcPromise,
+      undefined,
+      Constants.teamWaitingKey(teamname)
+    )
   } catch (err) {
     // failure getting the push state, don't bother the user with an error
     // and don't try to move forward updating the state
@@ -1238,11 +1280,16 @@ function* addTeamWithChosenChannels(state, action) {
   } else {
     logger.info(`${logPrefix} Creating teamsWithChosenChannels`)
   }
-  yield* Saga.callPromise(RPCTypes.gregorUpdateCategoryRpcPromise, {
-    body: JSON.stringify(teams),
-    category: Constants.chosenChannelsGregorKey,
-    dtime,
-  })
+  // TODO add waiting state here
+  yield* Saga.callPromise(
+    RPCTypes.gregorUpdateCategoryRpcPromise,
+    {
+      body: JSON.stringify(teams),
+      category: Constants.chosenChannelsGregorKey,
+      dtime,
+    },
+    teams.map(t => Constants.teamWaitingKey(t))
+  )
 }
 
 const updateChannelname = (state, action) => {
@@ -1255,7 +1302,8 @@ const updateChannelname = (state, action) => {
     tlfPublic: false,
   }
 
-  return RPCChatTypes.localPostMetadataRpcPromise(param).then(() =>
+  // TODO add waiting state here
+  return RPCChatTypes.localPostMetadataRpcPromise(param, Constants.teamWaitingKey(teamname)).then(() =>
     TeamsGen.createSetUpdatedChannelName({conversationIDKey, newChannelName, teamname})
   )
 }
@@ -1264,11 +1312,15 @@ const deleteChannelConfirmed = (state, action) => {
   const {teamname, conversationIDKey} = action.payload
   // channelName is only needed for confirmation, so since we handle
   // confirmation ourselves we don't need to plumb it through.
-  return RPCChatTypes.localDeleteConversationLocalRpcPromise({
-    channelName: '',
-    confirmed: true,
-    convID: ChatTypes.keyToConversationID(conversationIDKey),
-  }).then(() => TeamsGen.createDeleteChannelInfo({conversationIDKey, teamname}))
+  // TODO add waiting state here
+  return RPCChatTypes.localDeleteConversationLocalRpcPromise(
+    {
+      channelName: '',
+      confirmed: true,
+      convID: ChatTypes.keyToConversationID(conversationIDKey),
+    },
+    Constants.teamWaitingKey(teamname)
+  ).then(() => TeamsGen.createDeleteChannelInfo({conversationIDKey, teamname}))
 }
 
 const badgeAppForTeams = (state, action) => {
