@@ -54,9 +54,9 @@ class Nav extends React.Component<Props> {
           <ErrorBoundary>
             <div id="popupContainer" />
           </ErrorBoundary>
-          {![Tabs.chatTab, Tabs.loginTab, Tabs.peopleTab, Tabs.walletsTab].includes(routeSelected) && (
-            <Offline />
-          )}
+          {![Tabs.chatTab, Tabs.loginTab, Tabs.peopleTab, Tabs.walletsTab, Tabs.gitTab].includes(
+            routeSelected
+          ) && <Offline />}
           <GlobalError />
         </Box>
         <RpcStats />
