@@ -19,6 +19,7 @@ export type Props = {
   loadingMore: boolean,
   navigateAppend: (...Array<any>) => any,
   navigateUp: () => any,
+  onBack: () => void,
   onLoadMore: () => void,
   onMarkAsRead: () => void,
   sections: any[],
@@ -159,7 +160,7 @@ const styles = Styles.styleSheetCreate({
 // with AccountReloader.
 const MaybeReloaderWallet = (props: Props) => {
   const wallet = <Wallet {...props} />
-  return Styles.isMobile ? <AccountReloader>{wallet}</AccountReloader> : wallet
+  return Styles.isMobile ? <AccountReloader onBack={props.onBack}>{wallet}</AccountReloader> : wallet
 }
 
 export default MaybeReloaderWallet
