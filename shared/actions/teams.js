@@ -5,7 +5,6 @@ import logger from '../logger'
 import {map} from 'lodash-es'
 import * as I from 'immutable'
 import * as SearchGen from './search-gen'
-import * as WaitingGen from './waiting-gen'
 import * as TeamsGen from './teams-gen'
 import * as ProfileGen from './profile-gen'
 import * as Types from '../constants/types/teams'
@@ -761,7 +760,6 @@ function* getTeams(state) {
     logger.warn('getTeams while logged out')
     return
   }
-  yield Saga.put(WaitingGen.createIncrementWaiting({key: Constants.teamsLoadedWaitingKey}))
   try {
     const results: RPCTypes.AnnotatedTeamList = yield* Saga.callPromise(
       RPCTypes.teamsTeamListUnverifiedRpcPromise,
@@ -791,7 +789,7 @@ function* getTeams(state) {
     })
 
     // Dismiss any stale badges for teams we're no longer in
-    const teamResetUsers = state.teams.getIn(['teamNameToResetUsers'], I.Map())
+    const teamResetUsers = state.teams.teamNameToResetUsers || I.Map()
     const teamNameSet = I.Set(teamnames)
     const dismissIDs = teamResetUsers.reduce((ids, value: I.Set<Types.ResetUser>, key: string) => {
       if (!teamNameSet.has(key)) {
@@ -801,7 +799,11 @@ function* getTeams(state) {
     }, [])
     yield Saga.all(
       dismissIDs.map(id =>
-        Saga.callUntyped(RPCTypes.gregorDismissItemRpcPromise, {id: Constants.keyToResetUserBadgeID(id)})
+        Saga.callUntyped(
+          RPCTypes.gregorDismissItemRpcPromise,
+          {id: Constants.keyToResetUserBadgeID(id)},
+          Constants.teamsLoadedWaitingKey
+        )
       )
     )
 
@@ -820,17 +822,8 @@ function* getTeams(state) {
     if (err.code === RPCTypes.constantsStatusCode.scapinetworkerror) {
       // Ignore API errors due to offline
     } else {
-      yield Saga.put(
-        WaitingGen.createDecrementWaiting({
-          error: err,
-          key: Constants.teamsLoadedWaitingKey,
-        })
-      )
-
-      throw err
+      logger.error(err)
     }
-  } finally {
-    yield Saga.put(WaitingGen.createDecrementWaiting({key: Constants.teamsLoadedWaitingKey}))
   }
 }
 
