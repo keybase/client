@@ -120,7 +120,7 @@ const routeTree = () => {
   return isMobile
     ? makeRouteDefNode({
         children: key => {
-          if (key !== 'conversation') {
+          if (key !== 'chatConversation') {
             return makeRouteDefNode(chatChildren[key])
           }
           return conversationRoute
@@ -150,6 +150,7 @@ export const newRoutes = {
   chatChooseEmoji: {
     getScreen: () => require('./conversation/messages/react-button/emoji-picker/container').default,
   },
+  chatConversation: {getScreen: () => require('./conversation/container').default},
   chatCreateChannel: {getScreen: () => require('./create-channel/container').default},
   chatDeleteHistoryWarning: {getScreen: () => require('./delete-history-warning/container').default},
   chatEditChannel: {getScreen: () => require('./manage-channels/edit-channel-container').default},

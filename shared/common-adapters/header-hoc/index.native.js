@@ -8,6 +8,7 @@ import Icon from '../icon'
 import SafeAreaView, {SafeAreaViewTop} from '../safe-area-view'
 import * as Styles from '../../styles'
 import type {Action, Props} from './types'
+import flags from '../../util/feature-flags'
 
 const MAX_RIGHT_ACTIONS = 3
 type State = {|
@@ -195,18 +196,22 @@ const renderAction = (action: Action, index: number): React.Node =>
   )
 
 function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
-  const HeaderHocWrapper = (props: P & Props) => (
-    <Box style={styles.container}>
-      {!!props.customSafeAreaTopStyle && <SafeAreaViewTop style={props.customSafeAreaTopStyle} />}
-      <HeaderHocHeader {...props} />
-      <Box style={styles.grow}>
-        <Box style={styles.innerWrapper}>
-          <WrappedComponent {...(props: P)} />
+  const HeaderHocWrapper = (props: P & Props) =>
+    // headers are separate things in the new router so just make this the body short term
+    flags.useNewRouter ? (
+      <WrappedComponent {...(props: P)} />
+    ) : (
+      <Box style={styles.container}>
+        {!!props.customSafeAreaTopStyle && <SafeAreaViewTop style={props.customSafeAreaTopStyle} />}
+        <HeaderHocHeader {...props} />
+        <Box style={styles.grow}>
+          <Box style={styles.innerWrapper}>
+            <WrappedComponent {...(props: P)} />
+          </Box>
         </Box>
+        {!!props.customSafeAreaBottomStyle && <SafeAreaView style={props.customSafeAreaBottomStyle} />}
       </Box>
-      {!!props.customSafeAreaBottomStyle && <SafeAreaView style={props.customSafeAreaBottomStyle} />}
-    </Box>
-  )
+    )
 
   return HeaderHocWrapper
 }

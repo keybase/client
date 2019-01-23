@@ -54,7 +54,7 @@ let config = {
 
 // Developer settings
 if (__DEV__) {
-  config.enableActionLogging = false
+  config.enableActionLogging = true
   config.enableStoreLogging = false
   config.immediateStateLogging = false
   // Move this outside the if statement to get notifications working

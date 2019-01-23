@@ -231,7 +231,7 @@ export const hasSuccessfulInlinePayments = (state: TypedState, message: Types.Me
 }
 
 export const threadRoute = isMobile
-  ? [chatTab, 'conversation']
+  ? [chatTab, 'chatConversation']
   : [{props: {}, selected: chatTab}, {props: {}, selected: null}]
 
 const numMessagesOnInitialLoad = isMobile ? 20 : 100

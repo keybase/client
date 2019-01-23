@@ -22,6 +22,7 @@ import {type TypedState} from '../../constants/reducer'
 import {updateServerConfigLastLoggedIn} from '../../app/server-config'
 import flags from '../../util/feature-flags'
 import {StackActions} from '@react-navigation/core'
+import shallowEqual from 'shallowequal'
 
 const setupEngineListeners = () => {
   getEngine().actionOnDisconnect('daemonError', () => {
@@ -397,7 +398,18 @@ const navigateAppend = (_, action) => {
     routeName = p.selected
     params = p.props
   }
-  routeName && _navigator && _navigator.dispatch(StackActions.push({params, routeName}))
+
+  if (routeName && _navigator) {
+    // don't allow pushing a dupe
+    const topRoute = _navigator._nav.state.nav.routes[_navigator._nav.state.nav.index]
+    if (topRoute) {
+      if (routeName === topRoute.routeName && shallowEqual(topRoute.params, params)) {
+        console.log('Skipping append dupe')
+        return
+      }
+    }
+    _navigator.dispatch(StackActions.push({params, routeName}))
+  }
 }
 // maybe the same?
 const navigateTo = navigateAppend
