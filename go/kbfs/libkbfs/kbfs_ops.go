@@ -440,9 +440,15 @@ func (fs *KBFSOpsStandard) getOpsByHandle(ctx context.Context,
 	return ops
 }
 
+type errTryingToResetTlfIDForNonTeamTlf struct{}
+
+func (errTryingToResetTlfIDForNonTeamTlf) Error() string {
+	return "Can't create TLF ID for non-team-backed handle"
+}
+
 func (fs *KBFSOpsStandard) resetTlfID(ctx context.Context, h *TlfHandle) error {
 	if !h.IsBackedByTeam() {
-		return errors.New("Can't create TLF ID for non-team-backed handle")
+		return errTryingToResetTlfIDForNonTeamTlf{}
 	}
 
 	teamID, err := h.FirstResolvedWriter().AsTeam()
@@ -708,7 +714,15 @@ func (fs *KBFSOpsStandard) getMaybeCreateRootNode(
 	}
 
 	err = fs.createAndStoreTlfIDIfNeeded(ctx, h)
-	if err != nil {
+	switch {
+	case err == nil:
+	case !create && err == errTryingToResetTlfIDForNonTeamTlf{}:
+		// We don't have TLF ID, and it's not backed by an impl team. So this
+		// must be a TLF that doesn't exist and we can't or aren't create. Just
+		// return an empty node in this case, so libfuse/tlf.go knows to return
+		// TlfDoesNotExist{} error.
+		return nil, EntryInfo{}, nil
+	default:
 		return nil, EntryInfo{}, err
 	}
 
