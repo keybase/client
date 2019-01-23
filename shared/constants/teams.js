@@ -99,7 +99,6 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   addUserToTeamsResults: '',
   channelCreationError: '',
   emailInviteError: makeEmailInviteError(),
-  loaded: false,
   newTeamRequests: I.List(),
   newTeams: I.Set(),
   sawChatBanner: false,
