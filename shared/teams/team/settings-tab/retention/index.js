@@ -1,16 +1,7 @@
 // @flow
 import * as React from 'react'
-import {
-  borderRadius,
-  globalColors,
-  globalMargins,
-  globalStyles,
-  isMobile,
-  platformStyles,
-  collapseStyles,
-  type StylesCrossPlatform,
-} from '../../../../styles'
-import {Box, ClickableBox, FloatingMenu, Icon, ProgressIndicator, Text} from '../../../../common-adapters'
+import * as Styles from '../../../../styles'
+import * as Kb from '../../../../common-adapters'
 import {type MenuItem} from '../../../../common-adapters/floating-menu/menu-layout'
 import type {RetentionPolicy} from '../../../../constants/types/retention-policy'
 import {retentionPolicies, baseRetentionPolicies} from '../../../../constants/teams'
@@ -21,8 +12,8 @@ export type RetentionEntityType = 'adhoc' | 'channel' | 'small team' | 'big team
 
 export type Props = {|
   canSetPolicy: boolean,
-  containerStyle?: StylesCrossPlatform,
-  dropdownStyle?: StylesCrossPlatform,
+  containerStyle?: Styles.StylesCrossPlatform,
+  dropdownStyle?: Styles.StylesCrossPlatform,
   policy: RetentionPolicy,
   teamPolicy?: RetentionPolicy,
   loading: boolean, // for when we're waiting to fetch the team policy
@@ -51,7 +42,7 @@ class RetentionPicker extends React.Component<Props, State> {
   }
   _timeoutID: TimeoutID
   _showSaved: boolean
-  _dropdownRef = React.createRef<ClickableBox>()
+  _dropdownRef = React.createRef<Kb.ClickableBox>()
 
   // We just updated the state with a new selection, do we show the warning
   // dialog ourselves or do we call back up to the parent?
@@ -157,8 +148,8 @@ class RetentionPicker extends React.Component<Props, State> {
 
   render() {
     return (
-      <Box style={collapseStyles([globalStyles.flexBoxColumn, this.props.containerStyle])}>
-        <FloatingMenu
+      <Kb.Box style={Styles.collapseStyles([Styles.globalStyles.flexBoxColumn, this.props.containerStyle])}>
+        <Kb.FloatingMenu
           attachTo={this._getDropdownRef}
           closeOnSelect={true}
           visible={this.state.showMenu}
@@ -166,30 +157,30 @@ class RetentionPicker extends React.Component<Props, State> {
           items={this.state.items}
           position="top center"
         />
-        <Box style={headingStyle}>
-          <Text type="BodySmallSemibold">Message deletion</Text>
-          <Icon
+        <Kb.Box style={headingStyle}>
+          <Kb.Text type="BodySmallSemibold">Message deletion</Kb.Text>
+          <Kb.Icon
             type="iconfont-timer"
-            style={{marginLeft: globalMargins.xtiny}}
-            fontSize={isMobile ? 22 : 16}
-            color={globalColors.black_20}
+            style={{marginLeft: Styles.globalMargins.xtiny}}
+            fontSize={Styles.isMobile ? 22 : 16}
+            color={Styles.globalColors.black_20}
           />
-        </Box>
-        <ClickableBox
+        </Kb.Box>
+        <Kb.ClickableBox
           onClick={this._toggleShowMenu}
-          ref={isMobile ? undefined : this._dropdownRef}
-          style={collapseStyles([dropdownStyle, this.props.dropdownStyle])}
-          underlayColor={globalColors.white_40}
+          ref={Styles.isMobile ? undefined : this._dropdownRef}
+          style={Styles.collapseStyles([dropdownStyle, this.props.dropdownStyle])}
+          underlayColor={Styles.globalColors.white_40}
         >
-          <Box style={labelStyle}>
-            <Text type="BodySemibold">{this._label()}</Text>
-          </Box>
-          <Icon type="iconfont-caret-down" inheritColor={true} fontSize={7} />
-        </ClickableBox>
+          <Kb.Box style={labelStyle}>
+            <Kb.Text type="BodySemibold">{this._label()}</Kb.Text>
+          </Kb.Box>
+          <Kb.Icon type="iconfont-caret-down" inheritColor={true} fontSize={7} />
+        </Kb.ClickableBox>
         {this.props.showOverrideNotice && (
-          <Text style={{marginTop: globalMargins.xtiny}} type="BodySmall">
+          <Kb.Text style={{marginTop: Styles.globalMargins.xtiny}} type="BodySmall">
             Individual channels can override this.
-          </Text>
+          </Kb.Text>
         )}
         {this.props.showSaveIndicator && (
           <SaveIndicator
@@ -199,7 +190,7 @@ class RetentionPicker extends React.Component<Props, State> {
             savedTimeoutMs={2500}
           />
         )}
-      </Box>
+      </Kb.Box>
     )
   }
 }
@@ -221,25 +212,25 @@ const RetentionDisplay = (props: {|...Props, entityType: RetentionEntityType|}) 
   }
   const text = policyToExplanation(convType, props.policy, props.teamPolicy)
   return (
-    <Box style={collapseStyles([globalStyles.flexBoxColumn, props.containerStyle])}>
-      <Box style={displayHeadingStyle}>
-        <Text type="BodySmallSemibold">Message deletion</Text>
-        <Icon
+    <Kb.Box style={Styles.collapseStyles([Styles.globalStyles.flexBoxColumn, props.containerStyle])}>
+      <Kb.Box style={displayHeadingStyle}>
+        <Kb.Text type="BodySmallSemibold">Message deletion</Kb.Text>
+        <Kb.Icon
           type="iconfont-timer"
-          color={globalColors.black_20}
-          fontSize={isMobile ? 22 : 16}
-          style={{marginLeft: globalMargins.xtiny}}
+          color={Styles.globalColors.black_20}
+          fontSize={Styles.isMobile ? 22 : 16}
+          style={{marginLeft: Styles.globalMargins.xtiny}}
         />
-      </Box>
-      <Text type="BodySmall">{text}</Text>
-    </Box>
+      </Kb.Box>
+      <Kb.Text type="BodySmall">{text}</Kb.Text>
+    </Kb.Box>
   )
 }
 
 const headingStyle = {
-  ...globalStyles.flexBoxRow,
+  ...Styles.globalStyles.flexBoxRow,
   alignItems: 'center',
-  marginBottom: globalMargins.tiny,
+  marginBottom: Styles.globalMargins.tiny,
 }
 
 const displayHeadingStyle = {
@@ -247,16 +238,16 @@ const displayHeadingStyle = {
   marginBottom: 2,
 }
 
-const dropdownStyle = platformStyles({
+const dropdownStyle = Styles.platformStyles({
   common: {
-    ...globalStyles.flexBoxRow,
+    ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
-    borderColor: globalColors.lightGrey2,
-    borderRadius,
+    borderColor: Styles.globalColors.lightGrey2,
+    borderRadius: Styles.borderRadius,
     borderStyle: 'solid',
     borderWidth: 1,
     minWidth: 220,
-    paddingRight: globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
   },
   isElectron: {
     width: 220,
@@ -264,27 +255,27 @@ const dropdownStyle = platformStyles({
 })
 
 const labelStyle = {
-  ...globalStyles.flexBoxCenter,
-  minHeight: isMobile ? 40 : 32,
+  ...Styles.globalStyles.flexBoxCenter,
+  minHeight: Styles.isMobile ? 40 : 32,
   width: '100%',
 }
 
 const progressIndicatorStyle = {
   height: 30,
-  marginTop: globalMargins.small,
+  marginTop: Styles.globalMargins.small,
   width: 30,
 }
 
-const saveStateStyle = platformStyles({
+const saveStateStyle = Styles.platformStyles({
   common: {
-    ...globalStyles.flexBoxRow,
+    ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     height: 17,
     justifyContent: 'center',
-    marginTop: globalMargins.tiny,
+    marginTop: Styles.globalMargins.tiny,
   },
   isMobile: {
-    height: globalMargins.medium,
+    height: Styles.globalMargins.medium,
   },
 })
 
@@ -390,7 +381,7 @@ const policyToExplanation = (convType: string, p: RetentionPolicy, parent?: Rete
 // Switcher to avoid having RetentionPicker try to process nonexistent data
 const RetentionSwitcher = (props: {|...Props, entityType: RetentionEntityType|}) => {
   if (props.loading) {
-    return <ProgressIndicator style={progressIndicatorStyle} />
+    return <Kb.ProgressIndicator style={progressIndicatorStyle} />
   }
   const {entityType, ...pickerProps} = props
   return props.canSetPolicy ? <RetentionPicker {...pickerProps} /> : <RetentionDisplay {...props} />
