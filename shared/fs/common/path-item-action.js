@@ -15,7 +15,7 @@ import {
   iconCastPlatformStyles,
   type OverlayParentProps,
 } from '../../common-adapters'
-import AutoChoosingInfo from './auto-choosing-info'
+import TlfOrPathItemInfo from './tlf-or-path-item-info'
 import PathItemIcon from './path-item-icon-container'
 import StaticBreadcrumb from '../common/static-breadcrumb'
 import {memoize} from 'lodash-es'
@@ -187,7 +187,7 @@ const PathItemActionHeader = (props: Props) => (
         {props.childrenFiles ? `${props.childrenFiles} File${props.childrenFiles > 1 ? 's' : ''}` : undefined}
       </Text>
     )}
-    <AutoChoosingInfo path={props.path} mode="default" />
+    <TlfOrPathItemInfo path={props.path} mode="default" />
   </Box>
 )
 
