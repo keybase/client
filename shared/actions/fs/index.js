@@ -661,31 +661,23 @@ function* loadPathMetadata(state, action) {
   }
 
   let pathItem = state.fs.pathItems.get(path, Constants.unknownPathItem)
-  // If we are handling a FsGen.openPathInFilesTab, always refresh metadata
-  // (PathItem), as the type of the entry could have changed before last time
-  // we heard about it from SimpleFS. Technically this is possible for
-  // FsGen.openPathItem too, but generally it's shortly after user has
-  // interacted with its parent folder, where we'd have just refreshed the
-  // PathItem for the entry.
-  if (action.type === FsGen.openPathInFilesTab || pathItem.type === 'unknown') {
-    try {
-      const dirent = yield RPCTypes.SimpleFSSimpleFSStatRpcPromise({
-        path: {
-          PathType: RPCTypes.simpleFSPathType.kbfs,
-          kbfs: Constants.fsPathToRpcPathString(path),
-        },
+  try {
+    const dirent = yield RPCTypes.SimpleFSSimpleFSStatRpcPromise({
+      path: {
+        PathType: RPCTypes.simpleFSPathType.kbfs,
+        kbfs: Constants.fsPathToRpcPathString(path),
+      },
+    })
+    pathItem = makeEntry(dirent)
+    yield Saga.put(
+      FsGen.createFilePreviewLoaded({
+        meta: pathItem,
+        path,
       })
-      pathItem = makeEntry(dirent)
-      yield Saga.put(
-        FsGen.createFilePreviewLoaded({
-          meta: pathItem,
-          path,
-        })
-      )
-    } catch (err) {
-      yield Saga.put(makeRetriableErrorHandler(action)(err))
-      return
-    }
+    )
+  } catch (err) {
+    yield Saga.put(makeRetriableErrorHandler(action)(err))
+    return
   }
   if (pathItem.type === 'file') {
     yield Saga.put(FsGen.createMimeTypeLoad({path}))
