@@ -147,6 +147,7 @@ const createElectronApp = App => {
         </NavigationProvider>
       )
     }
+    getState = () => this.state
     dispatch = action => {
       const lastState = this.state.nav
       const newState = App.router.getStateForAction(action, lastState)

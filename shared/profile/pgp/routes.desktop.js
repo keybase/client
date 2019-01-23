@@ -29,10 +29,10 @@ const routeTree = makeRouteDefNode({
 })
 
 export const newRoutes = {
-  finished: { getScreen: () =>Finished, },
-  generate: { getScreen: () =>Generate, },
-  import: { getScreen: () => Import, },
-  pgp: { getScreen: () => Choice, },
-  provideInfo: { getScreen: () =>Info, },
-},
+  finished: {getScreen: () => Finished},
+  generate: {getScreen: () => Generate},
+  import: {getScreen: () => Import},
+  pgp: {getScreen: () => Choice},
+  provideInfo: {getScreen: () => Info},
+}
 export default routeTree

@@ -121,14 +121,14 @@ const StackNavigator = createStackNavigator(routes, {
 
     // static navigationOptions = p => {
     // return {
-    headerTitle: p.navigation.getParam('username'),
-    // header: hp => (
-    // <Kb.SafeAreaViewTop style={hp.style}>
-    // <Kb.Text center={true} type="Body">
-    // {p.navigation.getParam('username')}
-    // </Kb.Text>
-    // </Kb.SafeAreaViewTop>
-    // ),
+    // headerTitle: p.navigation.getParam('username'),
+    header: hp => (
+      <Kb.SafeAreaViewTop style={hp.style}>
+        <Kb.Text center={true} type="Body">
+          {p.navigation.getParam('username')}
+        </Kb.Text>
+      </Kb.SafeAreaViewTop>
+    ),
     headerMode: 'float',
     headerTransitionPreset: 'uikit',
     // cardOverlayEnabled: true,
@@ -219,6 +219,7 @@ class RNApp extends React.Component<any, any> {
     this.setState(p => (p.activeKey === activeKey ? null : {activeKey}))
   }
 
+  getState = () => this._nav.state
   dispatch = p => this._nav.dispatch(p)
 
   render() {

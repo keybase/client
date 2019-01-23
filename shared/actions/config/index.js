@@ -400,8 +400,9 @@ const navigateAppend = (_, action) => {
   }
 
   if (routeName && _navigator) {
+    const state = _navigator.getState()
     // don't allow pushing a dupe
-    const topRoute = _navigator._nav.state.nav.routes[_navigator._nav.state.nav.index]
+    const topRoute = state.nav.routes[state.nav.index]
     if (topRoute) {
       if (routeName === topRoute.routeName && shallowEqual(topRoute.params, params)) {
         console.log('Skipping append dupe')
