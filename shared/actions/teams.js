@@ -482,124 +482,129 @@ function* getDetails(_, action) {
   const {teamname} = action.payload
   yield Saga.put(TeamsGen.createGetTeamOperations({teamname}))
   yield Saga.put(TeamsGen.createGetTeamPublicity({teamname}))
-  const unsafeDetails: RPCTypes.TeamDetails = yield* Saga.callPromise(
-    RPCTypes.teamsTeamGetRpcPromise,
-    {
-      name: teamname,
-    },
-    Constants.teamWaitingKey(teamname)
-  )
 
-  // Don't allow the none default
-  const details: RPCTypes.TeamDetails = {
-    ...unsafeDetails,
-    settings: {
-      ...unsafeDetails.settings,
-      joinAs:
-        unsafeDetails.settings.joinAs === RPCTypes.teamsTeamRole.none
-          ? RPCTypes.teamsTeamRole.reader
-          : unsafeDetails.settings.joinAs,
-    },
-  }
-
-  // Get requests to join
-  let requests
-  const state = yield* Saga.selectState()
-  if (Constants.getCanPerform(state, teamname).manageMembers) {
-    // TODO (DESKTOP-6478) move this somewhere else
-    requests = yield* Saga.callPromise(
-      RPCTypes.teamsTeamListRequestsRpcPromise,
+  try {
+    const unsafeDetails: RPCTypes.TeamDetails = yield* Saga.callPromise(
+      RPCTypes.teamsTeamGetRpcPromise,
       {
-        teamName: teamname,
+        name: teamname,
       },
       Constants.teamWaitingKey(teamname)
     )
-  }
 
-  if (!requests) {
-    requests = []
-  }
-  requests.sort((a, b) => a.username.localeCompare(b.username))
-
-  const requestMap = requests.reduce((reqMap, req) => {
-    if (!reqMap[req.name]) {
-      reqMap[req.name] = I.Set()
+    // Don't allow the none default
+    const details: RPCTypes.TeamDetails = {
+      ...unsafeDetails,
+      settings: {
+        ...unsafeDetails.settings,
+        joinAs:
+          unsafeDetails.settings.joinAs === RPCTypes.teamsTeamRole.none
+            ? RPCTypes.teamsTeamRole.reader
+            : unsafeDetails.settings.joinAs,
+      },
     }
-    reqMap[req.name] = reqMap[req.name].add(Constants.makeRequestInfo({username: req.username}))
-    return reqMap
-  }, {})
 
-  const infos = []
-  const types: Types.TeamRoleType[] = ['reader', 'writer', 'admin', 'owner']
-  const typeToKey: Types.TypeMap = {
-    admin: 'admins',
-    owner: 'owners',
-    reader: 'readers',
-    writer: 'writers',
-  }
-  types.forEach(type => {
-    const key = typeToKey[type]
-    const members: Array<RPCTypes.TeamMemberDetails> = details.members[key] || []
-    members.forEach(({fullName, status, username}) => {
-      infos.push([
-        username,
-        Constants.makeMemberInfo({
-          fullName,
-          status: Constants.rpcMemberStatusToStatus[status],
-          type,
-          username,
-        }),
-      ])
-    })
-  })
-
-  const invites = map(details.annotatedActiveInvites, (invite: RPCTypes.AnnotatedTeamInvite) => {
-    const role = Constants.teamRoleByEnum[invite.role]
-    if (role === 'none') {
-      return null
+    // Get requests to join
+    let requests
+    const state = yield* Saga.selectState()
+    if (Constants.getCanPerform(state, teamname).manageMembers) {
+      // TODO (DESKTOP-6478) move this somewhere else
+      requests = yield* Saga.callPromise(
+        RPCTypes.teamsTeamListRequestsRpcPromise,
+        {
+          teamName: teamname,
+        },
+        Constants.teamWaitingKey(teamname)
+      )
     }
-    const username = (() => {
-      const t = invite.type
-      if (t.c !== RPCTypes.teamsTeamInviteCategory.sbs) {
-        return ''
+
+    if (!requests) {
+      requests = []
+    }
+    requests.sort((a, b) => a.username.localeCompare(b.username))
+
+    const requestMap = requests.reduce((reqMap, req) => {
+      if (!reqMap[req.name]) {
+        reqMap[req.name] = I.Set()
       }
-      const sbs: RPCTypes.TeamInviteSocialNetwork = t.sbs || ''
-      return `${invite.name}@${sbs}`
-    })()
-    return Constants.makeInviteInfo({
-      email: invite.type.c === RPCTypes.teamsTeamInviteCategory.email ? invite.name : '',
-      id: invite.id,
-      name: invite.type.c === RPCTypes.teamsTeamInviteCategory.seitan ? invite.name : '',
-      role,
-      username,
-    })
-  }).filter(Boolean)
+      reqMap[req.name] = reqMap[req.name].add(Constants.makeRequestInfo({username: req.username}))
+      return reqMap
+    }, {})
 
-  // if we have no requests for this team, make sure we don't hold on to any old ones
-  if (!requestMap[teamname]) {
-    yield Saga.put(TeamsGen.createClearTeamRequests({teamname}))
+    const infos = []
+    const types: Types.TeamRoleType[] = ['reader', 'writer', 'admin', 'owner']
+    const typeToKey: Types.TypeMap = {
+      admin: 'admins',
+      owner: 'owners',
+      reader: 'readers',
+      writer: 'writers',
+    }
+    types.forEach(type => {
+      const key = typeToKey[type]
+      const members: Array<RPCTypes.TeamMemberDetails> = details.members[key] || []
+      members.forEach(({fullName, status, username}) => {
+        infos.push([
+          username,
+          Constants.makeMemberInfo({
+            fullName,
+            status: Constants.rpcMemberStatusToStatus[status],
+            type,
+            username,
+          }),
+        ])
+      })
+    })
+
+    const invites = map(details.annotatedActiveInvites, (invite: RPCTypes.AnnotatedTeamInvite) => {
+      const role = Constants.teamRoleByEnum[invite.role]
+      if (role === 'none') {
+        return null
+      }
+      const username = (() => {
+        const t = invite.type
+        if (t.c !== RPCTypes.teamsTeamInviteCategory.sbs) {
+          return ''
+        }
+        const sbs: RPCTypes.TeamInviteSocialNetwork = t.sbs || ''
+        return `${invite.name}@${sbs}`
+      })()
+      return Constants.makeInviteInfo({
+        email: invite.type.c === RPCTypes.teamsTeamInviteCategory.email ? invite.name : '',
+        id: invite.id,
+        name: invite.type.c === RPCTypes.teamsTeamInviteCategory.seitan ? invite.name : '',
+        role,
+        username,
+      })
+    }).filter(Boolean)
+
+    // if we have no requests for this team, make sure we don't hold on to any old ones
+    if (!requestMap[teamname]) {
+      yield Saga.put(TeamsGen.createClearTeamRequests({teamname}))
+    }
+
+    // Get the subteam map for this team.
+    const {entries} = yield* Saga.callPromise(
+      RPCTypes.teamsTeamGetSubteamsRpcPromise,
+      {name: {parts: teamname.split('.')}},
+      Constants.teamWaitingKey(teamname)
+    )
+    const subteams = (entries || []).reduce((arr, {name}) => {
+      name.parts && arr.push(name.parts.join('.'))
+      return arr
+    }, [])
+    yield Saga.put(
+      TeamsGen.createSetTeamDetails({
+        invites: I.Set(invites),
+        members: I.Map(infos),
+        requests: I.Map(requestMap),
+        settings: Constants.makeTeamSettings(details.settings),
+        subteams: I.Set(subteams),
+        teamname,
+      })
+    )
+  } catch (e) {
+    logger.error(e)
   }
-
-  // Get the subteam map for this team.
-  const {entries} = yield* Saga.callPromise(
-    RPCTypes.teamsTeamGetSubteamsRpcPromise,
-    {name: {parts: teamname.split('.')}},
-    Constants.teamWaitingKey(teamname)
-  )
-  const subteams = (entries || []).reduce((arr, {name}) => {
-    name.parts && arr.push(name.parts.join('.'))
-    return arr
-  }, [])
-  yield Saga.put(
-    TeamsGen.createSetTeamDetails({
-      invites: I.Set(invites),
-      members: I.Map(infos),
-      requests: I.Map(requestMap),
-      settings: Constants.makeTeamSettings(details.settings),
-      subteams: I.Set(subteams),
-      teamname,
-    })
-  )
 }
 
 const getDetailsForAllTeams = (state, action) =>
@@ -663,33 +668,37 @@ const getTeamOperations = (_, action) =>
   )
 
 function* getTeamPublicity(_, action) {
-  const teamname = action.payload.teamname
-  // Get publicity settings for this team.
-  const publicity: RPCTypes.TeamAndMemberShowcase = yield* Saga.callPromise(
-    RPCTypes.teamsGetTeamAndMemberShowcaseRpcPromise,
-    {name: teamname},
-    Constants.teamWaitingKey(teamname)
-  )
-
-  let tarsDisabled = false
-  // can throw if you're not an admin
   try {
-    tarsDisabled = yield* Saga.callPromise(
-      RPCTypes.teamsGetTarsDisabledRpcPromise,
+    const teamname = action.payload.teamname
+    // Get publicity settings for this team.
+    const publicity: RPCTypes.TeamAndMemberShowcase = yield* Saga.callPromise(
+      RPCTypes.teamsGetTeamAndMemberShowcaseRpcPromise,
       {name: teamname},
       Constants.teamWaitingKey(teamname)
     )
-  } catch (_) {}
 
-  const publicityMap = {
-    anyMemberShowcase: publicity.teamShowcase.anyMemberShowcase,
-    description: publicity.teamShowcase.description || '',
-    ignoreAccessRequests: tarsDisabled,
-    member: publicity.isMemberShowcased,
-    team: publicity.teamShowcase.isShowcased,
+    let tarsDisabled = false
+    // can throw if you're not an admin
+    try {
+      tarsDisabled = yield* Saga.callPromise(
+        RPCTypes.teamsGetTarsDisabledRpcPromise,
+        {name: teamname},
+        Constants.teamWaitingKey(teamname)
+      )
+    } catch (_) {}
+
+    const publicityMap = {
+      anyMemberShowcase: publicity.teamShowcase.anyMemberShowcase,
+      description: publicity.teamShowcase.description || '',
+      ignoreAccessRequests: tarsDisabled,
+      member: publicity.isMemberShowcased,
+      team: publicity.teamShowcase.isShowcased,
+    }
+
+    yield Saga.put(TeamsGen.createSetTeamPublicitySettings({publicity: publicityMap, teamname}))
+  } catch (e) {
+    logger.error(e)
   }
-
-  yield Saga.put(TeamsGen.createSetTeamPublicitySettings({publicity: publicityMap, teamname}))
 }
 
 const getChannelInfo = (_, action) => {
@@ -751,14 +760,14 @@ function* getTeams(state) {
     logger.warn('getTeams while logged out')
     return
   }
-  yield Saga.put(TeamsGen.createSetLoaded({loaded: false}))
   try {
     const results: RPCTypes.AnnotatedTeamList = yield* Saga.callPromise(
       RPCTypes.teamsTeamListUnverifiedRpcPromise,
       {
         includeImplicitTeams: false,
         userAssertion: username,
-      }
+      },
+      Constants.teamsLoadedWaitingKey
     )
 
     const teams = results.teams || []
@@ -780,7 +789,7 @@ function* getTeams(state) {
     })
 
     // Dismiss any stale badges for teams we're no longer in
-    const teamResetUsers = state.teams.getIn(['teamNameToResetUsers'], I.Map())
+    const teamResetUsers = state.teams.teamNameToResetUsers || I.Map()
     const teamNameSet = I.Set(teamnames)
     const dismissIDs = teamResetUsers.reduce((ids, value: I.Set<Types.ResetUser>, key: string) => {
       if (!teamNameSet.has(key)) {
@@ -790,7 +799,11 @@ function* getTeams(state) {
     }, [])
     yield Saga.all(
       dismissIDs.map(id =>
-        Saga.callUntyped(RPCTypes.gregorDismissItemRpcPromise, {id: Constants.keyToResetUserBadgeID(id)})
+        Saga.callUntyped(
+          RPCTypes.gregorDismissItemRpcPromise,
+          {id: Constants.keyToResetUserBadgeID(id)},
+          Constants.teamsLoadedWaitingKey
+        )
       )
     )
 
@@ -809,10 +822,8 @@ function* getTeams(state) {
     if (err.code === RPCTypes.constantsStatusCode.scapinetworkerror) {
       // Ignore API errors due to offline
     } else {
-      throw err
+      logger.error(err)
     }
-  } finally {
-    yield Saga.put(TeamsGen.createSetLoaded({loaded: true}))
   }
 }
 

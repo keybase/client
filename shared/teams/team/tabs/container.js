@@ -9,7 +9,7 @@ import {anyWaiting} from '../../../constants/waiting'
 type OwnProps = {
   teamname: string,
   selectedTab: string,
-  setSelectedTab: (?Types.TabKey) => void,
+  setSelectedTab: Types.TabKey => void,
 }
 
 const mapStateToProps = (state, {teamname, selectedTab, setSelectedTab}) => {

@@ -13,10 +13,13 @@ import type {Props as BetaNoteProps} from './beta-note'
 import type {Props as TeamListProps} from './team-list'
 
 // TODO: Don't make all these props just so we can pass it down. Make these their own connected components
-type Props = HeaderProps &
-  BetaNoteProps &
-  TeamListProps &
-  BannerProps & {sawChatBanner: boolean, title: string, onBack: () => void}
+type Props = {|
+  ...$Exact<HeaderProps>,
+  ...$Exact<BetaNoteProps>,
+  ...$Exact<TeamListProps>,
+  ...$Exact<BannerProps>,
+  ...{|sawChatBanner: boolean, title: string, onBack: () => void|},
+|}
 
 const Teams = (props: Props) => (
   <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, alignItems: 'center', height: '100%'}}>
@@ -60,4 +63,4 @@ const Teams = (props: Props) => (
   </Kb.Box>
 )
 
-export default (Styles.isMobile ? Kb.HeaderHoc(Teams) : Teams)
+export default Kb.HeaderOnMobile(Teams)

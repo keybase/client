@@ -195,7 +195,14 @@ class MainNavStack extends Component<any, {verticalOffset: number}> {
     const content = (
       <Kb.NativeView style={styles.content}>
         {stacks}
-        {![Tabs.chatTab, Tabs.peopleTab, Tabs.settingsTab, Tabs.gitTab].includes(props.routeSelected) ? (
+        {![
+          Tabs.chatTab,
+          Tabs.peopleTab,
+          Tabs.settingsTab,
+          Tabs.gitTab,
+          Tabs.devicesTab,
+          Tabs.teamsTab,
+        ].includes(props.routeSelected) ? (
           <Offline key="offline" />
         ) : null}
         {!props.hideNav && (
