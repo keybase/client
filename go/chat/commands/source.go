@@ -40,6 +40,7 @@ func (s *Source) makeBuiltin() {
 			NewJoin(s.G()),
 			NewLeave(s.G()),
 			NewMe(s.G()),
+			NewMute(s.G()),
 			NewShrug(s.G()),
 		},
 	}
