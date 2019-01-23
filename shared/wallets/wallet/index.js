@@ -18,7 +18,6 @@ export type Props = {
   accountID: Types.AccountID,
   loadingMore: boolean,
   navigateAppend: (...Array<any>) => any,
-  navigateUp: () => any,
   onBack: () => void,
   onLoadMore: () => void,
   onMarkAsRead: () => void,
@@ -107,7 +106,7 @@ class Wallet extends React.Component<Props> {
   render() {
     return (
       <Kb.Box2 direction="vertical" style={{flexGrow: 1}} fullHeight={true}>
-        <Header navigateAppend={this.props.navigateAppend} navigateUp={this.props.navigateUp} />
+        <Header navigateAppend={this.props.navigateAppend} onBack={this.props.onBack} />
         <Kb.SectionList
           sections={this.props.sections}
           renderItem={this._renderItem}
