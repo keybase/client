@@ -43,7 +43,6 @@ export type Props = {|
   failureDescription: string,
   forceAsh: boolean,
   hasUnfurlPrompts: boolean,
-  isLastInThread: boolean,
   isPendingPayment: boolean,
   isRevoked: boolean,
   showCoinsIcon: boolean,
