@@ -2,6 +2,7 @@ package commands
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -15,28 +16,43 @@ import (
 type baseCommand struct {
 	globals.Contextified
 	utils.DebugLabeler
-	name    string
-	aliases []string
-	usage   string
+	name        string
+	aliases     []string
+	usage       string
+	description string
 }
 
-func newBaseCommand(g *globals.Context, name, usage string, aliases ...string) *baseCommand {
+func newBaseCommand(g *globals.Context, name, usage, desc string, aliases ...string) *baseCommand {
 	return &baseCommand{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), fmt.Sprintf("Commands.%s", name), false),
 		name:         name,
 		usage:        usage,
 		aliases:      aliases,
+		description:  desc,
 	}
 }
 
 func (b *baseCommand) getConvByName(ctx context.Context, uid gregor1.UID, name string) (res chat1.ConversationLocal, err error) {
-	convs, err := b.G().ChatHelper.FindConversations(ctx, true, name, nil, chat1.TopicType_CHAT,
-		chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFVisibility_PRIVATE)
-	if err != nil {
-		return res, err
+	find := func(mt chat1.ConversationMembersType, name string, topicName *string) (conv chat1.ConversationLocal, err error) {
+		convs, err := b.G().ChatHelper.FindConversations(ctx, true, name, topicName,
+			chat1.TopicType_CHAT, mt, keybase1.TLFVisibility_PRIVATE)
+		if err != nil {
+			return res, err
+		}
+		if len(convs) == 0 {
+			return res, errors.New("conversation not found")
+		}
+		return convs[0], nil
 	}
-	return convs[0], nil
+	if strings.Contains(name, "#") {
+		toks := strings.Split(name, "#")
+		return find(chat1.ConversationMembersType_TEAM, toks[0], &toks[1])
+	}
+	if res, err = find(chat1.ConversationMembersType_IMPTEAMNATIVE, name, nil); err != nil {
+		return find(chat1.ConversationMembersType_TEAM, name, nil)
+	}
+	return res, nil
 }
 
 func (n *baseCommand) commandAndMessage(text string) (cmd string, msg string, err error) {
@@ -63,6 +79,10 @@ func (b *baseCommand) Name() string {
 
 func (b *baseCommand) Usage() string {
 	return b.usage
+}
+
+func (b *baseCommand) Description() string {
+	return b.description
 }
 
 func (b *baseCommand) Preview(ctx context.Context, text string) error {

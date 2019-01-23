@@ -15,7 +15,7 @@ type Me struct {
 
 func NewMe(g *globals.Context) *Me {
 	return &Me{
-		baseCommand: newBaseCommand(g, "me", "<message>"),
+		baseCommand: newBaseCommand(g, "me", "<message>", "Displays action text"),
 	}
 }
 

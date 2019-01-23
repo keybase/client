@@ -7,7 +7,6 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
-	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 type DM struct {
@@ -16,7 +15,8 @@ type DM struct {
 
 func NewDM(g *globals.Context) *DM {
 	return &DM{
-		baseCommand: newBaseCommand(g, "msg", "<user> <message>", "dm"),
+		baseCommand: newBaseCommand(g, "msg", "<conversation> <message>",
+			"Send a message in the specified conversation", "dm"),
 	}
 }
 
@@ -30,8 +30,10 @@ func (d *DM) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Conversa
 	if len(toks) < 3 {
 		return ErrInvalidArguments
 	}
-	tlfName = toks[1]
+	conv, err := d.getConvByName(ctx, uid, toks[1])
+	if err != nil {
+		return err
+	}
 	text = strings.Join(toks[2:], " ")
-	return d.G().ChatHelper.SendTextByNameNonblock(ctx, tlfName, nil,
-		chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFIdentifyBehavior_GUI, text)
+	return d.G().ChatHelper.SendTextByIDNonblock(ctx, conv.GetConvID(), conv.Info.TlfName, text)
 }

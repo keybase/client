@@ -405,6 +405,7 @@ type ConversationCommand interface {
 	Preview(ctx context.Context, text string) error
 	Name() string
 	Usage() string
+	Description() string
 }
 
 type ConversationCommandsSource interface {
