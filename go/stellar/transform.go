@@ -332,14 +332,6 @@ func formatWorth(mctx libkb.MetaContext, amount, currency *string) (worth, worth
 	return worth, *currency, nil
 }
 
-func lookupUsernameFallback(mctx libkb.MetaContext, uid keybase1.UID, acctID stellar1.AccountID) (name string, kind stellar1.ParticipantType) {
-	name, err := lookupUsername(mctx, uid)
-	if err == nil {
-		return name, stellar1.ParticipantType_KEYBASE
-	}
-	return acctID.String(), stellar1.ParticipantType_STELLAR
-}
-
 func lookupUsername(mctx libkb.MetaContext, uid keybase1.UID) (string, error) {
 	uname, err := mctx.G().GetUPAKLoader().LookupUsername(mctx.Ctx(), uid)
 	if err != nil {

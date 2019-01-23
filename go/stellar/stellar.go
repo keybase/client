@@ -788,16 +788,12 @@ func specMiniChatPayment(mctx libkb.MetaContext, walletState *WalletState, payme
 // like "+1XLM@alice +2XLM@charlie".
 func SendMiniChatPayments(m libkb.MetaContext, walletState *WalletState, convID chat1.ConversationID, payments []libkb.MiniChatPayment) (res []libkb.MiniChatPaymentResult, err error) {
 	defer m.CTraceTimed("Stellar.SendMiniChatPayments", func() error { return err })()
+
 	// look up sender account
-	senderEntry, senderAccountBundle, err := LookupSenderPrimary(m)
+	senderAccountID, senderSeed, err := LookupSenderSeed(m)
 	if err != nil {
 		return nil, err
 	}
-	senderSeed, err := stellarnet.NewSeedStr(senderAccountBundle.Signers[0].SecureNoLogString())
-	if err != nil {
-		return nil, err
-	}
-	senderAccountID := senderEntry.AccountID
 
 	prepared, err := PrepareMiniChatPayments(m, walletState, senderSeed, convID, payments)
 	if err != nil {
@@ -877,7 +873,6 @@ func PrepareMiniChatPayments(m libkb.MetaContext, walletState *WalletState, send
 	sort.Slice(preparedList, func(a, b int) bool { return preparedList[a].Seqno < preparedList[b].Seqno })
 
 	return preparedList, nil
-
 }
 
 func prepareMiniChatPayment(m libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, tb *build.Timebounds, senderSeed stellarnet.SeedStr, convID chat1.ConversationID, payment libkb.MiniChatPayment) *MiniPrepared {
@@ -942,8 +937,8 @@ func prepareMiniChatPaymentDirect(m libkb.MetaContext, remoter remote.Remoter, s
 	result.Direct.SignedTransaction = signResult.Signed
 	result.Seqno = signResult.Seqno
 	result.TxID = stellar1.TransactionID(signResult.TxHash)
-	return result
 
+	return result
 }
 
 func prepareMiniChatPaymentRelay(mctx libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, tb *build.Timebounds, senderSeed stellarnet.SeedStr, convID chat1.ConversationID, payment libkb.MiniChatPayment, recipient stellarcommon.Recipient) *MiniPrepared {
@@ -1784,11 +1779,6 @@ func GetCurrencySetting(mctx libkb.MetaContext, accountID stellar1.AccountID) (r
 		return res, fmt.Errorf("Got unrecognized currency code %q", codeStr)
 	}
 	return currency, nil
-}
-
-func accountIDFromSecretKey(skey stellar1.SecretKey) (stellar1.AccountID, error) {
-	_, res, _, err := libkb.ParseStellarSecretKey(skey.SecureNoLogString())
-	return res, err
 }
 
 func CreateNewAccount(mctx libkb.MetaContext, accountName string) (ret stellar1.AccountID, err error) {
