@@ -2,6 +2,7 @@ package stellar
 
 import (
 	"errors"
+	"fmt"
 	"sort"
 	"time"
 
@@ -13,6 +14,9 @@ import (
 	"github.com/keybase/stellarnet"
 	"github.com/stellar/go/build"
 )
+
+const minAmountRelayXLM = "2.01"
+const minAmountCreateAccountXLM = "1"
 
 // Batch sends a batch of payments from the user to multiple recipients in
 // a time-efficient manner.
@@ -167,6 +171,14 @@ func prepareBatchPaymentDirect(mctx libkb.MetaContext, remoter remote.Remoter, s
 		return result
 	}
 
+	if !funded {
+		if isAmountLessThanMin(payment.Amount, minAmountCreateAccountXLM) {
+			result.Error = fmt.Errorf("you must send at least %s XLM to fund the account for %s", minAmountCreateAccountXLM, payment.Recipient)
+			return result
+		}
+
+	}
+
 	result.Direct = &stellar1.PaymentDirectPost{
 		FromDeviceID: mctx.G().ActiveDevice.DeviceID(),
 		To:           &recipient.User.UV,
@@ -193,6 +205,11 @@ func prepareBatchPaymentDirect(mctx libkb.MetaContext, remoter remote.Remoter, s
 
 func prepareBatchPaymentRelay(mctx libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, senderSeed stellarnet.SeedStr, payment stellar1.BatchPaymentArg, recipient stellarcommon.Recipient) *MiniPrepared {
 	result := &MiniPrepared{Username: libkb.NewNormalizedUsername(payment.Recipient)}
+
+	if isAmountLessThanMin(payment.Amount, minAmountRelayXLM) {
+		result.Error = fmt.Errorf("you must send at least %s XLM to fund the account for %s", minAmountRelayXLM, payment.Recipient)
+		return result
+	}
 
 	appKey, teamID, err := relays.GetKey(mctx, recipient)
 	if err != nil {
@@ -314,4 +331,12 @@ func submitBatchTx(mctx libkb.MetaContext, walletState *WalletState, senderAccou
 		bpResult.Status = stellar1.PaymentStatus_COMPLETED
 		bpResult.EndTime = stellar1.ToTimeMs(time.Now())
 	}
+}
+
+func isAmountLessThanMin(amount, min string) bool {
+	cmp, err := stellarnet.CompareStellarAmounts(amount, min)
+	if err == nil && cmp == -1 {
+		return true
+	}
+	return false
 }

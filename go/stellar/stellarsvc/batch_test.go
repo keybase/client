@@ -27,7 +27,7 @@ func TestPrepareBatchRelays(t *testing.T) {
 	acceptDisclaimer(tc)
 	acceptDisclaimer(tcw)
 	payments := []stellar1.BatchPaymentArg{
-		{Recipient: "t_rebecca", Amount: "1"},
+		{Recipient: "t_rebecca", Amount: "3"},
 		{Recipient: tcw.Fu.Username, Amount: "2"},
 	}
 
@@ -63,5 +63,54 @@ func TestPrepareBatchRelays(t *testing.T) {
 	}
 	if prepared[0].Seqno > prepared[1].Seqno {
 		t.Errorf("prepared sort failed (seqnos out of order)")
+	}
+}
+
+// TestPrepareBatchLowAmounts checks that a PrepareBatchPayments
+// with low amounts will return errors quickly.
+func TestPrepareBatchLowAmounts(t *testing.T) {
+	tc, cleanup := setupDesktopTest(t)
+	defer cleanup()
+	require.NotNil(t, tc.Srv.walletState)
+
+	tcw, cleanupw := setupDesktopTest(t)
+	defer cleanupw()
+
+	mctx := libkb.NewMetaContext(context.Background(), tc.G)
+
+	acceptDisclaimer(tc)
+	acceptDisclaimer(tcw)
+	payments := []stellar1.BatchPaymentArg{
+		{Recipient: "t_rebecca", Amount: "1"},
+		{Recipient: tcw.Fu.Username, Amount: "0.2"},
+	}
+
+	_, senderAccountBundle, err := stellar.LookupSenderPrimary(mctx)
+	require.NoError(t, err)
+	senderSeed, err := stellarnet.NewSeedStr(senderAccountBundle.Signers[0].SecureNoLogString())
+	require.NoError(t, err)
+
+	prepared, err := stellar.PrepareBatchPayments(mctx, tc.Srv.walletState, senderSeed, payments)
+	require.NoError(t, err)
+	require.Len(t, prepared, 2)
+	for i, p := range prepared {
+		t.Logf("result %d: %+v", i, p)
+
+		switch p.Username.String() {
+		case "t_rebecca":
+			require.Nil(t, p.Direct)
+			require.Nil(t, p.Relay)
+			require.Error(t, p.Error)
+			require.Empty(t, p.Seqno)
+			require.Empty(t, p.TxID)
+		case tcw.Fu.Username:
+			require.Nil(t, p.Direct)
+			require.Nil(t, p.Relay)
+			require.Error(t, p.Error)
+			require.Empty(t, p.Seqno)
+			require.Empty(t, p.TxID)
+		default:
+			t.Fatalf("unknown username in result: %s", p.Username)
+		}
 	}
 }
