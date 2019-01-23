@@ -93,7 +93,7 @@ export const makeTeamSettings: I.RecordFactory<Types._TeamSettings> = I.Record({
 })
 
 export const makeRetentionPolicy: I.RecordFactory<_RetentionPolicy> = I.Record({
-  days: 0,
+  seconds: 0,
   type: 'retain',
 })
 
@@ -156,12 +156,13 @@ export const initialCanUserPerform: RPCTypes.TeamOperation = {
   setTeamShowcase: false,
 }
 
+const dayInS = 3600 * 24
 const policyInherit = makeRetentionPolicy({type: 'inherit'})
 const policyRetain = makeRetentionPolicy({type: 'retain'})
-const policyMonth = makeRetentionPolicy({days: 30, type: 'expire'})
-const policyThreeMonths = makeRetentionPolicy({days: 90, type: 'expire'})
-const policySixMonths = makeRetentionPolicy({days: 180, type: 'expire'})
-const policyYear = makeRetentionPolicy({days: 365, type: 'expire'})
+const policyMonth = makeRetentionPolicy({seconds: 30 * dayInS, type: 'expire'})
+const policyThreeMonths = makeRetentionPolicy({seconds: 90 * dayInS, type: 'expire'})
+const policySixMonths = makeRetentionPolicy({seconds: 180 * dayInS, type: 'expire'})
+const policyYear = makeRetentionPolicy({seconds: 365 * dayInS, type: 'expire'})
 const baseRetentionPolicies = [policyMonth, policyThreeMonths, policySixMonths, policyYear, policyRetain]
 const retentionPolicies = {
   policyInherit,
@@ -345,7 +346,6 @@ const isSubteam = (maybeTeamname: string) => {
   }
   return true
 }
-const secondsToDays = (seconds: number) => seconds / (3600 * 24)
 const serviceRetentionPolicyToRetentionPolicy = (policy: ?RPCChatTypes.RetentionPolicy): RetentionPolicy => {
   // !policy implies a default policy of retainment
   let retentionPolicy: RetentionPolicy = makeRetentionPolicy({type: 'retain'})
@@ -360,7 +360,7 @@ const serviceRetentionPolicyToRetentionPolicy = (policy: ?RPCChatTypes.Retention
           throw new Error(`RPC returned retention policy of type 'expire' with no expire data`)
         }
         retentionPolicy = makeRetentionPolicy({
-          days: secondsToDays(policy.expire.age),
+          seconds: policy.expire.age,
           type: 'expire',
         })
         break
@@ -371,7 +371,6 @@ const serviceRetentionPolicyToRetentionPolicy = (policy: ?RPCChatTypes.Retention
   return retentionPolicy
 }
 
-const daysToSeconds = (days: number) => days * 3600 * 24
 const retentionPolicyToServiceRetentionPolicy = (policy: RetentionPolicy): RPCChatTypes.RetentionPolicy => {
   let res: ?RPCChatTypes.RetentionPolicy
   switch (policy.type) {
@@ -379,7 +378,7 @@ const retentionPolicyToServiceRetentionPolicy = (policy: RetentionPolicy): RPCCh
       res = {retain: {}, typ: RPCChatTypes.commonRetentionPolicyType.retain}
       break
     case 'expire':
-      res = {expire: {age: daysToSeconds(policy.days)}, typ: RPCChatTypes.commonRetentionPolicyType.expire}
+      res = {expire: {age: policy.seconds}, typ: RPCChatTypes.commonRetentionPolicyType.expire}
       break
     case 'inherit':
       res = {inherit: {}, typ: RPCChatTypes.commonRetentionPolicyType.inherit}

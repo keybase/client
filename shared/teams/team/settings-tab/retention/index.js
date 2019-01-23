@@ -97,7 +97,7 @@ class _RetentionPicker extends React.Component<Kb.PropsWithOverlay<Props>, State
           throw new Error(`Got policy of type 'inherit' without an inheritable parent policy`)
         }
       }
-      return {onClick: () => this._onSelect(policy), title: daysToLabel(policy.days)}
+      return {onClick: () => this._onSelect(policy), title: daysToLabel(secondsToDays(policy.seconds))}
     })
     this.setState({items})
   }
@@ -271,12 +271,13 @@ const saveStateStyle = Styles.platformStyles({
 })
 
 // Utilities for transforming retention policies <-> labels
+const secondsToDays = s => s / (3600 * 24)
 const policyToLabel = (p: RetentionPolicy, parent: ?RetentionPolicy) => {
   switch (p.type) {
     case 'retain':
       return 'Never auto-delete'
     case 'expire':
-      return daysToLabel(p.days)
+      return daysToLabel(secondsToDays(p.seconds))
     case 'inherit':
       if (!parent) {
         // Don't throw an error, as this may happen when deleting a
@@ -305,7 +306,7 @@ const policyToComparable = (p: RetentionPolicy, parent: ?RetentionPolicy): numbe
       res = policyToComparable(parent)
       break
     case 'expire':
-      res = p.days
+      res = p.seconds
       break
   }
   if (res === -1) {
@@ -325,13 +326,13 @@ const policyToDays = (p: RetentionPolicy, parent?: RetentionPolicy) => {
       days = policyToDays(parent)
       break
     case 'expire':
-      days = p.days
+      days = secondsToDays(p.seconds)
   }
   return days
 }
 const policyEquals = (p1?: RetentionPolicy, p2?: RetentionPolicy): boolean => {
   if (p1 && p2) {
-    return p1.type === p2.type && p1.days === p2.days
+    return p1.type === p2.type && p1.seconds === p2.seconds
   }
   return p1 === p2
 }
@@ -350,7 +351,7 @@ const policyToExplanation = (convType: string, p: RetentionPolicy, parent?: Rete
           behavior = 'be retained indefinitely'
           break
         case 'expire':
-          behavior = `expire after ${daysToLabel(parent.days)}`
+          behavior = `expire after ${daysToLabel(secondsToDays(parent.seconds))}`
           break
         default:
           throw new Error(`Impossible policy type encountered: ${parent.type}`)
@@ -361,7 +362,9 @@ const policyToExplanation = (convType: string, p: RetentionPolicy, parent?: Rete
       exp = `Admins have set this ${convType} to retain messages indefinitely.`
       break
     case 'expire':
-      exp = `Admins have set this ${convType} to auto-delete messages after ${daysToLabel(p.days)}.`
+      exp = `Admins have set this ${convType} to auto-delete messages after ${daysToLabel(
+        secondsToDays(p.seconds)
+      )}.`
       break
     default:
       throw new Error(`Impossible policy type encountered: ${p.type}`)

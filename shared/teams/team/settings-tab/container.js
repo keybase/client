@@ -39,21 +39,27 @@ const mapDispatchToProps = dispatch => ({
   _saveRetentionPolicy: (teamname: Types.Teamname, policy: RetentionPolicy) =>
     dispatch(TeamsGen.createSaveTeamRetentionPolicy({policy, teamname})),
   _showRetentionWarning: (days: number, onConfirm: () => void, entityType: 'big team' | 'small team') =>
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {days, entityType, onConfirm}, selected: 'retentionWarning'}]})),
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {days, entityType, onConfirm}, selected: 'retentionWarning'}],
+      })
+    ),
   setOpenTeamRole: (newOpenTeamRole: Types.TeamRoleType, setNewOpenTeamRole: Types.TeamRoleType => void) => {
     dispatch(
-      RouteTreeGen.createNavigateAppend({path: [
-        {
-          props: {
-            allowAdmin: false,
-            allowOwner: false,
-            onComplete: setNewOpenTeamRole,
-            pluralizeRoleName: true,
-            selectedRole: newOpenTeamRole,
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {
+              allowAdmin: false,
+              allowOwner: false,
+              onComplete: setNewOpenTeamRole,
+              pluralizeRoleName: true,
+              selectedRole: newOpenTeamRole,
+            },
+            selected: 'controlledRolePicker',
           },
-          selected: 'controlledRolePicker',
-        },
-      ]})
+        ],
+      })
     )
   },
 })
@@ -69,7 +75,7 @@ const mergeProps = (stateProps, dispatchProps) => {
       if (stateProps.yourOperations.setRetentionPolicy) {
         showRetentionWarning &&
           dispatchProps._showRetentionWarning(
-            policy.days,
+            policy.seconds / (3600 * 24),
             () => dispatchProps._saveRetentionPolicy(stateProps.teamname, policy),
             stateProps.isBigTeam ? 'big team' : 'small team'
           )

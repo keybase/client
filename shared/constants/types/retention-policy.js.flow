@@ -1,5 +1,5 @@
 // @flow strict
-// `days` should be left as 0 unless `type` is expire
+// `seconds` should be left as 0 unless `type` is expire
 import * as I from 'immutable'
-export type _RetentionPolicy = {type: 'inherit' | 'expire' | 'retain', days: number}
+export type _RetentionPolicy = {type: 'inherit' | 'expire' | 'retain', seconds: number}
 export type RetentionPolicy = I.RecordOf<_RetentionPolicy>
