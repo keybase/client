@@ -807,6 +807,11 @@ func JoinConversationByName(ctx context.Context, g *globals.Context, debugger ut
 	return nil
 }
 
+func (h *Helper) LeaveConversation(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (err error) {
+	defer h.Trace(ctx, func() error { return err }, "ChatHelper.LeaveConversation")()
+	return LeaveConversation(ctx, h.G(), h.DebugLabeler, h.ri, uid, convID)
+}
+
 func LeaveConversation(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
 	ri func() chat1.RemoteInterface, uid gregor1.UID, convID chat1.ConversationID) (err error) {
 	alreadyIn, err := g.InboxSource.IsMember(ctx, uid, convID)

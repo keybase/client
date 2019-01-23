@@ -1798,12 +1798,10 @@ func (h *Server) JoinConversationByIDLocal(ctx context.Context, convID chat1.Con
 			h.Debug(ctx, "JoinConversationByIDLocal: result obtained offline")
 		}
 	}()
-
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
 	}
-
 	err = JoinConversation(ctx, h.G(), h.DebugLabeler, h.remoteClient, uid, convID)
 	if err != nil {
 		return res, err
@@ -1829,32 +1827,8 @@ func (h *Server) JoinConversationLocal(ctx context.Context, arg chat1.JoinConver
 	if err != nil {
 		return res, err
 	}
-
-	// Fetch the TLF ID from specified name
-	nameInfo, err := CreateNameInfoSource(ctx, h.G(), chat1.ConversationMembersType_TEAM).LookupID(ctx,
-		arg.TlfName, arg.Visibility == keybase1.TLFVisibility_PUBLIC)
-	if err != nil {
-		h.Debug(ctx, "JoinConversationLocal: failed to get TLFID from name: %s", err.Error())
-		return res, err
-	}
-
-	// List all the conversations on the team
-	convs, err := h.G().TeamChannelSource.GetChannelsFull(ctx, uid, nameInfo.ID, arg.TopicType)
-	if err != nil {
-		return res, err
-	}
-	var convID chat1.ConversationID
-	for _, conv := range convs {
-		topicName := utils.GetTopicName(conv)
-		if topicName != "" && topicName == arg.TopicName {
-			convID = conv.GetConvID()
-		}
-	}
-	if convID.IsNil() {
-		return res, fmt.Errorf("no topic name %s exists on specified team", arg.TopicName)
-	}
-
-	if err = JoinConversation(ctx, h.G(), h.DebugLabeler, h.remoteClient, uid, convID); err != nil {
+	if err = JoinConversationByName(ctx, h.G(), h.DebugLabeler, h.remoteClient, uid, arg.TlfName,
+		arg.TopicName, arg.TopicType, arg.Visibility); err != nil {
 		return res, err
 	}
 	res.Offline = h.G().InboxSource.IsOffline(ctx)

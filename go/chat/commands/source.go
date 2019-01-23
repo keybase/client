@@ -38,6 +38,7 @@ func (s *Source) makeBuiltin() {
 			NewHeadline(s.G()),
 			NewHide(s.G()),
 			NewJoin(s.G()),
+			NewLeave(s.G()),
 			NewMe(s.G()),
 			NewShrug(s.G()),
 		},

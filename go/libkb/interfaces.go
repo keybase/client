@@ -881,6 +881,7 @@ type ChatHelper interface {
 	JoinConversationByID(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) error
 	JoinConversationByName(ctx context.Context, uid gregor1.UID, tlfName, topicName string,
 		topicType chat1.TopicType, vid keybase1.TLFVisibility) error
+	LeaveConversation(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) error
 	GetChannelTopicName(context.Context, keybase1.TeamID, chat1.TopicType, chat1.ConversationID) (string, error)
 	GetMessages(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		msgIDs []chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason) ([]chat1.MessageUnboxed, error)
