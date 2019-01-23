@@ -3,6 +3,7 @@ package commands
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
@@ -59,6 +60,9 @@ func (s *Source) AttemptCommand(ctx context.Context, uid gregor1.UID, convID cha
 		return false, nil
 	}
 	text := body.Text().Body
+	if !strings.HasPrefix(text, "/") {
+		return false, nil
+	}
 	groups, err := s.ListCommands(ctx, uid, convID)
 	if err != nil {
 		return false, err

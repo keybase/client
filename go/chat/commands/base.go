@@ -64,6 +64,9 @@ func (b *baseCommand) commandAndMessage(text string) (cmd string, msg string, er
 }
 
 func (b *baseCommand) Match(ctx context.Context, text string) bool {
+	if !strings.HasPrefix(text, "/") {
+		return false
+	}
 	cands := append(b.aliases, b.name)
 	for _, c := range cands {
 		if strings.HasPrefix(text, fmt.Sprintf("/%s", c)) {
