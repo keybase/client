@@ -3,8 +3,8 @@
 import * as React from 'react'
 import * as Styles from '../styles'
 import * as Constants from '../constants/waiting'
-import {Box, Box2} from './box'
-import {HeaderHocHeader} from './header-hoc'
+import {Box2} from './box'
+import HeaderHoc from './header-hoc'
 import ScrollView from './scroll-view'
 import Text from './text'
 import Button from './button'
@@ -16,12 +16,11 @@ type ReloadProps = {|
   reason: string,
 |}
 
-class Reload extends React.PureComponent<ReloadProps, {expanded: boolean}> {
+class _Reload extends React.PureComponent<ReloadProps, {expanded: boolean}> {
   state = {expanded: false}
   _toggle = () => this.setState(p => ({expanded: !p.expanded}))
   render() {
-    const header = this.props.onBack ? <HeaderHocHeader onBack={this.props.onBack} /> : null
-    const content = (
+    return (
       <Box2 direction="vertical" centerChildren={true} style={styles.reload} gap="tiny">
         <Text center={true} type="Header">
           Oops... We're having a hard time loading this page. Try again?
@@ -39,21 +38,17 @@ class Reload extends React.PureComponent<ReloadProps, {expanded: boolean}> {
         <Button type="Primary" label="🙏 Retry" onClick={this.props.onReload} />
       </Box2>
     )
-    return header ? (
-      <Box style={styles.container}>
-        {header}
-        {content}
-      </Box>
-    ) : (
-      content
-    )
   }
 }
 
+const Reload = HeaderHoc(_Reload)
+
 type Props = {|
-  ...$Exact<ReloadProps>,
   children: React.Node,
   needsReload: boolean,
+  onBack?: () => void,
+  onReload: () => void,
+  reason: string,
   reloadOnMount?: boolean,
 |}
 
@@ -72,10 +67,6 @@ class Reloadable extends React.PureComponent<Props> {
 }
 
 const styles = Styles.styleSheetCreate({
-  container: {
-    ...Styles.globalStyles.flexBoxColumn,
-    flex: 1,
-  },
   details: Styles.platformStyles({
     common: {
       flexGrow: 1,
@@ -114,9 +105,9 @@ const styles = Styles.styleSheetCreate({
 
 type OwnProps = {|
   children: React.Node,
-  reloadOnMount?: boolean,
   onBack?: () => void,
   onReload: () => void,
+  reloadOnMount?: boolean,
   waitingKeys: string | Array<string>,
 |}
 
