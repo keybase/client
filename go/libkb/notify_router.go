@@ -91,6 +91,7 @@ type NotifyListener interface {
 	PhoneNumberAdded(phoneNumber keybase1.PhoneNumber)
 	PhoneNumberVerified(phoneNumber keybase1.PhoneNumber)
 	PhoneNumberSuperseded(phoneNumber keybase1.PhoneNumber)
+	PasswordChanged()
 }
 
 type NoopNotifyListener struct{}
@@ -188,6 +189,7 @@ func (n *NoopNotifyListener) CanUserPerformChanged(teamName string)             
 func (n *NoopNotifyListener) PhoneNumberAdded(phoneNumber keybase1.PhoneNumber)      {}
 func (n *NoopNotifyListener) PhoneNumberVerified(phoneNumber keybase1.PhoneNumber)   {}
 func (n *NoopNotifyListener) PhoneNumberSuperseded(phoneNumber keybase1.PhoneNumber) {}
+func (n *NoopNotifyListener) PasswordChanged()                                       {}
 
 // NotifyRouter routes notifications to the various active RPC
 // connections. It's careful only to route to those who are interested
@@ -1943,4 +1945,23 @@ func (n *NotifyRouter) HandleChatRequestInfo(ctx context.Context, uid keybase1.U
 		n.listener.ChatRequestInfo(uid, convID, msgID, info)
 	}
 	n.G().Log.CDebugf(ctx, "- Sent ChatRequestInfo notification")
+}
+
+func (n *NotifyRouter) HandlePasswordChanged(ctx context.Context) {
+	if n == nil {
+		return
+	}
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Users {
+			go func() {
+				(keybase1.NotifyUsersClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).PasswordChanged(context.Background())
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.PasswordChanged()
+	}
 }

@@ -858,13 +858,13 @@ type UIDMapper interface {
 
 type ChatHelper interface {
 	SendTextByID(ctx context.Context, convID chat1.ConversationID,
-		trip chat1.ConversationIDTriple, tlfName string, text string) error
+		tlfName string, text string) error
 	SendMsgByID(ctx context.Context, convID chat1.ConversationID,
-		trip chat1.ConversationIDTriple, tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error
+		tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error
 	SendTextByIDNonblock(ctx context.Context, convID chat1.ConversationID,
-		trip chat1.ConversationIDTriple, tlfName string, text string) error
+		tlfName string, text string) error
 	SendMsgByIDNonblock(ctx context.Context, convID chat1.ConversationID,
-		trip chat1.ConversationIDTriple, tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error
+		tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error
 	SendTextByName(ctx context.Context, name string, topicName *string,
 		membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, text string) error
 	SendMsgByName(ctx context.Context, name string, topicName *string,
@@ -878,6 +878,10 @@ type ChatHelper interface {
 	FindConversations(ctx context.Context, useLocalData bool, name string, topicName *string,
 		topicType chat1.TopicType, membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility) ([]chat1.ConversationLocal, error)
 	FindConversationsByID(ctx context.Context, convIDs []chat1.ConversationID) ([]chat1.ConversationLocal, error)
+	JoinConversationByID(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) error
+	JoinConversationByName(ctx context.Context, uid gregor1.UID, tlfName, topicName string,
+		topicType chat1.TopicType, vid keybase1.TLFVisibility) error
+	LeaveConversation(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) error
 	GetChannelTopicName(context.Context, keybase1.TeamID, chat1.TopicType, chat1.ConversationID) (string, error)
 	GetMessages(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		msgIDs []chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason) ([]chat1.MessageUnboxed, error)

@@ -74,7 +74,8 @@ function SettingsNav(props: Props) {
             },
             {
               onClick: () => props.onTabChange(Constants.passphraseTab),
-              text: 'Change passphrase',
+              text: props.hasRandomPW ? 'Set a passphrase' : 'Change passphrase',
+              textColor: props.hasRandomPW ? globalColors.red : undefined,
             },
             {
               ...(isAndroid

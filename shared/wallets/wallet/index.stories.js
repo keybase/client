@@ -27,7 +27,7 @@ const props = {
   accountID: stringToAccountID('fakeAccountID'),
   loadingMore: false,
   navigateAppend: Sb.action('navigateAppend'),
-  navigateUp: Sb.action('navigateUp'),
+  onBack: Sb.action('onBack'),
   onLoadMore: Sb.action('onLoadMore'),
   onMarkAsRead: Sb.action('onMarkRead'),
   refresh: Sb.action('refresh'),

@@ -11,6 +11,7 @@ export type Props = {
   onTabChange: (tab: Tab) => void,
   onLogout: () => void,
   badgeNotifications?: boolean,
+  hasRandomPW?: boolean,
 }
 
 export default class Render extends React.Component<Props> {}

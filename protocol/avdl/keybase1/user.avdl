@@ -41,6 +41,9 @@ protocol user {
     Time trackTime;
   }
 
+  @typedef("string")
+  record EmailAddress {}
+
   record Email {
     EmailAddress email;
     boolean isVerified;
@@ -183,6 +186,5 @@ protocol user {
   */
   NextMerkleRootRes findNextMerkleRootAfterReset(UID uid, Seqno resetSeqno, ResetMerkleRoot prev);
 
-  @typedef("string")
-  record EmailAddress {}
+  boolean loadHasRandomPw(int sessionID, boolean forceRepoll);
 }

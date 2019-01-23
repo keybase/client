@@ -336,10 +336,13 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       })
     case WalletsGen.walletDisclaimerReceived:
       return state.merge({acceptedDisclaimer: action.payload.accepted})
-    // Saga only actions
     case WalletsGen.acceptDisclaimer:
       return state.merge({
         acceptingDisclaimerDelay: true,
+      })
+    case WalletsGen.resetAcceptingDisclaimer:
+      return state.merge({
+        acceptingDisclaimerDelay: false,
       })
     case WalletsGen.loadedMobileOnlyMode:
       return state.setIn(['mobileOnlyMap', action.payload.accountID], action.payload.enabled)
@@ -353,6 +356,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
       })
     case WalletsGen.setInflationDestination:
       return state.merge({inflationDestinationError: ''})
+    // Saga only actions
     case WalletsGen.rejectDisclaimer:
     case WalletsGen.didSetAccountAsDefault:
     case WalletsGen.cancelPayment:

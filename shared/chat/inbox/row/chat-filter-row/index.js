@@ -84,7 +84,12 @@ class ChatFilterRow extends React.PureComponent<Props, State> {
     if (this.state.isEditing || this.props.filter) {
       children = (
         <Kb.Box style={styles.inputContainer}>
-          <Kb.Icon type="iconfont-search" style={styles.icon} color={Styles.globalColors.black_20} />
+          <Kb.Icon
+            type="iconfont-search"
+            style={styles.icon}
+            color={Styles.globalColors.black_50}
+            fontSize={Styles.isMobile ? 20 : 16}
+          />
           <Kb.Input
             hideUnderline={true}
             small={true}
@@ -107,7 +112,7 @@ class ChatFilterRow extends React.PureComponent<Props, State> {
             type="iconfont-search"
             style={styles.icon}
             color={Styles.globalColors.black_50}
-            fontSize={16}
+            fontSize={Styles.isMobile ? 20 : 16}
           />
           <Kb.Text type="BodySemibold" style={styles.text}>
             Jump to chat

@@ -1269,10 +1269,8 @@ func TestClearFromDelete(t *testing.T) {
 		require.Fail(t, "no conv loader")
 	}
 
-	require.NoError(t, tc.Context().ChatHelper.SendTextByID(ctx, conv.GetConvID(), conv.Metadata.IdTriple,
-		u.Username, "hi"))
-	require.NoError(t, tc.Context().ChatHelper.SendTextByID(ctx, conv.GetConvID(), conv.Metadata.IdTriple,
-		u.Username, "hi2"))
+	require.NoError(t, tc.Context().ChatHelper.SendTextByID(ctx, conv.GetConvID(), u.Username, "hi"))
+	require.NoError(t, tc.Context().ChatHelper.SendTextByID(ctx, conv.GetConvID(), u.Username, "hi2"))
 	_, delMsg, err := sender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        conv.Metadata.IdTriple,

@@ -26,7 +26,8 @@ type ChatContext struct {
 	StellarLoader       types.StellarLoader       // stellar payment/request loader
 	StellarSender       types.StellarSender       // stellar in-chat payment sender
 	StellarPushHandler  types.OobmHandler
-	Unfurler            types.Unfurler // unfurl messages with URLs
+	Unfurler            types.Unfurler                   // unfurl messages with URLs
+	CommandsSource      types.ConversationCommandsSource // source for / commands for conversations
 }
 
 type Context struct {

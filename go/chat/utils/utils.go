@@ -891,6 +891,9 @@ func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, curre
 	if !msg.IsValid() {
 		return "", ""
 	}
+	defer func() {
+		snippet = EscapeShrugs(context.TODO(), snippet)
+	}()
 
 	mvalid := msg.Valid()
 	senderPrefix := getSenderPrefix(mvalid, conv, currentUsername)

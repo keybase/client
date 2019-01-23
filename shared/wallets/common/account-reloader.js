@@ -7,15 +7,22 @@ import {namedConnect} from '../../util/container'
 
 type OwnProps = {|
   children: React.Node,
+  onBack?: () => void,
 |}
 
 type Props = {|
   children: React.Node,
+  onBack?: () => void,
   onReload: () => void,
 |}
 
 const AccountReloader = (props: Props) => (
-  <Reloadable waitingKeys={checkOnlineWaitingKey} onReload={props.onReload} reloadOnMount={true}>
+  <Reloadable
+    onBack={props.onBack}
+    waitingKeys={checkOnlineWaitingKey}
+    onReload={props.onReload}
+    reloadOnMount={true}
+  >
     {props.children}
   </Reloadable>
 )
@@ -28,6 +35,7 @@ const mapDispatchToProps = dispatch => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   children: ownProps.children,
+  onBack: ownProps.onBack,
   onReload: dispatchProps.onReload,
 })
 
