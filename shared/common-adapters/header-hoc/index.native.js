@@ -77,6 +77,7 @@ export class HeaderHocHeader extends React.Component<Props, State> {
         <LeftAction
           badgeNumber={this.props.badgeNumber}
           customCancelText={this.props.customCancelText}
+          disabled={false}
           hasTextTitle={hasTextTitle}
           hideBackLabel={this.props.hideBackLabel}
           leftAction={leftAction}
@@ -97,8 +98,9 @@ export class HeaderHocHeader extends React.Component<Props, State> {
   }
 }
 
-const LeftAction = ({
+export const LeftAction = ({
   badgeNumber,
+  disabled,
   customCancelText,
   hasTextTitle,
   hideBackLabel,
@@ -117,7 +119,13 @@ const LeftAction = ({
         <BackButton
           badgeNumber={badgeNumber}
           hideBackLabel={hideBackLabel}
-          iconColor={theme === 'dark' ? Styles.globalColors.white : Styles.globalColors.black_50}
+          iconColor={
+            disabled
+              ? Styles.globalColors.black_10
+              : theme === 'dark'
+              ? Styles.globalColors.white
+              : Styles.globalColors.black_50
+          }
           style={styles.action}
           onClick={onLeftAction}
         />

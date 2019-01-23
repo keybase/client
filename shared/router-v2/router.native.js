@@ -6,7 +6,6 @@
 // gateway
 // statusbar handling
 import * as Kb from '../common-adapters/mobile.native'
-import * as I from 'immutable'
 import * as Styles from '../styles'
 import * as React from 'react'
 import GlobalError from '../app/global-errors/container'
@@ -28,6 +27,7 @@ import {createAppContainer} from '@react-navigation/native'
 import {createBottomTabNavigator} from 'react-navigation-tabs'
 import {createStackNavigator} from 'react-navigation-stack'
 import {routes, nameToTab} from './routes'
+import {LeftAction} from '../common-adapters/header-hoc/index.native'
 
 // deprecating routestate concept entirely
 // const emptyMap = I.Map()
@@ -122,15 +122,36 @@ const StackNavigator = createStackNavigator(routes, {
     // static navigationOptions = p => {
     // return {
     // headerTitle: p.navigation.getParam('username'),
-    header: hp => (
-      <Kb.SafeAreaViewTop style={hp.style}>
-        <Kb.Text center={true} type="Body">
-          {p.navigation.getParam('username')}
-        </Kb.Text>
-      </Kb.SafeAreaViewTop>
+    headerTitle: hp => (
+      <Kb.Text center={true} type="Body">
+        CUSTOM{p.navigation.getParam('username')} long long long long lonlong long long long lonlong long long
+        long longgglong long long long long
+      </Kb.Text>
     ),
+    headerLeft: hp => (
+      <LeftAction
+        badgeNumber={0}
+        leftAction="back"
+        onLeftAction={hp.onPress}
+        disabled={hp.scene.index === 0}
+      />
+    ),
+    headerRight: (
+      <Kb.Box2 direction="horizontal" fullHeight={true} centerChildren={true}>
+        <Kb.Icon type="iconfont-ellipsis" />
+        <Kb.Icon type="iconfont-ellipsis" />
+        <Kb.Icon type="iconfont-ellipsis" />
+      </Kb.Box2>
+    ),
+    // header: hp => (
+    // <Kb.SafeAreaViewTop style={hp.style}>
+    // <Kb.Text center={true} type="Body">
+    // {p.navigation.getParam('username')}
+    // </Kb.Text>
+    // </Kb.SafeAreaViewTop>
+    // ),
     headerMode: 'float',
-    headerTransitionPreset: 'uikit',
+    // headerTransitionPreset: 'uikit',
     // cardOverlayEnabled: true,
     // }
     // }
