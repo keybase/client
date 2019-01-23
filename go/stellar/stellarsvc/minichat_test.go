@@ -151,7 +151,7 @@ func TestSpecMiniChatPayments(t *testing.T) {
 	}
 }
 
-// TestPrepareMiniChatRelays checks that a PrepareMiniChatPayments
+// TestPrepareMiniChatRelays checks that PrepareMiniChatPayments
 // (which is called by SendMiniChatPayments)
 // with a destination username that is a valid user but someone who
 // doesn't have a wallet will succeed and create a relay payment.
@@ -194,6 +194,55 @@ func TestPrepareMiniChatRelays(t *testing.T) {
 			require.NotNil(t, p.Direct)
 			require.Nil(t, p.Relay)
 			require.True(t, p.Direct.QuickReturn)
+		default:
+			t.Fatalf("unknown username in result: %s", p.Username)
+		}
+	}
+}
+
+// TestPrepareMiniChatLowAmounts checks that PrepareMiniChatPayments
+// finds low amount errors early (and doesn't consume seqnos).
+func TestPrepareMiniChatLowAmounts(t *testing.T) {
+	tc, cleanup := setupDesktopTest(t)
+	defer cleanup()
+	require.NotNil(t, tc.Srv.walletState)
+
+	tcw, cleanupw := setupDesktopTest(t)
+	defer cleanupw()
+
+	mctx := libkb.NewMetaContext(context.Background(), tc.G)
+
+	acceptDisclaimer(tc)
+	acceptDisclaimer(tcw)
+	payments := []libkb.MiniChatPayment{
+		{Username: libkb.NewNormalizedUsername("t_rebecca"), Amount: "0.01", Currency: "USD"},
+		{Username: libkb.NewNormalizedUsername(tcw.Fu.Username), Amount: "0.5", Currency: "XLM"},
+	}
+
+	_, senderAccountBundle, err := stellar.LookupSenderPrimary(mctx)
+	require.NoError(t, err)
+	senderSeed, err := stellarnet.NewSeedStr(senderAccountBundle.Signers[0].SecureNoLogString())
+	require.NoError(t, err)
+
+	prepared, err := stellar.PrepareMiniChatPayments(mctx, tc.Srv.walletState, senderSeed, nil, payments)
+	require.NoError(t, err)
+	require.Len(t, prepared, 2)
+	for i, p := range prepared {
+		t.Logf("result %d: %+v", i, p)
+
+		switch p.Username.String() {
+		case "t_rebecca":
+			require.Nil(t, p.Direct)
+			require.Nil(t, p.Relay)
+			require.Error(t, p.Error)
+			require.Empty(t, p.Seqno)
+			require.Empty(t, p.TxID)
+		case tcw.Fu.Username:
+			require.NotNil(t, p.Direct)
+			require.Nil(t, p.Relay)
+			require.Error(t, p.Error)
+			require.Empty(t, p.Seqno)
+			require.Empty(t, p.TxID)
 		default:
 			t.Fatalf("unknown username in result: %s", p.Username)
 		}

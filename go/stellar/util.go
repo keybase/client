@@ -110,3 +110,11 @@ func LookupSenderSeed(mctx libkb.MetaContext) (stellar1.AccountID, stellarnet.Se
 
 	return senderEntry.AccountID, senderSeed, nil
 }
+
+func isAmountLessThanMin(amount, min string) bool {
+	cmp, err := stellarnet.CompareStellarAmounts(amount, min)
+	if err == nil && cmp == -1 {
+		return true
+	}
+	return false
+}
