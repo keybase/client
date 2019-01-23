@@ -21,6 +21,7 @@ import (
 
 	"encoding/base64"
 
+	"github.com/keybase/client/go/chat/commands"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/msgchecker"
 	"github.com/keybase/client/go/chat/search"
@@ -359,6 +360,7 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 
 	g.ConvLoader = NewBackgroundConvLoader(g)
 	g.EphemeralPurger = types.DummyEphemeralPurger{}
+	g.CommandsSource = commands.NewSource(g)
 
 	pushHandler := NewPushHandler(g)
 	g.PushHandler = pushHandler
@@ -1922,6 +1924,7 @@ type serverChatListener struct {
 	resolveConv      chan resolveRes
 	subteamRename    chan []chat1.ConversationID
 	unfurlPrompt     chan chat1.MessageID
+	setStatus        chan chat1.SetStatusInfo
 }
 
 var _ libkb.NotifyListener = (*serverChatListener)(nil)
@@ -1967,6 +1970,8 @@ func (n *serverChatListener) NewChatActivity(uid keybase1.UID, activity chat1.Ch
 		n.reactionUpdate <- activity.ReactionUpdate()
 	case chat1.ChatActivityType_MESSAGES_UPDATED:
 		n.messagesUpdated <- activity.MessagesUpdated()
+	case chat1.ChatActivityType_SET_STATUS:
+		n.setStatus <- activity.SetStatus()
 	}
 }
 func (n *serverChatListener) ChatJoinedConversation(uid keybase1.UID, convID chat1.ConversationID,
@@ -2032,6 +2037,7 @@ func newServerChatListener() *serverChatListener {
 		resolveConv:      make(chan resolveRes, buf),
 		subteamRename:    make(chan []chat1.ConversationID, buf),
 		unfurlPrompt:     make(chan chat1.MessageID, buf),
+		setStatus:        make(chan chat1.SetStatusInfo, buf),
 	}
 }
 
