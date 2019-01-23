@@ -29,6 +29,7 @@ func (h *Join) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Conver
 	}
 	var teamName string
 	toks := strings.Split(text, " ")
+	topicName := strings.Replace(toks[1], "#", "", -1)
 	if len(toks) >= 3 {
 		teamName = toks[2]
 	} else if len(toks) < 2 {
@@ -47,7 +48,7 @@ func (h *Join) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Conver
 		}
 		teamName = conv.Info.TlfName
 	}
-	h.Debug(ctx, "joining channel: tlf: %s topic: %s", teamName, toks[1])
-	return h.G().ChatHelper.JoinConversationByName(ctx, uid, teamName, toks[1], chat1.TopicType_CHAT,
+	h.Debug(ctx, "joining channel: tlf: %s topic: %s", teamName, topicName)
+	return h.G().ChatHelper.JoinConversationByName(ctx, uid, teamName, topicName, chat1.TopicType_CHAT,
 		keybase1.TLFVisibility_PRIVATE)
 }
