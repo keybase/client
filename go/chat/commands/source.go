@@ -42,6 +42,7 @@ func (s *Source) makeBuiltin() {
 			NewMe(s.G()),
 			NewMute(s.G()),
 			NewShrug(s.G()),
+			NewUnhide(s.G()),
 		},
 	}
 }
