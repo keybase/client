@@ -159,16 +159,39 @@ export const initialCanUserPerform: RPCTypes.TeamOperation = {
 const dayInS = 3600 * 24
 const policyInherit = makeRetentionPolicy({type: 'inherit'})
 const policyRetain = makeRetentionPolicy({type: 'retain'})
+const policyThirtySeconds = makeRetentionPolicy({seconds: 30, type: 'explode'})
+const policyFiveMinutes = makeRetentionPolicy({seconds: 5 * 60, type: 'explode'})
+const policyOneHour = makeRetentionPolicy({seconds: 3600, type: 'explode'})
+const policySixHours = makeRetentionPolicy({seconds: 3600 * 6, type: 'explode'})
+const policyOneDay = makeRetentionPolicy({seconds: dayInS, type: 'explode'})
+const policyThreeDays = makeRetentionPolicy({seconds: 3 * dayInS, type: 'explode'})
+const policySevenDays = makeRetentionPolicy({seconds: 7 * dayInS, type: 'explode'})
 const policyMonth = makeRetentionPolicy({seconds: 30 * dayInS, type: 'expire'})
 const policyThreeMonths = makeRetentionPolicy({seconds: 90 * dayInS, type: 'expire'})
 const policySixMonths = makeRetentionPolicy({seconds: 180 * dayInS, type: 'expire'})
 const policyYear = makeRetentionPolicy({seconds: 365 * dayInS, type: 'expire'})
-const baseRetentionPolicies = [policyMonth, policyThreeMonths, policySixMonths, policyYear, policyRetain]
+const baseRetentionPolicies = [policyRetain, policyYear, policySixMonths, policyThreeMonths, policyMonth]
+const teamRetentionPolicies = [
+  policySevenDays,
+  policyThreeDays,
+  policyOneDay,
+  policySixHours,
+  policyOneHour,
+  policyFiveMinutes,
+  policyThirtySeconds,
+]
 const retentionPolicies = {
+  policyFiveMinutes,
   policyInherit,
   policyMonth,
+  policyOneDay,
+  policyOneHour,
   policyRetain,
+  policySevenDays,
+  policySixHours,
   policySixMonths,
+  policyThirtySeconds,
+  policyThreeDays,
   policyThreeMonths,
   policyYear,
 }
@@ -452,5 +475,6 @@ export {
   serviceRetentionPolicyToRetentionPolicy,
   retentionPolicyToServiceRetentionPolicy,
   baseRetentionPolicies,
+  teamRetentionPolicies,
   retentionPolicies,
 }
