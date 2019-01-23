@@ -107,10 +107,37 @@ import {routes, nameToTab} from './routes'
 // }
 // }
 
+// const StackNavigator = createNavigator(AppView, routes, {
+// headerMode: 'none',
+// initialRouteName: 'tabs:peopleTab',
+// })
+
 const StackNavigator = createStackNavigator(routes, {
-  headerMode: 'none',
+  defaultNavigationOptions: p => ({
+    // header: p => <Kb.SafeAreaViewTop />,
+    // headerMode: 'none',
+    // headerTransitionPreset: 'fade-in-place',
+    // cardOverlayEnabled: true,
+
+    // static navigationOptions = p => {
+    // return {
+    headerTitle: p.navigation.getParam('username'),
+    // header: hp => (
+    // <Kb.SafeAreaViewTop style={hp.style}>
+    // <Kb.Text center={true} type="Body">
+    // {p.navigation.getParam('username')}
+    // </Kb.Text>
+    // </Kb.SafeAreaViewTop>
+    // ),
+    headerMode: 'float',
+    headerTransitionPreset: 'uikit',
+    // cardOverlayEnabled: true,
+    // }
+    // }
+  }),
   initialRouteName: 'tabs:peopleTab',
 })
+// // NOT using rn-bototm tab
 // const tabNavigator = createBottomTabNavigator({
 // people: stackNavigator,
 // chat: stackNavigator,
@@ -154,19 +181,19 @@ class CustomStackNavigator extends React.PureComponent<any> {
     // const activeKey = p.navigation.state.routes[nonModalIndex].key
     // const descriptor = p.descriptors[activeKey]
 
-    let isUnderNotch = false
-    const route = routes[this.props.activeKey]
-    if (route) {
-      if (route.getScreen) {
-        const options = route.getScreen().navigationOptions || {}
-        if (options.isUnderNotch) {
-          isUnderNotch = true
-        }
-      }
-    }
+    // let isUnderNotch = false
+    // const route = routes[this.props.activeKey]
+    // if (route) {
+    // if (route.getScreen) {
+    // const options = route.getScreen().navigationOptions || {}
+    // if (options.isUnderNotch) {
+    // isUnderNotch = true
+    // }
+    // }
+    // }
+    // {!isUnderNotch && <Kb.SafeAreaViewTop />}
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-        {!isUnderNotch && <Kb.SafeAreaViewTop />}
         <StackNavigator navigation={this.props.navigation} />
         <TabBar selectedTab={nameToTab[this.props.activeKey]} />
         <GlobalError />

@@ -218,8 +218,5 @@ const connected = connect<OwnProps, _, _, _, _>(
   mergeProps
 )(ProfileContainer)
 
-connected.navigationOptions = {
-  isUnderNotch: true,
-}
-
+connected.navigationOptions = Profile.navigationOptions
 export default connected

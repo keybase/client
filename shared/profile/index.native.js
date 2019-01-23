@@ -128,6 +128,21 @@ const _StellarFederatedAddress = (props: StellarFederatedAddressProps & Kb.Overl
 const StellarFederatedAddress = Kb.OverlayParentHOC(_StellarFederatedAddress)
 
 class Profile extends Component<Props, State> {
+  // static navigationOptions = p => {
+  // return {
+  // headerTitle: 'hi',
+  // // header: (
+  // // <Kb.SafeAreaViewTop>
+  // // <Kb.Text center={true} type="Body">
+  // // {p.navigation.getParam('username')}
+  // // </Kb.Text>
+  // // </Kb.SafeAreaViewTop>
+  // // ),
+  // headerMode: 'screen',
+  // headerTransitionPreset: 'fade-in-place',
+  // cardOverlayEnabled: true,
+  // }
+  // }
   state = {
     activeMenuProof: null,
     currentFriendshipsTab: 'Followers',
