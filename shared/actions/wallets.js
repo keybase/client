@@ -93,7 +93,7 @@ const openSendRequestForm = (state, action) => {
 }
 
 const maybePopulateBuildingCurrency = (state, action) =>
-  state.wallets.building.bid && !state.wallets.building.currency // building a payment and haven't set currency yet
+  (state.wallets.building.bid || state.wallets.building.isRequest) && !state.wallets.building.currency // building a payment and haven't set currency yet
     ? WalletsGen.createSetBuildingCurrency({currency: Constants.getDefaultDisplayCurrency(state).code})
     : null
 
