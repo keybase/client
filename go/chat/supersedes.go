@@ -70,9 +70,7 @@ func (t *basicSupersedesTransform) transformEdit(msg chat1.MessageUnboxed, super
 	mvalid.AtMentionUsernames = superMsg.Valid().AtMentionUsernames
 	mvalid.ChannelMention = superMsg.Valid().ChannelMention
 	mvalid.ChannelNameMentions = superMsg.Valid().ChannelNameMentions
-	if superMsg.Valid().SenderDeviceName != "" {
-		mvalid.SenderDeviceName = superMsg.Valid().SenderDeviceName
-	}
+	mvalid.SenderDeviceName = superMsg.Valid().SenderDeviceName
 	if superMsg.Valid().SenderDeviceType != "" {
 		mvalid.SenderDeviceType = superMsg.Valid().SenderDeviceType
 	}

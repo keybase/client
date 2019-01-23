@@ -1169,10 +1169,6 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 
 	// Make sure sender is set
 	arg.Msg.ClientHeader.Sender = uid
-	arg.Msg.ClientHeader.SenderDevice, err = h.getGregorDeviceID()
-	if err != nil {
-		return res, err
-	}
 	sender := NewBlockingSender(h.G(), h.boxer, h.remoteClient)
 
 	_, msgBoxed, err := sender.Send(ctx, arg.ConversationID, arg.Msg, 0, nil)
