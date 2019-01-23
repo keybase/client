@@ -9,14 +9,14 @@ import Text from './text'
 import Button from './button'
 import {namedConnect} from '../util/container'
 
-type OwnProps = {|
+export type OwnProps = {|
   children: React.Node,
   reloadOnMount?: boolean,
   onReload: () => void,
   waitingKeys: string | Array<string>,
 |}
 
-type Props = {|
+export type Props = {|
   children: React.Node,
   needsReload: boolean,
   onReload: () => void,

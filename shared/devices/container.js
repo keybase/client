@@ -61,7 +61,7 @@ function mergeProps(stateProps, dispatchProps, ownProps: OwnProps) {
   }
 }
 
-class Reloadable extends React.PureComponent<React.ElementConfig<typeof Devices>> {
+class ReloadableDevices extends React.PureComponent<React.ElementConfig<typeof Devices>> {
   render() {
     return (
       <Kb.Reloadable
@@ -90,6 +90,6 @@ class Reloadable extends React.PureComponent<React.ElementConfig<typeof Devices>
 const Connected = compose(
   namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'Devices'),
   safeSubmitPerMount(['onBack'])
-)(Reloadable)
+)(ReloadableDevices)
 
 export default Connected
