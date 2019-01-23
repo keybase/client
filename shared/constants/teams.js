@@ -364,6 +364,15 @@ const serviceRetentionPolicyToRetentionPolicy = (policy: ?RPCChatTypes.Retention
           type: 'expire',
         })
         break
+      case RPCChatTypes.commonRetentionPolicyType.ephemeral:
+        if (!policy.ephemeral) {
+          throw new Error(`RPC returned retention policy of type 'ephemeral' with no ephemeral data`)
+        }
+        retentionPolicy = makeRetentionPolicy({
+          seconds: policy.ephemeral.age,
+          type: 'explode',
+        })
+        break
       case RPCChatTypes.commonRetentionPolicyType.inherit:
         retentionPolicy = makeRetentionPolicy({type: 'inherit'})
     }
@@ -379,6 +388,9 @@ const retentionPolicyToServiceRetentionPolicy = (policy: RetentionPolicy): RPCCh
       break
     case 'expire':
       res = {expire: {age: policy.seconds}, typ: RPCChatTypes.commonRetentionPolicyType.expire}
+      break
+    case 'explode':
+      res = {ephemeral: {age: policy.seconds}, typ: RPCChatTypes.commonRetentionPolicyType.ephemeral}
       break
     case 'inherit':
       res = {inherit: {}, typ: RPCChatTypes.commonRetentionPolicyType.inherit}
