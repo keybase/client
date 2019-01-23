@@ -66,8 +66,6 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
           message: action.payload.message,
         }),
       })
-    case TeamsGen.setLoaded:
-      return state.merge({loaded: action.payload.loaded})
     case TeamsGen.setTeamInfo:
       return state.merge({
         teamNameToAllowPromote: action.payload.teamNameToAllowPromote,
