@@ -30,19 +30,16 @@ type State = {
   saving: boolean,
   selected: RetentionPolicy,
   items: Array<MenuItem | 'Divider' | null>,
-  showMenu: boolean,
 }
 
-class RetentionPicker extends React.Component<Props, State> {
+class _RetentionPicker extends React.Component<Kb.PropsWithOverlay<Props>, State> {
   state = {
     items: [],
     saving: false,
     selected: retentionPolicies.policyRetain,
-    showMenu: false,
   }
   _timeoutID: TimeoutID
   _showSaved: boolean
-  _dropdownRef = React.createRef<Kb.ClickableBox>()
 
   // We just updated the state with a new selection, do we show the warning
   // dialog ourselves or do we call back up to the parent?
@@ -85,13 +82,6 @@ class RetentionPicker extends React.Component<Props, State> {
     this.setState({saving})
   }
 
-  _toggleShowMenu = () =>
-    this.setState(prevState => ({
-      showMenu: !prevState.showMenu,
-    }))
-
-  _getDropdownRef = () => this._dropdownRef.current
-
   _makeItems = () => {
     const policies = baseRetentionPolicies.slice()
     if (this.props.showInheritOption) {
@@ -132,7 +122,7 @@ class RetentionPicker extends React.Component<Props, State> {
     this._init()
   }
 
-  componentDidUpdate(prevProps: Props, prevState: State) {
+  componentDidUpdate(prevProps: Kb.PropsWithOverlay<Props>, prevState: State) {
     if (
       !policyEquals(this.props.policy, prevProps.policy) ||
       !policyEquals(this.props.teamPolicy, prevProps.teamPolicy)
@@ -150,10 +140,10 @@ class RetentionPicker extends React.Component<Props, State> {
     return (
       <Kb.Box style={Styles.collapseStyles([Styles.globalStyles.flexBoxColumn, this.props.containerStyle])}>
         <Kb.FloatingMenu
-          attachTo={this._getDropdownRef}
+          attachTo={this.props.getAttachmentRef}
           closeOnSelect={true}
-          visible={this.state.showMenu}
-          onHidden={this._toggleShowMenu}
+          visible={this.props.showingMenu}
+          onHidden={this.props.toggleShowingMenu}
           items={this.state.items}
           position="top center"
         />
@@ -167,8 +157,8 @@ class RetentionPicker extends React.Component<Props, State> {
           />
         </Kb.Box>
         <Kb.ClickableBox
-          onClick={this._toggleShowMenu}
-          ref={Styles.isMobile ? undefined : this._dropdownRef}
+          onClick={this.props.toggleShowingMenu}
+          ref={this.props.setAttachmentRef}
           style={Styles.collapseStyles([dropdownStyle, this.props.dropdownStyle])}
           underlayColor={Styles.globalColors.white_40}
         >
@@ -194,6 +184,7 @@ class RetentionPicker extends React.Component<Props, State> {
     )
   }
 }
+const RetentionPicker = Kb.OverlayParentHOC(_RetentionPicker)
 
 const RetentionDisplay = (props: {|...Props, entityType: RetentionEntityType|}) => {
   let convType = ''
