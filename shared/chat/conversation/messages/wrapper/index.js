@@ -536,7 +536,7 @@ const styles = Styles.styleSheetCreate({
   }),
   edited: {color: Styles.globalColors.black_20},
   ellipsis: {marginLeft: Styles.globalMargins.tiny},
-  emojiRow: {bottom: -20, position: 'absolute', right: 82, zIndex: 2},
+  emojiRow: {bottom: -12, position: 'absolute', right: 64, zIndex: 2},
   emojiRowLast: {bottom: -12},
   fail: {color: Styles.globalColors.red},
   failUnderline: {color: Styles.globalColors.red, textDecorationLine: 'underline'},
