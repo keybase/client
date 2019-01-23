@@ -194,6 +194,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       <ReactionsRow
         key="ReactionsRow"
         btnClassName="WrapperMessage-emojiButton"
+        newBtnClassName="WrapperMessage-newEmojiButton"
         conversationIDKey={this.props.conversationIDKey}
         ordinal={this.props.message.ordinal}
       />
