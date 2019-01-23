@@ -387,9 +387,10 @@ const serviceRetentionPolicyToRetentionPolicy = (policy: ?RPCChatTypes.Retention
         if (!policy.expire) {
           throw new Error(`RPC returned retention policy of type 'expire' with no expire data`)
         }
+        const {expire} = policy
         retentionPolicy = makeRetentionPolicy({
-          seconds: policy.expire.age,
-          title: baseRetentionPolicies.find(p => p.seconds === policy.expire?.age)?.title || 'TITLELESS',
+          seconds: expire.age,
+          title: baseRetentionPolicies.find(p => p.seconds === expire.age)?.title || `${expire.age} seconds`,
           type: 'expire',
         })
         break
@@ -397,9 +398,11 @@ const serviceRetentionPolicyToRetentionPolicy = (policy: ?RPCChatTypes.Retention
         if (!policy.ephemeral) {
           throw new Error(`RPC returned retention policy of type 'ephemeral' with no ephemeral data`)
         }
+        const {ephemeral} = policy
         retentionPolicy = makeRetentionPolicy({
-          seconds: policy.ephemeral.age,
-          title: baseRetentionPolicies.find(p => p.seconds === policy.ephemeral?.age)?.title || 'TITLELESS',
+          seconds: ephemeral.age,
+          title:
+            baseRetentionPolicies.find(p => p.seconds === ephemeral.age)?.title || `${ephemeral.age} seconds`,
           type: 'explode',
         })
         break
