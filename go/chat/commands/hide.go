@@ -2,7 +2,6 @@ package commands
 
 import (
 	"context"
-	"strings"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -27,7 +26,7 @@ func (h *Hide) Execute(ctx context.Context, uid gregor1.UID, inConvID chat1.Conv
 		return ErrInvalidCommand
 	}
 	var convID chat1.ConversationID
-	toks := strings.Split(text, " ")
+	toks := h.tokenize(text)
 	if len(toks) == 1 {
 		convID = inConvID
 	} else if len(toks) == 2 {

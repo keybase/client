@@ -26,7 +26,7 @@ func (d *DM) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Conversa
 	if !d.Match(ctx, text) {
 		return ErrInvalidCommand
 	}
-	toks := strings.Split(text, " ")
+	toks := d.tokenize(text)
 	if len(toks) < 3 {
 		return ErrInvalidArguments
 	}

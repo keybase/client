@@ -55,6 +55,10 @@ func (b *baseCommand) getConvByName(ctx context.Context, uid gregor1.UID, name s
 	return res, nil
 }
 
+func (b *baseCommand) tokenize(text string) []string {
+	return strings.Split(text, " ")
+}
+
 func (b *baseCommand) commandAndMessage(text string) (cmd string, msg string, err error) {
 	toks := strings.Split(text, " ")
 	if len(toks) < 2 {

@@ -2,7 +2,6 @@ package commands
 
 import (
 	"context"
-	"strings"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -25,7 +24,7 @@ func (h *Unhide) Execute(ctx context.Context, uid gregor1.UID, _ chat1.Conversat
 	if !h.Match(ctx, text) {
 		return ErrInvalidCommand
 	}
-	toks := strings.Split(text, " ")
+	toks := h.tokenize(text)
 	if len(toks) < 2 {
 		return ErrInvalidArguments
 	}

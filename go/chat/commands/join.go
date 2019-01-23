@@ -3,7 +3,6 @@ package commands
 import (
 	"context"
 	"errors"
-	"strings"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
@@ -53,7 +52,7 @@ func (h *Join) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Conver
 	if !h.Match(ctx, text) {
 		return ErrInvalidCommand
 	}
-	toks := strings.Split(text, " ")
+	toks := h.tokenize(text)
 	if len(toks) < 2 {
 		return ErrInvalidArguments
 	}
