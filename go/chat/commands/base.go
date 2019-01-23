@@ -64,9 +64,9 @@ func (b *baseCommand) tokenize(text string, minArgs int) (toks []string, err err
 }
 
 func (b *baseCommand) commandAndMessage(text string) (cmd string, msg string, err error) {
-	toks := strings.Split(text, " ")
-	if len(toks) < 2 {
-		return "", "", ErrInvalidArguments
+	toks, err := b.tokenize(text, 2)
+	if err != nil {
+		return "", "", err
 	}
 	return toks[0], strings.Join(toks[1:], " "), nil
 }
