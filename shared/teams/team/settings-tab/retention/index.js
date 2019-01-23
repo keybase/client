@@ -51,7 +51,7 @@ class RetentionPicker extends React.Component<Props, State> {
   }
   _timeoutID: TimeoutID
   _showSaved: boolean
-  _dropdownRef: ?ClickableBox
+  _dropdownRef = React.createRef<ClickableBox>()
 
   // We just updated the state with a new selection, do we show the warning
   // dialog ourselves or do we call back up to the parent?
@@ -99,8 +99,7 @@ class RetentionPicker extends React.Component<Props, State> {
       showMenu: !prevState.showMenu,
     }))
 
-  _setDropdownRef = ref => (this._dropdownRef = ref)
-  _getDropdownRef = () => this._dropdownRef
+  _getDropdownRef = () => this._dropdownRef.current
 
   _makeItems = () => {
     const policies = baseRetentionPolicies.slice()
@@ -178,7 +177,7 @@ class RetentionPicker extends React.Component<Props, State> {
         </Box>
         <ClickableBox
           onClick={this._toggleShowMenu}
-          ref={isMobile ? undefined : this._setDropdownRef}
+          ref={isMobile ? undefined : this._dropdownRef}
           style={collapseStyles([dropdownStyle, this.props.dropdownStyle])}
           underlayColor={globalColors.white_40}
         >
