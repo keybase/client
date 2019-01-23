@@ -1,6 +1,3 @@
-// Copyright 2018 Keybase, Inc. All rights reserved. Use of
-// this source code is governed by the included BSD license.
-
 package client
 
 import (
@@ -27,11 +24,9 @@ func NewCmdChatSetNotificationSettingsRunner(g *libkb.GlobalContext) *CmdChatSet
 func newCmdChatSetNotificationSettings(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	flags := []cli.Flag{}
 	for _, setting := range chat1.GlobalAppNotificationSettingsSorted() {
-		usage := setting.Usage()
-		flagName := setting.FlagName()
 		flags = append(flags, cli.BoolFlag{
-			Name:  flagName,
-			Usage: usage,
+			Name:  setting.FlagName(),
+			Usage: setting.Usage(),
 		})
 	}
 	return cli.Command{
@@ -65,7 +60,6 @@ func (c *CmdChatSetNotificationSettings) Run() error {
 }
 
 func (c *CmdChatSetNotificationSettings) ParseArgv(ctx *cli.Context) (err error) {
-
 	c.settings.Settings = make(map[chat1.GlobalAppNotificationSetting]bool)
 	for _, setting := range chat1.GlobalAppNotificationSettingsSorted() {
 		flagName := setting.FlagName()
@@ -97,7 +91,6 @@ func (c *CmdChatSetNotificationSettings) setGlobalAppNotificationSettings(ctx co
 }
 
 func (c *CmdChatSetNotificationSettings) getGlobalAppNotificationSettings(ctx context.Context) error {
-	dui := c.G().UI.GetDumbOutputUI()
 	lcli, err := GetChatLocalClient(c.G())
 	if err != nil {
 		return err
@@ -106,15 +99,13 @@ func (c *CmdChatSetNotificationSettings) getGlobalAppNotificationSettings(ctx co
 	if err != nil {
 		return err
 	}
+	dui := c.G().UI.GetDumbOutputUI()
 	for _, setting := range chat1.GlobalAppNotificationSettingsSorted() {
-		usage := setting.Usage()
-		flagName := setting.FlagName()
-		enabled := settings.Settings[setting]
 		enabledStr := "disabled"
-		if enabled {
+		if settings.Settings[setting] {
 			enabledStr = "enabled"
 		}
-		dui.Printf("%v (%v)\n\t%v\n", flagName, enabledStr, usage)
+		dui.Printf("%v (%v)\n\t%v\n", setting.FlagName(), enabledStr, setting.Usage())
 	}
 	return nil
 }
