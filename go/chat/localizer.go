@@ -647,7 +647,7 @@ func (s *localizerPipeline) getResetUserNames(ctx context.Context, uidMapper lib
 
 func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor1.UID,
 	conversationRemote chat1.Conversation) (conversationLocal chat1.ConversationLocal) {
-
+	var err error
 	// Pick a source of usernames based on offline status, if we are offline then just use a
 	// type that just returns errors all the time (this will just use TLF name as the ordering)
 	var umapper libkb.UIDMapper
@@ -715,7 +715,6 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	if len(conversationRemote.MaxMsgs) == 0 {
 		// Fetch max messages unboxed, using either a custom function or through
 		// the conversation source configured in the global context
-		var err error
 		var msgs []chat1.MessageUnboxed
 		if s.offline {
 			msgs, errTyp, err = s.getMessagesOffline(ctx, conversationRemote.GetConvID(),
@@ -869,7 +868,6 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		conversationLocal.Info.ResetNames = s.getResetUserNames(ctx, umapper, conversationRemote)
 		fallthrough
 	case chat1.ConversationMembersType_KBFS:
-		var err error
 		conversationLocal.Info.Participants, err = utils.ReorderParticipants(
 			s.G().MetaContext(ctx),
 			s.G(),
@@ -889,6 +887,12 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		return conversationLocal
 	}
 
+	// Get conversation commands
+	conversationLocal.Commands, err = s.G().CommandsSource.ListCommands(ctx, uid,
+		conversationRemote.GetConvID())
+	if err != nil {
+		s.Debug(ctx, "localizeConversation: failed to list commands: %s", err)
+	}
 	return conversationLocal
 }
 

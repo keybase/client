@@ -527,6 +527,8 @@ protocol local {
     union { null, RetentionPolicy } convRetention;
     union { null, RetentionPolicy } teamRetention;
     union { null, ConversationSettingsLocal } convSettings;
+
+    ConversationCommandGroups commands;
   }
 
   record NonblockFetchRes {

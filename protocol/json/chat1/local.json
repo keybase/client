@@ -1592,6 +1592,10 @@
             "ConversationSettingsLocal"
           ],
           "name": "convSettings"
+        },
+        {
+          "type": "ConversationCommandGroups",
+          "name": "commands"
         }
       ]
     },

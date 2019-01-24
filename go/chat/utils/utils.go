@@ -1009,6 +1009,7 @@ func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.Unverifie
 	res.Supersedes = rawConv.Metadata.Supersedes
 	res.SupersededBy = rawConv.Metadata.SupersededBy
 	res.FinalizeInfo = rawConv.Metadata.FinalizeInfo
+	res.Commands = chat1.NewConversationCommandGroupsWithBuiltin()
 	if rc.LocalMetadata != nil {
 		res.LocalMetadata = &chat1.UnverifiedInboxUIItemMetadata{
 			ChannelName:       rc.LocalMetadata.TopicName,
@@ -1079,6 +1080,7 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal, currentUsername s
 	res.ConvRetention = rawConv.ConvRetention
 	res.TeamRetention = rawConv.TeamRetention
 	res.ConvSettings = rawConv.ConvSettings
+	res.Commands = rawConv.Commands
 	return res
 }
 
