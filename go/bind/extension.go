@@ -183,6 +183,7 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 		PayloadCacheSize:               50,
 		ProofCacheSize:                 50,
 		OutboxStorageEngine:            "files",
+		EnableBotLiteMode:              true,
 	}
 	if err = kbCtx.Configure(config, usage); err != nil {
 		return err
