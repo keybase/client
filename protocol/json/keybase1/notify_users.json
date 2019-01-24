@@ -17,6 +17,11 @@
       ],
       "response": null,
       "notify": ""
+    },
+    "passwordChanged": {
+      "request": [],
+      "response": null,
+      "oneway": true
     }
   },
   "namespace": "keybase.1"

@@ -1324,6 +1324,10 @@ func (r *NonblockFetchRes) SetOffline() {
 	r.Offline = true
 }
 
+func (r *UnreadlineRes) SetOffline() {
+	r.Offline = true
+}
+
 func (r *MarkAsReadLocalRes) SetOffline() {
 	r.Offline = true
 }
@@ -1495,6 +1499,14 @@ func (r *NonblockFetchRes) GetRateLimit() []RateLimit {
 }
 
 func (r *NonblockFetchRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *UnreadlineRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *UnreadlineRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 

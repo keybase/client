@@ -525,7 +525,7 @@ const listStyle = {
   outline: 'none',
   overflowX: 'hidden',
   overflowY: 'auto',
-  paddingBottom: globalMargins.tiny,
+  paddingBottom: globalMargins.small,
   // get our own layer so we can scroll faster
   willChange: 'transform',
 }

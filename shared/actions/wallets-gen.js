@@ -68,6 +68,7 @@ export const recentPaymentsReceived = 'wallets:recentPaymentsReceived'
 export const rejectDisclaimer = 'wallets:rejectDisclaimer'
 export const requestPayment = 'wallets:requestPayment'
 export const requestedPayment = 'wallets:requestedPayment'
+export const resetAcceptingDisclaimer = 'wallets:resetAcceptingDisclaimer'
 export const reviewPayment = 'wallets:reviewPayment'
 export const reviewedPaymentReceived = 'wallets:reviewedPaymentReceived'
 export const secretKeyReceived = 'wallets:secretKeyReceived'
@@ -134,7 +135,7 @@ type _InflationDestinationReceivedPayload = $ReadOnly<{|selected?: string, optio
 type _LinkExistingAccountPayload = $ReadOnly<{|name: string, secretKey: HiddenString, showOnCreation?: boolean, setBuildingTo?: boolean|}>
 type _LinkedExistingAccountPayload = $ReadOnly<{|accountID: Types.AccountID, showOnCreation?: boolean, setBuildingTo?: boolean|}>
 type _LinkedExistingAccountPayloadError = $ReadOnly<{|name: string, secretKey: HiddenString, error: string|}>
-type _LoadAccountsPayload = void
+type _LoadAccountsPayload = $ReadOnly<{|reason: 'initial-load' | 'open-send-req-form'|}>
 type _LoadAssetsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LoadDisplayCurrenciesPayload = void
 type _LoadDisplayCurrencyPayload = $ReadOnly<{|accountID: ?Types.AccountID, setBuildingCurrency?: boolean|}>
@@ -155,11 +156,12 @@ type _RecentPaymentsReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, pa
 type _RejectDisclaimerPayload = void
 type _RequestPaymentPayload = void
 type _RequestedPaymentPayload = $ReadOnly<{|kbRqID: HiddenString, lastSentXLM: boolean, requestee: string|}>
+type _ResetAcceptingDisclaimerPayload = void
 type _ReviewPaymentPayload = void
 type _ReviewedPaymentReceivedPayload = $ReadOnly<{|bid: string, reviewID: number, seqno: number, nextButton: string, banners?: ?Array<StellarRPCTypes.SendBannerLocal>|}>
 type _SecretKeyReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, secretKey: HiddenString|}>
 type _SecretKeySeenPayload = $ReadOnly<{|accountID: Types.AccountID|}>
-type _SelectAccountPayload = $ReadOnly<{|accountID: Types.AccountID, show?: boolean|}>
+type _SelectAccountPayload = $ReadOnly<{|accountID: Types.AccountID, reason: 'user-selected' | 'auto-selected' | 'from-chat', show?: boolean|}>
 type _SendAssetChoicesReceivedPayload = $ReadOnly<{|sendAssetChoices: Array<StellarRPCTypes.SendAssetChoiceLocal>|}>
 type _SendPaymentPayload = void
 type _SentPaymentErrorPayload = $ReadOnly<{|error: string|}>
@@ -371,6 +373,10 @@ export const createRejectDisclaimer = (payload: _RejectDisclaimerPayload) => ({p
  */
 export const createRequestPayment = (payload: _RequestPaymentPayload) => ({payload, type: requestPayment})
 /**
+ * Reset to the pre-accepting-disclaimer state.
+ */
+export const createResetAcceptingDisclaimer = (payload: _ResetAcceptingDisclaimerPayload) => ({payload, type: resetAcceptingDisclaimer})
+/**
  * Scrolled down the list of payments for a given account
  */
 export const createLoadMorePayments = (payload: _LoadMorePaymentsPayload) => ({payload, type: loadMorePayments})
@@ -579,6 +585,7 @@ export type RecentPaymentsReceivedPayload = {|+payload: _RecentPaymentsReceivedP
 export type RejectDisclaimerPayload = {|+payload: _RejectDisclaimerPayload, +type: 'wallets:rejectDisclaimer'|}
 export type RequestPaymentPayload = {|+payload: _RequestPaymentPayload, +type: 'wallets:requestPayment'|}
 export type RequestedPaymentPayload = {|+payload: _RequestedPaymentPayload, +type: 'wallets:requestedPayment'|}
+export type ResetAcceptingDisclaimerPayload = {|+payload: _ResetAcceptingDisclaimerPayload, +type: 'wallets:resetAcceptingDisclaimer'|}
 export type ReviewPaymentPayload = {|+payload: _ReviewPaymentPayload, +type: 'wallets:reviewPayment'|}
 export type ReviewedPaymentReceivedPayload = {|+payload: _ReviewedPaymentReceivedPayload, +type: 'wallets:reviewedPaymentReceived'|}
 export type SecretKeyReceivedPayload = {|+payload: _SecretKeyReceivedPayload, +type: 'wallets:secretKeyReceived'|}
@@ -670,6 +677,7 @@ export type Actions =
   | RejectDisclaimerPayload
   | RequestPaymentPayload
   | RequestedPaymentPayload
+  | ResetAcceptingDisclaimerPayload
   | ReviewPaymentPayload
   | ReviewedPaymentReceivedPayload
   | SecretKeyReceivedPayload

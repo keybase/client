@@ -12,8 +12,12 @@ type UserChangedArg struct {
 	Uid UID `codec:"uid" json:"uid"`
 }
 
+type PasswordChangedArg struct {
+}
+
 type NotifyUsersInterface interface {
 	UserChanged(context.Context, UID) error
+	PasswordChanged(context.Context) error
 }
 
 func NotifyUsersProtocol(i NotifyUsersInterface) rpc.Protocol {
@@ -35,6 +39,16 @@ func NotifyUsersProtocol(i NotifyUsersInterface) rpc.Protocol {
 					return
 				},
 			},
+			"passwordChanged": {
+				MakeArg: func() interface{} {
+					var ret [1]PasswordChangedArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					err = i.PasswordChanged(ctx)
+					return
+				},
+			},
 		},
 	}
 }
@@ -46,5 +60,10 @@ type NotifyUsersClient struct {
 func (c NotifyUsersClient) UserChanged(ctx context.Context, uid UID) (err error) {
 	__arg := UserChangedArg{Uid: uid}
 	err = c.Cli.Notify(ctx, "keybase.1.NotifyUsers.userChanged", []interface{}{__arg})
+	return
+}
+
+func (c NotifyUsersClient) PasswordChanged(ctx context.Context) (err error) {
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyUsers.passwordChanged", []interface{}{PasswordChangedArg{}})
 	return
 }

@@ -20,9 +20,11 @@ export const invitesRefresh = 'settings:invitesRefresh'
 export const invitesRefreshed = 'settings:invitesRefreshed'
 export const invitesSend = 'settings:invitesSend'
 export const invitesSent = 'settings:invitesSent'
+export const loadHasRandomPw = 'settings:loadHasRandomPw'
 export const loadLockdownMode = 'settings:loadLockdownMode'
 export const loadRememberPassphrase = 'settings:loadRememberPassphrase'
 export const loadSettings = 'settings:loadSettings'
+export const loadedHasRandomPw = 'settings:loadedHasRandomPw'
 export const loadedLockdownMode = 'settings:loadedLockdownMode'
 export const loadedRememberPassphrase = 'settings:loadedRememberPassphrase'
 export const loadedSettings = 'settings:loadedSettings'
@@ -63,9 +65,11 @@ type _InvitesRefreshedPayload = $ReadOnly<{|invites: Types.InvitesState|}>
 type _InvitesSendPayload = $ReadOnly<{|email: string, message: ?string|}>
 type _InvitesSentPayload = void
 type _InvitesSentPayloadError = $ReadOnly<{|error: Error|}>
+type _LoadHasRandomPwPayload = void
 type _LoadLockdownModePayload = void
 type _LoadRememberPassphrasePayload = void
 type _LoadSettingsPayload = void
+type _LoadedHasRandomPwPayload = $ReadOnly<{|randomPW: boolean|}>
 type _LoadedLockdownModePayload = $ReadOnly<{|status: ?boolean|}>
 type _LoadedRememberPassphrasePayload = $ReadOnly<{|remember: boolean|}>
 type _LoadedSettingsPayload = $ReadOnly<{|emails: ?Array<RPCTypes.Email>|}>
@@ -122,9 +126,11 @@ export const createInvitesRefreshed = (payload: _InvitesRefreshedPayload) => ({p
 export const createInvitesSend = (payload: _InvitesSendPayload) => ({payload, type: invitesSend})
 export const createInvitesSent = (payload: _InvitesSentPayload) => ({payload, type: invitesSent})
 export const createInvitesSentError = (payload: _InvitesSentPayloadError) => ({error: true, payload, type: invitesSent})
+export const createLoadHasRandomPw = (payload: _LoadHasRandomPwPayload) => ({payload, type: loadHasRandomPw})
 export const createLoadLockdownMode = (payload: _LoadLockdownModePayload) => ({payload, type: loadLockdownMode})
 export const createLoadRememberPassphrase = (payload: _LoadRememberPassphrasePayload) => ({payload, type: loadRememberPassphrase})
 export const createLoadSettings = (payload: _LoadSettingsPayload) => ({payload, type: loadSettings})
+export const createLoadedHasRandomPw = (payload: _LoadedHasRandomPwPayload) => ({payload, type: loadedHasRandomPw})
 export const createLoadedLockdownMode = (payload: _LoadedLockdownModePayload) => ({payload, type: loadedLockdownMode})
 export const createLoadedRememberPassphrase = (payload: _LoadedRememberPassphrasePayload) => ({payload, type: loadedRememberPassphrase})
 export const createLoadedSettings = (payload: _LoadedSettingsPayload) => ({payload, type: loadedSettings})
@@ -161,9 +167,11 @@ export type InvitesRefreshedPayload = {|+payload: _InvitesRefreshedPayload, +typ
 export type InvitesSendPayload = {|+payload: _InvitesSendPayload, +type: 'settings:invitesSend'|}
 export type InvitesSentPayload = {|+payload: _InvitesSentPayload, +type: 'settings:invitesSent'|}
 export type InvitesSentPayloadError = {|+error: true, +payload: _InvitesSentPayloadError, +type: 'settings:invitesSent'|}
+export type LoadHasRandomPwPayload = {|+payload: _LoadHasRandomPwPayload, +type: 'settings:loadHasRandomPw'|}
 export type LoadLockdownModePayload = {|+payload: _LoadLockdownModePayload, +type: 'settings:loadLockdownMode'|}
 export type LoadRememberPassphrasePayload = {|+payload: _LoadRememberPassphrasePayload, +type: 'settings:loadRememberPassphrase'|}
 export type LoadSettingsPayload = {|+payload: _LoadSettingsPayload, +type: 'settings:loadSettings'|}
+export type LoadedHasRandomPwPayload = {|+payload: _LoadedHasRandomPwPayload, +type: 'settings:loadedHasRandomPw'|}
 export type LoadedLockdownModePayload = {|+payload: _LoadedLockdownModePayload, +type: 'settings:loadedLockdownMode'|}
 export type LoadedRememberPassphrasePayload = {|+payload: _LoadedRememberPassphrasePayload, +type: 'settings:loadedRememberPassphrase'|}
 export type LoadedSettingsPayload = {|+payload: _LoadedSettingsPayload, +type: 'settings:loadedSettings'|}
@@ -206,9 +214,11 @@ export type Actions =
   | InvitesSendPayload
   | InvitesSentPayload
   | InvitesSentPayloadError
+  | LoadHasRandomPwPayload
   | LoadLockdownModePayload
   | LoadRememberPassphrasePayload
   | LoadSettingsPayload
+  | LoadedHasRandomPwPayload
   | LoadedLockdownModePayload
   | LoadedRememberPassphrasePayload
   | LoadedSettingsPayload

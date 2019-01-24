@@ -21,6 +21,7 @@ export type AccountProps = {
   onChangePassphrase: () => void,
   onChangeRememberPassphrase: (remember: boolean) => void,
   rememberPassphrase: boolean,
+  hasRandomPW: ?boolean,
 }
 
 export type Props = {

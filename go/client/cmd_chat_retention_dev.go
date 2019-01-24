@@ -34,7 +34,7 @@ func NewCmdChatSetRetentionDevRunner(g *libkb.GlobalContext) *CmdChatSetRetentio
 func newCmdChatSetRetentionDev(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "retention-policy-dev",
-		Usage: "Set a retention policy to EXPIRE with an exact seconds count",
+		Usage: "Set a retention policy to EXPIRE or EPHEMERAL with an exact seconds count",
 		Examples: `
 Please don't actually use retention-policy-dev:
     keybase chat retention-policy-dev patrick,mlsteele 86400
@@ -45,7 +45,11 @@ Please don't actually use retention-policy-dev:
 			cl.ChooseCommand(NewCmdChatSetRetentionDevRunner(g), "retention-policy-dev", c)
 			cl.SetLogForward(libcmdline.LogForwardNone)
 		},
-		Flags: getConversationResolverFlags(),
+		Flags: append(getConversationResolverFlags(),
+			cli.BoolFlag{
+				Name:  "exploding",
+				Usage: `Use an exploding policy`,
+			}),
 	}
 }
 
@@ -94,10 +98,18 @@ func (c *CmdChatSetRetentionDev) ParseArgv(ctx *cli.Context) (err error) {
 		return err
 	}
 	age := gregor1.DurationSec(ageInt)
-	p := chat1.NewRetentionPolicyWithExpire(chat1.RpExpire{
-		Age: age,
-	})
-	c.setPolicy = &p
+	isEphemeral := ctx.Bool("exploding")
+	var policy chat1.RetentionPolicy
+	if isEphemeral {
+		policy = chat1.NewRetentionPolicyWithEphemeral(chat1.RpEphemeral{
+			Age: age,
+		})
+	} else {
+		policy = chat1.NewRetentionPolicyWithExpire(chat1.RpExpire{
+			Age: age,
+		})
+	}
+	c.setPolicy = &policy
 	c.setChannel = len(ctx.String("channel")) > 0
 
 	return nil

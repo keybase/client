@@ -48,7 +48,6 @@ export const saveTeamRetentionPolicy = 'teams:saveTeamRetentionPolicy'
 export const setAddUserToTeamsResults = 'teams:setAddUserToTeamsResults'
 export const setChannelCreationError = 'teams:setChannelCreationError'
 export const setEmailInviteError = 'teams:setEmailInviteError'
-export const setLoaded = 'teams:setLoaded'
 export const setMemberPublicity = 'teams:setMemberPublicity'
 export const setNewTeamInfo = 'teams:setNewTeamInfo'
 export const setPublicity = 'teams:setPublicity'
@@ -113,7 +112,6 @@ type _SaveTeamRetentionPolicyPayload = $ReadOnly<{|teamname: string, policy: Ret
 type _SetAddUserToTeamsResultsPayload = $ReadOnly<{|results: string|}>
 type _SetChannelCreationErrorPayload = $ReadOnly<{|error: string|}>
 type _SetEmailInviteErrorPayload = $ReadOnly<{|message: string, malformed: Array<string>|}>
-type _SetLoadedPayload = $ReadOnly<{|loaded: boolean|}>
 type _SetMemberPublicityPayload = $ReadOnly<{|teamname: string, showcase: boolean|}>
 type _SetNewTeamInfoPayload = $ReadOnly<{|newTeams: I.Set<string>, newTeamRequests: I.List<string>, teamNameToResetUsers: I.Map<Types.Teamname, I.Set<Types.ResetUser>>|}>
 type _SetPublicityPayload = $ReadOnly<{|teamname: string, settings: Types.PublicitySettings|}>
@@ -193,7 +191,6 @@ export const createSaveChannelMembership = (payload: _SaveChannelMembershipPaylo
 export const createSetAddUserToTeamsResults = (payload: _SetAddUserToTeamsResultsPayload) => ({payload, type: setAddUserToTeamsResults})
 export const createSetChannelCreationError = (payload: _SetChannelCreationErrorPayload) => ({payload, type: setChannelCreationError})
 export const createSetEmailInviteError = (payload: _SetEmailInviteErrorPayload) => ({payload, type: setEmailInviteError})
-export const createSetLoaded = (payload: _SetLoadedPayload) => ({payload, type: setLoaded})
 export const createSetMemberPublicity = (payload: _SetMemberPublicityPayload) => ({payload, type: setMemberPublicity})
 export const createSetNewTeamInfo = (payload: _SetNewTeamInfoPayload) => ({payload, type: setNewTeamInfo})
 export const createSetPublicity = (payload: _SetPublicityPayload) => ({payload, type: setPublicity})
@@ -258,7 +255,6 @@ export type SaveTeamRetentionPolicyPayload = {|+payload: _SaveTeamRetentionPolic
 export type SetAddUserToTeamsResultsPayload = {|+payload: _SetAddUserToTeamsResultsPayload, +type: 'teams:setAddUserToTeamsResults'|}
 export type SetChannelCreationErrorPayload = {|+payload: _SetChannelCreationErrorPayload, +type: 'teams:setChannelCreationError'|}
 export type SetEmailInviteErrorPayload = {|+payload: _SetEmailInviteErrorPayload, +type: 'teams:setEmailInviteError'|}
-export type SetLoadedPayload = {|+payload: _SetLoadedPayload, +type: 'teams:setLoaded'|}
 export type SetMemberPublicityPayload = {|+payload: _SetMemberPublicityPayload, +type: 'teams:setMemberPublicity'|}
 export type SetNewTeamInfoPayload = {|+payload: _SetNewTeamInfoPayload, +type: 'teams:setNewTeamInfo'|}
 export type SetPublicityPayload = {|+payload: _SetPublicityPayload, +type: 'teams:setPublicity'|}
@@ -325,7 +321,6 @@ export type Actions =
   | SetAddUserToTeamsResultsPayload
   | SetChannelCreationErrorPayload
   | SetEmailInviteErrorPayload
-  | SetLoadedPayload
   | SetMemberPublicityPayload
   | SetNewTeamInfoPayload
   | SetPublicityPayload

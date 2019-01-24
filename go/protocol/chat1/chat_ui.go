@@ -470,11 +470,12 @@ func (o UIPaymentInfo) DeepCopy() UIPaymentInfo {
 }
 
 type UIRequestInfo struct {
-	Amount            string                        `codec:"amount" json:"amount"`
-	AmountDescription string                        `codec:"amountDescription" json:"amountDescription"`
-	Asset             *stellar1.Asset               `codec:"asset,omitempty" json:"asset,omitempty"`
-	Currency          *stellar1.OutsideCurrencyCode `codec:"currency,omitempty" json:"currency,omitempty"`
-	Status            stellar1.RequestStatus        `codec:"status" json:"status"`
+	Amount             string                        `codec:"amount" json:"amount"`
+	AmountDescription  string                        `codec:"amountDescription" json:"amountDescription"`
+	Asset              *stellar1.Asset               `codec:"asset,omitempty" json:"asset,omitempty"`
+	Currency           *stellar1.OutsideCurrencyCode `codec:"currency,omitempty" json:"currency,omitempty"`
+	WorthAtRequestTime string                        `codec:"worthAtRequestTime" json:"worthAtRequestTime"`
+	Status             stellar1.RequestStatus        `codec:"status" json:"status"`
 }
 
 func (o UIRequestInfo) DeepCopy() UIRequestInfo {
@@ -495,7 +496,8 @@ func (o UIRequestInfo) DeepCopy() UIRequestInfo {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Currency),
-		Status: o.Status.DeepCopy(),
+		WorthAtRequestTime: o.WorthAtRequestTime,
+		Status:             o.Status.DeepCopy(),
 	}
 }
 
@@ -648,15 +650,16 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 }
 
 type UIMessageOutbox struct {
-	State       OutboxState     `codec:"state" json:"state"`
-	OutboxID    string          `codec:"outboxID" json:"outboxID"`
-	MessageType MessageType     `codec:"messageType" json:"messageType"`
-	Body        string          `codec:"body" json:"body"`
-	Ctime       gregor1.Time    `codec:"ctime" json:"ctime"`
-	Ordinal     float64         `codec:"ordinal" json:"ordinal"`
-	Filename    string          `codec:"filename" json:"filename"`
-	Title       string          `codec:"title" json:"title"`
-	Preview     *MakePreviewRes `codec:"preview,omitempty" json:"preview,omitempty"`
+	State             OutboxState     `codec:"state" json:"state"`
+	OutboxID          string          `codec:"outboxID" json:"outboxID"`
+	MessageType       MessageType     `codec:"messageType" json:"messageType"`
+	Body              string          `codec:"body" json:"body"`
+	DecoratedTextBody *string         `codec:"decoratedTextBody,omitempty" json:"decoratedTextBody,omitempty"`
+	Ctime             gregor1.Time    `codec:"ctime" json:"ctime"`
+	Ordinal           float64         `codec:"ordinal" json:"ordinal"`
+	Filename          string          `codec:"filename" json:"filename"`
+	Title             string          `codec:"title" json:"title"`
+	Preview           *MakePreviewRes `codec:"preview,omitempty" json:"preview,omitempty"`
 }
 
 func (o UIMessageOutbox) DeepCopy() UIMessageOutbox {
@@ -665,10 +668,17 @@ func (o UIMessageOutbox) DeepCopy() UIMessageOutbox {
 		OutboxID:    o.OutboxID,
 		MessageType: o.MessageType.DeepCopy(),
 		Body:        o.Body,
-		Ctime:       o.Ctime.DeepCopy(),
-		Ordinal:     o.Ordinal,
-		Filename:    o.Filename,
-		Title:       o.Title,
+		DecoratedTextBody: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.DecoratedTextBody),
+		Ctime:    o.Ctime.DeepCopy(),
+		Ordinal:  o.Ordinal,
+		Filename: o.Filename,
+		Title:    o.Title,
 		Preview: (func(x *MakePreviewRes) *MakePreviewRes {
 			if x == nil {
 				return nil
@@ -848,9 +858,8 @@ func (o UIMessage) DeepCopy() UIMessage {
 }
 
 type UIMessages struct {
-	Messages     []UIMessage   `codec:"messages" json:"messages"`
-	UnreadLineID *MessageID    `codec:"unreadLineID,omitempty" json:"unreadLineID,omitempty"`
-	Pagination   *UIPagination `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	Messages   []UIMessage   `codec:"messages" json:"messages"`
+	Pagination *UIPagination `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
 func (o UIMessages) DeepCopy() UIMessages {
@@ -866,13 +875,6 @@ func (o UIMessages) DeepCopy() UIMessages {
 			}
 			return ret
 		})(o.Messages),
-		UnreadLineID: (func(x *MessageID) *MessageID {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.UnreadLineID),
 		Pagination: (func(x *UIPagination) *UIPagination {
 			if x == nil {
 				return nil
@@ -886,17 +888,23 @@ func (o UIMessages) DeepCopy() UIMessages {
 type UITextDecorationTyp int
 
 const (
-	UITextDecorationTyp_PAYMENT UITextDecorationTyp = 0
+	UITextDecorationTyp_PAYMENT            UITextDecorationTyp = 0
+	UITextDecorationTyp_ATMENTION          UITextDecorationTyp = 1
+	UITextDecorationTyp_CHANNELNAMEMENTION UITextDecorationTyp = 2
 )
 
 func (o UITextDecorationTyp) DeepCopy() UITextDecorationTyp { return o }
 
 var UITextDecorationTypMap = map[string]UITextDecorationTyp{
-	"PAYMENT": 0,
+	"PAYMENT":            0,
+	"ATMENTION":          1,
+	"CHANNELNAMEMENTION": 2,
 }
 
 var UITextDecorationTypRevMap = map[UITextDecorationTyp]string{
 	0: "PAYMENT",
+	1: "ATMENTION",
+	2: "CHANNELNAMEMENTION",
 }
 
 func (e UITextDecorationTyp) String() string {
@@ -907,8 +915,10 @@ func (e UITextDecorationTyp) String() string {
 }
 
 type UITextDecoration struct {
-	Typ__     UITextDecorationTyp `codec:"typ" json:"typ"`
-	Payment__ *TextPayment        `codec:"payment,omitempty" json:"payment,omitempty"`
+	Typ__                UITextDecorationTyp   `codec:"typ" json:"typ"`
+	Payment__            *TextPayment          `codec:"payment,omitempty" json:"payment,omitempty"`
+	Atmention__          *string               `codec:"atmention,omitempty" json:"atmention,omitempty"`
+	Channelnamemention__ *UIChannelNameMention `codec:"channelnamemention,omitempty" json:"channelnamemention,omitempty"`
 }
 
 func (o *UITextDecoration) Typ() (ret UITextDecorationTyp, err error) {
@@ -916,6 +926,16 @@ func (o *UITextDecoration) Typ() (ret UITextDecorationTyp, err error) {
 	case UITextDecorationTyp_PAYMENT:
 		if o.Payment__ == nil {
 			err = errors.New("unexpected nil value for Payment__")
+			return ret, err
+		}
+	case UITextDecorationTyp_ATMENTION:
+		if o.Atmention__ == nil {
+			err = errors.New("unexpected nil value for Atmention__")
+			return ret, err
+		}
+	case UITextDecorationTyp_CHANNELNAMEMENTION:
+		if o.Channelnamemention__ == nil {
+			err = errors.New("unexpected nil value for Channelnamemention__")
 			return ret, err
 		}
 	}
@@ -932,10 +952,44 @@ func (o UITextDecoration) Payment() (res TextPayment) {
 	return *o.Payment__
 }
 
+func (o UITextDecoration) Atmention() (res string) {
+	if o.Typ__ != UITextDecorationTyp_ATMENTION {
+		panic("wrong case accessed")
+	}
+	if o.Atmention__ == nil {
+		return
+	}
+	return *o.Atmention__
+}
+
+func (o UITextDecoration) Channelnamemention() (res UIChannelNameMention) {
+	if o.Typ__ != UITextDecorationTyp_CHANNELNAMEMENTION {
+		panic("wrong case accessed")
+	}
+	if o.Channelnamemention__ == nil {
+		return
+	}
+	return *o.Channelnamemention__
+}
+
 func NewUITextDecorationWithPayment(v TextPayment) UITextDecoration {
 	return UITextDecoration{
 		Typ__:     UITextDecorationTyp_PAYMENT,
 		Payment__: &v,
+	}
+}
+
+func NewUITextDecorationWithAtmention(v string) UITextDecoration {
+	return UITextDecoration{
+		Typ__:       UITextDecorationTyp_ATMENTION,
+		Atmention__: &v,
+	}
+}
+
+func NewUITextDecorationWithChannelnamemention(v UIChannelNameMention) UITextDecoration {
+	return UITextDecoration{
+		Typ__:                UITextDecorationTyp_CHANNELNAMEMENTION,
+		Channelnamemention__: &v,
 	}
 }
 
@@ -949,6 +1003,20 @@ func (o UITextDecoration) DeepCopy() UITextDecoration {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Payment__),
+		Atmention__: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Atmention__),
+		Channelnamemention__: (func(x *UIChannelNameMention) *UIChannelNameMention {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Channelnamemention__),
 	}
 }
 

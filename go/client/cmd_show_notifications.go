@@ -121,6 +121,10 @@ func (d *notificationDisplay) UserChanged(_ context.Context, uid keybase1.UID) e
 	return d.printf("User %s changed\n", uid)
 }
 
+func (d *notificationDisplay) PasswordChanged(_ context.Context) error {
+	return d.printf("Password changed\n")
+}
+
 func (d *notificationDisplay) FSActivity(_ context.Context, notification keybase1.FSNotification) error {
 	return d.printf("KBFS notification: %+v\n", notification)
 }

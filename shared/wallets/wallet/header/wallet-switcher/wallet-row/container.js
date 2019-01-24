@@ -29,7 +29,7 @@ const mapStateToProps = (state, ownProps: {accountID: AccountID}) => {
 const mapDispatchToProps = dispatch => ({
   _onClearNewPayments: (accountID: AccountID) => dispatch(WalletsGen.createClearNewPayments({accountID})),
   _onSelectAccount: (accountID: AccountID) =>
-    dispatch(WalletsGen.createSelectAccount({accountID, show: true})),
+    dispatch(WalletsGen.createSelectAccount({accountID, reason: 'user-selected', show: true})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps): Props => ({

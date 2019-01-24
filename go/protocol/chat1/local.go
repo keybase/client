@@ -2981,9 +2981,8 @@ func (o NonblockFetchRes) DeepCopy() NonblockFetchRes {
 }
 
 type ThreadView struct {
-	Messages     []MessageUnboxed `codec:"messages" json:"messages"`
-	UnreadLineID *MessageID       `codec:"unreadLineID,omitempty" json:"unreadLineID,omitempty"`
-	Pagination   *Pagination      `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	Messages   []MessageUnboxed `codec:"messages" json:"messages"`
+	Pagination *Pagination      `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
 func (o ThreadView) DeepCopy() ThreadView {
@@ -2999,13 +2998,6 @@ func (o ThreadView) DeepCopy() ThreadView {
 			}
 			return ret
 		})(o.Messages),
-		UnreadLineID: (func(x *MessageID) *MessageID {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.UnreadLineID),
 		Pagination: (func(x *Pagination) *Pagination {
 			if x == nil {
 				return nil
@@ -3174,6 +3166,48 @@ func (e GetThreadNonblockPgMode) String() string {
 		return v
 	}
 	return ""
+}
+
+type UnreadlineRes struct {
+	Offline          bool                          `codec:"offline" json:"offline"`
+	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
+	UnreadlineID     *MessageID                    `codec:"unreadlineID,omitempty" json:"unreadlineID,omitempty"`
+}
+
+func (o UnreadlineRes) DeepCopy() UnreadlineRes {
+	return UnreadlineRes{
+		Offline: o.Offline,
+		RateLimits: (func(x []RateLimit) []RateLimit {
+			if x == nil {
+				return nil
+			}
+			ret := make([]RateLimit, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.RateLimits),
+		IdentifyFailures: (func(x []keybase1.TLFIdentifyFailure) []keybase1.TLFIdentifyFailure {
+			if x == nil {
+				return nil
+			}
+			ret := make([]keybase1.TLFIdentifyFailure, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.IdentifyFailures),
+		UnreadlineID: (func(x *MessageID) *MessageID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.UnreadlineID),
+	}
 }
 
 type GetInboxUILocalRes struct {
@@ -4596,6 +4630,13 @@ type GetThreadNonblockArg struct {
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
+type GetUnreadlineArg struct {
+	SessionID        int                          `codec:"sessionID" json:"sessionID"`
+	ConvID           ConversationID               `codec:"convID" json:"convID"`
+	ReadMsgID        MessageID                    `codec:"readMsgID" json:"readMsgID"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+}
+
 type GetInboxUILocalArg struct {
 	Query            *GetInboxLocalQuery          `codec:"query,omitempty" json:"query,omitempty"`
 	Pagination       *Pagination                  `codec:"pagination,omitempty" json:"pagination,omitempty"`
@@ -4982,6 +5023,7 @@ type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetCachedThread(context.Context, GetCachedThreadArg) (GetThreadLocalRes, error)
 	GetThreadNonblock(context.Context, GetThreadNonblockArg) (NonblockFetchRes, error)
+	GetUnreadline(context.Context, GetUnreadlineArg) (UnreadlineRes, error)
 	GetInboxUILocal(context.Context, GetInboxUILocalArg) (GetInboxUILocalRes, error)
 	GetInboxAndUnboxLocal(context.Context, GetInboxAndUnboxLocalArg) (GetInboxAndUnboxLocalRes, error)
 	GetInboxAndUnboxUILocal(context.Context, GetInboxAndUnboxUILocalArg) (GetInboxAndUnboxUILocalRes, error)
@@ -5089,6 +5131,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetThreadNonblock(ctx, typedArgs[0])
+					return
+				},
+			},
+			"getUnreadline": {
+				MakeArg: func() interface{} {
+					var ret [1]GetUnreadlineArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetUnreadlineArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetUnreadlineArg)(nil), args)
+						return
+					}
+					ret, err = i.GetUnreadline(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -5977,6 +6034,11 @@ func (c LocalClient) GetCachedThread(ctx context.Context, __arg GetCachedThreadA
 
 func (c LocalClient) GetThreadNonblock(ctx context.Context, __arg GetThreadNonblockArg) (res NonblockFetchRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.getThreadNonblock", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) GetUnreadline(ctx context.Context, __arg GetUnreadlineArg) (res UnreadlineRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.getUnreadline", []interface{}{__arg}, &res)
 	return
 }
 

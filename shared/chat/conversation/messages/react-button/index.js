@@ -17,6 +17,7 @@ import DelayInterval from './delay-interval'
 
 export type Props = {|
   active: boolean,
+  className?: string,
   conversationIDKey: Types.ConversationIDKey,
   count: number,
   emoji: string,
@@ -56,6 +57,7 @@ const ButtonBox = Styles.styled(ClickableBox)(props =>
 
 const ReactButton = (props: Props) => (
   <ButtonBox
+    className={Styles.classNames(props.className, {noShadow: props.active})}
     onLongPress={props.onLongPress}
     onMouseLeave={props.onMouseLeave}
     onMouseOver={props.onMouseOver}
@@ -237,7 +239,7 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.white,
     borderWidth: 1,
     height: Styles.isMobile ? 30 : 24,
-    ...Styles.transition('border-color', 'background-color'),
+    ...Styles.transition('border-color', 'background-color', 'box-shadow'),
   },
   container: Styles.platformStyles({
     common: {
@@ -251,8 +253,8 @@ const styles = Styles.styleSheetCreate({
   }),
   emojiContainer: Styles.platformStyles({
     isElectron: {
+      ...Styles.desktopStyles.boxShadow,
       borderRadius: 4,
-      boxShadow: `0 0 8px 0 ${Styles.globalColors.black_20}`,
       marginRight: Styles.globalMargins.small,
     },
   }),
