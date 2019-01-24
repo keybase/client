@@ -420,9 +420,9 @@ const unfurlSettingsSaved = (state, action) =>
 // this happens.
 const loadHasRandomPW = state =>
   state.settings.passphrase.randomPW === null
-    ? RPCTypes.userLoadHasRandomPwRpcPromise({forceRepoll: false}).then(randomPW =>
-        SettingsGen.createLoadedHasRandomPw({randomPW})
-      )
+    ? RPCTypes.userLoadHasRandomPwRpcPromise({forceRepoll: false})
+        .then(randomPW => SettingsGen.createLoadedHasRandomPw({randomPW}))
+        .catch(e => logger.warn('Error loading hasRandomPW:', e))
     : null
 
 const setupEngineListeners = () => {
