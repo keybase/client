@@ -218,10 +218,10 @@ func (cache *diskBlockCacheWrapped) GetPrefetchStatus(
 	// Try the sync cache first unless working set cache is required.
 	if cacheType != DiskBlockWorkingSetCache {
 		md, err := cache.syncCache.GetMetadata(ctx, blockID)
-		switch errors.Cause(err).(type) {
+		switch errors.Cause(err) {
 		case nil:
 			return md.PrefetchStatus(), nil
-		case NoSuchBlockError:
+		case ldberrors.ErrNotFound:
 			if cacheType == DiskBlockSyncCache {
 				return NoPrefetch, err
 			}
