@@ -1703,7 +1703,7 @@ func (c *ConfigLocal) PrefetchStatus(ctx context.Context, tlfID tlf.ID,
 		return bops.queue.getPrefetchStatus(ptr.ID)
 	}
 
-	_, _, prefetchStatus, err := dbc.Get(
+	prefetchStatus, err := dbc.GetPrefetchStatus(
 		ctx, tlfID, ptr.ID, DiskBlockAnyCache)
 	if err != nil {
 		return NoPrefetch
