@@ -7,6 +7,7 @@ protocol local {
   import idl "common.avdl";
   import idl "chat_ui.avdl";
   import idl "unfurl.avdl";
+  import idl "commands.avdl";
 
   @typedef("string") record VersionKind {}
 
@@ -957,4 +958,7 @@ protocol local {
   void resolveUnfurlPrompt(ConversationID convID, MessageID msgID, UnfurlPromptResult result, keybase1.TLFIdentifyBehavior identifyBehavior);
   UnfurlSettingsDisplay getUnfurlSettings();
   void saveUnfurlSettings(UnfurlMode mode, array<string> whitelist);
+
+  ConversationCommandGroup getBuiltinCommands();
+
 }

@@ -1,0 +1,100 @@
+{
+  "protocol": "commands",
+  "imports": [
+    {
+      "path": "common.avdl",
+      "type": "idl"
+    }
+  ],
+  "types": [
+    {
+      "type": "record",
+      "name": "ConversationCommand",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "string",
+          "name": "usage"
+        },
+        {
+          "type": "string",
+          "name": "description"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ConversationCommandGroup",
+      "fields": [
+        {
+          "type": "string",
+          "name": "heading"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "username"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationCommand"
+          },
+          "name": "commands"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "ConversationCommandGroupsTyp",
+      "symbols": [
+        "BUILTIN_0",
+        "EXTENDED_1"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ConversationCommandGroupsExtended",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationCommandGroup"
+          },
+          "name": "groups"
+        }
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "ConversationCommandGroups",
+      "switch": {
+        "type": "ConversationCommandGroupsTyp",
+        "name": "typ"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "BUILTIN",
+            "def": false
+          },
+          "body": null
+        },
+        {
+          "label": {
+            "name": "EXTENDED",
+            "def": false
+          },
+          "body": "ConversationCommandGroupsExtended"
+        }
+      ]
+    }
+  ],
+  "messages": {},
+  "namespace": "chat.1"
+}

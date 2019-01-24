@@ -2407,3 +2407,9 @@ func (h *Server) SaveUnfurlSettings(ctx context.Context, arg chat1.SaveUnfurlSet
 		Whitelist: wm,
 	})
 }
+
+func (h *Server) GetBuiltinCommands(ctx context.Context) (res chat1.ConversationCommandGroup, err error) {
+	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "GetBuiltinCommands")()
+	return res, err
+}

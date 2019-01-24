@@ -27,6 +27,10 @@
     {
       "path": "unfurl.avdl",
       "type": "idl"
+    },
+    {
+      "path": "commands.avdl",
+      "type": "idl"
     }
   ],
   "types": [
@@ -4096,6 +4100,10 @@
         }
       ],
       "response": null
+    },
+    "getBuiltinCommands": {
+      "request": [],
+      "response": "ConversationCommandGroup"
     }
   },
   "namespace": "chat.1"

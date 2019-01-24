@@ -7,6 +7,7 @@ protocol chatUi {
   import idl "github.com/keybase/client/go/protocol/stellar1" as stellar1;
   import idl "common.avdl";
   import idl "unfurl.avdl";
+  import idl "commands.avdl";
 
   record UIPagination {
     string next;
@@ -45,6 +46,8 @@ protocol chatUi {
     union { null, ConversationFinalizeInfo } finalizeInfo;
     array<ConversationMetadata> supersedes;
     array<ConversationMetadata> supersededBy;
+
+    ConversationCommandGroups commands;
   }
 
   record UnverifiedInboxUIItems {
@@ -86,6 +89,8 @@ protocol chatUi {
     union { null, ConversationFinalizeInfo } finalizeInfo;
     array<ConversationMetadata> supersedes;
     array<ConversationMetadata> supersededBy;
+
+    ConversationCommandGroups commands;
   }
 
   record InboxUIItemError {
