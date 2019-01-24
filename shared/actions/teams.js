@@ -79,7 +79,6 @@ function* joinTeam(_, action) {
     Saga.put(TeamsGen.createSetTeamJoinSuccess({success: false, teamname: ''})),
   ])
   try {
-    // TODO add waiting state here
     const result = yield* Saga.callPromise(
       RPCTypes.teamsTeamAcceptInviteOrRequestAccessRpcPromise,
       {
@@ -343,7 +342,6 @@ const editDescription = (_, action) => {
 
 const uploadAvatar = (_, action) => {
   const {crop, filename, sendChatNotification, teamname} = action.payload
-  // TODO add waiting state here
   return RPCTypes.teamsUploadTeamAvatarRpcPromise(
     {
       crop,
@@ -415,7 +413,6 @@ const generateSMSBody = (teamname: string, seitan: string): string => {
 
 const inviteToTeamByPhone = (_, action) => {
   const {teamname, role, phoneNumber, fullName = ''} = action.payload
-  // TODO add waiting state here
   return RPCTypes.teamsTeamCreateSeitanTokenV2RpcPromise(
     {
       label: {sms: ({f: fullName || '', n: phoneNumber}: RPCTypes.SeitanKeyLabelSms), t: 1},
@@ -629,7 +626,6 @@ function* addUserToTeams(state, action) {
   const errorAddingTo = []
   for (const team of teams) {
     try {
-      // TODO add waiting state here
       yield* Saga.callPromise(
         RPCTypes.teamsTeamAddMemberRpcPromise,
         {
@@ -721,7 +717,6 @@ function* getTeamPublicity(_, action) {
 
 const getChannelInfo = (_, action) => {
   const {teamname, conversationIDKey} = action.payload
-  // TODO add waiting state here
   return RPCChatTypes.localGetInboxAndUnboxUILocalRpcPromise(
     {
       identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
@@ -753,7 +748,6 @@ const getChannelInfo = (_, action) => {
 
 const getChannels = (_, action) => {
   const teamname = action.payload.teamname
-  // TODO add waiting state here
   return RPCChatTypes.localGetTLFConversationsLocalRpcPromise(
     {
       membersType: RPCChatTypes.commonConversationMembersType.team,
@@ -851,7 +845,6 @@ function* getTeams(state) {
 }
 
 const checkRequestedAccess = (_, action) =>
-  // TODO add waiting state here
   RPCTypes.teamsTeamListMyAccessRequestsRpcPromise({}, Constants.teamsAccessRequestWaitingKey).then(
     result => {
       const teams = (result || []).map(row => (row && row.parts ? row.parts.join('.') : ''))
@@ -866,7 +859,6 @@ const _joinConversation = function*(
 ) {
   try {
     const convID = ChatTypes.keyToConversationID(conversationIDKey)
-    // TODO add waiting state here
     yield* Saga.callPromise(
       RPCChatTypes.localJoinConversationByIDLocalRpcPromise,
       {
@@ -893,7 +885,6 @@ const _leaveConversation = function*(
 ) {
   try {
     const convID = ChatTypes.keyToConversationID(conversationIDKey)
-    // TODO add waiting state here
     yield* Saga.callPromise(
       RPCChatTypes.localLeaveConversationLocalRpcPromise,
       {
@@ -1215,7 +1206,6 @@ const updateTopic = (state, action) => {
     tlfPublic: false,
   }
 
-  // TODO add waiting state here
   return RPCChatTypes.localPostHeadlineRpcPromise(param, Constants.teamWaitingKey(teamname)).then(() =>
     TeamsGen.createSetUpdatedTopic({conversationIDKey, newTopic, teamname})
   )
@@ -1231,7 +1221,6 @@ function* addTeamWithChosenChannels(state, action) {
   const logPrefix = `[addTeamWithChosenChannels]:${teamname}`
   let pushState
   try {
-    // TODO add waiting state here
     pushState = yield* Saga.callPromise(
       RPCTypes.gregorGetStateRpcPromise,
       undefined,
@@ -1280,7 +1269,6 @@ function* addTeamWithChosenChannels(state, action) {
   } else {
     logger.info(`${logPrefix} Creating teamsWithChosenChannels`)
   }
-  // TODO add waiting state here
   yield* Saga.callPromise(
     RPCTypes.gregorUpdateCategoryRpcPromise,
     {
@@ -1302,7 +1290,6 @@ const updateChannelname = (state, action) => {
     tlfPublic: false,
   }
 
-  // TODO add waiting state here
   return RPCChatTypes.localPostMetadataRpcPromise(param, Constants.teamWaitingKey(teamname)).then(() =>
     TeamsGen.createSetUpdatedChannelName({conversationIDKey, newChannelName, teamname})
   )
@@ -1312,7 +1299,6 @@ const deleteChannelConfirmed = (state, action) => {
   const {teamname, conversationIDKey} = action.payload
   // channelName is only needed for confirmation, so since we handle
   // confirmation ourselves we don't need to plumb it through.
-  // TODO add waiting state here
   return RPCChatTypes.localDeleteConversationLocalRpcPromise(
     {
       channelName: '',
