@@ -179,6 +179,8 @@ export const getConversationExplodingMode = (state: TypedState, c: Types.Convers
   if (mode === null) {
     mode = state.chat2.getIn(['explodingModes', c], 0)
   }
+  const meta = getMeta(state, c)
+  mode = mode !== 0 && mode < meta.retentionPolicy.seconds ? mode : meta.retentionPolicy.seconds
   return mode || 0
 }
 export const isExplodingModeLocked = (state: TypedState, c: Types.ConversationIDKey) =>
