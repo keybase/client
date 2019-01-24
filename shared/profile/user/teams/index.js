@@ -125,7 +125,7 @@ const Teams = (p: Props) =>
         <Kb.Text type="BodySmallSemibold">Teams</Kb.Text>
         {!!p.onEdit && <Kb.Icon type="iconfont-edit" onClick={p.onEdit} />}
       </Kb.Box2>
-      {!!p.onEdit && <ShowcaseTeamsOffer onEdit={p.onEdit} />}
+      {!!p.onEdit && !p.teamShowcase.length && <ShowcaseTeamsOffer onEdit={p.onEdit} />}
       {p.teamShowcase.map(t => (
         <TeamShowcase key={t.name} {...t} onJoinTeam={p.onJoinTeam} inTeam={p.teamMeta[t.name].inTeam} />
       ))}
