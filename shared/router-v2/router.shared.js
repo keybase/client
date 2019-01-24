@@ -41,7 +41,7 @@ export const shimRoutes = (routes: any) =>
     return map
   }, {})
 
-export const oldActionToNewAction = (action: any, navigator: any) => {
+export const oldActionToNewAction = (action: any, navigation: any) => {
   switch (action.type) {
     case RouteTreeGen.navigateTo: // fallthrough
     case RouteTreeGen.navigateAppend:
@@ -59,10 +59,10 @@ export const oldActionToNewAction = (action: any, navigator: any) => {
           params = p.props
         }
 
-        if (routeName && navigator) {
-          const state = navigator.getState()
+        if (routeName && navigation) {
+          const state = navigation.state
           // don't allow pushing a dupe
-          const topRoute = state.nav.routes[state.nav.index]
+          const topRoute = state.routes[state.index]
           if (topRoute) {
             if (routeName === topRoute.routeName && shallowEqual(topRoute.params, params)) {
               console.log('Skipping append dupe')

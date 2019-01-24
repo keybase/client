@@ -158,22 +158,24 @@ const createElectronApp = App => {
       )
     }
     render() {
-      this._navigation = getNavigation(
-        App.router,
-        this.state.nav,
-        this.dispatch,
-        this._actionEventSubscribers,
-        () => this.props.screenProps,
-        () => this._navigation
-      )
+      if (!this._navigation || this._navigation.state !== this.state.nav) {
+        this._navigation = getNavigation(
+          App.router,
+          this.state.nav,
+          this.dispatch,
+          this._actionEventSubscribers,
+          () => this.props.screenProps,
+          () => this._navigation
+        )
+      }
       return (
         <NavigationProvider value={this._navigation}>
           <App navigation={this._navigation} />
         </NavigationProvider>
       )
     }
-    getState = () => this.state
-    dispatchOldAction = (action: any) => this.dispatch(Shared.oldActionToNewAction(action, this))
+    // getState = () => this.state
+    dispatchOldAction = (action: any) => this.dispatch(Shared.oldActionToNewAction(action, this._navigation))
     dispatch = action => {
       const lastState = this.state.nav
       const newState = App.router.getStateForAction(action, lastState)
@@ -203,16 +205,16 @@ const styles = Styles.styleSheetCreate({
     flexGrow: 1,
     position: 'relative',
   },
-  headerContainer: Styles.platformStyles({
-    isElectron: {
-      alignItems: 'center',
-      ...Styles.desktopStyles.windowDragging,
-    },
-  }),
   headerBack: Styles.platformStyles({
     isElectron: {
       alignItems: 'center',
       minHeight: 36,
+    },
+  }),
+  headerContainer: Styles.platformStyles({
+    isElectron: {
+      alignItems: 'center',
+      ...Styles.desktopStyles.windowDragging,
     },
   }),
   modalContainer: {},

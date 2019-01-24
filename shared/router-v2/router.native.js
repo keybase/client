@@ -245,10 +245,11 @@ class RNApp extends React.Component<any, any> {
     this.setState(p => (p.activeKey === activeKey ? null : {activeKey}))
   }
 
-  getState = () => this._nav.state
-  dispatch = (p: any) => p && this._nav.dispatch(p)
+  // getState = () => this._nav.state
+  // dispatch = (p: any) => p && this._nav.dispatch(p)
   // TODO remove this eventually, just so we can handle the old style actions
-  dispatchOldAction = (action: any) => this.dispatch(Shared.oldActionToNewAction(action, this))
+  dispatchOldAction = (action: any) =>
+    this._nav.dispatch(Shared.oldActionToNewAction(action, this._nav._navigation))
 
   render() {
     // selectedTab={this.state.selectedTab}
