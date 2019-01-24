@@ -28,6 +28,9 @@ import {createStackNavigator} from 'react-navigation-stack'
 import {routes, nameToTab} from './routes'
 import {LeftAction} from '../common-adapters/header-hoc'
 import * as Shared from './router.shared'
+import {useScreens} from 'react-native-screens'
+// turn on screens
+useScreens()
 
 // deprecating routestate concept entirely
 // const emptyMap = I.Map()
