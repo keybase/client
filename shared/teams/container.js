@@ -9,7 +9,7 @@ import * as TeamsGen from '../actions/teams-gen'
 import Teams from './main'
 import openURL from '../util/open-url'
 import * as RouteTreeGen from '../actions/route-tree-gen'
-import {compose, lifecycle, connect, type RouteProps} from '../util/container'
+import {compose, isMobile, lifecycle, connect, type RouteProps} from '../util/container'
 import * as Constants from '../constants/teams'
 import * as WaitingConstants from '../constants/waiting'
 import {type Teamname} from '../constants/types/teams'
@@ -82,6 +82,7 @@ class Reloadable extends React.PureComponent<{
     return (
       <Kb.Reloadable
         waitingKeys={Constants.teamsLoadedWaitingKey}
+        onBack={isMobile ? this.props.onBack : undefined}
         onReload={this.props._loadTeams}
         reloadOnMount={true}
       >
