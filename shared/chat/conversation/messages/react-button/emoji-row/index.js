@@ -114,8 +114,8 @@ const styles = Styles.styleSheetCreate({
   },
   pickerContainer: Styles.platformStyles({
     isElectron: {
+      ...Styles.desktopStyles.boxShadow,
       borderRadius: Styles.borderRadius,
-      boxShadow: `0 0 8px 0 ${Styles.globalColors.black_20}`,
       margin: Styles.globalMargins.tiny,
     },
   }),
