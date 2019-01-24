@@ -72,6 +72,7 @@ type fstatus struct {
 		Running bool
 		Pid     string
 		Log     string
+		EKLog   string
 	}
 	KBFS struct {
 		Version          string
@@ -164,6 +165,7 @@ func (c *CmdStatus) load() (*fstatus, error) {
 	} else {
 		status.Service.Running = true
 		status.Service.Log = filepath.Join(extStatus.LogDir, libkb.ServiceLogFileName)
+		status.Service.EKLog = filepath.Join(extStatus.LogDir, libkb.EKLogFileName)
 	}
 
 	status.PassphraseStreamCached = extStatus.PassphraseStreamCached
@@ -289,6 +291,7 @@ func (c *CmdStatus) outputTerminal(status *fstatus) error {
 	dui.Printf("    status:    %s\n", BoolString(status.Service.Running, "running", "not running"))
 	dui.Printf("    version:   %s\n", status.Service.Version)
 	dui.Printf("    log:       %s\n", status.Service.Log)
+	dui.Printf("    eklog:     %s\n", status.Service.EKLog)
 	dui.Printf("\nUpdater:\n")
 	dui.Printf("    log:       %s\n", status.Updater.Log)
 	dui.Printf("\nPlatform Information:\n")

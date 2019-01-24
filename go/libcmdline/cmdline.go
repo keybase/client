@@ -126,6 +126,9 @@ func (p CommandLine) GetProxy() string {
 func (p CommandLine) GetLogFile() string {
 	return p.GetGString("log-file")
 }
+func (p CommandLine) GetEKLogFile() string {
+	return p.GetGString("ek-log-file")
+}
 func (p CommandLine) GetUseDefaultLogFile() (bool, bool) {
 	return p.GetBool("use-default-log-file", true)
 }
@@ -529,6 +532,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.StringFlag{
 			Name:  "log-file",
 			Usage: "Specify a log file for the keybase service.",
+		},
+		cli.StringFlag{
+			Name:  "ek-log-file",
+			Usage: "Specify a log file for the keybase ephemeral key log.",
 		},
 		cli.StringFlag{
 			Name:  "log-format",

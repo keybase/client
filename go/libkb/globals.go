@@ -47,6 +47,7 @@ type StandaloneChatConnector interface {
 
 type GlobalContext struct {
 	Log              logger.Logger // Handles all logging
+	EKLog            logger.Logger // Handles logging for sensitive ephemeral key operations (deletes) to keep a verbose debug log
 	VDL              *VDebugLog    // verbose debug log
 	Env              *Env          // Env variables, cmdline args & config
 	SKBKeyringMu     *sync.Mutex   // Protects all attempts to mutate the SKBKeyringFile
@@ -170,8 +171,10 @@ type LogGetter func() logger.Logger
 // Note: all these sync.Mutex fields are pointers so that the Clone funcs work.
 func NewGlobalContext() *GlobalContext {
 	log := logger.New("keybase")
+	ekLog := logger.New("keybase_ek")
 	ret := &GlobalContext{
 		Log:                log,
+		EKLog:              ekLog,
 		VDL:                NewVDebugLog(log),
 		SKBKeyringMu:       new(sync.Mutex),
 		perUserKeyringMu:   new(sync.Mutex),
@@ -200,6 +203,7 @@ func (g *GlobalContext) CloneWithNetContextAndNewLogger(netCtx context.Context) 
 	// For legacy code that doesn't thread contexts through to logging properly,
 	// change the underlying logger.
 	tmp.Log = logger.NewSingleContextLogger(netCtx, g.Log)
+	tmp.EKLog = logger.NewSingleContextLogger(netCtx, g.EKLog)
 	tmp.NetContext = netCtx
 	return &tmp
 }
@@ -367,10 +371,14 @@ func (g *GlobalContext) ConfigureLogging() error {
 	} else {
 		g.Log.Configure(style, debug, logFile)
 	}
+	// setupEK logging
+	g.EKLog.Configure(style, debug, g.Env.GetEKLogFile())
+
 	// If specified or explicitly requested to use default log file, redirect logs.
 	// If not called, prints logs to stdout.
 	if logFile != "" || g.Env.GetUseDefaultLogFile() {
 		g.Log.RotateLogFile()
+		g.EKLog.RotateLogFile()
 	}
 	g.Output = os.Stdout
 	g.VDL.Configure(g.Env.GetVDebugSetting())
@@ -727,8 +735,7 @@ func (g *GlobalContext) ConfigureCommand(line CommandLine, cmd Command) error {
 
 func (g *GlobalContext) Configure(line CommandLine, usage Usage) error {
 	g.SetCommandLine(line)
-	err := g.ConfigureLogging()
-	if err != nil {
+	if err := g.ConfigureLogging(); err != nil {
 		return err
 	}
 

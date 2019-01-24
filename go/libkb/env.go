@@ -76,6 +76,7 @@ func (n NullConfiguration) GetAutoFork() (bool, bool)                       { re
 func (n NullConfiguration) GetRunMode() (RunMode, error)                    { return NoRunMode, nil }
 func (n NullConfiguration) GetNoAutoFork() (bool, bool)                     { return false, false }
 func (n NullConfiguration) GetLogFile() string                              { return "" }
+func (n NullConfiguration) GetEKLogFile() string                            { return "" }
 func (n NullConfiguration) GetUseDefaultLogFile() (bool, bool)              { return false, false }
 func (n NullConfiguration) GetUseRootConfigFile() (bool, bool)              { return false, false }
 func (n NullConfiguration) GetLogPrefix() string                            { return "" }
@@ -1353,6 +1354,14 @@ func (e *Env) GetLogFile() string {
 	return e.GetString(
 		func() string { return e.cmd.GetLogFile() },
 		func() string { return os.Getenv("KEYBASE_LOG_FILE") },
+	)
+}
+
+func (e *Env) GetEKLogFile() string {
+	return e.GetString(
+		func() string { return e.cmd.GetEKLogFile() },
+		func() string { return os.Getenv("KEYBASE_EK_LOG_FILE") },
+		func() string { return filepath.Join(e.GetLogDir(), EKLogFileName) },
 	)
 }
 

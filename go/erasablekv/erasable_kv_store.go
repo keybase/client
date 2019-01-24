@@ -274,7 +274,7 @@ func (s *FileErasableKVStore) noiseHash(noiseBytes []byte) []byte {
 }
 
 func (s *FileErasableKVStore) Erase(ctx context.Context, key string) (err error) {
-	defer s.G().CTraceTimed(ctx, fmt.Sprintf("FileErasableKVStore#Erase: %s", key), func() error { return err })()
+	defer s.G().CEKTraceTimed(ctx, fmt.Sprintf("FileErasableKVStore#Erase: %s", key), func() error { return err })()
 	s.Lock()
 	defer s.Unlock()
 	noiseKey := s.noiseKey(key)
@@ -286,7 +286,7 @@ func (s *FileErasableKVStore) Erase(ctx context.Context, key string) (err error)
 }
 
 func (s *FileErasableKVStore) erase(ctx context.Context, key string) (err error) {
-	defer s.G().CTraceTimed(ctx, fmt.Sprintf("FileErasableKVStore#erase: %s", key), func() error { return err })()
+	defer s.G().CEKTraceTimed(ctx, fmt.Sprintf("FileErasableKVStore#erase: %s", key), func() error { return err })()
 	filepath := s.filepath(key)
 	if exists, err := libkb.FileExists(filepath); err != nil {
 		return err
