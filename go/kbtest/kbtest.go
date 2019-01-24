@@ -80,32 +80,40 @@ func (fu *FakeUser) Login(g *libkb.GlobalContext) error {
 }
 
 func CreateAndSignupFakeUser(prefix string, g *libkb.GlobalContext) (*FakeUser, error) {
-	return createAndSignupFakeUser(prefix, g, true, keybase1.DeviceType_DESKTOP)
+	return createAndSignupFakeUser(prefix, g, true /* skipPaper */, keybase1.DeviceType_DESKTOP, false /* randomPW */)
 }
 
 func CreateAndSignupFakeUserPaper(prefix string, g *libkb.GlobalContext) (*FakeUser, error) {
-	return createAndSignupFakeUser(prefix, g, false, keybase1.DeviceType_DESKTOP)
+	return createAndSignupFakeUser(prefix, g, false /* skipPaper */, keybase1.DeviceType_DESKTOP, false /* randomPW */)
 }
 
 func CreateAndSignupFakeUserMobile(prefix string, g *libkb.GlobalContext) (*FakeUser, error) {
-	return createAndSignupFakeUser(prefix, g, true, keybase1.DeviceType_MOBILE)
+	return createAndSignupFakeUser(prefix, g, true /* skipPaper */, keybase1.DeviceType_MOBILE, false /* randomPW */)
 }
 
-func createAndSignupFakeUser(prefix string, g *libkb.GlobalContext, skipPaper bool, deviceType keybase1.DeviceType) (*FakeUser, error) {
+func CreateAndSignupFakeUserRandomPW(prefix string, g *libkb.GlobalContext) (*FakeUser, error) {
+	return createAndSignupFakeUser(prefix, g, true /* skipPaper */, keybase1.DeviceType_DESKTOP, true /* randomPW */)
+}
+
+func createAndSignupFakeUser(prefix string, g *libkb.GlobalContext, skipPaper bool, deviceType keybase1.DeviceType, randomPW bool) (*FakeUser, error) {
 	fu, err := NewFakeUser(prefix)
 	if err != nil {
 		return nil, err
 	}
+	if randomPW {
+		fu.Passphrase = ""
+	}
 	arg := engine.SignupEngineRunArg{
-		Username:   fu.Username,
-		Email:      fu.Email,
-		InviteCode: testInviteCode,
-		Passphrase: fu.Passphrase,
-		DeviceName: DefaultDeviceName,
-		DeviceType: deviceType,
-		SkipGPG:    true,
-		SkipMail:   true,
-		SkipPaper:  skipPaper,
+		Username:                 fu.Username,
+		Email:                    fu.Email,
+		InviteCode:               testInviteCode,
+		Passphrase:               fu.Passphrase,
+		DeviceName:               DefaultDeviceName,
+		DeviceType:               deviceType,
+		SkipGPG:                  true,
+		SkipMail:                 true,
+		SkipPaper:                skipPaper,
+		GenerateRandomPassphrase: randomPW,
 	}
 	uis := libkb.UIs{
 		LogUI:    g.UI.GetLogUI(),

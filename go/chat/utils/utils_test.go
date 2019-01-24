@@ -185,3 +185,55 @@ func TestGetQueryRe(t *testing.T) {
 		require.True(t, ok)
 	}
 }
+
+type decorateMentionTest struct {
+	body                string
+	atMentions          []string
+	chanMention         chat1.ChannelMention
+	channelNameMentions []chat1.ChannelNameMention
+	result              string
+}
+
+func TestDecorateMentions(t *testing.T) {
+	convID := chat1.ConversationID([]byte{1, 2, 3, 4})
+	cases := []decorateMentionTest{
+		decorateMentionTest{
+			body:       "@mikem fix something",
+			atMentions: []string{"mikem"},
+			// {"typ":1,"atmention":"mikem"}
+			result: "$>kb$eyJ0eXAiOjEsImF0bWVudGlvbiI6Im1pa2VtIn0=$<kb$ fix something",
+		},
+		decorateMentionTest{
+			body:        "@mikem,@max please check out #general, also @here you should too",
+			atMentions:  []string{"mikem", "max"},
+			chanMention: chat1.ChannelMention_HERE,
+			channelNameMentions: []chat1.ChannelNameMention{chat1.ChannelNameMention{
+				ConvID:    convID,
+				TopicName: "general",
+			}},
+			// {"typ":1,"atmention":"mikem"}
+			// {"typ":1,"atmention":"max"}
+			// {"typ":2,"channelnamemention":{"name":"general","convID":"01020304"}}
+			// {"typ":1,"atmention":"here"}
+			result: "$>kb$eyJ0eXAiOjEsImF0bWVudGlvbiI6Im1pa2VtIn0=$<kb$,$>kb$eyJ0eXAiOjEsImF0bWVudGlvbiI6Im1heCJ9$<kb$ please check out $>kb$eyJ0eXAiOjIsImNoYW5uZWxuYW1lbWVudGlvbiI6eyJuYW1lIjoiZ2VuZXJhbCIsImNvbnZJRCI6IjAxMDIwMzA0In19$<kb$, also $>kb$eyJ0eXAiOjEsImF0bWVudGlvbiI6ImhlcmUifQ==$<kb$ you should too",
+		},
+		decorateMentionTest{
+			body:       "@mikem talk to @patrick",
+			atMentions: []string{"mikem"},
+			result:     "$>kb$eyJ0eXAiOjEsImF0bWVudGlvbiI6Im1pa2VtIn0=$<kb$ talk to @patrick",
+		},
+		decorateMentionTest{
+			body:   "see #general",
+			result: "see #general",
+		},
+		decorateMentionTest{
+			body:   "@here what are you doing!",
+			result: "@here what are you doing!",
+		},
+	}
+	for _, c := range cases {
+		res := DecorateWithMentions(context.TODO(), c.body, c.atMentions, c.chanMention,
+			c.channelNameMentions)
+		require.Equal(t, c.result, res)
+	}
+}

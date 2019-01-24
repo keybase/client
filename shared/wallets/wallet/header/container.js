@@ -5,7 +5,7 @@ import * as Types from '../../../constants/types/wallets'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import Header from '.'
 
-type OwnProps = {navigateAppend: (...Array<any>) => any, navigateUp: () => any}
+type OwnProps = {navigateAppend: (...Array<any>) => any, onBack: () => void}
 
 const mapStateToProps = state => {
   const accountID = Constants.getSelectedAccount(state)
@@ -57,12 +57,11 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
         },
       ])
     ),
-  onBack: isMobile ? () => dispatch(ownProps.navigateUp()) : null,
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   ...stateProps,
-  onBack: dispatchProps.onBack,
+  onBack: isMobile ? ownProps.onBack : null,
   onReceive: () => dispatchProps._onReceive(stateProps.accountID),
   onRequest: () => dispatchProps._onGoToSendReceive(stateProps.accountID, 'keybaseUser', true),
   onSendToAnotherAccount: () => dispatchProps._onGoToSendReceive(stateProps.accountID, 'otherAccount', false),

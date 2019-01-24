@@ -18,6 +18,8 @@ const getOrderedReactions = (reactions: ?Types.Reactions) => {
 }
 
 export type OwnProps = {|
+  btnClassName?: string,
+  newBtnClassName?: string,
   conversationIDKey: Types.ConversationIDKey,
   ordinal: Types.Ordinal,
 |}

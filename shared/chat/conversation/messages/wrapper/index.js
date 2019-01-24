@@ -23,7 +23,7 @@ import ExplodingMeta from './exploding-meta/container'
 import LongPressable from './long-pressable'
 import MessagePopup from '../message-popup'
 import PendingPaymentBackground from '../account-payment/pending-background'
-import ReactButton from '../react-button/container'
+import EmojiRow from '../react-button/emoji-row/container'
 import ReactionsRow from '../reactions-row/container'
 import SendIndicator from './send-indicator'
 import UnfurlList from './unfurl/unfurl-list/container'
@@ -33,7 +33,7 @@ import {formatTimeForChat} from '../../../../util/timestamp'
 
 /**
  * WrapperMessage adds the orange line, menu button, menu, reacji
- * button, and exploding meta tag.
+ * row, and exploding meta tag.
  */
 
 export type Props = {|
@@ -184,12 +184,16 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       />
     )
 
-  _reactionsRow = () =>
+  _shouldShowReactionsRow = () =>
     // $ForceType
-    this.props.message.reactions &&
-    !this.props.message.reactions.isEmpty() && (
+    this.props.message.reactions && !this.props.message.reactions.isEmpty()
+
+  _reactionsRow = () =>
+    this._shouldShowReactionsRow() && (
       <ReactionsRow
         key="ReactionsRow"
+        btnClassName="WrapperMessage-emojiButton"
+        newBtnClassName="WrapperMessage-newEmojiButton"
         conversationIDKey={this.props.conversationIDKey}
         ordinal={this.props.message.ordinal}
       />
@@ -236,6 +240,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             'WrapperMessage-author': this.props.showUsername,
             'WrapperMessage-decorated': this.props.decorate,
             'WrapperMessage-hoverColor': !this.props.isPendingPayment,
+            'WrapperMessage-noOverflow': this.props.isPendingPayment,
             active: this.props.showingMenu || this.state.showingPicker,
           },
           'WrapperMessage-hoverBox'
@@ -272,7 +277,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     const iconSizes = [
       this.props.isRevoked ? 16 : 0, // revoked
       this.props.showCoinsIcon ? 16 : 0, // coin stack
-      exploded || Styles.isMobile ? 0 : 16, // reactji
       exploded || Styles.isMobile ? 0 : 16, // ... menu
       exploding ? (Styles.isMobile ? 57 : 46) : 0, // exploding
     ].filter(Boolean)
@@ -405,14 +409,15 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
             )}
             {showMenuButton ? (
               <Kb.Box className="WrapperMessage-buttons">
-                <ReactButton
-                  conversationIDKey={this.props.conversationIDKey}
-                  ordinal={message.ordinal}
-                  onShowPicker={this._setShowingPicker}
-                  showBorder={false}
-                  style={styles.reactButton}
-                  getAttachmentRef={this.props.getAttachmentRef}
-                />
+                {!this._shouldShowReactionsRow() && (
+                  <EmojiRow
+                    className="WrapperMessage-emojiButton"
+                    conversationIDKey={this.props.conversationIDKey}
+                    onShowingEmojiPicker={this._setShowingPicker}
+                    ordinal={message.ordinal}
+                    style={styles.emojiRow}
+                  />
+                )}
                 <Kb.Box>
                   {this.props.shouldShowPopup && (
                     <Kb.Icon
@@ -528,6 +533,7 @@ const styles = Styles.styleSheetCreate({
   }),
   edited: {color: Styles.globalColors.black_20},
   ellipsis: {marginLeft: Styles.globalMargins.tiny},
+  emojiRow: {bottom: -12, position: 'absolute', right: 112, zIndex: 2},
   fail: {color: Styles.globalColors.red},
   failUnderline: {color: Styles.globalColors.red, textDecorationLine: 'underline'},
   fast,
@@ -556,9 +562,6 @@ const styles = Styles.styleSheetCreate({
     right: 0,
     top: Styles.isMobile ? 1 : 0, // mobile needs some breathing room for some reason
   },
-  reactButton: Styles.platformStyles({
-    isElectron: {width: 16},
-  }),
   send: Styles.platformStyles({
     common: {position: 'absolute'},
     isElectron: {

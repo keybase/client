@@ -20,6 +20,7 @@ export type Props = {
   onLogout: () => void,
   badgeNotifications?: boolean,
   badgeNumbers: {[key: TabConstants.Tab]: number},
+  hasRandomPW: ?boolean,
 }
 
 export default class SettingsNav extends Component<Props> {}

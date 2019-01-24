@@ -4,12 +4,11 @@ import * as Styles from '../../styles'
 import * as Constants from '../../constants/fs'
 import {rowStyles, StillCommon, type StillCommonProps} from './common'
 import * as Kb from '../../common-adapters'
-import {PathItemInfo} from '../common'
+import {TlfInfo} from '../common'
 
 type TlfProps = StillCommonProps & {
   isNew: boolean,
   needsRekey: boolean,
-  needPathItemInfo: boolean,
   // We don't use this at the moment. In the future this will be used for
   // showing ignored folders when we allow user to show ignored folders in GUI.
   isIgnored: boolean,
@@ -33,7 +32,7 @@ const Tlf = (props: TlfProps) => (
           {props.name}
         </Kb.Text>
       </Kb.Box2>
-      {props.needPathItemInfo && <PathItemInfo path={props.path} />}
+      <TlfInfo path={props.path} mode="row" />
     </Kb.Box>
   </StillCommon>
 )

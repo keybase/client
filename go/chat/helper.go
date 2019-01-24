@@ -37,19 +37,18 @@ func NewHelper(g *globals.Context, ri func() chat1.RemoteInterface) *Helper {
 }
 
 func (h *Helper) SendTextByID(ctx context.Context, convID chat1.ConversationID,
-	trip chat1.ConversationIDTriple, tlfName string, text string) error {
-	return h.SendMsgByID(ctx, convID, trip, tlfName, chat1.NewMessageBodyWithText(chat1.MessageText{
+	tlfName string, text string) error {
+	return h.SendMsgByID(ctx, convID, tlfName, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: text,
 	}), chat1.MessageType_TEXT)
 }
 
-func (h *Helper) SendMsgByID(ctx context.Context, convID chat1.ConversationID,
-	trip chat1.ConversationIDTriple, tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error {
+func (h *Helper) SendMsgByID(ctx context.Context, convID chat1.ConversationID, tlfName string,
+	body chat1.MessageBody, msgType chat1.MessageType) error {
 	boxer := NewBoxer(h.G())
 	sender := NewBlockingSender(h.G(), boxer, h.ri)
 	msg := chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
-			Conv:        trip,
 			TlfName:     tlfName,
 			MessageType: msgType,
 		},
@@ -60,20 +59,19 @@ func (h *Helper) SendMsgByID(ctx context.Context, convID chat1.ConversationID,
 }
 
 func (h *Helper) SendTextByIDNonblock(ctx context.Context, convID chat1.ConversationID,
-	trip chat1.ConversationIDTriple, tlfName string, text string) error {
-	return h.SendMsgByIDNonblock(ctx, convID, trip, tlfName, chat1.NewMessageBodyWithText(chat1.MessageText{
+	tlfName string, text string) error {
+	return h.SendMsgByIDNonblock(ctx, convID, tlfName, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: text,
 	}), chat1.MessageType_TEXT)
 }
 
 func (h *Helper) SendMsgByIDNonblock(ctx context.Context, convID chat1.ConversationID,
-	trip chat1.ConversationIDTriple, tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error {
+	tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error {
 	boxer := NewBoxer(h.G())
 	baseSender := NewBlockingSender(h.G(), boxer, h.ri)
 	sender := NewNonblockingSender(h.G(), baseSender)
 	msg := chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
-			Conv:        trip,
 			TlfName:     tlfName,
 			MessageType: msgType,
 		},
@@ -729,6 +727,11 @@ func postJoinLeave(ctx context.Context, g *globals.Context, ri func() chat1.Remo
 	return err
 }
 
+func (h *Helper) JoinConversationByID(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (err error) {
+	defer h.Trace(ctx, func() error { return err }, "ChatHelper.JoinConversationByID")()
+	return JoinConversation(ctx, h.G(), h.DebugLabeler, h.ri, uid, convID)
+}
+
 func JoinConversation(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
 	ri func() chat1.RemoteInterface, uid gregor1.UID, convID chat1.ConversationID) (err error) {
 	if err := g.ConvSource.AcquireConversationLock(ctx, uid, convID); err != nil {
@@ -764,6 +767,49 @@ func JoinConversation(ctx context.Context, g *globals.Context, debugger utils.De
 		// ignore the error
 	}
 	return nil
+}
+
+func (h *Helper) JoinConversationByName(ctx context.Context, uid gregor1.UID, tlfName, topicName string,
+	topicType chat1.TopicType, vis keybase1.TLFVisibility) (err error) {
+	defer h.Trace(ctx, func() error { return err }, "ChatHelper.JoinConversationByName")()
+	return JoinConversationByName(ctx, h.G(), h.DebugLabeler, h.ri, uid, tlfName, topicName, topicType, vis)
+}
+
+func JoinConversationByName(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
+	ri func() chat1.RemoteInterface, uid gregor1.UID, tlfName, topicName string, topicType chat1.TopicType,
+	vis keybase1.TLFVisibility) (err error) {
+	// Fetch the TLF ID from specified name
+	nameInfo, err := CreateNameInfoSource(ctx, g, chat1.ConversationMembersType_TEAM).LookupID(ctx,
+		tlfName, vis == keybase1.TLFVisibility_PUBLIC)
+	if err != nil {
+		debugger.Debug(ctx, "JoinConversationByName: failed to get TLFID from name: %s", err.Error())
+		return err
+	}
+
+	// List all the conversations on the team
+	convs, err := g.TeamChannelSource.GetChannelsFull(ctx, uid, nameInfo.ID, topicType)
+	if err != nil {
+		return err
+	}
+	var convID chat1.ConversationID
+	for _, conv := range convs {
+		convTopicName := utils.GetTopicName(conv)
+		if convTopicName != "" && convTopicName == topicName {
+			convID = conv.GetConvID()
+		}
+	}
+	if convID.IsNil() {
+		return fmt.Errorf("no topic name %s exists on specified team", topicName)
+	}
+	if err = JoinConversation(ctx, g, debugger, ri, uid, convID); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (h *Helper) LeaveConversation(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (err error) {
+	defer h.Trace(ctx, func() error { return err }, "ChatHelper.LeaveConversation")()
+	return LeaveConversation(ctx, h.G(), h.DebugLabeler, h.ri, uid, convID)
 }
 
 func LeaveConversation(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
@@ -1019,6 +1065,22 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 				// The triple did not exist, but a collision occurred on convID. Retry with a different topic ID.
 				n.Debug(ctx, "collision: %v", reserr)
 				continue
+			case libkb.ChatClientError:
+				// just make sure we can't find anything with FindConversations if we get this back
+				topicName := ""
+				if n.topicName != nil {
+					topicName = *n.topicName
+				}
+				fcRes, err := FindConversations(ctx, n.G(), n.DebugLabeler, true, n.ri, n.uid,
+					n.tlfName, n.topicType, n.membersType, n.vis, topicName, nil)
+				if err != nil {
+					n.Debug(ctx, "failed trying FindConversations after client error: %s", err)
+					return res, reserr
+				} else if len(fcRes) > 0 {
+					convID = fcRes[0].GetConvID()
+				} else {
+					return res, reserr
+				}
 			default:
 				return res, fmt.Errorf("error creating conversation: %s", reserr)
 			}

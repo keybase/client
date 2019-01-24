@@ -82,6 +82,8 @@ type ConversationSource interface {
 		reason *chat1.GetThreadReason) ([]chat1.MessageUnboxed, error)
 	GetMessagesWithRemotes(ctx context.Context, conv chat1.Conversation, uid gregor1.UID,
 		msgs []chat1.MessageBoxed) ([]chat1.MessageUnboxed, error)
+	GetUnreadline(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+		readMsgID chat1.MessageID) (*chat1.MessageID, error)
 	MarkAsRead(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msgID chat1.MessageID) error
 	Clear(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) error
 	TransformSupersedes(ctx context.Context, unboxInfo UnboxConversationInfo, uid gregor1.UID,
@@ -145,6 +147,8 @@ type InboxSource interface {
 		query *chat1.GetInboxQuery, p *chat1.Pagination) (Inbox, error)
 	Localize(ctx context.Context, uid gregor1.UID, convs []RemoteConversation,
 		localizeTyp ConversationLocalizerTyp) ([]chat1.ConversationLocal, chan AsyncInboxResult, error)
+	RemoteSetConversationStatus(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		status chat1.ConversationStatus) error
 
 	NewConversation(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 		conv chat1.Conversation) error
@@ -395,6 +399,21 @@ type Unfurler interface {
 	WhitelistRemove(ctx context.Context, uid gregor1.UID, domain string) error
 	WhitelistAddExemption(ctx context.Context, uid gregor1.UID, exemption WhitelistExemption)
 	SetMode(ctx context.Context, uid gregor1.UID, mode chat1.UnfurlMode) error
+}
+
+type ConversationCommand interface {
+	Match(ctx context.Context, text string) bool
+	Execute(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, tlfName string, text string) error
+	Preview(ctx context.Context, text string) error
+	Name() string
+	Usage() string
+	Description() string
+}
+
+type ConversationCommandsSource interface {
+	ListCommands(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) ([]ConversationCommandGroup, error)
+	AttemptCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, tlfName string,
+		body chat1.MessageBody) (bool, error)
 }
 
 type InternalError interface {

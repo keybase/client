@@ -3,6 +3,7 @@ package systests
 import (
 	"bytes"
 	"net/http"
+	"os"
 	"testing"
 	"time"
 
@@ -79,6 +80,7 @@ func TestStellarNoteRoundtripAndResets(t *testing.T) {
 
 // Test took 38s on a dev server 2018-06-07
 func TestStellarRelayAutoClaims(t *testing.T) {
+	skipTestOnNonMasterCI(t, "slow stellar test")
 	if disable {
 		t.Skip(disableMsg)
 	}
@@ -87,6 +89,7 @@ func TestStellarRelayAutoClaims(t *testing.T) {
 
 // Test took 29s on a dev server 2018-06-07
 func TestStellarRelayAutoClaimsWithPUK(t *testing.T) {
+	skipTestOnNonMasterCI(t, "slow stellar test")
 	if disable {
 		t.Skip(disableMsg)
 	}
@@ -232,6 +235,80 @@ func testStellarRelayAutoClaims(t *testing.T, startWithPUK, skipPart2 bool) {
 
 }
 
+// XLM is sent to a rooter assertion that does not resolve.
+// The recipient-to-be signs up, gets a wallet, and then proves the assertion.
+// The recipient enters the impteam which kicks autoclaim into gear.
+//
+// To debug this test use log filter "stellar_test|poll-|AutoClaim|stellar.claim|pollfor"
+// Test took 20s on a dev server 2019-01-23
+func TestStellarRelayAutoClaimsSBS(t *testing.T) {
+	skipTestOnNonMasterCI(t, "slow stellar test")
+	if disable {
+		t.Skip(disableMsg)
+	}
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+	useStellarTestNet(t)
+
+	alice := tt.addUser("alice")
+	bob := tt.addUser("bob")
+	rooterAssertion := bob.username + "@rooter"
+	alice.kickTeamRekeyd()
+
+	t.Logf("alice gets funded")
+	acceptDisclaimer(alice)
+
+	res, err := alice.stellarClient.GetWalletAccountsLocal(context.Background(), 0)
+	require.NoError(t, err)
+	gift(t, res[0].AccountID)
+
+	t.Logf("alice sends a first relay payment to bob P1")
+	attachIdentifyUI(t, alice.tc.G, newSimpleIdentifyUI())
+	cmd := client.CmdWalletSend{
+		Contextified: libkb.NewContextified(alice.tc.G),
+		Recipient:    rooterAssertion,
+		Amount:       "50",
+	}
+	for i := 0; i < retryCount; i++ {
+		err = cmd.Run()
+		if err == nil {
+			break
+		}
+	}
+	require.NoError(t, err)
+
+	t.Logf("get the impteam seqno to wait on later")
+	team, _, _, err := teams.LookupImplicitTeam(context.Background(), alice.tc.G, alice.username+","+rooterAssertion, false, teams.ImplicitTeamOptions{})
+	require.NoError(t, err)
+	nextSeqno := team.NextSeqno()
+
+	t.Logf("bob proves his rooter")
+	tt.users[1].proveRooter()
+	t.Logf("bob gets a wallet")
+	acceptDisclaimer(bob)
+
+	t.Logf("wait for alice to add bob to their impteam")
+	alice.pollForTeamSeqnoLinkWithLoadArgs(keybase1.LoadTeamArg{ID: team.ID}, nextSeqno)
+
+	pollTime := 20 * time.Second
+	if libkb.UseCITime(bob.tc.G) {
+		// This test is especially slow.
+		pollTime = 30 * time.Second
+	}
+
+	pollFor(t, "claim to complete", pollTime, bob.tc.G, func(i int) bool {
+		res, err = bob.stellarClient.GetWalletAccountsLocal(context.Background(), 0)
+		require.NoError(t, err)
+		t.Logf("poll-1-%v: %v", i, res[0].BalanceDescription)
+		if res[0].BalanceDescription == "0 XLM" {
+			return false
+		}
+		t.Logf("poll-1-%v: received P1", i)
+		require.Equal(t, "49.9999800 XLM", res[0].BalanceDescription)
+		return true
+	})
+}
+
 func sampleNote() stellar1.NoteContents {
 	return stellar1.NoteContents{
 		Note:      "wizbang",
@@ -269,4 +346,15 @@ func useStellarTestNet(t testing.TB) {
 func acceptDisclaimer(u *userPlusDevice) {
 	err := u.stellarClient.AcceptDisclaimerLocal(context.Background(), 0)
 	require.NoError(u.tc.T, err)
+}
+
+func runningInCI() bool {
+	x := os.Getenv("KEYBASE_RUN_CI")
+	return len(x) > 0 && x != "0" && x[0] != byte('n')
+}
+
+func skipTestOnNonMasterCI(t *testing.T, reason string) {
+	if runningInCI() && os.Getenv("BRANCH_NAME") != "master" {
+		t.Skipf("skip test on non-master CI run: %v", reason)
+	}
 }

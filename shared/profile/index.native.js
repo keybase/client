@@ -423,7 +423,6 @@ class Profile extends Component<Props, State> {
           onLeftAction={this.props.onBack}
           headerStyle={{
             backgroundColor: trackerStateColors.header.background,
-            paddingBottom: Styles.globalMargins.tiny,
           }}
           theme="dark"
           titleComponent={

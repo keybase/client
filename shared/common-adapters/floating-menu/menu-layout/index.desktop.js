@@ -128,11 +128,11 @@ const styles = Styles.styleSheetCreate({
   },
   menuContainer: Styles.platformStyles({
     isElectron: {
+      ...Styles.desktopStyles.boxShadow,
       ...Styles.globalStyles.flexBoxColumn,
       alignItems: 'stretch',
       backgroundColor: Styles.globalColors.white,
       borderRadius: 3,
-      boxShadow: '0 0 15px 0 rgba(0, 0, 0, 0.2)',
       justifyContent: 'flex-start',
       minWidth: 200,
       overflowX: 'hidden',

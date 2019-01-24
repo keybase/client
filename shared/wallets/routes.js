@@ -55,7 +55,12 @@ const routeTree = () => {
             reallyRemoveAccount: {
               children: {},
               component: ReallyRemoveAccountPopup,
-              tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile, renderTopmostOnly: true}),
+              tags: makeLeafTags({
+                fullscreen: isMobile,
+                layerOnTop: !isMobile,
+                renderTopmostOnly: true,
+                underNotch: true,
+              }),
             },
           },
           component: RemoveAccountPopup,

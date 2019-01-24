@@ -6,9 +6,6 @@ import * as Styles from '../../../../styles'
 
 export type Props = {
   isEditing: boolean,
-  mentionsAt: Types.MentionsAt,
-  mentionsChannel: Types.MentionsChannel,
-  mentionsChannelName: Types.MentionsChannelName,
   message: Types.MessageText,
   text: string,
   type: 'error' | 'pending' | 'sent',
@@ -26,7 +23,7 @@ const MessageText = ({
   const markdown = (
     <Kb.Markdown
       style={getStyle(type, isEditing)}
-      meta={{mentionsAt, mentionsChannel, mentionsChannelName, message}}
+      meta={{message}}
       styleOverride={Styles.isMobile ? {paragraph: getStyle(type, isEditing)} : undefined}
       allowFontScaling={true}
     >

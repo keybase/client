@@ -1629,13 +1629,6 @@
         {
           "type": [
             null,
-            "MessageID"
-          ],
-          "name": "unreadLineID"
-        },
-        {
-          "type": [
-            null,
             "Pagination"
           ],
           "name": "pagination"
@@ -1755,6 +1748,37 @@
       "symbols": [
         "DEFAULT_0",
         "SERVER_1"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnreadlineRes",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "offline"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures"
+        },
+        {
+          "type": [
+            null,
+            "MessageID"
+          ],
+          "name": "unreadlineID"
+        }
       ]
     },
     {
@@ -2848,6 +2872,27 @@
         }
       ],
       "response": "NonblockFetchRes"
+    },
+    "getUnreadline": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "readMsgID",
+          "type": "MessageID"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": "UnreadlineRes"
     },
     "getInboxUILocal": {
       "request": [
