@@ -1,39 +1,19 @@
 // @flow
 import * as React from 'react'
-import * as Types from '../../constants/types/fs'
-import * as Constants from '../../constants/fs'
-import * as Styles from '../../styles'
-import {fileUIName} from '../../constants/platform'
-import {
-  Box2,
-  Box,
-  ClickableBox,
-  ProgressIndicator,
-  Icon,
-  Text,
-  FloatingMenu,
-  iconCastPlatformStyles,
-  type OverlayParentProps,
-} from '../../common-adapters'
-import TlfOrPathItemInfo from './tlf-or-path-item-info'
-import PathItemIcon from './path-item-icon-container'
-import StaticBreadcrumb from '../common/static-breadcrumb'
-import {memoize} from 'lodash-es'
-import DownloadTrackingHoc from './download-tracking-hoc'
-import CommaSeparatedName from './comma-separated-name'
+import * as Types from '../../../constants/types/fs'
+import * as Styles from '../../../styles'
+import * as Kb from '../../../common-adapters'
+import {fileUIName} from '../../../constants/platform'
+import DownloadTrackingHoc from '../download-tracking-hoc'
+import Header from './header-container'
 
-type Props = {
-  name: string,
-  size: number,
+type Props = {|
   type: Types.PathType,
-  childrenFolders: number,
-  childrenFiles: number,
   actionIconClassName?: string,
   actionIconFontSize?: number,
   actionIconWhite?: boolean,
   onHidden: () => void,
   path: Types.Path,
-  pathElements: Array<string>,
   // Menu items
   showInSystemFileManager?: () => void,
   ignoreFolder?: () => void,
@@ -43,7 +23,7 @@ type Props = {
   copyPath?: () => void,
   deleteFileOrFolder?: () => void,
   moveOrCopy?: () => void,
-}
+|}
 
 const hideMenuOnClick = (onClick: (evt?: SyntheticEvent<>) => void, hideMenu: () => void) => (
   evt?: SyntheticEvent<>
@@ -54,31 +34,31 @@ const hideMenuOnClick = (onClick: (evt?: SyntheticEvent<>) => void, hideMenu: ()
 
 const ShareNative = DownloadTrackingHoc(({downloading}) =>
   downloading ? (
-    <Box2 direction="horizontal">
-      <ProgressIndicator style={styles.progressIndicator} />
-      <Text type="BodyBig" style={styles.menuRowTextDisabled}>
+    <Kb.Box2 direction="horizontal">
+      <Kb.ProgressIndicator style={styles.progressIndicator} />
+      <Kb.Text type="BodyBig" style={styles.menuRowTextDisabled}>
         Preparing to send to other app
-      </Text>
-    </Box2>
+      </Kb.Text>
+    </Kb.Box2>
   ) : (
-    <Text type="BodyBig" style={styles.menuRowText}>
+    <Kb.Text type="BodyBig" style={styles.menuRowText}>
       Send to other app
-    </Text>
+    </Kb.Text>
   )
 )
 
 const Save = DownloadTrackingHoc(({downloading}) =>
   downloading ? (
-    <Box2 direction="horizontal">
-      <ProgressIndicator style={styles.progressIndicator} />
-      <Text type="BodyBig" style={styles.menuRowTextDisabled}>
+    <Kb.Box2 direction="horizontal">
+      <Kb.ProgressIndicator style={styles.progressIndicator} />
+      <Kb.Text type="BodyBig" style={styles.menuRowTextDisabled}>
         Saving
-      </Text>
-    </Box2>
+      </Kb.Text>
+    </Kb.Box2>
   ) : (
-    <Text type="BodyBig" style={styles.menuRowText}>
+    <Kb.Text type="BodyBig" style={styles.menuRowText}>
       Save
-    </Text>
+    </Kb.Text>
   )
 )
 
@@ -165,33 +145,7 @@ const makeMenuItems = (props: Props, hideMenu: () => void) => {
   ]
 }
 
-const PathItemActionHeader = (props: Props) => (
-  <Box style={styles.header}>
-    <PathItemIcon path={props.path} size={32} style={styles.pathItemIcon} />
-    <StaticBreadcrumb pathElements={props.pathElements} />
-    <Box2 direction="horizontal" style={styles.nameTextBox}>
-      <CommaSeparatedName
-        type="BodySmallSemibold"
-        name={props.name}
-        elementStyle={stylesNameText(Constants.getPathTextColor(props.path))}
-      />
-    </Box2>
-    {props.type === 'file' && <Text type="BodySmall">{Constants.humanReadableFileSize(props.size)}</Text>}
-    {props.type === 'folder' && (
-      <Text type="BodySmall">
-        {props.childrenFolders
-          ? `${props.childrenFolders} Folder${props.childrenFolders > 1 ? 's' : ''}${
-              props.childrenFiles ? ', ' : ''
-            }`
-          : undefined}
-        {props.childrenFiles ? `${props.childrenFiles} File${props.childrenFiles > 1 ? 's' : ''}` : undefined}
-      </Text>
-    )}
-    <TlfOrPathItemInfo path={props.path} mode="default" />
-  </Box>
-)
-
-const PathItemAction = (props: Props & OverlayParentProps) => {
+const PathItemAction = (props: Props & Kb.OverlayParentProps) => {
   const hideMenuOnce = (() => {
     let hideMenuCalled = false
     return () => {
@@ -205,17 +159,17 @@ const PathItemAction = (props: Props & OverlayParentProps) => {
   })()
 
   return (
-    <Box>
-      <ClickableBox onClick={props.toggleShowingMenu} ref={props.setAttachmentRef}>
-        <Icon
+    <Kb.Box>
+      <Kb.ClickableBox onClick={props.toggleShowingMenu} ref={props.setAttachmentRef}>
+        <Kb.Icon
           type="iconfont-ellipsis"
           color={props.actionIconWhite ? Styles.globalColors.white : Styles.globalColors.black_50}
-          style={iconCastPlatformStyles(styles.actionIcon)}
+          style={Kb.iconCastPlatformStyles(styles.actionIcon)}
           fontSize={props.actionIconFontSize}
           className={props.actionIconClassName}
         />
-      </ClickableBox>
-      <FloatingMenu
+      </Kb.ClickableBox>
+      <Kb.FloatingMenu
         closeOnSelect={false}
         containerStyle={styles.floatingContainer}
         attachTo={props.getAttachmentRef}
@@ -224,11 +178,11 @@ const PathItemAction = (props: Props & OverlayParentProps) => {
         position="bottom right"
         header={{
           title: 'unused',
-          view: <PathItemActionHeader {...props} />,
+          view: <Header path={props.path} />,
         }}
         items={makeMenuItems(props, hideMenuOnce)}
       />
-    </Box>
+    </Kb.Box>
   )
 }
 
@@ -249,20 +203,6 @@ const styles = Styles.styleSheetCreate({
       width: '100%',
     },
   }),
-  header: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxColumn,
-      alignItems: 'center',
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-      paddingTop: Styles.globalMargins.small,
-      width: '100%',
-    },
-    isMobile: {
-      paddingBottom: Styles.globalMargins.medium,
-      paddingTop: Styles.globalMargins.large,
-    },
-  }),
   menuRowText: {
     color: Styles.globalColors.blue,
   },
@@ -270,32 +210,9 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.blue,
     opacity: 0.6,
   },
-  nameTextBox: Styles.platformStyles({
-    common: {
-      flexWrap: 'wrap',
-    },
-    isElectron: {
-      textAlign: 'center',
-    },
-  }),
-  pathItemIcon: {
-    marginBottom: Styles.globalMargins.xtiny,
-  },
   progressIndicator: {
     marginRight: Styles.globalMargins.xtiny,
   },
 })
 
-const stylesNameText = memoize(color =>
-  Styles.platformStyles({
-    common: {
-      color,
-    },
-    isElectron: {
-      overflowWrap: 'break-word',
-      textAlign: 'center',
-    },
-  })
-)
-
-export default PathItemAction
+export default Kb.OverlayParentHOC(PathItemAction)
