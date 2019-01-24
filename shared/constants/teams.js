@@ -381,7 +381,7 @@ const serviceRetentionPolicyToRetentionPolicy = (policy: ?RPCChatTypes.Retention
     // replace retentionPolicy with whatever is explicitly set
     switch (policy.typ) {
       case RPCChatTypes.commonRetentionPolicyType.retain:
-        retentionPolicy = makeRetentionPolicy({type: 'retain'})
+        retentionPolicy = makeRetentionPolicy({title: 'Never auto-delete', type: 'retain'})
         break
       case RPCChatTypes.commonRetentionPolicyType.expire:
         if (!policy.expire) {
