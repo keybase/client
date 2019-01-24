@@ -778,14 +778,14 @@ func (m *ChatRemoteMock) SyncInbox(ctx context.Context, vers chat1.InboxVers) (c
 	return m.SyncInboxFunc(m, ctx, vers)
 }
 
-func (m *ChatRemoteMock) SyncChat(ctx context.Context, vers chat1.InboxVers) (chat1.SyncChatRes, error) {
+func (m *ChatRemoteMock) SyncChat(ctx context.Context, arg chat1.SyncChatArg) (chat1.SyncChatRes, error) {
 	if m.SyncInboxFunc == nil {
 		return chat1.SyncChatRes{
 			InboxRes: chat1.NewSyncInboxResWithClear(),
 		}, nil
 	}
 
-	iboxRes, err := m.SyncInboxFunc(m, ctx, vers)
+	iboxRes, err := m.SyncInboxFunc(m, ctx, arg.Vers)
 	if err != nil {
 		return chat1.SyncChatRes{}, err
 	}
@@ -799,7 +799,10 @@ func (m *ChatRemoteMock) SyncChat(ctx context.Context, vers chat1.InboxVers) (ch
 }
 
 func (m *ChatRemoteMock) SyncAll(ctx context.Context, arg chat1.SyncAllArg) (res chat1.SyncAllResult, err error) {
-	cres, err := m.SyncChat(ctx, arg.InboxVers)
+	cres, err := m.SyncChat(ctx, chat1.SyncChatArg{
+		Vers:             arg.InboxVers,
+		SummarizeMaxMsgs: arg.SummarizeMaxMsgs,
+	})
 	if err != nil {
 		return res, err
 	}
