@@ -87,20 +87,38 @@ class _RetentionPicker extends React.Component<Kb.PropsWithOverlay<Props>, State
     if (this.props.showInheritOption) {
       policies.unshift(retentionPolicies.policyInherit)
     }
-    const items = policies.map(policy => {
-      if (policy.type === 'retain') {
-        return {onClick: () => this._onSelect(policy), title: policy.title}
-      } else if (policy.type === 'inherit') {
-        if (this.props.teamPolicy) {
-          return {onClick: () => this._onSelect(policy), title: policyToInheritLabel(this.props.teamPolicy)}
-        } else {
-          throw new Error(`Got policy of type 'inherit' without an inheritable parent policy`)
-        }
-      } else if (policy.type === 'expire' || policy.type === 'explode') {
-        return {onClick: () => this._onSelect(policy), title: policy.title}
+    const items = policies.reduce((arr, policy) => {
+      switch (policy.type) {
+        case 'retain':
+        case 'expire':
+          return [...arr, {onClick: () => this._onSelect(policy), title: policy.title}]
+        case 'inherit':
+          if (this.props.teamPolicy) {
+            return [
+              {onClick: () => this._onSelect(policy), title: policyToInheritLabel(this.props.teamPolicy)},
+              'Divider',
+              ...arr,
+            ]
+          } else {
+            throw new Error(`Got policy of type 'inherit' without an inheritable parent policy`)
+          }
+        case 'explode':
+          return [
+            ...arr,
+            {
+              onClick: () => this._onSelect(policy),
+              title: policy.title,
+              view: (
+                <Kb.Box2 alignItems="center" direction="horizontal" gap="tiny" fullWidth={true}>
+                  <Kb.Icon type="iconfont-timer" />
+                  <Kb.Text type="Body">{policy.title}</Kb.Text>
+                </Kb.Box2>
+              ),
+            },
+          ]
       }
-      return {onClick: () => this._onSelect(policy), title: daysToLabel(secondsToDays(policy.seconds))}
-    })
+      return arr
+    }, [])
     this.setState({items})
   }
 
@@ -151,12 +169,6 @@ class _RetentionPicker extends React.Component<Kb.PropsWithOverlay<Props>, State
         />
         <Kb.Box style={headingStyle}>
           <Kb.Text type="BodySmallSemibold">Message deletion</Kb.Text>
-          <Kb.Icon
-            type="iconfont-timer"
-            style={{marginLeft: Styles.globalMargins.xtiny}}
-            fontSize={Styles.isMobile ? 22 : 16}
-            color={Styles.globalColors.black_20}
-          />
         </Kb.Box>
         <Kb.ClickableBox
           onClick={this.props.toggleShowingMenu}
