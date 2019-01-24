@@ -555,16 +555,13 @@ func ParseChannelNameMentions(ctx context.Context, body string, uid gregor1.UID,
 	if len(names) == 0 {
 		return nil
 	}
-	chanResponse, err := ts.GetChannels(ctx, uid, teamID, chat1.TopicType_CHAT)
+	chanResponse, err := ts.GetChannelsTopicName(ctx, uid, teamID, chat1.TopicType_CHAT)
 	if err != nil {
 		return nil
 	}
 	validChans := make(map[string]chat1.ChannelNameMention)
 	for _, cr := range chanResponse {
-		validChans[cr.Info.TopicName] = chat1.ChannelNameMention{
-			ConvID:    cr.GetConvID(),
-			TopicName: cr.Info.TopicName,
-		}
+		validChans[cr.TopicName] = cr
 	}
 	for _, name := range names {
 		if cr, ok := validChans[name.name]; ok {

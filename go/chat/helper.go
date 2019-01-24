@@ -162,6 +162,10 @@ func (h *Helper) GetChannelTopicName(ctx context.Context, teamID keybase1.TeamID
 		return topicName, err
 	}
 	uid := gregor1.UID(kuid.ToBytes())
+	tlfID, err := chat1.TeamIDToTLFID(teamID)
+	if err != nil {
+		return topicName, err
+	}
 	query := &chat1.GetInboxLocalQuery{
 		ConvIDs: []chat1.ConversationID{convID},
 	}
@@ -176,7 +180,10 @@ func (h *Helper) GetChannelTopicName(ctx context.Context, teamID keybase1.TeamID
 			return conv.Info.TopicName, nil
 		}
 	}
-	return "", nil
+	// Fallback to TeamChannelSource
+	h.Debug(ctx, "using TeamChannelSource")
+	topicName, err = h.G().TeamChannelSource.GetChannelTopicName(ctx, uid, tlfID, topicType, convID)
+	return topicName, err
 }
 
 func (h *Helper) UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID chat1.TLFID, public bool) (err error) {
@@ -534,7 +541,7 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 				}
 				nameInfo = &info
 			}
-			tlfConvs, err := g.TeamChannelSource.GetChannels(ctx, uid, nameInfo.ID, topicType)
+			tlfConvs, err := g.TeamChannelSource.GetChannelsFull(ctx, uid, nameInfo.ID, topicType)
 			if err != nil {
 				debugger.Debug(ctx, "FindConversations: failed to list TLF conversations: %s", err.Error())
 				return res, err
@@ -769,7 +776,7 @@ func JoinConversationByName(ctx context.Context, g *globals.Context, debugger ut
 	}
 
 	// List all the conversations on the team
-	convs, err := g.TeamChannelSource.GetChannels(ctx, uid, nameInfo.ID, topicType)
+	convs, err := g.TeamChannelSource.GetChannelsFull(ctx, uid, nameInfo.ID, topicType)
 	if err != nil {
 		return err
 	}

@@ -254,7 +254,11 @@ type AppState interface {
 }
 
 type TeamChannelSource interface {
-	GetChannels(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType) ([]chat1.ConversationLocal, error)
+	GetChannelsFull(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType) ([]chat1.ConversationLocal, error)
+	GetChannelsTopicName(ctx context.Context, uid gregor1.UID,
+		teamID chat1.TLFID, topicType chat1.TopicType) ([]chat1.ChannelNameMention, error)
+	GetChannelTopicName(ctx context.Context, uid gregor1.UID,
+		tlfID chat1.TLFID, topicType chat1.TopicType, convID chat1.ConversationID) (string, error)
 }
 
 type ActivityNotifier interface {
