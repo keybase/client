@@ -221,9 +221,14 @@ class CustomStackNavigator extends React.PureComponent<any> {
     // }
     // }
     // {!isUnderNotch && <Kb.SafeAreaViewTop />}
+    //
+    //
+    //
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-        <StackNavigator navigation={this.props.navigation} />
+        <Kb.NativeKeyboardAvoidingView style={styles.keyboard} behavior="padding">
+          <StackNavigator navigation={this.props.navigation} />
+        </Kb.NativeKeyboardAvoidingView>
         <TabBar selectedTab={nameToTab[this.props.activeKey]} />
         <GlobalError />
       </Kb.Box2>
@@ -328,6 +333,9 @@ const styles = Styles.styleSheetCreate({
   contentArea: {
     flexGrow: 1,
     position: 'relative',
+  },
+  keyboard: {
+    flexGrow: 1,
   },
   modalContainer: {},
 })
