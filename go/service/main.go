@@ -549,7 +549,7 @@ func (d *Service) runHomePoller(ctx context.Context) {
 }
 
 func (d *Service) runMerkleAudit(ctx context.Context) {
-	if !libkb.IsMobilePlatform() {
+	if libkb.IsMobilePlatform() {
 		d.G().Log.Debug("MerkleAudit disabled (not desktop, not starting)")
 		return
 	}
