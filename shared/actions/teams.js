@@ -694,11 +694,7 @@ function* getTeamPublicity(_, action) {
     let tarsDisabled = false
     // can throw if you're not an admin
     try {
-      tarsDisabled = yield* Saga.callPromise(
-        RPCTypes.teamsGetTarsDisabledRpcPromise,
-        {name: teamname},
-        Constants.teamWaitingKey(teamname)
-      )
+      tarsDisabled = yield* Saga.callPromise(RPCTypes.teamsGetTarsDisabledRpcPromise, {name: teamname})
     } catch (_) {}
 
     const publicityMap = {
