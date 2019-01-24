@@ -1936,7 +1936,7 @@ func (h *Server) GetTLFConversationsLocal(ctx context.Context, arg chat1.GetTLFC
 	}
 
 	var convs []chat1.ConversationLocal
-	convs, err = h.G().TeamChannelSource.GetChannelsFull(ctx, uid, nameInfo.ID, arg.TopicType)
+	convs, err = h.G().TeamChannelSource.GetChannels(ctx, uid, nameInfo.ID, arg.TopicType)
 	if err != nil {
 		return res, err
 	}

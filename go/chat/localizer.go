@@ -709,9 +709,11 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 			errMsg, conversationRemote, unverifiedTLFName, chat1.ConversationErrorType_TRANSIENT, nil)
 		return conversationLocal
 	}
+	conversationLocal.MaxMessages = conversationRemote.MaxMsgSummaries
 
 	conversationLocal.IsEmpty = utils.IsConvEmpty(conversationRemote)
 	errTyp := chat1.ConversationErrorType_PERMANENT
+	var maxMsgs []chat1.MessageUnboxed
 	if len(conversationRemote.MaxMsgs) == 0 {
 		// Fetch max messages unboxed, using either a custom function or through
 		// the conversation source configured in the global context
@@ -737,7 +739,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 				err.Error(), conversationRemote, unverifiedTLFName, errTyp, nil)
 			return conversationLocal
 		}
-		conversationLocal.MaxMessages = msgs
+		maxMsgs = msgs
 	} else {
 		// Use the attached MaxMsgs
 		msgs, err := s.G().ConvSource.GetMessagesWithRemotes(ctx,
@@ -755,13 +757,13 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 				err.Error(), conversationRemote, unverifiedTLFName, errTyp, nil)
 			return conversationLocal
 		}
-		conversationLocal.MaxMessages = msgs
+		maxMsgs = msgs
 	}
 
 	var maxValidID chat1.MessageID
 	var newMaxMsgs []chat1.MessageUnboxed
 	superXform := newBasicSupersedesTransform(s.G(), basicSupersedesTransformOpts{})
-	for _, mm := range conversationLocal.MaxMessages {
+	for _, mm := range maxMsgs {
 		if mm.IsValid() {
 			body := mm.Valid().MessageBody
 			typ, err := body.MessageType()
@@ -770,8 +772,11 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 					conversationRemote.Metadata.ConversationID, mm.GetMessageID())
 				continue
 			}
-			if typ == chat1.MessageType_METADATA {
+			switch typ {
+			case chat1.MessageType_METADATA:
 				conversationLocal.Info.TopicName = body.Metadata().ConversationTitle
+			case chat1.MessageType_HEADLINE:
+				conversationLocal.Info.Headline = body.Headline().Headline
 			}
 
 			if mm.GetMessageID() >= maxValidID {
@@ -795,7 +800,6 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 			}
 		}
 	}
-	conversationLocal.MaxMessages = newMaxMsgs
 	if len(conversationLocal.Info.TlfName) == 0 {
 		errMsg := "no valid message in the conversation"
 		conversationLocal.Error = chat1.NewConversationErrorLocal(
