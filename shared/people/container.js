@@ -7,6 +7,7 @@ import * as Kb from '../common-adapters'
 import People, {Header} from '.'
 import * as PeopleGen from '../actions/people-gen'
 import {connect, type RouteProps} from '../util/container'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import {createSearchSuggestions} from '../actions/search-gen'
 import {createShowUserProfile} from '../actions/profile-gen'
 import * as WaitingConstants from '../constants/waiting'
@@ -59,13 +60,13 @@ const mapStateToProps = state => ({
   waiting: WaitingConstants.anyWaiting(state, Constants.getPeopleDataWaitingKey),
 })
 
-const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
+const mapDispatchToProps = dispatch => ({
   getData: (markViewed = true) =>
     dispatch(PeopleGen.createGetPeopleData({markViewed, numFollowSuggestionsWanted: 10})),
   onClickUser: (username: string) => dispatch(createShowUserProfile({username})),
   onSearch: () => {
     dispatch(createSearchSuggestions({searchKey: 'profileSearch'}))
-    dispatch(navigateAppend(['search']))
+    dispatch(RouteTreeGen.createNavigateAppend({path: ['search']}))
   },
 })
 
@@ -93,11 +94,13 @@ const connected = connect<OwnProps, _, _, _, _>(
   mergeProps
 )(LoadOnMount)
 
-connected.navigationOptions = {
+connected.navigationOptions = (p: any) => ({
+  ...p.navigationOptions,
   headerTitle: hp => <ConnectedHeader />,
   headerTitleContainerStyle: {
+    ...p.navigationOptions.headerTitleContainerStyle,
     left: 40,
     right: 0,
   },
-}
+})
 export default connected

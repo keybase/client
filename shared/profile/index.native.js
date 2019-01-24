@@ -459,7 +459,7 @@ class Profile extends Component<Props, State> {
             borderBottomColor: Styles.globalColors.black_10,
             borderBottomWidth: 1,
             borderStyle: 'solid',
-            paddingTop: Styles.globalMargins.tiny + Styles.statusBarHeight,
+            paddingTop: Styles.globalMargins.tiny + Styles.statusBarHeight + (flags.useNewRouter ? 8 : 0),
           }}
         >
           {['Followers', 'Following'].map(f => (

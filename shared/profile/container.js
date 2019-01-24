@@ -56,7 +56,7 @@ class ProfileContainer extends React.PureComponent<EitherProps<Props>> {
 // just handle locally
 let _currentFriendshipsTab = 'Followers'
 
-const mapStateToProps = (state, {routeProps, routeState, routePath, navigation}: OwnProps) => {
+const mapStateToProps = (state, {routeProps, routePath, navigation}: OwnProps) => {
   const myUsername = state.config.username
   let username = routeProps && routeProps.get('username') ? routeProps.get('username') : myUsername || ''
   if (navigation && navigation.getParam('username')) {
@@ -69,7 +69,7 @@ const mapStateToProps = (state, {routeProps, routeState, routePath, navigation}:
 
   return {
     addUserToTeamsResults: state.teams.addUserToTeamsResults,
-    currentFriendshipsTab: routeState ? routeState.get('currentFriendshipsTab') : _currentFriendshipsTab,
+    currentFriendshipsTab: _currentFriendshipsTab,
     myUsername,
     profileIsRoot: routePath && routePath.size === 1 && routePath.first() === peopleTab,
     trackerState: state.tracker.userTrackers[username] || state.tracker.nonUserTrackers[username],
@@ -78,7 +78,7 @@ const mapStateToProps = (state, {routeProps, routeState, routePath, navigation}:
   }
 }
 
-const mapDispatchToProps = (dispatch, {setRouteState}: OwnProps) => ({
+const mapDispatchToProps = dispatch => ({
   _copyStellarAddress: (text: string) => dispatch(ConfigGen.createCopyToClipboard({text})),
   _onAddToTeam: (username: string) =>
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {username}, selected: 'addToTeam'}]})),
@@ -109,7 +109,6 @@ const mapDispatchToProps = (dispatch, {setRouteState}: OwnProps) => ({
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onChangeFriendshipsTab: currentFriendshipsTab => {
     _currentFriendshipsTab = currentFriendshipsTab
-    setRouteState && setRouteState({currentFriendshipsTab})
   },
   onClearAddUserToTeamsResults: () => dispatch(TeamsGen.createSetAddUserToTeamsResults({results: ''})),
   onClickShowcaseOffer: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['showcaseTeamOffer']})),

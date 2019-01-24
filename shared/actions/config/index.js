@@ -21,8 +21,6 @@ import {getEngine} from '../../engine'
 import {type TypedState} from '../../constants/reducer'
 import {updateServerConfigLastLoggedIn} from '../../app/server-config'
 import flags from '../../util/feature-flags'
-import {StackActions} from '@react-navigation/core'
-import shallowEqual from 'shallowequal'
 
 const setupEngineListeners = () => {
   getEngine().actionOnDisconnect('daemonError', () => {
@@ -385,37 +383,8 @@ let _navigator = null
 const setNavigator = (_, action) => {
   _navigator = action.payload.navigator
 }
-const navigateAppend = (_, action) => {
-  const p = action.payload.path.last
-    ? action.payload.path.last()
-    : action.payload.path[action.payload.path.length - 1]
-  let routeName = null
-  let params
-
-  if (typeof p === 'string') {
-    routeName = p
-  } else {
-    routeName = p.selected
-    params = p.props
-  }
-
-  if (routeName && _navigator) {
-    const state = _navigator.getState()
-    // don't allow pushing a dupe
-    const topRoute = state.nav.routes[state.nav.index]
-    if (topRoute) {
-      if (routeName === topRoute.routeName && shallowEqual(topRoute.params, params)) {
-        console.log('Skipping append dupe')
-        return
-      }
-    }
-    _navigator.dispatch(StackActions.push({params, routeName}))
-  }
-}
-// maybe the same?
-const navigateTo = navigateAppend
-const navigateUp = () => {
-  _navigator && _navigator.dispatch(StackActions.pop())
+const newNavigation = (_, action) => {
+  _navigator && _navigator.dispatchOldAction(action)
 }
 
 function* configSaga(): Saga.SagaGenerator<any, any> {
@@ -480,9 +449,9 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<ConfigGen.SetNavigatorPayload>(ConfigGen.setNavigator, setNavigator)
 
   if (flags.useNewRouter) {
-    yield* Saga.chainAction<RouteTreeGen.NavigateAppendPayload>(RouteTreeGen.navigateAppend, navigateAppend)
-    yield* Saga.chainAction<RouteTreeGen.NavigateToPayload>(RouteTreeGen.navigateTo, navigateTo)
-    yield* Saga.chainAction<RouteTreeGen.NavigateUpPayload>(RouteTreeGen.navigateUp, navigateUp)
+    yield* Saga.chainAction<
+      RouteTreeGen.NavigateAppendPayload | RouteTreeGen.NavigateToPayload | RouteTreeGen.NavigateUpPayload
+    >([RouteTreeGen.navigateAppend, RouteTreeGen.navigateTo, RouteTreeGen.navigateUp], newNavigation)
   }
 
   // Kick off platform specific stuff
