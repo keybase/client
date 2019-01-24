@@ -99,7 +99,7 @@ class _RetentionPicker extends React.Component<Kb.PropsWithOverlay<Props>, State
         case 'inherit':
           if (this.props.teamPolicy) {
             return [
-              {onClick: () => this._onSelect(policy), title: policyToInheritLabel(this.props.teamPolicy)},
+              {onClick: () => this._onSelect(policy), title: `Team default (${this.props.teamPolicy.title})`},
               'Divider',
               ...arr,
             ]
@@ -180,9 +180,9 @@ class _RetentionPicker extends React.Component<Kb.PropsWithOverlay<Props>, State
           style={Styles.collapseStyles([dropdownStyle, this.props.dropdownStyle])}
           underlayColor={Styles.globalColors.white_40}
         >
-          <Kb.Box style={labelStyle}>
-            <Kb.Text type="BodySemibold">{this._label()}</Kb.Text>
-          </Kb.Box>
+          <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" fullWidth={true} style={labelStyle}>
+            {this._label()}
+          </Kb.Box2>
           <Kb.Icon type="iconfont-caret-down" inheritColor={true} fontSize={7} />
         </Kb.ClickableBox>
         {this.props.showOverrideNotice && (
@@ -264,9 +264,8 @@ const dropdownStyle = Styles.platformStyles({
 })
 
 const labelStyle = {
-  ...Styles.globalStyles.flexBoxCenter,
+  justifyContent: 'center',
   minHeight: Styles.isMobile ? 40 : 32,
-  width: '100%',
 }
 
 const progressIndicatorStyle = {
@@ -291,25 +290,41 @@ const saveStateStyle = Styles.platformStyles({
 // Utilities for transforming retention policies <-> labels
 const secondsToDays = s => s / (3600 * 24)
 const policyToLabel = (p: RetentionPolicy, parent: ?RetentionPolicy) => {
+  let text = ''
+  let timer = false
   switch (p.type) {
     case 'retain':
-      return 'Never auto-delete'
+      text = 'Never auto-delete'
+      break
     case 'expire':
     case 'explode':
-      return p.title || daysToLabel(secondsToDays(p.seconds))
+      text = p.title
+      timer = p.type === 'explode'
+      break
     case 'inherit':
       if (!parent) {
         // Don't throw an error, as this may happen when deleting a
         // channel.
-        return 'Team default'
+        text = 'Team default'
+        break
       }
-      return policyToInheritLabel(parent)
+      switch (parent.type) {
+        case 'retain':
+          text = 'Team default (Never auto-delete)'
+          break
+        case 'expire':
+        case 'explode':
+          text = `Team default (${parent.title})`
+          timer = parent.type === 'explode'
+          break
+      }
   }
-  return ''
-}
-const policyToInheritLabel = (p: RetentionPolicy) => {
-  const label = policyToLabel(p)
-  return `Team default (${label})`
+  return [
+    timer ? <Kb.Icon type="iconfont-timer" fontSize={16} key="timer" /> : null,
+    <Kb.Text type="BodySemibold" key="label">
+      {text}
+    </Kb.Text>,
+  ]
 }
 // Use only for comparing policy durations
 const policyToComparable = (p: RetentionPolicy, parent: ?RetentionPolicy): number => {
