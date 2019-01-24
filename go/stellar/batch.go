@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar/relays"
 	"github.com/keybase/client/go/stellar/remote"
@@ -216,6 +217,22 @@ func prepareBatchPaymentDirect(mctx libkb.MetaContext, remoter remote.Remoter, s
 		return result
 	}
 
+	if len(payment.Message) > 0 {
+		noteClear := stellar1.NoteContents{
+			Note:      payment.Message,
+			StellarID: stellar1.TransactionID(signResult.TxHash),
+		}
+		var recipientUv *keybase1.UserVersion
+		if recipient.User != nil {
+			recipientUv = &recipient.User.UV
+		}
+		result.Direct.NoteB64, err = NoteEncryptB64(mctx, noteClear, recipientUv)
+		if err != nil {
+			result.Error = fmt.Errorf("error encrypting note: %v", err)
+			return result
+		}
+	}
+
 	result.Direct.SignedTransaction = signResult.Signed
 	result.Seqno = signResult.Seqno
 	result.TxID = stellar1.TransactionID(signResult.TxHash)
@@ -240,6 +257,7 @@ func prepareBatchPaymentRelay(mctx libkb.MetaContext, remoter remote.Remoter, sp
 	relay, err := relays.Create(relays.Input{
 		From:          stellar1.SecretKey(senderSeed),
 		AmountXLM:     payment.Amount,
+		Note:          payment.Message,
 		EncryptFor:    appKey,
 		SeqnoProvider: sp,
 		Timebounds:    nil,
