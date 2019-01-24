@@ -99,3 +99,11 @@ func (b *baseCommand) Description() string {
 func (b *baseCommand) Preview(ctx context.Context, text string) error {
 	return nil
 }
+
+func (b *baseCommand) Export() chat1.ConversationCommand {
+	return chat1.ConversationCommand{
+		Name:        b.Name(),
+		Usage:       b.Usage(),
+		Description: b.Description(),
+	}
+}

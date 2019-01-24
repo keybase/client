@@ -1145,7 +1145,7 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 	}
 
 	// Check for any slash command hits for an execute
-	if handled, err := h.G().CommandsSource.AttemptCommand(ctx, uid, arg.ConversationID,
+	if handled, err := h.G().CommandsSource.AttemptBuiltinCommand(ctx, uid, arg.ConversationID,
 		arg.Msg.ClientHeader.TlfName, arg.Msg.MessageBody); handled {
 		h.Debug(ctx, "PostLocal: handled slash command with error: %s", err)
 		return res, nil
@@ -1454,7 +1454,7 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 	}
 
 	// Check for any slash command hits for an execute
-	if handled, err := h.G().CommandsSource.AttemptCommand(ctx, uid, arg.ConversationID,
+	if handled, err := h.G().CommandsSource.AttemptBuiltinCommand(ctx, uid, arg.ConversationID,
 		arg.Msg.ClientHeader.TlfName, arg.Msg.MessageBody); handled {
 		h.Debug(ctx, "PostLocalNonblock: handled slash command with error: %s", err)
 		return res, nil
@@ -2411,5 +2411,5 @@ func (h *Server) SaveUnfurlSettings(ctx context.Context, arg chat1.SaveUnfurlSet
 func (h *Server) GetBuiltinCommands(ctx context.Context) (res chat1.ConversationCommandGroup, err error) {
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "GetBuiltinCommands")()
-	return res, err
+	return h.G().CommandsSource.GetBuiltins(ctx), nil
 }
