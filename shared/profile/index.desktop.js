@@ -11,6 +11,7 @@ import * as Styles from '../styles'
 import {stateColors} from '../util/tracker'
 import {ADD_TO_TEAM_ZINDEX, AVATAR_SIZE, BACK_ZINDEX, SEARCH_CONTAINER_ZINDEX} from '../constants/profile'
 import Folders from './folders/container'
+import flags from '../util/feature-flags'
 
 import type {UserTeamShowcase} from '../constants/types/rpc-gen'
 import type {Proof} from '../constants/types/tracker'
@@ -368,35 +369,46 @@ class ProfileRender extends React.PureComponent<Props, State> {
         )}
         <Kb.Box style={{...styleScrollHeaderBg, backgroundColor: trackerStateColors.header.background}} />
         <Kb.Box style={{...styleScrollHeaderCover, backgroundColor: trackerStateColors.header.background}} />
-        <Kb.Box style={Styles.globalStyles.flexBoxColumn}>
-          {this.props.onBack && (
-            <Kb.BackButton
-              onClick={this.props.onBack}
-              style={{left: 14, position: 'absolute', top: 16, zIndex: BACK_ZINDEX}}
-              textStyle={{color: Styles.globalColors.white}}
-              iconColor={Styles.globalColors.white}
-            />
-          )}
-          <Kb.Box
-            onClick={this.props.onSearch}
-            onMouseEnter={() =>
-              this.setState({
-                searchHovered: true,
-              })
-            }
-            onMouseLeave={() =>
-              this.setState({
-                searchHovered: false,
-              })
-            }
-            style={{...styleSearchContainer, opacity: this.state.searchHovered ? 0.8 : 1}}
-          >
-            <Kb.Icon style={styleSearch} type="iconfont-search" color={Styles.globalColors.white} />
-            <Kb.Text style={styleSearchText} type="BodySmallSemibold">
-              Search people
-            </Kb.Text>
+        {flags.useNewRouter ? (
+          <Kb.Box2
+            direction="vertical"
+            style={{
+              backgroundColor: trackerStateColors.header.background,
+              height: 70,
+              width: '100%',
+            }}
+          />
+        ) : (
+          <Kb.Box style={Styles.globalStyles.flexBoxColumn}>
+            {this.props.onBack && (
+              <Kb.BackButton
+                onClick={this.props.onBack}
+                style={{left: 14, position: 'absolute', top: 16, zIndex: BACK_ZINDEX}}
+                textStyle={{color: Styles.globalColors.white}}
+                iconColor={Styles.globalColors.white}
+              />
+            )}
+            <Kb.Box
+              onClick={this.props.onSearch}
+              onMouseEnter={() =>
+                this.setState({
+                  searchHovered: true,
+                })
+              }
+              onMouseLeave={() =>
+                this.setState({
+                  searchHovered: false,
+                })
+              }
+              style={{...styleSearchContainer, opacity: this.state.searchHovered ? 0.8 : 1}}
+            >
+              <Kb.Icon style={styleSearch} type="iconfont-search" color={Styles.globalColors.white} />
+              <Kb.Text style={styleSearchText} type="BodySmallSemibold">
+                Search people
+              </Kb.Text>
+            </Kb.Box>
           </Kb.Box>
-        </Kb.Box>
+        )}
         <Kb.Box
           ref={c => {
             this._scrollContainer = c

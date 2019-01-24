@@ -27,7 +27,7 @@ import {createBottomTabNavigator} from 'react-navigation-tabs'
 import {createStackNavigator} from 'react-navigation-stack'
 import {routes, nameToTab} from './routes'
 import {LeftAction} from '../common-adapters/header-hoc'
-import * as shared from './router.shared'
+import * as Shared from './router.shared'
 
 // deprecating routestate concept entirely
 // const emptyMap = I.Map()
@@ -114,7 +114,7 @@ import * as shared from './router.shared'
 
 //
 // We need to wrap the params that come into the components so the old way isn't totally broken short term
-const shimmedRoutes = shared.shimRoutes(routes)
+const shimmedRoutes = Shared.shimRoutes(routes)
 
 const StackNavigator = createStackNavigator(shimmedRoutes, {
   defaultNavigationOptions: p => ({
@@ -248,7 +248,7 @@ class RNApp extends React.Component<any, any> {
   getState = () => this._nav.state
   dispatch = (p: any) => p && this._nav.dispatch(p)
   // TODO remove this eventually, just so we can handle the old style actions
-  dispatchOldAction = (action: any) => this.dispatch(shared.oldActionToNewAction(action, this))
+  dispatchOldAction = (action: any) => this.dispatch(Shared.oldActionToNewAction(action, this))
 
   render() {
     // selectedTab={this.state.selectedTab}

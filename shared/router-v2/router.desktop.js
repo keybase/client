@@ -19,42 +19,73 @@ import {
 } from '@react-navigation/core'
 import {routes, nameToTab} from './routes'
 import {LeftAction} from '../common-adapters/header-hoc'
+import * as Shared from './router.shared'
 
-// deprecating routestate concept entirely
-const emptyMap = I.Map()
-// don't path this likely
-const emptyList = I.List()
-class BridgeSceneView extends React.PureComponent {
-  _routeProps = {
-    get: key => this.props.navigation.getParam(key),
-  }
-  _pop = () => this.props.navigation.pop()
+// TODO modals
+// <Kb.ErrorBoundary>
+// {!options.skipOffline && <Offline />}
+// <GlobalError />
 
-  // TODO remove all the routeprops etc
+class Header extends React.PureComponent {
   render() {
-    const Component = this.props.component
-    const options = Component.navigationOptions || {}
+    // TODO add more here as we use more options on the mobile side maybe
+    const opt = this.props.options
+    if (opt.headerMode === 'none') {
+      return null
+    }
+
+    // let leftAction = null
+    // if (typeof opt.headerBackTitle === 'string') {
+    // leftAction = (
+    // <Kb.Text type="BodyPrimaryLink" onClick={opt.onPop}>
+    // {opt.headerBackTitle}
+    // </Kb.Text>
+    // )
+    // } else if (typeof opt.headerBackTitle === 'function') {
+    // const CustomBackTitle = opt.headerBackTitle
+    // leftAction = <CustomBackTitle />
+    // } else {
+    // leftAction = (
+    // )
+    // }
+
+    let title = null
+    if (typeof opt.headerTitle === 'string') {
+      title = <Kb.Text type="BodySemibold">{opt.headerTitle}</Kb.Text>
+    } else if (typeof opt.headerTitle === 'function') {
+      const CustomTitle = opt.headerTitle
+      title = <CustomTitle>{opt.title}</CustomTitle>
+    }
+
+    const rightAction = opt.headerRight
+
+    let style = null
+    if (opt.headerTransparent) {
+      style = {position: 'absolute', zIndex: 9999}
+    }
+
     return (
-      <NavigationContext.Provider value={this.props.navigation}>
-        <Kb.Box2 noShrink={true} direction="horizontal" style={styles.backBar} fullWidth={true}>
+      <Kb.Box2
+        noShrink={true}
+        direction="vertical"
+        fullWidth={true}
+        style={Styles.collapseStyles([styles.headerContainer, style])}
+        gap="xtiny"
+        gapEnd={true}
+      >
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerBack}>
           <LeftAction
             badgeNumber={0}
             leftAction="back"
-            onLeftAction={this._pop}
+            hideBackLabel={true}
+            onLeftAction={this.props.onPop}
             disabled={!this.props.allowBack}
           />
         </Kb.Box2>
-        <Kb.ErrorBoundary>
-          <Component
-            routeProps={this._routeProps}
-            routePath={emptyList}
-            routeState={emptyMap}
-            navigation={this.props.navigation}
-          />
-        </Kb.ErrorBoundary>
-        {!options.skipOffline && <Offline />}
-        <GlobalError />
-      </NavigationContext.Provider>
+        <Kb.Box2 direction="horizontal" fullWidth={true}>
+          {title}
+        </Kb.Box2>
+      </Kb.Box2>
     )
   }
 }
@@ -82,38 +113,34 @@ class AppView extends React.PureComponent {
 
     const activeKey = p.navigation.state.routes[nonModalIndex].key
     const descriptor = p.descriptors[activeKey]
+    const childNav = descriptor.navigation
+    // const childNav = p.navigation.getChildNavigation(p.navigation.state.routes[p.navigation.state.index].key)
 
     return (
       <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
         <TabBar selectedTab={nameToTab[descriptor.state.routeName]} />
         <Kb.Box2 direction="vertical" fullHeight={true} style={styles.contentArea}>
-          <BridgeSceneView
-            allowBack={index !== 0}
-            navigation={descriptor.navigation}
+          <Header options={descriptor.options} onPop={childNav.pop} allowBack={index !== 0} />
+          <SceneView
+            navigation={childNav}
             component={descriptor.getComponent()}
+            screenProps={p.screenProps}
           />
         </Kb.Box2>
-        {modals.map(modal => {
-          const Component = modal.getComponent()
-          return (
-            <Component
-              key={modal.key}
-              routeProps={{get: key => modal.navigation.getParam(key)}}
-              routePath={emptyList}
-              routeState={emptyMap}
-              navigation={modal.navigation}
-            />
-          )
-        })}
+        {/* modals.map(modal => {
+          const component = modal.getComponent()
+          return <SceneView key={modal.key} component={component} />
+        }) */}
       </Kb.Box2>
     )
   }
 }
 
+const shimmedRoutes = Shared.shimRoutes(routes)
 const AppNavigator = createNavigator(
   AppView,
   // TODO don't hardcode this
-  StackRouter(routes, {initialRouteName: 'tabs:peopleTab'}),
+  StackRouter(shimmedRoutes, {initialRouteName: 'tabs:peopleTab'}),
   {}
 )
 
@@ -146,6 +173,7 @@ const createElectronApp = App => {
       )
     }
     getState = () => this.state
+    dispatchOldAction = (action: any) => this.dispatch(Shared.oldActionToNewAction(action, this))
     dispatch = action => {
       const lastState = this.state.nav
       const newState = App.router.getStateForAction(action, lastState)
@@ -171,17 +199,22 @@ const styles = Styles.styleSheetCreate({
       ...Styles.desktopStyles.windowDraggingClickable,
     },
   }),
-  backBar: Styles.platformStyles({
-    isElectron: {
-      alignItems: 'center',
-      ...Styles.desktopStyles.windowDragging,
-      height: 36,
-    },
-  }),
   contentArea: {
     flexGrow: 1,
     position: 'relative',
   },
+  headerContainer: Styles.platformStyles({
+    isElectron: {
+      alignItems: 'center',
+      ...Styles.desktopStyles.windowDragging,
+    },
+  }),
+  headerBack: Styles.platformStyles({
+    isElectron: {
+      alignItems: 'center',
+      minHeight: 36,
+    },
+  }),
   modalContainer: {},
 })
 

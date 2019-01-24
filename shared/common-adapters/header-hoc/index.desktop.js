@@ -13,8 +13,10 @@ export const HeaderHocHeader = ({
   customComponent,
   hideBackLabel,
   title,
+  titleComponent,
   onCancel,
   onBack,
+  rightActions,
   theme = 'light',
 }: Props) => (
   <Box style={Styles.collapseStyles([_headerStyle, _headerStyleThemed[theme], headerStyle])}>
@@ -39,6 +41,8 @@ export const HeaderHocHeader = ({
         <Text type="Header">{title}</Text>
       </Box>
     )}
+    {titleComponent}
+    {(rightActions || []).map(a => a.custom)}
   </Box>
 )
 
@@ -80,12 +84,15 @@ export const LeftAction = ({
 )
 
 function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
-  return (props: P & Props) => (
-    <Box style={_containerStyle}>
-      <HeaderHocHeader {...props} />
+  return (props: P & Props) =>
+    flags.useNewRouter ? (
       <WrappedComponent {...(props: P)} />
-    </Box>
-  )
+    ) : (
+      <Box style={_containerStyle}>
+        <HeaderHocHeader {...props} />
+        <WrappedComponent {...(props: P)} />
+      </Box>
+    )
 }
 
 const _containerStyle = {
@@ -97,7 +104,8 @@ const _headerStyle = {
   ...Styles.globalStyles.flexBoxRow,
   alignItems: 'center',
   justifyContent: 'flex-start',
-  minHeight: 48,
+  minHeight: flags.useNewRouter ? undefined : 48,
+  flexShrink: 0,
   paddingLeft: Styles.globalMargins.small,
   paddingRight: Styles.globalMargins.small,
   position: 'relative',
