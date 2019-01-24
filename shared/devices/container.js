@@ -69,6 +69,7 @@ class ReloadableDevices extends React.PureComponent<React.ElementConfig<typeof D
         waitingKeys={Constants.waitingKey}
         onReload={this.props.loadDevices}
         reloadOnMount={true}
+        title={this.props.title}
       >
         <Devices
           _stateOverride={this.props._stateOverride}
