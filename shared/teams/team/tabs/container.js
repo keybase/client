@@ -17,7 +17,7 @@ const mapStateToProps = (state, {teamname, selectedTab, setSelectedTab}) => {
   return {
     _newTeamRequests: state.teams.getIn(['newTeamRequests'], I.List()),
     admin: yourOperations.manageMembers,
-    loading: anyWaiting(state, Constants.teamWaitingKey(teamname)),
+    loading: anyWaiting(state, Constants.teamWaitingKey(teamname), Constants.teamTarsWaitingKey(teamname)),
     memberCount: Constants.getTeamMemberCount(state, teamname),
     numInvites: Constants.getTeamInvites(state, teamname).size,
     numRequests: Constants.getTeamRequests(state, teamname).size,
