@@ -1259,7 +1259,12 @@ function* messageSend(state, action) {
   const clientPrev = Constants.getClientPrev(state, conversationIDKey)
 
   // disable sending exploding messages if flag is false
-  const ephemeralLifetime = Constants.getConversationExplodingMode(state, conversationIDKey)
+  const userEphemeralLifetime = Constants.getConversationExplodingMode(state, conversationIDKey)
+  const convEphemeralLifetime = meta.retentionPolicy.type === 'explode' ? meta.retentionPolicy.seconds : 0
+  const ephemeralLifetime = // use user time if set and lower than conv
+    userEphemeralLifetime !== 0 && userEphemeralLifetime <= convEphemeralLifetime
+      ? userEphemeralLifetime
+      : convEphemeralLifetime
   const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
   const routeName = 'paymentsConfirm'
   const onShowConfirm = () => [
