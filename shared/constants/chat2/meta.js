@@ -107,6 +107,10 @@ const getTeamType = ({teamType, membersType}) => {
   }
 }
 
+export const getEffectiveRetentionPolicy = (meta: Types.ConversationMeta) => {
+  return meta.retentionPolicy.type === 'inherit' ? meta.teamRetentionPolicy : meta.retentionPolicy
+}
+
 // Upgrade a meta, try and keep existing values if possible to reduce render thrashing in components
 // Enforce the verions only increase and we only go from untrusted to trusted, etc
 export const updateMeta = (

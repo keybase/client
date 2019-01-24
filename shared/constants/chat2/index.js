@@ -15,7 +15,7 @@ import {
   conversationIDKeyToString,
   isValidConversationIDKey,
 } from '../types/chat2/common'
-import {makeConversationMeta, getMeta} from './meta'
+import {makeConversationMeta, getEffectiveRetentionPolicy, getMeta} from './meta'
 import {formatTextForQuoting} from '../../util/chat'
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
@@ -180,8 +180,8 @@ export const getConversationExplodingMode = (state: TypedState, c: Types.Convers
     mode = state.chat2.getIn(['explodingModes', c], 0)
   }
   const meta = getMeta(state, c)
-  mode =
-    meta.retentionPolicy.type === 'explode' ? Math.min(mode || Infinity, meta.retentionPolicy.seconds) : mode
+  const convRetention = getEffectiveRetentionPolicy(meta)
+  mode = convRetention.type === 'explode' ? Math.min(mode || Infinity, convRetention.seconds) : mode
   return mode || 0
 }
 export const isExplodingModeLocked = (state: TypedState, c: Types.ConversationIDKey) =>
@@ -243,6 +243,7 @@ const numMessagesOnScrollback = isMobile ? 100 : 100
 export {
   getChannelSuggestions,
   getConversationIDKeyMetasToLoad,
+  getEffectiveRetentionPolicy,
   getMeta,
   getParticipantSuggestions,
   getRowParticipants,

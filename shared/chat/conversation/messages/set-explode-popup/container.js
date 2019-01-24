@@ -7,10 +7,11 @@ import * as Types from '../../../../constants/types/chat2'
 import SetExplodeTime from '.'
 
 const makeItems = (meta: Types.ConversationMeta) => {
-  if (meta.retentionPolicy.type !== 'explode') {
+  const convRetention = Constants.getEffectiveRetentionPolicy(meta)
+  if (convRetention.type !== 'explode') {
     return Constants.messageExplodeDescriptions
   }
-  const {seconds, title} = meta.retentionPolicy
+  const {seconds, title} = convRetention
   const items = Constants.messageExplodeDescriptions.filter(ed => ed.seconds < seconds)
   items.splice(0, 1, {seconds, text: `${title} (Chat policy)`})
   return items

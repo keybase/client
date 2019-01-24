@@ -2289,7 +2289,8 @@ function* setConvExplodingMode(state, action) {
 
   const category = Constants.explodingModeGregorKey(conversationIDKey)
   const meta = Constants.getMeta(state, conversationIDKey)
-  if (seconds === 0 || seconds === meta.retentionPolicy.seconds) {
+  const convRetention = Constants.getEffectiveRetentionPolicy(meta)
+  if (seconds === 0 || seconds === convRetention.seconds) {
     // dismiss the category so we don't leave cruft in the push state
     yield Saga.callUntyped(RPCTypes.gregorDismissCategoryRpcPromise, {category})
   } else {
