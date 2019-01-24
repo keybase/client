@@ -1095,7 +1095,6 @@ func PresentThreadView(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	for _, msg := range tv.Messages {
 		res.Messages = append(res.Messages, PresentMessageUnboxed(ctx, g, msg, uid, convID))
 	}
-	res.UnreadLineID = tv.UnreadLineID
 	return res
 }
 

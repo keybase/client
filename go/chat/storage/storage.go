@@ -1027,6 +1027,52 @@ func (s *Storage) FetchMessages(ctx context.Context, convID chat1.ConversationID
 	return res, nil
 }
 
+func (s *Storage) FetchUnreadlineID(ctx context.Context, convID chat1.ConversationID,
+	uid gregor1.UID, readMsgID chat1.MessageID) (msgID *chat1.MessageID, err Error) {
+	locks.Storage.Lock()
+	defer locks.Storage.Unlock()
+	defer s.Trace(ctx, func() error { return err }, "FetchUnreadlineID")()
+	if err = isAbortedRequest(ctx); err != nil {
+		return nil, err
+	}
+	// Fetch secret key
+	key, ierr := GetSecretBoxKey(ctx, s.G().ExternalG(), DefaultSecretUI)
+	if ierr != nil {
+		return nil, MiscError{Msg: "unable to get secret key: " + ierr.Error()}
+	}
+
+	// Init storage engine first
+	ctx, err = s.engine.Init(ctx, key, convID, uid)
+	if err != nil {
+		return nil, s.maybeNukeLocked(ctx, false, err, convID, uid)
+	}
+
+	// Run seek looking for each message
+	unreadlineID := readMsgID + 1
+	for {
+		msg, err := s.getMessage(ctx, convID, uid, unreadlineID)
+		if err != nil {
+			return nil, s.maybeNukeLocked(ctx, false, err, convID, uid)
+		}
+		// If we are missing any messages just abort.
+		if msg == nil {
+			return nil, nil
+		}
+		// return the first non-deleted visible message we have
+		if msg.IsValidFull() && utils.IsVisibleChatMessageType(msg.GetMessageType()) {
+			return &unreadlineID, nil
+		}
+
+		unreadlineID++
+		// just get out of here
+		if unreadlineID-readMsgID > 1000 {
+			break
+		}
+	}
+
+	return nil, nil
+}
+
 func (s *Storage) UpdateTLFIdentifyBreak(ctx context.Context, tlfID chat1.TLFID,
 	breaks []keybase1.TLFIdentifyFailure) error {
 	return s.breakTracker.UpdateTLF(ctx, tlfID, breaks)

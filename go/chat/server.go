@@ -633,28 +633,25 @@ func (h *Server) dispatchOldPagesJob(ctx context.Context, convID chat1.Conversat
 	}
 }
 
-func (h *Server) getUnreadLine(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-	msgs []chat1.MessageUnboxed) (res *chat1.MessageID) {
-	// don't waste any time trying the server, if we don't have this convo for some reason, then we
-	// don't draw the line
-	conv, err := storage.NewInbox(h.G()).GetConversation(ctx, uid, convID)
+func (h *Server) GetUnreadline(ctx context.Context, arg chat1.GetUnreadlineArg) (res chat1.UnreadlineRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err },
+		fmt.Sprintf("GetUnreadline: convID: %v, readMsgID: %v", arg.ConvID, arg.ReadMsgID))()
+	defer func() { h.setResultRateLimit(ctx, &res) }()
+	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
+
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
-		h.Debug(ctx, "getUnreadLine: failed to get conv: %s", err)
-		return nil
+		return res, err
 	}
-	readMsgID := conv.Conv.ReaderInfo.ReadMsgid
-	if !conv.Conv.IsUnread() {
-		return nil
+
+	res.UnreadlineID, err = h.G().ConvSource.GetUnreadline(ctx, arg.ConvID, uid, arg.ReadMsgID)
+	if err != nil {
+		h.Debug(ctx, "GetUnreadline: unable to run UnreadMsgID: %v", err)
+		return res, err
 	}
-	for i := len(msgs) - 1; i >= 0; i-- {
-		msg := msgs[i]
-		if utils.IsVisibleChatMessageType(msg.GetMessageType()) && msg.GetMessageID() > readMsgID {
-			res = new(chat1.MessageID)
-			*res = msg.GetMessageID()
-			return res
-		}
-	}
-	return nil
+	return res, nil
 }
 
 func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonblockArg) (res chat1.NonblockFetchRes, fullErr error) {
@@ -789,14 +786,11 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		if resThread != nil {
 			h.Debug(ctx, "GetThreadNonblock: sending cached response: messages: %d pager: %s",
 				len(resThread.Messages), resThread.Pagination)
-			var jsonPt []byte
-			var err error
-
-			resThread.UnreadLineID = h.getUnreadLine(ctx, arg.ConversationID, uid, resThread.Messages)
 			localSentThread = resThread
 			pt := utils.PresentThreadView(ctx, h.G(), uid, *resThread, arg.ConversationID)
-			if jsonPt, err = json.Marshal(pt); err != nil {
-				h.Debug(ctx, "GetThreadNonblock: failed to JSON cached response: %s", err)
+			jsonPt, err := json.Marshal(pt)
+			if err != nil {
+				h.Debug(ctx, "GetThreadNonblock: failed to JSON cached response: %v", err)
 				return
 			}
 			sJSONPt := string(jsonPt)
@@ -837,7 +831,6 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 			h.mergeLocalRemoteThread(ctx, &remoteThread, localSentThread, arg.CbMode); fullErr != nil {
 			return
 		}
-		rthread.UnreadLineID = h.getUnreadLine(ctx, arg.ConversationID, uid, rthread.Messages)
 		h.Debug(ctx, "GetThreadNonblock: sending full response: messages: %d pager: %s",
 			len(rthread.Messages), rthread.Pagination)
 		uires := utils.PresentThreadView(ctx, h.G(), uid, rthread, arg.ConversationID)

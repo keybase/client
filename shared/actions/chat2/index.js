@@ -850,7 +850,9 @@ const reasonToRPCReason = (reason: string): RPCChatTypes.GetThreadReason => {
   }
 }
 
-// Load new messages on a thread. We call this when you select a conversation, we get a thread-is-stale notification, or when you scroll up and want more messages
+// Load new messages on a thread. We call this when you select a conversation,
+// we get a thread-is-stale notification, or when you scroll up and want more
+// messages
 function* loadMoreMessages(state, action) {
   // Get the conversationIDKey
   let key = null
@@ -969,16 +971,6 @@ function* loadMoreMessages(state, action) {
       shouldClearOthers = true
       calledClear = true
     }
-    if (uiMessages.unreadLineID) {
-      actions.push(
-        Saga.put(
-          Chat2Gen.createUpdateOrangeLine({
-            conversationIDKey,
-            messageID: Types.numberToMessageID(uiMessages.unreadLineID),
-          })
-        )
-      )
-    }
     const messages = (uiMessages.messages || []).reduce((arr, m) => {
       const message = conversationIDKey ? Constants.uiMessageToMessage(state, conversationIDKey, m) : null
       if (message) {
@@ -1036,9 +1028,51 @@ function* loadMoreMessages(state, action) {
     yield Saga.put(
       Chat2Gen.createSetConversationOffline({conversationIDKey, offline: results && results.offline})
     )
-  } finally {
-    yield Saga.put(WaitingGen.createClearWaiting({key: Constants.waitingKeyPushLoad(conversationIDKey)}))
+  } catch (e) {
+    logger.info(`Load loadMoreMessages error ${e}`)
   }
+}
+
+function* getUnreadline(state, action) {
+  // Get the conversationIDKey
+  let key = null
+  switch (action.type) {
+    case Chat2Gen.selectConversation:
+      key = action.payload.conversationIDKey
+      if (key === Constants.pendingConversationIDKey) {
+        key = Constants.getResolvedPendingConversationIDKey(state)
+      }
+      break
+    default:
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action.type)
+      key = action.payload.conversationIDKey
+  }
+
+  if (!key || !Constants.isValidConversationIDKey(key)) {
+    logger.info('Load unreadline bail: no conversationIDKey')
+    return
+  }
+
+  const conversationIDKey = key
+  const convID = Types.keyToConversationID(conversationIDKey)
+  if (!convID) {
+    logger.info('Load unreadline bail: invalid conversationIDKey')
+    return
+  }
+
+  const {readMsgID} = state.chat2.metaMap.get(conversationIDKey, Constants.makeConversationMeta())
+  const unreadlineRes = yield RPCChatTypes.localGetUnreadlineRpcPromise({
+    convID,
+    identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+    readMsgID,
+  })
+  const unreadlineID = unreadlineRes.unreadlineID ? unreadlineRes.unreadlineID : 0
+  yield Saga.put(
+    Chat2Gen.createUpdateUnreadline({
+      conversationIDKey,
+      messageID: Types.numberToMessageID(unreadlineID),
+    })
+  )
 }
 
 const clearInboxFilter = (state, action) => {
@@ -2644,6 +2678,9 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     loadMoreMessages
   )
 
+  // get the unread (orange) line
+  yield* Saga.chainGenerator<Chat2Gen.SelectConversationPayload>(Chat2Gen.selectConversation, getUnreadline)
+
   yield* Saga.chainAction<Chat2Gen.MessageRetryPayload>(Chat2Gen.messageRetry, messageRetry)
   yield* Saga.chainGenerator<Chat2Gen.MessageSendPayload>(Chat2Gen.messageSend, messageSend)
   yield* Saga.chainGenerator<Chat2Gen.MessageEditPayload>(Chat2Gen.messageEdit, messageEdit)
@@ -2721,7 +2758,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
 
   yield* Saga.chainAction<
     | Chat2Gen.MessagesAddPayload
-    | Chat2Gen.SelectConversationPayload
+    | Chat2Gen.UpdateUnreadlinePayload
     | Chat2Gen.MarkInitiallyLoadedThreadAsReadPayload
     | Chat2Gen.UpdateReactionsPayload
     | ConfigGen.ChangedFocusPayload
@@ -2730,7 +2767,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   >(
     [
       Chat2Gen.messagesAdd,
-      Chat2Gen.selectConversation,
+      Chat2Gen.updateUnreadline,
       Chat2Gen.markInitiallyLoadedThreadAsRead,
       Chat2Gen.updateReactions,
       ConfigGen.changedFocus,

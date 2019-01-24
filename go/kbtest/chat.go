@@ -536,6 +536,10 @@ func (m *ChatRemoteMock) GetThreadRemote(ctx context.Context, arg chat1.GetThrea
 	return res, nil
 }
 
+func (m *ChatRemoteMock) GetUnreadlineRemote(ctx context.Context, arg chat1.GetUnreadlineRemoteArg) (res chat1.GetUnreadlineRemoteRes, err error) {
+	return res, nil
+}
+
 func (m *ChatRemoteMock) GetConversationMetadataRemote(ctx context.Context, convID chat1.ConversationID) (res chat1.GetConversationMetadataRemoteRes, err error) {
 	conv := m.world.GetConversationByID(convID)
 	if conv == nil {
