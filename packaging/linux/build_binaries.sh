@@ -167,7 +167,7 @@ build_one_architecture() {
 # resinit_nix.go and fail the i386 build
 export CGO_ENABLED=1
 
-if [ -z "${KEYBASE_BUILD_ARM_ONLY:-}" ] ; then
+if [ -n "${KEYBASE_BUILD_ARM_ONLY:-}" ] ; then
   echo "Keybase: Building for ARM only"
   export GOARCH=arm64
   export debian_arch=arm64

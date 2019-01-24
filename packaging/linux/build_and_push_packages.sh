@@ -158,7 +158,7 @@ if [ "${KEYBASE_DRY_RUN:-}" = 1 ] ; then
     echo "Ending dry run."
     exit 0
 fi
-NIGHTLY_DIR="prerelease.keybase.io/nightly/"
+NIGHTLY_DIR="prerelease.keybase.io/nightly" # No trailing slash! AWS doesn't respect POSIX standards w.r.t double slashes
 if [ "${KEYBASE_NIGHTLY:-}" = 1 ] ; then
     copy_bins "$NIGHTLY_DIR"
     copy_metadata "$NIGHTLY_DIR"
