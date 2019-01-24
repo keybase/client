@@ -3,6 +3,7 @@ package systests
 import (
 	"bytes"
 	"net/http"
+	"os"
 	"testing"
 	"time"
 
@@ -79,6 +80,7 @@ func TestStellarNoteRoundtripAndResets(t *testing.T) {
 
 // Test took 38s on a dev server 2018-06-07
 func TestStellarRelayAutoClaims(t *testing.T) {
+	skipTestOnNonMasterCI(t, "slow stellar test")
 	if disable {
 		t.Skip(disableMsg)
 	}
@@ -87,6 +89,7 @@ func TestStellarRelayAutoClaims(t *testing.T) {
 
 // Test took 29s on a dev server 2018-06-07
 func TestStellarRelayAutoClaimsWithPUK(t *testing.T) {
+	skipTestOnNonMasterCI(t, "slow stellar test")
 	if disable {
 		t.Skip(disableMsg)
 	}
@@ -239,6 +242,10 @@ func testStellarRelayAutoClaims(t *testing.T, startWithPUK, skipPart2 bool) {
 // To debug this test use log filter "stellar_test|poll-|AutoClaim|stellar.claim|pollfor"
 // Test took 20s on a dev server 2019-01-23
 func TestStellarRelayAutoClaimsSBS(t *testing.T) {
+	skipTestOnNonMasterCI(t, "slow stellar test")
+	if disable {
+		t.Skip(disableMsg)
+	}
 	tt := newTeamTester(t)
 	defer tt.cleanup()
 	useStellarTestNet(t)
@@ -339,4 +346,15 @@ func useStellarTestNet(t testing.TB) {
 func acceptDisclaimer(u *userPlusDevice) {
 	err := u.stellarClient.AcceptDisclaimerLocal(context.Background(), 0)
 	require.NoError(u.tc.T, err)
+}
+
+func runningInCI() bool {
+	x := os.Getenv("KEYBASE_RUN_CI")
+	return len(x) > 0 && x != "0" && x[0] != byte('n')
+}
+
+func skipTestOnNonMasterCI(t *testing.T, reason string) {
+	if runningInCI() && os.Getenv("BRANCH_NAME") != "master" {
+		t.Skipf("skip test on non-master CI run: %v", reason)
+	}
 }
