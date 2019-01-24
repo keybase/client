@@ -56,15 +56,16 @@ release_bin="$release_gopath/bin/release"
 
 # The release tool wants GITHUB_TOKEN in the environment. Load it in. The
 # test_all_credentials.sh script checks that this file exists.
-export GITHUB_TOKEN="$(cat ~/.github_token)"
+token="$(cat ~/.github_token)"
+export GITHUB_TOKEN="$token"
 
 # NB: This is duplicated in packaging/prerelease/build_app.sh.
 if [ ! "${NOWAIT:-}" = "1" ]; then
   echo "Checking client CI"
-  "$release_bin" wait-ci --repo="client" --commit="$(git -C $client_dir rev-parse HEAD)" --context="continuous-integration/jenkins/branch" --context="ci/circleci"
+  "$release_bin" wait-ci --repo="client" --commit="$(git -C "$client_dir" rev-parse HEAD)" --context="continuous-integration/jenkins/branch" --context="ci/circleci"
   if [ "$mode" != "production" ] ; then
     echo "Checking kbfs CI"
-    "$release_bin" wait-ci --repo="kbfs" --commit="$(git -C $kbfs_dir rev-parse HEAD)" --context="continuous-integration/jenkins/branch"
+    "$release_bin" wait-ci --repo="kbfs" --commit="$(git -C "$kbfs_dir" rev-parse HEAD)" --context="continuous-integration/jenkins/branch"
   fi
 fi
 
@@ -133,7 +134,7 @@ copy_bins() {
 }
 copy_bins "$BUCKET_NAME"
 
-json_tmp=`mktemp`
+json_tmp=$(mktemp)
 echo "Writing version into JSON to $json_tmp"
 
 "$release_bin" update-json --version="$version" > "$json_tmp"
