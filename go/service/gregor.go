@@ -757,14 +757,15 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 		chat.NewCachingIdentifyNotifier(g.G()))
 	g.chatLog.Debug(ctx, "OnConnect begin")
 	syncAllRes, err := chatCli.SyncAll(ctx, chat1.SyncAllArg{
-		Uid:       uid,
-		DeviceID:  gcli.Device.(gregor1.DeviceID),
-		Session:   token,
-		InboxVers: iboxVers,
-		Ctime:     latestCtime,
-		Fresh:     g.isFirstConnect(),
-		ProtVers:  chat1.SyncAllProtVers_V1,
-		HostName:  g.GetURI().Host,
+		Uid:              uid,
+		DeviceID:         gcli.Device.(gregor1.DeviceID),
+		Session:          token,
+		InboxVers:        iboxVers,
+		Ctime:            latestCtime,
+		Fresh:            g.isFirstConnect(),
+		ProtVers:         chat1.SyncAllProtVers_V1,
+		HostName:         g.GetURI().Host,
+		SummarizeMaxMsgs: true,
 	})
 	if err != nil {
 		// This will cause us to try and refresh session on the next attempt
