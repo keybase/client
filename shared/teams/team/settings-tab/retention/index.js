@@ -5,7 +5,6 @@ import * as Kb from '../../../../common-adapters'
 import {type MenuItem} from '../../../../common-adapters/floating-menu/menu-layout'
 import type {RetentionPolicy} from '../../../../constants/types/retention-policy'
 import {retentionPolicies, baseRetentionPolicies} from '../../../../constants/teams'
-import {daysToLabel} from '../../../../util/timestamp'
 import SaveIndicator from '../../../../common-adapters/save-indicator'
 
 export type RetentionEntityType = 'adhoc' | 'channel' | 'small team' | 'big team'
@@ -293,7 +292,6 @@ const saveStateStyle = Styles.platformStyles({
 })
 
 // Utilities for transforming retention policies <-> labels
-const secondsToDays = s => s / (3600 * 24)
 const policyToLabel = (p: RetentionPolicy, parent: ?RetentionPolicy) => {
   let text = ''
   let timer = false
@@ -383,7 +381,10 @@ const policyToExplanation = (convType: string, p: RetentionPolicy, parent?: Rete
           behavior = 'be retained indefinitely'
           break
         case 'expire':
-          behavior = `expire after ${daysToLabel(secondsToDays(parent.seconds))}`
+          behavior = `expire after ${parent.title}`
+          break
+        case 'explode':
+          behavior = `explode after ${parent.title}`
           break
         default:
           throw new Error(`Impossible policy type encountered: ${parent.type}`)
@@ -394,9 +395,10 @@ const policyToExplanation = (convType: string, p: RetentionPolicy, parent?: Rete
       exp = `Admins have set this ${convType} to retain messages indefinitely.`
       break
     case 'expire':
-      exp = `Admins have set this ${convType} to auto-delete messages after ${daysToLabel(
-        secondsToDays(p.seconds)
-      )}.`
+      exp = `Admins have set this ${convType} to auto-delete messages after ${p.title}.`
+      break
+    case 'explode':
+      exp = `Admins have set messages in this ${convType} to explode after ${p.title}.`
       break
     default:
       throw new Error(`Impossible policy type encountered: ${p.type}`)

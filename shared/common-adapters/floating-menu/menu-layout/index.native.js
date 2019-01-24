@@ -64,7 +64,7 @@ class MenuLayout extends React.Component<MenuLayoutProps> {
               // Add 2px to compensate
               {height: Math.min(menuItemsNoDividers.length * 56 + 2, isLargeScreen ? 500 : 350)},
             ])}
-            contentContainerStyle={styles.menuItems}
+            contentContainerStyle={styles.menuGroup}
           >
             {menuItemsNoDividers.map((mi, idx) => (
               <MenuRow
@@ -118,11 +118,6 @@ const styles = Styles.styleSheetCreate({
     paddingBottom: Styles.globalMargins.tiny,
   },
   menuGroup: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'stretch',
-    justifyContent: 'flex-end',
-  },
-  menuItems: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'stretch',
     justifyContent: 'flex-end',
