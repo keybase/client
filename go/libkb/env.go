@@ -1466,6 +1466,7 @@ type AppConfig struct {
 	PayloadCacheSize               int
 	ProofCacheSize                 int
 	OutboxStorageEngine            string
+	EnableBotLiteMode              bool
 }
 
 var _ CommandLine = AppConfig{}
@@ -1580,6 +1581,10 @@ func (c AppConfig) GetProofCacheSize() (int, bool) {
 
 func (c AppConfig) GetAttachmentDisableMulti() (bool, bool) {
 	return c.AttachmentDisableMulti, true
+}
+
+func (c AppConfig) GetEnableBotLiteMode() (bool, bool) {
+	return c.EnableBotLiteMode, true
 }
 
 func (e *Env) GetUpdatePreferenceAuto() (bool, bool) {
