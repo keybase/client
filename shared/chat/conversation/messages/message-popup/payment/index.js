@@ -185,7 +185,7 @@ const styles = Styles.styleSheetCreate({
     isAndroid: {
       marginTop: Styles.globalMargins.tiny,
     },
-    isElectron: {paddingBottom: Styles.globalMargins.small},
+    isElectron: {marginBottom: Styles.globalMargins.small},
     isMobile: {
       marginBottom: Styles.globalMargins.small,
       marginTop: Styles.globalMargins.small,
