@@ -208,7 +208,7 @@ protocol remote {
     SyncInboxRes inboxRes;
   }
 
-  SyncChatRes syncChat(InboxVers vers);
+  SyncChatRes syncChat(InboxVers vers, boolean summarizeMaxMsgs);
 
   enum SyncAllProtVers {
     V0_0,

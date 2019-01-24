@@ -862,6 +862,10 @@
         {
           "name": "vers",
           "type": "InboxVers"
+        },
+        {
+          "name": "summarizeMaxMsgs",
+          "type": "boolean"
         }
       ],
       "response": "SyncChatRes"
