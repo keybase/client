@@ -16,13 +16,17 @@ here="$(dirname "$BASH_SOURCE")"
 client_dir="$(git -C "$here" rev-parse --show-toplevel)"
 kbfs_dir="$client_dir/../kbfs"
 
-if [ "${KEYBASE_DRY_RUN:-}" = 1 ] ; then
+if [ "${KEYBASE_DRY_RUN:-}" = 1 ] || [ "${KEYBASE_NIGHTLY:-}" = 1 ] ; then
   default_bucket_name="jack-testing.keybase.io"
   echo
   echo
   echo "================================="
   echo "================================="
-  echo "= This build+push is a DRY RUN. ="
+  if [ "${KEYBASE_DRY_RUN:-}" = 1 ] ; then
+      echo "= This build+push is a DRY RUN. ="
+  else
+      echo "= This build+push is a NIGHTLY. ="
+  fi
   echo "================================="
   echo "================================="
   echo
@@ -32,7 +36,11 @@ else
 fi
 
 export BUCKET_NAME="${BUCKET_NAME:-$default_bucket_name}"
+echo "=============================="
+echo "=============================="
 echo "Using BUCKET_NAME $BUCKET_NAME"
+echo "=============================="
+echo "=============================="
 
 # Test all the different credentials that need to be configured.
 "$here/test_all_credentials.sh"
@@ -48,15 +56,16 @@ release_bin="$release_gopath/bin/release"
 
 # The release tool wants GITHUB_TOKEN in the environment. Load it in. The
 # test_all_credentials.sh script checks that this file exists.
-export GITHUB_TOKEN="$(cat ~/.github_token)"
+token="$(cat ~/.github_token)"
+export GITHUB_TOKEN="$token"
 
 # NB: This is duplicated in packaging/prerelease/build_app.sh.
 if [ ! "${NOWAIT:-}" = "1" ]; then
   echo "Checking client CI"
-  "$release_bin" wait-ci --repo="client" --commit="$(git -C $client_dir rev-parse HEAD)" --context="continuous-integration/jenkins/branch" --context="ci/circleci"
+  "$release_bin" wait-ci --repo="client" --commit="$(git -C "$client_dir" rev-parse HEAD)" --context="continuous-integration/jenkins/branch" --context="ci/circleci"
   if [ "$mode" != "production" ] ; then
     echo "Checking kbfs CI"
-    "$release_bin" wait-ci --repo="kbfs" --commit="$(git -C $kbfs_dir rev-parse HEAD)" --context="continuous-integration/jenkins/branch"
+    "$release_bin" wait-ci --repo="kbfs" --commit="$(git -C "$kbfs_dir" rev-parse HEAD)" --context="continuous-integration/jenkins/branch"
   fi
 fi
 
@@ -117,17 +126,23 @@ another_copy() {
   s3cmd put --follow-symlinks "$1" "$2"
   s3cmd put --follow-symlinks "$1.sig" "$2.sig"
 }
-another_copy "$build_dir/deb_repo/keybase-latest-amd64.deb" "s3://$BUCKET_NAME/keybase_amd64.deb"
-another_copy "$build_dir/deb_repo/keybase-latest-i386.deb" "s3://$BUCKET_NAME/keybase_i386.deb"
-another_copy "$build_dir/rpm_repo/keybase-latest-x86_64.rpm" "s3://$BUCKET_NAME/keybase_amd64.rpm"
-another_copy "$build_dir/rpm_repo/keybase-latest-i386.rpm" "s3://$BUCKET_NAME/keybase_i386.rpm"
+copy_bins() {
+    another_copy "$build_dir/deb_repo/keybase-latest-amd64.deb" "s3://$1/keybase_amd64.deb"
+    another_copy "$build_dir/deb_repo/keybase-latest-i386.deb" "s3://$1/keybase_i386.deb"
+    another_copy "$build_dir/rpm_repo/keybase-latest-x86_64.rpm" "s3://$1/keybase_amd64.rpm"
+    another_copy "$build_dir/rpm_repo/keybase-latest-i386.rpm" "s3://$1/keybase_i386.rpm"
+}
+copy_bins "$BUCKET_NAME"
 
-json_tmp=`mktemp`
+json_tmp=$(mktemp)
 echo "Writing version into JSON to $json_tmp"
 
 "$release_bin" update-json --version="$version" > "$json_tmp"
 
-s3cmd put --mime-type application/json "$json_tmp" "s3://$BUCKET_NAME/update-linux-prod.json"
+copy_metadata() {
+    s3cmd put --mime-type application/json "$json_tmp" "s3://$1/update-linux-prod.json"
+}
+copy_metadata "$BUCKET_NAME"
 
 # Generate and push the index.html file. S3 pushes in this script can be
 # flakey, and on the Linux side of things all this does is update our internal
@@ -141,6 +156,13 @@ GOPATH="$release_gopath" PLATFORM="linux" "$here/../prerelease/s3_index.sh" || \
 # against a test bucket.
 if [ "${KEYBASE_DRY_RUN:-}" = 1 ] ; then
     echo "Ending dry run."
+    exit 0
+fi
+NIGHTLY_DIR="prerelease.keybase.io/nightly" # No trailing slash! AWS doesn't respect POSIX standards w.r.t double slashes
+if [ "${KEYBASE_NIGHTLY:-}" = 1 ] ; then
+    copy_bins "$NIGHTLY_DIR"
+    copy_metadata "$NIGHTLY_DIR"
+    echo "Ending nightly."
     exit 0
 fi
 
