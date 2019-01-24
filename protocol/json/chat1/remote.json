@@ -899,6 +899,10 @@
         {
           "name": "hostName",
           "type": "string"
+        },
+        {
+          "name": "summarizeMaxMsgs",
+          "type": "boolean"
         }
       ],
       "response": "SyncAllResult",
