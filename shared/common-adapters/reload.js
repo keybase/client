@@ -14,6 +14,7 @@ type ReloadProps = {|
   onBack?: () => void,
   onReload: () => void,
   reason: string,
+  title?: string,
 |}
 
 class Reload extends React.PureComponent<ReloadProps, {expanded: boolean}> {
@@ -50,6 +51,7 @@ export type Props = {|
   onReload: () => void,
   reason: string,
   reloadOnMount?: boolean,
+  title?: string,
 |}
 
 class Reloadable extends React.PureComponent<Props> {
@@ -66,6 +68,7 @@ class Reloadable extends React.PureComponent<Props> {
         onBack={this.props.onBack}
         onReload={this.props.onReload}
         reason={this.props.reason}
+        title={this.props.title}
       />
     ) : (
       <Reload onReload={this.props.onReload} reason={this.props.reason} />
@@ -115,6 +118,7 @@ export type OwnProps = {|
   onBack?: () => void,
   onReload: () => void,
   reloadOnMount?: boolean,
+  title?: string,
   waitingKeys: string | Array<string>,
 |}
 
@@ -133,6 +137,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   onReload: ownProps.onReload,
   reason: stateProps.reason,
   reloadOnMount: ownProps.reloadOnMount,
+  title: ownProps.title,
 })
 
 export default namedConnect<OwnProps, _, _, _, _>(

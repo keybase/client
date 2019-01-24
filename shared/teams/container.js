@@ -85,6 +85,7 @@ class Reloadable extends React.PureComponent<{
         onBack={isMobile ? this.props.onBack : undefined}
         onReload={this.props._loadTeams}
         reloadOnMount={true}
+        title={this.props.title}
       >
         <Teams
           loaded={this.props.loaded}
