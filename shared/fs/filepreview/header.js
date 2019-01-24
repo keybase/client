@@ -25,7 +25,7 @@ const Header = (props: HeaderProps) => (
     <Kb.Box style={styles.headerIcons}>
       <Kbfs.OpenInSystemFileManager path={props.path} />
       <Kbfs.SendInAppAction path={props.path} sendIconClassName="" />
-      <Kbfs.PathItemAction path={props.path} fontSize={16} />
+      <Kbfs.PathItemAction path={props.path} actionIconFontSize={16} />
     </Kb.Box>
   </Kb.Box2>
 )
@@ -36,7 +36,7 @@ const styles = Styles.styleSheetCreate({
       marginLeft: Styles.globalMargins.tiny,
     },
   }),
-  container: { minHeight: 48 },
+  container: {minHeight: 48},
   filePreviewHeader: {
     flex: 1,
     flexShrink: 1,

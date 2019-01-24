@@ -14,31 +14,31 @@ import Errs from './errs'
 import {type OwnProps as PathItemIconOwnProps} from './path-item-icon-container'
 import {type OwnProps as PathItemInfoOwnProps} from './path-item-info-container'
 
-const pathItemActionPopupProps = (path: Types.Path) => {
-  const pathElements = Types.getPathElements(path)
-  return {
-    childrenFiles: 0,
-    childrenFolders: 0,
-    copyPath: Sb.action('copyPath'),
-    download: Sb.action('download'),
-    ignoreFolder: Sb.action('ignoreFolder'),
-    lastModifiedTimestamp: 0,
-    lastWriter: 'meatball',
-    name: Types.getPathNameFromElems(pathElements),
-    onHidden: Sb.action('onHidden'),
-    ...(isMobile
-      ? {
-          saveMedia: Sb.action('saveMedia'),
-          shareNative: Sb.action('shareNative'),
-        }
-      : {}),
-    path,
-    pathElements,
-    showInSystemFileManager: Sb.action('showInSystemFileManager'),
-    size: 0,
-    type: 'folder',
-  }
-}
+const pathItemActionHeaderProps = (path: Types.Path) => ({
+  childrenFiles: 0,
+  childrenFolders: 0,
+  loadFolderList: Sb.action('loadFolderList'),
+  loadMimeType: Sb.action('loadMimeType'),
+  path,
+  size: 0,
+  type: 'folder',
+})
+
+const pathItemActionProps = (path: Types.Path) => ({
+  copyPath: Sb.action('copyPath'),
+  download: Sb.action('download'),
+  ignoreFolder: Sb.action('ignoreFolder'),
+  onHidden: Sb.action('onHidden'),
+  ...(isMobile
+    ? {
+        saveMedia: Sb.action('saveMedia'),
+        shareNative: Sb.action('shareNative'),
+      }
+    : {}),
+  path,
+  showInSystemFileManager: Sb.action('showInSystemFileManager'),
+  type: 'folder',
+})
 
 export const commonProvider = {
   ConnectedDownloadTrackingHoc: () => ({
@@ -47,7 +47,8 @@ export const commonProvider = {
   ConnectedErrs: () => ({
     errs: [],
   }),
-  ConnectedPathItemAction: () => pathItemActionPopupProps(Types.stringToPath('/keybase/private/meatball')),
+  PathItemAction: ({path}: {path: Types.Path}) => pathItemActionProps(path),
+  PathItemActionHeader: ({path}: {path: Types.Path}) => pathItemActionHeaderProps(path),
   PathItemIcon: (ownProps: PathItemIconOwnProps) => ({
     ...ownProps,
     type: Types.getPathElements(ownProps.path).length > 3 ? 'file' : 'folder',
@@ -66,8 +67,6 @@ export const commonProvider = {
 }
 
 export const provider = Sb.createPropProviderWithCommon(commonProvider)
-
-const FloatingPathItemAction = Kb.OverlayParentHOC(PathItemAction)
 
 const load = () => {
   Sb.storiesOf('Files', module)
@@ -104,18 +103,18 @@ const load = () => {
     ))
     .add('PathItemAction', () => (
       <Kb.Box style={{padding: Styles.globalMargins.small}}>
-        <FloatingPathItemAction
-          {...pathItemActionPopupProps(Types.stringToPath('/keybase/private/meatball/folder/treat'))}
+        <PathItemAction
+          {...pathItemActionProps(Types.stringToPath('/keybase/private/meatball/folder/treat'))}
         />
-        <FloatingPathItemAction
-          {...pathItemActionPopupProps(
+        <PathItemAction
+          {...pathItemActionProps(
             Types.stringToPath(
               '/keybase/private/meatball/treat treat treat treat treat treat treat treat treat treat treat treat treat treat treat treat'
             )
           )}
         />
-        <FloatingPathItemAction
-          {...pathItemActionPopupProps(
+        <PathItemAction
+          {...pathItemActionProps(
             Types.stringToPath(
               '/keybaes/private/meatball/foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar'
             )

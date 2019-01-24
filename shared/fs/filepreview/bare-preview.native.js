@@ -9,7 +9,7 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {connect} from '../../util/container'
 import {type BarePreviewProps} from './bare-preview'
 import View from './view-container'
-import PathItemAction from '../common/path-item-action-container'
+import {PathItemAction} from '../common'
 
 const mapDispatchToProps = (dispatch, {routePath}) => ({
   onBack: () =>
