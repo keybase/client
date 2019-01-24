@@ -1,10 +1,9 @@
 // @flow
 // // TODO modals
-// under notch
 // keyboard avoiding?
-// hiding tab bar
 // gateway
 // statusbar handling
+// inject old ownprops?
 import * as Kb from '../common-adapters/mobile.native'
 import * as Styles from '../styles'
 import * as React from 'react'

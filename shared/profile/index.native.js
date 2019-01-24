@@ -418,7 +418,16 @@ class Profile extends Component<Props, State> {
   _renderSections = ({section}) => {
     if (section.title === 'profile') {
       const trackerStateColors = stateColors(this.props.currentlyFollowing, this.props.trackerState)
-      return flags.useNewRouter ? null : (
+      return flags.useNewRouter ? (
+        <Kb.Box2
+          direction="vertical"
+          style={{
+            backgroundColor: trackerStateColors.header.background,
+            height: 48,
+            width: '100%',
+          }}
+        />
+      ) : (
         <Kb.HeaderHocHeader
           borderless={true}
           onLeftAction={this.props.onBack}
@@ -540,7 +549,9 @@ class Profile extends Component<Props, State> {
 
     return (
       <Kb.Box style={Styles.globalStyles.fullHeight}>
-        <Kb.SafeAreaViewTop style={{backgroundColor: trackerStateColors.header.background, flexGrow: 0}} />
+        {flags.useNewRouter && (
+          <Kb.SafeAreaViewTop style={{backgroundColor: trackerStateColors.header.background, flexGrow: 0}} />
+        )}
         <Kb.NativeSectionList
           stickySectionHeadersEnabled={true}
           style={{...Styles.globalStyles.fullHeight, backgroundColor: trackerStateColors.header.background}}
@@ -723,7 +734,7 @@ const styleSearch = {
 }
 
 const styleSearchText = {
-  color: Styles.globalColors.white_75,
+  color: Styles.globalColors.white,
   fontSize: 16,
 }
 
@@ -757,15 +768,15 @@ export default Profile
 
 // leaving this here as this whole file is going away
 export const Header = (props: Props) => {
-  const trackerStateColors = stateColors(props.currentlyFollowing, props.trackerState)
+  // const trackerStateColors = stateColors(props.currentlyFollowing, props.trackerState)
   return (
     <Kb.HeaderHocHeader
       borderless={true}
       onLeftAction={props.onBack}
       headerStyle={{
-        backgroundColor: trackerStateColors.header.background,
+        // backgroundColor: trackerStateColors.header.background,
         paddingLeft: 40,
-        paddingTop: 20,
+        paddingTop: 0,
       }}
       theme="dark"
       titleComponent={

@@ -14,7 +14,8 @@ import * as WalletsGen from '../actions/wallets-gen'
 import {noAccountID, type CounterpartyType} from '../constants/types/wallets'
 import {isInSomeTeam} from '../constants/teams'
 import ErrorComponent from './error-profile'
-import Profile, {Header} from './index'
+import Profile from './index'
+import {PeoplePageSearchBar} from '../people/index.shared'
 import * as React from 'react'
 import {createSearchSuggestions} from '../actions/search-gen'
 import {isTesting} from '../local-debug'
@@ -223,19 +224,24 @@ const ConnectedHeader = connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps
-)(Header)
+)(PeoplePageSearchBar)
 
 connected.navigationOptions = hp => ({
-  headerTitle: <ConnectedHeader username={hp.navigation.getParam('username')} />,
-  headerForceInset: {top: 'never'},
-  headerTransparent: true,
-  headerStyle: {
-    alignItems: 'stretch',
-  },
+  // headerTitle: <ConnectedHeader username={hp.navigation.getParam('username')} />,
+  headerTitle: hp => <ConnectedHeader />,
   headerTitleContainerStyle: {
-    left: 0,
-    right: 0,
+    left: 60,
+    right: 20,
   },
+  // headerForceInset: {top: 'never'},
+  headerTransparent: true,
+  // headerStyle: {
+  // alignItems: 'stretch',
+  // },
+  // headerTitleContainerStyle: {
+  // left: 0,
+  // right: 0,
+  // },
 })
 
 export default connected
