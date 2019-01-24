@@ -446,7 +446,7 @@ func NewConfigLocal(mode InitMode,
 	config.ResetCaches()
 	config.SetKeyOps(&KeyOpsStandard{config})
 	config.SetRekeyQueue(NewRekeyQueueStandard(config))
-	config.SetUserHistory(kbfsedits.NewUserHistory())
+	config.SetUserHistory(kbfsedits.NewUserHistory(config.MakeLogger("HIS")))
 
 	config.maxNameBytes = maxNameBytesDefault
 	config.rwpWaitTime = rekeyWithPromptWaitTimeDefault
