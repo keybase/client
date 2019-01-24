@@ -422,7 +422,7 @@ const loadHasRandomPW = state =>
   state.settings.passphrase.randomPW === null
     ? RPCTypes.userLoadHasRandomPwRpcPromise({forceRepoll: false})
         .then(randomPW => SettingsGen.createLoadedHasRandomPw({randomPW}))
-        .catch(e => logger.warn('Error loading hasRandomPW:', e))
+        .catch(e => logger.warn('Error loading hasRandomPW:', e.message))
     : null
 
 const setupEngineListeners = () => {
