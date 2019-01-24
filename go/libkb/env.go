@@ -112,6 +112,7 @@ func (n NullConfiguration) GetChatInboxSourceLocalizeThreads() (int, bool)  { re
 func (n NullConfiguration) GetAttachmentHTTPStartPort() (int, bool)         { return 0, false }
 func (n NullConfiguration) GetAttachmentDisableMulti() (bool, bool)         { return false, false }
 func (n NullConfiguration) GetDisableTeamAuditor() (bool, bool)             { return false, false }
+func (n NullConfiguration) GetEnableBotLiteMode() (bool, bool)              { return false, false }
 func (n NullConfiguration) GetChatOutboxStorageEngine() string              { return "" }
 func (n NullConfiguration) GetBug3964RepairTime(NormalizedUsername) (time.Time, error) {
 	return time.Time{}, nil
@@ -897,6 +898,13 @@ func (e *Env) GetDisableTeamAuditor() bool {
 	)
 }
 
+func (e *Env) GetEnableBotLiteMode() bool {
+	return e.GetBool(false,
+		e.cmd.GetEnableBotLiteMode,
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_ENABLE_BOT_LITE_MODE") },
+		e.GetConfig().GetEnableBotLiteMode,
+	)
+}
 func (e *Env) GetPidFile() (ret string, err error) {
 	ret = e.GetString(
 		func() string { return e.cmd.GetPidFile() },

@@ -860,6 +860,10 @@ func (f *JSONConfigFile) GetDisableTeamAuditor() (bool, bool) {
 	return f.GetBoolAtPath("disable_team_auditor")
 }
 
+func (f *JSONConfigFile) GetEnableBotLiteMode() (bool, bool) {
+	return f.GetBoolAtPath("enable_bot_lite_mode")
+}
+
 func (f *JSONConfigFile) GetChatOutboxStorageEngine() string {
 	s, _ := f.GetStringAtPath("chat_outboxstorageengine")
 	return s

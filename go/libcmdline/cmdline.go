@@ -387,6 +387,10 @@ func (p CommandLine) GetDisableTeamAuditor() (bool, bool) {
 	return p.GetBool("disable-team-auditor", true)
 }
 
+func (p CommandLine) GetEnableBotLiteMode() (bool, bool) {
+	return p.GetBool("enable-bot-lite-mode", true)
+}
+
 func (p CommandLine) GetAttachmentHTTPStartPort() (int, bool) {
 	ret := p.GetGInt("attachment-httpsrv-port")
 	if ret != 0 {
@@ -669,6 +673,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.BoolFlag{
 			Name:  "disable-team-auditor",
 			Usage: "Disable auditing of teams",
+		},
+		cli.BoolFlag{
+			Name:  "enable-bot-lite-mode",
+			Usage: "Enable bot lite mode. Disables non-critical background services for bot performance.",
 		},
 	}
 	if extraFlags != nil {
