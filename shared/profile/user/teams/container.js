@@ -12,7 +12,7 @@ type OwnProps = {|
 const noTeams = []
 
 const mapStateToProps = (state, ownProps) => {
-  const d = state.tracker2.usernameToDetails.get(ownProps.username, Constants.noDetails)
+  const d = Constants.getDetails(state, ownProps.username)
   return {
     _isYou: state.config.username === ownProps.username,
     _roles: state.teams.teamNameToRole,

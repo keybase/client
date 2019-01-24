@@ -7,7 +7,7 @@ import EditProfile from '.'
 type OwnProps = Container.RouteProps<{|username: string|}, {}>
 
 const mapStateToProps = (state, ownProps) => {
-  const d = state.tracker2.usernameToDetails.get(state.config.username, Constants.noDetails)
+  const d = Constants.getDetails(state, state.config.username)
   return {
     bio: d.bio || '',
     fullname: d.fullname || '',

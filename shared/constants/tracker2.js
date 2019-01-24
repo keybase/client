@@ -151,14 +151,16 @@ export const sortAssertionKeys = (a: string, b: string) => {
   return _scoreAssertionKey(typeB) - _scoreAssertionKey(typeA)
 }
 
+export const noDetails = makeDetails({})
+export const noAssertion = makeAssertion({})
+export const waitingKey = 'tracker2:waitingKey'
+
 export const followThem = (state: TypedState, username: string) => state.config.following.has(username)
 export const followsYou = (state: TypedState, username: string) => state.config.followers.has(username)
+export const getDetails = (state: TypedState, username: string) =>
+  state.tracker2.usernameToDetails.get(username, noDetails)
 
 export const guiIDToUsername = (state: Types.State, guiID: string) => {
   const d = state.usernameToDetails.find(d => d.guiID === guiID)
   return d ? d.username : null
 }
-
-export const noDetails = makeDetails({})
-export const noAssertion = makeAssertion({})
-export const waitingKey = 'tracker2:waitingKey'

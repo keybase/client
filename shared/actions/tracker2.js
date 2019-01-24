@@ -127,8 +127,8 @@ function* load(state, action) {
   if (action.payload.fromDaemon) {
     return
   }
-  const guiID = state.tracker2.usernameToDetails.get(action.payload.assertion)
-  if (!guiID) {
+  const guiID = Constants.getDetails(state, action.payload.assertion)
+  if (!guiID.guiID) {
     throw new Error('No guid on profile 2 load? ' + action.payload.assertion || '')
   }
   yield* Saga.callRPCs(

@@ -180,6 +180,7 @@ const config = (_, {mode}) => {
       ...names.map(
         name =>
           new HtmlWebpackPlugin({
+            // chunks: [name],
             filename: makeHtmlName(name),
             inject: false,
             isDev,
@@ -195,7 +196,7 @@ const config = (_, {mode}) => {
   }
 
   // multiple entries so we can chunk shared parts
-  // TODO remove tracker when tracker2 entirely released
+  // TODO remove tracker when entirely released
   const entries = ['main', 'tracker', 'menubar', 'pinentry', 'unlock-folders', 'tracker2']
   const viewConfig = merge(commonConfig, {
     entry: entries.reduce((map, name) => {

@@ -9,7 +9,7 @@ type OwnProps = {|
 |}
 
 const mapStateToProps = (state, ownProps) => {
-  const d = state.tracker2.usernameToDetails.get(ownProps.username, Constants.noDetails)
+  const d = Constants.getDetails(state, ownProps.username)
   return {
     bio: d.bio,
     followThem: Constants.followThem(state, ownProps.username),
