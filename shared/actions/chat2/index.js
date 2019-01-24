@@ -1064,7 +1064,7 @@ function* getUnreadline(state, action) {
   const unreadlineRes = yield RPCChatTypes.localGetUnreadlineRpcPromise({
     convID,
     identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-    readMsgID,
+    readMsgID: readMsgID < 0 ? 0 : readMsgID,
   })
   const unreadlineID = unreadlineRes.unreadlineID ? unreadlineRes.unreadlineID : 0
   yield Saga.put(
