@@ -23,7 +23,6 @@ function parsePublicAdmins(publicAdmins: Array<string>, you: ?string): SortedAdm
   return {publicAdmins, publicAdminsOthers}
 }
 
-const secondsToDays = s => s / (3600 * 24)
 // Parses retention polcies into a string suitable for display at the top of a conversation
 function makeRetentionNotice(
   policy: RetentionPolicy,
@@ -42,15 +41,18 @@ function makeRetentionNotice(
   let explanation = ''
   switch (policy.type) {
     case 'expire': {
-      const days = secondsToDays(policy.seconds)
-      explanation = `are destroyed after ${days} day${days !== 1 ? 's' : ''}.`
+      explanation = `are destroyed after ${policy.title}.`
       break
     }
     case 'inherit': {
-      // teamPolicy can't be retain
-      const days = secondsToDays(teamPolicy.seconds)
-      explanation = `are destroyed after ${days} day${days !== 1 ? 's' : ''}`
+      explanation = `${teamPolicy.type === 'explode' ? 'will explode' : 'are destroyed'} after ${
+        teamPolicy.title
+      }`
       explanation += teamType === 'small' ? '.' : ', the team default.'
+      break
+    }
+    case 'explode': {
+      explanation = `will explode after ${policy.title}.`
       break
     }
   }
