@@ -894,14 +894,15 @@ type SyncChatArg struct {
 }
 
 type SyncAllArg struct {
-	Uid       gregor1.UID          `codec:"uid" json:"uid"`
-	DeviceID  gregor1.DeviceID     `codec:"deviceID" json:"deviceID"`
-	Session   gregor1.SessionToken `codec:"session" json:"session"`
-	InboxVers InboxVers            `codec:"inboxVers" json:"inboxVers"`
-	Ctime     gregor1.Time         `codec:"ctime" json:"ctime"`
-	Fresh     bool                 `codec:"fresh" json:"fresh"`
-	ProtVers  SyncAllProtVers      `codec:"protVers" json:"protVers"`
-	HostName  string               `codec:"hostName" json:"hostName"`
+	Uid              gregor1.UID          `codec:"uid" json:"uid"`
+	DeviceID         gregor1.DeviceID     `codec:"deviceID" json:"deviceID"`
+	Session          gregor1.SessionToken `codec:"session" json:"session"`
+	InboxVers        InboxVers            `codec:"inboxVers" json:"inboxVers"`
+	Ctime            gregor1.Time         `codec:"ctime" json:"ctime"`
+	Fresh            bool                 `codec:"fresh" json:"fresh"`
+	ProtVers         SyncAllProtVers      `codec:"protVers" json:"protVers"`
+	HostName         string               `codec:"hostName" json:"hostName"`
+	SummarizeMaxMsgs bool                 `codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
 }
 
 type TlfFinalizeArg struct {
