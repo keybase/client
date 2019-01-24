@@ -323,10 +323,14 @@ func (p *Loader) uiPaymentInfo(m libkb.MetaContext, summary *stellar1.PaymentLoc
 		info.Delta = stellar1.BalanceDelta_NONE
 	} else {
 		info.Delta = stellar1.BalanceDelta_INCREASE
-		if msg.sender.Eq(p.G().ActiveDevice.Username(m)) {
-			info.Delta = stellar1.BalanceDelta_DECREASE
-		} else {
-			info.AccountID = summary.ToAccountID
+		if msg.sender != "" {
+			// this is related to a chat message
+			if msg.sender.Eq(p.G().ActiveDevice.Username(m)) {
+				info.Delta = stellar1.BalanceDelta_DECREASE
+			} else {
+				// switch the account ID to the recipient
+				info.AccountID = summary.ToAccountID
+			}
 		}
 	}
 
