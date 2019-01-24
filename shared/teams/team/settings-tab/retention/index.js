@@ -23,7 +23,7 @@ export type Props = {|
   type: 'simple' | 'auto',
   saveRetentionPolicy: (policy: RetentionPolicy) => void,
   onSelect: (policy: RetentionPolicy, changed: boolean, decreased: boolean) => void,
-  onShowWarning: (days: number, onConfirm: () => void, onCancel: () => void) => void,
+  onShowWarning: (policy: RetentionPolicy, onConfirm: () => void, onCancel: () => void) => void,
 |}
 
 type State = {
@@ -65,7 +65,11 @@ class _RetentionPicker extends React.Component<Kb.PropsWithOverlay<Props>, State
     if (decreased) {
       // show warning
       this._showSaved = false
-      this.props.onShowWarning(policyToDays(selected, this.props.teamPolicy), onConfirm, onCancel)
+      this.props.onShowWarning(
+        selected.type === 'inherit' && this.props.teamPolicy ? this.props.teamPolicy : selected,
+        onConfirm,
+        onCancel
+      )
       return
     }
     // set immediately
@@ -321,6 +325,7 @@ const policyToComparable = (p: RetentionPolicy, parent: ?RetentionPolicy): numbe
       res = policyToComparable(parent)
       break
     case 'expire':
+    case 'explode':
       res = p.seconds
       break
   }
@@ -329,21 +334,6 @@ const policyToComparable = (p: RetentionPolicy, parent: ?RetentionPolicy): numbe
     throw new Error('Impossible case encountered: res = -1 in retention policyToComparable')
   }
   return res
-}
-// For getting the number of days a retention policy resolves to
-const policyToDays = (p: RetentionPolicy, parent?: RetentionPolicy) => {
-  let days = 0
-  switch (p.type) {
-    case 'inherit':
-      if (!parent) {
-        throw new Error(`Got policy of type 'inherit' with no inheritable policy`)
-      }
-      days = policyToDays(parent)
-      break
-    case 'expire':
-      days = secondsToDays(p.seconds)
-  }
-  return days
 }
 const policyEquals = (p1?: RetentionPolicy, p2?: RetentionPolicy): boolean => {
   if (p1 && p2) {
