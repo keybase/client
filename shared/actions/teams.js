@@ -922,6 +922,9 @@ function* saveChannelMembership(state, action) {
   }
 
   yield Saga.all(calls)
+  if (calls.length) {
+    yield Saga.put(TeamsGen.createGetChannels({teamname}))
+  }
 }
 
 function* createChannel(_, action) {
@@ -1114,7 +1117,7 @@ function* setPublicity(state, action) {
 
   const results = yield Saga.all(calls)
   // TODO delete this getDetails call when CORE-7125 is finished
-  Saga.put(TeamsGen.createGetDetails({teamname}))
+  yield Saga.put(TeamsGen.createGetDetails({teamname}))
 
   // Display any errors from the rpcs
   const errs = results
