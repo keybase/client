@@ -113,9 +113,20 @@ class _RetentionPicker extends React.Component<Kb.PropsWithOverlay<Props>, State
               onClick: () => this._onSelect(policy),
               title: policy.title,
               view: (
-                <Kb.Box2 alignItems="center" direction="horizontal" gap="tiny" fullWidth={true}>
-                  <Kb.Icon type="iconfont-timer" />
-                  <Kb.Text type="Body">{policy.title}</Kb.Text>
+                <Kb.Box2
+                  centerChildren={Styles.isMobile}
+                  alignItems="center"
+                  direction="horizontal"
+                  gap="tiny"
+                  fullWidth={true}
+                >
+                  <Kb.Icon type="iconfont-timer" fontSize={Styles.isMobile ? 22 : 16} />
+                  <Kb.Text
+                    type={Styles.isMobile ? 'BodyBig' : 'Body'}
+                    style={Styles.isMobile ? {color: Styles.globalColors.blue} : null}
+                  >
+                    {policy.title}
+                  </Kb.Text>
                 </Kb.Box2>
               ),
             },
@@ -224,12 +235,6 @@ const RetentionDisplay = (props: {|...Props, entityType: RetentionEntityType|}) 
     <Kb.Box style={Styles.collapseStyles([Styles.globalStyles.flexBoxColumn, props.containerStyle])}>
       <Kb.Box style={displayHeadingStyle}>
         <Kb.Text type="BodySmallSemibold">Message deletion</Kb.Text>
-        <Kb.Icon
-          type="iconfont-timer"
-          color={Styles.globalColors.black_20}
-          fontSize={Styles.isMobile ? 22 : 16}
-          style={{marginLeft: Styles.globalMargins.xtiny}}
-        />
       </Kb.Box>
       <Kb.Text type="BodySmall">{text}</Kb.Text>
     </Kb.Box>
@@ -320,7 +325,14 @@ const policyToLabel = (p: RetentionPolicy, parent: ?RetentionPolicy) => {
       }
   }
   return [
-    timer ? <Kb.Icon type="iconfont-timer" fontSize={16} key="timer" /> : null,
+    timer ? (
+      <Kb.Icon
+        color={Styles.globalColors.black_75}
+        type="iconfont-timer"
+        fontSize={Styles.isMobile ? 22 : 16}
+        key="timer"
+      />
+    ) : null,
     <Kb.Text type="BodySemibold" key="label">
       {text}
     </Kb.Text>,
