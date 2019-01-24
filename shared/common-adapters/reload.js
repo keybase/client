@@ -16,7 +16,7 @@ type ReloadProps = {|
   reason: string,
 |}
 
-class _Reload extends React.PureComponent<ReloadProps, {expanded: boolean}> {
+class Reload extends React.PureComponent<ReloadProps, {expanded: boolean}> {
   state = {expanded: false}
   _toggle = () => this.setState(p => ({expanded: !p.expanded}))
   render() {
@@ -41,7 +41,7 @@ class _Reload extends React.PureComponent<ReloadProps, {expanded: boolean}> {
   }
 }
 
-const Reload = HeaderHoc(_Reload)
+const ReloadWithHeader = HeaderHoc(Reload)
 
 export type Props = {|
   children: React.Node,
@@ -58,10 +58,17 @@ class Reloadable extends React.PureComponent<Props> {
   }
 
   render() {
-    return this.props.needsReload ? (
-      <Reload onBack={this.props.onBack} onReload={this.props.onReload} reason={this.props.reason} />
+    if (!this.props.needsReload) {
+      return this.props.children
+    }
+    return this.props.onBack ? (
+      <ReloadWithHeader
+        onBack={this.props.onBack}
+        onReload={this.props.onReload}
+        reason={this.props.reason}
+      />
     ) : (
-      this.props.children
+      <Reload onReload={this.props.onReload} reason={this.props.reason} />
     )
   }
 }
