@@ -81,9 +81,7 @@ function* joinTeam(_, action) {
   try {
     const result = yield* Saga.callPromise(
       RPCTypes.teamsTeamAcceptInviteOrRequestAccessRpcPromise,
-      {
-        tokenOrName: teamname,
-      },
+      {tokenOrName: teamname},
       Constants.teamWaitingKey(teamname)
     )
 
