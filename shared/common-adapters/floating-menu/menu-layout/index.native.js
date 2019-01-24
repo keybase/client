@@ -6,6 +6,8 @@ import Box from '../../box'
 import Text from '../../text'
 import Meta from '../../meta'
 import Divider from '../../divider'
+import ScrollView from '../../scroll-view'
+import {isLargeScreen} from '../../../constants/platform'
 import type {MenuItem, MenuLayoutProps} from '.'
 
 type MenuRowProps = {
@@ -53,7 +55,17 @@ class MenuLayout extends React.Component<MenuLayoutProps> {
         <Box style={Styles.collapseStyles([styles.menuBox, this.props.style])}>
           {/* Display header if there is one */}
           {this.props.header && this.props.header.view}
-          <Box style={styles.menuGroup}>
+          <ScrollView
+            alwaysBounceVertical={false}
+            style={Styles.collapseStyles([
+              styles.flexGrow,
+              // if we set it to numItems * 56 exactly, the scrollview
+              // shrinks by 2px for some reason, which undermines alwaysBounceVertical={false}
+              // Add 2px to compensate
+              {height: Math.min(menuItemsNoDividers.length * 56 + 2, isLargeScreen ? 500 : 350)},
+            ])}
+            contentContainerStyle={styles.menuItems}
+          >
             {menuItemsNoDividers.map((mi, idx) => (
               <MenuRow
                 key={mi.title}
@@ -63,7 +75,7 @@ class MenuLayout extends React.Component<MenuLayoutProps> {
                 onHidden={this.props.closeOnClick ? this.props.onHidden : undefined}
               />
             ))}
-          </Box>
+          </ScrollView>
           <Divider style={styles.divider} />
           <Box style={styles.menuGroup}>
             <MenuRow
@@ -95,6 +107,9 @@ const styles = Styles.styleSheetCreate({
     marginBottom: Styles.globalMargins.tiny,
     marginTop: Styles.globalMargins.tiny,
   },
+  flexGrow: {
+    flexGrow: 1,
+  },
   menuBox: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'stretch',
@@ -107,11 +122,15 @@ const styles = Styles.styleSheetCreate({
     alignItems: 'stretch',
     justifyContent: 'flex-end',
   },
+  menuItems: {
+    ...Styles.globalStyles.flexBoxColumn,
+    alignItems: 'stretch',
+    justifyContent: 'flex-end',
+  },
   row: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     backgroundColor: Styles.globalColors.white,
-    borderColor: Styles.globalColors.black_10,
     justifyContent: 'center',
     minHeight: 56,
     paddingBottom: Styles.globalMargins.tiny,
