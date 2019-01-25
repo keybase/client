@@ -1,12 +1,15 @@
 // @flow
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import {isMobile} from '../constants/platform'
+import flags from '../util/feature-flags'
 
 const profileRoute = () => {
   const pgpRoutes = require('./pgp/routes').default
-  const Profile = require('./container').default
+  const Profile = flags.identify3 ? require('./user/container').default : require('./container').default
   const AddToTeam = require('./add-to-team/container').default
+  // TODO deprecate
   const EditProfile = require('./edit-profile/container').default
+  const EditProfile2 = require('./edit-profile2/container').default
   const EditAvatar = require('./edit-avatar/container').default
   const EditAvatarPlaceholder = require('./edit-avatar-placeholder/container').default
   const ProveEnterUsername = require('./prove-enter-username/container').default
@@ -62,6 +65,10 @@ const profileRoute = () => {
       editProfile: {
         component: EditProfile,
       },
+      editProfile2: {
+        component: EditProfile2,
+        tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
+      },
       nonUserProfile: {
         children: {
           profile: profileRoute,
@@ -107,7 +114,9 @@ export const newRoutes = {
   editProfile: {getScreen: () => require('./edit-profile/container').default},
   nonUserProfile: {getScreen: () => require('./non-user-profile/container').default},
   postProof: {getScreen: () => require('./post-proof/container').default},
-  profile: {getScreen: () => require('./container').default},
+  profile: {
+    getScreen: () => (flags.identify3 ? require('./user/container').default : require('./container').default),
+  },
   proveEnterUsername: {getScreen: () => require('./prove-enter-username/container').default},
   proveWebsiteChoice: {getScreen: () => require('./prove-website-choice/container').default},
   revoke: {getScreen: () => require('./revoke/container').default},

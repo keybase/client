@@ -1,7 +1,7 @@
 // @flow
 import React, {PureComponent} from 'react'
-import {PlaintextUsernames, Box} from '../../../../common-adapters'
-import {globalStyles} from '../../../../styles'
+import {PlaintextUsernames, Box} from '../common-adapters'
+import {globalStyles} from '../styles'
 
 type Props = {
   participants: Array<string>,

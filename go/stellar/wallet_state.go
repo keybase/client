@@ -204,7 +204,7 @@ func (w *WalletState) backgroundRefresh() {
 		a.RUnlock()
 
 		mctx := libkb.NewMetaContextBackground(w.G()).WithLogTag("WABR")
-		if time.Since(rt) < 1*time.Second {
+		if time.Since(rt) < 10*time.Second {
 			mctx.CDebugf("WalletState.backgroundRefresh skipping for %s due to recent refresh", accountID)
 			continue
 		}

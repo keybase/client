@@ -75,6 +75,8 @@ func start() *libfs.Error {
 		if err != nil {
 			return libfs.InitError(err.Error())
 		}
+		// If a mountdir was not set by `keybase config set mountdir`, the
+		// service returns a default value which may or may not exist yet.
 		if len(mountDir) == 0 {
 			fmt.Print(getUsageString(ctx))
 			return libfs.InitError("no mount specified")

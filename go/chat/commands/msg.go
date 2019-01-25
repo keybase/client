@@ -9,18 +9,18 @@ import (
 	"github.com/keybase/client/go/protocol/gregor1"
 )
 
-type DM struct {
+type Msg struct {
 	*baseCommand
 }
 
-func NewDM(g *globals.Context) *DM {
-	return &DM{
+func NewMsg(g *globals.Context) *Msg {
+	return &Msg{
 		baseCommand: newBaseCommand(g, "msg", "<conversation> <message>",
-			"Send a message in the specified conversation", "dm"),
+			"Send a message to a conversation", "dm"),
 	}
 }
 
-func (d *DM) Execute(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+func (d *Msg) Execute(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	tlfName, text string) (err error) {
 	defer d.Trace(ctx, func() error { return err }, "Execute")()
 	if !d.Match(ctx, text) {

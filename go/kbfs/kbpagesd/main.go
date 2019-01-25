@@ -146,8 +146,12 @@ func main() {
 	if err != nil {
 		logger.Panic("libkbfs.InitLog", zap.Error(err))
 	}
+	cancelWrapper := func() error {
+		cancel()
+		return nil
+	}
 	kbConfig, err := libkbfs.Init(
-		ctx, kbCtx, params, nil, cancel, kbfsLog)
+		ctx, kbCtx, params, nil, cancelWrapper, kbfsLog)
 	if err != nil {
 		logger.Panic("libkbfs.Init", zap.Error(err))
 	}

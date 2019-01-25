@@ -370,6 +370,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.runTLFUpgrade()
 	d.runTeamUpgrader(ctx)
 	d.runHomePoller(ctx)
+	d.runMerkleAudit(ctx)
 	go d.identifySelf()
 }
 
@@ -547,6 +548,25 @@ func (d *Service) runTeamUpgrader(ctx context.Context) {
 func (d *Service) runHomePoller(ctx context.Context) {
 	d.home.RunUpdateLoop(libkb.NewMetaContext(ctx, d.G()))
 	return
+}
+
+func (d *Service) runMerkleAudit(ctx context.Context) {
+	if libkb.IsMobilePlatform() {
+		d.G().Log.Debug("MerkleAudit disabled (not desktop, not starting)")
+		return
+	}
+
+	eng := engine.NewMerkleAudit(d.G(), &engine.MerkleAuditArgs{})
+	m := libkb.NewMetaContextBackground(d.G())
+	if err := engine.RunEngine2(m, eng); err != nil {
+		m.CWarningf("merkle root background audit error: %v", err)
+	}
+
+	d.G().PushShutdownHook(func() error {
+		m.CDebugf("stopping merkle root background audit engine")
+		eng.Shutdown()
+		return nil
+	})
 }
 
 func (d *Service) runBackgroundIdentifier() {

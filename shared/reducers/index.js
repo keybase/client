@@ -13,6 +13,7 @@ import provision from './provision'
 import people from './people'
 import pinentry from './pinentry'
 import profile from './profile'
+import tracker2 from './tracker2'
 import push from './push'
 import routeTree from './route-tree'
 import settings from './settings'
@@ -49,6 +50,7 @@ const reducers = {
   signup,
   teams,
   tracker,
+  tracker2,
   unlockFolders,
   users,
   waiting,

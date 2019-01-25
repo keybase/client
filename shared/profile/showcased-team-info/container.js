@@ -1,4 +1,5 @@
 // @flow
+// TODO deprecate
 import * as React from 'react'
 import ShowcasedTeamInfo from './index'
 import * as TeamsGen from '../../actions/teams-gen'

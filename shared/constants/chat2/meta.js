@@ -67,6 +67,7 @@ export const unverifiedInboxUIItemToConversationMeta = (
 
   return makeConversationMeta({
     channelname,
+    commands: i.commands,
     conversationIDKey: Types.stringToConversationIDKey(i.convID),
     inboxVersion: i.version,
     isMuted: i.status === RPCChatTypes.commonConversationStatus.muted,
@@ -260,6 +261,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
 
   return makeConversationMeta({
     channelname: (isTeam && i.channel) || '',
+    commands: i.commands,
     conversationIDKey: Types.stringToConversationIDKey(i.convID),
     description: i.headline,
     inboxVersion: i.version,
@@ -291,6 +293,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
 
 export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record({
   channelname: '',
+  commands: {},
   conversationIDKey: noConversationIDKey,
   description: '',
   inboxVersion: -1,
@@ -342,6 +345,15 @@ export const getChannelSuggestions = (state: TypedState, teamname: string) =>
         .map(v => v.channelname)
         .toList()
     : I.List()
+
+export const getCommands = (state: TypedState, id: Types.ConversationIDKey) => {
+  const {commands} = getMeta(state, id)
+  if (commands.typ === RPCChatTypes.commandsConversationCommandGroupsTyp.builtin) {
+    return state.chat2.staticConfig ? state.chat2.staticConfig.builtinCommands : []
+  } else {
+    return []
+  }
+}
 
 const bgPlatform = isMobile ? globalColors.fastBlank : globalColors.blueGrey
 // show wallets icon for one-on-one conversations

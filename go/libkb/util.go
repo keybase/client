@@ -968,3 +968,16 @@ func Once(f func()) func() {
 		once.Do(f)
 	}
 }
+
+func RuntimeGroup() keybase1.RuntimeGroup {
+	switch runtime.GOOS {
+	case "linux", "dragonfly", "freebsd", "netbsd", "openbsd":
+		return keybase1.RuntimeGroup_LINUXLIKE
+	case "darwin":
+		return keybase1.RuntimeGroup_DARWINLIKE
+	case "windows":
+		return keybase1.RuntimeGroup_WINDOWSLIKE
+	default:
+		return keybase1.RuntimeGroup_UNKNOWN
+	}
+}

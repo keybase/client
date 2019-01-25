@@ -1,4 +1,5 @@
 // @flow
+// TODO deprecate
 import {showImagePicker, type Response} from 'react-native-image-picker'
 import * as shared from './shared'
 import * as Types from '../constants/types/profile'
@@ -13,6 +14,8 @@ import {chunk} from 'lodash-es'
 import moment from 'moment'
 import UserActions, {makeStellarAddressMenuItems, type StellarFederatedAddressProps} from './user-actions'
 import ShowcasedTeamInfo from './showcased-team-info/container'
+import UserProofs from './user-proofs'
+import UserBio from './user-bio'
 import {stateColors} from '../util/tracker'
 import {ADD_TO_TEAM_ZINDEX, AVATAR_SIZE} from '../constants/profile'
 import flags from '../util/feature-flags'
@@ -160,7 +163,7 @@ class Profile extends Component<Props, State> {
 
   _makeUserBio(loading: boolean) {
     return (
-      <Kb.UserBio
+      <UserBio
         type="Profile"
         editFns={this.props.bioEditFns}
         avatarSize={AVATAR_SIZE}
@@ -176,7 +179,7 @@ class Profile extends Component<Props, State> {
 
   _makeUserProofs(loading: boolean) {
     return (
-      <Kb.UserProofs
+      <UserProofs
         type={'proofs'}
         username={this.props.username}
         loading={loading}
@@ -345,7 +348,6 @@ class Profile extends Component<Props, State> {
             onSendLumens={this.props.onSendLumens}
             onRequestLumens={this.props.onRequestLumens}
             onAcceptProofs={this.props.onAcceptProofs}
-            waiting={this.props.waiting}
           />
         )}
         <Kb.Box
@@ -387,7 +389,7 @@ class Profile extends Component<Props, State> {
             />
           )}
           {!this.props.loading && (
-            <Kb.UserProofs
+            <UserProofs
               type={'missingProofs'}
               username={this.props.username}
               missingProofs={missingProofs}

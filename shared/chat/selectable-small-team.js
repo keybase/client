@@ -1,12 +1,12 @@
 // @flow
 import * as React from 'react'
-import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
+import * as Kb from '../common-adapters'
+import * as Styles from '../styles'
 import {FilteredTopLine} from './top-line'
-import {Avatars, TeamAvatar} from '../avatars'
-import * as RowSizes from '../sizes'
+import {Avatars, TeamAvatar} from './avatars'
+import {isMobile} from '../constants/platform'
 
-type Props = {
+type Props = {|
   backgroundColor: ?string,
   isMuted: boolean,
   isSelected: boolean,
@@ -16,13 +16,13 @@ type Props = {
   showBold: boolean,
   teamname: string,
   usernameColor: string,
-}
+|}
 
-type State = {
+type State = {|
   isHovered: boolean,
-}
+|}
 
-class FilterSmallTeam extends React.PureComponent<Props, State> {
+class SelectableSmallTeam extends React.PureComponent<Props, State> {
   state = {
     isHovered: false,
   }
@@ -34,7 +34,11 @@ class FilterSmallTeam extends React.PureComponent<Props, State> {
     const props = this.props
     return (
       <Kb.ClickableBox onClick={props.onSelectConversation} style={styles.container}>
-        <Kb.Box
+        <Kb.Box2
+          direction="horizontal"
+          fullWidth={true}
+          fullHeight={true}
+          gap="tiny"
           className={Styles.classNames('hover_background_color_blueGrey2', {
             background_color_blue: props.isSelected,
           })}
@@ -66,16 +70,18 @@ class FilterSmallTeam extends React.PureComponent<Props, State> {
               usernameColor={props.usernameColor}
             />
           </Kb.Box>
-        </Kb.Box>
+        </Kb.Box2>
       </Kb.ClickableBox>
     )
   }
 }
 
+export const rowHeight = isMobile ? 64 : 56
+
 const styles = Styles.styleSheetCreate({
   container: {
     flexShrink: 0,
-    height: RowSizes.smallRowHeight,
+    height: rowHeight,
   },
   conversationRow: {
     ...Styles.globalStyles.flexBoxColumn,
@@ -86,13 +92,8 @@ const styles = Styles.styleSheetCreate({
     paddingRight: 8,
   },
   rowContainer: Styles.platformStyles({
-    common: {
-      alignItems: 'center',
-      ...Styles.globalStyles.flexBoxRow,
-      height: '100%',
-    },
     isElectron: Styles.desktopStyles.clickable,
   }),
 })
 
-export {FilterSmallTeam}
+export default SelectableSmallTeam

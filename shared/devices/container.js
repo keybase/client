@@ -7,7 +7,7 @@ import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Constants from '../constants/devices'
 import * as I from 'immutable'
 import * as Kb from '../common-adapters'
-import {compose, namedConnect, safeSubmitPerMount} from '../util/container'
+import {compose, isMobile, namedConnect, safeSubmitPerMount} from '../util/container'
 import {partition} from 'lodash-es'
 
 const mapStateToProps = state => ({
@@ -65,9 +65,11 @@ class ReloadableDevices extends React.PureComponent<React.ElementConfig<typeof D
   render() {
     return (
       <Kb.Reloadable
+        onBack={isMobile ? this.props.onBack : undefined}
         waitingKeys={Constants.waitingKey}
         onReload={this.props.loadDevices}
         reloadOnMount={true}
+        title={this.props.title}
       >
         <Devices
           _stateOverride={this.props._stateOverride}

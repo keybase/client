@@ -1,8 +1,8 @@
 // @flow
 import * as React from 'react'
 import shallowEqual from 'shallowequal'
-import {Avatar, MultiAvatar, Icon, Box} from '../../../common-adapters'
-import {globalStyles, globalColors, globalMargins, isMobile} from '../../../styles'
+import {Avatar, MultiAvatar, Icon, Box} from '../common-adapters'
+import {globalStyles, globalColors, globalMargins, isMobile} from '../styles'
 import {memoize} from 'lodash-es'
 
 // All this complexity isn't great but the current implementation of avatar forces us to juggle all these colors and

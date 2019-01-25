@@ -1,4 +1,5 @@
 // @flow
+// // TODO deprecate
 import {Component} from 'react'
 
 export type Props = {

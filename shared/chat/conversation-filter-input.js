@@ -1,29 +1,25 @@
 // @flow
 import * as React from 'react'
-import * as Kb from '../../../../common-adapters'
-import * as Styles from '../../../../styles'
+import * as Kb from '../common-adapters'
+import * as Styles from '../styles'
 
-let KeyHandler: any = c => c
-if (!Styles.isMobile) {
-  KeyHandler = require('../../../../util/key-handler.desktop').default
-}
-
-type Props = {
+export type Props = {|
   isLoading: boolean,
   filter: string,
   filterFocusCount: number,
-  onNewChat: () => void,
+  onNewChat?: () => void,
   onSetFilter: (filter: string) => void,
   onSelectDown: () => void,
   onSelectUp: () => void,
   onEnsureSelection: () => void,
-}
+  style?: Styles.StylesCrossPlatform,
+|}
 
 type State = {
   isEditing: boolean,
 }
 
-class ChatFilterRow extends React.PureComponent<Props, State> {
+class ConversationFilterInput extends React.PureComponent<Props, State> {
   state: State
   _input: any
 
@@ -140,36 +136,48 @@ class ChatFilterRow extends React.PureComponent<Props, State> {
         )}
       </>
     ) : (
-      <Kb.Box style={styles.container}>
+      <Kb.Box2
+        direction="horizontal"
+        centerChildren={true}
+        gap="small"
+        style={Styles.collapseStyles([styles.container, this.props.style])}
+        gapStart={true}
+        gapEnd={true}
+        fullWidth={true}
+      >
         {children}
-        <Kb.Icon
-          type="iconfont-compose"
-          style={propsIconPlatform.style}
-          color={propsIconPlatform.color}
-          fontSize={propsIconPlatform.fontSize}
-          onClick={this.props.onNewChat}
-        />
+        {!!this.props.onNewChat && (
+          <Kb.Icon
+            type="iconfont-compose"
+            style={propsIconPlatform.style}
+            color={propsIconPlatform.color}
+            fontSize={propsIconPlatform.fontSize}
+            onClick={this.props.onNewChat}
+          />
+        )}
         {this.props.isLoading && (
           <Kb.Box style={styles.loadingContainer}>
             <Kb.LoadingLine />
           </Kb.Box>
         )}
-      </Kb.Box>
+      </Kb.Box2>
     )
   }
 }
 
 const styles = Styles.styleSheetCreate({
-  container: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    backgroundColor: Styles.isMobile ? Styles.globalColors.fastBlank : Styles.globalColors.blueGrey,
-    justifyContent: 'space-between',
-    minHeight: 48,
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-    position: 'relative',
-  },
+  container: Styles.platformStyles({
+    common: {
+      minHeight: 48,
+      position: 'relative',
+    },
+    isElectron: {
+      backgroundColor: Styles.globalColors.blueGrey,
+    },
+    isMobile: {
+      backgroundColor: Styles.globalColors.fastBlank,
+    },
+  }),
   filterContainer: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxRow,
@@ -182,7 +190,6 @@ const styles = Styles.styleSheetCreate({
       ...Styles.desktopStyles.editable,
       flexGrow: 1,
       height: 24,
-      marginRight: Styles.globalMargins.small,
     },
     isMobile: {
       height: 32,
@@ -231,4 +238,4 @@ const propsIconComposeMobile = {
 
 const propsIconPlatform = Styles.isMobile ? propsIconComposeMobile : propsIconCompose
 
-export default (Styles.isMobile ? ChatFilterRow : KeyHandler<any>(ChatFilterRow))
+export default ConversationFilterInput
