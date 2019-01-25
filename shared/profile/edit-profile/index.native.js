@@ -28,7 +28,7 @@ const EditProfileRender = (props: Props) => (
       autoCorrect={true}
       label="Location"
       value={props.location}
-      onEnterKeyDown={props.onSubmit}
+      onEnterKeyDown={props.bioLengthLeft >= 0 ? props.onSubmit : null}
       onChangeText={location => props.onLocationChange(location)}
     />
     {props.bioLengthLeft <= 5 && (
