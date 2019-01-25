@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
+import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Constants from '../../../../constants/chat2'
 import {emojiIndex} from 'emoji-mart'
 import PlatformInput from './platform-input'
@@ -45,11 +46,13 @@ const searchUsers = memoize((users, filter) => {
 
 const suggestorToMarker = {
   channels: '#',
+  commands: '/',
   emoji: ':',
   users: /^((\+\d+(\.\d+)?[a-zA-Z]{3,12}@)|@)/, // match normal mentions and ones in a stellar send
 }
 
 const suggestorKeyExtractors = {
+  commands: (c: RPCChatTypes.ConversationCommand) => c.name,
   emoji: (item: {id: string}) => item.id,
   users: ({username, fullName}: {username: string, fullName: string}) => username,
 }
@@ -94,16 +97,19 @@ class Input extends React.Component<InputProps, InputState> {
     this._lastQuote = 0
     this._suggestorDatasource = {
       channels: this._getChannelSuggestions,
+      commands: this._getCommandSuggestions,
       emoji: emojiDatasource,
       users: this._getUserSuggestions,
     }
     this._suggestorRenderer = {
       channels: this._renderChannelSuggestion,
+      commands: this._renderCommandSuggestion,
       emoji: emojiRenderer,
       users: this._renderUserSuggestion,
     }
     this._suggestorTransformer = {
       channels: this._transformChannelSuggestion,
+      commands: this._transformCommandSuggestion,
       emoji: emojiTransformer,
       users: this._transformUserSuggestion,
     }
@@ -217,6 +223,11 @@ class Input extends React.Component<InputProps, InputState> {
 
   _getUserSuggestions = filter => searchUsers(this.props.suggestUsers, filter)
 
+  _getCommandSuggestions = filter => {
+    const fil = filter.toLowerCase()
+    return this.props.suggestCommands.filter(c => c.name.includes(fil))
+  }
+
   _renderUserSuggestion = ({username, fullName}: {username: string, fullName: string}, selected: boolean) => (
     <Kb.Box2
       direction="horizontal"
@@ -272,8 +283,34 @@ class Input extends React.Component<InputProps, InputState> {
   _transformChannelSuggestion = (channelname, marker, tData, preview) =>
     standardTransformer(`${marker}${channelname}`, tData, preview)
 
+  _renderCommandSuggestion = (command: RPCChatTypes.ConversationCommand, selected) => (
+    <Kb.Box2
+      fullWidth={true}
+      direction="vertical"
+      style={Styles.collapseStyles([
+        styles.suggestionBase,
+        styles.fixSuggestionHeight,
+        {
+          alignItems: 'flex-start',
+          backgroundColor: selected ? Styles.globalColors.blue4 : Styles.globalColors.white,
+        },
+      ])}
+    >
+      <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
+        <Kb.Text type="BodyExtrabold">/{command.name}</Kb.Text>
+        <Kb.Text type="Body">{command.usage}</Kb.Text>
+      </Kb.Box2>
+      <Kb.Text type="Body" style={Styles.collapseStyles([{color: Styles.globalColors.black_50}])}>
+        {command.description}
+      </Kb.Text>
+    </Kb.Box2>
+  )
+
+  _transformCommandSuggestion = (command, marker, tData, preview) =>
+    standardTransformer(`/${command.name}`, tData, preview)
+
   render = () => {
-    const {suggestUsers, suggestChannels, ...platformInputProps} = this.props
+    const {suggestUsers, suggestChannels, suggestCommands, ...platformInputProps} = this.props
     return (
       <PlatformInput
         {...platformInputProps}

@@ -13,6 +13,10 @@
       "fields": [
         {
           "type": "string",
+          "name": "description"
+        },
+        {
+          "type": "string",
           "name": "name"
         },
         {
@@ -20,32 +24,11 @@
           "name": "usage"
         },
         {
-          "type": "string",
-          "name": "description"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "ConversationCommandGroup",
-      "fields": [
-        {
-          "type": "string",
-          "name": "heading"
-        },
-        {
           "type": [
             null,
             "string"
           ],
           "name": "username"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "ConversationCommand"
-          },
-          "name": "commands"
         }
       ]
     },
@@ -64,9 +47,9 @@
         {
           "type": {
             "type": "array",
-            "items": "ConversationCommandGroup"
+            "items": "ConversationCommand"
           },
-          "name": "groups"
+          "name": "commands"
         }
       ]
     },

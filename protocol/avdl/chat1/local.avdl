@@ -940,6 +940,7 @@ protocol local {
   StaticConfig getStaticConfig();
   record StaticConfig {
     array<MessageType> deletableByDeleteHistory;
+    array<ConversationCommand> builtinCommands;
   }
 
   // Respond to an unfurl prompt
@@ -960,7 +961,4 @@ protocol local {
   void resolveUnfurlPrompt(ConversationID convID, MessageID msgID, UnfurlPromptResult result, keybase1.TLFIdentifyBehavior identifyBehavior);
   UnfurlSettingsDisplay getUnfurlSettings();
   void saveUnfurlSettings(UnfurlMode mode, array<string> whitelist);
-
-  ConversationCommandGroup getBuiltinCommands();
-
 }

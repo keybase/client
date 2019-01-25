@@ -2719,6 +2719,13 @@
             "items": "MessageType"
           },
           "name": "deletableByDeleteHistory"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationCommand"
+          },
+          "name": "builtinCommands"
         }
       ]
     },
@@ -4104,10 +4111,6 @@
         }
       ],
       "response": null
-    },
-    "getBuiltinCommands": {
-      "request": [],
-      "response": "ConversationCommandGroup"
     }
   },
   "namespace": "chat.1"

@@ -413,7 +413,7 @@ type ConversationCommand interface {
 
 type ConversationCommandsSource interface {
 	ListCommands(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (chat1.ConversationCommandGroups, error)
-	GetBuiltins(ctx context.Context) chat1.ConversationCommandGroup
+	GetBuiltins(ctx context.Context) []chat1.ConversationCommand
 	AttemptBuiltinCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		tlfName string, body chat1.MessageBody) (bool, error)
 }

@@ -65,6 +65,7 @@ export const makeQuoteInfo: I.RecordFactory<Types._QuoteInfo> = I.Record({
 })
 
 export const makeStaticConfig: I.RecordFactory<Types._StaticConfig> = I.Record({
+  builtinCommands: [],
   deletableByDeleteHistory: I.Set(),
 })
 
@@ -239,6 +240,7 @@ const numMessagesOnScrollback = isMobile ? 100 : 100
 
 export {
   getChannelSuggestions,
+  getCommands,
   getConversationIDKeyMetasToLoad,
   getMeta,
   getParticipantSuggestions,

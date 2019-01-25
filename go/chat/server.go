@@ -2301,6 +2301,7 @@ func (h *Server) GetStaticConfig(ctx context.Context) (res chat1.StaticConfig, e
 	defer h.Trace(ctx, func() error { return err }, "GetStaticConfig")()
 	return chat1.StaticConfig{
 		DeletableByDeleteHistory: chat1.DeletableMessageTypesByDeleteHistory(),
+		BuiltinCommands:          h.G().CommandsSource.GetBuiltins(ctx),
 	}, nil
 }
 
@@ -2406,10 +2407,4 @@ func (h *Server) SaveUnfurlSettings(ctx context.Context, arg chat1.SaveUnfurlSet
 		Mode:      arg.Mode,
 		Whitelist: wm,
 	})
-}
-
-func (h *Server) GetBuiltinCommands(ctx context.Context) (res chat1.ConversationCommandGroup, err error) {
-	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "GetBuiltinCommands")()
-	return h.G().CommandsSource.GetBuiltins(ctx), nil
 }

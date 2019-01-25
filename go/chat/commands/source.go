@@ -33,22 +33,21 @@ func NewSource(g *globals.Context) *Source {
 
 func (s *Source) makeBuiltin() {
 	s.builtin = []types.ConversationCommand{
-		NewDM(s.G()),
 		NewHeadline(s.G()),
 		NewHide(s.G()),
 		NewJoin(s.G()),
 		NewLeave(s.G()),
 		NewMe(s.G()),
+		NewMsg(s.G()),
 		NewMute(s.G()),
 		NewShrug(s.G()),
 		NewUnhide(s.G()),
 	}
 }
 
-func (s *Source) GetBuiltins(ctx context.Context) (res chat1.ConversationCommandGroup) {
-	res.Heading = "Keybase"
-	for _, c := range s.builtin {
-		res.Commands = append(res.Commands, c.Export())
+func (s *Source) GetBuiltins(ctx context.Context) (res []chat1.ConversationCommand) {
+	for _, b := range s.builtin {
+		res = append(res, b.Export())
 	}
 	return res
 }

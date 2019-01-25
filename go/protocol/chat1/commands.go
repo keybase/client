@@ -9,28 +9,17 @@ import (
 )
 
 type ConversationCommand struct {
-	Name        string `codec:"name" json:"name"`
-	Usage       string `codec:"usage" json:"usage"`
-	Description string `codec:"description" json:"description"`
+	Description string  `codec:"description" json:"description"`
+	Name        string  `codec:"name" json:"name"`
+	Usage       string  `codec:"usage" json:"usage"`
+	Username    *string `codec:"username,omitempty" json:"username,omitempty"`
 }
 
 func (o ConversationCommand) DeepCopy() ConversationCommand {
 	return ConversationCommand{
+		Description: o.Description,
 		Name:        o.Name,
 		Usage:       o.Usage,
-		Description: o.Description,
-	}
-}
-
-type ConversationCommandGroup struct {
-	Heading  string                `codec:"heading" json:"heading"`
-	Username *string               `codec:"username,omitempty" json:"username,omitempty"`
-	Commands []ConversationCommand `codec:"commands" json:"commands"`
-}
-
-func (o ConversationCommandGroup) DeepCopy() ConversationCommandGroup {
-	return ConversationCommandGroup{
-		Heading: o.Heading,
 		Username: (func(x *string) *string {
 			if x == nil {
 				return nil
@@ -38,17 +27,6 @@ func (o ConversationCommandGroup) DeepCopy() ConversationCommandGroup {
 			tmp := (*x)
 			return &tmp
 		})(o.Username),
-		Commands: (func(x []ConversationCommand) []ConversationCommand {
-			if x == nil {
-				return nil
-			}
-			ret := make([]ConversationCommand, len(x))
-			for i, v := range x {
-				vCopy := v.DeepCopy()
-				ret[i] = vCopy
-			}
-			return ret
-		})(o.Commands),
 	}
 }
 
@@ -79,22 +57,22 @@ func (e ConversationCommandGroupsTyp) String() string {
 }
 
 type ConversationCommandGroupsExtended struct {
-	Groups []ConversationCommandGroup `codec:"groups" json:"groups"`
+	Commands []ConversationCommand `codec:"commands" json:"commands"`
 }
 
 func (o ConversationCommandGroupsExtended) DeepCopy() ConversationCommandGroupsExtended {
 	return ConversationCommandGroupsExtended{
-		Groups: (func(x []ConversationCommandGroup) []ConversationCommandGroup {
+		Commands: (func(x []ConversationCommand) []ConversationCommand {
 			if x == nil {
 				return nil
 			}
-			ret := make([]ConversationCommandGroup, len(x))
+			ret := make([]ConversationCommand, len(x))
 			for i, v := range x {
 				vCopy := v.DeepCopy()
 				ret[i] = vCopy
 			}
 			return ret
-		})(o.Groups),
+		})(o.Commands),
 	}
 }
 

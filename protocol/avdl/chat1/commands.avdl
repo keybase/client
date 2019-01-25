@@ -4,15 +4,10 @@ protocol commands {
   import idl "common.avdl";
 
   record ConversationCommand {
+    string description;
     string name;
     string usage;
-    string description;
-  }
-
-  record ConversationCommandGroup {
-    string heading;
     union { null, string } username;
-    array<ConversationCommand> commands;
   }
 
   enum ConversationCommandGroupsTyp {
@@ -21,7 +16,7 @@ protocol commands {
   }
 
   record ConversationCommandGroupsExtended {
-    array<ConversationCommandGroup> groups;
+    array<ConversationCommand> commands;
   }
 
   variant ConversationCommandGroups switch (ConversationCommandGroupsTyp typ) {
