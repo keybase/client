@@ -216,21 +216,6 @@ func (p ParsedStellarPayment) ToMini() libkb.MiniChatPayment {
 	}
 }
 
-type ConversationCommandGroup struct {
-	Heading  string
-	Username *string
-	Commands []ConversationCommand
-}
-
-func (g ConversationCommandGroup) Match(ctx context.Context, text string) (ConversationCommand, bool) {
-	for _, c := range g.Commands {
-		if c.Match(ctx, text) {
-			return c, true
-		}
-	}
-	return nil, false
-}
-
 type DummyAttachmentFetcher struct{}
 
 func (d DummyAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Writer,

@@ -19,6 +19,11 @@ export const chatUiUITextDecorationTyp = {
   channelnamemention: 2,
 }
 
+export const commandsConversationCommandGroupsTyp = {
+  builtin: 0,
+  extended: 1,
+}
+
 export const commonAssetMetadataType = {
   none: 0,
   image: 1,

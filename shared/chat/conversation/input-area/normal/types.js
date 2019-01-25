@@ -1,5 +1,6 @@
 // @flow
 import * as I from 'immutable'
+import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Types from '../../../../constants/types/chat2'
 import {PlainInput} from '../../../../common-adapters'
 
@@ -39,6 +40,7 @@ type InputProps = {|
   ...CommonProps,
   suggestUsers: I.List<{username: string, fullName: string}>,
   suggestChannels: I.List<string>,
+  suggestCommands: Array<RPCChatTypes.ConversationCommand>,
 |}
 
 type PlatformInputProps = {|

@@ -7,6 +7,7 @@ protocol local {
   import idl "common.avdl";
   import idl "chat_ui.avdl";
   import idl "unfurl.avdl";
+  import idl "commands.avdl";
 
   @typedef("string") record VersionKind {}
 
@@ -528,6 +529,8 @@ protocol local {
     union { null, RetentionPolicy } convRetention;
     union { null, RetentionPolicy } teamRetention;
     union { null, ConversationSettingsLocal } convSettings;
+
+    ConversationCommandGroups commands;
   }
 
   record NonblockFetchRes {
@@ -939,6 +942,7 @@ protocol local {
   StaticConfig getStaticConfig();
   record StaticConfig {
     array<MessageType> deletableByDeleteHistory;
+    array<ConversationCommand> builtinCommands;
   }
 
   // Respond to an unfurl prompt

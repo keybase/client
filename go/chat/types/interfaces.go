@@ -410,12 +410,14 @@ type ConversationCommand interface {
 	Name() string
 	Usage() string
 	Description() string
+	Export() chat1.ConversationCommand
 }
 
 type ConversationCommandsSource interface {
-	ListCommands(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) ([]ConversationCommandGroup, error)
-	AttemptCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, tlfName string,
-		body chat1.MessageBody) (bool, error)
+	ListCommands(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (chat1.ConversationCommandGroups, error)
+	GetBuiltins(ctx context.Context) []chat1.ConversationCommand
+	AttemptBuiltinCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		tlfName string, body chat1.MessageBody) (bool, error)
 }
 
 type InternalError interface {

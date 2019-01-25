@@ -23,6 +23,10 @@
     {
       "path": "unfurl.avdl",
       "type": "idl"
+    },
+    {
+      "path": "commands.avdl",
+      "type": "idl"
     }
   ],
   "types": [
@@ -178,6 +182,10 @@
             "items": "ConversationMetadata"
           },
           "name": "supersededBy"
+        },
+        {
+          "type": "ConversationCommandGroups",
+          "name": "commands"
         }
       ]
     },
@@ -362,6 +370,10 @@
             "items": "ConversationMetadata"
           },
           "name": "supersededBy"
+        },
+        {
+          "type": "ConversationCommandGroups",
+          "name": "commands"
         }
       ]
     },

@@ -2379,6 +2379,7 @@ function* loadStaticConfig(state, action) {
     }, [])
     return Chat2Gen.createStaticConfigLoaded({
       staticConfig: Constants.makeStaticConfig({
+        builtinCommands: res.builtinCommands || [],
         deletableByDeleteHistory: I.Set(deletableByDeleteHistory),
       }),
     })
