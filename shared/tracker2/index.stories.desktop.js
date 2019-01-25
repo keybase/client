@@ -14,39 +14,39 @@ const assertion = {
   state: 'valid',
 }
 
-const github = {...assertion, assertion: 'githubuser@github', siteIcon: 'iconfont-identity-github'}
+const github = {...assertion, assertion: 'githubuser:github', siteIcon: 'iconfont-identity-github'}
 const twitter = {
   ...assertion,
-  assertion: 'twitteruser@twitter',
+  assertion: 'twitteruser:twitter',
   color: 'gray',
   siteIcon: 'iconfont-identity-twitter',
   state: 'checking',
 }
 const facebook = {
   ...assertion,
-  assertion: 'facebookuser@facebook',
+  assertion: 'facebookuser:facebook',
   color: 'red',
   siteIcon: 'iconfont-identity-facebook',
   state: 'error',
 }
 const hackernews = {
   ...assertion,
-  assertion: 'hackernewsuser@hackernews',
+  assertion: 'hackernewsuser:hackernews',
   color: 'yellow',
   siteIcon: 'iconfont-identity-hn',
   state: 'warning',
 }
 const reddit = {
   ...assertion,
-  assertion: 'reddituser@reddit',
+  assertion: 'reddituser:reddit',
   color: 'red',
   siteIcon: 'iconfont-identity-reddit',
   state: 'revoked',
 }
-const pgp = {...assertion, assertion: 'DEADBEEFFEEBDAED@pgp', siteIcon: 'iconfont-identity-pgp'}
-const https = {...assertion, assertion: 'httpsuser@https', siteIcon: 'iconfont-identity-website'}
-const rooter = {...assertion, assertion: 'rooteruser@rooter', siteIcon: 'iconfont-thunderbolt'}
-const dns = {...assertion, assertion: 'dnsuser@dns', siteIcon: 'iconfont-identity-website'}
+const pgp = {...assertion, assertion: 'DEADBEEFFEEBDAED:pgp', siteIcon: 'iconfont-identity-pgp'}
+const https = {...assertion, assertion: 'httpsuser:https', siteIcon: 'iconfont-identity-website'}
+const rooter = {...assertion, assertion: 'rooteruser:rooter', siteIcon: 'iconfont-thunderbolt'}
+const dns = {...assertion, assertion: 'dnsuser:dns', siteIcon: 'iconfont-identity-website'}
 
 const shorter = a => ({
   ...a,
@@ -57,7 +57,7 @@ const shorter = a => ({
 })
 const web1 = {
   ...assertion,
-  assertion: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com@https',
+  assertion: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com:https',
   siteIcon: 'iconfont-identity-website',
 }
 const web2 = shorter(web1)
@@ -124,7 +124,7 @@ const provider = Sb.createPropProviderWithCommon({
     if (!a) {
       throw new Error('cant happen')
     }
-    const parts = a.assertion.split('@')
+    const parts = a.assertion.split(':')
     const site = parts[1]
     return {
       color: a.color,
