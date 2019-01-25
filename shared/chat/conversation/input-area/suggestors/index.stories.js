@@ -119,6 +119,6 @@ const props = {
 
 const availableTriggers = Object.values(props.suggestorToMarker)
 
-const load = () => Sb.storiesOf('Chat/Suggestors').add('Basic', () => <TestArea {...props} />)
+const load = () => Sb.storiesOf('Chat/Suggestors', module).add('Basic', () => <TestArea {...props} />)
 
 export default load
