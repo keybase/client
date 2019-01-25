@@ -56,6 +56,11 @@ func (d *chatNotificationDisplay) formatMessage(inMsg chat1.IncomingMessage) *Me
 		errStr := inMsg.Message.Error().ErrMsg
 		return &Message{Error: &errStr}
 	case chat1.MessageUnboxedState_VALID:
+		// if we weren't able to get an inbox item here, then just return an error
+		if inMsg.Conv == nil {
+			msg := "unable to get chat channel"
+			return &Message{Error: &msg}
+		}
 		mv := inMsg.Message.Valid()
 		summary := &MsgSummary{
 			ID: mv.MessageID,
