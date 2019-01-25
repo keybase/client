@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	sysPath "path"
 	"runtime/debug"
@@ -3324,6 +3325,57 @@ func (cr *ConflictResolver) recordFinishResolve(
 	err = serializeAndPutConflicts(cr.config, db, key, conflictsSoFar)
 }
 
+func (cr *ConflictResolver) makeDirtyBcache(
+	ctx context.Context, kmd KeyMetadata) (
+	dirtyBcache DirtyBlockCacheSimple, cleanupFn func(context.Context),
+	err error) {
+	var dbc *DiskBlockCacheLocal
+	if cr.config.IsTestMode() {
+		// Enable the disk limiter if one doesn't exist yet.
+		_ = cr.config.(*ConfigLocal).EnableDiskLimiter(os.TempDir())
+
+		dbc, err = newDiskBlockCacheLocalForTest(
+			cr.config, syncCacheLimitTrackerType)
+		if err != nil {
+			return nil, nil, err
+		}
+		cleanupFn = dbc.Shutdown
+	} else {
+		tempDir, err := ioutil.TempDir(cr.config.StorageRoot(), "kbfscr")
+		if err != nil {
+			return nil, nil, err
+		}
+		dirCleanupFn := func(_ context.Context) {
+			err := os.RemoveAll(tempDir)
+			if err != nil {
+				cr.log.CDebugf(ctx, "Error cleaning up tempdir %s: %+v",
+					tempDir, err)
+			}
+		}
+		dbc, err = newDiskBlockCacheLocal(
+			cr.config, crDirtyBlockCacheLimitTrackerType, tempDir)
+		if err != nil {
+			dirCleanupFn(ctx)
+			return nil, nil, err
+		}
+		cleanupFn = func(ctx context.Context) {
+			dbc.Shutdown(ctx)
+			dirCleanupFn(ctx)
+		}
+	}
+
+	err = dbc.WaitUntilStarted()
+	if err != nil {
+		if cleanupFn != nil {
+			cleanupFn(ctx)
+		}
+		return nil, nil, err
+	}
+
+	dirtyBcache = newDirtyBlockCacheDisk(cr.config, dbc, kmd, cr.fbo.branch())
+	return dirtyBcache, cleanupFn, nil
+}
+
 // CRWrapError wraps an error that happens during conflict resolution.
 type CRWrapError struct {
 	err error
@@ -3562,8 +3614,14 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	// references for all indirect pointers inside it.  If it is not
 	// an indirect block, just add a new reference to the block.
 	newFileBlocks := make(fileBlockMap)
-	dirtyBcache := simpleDirtyBlockCacheStandard()
-	// Simple dirty bcaches don't need to be shut down.
+	dirtyBcache, cleanupFn, err := cr.makeDirtyBcache(
+		ctx, mergedChains.mostRecentChainMDInfo)
+	if err != nil {
+		return
+	}
+	if cleanupFn != nil {
+		defer cleanupFn(ctx)
+	}
 
 	err = cr.doActions(ctx, lState, unmergedChains, mergedChains,
 		unmergedPaths, mergedPaths, actionMap, lbc, newFileBlocks, dirtyBcache)
