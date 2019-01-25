@@ -50,6 +50,9 @@ const box2 = (props: Box2Props) => {
     props.centerChildren && styles.centeredChildren,
     props.alignSelf === 'flex-start' && styles.alignSelfStart,
     props.alignSelf === 'flex-end' && styles.alignSelfEnd,
+    props.alignItems === 'center' && styles.alignItemsCenter,
+    props.alignItems === 'flex-end' && styles.alignItemsEnd,
+    props.alignItems === 'flex-start' && styles.alignItemsStart,
     props.noShrink && styles.noShrink,
     // uncomment this to get debugging colors
     // {backgroundColor: `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`},
@@ -75,6 +78,9 @@ const common = {
   justifyContent: 'flex-start',
 }
 const styles = {
+  alignItemsCenter: {alignItems: 'center'},
+  alignItemsEnd: {alignItems: 'flex-end'},
+  alignItemsStart: {alignItems: 'flex-start'},
   alignSelfEnd: {alignSelf: 'flex-end'},
   alignSelfStart: {alignSelf: 'flex-start'},
   centered: {alignSelf: 'center'},
