@@ -248,7 +248,7 @@ export type _State = {
   exportedSecretKey: HiddenString,
   exportedSecretKeyAccountID: AccountID,
   inflationDestinations: I.List<InflationDestination>,
-  inflationDestination: string,
+  inflationDestinationMap: I.Map<AccountID, AccountID>,
   inflationDestinationError: string,
   lastSentXLM: boolean,
   linkExistingAccountError: string,

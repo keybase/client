@@ -124,9 +124,10 @@
     },
     "inflationDestinationReceived": {
       "_description": "Got inflation destination",
-      "selected?": "string",
+      "accountID": "Types.AccountID",
+      "selected": "string",
       "options?": "Array<Types.InflationDestination>",
-      "error?": "string"
+      "canError": {"accountID": "Types.AccountID", "error": "string"}
     },
     "loadMorePayments": {
       "_description": "Scrolled down the list of payments for a given account",

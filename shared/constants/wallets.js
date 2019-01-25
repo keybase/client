@@ -101,8 +101,8 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   currencies: I.List(),
   exportedSecretKey: new HiddenString(''),
   exportedSecretKeyAccountID: Types.noAccountID,
-  inflationDestination: '',
   inflationDestinationError: '',
+  inflationDestinationMap: I.Map(),
   inflationDestinations: I.List(),
   lastSentXLM: false,
   linkExistingAccountError: '',
@@ -511,6 +511,9 @@ export const getDefaultAccountID = (state: TypedState) => {
   const defaultAccount = state.wallets.accountMap.find(a => a.isDefault)
   return defaultAccount ? defaultAccount.accountID : null
 }
+
+export const getInflationDestination = (state: TypedState, accountID: Types.AccountID) =>
+  state.wallets.inflationDestinationMap.get(accountID, Types.noAccountID)
 
 export const getAssets = (state: TypedState, accountID: Types.AccountID) =>
   state.wallets.assetsMap.get(accountID, I.List())

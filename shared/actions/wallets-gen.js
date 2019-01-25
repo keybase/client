@@ -131,7 +131,8 @@ type _DisplayCurrenciesReceivedPayload = $ReadOnly<{|currencies: Array<Types.Cur
 type _DisplayCurrencyReceivedPayload = $ReadOnly<{|accountID: ?Types.AccountID, currency: Types.Currency, setBuildingCurrency?: boolean|}>
 type _ExitFailedPaymentPayload = void
 type _ExportSecretKeyPayload = $ReadOnly<{|accountID: Types.AccountID|}>
-type _InflationDestinationReceivedPayload = $ReadOnly<{|selected?: string, options?: Array<Types.InflationDestination>, error?: string|}>
+type _InflationDestinationReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, selected: string, options?: Array<Types.InflationDestination>|}>
+type _InflationDestinationReceivedPayloadError = $ReadOnly<{|accountID: Types.AccountID, error: string|}>
 type _LinkExistingAccountPayload = $ReadOnly<{|name: string, secretKey: HiddenString, showOnCreation?: boolean, setBuildingTo?: boolean|}>
 type _LinkedExistingAccountPayload = $ReadOnly<{|accountID: Types.AccountID, showOnCreation?: boolean, setBuildingTo?: boolean|}>
 type _LinkedExistingAccountPayloadError = $ReadOnly<{|name: string, secretKey: HiddenString, error: string|}>
@@ -292,6 +293,7 @@ export const createSentPaymentError = (payload: _SentPaymentErrorPayload) => ({p
  * Got inflation destination
  */
 export const createInflationDestinationReceived = (payload: _InflationDestinationReceivedPayload) => ({payload, type: inflationDestinationReceived})
+export const createInflationDestinationReceivedError = (payload: _InflationDestinationReceivedPayloadError) => ({error: true, payload, type: inflationDestinationReceived})
 /**
  * Initialize and navigate to the send or request form. See docs for `setBuilding*` for param semantics.
  */
@@ -561,6 +563,7 @@ export type DisplayCurrencyReceivedPayload = {|+payload: _DisplayCurrencyReceive
 export type ExitFailedPaymentPayload = {|+payload: _ExitFailedPaymentPayload, +type: 'wallets:exitFailedPayment'|}
 export type ExportSecretKeyPayload = {|+payload: _ExportSecretKeyPayload, +type: 'wallets:exportSecretKey'|}
 export type InflationDestinationReceivedPayload = {|+payload: _InflationDestinationReceivedPayload, +type: 'wallets:inflationDestinationReceived'|}
+export type InflationDestinationReceivedPayloadError = {|+error: true, +payload: _InflationDestinationReceivedPayloadError, +type: 'wallets:inflationDestinationReceived'|}
 export type LinkExistingAccountPayload = {|+payload: _LinkExistingAccountPayload, +type: 'wallets:linkExistingAccount'|}
 export type LinkedExistingAccountPayload = {|+payload: _LinkedExistingAccountPayload, +type: 'wallets:linkedExistingAccount'|}
 export type LinkedExistingAccountPayloadError = {|+error: true, +payload: _LinkedExistingAccountPayloadError, +type: 'wallets:linkedExistingAccount'|}
@@ -653,6 +656,7 @@ export type Actions =
   | ExitFailedPaymentPayload
   | ExportSecretKeyPayload
   | InflationDestinationReceivedPayload
+  | InflationDestinationReceivedPayloadError
   | LinkExistingAccountPayload
   | LinkedExistingAccountPayload
   | LinkedExistingAccountPayloadError
