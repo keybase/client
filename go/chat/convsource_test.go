@@ -611,7 +611,7 @@ func (f failingRemote) SyncInbox(ctx context.Context, vers chat1.InboxVers) (cha
 	return chat1.SyncInboxRes{}, nil
 }
 
-func (f failingRemote) SyncChat(ctx context.Context, vers chat1.InboxVers) (chat1.SyncChatRes, error) {
+func (f failingRemote) SyncChat(ctx context.Context, arg chat1.SyncChatArg) (chat1.SyncChatRes, error) {
 	require.Fail(f.t, "SyncChat")
 	return chat1.SyncChatRes{}, nil
 }
