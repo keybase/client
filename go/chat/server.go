@@ -1157,17 +1157,7 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 		return res, err
 	}
 
-	// Make sure sender is set
-	db := make([]byte, 16)
-	deviceID := h.G().Env.GetDeviceID()
-	if err = deviceID.ToBytes(db); err != nil {
-		return res, err
-	}
-	arg.Msg.ClientHeader.Sender = uid
-	arg.Msg.ClientHeader.SenderDevice = gregor1.DeviceID(db)
-
 	sender := NewBlockingSender(h.G(), h.boxer, h.remoteClient)
-
 	_, msgBoxed, err := sender.Send(ctx, arg.ConversationID, arg.Msg, 0, nil)
 	if err != nil {
 		h.Debug(ctx, "PostLocal: unable to send message: %s", err.Error())
