@@ -6,7 +6,7 @@ import * as I from 'immutable'
 import {newRoutes as deviceNewRoutes} from '../devices/routes'
 import {newRoutes as chatNewRoutes} from '../chat/routes'
 import {newRoutes as peopleNewRoutes} from '../people/routes'
-import {newRoutes as profileNewRoutes} from '../profile/routes'
+import {newRoutes as profileNewRoutes, newModalRoutes as profileNewModalRoutes} from '../profile/routes'
 // import OldPeopleRoutes from '../people/routes'
 import * as Tabs from '../constants/tabs'
 
@@ -56,6 +56,11 @@ newRoutes.forEach(({route, tab}) => {
   })
 })
 
+export const modalRoutes = {
+  ...profileNewModalRoutes,
+}
+
 // TEMP
 console.log('aaa all routes', routes)
+console.log('aaa all modal routes', modalRoutes)
 console.log('aaa routes to tab', nameToTab)

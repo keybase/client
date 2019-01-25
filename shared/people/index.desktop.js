@@ -41,6 +41,9 @@ const styles = Styles.styleSheetCreate({
   container: {
     ...Styles.globalStyles.fullHeight,
   },
+  header: {
+    flexGrow: 1,
+  },
   progress: {
     height: 32,
     left: 96,

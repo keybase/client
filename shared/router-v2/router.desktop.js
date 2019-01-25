@@ -17,104 +17,36 @@ import {
   NavigationProvider,
   SceneView,
 } from '@react-navigation/core'
-import {routes, nameToTab} from './routes'
-import {LeftAction} from '../common-adapters/header-hoc'
+import {modalRoutes, routes, nameToTab} from './routes'
 import * as Shared from './router.shared'
+import Header from './header/index.desktop'
 
+/**
+ * How this works:
+ * There are 3 layers
+ * Normal screens
+ * Modal screens
+ * Floating screens
+ *
+ * You have 2 nested routers, a normal stack and modal stack
+ * When the modal has a valid route ModalView is rendered, which renders AppView underneath
+ * When there are no modals AppView is rendered
+ * Floating is rendered to a portal on top
+ */
 // TODO modals
 // <Kb.ErrorBoundary>
 // {!options.skipOffline && <Offline />}
 // <GlobalError />
 
-class Header extends React.PureComponent {
-  render() {
-    // TODO add more here as we use more options on the mobile side maybe
-    const opt = this.props.options
-    if (opt.headerMode === 'none') {
-      return null
-    }
-
-    // let leftAction = null
-    // if (typeof opt.headerBackTitle === 'string') {
-    // leftAction = (
-    // <Kb.Text type="BodyPrimaryLink" onClick={opt.onPop}>
-    // {opt.headerBackTitle}
-    // </Kb.Text>
-    // )
-    // } else if (typeof opt.headerBackTitle === 'function') {
-    // const CustomBackTitle = opt.headerBackTitle
-    // leftAction = <CustomBackTitle />
-    // } else {
-    // leftAction = (
-    // )
-    // }
-
-    let title = null
-    if (typeof opt.headerTitle === 'string') {
-      title = <Kb.Text type="BodySemibold">{opt.headerTitle}</Kb.Text>
-    } else if (typeof opt.headerTitle === 'function') {
-      const CustomTitle = opt.headerTitle
-      title = <CustomTitle>{opt.title}</CustomTitle>
-    }
-
-    const rightAction = opt.headerRight
-
-    let style = null
-    if (opt.headerTransparent) {
-      style = {position: 'absolute', zIndex: 9999}
-    }
-
-    return (
-      <Kb.Box2
-        noShrink={true}
-        direction="vertical"
-        fullWidth={true}
-        style={Styles.collapseStyles([styles.headerContainer, style])}
-        gap="xtiny"
-        gapEnd={true}
-      >
-        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerBack}>
-          <LeftAction
-            badgeNumber={0}
-            leftAction="back"
-            hideBackLabel={true}
-            onLeftAction={this.props.onPop}
-            disabled={!this.props.allowBack}
-          />
-        </Kb.Box2>
-        <Kb.Box2 direction="horizontal" fullWidth={true}>
-          {title}
-        </Kb.Box2>
-      </Kb.Box2>
-    )
-  }
-}
-
 // The app with a tab bar on the left and content area on the right
 // A single content view and n modals on top
 class AppView extends React.PureComponent {
   render() {
-    const p = this.props
-    const index = p.navigation.state.index
-    // Find topmost non modal
-    let nonModalIndex = index
-    let modals = []
-    while (nonModalIndex >= 0) {
-      const activeKey = p.navigation.state.routes[nonModalIndex].key
-      const descriptor = p.descriptors[activeKey]
-      const Component = descriptor.getComponent()
-      const options = Component.navigationOptions || {}
-      if (!options.isModal) {
-        break
-      }
-      modals.unshift(descriptor)
-      --nonModalIndex
-    }
-
-    const activeKey = p.navigation.state.routes[nonModalIndex].key
-    const descriptor = p.descriptors[activeKey]
+    const navigation = this.props.navigation
+    const index = navigation.state.index
+    const activeKey = navigation.state.routes[index].key
+    const descriptor = this.props.descriptors[activeKey]
     const childNav = descriptor.navigation
-    // const childNav = p.navigation.getChildNavigation(p.navigation.state.routes[p.navigation.state.index].key)
 
     return (
       <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
@@ -124,23 +56,68 @@ class AppView extends React.PureComponent {
           <SceneView
             navigation={childNav}
             component={descriptor.getComponent()}
-            screenProps={p.screenProps}
+            screenProps={this.props.screenProps}
           />
         </Kb.Box2>
-        {/* modals.map(modal => {
-          const component = modal.getComponent()
-          return <SceneView key={modal.key} component={component} />
-        }) */}
       </Kb.Box2>
     )
   }
 }
 
+class ModalView extends React.PureComponent {
+  render() {
+    const navigation = this.props.navigation
+    const index = navigation.state.index
+    const activeKey = navigation.state.routes[index].key
+    const descriptor = this.props.descriptors[activeKey]
+    const childNav = descriptor.navigation
+
+    // We render the app below us
+    const appKey = this.props.navigation.state.routes[0].key
+    const appNav = this.props.navigation.getChildNavigation(appKey)
+    const appDescriptor = this.props.descriptors[appKey]
+
+    // <MainNavigator navigation={appNav} />
+    // <AppView navigation={appNav} descriptors={this.props.descriptors} />
+    return (
+      <>
+        <SceneView
+          navigation={appNav}
+          component={appDescriptor.getComponent()}
+          screenProps={this.props.screenProps}
+        />
+        {index > 0 && (
+          <SceneView
+            navigation={childNav}
+            component={descriptor.getComponent()}
+            screenProps={this.props.screenProps}
+          />
+        )}
+      </>
+    )
+  }
+}
+
 const shimmedRoutes = Shared.shimRoutes(routes)
-const AppNavigator = createNavigator(
+const MainNavigator = createNavigator(
   AppView,
   // TODO don't hardcode this
   StackRouter(shimmedRoutes, {initialRouteName: 'tabs:peopleTab'}),
+  {}
+)
+
+const shimmedModalRoutes = Shared.shimRoutes(modalRoutes)
+const RootNavigator = createNavigator(
+  ModalView,
+  StackRouter(
+    {
+      Main: {
+        screen: MainNavigator,
+      },
+      ...shimmedModalRoutes,
+    },
+    {}
+  ),
   {}
 )
 
@@ -193,7 +170,7 @@ const createElectronApp = App => {
   return ElectronApp
 }
 
-const ElectronApp = createElectronApp(AppNavigator)
+const ElectronApp = createElectronApp(RootNavigator)
 
 const styles = Styles.styleSheetCreate({
   back: Styles.platformStyles({
@@ -205,18 +182,6 @@ const styles = Styles.styleSheetCreate({
     flexGrow: 1,
     position: 'relative',
   },
-  headerBack: Styles.platformStyles({
-    isElectron: {
-      alignItems: 'center',
-      minHeight: 36,
-    },
-  }),
-  headerContainer: Styles.platformStyles({
-    isElectron: {
-      alignItems: 'center',
-      ...Styles.desktopStyles.windowDragging,
-    },
-  }),
   modalContainer: {},
 })
 
