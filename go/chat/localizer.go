@@ -731,9 +731,11 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		if err == nil {
 			summaries = append(summaries, headlineSummary)
 		}
-		tlfSummary, err := conversationRemote.GetMaxMessage(chat1.MessageType_TLFNAME)
-		if err == nil {
-			summaries = append(summaries, tlfSummary)
+		if len(summaries) == 0 {
+			tlfSummary, err := conversationRemote.GetMaxMessage(chat1.MessageType_TLFNAME)
+			if err == nil {
+				summaries = append(summaries, tlfSummary)
+			}
 		}
 		var msgs []chat1.MessageUnboxed
 		if s.offline {
@@ -820,13 +822,6 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 				conversationLocal.Info.SnippetMsg = &newMsg[0]
 			}
 		}
-	}
-
-	if len(conversationLocal.Info.TlfName) == 0 {
-		errMsg := "no valid message in the conversation"
-		conversationLocal.Error = chat1.NewConversationErrorLocal(
-			errMsg, conversationRemote, unverifiedTLFName, chat1.ConversationErrorType_TRANSIENT, nil)
-		return conversationLocal
 	}
 
 	// Verify ConversationID is derivable from ConversationIDTriple
