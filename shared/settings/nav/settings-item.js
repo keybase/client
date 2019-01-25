@@ -1,8 +1,17 @@
 // @flow
 import React from 'react'
-import type {SettingsItemProps} from './index'
-import {Badge, ClickableBox, Text, Icon} from '../../common-adapters'
+import {Badge, ClickableBox, Text, Icon, type IconType} from '../../common-adapters'
 import * as Style from '../../styles'
+
+type SettingsItemProps = {
+  badgeNumber?: number,
+  icon?: IconType,
+  largerBadgeMinWidthFix?: boolean,
+  onClick: () => void,
+  text: string,
+  textColor?: Style.Color,
+  selected?: boolean,
+}
 
 export default function SettingsItem(props: SettingsItemProps) {
   return (
