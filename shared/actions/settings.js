@@ -284,6 +284,13 @@ function* refreshNotifications() {
           `${ChatTypes.commonGlobalAppNotificationSetting.plaintextmobile}`
         ],
       },
+      {
+        description: 'Disable sending/receiving typing notifications',
+        name: 'disabletyping',
+        subscribed: !!chatGlobalSettings.settings[
+          `${ChatTypes.commonGlobalAppNotificationSetting.disabletyping}`
+        ],
+      },
       ...(isAndroidNewerThanN
         ? []
         : [

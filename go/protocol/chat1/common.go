@@ -360,6 +360,7 @@ const (
 	GlobalAppNotificationSetting_PLAINTEXTMOBILE    GlobalAppNotificationSetting = 1
 	GlobalAppNotificationSetting_PLAINTEXTDESKTOP   GlobalAppNotificationSetting = 2
 	GlobalAppNotificationSetting_DEFAULTSOUNDMOBILE GlobalAppNotificationSetting = 3
+	GlobalAppNotificationSetting_DISABLETYPING      GlobalAppNotificationSetting = 4
 )
 
 func (o GlobalAppNotificationSetting) DeepCopy() GlobalAppNotificationSetting { return o }
@@ -369,6 +370,7 @@ var GlobalAppNotificationSettingMap = map[string]GlobalAppNotificationSetting{
 	"PLAINTEXTMOBILE":    1,
 	"PLAINTEXTDESKTOP":   2,
 	"DEFAULTSOUNDMOBILE": 3,
+	"DISABLETYPING":      4,
 }
 
 var GlobalAppNotificationSettingRevMap = map[GlobalAppNotificationSetting]string{
@@ -376,6 +378,7 @@ var GlobalAppNotificationSettingRevMap = map[GlobalAppNotificationSetting]string
 	1: "PLAINTEXTMOBILE",
 	2: "PLAINTEXTDESKTOP",
 	3: "DEFAULTSOUNDMOBILE",
+	4: "DISABLETYPING",
 }
 
 func (e GlobalAppNotificationSetting) String() string {
