@@ -381,6 +381,16 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	}
 	oneDedupFound := false
 	for id, refs := range endBlocks {
+		areAllRefsArchived := true
+		for _, ref := range refs {
+			if ref.Status != archivedBlockRef {
+				areAllRefsArchived = false
+				break
+			}
+		}
+		if areAllRefsArchived {
+			continue
+		}
 		if len(refs) > 2 {
 			t.Errorf("Block %v unexpectedly had %d refs %+v", id, len(refs), refs)
 		} else if len(refs) == 2 {
