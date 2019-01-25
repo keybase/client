@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import {Box, Text} from '../../../../common-adapters'
+import {Box, Box2, Text} from '../../../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../../../styles'
 
 type Props = {
@@ -8,27 +8,35 @@ type Props = {
   onJoinChannel: () => void,
   onLeaveChannel: () => void,
 }
-
-export default class ChannelPreview extends React.Component<Props> {
+type State = {clicked: null | 'join' | 'leave'}
+export default class ChannelPreview extends React.Component<Props, State> {
+  state = {clicked: null}
+  _onClick = join =>
+    this.setState(
+      {clicked: join ? 'join' : 'leave'},
+      join ? this.props.onJoinChannel : this.props.onLeaveChannel
+    )
   render() {
     return (
       <Box style={styleContainer}>
         <Text type="BodySemibold" backgroundMode="Announcements">
           Would you like to join #{this.props.channelname}?
         </Text>
-        <Box style={globalStyles.flexBoxRow}>
-          <Text type="BodySemiboldLink" backgroundMode="Announcements" onClick={this.props.onJoinChannel}>
-            Yes, join
+        {!this.state.clicked && (
+          <Box2 direction="horizontal" gap="tiny">
+            <Text type="BodySemiboldLink" backgroundMode="Announcements" onClick={() => this._onClick(true)}>
+              Yes, join
+            </Text>
+            <Text type="BodySemiboldLink" backgroundMode="Announcements" onClick={() => this._onClick(false)}>
+              No, thanks
+            </Text>
+          </Box2>
+        )}
+        {!!this.state.clicked && (
+          <Text type="BodySemibold" backgroundMode="Announcements">
+            {this.state.clicked === 'join' ? 'Joining...' : 'Leaving...'}
           </Text>
-          <Text
-            type="BodySemiboldLink"
-            style={{marginLeft: globalMargins.tiny}}
-            backgroundMode="Announcements"
-            onClick={this.props.onLeaveChannel}
-          >
-            No, thanks
-          </Text>
-        </Box>
+        )}
       </Box>
     )
   }
