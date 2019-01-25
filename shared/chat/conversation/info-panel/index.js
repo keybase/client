@@ -371,6 +371,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             key="join channel"
             label="Join channel"
             onClick={row.onJoinChannel}
+            waitOnClick={true}
           />
         )
 
