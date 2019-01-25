@@ -77,7 +77,8 @@ const BioLayout = p => (
 const Proofs = p => {
   let assertions
   if (p.assertionKeys) {
-    assertions = p.assertionKeys
+    const unsorted = [...p.assertionKeys]
+    assertions = unsorted
       .sort(Constants.sortAssertionKeys)
       .map(a => <Assertion key={a} username={p.username} assertionKey={a} />)
   } else {

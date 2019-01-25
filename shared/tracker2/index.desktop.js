@@ -115,10 +115,8 @@ const TeamShowcase = ({name}) => (
 const Tracker = (props: Props) => {
   let assertions
   if (props.assertionKeys) {
-    // $ForceType readOnlyArray doens't like sort()
-    assertions = props.assertionKeys
-      .sort(Constants.sortAssertionKeys)
-      .map(a => <Assertion key={a} assertionKey={a} />)
+    const unsorted = [...props.assertionKeys]
+    assertions = unsorted.sort(Constants.sortAssertionKeys).map(a => <Assertion key={a} assertionKey={a} />)
   } else {
     // TODO could do a loading thing before we know about the list at all?
     assertions = null
@@ -137,10 +135,6 @@ const Tracker = (props: Props) => {
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
-      {props.assertionKeys && <p key="NOJIMA">{props.assertionKeys.join('\n')}</p>}
-      {props.assertionKeys && (
-        <p key="NOJIMA2">{props.assertionKeys.sort(Constants.sortAssertionKeys).join('\n')}</p>
-      )}
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
         <Kb.Icon type="iconfont-close" onClick={props.onClose} />
       </Kb.Box2>
