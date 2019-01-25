@@ -105,9 +105,7 @@ class Developer extends React.Component<Props, State> {
     return (
       <Kb.Box style={styles.developerContainer}>
         <Kb.Text center={true} type="BodySmallSemibold" onClick={this._onLabelClick} style={styles.text}>
-          {Styles.isMobile
-            ? `Please don't do anything here unless instructed to by a developer.`
-            : `Please don't do anything below here unless instructed to by a developer.`}
+          Please don't do anything below here unless instructed to by a developer.
         </Kb.Text>
         <Kb.Divider style={styles.divider} />
         <Kb.Button
