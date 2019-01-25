@@ -164,15 +164,6 @@ export default () => {
         />
       </Box>
     ))
-    .add('ResetRows', () => (
-      <Files
-        path={Types.stringToPath('/keybase')}
-        routePath={I.List([])}
-        isUserReset={false}
-        resetParticipants={[]}
-        sortSetting={Constants.makeSortSetting()}
-      />
-    ))
     .add('ResetBanner', () => (
       <Box>
         <Banner

@@ -5,4 +5,6 @@ protocol NotifyUsers {
 
   @notify("")
   void userChanged(UID uid);
+
+  void passwordChanged() oneway;
 }

@@ -22,17 +22,18 @@ const (
 	ActionTeamType                   = "teamType"
 	ActionExpunge                    = "expunge"
 
-	PushActivity         = "chat.activity"
-	PushTyping           = "chat.typing"
-	PushMembershipUpdate = "chat.membershipUpdate"
-	PushTLFFinalize      = "chat.tlffinalize"
-	PushTLFResolve       = "chat.tlfresolve"
-	PushTeamChannels     = "chat.teamchannels"
-	PushKBFSUpgrade      = "chat.kbfsupgrade"
-	PushConvRetention    = "chat.convretention"
-	PushTeamRetention    = "chat.teamretention"
-	PushConvSettings     = "chat.convsettings"
-	PushSubteamRename    = "chat.subteamrename"
+	PushActivity            = "chat.activity"
+	PushTyping              = "chat.typing"
+	PushMembershipUpdate    = "chat.membershipUpdate"
+	PushTLFFinalize         = "chat.tlffinalize"
+	PushTLFResolve          = "chat.tlfresolve"
+	PushTeamChannels        = "chat.teamchannels"
+	PushKBFSUpgrade         = "chat.kbfsupgrade"
+	PushConvRetention       = "chat.convretention"
+	PushTeamRetention       = "chat.teamretention"
+	PushConvSettings        = "chat.convsettings"
+	PushSubteamRename       = "chat.subteamrename"
+	PushConversationsUpdate = "chat.conversationsupdate"
 )
 
 func NewAllCryptKeys() AllCryptKeys {
@@ -40,9 +41,8 @@ func NewAllCryptKeys() AllCryptKeys {
 }
 
 type NameInfo struct {
-	ID               chat1.TLFID
-	CanonicalName    string
-	IdentifyFailures []keybase1.TLFIdentifyFailure
+	ID            chat1.TLFID
+	CanonicalName string
 }
 
 func NewNameInfo() *NameInfo {
@@ -214,6 +214,21 @@ func (p ParsedStellarPayment) ToMini() libkb.MiniChatPayment {
 		Amount:   p.Amount,
 		Currency: p.Currency,
 	}
+}
+
+type ConversationCommandGroup struct {
+	Heading  string
+	Username *string
+	Commands []ConversationCommand
+}
+
+func (g ConversationCommandGroup) Match(ctx context.Context, text string) (ConversationCommand, bool) {
+	for _, c := range g.Commands {
+		if c.Match(ctx, text) {
+			return c, true
+		}
+	}
+	return nil, false
 }
 
 type DummyAttachmentFetcher struct{}

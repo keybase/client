@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -606,13 +607,8 @@ func testRelaySBS(t *testing.T, yank bool) {
 	require.NotNil(t, fhistory[0].Payment)
 	require.NotEmpty(t, fhistory[0].Payment.Id)
 	require.NotZero(t, fhistory[0].Payment.Time)
-	if yank {
-		require.Equal(t, stellar1.PaymentStatus_CLAIMABLE, fhistory[0].Payment.StatusSimplified)
-		require.Equal(t, "claimable", fhistory[0].Payment.StatusDescription)
-	} else {
-		require.Equal(t, stellar1.PaymentStatus_PENDING, fhistory[0].Payment.StatusSimplified)
-		require.Equal(t, "pending", fhistory[0].Payment.StatusDescription)
-	}
+	require.Equal(t, stellar1.PaymentStatus_CLAIMABLE, fhistory[0].Payment.StatusSimplified)
+	require.Equal(t, "claimable", fhistory[0].Payment.StatusDescription)
 	if yank {
 		require.Equal(t, "3 XLM", fhistory[0].Payment.AmountDescription)
 		require.Equal(t, stellar1.BalanceDelta_DECREASE, fhistory[0].Payment.Delta)
@@ -773,13 +769,8 @@ func testRelayReset(t *testing.T, yank bool) {
 	require.NotNil(t, fhistory[0].Payment)
 	require.NotEmpty(t, fhistory[0].Payment.Id)
 	require.NotZero(t, fhistory[0].Payment.Time)
-	if yank {
-		require.Equal(t, stellar1.PaymentStatus_CLAIMABLE, fhistory[0].Payment.StatusSimplified)
-		require.Equal(t, "claimable", fhistory[0].Payment.StatusDescription)
-	} else {
-		require.Equal(t, stellar1.PaymentStatus_PENDING, fhistory[0].Payment.StatusSimplified)
-		require.Equal(t, "pending", fhistory[0].Payment.StatusDescription)
-	}
+	require.Equal(t, stellar1.PaymentStatus_CLAIMABLE, fhistory[0].Payment.StatusSimplified)
+	require.Equal(t, "claimable", fhistory[0].Payment.StatusDescription)
 
 	res, err := tcs[claimant].Srv.ClaimCLILocal(context.Background(), stellar1.ClaimCLILocalArg{TxID: txID.String()})
 	require.NoError(t, err)
@@ -1090,6 +1081,14 @@ func assertFetchAccountBundles(t *testing.T, tc *TestContext, primaryAccountID s
 	}
 }
 
+func RequireAppStatusError(t *testing.T, code int, err error) {
+	require.Error(t, err)
+	require.IsType(t, err, libkb.AppStatusError{})
+	if aerr, ok := err.(libkb.AppStatusError); ok {
+		require.Equal(t, code, aerr.Code)
+	}
+}
+
 // TestMakeAccountMobileOnlyOnDesktop imports a new secret stellar key, then makes it
 // mobile only from a desktop device.  The subsequent fetch fails because it is
 // a desktop device.
@@ -1114,32 +1113,45 @@ func TestMakeAccountMobileOnlyOnDesktop(t *testing.T) {
 	require.Equal(t, stellar1.BundleRevision(2), rev2Bundle.Revision)
 	// NOTE: we're using this rev2Bundle later...
 
+	// Mobile-only mode can only be set from mobile device.
 	err = tc.Srv.SetAccountMobileOnlyLocal(ctx, stellar1.SetAccountMobileOnlyLocalArg{
+		AccountID: a1,
+	})
+	RequireAppStatusError(t, libkb.SCStellarDeviceNotMobile, err)
+
+	// This will make the device older on the server.
+	makeActiveDeviceOlder(t, g)
+
+	// This does not affect anything, it's still a desktop device.
+	err = tc.Srv.SetAccountMobileOnlyLocal(ctx, stellar1.SetAccountMobileOnlyLocalArg{
+		AccountID: a1,
+	})
+	RequireAppStatusError(t, libkb.SCStellarDeviceNotMobile, err)
+
+	// Provision a new mobile device, and then use the newly provisioned mobile
+	// device to set mobile only.
+	tc2, cleanup2 := provisionNewDeviceForTest(t, tc, libkb.DeviceTypeMobile)
+	defer cleanup2()
+
+	err = tc2.Srv.SetAccountMobileOnlyLocal(context.TODO(), stellar1.SetAccountMobileOnlyLocalArg{
+		AccountID: a1,
+	})
+	RequireAppStatusError(t, libkb.SCStellarMobileOnlyPurgatory, err)
+
+	// Make mobile older and try again, should work this time.
+	makeActiveDeviceOlder(t, tc2.G)
+
+	err = tc2.Srv.SetAccountMobileOnlyLocal(context.TODO(), stellar1.SetAccountMobileOnlyLocalArg{
 		AccountID: a1,
 	})
 	require.NoError(t, err)
 
-	// this is a desktop device, so this should now fail
+	// Once mobile only is ON, try some stuff from our desktop device.
 	_, err = remote.FetchAccountBundle(mctx, a1)
-	require.Error(t, err)
-	aerr, ok := err.(libkb.AppStatusError)
-	if !ok {
-		t.Fatalf("invalid error type %T", err)
-	}
-	require.Equal(t, libkb.SCStellarDeviceNotMobile, aerr.Code)
+	RequireAppStatusError(t, libkb.SCStellarDeviceNotMobile, err)
 
-	// try to make it accessible on all devices, which shouldn't work
-	err = tc.Srv.SetAccountAllDevicesLocal(ctx, stellar1.SetAccountAllDevicesLocalArg{
-		AccountID: a1,
-	})
-	aerr, ok = err.(libkb.AppStatusError)
-	if !ok {
-		t.Fatalf("invalid error type %T", err)
-	}
-	require.Equal(t, libkb.SCStellarDeviceNotMobile, aerr.Code)
-
+	// Desktop can still get the secretless bundle
 	primaryAcctName := fmt.Sprintf("%s's account", tc.Fu.Username)
-	// can pull a secretless bundle though (not specifying an accountID)
 	rev3Bundle, err := remote.FetchSecretlessBundle(mctx)
 	require.NoError(t, err)
 	require.Equal(t, stellar1.BundleRevision(3), rev3Bundle.Revision)
@@ -1153,14 +1165,13 @@ func TestMakeAccountMobileOnlyOnDesktop(t *testing.T) {
 	require.Len(t, rev3Bundle.AccountBundles[accountID1].Signers, 0)
 	require.Equal(t, "vault", rev3Bundle.Accounts[1].Name)
 
-	// try posting an old bundle we got previously
 	err = remote.Post(mctx, *rev2Bundle)
-	require.Error(t, err)
+	RequireAppStatusError(t, libkb.SCStellarDeviceNotMobile, err)
 
-	// tinker with it
+	// Tinker with it.
 	rev2Bundle.Revision = 4
 	err = remote.Post(mctx, *rev2Bundle)
-	require.Error(t, err)
+	RequireAppStatusError(t, libkb.SCStellarDeviceNotMobile, err)
 }
 
 // TestMakeAccountMobileOnlyOnRecentMobile imports a new secret stellar key, then
@@ -1189,23 +1200,21 @@ func TestMakeAccountMobileOnlyOnRecentMobile(t *testing.T) {
 	t.Logf("bundle: %+v", bundle)
 	checker.assertBundle(t, bundle, 2, 1, stellar1.AccountMode_USER)
 
+	// the mobile only device is too recent, so this would fail
+	err = tc.Srv.SetAccountMobileOnlyLocal(ctx, stellar1.SetAccountMobileOnlyLocalArg{
+		AccountID: a1,
+	})
+	RequireAppStatusError(t, libkb.SCStellarMobileOnlyPurgatory, err)
+
+	// this will make the device older on the server
+	makeActiveDeviceOlder(t, g)
+	// so now the set will work
 	err = tc.Srv.SetAccountMobileOnlyLocal(ctx, stellar1.SetAccountMobileOnlyLocalArg{
 		AccountID: a1,
 	})
 	require.NoError(t, err)
 
-	// this is a recent mobile device, so this should now fail
-	_, err = remote.FetchAccountBundle(mctx, a1)
-	require.Error(t, err)
-	aerr, ok := err.(libkb.AppStatusError)
-	if !ok {
-		t.Fatalf("invalid error type %T", err)
-	}
-	require.Equal(t, libkb.SCStellarMobileOnlyPurgatory, aerr.Code)
-
-	// this will make the device older on the server
-	makeActiveDeviceOlder(t, g)
-	// so now the fetch will work
+	// and so will the fetch.
 	bundle, err = remote.FetchAccountBundle(mctx, a1)
 	require.NoError(t, err)
 	checker.assertBundle(t, bundle, 3, 2, stellar1.AccountMode_MOBILE)
@@ -1219,6 +1228,14 @@ func TestMakeAccountMobileOnlyOnRecentMobile(t *testing.T) {
 	require.NoError(t, err)
 	checker.assertBundle(t, bundle, 3, 2, stellar1.AccountMode_MOBILE)
 
+	// Get a new mobile device that will be too recent to fetch
+	// MOBILE ONLY bundle.
+	tc2, cleanup2 := provisionNewDeviceForTest(t, tc, libkb.DeviceTypeMobile)
+	defer cleanup2()
+
+	_, err = remote.FetchAccountBundle(libkb.NewMetaContext(context.Background(), tc2.G), a1)
+	RequireAppStatusError(t, libkb.SCStellarMobileOnlyPurgatory, err)
+
 	// make it accessible on all devices
 	err = tc.Srv.SetAccountAllDevicesLocal(ctx, stellar1.SetAccountAllDevicesLocalArg{
 		AccountID: a1,
@@ -1226,6 +1243,11 @@ func TestMakeAccountMobileOnlyOnRecentMobile(t *testing.T) {
 	require.NoError(t, err)
 
 	bundle, err = remote.FetchAccountBundle(mctx, a1)
+	require.NoError(t, err)
+	checker.assertBundle(t, bundle, 4, 3, stellar1.AccountMode_USER)
+
+	// Now that it's AccountMode_USER, too recent mobile device can access it too.
+	bundle, err = remote.FetchAccountBundle(libkb.NewMetaContext(context.Background(), tc2.G), a1)
 	require.NoError(t, err)
 	checker.assertBundle(t, bundle, 4, 3, stellar1.AccountMode_USER)
 }
@@ -1271,6 +1293,47 @@ func TestAutoClaimLoop(t *testing.T) {
 
 	tcs[0].Backend.AssertBalance(getPrimaryAccountID(tcs[0]), "96.9999900")
 	tcs[1].Backend.AssertBalance(getPrimaryAccountID(tcs[1]), "2.9999800")
+}
+
+func TestShutdown(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 1)
+	defer cleanup()
+
+	accountID := tcs[0].Backend.AddAccount()
+
+	_, err := tcs[0].Srv.walletState.AccountSeqnoAndBump(context.Background(), accountID)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	balances, err := tcs[0].Srv.BalancesLocal(context.Background(), accountID)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	require.Len(t, balances, 1)
+	require.Equal(t, balances[0].Asset.Type, "native")
+	require.Equal(t, balances[0].Amount, "10000")
+
+	var wg sync.WaitGroup
+	for i := 0; i < 10; i++ {
+		wg.Add(1)
+		go func() {
+			_, err := tcs[0].Srv.BalancesLocal(context.Background(), accountID)
+			if err != nil {
+				t.Fatal(err)
+			}
+			wg.Done()
+		}()
+	}
+
+	wg.Add(1)
+	go func() {
+		tcs[0].Srv.walletState.Shutdown()
+		wg.Done()
+	}()
+
+	wg.Wait()
 }
 
 func makeActiveDeviceOlder(t *testing.T, g *libkb.GlobalContext) {
@@ -1400,6 +1463,24 @@ func setupTestsWithSettings(t *testing.T, settings []usetting) ([]*TestContext, 
 		t.Logf("U%d: %v %v", i, tc.Fu.Username, tc.Fu.GetUserVersion())
 	}
 	return tcs, cleanup
+}
+
+func provisionNewDeviceForTest(t *testing.T, tc *TestContext, newDeviceType string) (outTc *TestContext, cleanup func()) {
+	bem := tc.Backend
+	tc2 := SetupTest(t, "wall_p", 1)
+	kbtest.ProvisionNewDeviceKex(&tc.TestContext, &tc2, tc.Fu, newDeviceType)
+	outTc = &TestContext{
+		TestContext: tc2,
+		Fu:          tc.Fu,
+	}
+	rcm := NewRemoteClientMock(outTc, bem)
+	ws := stellar.NewWalletState(tc2.G, rcm)
+	outTc.Srv = New(tc2.G, newTestUISource(), ws)
+	stellar.ServiceInit(tc2.G, ws, nil)
+	cleanup = func() {
+		tc2.Cleanup()
+	}
+	return outTc, cleanup
 }
 
 func randomStellarKeypair() (pub stellar1.AccountID, sec stellar1.SecretKey) {

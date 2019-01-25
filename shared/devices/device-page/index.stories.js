@@ -22,12 +22,12 @@ const DevicePage = (props: Props) => {
 const provider = Sb.createPropProviderWithCommon({
   DevicePage: ({_revoked, _type, _current, _lastUsed = true, _revokedAt = true}) => ({
     device: Constants.makeDevice({
-      created: new Date('2002-10-09T01:23:45'),
+      created: new Date('2002-10-09T01:23:45').getTime(),
       currentDevice: !!_current,
       deviceID: Types.stringToDeviceID('123'),
-      lastUsed: _lastUsed ? new Date('2002-10-10T01:23:45') : 0,
+      lastUsed: _lastUsed ? new Date('2002-10-10T01:23:45').getTime() : 0,
       name: `My ${_type}`,
-      revokedAt: _revokedAt && _revoked ? new Date('2002-10-11T01:23:45') : null,
+      revokedAt: _revokedAt && _revoked ? new Date('2002-10-11T01:23:45').getTime() : null,
       type: _type,
     }),
     onBack: Sb.action('onback'),

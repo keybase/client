@@ -36,17 +36,19 @@ fi
 echo "-tags '$go_tags'"
 
 # Determine the LD flags.
+buildmode="pie"
 ldflags_client=""
 ldflags_kbfs=""
 ldflags_kbnm=""
+strip_flag=" -s -w "
 if [ "$mode" != "production" ] ; then
   # The non-production build number is everything in the version after the hyphen.
   build_number="$(echo -n "$version" | sed 's/.*-//')"
-  ldflags_client="-X github.com/keybase/client/go/libkb.PrereleaseBuild=$build_number"
-  ldflags_kbfs="-X github.com/keybase/client/go/kbfs/libkbfs.PrereleaseBuild=$build_number"
+  ldflags_client="$strip_flag -X github.com/keybase/client/go/libkb.PrereleaseBuild=$build_number"
+  ldflags_kbfs="$strip_flag -X github.com/keybase/client/go/kbfs/libkbfs.PrereleaseBuild=$build_number"
   # kbnm version currently defaults to the keybase client version.
   build_number_kbnm="$build_number"
-  ldflags_kbnm="-X main.Version=$build_number_kbnm"
+  ldflags_kbnm="$strip_flag -X main.Version=$build_number_kbnm"
 fi
 echo "-ldflags_client '$ldflags_client'"
 echo "-ldflags_kbfs '$ldflags_kbfs'"
@@ -82,7 +84,7 @@ build_one_architecture() {
 
   # Build the client binary. Note that `go build` reads $GOARCH.
   echo "Building client for $GOARCH..."
-  go build -tags "$go_tags" -ldflags "$ldflags_client" -o \
+  go build -tags "$go_tags" -ldflags "$ldflags_client" -buildmode="$buildmode" -o \
     "$layout_dir/usr/bin/$binary_name" github.com/keybase/client/go/keybase
 
   # Short-circuit if we're not building electron.
@@ -101,22 +103,22 @@ build_one_architecture() {
 
   # Build the kbfsfuse binary. Currently, this always builds from master.
   echo "Building kbfs for $GOARCH..."
-  go build -tags "$go_tags" -ldflags "$ldflags_kbfs" -o \
+  go build -tags "$go_tags" -ldflags "$ldflags_kbfs" -buildmode="$buildmode" -o \
     "$layout_dir/usr/bin/kbfsfuse" github.com/keybase/client/go/kbfs/kbfsfuse
 
   # Build the git-remote-keybase binary, also from the kbfs repo.
   echo "Building git-remote-keybase for $GOARCH..."
-  go build -tags "$go_tags" -ldflags "$ldflags_kbfs" -o \
+  go build -tags "$go_tags" -ldflags "$ldflags_kbfs" -buildmode="$buildmode" -o \
     "$layout_dir/usr/bin/git-remote-keybase" github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase
 
   # Build the root redirector binary.
   echo "Building keybase-redirector for $GOARCH..."
-  go build -tags "$go_tags" -ldflags "$ldflags_client" -o \
+  go build -tags "$go_tags" -ldflags "$ldflags_client" -buildmode="$buildmode" -o \
     "$layout_dir/usr/bin/keybase-redirector" github.com/keybase/client/go/kbfs/redirector
 
   # Build the kbnm binary
   echo "Building kbnm for $GOARCH..."
-  go build -tags "$go_tags" -ldflags "$ldflags_kbnm" -o \
+  go build -tags "$go_tags" -ldflags "$ldflags_kbnm" -buildmode="$buildmode" -o \
     "$layout_dir/usr/bin/kbnm" github.com/keybase/client/go/kbnm
 
   # Write whitelists into the overlay. Note that we have to explicitly set USER
@@ -165,7 +167,18 @@ build_one_architecture() {
 # resinit_nix.go and fail the i386 build
 export CGO_ENABLED=1
 
+if [ -n "${KEYBASE_BUILD_ARM_ONLY:-}" ] ; then
+  echo "Keybase: Building for ARM only"
+  export GOARCH=arm64
+  export debian_arch=arm64
+  export electron_arch=arm64
+  build_one_architecture
+  echo "Keybase: Built ARM; exiting..."
+  return
+fi
+
 if [ -z "${KEYBASE_SKIP_64_BIT:-}" ] ; then
+  echo "Keybase: Building for x86-64"
   export GOARCH=amd64
   export debian_arch=amd64
   export electron_arch=x64
@@ -175,6 +188,7 @@ else
 fi
 
 if [ -z "${KEYBASE_SKIP_32_BIT:-}" ] ; then
+  echo "Keybase: Building for x86"
   export GOARCH=386
   export debian_arch=i386
   export electron_arch=ia32

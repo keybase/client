@@ -207,9 +207,6 @@
       "teamname": "string",
       "channelInfos": "I.Map<ChatTypes.ConversationIDKey, Types.ChannelInfo>"
     },
-    "setLoaded": {
-      "loaded": "boolean"
-    },
     "setTeamInfo": {
       "teamnames": "I.Set<Types.Teamname>",
       "teammembercounts": "I.Map<Types.Teamname, number>",

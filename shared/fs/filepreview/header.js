@@ -17,10 +17,10 @@ const Header = (props: HeaderProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container} gap="xtiny">
     <Kb.BackButton key="back" onClick={props.onBack} style={styles.close} />
     <Kb.Box2 direction="vertical" centerChildren={true} style={styles.filePreviewHeader}>
-      <Kb.Text type="BodyBig" selectable={true} style={styles.filename}>
+      <Kb.Text center={true} type="BodyBig" selectable={true}>
         {props.name}
       </Kb.Text>
-      {!isMobile && <Kbfs.PathItemInfo path={props.path} startWithLastModified={true} />}
+      {!isMobile && <Kbfs.PathItemInfo path={props.path} mode="default" />}
     </Kb.Box2>
     <Kb.Box style={styles.headerIcons}>
       <Kbfs.OpenInSystemFileManager path={props.path} />
@@ -36,15 +36,10 @@ const styles = Styles.styleSheetCreate({
       marginLeft: Styles.globalMargins.tiny,
     },
   }),
-  container: {
-    minHeight: 48,
-  },
+  container: { minHeight: 48 },
   filePreviewHeader: {
     flex: 1,
     flexShrink: 1,
-  },
-  filename: {
-    textAlign: 'center',
   },
   headerIcons: {
     ...Styles.globalStyles.flexBoxRow,

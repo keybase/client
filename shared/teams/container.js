@@ -1,4 +1,6 @@
 // @flow
+import * as React from 'react'
+import * as Kb from '../common-adapters'
 import * as I from 'immutable'
 import * as FsGen from '../actions/fs-gen'
 import * as FsTypes from '../constants/types/fs'
@@ -8,7 +10,8 @@ import Teams from './main'
 import openURL from '../util/open-url'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import {compose, lifecycle, connect, type RouteProps} from '../util/container'
-import {getSortedTeamnames} from '../constants/teams'
+import * as Constants from '../constants/teams'
+import * as WaitingConstants from '../constants/waiting'
 import {type Teamname} from '../constants/types/teams'
 
 type OwnProps = RouteProps<{}, {}>
@@ -19,13 +22,14 @@ const mapStateToProps = state => ({
   _teamNameToIsOpen: state.teams.getIn(['teamNameToIsOpen'], I.Map()),
   _teammembercounts: state.teams.getIn(['teammembercounts'], I.Map()),
   _teamresetusers: state.teams.getIn(['teamNameToResetUsers'], I.Map()),
-  loaded: state.teams.getIn(['loaded'], false),
+  loaded: !WaitingConstants.anyWaiting(state, Constants.teamsLoadedWaitingKey),
   sawChatBanner: state.teams.getIn(['sawChatBanner'], false),
-  teamnames: getSortedTeamnames(state),
+  teamnames: Constants.getSortedTeamnames(state),
 })
 
-const mapDispatchToProps = (dispatch, {routePath}) => ({
+const mapDispatchToProps = (dispatch, {routePath, navigateUp}) => ({
   _loadTeams: () => dispatch(TeamsGen.createGetTeams()),
+  onBack: () => dispatch(navigateUp()),
   onCreateTeam: () => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
@@ -65,7 +69,43 @@ const mergeProps = (stateProps, dispatchProps) => {
     teammembercounts: stateProps._teammembercounts.toObject(),
     teamnames: stateProps.teamnames,
     teamresetusers: stateProps._teamresetusers.toObject(),
+    title: 'Teams',
     ...dispatchProps,
+  }
+}
+
+class Reloadable extends React.PureComponent<{
+  ...React.ElementProps<typeof Teams>,
+  ...{|_loadTeams: () => void|},
+}> {
+  render() {
+    return (
+      <Kb.Reloadable
+        waitingKeys={Constants.teamsLoadedWaitingKey}
+        onReload={this.props._loadTeams}
+        reloadOnMount={true}
+      >
+        <Teams
+          loaded={this.props.loaded}
+          newTeamRequests={this.props.newTeamRequests}
+          newTeams={this.props.newTeams}
+          sawChatBanner={this.props.sawChatBanner}
+          teamNameToIsOpen={this.props.teamNameToIsOpen}
+          teammembercounts={this.props.teammembercounts}
+          teamnames={this.props.teamnames}
+          teamresetusers={this.props.teamresetusers}
+          title={this.props.title}
+          onBack={this.props.onBack}
+          onCreateTeam={this.props.onCreateTeam}
+          onHideChatBanner={this.props.onHideChatBanner}
+          onJoinTeam={this.props.onJoinTeam}
+          onManageChat={this.props.onManageChat}
+          onOpenFolder={this.props.onOpenFolder}
+          onReadMore={this.props.onReadMore}
+          onViewTeam={this.props.onViewTeam}
+        />
+      </Kb.Reloadable>
+    )
   }
 }
 
@@ -80,4 +120,4 @@ export default compose(
       this.props._loadTeams()
     },
   })
-)(Teams)
+)(Reloadable)

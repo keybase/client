@@ -137,7 +137,6 @@ export type _State = {
   teamProfileAddList: I.List<TeamProfileAddList>,
   newTeams: I.Set<string>,
   newTeamRequests: I.List<string>,
-  loaded: boolean,
 }
 
 export type State = I.RecordOf<_State>

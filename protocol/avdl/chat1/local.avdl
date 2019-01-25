@@ -536,7 +536,6 @@ protocol local {
 
   record ThreadView {
     array<MessageUnboxed> messages;
-    union { null, MessageID } unreadLineID;
     union { null, Pagination } pagination;
   }
 
@@ -579,8 +578,19 @@ protocol local {
   }
   NonblockFetchRes getThreadNonblock(int sessionID, ConversationID conversationID, GetThreadNonblockCbMode cbMode, GetThreadReason reason, GetThreadNonblockPgMode pgmode, union { null, GetThreadQuery} query, union { null, UIPagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
 
-  record GetInboxLocalRes {
-    array<Conversation> conversationsUnverified;
+
+  record UnreadlineRes {
+    boolean offline;
+    array<RateLimit> rateLimits;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
+    union { null, MessageID } unreadlineID;
+  }
+  UnreadlineRes getUnreadline(int sessionID, ConversationID convID,
+    MessageID readMsgID, keybase1.TLFIdentifyBehavior identifyBehavior);
+
+
+  record GetInboxUILocalRes {
+    array<UnverifiedInboxUIItem> conversationsRemote;
     union { null, Pagination } pagination;
 
     boolean offline;
@@ -591,9 +601,11 @@ protocol local {
     // GetInboxAndUnboxLocal should be used if identify failures are needed.
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
+  GetInboxUILocalRes getInboxUILocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   record NameQuery {
     string name;
+    union { null, TLFID } tlfID; // pass this if we already know the TLFID
     ConversationMembersType membersType;
   }
 

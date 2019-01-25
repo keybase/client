@@ -48,7 +48,7 @@ class Invites extends Component<Props, State> {
     const props = this.props
     return (
       <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-        <Banner error={this.props.error} />
+        {!!this.props.error && <Banner color="red" text={this.props.error.message} />}
         <Box
           style={{...globalStyles.flexBoxColumn, flex: 1, overflow: 'auto', padding: globalMargins.medium}}
         >

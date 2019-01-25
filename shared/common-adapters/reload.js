@@ -4,38 +4,29 @@ import * as React from 'react'
 import * as Styles from '../styles'
 import * as Constants from '../constants/waiting'
 import {Box2} from './box'
+import HeaderHoc from './header-hoc'
 import ScrollView from './scroll-view'
 import Text from './text'
 import Button from './button'
 import {namedConnect} from '../util/container'
-import {isArray} from 'lodash-es'
 
-type OwnProps = {|
-  children: React.Node,
-  reloadOnMount?: boolean,
-  onReload: () => void,
-  waitingKeys: string | Array<string>,
-|}
-
-type Props = {|
-  children: React.Node,
-  needsReload: boolean,
+type ReloadProps = {|
+  onBack?: () => void,
   onReload: () => void,
   reason: string,
-  reloadOnMount?: boolean,
 |}
 
-class Reload extends React.PureComponent<{onReload: () => void, reason: string}, {expanded: boolean}> {
+class _Reload extends React.PureComponent<ReloadProps, {expanded: boolean}> {
   state = {expanded: false}
   _toggle = () => this.setState(p => ({expanded: !p.expanded}))
   render() {
     return (
       <Box2 direction="vertical" centerChildren={true} style={styles.reload} gap="tiny">
-        <Text type="Header" style={styles.text}>
+        <Text center={true} type="Header">
           Oops... We're having a hard time loading this page. Try again?
         </Text>
         <Text type="Body" onClick={this._toggle}>
-          {this.state.expanded ? `I'm not exactly sure why I did that` : `I'm curious...`}
+          {this.state.expanded ? "I'm not exactly sure why I did that" : "I'm curious..."}
         </Text>
         {this.state.expanded && (
           <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollInside}>
@@ -50,6 +41,17 @@ class Reload extends React.PureComponent<{onReload: () => void, reason: string},
   }
 }
 
+const Reload = HeaderHoc(_Reload)
+
+export type Props = {|
+  children: React.Node,
+  needsReload: boolean,
+  onBack?: () => void,
+  onReload: () => void,
+  reason: string,
+  reloadOnMount?: boolean,
+|}
+
 class Reloadable extends React.PureComponent<Props> {
   componentDidMount() {
     this.props.reloadOnMount && this.props.onReload()
@@ -57,7 +59,7 @@ class Reloadable extends React.PureComponent<Props> {
 
   render() {
     return this.props.needsReload ? (
-      <Reload onReload={this.props.onReload} reason={this.props.reason} />
+      <Reload onBack={this.props.onBack} onReload={this.props.onReload} reason={this.props.reason} />
     ) : (
       this.props.children
     )
@@ -99,14 +101,18 @@ const styles = Styles.styleSheetCreate({
     maxWidth: '100%',
     width: '100%',
   },
-  text: {
-    textAlign: 'center',
-  },
 })
 
+export type OwnProps = {|
+  children: React.Node,
+  onBack?: () => void,
+  onReload: () => void,
+  reloadOnMount?: boolean,
+  waitingKeys: string | Array<string>,
+|}
+
 const mapStateToProps = (state, ownProps: OwnProps) => {
-  const keys = isArray(ownProps.waitingKeys) ? ownProps.waitingKeys : [ownProps.waitingKeys]
-  const error = Constants.anyErrors(state, ...keys)
+  const error = Constants.anyErrors(state, ownProps.waitingKeys)
   return {
     needsReload: !!error,
     reason: error?.message ?? '',
@@ -116,6 +122,7 @@ const mapDispatchToProps = dispatch => ({})
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   children: ownProps.children,
   needsReload: stateProps.needsReload,
+  onBack: ownProps.onBack,
   onReload: ownProps.onReload,
   reason: stateProps.reason,
   reloadOnMount: ownProps.reloadOnMount,

@@ -184,7 +184,7 @@ func (t *TeamLoader) validKBFSTLFID(tlfID chat1.TLFID, team *teams.Team) bool {
 
 func (t *TeamLoader) validateImpTeamname(ctx context.Context, tlfName string, public bool,
 	team *teams.Team) error {
-	impTeamName, err := team.ImplicitTeamDisplayName(ctx)
+	impTeamName, err := team.ImplicitTeamDisplayNameNoConflicts(ctx)
 	if err != nil {
 		return err
 	}
@@ -610,9 +610,6 @@ func (t *ImplicitTeamsNameInfoSource) LookupID(ctx context.Context, name string,
 		ID:            tlfID,
 		CanonicalName: impTeamName.String(),
 	}
-	if res.IdentifyFailures, err = t.identify(ctx, tlfID, impTeamName); err != nil {
-		return res, err
-	}
 	return res, nil
 }
 
@@ -629,19 +626,14 @@ func (t *ImplicitTeamsNameInfoSource) LookupName(ctx context.Context, tlfID chat
 	if err != nil {
 		return res, err
 	}
-	impTeamName, err := team.ImplicitTeamDisplayName(ctx)
+	impTeamName, err := team.ImplicitTeamDisplayNameNoConflicts(ctx)
 	if err != nil {
 		return res, err
 	}
 	t.Debug(ctx, "LookupName: got name: %s", impTeamName.String())
-	idFailures, err := t.identify(ctx, tlfID, impTeamName)
-	if err != nil {
-		return res, err
-	}
 	return types.NameInfo{
-		ID:               tlfID,
-		CanonicalName:    impTeamName.String(),
-		IdentifyFailures: idFailures,
+		ID:            tlfID,
+		CanonicalName: impTeamName.String(),
 	}, nil
 }
 
@@ -658,21 +650,19 @@ func (t *ImplicitTeamsNameInfoSource) EncryptionKey(ctx context.Context, name st
 	if err != nil {
 		return res, ni, err
 	}
-	impTeamName, err := team.ImplicitTeamDisplayName(ctx)
+	impTeamName, err := team.ImplicitTeamDisplayNameNoConflicts(ctx)
 	if err != nil {
 		return res, ni, err
 	}
-	idFailures, err := t.identify(ctx, teamID, impTeamName)
-	if err != nil {
+	if _, err := t.identify(ctx, teamID, impTeamName); err != nil {
 		return res, ni, err
 	}
 	if res, err = getTeamCryptKey(ctx, team, team.Generation(), public, false); err != nil {
 		return res, ni, err
 	}
 	return res, types.NameInfo{
-		ID:               teamID,
-		CanonicalName:    impTeamName.String(),
-		IdentifyFailures: idFailures,
+		ID:            teamID,
+		CanonicalName: impTeamName.String(),
 	}, nil
 }
 
@@ -686,7 +676,7 @@ func (t *ImplicitTeamsNameInfoSource) DecryptionKey(ctx context.Context, name st
 	if err != nil {
 		return res, err
 	}
-	impTeamName, err := team.ImplicitTeamDisplayName(ctx)
+	impTeamName, err := team.ImplicitTeamDisplayNameNoConflicts(ctx)
 	if err != nil {
 		return res, err
 	}
@@ -706,7 +696,7 @@ func (t *ImplicitTeamsNameInfoSource) ephemeralLoadAndIdentify(ctx context.Conte
 	if err != nil {
 		return teamID, err
 	}
-	impTeamName, err := team.ImplicitTeamDisplayName(ctx)
+	impTeamName, err := team.ImplicitTeamDisplayNameNoConflicts(ctx)
 	if err != nil {
 		return teamID, err
 	}

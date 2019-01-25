@@ -318,6 +318,10 @@ const BOOL isSimulator = NO;
     [item loadItemForTypeIdentifier:@"public.image" options:nil completionHandler:fileHandler];
   } else if ([item hasItemConformingToTypeIdentifier:@"public.file-url"]) {
     [item loadItemForTypeIdentifier:@"public.file-url" options:nil completionHandler:fileHandler];
+  } else if ([item hasItemConformingToTypeIdentifier:@"public.plain-text"]) {
+    NSError* error = NULL;
+    KeybaseExtensionPostText(convID, name, NO, [membersType longValue], self.contentText, &error);
+    [self maybeCompleteRequest:lastItem];
   } else if ([item hasItemConformingToTypeIdentifier:@"public.text"]) {
     [item loadItemForTypeIdentifier:@"public.text" options:nil completionHandler:textHandler];
   } else if ([item hasItemConformingToTypeIdentifier:@"public.url"]) {

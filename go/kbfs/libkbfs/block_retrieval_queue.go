@@ -39,6 +39,7 @@ type blockRetrievalPartialConfig interface {
 	diskBlockCacheGetter
 	syncedTlfGetterSetter
 	initModeGetter
+	clockGetter
 }
 
 type blockRetrievalConfig interface {
@@ -383,8 +384,10 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 func (brq *blockRetrievalQueue) request(ctx context.Context,
 	priority int, kmd KeyMetadata, ptr BlockPointer, block Block,
 	lifetime BlockCacheLifetime, action BlockRequestAction) <-chan error {
-	brq.log.CDebugf(ctx, "Request of %v, action=%s, priority=%d",
-		ptr, action, priority)
+	if action != BlockRequestSolo {
+		brq.log.CDebugf(ctx, "Request of %v, action=%s, priority=%d",
+			ptr, action, priority)
+	}
 
 	// Only continue if we haven't been shut down
 	ch := make(chan error, 1)
@@ -408,7 +411,9 @@ func (brq *blockRetrievalQueue) request(ctx context.Context,
 	// Check caches before locking the mutex.
 	prefetchStatus, err := brq.checkCaches(ctx, kmd, ptr, block, action)
 	if err == nil {
-		brq.log.CDebugf(ctx, "Found %v in caches: %s", ptr, prefetchStatus)
+		if action != BlockRequestSolo {
+			brq.log.CDebugf(ctx, "Found %v in caches: %s", ptr, prefetchStatus)
+		}
 		if action.PrefetchTracked() {
 			brq.Prefetcher().ProcessBlockForPrefetch(ctx, ptr, block, kmd,
 				priority, lifetime, prefetchStatus, action)

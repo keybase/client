@@ -564,7 +564,7 @@ func ParseChannelNameMentions(ctx context.Context, body string, uid gregor1.UID,
 		validChans[cr.TopicName] = cr
 	}
 	for _, name := range names {
-		if cr, ok := validChans[name]; ok {
+		if cr, ok := validChans[name.name]; ok {
 			res = append(res, cr)
 		}
 	}
@@ -573,11 +573,25 @@ func ParseChannelNameMentions(ctx context.Context, body string, uid gregor1.UID,
 
 var atMentionRegExp = regexp.MustCompile(`\B@([a-z0-9][a-z0-9_]+)`)
 
-func parseRegexpNames(ctx context.Context, body string, re *regexp.Regexp) (res []string) {
-	matches := re.FindAllStringSubmatch(body, -1)
-	for _, m := range matches {
-		if len(m) >= 2 {
-			res = append(res, m[1])
+type nameMatch struct {
+	name     string
+	position []int
+}
+
+func (m nameMatch) Len() int {
+	return m.position[1] - m.position[0]
+}
+
+func parseRegexpNames(ctx context.Context, body string, re *regexp.Regexp) (res []nameMatch) {
+	body = ReplaceQuotedSubstrings(body, true)
+	allIndexMatches := re.FindAllStringSubmatchIndex(body, -1)
+	for _, indexMatch := range allIndexMatches {
+		if len(indexMatch) >= 4 {
+			hit := body[indexMatch[2]:indexMatch[3]]
+			res = append(res, nameMatch{
+				name:     hit,
+				position: indexMatch[2:4],
+			})
 		}
 	}
 	return res
@@ -604,7 +618,11 @@ func GetPaymentAtMentions(ctx context.Context, upak libkb.UPAKLoader, payments [
 }
 
 func ParseAtMentionsNames(ctx context.Context, body string) (res []string) {
-	return parseRegexpNames(ctx, body, atMentionRegExp)
+	matches := parseRegexpNames(ctx, body, atMentionRegExp)
+	for _, m := range matches {
+		res = append(res, m.name)
+	}
+	return res
 }
 
 func ParseAtMentionedUIDs(ctx context.Context, body string, upak libkb.UPAKLoader, debug *DebugLabeler) (atRes []gregor1.UID, chanRes chat1.ChannelMention) {
@@ -635,30 +653,6 @@ func ParseAtMentionedUIDs(ctx context.Context, body string, upak libkb.UPAKLoade
 		atRes = append(atRes, kuid.ToBytes())
 	}
 	return atRes, chanRes
-}
-
-func ParseAndDecorateAtMentionedUIDs(ctx context.Context, body string, upak libkb.UPAKLoader, debug *DebugLabeler) (newBody string, atRes []gregor1.UID, chanRes chat1.ChannelMention) {
-	atRes, chanRes = ParseAtMentionedUIDs(ctx, body, upak, debug)
-	newBody = atMentionRegExp.ReplaceAllStringFunc(body, func(m string) string {
-		replace := false
-		switch m {
-		case "@channel", "@here", "@everyone":
-			replace = true
-		default:
-			toks := strings.Split(m, "@")
-			if len(toks) == 2 {
-				_, err := upak.LookupUID(ctx, libkb.NewNormalizedUsername(toks[1]))
-				if err == nil {
-					replace = true
-				}
-			}
-		}
-		if replace {
-			return fmt.Sprintf("`%s`", m)
-		}
-		return m
-	})
-	return newBody, atRes, chanRes
 }
 
 type SystemMessageUIDSource interface {
@@ -897,6 +891,9 @@ func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, curre
 	if !msg.IsValid() {
 		return "", ""
 	}
+	defer func() {
+		snippet = EscapeShrugs(context.TODO(), snippet)
+	}()
 
 	mvalid := msg.Valid()
 	senderPrefix := getSenderPrefix(mvalid, conv, currentUsername)
@@ -996,6 +993,7 @@ func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.Unverifie
 	}
 	res.ConvID = rawConv.GetConvID().String()
 	res.TopicType = rawConv.GetTopicType()
+	res.IsPublic = rawConv.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC
 	res.Name = tlfName
 	res.Status = rawConv.Metadata.Status
 	res.Time = GetConvMtime(rawConv)
@@ -1054,6 +1052,7 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal, currentUsername s
 	}
 	res.ConvID = rawConv.GetConvID().String()
 	res.TopicType = rawConv.GetTopicType()
+	res.IsPublic = rawConv.Info.Visibility == keybase1.TLFVisibility_PUBLIC
 	res.Name = rawConv.Info.TlfName
 	res.Snippet, res.SnippetDecoration = GetConvSnippet(rawConv, currentUsername)
 	res.Channel = GetTopicName(rawConv)
@@ -1096,7 +1095,6 @@ func PresentThreadView(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	for _, msg := range tv.Messages {
 		res.Messages = append(res.Messages, PresentMessageUnboxed(ctx, g, msg, uid, convID))
 	}
-	res.UnreadLineID = tv.UnreadLineID
 	return res
 }
 
@@ -1290,7 +1288,8 @@ func PresentUnfurls(ctx context.Context, g *globals.Context, convID chat1.Conver
 	return res
 }
 
-func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, msgBody chat1.MessageBody) *string {
+func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, msg chat1.MessageUnboxedValid) *string {
+	msgBody := msg.MessageBody
 	typ, err := msgBody.MessageType()
 	if err != nil || typ != chat1.MessageType_TEXT {
 		return nil
@@ -1300,9 +1299,13 @@ func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, msgBody c
 
 	// escape before applying xforms
 	body = EscapeForDecorate(ctx, body)
+	body = EscapeShrugs(ctx, body)
 
 	// Payment decorations
 	body = g.StellarSender.DecorateWithPayments(ctx, body, payments)
+	// Mentions
+	body = DecorateWithMentions(ctx, body, msg.AtMentionUsernames, msg.ChannelMention,
+		msg.ChannelNameMentions)
 	return &body
 }
 
@@ -1346,7 +1349,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Ctime:                 valid.ServerHeader.Ctime,
 			OutboxID:              strOutboxID,
 			MessageBody:           valid.MessageBody,
-			DecoratedTextBody:     PresentDecoratedTextBody(ctx, g, valid.MessageBody),
+			DecoratedTextBody:     PresentDecoratedTextBody(ctx, g, valid),
 			SenderUsername:        valid.SenderUsername,
 			SenderDeviceName:      valid.SenderDeviceName,
 			SenderDeviceType:      valid.SenderDeviceType,
@@ -1370,11 +1373,14 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 		})
 	case chat1.MessageUnboxedState_OUTBOX:
 		var body, title, filename string
+		var decoratedBody *string
 		var preview *chat1.MakePreviewRes
 		typ := rawMsg.Outbox().Msg.ClientHeader.MessageType
 		switch typ {
 		case chat1.MessageType_TEXT:
 			body = rawMsg.Outbox().Msg.MessageBody.Text().Body
+			decoratedBody = new(string)
+			*decoratedBody = EscapeShrugs(ctx, body)
 		case chat1.MessageType_EDIT:
 			body = rawMsg.Outbox().Msg.MessageBody.Edit().Body
 		case chat1.MessageType_ATTACHMENT:
@@ -1387,15 +1393,16 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			}
 		}
 		res = chat1.NewUIMessageWithOutbox(chat1.UIMessageOutbox{
-			State:       rawMsg.Outbox().State,
-			OutboxID:    rawMsg.Outbox().OutboxID.String(),
-			MessageType: typ,
-			Body:        body,
-			Ctime:       rawMsg.Outbox().Ctime,
-			Ordinal:     computeOutboxOrdinal(rawMsg.Outbox()),
-			Preview:     preview,
-			Title:       title,
-			Filename:    filename,
+			State:             rawMsg.Outbox().State,
+			OutboxID:          rawMsg.Outbox().OutboxID.String(),
+			MessageType:       typ,
+			Body:              body,
+			DecoratedTextBody: decoratedBody,
+			Ctime:             rawMsg.Outbox().Ctime,
+			Ordinal:           computeOutboxOrdinal(rawMsg.Outbox()),
+			Preview:           preview,
+			Title:             title,
+			Filename:          filename,
 		})
 	case chat1.MessageUnboxedState_ERROR:
 		res = chat1.NewUIMessageWithError(rawMsg.Error())
@@ -1779,8 +1786,91 @@ func DecorateBody(ctx context.Context, body string, offset, length int, decorati
 	if err != nil {
 		return res, 0
 	}
-	strDecoration := fmt.Sprintf("%s%s%s", decorateBegin, string(out), decorateEnd)
+	//b64out := string(out)
+	b64out := base64.StdEncoding.EncodeToString(out)
+	strDecoration := fmt.Sprintf("%s%s%s", decorateBegin, b64out, decorateEnd)
 	added = len(strDecoration) - length
 	res = fmt.Sprintf("%s%s%s", body[:offset], strDecoration, body[offset+length:])
 	return res, added
+}
+
+func DecorateWithMentions(ctx context.Context, body string, atMentions []string,
+	chanMention chat1.ChannelMention, channelNameMentions []chat1.ChannelNameMention) string {
+	var added int
+	offset := 0
+	if len(atMentions) > 0 || chanMention != chat1.ChannelMention_NONE {
+		inputBody := body
+		atMatches := parseRegexpNames(ctx, inputBody, atMentionRegExp)
+		atMap := make(map[string]bool)
+		for _, at := range atMentions {
+			atMap[at] = true
+		}
+		for _, m := range atMatches {
+			switch m.name {
+			case "here", "channel", "everyone":
+				if chanMention == chat1.ChannelMention_NONE {
+					continue
+				}
+			default:
+				if !atMap[m.name] {
+					continue
+				}
+			}
+			body, added = DecorateBody(ctx, body, m.position[0]+offset-1, m.Len()+1,
+				chat1.NewUITextDecorationWithAtmention(m.name))
+			offset += added
+		}
+	}
+	if len(channelNameMentions) > 0 {
+		inputBody := body
+		chanMap := make(map[string]chat1.ConversationID)
+		chanMatches := parseRegexpNames(ctx, inputBody, chanNameMentionRegExp)
+		for _, c := range channelNameMentions {
+			chanMap[c.TopicName] = c.ConvID
+		}
+		offset = 0
+		for _, c := range chanMatches {
+			convID, ok := chanMap[c.name]
+			if !ok {
+				continue
+			}
+			body, added = DecorateBody(ctx, body, c.position[0]+offset-1, c.Len()+1,
+				chat1.NewUITextDecorationWithChannelnamemention(chat1.UIChannelNameMention{
+					Name:   c.name,
+					ConvID: convID.String(),
+				}))
+			offset += added
+		}
+	}
+	return body
+}
+
+func EscapeShrugs(ctx context.Context, body string) string {
+	return strings.Replace(body, `¯\_(ツ)_/¯`, `¯\\\_(ツ)_/¯`, -1)
+}
+
+var startQuote = ">"
+var newline = []rune("\n")
+
+var blockQuoteRegex = regexp.MustCompile("((?s)```.*?```)")
+var quoteRegex = regexp.MustCompile("((?s)`.*?`)")
+
+func ReplaceQuotedSubstrings(xs string, skipAngleQuotes bool) string {
+	replacer := func(s string) string {
+		return strings.Repeat("$", len(s))
+	}
+	xs = blockQuoteRegex.ReplaceAllStringFunc(xs, replacer)
+	xs = quoteRegex.ReplaceAllStringFunc(xs, replacer)
+
+	// Remove all quoted lines. Because we removed all codeblocks
+	// before, we only need to consider single lines.
+	var ret []string
+	for _, line := range strings.Split(xs, string(newline)) {
+		if skipAngleQuotes || !strings.HasPrefix(strings.TrimLeft(line, " "), startQuote) {
+			ret = append(ret, line)
+		} else {
+			ret = append(ret, replacer(line))
+		}
+	}
+	return strings.Join(ret, string(newline))
 }

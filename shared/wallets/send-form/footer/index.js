@@ -26,11 +26,11 @@ const Footer = (props: Props) => (
       {(!!props.worthDescription || props.calculating) && (
         <Kb.Box2 direction="horizontal">
           {props.worthDescription ? (
-            <Kb.Text style={styles.worthDescription} type="BodySmall">
+            <Kb.Text center={true} type="BodySmall">
               This is <Kb.Text type="BodySmallExtrabold">{props.worthDescription}</Kb.Text>.
             </Kb.Text>
           ) : (
-            <Kb.Text style={styles.worthDescription} type="BodySmall">
+            <Kb.Text center={true} type="BodySmall">
               Calculating...
             </Kb.Text>
           )}
@@ -120,9 +120,6 @@ const styles = Styles.styleSheetCreate({
   icon: {marginRight: Styles.globalMargins.tiny},
   questionIcon: {
     marginLeft: 1,
-  },
-  worthDescription: {
-    textAlign: 'center',
   },
 })
 

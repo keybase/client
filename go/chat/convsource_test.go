@@ -533,6 +533,11 @@ func (f failingRemote) GetThreadRemote(context.Context, chat1.GetThreadRemoteArg
 	require.Fail(f.t, "GetThreadRemote call")
 	return chat1.GetThreadRemoteRes{}, nil
 }
+func (f failingRemote) GetUnreadlineRemote(context.Context, chat1.GetUnreadlineRemoteArg) (chat1.GetUnreadlineRemoteRes, error) {
+
+	require.Fail(f.t, "GetUnreadlineRemote call")
+	return chat1.GetUnreadlineRemoteRes{}, nil
+}
 func (f failingRemote) GetPublicConversations(context.Context, chat1.GetPublicConversationsArg) (chat1.GetPublicConversationsRes, error) {
 	require.Fail(f.t, "GetPublicConversations call")
 	return chat1.GetPublicConversationsRes{}, nil
@@ -1269,10 +1274,8 @@ func TestClearFromDelete(t *testing.T) {
 		require.Fail(t, "no conv loader")
 	}
 
-	require.NoError(t, tc.Context().ChatHelper.SendTextByID(ctx, conv.GetConvID(), conv.Metadata.IdTriple,
-		u.Username, "hi"))
-	require.NoError(t, tc.Context().ChatHelper.SendTextByID(ctx, conv.GetConvID(), conv.Metadata.IdTriple,
-		u.Username, "hi2"))
+	require.NoError(t, tc.Context().ChatHelper.SendTextByID(ctx, conv.GetConvID(), u.Username, "hi"))
+	require.NoError(t, tc.Context().ChatHelper.SendTextByID(ctx, conv.GetConvID(), u.Username, "hi2"))
 	_, delMsg, err := sender.Send(ctx, conv.GetConvID(), chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        conv.Metadata.IdTriple,

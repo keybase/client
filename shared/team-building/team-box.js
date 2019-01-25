@@ -22,18 +22,27 @@ const formatNameForUserBubble = (username: string, service: ServiceIdWithContact
   return `${technicalName} ${prettyName ? `(${prettyName})` : ''}`
 }
 
-const TeamBox = (props: Props) => (
-  <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.container}>
-    {Styles.isMobile && <Kb.Icon fontSize={22} type={'iconfont-search'} style={styles.searchIcon} />}
-    {props.teamSoFar.map(u => (
+class UserBubbleCollection extends React.PureComponent<{
+  teamSoFar: $PropertyType<Props, 'teamSoFar'>,
+  onRemove: $PropertyType<Props, 'onRemove'>,
+}> {
+  render() {
+    return this.props.teamSoFar.map(u => (
       <UserBubble
         key={u.userId}
-        onRemove={() => props.onRemove(u.userId)}
+        onRemove={() => this.props.onRemove(u.userId)}
         username={u.username}
         service={u.service}
         prettyName={formatNameForUserBubble(u.username, u.service, u.prettyName)}
       />
-    ))}
+    ))
+  }
+}
+
+const TeamBox = (props: Props) => (
+  <Kb.Box2 direction="horizontal" style={styles.container}>
+    {Styles.isMobile && <Kb.Icon fontSize={22} type={'iconfont-search'} style={styles.searchIcon} />}
+    <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
     <Input
       onChangeText={props.onChangeText}
       onEnterKeyDown={props.onEnterKeyDown}
@@ -48,17 +57,23 @@ const TeamBox = (props: Props) => (
 const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
     common: {
+      flex: 1,
+      flexWrap: 'wrap',
+    },
+    isElectron: {
       ...Styles.globalStyles.rounded,
       borderColor: Styles.globalColors.black_20,
       borderStyle: 'solid',
       borderWidth: 1,
-      flex: 1,
-    },
-    isElectron: {
-      height: 40,
+      maxHeight: 170,
+      minHeight: 40,
+      overflowY: 'scroll',
     },
     isMobile: {
-      height: 45,
+      borderBottomColor: Styles.globalColors.black_10,
+      borderBottomWidth: 1,
+      borderStyle: 'solid',
+      minHeight: 45,
     },
   }),
   searchIcon: {

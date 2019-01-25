@@ -1,16 +1,11 @@
 // @flow
 import React, {Component} from 'react'
 import type {MenuLayoutProps, MenuItem} from '.'
-import {Box, Divider, Text} from '../..'
-import {
-  globalColors,
-  globalMargins,
-  globalStyles,
-  desktopStyles,
-  styleSheetCreate,
-  collapseStyles,
-  platformStyles,
-} from '../../../styles'
+import Box from '../../box'
+import Divider from '../../divider'
+import Text from '../../text'
+import Meta from '../../meta'
+import * as Styles from '../../../styles'
 
 class MenuLayout extends Component<MenuLayoutProps> {
   _renderDivider = (index: number) => <Divider style={styles.divider} key={index} />
@@ -24,13 +19,13 @@ class MenuLayout extends Component<MenuLayoutProps> {
       styleDisabled = {opacity: 0.4}
     }
 
-    const styleClickable = item.disabled ? {} : desktopStyles.clickable
+    const styleClickable = item.disabled ? {} : Styles.desktopStyles.clickable
 
     return (
       <Box
         key={index}
         className={hoverClassName}
-        style={collapseStyles([styles.itemContainer, styleClickable])}
+        style={Styles.collapseStyles([styles.itemContainer, styleClickable])}
         onClick={event => {
           item.onClick && item.onClick()
           if (this.props.closeOnClick && this.props.onHidden) {
@@ -39,23 +34,32 @@ class MenuLayout extends Component<MenuLayoutProps> {
           }
         }}
       >
-        {item.view ? (
-          item.view
-        ) : (
-          <Text
-            className="title"
-            type="Body"
-            style={collapseStyles([styles.itemBodyText, item.style, styleDisabled])}
-          >
-            {item.title}
-          </Text>
+        {item.view}
+        {!item.view && (
+          <Box style={styles.horizBox}>
+            <Text
+              className="title"
+              type="Body"
+              style={Styles.collapseStyles([styles.itemBodyText, item.style, styleDisabled])}
+            >
+              {item.title}
+            </Text>
+            {item.newTag && (
+              <Meta
+                title="New"
+                size="Small"
+                backgroundColor={Styles.globalColors.blue}
+                style={styles.badge}
+              />
+            )}
+          </Box>
         )}
         {!item.view && item.subTitle && (
           <Text
             className="subtitle"
             key={item.subTitle}
             type="BodySmall"
-            style={collapseStyles([styles.itemBodyText, item.style])}
+            style={Styles.collapseStyles([styles.itemBodyText, item.style])}
           >
             {item.subTitle}
           </Text>
@@ -67,21 +71,21 @@ class MenuLayout extends Component<MenuLayoutProps> {
   render() {
     const realCSS = `
     .menu-hover:hover { background-color: ${
-      this.props.hoverColor ? this.props.hoverColor : globalColors.blue4
+      this.props.hoverColor ? this.props.hoverColor : Styles.globalColors.blue4
     }; }
-    .menu-hover-danger:hover { background-color: ${globalColors.red}; }
+    .menu-hover-danger:hover { background-color: ${Styles.globalColors.red}; }
 
-    .menu-hover .title { color: ${globalColors.black_75}; }
-    .menu-hover-danger .title { color: ${globalColors.red}; }
-    .menu-hover-danger:hover .title { color: ${globalColors.white}; }
-    .menu-hover-danger .subtitle { color: ${globalColors.black_50}; }
-    .menu-hover-danger:hover .subtitle { color: ${globalColors.white}; }
+    .menu-hover .title { color: ${Styles.globalColors.black_75}; }
+    .menu-hover-danger .title { color: ${Styles.globalColors.red}; }
+    .menu-hover-danger:hover .title { color: ${Styles.globalColors.white}; }
+    .menu-hover-danger .subtitle { color: ${Styles.globalColors.black_50}; }
+    .menu-hover-danger:hover .subtitle { color: ${Styles.globalColors.white}; }
     `
 
     return (
       <Box>
         <style>{realCSS}</style>
-        <Box style={collapseStyles([styles.menuContainer, this.props.style])}>
+        <Box style={Styles.collapseStyles([styles.menuContainer, this.props.style])}>
           {/* Display header if there is one */}
           {this.props.header && this.props.header.view}
           {/* Display menu items */}
@@ -100,28 +104,35 @@ class MenuLayout extends Component<MenuLayoutProps> {
   }
 }
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
+  badge: {
+    alignSelf: 'center',
+    marginLeft: 'auto',
+  },
   divider: {
     marginBottom: 8,
     marginTop: 8,
+  },
+  horizBox: {
+    ...Styles.globalStyles.flexBoxRow,
   },
   itemBodyText: {
     color: undefined,
   },
   itemContainer: {
-    ...globalStyles.flexBoxColumn,
-    paddingBottom: globalMargins.xtiny,
-    paddingLeft: globalMargins.small,
-    paddingRight: globalMargins.small,
-    paddingTop: globalMargins.xtiny,
+    ...Styles.globalStyles.flexBoxColumn,
+    paddingBottom: Styles.globalMargins.xtiny,
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
+    paddingTop: Styles.globalMargins.xtiny,
   },
-  menuContainer: platformStyles({
+  menuContainer: Styles.platformStyles({
     isElectron: {
-      ...globalStyles.flexBoxColumn,
+      ...Styles.desktopStyles.boxShadow,
+      ...Styles.globalStyles.flexBoxColumn,
       alignItems: 'stretch',
-      backgroundColor: globalColors.white,
+      backgroundColor: Styles.globalColors.white,
       borderRadius: 3,
-      boxShadow: '0 0 15px 0 rgba(0, 0, 0, 0.2)',
       justifyContent: 'flex-start',
       minWidth: 200,
       overflowX: 'hidden',
@@ -129,10 +140,10 @@ const styles = styleSheetCreate({
     },
   }),
   menuItemList: {
-    ...globalStyles.flexBoxColumn,
+    ...Styles.globalStyles.flexBoxColumn,
     flexShrink: 0,
-    paddingBottom: globalMargins.tiny,
-    paddingTop: globalMargins.tiny,
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingTop: Styles.globalMargins.tiny,
   },
 })
 

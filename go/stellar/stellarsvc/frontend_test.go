@@ -22,7 +22,7 @@ import (
 )
 
 func acceptDisclaimer(tc *TestContext) {
-	// NOTE: this also creates a v1 wallet
+	// NOTE: this also creates a wallet
 	err := tc.Srv.AcceptDisclaimerLocal(context.Background(), 0)
 	require.NoError(tc.T, err)
 }
@@ -2117,6 +2117,45 @@ func TestKeybaseFederationReviewPaymentLocal(t *testing.T) {
 	require.NoError(t, err)
 }
 
+// Review a payment where recipient is an SBS twitter user.
+func TestReviewPaymentLocalSBS(t *testing.T) {
+	tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+
+	acceptDisclaimer(tcs[0])
+	senderAccountID, err := stellar.GetOwnPrimaryAccountID(tcs[0].MetaContext())
+	require.NoError(t, err)
+	tcs[0].Backend.ImportAccountsForUser(tcs[0])
+	tcs[0].Backend.Gift(senderAccountID, "100")
+	tcs[0].Srv.walletState.Refresh(tcs[0].MetaContext(), senderAccountID, "test")
+
+	t.Logf("u0 starts a payment")
+	bid1, err := tcs[0].Srv.StartBuildPaymentLocal(context.Background(), 0)
+	require.NoError(t, err)
+	amount := "11.0"
+	buildRes, err := tcs[0].Srv.BuildPaymentLocal(context.Background(), stellar1.BuildPaymentLocalArg{
+		Bid:    bid1,
+		From:   senderAccountID,
+		To:     "torproject@twitter",
+		Amount: amount,
+	})
+	require.NoError(t, err)
+	require.Equal(t, true, buildRes.ReadyToReview)
+
+	t.Logf("u0 starts a review of the payment")
+	reviewPaymentExpectQuickSuccess(t, tcs[0], stellar1.ReviewPaymentLocalArg{Bid: bid1})
+
+	t.Logf("u0 completes the send")
+	_, err = tcs[0].Srv.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
+		Bid:    bid1,
+		From:   senderAccountID,
+		To:     "torproject@twitter",
+		Amount: amount,
+		Asset:  stellar1.AssetNative(),
+	})
+	require.NoError(t, err)
+}
+
 // Cases where Send is blocked because the build gamut wasn't run.
 func TestBuildPaymentLocalBidBlocked(t *testing.T) {
 	tcs, cleanup := setupNTests(t, 2)
@@ -2240,7 +2279,7 @@ func TestBuildPaymentLocalBidBlocked(t *testing.T) {
 			require.Equal(t, "mismatched amount: 15 != 12", errString)
 
 			errString = send(bid1, "15")
-			require.Equal(t, "this payment has been stopped", errString)
+			require.Equal(t, "This payment might have already been sent. Check your recent payments before trying again.", errString)
 
 		case "afterStoppedBySend":
 			bres, err := build(bid1, "11")
@@ -2253,7 +2292,7 @@ func TestBuildPaymentLocalBidBlocked(t *testing.T) {
 			require.Equal(t, "", errString)
 
 			errString = send(bid1, "11")
-			require.Equal(t, "this payment has been stopped", errString)
+			require.Equal(t, "This payment might have already been sent. Check your recent payments before trying again.", errString)
 
 		case "afterStoppedByStop":
 			errString := send(bid1, "11")
@@ -2263,7 +2302,7 @@ func TestBuildPaymentLocalBidBlocked(t *testing.T) {
 			require.NoError(t, err)
 
 			errString = send(bid1, "11")
-			require.Equal(t, "this payment has been stopped", errString)
+			require.Equal(t, "This payment might have already been sent. Check your recent payments before trying again.", errString)
 
 		case "afterStopppedByStopThenBuild":
 			errString := send(bid1, "11")
@@ -2275,10 +2314,10 @@ func TestBuildPaymentLocalBidBlocked(t *testing.T) {
 			_, err := build(bid1, "11")
 			_ = err // Calling build on a stopped payment is do-no-harm undefined behavior.
 
-			reviewExpectContractFailure("this payment has been stopped") // Calling review on a stopped payment is do-no-harm not gonna happen.
+			reviewExpectContractFailure("This payment might have already been sent. Check your recent payments before trying again.") // Calling review on a stopped payment is do-no-harm not gonna happen.
 
 			errString = send(bid1, "11")
-			require.Equal(t, "this payment has been stopped", errString)
+			require.Equal(t, "This payment might have already been sent. Check your recent payments before trying again.", errString)
 
 		case "build-review-build-send":
 			bres, err := build(bid1, "12")
@@ -2530,8 +2569,10 @@ func TestMakeRequestLocalNotifications(t *testing.T) {
 }
 
 func TestSetMobileOnly(t *testing.T) {
-	tcs, cleanup := setupNTests(t, 1)
+	tcs, cleanup := setupTestsWithSettings(t, []usetting{usettingMobile})
 	defer cleanup()
+
+	makeActiveDeviceOlder(t, tcs[0].G)
 
 	// this only works with a v2 bundle now
 	setupWithNewBundle(t, tcs[0])

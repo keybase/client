@@ -5,6 +5,8 @@ import {getAccount, getSelectedAccount} from '../../../constants/wallets'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import {type AccountID} from '../../../constants/types/wallets'
 
+// TODO: This is now desktop-only, so remove references to isMobile.
+
 type OwnProps = {accountID: AccountID}
 
 const mapStateToProps = (state, ownProps: {accountID: AccountID}) => {
@@ -26,7 +28,7 @@ const mapStateToProps = (state, ownProps: {accountID: AccountID}) => {
 const mapDispatchToProps = dispatch => ({
   _onClearNewPayments: (accountID: AccountID) => dispatch(WalletsGen.createClearNewPayments({accountID})),
   _onSelectAccount: (accountID: AccountID) =>
-    dispatch(WalletsGen.createSelectAccount({accountID, show: true})),
+    dispatch(WalletsGen.createSelectAccount({accountID, reason: 'user-selected', show: true})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps): Props => ({

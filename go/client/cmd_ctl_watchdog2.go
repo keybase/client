@@ -47,10 +47,6 @@ func (c *CmdWatchdog2) Run() error {
 		return err
 	}
 
-	if !libkb.CheckInstance("keybase.watchdog2") {
-		return fmt.Errorf("Watchdog instance already running")
-	}
-
 	serviceLogPath := filepath.Join(env.GetLogDir(), libkb.ServiceLogFileName)
 	serviceProgram := watchdog.Program{
 		Path: keybasePath,

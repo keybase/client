@@ -16,12 +16,6 @@ type MoreProps = {
   proofActionText?: ?string,
 }
 
-const styleCentered = {
-  style: {
-    textAlign: 'center',
-  },
-}
-
 export function propsForPlatform(props: Props): MoreProps {
   const base = {
     platformSubtitle: subtitle(props.platform),
@@ -32,7 +26,7 @@ export function propsForPlatform(props: Props): MoreProps {
       return {
         ...base,
         descriptionView: (
-          <Text type="BodySemibold" {...styleCentered}>
+          <Text center={true} type="BodySemibold">
             Please tweet the text below{' '}
             <Text type="BodySemiboldItalic" style={{...globalStyles.italic}}>
               exactly as it appears.
@@ -48,7 +42,7 @@ export function propsForPlatform(props: Props): MoreProps {
       return {
         ...base,
         descriptionView: (
-          <Text type="BodySemibold" {...styleCentered}>
+          <Text center={true} type="BodySemibold">
             Click the link below and post the form in the subreddit{' '}
             <Text type="BodySemiboldItalic">KeybaseProofs</Text>.
           </Text>
@@ -70,7 +64,7 @@ export function propsForPlatform(props: Props): MoreProps {
       return {
         ...base,
         descriptionView: (
-          <Text type="BodySemibold" {...styleCentered}>
+          <Text center={true} type="BodySemibold">
             Login to GitHub and paste the text below into a <Text type="BodySemiboldItalic">public</Text> gist
             called <Text type="BodySemiboldItalic">keybase.md.</Text>
           </Text>
@@ -84,7 +78,7 @@ export function propsForPlatform(props: Props): MoreProps {
       return {
         ...base,
         descriptionView: (
-          <Text type="BodySemibold" {...styleCentered}>
+          <Text center={true} type="BodySemibold">
             Please add the below text{' '}
             <Text type="BodySemibold" style={{...globalStyles.italic}}>
               exactly as it appears
@@ -101,7 +95,7 @@ export function propsForPlatform(props: Props): MoreProps {
       return {
         ...base,
         descriptionView: (
-          <Text type="BodySemibold" {...styleCentered}>
+          <Text center={true} type="BodySemibold">
             Enter the following as a TXT entry in your DNS zone,{' '}
             <Text type="BodySemibold">exactly as it appears</Text>. If you need a "name" for your entry, give
             it "@".
@@ -121,21 +115,22 @@ export function propsForPlatform(props: Props): MoreProps {
         ...base,
         descriptionView: (
           <Box style={globalStyles.flexBoxColumn}>
-            <Text type="BodySemibold" {...styleCentered}>
+            <Text center={true} type="BodySemibold">
               Please serve the text below <Text type="BodySemiboldItalic">exactly as it appears</Text> at one
               of these URL's.
             </Text>
             <Text
               type="BodyPrimaryLink"
+              center={true}
               onClick={() => openUrl(urlRoot)}
-              style={{color: globalColors.blue, marginTop: globalMargins.tiny, textAlign: 'center'}}
+              style={{color: globalColors.blue, marginTop: globalMargins.tiny}}
             >
               {urlRoot}
             </Text>
             <Text
               type="BodyPrimaryLink"
-              onClick={() => openUrl(urlWellKnown)}
-              style={{color: globalColors.blue, textAlign: 'center'}}
+              center={true} onClick={() => openUrl(urlWellKnown)}
+              style={{color: globalColors.blue}}
             >
               {urlWellKnown}
             </Text>

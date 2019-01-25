@@ -131,6 +131,12 @@
     },
     {
       "type": "record",
+      "name": "EmailAddress",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
       "name": "Email",
       "fields": [
         {
@@ -231,6 +237,84 @@
     },
     {
       "type": "record",
+      "name": "ProofSuggestionsRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ProofSuggestion"
+          },
+          "name": "suggestions"
+        },
+        {
+          "type": "boolean",
+          "name": "showMore"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ProofSuggestion",
+      "fields": [
+        {
+          "type": "string",
+          "name": "key"
+        },
+        {
+          "type": "boolean",
+          "name": "belowFold"
+        },
+        {
+          "type": "string",
+          "name": "profileText"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SizedImage"
+          },
+          "name": "profileIcon"
+        },
+        {
+          "type": "string",
+          "name": "pickerText"
+        },
+        {
+          "type": "string",
+          "name": "pickerSubtext"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SizedImage"
+          },
+          "name": "pickerIcon"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Identify3RowMeta"
+          },
+          "name": "metas"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SizedImage",
+      "fields": [
+        {
+          "type": "string",
+          "name": "path"
+        },
+        {
+          "type": "int",
+          "name": "width"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "NextMerkleRootRes",
       "fields": [
         {
@@ -241,12 +325,6 @@
           "name": "res"
         }
       ]
-    },
-    {
-      "type": "record",
-      "name": "EmailAddress",
-      "fields": [],
-      "typedef": "string"
     }
   ],
   "messages": {
@@ -576,6 +654,15 @@
       ],
       "response": null
     },
+    "proofSuggestions": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "ProofSuggestionsRes"
+    },
     "findNextMerkleRootAfterRevoke": {
       "request": [
         {
@@ -615,6 +702,19 @@
       ],
       "response": "NextMerkleRootRes",
       "doc": "FindNextMerkleRootAfterReset finds the first Merkle root that contains the UID reset\n   at resetSeqno. You should pass it prev, which was the last known Merkle root at the time of\n   the reset. Usually, we'll just turn up the next Merkle root, but not always."
+    },
+    "loadHasRandomPw": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "forceRepoll",
+          "type": "boolean"
+        }
+      ],
+      "response": "boolean"
     }
   },
   "namespace": "keybase.1"

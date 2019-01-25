@@ -67,6 +67,7 @@ export type PassphraseState = {
   newPassphraseConfirmError: ?HiddenString,
   hasPGPKeyOnServer: ?boolean,
   rememberPassphrase: boolean,
+  randomPW: ?boolean,
 }
 
 export type EmailState = {
@@ -103,7 +104,7 @@ type DevMenuTab = 'settingsTabs:devMenuTab'
 type DevicesTab = 'settingsTabs:devicesTab'
 type FeedbackTab = 'settingsTabs:feedbackTab'
 type FoldersTab = 'settingsTabs:foldersTab'
-type FsTab = 'settingsTabs:fsTab'
+type FsSettingsTab = 'settingsTabs:fsSettingsTab'
 type GitTab = 'settingsTabs:gitTab'
 type InvitationsTab = 'settingsTabs:invitationsTab'
 type LandingTab = 'settingsTabs:landingTab'
@@ -111,6 +112,7 @@ type NotificationsTab = 'settingsTabs:notificationsTab'
 type PassphraseTab = 'settingsTabs:passphrase'
 type ScreenprotectorTab = 'settingsTabs:screenprotector'
 type UpdatePaymentTab = 'settingsTabs:updatePaymentTab'
+type TeamsTab = 'settingsTabs:teamsTab'
 type WalletsTab = 'settingsTabs:walletsTab'
 
 export type Tab =
@@ -126,7 +128,8 @@ export type Tab =
   | DevicesTab
   | GitTab
   | FoldersTab
-  | FsTab
+  | FsSettingsTab
+  | TeamsTab
   | ScreenprotectorTab
   | PassphraseTab
   | WalletsTab

@@ -37,19 +37,18 @@ func NewHelper(g *globals.Context, ri func() chat1.RemoteInterface) *Helper {
 }
 
 func (h *Helper) SendTextByID(ctx context.Context, convID chat1.ConversationID,
-	trip chat1.ConversationIDTriple, tlfName string, text string) error {
-	return h.SendMsgByID(ctx, convID, trip, tlfName, chat1.NewMessageBodyWithText(chat1.MessageText{
+	tlfName string, text string) error {
+	return h.SendMsgByID(ctx, convID, tlfName, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: text,
 	}), chat1.MessageType_TEXT)
 }
 
-func (h *Helper) SendMsgByID(ctx context.Context, convID chat1.ConversationID,
-	trip chat1.ConversationIDTriple, tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error {
+func (h *Helper) SendMsgByID(ctx context.Context, convID chat1.ConversationID, tlfName string,
+	body chat1.MessageBody, msgType chat1.MessageType) error {
 	boxer := NewBoxer(h.G())
 	sender := NewBlockingSender(h.G(), boxer, h.ri)
 	msg := chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
-			Conv:        trip,
 			TlfName:     tlfName,
 			MessageType: msgType,
 		},
@@ -60,20 +59,19 @@ func (h *Helper) SendMsgByID(ctx context.Context, convID chat1.ConversationID,
 }
 
 func (h *Helper) SendTextByIDNonblock(ctx context.Context, convID chat1.ConversationID,
-	trip chat1.ConversationIDTriple, tlfName string, text string) error {
-	return h.SendMsgByIDNonblock(ctx, convID, trip, tlfName, chat1.NewMessageBodyWithText(chat1.MessageText{
+	tlfName string, text string) error {
+	return h.SendMsgByIDNonblock(ctx, convID, tlfName, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: text,
 	}), chat1.MessageType_TEXT)
 }
 
 func (h *Helper) SendMsgByIDNonblock(ctx context.Context, convID chat1.ConversationID,
-	trip chat1.ConversationIDTriple, tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error {
+	tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error {
 	boxer := NewBoxer(h.G())
 	baseSender := NewBlockingSender(h.G(), boxer, h.ri)
 	sender := NewNonblockingSender(h.G(), baseSender)
 	msg := chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
-			Conv:        trip,
 			TlfName:     tlfName,
 			MessageType: msgType,
 		},
@@ -729,6 +727,11 @@ func postJoinLeave(ctx context.Context, g *globals.Context, ri func() chat1.Remo
 	return err
 }
 
+func (h *Helper) JoinConversationByID(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (err error) {
+	defer h.Trace(ctx, func() error { return err }, "ChatHelper.JoinConversationByID")()
+	return JoinConversation(ctx, h.G(), h.DebugLabeler, h.ri, uid, convID)
+}
+
 func JoinConversation(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
 	ri func() chat1.RemoteInterface, uid gregor1.UID, convID chat1.ConversationID) (err error) {
 	if err := g.ConvSource.AcquireConversationLock(ctx, uid, convID); err != nil {
@@ -736,17 +739,15 @@ func JoinConversation(ctx context.Context, g *globals.Context, debugger utils.De
 	}
 	defer g.ConvSource.ReleaseConversationLock(ctx, uid, convID)
 
-	alreadyIn, err := g.InboxSource.IsMember(ctx, uid, convID)
-	if err != nil {
-		debugger.Debug(ctx, "JoinConversation: IsMember err: %s", err.Error())
-		// Assume we're not in.
-		alreadyIn = false
+	if alreadyIn, err := g.InboxSource.IsMember(ctx, uid, convID); err != nil {
+		// charge forward anyway
+		debugger.Debug(ctx, "JoinConversation: IsMember err: %v", err)
+	} else if alreadyIn {
+		return nil
 	}
 
-	// Send the join command even if we're in.
-	_, err = ri().JoinConversation(ctx, convID)
-	if err != nil {
-		debugger.Debug(ctx, "JoinConversation: failed to join conversation: %s", err.Error())
+	if _, err = ri().JoinConversation(ctx, convID); err != nil {
+		debugger.Debug(ctx, "JoinConversation: failed to join conversation: %v", err)
 		return err
 	}
 
@@ -756,20 +757,59 @@ func JoinConversation(ctx context.Context, g *globals.Context, debugger utils.De
 			ConvID: convID,
 		},
 	}, nil, nil, nil); err != nil {
-		debugger.Debug(ctx, "JoinConversation: failed to apply membership update: %s", err.Error())
+		debugger.Debug(ctx, "JoinConversation: failed to apply membership update: %v", err)
 	}
-
-	if !alreadyIn {
-		// Send a message to the channel after joining.
-		joinMessageBody := chat1.NewMessageBodyWithJoin(chat1.MessageJoin{})
-		debugger.Debug(ctx, "JoinConversation: sending join message to: %s", convID)
-		err := postJoinLeave(ctx, g, ri, uid, convID, joinMessageBody)
-		if err != nil {
-			debugger.Debug(ctx, "JoinConversation: posting join-conv message failed: %v", err)
-			// ignore the error
-		}
+	// Send a message to the channel after joining.
+	joinMessageBody := chat1.NewMessageBodyWithJoin(chat1.MessageJoin{})
+	debugger.Debug(ctx, "JoinConversation: sending join message to: %s", convID)
+	if err := postJoinLeave(ctx, g, ri, uid, convID, joinMessageBody); err != nil {
+		debugger.Debug(ctx, "JoinConversation: posting join-conv message failed: %v", err)
+		// ignore the error
 	}
 	return nil
+}
+
+func (h *Helper) JoinConversationByName(ctx context.Context, uid gregor1.UID, tlfName, topicName string,
+	topicType chat1.TopicType, vis keybase1.TLFVisibility) (err error) {
+	defer h.Trace(ctx, func() error { return err }, "ChatHelper.JoinConversationByName")()
+	return JoinConversationByName(ctx, h.G(), h.DebugLabeler, h.ri, uid, tlfName, topicName, topicType, vis)
+}
+
+func JoinConversationByName(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
+	ri func() chat1.RemoteInterface, uid gregor1.UID, tlfName, topicName string, topicType chat1.TopicType,
+	vis keybase1.TLFVisibility) (err error) {
+	// Fetch the TLF ID from specified name
+	nameInfo, err := CreateNameInfoSource(ctx, g, chat1.ConversationMembersType_TEAM).LookupID(ctx,
+		tlfName, vis == keybase1.TLFVisibility_PUBLIC)
+	if err != nil {
+		debugger.Debug(ctx, "JoinConversationByName: failed to get TLFID from name: %s", err.Error())
+		return err
+	}
+
+	// List all the conversations on the team
+	convs, err := g.TeamChannelSource.GetChannelsFull(ctx, uid, nameInfo.ID, topicType)
+	if err != nil {
+		return err
+	}
+	var convID chat1.ConversationID
+	for _, conv := range convs {
+		convTopicName := utils.GetTopicName(conv)
+		if convTopicName != "" && convTopicName == topicName {
+			convID = conv.GetConvID()
+		}
+	}
+	if convID.IsNil() {
+		return fmt.Errorf("no topic name %s exists on specified team", topicName)
+	}
+	if err = JoinConversation(ctx, g, debugger, ri, uid, convID); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (h *Helper) LeaveConversation(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (err error) {
+	defer h.Trace(ctx, func() error { return err }, "ChatHelper.LeaveConversation")()
+	return LeaveConversation(ctx, h.G(), h.DebugLabeler, h.ri, uid, convID)
 }
 
 func LeaveConversation(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
@@ -813,8 +853,7 @@ func PreviewConversation(ctx context.Context, g *globals.Context, debugger utils
 		return nil
 	}
 
-	_, err = ri().PreviewConversation(ctx, convID)
-	if err != nil {
+	if _, err = ri().PreviewConversation(ctx, convID); err != nil {
 		debugger.Debug(ctx, "PreviewConversation: failed to preview conversation: %s", err.Error())
 		return err
 	}
@@ -824,6 +863,7 @@ func PreviewConversation(ctx context.Context, g *globals.Context, debugger utils
 func NewConversation(ctx context.Context, g *globals.Context, uid gregor1.UID, tlfName string,
 	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
 	vis keybase1.TLFVisibility, ri func() chat1.RemoteInterface) (chat1.ConversationLocal, error) {
+	defer utils.SuspendComponent(ctx, g, g.ConvLoader)()
 	helper := newNewConversationHelper(g, uid, tlfName, topicName, topicType, membersType, vis, ri)
 	return helper.create(ctx)
 }
@@ -857,16 +897,49 @@ func newNewConversationHelper(g *globals.Context, uid gregor1.UID, tlfName strin
 	}
 }
 
-func (n *newConversationHelper) findConversations(ctx context.Context,
-	membersType chat1.ConversationMembersType, topicName string, useLocalData bool) ([]chat1.ConversationLocal, error) {
-	onechatpertlf := true
-	return FindConversations(ctx, n.G(), n.DebugLabeler, useLocalData, n.ri, n.uid, n.tlfName, n.topicType,
-		membersType, n.vis, topicName, &onechatpertlf)
+func (n *newConversationHelper) findExisting(ctx context.Context, tlfID chat1.TLFID, topicName string,
+	useLocalData bool) (res []chat1.ConversationLocal, err error) {
+	ib, _, err := n.G().InboxSource.Read(ctx, n.uid, types.ConversationLocalizerBlocking, true, nil,
+		&chat1.GetInboxLocalQuery{
+			Name: &chat1.NameQuery{
+				Name:        n.tlfName,
+				TlfID:       &tlfID,
+				MembersType: n.membersType,
+			},
+			TlfVisibility: &n.vis,
+			TopicName:     &topicName,
+			TopicType:     &n.topicType,
+		}, nil)
+	if err != nil {
+		return res, err
+	}
+	return ib.Convs, nil
 }
 
-func (n *newConversationHelper) findExisting(ctx context.Context, topicName string, useLocalData bool) (res []chat1.ConversationLocal, err error) {
-	// proceed to findConversations for requested member type
-	return n.findConversations(ctx, n.membersType, topicName, useLocalData)
+func (n *newConversationHelper) getNameInfo(ctx context.Context) (res types.NameInfo, err error) {
+	isPublic := n.vis == keybase1.TLFVisibility_PUBLIC
+	switch n.membersType {
+	case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_TEAM,
+		chat1.ConversationMembersType_IMPTEAMUPGRADE:
+		return CreateNameInfoSource(ctx, n.G(), n.membersType).LookupID(ctx, n.tlfName, isPublic)
+	case chat1.ConversationMembersType_IMPTEAMNATIVE:
+		// NameInfoSource interface doesn't allow us to quickly lookup and create at the same time,
+		// so let's just do this manually here. Note: this will allow a user to dup impteamupgrade
+		// convs with unresolved assertions in them, the server can catch any normal convs being duped.
+		if override := GetOverrideNameInfoSource(ctx); override != nil {
+			return override.LookupID(ctx, n.tlfName, isPublic)
+		}
+		team, _, impTeamName, err := teams.LookupOrCreateImplicitTeam(ctx, n.G().ExternalG(), n.tlfName,
+			isPublic)
+		if err != nil {
+			return res, err
+		}
+		return types.NameInfo{
+			ID:            chat1.TLFID(team.ID.ToBytes()),
+			CanonicalName: impTeamName.String(),
+		}, nil
+	}
+	return res, errors.New("unknown members type")
 }
 
 func (n *newConversationHelper) create(ctx context.Context) (res chat1.ConversationLocal, reserr error) {
@@ -884,6 +957,11 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 	if n.topicName != nil {
 		findConvsTopicName = *n.topicName
 	}
+	info, err := n.getNameInfo(ctx)
+	if err != nil {
+		return res, err
+	}
+	n.tlfName = info.CanonicalName
 
 	// Find any existing conversations that match this argument specifically. We need to do this check
 	// here in the client since we can't see the topic name on the server.
@@ -892,9 +970,11 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 	// there is a ton of logic in there to try and present a nice looking menu to help out the
 	// user and such. For the most part, the CLI just uses FindConversationsLocal though, so it
 	// should hopefully just result in a bunch of cache hits on the second invocation.
-
-	convs, err := n.findExisting(ctx, findConvsTopicName, true)
-
+	convs, err := n.findExisting(ctx, info.ID, findConvsTopicName, true)
+	if err != nil {
+		n.Debug(ctx, "error running findExisting: %s", err)
+		convs = nil
+	}
 	// If we find one conversation, then just return it as if we created it.
 	if len(convs) == 1 {
 		n.Debug(ctx, "found previous conversation that matches, returning")
@@ -913,30 +993,6 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 	}
 
 	n.Debug(ctx, "no matching previous conversation, proceeding to create new conv")
-
-	isPublic := n.vis == keybase1.TLFVisibility_PUBLIC
-	nis := CreateNameInfoSource(ctx, n.G(), n.membersType)
-	info, err := nis.LookupID(ctx, n.tlfName, isPublic)
-	if err != nil {
-		if n.membersType != chat1.ConversationMembersType_IMPTEAMNATIVE {
-			return res, err
-		}
-		if _, ok := err.(UnknownTLFNameError); !ok {
-			return res, err
-		}
-
-		// couldn't find implicit team, so make one
-		n.Debug(ctx, "making new implicit team %q", n.tlfName)
-		_, _, _, err = teams.LookupOrCreateImplicitTeam(ctx, n.G().ExternalG(), n.tlfName, isPublic)
-		if err != nil {
-			return res, err
-		}
-		info, err = nis.LookupID(ctx, n.tlfName, isPublic)
-		if err != nil {
-			return res, err
-		}
-	}
-
 	triple := chat1.ConversationIDTriple{
 		Tlfid:     info.ID,
 		TopicType: n.topicType,
@@ -946,6 +1002,7 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 	// If we get a ChatStalePreviousStateError we blow away in the box cache
 	// once to allow the retry to get fresh data.
 	clearedCache := false
+	isPublic := n.vis == keybase1.TLFVisibility_PUBLIC
 	for i := 0; i < 5; i++ {
 		triple.TopicID, err = utils.NewChatTopicID()
 		if err != nil {
@@ -962,7 +1019,7 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 			case DuplicateTopicNameError:
 				n.Debug(ctx, "duplicate topic name encountered, attempting to findExisting again")
 				var findErr error
-				convs, findErr = n.findExisting(ctx, findConvsTopicName, false)
+				convs, findErr = n.findExisting(ctx, info.ID, findConvsTopicName, false)
 				if len(convs) == 1 {
 					n.Debug(ctx, "found previous conversation that matches, returning")
 					return convs[0], findErr
@@ -1008,6 +1065,22 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 				// The triple did not exist, but a collision occurred on convID. Retry with a different topic ID.
 				n.Debug(ctx, "collision: %v", reserr)
 				continue
+			case libkb.ChatClientError:
+				// just make sure we can't find anything with FindConversations if we get this back
+				topicName := ""
+				if n.topicName != nil {
+					topicName = *n.topicName
+				}
+				fcRes, err := FindConversations(ctx, n.G(), n.DebugLabeler, true, n.ri, n.uid,
+					n.tlfName, n.topicType, n.membersType, n.vis, topicName, nil)
+				if err != nil {
+					n.Debug(ctx, "failed trying FindConversations after client error: %s", err)
+					return res, reserr
+				} else if len(fcRes) > 0 {
+					convID = fcRes[0].GetConvID()
+				} else {
+					return res, reserr
+				}
 			default:
 				return res, fmt.Errorf("error creating conversation: %s", reserr)
 			}
@@ -1117,9 +1190,8 @@ func (n *newConversationHelper) makeFirstMessage(ctx context.Context, triple cha
 }
 
 func CreateNameInfoSource(ctx context.Context, g *globals.Context, membersType chat1.ConversationMembersType) types.NameInfoSource {
-	if override := ctx.Value(nameInfoOverrideKey); override != nil {
-		g.GetLog().CDebugf(ctx, "createNameInfoSource: using override: %T", override)
-		return override.(types.NameInfoSource)
+	if override := GetOverrideNameInfoSource(ctx); override != nil {
+		return override
 	}
 	switch membersType {
 	case chat1.ConversationMembersType_KBFS:
@@ -1133,4 +1205,11 @@ func CreateNameInfoSource(ctx context.Context, g *globals.Context, membersType c
 	}
 	g.GetLog().CDebugf(ctx, "createNameInfoSource: unknown members type, using KBFS: %v", membersType)
 	return NewKBFSNameInfoSource(g)
+}
+
+func GetOverrideNameInfoSource(ctx context.Context) types.NameInfoSource {
+	if override := ctx.Value(nameInfoOverrideKey); override != nil {
+		return override.(types.NameInfoSource)
+	}
+	return nil
 }

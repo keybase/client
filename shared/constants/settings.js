@@ -36,6 +36,7 @@ const initialState: Types.State = {
     newPassphraseConfirm: new HiddenString(''),
     newPassphraseConfirmError: null,
     newPassphraseError: null,
+    randomPW: null,
     rememberPassphrase: true,
   },
   waitingForResponse: false,
@@ -59,7 +60,8 @@ export const devMenuTab = 'settingsTabs:devMenuTab'
 export const devicesTab = 'settingsTabs:devicesTab'
 export const feedbackTab = 'settingsTabs:feedbackTab'
 export const foldersTab = 'settingsTabs:foldersTab'
-export const fsTab = 'settingsTabs:fsTab'
+export const fsSettingsTab = 'settingsTabs:fsSettingsTab'
+export const teamsTab = 'settingsTabs:teamsTab'
 export const gitTab = 'settingsTabs:gitTab'
 export const invitationsTab = 'settingsTabs:invitationsTab'
 export const landingTab = 'settingsTabs:landingTab'

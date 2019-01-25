@@ -12,6 +12,9 @@
     "acceptDisclaimer": {
       "_description": "Accept the Stellar account disclaimer"
     },
+    "resetAcceptingDisclaimer": {
+      "_description": "Reset to the pre-accepting-disclaimer state."
+    },
     "accountsReceived": {
       "_description": "Update our store of account data",
       "accounts": "Array<Types.Account>"
@@ -107,7 +110,8 @@
       "accountID": "Types.AccountID"
     },
     "loadAccounts": {
-      "_description": "Refresh our list of accounts"
+      "_description": "Refresh our list of accounts",
+      "reason": "'initial-load' | 'open-send-req-form'"
     },
     "loadInflationDestination": {
       "_description": "Refresh inflation destination and options",
@@ -116,7 +120,7 @@
     "setInflationDestination": {
       "_description": "Set our inflation destination",
       "accountID": "Types.AccountID",
-      "destination": "string",
+      "destination": "string"
     },
     "inflationDestinationReceived": {
       "_description": "Got inflation destination",
@@ -263,12 +267,8 @@
     "selectAccount": {
       "_description": "Select an account. Optionally navigate to the account page.",
       "accountID": "Types.AccountID",
+      "reason": "'user-selected' | 'auto-selected' | 'from-chat'",
       "show?": "boolean"
-    },
-    "refreshPayments": {
-      "_description": "In response to a notification, resync payment info",
-      "accountID": "Types.AccountID",
-      "paymentID": "Types.PaymentID"
     },
     "buildPayment": {
       "_description": "Send a potential payment to the service for validation"

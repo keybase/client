@@ -9,7 +9,6 @@ import ChatContainer from './chat-container.desktop'
 import FilesPreview from './files-container.desktop'
 import {isDarwin} from '../constants/platform'
 import * as SafeElectron from '../util/safe-electron.desktop'
-import {throttle} from 'lodash-es'
 import OutOfDate from './out-of-date'
 import Upload from '../fs/footer/upload'
 import UploadCountdownHOC, {type UploadCountdownHOCProps} from '../fs/footer/upload-countdown-hoc'
@@ -45,15 +44,19 @@ class MenubarRender extends React.Component<Props, State> {
 
   attachmentRef = React.createRef<Kb.Icon>()
 
-  _onShow = throttle(() => {
-    this.props.refresh()
-  }, 1000 * 5)
+  _refreshIfLoggedIn = () => this.props.loggedIn && this.props.refresh()
 
-  constructor(props: Props) {
-    super(props)
+  componentDidMount() {
+    this._refreshIfLoggedIn()
     SafeElectron.getRemote()
       .getCurrentWindow()
-      .on('show', this._onShow)
+      .on('show', this._refreshIfLoggedIn)
+  }
+
+  componentWillUnmount() {
+    SafeElectron.getRemote()
+      .getCurrentWindow()
+      .removeListener('show', this._refreshIfLoggedIn)
   }
 
   render() {

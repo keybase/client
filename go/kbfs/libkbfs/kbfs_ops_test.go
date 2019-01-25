@@ -127,9 +127,10 @@ func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 	config.mockBops.EXPECT().Archive(gomock.Any(), gomock.Any(),
 		gomock.Any()).AnyTimes().Return(nil)
 	// Ignore BlockRetriever calls
-	brc := &testBlockRetrievalConfig{nil, newTestLogMaker(t),
-		config.BlockCache(), nil, newTestDiskBlockCacheGetter(t, nil),
-		newTestSyncedTlfGetterSetter(), testInitModeGetter{InitDefault}}
+	brc := &testBlockRetrievalConfig{
+		nil, newTestLogMaker(t), config.BlockCache(), nil,
+		newTestDiskBlockCacheGetter(t, nil), newTestSyncedTlfGetterSetter(),
+		testInitModeGetter{InitDefault}, newTestClockNow()}
 	brq := newBlockRetrievalQueue(0, 0, 0, brc)
 	config.mockBops.EXPECT().BlockRetriever().AnyTimes().Return(brq)
 	config.mockBops.EXPECT().Prefetcher().AnyTimes().Return(brq.prefetcher)
@@ -1356,6 +1357,7 @@ func makeDirTree(id tlf.ID, uid keybase1.UserOrTeamID, components ...string) (
 	}
 	nodes := []pathNode{{bi.BlockPointer, "{root}"}}
 	rootBlock := NewDirBlock().(*DirBlock)
+	rootBlock.SetEncodedSize(bi.EncodedSize)
 	blocks := []*DirBlock{rootBlock}
 
 	// Handle the rest.
@@ -1372,6 +1374,7 @@ func makeDirTree(id tlf.ID, uid keybase1.UserOrTeamID, components ...string) (
 		}
 		nodes = append(nodes, pathNode{bi.BlockPointer, component})
 		dirBlock := NewDirBlock().(*DirBlock)
+		dirBlock.SetEncodedSize(bi.EncodedSize)
 		blocks = append(blocks, dirBlock)
 
 		parentDirBlock = dirBlock

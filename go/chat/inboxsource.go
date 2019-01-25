@@ -106,7 +106,15 @@ func (b *baseInboxSource) GetInboxQueryLocalToRemote(ctx context.Context,
 	}
 
 	rquery = &chat1.GetInboxQuery{}
-	if lquery.Name != nil && len(lquery.Name.Name) > 0 {
+	if lquery.Name != nil && lquery.Name.TlfID != nil {
+		rquery.TlfID = lquery.Name.TlfID
+		rquery.MembersTypes = []chat1.ConversationMembersType{lquery.Name.MembersType}
+		info = types.NameInfo{
+			CanonicalName: lquery.Name.Name,
+			ID:            *lquery.Name.TlfID,
+		}
+		b.Debug(ctx, "GetInboxQueryLocalToRemote: using TLFID: %v", *lquery.Name.TlfID)
+	} else if lquery.Name != nil && len(lquery.Name.Name) > 0 {
 		var err error
 		tlfName := utils.AddUserToTLFName(b.G(), lquery.Name.Name, lquery.Visibility(),
 			lquery.Name.MembersType)
@@ -120,7 +128,6 @@ func (b *baseInboxSource) GetInboxQueryLocalToRemote(ctx context.Context,
 		rquery.MembersTypes = []chat1.ConversationMembersType{lquery.Name.MembersType}
 		b.Debug(ctx, "GetInboxQueryLocalToRemote: mapped name %q to TLFID %v", tlfName, info.ID)
 	}
-
 	rquery.After = lquery.After
 	rquery.Before = lquery.Before
 	rquery.TlfVisibility = lquery.TlfVisibility
@@ -165,6 +172,47 @@ func (b *baseInboxSource) Localize(ctx context.Context, uid gregor1.UID, convs [
 		ConvsUnverified: convs,
 	}, nil)
 	return res, localizeCb, err
+}
+
+func (b *baseInboxSource) RemoteSetConversationStatus(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, status chat1.ConversationStatus) (err error) {
+	defer b.Trace(ctx, func() error { return err }, "RemoteSetConversationStatus")()
+	if _, err = b.getChatInterface().SetConversationStatus(ctx, chat1.SetConversationStatusArg{
+		ConversationID: convID,
+		Status:         status,
+	}); err != nil {
+		return err
+	}
+	if status != chat1.ConversationStatus_REPORTED {
+		return nil
+	}
+
+	// Send word to API server about the report
+	b.Debug(ctx, "RemoteSetConversationStatus: sending report to server")
+	// Get TLF name to post
+	tlfname := "<error fetching TLF name>"
+	ib, _, err := b.sub.Read(ctx, uid, types.ConversationLocalizerBlocking, true,
+		nil, &chat1.GetInboxLocalQuery{
+			ConvIDs: []chat1.ConversationID{convID},
+		}, nil)
+	if err != nil {
+		b.Debug(ctx, "RemoteSetConversationStatus: failed to fetch conversation: %s", err)
+	} else {
+		if len(ib.Convs) > 0 {
+			tlfname = ib.Convs[0].Info.TLFNameExpanded()
+		}
+	}
+	args := libkb.NewHTTPArgs()
+	args.Add("tlfname", libkb.S{Val: tlfname})
+	_, err = b.G().API.Post(libkb.APIArg{
+		Endpoint:    "report/conversation",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args:        args,
+	})
+	if err != nil {
+		b.Debug(ctx, "RemoteSetConversationStatus: failed to post report: %s", err.Error())
+	}
+	return nil
 }
 
 func (b *baseInboxSource) createConversationLocalizer(ctx context.Context, typ types.ConversationLocalizerTyp,
@@ -212,11 +260,18 @@ func (b *baseInboxSource) Disconnected(ctx context.Context) {
 
 func GetInboxQueryNameInfo(ctx context.Context, g *globals.Context,
 	lquery *chat1.GetInboxLocalQuery) (res types.NameInfo, err error) {
-	if lquery.Name == nil || len(lquery.Name.Name) == 0 {
+	if lquery.Name == nil {
+		return res, errors.New("invalid name query")
+	} else if lquery.Name != nil && len(lquery.Name.Name) > 0 {
+		if lquery.Name.TlfID != nil {
+			return CreateNameInfoSource(ctx, g, lquery.Name.MembersType).LookupName(ctx, *lquery.Name.TlfID,
+				lquery.Visibility() == keybase1.TLFVisibility_PUBLIC)
+		}
+		return CreateNameInfoSource(ctx, g, lquery.Name.MembersType).LookupID(ctx, lquery.Name.Name,
+			lquery.Visibility() == keybase1.TLFVisibility_PUBLIC)
+	} else {
 		return res, errors.New("invalid name query")
 	}
-	return CreateNameInfoSource(ctx, g, lquery.Name.MembersType).LookupID(ctx, lquery.Name.Name,
-		lquery.Visibility() == keybase1.TLFVisibility_PUBLIC)
 }
 
 type RemoteInboxSource struct {
@@ -334,6 +389,11 @@ func (s *RemoteInboxSource) MembershipUpdate(ctx context.Context, uid gregor1.UI
 	joined []chat1.ConversationMember, removed []chat1.ConversationMember, resets []chat1.ConversationMember,
 	previews []chat1.ConversationID) (res types.MembershipUpdateRes, err error) {
 	return res, err
+}
+
+func (s *RemoteInboxSource) ConversationsUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+	convUpdates []chat1.ConversationUpdate) error {
+	return nil
 }
 
 func (s *RemoteInboxSource) Expunge(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
@@ -863,6 +923,19 @@ func (s *HybridInboxSource) MembershipUpdate(ctx context.Context, uid gregor1.UI
 	}
 
 	return res, nil
+}
+
+func (s *HybridInboxSource) ConversationsUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+	convUpdates []chat1.ConversationUpdate) (err error) {
+	defer s.Trace(ctx, func() error { return err }, "ConversationUpdate")()
+
+	ib := s.createInbox()
+	if cerr := ib.ConversationsUpdate(ctx, uid, vers, convUpdates); cerr != nil {
+		err = s.handleInboxError(ctx, cerr, uid)
+		return err
+	}
+
+	return nil
 }
 
 func (s *HybridInboxSource) Expunge(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,

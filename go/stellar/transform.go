@@ -80,6 +80,11 @@ func TransformRequestDetails(mctx libkb.MetaContext, details stellar1.RequestDet
 		var code string
 		if details.Asset.IsNativeXLM() {
 			code = "XLM"
+			if loc.FromCurrentUser {
+				loc.WorthAtRequestTime, _, _ = formatWorth(mctx, &details.FromDisplayAmount, &details.FromDisplayCurrency)
+			} else {
+				loc.WorthAtRequestTime, _, _ = formatWorth(mctx, &details.ToDisplayAmount, &details.ToDisplayCurrency)
+			}
 		} else {
 			code = details.Asset.Code
 		}
@@ -246,12 +251,10 @@ func transformPaymentRelay(mctx libkb.MetaContext, acctID stellar1.AccountID, p 
 		loc.StatusSimplified = p.TxStatus.ToPaymentStatus()
 		loc.StatusDetail = p.TxErrMsg
 	} else {
+		loc.StatusSimplified = stellar1.PaymentStatus_CLAIMABLE
 		if isSender {
-			loc.StatusSimplified = stellar1.PaymentStatus_CLAIMABLE
 			loc.StatusDetail = fmt.Sprintf("%v can claim this when they set up their wallet.", toName)
 			loc.ShowCancel = true
-		} else {
-			loc.StatusSimplified = stellar1.PaymentStatus_PENDING
 		}
 	}
 	if p.Claim != nil {
@@ -327,14 +330,6 @@ func formatWorth(mctx libkb.MetaContext, amount, currency *string) (worth, worth
 	}
 
 	return worth, *currency, nil
-}
-
-func lookupUsernameFallback(mctx libkb.MetaContext, uid keybase1.UID, acctID stellar1.AccountID) (name string, kind stellar1.ParticipantType) {
-	name, err := lookupUsername(mctx, uid)
-	if err == nil {
-		return name, stellar1.ParticipantType_KEYBASE
-	}
-	return acctID.String(), stellar1.ParticipantType_STELLAR
 }
 
 func lookupUsername(mctx libkb.MetaContext, uid keybase1.UID) (string, error) {
@@ -445,25 +440,28 @@ func RemotePendingToLocal(mctx libkb.MetaContext, remoter remote.Remoter, accoun
 	return payments, nil
 }
 
-func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, details stellar1.AccountDetails, isPrimary bool, accountName string) (stellar1.WalletAccountLocal, error) {
+func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stellar1.AccountID, details stellar1.AccountDetails, isPrimary bool, accountName string) (stellar1.WalletAccountLocal, error) {
 
 	var empty stellar1.WalletAccountLocal
 	balance, err := balanceList(details.Balances).balanceDescription()
 	if err != nil {
 		return empty, err
 	}
-	currencyLocal, err := GetCurrencySetting(mctx, details.AccountID)
-	if err != nil {
-		return empty, err
-	}
 
 	acct := stellar1.WalletAccountLocal{
-		AccountID:          details.AccountID,
+		AccountID:          accountID,
 		IsDefault:          isPrimary,
 		Name:               accountName,
 		BalanceDescription: balance,
 		Seqno:              details.Seqno,
-		CurrencyLocal:      currencyLocal,
+	}
+
+	conf, err := mctx.G().GetStellar().GetServerDefinitions(mctx.Ctx())
+	if err == nil {
+		currency, ok := conf.GetCurrencyLocal(stellar1.OutsideCurrencyCode(details.DisplayCurrency))
+		if ok {
+			acct.CurrencyLocal = currency
+		}
 	}
 
 	return acct, nil

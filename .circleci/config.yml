@@ -11,7 +11,7 @@ jobs:
     parallelism: 1
 
     docker:
-    - image: keybaseprivate/circleci-client@sha256:25df30922fbb23014fd9d72a54f28d3bb0dd806adb1655ef43ca5a99c67c35a0
+    - image: keybaseprivate/circleci-client@sha256:7db854b14509ee934ac86b4de16773ded4c136c9a88aae254dc4e9b42f711aea
       command: /sbin/init
 
     steps:
@@ -44,7 +44,12 @@ jobs:
           BABEL_PLATFORM: ReactNative
         command: yarn run react-native bundle --verbose --platform android --dev false --entry-file index.android.js --bundle-output react-native/android/app/build/intermediates/assets/releaseUnsigned/index.android.bundle --assets-dest react-native/android/app/build/intermediates/res/merged/releaseUnsigned
 
-    # Build app
+    # Build app.
+    #
+    # If the below fails with e.g. 'License for package Android SDK
+    # Build-Tools 27.0.3 not accepted.', that probably means that the
+    # CircleCI docker needs to be rebuilt. As a short term hack, we could
+    # do also append to the license file here.
     - run:
         working_directory: shared/react-native/android
         environment:

@@ -116,6 +116,13 @@ protocol remote {
 
   GetInboxRemoteRes getInboxRemote(InboxVers vers, union { null, GetInboxQuery } query, union { null, Pagination } pagination);
   GetThreadRemoteRes getThreadRemote(ConversationID conversationID, GetThreadReason reason, union { null, GetThreadQuery } query, union { null, Pagination } pagination);
+
+  record GetUnreadlineRemoteRes {
+    union { null, MessageID } unreadlineID;
+    union { null, RateLimit } rateLimit;
+  }
+  GetUnreadlineRemoteRes getUnreadlineRemote(ConversationID convID, MessageID readMsgID);
+
   GetPublicConversationsRes getPublicConversations(TLFID tlfID, TopicType topicType, boolean summarizeMaxMsgs);
 
   enum ChannelMention {

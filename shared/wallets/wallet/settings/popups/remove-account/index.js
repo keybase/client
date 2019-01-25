@@ -29,19 +29,24 @@ const RemoveAccountPopup = (props: Props) => {
       backButtonType="cancel"
       headerStyle={styles.header}
       bottomButtons={Styles.isMobile ? buttons.reverse() : buttons}
+      safeAreaViewBottomStyle={styles.safeAreaBottom}
     >
       <Kb.Box2 centerChildren={true} direction="vertical" style={styles.flexOne} fullWidth={true}>
         <Kb.Icon
           type={Styles.isMobile ? 'icon-wallet-remove-64' : 'icon-wallet-remove-48'}
           style={Kb.iconCastPlatformStyles(styles.icon)}
         />
-        <Kb.Text style={styles.warningText} type="Header">
+        <Kb.Text center={true} style={styles.warningText} type="Header">
           This removes{' '}
         </Kb.Text>
-        <Kb.Text type="HeaderItalic" style={styles.warningText}>
+        <Kb.Text center={true} type="HeaderItalic" style={styles.warningText}>
           {props.name}
         </Kb.Text>
-        <Kb.Text style={Styles.collapseStyles([styles.warningText, styles.marginBottomTiny])} type="Header">
+        <Kb.Text
+          center={true}
+          style={Styles.collapseStyles([styles.warningText, styles.marginBottomTiny])}
+          type="Header"
+        >
           {' '}
           from Keybase, but you can still use it elsewhere if you save the private key.
         </Kb.Text>
@@ -54,30 +59,18 @@ const RemoveAccountPopup = (props: Props) => {
 
 const styles = Styles.styleSheetCreate({
   flexOne: {flex: 1},
-  header: {
-    borderBottomWidth: 0,
-  },
+  header: {borderBottomWidth: 0},
   icon: Styles.platformStyles({
-    common: {
-      marginBottom: Styles.globalMargins.large,
-    },
-    isElectron: {
-      marginTop: Styles.globalMargins.medium,
-    },
-    isMobile: {
-      marginTop: Styles.globalMargins.xlarge,
-    },
+    common: {marginBottom: Styles.globalMargins.large},
+    isElectron: {marginTop: Styles.globalMargins.medium},
+    isMobile: {marginTop: Styles.globalMargins.xlarge},
   }),
-  marginBottomTiny: {
-    marginBottom: Styles.globalMargins.tiny,
+  marginBottomTiny: {marginBottom: Styles.globalMargins.tiny},
+  safeAreaBottom: {
+    backgroundColor: Styles.globalColors.fastBlank,
   },
   warningText: Styles.platformStyles({
-    common: {
-      textAlign: 'center',
-    },
-    isElectron: {
-      wordBreak: 'break-word',
-    },
+    isElectron: {wordBreak: 'break-word'},
     isMobile: {
       paddingLeft: Styles.globalMargins.medium,
       paddingRight: Styles.globalMargins.medium,

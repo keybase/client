@@ -439,7 +439,7 @@ func newFolderBranchOps(
 		observers:     observers,
 		serviceStatus: serviceStatus,
 		status: newFolderBranchStatusKeeper(
-			config, nodeCache, quotaUsage),
+			config, nodeCache, quotaUsage, fb.Tlf.Bytes()),
 		mdWriterLock: mdWriterLock,
 		headLock:     headLock,
 		syncLock:     syncLock,
@@ -3198,6 +3198,14 @@ func (fbo *folderBranchOps) GetNodeMetadata(ctx context.Context, node Node) (
 	}
 	res.PrefetchStatus = fbo.config.PrefetchStatus(ctx, fbo.id(),
 		res.BlockInfo.BlockPointer)
+	if res.PrefetchStatus == TriggeredPrefetch {
+		byteStatus, err := fbo.config.BlockOps().Prefetcher().Status(
+			ctx, res.BlockInfo.BlockPointer)
+		if err != nil {
+			return res, err
+		}
+		res.PrefetchProgress = &byteStatus
+	}
 	return res, nil
 }
 

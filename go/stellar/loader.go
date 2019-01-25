@@ -18,6 +18,12 @@ type chatMsg struct {
 	sender libkb.NormalizedUsername
 }
 
+type PaymentStatusUpdate struct {
+	AccountID stellar1.AccountID
+	TxID      stellar1.TransactionID
+	Status    stellar1.PaymentStatus
+}
+
 type Loader struct {
 	libkb.Contextified
 
@@ -28,6 +34,8 @@ type Loader struct {
 	requests  map[stellar1.KeybaseRequestID]*stellar1.RequestDetailsLocal
 	rmessages map[stellar1.KeybaseRequestID]chatMsg
 	rqueue    chan stellar1.KeybaseRequestID
+
+	listeners map[string]chan PaymentStatusUpdate
 
 	shutdownOnce sync.Once
 	done         bool
@@ -47,6 +55,7 @@ func NewLoader(g *libkb.GlobalContext) *Loader {
 		requests:     make(map[stellar1.KeybaseRequestID]*stellar1.RequestDetailsLocal),
 		rmessages:    make(map[stellar1.KeybaseRequestID]chatMsg),
 		rqueue:       make(chan stellar1.KeybaseRequestID, 100),
+		listeners:    make(map[string]chan PaymentStatusUpdate),
 	}
 
 	go p.runPayments()
@@ -178,6 +187,28 @@ func (p *Loader) UpdateRequest(ctx context.Context, requestID stellar1.KeybaseRe
 	}
 
 	p.enqueueRequest(requestID)
+}
+
+// GetListener returns a channel and an ID for a payment status listener.  The ID
+// can be used to remove the listener from the loader.
+func (p *Loader) GetListener() (id string, ch chan PaymentStatusUpdate, err error) {
+	ch = make(chan PaymentStatusUpdate, 100)
+	id, err = libkb.RandString("", 8)
+	if err != nil {
+		return id, ch, err
+	}
+	p.Lock()
+	p.listeners[id] = ch
+	p.Unlock()
+
+	return id, ch, nil
+}
+
+// RemoveListener removes a listener from the loader when it is no longer needed.
+func (p *Loader) RemoveListener(id string) {
+	p.Lock()
+	delete(p.listeners, id)
+	p.Unlock()
 }
 
 func (p *Loader) Shutdown() error {
@@ -314,18 +345,31 @@ func (p *Loader) sendPaymentNotification(m libkb.MetaContext, id stellar1.Paymen
 	} else {
 		m.CDebugf("sending chat notification for payment %s to %s, %s", id, msg.convID, msg.msgID)
 	}
+
 	uid := p.G().ActiveDevice.UID()
 	info := p.uiPaymentInfo(m, summary, msg)
+
+	if info.AccountID != nil && summary.StatusSimplified != stellar1.PaymentStatus_PENDING {
+		// let WalletState know
+		p.G().GetStellar().RemovePendingTx(m, *info.AccountID, stellar1.TransactionIDFromPaymentID(id))
+		p.Lock()
+		for _, ch := range p.listeners {
+			ch <- PaymentStatusUpdate{AccountID: *info.AccountID, TxID: stellar1.TransactionIDFromPaymentID(id), Status: summary.StatusSimplified}
+		}
+		p.Unlock()
+	}
+
 	p.G().NotifyRouter.HandleChatPaymentInfo(m.Ctx(), uid, msg.convID, msg.msgID, *info)
 }
 
 func (p *Loader) uiRequestInfo(m libkb.MetaContext, details *stellar1.RequestDetailsLocal, msg chatMsg) *chat1.UIRequestInfo {
 	info := chat1.UIRequestInfo{
-		Amount:            details.Amount,
-		AmountDescription: details.AmountDescription,
-		Asset:             details.Asset,
-		Currency:          details.Currency,
-		Status:            details.Status,
+		Amount:             details.Amount,
+		AmountDescription:  details.AmountDescription,
+		Asset:              details.Asset,
+		Currency:           details.Currency,
+		Status:             details.Status,
+		WorthAtRequestTime: details.WorthAtRequestTime,
 	}
 
 	return &info

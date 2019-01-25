@@ -78,7 +78,7 @@ const sendMapDispatchToProps = dispatch => ({
         : RouteTreeGen.createSwitchTo({path: WalletConstants.rootWalletPath})
     ),
   onSeeDetails: (accountID: WalletTypes.AccountID, paymentID: WalletTypes.PaymentID) => {
-    dispatch(WalletGen.createSelectAccount({accountID}))
+    dispatch(WalletGen.createSelectAccount({accountID, reason: 'from-chat'}))
     dispatch(
       RouteTreeGen.createNavigateTo({
         path: [

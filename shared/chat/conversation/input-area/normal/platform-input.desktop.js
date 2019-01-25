@@ -149,8 +149,6 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
 
   _toggleShowingMenu = () => {
     if (this.props.isEditing) return
-
-    this.props.onSeenExplodingMessages()
     this.props.toggleShowingMenu()
   }
 
@@ -381,7 +379,7 @@ const styles = Styles.styleSheetCreate({
       right: -22,
     },
     isElectron: {
-      boxShadow: `0 0 8px 0 ${Styles.globalColors.black_20}`,
+      ...Styles.desktopStyles.boxShadow,
     },
   }),
   emojiPickerContainerWrapper: {
@@ -468,7 +466,7 @@ const styles = Styles.styleSheetCreate({
       width: '100%',
     },
     isElectron: {
-      boxShadow: `0 0 8px 0 ${Styles.globalColors.black_20}`,
+      ...Styles.desktopStyles.boxShadow,
     },
   }),
   time: {

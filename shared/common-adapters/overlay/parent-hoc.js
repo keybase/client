@@ -10,6 +10,11 @@ export type OverlayParentProps = {
   toggleShowingMenu: () => void,
 }
 
+export type PropsWithOverlay<P> = {|
+  ...$Exact<P>,
+  ...$Exact<OverlayParentProps>,
+|}
+
 type OverlayParentState = {|
   showingMenu: boolean,
 |}

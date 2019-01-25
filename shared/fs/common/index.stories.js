@@ -8,7 +8,9 @@ import * as Kb from '../../common-adapters'
 import PathItemAction from './path-item-action'
 import PathItemIcon, {type Size} from './path-item-icon'
 import PathItemInfo from './path-item-info'
+import TlfInfo from './tlf-info'
 import Loading from './loading'
+import Errs from './errs'
 import {type OwnProps as PathItemIconOwnProps} from './path-item-icon-container'
 import {type OwnProps as PathItemInfoOwnProps} from './path-item-info-container'
 
@@ -42,19 +44,25 @@ export const commonProvider = {
   ConnectedDownloadTrackingHoc: () => ({
     downloading: false,
   }),
+  ConnectedErrs: () => ({
+    errs: [],
+  }),
   ConnectedPathItemAction: () => pathItemActionPopupProps(Types.stringToPath('/keybase/private/meatball')),
   PathItemIcon: (ownProps: PathItemIconOwnProps) => ({
     ...ownProps,
     type: Types.getPathElements(ownProps.path).length > 3 ? 'file' : 'folder',
     username: 'songgao_test',
   }),
-  PathItemInfo: ({path, startWithLastModified, wrap}: PathItemInfoOwnProps) => ({
+  PathItemInfo: ({path, mode}: PathItemInfoOwnProps) => ({
     lastModifiedTimestamp: Types.getPathElements(path).length > 3 ? 1545110765 : undefined,
     lastWriter: 'songgao_test',
-    startWithLastModified,
-    wrap,
+    mode,
   }),
   SendInAppAction: () => ({onClick: Sb.action('onClick')}),
+  TlfInfo: ({path, mode}: PathItemInfoOwnProps) => ({
+    mode,
+    reset: ['foo', 'bar', 'cue'],
+  }),
 }
 
 export const provider = Sb.createPropProviderWithCommon(commonProvider)
@@ -64,6 +72,36 @@ const FloatingPathItemAction = Kb.OverlayParentHOC(PathItemAction)
 const load = () => {
   Sb.storiesOf('Files', module)
     .addDecorator(provider)
+    .add('Errs', () => (
+      <Errs
+        errs={[
+          {
+            dismiss: Sb.action('dismiss'),
+            error: 'long error detail blah blah SimpleFS.SimpleFSCopyRecursive has blown up',
+            key: '1',
+            msg: 'Error when downloading file blah 1.jpg',
+            time: 1534362428795,
+          },
+          {
+            dismiss: Sb.action('dismiss'),
+            error: 'long error detail blah blah SimpleFS.SimpleFSCopyRecursive has blown up',
+            key: '2',
+            msg: 'Error when downloading file blah 2.jpg',
+            retry: Sb.action('retry'),
+            time: 1534362428795,
+          },
+          {
+            dismiss: Sb.action('dismiss'),
+            error: 'long error detail blah blah SimpleFS.SimpleFSCopyRecursive has blown up',
+            key: '3',
+            msg: 'Error when downloading file blah 99.jpg',
+            onFeedback: Sb.action('onFeedback'),
+            retry: Sb.action('retry'),
+            time: 1534362428795,
+          },
+        ]}
+      />
+    ))
     .add('PathItemAction', () => (
       <Kb.Box style={{padding: Styles.globalMargins.small}}>
         <FloatingPathItemAction
@@ -86,18 +124,26 @@ const load = () => {
       </Kb.Box>
     ))
     .add('Loading', () => <Loading path={Types.stringToPath('/keybase/team/kbkbfstest')} />)
+    .add('TlfInfo', () => (
+      <Kb.Box2 direction="vertical" gap="small" gapStart={true} fullWidth={true}>
+        <Kb.Text type="Body">mode=default reset=false</Kb.Text>
+        <TlfInfo mode="default" reset={false} />
+        <Kb.Text type="Body">mode=default reset=true</Kb.Text>
+        <TlfInfo mode="default" reset={true} />
+        <Kb.Text type="Body">mode=row reset=Array(1)</Kb.Text>
+        <TlfInfo mode="row" reset={['foo']} />
+        <Kb.Text type="Body">mode=default reset=Array(2)</Kb.Text>
+        <TlfInfo mode="default" reset={['foo', 'bar']} />
+        <Kb.Text type="Body">mode=row reset=Array(3)</Kb.Text>
+        <TlfInfo mode="row" reset={['foo', 'bar', 'cue']} />
+      </Kb.Box2>
+    ))
     .add('PathItemInfo', () => (
-      <Kb.Box2 direction="vertical" gap="small" gapStart={true}>
-        <PathItemInfo lastModifiedTimestamp={1545110765} lastWriter="songgao_test" />
-        <PathItemInfo
-          lastModifiedTimestamp={1545110765}
-          lastWriter="songgao_test"
-          startWithLastModified={true}
-        />
-        <PathItemInfo resetParticipants={['foo']} />
-        <PathItemInfo resetParticipants={['foo', 'bar']} />
-        <PathItemInfo resetParticipants={['foo', 'bar', 'cue']} />
-        <PathItemInfo resetParticipants={['foo', 'bar']} isUserReset={true} />
+      <Kb.Box2 direction="vertical" gap="small" gapStart={true} fullWidth={true}>
+        <Kb.Text type="Body">mode=default</Kb.Text>
+        <PathItemInfo mode="default" lastModifiedTimestamp={1545110765} lastWriter="songgao_test" />
+        <Kb.Text type="Body">mode=row</Kb.Text>
+        <PathItemInfo mode="row" lastModifiedTimestamp={1545110765} lastWriter="songgao_test" />
       </Kb.Box2>
     ))
 

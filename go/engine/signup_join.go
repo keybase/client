@@ -45,6 +45,7 @@ type SignupJoinEngineRunArg struct {
 	InviteCode string
 	PWHash     []byte
 	PWSalt     []byte
+	RandomPW   bool
 	PDPKA5KID  keybase1.KID
 	SkipMail   bool
 }
@@ -58,6 +59,7 @@ func (s *SignupJoinEngine) Post(m libkb.MetaContext, arg SignupJoinEngineRunArg)
 		Args: libkb.HTTPArgs{
 			"salt":          libkb.S{Val: hex.EncodeToString(arg.PWSalt)},
 			"pwh":           libkb.S{Val: hex.EncodeToString(arg.PWHash)},
+			"random_pw":     libkb.B{Val: arg.RandomPW},
 			"username":      libkb.S{Val: arg.Username},
 			"email":         libkb.S{Val: arg.Email},
 			"invitation_id": libkb.S{Val: arg.InviteCode},

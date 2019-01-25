@@ -1,14 +1,20 @@
 // @flow
 import {connect} from '../../util/container'
 import * as WalletsGen from '../../actions/wallets-gen'
+import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
+import {anyErrors} from '../../constants/waiting'
 import Onboarding from '.'
 
 type OwnProps = {||}
 
-const mapStateToProps = state => ({
-  acceptingDisclaimerDelay: state.wallets.acceptingDisclaimerDelay,
-})
+const mapStateToProps = state => {
+  const error = anyErrors(state, Constants.acceptDisclaimerWaitingKey)
+  return {
+    acceptDisclaimerError: error?.message ?? '',
+    acceptingDisclaimerDelay: state.wallets.acceptingDisclaimerDelay,
+  }
+}
 
 const mapDispatchToProps = dispatch => ({
   onAcceptDisclaimer: () => dispatch(WalletsGen.createAcceptDisclaimer()),
@@ -18,6 +24,7 @@ const mapDispatchToProps = dispatch => ({
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  acceptDisclaimerError: stateProps.acceptDisclaimerError,
   acceptingDisclaimerDelay: stateProps.acceptingDisclaimerDelay,
   onAcceptDisclaimer: dispatchProps.onAcceptDisclaimer,
   onCheckDisclaimer: dispatchProps.onCheckDisclaimer,

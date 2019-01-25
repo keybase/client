@@ -7,6 +7,7 @@ import {remoteConnect} from '../util/container'
 import {createOpenPopup as createOpenRekeyPopup} from '../actions/unlock-folders-gen'
 import {executeActionsForContext} from '../util/quit-helper.desktop'
 import {loginTab, type Tab} from '../constants/tabs'
+import {throttle} from 'lodash-es'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {urlHelper} from '../util/url-helper'
@@ -44,7 +45,7 @@ const mapDispatchToProps = dispatch => ({
       executeActionsForContext('quitButton')
     }, 2000)
   },
-  refresh: () => dispatch(FsGen.createUserFileEditsLoad()),
+  refresh: throttle(() => dispatch(FsGen.createUserFileEditsLoad()), 1000 * 5),
   showBug: () => {
     const version = __VERSION__ // eslint-disable-line no-undef
     SafeElectron.getShell().openExternal(
@@ -66,6 +67,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   return {
     ...stateProps,
     ...dispatchProps,
+    refresh: dispatchProps.refresh,
     showUser: () => dispatchProps._showUser(stateProps.username),
     ...ownProps,
   }

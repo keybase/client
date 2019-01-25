@@ -79,9 +79,11 @@ function* joinTeam(_, action) {
     Saga.put(TeamsGen.createSetTeamJoinSuccess({success: false, teamname: ''})),
   ])
   try {
-    const result = yield* Saga.callPromise(RPCTypes.teamsTeamAcceptInviteOrRequestAccessRpcPromise, {
-      tokenOrName: teamname,
-    })
+    const result = yield* Saga.callPromise(
+      RPCTypes.teamsTeamAcceptInviteOrRequestAccessRpcPromise,
+      {tokenOrName: teamname},
+      Constants.teamWaitingKey(teamname)
+    )
 
     // Success
     yield Saga.put(
@@ -338,12 +340,15 @@ const editDescription = (_, action) => {
 
 const uploadAvatar = (_, action) => {
   const {crop, filename, sendChatNotification, teamname} = action.payload
-  return RPCTypes.teamsUploadTeamAvatarRpcPromise({
-    crop,
-    filename,
-    sendChatNotification,
-    teamname,
-  }).then(() => RouteTreeGen.createNavigateUp())
+  return RPCTypes.teamsUploadTeamAvatarRpcPromise(
+    {
+      crop,
+      filename,
+      sendChatNotification,
+      teamname,
+    },
+    Constants.teamWaitingKey(teamname)
+  ).then(() => RouteTreeGen.createNavigateUp())
 }
 
 const editMembership = (_, action) => {
@@ -406,11 +411,14 @@ const generateSMSBody = (teamname: string, seitan: string): string => {
 
 const inviteToTeamByPhone = (_, action) => {
   const {teamname, role, phoneNumber, fullName = ''} = action.payload
-  return RPCTypes.teamsTeamCreateSeitanTokenV2RpcPromise({
-    label: {sms: ({f: fullName || '', n: phoneNumber}: RPCTypes.SeitanKeyLabelSms), t: 1},
-    name: teamname,
-    role: (!!role && RPCTypes.teamsTeamRole[role]) || 0,
-  }).then(seitan => {
+  return RPCTypes.teamsTeamCreateSeitanTokenV2RpcPromise(
+    {
+      label: {sms: ({f: fullName || '', n: phoneNumber}: RPCTypes.SeitanKeyLabelSms), t: 1},
+      name: teamname,
+      role: (!!role && RPCTypes.teamsTeamRole[role]) || 0,
+    },
+    Constants.teamWaitingKey(teamname)
+  ).then(seitan => {
     /* Open SMS */
     const bodyText = generateSMSBody(teamname, seitan)
     return openSMS([phoneNumber], bodyText)
@@ -482,124 +490,129 @@ function* getDetails(_, action) {
   const {teamname} = action.payload
   yield Saga.put(TeamsGen.createGetTeamOperations({teamname}))
   yield Saga.put(TeamsGen.createGetTeamPublicity({teamname}))
-  const unsafeDetails: RPCTypes.TeamDetails = yield* Saga.callPromise(
-    RPCTypes.teamsTeamGetRpcPromise,
-    {
-      name: teamname,
-    },
-    Constants.teamWaitingKey(teamname)
-  )
 
-  // Don't allow the none default
-  const details: RPCTypes.TeamDetails = {
-    ...unsafeDetails,
-    settings: {
-      ...unsafeDetails.settings,
-      joinAs:
-        unsafeDetails.settings.joinAs === RPCTypes.teamsTeamRole.none
-          ? RPCTypes.teamsTeamRole.reader
-          : unsafeDetails.settings.joinAs,
-    },
-  }
-
-  // Get requests to join
-  let requests
-  const state = yield* Saga.selectState()
-  if (Constants.getCanPerform(state, teamname).manageMembers) {
-    // TODO (DESKTOP-6478) move this somewhere else
-    requests = yield* Saga.callPromise(
-      RPCTypes.teamsTeamListRequestsRpcPromise,
+  try {
+    const unsafeDetails: RPCTypes.TeamDetails = yield* Saga.callPromise(
+      RPCTypes.teamsTeamGetRpcPromise,
       {
-        teamName: teamname,
+        name: teamname,
       },
       Constants.teamWaitingKey(teamname)
     )
-  }
 
-  if (!requests) {
-    requests = []
-  }
-  requests.sort((a, b) => a.username.localeCompare(b.username))
-
-  const requestMap = requests.reduce((reqMap, req) => {
-    if (!reqMap[req.name]) {
-      reqMap[req.name] = I.Set()
+    // Don't allow the none default
+    const details: RPCTypes.TeamDetails = {
+      ...unsafeDetails,
+      settings: {
+        ...unsafeDetails.settings,
+        joinAs:
+          unsafeDetails.settings.joinAs === RPCTypes.teamsTeamRole.none
+            ? RPCTypes.teamsTeamRole.reader
+            : unsafeDetails.settings.joinAs,
+      },
     }
-    reqMap[req.name] = reqMap[req.name].add(Constants.makeRequestInfo({username: req.username}))
-    return reqMap
-  }, {})
 
-  const infos = []
-  const types: Types.TeamRoleType[] = ['reader', 'writer', 'admin', 'owner']
-  const typeToKey: Types.TypeMap = {
-    admin: 'admins',
-    owner: 'owners',
-    reader: 'readers',
-    writer: 'writers',
-  }
-  types.forEach(type => {
-    const key = typeToKey[type]
-    const members: Array<RPCTypes.TeamMemberDetails> = details.members[key] || []
-    members.forEach(({fullName, status, username}) => {
-      infos.push([
-        username,
-        Constants.makeMemberInfo({
-          fullName,
-          status: Constants.rpcMemberStatusToStatus[status],
-          type,
-          username,
-        }),
-      ])
-    })
-  })
-
-  const invites = map(details.annotatedActiveInvites, (invite: RPCTypes.AnnotatedTeamInvite) => {
-    const role = Constants.teamRoleByEnum[invite.role]
-    if (role === 'none') {
-      return null
+    // Get requests to join
+    let requests
+    const state = yield* Saga.selectState()
+    if (Constants.getCanPerform(state, teamname).manageMembers) {
+      // TODO (DESKTOP-6478) move this somewhere else
+      requests = yield* Saga.callPromise(
+        RPCTypes.teamsTeamListRequestsRpcPromise,
+        {
+          teamName: teamname,
+        },
+        Constants.teamWaitingKey(teamname)
+      )
     }
-    const username = (() => {
-      const t = invite.type
-      if (t.c !== RPCTypes.teamsTeamInviteCategory.sbs) {
-        return ''
+
+    if (!requests) {
+      requests = []
+    }
+    requests.sort((a, b) => a.username.localeCompare(b.username))
+
+    const requestMap = requests.reduce((reqMap, req) => {
+      if (!reqMap[req.name]) {
+        reqMap[req.name] = I.Set()
       }
-      const sbs: RPCTypes.TeamInviteSocialNetwork = t.sbs || ''
-      return `${invite.name}@${sbs}`
-    })()
-    return Constants.makeInviteInfo({
-      email: invite.type.c === RPCTypes.teamsTeamInviteCategory.email ? invite.name : '',
-      id: invite.id,
-      name: invite.type.c === RPCTypes.teamsTeamInviteCategory.seitan ? invite.name : '',
-      role,
-      username,
-    })
-  }).filter(Boolean)
+      reqMap[req.name] = reqMap[req.name].add(Constants.makeRequestInfo({username: req.username}))
+      return reqMap
+    }, {})
 
-  // if we have no requests for this team, make sure we don't hold on to any old ones
-  if (!requestMap[teamname]) {
-    yield Saga.put(TeamsGen.createClearTeamRequests({teamname}))
+    const infos = []
+    const types: Types.TeamRoleType[] = ['reader', 'writer', 'admin', 'owner']
+    const typeToKey: Types.TypeMap = {
+      admin: 'admins',
+      owner: 'owners',
+      reader: 'readers',
+      writer: 'writers',
+    }
+    types.forEach(type => {
+      const key = typeToKey[type]
+      const members: Array<RPCTypes.TeamMemberDetails> = details.members[key] || []
+      members.forEach(({fullName, status, username}) => {
+        infos.push([
+          username,
+          Constants.makeMemberInfo({
+            fullName,
+            status: Constants.rpcMemberStatusToStatus[status],
+            type,
+            username,
+          }),
+        ])
+      })
+    })
+
+    const invites = map(details.annotatedActiveInvites, (invite: RPCTypes.AnnotatedTeamInvite) => {
+      const role = Constants.teamRoleByEnum[invite.role]
+      if (role === 'none') {
+        return null
+      }
+      const username = (() => {
+        const t = invite.type
+        if (t.c !== RPCTypes.teamsTeamInviteCategory.sbs) {
+          return ''
+        }
+        const sbs: RPCTypes.TeamInviteSocialNetwork = t.sbs || ''
+        return `${invite.name}@${sbs}`
+      })()
+      return Constants.makeInviteInfo({
+        email: invite.type.c === RPCTypes.teamsTeamInviteCategory.email ? invite.name : '',
+        id: invite.id,
+        name: invite.type.c === RPCTypes.teamsTeamInviteCategory.seitan ? invite.name : '',
+        role,
+        username,
+      })
+    }).filter(Boolean)
+
+    // if we have no requests for this team, make sure we don't hold on to any old ones
+    if (!requestMap[teamname]) {
+      yield Saga.put(TeamsGen.createClearTeamRequests({teamname}))
+    }
+
+    // Get the subteam map for this team.
+    const {entries} = yield* Saga.callPromise(
+      RPCTypes.teamsTeamGetSubteamsRpcPromise,
+      {name: {parts: teamname.split('.')}},
+      Constants.teamWaitingKey(teamname)
+    )
+    const subteams = (entries || []).reduce((arr, {name}) => {
+      name.parts && arr.push(name.parts.join('.'))
+      return arr
+    }, [])
+    yield Saga.put(
+      TeamsGen.createSetTeamDetails({
+        invites: I.Set(invites),
+        members: I.Map(infos),
+        requests: I.Map(requestMap),
+        settings: Constants.makeTeamSettings(details.settings),
+        subteams: I.Set(subteams),
+        teamname,
+      })
+    )
+  } catch (e) {
+    logger.error(e)
   }
-
-  // Get the subteam map for this team.
-  const {entries} = yield* Saga.callPromise(
-    RPCTypes.teamsTeamGetSubteamsRpcPromise,
-    {name: {parts: teamname.split('.')}},
-    Constants.teamWaitingKey(teamname)
-  )
-  const subteams = (entries || []).reduce((arr, {name}) => {
-    name.parts && arr.push(name.parts.join('.'))
-    return arr
-  }, [])
-  yield Saga.put(
-    TeamsGen.createSetTeamDetails({
-      invites: I.Set(invites),
-      members: I.Map(infos),
-      requests: I.Map(requestMap),
-      settings: Constants.makeTeamSettings(details.settings),
-      subteams: I.Set(subteams),
-      teamname,
-    })
-  )
 }
 
 const getDetailsForAllTeams = (state, action) =>
@@ -611,13 +624,17 @@ function* addUserToTeams(state, action) {
   const errorAddingTo = []
   for (const team of teams) {
     try {
-      yield* Saga.callPromise(RPCTypes.teamsTeamAddMemberRpcPromise, {
-        email: '',
-        name: team,
-        role: role ? RPCTypes.teamsTeamRole[role] : RPCTypes.teamsTeamRole.none,
-        sendChatNotification: true,
-        username: user,
-      })
+      yield* Saga.callPromise(
+        RPCTypes.teamsTeamAddMemberRpcPromise,
+        {
+          email: '',
+          name: team,
+          role: role ? RPCTypes.teamsTeamRole[role] : RPCTypes.teamsTeamRole.none,
+          sendChatNotification: true,
+          username: user,
+        },
+        Constants.teamWaitingKey(team)
+      )
       teamsAddedTo.push(team)
     } catch (error) {
       errorAddingTo.push(team)
@@ -663,41 +680,48 @@ const getTeamOperations = (_, action) =>
   )
 
 function* getTeamPublicity(_, action) {
-  const teamname = action.payload.teamname
-  // Get publicity settings for this team.
-  const publicity: RPCTypes.TeamAndMemberShowcase = yield* Saga.callPromise(
-    RPCTypes.teamsGetTeamAndMemberShowcaseRpcPromise,
-    {name: teamname},
-    Constants.teamWaitingKey(teamname)
-  )
-
-  let tarsDisabled = false
-  // can throw if you're not an admin
   try {
-    tarsDisabled = yield* Saga.callPromise(
-      RPCTypes.teamsGetTarsDisabledRpcPromise,
+    const teamname = action.payload.teamname
+    // Get publicity settings for this team.
+    const publicity: RPCTypes.TeamAndMemberShowcase = yield* Saga.callPromise(
+      RPCTypes.teamsGetTeamAndMemberShowcaseRpcPromise,
       {name: teamname},
       Constants.teamWaitingKey(teamname)
     )
-  } catch (_) {}
 
-  const publicityMap = {
-    anyMemberShowcase: publicity.teamShowcase.anyMemberShowcase,
-    description: publicity.teamShowcase.description || '',
-    ignoreAccessRequests: tarsDisabled,
-    member: publicity.isMemberShowcased,
-    team: publicity.teamShowcase.isShowcased,
+    let tarsDisabled = false
+    // can throw if you're not an admin
+    try {
+      tarsDisabled = yield* Saga.callPromise(
+        RPCTypes.teamsGetTarsDisabledRpcPromise,
+        {name: teamname},
+        Constants.teamTarsWaitingKey(teamname)
+      )
+    } catch (_) {}
+
+    const publicityMap = {
+      anyMemberShowcase: publicity.teamShowcase.anyMemberShowcase,
+      description: publicity.teamShowcase.description || '',
+      ignoreAccessRequests: tarsDisabled,
+      member: publicity.isMemberShowcased,
+      team: publicity.teamShowcase.isShowcased,
+    }
+
+    yield Saga.put(TeamsGen.createSetTeamPublicitySettings({publicity: publicityMap, teamname}))
+  } catch (e) {
+    logger.error(e)
   }
-
-  yield Saga.put(TeamsGen.createSetTeamPublicitySettings({publicity: publicityMap, teamname}))
 }
 
 const getChannelInfo = (_, action) => {
   const {teamname, conversationIDKey} = action.payload
-  return RPCChatTypes.localGetInboxAndUnboxUILocalRpcPromise({
-    identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-    query: ChatConstants.makeInboxQuery([conversationIDKey]),
-  }).then(results => {
+  return RPCChatTypes.localGetInboxAndUnboxUILocalRpcPromise(
+    {
+      identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+      query: ChatConstants.makeInboxQuery([conversationIDKey]),
+    },
+    Constants.teamWaitingKey(teamname)
+  ).then(results => {
     const convs = results.conversations || []
     if (convs.length !== 1) {
       logger.warn(`Could not get channel info`)
@@ -751,14 +775,14 @@ function* getTeams(state) {
     logger.warn('getTeams while logged out')
     return
   }
-  yield Saga.put(TeamsGen.createSetLoaded({loaded: false}))
   try {
     const results: RPCTypes.AnnotatedTeamList = yield* Saga.callPromise(
       RPCTypes.teamsTeamListUnverifiedRpcPromise,
       {
         includeImplicitTeams: false,
         userAssertion: username,
-      }
+      },
+      Constants.teamsLoadedWaitingKey
     )
 
     const teams = results.teams || []
@@ -780,7 +804,7 @@ function* getTeams(state) {
     })
 
     // Dismiss any stale badges for teams we're no longer in
-    const teamResetUsers = state.teams.getIn(['teamNameToResetUsers'], I.Map())
+    const teamResetUsers = state.teams.teamNameToResetUsers || I.Map()
     const teamNameSet = I.Set(teamnames)
     const dismissIDs = teamResetUsers.reduce((ids, value: I.Set<Types.ResetUser>, key: string) => {
       if (!teamNameSet.has(key)) {
@@ -790,7 +814,11 @@ function* getTeams(state) {
     }, [])
     yield Saga.all(
       dismissIDs.map(id =>
-        Saga.callUntyped(RPCTypes.gregorDismissItemRpcPromise, {id: Constants.keyToResetUserBadgeID(id)})
+        Saga.callUntyped(
+          RPCTypes.gregorDismissItemRpcPromise,
+          {id: Constants.keyToResetUserBadgeID(id)},
+          Constants.teamsLoadedWaitingKey
+        )
       )
     )
 
@@ -809,18 +837,18 @@ function* getTeams(state) {
     if (err.code === RPCTypes.constantsStatusCode.scapinetworkerror) {
       // Ignore API errors due to offline
     } else {
-      throw err
+      logger.error(err)
     }
-  } finally {
-    yield Saga.put(TeamsGen.createSetLoaded({loaded: true}))
   }
 }
 
 const checkRequestedAccess = (_, action) =>
-  RPCTypes.teamsTeamListMyAccessRequestsRpcPromise({}).then(result => {
-    const teams = (result || []).map(row => (row && row.parts ? row.parts.join('.') : ''))
-    return TeamsGen.createSetTeamAccessRequestsPending({accessRequestsPending: I.Set(teams)})
-  })
+  RPCTypes.teamsTeamListMyAccessRequestsRpcPromise({}, Constants.teamsAccessRequestWaitingKey).then(
+    result => {
+      const teams = (result || []).map(row => (row && row.parts ? row.parts.join('.') : ''))
+      return TeamsGen.createSetTeamAccessRequestsPending({accessRequestsPending: I.Set(teams)})
+    }
+  )
 
 const _joinConversation = function*(
   teamname: Types.Teamname,
@@ -829,9 +857,13 @@ const _joinConversation = function*(
 ) {
   try {
     const convID = ChatTypes.keyToConversationID(conversationIDKey)
-    yield* Saga.callPromise(RPCChatTypes.localJoinConversationByIDLocalRpcPromise, {
-      convID,
-    })
+    yield* Saga.callPromise(
+      RPCChatTypes.localJoinConversationByIDLocalRpcPromise,
+      {
+        convID,
+      },
+      Constants.teamWaitingKey(teamname)
+    )
     yield Saga.put(
       TeamsGen.createAddParticipant({
         conversationIDKey,
@@ -851,9 +883,13 @@ const _leaveConversation = function*(
 ) {
   try {
     const convID = ChatTypes.keyToConversationID(conversationIDKey)
-    yield* Saga.callPromise(RPCChatTypes.localLeaveConversationLocalRpcPromise, {
-      convID,
-    })
+    yield* Saga.callPromise(
+      RPCChatTypes.localLeaveConversationLocalRpcPromise,
+      {
+        convID,
+      },
+      Constants.teamWaitingKey(teamname)
+    )
     yield Saga.put(
       TeamsGen.createRemoveParticipant({
         conversationIDKey,
@@ -884,6 +920,9 @@ function* saveChannelMembership(state, action) {
   }
 
   yield Saga.all(calls)
+  if (calls.length) {
+    yield Saga.put(TeamsGen.createGetChannels({teamname}))
+  }
 }
 
 function* createChannel(_, action) {
@@ -1076,7 +1115,7 @@ function* setPublicity(state, action) {
 
   const results = yield Saga.all(calls)
   // TODO delete this getDetails call when CORE-7125 is finished
-  Saga.put(TeamsGen.createGetDetails({teamname}))
+  yield Saga.put(TeamsGen.createGetDetails({teamname}))
 
   // Display any errors from the rpcs
   const errs = results
@@ -1168,7 +1207,7 @@ const updateTopic = (state, action) => {
     tlfPublic: false,
   }
 
-  return RPCChatTypes.localPostHeadlineRpcPromise(param).then(() =>
+  return RPCChatTypes.localPostHeadlineRpcPromise(param, Constants.teamWaitingKey(teamname)).then(() =>
     TeamsGen.createSetUpdatedTopic({conversationIDKey, newTopic, teamname})
   )
 }
@@ -1183,7 +1222,11 @@ function* addTeamWithChosenChannels(state, action) {
   const logPrefix = `[addTeamWithChosenChannels]:${teamname}`
   let pushState
   try {
-    pushState = yield* Saga.callPromise(RPCTypes.gregorGetStateRpcPromise)
+    pushState = yield* Saga.callPromise(
+      RPCTypes.gregorGetStateRpcPromise,
+      undefined,
+      Constants.teamWaitingKey(teamname)
+    )
   } catch (err) {
     // failure getting the push state, don't bother the user with an error
     // and don't try to move forward updating the state
@@ -1227,11 +1270,15 @@ function* addTeamWithChosenChannels(state, action) {
   } else {
     logger.info(`${logPrefix} Creating teamsWithChosenChannels`)
   }
-  yield* Saga.callPromise(RPCTypes.gregorUpdateCategoryRpcPromise, {
-    body: JSON.stringify(teams),
-    category: Constants.chosenChannelsGregorKey,
-    dtime,
-  })
+  yield* Saga.callPromise(
+    RPCTypes.gregorUpdateCategoryRpcPromise,
+    {
+      body: JSON.stringify(teams),
+      category: Constants.chosenChannelsGregorKey,
+      dtime,
+    },
+    teams.map(t => Constants.teamWaitingKey(t))
+  )
 }
 
 const updateChannelname = (state, action) => {
@@ -1244,7 +1291,7 @@ const updateChannelname = (state, action) => {
     tlfPublic: false,
   }
 
-  return RPCChatTypes.localPostMetadataRpcPromise(param).then(() =>
+  return RPCChatTypes.localPostMetadataRpcPromise(param, Constants.teamWaitingKey(teamname)).then(() =>
     TeamsGen.createSetUpdatedChannelName({conversationIDKey, newChannelName, teamname})
   )
 }
@@ -1253,11 +1300,14 @@ const deleteChannelConfirmed = (state, action) => {
   const {teamname, conversationIDKey} = action.payload
   // channelName is only needed for confirmation, so since we handle
   // confirmation ourselves we don't need to plumb it through.
-  return RPCChatTypes.localDeleteConversationLocalRpcPromise({
-    channelName: '',
-    confirmed: true,
-    convID: ChatTypes.keyToConversationID(conversationIDKey),
-  }).then(() => TeamsGen.createDeleteChannelInfo({conversationIDKey, teamname}))
+  return RPCChatTypes.localDeleteConversationLocalRpcPromise(
+    {
+      channelName: '',
+      confirmed: true,
+      convID: ChatTypes.keyToConversationID(conversationIDKey),
+    },
+    Constants.teamWaitingKey(teamname)
+  ).then(() => TeamsGen.createDeleteChannelInfo({conversationIDKey, teamname}))
 }
 
 const badgeAppForTeams = (state, action) => {

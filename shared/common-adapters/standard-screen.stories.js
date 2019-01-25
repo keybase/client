@@ -9,7 +9,7 @@ import {globalStyles, globalColors} from '../styles'
 const Wrapper = ({children}) => <Box style={{...globalStyles.flexBoxRow, height: 578}}>{children}</Box>
 const props = {
   children: (
-    <Text type="Header" style={{textAlign: 'center'}}>
+    <Text center={true} type="Header" >
       Whoa, look at this centered thing
     </Text>
   ),

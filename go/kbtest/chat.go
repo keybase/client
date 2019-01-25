@@ -536,6 +536,10 @@ func (m *ChatRemoteMock) GetThreadRemote(ctx context.Context, arg chat1.GetThrea
 	return res, nil
 }
 
+func (m *ChatRemoteMock) GetUnreadlineRemote(ctx context.Context, arg chat1.GetUnreadlineRemoteArg) (res chat1.GetUnreadlineRemoteRes, err error) {
+	return res, nil
+}
+
 func (m *ChatRemoteMock) GetConversationMetadataRemote(ctx context.Context, convID chat1.ConversationID) (res chat1.GetConversationMetadataRemoteRes, err error) {
 	conv := m.world.GetConversationByID(convID)
 	if conv == nil {
@@ -1144,19 +1148,19 @@ func NewMockChatHelper() *MockChatHelper {
 }
 
 func (m *MockChatHelper) SendTextByID(ctx context.Context, convID chat1.ConversationID,
-	trip chat1.ConversationIDTriple, tlfName string, text string) error {
+	tlfName string, text string) error {
 	return nil
 }
 func (m *MockChatHelper) SendMsgByID(ctx context.Context, convID chat1.ConversationID,
-	trip chat1.ConversationIDTriple, tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error {
+	tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error {
 	return nil
 }
 func (m *MockChatHelper) SendTextByIDNonblock(ctx context.Context, convID chat1.ConversationID,
-	trip chat1.ConversationIDTriple, tlfName string, text string) error {
+	tlfName string, text string) error {
 	return nil
 }
 func (m *MockChatHelper) SendMsgByIDNonblock(ctx context.Context, convID chat1.ConversationID,
-	trip chat1.ConversationIDTriple, tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error {
+	tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error {
 	return nil
 }
 func (m *MockChatHelper) SendTextByName(ctx context.Context, name string, topicName *string,
@@ -1257,6 +1261,20 @@ func (m *MockChatHelper) UpgradeKBFSToImpteam(ctx context.Context, tlfName strin
 func (m *MockChatHelper) GetMessages(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msgIDs []chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason) ([]chat1.MessageUnboxed, error) {
 	return nil, nil
+}
+
+func (m *MockChatHelper) JoinConversationByID(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID) error {
+	return nil
+}
+
+func (m *MockChatHelper) JoinConversationByName(ctx context.Context, uid gregor1.UID, tlfName,
+	topicName string, topicType chat1.TopicType, vid keybase1.TLFVisibility) error {
+	return nil
+}
+
+func (m *MockChatHelper) LeaveConversation(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) error {
+	return nil
 }
 
 func (m *MockChatHelper) convKey(name string, topicName *string) string {

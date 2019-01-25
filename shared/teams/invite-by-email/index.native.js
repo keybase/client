@@ -36,10 +36,10 @@ const AccessDenied = ({openAppSettings}) => (
       fontSize={globalMargins.xlarge}
     />
     <Box>
-      <Text type="Body" style={{marginBottom: globalMargins.small, textAlign: 'center'}}>
+      <Text center={true} type="Body" style={{marginBottom: globalMargins.small}}>
         We don't have permission to access your contacts!
       </Text>
-      <Text type="Body" style={{marginBottom: globalMargins.small, textAlign: 'center'}}>
+      <Text center={true} type="Body" style={{marginBottom: globalMargins.small}}>
         To fix this, please open Settings > Keybase and check off 'Allow Keybase to access Contacts'.
       </Text>
       <ButtonBar>
@@ -142,7 +142,7 @@ class InviteByEmailMobile extends React.Component<MobileProps, State> {
               }}
               fullWidth={true}
             >
-              <Text type="BodySemibold" backgroundMode="HighRisk" style={{textAlign: 'center'}}>
+              <Text center={true} type="BodySemibold" backgroundMode="HighRisk">
                 {this.props.errorMessage}
               </Text>
             </Box2>
@@ -186,7 +186,7 @@ class InviteByEmailMobile extends React.Component<MobileProps, State> {
               padding: globalMargins.small,
             }}
           >
-            <Text type="BodySmall" style={{textAlign: 'center'}}>
+            <Text center={true} type="BodySmall" >
               Users will be invited to {this.props.name} as
               <Text type="BodySmallPrimaryLink">{' ' + this.props.role + 's'}</Text>.
             </Text>

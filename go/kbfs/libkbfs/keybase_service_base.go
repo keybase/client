@@ -1069,6 +1069,9 @@ func (k *KeybaseServiceBase) getCurrentSession(
 // CurrentSession implements the KeybaseService interface for KeybaseServiceBase.
 func (k *KeybaseServiceBase) CurrentSession(ctx context.Context, sessionID int) (
 	SessionInfo, error) {
+	ctx = CtxWithRandomIDReplayable(
+		ctx, CtxKeybaseServiceIDKey, CtxKeybaseServiceOpID, k.log)
+
 	s, newSession, err := k.getCurrentSession(ctx, sessionID)
 	if err != nil {
 		return SessionInfo{}, err
@@ -1332,6 +1335,21 @@ func (k *KeybaseServiceBase) FinalizeMigration(ctx context.Context,
 		ctx, k.config.KBPKI(), k.config.MDOps(), fav.Name, fav.Type)
 	if err != nil {
 		return err
+	}
+	if handle.TypeForKeying() == tlf.TeamKeying {
+		// Clear the cache for this implicit team, to ensure we get
+		// all the latest key generations for the team info during the
+		// migration.
+		id := handle.FirstResolvedWriter()
+		if id.IsTeamOrSubteam() {
+			tid, err := id.AsTeam()
+			if err != nil {
+				return err
+			}
+			k.log.CDebugf(ctx, "Clearing team info for tid=%s, handle=%s",
+				tid, handle.GetCanonicalPath())
+			k.setCachedTeamInfo(tid, TeamInfo{})
+		}
 	}
 	return k.config.KBFSOps().MigrateToImplicitTeam(ctx, handle.TlfID())
 }

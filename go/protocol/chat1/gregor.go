@@ -396,6 +396,40 @@ func (o UpdateConversationMembership) DeepCopy() UpdateConversationMembership {
 	}
 }
 
+type ConversationUpdate struct {
+	ConvID    ConversationID        `codec:"convID" json:"convID"`
+	Existence ConversationExistence `codec:"existence" json:"existence"`
+}
+
+func (o ConversationUpdate) DeepCopy() ConversationUpdate {
+	return ConversationUpdate{
+		ConvID:    o.ConvID.DeepCopy(),
+		Existence: o.Existence.DeepCopy(),
+	}
+}
+
+type UpdateConversations struct {
+	InboxVers   InboxVers            `codec:"inboxVers" json:"inboxVers"`
+	ConvUpdates []ConversationUpdate `codec:"convUpdates" json:"convUpdates"`
+}
+
+func (o UpdateConversations) DeepCopy() UpdateConversations {
+	return UpdateConversations{
+		InboxVers: o.InboxVers.DeepCopy(),
+		ConvUpdates: (func(x []ConversationUpdate) []ConversationUpdate {
+			if x == nil {
+				return nil
+			}
+			ret := make([]ConversationUpdate, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.ConvUpdates),
+	}
+}
+
 type TeamChannelUpdate struct {
 	TeamID TLFID `codec:"teamID" json:"teamID"`
 }

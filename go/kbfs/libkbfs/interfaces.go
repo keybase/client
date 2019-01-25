@@ -18,6 +18,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	metrics "github.com/rcrowley/go-metrics"
+	"github.com/syndtr/goleveldb/leveldb"
 	"golang.org/x/net/context"
 	billy "gopkg.in/src-d/go-billy.v4"
 )
@@ -514,7 +515,6 @@ type KBFSOps interface {
 
 	// GetNodeMetadata gets metadata associated with a Node.
 	GetNodeMetadata(ctx context.Context, node Node) (NodeMetadata, error)
-
 	// Shutdown is called to clean up any resources associated with
 	// this KBFSOps instance.
 	Shutdown(ctx context.Context) error
@@ -1690,6 +1690,16 @@ type KeyOps interface {
 		serverHalfID kbfscrypto.TLFCryptKeyServerHalfID) error
 }
 
+// PrefetchProgress tracks the number of bytes fetched for the block
+// tree rooted at a given block, along with the known total number of
+// bytes in that tree, and the start time of the prefetch.  Note that
+// the total can change over time as more blocks are downloaded.
+type PrefetchProgress struct {
+	SubtreeBytesFetched uint64
+	SubtreeBytesTotal   uint64
+	Start               time.Time
+}
+
 // Prefetcher is an interface to a block prefetcher.
 type Prefetcher interface {
 	// ProcessBlockForPrefetch potentially triggers and monitors a prefetch.
@@ -1704,6 +1714,9 @@ type Prefetcher interface {
 	// what they expect it to be, in case there was an error.
 	WaitChannelForBlockPrefetch(ctx context.Context, ptr BlockPointer) (
 		<-chan struct{}, error)
+	// Status returns the current status of the prefetch for the block
+	// tree rooted at the given pointer.
+	Status(ctx context.Context, ptr BlockPointer) (PrefetchProgress, error)
 	// CancelPrefetch notifies the prefetcher that a prefetch should be
 	// canceled.
 	CancelPrefetch(BlockPointer)
@@ -2400,6 +2413,9 @@ type Config interface {
 	SetBlockCryptVersion(kbfscrypto.EncryptionVer)
 	DefaultBlockType() keybase1.BlockType
 	SetDefaultBlockType(blockType keybase1.BlockType)
+	// GetConflictResolutionDB gets the levelDB in which conflict resolution
+	// status is stored.
+	GetConflictResolutionDB() (db *leveldb.DB)
 	RekeyQueue() RekeyQueue
 	SetRekeyQueue(RekeyQueue)
 	// ReqsBufSize indicates the number of read or write operations

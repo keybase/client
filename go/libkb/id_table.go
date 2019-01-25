@@ -1362,7 +1362,7 @@ func isProofTypeDefunct(g *GlobalContext, typ keybase1.ProofType) bool {
 	case keybase1.ProofType_COINBASE:
 		return true
 	case keybase1.ProofType_GENERIC_SOCIAL:
-		// TODO Remove with CORE-8969
+		// TODO Remove with CORE-9923
 		shouldRun := g.Env.GetFeatureFlags().Admin() || g.Env.GetRunMode() == DevelRunMode || g.Env.RunningInCI()
 		return !shouldRun
 	default:
@@ -1457,6 +1457,15 @@ func (idt *IdentityTable) AllActiveCryptocurrency() []CryptocurrencyChainLink {
 		}
 	}
 	return ret
+}
+
+func (idt *IdentityTable) HasActiveCryptocurrencyFamily(family CryptocurrencyFamily) bool {
+	for _, link := range idt.AllActiveCryptocurrency() {
+		if link.typ.ToCryptocurrencyFamily() == family {
+			return true
+		}
+	}
+	return false
 }
 
 func (idt *IdentityTable) GetRevokedCryptocurrencyForTesting() []CryptocurrencyChainLink {

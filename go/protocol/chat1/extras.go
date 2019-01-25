@@ -1324,6 +1324,10 @@ func (r *NonblockFetchRes) SetOffline() {
 	r.Offline = true
 }
 
+func (r *UnreadlineRes) SetOffline() {
+	r.Offline = true
+}
+
 func (r *MarkAsReadLocalRes) SetOffline() {
 	r.Offline = true
 }
@@ -1381,6 +1385,10 @@ func (r *SetAppNotificationSettingsLocalRes) SetOffline() {
 }
 
 func (r *DeleteConversationLocalRes) SetOffline() {
+	r.Offline = true
+}
+
+func (r *GetInboxUILocalRes) SetOffline() {
 	r.Offline = true
 }
 
@@ -1491,6 +1499,14 @@ func (r *NonblockFetchRes) GetRateLimit() []RateLimit {
 }
 
 func (r *NonblockFetchRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *UnreadlineRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *UnreadlineRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 
@@ -1836,6 +1852,14 @@ func (r *SetRetentionRes) GetRateLimit() (res []RateLimit) {
 
 func (r *SetRetentionRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimit = &rl[0]
+}
+
+func (r *GetInboxUILocalRes) GetRateLimit() (res []RateLimit) {
+	return r.RateLimits
+}
+
+func (r *GetInboxUILocalRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
 }
 
 func (i EphemeralPurgeInfo) String() string {

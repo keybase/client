@@ -1629,13 +1629,6 @@
         {
           "type": [
             null,
-            "MessageID"
-          ],
-          "name": "unreadLineID"
-        },
-        {
-          "type": [
-            null,
             "Pagination"
           ],
           "name": "pagination"
@@ -1759,14 +1752,45 @@
     },
     {
       "type": "record",
-      "name": "GetInboxLocalRes",
+      "name": "UnreadlineRes",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "offline"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures"
+        },
+        {
+          "type": [
+            null,
+            "MessageID"
+          ],
+          "name": "unreadlineID"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetInboxUILocalRes",
       "fields": [
         {
           "type": {
             "type": "array",
-            "items": "Conversation"
+            "items": "UnverifiedInboxUIItem"
           },
-          "name": "conversationsUnverified"
+          "name": "conversationsRemote"
         },
         {
           "type": [
@@ -1802,6 +1826,13 @@
         {
           "type": "string",
           "name": "name"
+        },
+        {
+          "type": [
+            null,
+            "TLFID"
+          ],
+          "name": "tlfID"
         },
         {
           "type": "ConversationMembersType",
@@ -2841,6 +2872,50 @@
         }
       ],
       "response": "NonblockFetchRes"
+    },
+    "getUnreadline": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "readMsgID",
+          "type": "MessageID"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": "UnreadlineRes"
+    },
+    "getInboxUILocal": {
+      "request": [
+        {
+          "name": "query",
+          "type": [
+            null,
+            "GetInboxLocalQuery"
+          ]
+        },
+        {
+          "name": "pagination",
+          "type": [
+            null,
+            "Pagination"
+          ]
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": "GetInboxUILocalRes"
     },
     "getInboxAndUnboxLocal": {
       "request": [

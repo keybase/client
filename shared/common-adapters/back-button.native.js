@@ -35,7 +35,7 @@ export default class BackButton extends Component<Props> {
 }
 
 const styles = Styles.styleSheetCreate({
-  arrow: {marginRight: -3, marginTop: 3},
+  arrow: {marginRight: -3, marginTop: 2},
   container: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',

@@ -92,14 +92,19 @@ func TestSyncerConnected(t *testing.T) {
 		t.Logf("index: %d conv: %s", index, conv.GetConvID())
 	}
 	// background loader will pick up all the convs from the creates above
+	convMap := make(map[string]bool)
+	for _, c := range convs {
+		convMap[c.GetConvID().String()] = true
+	}
 	for i := 0; i < len(convs); i++ {
 		select {
 		case convID := <-list.bgConvLoads:
-			require.Equal(t, convs[i].GetConvID(), convID)
+			delete(convMap, convID.String())
 		case <-time.After(20 * time.Second):
 			require.Fail(t, "no background conv loaded")
 		}
 	}
+	require.Zero(t, len(convMap))
 
 	t.Logf("test current")
 	ri.SyncInboxFunc = func(m *kbtest.ChatRemoteMock, ctx context.Context, vers chat1.InboxVers) (chat1.SyncInboxRes, error) {
@@ -404,8 +409,10 @@ func TestSyncerNeverJoined(t *testing.T) {
 		}
 
 		// simulate an old client that doesn't understand NEVER_JOINED
+		userAgent := libkb.UserAgent
 		libkb.UserAgent = "old:ua:2.12.1"
 		ctx = Context(context.TODO(), g1, keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, nil)
+		libkb.UserAgent = userAgent // reset user agent for future tests.
 		doAuthedSync(ctx, g2, syncer2, ctc2.ri, uid2)
 		select {
 		case sres := <-listener2.inboxSynced:

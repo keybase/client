@@ -26,14 +26,14 @@ const DefaultView = (props: DefaultViewProps) => (
       {props.pathItem.name}
     </Text>
     <Text type="BodySmall">{Constants.humanReadableFileSize(props.pathItem.size)}</Text>
-    {isMobile && <PathItemInfo path={props.path} startWithLastModified={true} />}
+    {isMobile && <PathItemInfo path={props.path} mode="default" />}
     {props.pathItem.type === 'symlink' && (
       <Text type="BodySmall" style={stylesSymlink}>
         {'This is a symlink' + (props.pathItem.linkTarget ? ` to: ${props.pathItem.linkTarget}.` : '.')}
       </Text>
     )}
     {isMobile && (
-      <Text type="BodySmall" style={stylesNoOpenMobile}>
+      <Text center={true} type="BodySmall" style={stylesNoOpenMobile}>
         This document can not be opened on mobile. You can still interact with it using the ••• menu.
       </Text>
     )}
@@ -95,13 +95,8 @@ const stylesFilename = memoize(color => ({
   marginTop: globalMargins.small,
 }))
 
-const stylesSymlink = {
-  marginTop: globalMargins.medium,
-}
+const stylesSymlink = {marginTop: globalMargins.medium}
 
-const stylesNoOpenMobile = {
-  marginTop: globalMargins.medium,
-  textAlign: 'center',
-}
+const stylesNoOpenMobile = {marginTop: globalMargins.medium}
 
 export default DefaultView

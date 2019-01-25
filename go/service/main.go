@@ -22,6 +22,7 @@ import (
 	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/attachments"
+	"github.com/keybase/client/go/chat/commands"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/search"
 	"github.com/keybase/client/go/chat/storage"
@@ -134,7 +135,6 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.SigsProtocol(NewSigsHandler(xp, g)),
 		keybase1.TestProtocol(NewTestHandler(xp, g)),
 		keybase1.TrackProtocol(NewTrackHandler(xp, g)),
-		keybase1.UserProtocol(NewUserHandler(xp, g, d.ChatG())),
 		CancelingProtocol(g, keybase1.ApiserverProtocol(NewAPIServerHandler(xp, g)),
 			libkb.RPCCancelerReasonLogout),
 		keybase1.PaperprovisionProtocol(NewPaperProvisionHandler(xp, g)),
@@ -161,8 +161,9 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 	walletHandler := newWalletHandler(xp, g, d.walletState)
 	protocols = append(protocols, CancelingProtocol(g, stellar1.LocalProtocol(walletHandler),
 		libkb.RPCCancelerReasonLogout))
-
-	protocols = append(protocols, keybase1.DebuggingProtocol(NewDebuggingHandler(xp, g, walletHandler)))
+	userHandler := NewUserHandler(xp, g, d.ChatG())
+	protocols = append(protocols, keybase1.UserProtocol(userHandler))
+	protocols = append(protocols, keybase1.DebuggingProtocol(NewDebuggingHandler(xp, g, userHandler, walletHandler)))
 	for _, proto := range protocols {
 		if err = srv.Register(proto); err != nil {
 			return
@@ -465,6 +466,7 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 
 	g.Unfurler = unfurl.NewUnfurler(g, store, s3signer, convStorage, chat.NewNonblockingSender(g, sender),
 		ri)
+	g.CommandsSource = commands.NewSource(g)
 
 	// Set up Offlinables on Syncer
 	chatSyncer.RegisterOfflinable(g.InboxSource)
