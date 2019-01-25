@@ -167,7 +167,11 @@ const provider = Sb.createPropProviderWithCommon({
     ...p,
     ...p.storyProps,
     assertionKeys:
-      p.username === 'noProofs' ? [] : p.username === 'oneProof' ? [props.assertions[0]] : props.assertions,
+      p.username === 'noProofs'
+        ? []
+        : p.username === 'oneProof'
+        ? [props.assertions[0]]
+        : [...props.assertions],
     followThem: p.username === 'green' ? true : props.followThem,
     reason:
       p.username === 'longreason'
