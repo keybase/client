@@ -701,6 +701,11 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-history-clear-64.png'),
   },
+  'icon-illustration-exploding-messages-240': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-illustration-exploding-messages-240.png'),
+  },
   'icon-illustration-stellar-payments-200-188': {
     extension: 'png',
     isFont: false,

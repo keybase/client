@@ -7,6 +7,7 @@ import {WalletPopup} from '../common'
 import {addTicker, removeTicker, type TickerID} from '../../util/second-timer'
 
 type DisclaimerProps = {|
+  acceptDisclaimerError: string,
   acceptingDisclaimerDelay: boolean,
   onAcceptDisclaimer: () => void,
   onCheckDisclaimer: () => void,
@@ -16,17 +17,19 @@ type DisclaimerProps = {|
 type DisclaimerState = {|
   secondsLeftAfterAccept: number,
   secondsLeftBeforeAccept: number,
+  tryAgain: boolean,
 |}
 
 class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
-  state = {secondsLeftAfterAccept: 6, secondsLeftBeforeAccept: 5}
+  state = {secondsLeftAfterAccept: 6, secondsLeftBeforeAccept: 6, tryAgain: false}
   afterTimer: ?TickerID = null
   beforeTimer: ?TickerID = null
 
   afterTick = () => {
-    this.setState({secondsLeftAfterAccept: this.state.secondsLeftAfterAccept - 1}, () => {
+    this.setState({secondsLeftAfterAccept: Math.max(0, this.state.secondsLeftAfterAccept - 1)}, () => {
       if (this.state.secondsLeftAfterAccept === 0 && this.afterTimer) {
         removeTicker(this.afterTimer)
+        this.afterTimer = null
         this.props.onCheckDisclaimer()
       }
     })
@@ -40,11 +43,17 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
     })
   }
 
-  componentWillUnmount() {
+  removeTimers = () => {
     if (!__STORYBOOK__) {
       this.afterTimer && removeTicker(this.afterTimer)
       this.beforeTimer && removeTicker(this.beforeTimer)
+      this.afterTimer = null
+      this.beforeTimer = null
     }
+  }
+
+  componentWillUnmount() {
+    this.removeTimers()
   }
 
   componentDidMount() {
@@ -54,22 +63,29 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
   }
 
   componentDidUpdate(prevProps: DisclaimerProps) {
-    if (this.props.acceptingDisclaimerDelay && !this.afterTimer) {
+    if (this.props.acceptingDisclaimerDelay && !this.afterTimer && !this.props.acceptDisclaimerError) {
       // Start the after countdown
       this.afterTimer = addTicker(this.afterTick)
+    }
+    if (this.props.acceptDisclaimerError && !prevProps.acceptDisclaimerError) {
+      // show 'try again' & reset timer
+      this.removeTimers()
+      this.setState({secondsLeftAfterAccept: 6, tryAgain: true})
     }
   }
   render() {
     const afterLabel = `Opening your Wallet`.concat(
       this.state.secondsLeftAfterAccept ? ` (${this.state.secondsLeftAfterAccept})` : ''
     )
-    const beforeLabel = 'Yes, I agree'.concat(
-      this.state.secondsLeftBeforeAccept ? ` (${this.state.secondsLeftBeforeAccept})` : ''
-    )
+    const beforeLabel = this.state.tryAgain
+      ? 'Try again'
+      : 'Yes, I agree'.concat(
+          this.state.secondsLeftBeforeAccept ? ` (${this.state.secondsLeftBeforeAccept})` : ''
+        )
     const buttons = [
       <Kb.Button
         disabled={this.props.acceptingDisclaimerDelay}
-        style={styles.buttonStyle}
+        style={styles.notNowButtonStyle}
         key={2}
         fullWidth={true}
         type="SecondaryColoredBackground"
@@ -77,7 +93,6 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
         label="Not now"
       />,
     ]
-
     buttons.unshift(
       this.props.acceptingDisclaimerDelay ? (
         <Kb.Button
@@ -112,7 +127,9 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
         containerStyle={styles.container}
         buttonBarStyle={styles.buttonBar}
       >
-        <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} />
+        {!!this.props.acceptDisclaimerError && (
+          <Kb.Banner inline={true} color="red" text={this.props.acceptDisclaimerError} />
+        )}
         <Kb.Box2 direction="vertical" style={styles.header}>
           <Kb.Text type="Header" style={styles.headerText}>
             Almost done.
@@ -235,7 +252,7 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   buttonLabelStyle: {color: Styles.globalColors.purple},
-  buttonStyle: {width: '100%'},
+  buttonStyle: {backgroundColor: Styles.globalColors.white, width: '100%'},
   container: {
     backgroundColor: Styles.globalColors.purple2,
     padding: Styles.globalMargins.medium,
@@ -260,6 +277,7 @@ const styles = Styles.styleSheetCreate({
   labelStyle: {
     color: Styles.globalColors.purple,
   },
+  notNowButtonStyle: {width: '100%'},
   scrollView: {
     marginBottom: 0,
     marginTop: Styles.globalMargins.small,

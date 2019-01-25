@@ -340,7 +340,10 @@ func (s *Syncer) sync(ctx context.Context, cli chat1.RemoteInterface, uid gregor
 	if syncRes == nil {
 		// Run the sync call on the server to see how current our local copy is
 		syncRes = new(chat1.SyncChatRes)
-		if *syncRes, err = cli.SyncChat(ctx, vers); err != nil {
+		if *syncRes, err = cli.SyncChat(ctx, chat1.SyncChatArg{
+			Vers:             vers,
+			SummarizeMaxMsgs: true,
+		}); err != nil {
 			s.Debug(ctx, "Sync: failed to sync inbox: %s", err.Error())
 			return err
 		}

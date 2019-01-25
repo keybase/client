@@ -68,6 +68,7 @@ export const recentPaymentsReceived = 'wallets:recentPaymentsReceived'
 export const rejectDisclaimer = 'wallets:rejectDisclaimer'
 export const requestPayment = 'wallets:requestPayment'
 export const requestedPayment = 'wallets:requestedPayment'
+export const resetAcceptingDisclaimer = 'wallets:resetAcceptingDisclaimer'
 export const reviewPayment = 'wallets:reviewPayment'
 export const reviewedPaymentReceived = 'wallets:reviewedPaymentReceived'
 export const secretKeyReceived = 'wallets:secretKeyReceived'
@@ -130,7 +131,8 @@ type _DisplayCurrenciesReceivedPayload = $ReadOnly<{|currencies: Array<Types.Cur
 type _DisplayCurrencyReceivedPayload = $ReadOnly<{|accountID: ?Types.AccountID, currency: Types.Currency, setBuildingCurrency?: boolean|}>
 type _ExitFailedPaymentPayload = void
 type _ExportSecretKeyPayload = $ReadOnly<{|accountID: Types.AccountID|}>
-type _InflationDestinationReceivedPayload = $ReadOnly<{|selected?: string, options?: Array<Types.InflationDestination>, error?: string|}>
+type _InflationDestinationReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, selected: Types.AccountInflationDestination, options?: Array<Types.InflationDestination>|}>
+type _InflationDestinationReceivedPayloadError = $ReadOnly<{|error: string|}>
 type _LinkExistingAccountPayload = $ReadOnly<{|name: string, secretKey: HiddenString, showOnCreation?: boolean, setBuildingTo?: boolean|}>
 type _LinkedExistingAccountPayload = $ReadOnly<{|accountID: Types.AccountID, showOnCreation?: boolean, setBuildingTo?: boolean|}>
 type _LinkedExistingAccountPayloadError = $ReadOnly<{|name: string, secretKey: HiddenString, error: string|}>
@@ -155,6 +157,7 @@ type _RecentPaymentsReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, pa
 type _RejectDisclaimerPayload = void
 type _RequestPaymentPayload = void
 type _RequestedPaymentPayload = $ReadOnly<{|kbRqID: HiddenString, lastSentXLM: boolean, requestee: string|}>
+type _ResetAcceptingDisclaimerPayload = void
 type _ReviewPaymentPayload = void
 type _ReviewedPaymentReceivedPayload = $ReadOnly<{|bid: string, reviewID: number, seqno: number, nextButton: string, banners?: ?Array<StellarRPCTypes.SendBannerLocal>|}>
 type _SecretKeyReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, secretKey: HiddenString|}>
@@ -173,7 +176,7 @@ type _SetBuildingPublicMemoPayload = $ReadOnly<{|publicMemo: HiddenString|}>
 type _SetBuildingRecipientTypePayload = $ReadOnly<{|recipientType: Types.CounterpartyType|}>
 type _SetBuildingSecretNotePayload = $ReadOnly<{|secretNote: HiddenString|}>
 type _SetBuildingToPayload = $ReadOnly<{|to: string|}>
-type _SetInflationDestinationPayload = $ReadOnly<{|accountID: Types.AccountID, destination: string|}>
+type _SetInflationDestinationPayload = $ReadOnly<{|accountID: Types.AccountID, destination: Types.AccountID, name: string|}>
 type _SetLastSentXLMPayload = $ReadOnly<{|lastSentXLM: boolean, writeFile: boolean|}>
 type _SetReadyToReviewPayload = $ReadOnly<{|readyToReview: boolean|}>
 type _ValidateAccountNamePayload = $ReadOnly<{|name: string|}>
@@ -290,6 +293,7 @@ export const createSentPaymentError = (payload: _SentPaymentErrorPayload) => ({p
  * Got inflation destination
  */
 export const createInflationDestinationReceived = (payload: _InflationDestinationReceivedPayload) => ({payload, type: inflationDestinationReceived})
+export const createInflationDestinationReceivedError = (payload: _InflationDestinationReceivedPayloadError) => ({error: true, payload, type: inflationDestinationReceived})
 /**
  * Initialize and navigate to the send or request form. See docs for `setBuilding*` for param semantics.
  */
@@ -370,6 +374,10 @@ export const createRejectDisclaimer = (payload: _RejectDisclaimerPayload) => ({p
  * Request payment
  */
 export const createRequestPayment = (payload: _RequestPaymentPayload) => ({payload, type: requestPayment})
+/**
+ * Reset to the pre-accepting-disclaimer state.
+ */
+export const createResetAcceptingDisclaimer = (payload: _ResetAcceptingDisclaimerPayload) => ({payload, type: resetAcceptingDisclaimer})
 /**
  * Scrolled down the list of payments for a given account
  */
@@ -555,6 +563,7 @@ export type DisplayCurrencyReceivedPayload = {|+payload: _DisplayCurrencyReceive
 export type ExitFailedPaymentPayload = {|+payload: _ExitFailedPaymentPayload, +type: 'wallets:exitFailedPayment'|}
 export type ExportSecretKeyPayload = {|+payload: _ExportSecretKeyPayload, +type: 'wallets:exportSecretKey'|}
 export type InflationDestinationReceivedPayload = {|+payload: _InflationDestinationReceivedPayload, +type: 'wallets:inflationDestinationReceived'|}
+export type InflationDestinationReceivedPayloadError = {|+error: true, +payload: _InflationDestinationReceivedPayloadError, +type: 'wallets:inflationDestinationReceived'|}
 export type LinkExistingAccountPayload = {|+payload: _LinkExistingAccountPayload, +type: 'wallets:linkExistingAccount'|}
 export type LinkedExistingAccountPayload = {|+payload: _LinkedExistingAccountPayload, +type: 'wallets:linkedExistingAccount'|}
 export type LinkedExistingAccountPayloadError = {|+error: true, +payload: _LinkedExistingAccountPayloadError, +type: 'wallets:linkedExistingAccount'|}
@@ -579,6 +588,7 @@ export type RecentPaymentsReceivedPayload = {|+payload: _RecentPaymentsReceivedP
 export type RejectDisclaimerPayload = {|+payload: _RejectDisclaimerPayload, +type: 'wallets:rejectDisclaimer'|}
 export type RequestPaymentPayload = {|+payload: _RequestPaymentPayload, +type: 'wallets:requestPayment'|}
 export type RequestedPaymentPayload = {|+payload: _RequestedPaymentPayload, +type: 'wallets:requestedPayment'|}
+export type ResetAcceptingDisclaimerPayload = {|+payload: _ResetAcceptingDisclaimerPayload, +type: 'wallets:resetAcceptingDisclaimer'|}
 export type ReviewPaymentPayload = {|+payload: _ReviewPaymentPayload, +type: 'wallets:reviewPayment'|}
 export type ReviewedPaymentReceivedPayload = {|+payload: _ReviewedPaymentReceivedPayload, +type: 'wallets:reviewedPaymentReceived'|}
 export type SecretKeyReceivedPayload = {|+payload: _SecretKeyReceivedPayload, +type: 'wallets:secretKeyReceived'|}
@@ -646,6 +656,7 @@ export type Actions =
   | ExitFailedPaymentPayload
   | ExportSecretKeyPayload
   | InflationDestinationReceivedPayload
+  | InflationDestinationReceivedPayloadError
   | LinkExistingAccountPayload
   | LinkedExistingAccountPayload
   | LinkedExistingAccountPayloadError
@@ -670,6 +681,7 @@ export type Actions =
   | RejectDisclaimerPayload
   | RequestPaymentPayload
   | RequestedPaymentPayload
+  | ResetAcceptingDisclaimerPayload
   | ReviewPaymentPayload
   | ReviewedPaymentReceivedPayload
   | SecretKeyReceivedPayload

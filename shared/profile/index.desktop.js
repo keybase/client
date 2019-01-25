@@ -402,8 +402,13 @@ class ProfileRender extends React.PureComponent<Props, State> {
               }
               style={{...styleSearchContainer, opacity: this.state.searchHovered ? 0.8 : 1}}
             >
-              <Kb.Icon style={styleSearch} type="iconfont-search" color={Styles.globalColors.white} />
-              <Kb.Text style={styleSearchText} type="BodySmallSemibold">
+              <Kb.Icon
+                fontSize={Styles.isMobile ? 20 : 16}
+                style={styles.searchIcon}
+                type="iconfont-search"
+                color={Styles.globalColors.white_75}
+              />
+              <Kb.Text style={styles.searchText} type="BodySemibold">
                 Search people
               </Kb.Text>
             </Kb.Box>
@@ -633,15 +638,6 @@ const styleSearchContainer = {
   zIndex: SEARCH_CONTAINER_ZINDEX,
 }
 
-const styleSearch = {
-  padding: 3,
-}
-
-const styleSearchText = {
-  ...styleSearch,
-  color: Styles.globalColors.white_75,
-}
-
 const styleShowcasedTeamContainer = {
   ...Styles.globalStyles.flexBoxRow,
   alignItems: 'flex-start',
@@ -704,6 +700,14 @@ const styles = Styles.styleSheetCreate({
     alignSelf: 'flex-start',
     flex: 1,
     marginTop: 2,
+  },
+  searchIcon: {
+    paddingRight: Styles.globalMargins.tiny,
+    position: 'relative',
+    top: 1,
+  },
+  searchText: {
+    color: Styles.globalColors.white_75,
   },
   service: Styles.collapseStyles([
     Styles.desktopStyles.clickable,

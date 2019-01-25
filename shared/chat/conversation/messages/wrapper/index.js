@@ -43,7 +43,6 @@ export type Props = {|
   failureDescription: string,
   forceAsh: boolean,
   hasUnfurlPrompts: boolean,
-  isLastInThread: boolean,
   isPendingPayment: boolean,
   isRevoked: boolean,
   showCoinsIcon: boolean,
@@ -194,6 +193,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       <ReactionsRow
         key="ReactionsRow"
         btnClassName="WrapperMessage-emojiButton"
+        newBtnClassName="WrapperMessage-newEmojiButton"
         conversationIDKey={this.props.conversationIDKey}
         ordinal={this.props.message.ordinal}
       />
@@ -415,10 +415,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                     conversationIDKey={this.props.conversationIDKey}
                     onShowingEmojiPicker={this._setShowingPicker}
                     ordinal={message.ordinal}
-                    style={Styles.collapseStyles([
-                      styles.emojiRow,
-                      this.props.isLastInThread ? styles.emojiRowLast : null,
-                    ])}
+                    style={styles.emojiRow}
                   />
                 )}
                 <Kb.Box>
@@ -536,8 +533,7 @@ const styles = Styles.styleSheetCreate({
   }),
   edited: {color: Styles.globalColors.black_20},
   ellipsis: {marginLeft: Styles.globalMargins.tiny},
-  emojiRow: {bottom: -20, position: 'absolute', right: 82, zIndex: 2},
-  emojiRowLast: {bottom: 0},
+  emojiRow: {bottom: -12, position: 'absolute', right: 112, zIndex: 2},
   fail: {color: Styles.globalColors.red},
   failUnderline: {color: Styles.globalColors.red, textDecorationLine: 'underline'},
   fast,

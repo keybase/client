@@ -12,6 +12,9 @@
     "acceptDisclaimer": {
       "_description": "Accept the Stellar account disclaimer"
     },
+    "resetAcceptingDisclaimer": {
+      "_description": "Reset to the pre-accepting-disclaimer state."
+    },
     "accountsReceived": {
       "_description": "Update our store of account data",
       "accounts": "Array<Types.Account>"
@@ -108,7 +111,7 @@
     },
     "loadAccounts": {
       "_description": "Refresh our list of accounts",
-      "reason": "'initial-load' | 'open-send-req-form'",
+      "reason": "'initial-load' | 'open-send-req-form'"
     },
     "loadInflationDestination": {
       "_description": "Refresh inflation destination and options",
@@ -117,13 +120,15 @@
     "setInflationDestination": {
       "_description": "Set our inflation destination",
       "accountID": "Types.AccountID",
-      "destination": "string"
+      "destination": "Types.AccountID",
+      "name": "string"
     },
     "inflationDestinationReceived": {
       "_description": "Got inflation destination",
-      "selected?": "string",
+      "accountID": "Types.AccountID",
+      "selected": "Types.AccountInflationDestination",
       "options?": "Array<Types.InflationDestination>",
-      "error?": "string"
+      "canError": {"error": "string"}
     },
     "loadMorePayments": {
       "_description": "Scrolled down the list of payments for a given account",
@@ -265,7 +270,7 @@
       "_description": "Select an account. Optionally navigate to the account page.",
       "accountID": "Types.AccountID",
       "reason": "'user-selected' | 'auto-selected' | 'from-chat'",
-      "show?": "boolean",
+      "show?": "boolean"
     },
     "buildPayment": {
       "_description": "Send a potential payment to the service for validation"

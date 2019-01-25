@@ -121,7 +121,7 @@ const styles = Styles.styleSheetCreate({
   },
   container: Styles.platformStyles({
     isElectron: {
-      display: 'inline',
+      display: 'inline-block',
     },
   }),
   error: {

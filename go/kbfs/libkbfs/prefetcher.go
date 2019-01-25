@@ -293,6 +293,25 @@ func (p *blockPrefetcher) applyToParentsRecursive(
 	f(blockID, pre)
 }
 
+func (p *blockPrefetcher) getBlockSynchronously(
+	ctx context.Context, req *prefetchRequest, action BlockRequestAction) (
+	Block, error) {
+	// Avoid the overhead of the block retriever copy if possible.
+	cachedBlock, err := p.config.BlockCache().Get(req.ptr)
+	if err == nil {
+		return cachedBlock, nil
+	}
+
+	b := req.newBlock()
+	err = <-p.retriever.Request(
+		ctx, defaultOnDemandRequestPriority, req.kmd, req.ptr,
+		b, req.lifetime, action)
+	if err != nil {
+		return nil, err
+	}
+	return b, nil
+}
+
 // Walk up the block tree decrementing each node by `numBlocks`. Any
 // zeroes we hit get marked complete and deleted.  Also, count
 // `numBytes` bytes as being fetched.  If the block count becomes 0,
@@ -323,10 +342,7 @@ func (p *blockPrefetcher) completePrefetch(
 			p.clearRescheduleState(blockID)
 			delete(p.rescheduled, blockID)
 			defer pp.Close()
-			b := pp.req.newBlock()
-			err := <-p.retriever.Request(
-				pp.ctx, defaultOnDemandRequestPriority, pp.req.kmd, pp.req.ptr,
-				b, pp.req.lifetime, BlockRequestSolo)
+			b, err := p.getBlockSynchronously(pp.ctx, pp.req, BlockRequestSolo)
 			if err != nil {
 				p.log.CWarningf(pp.ctx, "failed to retrieve block to "+
 					"complete its prefetch, canceled it instead: %+v", err)
@@ -898,10 +914,7 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 				req.ptr, req.action)
 
 			// Ensure the block is in the right cache.
-			b := req.newBlock()
-			err := <-p.retriever.Request(
-				ctx, defaultOnDemandRequestPriority, req.kmd,
-				req.ptr, b, req.lifetime, req.action.SoloAction())
+			b, err := p.getBlockSynchronously(ctx, req, req.action.SoloAction())
 			if err != nil {
 				p.log.CWarningf(ctx, "error requesting for block %s: "+
 					"%+v", req.ptr.ID, err)

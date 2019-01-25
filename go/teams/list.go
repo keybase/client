@@ -22,7 +22,7 @@ func (r *statusList) GetAppStatus() *libkb.AppStatus {
 }
 
 func getTeamsListFromServer(ctx context.Context, g *libkb.GlobalContext, uid keybase1.UID, all bool,
-	countMembers bool, includeImplicitTeams bool) ([]keybase1.MemberInfo, error) {
+	countMembers bool, includeImplicitTeams bool, rootTeamID keybase1.TeamID) ([]keybase1.MemberInfo, error) {
 	var endpoint string
 	if all {
 		endpoint = "team/teammates_for_user"
@@ -36,6 +36,9 @@ func getTeamsListFromServer(ctx context.Context, g *libkb.GlobalContext, uid key
 	}
 	if countMembers {
 		a.Args["count_members"] = libkb.B{Val: true}
+	}
+	if !rootTeamID.IsNil() {
+		a.Args["root_team_id"] = libkb.S{Val: rootTeamID.String()}
 	}
 	if includeImplicitTeams {
 		a.Args["include_implicit_teams"] = libkb.B{Val: true}
@@ -173,7 +176,7 @@ func ListTeamsVerified(ctx context.Context, g *libkb.GlobalContext,
 
 	tracer.Stage("Server")
 	teams, err := getTeamsListFromServer(ctx, g, queryUID, false, /* all */
-		false /* countMembers */, arg.IncludeImplicitTeams)
+		false /* countMembers */, arg.IncludeImplicitTeams, keybase1.NilTeamID())
 	if err != nil {
 		return nil, err
 	}
@@ -300,7 +303,7 @@ func ListAll(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamListT
 	}
 
 	tracer.Stage("Server")
-	teams, err := getTeamsListFromServer(ctx, g, "" /*uid*/, true /*all*/, false /* countMembers */, arg.IncludeImplicitTeams)
+	teams, err := getTeamsListFromServer(ctx, g, "" /*uid*/, true /*all*/, false /* countMembers */, arg.IncludeImplicitTeams, keybase1.NilTeamID())
 	if err != nil {
 		return nil, err
 	}
@@ -717,7 +720,7 @@ func parseInvitesNoAnnotate(ctx context.Context, g *libkb.GlobalContext, team *T
 
 func TeamTree(ctx context.Context, g *libkb.GlobalContext, arg keybase1.TeamTreeArg) (res keybase1.TeamTreeResult, err error) {
 	serverList, err := getTeamsListFromServer(ctx, g, "" /* uid */, false, /* all */
-		false /* countMembers */, false /* includeImplicitTeams */)
+		false /* countMembers */, false /* includeImplicitTeams */, arg.Name.RootID())
 	if err != nil {
 		return res, err
 	}

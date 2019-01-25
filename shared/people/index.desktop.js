@@ -26,14 +26,10 @@ export const Header = (props: Props) => (
   />
 )
 const People = (props: Props) => (
-  <Kb.ScrollView style={styles.scrollView}>
-    {props.waiting && (
-      <Kb.ProgressIndicator
-        style={{height: 32, left: 96, position: 'absolute', top: 8, width: 32, zIndex: 2}}
-      />
-    )}
+  <Kb.ScrollView style={styles.container}>
+    {props.waiting && <Kb.ProgressIndicator style={styles.progress} />}
     {!flags.useNewRouter && (
-      <Kb.Box2 direction="horizontal" centerChildren={true}>
+      <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.searchContainer}>
         <PeoplePageSearchBar {...props} />
       </Kb.Box2>
     )}
@@ -42,11 +38,19 @@ const People = (props: Props) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  header: {
-    flexGrow: 1,
-  },
-  scrollView: {
+  container: {
     ...Styles.globalStyles.fullHeight,
+  },
+  progress: {
+    height: 32,
+    left: 96,
+    position: 'absolute',
+    top: 8,
+    width: 32,
+    zIndex: 2,
+  },
+  searchContainer: {
+    paddingBottom: Styles.globalMargins.xsmall,
   },
 })
 

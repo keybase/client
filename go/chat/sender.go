@@ -420,13 +420,12 @@ func (s *BlockingSender) checkTopicNameAndGetState(ctx context.Context, msg chat
 		tlfID := msg.ClientHeader.Conv.Tlfid
 		topicType := msg.ClientHeader.Conv.TopicType
 		newTopicName := msg.MessageBody.Metadata().ConversationTitle
-		convs, err := s.G().TeamChannelSource.GetChannelsFull(ctx, msg.ClientHeader.Sender, tlfID,
-			topicType)
+		convs, err := s.G().TeamChannelSource.GetChannelsFull(ctx, msg.ClientHeader.Sender, tlfID, topicType)
 		if err != nil {
 			return topicNameState, err
 		}
 		for _, conv := range convs {
-			if utils.GetTopicName(conv) == newTopicName {
+			if conv.Info.TopicName == newTopicName {
 				return nil, DuplicateTopicNameError{TopicName: newTopicName}
 			}
 		}
@@ -1461,6 +1460,21 @@ func (s *NonblockingSender) Prepare(ctx context.Context, msg chat1.MessagePlaint
 
 func (s *NonblockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	msg chat1.MessagePlaintext, clientPrev chat1.MessageID, outboxID *chat1.OutboxID) (chat1.OutboxID, *chat1.MessageBoxed, error) {
+	if clientPrev == 0 {
+		uid, err := utils.AssertLoggedInUID(ctx, s.G())
+		if err != nil {
+			return nil, nil, err
+		}
+		s.Debug(ctx, "Send: clientPrev not specified using local storage")
+		thread, err := s.G().ConvSource.PullLocalOnly(ctx, convID, uid, nil, &chat1.Pagination{Num: 1}, 0)
+		if err != nil || len(thread.Messages) == 0 {
+			s.Debug(ctx, "Send: unable to read local storage, setting ClientPrev to 1")
+			clientPrev = 1
+		} else {
+			clientPrev = thread.Messages[0].GetMessageID()
+		}
+	}
+	s.Debug(ctx, "Send: using prevMsgID: %d", clientPrev)
 	msg.ClientHeader.OutboxInfo = &chat1.OutboxInfo{
 		Prev:        clientPrev,
 		ComposeTime: gregor1.ToTime(time.Now()),

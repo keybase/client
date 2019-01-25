@@ -745,6 +745,10 @@ func (cache *DiskBlockCacheLocal) GetMetadata(ctx context.Context,
 	blockID kbfsblock.ID) (DiskBlockCacheMetadata, error) {
 	cache.lock.RLock()
 	defer cache.lock.RUnlock()
+	err := cache.checkCacheLocked("Block(GetMetadata)")
+	if err != nil {
+		return DiskBlockCacheMetadata{}, err
+	}
 	return cache.getMetadataLocked(blockID, false)
 }
 

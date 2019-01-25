@@ -897,6 +897,172 @@
           "name": "username"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "BatchPaymentError",
+      "fields": [
+        {
+          "type": "string",
+          "name": "message"
+        },
+        {
+          "type": "int",
+          "name": "code"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "BatchPaymentResult",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "TimeMs",
+          "name": "startTime"
+        },
+        {
+          "type": "TimeMs",
+          "name": "submittedTime"
+        },
+        {
+          "type": "TimeMs",
+          "name": "endTime"
+        },
+        {
+          "type": "TransactionID",
+          "name": "txID"
+        },
+        {
+          "type": "PaymentStatus",
+          "name": "status"
+        },
+        {
+          "type": "string",
+          "name": "statusDescription"
+        },
+        {
+          "type": [
+            null,
+            "BatchPaymentError"
+          ],
+          "name": "error"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "BatchResultLocal",
+      "fields": [
+        {
+          "type": "TimeMs",
+          "name": "startTime"
+        },
+        {
+          "type": "TimeMs",
+          "name": "preparedTime"
+        },
+        {
+          "type": "TimeMs",
+          "name": "allSubmittedTime"
+        },
+        {
+          "type": "TimeMs",
+          "name": "allCompleteTime"
+        },
+        {
+          "type": "TimeMs",
+          "name": "endTime"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "BatchPaymentResult"
+          },
+          "name": "payments"
+        },
+        {
+          "type": "TimeMs",
+          "name": "overallDurationMs"
+        },
+        {
+          "type": "TimeMs",
+          "name": "prepareDurationMs"
+        },
+        {
+          "type": "TimeMs",
+          "name": "submitDurationMs"
+        },
+        {
+          "type": "TimeMs",
+          "name": "waitPaymentsDurationMs"
+        },
+        {
+          "type": "TimeMs",
+          "name": "waitChatDurationMs"
+        },
+        {
+          "type": "int",
+          "name": "countSuccess"
+        },
+        {
+          "type": "int",
+          "name": "countDirect"
+        },
+        {
+          "type": "int",
+          "name": "countRelay"
+        },
+        {
+          "type": "int",
+          "name": "countError"
+        },
+        {
+          "type": "int",
+          "name": "countPending"
+        },
+        {
+          "type": "TimeMs",
+          "name": "avgDurationMs"
+        },
+        {
+          "type": "TimeMs",
+          "name": "avgSuccessDurationMs"
+        },
+        {
+          "type": "TimeMs",
+          "name": "avgDirectDurationMs"
+        },
+        {
+          "type": "TimeMs",
+          "name": "avgRelayDurationMs"
+        },
+        {
+          "type": "TimeMs",
+          "name": "avgErrorDurationMs"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "BatchPaymentArg",
+      "fields": [
+        {
+          "type": "string",
+          "name": "recipient"
+        },
+        {
+          "type": "string",
+          "name": "amount"
+        },
+        {
+          "type": "string",
+          "name": "message"
+        }
+      ]
     }
   ],
   "messages": {
@@ -1812,6 +1978,26 @@
         }
       ],
       "response": "LookupResultCLILocal"
+    },
+    "batchLocal": {
+      "request": [
+        {
+          "name": "batchID",
+          "type": "string"
+        },
+        {
+          "name": "timeoutSecs",
+          "type": "int"
+        },
+        {
+          "name": "payments",
+          "type": {
+            "type": "array",
+            "items": "BatchPaymentArg"
+          }
+        }
+      ],
+      "response": "BatchResultLocal"
     }
   },
   "namespace": "stellar.1"

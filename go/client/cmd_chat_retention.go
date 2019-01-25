@@ -49,6 +49,9 @@ Keep messages indefinitely:
 Keep messages for a week:
     keybase chat retention-policy patrick --expire 1w
 
+Require messages to be exploding and have a maxmimum lifetime of a week:
+    keybase chat retention-policy patrick --exploding 1w
+
 Change the team-wide policy:
     keybase chat retention-policy ateam --expire 1y
 
@@ -68,6 +71,10 @@ Use the team policy for this channel:
 			cli.StringFlag{
 				Name:  "expire",
 				Usage: `Delete messages after one of [1d, 1w, 30d, 3m, 1y]`,
+			},
+			cli.StringFlag{
+				Name:  "exploding",
+				Usage: `Require all messages to be exploding with a maximum lifetime of one of [30s, 5m, 1h, 6h, 1d, 3d, 1w]`,
 			},
 			cli.BoolFlag{
 				Name:  "inherit",
@@ -142,11 +149,18 @@ func (c *CmdChatSetRetention) ParseArgv(ctx *cli.Context) (err error) {
 	var inherit bool
 	var exclusiveChoices []string
 	if timeStr := ctx.String("expire"); len(timeStr) > 0 {
-		age, err = c.parseAgeLimited(timeStr)
+		age, err = c.parseExpireAgeLimited(timeStr)
 		if err != nil {
 			return err
 		}
 		exclusiveChoices = append(exclusiveChoices, "expire")
+	}
+	if timeStr := ctx.String("exploding"); len(timeStr) > 0 {
+		age, err = c.parseEphemeralAgeLimited(timeStr)
+		if err != nil {
+			return err
+		}
+		exclusiveChoices = append(exclusiveChoices, "exploding")
 	}
 	keep = ctx.Bool("keep")
 	if keep {
@@ -161,12 +175,17 @@ func (c *CmdChatSetRetention) ParseArgv(ctx *cli.Context) (err error) {
 	}
 	if len(exclusiveChoices) > 0 {
 		var p chat1.RetentionPolicy
-		if inherit {
+		switch exclusiveChoices[0] {
+		case "inherit":
 			p = chat1.NewRetentionPolicyWithInherit(chat1.RpInherit{})
-		} else if keep {
+		case "keep":
 			p = chat1.NewRetentionPolicyWithRetain(chat1.RpRetain{})
-		} else {
+		case "expire":
 			p = chat1.NewRetentionPolicyWithExpire(chat1.RpExpire{
+				Age: age,
+			})
+		case "exploding":
+			p = chat1.NewRetentionPolicyWithEphemeral(chat1.RpEphemeral{
 				Age: age,
 			})
 		}
@@ -226,6 +245,8 @@ func (c *CmdChatSetRetention) showNonTeamConv(conv *chat1.ConversationLocal) (er
 		c.println(dui, rpRetainMsg)
 	case chat1.RetentionPolicyType_EXPIRE:
 		c.println(dui, rpExpireMsg, c.formatExpire(conv.ConvRetention.Expire().Age))
+	case chat1.RetentionPolicyType_EPHEMERAL:
+		c.println(dui, rpEphemeralMsg, c.formatExpire(conv.ConvRetention.Ephemeral().Age))
 	case chat1.RetentionPolicyType_INHERIT:
 		c.println(dui, "Unrecognized policy 'inherit'")
 		return errUnrecoginzedPolicy
@@ -261,6 +282,8 @@ func (c *CmdChatSetRetention) showTeamChannelHTeam(conv *chat1.ConversationLocal
 		desc = rpRetainMsg
 	case chat1.RetentionPolicyType_EXPIRE:
 		desc = fmt.Sprintf(rpExpireMsg, c.formatExpire(conv.TeamRetention.Expire().Age))
+	case chat1.RetentionPolicyType_EPHEMERAL:
+		desc = fmt.Sprintf(rpEphemeralMsg, c.formatExpire(conv.TeamRetention.Ephemeral().Age))
 	case chat1.RetentionPolicyType_INHERIT:
 		c.println(dui, "Unrecognized policy 'inherit'")
 		return errUnrecoginzedPolicy
@@ -291,6 +314,8 @@ func (c *CmdChatSetRetention) showTeamChannelHChannel(conv *chat1.ConversationLo
 		desc = rpRetainMsg
 	case chat1.RetentionPolicyType_EXPIRE:
 		desc = fmt.Sprintf(rpExpireMsg, c.formatExpire(conv.ConvRetention.Expire().Age))
+	case chat1.RetentionPolicyType_EPHEMERAL:
+		desc = fmt.Sprintf(rpEphemeralMsg, c.formatExpire(conv.ConvRetention.Ephemeral().Age))
 	case chat1.RetentionPolicyType_INHERIT:
 		desc = rpInheritMsg
 	default:
@@ -340,7 +365,29 @@ func (c *CmdChatSetRetention) formatExpire(age gregor1.DurationSec) string {
 }
 
 // Parse an age string from a limited set of choices
-func (c *CmdChatSetRetention) parseAgeLimited(s string) (gregor1.DurationSec, error) {
+func (c *CmdChatSetRetention) parseEphemeralAgeLimited(s string) (gregor1.DurationSec, error) {
+	var d time.Duration
+	var err error
+	switch s {
+	case "30s",
+		"5m",
+		"1h",
+		"6h":
+		d, err = time.ParseDuration(s)
+	case "1d", "24h":
+		d = 24 * time.Hour
+	case "3d":
+		d = 3 * 24 * time.Hour
+	case "7d", "1w":
+		d = 7 * 24 * time.Hour
+	default:
+		return 0, fmt.Errorf("invalid expiration age: %v", s)
+	}
+	return gregor1.DurationSec(d.Seconds()), err
+}
+
+// Parse an age string from a limited set of choices
+func (c *CmdChatSetRetention) parseExpireAgeLimited(s string) (gregor1.DurationSec, error) {
 	var d time.Duration
 	switch s {
 	case "1d", "24h":
@@ -354,7 +401,7 @@ func (c *CmdChatSetRetention) parseAgeLimited(s string) (gregor1.DurationSec, er
 	case "12m", "1y":
 		d = 365 * 24 * time.Hour
 	default:
-		return 0, fmt.Errorf("invalid expiration age")
+		return 0, fmt.Errorf("invalid expiration age: %v", s)
 	}
 	return gregor1.DurationSec(d.Seconds()), nil
 }
@@ -365,6 +412,7 @@ func (c *CmdChatSetRetention) println(dui libkb.DumbOutputUI, format string, arg
 
 const rpRetainMsg = "Keep messages"
 const rpExpireMsg = "Delete messages after %v"
+const rpEphemeralMsg = "Ephemeral messages with a maximum lifetime of %v"
 const rpInheritMsg = "Use team policy"
 const rpDefaultMsg = " (default)"
 

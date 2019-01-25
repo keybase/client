@@ -830,13 +830,6 @@
         {
           "type": [
             null,
-            "MessageID"
-          ],
-          "name": "unreadLineID"
-        },
-        {
-          "type": [
-            null,
             "UIPagination"
           ],
           "name": "pagination"

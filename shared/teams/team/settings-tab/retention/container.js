@@ -126,13 +126,18 @@ const mapDispatchToProps = (
 ) => ({
   _loadTeamOperations: () => teamname && dispatch(TeamsGen.createGetTeamOperations({teamname})),
   _loadTeamPolicy: () => teamname && dispatch(TeamsGen.createGetTeamRetentionPolicy({teamname})),
-  _onShowWarning: (days: number, onConfirm: () => void, onCancel: () => void, parentPath: Path) => {
+  _onShowWarning: (
+    policy: RetentionPolicy,
+    onConfirm: () => void,
+    onCancel: () => void,
+    parentPath: Path
+  ) => {
     dispatch(
       RouteTreeGen.createNavigateTo({
         parentPath,
         path: [
           {
-            props: {days, entityType, onCancel, onConfirm},
+            props: {entityType, onCancel, onConfirm, policy},
             selected: 'retentionWarning',
           },
         ],
@@ -168,7 +173,7 @@ export default compose(
     },
   }),
   withHandlers({
-    onShowWarning: ({_parentPath, _onShowWarning}) => (days, onConfirm, onCancel) =>
-      _onShowWarning(days, onConfirm, onCancel, _parentPath),
+    onShowWarning: ({_parentPath, _onShowWarning}) => (policy, onConfirm, onCancel) =>
+      _onShowWarning(policy, onConfirm, onCancel, _parentPath),
   })
 )(RetentionPicker)

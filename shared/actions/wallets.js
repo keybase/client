@@ -93,7 +93,7 @@ const openSendRequestForm = (state, action) => {
 }
 
 const maybePopulateBuildingCurrency = (state, action) =>
-  state.wallets.building.bid && !state.wallets.building.currency // building a payment and haven't set currency yet
+  (state.wallets.building.bid || state.wallets.building.isRequest) && !state.wallets.building.currency // building a payment and haven't set currency yet
     ? WalletsGen.createSetBuildingCurrency({currency: Constants.getDefaultDisplayCurrency(state).code})
     : null
 
@@ -391,9 +391,17 @@ const setInflationDestination = (_, action) => {
 
     Constants.inflationDestinationWaitingKey
   )
-    .then(() => WalletsGen.createInflationDestinationReceived({selected: action.payload.destination}))
-    .catch(error =>
+    .then(() =>
       WalletsGen.createInflationDestinationReceived({
+        accountID,
+        selected: Constants.makeAccountInflationDestination({
+          accountID: action.payload.destination,
+          name: action.payload.name,
+        }),
+      })
+    )
+    .catch(error =>
+      WalletsGen.createInflationDestinationReceivedError({
         error: error.message,
       })
     )
@@ -417,8 +425,9 @@ const loadInflationDestination = (_, action) => {
     )
 
     return WalletsGen.createInflationDestinationReceived({
+      accountID,
       options,
-      selected: (dest && dest.destination) || '',
+      selected: Constants.inflationDestResultToAccountInflationDest(dest),
     })
   })
 }
@@ -740,7 +749,13 @@ const receivedBadgeState = (state, action) =>
   WalletsGen.createBadgesUpdated({accounts: action.payload.badgeState.unreadWalletAccounts || []})
 
 const acceptDisclaimer = (state, action) =>
-  RPCStellarTypes.localAcceptDisclaimerLocalRpcPromise(undefined, Constants.acceptDisclaimerWaitingKey)
+  RPCStellarTypes.localAcceptDisclaimerLocalRpcPromise(undefined, Constants.acceptDisclaimerWaitingKey).catch(
+    e => {
+      // disclaimer screen handles showing error
+      // reset delay state
+      return WalletsGen.createResetAcceptingDisclaimer()
+    }
+  )
 
 const checkDisclaimer = state =>
   RPCStellarTypes.localHasAcceptedDisclaimerLocalRpcPromise().then(accepted =>

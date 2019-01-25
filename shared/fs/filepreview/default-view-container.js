@@ -13,7 +13,7 @@ type OwnProps = {|
 |}
 
 const mapStateToProps = (state, {path}: OwnProps) => ({
-  fileUIEnabled: state.fs.fuseStatus ? state.fs.fuseStatus.kextStarted : false,
+  fileUIEnabled: Constants.kbfsEnabled(state),
   pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
 })
 
