@@ -971,6 +971,10 @@
         },
         {
           "type": "TimeMs",
+          "name": "allCompleteTime"
+        },
+        {
+          "type": "TimeMs",
           "name": "endTime"
         },
         {
@@ -994,11 +998,23 @@
         },
         {
           "type": "TimeMs",
-          "name": "waitDurationMs"
+          "name": "waitPaymentsDurationMs"
+        },
+        {
+          "type": "TimeMs",
+          "name": "waitChatDurationMs"
         },
         {
           "type": "int",
           "name": "countSuccess"
+        },
+        {
+          "type": "int",
+          "name": "countDirect"
+        },
+        {
+          "type": "int",
+          "name": "countRelay"
         },
         {
           "type": "int",
@@ -1015,6 +1031,14 @@
         {
           "type": "TimeMs",
           "name": "avgSuccessDurationMs"
+        },
+        {
+          "type": "TimeMs",
+          "name": "avgDirectDurationMs"
+        },
+        {
+          "type": "TimeMs",
+          "name": "avgRelayDurationMs"
         },
         {
           "type": "TimeMs",
