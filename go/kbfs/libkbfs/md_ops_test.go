@@ -959,19 +959,18 @@ func testMDOpsGetFinalSuccess(t *testing.T, ver kbfsmd.MetadataVer) {
 	mdServer := makeKeyBundleMDServer(config.MDServer())
 	config.SetMDServer(mdServer)
 
-	// A finalized head will force MDOps to fetch the preceding range
-	// of MDs, in order to check the authenticity of the copied writer
-	// MD.  However the key that signed that MD could be a pre-reset
-	// key, so we need to make calls to get unverified keys.
+	// A finalized head will force MDOps to fetch the preceding MD, in
+	// order to check the authenticity of the copied writer MD.
+	// However the key that signed that MD could be a pre-reset key,
+	// so we need to make calls to get unverified keys.
 	mdServer.nextHead = finalRMDS
-	mdServer.nextGetRange = rmdses
+	lastRMDRange := rmdses[len(rmdses)-1:]
+	mdServer.nextGetRange = lastRMDRange
 	for i, e := range extras {
 		mdServer.processRMDSes(rmdses[i], e)
 	}
 
-	for _, rmds := range rmdses {
-		verifyMDForPrivateHelper(config, rmds, 1, 1, true)
-	}
+	verifyMDForPrivateHelper(config, lastRMDRange[0], 1, 1, true)
 
 	_, err = config.MDOps().GetForTLF(ctx, finalRMDS.MD.TlfID(), nil)
 	require.NoError(t, err)
