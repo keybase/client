@@ -237,7 +237,7 @@ func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat
 				Public:      mv.ClientHeader.TlfPublic,
 				TopicType:   strings.ToLower(mv.ClientHeader.Conv.TopicType.String()),
 				MembersType: strings.ToLower(conv.GetMembersType().String()),
-				TopicName:   utils.GetTopicName(conv),
+				TopicName:   conv.Info.TopicName,
 			},
 			Sender: MsgSender{
 				UID:        mv.ClientHeader.Sender.String(),

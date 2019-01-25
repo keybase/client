@@ -1345,6 +1345,17 @@
           "name": "topicName"
         },
         {
+          "type": "string",
+          "name": "headline"
+        },
+        {
+          "type": [
+            null,
+            "MessageUnboxed"
+          ],
+          "name": "snippetMsg"
+        },
+        {
           "type": "keybase1.TLFVisibility",
           "name": "visibility"
         },
@@ -1549,7 +1560,7 @@
         {
           "type": {
             "type": "array",
-            "items": "MessageUnboxed"
+            "items": "MessageSummary"
           },
           "name": "maxMessages"
         },

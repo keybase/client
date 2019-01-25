@@ -166,11 +166,8 @@ func (h *Helper) GetChannelTopicName(ctx context.Context, teamID keybase1.TeamID
 	if err != nil {
 		return topicName, err
 	}
-
-	// First try the inbox
 	query := &chat1.GetInboxLocalQuery{
-		ConvIDs:   []chat1.ConversationID{convID},
-		TopicType: &topicType,
+		ConvIDs: []chat1.ConversationID{convID},
 	}
 	inbox, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil, query,
 		nil)
@@ -180,10 +177,9 @@ func (h *Helper) GetChannelTopicName(ctx context.Context, teamID keybase1.TeamID
 	h.Debug(ctx, "found inbox convs: %v", len(inbox.Convs))
 	for _, conv := range inbox.Convs {
 		if conv.GetConvID().Eq(convID) && conv.GetMembersType() == chat1.ConversationMembersType_TEAM {
-			return utils.GetTopicName(conv), nil
+			return conv.Info.TopicName, nil
 		}
 	}
-
 	// Fallback to TeamChannelSource
 	h.Debug(ctx, "using TeamChannelSource")
 	topicName, err = h.G().TeamChannelSource.GetChannelTopicName(ctx, uid, tlfID, topicType, convID)
@@ -459,13 +455,6 @@ func GetTopicNameState(ctx context.Context, g *globals.Context, debugger utils.D
 	for _, conv := range convs {
 		msg, err := conv.GetMaxMessage(chat1.MessageType_METADATA)
 		if err != nil {
-			debugger.Debug(ctx, "GetTopicNameState: skipping convID: %s, no metadata message",
-				conv.GetConvID())
-			continue
-		}
-		if !msg.IsValid() {
-			debugger.Debug(ctx, "GetTopicNameState: skipping convID: %s, invalid metadata message: %v",
-				conv.GetConvID(), msg.DebugString())
 			continue
 		}
 		pairs.Pairs = append(pairs.Pairs, chat1.ConversationIDMessageIDPair{
@@ -559,7 +548,7 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 			}
 
 			for _, tlfConv := range tlfConvs {
-				if utils.GetTopicName(tlfConv) == topicName {
+				if tlfConv.Info.TopicName == topicName {
 					res = append(res, tlfConv)
 				}
 			}
@@ -793,7 +782,7 @@ func JoinConversationByName(ctx context.Context, g *globals.Context, debugger ut
 	}
 	var convID chat1.ConversationID
 	for _, conv := range convs {
-		convTopicName := utils.GetTopicName(conv)
+		convTopicName := conv.Info.TopicName
 		if convTopicName != "" && convTopicName == topicName {
 			convID = conv.GetConvID()
 		}

@@ -445,6 +445,8 @@ protocol local {
 
     string tlfName;
     string topicName;
+    string headline;
+    union { null, MessageUnboxed } snippetMsg;
     keybase1.TLFVisibility visibility;
     ConversationStatus status;
     ConversationMembersType membersType;
@@ -513,7 +515,7 @@ protocol local {
     array<ConversationMetadata> supersedes;
     array<ConversationMetadata> supersededBy;
 
-    array<MessageUnboxed> maxMessages; // the latest message for each message type
+    array<MessageSummary> maxMessages; // the latest message for each message type
 
     // Whether this conversation has no content-ful messages.
     boolean isEmpty;
