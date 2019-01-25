@@ -4,6 +4,7 @@ import * as I from 'immutable'
 import * as Types from '../constants/types/config'
 import * as Constants from '../constants/config'
 import * as ChatConstants from '../constants/chat2'
+import * as Tracker2Gen from '../actions/tracker2-gen'
 import * as DevicesGen from '../actions/devices-gen'
 import * as ConfigGen from '../actions/config-gen'
 import * as Stats from '../engine/stats'
@@ -12,10 +13,9 @@ import * as Flow from '../util/flow'
 
 const initialState = Constants.makeState()
 
-export default function(
-  state: Types.State = initialState,
-  action: ConfigGen.Actions | DevicesGen.RevokedPayload
-): Types.State {
+type Actions = ConfigGen.Actions | DevicesGen.RevokedPayload | Tracker2Gen.UpdatedDetailsPayload
+
+export default function(state: Types.State = initialState, action: Actions): Types.State {
   switch (action.type) {
     case DevicesGen.revoked:
       return state.merge({
@@ -24,6 +24,24 @@ export default function(
           ? state.configuredAccounts.find(n => n !== state.defaultUsername) || ''
           : state.defaultUsername,
       })
+    case Tracker2Gen.updatedDetails: {
+      let followers = state.followers
+      let following = state.following
+      const {username} = action.payload
+
+      if (action.payload.followThem) {
+        following = following.add(username)
+      } else {
+        following = following.delete(username)
+      }
+
+      if (action.payload.followsYou) {
+        followers = followers.add(username)
+      } else {
+        followers = followers.delete(username)
+      }
+      return state.merge({followers, following})
+    }
     case ConfigGen.resetStore:
       return initialState.merge({
         appFocused: state.appFocused,

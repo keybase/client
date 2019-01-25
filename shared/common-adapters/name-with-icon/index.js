@@ -16,6 +16,7 @@ export type NameWithIconProps = {|
   avatarStyle?: Styles.StylesCrossPlatform,
   colorBroken?: boolean,
   colorFollowing?: boolean,
+  notFollowingColorOverride?: string,
   containerStyle?: Styles.StylesCrossPlatform,
   editableIcon?: boolean,
   horizontal?: boolean,
@@ -27,7 +28,7 @@ export type NameWithIconProps = {|
   // both will fire unless the inner clicks call `event.preventDefault()`
   onClick?: () => void,
   clickType?: 'tracker' | 'profile',
-  onEditIcon?: any => void,
+  onEditIcon?: ?(e?: SyntheticEvent<Element>) => void,
   size?: Size,
   teamname?: string,
   // for non-users
@@ -98,6 +99,9 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
         usernames={[this.props.username]}
         colorBroken={this.props.colorBroken}
         colorFollowing={this.props.colorFollowing}
+        colorYou={this.props.notFollowingColorOverride}
+        notFollowingColorOverride={this.props.notFollowingColorOverride}
+        style={styles.fullWidthText}
       />
     ) : (
       <Text
@@ -182,7 +186,9 @@ const TextOrComponent = (props: {
 }
 
 const styles = Styles.styleSheetCreate({
-  fullWidthText: Styles.platformStyles({isElectron: {display: 'unset', whiteSpace: 'nowrap', width: '100%'}}),
+  fullWidthText: Styles.platformStyles({
+    isElectron: {display: 'unset', whiteSpace: 'nowrap', width: '100%', wordBreak: 'break-all'},
+  }),
   fullWidthTextContainer: Styles.platformStyles({isElectron: {textAlign: 'center', width: '100%'}}),
   hAvatarStyle: Styles.platformStyles({
     isElectron: {marginRight: Styles.globalMargins.tiny},

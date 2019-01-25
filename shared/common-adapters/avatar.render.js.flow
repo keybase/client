@@ -15,7 +15,7 @@ export type Props = {|
   isTeam: boolean,
   loadingColor?: string,
   onClick?: ?() => void,
-  onEditAvatarClick?: (e: SyntheticEvent<Element>) => void,
+  onEditAvatarClick?: ?(e: SyntheticEvent<Element>) => void,
   opacity?: number,
   size: AvatarSize,
   skipBackground?: boolean,

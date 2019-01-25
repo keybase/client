@@ -1,12 +1,7 @@
 // @flow
 import * as shared from './user-proofs.shared'
-import Box from './box'
-import ClickableBox from './clickable-box'
-import Icon from './icon'
-import Meta from './meta'
-import ProgressIndicator from './progress-indicator'
+import {Box, ClickableBox, Icon, Meta, ProgressIndicator, Text} from '../common-adapters'
 import * as React from 'react'
-import Text from './text'
 import openUrl from '../util/open-url'
 import type {Proof} from '../constants/types/tracker'
 import type {Props, MissingProof} from './user-proofs'

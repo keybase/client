@@ -10,6 +10,7 @@ const ff: FeatureFlags = {
   admin: __DEV__,
   chatIndexProfilingEnabled: false,
   foldersInProfileTab: false,
+  identify3: true,
   moveOrCopy: false,
   newTeamBuildingForChat: true,
   newTeamBuildingForChatAllowMakeTeam: false,

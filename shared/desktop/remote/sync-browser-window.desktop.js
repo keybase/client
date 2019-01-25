@@ -20,6 +20,7 @@ const defaultWindowOpts = {
   height: 300,
   resizable: false,
   show: false, // Start hidden and show when we actually get props
+  titleBarStyle: 'customButtonsOnHover',
   webPreferences: {
     nodeIntegration: true,
     nodeIntegrationInWorker: false,
