@@ -2,16 +2,19 @@
 import {connect, compose, withStateHandlers, type RouteProps} from '../../../../../util/container'
 import RetentionWarning from '.'
 import type {RetentionEntityType} from '..'
+import type {RetentionPolicy} from '../../../../../constants/types/retention-policy'
 
 type OwnProps = RouteProps<
-  {days: number, entityType: RetentionEntityType, onCancel: ?() => void, onConfirm: ?() => void},
+  {policy: RetentionPolicy, entityType: RetentionEntityType, onCancel: ?() => void, onConfirm: ?() => void},
   {}
 >
 
 const mapStateToProps = (state, {routeProps}) => {
+  const policy = routeProps.get('policy')
   return {
-    days: routeProps.get('days'),
     entityType: routeProps.get('entityType'),
+    exploding: policy.type === 'explode',
+    timePeriod: policy.title,
   }
 }
 

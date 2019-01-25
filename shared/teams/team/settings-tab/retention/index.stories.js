@@ -8,8 +8,8 @@ import RetentionPicker from '.'
 
 const policyRetain = makeRetentionPolicy({type: 'retain'})
 const policyInherit = makeRetentionPolicy({type: 'inherit'})
-const policy30Days = makeRetentionPolicy({days: 30, type: 'expire'})
-const policy7Days = makeRetentionPolicy({days: 7, type: 'expire'})
+const policy30Days = makeRetentionPolicy({seconds: 30 * 3600 * 24, type: 'expire'})
+const policy7Days = makeRetentionPolicy({seconds: 7 * 3600 * 24, type: 'expire'})
 
 const actions = {
   onSelect: action('onSelectPolicy'),

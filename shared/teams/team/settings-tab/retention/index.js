@@ -5,7 +5,6 @@ import * as Kb from '../../../../common-adapters'
 import {type MenuItem} from '../../../../common-adapters/floating-menu/menu-layout'
 import type {RetentionPolicy} from '../../../../constants/types/retention-policy'
 import {retentionPolicies, baseRetentionPolicies} from '../../../../constants/teams'
-import {daysToLabel} from '../../../../util/timestamp'
 import SaveIndicator from '../../../../common-adapters/save-indicator'
 
 export type RetentionEntityType = 'adhoc' | 'channel' | 'small team' | 'big team'
@@ -23,7 +22,7 @@ export type Props = {|
   type: 'simple' | 'auto',
   saveRetentionPolicy: (policy: RetentionPolicy) => void,
   onSelect: (policy: RetentionPolicy, changed: boolean, decreased: boolean) => void,
-  onShowWarning: (days: number, onConfirm: () => void, onCancel: () => void) => void,
+  onShowWarning: (policy: RetentionPolicy, onConfirm: () => void, onCancel: () => void) => void,
 |}
 
 type State = {
@@ -65,7 +64,11 @@ class _RetentionPicker extends React.Component<Kb.PropsWithOverlay<Props>, State
     if (decreased) {
       // show warning
       this._showSaved = false
-      this.props.onShowWarning(policyToDays(selected, this.props.teamPolicy), onConfirm, onCancel)
+      this.props.onShowWarning(
+        selected.type === 'inherit' && this.props.teamPolicy ? this.props.teamPolicy : selected,
+        onConfirm,
+        onCancel
+      )
       return
     }
     // set immediately
@@ -87,18 +90,49 @@ class _RetentionPicker extends React.Component<Kb.PropsWithOverlay<Props>, State
     if (this.props.showInheritOption) {
       policies.unshift(retentionPolicies.policyInherit)
     }
-    const items = policies.map(policy => {
-      if (policy.type === 'retain') {
-        return {onClick: () => this._onSelect(policy), title: 'Never auto-delete'}
-      } else if (policy.type === 'inherit') {
-        if (this.props.teamPolicy) {
-          return {onClick: () => this._onSelect(policy), title: policyToInheritLabel(this.props.teamPolicy)}
-        } else {
-          throw new Error(`Got policy of type 'inherit' without an inheritable parent policy`)
-        }
+    const items = policies.reduce((arr, policy) => {
+      switch (policy.type) {
+        case 'retain':
+        case 'expire':
+          return [...arr, {onClick: () => this._onSelect(policy), title: policy.title}]
+        case 'inherit':
+          if (this.props.teamPolicy) {
+            return [
+              {onClick: () => this._onSelect(policy), title: `Team default (${this.props.teamPolicy.title})`},
+              'Divider',
+              ...arr,
+            ]
+          } else {
+            throw new Error(`Got policy of type 'inherit' without an inheritable parent policy`)
+          }
+        case 'explode':
+          return [
+            ...arr,
+            {
+              onClick: () => this._onSelect(policy),
+              title: policy.title,
+              view: (
+                <Kb.Box2
+                  centerChildren={Styles.isMobile}
+                  alignItems="center"
+                  direction="horizontal"
+                  gap="tiny"
+                  fullWidth={true}
+                >
+                  <Kb.Icon type="iconfont-timer" fontSize={Styles.isMobile ? 22 : 16} />
+                  <Kb.Text
+                    type={Styles.isMobile ? 'BodyBig' : 'Body'}
+                    style={Styles.isMobile ? {color: Styles.globalColors.blue} : null}
+                  >
+                    {policy.title}
+                  </Kb.Text>
+                </Kb.Box2>
+              ),
+            },
+          ]
       }
-      return {onClick: () => this._onSelect(policy), title: daysToLabel(policy.days)}
-    })
+      return arr
+    }, [])
     this.setState({items})
   }
 
@@ -149,12 +183,6 @@ class _RetentionPicker extends React.Component<Kb.PropsWithOverlay<Props>, State
         />
         <Kb.Box style={headingStyle}>
           <Kb.Text type="BodySmallSemibold">Message deletion</Kb.Text>
-          <Kb.Icon
-            type="iconfont-timer"
-            style={{marginLeft: Styles.globalMargins.xtiny}}
-            fontSize={Styles.isMobile ? 22 : 16}
-            color={Styles.globalColors.black_20}
-          />
         </Kb.Box>
         <Kb.ClickableBox
           onClick={this.props.toggleShowingMenu}
@@ -162,9 +190,9 @@ class _RetentionPicker extends React.Component<Kb.PropsWithOverlay<Props>, State
           style={Styles.collapseStyles([dropdownStyle, this.props.dropdownStyle])}
           underlayColor={Styles.globalColors.white_40}
         >
-          <Kb.Box style={labelStyle}>
-            <Kb.Text type="BodySemibold">{this._label()}</Kb.Text>
-          </Kb.Box>
+          <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" fullWidth={true} style={labelStyle}>
+            {this._label()}
+          </Kb.Box2>
           <Kb.Icon type="iconfont-caret-down" inheritColor={true} fontSize={7} />
         </Kb.ClickableBox>
         {this.props.showOverrideNotice && (
@@ -206,12 +234,6 @@ const RetentionDisplay = (props: {|...Props, entityType: RetentionEntityType|}) 
     <Kb.Box style={Styles.collapseStyles([Styles.globalStyles.flexBoxColumn, props.containerStyle])}>
       <Kb.Box style={displayHeadingStyle}>
         <Kb.Text type="BodySmallSemibold">Message deletion</Kb.Text>
-        <Kb.Icon
-          type="iconfont-timer"
-          color={Styles.globalColors.black_20}
-          fontSize={Styles.isMobile ? 22 : 16}
-          style={{marginLeft: Styles.globalMargins.xtiny}}
-        />
       </Kb.Box>
       <Kb.Text type="BodySmall">{text}</Kb.Text>
     </Kb.Box>
@@ -246,9 +268,8 @@ const dropdownStyle = Styles.platformStyles({
 })
 
 const labelStyle = {
-  ...Styles.globalStyles.flexBoxCenter,
+  justifyContent: 'center',
   minHeight: Styles.isMobile ? 40 : 32,
-  width: '100%',
 }
 
 const progressIndicatorStyle = {
@@ -272,24 +293,48 @@ const saveStateStyle = Styles.platformStyles({
 
 // Utilities for transforming retention policies <-> labels
 const policyToLabel = (p: RetentionPolicy, parent: ?RetentionPolicy) => {
+  let text = ''
+  let timer = false
   switch (p.type) {
     case 'retain':
-      return 'Never auto-delete'
+      text = 'Never auto-delete'
+      break
     case 'expire':
-      return daysToLabel(p.days)
+    case 'explode':
+      text = p.title
+      timer = p.type === 'explode'
+      break
     case 'inherit':
       if (!parent) {
         // Don't throw an error, as this may happen when deleting a
         // channel.
-        return 'Team default'
+        text = 'Team default'
+        break
       }
-      return policyToInheritLabel(parent)
+      switch (parent.type) {
+        case 'retain':
+          text = 'Team default (Never auto-delete)'
+          break
+        case 'expire':
+        case 'explode':
+          text = `Team default (${parent.title})`
+          timer = parent.type === 'explode'
+          break
+      }
   }
-  return ''
-}
-const policyToInheritLabel = (p: RetentionPolicy) => {
-  const label = policyToLabel(p)
-  return `Team default (${label})`
+  return [
+    timer ? (
+      <Kb.Icon
+        color={Styles.globalColors.black_75}
+        type="iconfont-timer"
+        fontSize={Styles.isMobile ? 22 : 16}
+        key="timer"
+      />
+    ) : null,
+    <Kb.Text type="BodySemibold" key="label">
+      {text}
+    </Kb.Text>,
+  ]
 }
 // Use only for comparing policy durations
 const policyToComparable = (p: RetentionPolicy, parent: ?RetentionPolicy): number => {
@@ -305,7 +350,8 @@ const policyToComparable = (p: RetentionPolicy, parent: ?RetentionPolicy): numbe
       res = policyToComparable(parent)
       break
     case 'expire':
-      res = p.days
+    case 'explode':
+      res = p.seconds
       break
   }
   if (res === -1) {
@@ -314,24 +360,9 @@ const policyToComparable = (p: RetentionPolicy, parent: ?RetentionPolicy): numbe
   }
   return res
 }
-// For getting the number of days a retention policy resolves to
-const policyToDays = (p: RetentionPolicy, parent?: RetentionPolicy) => {
-  let days = 0
-  switch (p.type) {
-    case 'inherit':
-      if (!parent) {
-        throw new Error(`Got policy of type 'inherit' with no inheritable policy`)
-      }
-      days = policyToDays(parent)
-      break
-    case 'expire':
-      days = p.days
-  }
-  return days
-}
 const policyEquals = (p1?: RetentionPolicy, p2?: RetentionPolicy): boolean => {
   if (p1 && p2) {
-    return p1.type === p2.type && p1.days === p2.days
+    return p1.type === p2.type && p1.seconds === p2.seconds
   }
   return p1 === p2
 }
@@ -350,7 +381,10 @@ const policyToExplanation = (convType: string, p: RetentionPolicy, parent?: Rete
           behavior = 'be retained indefinitely'
           break
         case 'expire':
-          behavior = `expire after ${daysToLabel(parent.days)}`
+          behavior = `expire after ${parent.title}`
+          break
+        case 'explode':
+          behavior = `explode after ${parent.title}`
           break
         default:
           throw new Error(`Impossible policy type encountered: ${parent.type}`)
@@ -361,7 +395,10 @@ const policyToExplanation = (convType: string, p: RetentionPolicy, parent?: Rete
       exp = `Admins have set this ${convType} to retain messages indefinitely.`
       break
     case 'expire':
-      exp = `Admins have set this ${convType} to auto-delete messages after ${daysToLabel(p.days)}.`
+      exp = `Admins have set this ${convType} to auto-delete messages after ${p.title}.`
+      break
+    case 'explode':
+      exp = `Admins have set messages in this ${convType} to explode after ${p.title}.`
       break
     default:
       throw new Error(`Impossible policy type encountered: ${p.type}`)

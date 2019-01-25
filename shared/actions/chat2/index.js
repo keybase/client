@@ -2280,7 +2280,7 @@ const ignoreErrors = [
   RPCTypes.constantsStatusCode.scapinetworkerror,
   RPCTypes.constantsStatusCode.sctimeout,
 ]
-function* setConvExplodingMode(_, action) {
+function* setConvExplodingMode(state, action) {
   const {conversationIDKey, seconds} = action.payload
   logger.info(`Setting exploding mode for conversation ${conversationIDKey} to ${seconds}`)
 
@@ -2288,7 +2288,9 @@ function* setConvExplodingMode(_, action) {
   yield Saga.put(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset: true}))
 
   const category = Constants.explodingModeGregorKey(conversationIDKey)
-  if (seconds === 0) {
+  const meta = Constants.getMeta(state, conversationIDKey)
+  const convRetention = Constants.getEffectiveRetentionPolicy(meta)
+  if (seconds === 0 || seconds === convRetention.seconds) {
     // dismiss the category so we don't leave cruft in the push state
     yield Saga.callUntyped(RPCTypes.gregorDismissCategoryRpcPromise, {category})
   } else {
