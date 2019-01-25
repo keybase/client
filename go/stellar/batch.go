@@ -130,6 +130,7 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 		}
 	}
 
+	res.AllCompleteTime = stellar1.ToTimeMs(time.Now())
 	mctx.CDebugf("done waiting for payments to complete")
 
 	mctx.CDebugf("waiting for chat messages to finish sending")
@@ -291,10 +292,13 @@ func calculateStats(res *stellar1.BatchResultLocal) {
 	res.OverallDurationMs = res.EndTime - res.StartTime
 	res.PrepareDurationMs = res.PreparedTime - res.StartTime
 	res.SubmitDurationMs = res.AllSubmittedTime - res.PreparedTime
-	res.WaitDurationMs = res.EndTime - res.AllSubmittedTime
+	res.WaitPaymentsDurationMs = res.AllCompleteTime - res.AllSubmittedTime
+	res.WaitChatDurationMs = res.EndTime - res.AllCompleteTime
 
 	var durationTotal stellar1.TimeMs
 	var durationSuccess stellar1.TimeMs
+	var durationDirect stellar1.TimeMs
+	var durationRelay stellar1.TimeMs
 	var durationError stellar1.TimeMs
 	var countDone int64
 
@@ -305,7 +309,15 @@ func calculateStats(res *stellar1.BatchResultLocal) {
 		case stellar1.PaymentStatus_COMPLETED:
 			countDone++
 			res.CountSuccess++
+			res.CountDirect++
 			durationSuccess += duration
+			durationDirect += duration
+		case stellar1.PaymentStatus_CLAIMABLE:
+			countDone++
+			res.CountSuccess++
+			res.CountRelay++
+			durationSuccess += duration
+			durationRelay += duration
 		case stellar1.PaymentStatus_PENDING:
 			res.CountPending++
 		default:
@@ -322,6 +334,14 @@ func calculateStats(res *stellar1.BatchResultLocal) {
 
 	if res.CountSuccess > 0 {
 		res.AvgSuccessDurationMs = stellar1.TimeMs(int64(durationSuccess) / int64(res.CountSuccess))
+	}
+
+	if res.CountDirect > 0 {
+		res.AvgDirectDurationMs = stellar1.TimeMs(int64(durationDirect) / int64(res.CountDirect))
+	}
+
+	if res.CountRelay > 0 {
+		res.AvgRelayDurationMs = stellar1.TimeMs(int64(durationRelay) / int64(res.CountRelay))
 	}
 
 	if res.CountError > 0 {

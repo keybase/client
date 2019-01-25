@@ -588,20 +588,26 @@ protocol local {
     TimeMs startTime;
     TimeMs preparedTime;
     TimeMs allSubmittedTime;
+    TimeMs allCompleteTime;
     TimeMs endTime;
     array<BatchPaymentResult> payments;
 
     TimeMs overallDurationMs;
     TimeMs prepareDurationMs;
     TimeMs submitDurationMs;
-    TimeMs waitDurationMs;
+    TimeMs waitPaymentsDurationMs;
+    TimeMs waitChatDurationMs;
 
     int countSuccess;
+    int countDirect;
+    int countRelay;
     int countError;
     int countPending;
 
     TimeMs avgDurationMs;
     TimeMs avgSuccessDurationMs;
+    TimeMs avgDirectDurationMs;
+    TimeMs avgRelayDurationMs;
     TimeMs avgErrorDurationMs;
   }
 

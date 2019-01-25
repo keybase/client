@@ -830,21 +830,27 @@ func (o BatchPaymentResult) DeepCopy() BatchPaymentResult {
 }
 
 type BatchResultLocal struct {
-	StartTime            TimeMs               `codec:"startTime" json:"startTime"`
-	PreparedTime         TimeMs               `codec:"preparedTime" json:"preparedTime"`
-	AllSubmittedTime     TimeMs               `codec:"allSubmittedTime" json:"allSubmittedTime"`
-	EndTime              TimeMs               `codec:"endTime" json:"endTime"`
-	Payments             []BatchPaymentResult `codec:"payments" json:"payments"`
-	OverallDurationMs    TimeMs               `codec:"overallDurationMs" json:"overallDurationMs"`
-	PrepareDurationMs    TimeMs               `codec:"prepareDurationMs" json:"prepareDurationMs"`
-	SubmitDurationMs     TimeMs               `codec:"submitDurationMs" json:"submitDurationMs"`
-	WaitDurationMs       TimeMs               `codec:"waitDurationMs" json:"waitDurationMs"`
-	CountSuccess         int                  `codec:"countSuccess" json:"countSuccess"`
-	CountError           int                  `codec:"countError" json:"countError"`
-	CountPending         int                  `codec:"countPending" json:"countPending"`
-	AvgDurationMs        TimeMs               `codec:"avgDurationMs" json:"avgDurationMs"`
-	AvgSuccessDurationMs TimeMs               `codec:"avgSuccessDurationMs" json:"avgSuccessDurationMs"`
-	AvgErrorDurationMs   TimeMs               `codec:"avgErrorDurationMs" json:"avgErrorDurationMs"`
+	StartTime              TimeMs               `codec:"startTime" json:"startTime"`
+	PreparedTime           TimeMs               `codec:"preparedTime" json:"preparedTime"`
+	AllSubmittedTime       TimeMs               `codec:"allSubmittedTime" json:"allSubmittedTime"`
+	AllCompleteTime        TimeMs               `codec:"allCompleteTime" json:"allCompleteTime"`
+	EndTime                TimeMs               `codec:"endTime" json:"endTime"`
+	Payments               []BatchPaymentResult `codec:"payments" json:"payments"`
+	OverallDurationMs      TimeMs               `codec:"overallDurationMs" json:"overallDurationMs"`
+	PrepareDurationMs      TimeMs               `codec:"prepareDurationMs" json:"prepareDurationMs"`
+	SubmitDurationMs       TimeMs               `codec:"submitDurationMs" json:"submitDurationMs"`
+	WaitPaymentsDurationMs TimeMs               `codec:"waitPaymentsDurationMs" json:"waitPaymentsDurationMs"`
+	WaitChatDurationMs     TimeMs               `codec:"waitChatDurationMs" json:"waitChatDurationMs"`
+	CountSuccess           int                  `codec:"countSuccess" json:"countSuccess"`
+	CountDirect            int                  `codec:"countDirect" json:"countDirect"`
+	CountRelay             int                  `codec:"countRelay" json:"countRelay"`
+	CountError             int                  `codec:"countError" json:"countError"`
+	CountPending           int                  `codec:"countPending" json:"countPending"`
+	AvgDurationMs          TimeMs               `codec:"avgDurationMs" json:"avgDurationMs"`
+	AvgSuccessDurationMs   TimeMs               `codec:"avgSuccessDurationMs" json:"avgSuccessDurationMs"`
+	AvgDirectDurationMs    TimeMs               `codec:"avgDirectDurationMs" json:"avgDirectDurationMs"`
+	AvgRelayDurationMs     TimeMs               `codec:"avgRelayDurationMs" json:"avgRelayDurationMs"`
+	AvgErrorDurationMs     TimeMs               `codec:"avgErrorDurationMs" json:"avgErrorDurationMs"`
 }
 
 func (o BatchResultLocal) DeepCopy() BatchResultLocal {
@@ -852,6 +858,7 @@ func (o BatchResultLocal) DeepCopy() BatchResultLocal {
 		StartTime:        o.StartTime.DeepCopy(),
 		PreparedTime:     o.PreparedTime.DeepCopy(),
 		AllSubmittedTime: o.AllSubmittedTime.DeepCopy(),
+		AllCompleteTime:  o.AllCompleteTime.DeepCopy(),
 		EndTime:          o.EndTime.DeepCopy(),
 		Payments: (func(x []BatchPaymentResult) []BatchPaymentResult {
 			if x == nil {
@@ -864,16 +871,21 @@ func (o BatchResultLocal) DeepCopy() BatchResultLocal {
 			}
 			return ret
 		})(o.Payments),
-		OverallDurationMs:    o.OverallDurationMs.DeepCopy(),
-		PrepareDurationMs:    o.PrepareDurationMs.DeepCopy(),
-		SubmitDurationMs:     o.SubmitDurationMs.DeepCopy(),
-		WaitDurationMs:       o.WaitDurationMs.DeepCopy(),
-		CountSuccess:         o.CountSuccess,
-		CountError:           o.CountError,
-		CountPending:         o.CountPending,
-		AvgDurationMs:        o.AvgDurationMs.DeepCopy(),
-		AvgSuccessDurationMs: o.AvgSuccessDurationMs.DeepCopy(),
-		AvgErrorDurationMs:   o.AvgErrorDurationMs.DeepCopy(),
+		OverallDurationMs:      o.OverallDurationMs.DeepCopy(),
+		PrepareDurationMs:      o.PrepareDurationMs.DeepCopy(),
+		SubmitDurationMs:       o.SubmitDurationMs.DeepCopy(),
+		WaitPaymentsDurationMs: o.WaitPaymentsDurationMs.DeepCopy(),
+		WaitChatDurationMs:     o.WaitChatDurationMs.DeepCopy(),
+		CountSuccess:           o.CountSuccess,
+		CountDirect:            o.CountDirect,
+		CountRelay:             o.CountRelay,
+		CountError:             o.CountError,
+		CountPending:           o.CountPending,
+		AvgDurationMs:          o.AvgDurationMs.DeepCopy(),
+		AvgSuccessDurationMs:   o.AvgSuccessDurationMs.DeepCopy(),
+		AvgDirectDurationMs:    o.AvgDirectDurationMs.DeepCopy(),
+		AvgRelayDurationMs:     o.AvgRelayDurationMs.DeepCopy(),
+		AvgErrorDurationMs:     o.AvgErrorDurationMs.DeepCopy(),
 	}
 }
 
