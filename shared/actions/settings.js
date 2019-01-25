@@ -243,8 +243,14 @@ function* refreshNotifications() {
     )
   })
 
-  const [json: ?{body: string}, chatGlobalSettings: ChatTypes.GlobalAppNotificationSettings] = yield Saga.all(
-    [
+  let body = ''
+  let chatGlobalSettings: ChatTypes.GlobalAppNotificationSettings
+
+  try {
+    const [
+      json: ?{body: string},
+      _chatGlobalSettings: ChatTypes.GlobalAppNotificationSettings,
+    ] = yield Saga.all([
       Saga.callUntyped(
         RPCTypes.apiserverGetWithSessionRpcPromise,
         {
@@ -258,8 +264,17 @@ function* refreshNotifications() {
         undefined,
         Constants.refreshNotificationsWaitingKey
       ),
-    ]
-  )
+    ])
+    if (json) {
+      body = json.body
+    }
+    chatGlobalSettings = _chatGlobalSettings
+  } catch (err) {
+    // No need to throw black bars -- handled by Reloadable.
+    logger.warn(`Error getting notification settings: ${err.desc}`)
+    return
+  }
+
   yield Saga.cancel(delayThenEmptyTask)
 
   const results: {
@@ -281,7 +296,7 @@ function* refreshNotifications() {
         unsub: boolean,
       },
     },
-  } = JSON.parse((json && json.body) || '')
+  } = JSON.parse(body)
   // Add security group extra since it does not come from API endpoint
   results.notifications[Constants.securityGroup] = {
     settings: [
