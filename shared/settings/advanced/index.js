@@ -17,6 +17,8 @@ type Props = {
   onTrace: (durationSeconds: number) => void,
   onProcessorProfile: (durationSeconds: number) => void,
   onBack: () => void,
+  setLockdownModeError: string,
+  settingLockdownMode: boolean,
   traceInProgress: boolean,
   processorProfileInProgress: boolean,
   hasRandomPW: boolean,
@@ -35,6 +37,14 @@ const Advanced = (props: Props) => (
         onCheck={props.onChangeLockdownMode}
         style={styles.checkbox}
       />
+    </Kb.Box>
+    <Kb.Box style={styles.progressErrorContainer}>
+      {props.settingLockdownMode && <Kb.ProgressIndicator />}
+      {!!props.setLockdownModeError && (
+        <Kb.Text type="BodySmall" style={styles.error}>
+          {props.setLockdownModeError}
+        </Kb.Text>
+      )}
     </Kb.Box>
     {!Styles.isMobile && !isLinux && (
       <Kb.Box style={styles.openAtLoginCheckboxContainer}>
@@ -179,6 +189,9 @@ const styles = Styles.styleSheetCreate({
     marginTop: Styles.globalMargins.xsmall,
     width: '100%',
   },
+  error: {
+    color: Styles.globalColors.red,
+  },
   filler: {
     flex: 1,
   },
@@ -186,6 +199,11 @@ const styles = Styles.styleSheetCreate({
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'flex-start',
     flex: 1,
+  },
+  progressErrorContainer: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    minHeight: 48,
   },
   text: Styles.platformStyles({
     isElectron: {
