@@ -1126,15 +1126,6 @@ func (h *Server) SetConversationStatusLocal(ctx context.Context, arg chat1.SetCo
 	}, nil
 }
 
-func (h *Server) getGregorDeviceID() (gregor1.DeviceID, error) {
-	db := make([]byte, 16)
-	deviceID := h.G().Env.GetDeviceID()
-	if err := deviceID.ToBytes(db); err != nil {
-		return nil, err
-	}
-	return gregor1.DeviceID(db), nil
-}
-
 // PostLocal implements keybase.chatLocal.postLocal protocol.
 func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res chat1.PostLocalRes, err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
@@ -1166,14 +1157,7 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 		return res, err
 	}
 
-	// Make sure sender is set
-	arg.Msg.ClientHeader.Sender = uid
-	arg.Msg.ClientHeader.SenderDevice, err = h.getGregorDeviceID()
-	if err != nil {
-		return res, err
-	}
 	sender := NewBlockingSender(h.G(), h.boxer, h.remoteClient)
-
 	_, msgBoxed, err := sender.Send(ctx, arg.ConversationID, arg.Msg, 0, nil)
 	if err != nil {
 		h.Debug(ctx, "PostLocal: unable to send message: %s", err.Error())
