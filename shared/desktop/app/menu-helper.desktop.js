@@ -25,7 +25,6 @@ export default function makeMenu(window: any) {
       {label: 'Zoom Out', role: 'zoomOut'},
       {label: 'Reset zoom ', role: 'resetZoom'},
       {label: 'Minimize', role: 'minimize'},
-      {label: 'Minimize', role: 'minimize'},
       {accelerator: 'CmdOrCtrl+W', label: 'Close', role: 'close'},
       {type: 'separator'},
       {label: 'Bring All to Front', role: 'front'},
