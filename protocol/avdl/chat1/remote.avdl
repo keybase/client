@@ -208,7 +208,7 @@ protocol remote {
     SyncInboxRes inboxRes;
   }
 
-  SyncChatRes syncChat(InboxVers vers);
+  SyncChatRes syncChat(InboxVers vers, boolean summarizeMaxMsgs);
 
   enum SyncAllProtVers {
     V0_0,
@@ -233,7 +233,7 @@ protocol remote {
   }
 
   @compression_type("msgpackzip")
-  SyncAllResult syncAll(gregor1.UID uid, gregor1.DeviceID deviceID, gregor1.SessionToken session, InboxVers inboxVers, gregor1.Time ctime, boolean fresh, SyncAllProtVers protVers, string hostName);
+  SyncAllResult syncAll(gregor1.UID uid, gregor1.DeviceID deviceID, gregor1.SessionToken session, InboxVers inboxVers, gregor1.Time ctime, boolean fresh, SyncAllProtVers protVers, string hostName, boolean summarizeMaxMsgs);
 
   // tlfFinalize is an endpoint for kbfstlfd to notify Gregor that a TLF ID has been finalized.
   // Gregor keeps an internal record of these TLF IDs, so that it can always return the latest

@@ -5,7 +5,6 @@ import (
 	"errors"
 
 	"github.com/keybase/client/go/chat/globals"
-	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -64,6 +63,6 @@ func (h *Join) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Conver
 			return err
 		}
 	}
-	h.Debug(ctx, "joining channel: tlf: %s topic: %s", conv.Info.TlfName, utils.GetTopicName(conv))
+	h.Debug(ctx, "joining channel: tlf: %s topic: %s", conv.Info.TlfName, conv.Info.TopicName)
 	return h.G().ChatHelper.JoinConversationByID(ctx, uid, conv.GetConvID())
 }

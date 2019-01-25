@@ -709,19 +709,41 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 			errMsg, conversationRemote, unverifiedTLFName, chat1.ConversationErrorType_TRANSIENT, nil)
 		return conversationLocal
 	}
+	conversationLocal.MaxMessages = conversationRemote.MaxMsgSummaries
 
 	conversationLocal.IsEmpty = utils.IsConvEmpty(conversationRemote)
 	errTyp := chat1.ConversationErrorType_PERMANENT
+	var maxMsgs []chat1.MessageUnboxed
 	if len(conversationRemote.MaxMsgs) == 0 {
 		// Fetch max messages unboxed, using either a custom function or through
 		// the conversation source configured in the global context
+		var summaries []chat1.MessageSummary
+		snippetSummary, err := utils.PickLatestMessageSummary(conversationRemote,
+			append(chat1.VisibleChatMessageTypes(), chat1.MessageType_DELETEHISTORY))
+		if err == nil {
+			summaries = append(summaries, snippetSummary)
+		}
+		topicNameSummary, err := conversationRemote.GetMaxMessage(chat1.MessageType_METADATA)
+		if err == nil {
+			summaries = append(summaries, topicNameSummary)
+		}
+		headlineSummary, err := conversationRemote.GetMaxMessage(chat1.MessageType_HEADLINE)
+		if err == nil {
+			summaries = append(summaries, headlineSummary)
+		}
+		if len(summaries) == 0 {
+			tlfSummary, err := conversationRemote.GetMaxMessage(chat1.MessageType_TLFNAME)
+			if err == nil {
+				summaries = append(summaries, tlfSummary)
+			}
+		}
 		var msgs []chat1.MessageUnboxed
 		if s.offline {
 			msgs, errTyp, err = s.getMessagesOffline(ctx, conversationRemote.GetConvID(),
-				uid, conversationRemote.MaxMsgSummaries, conversationRemote.Metadata.FinalizeInfo)
+				uid, summaries, conversationRemote.Metadata.FinalizeInfo)
 		} else {
 			msgs, err = s.G().ConvSource.GetMessages(ctx, conversationRemote,
-				uid, utils.PluckMessageIDs(conversationRemote.MaxMsgSummaries), nil)
+				uid, utils.PluckMessageIDs(summaries), nil)
 			if !s.isErrPermanent(err) {
 				errTyp = chat1.ConversationErrorType_TRANSIENT
 			}
@@ -736,7 +758,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 				err.Error(), conversationRemote, unverifiedTLFName, errTyp, nil)
 			return conversationLocal
 		}
-		conversationLocal.MaxMessages = msgs
+		maxMsgs = msgs
 	} else {
 		// Use the attached MaxMsgs
 		msgs, err := s.G().ConvSource.GetMessagesWithRemotes(ctx,
@@ -754,13 +776,19 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 				err.Error(), conversationRemote, unverifiedTLFName, errTyp, nil)
 			return conversationLocal
 		}
-		conversationLocal.MaxMessages = msgs
+		maxMsgs = msgs
 	}
 
 	var maxValidID chat1.MessageID
-	var newMaxMsgs []chat1.MessageUnboxed
-	superXform := newBasicSupersedesTransform(s.G(), basicSupersedesTransformOpts{})
-	for _, mm := range conversationLocal.MaxMessages {
+	s.Debug(ctx, "localizing %d max msgs", len(maxMsgs))
+	for _, mm := range maxMsgs {
+		if mm.IsValid() && (mm.IsVisible() || mm.GetMessageType() == chat1.MessageType_DELETEHISTORY) {
+			if conversationLocal.Info.SnippetMsg == nil ||
+				conversationLocal.Info.SnippetMsg.GetMessageID() < mm.GetMessageID() {
+				conversationLocal.Info.SnippetMsg = new(chat1.MessageUnboxed)
+				*conversationLocal.Info.SnippetMsg = mm
+			}
+		}
 		if mm.IsValid() {
 			body := mm.Valid().MessageBody
 			typ, err := body.MessageType()
@@ -769,37 +797,31 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 					conversationRemote.Metadata.ConversationID, mm.GetMessageID())
 				continue
 			}
-			if typ == chat1.MessageType_METADATA {
+			switch typ {
+			case chat1.MessageType_METADATA:
 				conversationLocal.Info.TopicName = body.Metadata().ConversationTitle
+			case chat1.MessageType_HEADLINE:
+				conversationLocal.Info.Headline = body.Headline().Headline
 			}
-
 			if mm.GetMessageID() >= maxValidID {
+				conversationLocal.Info.Triple = mm.Valid().ClientHeader.Conv
 				conversationLocal.Info.TlfName = mm.Valid().ClientHeader.TlfName
 				maxValidID = mm.GetMessageID()
 			}
-
-			conversationLocal.Info.Triple = mm.Valid().ClientHeader.Conv
-
-			// Resolve edits/deletes
-			var newMsg []chat1.MessageUnboxed
-			if newMsg, err = superXform.Run(ctx, conversationRemote, uid, []chat1.MessageUnboxed{mm}); err != nil {
-				s.Debug(ctx, "failed to transform message: id: %d err: %s", mm.GetMessageID(),
-					err.Error())
-			} else {
-				if len(newMsg) > 0 {
-					newMaxMsgs = append(newMaxMsgs, newMsg[0])
-				} else {
-					newMaxMsgs = append(newMaxMsgs, mm)
-				}
-			}
 		}
 	}
-	conversationLocal.MaxMessages = newMaxMsgs
-	if len(conversationLocal.Info.TlfName) == 0 {
-		errMsg := "no valid message in the conversation"
-		conversationLocal.Error = chat1.NewConversationErrorLocal(
-			errMsg, conversationRemote, unverifiedTLFName, chat1.ConversationErrorType_TRANSIENT, nil)
-		return conversationLocal
+	// Resolve edits/deletes on snippet message
+	if conversationLocal.Info.SnippetMsg != nil {
+		superXform := newBasicSupersedesTransform(s.G(), basicSupersedesTransformOpts{})
+		if newMsg, err := superXform.Run(ctx, conversationRemote, uid,
+			[]chat1.MessageUnboxed{*conversationLocal.Info.SnippetMsg}); err != nil {
+			s.Debug(ctx, "failed to transform message: id: %d err: %s",
+				conversationLocal.Info.SnippetMsg.GetMessageID(), err)
+		} else {
+			if len(newMsg) > 0 {
+				conversationLocal.Info.SnippetMsg = &newMsg[0]
+			}
+		}
 	}
 
 	// Verify ConversationID is derivable from ConversationIDTriple

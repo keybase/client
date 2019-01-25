@@ -381,12 +381,12 @@ func (i *Inbox) MergeLocalMetadata(ctx context.Context, uid gregor1.UID, convs [
 			if convLocal.Error != nil {
 				continue
 			}
-			topicName := utils.GetTopicName(convLocal)
+			topicName := convLocal.Info.TopicName
 			snippet, snippetDecoration := utils.GetConvSnippet(convLocal, i.G().GetEnv().GetUsername().String())
 			rcm := &types.RemoteConversationMetadata{
 				Name:              convLocal.Info.TlfName,
 				TopicName:         topicName,
-				Headline:          utils.GetHeadline(convLocal),
+				Headline:          convLocal.Info.Headline,
 				Snippet:           snippet,
 				SnippetDecoration: snippetDecoration,
 			}

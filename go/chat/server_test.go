@@ -741,7 +741,7 @@ func TestChatSrvNewConversationMultiTeam(t *testing.T) {
 			require.NoError(t, err)
 		case chat1.ConversationMembersType_TEAM:
 			require.NoError(t, err)
-			require.Equal(t, globals.DefaultTeamTopic, utils.GetTopicName(ncres.Conv))
+			require.Equal(t, globals.DefaultTeamTopic, ncres.Conv.Info.TopicName)
 		}
 		arg.TopicName = &topicName
 		topicName = "dskjdskdjskdjskdjskdjskdjskdjskjdskjdskdskdjksdjks"

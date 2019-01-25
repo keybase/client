@@ -1071,13 +1071,13 @@ func (c ConversationLocal) IsPublic() bool {
 	return c.Info.Visibility == keybase1.TLFVisibility_PUBLIC
 }
 
-func (c ConversationLocal) GetMaxMessage(typ MessageType) (MessageUnboxed, error) {
+func (c ConversationLocal) GetMaxMessage(typ MessageType) (MessageSummary, error) {
 	for _, msg := range c.MaxMessages {
 		if msg.GetMessageType() == typ {
 			return msg, nil
 		}
 	}
-	return MessageUnboxed{}, fmt.Errorf("max message not found: %v", typ)
+	return MessageSummary{}, fmt.Errorf("max message not found: %v", typ)
 }
 
 func (c ConversationLocal) GetMaxDeletedUpTo() MessageID {

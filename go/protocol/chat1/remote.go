@@ -889,18 +889,20 @@ type SyncInboxArg struct {
 }
 
 type SyncChatArg struct {
-	Vers InboxVers `codec:"vers" json:"vers"`
+	Vers             InboxVers `codec:"vers" json:"vers"`
+	SummarizeMaxMsgs bool      `codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
 }
 
 type SyncAllArg struct {
-	Uid       gregor1.UID          `codec:"uid" json:"uid"`
-	DeviceID  gregor1.DeviceID     `codec:"deviceID" json:"deviceID"`
-	Session   gregor1.SessionToken `codec:"session" json:"session"`
-	InboxVers InboxVers            `codec:"inboxVers" json:"inboxVers"`
-	Ctime     gregor1.Time         `codec:"ctime" json:"ctime"`
-	Fresh     bool                 `codec:"fresh" json:"fresh"`
-	ProtVers  SyncAllProtVers      `codec:"protVers" json:"protVers"`
-	HostName  string               `codec:"hostName" json:"hostName"`
+	Uid              gregor1.UID          `codec:"uid" json:"uid"`
+	DeviceID         gregor1.DeviceID     `codec:"deviceID" json:"deviceID"`
+	Session          gregor1.SessionToken `codec:"session" json:"session"`
+	InboxVers        InboxVers            `codec:"inboxVers" json:"inboxVers"`
+	Ctime            gregor1.Time         `codec:"ctime" json:"ctime"`
+	Fresh            bool                 `codec:"fresh" json:"fresh"`
+	ProtVers         SyncAllProtVers      `codec:"protVers" json:"protVers"`
+	HostName         string               `codec:"hostName" json:"hostName"`
+	SummarizeMaxMsgs bool                 `codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
 }
 
 type TlfFinalizeArg struct {
@@ -1028,7 +1030,7 @@ type RemoteInterface interface {
 	S3Sign(context.Context, S3SignArg) ([]byte, error)
 	GetInboxVersion(context.Context, gregor1.UID) (InboxVers, error)
 	SyncInbox(context.Context, InboxVers) (SyncInboxRes, error)
-	SyncChat(context.Context, InboxVers) (SyncChatRes, error)
+	SyncChat(context.Context, SyncChatArg) (SyncChatRes, error)
 	SyncAll(context.Context, SyncAllArg) (SyncAllResult, error)
 	TlfFinalize(context.Context, TlfFinalizeArg) error
 	TlfResolve(context.Context, TlfResolveArg) error
@@ -1293,7 +1295,7 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]SyncChatArg)(nil), args)
 						return
 					}
-					ret, err = i.SyncChat(ctx, typedArgs[0].Vers)
+					ret, err = i.SyncChat(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -1710,8 +1712,7 @@ func (c RemoteClient) SyncInbox(ctx context.Context, vers InboxVers) (res SyncIn
 	return
 }
 
-func (c RemoteClient) SyncChat(ctx context.Context, vers InboxVers) (res SyncChatRes, err error) {
-	__arg := SyncChatArg{Vers: vers}
+func (c RemoteClient) SyncChat(ctx context.Context, __arg SyncChatArg) (res SyncChatRes, err error) {
 	err = c.Cli.CallCompressed(ctx, "chat.1.remote.syncChat", []interface{}{__arg}, &res, rpc.CompressionGzip)
 	return
 }

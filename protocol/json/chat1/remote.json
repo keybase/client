@@ -862,6 +862,10 @@
         {
           "name": "vers",
           "type": "InboxVers"
+        },
+        {
+          "name": "summarizeMaxMsgs",
+          "type": "boolean"
         }
       ],
       "response": "SyncChatRes"
@@ -899,6 +903,10 @@
         {
           "name": "hostName",
           "type": "string"
+        },
+        {
+          "name": "summarizeMaxMsgs",
+          "type": "boolean"
         }
       ],
       "response": "SyncAllResult",
