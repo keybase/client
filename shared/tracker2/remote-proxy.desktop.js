@@ -17,7 +17,7 @@ const MAX_TRACKERS = 5
 const windowOpts = {height: 470, width: 320}
 
 const trackerMapStateToProps = (state, ownProps) => {
-  const d = Constants.getDetails(satte, ownProps.username)
+  const d = Constants.getDetails(state, ownProps.username)
   return {
     assertions: d.assertions,
     bio: d.bio,
