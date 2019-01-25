@@ -43,6 +43,8 @@ has_js_files() {
 
 js_tests() {
     yarn modules
+    yarn test storyshots
+    check_rc $? 'yarn run lint fail' 1
 
 
 
@@ -76,9 +78,9 @@ js_tests() {
     # yarn run lint
     # check_rc $? 'yarn run lint fail' 1
 
-    echo 'yarn test'
-    yarn test
-    check_rc $? 'yarn test fail' 1
+    # echo 'yarn test'
+    # yarn test
+    # check_rc $? 'yarn test fail' 1
 }
 
 visdiff() {
