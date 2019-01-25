@@ -11,7 +11,7 @@ export type SettingsProps = {|
   accountID: Types.AccountID,
   name: string,
   user: string,
-  inflationDestination: Types.AccountInflationDestination,
+  inflationDestination: string,
   isDefault: boolean,
   currencyWaiting: boolean,
   currency: Types.Currency,
@@ -169,9 +169,9 @@ class AccountSettings extends React.Component<SettingsProps> {
                   </Kb.WithTooltip>
                 )}
               </Kb.Box2>
-              {props.inflationDestination.accountID !== Types.noAccountID && (
+              {!!props.inflationDestination && (
                 <Kb.Text type="BodySemibold" selectable={true}>
-                  {props.inflationDestination.name || props.inflationDestination.accountID}
+                  {props.inflationDestination}
                 </Kb.Text>
               )}
               <Kb.Button
