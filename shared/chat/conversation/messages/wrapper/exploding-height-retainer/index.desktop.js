@@ -23,7 +23,7 @@ type State = {
   height: number,
 }
 class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
-  explodedBox: any
+  boxRef: React.ElementRef<any>
   setHeight: () => void
   state = {animating: false, children: copyChildren(this.props.children), height: 17}
   timerID: SharedTimerID
@@ -31,8 +31,7 @@ class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
   constructor(props: Props) {
     super(props)
     // create a ref to store the textInput DOM element
-    this.explodedBox = React.createRef()
-    this.setHeight = this.setHeight.bind(this)
+    this.boxRef = React.createRef()
   }
 
   static getDerivedStateFromProps(nextProps: Props, prevState: State) {
@@ -66,7 +65,7 @@ class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
   }
 
   setHeight() {
-    const node = this.explodedBox.current
+    const node = this.boxRef.current
     if (node instanceof window.HTMLElement) {
       const height = node.clientHeight
       if (height && height !== this.state.height) {
@@ -95,7 +94,7 @@ class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
             position: 'relative',
           },
         ])}
-        forwardedRef={this.explodedBox}
+        forwardedRef={this.boxRef}
       >
         {this.state.children}
         <Ashes

@@ -4,13 +4,7 @@ import {Picker as EmojiPicker} from 'emoji-mart'
 import {type Props} from './picker'
 
 class Picker extends React.Component<Props> {
-  _picker: EmojiPicker
-
-  constructor(props: Props) {
-    super(props)
-    this._picker = React.createRef()
-    this._focus = this._focus.bind(this)
-  }
+  _picker = React.createRef()
 
   // Setting autoFocus={true} on Picker doesn't work, so focus it
   // ourselves on mount/update.
