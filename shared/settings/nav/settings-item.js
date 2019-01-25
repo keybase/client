@@ -1,11 +1,12 @@
 // @flow
 import React from 'react'
-import {Badge, ClickableBox, Text, Icon, type IconType} from '../../common-adapters'
+import {Badge, ClickableBox, Text, Icon, type IconType, ProgressIndicator} from '../../common-adapters'
 import * as Style from '../../styles'
 
 type SettingsItemProps = {
   badgeNumber?: number,
   icon?: IconType,
+  inProgress?: boolean,
   largerBadgeMinWidthFix?: boolean,
   onClick: () => void,
   text: string,
@@ -44,6 +45,7 @@ export default function SettingsItem(props: SettingsItemProps) {
       >
         {props.text}
       </Text>
+      {props.inProgress && <ProgressIndicator style={styles.progress} />}
       {!!props.badgeNumber && props.badgeNumber > 0 && (
         <Badge badgeNumber={props.badgeNumber} badgeStyle={styles.badge} />
       )}
@@ -82,6 +84,9 @@ const styles = Style.styleSheetCreate({
       color: Style.globalColors.black_75,
     },
   }),
+  progress: {
+    marginLeft: 6,
+  },
   selectedText: {
     color: Style.globalColors.black_75,
   },
