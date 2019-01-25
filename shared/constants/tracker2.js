@@ -141,14 +141,16 @@ export const sortAssertionKeys = (a: string, b: string) => {
   const pa = a.split(':')
   const pb = b.split(':')
 
-  const typeA = pa[0]
-  const typeB = pb[0]
+  const typeA = pa[1]
+  const typeB = pb[1]
 
   if (typeA === typeB) {
-    return pa[1].localeCompare(pb[1])
+    return pa[0].localeCompare(pb[0])
   }
 
-  return _scoreAssertionKey(typeB) - _scoreAssertionKey(typeA)
+  const scoreA = _scoreAssertionKey(typeB)
+  const scoreB = _scoreAssertionKey(typeA)
+  return scoreA - scoreB
 }
 
 export const noDetails = makeDetails({})

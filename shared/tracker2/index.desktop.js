@@ -116,7 +116,8 @@ const Tracker = (props: Props) => {
   let assertions
   if (props.assertionKeys) {
     const unsorted = [...props.assertionKeys]
-    assertions = unsorted.sort(Constants.sortAssertionKeys).map(a => <Assertion key={a} assertionKey={a} />)
+    const sorted = unsorted.sort(Constants.sortAssertionKeys)
+    assertions = sorted.map(a => <Assertion key={a} assertionKey={a} />)
   } else {
     // TODO could do a loading thing before we know about the list at all?
     assertions = null
