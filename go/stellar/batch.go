@@ -114,7 +114,7 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 					delete(waiting, update.TxID)
 					mctx.CDebugf("no longer waiting for %s status updates (%d remaining)", update.TxID, waitingCount)
 				}
-				if update.Status == stellar1.PaymentStatus_COMPLETED {
+				if update.Status == stellar1.PaymentStatus_COMPLETED || update.Status == stellar1.PaymentStatus_CLAIMABLE {
 					chatWaitGroup.Add(1)
 					go func(m libkb.MetaContext, recipient string, txID stellar1.TransactionID) {
 						if err := chatSendPaymentMessageTo(m, recipient, txID); err != nil {
