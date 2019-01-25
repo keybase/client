@@ -42,6 +42,7 @@ has_js_files() {
 }
 
 js_tests() {
+    yarn modules --no-emoji --no-progress --network-concurrency 1
     # echo 'js-tests'
     # node --version
     # has_js_files
