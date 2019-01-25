@@ -34,6 +34,12 @@ export const makeInflationDestination: I.RecordFactory<Types._InflationDestinati
   recommended: false,
 })
 
+export const makeAccountInflationDestination: I.RecordFactory<Types._AccountInflationDestination> = I.Record({
+  accountID: Types.noAccountID,
+  name: '',
+})
+export const noAccountInflationDestination = makeAccountInflationDestination()
+
 export const makeReserve: I.RecordFactory<Types._Reserve> = I.Record({
   amount: '',
   description: '',
@@ -101,8 +107,8 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   currencies: I.List(),
   exportedSecretKey: new HiddenString(''),
   exportedSecretKeyAccountID: Types.noAccountID,
-  inflationDestination: '',
   inflationDestinationError: '',
+  inflationDestinationMap: I.Map(),
   inflationDestinations: I.List(),
   lastSentXLM: false,
   linkExistingAccountError: '',
@@ -449,6 +455,16 @@ export const updatePaymentsReceived = (
   )
 }
 
+export const inflationDestResultToAccountInflationDest = (res: RPCTypes.InflationDestinationResultLocal) => {
+  if (!res.destination) {
+    return noAccountInflationDestination
+  }
+  return makeAccountInflationDestination({
+    accountID: Types.stringToAccountID(res.destination),
+    name: res.knownDestination?.name,
+  })
+}
+
 export const acceptDisclaimerWaitingKey = 'wallets:acceptDisclaimer'
 export const changeAccountNameWaitingKey = 'wallets:changeAccountName'
 export const createNewAccountWaitingKey = 'wallets:createNewAccount'
@@ -511,6 +527,9 @@ export const getDefaultAccountID = (state: TypedState) => {
   const defaultAccount = state.wallets.accountMap.find(a => a.isDefault)
   return defaultAccount ? defaultAccount.accountID : null
 }
+
+export const getInflationDestination = (state: TypedState, accountID: Types.AccountID) =>
+  state.wallets.inflationDestinationMap.get(accountID, noAccountInflationDestination)
 
 export const getAssets = (state: TypedState, accountID: Types.AccountID) =>
   state.wallets.assetsMap.get(accountID, I.List())

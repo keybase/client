@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Sb from '../../../../stories/storybook'
+import * as Constants from '../../../../constants/wallets'
 import * as Types from '../../../../constants/types/wallets'
 import RemoveAccountPopup from './remove-account'
 import ReallyRemoveAccountPopup from './really-remove-account'
@@ -24,9 +25,17 @@ const reallyProps = {
   waiting: false,
 }
 
+const inflationDestSDF = Constants.makeAccountInflationDestination({
+  accountID: Types.stringToAccountID('SDF'),
+  name: 'The Stellar Development Foundation',
+})
+const inflationDestOther = Constants.makeAccountInflationDestination({
+  accountID: Types.stringToAccountID('OTHERADDRESS'),
+  name: '',
+})
 const inflationProps = {
   error: '',
-  inflationDestination: '',
+  inflationDestination: Constants.noAccountInflationDestination,
   onClose: Sb.action('onClose'),
   onSubmit: Sb.action('onSubmit'),
   options: [
@@ -37,7 +46,7 @@ const inflationProps = {
       recommended: true,
     },
     {
-      address: Types.stringToAccountID('SDF'),
+      address: inflationDestSDF.accountID,
       link: 'keybase.io/sdf',
       name: 'The Stellar Development Foundation',
       recommended: false,
@@ -79,12 +88,12 @@ const load = () => {
       />
     ))
     .add('Inflation destination sdf', () => (
-      <InflationDestination {...inflationProps} inflationDestination="SDF" />
+      <InflationDestination {...inflationProps} inflationDestination={inflationDestSDF} />
     ))
     .add('Inflation destination no lumenaut', () => (
       <InflationDestination
         {...inflationProps}
-        inflationDestination="OTHERADDRESS"
+        inflationDestination={inflationDestOther}
         options={inflationProps.options.filter(o => o.name !== 'Lumenaut')}
       />
     ))

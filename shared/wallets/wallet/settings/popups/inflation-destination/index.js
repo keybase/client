@@ -9,19 +9,20 @@ import openUrl from '../../../../../util/open-url'
 
 export type Props = {|
   error: string,
-  inflationDestination: string,
+  inflationDestination: Types.AccountInflationDestination,
   options: Array<{
     name: string,
     recommended: boolean,
     address: Types.AccountID,
     link: string,
   }>,
-  onSubmit: string => void,
+  onSubmit: (dest: string, name: string) => void,
   onClose: () => void,
 |}
 
 type State = {|
   address: string,
+  name: string,
   otherAddress: string,
 |}
 
@@ -29,26 +30,28 @@ class InflationDestinationPopup extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props)
 
-    let address = props.inflationDestination
+    let address = props.inflationDestination.accountID
+    let name = props.inflationDestination.name
 
     // initialize input
     let otherAddress = ''
     const fromOptions = props.options.find(o => o.address === address)
-    if (!fromOptions) {
+    if (!fromOptions && Types.isValidAccountID(address)) {
       otherAddress = address
     }
 
     // choose first recommended
-    if (!address) {
+    if (!Types.isValidAccountID(address)) {
       const reco = props.options.find(o => o.recommended)
       address = reco?.address || ''
+      name = reco?.name || ''
     }
 
-    this.state = {address, otherAddress}
+    this.state = {address, name, otherAddress}
   }
 
   _submit = () => {
-    this.props.onSubmit(this.state.address)
+    this.props.onSubmit(this.state.address, this.state.name)
   }
 
   componentDidUpdate(prevProps: Props) {
@@ -62,12 +65,14 @@ class InflationDestinationPopup extends React.Component<Props, State> {
     const props = this.props
     const buttons = [
       !Styles.isMobile && (
-        <Kb.Button
+        <Kb.WaitingButton
           fullWidth={Styles.isMobile}
           key="Cancel"
           label="Cancel"
           onClick={props.onClose}
           type="Secondary"
+          waitingKey={Constants.inflationDestinationWaitingKey}
+          onlyDisable={true}
         />
       ),
       <Kb.WaitingButton
@@ -83,14 +88,10 @@ class InflationDestinationPopup extends React.Component<Props, State> {
 
     // Only show the lumenaut thing if its an option
     let lumenautLink
-    this.props.options.some(o => {
-      if (o.name === 'Lumenaut') {
-        if (o.link.length) {
-          lumenautLink = () => openUrl(o.link)
-          return true
-        }
+    this.props.options.forEach(o => {
+      if (o.name === 'Lumenaut' && o.link.length) {
+        lumenautLink = () => openUrl(o.link)
       }
-      return false
     })
 
     return (
@@ -134,7 +135,7 @@ class InflationDestinationPopup extends React.Component<Props, State> {
             {this.props.options.map(o => (
               <Kb.Box2 key={o.name} direction="horizontal" fullWidth={true} gap="xtiny" style={styles.row}>
                 <Kb.RadioButton
-                  onSelect={() => this.setState({address: o.address})}
+                  onSelect={() => this.setState({address: Types.accountIDToString(o.address), name: o.name})}
                   selected={this.state.address === o.address}
                   label={o.name}
                 />
@@ -157,7 +158,7 @@ class InflationDestinationPopup extends React.Component<Props, State> {
               style={styles.otherContainer}
             >
               <Kb.RadioButton
-                onSelect={() => this.setState({address: this.state.otherAddress})}
+                onSelect={() => this.setState({address: this.state.otherAddress, name: ''})}
                 selected={this.state.address === this.state.otherAddress}
                 label="Other"
               />
@@ -169,7 +170,9 @@ class InflationDestinationPopup extends React.Component<Props, State> {
                   placeholder="Enter a Stellar address..."
                   multiline={true}
                   value={this.state.otherAddress}
-                  onChangeText={otherAddress => this.setState({address: otherAddress, otherAddress})}
+                  onChangeText={otherAddress =>
+                    this.setState({address: otherAddress, name: '', otherAddress})
+                  }
                 />
               </Kb.Box2>
             </Kb.Box2>
@@ -183,7 +186,7 @@ class InflationDestinationPopup extends React.Component<Props, State> {
 
 const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
-    common: { flexGrow: 1 },
+    common: {flexGrow: 1},
     isElectron: {
       borderRadius: 'inherit',
       paddingBottom: Styles.globalMargins.medium,

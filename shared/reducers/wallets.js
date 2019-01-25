@@ -347,13 +347,17 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.loadedMobileOnlyMode:
       return state.setIn(['mobileOnlyMap', action.payload.accountID], action.payload.enabled)
     case WalletsGen.inflationDestinationReceived:
-      return state.merge({
-        inflationDestination: action.payload.selected ? action.payload.selected : state.inflationDestination,
-        inflationDestinationError: action.payload.error,
-        inflationDestinations: action.payload.options
-          ? I.List(action.payload.options)
-          : state.inflationDestinations,
-      })
+      return action.error
+        ? state.merge({inflationDestinationError: action.payload.error})
+        : state.merge({
+            inflationDestinationError: '',
+            inflationDestinationMap: state.inflationDestinationMap.merge(
+              I.Map([[action.payload.accountID, action.payload.selected]])
+            ),
+            inflationDestinations: action.payload.options
+              ? I.List(action.payload.options)
+              : state.inflationDestinations,
+          })
     case WalletsGen.setInflationDestination:
       return state.merge({inflationDestinationError: ''})
     // Saga only actions
