@@ -135,11 +135,6 @@ const Tracker = (props: Props) => {
 
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
-      {props.assertionKeys && <p key="NOJIMA">{props.assertionKeys.join('\n')}</p>}
-      {props.assertionKeys && (
-        <p key="NOJIMA2">{props.assertionKeys.sort(Constants.sortAssertionKeys).join('\n')}</p>
-      )}
-
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
         <Kb.Icon type="iconfont-close" onClick={props.onClose} />
       </Kb.Box2>
