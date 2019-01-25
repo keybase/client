@@ -134,6 +134,11 @@ const Tracker = (props: Props) => {
   // In order to keep the 'effect' of the card sliding up on top of the text the text is below the scroll area. We still need the spacing so we draw the text inside the scroll but invisible
 
   return (
+          {props.assertionKeys && <p key="NOJIMA">{props.assertionKeys.join('\n')}</p>}
+      {props.assertionKeys && (
+        <p key="NOJIMA2">{props.assertionKeys.sort(Constants.sortAssertionKeys).join('\n')}</p>
+      )}
+
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
         <Kb.Icon type="iconfont-close" onClick={props.onClose} />
