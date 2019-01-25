@@ -127,7 +127,7 @@ class Disclaimer extends React.Component<DisclaimerProps, DisclaimerState> {
         containerStyle={styles.container}
         buttonBarStyle={styles.buttonBar}
       >
-        {this.props.acceptDisclaimerError && (
+        {!!this.props.acceptDisclaimerError && (
           <Kb.Banner inline={true} color="red" text={this.props.acceptDisclaimerError} />
         )}
         <Kb.Box2 direction="vertical" style={styles.header}>
