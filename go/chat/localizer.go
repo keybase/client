@@ -731,11 +731,9 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		if err == nil {
 			summaries = append(summaries, headlineSummary)
 		}
-		if len(summaries) == 0 {
-			tlfSummary, err := conversationRemote.GetMaxMessage(chat1.MessageType_TLFNAME)
-			if err == nil {
-				summaries = append(summaries, tlfSummary)
-			}
+		tlfSummary, err := conversationRemote.GetMaxMessage(chat1.MessageType_TLFNAME)
+		if err == nil {
+			summaries = append(summaries, tlfSummary)
 		}
 		var msgs []chat1.MessageUnboxed
 		if s.offline {
@@ -780,6 +778,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	}
 
 	var maxValidID chat1.MessageID
+	s.Debug(ctx, "localizing %d max msgs", len(maxMsgs))
 	for _, mm := range maxMsgs {
 		if mm.IsValid() && (mm.IsVisible() || mm.GetMessageType() == chat1.MessageType_DELETEHISTORY) {
 			if conversationLocal.Info.SnippetMsg == nil ||

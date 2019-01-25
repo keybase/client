@@ -182,6 +182,7 @@ func runChatSBSScenario(t *testing.T, testCase sbsTestCase) {
 			}
 			select {
 			case rres := <-listener1.joinedConv:
+				require.NotNil(t, rres)
 				require.Equal(t, ncres.Conv.GetConvID().String(), rres.ConvID)
 				require.Equal(t, 2, len(rres.Participants))
 			case <-time.After(20 * time.Second):
