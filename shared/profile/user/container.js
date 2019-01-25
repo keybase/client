@@ -10,6 +10,7 @@ import * as Styles from '../../styles'
 import Profile2 from '.'
 import type {RouteProps} from '../../route-tree/render-route'
 import type {Response} from 'react-native-image-picker'
+// import {PeoplePageSearchBar} from '../people/index.shared'
 
 type OwnProps = RouteProps<{username: string}, {}>
 const emptySet = I.OrderedSet()
@@ -72,9 +73,26 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   username: stateProps.username,
 })
 
-export default Container.namedConnect<OwnProps, _, _, _, _>(
+// TODO don'tn pass all props down
+// const ConnectedHeader = connect<OwnProps, _, _, _, _>(
+// mapStateToProps,
+// mapDispatchToProps,
+// mergeProps
+// )(PeoplePageSearchBar)
+
+const connected = Container.namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps,
   'Profile2'
 )(Profile2)
+
+// connected.navigationOptions = hp => ({
+// headerTitle: hp => <ConnectedHeader />,
+// headerTitleContainerStyle: {
+// left: 60,
+// right: 20,
+// },
+// headerTransparent: true,
+// })
+export default connected

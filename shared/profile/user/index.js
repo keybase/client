@@ -28,36 +28,43 @@ export type Props = {|
   username: string,
 |}
 
-const Header = p =>
-  flags.useNewRouter ? null : (
-    <Kb.Box2
-      direction="horizontal"
-      fullWidth={true}
-      style={Styles.collapseStyles([styles.header, {backgroundColor: p.backgroundColor}])}
-    >
-      <Kb.BackButton iconColor={Styles.globalColors.white} textStyle={styles.backButton} onClick={p.onBack} />
-      <Kb.ClickableBox onClick={p.onSearch} style={styles.searchContainer}>
-        <Kb.Box2
-          direction="horizontal"
-          centerChildren={true}
-          className="hover-opacity"
-          gap="tiny"
-          style={styles.search}
-        >
-          <Kb.Icon type="iconfont-search" color={Styles.globalColors.white} />
-          <Kb.Text type="BodySmallSemibold" style={styles.searchLabel}>
-            Search people
-          </Kb.Text>
-        </Kb.Box2>
-      </Kb.ClickableBox>
-      <Kb.BackButton
-        iconColor={Styles.globalColors.white}
-        textStyle={styles.backButton}
-        onClick={() => {}}
-        style={styles.invisible}
-      />
-    </Kb.Box2>
-  )
+const Header = p => (
+  <Kb.Box2
+    direction="horizontal"
+    fullWidth={true}
+    style={Styles.collapseStyles([styles.header, {backgroundColor: p.backgroundColor}])}
+  >
+    {!flags.useNewRouter && (
+      <>
+        <Kb.BackButton
+          iconColor={Styles.globalColors.white}
+          textStyle={styles.backButton}
+          onClick={p.onBack}
+        />
+        <Kb.ClickableBox onClick={p.onSearch} style={styles.searchContainer}>
+          <Kb.Box2
+            direction="horizontal"
+            centerChildren={true}
+            className="hover-opacity"
+            gap="tiny"
+            style={styles.search}
+          >
+            <Kb.Icon type="iconfont-search" color={Styles.globalColors.white} />
+            <Kb.Text type="BodySmallSemibold" style={styles.searchLabel}>
+              Search people
+            </Kb.Text>
+          </Kb.Box2>
+        </Kb.ClickableBox>
+        <Kb.BackButton
+          iconColor={Styles.globalColors.white}
+          textStyle={styles.backButton}
+          onClick={() => {}}
+          style={styles.invisible}
+        />
+      </>
+    )}
+  </Kb.Box2>
+)
 
 const BioLayout = p => (
   <Kb.Box2 direction="vertical" style={styles.bio}>
