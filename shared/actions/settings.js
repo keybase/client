@@ -245,11 +245,19 @@ function* refreshNotifications() {
 
   const [json: ?{body: string}, chatGlobalSettings: ChatTypes.GlobalAppNotificationSettings] = yield Saga.all(
     [
-      Saga.callUntyped(RPCTypes.apiserverGetWithSessionRpcPromise, {
-        args: [],
-        endpoint: 'account/subscriptions',
-      }),
-      Saga.callUntyped(ChatTypes.localGetGlobalAppNotificationSettingsLocalRpcPromise),
+      Saga.callUntyped(
+        RPCTypes.apiserverGetWithSessionRpcPromise,
+        {
+          args: [],
+          endpoint: 'account/subscriptions',
+        },
+        Constants.refreshNotificationsWaitingKey
+      ),
+      Saga.callUntyped(
+        ChatTypes.localGetGlobalAppNotificationSettingsLocalRpcPromise,
+        undefined,
+        Constants.refreshNotificationsWaitingKey
+      ),
     ]
   )
   yield Saga.cancel(delayThenEmptyTask)
