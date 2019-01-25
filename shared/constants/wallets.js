@@ -38,7 +38,7 @@ export const makeAccountInflationDestination: I.RecordFactory<Types._AccountInfl
   accountID: Types.noAccountID,
   name: '',
 })
-const noAccountInflationDestination = makeAccountInflationDestination()
+export const noAccountInflationDestination = makeAccountInflationDestination()
 
 export const makeReserve: I.RecordFactory<Types._Reserve> = I.Record({
   amount: '',

@@ -394,12 +394,14 @@ const setInflationDestination = (_, action) => {
     .then(() =>
       WalletsGen.createInflationDestinationReceived({
         accountID,
-        selected: Constants.makeAccountInflationDestination({accountID: action.payload.destination}),
+        selected: Constants.makeAccountInflationDestination({
+          accountID: action.payload.destination,
+          name: action.payload.name,
+        }),
       })
     )
     .catch(error =>
       WalletsGen.createInflationDestinationReceivedError({
-        accountID,
         error: error.message,
       })
     )
