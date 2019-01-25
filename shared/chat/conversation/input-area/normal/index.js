@@ -289,7 +289,7 @@ class Input extends React.Component<InputProps, InputState> {
       direction="vertical"
       style={Styles.collapseStyles([
         styles.suggestionBase,
-        styles.fixSuggestionHeight,
+        {height: 50},
         {
           alignItems: 'flex-start',
           backgroundColor: selected ? Styles.globalColors.blue4 : Styles.globalColors.white,
