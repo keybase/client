@@ -229,6 +229,12 @@ export type _InflationDestination = {
 }
 export type InflationDestination = I.RecordOf<_InflationDestination>
 
+export type _AccountInflationDestination = {
+  accountID: AccountID,
+  name: string, // if known
+}
+export type AccountInflationDestination = I.RecordOf<_AccountInflationDestination>
+
 export type ValidationState = 'none' | 'waiting' | 'error' | 'valid'
 
 export type _State = {
@@ -248,7 +254,7 @@ export type _State = {
   exportedSecretKey: HiddenString,
   exportedSecretKeyAccountID: AccountID,
   inflationDestinations: I.List<InflationDestination>,
-  inflationDestinationMap: I.Map<AccountID, AccountID>,
+  inflationDestinationMap: I.Map<AccountID, AccountInflationDestination>,
   inflationDestinationError: string,
   lastSentXLM: boolean,
   linkExistingAccountError: string,

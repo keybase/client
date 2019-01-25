@@ -120,12 +120,12 @@
     "setInflationDestination": {
       "_description": "Set our inflation destination",
       "accountID": "Types.AccountID",
-      "destination": "string"
+      "destination": "Types.AccountID"
     },
     "inflationDestinationReceived": {
       "_description": "Got inflation destination",
       "accountID": "Types.AccountID",
-      "selected": "string",
+      "selected": "Types.AccountInflationDestination",
       "options?": "Array<Types.InflationDestination>",
       "canError": {"accountID": "Types.AccountID", "error": "string"}
     },
