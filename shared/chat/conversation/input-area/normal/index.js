@@ -225,6 +225,14 @@ class Input extends React.Component<InputProps, InputState> {
 
   _getCommandSuggestions = filter => {
     const fil = filter.toLowerCase()
+    const sel = this._input && this._input.getSelection()
+    if (sel && this._lastText) {
+      const upToCursor = this._lastText.substring(0, sel.start)
+      if (!upToCursor.startsWith('/') || / |\n/.test(upToCursor)) {
+        // not at beginning of message
+        return []
+      }
+    }
     return this.props.suggestCommands.filter(c => c.name.includes(fil))
   }
 
