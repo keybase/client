@@ -265,6 +265,26 @@
       ]
     },
     {
+      "type": "record",
+      "name": "GetUnreadlineRemoteRes",
+      "fields": [
+        {
+          "type": [
+            null,
+            "MessageID"
+          ],
+          "name": "unreadlineID"
+        },
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "ChannelMention",
       "symbols": [
@@ -642,6 +662,19 @@
       ],
       "response": "GetThreadRemoteRes"
     },
+    "getUnreadlineRemote": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "readMsgID",
+          "type": "MessageID"
+        }
+      ],
+      "response": "GetUnreadlineRemoteRes"
+    },
     "getPublicConversations": {
       "request": [
         {
@@ -829,6 +862,10 @@
         {
           "name": "vers",
           "type": "InboxVers"
+        },
+        {
+          "name": "summarizeMaxMsgs",
+          "type": "boolean"
         }
       ],
       "response": "SyncChatRes"
@@ -866,6 +903,10 @@
         {
           "name": "hostName",
           "type": "string"
+        },
+        {
+          "name": "summarizeMaxMsgs",
+          "type": "boolean"
         }
       ],
       "response": "SyncAllResult",

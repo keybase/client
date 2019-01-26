@@ -157,6 +157,9 @@ function* reallySignupOnNoErrors(state: TypedState): Saga.SagaGenerator<any, any
         genPaper: false,
         inviteCode,
         passphrase: passphrase.stringValue(),
+        // TODO: handle user skipping passphrase entry during signup,
+        // pass randomPw=true.
+        randomPw: false,
         skipMail: false,
         storeSecret: true,
         username,

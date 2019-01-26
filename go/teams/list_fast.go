@@ -50,7 +50,7 @@ func ListTeamsUnverified(ctx context.Context, g *libkb.GlobalContext, arg keybas
 	// so should only be used if we are trying to return a best-effort result.
 	cacheKey := listTeamsUnverifiedCacheKey(meUID, queryUID, arg.IncludeImplicitTeams)
 	teams, err := getTeamsListFromServer(ctx, g, queryUID,
-		false /* all */, true /* countMembers */, arg.IncludeImplicitTeams)
+		false /* all */, true /* countMembers */, arg.IncludeImplicitTeams, keybase1.NilTeamID())
 	switch err.(type) {
 	case nil:
 		if err = g.GetKVStore().PutObj(cacheKey, nil, teams); err != nil {
@@ -131,7 +131,7 @@ func ListSubteamsUnverified(mctx libkb.MetaContext, name keybase1.TeamName) (res
 
 	emptyUID := keybase1.UID("")
 	teams, err := getTeamsListFromServer(mctx.Ctx(), mctx.G(), emptyUID,
-		false /* all */, true /* countMembers */, false /* includeImplicitTeams */)
+		false /* all */, true /* countMembers */, false /* includeImplicitTeams */, name.RootID())
 	if err != nil {
 		return res, libkb.LoginRequiredError{}
 	}

@@ -609,6 +609,16 @@ func (rua *renameUnmergedAction) updateOps(
 			unmergedMostRecent)
 	}
 
+	unmergedEntry, err := unmergedDir.lookup(ctx, rua.fromName)
+	if err != nil {
+		return err
+	}
+	original, err := unmergedChains.originalFromMostRecentOrSame(
+		unmergedEntry.BlockPointer)
+	if err != nil {
+		return err
+	}
+
 	if rua.symPath != "" && !unmergedChain.isFile() {
 		err := crActionConvertSymlink(unmergedMostRecent, mergedMostRecent,
 			unmergedChain, mergedChains, rua.fromName, rua.toName)
@@ -633,6 +643,16 @@ func (rua *renameUnmergedAction) updateOps(
 		for _, op := range unmergedChain.ops {
 			switch realOp := op.(type) {
 			case *syncOp:
+				// Only apply to syncs that match the pointer chain
+				// for which `updateOps` was called.
+				opOriginal, ok := unmergedChains.originals[realOp.File.Ref]
+				if !ok {
+					opOriginal = realOp.File.Ref
+				}
+				if opOriginal != original {
+					continue
+				}
+
 				var err error
 				realOp.File, err = makeBlockUpdate(
 					newMergedEntry.BlockPointer,
@@ -644,6 +664,16 @@ func (rua *renameUnmergedAction) updateOps(
 				// longer relevant.
 				realOp.RefBlocks = nil
 			case *setAttrOp:
+				// Only apply to setAttrs that match the pointer chain
+				// for which `updateOps` was called.
+				opOriginal, ok := unmergedChains.originals[realOp.File]
+				if !ok {
+					opOriginal = realOp.File
+				}
+				if opOriginal != original {
+					continue
+				}
+
 				realOp.File = newMergedEntry.BlockPointer
 			}
 		}
@@ -669,23 +699,12 @@ func (rua *renameUnmergedAction) updateOps(
 	// operations, with another create for the merged file, for local
 	// playback.
 
-	// The entry that got renamed in the unmerged branch:
-	unmergedEntry, err := unmergedDir.lookup(ctx, rua.fromName)
-	if err != nil {
-		return err
-	}
-
 	// The entry that gets created in the unmerged branch:
 	mergedEntry, err := mergedDir.lookup(ctx, rua.fromName)
 	if err != nil {
 		return err
 	}
 
-	original, err := unmergedChains.originalFromMostRecentOrSame(
-		unmergedEntry.BlockPointer)
-	if err != nil {
-		return err
-	}
 	_, mergedRename := mergedChains.renamedOriginals[original]
 	if rua.toName == rua.fromName && mergedRename {
 		// The merged copy is the one changing its name, so turn the

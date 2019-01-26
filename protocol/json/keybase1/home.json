@@ -316,6 +316,10 @@
             "items": "HomeUserSummary"
           },
           "name": "followSuggestions"
+        },
+        {
+          "type": "int",
+          "name": "announcementsVersion"
         }
       ]
     }

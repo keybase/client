@@ -32,7 +32,12 @@ class Conversation extends React.PureComponent<Props> {
     return (
       <Box style={containerStyle}>
         {this.props.isSearching && (
-          <HeaderHocHeader title="New chat" onCancel={this.props.onCancelSearch} headerStyle={_headerStyle} />
+          <HeaderHocHeader
+            title="New chat"
+            leftAction="cancel"
+            onLeftAction={this.props.onCancelSearch}
+            headerStyle={_headerStyle}
+          />
         )}
         {this.props.threadLoadedOffline && <Offline />}
         <HeaderArea

@@ -106,9 +106,9 @@ export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
 export const updateMessages = 'chat2:updateMessages'
 export const updateMoreToLoad = 'chat2:updateMoreToLoad'
 export const updateNotificationSettings = 'chat2:updateNotificationSettings'
-export const updateOrangeLine = 'chat2:updateOrangeLine'
 export const updateReactions = 'chat2:updateReactions'
 export const updateTeamRetentionPolicy = 'chat2:updateTeamRetentionPolicy'
+export const updateUnreadline = 'chat2:updateUnreadline'
 
 // Payload Types
 type _AttachmentDownloadPayload = $ReadOnly<{|message: Types.Message|}>
@@ -208,9 +208,9 @@ type _UpdateConvRetentionPolicyPayload = $ReadOnly<{|conv: RPCChatTypes.InboxUII
 type _UpdateMessagesPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messages: Array<{messageID: Types.MessageID, message: Types.Message}>|}>
 type _UpdateMoreToLoadPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, moreToLoad: boolean|}>
 type _UpdateNotificationSettingsPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, notificationsDesktop: Types.NotificationsType, notificationsMobile: Types.NotificationsType, notificationsGlobalIgnoreMentions: boolean|}>
-type _UpdateOrangeLinePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID|}>
 type _UpdateReactionsPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, updates: Array<{targetMsgID: RPCChatTypes.MessageID, reactions: Types.Reactions}>|}>
 type _UpdateTeamRetentionPolicyPayload = $ReadOnly<{|convs: Array<RPCChatTypes.InboxUIItem>|}>
+type _UpdateUnreadlinePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID|}>
 
 // Action Creators
 /**
@@ -319,9 +319,9 @@ export const createUpdateMessages = (payload: _UpdateMessagesPayload) => ({paylo
  */
 export const createSaveMinWriterRole = (payload: _SaveMinWriterRolePayload) => ({payload, type: saveMinWriterRole})
 /**
- * Update the orange line position for a conversation
+ * Update the unreadline line position for a conversation
  */
-export const createUpdateOrangeLine = (payload: _UpdateOrangeLinePayload) => ({payload, type: updateOrangeLine})
+export const createUpdateUnreadline = (payload: _UpdateUnreadlinePayload) => ({payload, type: updateUnreadline})
 /**
  * User responded to the chat Stellar confirm screen
  */
@@ -505,9 +505,9 @@ export type UpdateConvRetentionPolicyPayload = {|+payload: _UpdateConvRetentionP
 export type UpdateMessagesPayload = {|+payload: _UpdateMessagesPayload, +type: 'chat2:updateMessages'|}
 export type UpdateMoreToLoadPayload = {|+payload: _UpdateMoreToLoadPayload, +type: 'chat2:updateMoreToLoad'|}
 export type UpdateNotificationSettingsPayload = {|+payload: _UpdateNotificationSettingsPayload, +type: 'chat2:updateNotificationSettings'|}
-export type UpdateOrangeLinePayload = {|+payload: _UpdateOrangeLinePayload, +type: 'chat2:updateOrangeLine'|}
 export type UpdateReactionsPayload = {|+payload: _UpdateReactionsPayload, +type: 'chat2:updateReactions'|}
 export type UpdateTeamRetentionPolicyPayload = {|+payload: _UpdateTeamRetentionPolicyPayload, +type: 'chat2:updateTeamRetentionPolicy'|}
+export type UpdateUnreadlinePayload = {|+payload: _UpdateUnreadlinePayload, +type: 'chat2:updateUnreadline'|}
 
 // All Actions
 // prettier-ignore
@@ -606,7 +606,7 @@ export type Actions =
   | UpdateMessagesPayload
   | UpdateMoreToLoadPayload
   | UpdateNotificationSettingsPayload
-  | UpdateOrangeLinePayload
   | UpdateReactionsPayload
   | UpdateTeamRetentionPolicyPayload
+  | UpdateUnreadlinePayload
   | {type: 'common:resetStore', payload: null}

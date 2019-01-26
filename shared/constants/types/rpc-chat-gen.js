@@ -15,6 +15,13 @@ export const chatUiMessageUnboxedState = {
 
 export const chatUiUITextDecorationTyp = {
   payment: 0,
+  atmention: 1,
+  channelnamemention: 2,
+}
+
+export const commandsConversationCommandGroupsTyp = {
+  builtin: 0,
+  extended: 1,
 }
 
 export const commonAssetMetadataType = {
@@ -77,6 +84,7 @@ export const commonGlobalAppNotificationSetting = {
   plaintextmobile: 1,
   plaintextdesktop: 2,
   defaultsoundmobile: 3,
+  disabletyping: 4,
 }
 
 export const commonInboxResType = {
@@ -313,6 +321,7 @@ export const localGetTeamRetentionLocalRpcPromise = (params, waitingKey) => new 
 export const localGetThreadLocalRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getThreadLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetThreadNonblockRpcSaga = p => call(getEngineSaga(), {method: 'chat.1.local.getThreadNonblock', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const localGetUnfurlSettingsRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getUnfurlSettings', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const localGetUnreadlineRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getUnreadline', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGetUploadTempFileRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.getUploadTempFile', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localGiphySearchRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.giphySearch', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const localJoinConversationByIDLocalRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'chat.1.local.joinConversationByIDLocal', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))

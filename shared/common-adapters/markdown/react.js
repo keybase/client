@@ -3,11 +3,8 @@ import React, {PureComponent} from 'react'
 import SimpleMarkdown from 'simple-markdown'
 import {isMobile} from '../../constants/platform'
 import * as Styles from '../../styles'
-import * as Types from '../../constants/types/chat2'
 import Text from '../text'
 import KbfsPath from './kbfs-path-container'
-import Channel from '../channel-container'
-import Mention from '../mention-container'
 import {type MarkdownMeta, type StyleOverride} from '.'
 import Box from '../box'
 import Emoji from '../emoji'
@@ -193,16 +190,6 @@ const reactComponentsForMarkdownType = {
       {output(node.content, {...state, inBlockQuote: true})}
     </Box>
   ),
-  channel: (node, output, state) => {
-    return (
-      <Channel
-        name={node.content}
-        convID={Types.stringToConversationIDKey(node.convID)}
-        key={state.key}
-        style={linkStyle}
-      />
-    )
-  },
   del: (node, output, state) => {
     return (
       <Text
@@ -298,16 +285,6 @@ const reactComponentsForMarkdownType = {
       </React.Fragment>
     )
   },
-  mention: (node, output, state) => {
-    return (
-      <Mention
-        username={node.content}
-        key={state.key}
-        style={wrapStyle}
-        allowFontScaling={state.allowFontScaling}
-      />
-    )
-  },
   newline: (node, output, state) =>
     !isMobile || state.inParagraph ? (
       '\n'
@@ -346,6 +323,7 @@ const reactComponentsForMarkdownType = {
         key={state.key}
         allowFontScaling={state.allowFontScaling}
         message={message}
+        styles={markdownStyles}
       />
     )
   },

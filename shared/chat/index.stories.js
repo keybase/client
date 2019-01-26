@@ -1,5 +1,6 @@
 // @flow
 import confirmPayment from './payments/confirm/index.stories'
+import conversationList from './conversation-list/index.stories'
 import createChannel from './create-channel/index.stories'
 import giphy from './conversation/giphy/index.stories'
 import headerArea from './conversation/header-area/normal/index.stories'
@@ -19,6 +20,7 @@ import thread from './conversation/list-area/normal/index.stories'
 const load = () => {
   ;[
     confirmPayment,
+    conversationList,
     createChannel,
     giphy,
     headerArea,

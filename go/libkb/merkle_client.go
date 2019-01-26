@@ -6,6 +6,7 @@ package libkb
 import (
 	"crypto/sha256"
 	"crypto/sha512"
+	"crypto/subtle"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -30,6 +31,7 @@ type NodeHash interface {
 	String() string
 	bytes() []byte
 	IsNil() bool
+	Eq(h NodeHash) bool
 }
 
 type NodeHashShort [NodeHashLenShort]byte
@@ -52,7 +54,7 @@ var _ NodeHash = NodeHashAny{}
 
 func (h1 NodeHashShort) Check(s string) bool {
 	h2 := sha256.Sum256([]byte(s))
-	return FastByteArrayEq(h1[:], h2[:])
+	return subtle.ConstantTimeCompare(h1[:], h2[:]) == 1
 }
 
 func (h1 NodeHashShort) String() string {
@@ -63,8 +65,21 @@ func (h1 NodeHashShort) bytes() []byte {
 	return h1[:]
 }
 
+func (h1 NodeHashShort) IsNil() bool {
+	return false
+}
+
+func (h1 NodeHashShort) Eq(h2 NodeHash) bool {
+	return subtle.ConstantTimeCompare(h1.bytes(), h2.bytes()) == 1
+}
+
 func (h1 NodeHashShort) ExportToHashMeta() keybase1.HashMeta {
 	return keybase1.HashMeta(h1.bytes())
+}
+
+func (h1 NodeHashLong) Check(s string) bool {
+	h2 := sha512.Sum512([]byte(s))
+	return subtle.ConstantTimeCompare(h1[:], h2[:]) == 1
 }
 
 func (h1 NodeHashLong) String() string {
@@ -79,19 +94,14 @@ func (h1 NodeHashLong) IsNil() bool {
 	return false
 }
 
-func (h1 NodeHashShort) IsNil() bool {
-	return false
-}
-
-func (h1 NodeHashLong) Check(s string) bool {
-	h2 := sha512.Sum512([]byte(s))
-	return FastByteArrayEq(h1[:], h2[:])
+func (h1 NodeHashLong) Eq(h2 NodeHash) bool {
+	return subtle.ConstantTimeCompare(h1.bytes(), h2.bytes()) == 1
 }
 
 func hashEq(h1 NodeHash, h2 NodeHash) bool {
 	b1 := h1.bytes()
 	b2 := h2.bytes()
-	return FastByteArrayEq(b1[:], b2[:])
+	return subtle.ConstantTimeCompare(b1, b2) == 1
 }
 
 func (h NodeHashAny) Check(s string) bool {
@@ -125,6 +135,10 @@ func (h NodeHashAny) bytes() []byte {
 	default:
 		return nil
 	}
+}
+
+func (h NodeHashAny) Eq(h2 NodeHash) bool {
+	return subtle.ConstantTimeCompare(h.bytes(), h2.bytes()) == 1
 }
 
 func (h *NodeHashAny) UnmarshalJSON(b []byte) error {

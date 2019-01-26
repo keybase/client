@@ -1071,13 +1071,13 @@ func (c ConversationLocal) IsPublic() bool {
 	return c.Info.Visibility == keybase1.TLFVisibility_PUBLIC
 }
 
-func (c ConversationLocal) GetMaxMessage(typ MessageType) (MessageUnboxed, error) {
+func (c ConversationLocal) GetMaxMessage(typ MessageType) (MessageSummary, error) {
 	for _, msg := range c.MaxMessages {
 		if msg.GetMessageType() == typ {
 			return msg, nil
 		}
 	}
-	return MessageUnboxed{}, fmt.Errorf("max message not found: %v", typ)
+	return MessageSummary{}, fmt.Errorf("max message not found: %v", typ)
 }
 
 func (c ConversationLocal) GetMaxDeletedUpTo() MessageID {
@@ -1324,6 +1324,10 @@ func (r *NonblockFetchRes) SetOffline() {
 	r.Offline = true
 }
 
+func (r *UnreadlineRes) SetOffline() {
+	r.Offline = true
+}
+
 func (r *MarkAsReadLocalRes) SetOffline() {
 	r.Offline = true
 }
@@ -1495,6 +1499,14 @@ func (r *NonblockFetchRes) GetRateLimit() []RateLimit {
 }
 
 func (r *NonblockFetchRes) SetRateLimits(rl []RateLimit) {
+	r.RateLimits = rl
+}
+
+func (r *UnreadlineRes) GetRateLimit() []RateLimit {
+	return r.RateLimits
+}
+
+func (r *UnreadlineRes) SetRateLimits(rl []RateLimit) {
 	r.RateLimits = rl
 }
 
@@ -2027,5 +2039,49 @@ func NewUnfurlSettings() UnfurlSettings {
 	return UnfurlSettings{
 		Mode:      UnfurlMode_WHITELISTED,
 		Whitelist: make(map[string]bool),
+	}
+}
+
+func GlobalAppNotificationSettingsSorted() (res []GlobalAppNotificationSetting) {
+	for setting := range GlobalAppNotificationSettingRevMap {
+		if setting.Usage() != "" && setting.FlagName() != "" {
+			res = append(res, setting)
+		}
+	}
+	sort.Slice(res, func(i, j int) bool {
+		return res[i] < res[j]
+	})
+	return res
+}
+
+// Add to `Usage`/`FlagName` for a setting to be usable in the CLI via
+// `keybase notification-settings`
+func (g GlobalAppNotificationSetting) Usage() string {
+	switch g {
+	case GlobalAppNotificationSetting_NEWMESSAGES:
+		return "Show notifications for new messages"
+	case GlobalAppNotificationSetting_PLAINTEXTMOBILE:
+		return "Show plaintext notifications on mobile devices"
+	case GlobalAppNotificationSetting_DEFAULTSOUNDMOBILE:
+		return "Use the default system sound on mobile devices"
+	case GlobalAppNotificationSetting_DISABLETYPING:
+		return "Disable sending/receiving typing notifications"
+	default:
+		return ""
+	}
+}
+
+func (g GlobalAppNotificationSetting) FlagName() string {
+	switch g {
+	case GlobalAppNotificationSetting_NEWMESSAGES:
+		return "new-messages"
+	case GlobalAppNotificationSetting_PLAINTEXTMOBILE:
+		return "plaintext-mobile"
+	case GlobalAppNotificationSetting_DEFAULTSOUNDMOBILE:
+		return "default-sound-mobile"
+	case GlobalAppNotificationSetting_DISABLETYPING:
+		return "disable-typing"
+	default:
+		return ""
 	}
 }

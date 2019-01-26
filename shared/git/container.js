@@ -1,10 +1,12 @@
 // @flow
+import * as React from 'react'
 import Git from '.'
 import * as I from 'immutable'
 import * as GitGen from '../actions/git-gen'
 import * as Constants from '../constants/git'
+import * as Kb from '../common-adapters'
 import {anyWaiting} from '../constants/waiting'
-import {compose, lifecycle, connect, type RouteProps} from '../util/container'
+import {compose, connect, isMobile, type RouteProps} from '../util/container'
 import {sortBy, partition} from 'lodash-es'
 
 type OwnProps = RouteProps<{}, {expandedSet: I.Set<string>}>
@@ -57,15 +59,51 @@ const mapDispatchToProps = (dispatch: any, {navigateAppend, setRouteState, route
   },
 })
 
+class GitReloadable extends React.PureComponent<{
+  ...{|_loadGit: () => void|},
+  ...React.ElementConfig<typeof Git>,
+}> {
+  render() {
+    return (
+      <Kb.Reloadable
+        waitingKeys={Constants.loadingWaitingKey}
+        onBack={isMobile ? this.props.onBack : undefined}
+        onReload={this.props._loadGit}
+        reloadOnMount={true}
+      >
+        <Git
+          expandedSet={this.props.expandedSet}
+          loading={this.props.loading}
+          onShowDelete={this.props.onShowDelete}
+          onNewPersonalRepo={this.props.onNewPersonalRepo}
+          onNewTeamRepo={this.props.onNewTeamRepo}
+          onToggleExpand={this.props.onToggleExpand}
+          personals={this.props.personals}
+          teams={this.props.teams}
+          onBack={this.props.onBack}
+        />
+      </Kb.Reloadable>
+    )
+  }
+}
+
+const mergeProps = (s, d, o) => ({
+  _loadGit: d._loadGit,
+  expandedSet: s.expandedSet,
+  loading: s.loading,
+  onBack: d.onBack,
+  onNewPersonalRepo: d.onNewPersonalRepo,
+  onNewTeamRepo: d.onNewTeamRepo,
+  onShowDelete: d.onShowDelete,
+  onToggleExpand: d.onToggleExpand,
+  personals: s.personals,
+  teams: s.teams,
+})
+
 export default compose(
   connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d})
-  ),
-  lifecycle({
-    componentDidMount() {
-      this.props._loadGit()
-    },
-  })
-)(Git)
+    mergeProps
+  )
+)(GitReloadable)

@@ -7,6 +7,7 @@ protocol chatUi {
   import idl "github.com/keybase/client/go/protocol/stellar1" as stellar1;
   import idl "common.avdl";
   import idl "unfurl.avdl";
+  import idl "commands.avdl";
 
   record UIPagination {
     string next;
@@ -45,6 +46,8 @@ protocol chatUi {
     union { null, ConversationFinalizeInfo } finalizeInfo;
     array<ConversationMetadata> supersedes;
     array<ConversationMetadata> supersededBy;
+
+    ConversationCommandGroups commands;
   }
 
   record UnverifiedInboxUIItems {
@@ -86,6 +89,8 @@ protocol chatUi {
     union { null, ConversationFinalizeInfo } finalizeInfo;
     array<ConversationMetadata> supersedes;
     array<ConversationMetadata> supersededBy;
+
+    ConversationCommandGroups commands;
   }
 
   record InboxUIItemError {
@@ -138,6 +143,7 @@ protocol chatUi {
     string amountDescription;
     union { null, stellar1.Asset } asset;
     union { null, stellar1.OutsideCurrencyCode } currency;
+    string worthAtRequestTime;
     stellar1.RequestStatus status;
   }
 
@@ -181,6 +187,7 @@ protocol chatUi {
     string outboxID;
     MessageType messageType;
     string body;
+    union { null, string } decoratedTextBody;
     gregor1.Time ctime;
     double ordinal;
 
@@ -206,16 +213,19 @@ protocol chatUi {
 
   record UIMessages {
     array<UIMessage> messages;
-    union { null, MessageID } unreadLineID;
     union { null, UIPagination } pagination;
   }
 
   enum UITextDecorationTyp {
-    PAYMENT_0
+    PAYMENT_0,
+    ATMENTION_1,
+    CHANNELNAMEMENTION_2
   }
 
   variant UITextDecoration switch (UITextDecorationTyp typ) {
     case PAYMENT: TextPayment;
+    case ATMENTION: string;
+    case CHANNELNAMEMENTION: UIChannelNameMention;
   }
 
   void chatAttachmentDownloadStart(int sessionID);

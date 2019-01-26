@@ -1,31 +1,31 @@
 // @flow
 import React, {Component} from 'react'
 import type {Props} from '.'
-import Button from '../../common-adapters/button'
+import {WaitingButton} from '../../common-adapters'
 
 class FollowButton extends Component<Props> {
   render() {
-    const {following, onFollow, onUnfollow, style, waiting, ...otherProps} = this.props
+    const {following, onFollow, onUnfollow, waitingKey, style, ...otherProps} = this.props
 
     if (following) {
       return (
-        <Button
+        <WaitingButton
           type="PrimaryGreenActive"
           label="Following"
           onClick={onUnfollow}
           style={style}
-          waiting={waiting}
+          waitingKey={waitingKey}
           {...otherProps}
         />
       )
     } else {
       return (
-        <Button
+        <WaitingButton
           type="PrimaryGreen"
           label="Follow"
           onClick={onFollow}
           style={style}
-          waiting={waiting}
+          waitingKey={waitingKey}
           {...otherProps}
         />
       )

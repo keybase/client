@@ -22,6 +22,7 @@ import (
 	"github.com/keybase/client/go/badges"
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/attachments"
+	"github.com/keybase/client/go/chat/commands"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/search"
 	"github.com/keybase/client/go/chat/storage"
@@ -369,6 +370,7 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 	d.runTLFUpgrade()
 	d.runTeamUpgrader(ctx)
 	d.runHomePoller(ctx)
+	d.runMerkleAudit(ctx)
 	go d.identifySelf()
 }
 
@@ -465,6 +467,7 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 
 	g.Unfurler = unfurl.NewUnfurler(g, store, s3signer, convStorage, chat.NewNonblockingSender(g, sender),
 		ri)
+	g.CommandsSource = commands.NewSource(g)
 
 	// Set up Offlinables on Syncer
 	chatSyncer.RegisterOfflinable(g.InboxSource)
@@ -545,6 +548,25 @@ func (d *Service) runTeamUpgrader(ctx context.Context) {
 func (d *Service) runHomePoller(ctx context.Context) {
 	d.home.RunUpdateLoop(libkb.NewMetaContext(ctx, d.G()))
 	return
+}
+
+func (d *Service) runMerkleAudit(ctx context.Context) {
+	if libkb.IsMobilePlatform() {
+		d.G().Log.Debug("MerkleAudit disabled (not desktop, not starting)")
+		return
+	}
+
+	eng := engine.NewMerkleAudit(d.G(), &engine.MerkleAuditArgs{})
+	m := libkb.NewMetaContextBackground(d.G())
+	if err := engine.RunEngine2(m, eng); err != nil {
+		m.CWarningf("merkle root background audit error: %v", err)
+	}
+
+	d.G().PushShutdownHook(func() error {
+		m.CDebugf("stopping merkle root background audit engine")
+		eng.Shutdown()
+		return nil
+	})
 }
 
 func (d *Service) runBackgroundIdentifier() {

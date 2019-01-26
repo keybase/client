@@ -3,8 +3,11 @@ import * as I from 'immutable'
 import Render from './index'
 import {compose, connect, lifecycle, type RouteProps} from '../../util/container'
 import * as TeamsGen from '../../actions/teams-gen'
+import * as Constants from '../../constants/tracker2'
+import * as Tracker2Gen from '../../actions/tracker2-gen'
 import {HeaderOrPopup} from '../../common-adapters'
 import {getSortedTeamnames} from '../../constants/teams'
+import flags from '../../util/feature-flags'
 
 type OwnProps = RouteProps<{}, {}>
 
@@ -18,13 +21,30 @@ const mapStateToProps = state => {
     _teamNameToRole: state.teams.getIn(['teamNameToRole'], I.Map()),
     _teammembercounts: state.teams.getIn(['teammembercounts'], I.Map()),
     _waiting: state.waiting,
+    _you: state.config.username,
     teamnames: getSortedTeamnames(state),
   }
 }
 
 const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   loadTeams: teamname => dispatch(TeamsGen.createGetTeams()),
-  onCancel: () => dispatch(navigateUp()),
+  onCancel: (you: string) => {
+    if (flags.identify3) {
+      // sadly a little racy, doing this for now
+      setTimeout(() => {
+        dispatch(
+          Tracker2Gen.createLoad({
+            assertion: you,
+            guiID: Constants.generateGUIID(),
+            ignoreCache: true,
+            inTracker: false,
+            reason: 'teams maybe changed',
+          })
+        )
+      }, 500)
+    }
+    dispatch(navigateUp())
+  },
   onPromote: (teamname, showcase) => dispatch(TeamsGen.createSetMemberPublicity({showcase, teamname})),
 })
 
@@ -33,6 +53,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     ...stateProps,
     ...dispatchProps,
     customCancelText: 'Close',
+    onCancel: () => dispatchProps.onCancel(stateProps._you),
     teamNameToAllowPromote: stateProps._teamNameToAllowPromote.toObject(),
     teamNameToIsOpen: stateProps._teamNameToIsOpen.toObject(),
     teamNameToIsShowcasing: stateProps._teamNameToIsShowcasing.toObject(),

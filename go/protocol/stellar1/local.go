@@ -532,16 +532,17 @@ func (o BuildRequestResLocal) DeepCopy() BuildRequestResLocal {
 }
 
 type RequestDetailsLocal struct {
-	Id                KeybaseRequestID     `codec:"id" json:"id"`
-	FromAssertion     string               `codec:"fromAssertion" json:"fromAssertion"`
-	FromCurrentUser   bool                 `codec:"fromCurrentUser" json:"fromCurrentUser"`
-	ToUserType        ParticipantType      `codec:"toUserType" json:"toUserType"`
-	ToAssertion       string               `codec:"toAssertion" json:"toAssertion"`
-	Amount            string               `codec:"amount" json:"amount"`
-	Asset             *Asset               `codec:"asset,omitempty" json:"asset,omitempty"`
-	Currency          *OutsideCurrencyCode `codec:"currency,omitempty" json:"currency,omitempty"`
-	AmountDescription string               `codec:"amountDescription" json:"amountDescription"`
-	Status            RequestStatus        `codec:"status" json:"status"`
+	Id                 KeybaseRequestID     `codec:"id" json:"id"`
+	FromAssertion      string               `codec:"fromAssertion" json:"fromAssertion"`
+	FromCurrentUser    bool                 `codec:"fromCurrentUser" json:"fromCurrentUser"`
+	ToUserType         ParticipantType      `codec:"toUserType" json:"toUserType"`
+	ToAssertion        string               `codec:"toAssertion" json:"toAssertion"`
+	Amount             string               `codec:"amount" json:"amount"`
+	Asset              *Asset               `codec:"asset,omitempty" json:"asset,omitempty"`
+	Currency           *OutsideCurrencyCode `codec:"currency,omitempty" json:"currency,omitempty"`
+	AmountDescription  string               `codec:"amountDescription" json:"amountDescription"`
+	WorthAtRequestTime string               `codec:"worthAtRequestTime" json:"worthAtRequestTime"`
+	Status             RequestStatus        `codec:"status" json:"status"`
 }
 
 func (o RequestDetailsLocal) DeepCopy() RequestDetailsLocal {
@@ -566,8 +567,9 @@ func (o RequestDetailsLocal) DeepCopy() RequestDetailsLocal {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Currency),
-		AmountDescription: o.AmountDescription,
-		Status:            o.Status.DeepCopy(),
+		AmountDescription:  o.AmountDescription,
+		WorthAtRequestTime: o.WorthAtRequestTime,
+		Status:             o.Status.DeepCopy(),
 	}
 }
 
@@ -782,6 +784,122 @@ func (o LookupResultCLILocal) DeepCopy() LookupResultCLILocal {
 			tmp := (*x)
 			return &tmp
 		})(o.Username),
+	}
+}
+
+type BatchPaymentError struct {
+	Message string `codec:"message" json:"message"`
+	Code    int    `codec:"code" json:"code"`
+}
+
+func (o BatchPaymentError) DeepCopy() BatchPaymentError {
+	return BatchPaymentError{
+		Message: o.Message,
+		Code:    o.Code,
+	}
+}
+
+type BatchPaymentResult struct {
+	Username          string             `codec:"username" json:"username"`
+	StartTime         TimeMs             `codec:"startTime" json:"startTime"`
+	SubmittedTime     TimeMs             `codec:"submittedTime" json:"submittedTime"`
+	EndTime           TimeMs             `codec:"endTime" json:"endTime"`
+	TxID              TransactionID      `codec:"txID" json:"txID"`
+	Status            PaymentStatus      `codec:"status" json:"status"`
+	StatusDescription string             `codec:"statusDescription" json:"statusDescription"`
+	Error             *BatchPaymentError `codec:"error,omitempty" json:"error,omitempty"`
+}
+
+func (o BatchPaymentResult) DeepCopy() BatchPaymentResult {
+	return BatchPaymentResult{
+		Username:          o.Username,
+		StartTime:         o.StartTime.DeepCopy(),
+		SubmittedTime:     o.SubmittedTime.DeepCopy(),
+		EndTime:           o.EndTime.DeepCopy(),
+		TxID:              o.TxID.DeepCopy(),
+		Status:            o.Status.DeepCopy(),
+		StatusDescription: o.StatusDescription,
+		Error: (func(x *BatchPaymentError) *BatchPaymentError {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Error),
+	}
+}
+
+type BatchResultLocal struct {
+	StartTime              TimeMs               `codec:"startTime" json:"startTime"`
+	PreparedTime           TimeMs               `codec:"preparedTime" json:"preparedTime"`
+	AllSubmittedTime       TimeMs               `codec:"allSubmittedTime" json:"allSubmittedTime"`
+	AllCompleteTime        TimeMs               `codec:"allCompleteTime" json:"allCompleteTime"`
+	EndTime                TimeMs               `codec:"endTime" json:"endTime"`
+	Payments               []BatchPaymentResult `codec:"payments" json:"payments"`
+	OverallDurationMs      TimeMs               `codec:"overallDurationMs" json:"overallDurationMs"`
+	PrepareDurationMs      TimeMs               `codec:"prepareDurationMs" json:"prepareDurationMs"`
+	SubmitDurationMs       TimeMs               `codec:"submitDurationMs" json:"submitDurationMs"`
+	WaitPaymentsDurationMs TimeMs               `codec:"waitPaymentsDurationMs" json:"waitPaymentsDurationMs"`
+	WaitChatDurationMs     TimeMs               `codec:"waitChatDurationMs" json:"waitChatDurationMs"`
+	CountSuccess           int                  `codec:"countSuccess" json:"countSuccess"`
+	CountDirect            int                  `codec:"countDirect" json:"countDirect"`
+	CountRelay             int                  `codec:"countRelay" json:"countRelay"`
+	CountError             int                  `codec:"countError" json:"countError"`
+	CountPending           int                  `codec:"countPending" json:"countPending"`
+	AvgDurationMs          TimeMs               `codec:"avgDurationMs" json:"avgDurationMs"`
+	AvgSuccessDurationMs   TimeMs               `codec:"avgSuccessDurationMs" json:"avgSuccessDurationMs"`
+	AvgDirectDurationMs    TimeMs               `codec:"avgDirectDurationMs" json:"avgDirectDurationMs"`
+	AvgRelayDurationMs     TimeMs               `codec:"avgRelayDurationMs" json:"avgRelayDurationMs"`
+	AvgErrorDurationMs     TimeMs               `codec:"avgErrorDurationMs" json:"avgErrorDurationMs"`
+}
+
+func (o BatchResultLocal) DeepCopy() BatchResultLocal {
+	return BatchResultLocal{
+		StartTime:        o.StartTime.DeepCopy(),
+		PreparedTime:     o.PreparedTime.DeepCopy(),
+		AllSubmittedTime: o.AllSubmittedTime.DeepCopy(),
+		AllCompleteTime:  o.AllCompleteTime.DeepCopy(),
+		EndTime:          o.EndTime.DeepCopy(),
+		Payments: (func(x []BatchPaymentResult) []BatchPaymentResult {
+			if x == nil {
+				return nil
+			}
+			ret := make([]BatchPaymentResult, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Payments),
+		OverallDurationMs:      o.OverallDurationMs.DeepCopy(),
+		PrepareDurationMs:      o.PrepareDurationMs.DeepCopy(),
+		SubmitDurationMs:       o.SubmitDurationMs.DeepCopy(),
+		WaitPaymentsDurationMs: o.WaitPaymentsDurationMs.DeepCopy(),
+		WaitChatDurationMs:     o.WaitChatDurationMs.DeepCopy(),
+		CountSuccess:           o.CountSuccess,
+		CountDirect:            o.CountDirect,
+		CountRelay:             o.CountRelay,
+		CountError:             o.CountError,
+		CountPending:           o.CountPending,
+		AvgDurationMs:          o.AvgDurationMs.DeepCopy(),
+		AvgSuccessDurationMs:   o.AvgSuccessDurationMs.DeepCopy(),
+		AvgDirectDurationMs:    o.AvgDirectDurationMs.DeepCopy(),
+		AvgRelayDurationMs:     o.AvgRelayDurationMs.DeepCopy(),
+		AvgErrorDurationMs:     o.AvgErrorDurationMs.DeepCopy(),
+	}
+}
+
+type BatchPaymentArg struct {
+	Recipient string `codec:"recipient" json:"recipient"`
+	Amount    string `codec:"amount" json:"amount"`
+	Message   string `codec:"message" json:"message"`
+}
+
+func (o BatchPaymentArg) DeepCopy() BatchPaymentArg {
+	return BatchPaymentArg{
+		Recipient: o.Recipient,
+		Amount:    o.Amount,
+		Message:   o.Message,
 	}
 }
 
@@ -1094,6 +1212,12 @@ type LookupCLILocalArg struct {
 	Name string `codec:"name" json:"name"`
 }
 
+type BatchLocalArg struct {
+	BatchID     string            `codec:"batchID" json:"batchID"`
+	TimeoutSecs int               `codec:"timeoutSecs" json:"timeoutSecs"`
+	Payments    []BatchPaymentArg `codec:"payments" json:"payments"`
+}
+
 type LocalInterface interface {
 	GetWalletAccountsLocal(context.Context, int) ([]WalletAccountLocal, error)
 	GetWalletAccountLocal(context.Context, GetWalletAccountLocalArg) (WalletAccountLocal, error)
@@ -1151,6 +1275,7 @@ type LocalInterface interface {
 	FormatLocalCurrencyString(context.Context, FormatLocalCurrencyStringArg) (string, error)
 	MakeRequestCLILocal(context.Context, MakeRequestCLILocalArg) (KeybaseRequestID, error)
 	LookupCLILocal(context.Context, string) (LookupResultCLILocal, error)
+	BatchLocal(context.Context, BatchLocalArg) (BatchResultLocal, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -1977,6 +2102,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"batchLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]BatchLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]BatchLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]BatchLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.BatchLocal(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -2275,5 +2415,10 @@ func (c LocalClient) MakeRequestCLILocal(ctx context.Context, __arg MakeRequestC
 func (c LocalClient) LookupCLILocal(ctx context.Context, name string) (res LookupResultCLILocal, err error) {
 	__arg := LookupCLILocalArg{Name: name}
 	err = c.Cli.Call(ctx, "stellar.1.local.lookupCLILocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) BatchLocal(ctx context.Context, __arg BatchLocalArg) (res BatchResultLocal, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.batchLocal", []interface{}{__arg}, &res)
 	return
 }

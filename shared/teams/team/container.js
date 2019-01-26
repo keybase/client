@@ -3,8 +3,9 @@ import * as React from 'react'
 import * as TeamsGen from '../../actions/teams-gen'
 import Team from '.'
 import CustomTitle from './custom-title/container'
-import {HeaderHoc} from '../../common-adapters'
-import {connect, lifecycle, compose} from '../../util/container'
+import * as Kb from '../../common-adapters'
+import {connect, compose} from '../../util/container'
+import * as Constants from '../../constants/teams'
 import {mapStateHelper as invitesMapStateHelper, getRows as getInviteRows} from './invites-tab/helper'
 import {mapStateHelper as memberMapStateHelper, getRows as getMemberRows} from './members-tab/helper'
 import {mapStateHelper as subteamsMapStateHelper, getRows as getSubteamsRows} from './subteams-tab/helper'
@@ -55,7 +56,7 @@ const mergeProps = (stateProps, dispatchProps) => {
   const rows = [{type: 'header'}, {type: 'tabs'}, ...tabSpecificRows]
   const customComponent = <CustomTitle teamname={stateProps.teamname} />
   return {
-    _loadTeam: dispatchProps._loadTeam,
+    _load: () => dispatchProps._loadTeam(stateProps.teamname),
     customComponent,
     onBack: dispatchProps.onBack,
     rows,
@@ -65,22 +66,40 @@ const mergeProps = (stateProps, dispatchProps) => {
   }
 }
 
+class Reloadable extends React.PureComponent<{
+  ...React.ElementConfig<typeof Team>,
+  ...{|_load: () => void|},
+}> {
+  componentDidUpdate(prevProps) {
+    if (this.props.teamname !== prevProps.teamname) {
+      this.props._load()
+      this.props.setSelectedTab('members')
+    }
+  }
+
+  render() {
+    return (
+      <Kb.Reloadable
+        waitingKeys={Constants.teamWaitingKey(this.props.teamname)}
+        onReload={this.props._load}
+        reloadOnMount={true}
+      >
+        <Team
+          rows={this.props.rows}
+          selectedTab={this.props.selectedTab}
+          setSelectedTab={this.props.setSelectedTab}
+          teamname={this.props.teamname}
+        />
+      </Kb.Reloadable>
+    )
+  }
+}
+
 export default compose(
   connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps
   ),
-  lifecycle({
-    componentDidMount() {
-      this.props._loadTeam(this.props.teamname)
-    },
-    componentDidUpdate(prevProps) {
-      if (this.props.teamname !== prevProps.teamname) {
-        this.props._loadTeam(this.props.teamname)
-        this.props.setSelectedTab('members')
-      }
-    },
-  }),
-  HeaderHoc
-)(Team)
+  Kb.HeaderHoc
+)(Reloadable)

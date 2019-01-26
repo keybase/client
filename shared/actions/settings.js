@@ -13,6 +13,7 @@ import {mapValues, trim} from 'lodash-es'
 import {delay} from 'redux-saga'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import {isAndroidNewerThanN, pprofDir} from '../constants/platform'
+import engine from '../engine'
 
 const onUpdatePGPSettings = () =>
   RPCTypes.accountHasServerKeysRpcPromise()
@@ -283,6 +284,13 @@ function* refreshNotifications() {
           `${ChatTypes.commonGlobalAppNotificationSetting.plaintextmobile}`
         ],
       },
+      {
+        description: 'Disable sending/receiving typing notifications',
+        name: 'disabletyping',
+        subscribed: !!chatGlobalSettings.settings[
+          `${ChatTypes.commonGlobalAppNotificationSetting.disabletyping}`
+        ],
+      },
       ...(isAndroidNewerThanN
         ? []
         : [
@@ -414,6 +422,26 @@ const unfurlSettingsSaved = (state, action) =>
       })
     )
 
+// Once loaded, do not issue this RPC again. This field can only go true ->
+// false (never the opposite way), and there are notifications set up when
+// this happens.
+const loadHasRandomPW = state =>
+  state.settings.passphrase.randomPW === null
+    ? RPCTypes.userLoadHasRandomPwRpcPromise({forceRepoll: false})
+        .then(randomPW => SettingsGen.createLoadedHasRandomPw({randomPW}))
+        .catch(e => logger.warn('Error loading hasRandomPW:', e.message))
+    : null
+
+const setupEngineListeners = () => {
+  engine().setIncomingCallMap({
+    'keybase.1.NotifyUsers.passwordChanged': () =>
+      Saga.callUntyped(function*() {
+        // Mark that we are not randomPW anymore if we got a passphrase change.
+        yield Saga.put(SettingsGen.createLoadedHasRandomPw({randomPW: false}))
+      }),
+  })
+}
+
 function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<SettingsGen.InvitesReclaimPayload>(SettingsGen.invitesReclaim, reclaimInvite)
   yield* Saga.chainAction<SettingsGen.InvitesRefreshPayload>(SettingsGen.invitesRefresh, refreshInvites)
@@ -469,6 +497,11 @@ function* settingsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<SettingsGen.UnfurlSettingsSavedPayload>(
     SettingsGen.unfurlSettingsSaved,
     unfurlSettingsSaved
+  )
+  yield* Saga.chainAction<SettingsGen.LoadHasRandomPwPayload>(SettingsGen.loadHasRandomPw, loadHasRandomPW)
+  yield* Saga.chainAction<ConfigGen.SetupEngineListenersPayload>(
+    ConfigGen.setupEngineListeners,
+    setupEngineListeners
   )
 }
 

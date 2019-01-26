@@ -52,6 +52,7 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
     showWalletsIcon: Constants.shouldShowWalletsIcon(state, conversationIDKey),
     showingGiphySearch: state.chat2.giphySearchMap.get(conversationIDKey) || false,
     suggestChannels: Constants.getChannelSuggestions(state, teamname),
+    suggestCommands: Constants.getCommands(state, conversationIDKey),
     suggestUsers: Constants.getParticipantSuggestions(state, conversationIDKey),
     typing: Constants.getTyping(state, conversationIDKey),
     unsentText: unsentText ? unsentText.stringValue() : '',
@@ -146,6 +147,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   },
   showWalletsIcon: stateProps.showWalletsIcon,
   suggestChannels: stateProps.suggestChannels,
+  suggestCommands: stateProps.suggestCommands,
   suggestUsers: stateProps.suggestUsers,
   typing: stateProps.typing,
   unsentTextChanged: (text: string) => {

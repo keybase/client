@@ -10,6 +10,7 @@ import (
 
 	"encoding/hex"
 
+	"github.com/keybase/client/go/chat/commands"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/search"
 	"github.com/keybase/client/go/chat/storage"
@@ -280,6 +281,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	g.Unfurler = types.DummyUnfurler{}
 	g.StellarLoader = types.DummyStellarLoader{}
 	g.StellarSender = types.DummyStellarSender{}
+	g.CommandsSource = commands.NewSource(g)
 
 	return ctx, world, ri, sender, baseSender, &listener
 }

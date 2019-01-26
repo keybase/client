@@ -254,6 +254,11 @@ func (cr *ConflictResolver) Resolve(ctx context.Context,
 		return
 	}
 
+	// Call Add before cancelling existing CR in order to prevent the
+	// resolveGroup from becoming briefly empty and allowing things waiting
+	// on it to believe that CR has finished.
+	cr.resolveGroup.Add(1)
+
 	ci := conflictInput{unmerged, merged}
 	func() {
 		cr.inputLock.Lock()
@@ -267,7 +272,6 @@ func (cr *ConflictResolver) Resolve(ctx context.Context,
 		_ = cr.cancelExistingLocked(ci)
 	}()
 
-	cr.resolveGroup.Add(1)
 	cr.inputChan <- ci
 }
 

@@ -12,23 +12,12 @@ import {Box} from '../../common-adapters'
 import List from './list'
 import {globalStyles} from '../../styles'
 
-export type Props = {
+export type Props = {|
   teamname: Types.Teamname,
-  admin: boolean,
-  memberCount: number,
-  newTeamRequests: Array<Types.Teamname>,
-  numInvites: number,
-  numRequests: number,
-  numSubteams: number,
-  listItems?: Array<any>,
-  loading: boolean,
   selectedTab: string,
-  resetUserCount: number,
   rows: Array<any>,
-  setSelectedTab: (?Types.TabKey) => void,
-  yourOperations: Types.TeamOperations,
-  onShowMenu: any => void,
-}
+  setSelectedTab: Types.TabKey => void,
+|}
 
 class Team extends React.Component<Props> {
   _renderItem = (row: any) => {

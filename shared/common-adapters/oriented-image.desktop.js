@@ -154,11 +154,15 @@ class OrientedImage extends React.Component<Props, State> {
   _fetchExifUploaded = () => {
     const {src} = this.props
     return new Promise((resolve, reject) => {
-      const ret = EXIF.getData({src}, function() {
-        const orientation = EXIF.getTag(this, 'Orientation')
-        resolve(orientation)
-      })
-      if (!ret) reject(new Error('EXIF failed to fetch image data'))
+      try {
+        const ret = EXIF.getData({src}, function() {
+          const orientation = EXIF.getTag(this, 'Orientation')
+          resolve(orientation)
+        })
+        if (!ret) reject(new Error('EXIF failed to fetch image data'))
+      } catch (e) {
+        reject(e)
+      }
     })
   }
 
@@ -169,12 +173,16 @@ class OrientedImage extends React.Component<Props, State> {
     return new Promise((resolve, reject) => {
       // data is a Node Buffer which is backed by a JavaScript ArrayBuffer.
       // EXIF.readFromBinaryFile takes an ArrayBuffer
-      const data = fs.readFileSync(src)
-      const tags = EXIF.readFromBinaryFile(data.buffer)
-      if (tags) {
-        resolve(tags['Orientation'])
-      } else {
-        reject(new Error('EXIF failed to read exif data'))
+      try {
+        const data = fs.readFileSync(src)
+        const tags = EXIF.readFromBinaryFile(data.buffer)
+        if (tags) {
+          resolve(tags['Orientation'])
+        } else {
+          reject(new Error('EXIF failed to read exif data'))
+        }
+      } catch (e) {
+        reject(e)
       }
     })
   }

@@ -1246,6 +1246,20 @@ type MerkleClientError struct {
 	t merkleClientErrorType
 }
 
+func NewClientMerkleSkipHashMismatchError(m string) MerkleClientError {
+	return MerkleClientError{
+		t: merkleErrorSkipHashMismatch,
+		m: m,
+	}
+}
+
+func NewClientMerkleSkipMissingError(m string) MerkleClientError {
+	return MerkleClientError{
+		t: merkleErrorSkipMissing,
+		m: m,
+	}
+}
+
 func (m MerkleClientError) Error() string {
 	return fmt.Sprintf("Error checking merkle tree: %s", m.m)
 }
@@ -1256,6 +1270,10 @@ func (m MerkleClientError) IsNotFound() bool {
 
 func (m MerkleClientError) IsOldTree() bool {
 	return m.t == merkleErrorOldTree
+}
+
+func (m MerkleClientError) IsSkipHashMismatch() bool {
+	return m.t == merkleErrorSkipHashMismatch
 }
 
 type MerklePathNotFoundError struct {

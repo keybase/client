@@ -223,6 +223,7 @@ export const makeChatRequestInfo: I.RecordFactory<MessageTypes._ChatRequestInfo>
   currencyCode: '',
   done: false,
   type: 'requestInfo',
+  worthAtRequestTime: '',
 })
 
 export const makeMessageRequestPayment: I.RecordFactory<MessageTypes._MessageRequestPayment> = I.Record({
@@ -369,6 +370,7 @@ export const uiRequestInfoToChatRequestInfo = (
     canceled: r.status === RPCStellarTypes.commonRequestStatus.canceled,
     currencyCode,
     done: r.status === RPCStellarTypes.commonRequestStatus.done,
+    worthAtRequestTime: r.worthAtRequestTime,
   })
 }
 
@@ -831,6 +833,7 @@ const outboxUIMessagetoMessage = (
       return makeMessageText({
         author: state.config.username || '',
         conversationIDKey,
+        decoratedText: o.decoratedTextBody ? new HiddenString(o.decoratedTextBody) : null,
         deviceName: state.config.deviceName || '',
         deviceType: isMobile ? 'mobile' : 'desktop',
         errorReason,

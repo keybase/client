@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {Box2, FloatingBox} from '..'
 import type {Props} from '.'
-import {collapseStyles, platformStyles, styleSheetCreate} from '../../styles'
+import {collapseStyles, desktopStyles, platformStyles, styleSheetCreate} from '../../styles'
 
 const Overlay = (props: Props) => {
   if (props.hasOwnProperty('visible') && !props.visible) {
@@ -28,8 +28,8 @@ const Overlay = (props: Props) => {
 const styles = styleSheetCreate({
   innerContainer: platformStyles({
     isElectron: {
+      ...desktopStyles.boxShadow,
       borderRadius: 3,
-      boxShadow: '0 0 15px 0 rgba(0, 0, 0, 0.2)',
       overflowX: 'hidden',
       overflowY: 'auto',
     },

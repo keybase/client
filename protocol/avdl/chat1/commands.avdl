@@ -1,0 +1,26 @@
+@namespace("chat.1")
+
+protocol commands {
+  import idl "common.avdl";
+
+  record ConversationCommand {
+    string description;
+    string name;
+    string usage;
+    union { null, string } username;
+  }
+
+  enum ConversationCommandGroupsTyp {
+    BUILTIN_0,
+    EXTENDED_1
+  }
+
+  record ConversationCommandGroupsExtended {
+    array<ConversationCommand> commands;
+  }
+
+  variant ConversationCommandGroups switch (ConversationCommandGroupsTyp typ) {
+    case BUILTIN: void;
+    case EXTENDED: ConversationCommandGroupsExtended;
+  }
+}

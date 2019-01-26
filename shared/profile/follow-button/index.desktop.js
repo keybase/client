@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import type {Props} from '.'
-import {Button} from '../../common-adapters'
+import {WaitingButton} from '../../common-adapters'
 
 type State = {mouseOver: boolean}
 
@@ -17,15 +17,15 @@ class FollowButton extends Component<Props, State> {
   }
 
   render() {
-    const {following, onFollow, onUnfollow, style, waiting, ...otherProps} = this.props
+    const {following, onFollow, onUnfollow, style, waitingKey, ...otherProps} = this.props
 
     if (following) {
       return (
-        <Button
+        <WaitingButton
           type={this.state.mouseOver ? 'PrimaryGreen' : 'PrimaryGreenActive'}
           label={this.state.mouseOver ? 'Unfollow' : 'Following'}
           onClick={onUnfollow}
-          waiting={waiting}
+          waitingKey={waitingKey}
           onMouseEnter={() => this.setState({mouseOver: true})}
           onMouseLeave={() => this.setState({mouseOver: false})}
           style={{...styleButton, ...style}}
@@ -34,11 +34,11 @@ class FollowButton extends Component<Props, State> {
       )
     } else {
       return (
-        <Button
+        <WaitingButton
           type="PrimaryGreen"
           label="Follow"
           onClick={onFollow}
-          waiting={waiting}
+          waitingKey={waitingKey}
           style={{...styleButton, ...style}}
           {...otherProps}
         />

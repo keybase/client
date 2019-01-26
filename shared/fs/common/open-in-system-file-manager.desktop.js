@@ -29,7 +29,7 @@ type Props = {
   FinderPopupProps
 
 const OpenInSystemFileManager = ({openInSystemFileManager}: OpenInSystemFileManagerProps) => (
-  <WithTooltip text="Show in Finder">
+  <WithTooltip text={`Show in ${fileUIName}`}>
     <Icon
       type="iconfont-finder"
       style={iconCastPlatformStyles(styles.pathItemActionIcon)}

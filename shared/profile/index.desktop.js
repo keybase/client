@@ -1,4 +1,5 @@
 // @flow
+// TODO deprecate
 import * as shared from './shared'
 import * as Constants from '../constants/tracker'
 import Friendships from './friendships.desktop'
@@ -11,6 +12,8 @@ import * as Styles from '../styles'
 import {stateColors} from '../util/tracker'
 import {ADD_TO_TEAM_ZINDEX, AVATAR_SIZE, BACK_ZINDEX, SEARCH_CONTAINER_ZINDEX} from '../constants/profile'
 import Folders from './folders/container'
+import UserProofs from './user-proofs'
+import UserBio from './user-bio'
 
 import type {UserTeamShowcase} from '../constants/types/rpc-gen'
 import type {Proof} from '../constants/types/tracker'
@@ -174,7 +177,7 @@ class ProfileRender extends React.PureComponent<Props, State> {
     selectedProofMenuRowIndex: null,
   }
   _selectedProofMenuRowRef: ?React.Component<any>
-  _proofList: ?Kb.UserProofs = null
+  _proofList: ?UserProofs = null
   _scrollContainer: ?React.Component<any, any> = null
 
   _proofMenuContent(proof: Proof) {
@@ -391,8 +394,13 @@ class ProfileRender extends React.PureComponent<Props, State> {
             }
             style={{...styleSearchContainer, opacity: this.state.searchHovered ? 0.8 : 1}}
           >
-            <Kb.Icon style={styleSearch} type="iconfont-search" color={Styles.globalColors.white} />
-            <Kb.Text style={styleSearchText} type="BodySmallSemibold">
+            <Kb.Icon
+              fontSize={Styles.isMobile ? 20 : 16}
+              style={styles.searchIcon}
+              type="iconfont-search"
+              color={Styles.globalColors.white_75}
+            />
+            <Kb.Text style={styles.searchText} type="BodySemibold">
               Search people
             </Kb.Text>
           </Kb.Box>
@@ -407,7 +415,7 @@ class ProfileRender extends React.PureComponent<Props, State> {
           <Kb.Box style={{...styleHeader, backgroundColor: trackerStateColors.header.background}} />
           <Kb.Box style={{...Styles.globalStyles.flexBoxRow, minHeight: 300}}>
             <Kb.Box style={styleBioColumn}>
-              <Kb.UserBio
+              <UserBio
                 type="Profile"
                 editFns={this.props.bioEditFns}
                 loading={loading}
@@ -433,7 +441,6 @@ class ProfileRender extends React.PureComponent<Props, State> {
                   onRequestLumens={this.props.onRequestLumens}
                   onUnfollow={this.props.onUnfollow}
                   onAcceptProofs={this.props.onAcceptProofs}
-                  waiting={this.props.waiting}
                 />
               )}
             </Kb.Box>
@@ -466,7 +473,7 @@ class ProfileRender extends React.PureComponent<Props, State> {
                   </Kb.Box>
                 )}
                 {(loading || this.props.proofs.length > 0) && (
-                  <Kb.UserProofs
+                  <UserProofs
                     type={'proofs'}
                     ref={c => {
                       this._proofList = c
@@ -487,7 +494,7 @@ class ProfileRender extends React.PureComponent<Props, State> {
                   />
                 )}
                 {!loading && !this.props.serverActive && missingProofs.length > 0 && (
-                  <Kb.UserProofs
+                  <UserProofs
                     type={'missingProofs'}
                     username={this.props.username}
                     missingProofs={missingProofs}
@@ -621,15 +628,6 @@ const styleSearchContainer = {
   zIndex: SEARCH_CONTAINER_ZINDEX,
 }
 
-const styleSearch = {
-  padding: 3,
-}
-
-const styleSearchText = {
-  ...styleSearch,
-  color: Styles.globalColors.white_75,
-}
-
 const styleShowcasedTeamContainer = {
   ...Styles.globalStyles.flexBoxRow,
   alignItems: 'flex-start',
@@ -692,6 +690,14 @@ const styles = Styles.styleSheetCreate({
     alignSelf: 'flex-start',
     flex: 1,
     marginTop: 2,
+  },
+  searchIcon: {
+    paddingRight: Styles.globalMargins.tiny,
+    position: 'relative',
+    top: 1,
+  },
+  searchText: {
+    color: Styles.globalColors.white_75,
   },
   service: Styles.collapseStyles([
     Styles.desktopStyles.clickable,

@@ -174,6 +174,47 @@ func (b *baseInboxSource) Localize(ctx context.Context, uid gregor1.UID, convs [
 	return res, localizeCb, err
 }
 
+func (b *baseInboxSource) RemoteSetConversationStatus(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, status chat1.ConversationStatus) (err error) {
+	defer b.Trace(ctx, func() error { return err }, "RemoteSetConversationStatus")()
+	if _, err = b.getChatInterface().SetConversationStatus(ctx, chat1.SetConversationStatusArg{
+		ConversationID: convID,
+		Status:         status,
+	}); err != nil {
+		return err
+	}
+	if status != chat1.ConversationStatus_REPORTED {
+		return nil
+	}
+
+	// Send word to API server about the report
+	b.Debug(ctx, "RemoteSetConversationStatus: sending report to server")
+	// Get TLF name to post
+	tlfname := "<error fetching TLF name>"
+	ib, _, err := b.sub.Read(ctx, uid, types.ConversationLocalizerBlocking, true,
+		nil, &chat1.GetInboxLocalQuery{
+			ConvIDs: []chat1.ConversationID{convID},
+		}, nil)
+	if err != nil {
+		b.Debug(ctx, "RemoteSetConversationStatus: failed to fetch conversation: %s", err)
+	} else {
+		if len(ib.Convs) > 0 {
+			tlfname = ib.Convs[0].Info.TLFNameExpanded()
+		}
+	}
+	args := libkb.NewHTTPArgs()
+	args.Add("tlfname", libkb.S{Val: tlfname})
+	_, err = b.G().API.Post(libkb.APIArg{
+		Endpoint:    "report/conversation",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args:        args,
+	})
+	if err != nil {
+		b.Debug(ctx, "RemoteSetConversationStatus: failed to post report: %s", err.Error())
+	}
+	return nil
+}
+
 func (b *baseInboxSource) createConversationLocalizer(ctx context.Context, typ types.ConversationLocalizerTyp,
 	localizeCb chan types.AsyncInboxResult) conversationLocalizer {
 	switch typ {
@@ -477,7 +518,8 @@ func (s *HybridInboxSource) inboxFlushLoop(uid gregor1.UID, stopCh chan struct{}
 }
 
 func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UID,
-	query *chat1.GetInboxQuery, p *chat1.Pagination) (types.Inbox, error) {
+	query *chat1.GetInboxQuery, p *chat1.Pagination) (res types.Inbox, err error) {
+	defer s.Trace(ctx, func() error { return err }, "fetchRemoteInbox")()
 
 	// Insta fail if we are offline
 	if s.IsOffline(ctx) {
@@ -490,15 +532,12 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UI
 	if query == nil {
 		rquery = chat1.GetInboxQuery{
 			ComputeActiveList: true,
-			SummarizeMaxMsgs:  false,
 		}
 	} else {
 		rquery = *query
 		rquery.ComputeActiveList = true
-		// If we have been given a fixed set of conversation IDs, then just return summary, since
-		// we likely have the messages cached locally.
-		rquery.SummarizeMaxMsgs = len(rquery.ConvIDs) > 0 || rquery.ConvID != nil
 	}
+	rquery.SummarizeMaxMsgs = true // always summarize max msgs
 
 	ib, err := s.getChatInterface().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
 		Query:      &rquery,
@@ -524,9 +563,9 @@ func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UI
 		if conv.Metadata.MembersType != chat1.ConversationMembersType_KBFS &&
 			(conv.HasMemberStatus(chat1.ConversationMemberStatus_ACTIVE) ||
 				conv.HasMemberStatus(chat1.ConversationMemberStatus_PREVIEW)) &&
-			bgEnqueued < 100 {
+			bgEnqueued < 50 {
 			job := types.NewConvLoaderJob(conv.GetConvID(), nil /* query */, &chat1.Pagination{Num: 50},
-				types.ConvLoaderPriorityMedium, newConvLoaderPagebackHook(s.G(), 0, 5))
+				types.ConvLoaderPriorityMedium, nil)
 			if err := s.G().ConvLoader.Queue(ctx, job); err != nil {
 				s.Debug(ctx, "fetchRemoteInbox: failed to queue conversation load: %s", err)
 			}

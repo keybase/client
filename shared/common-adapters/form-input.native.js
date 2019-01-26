@@ -13,7 +13,7 @@ export type Props = {
   containerStyle?: any,
   inputStyle?: any,
   label?: string,
-  onEnterKeyDown?: () => void,
+  onEnterKeyDown?: ?() => void,
   value?: string,
   textType?: TextType,
   secure?: boolean,

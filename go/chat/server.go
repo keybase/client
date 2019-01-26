@@ -634,28 +634,25 @@ func (h *Server) dispatchOldPagesJob(ctx context.Context, convID chat1.Conversat
 	}
 }
 
-func (h *Server) getUnreadLine(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
-	msgs []chat1.MessageUnboxed) (res *chat1.MessageID) {
-	// don't waste any time trying the server, if we don't have this convo for some reason, then we
-	// don't draw the line
-	conv, err := storage.NewInbox(h.G()).GetConversation(ctx, uid, convID)
+func (h *Server) GetUnreadline(ctx context.Context, arg chat1.GetUnreadlineArg) (res chat1.UnreadlineRes, err error) {
+	var identBreaks []keybase1.TLFIdentifyFailure
+	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err },
+		fmt.Sprintf("GetUnreadline: convID: %v, readMsgID: %v", arg.ConvID, arg.ReadMsgID))()
+	defer func() { h.setResultRateLimit(ctx, &res) }()
+	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
+
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
-		h.Debug(ctx, "getUnreadLine: failed to get conv: %s", err)
-		return nil
+		return res, err
 	}
-	readMsgID := conv.Conv.ReaderInfo.ReadMsgid
-	if !conv.Conv.IsUnread() {
-		return nil
+
+	res.UnreadlineID, err = h.G().ConvSource.GetUnreadline(ctx, arg.ConvID, uid, arg.ReadMsgID)
+	if err != nil {
+		h.Debug(ctx, "GetUnreadline: unable to run UnreadMsgID: %v", err)
+		return res, err
 	}
-	for i := len(msgs) - 1; i >= 0; i-- {
-		msg := msgs[i]
-		if utils.IsVisibleChatMessageType(msg.GetMessageType()) && msg.GetMessageID() > readMsgID {
-			res = new(chat1.MessageID)
-			*res = msg.GetMessageID()
-			return res
-		}
-	}
-	return nil
+	return res, nil
 }
 
 func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonblockArg) (res chat1.NonblockFetchRes, fullErr error) {
@@ -790,14 +787,11 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		if resThread != nil {
 			h.Debug(ctx, "GetThreadNonblock: sending cached response: messages: %d pager: %s",
 				len(resThread.Messages), resThread.Pagination)
-			var jsonPt []byte
-			var err error
-
-			resThread.UnreadLineID = h.getUnreadLine(ctx, arg.ConversationID, uid, resThread.Messages)
 			localSentThread = resThread
 			pt := utils.PresentThreadView(ctx, h.G(), uid, *resThread, arg.ConversationID)
-			if jsonPt, err = json.Marshal(pt); err != nil {
-				h.Debug(ctx, "GetThreadNonblock: failed to JSON cached response: %s", err)
+			jsonPt, err := json.Marshal(pt)
+			if err != nil {
+				h.Debug(ctx, "GetThreadNonblock: failed to JSON cached response: %v", err)
 				return
 			}
 			sJSONPt := string(jsonPt)
@@ -838,7 +832,6 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 			h.mergeLocalRemoteThread(ctx, &remoteThread, localSentThread, arg.CbMode); fullErr != nil {
 			return
 		}
-		rthread.UnreadLineID = h.getUnreadLine(ctx, arg.ConversationID, uid, rthread.Messages)
 		h.Debug(ctx, "GetThreadNonblock: sending full response: messages: %d pager: %s",
 			len(rthread.Messages), rthread.Pagination)
 		uires := utils.PresentThreadView(ctx, h.G(), uid, rthread, arg.ConversationID)
@@ -1126,46 +1119,9 @@ func (h *Server) SetConversationStatusLocal(ctx context.Context, arg chat1.SetCo
 	if err != nil {
 		return chat1.SetConversationStatusLocalRes{}, err
 	}
-
-	_, err = h.remoteClient().SetConversationStatus(ctx, chat1.SetConversationStatusArg{
-		ConversationID: arg.ConversationID,
-		Status:         arg.Status,
-	})
-	if err != nil {
-		return chat1.SetConversationStatusLocalRes{}, err
-
+	if err := h.G().InboxSource.RemoteSetConversationStatus(ctx, uid, arg.ConversationID, arg.Status); err != nil {
+		return res, err
 	}
-	// Send word to API server about the report
-	if arg.Status == chat1.ConversationStatus_REPORTED {
-		h.Debug(ctx, "SetConversationStatusLocal: sending report to server")
-
-		tlfname := "<error fetching TLF name>"
-
-		// Get TLF name to post
-		ib, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true,
-			nil, &chat1.GetInboxLocalQuery{
-				ConvIDs: []chat1.ConversationID{arg.ConversationID},
-			}, nil)
-		if err != nil {
-			h.Debug(ctx, "SetConversationStatusLocal: failed to fetch conversation: %s", err.Error())
-		} else {
-			if len(ib.Convs) > 0 {
-				tlfname = ib.Convs[0].Info.TLFNameExpanded()
-			}
-		}
-
-		args := libkb.NewHTTPArgs()
-		args.Add("tlfname", libkb.S{Val: tlfname})
-		_, err = h.G().API.Post(libkb.APIArg{
-			Endpoint:    "report/conversation",
-			SessionType: libkb.APISessionTypeREQUIRED,
-			Args:        args,
-		})
-		if err != nil {
-			h.Debug(ctx, "SetConversationStatusLocal: failed to post report: %s", err.Error())
-		}
-	}
-
 	return chat1.SetConversationStatusLocalRes{
 		IdentifyFailures: identBreaks,
 	}, nil
@@ -1189,22 +1145,20 @@ func (h *Server) PostLocal(ctx context.Context, arg chat1.PostLocalArg) (res cha
 		return res, fmt.Errorf("no TLF name specified")
 	}
 
-	// Run Stellar UI on any payments in the body
-	if arg.Msg.MessageBody, err = h.runStellarSendUI(ctx, 0, uid, arg.ConversationID, arg.Msg.MessageBody); err != nil {
-		return res, err
+	// Check for any slash command hits for an execute
+	if handled, err := h.G().CommandsSource.AttemptBuiltinCommand(ctx, uid, arg.ConversationID,
+		arg.Msg.ClientHeader.TlfName, arg.Msg.MessageBody); handled {
+		h.Debug(ctx, "PostLocal: handled slash command with error: %s", err)
+		return res, nil
 	}
 
-	// Make sure sender is set
-	db := make([]byte, 16)
-	deviceID := h.G().Env.GetDeviceID()
-	if err = deviceID.ToBytes(db); err != nil {
+	// Run Stellar UI on any payments in the body
+	if arg.Msg.MessageBody, err = h.runStellarSendUI(ctx, 0, uid, arg.ConversationID,
+		arg.Msg.MessageBody); err != nil {
 		return res, err
 	}
-	arg.Msg.ClientHeader.Sender = uid
-	arg.Msg.ClientHeader.SenderDevice = gregor1.DeviceID(db)
 
 	sender := NewBlockingSender(h.G(), h.boxer, h.remoteClient)
-
 	_, msgBoxed, err := sender.Send(ctx, arg.ConversationID, arg.Msg, 0, nil)
 	if err != nil {
 		h.Debug(ctx, "PostLocal: unable to send message: %s", err.Error())
@@ -1490,37 +1444,24 @@ func (h *Server) PostLocalNonblock(ctx context.Context, arg chat1.PostLocalNonbl
 		return res, fmt.Errorf("no TLF name specified")
 	}
 
+	// Check for any slash command hits for an execute
+	if handled, err := h.G().CommandsSource.AttemptBuiltinCommand(ctx, uid, arg.ConversationID,
+		arg.Msg.ClientHeader.TlfName, arg.Msg.MessageBody); handled {
+		h.Debug(ctx, "PostLocalNonblock: handled slash command with error: %s", err)
+		return res, nil
+	}
+
 	// Determine if the messages contains any Stellar payments, and execute them if so
 	if arg.Msg.MessageBody, err = h.runStellarSendUI(ctx, arg.SessionID, uid, arg.ConversationID,
 		arg.Msg.MessageBody); err != nil {
 		return res, err
 	}
 
-	// Add outbox information
-	var prevMsgID chat1.MessageID
-	if arg.ClientPrev == 0 {
-		h.Debug(ctx, "PostLocalNonblock: ClientPrev not specified using local storage")
-		thread, err := h.G().ConvSource.PullLocalOnly(ctx, arg.ConversationID, uid, nil,
-			&chat1.Pagination{Num: 1}, 0)
-		if err != nil || len(thread.Messages) == 0 {
-			h.Debug(ctx, "PostLocalNonblock: unable to read local storage, setting ClientPrev to 1")
-			prevMsgID = 1
-		} else {
-			prevMsgID = thread.Messages[0].GetMessageID()
-		}
-	} else {
-		prevMsgID = arg.ClientPrev
-	}
-	h.Debug(ctx, "PostLocalNonblock: using prevMsgID: %d", prevMsgID)
-	arg.Msg.ClientHeader.OutboxInfo = &chat1.OutboxInfo{
-		Prev: prevMsgID,
-	}
-
 	// Create non block sender
 	sender := NewBlockingSender(h.G(), h.boxer, h.remoteClient)
 	nonblockSender := NewNonblockingSender(h.G(), sender)
 
-	obid, _, err := nonblockSender.Send(ctx, arg.ConversationID, arg.Msg, prevMsgID, arg.OutboxID)
+	obid, _, err := nonblockSender.Send(ctx, arg.ConversationID, arg.Msg, arg.ClientPrev, arg.OutboxID)
 	if err != nil {
 		return res, fmt.Errorf("PostLocalNonblock: unable to send message: err: %s", err.Error())
 	}
@@ -1830,12 +1771,10 @@ func (h *Server) JoinConversationByIDLocal(ctx context.Context, convID chat1.Con
 			h.Debug(ctx, "JoinConversationByIDLocal: result obtained offline")
 		}
 	}()
-
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return res, err
 	}
-
 	err = JoinConversation(ctx, h.G(), h.DebugLabeler, h.remoteClient, uid, convID)
 	if err != nil {
 		return res, err
@@ -1861,32 +1800,8 @@ func (h *Server) JoinConversationLocal(ctx context.Context, arg chat1.JoinConver
 	if err != nil {
 		return res, err
 	}
-
-	// Fetch the TLF ID from specified name
-	nameInfo, err := CreateNameInfoSource(ctx, h.G(), chat1.ConversationMembersType_TEAM).LookupID(ctx,
-		arg.TlfName, arg.Visibility == keybase1.TLFVisibility_PUBLIC)
-	if err != nil {
-		h.Debug(ctx, "JoinConversationLocal: failed to get TLFID from name: %s", err.Error())
-		return res, err
-	}
-
-	// List all the conversations on the team
-	convs, err := h.G().TeamChannelSource.GetChannelsFull(ctx, uid, nameInfo.ID, arg.TopicType)
-	if err != nil {
-		return res, err
-	}
-	var convID chat1.ConversationID
-	for _, conv := range convs {
-		topicName := utils.GetTopicName(conv)
-		if topicName != "" && topicName == arg.TopicName {
-			convID = conv.GetConvID()
-		}
-	}
-	if convID.IsNil() {
-		return res, fmt.Errorf("no topic name %s exists on specified team", arg.TopicName)
-	}
-
-	if err = JoinConversation(ctx, h.G(), h.DebugLabeler, h.remoteClient, uid, convID); err != nil {
+	if err = JoinConversationByName(ctx, h.G(), h.DebugLabeler, h.remoteClient, uid, arg.TlfName,
+		arg.TopicName, arg.TopicType, arg.Visibility); err != nil {
 		return res, err
 	}
 	res.Offline = h.G().InboxSource.IsOffline(ctx)
@@ -2377,6 +2292,7 @@ func (h *Server) GetStaticConfig(ctx context.Context) (res chat1.StaticConfig, e
 	defer h.Trace(ctx, func() error { return err }, "GetStaticConfig")()
 	return chat1.StaticConfig{
 		DeletableByDeleteHistory: chat1.DeletableMessageTypesByDeleteHistory(),
+		BuiltinCommands:          h.G().CommandsSource.GetBuiltins(ctx),
 	}, nil
 }
 

@@ -666,6 +666,13 @@ export const resetResetType = {
   delete: 2,
 }
 
+export const runtimeRuntimeGroup = {
+  unknown: 0,
+  linuxlike: 1,
+  darwinlike: 2,
+  windowslike: 3,
+}
+
 export const saltpackAuthenticityType = {
   signed: 0,
   repudiable: 1,
@@ -891,6 +898,7 @@ export const cryptocurrencyRegisterAddressRpcPromise = (params, waitingKey) => n
 export const ctlDbNukeRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.ctl.dbNuke', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const delegateUiCtlRegisterGregorFirehoseFilteredRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.delegateUiCtl.registerGregorFirehoseFiltered', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const delegateUiCtlRegisterHomeUIRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.delegateUiCtl.registerHomeUI', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const delegateUiCtlRegisterIdentify3UIRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.delegateUiCtl.registerIdentify3UI', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const delegateUiCtlRegisterIdentifyUIRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.delegateUiCtl.registerIdentifyUI', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const delegateUiCtlRegisterRekeyUIRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.delegateUiCtl.registerRekeyUI', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const delegateUiCtlRegisterSecretUIRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.delegateUiCtl.registerSecretUI', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -917,6 +925,9 @@ export const homeHomeDismissAnnouncementRpcPromise = (params, waitingKey) => new
 export const homeHomeGetScreenRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.home.homeGetScreen', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const homeHomeMarkViewedRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.home.homeMarkViewed', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const homeHomeSkipTodoTypeRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.home.homeSkipTodoType', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const identify3Identify3FollowUserRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.identify3.identify3FollowUser', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const identify3Identify3IgnoreUserRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.identify3.identify3IgnoreUser', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const identify3Identify3RpcSaga = p => call(getEngineSaga(), {method: 'keybase.1.identify3.identify3', params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})
 export const identifyIdentify2RpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.identify.identify2', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const installFuseStatusRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.install.fuseStatus', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const installInstallFuseRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.install.installFuse', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
@@ -981,6 +992,7 @@ export const trackTrackWithTokenRpcPromise = (params, waitingKey) => new Promise
 export const trackUntrackRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.track.untrack', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const userInterestingPeopleRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.interestingPeople', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const userListTrackers2RpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.listTrackers2', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const userLoadHasRandomPwRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.loadHasRandomPw', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const userLoadMySettingsRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.loadMySettings', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const userProfileEditRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.profileEdit', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const userUploadUserAvatarRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.uploadUserAvatar', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))

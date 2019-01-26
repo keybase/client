@@ -65,6 +65,8 @@ class ReallyRemoveAccountPopup extends React.Component<Props, State> {
             disabled={this.props.loading}
           />,
         ]}
+        safeAreaViewBottomStyle={styles.background}
+        safeAreaViewTopStyle={styles.background}
       >
         <Kb.Box2 centerChildren={true} direction="vertical" style={styles.flexOne} fullWidth={true}>
           <Kb.Icon
@@ -99,6 +101,7 @@ class ReallyRemoveAccountPopup extends React.Component<Props, State> {
             </Kb.Text>
           </Kb.Toast>
         </Kb.Box2>
+        <Kb.SafeAreaView />
       </WalletPopup>
     )
   }

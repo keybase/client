@@ -13,6 +13,7 @@ type Props = {
     onClick: () => void,
   }>,
   color: Color,
+  inline?: boolean,
   onClose?: () => void,
   text: string,
 }
@@ -21,7 +22,11 @@ const Banner = (props: Props) => (
   <Box2
     direction="horizontal"
     fullWidth={true}
-    style={Styles.collapseStyles([styles.container, colorToBackgroundColorStyles[props.color]])}
+    style={Styles.collapseStyles([
+      styles.container,
+      colorToBackgroundColorStyles[props.color],
+      props.inline && styles.containerInline,
+    ])}
   >
     <Box2 key="textBox" direction="horizontal" style={styles.textContainer} centerChildren={true}>
       <Text
@@ -68,6 +73,9 @@ const Banner = (props: Props) => (
 const styles = Styles.styleSheetCreate({
   container: {
     minHeight: Styles.globalMargins.large,
+  },
+  containerInline: {
+    borderRadius: Styles.borderRadius,
   },
   icon: {
     padding: Styles.globalMargins.tiny,

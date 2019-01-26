@@ -2636,6 +2636,8 @@ type ConversationInfoLocal struct {
 	Triple       ConversationIDTriple           `codec:"triple" json:"triple"`
 	TlfName      string                         `codec:"tlfName" json:"tlfName"`
 	TopicName    string                         `codec:"topicName" json:"topicName"`
+	Headline     string                         `codec:"headline" json:"headline"`
+	SnippetMsg   *MessageUnboxed                `codec:"snippetMsg,omitempty" json:"snippetMsg,omitempty"`
 	Visibility   keybase1.TLFVisibility         `codec:"visibility" json:"visibility"`
 	Status       ConversationStatus             `codec:"status" json:"status"`
 	MembersType  ConversationMembersType        `codec:"membersType" json:"membersType"`
@@ -2650,10 +2652,18 @@ type ConversationInfoLocal struct {
 
 func (o ConversationInfoLocal) DeepCopy() ConversationInfoLocal {
 	return ConversationInfoLocal{
-		Id:           o.Id.DeepCopy(),
-		Triple:       o.Triple.DeepCopy(),
-		TlfName:      o.TlfName,
-		TopicName:    o.TopicName,
+		Id:        o.Id.DeepCopy(),
+		Triple:    o.Triple.DeepCopy(),
+		TlfName:   o.TlfName,
+		TopicName: o.TopicName,
+		Headline:  o.Headline,
+		SnippetMsg: (func(x *MessageUnboxed) *MessageUnboxed {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.SnippetMsg),
 		Visibility:   o.Visibility.DeepCopy(),
 		Status:       o.Status.DeepCopy(),
 		MembersType:  o.MembersType.DeepCopy(),
@@ -2842,13 +2852,14 @@ type ConversationLocal struct {
 	Notifications    *ConversationNotificationInfo `codec:"notifications,omitempty" json:"notifications,omitempty"`
 	Supersedes       []ConversationMetadata        `codec:"supersedes" json:"supersedes"`
 	SupersededBy     []ConversationMetadata        `codec:"supersededBy" json:"supersededBy"`
-	MaxMessages      []MessageUnboxed              `codec:"maxMessages" json:"maxMessages"`
+	MaxMessages      []MessageSummary              `codec:"maxMessages" json:"maxMessages"`
 	IsEmpty          bool                          `codec:"isEmpty" json:"isEmpty"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 	Expunge          Expunge                       `codec:"expunge" json:"expunge"`
 	ConvRetention    *RetentionPolicy              `codec:"convRetention,omitempty" json:"convRetention,omitempty"`
 	TeamRetention    *RetentionPolicy              `codec:"teamRetention,omitempty" json:"teamRetention,omitempty"`
 	ConvSettings     *ConversationSettingsLocal    `codec:"convSettings,omitempty" json:"convSettings,omitempty"`
+	Commands         ConversationCommandGroups     `codec:"commands" json:"commands"`
 }
 
 func (o ConversationLocal) DeepCopy() ConversationLocal {
@@ -2898,11 +2909,11 @@ func (o ConversationLocal) DeepCopy() ConversationLocal {
 			}
 			return ret
 		})(o.SupersededBy),
-		MaxMessages: (func(x []MessageUnboxed) []MessageUnboxed {
+		MaxMessages: (func(x []MessageSummary) []MessageSummary {
 			if x == nil {
 				return nil
 			}
-			ret := make([]MessageUnboxed, len(x))
+			ret := make([]MessageSummary, len(x))
 			for i, v := range x {
 				vCopy := v.DeepCopy()
 				ret[i] = vCopy
@@ -2943,6 +2954,7 @@ func (o ConversationLocal) DeepCopy() ConversationLocal {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.ConvSettings),
+		Commands: o.Commands.DeepCopy(),
 	}
 }
 
@@ -2981,9 +2993,8 @@ func (o NonblockFetchRes) DeepCopy() NonblockFetchRes {
 }
 
 type ThreadView struct {
-	Messages     []MessageUnboxed `codec:"messages" json:"messages"`
-	UnreadLineID *MessageID       `codec:"unreadLineID,omitempty" json:"unreadLineID,omitempty"`
-	Pagination   *Pagination      `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	Messages   []MessageUnboxed `codec:"messages" json:"messages"`
+	Pagination *Pagination      `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
 func (o ThreadView) DeepCopy() ThreadView {
@@ -2999,13 +3010,6 @@ func (o ThreadView) DeepCopy() ThreadView {
 			}
 			return ret
 		})(o.Messages),
-		UnreadLineID: (func(x *MessageID) *MessageID {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.UnreadLineID),
 		Pagination: (func(x *Pagination) *Pagination {
 			if x == nil {
 				return nil
@@ -3174,6 +3178,48 @@ func (e GetThreadNonblockPgMode) String() string {
 		return v
 	}
 	return ""
+}
+
+type UnreadlineRes struct {
+	Offline          bool                          `codec:"offline" json:"offline"`
+	RateLimits       []RateLimit                   `codec:"rateLimits" json:"rateLimits"`
+	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
+	UnreadlineID     *MessageID                    `codec:"unreadlineID,omitempty" json:"unreadlineID,omitempty"`
+}
+
+func (o UnreadlineRes) DeepCopy() UnreadlineRes {
+	return UnreadlineRes{
+		Offline: o.Offline,
+		RateLimits: (func(x []RateLimit) []RateLimit {
+			if x == nil {
+				return nil
+			}
+			ret := make([]RateLimit, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.RateLimits),
+		IdentifyFailures: (func(x []keybase1.TLFIdentifyFailure) []keybase1.TLFIdentifyFailure {
+			if x == nil {
+				return nil
+			}
+			ret := make([]keybase1.TLFIdentifyFailure, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.IdentifyFailures),
+		UnreadlineID: (func(x *MessageID) *MessageID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.UnreadlineID),
+	}
 }
 
 type GetInboxUILocalRes struct {
@@ -4422,7 +4468,8 @@ func (o ProfileSearchConvStats) DeepCopy() ProfileSearchConvStats {
 }
 
 type StaticConfig struct {
-	DeletableByDeleteHistory []MessageType `codec:"deletableByDeleteHistory" json:"deletableByDeleteHistory"`
+	DeletableByDeleteHistory []MessageType         `codec:"deletableByDeleteHistory" json:"deletableByDeleteHistory"`
+	BuiltinCommands          []ConversationCommand `codec:"builtinCommands" json:"builtinCommands"`
 }
 
 func (o StaticConfig) DeepCopy() StaticConfig {
@@ -4438,6 +4485,17 @@ func (o StaticConfig) DeepCopy() StaticConfig {
 			}
 			return ret
 		})(o.DeletableByDeleteHistory),
+		BuiltinCommands: (func(x []ConversationCommand) []ConversationCommand {
+			if x == nil {
+				return nil
+			}
+			ret := make([]ConversationCommand, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.BuiltinCommands),
 	}
 }
 
@@ -4611,6 +4669,13 @@ type GetThreadNonblockArg struct {
 	Pgmode           GetThreadNonblockPgMode      `codec:"pgmode" json:"pgmode"`
 	Query            *GetThreadQuery              `codec:"query,omitempty" json:"query,omitempty"`
 	Pagination       *UIPagination                `codec:"pagination,omitempty" json:"pagination,omitempty"`
+	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
+}
+
+type GetUnreadlineArg struct {
+	SessionID        int                          `codec:"sessionID" json:"sessionID"`
+	ConvID           ConversationID               `codec:"convID" json:"convID"`
+	ReadMsgID        MessageID                    `codec:"readMsgID" json:"readMsgID"`
 	IdentifyBehavior keybase1.TLFIdentifyBehavior `codec:"identifyBehavior" json:"identifyBehavior"`
 }
 
@@ -5004,6 +5069,7 @@ type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetCachedThread(context.Context, GetCachedThreadArg) (GetThreadLocalRes, error)
 	GetThreadNonblock(context.Context, GetThreadNonblockArg) (NonblockFetchRes, error)
+	GetUnreadline(context.Context, GetUnreadlineArg) (UnreadlineRes, error)
 	GetInboxUILocal(context.Context, GetInboxUILocalArg) (GetInboxUILocalRes, error)
 	GetInboxAndUnboxLocal(context.Context, GetInboxAndUnboxLocalArg) (GetInboxAndUnboxLocalRes, error)
 	GetInboxAndUnboxUILocal(context.Context, GetInboxAndUnboxUILocalArg) (GetInboxAndUnboxUILocalRes, error)
@@ -5112,6 +5178,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetThreadNonblock(ctx, typedArgs[0])
+					return
+				},
+			},
+			"getUnreadline": {
+				MakeArg: func() interface{} {
+					var ret [1]GetUnreadlineArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetUnreadlineArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetUnreadlineArg)(nil), args)
+						return
+					}
+					ret, err = i.GetUnreadline(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -6015,6 +6096,11 @@ func (c LocalClient) GetCachedThread(ctx context.Context, __arg GetCachedThreadA
 
 func (c LocalClient) GetThreadNonblock(ctx context.Context, __arg GetThreadNonblockArg) (res NonblockFetchRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.getThreadNonblock", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) GetUnreadline(ctx context.Context, __arg GetUnreadlineArg) (res UnreadlineRes, err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.getUnreadline", []interface{}{__arg}, &res)
 	return
 }
 

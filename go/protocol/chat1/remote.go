@@ -319,6 +319,30 @@ func (o GetPublicConversationsRes) DeepCopy() GetPublicConversationsRes {
 	}
 }
 
+type GetUnreadlineRemoteRes struct {
+	UnreadlineID *MessageID `codec:"unreadlineID,omitempty" json:"unreadlineID,omitempty"`
+	RateLimit    *RateLimit `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+}
+
+func (o GetUnreadlineRemoteRes) DeepCopy() GetUnreadlineRemoteRes {
+	return GetUnreadlineRemoteRes{
+		UnreadlineID: (func(x *MessageID) *MessageID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.UnreadlineID),
+		RateLimit: (func(x *RateLimit) *RateLimit {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.RateLimit),
+	}
+}
+
 type ChannelMention int
 
 const (
@@ -797,6 +821,11 @@ type GetThreadRemoteArg struct {
 	Pagination     *Pagination     `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
+type GetUnreadlineRemoteArg struct {
+	ConvID    ConversationID `codec:"convID" json:"convID"`
+	ReadMsgID MessageID      `codec:"readMsgID" json:"readMsgID"`
+}
+
 type GetPublicConversationsArg struct {
 	TlfID            TLFID     `codec:"tlfID" json:"tlfID"`
 	TopicType        TopicType `codec:"topicType" json:"topicType"`
@@ -860,18 +889,20 @@ type SyncInboxArg struct {
 }
 
 type SyncChatArg struct {
-	Vers InboxVers `codec:"vers" json:"vers"`
+	Vers             InboxVers `codec:"vers" json:"vers"`
+	SummarizeMaxMsgs bool      `codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
 }
 
 type SyncAllArg struct {
-	Uid       gregor1.UID          `codec:"uid" json:"uid"`
-	DeviceID  gregor1.DeviceID     `codec:"deviceID" json:"deviceID"`
-	Session   gregor1.SessionToken `codec:"session" json:"session"`
-	InboxVers InboxVers            `codec:"inboxVers" json:"inboxVers"`
-	Ctime     gregor1.Time         `codec:"ctime" json:"ctime"`
-	Fresh     bool                 `codec:"fresh" json:"fresh"`
-	ProtVers  SyncAllProtVers      `codec:"protVers" json:"protVers"`
-	HostName  string               `codec:"hostName" json:"hostName"`
+	Uid              gregor1.UID          `codec:"uid" json:"uid"`
+	DeviceID         gregor1.DeviceID     `codec:"deviceID" json:"deviceID"`
+	Session          gregor1.SessionToken `codec:"session" json:"session"`
+	InboxVers        InboxVers            `codec:"inboxVers" json:"inboxVers"`
+	Ctime            gregor1.Time         `codec:"ctime" json:"ctime"`
+	Fresh            bool                 `codec:"fresh" json:"fresh"`
+	ProtVers         SyncAllProtVers      `codec:"protVers" json:"protVers"`
+	HostName         string               `codec:"hostName" json:"hostName"`
+	SummarizeMaxMsgs bool                 `codec:"summarizeMaxMsgs" json:"summarizeMaxMsgs"`
 }
 
 type TlfFinalizeArg struct {
@@ -986,6 +1017,7 @@ type BroadcastGregorMessageToConvArg struct {
 type RemoteInterface interface {
 	GetInboxRemote(context.Context, GetInboxRemoteArg) (GetInboxRemoteRes, error)
 	GetThreadRemote(context.Context, GetThreadRemoteArg) (GetThreadRemoteRes, error)
+	GetUnreadlineRemote(context.Context, GetUnreadlineRemoteArg) (GetUnreadlineRemoteRes, error)
 	GetPublicConversations(context.Context, GetPublicConversationsArg) (GetPublicConversationsRes, error)
 	PostRemote(context.Context, PostRemoteArg) (PostRemoteRes, error)
 	NewConversationRemote(context.Context, ConversationIDTriple) (NewConversationRemoteRes, error)
@@ -998,7 +1030,7 @@ type RemoteInterface interface {
 	S3Sign(context.Context, S3SignArg) ([]byte, error)
 	GetInboxVersion(context.Context, gregor1.UID) (InboxVers, error)
 	SyncInbox(context.Context, InboxVers) (SyncInboxRes, error)
-	SyncChat(context.Context, InboxVers) (SyncChatRes, error)
+	SyncChat(context.Context, SyncChatArg) (SyncChatRes, error)
 	SyncAll(context.Context, SyncAllArg) (SyncAllResult, error)
 	TlfFinalize(context.Context, TlfFinalizeArg) error
 	TlfResolve(context.Context, TlfResolveArg) error
@@ -1054,6 +1086,21 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetThreadRemote(ctx, typedArgs[0])
+					return
+				},
+			},
+			"getUnreadlineRemote": {
+				MakeArg: func() interface{} {
+					var ret [1]GetUnreadlineRemoteArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetUnreadlineRemoteArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetUnreadlineRemoteArg)(nil), args)
+						return
+					}
+					ret, err = i.GetUnreadlineRemote(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -1248,7 +1295,7 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]SyncChatArg)(nil), args)
 						return
 					}
-					ret, err = i.SyncChat(ctx, typedArgs[0].Vers)
+					ret, err = i.SyncChat(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -1595,6 +1642,11 @@ func (c RemoteClient) GetThreadRemote(ctx context.Context, __arg GetThreadRemote
 	return
 }
 
+func (c RemoteClient) GetUnreadlineRemote(ctx context.Context, __arg GetUnreadlineRemoteArg) (res GetUnreadlineRemoteRes, err error) {
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getUnreadlineRemote", []interface{}{__arg}, &res, rpc.CompressionGzip)
+	return
+}
+
 func (c RemoteClient) GetPublicConversations(ctx context.Context, __arg GetPublicConversationsArg) (res GetPublicConversationsRes, err error) {
 	err = c.Cli.CallCompressed(ctx, "chat.1.remote.getPublicConversations", []interface{}{__arg}, &res, rpc.CompressionGzip)
 	return
@@ -1660,8 +1712,7 @@ func (c RemoteClient) SyncInbox(ctx context.Context, vers InboxVers) (res SyncIn
 	return
 }
 
-func (c RemoteClient) SyncChat(ctx context.Context, vers InboxVers) (res SyncChatRes, err error) {
-	__arg := SyncChatArg{Vers: vers}
+func (c RemoteClient) SyncChat(ctx context.Context, __arg SyncChatArg) (res SyncChatRes, err error) {
 	err = c.Cli.CallCompressed(ctx, "chat.1.remote.syncChat", []interface{}{__arg}, &res, rpc.CompressionGzip)
 	return
 }

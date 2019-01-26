@@ -30,6 +30,7 @@ func NewCmdChat(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command 
 		newCmdChatReport(cl, g),
 		newCmdChatSetRetention(cl, g),
 		newCmdChatSetConvMinWriterRole(cl, g),
+		newCmdChatSetNotificationSettings(cl, g),
 		newCmdChatSearchInbox(cl, g),
 		newCmdChatSearchRegexp(cl, g),
 		newCmdChatSend(cl, g),

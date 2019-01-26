@@ -27,6 +27,10 @@
     {
       "path": "unfurl.avdl",
       "type": "idl"
+    },
+    {
+      "path": "commands.avdl",
+      "type": "idl"
     }
   ],
   "types": [
@@ -1345,6 +1349,17 @@
           "name": "topicName"
         },
         {
+          "type": "string",
+          "name": "headline"
+        },
+        {
+          "type": [
+            null,
+            "MessageUnboxed"
+          ],
+          "name": "snippetMsg"
+        },
+        {
           "type": "keybase1.TLFVisibility",
           "name": "visibility"
         },
@@ -1549,7 +1564,7 @@
         {
           "type": {
             "type": "array",
-            "items": "MessageUnboxed"
+            "items": "MessageSummary"
           },
           "name": "maxMessages"
         },
@@ -1588,6 +1603,10 @@
             "ConversationSettingsLocal"
           ],
           "name": "convSettings"
+        },
+        {
+          "type": "ConversationCommandGroups",
+          "name": "commands"
         }
       ]
     },
@@ -1625,13 +1644,6 @@
             "items": "MessageUnboxed"
           },
           "name": "messages"
-        },
-        {
-          "type": [
-            null,
-            "MessageID"
-          ],
-          "name": "unreadLineID"
         },
         {
           "type": [
@@ -1755,6 +1767,37 @@
       "symbols": [
         "DEFAULT_0",
         "SERVER_1"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnreadlineRes",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "offline"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RateLimit"
+          },
+          "name": "rateLimits"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "keybase1.TLFIdentifyFailure"
+          },
+          "name": "identifyFailures"
+        },
+        {
+          "type": [
+            null,
+            "MessageID"
+          ],
+          "name": "unreadlineID"
+        }
       ]
     },
     {
@@ -2687,6 +2730,13 @@
             "items": "MessageType"
           },
           "name": "deletableByDeleteHistory"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationCommand"
+          },
+          "name": "builtinCommands"
         }
       ]
     },
@@ -2874,6 +2924,27 @@
         }
       ],
       "response": "NonblockFetchRes"
+    },
+    "getUnreadline": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "readMsgID",
+          "type": "MessageID"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": "keybase1.TLFIdentifyBehavior"
+        }
+      ],
+      "response": "UnreadlineRes"
     },
     "getInboxUILocal": {
       "request": [

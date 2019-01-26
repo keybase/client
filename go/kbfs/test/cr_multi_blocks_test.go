@@ -126,6 +126,39 @@ func TestCrConflictMergedWriteMultiblockFile(t *testing.T) {
 	)
 }
 
+// bob writes a multi-block file when there's a conflict on another
+// file.  Regression test for KBFS-3770.
+func TestCrConflictWriteMultiblockFileDuringOtherConflict(t *testing.T) {
+	test(t,
+		blockSize(20), blockChangeSize(100*1024), users("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+			write("a/b", ntimesString(15, "0123456789")),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			write("a/c", "foo"),
+		),
+		as(bob, noSync(),
+			write("a/c", "foo"),
+			pwriteBS("a/b", []byte(ntimesString(15, "9876543210")), 150),
+			reenableUpdates(),
+			lsdir("a/", m{"b$": "FILE", "c$": "FILE", crnameEsc("c", bob): "FILE"}),
+			read("a/b", ntimesString(15, "0123456789")+ntimesString(15, "9876543210")),
+			read("a/c", "foo"),
+			read(crname("a/c", bob), "foo"),
+		),
+		as(alice,
+			lsdir("a/", m{"b$": "FILE", "c$": "FILE", crnameEsc("c", bob): "FILE"}),
+			read("a/b", ntimesString(15, "0123456789")+ntimesString(15, "9876543210")),
+			read("a/c", "foo"),
+			read(crname("a/c", bob), "foo"),
+		),
+	)
+}
+
 // bob resurrects a file that was removed by alice
 func TestCrConflictWriteToRemovedMultiblockFile(t *testing.T) {
 	test(t,

@@ -1,4 +1,5 @@
 // @flow
+// // TODO deprecate
 import * as React from 'react'
 import * as Kb from '../../common-adapters/mobile.native'
 import * as Styles from '../../styles'
@@ -28,7 +29,7 @@ const EditProfileRender = (props: Props) => (
       autoCorrect={true}
       label="Location"
       value={props.location}
-      onEnterKeyDown={props.onSubmit}
+      onEnterKeyDown={props.bioLengthLeft >= 0 ? props.onSubmit : null}
       onChangeText={location => props.onLocationChange(location)}
     />
     {props.bioLengthLeft <= 5 && (
