@@ -5560,9 +5560,9 @@ func (fbo *folderBranchOps) syncAllLocked(
 	// Squash the batch of updates together into a set of blocks and
 	// ready `md` for putting to the server.
 	md.AddOp(newResolutionOp())
-	_, newBps, blocksToDelete, err := fbo.prepper.prepUpdateForPaths(
+	_, blocksToDelete, err := fbo.prepper.prepUpdateForPaths(
 		ctx, lState, md, syncChains, dummyHeadChains, tempIRMD, head,
-		resolvedPaths, lbc, fileBlocks, fbo.config.DirtyBlockCache(),
+		resolvedPaths, lbc, fileBlocks, fbo.config.DirtyBlockCache(), bps,
 		prepFolderDontCopyIndirectFileBlocks)
 	if err != nil {
 		return err
@@ -5570,10 +5570,6 @@ func (fbo *folderBranchOps) syncAllLocked(
 	if len(blocksToDelete) > 0 {
 		return errors.Errorf("Unexpectedly found unflushed blocks to delete "+
 			"during syncAllLocked: %v", blocksToDelete)
-	}
-	err = bps.mergeOtherBps(ctx, newBps)
-	if err != nil {
-		return err
 	}
 
 	defer func() {
