@@ -33,6 +33,7 @@ func NewSource(g *globals.Context) *Source {
 
 func (s *Source) makeBuiltin() {
 	s.builtin = []types.ConversationCommand{
+		NewGiphy(s.G()),
 		NewHeadline(s.G()),
 		NewHide(s.G()),
 		NewJoin(s.G()),
@@ -74,4 +75,15 @@ func (s *Source) AttemptBuiltinCommand(ctx context.Context, uid gregor1.UID, con
 		}
 	}
 	return false, nil
+}
+
+func (s *Source) PreviewBuiltinCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, text string) {
+	defer s.Trace(ctx, func() error { return nil }, "PreviewBuiltinCommand")()
+	if !strings.HasPrefix(text, "/") {
+		return
+	}
+	for _, cmd := range s.builtin {
+		// Run preview on everything as long as it is a slash command
+		cmd.Preview(ctx, uid, convID, text)
+	}
 }

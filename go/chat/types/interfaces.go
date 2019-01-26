@@ -406,8 +406,8 @@ type Unfurler interface {
 
 type ConversationCommand interface {
 	Match(ctx context.Context, text string) bool
-	Execute(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, tlfName string, text string) error
-	Preview(ctx context.Context, text string) error
+	Execute(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, tlfName, text string) error
+	Preview(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, text string)
 	Name() string
 	Usage() string
 	Description() string
@@ -419,6 +419,7 @@ type ConversationCommandsSource interface {
 	GetBuiltins(ctx context.Context) []chat1.ConversationCommand
 	AttemptBuiltinCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		tlfName string, body chat1.MessageBody) (bool, error)
+	PreviewBuiltinCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, text string)
 }
 
 type InternalError interface {

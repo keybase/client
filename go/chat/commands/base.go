@@ -96,8 +96,8 @@ func (b *baseCommand) Description() string {
 	return b.description
 }
 
-func (b *baseCommand) Preview(ctx context.Context, text string) error {
-	return nil
+func (b *baseCommand) Preview(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	text string) {
 }
 
 func (b *baseCommand) Export() chat1.ConversationCommand {

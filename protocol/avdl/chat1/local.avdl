@@ -855,7 +855,8 @@ protocol local {
   FindConversationsLocalRes findConversationsLocal(string tlfName, ConversationMembersType membersType, keybase1.TLFVisibility visibility, TopicType topicType, string topicName, union { null, boolean } oneChatPerTLF, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   // Typing API
-  void updateTyping(ConversationID conversationID, string text);
+  void updateTyping(ConversationID conversationID, boolean typing); // throttled
+  void updateUnsentText(ConversationID conversationID, string text); // debounced
 
   // Channel management
   record JoinLeaveConversationLocalRes {
@@ -963,14 +964,4 @@ protocol local {
   void resolveUnfurlPrompt(ConversationID convID, MessageID msgID, UnfurlPromptResult result, keybase1.TLFIdentifyBehavior identifyBehavior);
   UnfurlSettingsDisplay getUnfurlSettings();
   void saveUnfurlSettings(UnfurlMode mode, array<string> whitelist);
-
-  // Giphy search
-  record GiphySearchResult {
-    string targetUrl;
-    string previewUrl;
-    int previewWidth;
-    int previewHeight;
-    boolean previewIsVideo;
-  }
-  array<GiphySearchResult> giphySearch(union { null, string } query);
 }

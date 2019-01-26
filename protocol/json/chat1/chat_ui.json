@@ -940,6 +940,32 @@
           "name": "payments"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "GiphySearchResult",
+      "fields": [
+        {
+          "type": "string",
+          "name": "targetUrl"
+        },
+        {
+          "type": "string",
+          "name": "previewUrl"
+        },
+        {
+          "type": "int",
+          "name": "previewWidth"
+        },
+        {
+          "type": "int",
+          "name": "previewHeight"
+        },
+        {
+          "type": "boolean",
+          "name": "previewIsVideo"
+        }
+      ]
     }
   ],
   "messages": {
@@ -1175,6 +1201,26 @@
         {
           "name": "canceled",
           "type": "boolean"
+        }
+      ],
+      "response": null
+    },
+    "chatGiphySearchResults": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "convID",
+          "type": "string"
+        },
+        {
+          "name": "results",
+          "type": {
+            "type": "array",
+            "items": "GiphySearchResult"
+          }
         }
       ],
       "response": null

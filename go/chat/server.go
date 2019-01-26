@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/attachments"
-	"github.com/keybase/client/go/chat/giphy"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
@@ -1727,11 +1726,31 @@ func (h *Server) FindConversationsLocal(ctx context.Context,
 	return res, nil
 }
 
+func (h *Server) UpdateUnsentText(ctx context.Context, arg chat1.UpdateUnsentTextArg) (err error) {
+	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err },
+		fmt.Sprintf("UpdateUnsentText(%s)", arg.ConversationID))()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return err
+	}
+
+	// Attempt to prefetch any unfurls in the background that are in the message text
+	go h.G().Unfurler.Prefetch(BackgroundContext(ctx, h.G()), uid, arg.ConversationID, arg.Text)
+
+	// Preview any slash commands in the text
+	go h.G().CommandsSource.PreviewBuiltinCommand(BackgroundContext(ctx, h.G()), uid,
+		arg.ConversationID, arg.Text)
+
+	return nil
+}
+
 func (h *Server) UpdateTyping(ctx context.Context, arg chat1.UpdateTypingArg) (err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI,
 		&identBreaks, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("StartTyping(%s)", arg.ConversationID))()
+	defer h.Trace(ctx, func() error { return err },
+		fmt.Sprintf("UpdateTyping(%s)", arg.ConversationID))()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return err
@@ -1740,9 +1759,6 @@ func (h *Server) UpdateTyping(ctx context.Context, arg chat1.UpdateTypingArg) (e
 	if !h.G().Syncer.IsConnected(ctx) {
 		return nil
 	}
-	// Attempt to prefetch any unfurls in the background that are in the message text
-	go h.G().Unfurler.Prefetch(BackgroundContext(ctx, h.G()), uid, arg.ConversationID, arg.Text)
-
 	deviceID := make([]byte, libkb.DeviceIDLen)
 	if err := h.G().Env.GetDeviceID().ToBytes(deviceID); err != nil {
 		return err
@@ -1751,11 +1767,10 @@ func (h *Server) UpdateTyping(ctx context.Context, arg chat1.UpdateTypingArg) (e
 		Uid:      uid,
 		DeviceID: deviceID,
 		ConvID:   arg.ConversationID,
-		Typing:   len(arg.Text) > 0,
+		Typing:   arg.Typing,
 	}); err != nil {
 		h.Debug(ctx, "UpdateTyping: failed to hit the server: %s", err.Error())
 	}
-
 	return nil
 }
 
@@ -2398,10 +2413,4 @@ func (h *Server) SaveUnfurlSettings(ctx context.Context, arg chat1.SaveUnfurlSet
 		Mode:      arg.Mode,
 		Whitelist: wm,
 	})
-}
-
-func (h *Server) GiphySearch(ctx context.Context, query *string) (res []chat1.GiphySearchResult, err error) {
-	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "GiphySearch")()
-	return giphy.Search(ctx, query, h.G().AttachmentURLSrv)
 }

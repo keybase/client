@@ -82,6 +82,10 @@ func (r DummyChatUI) ChatStellarDone(ctx context.Context, arg chat1.ChatStellarD
 	return nil
 }
 
+func (r DummyChatUI) ChatGiphySearchResults(ctx context.Context, arg chat1.ChatGiphySearchResultsArg) error {
+	return nil
+}
+
 type DummyChatNotifications struct{}
 
 func (d DummyChatNotifications) NewChatActivity(ctx context.Context, arg chat1.NewChatActivityArg) error {

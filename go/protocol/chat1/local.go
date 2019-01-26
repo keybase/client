@@ -4628,24 +4628,6 @@ func (o UnfurlPromptResult) DeepCopy() UnfurlPromptResult {
 	}
 }
 
-type GiphySearchResult struct {
-	TargetUrl      string `codec:"targetUrl" json:"targetUrl"`
-	PreviewUrl     string `codec:"previewUrl" json:"previewUrl"`
-	PreviewWidth   int    `codec:"previewWidth" json:"previewWidth"`
-	PreviewHeight  int    `codec:"previewHeight" json:"previewHeight"`
-	PreviewIsVideo bool   `codec:"previewIsVideo" json:"previewIsVideo"`
-}
-
-func (o GiphySearchResult) DeepCopy() GiphySearchResult {
-	return GiphySearchResult{
-		TargetUrl:      o.TargetUrl,
-		PreviewUrl:     o.PreviewUrl,
-		PreviewWidth:   o.PreviewWidth,
-		PreviewHeight:  o.PreviewHeight,
-		PreviewIsVideo: o.PreviewIsVideo,
-	}
-}
-
 type GetThreadLocalArg struct {
 	ConversationID   ConversationID               `codec:"conversationID" json:"conversationID"`
 	Reason           GetThreadReason              `codec:"reason" json:"reason"`
@@ -4939,6 +4921,11 @@ type FindConversationsLocalArg struct {
 
 type UpdateTypingArg struct {
 	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
+	Typing         bool           `codec:"typing" json:"typing"`
+}
+
+type UpdateUnsentTextArg struct {
+	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
 	Text           string         `codec:"text" json:"text"`
 }
 
@@ -5061,10 +5048,6 @@ type SaveUnfurlSettingsArg struct {
 	Whitelist []string   `codec:"whitelist" json:"whitelist"`
 }
 
-type GiphySearchArg struct {
-	Query *string `codec:"query,omitempty" json:"query,omitempty"`
-}
-
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetCachedThread(context.Context, GetCachedThreadArg) (GetThreadLocalRes, error)
@@ -5106,6 +5089,7 @@ type LocalInterface interface {
 	MarkAsReadLocal(context.Context, MarkAsReadLocalArg) (MarkAsReadLocalRes, error)
 	FindConversationsLocal(context.Context, FindConversationsLocalArg) (FindConversationsLocalRes, error)
 	UpdateTyping(context.Context, UpdateTypingArg) error
+	UpdateUnsentText(context.Context, UpdateUnsentTextArg) error
 	JoinConversationLocal(context.Context, JoinConversationLocalArg) (JoinLeaveConversationLocalRes, error)
 	JoinConversationByIDLocal(context.Context, ConversationID) (JoinLeaveConversationLocalRes, error)
 	PreviewConversationByIDLocal(context.Context, ConversationID) (JoinLeaveConversationLocalRes, error)
@@ -5129,7 +5113,6 @@ type LocalInterface interface {
 	ResolveUnfurlPrompt(context.Context, ResolveUnfurlPromptArg) error
 	GetUnfurlSettings(context.Context) (UnfurlSettingsDisplay, error)
 	SaveUnfurlSettings(context.Context, SaveUnfurlSettingsArg) error
-	GiphySearch(context.Context, *string) ([]GiphySearchResult, error)
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -5731,6 +5714,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"updateUnsentText": {
+				MakeArg: func() interface{} {
+					var ret [1]UpdateUnsentTextArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]UpdateUnsentTextArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]UpdateUnsentTextArg)(nil), args)
+						return
+					}
+					err = i.UpdateUnsentText(ctx, typedArgs[0])
+					return
+				},
+			},
 			"joinConversationLocal": {
 				MakeArg: func() interface{} {
 					var ret [1]JoinConversationLocalArg
@@ -6061,21 +6059,6 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
-			"giphySearch": {
-				MakeArg: func() interface{} {
-					var ret [1]GiphySearchArg
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[1]GiphySearchArg)
-					if !ok {
-						err = rpc.NewTypeError((*[1]GiphySearchArg)(nil), args)
-						return
-					}
-					ret, err = i.GiphySearch(ctx, typedArgs[0].Query)
-					return
-				},
-			},
 		},
 	}
 }
@@ -6287,6 +6270,11 @@ func (c LocalClient) UpdateTyping(ctx context.Context, __arg UpdateTypingArg) (e
 	return
 }
 
+func (c LocalClient) UpdateUnsentText(ctx context.Context, __arg UpdateUnsentTextArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.updateUnsentText", []interface{}{__arg}, nil)
+	return
+}
+
 func (c LocalClient) JoinConversationLocal(ctx context.Context, __arg JoinConversationLocalArg) (res JoinLeaveConversationLocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.joinConversationLocal", []interface{}{__arg}, &res)
 	return
@@ -6406,11 +6394,5 @@ func (c LocalClient) GetUnfurlSettings(ctx context.Context) (res UnfurlSettingsD
 
 func (c LocalClient) SaveUnfurlSettings(ctx context.Context, __arg SaveUnfurlSettingsArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.saveUnfurlSettings", []interface{}{__arg}, nil)
-	return
-}
-
-func (c LocalClient) GiphySearch(ctx context.Context, query *string) (res []GiphySearchResult, err error) {
-	__arg := GiphySearchArg{Query: query}
-	err = c.Cli.Call(ctx, "chat.1.local.giphySearch", []interface{}{__arg}, &res)
 	return
 }
