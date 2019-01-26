@@ -22,6 +22,7 @@ const (
 	journalLimitTrackerType
 	workingSetCacheLimitTrackerType
 	syncCacheLimitTrackerType
+	crDirtyBlockCacheLimitTrackerType // allow unlimited bytes for CR
 )
 
 // simpleResourceTracker is an interface for limiting a single resource type.
