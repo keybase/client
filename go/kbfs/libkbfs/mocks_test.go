@@ -2240,20 +2240,6 @@ func (mr *MockKBFSOpsMockRecorder) GetNodeMetadata(ctx, node interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNodeMetadata", reflect.TypeOf((*MockKBFSOps)(nil).GetNodeMetadata), ctx, node)
 }
 
-// GetConflictResolutionDB mocks base method
-func (m *MockKBFSOps) GetConflictResolutionDB() *leveldb.DB {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetConflictResolutionDB")
-	ret0, _ := ret[0].(*leveldb.DB)
-	return ret0
-}
-
-// GetConflictResolutionDB indicates an expected call of GetConflictResolutionDB
-func (mr *MockKBFSOpsMockRecorder) GetConflictResolutionDB() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetConflictResolutionDB", reflect.TypeOf((*MockKBFSOps)(nil).GetConflictResolutionDB))
-}
-
 // Shutdown mocks base method
 func (m *MockKBFSOps) Shutdown(ctx context.Context) error {
 	m.ctrl.T.Helper()
@@ -6515,6 +6501,7 @@ func (mr *MockPrefetcherMockRecorder) WaitChannelForBlockPrefetch(ctx, ptr inter
 
 // Status mocks base method
 func (m *MockPrefetcher) Status(ctx context.Context, ptr BlockPointer) (PrefetchProgress, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Status", ctx, ptr)
 	ret0, _ := ret[0].(PrefetchProgress)
 	ret1, _ := ret[1].(error)
@@ -6523,6 +6510,7 @@ func (m *MockPrefetcher) Status(ctx context.Context, ptr BlockPointer) (Prefetch
 
 // Status indicates an expected call of Status
 func (mr *MockPrefetcherMockRecorder) Status(ctx, ptr interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Status", reflect.TypeOf((*MockPrefetcher)(nil).Status), ctx, ptr)
 }
 
