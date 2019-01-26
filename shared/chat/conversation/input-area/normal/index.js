@@ -239,7 +239,7 @@ class Input extends React.Component<InputProps, InputState> {
           backgroundColor: selected ? Styles.globalColors.blue4 : Styles.globalColors.white,
         },
       ])}
-      gap="small"
+      gap="tiny"
     >
       {Constants.isSpecialMention(username) ? (
         <Kb.Icon
@@ -251,7 +251,12 @@ class Input extends React.Component<InputProps, InputState> {
       ) : (
         <Kb.Avatar username={username} size={32} />
       )}
-      <Kb.ConnectedUsernames type="BodySemibold" colorFollowing={true} usernames={[username]} />
+      <Kb.ConnectedUsernames
+        type="BodySemibold"
+        colorFollowing={true}
+        usernames={[username]}
+        style={styles.boldStyle}
+      />
       <Kb.Text type="BodySmall">{fullName}</Kb.Text>
     </Kb.Box2>
   )
@@ -297,7 +302,7 @@ class Input extends React.Component<InputProps, InputState> {
       ])}
     >
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
-        <Kb.Text type="BodySemibold" style={{fontWeight: 700}}>
+        <Kb.Text type="BodySemibold" style={styles.boldStyle}>
           /{command.name}
         </Kb.Text>
         <Kb.Text type="Body">{command.usage}</Kb.Text>
@@ -335,7 +340,13 @@ class Input extends React.Component<InputProps, InputState> {
 }
 
 const styles = Styles.styleSheetCreate({
-  fixSuggestionHeight: {height: 40},
+  boldStyle: {
+    fontWeight: '700',
+  },
+  fixSuggestionHeight: Styles.platformStyles({
+    isElectron: {height: 40},
+    isMobile: {height: 48},
+  }),
   paddingXTiny: {
     padding: Styles.globalMargins.xtiny,
   },
