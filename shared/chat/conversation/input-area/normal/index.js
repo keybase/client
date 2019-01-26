@@ -289,7 +289,7 @@ class Input extends React.Component<InputProps, InputState> {
       direction="vertical"
       style={Styles.collapseStyles([
         styles.suggestionBase,
-        {height: 50},
+        styles.fixSuggestionHeight,
         {
           alignItems: 'flex-start',
           backgroundColor: selected ? Styles.globalColors.blue4 : Styles.globalColors.white,
@@ -297,12 +297,12 @@ class Input extends React.Component<InputProps, InputState> {
       ])}
     >
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
-        <Kb.Text type="BodyExtrabold">/{command.name}</Kb.Text>
+        <Kb.Text type="BodySemibold" style={{fontWeight: 700}}>
+          /{command.name}
+        </Kb.Text>
         <Kb.Text type="Body">{command.usage}</Kb.Text>
       </Kb.Box2>
-      <Kb.Text type="Body" style={Styles.collapseStyles([{color: Styles.globalColors.black_50}])}>
-        {command.description}
-      </Kb.Text>
+      <Kb.Text type="BodySmall">{command.description}</Kb.Text>
     </Kb.Box2>
   )
 
