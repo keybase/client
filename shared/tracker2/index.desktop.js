@@ -137,7 +137,7 @@ const Tracker = (props: Props) => {
   return (
     <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
-        <Kb.Icon type="iconfont-close" onClick={props.onClose} />
+        <Kb.Icon type="iconfont-close" onClick={props.onClose} style={styles.close} />
       </Kb.Box2>
       <Kb.Text type="BodySmallSemibold" style={Styles.collapseStyles([styles.reason, {backgroundColor}])}>
         {props.reason}
@@ -149,12 +149,14 @@ const Tracker = (props: Props) => {
           </Kb.Text>
           <Kb.Box2 direction="vertical" fullWidth={true} style={styles.avatarContainer}>
             <Kb.Box2 direction="vertical" style={styles.avatarBackground} />
-            <Kb.ConnectedNameWithIcon
-              onClick="profile"
-              username={props.username}
-              colorFollowing={true}
-              notFollowingColorOverride={Styles.globalColors.orange}
-            />
+            <Kb.Box2 direction="vertical" style={styles.nameWithIconContainer}>
+              <Kb.ConnectedNameWithIcon
+                onClick="profile"
+                username={props.username}
+                colorFollowing={true}
+                notFollowingColorOverride={Styles.globalColors.orange}
+              />
+            </Kb.Box2>
           </Kb.Box2>
           <Bio username={props.username} />
           {props.teamShowcase && (
@@ -223,19 +225,22 @@ const styles = Styles.styleSheetCreate({
     isElectron: {boxShadow: 'rgba(0, 0, 0, 0.15) 0px 0px 3px'},
   }),
   chatIcon: {marginRight: Styles.globalMargins.tiny},
-  container: {
-    backgroundColor: Styles.globalColors.white,
-    position: 'relative',
-  },
-  header: Styles.platformStyles({
+  close: {padding: Styles.globalMargins.tiny},
+  container: Styles.platformStyles({
     isElectron: {
       ...Styles.desktopStyles.windowDragging,
-      justifyContent: 'flex-end',
-      padding: Styles.globalMargins.tiny,
-      position: 'absolute',
-      zIndex: 9,
+      backgroundColor: Styles.globalColors.white,
+      position: 'relative',
     },
   }),
+  header: {
+    justifyContent: 'flex-end',
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingTop: Styles.globalMargins.tiny,
+    position: 'absolute',
+    zIndex: 9,
+  },
+  nameWithIconContainer: {alignSelf: 'center'},
   reason: {
     ...reason,
     ...Styles.globalStyles.fillAbsolute,
