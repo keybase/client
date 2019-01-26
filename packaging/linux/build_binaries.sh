@@ -174,7 +174,7 @@ if [ -n "${KEYBASE_BUILD_ARM_ONLY:-}" ] ; then
   export electron_arch=arm64
   build_one_architecture
   echo "Keybase: Built ARM; exiting..."
-  return
+  exit
 fi
 
 if [ -z "${KEYBASE_SKIP_64_BIT:-}" ] ; then
