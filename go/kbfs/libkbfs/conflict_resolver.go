@@ -3123,10 +3123,11 @@ func (cr *ConflictResolver) completeResolution(ctx context.Context,
 		}
 	}
 
-	updates, bps, blocksToDelete, err := cr.prepper.prepUpdateForPaths(
+	bps := newBlockPutStateMemory(0)
+	updates, blocksToDelete, err := cr.prepper.prepUpdateForPaths(
 		ctx, lState, md, unmergedChains, mergedChains,
 		mostRecentUnmergedMD, mostRecentMergedMD, resolvedPaths, lbc,
-		newFileBlocks, dirtyBcache, prepFolderCopyIndirectFileBlocks)
+		newFileBlocks, dirtyBcache, bps, prepFolderCopyIndirectFileBlocks)
 	if err != nil {
 		return err
 	}
