@@ -59,7 +59,7 @@ func (s *Giphy) Preview(ctx context.Context, uid gregor1.UID, convID chat1.Conve
 	defer func() { s.currentOpCancelFn = nil }()
 	s.Unlock()
 
-	if !s.Match(ctx, text) || text != "/giphy" {
+	if !s.Match(ctx, text) || text == "/giphy" {
 		shown := s.shownResults[convID.String()]
 		if shown {
 			// tell UI to clear
