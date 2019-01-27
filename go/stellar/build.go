@@ -219,10 +219,10 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 			// Check that the sender has enough asset available.
 			// Note: When adding support for sending non-XLM assets, check the asset instead of XLM here.
 			availableToSendXLM, err := bpc.AvailableXLMToSend(mctx, fromInfo.from)
-			availableToSendXLM = SubtractFeeSoft(mctx, availableToSendXLM)
 			if err != nil {
 				log("error getting available balance: %v", err)
 			} else {
+				availableToSendXLM = SubtractFeeSoft(mctx, availableToSendXLM)
 				availableToSendFormatted := availableToSendXLM + " XLM"
 				availableToSendXLMFmt, err := FormatAmount(
 					availableToSendXLM, false, FmtTruncate)
