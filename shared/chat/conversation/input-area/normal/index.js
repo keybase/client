@@ -132,7 +132,7 @@ class Input extends React.Component<InputProps, InputState> {
   _onChangeText = (text: string) => {
     this.props.setUnsentText(text)
     this._lastText = text
-    throttled(this.props.sendTyping, text)
+    throttled(this.props.sendTyping, !!text)
     debounced(this.props.unsentTextChanged, text)
   }
 
@@ -159,7 +159,7 @@ class Input extends React.Component<InputProps, InputState> {
     if (!skipUnsentSaving) {
       this.props.setUnsentText(text)
     }
-    throttled(this.props.sendTyping, text)
+    throttled(this.props.sendTyping, !!text)
   }
 
   _setHeight = (inputHeight: number) =>

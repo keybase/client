@@ -50,7 +50,6 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
     quoteCounter: quoteInfo ? quoteInfo.counter : 0,
     quoteText: quoteInfo ? quoteInfo.text : '',
     showWalletsIcon: Constants.shouldShowWalletsIcon(state, conversationIDKey),
-    showingGiphySearch: state.chat2.giphySearchMap.get(conversationIDKey) || false,
     suggestChannels: Constants.getChannelSuggestions(state, teamname),
     suggestCommands: Constants.getCommands(state, conversationIDKey),
     suggestUsers: Constants.getParticipantSuggestions(state, conversationIDKey),
@@ -94,9 +93,8 @@ const mapDispatchToProps = dispatch => ({
     ),
   _onPostMessage: (conversationIDKey: Types.ConversationIDKey, text: string) =>
     dispatch(Chat2Gen.createMessageSend({conversationIDKey, text: new HiddenString(text)})),
-  _sendTyping: (conversationIDKey: Types.ConversationIDKey, text: string) =>
-    conversationIDKey &&
-    dispatch(Chat2Gen.createSendTyping({conversationIDKey, text: new HiddenString(text)})),
+  _sendTyping: (conversationIDKey: Types.ConversationIDKey, typing: boolean) =>
+    conversationIDKey && dispatch(Chat2Gen.createSendTyping({conversationIDKey, typing})),
   _unsentTextChanged: (conversationIDKey: Types.ConversationIDKey, text: string) =>
     conversationIDKey &&
     dispatch(Chat2Gen.createUnsentTextChanged({conversationIDKey, text: new HiddenString(text)})),
@@ -130,8 +128,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   },
   quoteCounter: stateProps.quoteCounter,
   quoteText: stateProps.quoteText,
-  sendTyping: (text: string) => {
-    dispatchProps._sendTyping(stateProps.conversationIDKey, text)
+  sendTyping: (typing: boolean) => {
+    dispatchProps._sendTyping(stateProps.conversationIDKey, typing)
   },
   setUnsentText: (text: string) => {
     const unset = text.length <= 0

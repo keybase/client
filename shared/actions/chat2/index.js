@@ -25,6 +25,7 @@ import * as WaitingGen from '../waiting-gen'
 import chatTeamBuildingSaga from './team-building'
 import {hasCanPerform, retentionPolicyToServiceRetentionPolicy, teamRoleByEnum} from '../../constants/teams'
 import logger from '../../logger'
+import engine from '../../engine'
 import {isMobile} from '../../constants/platform'
 import {getPath} from '../../route-tree'
 import {NotifyPopup} from '../../native/notifications'
@@ -33,6 +34,14 @@ import {downloadFilePath} from '../../util/file'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import flags from '../../util/feature-flags'
 import type {RPCError} from '../../util/errors'
+
+const setupEngineListeners = () => {
+  engine().actionOnConnect('registerChatUI', () => {
+    RPCTypes.delegateUiCtlRegisterChatUIRpcPromise()
+      .then(() => console.log('Registered Chat UI'))
+      .catch(error => console.warn('Error in registering Chat UI:', error))
+  })
+}
 
 // Ask the service to refresh the inbox
 function* inboxRefresh(state, action) {
@@ -1810,10 +1819,10 @@ function* attachmentsUpload(state, action) {
 
 // Tell service we're typing
 const sendTyping = (_, action) => {
-  const {conversationIDKey, text} = action.payload
+  const {conversationIDKey, typing} = action.payload
   return RPCChatTypes.localUpdateTypingRpcPromise({
     conversationID: Types.keyToConversationID(conversationIDKey),
-    text: text.stringValue(),
+    typing,
   })
 }
 
@@ -2499,44 +2508,25 @@ const unfurlResolvePrompt = (state, action) => {
   })
 }
 
-const textHasGiphySearch = (text: string) => {
-  return text.indexOf('/giphy ') === 0
+const unsentTextChanged = (state, action) => {
+  const {conversationIDKey, text} = action.payload
+  return RPCChatTypes.localUpdateUnsentTextRpcPromise({
+    conversationID: Types.keyToConversationID(conversationIDKey),
+    text: text.stringValue(),
+  })
 }
 
-function* giphyRunSearch(state, action) {
-  if (isMobile) {
-    // not supported on mobile yet
-    return
-  }
-  const {conversationIDKey} = action.payload
-  const text = action.payload.text.stringValue()
-  const showingGiphySearch = state.chat2.giphySearchMap.get(conversationIDKey)
-  if (showingGiphySearch && !textHasGiphySearch(text)) {
-    yield Saga.put(Chat2Gen.createGiphyToggle({conversationIDKey, show: false}))
-  } else if (textHasGiphySearch(text)) {
-    if (!showingGiphySearch) {
-      yield Saga.put(Chat2Gen.createGiphyToggle({conversationIDKey, show: true}))
-    }
-    const terms = text.split(' ')
-    terms.shift()
-    const query = terms.join(' ')
-    try {
-      const result = yield RPCChatTypes.localGiphySearchRpcPromise({
-        query: query.length > 0 ? query : null,
-      })
-      yield Saga.put(Chat2Gen.createGiphyGotSearchResult({conversationIDKey, result}))
-    } catch (e) {
-      logger.info(`Giphy search failed: ${JSON.stringify(e)}`)
-    }
-  }
+const onGiphyResults = (state, action) => {
+  const {convID, results} = action.payload.params
+  return Chat2Gen.createGiphyGotSearchResult({
+    conversationIDKey: Types.stringToConversationIDKey(convID),
+    results: results || [],
+  })
 }
 
 const giphySend = (state, action) => {
   const {conversationIDKey, url} = action.payload
-  return [
-    Chat2Gen.createGiphyToggle({conversationIDKey, show: false}),
-    Chat2Gen.createMessageSend({conversationIDKey, text: url}),
-  ]
+  return Chat2Gen.createMessageSend({conversationIDKey, text: url})
 }
 
 const openChatFromWidget = (state, {payload: {conversationIDKey}}) => [
@@ -2745,7 +2735,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<Chat2Gen.SelectConversationPayload>(Chat2Gen.selectConversation, loadCanUserPerform)
 
   // Giphy
-  yield* Saga.chainGenerator<Chat2Gen.UnsentTextChangedPayload>(Chat2Gen.unsentTextChanged, giphyRunSearch)
+  yield* Saga.chainAction<Chat2Gen.UnsentTextChangedPayload>(Chat2Gen.unsentTextChanged, unsentTextChanged)
   yield* Saga.chainAction<Chat2Gen.GiphySendPayload>(Chat2Gen.giphySend, giphySend)
 
   yield* Saga.chainAction<Chat2Gen.UnfurlResolvePromptPayload>(
@@ -2946,6 +2936,15 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<EngineGen.Chat1NotifyChatNewChatActivityPayload>(
     EngineGen.chat1NotifyChatNewChatActivity,
     onNewChatActivity
+  )
+  yield* Saga.chainAction<EngineGen.Chat1ChatUiChatGiphySearchResultsPayload>(
+    EngineGen.chat1ChatUiChatGiphySearchResults,
+    onGiphyResults
+  )
+
+  yield* Saga.chainAction<ConfigGen.SetupEngineListenersPayload>(
+    ConfigGen.setupEngineListeners,
+    setupEngineListeners
   )
 
   yield Saga.spawn(chatTeamBuildingSaga)

@@ -11,6 +11,7 @@ import (
 
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/protocol/chat1"
+	"golang.org/x/net/context/ctxhttp"
 )
 
 const apiKey = "ZsqoY64vpeo53oZH5ShgywcjLu1W8rIe"
@@ -19,6 +20,11 @@ const giphyHost = "https://api.giphy.com"
 func formatResponse(ctx context.Context, response giphyResponse, srv types.AttachmentURLSrv) (res []chat1.GiphySearchResult) {
 	for _, obj := range response.Data {
 		for typ, img := range obj.Images {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+			}
 			if typ != "fixed_height" {
 				continue
 			}
@@ -46,7 +52,7 @@ func formatResponse(ctx context.Context, response giphyResponse, srv types.Attac
 }
 
 func runCall(ctx context.Context, endpoint string, srv types.AttachmentURLSrv) (res []chat1.GiphySearchResult, err error) {
-	resp, err := http.Get(endpoint)
+	resp, err := ctxhttp.Get(ctx, http.DefaultClient, endpoint)
 	if err != nil {
 		return res, err
 	}

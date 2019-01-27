@@ -15,7 +15,9 @@ import (
 type Giphy struct {
 	sync.Mutex
 	*baseCommand
-	shownResults map[string]bool
+	shownResults      map[string]bool
+	currentOpCancelFn context.CancelFunc
+	currentOpDoneCb   chan struct{}
 }
 
 func NewGiphy(g *globals.Context) *Giphy {
@@ -43,7 +45,21 @@ func (s *Giphy) getChatUI() chat1.ChatUiInterface {
 
 func (s *Giphy) Preview(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, text string) {
 	defer s.Trace(ctx, func() error { return nil }, "Preview")()
-	if !s.Match(ctx, text) {
+	s.Lock()
+	if s.currentOpCancelFn != nil {
+		s.currentOpCancelFn()
+	}
+	select {
+	case <-s.currentOpDoneCb:
+	default:
+	}
+	ctx, s.currentOpCancelFn = context.WithCancel(ctx)
+	s.currentOpDoneCb = make(chan struct{})
+	defer close(s.currentOpDoneCb)
+	defer func() { s.currentOpCancelFn = nil }()
+	s.Unlock()
+
+	if !s.Match(ctx, text) || text != "/giphy" {
 		shown := s.shownResults[convID.String()]
 		if shown {
 			// tell UI to clear

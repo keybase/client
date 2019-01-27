@@ -19,7 +19,8 @@ const mapStateToProps = (state, {conversationIDKey, isPending}) => {
   const meta = Constants.getMeta(state, conversationIDKey)
   const infoPanelOpen = Constants.isInfoPanelOpen(state)
   const isSearching = state.chat2.pendingMode === 'searchingForUsers' && isPending
-  const showGiphySearch = state.chat2.giphySearchMap.get(conversationIDKey) || false
+  const giphyResults = state.chat2.giphyResultMap.getIn([conversationIDKey])
+  const showGiphySearch = giphyResults ? giphyResults.length > 0 : false
   return {
     conversationIDKey,
     infoPanelOpen,

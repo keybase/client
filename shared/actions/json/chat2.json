@@ -360,7 +360,7 @@
     // Tell server we're typing
     "sendTyping": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "text": "HiddenString"
+      "typing": "boolean"
     },
     // On startup we're automatically loading a thread sometimes. When we first view it we should
     // go through our marking as read logic
@@ -506,11 +506,6 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "messages": "Array<{messageID: Types.MessageID, message: Types.Message}>"
     },
-    "giphyToggle": {
-      "_description": "dismiss Giphy search",
-      "conversationIDKey": "Types.ConversationIDKey",
-      "show": "boolean"
-    },
     "giphySend": {
       "_description": "send a message from Giphy search",
       "conversationIDKey": "Types.ConversationIDKey",
@@ -519,7 +514,7 @@
     "giphyGotSearchResult": {
       "_description": "Giphy search results obtained",
       "conversationIDKey": "Types.ConversationIDKey",
-      "result": "Array<RPCChatTypes.GiphySearchResult>"
+      "results": "Array<RPCChatTypes.GiphySearchResult>"
     },
     "clearPaymentConfirmInfo": {
       "_description": "Clear data for payment confirm modal"

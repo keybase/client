@@ -431,10 +431,8 @@ const rootReducer = (
           return show ? prompts.add(domain) : prompts.delete(domain)
         }
       )
-    case Chat2Gen.giphyToggle:
-      return state.setIn(['giphySearchMap', action.payload.conversationIDKey], action.payload.show)
     case Chat2Gen.giphyGotSearchResult:
-      return state.setIn(['giphyResultMap', action.payload.conversationIDKey], action.payload.result)
+      return state.setIn(['giphyResultMap', action.payload.conversationIDKey], action.payload.results)
     case Chat2Gen.setInboxFilter:
       return state.set('inboxFilter', action.payload.filter)
     case Chat2Gen.setPendingMode:
