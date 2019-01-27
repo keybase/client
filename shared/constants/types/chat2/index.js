@@ -69,14 +69,13 @@ export type _State = {
   unreadMap: ConversationCountMap, // how many unread messages there are
   unfurlPromptMap: I.Map<Common.ConversationIDKey, I.Map<Message.MessageID, I.Set<string>>>,
   giphyResultMap: I.Map<Common.ConversationIDKey, Array<RPCChatTypes.GiphySearchResult>>,
-  clearedUnsentTextMap: I.Map<Common.ConversationIDKey, boolean>,
   pendingOutboxToOrdinal: I.Map<Common.ConversationIDKey, I.Map<Message.OutboxID, Message.Ordinal>>, // messages waiting to be sent
   pendingMode: PendingMode, // we're about to talk to people we're searching for or a set of users from somewhere else (folder)
   pendingStatus: PendingStatus, // the status of creating a new conversation
   attachmentFullscreenMessage: ?Message.Message,
   paymentConfirmInfo: ?PaymentConfirmInfo, // chat payment confirm screen data
   paymentStatusMap: I.Map<Wallet.PaymentID, Message.ChatPaymentInfo>,
-  unsentTextMap: I.Map<Common.ConversationIDKey, HiddenString>,
+  unsentTextMap: I.Map<Common.ConversationIDKey, ?HiddenString>,
 } & TeamBuildingTypes.TeamBuildingSubState
 
 export type State = I.RecordOf<_State>

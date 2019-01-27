@@ -33,6 +33,7 @@ import {saveAttachmentToCameraRoll, showShareActionSheetFromFile} from '../platf
 import {downloadFilePath} from '../../util/file'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import flags from '../../util/feature-flags'
+import HiddenString from '../../util/hidden-string'
 import type {RPCError} from '../../util/errors'
 
 const setupEngineListeners = () => {
@@ -2526,7 +2527,10 @@ const onGiphyResults = (state, action) => {
 
 const giphySend = (state, action) => {
   const {conversationIDKey, url} = action.payload
-  return Chat2Gen.createMessageSend({conversationIDKey, text: url})
+  return [
+    Chat2Gen.createSetUnsentText({conversationIDKey, text: new HiddenString('')}),
+    Chat2Gen.createMessageSend({conversationIDKey, text: url}),
+  ]
 }
 
 const openChatFromWidget = (state, {payload: {conversationIDKey}}) => [

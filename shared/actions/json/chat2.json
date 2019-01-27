@@ -533,7 +533,7 @@
     "setUnsentText": {
       "_description": "Set unsent text for a conversation",
       "conversationIDKey": "Types.ConversationIDKey",
-      "text": "HiddenString"
+      "text": "?HiddenString"
     },
     "updateUnreadline": {
       "_description": "Update the unreadline line position for a conversation",

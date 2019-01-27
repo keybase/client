@@ -41,7 +41,6 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
     _editOrdinal: editInfo ? editInfo.ordinal : null,
     _isExplodingModeLocked: Constants.isExplodingModeLocked(state, conversationIDKey),
     _you,
-    clearUnsentText: state.chat2.clearedUnsentTextMap.get(conversationIDKey) || false,
     conversationIDKey,
     editText: editInfo ? editInfo.text : '',
     explodingModeSeconds,
@@ -54,13 +53,13 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
     suggestCommands: Constants.getCommands(state, conversationIDKey),
     suggestUsers: Constants.getParticipantSuggestions(state, conversationIDKey),
     typing: Constants.getTyping(state, conversationIDKey),
-    unsentText: unsentText ? unsentText.stringValue() : '',
+    unsentText,
   }
 }
 
 const mapDispatchToProps = dispatch => ({
   _clearUnsentText: (conversationIDKey: Types.ConversationIDKey) => {
-    dispatch(Chat2Gen.createSetUnsentText({conversationIDKey, text: new HiddenString('')}))
+    dispatch(Chat2Gen.createSetUnsentText({conversationIDKey, text: null}))
   },
   _onAttach: (conversationIDKey: Types.ConversationIDKey, paths: Array<string>) => {
     const pathAndOutboxIDs = paths.map(p => ({
@@ -111,7 +110,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   explodingModeSeconds: stateProps.explodingModeSeconds,
   focusInputCounter: ownProps.focusInputCounter,
   getUnsentText: () =>
-    stateProps.unsentText.length > 0 ? stateProps.unsentText : getUnsentText(stateProps.conversationIDKey),
+    stateProps.unsentText ? stateProps.unsentText.stringValue() : getUnsentText(stateProps.conversationIDKey),
   isEditExploded: stateProps.isEditExploded,
   isEditing: !!stateProps._editOrdinal,
   isExploding: stateProps.isExploding,
@@ -138,7 +137,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
       // alternatively, if it's not locked and we want to set it, set it
       dispatchProps.onSetExplodingModeLock(stateProps.conversationIDKey, unset)
     }
-    if (stateProps.unsentText.length > 0) {
+    if (stateProps.unsentText) {
       dispatchProps._clearUnsentText(stateProps.conversationIDKey)
     }
     setUnsentText(stateProps.conversationIDKey, text)
@@ -151,7 +150,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   unsentTextChanged: (text: string) => {
     dispatchProps._unsentTextChanged(stateProps.conversationIDKey, text)
   },
-  unsentTextRefresh: stateProps.unsentText.length > 0,
+  unsentTextRefresh: !!stateProps.unsentText,
 })
 
 export default connect<OwnProps, _, _, _, _>(
