@@ -23,13 +23,13 @@ export class HeaderHocHeader extends React.Component<Props, State> {
     // TODO: remove these after updates are fully integrated
     const onLeftAction = this.props.onLeftAction || this.props.onBack || this.props.onCancel
     const leftAction =
-      this.props.leftAction || this.props.onCancel ? 'cancel' : this.props.onBack ? 'back' : null
+      this.props.leftAction || (this.props.onCancel ? 'cancel' : this.props.onBack ? 'back' : null)
     const rightActions = this.props.rightActions
       ? this.props.rightActions.filter(Boolean)
       : this.props.onRightAction && this.props.rightActionLabel
       ? [
           {
-            label: this.props.rightActionLabel,
+            label: this.props.rightActionqLabel,
             onPress: this.props.onRightAction,
           },
         ]
