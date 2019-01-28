@@ -157,7 +157,7 @@ const generateWebCSS = result => {
     return {type, hash: hash.digest('hex'), format: typeToFormat[type]}
   })
   const urls = types
-    .map(type => `url(/fonts/kb.${type.type}?${type.hash}) format('${type.format}')`)
+    .map(type => `url('/fonts/kb.${type.type}?${type.hash}') format('${type.format}')`)
     .join(',\n')
 
   const css = `
