@@ -5162,7 +5162,7 @@ type cleanupFn func(context.Context, *lockState, []BlockPointer, error)
 func (fbo *folderBranchOps) startSyncLocked(ctx context.Context,
 	lState *lockState, md *RootMetadata, node Node, file path) (
 	doSync, stillDirty bool, fblock *FileBlock, dirtyDe *DirEntry,
-	bps blockPutState, syncState fileSyncState,
+	bps blockPutStateCopiable, syncState fileSyncState,
 	cleanup cleanupFn, err error) {
 	fbo.mdWriterLock.AssertLocked(lState)
 

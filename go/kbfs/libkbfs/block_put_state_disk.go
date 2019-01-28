@@ -60,16 +60,6 @@ func (bps *blockPutStateDisk) addNewBlock(
 		ctx, blockPtr, nil, ReadyBlockData{}, syncedCb)
 }
 
-func (bps *blockPutStateDisk) mergeOtherBps(
-	_ context.Context, other blockPutState) error {
-	panic("unimplemented")
-}
-
-func (bps *blockPutStateDisk) removeOtherBps(
-	ctx context.Context, other blockPutState) error {
-	panic("unimplemented")
-}
-
 func (bps *blockPutStateDisk) getBlock(
 	ctx context.Context, blockPtr BlockPointer) (Block, error) {
 	data, serverHalf, _, err := bps.diskCache.Get(
@@ -104,14 +94,4 @@ func (bps *blockPutStateDisk) getReadyBlockData(
 		buf:        data,
 		serverHalf: serverHalf,
 	}, nil
-}
-
-func (bps *blockPutStateDisk) deepCopy(
-	_ context.Context) (blockPutState, error) {
-	panic("unimplemented")
-}
-
-func (bps *blockPutStateDisk) deepCopyWithBlacklist(
-	_ context.Context, blacklist map[BlockPointer]bool) (blockPutState, error) {
-	panic("unimplemented")
 }
