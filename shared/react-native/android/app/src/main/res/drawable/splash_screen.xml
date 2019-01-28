@@ -4,6 +4,8 @@
         android:drawable="@color/white" />
     <item>
         <bitmap
+            android:gravity="center|clip_vertical|clip_horizontal"
+            android:mipMap="true"
             android:src="@mipmap/splash" />
     </item>
 </layer-list>
