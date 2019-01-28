@@ -163,7 +163,6 @@ func (l ephemeralLifetime) Valid() bool {
 
 type sendOptionsV1 struct {
 	Channel           ChatChannel
-	ConversationID    string `json:"conversation_id"`
 	Message           ChatMessage
 	Nonblock          bool              `json:"nonblock"`
 	MembersType       string            `json:"members_type"`
@@ -172,7 +171,7 @@ type sendOptionsV1 struct {
 }
 
 func (s sendOptionsV1) Check() error {
-	if err := checkChannelConv(methodSend, s.Channel, s.ConversationID); err != nil {
+	if err := checkChannelConv(methodSend, s.Channel); err != nil {
 		return err
 	}
 	if !s.Message.Valid() {
@@ -185,39 +184,36 @@ func (s sendOptionsV1) Check() error {
 }
 
 type readOptionsV1 struct {
-	Channel        ChatChannel
-	ConversationID string            `json:"conversation_id"`
-	Pagination     *chat1.Pagination `json:"pagination,omitempty"`
-	Peek           bool
-	UnreadOnly     bool `json:"unread_only"`
-	FailOffline    bool `json:"fail_offline"`
+	Channel     ChatChannel
+	Pagination  *chat1.Pagination `json:"pagination,omitempty"`
+	Peek        bool
+	UnreadOnly  bool `json:"unread_only"`
+	FailOffline bool `json:"fail_offline"`
 }
 
 func (r readOptionsV1) Check() error {
-	return checkChannelConv(methodRead, r.Channel, r.ConversationID)
+	return checkChannelConv(methodRead, r.Channel)
 }
 
 type getOptionsV1 struct {
-	Channel        ChatChannel
-	ConversationID string            `json:"conversation_id"`
-	MessageIDs     []chat1.MessageID `json:"message_ids"`
-	Peek           bool
-	FailOffline    bool `json:"fail_offline"`
+	Channel     ChatChannel
+	MessageIDs  []chat1.MessageID `json:"message_ids"`
+	Peek        bool
+	FailOffline bool `json:"fail_offline"`
 }
 
 func (r getOptionsV1) Check() error {
-	return checkChannelConv(methodGet, r.Channel, r.ConversationID)
+	return checkChannelConv(methodGet, r.Channel)
 }
 
 type editOptionsV1 struct {
-	Channel        ChatChannel
-	ConversationID string          `json:"conversation_id"`
-	MessageID      chat1.MessageID `json:"message_id"`
-	Message        ChatMessage
+	Channel   ChatChannel
+	MessageID chat1.MessageID `json:"message_id"`
+	Message   ChatMessage
 }
 
 func (e editOptionsV1) Check() error {
-	if err := checkChannelConv(methodEdit, e.Channel, e.ConversationID); err != nil {
+	if err := checkChannelConv(methodEdit, e.Channel); err != nil {
 		return err
 	}
 
@@ -233,14 +229,13 @@ func (e editOptionsV1) Check() error {
 }
 
 type reactionOptionsV1 struct {
-	Channel        ChatChannel
-	ConversationID string          `json:"conversation_id"`
-	MessageID      chat1.MessageID `json:"message_id"`
-	Message        ChatMessage
+	Channel   ChatChannel
+	MessageID chat1.MessageID `json:"message_id"`
+	Message   ChatMessage
 }
 
 func (e reactionOptionsV1) Check() error {
-	if err := checkChannelConv(methodReaction, e.Channel, e.ConversationID); err != nil {
+	if err := checkChannelConv(methodReaction, e.Channel); err != nil {
 		return err
 	}
 
@@ -256,13 +251,12 @@ func (e reactionOptionsV1) Check() error {
 }
 
 type deleteOptionsV1 struct {
-	Channel        ChatChannel
-	ConversationID string          `json:"conversation_id"`
-	MessageID      chat1.MessageID `json:"message_id"`
+	Channel   ChatChannel
+	MessageID chat1.MessageID `json:"message_id"`
 }
 
 func (d deleteOptionsV1) Check() error {
-	if err := checkChannelConv(methodDelete, d.Channel, d.ConversationID); err != nil {
+	if err := checkChannelConv(methodDelete, d.Channel); err != nil {
 		return err
 	}
 
@@ -275,7 +269,6 @@ func (d deleteOptionsV1) Check() error {
 
 type attachOptionsV1 struct {
 	Channel           ChatChannel
-	ConversationID    string `json:"conversation_id"`
 	Filename          string
 	Preview           string
 	Title             string
@@ -283,7 +276,7 @@ type attachOptionsV1 struct {
 }
 
 func (a attachOptionsV1) Check() error {
-	if err := checkChannelConv(methodAttach, a.Channel, a.ConversationID); err != nil {
+	if err := checkChannelConv(methodAttach, a.Channel); err != nil {
 		return err
 	}
 	if len(strings.TrimSpace(a.Filename)) == 0 {
@@ -305,7 +298,7 @@ type downloadOptionsV1 struct {
 }
 
 func (a downloadOptionsV1) Check() error {
-	if err := checkChannelConv(methodDownload, a.Channel, a.ConversationID); err != nil {
+	if err := checkChannelConv(methodDownload, a.Channel); err != nil {
 		return err
 	}
 	if a.MessageID == 0 {
@@ -325,7 +318,7 @@ type setStatusOptionsV1 struct {
 }
 
 func (o setStatusOptionsV1) Check() error {
-	if err := checkChannelConv(methodSetStatus, o.Channel, o.ConversationID); err != nil {
+	if err := checkChannelConv(methodSetStatus, o.Channel); err != nil {
 		return err
 	}
 	if _, ok := chat1.ConversationStatusMap[strings.ToUpper(o.Status)]; !ok {
@@ -342,7 +335,7 @@ type markOptionsV1 struct {
 }
 
 func (o markOptionsV1) Check() error {
-	return checkChannelConv(methodMark, o.Channel, o.ConversationID)
+	return checkChannelConv(methodMark, o.Channel)
 }
 
 type searchOptionsV1 struct {
@@ -377,7 +370,7 @@ type searchRegexpOptionsV1 struct {
 }
 
 func (o searchRegexpOptionsV1) Check() error {
-	if err := checkChannelConv(methodSearchRegexp, o.Channel, o.ConversationID); err != nil {
+	if err := checkChannelConv(methodSearchRegexp, o.Channel); err != nil {
 		return err
 	}
 	if o.Query == "" {
@@ -398,7 +391,7 @@ type newConvOptionsV1 struct {
 }
 
 func (o newConvOptionsV1) Check() error {
-	if err := checkChannelConv(methodNewConv, o.Channel, ""); err != nil {
+	if err := checkChannelConv(methodNewConv, o.Channel); err != nil {
 		return err
 	}
 	return nil
@@ -425,7 +418,7 @@ type joinOptionsV1 struct {
 }
 
 func (o joinOptionsV1) Check() error {
-	if err := checkChannelConv(methodNewConv, o.Channel, ""); err != nil {
+	if err := checkChannelConv(methodNewConv, o.Channel); err != nil {
 		return err
 	}
 	return nil
@@ -436,7 +429,7 @@ type leaveOptionsV1 struct {
 }
 
 func (o leaveOptionsV1) Check() error {
-	if err := checkChannelConv(methodNewConv, o.Channel, ""); err != nil {
+	if err := checkChannelConv(methodNewConv, o.Channel); err != nil {
 		return err
 	}
 	return nil
@@ -721,12 +714,13 @@ func (a *ChatAPI) encodeReply(call Call, reply Reply, w io.Writer) error {
 	return encodeReply(call, reply, w, a.indent)
 }
 
-func checkChannelConv(method string, channel ChatChannel, convID string) error {
-	if !channel.Valid() && len(convID) == 0 {
-		return ErrInvalidOptions{version: 1, method: method, err: errors.New("need channel or conversation_id")}
-	}
-	if channel.Valid() && len(convID) > 0 {
-		return ErrInvalidOptions{version: 1, method: method, err: errors.New("include channel or conversation_id, not both")}
+func checkChannelConv(method string, channel ChatChannel) error {
+	if !channel.Valid() {
+		return ErrInvalidOptions{
+			version: 1,
+			method:  method,
+			err:     errors.New("need a valid channel"),
+		}
 	}
 	return nil
 }
