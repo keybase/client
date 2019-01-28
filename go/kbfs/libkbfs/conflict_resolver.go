@@ -3215,7 +3215,7 @@ type conflictRecord struct {
 	codec.UnknownFieldSetHandler `json:"-"`
 }
 
-func getAndDeserializeConflicts(config Config, db *leveldb.DB,
+func getAndDeserializeConflicts(config Config, db *levelDb,
 	key []byte) ([]conflictRecord, error) {
 	conflictsSoFarSerialized, err := db.Get(key, nil)
 	var conflictsSoFar []conflictRecord
@@ -3233,7 +3233,7 @@ func getAndDeserializeConflicts(config Config, db *leveldb.DB,
 	return conflictsSoFar, nil
 }
 
-func serializeAndPutConflicts(config Config, db *leveldb.DB,
+func serializeAndPutConflicts(config Config, db *levelDb,
 	key []byte, conflicts []conflictRecord) error {
 	conflictsSerialized, err := config.Codec().Encode(conflicts)
 	if err != nil {
@@ -3591,9 +3591,9 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	// to clean up the quota anyway . . .)
 }
 
-func openCRDBInternal(config Config) (*leveldb.DB, error) {
+func openCRDBInternal(config Config) (*levelDb, error) {
 	if config.IsTestMode() {
-		return leveldb.Open(storage.NewMemStorage(), leveldbOptions)
+		return openLevelDBWithOptions(storage.NewMemStorage(), leveldbOptions)
 	}
 	err := os.MkdirAll(sysPath.Join(config.StorageRoot(),
 		conflictResolverRecordsDir, conflictResolverRecordsVersionString),
@@ -3602,12 +3602,18 @@ func openCRDBInternal(config Config) (*leveldb.DB, error) {
 		return nil, err
 	}
 
-	return leveldb.OpenFile(sysPath.Join(config.StorageRoot(),
+	stor, err := storage.OpenFile(sysPath.Join(config.StorageRoot(),
 		conflictResolverRecordsDir, conflictResolverRecordsVersionString,
-		conflictResolverRecordsDB), leveldbOptions)
+		conflictResolverRecordsDB), false)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return openLevelDBWithOptions(stor, leveldbOptions)
 }
 
-func openCRDB(config Config) (db *leveldb.DB) {
+func openCRDB(config Config) (db *levelDb) {
 	db, err := openCRDBInternal(config)
 	if err != nil {
 		panic(fmt.Sprintf("Could not open conflict resolver DB: %v", err))

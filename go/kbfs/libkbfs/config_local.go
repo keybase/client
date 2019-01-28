@@ -146,7 +146,7 @@ type ConfigLocal struct {
 	blockCryptVersion kbfscrypto.EncryptionVer
 
 	// conflictResolutionDB stores information about failed CRs
-	conflictResolutionDB *leveldb.DB
+	conflictResolutionDB *levelDb
 
 	mode InitMode
 
@@ -1717,7 +1717,7 @@ func (c *ConfigLocal) GetRekeyFSMLimiter() *OngoingWorkLimiter {
 }
 
 // GetConflictResolutionDB implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) GetConflictResolutionDB() (db *leveldb.DB) {
+func (c *ConfigLocal) GetConflictResolutionDB() (db *levelDb) {
 	return c.conflictResolutionDB
 }
 

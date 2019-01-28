@@ -18,7 +18,6 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	metrics "github.com/rcrowley/go-metrics"
-	"github.com/syndtr/goleveldb/leveldb"
 	"golang.org/x/net/context"
 	billy "gopkg.in/src-d/go-billy.v4"
 )
@@ -2415,7 +2414,7 @@ type Config interface {
 	SetDefaultBlockType(blockType keybase1.BlockType)
 	// GetConflictResolutionDB gets the levelDB in which conflict resolution
 	// status is stored.
-	GetConflictResolutionDB() (db *leveldb.DB)
+	GetConflictResolutionDB() (db *levelDb)
 	RekeyQueue() RekeyQueue
 	SetRekeyQueue(RekeyQueue)
 	// ReqsBufSize indicates the number of read or write operations
