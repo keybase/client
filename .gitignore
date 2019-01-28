@@ -10,9 +10,7 @@
 _obj
 _test
 
-# Architecture specific extensions/prefixes
-*.[568vq]
-[568vq].out
+# Architecture specific extensions/prefixes *.[568vq] [568vq].out
 
 *.cgo1.go
 *.cgo2.c
@@ -42,6 +40,7 @@ yarn-error.log
 shared/coverage
 shared/node_modules
 shared/.static-storybook
+shared/fonts-for-web
 packaging/desktop/node_modules
 packaging/prerelease/node_modules
 visdiff/node_modules

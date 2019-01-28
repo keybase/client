@@ -29,6 +29,7 @@ const paths = {
   iconpng: path.resolve(__dirname, '../../images/icons'),
   fonts: path.resolve(__dirname, '../../fonts'),
   webFonts: path.resolve(__dirname, '../../fonts-for-web'),
+  webFontsCss: path.resolve(__dirname, '../../fonts-for-web/fonts.css'),
   iconConstants: path.resolve(__dirname, '../../common-adapters/icon.constants.js'),
 }
 
@@ -112,7 +113,7 @@ function updateIconFont(web) {
       // parts.pop()
       // return parts.join('-')
       // },
-      wirteFiles: !web,
+      writeFiles: !web,
       formatOptions: {
         ttf: {
           ts: Date.now(),
@@ -137,7 +138,71 @@ const fontsGeneratedSuccess = (web, result) => {
   if (web) {
     // copy files
     // make css etc
-    console.log('aaa', result)
+    // console.log('aaa', result)
+    generateWebCSS()
+  }
+}
+
+const generateWebCSS = () => {
+  const svgFilenames = getSvgNames(false /* print skipped */)
+  const rules = svgFilenames.reduce((map, {counter, name, size}) => {
+    map[`kb-iconfont-${name}`] = baseCharCode + counter - 1
+    return map
+  }, {})
+
+  const css = `
+/*
+ This file is how we serve our custom Coinbase, etc., fonts on the website
+
+ ALSO see fonts.styl
+ SOURCE:
+  1. Go to client and run \`yarn update-icon-font\`
+  2. Copy client/shared/fonts-for-web/fonts.css here
+  3. Copy fonts to public/fonts
+*/
+
+@font-face {
+	font-family: "kb";
+	src: {{{src}}};
+    font-weight: normal;
+    font-style: normal;
+}
+
+[class^="icon-kb-iconfont-"], [class*=" icon-kb-iconfont-"] {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: 'kb' !important;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  font-size: 16px;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+${Object.keys(rules)
+    .map(
+      name => `.icon-${name}:before {
+  content: "\\${rules[name].toString(16)}";
+}`
+    )
+    .join('\n')}
+`
+
+  try {
+    fs.writeFileSync(
+      paths.webFontsCss,
+      // $FlowIssue
+      // prettier.format(css, prettier.resolveConfig.sync(paths.webFontsCss)),
+      css,
+      'utf8'
+    )
+  } catch (e) {
+    console.error(e)
   }
 }
 

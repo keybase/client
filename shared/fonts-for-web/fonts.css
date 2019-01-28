@@ -1,0 +1,367 @@
+
+/*
+ This file is how we serve our custom Coinbase, etc., fonts on the website
+
+ ALSO see fonts.styl
+ SOURCE:
+  1. Go to client and run `yarn update-icon-font`
+  2. Copy client/shared/fonts-for-web/fonts.css here
+  3. Copy fonts to public/fonts
+*/
+
+@font-face {
+	font-family: "kb";
+	src: {{{src}}};
+    font-weight: normal;
+    font-style: normal;
+}
+
+[class^="icon-kb-iconfont-"], [class*=" icon-kb-iconfont-"] {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: 'kb' !important;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  font-size: 16px;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-kb-iconfont-add:before {
+  content: "\e900";
+}
+.icon-kb-iconfont-arrow-down:before {
+  content: "\e901";
+}
+.icon-kb-iconfont-arrow-full-down:before {
+  content: "\e902";
+}
+.icon-kb-iconfont-arrow-full-up:before {
+  content: "\e903";
+}
+.icon-kb-iconfont-arrow-left:before {
+  content: "\e904";
+}
+.icon-kb-iconfont-arrow-right:before {
+  content: "\e905";
+}
+.icon-kb-iconfont-arrow-up:before {
+  content: "\e906";
+}
+.icon-kb-iconfont-attachment:before {
+  content: "\e907";
+}
+.icon-kb-iconfont-bomb:before {
+  content: "\e908";
+}
+.icon-kb-iconfont-boom:before {
+  content: "\e909";
+}
+.icon-kb-iconfont-camera:before {
+  content: "\e90a";
+}
+.icon-kb-iconfont-camera-off:before {
+  content: "\e90b";
+}
+.icon-kb-iconfont-caret-down:before {
+  content: "\e90c";
+}
+.icon-kb-iconfont-caret-right:before {
+  content: "\e90d";
+}
+.icon-kb-iconfont-chat:before {
+  content: "\e90e";
+}
+.icon-kb-iconfont-check:before {
+  content: "\e90f";
+}
+.icon-kb-iconfont-clipboard:before {
+  content: "\e910";
+}
+.icon-kb-iconfont-clock:before {
+  content: "\e911";
+}
+.icon-kb-iconfont-close:before {
+  content: "\e912";
+}
+.icon-kb-iconfont-compose:before {
+  content: "\e913";
+}
+.icon-kb-iconfont-crown-admin:before {
+  content: "\e914";
+}
+.icon-kb-iconfont-crown-owner:before {
+  content: "\e915";
+}
+.icon-kb-iconfont-dollar-sign:before {
+  content: "\e916";
+}
+.icon-kb-iconfont-download-2:before {
+  content: "\e917";
+}
+.icon-kb-iconfont-download:before {
+  content: "\e918";
+}
+.icon-kb-iconfont-edit:before {
+  content: "\e919";
+}
+.icon-kb-iconfont-ellipsis:before {
+  content: "\e91a";
+}
+.icon-kb-iconfont-emoji:before {
+  content: "\e91b";
+}
+.icon-kb-iconfont-exclamation:before {
+  content: "\e91c";
+}
+.icon-kb-iconfont-file-note:before {
+  content: "\e91d";
+}
+.icon-kb-iconfont-finder:before {
+  content: "\e91e";
+}
+.icon-kb-iconfont-fire:before {
+  content: "\e91f";
+}
+.icon-kb-iconfont-folder-downloads:before {
+  content: "\e920";
+}
+.icon-kb-iconfont-folder-dropdown:before {
+  content: "\e921";
+}
+.icon-kb-iconfont-folder-new:before {
+  content: "\e922";
+}
+.icon-kb-iconfont-folder-open:before {
+  content: "\e923";
+}
+.icon-kb-iconfont-folder-private:before {
+  content: "\e924";
+}
+.icon-kb-iconfont-folder-private-me:before {
+  content: "\e925";
+}
+.icon-kb-iconfont-folder-public:before {
+  content: "\e927";
+}
+.icon-kb-iconfont-folder-up:before {
+  content: "\e928";
+}
+.icon-kb-iconfont-gear:before {
+  content: "\e929";
+}
+.icon-kb-iconfont-hamburger:before {
+  content: "\e92a";
+}
+.icon-kb-iconfont-hand-wave:before {
+  content: "\e92b";
+}
+.icon-kb-iconfont-identity-bitcoin:before {
+  content: "\e92c";
+}
+.icon-kb-iconfont-identity-devices:before {
+  content: "\e92d";
+}
+.icon-kb-iconfont-identity-facebook:before {
+  content: "\e92e";
+}
+.icon-kb-iconfont-identity-github:before {
+  content: "\e92f";
+}
+.icon-kb-iconfont-identity-hn:before {
+  content: "\e930";
+}
+.icon-kb-iconfont-identity-pgp:before {
+  content: "\e931";
+}
+.icon-kb-iconfont-identity-reddit:before {
+  content: "\e932";
+}
+.icon-kb-iconfont-identity-twitter:before {
+  content: "\e933";
+}
+.icon-kb-iconfont-identity-website:before {
+  content: "\e934";
+}
+.icon-kb-iconfont-identity-zcash:before {
+  content: "\e935";
+}
+.icon-kb-iconfont-info:before {
+  content: "\e936";
+}
+.icon-kb-iconfont-keybase:before {
+  content: "\e937";
+}
+.icon-kb-iconfont-leave:before {
+  content: "\e938";
+}
+.icon-kb-iconfont-link:before {
+  content: "\e939";
+}
+.icon-kb-iconfont-lock:before {
+  content: "\e93a";
+}
+.icon-kb-iconfont-mention:before {
+  content: "\e93b";
+}
+.icon-kb-iconfont-nav-chat:before {
+  content: "\e93c";
+}
+.icon-kb-iconfont-nav-devices:before {
+  content: "\e93d";
+}
+.icon-kb-iconfont-nav-files:before {
+  content: "\e93e";
+}
+.icon-kb-iconfont-nav-folders:before {
+  content: "\e93f";
+}
+.icon-kb-iconfont-nav-git:before {
+  content: "\e940";
+}
+.icon-kb-iconfont-nav-more:before {
+  content: "\e941";
+}
+.icon-kb-iconfont-nav-people:before {
+  content: "\e942";
+}
+.icon-kb-iconfont-nav-settings:before {
+  content: "\e943";
+}
+.icon-kb-iconfont-nav-teams:before {
+  content: "\e944";
+}
+.icon-kb-iconfont-nav-wallets:before {
+  content: "\e945";
+}
+.icon-kb-iconfont-new:before {
+  content: "\e946";
+}
+.icon-kb-iconfont-notifications-desktop:before {
+  content: "\e947";
+}
+.icon-kb-iconfont-notifications-mobile:before {
+  content: "\e948";
+}
+.icon-kb-iconfont-open-browser:before {
+  content: "\e949";
+}
+.icon-kb-iconfont-people:before {
+  content: "\e94a";
+}
+.icon-kb-iconfont-proof-broken:before {
+  content: "\e94b";
+}
+.icon-kb-iconfont-proof-good:before {
+  content: "\e94c";
+}
+.icon-kb-iconfont-proof-pending:before {
+  content: "\e94d";
+}
+.icon-kb-iconfont-proof-placeholder:before {
+  content: "\e94e";
+}
+.icon-kb-iconfont-qr-code:before {
+  content: "\e94f";
+}
+.icon-kb-iconfont-question-mark:before {
+  content: "\e950";
+}
+.icon-kb-iconfont-reacji:before {
+  content: "\e951";
+}
+.icon-kb-iconfont-reacji-heart:before {
+  content: "\e952";
+}
+.icon-kb-iconfont-reacji-sheep:before {
+  content: "\e953";
+}
+.icon-kb-iconfont-reacji-wave:before {
+  content: "\e954";
+}
+.icon-kb-iconfont-stellar-request:before {
+  content: "\e955";
+}
+.icon-kb-iconfont-refresh:before {
+  content: "\e956";
+}
+.icon-kb-iconfont-remove:before {
+  content: "\e957";
+}
+.icon-kb-iconfont-search:before {
+  content: "\e958";
+}
+.icon-kb-iconfont-shh:before {
+  content: "\e959";
+}
+.icon-kb-iconfont-star:before {
+  content: "\e95a";
+}
+.icon-kb-iconfont-stellar-send:before {
+  content: "\e95b";
+}
+.icon-kb-iconfont-success:before {
+  content: "\e95c";
+}
+.icon-kb-iconfont-team-join:before {
+  content: "\e95d";
+}
+.icon-kb-iconfont-team-leave:before {
+  content: "\e95e";
+}
+.icon-kb-iconfont-text-code:before {
+  content: "\e95f";
+}
+.icon-kb-iconfont-thunderbolt:before {
+  content: "\e960";
+}
+.icon-kb-iconfont-time:before {
+  content: "\e961";
+}
+.icon-kb-iconfont-time-reversed:before {
+  content: "\e962";
+}
+.icon-kb-iconfont-timer:before {
+  content: "\e963";
+}
+.icon-kb-iconfont-trash:before {
+  content: "\e964";
+}
+.icon-kb-iconfont-tweet:before {
+  content: "\e965";
+}
+.icon-kb-iconfont-upload-2:before {
+  content: "\e966";
+}
+.icon-kb-iconfont-upload:before {
+  content: "\e967";
+}
+.icon-kb-iconfont-usercard:before {
+  content: "\e968";
+}
+.icon-kb-iconfont-wrenches:before {
+  content: "\e969";
+}
+.icon-kb-iconfont-return:before {
+  content: "\e96a";
+}
+.icon-kb-iconfont-thin-arrow-left:before {
+  content: "\e96b";
+}
+.icon-kb-iconfont-thin-arrow-right:before {
+  content: "\e96c";
+}
+.icon-kb-iconfont-contact-card:before {
+  content: "\e96d";
+}
+.icon-kb-iconfont-contact-card-2:before {
+  content: "\e96e";
+}
+.icon-kb-iconfont-identity-stellar:before {
+  content: "\e96f";
+}
