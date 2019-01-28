@@ -18,20 +18,21 @@ import (
 )
 
 const (
-	methodList         = "list"
-	methodRead         = "read"
-	methodGet          = "get"
-	methodSend         = "send"
-	methodEdit         = "edit"
-	methodReaction     = "reaction"
-	methodDelete       = "delete"
-	methodAttach       = "attach"
-	methodDownload     = "download"
-	methodSetStatus    = "setstatus"
-	methodMark         = "mark"
-	methodSearchInbox  = "searchinbox"
-	methodSearchRegexp = "searchregexp"
-	methodNewConv      = "newconv"
+	methodList            = "list"
+	methodRead            = "read"
+	methodGet             = "get"
+	methodSend            = "send"
+	methodEdit            = "edit"
+	methodReaction        = "reaction"
+	methodDelete          = "delete"
+	methodAttach          = "attach"
+	methodDownload        = "download"
+	methodSetStatus       = "setstatus"
+	methodMark            = "mark"
+	methodSearchInbox     = "searchinbox"
+	methodSearchRegexp    = "searchregexp"
+	methodNewConv         = "newconv"
+	methodListConvsOnName = "listconvsonname"
 )
 
 type RateLimit struct {
@@ -61,6 +62,7 @@ type ChatAPIHandler interface {
 	SearchInboxV1(context.Context, Call, io.Writer) error
 	SearchRegexpV1(context.Context, Call, io.Writer) error
 	NewConvV1(context.Context, Call, io.Writer) error
+	ListConvsOnNameV1(context.Context, Call, io.Writer) error
 }
 
 // ChatAPI implements ChatAPIHandler and contains a ChatServiceHandler
@@ -88,18 +90,10 @@ func (c ChatChannel) Valid() bool {
 	if len(c.Name) == 0 {
 		return false
 	}
-	validTyp := false
-	if len(c.MembersType) > 0 {
-		for typ := range chat1.ConversationMembersTypeMap {
-			if strings.ToLower(typ) == c.MembersType {
-				validTyp = true
-				break
-			}
-		}
-	} else {
-		validTyp = true
+	if len(c.MembersType) > 0 && !isValidMembersType(c.MembersType) {
+		return false
 	}
-	return validTyp
+	return true
 }
 
 func (c ChatChannel) GetMembersType(e *libkb.Env) chat1.ConversationMembersType {
@@ -110,6 +104,15 @@ func (c ChatChannel) GetMembersType(e *libkb.Env) chat1.ConversationMembersType 
 		return chat1.ConversationMembersType_IMPTEAMNATIVE
 	}
 	return chat1.ConversationMembersType_KBFS
+}
+
+func isValidMembersType(mt string) bool {
+	for typ := range chat1.ConversationMembersTypeMap {
+		if strings.ToLower(typ) == mt {
+			return true
+		}
+	}
+	return false
 }
 
 // ChatMessage represents a text message to be sent.
@@ -403,6 +406,22 @@ func (o newConvOptionsV1) Check() error {
 	return nil
 }
 
+type listConvsOnNameOptionsV1 struct {
+	Name        string `json:"team,omitempty"`
+	MembersType string `json:"members_type,omitempty"`
+	TopicType   string `json:"topic_type,omitempty"`
+}
+
+func (o listConvsOnNameOptionsV1) Check() error {
+	if len(o.Name) == 0 {
+		return errors.New("name required")
+	}
+	if len(o.MembersType) > 0 && !isValidMembersType(o.MembersType) {
+		return errors.New("invalid members type")
+	}
+	return nil
+}
+
 func (a *ChatAPI) ListV1(ctx context.Context, c Call, w io.Writer) error {
 	var opts listOptionsV1
 	// Options are optional for list
@@ -634,6 +653,20 @@ func (a *ChatAPI) NewConvV1(ctx context.Context, c Call, w io.Writer) error {
 		return err
 	}
 	return a.encodeReply(c, a.svcHandler.NewConvV1(ctx, opts), w)
+}
+
+func (a *ChatAPI) ListConvsOnNameV1(ctx context.Context, c Call, w io.Writer) error {
+	if len(c.Params.Options) == 0 {
+		return ErrInvalidOptions{version: 1, method: methodListConvsOnName, err: errors.New("empty options")}
+	}
+	var opts listConvsOnNameOptionsV1
+	if err := json.Unmarshal(c.Params.Options, &opts); err != nil {
+		return err
+	}
+	if err := opts.Check(); err != nil {
+		return err
+	}
+	return a.encodeReply(c, a.svcHandler.ListConvsOnNameV1(ctx, opts), w)
 }
 
 func (a *ChatAPI) encodeReply(call Call, reply Reply, w io.Writer) error {

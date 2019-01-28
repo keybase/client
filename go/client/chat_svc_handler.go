@@ -34,6 +34,7 @@ type ChatServiceHandler interface {
 	SearchInboxV1(context.Context, searchInboxOptionsV1) Reply
 	SearchRegexpV1(context.Context, searchRegexpOptionsV1) Reply
 	NewConvV1(context.Context, newConvOptionsV1) Reply
+	ListConvsOnNameV1(context.Context, listConvsOnNameOptionsV1) Reply
 }
 
 // chatServiceHandler implements ChatServiceHandler.
@@ -182,6 +183,10 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 	cl.Pagination = pagination
 	cl.RateLimits.RateLimits = c.aggRateLimits(rlimits)
 	return Reply{Result: cl}
+}
+
+func (c *chatServiceHandler) ListConvsOnNameV1(ctx context.Context, opts listConvsOnNameOptionsV1) Reply {
+	return Reply{}
 }
 
 func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat1.MessageUnboxed,
