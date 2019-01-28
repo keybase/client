@@ -1030,7 +1030,7 @@ function* loadMoreMessages(state, action) {
     )
   } catch (e) {
     logger.warn(`Load loadMoreMessages error ${e.message}`)
-    if (!e || !e.message || !e.message.includes('2623')) {
+    if (e.code !== 2623) {
       // 2623 = user is not in team. they'll see the rekey screen so don't throw for that
       throw e
     }
