@@ -35,6 +35,8 @@ type ChatServiceHandler interface {
 	SearchRegexpV1(context.Context, searchRegexpOptionsV1) Reply
 	NewConvV1(context.Context, newConvOptionsV1) Reply
 	ListConvsOnNameV1(context.Context, listConvsOnNameOptionsV1) Reply
+	JoinV1(context.Context, joinOptionsV1) Reply
+	LeaveV1(context.Context, leaveOptionsV1) Reply
 }
 
 // chatServiceHandler implements ChatServiceHandler.
@@ -214,6 +216,14 @@ func (c *chatServiceHandler) ListConvsOnNameV1(ctx context.Context, opts listCon
 		cl.Conversations = append(cl.Conversations, c.exportUIConv(ctx, conv))
 	}
 	return Reply{Result: cl}
+}
+
+func (c *chatServiceHandler) JoinV1(ctx context.Context, opts joinOptionsV1) Reply {
+	return Reply{}
+}
+
+func (c *chatServiceHandler) LeaveV1(ctx context.Context, opts leaveOptionsV1) Reply {
+	return Reply{}
 }
 
 func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat1.MessageUnboxed,
