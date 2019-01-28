@@ -30,7 +30,7 @@ const paths = {
   iconpng: path.resolve(__dirname, '../../images/icons'),
   fonts: path.resolve(__dirname, '../../fonts'),
   webFonts: path.resolve(__dirname, '../../fonts-for-web'),
-  webFontsCss: path.resolve(__dirname, '../../fonts-for-web/kb.css'),
+  webFontsCss: path.resolve(__dirname, '../../fonts-for-web/fonts_custom.styl'),
   iconConstants: path.resolve(__dirname, '../../common-adapters/icon.constants.js'),
 }
 
@@ -166,8 +166,8 @@ const generateWebCSS = result => {
 
  ALSO see fonts.styl
  SOURCE:
-  1. Go to client and run \`yarn update-icon-font\`
-  2. Copy client/shared/fonts-for-web/fonts.css here
+  1. Go to client and run \`yarn update-web-font\`
+  2. Copy client/shared/fonts-for-web/fonts_custom.styl here
   3. Copy fonts to public/fonts
 */
 
