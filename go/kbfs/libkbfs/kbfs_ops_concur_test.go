@@ -1498,12 +1498,22 @@ func testKBFSOpsMultiBlockWriteWithRetryAndError(t *testing.T, nFiles int) {
 	err = kbfsOps.SyncAll(ctx, fileNodes[0].GetFolderBranch())
 	require.NoError(t, err, "First sync failed: %v", err)
 
+	file0Md, err := kbfsOps.GetNodeMetadata(ctx, fileNodes[0])
+	require.NoError(t, err, "Couldn't GetNodeMetadata for file0: %+v", err)
+
 	// Remove that file, and wait for the archiving to complete
 	err = kbfsOps.RemoveEntry(ctx, rootNode, "file0")
 	require.NoError(t, err, "Couldn't remove file: %v", err)
 
 	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
 	require.NoError(t, err, "Couldn't sync from server: %v", err)
+
+	// Ensure that the block references have been removed rather than just archived.
+	bOps := config.BlockOps()
+	h, err := ParseTlfHandle(ctx, config.KBPKI(), config.MDOps(), "test_user", tlf.Private)
+	require.NoError(t, err)
+	_, err = bOps.Delete(ctx, h.TlfID(), []BlockPointer{file0Md.BlockInfo.BlockPointer})
+	require.NoError(t, err)
 
 	fileNode2, _, err := kbfsOps.CreateFile(
 		ctx, rootNode, "file0", false, NoExcl)
