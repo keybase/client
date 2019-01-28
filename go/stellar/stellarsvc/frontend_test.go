@@ -2573,23 +2573,31 @@ func TestSetMobileOnly(t *testing.T) {
 	defer cleanup()
 
 	makeActiveDeviceOlder(t, tcs[0].G)
-
-	// this only works with a v2 bundle now
 	setupWithNewBundle(t, tcs[0])
 
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	accountID := getPrimaryAccountID(tcs[0])
 
+	// assert not mobile only yet
 	mobileOnly, err := tcs[0].Srv.IsAccountMobileOnlyLocal(context.Background(), stellar1.IsAccountMobileOnlyLocalArg{AccountID: accountID})
 	require.NoError(t, err)
 	require.False(t, mobileOnly)
+	accs, err := tcs[0].Srv.WalletGetAccountsCLILocal(context.Background())
+	require.NoError(t, err)
+	require.Len(t, accs, 1)
+	require.Equal(t, accs[0].AccountMode, stellar1.AccountMode_USER)
 
 	err = tcs[0].Srv.SetAccountMobileOnlyLocal(context.Background(), stellar1.SetAccountMobileOnlyLocalArg{AccountID: accountID})
 	require.NoError(t, err)
 
+	// yes mobile only
 	mobileOnly, err = tcs[0].Srv.IsAccountMobileOnlyLocal(context.Background(), stellar1.IsAccountMobileOnlyLocalArg{AccountID: accountID})
 	require.NoError(t, err)
 	require.True(t, mobileOnly)
+	accs, err = tcs[0].Srv.WalletGetAccountsCLILocal(context.Background())
+	require.NoError(t, err)
+	require.Len(t, accs, 1)
+	require.Equal(t, accs[0].AccountMode, stellar1.AccountMode_MOBILE)
 
 	// service_test verifies that `SetAccountMobileOnlyLocal` behaves correctly under the covers
 }

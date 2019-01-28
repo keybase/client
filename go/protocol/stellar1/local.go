@@ -741,6 +741,7 @@ type OwnAccountCLILocal struct {
 	Name         string               `codec:"name" json:"name"`
 	Balance      []Balance            `codec:"balance" json:"balance"`
 	ExchangeRate *OutsideExchangeRate `codec:"exchangeRate,omitempty" json:"exchangeRate,omitempty"`
+	AccountMode  AccountMode          `codec:"accountMode" json:"accountMode"`
 }
 
 func (o OwnAccountCLILocal) DeepCopy() OwnAccountCLILocal {
@@ -766,6 +767,7 @@ func (o OwnAccountCLILocal) DeepCopy() OwnAccountCLILocal {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.ExchangeRate),
+		AccountMode: o.AccountMode.DeepCopy(),
 	}
 }
 
