@@ -9992,10 +9992,10 @@ func (mr *MockConfigMockRecorder) SetDefaultBlockType(blockType interface{}) *go
 }
 
 // GetConflictResolutionDB mocks base method
-func (m *MockConfig) GetConflictResolutionDB() *levelDb {
+func (m *MockConfig) GetConflictResolutionDB() *LevelDb {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetConflictResolutionDB")
-	ret0, _ := ret[0].(*levelDb)
+	ret0, _ := ret[0].(*LevelDb)
 	return ret0
 }
 
