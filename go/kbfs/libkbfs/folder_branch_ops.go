@@ -2423,7 +2423,11 @@ func (fbo *folderBranchOps) initMDLocked(
 		return RekeyConflictError{err}
 	}
 
-	md.loadCachedBlockChanges(ctx, bps, fbo.log)
+	md, irmd, err = fbo.loadCachedMDChanges(ctx, bps,
+		session.VerifyingKey, md, irmd)
+	if err != nil {
+		return err
+	}
 
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
@@ -3411,6 +3415,25 @@ func (fbo *folderBranchOps) handleUnflushedEditNotifications(
 	return nil
 }
 
+func (fbo *folderBranchOps) loadCachedMDChanges(ctx context.Context,
+	bps blockPutState, key kbfscrypto.VerifyingKey, md *RootMetadata,
+	irmd ImmutableRootMetadata) (*RootMetadata, ImmutableRootMetadata, error) {
+	md, copied := md.loadCachedBlockChanges(ctx, bps, fbo.log,
+		fbo.config.Codec())
+
+	if copied {
+		irmd = MakeImmutableRootMetadata(
+			md, key, irmd.mdID, fbo.config.Clock().Now(), true)
+
+		err := fbo.config.MDCache().Replace(irmd, irmd.BID())
+		if err != nil {
+			return nil, ImmutableRootMetadata{}, err
+		}
+	}
+	return md, irmd, nil
+
+}
+
 func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 	lState *lockState, md *RootMetadata, bps blockPutState, excl Excl,
 	notifyFn func(ImmutableRootMetadata) error) (
@@ -3468,7 +3491,8 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 		return err
 	}
 
-	if !fbo.isUnmergedLocked(lState) {
+	isMerged := !fbo.isUnmergedLocked(lState)
+	if isMerged {
 		// only do a normal Put if we're not already staged.
 		irmd, err = mdops.Put(
 			ctx, md, session.VerifyingKey, nil, keybase1.MDPriorityNormal)
@@ -3558,7 +3582,11 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 		}
 	}
 
-	md.loadCachedBlockChanges(ctx, bps, fbo.log)
+	md, irmd, err = fbo.loadCachedMDChanges(ctx, bps,
+		session.VerifyingKey, md, irmd)
+	if err != nil {
+		return err
+	}
 
 	rebased := (oldPrevRoot != md.PrevRoot())
 	if rebased {
@@ -3707,7 +3735,10 @@ func (fbo *folderBranchOps) finalizeMDRekeyWriteLocked(ctx context.Context,
 		fbo.cr.Resolve(ctx, md.Revision(), kbfsmd.RevisionUninitialized)
 	}
 
-	md.loadCachedBlockChanges(ctx, nil, fbo.log)
+	md, irmd, err = fbo.loadCachedMDChanges(ctx, nil, key, md, irmd)
+	if err != nil {
+		return err
+	}
 
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
@@ -3772,7 +3803,12 @@ func (fbo *folderBranchOps) finalizeGCOp(ctx context.Context, gco *GCOp) (
 	}
 
 	fbo.setBranchIDLocked(lState, kbfsmd.NullBranchID)
-	md.loadCachedBlockChanges(ctx, bps, fbo.log)
+
+	md, irmd, err = fbo.loadCachedMDChanges(ctx, bps,
+		session.VerifyingKey, md, irmd)
+	if err != nil {
+		return err
+	}
 
 	rebased := (oldPrevRoot != md.PrevRoot())
 	if rebased {
@@ -7417,7 +7453,11 @@ func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 		defer fbo.config.RekeyQueue().Enqueue(md.TlfID())
 	}
 
-	md.loadCachedBlockChanges(ctx, bps, fbo.log)
+	md, irmd, err = fbo.loadCachedMDChanges(ctx, bps,
+		session.VerifyingKey, md, irmd)
+	if err != nil {
+		return err
+	}
 
 	// Set the head to the new MD.
 	fbo.headLock.Lock(lState)

@@ -695,8 +695,10 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 	require.NoError(t, err, "Couldn't get MD: %v", err)
 
 	lastKMD := km.getLastKMD()
+	lastRMD, ok := lastKMD.(ReadOnlyRootMetadata)
+	require.True(t, ok)
 
-	if md.ReadOnlyRootMetadata != lastKMD {
+	if md.ReadOnlyRootMetadata != lastRMD {
 		t.Error("Last MD seen by key manager != head")
 	}
 }
