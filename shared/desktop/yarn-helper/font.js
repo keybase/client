@@ -103,6 +103,7 @@ function updateIconFont(web) {
       startCodepoint: baseCharCode,
       fontName: 'kb',
       classSelector: 'icon-kb',
+      css: false,
       html: false,
       writeFiles: !web,
       formatOptions: {
@@ -150,7 +151,9 @@ const generateWebCSS = result => {
     hash.update(result[type])
     try {
       fs.writeFileSync(path.join(paths.webFonts, `kb.${type}`), result[type])
-    } catch (_) {}
+    } catch (e) {
+      console.error(e)
+    }
     return {type, hash: hash.digest('hex'), format: typeToFormat[type]}
   })
   const urls = types
