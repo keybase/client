@@ -31,7 +31,7 @@ const common = {
   onSendToStellarAddress: Sb.action('onSendToStellarAddress'),
   onSettings: Sb.action('onSettings'),
   onShowSecretKey: Sb.action('onShowSecretKey'),
-  unreadPayments: 0,
+  unreadPayments: false,
 }
 
 export const Container = (storyFn: any) => (

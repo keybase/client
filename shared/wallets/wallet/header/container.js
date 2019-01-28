@@ -1,9 +1,12 @@
 // @flow
 import {connect, isMobile} from '../../../util/container'
+import {memoize} from '../../../util/memoize'
 import * as Constants from '../../../constants/wallets'
 import * as Types from '../../../constants/types/wallets'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import Header from '.'
+
+const otherUnreadPayments = memoize((map, accID) => !!map.delete(accID).some(v => !!v))
 
 type OwnProps = {navigateAppend: (...Array<any>) => any, onBack: () => void}
 
@@ -15,7 +18,7 @@ const mapStateToProps = state => {
     isDefaultWallet: selectedAccount.isDefault,
     keybaseUser: state.config.username,
     sendDisabled: !isMobile && !!state.wallets.mobileOnlyMap.getIn([selectedAccount.accountID]),
-    unreadPayments: state.wallets.unreadPaymentsMap.get(selectedAccount.accountID, 0),
+    unreadPayments: otherUnreadPayments(state.wallets.unreadPaymentsMap, selectedAccount.accountID),
     walletName: selectedAccount.name,
   }
 }
