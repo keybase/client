@@ -129,7 +129,6 @@ const DropdownButton = Kb.OverlayParentHOC(p => {
       <Kb.FloatingMenu
         closeOnSelect={true}
         attachTo={p.getAttachmentRef}
-        containerStyle={styles.floatingMenu}
         items={items}
         onHidden={p.toggleShowingMenu}
         position="bottom right"
@@ -139,6 +138,8 @@ const DropdownButton = Kb.OverlayParentHOC(p => {
   )
 })
 
-const styles = Styles.styleSheetCreate({})
+const styles = Styles.styleSheetCreate({
+  chatIcon: {marginRight: Styles.globalMargins.tiny},
+})
 
 export default Actions
