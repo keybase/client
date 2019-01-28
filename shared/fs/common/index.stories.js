@@ -14,18 +14,30 @@ import Errs from './errs'
 import {type OwnProps as PathItemIconOwnProps} from './path-item-icon-container'
 import {type OwnProps as PathItemInfoOwnProps} from './path-item-info-container'
 
-const pathItemActionHeaderProps = (path: Types.Path) => ({
+const pathItemActionRootHeaderProps = (props: any) => ({
   childrenFiles: 0,
   childrenFolders: 0,
   loadFolderList: Sb.action('loadFolderList'),
   loadMimeType: Sb.action('loadMimeType'),
-  path,
+  path: props.path,
   size: 0,
   type: 'folder',
 })
 
-const pathItemActionProps = (path: Types.Path) => ({
+const pathItemActionProps = (props: any) => ({
+  ...props,
+  onHidden: Sb.action('onHidden'),
+})
+
+const pathItemActionChooseViewProps = (props: any) => ({
+  ...props,
+  view: 'root',
+})
+
+const pathItemActionRootProps = (props: any) => ({
+  ...props,
   copyPath: Sb.action('copyPath'),
+  deleteFileOrFolder: Sb.action('deleteFileOrFolder'),
   download: Sb.action('download'),
   ignoreFolder: Sb.action('ignoreFolder'),
   onHidden: Sb.action('onHidden'),
@@ -35,9 +47,7 @@ const pathItemActionProps = (path: Types.Path) => ({
         shareNative: Sb.action('shareNative'),
       }
     : {}),
-  path,
   showInSystemFileManager: Sb.action('showInSystemFileManager'),
-  type: 'folder',
 })
 
 export const commonProvider = {
@@ -47,8 +57,10 @@ export const commonProvider = {
   ConnectedErrs: () => ({
     errs: [],
   }),
-  PathItemAction: ({path}: {path: Types.Path}) => pathItemActionProps(path),
-  PathItemActionHeader: ({path}: {path: Types.Path}) => pathItemActionHeaderProps(path),
+  PathItemAction: pathItemActionProps,
+  PathItemActionChooseView: pathItemActionChooseViewProps,
+  PathItemActionRoot: pathItemActionRootProps,
+  PathItemActionRootHeader: pathItemActionRootHeaderProps,
   PathItemIcon: (ownProps: PathItemIconOwnProps) => ({
     ...ownProps,
     type: Types.getPathElements(ownProps.path).length > 3 ? 'file' : 'folder',
@@ -69,6 +81,33 @@ export const commonProvider = {
 export const provider = Sb.createPropProviderWithCommon(commonProvider)
 
 const load = () => {
+  Sb.storiesOf('Files', module)
+    .addDecorator(provider)
+    .add('PathItemAction', () => (
+      <Kb.Box2
+        direction="vertical"
+        gap="medium"
+        gapStart={true}
+        style={{paddingLeft: Styles.globalMargins.medium}}
+      >
+        <PathItemAction
+          path={Types.stringToPath('/keybase/private/meatball/folder/treat')}
+          onHidden={Sb.action('onHidden')}
+        />
+        <PathItemAction
+          path={Types.stringToPath(
+            '/keybase/private/meatball/treat treat treat treat treat treat treat treat treat treat treat treat treat treat treat treat'
+          )}
+          onHidden={Sb.action('onHidden')}
+        />
+        <PathItemAction
+          path={Types.stringToPath(
+            '/keybaes/private/meatball/foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar'
+          )}
+          onHidden={Sb.action('onHidden')}
+        />
+      </Kb.Box2>
+    ))
   Sb.storiesOf('Files', module)
     .addDecorator(provider)
     .add('Errs', () => (
@@ -100,27 +139,6 @@ const load = () => {
           },
         ]}
       />
-    ))
-    .add('PathItemAction', () => (
-      <Kb.Box style={{padding: Styles.globalMargins.small}}>
-        <PathItemAction
-          {...pathItemActionProps(Types.stringToPath('/keybase/private/meatball/folder/treat'))}
-        />
-        <PathItemAction
-          {...pathItemActionProps(
-            Types.stringToPath(
-              '/keybase/private/meatball/treat treat treat treat treat treat treat treat treat treat treat treat treat treat treat treat'
-            )
-          )}
-        />
-        <PathItemAction
-          {...pathItemActionProps(
-            Types.stringToPath(
-              '/keybaes/private/meatball/foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar'
-            )
-          )}
-        />
-      </Kb.Box>
     ))
     .add('Loading', () => <Loading path={Types.stringToPath('/keybase/team/kbkbfstest')} />)
     .add('TlfInfo', () => (

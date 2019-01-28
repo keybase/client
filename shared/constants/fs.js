@@ -186,7 +186,12 @@ export const makeSendLinkToChat: I.RecordFactory<Types._SendLinkToChat> = I.Reco
   path: Types.stringToPath('/keybase'),
 })
 
+export const makeActionMenu: I.RecordFactory<Types._ActionMenu> = I.Record({
+  view: 'root',
+})
+
 export const makeState: I.RecordFactory<Types._State> = I.Record({
+  actionMenu: makeActionMenu(),
   downloads: I.Map(),
   edits: I.Map(),
   errors: I.Map(),
