@@ -7,8 +7,12 @@ import prettier from 'prettier'
 
 const commands = {
   'update-icon-font': {
-    code: updateIconFont,
-    help: 'Update our font sizes automatically',
+    code: () => updateIconFont(false),
+    help: 'Update our font sizes automatically (also web fonts)',
+  },
+  'update-web-font': {
+    code: () => updateIconFont(true),
+    help: 'Update our font sizes automatically (also web fonts)',
   },
   'update-icon-constants': {
     code: updateIconConstants,
@@ -24,6 +28,7 @@ const paths = {
   iconfont: path.resolve(__dirname, '../../images/iconfont'),
   iconpng: path.resolve(__dirname, '../../images/icons'),
   fonts: path.resolve(__dirname, '../../fonts'),
+  webFonts: path.resolve(__dirname, '../../fonts-for-web'),
   iconConstants: path.resolve(__dirname, '../../common-adapters/icon.constants.js'),
 }
 
@@ -68,7 +73,7 @@ const getSvgPaths = skipUnmatchedFile =>
  *
  * For config options: https://github.com/sunflowerdeath/webfonts-generator
  */
-function updateIconFont() {
+function updateIconFont(web) {
   let webfontsGenerator
   try {
     webfontsGenerator = require('webfonts-generator')
@@ -81,16 +86,33 @@ function updateIconFont() {
   console.log('Created new webfont')
   const svgFilePaths = getSvgPaths(true /* print skipped */)
 
+  if (web) {
+    try {
+      fs.mkdirSync(paths.webFonts)
+    } catch (_) {}
+  }
+
   webfontsGenerator(
     {
       // An intermediate svgfont will be generated and then converted to TTF by webfonts-generator
-      types: ['ttf'],
+      types: web ? ['ttf', 'woff', 'svg'] : ['ttf'],
       files: svgFilePaths,
       dest: paths.fonts,
       startCodepoint: baseCharCode,
       fontName: 'kb',
-      css: false,
+      classSelector: 'icon-kb',
+      // css: web,
+      // cssDest: path.join(paths.webFonts, 'font.css'),
+      // cssTemplate: path.join(paths.webFonts, 'webfontsGenerator.template'),
       html: false,
+      order: web ? ['ttf', 'woff', 'svg'] : ['ttf'],
+      // rename: f => {
+      // const parts = f.split('-')
+      // parts.shift()
+      // parts.pop()
+      // return parts.join('-')
+      // },
+      wirteFiles: !web,
       formatOptions: {
         ttf: {
           ts: Date.now(),
@@ -103,19 +125,20 @@ function updateIconFont() {
         },
       },
     },
-    error => (error ? fontsGeneratedError(error) : fontsGeneratedSuccess())
+    (error, result) => (error ? fontsGeneratedError(error) : fontsGeneratedSuccess(web, result))
   )
 }
 
-const fontsGeneratedSuccess = () => {
+const fontsGeneratedSuccess = (web, result) => {
   console.log('Webfont generated successfully... updating constants and flow types')
-  // Webfonts generator seems always produce an svg fontfile regardless of the `type` option set above.
-  const svgFont = path.resolve(paths.fonts, 'kb.svg')
-  if (fs.existsSync(svgFont)) {
-    fs.unlinkSync(svgFont)
-  }
   setFontMetrics()
   updateIconConstants()
+
+  if (web) {
+    // copy files
+    // make css etc
+    console.log('aaa', result)
+  }
 }
 
 const fontsGeneratedError = error => {

@@ -1,0 +1,38 @@
+/*
+ This file is how we serve our custom Coinbase, etc., fonts on the website
+
+ ALSO see fonts.styl
+ SOURCE:
+  1. Go to client and run `yarn update-icon-font`
+  2. Copy client/shared/fonts-for-web/fonts.css here
+  3. Copy fonts to public/fonts
+*/
+
+@font-face {
+	font-family: "{{fontName}}";
+	src: {{{src}}};
+    font-weight: normal;
+    font-style: normal;
+}
+
+[class^="icon-kb-iconfont-"], [class*=" icon-kb-iconfont-"] {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: 'kb' !important;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  font-size: 16px;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+{{#each codepoints}}
+.{{@key}}:before {
+	content: "\\{{this}}";
+}
+{{/each}}
