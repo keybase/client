@@ -3077,7 +3077,8 @@ func (cr *ConflictResolver) completeResolution(ctx context.Context,
 	unmergedPaths []path, mergedPaths map[BlockPointer]path,
 	mostRecentUnmergedMD, mostRecentMergedMD ImmutableRootMetadata,
 	lbc localBcache, newFileBlocks fileBlockMap,
-	dirtyBcache DirtyBlockCacheSimple, writerLocked bool) (err error) {
+	dirtyBcache DirtyBlockCacheSimple, bps blockPutState,
+	writerLocked bool) (err error) {
 	md, err := cr.createResolvedMD(
 		ctx, lState, unmergedPaths, unmergedChains,
 		mergedChains, mostRecentMergedMD)
@@ -3123,7 +3124,6 @@ func (cr *ConflictResolver) completeResolution(ctx context.Context,
 		}
 	}
 
-	bps := newBlockPutStateMemory(0)
 	updates, blocksToDelete, err := cr.prepper.prepUpdateForPaths(
 		ctx, lState, md, unmergedChains, mergedChains,
 		mostRecentUnmergedMD, mostRecentMergedMD, resolvedPaths, lbc,
@@ -3538,10 +3538,11 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 		cr.log.CDebugf(ctx, "No updates to resolve, so finishing")
 		lbc := make(localBcache)
 		newFileBlocks := make(fileBlockMap)
+		bps := newBlockPutStateMemory(0)
 		err = cr.completeResolution(ctx, lState, unmergedChains,
 			mergedChains, unmergedPaths, mergedPaths,
 			unmergedMDs[len(unmergedMDs)-1], mostRecentMergedMD, lbc,
-			newFileBlocks, nil, doLock)
+			newFileBlocks, nil, bps, doLock)
 		return
 	}
 
@@ -3648,9 +3649,11 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	// Step 4: finish up by syncing all the blocks, computing and
 	// putting the final resolved MD, and issuing all the local
 	// notifications.
+	bps := newBlockPutStateDisk(
+		0, cr.config, dbc, mergedChains.mostRecentChainMDInfo)
 	err = cr.completeResolution(ctx, lState, unmergedChains, mergedChains,
 		unmergedPaths, mergedPaths, unmergedMDs[len(unmergedMDs)-1],
-		mostRecentMergedMD, lbc, newFileBlocks, dirtyBcache, doLock)
+		mostRecentMergedMD, lbc, newFileBlocks, dirtyBcache, bps, doLock)
 	if err != nil {
 		return
 	}
