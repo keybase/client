@@ -97,13 +97,7 @@ func (c ChatChannel) Valid() bool {
 }
 
 func (c ChatChannel) GetMembersType(e *libkb.Env) chat1.ConversationMembersType {
-	if typ, ok := chat1.ConversationMembersTypeMap[strings.ToUpper(c.MembersType)]; ok {
-		return typ
-	}
-	if e.GetChatMemberType() == "impteam" {
-		return chat1.ConversationMembersType_IMPTEAMNATIVE
-	}
-	return chat1.ConversationMembersType_KBFS
+	return MembersTypeFromStrDefault(c.MembersType, e)
 }
 
 func isValidMembersType(mt string) bool {
@@ -407,7 +401,7 @@ func (o newConvOptionsV1) Check() error {
 }
 
 type listConvsOnNameOptionsV1 struct {
-	Name        string `json:"team,omitempty"`
+	Name        string `json:"name,omitempty"`
 	MembersType string `json:"members_type,omitempty"`
 	TopicType   string `json:"topic_type,omitempty"`
 }

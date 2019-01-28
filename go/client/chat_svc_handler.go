@@ -77,17 +77,12 @@ func (c *chatServiceHandler) exportRemoteConv(ctx context.Context, uiconv chat1.
 	return convSummary
 }
 
-func (c *chatServiceHandler) exportLocalConv(ctx context.Context, conv chat1.ConversationLocal) (convSummary ConvSummary) {
-	convSummary.ID = conv.GetConvID().String()
-	if conv.Error != nil {
-		convSummary.Error = conv.Error.Message
-		return convSummary
-	}
-	uiconv := utils.PresentConversationLocal(conv, c.G().Env.GetUsername().String())
+func (c *chatServiceHandler) exportUIConv(ctx context.Context, uiconv chat1.InboxUIItem) (convSummary ConvSummary) {
+	convSummary.ID = uiconv.ConvID
 	convSummary.Unread = uiconv.ReadMsgID < uiconv.MaxVisibleMsgID
 	convSummary.ActiveAt = uiconv.Time.UnixSeconds()
 	convSummary.ActiveAtMs = uiconv.Time.UnixMilliseconds()
-	convSummary.FinalizeInfo = conv.Info.FinalizeInfo
+	convSummary.FinalizeInfo = uiconv.FinalizeInfo
 	convSummary.MemberStatus = strings.ToLower(uiconv.MemberStatus.String())
 	for _, super := range uiconv.Supersedes {
 		convSummary.Supersedes = append(convSummary.Supersedes,
@@ -109,6 +104,15 @@ func (c *chatServiceHandler) exportLocalConv(ctx context.Context, conv chat1.Con
 		TopicName:   uiconv.Channel,
 	}
 	return convSummary
+}
+
+func (c *chatServiceHandler) exportLocalConv(ctx context.Context, conv chat1.ConversationLocal) (convSummary ConvSummary) {
+	if conv.Error != nil {
+		convSummary.Error = conv.Error.Message
+		return convSummary
+	}
+	uiconv := utils.PresentConversationLocal(conv, c.G().Env.GetUsername().String())
+	return c.exportUIConv(ctx, uiconv)
 }
 
 // ListV1 implements ChatServiceHandler.ListV1.
@@ -186,7 +190,30 @@ func (c *chatServiceHandler) ListV1(ctx context.Context, opts listOptionsV1) Rep
 }
 
 func (c *chatServiceHandler) ListConvsOnNameV1(ctx context.Context, opts listConvsOnNameOptionsV1) Reply {
-	return Reply{}
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	topicType, err := TopicTypeFromStrDefault(opts.TopicType)
+	if err != nil {
+		return c.errReply(err)
+	}
+	mt := MembersTypeFromStrDefault(opts.MembersType, c.G().GetEnv())
+
+	listRes, err := client.GetTLFConversationsLocal(ctx, chat1.GetTLFConversationsLocalArg{
+		TlfName:     opts.Name,
+		TopicType:   topicType,
+		MembersType: mt,
+	})
+	if err != nil {
+		return c.errReply(err)
+	}
+	var cl ChatList
+	cl.RateLimits.RateLimits = c.aggRateLimits(listRes.RateLimits)
+	for _, conv := range listRes.Convs {
+		cl.Conversations = append(cl.Conversations, c.exportUIConv(ctx, conv))
+	}
+	return Reply{Result: cl}
 }
 
 func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat1.MessageUnboxed,
@@ -1202,6 +1229,16 @@ func TopicTypeFromStrDefault(str string) (chat1.TopicType, error) {
 		return chat1.TopicType_NONE, fmt.Errorf("invalid topic type: '%v'", str)
 	}
 	return tt, nil
+}
+
+func MembersTypeFromStrDefault(str string, e *libkb.Env) chat1.ConversationMembersType {
+	if typ, ok := chat1.ConversationMembersTypeMap[strings.ToUpper(str)]; ok {
+		return typ
+	}
+	if e.GetChatMemberType() == "impteam" {
+		return chat1.ConversationMembersType_IMPTEAMNATIVE
+	}
+	return chat1.ConversationMembersType_KBFS
 }
 
 // MsgSender is used for JSON output of the sender of a message.
