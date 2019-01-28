@@ -2242,8 +2242,8 @@ func (cr *ConflictResolver) computeActions(ctx context.Context,
 }
 
 // fileBlockMap maps latest merged block pointer to a map of final
-// merged name -> file block.
-type fileBlockMap map[BlockPointer]map[string]*FileBlock
+// merged name -> file block pointer.
+type fileBlockMap map[BlockPointer]map[string]BlockPointer
 
 func (cr *ConflictResolver) makeFileBlockDeepCopy(ctx context.Context,
 	lState *lockState, chains *crChains, mergedMostRecent BlockPointer,
@@ -2262,15 +2262,6 @@ func (cr *ConflictResolver) makeFileBlockDeepCopy(ctx context.Context,
 		ctx, lState, kmd, file, dirtyBcache, cr.config.DataVersion())
 	if err != nil {
 		return BlockPointer{}, err
-	}
-
-	block, err := dirtyBcache.Get(ctx, cr.fbo.id(), newPtr, cr.fbo.branch())
-	if err != nil {
-		return BlockPointer{}, err
-	}
-	fblock, isFileBlock := block.(*FileBlock)
-	if !isFileBlock {
-		return BlockPointer{}, NotFileBlockError{ptr, cr.fbo.branch(), file}
 	}
 
 	// Mark this as having been created during this chain, so that
@@ -2292,14 +2283,14 @@ func (cr *ConflictResolver) makeFileBlockDeepCopy(ctx context.Context,
 	}
 
 	if _, ok := blocks[mergedMostRecent]; !ok {
-		blocks[mergedMostRecent] = make(map[string]*FileBlock)
+		blocks[mergedMostRecent] = make(map[string]BlockPointer)
 	}
 
 	for _, childPtr := range allChildPtrs {
 		chains.createdOriginals[childPtr] = true
 	}
 
-	blocks[mergedMostRecent][name] = fblock
+	blocks[mergedMostRecent][name] = newPtr
 	return newPtr, nil
 }
 
