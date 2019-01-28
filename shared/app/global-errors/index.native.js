@@ -80,7 +80,13 @@ class GlobalError extends React.Component<Props, State> {
     const details = this.state.cachedDetails
 
     return (
-      <Kb.Box2 direction="vertical" style={styles.container}>
+      <Kb.Box2
+        direction="vertical"
+        style={Styles.collapseStyles([
+          styles.container,
+          this.state.size === 'Big' && Styles.globalStyles.fillAbsolute,
+        ])}
+      >
         <Kb.SafeAreaViewTop style={{backgroundColor: Styles.globalColors.transparent, flexGrow: 0}} />
         <Kb.Box style={Styles.globalStyles.flexBoxColumn}>
           <Kb.Box
@@ -91,14 +97,14 @@ class GlobalError extends React.Component<Props, State> {
             }}
           >
             <Kb.Text
-              center={true} type="BodySmallSemibold"
+              center={true}
+              type="BodySmallSemibold"
               style={{color: Styles.globalColors.white, flex: 1}}
               onClick={this._onExpandClick}
             >
-              <Kb.Icon
-                type={this.state.size === 'Big' ? 'iconfont-caret-down' : 'iconfont-caret-right'}
-                color={Styles.globalColors.white_75}
-              />
+              {this.state.size !== 'Big' && (
+                <Kb.Icon type="iconfont-caret-right" color={Styles.globalColors.white_75} />
+              )}
               {'  '}
               An error occurred.
             </Kb.Text>
