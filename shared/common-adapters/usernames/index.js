@@ -19,6 +19,7 @@ export type BaseUsernamesProps = {|
   backgroundMode?: Background,
   colorBroken?: boolean,
   colorFollowing?: boolean,
+  notFollowingColorOverride?: string,
   colorYou?: boolean | string,
   commaColor?: string,
   containerStyle?: Styles.StylesCrossPlatform,
@@ -57,7 +58,11 @@ function UsernameText(props: Props) {
       {props.users.map((u, i) => {
         let userStyle = {
           ...(props.colorFollowing && !u.you
-            ? {color: u.following ? Styles.globalColors.green : Styles.globalColors.blue}
+            ? {
+                color: u.following
+                  ? Styles.globalColors.green
+                  : props.notFollowingColorOverride || Styles.globalColors.blue,
+              }
             : null),
           ...(props.colorBroken && u.broken && !u.you
             ? {color: props.redColor || Styles.globalColors.red}

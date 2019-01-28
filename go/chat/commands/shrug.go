@@ -14,7 +14,7 @@ type Shrug struct {
 
 func NewShrug(g *globals.Context) *Shrug {
 	return &Shrug{
-		baseCommand: newBaseCommand(g, "shrug", "", `Sends ¯\_(ツ)_/¯ to the current conversation`),
+		baseCommand: newBaseCommand(g, "shrug", "", `Appends ¯\_(ツ)_/¯ to your message`),
 	}
 }
 
@@ -24,5 +24,9 @@ func (s *Shrug) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Conve
 	if !s.Match(ctx, text) {
 		return ErrInvalidCommand
 	}
-	return s.G().ChatHelper.SendTextByIDNonblock(ctx, convID, tlfName, `¯\_(ツ)_/¯`)
+	_, msg, err := s.commandAndMessage(text)
+	if err != nil {
+		return err
+	}
+	return s.G().ChatHelper.SendTextByIDNonblock(ctx, convID, tlfName, msg+` ¯\_(ツ)_/¯`)
 }

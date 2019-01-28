@@ -22,7 +22,6 @@ import (
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
-	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -183,9 +182,9 @@ func ReorderParticipants(mctx libkb.MetaContext, g libkb.UIDMapperContext, umapp
 
 // Drive splitAndNormalizeTLFName with one attempt to follow TlfNameNotCanonical.
 func splitAndNormalizeTLFNameCanonicalize(g *libkb.GlobalContext, name string, public bool) (writerNames, readerNames []string, extensionSuffix string, err error) {
-	writerNames, readerNames, extensionSuffix, err = tlf.SplitAndNormalizeTLFName(g, name, public)
-	if retryErr, retry := err.(tlf.TlfNameNotCanonical); retry {
-		return tlf.SplitAndNormalizeTLFName(g, retryErr.NameToTry, public)
+	writerNames, readerNames, extensionSuffix, err = SplitAndNormalizeTLFName(g, name, public)
+	if retryErr, retry := err.(TlfNameNotCanonical); retry {
+		return SplitAndNormalizeTLFName(g, retryErr.NameToTry, public)
 	}
 	return writerNames, readerNames, extensionSuffix, err
 }
@@ -779,7 +778,11 @@ func GetConvMtime(conv chat1.Conversation) gregor1.Time {
 	return summaries[len(summaries)-1].Ctime
 }
 
-func PickLatestMessageSummary(conv chat1.Conversation, typs []chat1.MessageType) (res chat1.MessageSummary, err error) {
+type MessageSummaryContainer interface {
+	GetMaxMessage(typ chat1.MessageType) (chat1.MessageSummary, error)
+}
+
+func PickLatestMessageSummary(conv MessageSummaryContainer, typs []chat1.MessageType) (res chat1.MessageSummary, err error) {
 	// nil means all
 	if typs == nil {
 		for typ := range chat1.MessageTypeRevMap {
@@ -798,36 +801,22 @@ func PickLatestMessageSummary(conv chat1.Conversation, typs []chat1.MessageType)
 	return res, nil
 }
 
-// PickLatestMessageUnboxed gets the latest message with one `typs`.
-// This method can return deleted messages which have a blank body.
-func PickLatestMessageUnboxed(conv chat1.ConversationLocal, typs []chat1.MessageType) (res chat1.MessageUnboxed, err error) {
-	var msgs []chat1.MessageUnboxed
-	for _, typ := range typs {
-		msg, err := conv.GetMaxMessage(typ)
-		if err == nil && msg.IsValid() {
-			msgs = append(msgs, msg)
-		}
-	}
-	if len(msgs) == 0 {
-		return res, errors.New("no message found")
-	}
-	sort.Sort(ByMsgUnboxedCtime(msgs))
-	return msgs[len(msgs)-1], nil
-}
-
 func GetConvMtimeLocal(conv chat1.ConversationLocal) gregor1.Time {
-	msg, err := PickLatestMessageUnboxed(conv, chat1.VisibleChatMessageTypes())
+	msg, err := PickLatestMessageSummary(conv, chat1.VisibleChatMessageTypes())
 	if err != nil {
 		return conv.ReaderInfo.Mtime
 	}
-	return msg.Valid().ServerHeader.Ctime
+	return msg.Ctime
 }
 
 func GetConvSnippet(conv chat1.ConversationLocal, currentUsername string) (snippet, decoration string) {
-	msg, err := PickLatestMessageUnboxed(conv,
-		append(chat1.VisibleChatMessageTypes(), chat1.MessageType_DELETEHISTORY))
+	if conv.Info.SnippetMsg == nil {
+		return "", ""
+	}
+	msg := *conv.Info.SnippetMsg
+
 	// If a DELETEHISTORY is the latest message, there is no snippet
-	if err != nil || msg.GetMessageType() == chat1.MessageType_DELETEHISTORY {
+	if msg.GetMessageType() == chat1.MessageType_DELETEHISTORY {
 		return "", ""
 	}
 	return GetMsgSnippet(msg, conv, currentUsername)
@@ -941,12 +930,11 @@ func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, curre
 
 // We don't want to display the contents of an exploding message in notifications
 func GetDesktopNotificationSnippet(conv *chat1.ConversationLocal, currentUsername string) string {
-	if conv == nil {
+	if conv == nil || conv.Info.SnippetMsg == nil {
 		return ""
 	}
-	msg, err := PickLatestMessageUnboxed(*conv,
-		append(chat1.VisibleChatMessageTypes(), chat1.MessageType_REACTION))
-	if err != nil || !msg.IsValid() {
+	msg := *conv.Info.SnippetMsg
+	if !msg.IsValid() {
 		return ""
 	}
 	mvalid := msg.Valid()
@@ -1009,6 +997,7 @@ func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.Unverifie
 	res.Supersedes = rawConv.Metadata.Supersedes
 	res.SupersededBy = rawConv.Metadata.SupersededBy
 	res.FinalizeInfo = rawConv.Metadata.FinalizeInfo
+	res.Commands = chat1.NewConversationCommandGroupsWithBuiltin()
 	if rc.LocalMetadata != nil {
 		res.LocalMetadata = &chat1.UnverifiedInboxUIItemMetadata{
 			ChannelName:       rc.LocalMetadata.TopicName,
@@ -1055,8 +1044,8 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal, currentUsername s
 	res.IsPublic = rawConv.Info.Visibility == keybase1.TLFVisibility_PUBLIC
 	res.Name = rawConv.Info.TlfName
 	res.Snippet, res.SnippetDecoration = GetConvSnippet(rawConv, currentUsername)
-	res.Channel = GetTopicName(rawConv)
-	res.Headline = GetHeadline(rawConv)
+	res.Channel = rawConv.Info.TopicName
+	res.Headline = rawConv.Info.Headline
 	res.Participants = writerNames
 	res.FullNames = fullNames
 	res.ResetParticipants = rawConv.Info.ResetNames
@@ -1079,6 +1068,7 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal, currentUsername s
 	res.ConvRetention = rawConv.ConvRetention
 	res.TeamRetention = rawConv.TeamRetention
 	res.ConvSettings = rawConv.ConvSettings
+	res.Commands = rawConv.Commands
 	return res
 }
 
@@ -1469,7 +1459,7 @@ type ConvLocalByTopicName []chat1.ConversationLocal
 func (c ConvLocalByTopicName) Len() int      { return len(c) }
 func (c ConvLocalByTopicName) Swap(i, j int) { c[i], c[j] = c[j], c[i] }
 func (c ConvLocalByTopicName) Less(i, j int) bool {
-	return GetTopicName(c[i]) < GetTopicName(c[j])
+	return c[i].Info.TopicName < c[j].Info.TopicName
 }
 
 type ByConvID []chat1.ConversationID
@@ -1515,28 +1505,6 @@ type ByConversationMemberStatus []chat1.ConversationMemberStatus
 func (m ByConversationMemberStatus) Len() int           { return len(m) }
 func (m ByConversationMemberStatus) Swap(i, j int)      { m[i], m[j] = m[j], m[i] }
 func (m ByConversationMemberStatus) Less(i, j int) bool { return m[i] > m[j] }
-
-func GetTopicName(conv chat1.ConversationLocal) string {
-	maxTopicMsg, err := conv.GetMaxMessage(chat1.MessageType_METADATA)
-	if err != nil {
-		return ""
-	}
-	if !maxTopicMsg.IsValidFull() {
-		return ""
-	}
-	return maxTopicMsg.Valid().MessageBody.Metadata().ConversationTitle
-}
-
-func GetHeadline(conv chat1.ConversationLocal) string {
-	maxTopicMsg, err := conv.GetMaxMessage(chat1.MessageType_HEADLINE)
-	if err != nil {
-		return ""
-	}
-	if !maxTopicMsg.IsValidFull() {
-		return ""
-	}
-	return maxTopicMsg.Valid().MessageBody.Headline().Headline
-}
 
 func NotificationInfoSet(settings *chat1.ConversationNotificationInfo,
 	apptype keybase1.DeviceType,

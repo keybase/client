@@ -119,3 +119,12 @@
 .box2_no_shrink {
   flex-shrink: 0;
 }
+.box2_alignItems_center {
+  align-items: center;
+}
+.box2_alignItems_flex-start {
+  align-items: flex-start;
+}
+.box2_alignItems_flex-end {
+  align-items: flex-end;
+}

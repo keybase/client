@@ -2636,6 +2636,8 @@ type ConversationInfoLocal struct {
 	Triple       ConversationIDTriple           `codec:"triple" json:"triple"`
 	TlfName      string                         `codec:"tlfName" json:"tlfName"`
 	TopicName    string                         `codec:"topicName" json:"topicName"`
+	Headline     string                         `codec:"headline" json:"headline"`
+	SnippetMsg   *MessageUnboxed                `codec:"snippetMsg,omitempty" json:"snippetMsg,omitempty"`
 	Visibility   keybase1.TLFVisibility         `codec:"visibility" json:"visibility"`
 	Status       ConversationStatus             `codec:"status" json:"status"`
 	MembersType  ConversationMembersType        `codec:"membersType" json:"membersType"`
@@ -2650,10 +2652,18 @@ type ConversationInfoLocal struct {
 
 func (o ConversationInfoLocal) DeepCopy() ConversationInfoLocal {
 	return ConversationInfoLocal{
-		Id:           o.Id.DeepCopy(),
-		Triple:       o.Triple.DeepCopy(),
-		TlfName:      o.TlfName,
-		TopicName:    o.TopicName,
+		Id:        o.Id.DeepCopy(),
+		Triple:    o.Triple.DeepCopy(),
+		TlfName:   o.TlfName,
+		TopicName: o.TopicName,
+		Headline:  o.Headline,
+		SnippetMsg: (func(x *MessageUnboxed) *MessageUnboxed {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.SnippetMsg),
 		Visibility:   o.Visibility.DeepCopy(),
 		Status:       o.Status.DeepCopy(),
 		MembersType:  o.MembersType.DeepCopy(),
@@ -2842,13 +2852,14 @@ type ConversationLocal struct {
 	Notifications    *ConversationNotificationInfo `codec:"notifications,omitempty" json:"notifications,omitempty"`
 	Supersedes       []ConversationMetadata        `codec:"supersedes" json:"supersedes"`
 	SupersededBy     []ConversationMetadata        `codec:"supersededBy" json:"supersededBy"`
-	MaxMessages      []MessageUnboxed              `codec:"maxMessages" json:"maxMessages"`
+	MaxMessages      []MessageSummary              `codec:"maxMessages" json:"maxMessages"`
 	IsEmpty          bool                          `codec:"isEmpty" json:"isEmpty"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `codec:"identifyFailures" json:"identifyFailures"`
 	Expunge          Expunge                       `codec:"expunge" json:"expunge"`
 	ConvRetention    *RetentionPolicy              `codec:"convRetention,omitempty" json:"convRetention,omitempty"`
 	TeamRetention    *RetentionPolicy              `codec:"teamRetention,omitempty" json:"teamRetention,omitempty"`
 	ConvSettings     *ConversationSettingsLocal    `codec:"convSettings,omitempty" json:"convSettings,omitempty"`
+	Commands         ConversationCommandGroups     `codec:"commands" json:"commands"`
 }
 
 func (o ConversationLocal) DeepCopy() ConversationLocal {
@@ -2898,11 +2909,11 @@ func (o ConversationLocal) DeepCopy() ConversationLocal {
 			}
 			return ret
 		})(o.SupersededBy),
-		MaxMessages: (func(x []MessageUnboxed) []MessageUnboxed {
+		MaxMessages: (func(x []MessageSummary) []MessageSummary {
 			if x == nil {
 				return nil
 			}
-			ret := make([]MessageUnboxed, len(x))
+			ret := make([]MessageSummary, len(x))
 			for i, v := range x {
 				vCopy := v.DeepCopy()
 				ret[i] = vCopy
@@ -2943,6 +2954,7 @@ func (o ConversationLocal) DeepCopy() ConversationLocal {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.ConvSettings),
+		Commands: o.Commands.DeepCopy(),
 	}
 }
 
@@ -4456,7 +4468,8 @@ func (o ProfileSearchConvStats) DeepCopy() ProfileSearchConvStats {
 }
 
 type StaticConfig struct {
-	DeletableByDeleteHistory []MessageType `codec:"deletableByDeleteHistory" json:"deletableByDeleteHistory"`
+	DeletableByDeleteHistory []MessageType         `codec:"deletableByDeleteHistory" json:"deletableByDeleteHistory"`
+	BuiltinCommands          []ConversationCommand `codec:"builtinCommands" json:"builtinCommands"`
 }
 
 func (o StaticConfig) DeepCopy() StaticConfig {
@@ -4472,6 +4485,17 @@ func (o StaticConfig) DeepCopy() StaticConfig {
 			}
 			return ret
 		})(o.DeletableByDeleteHistory),
+		BuiltinCommands: (func(x []ConversationCommand) []ConversationCommand {
+			if x == nil {
+				return nil
+			}
+			ret := make([]ConversationCommand, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.BuiltinCommands),
 	}
 }
 

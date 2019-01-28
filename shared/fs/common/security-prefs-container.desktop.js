@@ -1,14 +1,14 @@
 // @flow
 import {connect, compose, lifecycle} from '../../util/container'
 import * as FsGen from '../../actions/fs-gen'
+import * as Constants from '../../constants/fs'
 import InstallSecurityPrefs from './security-prefs.desktop'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
-import {isLinux} from '../../constants/platform'
 
 type OwnProps = {||}
 
 const mapStateToProps = state => {
-  const kbfsEnabled = isLinux || (state.fs.fuseStatus && state.fs.fuseStatus.kextStarted)
+  const kbfsEnabled = Constants.kbfsEnabled(state)
   return {
     _appFocusedCount: state.config.appFocusedCount,
     needAction: !kbfsEnabled && state.fs.flags.kextPermissionError,

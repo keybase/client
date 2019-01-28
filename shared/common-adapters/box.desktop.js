@@ -35,17 +35,25 @@ const box2 = (props: Box2Props) => {
     !props.fullHeight && !props.fullWidth && 'box2_centered',
     props.centerChildren && 'box2_centeredChildren',
     props.alignSelf && `box2_alignSelf_${props.alignSelf}`,
+    props.alignItems && `box2_alignItems_${props.alignItems}`,
     props.noShrink && 'box2_no_shrink',
     props.className,
   ]
     .filter(Boolean)
     .join(' ')
+
+  let style = props.style
+  // uncomment this to get debugging colors
+  // style = {
+  // ...style,
+  // backgroundColor: `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`,
+  // }
   return (
     <div
       onMouseLeave={props.onMouseLeave}
       onMouseOver={props.onMouseOver}
       className={className}
-      style={props.style}
+      style={style}
     >
       {injectGaps(horizontal ? hBoxGap : vBoxGap, props.children, props.gap, props.gapStart, props.gapEnd)}
     </div>

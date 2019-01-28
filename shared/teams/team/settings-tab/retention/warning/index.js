@@ -1,6 +1,5 @@
 // @flow
 import * as React from 'react'
-import {daysToLabel} from '../../../../../util/timestamp'
 import {
   Box,
   Button,
@@ -16,15 +15,17 @@ import {globalMargins, globalStyles, isMobile, platformStyles} from '../../../..
 import type {RetentionEntityType} from '..'
 
 type Props = {
-  days: number,
   enabled: boolean,
   entityType: RetentionEntityType,
+  exploding: boolean,
   setEnabled: boolean => void,
+  timePeriod: string,
   onConfirm: () => void,
   onBack: () => void,
 }
 
 const iconType = isMobile ? 'icon-message-retention-64' : 'icon-message-retention-48'
+const explodeIconType = 'icon-illustration-exploding-messages-240'
 
 const Wrapper = ({children, onBack}: {children: React.Node, onBack: () => void}) =>
   isMobile ? (
@@ -34,7 +35,6 @@ const Wrapper = ({children, onBack}: {children: React.Node, onBack: () => void})
   )
 
 const RetentionWarning = (props: Props) => {
-  const policyString = daysToLabel(props.days)
   let showChannelWarnings = false
   if (props.entityType === 'big team') {
     showChannelWarnings = true
@@ -43,13 +43,14 @@ const RetentionWarning = (props: Props) => {
   return (
     <Wrapper onBack={props.onBack}>
       <Box style={containerStyle}>
-        <Icon type={iconType} style={iconStyle} />
+        <Icon type={props.exploding ? explodeIconType : iconType} style={iconStyle} />
         <Text center={true} type="Header" style={headerStyle}>
-          Destroy chat messages after {policyString}?
+          {props.exploding ? 'Explode' : 'Destroy'} chat messages after {props.timePeriod}?
         </Text>
         <Text center={true} type="Body" style={bodyStyle}>
-          You are about to set the message deletion policy in this {convType} to{' '}
-          <Text type="BodySemibold">{policyString}.</Text>{' '}
+          You are about to set the messages in this {convType} to{' '}
+          {props.exploding ? 'explode after ' : 'be deleted after '}
+          <Text type="BodySemibold">{props.timePeriod}.</Text>{' '}
           {showChannelWarnings &&
             "This will affect all the team's channels, except the ones you've set manually."}
         </Text>
@@ -61,7 +62,7 @@ const RetentionWarning = (props: Props) => {
           labelComponent={
             <Box style={confirmLabelStyle}>
               <Text type="Body">
-                I understand that messages older than {policyString} will be deleted for everyone.
+                I understand that messages older than {props.timePeriod} will be deleted for everyone.
               </Text>
               {showChannelWarnings && (
                 <Text type="BodySmall">Channels you've set manually will not be affected.</Text>
@@ -74,7 +75,7 @@ const RetentionWarning = (props: Props) => {
           <Button
             type="Danger"
             onClick={props.onConfirm}
-            label={isMobile ? 'Confirm' : `Yes, set to ${policyString}`}
+            label={isMobile ? 'Confirm' : `Yes, set to ${props.timePeriod}`}
             disabled={!props.enabled}
           />
         </ButtonBar>
@@ -124,7 +125,7 @@ const containerStyle = platformStyles({
   },
 })
 
-const iconStyle = {marginBottom: 48}
+const iconStyle = {marginBottom: 20}
 const headerStyle = {marginBottom: globalMargins.small}
 const bodyStyle = {marginBottom: globalMargins.small}
 const checkboxStyle = platformStyles({

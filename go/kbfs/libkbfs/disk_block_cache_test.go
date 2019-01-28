@@ -594,22 +594,17 @@ func seedDiskBlockCacheForTest(t *testing.T, ctx context.Context,
 	}
 }
 
-func TestSyncBlockCacheStaticLimit(t *testing.T) {
-	t.Parallel()
-	t.Log("Test that disk cache eviction works when we hit the static limit.")
-	cache, config := initDiskBlockCacheTest(t)
-	standardCache := cache.syncCache
-	defer shutdownDiskBlockCacheTest(cache)
-	ctx := context.Background()
-
+func testPutBlockWhenSyncCacheFull(
+	t *testing.T, ctx context.Context, putCache *DiskBlockCacheLocal,
+	cache *diskBlockCacheWrapped, config *testDiskBlockCacheConfig) {
 	numTlfs := 10
 	numBlocksPerTlf := 5
 	numBlocks := numTlfs * numBlocksPerTlf
 	seedDiskBlockCacheForTest(t, ctx, cache, config, numTlfs, numBlocksPerTlf)
 
 	t.Log("Set the cache maximum bytes to the current total.")
-	require.Equal(t, 0, cache.workingSetCache.numBlocks)
-	currBytes := int64(standardCache.currBytes)
+	require.Equal(t, 0, putCache.numBlocks)
+	currBytes := int64(cache.syncCache.currBytes)
 	limiter := config.DiskLimiter().(*backpressureDiskLimiter)
 	limiter.syncCacheByteTracker.limit = currBytes
 
@@ -617,14 +612,40 @@ func TestSyncBlockCacheStaticLimit(t *testing.T) {
 		"and the working set got a new block.")
 	blockPtr, _, blockEncoded, serverHalf := setupBlockForDiskCache(
 		t, config)
-	err := cache.Put(
-		ctx, tlf.FakeID(0, tlf.Private), blockPtr.ID, blockEncoded, serverHalf,
-		DiskBlockAnyCache)
+	err := putCache.Put(
+		ctx, tlf.FakeID(0, tlf.Private), blockPtr.ID, blockEncoded, serverHalf)
 	require.NoError(t, err)
 
-	require.Equal(t, int64(standardCache.currBytes), currBytes)
-	require.Equal(t, numBlocks, standardCache.numBlocks)
-	require.Equal(t, 1, cache.workingSetCache.numBlocks)
+	require.Equal(t, int64(cache.syncCache.currBytes), currBytes)
+	require.Equal(t, numBlocks, cache.syncCache.numBlocks)
+	require.Equal(t, 1, putCache.numBlocks)
+}
+
+func TestSyncBlockCacheStaticLimit(t *testing.T) {
+	t.Parallel()
+	t.Log("Test that disk cache eviction doesn't happen in sync cache")
+	cache, config := initDiskBlockCacheTest(t)
+	defer shutdownDiskBlockCacheTest(cache)
+	ctx := context.Background()
+
+	testPutBlockWhenSyncCacheFull(t, ctx, cache.workingSetCache, cache, config)
+}
+
+func TestCrDirtyBlockCacheStaticLimit(t *testing.T) {
+	t.Parallel()
+	t.Log("Test that cr cache accepts blocks even when sync limit is hit")
+	cache, config := initDiskBlockCacheTest(t)
+	defer shutdownDiskBlockCacheTest(cache)
+	crCache, err := newDiskBlockCacheLocalForTest(
+		config, crDirtyBlockCacheLimitTrackerType)
+	require.NoError(t, err)
+	ctx := context.Background()
+	defer crCache.Shutdown(ctx)
+
+	err = crCache.WaitUntilStarted()
+	require.NoError(t, err)
+
+	testPutBlockWhenSyncCacheFull(t, ctx, crCache, cache, config)
 }
 
 func TestDiskBlockCacheLastUnrefPutAndGet(t *testing.T) {

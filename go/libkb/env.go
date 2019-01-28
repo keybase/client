@@ -76,6 +76,7 @@ func (n NullConfiguration) GetRunMode() (RunMode, error)                    { re
 func (n NullConfiguration) GetNoAutoFork() (bool, bool)                     { return false, false }
 func (n NullConfiguration) GetLogFile() string                              { return "" }
 func (n NullConfiguration) GetUseDefaultLogFile() (bool, bool)              { return false, false }
+func (n NullConfiguration) GetUseRootConfigFile() (bool, bool)              { return false, false }
 func (n NullConfiguration) GetLogPrefix() string                            { return "" }
 func (n NullConfiguration) GetScraperTimeout() (time.Duration, bool)        { return 0, false }
 func (n NullConfiguration) GetAPITimeout() (time.Duration, bool)            { return 0, false }
@@ -97,6 +98,7 @@ func (n NullConfiguration) GetGregorPingTimeout() (time.Duration, bool)     { re
 func (n NullConfiguration) GetChatDelivererInterval() (time.Duration, bool) { return 0, false }
 func (n NullConfiguration) GetGregorDisabled() (bool, bool)                 { return false, false }
 func (n NullConfiguration) GetMountDir() string                             { return "" }
+func (n NullConfiguration) GetMountDirDefault() string                      { return "" }
 func (n NullConfiguration) GetBGIdentifierDisabled() (bool, bool)           { return false, false }
 func (n NullConfiguration) GetFeatureFlags() (FeatureFlags, error)          { return FeatureFlags{}, nil }
 func (n NullConfiguration) GetAppType() AppType                             { return NoAppType }
@@ -273,41 +275,52 @@ func (e *Env) GetUpdaterConfig() UpdaterConfigReader {
 	return e.updaterConfig
 }
 
+func (e *Env) GetOldMountDirDefault() string {
+	switch RuntimeGroup() {
+	case keybase1.RuntimeGroup_LINUXLIKE:
+		return filepath.Join(e.GetDataDir(), "fs")
+	default:
+		return e.GetMountDirDefault()
+	}
+}
+
+func (e *Env) GetMountDirDefault() string {
+	switch RuntimeGroup() {
+	case keybase1.RuntimeGroup_DARWINLIKE:
+		volumes := "/Volumes"
+		user, err := user.Current()
+		if err != nil {
+			panic(fmt.Sprintf("Couldn't get current user: %+v", err))
+		}
+		var runmodeName string
+		switch e.GetRunMode() {
+		case DevelRunMode:
+			runmodeName = "KeybaseDevel"
+		case StagingRunMode:
+			runmodeName = "KeybaseStaging"
+		case ProductionRunMode:
+			runmodeName = "Keybase"
+		default:
+			panic("Invalid run mode")
+		}
+		return filepath.Join(volumes, fmt.Sprintf(
+			"%s (%s)", runmodeName, user.Username))
+	case keybase1.RuntimeGroup_LINUXLIKE:
+		return filepath.Join(e.GetRuntimeDir(), "kbfs")
+	// kbfsdokan depends on an empty default
+	case keybase1.RuntimeGroup_WINDOWSLIKE:
+		return ""
+	default:
+		return filepath.Join(e.GetRuntimeDir(), "kbfs")
+	}
+}
+
 func (e *Env) GetMountDir() (string, error) {
 	return e.GetString(
 		func() string { return e.cmd.GetMountDir() },
 		func() string { return os.Getenv("KEYBASE_MOUNTDIR") },
 		func() string { return e.GetConfig().GetMountDir() },
-		func() string {
-			switch runtime.GOOS {
-			case "darwin":
-				volumes := "/Volumes"
-				user, err := user.Current()
-				if err != nil {
-					panic(fmt.Sprintf("Couldn't get current user: %+v", err))
-				}
-				var runmodeName string
-				switch e.GetRunMode() {
-				case DevelRunMode:
-					runmodeName = "KeybaseDevel"
-				case StagingRunMode:
-					runmodeName = "KeybaseStaging"
-				case ProductionRunMode:
-					runmodeName = "Keybase"
-				default:
-					panic("Invalid run mode")
-				}
-				return filepath.Join(volumes, fmt.Sprintf(
-					"%s (%s)", runmodeName, user.Username))
-			case "linux":
-				return filepath.Join(e.GetRuntimeDir(), "kbfs")
-			// kbfsdokan depends on an empty default
-			case "windows":
-				return ""
-			default:
-				return filepath.Join(e.GetRuntimeDir(), "kbfs")
-			}
-		},
+		func() string { return e.GetMountDirDefault() },
 	), nil
 }
 
@@ -504,8 +517,72 @@ func (e *Env) GetServerURI() string {
 	)
 }
 
+func (e *Env) GetUseRootConfigFile() bool {
+	return e.GetBool(false, e.cmd.GetUseRootConfigFile)
+}
+
+func (e *Env) GetRootRedirectorMount() (string, error) {
+	switch RuntimeGroup() {
+	case keybase1.RuntimeGroup_LINUXLIKE, keybase1.RuntimeGroup_DARWINLIKE:
+		return "/keybase", nil
+	default:
+		return "", fmt.Errorf("Root redirector mount unknown on this system.")
+	}
+}
+
+func (e *Env) GetRootConfigDirectory() (string, error) {
+	// NOTE: If this ever changes to more than one level deep, the configure
+	// redirector CLI command needs to be updated to update the permissions
+	// back to 0644 for all the created directories, or other processes won't
+	// be able to read them.
+	// Alternatively, we could package a blank config.json in that directory,
+	// but we can't rely on that for other packages.
+	switch RuntimeGroup() {
+	case keybase1.RuntimeGroup_LINUXLIKE:
+		return "/etc/keybase/", nil
+	default:
+		return "", fmt.Errorf("Root config directory unknown on this system")
+	}
+}
+
+func (e *Env) GetRootConfigFilename() (string, error) {
+	dir, err := e.GetRootConfigDirectory()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(dir, "config.json"), nil
+}
+
+func (e *Env) GetEnvfileName() (string, error) {
+	switch RuntimeGroup() {
+	case keybase1.RuntimeGroup_LINUXLIKE:
+		return filepath.Join(e.GetConfigDir(), "keybase.autogen.env"), nil
+	default:
+		return "", fmt.Errorf("No envfile for %s.", runtime.GOOS)
+	}
+}
+
+func (e *Env) GetOverrideEnvfileName() (string, error) {
+	switch RuntimeGroup() {
+	case keybase1.RuntimeGroup_LINUXLIKE:
+		return filepath.Join(e.GetConfigDir(), "keybase.env"), nil
+	default:
+		return "", fmt.Errorf("No envfile override for %s.", runtime.GOOS)
+	}
+}
+
 func (e *Env) GetConfigFilename() string {
 	return e.GetString(
+		func() string {
+			if e.GetUseRootConfigFile() {
+				ret, err := e.GetRootConfigFilename()
+				if err != nil {
+					return ""
+				}
+				return ret
+			}
+			return ""
+		},
 		func() string { return e.Test.ConfigFilename },
 		func() string { return e.cmd.GetConfigFilename() },
 		func() string { return os.Getenv("KEYBASE_CONFIG_FILE") },
@@ -1552,8 +1629,11 @@ func (e *Env) RunningInCI() bool {
 }
 
 func (e *Env) WantsSystemd() bool {
-	return (e.GetRunMode() == ProductionRunMode &&
-		systemd.IsRunningSystemd() &&
+	return (e.GetRunMode() == ProductionRunMode && e.ModelessWantsSystemd())
+}
+
+func (e *Env) ModelessWantsSystemd() bool {
+	return (systemd.IsRunningSystemd() &&
 		os.Getenv("KEYBASE_SYSTEMD") != "0")
 }
 

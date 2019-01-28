@@ -1672,7 +1672,9 @@ function* downloadAttachment(fileName: string, message: Types.Message) {
     )
     yield Saga.put(Chat2Gen.createAttachmentDownloaded({message, path: fileName}))
     return rpcRes.filename
-  } catch (e) {}
+  } catch (e) {
+    logger.error(`downloadAttachment error: ${e.message}`)
+  }
   return fileName
 }
 
@@ -2006,6 +2008,11 @@ function* mobileMessageAttachmentSave(state, action) {
     throw new Error('Invalid share message')
   }
   const fileName = yield* downloadAttachment('', message)
+  if (fileName === '') {
+    // failed to download
+    logger.error('Downloading attachment failed')
+    throw new Error('Downloading attachment failed')
+  }
   yield Saga.put(
     Chat2Gen.createAttachmentMobileSave({
       conversationIDKey: message.conversationIDKey,
@@ -2280,7 +2287,7 @@ const ignoreErrors = [
   RPCTypes.constantsStatusCode.scapinetworkerror,
   RPCTypes.constantsStatusCode.sctimeout,
 ]
-function* setConvExplodingMode(_, action) {
+function* setConvExplodingMode(state, action) {
   const {conversationIDKey, seconds} = action.payload
   logger.info(`Setting exploding mode for conversation ${conversationIDKey} to ${seconds}`)
 
@@ -2288,7 +2295,9 @@ function* setConvExplodingMode(_, action) {
   yield Saga.put(Chat2Gen.createSetExplodingModeLock({conversationIDKey, unset: true}))
 
   const category = Constants.explodingModeGregorKey(conversationIDKey)
-  if (seconds === 0) {
+  const meta = Constants.getMeta(state, conversationIDKey)
+  const convRetention = Constants.getEffectiveRetentionPolicy(meta)
+  if (seconds === 0 || seconds === convRetention.seconds) {
     // dismiss the category so we don't leave cruft in the push state
     yield Saga.callUntyped(RPCTypes.gregorDismissCategoryRpcPromise, {category})
   } else {
@@ -2377,6 +2386,7 @@ function* loadStaticConfig(state, action) {
     }, [])
     return Chat2Gen.createStaticConfigLoaded({
       staticConfig: Constants.makeStaticConfig({
+        builtinCommands: res.builtinCommands || [],
         deletableByDeleteHistory: I.Set(deletableByDeleteHistory),
       }),
     })

@@ -88,6 +88,7 @@ type UnverifiedInboxUIItem struct {
 	FinalizeInfo    *ConversationFinalizeInfo      `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
 	Supersedes      []ConversationMetadata         `codec:"supersedes" json:"supersedes"`
 	SupersededBy    []ConversationMetadata         `codec:"supersededBy" json:"supersededBy"`
+	Commands        ConversationCommandGroups      `codec:"commands" json:"commands"`
 }
 
 func (o UnverifiedInboxUIItem) DeepCopy() UnverifiedInboxUIItem {
@@ -149,6 +150,7 @@ func (o UnverifiedInboxUIItem) DeepCopy() UnverifiedInboxUIItem {
 			}
 			return ret
 		})(o.SupersededBy),
+		Commands: o.Commands.DeepCopy(),
 	}
 }
 
@@ -213,6 +215,7 @@ type InboxUIItem struct {
 	FinalizeInfo      *ConversationFinalizeInfo     `codec:"finalizeInfo,omitempty" json:"finalizeInfo,omitempty"`
 	Supersedes        []ConversationMetadata        `codec:"supersedes" json:"supersedes"`
 	SupersededBy      []ConversationMetadata        `codec:"supersededBy" json:"supersededBy"`
+	Commands          ConversationCommandGroups     `codec:"commands" json:"commands"`
 }
 
 func (o InboxUIItem) DeepCopy() InboxUIItem {
@@ -334,6 +337,7 @@ func (o InboxUIItem) DeepCopy() InboxUIItem {
 			}
 			return ret
 		})(o.SupersededBy),
+		Commands: o.Commands.DeepCopy(),
 	}
 }
 

@@ -19,6 +19,11 @@ export const chatUiUITextDecorationTyp = {
   channelnamemention: 2,
 }
 
+export const commandsConversationCommandGroupsTyp = {
+  builtin: 0,
+  extended: 1,
+}
+
 export const commonAssetMetadataType = {
   none: 0,
   image: 1,
@@ -79,6 +84,7 @@ export const commonGlobalAppNotificationSetting = {
   plaintextmobile: 1,
   plaintextdesktop: 2,
   defaultsoundmobile: 3,
+  disabletyping: 4,
 }
 
 export const commonInboxResType = {

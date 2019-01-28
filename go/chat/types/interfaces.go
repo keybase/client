@@ -255,8 +255,10 @@ type AppState interface {
 
 type TeamChannelSource interface {
 	GetChannelsFull(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType) ([]chat1.ConversationLocal, error)
-	GetChannelsTopicName(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType) ([]chat1.ChannelNameMention, error)
-	GetChannelTopicName(context.Context, gregor1.UID, chat1.TLFID, chat1.TopicType, chat1.ConversationID) (string, error)
+	GetChannelsTopicName(ctx context.Context, uid gregor1.UID,
+		teamID chat1.TLFID, topicType chat1.TopicType) ([]chat1.ChannelNameMention, error)
+	GetChannelTopicName(ctx context.Context, uid gregor1.UID,
+		tlfID chat1.TLFID, topicType chat1.TopicType, convID chat1.ConversationID) (string, error)
 }
 
 type ActivityNotifier interface {
@@ -408,12 +410,14 @@ type ConversationCommand interface {
 	Name() string
 	Usage() string
 	Description() string
+	Export() chat1.ConversationCommand
 }
 
 type ConversationCommandsSource interface {
-	ListCommands(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) ([]ConversationCommandGroup, error)
-	AttemptCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, tlfName string,
-		body chat1.MessageBody) (bool, error)
+	ListCommands(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (chat1.ConversationCommandGroups, error)
+	GetBuiltins(ctx context.Context) []chat1.ConversationCommand
+	AttemptBuiltinCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+		tlfName string, body chat1.MessageBody) (bool, error)
 }
 
 type InternalError interface {

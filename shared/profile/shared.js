@@ -4,7 +4,7 @@ import {globalColors} from '../styles'
 import {proveMessage} from '../util/platforms'
 import {PlatformsExpanded} from '../constants/types/more'
 
-import type {MissingProof} from '../common-adapters/user-proofs'
+import type {MissingProof} from './user-proofs'
 import type {Proof} from '../constants/types/tracker'
 import type {PlatformsExpandedType} from '../constants/types/more'
 import type {Folder} from '../constants/types/folders'

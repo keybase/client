@@ -28,7 +28,7 @@ const FakeMessage = () => (
 )
 
 const load = () =>
-  Sb.storiesOf('Chat/Conversation/Emoji row')
+  Sb.storiesOf('Chat/Conversation/Emoji row', module)
     .add('On hover', () => <FakeMessage />)
     .add('Visible', () => <EmojiRow {...common} />)
 

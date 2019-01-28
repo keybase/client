@@ -5,6 +5,7 @@ import * as TrackerGen from '../actions/tracker-gen'
 import * as ConfigGen from '../actions/config-gen'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
+import flags from '../util/feature-flags'
 import {get} from 'lodash-es'
 import engine from '../engine'
 import openUrl from '../util/open-url'
@@ -643,6 +644,9 @@ const setupEngineListeners = () => {
 }
 
 function* trackerSaga(): Saga.SagaGenerator<any, any> {
+  if (flags.identify3) {
+    return
+  }
   // TODO not bothering to make these nice as its all going away next week
   yield* Saga.chainGenerator<TrackerGen.UnfollowPayload>(TrackerGen.unfollow, _unfollow)
   yield* Saga.chainGenerator<TrackerGen.FollowPayload>(TrackerGen.follow, _follow)

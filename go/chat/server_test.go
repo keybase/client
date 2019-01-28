@@ -741,7 +741,7 @@ func TestChatSrvNewConversationMultiTeam(t *testing.T) {
 			require.NoError(t, err)
 		case chat1.ConversationMembersType_TEAM:
 			require.NoError(t, err)
-			require.Equal(t, globals.DefaultTeamTopic, utils.GetTopicName(ncres.Conv))
+			require.Equal(t, globals.DefaultTeamTopic, ncres.Conv.Info.TopicName)
 		}
 		arg.TopicName = &topicName
 		topicName = "dskjdskdjskdjskdjskdjskdjskdjskjdskjdskdskdjksdjks"
@@ -5649,11 +5649,14 @@ func TestChatSrvTeamChannelNameMentions(t *testing.T) {
 func TestChatSrvGetStaticConfig(t *testing.T) {
 	ctc := makeChatTestContext(t, "GetStaticConfig", 2)
 	defer ctc.cleanup()
-	tc := ctc.as(t, ctc.users()[0])
-	res, err := tc.chatLocalHandler().GetStaticConfig(tc.startCtx)
+	users := ctc.users()
+	ctx := ctc.as(t, users[0]).startCtx
+	tc := ctc.world.Tcs[users[0].Username]
+	res, err := ctc.as(t, ctc.users()[0]).chatLocalHandler().GetStaticConfig(ctx)
 	require.NoError(t, err)
 	require.Equal(t, chat1.StaticConfig{
 		DeletableByDeleteHistory: chat1.DeletableMessageTypesByDeleteHistory(),
+		BuiltinCommands:          tc.Context().CommandsSource.GetBuiltins(ctx),
 	}, res)
 }
 

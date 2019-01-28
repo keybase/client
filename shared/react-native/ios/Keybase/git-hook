@@ -1,0 +1,6 @@
+#!/bin/sh
+cd $(dirname $0)
+if grep 'isStorybook.*true' Storybook.m; then
+  echo >&2 "rn story mode is enabled. Did you mean to commit this?"
+  exit 1
+fi

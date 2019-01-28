@@ -157,7 +157,7 @@
     "react-native-fast-image": "5.1.1",
     "react-native-image-picker": "git://github.com/keybase/react-native-image-picker#v0.27.1-with-keybase-fixes",
     "react-native-mime-types": "2.2.1",
-    "react-native-push-notification": "git://github.com/keybase/react-native-push-notification#keybase-fixes-off-311",
+    "react-native-push-notification": "git://github.com/keybase/react-native-push-notification#keybase-fixes-off-311-fcm",
     "react-navigation": "git://github.com/keybase/react-navigation#keybase-fixes-off-beta-12",
     "react-redux": "6.0.0",
     "react-transition-group": "2.5.1",

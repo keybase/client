@@ -5,7 +5,7 @@ import * as Types from '../../../../constants/types/chat2'
 import {SmallTeam} from '.'
 import {connect, isMobile} from '../../../../util/container'
 
-type OwnProps = {conversationIDKey: Types.ConversationIDKey}
+type OwnProps = {|conversationIDKey: Types.ConversationIDKey|}
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const _conversationIDKey = ownProps.conversationIDKey

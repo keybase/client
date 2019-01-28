@@ -100,6 +100,7 @@ export default function(state: Types.State = initialState, action: ProfileGen.Ac
     case ProfileGen.submitRevokeProof:
     case ProfileGen.submitUsername:
     case ProfileGen.uploadAvatar:
+    case ProfileGen.editAvatar:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

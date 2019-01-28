@@ -120,13 +120,15 @@
     "setInflationDestination": {
       "_description": "Set our inflation destination",
       "accountID": "Types.AccountID",
-      "destination": "string"
+      "destination": "Types.AccountID",
+      "name": "string"
     },
     "inflationDestinationReceived": {
       "_description": "Got inflation destination",
-      "selected?": "string",
+      "accountID": "Types.AccountID",
+      "selected": "Types.AccountInflationDestination",
       "options?": "Array<Types.InflationDestination>",
-      "error?": "string"
+      "canError": {"error": "string"}
     },
     "loadMorePayments": {
       "_description": "Scrolled down the list of payments for a given account",
