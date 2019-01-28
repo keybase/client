@@ -300,6 +300,12 @@ export type _SendLinkToChat = {
 }
 export type SendLinkToChat = I.RecordOf<_SendLinkToChat>
 
+export type ActionMenuViewType = 'root' | 'share' | 'confirm-download'
+export type _ActionMenu = {
+  view: ActionMenuViewType,
+}
+export type ActionMenu = I.RecordOf<_ActionMenu>
+
 export type _State = {
   pathItems: PathItems,
   tlfs: Tlfs,
@@ -315,6 +321,7 @@ export type _State = {
   tlfUpdates: UserTlfUpdates,
   moveOrCopy: MoveOrCopy,
   sendLinkToChat: SendLinkToChat,
+  actionMenu: ActionMenu,
 }
 export type State = I.RecordOf<_State>
 
