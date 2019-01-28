@@ -9,11 +9,11 @@ import crypto from 'crypto'
 const commands = {
   'update-icon-font': {
     code: () => updateIconFont(false),
-    help: 'Update our font sizes automatically (also web fonts)',
+    help: 'Update our font sizes automatically',
   },
   'update-web-font': {
     code: () => updateIconFont(true),
-    help: 'Update our font sizes automatically (also web fonts)',
+    help: 'Update our web font automatically',
   },
   'update-icon-constants': {
     code: updateIconConstants,
