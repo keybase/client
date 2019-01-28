@@ -3210,7 +3210,7 @@ type conflictRecord struct {
 	codec.UnknownFieldSetHandler `json:"-"`
 }
 
-func getAndDeserializeConflicts(config Config, db *levelDb,
+func getAndDeserializeConflicts(config Config, db *LevelDb,
 	key []byte) ([]conflictRecord, error) {
 	conflictsSoFarSerialized, err := db.Get(key, nil)
 	var conflictsSoFar []conflictRecord
@@ -3228,7 +3228,7 @@ func getAndDeserializeConflicts(config Config, db *levelDb,
 	return conflictsSoFar, nil
 }
 
-func serializeAndPutConflicts(config Config, db *levelDb,
+func serializeAndPutConflicts(config Config, db *LevelDb,
 	key []byte, conflicts []conflictRecord) error {
 	conflictsSerialized, err := config.Codec().Encode(conflicts)
 	if err != nil {
@@ -3586,7 +3586,7 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	// to clean up the quota anyway . . .)
 }
 
-func openCRDBInternal(config Config) (*levelDb, error) {
+func openCRDBInternal(config Config) (*LevelDb, error) {
 	if config.IsTestMode() {
 		return openLevelDBWithOptions(storage.NewMemStorage(), leveldbOptions)
 	}
@@ -3608,7 +3608,7 @@ func openCRDBInternal(config Config) (*levelDb, error) {
 	return openLevelDBWithOptions(stor, leveldbOptions)
 }
 
-func openCRDB(config Config) (db *levelDb) {
+func openCRDB(config Config) (db *LevelDb) {
 	db, err := openCRDBInternal(config)
 	if err != nil {
 		panic(fmt.Sprintf("Could not open conflict resolver DB: %v", err))
