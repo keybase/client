@@ -439,12 +439,21 @@ func (fup *folderUpdatePrepper) prepTree(ctx context.Context, lState *lockState,
 				return nil, fmt.Errorf("No file blocks found for parent %v",
 					node.parent.ptr)
 			}
-			fblock, ok = fileBlocks[node.mergedPath.tailName()]
+			fptr, ok := fileBlocks[node.mergedPath.tailName()]
 			if !ok {
 				return nil, fmt.Errorf("No file block found name %s under "+
 					"parent %v", node.mergedPath.tailName(), node.parent.ptr)
 			}
-			block = fblock
+			var err error
+			block, err = dirtyBcache.Get(ctx, fup.id(), fptr, fup.branch())
+			if err != nil {
+				return nil, err
+			}
+			fblock, ok = block.(*FileBlock)
+			if !ok {
+				return nil, errors.Errorf(
+					"%s is unexpectedly not a file block", fptr)
+			}
 			entryType = File // TODO: FIXME for Ex and Sym
 		}
 
@@ -932,7 +941,7 @@ func (fup *folderUpdatePrepper) updateResolutionUsageAndPointersLockedCache(
 func (fup *folderUpdatePrepper) setChildrenNodes(
 	ctx context.Context, lState *lockState, kmd KeyMetadata, p path,
 	indexInPath int, lbc localBcache, nextNode *pathTreeNode, currPath path,
-	blocks map[string]*FileBlock) {
+	blocks map[string]BlockPointer) {
 	dd, cleanupFn := fup.blocks.newDirDataWithLBC(
 		lState, currPath, keybase1.UserOrTeamID(""), kmd, lbc)
 	defer cleanupFn()
