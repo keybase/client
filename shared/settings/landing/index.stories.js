@@ -63,6 +63,16 @@ const load = () => {
         {...defaultPlanProps}
       />
     ))
+    .add('Both no-email and random pw', () => (
+      <Landing
+        account={{
+          ...defaultAccountProps,
+          email: '',
+          hasRandomPW: true,
+        }}
+        {...defaultPlanProps}
+      />
+    ))
 }
 
 export default load
