@@ -419,6 +419,35 @@ func (o PageCursor) DeepCopy() PageCursor {
 	}
 }
 
+type AccountMode int
+
+const (
+	AccountMode_NONE   AccountMode = 0
+	AccountMode_USER   AccountMode = 1
+	AccountMode_MOBILE AccountMode = 2
+)
+
+func (o AccountMode) DeepCopy() AccountMode { return o }
+
+var AccountModeMap = map[string]AccountMode{
+	"NONE":   0,
+	"USER":   1,
+	"MOBILE": 2,
+}
+
+var AccountModeRevMap = map[AccountMode]string{
+	0: "NONE",
+	1: "USER",
+	2: "MOBILE",
+}
+
+func (e AccountMode) String() string {
+	if v, ok := AccountModeRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type CommonInterface interface {
 }
 

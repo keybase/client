@@ -90,6 +90,7 @@ class Input extends React.Component<InputProps, InputState> {
   _suggestorDatasource = {}
   _suggestorRenderer = {}
   _suggestorTransformer = {}
+  _maxCmdLength = 0
 
   constructor(props: InputProps) {
     super(props)
@@ -113,6 +114,9 @@ class Input extends React.Component<InputProps, InputState> {
       emoji: emojiTransformer,
       users: this._transformUserSuggestion,
     }
+    // + 1 for '/'
+    this._maxCmdLength =
+      this.props.suggestCommands.reduce((max, cmd) => (cmd.name.length > max ? cmd.name.length : max), 0) + 1
   }
 
   _inputSetRef = (input: null | Kb.PlainInput) => {
@@ -224,6 +228,16 @@ class Input extends React.Component<InputProps, InputState> {
   _getUserSuggestions = filter => searchUsers(this.props.suggestUsers, filter)
 
   _getCommandSuggestions = filter => {
+    const sel = this._input && this._input.getSelection()
+    if (sel && this._lastText) {
+      // a little messy. Check if the message starts with '/' and that the cursor is
+      // within maxCmdLength chars away from it. This happens before `onChangeText`, so
+      // we can't do a more robust check on `this._lastText` because it's out of date.
+      if (!this._lastText.startsWith('/') || sel.start > this._maxCmdLength) {
+        // not at beginning of message
+        return []
+      }
+    }
     const fil = filter.toLowerCase()
     return this.props.suggestCommands.filter(c => c.name.includes(fil))
   }
@@ -239,7 +253,7 @@ class Input extends React.Component<InputProps, InputState> {
           backgroundColor: selected ? Styles.globalColors.blue4 : Styles.globalColors.white,
         },
       ])}
-      gap="small"
+      gap="tiny"
     >
       {Constants.isSpecialMention(username) ? (
         <Kb.Icon
@@ -251,7 +265,12 @@ class Input extends React.Component<InputProps, InputState> {
       ) : (
         <Kb.Avatar username={username} size={32} />
       )}
-      <Kb.ConnectedUsernames type="BodySemibold" colorFollowing={true} usernames={[username]} />
+      <Kb.ConnectedUsernames
+        type="BodySemibold"
+        colorFollowing={true}
+        usernames={[username]}
+        style={styles.boldStyle}
+      />
       <Kb.Text type="BodySmall">{fullName}</Kb.Text>
     </Kb.Box2>
   )
@@ -289,7 +308,7 @@ class Input extends React.Component<InputProps, InputState> {
       direction="vertical"
       style={Styles.collapseStyles([
         styles.suggestionBase,
-        {height: 50},
+        styles.fixSuggestionHeight,
         {
           alignItems: 'flex-start',
           backgroundColor: selected ? Styles.globalColors.blue4 : Styles.globalColors.white,
@@ -297,12 +316,12 @@ class Input extends React.Component<InputProps, InputState> {
       ])}
     >
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
-        <Kb.Text type="BodyExtrabold">/{command.name}</Kb.Text>
+        <Kb.Text type="BodySemibold" style={styles.boldStyle}>
+          /{command.name}
+        </Kb.Text>
         <Kb.Text type="Body">{command.usage}</Kb.Text>
       </Kb.Box2>
-      <Kb.Text type="Body" style={Styles.collapseStyles([{color: Styles.globalColors.black_50}])}>
-        {command.description}
-      </Kb.Text>
+      <Kb.Text type="BodySmall">{command.description}</Kb.Text>
     </Kb.Box2>
   )
 
@@ -335,7 +354,13 @@ class Input extends React.Component<InputProps, InputState> {
 }
 
 const styles = Styles.styleSheetCreate({
-  fixSuggestionHeight: {height: 40},
+  boldStyle: {
+    fontWeight: '700',
+  },
+  fixSuggestionHeight: Styles.platformStyles({
+    isElectron: {height: 40},
+    isMobile: {height: 48},
+  }),
   paddingXTiny: {
     padding: Styles.globalMargins.xtiny,
   },

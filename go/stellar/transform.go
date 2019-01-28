@@ -440,7 +440,7 @@ func RemotePendingToLocal(mctx libkb.MetaContext, remoter remote.Remoter, accoun
 	return payments, nil
 }
 
-func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stellar1.AccountID, details stellar1.AccountDetails, isPrimary bool, accountName string) (stellar1.WalletAccountLocal, error) {
+func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stellar1.AccountID, details stellar1.AccountDetails, isPrimary bool, accountName string, accountMode stellar1.AccountMode) (stellar1.WalletAccountLocal, error) {
 
 	var empty stellar1.WalletAccountLocal
 	balance, err := balanceList(details.Balances).balanceDescription()
@@ -454,6 +454,7 @@ func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stella
 		Name:               accountName,
 		BalanceDescription: balance,
 		Seqno:              details.Seqno,
+		AccountMode:        accountMode,
 	}
 
 	conf, err := mctx.G().GetStellar().GetServerDefinitions(mctx.Ctx())

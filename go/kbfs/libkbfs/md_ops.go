@@ -602,65 +602,53 @@ func (md *MDOpsStandard) verifyWriterKey(ctx context.Context,
 	// writer MD was actually signed, since it was copied from a
 	// previous revision.  Search backwards for the most recent
 	// uncopied writer MD to get the right timestamp.
-	prevHead := rmds.MD.RevisionNumber() - 1
-	for {
-		startRev := prevHead - maxMDsAtATime + 1
-		if startRev < kbfsmd.RevisionInitial {
-			startRev = kbfsmd.RevisionInitial
-		}
-
+	for prevRev := rmds.MD.RevisionNumber() - 1; prevRev >= kbfsmd.RevisionInitial; prevRev-- {
 		// Recursively call into MDOps.  Note that in the case where
 		// we were already fetching a range of MDs, this could do
 		// extra work by downloading the same MDs twice (for those
 		// that aren't yet in the cache).  That should be so rare that
 		// it's not worth optimizing.
-		prevMDs, err := getMDRange(ctx, md.config, rmds.MD.TlfID(),
-			rmds.MD.BID(), startRev, prevHead, rmds.MD.MergedStatus(), nil)
+		rmd, err := getSingleMD(ctx, md.config, rmds.MD.TlfID(),
+			rmds.MD.BID(), prevRev, rmds.MD.MergedStatus(), nil)
 		if err != nil {
 			return err
 		}
 
-		for i := len(prevMDs) - 1; i >= 0; i-- {
-			if !prevMDs[i].IsWriterMetadataCopiedSet() {
-				// We want to compare the writer signature of
-				// rmds with that of prevMDs[i]. However, we've
-				// already dropped prevMDs[i]'s writer
-				// signature. We can just verify prevMDs[i]'s
-				// writer metadata with rmds's signature,
-				// though.
-				buf, err := prevMDs[i].GetSerializedWriterMetadata(md.config.Codec())
-				if err != nil {
-					return err
-				}
-
-				err = kbfscrypto.Verify(
-					buf, rmds.GetWriterMetadataSigInfo())
-				if err != nil {
-					return errors.Errorf("Could not verify "+
-						"uncopied writer metadata "+
-						"from revision %d of folder "+
-						"%s with signature from "+
-						"revision %d: %v",
-						prevMDs[i].Revision(),
-						rmds.MD.TlfID(),
-						rmds.MD.RevisionNumber(), err)
-				}
-
-				// The fact the fact that we were able to process this
-				// MD correctly means that we already verified its key
-				// at the correct timestamp, so we're good.
-				return nil
+		if !rmd.IsWriterMetadataCopiedSet() {
+			// We want to compare the writer signature of
+			// rmds with that of prevMDs[i]. However, we've
+			// already dropped prevMDs[i]'s writer
+			// signature. We can just verify prevMDs[i]'s
+			// writer metadata with rmds's signature,
+			// though.
+			buf, err := rmd.GetSerializedWriterMetadata(md.config.Codec())
+			if err != nil {
+				return err
 			}
-		}
 
-		// No more MDs left to process.
-		if len(prevMDs) < maxMDsAtATime {
-			return errors.Errorf("Couldn't find uncopied MD previous to "+
-				"revision %d of folder %s for checking the writer "+
-				"timestamp", rmds.MD.RevisionNumber(), rmds.MD.TlfID())
+			err = kbfscrypto.Verify(
+				buf, rmds.GetWriterMetadataSigInfo())
+			if err != nil {
+				return errors.Errorf("Could not verify "+
+					"uncopied writer metadata "+
+					"from revision %d of folder "+
+					"%s with signature from "+
+					"revision %d: %v",
+					rmd.Revision(),
+					rmds.MD.TlfID(),
+					rmds.MD.RevisionNumber(), err)
+			}
+
+			// The fact the fact that we were able to process this
+			// MD correctly means that we already verified its key
+			// at the correct timestamp, so we're good.
+			return nil
 		}
-		prevHead = prevMDs[0].Revision() - 1
 	}
+	return errors.Errorf(
+		"Couldn't find uncopied MD previous to "+
+			"revision %d of folder %s for checking the writer "+
+			"timestamp", rmds.MD.RevisionNumber(), rmds.MD.TlfID())
 }
 
 type merkleBasedTeamChecker struct {

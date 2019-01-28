@@ -20,15 +20,6 @@
       "lint": "ignore"
     },
     {
-      "type": "enum",
-      "name": "AccountMode",
-      "symbols": [
-        "NONE_0",
-        "USER_1",
-        "MOBILE_2"
-      ]
-    },
-    {
       "type": "record",
       "name": "EncryptedBundle",
       "fields": [

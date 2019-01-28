@@ -81,12 +81,13 @@
     ATMENTION_1
   }
 
-  // Global notification settings (on by default)
+  // Global notification settings
   enum GlobalAppNotificationSetting {
     NEWMESSAGES_0,
     PLAINTEXTMOBILE_1,
     PLAINTEXTDESKTOP_2,
-    DEFAULTSOUNDMOBILE_3
+    DEFAULTSOUNDMOBILE_3,
+    DISABLETYPING_4
   }
   record GlobalAppNotificationSettings {
     map<GlobalAppNotificationSetting, bool> settings;

@@ -22,7 +22,6 @@ import (
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
-	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -183,9 +182,9 @@ func ReorderParticipants(mctx libkb.MetaContext, g libkb.UIDMapperContext, umapp
 
 // Drive splitAndNormalizeTLFName with one attempt to follow TlfNameNotCanonical.
 func splitAndNormalizeTLFNameCanonicalize(g *libkb.GlobalContext, name string, public bool) (writerNames, readerNames []string, extensionSuffix string, err error) {
-	writerNames, readerNames, extensionSuffix, err = tlf.SplitAndNormalizeTLFName(g, name, public)
-	if retryErr, retry := err.(tlf.TlfNameNotCanonical); retry {
-		return tlf.SplitAndNormalizeTLFName(g, retryErr.NameToTry, public)
+	writerNames, readerNames, extensionSuffix, err = SplitAndNormalizeTLFName(g, name, public)
+	if retryErr, retry := err.(TlfNameNotCanonical); retry {
+		return SplitAndNormalizeTLFName(g, retryErr.NameToTry, public)
 	}
 	return writerNames, readerNames, extensionSuffix, err
 }
