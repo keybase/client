@@ -11636,9 +11636,9 @@ react-native-mime-types@2.2.1:
   dependencies:
     mime-db "~1.25.0"
 
-"react-native-push-notification@git://github.com/keybase/react-native-push-notification#keybase-fixes-off-311":
+"react-native-push-notification@git://github.com/keybase/react-native-push-notification#keybase-fixes-off-311-fcm":
   version "3.1.1"
-  resolved "git://github.com/keybase/react-native-push-notification#9bdf1f0e50a5cef86740c3f52e8ff74b1b80a5e3"
+  resolved "git://github.com/keybase/react-native-push-notification#71f7b9b90c79f3d9ab1ade72fa3ddefbcb80e9bd"
 
 react-native-safe-module@^1.1.0:
   version "1.2.0"

@@ -178,11 +178,10 @@ configurations.all {
 
 dependencies {
     def supportLibVersion = project.supportLibVersion
-    def googlePlayServicesVersion = project.googlePlayServicesVersion
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'org.msgpack:msgpack:0.6.12'
-    implementation "com.google.android.gms:play-services-gcm:$googlePlayServicesVersion"
+    implementation "com.google.firebase:firebase-messaging:17.3.0"
     implementation "com.android.support:appcompat-v7:$supportLibVersion"
     implementation project(':react-native-push-notification')
     implementation 'org.slf4j:slf4j-api:1.7.21'
