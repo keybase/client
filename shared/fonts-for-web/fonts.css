@@ -10,10 +10,12 @@
 */
 
 @font-face {
-	font-family: "kb";
-	src: {{{src}}};
-    font-weight: normal;
-    font-style: normal;
+  font-family: "kb";
+  src: url(/fonts/kb.ttf?797b3c134d77714a9c614916c3c392f4) format('truetype'),
+url(/fonts/kb.woff?7814177a452cd9b8ea3d664fd2f15347) format('woff'),
+url(/fonts/kb.svg?83ca25aac192b65697c6dbeb7be19c1e) format('svg');
+  font-weight: normal;
+  font-style: normal;
 }
 
 [class^="icon-kb-iconfont-"], [class*=" icon-kb-iconfont-"] {

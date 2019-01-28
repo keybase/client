@@ -4,6 +4,7 @@ import fs from 'fs'
 import path from 'path'
 import {execSync} from 'child_process'
 import prettier from 'prettier'
+import crypto from 'crypto'
 
 const commands = {
   'update-icon-font': {
@@ -138,17 +139,31 @@ const fontsGeneratedSuccess = (web, result) => {
   if (web) {
     // copy files
     // make css etc
-    // console.log('aaa', result)
-    generateWebCSS()
+    generateWebCSS(result)
   }
 }
 
-const generateWebCSS = () => {
+const generateWebCSS = result => {
   const svgFilenames = getSvgNames(false /* print skipped */)
   const rules = svgFilenames.reduce((map, {counter, name, size}) => {
     map[`kb-iconfont-${name}`] = baseCharCode + counter - 1
     return map
   }, {})
+
+  const typeToFormat = {
+    ttf: 'truetype',
+    woff: 'woff',
+    svg: 'svg',
+  }
+
+  const types = ['ttf', 'woff', 'svg'].map(type => {
+    var hash = crypto.createHash('md5')
+    hash.update(result[type])
+    return {type, hash: hash.digest('hex'), format: typeToFormat[type]}
+  })
+  const urls = types
+    .map(type => `url(/fonts/kb.${type.type}?${type.hash}) format('${type.format}')`)
+    .join(',\n')
 
   const css = `
 /*
@@ -162,10 +177,10 @@ const generateWebCSS = () => {
 */
 
 @font-face {
-	font-family: "kb";
-	src: {{{src}}};
-    font-weight: normal;
-    font-style: normal;
+  font-family: "kb";
+  src: ${urls};
+  font-weight: normal;
+  font-style: normal;
 }
 
 [class^="icon-kb-iconfont-"], [class*=" icon-kb-iconfont-"] {
