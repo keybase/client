@@ -51,6 +51,7 @@ func TestGetWalletAccountsLocal(t *testing.T) {
 	require.Equal(t, accountID, accts[0].AccountID, accountID)
 	require.True(t, accts[0].IsDefault)
 	require.Equal(t, "qq", accts[0].Name)
+	require.Equal(t, stellar1.AccountMode_USER, accts[0].AccountMode)
 	require.Equal(t, "10,000.00 XLM", accts[0].BalanceDescription)
 	currencyLocal := accts[0].CurrencyLocal
 	require.Equal(t, stellar1.OutsideCurrencyCode("USD"), currencyLocal.Code)
@@ -61,6 +62,7 @@ func TestGetWalletAccountsLocal(t *testing.T) {
 
 	require.False(t, accts[1].IsDefault)
 	require.Equal(t, firstAccountName(t, tcs[0]), accts[1].Name)
+	require.Equal(t, stellar1.AccountMode_USER, accts[1].AccountMode)
 	require.Equal(t, "0 XLM", accts[1].BalanceDescription)
 	currencyLocal = accts[1].CurrencyLocal
 	require.Equal(t, stellar1.OutsideCurrencyCode("USD"), currencyLocal.Code)
@@ -70,21 +72,22 @@ func TestGetWalletAccountsLocal(t *testing.T) {
 	argDetails := stellar1.GetWalletAccountLocalArg{AccountID: accountID}
 	details, err := tcs[0].Srv.GetWalletAccountLocal(context.Background(), argDetails)
 	require.NoError(t, err)
-	require.Equal(t, "qq", accts[0].Name)
+	require.Equal(t, "qq", details.Name)
+	require.Equal(t, stellar1.AccountMode_USER, details.AccountMode)
 	require.True(t, details.IsDefault)
 	require.Equal(t, "10,000.00 XLM", details.BalanceDescription)
 	require.NotEmpty(t, details.Seqno)
-	currencyLocal = accts[1].CurrencyLocal
+	currencyLocal = details.CurrencyLocal
 	require.Equal(t, stellar1.OutsideCurrencyCode("USD"), currencyLocal.Code)
 
 	argDetails.AccountID = accts[1].AccountID
 	details, err = tcs[0].Srv.GetWalletAccountLocal(context.Background(), argDetails)
 	require.NoError(t, err)
-	require.Equal(t, firstAccountName(t, tcs[0]), accts[1].Name)
+	require.Equal(t, firstAccountName(t, tcs[0]), details.Name)
 	require.False(t, details.IsDefault)
 	require.Equal(t, "0 XLM", details.BalanceDescription)
 	require.NotEmpty(t, details.Seqno)
-	currencyLocal = accts[1].CurrencyLocal
+	currencyLocal = details.CurrencyLocal
 	require.Equal(t, stellar1.OutsideCurrencyCode("USD"), currencyLocal.Code)
 }
 
@@ -2577,6 +2580,7 @@ func TestSetMobileOnly(t *testing.T) {
 
 	tcs[0].Backend.ImportAccountsForUser(tcs[0])
 	accountID := getPrimaryAccountID(tcs[0])
+	walletAcctLocalArg := stellar1.GetWalletAccountLocalArg{AccountID: accountID}
 
 	// assert not mobile only yet
 	mobileOnly, err := tcs[0].Srv.IsAccountMobileOnlyLocal(context.Background(), stellar1.IsAccountMobileOnlyLocalArg{AccountID: accountID})
@@ -2586,6 +2590,9 @@ func TestSetMobileOnly(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, accs, 1)
 	require.Equal(t, accs[0].AccountMode, stellar1.AccountMode_USER)
+	details, err := tcs[0].Srv.GetWalletAccountLocal(context.Background(), walletAcctLocalArg)
+	require.NoError(t, err)
+	require.Equal(t, stellar1.AccountMode_USER, details.AccountMode)
 
 	err = tcs[0].Srv.SetAccountMobileOnlyLocal(context.Background(), stellar1.SetAccountMobileOnlyLocalArg{AccountID: accountID})
 	require.NoError(t, err)
@@ -2598,6 +2605,9 @@ func TestSetMobileOnly(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, accs, 1)
 	require.Equal(t, accs[0].AccountMode, stellar1.AccountMode_MOBILE)
+	details, err = tcs[0].Srv.GetWalletAccountLocal(context.Background(), walletAcctLocalArg)
+	require.NoError(t, err)
+	require.Equal(t, stellar1.AccountMode_MOBILE, details.AccountMode)
 
 	// service_test verifies that `SetAccountMobileOnlyLocal` behaves correctly under the covers
 }
