@@ -90,6 +90,7 @@ class Input extends React.Component<InputProps, InputState> {
   _suggestorDatasource = {}
   _suggestorRenderer = {}
   _suggestorTransformer = {}
+  _maxCmdLength = 0
 
   constructor(props: InputProps) {
     super(props)
@@ -113,6 +114,9 @@ class Input extends React.Component<InputProps, InputState> {
       emoji: emojiTransformer,
       users: this._transformUserSuggestion,
     }
+    // + 1 for '/'
+    this._maxCmdLength =
+      this.props.suggestCommands.reduce((max, cmd) => (cmd.name.length > max ? cmd.name.length : max), 0) + 1
   }
 
   _inputSetRef = (input: null | Kb.PlainInput) => {
@@ -224,6 +228,16 @@ class Input extends React.Component<InputProps, InputState> {
   _getUserSuggestions = filter => searchUsers(this.props.suggestUsers, filter)
 
   _getCommandSuggestions = filter => {
+    const sel = this._input && this._input.getSelection()
+    if (sel && this._lastText) {
+      // a little messy. Check if the message starts with '/' and that the cursor is
+      // within maxCmdLength chars away from it. This happens before `onChangeText`, so
+      // we can't do a more robust check on `this._lastText` because it's out of date.
+      if (!this._lastText.startsWith('/') || sel.start > this._maxCmdLength) {
+        // not at beginning of message
+        return []
+      }
+    }
     const fil = filter.toLowerCase()
     return this.props.suggestCommands.filter(c => c.name.includes(fil))
   }
