@@ -147,6 +147,7 @@ var MerkleTestKIDs = []string{
 }
 var MerkleStagingKIDs = []string{
 	"0101bed85ce72cc315828367c28b41af585b6b7d95646a62ca829691d70f49184fa70a",
+	"01202c228beb24d8940b73e631c13ad9e67e6774db23b5bf2922c4679caac3d213620a",
 }
 
 var CodeSigningProdKIDs = []string{
