@@ -30,7 +30,7 @@ const paths = {
   iconpng: path.resolve(__dirname, '../../images/icons'),
   fonts: path.resolve(__dirname, '../../fonts'),
   webFonts: path.resolve(__dirname, '../../fonts-for-web'),
-  webFontsCss: path.resolve(__dirname, '../../fonts-for-web/fonts.css'),
+  webFontsCss: path.resolve(__dirname, '../../fonts-for-web/kb.css'),
   iconConstants: path.resolve(__dirname, '../../common-adapters/icon.constants.js'),
 }
 
@@ -103,17 +103,7 @@ function updateIconFont(web) {
       startCodepoint: baseCharCode,
       fontName: 'kb',
       classSelector: 'icon-kb',
-      // css: web,
-      // cssDest: path.join(paths.webFonts, 'font.css'),
-      // cssTemplate: path.join(paths.webFonts, 'webfontsGenerator.template'),
       html: false,
-      order: web ? ['ttf', 'woff', 'svg'] : ['ttf'],
-      // rename: f => {
-      // const parts = f.split('-')
-      // parts.shift()
-      // parts.pop()
-      // return parts.join('-')
-      // },
       writeFiles: !web,
       formatOptions: {
         ttf: {
@@ -137,8 +127,6 @@ const fontsGeneratedSuccess = (web, result) => {
   updateIconConstants()
 
   if (web) {
-    // copy files
-    // make css etc
     generateWebCSS(result)
   }
 }
@@ -156,9 +144,13 @@ const generateWebCSS = result => {
     svg: 'svg',
   }
 
+  // hash and write
   const types = ['ttf', 'woff', 'svg'].map(type => {
     var hash = crypto.createHash('md5')
     hash.update(result[type])
+    try {
+      fs.writeFileSync(path.join(paths.webFonts, `kb.${type}`), result[type])
+    } catch (_) {}
     return {type, hash: hash.digest('hex'), format: typeToFormat[type]}
   })
   const urls = types
@@ -209,13 +201,7 @@ ${Object.keys(rules)
 `
 
   try {
-    fs.writeFileSync(
-      paths.webFontsCss,
-      // $FlowIssue
-      // prettier.format(css, prettier.resolveConfig.sync(paths.webFontsCss)),
-      css,
-      'utf8'
-    )
+    fs.writeFileSync(paths.webFontsCss, css, 'utf8')
   } catch (e) {
     console.error(e)
   }
