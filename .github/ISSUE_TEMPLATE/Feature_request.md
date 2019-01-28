@@ -2,12 +2,11 @@
 name: Feature request
 about: Suggest an improvement
 
----
-
+<!--
 In addition to this report, you can post and discuss your feature request in
 the **#feature-requests** channel on the open
 [keybasefriends](https://keybase.io/team/keybasefriends) team on Keybase.
-
+-->
 ---
 
 **What operating system are you using?**
