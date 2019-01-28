@@ -223,12 +223,47 @@ func (c *chatServiceHandler) JoinV1(ctx context.Context, opts joinOptionsV1) Rep
 	if err != nil {
 		return c.errReply(err)
 	}
-	client.JoinConversationLocal(ctx, chat1.JoinConversationLocalArg{})
-	return Reply{}
+	topicType, err := TopicTypeFromStrDefault(opts.Channel.TopicType)
+	if err != nil {
+		return c.errReply(err)
+	}
+	res, err := client.JoinConversationLocal(ctx, chat1.JoinConversationLocalArg{
+		TlfName:    opts.Channel.Name,
+		TopicType:  topicType,
+		TopicName:  opts.Channel.TopicName,
+		Visibility: opts.Channel.Visibility(),
+	})
+	if err != nil {
+		return c.errReply(err)
+	}
+	cres := EmptyRes{
+		RateLimits: RateLimits{
+			c.aggRateLimits(res.RateLimits),
+		},
+	}
+	return Reply{Result: cres}
 }
 
 func (c *chatServiceHandler) LeaveV1(ctx context.Context, opts leaveOptionsV1) Reply {
-	return Reply{}
+	client, err := GetChatLocalClient(c.G())
+	if err != nil {
+		return c.errReply(err)
+	}
+	convID, rl, err := c.resolveAPIConvID(ctx, opts.Channel)
+	if err != nil {
+		return c.errReply(err)
+	}
+	res, err := client.LeaveConversationLocal(ctx, convID)
+	if err != nil {
+		return c.errReply(err)
+	}
+	allLimits := append(rl, res.RateLimits...)
+	cres := EmptyRes{
+		RateLimits: RateLimits{
+			c.aggRateLimits(allLimits),
+		},
+	}
+	return Reply{Result: cres}
 }
 
 func (c *chatServiceHandler) formatMessages(ctx context.Context, messages []chat1.MessageUnboxed,

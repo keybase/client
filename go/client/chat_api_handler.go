@@ -12,6 +12,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/keybase/client/go/protocol/keybase1"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"golang.org/x/net/context"
@@ -98,6 +100,14 @@ func (c ChatChannel) Valid() bool {
 		return false
 	}
 	return true
+}
+
+func (c ChatChannel) Visibility() (vis keybase1.TLFVisibility) {
+	vis = keybase1.TLFVisibility_PRIVATE
+	if c.Public {
+		vis = keybase1.TLFVisibility_PUBLIC
+	}
+	return vis
 }
 
 func (c ChatChannel) GetMembersType(e *libkb.Env) chat1.ConversationMembersType {
