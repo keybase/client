@@ -34,6 +34,10 @@
         {
           "type": "CurrencyLocal",
           "name": "currencyLocal"
+        },
+        {
+          "type": "AccountMode",
+          "name": "accountMode"
         }
       ]
     },
@@ -878,6 +882,10 @@
             "OutsideExchangeRate"
           ],
           "name": "exchangeRate"
+        },
+        {
+          "type": "AccountMode",
+          "name": "accountMode"
         }
       ]
     },

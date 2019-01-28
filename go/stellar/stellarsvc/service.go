@@ -351,9 +351,10 @@ func (s *Server) WalletGetAccountsCLILocal(ctx context.Context) (ret []stellar1.
 	for _, account := range currentBundle.Accounts {
 		accID := account.AccountID
 		acc := stellar1.OwnAccountCLILocal{
-			AccountID: accID,
-			IsPrimary: account.IsPrimary,
-			Name:      account.Name,
+			AccountID:   accID,
+			IsPrimary:   account.IsPrimary,
+			Name:        account.Name,
+			AccountMode: account.Mode,
 		}
 
 		balances, err := s.remoter.Balances(ctx, accID)

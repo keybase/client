@@ -445,6 +445,7 @@ type AccountState struct {
 	seqno        uint64
 	isPrimary    bool
 	name         string
+	accountMode  stellar1.AccountMode
 	balances     []stellar1.Balance
 	details      *stellar1.AccountDetails
 	pending      []stellar1.PaymentSummary
@@ -500,10 +501,11 @@ func (a *AccountState) refresh(mctx libkb.MetaContext, router *libkb.NotifyRoute
 		// get these while locked
 		isPrimary := a.isPrimary
 		name := a.name
+		accountMode := a.accountMode
 		a.Unlock()
 
 		if notify && router != nil {
-			accountLocal, err := AccountDetailsToWalletAccountLocal(mctx, a.accountID, details, isPrimary, name)
+			accountLocal, err := AccountDetailsToWalletAccountLocal(mctx, a.accountID, details, isPrimary, name, accountMode)
 			if err == nil {
 				router.HandleWalletAccountDetailsUpdate(mctx.Ctx(), a.accountID, accountLocal)
 			}
@@ -704,6 +706,7 @@ func (a *AccountState) updateEntry(entry stellar1.BundleEntry) {
 
 	a.isPrimary = entry.IsPrimary
 	a.name = entry.Name
+	a.accountMode = entry.Mode
 }
 
 // enqueueRefreshReq adds an account ID to the refresh request queue.

@@ -13,6 +13,7 @@ protocol local {
     string balanceDescription;  // example: "56.0227002 XLM + more"
     string seqno;               // the stellar sequence number for this account
     CurrencyLocal currencyLocal;// user configurable, defaults to USD and related details
+    AccountMode accountMode;    // mobile only vs all devices
   }
   array<WalletAccountLocal> getWalletAccountsLocal(int sessionID);
   WalletAccountLocal getWalletAccountLocal(int sessionID, AccountID accountID);
@@ -75,7 +76,7 @@ protocol local {
     string amountDescription;       // "1,323.1234567 XLM"
     BalanceDelta delta;             // NONE/INCREASE/DECREASE (e.g. INCREASE for "+ 1,323.1234567 XLM" amount above)
     string worth;                   // "$123.23 CLP", senders intended amount if this was made as a lumens-worth-currency payment
-    string worthAtSendTime;         // "$123.23 CLP", amount in current user's display currency. Set if frontend should show an 
+    string worthAtSendTime;         // "$123.23 CLP", amount in current user's display currency. Set if frontend should show an
                                     // (APPROXIMATELY $X.XX) message i.e. if this is a pure-XLM payment.
 
     string issuerDescription;       // For non-XLM assets: either "Unknown issuer" or domain name
@@ -134,7 +135,7 @@ protocol local {
     string amountDescription;       // "1,323.1234567 XLM" - always amount of XLM, even if converted from OutsideCurrency
     BalanceDelta delta;             // NONE/INCREASE/DECREASE (e.g. INCREASE for "+ 1,323.1234567 XLM" amount above)
     string worth;                   // "$123.23 CLP", senders intended amount if this was made as a lumens-worth-currency payment
-    string worthAtSendTime;         // "$123.23 CLP", amount in current user's display currency. Set if frontend should show an 
+    string worthAtSendTime;         // "$123.23 CLP", amount in current user's display currency. Set if frontend should show an
                                     // (APPROXIMATELY $X.XX) message i.e. if this is a pure-XLM payment.
 
     string issuerDescription;       // For non-XLM assets: either "Unknown issuer" or domain name
@@ -540,6 +541,7 @@ protocol local {
     string name;
     array<Balance> balance;
     union { null, OutsideExchangeRate } exchangeRate;
+    AccountMode accountMode;
   }
 
   array<OwnAccountCLILocal> walletGetAccountsCLILocal();
