@@ -31,6 +31,8 @@ type handlerTracker struct {
 	searchRegexpV1  int
 	newConvV1       int
 	listConvsOnName int
+	joinV1          int
+	leaveV1         int
 }
 
 func (h *handlerTracker) ListV1(context.Context, Call, io.Writer) error {
@@ -108,6 +110,16 @@ func (h *handlerTracker) ListConvsOnNameV1(context.Context, Call, io.Writer) err
 	return nil
 }
 
+func (h *handlerTracker) JoinV1(context.Context, Call, io.Writer) error {
+	h.joinV1++
+	return nil
+}
+
+func (h *handlerTracker) LeaveV1(context.Context, Call, io.Writer) error {
+	h.leaveV1++
+	return nil
+}
+
 type echoResult struct {
 	Status string `json:"status"`
 }
@@ -174,6 +186,14 @@ func (c *chatEcho) NewConvV1(context.Context, newConvOptionsV1) Reply {
 }
 
 func (c *chatEcho) ListConvsOnNameV1(context.Context, listConvsOnNameOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) JoinV1(context.Context, joinOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) LeaveV1(context.Context, leaveOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
 
@@ -298,13 +318,6 @@ var optTests = []optTest{
 		input: `{"method": "read", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}}`,
 	},
 	{
-		input: `{"method": "read", "params":{"version": 1, "options": {"conversation_id": "123"}}}`,
-	},
-	{
-		input: `{"method": "read", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "conversation_id": "999111"}}}`,
-		err:   ErrInvalidOptions{},
-	},
-	{
 		input: `{"method": "send", "params":{"version": 1}}`,
 		err:   ErrInvalidOptions{},
 	},
@@ -320,27 +333,10 @@ var optTests = []optTest{
 		input: `{"method": "send", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message": {"body": "hi"}}}}`,
 	},
 	{
-		input: `{"method": "send", "params":{"version": 1, "options": {"conversation_id": "123", "message": {"body": "hi"}}}}`,
-	},
-	{
-		input: `{"method": "send", "params":{"version": 1, "options": {"conversation_id": "222", "channel": {"name": "alice,bob"}, "message": {"body": "hi"}}}}`,
-		err:   ErrInvalidOptions{},
-	},
-	{
-		input: `{"method": "send", "params":{"version": 1, "options": {"conversation_id": "123", "message": {"body": "hi"}, "exploding_lifetime": "5m"}}}`,
-	},
-	{
-		input: `{"method": "send", "params":{"version": 1, "options": {"conversation_id": "123", "message": {"body": "hi"}, "exploding_lifetime": "1s"}}}`,
-		err:   ErrInvalidOptions{},
-	},
-	{
 		input: `{"method": "list", "params":{"version": 1}}{"method": "list", "params":{"version": 1}}`,
 	},
 	{
 		input: `{"method": "list", "params":{"version": 1, "options": {"topic_type": "dEv"}}}`,
-	},
-	{
-		input: `{"method": "list", "params":{"version": 1}}{"method": "read", "params":{"version": 1, "options": {"conversation_id": "7777"}}}`,
 	},
 	{
 		input: `{"method": "read", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}`, /* missing closing bracket at end */
@@ -389,9 +385,6 @@ var optTests = []optTest{
 		input: `{"id": 30, "method": "edit", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123, "message": {"body": "edited"}}}}`,
 	},
 	{
-		input: `{"id": 30, "method": "edit", "params":{"version": 1, "options": {"conversation_id": "333", "message_id": 123, "message": {"body": "edited"}}}}`,
-	},
-	{
 		input: `{"id": 29, "method": "reaction", "params":{"version": 1}}`,
 		err:   ErrInvalidOptions{},
 	},
@@ -417,9 +410,6 @@ var optTests = []optTest{
 	},
 	{
 		input: `{"id": 30, "method": "reaction", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123, "message": {"body": ":+1:"}}}}`,
-	},
-	{
-		input: `{"id": 30, "method": "reaction", "params":{"version": 1, "options": {"conversation_id": "333", "message_id": 123, "message": {"body": ":+1:"}}}}`,
 	},
 	{
 		input: `{"id": 30, "method": "delete", "params":{"version": 1}}`,
@@ -537,10 +527,6 @@ var echoTests = []echoTest{
 		output: `{"result":{"status":"ok"}}`,
 	},
 	{
-		input:  `{"method": "read", "params":{"version": 1, "options": {"conversation_id": "123"}}}`,
-		output: `{"result":{"status":"ok"}}`,
-	},
-	{
 		input:  `{"method": "send", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message": {"body": "hi"}}}}`,
 		output: `{"result":{"status":"ok"}}`,
 	},
@@ -550,10 +536,6 @@ var echoTests = []echoTest{
 	},
 	{
 		input:  `{"method": "list", "params":{"version": 1}}{"method": "list", "params":{"version": 1}}`,
-		output: `{"result":{"status":"ok"}}` + "\n" + `{"result":{"status":"ok"}}`,
-	},
-	{
-		input:  `{"method": "list", "params":{"version": 1}}{"method": "read", "params":{"version": 1, "options": {"conversation_id": "123"}}}`,
 		output: `{"result":{"status":"ok"}}` + "\n" + `{"result":{"status":"ok"}}`,
 	},
 	{
