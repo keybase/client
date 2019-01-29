@@ -67,16 +67,6 @@ const styles = Styles.styleSheetCreate({
       width: '100%',
     },
   }),
-  menuRowText: {
-    color: Styles.globalColors.blue,
-  },
-  menuRowTextDisabled: {
-    color: Styles.globalColors.blue,
-    opacity: 0.6,
-  },
-  progressIndicator: {
-    marginRight: Styles.globalMargins.xtiny,
-  },
 })
 
 export default Kb.OverlayParentHOC(PathItemAction)

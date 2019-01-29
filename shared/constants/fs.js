@@ -186,12 +186,26 @@ export const makeSendLinkToChat: I.RecordFactory<Types._SendLinkToChat> = I.Reco
   path: Types.stringToPath('/keybase'),
 })
 
-export const makeActionMenu: I.RecordFactory<Types._ActionMenu> = I.Record({
-  view: 'root',
+export const makePathItemActionMenuRootView: I.RecordFactory<Types._PathItemActionMenuRootView> = I.Record({
+  type: 'root',
+})
+
+export const makePathItemActionMenuShareView: I.RecordFactory<Types._PathItemActionMenuShareView> = I.Record({
+  type: 'share',
+})
+
+export const makePathItemActionMenuConfirmView: I.RecordFactory<Types._PathItemActionMenuConfirmView> = I.Record(
+  {
+    action: 'send-to-other-app',
+    type: 'confirm',
+  }
+)
+
+export const makePathItemActionMenu: I.RecordFactory<Types._PathItemActionMenu> = I.Record({
+  view: makePathItemActionMenuRootView(),
 })
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
-  actionMenu: makeActionMenu(),
   downloads: I.Map(),
   edits: I.Map(),
   errors: I.Map(),
@@ -200,6 +214,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   loadingPaths: I.Map(),
   localHTTPServerInfo: null,
   moveOrCopy: makeMoveOrCopy(),
+  pathItemActionMenu: makePathItemActionMenu(),
   pathItems: I.Map([[Types.stringToPath('/keybase'), makeFolder()]]),
   pathUserSettings: I.Map([[Types.stringToPath('/keybase'), makePathUserSetting()]]),
   sendLinkToChat: makeSendLinkToChat(),

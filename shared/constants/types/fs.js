@@ -300,11 +300,32 @@ export type _SendLinkToChat = {
 }
 export type SendLinkToChat = I.RecordOf<_SendLinkToChat>
 
-export type ActionMenuViewType = 'root' | 'share' | 'confirm-download'
-export type _ActionMenu = {
-  view: ActionMenuViewType,
+export type _PathItemActionMenuRootView = {
+  type: 'root',
 }
-export type ActionMenu = I.RecordOf<_ActionMenu>
+export type PathItemActionMenuRootView = I.RecordOf<_PathItemActionMenuRootView>
+
+export type _PathItemActionMenuShareView = {
+  type: 'share',
+}
+export type PathItemActionMenuShareView = I.RecordOf<_PathItemActionMenuShareView>
+
+export type PathItemActionMenuConfirmActionType = 'save' | 'send-to-other-app'
+export type _PathItemActionMenuConfirmView = {
+  type: 'confirm',
+  action: PathItemActionMenuConfirmActionType,
+}
+export type PathItemActionMenuConfirmView = I.RecordOf<_PathItemActionMenuConfirmView>
+
+export type PathItemActionMenuView =
+  | PathItemActionMenuRootView
+  | PathItemActionMenuShareView
+  | PathItemActionMenuConfirmView
+
+export type _PathItemActionMenu = {
+  view: PathItemActionMenuView,
+}
+export type PathItemActionMenu = I.RecordOf<_PathItemActionMenu>
 
 export type _State = {
   pathItems: PathItems,
@@ -321,7 +342,7 @@ export type _State = {
   tlfUpdates: UserTlfUpdates,
   moveOrCopy: MoveOrCopy,
   sendLinkToChat: SendLinkToChat,
-  actionMenu: ActionMenu,
+  pathItemActionMenu: PathItemActionMenu,
 }
 export type State = I.RecordOf<_State>
 

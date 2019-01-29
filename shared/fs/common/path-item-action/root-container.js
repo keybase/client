@@ -23,8 +23,8 @@ const mapStateToProps = (state, {path}) => ({
 
 const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
   _download: () => dispatch(FsGen.createDownload(Constants.makeDownloadPayload(path))),
-  _saveMedia: () => dispatch(FsGen.createSaveMedia(Constants.makeDownloadPayload(path))),
-  _shareNative: () => dispatch(FsGen.createShareNative(Constants.makeDownloadPayload(path))),
+  _share: () =>
+    dispatch(FsGen.createSetPathItemActionMenuView({view: Constants.makePathItemActionMenuShareView()})),
   _showInSystemFileManager: () => dispatch(FsGen.createOpenPathInSystemFileManager({path})),
   copyPath: () => dispatch(ConfigGen.createCopyToClipboard({text: Constants.escapePath(path)})),
   deleteFileOrFolder: () => dispatch(FsGen.createDeleteFile({path})),
@@ -37,7 +37,6 @@ const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
       })
     )
   },
-  onHidden: () => dispatch(FsGen.createClearRefreshTag({refreshTag: 'path-item-action-popup'})),
 })
 
 type Actions = {|
@@ -46,8 +45,7 @@ type Actions = {|
   download?: () => void,
   ignoreFolder?: () => void,
   moveOrCopy?: () => void,
-  saveMedia?: (() => void) | 'disabled',
-  shareNative?: (() => void) | 'disabled',
+  share?: () => void,
   showInSystemFileManager?: () => void,
 |}
 
@@ -67,23 +65,9 @@ const aIgnore = (menuActions, stateProps, dispatchProps, path) => {
   }
 }
 
-const aSave = (menuActions, stateProps, dispatchProps, path) => {
-  if (isMobile && stateProps._pathItem.type !== 'folder' && Constants.isMedia(stateProps._pathItem)) {
-    if (stateProps._downloads.find(download => Constants.isPendingDownload(download, path, 'camera-roll'))) {
-      menuActions.saveMedia = 'disabled'
-    } else {
-      menuActions.saveMedia = dispatchProps._saveMedia
-    }
-  }
-}
-
-const aShareNative = (menuActions, stateProps, dispatchProps, path) => {
-  if (isMobile && stateProps._pathItem.type === 'file') {
-    if (stateProps._downloads.find(download => Constants.isPendingDownload(download, path, 'share'))) {
-      menuActions.shareNative = 'disabled'
-    } else {
-      menuActions.shareNative = dispatchProps._shareNative
-    }
+const aShare = (menuActions, stateProps, dispatchProps, path) => {
+  if (isMobile) {
+    menuActions.share = dispatchProps._share
   }
 }
 
@@ -107,8 +91,7 @@ const tlfListAppenders = [aShowIn, aCopyPath]
 const tlfAppenders = [aShowIn, aIgnore, aCopyPath]
 const inTlfAppenders = [
   aShowIn,
-  aSave,
-  aShareNative,
+  aShare,
   aDownload,
   aCopyPath,
   ...(flags.moveOrCopy ? [aMoveOrCopy] : []),
@@ -121,8 +104,7 @@ const makeMenuActions = (): Actions => ({
   download: undefined,
   ignoreFolder: undefined,
   moveOrCopy: undefined,
-  saveMedia: undefined,
-  shareNative: undefined,
+  share: undefined,
   showInSystemFileManager: undefined,
 })
 
@@ -167,7 +149,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
     dispatchProps,
     ownProps.path
   ),
-  onHidden: dispatchProps.onHidden,
 })
 
 export default namedConnect<OwnProps, _, _, _, _>(
