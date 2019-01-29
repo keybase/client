@@ -188,7 +188,7 @@ class AccountSettings extends React.Component<SettingsProps> {
               )}
               {!props.canMakeTx && (
                 <Kb.Text type="BodySmall">
-                  Your accounts needs minimum balance to set inflation destination.
+                  Your accounts needs a minimum balance to set an inflation destination.
                 </Kb.Text>
               )}
             </Kb.Box2>

@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar/relays"
 	"github.com/keybase/client/go/stellar/remote"
+	"github.com/keybase/stellarnet"
 )
 
 // TransformPaymentSummaryGeneric converts a stellar1.PaymentSummary (p) into a
@@ -461,6 +462,8 @@ func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stella
 	deviceProvisionedAt := time.Unix(int64(ctime)/1000, 0)
 	deviceAge := mctx.G().Clock().Since(deviceProvisionedAt)
 
+	canMakeTx := SubtractFeeSoft(mctx, details.Available) != stellarnet.StringFromStellarAmount(0)
+
 	acct := stellar1.WalletAccountLocal{
 		AccountID:           accountID,
 		IsDefault:           isPrimary,
@@ -470,7 +473,7 @@ func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stella
 		AccountMode:         accountMode,
 		AccountModeEditable: isMobile && deviceAge > 7*24*time.Hour,
 		IsFunded:            len(details.Balances) > 0,
-		CanMakeTx:           len(details.Balances) > 0,
+		CanMakeTx:           canMakeTx,
 	}
 
 	conf, err := mctx.G().GetStellar().GetServerDefinitions(mctx.Ctx())
