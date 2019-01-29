@@ -130,7 +130,7 @@ func (cache *diskBlockCacheWrapped) IsSyncCacheEnabled() bool {
 func (cache *diskBlockCacheWrapped) rankCachesLocked(
 	preferredCacheType DiskBlockCacheType) (
 	primaryCache, secondaryCache *DiskBlockCacheLocal) {
-	if preferredCacheType == DiskBlockSyncCache {
+	if preferredCacheType != DiskBlockWorkingSetCache {
 		if cache.syncCache == nil {
 			log := cache.config.MakeLogger("DBC")
 			log.Warning("Sync cache is preferred, but there is no sync cache")

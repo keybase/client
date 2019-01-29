@@ -1880,7 +1880,6 @@ func TestPrefetcherReschedules(t *testing.T) {
 	ch := q.Request(
 		ctx, defaultOnDemandRequestPriority, kmd,
 		rootPtr, block, TransientEntry, BlockRequestWithPrefetch)
-	notifySyncCh(t, prefetchSyncCh)
 	err = <-ch
 	require.NoError(t, err)
 
@@ -1888,7 +1887,7 @@ func TestPrefetcherReschedules(t *testing.T) {
 	notifySyncCh(t, prefetchSyncCh)
 
 	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, root,
-		TriggeredPrefetch, kmd.TlfID(), config.DiskBlockCache())
+		NoPrefetch, kmd.TlfID(), config.DiskBlockCache())
 
 	t.Log("Make room in the cache.")
 	setLimiterLimits(limiter, math.MaxInt64, math.MaxInt64)
