@@ -29,6 +29,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	ldberrors "github.com/syndtr/goleveldb/leveldb/errors"
 	"golang.org/x/net/context"
 	billy "gopkg.in/src-d/go-billy.v4"
 	"gopkg.in/src-d/go-billy.v4/memfs"
@@ -4401,7 +4402,17 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 	checkStatus := func(node Node, expectedStatus PrefetchStatus) {
 		md, err := kbfsOps.GetNodeMetadata(ctx, node)
 		require.NoError(t, err)
-		require.Equal(t, expectedStatus, md.PrefetchStatus)
+		// Get the prefetch status directly from the sync cache.
+		dmd, err := config.DiskBlockCache().(*diskBlockCacheWrapped).syncCache.
+			GetMetadata(ctx, md.BlockInfo.ID)
+		var ps PrefetchStatus
+		if errors.Cause(err) == ldberrors.ErrNotFound {
+			ps = NoPrefetch
+		} else {
+			require.NoError(t, err)
+			ps = dmd.PrefetchStatus()
+		}
+		require.Equal(t, expectedStatus, ps)
 	}
 	// Note that we're deliberately passing in Nodes created by
 	// kbfsOps2 into kbfsOps here.  That's necessary to avoid
