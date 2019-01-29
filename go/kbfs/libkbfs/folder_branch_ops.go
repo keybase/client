@@ -5420,7 +5420,7 @@ func (fbo *folderBranchOps) syncAllLocked(
 		fbo.log.CDebugf(ctx, "Syncing file %v (%s)", ref, file)
 
 		// Start the sync for this dirty file.
-		doSync, stillDirty, fblock, dirtyDe, newBps, syncState, cleanup, err :=
+		doSync, stillDirty, _, dirtyDe, newBps, syncState, cleanup, err :=
 			fbo.startSyncLocked(ctx, lState, md, node, file)
 		if cleanup != nil {
 			// Note: This passes the same `blocksToRemove` into each
@@ -5454,9 +5454,9 @@ func (fbo *folderBranchOps) syncAllLocked(
 		resolvedPaths[file.tailPointer()] = file
 		parent := file.parentPath().tailPointer()
 		if _, ok := fileBlocks[parent]; !ok {
-			fileBlocks[parent] = make(map[string]*FileBlock)
+			fileBlocks[parent] = make(map[string]BlockPointer)
 		}
-		fileBlocks[parent][file.tailName()] = fblock
+		fileBlocks[parent][file.tailName()] = file.tailPointer()
 
 		// Collect its `afterUpdateFn` along with all the others, so
 		// they all get invoked under the same lock, to avoid any

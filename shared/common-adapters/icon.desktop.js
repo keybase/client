@@ -46,7 +46,15 @@ class Icon extends Component<Props, void> {
     }
 
     const isFontIcon = iconMeta[iconType].isFont
-    let fontSizeHint = this.props.fontSize ? {fontSize: this.props.fontSize} : Shared.fontSize(iconType)
+    let fontSizeHint
+    // explicit
+    if (this.props.fontSize) {
+      fontSizeHint = {fontSize: this.props.fontSize}
+    } else if (this.props.sizeType) {
+      fontSizeHint = {fontSize: Shared.typeToFontSize(this.props.sizeType)}
+    } else {
+      fontSizeHint = Shared.fontSize(iconType)
+    }
     // in style sheet, so don't apply
     if (fontSizeHint && fontSizeHint.fontSize === 16) {
       fontSizeHint = null

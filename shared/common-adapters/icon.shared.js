@@ -1,6 +1,6 @@
 // @flow
-import {globalColors} from '../styles'
-import type {IconType} from './icon'
+import {globalColors, isMobile} from '../styles'
+import type {IconType, SizeType} from './icon'
 import {iconMeta} from './icon.constants'
 
 export function defaultColor(type: IconType): ?string {
@@ -70,6 +70,19 @@ export function fontSize(type: IconType): ?Object {
     return {fontSize}
   } else {
     return null
+  }
+}
+
+export function typeToFontSize(sizeType: SizeType) {
+  switch (sizeType) {
+    case 'Big':
+      return isMobile ? 32 : 24
+    case 'Default':
+      return isMobile ? 22 : 16
+    case 'Small':
+      return isMobile ? 16 : 12
+    case 'Tiny':
+      return isMobile ? 10 : 8
   }
 }
 

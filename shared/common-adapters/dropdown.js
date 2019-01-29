@@ -31,10 +31,10 @@ export const DropdownButton = (props: DropdownButtonProps) => (
   </ClickableBox>
 )
 
-type Props<N: React.Node> = {
-  onChanged: (selected: N) => void,
-  selected?: N,
-  items: Array<N>,
+type Props = {
+  onChanged: (selected: React.Node) => void,
+  selected?: React.Node,
+  items: Array<React.Node>,
   style?: Styles.StylesCrossPlatform,
   selectedBoxStyle?: Styles.StylesCrossPlatform,
   position?: Position,
@@ -44,7 +44,7 @@ type State = {
   expanded: boolean,
 }
 
-class Dropdown<N: React.Node> extends React.Component<Props<N> & OverlayParentProps, State> {
+class Dropdown extends React.Component<Props & OverlayParentProps, State> {
   state = {expanded: false}
 
   static defaultProps = {
@@ -57,7 +57,8 @@ class Dropdown<N: React.Node> extends React.Component<Props<N> & OverlayParentPr
     }))
   }
 
-  _onSelect = () => {
+  _onSelect = (n: React.Node) => {
+    this.props.onChanged && this.props.onChanged(n)
     this.setState({expanded: false})
   }
 
@@ -80,16 +81,7 @@ class Dropdown<N: React.Node> extends React.Component<Props<N> & OverlayParentPr
         >
           <ScrollView style={styles.scrollView}>
             {this.props.items.map((i, idx) => (
-              <ClickableBox
-                key={idx}
-                onClick={() => {
-                  // Bug in flow that doesn't let us just call this function
-                  // this._onSelect(i)
-                  this.props.onChanged && this.props.onChanged(i)
-                  this._onSelect()
-                }}
-                style={styles.itemClickBox}
-              >
+              <ClickableBox key={idx} onClick={() => this._onSelect(i)} style={styles.itemClickBox}>
                 <ItemBox>{i}</ItemBox>
               </ClickableBox>
             ))}

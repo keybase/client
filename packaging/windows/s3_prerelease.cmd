@@ -7,7 +7,7 @@ IF [%BUCKET_NAME%]==[] (
 
 echo "Loading release tool"
 go install github.com/keybase/release
-set release_bin=%GOPATH%\bin\windows_386\release.exe
+set release_bin=%GOPATH%\bin\release.exe
 
 echo "Creating index files"
 %release_bin% index-html --bucket-name=%BUCKET_NAME% --prefixes="windows/" --upload="windows/index.html"

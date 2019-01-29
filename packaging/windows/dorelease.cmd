@@ -87,6 +87,8 @@ s3browser-con upload prerelease.keybase.io  %GOPATH%\src\github.com\keybase\clie
 if %UpdateChannel% NEQ "None" (
     :: Test channel json
     s3browser-con upload prerelease.keybase.io  %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%\update-windows-prod-test-v2.json prerelease.keybase.io || goto:build_error || EXIT /B 1
+    echo "Creating index files"
+    %GOPATH%\src\github.com\keybase\release\release index-html --bucket-name=prerelease.keybase.io --prefixes="windows/" --upload="windows/index.html"
 ) else (
     echo "No update channel"
 )
