@@ -4,6 +4,22 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import AccountPageHeader from './account-page-header'
 import {compose, withProps} from 'recompose'
+import type {Props} from '../../common-adapters/header-or-popup'
+
+function PopupWithHeader<P: {}>(Wrapped: React.ComponentType<P>) {
+  const PopupWrapper = (props: P & Props) => (
+    <Kb.PopupDialog onClose={props.onCancel} styleClipContainer={props.style}>
+      {props.onBack && <Kb.HeaderHocHeader onBack={props.onBack} headerStyle={headerStyle} />}
+      <Wrapped {...(props: P)} />
+    </Kb.PopupDialog>
+  )
+  return PopupWrapper
+}
+
+// Same as HeaderOrPopup but the Popup itself has a header
+export function HeaderOrPopupWithHeader<P: {}>(WrappedComponent: React.ComponentType<P>) {
+  return Styles.isMobile ? Kb.HeaderHoc(WrappedComponent) : PopupWithHeader(WrappedComponent)
+}
 
 // WalletPopup - wraps all stellar modals except for the send / request forms.
 //
@@ -120,6 +136,10 @@ const styles = Styles.styleSheetCreate({
   scrollViewContentContainer: {...Styles.globalStyles.flexBoxColumn, flexGrow: 1},
 })
 
+const headerStyle = {
+  backgroundColor: Styles.globalColors.transparent,
+}
+
 export default compose(
   withProps<any, any, any>((props: WalletPopupProps) => ({
     [backButtonTypeToFcnHandle[props.backButtonType]]: (props.onExit: any), // cast to any for flow "incompatible with undefined"
@@ -131,5 +151,5 @@ export default compose(
     customSafeAreaTopStyle: props.safeAreaViewTopStyle,
     style: (styles.popup: any), // cast to any for flow complaining about every possible style
   })),
-  Kb.HeaderOrPopupWithHeader
+  HeaderOrPopupWithHeader
 )(WalletPopup)
