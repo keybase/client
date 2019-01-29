@@ -24,40 +24,43 @@ type Props = {
   hasRandomPW: boolean,
 }
 
-const Advanced = (props: Props) => (
-  <Kb.Box style={styles.advancedContainer}>
-    <Kb.Box style={styles.checkboxContainer}>
-      <Kb.Checkbox
-        checked={!!props.lockdownModeEnabled}
-        disabled={props.lockdownModeEnabled == null || props.hasRandomPW}
-        label={
-          'Forbid account changes from the website' +
-          (props.hasRandomPW ? ' (you need to set a passphrase first)' : '')
-        }
-        onCheck={props.onChangeLockdownMode}
-        style={styles.checkbox}
-      />
-    </Kb.Box>
-    <Kb.Box style={styles.progressErrorContainer}>
-      {props.settingLockdownMode && <Kb.ProgressIndicator />}
-      {!!props.setLockdownModeError && (
-        <Kb.Text type="BodySmall" style={styles.error}>
-          {props.setLockdownModeError}
-        </Kb.Text>
-      )}
-    </Kb.Box>
-    {!Styles.isMobile && !isLinux && (
-      <Kb.Box style={styles.openAtLoginCheckboxContainer}>
+const Advanced = (props: Props) => {
+  const disabled = props.lockdownModeEnabled == null || props.hasRandomPW || props.settingLockdownMode
+  return (
+    <Kb.Box style={styles.advancedContainer}>
+      <Kb.Box style={styles.checkboxContainer}>
         <Kb.Checkbox
-          label="Open Keybase on startup"
-          checked={props.openAtLogin}
-          onCheck={props.onSetOpenAtLogin}
+          checked={!!props.lockdownModeEnabled}
+          disabled={disabled}
+          label={
+            'Forbid account changes from the website' +
+            (props.hasRandomPW ? ' (you need to set a passphrase first)' : '')
+          }
+          onCheck={props.onChangeLockdownMode}
+          style={styles.checkbox}
         />
       </Kb.Box>
-    )}
-    <Developer {...props} />
-  </Kb.Box>
-)
+      <Kb.Box style={styles.progressErrorContainer}>
+        {props.settingLockdownMode && <Kb.ProgressIndicator />}
+        {!!props.setLockdownModeError && (
+          <Kb.Text type="BodySmall" style={styles.error}>
+            {props.setLockdownModeError}
+          </Kb.Text>
+        )}
+      </Kb.Box>
+      {!Styles.isMobile && !isLinux && (
+        <Kb.Box style={styles.openAtLoginCheckboxContainer}>
+          <Kb.Checkbox
+            label="Open Keybase on startup"
+            checked={props.openAtLogin}
+            onCheck={props.onSetOpenAtLogin}
+          />
+        </Kb.Box>
+      )}
+      <Developer {...props} />
+    </Kb.Box>
+  )
+}
 
 type StartButtonProps = {
   label: string,
