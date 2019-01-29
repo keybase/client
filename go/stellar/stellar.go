@@ -2156,7 +2156,6 @@ func accountLocal(mctx libkb.MetaContext, remoter remote.Remoter, entry stellar1
 // stellar payment unread count for accountID.
 func AccountDetails(mctx libkb.MetaContext, remoter remote.Remoter, accountID stellar1.AccountID) (stellar1.AccountDetails, error) {
 	details, err := remoter.Details(mctx.Ctx(), accountID)
-	details.SetDefaultDisplayCurrency()
 	if err != nil {
 		return details, err
 	}

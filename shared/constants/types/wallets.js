@@ -219,6 +219,8 @@ export type _Account = {
   isDefault: boolean,
   name: string,
   mobileOnlyEditable: boolean,
+  isFunded: boolean,
+  canMakeTx: boolean,
 }
 export type Account = I.RecordOf<_Account>
 

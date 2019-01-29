@@ -469,6 +469,8 @@ func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stella
 		Seqno:               details.Seqno,
 		AccountMode:         accountMode,
 		AccountModeEditable: isMobile && deviceAge > 7*24*time.Hour,
+		IsFunded:            len(details.Balances) > 0,
+		CanMakeTx:           len(details.Balances) > 0,
 	}
 
 	conf, err := mctx.G().GetStellar().GetServerDefinitions(mctx.Ctx())

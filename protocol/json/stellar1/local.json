@@ -42,6 +42,14 @@
         {
           "type": "boolean",
           "name": "accountModeEditable"
+        },
+        {
+          "type": "boolean",
+          "name": "isFunded"
+        },
+        {
+          "type": "boolean",
+          "name": "canMakeTx"
         }
       ]
     },
