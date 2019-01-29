@@ -129,7 +129,7 @@ type blockPrefetcher struct {
 
 	// map to channels for cancelling queued prefetches
 	queuedPrefetchHandlesLock sync.Mutex
-	queuedPrefetchHandles     map[kbfsblock.ID]queuedPrefetch
+	queuedPrefetchHandles     map[BlockPointer]queuedPrefetch
 }
 
 var _ Prefetcher = (*blockPrefetcher)(nil)
@@ -155,7 +155,7 @@ func newBlockPrefetcher(retriever BlockRetriever,
 		almostDoneCh:          make(chan struct{}, 1),
 		doneCh:                make(chan struct{}),
 		prefetches:            make(map[kbfsblock.ID]*prefetch),
-		queuedPrefetchHandles: make(map[kbfsblock.ID]queuedPrefetch),
+		queuedPrefetchHandles: make(map[BlockPointer]queuedPrefetch),
 		rescheduled:           make(map[kbfsblock.ID]*rescheduledPrefetch),
 		closedCh:              closedCh,
 	}
@@ -396,10 +396,10 @@ func (p *blockPrefetcher) clearRescheduleState(blockID kbfsblock.ID) {
 func (p *blockPrefetcher) cancelQueuedPrefetch(ptr BlockPointer) {
 	p.queuedPrefetchHandlesLock.Lock()
 	defer p.queuedPrefetchHandlesLock.Unlock()
-	qp, ok := p.queuedPrefetchHandles[ptr.ID]
+	qp, ok := p.queuedPrefetchHandles[ptr]
 	if ok {
 		close(qp.channel)
-		delete(p.queuedPrefetchHandles, ptr.ID)
+		delete(p.queuedPrefetchHandles, ptr)
 		p.log.Debug("cancelled queued prefetch for block %s", ptr)
 	} else {
 		p.log.Debug("nothing to cancel for block %s", ptr)
@@ -409,16 +409,16 @@ func (p *blockPrefetcher) cancelQueuedPrefetch(ptr BlockPointer) {
 func (p *blockPrefetcher) markQueuedPrefetchDone(ptr BlockPointer) {
 	p.queuedPrefetchHandlesLock.Lock()
 	defer p.queuedPrefetchHandlesLock.Unlock()
-	qp, present := p.queuedPrefetchHandles[ptr.ID]
+	qp, present := p.queuedPrefetchHandles[ptr]
 	if !present {
 		p.log.CDebugf(context.Background(), "queuedPrefetch not present in"+
-			" queuedPrefetchHandles: %s", ptr.ID)
+			" queuedPrefetchHandles: %s", ptr)
 		return
 	}
 	if qp.waitingPrefetches == 1 {
-		delete(p.queuedPrefetchHandles, ptr.ID)
+		delete(p.queuedPrefetchHandles, ptr)
 	} else {
-		p.queuedPrefetchHandles[ptr.ID] = queuedPrefetch{
+		p.queuedPrefetchHandles[ptr] = queuedPrefetch{
 			qp.waitingPrefetches - 1, qp.channel,
 		}
 	}
@@ -1139,14 +1139,14 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 func (p *blockPrefetcher) setObseletedOnQueuedPrefetch(req *prefetchRequest) {
 	p.queuedPrefetchHandlesLock.Lock()
 	defer p.queuedPrefetchHandlesLock.Unlock()
-	qp, present := p.queuedPrefetchHandles[req.ptr.ID]
+	qp, present := p.queuedPrefetchHandles[req.ptr]
 	if present {
 		req.obseleted = qp.channel
 		qp.waitingPrefetches++
 	} else {
 		obseleted := make(chan struct{})
 		req.obseleted = obseleted
-		p.queuedPrefetchHandles[req.ptr.ID] = queuedPrefetch{1, obseleted}
+		p.queuedPrefetchHandles[req.ptr] = queuedPrefetch{1, obseleted}
 	}
 }
 
