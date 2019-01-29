@@ -633,6 +633,92 @@ func (o InflationDestinationResultLocal) DeepCopy() InflationDestinationResultLo
 	}
 }
 
+type AirdropServiceCheck struct {
+	ServiceUsername string `codec:"serviceUsername" json:"serviceUsername"`
+	AccountCreated  string `codec:"accountCreated" json:"accountCreated"`
+	IsOldEnough     bool   `codec:"isOldEnough" json:"isOldEnough"`
+	IsUsedAlready   bool   `codec:"isUsedAlready" json:"isUsedAlready"`
+	Qualifies       bool   `codec:"qualifies" json:"qualifies"`
+}
+
+func (o AirdropServiceCheck) DeepCopy() AirdropServiceCheck {
+	return AirdropServiceCheck{
+		ServiceUsername: o.ServiceUsername,
+		AccountCreated:  o.AccountCreated,
+		IsOldEnough:     o.IsOldEnough,
+		IsUsedAlready:   o.IsUsedAlready,
+		Qualifies:       o.Qualifies,
+	}
+}
+
+type AirdropQualifications struct {
+	HasStellarKey                bool                           `codec:"hasStellarKey" json:"hasStellarKey"`
+	HasEnoughDevices             bool                           `codec:"hasEnoughDevices" json:"hasEnoughDevices"`
+	QualifiesOverall             bool                           `codec:"qualifiesOverall" json:"qualifiesOverall"`
+	IsBeforeRegistrationDeadline bool                           `codec:"isBeforeRegistrationDeadline" json:"isBeforeRegistrationDeadline"`
+	ServiceChecks                map[string]AirdropServiceCheck `codec:"serviceChecks" json:"serviceChecks"`
+}
+
+func (o AirdropQualifications) DeepCopy() AirdropQualifications {
+	return AirdropQualifications{
+		HasStellarKey:                o.HasStellarKey,
+		HasEnoughDevices:             o.HasEnoughDevices,
+		QualifiesOverall:             o.QualifiesOverall,
+		IsBeforeRegistrationDeadline: o.IsBeforeRegistrationDeadline,
+		ServiceChecks: (func(x map[string]AirdropServiceCheck) map[string]AirdropServiceCheck {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]AirdropServiceCheck, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v.DeepCopy()
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.ServiceChecks),
+	}
+}
+
+type AirdropConfig struct {
+	MinActiveDevices         int            `codec:"minActiveDevices" json:"minActiveDevices"`
+	RegistrationDeadline     int            `codec:"registrationDeadline" json:"registrationDeadline"`
+	AccountCreationDeadlines map[string]int `codec:"accountCreationDeadlines" json:"accountCreationDeadlines"`
+}
+
+func (o AirdropConfig) DeepCopy() AirdropConfig {
+	return AirdropConfig{
+		MinActiveDevices:     o.MinActiveDevices,
+		RegistrationDeadline: o.RegistrationDeadline,
+		AccountCreationDeadlines: (func(x map[string]int) map[string]int {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]int, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.AccountCreationDeadlines),
+	}
+}
+
+type AirdropStatus struct {
+	AlreadyRegisterd bool                  `codec:"alreadyRegisterd" json:"alreadyRegisterd"`
+	Qualifications   AirdropQualifications `codec:"qualifications" json:"qualifications"`
+	Config           AirdropConfig         `codec:"config" json:"config"`
+}
+
+func (o AirdropStatus) DeepCopy() AirdropStatus {
+	return AirdropStatus{
+		AlreadyRegisterd: o.AlreadyRegisterd,
+		Qualifications:   o.Qualifications.DeepCopy(),
+		Config:           o.Config.DeepCopy(),
+	}
+}
+
 type SendResultCLILocal struct {
 	KbTxID KeybaseTransactionID `codec:"kbTxID" json:"kbTxID"`
 	TxID   TransactionID        `codec:"txID" json:"txID"`
@@ -1143,6 +1229,21 @@ type GetInflationDestinationLocalArg struct {
 	AccountID AccountID `codec:"accountID" json:"accountID"`
 }
 
+type AirdropRegisterLocalArg struct {
+	SessionID   int    `codec:"sessionID" json:"sessionID"`
+	AirdropName string `codec:"airdropName" json:"airdropName"`
+}
+
+type AirdropDeregisterLocalArg struct {
+	SessionID   int    `codec:"sessionID" json:"sessionID"`
+	AirdropName string `codec:"airdropName" json:"airdropName"`
+}
+
+type AirdropStatusLocalArg struct {
+	SessionID   int    `codec:"sessionID" json:"sessionID"`
+	AirdropName string `codec:"airdropName" json:"airdropName"`
+}
+
 type BalancesLocalArg struct {
 	AccountID AccountID `codec:"accountID" json:"accountID"`
 }
@@ -1270,6 +1371,9 @@ type LocalInterface interface {
 	GetPredefinedInflationDestinationsLocal(context.Context, int) ([]PredefinedInflationDestination, error)
 	SetInflationDestinationLocal(context.Context, SetInflationDestinationLocalArg) error
 	GetInflationDestinationLocal(context.Context, GetInflationDestinationLocalArg) (InflationDestinationResultLocal, error)
+	AirdropRegisterLocal(context.Context, AirdropRegisterLocalArg) error
+	AirdropDeregisterLocal(context.Context, AirdropDeregisterLocalArg) error
+	AirdropStatusLocal(context.Context, AirdropStatusLocalArg) (AirdropStatus, error)
 	BalancesLocal(context.Context, AccountID) ([]Balance, error)
 	SendCLILocal(context.Context, SendCLILocalArg) (SendResultCLILocal, error)
 	ClaimCLILocal(context.Context, ClaimCLILocalArg) (RelayClaimResult, error)
@@ -1879,6 +1983,51 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"airdropRegisterLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]AirdropRegisterLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]AirdropRegisterLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]AirdropRegisterLocalArg)(nil), args)
+						return
+					}
+					err = i.AirdropRegisterLocal(ctx, typedArgs[0])
+					return
+				},
+			},
+			"airdropDeregisterLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]AirdropDeregisterLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]AirdropDeregisterLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]AirdropDeregisterLocalArg)(nil), args)
+						return
+					}
+					err = i.AirdropDeregisterLocal(ctx, typedArgs[0])
+					return
+				},
+			},
+			"airdropStatusLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]AirdropStatusLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]AirdropStatusLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]AirdropStatusLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.AirdropStatusLocal(ctx, typedArgs[0])
+					return
+				},
+			},
 			"balancesLocal": {
 				MakeArg: func() interface{} {
 					var ret [1]BalancesLocalArg
@@ -2335,6 +2484,21 @@ func (c LocalClient) SetInflationDestinationLocal(ctx context.Context, __arg Set
 
 func (c LocalClient) GetInflationDestinationLocal(ctx context.Context, __arg GetInflationDestinationLocalArg) (res InflationDestinationResultLocal, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.getInflationDestinationLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) AirdropRegisterLocal(ctx context.Context, __arg AirdropRegisterLocalArg) (err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.airdropRegisterLocal", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) AirdropDeregisterLocal(ctx context.Context, __arg AirdropDeregisterLocalArg) (err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.airdropDeregisterLocal", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) AirdropStatusLocal(ctx context.Context, __arg AirdropStatusLocalArg) (res AirdropStatus, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.airdropStatusLocal", []interface{}{__arg}, &res)
 	return
 }
 

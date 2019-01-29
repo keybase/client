@@ -485,6 +485,40 @@ protocol local {
   }
   InflationDestinationResultLocal getInflationDestinationLocal(int sessionID, AccountID accountID);
 
+  // airdrop register, status, etc.
+  void airdropRegisterLocal(int sessionID, string airdropName);
+  void airdropDeregisterLocal(int sessionID, string airdropName);
+
+  record AirdropServiceCheck {
+    string serviceUsername;
+    string accountCreated;
+    boolean isOldEnough;
+    boolean isUsedAlready;
+    boolean qualifies;
+  }
+
+  record AirdropQualifications {
+    boolean hasStellarKey;
+    boolean hasEnoughDevices;
+    boolean qualifiesOverall;
+    boolean isBeforeRegistrationDeadline;
+    map<string, AirdropServiceCheck> serviceChecks;
+  }
+
+  record AirdropConfig {
+    int minActiveDevices;
+    int registrationDeadline;
+    map<string, int> accountCreationDeadlines;
+  }
+
+  record AirdropStatus {
+    boolean alreadyRegisterd;
+    AirdropQualifications qualifications;
+    AirdropConfig config;
+  }
+
+  AirdropStatus airdropStatusLocal(int sessionID, string airdropName);
+
   // -------------------------------------------------------
   // CLI protocol
   // -------------------------------------------------------
@@ -626,4 +660,5 @@ protocol local {
   }
 
   BatchResultLocal batchLocal(string batchID, int timeoutSecs, array<BatchPaymentArg> payments);
+
 }

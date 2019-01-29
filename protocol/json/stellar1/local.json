@@ -749,6 +749,102 @@
     },
     {
       "type": "record",
+      "name": "AirdropServiceCheck",
+      "fields": [
+        {
+          "type": "string",
+          "name": "serviceUsername"
+        },
+        {
+          "type": "string",
+          "name": "accountCreated"
+        },
+        {
+          "type": "boolean",
+          "name": "isOldEnough"
+        },
+        {
+          "type": "boolean",
+          "name": "isUsedAlready"
+        },
+        {
+          "type": "boolean",
+          "name": "qualifies"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AirdropQualifications",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "hasStellarKey"
+        },
+        {
+          "type": "boolean",
+          "name": "hasEnoughDevices"
+        },
+        {
+          "type": "boolean",
+          "name": "qualifiesOverall"
+        },
+        {
+          "type": "boolean",
+          "name": "isBeforeRegistrationDeadline"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "AirdropServiceCheck",
+            "keys": "string"
+          },
+          "name": "serviceChecks"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AirdropConfig",
+      "fields": [
+        {
+          "type": "int",
+          "name": "minActiveDevices"
+        },
+        {
+          "type": "int",
+          "name": "registrationDeadline"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "int",
+            "keys": "string"
+          },
+          "name": "accountCreationDeadlines"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AirdropStatus",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "alreadyRegisterd"
+        },
+        {
+          "type": "AirdropQualifications",
+          "name": "qualifications"
+        },
+        {
+          "type": "AirdropConfig",
+          "name": "config"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "SendResultCLILocal",
       "fields": [
         {
@@ -1776,6 +1872,45 @@
         }
       ],
       "response": "InflationDestinationResultLocal"
+    },
+    "airdropRegisterLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "airdropName",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "airdropDeregisterLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "airdropName",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "airdropStatusLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "airdropName",
+          "type": "string"
+        }
+      ],
+      "response": "AirdropStatus"
     },
     "balancesLocal": {
       "request": [

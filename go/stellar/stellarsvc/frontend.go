@@ -949,3 +949,15 @@ func (s *Server) GetInflationDestinationLocal(ctx context.Context, arg stellar1.
 
 	return stellar.GetInflationDestination(mctx, arg.AccountID)
 }
+
+func (s *Server) AirdropRegisterLocal(ctx context.Context, arg stellar1.AirdropRegisterLocalArg) error {
+	return errors.New("not implemented")
+}
+
+func (s *Server) AirdropDeregisterLocal(ctx context.Context, arg stellar1.AirdropDeregisterLocalArg) error {
+	return errors.New("not implemented")
+}
+
+func (s *Server) AirdropStatusLocal(ctx context.Context, arg stellar1.AirdropStatusLocalArg) (stellar1.AirdropStatus, error) {
+	return stellar1.AirdropStatus{}, errors.New("not implemented")
+}
