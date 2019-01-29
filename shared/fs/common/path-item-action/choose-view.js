@@ -5,6 +5,8 @@ import * as Flow from '../../../util/flow'
 import {namedConnect} from '../../../util/container'
 import type {FloatingMenuProps} from './types'
 import Root from './root-container'
+import Share from './share-container'
+import Confirm from './confirm-container'
 
 type OwnProps = {|
   floatingMenuProps: FloatingMenuProps,
@@ -12,7 +14,7 @@ type OwnProps = {|
 |}
 
 const mapStateToProps = state => ({
-  view: state.fs.actionMenu.view,
+  view: state.fs.pathItemActionMenu.view,
 })
 
 export default namedConnect<OwnProps, _, _, _, _>(
@@ -21,15 +23,17 @@ export default namedConnect<OwnProps, _, _, _, _>(
   (s, d, o) => ({...o, ...s, ...d}),
   'PathItemActionChooseView'
 )(props => {
-  switch (props.view) {
+  switch (props.view.type) {
     case 'root':
       return <Root path={props.path} floatingMenuProps={props.floatingMenuProps} />
     case 'share':
-      return <Root path={props.path} floatingMenuProps={props.floatingMenuProps} />
-    case 'confirm-download':
-      return <Root path={props.path} floatingMenuProps={props.floatingMenuProps} />
+      return <Share path={props.path} floatingMenuProps={props.floatingMenuProps} />
+    case 'confirm':
+      return (
+        <Confirm path={props.path} floatingMenuProps={props.floatingMenuProps} action={props.view.action} />
+      )
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.view)
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.view.type)
       return null
   }
 })

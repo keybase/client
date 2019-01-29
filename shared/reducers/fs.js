@@ -292,6 +292,10 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.setSendLinkToChatChannels:
       // $FlowIssue
       return state.setIn(['sendLinkToChat', 'channels'], action.payload.channels)
+    case FsGen.setPathItemActionMenuView:
+      return state.update('pathItemActionMenu', pathItemActionMenu =>
+        pathItemActionMenu.set('view', action.payload.view)
+      )
     case FsGen.folderListLoad:
     case FsGen.placeholderAction:
     case FsGen.filePreviewLoad:

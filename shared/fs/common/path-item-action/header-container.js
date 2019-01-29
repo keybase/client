@@ -3,7 +3,7 @@ import * as Types from '../../../constants/types/fs'
 import * as Constants from '../../../constants/fs'
 import * as FsGen from '../../../actions/fs-gen'
 import {namedConnect} from '../../../util/container'
-import Header from './root-header'
+import Header from './header'
 
 type OwnProps = {|
   path: Types.Path,
