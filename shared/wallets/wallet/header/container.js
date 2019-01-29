@@ -6,7 +6,7 @@ import * as Types from '../../../constants/types/wallets'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import Header from '.'
 
-const otherUnreadPayments = memoize((map, accID) => !!map.delete(accID).some(v => !!v))
+const otherUnreadPayments = memoize((map, accID) => !!map.delete(accID).some(Boolean))
 
 type OwnProps = {navigateAppend: (...Array<any>) => any, onBack: () => void}
 
