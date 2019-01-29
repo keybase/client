@@ -3,6 +3,7 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
+import animationData from '../../../../common-adapters/animation-data.json'
 import {Picker} from 'emoji-mart'
 import {backgroundImageFn} from '../../../../common-adapters/emoji'
 import SetExplodingMessagePopup from '../../messages/set-explode-popup/container'
@@ -11,6 +12,41 @@ import {KeyEventHandler} from '../../../../util/key-event-handler.desktop'
 import WalletsIcon from './wallets-icon/container'
 import type {PlatformInputPropsInternal} from './platform-input'
 import AddSuggestors from '../suggestors'
+
+const defaultDimension = 16
+
+type AnimationProps = {|
+  animationType: 'typing',
+  containerStyle: Styles.StylesCrossPlatform,
+|}
+
+class Animation extends React.Component<AnimationProps> {
+  render() {
+    // jest doesnt' support canvas out of the box, so lets just not do anything
+    if (__STORYSHOT__) {
+      return (
+        <Kb.Box>
+          {JSON.stringify({
+            height: defaultDimension,
+            options: {animationData: animationData[this.props.animationType]},
+            width: defaultDimension,
+          })}
+        </Kb.Box>
+      )
+    }
+    // jest pukes if the import is on top so just defer till render
+    const Lottie = require('lottie-react-web').default
+    return (
+      <Kb.Box style={this.props.containerStyle}>
+        <Lottie
+          options={{animationData: animationData[this.props.animationType]}}
+          width={defaultDimension}
+          height={defaultDimension}
+        />
+      </Kb.Box>
+    )
+  }
+}
 
 type State = {
   emojiPickerOpen: boolean,
@@ -260,7 +296,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
           </Kb.Box>
           <Kb.Box style={styles.footerContainer}>
             {this.props.typing.size > 0 && (
-              <Kb.Animation animationType="typing" containerStyle={styles.isTypingAnimation} />
+              <Animation animationType="typing" containerStyle={styles.isTypingAnimation} />
             )}
             <Kb.Text type="BodySmall" style={styles.isTyping}>
               {isTyping(this.props.typing)}

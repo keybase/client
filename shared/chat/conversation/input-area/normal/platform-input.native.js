@@ -2,8 +2,8 @@
 /* eslint-env browser */
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker'
 import React, {PureComponent} from 'react'
+import LottieView from 'lottie-react-native'
 import {
-  Animation,
   Box,
   Box2,
   Icon,
@@ -12,14 +12,8 @@ import {
   iconCastPlatformStyles,
   OverlayParentHOC,
 } from '../../../../common-adapters'
-import {
-  collapseStyles,
-  globalMargins,
-  globalStyles,
-  globalColors,
-  platformStyles,
-  styleSheetCreate,
-} from '../../../../styles'
+import animationData from '../../../../common-adapters/animation-data.json'
+import * as Styles from '../../../../styles'
 import {isIOS, isLargeScreen} from '../../../../constants/platform'
 import {
   NativeKeyboard,
@@ -31,6 +25,21 @@ import FilePickerPopup from '../filepicker-popup'
 import WalletsIcon from './wallets-icon/container'
 import type {PlatformInputPropsInternal} from './platform-input'
 import AddSuggestors, {standardTransformer} from '../suggestors'
+
+export type AnimationProps = {|
+  animationType: 'typing',
+  containerStyle: Styles.StylesCrossPlatform,
+|}
+
+class Animation extends React.Component<AnimationProps> {
+  render() {
+    return (
+      <Box style={this.props.containerStyle}>
+        <LottieView autoPlay={true} loop={true} source={animationData[this.props.animationType]} />
+      </Box>
+    )
+  }
+}
 
 type menuType = 'exploding' | 'filepickerpopup'
 
@@ -259,7 +268,10 @@ const Action = ({
         {smallGap}
       </>
       {showWalletsIcon && (
-        <WalletsIcon size={22} style={collapseStyles([styles.actionButton, styles.marginRightSmall])} />
+        <WalletsIcon
+          size={22}
+          style={Styles.collapseStyles([styles.actionButton, styles.marginRightSmall])}
+        />
       )}
       <Icon
         onClick={insertMentionMarker}
@@ -281,7 +293,7 @@ const ExplodingIcon = ({explodingModeSeconds, isExploding, openExplodingPicker})
   <NativeTouchableWithoutFeedback onPress={openExplodingPicker}>
     <Box style={explodingIconContainer}>
       <Icon
-        color={isExploding ? globalColors.black_75 : null}
+        color={isExploding ? Styles.globalColors.black_75 : null}
         style={iconCastPlatformStyles(styles.actionButton)}
         type="iconfont-timer"
         fontSize={22}
@@ -292,7 +304,7 @@ const ExplodingIcon = ({explodingModeSeconds, isExploding, openExplodingPicker})
 )
 
 const containerPadding = 8
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   accessory: {
     bottom: 1,
     display: 'flex',
@@ -308,36 +320,36 @@ const styles = styleSheetCreate({
     alignSelf: isIOS ? 'flex-end' : 'center',
   },
   actionIconsContainer: {
-    paddingRight: globalMargins.small - containerPadding,
+    paddingRight: Styles.globalMargins.small - containerPadding,
   },
   actionText: {
     alignSelf: 'flex-end',
-    paddingBottom: globalMargins.xsmall,
-    paddingRight: globalMargins.tiny,
+    paddingBottom: Styles.globalMargins.xsmall,
+    paddingRight: Styles.globalMargins.tiny,
   },
   container: {
-    ...globalStyles.flexBoxRow,
+    ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
-    backgroundColor: globalColors.fastBlank,
-    borderTopColor: globalColors.black_10,
+    backgroundColor: Styles.globalColors.fastBlank,
+    borderTopColor: Styles.globalColors.black_10,
     borderTopWidth: 1,
     flexShrink: 0,
     minHeight: 48,
     paddingRight: containerPadding,
   },
   editingTabStyle: {
-    ...globalStyles.flexBoxColumn,
+    ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'flex-start',
-    backgroundColor: globalColors.yellow3,
+    backgroundColor: Styles.globalColors.yellow3,
     flexShrink: 0,
     height: '100%',
     minWidth: 32,
-    padding: globalMargins.xtiny,
+    padding: Styles.globalMargins.xtiny,
   },
   input: {
     flex: 1,
-    marginLeft: globalMargins.tiny,
-    marginRight: globalMargins.tiny,
+    marginLeft: Styles.globalMargins.tiny,
+    marginRight: Styles.globalMargins.tiny,
     ...(isIOS
       ? {}
       : {
@@ -346,29 +358,29 @@ const styles = styleSheetCreate({
         }),
   },
   marginRightSmall: {
-    marginRight: globalMargins.small,
+    marginRight: Styles.globalMargins.small,
   },
   mentionHud: {
-    borderColor: globalColors.black_20,
+    borderColor: Styles.globalColors.black_20,
     borderTopWidth: 1,
     flex: 1,
     height: 160,
     width: '100%',
   },
   smallGap: {
-    height: globalMargins.small,
-    width: globalMargins.small,
+    height: Styles.globalMargins.small,
+    width: Styles.globalMargins.small,
   },
   typing: {
-    ...globalStyles.flexBoxRow,
+    ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     alignSelf: 'center',
     borderRadius: 10,
     height: 20,
     justifyContent: 'center',
-    marginRight: globalMargins.tiny,
-    paddingLeft: globalMargins.tiny,
-    paddingRight: globalMargins.tiny,
+    marginRight: Styles.globalMargins.tiny,
+    paddingLeft: Styles.globalMargins.tiny,
+    paddingRight: Styles.globalMargins.tiny,
   },
   typingIcon: {
     width: 20,
@@ -378,9 +390,9 @@ const styles = styleSheetCreate({
 // Use manual gap when Box2 is inserting too many (for children that deliberately render nothing)
 const smallGap = <Box style={styles.smallGap} />
 
-const explodingIconContainer = platformStyles({
+const explodingIconContainer = Styles.platformStyles({
   common: {
-    ...globalStyles.flexBoxRow,
+    ...Styles.globalStyles.flexBoxRow,
     marginRight: -3,
   },
 })
