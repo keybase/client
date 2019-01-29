@@ -70,6 +70,7 @@ export default class TrackerRender extends React.PureComponent<Props> {
             style={{marginTop: 50}}
             avatarSize={96}
             loading={this.props.loading}
+            showAirdrop={this.props.showAirdrop}
             username={this.props.username}
             userInfo={this.props.userInfo}
             currentlyFollowing={this.props.currentlyFollowing}

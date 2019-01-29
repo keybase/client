@@ -17,13 +17,15 @@ export default function SettingsItem(props: SettingsItemProps) {
               borderLeftWidth: 3,
             }
           : {},
+        props.selected && props.selectedStyle,
+        !props.selected && props.unSelectedStyle,
       ])}
     >
       {props.icon && (
         <Icon
           type={props.icon}
           color={Style.globalColors.black_20}
-          style={{marginRight: Style.globalMargins.small}}
+          style={{marginRight: Style.isMobile ? Style.globalMargins.small : Style.globalMargins.tiny}}
         />
       )}
       <Text

@@ -2,7 +2,7 @@
 // TODO deprecate
 import * as shared from './user-bio.shared'
 import React, {Component} from 'react'
-import {Avatar, Box, Button, Text} from '../common-adapters'
+import {Avatar, Box, Button, Text, Icon} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins, platformStyles, desktopStyles} from '../styles'
 import {stateColors} from '../util/tracker'
 import type {AvatarSize} from '../common-adapters/avatar'
@@ -103,14 +103,17 @@ class BioRender extends Component<Props> {
             />
           </Box>
           <Box style={{...stylesContent, ...desktopStyles.fadeOpacity, opacity: loading ? 0 : 1}}>
-            <Text
-              type="HeaderBig"
-              selectable={true}
-              style={{...stylesUsername, color: trackerStateColors.username}}
-              onClick={onClickAvatar}
-            >
-              {username}
-            </Text>
+            <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
+              <Text
+                type="HeaderBig"
+                selectable={true}
+                style={{...stylesUsername, color: trackerStateColors.username}}
+                onClick={onClickAvatar}
+              >
+                {username}
+              </Text>
+              {this.props.showAirdrop && <Icon type="iconfont-add" style={{marginTop: 6, marginLeft: 4}} />}
+            </Box>
             <Text center={true} type="BodyBig" selectable={true} style={stylesFullname} {...nameTweaks}>
               {userInfo.fullname}
             </Text>

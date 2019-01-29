@@ -16,6 +16,15 @@ function SettingsNav(props: Props) {
         onClick={() => props.onTabChange(Constants.landingTab)}
       />
       <SettingsItem
+        text="Lumen airdrop"
+        icon="icon-stellar-coins-stacked-16"
+        selected={props.selectedTab === Constants.airdropTab}
+        unSelectedStyle={{backgroundColor: globalColors.purple2, paddingLeft: 4}}
+        selectedStyle={{backgroundColor: globalColors.purple, paddingLeft: 4}}
+        textColor={globalColors.white}
+        onClick={() => props.onTabChange(Constants.airdropTab)}
+      />
+      <SettingsItem
         text="Chat"
         selected={props.selectedTab === Constants.chatTab}
         onClick={() => props.onTabChange(Constants.chatTab)}

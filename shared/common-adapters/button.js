@@ -40,7 +40,7 @@ export type Props = {|
   waiting?: boolean,
   small?: boolean,
   fullWidth?: boolean,
-  backgroundMode?: 'Normal' | 'Terminal' | 'Red' | 'Green' | 'Blue' | 'Black',
+  backgroundMode?: 'Normal' | 'Terminal' | 'Red' | 'Green' | 'Blue' | 'Black' | 'Purple',
   className?: string,
 |}
 
@@ -58,6 +58,7 @@ class Button extends React.Component<Props> {
     const backgroundModeName = this.props.backgroundMode
       ? {
           Black: 'Black',
+          Purple: 'Purple',
           Blue: 'Blue',
           Green: 'Green',
           Normal: '',
@@ -177,6 +178,7 @@ const containerStyles = styleSheetCreate({
   PrimaryColoredBackgroundBlack: {...common, backgroundColor: globalColors.white},
   PrimaryColoredBackgroundBlue: {...common, backgroundColor: globalColors.white},
   PrimaryColoredBackgroundGreen: {...common, backgroundColor: globalColors.white},
+  PrimaryColoredBackgroundPurple: {...common, backgroundColor: globalColors.white},
   PrimaryColoredBackgroundRed: {...common, backgroundColor: globalColors.white},
   PrimaryGreen: {...common, backgroundColor: globalColors.green},
   PrimaryGreenActive: platformStyles({
@@ -201,6 +203,7 @@ const labelStyles = styleSheetCreate({
   PrimaryColoredBackgroundLabelBlack: {...commonLabel, color: globalColors.black},
   PrimaryColoredBackgroundLabelBlue: {...commonLabel, color: globalColors.blue},
   PrimaryColoredBackgroundLabelGreen: {...commonLabel, color: globalColors.green},
+  PrimaryColoredBackgroundLabelPurple: {...commonLabel, color: globalColors.purple},
   PrimaryColoredBackgroundLabelRed: {...commonLabel, color: globalColors.red},
   PrimaryGreenActiveLabel: {...commonLabel, color: globalColors.green},
   PrimaryGreenLabel: commonLabel,

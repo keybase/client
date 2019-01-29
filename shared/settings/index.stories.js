@@ -8,9 +8,10 @@ import nav from './nav/index.stories'
 import notifications from './notifications/index.stories'
 import passphrase from './passphrase/index.stories'
 import chat from './chat/index.stories'
+import airdrop from './airdrop/index.stories'
 
 const load = () => {
-  ;[email, passphrase, deleteMe, deleteConfirm, notifications, inviteGenerated, invites, nav, chat].forEach(
+  ;[airdrop, email, passphrase, deleteMe, deleteConfirm, notifications, inviteGenerated, invites, nav, chat].forEach(
     load => load()
   )
 }

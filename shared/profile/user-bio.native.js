@@ -1,7 +1,7 @@
 // @flow
 import * as shared from './user-bio.shared'
 import React, {Component} from 'react'
-import {Box, Avatar, Text, Button} from '../common-adapters'
+import {Box, Avatar, Text, Button, Icon} from '../common-adapters'
 import type {AvatarSize} from '../common-adapters/avatar'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {stateColors} from '../util/tracker'
@@ -108,14 +108,17 @@ class BioRender extends Component<Props> {
           />
         </Box>
         <Box style={stylesContent}>
-          <Text
-            type="HeaderBig"
-            selectable={true}
-            style={{...stylesUsername, color: trackerStateColors.username}}
-            onClick={onClickAvatar}
-          >
-            {username}
-          </Text>
+          <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
+            <Text
+              type="HeaderBig"
+              selectable={true}
+              style={{...stylesUsername, color: trackerStateColors.username}}
+              onClick={onClickAvatar}
+            >
+              {username}
+            </Text>
+            {this.props.showAirdrop && <Icon type="iconfont-add" style={{marginTop: 6, marginLeft: 4}} />}
+          </Box>
           {!!userInfo.fullname && (
             <Text center={true} type="BodySemibold" selectable={true} style={stylesFullname}>
               {userInfo.fullname}

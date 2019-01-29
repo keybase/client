@@ -22,6 +22,7 @@ const routeTree = () => {
   const AdvancedContainer = require('./advanced/container').default
   const ChatContainer = require('./chat/container').default
   const Screenprotector = require('./screenprotector-container.native').default
+  const Airdrop = require('./airdrop/container').default
 
   return makeRouteDefNode({
     children: {
@@ -32,6 +33,7 @@ const routeTree = () => {
         },
         component: About,
       },
+      [Constants.airdropTab]: {component: Airdrop},
       [Constants.passphraseTab]: {component: Passphrase},
       [Constants.feedbackTab]: {component: Feedback},
       [Constants.landingTab]: {component: About},

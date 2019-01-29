@@ -1,4 +1,5 @@
 // @flow
+// TODO plumb airdrop
 // A mirror of the remote tracker windows.
 // RemoteTrackers renders up to MAX_TRACKERS
 // RemoteTracker is a single tracker popup
@@ -86,6 +87,7 @@ const trackerMergeProps = (stateProps, dispatchProps, {name}) => {
     publicAdmins,
     publicAdminsOthers,
     sessionID: name,
+    showAirdrop: true, // TODO
     showTeam,
     teamJoinError,
     teamJoinSuccess,

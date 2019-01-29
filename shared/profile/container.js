@@ -1,4 +1,5 @@
 // @flow
+// TODO plumb airdrop
 import logger from '../logger'
 import * as FsGen from '../actions/fs-gen'
 import * as FsTypes from '../constants/types/fs'
@@ -195,6 +196,7 @@ const mergeProps = (stateProps, dispatchProps) => {
       dispatchProps._onSendOrRequestLumens(username, isRequest, 'keybaseUser'),
     onUnfollow: () => dispatchProps._onUnfollow(username),
     refresh,
+    showAirdrop: true, // TODO
     username,
     youAreInTeams: stateProps.youAreInTeams,
   }
