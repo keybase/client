@@ -56,7 +56,7 @@ func (b *baseCommand) getConvByName(ctx context.Context, uid gregor1.UID, name s
 }
 
 func (b *baseCommand) tokenize(text string, minArgs int) (toks []string, err error) {
-	toks = strings.Split(text, " ")
+	toks = strings.Split(strings.TrimRight(text, " "), " ")
 	if len(toks) < minArgs {
 		return toks, ErrInvalidArguments
 	}
