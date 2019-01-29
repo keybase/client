@@ -3,6 +3,7 @@ package ephemeral
 import (
 	"context"
 	"fmt"
+	"log"
 	"sort"
 	"strconv"
 	"strings"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/keybase/client/go/erasablekv"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -34,6 +36,25 @@ type DeviceEKStorage struct {
 	storage erasablekv.ErasableKVStore
 	cache   deviceEKCache
 	indexed bool
+	logger  *log.Logger
+}
+
+func getLogger(g *libkb.GlobalContext) *log.Logger {
+	filename := g.Env.GetEKLogFile()
+	lfc := logger.LogFileConfig{
+		Path:               filename,
+		MaxAge:             30 * 24 * time.Hour, // 30 days
+		MaxSize:            128 * 1024 * 1024,   // 128mb
+		MaxKeepFiles:       3,
+		SkipRedirectStdErr: true,
+	}
+	lfw := logger.NewLogFileWriter(lfc)
+	if err := lfw.Open(time.Now()); err != nil {
+		g.Log.CDebugf(context.TODO(), "Unable to getLogger %v", err)
+		return nil
+	}
+	l := log.New(lfw, "DeviceEKStorage", log.LstdFlags|log.Lshortfile)
+	return l
 }
 
 func NewDeviceEKStorage(g *libkb.GlobalContext) *DeviceEKStorage {
@@ -41,7 +62,24 @@ func NewDeviceEKStorage(g *libkb.GlobalContext) *DeviceEKStorage {
 		Contextified: libkb.NewContextified(g),
 		storage:      erasablekv.NewFileErasableKVStore(g, deviceEKSubDir),
 		cache:        make(deviceEKCache),
+		logger:       getLogger(g),
 	}
+}
+
+// Log sensitive deletion actions to a separate log file so we don't lose the
+// logs during normal rotation.
+func (s *DeviceEKStorage) ekLogf(ctx context.Context, format string, args ...interface{}) {
+	s.G().Log.CDebugf(ctx, format, args...)
+	if s.logger != nil {
+		s.logger.Printf(format, args...)
+	}
+}
+
+func (s *DeviceEKStorage) ekLogCTraceTimed(ctx context.Context, msg string, f func() error) func() {
+	if s.logger != nil {
+		s.logger.Print(msg)
+	}
+	return s.G().CTraceTimed(ctx, msg, f)
 }
 
 func (s *DeviceEKStorage) keyPrefixFromUsername(username libkb.NormalizedUsername) string {
@@ -191,9 +229,9 @@ func (s *DeviceEKStorage) get(ctx context.Context, generation keybase1.EkGenerat
 	if err = s.storage.Get(ctx, key, &deviceEK); err != nil {
 		switch err.(type) {
 		case erasablekv.UnboxError:
-			s.G().EKLog.CDebugf(ctx, "DeviceEKStorage#get: corrupted generation: %s -> %s: %v", key, generation, err)
+			s.ekLogf(ctx, "DeviceEKStorage#get: corrupted generation: %s -> %s: %v", key, generation, err)
 			if ierr := s.storage.Erase(ctx, key); ierr != nil {
-				s.G().EKLog.CDebugf(ctx, "DeviceEKStorage#get: unable to delete corrupted generation: %v", ierr)
+				s.ekLogf(ctx, "DeviceEKStorage#get: unable to delete corrupted generation: %v", ierr)
 			}
 		}
 		return deviceEK, err
@@ -212,7 +250,7 @@ func (s *DeviceEKStorage) Delete(ctx context.Context, generation keybase1.EkGene
 }
 
 func (s *DeviceEKStorage) delete(ctx context.Context, generation keybase1.EkGeneration) (err error) {
-	defer s.G().CEKTraceTimed(ctx, fmt.Sprintf("DeviceEKStorage#delete: generation:%v", generation), func() error { return err })()
+	defer s.ekLogCTraceTimed(ctx, fmt.Sprintf("DeviceEKStorage#delete: generation:%v", generation), func() error { return err })()
 
 	// clear the cache
 	cache, err := s.getCache(ctx)
@@ -369,7 +407,7 @@ func (s *DeviceEKStorage) MaxGeneration(ctx context.Context) (maxGeneration keyb
 }
 
 func (s *DeviceEKStorage) DeleteExpired(ctx context.Context, merkleRoot libkb.MerkleRoot) (expired []keybase1.EkGeneration, err error) {
-	defer s.G().CEKTraceTimed(ctx, "DeviceEKStorage#DeleteExpired", func() error { return err })()
+	defer s.G().CTraceTimed(ctx, "DeviceEKStorage#DeleteExpired", func() error { return err })()
 
 	s.Lock()
 	defer s.Unlock()
@@ -475,7 +513,7 @@ func (s *DeviceEKStorage) getExpiredGenerations(ctx context.Context, keyMap keyE
 
 		expiryOffset := expiryOffset1 + expiryOffset2
 		if now.Sub(keyCtime) >= (libkb.MinEphemeralKeyLifetime + expiryOffset) {
-			s.G().EKLog.CDebugf(ctx, "getExpiredGenerations: expired generation:%v, now: %v, keyCtime:%v, expiryOffset:%v, keyMap: %v, i:%v",
+			s.ekLogf(ctx, "getExpiredGenerations: expired generation:%v, now: %v, keyCtime:%v, expiryOffset:%v, keyMap: %v, i:%v",
 				generation, now, keyCtime, expiryOffset, keyMap, i)
 			expired = append(expired, generation)
 		}

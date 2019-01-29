@@ -543,10 +543,6 @@ func (g *GlobalContext) CVTraceTimed(ctx context.Context, lev VDebugLevel, msg s
 	}
 }
 
-func (g *GlobalContext) CEKTraceTimed(ctx context.Context, msg string, f func() error) func() {
-	return CTraceTimed(ctx, g.EKLog.CloneWithAddedDepth(1), msg, f, g.Clock())
-}
-
 func (g *GlobalContext) CTimeTracer(ctx context.Context, label string, enabled bool) profiling.TimeTracer {
 	if enabled {
 		return profiling.NewTimeTracer(ctx, g.Log.CloneWithAddedDepth(1), g.Clock(), label)
