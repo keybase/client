@@ -16,7 +16,7 @@ export type Props = {|
   closeOnSelect: boolean,
   containerStyle?: StylesCrossPlatform,
   items: Array<MenuItem | 'Divider' | null>,
-  header?: MenuItem,
+  header?: ?MenuItem,
   onHidden: () => void,
   visible: boolean,
   attachTo?: () => ?React.Component<any>,

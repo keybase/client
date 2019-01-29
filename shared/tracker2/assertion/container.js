@@ -9,6 +9,7 @@ import openUrl from '../../util/open-url'
 
 type OwnProps = {|
   username: string,
+  allowMenu: boolean,
   assertionKey: string,
 |}
 
@@ -47,6 +48,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
     dispatchProps._onSendOrRequestLumens(stateProps.value.split('*')[0], false, 'keybaseUser'),
   onShowProof: () => (stateProps.proofURL ? openUrl(stateProps.proofURL) : undefined),
   onShowSite: () => (stateProps.siteURL ? openUrl(stateProps.siteURL) : undefined),
+  onRevoke: () => ownProps.allowMenu ? () => console.log('aaa TODO ') : undefined,
   onWhatIsStellar: () => openUrl('https://keybase.io/what-is-stellar'),
   proofURL: stateProps.proofURL,
   siteIcon: stateProps.siteIcon,

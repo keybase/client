@@ -248,6 +248,14 @@ body {
   opacity: 1;
 }
 
+.hover-container .hover-visible {
+  display: none;
+}
+
+.hover-container:hover .hover-visible {
+  display: flex;
+}
+
 .underline {
   text-decoration: underline;
 }
