@@ -981,13 +981,12 @@ func (r *BackendMock) addAccountRandom(funded bool) stellar1.AccountID {
 		T:         r.T,
 		accountID: stellar1.AccountID(full.Address()),
 		secretKey: stellar1.SecretKey(full.Seed()),
-	}
-	if amount != "" {
-		a.balance = stellar1.Balance{
+		balance: stellar1.Balance{
 			Asset:  stellar1.Asset{Type: "native"},
 			Amount: amount,
-		}
+		},
 	}
+
 	require.Nil(r.T, r.accounts[a.accountID], "attempt to re-add account %v", a.accountID)
 	r.accounts[a.accountID] = a
 	r.seqnos[a.accountID] = uint64(time.Now().UnixNano())
