@@ -205,9 +205,9 @@ func Init(homeDir string, mobileSharedHome string, logFile string, runModeStr st
 	kbChatCtx = svc.ChatContextified.ChatG()
 	kbChatCtx.NativeVideoHelper = newVideoHelper(nvh)
 
-	serviceLog := config.GetLogFile()
 	logs := libkb.Logs{
-		Service: serviceLog,
+		Service: config.GetLogFile(),
+		EK:      config.GetEKLogFile(),
 	}
 
 	logSendContext = libkb.LogSendContext{
@@ -216,8 +216,7 @@ func Init(homeDir string, mobileSharedHome string, logFile string, runModeStr st
 	}
 
 	// open the connection
-	err = Reset()
-	if err != nil {
+	if err = Reset(); err != nil {
 		return err
 	}
 
