@@ -25,10 +25,11 @@ var (
 )
 
 var MerkleAuditSettings = BackgroundTaskSettings{
-	Start:        5 * time.Minute,
-	StartStagger: 1 * time.Hour,
-	Interval:     6 * time.Hour,
-	Limit:        1 * time.Minute,
+	Start:            5 * time.Minute,
+	StartStagger:     1 * time.Hour,
+	Interval:         6 * time.Hour,
+	Limit:            1 * time.Minute,
+	DisableInBotLite: true,
 }
 
 // MerkleAudit is an engine.
