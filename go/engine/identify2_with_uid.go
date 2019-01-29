@@ -438,7 +438,11 @@ func (e *Identify2WithUID) untrackedFastPath(m libkb.MetaContext) (ret bool) {
 func (e *Identify2WithUID) runReturnError(m libkb.MetaContext) (err error) {
 
 	m.CDebugf("+ acquire singleflight lock for %s", e.arg.Uid)
-	lock := locktab.AcquireOnName(m.Ctx(), m.G(), e.arg.Uid.String())
+	lock, err := locktab.AcquireOnNameWithContext(m.Ctx(), m.G(), e.arg.Uid.String())
+	if err != nil {
+		m.CDebugf("| error acquiring singleflight lock for %s: %v", e.arg.Uid, err)
+		return err
+	}
 	m.CDebugf("- acquired singleflight lock")
 
 	defer func() {
