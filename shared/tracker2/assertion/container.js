@@ -3,6 +3,7 @@ import * as Container from '../../util/container'
 import * as ConfigGen from '../../actions/config-gen'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as WalletsGen from '../../actions/wallets-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as WalletsType from '../../constants/types/wallets'
 import * as Constants from '../../constants/tracker2'
 import Assertion from '.'
@@ -42,6 +43,18 @@ const mapDispatchToProps = dispatch => ({
   _onCopyAddress: (text: string) => dispatch(ConfigGen.createCopyToClipboard({text})),
   // $FlowIssue we need to make this more flexible later
   _onCreateProof: (type: string) => dispatch(ProfileGen.createAddProof({platform: type})),
+  _onRevokeProof: (type: string, value: string) =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {platform: type, platformHandle: key, proofId: 0},
+            selected: 'revoke',
+          },
+        ],
+      })
+    ),
+
   _onSendOrRequestLumens: (to: string, isRequest: boolean, recipientType: WalletsType.CounterpartyType) => {
     dispatch(
       WalletsGen.createOpenSendRequestForm({from: WalletsType.noAccountID, isRequest, recipientType, to})
@@ -61,9 +74,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
     dispatchProps._onSendOrRequestLumens(stateProps.value.split('*')[0], false, 'keybaseUser'),
   onShowProof: () => (stateProps.proofURL ? openUrl(stateProps.proofURL) : undefined),
   onShowSite: () => (stateProps.siteURL ? openUrl(stateProps.siteURL) : undefined),
-  // onRevoke: () => (ownProps.allowMenu ? () => console.log('aaa TODO ') : undefined),
   onRecheck: () => console.log('aaa TODO '),
-  onRevoke: () => console.log('aaa TODO '),
+  onRevoke: () => dispatchProps._onRevoke(stateProps.type, stateProps.value),
   onWhatIsStellar: () => openUrl('https://keybase.io/what-is-stellar'),
   proofURL: stateProps.proofURL,
   siteIcon: stateProps.siteIcon,

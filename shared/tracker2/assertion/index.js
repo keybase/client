@@ -367,7 +367,7 @@ const styles = Styles.styleSheetCreate({
     borderStyle: 'solid',
     padding: Styles.globalMargins.small,
   },
-  menuIcon: {alignSelf: 'center', height: '100%'},
+  menuIcon: {alignSelf: 'center', height: 17},
   metaContainer: {flexShrink: 0, paddingLeft: 20 + Styles.globalMargins.tiny * 2 - 4}, // icon spacing plus meta has 2 padding for some reason
   site: {color: Styles.globalColors.black_20},
   stateIcon: {height: 17},
