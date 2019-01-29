@@ -301,8 +301,8 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 	//  * The user asked us to refresh
 	//  * We haven't fetched it before
 	//  * It's stale
-	if req.refresh || f.cache == nil || f.config.Clock().Now().After(
-		f.cacheExpireTime) && !req.clear {
+	if (req.refresh || f.cache == nil || f.config.Clock().Now().After(
+		f.cacheExpireTime)) && !req.clear {
 
 		// load cache from server
 		folders, err := kbpki.FavoriteList(req.ctx)
