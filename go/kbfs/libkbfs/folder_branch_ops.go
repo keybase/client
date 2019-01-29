@@ -5420,7 +5420,7 @@ func (fbo *folderBranchOps) syncAllLocked(
 		fbo.log.CDebugf(ctx, "Syncing file %v (%s)", ref, file)
 
 		// Start the sync for this dirty file.
-		doSync, stillDirty, fblock, dirtyDe, newBps, syncState, cleanup, err :=
+		doSync, stillDirty, _, dirtyDe, newBps, syncState, cleanup, err :=
 			fbo.startSyncLocked(ctx, lState, md, node, file)
 		if cleanup != nil {
 			// Note: This passes the same `blocksToRemove` into each
@@ -5454,9 +5454,9 @@ func (fbo *folderBranchOps) syncAllLocked(
 		resolvedPaths[file.tailPointer()] = file
 		parent := file.parentPath().tailPointer()
 		if _, ok := fileBlocks[parent]; !ok {
-			fileBlocks[parent] = make(map[string]*FileBlock)
+			fileBlocks[parent] = make(map[string]BlockPointer)
 		}
-		fileBlocks[parent][file.tailName()] = fblock
+		fileBlocks[parent][file.tailName()] = file.tailPointer()
 
 		// Collect its `afterUpdateFn` along with all the others, so
 		// they all get invoked under the same lock, to avoid any
@@ -5970,9 +5970,7 @@ func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
 		// them anymore
 		fbo.log.CDebugf(ctx, "notifyOneOp: GCOp with latest rev %d and %d unref'd blocks", realOp.LatestRev, len(realOp.Unrefs()))
 		bcache := fbo.config.BlockCache()
-		idsToDelete := make([]kbfsblock.ID, 0, len(realOp.Unrefs()))
 		for _, ptr := range realOp.Unrefs() {
-			idsToDelete = append(idsToDelete, ptr.ID)
 			if err := bcache.DeleteTransient(ptr.ID, fbo.id()); err != nil {
 				fbo.log.CDebugf(ctx,
 					"Couldn't delete transient entry for %v: %v", ptr, err)

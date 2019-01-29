@@ -27,6 +27,10 @@
     {
       "path": "unfurl.avdl",
       "type": "idl"
+    },
+    {
+      "path": "commands.avdl",
+      "type": "idl"
     }
   ],
   "types": [
@@ -1599,6 +1603,10 @@
             "ConversationSettingsLocal"
           ],
           "name": "convSettings"
+        },
+        {
+          "type": "ConversationCommandGroups",
+          "name": "commands"
         }
       ]
     },
@@ -2722,6 +2730,13 @@
             "items": "MessageType"
           },
           "name": "deletableByDeleteHistory"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationCommand"
+          },
+          "name": "builtinCommands"
         }
       ]
     },

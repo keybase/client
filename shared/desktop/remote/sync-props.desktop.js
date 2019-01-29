@@ -67,7 +67,7 @@ function SyncPropsFactory(serializer: Serializer) {
           // Is different
           if (!this._lastProps || newProps[k] !== this._lastProps[k]) {
             if (serializer[k]) {
-              const val = serializer[k](newProps[k], this._lastProps ? this._lastProps[k] : null)
+              const val = serializer[k](newProps[k], this._lastProps ? this._lastProps[k] : undefined)
 
               if (debugSerializer) {
                 console.log(
@@ -85,7 +85,7 @@ function SyncPropsFactory(serializer: Serializer) {
                 toSend[k] = val
               }
             } else {
-              throw new Error('All keys MUST be handled in remote: ' + k)
+              throw new Error('[Serializer]: All keys MUST be handled in remote: ' + k)
             }
           }
         })

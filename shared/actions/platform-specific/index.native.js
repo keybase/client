@@ -2,6 +2,7 @@
 import logger from '../../logger'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as ConfigGen from '../config-gen'
+import * as ProfileGen from '../profile-gen'
 import * as GregorGen from '../gregor-gen'
 import * as Chat2Gen from '../chat2-gen'
 import * as Flow from '../../util/flow'
@@ -24,6 +25,7 @@ import RNFetchBlob from 'rn-fetch-blob'
 import * as PushNotifications from 'react-native-push-notification'
 import {isIOS, isAndroid} from '../../constants/platform'
 import pushSaga, {getStartupDetailsFromInitialPush} from './push.native'
+import {showImagePicker, type Response} from 'react-native-image-picker'
 
 type NextURI = string
 function saveAttachmentDialog(filePath: string): Promise<NextURI> {
@@ -300,6 +302,21 @@ const handleFilePickerError = (_, action) => {
   Alert.alert('Error', action.payload.error.message)
 }
 
+const editAvatar = () =>
+  new Promise((resolve, reject) => {
+    showImagePicker({mediaType: 'photo'}, (response: Response) => {
+      if (response.didCancel) {
+        resolve()
+      } else if (response.error) {
+        resolve(ConfigGen.createFilePickerError({error: new Error(response.error)}))
+      } else {
+        resolve(
+          RouteTreeGen.createNavigateAppend({path: [{props: {image: response}, selected: 'editAvatar'}]})
+        )
+      }
+    })
+  })
+
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<ConfigGen.MobileAppStatePayload>(ConfigGen.mobileAppState, updateChangedFocus)
   yield* Saga.chainGenerator<ConfigGen.LoggedOutPayload>(ConfigGen.loggedOut, clearRouteState)
@@ -318,7 +335,7 @@ function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
     waitForStartupDetails
   )
   yield* Saga.chainAction<ConfigGen.FilePickerErrorPayload>(ConfigGen.filePickerError, handleFilePickerError)
-
+  yield* Saga.chainAction<ProfileGen.EditAvatarPayload>(ProfileGen.editAvatar, editAvatar)
   // Start this immediately instead of waiting so we can do more things in parallel
   yield Saga.spawn(loadStartupDetails)
   yield Saga.spawn(pushSaga)

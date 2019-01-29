@@ -41,12 +41,19 @@ const box2 = (props: Box2Props) => {
   ]
     .filter(Boolean)
     .join(' ')
+
+  let style = props.style
+  // uncomment this to get debugging colors
+  // style = {
+  // ...style,
+  // backgroundColor: `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`,
+  // }
   return (
     <div
       onMouseLeave={props.onMouseLeave}
       onMouseOver={props.onMouseOver}
       className={className}
-      style={props.style}
+      style={style}
     >
       {injectGaps(horizontal ? hBoxGap : vBoxGap, props.children, props.gap, props.gapStart, props.gapEnd)}
     </div>

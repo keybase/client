@@ -8,7 +8,7 @@ import (
 )
 
 func Identify3(mctx libkb.MetaContext, ui3 keybase1.Identify3UiInterface, arg keybase1.Identify3Arg) (err error) {
-	ui1, err := NewUIAdapterMakeSession(mctx, ui3, arg.GuiID)
+	ui1, err := NewUIAdapterMakeSession(mctx.BackgroundWithLogTags(), ui3, arg.GuiID)
 	if err != nil {
 		return err
 	}

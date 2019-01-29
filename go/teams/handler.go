@@ -636,7 +636,7 @@ func handleSeitanSingleV2(key keybase1.SeitanPubKey, invite keybase1.TeamInvite,
 
 	var sig SeitanSig
 	decodedSig, err := base64.StdEncoding.DecodeString(string(seitan.Akey)) // For V2 the server responds with sig in the akey field
-	if len(sig) != len(decodedSig) {
+	if err != nil || len(sig) != len(decodedSig) {
 		return errors.New("Signature length verification failed (seitan)")
 	}
 	copy(sig[:], decodedSig[:])

@@ -13,11 +13,12 @@ type DropdownButtonProps = {
   disabled?: boolean,
   selected?: React.Node,
   selectedBoxStyle?: Styles.StylesCrossPlatform,
+  style?: Styles.StylesCrossPlatform,
   setAttachmentRef?: $PropertyType<OverlayParentProps, 'setAttachmentRef'>,
   toggleOpen: () => void,
 }
 export const DropdownButton = (props: DropdownButtonProps) => (
-  <ClickableBox onClick={!props.disabled ? props.toggleOpen : null}>
+  <ClickableBox onClick={!props.disabled ? props.toggleOpen : null} style={props.style}>
     <ButtonBox disabled={props.disabled} ref={props.setAttachmentRef}>
       <Box style={Styles.collapseStyles([styles.selectedBox, props.selectedBoxStyle])}>{props.selected}</Box>
       <Icon

@@ -286,7 +286,9 @@ func (e *loginProvision) paper(m libkb.MetaContext, device *libkb.Device) (err e
 	defer m.CTrace("loginProvision#paper", func() error { return err })()
 
 	// get the paper key from the user
-	keys, err := e.getValidPaperKey(m)
+
+	expectedPrefix := device.Description
+	keys, err := e.getValidPaperKey(m, expectedPrefix)
 	if err != nil {
 		return err
 	}
@@ -331,11 +333,11 @@ var paperKeyNotFound = libkb.NotFoundError{
 	Msg: "paper key not found, most likely due to a typo in one of the words in the phrase",
 }
 
-func (e *loginProvision) getValidPaperKey(m libkb.MetaContext) (keys *libkb.DeviceWithKeys, err error) {
+func (e *loginProvision) getValidPaperKey(m libkb.MetaContext, expectedPrefix *string) (keys *libkb.DeviceWithKeys, err error) {
 	defer m.CTrace("loginProvision#getValidPaperKey", func() error { return err })()
 
 	for i := 0; i < 10; i++ {
-		keys, err = e.getValidPaperKeyOnce(m, i, err)
+		keys, err = e.getValidPaperKeyOnce(m, i, err, expectedPrefix)
 		if err == nil {
 			return keys, err
 		}
@@ -347,12 +349,12 @@ func (e *loginProvision) getValidPaperKey(m libkb.MetaContext) (keys *libkb.Devi
 	return nil, err
 }
 
-func (e *loginProvision) getValidPaperKeyOnce(m libkb.MetaContext, i int, lastErr error) (keys *libkb.DeviceWithKeys, err error) {
+func (e *loginProvision) getValidPaperKeyOnce(m libkb.MetaContext, i int, lastErr error, expectedPrefix *string) (keys *libkb.DeviceWithKeys, err error) {
 	defer m.CTrace("loginProvision#getValidPaperKeyOnce", func() error { return err })()
 
 	// get the paper key from the user
 	var prefix string
-	keys, prefix, err = getPaperKey(m, lastErr)
+	keys, prefix, err = getPaperKey(m, lastErr, expectedPrefix)
 	if err != nil {
 		m.CDebugf("getValidPaperKeyOnce attempt %d (%s): %s", i, prefix, err)
 		return nil, err
@@ -993,8 +995,8 @@ func (e *loginProvision) makeEldestDevice(m libkb.MetaContext) error {
 }
 
 // This is used by SaltpackDecrypt as well.
-func getPaperKey(m libkb.MetaContext, lastErr error) (keys *libkb.DeviceWithKeys, prefix string, err error) {
-	passphrase, err := libkb.GetPaperKeyPassphrase(m, m.UIs().SecretUI, "", lastErr)
+func getPaperKey(m libkb.MetaContext, lastErr error, expectedPrefix *string) (keys *libkb.DeviceWithKeys, prefix string, err error) {
+	passphrase, err := libkb.GetPaperKeyPassphrase(m, m.UIs().SecretUI, "", lastErr, expectedPrefix)
 	if err != nil {
 		return nil, "", err
 	}

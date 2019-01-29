@@ -6,7 +6,7 @@ import * as GitGen from '../actions/git-gen'
 import * as Constants from '../constants/git'
 import * as Kb from '../common-adapters'
 import {anyWaiting} from '../constants/waiting'
-import {compose, connect, type RouteProps} from '../util/container'
+import {compose, connect, isMobile, type RouteProps} from '../util/container'
 import {sortBy, partition} from 'lodash-es'
 
 type OwnProps = RouteProps<{}, {expandedSet: I.Set<string>}>
@@ -67,6 +67,7 @@ class GitReloadable extends React.PureComponent<{
     return (
       <Kb.Reloadable
         waitingKeys={Constants.loadingWaitingKey}
+        onBack={isMobile ? this.props.onBack : undefined}
         onReload={this.props._loadGit}
         reloadOnMount={true}
       >

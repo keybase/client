@@ -19,12 +19,6 @@ export const bundleAccountBundleVersion = {
   v10: 10,
 }
 
-export const bundleAccountMode = {
-  none: 0,
-  user: 1,
-  mobile: 2,
-}
-
 export const bundleBundleVersion = {
   v1: 1,
   v2: 2,
@@ -36,6 +30,12 @@ export const bundleBundleVersion = {
   v8: 8,
   v9: 9,
   v10: 10,
+}
+
+export const commonAccountMode = {
+  none: 0,
+  user: 1,
+  mobile: 2,
 }
 
 export const commonPaymentStrategy = {

@@ -15,7 +15,7 @@ type Headline struct {
 func NewHeadline(g *globals.Context) *Headline {
 	return &Headline{
 		baseCommand: newBaseCommand(g, "headline", "<description>",
-			"Set the channel topic to the description", "topic"),
+			"Set the team channel topic", "topic"),
 	}
 }
 

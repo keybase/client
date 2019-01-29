@@ -147,6 +147,7 @@ var MerkleTestKIDs = []string{
 }
 var MerkleStagingKIDs = []string{
 	"0101bed85ce72cc315828367c28b41af585b6b7d95646a62ca829691d70f49184fa70a",
+	"01202e045e19e8d68ddd3d1582113bfd397f244f0529025ad8ccad7f0397e13d69c60a",
 }
 
 var CodeSigningProdKIDs = []string{
@@ -509,6 +510,7 @@ const (
 	PaperKeyVersionBits   = 4
 	PaperKeyVersion       = 0
 	PaperKeyWordCountMin  = 13 // this should never change to a value greater than 13
+	PaperKeyNoPrefixLen   = 11 // word count min - 2
 )
 
 const UserSummaryLimit = 500 // max number of user summaries in one request
@@ -666,3 +668,6 @@ const (
 )
 
 const ClientTriplesecVersion = 3
+
+// Also hard-coded in packaging/linux/{post_install.sh,run_keybase}
+const DisableRootRedirectorConfigKey = "disable-root-redirector"

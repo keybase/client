@@ -63,6 +63,7 @@ class UnfurlGeneric extends React.Component<Props> {
             !this.props.showImageOnSide && (
               <UnfurlImage
                 url={this.props.imageURL}
+                linkURL={this.props.url}
                 height={this.props.imageHeight}
                 width={this.props.imageWidth}
                 widthPadding={Styles.isMobile ? Styles.globalMargins.tiny : undefined}

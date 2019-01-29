@@ -2859,6 +2859,7 @@ type ConversationLocal struct {
 	ConvRetention    *RetentionPolicy              `codec:"convRetention,omitempty" json:"convRetention,omitempty"`
 	TeamRetention    *RetentionPolicy              `codec:"teamRetention,omitempty" json:"teamRetention,omitempty"`
 	ConvSettings     *ConversationSettingsLocal    `codec:"convSettings,omitempty" json:"convSettings,omitempty"`
+	Commands         ConversationCommandGroups     `codec:"commands" json:"commands"`
 }
 
 func (o ConversationLocal) DeepCopy() ConversationLocal {
@@ -2953,6 +2954,7 @@ func (o ConversationLocal) DeepCopy() ConversationLocal {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.ConvSettings),
+		Commands: o.Commands.DeepCopy(),
 	}
 }
 
@@ -4466,7 +4468,8 @@ func (o ProfileSearchConvStats) DeepCopy() ProfileSearchConvStats {
 }
 
 type StaticConfig struct {
-	DeletableByDeleteHistory []MessageType `codec:"deletableByDeleteHistory" json:"deletableByDeleteHistory"`
+	DeletableByDeleteHistory []MessageType         `codec:"deletableByDeleteHistory" json:"deletableByDeleteHistory"`
+	BuiltinCommands          []ConversationCommand `codec:"builtinCommands" json:"builtinCommands"`
 }
 
 func (o StaticConfig) DeepCopy() StaticConfig {
@@ -4482,6 +4485,17 @@ func (o StaticConfig) DeepCopy() StaticConfig {
 			}
 			return ret
 		})(o.DeletableByDeleteHistory),
+		BuiltinCommands: (func(x []ConversationCommand) []ConversationCommand {
+			if x == nil {
+				return nil
+			}
+			ret := make([]ConversationCommand, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.BuiltinCommands),
 	}
 }
 

@@ -108,6 +108,11 @@ const InputContainer = (props: Props) => {
     setUnsentText: Sb.action('setUnsentText'),
     showWalletsIcon: !props.isEditing && props.typing.size <= 1,
     suggestChannels: List(['general', 'random', 'spelunky', 'music', 'vidya-games']),
+    suggestCommands: [
+      {description: 'Hide current or given conv', name: 'hide', usage: '[conversation]'},
+      {description: 'Message a user', name: 'msg', usage: '<conversation> <msg>'},
+      {description: 'Send a shrug', name: 'shrug', usage: ''},
+    ],
     suggestUsers: List([
       {fullName: 'Danny Ayoub', username: 'ayoubd'},
       {fullName: 'Chris Nojima', username: 'chrisnojima'},

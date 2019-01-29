@@ -42,6 +42,7 @@ yarn-error.log
 shared/coverage
 shared/node_modules
 shared/.static-storybook
+shared/fonts-for-web
 packaging/desktop/node_modules
 packaging/prerelease/node_modules
 visdiff/node_modules

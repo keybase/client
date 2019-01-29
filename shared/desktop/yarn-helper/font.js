@@ -4,11 +4,16 @@ import fs from 'fs'
 import path from 'path'
 import {execSync} from 'child_process'
 import prettier from 'prettier'
+import crypto from 'crypto'
 
 const commands = {
   'update-icon-font': {
-    code: updateIconFont,
+    code: () => updateIconFont(false),
     help: 'Update our font sizes automatically',
+  },
+  'update-web-font': {
+    code: () => updateIconFont(true),
+    help: 'Update our web font automatically',
   },
   'update-icon-constants': {
     code: updateIconConstants,
@@ -24,6 +29,8 @@ const paths = {
   iconfont: path.resolve(__dirname, '../../images/iconfont'),
   iconpng: path.resolve(__dirname, '../../images/icons'),
   fonts: path.resolve(__dirname, '../../fonts'),
+  webFonts: path.resolve(__dirname, '../../fonts-for-web'),
+  webFontsCss: path.resolve(__dirname, '../../fonts-for-web/fonts_custom.styl'),
   iconConstants: path.resolve(__dirname, '../../common-adapters/icon.constants.js'),
 }
 
@@ -68,7 +75,7 @@ const getSvgPaths = skipUnmatchedFile =>
  *
  * For config options: https://github.com/sunflowerdeath/webfonts-generator
  */
-function updateIconFont() {
+function updateIconFont(web) {
   let webfontsGenerator
   try {
     webfontsGenerator = require('webfonts-generator')
@@ -81,16 +88,24 @@ function updateIconFont() {
   console.log('Created new webfont')
   const svgFilePaths = getSvgPaths(true /* print skipped */)
 
+  if (web) {
+    try {
+      fs.mkdirSync(paths.webFonts)
+    } catch (_) {}
+  }
+
   webfontsGenerator(
     {
       // An intermediate svgfont will be generated and then converted to TTF by webfonts-generator
-      types: ['ttf'],
+      types: web ? ['ttf', 'woff', 'svg'] : ['ttf'],
       files: svgFilePaths,
       dest: paths.fonts,
       startCodepoint: baseCharCode,
       fontName: 'kb',
+      classSelector: 'icon-kb',
       css: false,
       html: false,
+      writeFiles: !web,
       formatOptions: {
         ttf: {
           ts: Date.now(),
@@ -103,19 +118,96 @@ function updateIconFont() {
         },
       },
     },
-    error => (error ? fontsGeneratedError(error) : fontsGeneratedSuccess())
+    (error, result) => (error ? fontsGeneratedError(error) : fontsGeneratedSuccess(web, result))
   )
 }
 
-const fontsGeneratedSuccess = () => {
+const fontsGeneratedSuccess = (web, result) => {
   console.log('Webfont generated successfully... updating constants and flow types')
-  // Webfonts generator seems always produce an svg fontfile regardless of the `type` option set above.
-  const svgFont = path.resolve(paths.fonts, 'kb.svg')
-  if (fs.existsSync(svgFont)) {
-    fs.unlinkSync(svgFont)
-  }
   setFontMetrics()
   updateIconConstants()
+
+  if (web) {
+    generateWebCSS(result)
+  }
+}
+
+const generateWebCSS = result => {
+  const svgFilenames = getSvgNames(false /* print skipped */)
+  const rules = svgFilenames.reduce((map, {counter, name, size}) => {
+    map[`kb-iconfont-${name}`] = baseCharCode + counter - 1
+    return map
+  }, {})
+
+  const typeToFormat = {
+    ttf: 'truetype',
+    woff: 'woff',
+    svg: 'svg',
+  }
+
+  // hash and write
+  const types = ['ttf', 'woff', 'svg'].map(type => {
+    var hash = crypto.createHash('md5')
+    hash.update(result[type])
+    try {
+      fs.writeFileSync(path.join(paths.webFonts, `kb.${type}`), result[type])
+    } catch (e) {
+      console.error(e)
+    }
+    return {type, hash: hash.digest('hex'), format: typeToFormat[type]}
+  })
+  const urls = types
+    .map(type => `url('/fonts/kb.${type.type}?${type.hash}') format('${type.format}')`)
+    .join(',\n')
+
+  const css = `
+/*
+ This file is how we serve our custom Coinbase, etc., fonts on the website
+
+ ALSO see fonts.styl
+ SOURCE:
+  1. Go to client and run \`yarn update-web-font\`
+  2. Copy client/shared/fonts-for-web/fonts_custom.styl here
+  3. Copy fonts to public/fonts
+*/
+
+@font-face {
+  font-family: "kb";
+  src: ${urls};
+  font-weight: normal;
+  font-style: normal;
+}
+
+[class^="icon-kb-iconfont-"], [class*=" icon-kb-iconfont-"] {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: 'kb' !important;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  font-size: 16px;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+${Object.keys(rules)
+    .map(
+      name => `.icon-${name}:before {
+  content: "\\${rules[name].toString(16)}";
+}`
+    )
+    .join('\n')}
+`
+
+  try {
+    fs.writeFileSync(paths.webFontsCss, css, 'utf8')
+  } catch (e) {
+    console.error(e)
+  }
 }
 
 const fontsGeneratedError = error => {

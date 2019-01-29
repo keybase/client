@@ -141,7 +141,7 @@ func (e *SaltpackDecrypt) Run(m libkb.MetaContext) (err error) {
 	if e.arg.Opts.UsePaperKey {
 		// Prompt the user for a paper key. This doesn't require you to be
 		// logged in.
-		keypair, _, err := getPaperKey(m, nil)
+		keypair, _, err := getPaperKey(m, nil, nil)
 		if err != nil {
 			return err
 		}

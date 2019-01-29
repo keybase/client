@@ -15,6 +15,7 @@
       "filename": "string",
       "crop?": "RPCTypes.ImageCropRect"
     },
+    "editAvatar": { },
     "editProfile": {
       "bio": "string",
       "fullname": "string",

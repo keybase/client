@@ -16,7 +16,7 @@ disableDragDrop()
 
 module.hot && module.hot.accept()
 
-type RemoteComponents = 'unlock-folders' | 'menubar' | 'pinentry' | 'tracker'
+type RemoteComponents = 'unlock-folders' | 'menubar' | 'pinentry' | 'tracker' | 'tracker2'
 
 type Props = {|
   children: React.Node,
@@ -47,7 +47,7 @@ class RemoteComponentLoader extends React.Component<Props> {
   _onGotProps = () => {
     // Show when we get props, unless its the menubar
     if (this._window && this.props.showOnProps) {
-      this._window.show()
+      this._window.showInactive()
     }
   }
 

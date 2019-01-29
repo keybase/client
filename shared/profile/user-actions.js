@@ -22,7 +22,6 @@ type Props = {|
   onRequestLumens: () => void,
   onUnfollow: () => void,
   onAcceptProofs: () => void,
-  waiting: boolean,
 |}
 
 function UserActions({
@@ -39,13 +38,12 @@ function UserActions({
   onRequestLumens,
   onUnfollow,
   onAcceptProofs,
-  waiting,
 }: Props) {
   if (currentlyFollowing) {
     if (trackerState === proofNormal) {
       return (
         <Kb.ButtonBar style={style}>
-          <FollowButton following={true} onUnfollow={onUnfollow} waiting={waiting} />
+          <FollowButton following={true} onUnfollow={onUnfollow} waitingKey="" />
           <Kb.Button type="Primary" label="Chat" onClick={onChat}>
             <Kb.Icon type="iconfont-chat" style={{marginRight: 8}} color={Styles.globalColors.white} />
           </Kb.Button>
@@ -77,7 +75,7 @@ function UserActions({
   } else {
     return (
       <Kb.ButtonBar style={style}>
-        <FollowButton following={false} onFollow={onFollow} waiting={waiting} />
+        <FollowButton following={false} onFollow={onFollow} waitingKey="" />
         <Kb.Button label="Chat" type="Primary" onClick={onChat} style={{marginRight: 0}}>
           <Kb.Icon type="iconfont-chat" style={{marginRight: 8}} color={Styles.globalColors.white} />
         </Kb.Button>

@@ -109,7 +109,7 @@ func (d *diskLRUIndex) Unmarshal(m diskLRUIndexMarshaled) {
 
 func (d *diskLRUIndex) Size() int {
 	d.Lock()
-	d.Unlock()
+	defer d.Unlock()
 	return d.EntryKeys.Len()
 }
 

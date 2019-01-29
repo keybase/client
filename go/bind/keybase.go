@@ -231,7 +231,7 @@ func Init(homeDir string, mobileSharedHome string, logFile string, runModeStr st
 		kbfsParams.Debug = true                         // false
 		kbfsParams.Mode = libkbfs.InitConstrainedString // libkbfs.InitMinimalString
 		kbfsConfig, _ = libkbfs.Init(
-			context.Background(), kbfsCtx, kbfsParams, serviceCn{}, func() {},
+			context.Background(), kbfsCtx, kbfsParams, serviceCn{}, func() error { return nil },
 			kbCtx.Log)
 	}()
 

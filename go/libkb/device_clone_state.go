@@ -33,6 +33,9 @@ func (d DeviceCloneState) IsClone() bool {
 
 func UpdateDeviceCloneState(m MetaContext) (before, after int, err error) {
 	d, err := GetDeviceCloneState(m)
+	if err != nil {
+		return 0, 0, err
+	}
 	before = d.Clones
 
 	prior, stage := d.Prior, d.Stage

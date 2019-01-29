@@ -14,9 +14,10 @@ type ReloadProps = {|
   onBack?: () => void,
   onReload: () => void,
   reason: string,
+  title?: string,
 |}
 
-class _Reload extends React.PureComponent<ReloadProps, {expanded: boolean}> {
+class Reload extends React.PureComponent<ReloadProps, {expanded: boolean}> {
   state = {expanded: false}
   _toggle = () => this.setState(p => ({expanded: !p.expanded}))
   render() {
@@ -41,7 +42,7 @@ class _Reload extends React.PureComponent<ReloadProps, {expanded: boolean}> {
   }
 }
 
-const Reload = HeaderHoc(_Reload)
+const ReloadWithHeader = HeaderHoc(Reload)
 
 export type Props = {|
   children: React.Node,
@@ -50,6 +51,7 @@ export type Props = {|
   onReload: () => void,
   reason: string,
   reloadOnMount?: boolean,
+  title?: string,
 |}
 
 class Reloadable extends React.PureComponent<Props> {
@@ -58,10 +60,18 @@ class Reloadable extends React.PureComponent<Props> {
   }
 
   render() {
-    return this.props.needsReload ? (
-      <Reload onBack={this.props.onBack} onReload={this.props.onReload} reason={this.props.reason} />
+    if (!this.props.needsReload) {
+      return this.props.children
+    }
+    return this.props.onBack ? (
+      <ReloadWithHeader
+        onBack={this.props.onBack}
+        onReload={this.props.onReload}
+        reason={this.props.reason}
+        title={this.props.title}
+      />
     ) : (
-      this.props.children
+      <Reload onReload={this.props.onReload} reason={this.props.reason} />
     )
   }
 }
@@ -108,6 +118,7 @@ export type OwnProps = {|
   onBack?: () => void,
   onReload: () => void,
   reloadOnMount?: boolean,
+  title?: string,
   waitingKeys: string | Array<string>,
 |}
 
@@ -126,6 +137,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   onReload: ownProps.onReload,
   reason: stateProps.reason,
   reloadOnMount: ownProps.reloadOnMount,
+  title: ownProps.title,
 })
 
 export default namedConnect<OwnProps, _, _, _, _>(

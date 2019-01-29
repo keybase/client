@@ -542,7 +542,11 @@ func (fs *KBFSOpsStandard) getOrInitializeNewMDMaster(ctx context.Context,
 			return false, ImmutableRootMetadata{}, tlf.NullID, err
 		}
 		if rmd != (ImmutableRootMetadata{}) && rmd.IsReadable() {
-			if rev <= rmd.data.LastGCRevision {
+			// `rev` is still readable even if it matches
+			// `rmd.data.LastGCRevision`, since the GC process just
+			// removes the unref'd blocks in that revision; the actual
+			// data represented by the revision is still readable.
+			if rev < rmd.data.LastGCRevision {
 				return false, ImmutableRootMetadata{}, tlf.NullID,
 					RevGarbageCollectedError{rev, rmd.data.LastGCRevision}
 			}

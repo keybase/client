@@ -311,6 +311,9 @@ func tailSystemdJournal(log logger.Logger, userUnits []string, numBytes int) (re
 	// We intentionally avoid the --user flag to journalctl. That would make us
 	// skip over the system journal, but in e.g. Ubuntu 16.04, that's where
 	// user units write their logs.
+	// Unfortunately, this causes permission errors in some operating systems
+	// like Debian Stretch, but it is not fatal. as we ignore errors in this
+	// function.
 	args := []string{
 		"--lines=" + strconv.Itoa(guessedLines),
 	}
@@ -501,7 +504,7 @@ func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, num
 		// However we do use it for startup logs, since that's the only place
 		// to get them in systemd mode.
 		if l.G().Env.WantsSystemd() {
-			startLog = tailSystemdJournal(l.G().Log, []string{"keybase.service", "kbfs.service", "keybase.gui.service"}, numBytes)
+			startLog = tailSystemdJournal(l.G().Log, []string{"keybase.service", "kbfs.service", "keybase.gui.service", "keybase-redirector.service"}, numBytes)
 		} else {
 			startLog = tail(l.G().Log, "start", logs.Start, numBytes)
 		}

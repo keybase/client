@@ -1,4 +1,5 @@
 // @flow
+// TODO deprecate
 import * as React from 'react'
 import {Avatar, Box, Button, Meta, Text, Usernames, FloatingMenu} from '../../common-adapters'
 import {globalColors, globalMargins, globalStyles, isMobile, platformStyles} from '../../styles'
