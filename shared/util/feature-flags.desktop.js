@@ -26,7 +26,6 @@ const ff: FeatureFlags = {
 
 const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
   chatIndexProfilingEnabled: true,
-  identify3: true,
   moveOrCopy: true,
   newTeamBuildingForChat: true,
 }
