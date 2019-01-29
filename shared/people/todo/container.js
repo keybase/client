@@ -197,6 +197,18 @@ const TeamShowcaseConnector = connect<TodoOwnProps, _, _, _, _>(
   (s, d, o) => ({...o, ...s, ...d})
 )(Task)
 
+const TeamAddEmailConnector = connect<TodoOwnProps, _, _, _, _>(
+  () => ({}),
+  dispatch => ({
+    onConfirm: () => {
+      dispatch(RouteTreeGen.createNavigateTo({parentPath: [Tabs.settingsTab], path: []}))
+      dispatch(RouteTreeGen.createSwitchTo({path: [Tabs.settingsTab]}))
+    },
+    onDismiss: onSkipTodo('addEmail', dispatch),
+  }),
+  (s, d, o) => ({...o, ...s, ...d})
+)(Task)
+
 const TaskChooser = (props: TodoOwnProps) => {
   switch (props.todoType) {
     case todoTypes.avatarTeam:
@@ -223,6 +235,8 @@ const TaskChooser = (props: TodoOwnProps) => {
       return <GitRepoConnector {...props} />
     case todoTypes.teamShowcase:
       return <TeamShowcaseConnector {...props} />
+    case todoTypes.addEmail:
+      return <TeamAddEmailConnector {...props} />
   }
   return null
 }

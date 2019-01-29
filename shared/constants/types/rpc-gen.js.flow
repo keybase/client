@@ -1391,6 +1391,7 @@ export const homeHomeScreenTodoType = {
   teamShowcase: 10,
   avatarUser: 11,
   avatarTeam: 12,
+  addEmail: 16,
   annoncementPlaceholder: 10000,
 }
 
@@ -2195,6 +2196,7 @@ export type HomeScreenTodoType =
   | 10 // TEAM_SHOWCASE_10
   | 11 // AVATAR_USER_11
   | 12 // AVATAR_TEAM_12
+  | 16 // ADD_EMAIL_16
   | 10000 // ANNONCEMENT_PLACEHOLDER_10000
 
 export type HomeUserSummary = $ReadOnly<{uid: UID, username: String, bio: String, fullName: String, pics?: ?Pics}>
