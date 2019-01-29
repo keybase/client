@@ -917,18 +917,9 @@ func (r *BackendMock) Details(ctx context.Context, tc *TestContext, accountID st
 		return res, err
 	}
 
-	a, ok := r.accounts[accountID]
-	if !ok {
-		// If an account does not exist on the network, return empty details (WAT)
-		res.AccountID = accountID
-		return res, nil
-	}
-	var balances []stellar1.Balance
-	if a.balance.Amount != "" {
-		balances = []stellar1.Balance{a.balance}
-	}
-
-	// fetch the currency display preference for this account
+	// Fetch the currency display preference for this account first,
+	// users are allowed to have currency preferences even for accounts
+	// that do not exist on the network yet.
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/accountcurrency",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -943,6 +934,25 @@ func (r *BackendMock) Details(ctx context.Context, tc *TestContext, accountID st
 		return res, err
 	}
 
+	displayCurrency := apiRes.CurrencyDisplayPreference
+
+	a, ok := r.accounts[accountID]
+	if !ok {
+		// If an account does not exist on the network, return something reasonable.
+		return stellar1.AccountDetails{
+			AccountID:       accountID,
+			Seqno:           "0",
+			Balances:        nil,
+			SubentryCount:   0,
+			Available:       "0",
+			DisplayCurrency: displayCurrency,
+		}, nil
+	}
+	var balances []stellar1.Balance
+	if a.balance.Amount != "" {
+		balances = []stellar1.Balance{a.balance}
+	}
+
 	var inflationDest *stellar1.AccountID
 	if a.inflationDest != "" {
 		inflationDest = &a.inflationDest
@@ -954,7 +964,7 @@ func (r *BackendMock) Details(ctx context.Context, tc *TestContext, accountID st
 		Balances:             balances,
 		SubentryCount:        a.subentries,
 		Available:            a.availableBalance(),
-		DisplayCurrency:      apiRes.CurrencyDisplayPreference,
+		DisplayCurrency:      displayCurrency,
 		InflationDestination: inflationDest,
 	}, nil
 }
