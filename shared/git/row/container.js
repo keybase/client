@@ -75,6 +75,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onToggleChatEnabled: () => dispatchProps._setDisableChat(!git.chatDisabled, git.repoID, git.teamname),
     onToggleExpand: () => ownProps.onToggleExpand(git.id),
     openUserTracker: dispatchProps.openUserTracker,
+    previewLink: git.url.replace(/keybase:\/\/((private|public|team)\/[^/]*)\/(.*)/, '/keybase/$1/.kbfs_autogit/$3'),
     teamname: git.teamname,
     url: git.url,
     you: stateProps.you,

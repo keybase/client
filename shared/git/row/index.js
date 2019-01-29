@@ -25,6 +25,7 @@ type Props = {
   onToggleChatEnabled: () => void,
   onToggleExpand: () => void,
   openUserTracker: (username: string) => void,
+  previewLink: string,
   _onOpenChannelSelection: () => void,
 }
 
@@ -109,6 +110,15 @@ class Row extends React.Component<Props> {
                   />
                 )}
               </Kb.Box>
+              <Kb.Box2 direction="horizontal" fullWidth={true} style={{marginTop: Styles.globalMargins.tiny}}>
+                <Kb.Text type="Body">Preview:</Kb.Text>
+                <Kb.Markdown
+                  style={styles.repoLink}
+                  allowFontScaling={true}
+                >
+                  {this.props.previewLink}
+                </Kb.Markdown>
+              </Kb.Box2>
               <Kb.Box
                 style={{
                   ...Styles.globalStyles.flexBoxRow,
@@ -223,6 +233,22 @@ const styles = Styles.styleSheetCreate({
     maxWidth: 460,
     width: '100%',
   },
+  repoLink: Styles.platformStyles({
+    common: {
+      marginLeft: Styles.globalMargins.xtiny,
+    },
+    isElectron: {
+      // Make text selectable. On mobile we implement that differently.
+      cursor: 'text',
+      userSelect: 'text',
+      whiteSpace: 'pre-wrap',
+      width: '100%',
+      wordBreak: 'break-word',
+    },
+    isMobile: {
+      ...Styles.globalStyles.flexBoxColumn,
+    },
+  }),
 })
 
 const _deviceStyle = {
