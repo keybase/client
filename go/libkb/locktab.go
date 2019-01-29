@@ -67,8 +67,8 @@ func (t *LockTable) AcquireOnName(ctx context.Context, g VLogContext, s string) 
 }
 
 // AcquireOnNameWithContext acquires s's lock.
-// Returns nil if the lock was acquired.
-// Returns an error if it was not. The error is from ctx.Err().
+// Returns (ret, nil) if the lock was acquired.
+// Returns (nil, err) if it was not. The error is from ctx.Err().
 func (t *LockTable) AcquireOnNameWithContext(ctx context.Context, g VLogContext, s string) (ret *NamedLock, err error) {
 	g.GetVDebugLog().CLogf(ctx, VLog1, "+ LockTable.Lock(%s)", s)
 	err = AcquireWithContext(ctx, t)
