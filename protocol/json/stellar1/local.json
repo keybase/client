@@ -236,6 +236,14 @@
         {
           "type": "boolean",
           "name": "unread"
+        },
+        {
+          "type": "string",
+          "name": "batchID"
+        },
+        {
+          "type": "boolean",
+          "name": "fromAirdrop"
         }
       ]
     },
@@ -408,6 +416,14 @@
           "type": "string",
           "name": "externalTxURL",
           "lint": "ignore"
+        },
+        {
+          "type": "string",
+          "name": "batchID"
+        },
+        {
+          "type": "boolean",
+          "name": "fromAirdrop"
         }
       ]
     },

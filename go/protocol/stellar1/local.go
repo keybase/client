@@ -201,6 +201,8 @@ type PaymentLocal struct {
 	Note                string          `codec:"note" json:"note"`
 	NoteErr             string          `codec:"noteErr" json:"noteErr"`
 	Unread              bool            `codec:"unread" json:"unread"`
+	BatchID             string          `codec:"batchID" json:"batchID"`
+	FromAirdrop         bool            `codec:"fromAirdrop" json:"fromAirdrop"`
 }
 
 func (o PaymentLocal) DeepCopy() PaymentLocal {
@@ -242,6 +244,8 @@ func (o PaymentLocal) DeepCopy() PaymentLocal {
 		Note:                o.Note,
 		NoteErr:             o.NoteErr,
 		Unread:              o.Unread,
+		BatchID:             o.BatchID,
+		FromAirdrop:         o.FromAirdrop,
 	}
 }
 
@@ -334,6 +338,8 @@ type PaymentDetailsLocal struct {
 	PublicNote          string          `codec:"publicNote" json:"publicNote"`
 	PublicNoteType      string          `codec:"publicNoteType" json:"publicNoteType"`
 	ExternalTxURL       string          `codec:"externalTxURL" json:"externalTxURL"`
+	BatchID             string          `codec:"batchID" json:"batchID"`
+	FromAirdrop         bool            `codec:"fromAirdrop" json:"fromAirdrop"`
 }
 
 func (o PaymentDetailsLocal) DeepCopy() PaymentDetailsLocal {
@@ -378,6 +384,8 @@ func (o PaymentDetailsLocal) DeepCopy() PaymentDetailsLocal {
 		PublicNote:          o.PublicNote,
 		PublicNoteType:      o.PublicNoteType,
 		ExternalTxURL:       o.ExternalTxURL,
+		BatchID:             o.BatchID,
+		FromAirdrop:         o.FromAirdrop,
 	}
 }
 
