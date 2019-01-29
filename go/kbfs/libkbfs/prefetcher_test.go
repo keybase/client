@@ -1269,6 +1269,7 @@ func TestSyncBlockCacheWithPrefetcher(t *testing.T) {
 	ctx, cancel := context.WithTimeout(
 		context.Background(), individualTestTimeout)
 	defer cancel()
+	defer cache.Shutdown(ctx)
 	kmd := makeKMD()
 	prefetchSyncCh := make(chan struct{})
 	q.TogglePrefetcher(true, prefetchSyncCh)
@@ -1519,7 +1520,8 @@ func TestPrefetcherUnsyncedPrefetchEvicted(t *testing.T) {
 
 	t.Log("Set the metadata of the block in the disk cache to NoPrefetch, " +
 		"simulating an eviction and a BlockServer.Get.")
-	err = dbc.UpdateMetadata(ctx, rootPtr.ID, NoPrefetch)
+	err = dbc.UpdateMetadata(
+		ctx, kmd.TlfID(), rootPtr.ID, NoPrefetch, DiskBlockAnyCache)
 	require.NoError(t, err)
 
 	t.Log("Evict the root block from the block cache.")
@@ -1626,7 +1628,8 @@ func TestPrefetcherUnsyncedPrefetchChildCanceled(t *testing.T) {
 
 	t.Log("Set the metadata of the root block in the disk cache to " +
 		"NoPrefetch, simulating an eviction and a BlockServer.Get.")
-	err = dbc.UpdateMetadata(ctx, rootPtr.ID, NoPrefetch)
+	err = dbc.UpdateMetadata(
+		ctx, kmd.TlfID(), rootPtr.ID, NoPrefetch, DiskBlockAnyCache)
 	require.NoError(t, err)
 
 	t.Log("Evict the root block from the block cache.")
@@ -1743,7 +1746,8 @@ func TestPrefetcherUnsyncedPrefetchParentCanceled(t *testing.T) {
 
 	t.Log("Set the metadata of the root block in the disk cache to " +
 		"NoPrefetch, simulating an eviction and a BlockServer.Get.")
-	err = dbc.UpdateMetadata(ctx, rootPtr.ID, NoPrefetch)
+	err = dbc.UpdateMetadata(
+		ctx, kmd.TlfID(), rootPtr.ID, NoPrefetch, DiskBlockAnyCache)
 	require.NoError(t, err)
 
 	t.Log("Evict the root block from the block cache.")
