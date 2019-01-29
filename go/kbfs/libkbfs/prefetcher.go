@@ -350,7 +350,7 @@ func (p *blockPrefetcher) completePrefetch(
 			}
 			err = p.retriever.PutInCaches(pp.ctx, pp.req.ptr,
 				pp.req.kmd.TlfID(), b, pp.req.lifetime,
-				FinishedPrefetch)
+				FinishedPrefetch, pp.req.action.CacheType())
 			if err != nil {
 				p.log.CWarningf(pp.ctx, "failed to complete prefetch due to "+
 					"cache error, canceled it instead: %+v", err)
@@ -951,7 +951,7 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 						// Mark this block as finished in the cache.
 						err = p.retriever.PutInCaches(
 							ctx, req.ptr, req.kmd.TlfID(), b, req.lifetime,
-							FinishedPrefetch)
+							FinishedPrefetch, req.action.CacheType())
 						if err != nil {
 							p.log.CDebugf(ctx,
 								"Couldn't put finished block %s in cache: %+v",
@@ -1165,9 +1165,9 @@ func (p *blockPrefetcher) triggerPrefetch(req *prefetchRequest) {
 
 func (p *blockPrefetcher) cacheOrCancelPrefetch(ctx context.Context,
 	ptr BlockPointer, tlfID tlf.ID, block Block, lifetime BlockCacheLifetime,
-	prefetchStatus PrefetchStatus) error {
-	err := p.retriever.PutInCaches(ctx, ptr, tlfID, block, lifetime,
-		prefetchStatus)
+	prefetchStatus PrefetchStatus, action BlockRequestAction) error {
+	err := p.retriever.PutInCaches(
+		ctx, ptr, tlfID, block, lifetime, prefetchStatus, action.CacheType())
 	if err != nil {
 		p.log.CWarningf(ctx, "error prefetching block %s: %+v, canceling",
 			ptr.ID, err)
@@ -1190,14 +1190,15 @@ func (p *blockPrefetcher) ProcessBlockForPrefetch(ctx context.Context,
 	} else if !action.Prefetch(block) {
 		// Only high priority requests can trigger prefetches. Leave the
 		// prefetchStatus unchanged, but cache anyway.
-		p.retriever.PutInCaches(ctx, ptr, kmd.TlfID(), block, lifetime,
-			prefetchStatus)
+		p.retriever.PutInCaches(
+			ctx, ptr, kmd.TlfID(), block, lifetime, prefetchStatus,
+			action.CacheType())
 	} else {
 		// Note that here we are caching `TriggeredPrefetch`, but the request
 		// will still reflect the passed-in `prefetchStatus`, since that's the
 		// one the prefetching goroutine needs to decide what to do with.
 		err := p.cacheOrCancelPrefetch(
-			ctx, ptr, kmd.TlfID(), block, lifetime, TriggeredPrefetch)
+			ctx, ptr, kmd.TlfID(), block, lifetime, TriggeredPrefetch, action)
 		if err != nil {
 			return
 		}

@@ -172,7 +172,8 @@ func (dbcr *DiskBlockCacheRemote) Delete(
 // UpdateMetadata implements the DiskBlockCache interface for
 // DiskBlockCacheRemote.
 func (dbcr *DiskBlockCacheRemote) UpdateMetadata(ctx context.Context,
-	blockID kbfsblock.ID, prefetchStatus PrefetchStatus) error {
+	_ tlf.ID, blockID kbfsblock.ID, prefetchStatus PrefetchStatus,
+	_ DiskBlockCacheType) error {
 	dbcr.statuses.Add(blockID, prefetchStatus)
 	return dbcr.client.UpdateBlockMetadata(ctx,
 		kbgitkbfs.UpdateBlockMetadataArg{

@@ -304,7 +304,7 @@ func (brq *blockRetrievalQueue) setPrefetchStatus(
 // BlockRetrievalQueue.
 func (brq *blockRetrievalQueue) PutInCaches(ctx context.Context,
 	ptr BlockPointer, tlfID tlf.ID, block Block, lifetime BlockCacheLifetime,
-	prefetchStatus PrefetchStatus) (err error) {
+	prefetchStatus PrefetchStatus, cacheType DiskBlockCacheType) (err error) {
 	err = brq.config.BlockCache().Put(ptr, tlfID, block, lifetime)
 	switch err.(type) {
 	case nil:
@@ -318,8 +318,8 @@ func (brq *blockRetrievalQueue) PutInCaches(ctx context.Context,
 		brq.setPrefetchStatus(ptr.ID, prefetchStatus)
 		return nil
 	}
-	err = dbc.UpdateMetadata(ctx, ptr.ID, prefetchStatus)
-	switch err.(type) {
+	err = dbc.UpdateMetadata(ctx, tlfID, ptr.ID, prefetchStatus, cacheType)
+	switch errors.Cause(err).(type) {
 	case nil:
 	case NoSuchBlockError:
 		// TODO: Add the block to the DBC. This is complicated because we
@@ -363,9 +363,11 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 	blockBuf, serverHalf, prefetchStatus, err := dbc.Get(
 		ctx, kmd.TlfID(), ptr.ID, preferredCacheType)
 	if err != nil {
+		brq.log.CDebugf(ctx, "checkCaches failing 1: %+v", err)
 		return NoPrefetch, err
 	}
 	if len(blockBuf) == 0 {
+		brq.log.CDebugf(ctx, "checkCaches failing 2: %+v", err)
 		return NoPrefetch, NoSuchBlockError{ptr.ID}
 	}
 
