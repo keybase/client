@@ -150,6 +150,11 @@ helpers.rootLinuxNode(env, {
                     // Build the client docker first so we can immediately kick off KBFS
                     def hasKBFSChanges = packagesToTest.keySet().findIndexOf { key -> key =~ /^github.com\/keybase\/client\/go\/kbfs/ } >= 0
                     if (hasGoChanges && hasKBFSChanges) {
+                      dir('go/kbfs/libkbfs') {
+                        // Make sure our mock library is up to date.
+                        sh './gen_mocks.sh'
+                        checkDiffs(['./'], 'Please run ./gen_mocks.sh in the libkbfs directory.')
+                      }
                       println "We have KBFS changes, so we are building kbfs-server."
                       dir('go') {
                         sh "go install -ldflags \"-s -w\" -buildmode=pie github.com/keybase/client/go/keybase"
