@@ -824,6 +824,7 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 		} else if testSyncCh != nil {
 			// Only sync if we aren't shutting down.
 			<-testSyncCh
+			p.log.CDebugf(context.Background(), "%p Got sync notification", p)
 		}
 
 		// First fulfill any status requests since the user could be
@@ -868,8 +869,20 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 			} else {
 				pre.req = req
 			}
-			p.log.Debug("rescheduling top-block prefetch for block %s", blockID)
+			p.log.CDebugf(pre.ctx,
+				"rescheduling top-block prefetch for block %s", blockID)
 			p.applyToParentsRecursive(p.rescheduleTopBlock, blockID, pre)
+			dbc := p.config.DiskBlockCache()
+			if dbc != nil {
+				err := dbc.UpdateMetadata(
+					pre.ctx, req.kmd.TlfID(), blockID, TriggeredPrefetch,
+					req.action.CacheType())
+				if err != nil {
+					p.log.CDebugf(pre.ctx,
+						"Couldn't update metadata for block %s, action=%s",
+						blockID, pre.req.action)
+				}
+			}
 		case reqInt := <-p.prefetchRequestCh.Out():
 			req := reqInt.(*prefetchRequest)
 			pre, isPrefetchWaiting := p.prefetches[req.ptr.ID]
@@ -1165,10 +1178,20 @@ func (p *blockPrefetcher) triggerPrefetch(req *prefetchRequest) {
 
 func (p *blockPrefetcher) cacheOrCancelPrefetch(ctx context.Context,
 	ptr BlockPointer, tlfID tlf.ID, block Block, lifetime BlockCacheLifetime,
-	prefetchStatus PrefetchStatus, action BlockRequestAction) error {
+	prefetchStatus PrefetchStatus, action BlockRequestAction,
+	req *prefetchRequest) error {
 	err := p.retriever.PutInCaches(
 		ctx, ptr, tlfID, block, lifetime, prefetchStatus, action.CacheType())
 	if err != nil {
+		// The PutInCaches call can return an error if the cache is
+		// full, so check for rescheduling even when err != nil.
+		if doStop, doCancel := p.stopIfNeeded(ctx, req); doStop {
+			if doCancel {
+				p.CancelPrefetch(ptr)
+			}
+			return err
+		}
+
 		p.log.CWarningf(ctx, "error prefetching block %s: %+v, canceling",
 			ptr.ID, err)
 		p.CancelPrefetch(ptr)
@@ -1198,14 +1221,9 @@ func (p *blockPrefetcher) ProcessBlockForPrefetch(ctx context.Context,
 		// will still reflect the passed-in `prefetchStatus`, since that's the
 		// one the prefetching goroutine needs to decide what to do with.
 		err := p.cacheOrCancelPrefetch(
-			ctx, ptr, kmd.TlfID(), block, lifetime, TriggeredPrefetch, action)
+			ctx, ptr, kmd.TlfID(), block, lifetime, TriggeredPrefetch, action,
+			req)
 		if err != nil {
-			return
-		}
-		if doStop, doCancel := p.stopIfNeeded(ctx, req); doStop {
-			if doCancel {
-				p.CancelPrefetch(ptr)
-			}
 			return
 		}
 	}
