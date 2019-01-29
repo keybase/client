@@ -1682,7 +1682,9 @@ function* downloadAttachment(fileName: string, message: Types.Message) {
     )
     yield Saga.put(Chat2Gen.createAttachmentDownloaded({message, path: fileName}))
     return rpcRes.filename
-  } catch (e) {}
+  } catch (e) {
+    logger.error(`downloadAttachment error: ${e.message}`)
+  }
   return fileName
 }
 
@@ -2016,6 +2018,11 @@ function* mobileMessageAttachmentSave(state, action) {
     throw new Error('Invalid share message')
   }
   const fileName = yield* downloadAttachment('', message)
+  if (fileName === '') {
+    // failed to download
+    logger.error('Downloading attachment failed')
+    throw new Error('Downloading attachment failed')
+  }
   yield Saga.put(
     Chat2Gen.createAttachmentMobileSave({
       conversationIDKey: message.conversationIDKey,

@@ -5,11 +5,16 @@ import * as Styles from '../../../../../../styles'
 import {clamp} from 'lodash-es'
 import {imgMaxWidth} from '../../../attachment/image/image-render'
 import {Video} from './video'
+import openURL from '../../../../../../util/open-url'
 
 export type Props = {
   autoplayVideo: boolean,
   height: number,
   hidePlayButton?: boolean,
+  width: number,
+  widthPadding?: number,
+  url: string,
+  linkURL?: string,
   isVideo: boolean,
   maxSize?: number,
   onClick?: () => void,
@@ -44,6 +49,11 @@ class UnfurlImage extends React.Component<Props> {
       width,
     }
   }
+  _onClick = () => {
+    if (this.props.linkURL) {
+      openURL(this.props.linkURL)
+    }
+  }
 
   render() {
     const dims = this._getDimensions()
@@ -59,8 +69,8 @@ class UnfurlImage extends React.Component<Props> {
         width={dims.width}
       />
     ) : (
-      <Kb.ClickableBox onClick={this.props.onClick} style={dims}>
-        <Kb.Image src={this.props.url} style={style} />
+      <Kb.ClickableBox onClick={this._onClick}>
+        <Kb.Image {...dims} src={this.props.url} style={style} />
       </Kb.ClickableBox>
     )
   }

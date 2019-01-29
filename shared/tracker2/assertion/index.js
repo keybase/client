@@ -232,7 +232,7 @@ const styles = Styles.styleSheetCreate({
   metaContainer: {flexShrink: 0, paddingLeft: 20 + Styles.globalMargins.tiny * 2 - 4}, // icon spacing plus meta has 2 padding for some reason
   site: {color: Styles.globalColors.black_20},
   stateIcon: {height: 17},
-  textContainer: {flexGrow: 1, marginTop: -1},
+  textContainer: {flexGrow: 1, flexShrink: 1, marginTop: -1},
   tooltip: Styles.platformStyles({isElectron: {display: 'inline-flex'}}),
   username: Styles.platformStyles({
     isElectron: {display: 'inline-block', wordBreak: 'break-all'},

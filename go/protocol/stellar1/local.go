@@ -15,6 +15,7 @@ type WalletAccountLocal struct {
 	BalanceDescription string        `codec:"balanceDescription" json:"balanceDescription"`
 	Seqno              string        `codec:"seqno" json:"seqno"`
 	CurrencyLocal      CurrencyLocal `codec:"currencyLocal" json:"currencyLocal"`
+	AccountMode        AccountMode   `codec:"accountMode" json:"accountMode"`
 }
 
 func (o WalletAccountLocal) DeepCopy() WalletAccountLocal {
@@ -25,6 +26,7 @@ func (o WalletAccountLocal) DeepCopy() WalletAccountLocal {
 		BalanceDescription: o.BalanceDescription,
 		Seqno:              o.Seqno,
 		CurrencyLocal:      o.CurrencyLocal.DeepCopy(),
+		AccountMode:        o.AccountMode.DeepCopy(),
 	}
 }
 
@@ -741,6 +743,7 @@ type OwnAccountCLILocal struct {
 	Name         string               `codec:"name" json:"name"`
 	Balance      []Balance            `codec:"balance" json:"balance"`
 	ExchangeRate *OutsideExchangeRate `codec:"exchangeRate,omitempty" json:"exchangeRate,omitempty"`
+	AccountMode  AccountMode          `codec:"accountMode" json:"accountMode"`
 }
 
 func (o OwnAccountCLILocal) DeepCopy() OwnAccountCLILocal {
@@ -766,6 +769,7 @@ func (o OwnAccountCLILocal) DeepCopy() OwnAccountCLILocal {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.ExchangeRate),
+		AccountMode: o.AccountMode.DeepCopy(),
 	}
 }
 

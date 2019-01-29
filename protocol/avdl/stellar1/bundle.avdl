@@ -5,12 +5,6 @@ protocol bundle {
 
   @typedef("uint64") @lint("ignore") record BundleRevision {}
 
-  enum AccountMode {
-    NONE_0,
-    USER_1,  // Each of the user's devices has access to the keys
-    MOBILE_2 // Only the user's mobile devices have access to the keys
-  }
-
   // The same format as in chat1.EncryptedData (and KBFS, Git)
   record EncryptedBundle {
     // v=1 Used an incorrect context string. No longer supported. (CORE-8135)

@@ -138,4 +138,10 @@ protocol common {
     string directCursor;
     string relayCursor;
   }
+
+  enum AccountMode {
+    NONE_0,
+    USER_1,  // Each of the user's devices has access to the keys
+    MOBILE_2 // Only the user's mobile devices have access to the keys
+  }
 }
