@@ -7,7 +7,6 @@ import AccountReloader from '../common/account-reloader'
 import Header from './header/container'
 import Asset from '../asset/container'
 import Transaction from '../transaction/container'
-import BackgroundRepeatBox from './background-repeat-box'
 
 const stripePatternName = Styles.isMobile
   ? require('../../images/icons/pattern-stripes-blue-5-black-5-mobile.png')
@@ -89,7 +88,7 @@ class Wallet extends React.Component<Props> {
   }
 
   _renderSectionHeader = ({section}) => (
-    <BackgroundRepeatBox
+    <Kb.BackgroundRepeatBox
       imageHeight={stripePatternSize}
       imageName={stripePatternName}
       imageWidth={stripePatternSize}
@@ -97,7 +96,7 @@ class Wallet extends React.Component<Props> {
       style={styles.sectionHeader}
     >
       <Kb.Text type="BodySmallSemibold">{section.title}</Kb.Text>
-    </BackgroundRepeatBox>
+    </Kb.BackgroundRepeatBox>
   )
 
   _onEndReached = () => {
