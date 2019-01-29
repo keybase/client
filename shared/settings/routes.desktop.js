@@ -27,7 +27,7 @@ const routeTree = () => {
         children: {
           airdropQualify: {
             component: AirdropQualify,
-            tags: makeLeafTags({modal: true}),
+            tags: makeLeafTags({layerOnTop: true}),
           },
         },
         component: Airdrop,
