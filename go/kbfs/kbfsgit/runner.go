@@ -1531,6 +1531,9 @@ func (r *runner) pushSome(
 		Name: localRepoRemoteName,
 		URLs: []string{r.gitDir},
 	})
+	if err != nil {
+		return nil, err
+	}
 
 	results := make(map[string]error, len(args))
 	var refspecs []gogitcfg.RefSpec
@@ -1701,6 +1704,9 @@ func (r *runner) handlePushBatch(ctx context.Context, args [][]string) (
 			result = fmt.Sprintf("error %s %s", d, e.Error())
 		}
 		_, err = r.output.Write([]byte(result + "\n"))
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Remove any errored commits so that we don't send an update

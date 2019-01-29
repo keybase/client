@@ -37,7 +37,7 @@ func newBrowserFile(f *object.File) (*browserFile, error) {
 }
 
 func (bf *browserFile) Name() string {
-	return bf.Name()
+	return bf.f.Name
 }
 
 func (bf *browserFile) Write(_ []byte) (n int, err error) {
