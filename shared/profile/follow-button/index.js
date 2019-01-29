@@ -2,6 +2,7 @@
 import React, {Component} from 'react'
 import type {Props} from '.'
 import {Button} from '../../common-adapters'
+import * as Styles from '../../styles'
 
 type State = {mouseOver: boolean}
 
@@ -26,8 +27,8 @@ class FollowButton extends Component<Props, State> {
           label={this.state.mouseOver ? 'Unfollow' : 'Following'}
           onClick={onUnfollow}
           waiting={waiting}
-          onMouseEnter={() => this.setState({mouseOver: true})}
-          onMouseLeave={() => this.setState({mouseOver: false})}
+          onMouseEnter={Styles.isMobile ? null : () => this.setState({mouseOver: true})}
+          onMouseLeave={Styles.isMobile ? null : () => this.setState({mouseOver: false})}
           style={{...styleButton, ...style}}
           {...otherProps}
         />
@@ -47,8 +48,10 @@ class FollowButton extends Component<Props, State> {
   }
 }
 
-const styleButton = {
-  width: 125,
-}
+const styleButton = Styles.platformStyles({
+  isElectron: {
+    width: 125,
+  },
+})
 
 export default FollowButton
