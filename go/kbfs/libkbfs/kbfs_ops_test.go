@@ -4381,10 +4381,15 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 	require.NoError(t, err)
 	dNode, _, err := kbfsOps2.CreateDir(ctx, rootNode2, "d")
 	require.NoError(t, err)
+	c, err := DisableUpdatesForTesting(config, rootNode.GetFolderBranch())
+	require.NoError(t, err)
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
+	require.NoError(t, err)
+	err = kbfsOps2.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
 	t.Log("Blocks 'b' and 'c' should be synced, nothing else")
+	c <- struct{}{}
 	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
@@ -4411,10 +4416,15 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 	require.NoError(t, err)
 	err = kbfsOps2.Write(ctx, fNode, []byte("fdata"), 0)
 	require.NoError(t, err)
+	c, err = DisableUpdatesForTesting(config, rootNode.GetFolderBranch())
+	require.NoError(t, err)
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
+	require.NoError(t, err)
+	err = kbfsOps2.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
 	t.Log("Check that two new blocks are synced")
+	c <- struct{}{}
 	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
@@ -4426,10 +4436,15 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 	t.Log("Add something that's not synced")
 	gNode, _, err := kbfsOps2.CreateDir(ctx, dNode, "g")
 	require.NoError(t, err)
+	c, err = DisableUpdatesForTesting(config, rootNode.GetFolderBranch())
+	require.NoError(t, err)
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
+	require.NoError(t, err)
+	err = kbfsOps2.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
 	t.Log("Check that the updated root block is synced, but nothing new")
+	c <- struct{}{}
 	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
@@ -4469,8 +4484,13 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 
 	t.Log("Move a synced subdirectory somewhere else")
 	err = kbfsOps2.Rename(ctx, cNode, "e", dNode, "e")
+	c, err = DisableUpdatesForTesting(config, rootNode.GetFolderBranch())
+	require.NoError(t, err)
 	err = kbfsOps2.SyncAll(ctx, rootNode2.GetFolderBranch())
 	require.NoError(t, err)
+	err = kbfsOps2.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
+	require.NoError(t, err)
+	c <- struct{}{}
 	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
