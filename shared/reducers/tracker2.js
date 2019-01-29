@@ -114,7 +114,10 @@ export default function(state: Types.State = initialState, action: Tracker2Gen.A
             })
         ),
       })
+    case Tracker2Gen.proofSuggestionsUpdated:
+      return state.merge({proofSuggestions: I.List(action.payload.suggestions)})
     // Saga only actions
+    case Tracker2Gen.getProofSuggestions:
     case Tracker2Gen.changeFollow:
     case Tracker2Gen.ignore:
       return state

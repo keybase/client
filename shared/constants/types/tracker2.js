@@ -10,7 +10,7 @@ export type _TeamShowcase = {|
 |}
 export type TeamShowcase = I.RecordOf<_TeamShowcase>
 
-export type AssertionState = 'checking' | 'valid' | 'error' | 'warning' | 'revoked'
+export type AssertionState = 'checking' | 'valid' | 'error' | 'warning' | 'revoked' | 'suggestion'
 export type AssertionColor = 'blue' | 'red' | 'black' | 'green' | 'gray' | 'yellow' | 'orange'
 
 export type _AssertionMeta = {|
@@ -54,6 +54,7 @@ export type Details = I.RecordOf<_Details>
 
 export type _State = {
   usernameToDetails: I.Map<string, Details>,
+  proofSuggestions: I.List<Assertion>,
 }
 
 export type State = I.RecordOf<_State>

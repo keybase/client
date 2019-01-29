@@ -7,14 +7,16 @@ import * as Flow from '../../util/flow'
 
 type Props = {|
   color: Types.AssertionColor,
+  isSuggestion: boolean,
   metas: $ReadOnlyArray<Types._AssertionMeta>,
   onCopyAddress: () => void,
   onRequestLumens: () => void,
-  onRecheck: () => void,
+  onRecheck: ?() => void,
   onRevoke: ?() => void,
   onSendLumens: () => void,
   onShowProof: () => void,
   onShowSite: () => void,
+  onCreateProof: ?() => void,
   onWhatIsStellar: () => void,
   proofURL: string,
   siteIcon: string, // TODO handle actual urls, for now just use iconfont
@@ -36,6 +38,8 @@ const stateToIcon = state => {
       return 'iconfont-proof-good'
     case 'revoked':
       return 'iconfont-proof-broken'
+    case 'suggestion':
+      return 'iconfont-proof-placeholder'
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(state)
       throw new Error('Impossible')
@@ -54,6 +58,8 @@ const stateToColor = state => {
       return Styles.globalColors.blue2
     case 'revoked':
       return Styles.globalColors.red
+    case 'suggestion':
+      return Styles.globalColors.grey
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(state)
       throw new Error('Impossible')
@@ -164,21 +170,23 @@ const StellarValue = Kb.OverlayParentHOC(_StellarValue)
 
 const Value = p => {
   let content = null
-  if (p.type === 'stellar') {
+  if (p.type === 'stellar' && !p.isSuggestion) {
     content = <StellarValue {...p} />
   } else {
     let str = p.value
     let style = styles.username
 
-    switch (p.type) {
-      case 'pgp': {
-        const last = p.value.substr(p.value.length - 16).toUpperCase()
-        str = `${last.substr(0, 4)} ${last.substr(4, 4)} ${last.substr(8, 4)} ${last.substr(12, 4)}`
-        break
+    if (!p.isSuggestion) {
+      switch (p.type) {
+        case 'pgp': {
+          const last = p.value.substr(p.value.length - 16).toUpperCase()
+          str = `${last.substr(0, 4)} ${last.substr(4, 4)} ${last.substr(8, 4)} ${last.substr(12, 4)}`
+          break
+        }
+        case 'bitcoin':
+          style = styles.bitcoin
+          break
       }
-      case 'bitcoin':
-        style = styles.bitcoin
-        break
     }
 
     content = (
@@ -196,7 +204,7 @@ const Value = p => {
 }
 
 const getMenu = p => {
-  if (p.type === 'stellar') {
+  if (p.isSuggestion || p.type === 'stellar') {
     return {}
   }
 
@@ -286,12 +294,18 @@ class Assertion extends React.PureComponent<Props, State> {
         fullWidth={true}
       >
         <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} gapStart={true} gapEnd={true}>
-          <Kb.Icon type={siteIcon(p.type)} onClick={p.onShowSite} color={Styles.globalColors.black_75} />
+          <Kb.Icon
+            type={siteIcon(p.type)}
+            onClick={p.onCreateProof || p.onShowSite}
+            color={p.isSuggestion ? Styles.globalColors.black_50 : Styles.globalColors.black_75}
+          />
           <Kb.Text type="Body" style={styles.textContainer}>
             <Value {...p} />
-            <Kb.Text type="Body" style={styles.site}>
-              @{p.type}
-            </Kb.Text>
+            {!p.isSuggestion && (
+              <Kb.Text type="Body" style={styles.site}>
+                @{p.type}
+              </Kb.Text>
+            )}
           </Kb.Text>
           <Kb.Icon
             boxStyle={styles.stateIcon}
@@ -299,7 +313,7 @@ class Assertion extends React.PureComponent<Props, State> {
             fontSize={20}
             onClick={p.onShowProof}
             hoverColor={stateToColor(p.state)}
-            color={assertionColorToColor(p.color)}
+            color={p.isSuggestion ? Styles.globalColors.black_20 : assertionColorToColor(p.color)}
           />
           {items ? (
             <Kb.Icon

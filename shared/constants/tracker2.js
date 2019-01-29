@@ -5,6 +5,7 @@ import * as I from 'immutable'
 import type {TypedState} from './reducer'
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
+  proofSuggestions: I.List(),
   usernameToDetails: I.Map(),
 })
 

@@ -33,10 +33,14 @@ const mapDispatchToProps = dispatch => ({})
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   color: stateProps.color,
+  isSuggestion: false,
   metas: stateProps._metas.map(({color, label}) => ({color, label})),
   onCopyAddress: () => dispatchProps._onCopyAddress(stateProps.value),
+  onCreateProof: null,
+  onRecheck: null,
   onRequestLumens: () =>
     dispatchProps._onSendOrRequestLumens(stateProps.value.split('*')[0], true, 'keybaseUser'),
+  onRevoke: null,
   onSendLumens: () =>
     dispatchProps._onSendOrRequestLumens(stateProps.value.split('*')[0], false, 'keybaseUser'),
   onShowProof: () => (stateProps.proofURL ? openUrl(stateProps.proofURL) : undefined),
