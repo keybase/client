@@ -1479,7 +1479,7 @@ func testKBFSOpsMultiBlockWriteWithRetryAndError(t *testing.T, nFiles int) {
 		StallBlockOp(ctx, config, StallableBlockPut, nFileBlocks)
 	ctxStallSync, cancel2 := context.WithCancel(ctxStallSync)
 
-	// create and write to a file
+	t.Log("Create and write to a file: file0")
 	rootNode := GetRootNodeOrBust(ctx, t, config, "test_user", tlf.Private)
 
 	kbfsOps := config.KBFSOps()
@@ -1488,47 +1488,55 @@ func testKBFSOpsMultiBlockWriteWithRetryAndError(t *testing.T, nFiles int) {
 		ctx, rootNode, "file0", false, NoExcl)
 	require.NoError(t, err, "Couldn't create file: %v", err)
 	var data []byte
-	// Write 2 blocks worth of data
+
+	t.Log("Write 2 blocks worth of data")
 	for i := 0; i < 30; i++ {
 		data = append(data, byte(i))
 	}
 	err = kbfsOps.Write(ctx, fileNodes[0], data, 0)
 	require.NoError(t, err, "Couldn't write file: %v", err)
 
+	t.Log("Sync those blocks of data")
 	err = kbfsOps.SyncAll(ctx, fileNodes[0].GetFolderBranch())
 	require.NoError(t, err, "First sync failed: %v", err)
 
+	t.Log("Retrieve the metadata for the blocks so far")
 	file0Md, err := kbfsOps.GetNodeMetadata(ctx, fileNodes[0])
 	require.NoError(t, err, "Couldn't GetNodeMetadata for file0: %+v", err)
+	rootNodeMd, err := kbfsOps.GetNodeMetadata(ctx, rootNode)
+	require.NoError(t, err, "Couldn't GetNodeMetadata for rootNode: %+v", err)
 
-	// Remove that file, and wait for the archiving to complete
+	t.Log("Remove that file")
 	err = kbfsOps.RemoveEntry(ctx, rootNode, "file0")
 	require.NoError(t, err, "Couldn't remove file: %v", err)
 
+	t.Log("Sync from server, waiting for the archiving to complete")
 	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
 	require.NoError(t, err, "Couldn't sync from server: %v", err)
 
-	// Ensure that the block references have been removed rather than just archived.
+	t.Log("Ensure that the block references have been removed rather than just archived")
 	bOps := config.BlockOps()
 	h, err := ParseTlfHandle(ctx, config.KBPKI(), config.MDOps(), "test_user", tlf.Private)
 	require.NoError(t, err)
-	_, err = bOps.Delete(ctx, h.TlfID(), []BlockPointer{file0Md.BlockInfo.BlockPointer})
+	ptrs := []BlockPointer{file0Md.BlockInfo.BlockPointer, rootNodeMd.BlockInfo.BlockPointer}
+	_, err = bOps.Delete(ctx, h.TlfID(), ptrs)
 	require.NoError(t, err)
 
+	t.Log("Create file0 again")
 	fileNode2, _, err := kbfsOps.CreateFile(
 		ctx, rootNode, "file0", false, NoExcl)
 	require.NoError(t, err, "Couldn't create file: %v", err)
 
-	// Now write the identical first block, plus a new block and sync it.
+	t.Log("Now write the identical first block, plus a new block and sync it.")
 	err = kbfsOps.Write(ctx, fileNode2, data[:20], 0)
 	require.NoError(t, err, "Couldn't write file: %v", err)
 
 	err = kbfsOps.Write(ctx, fileNode2, data[10:30], 20)
 	require.NoError(t, err, "Couldn't write file: %v", err)
 
-	// Write all the rest of the files to sync concurrently, if any.
+	t.Log("Write all the rest of the files to sync concurrently, if any.")
 	for i := 1; i < nFiles; i++ {
-		name := fmt.Sprintf("file%d", i)
+		name := fmt.Sprintf("Create file%d", i)
 		fileNode, _, err := kbfsOps.CreateFile(
 			ctx, rootNode, name, false, NoExcl)
 		require.NoError(t, err, "Couldn't create file: %v", err)
@@ -1542,22 +1550,29 @@ func testKBFSOpsMultiBlockWriteWithRetryAndError(t *testing.T, nFiles int) {
 		fileNodes[i] = fileNode
 	}
 
-	// Sync the initial three data blocks
+	t.Log("Sync the initial three data blocks")
 	errChan := make(chan error, 1)
-	// start the sync
+
+	t.Log("Start the sync in a goroutine")
 	go func() {
 		errChan <- kbfsOps.SyncAll(ctxStallSync, fileNode2.GetFolderBranch())
 	}()
 
-	// Wait for the first block to finish (before the retry)
+	t.Log("Wait for the first block to finish (before the retry)")
 	select {
 	case <-onSyncStalledCh:
 	case <-ctx.Done():
 		t.Fatal(ctx.Err())
 	}
 
-	// Dirty the last block and extend it, so the one that was sent as
-	// part of the first sync is no longer part of the file.
+	t.Log("Delete the root node block.")
+	rootNodeMd, err = kbfsOps.GetNodeMetadata(ctx, rootNode)
+	ptrs = []BlockPointer{rootNodeMd.BlockInfo.BlockPointer}
+	_, err = bOps.Delete(ctx, h.TlfID(), ptrs)
+	require.NoError(t, err)
+
+	t.Log("Dirty the last block and extend it, so the one that was sent as " +
+		"part of the first sync is no longer part of the file.")
 	err = kbfsOps.Write(ctx, fileNode2, data[10:20], 40)
 	require.NoError(t, err, "Couldn't write file: %v", err)
 	select {
@@ -1566,7 +1581,8 @@ func testKBFSOpsMultiBlockWriteWithRetryAndError(t *testing.T, nFiles int) {
 		t.Fatal(ctx.Err())
 	}
 
-	// Wait for the rest of the first set of blocks to finish (before the retry)
+	t.Log("Wait for the rest of the first set of blocks to finish " +
+		"(before the retry)")
 	for i := 0; i < nFileBlocks-1; i++ {
 		t.Logf("Waiting for sync %d", i)
 		select {
@@ -1581,7 +1597,7 @@ func testKBFSOpsMultiBlockWriteWithRetryAndError(t *testing.T, nFiles int) {
 		}
 	}
 
-	// Once the first block of the retry comes in, cancel everything.
+	t.Log("Once the first block of the retry comes in, cancel everything.")
 	select {
 	case <-onSyncStalledCh:
 	case <-ctx.Done():
@@ -1589,7 +1605,7 @@ func testKBFSOpsMultiBlockWriteWithRetryAndError(t *testing.T, nFiles int) {
 	}
 	cancel2()
 
-	// Unstall the sync.
+	t.Log("Unstall the sync.")
 	close(syncUnstallCh)
 	err = <-errChan
 	if err != context.Canceled {
