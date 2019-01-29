@@ -1229,6 +1229,10 @@ type GetInflationDestinationLocalArg struct {
 	AccountID AccountID `codec:"accountID" json:"accountID"`
 }
 
+type AirdropCurrentLocalArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type AirdropRegisterLocalArg struct {
 	SessionID   int    `codec:"sessionID" json:"sessionID"`
 	AirdropName string `codec:"airdropName" json:"airdropName"`
@@ -1371,6 +1375,7 @@ type LocalInterface interface {
 	GetPredefinedInflationDestinationsLocal(context.Context, int) ([]PredefinedInflationDestination, error)
 	SetInflationDestinationLocal(context.Context, SetInflationDestinationLocalArg) error
 	GetInflationDestinationLocal(context.Context, GetInflationDestinationLocalArg) (InflationDestinationResultLocal, error)
+	AirdropCurrentLocal(context.Context, int) ([]string, error)
 	AirdropRegisterLocal(context.Context, AirdropRegisterLocalArg) error
 	AirdropDeregisterLocal(context.Context, AirdropDeregisterLocalArg) error
 	AirdropStatusLocal(context.Context, AirdropStatusLocalArg) (AirdropStatus, error)
@@ -1983,6 +1988,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"airdropCurrentLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]AirdropCurrentLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]AirdropCurrentLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]AirdropCurrentLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.AirdropCurrentLocal(ctx, typedArgs[0].SessionID)
+					return
+				},
+			},
 			"airdropRegisterLocal": {
 				MakeArg: func() interface{} {
 					var ret [1]AirdropRegisterLocalArg
@@ -2484,6 +2504,12 @@ func (c LocalClient) SetInflationDestinationLocal(ctx context.Context, __arg Set
 
 func (c LocalClient) GetInflationDestinationLocal(ctx context.Context, __arg GetInflationDestinationLocalArg) (res InflationDestinationResultLocal, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.getInflationDestinationLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) AirdropCurrentLocal(ctx context.Context, sessionID int) (res []string, err error) {
+	__arg := AirdropCurrentLocalArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "stellar.1.local.airdropCurrentLocal", []interface{}{__arg}, &res)
 	return
 }
 

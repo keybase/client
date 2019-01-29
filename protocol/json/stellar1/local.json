@@ -1873,6 +1873,18 @@
       ],
       "response": "InflationDestinationResultLocal"
     },
+    "airdropCurrentLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "string"
+      }
+    },
     "airdropRegisterLocal": {
       "request": [
         {

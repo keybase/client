@@ -485,8 +485,13 @@ protocol local {
   }
   InflationDestinationResultLocal getInflationDestinationLocal(int sessionID, AccountID accountID);
 
-  // airdrop register, status, etc.
+  // airdropCurrentLocal returns a list of the airdrop names that are currently available.
+  array<string> airdropCurrentLocal(int sessionID);
+
+  // airdropRegisterLocal registers a user for an airdrop.
   void airdropRegisterLocal(int sessionID, string airdropName);
+
+  // airdropDeregisterLocal deregisters a user for an airdrop.
   void airdropDeregisterLocal(int sessionID, string airdropName);
 
   record AirdropServiceCheck {
@@ -517,6 +522,7 @@ protocol local {
     AirdropConfig config;
   }
 
+  // airdropStatusLocal returns the user's status for a particular airdrop.
   AirdropStatus airdropStatusLocal(int sessionID, string airdropName);
 
   // -------------------------------------------------------
