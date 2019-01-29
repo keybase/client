@@ -513,7 +513,7 @@ func (c *CmdCtlInit) RunEnv() error {
 		fmt.Printf("Writing following text to %s...\n", envfileName)
 		fmt.Print(s)
 	} else {
-		err := os.MkdirAll(c.G().Env.GetConfigDir(), 0755)
+		err := os.MkdirAll(c.G().Env.GetEnvFileDir(), 0755)
 		if err != nil {
 			return err
 		}

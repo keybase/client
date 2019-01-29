@@ -553,10 +553,16 @@ func (e *Env) GetRootConfigFilename() (string, error) {
 	return filepath.Join(dir, "config.json"), nil
 }
 
+func (e *Env) GetEnvFileDir() string {
+	// Do not respect $XDG_CONFIG_HOME due to debian systemd 229 not supporting %E
+	// see keybase.service systemd unit
+	return filepath.Join(e.GetHome(), ".config", "keybase")
+}
+
 func (e *Env) GetEnvfileName() (string, error) {
 	switch RuntimeGroup() {
 	case keybase1.RuntimeGroup_LINUXLIKE:
-		return filepath.Join(e.GetConfigDir(), "keybase.autogen.env"), nil
+		return filepath.Join(e.GetEnvFileDir(), "keybase.autogen.env"), nil
 	default:
 		return "", fmt.Errorf("No envfile for %s.", runtime.GOOS)
 	}
@@ -565,7 +571,7 @@ func (e *Env) GetEnvfileName() (string, error) {
 func (e *Env) GetOverrideEnvfileName() (string, error) {
 	switch RuntimeGroup() {
 	case keybase1.RuntimeGroup_LINUXLIKE:
-		return filepath.Join(e.GetConfigDir(), "keybase.env"), nil
+		return filepath.Join(e.GetEnvFileDir(), "keybase.env"), nil
 	default:
 		return "", fmt.Errorf("No envfile override for %s.", runtime.GOOS)
 	}
