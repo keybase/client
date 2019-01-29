@@ -1,27 +1,32 @@
 package giphy
 
 import (
-	"context"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
+	"time"
 
 	"github.com/keybase/client/go/chat/types"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"golang.org/x/net/context/ctxhttp"
+	"golang.org/x/net/http2"
 )
 
 const apiKey = "ZsqoY64vpeo53oZH5ShgywcjLu1W8rIe"
-const giphyHost = "https://api.giphy.com"
+const giphyAPIHost = "api.giphy.com"
+const giphyHost = "giphy.com"
+const giphyProxy = "https://giphy-proxy.core.keybaseapi.com"
 
-func formatResponse(ctx context.Context, response giphyResponse, srv types.AttachmentURLSrv) (res []chat1.GiphySearchResult) {
+func formatResponse(mctx libkb.MetaContext, response giphyResponse, srv types.AttachmentURLSrv) (res []chat1.GiphySearchResult) {
 	for _, obj := range response.Data {
 		for typ, img := range obj.Images {
 			select {
-			case <-ctx.Done():
+			case <-mctx.Ctx().Done():
 				return
 			default:
 			}
@@ -41,7 +46,7 @@ func formatResponse(ctx context.Context, response giphyResponse, srv types.Attac
 			}
 			res = append(res, chat1.GiphySearchResult{
 				TargetUrl:      obj.URL,
-				PreviewUrl:     srv.GetGiphyURL(ctx, img.MP4),
+				PreviewUrl:     srv.GetGiphyURL(mctx.Ctx(), img.MP4),
 				PreviewHeight:  height,
 				PreviewWidth:   width,
 				PreviewIsVideo: true,
@@ -51,8 +56,34 @@ func formatResponse(ctx context.Context, response giphyResponse, srv types.Attac
 	return res
 }
 
-func runCall(ctx context.Context, endpoint string, srv types.AttachmentURLSrv) (res []chat1.GiphySearchResult, err error) {
-	resp, err := ctxhttp.Get(ctx, http.DefaultClient, endpoint)
+func httpClient(host string) *http.Client {
+	var xprt http.Transport
+	tlsConfig := &tls.Config{
+		ServerName: host,
+	}
+	xprt.TLSClientConfig = tlsConfig
+	http2.ConfigureTransport(&xprt)
+	return &http.Client{
+		Transport: &xprt,
+		Timeout:   10 * time.Second,
+	}
+}
+
+func APIClient() *http.Client {
+	return httpClient(giphyAPIHost)
+}
+
+func WebClient() *http.Client {
+	return httpClient(giphyHost)
+}
+
+func runAPICall(mctx libkb.MetaContext, endpoint string, srv types.AttachmentURLSrv) (res []chat1.GiphySearchResult, err error) {
+	req, err := http.NewRequest("GET", endpoint, nil)
+	if err != nil {
+		return res, err
+	}
+	req.Host = giphyAPIHost
+	resp, err := ctxhttp.Do(mctx.Ctx(), APIClient(), req)
 	if err != nil {
 		return res, err
 	}
@@ -65,17 +96,17 @@ func runCall(ctx context.Context, endpoint string, srv types.AttachmentURLSrv) (
 	if err := json.Unmarshal(dat, &response); err != nil {
 		return res, err
 	}
-	return formatResponse(ctx, response, srv), nil
+	return formatResponse(mctx, response, srv), nil
 }
 
-func Search(ctx context.Context, query *string, srv types.AttachmentURLSrv) (res []chat1.GiphySearchResult, err error) {
+func Search(mctx libkb.MetaContext, query *string, srv types.AttachmentURLSrv) (res []chat1.GiphySearchResult, err error) {
 	var endpoint string
 	if query == nil {
 		// grab trending with no query
-		endpoint = fmt.Sprintf("%s/v1/gifs/trending?api_key=%s", giphyHost, apiKey)
+		endpoint = fmt.Sprintf("%s/v1/gifs/trending?api_key=%s", giphyProxy, apiKey)
 	} else {
-		endpoint = fmt.Sprintf("%s/v1/gifs/search?api_key=%s&q=%s", giphyHost, apiKey,
+		endpoint = fmt.Sprintf("%s/v1/gifs/search?api_key=%s&q=%s", giphyProxy, apiKey,
 			url.QueryEscape(*query))
 	}
-	return runCall(ctx, endpoint, srv)
+	return runAPICall(mctx, endpoint, srv)
 }

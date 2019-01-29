@@ -8,6 +8,7 @@ import (
 	"github.com/keybase/client/go/chat/giphy"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 )
@@ -79,7 +80,7 @@ func (s *Giphy) Preview(ctx context.Context, uid gregor1.UID, convID chat1.Conve
 	if len(q) > 0 {
 		query = &q
 	}
-	results, err := giphy.Search(ctx, query, s.G().AttachmentURLSrv)
+	results, err := giphy.Search(libkb.NewMetaContext(ctx, s.G().ExternalG()), query, s.G().AttachmentURLSrv)
 	if err != nil {
 		s.Debug(ctx, "Preview: failed to get Giphy results: %s", err)
 		return
