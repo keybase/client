@@ -152,6 +152,7 @@ helpers.rootLinuxNode(env, {
                     if (hasGoChanges && hasKBFSChanges) {
                       dir('go/kbfs/libkbfs') {
                         // Make sure our mock library is up to date.
+                        sh 'go get -u github.com/golang/mock/gomock github.com/golang/mock/mockgen'
                         sh './gen_mocks.sh'
                         checkDiffs(['./'], 'Please run ./gen_mocks.sh in the libkbfs directory.')
                       }
