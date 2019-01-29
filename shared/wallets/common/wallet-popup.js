@@ -17,7 +17,7 @@ function PopupWithHeader<P: {}>(Wrapped: React.ComponentType<P>) {
 }
 
 // Same as HeaderOrPopup but the Popup itself has a header
-function HeaderOrPopupWithHeader<P: {}>(WrappedComponent: React.ComponentType<P>) {
+export function HeaderOrPopupWithHeader<P: {}>(WrappedComponent: React.ComponentType<P>) {
   return Styles.isMobile ? Kb.HeaderHoc(WrappedComponent) : PopupWithHeader(WrappedComponent)
 }
 
