@@ -23,7 +23,7 @@ const rows = [
 const props = {
   loading: false,
   onCancel: Sb.action('onCancel'),
-  onCheckQualify: Sb.action('onCheckQualify'),
+  onSubmit: Sb.action('onSubmit'),
   qualified: false,
   rows,
 }

@@ -63,6 +63,19 @@ function SettingsNav(props: Props) {
         },
         {
           data: [
+            ...(flags.airdrop
+              ? [
+                  {
+                    icon: 'icon-stellar-coins-stacked-16',
+                    onClick: () => props.onTabChange(Constants.airdropTab),
+                    selected: props.selectedTab === Constants.airdropTab,
+                    selectedStyle: {backgroundColor: globalColors.purple, paddingLeft: 4},
+                    text: 'Lumen airdrop',
+                    textColor: globalColors.white,
+                    unSelectedStyle: {backgroundColor: globalColors.purple2, paddingLeft: 4},
+                  },
+                ]
+              : []),
             {
               onClick: () => props.onTabChange(Constants.chatTab),
               text: 'Chat',

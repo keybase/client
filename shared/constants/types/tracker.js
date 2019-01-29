@@ -53,6 +53,7 @@ export type UserInfo = {
 }
 
 export type TrackerState = {
+  airdrop: boolean,
   type: 'tracker',
   error: ?string,
   eldestKidChanged: boolean,

@@ -3,6 +3,7 @@ import * as TrackerGen from '../actions/tracker-gen'
 import * as Types from '../constants/types/tracker'
 import * as Constants from '../constants/tracker'
 import * as Flow from '../util/flow'
+import flags from '../util/feature-flags'
 
 const sortByTeamName = (a, b) => a.fqName.localeCompare(b.fqName)
 
@@ -327,6 +328,7 @@ export default function(
     case TrackerGen.updateUserInfo: {
       const {userCard, username} = action.payload
       const userInfo = {
+        airdrop: flags.airdrop, // TEMP discuss w/ patrick
         avatar: `https://keybase.io/${username}/picture`,
         bio: userCard.bio,
         followersCount: userCard.followers,

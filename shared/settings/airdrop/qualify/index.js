@@ -7,7 +7,7 @@ type Props = {|
   loading: boolean,
   qualified: boolean,
   onCancel: () => void,
-  onCheckQualify: () => void,
+  onSubmit: () => void,
   rows: $ReadOnlyArray<{|
     title: string,
     subTitle: string,
@@ -46,37 +46,64 @@ const Row = p => (
   </Kb.Box2>
 )
 
-const Qualify = (p: Props) =>
-  p.loading ? (
-    <Loading />
-  ) : (
-    <Kb.ScrollView style={styles.container}>
-      <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true} gap="medium">
-        <Kb.Icon
-          type={p.qualified ? 'icon-stellar-coins-flying-2-48' : 'icon-stellar-coins-flying-48'}
-          style={styles.star}
-        />
-        <Kb.Text center={true} type="Header" style={styles.headerText}>
-          {p.qualified ? 'You are qualified to join!' : 'Sorry, you are not qualified to join.'}
-        </Kb.Text>
-        <>
-          {p.rows.map((r, idx) => (
-            <Row key={r.title} {...r} first={idx === 0} />
-          ))}
-        </>
-        {p.qualified && <Kb.Button fullWidth={true} type="PrimaryGreen" label="Become a lucky airdropee" />}
-        <Kb.Button fullWidth={true} backgroundMode="Black" type="PrimaryColoredBackground" label="Close" />
-      </Kb.Box2>
-    </Kb.ScrollView>
-  )
+const Qualify = (p: Props) => (
+  <Kb.MaybePopup onClose={p.onCancel}>
+    {p.loading ? (
+      <Loading />
+    ) : (
+      <Kb.ScrollView style={styles.container}>
+        <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true} gap="medium" style={styles.content}>
+          <Kb.Icon
+            type={p.qualified ? 'icon-stellar-coins-flying-2-48' : 'icon-stellar-coins-flying-48'}
+            style={styles.star}
+          />
+          <Kb.Text center={true} type="Header" style={styles.headerText}>
+            {p.qualified ? 'You are qualified to join!' : 'Sorry, you are not qualified to join.'}
+          </Kb.Text>
+          <>
+            {p.rows.map((r, idx) => (
+              <Row key={r.title} {...r} first={idx === 0} />
+            ))}
+          </>
+          <Kb.Box2 direction="vertical" style={styles.grow} />
+          {p.qualified && (
+            <Kb.Button
+              onClick={p.onSubmit}
+              fullWidth={true}
+              type="PrimaryGreen"
+              label="Become a lucky airdropee"
+              style={styles.button}
+            />
+          )}
+          <Kb.Button
+            onClick={p.onCancel}
+            fullWidth={true}
+            backgroundMode="Black"
+            type="PrimaryColoredBackground"
+            label="Close"
+            style={styles.button}
+          />
+        </Kb.Box2>
+      </Kb.ScrollView>
+    )}
+  </Kb.MaybePopup>
+)
 
 const styles = Styles.styleSheetCreate({
+  button: {
+    flexGrow: 0,
+  },
   container: {
     backgroundColor: Styles.globalColors.purple2,
     height: 550,
     padding: Styles.globalMargins.medium,
     width: 400,
   },
+  content: {
+    height: 550 - Styles.globalMargins.medium * 2,
+    width: 400 - Styles.globalMargins.medium * 2,
+  },
+  grow: {flexGrow: 1},
   headerText: {color: Styles.globalColors.white},
   loadingText: {color: Styles.globalColors.white_40},
   row: {

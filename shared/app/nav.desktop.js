@@ -12,10 +12,13 @@ import * as RouteTreeGen from '../actions/route-tree-gen'
 import {connect, type RouteProps} from '../util/container'
 import {globalStyles} from '../styles'
 import RpcStats from './rpc-stats'
+import flags from '../util/feature-flags'
+import AirdropBanner from '../settings/airdrop/banner/container'
 
 type OwnProps = RouteProps<{}, {}>
 
 type Props = {
+  showAirdropBanner: boolean,
   layerScreens: I.Stack<RouteTree.RenderRouteResult>,
   onHotkey: (cmd: string) => void,
   visibleScreen: RouteTree.RenderRouteResult,
@@ -46,6 +49,7 @@ class Nav extends React.Component<Props> {
           )}
           <ErrorBoundary>
             <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+              {this.props.showAirdropBanner && <AirdropBanner />}
               {/* We use a fixed key here so we don't remount components like chat. */}
               {visibleScreen.component({key: '0', shouldRender: true})}
               {layerScreens.map(r => r.leafComponent({shouldRender: true}))}
@@ -78,6 +82,7 @@ const stylesTabsContainer = {
 
 const mapStateToProps = state => ({
   _username: state.config.username,
+  showAirdropBanner: flags.airdrop && true, // TODO
 })
 
 const mapDispatchToProps = dispatch => ({

@@ -13,8 +13,8 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = (dispatch, {navigateUp}) => ({
-  onCheckQualify: () => console.log('TODO'),
   onCancel: () => dispatch(navigateUp()),
+  onSubmit: () => console.log('TODO'),
 })
 
 const mergeProps = (s, d, o) => ({
