@@ -41,6 +41,7 @@ type configGetter interface {
 	GetChatDbFilename() string
 	GetPvlKitFilename() string
 	GetParamProofKitFilename() string
+	GetProveBypass() (bool, bool)
 	GetCodeSigningKIDs() []string
 	GetConfigFilename() string
 	GetDbFilename() string
@@ -598,7 +599,7 @@ type ServiceType interface {
 
 	MakeProofChecker(l RemoteProofChainLink) ProofChecker
 	SetDisplayConfig(*keybase1.ServiceDisplayConfig)
-	CanMakeNewProofs() bool
+	CanMakeNewProofs(mctx MetaContext) bool
 	DisplayPriority() int
 	DisplayGroup() string
 }
@@ -606,7 +607,7 @@ type ServiceType interface {
 type ExternalServicesCollector interface {
 	GetServiceType(n string) ServiceType
 	ListProofCheckers() []string
-	ListServicesThatAcceptNewProofs() []string
+	ListServicesThatAcceptNewProofs(MetaContext) []string
 	ListDisplayConfigs() (res []keybase1.ServiceDisplayConfig)
 	SuggestionFoldPriority() int
 }
