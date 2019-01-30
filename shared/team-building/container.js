@@ -34,7 +34,7 @@ type LocalState = {
 }
 
 const initialState: LocalState = {
-  highlightedIndex: -1,
+  highlightedIndex: 0,
   searchString: '',
   selectedService: 'keybase',
 }
@@ -181,10 +181,12 @@ const deriveOnChangeText = memoize(
   (
     onChangeText: (newText: string) => void,
     search: (text: string, service: ServiceIdWithContact) => void,
-    selectedService: ServiceIdWithContact
+    selectedService: ServiceIdWithContact,
+    resetHighlightIndex: () => void
   ) => (newText: string) => {
     onChangeText(newText)
     search(newText, selectedService)
+    resetHighlightIndex()
   }
 )
 
@@ -208,7 +210,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const onChangeText = deriveOnChangeText(
     ownProps.onChangeText,
     dispatchProps._search,
-    ownProps.selectedService
+    ownProps.selectedService,
+    ownProps.resetHighlightIndex
   )
 
   const onSearchForMore = deriveOnSearchForMore({

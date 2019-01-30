@@ -27,6 +27,11 @@ const handleKeyDown = (preventDefault: () => void, ctrlKey: boolean, key: string
         props.onDownArrowKeyDown()
       }
       break
+    case 'tab':
+    case ',':
+      preventDefault()
+      props.onEnterKeyDown()
+      break
     case 'ArrowDown':
       preventDefault()
       props.onDownArrowKeyDown()
