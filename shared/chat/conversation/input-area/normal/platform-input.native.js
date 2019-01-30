@@ -2,7 +2,6 @@
 /* eslint-env browser */
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker'
 import React, {PureComponent} from 'react'
-import * as I from 'immutable'
 import {
   Box,
   Box2,
@@ -180,10 +179,8 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
           />
         )}
         <IsTyping
-          // style={collapseStyles([styles.typing, this.props.typing.size > 0 && styles.visibleTyping])}
-          style={collapseStyles([styles.typing, styles.visibleTyping])}
-          typing={I.Set(['adamjspooner'])}
-          // typing={this.props.typing}
+          style={collapseStyles([styles.typing, this.props.typing.size > 0 && styles.visibleTyping])}
+          typing={this.props.typing}
         />
         <Box style={styles.container}>
           {this.props.isEditing && (
