@@ -9,7 +9,7 @@ import flags from '../../../util/feature-flags'
 type OwnProps = {||}
 
 const mapStateToProps = state => ({
-  show: true, // flags.airdrop && state.wallets.airdropState === 'noResponse',
+  show: flags.airdrop && state.wallets.airdropState === 'noResponse',
 })
 
 const mapDispatchToProps = dispatch => ({
