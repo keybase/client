@@ -121,7 +121,7 @@ export const StillCommon = (
       <PathItemIcon path={props.path} size={32} style={rowStyles.pathItemIcon} badge={props.badge} />
       {props.children}
     </Kb.ClickableBox>
-    {!props.inDestinationPicker && (
+    {!props.inDestinationPicker && Types.getPathLevel(props.path) > 2 && (
       <Kb.Box style={rowStyles.rightBox}>
         <OpenInSystemFileManager path={props.path} />
         <SendInAppAction path={props.path} sendIconClassName="fs-path-item-hover-icon" />

@@ -1327,3 +1327,13 @@ func (g *GlobalContext) GetMeUV(ctx context.Context) (res keybase1.UserVersion, 
 	}
 	return res, nil
 }
+
+// TODO CORE-9923: set this to true and remove it
+// Whether to use parameterized proofs apparatus on normal clients.
+// Affects non-parameterized proof listing too.
+func (g *GlobalContext) ShouldUseParameterizedProofs() bool {
+	return g.Env.GetRunMode() == DevelRunMode ||
+		g.Env.RunningInCI() ||
+		g.Env.GetFeatureFlags().Admin() ||
+		g.Env.GetProveBypass()
+}

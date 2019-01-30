@@ -65,8 +65,7 @@ func (i *IdentifyOutcome) TrackSet() *TrackSet {
 }
 
 func (i *IdentifyOutcome) ProofChecksSorted() []*LinkCheckResult {
-	// TODO Remove with CORE-9923
-	useDisplayPriority := i.G().Env.GetRunMode() == DevelRunMode || i.G().Env.RunningInCI()
+	useDisplayPriority := i.G().ShouldUseParameterizedProofs()
 	if useDisplayPriority {
 		return i.proofChecksSortedByDisplayPriority()
 	}
