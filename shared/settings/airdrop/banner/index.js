@@ -12,22 +12,42 @@ type Props = {|
 const Banner = (p: Props) =>
   p.show ? (
     <Kb.Box2 noShrink={true} fullWidth={true} direction="horizontal" style={styles.container}>
-      <Kb.Icon type="icon-stellar-coins-flying-2-48" />
-      <Kb.Text backgroundMode="Terminal" center={true} type="Header" style={styles.headerText}>
-        Get free Lumens every month
-      </Kb.Text>
-      <Kb.Button type="Primary" label="See if you qualify" onClick={p.onCheckQualify} />
+      <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.starContainer}>
+        <Kb.Icon type="icon-stellar-coins-flying-2-48" />
+      </Kb.Box2>
+      <Kb.Box2 direction="vertical" style={styles.textContainer} gap="tiny">
+        <Kb.Text backgroundMode="Terminal" type="Header">
+          Get free Lumens every month
+        </Kb.Text>
+        <Kb.Text type="Body">
+          Monthly starting March 1, Keybase will divide 50,000 XLM (Stellar Lumens) among Keybase users.
+        </Kb.Text>
+        <Kb.Button
+          type="PrimaryColoredBackground"
+          backgroundMode="Purple"
+          label="See if you qualify"
+          onClick={p.onCheckQualify}
+          style={styles.button}
+        />
+      </Kb.Box2>
       <Kb.Icon type="iconfont-close" onClick={p.onCancel} style={styles.close} />
     </Kb.Box2>
   ) : null
 
 const styles = Styles.styleSheetCreate({
-  close: {padding: Styles.globalMargins.tiny},
+  button: {alignSelf: 'flex-start'},
+  close: {padding: Styles.globalMargins.xxtiny},
   container: {
     backgroundColor: Styles.globalColors.purple2,
-    height: 40,
+    padding: Styles.globalMargins.small,
   },
-  headerText: {flexGrow: 1},
+  starContainer: {
+    height: '100%',
+    width: 180,
+  },
+  textContainer: {
+    flexGrow: 1,
+  },
 })
 
 export default Banner

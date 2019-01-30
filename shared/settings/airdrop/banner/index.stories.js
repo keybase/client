@@ -10,9 +10,9 @@ const props = {
 }
 
 const load = () => {
-  Sb.storiesOf('Settings', module)
-    .add('AirdropBanner', () => <Banner {...props} />)
-    .add('AirdropBannerHidden', () => <Banner {...props} show={false} />)
+  Sb.storiesOf('Settings/AirdropBanner', module)
+    .add('Normal', () => <Banner {...props} />)
+    .add('Hidden', () => <Banner {...props} show={false} />)
 }
 
 export default load

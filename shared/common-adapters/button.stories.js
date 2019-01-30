@@ -33,11 +33,12 @@ const Wrapper = ({children}) => (
 )
 
 const types = ['Primary', 'Secondary', 'Danger', 'Wallet', 'PrimaryGreen', 'PrimaryGreenActive']
-const backgroundModes = ['Red', 'Green', 'Blue', 'Black']
+const backgroundModes = ['Red', 'Green', 'Blue', 'Black', 'Purple']
 const modeToColor = {
   Black: globalColors.black,
   Blue: globalColors.blue,
   Green: globalColors.green,
+  Purple: globalColors.purple2,
   Red: globalColors.red,
 }
 
