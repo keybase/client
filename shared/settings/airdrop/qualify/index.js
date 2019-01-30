@@ -4,8 +4,7 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 
 type Props = {|
-  loading: boolean,
-  qualified: boolean,
+  state: 'qualified' | 'loading' | 'unqualified' | 'accepted',
   onCancel: () => void,
   onSubmit: () => void,
   rows: $ReadOnlyArray<{|
@@ -21,6 +20,21 @@ const Loading = () => (
     <Kb.Text center={true} type="BodySemibold" style={styles.loadingText}>
       Analyzing your account...
     </Kb.Text>
+  </Kb.Box2>
+)
+
+const Accepted = p => (
+  <Kb.Box2 noShrink={true} direction="vertical" centerChildren={true} style={styles.container} gap="medium">
+    <Kb.Box2 direction="vertical" style={styles.grow} />
+    <Kb.Icon type="icon-stellar-coins-stacked-16" style={styles.star} />
+    <Kb.Text backgroundMode="Terminal" center={true} type="Header">
+      You're in.
+    </Kb.Text>
+    <Kb.Text center={true} type="BodySemibold" style={styles.loadingText}>
+      The next airdrop will happen March 1.
+    </Kb.Text>
+    <Kb.Box2 direction="vertical" style={styles.grow} />
+    <Kb.Button onClick={p.onCancel} fullWidth={true} type="Wallet" label="Close" style={styles.buttonClose} />
   </Kb.Box2>
 )
 
@@ -46,45 +60,47 @@ const Row = p => (
   </Kb.Box2>
 )
 
+const Qualified = p => (
+  <Kb.ScrollView style={styles.container}>
+    <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true} gap="medium" style={styles.content}>
+      <Kb.Icon
+        type={p.qualified ? 'icon-stellar-coins-flying-2-48' : 'icon-stellar-coins-flying-48'}
+        style={styles.star}
+      />
+      <Kb.Text center={true} type="Header" style={styles.headerText}>
+        {p.qualified ? 'You are qualified to join!' : 'Sorry, you are not qualified to join.'}
+      </Kb.Text>
+      <>
+        {p.rows.map((r, idx) => (
+          <Row key={r.title} {...r} first={idx === 0} />
+        ))}
+      </>
+      <Kb.Box2 direction="vertical" style={styles.grow} />
+      {p.qualified && (
+        <Kb.Button
+          onClick={p.onSubmit}
+          fullWidth={true}
+          type="PrimaryGreen"
+          label="Become a lucky airdropee"
+          style={styles.buttonAccept}
+        />
+      )}
+      <Kb.Button
+        onClick={p.onCancel}
+        fullWidth={true}
+        type="Wallet"
+        label="Close"
+        style={styles.buttonClose}
+      />
+    </Kb.Box2>
+  </Kb.ScrollView>
+)
+
 const Qualify = (p: Props) => (
   <Kb.MaybePopup onClose={p.onCancel}>
-    {p.loading ? (
-      <Loading />
-    ) : (
-      <Kb.ScrollView style={styles.container}>
-        <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true} gap="medium" style={styles.content}>
-          <Kb.Icon
-            type={p.qualified ? 'icon-stellar-coins-flying-2-48' : 'icon-stellar-coins-flying-48'}
-            style={styles.star}
-          />
-          <Kb.Text center={true} type="Header" style={styles.headerText}>
-            {p.qualified ? 'You are qualified to join!' : 'Sorry, you are not qualified to join.'}
-          </Kb.Text>
-          <>
-            {p.rows.map((r, idx) => (
-              <Row key={r.title} {...r} first={idx === 0} />
-            ))}
-          </>
-          <Kb.Box2 direction="vertical" style={styles.grow} />
-          {p.qualified && (
-            <Kb.Button
-              onClick={p.onSubmit}
-              fullWidth={true}
-              type="PrimaryGreen"
-              label="Become a lucky airdropee"
-              style={styles.buttonAccept}
-            />
-          )}
-          <Kb.Button
-            onClick={p.onCancel}
-            fullWidth={true}
-            type="Wallet"
-            label="Close"
-            style={styles.buttonClose}
-          />
-        </Kb.Box2>
-      </Kb.ScrollView>
-    )}
+    {p.state === 'loading' && <Loading />}
+    {p.state === 'accepted' && <Accepted />}
+    {(p.state === 'qualified' || p.state === 'unqualified') && <Qualified {...p} />}
   </Kb.MaybePopup>
 )
 

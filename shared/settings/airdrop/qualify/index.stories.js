@@ -21,20 +21,19 @@ const rows = [
 ]
 
 const props = {
-  loading: false,
   onCancel: Sb.action('onCancel'),
   onSubmit: Sb.action('onSubmit'),
-  qualified: false,
   rows,
 }
 
 const load = () => {
   Sb.storiesOf('Settings/AirdropQualify', module)
-    .add('Sad', () => <Qualify {...props} />)
+    .add('Sad', () => <Qualify {...props} state="unqualified" />)
     .add('Happy', () => (
-      <Qualify {...props} rows={props.rows.map(r => ({...r, subTitle: '', valid: true}))} qualified={true} />
+      <Qualify {...props} rows={props.rows.map(r => ({...r, subTitle: '', valid: true}))} state="qualified" />
     ))
-    .add('Loading', () => <Qualify {...props} loading={true} />)
+    .add('Loading', () => <Qualify {...props} state="loading" />)
+    .add('Accepted', () => <Qualify {...props} state="accepted" />)
 }
 
 export default load
