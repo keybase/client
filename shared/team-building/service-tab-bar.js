@@ -54,7 +54,7 @@ const ServiceIconDesktop = (props: IconProps) => (
       fullWidth={true}
       style={Styles.collapseStyles([
         props.isActive ? styles.activeTabBar : styles.inactiveTabBar,
-        {backgroundColor: props.isActive ? serviceIdToAccentColor(props.service) : inactiveServiceAccentColor},
+        props.isActive && {backgroundColor: serviceIdToAccentColor(props.service)},
       ])}
     />
   </Kb.ClickableBox>
@@ -91,7 +91,7 @@ const ServiceIconMobile = (props: IconProps) => (
       fullWidth={true}
       style={Styles.collapseStyles([
         props.isActive ? styles.activeTabBar : styles.inactiveTabBar,
-        {backgroundColor: props.isActive ? serviceIdToAccentColor(props.service) : inactiveServiceAccentColor},
+        props.isActive && {backgroundColor: serviceIdToAccentColor(props.service)},
       ])}
     />
   </Kb.ClickableBox>
