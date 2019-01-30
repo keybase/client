@@ -301,7 +301,7 @@ export type _SendLinkToChat = {
 }
 export type SendLinkToChat = I.RecordOf<_SendLinkToChat>
 
-export type PathItemActionMenuView = 'root' | 'share' | 'confirm-send-to-other-app'
+export type PathItemActionMenuView = 'root' | 'share' | 'confirm-save' | 'confirm-send-to-other-app'
 export type _PathItemActionMenu = {
   view: PathItemActionMenuView,
   downloadKey: ?string,

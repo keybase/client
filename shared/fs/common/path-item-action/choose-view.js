@@ -28,8 +28,12 @@ export default namedConnect<OwnProps, _, _, _, _>(
       return <Root path={props.path} floatingMenuProps={props.floatingMenuProps} />
     case 'share':
       return <Share path={props.path} floatingMenuProps={props.floatingMenuProps} />
+    case 'confirm-save':
+      return <Confirm path={props.path} floatingMenuProps={props.floatingMenuProps} action="save" />
     case 'confirm-send-to-other-app':
-      return <Confirm path={props.path} floatingMenuProps={props.floatingMenuProps} />
+      return (
+        <Confirm path={props.path} floatingMenuProps={props.floatingMenuProps} action="send-to-other-app" />
+      )
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.view)
       return null

@@ -20,6 +20,10 @@ const mapStateToProps = (state, {path}) => ({
 })
 
 const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
+  _confirmSaveMedia: (toCancel: ?string) => {
+    dispatch(FsGen.createSetPathItemActionMenuView({view: 'confirm-save'}))
+    toCancel && dispatch(FsGen.createCancelDownload({key: toCancel}))
+  },
   _confirmShareNative: (toCancel: ?string) => {
     dispatch(FsGen.createSetPathItemActionMenuView({view: 'confirm-send-to-other-app'}))
     toCancel && dispatch(FsGen.createCancelDownload({key: toCancel}))
@@ -61,11 +65,15 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   let saveMedia
   let shareNative
   const {saving, sharing, done} = getDownloadingState(stateProps)
-  if (Constants.isMedia(stateProps._pathItem)) {
+  if (stateProps._pathItem.type === 'file' && Constants.isMedia(stateProps._pathItem)) {
     // save is enabled for media files only
-    saveMedia = saving
-      ? 'in-progress'
-      : () => dispatchProps._saveMedia(sharing ? stateProps._downloadKey : null)
+    if (saving) {
+      saveMedia = 'in-progress'
+    } else {
+      saveMedia = needConfirm(stateProps._pathItem)
+        ? () => dispatchProps._confirmSaveMedia(sharing ? stateProps._downloadKey : null)
+        : () => dispatchProps._saveMedia(sharing ? stateProps._downloadKey : null)
+    }
   }
   if (isMobile && stateProps._pathItem.type === 'file') {
     // share is enabled for all files
