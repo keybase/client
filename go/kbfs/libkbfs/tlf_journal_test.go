@@ -1518,9 +1518,11 @@ func testTLFJournalConvertWhileFlushing(t *testing.T, ver kbfsmd.MetadataVer) {
 		// Now finish the block put, and let the flush finish.  We should
 		// be on a local squash branch now.
 		case unpauseBlockPutCh <- struct{}{}:
+			continue
 		case err := <-errCh:
 			require.NoError(t, err)
 		}
+		break
 	}
 
 	// Should be a full batch worth of blocks left, plus all the
@@ -1558,9 +1560,11 @@ func testTLFJournalSquashWhileFlushing(t *testing.T, ver kbfsmd.MetadataVer) {
 		// Now finish the block put, and let the flush finish.  We
 		// shouldn't be on a branch anymore.
 		case unpauseBlockPutCh <- struct{}{}:
+			continue
 		case err = <-errCh:
 			require.NoError(t, err)
 		}
+		break
 	}
 
 	// Since flush() never saw the branch in conflict, it will finish
