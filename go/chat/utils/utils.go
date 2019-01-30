@@ -1017,6 +1017,8 @@ func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.Unverifie
 		}
 		res.Name = rc.LocalMetadata.Name
 	}
+	res.ConvRetention = rawConv.ConvRetention
+	res.TeamRetention = rawConv.TeamRetention
 	return res
 }
 

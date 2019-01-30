@@ -144,6 +144,20 @@
           "name": "version"
         },
         {
+          "type": [
+            null,
+            "RetentionPolicy"
+          ],
+          "name": "convRetention"
+        },
+        {
+          "type": [
+            null,
+            "RetentionPolicy"
+          ],
+          "name": "teamRetention"
+        },
+        {
           "type": "MessageID",
           "name": "maxMsgID"
         },
