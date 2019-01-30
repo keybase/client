@@ -28,12 +28,6 @@ class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
   state = {animating: false, children: copyChildren(this.props.children), height: 17}
   timerID: SharedTimerID
 
-  constructor(props: Props) {
-    super(props)
-    // create a ref to store the textInput DOM element
-    this._boxRef
-  }
-
   static getDerivedStateFromProps(nextProps: Props, prevState: State) {
     return nextProps.retainHeight ? null : {children: copyChildren(nextProps.children)}
   }
