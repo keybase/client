@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Sb from '../../../../stories/storybook'
-import {List} from 'immutable'
+import {List, Set} from 'immutable'
 import {Box2} from '../../../../common-adapters/box'
 import {platformStyles} from '../../../../styles'
 import Input, {type Props as InputProps} from '.'
@@ -37,6 +37,7 @@ const provider = Sb.createPropProviderWithCommon({
   }),
   Typing: ownProps => ({
     conversationIDKey: ownProps.conversationIDKey,
+    names: Set(),
   }),
   UserMentionHud: ownProps => {
     const users = [

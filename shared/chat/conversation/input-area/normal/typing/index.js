@@ -60,23 +60,23 @@ const Names = ({names}: {names: I.Set<string>}) => {
   return ret
 }
 
-export type Props = {|
+type Props = {|
   conversationIDKey: Types.ConversationIDKey,
-  names?: I.Set<string>,
+  names: I.Set<string>,
 |}
 
 export const Typing = (props: Props) => (
   <Kb.Box
     style={Styles.collapseStyles([
       styles.isTypingContainer,
-      props.names && props.names.size > 0 && styles.isTypingContainerVisible,
+      props.names.size > 0 && styles.isTypingContainerVisible,
     ])}
   >
     <Kb.Box style={styles.typingIconContainer}>
       <Kb.Animation animationType="typing" containerStyle={styles.isTypingAnimation} />
     </Kb.Box>
     <Kb.Text type={Styles.isMobile ? 'BodyTiny' : 'BodySmall'} style={styles.isTypingText}>
-      <Names names={props.names ?? I.Set()} />
+      <Names names={props.names} />
     </Kb.Text>
   </Kb.Box>
 )

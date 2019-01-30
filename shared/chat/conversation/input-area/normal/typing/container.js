@@ -8,11 +8,9 @@ type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
 |}
 
-const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
-  return {
-    names: Constants.getTyping(state, conversationIDKey),
-  }
-}
+const mapStateToProps = (state, {conversationIDKey}: OwnProps) => ({
+  names: Constants.getTyping(state, conversationIDKey),
+})
 
 export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
