@@ -11,30 +11,31 @@ type Props = {|
 
 const Banner = (p: Props) =>
   p.show ? (
-    <Kb.Box2 noShrink={true} fullWidth={true} direction="horizontal" style={styles.container}>
-      <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.starContainer}>
-        <Kb.Icon
-          type={Styles.isMobile ? 'icon-stellar-coins-stacked-16' : 'icon-stellar-coins-flying-2-48'}
-        />
+    <Kb.Box2 noShrink={true} fullWidth={true} direction="horizontal" style={styles.container} gap="small">
+      <Kb.Box2 direction="horizontal" centerChildren={true}>
+        <Kb.Icon type="iconfont-nav-wallets" />
       </Kb.Box2>
-      <Kb.Box2 direction="vertical" style={styles.textContainer} gap="tiny">
-        <Kb.Text backgroundMode="Terminal" type="Header">
-          Get free Lumens every month
-        </Kb.Text>
-        <Kb.Text type="Body">
-          Monthly starting March 1, Keybase will divide 50,000 XLM (Stellar Lumens) among Keybase users.
-        </Kb.Text>
-        <Kb.Button
-          type="PrimaryColoredBackground"
-          backgroundMode="Purple"
-          label="See if you qualify"
-          onClick={p.onCheckQualify}
-          style={styles.button}
-        />
-      </Kb.Box2>
+      <Kb.Markdown styleOverride={markdownOverride} style={styles.markdown}>
+        Starting March 1, Keybase will divide *50,000 XLM* (Stellar Lumens) among qualified Keybase users,
+        every month.
+      </Kb.Markdown>
+      <Kb.Button
+        type="PrimaryColoredBackground"
+        backgroundMode="Purple"
+        label="Join the airdrop"
+        onClick={p.onCheckQualify}
+        style={styles.button}
+      />
+      <Kb.Box2 direction="vertical" style={styles.grow} />
       <Kb.Icon type="iconfont-close" onClick={p.onCancel} style={styles.close} />
     </Kb.Box2>
   ) : null
+
+const markdownOverride = {
+  paragraph: {
+    color: Styles.globalColors.white,
+  },
+}
 
 const styles = Styles.styleSheetCreate({
   button: {alignSelf: 'flex-start'},
@@ -43,13 +44,8 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.purple2,
     padding: Styles.globalMargins.small,
   },
-  starContainer: Styles.platformStyles({
-    isElectron: {
-      height: '100%',
-      width: 180,
-    },
-    isMobile: {width: 40},
-  }),
+  grow: {flexGrow: 1, flexShrink: 1},
+  markdown: {alignSelf: 'center'},
   textContainer: {
     flexGrow: 1,
     flexShrink: 1,
