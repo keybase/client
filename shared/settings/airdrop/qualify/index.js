@@ -18,7 +18,7 @@ type Props = {|
 const Loading = () => (
   <Kb.Box2 noShrink={true} direction="vertical" centerChildren={true} style={styles.container} gap="medium">
     <Kb.Icon type="icon-stellar-coins-stacked-16" style={styles.star} />
-    <Kb.Text center={true} type="Header" style={styles.loadingText}>
+    <Kb.Text center={true} type="BodySemibold" style={styles.loadingText}>
       Analyzing your account...
     </Kb.Text>
   </Kb.Box2>
@@ -72,16 +72,15 @@ const Qualify = (p: Props) => (
               fullWidth={true}
               type="PrimaryGreen"
               label="Become a lucky airdropee"
-              style={styles.button}
+              style={styles.buttonAccept}
             />
           )}
           <Kb.Button
             onClick={p.onCancel}
             fullWidth={true}
-            backgroundMode="Black"
-            type="PrimaryColoredBackground"
+            type="Wallet"
             label="Close"
-            style={styles.button}
+            style={styles.buttonClose}
           />
         </Kb.Box2>
       </Kb.ScrollView>
@@ -90,7 +89,9 @@ const Qualify = (p: Props) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  button: {
+  buttonAccept: {flexGrow: 0},
+  buttonClose: {
+    backgroundColor: Styles.globalColors.black_10,
     flexGrow: 0,
   },
   container: {
@@ -112,9 +113,9 @@ const styles = Styles.styleSheetCreate({
     paddingTop: Styles.globalMargins.xsmall,
   },
   rowBorder: {
-    borderBottomColor: Styles.globalColors.black_10,
-    borderBottomWidth: 1,
     borderStyle: 'solid',
+    borderTopColor: Styles.globalColors.black_10,
+    borderTopWidth: 1,
   },
   rowText: {color: Styles.globalColors.white, flexGrow: 1},
   star: {
