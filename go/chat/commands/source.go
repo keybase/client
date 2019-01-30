@@ -3,6 +3,7 @@ package commands
 import (
 	"context"
 	"errors"
+	"sort"
 	"strings"
 
 	"github.com/keybase/client/go/chat/globals"
@@ -94,6 +95,9 @@ func (s *Source) GetBuiltins(ctx context.Context) (res []chat1.BuiltinCommandGro
 			Commands: exportCmds,
 		})
 	}
+	sort.Slice(res, func(i, j int) bool {
+		return res[i].Typ < res[j].Typ
+	})
 	return res
 }
 
