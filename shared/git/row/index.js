@@ -2,7 +2,6 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import * as FsTypes from '../../constants/types/fs'
 import KbfsPathContainer from '../../common-adapters/markdown/kbfs-path-container'
 
 type Props = {
@@ -233,22 +232,6 @@ const styles = Styles.styleSheetCreate({
     maxWidth: 460,
     width: '100%',
   },
-  repoLink: Styles.platformStyles({
-    common: {
-      marginLeft: Styles.globalMargins.xtiny,
-    },
-    isElectron: {
-      // Make text selectable. On mobile we implement that differently.
-      cursor: 'text',
-      userSelect: 'text',
-      whiteSpace: 'pre-wrap',
-      width: '100%',
-      wordBreak: 'break-word',
-    },
-    isMobile: {
-      ...Styles.globalStyles.flexBoxColumn,
-    },
-  }),
 })
 
 const _deviceStyle = {
