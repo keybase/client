@@ -485,39 +485,29 @@ protocol local {
   }
   InflationDestinationResultLocal getInflationDestinationLocal(int sessionID, AccountID accountID);
 
-  // airdropRegisterLocal registers a user for an airdrop.
-  void airdropRegisterLocal(int sessionID, boolean register);
+  // airdropDetailsLocal returns a json blob of details about the current
+  // airdrop.  If the current airdrop has expired, it will return an 
+  // expired error.
+  string airdropDetailsLocal(int sessionID);
 
-  record AirdropServiceCheck {
-    string serviceUsername;
-    string accountCreated;
-    boolean isOldEnough;
-    boolean isUsedAlready;
-    boolean qualifies;
-  }
+  @typedef("string") record AirdropState {}
 
-  record AirdropQualifications {
-    boolean hasStellarKey;
-    boolean hasEnoughDevices;
-    boolean qualifiesOverall;
-    boolean isBeforeRegistrationDeadline;
-    map<string, AirdropServiceCheck> serviceChecks;
-  }
-
-  record AirdropConfig {
-    int minActiveDevices;
-    int registrationDeadline;
-    map<string, int> accountCreationDeadlines;
+  record AirdropQualification {
+    string title;
+    string subtitle;
+    boolean valid;
   }
 
   record AirdropStatus {
-    boolean alreadyRegisterd;
-    AirdropQualifications qualifications;
-    AirdropConfig config;
+    AirdropState state;
+    array<AirdropQualification> rows;
   }
 
-  // airdropStatusLocal returns the user's status for a particular airdrop.
-  AirdropStatus airdropStatusLocal(int sessionID, string airdropName);
+  // airdropStatusLocal returns the user's status for the current airdrop.
+  AirdropStatus airdropStatusLocal(int sessionID);
+
+  // airdropRegisterLocal registers a user for an airdrop.
+  void airdropRegisterLocal(int sessionID, boolean register);
 
   // -------------------------------------------------------
   // CLI protocol

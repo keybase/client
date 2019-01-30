@@ -749,79 +749,25 @@
     },
     {
       "type": "record",
-      "name": "AirdropServiceCheck",
-      "fields": [
-        {
-          "type": "string",
-          "name": "serviceUsername"
-        },
-        {
-          "type": "string",
-          "name": "accountCreated"
-        },
-        {
-          "type": "boolean",
-          "name": "isOldEnough"
-        },
-        {
-          "type": "boolean",
-          "name": "isUsedAlready"
-        },
-        {
-          "type": "boolean",
-          "name": "qualifies"
-        }
-      ]
+      "name": "AirdropState",
+      "fields": [],
+      "typedef": "string"
     },
     {
       "type": "record",
-      "name": "AirdropQualifications",
+      "name": "AirdropQualification",
       "fields": [
         {
-          "type": "boolean",
-          "name": "hasStellarKey"
+          "type": "string",
+          "name": "title"
+        },
+        {
+          "type": "string",
+          "name": "subtitle"
         },
         {
           "type": "boolean",
-          "name": "hasEnoughDevices"
-        },
-        {
-          "type": "boolean",
-          "name": "qualifiesOverall"
-        },
-        {
-          "type": "boolean",
-          "name": "isBeforeRegistrationDeadline"
-        },
-        {
-          "type": {
-            "type": "map",
-            "values": "AirdropServiceCheck",
-            "keys": "string"
-          },
-          "name": "serviceChecks"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "AirdropConfig",
-      "fields": [
-        {
-          "type": "int",
-          "name": "minActiveDevices"
-        },
-        {
-          "type": "int",
-          "name": "registrationDeadline"
-        },
-        {
-          "type": {
-            "type": "map",
-            "values": "int",
-            "keys": "string"
-          },
-          "name": "accountCreationDeadlines"
+          "name": "valid"
         }
       ]
     },
@@ -830,16 +776,15 @@
       "name": "AirdropStatus",
       "fields": [
         {
-          "type": "boolean",
-          "name": "alreadyRegisterd"
+          "type": "AirdropState",
+          "name": "state"
         },
         {
-          "type": "AirdropQualifications",
-          "name": "qualifications"
-        },
-        {
-          "type": "AirdropConfig",
-          "name": "config"
+          "type": {
+            "type": "array",
+            "items": "AirdropQualification"
+          },
+          "name": "rows"
         }
       ]
     },
@@ -1873,6 +1818,24 @@
       ],
       "response": "InflationDestinationResultLocal"
     },
+    "airdropDetailsLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "string"
+    },
+    "airdropStatusLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "AirdropStatus"
+    },
     "airdropRegisterLocal": {
       "request": [
         {
@@ -1885,19 +1848,6 @@
         }
       ],
       "response": null
-    },
-    "airdropStatusLocal": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "airdropName",
-          "type": "string"
-        }
-      ],
-      "response": "AirdropStatus"
     },
     "balancesLocal": {
       "request": [
