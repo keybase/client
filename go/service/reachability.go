@@ -61,10 +61,7 @@ func newReachability(g *libkb.GlobalContext, gh *gregorHandler) *reachability {
 
 func (h *reachability) setReachability(r keybase1.Reachability) {
 	h.setMutex.Lock()
-	changed := false
-	if h.lastReachability.Reachable != r.Reachable {
-		changed = true
-	}
+	changed := h.lastReachability.Reachable != r.Reachable
 	h.lastReachability = r
 	h.setMutex.Unlock()
 
