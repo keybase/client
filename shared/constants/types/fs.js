@@ -208,6 +208,7 @@ export type _DownloadMeta = {
 export type DownloadMeta = I.RecordOf<_DownloadMeta>
 
 export type _DownloadState = {
+  canceled: boolean,
   completePortion: number,
   endEstimate?: number,
   error?: FsError,
@@ -300,30 +301,10 @@ export type _SendLinkToChat = {
 }
 export type SendLinkToChat = I.RecordOf<_SendLinkToChat>
 
-export type _PathItemActionMenuRootView = {
-  type: 'root',
-}
-export type PathItemActionMenuRootView = I.RecordOf<_PathItemActionMenuRootView>
-
-export type _PathItemActionMenuShareView = {
-  type: 'share',
-}
-export type PathItemActionMenuShareView = I.RecordOf<_PathItemActionMenuShareView>
-
-export type PathItemActionMenuConfirmActionType = 'save' | 'send-to-other-app'
-export type _PathItemActionMenuConfirmView = {
-  type: 'confirm',
-  action: PathItemActionMenuConfirmActionType,
-}
-export type PathItemActionMenuConfirmView = I.RecordOf<_PathItemActionMenuConfirmView>
-
-export type PathItemActionMenuView =
-  | PathItemActionMenuRootView
-  | PathItemActionMenuShareView
-  | PathItemActionMenuConfirmView
-
+export type PathItemActionMenuView = 'root' | 'share' | 'confirm-send-to-other-app'
 export type _PathItemActionMenu = {
   view: PathItemActionMenuView,
+  downloadKey: ?string,
 }
 export type PathItemActionMenu = I.RecordOf<_PathItemActionMenu>
 

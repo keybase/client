@@ -22,9 +22,8 @@ const mapStateToProps = (state, {path}) => ({
 })
 
 const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
-  _download: () => dispatch(FsGen.createDownload(Constants.makeDownloadPayload(path))),
-  _share: () =>
-    dispatch(FsGen.createSetPathItemActionMenuView({view: Constants.makePathItemActionMenuShareView()})),
+  _download: () => dispatch(FsGen.createDownload({key: Constants.makeDownloadKey(path), path})),
+  _share: () => dispatch(FsGen.createSetPathItemActionMenuView({view: 'share'})),
   _showInSystemFileManager: () => dispatch(FsGen.createOpenPathInSystemFileManager({path})),
   copyPath: () => dispatch(ConfigGen.createCopyToClipboard({text: Constants.escapePath(path)})),
   deleteFileOrFolder: () => dispatch(FsGen.createDeleteFile({path})),

@@ -225,6 +225,9 @@
     "setPathItemActionMenuView": {
       "view": "Types.PathItemActionMenuView"
     },
+    "setPathItemActionMenuDownloadKey": {
+      "key": "?string"
+    },
 
     "placeholderAction": {}
   }

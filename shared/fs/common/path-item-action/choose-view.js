@@ -23,17 +23,15 @@ export default namedConnect<OwnProps, _, _, _, _>(
   (s, d, o) => ({...o, ...s, ...d}),
   'PathItemActionChooseView'
 )(props => {
-  switch (props.view.type) {
+  switch (props.view) {
     case 'root':
       return <Root path={props.path} floatingMenuProps={props.floatingMenuProps} />
     case 'share':
       return <Share path={props.path} floatingMenuProps={props.floatingMenuProps} />
-    case 'confirm':
-      return (
-        <Confirm path={props.path} floatingMenuProps={props.floatingMenuProps} action={props.view.action} />
-      )
+    case 'confirm-send-to-other-app':
+      return <Confirm path={props.path} floatingMenuProps={props.floatingMenuProps} />
     default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.view.type)
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.view)
       return null
   }
 })

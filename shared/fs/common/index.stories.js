@@ -51,9 +51,6 @@ const pathItemActionRootProps = (props: any) => ({
 })
 
 export const commonProvider = {
-  ConnectedDownloadTrackingHoc: () => ({
-    downloading: false,
-  }),
   ConnectedErrs: () => ({
     errs: [],
   }),

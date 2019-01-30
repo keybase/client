@@ -37,15 +37,17 @@ const PathItemAction = (props: Props & Kb.OverlayParentProps) => {
           className={props.actionIconClassName}
         />
       </Kb.ClickableBox>
-      <ChooseView
-        path={props.path}
-        floatingMenuProps={{
-          attachTo: props.getAttachmentRef,
-          containerStyle: styles.floatingContainer,
-          hideOnce: hideMenuOnce,
-          visible: props.showingMenu,
-        }}
-      />
+      {props.showingMenu && (
+        <ChooseView
+          path={props.path}
+          floatingMenuProps={{
+            attachTo: props.getAttachmentRef,
+            containerStyle: styles.floatingContainer,
+            hideOnce: hideMenuOnce,
+            visible: props.showingMenu,
+          }}
+        />
+      )}
     </Kb.Box>
   )
 }

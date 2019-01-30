@@ -293,7 +293,10 @@ function* download(state, action) {
     const mimeType = yield* _loadMimeType(path)
     yield Saga.put(FsGen.createDownloadSuccess({key, mimeType: mimeType?.mimeType || ''}))
   } catch (error) {
+    // THis needs to be beofer the dismiss below, so that if it's an legit
+    // error we'd show the red bar.
     yield Saga.put(makeRetriableErrorHandler(action)(error))
+  } finally {
     if (intent !== 'none') {
       // If it's a normal download, we show a red card for the user to dismiss.
       // TODO: when we get rid of download cards on Android, check isMobile
@@ -332,10 +335,9 @@ function* upload(_, action) {
   }
 }
 
-function cancelDownload(state, {payload: {key}}) {
-  const download = state.fs.downloads.get(key)
+const cancelDownload = (state, action) => {
+  const download = state.fs.downloads.get(action.payload.key)
   if (!download) {
-    console.log(`unknown download: ${key}`)
     return
   }
   const {
