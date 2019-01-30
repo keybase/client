@@ -7,13 +7,13 @@ import * as Styles from '../../../../../styles'
 
 const Names = ({names}: {names: I.Set<string>}) => {
   const textType = Styles.isMobile ? 'BodyTinySemibold' : 'BodySmallSemibold'
-  let res
+  let ret
   switch (names.size) {
     case 0:
-      res = ''
+      ret = ''
       break
     case 1:
-      res = (
+      ret = (
         <>
           <Kb.Text key={0} type={textType}>
             {names.first()}
@@ -23,7 +23,7 @@ const Names = ({names}: {names: I.Set<string>}) => {
       )
       break
     case 2:
-      res = (
+      ret = (
         <>
           <Kb.Text key={0} type={textType}>
             {names.first()}
@@ -37,7 +37,7 @@ const Names = ({names}: {names: I.Set<string>}) => {
       )
       break
     case 3:
-      res = (
+      ret = (
         <>
           <Kb.Text key={0} type={textType}>
             {names.first()}
@@ -55,9 +55,9 @@ const Names = ({names}: {names: I.Set<string>}) => {
       )
       break
     default:
-      res = <>{'several people are typing'}</>
+      ret = 'several people are typing'
   }
-  return res
+  return ret
 }
 
 export type Props = {|
