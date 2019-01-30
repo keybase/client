@@ -31,6 +31,7 @@ func (n NullConfiguration) GetDbFilename() string                               
 func (n NullConfiguration) GetChatDbFilename() string                                      { return "" }
 func (n NullConfiguration) GetPvlKitFilename() string                                      { return "" }
 func (n NullConfiguration) GetParamProofKitFilename() string                               { return "" }
+func (n NullConfiguration) GetProveBypass() (bool, bool)                                   { return false, false }
 func (n NullConfiguration) GetUsername() NormalizedUsername                                { return NormalizedUsername("") }
 func (n NullConfiguration) GetEmail() string                                               { return "" }
 func (n NullConfiguration) GetUpgradePerUserKey() (bool, bool)                             { return false, false }
@@ -672,6 +673,15 @@ func (e *Env) GetParamProofKitFilename() string {
 		func() string { return os.Getenv("KEYBASE_PARAM_PROOF_KIT_FILE") },
 		func() string { return e.GetConfig().GetParamProofKitFilename() },
 	)
+}
+
+// GetProveBypass ignores creation_disabled so that the client will let the user
+// try to make a proof for any known service.
+func (e *Env) GetProveBypass() bool {
+	return e.GetBool(false,
+		func() (bool, bool) { return e.cmd.GetProveBypass() },
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_PROVE_BYPASS") },
+		func() (bool, bool) { return e.GetConfig().GetProveBypass() })
 }
 
 func (e *Env) GetDebug() bool {
