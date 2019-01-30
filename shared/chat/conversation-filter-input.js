@@ -155,11 +155,6 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
             onClick={this.props.onNewChat}
           />
         )}
-        {this.props.isLoading && (
-          <Kb.Box style={styles.loadingContainer}>
-            <Kb.LoadingLine />
-          </Kb.Box>
-        )}
       </Kb.Box2>
     )
   }
