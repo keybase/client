@@ -48,7 +48,7 @@ func (c *TeamChannelSource) getTLFConversations(ctx context.Context, uid gregor1
 
 func (c *TeamChannelSource) GetChannelsFull(ctx context.Context, uid gregor1.UID,
 	teamID chat1.TLFID, topicType chat1.TopicType) (res []chat1.ConversationLocal, err error) {
-	defer c.Trace(ctx, func() error { return err }, "GetChannels")()
+	defer c.Trace(ctx, func() error { return err }, "GetChannelsFull")()
 
 	rcs, err := c.getTLFConversations(ctx, uid, teamID, topicType)
 	if err != nil {
@@ -56,11 +56,11 @@ func (c *TeamChannelSource) GetChannelsFull(ctx context.Context, uid gregor1.UID
 	}
 	convs, _, err := c.G().InboxSource.Localize(ctx, uid, rcs, types.ConversationLocalizerBlocking)
 	if err != nil {
-		c.Debug(ctx, "GetChannels: failed to localize conversations: %s", err.Error())
+		c.Debug(ctx, "GetChannelsFull: failed to localize conversations: %s", err.Error())
 		return nil, err
 	}
 	sort.Sort(utils.ConvLocalByTopicName(convs))
-	c.Debug(ctx, "GetChannels: found %d convs", len(convs))
+	c.Debug(ctx, "GetChannelsFull: found %d convs", len(convs))
 	return convs, nil
 }
 
