@@ -12,7 +12,6 @@ import * as RouteTreeGen from '../actions/route-tree-gen'
 import {connect, type RouteProps} from '../util/container'
 import {globalStyles} from '../styles'
 import RpcStats from './rpc-stats'
-import flags from '../util/feature-flags'
 import AirdropBanner from '../settings/airdrop/banner/container'
 
 type OwnProps = RouteProps<{}, {}>

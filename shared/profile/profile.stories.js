@@ -33,6 +33,7 @@ const following = [
 
 const mockUserInfo = {
   userInfo: {
+    airdrop: false,
     avatar: 'https://keybase.io/chris/picture',
     bio: 'Co-founder of Keybase, OkCupid, SparkNotes, and some random other junk. I like making things.',
     followersCount: 1871,

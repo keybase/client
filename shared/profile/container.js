@@ -22,7 +22,6 @@ import {isTesting} from '../local-debug'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import {peopleTab} from '../constants/tabs'
 import {connect} from '../util/container'
-import flags from '../util/feature-flags'
 
 import type {Response} from 'react-native-image-picker'
 import type {MissingProof} from './user-proofs'

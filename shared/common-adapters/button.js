@@ -58,10 +58,10 @@ class Button extends React.Component<Props> {
     const backgroundModeName = this.props.backgroundMode
       ? {
           Black: 'Black',
-          Purple: 'Purple',
           Blue: 'Blue',
           Green: 'Green',
           Normal: '',
+          Purple: 'Purple',
           Red: 'Red',
           Terminal: 'OnTerminal',
         }[this.props.backgroundMode]

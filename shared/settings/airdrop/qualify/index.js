@@ -76,7 +76,7 @@ const Qualified = p => (
         ))}
       </>
       <Kb.Box2 direction="vertical" style={styles.grow} />
-      {p.qualified && (
+      {p.state === 'qualified' && (
         <Kb.Button
           onClick={p.onSubmit}
           fullWidth={true}
@@ -99,7 +99,7 @@ const Qualified = p => (
 const Qualify = (p: Props) => (
   <Kb.MaybePopup onClose={p.onCancel}>
     {p.state === 'loading' && <Loading />}
-    {p.state === 'accepted' && <Accepted />}
+    {p.state === 'accepted' && <Accepted {...p} />}
     {(p.state === 'qualified' || p.state === 'unqualified') && <Qualified {...p} />}
   </Kb.MaybePopup>
 )

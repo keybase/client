@@ -1,22 +1,28 @@
 // @flow
 import Airdrop from '.'
-// import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as WalletsGen from '../../actions/wallets-gen'
 import {connect, type RouteProps} from '../../util/container'
 
 type OwnProps = RouteProps<{}, {}>
 
 const mapStateToProps = state => ({
-  // TODO
-  signedUp: false,
+  _body: state.wallets.airdropProgramInfo,
+  signedUp: state.wallets.airdropState === 'accepted',
 })
 
 const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
   onCheckQualify: () => dispatch(navigateAppend(['airdropQualify'])),
+  onReject: () => dispatch(WalletsGen.createChangeAirdrop({accept: false})),
 })
 
-const mergeProps = (s, d, o) => ({
-  ...s,
-  ...d,
+const mergeProps = (stateProps, dispatchProps) => ({
+  body: stateProps._body.toArray().map(b => ({
+    lines: b.lines.toArray(),
+    section: b.section,
+  })),
+  onCheckQualify: dispatchProps.onCheckQualify,
+  onReject: dispatchProps.onReject,
+  signedUp: stateProps.signedUp,
 })
 
 export default connect<OwnProps, _, _, _, _>(

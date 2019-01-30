@@ -1,25 +1,24 @@
 // @flow
 import Qualify from '.'
-// import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as WalletsGen from '../../../actions/wallets-gen'
 import {connect, type RouteProps} from '../../../util/container'
 
 type OwnProps = RouteProps<{}, {}>
 
 const mapStateToProps = state => ({
-  // TODO
-  loading: false,
-  qualified: false,
-  rows: [],
+  _rows: state.wallets.airdropQualifications,
+  state: state.wallets.airdropQualifiedState,
 })
 
 const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   onCancel: () => dispatch(navigateUp()),
-  onSubmit: () => console.log('TODO'),
+  onSubmit: () => dispatch(WalletsGen.createChangeAirdrop({accept: true})),
 })
 
-const mergeProps = (s, d, o) => ({
-  ...s,
-  ...d,
+const mergeProps = (stateProps, dispatchProps) => ({
+  rows: stateProps._rows.toArray().map(r => r.toObject()),
+  state: stateProps.state,
+  ...dispatchProps,
 })
 
 export default connect<OwnProps, _, _, _, _>(
