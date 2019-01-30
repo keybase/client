@@ -536,7 +536,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				notificationSnippet := ""
 				if desktopNotification {
 					notificationSnippet = utils.GetDesktopNotificationSnippet(conv,
-						g.G().Env.GetUsername().String())
+						g.G().Env.GetUsername().String(), &decmsg)
 				}
 				activity = new(chat1.ChatActivity)
 				*activity = chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{

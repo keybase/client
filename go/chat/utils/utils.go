@@ -929,11 +929,19 @@ func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, curre
 }
 
 // We don't want to display the contents of an exploding message in notifications
-func GetDesktopNotificationSnippet(conv *chat1.ConversationLocal, currentUsername string) string {
-	if conv == nil || conv.Info.SnippetMsg == nil {
+func GetDesktopNotificationSnippet(conv *chat1.ConversationLocal, currentUsername string,
+	fromMsg *chat1.MessageUnboxed) string {
+	if conv == nil {
 		return ""
 	}
-	msg := *conv.Info.SnippetMsg
+	var msg chat1.MessageUnboxed
+	if fromMsg != nil {
+		msg = *fromMsg
+	} else if conv.Info.SnippetMsg != nil {
+		msg = *conv.Info.SnippetMsg
+	} else {
+		return ""
+	}
 	if !msg.IsValid() {
 		return ""
 	}
