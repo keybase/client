@@ -246,7 +246,12 @@ type _AirdropQualification = {|
 |}
 type AirdropQualification = I.RecordOf<_AirdropQualification>
 type _AirdropInfo = {|
-  lines: I.List<string>,
+  lines: I.List<
+    I.RecordOf<{
+      bullet: boolean,
+      text: string,
+    }>
+  >,
   section: string,
 |}
 type AirdropInfo = I.RecordOf<_AirdropInfo>

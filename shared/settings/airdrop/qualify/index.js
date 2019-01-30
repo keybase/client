@@ -54,9 +54,11 @@ const Row = p => (
         color={p.valid ? Styles.globalColors.green : Styles.globalColors.red}
       />
     </Kb.Box2>
-    <Kb.Text type="Body" style={styles.rowText}>
-      {p.subTitle}
-    </Kb.Text>
+    {!!p.subTitle && (
+      <Kb.Text type="Body" style={styles.rowText}>
+        {p.subTitle}
+      </Kb.Text>
+    )}
   </Kb.Box2>
 )
 
@@ -75,7 +77,7 @@ const Qualified = p => (
           <Row key={r.title} {...r} first={idx === 0} />
         ))}
       </>
-      <Kb.Box2 direction="vertical" style={styles.grow} />
+      {!Styles.isMobile && <Kb.Box2 direction="vertical" style={styles.grow} />}
       {p.state === 'qualified' && (
         <Kb.Button
           onClick={p.onSubmit}
@@ -110,30 +112,45 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.black_10,
     flexGrow: 0,
   },
-  container: {
-    backgroundColor: Styles.globalColors.purple2,
-    height: 550,
-    padding: Styles.globalMargins.medium,
-    width: 400,
-  },
-  content: {
-    height: 550 - Styles.globalMargins.medium * 2,
-    width: 400 - Styles.globalMargins.medium * 2,
-  },
+  container: Styles.platformStyles({
+    common: {backgroundColor: Styles.globalColors.purple2},
+    isElectron: {
+      height: 550,
+      padding: Styles.globalMargins.medium,
+      width: 400,
+    },
+    isMobile: {
+      height: '100%',
+      width: '100%',
+    },
+  }),
+  content: Styles.platformStyles({
+    isElectron: {
+      height: 550 - Styles.globalMargins.medium * 2,
+      width: 400 - Styles.globalMargins.medium * 2,
+    },
+    isMobile: {padding: Styles.globalMargins.small},
+  }),
   grow: {flexGrow: 1},
   headerText: {color: Styles.globalColors.white},
   loadingText: {color: Styles.globalColors.white_40},
-  row: {
-    minHeight: Styles.globalMargins.large,
-    paddingBottom: Styles.globalMargins.xsmall,
-    paddingTop: Styles.globalMargins.xsmall,
-  },
+  row: Styles.platformStyles({
+    isElectron: {
+      minHeight: Styles.globalMargins.large,
+      paddingBottom: Styles.globalMargins.xsmall,
+      paddingTop: Styles.globalMargins.xsmall,
+    },
+    isMobile: {
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingTop: Styles.globalMargins.tiny,
+    },
+  }),
   rowBorder: {
     borderStyle: 'solid',
     borderTopColor: Styles.globalColors.black_10,
     borderTopWidth: 1,
   },
-  rowText: {color: Styles.globalColors.white, flexGrow: 1},
+  rowText: {color: Styles.globalColors.white, flexGrow: 1, flexShrink: 1},
   star: {
     alignSelf: 'center',
     height: 120,

@@ -8,7 +8,10 @@ type Props = {|
   onReject: () => void,
   signedUp: boolean,
   body: $ReadOnlyArray<{|
-    lines: $ReadOnlyArray<string>,
+    lines: $ReadOnlyArray<{|
+      bullet: boolean,
+      text: string,
+    |}>,
     section: string,
   |}>,
 |}
@@ -19,16 +22,19 @@ const Airdrop = (p: Props) => (
       {p.signedUp ? (
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.signedUpHeader} gap="small">
           <Kb.Icon type="icon-stellar-coins-stacked-16" />
-          <Kb.Text backgroundMode="Terminal" type="BodySemibold">
+          <Kb.Text backgroundMode="Terminal" type="BodySemibold" style={styles.shrink}>
             You’re in. The next Lumens airdrop will happen March 1.
           </Kb.Text>
         </Kb.Box2>
       ) : (
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
           <Kb.Box2 direction="vertical" centerChildren={true} style={styles.starContainer}>
-            <Kb.Icon type="icon-stellar-coins-flying-48" style={styles.bigStar} />
+            <Kb.Icon
+              type={Styles.isMobile ? 'icon-stellar-coins-stacked-16' : 'icon-stellar-coins-flying-48'}
+              style={styles.bigStar}
+            />
           </Kb.Box2>
-          <Kb.Box2 direction="vertical" gap="small">
+          <Kb.Box2 direction="vertical" gap="small" style={styles.shrink}>
             <Kb.Text backgroundMode="Terminal" type="Header">
               Get free lumens every month
             </Kb.Text>
@@ -52,9 +58,10 @@ const Airdrop = (p: Props) => (
               {b.section}
             </Kb.Text>
             {b.lines.map(l => (
-              <Kb.Text key={l} type="Body">
-                {l}
-              </Kb.Text>
+              <Kb.Box2 key={l.text} direction="horizontal" fullWidth={true}>
+                {l.bullet && <Kb.Text type="Body"> • </Kb.Text>}
+                <Kb.Text type="Body">{l.text}</Kb.Text>
+              </Kb.Box2>
             ))}
           </Kb.Box2>
         ))}
@@ -70,25 +77,27 @@ const Airdrop = (p: Props) => (
 
 const styles = Styles.styleSheetCreate({
   bannerButton: {alignSelf: 'flex-start'},
-  bigStar: {
-    height: 80,
-    width: 80,
-  },
+  bigStar: Styles.platformStyles({
+    isElectron: {height: 80, width: 80},
+    isMobile: {height: 20, width: 20},
+  }),
   body: {padding: Styles.globalMargins.small},
   header: {
     backgroundColor: Styles.globalColors.purple3,
-    padding: Styles.globalMargins.medium,
+    padding: Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.medium,
   },
   scrollView: {
     height: '100%',
     width: '100%',
   },
   section: {marginBottom: Styles.globalMargins.xxtiny},
+  shrink: {flexShrink: 1},
   signedUpHeader: {
     backgroundColor: Styles.globalColors.green,
+    flexShrink: 1,
     padding: Styles.globalMargins.tiny,
   },
-  starContainer: {width: 150},
+  starContainer: {width: Styles.isMobile ? 40 : 150},
 })
 
 export default Airdrop
