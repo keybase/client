@@ -93,7 +93,9 @@ const openSendRequestForm = (state, action) => {
 }
 
 const maybePopulateBuildingCurrency = (state, action) =>
-  (state.wallets.building.bid || state.wallets.building.isRequest) && !state.wallets.building.currency // building a payment and haven't set currency yet
+  (state.wallets.building.bid || state.wallets.building.isRequest) &&
+  state.config.loggedIn &&
+  !state.wallets.building.currency // building a payment and haven't set currency yet
     ? WalletsGen.createSetBuildingCurrency({currency: Constants.getDefaultDisplayCurrency(state).code})
     : null
 
@@ -214,6 +216,7 @@ const loadWalletDisclaimer = () =>
 
 const loadAccounts = (state, action) =>
   !actionHasError(action) &&
+  state.config.loggedIn &&
   RPCStellarTypes.localGetWalletAccountsLocalRpcPromise(undefined, [
     Constants.checkOnlineWaitingKey,
     Constants.loadAccountsWaitingKey,
@@ -260,6 +263,10 @@ const handleSelectAccountError = (action, msg, err) => {
 
 const loadAssets = (state, action) => {
   if (actionHasError(action)) {
+    return
+  }
+  if (!state.config.loggedIn) {
+    logger.error('Tried to loadAssets while not logged in')
     return
   }
   let accountID
@@ -312,6 +319,10 @@ const createPaymentsReceived = (accountID, payments, pending) =>
   })
 
 const loadPayments = (state, action) => {
+  if (!state.config.loggedIn) {
+    logger.error('Tried to loadPayments while not logged in')
+    return
+  }
   if (!action.payload.accountID) {
     const account = Constants.getAccount(state, action.payload.accountID)
     logger.error(
@@ -336,6 +347,10 @@ const loadPayments = (state, action) => {
 }
 
 const loadMorePayments = (state, action) => {
+  if (!state.config.loggedIn) {
+    logger.error('Tried to loadMorePayments while not logged in')
+    return
+  }
   const cursor = state.wallets.paymentCursorMap.get(action.payload.accountID)
   return (
     cursor &&
@@ -600,7 +615,7 @@ const exportSecretKey = (state, action) =>
   )
 
 const maybeSelectDefaultAccount = (state, action) => {
-  if (state.wallets.selectedAccount === Types.noAccountID) {
+  if (state.config.loggedIn && state.wallets.selectedAccount === Types.noAccountID) {
     const maybeDefaultAccount = state.wallets.accountMap.find(account => account.isDefault)
     if (maybeDefaultAccount) {
       return WalletsGen.createSelectAccount({
