@@ -55,7 +55,7 @@ const Names = ({names}: {names: I.Set<string>}) => {
       )
       break
     default:
-      ret = 'several people are typing'
+      ret = 'multiple people are typing'
   }
   return ret
 }
