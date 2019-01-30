@@ -2,17 +2,7 @@
 /* eslint-env browser */
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker'
 import React, {PureComponent} from 'react'
-import LottieView from 'lottie-react-native'
-import {
-  Box,
-  Box2,
-  Icon,
-  PlainInput,
-  Text,
-  iconCastPlatformStyles,
-  OverlayParentHOC,
-} from '../../../../common-adapters'
-import animationData from '../../../../common-adapters/animation-data.json'
+import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import {isIOS, isLargeScreen} from '../../../../constants/platform'
 import {
@@ -26,21 +16,6 @@ import WalletsIcon from './wallets-icon/container'
 import type {PlatformInputPropsInternal} from './platform-input'
 import AddSuggestors, {standardTransformer} from '../suggestors'
 
-export type AnimationProps = {|
-  animationType: 'typing',
-  containerStyle: Styles.StylesCrossPlatform,
-|}
-
-class Animation extends React.Component<AnimationProps> {
-  render() {
-    return (
-      <Box style={this.props.containerStyle}>
-        <LottieView autoPlay={true} loop={true} source={animationData[this.props.animationType]} />
-      </Box>
-    )
-  }
-}
-
 type menuType = 'exploding' | 'filepickerpopup'
 
 type State = {
@@ -48,7 +23,7 @@ type State = {
 }
 
 class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
-  _input: null | PlainInput
+  _input: null | Kb.PlainInput
   _lastText: ?string
   _whichMenu: menuType
 
@@ -59,7 +34,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
     }
   }
 
-  _inputSetRef = (ref: null | PlainInput) => {
+  _inputSetRef = (ref: null | Kb.PlainInput) => {
     this._input = ref
     this.props.inputSetRef(ref)
     this.props.inputRef.current = ref
@@ -172,7 +147,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
     }
 
     return (
-      <Box onLayout={this._onLayout}>
+      <Kb.Box onLayout={this._onLayout}>
         {this.props.showingMenu && this._whichMenu === 'filepickerpopup' ? (
           <FilePickerPopup
             attachTo={this.props.getAttachmentRef}
@@ -188,16 +163,16 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
             visible={this.props.showingMenu}
           />
         )}
-        <Box style={styles.container}>
+        <Kb.Box style={styles.container}>
           {this.props.isEditing && (
-            <Box style={styles.editingTabStyle}>
-              <Text type="BodySmall">Edit:</Text>
-              <Text type="BodySmallPrimaryLink" onClick={this.props.onCancelEditing}>
+            <Kb.Box style={styles.editingTabStyle}>
+              <Kb.Text type="BodySmall">Edit:</Kb.Text>
+              <Kb.Text type="BodySmallPrimaryLink" onClick={this.props.onCancelEditing}>
                 Cancel
-              </Text>
-            </Box>
+              </Kb.Text>
+            </Kb.Box>
           )}
-          <PlainInput
+          <Kb.PlainInput
             autoCorrect={true}
             autoCapitalize="sentences"
             placeholder={hintText}
@@ -214,7 +189,9 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
             rowsMin={1}
           />
 
-          {this.props.typing.size > 0 && <Animation animationType="typing" containerStyle={styles.typing} />}
+          {this.props.typing.size > 0 && (
+            <Kb.Animation animationType="typing" containerStyle={styles.typing} />
+          )}
           <Action
             hasText={this.state.hasText}
             onSubmit={this._onSubmit}
@@ -226,8 +203,8 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
             showWalletsIcon={this.props.showWalletsIcon}
             explodingModeSeconds={this.props.explodingModeSeconds}
           />
-        </Box>
-      </Box>
+        </Kb.Box>
+      </Kb.Box>
     )
   }
 }
@@ -245,7 +222,7 @@ const Action = ({
   showWalletsIcon,
 }) =>
   hasText ? (
-    <Box2 direction="horizontal" gap="small" style={styles.actionText}>
+    <Kb.Box2 direction="horizontal" gap="small" style={styles.actionText}>
       {isExploding && !isEditing && (
         <ExplodingIcon
           explodingModeSeconds={explodingModeSeconds}
@@ -253,12 +230,12 @@ const Action = ({
           openExplodingPicker={openExplodingPicker}
         />
       )}
-      <Text type="BodyBigLink" onClick={onSubmit}>
+      <Kb.Text type="BodyBigLink" onClick={onSubmit}>
         {isEditing ? 'Save' : 'Send'}
-      </Text>
-    </Box2>
+      </Kb.Text>
+    </Kb.Box2>
   ) : (
-    <Box2 direction="horizontal" style={styles.actionIconsContainer}>
+    <Kb.Box2 direction="horizontal" style={styles.actionIconsContainer}>
       <>
         <ExplodingIcon
           explodingModeSeconds={explodingModeSeconds}
@@ -273,33 +250,33 @@ const Action = ({
           style={Styles.collapseStyles([styles.actionButton, styles.marginRightSmall])}
         />
       )}
-      <Icon
+      <Kb.Icon
         onClick={insertMentionMarker}
         type="iconfont-mention"
-        style={iconCastPlatformStyles(styles.actionButton)}
+        style={Kb.iconCastPlatformStyles(styles.actionButton)}
         fontSize={22}
       />
       {smallGap}
-      <Icon
+      <Kb.Icon
         onClick={openFilePicker}
         type="iconfont-camera"
-        style={iconCastPlatformStyles(styles.actionButton)}
+        style={Kb.iconCastPlatformStyles(styles.actionButton)}
         fontSize={22}
       />
-    </Box2>
+    </Kb.Box2>
   )
 
 const ExplodingIcon = ({explodingModeSeconds, isExploding, openExplodingPicker}) => (
   <NativeTouchableWithoutFeedback onPress={openExplodingPicker}>
-    <Box style={explodingIconContainer}>
-      <Icon
+    <Kb.Box style={explodingIconContainer}>
+      <Kb.Icon
         color={isExploding ? Styles.globalColors.black_75 : null}
-        style={iconCastPlatformStyles(styles.actionButton)}
+        style={Kb.iconCastPlatformStyles(styles.actionButton)}
         type="iconfont-timer"
         fontSize={22}
       />
       <ExplodingMeta explodingModeSeconds={explodingModeSeconds} />
-    </Box>
+    </Kb.Box>
   </NativeTouchableWithoutFeedback>
 )
 
@@ -387,8 +364,8 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-// Use manual gap when Box2 is inserting too many (for children that deliberately render nothing)
-const smallGap = <Box style={styles.smallGap} />
+// Use manual gap when Kb.Box2 is inserting too many (for children that deliberately render nothing)
+const smallGap = <Kb.Box style={styles.smallGap} />
 
 const explodingIconContainer = Styles.platformStyles({
   common: {
@@ -397,4 +374,4 @@ const explodingIconContainer = Styles.platformStyles({
   },
 })
 
-export default OverlayParentHOC(PlatformInput)
+export default Kb.OverlayParentHOC(PlatformInput)
