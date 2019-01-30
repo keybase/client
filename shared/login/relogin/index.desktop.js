@@ -80,7 +80,7 @@ class Login extends React.Component<Props, State> {
       <Kb.Box style={stylesContainer}>
         <Kb.UserCard username={this.props.selectedUser}>
           <Kb.Dropdown
-            onChanged={() => {}}
+            onChanged={this._onClickUser}
             selected={userRows[selectedIdx]}
             items={userRows}
             position={'bottom center'}
