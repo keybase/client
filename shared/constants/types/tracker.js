@@ -41,6 +41,7 @@ export type APIFriendshipUserInfo = {
 }
 
 export type UserInfo = {
+  airdrop: boolean,
   fullname: string,
   followersCount: number,
   followingCount: number,
@@ -53,7 +54,6 @@ export type UserInfo = {
 }
 
 export type TrackerState = {
-  airdrop: boolean,
   type: 'tracker',
   error: ?string,
   eldestKidChanged: boolean,

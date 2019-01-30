@@ -360,6 +360,9 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
           })
     case WalletsGen.setInflationDestination:
       return state.merge({inflationDestinationError: ''})
+    case WalletsGen.changeAirdrop:
+      // set this immediately so it goes away immediately
+      return state.merge({airdropState: action.payload.accept ? 'accepted' : 'rejected'})
     // Saga only actions
     case WalletsGen.rejectDisclaimer:
     case WalletsGen.didSetAccountAsDefault:

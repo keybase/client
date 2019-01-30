@@ -237,6 +237,8 @@ export type AccountInflationDestination = I.RecordOf<_AccountInflationDestinatio
 
 export type ValidationState = 'none' | 'waiting' | 'error' | 'valid'
 
+export type AirdropState = 'loading' | 'accepted' | 'rejected' | 'noResponse'
+
 export type _State = {
   acceptedDisclaimer: boolean,
   acceptingDisclaimerDelay: boolean,
@@ -244,6 +246,7 @@ export type _State = {
   accountName: string,
   accountNameError: string,
   accountNameValidationState: ValidationState,
+  airdropState: AirdropState,
   assetsMap: I.Map<AccountID, I.List<Assets>>,
   buildCounter: number, // increments when we call buildPayment / buildRequest
   building: Building,

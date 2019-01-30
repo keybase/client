@@ -98,6 +98,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   accountName: '',
   accountNameError: '',
   accountNameValidationState: 'none',
+  airdropState: 'loading',
   assetsMap: I.Map(),
   buildCounter: 0,
   building: makeBuilding(),

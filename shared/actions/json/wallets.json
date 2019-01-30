@@ -400,6 +400,10 @@
       "_description": "Change mobile only mode for Stellar account.",
       "accountID": "Types.AccountID",
       "enabled": "boolean"
+    },
+    "changeAirdrop": {
+      "_description": "Turn participation in airdrop on/off",
+      "accept": "boolean"
     }
   }
 }

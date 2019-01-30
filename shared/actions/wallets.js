@@ -838,6 +838,10 @@ const exitFailedPayment = (state, action) => {
   ]
 }
 
+const changeAirdrop = (_, action) => {
+  console.log('TODO!!!')
+}
+
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
   if (!flags.walletsEnabled) {
     console.log('Wallets saga disabled')
@@ -1060,6 +1064,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     changeMobileOnlyMode
   )
   yield* Saga.chainAction<WalletsGen.SetLastSentXLMPayload>(WalletsGen.setLastSentXLM, writeLastSentXLM)
+  yield* Saga.chainAction<WalletsGen.ChangeAirdropPayload>(WalletsGen.changeAirdrop, changeAirdrop)
   yield* Saga.chainAction<ConfigGen.DaemonHandshakeDonePayload>(
     ConfigGen.daemonHandshakeDone,
     readLastSentXLM

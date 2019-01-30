@@ -26,6 +26,7 @@ export const builtRequestReceived = 'wallets:builtRequestReceived'
 export const cancelPayment = 'wallets:cancelPayment'
 export const cancelRequest = 'wallets:cancelRequest'
 export const changeAccountName = 'wallets:changeAccountName'
+export const changeAirdrop = 'wallets:changeAirdrop'
 export const changeDisplayCurrency = 'wallets:changeDisplayCurrency'
 export const changeMobileOnlyMode = 'wallets:changeMobileOnlyMode'
 export const changedAccountName = 'wallets:changedAccountName'
@@ -111,6 +112,7 @@ type _BuiltRequestReceivedPayload = $ReadOnly<{|build: Types.BuiltRequest, forBu
 type _CancelPaymentPayload = $ReadOnly<{|showAccount?: boolean, paymentID: Types.PaymentID|}>
 type _CancelRequestPayload = $ReadOnly<{|conversationIDKey?: ChatTypes.ConversationIDKey, ordinal?: ChatTypes.Ordinal, requestID: StellarRPCTypes.KeybaseRequestID|}>
 type _ChangeAccountNamePayload = $ReadOnly<{|accountID: Types.AccountID, name: string|}>
+type _ChangeAirdropPayload = $ReadOnly<{|accept: boolean|}>
 type _ChangeDisplayCurrencyPayload = $ReadOnly<{|accountID: Types.AccountID, code: Types.CurrencyCode|}>
 type _ChangeMobileOnlyModePayload = $ReadOnly<{|accountID: Types.AccountID, enabled: boolean|}>
 type _ChangedAccountNamePayload = $ReadOnly<{|accountID: Types.AccountID|}>
@@ -471,6 +473,10 @@ export const createLinkedExistingAccountError = (payload: _LinkedExistingAccount
 export const createValidatedSecretKey = (payload: _ValidatedSecretKeyPayload) => ({payload, type: validatedSecretKey})
 export const createValidatedSecretKeyError = (payload: _ValidatedSecretKeyPayloadError) => ({error: true, payload, type: validatedSecretKey})
 /**
+ * Turn participation in airdrop on/off
+ */
+export const createChangeAirdrop = (payload: _ChangeAirdropPayload) => ({payload, type: changeAirdrop})
+/**
  * Update a payment with additional detail
  */
 export const createPaymentDetailReceived = (payload: _PaymentDetailReceivedPayload) => ({payload, type: paymentDetailReceived})
@@ -542,6 +548,7 @@ export type BuiltRequestReceivedPayload = {|+payload: _BuiltRequestReceivedPaylo
 export type CancelPaymentPayload = {|+payload: _CancelPaymentPayload, +type: 'wallets:cancelPayment'|}
 export type CancelRequestPayload = {|+payload: _CancelRequestPayload, +type: 'wallets:cancelRequest'|}
 export type ChangeAccountNamePayload = {|+payload: _ChangeAccountNamePayload, +type: 'wallets:changeAccountName'|}
+export type ChangeAirdropPayload = {|+payload: _ChangeAirdropPayload, +type: 'wallets:changeAirdrop'|}
 export type ChangeDisplayCurrencyPayload = {|+payload: _ChangeDisplayCurrencyPayload, +type: 'wallets:changeDisplayCurrency'|}
 export type ChangeMobileOnlyModePayload = {|+payload: _ChangeMobileOnlyModePayload, +type: 'wallets:changeMobileOnlyMode'|}
 export type ChangedAccountNamePayload = {|+payload: _ChangedAccountNamePayload, +type: 'wallets:changedAccountName'|}
@@ -635,6 +642,7 @@ export type Actions =
   | CancelPaymentPayload
   | CancelRequestPayload
   | ChangeAccountNamePayload
+  | ChangeAirdropPayload
   | ChangeDisplayCurrencyPayload
   | ChangeMobileOnlyModePayload
   | ChangedAccountNamePayload
