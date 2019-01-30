@@ -25,6 +25,7 @@ import * as WaitingGen from '../waiting-gen'
 import chatTeamBuildingSaga from './team-building'
 import {hasCanPerform, retentionPolicyToServiceRetentionPolicy, teamRoleByEnum} from '../../constants/teams'
 import logger from '../../logger'
+import engine from '../../engine'
 import {isMobile} from '../../constants/platform'
 import {getPath} from '../../route-tree'
 import {NotifyPopup} from '../../native/notifications'
@@ -33,6 +34,14 @@ import {downloadFilePath} from '../../util/file'
 import {privateFolderWithUsers, teamFolder} from '../../constants/config'
 import flags from '../../util/feature-flags'
 import type {RPCError} from '../../util/errors'
+
+const setupEngineListeners = () => {
+  engine().actionOnConnect('registerChatUI', () => {
+    RPCTypes.delegateUiCtlRegisterChatUIRpcPromise()
+      .then(() => console.log('Registered Chat UI'))
+      .catch(error => console.warn('Error in registering Chat UI:', error))
+  })
+}
 
 // Ask the service to refresh the inbox
 function* inboxRefresh(state, action) {
@@ -2913,6 +2922,11 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<EngineGen.Chat1NotifyChatNewChatActivityPayload>(
     EngineGen.chat1NotifyChatNewChatActivity,
     onNewChatActivity
+  )
+
+  yield* Saga.chainAction<ConfigGen.SetupEngineListenersPayload>(
+    ConfigGen.setupEngineListeners,
+    setupEngineListeners
   )
 
   yield Saga.spawn(chatTeamBuildingSaga)

@@ -304,6 +304,10 @@ export type MessageTypes = {|
     inParam: void,
     outParam: void,
   |},
+  'keybase.1.delegateUiCtl.registerChatUI': {|
+    inParam: void,
+    outParam: void,
+  |},
   'keybase.1.delegateUiCtl.registerGregorFirehoseFiltered': {|
     inParam: $ReadOnly<{|systems?: ?Array<String>|}>,
     outParam: void,
@@ -3317,6 +3321,7 @@ declare export function configStartUpdateIfNeededRpcPromise(params: $PropertyTyp
 declare export function configWaitForClientRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.waitForClient'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.waitForClient'>, 'outParam'>>
 declare export function cryptocurrencyRegisterAddressRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.cryptocurrency.registerAddress'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.cryptocurrency.registerAddress'>, 'outParam'>>
 declare export function ctlDbNukeRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.ctl.dbNuke'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.ctl.dbNuke'>, 'outParam'>>
+declare export function delegateUiCtlRegisterChatUIRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.delegateUiCtl.registerChatUI'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.delegateUiCtl.registerChatUI'>, 'outParam'>>
 declare export function delegateUiCtlRegisterGregorFirehoseFilteredRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.delegateUiCtl.registerGregorFirehoseFiltered'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.delegateUiCtl.registerGregorFirehoseFiltered'>, 'outParam'>>
 declare export function delegateUiCtlRegisterHomeUIRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.delegateUiCtl.registerHomeUI'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.delegateUiCtl.registerHomeUI'>, 'outParam'>>
 declare export function delegateUiCtlRegisterIdentify3UIRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.delegateUiCtl.registerIdentify3UI'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.delegateUiCtl.registerIdentify3UI'>, 'outParam'>>
