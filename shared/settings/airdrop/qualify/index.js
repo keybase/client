@@ -15,27 +15,37 @@ type Props = {|
 |}
 
 const Loading = () => (
-  <Kb.Box2 noShrink={true} direction="vertical" centerChildren={true} style={styles.container} gap="medium">
-    <Kb.Icon type="icon-stellar-coins-stacked-16" style={styles.star} />
-    <Kb.Text center={true} type="BodySemibold" style={styles.loadingText}>
-      Analyzing your account...
-    </Kb.Text>
-  </Kb.Box2>
+  <Kb.ScrollView style={styles.container}>
+    <Kb.Box2 noShrink={true} direction="vertical" centerChildren={true} style={styles.content} gap="medium">
+      <Kb.Icon type="icon-stellar-coins-stacked-16" style={styles.star} />
+      <Kb.Text center={true} type="BodySemibold" style={styles.loadingText}>
+        Analyzing your account...
+      </Kb.Text>
+    </Kb.Box2>
+  </Kb.ScrollView>
 )
 
 const Accepted = p => (
-  <Kb.Box2 noShrink={true} fullWidth={true} direction="vertical" style={styles.container} gap="medium">
-    <Kb.Box2 direction="vertical" style={styles.grow} />
-    <Kb.Icon type="icon-stellar-coins-stacked-16" style={styles.star} />
-    <Kb.Text backgroundMode="Terminal" center={true} type="Header">
-      You're in.
-    </Kb.Text>
-    <Kb.Text center={true} type="BodySemibold" style={styles.loadingText}>
-      The next airdrop will happen March 1.
-    </Kb.Text>
-    <Kb.Box2 direction="vertical" style={styles.grow} />
-    <Kb.Button onClick={p.onCancel} fullWidth={true} type="Wallet" label="Close" style={styles.buttonClose} />
-  </Kb.Box2>
+  <Kb.ScrollView style={styles.container}>
+    <Kb.Box2 noShrink={true} fullWidth={true} direction="vertical" style={styles.content} gap="medium">
+      <Kb.Box2 direction="vertical" style={styles.grow} />
+      <Kb.Icon type="icon-stellar-coins-stacked-16" style={styles.star} />
+      <Kb.Text backgroundMode="Terminal" center={true} type="Header">
+        You're in.
+      </Kb.Text>
+      <Kb.Text center={true} type="BodySemibold" style={styles.loadingText}>
+        The next airdrop will happen March 1.
+      </Kb.Text>
+      <Kb.Box2 direction="vertical" style={styles.grow} />
+      <Kb.Button
+        onClick={p.onCancel}
+        fullWidth={true}
+        type="Wallet"
+        label="Close"
+        style={styles.buttonClose}
+      />
+    </Kb.Box2>
+  </Kb.ScrollView>
 )
 
 const Row = p => (
@@ -64,7 +74,14 @@ const Row = p => (
 
 const Qualified = p => (
   <Kb.ScrollView style={styles.container}>
-    <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true} gap="medium" style={styles.content}>
+    <Kb.Box2
+      noShrink={true}
+      direction="vertical"
+      fullWidth={true}
+      gap="medium"
+      style={styles.content}
+      gapEnd={true}
+    >
       <Kb.Icon
         type={p.qualified ? 'icon-stellar-coins-flying-2-48' : 'icon-stellar-coins-flying-48'}
         style={styles.star}

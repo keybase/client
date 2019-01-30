@@ -17,7 +17,10 @@ const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
 
 const mergeProps = (stateProps, dispatchProps) => ({
   body: stateProps._body.toArray().map(b => ({
-    lines: b.lines.toArray(),
+    lines: b.lines.toArray().map(l => ({
+      bullet: l.bullet,
+      text: l.text,
+    })),
     section: b.section,
   })),
   onCheckQualify: dispatchProps.onCheckQualify,

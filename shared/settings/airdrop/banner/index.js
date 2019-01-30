@@ -13,7 +13,9 @@ const Banner = (p: Props) =>
   p.show ? (
     <Kb.Box2 noShrink={true} fullWidth={true} direction="horizontal" style={styles.container}>
       <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.starContainer}>
-        <Kb.Icon type="icon-stellar-coins-flying-2-48" />
+        <Kb.Icon
+          type={Styles.isMobile ? 'icon-stellar-coins-stacked-16' : 'icon-stellar-coins-flying-2-48'}
+        />
       </Kb.Box2>
       <Kb.Box2 direction="vertical" style={styles.textContainer} gap="tiny">
         <Kb.Text backgroundMode="Terminal" type="Header">
@@ -41,12 +43,16 @@ const styles = Styles.styleSheetCreate({
     backgroundColor: Styles.globalColors.purple2,
     padding: Styles.globalMargins.small,
   },
-  starContainer: {
-    height: '100%',
-    width: 180,
-  },
+  starContainer: Styles.platformStyles({
+    isElectron: {
+      height: '100%',
+      width: 180,
+    },
+    isMobile: {width: 40},
+  }),
   textContainer: {
     flexGrow: 1,
+    flexShrink: 1,
   },
 })
 
