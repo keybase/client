@@ -2681,7 +2681,7 @@ type BlockRetriever interface {
 		block Block, lifetime BlockCacheLifetime,
 		prefetchStatus PrefetchStatus, cacheType DiskBlockCacheType) error
 	// TogglePrefetcher creates a new prefetcher.
-	TogglePrefetcher(enable bool, syncCh <-chan struct{}) <-chan struct{}
+	TogglePrefetcher(enable bool, syncCh <-chan struct{}, doneCh chan<- struct{}) <-chan struct{}
 }
 
 // ChatChannelNewMessageCB is a callback function that can be called

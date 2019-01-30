@@ -779,6 +779,10 @@ func (cache *DiskBlockCacheLocal) UpdateMetadata(ctx context.Context,
 	if err != nil {
 		return NoSuchBlockError{blockID}
 	}
+	if md.FinishedPrefetch {
+		// Don't update md that's already completed.
+		return nil
+	}
 	md.TriggeredPrefetch = false
 	md.FinishedPrefetch = false
 	switch prefetchStatus {

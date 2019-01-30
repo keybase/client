@@ -10804,17 +10804,17 @@ func (mr *MockBlockRetrieverMockRecorder) PutInCaches(ctx, ptr, tlfID, block, li
 }
 
 // TogglePrefetcher mocks base method
-func (m *MockBlockRetriever) TogglePrefetcher(enable bool, syncCh <-chan struct{}) <-chan struct{} {
+func (m *MockBlockRetriever) TogglePrefetcher(enable bool, syncCh <-chan struct{}, doneCh chan<- struct{}) <-chan struct{} {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "TogglePrefetcher", enable, syncCh)
+	ret := m.ctrl.Call(m, "TogglePrefetcher", enable, syncCh, doneCh)
 	ret0, _ := ret[0].(<-chan struct{})
 	return ret0
 }
 
 // TogglePrefetcher indicates an expected call of TogglePrefetcher
-func (mr *MockBlockRetrieverMockRecorder) TogglePrefetcher(enable, syncCh interface{}) *gomock.Call {
+func (mr *MockBlockRetrieverMockRecorder) TogglePrefetcher(enable, syncCh, doneCh interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TogglePrefetcher", reflect.TypeOf((*MockBlockRetriever)(nil).TogglePrefetcher), enable, syncCh)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TogglePrefetcher", reflect.TypeOf((*MockBlockRetriever)(nil).TogglePrefetcher), enable, syncCh, doneCh)
 }
 
 // MockChat is a mock of Chat interface
