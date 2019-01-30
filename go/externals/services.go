@@ -72,13 +72,13 @@ func (p *proofServices) ListProofCheckers() []string {
 	return ret
 }
 
-func (p *proofServices) ListServicesThatAcceptNewProofs() []string {
+func (p *proofServices) ListServicesThatAcceptNewProofs(mctx libkb.MetaContext) []string {
 	p.Lock()
 	defer p.Unlock()
 	p.loadServiceConfigs()
 	var ret []string
 	for k, v := range p.externalServices {
-		if v.CanMakeNewProofs() {
+		if v.CanMakeNewProofs(mctx) {
 			ret = append(ret, k)
 		}
 	}

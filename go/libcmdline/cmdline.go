@@ -96,6 +96,9 @@ func (p CommandLine) GetPvlKitFilename() string {
 func (p CommandLine) GetParamProofKitFilename() string {
 	return p.GetGString("paramproof-kit")
 }
+func (p CommandLine) GetProveBypass() (bool, bool) {
+	return p.GetBool("prove-bypass", true)
+}
 func (p CommandLine) GetDebug() (bool, bool) {
 	// --no-debug suppresses --debug. Note that although we don't define a
 	// separate GetNoDebug() accessor, fork_server.go still looks for
@@ -582,6 +585,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.StringFlag{
 			Name:  "paramproof-kit",
 			Usage: "Specify an alternate local parameterized proof kit file location.",
+		},
+		cli.BoolFlag{
+			Name:  "prove-bypass",
+			Usage: "Prove even disabled proof services",
 		},
 		cli.BoolFlag{
 			Name:  "remember-passphrase",

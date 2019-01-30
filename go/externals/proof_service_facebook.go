@@ -70,7 +70,7 @@ func (t *FacebookServiceType) GetPrompt() string {
 
 // TODO remove this in favor of server flag when server configs are enabled
 // with CORE-9923
-func (t *FacebookServiceType) CanMakeNewProofs() bool { return false }
+func (t *FacebookServiceType) CanMakeNewProofs(libkb.MetaContext) bool { return false }
 
 func (t *FacebookServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
 	return t.BaseToServiceJSON(t, un)
