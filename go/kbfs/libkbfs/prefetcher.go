@@ -139,7 +139,8 @@ func defaultBackOffForPrefetcher() backoff.BackOff {
 }
 
 func newBlockPrefetcher(retriever BlockRetriever,
-	config prefetcherConfig, testSyncCh <-chan struct{}) *blockPrefetcher {
+	config prefetcherConfig, testSyncCh <-chan struct{},
+	testDoneCh chan<- struct{}) *blockPrefetcher {
 	closedCh := make(chan struct{})
 	close(closedCh)
 	p := &blockPrefetcher{
@@ -172,7 +173,7 @@ func newBlockPrefetcher(retriever BlockRetriever,
 		p.Shutdown()
 		close(p.doneCh)
 	} else {
-		go p.run(testSyncCh)
+		go p.run(testSyncCh, testDoneCh)
 		go p.shutdownLoop()
 	}
 	return p
@@ -801,7 +802,8 @@ func (p *blockPrefetcher) handleStatusRequest(req *prefetchStatusRequest) {
 // the tree. If this did ever happen, a completed fetch downstream of the
 // diamond would be double counted in all nodes above the diamond, and the
 // prefetcher would eventually panic.
-func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
+func (p *blockPrefetcher) run(
+	testSyncCh <-chan struct{}, testDoneCh chan<- struct{}) {
 	defer func() {
 		close(p.doneCh)
 		p.prefetchRequestCh.Close()
@@ -812,7 +814,12 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 	}()
 	isShuttingDown := false
 	var shuttingDownCh <-chan interface{}
+	first := true
 	for {
+		if !first && testDoneCh != nil && !isShuttingDown {
+			testDoneCh <- struct{}{}
+		}
+		first = false
 		if isShuttingDown {
 			if p.inFlightFetches.Len() == 0 &&
 				p.prefetchRequestCh.Len() == 0 &&
@@ -824,7 +831,6 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 		} else if testSyncCh != nil {
 			// Only sync if we aren't shutting down.
 			<-testSyncCh
-			p.log.CDebugf(context.Background(), "%p Got sync notification", p)
 		}
 
 		// First fulfill any status requests since the user could be
@@ -872,17 +878,6 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 			p.log.CDebugf(pre.ctx,
 				"rescheduling top-block prefetch for block %s", blockID)
 			p.applyToParentsRecursive(p.rescheduleTopBlock, blockID, pre)
-			dbc := p.config.DiskBlockCache()
-			if dbc != nil {
-				err := dbc.UpdateMetadata(
-					pre.ctx, req.kmd.TlfID(), blockID, TriggeredPrefetch,
-					req.action.CacheType())
-				if err != nil {
-					p.log.CDebugf(pre.ctx,
-						"Couldn't update metadata for block %s, action=%s",
-						blockID, pre.req.action)
-				}
-			}
 		case reqInt := <-p.prefetchRequestCh.Out():
 			req := reqInt.(*prefetchRequest)
 			pre, isPrefetchWaiting := p.prefetches[req.ptr.ID]
@@ -1138,6 +1133,20 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 				pp.SubtreeBytesFetched += numBytesFetched
 				pp.SubtreeBytesTotal += numBytesTotal
 			}, req.ptr.ID, pre)
+			// Ensure this block's status is marked as triggered.  If
+			// it was rescheduled due to a previously-full cache, it
+			// might not yet be set.
+			dbc := p.config.DiskBlockCache()
+			if dbc != nil {
+				err := dbc.UpdateMetadata(
+					pre.ctx, req.kmd.TlfID(), req.ptr.ID, TriggeredPrefetch,
+					req.action.CacheType())
+				if err != nil {
+					p.log.CDebugf(pre.ctx,
+						"Couldn't update metadata for block %s, action=%s",
+						req.ptr.ID, pre.req.action)
+				}
+			}
 		case <-p.almostDoneCh:
 			p.log.CDebugf(p.ctx, "starting shutdown")
 			isShuttingDown = true
