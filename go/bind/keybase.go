@@ -120,7 +120,7 @@ func setInited() {
 }
 
 // InitOnce runs the Keybase services (only runs one time)
-func InitOnce(homeDir string, mobileSharedHome string, logFile string, runModeStr string,
+func InitOnce(homeDir, mobileSharedHome, logFile, runModeStr string,
 	accessGroupOverride bool, dnsNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper) {
 	startOnce.Do(func() {
 		if err := Init(homeDir, mobileSharedHome, logFile, runModeStr, accessGroupOverride, dnsNSFetcher, nvh); err != nil {
@@ -130,7 +130,7 @@ func InitOnce(homeDir string, mobileSharedHome string, logFile string, runModeSt
 }
 
 // Init runs the Keybase services
-func Init(homeDir string, mobileSharedHome string, logFile string, runModeStr string,
+func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	accessGroupOverride bool, externalDNSNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper) (err error) {
 	defer func() {
 		err = flattenError(err)
@@ -140,8 +140,11 @@ func Init(homeDir string, mobileSharedHome string, logFile string, runModeStr st
 	}()
 
 	fmt.Printf("Go: Initializing: home: %s mobileSharedHome: %s\n", homeDir, mobileSharedHome)
+	var ekLogFile string
 	if logFile != "" {
 		fmt.Printf("Go: Using log: %s\n", logFile)
+		ekLogFile = logFile + ".ek"
+		fmt.Printf("Go: Using eklog: %s\n", ekLogFile)
 	}
 
 	// Reduce OS threads on mobile so we don't have too much contention with JS thread
@@ -177,6 +180,7 @@ func Init(homeDir string, mobileSharedHome string, logFile string, runModeStr st
 		HomeDir:                        homeDir,
 		MobileSharedHomeDir:            mobileSharedHome,
 		LogFile:                        logFile,
+		EKLogFile:                      ekLogFile,
 		RunMode:                        runMode,
 		Debug:                          true,
 		LocalRPCDebug:                  "",

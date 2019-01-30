@@ -1451,6 +1451,7 @@ type AppConfig struct {
 	HomeDir                        string
 	MobileSharedHomeDir            string
 	LogFile                        string
+	EKLogFile                      string
 	UseDefaultLogFile              bool
 	RunMode                        RunMode
 	Debug                          bool
@@ -1473,6 +1474,10 @@ var _ CommandLine = AppConfig{}
 
 func (c AppConfig) GetLogFile() string {
 	return c.LogFile
+}
+
+func (c AppConfig) GetEKLogFile() string {
+	return c.EKLogFile
 }
 
 func (c AppConfig) GetUseDefaultLogFile() (bool, bool) {
