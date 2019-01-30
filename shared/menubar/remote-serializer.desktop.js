@@ -36,6 +36,7 @@ export const serialize: any = {
             [toSend.conversation.conversationIDKey]: conversationSerialize(toSend),
           }
     }, {}),
+  daemonHandshakeState: v => v,
   endEstimate: v => v,
   externalRemoteWindow: v => v,
   fileName: v => v,
