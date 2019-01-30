@@ -41,7 +41,12 @@ func TestSignupRandomPWUser(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, ret)
 
-	// TODO: Bring back some kind of logout check in CORE-10084.
+	// TODO: Bring back some kind "you shouldn't logout" test in CORE-10084.
+
+	handler := NewLoginHandler(nil, tc.G)
+	err = handler.Logout(context.Background(), keybase1.LogoutArg{})
+	require.NoError(t, err)
+	require.Error(t, sessCheck(t, tc.G), "expecting to be logged out and error in sesscheck")
 
 	// handler := NewLoginHandler(nil, tc.G)
 	// err = handler.Logout(context.Background(), keybase1.LogoutArg{})
