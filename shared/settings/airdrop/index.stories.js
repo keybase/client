@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
-import * as Kb from '../../common-adapters'
 import Airdrop from '.'
 import qualify from './qualify/index.stories'
 import banner from './banner/index.stories'
@@ -15,8 +14,8 @@ const props = {
     {
       lines: [
         'Keybase users who:',
-        '	• 	have at least 3 devices or paper keys',
-        '	• 	have a Keybase, Github or Hacker News account that was registered before July 1, 2018.',
+        ' •   have at least 3 devices or paper keys',
+        ' •   have a Keybase, Github or Hacker News account that was registered before July 1, 2018.',
       ],
       section: 'Who qualifies?',
     },
@@ -26,13 +25,14 @@ const props = {
     },
   ],
   onCheckQualify: Sb.action('onCheckQualify'),
+  onReject: Sb.action('onReject'),
   signedUp: false,
 }
 
 const load = () => {
   Sb.storiesOf('Settings/AirdropSettings', module)
-    .add('Participating', () => <Airdrop {...props} />)
-    .add('Not Participating', () => <Airdrop {...props} signedUp={false} />)
+    .add('Participating', () => <Airdrop {...props} signedUp={true} />)
+    .add('Not Participating', () => <Airdrop {...props} />)
   qualify()
   banner()
 }

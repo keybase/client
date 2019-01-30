@@ -5,9 +5,10 @@ import * as Styles from '../../styles'
 
 type Props = {|
   onCheckQualify: () => void,
+  onReject: () => void,
   signedUp: boolean,
-  body: $ReadonlyArray<{|
-    lines: $ReadonlyArray<string>,
+  body: $ReadOnlyArray<{|
+    lines: $ReadOnlyArray<string>,
     section: string,
   |}>,
 |}
@@ -15,26 +16,35 @@ type Props = {|
 const Airdrop = (p: Props) => (
   <Kb.ScrollView style={styles.scrollView}>
     <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true}>
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
-        <Kb.Box2 direction="vertical" centerChildren={true} style={styles.starContainer}>
-          <Kb.Icon type="icon-stellar-coins-flying-48" style={styles.bigStar} />
-        </Kb.Box2>
-        <Kb.Box2 direction="vertical" gap="small">
-          <Kb.Text backgroundMode="Terminal" type="Header">
-            Get free lumens every month
+      {p.signedUp ? (
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.signedUpHeader} gap="small">
+          <Kb.Icon type="icon-stellar-coins-stacked-16" />
+          <Kb.Text backgroundMode="Terminal" type="BodySemibold">
+            You’re in. The next Lumens airdrop will happen March 1.
           </Kb.Text>
-          <Kb.Text type="Body">
-            Monthly starting March 1, Keybase will divide 50,000 XLM (Stellar Lumens) among Keybase users.
-          </Kb.Text>
-          <Kb.Button
-            backgroundMode="Purple"
-            type="PrimaryColoredBackground"
-            label="See if you qualify"
-            onClick={p.onCheckQualify}
-            style={styles.bannerButton}
-          />
         </Kb.Box2>
-      </Kb.Box2>
+      ) : (
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
+          <Kb.Box2 direction="vertical" centerChildren={true} style={styles.starContainer}>
+            <Kb.Icon type="icon-stellar-coins-flying-48" style={styles.bigStar} />
+          </Kb.Box2>
+          <Kb.Box2 direction="vertical" gap="small">
+            <Kb.Text backgroundMode="Terminal" type="Header">
+              Get free lumens every month
+            </Kb.Text>
+            <Kb.Text type="Body">
+              Monthly starting March 1, Keybase will divide 50,000 XLM (Stellar Lumens) among Keybase users.
+            </Kb.Text>
+            <Kb.Button
+              backgroundMode="Purple"
+              type="PrimaryColoredBackground"
+              label="See if you qualify"
+              onClick={p.onCheckQualify}
+              style={styles.bannerButton}
+            />
+          </Kb.Box2>
+        </Kb.Box2>
+      )}
       <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true} style={styles.body} gap="small">
         {p.body.map(b => (
           <Kb.Box2 key={b.section} direction="vertical" gap="xtiny" fullWidth={true}>
@@ -49,7 +59,11 @@ const Airdrop = (p: Props) => (
           </Kb.Box2>
         ))}
       </Kb.Box2>
-      <Kb.Button type="PrimaryGreen" label="See if you qualify" onClick={p.onCheckQualify} />
+      {p.signedUp ? (
+        <Kb.Button type="Danger" label="Leave program" onClick={p.onReject} />
+      ) : (
+        <Kb.Button type="PrimaryGreen" label="See if you qualify" onClick={p.onCheckQualify} />
+      )}
     </Kb.Box2>
   </Kb.ScrollView>
 )
@@ -69,8 +83,10 @@ const styles = Styles.styleSheetCreate({
     height: '100%',
     width: '100%',
   },
-  section: {
-    marginBottom: Styles.globalMargins.xxtiny,
+  section: {marginBottom: Styles.globalMargins.xxtiny},
+  signedUpHeader: {
+    backgroundColor: Styles.globalColors.green,
+    padding: Styles.globalMargins.tiny,
   },
   starContainer: {width: 150},
 })
