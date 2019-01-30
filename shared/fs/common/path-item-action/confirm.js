@@ -9,6 +9,7 @@ import type {FloatingMenuProps} from './types'
 type Props = {|
   confirm: (() => void) | 'disabled',
   floatingMenuProps: FloatingMenuProps,
+  action: 'save' | 'send-to-other-app',
   path: Types.Path,
   size: number,
 |}
@@ -22,10 +23,12 @@ const ConfirmHeader = (props: Props) => (
     gap="small"
   >
     <Kb.Text type="Header" style={styles.confirmText}>
-      Continue to share?
+      Continue to {props.action === 'save' ? 'save' : 'share'}?
     </Kb.Text>
     <Kb.Text type="Body" style={styles.confirmText}>
-      The file will be downloaded and its size is {Constants.humanReadableFileSize(props.size)}.
+      {props.action === 'save'
+        ? `You are about to download a ${Constants.humanReadableFileSize(props.size)} file.`
+        : `The file will be downloaded and its size is ${Constants.humanReadableFileSize(props.size)}.`}
     </Kb.Text>
   </Kb.Box2>
 )
