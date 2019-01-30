@@ -186,7 +186,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
 
   _shouldShowReactionsRow = () =>
     // $ForceType
-    this.props.message.reactions && !this.props.message.reactions.isEmpty()
+    (this.props.message.reactions && !this.props.message.reactions.isEmpty()) || this.props.isPendingPayment
 
   _reactionsRow = () =>
     this._shouldShowReactionsRow() && (
