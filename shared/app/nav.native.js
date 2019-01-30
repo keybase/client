@@ -19,6 +19,7 @@ import {makeLeafTags} from '../route-tree'
 import {tabBarHeight} from './tab-bar/index.native'
 import {type RouteRenderStack, type RenderRouteResult} from '../route-tree/render-route'
 import {GatewayDest} from 'react-gateway'
+import AirdropBanner from '../settings/airdrop/banner/container'
 
 type CardStackShimProps = {
   mode: 'modal' | 'card',
@@ -194,6 +195,7 @@ class MainNavStack extends Component<any, {verticalOffset: number}> {
 
     const content = (
       <Kb.NativeView style={styles.content}>
+        {props.routeSelected !== Tabs.loginTab && <AirdropBanner />}
         {stacks}
         {![
           Tabs.chatTab,

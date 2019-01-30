@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import {Badge, ClickableBox, Text, Icon, type IconType, ProgressIndicator} from '../../common-adapters'
-import * as Style from '../../styles'
+import * as Styles from '../../styles'
 
 type SettingsItemProps = {
   badgeNumber?: number,
@@ -10,21 +10,21 @@ type SettingsItemProps = {
   largerBadgeMinWidthFix?: boolean,
   onClick: () => void,
   text: string,
-  textColor?: Style.Color,
+  textColor?: Styles.Color,
   selected?: boolean,
-  selectedStyle?: StylesCrossPlatform,
-  unSelectedStyle?: StylesCrossPlatform,
+  selectedStyle?: Styles.StylesCrossPlatform,
+  unSelectedStyle?: Styles.StylesCrossPlatform,
 }
 
 export default function SettingsItem(props: SettingsItemProps) {
   return (
     <ClickableBox
       onClick={props.onClick}
-      style={Style.collapseStyles([
+      style={Styles.collapseStyles([
         styles.item,
         props.selected
           ? {
-              borderLeftColor: Style.globalColors.blue,
+              borderLeftColor: Styles.globalColors.blue,
               borderLeftStyle: 'solid',
               borderLeftWidth: 3,
             }
@@ -36,13 +36,13 @@ export default function SettingsItem(props: SettingsItemProps) {
       {props.icon && (
         <Icon
           type={props.icon}
-          color={Style.globalColors.black_20}
-          style={{marginRight: Style.isMobile ? Style.globalMargins.small : Style.globalMargins.tiny}}
+          color={Styles.globalColors.black_20}
+          style={{marginRight: Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.tiny}}
         />
       )}
       <Text
         type="BodySemibold"
-        style={Style.collapseStyles([
+        style={Styles.collapseStyles([
           props.selected ? styles.selectedText : styles.itemText,
           props.textColor ? {color: props.textColor} : {},
         ])}
@@ -57,16 +57,16 @@ export default function SettingsItem(props: SettingsItemProps) {
   )
 }
 
-const styles = Style.styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   badge: {
     marginLeft: 6,
   },
-  item: Style.platformStyles({
+  item: Styles.platformStyles({
     common: {
-      ...Style.globalStyles.flexBoxRow,
+      ...Styles.globalStyles.flexBoxRow,
       alignItems: 'center',
-      paddingLeft: Style.globalMargins.small,
-      paddingRight: Style.globalMargins.small,
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
       position: 'relative',
     },
     isElectron: {
@@ -75,23 +75,23 @@ const styles = Style.styleSheetCreate({
       width: '100%',
     },
     isMobile: {
-      borderBottomColor: Style.globalColors.black_10,
-      borderBottomWidth: Style.hairlineWidth,
+      borderBottomColor: Styles.globalColors.black_10,
+      borderBottomWidth: Styles.hairlineWidth,
       height: 56,
     },
   }),
-  itemText: Style.platformStyles({
+  itemText: Styles.platformStyles({
     isElectron: {
-      color: Style.globalColors.black_50,
+      color: Styles.globalColors.black_50,
     },
     isMobile: {
-      color: Style.globalColors.black_75,
+      color: Styles.globalColors.black_75,
     },
   }),
   progress: {
     marginLeft: 6,
   },
   selectedText: {
-    color: Style.globalColors.black_75,
+    color: Styles.globalColors.black_75,
   },
 })

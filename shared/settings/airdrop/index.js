@@ -100,4 +100,4 @@ const styles = Styles.styleSheetCreate({
   starContainer: {width: Styles.isMobile ? 40 : 150},
 })
 
-export default Airdrop
+export default (Styles.isMobile ? Kb.HeaderHoc(Airdrop) : Airdrop)

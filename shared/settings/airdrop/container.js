@@ -10,7 +10,8 @@ const mapStateToProps = state => ({
   signedUp: state.wallets.airdropState === 'accepted',
 })
 
-const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
+const mapDispatchToProps = (dispatch, {navigateAppend, navigateUp}) => ({
+  onBack: () => dispatch(navitateUp()),
   onCheckQualify: () => dispatch(navigateAppend(['airdropQualify'])),
   onReject: () => dispatch(WalletsGen.createChangeAirdrop({accept: false})),
 })
@@ -23,6 +24,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
     })),
     section: b.section,
   })),
+  onBack: dispatchProps.onBack,
   onCheckQualify: dispatchProps.onCheckQualify,
   onReject: dispatchProps.onReject,
   signedUp: stateProps.signedUp,

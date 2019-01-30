@@ -1,5 +1,4 @@
 // @flow
-// TODO plumb airdrop
 import logger from '../logger'
 import * as FsGen from '../actions/fs-gen'
 import * as FsTypes from '../constants/types/fs'
