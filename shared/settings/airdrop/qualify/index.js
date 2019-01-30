@@ -24,7 +24,7 @@ const Loading = () => (
 )
 
 const Accepted = p => (
-  <Kb.Box2 noShrink={true} direction="vertical" centerChildren={true} style={styles.container} gap="medium">
+  <Kb.Box2 noShrink={true} fullWidth={true} direction="vertical" style={styles.container} gap="medium">
     <Kb.Box2 direction="vertical" style={styles.grow} />
     <Kb.Icon type="icon-stellar-coins-stacked-16" style={styles.star} />
     <Kb.Text backgroundMode="Terminal" center={true} type="Header">
