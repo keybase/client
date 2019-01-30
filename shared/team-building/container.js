@@ -24,7 +24,7 @@ type OwnProps = {
   onChangeService: (newService: ServiceIdWithContact) => void,
   incHighlightIndex: (maxIndex: number) => void,
   decHighlightIndex: () => void,
-  resetHighlightIndex: () => void,
+  resetHighlightIndex: (resetToHidden?: boolean) => void,
 }
 
 type LocalState = {
@@ -173,7 +173,7 @@ const deriveOnAdd = memoize(
     }
     changeText('')
     dispatchOnAdd(user)
-    resetHighlightIndex()
+    resetHighlightIndex(true)
   }
 )
 
@@ -182,7 +182,7 @@ const deriveOnChangeText = memoize(
     onChangeText: (newText: string) => void,
     search: (text: string, service: ServiceIdWithContact) => void,
     selectedService: ServiceIdWithContact,
-    resetHighlightIndex: () => void
+    resetHighlightIndex: Function
   ) => (newText: string) => {
     onChangeText(newText)
     search(newText, selectedService)
@@ -299,7 +299,8 @@ class StateWrapperForTeamBuilding extends React.Component<{}, LocalState> {
       highlightedIndex: state.highlightedIndex < 1 ? 0 : state.highlightedIndex - 1,
     }))
 
-  resetHighlightIndex = () => this.setState({highlightedIndex: initialState.highlightedIndex})
+  resetHighlightIndex = (resetToHidden?: boolean) =>
+    this.setState({highlightedIndex: resetToHidden ? -1 : initialState.highlightedIndex})
 
   render() {
     return (
