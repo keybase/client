@@ -58,7 +58,7 @@ class AccountSettings extends React.Component<SettingsProps> {
             gap="tiny"
             fullHeight={!Styles.isMobile}
           >
-            <Kb.ClickableBox onClick={props.onEditName}>
+            <Kb.ClickableBox onClick={props.onEditName} style={styles.noShrink}>
               <Kb.Box2 direction="vertical" gap="xtiny" style={styles.section} fullWidth={true}>
                 <Kb.Text type="BodySmallSemibold">Account name</Kb.Text>
                 <Kb.Box2 direction="horizontal" fullWidth={true}>
@@ -181,8 +181,15 @@ class AccountSettings extends React.Component<SettingsProps> {
                 style={styles.setupInflation}
               />
             </Kb.Box2>
-            <Kb.Box2 direction="vertical" fullWidth={true} style={styles.removeContainer}>
-              <Divider />
+            <Kb.Box2
+              direction="vertical"
+              noShrink={true}
+              gap="small"
+              gapEnd={true}
+              fullWidth={true}
+              style={styles.removeContainer}
+            >
+              <Kb.Divider />
               <Kb.ClickableBox style={styles.remove} onClick={props.isDefault ? null : props.onDelete}>
                 <Kb.Icon
                   type="iconfont-trash"
@@ -235,6 +242,7 @@ const styles = Styles.styleSheetCreate({
   mobileOnlySpinner: {
     backgroundColor: Styles.globalColors.white_90,
   },
+  noShrink: {flexShrink: 0},
   red: {color: Styles.globalColors.red},
   remove: {
     ...Styles.globalStyles.flexBoxRow,
@@ -242,7 +250,6 @@ const styles = Styles.styleSheetCreate({
     justifyContent: 'center',
   },
   removeContainer: Styles.platformStyles({
-    common: {flexShrink: 0},
     isElectron: {marginTop: 'auto'},
     isMobile: {marginTop: Styles.globalMargins.medium},
   }),
@@ -268,7 +275,6 @@ const styles = Styles.styleSheetCreate({
     alignSelf: 'flex-start',
     backgroundColor: Styles.globalColors.white,
     flexShrink: 0,
-    paddingBottom: Styles.globalMargins.small,
     paddingTop: Styles.isMobile ? Styles.globalMargins.small : 0,
   },
   setupInflation: {
