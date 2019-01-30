@@ -180,6 +180,7 @@ export const makeMessageText: I.RecordFactory<MessageTypes._MessageText> = I.Rec
   ...makeMessageExplodable,
   decoratedText: null,
   inlinePaymentIDs: null,
+  inlinePaymentSuccessful: false,
   mentionsAt: I.Set(),
   mentionsChannel: 'none',
   mentionsChannelName: I.Map(),
@@ -597,6 +598,19 @@ export const previewSpecs = (preview: ?RPCChatTypes.AssetMetadata, full: ?RPCCha
   return res
 }
 
+const successfulInlinePaymentStatuses = ['completed', 'claimable']
+export const hasSuccessfulInlinePayments = (state: TypedState, message: Types.Message) => {
+  if (message.type !== 'text' || !message.inlinePaymentIDs) {
+    return false
+  }
+  return (
+    message.inlinePaymentSuccessful ||
+    message.inlinePaymentIDs.some(id =>
+      successfulInlinePaymentStatuses.includes(state.chat2.paymentStatusMap.get(id)?.status)
+    )
+  )
+}
+
 const validUIMessagetoMessage = (
   conversationIDKey: Types.ConversationIDKey,
   uiMessage: RPCChatTypes.UIMessage,
@@ -633,15 +647,29 @@ const validUIMessagetoMessage = (
 
   switch (m.messageBody.messageType) {
     case RPCChatTypes.commonMessageType.text:
-      const rawText: string = m.messageBody.text?.body ?? ''
+      const messageText = m.messageBody.text
+      const rawText: string = messageText?.body ?? ''
+      const payments = messageText?.payments ?? null
       return makeMessageText({
         ...common,
         ...explodable,
         decoratedText: m.decoratedTextBody ? new HiddenString(m.decoratedTextBody) : null,
         hasBeenEdited: m.superseded,
-        inlinePaymentIDs: m.paymentInfos
-          ? I.List(m.paymentInfos.map(pi => WalletTypes.rpcPaymentIDToPaymentID(pi.paymentID)))
+        inlinePaymentIDs: payments
+          ? I.List(
+              payments
+                .map(p => {
+                  if (p.result.resultTyp === RPCChatTypes.localTextPaymentResultTyp.sent && p.result.sent) {
+                    return WalletTypes.rpcPaymentIDToPaymentID(p.result.sent)
+                  }
+                  return null
+                })
+                .filter(Boolean)
+            )
           : null,
+        inlinePaymentSuccessful: m.paymentInfos
+          ? m.paymentInfos.some(pi => successfulInlinePaymentStatuses.includes(pi.statusDescription))
+          : false,
         mentionsAt: I.Set(m.atMentions || []),
         mentionsChannel: channelMentionToMentionsChannel(m.channelMention),
         mentionsChannelName: I.Map(
