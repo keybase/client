@@ -53,8 +53,12 @@ func getLogger(g *libkb.GlobalContext) *log.Logger {
 		g.Log.CDebugf(context.TODO(), "Unable to getLogger %v", err)
 		return nil
 	}
-	l := log.New(lfw, "DeviceEKStorage", log.LstdFlags|log.Lshortfile)
+	l := log.New(lfw, getLogPrefix(g), log.LstdFlags|log.Lshortfile)
 	return l
+}
+
+func getLogPrefix(g *libkb.GlobalContext) string {
+	return fmt.Sprintf("[username=%v] ", g.Env.GetUsername())
 }
 
 func NewDeviceEKStorage(g *libkb.GlobalContext) *DeviceEKStorage {
@@ -64,6 +68,10 @@ func NewDeviceEKStorage(g *libkb.GlobalContext) *DeviceEKStorage {
 		cache:        make(deviceEKCache),
 		logger:       getLogger(g),
 	}
+}
+
+func (s *DeviceEKStorage) SetLogPrefix() {
+	s.logger.SetPrefix(getLogPrefix(s.G()))
 }
 
 // Log sensitive deletion actions to a separate log file so we don't lose the
@@ -229,7 +237,7 @@ func (s *DeviceEKStorage) get(ctx context.Context, generation keybase1.EkGenerat
 	if err = s.storage.Get(ctx, key, &deviceEK); err != nil {
 		switch err.(type) {
 		case erasablekv.UnboxError:
-			s.ekLogf(ctx, "DeviceEKStorage#get: corrupted generation: %s -> %s: %v", key, generation, err)
+			s.ekLogf(ctx, "DeviceEKStorage#get: corrupted generation: %v -> %v: %v", key, generation, err)
 			if ierr := s.storage.Erase(ctx, key); ierr != nil {
 				s.ekLogf(ctx, "DeviceEKStorage#get: unable to delete corrupted generation: %v", ierr)
 			}
@@ -537,6 +545,7 @@ func (s *DeviceEKStorage) deletedWrongEldestSeqno(ctx context.Context) (err erro
 			continue
 		}
 		if eldestSeqno != uv.EldestSeqno {
+			s.ekLogf(ctx, "DeviceEKStorage#deletedWrongEldestSeqno: key: %v, uv: %v", key, uv)
 			epick.Push(s.storage.Erase(ctx, key))
 		}
 	}
@@ -544,7 +553,7 @@ func (s *DeviceEKStorage) deletedWrongEldestSeqno(ctx context.Context) (err erro
 }
 
 func (s *DeviceEKStorage) ForceDeleteAll(ctx context.Context, username libkb.NormalizedUsername) (err error) {
-	defer s.G().CTraceTimed(ctx, "DeviceEKStorage#ForceDeleteAll", func() error { return err })()
+	defer s.ekLogCTraceTimed(ctx, "DeviceEKStorage#ForceDeleteAll", func() error { return err })()
 
 	s.Lock()
 	defer s.Unlock()
@@ -556,6 +565,7 @@ func (s *DeviceEKStorage) ForceDeleteAll(ctx context.Context, username libkb.Nor
 	}
 	epick := libkb.FirstErrorPicker{}
 	for _, key := range keys {
+		s.ekLogf(ctx, "DeviceEKStorage#ForceDeleteAll: key: %v", key)
 		epick.Push(s.storage.Erase(ctx, key))
 	}
 

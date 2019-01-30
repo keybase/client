@@ -729,6 +729,8 @@ type DeviceEKStorage interface {
 	ForceDeleteAll(ctx context.Context, username NormalizedUsername) error
 	// For keybase log send
 	ListAllForUser(ctx context.Context) ([]string, error)
+	// Called on login/logout hooks to set the logged in username in the EK log
+	SetLogPrefix()
 }
 
 type UserEKBoxStorage interface {
