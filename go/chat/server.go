@@ -143,7 +143,7 @@ func (h *Server) presentUnverifiedInbox(ctx context.Context, convs []types.Remot
 				rawConv.Conv.GetConvID())
 			continue
 		}
-		res.Items = append(res.Items, utils.PresentRemoteConversation(rawConv))
+		res.Items = append(res.Items, utils.PresentRemoteConversation(ctx, h.G(), rawConv))
 	}
 	res.Pagination = utils.PresentPagination(p)
 	res.Offline = offline
@@ -255,7 +255,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 				chatUI.ChatInboxFailed(ctx, chat1.ChatInboxFailedArg{
 					SessionID: arg.SessionID,
 					ConvID:    convRes.Conv.GetConvID(),
-					Error:     utils.PresentConversationErrorLocal(*convRes.ConvLocal.Error),
+					Error:     utils.PresentConversationErrorLocal(ctx, h.G(), *convRes.ConvLocal.Error),
 				})
 
 				// If we get a transient failure, add this to the retrier queue
@@ -365,7 +365,7 @@ func (h *Server) GetInboxUILocal(ctx context.Context, arg chat1.GetInboxUILocalA
 		}
 	}
 	return chat1.GetInboxUILocalRes{
-		ConversationsRemote: utils.PresentRemoteConversations(ib.ConvsUnverified),
+		ConversationsRemote: utils.PresentRemoteConversations(ctx, h.G(), ib.ConvsUnverified),
 		Pagination:          ib.Pagination,
 		Offline:             h.G().InboxSource.IsOffline(ctx),
 		IdentifyFailures:    identBreaks,

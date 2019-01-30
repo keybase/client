@@ -92,6 +92,21 @@ func (rc RemoteConversation) GetVersion() chat1.ConversationVers {
 	return rc.Conv.Metadata.Version
 }
 
+func (rc RemoteConversation) GetMembersType() chat1.ConversationMembersType {
+	return rc.Conv.GetMembersType()
+}
+
+func (rc RemoteConversation) GetTeamType() chat1.TeamType {
+	return rc.Conv.GetTeamType()
+}
+
+func (rc RemoteConversation) GetTopicName() string {
+	if rc.LocalMetadata != nil {
+		return rc.LocalMetadata.TopicName
+	}
+	return ""
+}
+
 func (rc RemoteConversation) GetName() string {
 	switch rc.Conv.Metadata.TeamType {
 	case chat1.TeamType_COMPLEX:
