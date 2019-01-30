@@ -55,7 +55,7 @@ type diskBlockMetadataStore struct {
 	putMeter  *CountMeter
 
 	lock       sync.RWMutex
-	db         *levelDb
+	db         *LevelDb
 	shutdownCh chan struct{}
 }
 
