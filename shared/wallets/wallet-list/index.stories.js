@@ -61,6 +61,7 @@ const load = () => {
         onAddNew={Sb.action('onAddNew')}
         onLinkExisting={Sb.action('onLinkExisting')}
         onWhatIsStellar={Sb.action('onWhatIsStellar')}
+        onJoinAirdrop={Sb.action('onJoinAirdrop')}
         title="Wallets"
         style={{height: isMobile ? '100%' : 600, width: isMobile ? '100%' : 240}}
       />

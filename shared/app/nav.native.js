@@ -19,7 +19,7 @@ import {makeLeafTags} from '../route-tree'
 import {tabBarHeight} from './tab-bar/index.native'
 import {type RouteRenderStack, type RenderRouteResult} from '../route-tree/render-route'
 import {GatewayDest} from 'react-gateway'
-import AirdropBanner from '../settings/airdrop/banner/container'
+import AirdropBanner from '../wallets/airdrop/banner/container'
 
 type CardStackShimProps = {
   mode: 'modal' | 'card',

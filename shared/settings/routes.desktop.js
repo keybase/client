@@ -14,8 +14,6 @@ const routeTree = () => {
   const ChatContainer = require('./chat/container').default
   const DeleteContainer = require('./delete/container').default
   const DeleteConfirm = require('./delete-confirm/container').default
-  const Airdrop = require('./airdrop/container').default
-  const AirdropQualify = require('./airdrop/qualify/container').default
   const RemoveDevice = require('../devices/device-revoke/container').default
   const InviteGenerated = require('./invite-generated/container').default
   const Passphrase = require('./passphrase/container').default
@@ -23,15 +21,6 @@ const routeTree = () => {
   const SecurityPrefs = require('../fs/common/security-prefs-container.desktop').default
   return makeRouteDefNode({
     children: {
-      [Constants.airdropTab]: {
-        children: {
-          airdropQualify: {
-            component: AirdropQualify,
-            tags: makeLeafTags({layerOnTop: true}),
-          },
-        },
-        component: Airdrop,
-      },
       [Constants.landingTab]: {
         children: {
           changeEmail: {

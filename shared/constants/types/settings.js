@@ -114,7 +114,6 @@ type ScreenprotectorTab = 'settingsTabs:screenprotector'
 type UpdatePaymentTab = 'settingsTabs:updatePaymentTab'
 type TeamsTab = 'settingsTabs:teamsTab'
 type WalletsTab = 'settingsTabs:walletsTab'
-type AirdropTab = 'settingsTabs:airdropTab'
 
 export type Tab =
   | LandingTab
@@ -135,6 +134,5 @@ export type Tab =
   | PassphraseTab
   | WalletsTab
   | ChatTab
-  | AirdropTab
 
 export type PlanLevel = string

@@ -2,23 +2,19 @@
 import Qualify from '.'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
-import * as Tabs from '../../../constants/tabs'
-import * as Settings from '../../../constants/settings'
+import * as Constants from '../../../constants/wallets'
 import {connect} from '../../../util/container'
 import flags from '../../../util/feature-flags'
 
 type OwnProps = {||}
 
 const mapStateToProps = state => ({
-  show: flags.airdrop && state.wallets.airdropState === 'noResponse',
+  show: true, // flags.airdrop && state.wallets.airdropState === 'noResponse',
 })
 
 const mapDispatchToProps = dispatch => ({
   onCancel: () => dispatch(WalletsGen.createChangeAirdrop({accept: false})),
-  onCheckQualify: () =>
-    dispatch(
-      RouteTreeGen.createNavigateTo({path: [Tabs.settingsTab, Settings.airdropTab, 'airdropQualify']})
-    ),
+  onCheckQualify: () => dispatch(RouteTreeGen.createNavigateTo({path: [...Constants.walletPath, 'airdrop']})),
 })
 
 const mergeProps = (s, d, o) => ({

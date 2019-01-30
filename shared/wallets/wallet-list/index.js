@@ -52,6 +52,22 @@ const _AddWallet = (props: AddProps & Kb.OverlayParentProps) => {
 
 const AddWallet = Kb.OverlayParentHOC(_AddWallet)
 
+const JoinAirdrop = p => (
+  <Kb.ClickableBox onClick={p.onJoinAirdrop}>
+    <Kb.Box2
+      style={styles.joinAirdrop}
+      direction="horizontal"
+      fullWidth={true}
+      className="background_color_purple2 hover_background_color_purple"
+    >
+      <Kb.Icon type="icon-stellar-coins-stacked-16" style={Kb.iconCastPlatformStyles(styles.icon)} />
+      <Kb.Text backgroundMode="Terminal" type="BodySemibold">
+        Join the airdrop
+      </Kb.Text>
+    </Kb.Box2>
+  </Kb.ClickableBox>
+)
+
 const WhatIsStellar = (props: {onWhatIsStellar: () => void}) => (
   <Kb.ClickableBox onClick={props.onWhatIsStellar} style={styles.whatIsStellar}>
     <Kb.Box2 centerChildren={true} direction="horizontal">
@@ -68,12 +84,13 @@ type Props = {
   style?: Styles.StylesCrossPlatform,
   loading: boolean,
   onAddNew: () => void,
+  onJoinAirdrop: () => void,
   onLinkExisting: () => void,
   onWhatIsStellar: () => void,
   title: string,
 }
 
-type Row = {type: 'wallet', accountID: AccountID} | {type: 'add wallet'}
+type Row = {type: 'wallet', accountID: AccountID} | {type: 'add wallet'} | {type: 'join airdrop'}
 
 class WalletList extends React.Component<Props> {
   _renderRow = (i: number, row: Row): React.Node => {
@@ -88,6 +105,8 @@ class WalletList extends React.Component<Props> {
             onLinkExisting={this.props.onLinkExisting}
           />
         )
+      case 'join airdrop':
+        return <JoinAirdrop key={row.type} onJoinAirdrop={this.props.onJoinAirdrop} />
       default:
         Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(row.type)
         throw new Error(`Impossible case encountered: ${row.type}`)
@@ -102,9 +121,13 @@ class WalletList extends React.Component<Props> {
         </Kb.Box2>
       )
     }
+
     const rows = this.props.accountIDs.map(accountID => ({accountID, key: accountID, type: 'wallet'}))
+
     const addWallet = 'add wallet'
     rows.push({key: addWallet, type: addWallet})
+    const joinAirdrop = 'join airdrop'
+    rows.push({key: joinAirdrop, type: joinAirdrop})
 
     return (
       <>
@@ -130,6 +153,7 @@ const styles = Styles.styleSheetCreate({
     position: 'relative',
     top: -1,
   },
+  joinAirdrop: {alignItems: 'center', height: rowHeight},
   progressIndicator: {height: 30, width: 30},
   whatIsStellar: {
     backgroundColor: Styles.globalColors.blue5,

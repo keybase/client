@@ -26,6 +26,7 @@ const ff: FeatureFlags = {
 }
 
 const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
+  airdrop: true,
   chatIndexProfilingEnabled: true,
   moveOrCopy: true,
   newTeamBuildingForChat: true,

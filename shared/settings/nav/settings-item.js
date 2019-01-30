@@ -12,8 +12,6 @@ type SettingsItemProps = {
   text: string,
   textColor?: Styles.Color,
   selected?: boolean,
-  selectedStyle?: Styles.StylesCrossPlatform,
-  unSelectedStyle?: Styles.StylesCrossPlatform,
 }
 
 export default function SettingsItem(props: SettingsItemProps) {
@@ -29,8 +27,6 @@ export default function SettingsItem(props: SettingsItemProps) {
               borderLeftWidth: 3,
             }
           : {},
-        props.selected && props.selectedStyle,
-        !props.selected && props.unSelectedStyle,
       ])}
     >
       {props.icon && (
