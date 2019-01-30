@@ -64,6 +64,8 @@ class PlainInput extends React.PureComponent<InternalProps> {
     this._input && this._input.blur()
   }
 
+  isFocused = () => !!this._input && document.activeElement === this._input
+
   transformText = (fn: TextInfo => TextInfo, reflectChange?: boolean) => {
     if (this._controlled()) {
       const errMsg =
