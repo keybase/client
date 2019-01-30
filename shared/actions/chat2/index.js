@@ -2938,11 +2938,6 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     setupEngineListeners
   )
 
-  yield* Saga.chainAction<ConfigGen.SetupEngineListenersPayload>(
-    ConfigGen.setupEngineListeners,
-    setupEngineListeners
-  )
-
   yield Saga.spawn(chatTeamBuildingSaga)
 }
 
