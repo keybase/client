@@ -16,7 +16,7 @@ const Airdrop = (p: Props) => (
   <Kb.ScrollView style={styles.scrollView}>
     <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true}>
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
-        <Kb.Box2 direction="vertical" fullHeight={true} centerChildren={true} style={styles.starContainer}>
+        <Kb.Box2 direction="vertical" centerChildren={true} style={styles.starContainer}>
           <Kb.Icon type="icon-stellar-coins-flying-48" style={styles.bigStar} />
         </Kb.Box2>
         <Kb.Box2 direction="vertical" gap="small">
