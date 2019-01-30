@@ -101,6 +101,9 @@ type configGetter interface {
 	GetAttachmentDisableMulti() (bool, bool)
 	GetChatOutboxStorageEngine() string
 	GetDisableTeamAuditor() (bool, bool)
+	GetDisableMerkleAuditor() (bool, bool)
+	GetDisableSearchIndexer() (bool, bool)
+	GetDisableBgConvLoader() (bool, bool)
 	GetEnableBotLiteMode() (bool, bool)
 }
 

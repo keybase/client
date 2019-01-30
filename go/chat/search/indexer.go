@@ -88,6 +88,11 @@ func (idx *Indexer) Start(ctx context.Context, uid gregor1.UID) {
 	idx.Lock()
 	defer idx.Unlock()
 
+	if idx.G().GetEnv().GetDisableSearchIndexer() {
+		idx.Debug(ctx, "Search indexer disabled, aborting Start")
+		return
+	}
+
 	if idx.started {
 		return
 	}

@@ -31,8 +31,6 @@ type BackgroundTaskSettings struct {
 	WakeUp   time.Duration
 	Interval time.Duration // Wait between runs
 	Limit    time.Duration // Time limit on each round
-	// if BotLiteMode is enabled this background task is not.
-	DisableInBotLite bool
 }
 
 // BackgroundTask is an engine.
@@ -94,9 +92,6 @@ func (e *BackgroundTask) SubConsumers() []libkb.UIConsumer {
 // Returns immediately, kicks off a background goroutine.
 func (e *BackgroundTask) Run(m libkb.MetaContext) (err error) {
 	defer m.CTrace(e.Name(), func() error { return err })()
-	if e.args != nil && e.args.Settings.DisableInBotLite && m.G().Env.GetEnableBotLiteMode() {
-		e.log(m, "skipping run in bot lite mode")
-	}
 
 	// use a new background context with a saved cancel function
 	var cancel func()

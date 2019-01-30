@@ -112,6 +112,9 @@ func (n NullConfiguration) GetChatInboxSourceLocalizeThreads() (int, bool)  { re
 func (n NullConfiguration) GetAttachmentHTTPStartPort() (int, bool)         { return 0, false }
 func (n NullConfiguration) GetAttachmentDisableMulti() (bool, bool)         { return false, false }
 func (n NullConfiguration) GetDisableTeamAuditor() (bool, bool)             { return false, false }
+func (n NullConfiguration) GetDisableMerkleAuditor() (bool, bool)           { return false, false }
+func (n NullConfiguration) GetDisableSearchIndexer() (bool, bool)           { return false, false }
+func (n NullConfiguration) GetDisableBgConvLoader() (bool, bool)            { return false, false }
 func (n NullConfiguration) GetEnableBotLiteMode() (bool, bool)              { return false, false }
 func (n NullConfiguration) GetChatOutboxStorageEngine() string              { return "" }
 func (n NullConfiguration) GetBug3964RepairTime(NormalizedUsername) (time.Time, error) {
@@ -895,6 +898,38 @@ func (e *Env) GetDisableTeamAuditor() bool {
 		e.cmd.GetDisableTeamAuditor,
 		func() (bool, bool) { return e.getEnvBool("KEYBASE_DISABLE_TEAM_AUDITOR") },
 		e.GetConfig().GetDisableTeamAuditor,
+		// If unset, use the BotLite setting
+		func() (bool, bool) { return e.GetEnableBotLiteMode(), true },
+	)
+}
+
+func (e *Env) GetDisableMerkleAuditor() bool {
+	return e.GetBool(false,
+		e.cmd.GetDisableMerkleAuditor,
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_DISABLE_MERKLE_AUDITOR") },
+		e.GetConfig().GetDisableMerkleAuditor,
+		// If unset, use the BotLite setting
+		func() (bool, bool) { return e.GetEnableBotLiteMode(), true },
+	)
+}
+
+func (e *Env) GetDisableSearchIndexer() bool {
+	return e.GetBool(false,
+		e.cmd.GetDisableSearchIndexer,
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_DISABLE_SEARCH_INDEXER") },
+		e.GetConfig().GetDisableSearchIndexer,
+		// If unset, use the BotLite setting
+		func() (bool, bool) { return e.GetEnableBotLiteMode(), true },
+	)
+}
+
+func (e *Env) GetDisableBgConvLoader() bool {
+	return e.GetBool(false,
+		e.cmd.GetDisableBgConvLoader,
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_DISABLE_BG_CONV_LOADER") },
+		e.GetConfig().GetDisableBgConvLoader,
+		// If unset, use the BotLite setting
+		func() (bool, bool) { return e.GetEnableBotLiteMode(), true },
 	)
 }
 
@@ -905,6 +940,7 @@ func (e *Env) GetEnableBotLiteMode() bool {
 		e.GetConfig().GetEnableBotLiteMode,
 	)
 }
+
 func (e *Env) GetPidFile() (ret string, err error) {
 	ret = e.GetString(
 		func() string { return e.cmd.GetPidFile() },
@@ -1466,7 +1502,6 @@ type AppConfig struct {
 	PayloadCacheSize               int
 	ProofCacheSize                 int
 	OutboxStorageEngine            string
-	EnableBotLiteMode              bool
 }
 
 var _ CommandLine = AppConfig{}
@@ -1581,10 +1616,6 @@ func (c AppConfig) GetProofCacheSize() (int, bool) {
 
 func (c AppConfig) GetAttachmentDisableMulti() (bool, bool) {
 	return c.AttachmentDisableMulti, true
-}
-
-func (c AppConfig) GetEnableBotLiteMode() (bool, bool) {
-	return c.EnableBotLiteMode, true
 }
 
 func (e *Env) GetUpdatePreferenceAuto() (bool, bool) {

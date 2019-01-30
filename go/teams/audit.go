@@ -93,8 +93,8 @@ func NewAuditor(g *libkb.GlobalContext) *Auditor {
 // NewAuditorAndInstall makes a new Auditor and dangles it
 // off of the given GlobalContext.
 func NewAuditorAndInstall(g *libkb.GlobalContext) {
-	if g.GetEnv().GetDisableTeamAuditor() || g.GetEnv().GetEnableBotLiteMode() {
-		g.Log.CDebugf(context.TODO(), "Using dummy auditor, audit disabled or running in bot lite mode")
+	if g.GetEnv().GetDisableTeamAuditor() {
+		g.Log.CDebugf(context.TODO(), "Using dummy auditor, audit disabled")
 		g.SetTeamAuditor(dummyAuditor{})
 	} else {
 		g.SetTeamAuditor(NewAuditor(g))
