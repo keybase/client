@@ -24,7 +24,6 @@ type State = {
 }
 class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
   _boxRef = React.createRef()
-  setHeight: () => void
   state = {animating: false, children: copyChildren(this.props.children), height: 17}
   timerID: SharedTimerID
 
