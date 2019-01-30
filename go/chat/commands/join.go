@@ -40,8 +40,6 @@ func (h *Join) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Conver
 	if len(ib.Convs) == 0 {
 		return errors.New("conv not found")
 	}
-	ui.ChatShowManageChannels(ctx, chat1.ChatShowManageChannelsArg{
-		Teamname: ib.Convs[0].Info.TlfName,
-	})
+	ui.ChatShowManageChannels(ctx, ib.Convs[0].Info.TlfName)
 	return nil
 }
