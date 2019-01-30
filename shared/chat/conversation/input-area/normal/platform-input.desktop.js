@@ -10,7 +10,7 @@ import {formatDurationShort} from '../../../../util/timestamp'
 import {KeyEventHandler} from '../../../../util/key-event-handler.desktop'
 import WalletsIcon from './wallets-icon/container'
 import type {PlatformInputPropsInternal} from './platform-input'
-import {IsTyping} from './shared'
+import Typing from './typing/container'
 import AddSuggestors from '../suggestors'
 
 type State = {
@@ -260,7 +260,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
             />
           </Kb.Box>
           <Kb.Box style={styles.footerContainer}>
-            <IsTyping typing={this.props.typing} />
+            <Typing conversationIDKey={this.props.conversationIDKey} />
             <Kb.Text type="BodySmall" style={styles.footer} onClick={this._inputFocus} selectable={true}>
               *bold*, _italics_, `code`, >quote
             </Kb.Text>

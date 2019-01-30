@@ -25,7 +25,8 @@ import {
   NativeTouchableWithoutFeedback,
 } from '../../../../common-adapters/native-wrappers.native'
 import SetExplodingMessagePicker from '../../messages/set-explode-popup/container'
-import {ExplodingMeta, IsTyping} from './shared'
+import {ExplodingMeta} from './shared'
+import Typing from './typing/container'
 import FilePickerPopup from '../filepicker-popup'
 import WalletsIcon from './wallets-icon/container'
 import type {PlatformInputPropsInternal} from './platform-input'
@@ -178,10 +179,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
             visible={this.props.showingMenu}
           />
         )}
-        <IsTyping
-          style={collapseStyles([styles.typing, this.props.typing.size > 0 && styles.visibleTyping])}
-          typing={this.props.typing}
-        />
+        <Typing conversationIDKey={this.props.conversationIDKey} />
         <Box style={styles.container}>
           {this.props.isEditing && (
             <Box style={styles.editingTabStyle}>
@@ -359,16 +357,6 @@ const styles = styleSheetCreate({
   smallGap: {
     height: globalMargins.small,
     width: globalMargins.small,
-  },
-  typing: {
-    bottom: 2,
-    height: 16,
-    left: 3,
-    opacity: 0,
-    position: 'relative',
-  },
-  visibleTyping: {
-    opacity: 1,
   },
 })
 

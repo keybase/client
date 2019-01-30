@@ -145,7 +145,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   suggestChannels: stateProps.suggestChannels,
   suggestCommands: stateProps.suggestCommands,
   suggestUsers: stateProps.suggestUsers,
-  typing: stateProps.typing,
   unsentTextRefresh: stateProps.unsentText.length > 0,
 })
 
