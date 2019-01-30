@@ -38,6 +38,7 @@ type CommonProps = {|
 
 type InputProps = {|
   ...CommonProps,
+  isActiveForFocus: boolean,
   suggestUsers: I.List<{username: string, fullName: string}>,
   suggestChannels: I.List<string>,
   suggestCommands: Array<RPCChatTypes.ConversationCommand>,
