@@ -178,7 +178,7 @@ const AddSuggestors = <WrappedOwnProps: {}, WrappedState>(
           this.props.suggestorToMarker
         )) {
           const matchInfo = matchesMarker(word, marker)
-          if (matchInfo.matches) {
+          if (matchInfo.matches && this._inputRef.current && this._inputRef.current.isFocused()) {
             this.setState({active: suggestor, filter: word.substring(matchInfo.marker.length)})
           }
         }
