@@ -5,9 +5,9 @@ import (
 	"errors"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
-	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 type Join struct {
@@ -16,33 +16,8 @@ type Join struct {
 
 func NewJoin(g *globals.Context) *Join {
 	return &Join{
-		baseCommand: newBaseCommand(g, "join", "<conversation>|<channel name>",
-			"Join a team channel"),
+		baseCommand: newBaseCommand(g, "join", "", "Join a team channel"),
 	}
-}
-
-func (h *Join) findAsChannelName(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	name string) (res chat1.ConversationLocal, err error) {
-	convs, err := h.G().ChatHelper.FindConversationsByID(ctx, []chat1.ConversationID{convID})
-	if err != nil {
-		return res, err
-	}
-	if len(convs) == 0 {
-		return res, errors.New("no conversation found")
-	}
-	conv := convs[0]
-	if conv.GetMembersType() != chat1.ConversationMembersType_TEAM {
-		return res, errors.New("not a team conversation")
-	}
-	teamName := conv.Info.TlfName
-	if convs, err = h.G().ChatHelper.FindConversations(ctx, true, teamName, &name, chat1.TopicType_CHAT,
-		chat1.ConversationMembersType_TEAM, keybase1.TLFVisibility_PRIVATE); err != nil {
-		return res, err
-	}
-	if len(convs) == 0 {
-		return res, errors.New("no conversation found")
-	}
-	return convs[0], nil
 }
 
 func (h *Join) Execute(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
@@ -51,18 +26,22 @@ func (h *Join) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Conver
 	if !h.Match(ctx, text) {
 		return ErrInvalidCommand
 	}
-	toks, err := h.tokenize(text, 2)
+	ui, err := h.G().UIRouter.GetChatUI()
 	if err != nil {
 		return err
 	}
-	conv, err := h.findAsChannelName(ctx, uid, convID, toks[1])
+	ib, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil,
+		&chat1.GetInboxLocalQuery{
+			ConvIDs: []chat1.ConversationID{convID},
+		}, nil)
 	if err != nil {
-		h.Debug(ctx, "failed to find conversation as a channel: %s", err)
-		if conv, err = h.getConvByName(ctx, uid, toks[1]); err != nil {
-			h.Debug(ctx, "failed to find conversation as full name: %s", err)
-			return err
-		}
+		return err
 	}
-	h.Debug(ctx, "joining channel: tlf: %s topic: %s", conv.Info.TlfName, conv.Info.TopicName)
-	return h.G().ChatHelper.JoinConversationByID(ctx, uid, conv.GetConvID())
+	if len(ib.Convs) == 0 {
+		return errors.New("conv not found")
+	}
+	ui.ChatShowManageChannels(ctx, chat1.ChatShowManageChannelsArg{
+		Teamname: ib.Convs[0].Info.TlfName,
+	})
+	return nil
 }
