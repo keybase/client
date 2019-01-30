@@ -1873,18 +1873,6 @@
       ],
       "response": "InflationDestinationResultLocal"
     },
-    "airdropCurrentLocal": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        }
-      ],
-      "response": {
-        "type": "array",
-        "items": "string"
-      }
-    },
     "airdropRegisterLocal": {
       "request": [
         {
@@ -1892,21 +1880,8 @@
           "type": "int"
         },
         {
-          "name": "airdropName",
-          "type": "string"
-        }
-      ],
-      "response": null
-    },
-    "airdropDeregisterLocal": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "airdropName",
-          "type": "string"
+          "name": "register",
+          "type": "boolean"
         }
       ],
       "response": null

@@ -950,29 +950,7 @@ func (s *Server) GetInflationDestinationLocal(ctx context.Context, arg stellar1.
 	return stellar.GetInflationDestination(mctx, arg.AccountID)
 }
 
-type submitResult struct {
-	libkb.AppStatusEmbed
-	PaymentResult stellar1.PaymentResult `json:"payment_result"`
-}
-
-func (s *Server) AirdropCurrentLocal(ctx context.Context, sessionID int) ([]string, error) {
-	apiArg := libkb.APIArg{
-		Endpoint:    "stellar/airdrop/current",
-		SessionType: libkb.APISessionTypeREQUIRED,
-		NetContext:  ctx,
-	}
-
-	var res balancesResult
-	if err := g.API.GetDecode(apiArg, &res); err != nil {
-		return nil, err
-	}
-}
-
 func (s *Server) AirdropRegisterLocal(ctx context.Context, arg stellar1.AirdropRegisterLocalArg) error {
-	return errors.New("not implemented")
-}
-
-func (s *Server) AirdropDeregisterLocal(ctx context.Context, arg stellar1.AirdropDeregisterLocalArg) error {
 	return errors.New("not implemented")
 }
 
