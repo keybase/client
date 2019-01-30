@@ -9,6 +9,7 @@ function SettingsRender(props: Props) {
     <SettingsNav
       badgeNotifications={props.badgeNotifications}
       badgeNumbers={props.badgeNumbers}
+      logoutInProgress={props.logoutInProgress}
       selectedTab={props.selectedTab}
       onTabChange={props.onTabChange}
       onLogout={props.onLogout}

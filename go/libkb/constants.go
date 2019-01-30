@@ -510,6 +510,7 @@ const (
 	PaperKeyVersionBits   = 4
 	PaperKeyVersion       = 0
 	PaperKeyWordCountMin  = 13 // this should never change to a value greater than 13
+	PaperKeyNoPrefixLen   = 11 // word count min - 2
 )
 
 const UserSummaryLimit = 500 // max number of user summaries in one request

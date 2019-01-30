@@ -945,7 +945,7 @@ func testTrack(t *testing.T, tc libkb.TestContext, sigVersion libkb.SigVersion, 
 	require.NoError(t, err)
 }
 
-func TestProvisionPaperOnly(t *testing.T) {
+func testProvisionPaperOnly(t *testing.T, changePaperkey func(s string) string) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
@@ -981,7 +981,7 @@ func TestProvisionPaperOnly(t *testing.T) {
 	defer tc2.Cleanup()
 
 	secUI := fu.NewSecretUI()
-	secUI.Passphrase = loginUI.PaperPhrase
+	secUI.Passphrase = changePaperkey(loginUI.PaperPhrase)
 	provUI := newTestProvisionUIPaper()
 	provLoginUI := &libkb.TestLoginUI{Username: fu.Username}
 	uis2 := libkb.UIs{
@@ -1045,6 +1045,18 @@ func TestProvisionPaperOnly(t *testing.T) {
 	// should be able to sign and to track someone (no passphrase prompt)
 	testSign(t, tc2)
 	testTrack(t, tc2, libkb.KeybaseNullSigVersion, "t_bob")
+}
+
+func removePaperkeyPrefix(paperkey string) string {
+	return strings.Join(strings.Split(paperkey, " ")[2:], " ")
+}
+
+func TestProvisionPaperOnlyNoPrefix(t *testing.T) {
+	testProvisionPaperOnly(t, removePaperkeyPrefix)
+}
+
+func TestProvisionPaperOnly(t *testing.T) {
+	testProvisionPaperOnly(t, func(s string) string { return s })
 }
 
 func simulateServiceRestart(t *testing.T, tc libkb.TestContext, fu *FakeUser) {

@@ -2,22 +2,8 @@
 import {Component} from 'react'
 import type {Tab} from '../../constants/types/settings'
 import * as TabConstants from '../../constants/tabs'
-import {type Color, type StylesCrossPlatform} from '../../styles'
-
-// TODO this whole component is very ancient
-export type SettingsItemProps = {
-  badgeNumber?: number,
-  icon?: any,
-  largerBadgeMinWidthFix?: boolean,
-  onClick: () => void,
-  text: string,
-  textColor?: Color,
-  selected?: boolean,
-  selectedStyle?: StylesCrossPlatform,
-  unSelectedStyle?: StylesCrossPlatform,
-}
-
 export type Props = {
+  logoutInProgress: boolean,
   selectedTab: Tab,
   onTabChange: (tab: Tab) => void,
   onLogout: () => void,

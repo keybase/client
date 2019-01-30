@@ -31,6 +31,7 @@ func (n NullConfiguration) GetDbFilename() string                               
 func (n NullConfiguration) GetChatDbFilename() string                                      { return "" }
 func (n NullConfiguration) GetPvlKitFilename() string                                      { return "" }
 func (n NullConfiguration) GetParamProofKitFilename() string                               { return "" }
+func (n NullConfiguration) GetProveBypass() (bool, bool)                                   { return false, false }
 func (n NullConfiguration) GetUsername() NormalizedUsername                                { return NormalizedUsername("") }
 func (n NullConfiguration) GetEmail() string                                               { return "" }
 func (n NullConfiguration) GetUpgradePerUserKey() (bool, bool)                             { return false, false }
@@ -553,22 +554,31 @@ func (e *Env) GetRootConfigFilename() (string, error) {
 	return filepath.Join(dir, "config.json"), nil
 }
 
-func (e *Env) GetEnvfileName() (string, error) {
+func (e *Env) GetEnvFileDir() (string, error) {
 	switch RuntimeGroup() {
 	case keybase1.RuntimeGroup_LINUXLIKE:
-		return filepath.Join(e.GetConfigDir(), "keybase.autogen.env"), nil
+		// Do not respect $XDG_CONFIG_HOME due to debian systemd 229 not supporting %E
+		// see keybase.service systemd unit
+		return filepath.Join(e.GetHome(), ".config", "keybase"), nil
 	default:
-		return "", fmt.Errorf("No envfile for %s.", runtime.GOOS)
+		return "", fmt.Errorf("No envfiledir for %s.", runtime.GOOS)
 	}
 }
 
-func (e *Env) GetOverrideEnvfileName() (string, error) {
-	switch RuntimeGroup() {
-	case keybase1.RuntimeGroup_LINUXLIKE:
-		return filepath.Join(e.GetConfigDir(), "keybase.env"), nil
-	default:
-		return "", fmt.Errorf("No envfile override for %s.", runtime.GOOS)
+func (e *Env) GetEnvfileName() (string, error) {
+	dir, err := e.GetEnvFileDir()
+	if err != nil {
+		return "", err
 	}
+	return filepath.Join(dir, "keybase.autogen.env"), nil
+}
+
+func (e *Env) GetOverrideEnvfileName() (string, error) {
+	dir, err := e.GetEnvFileDir()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(dir, "keybase.env"), nil
 }
 
 func (e *Env) GetConfigFilename() string {
@@ -663,6 +673,15 @@ func (e *Env) GetParamProofKitFilename() string {
 		func() string { return os.Getenv("KEYBASE_PARAM_PROOF_KIT_FILE") },
 		func() string { return e.GetConfig().GetParamProofKitFilename() },
 	)
+}
+
+// GetProveBypass ignores creation_disabled so that the client will let the user
+// try to make a proof for any known service.
+func (e *Env) GetProveBypass() bool {
+	return e.GetBool(false,
+		func() (bool, bool) { return e.cmd.GetProveBypass() },
+		func() (bool, bool) { return e.getEnvBool("KEYBASE_PROVE_BYPASS") },
+		func() (bool, bool) { return e.GetConfig().GetProveBypass() })
 }
 
 func (e *Env) GetDebug() bool {
