@@ -2,6 +2,8 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import * as FsTypes from '../../constants/types/fs'
+import KbfsPathContainer from '../../common-adapters/markdown/kbfs-path-container'
 
 type Props = {
   canDelete: boolean,
@@ -112,12 +114,10 @@ class Row extends React.Component<Props> {
               </Kb.Box>
               <Kb.Box2 direction="horizontal" fullWidth={true} style={{marginTop: Styles.globalMargins.tiny}}>
                 <Kb.Text type="Body">Preview:</Kb.Text>
-                <Kb.Markdown
-                  style={styles.repoLink}
+                <KbfsPathContainer
+                  escapedPath={this.props.previewLink}
                   allowFontScaling={true}
-                >
-                  {this.props.previewLink}
-                </Kb.Markdown>
+                />
               </Kb.Box2>
               <Kb.Box
                 style={{
