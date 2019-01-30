@@ -290,7 +290,7 @@ function AccountFirstEmail({onChangeEmail}: {onChangeEmail: () => void}) {
     >
       <Text type="Body">
         No e-mail set. You should{' '}
-        <Text type="Body" style={{color: globalColors.blue}} link={true} onClick={onChangeEmail}>
+        <Text type="BodyPrimaryLink" onClick={onChangeEmail}>
           add an e-mail address.
         </Text>
       </Text>
