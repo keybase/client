@@ -30,17 +30,17 @@ const TypingNames = ({typing}: {typing: I.Set<string>}) => {
       break
     case 1:
       names = (
-        <React.Fragment>
+        <>
           <Kb.Text key={0} type={textType}>
             {typing.first()}
           </Kb.Text>
           {' is typing'}
-        </React.Fragment>
+        </>
       )
       break
     case 2:
       names = (
-        <React.Fragment>
+        <>
           <Kb.Text key={0} type={textType}>
             {typing.first()}
           </Kb.Text>
@@ -49,17 +49,17 @@ const TypingNames = ({typing}: {typing: I.Set<string>}) => {
             {typing.skip(1).first()}
           </Kb.Text>
           {' are typing'}
-        </React.Fragment>
+        </>
       )
       break
     default:
       names = (
-        <React.Fragment>
+        <>
           <Kb.Text key={0} type={textType}>
             {typing.join(', ')}
           </Kb.Text>
           {' are typing'}
-        </React.Fragment>
+        </>
       )
   }
   return names
