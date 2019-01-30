@@ -468,6 +468,7 @@ type UIRouter interface {
 	GetHomeUI() (keybase1.HomeUIInterface, error)
 	GetIdentify3UIAdapter(MetaContext) (IdentifyUI, error)
 	GetIdentify3UI(MetaContext) (keybase1.Identify3UiInterface, error)
+	GetChatUI() (chat1.ChatUiInterface, error)
 
 	Shutdown()
 }
