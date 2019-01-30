@@ -18,9 +18,9 @@ const mapStateToProps = (state, {path}: OwnProps) => ({
 })
 
 const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
-  download: () => dispatch(FsGen.createDownload(Constants.makeDownloadPayload(path))),
-  saveMedia: () => dispatch(FsGen.createSaveMedia(Constants.makeDownloadPayload(path))),
-  shareNative: () => dispatch(FsGen.createShareNative(Constants.makeDownloadPayload(path))),
+  download: () => dispatch(FsGen.createDownload({key: Constants.makeDownloadKey(path), path})),
+  saveMedia: () => dispatch(FsGen.createSaveMedia({key: Constants.makeDownloadKey(path), path})),
+  shareNative: () => dispatch(FsGen.createShareNative({key: Constants.makeDownloadKey(path), path})),
   showInSystemFileManager: () => dispatch(FsGen.createOpenPathInSystemFileManager({path})),
 })
 

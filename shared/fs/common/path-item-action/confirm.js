@@ -1,52 +1,39 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
+import * as Constants from '../../../constants/fs'
 import * as Styles from '../../../styles'
 import * as Kb from '../../../common-adapters'
 import type {FloatingMenuProps} from './types'
-import DownloadTrackingHoc from '../download-tracking-hoc'
-import Header from './header-container'
 
 type Props = {|
-  action: Types.PathItemActionMenuConfirmActionType,
   confirm: (() => void) | 'disabled',
   floatingMenuProps: FloatingMenuProps,
   path: Types.Path,
+  size: number,
 |}
 
-const Confirm = DownloadTrackingHoc<{|
-  action: Types.PathItemActionMenuConfirmActionType,
-|}>(({action, downloading}) =>
-  downloading ? (
-    <Kb.Box2 direction="horizontal">
-      <Kb.ProgressIndicator style={styles.progressIndicator} />
-      <Kb.Text type="BodyBig" style={styles.menuRowTextDisabled}>
-        {action === 'save' ? 'Saving' : 'Preparing to send to other app'}
-      </Kb.Text>
-    </Kb.Box2>
-  ) : (
-    <Kb.Text type="BodyBig" style={styles.menuRowText}>
-      Confirm
-    </Kb.Text>
-  )
-)
-
 const ConfirmHeader = (props: Props) => (
-  <Kb.Box2 direction="vertical" fullWidth={true}>
-    <Header path={props.path} />
-    <Kb.Box2 style={styles.confirmTextBox} direction="horizontal" fullWidth={true} centerChildren={true}>
-      <Kb.Text type="Body" style={styles.confirmText}>
-        {props.action === 'save'
-          ? 'This file is larger than 50 MB. Continue to save?'
-          : 'This file is larger than 50 MB and we need to download it first. Continue to share?'}
-      </Kb.Text>
-    </Kb.Box2>
+  <Kb.Box2
+    style={styles.confirmTextBox}
+    direction="vertical"
+    fullWidth={true}
+    centerChildren={true}
+    gap="small"
+  >
+    <Kb.Text type="Header" style={styles.confirmText}>
+      Continue to share?
+    </Kb.Text>
+    <Kb.Text type="Body" style={styles.confirmText}>
+      The file will be downloaded and its size is {Constants.humanReadableFileSize(props.size)}.
+    </Kb.Text>
   </Kb.Box2>
 )
 
 export default (props: Props) => (
   <Kb.FloatingMenu
     closeOnSelect={false}
+    closeText="Cancel"
     containerStyle={props.floatingMenuProps.containerStyle}
     attachTo={props.floatingMenuProps.attachTo}
     visible={props.floatingMenuProps.visible}
@@ -62,16 +49,7 @@ export default (props: Props) => (
             {
               disabled: props.confirm === 'disabled',
               onClick: props.confirm !== 'disabled' ? props.confirm : undefined,
-              title: 'Confirm',
-              view: (
-                <Confirm
-                  trackingPath={props.path}
-                  trackingIntent={props.action === 'save' ? 'camera-roll' : 'share'}
-                  onFinish={props.floatingMenuProps.hideOnce}
-                  cancelOnUnmount={true}
-                  action={props.action}
-                />
-              ),
+              title: 'Yes, continue',
             },
           ]
         : []
