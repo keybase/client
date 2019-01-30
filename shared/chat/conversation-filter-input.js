@@ -123,6 +123,7 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
           rightActions={[
             {
               icon: 'iconfont-compose',
+              iconColor: Styles.globalColors.blue,
               label: 'New chat',
               onPress: this.props.onNewChat,
             },

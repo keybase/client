@@ -182,6 +182,7 @@ const renderAction = (action: Action, index: number): React.Node =>
     </Box>
   ) : action.icon ? (
     <Icon
+      color={action.iconColor || undefined}
       key={action.label || index}
       fontSize={22}
       onClick={action.onPress}
