@@ -29,6 +29,7 @@ const props = {
       section: 'Where are the Lumens dropped?',
     },
   ],
+  onBack: Sb.action('onBack'),
   onCheckQualify: Sb.action('onCheckQualify'),
   onReject: Sb.action('onReject'),
   signedUp: false,

@@ -11,7 +11,7 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = (dispatch, {navigateAppend, navigateUp}) => ({
-  onBack: () => dispatch(navitateUp()),
+  onBack: () => dispatch(navigateUp()),
   onCheckQualify: () => dispatch(navigateAppend(['airdropQualify'])),
   onReject: () => dispatch(WalletsGen.createChangeAirdrop({accept: false})),
 })

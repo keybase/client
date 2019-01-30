@@ -263,10 +263,10 @@ export type _State = {
   accountName: string,
   accountNameError: string,
   accountNameValidationState: ValidationState,
-  airdropState: AirdropState,
-  airdropQualifiedState: AirdropQualifiedState,
-  airdropQualifications: I.List<AirdropQualification>,
   airdropProgramInfo: I.List<AirdropInfo>,
+  airdropQualifications: I.List<AirdropQualification>,
+  airdropQualifiedState: AirdropQualifiedState,
+  airdropState: AirdropState,
   assetsMap: I.Map<AccountID, I.List<Assets>>,
   buildCounter: number, // increments when we call buildPayment / buildRequest
   building: Building,

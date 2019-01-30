@@ -4,6 +4,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 
 type Props = {|
+  onBack: () => void,
   onCheckQualify: () => void,
   onReject: () => void,
   signedUp: boolean,
