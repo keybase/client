@@ -1,7 +1,6 @@
 // @flow
 import * as React from 'react'
 import * as I from 'immutable'
-import * as Types from '../../../../../constants/types/chat2'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 
@@ -60,10 +59,9 @@ const Names = ({names}: {names: I.Set<string>}) => {
   return ret
 }
 
-type Props = {|
-  conversationIDKey: Types.ConversationIDKey,
+type Props = {
   names: I.Set<string>,
-|}
+}
 
 export const Typing = (props: Props) => (
   <Kb.Box
