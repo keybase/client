@@ -59,9 +59,9 @@ const Names = ({names}: {names: I.Set<string>}) => {
   return ret
 }
 
-type Props = {
+type Props = {|
   names: I.Set<string>,
-}
+|}
 
 export const Typing = (props: Props) => (
   <Kb.Box

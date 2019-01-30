@@ -2,11 +2,9 @@
 import * as React from 'react'
 import * as I from 'immutable'
 import * as Sb from '../../../../../stories/storybook'
-import {stringToConversationIDKey} from '../../../../../constants/types/chat2'
 import {Typing} from '.'
 
 const props = {
-  conversationIDKey: stringToConversationIDKey('fake conversation id key'),
   names: I.Set(),
 }
 

@@ -12,8 +12,12 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => ({
   names: Constants.getTyping(state, conversationIDKey),
 })
 
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  ...stateProps,
+})
+
 export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   () => ({}),
-  (s, d, o) => ({...o, ...s, ...d})
+  mergeProps
 )(Typing)
