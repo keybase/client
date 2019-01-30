@@ -1,6 +1,8 @@
 // @flow
 import Row from '.'
 import * as Constants from '../../constants/git'
+import * as FsConstants from '../../constants/fs'
+import * as FsTypes from '../../constants/types/fs'
 import * as ConfigGen from '../../actions/config-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as GitGen from '../../actions/git-gen'
@@ -75,6 +77,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onToggleChatEnabled: () => dispatchProps._setDisableChat(!git.chatDisabled, git.repoID, git.teamname),
     onToggleExpand: () => ownProps.onToggleExpand(git.id),
     openUserTracker: dispatchProps.openUserTracker,
+    previewLink: FsConstants.escapePath(FsTypes.stringToPath(git.url.replace(/keybase:\/\/((private|public|team)\/[^/]*)\/(.*)/, '/keybase/$1/.kbfs_autogit/$3'))),
     teamname: git.teamname,
     url: git.url,
     you: stateProps.you,
