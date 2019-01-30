@@ -2,8 +2,8 @@
 /* eslint-env browser */
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker'
 import React, {PureComponent} from 'react'
+import * as I from 'immutable'
 import {
-  Animation,
   Box,
   Box2,
   Icon,
@@ -26,7 +26,7 @@ import {
   NativeTouchableWithoutFeedback,
 } from '../../../../common-adapters/native-wrappers.native'
 import SetExplodingMessagePicker from '../../messages/set-explode-popup/container'
-import {ExplodingMeta} from './shared'
+import {ExplodingMeta, IsTyping} from './shared'
 import FilePickerPopup from '../filepicker-popup'
 import WalletsIcon from './wallets-icon/container'
 import type {PlatformInputPropsInternal} from './platform-input'
@@ -179,6 +179,12 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
             visible={this.props.showingMenu}
           />
         )}
+        <IsTyping
+          // style={collapseStyles([styles.typing, this.props.typing.size > 0 && styles.visibleTyping])}
+          style={collapseStyles([styles.typing, styles.visibleTyping])}
+          typing={I.Set(['adamjspooner'])}
+          // typing={this.props.typing}
+        />
         <Box style={styles.container}>
           {this.props.isEditing && (
             <Box style={styles.editingTabStyle}>
@@ -204,8 +210,6 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
             rowsMax={3}
             rowsMin={1}
           />
-
-          {this.props.typing.size > 0 && <Animation animationType="typing" containerStyle={styles.typing} />}
           <Action
             hasText={this.state.hasText}
             onSubmit={this._onSubmit}
@@ -360,18 +364,14 @@ const styles = styleSheetCreate({
     width: globalMargins.small,
   },
   typing: {
-    ...globalStyles.flexBoxRow,
-    alignItems: 'center',
-    alignSelf: 'center',
-    borderRadius: 10,
-    height: 20,
-    justifyContent: 'center',
-    marginRight: globalMargins.tiny,
-    paddingLeft: globalMargins.tiny,
-    paddingRight: globalMargins.tiny,
+    bottom: 2,
+    height: 16,
+    left: 3,
+    opacity: 0,
+    position: 'relative',
   },
-  typingIcon: {
-    width: 20,
+  visibleTyping: {
+    opacity: 1,
   },
 })
 
