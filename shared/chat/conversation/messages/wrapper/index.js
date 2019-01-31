@@ -186,7 +186,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
 
   _shouldShowReactionsRow = () =>
     // $ForceType
-    this.props.message.reactions && !this.props.message.reactions.isEmpty()
+    (this.props.message.reactions && !this.props.message.reactions.isEmpty()) || this.props.isPendingPayment
 
   _reactionsRow = () =>
     this._shouldShowReactionsRow() && (
@@ -280,7 +280,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       exploded || Styles.isMobile ? 0 : 16, // ... menu
       exploding ? (Styles.isMobile ? 57 : 46) : 0, // exploding
     ].filter(Boolean)
-    const padding = 8
+    const padding = Styles.globalMargins.tiny
     const width =
       iconSizes.length <= 0 ? 0 : iconSizes.reduce((total, size) => total + size, iconSizes.length * padding)
 

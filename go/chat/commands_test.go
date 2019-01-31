@@ -91,6 +91,10 @@ func TestChatCommands(t *testing.T) {
 		Body: "/shrug whatever",
 	}))
 	checkMsgText(listener0, `whatever ¯\_(ツ)_/¯`)
+	mustPostLocalForTest(t, ctc, users[0], impConv, chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: "/shrug ",
+	}))
+	checkMsgText(listener0, `¯\_(ツ)_/¯`)
 
 	t.Logf("test /msg")
 	mustPostLocalForTest(t, ctc, users[0], impConv, chat1.NewMessageBodyWithText(chat1.MessageText{

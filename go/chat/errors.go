@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/ephemeral"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 )
@@ -85,6 +86,20 @@ func (e PermanentUnboxingError) InternalError() string {
 	}
 }
 
+func (e PermanentUnboxingError) ToStatus() (status keybase1.Status) {
+	if ee, ok := e.inner.(libkb.ExportableError); ok {
+		status = ee.ToStatus()
+		status.Desc = e.Error()
+	} else {
+		status = keybase1.Status{
+			Name: "GENERIC",
+			Code: libkb.SCGeneric,
+			Desc: e.Error(),
+		}
+	}
+	return status
+}
+
 //=============================================================================
 
 func NewTransientUnboxingError(inner error) types.UnboxingError {
@@ -124,6 +139,20 @@ func (e TransientUnboxingError) InternalError() string {
 	default:
 		return err.Error()
 	}
+}
+
+func (e TransientUnboxingError) ToStatus() (status keybase1.Status) {
+	if ee, ok := e.inner.(libkb.ExportableError); ok {
+		status = ee.ToStatus()
+		status.Desc = e.Error()
+	} else {
+		status = keybase1.Status{
+			Name: "GENERIC",
+			Code: libkb.SCGeneric,
+			Desc: e.Error(),
+		}
+	}
+	return status
 }
 
 //=============================================================================
