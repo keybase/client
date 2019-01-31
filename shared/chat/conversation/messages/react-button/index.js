@@ -71,7 +71,7 @@ const ReactButton = (props: Props) => (
   >
     <Box2 centerChildren={true} fullHeight={true} direction="horizontal" gap="xtiny" style={styles.container}>
       <Box2 direction="horizontal" style={styles.emojiWrapper}>
-        <EmojiIfExists size={16} lineClamp={1} emojiName={props.emoji} />
+        <EmojiIfExists size={Styles.isMobile ? 16 : 18} lineClamp={1} emojiName={props.emoji} />
       </Box2>
       <Text
         type="BodyTinyBold"
@@ -195,7 +195,7 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
                 key={iconName}
                 type={iconName}
                 color={this.state.hovering ? Styles.globalColors.black_50 : Styles.globalColors.black_50}
-                fontSize={16}
+                fontSize={18}
                 style={iconCastPlatformStyles(
                   Styles.collapseStyles([
                     styles.emojiIconWrapper,
