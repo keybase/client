@@ -325,7 +325,7 @@ func (g *GlobalContext) Logout(ctx context.Context) (err error) {
 
 	// remove stored secret
 	g.secretStoreMu.Lock()
-	if g.secretStore != nil {
+	if g.secretStore != nil && !username.IsNil() {
 		if err := g.secretStore.ClearSecret(mctx, username); err != nil {
 			mctx.CDebugf("clear stored secret error: %s", err)
 		}
