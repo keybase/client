@@ -2,7 +2,9 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Types from '../../../constants/types/wallets'
+import * as Constants from '../../../constants/wallets'
 import * as Styles from '../../../styles'
+import shallowEqual from 'shallowequal'
 
 type Props = {|
   state: Types.AirdropState,
@@ -15,19 +17,14 @@ type Props = {|
   |}>,
 |}
 
-const Loading = () => (
-  <Kb.ScrollView style={styles.container}>
-    <Kb.Box2 noShrink={true} direction="vertical" centerChildren={true} style={styles.content} gap="medium">
-      <Kb.Icon type="icon-stellar-coins-stacked-16" style={styles.star} />
-      <Kb.Text center={true} type="BodySemibold" style={styles.loadingText}>
-        Analyzing your account...
-      </Kb.Text>
-    </Kb.Box2>
-  </Kb.ScrollView>
-)
-
 const Accepted = p => (
-  <Kb.ScrollView style={styles.container}>
+  <Kb.ScrollView
+    style={styles.scrollView}
+    className={Styles.classNames({
+      'fade-anim-enter': true,
+      'fade-anim-enter-active': p.state === 'accepted',
+    })}
+  >
     <Kb.Box2 noShrink={true} fullWidth={true} direction="vertical" style={styles.content} gap="medium">
       <Kb.Box2 direction="vertical" style={styles.grow} />
       <Kb.Icon type="icon-stellar-coins-stacked-16" style={styles.star} />
@@ -60,12 +57,15 @@ const Row = p => (
       <Kb.Text type="BodySemibold" style={styles.rowText}>
         {p.title}
       </Kb.Text>
-      <Kb.Icon
-        type={p.valid ? 'iconfont-check' : 'iconfont-close'}
-        color={p.valid ? Styles.globalColors.green : Styles.globalColors.red}
-      />
+      {p.loading && <Kb.ProgressIndicator style={styles.progress} />}
+      {!p.loading && (
+        <Kb.Icon
+          type={p.valid ? 'iconfont-check' : 'iconfont-close'}
+          color={p.valid ? Styles.globalColors.green : Styles.globalColors.red}
+        />
+      )}
     </Kb.Box2>
-    {!!p.subTitle && (
+    {!p.loading && !!p.subTitle && (
       <Kb.Text type="Body" style={styles.rowText}>
         {p.subTitle}
       </Kb.Text>
@@ -73,54 +73,130 @@ const Row = p => (
   </Kb.Box2>
 )
 
-const Qualified = p => (
-  <Kb.ScrollView style={styles.container}>
-    <Kb.Box2
-      noShrink={true}
-      direction="vertical"
-      fullWidth={true}
-      gap="medium"
-      style={styles.content}
-      gapEnd={true}
-    >
-      <Kb.Icon
-        type={p.qualified ? 'icon-stellar-coins-flying-2-48' : 'icon-stellar-coins-flying-48'}
-        style={styles.star}
-      />
-      <Kb.Text center={true} type="Header" style={styles.headerText}>
-        {p.qualified ? 'You are qualified to join!' : 'Sorry, you are not qualified to join.'}
-      </Kb.Text>
-      <>
-        {p.rows.map((r, idx) => (
-          <Row key={r.title} {...r} first={idx === 0} />
-        ))}
-      </>
-      {!Styles.isMobile && <Kb.Box2 direction="vertical" style={styles.grow} />}
-      {p.state === 'qualified' && (
-        <Kb.Button
-          onClick={p.onSubmit}
-          fullWidth={true}
-          type="PrimaryGreen"
-          label="Become a lucky airdropee"
-          style={styles.buttonAccept}
-        />
-      )}
-      <Kb.Button
-        onClick={p.onCancel}
-        fullWidth={true}
-        type="Wallet"
-        label="Close"
-        style={styles.buttonClose}
-      />
-    </Kb.Box2>
-  </Kb.ScrollView>
-)
+type State = {|
+  rowIdxLoaded: number,
+|}
+class Qualified extends React.PureComponent<Props, State> {
+  state = {
+    rowIdxLoaded: -1,
+  }
+  _loadingTimerID: ?TimeoutID
+
+  _kickNextLoad = () => {
+    this._loadingTimerID && clearTimeout(this._loadingTimerID)
+    this._loadingTimerID = undefined
+    if (this.state.rowIdxLoaded >= this.props.rows.length - 1) {
+      return
+    }
+
+    // wait extra long on last row
+    if (this.state.rowIdxLoaded === this.props.rows.length - 2) {
+      this._loadingTimerID = setTimeout(() => this.setState(p => ({rowIdxLoaded: p.rowIdxLoaded + 1})), 2500)
+    } else {
+      this._loadingTimerID = setTimeout(() => this.setState(p => ({rowIdxLoaded: p.rowIdxLoaded + 1})), 1000)
+    }
+  }
+
+  componentWillUnmount() {
+    this._loadingTimerID && clearTimeout(this._loadingTimerID)
+    this._loadingTimerID = undefined
+  }
+
+  componentDidMount() {
+    this._kickNextLoad()
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    // got new rows or more to load
+    if (!shallowEqual(this.props.rows, prevProps.rows)) {
+      this.setState({rowIdxLoaded: -1})
+      this._kickNextLoad()
+    } else if (this.state.rowIdxLoaded < this.props.rows.length) {
+      this._kickNextLoad()
+    }
+  }
+
+  render() {
+    const p = this.props
+    const rows = this.props.rows
+    const loadingRows = !!rows.length && this.state.rowIdxLoaded < rows.length - 1
+    const loading = p.state === 'loading' || loadingRows
+
+    return (
+      <Kb.ScrollView
+        style={styles.scrollView}
+        className={Styles.classNames({
+          'fade-anim-enter': true,
+          'fade-anim-enter-active': p.state !== 'accepted',
+        })}
+      >
+        <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true} gap="medium" style={styles.content}>
+          <Kb.Box2 direction="vertical" style={styles.grow} />
+          <Kb.Icon
+            type={
+              loading
+                ? 'icon-stellar-coins-stacked-16'
+                : p.state === 'qualified'
+                ? 'icon-stellar-coins-flying-2-48'
+                : 'icon-stellar-coins-flying-48'
+            }
+            style={styles.star}
+          />
+          <Kb.Text
+            center={true}
+            type={loading ? 'BodySemibold' : 'Header'}
+            style={loading ? styles.loadingText : styles.headerText}
+          >
+            {loading
+              ? 'Analyzing your account...'
+              : p.state === 'qualified'
+              ? 'You are qualified to join!'
+              : 'Sorry, you are not qualified to join.'}
+          </Kb.Text>
+          <>
+            <Kb.Box2 direction="vertical" style={styles.grow} />
+            <Kb.Box2
+              direction="vertical"
+              className={Styles.classNames({
+                growFadeInBig: rows.length,
+                growFadeInSmall: true,
+              })}
+            >
+              {rows.map((r, idx) => (
+                <Row key={r.title} {...r} first={idx === 0} loading={idx > this.state.rowIdxLoaded} />
+              ))}
+            </Kb.Box2>
+          </>
+          {p.state === 'qualified' && (
+            <Kb.WaitingButton
+              onClick={p.onSubmit}
+              fullWidth={true}
+              type="PrimaryGreen"
+              label="Become a lucky airdropee"
+              disabled={loadingRows}
+              waitingKey={Constants.airdropWaitingKey}
+              style={styles.buttonAccept}
+            />
+          )}
+          <Kb.Button
+            onClick={p.onCancel}
+            fullWidth={true}
+            type="Wallet"
+            label="Close"
+            style={styles.buttonClose}
+          />
+        </Kb.Box2>
+      </Kb.ScrollView>
+    )
+  }
+}
 
 const Qualify = (p: Props) => (
   <Kb.MaybePopup onClose={p.onCancel}>
-    {p.state === 'loading' && <Loading />}
-    {p.state === 'accepted' && <Accepted {...p} />}
-    {(p.state === 'qualified' || p.state === 'unqualified') && <Qualified {...p} />}
+    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
+      <Accepted {...p} />
+      <Qualified {...p} />
+    </Kb.Box2>
   </Kb.MaybePopup>
 )
 
@@ -134,7 +210,6 @@ const styles = Styles.styleSheetCreate({
     common: {backgroundColor: Styles.globalColors.purple2},
     isElectron: {
       height: 550,
-      padding: Styles.globalMargins.medium,
       width: 400,
     },
     isMobile: {
@@ -144,14 +219,19 @@ const styles = Styles.styleSheetCreate({
   }),
   content: Styles.platformStyles({
     isElectron: {
-      height: 550 - Styles.globalMargins.medium * 2,
-      width: 400 - Styles.globalMargins.medium * 2,
+      minHeight: 550,
+      padding: Styles.globalMargins.medium,
     },
     isMobile: {padding: Styles.globalMargins.small},
   }),
-  grow: {flexGrow: 1},
+  grow: {
+    flexGrow: 1,
+    flexShrink: 1,
+    width: 100,
+  },
   headerText: {color: Styles.globalColors.white},
   loadingText: {color: Styles.globalColors.white_40},
+  progress: {color: Styles.globalColors.white, height: 14, width: 14},
   row: Styles.platformStyles({
     isElectron: {
       minHeight: Styles.globalMargins.large,
@@ -168,7 +248,13 @@ const styles = Styles.styleSheetCreate({
     borderTopColor: Styles.globalColors.black_10,
     borderTopWidth: 1,
   },
-  rowText: {color: Styles.globalColors.white, flexGrow: 1, flexShrink: 1},
+  rowText: {
+    color: Styles.globalColors.white,
+    flexGrow: 1,
+    flexShrink: 1,
+    marginRight: Styles.globalMargins.tiny,
+  },
+  scrollView: {...Styles.globalStyles.fillAbsolute},
   star: {
     alignSelf: 'center',
     height: 120,

@@ -851,7 +851,6 @@ const updateAirdropState = () =>
       let airdropState = 'loading'
       switch (state) {
         case 'accepted':
-        case 'rejected':
         case 'qualified':
         case 'unqualified':
           airdropState = state

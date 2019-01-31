@@ -7,6 +7,7 @@ export type Props = {|
   contentContainerStyle?: StylesCrossPlatform,
   style?: StylesCrossPlatform,
   onScroll?: ?Function,
+  className?: ?string,
 
   // mobile only
   bounces?: boolean,

@@ -278,3 +278,15 @@ body {
 .emoji-mart-emoji {
   vertical-align: middle;
 }
+
+.growFadeInSmall {
+  max-height: 0px;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 1250ms ease-in-out;
+  transition: opacity 250ms ease-in-out;
+}
+.growFadeInBig {
+  max-height: 999px;
+  opacity: 1;
+}

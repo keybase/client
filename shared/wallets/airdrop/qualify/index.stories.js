@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Sb from '../../../stories/storybook'
+import * as Kb from '../../../common-adapters'
 import Qualify from '.'
 
 const rows = [
@@ -10,14 +11,8 @@ const rows = [
     title: '3 installed devices or paper keys',
     valid: false,
   },
-  {subTitle: '', title: 'Running a recent version of Keybase', valid: true},
-  {
-    subTitle: 'You need to have joined Keybase before July 1, 2018.',
-    title: 'Old enough Keybase account',
-    valid: false,
-  },
-  {subTitle: '', title: 'Old enough GitHub or Hacker News', valid: true},
-  {subTitle: '', title: "Registration deadline hasn't passed", valid: true},
+  {subTitle: '', title: 'Old enough Keybase, Github or Hacker News account', valid: true},
+  {subTitle: '😁', title: 'A beautiful smile', valid: true},
 ]
 
 const props = {
@@ -26,14 +21,72 @@ const props = {
   rows,
 }
 
+class Transitions extends React.Component<any, any> {
+  state = {
+    machineState: 'loading1',
+    rows: [],
+    state: 'loading',
+  }
+
+  _next = () => {
+    this.setState(p => {
+      switch (p.machineState) {
+        case 'loading1':
+          return {
+            machineState: 'qualified',
+            rows: qualifiedRows,
+            state: 'qualified',
+          }
+        case 'qualified':
+          return {
+            machineState: 'accepted',
+            state: 'accepted',
+          }
+        case 'accepted':
+          return {
+            machineState: 'loading2',
+            rows: [],
+            state: 'loading',
+          }
+        case 'loading2':
+          return {
+            machineState: 'unqualified',
+            rows: this.props.rows,
+            state: 'unqualified',
+          }
+        case 'unqualified':
+          return {
+            machineState: 'loading1',
+            rows: [],
+            state: 'loading',
+          }
+      }
+    })
+  }
+  render() {
+    return (
+      <>
+        <Qualify {...this.props} rows={this.state.rows} state={this.state.state} />
+        <Kb.Button
+          type="Primary"
+          label={`state: ${this.state.machineState}`}
+          onClick={this._next}
+          style={{position: 'absolute', right: 0, zIndex: 99999}}
+        />
+      </>
+    )
+  }
+}
+
+const qualifiedRows = props.rows.map((r, idx) => ({...r, subTitle: idx === 0 ? '' : r.subTitle, valid: true}))
+
 const load = () => {
   Sb.storiesOf('Settings/AirdropQualify', module)
     .add('Sad', () => <Qualify {...props} state="unqualified" />)
-    .add('Happy', () => (
-      <Qualify {...props} rows={props.rows.map(r => ({...r, subTitle: '', valid: true}))} state="qualified" />
-    ))
-    .add('Loading', () => <Qualify {...props} state="loading" />)
+    .add('Happy', () => <Qualify {...props} rows={qualifiedRows} state="qualified" />)
+    .add('Loading', () => <Qualify {...props} rows={[]} state="loading" />)
     .add('Accepted', () => <Qualify {...props} state="accepted" />)
+    .add('Transitions', () => <Transitions {...props} />)
 }
 
 export default load
