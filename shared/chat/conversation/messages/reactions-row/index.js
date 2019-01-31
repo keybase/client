@@ -5,7 +5,15 @@ import {Box, Box2} from '../../../../common-adapters'
 import ReactButton from '../react-button/container'
 import ReactionTooltip from '../reaction-tooltip/container'
 import EmojiRow from '../react-button/emoji-row/container'
-import {classNames, globalMargins, isMobile, platformStyles, styleSheetCreate} from '../../../../styles'
+import {
+  borderRadius,
+  classNames,
+  globalColors,
+  globalMargins,
+  isMobile,
+  platformStyles,
+  styleSheetCreate,
+} from '../../../../styles'
 
 export type Props = {|
   btnClassName?: string, // class to apply to all reacji buttons
@@ -82,7 +90,7 @@ class ReactionsRow extends React.Component<Props, State> {
             className={classNames([this.props.btnClassName, this.props.newBtnClassName])}
             conversationIDKey={this.props.conversationIDKey}
             ordinal={this.props.ordinal}
-            style={styles.button}
+            style={styles.emojiRow}
           />
         )}
         <ReactionTooltip
@@ -103,6 +111,14 @@ const styles = styleSheetCreate({
     flexWrap: 'wrap',
     paddingRight: 66,
     paddingTop: globalMargins.tiny,
+  },
+  emojiRow: {
+    backgroundColor: globalColors.white,
+    borderColor: globalColors.black_10,
+    borderRadius,
+    borderStyle: 'solid',
+    borderWidth: 1,
+    marginBottom: globalMargins.tiny,
   },
   visibilityHidden: platformStyles({isElectron: {visibility: 'hidden'}}),
 })
