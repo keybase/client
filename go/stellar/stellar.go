@@ -2164,3 +2164,11 @@ func AccountDetails(mctx libkb.MetaContext, remoter remote.Remoter, accountID st
 
 	return details, nil
 }
+
+func AirdropStatus(mctx libkb.MetaContext) (stellar1.AirdropStatus, error) {
+	apiStatus, err := remote.AirdropStatus(mctx)
+	if err != nil {
+		return stellar1.AirdropStatus{}, err
+	}
+	return TransformToAirdropStatus(apiStatus), nil
+}
