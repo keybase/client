@@ -9,7 +9,6 @@ import (
 
 	identify3 "github.com/keybase/client/go/identify3"
 	libkb "github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	context "golang.org/x/net/context"
@@ -117,14 +116,13 @@ func (u *UIRouter) GetIdentify3UIAdapter(m libkb.MetaContext) (libkb.IdentifyUI,
 	return identify3.NewUIAdapterMakeSessionForUpcall(m, id3i)
 }
 
-func (u *UIRouter) GetChatUI() (chat1.ChatUiInterface, error) {
+func (u *UIRouter) GetChatUI() (libkb.ChatUI, error) {
 	x, _ := u.getUI(libkb.ChatUIKind)
 	if x == nil {
 		return nil, nil
 	}
 	cli := rpc.NewClient(x, libkb.NewContextifiedErrorUnwrapper(u.G()), nil)
-	chatCli := chat1.ChatUiClient{Cli: cli}
-	return chatCli, nil
+	return NewRemoteChatUI(0, cli), nil
 }
 
 func (u *UIRouter) GetIdentifyUICtx(ctx context.Context) (int, libkb.IdentifyUI, error) {

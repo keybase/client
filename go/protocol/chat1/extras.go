@@ -1059,8 +1059,16 @@ func (c ConversationLocal) GetMembersType() ConversationMembersType {
 	return c.Info.MembersType
 }
 
+func (c ConversationLocal) GetTeamType() TeamType {
+	return c.Info.TeamType
+}
+
 func (c ConversationLocal) GetFinalizeInfo() *ConversationFinalizeInfo {
 	return c.Info.FinalizeInfo
+}
+
+func (c ConversationLocal) GetTopicName() string {
+	return c.Info.TopicName
 }
 
 func (c ConversationLocal) GetExpunge() *Expunge {
@@ -1130,6 +1138,10 @@ func (c Conversation) GetTopicType() TopicType {
 
 func (c Conversation) GetMembersType() ConversationMembersType {
 	return c.Metadata.MembersType
+}
+
+func (c Conversation) GetTeamType() TeamType {
+	return c.Metadata.TeamType
 }
 
 func (c Conversation) GetFinalizeInfo() *ConversationFinalizeInfo {

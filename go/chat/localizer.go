@@ -910,8 +910,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	}
 
 	// Get conversation commands
-	conversationLocal.Commands, err = s.G().CommandsSource.ListCommands(ctx, uid,
-		conversationRemote.GetConvID())
+	conversationLocal.Commands, err = s.G().CommandsSource.ListCommands(ctx, uid, conversationLocal)
 	if err != nil {
 		s.Debug(ctx, "localizeConversation: failed to list commands: %s", err)
 	}

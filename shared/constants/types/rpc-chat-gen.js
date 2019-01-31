@@ -19,9 +19,17 @@ export const chatUiUITextDecorationTyp = {
   channelnamemention: 2,
 }
 
+export const commandsConversationBuiltinCommandTyp = {
+  none: 0,
+  adhoc: 1,
+  smallteam: 2,
+  bigteam: 3,
+  bigteamgeneral: 4,
+}
+
 export const commandsConversationCommandGroupsTyp = {
   builtin: 0,
-  extended: 1,
+  custom: 1,
 }
 
 export const commonAssetMetadataType = {

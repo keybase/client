@@ -402,6 +402,7 @@ type ChatUI interface {
 	ChatStellarDataConfirm(context.Context, chat1.UIChatPaymentSummary) (bool, error)
 	ChatStellarDataError(context.Context, string) (bool, error)
 	ChatStellarDone(context.Context, bool) error
+	ChatShowManageChannels(context.Context, string) error
 }
 
 type PromptDefault int
@@ -468,7 +469,7 @@ type UIRouter interface {
 	GetHomeUI() (keybase1.HomeUIInterface, error)
 	GetIdentify3UIAdapter(MetaContext) (IdentifyUI, error)
 	GetIdentify3UI(MetaContext) (keybase1.Identify3UiInterface, error)
-	GetChatUI() (chat1.ChatUiInterface, error)
+	GetChatUI() (ChatUI, error)
 
 	Shutdown()
 }

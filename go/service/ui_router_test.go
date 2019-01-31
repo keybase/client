@@ -4,7 +4,6 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -55,7 +54,7 @@ func (f fakeUIRouter) GetIdentify3UI(libkb.MetaContext) (keybase1.Identify3UiInt
 	return nil, nil
 }
 
-func (f fakeUIRouter) GetChatUI() (chat1.ChatUiInterface, error) {
+func (f fakeUIRouter) GetChatUI() (libkb.ChatUI, error) {
 	return nil, nil
 }
 

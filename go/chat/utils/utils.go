@@ -978,7 +978,7 @@ func GetDesktopNotificationSnippet(conv *chat1.ConversationLocal, currentUsernam
 	}
 }
 
-func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.UnverifiedInboxUIItem) {
+func PresentRemoteConversation(ctx context.Context, g *globals.Context, rc types.RemoteConversation) (res chat1.UnverifiedInboxUIItem) {
 	var tlfName string
 	rawConv := rc.Conv
 	latest, err := PickLatestMessageSummary(rawConv, nil)
@@ -1005,7 +1005,8 @@ func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.Unverifie
 	res.Supersedes = rawConv.Metadata.Supersedes
 	res.SupersededBy = rawConv.Metadata.SupersededBy
 	res.FinalizeInfo = rawConv.Metadata.FinalizeInfo
-	res.Commands = chat1.NewConversationCommandGroupsWithBuiltin()
+	res.Commands =
+		chat1.NewConversationCommandGroupsWithBuiltin(g.CommandsSource.GetBuiltinCommandType(ctx, rc))
 	if rc.LocalMetadata != nil {
 		res.LocalMetadata = &chat1.UnverifiedInboxUIItemMetadata{
 			ChannelName:       rc.LocalMetadata.TopicName,
@@ -1020,17 +1021,17 @@ func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.Unverifie
 	return res
 }
 
-func PresentRemoteConversations(rcs []types.RemoteConversation) (res []chat1.UnverifiedInboxUIItem) {
+func PresentRemoteConversations(ctx context.Context, g *globals.Context, rcs []types.RemoteConversation) (res []chat1.UnverifiedInboxUIItem) {
 	for _, rc := range rcs {
-		res = append(res, PresentRemoteConversation(rc))
+		res = append(res, PresentRemoteConversation(ctx, g, rc))
 	}
 	return res
 }
 
-func PresentConversationErrorLocal(rawConv chat1.ConversationErrorLocal) (res chat1.InboxUIItemError) {
+func PresentConversationErrorLocal(ctx context.Context, g *globals.Context, rawConv chat1.ConversationErrorLocal) (res chat1.InboxUIItemError) {
 	res.Message = rawConv.Message
 	res.RekeyInfo = rawConv.RekeyInfo
-	res.RemoteConv = PresentRemoteConversation(types.RemoteConversation{
+	res.RemoteConv = PresentRemoteConversation(ctx, g, types.RemoteConversation{
 		Conv: rawConv.RemoteConv,
 	})
 	res.Typ = rawConv.Typ
@@ -1536,11 +1537,15 @@ func DecodeBase64(enc []byte) ([]byte, error) {
 	return b[:n], err
 }
 
+func RemoteConv(conv chat1.Conversation) types.RemoteConversation {
+	return types.RemoteConversation{
+		Conv: conv,
+	}
+}
+
 func RemoteConvs(convs []chat1.Conversation) (res []types.RemoteConversation) {
 	for _, conv := range convs {
-		res = append(res, types.RemoteConversation{
-			Conv: conv,
-		})
+		res = append(res, RemoteConv(conv))
 	}
 	return res
 }

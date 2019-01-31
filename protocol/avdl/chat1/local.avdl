@@ -940,9 +940,13 @@ protocol local {
 
   // Static data that changes only as often as the code.
   StaticConfig getStaticConfig();
+  record BuiltinCommandGroup {
+    ConversationBuiltinCommandTyp typ;
+    array<ConversationCommand> commands;
+  }
   record StaticConfig {
     array<MessageType> deletableByDeleteHistory;
-    array<ConversationCommand> builtinCommands;
+    array<BuiltinCommandGroup> builtinCommands;
   }
 
   // Respond to an unfurl prompt

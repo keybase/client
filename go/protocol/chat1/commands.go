@@ -33,20 +33,20 @@ func (o ConversationCommand) DeepCopy() ConversationCommand {
 type ConversationCommandGroupsTyp int
 
 const (
-	ConversationCommandGroupsTyp_BUILTIN  ConversationCommandGroupsTyp = 0
-	ConversationCommandGroupsTyp_EXTENDED ConversationCommandGroupsTyp = 1
+	ConversationCommandGroupsTyp_BUILTIN ConversationCommandGroupsTyp = 0
+	ConversationCommandGroupsTyp_CUSTOM  ConversationCommandGroupsTyp = 1
 )
 
 func (o ConversationCommandGroupsTyp) DeepCopy() ConversationCommandGroupsTyp { return o }
 
 var ConversationCommandGroupsTypMap = map[string]ConversationCommandGroupsTyp{
-	"BUILTIN":  0,
-	"EXTENDED": 1,
+	"BUILTIN": 0,
+	"CUSTOM":  1,
 }
 
 var ConversationCommandGroupsTypRevMap = map[ConversationCommandGroupsTyp]string{
 	0: "BUILTIN",
-	1: "EXTENDED",
+	1: "CUSTOM",
 }
 
 func (e ConversationCommandGroupsTyp) String() string {
@@ -56,12 +56,47 @@ func (e ConversationCommandGroupsTyp) String() string {
 	return ""
 }
 
-type ConversationCommandGroupsExtended struct {
+type ConversationBuiltinCommandTyp int
+
+const (
+	ConversationBuiltinCommandTyp_NONE           ConversationBuiltinCommandTyp = 0
+	ConversationBuiltinCommandTyp_ADHOC          ConversationBuiltinCommandTyp = 1
+	ConversationBuiltinCommandTyp_SMALLTEAM      ConversationBuiltinCommandTyp = 2
+	ConversationBuiltinCommandTyp_BIGTEAM        ConversationBuiltinCommandTyp = 3
+	ConversationBuiltinCommandTyp_BIGTEAMGENERAL ConversationBuiltinCommandTyp = 4
+)
+
+func (o ConversationBuiltinCommandTyp) DeepCopy() ConversationBuiltinCommandTyp { return o }
+
+var ConversationBuiltinCommandTypMap = map[string]ConversationBuiltinCommandTyp{
+	"NONE":           0,
+	"ADHOC":          1,
+	"SMALLTEAM":      2,
+	"BIGTEAM":        3,
+	"BIGTEAMGENERAL": 4,
+}
+
+var ConversationBuiltinCommandTypRevMap = map[ConversationBuiltinCommandTyp]string{
+	0: "NONE",
+	1: "ADHOC",
+	2: "SMALLTEAM",
+	3: "BIGTEAM",
+	4: "BIGTEAMGENERAL",
+}
+
+func (e ConversationBuiltinCommandTyp) String() string {
+	if v, ok := ConversationBuiltinCommandTypRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type ConversationCommandGroupsCustom struct {
 	Commands []ConversationCommand `codec:"commands" json:"commands"`
 }
 
-func (o ConversationCommandGroupsExtended) DeepCopy() ConversationCommandGroupsExtended {
-	return ConversationCommandGroupsExtended{
+func (o ConversationCommandGroupsCustom) DeepCopy() ConversationCommandGroupsCustom {
+	return ConversationCommandGroupsCustom{
 		Commands: (func(x []ConversationCommand) []ConversationCommand {
 			if x == nil {
 				return nil
@@ -77,54 +112,78 @@ func (o ConversationCommandGroupsExtended) DeepCopy() ConversationCommandGroupsE
 }
 
 type ConversationCommandGroups struct {
-	Typ__      ConversationCommandGroupsTyp       `codec:"typ" json:"typ"`
-	Extended__ *ConversationCommandGroupsExtended `codec:"extended,omitempty" json:"extended,omitempty"`
+	Typ__     ConversationCommandGroupsTyp     `codec:"typ" json:"typ"`
+	Builtin__ *ConversationBuiltinCommandTyp   `codec:"builtin,omitempty" json:"builtin,omitempty"`
+	Custom__  *ConversationCommandGroupsCustom `codec:"custom,omitempty" json:"custom,omitempty"`
 }
 
 func (o *ConversationCommandGroups) Typ() (ret ConversationCommandGroupsTyp, err error) {
 	switch o.Typ__ {
-	case ConversationCommandGroupsTyp_EXTENDED:
-		if o.Extended__ == nil {
-			err = errors.New("unexpected nil value for Extended__")
+	case ConversationCommandGroupsTyp_BUILTIN:
+		if o.Builtin__ == nil {
+			err = errors.New("unexpected nil value for Builtin__")
+			return ret, err
+		}
+	case ConversationCommandGroupsTyp_CUSTOM:
+		if o.Custom__ == nil {
+			err = errors.New("unexpected nil value for Custom__")
 			return ret, err
 		}
 	}
 	return o.Typ__, nil
 }
 
-func (o ConversationCommandGroups) Extended() (res ConversationCommandGroupsExtended) {
-	if o.Typ__ != ConversationCommandGroupsTyp_EXTENDED {
+func (o ConversationCommandGroups) Builtin() (res ConversationBuiltinCommandTyp) {
+	if o.Typ__ != ConversationCommandGroupsTyp_BUILTIN {
 		panic("wrong case accessed")
 	}
-	if o.Extended__ == nil {
+	if o.Builtin__ == nil {
 		return
 	}
-	return *o.Extended__
+	return *o.Builtin__
 }
 
-func NewConversationCommandGroupsWithBuiltin() ConversationCommandGroups {
+func (o ConversationCommandGroups) Custom() (res ConversationCommandGroupsCustom) {
+	if o.Typ__ != ConversationCommandGroupsTyp_CUSTOM {
+		panic("wrong case accessed")
+	}
+	if o.Custom__ == nil {
+		return
+	}
+	return *o.Custom__
+}
+
+func NewConversationCommandGroupsWithBuiltin(v ConversationBuiltinCommandTyp) ConversationCommandGroups {
 	return ConversationCommandGroups{
-		Typ__: ConversationCommandGroupsTyp_BUILTIN,
+		Typ__:     ConversationCommandGroupsTyp_BUILTIN,
+		Builtin__: &v,
 	}
 }
 
-func NewConversationCommandGroupsWithExtended(v ConversationCommandGroupsExtended) ConversationCommandGroups {
+func NewConversationCommandGroupsWithCustom(v ConversationCommandGroupsCustom) ConversationCommandGroups {
 	return ConversationCommandGroups{
-		Typ__:      ConversationCommandGroupsTyp_EXTENDED,
-		Extended__: &v,
+		Typ__:    ConversationCommandGroupsTyp_CUSTOM,
+		Custom__: &v,
 	}
 }
 
 func (o ConversationCommandGroups) DeepCopy() ConversationCommandGroups {
 	return ConversationCommandGroups{
 		Typ__: o.Typ__.DeepCopy(),
-		Extended__: (func(x *ConversationCommandGroupsExtended) *ConversationCommandGroupsExtended {
+		Builtin__: (func(x *ConversationBuiltinCommandTyp) *ConversationBuiltinCommandTyp {
 			if x == nil {
 				return nil
 			}
 			tmp := (*x).DeepCopy()
 			return &tmp
-		})(o.Extended__),
+		})(o.Builtin__),
+		Custom__: (func(x *ConversationCommandGroupsCustom) *ConversationCommandGroupsCustom {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Custom__),
 	}
 }
 

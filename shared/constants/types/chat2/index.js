@@ -37,7 +37,9 @@ export type PaymentConfirmInfo = {
 // Static config data we use for various things
 export type _StaticConfig = {
   deletableByDeleteHistory: I.Set<Message.MessageType>,
-  builtinCommands: Array<RPCChatTypes.ConversationCommand>,
+  builtinCommands: {
+    [typ: RPCChatTypes.ConversationBuiltinCommandTyp]: Array<RPCChatTypes.ConversationCommand>,
+  },
 }
 export type StaticConfig = I.RecordOf<_StaticConfig>
 
