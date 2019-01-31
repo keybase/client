@@ -515,7 +515,7 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 			query, nil)
 		if err != nil {
 			acceptableErr := false
-			// if we fail to loas the team for some kind of rekey reason, treat as a complete miss
+			// if we fail to load the team for some kind of rekey reason, treat as a complete miss
 			if _, ok := IsRekeyError(err); ok {
 				acceptableErr = true
 			}
