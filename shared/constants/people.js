@@ -14,6 +14,7 @@ export const todoTypeEnumToType: {[key: Types.TodoTypeEnum]: Types.TodoType} = i
 )
 
 export const todoTypes: {[key: Types.TodoType]: Types.TodoType} = {
+  addEmail: 'addEmail',
   avatarTeam: 'avatarTeam',
   avatarUser: 'avatarUser',
   bio: 'bio',
@@ -26,10 +27,10 @@ export const todoTypes: {[key: Types.TodoType]: Types.TodoType} = {
   proof: 'proof',
   team: 'team',
   teamShowcase: 'teamShowcase',
-  addEmail: 'addEmail',
 }
 
 export const todoTypeToInstructions: {[key: Types.TodoType]: string} = {
+  addEmail: `Add an email address to receive notifications and updates from Keybase.`,
   avatarTeam: 'NEW! Change your team’s avatar from within the Keybase app.',
   avatarUser: 'NEW! Change your photo from within the Keybase app.',
   bio: 'Add your name, bio, and location to complete your profile.',
@@ -49,9 +50,9 @@ export const todoTypeToInstructions: {[key: Types.TodoType]: string} = {
   team:
     'Create a team! Keybase team chats are end-to-end encrypted - unlike Slack - and work for any kind of group, from casual friends to large communities.',
   teamShowcase: `Tip: Keybase team chats are private, but you can choose to publish that you're an admin. Check out the team settings on any team you manage.`,
-  addEmail: `Add an email address to receive notifications and updates from Keybase.`,
 }
 export const todoTypeToConfirmLabel: {[key: Types.TodoType]: string} = {
+  addEmail: 'Add an email address',
   avatarTeam: 'Edit team avatar',
   avatarUser: 'Edit avatar',
   bio: 'Edit Profile',
@@ -64,9 +65,9 @@ export const todoTypeToConfirmLabel: {[key: Types.TodoType]: string} = {
   proof: 'Prove your identities',
   team: 'Create a team!',
   teamShowcase: 'Set publicity settings',
-  addEmail: 'Add an email address',
 }
 export const todoTypeToDismissable: {[key: Types.TodoType]: boolean} = {
+  addEmail: true,
   avatarTeam: false,
   avatarUser: false,
   bio: false,
@@ -79,9 +80,9 @@ export const todoTypeToDismissable: {[key: Types.TodoType]: boolean} = {
   proof: true,
   team: true,
   teamShowcase: true,
-  addEmail: true,
 }
 export const todoTypeToIcon: {[key: Types.TodoType]: IconType} = {
+  addEmail: isMobile ? 'icon-onboarding-user-info-48' : 'icon-onboarding-user-info-32',
   avatarTeam: isMobile ? 'icon-onboarding-team-avatar-48' : 'icon-onboarding-team-avatar-32',
   avatarUser: isMobile ? 'icon-onboarding-user-avatar-48' : 'icon-onboarding-user-avatar-32',
   bio: isMobile ? 'icon-onboarding-user-info-48' : 'icon-onboarding-user-info-32',
@@ -94,7 +95,6 @@ export const todoTypeToIcon: {[key: Types.TodoType]: IconType} = {
   proof: isMobile ? 'icon-onboarding-proofs-48' : 'icon-onboarding-proofs-32',
   team: isMobile ? 'icon-onboarding-team-48' : 'icon-onboarding-team-32',
   teamShowcase: isMobile ? 'icon-onboarding-team-publicity-48' : 'icon-onboarding-team-publicity-32',
-  addEmail: 'icon-fancy-email-sent-144-x-48.png',
 }
 
 export const reduceRPCItemToPeopleItem = (
