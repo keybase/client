@@ -107,8 +107,8 @@ const Header = (props: HeaderProps) =>
         </Kb.Text>
       )}
       {!!props.errorDetails && (
-        <Kb.Box2 direction="horizontal" style={{maxWidth: 200}}>
-          <Kb.Text center={true} type="BodyExtrabold" style={styles.errorDetails}>
+        <Kb.Box2 direction="horizontal" style={styles.errorDetails}>
+          <Kb.Text center={true} type="BodySmall">
             {props.errorDetails}
           </Kb.Text>
         </Kb.Box2>
@@ -179,7 +179,11 @@ const PaymentPopup = (props: Props) => {
 
 const styles = Styles.styleSheetCreate({
   colorWhite: {color: Styles.globalColors.white},
-  errorDetails: {color: Styles.globalColors.red},
+  errorDetails: {
+    maxWidth: 200,
+    paddingLeft: Styles.globalMargins.tiny,
+    paddingRight: Styles.globalMargins.tiny,
+  },
   headerIcon: Styles.platformStyles({
     common: {height: headerIconHeight},
     isAndroid: {

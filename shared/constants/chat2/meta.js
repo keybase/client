@@ -56,14 +56,13 @@ export const unverifiedInboxUIItemToConversationMeta = (
   )
 
   const participants = I.List(i.localMetadata ? i.localMetadata.writerNames || [] : (i.name || '').split(','))
-  const channelname =
-    i.membersType === RPCChatTypes.commonConversationMembersType.team && i.localMetadata
-      ? i.localMetadata.channelName
-      : ''
+  const isTeam = i.membersType === RPCChatTypes.commonConversationMembersType.team
+  const channelname = isTeam && i.localMetadata ? i.localMetadata.channelName : ''
 
   const supersededBy = conversationMetadataToMetaSupersedeInfo(i.supersededBy)
   const supersedes = conversationMetadataToMetaSupersedeInfo(i.supersedes)
-  const teamname = i.membersType === RPCChatTypes.commonConversationMembersType.team ? i.name : ''
+  const teamname = isTeam ? i.name : ''
+  const {retentionPolicy, teamRetentionPolicy} = UIItemToRetentionPolicies(i, isTeam)
 
   return makeConversationMeta({
     channelname,
@@ -77,10 +76,12 @@ export const unverifiedInboxUIItemToConversationMeta = (
     participants,
     readMsgID: i.readMsgID,
     resetParticipants,
+    retentionPolicy,
     snippet: i.localMetadata ? i.localMetadata.snippet : '',
     snippetDecoration: i.localMetadata ? i.localMetadata.snippetDecoration : '',
     supersededBy: supersededBy ? Types.stringToConversationIDKey(supersededBy) : noConversationIDKey,
     supersedes: supersedes ? Types.stringToConversationIDKey(supersedes) : noConversationIDKey,
+    teamRetentionPolicy,
     teamType: getTeamType(i),
     teamname,
     timestamp: i.time,
@@ -202,6 +203,25 @@ export const updateMetaWithNotificationSettings = (
   }): Types.ConversationMeta)
 }
 
+const UIItemToRetentionPolicies = (i, isTeam) => {
+  // default inherit for teams, retain for ad-hoc
+  // TODO remove these hard-coded defaults if core starts sending the defaults instead of nil to represent 'unset'
+  let retentionPolicy = isTeam
+    ? TeamConstants.makeRetentionPolicy({type: 'inherit'})
+    : TeamConstants.makeRetentionPolicy()
+  if (i.convRetention) {
+    // it has been set for this conversation
+    retentionPolicy = TeamConstants.serviceRetentionPolicyToRetentionPolicy(i.convRetention)
+  }
+
+  // default for team-wide policy is 'retain'
+  let teamRetentionPolicy = TeamConstants.makeRetentionPolicy()
+  if (i.teamRetention) {
+    teamRetentionPolicy = TeamConstants.serviceRetentionPolicyToRetentionPolicy(i.teamRetention)
+  }
+  return {retentionPolicy, teamRetentionPolicy}
+}
+
 export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allowEmpty?: boolean) => {
   // Private chats only
   if (i.visibility !== RPCTypes.commonTLFVisibility.private) {
@@ -235,21 +255,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
     notificationsMobile,
   } = parseNotificationSettings(i.notifications)
 
-  // default inherit for teams, retain for ad-hoc
-  // TODO remove these hard-coded defaults if core starts sending the defaults instead of nil to represent 'unset'
-  let retentionPolicy = isTeam
-    ? TeamConstants.makeRetentionPolicy({type: 'inherit'})
-    : TeamConstants.makeRetentionPolicy()
-  if (i.convRetention) {
-    // it has been set for this conversation
-    retentionPolicy = TeamConstants.serviceRetentionPolicyToRetentionPolicy(i.convRetention)
-  }
-
-  // default for team-wide policy is 'retain'
-  let teamRetentionPolicy = TeamConstants.makeRetentionPolicy()
-  if (i.teamRetention) {
-    teamRetentionPolicy = TeamConstants.serviceRetentionPolicyToRetentionPolicy(i.teamRetention)
-  }
+  const {retentionPolicy, teamRetentionPolicy} = UIItemToRetentionPolicies(i, isTeam)
 
   const minWriterRoleEnum =
     i.convSettings && i.convSettings.minWriterRoleInfo && i.convSettings.minWriterRoleInfo.role

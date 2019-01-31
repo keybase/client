@@ -72,6 +72,10 @@ const buildPayment = (state, action) =>
   })
 
 const spawnBuildPayment = (state, action) => {
+  if (!state.config.loggedIn) {
+    logger.error('Tried to spawnBuildPayment while not logged in')
+    return
+  }
   if (action.type === WalletsGen.displayCurrencyReceived && !action.payload.setBuildingCurrency) {
     // didn't change state.building; no need to call build
     return
@@ -213,9 +217,15 @@ const loadWalletDisclaimer = () =>
     WalletsGen.createWalletDisclaimerReceived({accepted})
   )
 
-const loadAccounts = (state, action) =>
-  !actionHasError(action) &&
-  RPCStellarTypes.localGetWalletAccountsLocalRpcPromise(undefined, [
+const loadAccounts = (state, action) => {
+  if (!state.config.loggedIn) {
+    logger.error('Tried to loadAccounts while not logged in')
+    return
+  }
+  if (actionHasError(action)) {
+    return
+  }
+  return RPCStellarTypes.localGetWalletAccountsLocalRpcPromise(undefined, [
     Constants.checkOnlineWaitingKey,
     Constants.loadAccountsWaitingKey,
   ])
@@ -243,6 +253,7 @@ const loadAccounts = (state, action) =>
         throw err
       }
     })
+}
 
 const handleSelectAccountError = (action, msg, err) => {
   const errMsg = `Error ${msg}: ${err.desc}`
@@ -261,6 +272,10 @@ const handleSelectAccountError = (action, msg, err) => {
 
 const loadAssets = (state, action) => {
   if (actionHasError(action)) {
+    return
+  }
+  if (!state.config.loggedIn) {
+    logger.error('Tried to loadAssets while not logged in')
     return
   }
   let accountID
@@ -313,6 +328,10 @@ const createPaymentsReceived = (accountID, payments, pending) =>
   })
 
 const loadPayments = (state, action) => {
+  if (!state.config.loggedIn) {
+    logger.error('Tried to loadPayments while not logged in')
+    return
+  }
   if (!action.payload.accountID) {
     const account = Constants.getAccount(state, action.payload.accountID)
     logger.error(
@@ -337,6 +356,10 @@ const loadPayments = (state, action) => {
 }
 
 const loadMorePayments = (state, action) => {
+  if (!state.config.loggedIn) {
+    logger.error('Tried to loadMorePayments while not logged in')
+    return
+  }
   const cursor = state.wallets.paymentCursorMap.get(action.payload.accountID)
   return (
     cursor &&
@@ -601,6 +624,10 @@ const exportSecretKey = (state, action) =>
   )
 
 const maybeSelectDefaultAccount = (state, action) => {
+  if (!state.config.loggedIn) {
+    logger.error('Tried to maybeSelectDefaultAccount while not logged in')
+    return
+  }
   if (state.wallets.selectedAccount === Types.noAccountID) {
     const maybeDefaultAccount = state.wallets.accountMap.find(account => account.isDefault)
     if (maybeDefaultAccount) {

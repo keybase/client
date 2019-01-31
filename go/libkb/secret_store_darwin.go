@@ -107,7 +107,11 @@ func (k KeychainSecretStore) RetrieveSecret(m MetaContext, accountName Normalize
 }
 
 func (k KeychainSecretStore) ClearSecret(m MetaContext, accountName NormalizedUsername) error {
-	m.CDebugf("KeychainSecretStore.ClearSecret(%s)", accountName)
+	m.CDebugf("KeychainSecretStore#ClearSecret(%s)", accountName)
+	if accountName.IsNil() {
+		m.CDebugf("NOOPing KeychainSecretStore#ClearSecret for empty username")
+		return nil
+	}
 	var query keychain.Item
 	if isIOS {
 		query = keychain.NewGenericPassword(k.serviceName(m), string(accountName), "", nil, k.accessGroup(m))
@@ -117,14 +121,14 @@ func (k KeychainSecretStore) ClearSecret(m MetaContext, accountName NormalizedUs
 	}
 	err := keychain.DeleteItem(query)
 	if err == keychain.ErrorItemNotFound {
-		m.CDebugf("KeychainSecretStore.ClearSecret(%s), item not found", accountName)
+		m.CDebugf("KeychainSecretStore#ClearSecret(%s), item not found", accountName)
 		return nil
 	}
 	if err != nil {
-		m.CDebugf("KeychainSecretStore.ClearSecret(%s), DeleteItem error: %s", accountName, err)
+		m.CDebugf("KeychainSecretStore#ClearSecret(%s), DeleteItem error: %s", accountName, err)
 	}
 
-	m.CDebugf("KeychainSecretStore.ClearSecret(%s) success", accountName)
+	m.CDebugf("KeychainSecretStore#ClearSecret(%s) success", accountName)
 
 	return err
 }

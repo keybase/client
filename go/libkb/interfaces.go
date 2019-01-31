@@ -63,6 +63,7 @@ type configGetter interface {
 	GetLocalRPCDebug() string
 	GetLocalTrackMaxAge() (time.Duration, bool)
 	GetLogFile() string
+	GetEKLogFile() string
 	GetUseDefaultLogFile() (bool, bool)
 	GetUseRootConfigFile() (bool, bool)
 	GetLogPrefix() string
@@ -101,6 +102,10 @@ type configGetter interface {
 	GetAttachmentDisableMulti() (bool, bool)
 	GetChatOutboxStorageEngine() string
 	GetDisableTeamAuditor() (bool, bool)
+	GetDisableMerkleAuditor() (bool, bool)
+	GetDisableSearchIndexer() (bool, bool)
+	GetDisableBgConvLoader() (bool, bool)
+	GetEnableBotLiteMode() (bool, bool)
 }
 
 type CommandLine interface {
@@ -728,6 +733,8 @@ type DeviceEKStorage interface {
 	ForceDeleteAll(ctx context.Context, username NormalizedUsername) error
 	// For keybase log send
 	ListAllForUser(ctx context.Context) ([]string, error)
+	// Called on login/logout hooks to set the logged in username in the EK log
+	SetLogPrefix()
 }
 
 type UserEKBoxStorage interface {

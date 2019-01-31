@@ -598,7 +598,7 @@ export const getAcceptedDisclaimer = (state: TypedState) => state.wallets.accept
 export const balanceChangeColor = (delta: Types.PaymentDelta, status: Types.StatusSimplified) => {
   let balanceChangeColor = Styles.globalColors.black_75
   if (delta !== 'none') {
-    balanceChangeColor = delta === 'increase' ? Styles.globalColors.green : Styles.globalColors.black_75
+    balanceChangeColor = delta === 'increase' ? Styles.globalColors.green : Styles.globalColors.purple
   }
   if (status !== 'completed') {
     balanceChangeColor = Styles.globalColors.black_20
@@ -609,7 +609,7 @@ export const balanceChangeColor = (delta: Types.PaymentDelta, status: Types.Stat
 export const balanceChangeSign = (delta: Types.PaymentDelta, balanceChange: string = '') => {
   let sign = ''
   if (delta !== 'none') {
-    sign = delta === 'increase' ? '+' : '-'
+    sign = delta === 'increase' ? '+ ' : '- '
   }
   return sign + balanceChange
 }

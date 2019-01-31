@@ -123,6 +123,7 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
           rightActions={[
             {
               icon: 'iconfont-compose',
+              iconColor: Styles.globalColors.blue,
               label: 'New chat',
               onPress: this.props.onNewChat,
             },
@@ -154,11 +155,6 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
             fontSize={propsIconPlatform.fontSize}
             onClick={this.props.onNewChat}
           />
-        )}
-        {this.props.isLoading && (
-          <Kb.Box style={styles.loadingContainer}>
-            <Kb.LoadingLine />
-          </Kb.Box>
         )}
       </Kb.Box2>
     )

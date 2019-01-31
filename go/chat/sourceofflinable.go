@@ -80,11 +80,23 @@ func (s *sourceOfflinable) IsOffline(ctx context.Context) bool {
 			defer s.Unlock()
 			s.Debug(ctx, "IsOffline: waited and got %v", s.offline)
 			return s.offline
+		case <-ctx.Done():
+			s.Lock()
+			defer s.Unlock()
+			s.Debug(ctx, "IsOffline: aborted: %s state: %v", ctx.Err(), s.offline)
+			return s.offline
 		case <-time.After(4 * time.Second):
 			s.Lock()
 			defer s.Unlock()
+			select {
+			case <-ctx.Done():
+				s.Debug(ctx, "IsOffline: timed out, but context canceled so not setting delayed: state: %v",
+					s.offline)
+				return s.offline
+			default:
+			}
 			s.delayed = true
-			s.Debug(ctx, "IsOffline: timed out")
+			s.Debug(ctx, "IsOffline: timed out, setting delay wait: state: %v", s.offline)
 			return s.offline
 		}
 	}

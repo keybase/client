@@ -1446,17 +1446,31 @@ func (i InboxUIItem) GetConvID() ConversationID {
 	return ConversationID(bConvID)
 }
 
+type ByConversationMemberStatus []ConversationMemberStatus
+
+func (m ByConversationMemberStatus) Len() int           { return len(m) }
+func (m ByConversationMemberStatus) Swap(i, j int)      { m[i], m[j] = m[j], m[i] }
+func (m ByConversationMemberStatus) Less(i, j int) bool { return m[i] > m[j] }
+
 func AllConversationMemberStatuses() (res []ConversationMemberStatus) {
 	for status := range ConversationMemberStatusRevMap {
 		res = append(res, status)
 	}
+	sort.Sort(ByConversationMemberStatus(res))
 	return res
 }
+
+type ByConversationExistence []ConversationExistence
+
+func (m ByConversationExistence) Len() int           { return len(m) }
+func (m ByConversationExistence) Swap(i, j int)      { m[i], m[j] = m[j], m[i] }
+func (m ByConversationExistence) Less(i, j int) bool { return m[i] > m[j] }
 
 func AllConversationExistences() (res []ConversationExistence) {
 	for existence := range ConversationExistenceRevMap {
 		res = append(res, existence)
 	}
+	sort.Sort(ByConversationExistence(res))
 	return res
 }
 

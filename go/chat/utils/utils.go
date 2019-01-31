@@ -1018,6 +1018,8 @@ func PresentRemoteConversation(ctx context.Context, g *globals.Context, rc types
 		}
 		res.Name = rc.LocalMetadata.Name
 	}
+	res.ConvRetention = rawConv.ConvRetention
+	res.TeamRetention = rawConv.TeamRetention
 	return res
 }
 
@@ -1508,12 +1510,6 @@ type ByMsgID []chat1.MessageID
 func (m ByMsgID) Len() int           { return len(m) }
 func (m ByMsgID) Swap(i, j int)      { m[i], m[j] = m[j], m[i] }
 func (m ByMsgID) Less(i, j int) bool { return m[i] > m[j] }
-
-type ByConversationMemberStatus []chat1.ConversationMemberStatus
-
-func (m ByConversationMemberStatus) Len() int           { return len(m) }
-func (m ByConversationMemberStatus) Swap(i, j int)      { m[i], m[j] = m[j], m[i] }
-func (m ByConversationMemberStatus) Less(i, j int) bool { return m[i] > m[j] }
 
 func NotificationInfoSet(settings *chat1.ConversationNotificationInfo,
 	apptype keybase1.DeviceType,
