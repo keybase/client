@@ -92,8 +92,6 @@ const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
     isElectron: {
       backgroundColor: Styles.globalColors.blue5,
-      borderBottomLeftRadius: Styles.borderRadius,
-      borderBottomRightRadius: Styles.borderRadius,
       height: Styles.globalMargins.medium,
     },
   }),

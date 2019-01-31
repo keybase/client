@@ -412,9 +412,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               <Kb.Box className="WrapperMessage-buttons">
                 {!this._shouldShowReactionsRow() && (
                   <EmojiRow
-                    className={`WrapperMessage-emojiButton ${
-                      this.props.isLastInThread ? 'WrapperMessage-emojiButtonLast' : ''
-                    }`}
+                    className={Styles.classNames('WrapperMessage-emojiButton', {
+                      'WrapperMessage-emojiButtonLast': this.props.isLastInThread,
+                    })}
                     conversationIDKey={this.props.conversationIDKey}
                     onShowingEmojiPicker={this._setShowingPicker}
                     ordinal={message.ordinal}
@@ -539,7 +539,14 @@ const styles = Styles.styleSheetCreate({
   }),
   edited: {color: Styles.globalColors.black_20},
   ellipsis: {marginLeft: Styles.globalMargins.tiny},
-  emojiRow: {bottom: -23, left: 102, position: 'absolute', zIndex: 2},
+  emojiRow: {
+    borderBottomLeftRadius: Styles.borderRadius,
+    borderBottomRightRadius: Styles.borderRadius,
+    bottom: -23,
+    left: 102,
+    position: 'absolute',
+    zIndex: 2,
+  },
   emojiRowLast: {
     borderBottomLeftRadius: 0,
     borderBottomRightRadius: 0,
