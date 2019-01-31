@@ -1510,7 +1510,9 @@ func (p RetentionPolicy) Summary() string {
 	}
 	switch typ {
 	case RetentionPolicyType_EXPIRE:
-		return fmt.Sprintf("{%v age:%v}", typ, p.Expire().Age)
+		return fmt.Sprintf("{%v age:%v}", typ, p.Expire().Age.ToDuration())
+	case RetentionPolicyType_EPHEMERAL:
+		return fmt.Sprintf("{%v age:%v}", typ, p.Ephemeral().Age.ToDuration())
 	default:
 		return fmt.Sprintf("{%v}", typ)
 	}
