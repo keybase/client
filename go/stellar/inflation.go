@@ -36,7 +36,13 @@ func SetInflationDestinationLocal(mctx libkb.MetaContext, arg stellar1.SetInflat
 	}
 
 	sp := NewSeqnoProvider(mctx, walletState)
-	sig, err := stellarnet.SetInflationDestinationTransaction(senderSeed2, destinationAddrStr, sp)
+
+	tb, err := getTimeboundsForSending(mctx, walletState)
+	if err != nil {
+		return err
+	}
+
+	sig, err := stellarnet.SetInflationDestinationTransaction(senderSeed2, destinationAddrStr, sp, tb)
 	if err != nil {
 		return err
 	}
