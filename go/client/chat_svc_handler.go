@@ -989,6 +989,7 @@ func (c *chatServiceHandler) sendV1(ctx context.Context, arg sendArgV1, chatUI c
 	}
 	var idFails []keybase1.TLFIdentifyFailure
 	var msgID *chat1.MessageID
+	var obid *chat1.OutboxID
 	if arg.nonblock {
 		var nbarg chat1.PostLocalNonblockArg
 		nbarg.ConversationID = postArg.ConversationID
@@ -998,6 +999,7 @@ func (c *chatServiceHandler) sendV1(ctx context.Context, arg sendArgV1, chatUI c
 		if err != nil {
 			return c.errReply(err)
 		}
+		obid = &plres.OutboxID
 		rl = append(rl, plres.RateLimits...)
 		idFails = plres.IdentifyFailures
 	} else {
@@ -1013,6 +1015,7 @@ func (c *chatServiceHandler) sendV1(ctx context.Context, arg sendArgV1, chatUI c
 	res := SendRes{
 		Message:   arg.response,
 		MessageID: msgID,
+		OutboxID:  obid,
 		RateLimits: RateLimits{
 			RateLimits: c.aggRateLimits(rl),
 		},
@@ -1337,6 +1340,7 @@ type ChatList struct {
 type SendRes struct {
 	Message          string                        `json:"message"`
 	MessageID        *chat1.MessageID              `json:"id,omitempty"`
+	OutboxID         *chat1.OutboxID               `json:"outbox_id,omitempty"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `json:"identify_failures,omitempty"`
 	RateLimits
 }
