@@ -411,6 +411,9 @@
     "updatedAirdropState": {
       "airdropQualifications": "Array<Types.AirdropQualification>",
       "airdropState": "Types.AirdropState",
-    }
+    },
+    "updateAirdropDetails": {},
+    "updatedAirdropDetails": {
+    },
   }
 }

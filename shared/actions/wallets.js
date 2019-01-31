@@ -872,6 +872,11 @@ const changeAirdrop = (_, action) =>
     Constants.airdropWaitingKey
   ).then(() => {})
 
+const updateAirdropDetails = () =>
+  RPCStellarTypes.localAirdropDetailsLocalRpcPromise(undefined, Constants.airdropWaitingKey).then(() => {
+    return WalletsGen.createUpdatedAirdropDetails()
+  })
+
 const updateAirdropState = () =>
   RPCStellarTypes.localAirdropStatusLocalRpcPromise(undefined, Constants.airdropWaitingKey).then(
     ({state, rows}) => {
@@ -1133,6 +1138,10 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<ConfigGen.DaemonHandshakeDonePayload>(
     ConfigGen.daemonHandshakeDone,
     readLastSentXLM
+  )
+  yield* Saga.chainAction<WalletsGen.UpdateAirdropStatePayload>(
+    WalletsGen.updateAirdropDetails,
+    updateAirdropDetails
   )
   yield* Saga.chainAction<WalletsGen.UpdateAirdropStatePayload>(
     WalletsGen.updateAirdropState,

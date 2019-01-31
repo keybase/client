@@ -93,7 +93,9 @@ export const setInflationDestination = 'wallets:setInflationDestination'
 export const setLastSentXLM = 'wallets:setLastSentXLM'
 export const setReadyToReview = 'wallets:setReadyToReview'
 export const updateAirdropBannerState = 'wallets:updateAirdropBannerState'
+export const updateAirdropDetails = 'wallets:updateAirdropDetails'
 export const updateAirdropState = 'wallets:updateAirdropState'
+export const updatedAirdropDetails = 'wallets:updatedAirdropDetails'
 export const updatedAirdropState = 'wallets:updatedAirdropState'
 export const validateAccountName = 'wallets:validateAccountName'
 export const validateSecretKey = 'wallets:validateSecretKey'
@@ -187,7 +189,9 @@ type _SetInflationDestinationPayload = $ReadOnly<{|accountID: Types.AccountID, d
 type _SetLastSentXLMPayload = $ReadOnly<{|lastSentXLM: boolean, writeFile: boolean|}>
 type _SetReadyToReviewPayload = $ReadOnly<{|readyToReview: boolean|}>
 type _UpdateAirdropBannerStatePayload = $ReadOnly<{|show: boolean|}>
+type _UpdateAirdropDetailsPayload = void
 type _UpdateAirdropStatePayload = void
+type _UpdatedAirdropDetailsPayload = void
 type _UpdatedAirdropStatePayload = $ReadOnly<{|airdropQualifications: Array<Types.AirdropQualification>, airdropState: Types.AirdropState|}>
 type _ValidateAccountNamePayload = $ReadOnly<{|name: string|}>
 type _ValidateSecretKeyPayload = $ReadOnly<{|secretKey: HiddenString|}>
@@ -542,7 +546,9 @@ export const createSendAssetChoicesReceived = (payload: _SendAssetChoicesReceive
 export const createAccountUpdateReceived = (payload: _AccountUpdateReceivedPayload) => ({payload, type: accountUpdateReceived})
 export const createHideAirdropBanner = (payload: _HideAirdropBannerPayload) => ({payload, type: hideAirdropBanner})
 export const createUpdateAirdropBannerState = (payload: _UpdateAirdropBannerStatePayload) => ({payload, type: updateAirdropBannerState})
+export const createUpdateAirdropDetails = (payload: _UpdateAirdropDetailsPayload) => ({payload, type: updateAirdropDetails})
 export const createUpdateAirdropState = (payload: _UpdateAirdropStatePayload) => ({payload, type: updateAirdropState})
+export const createUpdatedAirdropDetails = (payload: _UpdatedAirdropDetailsPayload) => ({payload, type: updatedAirdropDetails})
 export const createUpdatedAirdropState = (payload: _UpdatedAirdropStatePayload) => ({payload, type: updatedAirdropState})
 
 // Action Payloads
@@ -631,7 +637,9 @@ export type SetInflationDestinationPayload = {|+payload: _SetInflationDestinatio
 export type SetLastSentXLMPayload = {|+payload: _SetLastSentXLMPayload, +type: 'wallets:setLastSentXLM'|}
 export type SetReadyToReviewPayload = {|+payload: _SetReadyToReviewPayload, +type: 'wallets:setReadyToReview'|}
 export type UpdateAirdropBannerStatePayload = {|+payload: _UpdateAirdropBannerStatePayload, +type: 'wallets:updateAirdropBannerState'|}
+export type UpdateAirdropDetailsPayload = {|+payload: _UpdateAirdropDetailsPayload, +type: 'wallets:updateAirdropDetails'|}
 export type UpdateAirdropStatePayload = {|+payload: _UpdateAirdropStatePayload, +type: 'wallets:updateAirdropState'|}
+export type UpdatedAirdropDetailsPayload = {|+payload: _UpdatedAirdropDetailsPayload, +type: 'wallets:updatedAirdropDetails'|}
 export type UpdatedAirdropStatePayload = {|+payload: _UpdatedAirdropStatePayload, +type: 'wallets:updatedAirdropState'|}
 export type ValidateAccountNamePayload = {|+payload: _ValidateAccountNamePayload, +type: 'wallets:validateAccountName'|}
 export type ValidateSecretKeyPayload = {|+payload: _ValidateSecretKeyPayload, +type: 'wallets:validateSecretKey'|}
@@ -729,7 +737,9 @@ export type Actions =
   | SetLastSentXLMPayload
   | SetReadyToReviewPayload
   | UpdateAirdropBannerStatePayload
+  | UpdateAirdropDetailsPayload
   | UpdateAirdropStatePayload
+  | UpdatedAirdropDetailsPayload
   | UpdatedAirdropStatePayload
   | ValidateAccountNamePayload
   | ValidateSecretKeyPayload

@@ -37,6 +37,7 @@ const props = {
   loading: false,
   onBack: Sb.action('onBack'),
   onCheckQualify: Sb.action('onCheckQualify'),
+  onLoad: Sb.action('onLoad'),
   onReject: Sb.action('onReject'),
   signedUp: false,
 }
