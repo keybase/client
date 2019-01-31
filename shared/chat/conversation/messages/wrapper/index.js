@@ -415,7 +415,16 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                     conversationIDKey={this.props.conversationIDKey}
                     onShowingEmojiPicker={this._setShowingPicker}
                     ordinal={message.ordinal}
-                    style={styles.emojiRow}
+                    style={Styles.collapseStyles([
+                      styles.emojiRow,
+                      exploding && this.props.showCoinsIcon
+                        ? styles.emojiRowWithCoinsAndTimer
+                        : exploding
+                        ? styles.emojiRowWithTimer
+                        : this.props.showCoinsIcon
+                        ? styles.emojiRowWithCoins
+                        : null,
+                    ])}
                   />
                 )}
                 <Kb.Box>
@@ -533,7 +542,10 @@ const styles = Styles.styleSheetCreate({
   }),
   edited: {color: Styles.globalColors.black_20},
   ellipsis: {marginLeft: Styles.globalMargins.tiny},
-  emojiRow: {bottom: -12, position: 'absolute', right: 112, zIndex: 2},
+  emojiRow: {position: 'absolute', right: 48, top: -12, zIndex: 2},
+  emojiRowWithCoins: {right: 82},
+  emojiRowWithCoinsAndTimer: {right: 136},
+  emojiRowWithTimer: {right: 112},
   fail: {color: Styles.globalColors.red},
   failUnderline: {color: Styles.globalColors.red, textDecorationLine: 'underline'},
   fast,
