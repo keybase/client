@@ -1063,7 +1063,6 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 	if !fbm.isQRNecessary(ctx, head) {
 		// Nothing has changed since last time, or the current head is
 		// too new, so no need to do any QR.
-		fbm.log.CDebugf(ctx, "QR NOT NEEDED")
 		return nil
 	}
 	var complete bool
@@ -1117,7 +1116,6 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 		return err
 	}
 	if head.Revision() <= lastGCRev {
-		fbm.log.CDebugf(ctx, "QR NOT NEEDED %d", lastGCRev)
 		// TODO: need a log level more fine-grained than Debug to
 		// print out that we're not doing reclamation.
 		complete = true
