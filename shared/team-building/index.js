@@ -81,15 +81,16 @@ class TeamBuilding extends React.PureComponent<Props, void> {
           serviceResultCount={props.serviceResultCount}
           showServiceResultCount={props.showServiceResultCount}
         />
-        {showRecs && !showRecPending && (
-          <Kb.Text type={Styles.isMobile ? 'BodySmallSemibold' : 'BodyTinySemibold'} style={styles.recText}>
-            Recommendations
-          </Kb.Text>
-        )}
         {showRecPending ? (
-          <Kb.Text type={Styles.isMobile ? 'BodySmallSemibold' : 'BodyTinySemibold'} style={styles.recText}>
-            ...
-          </Kb.Text>
+          <Kb.Box2 direction="vertical" fullHeight={true} style={styles.loadingContainer}>
+            <Kb.Icon
+              style={Kb.iconCastPlatformStyles(styles.loadingIcon)}
+              type='icon-progress-grey-animated'
+            />
+            <Kb.Text type="BodySmallSemibold" style={styles.loadingText}>
+              Loading
+            </Kb.Text>
+          </Kb.Box2>
         ) : (
           <Kb.List
             items={showRecs ? props.recommendations || [] : props.searchResults || []}
@@ -111,8 +112,7 @@ class TeamBuilding extends React.PureComponent<Props, void> {
                 onRemove={() => props.onRemove(result.userId)}
               />
             )}
-          />
-        )}
+        />)}
       </Kb.Box2>
     )
   }
@@ -140,22 +140,31 @@ const styles = Styles.styleSheetCreate({
       marginTop: Styles.globalMargins.xtiny,
     },
   }),
-  recText: Styles.platformStyles({
+  loadingContainer: Styles.platformStyles({
     common: {
-      borderBottomColor: Styles.globalColors.black_10,
-      borderBottomWidth: 1,
-      borderStyle: 'solid',
-      paddingBottom: Styles.globalMargins.xtiny,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     isElectron: {
-      paddingLeft: Styles.globalMargins.xtiny,
-      paddingTop: Styles.globalMargins.xtiny,
+      paddingBottom: 50,
     },
     isMobile: {
-      paddingLeft: Styles.globalMargins.xsmall,
-      paddingTop: Styles.globalMargins.tiny,
+      paddingBottom: 100,
     },
   }),
+  loadingIcon: Styles.platformStyles({
+    isElectron: {
+      height: 32,
+      width: 32,
+    },
+    isMobile: {
+      height: 48,
+      width: 48,
+    },
+  }),
+  loadingText: {
+    marginTop: Styles.globalMargins.tiny,
+  },
 })
 
 export default TeamBuilding
