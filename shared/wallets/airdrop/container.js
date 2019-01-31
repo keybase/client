@@ -7,6 +7,7 @@ type OwnProps = RouteProps<{}, {}>
 
 const mapStateToProps = state => ({
   _body: state.wallets.airdropProgramInfo,
+  loading: state.wallets.airdropState === 'loading',
   signedUp: state.wallets.airdropState === 'accepted',
 })
 
@@ -24,6 +25,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
     })),
     section: b.section,
   })),
+  loading: stateProps.loading,
   onBack: dispatchProps.onBack,
   onCheckQualify: dispatchProps.onCheckQualify,
   onReject: dispatchProps.onReject,

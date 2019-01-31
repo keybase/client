@@ -28,16 +28,28 @@ const props = {
       ],
       section: 'Where are the Lumens dropped?',
     },
+    {
+      icon: 'icon-fancy-no-access-desktop-96-94',
+      lines: [{bullet: false, text: "You'll earn a star, visbile on your profile"}],
+      section: 'Anything else to know?',
+    },
   ],
+  loading: false,
   onBack: Sb.action('onBack'),
   onCheckQualify: Sb.action('onCheckQualify'),
   onReject: Sb.action('onReject'),
   signedUp: false,
 }
 
+const noIconBody = props.body.map(b => ({...b, icon: null}))
+const badIconBody = props.body.map(b => ({...b, icon: 'not a real icon'}))
+
 const load = () => {
   Sb.storiesOf('Settings/AirdropSettings', module)
     .add('Participating', () => <Airdrop {...props} signedUp={true} />)
+    .add('Loading', () => <Airdrop {...props} loading={true} />)
+    .add('Participating no image', () => <Airdrop {...props} signedUp={true} body={noIconBody} />)
+    .add('Participating bad image', () => <Airdrop {...props} signedUp={true} body={badIconBody} />)
     .add('Not Participating', () => <Airdrop {...props} />)
   qualify()
   banner()

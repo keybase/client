@@ -2,17 +2,22 @@
 import {WalletList, type Props} from '.'
 import * as Constants from '../../constants/wallets'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as RouteTree from '../../route-tree'
 import * as Styles from '../../styles'
 import openURL from '../../util/open-url'
-import {connect, isMobile} from '../../util/container'
+import {connect} from '../../util/container'
 import {anyWaiting} from '../../constants/waiting'
 
 type OwnProps = {style: Styles.StylesCrossPlatform}
 
-const mapStateToProps = state => ({
-  accounts: Constants.getAccountIDs(state),
-  loading: anyWaiting(state, Constants.loadAccountsWaitingKey),
-})
+const mapStateToProps = state => {
+  const path = RouteTree.getPath(state.routeTree.routeState).last()
+  return {
+    accounts: Constants.getAccountIDs(state),
+    airdropSelected: path === 'airdrop' || path === 'airdropQualify',
+    loading: anyWaiting(state, Constants.loadAccountsWaitingKey),
+  }
+}
 
 const mapDispatchToProps = dispatch => ({
   onAddNew: () => {
@@ -23,12 +28,7 @@ const mapDispatchToProps = dispatch => ({
     )
   },
   onJoinAirdrop: () => {
-    dispatch(RouteTreeGen.createNavigateAppend({path: []}))
-    dispatch(
-      isMobile
-        ? RouteTreeGen.createNavigateTo({path: [...Constants.walletPath, 'airdropQualify']})
-        : RouteTreeGen.createSwitchTo({path: [...Constants.walletPath, 'airdropQualify']})
-    )
+    dispatch(RouteTreeGen.createNavigateAppend({path: ['airdrop']}))
   },
   onLinkExisting: () => {
     dispatch(
@@ -40,6 +40,7 @@ const mapDispatchToProps = dispatch => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps): Props => ({
   accountIDs: stateProps.accounts.toArray(),
+  airdropSelected: stateProps.airdropSelected,
   loading: stateProps.loading,
   onAddNew: dispatchProps.onAddNew,
   onJoinAirdrop: dispatchProps.onJoinAirdrop,

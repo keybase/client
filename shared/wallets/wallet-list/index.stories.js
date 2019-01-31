@@ -58,6 +58,7 @@ const load = () => {
       <WalletList
         loading={false}
         accountIDs={accountIDs}
+        airdropSelected={false}
         onAddNew={Sb.action('onAddNew')}
         onLinkExisting={Sb.action('onLinkExisting')}
         onWhatIsStellar={Sb.action('onWhatIsStellar')}

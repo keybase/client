@@ -34,9 +34,7 @@ const _AddWallet = (props: AddProps & Kb.OverlayParentProps) => {
         className="hover_background_color_blueGrey2"
       >
         <Kb.Icon type="icon-wallet-placeholder-add-32" style={Kb.iconCastPlatformStyles(styles.icon)} />
-        <Kb.Text type="BodySemibold" style={{color: Styles.globalColors.purple}}>
-          Add an account
-        </Kb.Text>
+        <Kb.Text type="BodySemibold">Add an account</Kb.Text>
       </Kb.Box2>
       <Kb.FloatingMenu
         attachTo={props.getAttachmentRef}
@@ -55,13 +53,16 @@ const AddWallet = Kb.OverlayParentHOC(_AddWallet)
 const JoinAirdrop = p => (
   <Kb.ClickableBox onClick={p.onJoinAirdrop}>
     <Kb.Box2
-      style={styles.joinAirdrop}
+      style={Styles.collapseStyles([
+        styles.joinAirdrop,
+        p.selected && {backgroundColor: Styles.globalColors.purple2},
+      ])}
       direction="horizontal"
       fullWidth={true}
-      className="background_color_purple2 hover_background_color_purple"
+      className="hover_background_color_purple3"
     >
       <Kb.Icon type="icon-stellar-coins-stacked-16" style={Kb.iconCastPlatformStyles(styles.icon)} />
-      <Kb.Text backgroundMode="Terminal" type="BodySemibold">
+      <Kb.Text backgroundMode={p.selected ? 'Terminal' : 'Normal'} type="BodySemibold">
         Join the airdrop
       </Kb.Text>
     </Kb.Box2>
@@ -81,6 +82,7 @@ const WhatIsStellar = (props: {onWhatIsStellar: () => void}) => (
 
 type Props = {
   accountIDs: Array<AccountID>,
+  airdropSelected: boolean,
   style?: Styles.StylesCrossPlatform,
   loading: boolean,
   onAddNew: () => void,
@@ -106,7 +108,13 @@ class WalletList extends React.Component<Props> {
           />
         )
       case 'join airdrop':
-        return <JoinAirdrop key={row.type} onJoinAirdrop={this.props.onJoinAirdrop} />
+        return (
+          <JoinAirdrop
+            key={row.type}
+            onJoinAirdrop={this.props.onJoinAirdrop}
+            selected={this.props.airdropSelected}
+          />
+        )
       default:
         Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(row.type)
         throw new Error(`Impossible case encountered: ${row.type}`)
