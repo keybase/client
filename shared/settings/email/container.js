@@ -10,7 +10,7 @@ const mapStateToProps = state => {
   const {emails, error} = state.settings.email
   let email = ''
   let isVerified = false
-  if (emails.length > 0) {
+  if (emails && emails.length > 0) {
     email = emails[0].email
     isVerified = emails[0].isVerified
   }

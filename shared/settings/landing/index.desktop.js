@@ -278,6 +278,26 @@ function AccountEmail({
   )
 }
 
+function AccountFirstEmail({onChangeEmail}: {onChangeEmail: () => void}) {
+  return (
+    <Box
+      style={{
+        ...globalStyles.flexBoxRow,
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        minHeight: ROW_HEIGHT,
+      }}
+    >
+      <Text type="Body">
+        No e-mail set. You should{' '}
+        <Text type="BodyPrimaryLink" onClick={onChangeEmail}>
+          add an e-mail address.
+        </Text>
+      </Text>
+    </Box>
+  )
+}
+
 function AccountPassphrase({onChangePassphrase}: {onChangePassphrase: () => void}) {
   return (
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', minHeight: ROW_HEIGHT}}>
@@ -321,9 +341,10 @@ function Account({
   hasRandomPW,
 }: AccountProps) {
   const Passphrase = hasRandomPW ? AccountFirstPassphrase : AccountPassphrase
+  const Email = email ? AccountEmail : AccountFirstEmail
   return (
     <Box style={{...globalStyles.flexBoxColumn, marginBottom: globalMargins.medium}}>
-      <AccountEmail email={email} isVerified={isVerified} onChangeEmail={onChangeEmail} />
+      <Email email={email} isVerified={isVerified} onChangeEmail={onChangeEmail} />
       <Divider />
       <Passphrase onChangePassphrase={onChangePassphrase} />
       {!hasRandomPW && (
