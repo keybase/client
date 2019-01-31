@@ -106,6 +106,10 @@
           "type": "string"
         },
         {
+          "name": "sigID",
+          "type": "SigID"
+        },
+        {
           "name": "state",
           "type": "Identify3RowState"
         },

@@ -493,7 +493,7 @@ export type MessageTypes = {|
     outParam: void,
   |},
   'keybase.1.identify3Ui.identify3UpdateRow': {|
-    inParam: $ReadOnly<{|guiID: Identify3GUIID, key: String, value: String, siteURL: String, siteIcon: String, proofURL: String, state: Identify3RowState, metas?: ?Array<Identify3RowMeta>, color: Identify3RowColor|}>,
+    inParam: $ReadOnly<{|guiID: Identify3GUIID, key: String, value: String, siteURL: String, siteIcon: String, proofURL: String, sigID: SigID, state: Identify3RowState, metas?: ?Array<Identify3RowMeta>, color: Identify3RowColor|}>,
     outParam: void,
   |},
   'keybase.1.identify3Ui.identify3UpdateUserCard': {|
@@ -2225,7 +2225,7 @@ export type Identify3RowState =
   | 4 // WARNING_4
   | 5 // REVOKED_5
 
-export type IdentifyKey = $ReadOnly<{pgpFingerprint: Bytes, KID: KID, trackDiff?: ?TrackDiff, breaksTracking: Boolean}>
+export type IdentifyKey = $ReadOnly<{pgpFingerprint: Bytes, KID: KID, trackDiff?: ?TrackDiff, breaksTracking: Boolean, sigID: SigID}>
 export type IdentifyLiteRes = $ReadOnly<{ul: UserOrTeamLite, trackBreaks?: ?IdentifyTrackBreaks}>
 export type IdentifyOutcome = $ReadOnly<{username: String, status?: ?Status, warnings?: ?Array<String>, trackUsed?: ?TrackSummary, trackStatus: TrackStatus, numTrackFailures: Int, numTrackChanges: Int, numProofFailures: Int, numRevoked: Int, numProofSuccesses: Int, revoked?: ?Array<TrackDiff>, trackOptions: TrackOptions, forPGPPull: Boolean, reason: IdentifyReason}>
 export type IdentifyProofBreak = $ReadOnly<{remoteProof: RemoteProof, lcr: LinkCheckResult}>

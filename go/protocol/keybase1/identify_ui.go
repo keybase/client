@@ -47,6 +47,7 @@ type IdentifyKey struct {
 	KID            KID        `codec:"KID" json:"KID"`
 	TrackDiff      *TrackDiff `codec:"trackDiff,omitempty" json:"trackDiff,omitempty"`
 	BreaksTracking bool       `codec:"breaksTracking" json:"breaksTracking"`
+	SigID          SigID      `codec:"sigID" json:"sigID"`
 }
 
 func (o IdentifyKey) DeepCopy() IdentifyKey {
@@ -66,6 +67,7 @@ func (o IdentifyKey) DeepCopy() IdentifyKey {
 			return &tmp
 		})(o.TrackDiff),
 		BreaksTracking: o.BreaksTracking,
+		SigID:          o.SigID.DeepCopy(),
 	}
 }
 
