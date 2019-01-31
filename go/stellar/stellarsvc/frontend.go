@@ -950,11 +950,6 @@ func (s *Server) GetInflationDestinationLocal(ctx context.Context, arg stellar1.
 	return stellar.GetInflationDestination(mctx, arg.AccountID)
 }
 
-type detailsResult struct {
-	libkb.AppStatusEmbed
-	Details string `json:"details"`
-}
-
 func (s *Server) AirdropDetailsLocal(ctx context.Context, sessionID int) (details string, err error) {
 	mctx, fin, err := s.Preamble(ctx, preambleArg{
 		RPCName:       "AirdropDetailsLocal",
