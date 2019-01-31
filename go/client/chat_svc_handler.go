@@ -595,7 +595,8 @@ func (c *chatServiceHandler) AttachV1(ctx context.Context, opts attachOptionsV1,
 	}
 
 	res := SendRes{
-		Message: "attachment sent",
+		Message:   "attachment sent",
+		MessageID: &pres.MessageID,
 		RateLimits: RateLimits{
 			RateLimits: c.aggRateLimits(rl),
 		},
@@ -987,6 +988,7 @@ func (c *chatServiceHandler) sendV1(ctx context.Context, arg sendArgV1, chatUI c
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 	}
 	var idFails []keybase1.TLFIdentifyFailure
+	var msgID *chat1.MessageID
 	if arg.nonblock {
 		var nbarg chat1.PostLocalNonblockArg
 		nbarg.ConversationID = postArg.ConversationID
@@ -1003,12 +1005,14 @@ func (c *chatServiceHandler) sendV1(ctx context.Context, arg sendArgV1, chatUI c
 		if err != nil {
 			return c.errReply(err)
 		}
+		msgID = &plres.MessageID
 		rl = append(rl, plres.RateLimits...)
 		idFails = plres.IdentifyFailures
 	}
 
 	res := SendRes{
-		Message: arg.response,
+		Message:   arg.response,
+		MessageID: msgID,
 		RateLimits: RateLimits{
 			RateLimits: c.aggRateLimits(rl),
 		},
@@ -1332,6 +1336,7 @@ type ChatList struct {
 // SendRes is the result of successfully sending a message.
 type SendRes struct {
 	Message          string                        `json:"message"`
+	MessageID        *chat1.MessageID              `json:"id,omitempty"`
 	IdentifyFailures []keybase1.TLFIdentifyFailure `json:"identify_failures,omitempty"`
 	RateLimits
 }
