@@ -38,6 +38,8 @@ protocol chatUi {
     union{ null, ConversationNotificationInfo } notifications;
     gregor1.Time time;
     ConversationVers version;
+    union { null, RetentionPolicy } convRetention;
+    union { null, RetentionPolicy } teamRetention;
     MessageID maxMsgID;
     MessageID maxVisibleMsgID;
     MessageID readMsgID;

@@ -1018,6 +1018,8 @@ func PresentRemoteConversation(ctx context.Context, g *globals.Context, rc types
 		}
 		res.Name = rc.LocalMetadata.Name
 	}
+	res.ConvRetention = rawConv.ConvRetention
+	res.TeamRetention = rawConv.TeamRetention
 	return res
 }
 
