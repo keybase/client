@@ -552,8 +552,7 @@ func (h *UserHandler) LoadHasRandomPw(ctx context.Context, arg keybase1.LoadHasR
 		Key: meUID.String(),
 	}
 
-	var cachedValue bool
-	var hasCache bool
+	var cachedValue, hasCache bool
 	if !arg.ForceRepoll {
 		if hasCache, err = m.G().GetKVStore().GetInto(&cachedValue, cacheKey); err == nil {
 			if hasCache && !cachedValue {
@@ -598,15 +597,17 @@ func (h *UserHandler) LoadHasRandomPw(ctx context.Context, arg keybase1.LoadHasR
 		return res, err
 	}
 
-	// Cache current state. If we put `randomPW=false` in the cache, we will never
-	// ever have to call to the network from this device, because it's not possible
-	// to become `randomPW=true` again. If we cache `randomPW=true` we are going to
-	// keep asking the network, but we will be resilient to bad network conditions
-	// because we will have this cached state to fall back on.
-	if err := m.G().GetKVStore().PutObj(cacheKey, nil, ret.RandomPW); err == nil {
-		m.CDebugf("Adding HasRandomPW=%t to KVStore", ret.RandomPW)
-	} else {
-		m.CDebugf("Unable to add HasRandomPW state to KVStore")
+	if !hasCache || cachedValue != ret.RandomPW {
+		// Cache current state. If we put `randomPW=false` in the cache, we will never
+		// ever have to call to the network from this device, because it's not possible
+		// to become `randomPW=true` again. If we cache `randomPW=true` we are going to
+		// keep asking the network, but we will be resilient to bad network conditions
+		// because we will have this cached state to fall back on.
+		if err := m.G().GetKVStore().PutObj(cacheKey, nil, ret.RandomPW); err == nil {
+			m.CDebugf("Adding HasRandomPW=%t to KVStore", ret.RandomPW)
+		} else {
+			m.CDebugf("Unable to add HasRandomPW state to KVStore")
+		}
 	}
 
 	return ret.RandomPW, err
