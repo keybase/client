@@ -20,6 +20,12 @@ const (
 	TorServerURI        = "http://fncuwbiisyh6ak3i.onion"
 )
 
+const (
+	DevelSiteURI      = DevelServerURI
+	StagingSiteURI    = StagingServerURI
+	ProductionSiteURI = "https://keybase.io"
+)
+
 var TorProxy = "localhost:9050"
 
 // TODO (CORE-6576): Remove these aliases once everything outside of
@@ -39,6 +45,12 @@ var ServerLookup = map[RunMode]string{
 	DevelRunMode:      DevelServerURI,
 	StagingRunMode:    StagingServerURI,
 	ProductionRunMode: ProductionServerURI,
+}
+
+var SiteURILookup = map[RunMode]string{
+	DevelRunMode:      DevelSiteURI,
+	StagingRunMode:    StagingSiteURI,
+	ProductionRunMode: ProductionSiteURI,
 }
 
 const (

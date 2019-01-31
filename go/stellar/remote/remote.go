@@ -900,3 +900,77 @@ func GetInflationDestinations(ctx context.Context, g *libkb.GlobalContext) (ret 
 	}
 	return apiRes.Destinations, nil
 }
+
+type airdropDetails struct {
+	libkb.AppStatusEmbed
+	Details string `json:"details"`
+}
+
+func AirdropDetails(mctx libkb.MetaContext) (string, error) {
+	apiArg := libkb.APIArg{
+		MetaContext: mctx,
+		Endpoint:    "stellar/airdrop/details",
+		SessionType: libkb.APISessionTypeREQUIRED,
+	}
+
+	var res airdropDetails
+	if err := mctx.G().API.GetDecode(apiArg, &res); err != nil {
+		return "", err
+	}
+
+	return res.Details, nil
+}
+
+func AirdropRegister(mctx libkb.MetaContext, register bool) error {
+	apiArg := libkb.APIArg{
+		MetaContext: mctx,
+		Endpoint:    "stellar/airdrop/register",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"register": libkb.B{Val: register},
+		},
+	}
+	_, err := mctx.G().API.Post(apiArg)
+	return err
+}
+
+type AirConfig struct {
+	MinActiveDevices        int    `json:"min_active_devices"`
+	MinActiveDevicesTitle   string `json:"min_active_devices_title"`
+	AccountCreationTitle    string `json:"account_creation_title"`
+	AccountCreationSubtitle string `json:"account_creation_subtitle"`
+	AccountUsed             string `json:"account_used"`
+}
+
+type AirSvc struct {
+	Qualifies     bool   `json:"qualifies"`
+	IsOldEnough   bool   `json:"is_old_enough"`
+	IsUsedAlready bool   `json:"is_used_already"`
+	Username      string `json:"service_username"`
+}
+
+type AirQualifications struct {
+	QualifiesOverall bool              `json:"qualifies_overall"`
+	HasEnoughDevices bool              `json:"has_enough_devices"`
+	ServiceChecks    map[string]AirSvc `json:"service_checks"`
+}
+
+type AirdropStatusAPI struct {
+	libkb.AppStatusEmbed
+	AlreadyRegistered bool              `json:"already_registered"`
+	Qualifications    AirQualifications `json:"qualifications"`
+	AirdropConfig     AirConfig         `json:"airdrop_cfg"`
+}
+
+func AirdropStatus(mctx libkb.MetaContext) (AirdropStatusAPI, error) {
+	apiArg := libkb.APIArg{
+		MetaContext: mctx,
+		Endpoint:    "stellar/airdrop/status_check",
+		SessionType: libkb.APISessionTypeREQUIRED,
+	}
+	var status AirdropStatusAPI
+	if err := mctx.G().API.GetDecode(apiArg, &status); err != nil {
+		return AirdropStatusAPI{}, err
+	}
+	return status, nil
+}

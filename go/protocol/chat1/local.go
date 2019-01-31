@@ -4467,9 +4467,31 @@ func (o ProfileSearchConvStats) DeepCopy() ProfileSearchConvStats {
 	}
 }
 
+type BuiltinCommandGroup struct {
+	Typ      ConversationBuiltinCommandTyp `codec:"typ" json:"typ"`
+	Commands []ConversationCommand         `codec:"commands" json:"commands"`
+}
+
+func (o BuiltinCommandGroup) DeepCopy() BuiltinCommandGroup {
+	return BuiltinCommandGroup{
+		Typ: o.Typ.DeepCopy(),
+		Commands: (func(x []ConversationCommand) []ConversationCommand {
+			if x == nil {
+				return nil
+			}
+			ret := make([]ConversationCommand, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Commands),
+	}
+}
+
 type StaticConfig struct {
 	DeletableByDeleteHistory []MessageType         `codec:"deletableByDeleteHistory" json:"deletableByDeleteHistory"`
-	BuiltinCommands          []ConversationCommand `codec:"builtinCommands" json:"builtinCommands"`
+	BuiltinCommands          []BuiltinCommandGroup `codec:"builtinCommands" json:"builtinCommands"`
 }
 
 func (o StaticConfig) DeepCopy() StaticConfig {
@@ -4485,11 +4507,11 @@ func (o StaticConfig) DeepCopy() StaticConfig {
 			}
 			return ret
 		})(o.DeletableByDeleteHistory),
-		BuiltinCommands: (func(x []ConversationCommand) []ConversationCommand {
+		BuiltinCommands: (func(x []BuiltinCommandGroup) []BuiltinCommandGroup {
 			if x == nil {
 				return nil
 			}
-			ret := make([]ConversationCommand, len(x))
+			ret := make([]BuiltinCommandGroup, len(x))
 			for i, v := range x {
 				vCopy := v.DeepCopy()
 				ret[i] = vCopy

@@ -322,6 +322,14 @@
         {
           "type": "boolean",
           "name": "fromPrimary"
+        },
+        {
+          "type": "string",
+          "name": "batchID"
+        },
+        {
+          "type": "boolean",
+          "name": "fromAirdrop"
         }
       ]
     },
@@ -416,6 +424,14 @@
         {
           "type": "string",
           "name": "cursorToken"
+        },
+        {
+          "type": "string",
+          "name": "batchID"
+        },
+        {
+          "type": "boolean",
+          "name": "fromAirdrop"
         }
       ]
     },

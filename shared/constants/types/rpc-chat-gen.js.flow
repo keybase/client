@@ -160,6 +160,10 @@ export type MessageTypes = {|
     inParam: $ReadOnly<{|status: ChatSearchIndexStatus|}>,
     outParam: void,
   |},
+  'chat.1.chatUi.chatShowManageChannels': {|
+    inParam: $ReadOnly<{|teamname: String|}>,
+    outParam: void,
+  |},
   'chat.1.chatUi.chatStellarDataConfirm': {|
     inParam: $ReadOnly<{|summary: UIChatPaymentSummary|}>,
     outParam: Boolean,
@@ -379,9 +383,17 @@ export const chatUiUITextDecorationTyp = {
   channelnamemention: 2,
 }
 
+export const commandsConversationBuiltinCommandTyp = {
+  none: 0,
+  adhoc: 1,
+  smallteam: 2,
+  bigteam: 3,
+  bigteamgeneral: 4,
+}
+
 export const commandsConversationCommandGroupsTyp = {
   builtin: 0,
-  extended: 1,
+  custom: 1,
 }
 
 export const commonAssetMetadataType = {
@@ -696,6 +708,7 @@ export type BodyPlaintextVersion =
   | 9 // V9_9
   | 10 // V10_10
 
+export type BuiltinCommandGroup = $ReadOnly<{typ: ConversationBuiltinCommandTyp, commands?: ?Array<ConversationCommand>}>
 export type ChannelMention =
   | 0 // NONE_0
   | 1 // ALL_1
@@ -733,12 +746,19 @@ export type ChatSyncIncrementalInfo = $ReadOnly<{items?: ?Array<ChatSyncIncremen
 export type ChatSyncResult = {syncType: 0} | {syncType: 2} | {syncType: 1, incremental: ?ChatSyncIncrementalInfo}
 export type ConvTypingUpdate = $ReadOnly<{convID: ConversationID, typers?: ?Array<TyperInfo>}>
 export type Conversation = $ReadOnly<{metadata: ConversationMetadata, readerInfo?: ?ConversationReaderInfo, notifications?: ?ConversationNotificationInfo, maxMsgs?: ?Array<MessageBoxed>, maxMsgSummaries?: ?Array<MessageSummary>, creatorInfo?: ?ConversationCreatorInfo, expunge: Expunge, convRetention?: ?RetentionPolicy, teamRetention?: ?RetentionPolicy, cs /* convSettings */?: ?ConversationSettings}>
+export type ConversationBuiltinCommandTyp =
+  | 0 // NONE_0
+  | 1 // ADHOC_1
+  | 2 // SMALLTEAM_2
+  | 3 // BIGTEAM_3
+  | 4 // BIGTEAMGENERAL_4
+
 export type ConversationCommand = $ReadOnly<{description: String, name: String, usage: String, username?: ?String}>
-export type ConversationCommandGroups = {typ: 0} | {typ: 1, extended: ?ConversationCommandGroupsExtended}
-export type ConversationCommandGroupsExtended = $ReadOnly<{commands?: ?Array<ConversationCommand>}>
+export type ConversationCommandGroups = {typ: 0, builtin: ?ConversationBuiltinCommandTyp} | {typ: 1, custom: ?ConversationCommandGroupsCustom}
+export type ConversationCommandGroupsCustom = $ReadOnly<{commands?: ?Array<ConversationCommand>}>
 export type ConversationCommandGroupsTyp =
   | 0 // BUILTIN_0
-  | 1 // EXTENDED_1
+  | 1 // CUSTOM_1
 
 export type ConversationCreatorInfo = $ReadOnly<{ctime: Gregor1.Time, uid: Gregor1.UID}>
 export type ConversationCreatorInfoLocal = $ReadOnly<{ctime: Gregor1.Time, username: String}>
@@ -1079,7 +1099,7 @@ export type StaleUpdateType =
   | 1 // NEWACTIVITY_1
   | 2 // CONVUPDATE_2
 
-export type StaticConfig = $ReadOnly<{deletableByDeleteHistory?: ?Array<MessageType>, builtinCommands?: ?Array<ConversationCommand>}>
+export type StaticConfig = $ReadOnly<{deletableByDeleteHistory?: ?Array<MessageType>, builtinCommands?: ?Array<BuiltinCommandGroup>}>
 export type SubteamRenameUpdate = $ReadOnly<{convIDs?: ?Array<ConversationID>, inboxVers: InboxVers}>
 export type SweepRes = $ReadOnly<{foundTask: Boolean, deletedMessages: Boolean, expunge: Expunge}>
 export type SyncAllNotificationRes = {typ: 0, state: ?Gregor1.State} | {typ: 1, incremental: ?Gregor1.SyncResult}
@@ -1213,6 +1233,7 @@ export type IncomingCallMapType = {|
   'chat.1.chatUi.chatStellarDataConfirm'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatStellarDataConfirm'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn,
   'chat.1.chatUi.chatStellarDataError'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatStellarDataError'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn,
   'chat.1.chatUi.chatStellarDone'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatStellarDone'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn,
+  'chat.1.chatUi.chatShowManageChannels'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatShowManageChannels'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn,
   'chat.1.NotifyChat.NewChatActivity'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.NewChatActivity'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn,
   'chat.1.NotifyChat.ChatIdentifyUpdate'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatIdentifyUpdate'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn,
   'chat.1.NotifyChat.ChatTLFFinalize'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.NotifyChat.ChatTLFFinalize'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn,
@@ -1256,6 +1277,7 @@ export type CustomResponseIncomingCallMap = {|
   'chat.1.chatUi.chatStellarDataConfirm'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatStellarDataConfirm'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatStellarDataConfirm'>, 'outParam'>) => void}) => IncomingReturn,
   'chat.1.chatUi.chatStellarDataError'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatStellarDataError'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatStellarDataError'>, 'outParam'>) => void}) => IncomingReturn,
   'chat.1.chatUi.chatStellarDone'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatStellarDone'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatStellarDone'>, 'outParam'>) => void}) => IncomingReturn,
+  'chat.1.chatUi.chatShowManageChannels'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatShowManageChannels'>, 'inParam'>> & {|sessionID: number|}, response: {error: IncomingErrorCallback, result: ($PropertyType<$PropertyType<MessageTypes, 'chat.1.chatUi.chatShowManageChannels'>, 'outParam'>) => void}) => IncomingReturn,
 |}
 declare export function localAddTeamMemberAfterResetRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.addTeamMemberAfterReset'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.addTeamMemberAfterReset'>, 'outParam'>>
 declare export function localCancelPostRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.CancelPost'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.CancelPost'>, 'outParam'>>
@@ -1302,4 +1324,4 @@ declare export function localSetGlobalAppNotificationSettingsLocalRpcPromise(par
 declare export function localSetTeamRetentionLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.setTeamRetentionLocal'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.setTeamRetentionLocal'>, 'outParam'>>
 declare export function localUnboxMobilePushNotificationRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.unboxMobilePushNotification'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.unboxMobilePushNotification'>, 'outParam'>>
 declare export function localUpdateTypingRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.updateTyping'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.updateTyping'>, 'outParam'>>
-// Not enabled calls. To enable add to enabled-calls.json: 'chat.1.chatUi.chatAttachmentDownloadStart' 'chat.1.chatUi.chatAttachmentDownloadProgress' 'chat.1.chatUi.chatAttachmentDownloadDone' 'chat.1.chatUi.chatInboxUnverified' 'chat.1.chatUi.chatInboxConversation' 'chat.1.chatUi.chatInboxFailed' 'chat.1.chatUi.chatThreadCached' 'chat.1.chatUi.chatThreadFull' 'chat.1.chatUi.chatSearchHit' 'chat.1.chatUi.chatSearchDone' 'chat.1.chatUi.chatSearchInboxHit' 'chat.1.chatUi.chatSearchInboxDone' 'chat.1.chatUi.chatSearchIndexStatus' 'chat.1.chatUi.chatConfirmChannelDelete' 'chat.1.chatUi.chatStellarShowConfirm' 'chat.1.chatUi.chatStellarDataConfirm' 'chat.1.chatUi.chatStellarDataError' 'chat.1.chatUi.chatStellarDone' 'chat.1.local.getCachedThread' 'chat.1.local.getInboxUILocal' 'chat.1.local.getInboxAndUnboxLocal' 'chat.1.local.postLocal' 'chat.1.local.generateOutboxID' 'chat.1.local.postLocalNonblock' 'chat.1.local.postMetadataNonblock' 'chat.1.local.postDeleteHistoryUpto' 'chat.1.local.postDeleteHistoryThrough' 'chat.1.local.getInboxSummaryForCLILocal' 'chat.1.local.getConversationForCLILocal' 'chat.1.local.GetMessagesLocal' 'chat.1.local.postFileAttachmentLocal' 'chat.1.local.DownloadAttachmentLocal' 'chat.1.local.joinConversationLocal' 'chat.1.local.upgradeKBFSConversationToImpteam' 'chat.1.local.searchRegexp' 'chat.1.local.searchInbox' 'chat.1.NotifyChat.NewChatActivity' 'chat.1.NotifyChat.ChatIdentifyUpdate' 'chat.1.NotifyChat.ChatTLFFinalize' 'chat.1.NotifyChat.ChatTLFResolve' 'chat.1.NotifyChat.ChatInboxStale' 'chat.1.NotifyChat.ChatThreadsStale' 'chat.1.NotifyChat.ChatTypingUpdate' 'chat.1.NotifyChat.ChatJoinedConversation' 'chat.1.NotifyChat.ChatLeftConversation' 'chat.1.NotifyChat.ChatResetConversation' 'chat.1.NotifyChat.ChatInboxSyncStarted' 'chat.1.NotifyChat.ChatInboxSynced' 'chat.1.NotifyChat.ChatSetConvRetention' 'chat.1.NotifyChat.ChatSetTeamRetention' 'chat.1.NotifyChat.ChatSetConvSettings' 'chat.1.NotifyChat.ChatSubteamRename' 'chat.1.NotifyChat.ChatKBFSToImpteamUpgrade' 'chat.1.NotifyChat.ChatAttachmentUploadStart' 'chat.1.NotifyChat.ChatAttachmentUploadProgress' 'chat.1.NotifyChat.ChatPaymentInfo' 'chat.1.NotifyChat.ChatRequestInfo' 'chat.1.NotifyChat.ChatPromptUnfurl' 'chat.1.remote.getInboxRemote' 'chat.1.remote.getThreadRemote' 'chat.1.remote.getUnreadlineRemote' 'chat.1.remote.getPublicConversations' 'chat.1.remote.postRemote' 'chat.1.remote.newConversationRemote' 'chat.1.remote.newConversationRemote2' 'chat.1.remote.getMessagesRemote' 'chat.1.remote.markAsRead' 'chat.1.remote.SetConversationStatus' 'chat.1.remote.GetUnreadUpdateFull' 'chat.1.remote.getS3Params' 'chat.1.remote.s3Sign' 'chat.1.remote.getInboxVersion' 'chat.1.remote.syncInbox' 'chat.1.remote.syncChat' 'chat.1.remote.syncAll' 'chat.1.remote.tlfFinalize' 'chat.1.remote.tlfResolve' 'chat.1.remote.updateTypingRemote' 'chat.1.remote.joinConversation' 'chat.1.remote.leaveConversation' 'chat.1.remote.previewConversation' 'chat.1.remote.deleteConversation' 'chat.1.remote.getMessageBefore' 'chat.1.remote.getTLFConversations' 'chat.1.remote.setAppNotificationSettings' 'chat.1.remote.setGlobalAppNotificationSettings' 'chat.1.remote.getGlobalAppNotificationSettings' 'chat.1.remote.remoteNotificationSuccessful' 'chat.1.remote.setConvRetention' 'chat.1.remote.setTeamRetention' 'chat.1.remote.setConvMinWriterRole' 'chat.1.remote.retentionSweepConv' 'chat.1.remote.upgradeKBFSToImpteam' 'chat.1.remote.registerSharePost' 'chat.1.remote.failSharePost' 'chat.1.remote.broadcastGregorMessageToConv'
+// Not enabled calls. To enable add to enabled-calls.json: 'chat.1.chatUi.chatAttachmentDownloadStart' 'chat.1.chatUi.chatAttachmentDownloadProgress' 'chat.1.chatUi.chatAttachmentDownloadDone' 'chat.1.chatUi.chatInboxUnverified' 'chat.1.chatUi.chatInboxConversation' 'chat.1.chatUi.chatInboxFailed' 'chat.1.chatUi.chatThreadCached' 'chat.1.chatUi.chatThreadFull' 'chat.1.chatUi.chatSearchHit' 'chat.1.chatUi.chatSearchDone' 'chat.1.chatUi.chatSearchInboxHit' 'chat.1.chatUi.chatSearchInboxDone' 'chat.1.chatUi.chatSearchIndexStatus' 'chat.1.chatUi.chatConfirmChannelDelete' 'chat.1.chatUi.chatStellarShowConfirm' 'chat.1.chatUi.chatStellarDataConfirm' 'chat.1.chatUi.chatStellarDataError' 'chat.1.chatUi.chatStellarDone' 'chat.1.chatUi.chatShowManageChannels' 'chat.1.local.getCachedThread' 'chat.1.local.getInboxUILocal' 'chat.1.local.getInboxAndUnboxLocal' 'chat.1.local.postLocal' 'chat.1.local.generateOutboxID' 'chat.1.local.postLocalNonblock' 'chat.1.local.postMetadataNonblock' 'chat.1.local.postDeleteHistoryUpto' 'chat.1.local.postDeleteHistoryThrough' 'chat.1.local.getInboxSummaryForCLILocal' 'chat.1.local.getConversationForCLILocal' 'chat.1.local.GetMessagesLocal' 'chat.1.local.postFileAttachmentLocal' 'chat.1.local.DownloadAttachmentLocal' 'chat.1.local.joinConversationLocal' 'chat.1.local.upgradeKBFSConversationToImpteam' 'chat.1.local.searchRegexp' 'chat.1.local.searchInbox' 'chat.1.NotifyChat.NewChatActivity' 'chat.1.NotifyChat.ChatIdentifyUpdate' 'chat.1.NotifyChat.ChatTLFFinalize' 'chat.1.NotifyChat.ChatTLFResolve' 'chat.1.NotifyChat.ChatInboxStale' 'chat.1.NotifyChat.ChatThreadsStale' 'chat.1.NotifyChat.ChatTypingUpdate' 'chat.1.NotifyChat.ChatJoinedConversation' 'chat.1.NotifyChat.ChatLeftConversation' 'chat.1.NotifyChat.ChatResetConversation' 'chat.1.NotifyChat.ChatInboxSyncStarted' 'chat.1.NotifyChat.ChatInboxSynced' 'chat.1.NotifyChat.ChatSetConvRetention' 'chat.1.NotifyChat.ChatSetTeamRetention' 'chat.1.NotifyChat.ChatSetConvSettings' 'chat.1.NotifyChat.ChatSubteamRename' 'chat.1.NotifyChat.ChatKBFSToImpteamUpgrade' 'chat.1.NotifyChat.ChatAttachmentUploadStart' 'chat.1.NotifyChat.ChatAttachmentUploadProgress' 'chat.1.NotifyChat.ChatPaymentInfo' 'chat.1.NotifyChat.ChatRequestInfo' 'chat.1.NotifyChat.ChatPromptUnfurl' 'chat.1.remote.getInboxRemote' 'chat.1.remote.getThreadRemote' 'chat.1.remote.getUnreadlineRemote' 'chat.1.remote.getPublicConversations' 'chat.1.remote.postRemote' 'chat.1.remote.newConversationRemote' 'chat.1.remote.newConversationRemote2' 'chat.1.remote.getMessagesRemote' 'chat.1.remote.markAsRead' 'chat.1.remote.SetConversationStatus' 'chat.1.remote.GetUnreadUpdateFull' 'chat.1.remote.getS3Params' 'chat.1.remote.s3Sign' 'chat.1.remote.getInboxVersion' 'chat.1.remote.syncInbox' 'chat.1.remote.syncChat' 'chat.1.remote.syncAll' 'chat.1.remote.tlfFinalize' 'chat.1.remote.tlfResolve' 'chat.1.remote.updateTypingRemote' 'chat.1.remote.joinConversation' 'chat.1.remote.leaveConversation' 'chat.1.remote.previewConversation' 'chat.1.remote.deleteConversation' 'chat.1.remote.getMessageBefore' 'chat.1.remote.getTLFConversations' 'chat.1.remote.setAppNotificationSettings' 'chat.1.remote.setGlobalAppNotificationSettings' 'chat.1.remote.getGlobalAppNotificationSettings' 'chat.1.remote.remoteNotificationSuccessful' 'chat.1.remote.setConvRetention' 'chat.1.remote.setTeamRetention' 'chat.1.remote.setConvMinWriterRole' 'chat.1.remote.retentionSweepConv' 'chat.1.remote.upgradeKBFSToImpteam' 'chat.1.remote.registerSharePost' 'chat.1.remote.failSharePost' 'chat.1.remote.broadcastGregorMessageToConv'

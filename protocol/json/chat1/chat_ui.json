@@ -1178,6 +1178,19 @@
         }
       ],
       "response": null
+    },
+    "chatShowManageChannels": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "teamname",
+          "type": "string"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "chat.1"

@@ -74,6 +74,10 @@
         {
           "type": "boolean",
           "name": "breaksTracking"
+        },
+        {
+          "type": "SigID",
+          "name": "sigID"
         }
       ]
     },

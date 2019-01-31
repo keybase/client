@@ -25,6 +25,12 @@ const (
 	PushAccountChange       = "stellar.account_change"
 )
 
+const (
+	AirdropQualified   = "qualified"
+	AirdropUnqualified = "unqualified"
+	AirdropAccepted    = "accepted"
+)
+
 func KeybaseTransactionIDFromString(s string) (KeybaseTransactionID, error) {
 	if len(s) != hex.EncodedLen(KeybaseTransactionIDLen) {
 		return "", fmt.Errorf("bad KeybaseTransactionID %q: must be %d bytes long", s, KeybaseTransactionIDLen)

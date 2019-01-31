@@ -2722,6 +2722,23 @@
     },
     {
       "type": "record",
+      "name": "BuiltinCommandGroup",
+      "fields": [
+        {
+          "type": "ConversationBuiltinCommandTyp",
+          "name": "typ"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ConversationCommand"
+          },
+          "name": "commands"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "StaticConfig",
       "fields": [
         {
@@ -2734,7 +2751,7 @@
         {
           "type": {
             "type": "array",
-            "items": "ConversationCommand"
+            "items": "BuiltinCommandGroup"
           },
           "name": "builtinCommands"
         }

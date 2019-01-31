@@ -348,8 +348,8 @@ export const getChannelSuggestions = (state: TypedState, teamname: string) =>
 
 export const getCommands = (state: TypedState, id: Types.ConversationIDKey) => {
   const {commands} = getMeta(state, id)
-  if (commands.typ === RPCChatTypes.commandsConversationCommandGroupsTyp.builtin) {
-    return state.chat2.staticConfig ? state.chat2.staticConfig.builtinCommands : []
+  if (commands.typ === RPCChatTypes.commandsConversationCommandGroupsTyp.builtin && commands.builtin) {
+    return state.chat2.staticConfig ? state.chat2.staticConfig.builtinCommands[commands.builtin] : []
   } else {
     return []
   }

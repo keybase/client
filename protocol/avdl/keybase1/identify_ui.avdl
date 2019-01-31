@@ -23,6 +23,7 @@ protocol identifyUi {
     KID KID;
     union { null, TrackDiff } trackDiff;
     boolean breaksTracking;
+    SigID sigID;
   }
 
   record Cryptocurrency {

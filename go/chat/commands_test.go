@@ -5,10 +5,23 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/kbtest"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
 )
+
+type fakeUIRouter struct {
+	libkb.UIRouter
+	ui libkb.ChatUI
+}
+
+func (f *fakeUIRouter) GetChatUI() (libkb.ChatUI, error) {
+	return f.ui, nil
+}
+
+func (f *fakeUIRouter) Shutdown() {}
 
 func TestChatCommands(t *testing.T) {
 	ctc := makeChatTestContext(t, "TestChatCommands", 2)
@@ -27,12 +40,26 @@ func TestChatCommands(t *testing.T) {
 			require.Fail(t, "no msg")
 		}
 	}
+	checkHeadline := func(list *serverChatListener, headline string) {
+		select {
+		case msg := <-list.newMessageRemote:
+			require.True(t, msg.Message.IsValid())
+			require.True(t, msg.Message.Valid().MessageBody.IsType(chat1.MessageType_HEADLINE))
+			require.Equal(t, "chat about some pointless stuff",
+				msg.Message.Valid().MessageBody.Headline().Headline)
+		case <-time.After(timeout):
+			require.Fail(t, "no msg")
+		}
+	}
 
 	ctx := ctc.as(t, users[0]).startCtx
+	ui := kbtest.NewChatUI()
 	listener0 := newServerChatListener()
 	listener1 := newServerChatListener()
+	ctc.as(t, users[0]).h.mockChatUI = ui
 	ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener0)
 	ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener1)
+	ctc.world.Tcs[users[0].Username].G.UIRouter = &fakeUIRouter{ui: ui}
 	ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
 	ctc.world.Tcs[users[1].Username].ChatG.Syncer.(*Syncer).isConnected = true
 	impConv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
@@ -92,15 +119,12 @@ func TestChatCommands(t *testing.T) {
 	mustPostLocalForTest(t, ctc, users[0], impConv, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: "/topic chat about some pointless stuff",
 	}))
-	select {
-	case msg := <-listener0.newMessageRemote:
-		require.True(t, msg.Message.IsValid())
-		require.True(t, msg.Message.Valid().MessageBody.IsType(chat1.MessageType_HEADLINE))
-		require.Equal(t, "chat about some pointless stuff",
-			msg.Message.Valid().MessageBody.Headline().Headline)
-	case <-time.After(timeout):
-		require.Fail(t, "no msg")
-	}
+	checkMsgText(listener0, "/topic chat about some pointless stuff")
+	mustPostLocalForTest(t, ctc, users[0], teamConv, chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: "/topic chat about some pointless stuff",
+	}))
+	checkHeadline(listener0, "/topic chat about some pointless stuff")
+	checkHeadline(listener1, "/topic chat about some pointless stuff")
 
 	testLeave := func() {
 		mustPostLocalForTest(t, ctc, users[0], ncres.Conv.Info,
@@ -116,18 +140,34 @@ func TestChatCommands(t *testing.T) {
 		}
 	}
 	t.Logf("test /join and /leave")
+	mustPostLocalForTest(t, ctc, users[0], teamConv, chat1.NewMessageBodyWithText(chat1.MessageText{
+		Body: "/leave",
+	}))
+	checkMsgText(listener0, "/leave")
+	checkMsgText(listener1, "/leave")
 	testLeave()
 	mustPostLocalForTest(t, ctc, users[0], teamConv, chat1.NewMessageBodyWithText(chat1.MessageText{
-		Body: "/join mike",
+		Body: "/join",
 	}))
+	select {
+	case <-ui.ShowManageChannels:
+	case <-time.After(timeout):
+		require.Fail(t, "no show")
+	}
+	_, err = ctc.as(t, users[0]).chatLocalHandler().JoinConversationLocal(ctx, chat1.JoinConversationLocalArg{
+		TlfName:    teamConv.TlfName,
+		TopicType:  chat1.TopicType_CHAT,
+		TopicName:  "mike",
+		Visibility: keybase1.TLFVisibility_PRIVATE,
+	})
+	require.NoError(t, err)
 	consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
 	consumeNewMsgRemote(t, listener1, chat1.MessageType_JOIN)
 	testLeave()
 	mustPostLocalForTest(t, ctc, users[0], impConv, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: fmt.Sprintf("/join %s#mike", teamConv.TlfName),
 	}))
-	consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
-	consumeNewMsgRemote(t, listener1, chat1.MessageType_JOIN)
+	checkMsgText(listener0, fmt.Sprintf("/join %s#mike", teamConv.TlfName))
 
 	t.Logf("test /hide and /unhide")
 	mustPostLocalForTest(t, ctc, users[0], teamConv, chat1.NewMessageBodyWithText(chat1.MessageText{

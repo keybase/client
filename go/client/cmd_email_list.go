@@ -71,6 +71,11 @@ func (c *CmdListEmails) Run() error {
 		ui.Printf("%s (visibility: %s, verified: %t, primary: %t)\n", p.Email,
 			visibilityName, p.IsVerified, p.IsPrimary)
 	}
+
+	if len(resp) == 0 {
+		c.G().UI.GetDumbOutputUI().PrintfStderr(
+			"You have no e-mail addresses set. You should add one using `keybase email add` command.\n")
+	}
 	return nil
 }
 

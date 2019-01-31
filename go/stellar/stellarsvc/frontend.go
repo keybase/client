@@ -949,3 +949,45 @@ func (s *Server) GetInflationDestinationLocal(ctx context.Context, arg stellar1.
 
 	return stellar.GetInflationDestination(mctx, arg.AccountID)
 }
+
+func (s *Server) AirdropDetailsLocal(ctx context.Context, sessionID int) (details string, err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName:       "AirdropDetailsLocal",
+		Err:           &err,
+		RequireWallet: false,
+	})
+	defer fin()
+	if err != nil {
+		return "", err
+	}
+
+	return remote.AirdropDetails(mctx)
+}
+
+func (s *Server) AirdropRegisterLocal(ctx context.Context, arg stellar1.AirdropRegisterLocalArg) (err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName:       "AirdropRegisterLocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return err
+	}
+
+	return remote.AirdropRegister(mctx, arg.Register)
+}
+
+func (s *Server) AirdropStatusLocal(ctx context.Context, sessionID int) (status stellar1.AirdropStatus, err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName:       "AirdropStatusLocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return stellar1.AirdropStatus{}, err
+	}
+
+	return stellar.AirdropStatus(mctx)
+}

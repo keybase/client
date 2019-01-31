@@ -2,6 +2,7 @@ package identify3
 
 import (
 	"encoding/hex"
+	"strings"
 	"sync"
 
 	"github.com/keybase/client/go/libkb"
@@ -16,6 +17,7 @@ type UIAdapter struct {
 	libkb.MetaContextified
 	session     *libkb.Identify3Session
 	ui          keybase1.Identify3UiInterface
+	username    string
 	iFollowThem bool
 	sentResult  bool
 	isUpcall    bool
@@ -68,6 +70,10 @@ func NewUIAdapterWithSession(mctx libkb.MetaContext, ui keybase1.Identify3UiInte
 }
 
 func (i *UIAdapter) Start(user string, reason keybase1.IdentifyReason, force bool) error {
+	i.Lock()
+	i.username = user
+	i.Unlock()
+
 	if !i.isUpcall {
 		return nil
 	}
@@ -162,6 +168,7 @@ func (i *UIAdapter) finishRemoteCheck(proof keybase1.RemoteProof, lcr keybase1.L
 	arg := keybase1.Identify3UpdateRowArg{
 		Key:   proof.Key,
 		Value: proof.Value,
+		SigID: proof.SigID,
 	}
 
 	if lcr.Hint != nil {
@@ -216,8 +223,10 @@ func (i *UIAdapter) displayKey(key keybase1.IdentifyKey) {
 	}
 
 	arg := keybase1.Identify3UpdateRowArg{
-		Key:   "pgp",
-		Value: hex.EncodeToString(key.PGPFingerprint),
+		Key:     "pgp",
+		Value:   hex.EncodeToString(key.PGPFingerprint),
+		SigID:   key.SigID,
+		SiteURL: i.makeSigchainViewURL(key.SigID),
 	}
 
 	switch {
@@ -267,6 +276,7 @@ func (i *UIAdapter) plumbUncheckedProof(row keybase1.IdentifyRow) {
 		Value: row.Proof.Value,
 		State: keybase1.Identify3RowState_CHECKING,
 		Color: keybase1.Identify3RowColor_GRAY,
+		SigID: row.Proof.SigID,
 	})
 }
 
@@ -306,21 +316,40 @@ func (i *UIAdapter) sendResult(typ keybase1.Identify3ResultType) error {
 	return err
 }
 
+func (i *UIAdapter) makeSigchainViewURL(s keybase1.SigID) string {
+	url := libkb.SiteURILookup[i.M().G().Env.GetRunMode()]
+	var parts []string
+	if url == "" {
+		return url
+	}
+	parts = append(parts, url, i.username)
+	page := "sigchain"
+	if !s.IsNil() {
+		page = page + "#" + s.String()
+	}
+	parts = append(parts, page)
+	return strings.Join(parts, "/")
+}
+
 func (i *UIAdapter) plumbCryptocurrency(crypto keybase1.Cryptocurrency) {
 	i.updateRow(keybase1.Identify3UpdateRowArg{
-		Key:   crypto.Type,
-		Value: crypto.Address,
-		State: keybase1.Identify3RowState_VALID,
-		Color: keybase1.Identify3RowColor_GREEN,
+		Key:     crypto.Type,
+		Value:   crypto.Address,
+		State:   keybase1.Identify3RowState_VALID,
+		Color:   keybase1.Identify3RowColor_GREEN,
+		SigID:   crypto.SigID,
+		SiteURL: i.makeSigchainViewURL(crypto.SigID),
 	})
 }
 
 func (i *UIAdapter) plumbStellarAccount(str keybase1.StellarAccount) {
 	i.updateRow(keybase1.Identify3UpdateRowArg{
-		Key:   "stellar",
-		Value: str.FederationAddress,
-		State: keybase1.Identify3RowState_VALID,
-		Color: keybase1.Identify3RowColor_GREEN,
+		Key:     "stellar",
+		Value:   str.FederationAddress,
+		State:   keybase1.Identify3RowState_VALID,
+		Color:   keybase1.Identify3RowColor_GREEN,
+		SigID:   str.SigID,
+		SiteURL: i.makeSigchainViewURL(str.SigID),
 	})
 }
 
