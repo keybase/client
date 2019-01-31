@@ -405,6 +405,8 @@
       "_description": "Turn participation in airdrop on/off",
       "accept": "boolean"
     },
+    "hideAirdropBanner": { },
+    "updateAirdropBannerState": { "show": "boolean" },
     "updateAirdropState": { },
     "updatedAirdropState": {
       "airdropQualifications": "Array<Types.AirdropQualification>",

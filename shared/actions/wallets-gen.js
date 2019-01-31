@@ -45,6 +45,7 @@ export const displayCurrenciesReceived = 'wallets:displayCurrenciesReceived'
 export const displayCurrencyReceived = 'wallets:displayCurrencyReceived'
 export const exitFailedPayment = 'wallets:exitFailedPayment'
 export const exportSecretKey = 'wallets:exportSecretKey'
+export const hideAirdropBanner = 'wallets:hideAirdropBanner'
 export const inflationDestinationReceived = 'wallets:inflationDestinationReceived'
 export const linkExistingAccount = 'wallets:linkExistingAccount'
 export const linkedExistingAccount = 'wallets:linkedExistingAccount'
@@ -91,6 +92,7 @@ export const setBuildingTo = 'wallets:setBuildingTo'
 export const setInflationDestination = 'wallets:setInflationDestination'
 export const setLastSentXLM = 'wallets:setLastSentXLM'
 export const setReadyToReview = 'wallets:setReadyToReview'
+export const updateAirdropBannerState = 'wallets:updateAirdropBannerState'
 export const updateAirdropState = 'wallets:updateAirdropState'
 export const updatedAirdropState = 'wallets:updatedAirdropState'
 export const validateAccountName = 'wallets:validateAccountName'
@@ -135,6 +137,7 @@ type _DisplayCurrenciesReceivedPayload = $ReadOnly<{|currencies: Array<Types.Cur
 type _DisplayCurrencyReceivedPayload = $ReadOnly<{|accountID: ?Types.AccountID, currency: Types.Currency, setBuildingCurrency?: boolean|}>
 type _ExitFailedPaymentPayload = void
 type _ExportSecretKeyPayload = $ReadOnly<{|accountID: Types.AccountID|}>
+type _HideAirdropBannerPayload = void
 type _InflationDestinationReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, selected: Types.AccountInflationDestination, options?: Array<Types.InflationDestination>|}>
 type _InflationDestinationReceivedPayloadError = $ReadOnly<{|error: string|}>
 type _LinkExistingAccountPayload = $ReadOnly<{|name: string, secretKey: HiddenString, showOnCreation?: boolean, setBuildingTo?: boolean|}>
@@ -183,6 +186,7 @@ type _SetBuildingToPayload = $ReadOnly<{|to: string|}>
 type _SetInflationDestinationPayload = $ReadOnly<{|accountID: Types.AccountID, destination: Types.AccountID, name: string|}>
 type _SetLastSentXLMPayload = $ReadOnly<{|lastSentXLM: boolean, writeFile: boolean|}>
 type _SetReadyToReviewPayload = $ReadOnly<{|readyToReview: boolean|}>
+type _UpdateAirdropBannerStatePayload = $ReadOnly<{|show: boolean|}>
 type _UpdateAirdropStatePayload = void
 type _UpdatedAirdropStatePayload = $ReadOnly<{|airdropQualifications: Array<Types.AirdropQualification>, airdropState: Types.AirdropState|}>
 type _ValidateAccountNamePayload = $ReadOnly<{|name: string|}>
@@ -536,6 +540,8 @@ export const createSendAssetChoicesReceived = (payload: _SendAssetChoicesReceive
  * We received an updated account record
  */
 export const createAccountUpdateReceived = (payload: _AccountUpdateReceivedPayload) => ({payload, type: accountUpdateReceived})
+export const createHideAirdropBanner = (payload: _HideAirdropBannerPayload) => ({payload, type: hideAirdropBanner})
+export const createUpdateAirdropBannerState = (payload: _UpdateAirdropBannerStatePayload) => ({payload, type: updateAirdropBannerState})
 export const createUpdateAirdropState = (payload: _UpdateAirdropStatePayload) => ({payload, type: updateAirdropState})
 export const createUpdatedAirdropState = (payload: _UpdatedAirdropStatePayload) => ({payload, type: updatedAirdropState})
 
@@ -575,6 +581,7 @@ export type DisplayCurrenciesReceivedPayload = {|+payload: _DisplayCurrenciesRec
 export type DisplayCurrencyReceivedPayload = {|+payload: _DisplayCurrencyReceivedPayload, +type: 'wallets:displayCurrencyReceived'|}
 export type ExitFailedPaymentPayload = {|+payload: _ExitFailedPaymentPayload, +type: 'wallets:exitFailedPayment'|}
 export type ExportSecretKeyPayload = {|+payload: _ExportSecretKeyPayload, +type: 'wallets:exportSecretKey'|}
+export type HideAirdropBannerPayload = {|+payload: _HideAirdropBannerPayload, +type: 'wallets:hideAirdropBanner'|}
 export type InflationDestinationReceivedPayload = {|+payload: _InflationDestinationReceivedPayload, +type: 'wallets:inflationDestinationReceived'|}
 export type InflationDestinationReceivedPayloadError = {|+error: true, +payload: _InflationDestinationReceivedPayloadError, +type: 'wallets:inflationDestinationReceived'|}
 export type LinkExistingAccountPayload = {|+payload: _LinkExistingAccountPayload, +type: 'wallets:linkExistingAccount'|}
@@ -623,6 +630,7 @@ export type SetBuildingToPayload = {|+payload: _SetBuildingToPayload, +type: 'wa
 export type SetInflationDestinationPayload = {|+payload: _SetInflationDestinationPayload, +type: 'wallets:setInflationDestination'|}
 export type SetLastSentXLMPayload = {|+payload: _SetLastSentXLMPayload, +type: 'wallets:setLastSentXLM'|}
 export type SetReadyToReviewPayload = {|+payload: _SetReadyToReviewPayload, +type: 'wallets:setReadyToReview'|}
+export type UpdateAirdropBannerStatePayload = {|+payload: _UpdateAirdropBannerStatePayload, +type: 'wallets:updateAirdropBannerState'|}
 export type UpdateAirdropStatePayload = {|+payload: _UpdateAirdropStatePayload, +type: 'wallets:updateAirdropState'|}
 export type UpdatedAirdropStatePayload = {|+payload: _UpdatedAirdropStatePayload, +type: 'wallets:updatedAirdropState'|}
 export type ValidateAccountNamePayload = {|+payload: _ValidateAccountNamePayload, +type: 'wallets:validateAccountName'|}
@@ -671,6 +679,7 @@ export type Actions =
   | DisplayCurrencyReceivedPayload
   | ExitFailedPaymentPayload
   | ExportSecretKeyPayload
+  | HideAirdropBannerPayload
   | InflationDestinationReceivedPayload
   | InflationDestinationReceivedPayloadError
   | LinkExistingAccountPayload
@@ -719,6 +728,7 @@ export type Actions =
   | SetInflationDestinationPayload
   | SetLastSentXLMPayload
   | SetReadyToReviewPayload
+  | UpdateAirdropBannerStatePayload
   | UpdateAirdropStatePayload
   | UpdatedAirdropStatePayload
   | ValidateAccountNamePayload

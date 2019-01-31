@@ -5,6 +5,7 @@ import * as RPCStellarTypes from '../constants/types/rpc-stellar-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as WalletsGen from './wallets-gen'
+import * as GregorGen from './gregor-gen'
 import * as Chat2Gen from './chat2-gen'
 import * as ConfigGen from './config-gen'
 import * as NotificationsGen from './notifications-gen'
@@ -844,7 +845,7 @@ const changeAirdrop = (_, action) =>
     Constants.airdropWaitingKey
   ).then(() => {})
 
-const loadAirdropState = () =>
+const updateAirdropState = () =>
   RPCStellarTypes.localAirdropStatusLocalRpcPromise(undefined, Constants.airdropWaitingKey).then(
     ({state, rows}) => {
       let airdropState = 'loading'
@@ -870,6 +871,15 @@ const loadAirdropState = () =>
       return WalletsGen.createUpdatedAirdropState({airdropQualifications, airdropState})
     }
   )
+
+const airdropBannerKey = 'hideAirdropBanner'
+const hideAirdropBanner = () => console.log('TEMP turned off') // () => GregorGen.createUpdateCategory({body: 'true', category: airdropBannerKey})
+// to reset this to test, TODO remove before merging
+// GregorGen.createUpdateCategory({body: null, category: airdropBannerKey})
+const gregorPushState = (_, action) =>
+  WalletsGen.createUpdateAirdropBannerState({
+    show: !action.payload.state.find(i => i.item.category === airdropBannerKey && !!i.item.body.length),
+  })
 
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
   if (!flags.walletsEnabled) {
@@ -1098,10 +1108,15 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     ConfigGen.daemonHandshakeDone,
     readLastSentXLM
   )
-  yield* Saga.chainAction<ConfigGen.DaemonHandshakeDonePayload | WalletsGen.UpdatedAirdropStatePayload>(
-    [ConfigGen.daemonHandshakeDone, WalletsGen.updatedAirdropState],
-    loadAirdropState
+  yield* Saga.chainAction<WalletsGen.UpdateAirdropStatePayload>(
+    WalletsGen.updateAirdropState,
+    updateAirdropState
   )
+  yield* Saga.chainAction<WalletsGen.HideAirdropBannerPayload>(
+    WalletsGen.hideAirdropBanner,
+    hideAirdropBanner
+  )
+  yield* Saga.chainAction<GregorGen.PushStatePayload>(GregorGen.pushState, gregorPushState)
 }
 
 export default walletsSaga

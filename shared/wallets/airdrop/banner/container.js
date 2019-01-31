@@ -9,11 +9,11 @@ import flags from '../../../util/feature-flags'
 type OwnProps = {||}
 
 const mapStateToProps = state => ({
-  show: flags.airdrop && state.wallets.airdropState === 'noResponse',
+  show: flags.airdrop && state.wallets.airdropShowBanner,
 })
 
 const mapDispatchToProps = dispatch => ({
-  onCancel: () => dispatch(WalletsGen.createChangeAirdrop({accept: false})),
+  onCancel: () => dispatch(WalletsGen.createHideAirdropBanner()),
   onCheckQualify: () => dispatch(RouteTreeGen.createNavigateTo({path: [...Constants.walletPath, 'airdrop']})),
 })
 
