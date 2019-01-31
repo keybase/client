@@ -520,7 +520,7 @@ func (s *HybridInboxSource) inboxFlushLoop(uid gregor1.UID, stopCh chan struct{}
 
 func (s *HybridInboxSource) fetchRemoteInbox(ctx context.Context, uid gregor1.UID,
 	query *chat1.GetInboxQuery, p *chat1.Pagination) (res types.Inbox, err error) {
-	defer s.Trace(ctx, func() error { return err }, fmt.Sprintf("fetchRemoteInbox: query: %v", query))()
+	defer s.Trace(ctx, func() error { return err }, "fetchRemoteInbox")()
 
 	// Insta fail if we are offline
 	if s.IsOffline(ctx) {
@@ -585,7 +585,7 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	localizerTyp types.ConversationLocalizerTyp, useLocalData bool, maxLocalize *int,
 	query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (inbox types.Inbox, localizeCb chan types.AsyncInboxResult, err error) {
 
-	defer s.Trace(ctx, func() error { return err }, fmt.Sprintf("Read: query: %v", query))()
+	defer s.Trace(ctx, func() error { return err }, "Read")()
 
 	// Read unverified inbox
 	rquery, tlfInfo, err := s.GetInboxQueryLocalToRemote(ctx, query)
@@ -625,7 +625,7 @@ func (s *HybridInboxSource) Read(ctx context.Context, uid gregor1.UID,
 
 func (s *HybridInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID, useLocalData bool,
 	query *chat1.GetInboxQuery, p *chat1.Pagination) (res types.Inbox, err error) {
-	defer s.Trace(ctx, func() error { return err }, fmt.Sprintf("ReadUnverified: query: %v", query))()
+	defer s.Trace(ctx, func() error { return err }, "ReadUnverified")()
 
 	var cerr storage.Error
 	inboxStore := s.createInbox()
