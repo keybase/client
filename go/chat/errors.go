@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 )
@@ -536,6 +537,22 @@ func IsOfflineError(err error) OfflineErrorKind {
 		return OfflineErrorKindOfflineBasic
 	}
 	return OfflineErrorKindOnline
+}
+
+func IsRekeyError(err error) (typ chat1.ConversationErrorType, ok bool) {
+	switch err := err.(type) {
+	case types.UnboxingError:
+		return IsRekeyError(err.Inner())
+	case libkb.NeedSelfRekeyError:
+		return chat1.ConversationErrorType_SELFREKEYNEEDED, true
+	case libkb.NeedOtherRekeyError:
+		return chat1.ConversationErrorType_OTHERREKEYNEEDED, true
+	default:
+		if teams.IsTeamReadError(err) {
+			return chat1.ConversationErrorType_OTHERREKEYNEEDED, true
+		}
+	}
+	return chat1.ConversationErrorType_NONE, false
 }
 
 //=============================================================================
