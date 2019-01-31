@@ -539,7 +539,7 @@ const styles = Styles.styleSheetCreate({
   }),
   edited: {color: Styles.globalColors.black_20},
   ellipsis: {marginLeft: Styles.globalMargins.tiny},
-  emojiRow: {bottom: -24, left: 56, position: 'absolute', zIndex: 2},
+  emojiRow: {bottom: -24, left: 102, position: 'absolute', zIndex: 2},
   emojiRowLast: {
     borderBottomLeftRadius: 0,
     borderBottomRightRadius: 0,
