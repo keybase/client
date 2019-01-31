@@ -10,6 +10,7 @@ import (
 )
 
 func TestLoadParamServices(t *testing.T) {
+	t.Skip()
 	tc := setupTest(t, "TestLoadParamServices", 1)
 	defer tc.Cleanup()
 
