@@ -142,6 +142,7 @@ type Identify3UpdateRowArg struct {
 	SiteURL  string             `codec:"siteURL" json:"siteURL"`
 	SiteIcon string             `codec:"siteIcon" json:"siteIcon"`
 	ProofURL string             `codec:"proofURL" json:"proofURL"`
+	SigID    SigID              `codec:"sigID" json:"sigID"`
 	State    Identify3RowState  `codec:"state" json:"state"`
 	Metas    []Identify3RowMeta `codec:"metas" json:"metas"`
 	Color    Identify3RowColor  `codec:"color" json:"color"`
