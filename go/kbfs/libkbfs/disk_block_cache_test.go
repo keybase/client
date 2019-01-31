@@ -805,7 +805,7 @@ func TestDiskBlockCacheHomeDirPriorities(t *testing.T) {
 
 	ctx := context.Background()
 
-	rand.Seed(time.Now().UnixNano())
+	rand.Seed(1)
 
 	t.Log("Set home directories on the cache")
 	homeTLF := tlf.FakeID(100, tlf.Private)
