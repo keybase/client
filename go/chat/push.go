@@ -653,16 +653,15 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				g.Debug(ctx, "chat activity: unable to update inbox: %v", err)
 			}
 			conv = &inbox.Convs[0]
-			// only notify the UI of the conversation if it should be visible
 			switch memberStatus := conv.ReaderInfo.Status; memberStatus {
-			case chat1.ConversationMemberStatus_ACTIVE, chat1.ConversationMemberStatus_RESET:
+			case chat1.ConversationMemberStatus_LEFT, chat1.ConversationMemberStatus_NEVER_JOINED:
+				g.Debug(ctx, "chat activity: newConversation: suppressing ChatActivity, membersStatus: %v", memberStatus)
+			default:
 				activity = new(chat1.ChatActivity)
 				*activity = chat1.NewChatActivityWithNewConversation(chat1.NewConversationInfo{
 					Conv:   g.presentUIItem(ctx, conv, uid),
 					ConvID: conv.GetConvID(),
 				})
-			default:
-				g.Debug(ctx, "chat activity: newConversation: suppressing ChatActivity, membersStatus: %v", memberStatus)
 			}
 		case types.ActionTeamType:
 			var nm chat1.TeamTypePayload
