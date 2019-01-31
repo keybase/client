@@ -137,29 +137,31 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
       </>
     ) : (
       <Kb.Box2
-        direction="horizontal"
-        centerChildren={true}
-        gap="small"
-        style={Styles.collapseStyles([styles.container, this.props.style])}
-        gapStart={true}
-        gapEnd={true}
+        direction="vertical"
         fullWidth={true}
+        style={Styles.collapseStyles([styles.container, this.props.style])}
       >
-        {children}
-        {!!this.props.onNewChat && (
-          <Kb.Icon
-            type="iconfont-compose"
-            style={propsIconPlatform.style}
-            color={propsIconPlatform.color}
-            fontSize={propsIconPlatform.fontSize}
-            onClick={this.props.onNewChat}
-          />
-        )}
-        {this.props.isLoading && (
-          <Kb.Box style={styles.loadingContainer}>
-            <Kb.LoadingLine />
-          </Kb.Box>
-        )}
+        <Kb.Box2
+          direction="horizontal"
+          centerChildren={true}
+          style={styles.innerContainer}
+          gap="small"
+          gapStart={true}
+          gapEnd={true}
+          fullWidth={true}
+        >
+          {children}
+          {!!this.props.onNewChat && (
+            <Kb.Icon
+              type="iconfont-compose"
+              style={propsIconPlatform.style}
+              color={propsIconPlatform.color}
+              fontSize={propsIconPlatform.fontSize}
+              onClick={this.props.onNewChat}
+            />
+          )}
+        </Kb.Box2>
+        {this.props.isLoading && <Kb.LoadingLine />}
       </Kb.Box2>
     )
   }
@@ -207,6 +209,10 @@ const styles = Styles.styleSheetCreate({
       top: 1,
     },
   }),
+  innerContainer: {
+    height: 47,
+    paddingTop: 1,
+  },
   inputContainer: {
     ...Styles.globalStyles.flexBoxRow,
   },
