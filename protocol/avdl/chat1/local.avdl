@@ -631,6 +631,8 @@ protocol local {
 
     // If left empty, default is to show all.
     array<ConversationStatus> status;
+    // If left empty, default is to return active, preview, and reset status
+    array<ConversationMemberStatus> memberStatus;
 
     boolean unreadOnly;
     boolean readOnly;

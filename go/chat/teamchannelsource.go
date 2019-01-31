@@ -15,20 +15,14 @@ import (
 type TeamChannelSource struct {
 	globals.Contextified
 	utils.DebugLabeler
-	memberStatus []chat1.ConversationMemberStatus
 }
 
 var _ types.TeamChannelSource = (*TeamChannelSource)(nil)
 
 func NewTeamChannelSource(g *globals.Context) *TeamChannelSource {
-	// store this in sorted order so we keep the order consistent for
-	// GetInboxQuery which checks the hash of the query to hit the cache.
-	memberStatus := chat1.AllConversationMemberStatuses()
-	sort.Sort(utils.ByConversationMemberStatus(memberStatus))
 	return &TeamChannelSource{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "TeamChannelSource", false),
-		memberStatus: memberStatus,
 	}
 }
 
@@ -39,7 +33,7 @@ func (c *TeamChannelSource) getTLFConversations(ctx context.Context, uid gregor1
 			TlfID:            &teamID,
 			TopicType:        &topicType,
 			SummarizeMaxMsgs: false,
-			MemberStatus:     c.memberStatus,
+			MemberStatus:     chat1.AllConversationMemberStatuses(),
 			Existences:       []chat1.ConversationExistence{chat1.ConversationExistence_ACTIVE},
 			SkipBgLoads:      true,
 		}, nil /* pagination */)

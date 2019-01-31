@@ -455,6 +455,7 @@ func GetTopicNameState(ctx context.Context, g *globals.Context, debugger utils.D
 	for _, conv := range convs {
 		msg, err := conv.GetMaxMessage(chat1.MessageType_METADATA)
 		if err != nil {
+			debugger.Debug(ctx, "GetTopicNameState: unable to get maxmessage: convID: %v, %v", conv.GetConvID(), err)
 			continue
 		}
 		pairs.Pairs = append(pairs.Pairs, chat1.ConversationIDMessageIDPair{
@@ -464,7 +465,7 @@ func GetTopicNameState(ctx context.Context, g *globals.Context, debugger utils.D
 	}
 
 	if res, err = utils.CreateTopicNameState(pairs); err != nil {
-		debugger.Debug(ctx, "GetTopicNameState: failed to create topic name state: %s", err.Error())
+		debugger.Debug(ctx, "GetTopicNameState: failed to create topic name state: %v", err)
 		return res, err
 	}
 
