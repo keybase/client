@@ -224,16 +224,6 @@ export const anyToConversationMembersType = (a: any): ?RPCChatTypes.Conversation
   }
 }
 
-const successfulInlinePaymentStatuses = ['completed', 'claimable']
-export const hasSuccessfulInlinePayments = (state: TypedState, message: Types.Message) => {
-  if (message.type !== 'text' || !message.inlinePaymentIDs) {
-    return false
-  }
-  return message.inlinePaymentIDs.some(id =>
-    successfulInlinePaymentStatuses.includes(state.chat2.paymentStatusMap.get(id)?.status)
-  )
-}
-
 export const threadRoute = isMobile
   ? [chatTab, 'conversation']
   : [{props: {}, selected: chatTab}, {props: {}, selected: null}]
@@ -268,6 +258,7 @@ export {
   getMessageID,
   getRequestMessageInfo,
   getPaymentMessageInfo,
+  hasSuccessfulInlinePayments,
   isPendingPaymentMessage,
   isSpecialMention,
   isVideoAttachment,

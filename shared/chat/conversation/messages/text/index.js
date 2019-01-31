@@ -85,7 +85,7 @@ const styles = Styles.styleSheetCreate({
   pendingFailEditing,
   sent,
   sentEditing,
-  wrapper: {alignSelf: 'flex-start', flexGrow: 1},
+  wrapper: {alignSelf: 'flex-start', flex: 1},
 })
 
 export default MessageText
