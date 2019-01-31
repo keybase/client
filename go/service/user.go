@@ -6,6 +6,7 @@ package service
 import (
 	"fmt"
 	"sort"
+	"time"
 
 	"github.com/keybase/client/go/avatars"
 	"github.com/keybase/client/go/chat"
@@ -551,10 +552,11 @@ func (h *UserHandler) LoadHasRandomPw(ctx context.Context, arg keybase1.LoadHasR
 		Key: meUID.String(),
 	}
 
+	var cachedValue bool
+	var hasCache bool
 	if !arg.ForceRepoll {
-		var cachedValue bool
-		if found, err := m.G().GetKVStore().GetInto(&cachedValue, cacheKey); err == nil {
-			if found && !cachedValue {
+		if hasCache, err = m.G().GetKVStore().GetInto(&cachedValue, cacheKey); err == nil {
+			if hasCache && !cachedValue {
 				m.CDebugf("Returning HasRandomPW=false from KVStore cache")
 				return false, nil
 			}
@@ -565,32 +567,73 @@ func (h *UserHandler) LoadHasRandomPw(ctx context.Context, arg keybase1.LoadHasR
 		}
 	}
 
-	type hasRandomPWRes struct {
+	var initialTimeout time.Duration
+	if !arg.ForceRepoll {
+		// If we are do not need accurate response from the API server, make
+		// the request with a timeout for quicker overall RPC response time
+		// if network is bad/unavailable.
+		initialTimeout = 3 * time.Second
+	}
+
+	var ret struct {
 		libkb.AppStatusEmbed
 		RandomPW bool `json:"random_pw"`
 	}
-
-	var ret hasRandomPWRes
 	err = h.G().API.GetDecode(libkb.APIArg{
-		Endpoint:    "user/has_random_pw",
-		SessionType: libkb.APISessionTypeREQUIRED,
-		NetContext:  ctx,
+		Endpoint:       "user/has_random_pw",
+		SessionType:    libkb.APISessionTypeREQUIRED,
+		NetContext:     ctx,
+		InitialTimeout: initialTimeout,
 	}, &ret)
 	if err != nil {
+		if !arg.ForceRepoll {
+			if hasCache {
+				// We are allowed to return cache if we have any.
+				m.CWarningf("Unable to make a network request to has_random_pw. Returning cached value: %t", cachedValue)
+				return cachedValue, nil
+			}
+
+			m.CWarningf("Unable to make a network request to has_random_pw and there is no cache. Erroring out.")
+		}
 		return res, err
 	}
 
-	if !ret.RandomPW {
-		// Cache that we are not a RandomPW user, so this RPC never has to call
-		// API endpoint again. Once user is not RandomPW, they will never be.
-		// RandomPW state change only goes `true -> false` when a passphrase is
-		// set.
-		if err := m.G().GetKVStore().PutObj(cacheKey, nil, ret.RandomPW); err == nil {
-			m.CDebugf("Adding HasRandomPW=%t to KVStore", ret.RandomPW)
-		} else {
-			m.CDebugf("Unable to add HasRandomPW state to KVStore")
-		}
+	// Cache current state. If we put `randomPW=false` in the cache, we will never
+	// ever have to call to the network from this device, because it's not possible
+	// to become `randomPW=true` again. If we cache `randomPW=true` we are going to
+	// keep asking the network, but we will be resilient to bad network conditions
+	// because we will have this cached state to fall back on.
+	if err := m.G().GetKVStore().PutObj(cacheKey, nil, ret.RandomPW); err == nil {
+		m.CDebugf("Adding HasRandomPW=%t to KVStore", ret.RandomPW)
+	} else {
+		m.CDebugf("Unable to add HasRandomPW state to KVStore")
 	}
 
 	return ret.RandomPW, err
+}
+
+func (h *UserHandler) CanLogout(ctx context.Context, sessionID int) (res keybase1.CanLogoutRes, err error) {
+	hasRandomPW, err := h.LoadHasRandomPw(ctx, keybase1.LoadHasRandomPwArg{
+		SessionID:   sessionID,
+		ForceRepoll: false,
+	})
+
+	if err != nil {
+		res = keybase1.CanLogoutRes{
+			CanLogout: false,
+			Reason:    fmt.Sprintf("Cannot check user state: %s", err.Error()),
+		}
+		return res, nil
+	}
+
+	if hasRandomPW {
+		res = keybase1.CanLogoutRes{
+			CanLogout: false,
+			Reason:    "You signed up without a password. Set a password first.",
+		}
+		return res, nil
+	}
+
+	res.CanLogout = true
+	return res, nil
 }
