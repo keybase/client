@@ -24,7 +24,6 @@ type CommonProps = {|
   onSubmit: (text: string) => void,
   showWalletsIcon: boolean, // used on mobile to determine placeholder
 
-  typing: I.Set<string>,
   editText: string,
   quoteCounter: number,
   quoteText: string,

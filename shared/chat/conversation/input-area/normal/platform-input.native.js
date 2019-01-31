@@ -3,7 +3,6 @@
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker'
 import React, {PureComponent} from 'react'
 import {
-  Animation,
   Box,
   Box2,
   Icon,
@@ -27,6 +26,7 @@ import {
 } from '../../../../common-adapters/native-wrappers.native'
 import SetExplodingMessagePicker from '../../messages/set-explode-popup/container'
 import {ExplodingMeta} from './shared'
+import Typing from './typing/container'
 import FilePickerPopup from '../filepicker-popup'
 import WalletsIcon from './wallets-icon/container'
 import type {PlatformInputPropsInternal} from './platform-input'
@@ -179,6 +179,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
             visible={this.props.showingMenu}
           />
         )}
+        <Typing conversationIDKey={this.props.conversationIDKey} />
         <Box style={styles.container}>
           {this.props.isEditing && (
             <Box style={styles.editingTabStyle}>
@@ -204,8 +205,6 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
             rowsMax={3}
             rowsMin={1}
           />
-
-          {this.props.typing.size > 0 && <Animation animationType="typing" containerStyle={styles.typing} />}
           <Action
             hasText={this.state.hasText}
             onSubmit={this._onSubmit}
@@ -358,20 +357,6 @@ const styles = styleSheetCreate({
   smallGap: {
     height: globalMargins.small,
     width: globalMargins.small,
-  },
-  typing: {
-    ...globalStyles.flexBoxRow,
-    alignItems: 'center',
-    alignSelf: 'center',
-    borderRadius: 10,
-    height: 20,
-    justifyContent: 'center',
-    marginRight: globalMargins.tiny,
-    paddingLeft: globalMargins.tiny,
-    paddingRight: globalMargins.tiny,
-  },
-  typingIcon: {
-    width: 20,
   },
 })
 

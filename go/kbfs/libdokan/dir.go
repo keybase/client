@@ -278,6 +278,11 @@ func lastStr(strs []string) string {
 	return strs[len(strs)-1]
 }
 
+// isSafeFolder returns whether a Folder is considered safe.
+func isSafeFolder(ctx context.Context, f *Folder) bool {
+	return libkbfs.IsOnlyWriterInNonTeamTlf(ctx, f.list.fs.config.KBPKI(), f.h)
+}
+
 // open tries to open a file.
 func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.File, dokan.CreateStatus, error) {
 	d.folder.fs.log.CDebugf(ctx, "Dir openDir %v", path)
@@ -337,6 +342,14 @@ func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.F
 		// Return errors from Lookup
 		if err != nil {
 			return nil, 0, err
+		}
+
+		// Refuse to execute files by checking FILE_EXECUTE (not exported by syscall)
+		// in TLFs considered unsafe.
+		if de.Type.IsFile() && oc.CreateData.DesiredAccess&0x20 != 0 && !isSafeFolder(ctx, d.folder) {
+			d.folder.fs.log.CErrorf(ctx, "Denying execution access to: %q", path[0])
+
+			return nil, 0, dokan.ErrAccessDenied
 		}
 
 		if newNode != nil {
