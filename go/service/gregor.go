@@ -642,7 +642,8 @@ func (g *gregorHandler) syncReplayThread() {
 // gregord. This can happen either on initial startup, or after a reconnect. Needs
 // to be called with gregorHandler locked.
 func (g *gregorHandler) serverSync(ctx context.Context,
-	cli gregor1.IncomingInterface, gcli *grclient.Client, syncRes *chat1.SyncAllNotificationRes) ([]gregor.InBandMessage, error) {
+	cli gregor1.IncomingInterface, gcli *grclient.Client, syncRes *chat1.SyncAllNotificationRes) (res []gregor.InBandMessage, err error) {
+	defer g.chatLog.Trace(ctx, func() error { return err }, "serverSync")()
 
 	// Get time of the last message we synced (unless this is our first time syncing)
 	var t time.Time
