@@ -1501,10 +1501,12 @@ func testKBFSOpsMultiBlockWriteWithRetryAndError(t *testing.T, nFiles int) {
 	require.NoError(t, err, "First sync failed: %v", err)
 
 	t.Log("Retrieve the metadata for the blocks so far")
-	file0Md, err := kbfsOps.GetNodeMetadata(ctx, fileNodes[0])
-	require.NoError(t, err, "Couldn't GetNodeMetadata for file0: %+v", err)
-	rootNodeMd, err := kbfsOps.GetNodeMetadata(ctx, rootNode)
-	require.NoError(t, err, "Couldn't GetNodeMetadata for rootNode: %+v", err)
+	ops := getOps(config, rootNode.GetFolderBranch().Tlf)
+	lState := makeFBOLockState()
+	head, _ := ops.getHead(ctx, lState, mdNoCommit)
+	filePath := ops.nodeCache.PathFromNode(fileNodes[0])
+	pointerMap, err := ops.blocks.GetIndirectFileBlockInfos(ctx, lState, head, filePath)
+	require.NoError(t, err, "Couldn't get the pointer map for file0: %+v", err)
 
 	t.Log("Remove that file")
 	err = kbfsOps.RemoveEntry(ctx, rootNode, "file0")
@@ -1518,7 +1520,10 @@ func testKBFSOpsMultiBlockWriteWithRetryAndError(t *testing.T, nFiles int) {
 	bOps := config.BlockOps()
 	h, err := ParseTlfHandle(ctx, config.KBPKI(), config.MDOps(), "test_user", tlf.Private)
 	require.NoError(t, err)
-	ptrs := []BlockPointer{file0Md.BlockInfo.BlockPointer, rootNodeMd.BlockInfo.BlockPointer}
+	ptrs := make([]BlockPointer, len(pointerMap))
+	for _, ptr := range pointerMap {
+		ptrs = append(ptrs, ptr.BlockPointer)
+	}
 	_, err = bOps.Delete(ctx, h.TlfID(), ptrs)
 	require.NoError(t, err)
 
@@ -1565,12 +1570,6 @@ func testKBFSOpsMultiBlockWriteWithRetryAndError(t *testing.T, nFiles int) {
 		t.Fatal(ctx.Err())
 	}
 
-	t.Log("Delete the root node block.")
-	rootNodeMd, err = kbfsOps.GetNodeMetadata(ctx, rootNode)
-	ptrs = []BlockPointer{rootNodeMd.BlockInfo.BlockPointer}
-	_, err = bOps.Delete(ctx, h.TlfID(), ptrs)
-	require.NoError(t, err)
-
 	t.Log("Dirty the last block and extend it, so the one that was sent as " +
 		"part of the first sync is no longer part of the file.")
 	err = kbfsOps.Write(ctx, fileNode2, data[10:20], 40)
@@ -1612,7 +1611,7 @@ func testKBFSOpsMultiBlockWriteWithRetryAndError(t *testing.T, nFiles int) {
 		t.Errorf("Sync got an unexpected error: %v", err)
 	}
 
-	// Finish the sync
+	t.Log("finish the sync.")
 	err = kbfsOps.SyncAll(ctx, fileNode2.GetFolderBranch())
 	require.NoError(t, err, "Couldn't sync file after error: %v", err)
 
@@ -1630,7 +1629,7 @@ func testKBFSOpsMultiBlockWriteWithRetryAndError(t *testing.T, nFiles int) {
 		t.Errorf("Read wrong data.  Expected %v, got %v", expectedData, gotData)
 	}
 
-	// Make sure there are no dirty blocks left at the end of the test.
+	t.Log("Make sure there are no dirty blocks left at the end of the test.")
 	dbcs := config.DirtyBlockCache().(*DirtyBlockCacheStandard)
 	numDirtyBlocks := len(dbcs.cache)
 	if numDirtyBlocks != 0 {
