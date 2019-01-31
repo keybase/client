@@ -10,7 +10,6 @@ import (
 )
 
 func TestLoadParamServices(t *testing.T) {
-	t.Skip()
 	tc := setupTest(t, "TestLoadParamServices", 1)
 	defer tc.Cleanup()
 
@@ -45,9 +44,6 @@ func TestLoadParamServices(t *testing.T) {
 		Max: 20,
 	}, gubbleConf.UsernameConfig)
 	require.NotZero(t, len(gubbleConf.BrandColor))
-	require.NotNil(t, gubbleConf.Logo)
-	require.NotZero(t, len(gubbleConf.Logo.SvgBlack))
-	require.NotZero(t, len(gubbleConf.Logo.SvgFull))
 	require.NotZero(t, len(gubbleConf.DisplayName))
 	require.NotZero(t, len(gubbleConf.Description))
 
