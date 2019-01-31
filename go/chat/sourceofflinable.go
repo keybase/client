@@ -85,7 +85,7 @@ func (s *sourceOfflinable) IsOffline(ctx context.Context) bool {
 			defer s.Unlock()
 			select {
 			case <-ctx.Done():
-				s.Debug(ctx, "IsOffline: timed out, but context canceled so not setting offline: state: %v",
+				s.Debug(ctx, "IsOffline: timed out, but context canceled so not setting delayed: state: %v",
 					s.offline)
 				return s.offline
 			default:
