@@ -83,7 +83,7 @@ func TestGetWalletAccountsLocal(t *testing.T) {
 	currencyLocal = details.CurrencyLocal
 	require.Equal(t, stellar1.OutsideCurrencyCode("USD"), currencyLocal.Code)
 	require.True(t, details.IsFunded)
-	require.True(t, details.CanMakeTx)
+	require.True(t, details.CanSubmitTx)
 
 	argDetails.AccountID = accts[1].AccountID
 	details, err = tcs[0].Srv.GetWalletAccountLocal(context.Background(), argDetails)
@@ -95,7 +95,7 @@ func TestGetWalletAccountsLocal(t *testing.T) {
 	currencyLocal = details.CurrencyLocal
 	require.Equal(t, stellar1.OutsideCurrencyCode("USD"), currencyLocal.Code)
 	require.False(t, details.IsFunded)
-	require.False(t, details.CanMakeTx)
+	require.False(t, details.CanSubmitTx)
 
 	// Add another account that we will add 1 XLM, enough to be funded but not
 	// enough to make any txs out of it.
@@ -114,7 +114,7 @@ func TestGetWalletAccountsLocal(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "1 XLM", details.BalanceDescription)
 	require.True(t, details.IsFunded)
-	require.False(t, details.CanMakeTx)
+	require.False(t, details.CanSubmitTx)
 	require.Equal(t, stellar1.OutsideCurrencyCode("USD"), details.CurrencyLocal.Code)
 }
 

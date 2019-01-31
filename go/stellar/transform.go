@@ -468,7 +468,7 @@ func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stella
 	if err != nil {
 		return empty, err
 	}
-	canMakeTx := availableInt > 100 // base fee is 100
+	canSubmitTx := availableInt > 100 // base fee is 100
 	// TODO: this is something that stellard can just tell us.
 	isFunded, err := hasPositiveLumenBalance(details.Balances)
 	if err != nil {
@@ -484,7 +484,7 @@ func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stella
 		AccountMode:         accountMode,
 		AccountModeEditable: isMobile && deviceAge > 7*24*time.Hour,
 		IsFunded:            isFunded,
-		CanMakeTx:           canMakeTx,
+		CanSubmitTx:         canSubmitTx,
 	}
 
 	conf, err := mctx.G().GetStellar().GetServerDefinitions(mctx.Ctx())
