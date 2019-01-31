@@ -441,6 +441,7 @@ type UnboxingError interface {
 	VersionKind() chat1.VersionKind
 	VersionNumber() int
 	IsCritical() bool
+	ToStatus() keybase1.Status
 }
 
 var _ error = (UnboxingError)(nil)

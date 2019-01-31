@@ -1043,7 +1043,11 @@ function* loadMoreMessages(state, action) {
       Chat2Gen.createSetConversationOffline({conversationIDKey, offline: results && results.offline})
     )
   } catch (e) {
-    logger.info(`Load loadMoreMessages error ${e}`)
+    logger.warn(`Load loadMoreMessages error ${e.message}`)
+    if (e.code !== RPCTypes.constantsStatusCode.scteamreaderror) {
+      // scteamreaderror = user is not in team. they'll see the rekey screen so don't throw for that
+      throw e
+    }
   }
 }
 
