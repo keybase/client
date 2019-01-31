@@ -1638,6 +1638,10 @@ func testKBFSOpsMultiBlockWriteWithRetryAndError(t *testing.T, nFiles int) {
 		}
 		t.Errorf("%d dirty blocks left after final sync, sync=%d wait=%d", numDirtyBlocks, dbcs.syncBufBytes, dbcs.waitBufBytes)
 	}
+	// Shutdown the MDServer to disable state checking at the end of the test,
+	// since we hacked stuff a bit by deleting blocks manually rather than
+	// allowing them to be garbage collected.
+	config.MDServer().Shutdown()
 }
 
 // Test that a sync of a multi-block file that hits both a retriable
