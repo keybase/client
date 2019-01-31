@@ -804,6 +804,7 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 
 	// Call out to reachability module if we have one
 	if g.reachability != nil {
+		g.chatLog.Debug(ctx, "setting reachability")
 		g.reachability.setReachability(keybase1.Reachability{
 			Reachable: keybase1.Reachable_YES,
 		})
@@ -811,11 +812,13 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 
 	// Broadcast reconnect oobm. Spawn this off into a goroutine so that we don't delay
 	// reconnection any longer than we have to.
+	g.chatLog.Debug(ctx, "broadcasting reconnect oobm")
 	go func(m gregor1.Message) {
 		g.BroadcastMessage(context.Background(), m)
 	}(g.makeReconnectOobm())
 
 	// No longer first connect if we are now connected
+	g.chatLog.Debug(ctx, "setting first connect to false")
 	g.setFirstConnect(false)
 	// On successful login we can reset this guy to not force a check
 	g.forceSessionCheck = false
