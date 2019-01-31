@@ -934,7 +934,7 @@ func AirdropRegister(mctx libkb.MetaContext, register bool) error {
 	return err
 }
 
-type airConfig struct {
+type AirConfig struct {
 	MinActiveDevices        int    `json:"min_active_devices"`
 	MinActiveDevicesTitle   string `json:"min_active_devices_title"`
 	AccountCreationTitle    string `json:"account_creation_title"`
@@ -942,80 +942,35 @@ type airConfig struct {
 	AccountUsed             string `json:"account_used"`
 }
 
-type airSvc struct {
+type AirSvc struct {
 	Qualifies     bool   `json:"qualifies"`
 	IsOldEnough   bool   `json:"is_old_enough"`
 	IsUsedAlready bool   `json:"is_used_already"`
 	Username      string `json:"service_username"`
 }
 
-type airQualifications struct {
+type AirQualifications struct {
+	QualifiesOverall bool              `json:"qualifies_overall"`
 	HasEnoughDevices bool              `json:"has_enough_devices"`
-	ServiceChecks    map[string]airSvc `json:"service_checks"`
+	ServiceChecks    map[string]AirSvc `json:"service_checks"`
 }
 
-type airStatus struct {
+type AirdropStatusAPI struct {
 	libkb.AppStatusEmbed
 	AlreadyRegistered bool              `json:"already_registered"`
-	QualifiesOverall  bool              `json:"qualifies_overall"`
-	Qualifications    airQualifications `json:"qualifications"`
-	AirdropConfig     airConfig         `json:"airdrop_cfg"`
+	Qualifications    AirQualifications `json:"qualifications"`
+	AirdropConfig     AirConfig         `json:"airdrop_cfg"`
 }
 
-func AirdropStatus(mctx libkb.MetaContext) (stellar1.AirdropStatus, error) {
+func AirdropStatus(mctx libkb.MetaContext) (AirdropStatusAPI, error) {
 	apiArg := libkb.APIArg{
 		MetaContext: mctx,
 		Endpoint:    "stellar/airdrop/status_check",
 		SessionType: libkb.APISessionTypeREQUIRED,
 	}
-	var status airStatus
+	var status AirdropStatusAPI
 	if err := mctx.G().API.GetDecode(apiArg, &status); err != nil {
-		return stellar1.AirdropStatus{}, err
+		return AirdropStatusAPI{}, err
 	}
-
-	var out stellar1.AirdropStatus
-	switch {
-	case status.AlreadyRegistered:
-		out.State = stellar1.AirdropAccepted
-	case status.QualifiesOverall:
-		out.State = stellar1.AirdropQualified
-	default:
-		out.State = stellar1.AirdropUnqualified
-	}
-
-	dq := stellar1.AirdropQualification{
-		Title: status.AirdropConfig.MinActiveDevicesTitle,
-		Valid: status.Qualifications.HasEnoughDevices,
-	}
-	out.Rows = append(out.Rows, dq)
-
-	aq := stellar1.AirdropQualification{
-		Title: status.AirdropConfig.AccountCreationTitle,
-	}
-
-	var used []string
-	for k, q := range status.ServiceChecks {
-		if q.Qualifies {
-			aq.Valid = true
-			break
-		}
-		if q.Username == "" {
-			continue
-		}
-		if !q.IsOldEnough {
-			continue
-		}
-		if q.IsUsedAlready {
-			used = append(used, fmt.Sprintf("%s@%s", q.Username, k))
-		}
-	}
-	if !aq.Valid {
-		aq.Subtitle = status.AirdropConfig.AccountCreationSubtitle
-		if len(used) > 0 {
-			usedDisplay := strings.Join(used, ", ")
-			aq.Subtitle += " " + fmt.Sprintf(status.AirdropConfig.AccountUsed, usedDisplay)
-		}
-	}
-
-	return out, nil
+	return status, nil
 }

@@ -994,5 +994,5 @@ func (s *Server) AirdropStatusLocal(ctx context.Context, sessionID int) (status 
 		return stellar1.AirdropStatus{}, err
 	}
 
-	return remote.AirdropStatus(mctx)
+	return stellar.AirdropStatus(mctx)
 }

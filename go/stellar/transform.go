@@ -491,3 +491,54 @@ func (a balanceList) balanceDescription() (res string, err error) {
 	}
 	return res, nil
 }
+
+// TransformToAirdropStatus takes the result from api server status_check
+// and transforms it into stellar1.AirdropStatus.
+func TransformToAirdropStatus(status remote.AirdropStatusAPI) stellar1.AirdropStatus {
+	var out stellar1.AirdropStatus
+	switch {
+	case status.AlreadyRegistered:
+		out.State = stellar1.AirdropAccepted
+	case status.Qualifications.QualifiesOverall:
+		out.State = stellar1.AirdropQualified
+	default:
+		out.State = stellar1.AirdropUnqualified
+	}
+
+	dq := stellar1.AirdropQualification{
+		Title: status.AirdropConfig.MinActiveDevicesTitle,
+		Valid: status.Qualifications.HasEnoughDevices,
+	}
+	out.Rows = append(out.Rows, dq)
+
+	aq := stellar1.AirdropQualification{
+		Title: status.AirdropConfig.AccountCreationTitle,
+	}
+
+	var used []string
+	for k, q := range status.Qualifications.ServiceChecks {
+		if q.Qualifies {
+			aq.Valid = true
+			break
+		}
+		if q.Username == "" {
+			continue
+		}
+		if !q.IsOldEnough {
+			continue
+		}
+		if q.IsUsedAlready {
+			used = append(used, fmt.Sprintf("%s@%s", q.Username, k))
+		}
+	}
+	if !aq.Valid {
+		aq.Subtitle = status.AirdropConfig.AccountCreationSubtitle
+		if len(used) > 0 {
+			usedDisplay := strings.Join(used, ", ")
+			aq.Subtitle += " " + fmt.Sprintf(status.AirdropConfig.AccountUsed, usedDisplay)
+		}
+	}
+	out.Rows = append(out.Rows, aq)
+
+	return out
+}
