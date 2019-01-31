@@ -115,55 +115,29 @@ export const getEffectiveRetentionPolicy = (meta: Types.ConversationMeta) => {
 // Upgrade a meta, try and keep existing values if possible to reduce render thrashing in components
 // Enforce the verions only increase and we only go from untrusted to trusted, etc
 export const updateMeta = (
-  old: Types.ConversationMeta,
-  meta: Types.ConversationMeta
+  oldMeta: Types.ConversationMeta,
+  newMeta: Types.ConversationMeta
 ): Types.ConversationMeta => {
-  // Older/same version and same state?
-  if (meta.trustedState === old.trustedState) {
-    if (meta.inboxVersion === old.inboxVersion) {
-      return old.merge({
-        snippet: meta.snippet,
-        snippetDecoration: meta.snippetDecoration,
+  if (newMeta.inboxVersion < oldMeta.inboxVersion) {
+    // new is older, keep old
+    return oldMeta
+  } else if (oldMeta.inboxVersion === newMeta.inboxVersion) {
+    // same version, only take data if untrusted -> trusted
+    if (newMeta.trustedState === 'trusted' && oldMeta.trustedState !== 'trusted') {
+      // prettier-ignore
+      return newMeta.withMutations(nm => {
+        // keep immutable stuff to reduce render thrashing
+        I.is(oldMeta.participants, nm.participants) && nm.set('participants', oldMeta.participants)
+        I.is(oldMeta.rekeyers, nm.rekeyers) && nm.set('rekeyers', oldMeta.rekeyers)
+        I.is(oldMeta.resetParticipants, nm.resetParticipants) && nm.set('resetParticipants', oldMeta.resetParticipants)
+        I.is(oldMeta.retentionPolicy, nm.retentionPolicy) && nm.set('retentionPolicy', oldMeta.retentionPolicy)
+        I.is(oldMeta.teamRetentionPolicy, nm.teamRetentionPolicy) && nm.set('teamRetentionPolicy', oldMeta.teamRetentionPolicy)
       })
-    } else if (meta.inboxVersion < old.inboxVersion) {
-      return old
     }
+    return oldMeta
   }
-  const participants = old.participants.equals(meta.participants) ? old.participants : meta.participants
-  const rekeyers = old.rekeyers.equals(meta.rekeyers) ? old.rekeyers : meta.rekeyers
-  const resetParticipants = old.resetParticipants.equals(meta.resetParticipants)
-    ? old.resetParticipants
-    : meta.resetParticipants
-
-  let base = meta
-  let merge = old
-  if (
-    base.trustedState === 'untrusted' &&
-    merge.trustedState === 'trusted' &&
-    base.inboxVersion === merge.inboxVersion
-  ) {
-    // merge the latest untrusted into the existing trusted instead
-    base = old
-    merge = meta
-  }
-
-  return base.withMutations(m => {
-    // don't downgrade trusted status for an inbox update that doesn't contain a newer version of the
-    // meta
-    m.set(
-      'trustedState',
-      merge.trustedState === 'trusted' &&
-        m.trustedState === 'untrusted' &&
-        merge.inboxVersion >= m.inboxVersion
-        ? 'trusted'
-        : m.trustedState
-    )
-    m.set('channelname', m.channelname || merge.channelname)
-    m.set('participants', participants)
-    m.set('rekeyers', rekeyers)
-    m.set('resetParticipants', resetParticipants)
-    m.set('teamname', m.teamname || merge.teamname)
-  })
+  // higher inbox version, use new
+  return newMeta
 }
 
 const parseNotificationSettings = (notifications: ?RPCChatTypes.ConversationNotificationInfo) => {
