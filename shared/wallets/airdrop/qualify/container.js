@@ -15,8 +15,11 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   onSubmit: () => dispatch(WalletsGen.createChangeAirdrop({accept: true})),
 })
 
+const injectSmile = rows =>
+  rows.length ? [...rows, {subTitle: '😁', title: 'A beautiful smile', valid: true}] : rows
+
 const mergeProps = (stateProps, dispatchProps) => ({
-  rows: stateProps._rows.toArray().map(r => r.toObject()),
+  rows: injectSmile(stateProps._rows.toArray().map(r => r.toObject())),
   state: stateProps.state,
   ...dispatchProps,
 })
