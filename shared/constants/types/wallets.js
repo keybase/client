@@ -237,22 +237,20 @@ export type AccountInflationDestination = I.RecordOf<_AccountInflationDestinatio
 
 export type ValidationState = 'none' | 'waiting' | 'error' | 'valid'
 
-export type AirdropState = 'loading' | 'accepted' | 'rejected' | 'noResponse'
-export type AirdropQualifiedState = 'qualified' | 'loading' | 'unqualified' | 'accepted'
-type _AirdropQualification = {|
+export type AirdropState = 'loading' | 'accepted' | 'rejected' | 'qualified' | 'unqualified'
+export type _AirdropQualification = {|
   title: string,
   subTitle: string,
   valid: boolean,
 |}
-type AirdropQualification = I.RecordOf<_AirdropQualification>
-type _AirdropInfo = {|
-  lines: I.List<
-    I.RecordOf<{
-      bullet: boolean,
-      text: string,
-    }>
-  >,
+export type AirdropQualification = I.RecordOf<_AirdropQualification>
+
+export type _AirdropInfoLine = {|bullet: boolean, text: string|}
+type AirdropInfoLine = I.RecordOf<_AirdropInfoLine>
+export type _AirdropInfo = {|
+  lines: I.List<AirdropInfoLine>,
   section: string,
+  icon: string,
 |}
 type AirdropInfo = I.RecordOf<_AirdropInfo>
 
@@ -265,8 +263,8 @@ export type _State = {
   accountNameValidationState: ValidationState,
   airdropProgramInfo: I.List<AirdropInfo>,
   airdropQualifications: I.List<AirdropQualification>,
-  airdropQualifiedState: AirdropQualifiedState,
   airdropState: AirdropState,
+  airdropShowBanner: boolean,
   assetsMap: I.Map<AccountID, I.List<Assets>>,
   buildCounter: number, // increments when we call buildPayment / buildRequest
   building: Building,

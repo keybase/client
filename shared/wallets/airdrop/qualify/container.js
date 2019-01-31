@@ -7,7 +7,7 @@ type OwnProps = RouteProps<{}, {}>
 
 const mapStateToProps = state => ({
   _rows: state.wallets.airdropQualifications,
-  state: state.wallets.airdropQualifiedState,
+  state: state.wallets.airdropState,
 })
 
 const mapDispatchToProps = (dispatch, {navigateUp}) => ({

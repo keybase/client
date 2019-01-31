@@ -838,9 +838,38 @@ const exitFailedPayment = (state, action) => {
   ]
 }
 
-const changeAirdrop = (_, action) => {
-  console.log('TODO!!!')
-}
+const changeAirdrop = (_, action) =>
+  RPCStellarTypes.localAirdropRegisterLocalRpcPromise(
+    {register: action.payload.accept},
+    Constants.airdropWaitingKey
+  ).then(() => {})
+
+const loadAirdropState = () =>
+  RPCStellarTypes.localAirdropStatusLocalRpcPromise(undefined, Constants.airdropWaitingKey).then(
+    ({state, rows}) => {
+      let airdropState = 'loading'
+      switch (state) {
+        case 'accepted':
+        case 'rejected':
+        case 'qualified':
+        case 'unqualified':
+          airdropState = state
+          break
+        default:
+          logger.error('Invalid airdropstate', state)
+      }
+
+      let airdropQualifications = (rows || []).map(r =>
+        Constants.makeAirdropQualification({
+          subTitle: r.subtitle || '',
+          title: r.title || '',
+          valid: r.valid || false,
+        })
+      )
+
+      return WalletsGen.createUpdatedAirdropState({airdropQualifications, airdropState})
+    }
+  )
 
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
   if (!flags.walletsEnabled) {
@@ -1068,6 +1097,10 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<ConfigGen.DaemonHandshakeDonePayload>(
     ConfigGen.daemonHandshakeDone,
     readLastSentXLM
+  )
+  yield* Saga.chainAction<ConfigGen.DaemonHandshakeDonePayload | WalletsGen.UpdatedAirdropStatePayload>(
+    [ConfigGen.daemonHandshakeDone, WalletsGen.updatedAirdropState],
+    loadAirdropState
   )
 }
 

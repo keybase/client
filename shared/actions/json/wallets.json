@@ -404,6 +404,11 @@
     "changeAirdrop": {
       "_description": "Turn participation in airdrop on/off",
       "accept": "boolean"
+    },
+    "updateAirdropState": { },
+    "updatedAirdropState": {
+      "airdropQualifications": "Array<Types.AirdropQualification>",
+      "airdropState": "Types.AirdropState",
     }
   }
 }

@@ -1,10 +1,11 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
+import * as Types from '../../../constants/types/wallets'
 import * as Styles from '../../../styles'
 
 type Props = {|
-  state: 'qualified' | 'loading' | 'unqualified' | 'accepted',
+  state: Types.AirdropState,
   onCancel: () => void,
   onSubmit: () => void,
   rows: $ReadOnlyArray<{|

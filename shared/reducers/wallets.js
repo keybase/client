@@ -363,7 +363,13 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.changeAirdrop:
       // set this immediately so it goes away immediately
       return state.merge({airdropState: action.payload.accept ? 'accepted' : 'rejected'})
+    case WalletsGen.updatedAirdropState:
+      return state.merge({
+        airdropState: action.payload.airdropState,
+        airdropQualifications: I.List(action.payload.airdropQualifications),
+      })
     // Saga only actions
+    case WalletsGen.updateAirdropState:
     case WalletsGen.rejectDisclaimer:
     case WalletsGen.didSetAccountAsDefault:
     case WalletsGen.cancelPayment:
