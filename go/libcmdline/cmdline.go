@@ -390,6 +390,22 @@ func (p CommandLine) GetDisableTeamAuditor() (bool, bool) {
 	return p.GetBool("disable-team-auditor", true)
 }
 
+func (p CommandLine) GetDisableMerkleAuditor() (bool, bool) {
+	return p.GetBool("disable-merkle-auditor", true)
+}
+
+func (p CommandLine) GetDisableSearchIndexer() (bool, bool) {
+	return p.GetBool("disable-search-indexer", true)
+}
+
+func (p CommandLine) GetDisableBgConvLoader() (bool, bool) {
+	return p.GetBool("disable-bg-conv-loader", true)
+}
+
+func (p CommandLine) GetEnableBotLiteMode() (bool, bool) {
+	return p.GetBool("enable-bot-lite-mode", true)
+}
+
 func (p CommandLine) GetAttachmentHTTPStartPort() (int, bool) {
 	ret := p.GetGInt("attachment-httpsrv-port")
 	if ret != 0 {
@@ -676,6 +692,22 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.BoolFlag{
 			Name:  "disable-team-auditor",
 			Usage: "Disable auditing of teams",
+		},
+		cli.BoolFlag{
+			Name:  "disable-merkle-auditor",
+			Usage: "Disable background probabilistic merkle audit",
+		},
+		cli.BoolFlag{
+			Name:  "disable-search-indexer",
+			Usage: "Disable chat search background indexer",
+		},
+		cli.BoolFlag{
+			Name:  "disable-bg-conv-loader",
+			Usage: "Disable background conversation loading",
+		},
+		cli.BoolFlag{
+			Name:  "enable-bot-lite-mode",
+			Usage: "Enable bot lite mode. Disables non-critical background services for bot performance.",
 		},
 	}
 	if extraFlags != nil {
