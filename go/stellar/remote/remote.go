@@ -927,7 +927,7 @@ func AirdropRegister(mctx libkb.MetaContext, register bool) error {
 		Endpoint:    "stellar/airdrop/register",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
-			"register": libkb.B{Val: register},
+			"remove": libkb.B{Val: !register},
 		},
 	}
 	_, err := mctx.G().API.Post(apiArg)
