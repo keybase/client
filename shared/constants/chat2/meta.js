@@ -135,22 +135,34 @@ export const updateMeta = (
     ? old.resetParticipants
     : meta.resetParticipants
 
-  return meta.withMutations(m => {
+  let base = meta
+  let merge = old
+  if (
+    base.trustedState === 'untrusted' &&
+    merge.trustedState === 'trusted' &&
+    base.inboxVersion === merge.inboxVersion
+  ) {
+    // merge the latest untrusted into the existing trusted instead
+    base = old
+    merge = meta
+  }
+
+  return base.withMutations(m => {
     // don't downgrade trusted status for an inbox update that doesn't contain a newer version of the
     // meta
     m.set(
       'trustedState',
-      old.trustedState === 'trusted' &&
-        meta.trustedState === 'untrusted' &&
-        old.inboxVersion >= meta.inboxVersion
+      merge.trustedState === 'trusted' &&
+        m.trustedState === 'untrusted' &&
+        merge.inboxVersion >= m.inboxVersion
         ? 'trusted'
-        : meta.trustedState
+        : m.trustedState
     )
-    m.set('channelname', meta.channelname || old.channelname)
+    m.set('channelname', m.channelname || merge.channelname)
     m.set('participants', participants)
     m.set('rekeyers', rekeyers)
     m.set('resetParticipants', resetParticipants)
-    m.set('teamname', meta.teamname || old.teamname)
+    m.set('teamname', m.teamname || merge.teamname)
   })
 }
 
