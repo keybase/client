@@ -700,6 +700,9 @@ func (e *EKLib) OnLogin() error {
 	if err := e.KeygenIfNeeded(context.Background()); err != nil {
 		e.G().Log.CDebugf(context.Background(), "OnLogin error: %v", err)
 	}
+	if deviceEKStorage := e.G().GetDeviceEKStorage(); deviceEKStorage != nil {
+		deviceEKStorage.SetLogPrefix()
+	}
 	return nil
 }
 
@@ -721,5 +724,8 @@ func (e *EKLib) ClearCaches() {
 
 func (e *EKLib) OnLogout(mctx libkb.MetaContext) error {
 	e.ClearCaches()
+	if deviceEKStorage := e.G().GetDeviceEKStorage(); deviceEKStorage != nil {
+		deviceEKStorage.SetLogPrefix()
+	}
 	return nil
 }

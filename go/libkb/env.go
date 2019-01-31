@@ -76,6 +76,7 @@ func (n NullConfiguration) GetAutoFork() (bool, bool)                       { re
 func (n NullConfiguration) GetRunMode() (RunMode, error)                    { return NoRunMode, nil }
 func (n NullConfiguration) GetNoAutoFork() (bool, bool)                     { return false, false }
 func (n NullConfiguration) GetLogFile() string                              { return "" }
+func (n NullConfiguration) GetEKLogFile() string                            { return "" }
 func (n NullConfiguration) GetUseDefaultLogFile() (bool, bool)              { return false, false }
 func (n NullConfiguration) GetUseRootConfigFile() (bool, bool)              { return false, false }
 func (n NullConfiguration) GetLogPrefix() string                            { return "" }
@@ -1356,6 +1357,14 @@ func (e *Env) GetLogFile() string {
 	)
 }
 
+func (e *Env) GetEKLogFile() string {
+	return e.GetString(
+		func() string { return e.cmd.GetEKLogFile() },
+		func() string { return os.Getenv("KEYBASE_EK_LOG_FILE") },
+		func() string { return filepath.Join(e.GetLogDir(), EKLogFileName) },
+	)
+}
+
 func (e *Env) GetUseDefaultLogFile() bool {
 	return e.GetBool(false,
 		e.cmd.GetUseDefaultLogFile,
@@ -1442,6 +1451,7 @@ type AppConfig struct {
 	HomeDir                        string
 	MobileSharedHomeDir            string
 	LogFile                        string
+	EKLogFile                      string
 	UseDefaultLogFile              bool
 	RunMode                        RunMode
 	Debug                          bool
@@ -1464,6 +1474,10 @@ var _ CommandLine = AppConfig{}
 
 func (c AppConfig) GetLogFile() string {
 	return c.LogFile
+}
+
+func (c AppConfig) GetEKLogFile() string {
+	return c.EKLogFile
 }
 
 func (c AppConfig) GetUseDefaultLogFile() (bool, bool) {

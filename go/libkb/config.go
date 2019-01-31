@@ -713,6 +713,9 @@ func (f *JSONConfigFile) GetProxyCACerts() (ret []string, err error) {
 func (f *JSONConfigFile) GetLogFile() string {
 	return f.GetTopLevelString("log_file")
 }
+func (f *JSONConfigFile) GetEKLogFile() string {
+	return f.GetTopLevelString("ek_log_file")
+}
 
 func (f *JSONConfigFile) GetUseDefaultLogFile() (bool, bool) {
 	return f.GetTopLevelBool("use_default_log_file")

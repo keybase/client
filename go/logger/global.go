@@ -10,7 +10,7 @@ import (
 
 var globalLock sync.Mutex
 var stderrIsTerminal = isatty.IsTerminal(os.Stderr.Fd())
-var currentLogFileWriter *logFileWriter
+var currentLogFileWriter *LogFileWriter
 
 func init() {
 	logBackend := logging.NewLogBackend(ErrorWriter(), "", 0)
