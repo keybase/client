@@ -86,10 +86,10 @@ type DiskBlockCacheLocal struct {
 	// Protect the disk caches from being shutdown while they're being
 	// accessed, and mutable data.
 	lock        sync.RWMutex
-	blockDb     *levelDb
-	metaDb      *levelDb
-	tlfDb       *levelDb
-	lastUnrefDb *levelDb
+	blockDb     *LevelDb
+	metaDb      *LevelDb
+	tlfDb       *LevelDb
+	lastUnrefDb *LevelDb
 	cacheType   diskLimitTrackerType
 	// Track the number of blocks in the cache per TLF and overall.
 	tlfCounts map[tlf.ID]int
@@ -778,6 +778,10 @@ func (cache *DiskBlockCacheLocal) UpdateMetadata(ctx context.Context,
 	md, err := cache.getMetadataLocked(blockID, false)
 	if err != nil {
 		return NoSuchBlockError{blockID}
+	}
+	if md.FinishedPrefetch {
+		// Don't update md that's already completed.
+		return nil
 	}
 	md.TriggeredPrefetch = false
 	md.FinishedPrefetch = false

@@ -107,6 +107,10 @@ func (c *CmdSimpleFSSyncShow) Run() error {
 		ui.Printf("Syncing configured for %s:\n", paths)
 		for _, p := range res.Config.Paths {
 			fullPath, err := appendToTlfPath(tlfPath, p)
+			if err != nil {
+				ui.Printf("\tError: %v", err)
+				continue
+			}
 			e, err := cli.SimpleFSStat(
 				ctx, keybase1.SimpleFSStatArg{Path: fullPath})
 			if err != nil {

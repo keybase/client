@@ -41,6 +41,7 @@ type configGetter interface {
 	GetChatDbFilename() string
 	GetPvlKitFilename() string
 	GetParamProofKitFilename() string
+	GetProveBypass() (bool, bool)
 	GetCodeSigningKIDs() []string
 	GetConfigFilename() string
 	GetDbFilename() string
@@ -62,6 +63,7 @@ type configGetter interface {
 	GetLocalRPCDebug() string
 	GetLocalTrackMaxAge() (time.Duration, bool)
 	GetLogFile() string
+	GetEKLogFile() string
 	GetUseDefaultLogFile() (bool, bool)
 	GetUseRootConfigFile() (bool, bool)
 	GetLogPrefix() string
@@ -100,6 +102,10 @@ type configGetter interface {
 	GetAttachmentDisableMulti() (bool, bool)
 	GetChatOutboxStorageEngine() string
 	GetDisableTeamAuditor() (bool, bool)
+	GetDisableMerkleAuditor() (bool, bool)
+	GetDisableSearchIndexer() (bool, bool)
+	GetDisableBgConvLoader() (bool, bool)
+	GetEnableBotLiteMode() (bool, bool)
 }
 
 type CommandLine interface {
@@ -401,6 +407,7 @@ type ChatUI interface {
 	ChatStellarDataConfirm(context.Context, chat1.UIChatPaymentSummary) (bool, error)
 	ChatStellarDataError(context.Context, string) (bool, error)
 	ChatStellarDone(context.Context, bool) error
+	ChatShowManageChannels(context.Context, string) error
 }
 
 type PromptDefault int
@@ -467,6 +474,7 @@ type UIRouter interface {
 	GetHomeUI() (keybase1.HomeUIInterface, error)
 	GetIdentify3UIAdapter(MetaContext) (IdentifyUI, error)
 	GetIdentify3UI(MetaContext) (keybase1.Identify3UiInterface, error)
+	GetChatUI() (ChatUI, error)
 
 	Shutdown()
 }
@@ -598,7 +606,7 @@ type ServiceType interface {
 
 	MakeProofChecker(l RemoteProofChainLink) ProofChecker
 	SetDisplayConfig(*keybase1.ServiceDisplayConfig)
-	CanMakeNewProofs() bool
+	CanMakeNewProofs(mctx MetaContext) bool
 	DisplayPriority() int
 	DisplayGroup() string
 }
@@ -606,7 +614,7 @@ type ServiceType interface {
 type ExternalServicesCollector interface {
 	GetServiceType(n string) ServiceType
 	ListProofCheckers() []string
-	ListServicesThatAcceptNewProofs() []string
+	ListServicesThatAcceptNewProofs(MetaContext) []string
 	ListDisplayConfigs() (res []keybase1.ServiceDisplayConfig)
 	SuggestionFoldPriority() int
 }
@@ -725,6 +733,8 @@ type DeviceEKStorage interface {
 	ForceDeleteAll(ctx context.Context, username NormalizedUsername) error
 	// For keybase log send
 	ListAllForUser(ctx context.Context) ([]string, error)
+	// Called on login/logout hooks to set the logged in username in the EK log
+	SetLogPrefix()
 }
 
 type UserEKBoxStorage interface {

@@ -325,7 +325,7 @@ func (g *GlobalContext) Logout(ctx context.Context) (err error) {
 
 	// remove stored secret
 	g.secretStoreMu.Lock()
-	if g.secretStore != nil {
+	if g.secretStore != nil && !username.IsNil() {
 		if err := g.secretStore.ClearSecret(mctx, username); err != nil {
 			mctx.CDebugf("clear stored secret error: %s", err)
 		}
@@ -367,6 +367,7 @@ func (g *GlobalContext) ConfigureLogging() error {
 	} else {
 		g.Log.Configure(style, debug, logFile)
 	}
+
 	// If specified or explicitly requested to use default log file, redirect logs.
 	// If not called, prints logs to stdout.
 	if logFile != "" || g.Env.GetUseDefaultLogFile() {
@@ -727,8 +728,7 @@ func (g *GlobalContext) ConfigureCommand(line CommandLine, cmd Command) error {
 
 func (g *GlobalContext) Configure(line CommandLine, usage Usage) error {
 	g.SetCommandLine(line)
-	err := g.ConfigureLogging()
-	if err != nil {
+	if err := g.ConfigureLogging(); err != nil {
 		return err
 	}
 
@@ -1326,4 +1326,14 @@ func (g *GlobalContext) GetMeUV(ctx context.Context) (res keybase1.UserVersion, 
 		return keybase1.UserVersion{}, LoginRequiredError{}
 	}
 	return res, nil
+}
+
+// TODO CORE-9923: set this to true and remove it
+// Whether to use parameterized proofs apparatus on normal clients.
+// Affects non-parameterized proof listing too.
+func (g *GlobalContext) ShouldUseParameterizedProofs() bool {
+	return g.Env.GetRunMode() == DevelRunMode ||
+		g.Env.RunningInCI() ||
+		g.Env.GetFeatureFlags().Admin() ||
+		g.Env.GetProveBypass()
 }

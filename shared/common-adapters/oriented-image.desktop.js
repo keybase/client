@@ -4,7 +4,6 @@ import fs from 'fs'
 import EXIF from 'exif-js'
 import {noop, isNumber} from 'lodash-es'
 import logger from '../logger'
-import {Image as ImageComponent} from '../common-adapters'
 import type {Props} from './oriented-image.types'
 
 type State = {
@@ -71,6 +70,10 @@ const transformMap: {[orientation: string]: TransformFn} = {
     ctx.rotate((-90 * Math.PI) / 180)
   },
 }
+
+const ImageRef = React.forwardRef((props, ref) => (
+  <img src={props.src} style={props.style} onDragStart={props.onDragStart} onLoad={props.onLoad} ref={ref} />
+))
 
 /*
  * OrientedImage handles two situations of reading EXIF orientation bits.
@@ -199,7 +202,7 @@ class OrientedImage extends React.Component<Props, State> {
     this._canvasImageTransform(orientation)
   }
 
-  // Mark this image path as no transform and set the ImageComponent src to the original source
+  // Mark this image path as no transform and set the ImageRef src to the original source
   _handleOrientationFailure = () => {
     _cacheNoTransforms[this.props.src] = NO_TRANSFORM
     logger.info(`OrientedImage failed to read EXIF data for image src: ${this.props.src}`)
@@ -257,7 +260,8 @@ class OrientedImage extends React.Component<Props, State> {
     return (
       <React.Fragment>
         {this.state.srcTransformed && (
-          <ImageComponent
+          <ImageRef
+            ref={this.props.forwardedRef}
             src={this.state.srcTransformed}
             style={this.props.style}
             onDragStart={this.props.onDragStart}

@@ -97,7 +97,7 @@ type Favorites struct {
 	cache           map[Favorite]bool
 	cacheExpireTime time.Time
 
-	diskCache *levelDb
+	diskCache *LevelDb
 
 	inFlightLock sync.Mutex
 	inFlightAdds map[favToAdd]*favReq
@@ -147,7 +147,7 @@ type favoritesCacheEncryptedForDisk struct {
 
 func (f *Favorites) readCacheFromDisk(ctx context.Context) error {
 	// Read the encrypted cache from disk
-	var db *levelDb
+	var db *LevelDb
 	var err error
 	if f.config.IsTestMode() {
 		db, err = openLevelDB(storage.NewMemStorage())
@@ -228,7 +228,7 @@ func (f *Favorites) writeCacheToDisk(ctx context.Context) error {
 	}
 
 	// Encode the encrypted data in a versioned struct before writing it to
-	// the levelDb.
+	// the LevelDb.
 	cacheEncryptedForDisk := favoritesCacheEncryptedForDisk{
 		encryptedCache: data,
 		version:        favoritesDiskCacheStorageVersion,
@@ -301,8 +301,8 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 	//  * The user asked us to refresh
 	//  * We haven't fetched it before
 	//  * It's stale
-	if req.refresh || f.cache == nil || f.config.Clock().Now().After(
-		f.cacheExpireTime) && !req.clear {
+	if (req.refresh || f.cache == nil || f.config.Clock().Now().After(
+		f.cacheExpireTime)) && !req.clear {
 
 		// load cache from server
 		folders, err := kbpki.FavoriteList(req.ctx)

@@ -41,6 +41,7 @@ const mapStateToProps = state => ({
   _tlfUpdates: state.fs.tlfUpdates,
   _uploads: state.fs.uploads,
   conversationsToSend: conversationsToSend(state),
+  daemonHandshakeState: state.config.daemonHandshakeState,
   loggedIn: state.config.loggedIn,
   outOfDate: state.config.outOfDate,
   userInfo: state.users.infoMap,
@@ -60,6 +61,7 @@ const mergeProps = stateProps => {
     clearCacheTrigger: _lastClearCacheTrigger,
     conversationIDs: stateProps.conversationsToSend,
     conversationMap: stateProps.conversationsToSend,
+    daemonHandshakeState: stateProps.daemonHandshakeState,
     externalRemoteWindow: stateProps._externalRemoteWindowID
       ? SafeElectron.getRemote().BrowserWindow.fromId(stateProps._externalRemoteWindowID)
       : null,

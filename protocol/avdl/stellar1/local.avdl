@@ -102,6 +102,9 @@ protocol local {
     string noteErr;
 
     boolean unread;                 // true if user hasn't seen the payment yet (sourceType STELLAR only)
+
+    string batchID;       // if payment sent via batch, will contain the batch id
+    boolean fromAirdrop;            // true if payment pertains to a keybase airdrop
   }
 
   record PaymentOrErrorLocal {
@@ -165,6 +168,9 @@ protocol local {
 
     @lint("ignore")
     string externalTxURL;           // link to external web page with tx details
+
+    string batchID;       // if payment sent via batch, will contain the batch id
+    boolean fromAirdrop;            // true if payment pertains to a keybase airdrop
   }
 
   // accountID should be the accountID that you want the details for.
@@ -479,6 +485,30 @@ protocol local {
   }
   InflationDestinationResultLocal getInflationDestinationLocal(int sessionID, AccountID accountID);
 
+  // airdropDetailsLocal returns a json blob of details about the current
+  // airdrop.  If the current airdrop has expired, it will return an 
+  // expired error.
+  string airdropDetailsLocal(int sessionID);
+
+  @typedef("string") record AirdropState {}
+
+  record AirdropQualification {
+    string title;
+    string subtitle;
+    boolean valid;
+  }
+
+  record AirdropStatus {
+    AirdropState state;
+    array<AirdropQualification> rows;
+  }
+
+  // airdropStatusLocal returns the user's status for the current airdrop.
+  AirdropStatus airdropStatusLocal(int sessionID);
+
+  // airdropRegisterLocal registers a user for an airdrop.
+  void airdropRegisterLocal(int sessionID, boolean register);
+
   // -------------------------------------------------------
   // CLI protocol
   // -------------------------------------------------------
@@ -620,4 +650,5 @@ protocol local {
   }
 
   BatchResultLocal batchLocal(string batchID, int timeoutSecs, array<BatchPaymentArg> payments);
+
 }

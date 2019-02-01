@@ -1059,8 +1059,16 @@ func (c ConversationLocal) GetMembersType() ConversationMembersType {
 	return c.Info.MembersType
 }
 
+func (c ConversationLocal) GetTeamType() TeamType {
+	return c.Info.TeamType
+}
+
 func (c ConversationLocal) GetFinalizeInfo() *ConversationFinalizeInfo {
 	return c.Info.FinalizeInfo
+}
+
+func (c ConversationLocal) GetTopicName() string {
+	return c.Info.TopicName
 }
 
 func (c ConversationLocal) GetExpunge() *Expunge {
@@ -1130,6 +1138,10 @@ func (c Conversation) GetTopicType() TopicType {
 
 func (c Conversation) GetMembersType() ConversationMembersType {
 	return c.Metadata.MembersType
+}
+
+func (c Conversation) GetTeamType() TeamType {
+	return c.Metadata.TeamType
 }
 
 func (c Conversation) GetFinalizeInfo() *ConversationFinalizeInfo {
@@ -1434,17 +1446,31 @@ func (i InboxUIItem) GetConvID() ConversationID {
 	return ConversationID(bConvID)
 }
 
+type ByConversationMemberStatus []ConversationMemberStatus
+
+func (m ByConversationMemberStatus) Len() int           { return len(m) }
+func (m ByConversationMemberStatus) Swap(i, j int)      { m[i], m[j] = m[j], m[i] }
+func (m ByConversationMemberStatus) Less(i, j int) bool { return m[i] > m[j] }
+
 func AllConversationMemberStatuses() (res []ConversationMemberStatus) {
 	for status := range ConversationMemberStatusRevMap {
 		res = append(res, status)
 	}
+	sort.Sort(ByConversationMemberStatus(res))
 	return res
 }
+
+type ByConversationExistence []ConversationExistence
+
+func (m ByConversationExistence) Len() int           { return len(m) }
+func (m ByConversationExistence) Swap(i, j int)      { m[i], m[j] = m[j], m[i] }
+func (m ByConversationExistence) Less(i, j int) bool { return m[i] > m[j] }
 
 func AllConversationExistences() (res []ConversationExistence) {
 	for existence := range ConversationExistenceRevMap {
 		res = append(res, existence)
 	}
+	sort.Sort(ByConversationExistence(res))
 	return res
 }
 
@@ -1484,7 +1510,9 @@ func (p RetentionPolicy) Summary() string {
 	}
 	switch typ {
 	case RetentionPolicyType_EXPIRE:
-		return fmt.Sprintf("{%v age:%v}", typ, p.Expire().Age)
+		return fmt.Sprintf("{%v age:%v}", typ, p.Expire().Age.ToDuration())
+	case RetentionPolicyType_EPHEMERAL:
+		return fmt.Sprintf("{%v age:%v}", typ, p.Ephemeral().Age.ToDuration())
 	default:
 		return fmt.Sprintf("{%v}", typ)
 	}

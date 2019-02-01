@@ -105,11 +105,9 @@ function updateIconFont(web) {
       classSelector: 'icon-kb',
       css: false,
       html: false,
-      writeFiles: !web,
+      writeFiles: false,
       formatOptions: {
-        ttf: {
-          ts: Date.now(),
-        },
+        ttf: {ts: 0}, // make this reproducible, sadly fontforge messes this up
         // Setting descent to zero on font generation will prevent the final
         // glyphs from being shifted down
         svg: {
@@ -123,12 +121,13 @@ function updateIconFont(web) {
 }
 
 const fontsGeneratedSuccess = (web, result) => {
-  console.log('Webfont generated successfully... updating constants and flow types')
-  setFontMetrics()
-  updateIconConstants()
-
   if (web) {
     generateWebCSS(result)
+  } else {
+    console.log('Webfont generated successfully... updating constants and flow types')
+    fs.writeFileSync(path.join(paths.fonts, 'kb.ttf'), result.ttf)
+    setFontMetrics()
+    updateIconConstants()
   }
 }
 

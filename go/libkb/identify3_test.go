@@ -2,12 +2,13 @@ package libkb
 
 import (
 	"encoding/hex"
+	"testing"
+	"time"
+
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 	context "golang.org/x/net/context"
-	"testing"
-	"time"
 )
 
 type id3FakeUIRouter struct {
@@ -23,6 +24,7 @@ func (i *id3FakeUIRouter) GetSecretUI(sessionID int) (SecretUI, error)          
 func (i *id3FakeUIRouter) GetRekeyUI() (keybase1.RekeyUIInterface, int, error)       { return nil, 0, nil }
 func (i *id3FakeUIRouter) GetRekeyUINoSessionID() (keybase1.RekeyUIInterface, error) { return nil, nil }
 func (i *id3FakeUIRouter) GetHomeUI() (keybase1.HomeUIInterface, error)              { return nil, nil }
+func (i *id3FakeUIRouter) GetChatUI() (ChatUI, error)                                { return nil, nil }
 func (i *id3FakeUIRouter) GetIdentify3UIAdapter(MetaContext) (IdentifyUI, error) {
 	return nil, nil
 }

@@ -6,9 +6,11 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"sync"
 	"time"
 
+	perrors "github.com/pkg/errors"
 	"github.com/stellar/go/build"
 	"github.com/stellar/go/clients/horizon"
 	snetwork "github.com/stellar/go/network"
@@ -21,6 +23,7 @@ var gnetwork = build.PublicNetwork
 
 const defaultMemo = "via keybase"
 const baseReserve = 5000000
+const submitAttempts = 3
 
 // SetClientAndNetwork sets the horizon client and network. Used by stellarnet/testclient.
 func SetClientAndNetwork(c *horizon.Client, n build.Network) {
@@ -423,21 +426,21 @@ func CheckTxID(txID string) (string, error) {
 // SendXLM sends 'amount' lumens from 'from' account to 'to' account.
 // If the recipient has no account yet, this will create it.
 // memoText is a public memo.
-func SendXLM(from SeedStr, to AddressStr, amount, memoText string) (ledger int32, txid string, err error) {
+func SendXLM(from SeedStr, to AddressStr, amount, memoText string) (ledger int32, txid string, attempt int, err error) {
 	if len(memoText) > 28 {
-		return 0, "", errors.New("public memo is too long")
+		return 0, "", 0, errors.New("public memo is too long")
 	}
 	// this is checked in build.Transaction, but can't hurt to break out early
 	if _, err = ParseStellarAmount(amount); err != nil {
-		return 0, "", err
+		return 0, "", 0, err
 	}
 
 	// try payment first
-	ledger, txid, err = paymentXLM(from, to, amount, memoText)
+	ledger, txid, attempt, err = paymentXLM(from, to, amount, memoText)
 
 	if err != nil {
 		if err != ErrDestinationAccountNotFound {
-			return 0, "", err
+			return 0, "", 0, err
 		}
 
 		// if payment failed due to op_no_destination, then
@@ -445,7 +448,7 @@ func SendXLM(from SeedStr, to AddressStr, amount, memoText string) (ledger int32
 		return createAccountXLM(from, to, amount, memoText)
 	}
 
-	return ledger, txid, nil
+	return ledger, txid, attempt, nil
 }
 
 // MakeTimeboundsFromTime creates Timebounds from time.Time values.
@@ -464,10 +467,10 @@ func MakeTimeboundsWithMaxTime(maxTime time.Time) build.Timebounds {
 }
 
 // paymentXLM creates a payment transaction from 'from' to 'to' for 'amount' lumens.
-func paymentXLM(from SeedStr, to AddressStr, amount, memoText string) (ledger int32, txid string, err error) {
+func paymentXLM(from SeedStr, to AddressStr, amount, memoText string) (ledger int32, txid string, attempt int, err error) {
 	sig, err := PaymentXLMTransaction(from, to, amount, memoText, Client(), nil /* timeBounds */)
 	if err != nil {
-		return 0, "", errMap(err)
+		return 0, "", 0, errMap(err)
 	}
 	return Submit(sig.Signed)
 }
@@ -497,10 +500,10 @@ func PaymentXLMTransaction(from SeedStr, to AddressStr, amount, memoText string,
 
 // createAccountXLM funds an new account 'to' from 'from' with a starting balance of 'amount'.
 // memoText is a public memo.
-func createAccountXLM(from SeedStr, to AddressStr, amount, memoText string) (ledger int32, txid string, err error) {
+func createAccountXLM(from SeedStr, to AddressStr, amount, memoText string) (ledger int32, txid string, attempt int, err error) {
 	sig, err := CreateAccountXLMTransaction(from, to, amount, memoText, Client(), nil /* timeBounds */)
 	if err != nil {
-		return 0, "", errMap(err)
+		return 0, "", 0, errMap(err)
 	}
 	return Submit(sig.Signed)
 }
@@ -549,25 +552,30 @@ func AccountMergeTransaction(from SeedStr, to AddressStr,
 
 // SetInflationDestinationTransaction creates a "set options" transaction that will set the
 // inflation destination for the `from` account to the `to` account.
-func SetInflationDestinationTransaction(from SeedStr, to AddressStr, seqnoProvider build.SequenceProvider) (SignResult, error) {
-	tx, err := build.Transaction(
+func SetInflationDestinationTransaction(from SeedStr, to AddressStr,
+	seqnoProvider build.SequenceProvider, timeBounds *build.Timebounds) (SignResult, error) {
+	muts := []build.TransactionMutator{
 		build.SourceAccount{AddressOrSeed: from.SecureNoLogString()},
 		Network(),
 		build.AutoSequence{SequenceProvider: seqnoProvider},
 		build.SetOptions(
 			build.InflationDest(to.String()),
 		),
-	)
+	}
+	if timeBounds != nil {
+		muts = append(muts, timeBounds)
+	}
+	tx, err := build.Transaction(muts...)
 	if err != nil {
 		return SignResult{}, errMap(err)
 	}
 	return sign(from, tx)
 }
 
-func setInflationDestination(from SeedStr, to AddressStr) (ledger int32, txid string, err error) {
-	sig, err := SetInflationDestinationTransaction(from, to, Client())
+func setInflationDestination(from SeedStr, to AddressStr) (ledger int32, txid string, attempt int, err error) {
+	sig, err := SetInflationDestinationTransaction(from, to, Client(), nil /* timeBounds */)
 	if err != nil {
-		return 0, "", errMap(err)
+		return 0, "", 0, errMap(err)
 	}
 	return Submit(sig.Signed)
 }
@@ -635,13 +643,27 @@ func sign(from SeedStr, tx *build.TransactionBuilder) (res SignResult, err error
 }
 
 // Submit submits a signed transaction to horizon.
-func Submit(signed string) (ledger int32, txid string, err error) {
-	resp, err := Client().SubmitTransaction(signed)
-	if err != nil {
-		return 0, "", errMap(err)
+func Submit(signed string) (ledger int32, txid string, attempt int, err error) {
+	var resp horizon.TransactionSuccess
+	for i := 0; i < submitAttempts; i++ {
+		resp, err = Client().SubmitTransaction(signed)
+		if err != nil {
+			// the error might be wrapped, so get the unwrapped error
+			xerr := perrors.Cause(err)
+
+			// if error was a timeout, then keep trying
+			urlErr, ok := xerr.(*url.Error)
+			if ok && urlErr.Timeout() {
+				continue
+			}
+
+			return 0, "", i, errMap(err)
+		}
+
+		return resp.Ledger, resp.Hash, i, nil
 	}
 
-	return resp.Ledger, resp.Hash, nil
+	return 0, "", submitAttempts, errMap(err)
 }
 
 // paymentsLink returns the horizon endpoint to get payment information.

@@ -226,7 +226,7 @@ func (s *Server) isDirWithNoIndexHTML(
 		return false, nil
 	}
 
-	fi, err = realFS.Stat(path.Join(requestPath, "index.html"))
+	_, err = realFS.Stat(path.Join(requestPath, "index.html"))
 	switch {
 	case err == nil:
 		return false, nil

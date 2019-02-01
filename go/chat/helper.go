@@ -455,6 +455,7 @@ func GetTopicNameState(ctx context.Context, g *globals.Context, debugger utils.D
 	for _, conv := range convs {
 		msg, err := conv.GetMaxMessage(chat1.MessageType_METADATA)
 		if err != nil {
+			debugger.Debug(ctx, "GetTopicNameState: unable to get maxmessage: convID: %v, %v", conv.GetConvID(), err)
 			continue
 		}
 		pairs.Pairs = append(pairs.Pairs, chat1.ConversationIDMessageIDPair{
@@ -464,7 +465,7 @@ func GetTopicNameState(ctx context.Context, g *globals.Context, debugger utils.D
 	}
 
 	if res, err = utils.CreateTopicNameState(pairs); err != nil {
-		debugger.Debug(ctx, "GetTopicNameState: failed to create topic name state: %s", err.Error())
+		debugger.Debug(ctx, "GetTopicNameState: failed to create topic name state: %v", err)
 		return res, err
 	}
 
@@ -514,8 +515,16 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 		inbox, _, err := g.InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, useLocalData, nil,
 			query, nil)
 		if err != nil {
+			acceptableErr := false
+			// if we fail to load the team for some kind of rekey reason, treat as a complete miss
+			if _, ok := IsRekeyError(err); ok {
+				acceptableErr = true
+			}
 			// don't error out if the TLF name is just unknown, treat it as a complete miss
-			if _, ok := err.(UnknownTLFNameError); !ok {
+			if _, ok := err.(UnknownTLFNameError); ok {
+				acceptableErr = true
+			}
+			if !acceptableErr {
 				return res, err
 			}
 			inbox.Convs = nil

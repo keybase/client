@@ -43,6 +43,7 @@ export type Props = {|
   failureDescription: string,
   forceAsh: boolean,
   hasUnfurlPrompts: boolean,
+  isLastInThread: boolean,
   isPendingPayment: boolean,
   isRevoked: boolean,
   showCoinsIcon: boolean,
@@ -186,7 +187,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
 
   _shouldShowReactionsRow = () =>
     // $ForceType
-    this.props.message.reactions && !this.props.message.reactions.isEmpty()
+    (this.props.message.reactions && !this.props.message.reactions.isEmpty()) || this.props.isPendingPayment
 
   _reactionsRow = () =>
     this._shouldShowReactionsRow() && (
@@ -280,7 +281,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
       exploded || Styles.isMobile ? 0 : 16, // ... menu
       exploding ? (Styles.isMobile ? 57 : 46) : 0, // exploding
     ].filter(Boolean)
-    const padding = 8
+    const padding = Styles.globalMargins.tiny
     const width =
       iconSizes.length <= 0 ? 0 : iconSizes.reduce((total, size) => total + size, iconSizes.length * padding)
 
@@ -411,11 +412,16 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               <Kb.Box className="WrapperMessage-buttons">
                 {!this._shouldShowReactionsRow() && (
                   <EmojiRow
-                    className="WrapperMessage-emojiButton"
+                    className={Styles.classNames('WrapperMessage-emojiButton', {
+                      'WrapperMessage-emojiButtonLast': this.props.isLastInThread,
+                    })}
                     conversationIDKey={this.props.conversationIDKey}
                     onShowingEmojiPicker={this._setShowingPicker}
                     ordinal={message.ordinal}
-                    style={styles.emojiRow}
+                    style={Styles.collapseStyles([
+                      styles.emojiRow,
+                      this.props.isLastInThread && styles.emojiRowLast,
+                    ])}
                   />
                 )}
                 <Kb.Box>
@@ -533,7 +539,21 @@ const styles = Styles.styleSheetCreate({
   }),
   edited: {color: Styles.globalColors.black_20},
   ellipsis: {marginLeft: Styles.globalMargins.tiny},
-  emojiRow: {bottom: -12, position: 'absolute', right: 112, zIndex: 2},
+  emojiRow: {
+    borderBottomLeftRadius: Styles.borderRadius,
+    borderBottomRightRadius: Styles.borderRadius,
+    bottom: -23,
+    left: 102,
+    position: 'absolute',
+    zIndex: 2,
+  },
+  emojiRowLast: {
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+    borderTopLeftRadius: Styles.borderRadius,
+    borderTopRightRadius: Styles.borderRadius,
+    top: -23,
+  },
   fail: {color: Styles.globalColors.red},
   failUnderline: {color: Styles.globalColors.red, textDecorationLine: 'underline'},
   fast,

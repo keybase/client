@@ -52,6 +52,7 @@ protocol identify3Ui {
     string siteURL,                // https://twitter.com/bob
     string siteIcon,               // https://keybase.io/_/icons/twitter.png
     string proofURL,               // http://twitter.com/bob/post/1234
+    SigID sigID,                   // so we can later revoke the sig....
     Identify3RowState state,       // 'checking' | 'valid' | 'error' | 'warning' | 'revoked',
     array<Identify3RowMeta> metas, // things like 'upgraded' | 'new' | 'unreachable' | 'pending' | 'deleted' | 'none' | 'ignored', but can be anything
     Identify3RowColor color        // 'blue' | 'red' | 'black' | 'green' | 'gray'

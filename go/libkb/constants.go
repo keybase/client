@@ -20,6 +20,12 @@ const (
 	TorServerURI        = "http://fncuwbiisyh6ak3i.onion"
 )
 
+const (
+	DevelSiteURI      = DevelServerURI
+	StagingSiteURI    = StagingServerURI
+	ProductionSiteURI = "https://keybase.io"
+)
+
 var TorProxy = "localhost:9050"
 
 // TODO (CORE-6576): Remove these aliases once everything outside of
@@ -39,6 +45,12 @@ var ServerLookup = map[RunMode]string{
 	DevelRunMode:      DevelServerURI,
 	StagingRunMode:    StagingServerURI,
 	ProductionRunMode: ProductionServerURI,
+}
+
+var SiteURILookup = map[RunMode]string{
+	DevelRunMode:      DevelSiteURI,
+	StagingRunMode:    StagingSiteURI,
+	ProductionRunMode: ProductionSiteURI,
 }
 
 const (
@@ -510,6 +522,7 @@ const (
 	PaperKeyVersionBits   = 4
 	PaperKeyVersion       = 0
 	PaperKeyWordCountMin  = 13 // this should never change to a value greater than 13
+	PaperKeyNoPrefixLen   = 11 // word count min - 2
 )
 
 const UserSummaryLimit = 500 // max number of user summaries in one request
@@ -536,6 +549,7 @@ const (
 
 const (
 	ServiceLogFileName = "keybase.service.log"
+	EKLogFileName      = "keybase.ek.log"
 	KBFSLogFileName    = kbconst.KBFSLogFileName
 	GitLogFileName     = "keybase.git.log"
 	UpdaterLogFileName = "keybase.updater.log"

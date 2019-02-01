@@ -40,6 +40,7 @@ func TestTeamChannelSource(t *testing.T) {
 		g1 := ctc.world.Tcs[users[0].Username].Context()
 		uid2 := users[1].User.GetUID().ToBytes()
 		g2 := ctc.world.Tcs[users[1].Username].Context()
+		t.Logf("uid1: %v, uid2: %v", users[0].User.GetUID(), users[1].User.GetUID())
 
 		var tlfID chat1.TLFID
 		ctx := context.TODO()
@@ -81,6 +82,8 @@ func TestTeamChannelSource(t *testing.T) {
 				require.Equal(t, expected.TopicName, topicName)
 			}
 		}
+		assertTeamChannelSource(g1, uid1, nil)
+		assertTeamChannelSource(g2, uid2, nil)
 
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt,
 			ctc.as(t, users[1]).user())
@@ -112,6 +115,7 @@ func TestTeamChannelSource(t *testing.T) {
 		consumeTeamType(t, listener2)
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
 		consumeNewMsgRemote(t, listener2, chat1.MessageType_SYSTEM)
+		t.Logf("created %v", topicName)
 
 		// Both members can see the #general channel and are ACTIVE
 		channel1User1 := expectedResult{
@@ -143,6 +147,7 @@ func TestTeamChannelSource(t *testing.T) {
 		_, err = ctc.as(t, users[0]).chatLocalHandler().PostMetadataNonblock(ctx1, marg)
 		require.NoError(t, err)
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_METADATA)
+		t.Logf("renamed %v", topicName)
 		// note listener2 will not receive the update since the don't have an
 		// active member status. they will list the channels correctly however
 

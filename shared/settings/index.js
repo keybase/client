@@ -16,6 +16,7 @@ const mapStateToProps = (state, {routeLeafTags, routeSelected}: OwnProps) => ({
   badgeNotifications: !state.push.hasPermissions,
   hasRandomPW: state.settings.passphrase.randomPW,
   isModal: routeLeafTags.modal,
+  logoutHandshakeWaiters: state.config.logoutHandshakeWaiters,
   selectedTab: ((routeSelected: any): Types.Tab),
 })
 
@@ -32,6 +33,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   children: ownProps.children,
   hasRandomPW: stateProps.hasRandomPW,
   isModal: stateProps.isModal,
+  logoutInProgress: stateProps.logoutHandshakeWaiters.size > 0,
   onLogout: dispatchProps.onLogout,
   onTabChange: dispatchProps.onTabChange,
   selectedTab: stateProps.selectedTab,

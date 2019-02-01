@@ -28,5 +28,9 @@ func (s *Shrug) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Conve
 	if err != nil {
 		return err
 	}
-	return s.G().ChatHelper.SendTextByIDNonblock(ctx, convID, tlfName, msg+` ¯\_(ツ)_/¯`)
+	res := `¯\_(ツ)_/¯`
+	if len(msg) > 0 {
+		res = msg + " " + res
+	}
+	return s.G().ChatHelper.SendTextByIDNonblock(ctx, convID, tlfName, res)
 }

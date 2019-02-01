@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
+import * as Platforms from '../constants/platform'
 
 export type Props = {|
   isLoading: boolean,
@@ -113,6 +114,11 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
           <Kb.Text type="BodySemibold" style={styles.text}>
             Jump to chat
           </Kb.Text>
+          {!Styles.isMobile && (
+            <Kb.Text type="BodySemibold" style={styles.textFaint}>
+              ({Platforms.shortcutSymbol}K)
+            </Kb.Text>
+          )}
         </Kb.ClickableBox>
       )
     }
@@ -123,6 +129,7 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
           rightActions={[
             {
               icon: 'iconfont-compose',
+              iconColor: Styles.globalColors.blue,
               label: 'New chat',
               onPress: this.props.onNewChat,
             },
@@ -147,18 +154,15 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
       >
         {children}
         {!!this.props.onNewChat && (
-          <Kb.Icon
-            type="iconfont-compose"
-            style={propsIconPlatform.style}
-            color={propsIconPlatform.color}
-            fontSize={propsIconPlatform.fontSize}
-            onClick={this.props.onNewChat}
-          />
-        )}
-        {this.props.isLoading && (
-          <Kb.Box style={styles.loadingContainer}>
-            <Kb.LoadingLine />
-          </Kb.Box>
+          <Kb.WithTooltip position="bottom center" text={`${Platforms.shortcutSymbol}N`}>
+            <Kb.Icon
+              type="iconfont-compose"
+              style={propsIconPlatform.style}
+              color={propsIconPlatform.color}
+              fontSize={propsIconPlatform.fontSize}
+              onClick={this.props.onNewChat}
+            />
+          </Kb.WithTooltip>
         )}
       </Kb.Box2>
     )
@@ -219,6 +223,10 @@ const styles = Styles.styleSheetCreate({
   text: {
     color: Styles.globalColors.black_50,
     marginLeft: Styles.globalMargins.tiny,
+    marginRight: Styles.globalMargins.tiny,
+  },
+  textFaint: {
+    color: Styles.globalColors.black_35,
   },
 })
 

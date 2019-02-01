@@ -27,6 +27,9 @@ type LogFileConfig struct {
 	// MaxKeepFiles is maximum number of log files for this service, older
 	// files are deleted.
 	MaxKeepFiles int
+	// RedirectStdErr indicates if the current stderr redirected to the given
+	// Path.
+	SkipRedirectStdErr bool
 }
 
 // SetLogFileConfig sets the log file config to be used globally.
@@ -41,13 +44,12 @@ func SetLogFileConfig(lfc *LogFileConfig) error {
 		w.lock.Lock()
 		defer w.lock.Unlock()
 		w.Close()
+		w.config = *lfc
 	} else {
-		w = &logFileWriter{}
+		w = NewLogFileWriter(*lfc)
 	}
-	w.config = *lfc
 
-	err := w.Open(time.Now())
-	if err != nil {
+	if err := w.Open(time.Now()); err != nil {
 		return err
 	}
 
@@ -61,7 +63,7 @@ func SetLogFileConfig(lfc *LogFileConfig) error {
 	return nil
 }
 
-type logFileWriter struct {
+type LogFileWriter struct {
 	lock         sync.Mutex
 	config       LogFileConfig
 	file         *os.File
@@ -69,7 +71,13 @@ type logFileWriter struct {
 	currentStart time.Time
 }
 
-func (lfw *logFileWriter) Open(at time.Time) error {
+func NewLogFileWriter(config LogFileConfig) *LogFileWriter {
+	return &LogFileWriter{
+		config: config,
+	}
+}
+
+func (lfw *LogFileWriter) Open(at time.Time) error {
 	var err error
 	_, lfw.file, err = OpenLogFile(lfw.config.Path)
 	if err != nil {
@@ -82,11 +90,13 @@ func (lfw *logFileWriter) Open(at time.Time) error {
 		return err
 	}
 	lfw.currentSize = fi.Size()
-	tryRedirectStderrTo(lfw.file)
+	if !lfw.config.SkipRedirectStdErr {
+		tryRedirectStderrTo(lfw.file)
+	}
 	return nil
 }
 
-func (lfw *logFileWriter) Close() error {
+func (lfw *LogFileWriter) Close() error {
 	if lfw == nil {
 		return nil
 	}
@@ -102,7 +112,7 @@ const zeroDuration time.Duration = 0
 const oldLogFileTimeRangeTimeLayout = "20060102T150405Z0700"
 const oldLogFileTimeRangeTimeLayoutLegacy = "20060102T150405"
 
-func (lfw *logFileWriter) Write(bs []byte) (int, error) {
+func (lfw *LogFileWriter) Write(bs []byte) (int, error) {
 	lfw.lock.Lock()
 	defer lfw.lock.Unlock()
 	n, err := lfw.file.Write(bs)

@@ -953,11 +953,10 @@ type ServiceDoesNotSupportNewProofsError struct {
 }
 
 func (e ServiceDoesNotSupportNewProofsError) Error() string {
-	service := e.Service
-	if len(service) > 0 {
-		service = fmt.Sprintf("%q", service)
+	if len(e.Service) == 0 {
+		return fmt.Sprintf("New proofs of that type are not supported")
 	}
-	return fmt.Sprintf("New %s proofs are no longer supported", service)
+	return fmt.Sprintf("New %s proofs are not supported", e.Service)
 }
 
 //=============================================================================

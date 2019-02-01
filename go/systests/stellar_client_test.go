@@ -594,4 +594,34 @@ func (s *stellarRetryClient) BatchLocal(ctx context.Context, arg stellar1.BatchL
 	return res, err
 }
 
+func (s *stellarRetryClient) AirdropDetailsLocal(ctx context.Context, sessionID int) (res string, err error) {
+	for i := 0; i < retryCount; i++ {
+		res, err = s.cli.AirdropDetailsLocal(ctx, sessionID)
+		if err == nil {
+			break
+		}
+	}
+	return res, err
+}
+
+func (s *stellarRetryClient) AirdropRegisterLocal(ctx context.Context, arg stellar1.AirdropRegisterLocalArg) (err error) {
+	for i := 0; i < retryCount; i++ {
+		err = s.cli.AirdropRegisterLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return err
+}
+
+func (s *stellarRetryClient) AirdropStatusLocal(ctx context.Context, sessionID int) (res stellar1.AirdropStatus, err error) {
+	for i := 0; i < retryCount; i++ {
+		res, err = s.cli.AirdropStatusLocal(ctx, sessionID)
+		if err == nil {
+			break
+		}
+	}
+	return res, err
+}
+
 var _ stellar1.LocalInterface = (*stellarRetryClient)(nil)
