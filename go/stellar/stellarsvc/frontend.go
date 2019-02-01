@@ -78,12 +78,19 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 	if len(details.Balances) == 0 {
 		// add an empty xlm balance
 		s.G().Log.CDebugf(ctx, "Account has no balances - adding default 0 XLM balance")
+		details.Available = "0"
 		details.Balances = []stellar1.Balance{
 			{
 				Amount: "0",
 				Asset:  stellar1.Asset{Type: "native"},
 			},
 		}
+	}
+
+	if details.Available == "" {
+		s.G().Log.CDebugf(ctx, "details.Available is empty: %+v", details)
+		details.Available = "0"
+		s.G().Log.CDebugf(ctx, `set details.Available from empty to "0"`)
 	}
 
 	displayCurrency, err := stellar.GetAccountDisplayCurrency(mctx, arg.AccountID)
@@ -105,6 +112,10 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 
 		if d.Asset.IsNativeXLM() {
 			availableAmount := stellar.SubtractFeeSoft(mctx, details.Available)
+			if avaliableAmount == "" {
+				s.G().Log.CDebugf(ctx, "stellar.SubtractFeeSoft returned empty available amount, setting it to 0")
+				availableAmount = "0"
+			}
 			fmtAvailable, err := stellar.FormatAmount(availableAmount, false, stellar.FmtRound)
 			if err != nil {
 				return nil, err

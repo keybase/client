@@ -1606,7 +1606,7 @@ func FormatAmountWithSuffix(amount string, precisionTwo bool, simplify bool, suf
 
 func FormatAmount(amount string, precisionTwo bool, rounding FmtRounding) (string, error) {
 	if amount == "" {
-		return "", errors.New("empty amount")
+		amount = "0"
 	}
 	x, err := stellarnet.ParseAmount(amount)
 	if err != nil {
