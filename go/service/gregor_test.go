@@ -894,9 +894,9 @@ func TestBroadcastRepeat(t *testing.T) {
 		Body_:     gregor1.Body([]byte("mike!!")),
 	}
 
-	broadcastMessageTesting(t, h, *m)
-	broadcastMessageTesting(t, h, *m2)
-	err = broadcastMessageTesting(t, h, *m)
+	broadcastMessageTesting(t, h, m)
+	broadcastMessageTesting(t, h, m2)
+	err = broadcastMessageTesting(t, h, m)
 	require.Error(t, err)
 	require.Equal(t, "ignored repeat message", err.Error())
 }
