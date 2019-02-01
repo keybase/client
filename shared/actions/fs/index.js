@@ -606,28 +606,31 @@ const commitEdit = (state, action) => {
 const _getRouteChangeForOpenPathInFilesTab = (action: FsGen.OpenPathInFilesTabPayload, finalRoute: any) =>
   isMobile
     ? RouteTreeGen.createNavigateTo({
-        path: [
-          Tabs.fsTab,
-          // Construct all parent folders so back button works all the way back
-          // to /keybase
-          ...Types.getPathElements(action.payload.path)
-            .slice(1, -1) // fsTab default to /keybase, so we skip one here
-            .reduce(
-              (routes, elem) => [
-                ...routes,
-                {
-                  props: {
-                    path: routes.length
-                      ? Types.pathConcat(routes[routes.length - 1].props.path, elem)
-                      : Types.stringToPath(`/keybase/${elem}`),
-                  },
-                  selected: 'main',
-                },
+        path:
+          action.payload.path === Constants.defaultPath
+            ? [Tabs.fsTab]
+            : [
+                Tabs.fsTab,
+                // Construct all parent folders so back button works all the way back
+                // to /keybase
+                ...Types.getPathElements(action.payload.path)
+                  .slice(1, -1) // fsTab default to /keybase, so we skip one here
+                  .reduce(
+                    (routes, elem) => [
+                      ...routes,
+                      {
+                        props: {
+                          path: routes.length
+                            ? Types.pathConcat(routes[routes.length - 1].props.path, elem)
+                            : Types.stringToPath(`/keybase/${elem}`),
+                        },
+                        selected: 'main',
+                      },
+                    ],
+                    []
+                  ),
+                finalRoute,
               ],
-              []
-            ),
-          finalRoute,
-        ],
       })
     : RouteTreeGen.createNavigateTo({
         path: [
