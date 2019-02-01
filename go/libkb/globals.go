@@ -118,7 +118,7 @@ type GlobalContext struct {
 	hookMu             *sync.RWMutex             // protects loginHooks, logoutHooks
 	loginHooks         []LoginHook               // call these on login
 	logoutHooks        []LogoutHook              // call these on logout
-	GregorDismisser    GregorDismisser           // for dismissing gregor items that we've handled
+	GregorState        GregorState               // for dismissing gregor items that we've handled
 	GregorListener     GregorListener            // for alerting about clients connecting and registering UI protocols
 	oodiMu             *sync.RWMutex             // For manipulating the OutOfDateInfo
 	outOfDateInfo      *keybase1.OutOfDateInfo   // Stores out of date messages we got from API server headers.

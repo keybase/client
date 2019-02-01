@@ -87,7 +87,7 @@ type _deviceChange struct {
 	DeviceID string `json:"device_id"`
 }
 
-func LoopAndDismissForDeviceChangeNotifications(c context.Context, dismisser libkb.GregorDismisser,
+func LoopAndDismissForDeviceChangeNotifications(c context.Context, dismisser libkb.GregorState,
 	gregorState gregor.State, exceptedDeviceID string) (err error) {
 
 	items, err := gregorState.Items()
@@ -122,7 +122,7 @@ func (h *DeviceHandler) DismissDeviceChangeNotifications(c context.Context) erro
 		return err
 	}
 	activeDeviceID := h.G().ActiveDevice.DeviceID().String()
-	dismisser := h.G().GregorDismisser
+	dismisser := h.G().GregorState
 	err = LoopAndDismissForDeviceChangeNotifications(c, dismisser, state, activeDeviceID)
 	return err
 }

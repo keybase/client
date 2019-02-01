@@ -172,6 +172,7 @@ export const anyChatWaitingKeys = (state: TypedState) =>
  * Gregor key for exploding conversations
  * Used as the `category` when setting the exploding mode on a conversation
  * `body` is the number of seconds to exploding message etime
+ * Note: The core service also uses this value, so if it changes, please notify core
  */
 export const explodingModeGregorKeyPrefix = 'exploding:'
 export const explodingModeGregorKey = (c: Types.ConversationIDKey): string =>

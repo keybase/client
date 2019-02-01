@@ -496,7 +496,9 @@ type Clock interface {
 	Now() time.Time
 }
 
-type GregorDismisser interface {
+type GregorState interface {
+	State(ctx context.Context) (gregor.State, error)
+	InjectItem(ctx context.Context, cat string, body []byte, dtime gregor1.TimeOrOffset) (gregor1.MsgID, error)
 	DismissItem(ctx context.Context, cli gregor1.IncomingInterface, id gregor.MsgID) error
 	LocalDismissItem(ctx context.Context, id gregor.MsgID) error
 }

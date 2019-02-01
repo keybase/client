@@ -125,7 +125,7 @@ func (r *AutoClaimRunner) step(mctx libkb.MetaContext, i int, trigger gregor.Msg
 		log("no more autoclaims")
 		if trigger.String() != "" {
 			log("dismissing kick: %v", trigger)
-			err = mctx.G().GregorDismisser.DismissItem(mctx.Ctx(), nil, trigger)
+			err = mctx.G().GregorState.DismissItem(mctx.Ctx(), nil, trigger)
 			if err != nil {
 				log("error dismissing gregor kick: %v", err)
 				return autoClaimLoopActionHibernate, err
