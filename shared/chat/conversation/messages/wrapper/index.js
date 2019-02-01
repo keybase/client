@@ -412,8 +412,8 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               <Kb.Box className="WrapperMessage-buttons">
                 {!this._shouldShowReactionsRow() && !this.props.showingMenu && (
                   <EmojiRow
-                    className={Styles.classNames('WrapperMessage-emojiRow', {
-                      'WrapperMessage-emojiRowLast': this.props.isLastInThread,
+                    className={Styles.classNames({
+                      'WrapperMessage-emojiRow': !this.props.isLastInThread,
                     })}
                     conversationIDKey={this.props.conversationIDKey}
                     onShowingEmojiPicker={this._setShowingPicker}
