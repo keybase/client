@@ -11625,9 +11625,9 @@ react-native-fast-image@5.1.1:
   resolved "https://registry.yarnpkg.com/react-native-fast-image/-/react-native-fast-image-5.1.1.tgz#2595323a926ade0b3a37bd627eb55e3ebf67598b"
   integrity sha512-kEzgZxbbXYhy27u5GnhrKitn+XDBFAHSDUJdYC6llMi5cDPjgcqhOAQABj0K+ga5pn+/xPZLmD882rrUGiwVVA==
 
-"react-native-image-picker@git://github.com/keybase/react-native-image-picker#v0.27.1-with-keybase-fixes":
+"react-native-image-picker@git://github.com/keybase/react-native-image-picker#akalin/DESKTOP-8743-image-capture-secure":
   version "0.27.1"
-  resolved "git://github.com/keybase/react-native-image-picker#bbbf8fdf1fb351c3e739ea6dab55b15c390430d4"
+  resolved "git://github.com/keybase/react-native-image-picker#c641b85eddfff0d1208ef8731cf4da806e7ad880"
 
 react-native-mime-types@2.2.1:
   version "2.2.1"
