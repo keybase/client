@@ -87,6 +87,8 @@ func TestTeamChannelSource(t *testing.T) {
 
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt,
 			ctc.as(t, users[1]).user())
+		consumeNewConversation(t, listener1, conv.Id)
+		consumeNewConversation(t, listener2, conv.Id)
 		tlfID = conv.Triple.Tlfid
 		generalChannel := expectedResult{
 			ConvID:       conv.Id,
@@ -110,6 +112,9 @@ func TestTeamChannelSource(t *testing.T) {
 				MembersType:   chat1.ConversationMembersType_TEAM,
 			})
 		require.NoError(t, err)
+		channelConvID := channel1.Conv.GetConvID()
+		consumeNewConversation(t, listener1, channelConvID)
+		assertNoNewConversation(t, listener2)
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_JOIN)
 		consumeTeamType(t, listener1)
 		consumeTeamType(t, listener2)
@@ -119,27 +124,27 @@ func TestTeamChannelSource(t *testing.T) {
 
 		// Both members can see the #general channel and are ACTIVE
 		channel1User1 := expectedResult{
-			ConvID:       channel1.Conv.GetConvID(),
+			ConvID:       channelConvID,
 			Existence:    chat1.ConversationExistence_ACTIVE,
 			MemberStatus: chat1.ConversationMemberStatus_ACTIVE,
 			TopicName:    topicName,
 		}
-		expectedResults1[channel1.Conv.GetConvID().String()] = channel1User1
+		expectedResults1[channelConvID.String()] = channel1User1
 
 		channel1User2 := expectedResult{
-			ConvID:       channel1.Conv.GetConvID(),
+			ConvID:       channelConvID,
 			Existence:    chat1.ConversationExistence_ACTIVE,
 			MemberStatus: chat1.ConversationMemberStatus_NEVER_JOINED,
 			TopicName:    topicName,
 		}
-		expectedResults2[channel1.Conv.GetConvID().String()] = channel1User2
+		expectedResults2[channelConvID.String()] = channel1User2
 		assertTeamChannelSource(g1, uid1, expectedResults1)
 		assertTeamChannelSource(g2, uid2, expectedResults2)
 
 		// test rename
 		topicName = "channel1-renamed"
 		marg := chat1.PostMetadataNonblockArg{
-			ConversationID: channel1.Conv.GetConvID(),
+			ConversationID: channelConvID,
 			TlfName:        conv.TlfName,
 			TlfPublic:      false,
 			ChannelName:    topicName,
@@ -153,13 +158,13 @@ func TestTeamChannelSource(t *testing.T) {
 
 		channel1User1.TopicName = topicName
 		channel1User2.TopicName = topicName
-		expectedResults1[channel1.Conv.GetConvID().String()] = channel1User1
-		expectedResults2[channel1.Conv.GetConvID().String()] = channel1User2
+		expectedResults1[channelConvID.String()] = channel1User1
+		expectedResults2[channelConvID.String()] = channel1User2
 		assertTeamChannelSource(g1, uid1, expectedResults1)
 		assertTeamChannelSource(g2, uid2, expectedResults2)
 
 		channel1User2.MemberStatus = chat1.ConversationMemberStatus_ACTIVE
-		expectedResults2[channel1.Conv.GetConvID().String()] = channel1User2
+		expectedResults2[channelConvID.String()] = channel1User2
 		_, err = ctc.as(t, users[1]).chatLocalHandler().JoinConversationLocal(ctx1, chat1.JoinConversationLocalArg{
 			TlfName:    conv.TlfName,
 			TopicType:  chat1.TopicType_CHAT,
@@ -174,14 +179,24 @@ func TestTeamChannelSource(t *testing.T) {
 
 		_, err = ctc.as(t, users[0]).chatLocalHandler().DeleteConversationLocal(ctx1,
 			chat1.DeleteConversationLocalArg{
-				ConvID: channel1.Conv.GetConvID(),
+				ConvID: channelConvID,
 			})
 		require.NoError(t, err)
 		consumeLeaveConv(t, listener1)
 		consumeTeamType(t, listener1)
-		delete(expectedResults1, channel1.Conv.GetConvID().String())
-		delete(expectedResults2, channel1.Conv.GetConvID().String())
+		delete(expectedResults1, channelConvID.String())
+		delete(expectedResults2, channelConvID.String())
 		assertTeamChannelSource(g1, uid1, expectedResults1)
 		assertTeamChannelSource(g2, uid2, expectedResults2)
+
+		updates := consumeNewThreadsStale(t, listener1)
+		require.Equal(t, 1, len(updates))
+		require.Equal(t, channelConvID, updates[0].ConvID, "wrong cid")
+		require.Equal(t, chat1.StaleUpdateType_CLEAR, updates[0].UpdateType)
+
+		updates = consumeNewThreadsStale(t, listener2)
+		require.Equal(t, 1, len(updates))
+		require.Equal(t, channelConvID, updates[0].ConvID, "wrong cid")
+		require.Equal(t, chat1.StaleUpdateType_CLEAR, updates[0].UpdateType)
 	})
 }
