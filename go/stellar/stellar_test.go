@@ -57,8 +57,8 @@ var fmtTests = []fmtTest{
 	{amount: "-456456456123123123.1234567", precTwo: false, out: "-456,456,456,123,123,123.1234567", valid: true},
 	{amount: "123123", precTwo: true, out: "123,123.00", valid: true},
 	{amount: "123123", precTwo: false, out: "123,123.00", valid: true},
-	{amount: "", out: "0", valid: true},
 	// error cases
+	{amount: "", out: "", valid: false},
 	{amount: "garbage", out: "", valid: false},
 	{amount: "3/4", out: "", valid: false},
 	{amount: "1.234e5", out: "", valid: false},

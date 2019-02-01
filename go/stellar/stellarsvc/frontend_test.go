@@ -1310,7 +1310,7 @@ func TestBuildPaymentLocal(t *testing.T) {
 		require.Equal(t, "USD", bres.WorthCurrency)
 		require.Equal(t, worthInfo, bres.WorthInfo)
 		require.True(t, bres.SendingIntentionXLM)
-		require.Equal(t, "0 XLM", bres.DisplayAmountXLM)
+		require.Equal(t, "", bres.DisplayAmountXLM)
 		require.Equal(t, "", bres.DisplayAmountFiat)
 		requireBannerSet(t, bres.DeepCopy().Banners, nil)
 	}
