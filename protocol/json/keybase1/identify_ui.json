@@ -400,6 +400,10 @@
             "items": "UserTeamShowcase"
           },
           "name": "teamShowcase"
+        },
+        {
+          "type": "boolean",
+          "name": "registeredForAirdrop"
         }
       ]
     },

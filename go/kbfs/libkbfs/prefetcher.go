@@ -139,7 +139,8 @@ func defaultBackOffForPrefetcher() backoff.BackOff {
 }
 
 func newBlockPrefetcher(retriever BlockRetriever,
-	config prefetcherConfig, testSyncCh <-chan struct{}) *blockPrefetcher {
+	config prefetcherConfig, testSyncCh <-chan struct{},
+	testDoneCh chan<- struct{}) *blockPrefetcher {
 	closedCh := make(chan struct{})
 	close(closedCh)
 	p := &blockPrefetcher{
@@ -172,7 +173,7 @@ func newBlockPrefetcher(retriever BlockRetriever,
 		p.Shutdown()
 		close(p.doneCh)
 	} else {
-		go p.run(testSyncCh)
+		go p.run(testSyncCh, testDoneCh)
 		go p.shutdownLoop()
 	}
 	return p
@@ -350,7 +351,7 @@ func (p *blockPrefetcher) completePrefetch(
 			}
 			err = p.retriever.PutInCaches(pp.ctx, pp.req.ptr,
 				pp.req.kmd.TlfID(), b, pp.req.lifetime,
-				FinishedPrefetch)
+				FinishedPrefetch, pp.req.action.CacheType())
 			if err != nil {
 				p.log.CWarningf(pp.ctx, "failed to complete prefetch due to "+
 					"cache error, canceled it instead: %+v", err)
@@ -801,7 +802,8 @@ func (p *blockPrefetcher) handleStatusRequest(req *prefetchStatusRequest) {
 // the tree. If this did ever happen, a completed fetch downstream of the
 // diamond would be double counted in all nodes above the diamond, and the
 // prefetcher would eventually panic.
-func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
+func (p *blockPrefetcher) run(
+	testSyncCh <-chan struct{}, testDoneCh chan<- struct{}) {
 	defer func() {
 		close(p.doneCh)
 		p.prefetchRequestCh.Close()
@@ -812,7 +814,12 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 	}()
 	isShuttingDown := false
 	var shuttingDownCh <-chan interface{}
+	first := true
 	for {
+		if !first && testDoneCh != nil && !isShuttingDown {
+			testDoneCh <- struct{}{}
+		}
+		first = false
 		if isShuttingDown {
 			if p.inFlightFetches.Len() == 0 &&
 				p.prefetchRequestCh.Len() == 0 &&
@@ -868,7 +875,8 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 			} else {
 				pre.req = req
 			}
-			p.log.Debug("rescheduling top-block prefetch for block %s", blockID)
+			p.log.CDebugf(pre.ctx,
+				"rescheduling top-block prefetch for block %s", blockID)
 			p.applyToParentsRecursive(p.rescheduleTopBlock, blockID, pre)
 		case reqInt := <-p.prefetchRequestCh.Out():
 			req := reqInt.(*prefetchRequest)
@@ -951,7 +959,7 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 						// Mark this block as finished in the cache.
 						err = p.retriever.PutInCaches(
 							ctx, req.ptr, req.kmd.TlfID(), b, req.lifetime,
-							FinishedPrefetch)
+							FinishedPrefetch, req.action.CacheType())
 						if err != nil {
 							p.log.CDebugf(ctx,
 								"Couldn't put finished block %s in cache: %+v",
@@ -1125,6 +1133,20 @@ func (p *blockPrefetcher) run(testSyncCh <-chan struct{}) {
 				pp.SubtreeBytesFetched += numBytesFetched
 				pp.SubtreeBytesTotal += numBytesTotal
 			}, req.ptr.ID, pre)
+			// Ensure this block's status is marked as triggered.  If
+			// it was rescheduled due to a previously-full cache, it
+			// might not yet be set.
+			dbc := p.config.DiskBlockCache()
+			if dbc != nil {
+				err := dbc.UpdateMetadata(
+					pre.ctx, req.kmd.TlfID(), req.ptr.ID, TriggeredPrefetch,
+					req.action.CacheType())
+				if err != nil {
+					p.log.CDebugf(pre.ctx,
+						"Couldn't update metadata for block %s, action=%s",
+						req.ptr.ID, pre.req.action)
+				}
+			}
 		case <-p.almostDoneCh:
 			p.log.CDebugf(p.ctx, "starting shutdown")
 			isShuttingDown = true
@@ -1165,10 +1187,20 @@ func (p *blockPrefetcher) triggerPrefetch(req *prefetchRequest) {
 
 func (p *blockPrefetcher) cacheOrCancelPrefetch(ctx context.Context,
 	ptr BlockPointer, tlfID tlf.ID, block Block, lifetime BlockCacheLifetime,
-	prefetchStatus PrefetchStatus) error {
-	err := p.retriever.PutInCaches(ctx, ptr, tlfID, block, lifetime,
-		prefetchStatus)
+	prefetchStatus PrefetchStatus, action BlockRequestAction,
+	req *prefetchRequest) error {
+	err := p.retriever.PutInCaches(
+		ctx, ptr, tlfID, block, lifetime, prefetchStatus, action.CacheType())
 	if err != nil {
+		// The PutInCaches call can return an error if the cache is
+		// full, so check for rescheduling even when err != nil.
+		if doStop, doCancel := p.stopIfNeeded(ctx, req); doStop {
+			if doCancel {
+				p.CancelPrefetch(ptr)
+			}
+			return err
+		}
+
 		p.log.CWarningf(ctx, "error prefetching block %s: %+v, canceling",
 			ptr.ID, err)
 		p.CancelPrefetch(ptr)
@@ -1190,21 +1222,17 @@ func (p *blockPrefetcher) ProcessBlockForPrefetch(ctx context.Context,
 	} else if !action.Prefetch(block) {
 		// Only high priority requests can trigger prefetches. Leave the
 		// prefetchStatus unchanged, but cache anyway.
-		p.retriever.PutInCaches(ctx, ptr, kmd.TlfID(), block, lifetime,
-			prefetchStatus)
+		p.retriever.PutInCaches(
+			ctx, ptr, kmd.TlfID(), block, lifetime, prefetchStatus,
+			action.CacheType())
 	} else {
 		// Note that here we are caching `TriggeredPrefetch`, but the request
 		// will still reflect the passed-in `prefetchStatus`, since that's the
 		// one the prefetching goroutine needs to decide what to do with.
 		err := p.cacheOrCancelPrefetch(
-			ctx, ptr, kmd.TlfID(), block, lifetime, TriggeredPrefetch)
+			ctx, ptr, kmd.TlfID(), block, lifetime, TriggeredPrefetch, action,
+			req)
 		if err != nil {
-			return
-		}
-		if doStop, doCancel := p.stopIfNeeded(ctx, req); doStop {
-			if doCancel {
-				p.CancelPrefetch(ptr)
-			}
 			return
 		}
 	}
