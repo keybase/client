@@ -4,41 +4,40 @@ import * as Flow from '../../util/flow'
 import * as ChatTypes from '../../constants/types/chat2'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import CommaSeparatedName from '../common/comma-separated-name'
 
-type Person = {
+type Person = {|
   type: 'person',
   name: string,
-}
+|}
 
-type Group = {
+type Group = {|
   type: 'group',
   name: string,
-}
+|}
 
-type SmallTeam = {
+type SmallTeam = {|
   type: 'small-team',
   name: string,
-}
+|}
 
-type BigTeam = {
+type BigTeam = {|
   type: 'big-team',
   name: string,
   channels: Array<{|convID: ChatTypes.ConversationIDKey, channelname: string|}>,
   selectChannel: (convID: ChatTypes.ConversationIDKey) => void,
   selectedChannelname?: ?string,
-}
+|}
 
-type None = {
+type None = {|
   type: 'none',
-}
+|}
 
-type Props = {
+type Props = {|
   onCancel: () => void,
   conversation: Person | Group | SmallTeam | BigTeam | None,
   pathTextToCopy: string,
   send?: ?() => void,
-}
+|}
 
 const who = (props: Props) => {
   switch (props.conversation.type) {
@@ -95,58 +94,101 @@ const BigTeamChannelDropdown = ({conversation}: Props) =>
     />
   )
 
-const Header = (props: Props) => (
-  <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.header} fullWidth={true}>
-    {props.conversation.type === 'none' ? (
-      <Kb.Text type="Header">Copy link</Kb.Text>
-    ) : (
-      <>
-        <Kb.Text type="Header">Send Link to</Kb.Text>
-        <Kb.Box style={styles.headerGap} />
-        {(props.conversation.type === 'small-team' || props.conversation.type === 'big-team') && (
-          <Kb.Avatar size={16} teamname={props.conversation.name} isTeam={true} style={styles.avatar} />
-        )}
-        <CommaSeparatedName type="Header" name={props.conversation.name} />
-      </>
+const HeaderContent = (props: Props) =>
+  props.conversation.type === 'none' ? (
+    <Kb.Text type={Styles.isMobile ? 'BodySemibold' : 'Header'}>Copy link</Kb.Text>
+  ) : (
+    <Kb.Text type={Styles.isMobile ? 'BodySemibold' : 'Header'}>
+      Send link to{' '}
+      {props.conversation.type === 'small-team' || props.conversation.type === 'big-team'
+        ? 'team chat'
+        : 'group chat'}
+    </Kb.Text>
+  )
+
+const DesktopHeader = (props: Props) => (
+  <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.desktopHeader} fullWidth={true}>
+    <HeaderContent {...props} />
+  </Kb.Box2>
+)
+
+const Footer = (props: Props) => (
+  <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.footer} gap="tiny">
+    {!Styles.isMobile && <Kb.Button type="Secondary" label="Cancel" onClick={props.onCancel} />}
+    {props.conversation.type !== 'none' && (
+      <Kb.Button type="Primary" label="Send in conversation" disabled={!props.send} onClick={props.send} />
     )}
   </Kb.Box2>
 )
 
-const SendLinkToChat = (props: Props) => (
-  <Kb.Box2 direction="vertical" style={styles.container}>
-    <Header {...props} />
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
-      <Kb.CopyText text={props.pathTextToCopy} containerStyle={styles.copyText} />
-      {props.conversation.type !== 'none' && (
-        <Kb.Text type="BodyTiny" style={styles.onlyWhoGetAccess}>
-          Only {who(props)} will get access to the file.
-        </Kb.Text>
-      )}
-      <BigTeamChannelDropdown {...props} />
+const SendLinkToChatMain = (props: Props) => (
+  <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.main}>
+    <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.centerBox}>
+      <Kb.CopyText text={props.pathTextToCopy} multiline={Styles.isMobile} />
     </Kb.Box2>
-    <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.footer} gap="tiny">
-      <Kb.Button type="Secondary" label="Cancel" onClick={props.onCancel} />
-      {props.conversation.type !== 'none' && (
-        <Kb.Button type="Primary" label="Send in conversation" disabled={!props.send} onClick={props.send} />
-      )}
+    {props.conversation.type !== 'none' && (
+      <Kb.Text type="BodySmall" style={styles.onlyWhoGetAccess}>
+        Only {who(props)} will get access to the file.
+      </Kb.Text>
+    )}
+    <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.centerBox}>
+      <BigTeamChannelDropdown {...props} />
     </Kb.Box2>
   </Kb.Box2>
 )
 
-export default Kb.HeaderOrPopup(SendLinkToChat)
+const DesktopSendLinkToChat = (props: Props) => (
+  <Kb.Box2 direction="vertical" style={styles.desktopContainer}>
+    <DesktopHeader {...props} />
+    <SendLinkToChatMain {...props} />
+    <Footer {...props} />
+  </Kb.Box2>
+)
+
+const MobileHeader = (props: Props) => (
+  <Kb.Box2 direction="horizontal" centerChildren={true} fullWidth={true} style={styles.mobileHeader}>
+    <Kb.Box2 direction="horizontal" style={styles.mobileHeaderContent} fullWidth={true} centerChildren={true}>
+      <HeaderContent {...props} />
+    </Kb.Box2>
+    <Kb.Text type="BodyBigLink" style={styles.mobileButton} onClick={props.onCancel}>
+      Cancel
+    </Kb.Text>
+  </Kb.Box2>
+)
+
+const MobileSendLinkToChat = (props: Props) => (
+  <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
+    <SendLinkToChatMain {...props} />
+    <Footer {...props} />
+  </Kb.Box2>
+)
+
+const MobileWithHeader = Kb.HeaderHoc(MobileSendLinkToChat)
+
+export default (Styles.isMobile
+  ? (props: Props) => (
+      // $FlowIssue seems HeaderHoc typing is wrong
+      <MobileWithHeader customComponent={<MobileHeader {...props} />} {...props} />
+    )
+  : Kb.HeaderOrPopup(DesktopSendLinkToChat))
 
 const styles = Styles.styleSheetCreate({
   avatar: {
     marginRight: Styles.globalMargins.xtiny,
   },
-  container: Styles.platformStyles({
-    isElectron: {
-      height: 480,
-      width: 560,
-    },
-  }),
-  copyText: {
-    flex: undefined, // unsets flex in CopyText
+  centerBox: {
+    paddingLeft: Styles.globalMargins.medium,
+    paddingRight: Styles.globalMargins.medium,
+  },
+  desktopContainer: {
+    height: 480,
+    width: 560,
+  },
+  desktopHeader: {
+    flexWrap: 'wrap',
+    paddingLeft: Styles.globalMargins.mediumLarge,
+    paddingRight: Styles.globalMargins.mediumLarge,
+    paddingTop: Styles.globalMargins.mediumLarge,
   },
   dropdown: {
     marginTop: Styles.globalMargins.mediumLarge,
@@ -154,14 +196,27 @@ const styles = Styles.styleSheetCreate({
   footer: {
     marginBottom: Styles.globalMargins.large,
   },
-  header: {
-    flexWrap: 'wrap',
-    paddingLeft: Styles.globalMargins.mediumLarge,
-    paddingRight: Styles.globalMargins.mediumLarge,
-    paddingTop: Styles.globalMargins.mediumLarge,
+  main: {
+    flex: 1,
   },
-  headerGap: {
-    paddingLeft: Styles.globalMargins.xtiny,
+  mobileButton: {
+    left: 0,
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
+    paddingTop: Styles.globalMargins.tiny,
+    position: 'absolute',
+  },
+  mobileHeader: {
+    minHeight: 44,
+  },
+  mobileHeaderContent: {
+    flex: 1,
+    flexShrink: 1,
+    padding: Styles.globalMargins.xtiny,
+  },
+  mobileHeaderText: {
+    textAlign: 'center',
   },
   onlyWhoGetAccess: {
     marginTop: Styles.globalMargins.xsmall,

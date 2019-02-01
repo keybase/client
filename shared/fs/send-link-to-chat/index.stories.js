@@ -85,7 +85,9 @@ const load = () =>
     .add('SendLinkToChat - Big Team - Selected', () => (
       <SendLinkToChat
         {...common}
-        pathTextToCopy={makePathTextToCopy('/keybase/team/kbkbfstest')}
+        pathTextToCopy={makePathTextToCopy(
+          '/keybase/team/kbkbfstest/blahblah/long-name/blah/woeifj/wioejfoiwej'
+        )}
         conversation={{
           channels,
           name: 'kbkbfstest',
