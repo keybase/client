@@ -2098,6 +2098,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 			case chat1.ConversationMembersType_TEAM:
 				first := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 					mt, ctc.as(t, users[1]).user())
+				consumeNewConversation(t, listener, first.Id)
 				topicName := "mike"
 				ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(tc.startCtx,
 					chat1.NewConversationLocalArg{
@@ -3935,6 +3936,9 @@ func TestChatSrvTeamChannels(t *testing.T) {
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 			mt, ctc.as(t, users[1]).user(), ctc.as(t, users[2]).user())
 		t.Logf("first conv: %s", conv.Id)
+		consumeNewConversation(t, listener0, conv.Id)
+		consumeNewConversation(t, listener1, conv.Id)
+		consumeNewConversation(t, listener2, conv.Id)
 
 		t.Logf("create a conversation, and join user 1 into by sending a message")
 		topicName := "zjoinonsend"
@@ -4521,6 +4525,8 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 		created := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 			mt, tc2.user())
 		convID := created.Id
+		consumeNewConversation(t, listener1, convID)
+		consumeNewConversation(t, listener2, convID)
 
 		verifyMinWriterRoleInfoOnConv := func(user *kbtest.FakeUser, role *keybase1.TeamRole) {
 			tc := ctc.as(t, user)
@@ -4706,6 +4712,7 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		ri := ctc.as(t, users[0]).ri
 
 		firstConv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
+		consumeNewConversation(t, listener0, firstConv.Id)
 
 		topicName := "MIKE"
 		ctx := ctc.as(t, users[0]).startCtx
@@ -4766,7 +4773,6 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		randomConvID := ncres.Conv.GetConvID()
 		consumeNewConversation(t, listener0, randomConvID)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
-		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
 
 		ncres, err = ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx, ncarg)
 		require.NoError(t, err)
@@ -5139,6 +5145,8 @@ func TestChatSrvDeleteConversation(t *testing.T) {
 
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt,
 			ctc.as(t, users[1]).user())
+		consumeNewConversation(t, listener0, conv.Id)
+		consumeNewConversation(t, listener1, conv.Id)
 
 		_, err := ctc.as(t, users[0]).chatLocalHandler().DeleteConversationLocal(ctx,
 			chat1.DeleteConversationLocalArg{
@@ -5629,7 +5637,7 @@ func TestChatSrvTeamChannelNameMentions(t *testing.T) {
 			t.Logf("conv: %s chan: %s, err: %v", conv.Id, channel.Conv.GetConvID(), err)
 			require.NoError(t, err)
 			assertNoNewConversation(t, listener0)
-			consumeNewConversation(t, listener1, conv.Id)
+			consumeNewConversation(t, listener1, channel.Conv.GetConvID())
 			consumeNewMsgRemote(t, listener1, chat1.MessageType_JOIN)
 			if index == 0 {
 				consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
