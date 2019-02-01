@@ -1744,6 +1744,70 @@ func IsPermanentErr(err error) bool {
 	return err != nil
 }
 
+func EphemeralLifetimeFromConv(ctx context.Context, g *globals.Context, conv chat1.Conversation) (res *gregor1.DurationSec, err error) {
+	// Check to see if the conversation has an exploding policy
+	var rentTyp chat1.RetentionPolicyType
+	if conv.ConvRetention == nil {
+		rentTyp = chat1.RetentionPolicyType_NONE
+	} else {
+		if rentTyp, err = conv.ConvRetention.Typ(); err != nil {
+			return res, err
+		}
+	}
+	var retentionRes *gregor1.DurationSec
+	var gregorRes *gregor1.DurationSec
+	switch rentTyp {
+	case chat1.RetentionPolicyType_EPHEMERAL:
+		e := conv.ConvRetention.Ephemeral()
+		retentionRes = &e.Age
+	case chat1.RetentionPolicyType_INHERIT:
+		if conv.TeamRetention != nil {
+			teamTyp, err := conv.TeamRetention.Typ()
+			if err != nil {
+				return res, nil
+			}
+			if teamTyp == chat1.RetentionPolicyType_EPHEMERAL {
+				e := conv.ConvRetention.Ephemeral()
+				retentionRes = &e.Age
+			}
+		}
+	}
+	// See if there is anything in Gregor
+	st, err := g.GregorState.State(ctx)
+	if err != nil {
+		return res, err
+	}
+	items, err := st.Items()
+	if err != nil {
+		return res, err
+	}
+	key := fmt.Sprintf("exploding:%s", conv.GetConvID())
+	for _, it := range items {
+		if it.Category().String() == key {
+			body := string(it.Body().Bytes())
+			sec, err := strconv.ParseInt(body, 0, 0)
+			if err != nil {
+				return res, nil
+			}
+			gsec := gregor1.DurationSec(sec)
+			gregorRes = &gsec
+			break
+		}
+	}
+	if retentionRes != nil && gregorRes != nil {
+		if *gregorRes < *retentionRes {
+			return gregorRes, nil
+		}
+		return retentionRes, nil
+	} else if retentionRes != nil {
+		return retentionRes, nil
+	} else if gregorRes != nil {
+		return gregorRes, nil
+	} else {
+		return nil, nil
+	}
+}
+
 var decorateBegin = "$>kb$"
 var decorateEnd = "$<kb$"
 var decorateEscapeRe = regexp.MustCompile(`\\*\$\>kb\$`)
