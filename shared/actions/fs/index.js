@@ -755,7 +755,7 @@ const moveOrCopyOpen = (state, action) => [
 const showMoveOrCopy = (state, action) =>
   RouteTreeGen.createNavigateAppend({path: [{props: {index: 0}, selected: 'destinationPicker'}]})
 
-const cancelMoveOrCopy = (state, action) => {
+const closeMoveOrCopy = (state, action) => {
   const currentRoutes = getPathProps(state.routeTree.routeState)
   const firstDestinationPickerIndex = currentRoutes.findIndex(({node}) => node === 'destinationPicker')
   const newRoute = currentRoutes.reduce(
@@ -899,7 +899,7 @@ function* fsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<FsGen.MovePayload | FsGen.CopyPayload>([FsGen.move, FsGen.copy], moveOrCopy)
   yield* Saga.chainAction<FsGen.MoveOrCopyOpenPayload>(FsGen.moveOrCopyOpen, moveOrCopyOpen)
   yield* Saga.chainAction<FsGen.ShowMoveOrCopyPayload>(FsGen.showMoveOrCopy, showMoveOrCopy)
-  yield* Saga.chainAction<FsGen.CancelMoveOrCopyPayload>(FsGen.cancelMoveOrCopy, cancelMoveOrCopy)
+  yield* Saga.chainAction<FsGen.CloseMoveOrCopyPayload>(FsGen.closeMoveOrCopy, closeMoveOrCopy)
   yield* Saga.chainGenerator<FsGen.ShowSendLinkToChatPayload>(FsGen.showSendLinkToChat, showSendLinkToChat)
   yield* Saga.chainAction<FsGen.ClearRefreshTagPayload>(FsGen.clearRefreshTag, clearRefreshTag)
 
