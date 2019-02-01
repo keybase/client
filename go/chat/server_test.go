@@ -5867,6 +5867,11 @@ func TestChatSrvEphemeralPolicy(t *testing.T) {
 	useRemoteMock = false
 	defer func() { useRemoteMock = true }()
 
+	timeout := 2 * time.Second
+	ctx := ctc.as(t, users[0]).startCtx
+	tc := ctc.world.Tcs[users[0].Username]
+	listener0 := newServerChatListener()
+	ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener0)
 	getMsg := func(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID) chat1.MessageUnboxed {
 		res, err := ctc.as(t, users[0]).chatLocalHandler().GetMessagesLocal(ctx, chat1.GetMessagesLocalArg{
 			ConversationID: convID,
@@ -5876,12 +5881,18 @@ func TestChatSrvEphemeralPolicy(t *testing.T) {
 		require.Equal(t, 1, len(res.Messages))
 		return res.Messages[0]
 	}
+	checkEph := func(convID chat1.ConversationID, exp int) {
+		select {
+		case rmsg := <-listener0.newMessageRemote:
+			msg := getMsg(ctx, convID, rmsg.Message.GetMessageID())
+			require.True(t, msg.IsValid())
+			require.NotNil(t, msg.Valid().ClientHeader.EphemeralMetadata)
+			require.Equal(t, gregor1.DurationSec(exp), msg.Valid().ClientHeader.EphemeralMetadata.Lifetime)
+		case <-time.After(timeout):
+			require.Fail(t, "no message")
+		}
+	}
 
-	timeout := 2 * time.Second
-	ctx := ctc.as(t, users[0]).startCtx
-	tc := ctc.world.Tcs[users[0].Username]
-	listener0 := newServerChatListener()
-	ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener0)
 	impconv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_IMPTEAMNATIVE)
 	require.NoError(t, ctc.as(t, users[0]).chatLocalHandler().SetConvRetentionLocal(ctx,
@@ -5896,15 +5907,7 @@ func TestChatSrvEphemeralPolicy(t *testing.T) {
 		chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: "HI",
 		}))
-	select {
-	case rmsg := <-listener0.newMessageRemote:
-		msg := getMsg(ctx, impconv.Id, rmsg.Message.GetMessageID())
-		require.True(t, msg.IsValid())
-		require.NotNil(t, msg.Valid().ClientHeader.EphemeralMetadata)
-		require.Equal(t, gregor1.DurationSec(86400), msg.Valid().ClientHeader.EphemeralMetadata.Lifetime)
-	case <-time.After(timeout):
-		require.Fail(t, "no message")
-	}
+	checkEph(impconv.Id, 86400)
 	_, err := tc.Context().GregorState.InjectItem(ctx, fmt.Sprintf("exploding:%s", impconv.Id),
 		[]byte("3600"), gregor1.TimeOrOffset{})
 	require.NoError(t, err)
@@ -5912,16 +5915,23 @@ func TestChatSrvEphemeralPolicy(t *testing.T) {
 		chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: "HI",
 		}))
-	select {
-	case rmsg := <-listener0.newMessageRemote:
-		msg := getMsg(ctx, impconv.Id, rmsg.Message.GetMessageID())
-		require.True(t, msg.IsValid())
-		require.NotNil(t, msg.Valid().ClientHeader.EphemeralMetadata)
-		require.Equal(t, gregor1.DurationSec(3600), msg.Valid().ClientHeader.EphemeralMetadata.Lifetime)
-	case <-time.After(timeout):
-		require.Fail(t, "no message")
-	}
+	checkEph(impconv.Id, 3600)
 
+	teamconv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+		chat1.ConversationMembersType_TEAM)
+	require.NoError(t, ctc.as(t, users[0]).chatLocalHandler().SetTeamRetentionLocal(ctx,
+		chat1.SetTeamRetentionLocalArg{
+			TeamID: keybase1.TeamID(teamconv.Triple.Tlfid.String()),
+			Policy: chat1.NewRetentionPolicyWithEphemeral(chat1.RpEphemeral{
+				Age: gregor1.DurationSec(86400),
+			}),
+		}))
+	consumeSetTeamRetention(t, listener0)
+	mustPostLocalForTest(t, ctc, users[0], teamconv,
+		chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body: "HI",
+		}))
+	checkEph(teamconv.Id, 86400)
 }
 
 func TestChatSrvStellarMessages(t *testing.T) {
