@@ -15,14 +15,12 @@ func NewGregorMsgID() (gregor1.MsgID, error) {
 	return gregor1.MsgID(r), nil
 }
 
-func TemplateMessage(uid gregor1.UID) (*gregor1.Message, error) {
-
+func TemplateMessage(uid gregor1.UID) (gregor1.Message, error) {
 	newMsgID, err := NewGregorMsgID()
 	if err != nil {
 		return nil, err
 	}
-
-	return &gregor1.Message{
+	return gregor1.Message{
 		Ibm_: &gregor1.InBandMessage{
 			StateUpdate_: &gregor1.StateUpdateMessage{
 				Md_: gregor1.Metadata{
@@ -45,7 +43,7 @@ func FormMessageForInjectItem(ctx context.Context, uid gregor1.UID, cat string, 
 		Body_:     gregor1.Body(body),
 		Dtime_:    dtime,
 	}
-	return *creation, nil
+	return creation, nil
 }
 
 func FormMessageForDismissItem(ctx context.Context, uid gregor1.UID, id gregor.MsgID) (gregor.Message, error) {
@@ -56,5 +54,5 @@ func FormMessageForDismissItem(ctx context.Context, uid gregor1.UID, id gregor.M
 	dismissal.Ibm_.StateUpdate_.Dismissal_ = &gregor1.Dismissal{
 		MsgIDs_: []gregor1.MsgID{gregor1.MsgID(id.Bytes())},
 	}
-	return *dismissal, nil
+	return dismissal, nil
 }
