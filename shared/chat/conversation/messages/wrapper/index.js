@@ -541,14 +541,16 @@ const styles = Styles.styleSheetCreate({
   ellipsis: {marginLeft: Styles.globalMargins.tiny},
   emojiRow: Styles.platformStyles({
     isElectron: {
-      border: `1px solid ${Styles.globalColors.black_10}`,
+      borderBottom: `1px solid ${Styles.globalColors.black_10}`,
       borderBottomLeftRadius: Styles.borderRadius,
       borderBottomRightRadius: Styles.borderRadius,
-      borderTopWidth: 0,
+      borderLeft: `1px solid ${Styles.globalColors.black_10}`,
+      borderRight: `1px solid ${Styles.globalColors.black_10}`,
       bottom: -24,
+      paddingBottom: 8,
       position: 'absolute',
       right: 96,
-      zIndex: 2,
+      zIndex: 3,
     },
   }),
   emojiRowLast: Styles.platformStyles({
@@ -558,6 +560,8 @@ const styles = Styles.styleSheetCreate({
       borderBottomRightRadius: 0,
       borderTopLeftRadius: Styles.borderRadius,
       borderTopRightRadius: Styles.borderRadius,
+      paddingBottom: 0,
+      paddingTop: 8,
       top: -24,
     },
   }),
