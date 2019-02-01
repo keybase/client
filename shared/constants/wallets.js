@@ -33,15 +33,25 @@ export const makeAirdropQualification: I.RecordFactory<Types._AirdropQualificati
   valid: false,
 })
 
-export const makeAirdropInfoLine: I.RecordFactory<Types._AirdropInfoLine> = I.Record({
+export const makeAirdropDetailsLine: I.RecordFactory<Types._AirdropDetailsLine> = I.Record({
   bullet: false,
   text: '',
 })
 
-export const makeAirdropInfo: I.RecordFactory<Types._AirdropInfo> = I.Record({
+export const makeAirdropDetailsHeader: I.RecordFactory<Types._AirdropDetailsHeader> = I.Record({
+  body: '',
+  title: '',
+})
+
+export const makeAirdropDetailsSection: I.RecordFactory<Types._AirdropDetailsSection> = I.Record({
   icon: '',
   lines: I.List(),
   section: '',
+})
+
+export const makeAirdropDetails: I.RecordFactory<Types._AirdropDetails> = I.Record({
+  header: makeAirdropDetailsHeader({}),
+  sections: I.List(),
 })
 
 export const makeInflationDestination: I.RecordFactory<Types._InflationDestination> = I.Record({
@@ -115,7 +125,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   accountName: '',
   accountNameError: '',
   accountNameValidationState: 'none',
-  airdropProgramInfo: I.List(),
+  airdropDetails: makeAirdropDetails(),
   airdropQualifications: I.List(),
   airdropShowBanner: false,
   airdropState: 'loading',

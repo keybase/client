@@ -870,11 +870,46 @@ const changeAirdrop = (_, action) =>
   RPCStellarTypes.localAirdropRegisterLocalRpcPromise(
     {register: action.payload.accept},
     Constants.airdropWaitingKey
-  ).then(() => {})
+  ).then(() => WalletsGen.createUpdateAirdropState()) // reload
 
+type AirdropDetailsJSONType = ?{
+  header?: ?{
+    body?: ?string,
+    title?: ?string,
+  },
+  sections?: ?Array<?{
+    icon?: ?string,
+    section?: ?string,
+    lines?: ?Array<?{
+      bullet?: ?boolean,
+      text?: ?string,
+    }>,
+  }>,
+}
 const updateAirdropDetails = () =>
-  RPCStellarTypes.localAirdropDetailsLocalRpcPromise(undefined, Constants.airdropWaitingKey).then(() => {
-    return WalletsGen.createUpdatedAirdropDetails()
+  RPCStellarTypes.localAirdropDetailsLocalRpcPromise(undefined, Constants.airdropWaitingKey).then(s => {
+    const json: AirdropDetailsJSONType = JSON.parse(s)
+    return WalletsGen.createUpdatedAirdropDetails({
+      details: Constants.makeAirdropDetails({
+        header: Constants.makeAirdropDetailsHeader({
+          body: json?.header?.body || '',
+          title: json?.header?.title || '',
+        }),
+        sections: I.List(
+          (json?.sections || []).map(section =>
+            Constants.makeAirdropDetailsSection({
+              icon: section?.icon || '',
+              lines: I.List(
+                (section?.lines || []).map(l =>
+                  Constants.makeAirdropDetailsLine({bullet: l?.bullet || false, text: l?.text || ''})
+                )
+              ),
+              section: section?.section || '',
+            })
+          )
+        ),
+      }),
+    })
   })
 
 const updateAirdropState = () =>
@@ -1134,21 +1169,21 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     changeMobileOnlyMode
   )
   yield* Saga.chainAction<WalletsGen.SetLastSentXLMPayload>(WalletsGen.setLastSentXLM, writeLastSentXLM)
-  yield* Saga.chainAction<WalletsGen.ChangeAirdropPayload>(WalletsGen.changeAirdrop, changeAirdrop)
   yield* Saga.chainAction<ConfigGen.DaemonHandshakeDonePayload>(
     ConfigGen.daemonHandshakeDone,
     readLastSentXLM
   )
+  yield* Saga.chainAction<WalletsGen.ChangeAirdropPayload>(WalletsGen.changeAirdrop, changeAirdrop)
   yield* Saga.chainAction<WalletsGen.UpdateAirdropStatePayload>(
     WalletsGen.updateAirdropDetails,
     updateAirdropDetails
   )
-  yield* Saga.chainAction<WalletsGen.UpdateAirdropStatePayload>(
-    WalletsGen.updateAirdropState,
+  yield* Saga.chainAction<WalletsGen.UpdateAirdropStatePayload | ConfigGen.DaemonHandshakeDonePayload>(
+    [WalletsGen.updateAirdropState, ConfigGen.daemonHandshakeDone],
     updateAirdropState
   )
-  yield* Saga.chainAction<WalletsGen.HideAirdropBannerPayload>(
-    WalletsGen.hideAirdropBanner,
+  yield* Saga.chainAction<WalletsGen.HideAirdropBannerPayload | WalletsGen.ChangeAirdropPayload>(
+    [WalletsGen.hideAirdropBanner, WalletsGen.changeAirdrop],
     hideAirdropBanner
   )
   yield* Saga.chainAction<GregorGen.PushStatePayload>(GregorGen.pushState, gregorPushState)

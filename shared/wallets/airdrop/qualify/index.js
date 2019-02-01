@@ -9,6 +9,7 @@ import shallowEqual from 'shallowequal'
 type Props = {|
   state: Types.AirdropState,
   onCancel: () => void,
+  onLoad: () => void,
   onSubmit: () => void,
   rows: $ReadOnlyArray<{|
     title: string,
@@ -191,14 +192,21 @@ class Qualified extends React.PureComponent<Props, State> {
   }
 }
 
-const Qualify = (p: Props) => (
-  <Kb.MaybePopup onClose={p.onCancel}>
-    <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
-      <Accepted {...p} />
-      <Qualified {...p} />
-    </Kb.Box2>
-  </Kb.MaybePopup>
-)
+class Qualify extends React.PureComponent<Props> {
+  componentDidMount() {
+    this.props.onLoad()
+  }
+  render() {
+    return (
+      <Kb.MaybePopup onClose={this.props.onCancel}>
+        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
+          <Accepted {...this.props} />
+          <Qualified {...this.props} />
+        </Kb.Box2>
+      </Kb.MaybePopup>
+    )
+  }
+}
 
 const styles = Styles.styleSheetCreate({
   buttonAccept: {flexGrow: 0},

@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
+import * as Constants from '../../constants/wallets'
 import * as Styles from '../../styles'
 import {iconMeta} from '../../common-adapters/icon.constants'
 import openURL from '../../util/open-url'
@@ -12,13 +13,12 @@ type Props = {|
   onCheckQualify: () => void,
   onReject: () => void,
   signedUp: boolean,
-  body: $ReadOnlyArray<{|
-    lines: $ReadOnlyArray<{|
-      bullet: boolean,
-      text: string,
-    |}>,
+  headerBody: string,
+  headerTitle: string,
+  sections: $ReadOnlyArray<{|
+    lines: $ReadOnlyArray<{|bullet: boolean, text: string|}>,
     section: string,
-    icon?: ?string,
+    icon: ?string,
   |}>,
 |}
 
@@ -66,7 +66,7 @@ class Airdrop extends React.Component<Props> {
             <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.signedUpHeader} gap="small">
               <Kb.Icon type="icon-stellar-coins-stacked-16" />
               <Kb.Text backgroundMode="Terminal" type="BodySemibold" style={styles.shrink}>
-                You’re in. The next Lumens airdrop will happen March 1.
+                You’re in!
               </Kb.Text>
             </Kb.Box2>
           ) : (
@@ -78,13 +78,8 @@ class Airdrop extends React.Component<Props> {
                 />
               </Kb.Box2>
               <Kb.Box2 direction="vertical" gap="small" style={styles.shrink}>
-                <Kb.Text backgroundMode="Terminal" type="Header">
-                  Get free lumens every month
-                </Kb.Text>
-                <Kb.Text type="Body">
-                  Monthly starting March 1, Keybase will divide 50,000 XLM (Stellar Lumens) among Keybase
-                  users.
-                </Kb.Text>
+                <Kb.Markdown styleOverride={headerOverride}>{p.headerTitle}</Kb.Markdown>
+                <Kb.Markdown styleOverride={bodyOverride}>{p.headerBody}</Kb.Markdown>
                 <Kb.Button
                   backgroundMode="Purple"
                   type="PrimaryColoredBackground"
@@ -96,12 +91,12 @@ class Airdrop extends React.Component<Props> {
             </Kb.Box2>
           )}
           <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true} style={styles.body} gap="small">
-            {p.body.map(b => (
+            {p.sections.map(b => (
               <Kb.Box2 key={b.section} direction="horizontal" gap="large" fullWidth={true}>
                 <Kb.Box2 direction="vertical" gap="xtiny" alignSelf="flex-start">
-                  <Kb.Text type="BodySemibold" style={styles.section}>
+                  <Kb.Markdown style={styles.section} styleOverride={sectionOverride}>
                     {b.section}
-                  </Kb.Text>
+                  </Kb.Markdown>
                   {b.lines.map(l => (
                     <Kb.Box2 key={l.text} direction="horizontal" fullWidth={true}>
                       {l.bullet && (
@@ -112,7 +107,7 @@ class Airdrop extends React.Component<Props> {
                           style={styles.bullet}
                         />
                       )}
-                      <Kb.Text type="Body">{l.text}</Kb.Text>
+                      <Kb.Markdown styleOverride={sectionBodyOverride}>{l.text}</Kb.Markdown>
                     </Kb.Box2>
                   ))}
                 </Kb.Box2>
@@ -121,7 +116,12 @@ class Airdrop extends React.Component<Props> {
             ))}
           </Kb.Box2>
           {p.signedUp ? (
-            <Kb.Button type="Danger" label="Leave program" onClick={p.onReject} />
+            <Kb.WaitingButton
+              type="Danger"
+              label="Leave program"
+              onClick={p.onReject}
+              waitingKey={Constants.airdropWaitingKey}
+            />
           ) : (
             <Kb.Button type="PrimaryGreen" label="See if you qualify" onClick={p.onCheckQualify} />
           )}
@@ -149,6 +149,32 @@ class Airdrop extends React.Component<Props> {
       </Kb.ScrollView>
     )
   }
+}
+
+const headerOverride = {
+  paragraph: {
+    ...Styles.globalStyles.fontSemibold,
+    color: Styles.globalColors.white,
+    fontSize: Styles.isMobile ? 20 : 16,
+  },
+  strong: {...Styles.globalStyles.fontExtrabold},
+}
+const bodyOverride = {
+  paragraph: {
+    color: Styles.globalColors.white,
+    fontSize: Styles.isMobile ? 16 : 13,
+  },
+  strong: {...Styles.globalStyles.fontExtrabold},
+}
+const sectionOverride = {
+  paragraph: {
+    ...Styles.globalStyles.fontSemibold,
+    fontSize: Styles.isMobile ? 18 : 14,
+  },
+  strong: {...Styles.globalStyles.fontExtrabold},
+}
+const sectionBodyOverride = {
+  paragraph: {fontSize: Styles.isMobile ? 16 : 13},
 }
 
 const styles = Styles.styleSheetCreate({

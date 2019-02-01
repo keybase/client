@@ -6,7 +6,7 @@ import {connect, type RouteProps} from '../../util/container'
 type OwnProps = RouteProps<{}, {}>
 
 const mapStateToProps = state => ({
-  _body: state.wallets.airdropProgramInfo,
+  _details: state.wallets.airdropDetails,
   loading: state.wallets.airdropState === 'loading',
   signedUp: state.wallets.airdropState === 'accepted',
 })
@@ -22,18 +22,21 @@ const mapDispatchToProps = (dispatch, {navigateAppend, navigateUp}) => ({
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({
-  body: stateProps._body.toArray().map(b => ({
-    lines: b.lines.toArray().map(l => ({
-      bullet: l.bullet,
-      text: l.text,
-    })),
-    section: b.section,
-  })),
+  headerBody: stateProps._details.header.body,
+  headerTitle: stateProps._details.header.title,
   loading: stateProps.loading,
   onBack: dispatchProps.onBack,
   onCheckQualify: dispatchProps.onCheckQualify,
   onLoad: dispatchProps.onLoad,
   onReject: dispatchProps.onReject,
+  sections: stateProps._details.sections.toArray().map(s => ({
+    icon: s.icon,
+    lines: s.lines.toArray().map(l => ({
+      bullet: l.bullet,
+      text: l.text,
+    })),
+    section: s.section,
+  })),
   signedUp: stateProps.signedUp,
 })
 

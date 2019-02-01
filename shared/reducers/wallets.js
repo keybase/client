@@ -371,7 +371,7 @@ export default function(state: Types.State = initialState, action: WalletsGen.Ac
     case WalletsGen.updateAirdropBannerState:
       return state.merge({airdropShowBanner: action.payload.show})
     case WalletsGen.updatedAirdropDetails:
-      return state // TODO
+      return state.merge({airdropDetails: action.payload.details})
     // Saga only actions
     case WalletsGen.updateAirdropDetails:
     case WalletsGen.changeAirdrop:

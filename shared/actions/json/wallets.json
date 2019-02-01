@@ -413,7 +413,6 @@
       "airdropState": "Types.AirdropState",
     },
     "updateAirdropDetails": {},
-    "updatedAirdropDetails": {
-    },
+    "updatedAirdropDetails": { "details": "Types.AirdropDetails" },
   }
 }

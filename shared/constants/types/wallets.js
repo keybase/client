@@ -245,14 +245,27 @@ export type _AirdropQualification = {|
 |}
 export type AirdropQualification = I.RecordOf<_AirdropQualification>
 
-export type _AirdropInfoLine = {|bullet: boolean, text: string|}
-type AirdropInfoLine = I.RecordOf<_AirdropInfoLine>
-export type _AirdropInfo = {|
-  lines: I.List<AirdropInfoLine>,
+export type _AirdropDetailsLine = {|bullet: boolean, text: string|}
+type AirdropDetailsLine = I.RecordOf<_AirdropDetailsLine>
+
+export type _AirdropDetailsSection = {|
+  lines: I.List<AirdropDetailsLine>,
   section: string,
   icon: string,
 |}
-type AirdropInfo = I.RecordOf<_AirdropInfo>
+type AirdropDetailsSection = I.RecordOf<_AirdropDetailsSection>
+
+export type _AirdropDetailsHeader = {|
+  body: string,
+  title: string,
+|}
+type AirdropDetailsHeader = I.RecordOf<_AirdropDetailsHeader>
+
+export type _AirdropDetails = {|
+  header: AirdropDetailsHeader,
+  sections: I.List<AirdropDetailsSection>,
+|}
+export type AirdropDetails = I.RecordOf<_AirdropDetails>
 
 export type _State = {
   acceptedDisclaimer: boolean,
@@ -261,7 +274,7 @@ export type _State = {
   accountName: string,
   accountNameError: string,
   accountNameValidationState: ValidationState,
-  airdropProgramInfo: I.List<AirdropInfo>,
+  airdropDetails: AirdropDetails,
   airdropQualifications: I.List<AirdropQualification>,
   airdropShowBanner: boolean,
   airdropState: AirdropState,
