@@ -1746,53 +1746,52 @@ func IsPermanentErr(err error) bool {
 
 func EphemeralLifetimeFromConv(ctx context.Context, g *globals.Context, conv chat1.Conversation) (res *gregor1.DurationSec, err error) {
 	// Check to see if the conversation has an exploding policy
+	var retentionRes *gregor1.DurationSec
+	var gregorRes *gregor1.DurationSec
 	var rentTyp chat1.RetentionPolicyType
 	if conv.ConvRetention == nil {
-		rentTyp = chat1.RetentionPolicyType_NONE
+		if conv.TeamRetention != nil {
+			if rentTyp, err = conv.TeamRetention.Typ(); err != nil {
+				return res, err
+			}
+			if rentTyp == chat1.RetentionPolicyType_EPHEMERAL {
+				e := conv.TeamRetention.Ephemeral()
+				retentionRes = &e.Age
+			}
+		}
 	} else {
 		if rentTyp, err = conv.ConvRetention.Typ(); err != nil {
 			return res, err
 		}
-	}
-	var retentionRes *gregor1.DurationSec
-	var gregorRes *gregor1.DurationSec
-	switch rentTyp {
-	case chat1.RetentionPolicyType_EPHEMERAL:
-		e := conv.ConvRetention.Ephemeral()
-		retentionRes = &e.Age
-	case chat1.RetentionPolicyType_INHERIT:
-		if conv.TeamRetention != nil {
-			teamTyp, err := conv.TeamRetention.Typ()
-			if err != nil {
-				return res, nil
-			}
-			if teamTyp == chat1.RetentionPolicyType_EPHEMERAL {
-				e := conv.ConvRetention.Ephemeral()
-				retentionRes = &e.Age
-			}
+		if rentTyp == chat1.RetentionPolicyType_EPHEMERAL {
+			e := conv.ConvRetention.Ephemeral()
+			retentionRes = &e.Age
 		}
 	}
+
 	// See if there is anything in Gregor
 	st, err := g.GregorState.State(ctx)
 	if err != nil {
 		return res, err
 	}
-	items, err := st.Items()
+	key := fmt.Sprintf("exploding:%s", conv.GetConvID())
+	cat, err := gregor1.ObjFactory{}.MakeCategory(key)
 	if err != nil {
 		return res, err
 	}
-	key := fmt.Sprintf("exploding:%s", conv.GetConvID())
-	for _, it := range items {
-		if it.Category().String() == key {
-			body := string(it.Body().Bytes())
-			sec, err := strconv.ParseInt(body, 0, 0)
-			if err != nil {
-				return res, nil
-			}
-			gsec := gregor1.DurationSec(sec)
-			gregorRes = &gsec
-			break
+	items, err := st.ItemsWithCategoryPrefix(cat)
+	if err != nil {
+		return res, err
+	}
+	if len(items) > 0 {
+		it := items[0]
+		body := string(it.Body().Bytes())
+		sec, err := strconv.ParseInt(body, 0, 0)
+		if err != nil {
+			return res, nil
 		}
+		gsec := gregor1.DurationSec(sec)
+		gregorRes = &gsec
 	}
 	if retentionRes != nil && gregorRes != nil {
 		if *gregorRes < *retentionRes {
