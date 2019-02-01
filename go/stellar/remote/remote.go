@@ -2,6 +2,7 @@ package remote
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
@@ -903,7 +904,7 @@ func GetInflationDestinations(ctx context.Context, g *libkb.GlobalContext) (ret 
 
 type airdropDetails struct {
 	libkb.AppStatusEmbed
-	Details string `json:"details"`
+	Details json.RawMessage `json:"details"`
 }
 
 func AirdropDetails(mctx libkb.MetaContext) (string, error) {
@@ -918,7 +919,7 @@ func AirdropDetails(mctx libkb.MetaContext) (string, error) {
 		return "", err
 	}
 
-	return res.Details, nil
+	return string(res.Details), nil
 }
 
 func AirdropRegister(mctx libkb.MetaContext, register bool) error {
