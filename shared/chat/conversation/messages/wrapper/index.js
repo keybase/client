@@ -550,7 +550,7 @@ const styles = Styles.styleSheetCreate({
       paddingBottom: 8,
       position: 'absolute',
       right: 96,
-      zIndex: 3,
+      zIndex: 2,
     },
   }),
   emojiRowLast: Styles.platformStyles({
@@ -562,7 +562,7 @@ const styles = Styles.styleSheetCreate({
       borderTopRightRadius: Styles.borderRadius,
       paddingBottom: 0,
       paddingTop: 8,
-      top: -24,
+      top: -23,
     },
   }),
   fail: {color: Styles.globalColors.red},
