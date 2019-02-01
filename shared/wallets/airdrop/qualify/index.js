@@ -164,12 +164,7 @@ class Qualified extends React.PureComponent<Props, State> {
               })}
             >
               {rows.map((r, idx) => (
-                <Row
-                  key={r.title}
-                  {...r}
-                  first={idx === 0}
-                  loading={true /* idx > this.state.rowIdxLoaded */}
-                />
+                <Row key={r.title} {...r} first={idx === 0} loading={idx > this.state.rowIdxLoaded} />
               ))}
             </Kb.Box2>
           </>
