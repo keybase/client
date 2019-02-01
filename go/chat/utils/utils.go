@@ -1749,22 +1749,21 @@ func EphemeralLifetimeFromConv(ctx context.Context, g *globals.Context, conv cha
 	var retentionRes *gregor1.DurationSec
 	var gregorRes *gregor1.DurationSec
 	var rentTyp chat1.RetentionPolicyType
-	if conv.ConvRetention == nil {
-		if conv.TeamRetention != nil {
-			if rentTyp, err = conv.TeamRetention.Typ(); err != nil {
-				return res, err
-			}
-			if rentTyp == chat1.RetentionPolicyType_EPHEMERAL {
-				e := conv.TeamRetention.Ephemeral()
-				retentionRes = &e.Age
-			}
-		}
-	} else {
+	if conv.ConvRetention != nil {
 		if rentTyp, err = conv.ConvRetention.Typ(); err != nil {
 			return res, err
 		}
 		if rentTyp == chat1.RetentionPolicyType_EPHEMERAL {
 			e := conv.ConvRetention.Ephemeral()
+			retentionRes = &e.Age
+		}
+	}
+	if retentionRes == nil && conv.TeamRetention != nil {
+		if rentTyp, err = conv.TeamRetention.Typ(); err != nil {
+			return res, err
+		}
+		if rentTyp == chat1.RetentionPolicyType_EPHEMERAL {
+			e := conv.TeamRetention.Ephemeral()
 			retentionRes = &e.Age
 		}
 	}
