@@ -4,7 +4,7 @@ import * as Constants from '../../../constants/teams'
 import * as Types from '../../../constants/types/teams'
 import * as Kb from '../../../common-adapters'
 import AddPeopleHow from './add-people-how/container'
-import type {Response} from 'react-native-image-picker'
+import type {Response} from '../../../util/image-picker'
 import NameWithIconWrapper from './name-with-icon-wrapper'
 import * as Styles from '../../../styles'
 

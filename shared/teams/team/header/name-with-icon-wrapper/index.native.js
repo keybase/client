@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {NameWithIcon} from '../../../../common-adapters'
-import {showImagePicker, type Response} from 'react-native-image-picker'
+import {showImagePicker, type Response} from '../../../../util/image-picker'
 import type {Props} from '.'
 
 const NameWithIconWrapper = (props: Props) => {

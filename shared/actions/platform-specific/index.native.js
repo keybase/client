@@ -25,7 +25,7 @@ import RNFetchBlob from 'rn-fetch-blob'
 import * as PushNotifications from 'react-native-push-notification'
 import {isIOS, isAndroid} from '../../constants/platform'
 import pushSaga, {getStartupDetailsFromInitialPush} from './push.native'
-import {showImagePicker, type Response} from 'react-native-image-picker'
+import {showImagePicker, type Response} from '../../util/image-picker'
 
 type NextURI = string
 function saveAttachmentDialog(filePath: string): Promise<NextURI> {

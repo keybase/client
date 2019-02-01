@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import type {Response} from 'react-native-image-picker'
+import type {Response} from '../../../../util/image-picker'
 
 export type Props = {
   canEditDescription: boolean,

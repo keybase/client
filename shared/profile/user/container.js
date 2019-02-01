@@ -9,7 +9,7 @@ import * as SearchGen from '../../actions/search-gen'
 import * as Styles from '../../styles'
 import Profile2 from '.'
 import type {RouteProps} from '../../route-tree/render-route'
-import type {Response} from 'react-native-image-picker'
+import type {Response} from '../../util/image-picker'
 
 type OwnProps = RouteProps<{username: string}, {}>
 const emptySet = I.OrderedSet()

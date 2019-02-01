@@ -4,7 +4,7 @@ import * as Constants from '../../../constants/teams'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as ConfigGen from '../../../actions/config-gen'
 import * as Types from '../../../constants/types/teams'
-import type {Response} from 'react-native-image-picker'
+import type {Response} from '../../../util/image-picker'
 import {createAddResultsToUserInput} from '../../../actions/search-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {TeamHeader} from '.'
@@ -43,7 +43,9 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
     ),
   onEditIcon: (image?: Response) =>
     dispatch(
-      RouteTreeGen.createNavigateAppend({path: [{props: {image, sendChatNotification: true, teamname}, selected: 'editTeamAvatar'}]})
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {image, sendChatNotification: true, teamname}, selected: 'editTeamAvatar'}],
+      })
     ),
   onFilePickerError: (error: Error) => dispatch(ConfigGen.createFilePickerError({error})),
 })

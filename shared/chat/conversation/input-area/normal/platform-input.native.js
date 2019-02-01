@@ -1,6 +1,6 @@
 // @flow
 /* eslint-env browser */
-import {launchCamera, launchImageLibrary} from 'react-native-image-picker'
+import {launchCamera, launchImageLibrary} from '../../../../util/image-picker'
 import React, {PureComponent} from 'react'
 import {
   Box,

@@ -1,7 +1,7 @@
 // @flow
 import * as FsGen from '../fs-gen'
 import type {TypedState} from '../../constants/reducer'
-import {showImagePicker} from 'react-native-image-picker'
+import {showImagePicker} from '../../util/image-picker'
 import {isIOS} from '../../constants/platform'
 import {makeRetriableErrorHandler} from './shared'
 
