@@ -106,6 +106,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     throw new Error(`RetentionPicker: impossible entityType encountered: ${entityType}`)
   }
 
+  const policyIsExploding = policy.type === 'explode'
   const _path = getPath(state.routeTree.routeState)
   return {
     _path,
@@ -114,6 +115,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     entityType, // used only to display policy to non-admins
     loading,
     policy,
+    policyIsExploding,
     showInheritOption,
     showOverrideNotice,
     teamPolicy,

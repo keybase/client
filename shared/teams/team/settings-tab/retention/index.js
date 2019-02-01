@@ -14,6 +14,7 @@ export type Props = {|
   containerStyle?: Styles.StylesCrossPlatform,
   dropdownStyle?: Styles.StylesCrossPlatform,
   policy: RetentionPolicy,
+  policyIsExploding: boolean,
   teamPolicy?: RetentionPolicy,
   loading: boolean, // for when we're waiting to fetch the team policy
   showInheritOption: boolean,
@@ -200,6 +201,17 @@ class _RetentionPicker extends React.Component<Kb.PropsWithOverlay<Props>, State
             Individual channels can override this.
           </Kb.Text>
         )}
+        {this.props.policyIsExploding && (
+          <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} gap="xtiny">
+            <Kb.Text type="BodySmall">Participants will see their message explode.</Kb.Text>
+            <Kb.Icon
+              color={Styles.globalColors.black_75}
+              fontSize={Styles.isMobile ? 44 : 35}
+              style={boomIconStyle}
+              type="iconfont-boom"
+            />
+          </Kb.Box2>
+        )}
         {this.props.showSaveIndicator && (
           <SaveIndicator
             saving={this.state.saving}
@@ -244,6 +256,10 @@ const headingStyle = {
   ...Styles.globalStyles.flexBoxRow,
   alignItems: 'center',
   marginBottom: Styles.globalMargins.tiny,
+}
+
+const boomIconStyle = {
+  opacity: 0.4,
 }
 
 const displayHeadingStyle = {
