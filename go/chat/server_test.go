@@ -4777,7 +4777,6 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		ncres, err = ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx, ncarg)
 		require.NoError(t, err)
 		require.Equal(t, randomConvID, ncres.Conv.GetConvID())
-		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
 		assertNoNewConversation(t, listener0)
 
 		// Try to change topic name to one that exists
