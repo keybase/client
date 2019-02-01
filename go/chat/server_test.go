@@ -5924,13 +5924,9 @@ func TestChatSrvEphemeralPolicy(t *testing.T) {
 
 	impconv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_IMPTEAMNATIVE)
-	require.NoError(t, ctc.as(t, users[0]).chatLocalHandler().SetConvRetentionLocal(ctx,
-		chat1.SetConvRetentionLocalArg{
-			ConvID: impconv.Id,
-			Policy: chat1.NewRetentionPolicyWithEphemeral(chat1.RpEphemeral{
-				Age: gregor1.DurationSec(86400),
-			}),
-		}))
+	mustSetConvRetentionPolicy(t, ctc, users[0], impconv.Id, chat1.NewRetentionPolicyWithEphemeral(chat1.RpEphemeral{
+		Age: gregor1.DurationSec(86400),
+	}), 0)
 	consumeSetConvRetention(t, listener0)
 	mustPostLocalForTest(t, ctc, users[0], impconv,
 		chat1.NewMessageBodyWithText(chat1.MessageText{
@@ -5948,13 +5944,10 @@ func TestChatSrvEphemeralPolicy(t *testing.T) {
 
 	teamconv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_TEAM)
-	require.NoError(t, ctc.as(t, users[0]).chatLocalHandler().SetTeamRetentionLocal(ctx,
-		chat1.SetTeamRetentionLocalArg{
-			TeamID: keybase1.TeamID(teamconv.Triple.Tlfid.String()),
-			Policy: chat1.NewRetentionPolicyWithEphemeral(chat1.RpEphemeral{
-				Age: gregor1.DurationSec(86400),
-			}),
-		}))
+	mustSetTeamRetentionPolicy(t, ctc, users[0], keybase1.TeamID(teamconv.Triple.Tlfid.String()),
+		chat1.NewRetentionPolicyWithEphemeral(chat1.RpEphemeral{
+			Age: gregor1.DurationSec(86400),
+		}), 0)
 	consumeSetTeamRetention(t, listener0)
 	mustPostLocalForTest(t, ctc, users[0], teamconv,
 		chat1.NewMessageBodyWithText(chat1.MessageText{

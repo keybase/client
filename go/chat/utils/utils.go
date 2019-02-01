@@ -1773,6 +1773,7 @@ func EphemeralLifetimeFromConv(ctx context.Context, g *globals.Context, conv cha
 	if err != nil {
 		return res, err
 	}
+	// Note: this value is present on the JS frontend as well
 	key := fmt.Sprintf("exploding:%s", conv.GetConvID())
 	cat, err := gregor1.ObjFactory{}.MakeCategory(key)
 	if err != nil {
