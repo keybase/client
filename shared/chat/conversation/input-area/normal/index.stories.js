@@ -91,6 +91,7 @@ const InputContainer = (props: Props) => {
       Sb.action('getUnsentText')()
       return props.isEditing ? 'some text' : ''
     },
+    isActiveForFocus: true,
     isEditExploded: props.isEditExploded,
     isEditing: props.isEditing,
     isExploding: props.isExploding,
