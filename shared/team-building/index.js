@@ -81,15 +81,14 @@ class TeamBuilding extends React.PureComponent<Props, void> {
           serviceResultCount={props.serviceResultCount}
           showServiceResultCount={props.showServiceResultCount}
         />
-        {showRecs && !showRecPending && (
-          <Kb.Text type={Styles.isMobile ? 'BodySmallSemibold' : 'BodyTinySemibold'} style={styles.recText}>
-            Recommendations
-          </Kb.Text>
-        )}
         {showRecPending ? (
-          <Kb.Text type={Styles.isMobile ? 'BodySmallSemibold' : 'BodyTinySemibold'} style={styles.recText}>
-            ...
-          </Kb.Text>
+          <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" style={styles.loadingContainer}>
+            <Kb.Icon
+              style={Kb.iconCastPlatformStyles(styles.loadingIcon)}
+              type="icon-progress-grey-animated"
+            />
+            <Kb.Text type="BodySmallSemibold">Loading</Kb.Text>
+          </Kb.Box2>
         ) : (
           <Kb.List
             items={showRecs ? props.recommendations || [] : props.searchResults || []}
@@ -140,20 +139,19 @@ const styles = Styles.styleSheetCreate({
       marginTop: Styles.globalMargins.xtiny,
     },
   }),
-  recText: Styles.platformStyles({
-    common: {
-      borderBottomColor: Styles.globalColors.black_10,
-      borderBottomWidth: 1,
-      borderStyle: 'solid',
-      paddingBottom: Styles.globalMargins.xtiny,
-    },
+  loadingContainer: {
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+  },
+  loadingIcon: Styles.platformStyles({
     isElectron: {
-      paddingLeft: Styles.globalMargins.xtiny,
-      paddingTop: Styles.globalMargins.xtiny,
+      height: 32,
+      width: 32,
     },
     isMobile: {
-      paddingLeft: Styles.globalMargins.xsmall,
-      paddingTop: Styles.globalMargins.tiny,
+      height: 48,
+      width: 48,
     },
   }),
 })
