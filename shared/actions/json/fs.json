@@ -222,6 +222,12 @@
     "setSendLinkToChatChannels": {
       "channels": "I.Map<ChatTypes.ConversationIDKey, string>"
     },
+    "setPathItemActionMenuView": {
+      "view": "Types.PathItemActionMenuView"
+    },
+    "setPathItemActionMenuDownloadKey": {
+      "key": "?string"
+    },
 
     "placeholderAction": {}
   }

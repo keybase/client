@@ -22,6 +22,7 @@ export type MenuLayoutProps = {
   closeOnClick?: boolean,
   style?: Object,
   hoverColor?: string,
+  closeText?:?string, // mobile only; default to "Close"
 }
 
 export default class MenuLayout extends React.Component<MenuLayoutProps> {}
