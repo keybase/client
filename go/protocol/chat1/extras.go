@@ -550,7 +550,7 @@ func (m *MsgEphemeralMetadata) String() string {
 	} else {
 		explodedBy = *m.ExplodedBy
 	}
-	return fmt.Sprintf("{ Lifetime: %v, Generation: %v, ExplodedBy: %v }", time.Second*time.Duration(m.Lifetime), m.Generation, explodedBy)
+	return fmt.Sprintf("{ Lifetime: %v, Generation: %v, ExplodedBy: %v }", m.Lifetime.ToDuration(), m.Generation, explodedBy)
 }
 
 func (m MessagePlaintext) IsEphemeral() bool {
@@ -588,7 +588,7 @@ func (m MessageUnboxedValid) ExplodedBy() *string {
 }
 
 func Etime(lifetime gregor1.DurationSec, ctime, rtime, now gregor1.Time) gregor1.Time {
-	originalLifetime := time.Second * time.Duration(lifetime)
+	originalLifetime := lifetime.ToDuration()
 	elapsedLifetime := now.Time().Sub(ctime.Time())
 	remainingLifetime := originalLifetime - elapsedLifetime
 	// If the server's view doesn't make sense, just use the signed lifetime
