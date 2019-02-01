@@ -18,12 +18,7 @@ const mapStateToProps = state => ({
   view: state.fs.pathItemActionMenu.view,
 })
 
-export default namedConnect<OwnProps, _, _, _, _>(
-  mapStateToProps,
-  () => ({}),
-  (s, d, o) => ({...o, ...s, ...d}),
-  'PathItemActionChooseView'
-)(props => {
+const ChooseView = props => {
   if (props.view === 'root' || props.view === 'share') {
     return <Menu routePath={props.routePath} path={props.path} floatingMenuProps={props.floatingMenuProps} />
   } else if (props.view === 'confirm-save-media' || props.view === 'confirm-send-to-other-app') {
@@ -32,4 +27,11 @@ export default namedConnect<OwnProps, _, _, _, _>(
     Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.view)
     return null
   }
-})
+}
+
+export default namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  () => ({}),
+  (s, d, o) => ({...o, ...s, ...d}),
+  'PathItemActionChooseView'
+)(ChooseView)
