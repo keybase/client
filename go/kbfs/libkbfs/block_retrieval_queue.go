@@ -363,11 +363,9 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 	blockBuf, serverHalf, prefetchStatus, err := dbc.Get(
 		ctx, kmd.TlfID(), ptr.ID, preferredCacheType)
 	if err != nil {
-		brq.log.CDebugf(ctx, "checkCaches failing 1: %+v", err)
 		return NoPrefetch, err
 	}
 	if len(blockBuf) == 0 {
-		brq.log.CDebugf(ctx, "checkCaches failing 2: %+v", err)
 		return NoPrefetch, NoSuchBlockError{ptr.ID}
 	}
 
