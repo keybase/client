@@ -8,6 +8,7 @@ import (
 	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/terminalescaper"
 	isatty "github.com/mattn/go-isatty"
+	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
@@ -25,7 +26,7 @@ func printPayment(g *libkb.GlobalContext, p stellar1.PaymentCLILocal, verbose bo
 		timeStr += " *"
 	}
 	lineUnescaped("%v", ColorString(g, "bold", timeStr))
-	amount, err := stellar.FormatAmountDescriptionAssetEx(p.Amount, p.Asset)
+	amount, err := stellar.FormatAmountDescriptionAssetEx(libkb.NewMetaContext(context.TODO(), g), p.Amount, p.Asset)
 	if err == nil {
 		if p.DisplayAmount != nil && p.DisplayCurrency != nil && len(*p.DisplayAmount) > 0 && len(*p.DisplayAmount) > 0 {
 			amount = fmt.Sprintf("%v %v (%v)", *p.DisplayAmount, *p.DisplayCurrency, amount)
