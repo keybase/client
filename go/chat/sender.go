@@ -530,12 +530,14 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		// If no ephemeral data set, then let's double check to make sure no exploding policy
 		// or Gregor state should set it
 		if msg.EphemeralMetadata() == nil {
+			s.Debug(ctx, "Prepare: attempting to set ephemeral policy from conversation")
 			elf, err := utils.EphemeralLifetimeFromConv(ctx, s.G(), *conv)
 			if err != nil {
 				s.Debug(ctx, "Prepare: failed to get ephemeral lifetime from conv: %s", err)
 				elf = nil
 			}
 			if elf != nil {
+				s.Debug(ctx, "Prepare: setting ephemeral lifetime from conv: %v", *elf)
 				msg.ClientHeader.EphemeralMetadata = &chat1.MsgEphemeralMetadata{
 					Lifetime: *elf,
 				}
