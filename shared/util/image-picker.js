@@ -1,5 +1,6 @@
 // @flow
 import {isAndroid} from '../constants/platform'
+import logger from '../logger'
 import {
   showImagePicker as _showImagePicker,
   launchCamera as _launchCamera,
@@ -16,7 +17,17 @@ const wrapWithImageCaptureSecure = (fn: ImagePickerFn): ImagePickerFn => {
   }
 
   return (options: ?Options, callback: (response: Response) => any) => {
-    return fn(options, callback)
+    const optionsWithSecure = {...options, androidUseImageCaptureSecure: true}
+
+    fn(optionsWithSecure, response => {
+      const error = response.error
+      if (error.includes('Cannot launch camera')) {
+        logger.warn(`Camera error with androidUseImageCaptureSecure; trying again without it: ${error}`)
+        fn(options, callback)
+      } else {
+        callback(response)
+      }
+    })
   }
 }
 
