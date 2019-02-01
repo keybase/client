@@ -224,7 +224,10 @@ const submitCryptoAddress = (state, action) => {
       throw new Error('Unknown wantedfamily')
   }
 
-  RPCTypes.cryptocurrencyRegisterAddressRpcPromise({address, force: true, wantedFamily}, Constants.waitingKey)
+  return RPCTypes.cryptocurrencyRegisterAddressRpcPromise(
+    {address, force: true, wantedFamily},
+    Constants.waitingKey
+  )
     .then(() => [
       ProfileGen.createUpdateProofStatus({found: true, status: RPCTypes.proveCommonProofStatus.ok}),
       RouteTreeGen.createNavigateAppend({parentPath: [peopleTab], path: ['confirmOrPending']}),
