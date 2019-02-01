@@ -466,9 +466,7 @@ func mustCreateConversationForTestNoAdvanceClock(t *testing.T, ctc *chatTestCont
 			MembersType:      membersType,
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		})
-	if err != nil {
-		require.FailNow(t, fmt.Sprintf("NewConversationLocal error: %v\n", err))
-	}
+	require.NoError(t, err)
 
 	// Set initial active list
 	conv := ctc.world.GetConversationByID(ncres.Conv.GetConvID())
@@ -663,7 +661,7 @@ func TestChatSrvNewConversationLocal(t *testing.T) {
 
 func TestChatSrvNewChatConversationLocalTwice(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
-		ctc := makeChatTestContext(t, "NewConversationLocal", 2)
+		ctc := makeChatTestContext(t, "NewConversationLocalTwice", 2)
 		defer ctc.cleanup()
 		users := ctc.users()
 
@@ -673,15 +671,13 @@ func TestChatSrvNewChatConversationLocalTwice(t *testing.T) {
 			mt, ctc.as(t, users[1]).user())
 
 		t.Logf("c1: %v c2: %v", c1, c2)
-		if !c2.Id.Eq(c1.Id) {
-			t.Fatalf("2nd call to NewConversationLocal for a chat conversation did not return the same conversation ID")
-		}
+		require.True(t, c2.Id.Eq(c1.Id))
 	})
 }
 
 func TestChatNewDevConversationLocalTwice(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
-		ctc := makeChatTestContext(t, "NewConversationLocal", 2)
+		ctc := makeChatTestContext(t, "NewDevConversationLocalTwice", 2)
 		defer ctc.cleanup()
 		users := ctc.users()
 
@@ -712,6 +708,7 @@ func TestChatSrvNewConversationMultiTeam(t *testing.T) {
 			IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		}
 		ncres, err := tc.chatLocalHandler().NewConversationLocal(tc.startCtx, arg)
+		require.NoError(t, err)
 		switch mt {
 		case chat1.ConversationMembersType_TEAM:
 			require.NoError(t, err)
@@ -719,9 +716,6 @@ func TestChatSrvNewConversationMultiTeam(t *testing.T) {
 			require.NotEqual(t, conv.Id, ncres.Conv.GetConvID())
 		case chat1.ConversationMembersType_KBFS:
 			require.Equal(t, conv.Id, ncres.Conv.GetConvID())
-		}
-		if err != nil {
-			t.Fatalf("NewConversationLocal error: %v\n", err)
 		}
 
 		// Try some invalid names
@@ -1860,14 +1854,10 @@ func TestChatSrvGap(t *testing.T) {
 			Body_:   data,
 		}))
 
-		select {
-		case updates := <-listener.threadsStale:
-			require.Equal(t, 1, len(updates))
-			require.Equal(t, created.Id, updates[0].ConvID, "wrong cid")
-			require.Equal(t, chat1.StaleUpdateType_CLEAR, updates[0].UpdateType)
-		case <-time.After(20 * time.Second):
-			require.Fail(t, "failed to receive stale event")
-		}
+		updates := consumeNewThreadsStale(t, listener)
+		require.Equal(t, 1, len(updates))
+		require.Equal(t, created.Id, updates[0].ConvID, "wrong cid")
+		require.Equal(t, chat1.StaleUpdateType_CLEAR, updates[0].UpdateType)
 
 		ooMsg.ServerHeader.MessageID = 6
 		payload = chat1.NewMessagePayload{
@@ -1902,6 +1892,7 @@ type serverChatListener struct {
 	// ChatActivity channels
 	newMessageLocal         chan chat1.IncomingMessage
 	newMessageRemote        chan chat1.IncomingMessage
+	newConversation         chan chat1.NewConversationInfo
 	membersUpdate           chan chat1.MembersUpdateInfo
 	appNotificationSettings chan chat1.SetAppNotificationSettingsInfo
 	teamType                chan chat1.TeamTypeInfo
@@ -1956,6 +1947,8 @@ func (n *serverChatListener) NewChatActivity(uid keybase1.UID, activity chat1.Ch
 		case chat1.ChatActivitySource_REMOTE:
 			n.newMessageRemote <- activity.IncomingMessage()
 		}
+	case chat1.ChatActivityType_NEW_CONVERSATION:
+		n.newConversation <- activity.NewConversation()
 	case chat1.ChatActivityType_MEMBERS_UPDATE:
 		n.membersUpdate <- activity.MembersUpdate()
 	case chat1.ChatActivityType_SET_APP_NOTIFICATION_SETTINGS:
@@ -2015,6 +2008,7 @@ func newServerChatListener() *serverChatListener {
 	return &serverChatListener{
 		newMessageLocal:         make(chan chat1.IncomingMessage, buf),
 		newMessageRemote:        make(chan chat1.IncomingMessage, buf),
+		newConversation:         make(chan chat1.NewConversationInfo, buf),
 		membersUpdate:           make(chan chat1.MembersUpdateInfo, buf),
 		appNotificationSettings: make(chan chat1.SetAppNotificationSettingsInfo, buf),
 		teamType:                make(chan chat1.TeamTypeInfo, buf),
@@ -2115,6 +2109,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 					})
 				require.NoError(t, err)
 				created = ncres.Conv.Info
+				consumeNewConversation(t, listener, created.Id)
 				consumeNewMsgLocal(t, listener, chat1.MessageType_JOIN)
 				consumeNewMsgRemote(t, listener, chat1.MessageType_JOIN)
 				consumeNewPendingMsg(t, listener)
@@ -3571,13 +3566,9 @@ func TestChatSrvGetThreadNonblockError(t *testing.T) {
 		g.ConvSource.SetRemoteInterface(func() chat1.RemoteInterface { return ri })
 		ctc.world.Fc.Advance(time.Hour)
 
-		select {
-		case updates := <-listener.threadsStale:
-			require.Equal(t, 1, len(updates))
-			require.Equal(t, chat1.StaleUpdateType_NEWACTIVITY, updates[0].UpdateType)
-		case <-time.After(2 * time.Second):
-			require.Fail(t, "no threads stale message received")
-		}
+		updates := consumeNewThreadsStale(t, listener)
+		require.Equal(t, 1, len(updates))
+		require.Equal(t, chat1.StaleUpdateType_NEWACTIVITY, updates[0].UpdateType)
 	})
 }
 
@@ -3639,13 +3630,9 @@ func TestChatSrvGetInboxNonblockError(t *testing.T) {
 		})
 		ctc.world.Fc.Advance(time.Hour)
 
-		select {
-		case updates := <-listener.threadsStale:
-			require.Equal(t, 1, len(updates))
-			require.Equal(t, chat1.StaleUpdateType_NEWACTIVITY, updates[0].UpdateType)
-		case <-time.After(20 * time.Second):
-			require.Fail(t, "no threads stale message received")
-		}
+		updates := consumeNewThreadsStale(t, listener)
+		require.Equal(t, 1, len(updates))
+		require.Equal(t, chat1.StaleUpdateType_NEWACTIVITY, updates[0].UpdateType)
 
 		t.Logf("testing untrusted inbox load failure")
 		ttype := chat1.TopicType_CHAT
@@ -3783,6 +3770,34 @@ func consumeNewMsgWhileIgnoring(t *testing.T, listener *serverChatListener, typ 
 			require.Fail(t, fmt.Sprintf("failed to get newMessage %v notification: %v", source, typ))
 			return
 		}
+	}
+}
+
+func consumeNewThreadsStale(t *testing.T, listener *serverChatListener) []chat1.ConversationStaleUpdate {
+	select {
+	case updates := <-listener.threadsStale:
+		return updates
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "no threads stale message received")
+	}
+	return nil
+}
+
+func assertNoNewConversation(t *testing.T, listener *serverChatListener) {
+	select {
+	case <-listener.newConversation:
+		require.Fail(t, "unexpected newConversation")
+	default:
+	}
+}
+
+func consumeNewConversation(t *testing.T, listener *serverChatListener, convID chat1.ConversationID) {
+	select {
+	case convInfo := <-listener.newConversation:
+		require.Equal(t, convID, convInfo.ConvID)
+		require.NotNil(t, convInfo.Conv)
+	case <-time.After(20 * time.Second):
+		require.Fail(t, "failed to get new conversation notification")
 	}
 }
 
@@ -3932,6 +3947,9 @@ func TestChatSrvTeamChannels(t *testing.T) {
 				MembersType:   chat1.ConversationMembersType_TEAM,
 			})
 		require.NoError(t, err)
+		consumeNewConversation(t, listener0, ncres.Conv.GetConvID())
+		assertNoNewConversation(t, listener1)
+		assertNoNewConversation(t, listener2)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
@@ -3992,6 +4010,9 @@ func TestChatSrvTeamChannels(t *testing.T) {
 				MembersType:   chat1.ConversationMembersType_TEAM,
 			})
 		require.NoError(t, err)
+		consumeNewConversation(t, listener0, ncres.Conv.GetConvID())
+		assertNoNewConversation(t, listener1)
+		assertNoNewConversation(t, listener2)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
 		getTLFRes, err := ctc.as(t, users[1]).chatLocalHandler().GetTLFConversationsLocal(ctx1,
 			chat1.GetTLFConversationsLocalArg{
@@ -4631,6 +4652,8 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 			})
 		channelInfo := channel.Conv.Info
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_JOIN)
+		consumeNewConversation(t, listener1, channelInfo.Id)
+		assertNoNewConversation(t, listener2)
 		consumeTeamType(t, listener1)
 		consumeTeamType(t, listener2)
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
@@ -4696,6 +4719,7 @@ func TestChatSrvTopicNameState(t *testing.T) {
 			})
 		require.NoError(t, err)
 		conv := ncres.Conv.Info
+		consumeNewConversation(t, listener0, conv.Id)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
 		consumeTeamType(t, listener0)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
@@ -4721,6 +4745,9 @@ func TestChatSrvTopicNameState(t *testing.T) {
 			})
 		require.NoError(t, err)
 		conv = ncres.Conv.Info
+		consumeNewConversation(t, listener0, conv.Id)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
 
 		convRemote, err := GetUnverifiedConv(ctx, tc.Context(), uid, conv.Id, true)
 		require.NoError(t, err)
@@ -4736,14 +4763,16 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		}
 		ncres, err = ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx, ncarg)
 		require.NoError(t, err)
+		randomConvID := ncres.Conv.GetConvID()
+		consumeNewConversation(t, listener0, randomConvID)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
 
-		randomConvID := ncres.Conv.GetConvID()
 		ncres, err = ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx, ncarg)
 		require.NoError(t, err)
 		require.Equal(t, randomConvID, ncres.Conv.GetConvID())
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
+		assertNoNewConversation(t, listener0)
 
 		// Try to change topic name to one that exists
 		plarg := chat1.PostLocalArg{
@@ -4923,6 +4952,8 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 				IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 			})
 		require.NoError(t, err)
+		consumeNewConversation(t, listener0, ncres.Conv.GetConvID())
+		assertNoNewConversation(t, listener1)
 		consumeIdentify(ctx, listener0) //encrypt for first message
 
 		uid := users[0].User.GetUID().ToBytes()
@@ -5125,8 +5156,11 @@ func TestChatSrvDeleteConversation(t *testing.T) {
 				TlfVisibility: keybase1.TLFVisibility_PRIVATE,
 				MembersType:   chat1.ConversationMembersType_TEAM,
 			})
-		t.Logf("conv: %s chan: %s", conv.Id, channel.Conv.GetConvID())
 		require.NoError(t, err)
+		channelConvID := channel.Conv.GetConvID()
+		t.Logf("conv: %s chan: %s", conv.Id, channelConvID)
+		consumeNewConversation(t, listener0, channelConvID)
+		assertNoNewConversation(t, listener1)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
 		consumeTeamType(t, listener0)
 		consumeTeamType(t, listener1)
@@ -5135,7 +5169,6 @@ func TestChatSrvDeleteConversation(t *testing.T) {
 
 		uid := users[0].User.GetUID().ToBytes()
 		g := ctc.world.Tcs[users[0].Username].Context()
-		channelConvID := channel.Conv.GetConvID()
 		_, lconvs, _, err := storage.NewInbox(g).Read(context.TODO(), uid, &chat1.GetInboxQuery{
 			ConvID: &channelConvID,
 		}, nil)
@@ -5175,23 +5208,15 @@ func TestChatSrvDeleteConversation(t *testing.T) {
 		consumeTeamType(t, listener0)
 		consumeTeamType(t, listener1)
 
-		select {
-		case updates := <-listener0.threadsStale:
-			require.Equal(t, 1, len(updates))
-			require.Equal(t, channelConvID, updates[0].ConvID, "wrong cid")
-			require.Equal(t, chat1.StaleUpdateType_CLEAR, updates[0].UpdateType)
-		case <-time.After(20 * time.Second):
-			require.Fail(t, "failed to receive stale event")
-		}
+		updates := consumeNewThreadsStale(t, listener0)
+		require.Equal(t, 1, len(updates))
+		require.Equal(t, channelConvID, updates[0].ConvID, "wrong cid")
+		require.Equal(t, chat1.StaleUpdateType_CLEAR, updates[0].UpdateType)
 
-		select {
-		case updates := <-listener1.threadsStale:
-			require.Equal(t, 1, len(updates))
-			require.Equal(t, channelConvID, updates[0].ConvID, "wrong cid")
-			require.Equal(t, chat1.StaleUpdateType_CLEAR, updates[0].UpdateType)
-		case <-time.After(20 * time.Second):
-			require.Fail(t, "failed to receive stale event")
-		}
+		updates = consumeNewThreadsStale(t, listener1)
+		require.Equal(t, 1, len(updates))
+		require.Equal(t, channelConvID, updates[0].ConvID, "wrong cid")
+		require.Equal(t, chat1.StaleUpdateType_CLEAR, updates[0].UpdateType)
 
 		_, lconvs, _, err = storage.NewInbox(g).Read(context.TODO(), uid, &chat1.GetInboxQuery{
 			ConvID:       &channelConvID,
@@ -5588,6 +5613,8 @@ func TestChatSrvTeamChannelNameMentions(t *testing.T) {
 
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt,
 			ctc.as(t, users[1]).user())
+		consumeNewConversation(t, listener0, conv.Id)
+		consumeNewConversation(t, listener1, conv.Id)
 
 		topicNames := []string{"miketime", "random", "hi"}
 		for index, topicName := range topicNames {
@@ -5601,6 +5628,8 @@ func TestChatSrvTeamChannelNameMentions(t *testing.T) {
 				})
 			t.Logf("conv: %s chan: %s, err: %v", conv.Id, channel.Conv.GetConvID(), err)
 			require.NoError(t, err)
+			assertNoNewConversation(t, listener0)
+			consumeNewConversation(t, listener1, conv.Id)
 			consumeNewMsgRemote(t, listener1, chat1.MessageType_JOIN)
 			if index == 0 {
 				consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
