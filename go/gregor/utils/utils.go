@@ -18,7 +18,7 @@ func NewGregorMsgID() (gregor1.MsgID, error) {
 func TemplateMessage(uid gregor1.UID) (gregor1.Message, error) {
 	newMsgID, err := NewGregorMsgID()
 	if err != nil {
-		return nil, err
+		return gregor1.Message{}, err
 	}
 	return gregor1.Message{
 		Ibm_: &gregor1.InBandMessage{

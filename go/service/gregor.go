@@ -1668,7 +1668,7 @@ func (g *gregorHandler) DismissCategory(ctx context.Context, category gregor1.Ca
 	if err != nil {
 		return err
 	}
-	return gcli.ConsumeMessage(ctx, *dismissal)
+	return gcli.ConsumeMessage(ctx, dismissal)
 }
 
 func (g *gregorHandler) InjectItem(ctx context.Context, cat string, body []byte, dtime gregor1.TimeOrOffset) (gregor1.MsgID, error) {
@@ -1715,7 +1715,7 @@ func (g *gregorHandler) UpdateItem(ctx context.Context, msgID gregor1.MsgID, cat
 	if err != nil {
 		return nil, err
 	}
-	return msg.Ibm_.StateUpdate_.Md_.MsgID_, gcli.ConsumeMessage(ctx, *msg)
+	return msg.Ibm_.StateUpdate_.Md_.MsgID_, gcli.ConsumeMessage(ctx, msg)
 }
 
 func (g *gregorHandler) UpdateCategory(ctx context.Context, cat string, body []byte,
@@ -1747,7 +1747,7 @@ func (g *gregorHandler) UpdateCategory(ctx context.Context, cat string, body []b
 	if err != nil {
 		return nil, err
 	}
-	return msgID, gcli.ConsumeMessage(ctx, *msg)
+	return msgID, gcli.ConsumeMessage(ctx, msg)
 }
 
 func (g *gregorHandler) InjectOutOfBandMessage(ctx context.Context, system string, body []byte) error {
