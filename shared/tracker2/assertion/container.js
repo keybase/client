@@ -44,6 +44,7 @@ const mapDispatchToProps = dispatch => ({
   _onCopyAddress: (text: string) => dispatch(ConfigGen.createCopyToClipboard({text})),
   // $FlowIssue we need to make this more flexible later
   _onCreateProof: (type: string) => dispatch(ProfileGen.createAddProof({platform: type})),
+  _onRecheck: (sigID: string) => dispatch(ProfileGen.createCheckProof2({sigID})),
   _onRevokeProof: (type: string, value: string, id: string) =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
@@ -69,7 +70,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   metas: stateProps._metas.map(({color, label}) => ({color, label})),
   onCopyAddress: () => dispatchProps._onCopyAddress(stateProps.value),
   onCreateProof: () => (ownProps.isSuggestion ? dispatchProps._onCreateProof(stateProps.type) : undefined),
-  onRecheck: () => console.log('aaa TODO '),
+  onRecheck: () => dispatchProps._onRecheck(stateProps._sigID),
   onRequestLumens: () =>
     dispatchProps._onSendOrRequestLumens(stateProps.value.split('*')[0], true, 'keybaseUser'),
   onRevoke: () => dispatchProps._onRevokeProof(stateProps.type, stateProps.value, stateProps._sigID),

@@ -192,7 +192,7 @@ const Value = p => {
     content = (
       <Kb.Text
         type="BodyPrimaryLink"
-        onClick={p.onShowSite}
+        onClick={p.onCreateProof || p.onShowSite}
         style={Styles.collapseStyles([style, {color: assertionColorToColor(p.color)}])}
       >
         {str}

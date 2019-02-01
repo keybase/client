@@ -38,6 +38,11 @@ const checkProof = (state, action) => {
     })
 }
 
+const checkProof2 = (state, action) => {
+  const {sigID} = action.payload
+  return RPCTypes.proveCheckProofRpcPromise({sigID}, Constants.waitingKey).then(({found, status}) => {})
+}
+
 const addProof = (_, action) => {
   // Special cases
   switch (action.payload.platform) {
@@ -45,6 +50,7 @@ const addProof = (_, action) => {
       return RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['proveWebsiteChoice']})
     case 'zcash':
       return RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['proveEnterUsername']})
+    case 'bitcoin': // fallthrough tracker2
     case 'btc':
       return RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['proveEnterUsername']})
     case 'pgp':
@@ -59,6 +65,7 @@ function* addServiceProof(_, action) {
   const service = action.payload.platform
   switch (service) {
     case 'dnsOrGenericWebSite': // fallthrough
+    case 'bitcoin': // fallthrough tracker2
     case 'btc':
     case 'zcash':
     case 'pgp':
@@ -239,6 +246,7 @@ function* proofsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<ProfileGen.AddProofPayload>(ProfileGen.addProof, addProof)
   yield* Saga.chainGenerator<ProfileGen.AddProofPayload>(ProfileGen.addProof, addServiceProof)
   yield* Saga.chainAction<ProfileGen.CheckProofPayload>(ProfileGen.checkProof, checkProof)
+  yield* Saga.chainAction<ProfileGen.CheckProof2Payload>(ProfileGen.checkProof2, checkProof2)
 }
 
 export {proofsSaga}

@@ -4,25 +4,26 @@
     "import * as More from '../constants/types/more'"
   ],
   "actions": {
-    "addProof": { "platform": "More.PlatformsExpandedType" },
+    "addProof": {"platform": "More.PlatformsExpandedType"},
     "backToProfile": {},
     "cancelAddProof": {},
     "cancelPgpGen": {},
     "checkProof": {},
+    "checkProof2": {"sigID": "string"},
     "cleanupUsername": {},
-    "dropPgp": { "kid": "RPCTypes.KID" },
+    "dropPgp": {"kid": "RPCTypes.KID"},
     "uploadAvatar": {
       "filename": "string",
       "crop?": "RPCTypes.ImageCropRect"
     },
-    "editAvatar": { },
+    "editAvatar": {},
     "editProfile": {
       "bio": "string",
       "fullname": "string",
       "location": "string"
     },
     "revokeFinish": {
-      "canError": { "error": "string" }
+      "canError": {"error": "string"}
     },
     "finishRevoking": {},
     "finishedWithKeyGen": {
@@ -34,10 +35,10 @@
       "openWebsite?": "?boolean"
     },
     "outputInstructionsActionLink": {},
-    "showUserProfile": { "username": "string" },
+    "showUserProfile": {"username": "string"},
     "submitZcashAddress": {},
     "submitBTCAddress": {},
-    "submitRevokeProof": { "proofId": "string" },
+    "submitRevokeProof": {"proofId": "string"},
     "submitUsername": {},
     "updateErrorText": {
       "errorText": "string",
@@ -49,16 +50,16 @@
       "pgpEmail2?": "string",
       "pgpEmail3?": "string",
       "pgpErrorText?": "string",
-      "pgpFullName?": "string",
+      "pgpFullName?": "string"
     },
-    "updatePgpPublicKey": { "publicKey": "string" },
-    "updatePlatform": { "platform": "More.PlatformsExpandedType" },
+    "updatePgpPublicKey": {"publicKey": "string"},
+    "updatePlatform": {"platform": "More.PlatformsExpandedType"},
     "updateProofStatus": {
       "found": "boolean",
       "status": "RPCTypes.ProofStatus"
     },
-    "updateProofText": { "proof": "string" },
-    "updateSigID": { "sigID": "?RPCTypes.SigID" },
-    "updateUsername": { "username": "string" }
+    "updateProofText": {"proof": "string"},
+    "updateSigID": {"sigID": "?RPCTypes.SigID"},
+    "updateUsername": {"username": "string"}
   }
 }
