@@ -1520,7 +1520,7 @@ func testTLFJournalConvertWhileFlushing(t *testing.T, ver kbfsmd.MetadataVer) {
 		testTLFJournalPauseBlocksAndConvertBranch(t, ctx, tlfJournal, config)
 
 	// Now finish the block put, and let the flush finish.  We
-	// shouldn't be on a branch anymore.
+	// should be on a local squash branch after this.
 	unpauseBlockPutCh <- struct{}{}
 	err := <-errCh
 	require.NoError(t, err)
