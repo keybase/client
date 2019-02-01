@@ -389,7 +389,7 @@ var webProofSuggestion = keybase1.ProofSuggestion{
 }
 
 var bitcoinProofSuggestion = keybase1.ProofSuggestion{
-	Key:           "bitcoin",
+	Key:           "btc",
 	ProfileText:   "Set a Bitcoin address",
 	ProfileIcon:   dummyIcon,
 	PickerText:    "Bitcoin address",
@@ -475,6 +475,8 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext) (ret []Proo
 		switch displayConfig.Key {
 		case "zcash.t", "zcash.z", "zcash.s":
 			altKey = "zcash"
+		case "bitcoin":
+			altKey = "btc"
 		case "http", "https", "dns":
 			altKey = "web"
 		}
