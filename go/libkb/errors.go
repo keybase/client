@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -2095,7 +2096,7 @@ func (e ChatStalePreviousStateError) Error() string {
 //=============================================================================
 
 type ChatEphemeralRetentionPolicyViolatedError struct {
-	MaxAge gregor1.Duration
+	MaxAge gregor1.DurationSec
 }
 
 func (e ChatEphemeralRetentionPolicyViolatedError) Error() string {
