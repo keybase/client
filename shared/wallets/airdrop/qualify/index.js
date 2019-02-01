@@ -58,7 +58,7 @@ const Row = p => (
       <Kb.Text type="BodySemibold" style={styles.rowText}>
         {p.title}
       </Kb.Text>
-      {p.loading && <Kb.ProgressIndicator style={styles.progress} />}
+      {p.loading && <Kb.ProgressIndicator style={styles.progress} white={true} />}
       {!p.loading && (
         <Kb.Icon
           type={p.valid ? 'iconfont-check' : 'iconfont-close'}
@@ -164,7 +164,12 @@ class Qualified extends React.PureComponent<Props, State> {
               })}
             >
               {rows.map((r, idx) => (
-                <Row key={r.title} {...r} first={idx === 0} loading={idx > this.state.rowIdxLoaded} />
+                <Row
+                  key={r.title}
+                  {...r}
+                  first={idx === 0}
+                  loading={true /* idx > this.state.rowIdxLoaded */}
+                />
               ))}
             </Kb.Box2>
           </>
@@ -239,7 +244,11 @@ const styles = Styles.styleSheetCreate({
   },
   headerText: {color: Styles.globalColors.white},
   loadingText: {color: Styles.globalColors.white_40},
-  progress: {color: Styles.globalColors.white, height: 14, width: 14},
+  progress: {
+    color: Styles.globalColors.white,
+    height: 20,
+    width: 20,
+  },
   row: Styles.platformStyles({
     isElectron: {
       minHeight: Styles.globalMargins.large,
