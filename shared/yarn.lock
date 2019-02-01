@@ -11627,7 +11627,7 @@ react-native-fast-image@5.1.1:
 
 "react-native-image-picker@git://github.com/keybase/react-native-image-picker#akalin/DESKTOP-8743-image-capture-secure":
   version "0.27.1"
-  resolved "git://github.com/keybase/react-native-image-picker#c641b85eddfff0d1208ef8731cf4da806e7ad880"
+  resolved "git://github.com/keybase/react-native-image-picker#5ce7935db7d5693e52526ca9070b2114076c09e8"
 
 react-native-mime-types@2.2.1:
   version "2.2.1"
