@@ -28,6 +28,7 @@
 }
 .WrapperMessage-hoverColor:hover {
   background-color: #f7f9fc;
+  box-shadow: 0 2px 1px 0 rgba(0, 0, 0, 0.1);
 }
 .WrapperMessage-decorated {
 }
@@ -44,9 +45,6 @@
 .WrapperMessage-hoverBox:hover .WrapperMessage-emojiButton {
   box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.1);
 }
-.WrapperMessage-hoverBox:hover .WrapperMessage-emojiButtonLast {
-  box-shadow: 0 -1px 1px 0 rgba(0, 0, 0, 0.1);
-}
 .WrapperMessage-hoverBox:hover .WrapperMessage-emojiButton.noShadow,
 .WrapperMessage-hoverBox:hover .WrapperMessage-emojiButton:active {
   box-shadow: none;
@@ -56,4 +54,10 @@
 }
 .WrapperMessage-hoverBox:hover .WrapperMessage-newEmojiButton {
   visibility: visible;
+}
+.WrapperMessage-hoverBox:hover .WrapperMessage-emojiRow {
+  box-shadow: 0 2px 1px 0 rgba(0, 0, 0, 0.1);
+}
+.WrapperMessage-hoverBox:hover .WrapperMessage-emojiRowLast {
+  box-shadow: none;
 }
