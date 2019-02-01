@@ -361,7 +361,19 @@ func (cache *diskBlockCacheWrapped) UpdateMetadata(
 		}
 		return err
 	}
-	return secondaryCache.UpdateMetadata(ctx, blockID, prefetchStatus)
+	err = secondaryCache.UpdateMetadata(ctx, blockID, prefetchStatus)
+	_, isNoSuchBlockError = errors.Cause(err).(NoSuchBlockError)
+	if !isNoSuchBlockError {
+		return err
+	}
+	// Try one last time in the primary cache, in case of this
+	// sequence of events:
+	// 0) Block exists in secondary.
+	// 1) UpdateMetadata checks primary, gets NoSuchBlockError.
+	// 2) Other goroutine writes block to primary.
+	// 3) Other goroutine deletes block from primary.
+	// 4) UpdateMetadata checks secondary, gets NoSuchBlockError.
+	return primaryCache.UpdateMetadata(ctx, blockID, prefetchStatus)
 }
 
 // ClearAllTlfBlocks implements the DiskBlockCache interface for
