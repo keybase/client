@@ -112,7 +112,7 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 
 		if d.Asset.IsNativeXLM() {
 			availableAmount := stellar.SubtractFeeSoft(mctx, details.Available)
-			if avaliableAmount == "" {
+			if availableAmount == "" {
 				s.G().Log.CDebugf(ctx, "stellar.SubtractFeeSoft returned empty available amount, setting it to 0")
 				availableAmount = "0"
 			}
