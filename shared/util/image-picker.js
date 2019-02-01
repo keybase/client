@@ -20,7 +20,8 @@ const wrapWithImageCaptureSecure = (fn: ImagePickerFn): ImagePickerFn => {
     const optionsWithSecure = {...options, androidUseImageCaptureSecure: true}
 
     fn(optionsWithSecure, response => {
-      const error = response.error
+      // response.error is typed as string, but is really ?string.
+      const error = response.error || ''
       if (error.includes('Cannot launch camera')) {
         logger.warn(`Camera error with androidUseImageCaptureSecure; trying again without it: ${error}`)
         fn(options, callback)
