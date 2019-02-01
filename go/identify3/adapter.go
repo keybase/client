@@ -387,8 +387,17 @@ func (i *UIAdapter) makeSigchainViewURL(s keybase1.SigID) string {
 }
 
 func (i *UIAdapter) plumbCryptocurrency(crypto keybase1.Cryptocurrency) {
+	key := crypto.Type
+	switch crypto.Family {
+	case string(libkb.CryptocurrencyFamilyBitcoin):
+		key = "btc"
+	case string(libkb.CryptocurrencyFamilyZCash):
+		key = "zcash"
+	default:
+		i.M().CDebugf("unrecgonized crypto family: %v, %v", crypto.Type, crypto.Family)
+	}
 	i.updateRow(keybase1.Identify3UpdateRowArg{
-		Key:      crypto.Type,
+		Key:      key,
 		Value:    crypto.Address,
 		State:    keybase1.Identify3RowState_VALID,
 		Color:    keybase1.Identify3RowColor_GREEN,

@@ -68,7 +68,7 @@ func TestProofSuggestions(t *testing.T) {
 			PickerText:    "PGP key",
 			PickerSubtext: "",
 		}, {
-			Key:           "bitcoin",
+			Key:           "btc",
 			ProfileText:   "Set a Bitcoin address",
 			PickerText:    "Bitcoin address",
 			PickerSubtext: "",
