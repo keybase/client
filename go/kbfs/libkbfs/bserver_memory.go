@@ -276,13 +276,6 @@ func (b *BlockServerMemory) AddBlockReference(ctx context.Context, tlfID tlf.ID,
 			entry.tlfID, tlfID)
 	}
 
-	// Only add it if there's a non-archived reference.
-	if !entry.refs.hasNonArchivedRef() {
-		return kbfsblock.ServerErrorBlockArchived{
-			Msg: fmt.Sprintf("Block ID %s has "+
-				"been archived and cannot be referenced.", id)}
-	}
-
 	return entry.refs.put(context, liveBlockRef, "")
 }
 
