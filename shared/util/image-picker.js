@@ -8,21 +8,21 @@ import {
   type Response,
 } from 'react-native-image-picker'
 
-const showImagePicker = (options: ?Options, callback: (response: Response) => any) => {
+type ImagePickerFn = (options: ?Options, callback: (response: Response) => any) => void
+
+const wrapWithImageCaptureSecure = (fn: ImagePickerFn): ImagePickerFn => {
   if (!isAndroid) {
-    return _showImagePicker(options, callback)
+    return fn
   }
 
-  return _showImagePicker(options, callback)
-}
-
-const launchCamera = (options: ?Options, callback: (response: Response) => any) => {
-  if (!isAndroid) {
-    return _launchCamera(options, callback)
+  return (options: ?Options, callback: (response: Response) => any) => {
+    return fn(options, callback)
   }
-
-  return _launchCamera(options, callback)
 }
+
+const showImagePicker = wrapWithImageCaptureSecure(_showImagePicker)
+
+const launchCamera = wrapWithImageCaptureSecure(_launchCamera)
 
 export {showImagePicker, launchCamera, launchImageLibrary}
 export type {Options, Response}
