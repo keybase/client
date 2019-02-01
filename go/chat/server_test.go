@@ -5867,7 +5867,7 @@ func TestChatSrvEphemeralPolicy(t *testing.T) {
 	useRemoteMock = false
 	defer func() { useRemoteMock = true }()
 
-	timeout := 2 * time.Second
+	timeout := 20 * time.Second
 	ctx := ctc.as(t, users[0]).startCtx
 	tc := ctc.world.Tcs[users[0].Username]
 	listener0 := newServerChatListener()
