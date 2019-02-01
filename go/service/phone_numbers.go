@@ -137,7 +137,7 @@ func (r *phoneNumbersGregorHandler) handleAddedMsg(ctx context.Context, cli greg
 
 	r.G().NotifyRouter.HandlePhoneNumberAdded(ctx, msg.PhoneNumber)
 
-	return r.G().GregorDismisser.DismissItem(ctx, cli, item.Metadata().MsgID())
+	return r.G().GregorState.DismissItem(ctx, cli, item.Metadata().MsgID())
 }
 
 func (r *phoneNumbersGregorHandler) handleVerifiedMsg(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
@@ -152,7 +152,7 @@ func (r *phoneNumbersGregorHandler) handleVerifiedMsg(ctx context.Context, cli g
 
 	r.G().NotifyRouter.HandlePhoneNumberVerified(ctx, msg.PhoneNumber)
 
-	return r.G().GregorDismisser.DismissItem(ctx, cli, item.Metadata().MsgID())
+	return r.G().GregorState.DismissItem(ctx, cli, item.Metadata().MsgID())
 }
 
 func (r *phoneNumbersGregorHandler) handleSupersededMsg(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
@@ -167,5 +167,5 @@ func (r *phoneNumbersGregorHandler) handleSupersededMsg(ctx context.Context, cli
 
 	r.G().NotifyRouter.HandlePhoneNumberSuperseded(ctx, msg.PhoneNumber)
 
-	return r.G().GregorDismisser.DismissItem(ctx, cli, item.Metadata().MsgID())
+	return r.G().GregorState.DismissItem(ctx, cli, item.Metadata().MsgID())
 }

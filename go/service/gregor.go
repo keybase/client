@@ -229,7 +229,7 @@ type gregorHandler struct {
 	transportForTesting *connTransport
 }
 
-var _ libkb.GregorDismisser = (*gregorHandler)(nil)
+var _ libkb.GregorState = (*gregorHandler)(nil)
 var _ libkb.GregorListener = (*gregorHandler)(nil)
 
 func newGregorHandler(g *globals.Context) *gregorHandler {
@@ -1856,6 +1856,15 @@ func (g *gregorHandler) getState(ctx context.Context) (res gregor1.State, err er
 	}
 
 	return res, nil
+}
+
+func (g *gregorHandler) State(ctx context.Context) (res gregor.State, err error) {
+	defer g.G().CTraceTimed(ctx, "gregorHandler#State", func() error { return err })()
+	gcli, err := g.getGregorCli()
+	if err != nil {
+		return res, err
+	}
+	return gcli.StateMachineState(ctx, nil, true)
 }
 
 func (g *gregorRPCHandler) GetState(ctx context.Context) (res gregor1.State, err error) {
