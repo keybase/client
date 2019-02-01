@@ -223,6 +223,8 @@ export type _Download = {
 }
 export type Download = I.RecordOf<_Download>
 
+export type Downloads = I.Map<string, Download>
+
 export type _Uploads = {
   writingToJournal: I.Set<Path>,
   errors: I.Map<Path, FsError>,
@@ -301,9 +303,10 @@ export type _SendLinkToChat = {
 }
 export type SendLinkToChat = I.RecordOf<_SendLinkToChat>
 
-export type PathItemActionMenuView = 'root' | 'share' | 'confirm-save' | 'confirm-send-to-other-app'
+export type PathItemActionMenuView = 'root' | 'share' | 'confirm-save-media' | 'confirm-send-to-other-app'
 export type _PathItemActionMenu = {
   view: PathItemActionMenuView,
+  previousView: PathItemActionMenuView,
   downloadKey: ?string,
 }
 export type PathItemActionMenu = I.RecordOf<_PathItemActionMenu>
@@ -314,7 +317,7 @@ export type _State = {
   edits: Edits,
   pathUserSettings: I.Map<Path, PathUserSetting>,
   loadingPaths: I.Map<Path, I.Set<string>>,
-  downloads: I.Map<string, Download>,
+  downloads: Downloads,
   uploads: Uploads,
   fuseStatus: ?RPCTypes.FuseStatus,
   flags: Flags,

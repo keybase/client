@@ -189,6 +189,7 @@ export const makeSendLinkToChat: I.RecordFactory<Types._SendLinkToChat> = I.Reco
 
 export const makePathItemActionMenu: I.RecordFactory<Types._PathItemActionMenu> = I.Record({
   downloadKey: null,
+  previousView: 'root',
   view: 'root',
 })
 

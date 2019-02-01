@@ -1,4 +1,5 @@
 // @flow
+import * as I from 'immutable'
 import * as Types from '../../../constants/types/fs'
 import * as FsGen from '../../../actions/fs-gen'
 import {namedConnect} from '../../../util/container'
@@ -9,6 +10,7 @@ type OwnProps = {|
   actionIconFontSize?: number,
   actionIconWhite?: boolean,
   path: Types.Path,
+  routePath: I.List<string>,
 |}
 
 const mapStateToProps = state => ({

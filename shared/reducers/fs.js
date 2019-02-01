@@ -311,7 +311,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.setIn(['sendLinkToChat', 'channels'], action.payload.channels)
     case FsGen.setPathItemActionMenuView:
       return state.update('pathItemActionMenu', pathItemActionMenu =>
-        pathItemActionMenu.set('view', action.payload.view)
+        pathItemActionMenu.set('previousView', pathItemActionMenu.view).set('view', action.payload.view)
       )
     case FsGen.setPathItemActionMenuDownloadKey:
       return state.update('pathItemActionMenu', pathItemActionMenu =>
