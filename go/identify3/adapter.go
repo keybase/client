@@ -270,7 +270,7 @@ func (i *UIAdapter) displayKey(key keybase1.IdentifyKey) {
 		Value:   hex.EncodeToString(key.PGPFingerprint),
 		SigID:   key.SigID,
 		SiteURL: i.makeKeybaseProfileURL(),
-		// key.SigID is blank for chris. Seems ok for everyone else.
+		// key.SigID is blank if the PGP key was there pre-sigchain
 		ProofURL: i.makeSigchainViewURL(key.SigID),
 	}
 
