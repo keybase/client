@@ -1875,6 +1875,12 @@ func TestPrefetcherReschedules(t *testing.T) {
 	config.SetTlfSyncState(kmd.TlfID(), FolderSyncConfig{
 		Mode: keybase1.FolderSyncMode_ENABLED,
 	})
+	// We must use a special channel here to learn when each
+	// prefetcher operation has finished.  That's because we shouldn't
+	// adjust the disk limiter limits during the processing of a
+	// prefetcher operation.  If we do, we introduce racy behavior
+	// where sometimes the prefetcher will be able to write stuff to
+	// the cache, and sometimes not.
 	prefetchDoneCh := make(chan struct{})
 	q.TogglePrefetcher(true, prefetchSyncCh, prefetchDoneCh)
 	q.Prefetcher().(*blockPrefetcher).makeNewBackOff = func() backoff.BackOff {
@@ -1949,6 +1955,10 @@ func TestPrefetcherReschedules(t *testing.T) {
 
 	t.Log("Finish all the prefetching.")
 	close(prefetchSyncCh)
+	// We can't close the done channel right away since the prefetcher
+	// still needs to send on it for every remaining operation it
+	// processes, so just spawn a goroutine to drain it, and close the
+	// channel when the test is over.
 	defer close(prefetchDoneCh)
 	go func() {
 		for range prefetchDoneCh {
