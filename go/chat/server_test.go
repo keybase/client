@@ -2062,7 +2062,7 @@ func TestChatSrvPostLocalNonblock(t *testing.T) {
 					require.EqualValues(t, valid.Etime, 0)
 				} else {
 					require.True(t, valid.IsEphemeral)
-					lifetime := time.Second * time.Duration(*ephemeralLifetime)
+					lifetime := ephemeralLifetime.ToDuration()
 					require.True(t, time.Now().Add(lifetime).Sub(valid.Etime.Time()) <= lifetime)
 				}
 			}
