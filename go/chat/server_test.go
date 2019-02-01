@@ -4368,14 +4368,11 @@ func TestChatSrvRetentionSweepConv(t *testing.T) {
 			require.NoError(t, err)
 			require.Len(t, tvres.Thread.Messages, 1, "the TEXTs should be deleted")
 
-			// If we are using an ephemeral policy make sure non-ephemeral
-			// messages and message with a lifetime exceeding the policy age
-			// are blocked.
+			// If we are using an ephemeral policy make sure messages with a lifetime exceeding
+			// the policy age are blocked.
 			if ephemeralLifetime != nil {
-				_, err := postLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
-				require.Error(t, err)
 				badLifetime := *ephemeralLifetime + 1
-				_, err = postLocalEphemeralForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}), &badLifetime)
+				_, err := postLocalEphemeralForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}), &badLifetime)
 				require.Error(t, err)
 
 				_, err = postLocalEphemeralForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}), ephemeralLifetime)
@@ -4487,14 +4484,10 @@ func TestChatSrvRetentionSweepTeam(t *testing.T) {
 			checkThread(convC.Id, false)
 			if ephemeralLifetime != nil {
 				for _, conv := range []chat1.ConversationInfoLocal{convA, convB} {
-					// If we are using an ephemeral policy make sure non-ephemeral
-					// messages and message with a lifetime exceeding the policy age
-					// are blocked.
-					_, err := postLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
-					require.Error(t, err)
-
+					// If we are using an ephemeral policy make sure messages with a lifetime exceeding
+					// the policy age are blocked.
 					badLifetime := *ephemeralLifetime + 1
-					_, err = postLocalEphemeralForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}), &badLifetime)
+					_, err := postLocalEphemeralForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}), &badLifetime)
 					require.Error(t, err)
 
 					_, err = postLocalEphemeralForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}), ephemeralLifetime)
