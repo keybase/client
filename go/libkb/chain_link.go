@@ -1125,7 +1125,6 @@ func (c *ChainLink) verifyPayloadV2() error {
 	}
 
 	ol := c.unpacked.outerLinkV2
-
 	if ol == nil {
 		return ChainLinkError{"no outer V2 structure available"}
 	}

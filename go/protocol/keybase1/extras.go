@@ -48,7 +48,8 @@ var PublicUID = UID(PUBLIC_UID)
 
 const (
 	SIG_ID_LEN         = 32
-	SIG_ID_SUFFIX      = 0x0f
+	SIG_ID_SUFFIX_V1   = 0x0f
+	SIG_ID_SUFFIX_V2   = 0x22
 	SIG_SHORT_ID_BYTES = 27
 	SigIDQueryMin      = 8
 )
@@ -679,12 +680,12 @@ func SigIDFromString(s string, suffix bool) (SigID, error) {
 	if suffix {
 		return SigID(s), nil
 	}
-	return SigID(fmt.Sprintf("%s%02x", s, SIG_ID_SUFFIX)), nil
+	return SigID(fmt.Sprintf("%s%02x", s, SIG_ID_SUFFIX_V1)), nil
 }
 
 func SigIDFromBytes(b [SIG_ID_LEN]byte) SigID {
 	s := hex.EncodeToString(b[:])
-	return SigID(fmt.Sprintf("%s%02x", s, SIG_ID_SUFFIX))
+	return SigID(fmt.Sprintf("%s%02x", s, SIG_ID_SUFFIX_V1))
 }
 
 func SigIDFromSlice(b []byte) (SigID, error) {
@@ -710,6 +711,14 @@ func (s SigID) ToMediumID() string {
 
 func (s SigID) ToShortID() string {
 	return encode(s.toBytes()[0:SIG_SHORT_ID_BYTES])
+}
+
+func (s SigID) ReplaceSuffixWithV2() SigID {
+	suffixLength := 2
+	if len(s) >= suffixLength {
+		return SigID(fmt.Sprintf("%s%02x", s[:len(s)-suffixLength], SIG_ID_SUFFIX_V2))
+	}
+	return s
 }
 
 func encode(b []byte) string {

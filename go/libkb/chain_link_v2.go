@@ -387,6 +387,7 @@ func (o OuterLinkV2WithMetadata) Verify(ctx VerifyContext) (kid keybase1.KID, er
 
 func DecodeOuterLinkV2(armored string) (*OuterLinkV2WithMetadata, error) {
 	payload, kid, sigID, err := SigExtractPayloadAndKID(armored)
+	sigID = sigID.ReplaceSuffixWithV2()
 	if err != nil {
 		return nil, err
 	}
