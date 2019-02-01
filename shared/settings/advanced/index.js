@@ -28,6 +28,9 @@ const Advanced = (props: Props) => {
   const disabled = props.lockdownModeEnabled == null || props.hasRandomPW || props.settingLockdownMode
   return (
     <Kb.Box style={styles.advancedContainer}>
+      <Kb.Box style={styles.progressContainer}>
+        {props.settingLockdownMode && <Kb.ProgressIndicator />}
+      </Kb.Box>
       <Kb.Box style={styles.checkboxContainer}>
         <Kb.Checkbox
           checked={!!props.lockdownModeEnabled}
@@ -40,14 +43,11 @@ const Advanced = (props: Props) => {
           style={styles.checkbox}
         />
       </Kb.Box>
-      <Kb.Box style={styles.progressErrorContainer}>
-        {props.settingLockdownMode && <Kb.ProgressIndicator />}
-        {!!props.setLockdownModeError && (
-          <Kb.Text type="BodySmall" style={styles.error}>
-            {props.setLockdownModeError}
-          </Kb.Text>
-        )}
-      </Kb.Box>
+      {!!props.setLockdownModeError && (
+        <Kb.Text type="BodySmall" style={styles.error}>
+          {props.setLockdownModeError}
+        </Kb.Text>
+      )}
       {!Styles.isMobile && !isLinux && (
         <Kb.Box style={styles.openAtLoginCheckboxContainer}>
           <Kb.Checkbox
@@ -203,10 +203,11 @@ const styles = Styles.styleSheetCreate({
     alignItems: 'flex-start',
     flex: 1,
   },
-  progressErrorContainer: {
+  progressContainer: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
-    minHeight: 48,
+    justifyContent: 'center',
+    minHeight: 32,
   },
   text: Styles.platformStyles({
     isElectron: {
