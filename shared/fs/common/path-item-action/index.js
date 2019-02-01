@@ -1,4 +1,5 @@
 // @flow
+import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
 import * as Styles from '../../../styles'
@@ -11,6 +12,7 @@ type Props = {|
   actionIconWhite?: boolean,
   onHidden: () => void,
   path: Types.Path,
+  routePath: I.List<string>,
 |}
 
 const PathItemAction = (props: Props & Kb.OverlayParentProps) => {
@@ -40,6 +42,7 @@ const PathItemAction = (props: Props & Kb.OverlayParentProps) => {
       {props.showingMenu && (
         <ChooseView
           path={props.path}
+          routePath={props.routePath}
           floatingMenuProps={{
             attachTo: props.getAttachmentRef,
             containerStyle: styles.floatingContainer,

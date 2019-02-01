@@ -1,4 +1,5 @@
 // @flow
+import * as I from 'immutable'
 import React from 'react'
 import {isMobile} from '../../constants/platform'
 import * as Sb from '../../stories/storybook'
@@ -90,18 +91,21 @@ const load = () => {
         <PathItemAction
           path={Types.stringToPath('/keybase/private/meatball/folder/treat')}
           onHidden={Sb.action('onHidden')}
+          routePath={I.List()}
         />
         <PathItemAction
           path={Types.stringToPath(
             '/keybase/private/meatball/treat treat treat treat treat treat treat treat treat treat treat treat treat treat treat treat'
           )}
           onHidden={Sb.action('onHidden')}
+          routePath={I.List()}
         />
         <PathItemAction
           path={Types.stringToPath(
             '/keybaes/private/meatball/foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar'
           )}
           onHidden={Sb.action('onHidden')}
+          routePath={I.List()}
         />
       </Kb.Box2>
     ))

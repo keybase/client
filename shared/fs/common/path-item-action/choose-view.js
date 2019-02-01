@@ -1,16 +1,17 @@
 // @flow
+import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../../../constants/types/fs'
 import * as Flow from '../../../util/flow'
 import {namedConnect} from '../../../util/container'
 import type {FloatingMenuProps} from './types'
-import Root from './root-container'
-import Share from './share-container'
+import Menu from './menu-container'
 import Confirm from './confirm-container'
 
 type OwnProps = {|
   floatingMenuProps: FloatingMenuProps,
   path: Types.Path,
+  routePath: I.List<string>,
 |}
 
 const mapStateToProps = state => ({
@@ -23,19 +24,12 @@ export default namedConnect<OwnProps, _, _, _, _>(
   (s, d, o) => ({...o, ...s, ...d}),
   'PathItemActionChooseView'
 )(props => {
-  switch (props.view) {
-    case 'root':
-      return <Root path={props.path} floatingMenuProps={props.floatingMenuProps} />
-    case 'share':
-      return <Share path={props.path} floatingMenuProps={props.floatingMenuProps} />
-    case 'confirm-save':
-      return <Confirm path={props.path} floatingMenuProps={props.floatingMenuProps} action="save" />
-    case 'confirm-send-to-other-app':
-      return (
-        <Confirm path={props.path} floatingMenuProps={props.floatingMenuProps} action="send-to-other-app" />
-      )
-    default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.view)
-      return null
+  if (props.view === 'root' || props.view === 'share') {
+    return <Menu routePath={props.routePath} path={props.path} floatingMenuProps={props.floatingMenuProps} />
+  } else if (props.view === 'confirm-save-media' || props.view === 'confirm-send-to-other-app') {
+    return <Confirm path={props.path} floatingMenuProps={props.floatingMenuProps} />
+  } else {
+    Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.view)
+    return null
   }
 })
