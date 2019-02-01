@@ -4,8 +4,6 @@ import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import * as Platforms from '../constants/platform'
 
-const platformShortcutSymbol = Platforms.isDarwin ? '⌘' : '^'
-
 export type Props = {|
   isLoading: boolean,
   filter: string,
@@ -116,9 +114,11 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
           <Kb.Text type="BodySemibold" style={styles.text}>
             Jump to chat
           </Kb.Text>
-          <Kb.Text type="BodySemibold" style={styles.textFaint}>
-            ({platformShortcutSymbol}K)
-          </Kb.Text>
+          {!Styles.isMobile && (
+            <Kb.Text type="BodySemibold" style={styles.textFaint}>
+              ({Platforms.shortcutSymbol}K)
+            </Kb.Text>
+          )}
         </Kb.ClickableBox>
       )
     }
@@ -154,7 +154,7 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
       >
         {children}
         {!!this.props.onNewChat && (
-          <Kb.WithTooltip position="bottom center" text={`${platformShortcutSymbol}N`}>
+          <Kb.WithTooltip position="bottom center" text={`${Platforms.shortcutSymbol}N`}>
             <Kb.Icon
               type="iconfont-compose"
               style={propsIconPlatform.style}
