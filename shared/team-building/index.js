@@ -82,14 +82,12 @@ class TeamBuilding extends React.PureComponent<Props, void> {
           showServiceResultCount={props.showServiceResultCount}
         />
         {showRecPending ? (
-          <Kb.Box2 direction="vertical" fullHeight={true} style={styles.loadingContainer}>
+          <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" style={styles.loadingContainer}>
             <Kb.Icon
               style={Kb.iconCastPlatformStyles(styles.loadingIcon)}
-              type='icon-progress-grey-animated'
+              type="icon-progress-grey-animated"
             />
-            <Kb.Text type="BodySmallSemibold" style={styles.loadingText}>
-              Loading
-            </Kb.Text>
+            <Kb.Text type="BodySmallSemibold">Loading</Kb.Text>
           </Kb.Box2>
         ) : (
           <Kb.List
@@ -112,7 +110,8 @@ class TeamBuilding extends React.PureComponent<Props, void> {
                 onRemove={() => props.onRemove(result.userId)}
               />
             )}
-        />)}
+          />
+        )}
       </Kb.Box2>
     )
   }
@@ -140,18 +139,11 @@ const styles = Styles.styleSheetCreate({
       marginTop: Styles.globalMargins.xtiny,
     },
   }),
-  loadingContainer: Styles.platformStyles({
-    common: {
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    isElectron: {
-      paddingBottom: 50,
-    },
-    isMobile: {
-      paddingBottom: 100,
-    },
-  }),
+  loadingContainer: {
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+  },
   loadingIcon: Styles.platformStyles({
     isElectron: {
       height: 32,
@@ -162,9 +154,6 @@ const styles = Styles.styleSheetCreate({
       width: 48,
     },
   }),
-  loadingText: {
-    marginTop: Styles.globalMargins.tiny,
-  },
 })
 
 export default TeamBuilding
