@@ -3040,7 +3040,7 @@ export type UpdateInfoStatus =
   | 2 // CRITICALLY_OUT_OF_DATE_2
 
 export type User = $ReadOnly<{uid: UID, username: String}>
-export type UserCard = $ReadOnly<{following: Int, followers: Int, uid: UID, fullName: String, location: String, bio: String, website: String, twitter: String, youFollowThem: Boolean, theyFollowYou: Boolean, teamShowcase?: ?Array<UserTeamShowcase>}>
+export type UserCard = $ReadOnly<{following: Int, followers: Int, uid: UID, fullName: String, location: String, bio: String, website: String, twitter: String, youFollowThem: Boolean, theyFollowYou: Boolean, teamShowcase?: ?Array<UserTeamShowcase>, registeredForAirdrop: Boolean}>
 export type UserEk = $ReadOnly<{seed: Bytes32, metadata: UserEkMetadata}>
 export type UserEkBoxMetadata = $ReadOnly<{box: String, recipientGeneration: EkGeneration, recipientDeviceID: DeviceID}>
 export type UserEkBoxed = $ReadOnly<{box: String, deviceEkGeneration: EkGeneration, metadata: UserEkMetadata}>

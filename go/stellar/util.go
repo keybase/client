@@ -3,6 +3,7 @@ package stellar
 import (
 	"context"
 	"fmt"
+	"runtime/debug"
 	"sync"
 
 	"github.com/keybase/client/go/libkb"
@@ -117,4 +118,8 @@ func isAmountLessThanMin(amount, min string) bool {
 		return true
 	}
 	return false
+}
+
+func EmptyAmountStack(mctx libkb.MetaContext) {
+	mctx.CDebugf("unexpected empty amount\n%v", string(debug.Stack()))
 }

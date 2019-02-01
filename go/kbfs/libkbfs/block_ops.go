@@ -205,7 +205,7 @@ func (b *BlockOpsStandard) GetLiveCount(
 
 // TogglePrefetcher implements the BlockOps interface for BlockOpsStandard.
 func (b *BlockOpsStandard) TogglePrefetcher(enable bool) <-chan struct{} {
-	return b.queue.TogglePrefetcher(enable, nil)
+	return b.queue.TogglePrefetcher(enable, nil, nil)
 }
 
 // Prefetcher implements the BlockOps interface for BlockOpsStandard.

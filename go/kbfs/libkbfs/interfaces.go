@@ -1319,7 +1319,10 @@ type DiskBlockCache interface {
 		preferredCacheType DiskBlockCacheType) (
 		buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf,
 		prefetchStatus PrefetchStatus, err error)
-	// GetPrefetchStatus returns just the prefetchStatus for the block.
+	// GetPrefetchStatus returns just the prefetchStatus for the
+	// block. If a specific preferred cache type is given, the block
+	// and its metadata are moved to that cache if they're not yet in
+	// it.
 	GetPrefetchStatus(
 		ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID,
 		cacheType DiskBlockCacheType) (PrefetchStatus, error)
@@ -1335,9 +1338,12 @@ type DiskBlockCache interface {
 		ctx context.Context, blockIDs []kbfsblock.ID,
 		cacheType DiskBlockCacheType) (
 		numRemoved int, sizeRemoved int64, err error)
-	// UpdateMetadata updates metadata for a given block in the disk cache.
-	UpdateMetadata(ctx context.Context, blockID kbfsblock.ID,
-		prefetchStatus PrefetchStatus) error
+	// UpdateMetadata updates metadata for a given block in the disk
+	// cache.  If a specific preferred cache type is given, the block
+	// and its metadata are moved to that cache if they're not yet in
+	// it.
+	UpdateMetadata(ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID,
+		prefetchStatus PrefetchStatus, cacheType DiskBlockCacheType) error
 	// ClearAllTlfBlocks deletes all the synced blocks corresponding
 	// to the given TLF ID from the cache.  It doesn't affect
 	// transient blocks for unsynced TLFs.
@@ -2673,9 +2679,9 @@ type BlockRetriever interface {
 	// the disk cache metadata is updated.
 	PutInCaches(ctx context.Context, ptr BlockPointer, tlfID tlf.ID,
 		block Block, lifetime BlockCacheLifetime,
-		prefetchStatus PrefetchStatus) error
+		prefetchStatus PrefetchStatus, cacheType DiskBlockCacheType) error
 	// TogglePrefetcher creates a new prefetcher.
-	TogglePrefetcher(enable bool, syncCh <-chan struct{}) <-chan struct{}
+	TogglePrefetcher(enable bool, syncCh <-chan struct{}, doneCh chan<- struct{}) <-chan struct{}
 }
 
 // ChatChannelNewMessageCB is a callback function that can be called

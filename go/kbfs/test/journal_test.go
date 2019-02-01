@@ -511,8 +511,8 @@ func TestJournalCoalescingCreatesPlusCR(t *testing.T) {
 // squashes -- this happens multiple times before bob's flush is able
 // to succeed.  This is a regression for KBFS-1979.
 func TestJournalCoalescingCreatesPlusMultiCR(t *testing.T) {
-	var busyWork []fileOp
-	var busyWork2 []fileOp
+	busyWork := []fileOp{noSyncEnd()}
+	busyWork2 := []fileOp{noSyncEnd()}
 	listing := m{}
 	iters := libkbfs.ForcedBranchSquashRevThreshold + 1
 	unflushedPaths := []string{"/keybase/private/alice,bob/a"}
@@ -540,21 +540,21 @@ func TestJournalCoalescingCreatesPlusMultiCR(t *testing.T) {
 			pauseJournal(),
 		),
 		as(bob, busyWork...),
-		as(bob,
+		as(bob, noSyncEnd(),
 			// Coalescing, round 1.
 			flushJournal(),
 		),
 		// Second sync to wait for the CR caused by `flushJournal`.
-		as(bob,
+		as(bob, noSyncEnd(),
 			flushJournal(),
 		),
 		as(bob, busyWork2...),
-		as(bob,
+		as(bob, noSyncEnd(),
 			// Coalescing, round 2.
 			flushJournal(),
 		),
 		// Second sync to wait for the CR caused by `flushJournal`.
-		as(bob,
+		as(bob, noSyncEnd(),
 			flushJournal(),
 		),
 		as(alice,
@@ -562,11 +562,11 @@ func TestJournalCoalescingCreatesPlusMultiCR(t *testing.T) {
 			// squashes.
 			mkdir("b"),
 		),
-		as(bob,
+		as(bob, noSyncEnd(),
 			flushJournal(),
 		),
 		// Second sync to wait for the CR caused by `flushJournal`.
-		as(bob,
+		as(bob, noSyncEnd(),
 			flushJournal(),
 			// Disable updates to make sure we don't get notified of
 			// alice's next write until we attempt a journal flush, so

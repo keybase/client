@@ -5187,17 +5187,17 @@ func (mr *MockDiskBlockCacheMockRecorder) Delete(ctx, blockIDs, cacheType interf
 }
 
 // UpdateMetadata mocks base method
-func (m *MockDiskBlockCache) UpdateMetadata(ctx context.Context, blockID kbfsblock.ID, prefetchStatus PrefetchStatus) error {
+func (m *MockDiskBlockCache) UpdateMetadata(ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID, prefetchStatus PrefetchStatus, cacheType DiskBlockCacheType) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateMetadata", ctx, blockID, prefetchStatus)
+	ret := m.ctrl.Call(m, "UpdateMetadata", ctx, tlfID, blockID, prefetchStatus, cacheType)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateMetadata indicates an expected call of UpdateMetadata
-func (mr *MockDiskBlockCacheMockRecorder) UpdateMetadata(ctx, blockID, prefetchStatus interface{}) *gomock.Call {
+func (mr *MockDiskBlockCacheMockRecorder) UpdateMetadata(ctx, tlfID, blockID, prefetchStatus, cacheType interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMetadata", reflect.TypeOf((*MockDiskBlockCache)(nil).UpdateMetadata), ctx, blockID, prefetchStatus)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMetadata", reflect.TypeOf((*MockDiskBlockCache)(nil).UpdateMetadata), ctx, tlfID, blockID, prefetchStatus, cacheType)
 }
 
 // ClearAllTlfBlocks mocks base method
@@ -10790,31 +10790,31 @@ func (mr *MockBlockRetrieverMockRecorder) Request(ctx, priority, kmd, ptr, block
 }
 
 // PutInCaches mocks base method
-func (m *MockBlockRetriever) PutInCaches(ctx context.Context, ptr BlockPointer, tlfID tlf.ID, block Block, lifetime BlockCacheLifetime, prefetchStatus PrefetchStatus) error {
+func (m *MockBlockRetriever) PutInCaches(ctx context.Context, ptr BlockPointer, tlfID tlf.ID, block Block, lifetime BlockCacheLifetime, prefetchStatus PrefetchStatus, cacheType DiskBlockCacheType) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PutInCaches", ctx, ptr, tlfID, block, lifetime, prefetchStatus)
+	ret := m.ctrl.Call(m, "PutInCaches", ctx, ptr, tlfID, block, lifetime, prefetchStatus, cacheType)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // PutInCaches indicates an expected call of PutInCaches
-func (mr *MockBlockRetrieverMockRecorder) PutInCaches(ctx, ptr, tlfID, block, lifetime, prefetchStatus interface{}) *gomock.Call {
+func (mr *MockBlockRetrieverMockRecorder) PutInCaches(ctx, ptr, tlfID, block, lifetime, prefetchStatus, cacheType interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutInCaches", reflect.TypeOf((*MockBlockRetriever)(nil).PutInCaches), ctx, ptr, tlfID, block, lifetime, prefetchStatus)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutInCaches", reflect.TypeOf((*MockBlockRetriever)(nil).PutInCaches), ctx, ptr, tlfID, block, lifetime, prefetchStatus, cacheType)
 }
 
 // TogglePrefetcher mocks base method
-func (m *MockBlockRetriever) TogglePrefetcher(enable bool, syncCh <-chan struct{}) <-chan struct{} {
+func (m *MockBlockRetriever) TogglePrefetcher(enable bool, syncCh <-chan struct{}, doneCh chan<- struct{}) <-chan struct{} {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "TogglePrefetcher", enable, syncCh)
+	ret := m.ctrl.Call(m, "TogglePrefetcher", enable, syncCh, doneCh)
 	ret0, _ := ret[0].(<-chan struct{})
 	return ret0
 }
 
 // TogglePrefetcher indicates an expected call of TogglePrefetcher
-func (mr *MockBlockRetrieverMockRecorder) TogglePrefetcher(enable, syncCh interface{}) *gomock.Call {
+func (mr *MockBlockRetrieverMockRecorder) TogglePrefetcher(enable, syncCh, doneCh interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TogglePrefetcher", reflect.TypeOf((*MockBlockRetriever)(nil).TogglePrefetcher), enable, syncCh)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TogglePrefetcher", reflect.TypeOf((*MockBlockRetriever)(nil).TogglePrefetcher), enable, syncCh, doneCh)
 }
 
 // MockChat is a mock of Chat interface
