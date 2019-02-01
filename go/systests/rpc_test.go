@@ -322,7 +322,7 @@ func buildGregorItem(category, deviceID, msgID string) gregor.Item {
 
 func TestDismissDeviceChangeNotifications(t *testing.T) {
 	c := context.TODO()
-	dismisser := &libkb.FakeGregorDismisser{}
+	dismisser := &libkb.FakeGregorState{}
 	exceptedDeviceID := "active-device-id"
 	state := &FakeGregorState{
 		items: []gregor.Item{
