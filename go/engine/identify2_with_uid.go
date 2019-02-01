@@ -568,7 +568,8 @@ func (e *Identify2WithUID) maybeCacheSelf(m libkb.MetaContext) {
 // exportToResult either returns (non-nil, nil) on success, or (nil, non-nil) on error.
 func (e *Identify2WithUID) exportToResult(m libkb.MetaContext) (*keybase1.Identify2ResUPK2, error) {
 	if e.them == nil {
-		// this should never happen
+		// this should never happen. If it does,it might mean that someone tried to get
+		// e.Result after e.Run returned an error, which isn't intended.
 		return nil, libkb.UserNotFoundError{Msg: "failed to get a them user in Identify2WithUID#exportToResult"}
 	}
 	upk, err := e.toUserPlusKeysv2AllIncarnations()
