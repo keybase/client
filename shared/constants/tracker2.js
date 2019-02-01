@@ -131,7 +131,7 @@ const _scoreAssertionKey = a => {
       return 40
     case 'stellar':
       return 30
-    case 'bitcoin':
+    case 'btc':
       return 20
     case 'zcash':
       return 10

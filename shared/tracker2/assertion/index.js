@@ -87,10 +87,10 @@ const assertionColorToColor = (c: Types.AssertionColor) => {
   }
 }
 
-// TODO get read icon from core
+// TODO get real icon from core
 const siteIcon = icon => {
   switch (icon) {
-    case 'bitcoin':
+    case 'btc':
       return 'iconfont-identity-bitcoin'
     case 'facebook':
       return 'iconfont-identity-facebook'
@@ -183,8 +183,8 @@ const Value = p => {
           str = `${last.substr(0, 4)} ${last.substr(4, 4)} ${last.substr(8, 4)} ${last.substr(12, 4)}`
           break
         }
-        case 'bitcoin':
-          style = styles.bitcoin
+        case 'btc':
+          style = styles.btc
           break
       }
     }
@@ -353,7 +353,7 @@ class Assertion extends React.PureComponent<Props, State> {
 }
 
 const styles = Styles.styleSheetCreate({
-  bitcoin: Styles.platformStyles({
+  btc: Styles.platformStyles({
     isElectron: {display: 'inline-block', fontSize: 11, wordBreak: 'break-all'},
   }),
   container: {flexShrink: 0, paddingBottom: 4, paddingTop: 4},

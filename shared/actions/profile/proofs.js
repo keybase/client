@@ -50,7 +50,6 @@ const addProof = (_, action) => {
       return RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['proveWebsiteChoice']})
     case 'zcash':
       return RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['proveEnterUsername']})
-    case 'bitcoin': // fallthrough tracker2
     case 'btc':
       return RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['proveEnterUsername']})
     case 'pgp':
@@ -65,7 +64,6 @@ function* addServiceProof(_, action) {
   const service = action.payload.platform
   switch (service) {
     case 'dnsOrGenericWebSite': // fallthrough
-    case 'bitcoin': // fallthrough tracker2
     case 'btc':
     case 'zcash':
     case 'pgp':
