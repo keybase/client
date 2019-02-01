@@ -2094,6 +2094,16 @@ func (e ChatStalePreviousStateError) Error() string {
 
 //=============================================================================
 
+type ChatEphemeralRetentionPolicyViolatedError struct {
+	MaxAge gregor1.Duration
+}
+
+func (e ChatEphemeralRetentionPolicyViolatedError) Error() string {
+	return fmt.Sprintf("messages in this conversation are required to be exploding with a maximum lifetime of %v", e.MaxAge.ToDuration())
+}
+
+//=============================================================================
+
 type InvalidAddressError struct {
 	Msg string
 }
