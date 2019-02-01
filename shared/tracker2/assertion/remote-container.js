@@ -34,6 +34,7 @@ const mapDispatchToProps = dispatch => ({})
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   color: stateProps.color,
   isSuggestion: false,
+  isYours: false, // no edit controls on tracker
   metas: stateProps._metas.map(({color, label}) => ({color, label})),
   onCopyAddress: () => dispatchProps._onCopyAddress(stateProps.value),
   onCreateProof: null,

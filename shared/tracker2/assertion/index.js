@@ -8,6 +8,7 @@ import * as Flow from '../../util/flow'
 type Props = {|
   color: Types.AssertionColor,
   isSuggestion: boolean,
+  isYours: boolean,
   metas: $ReadOnlyArray<Types._AssertionMeta>,
   onCopyAddress: () => void,
   onRequestLumens: () => void,
@@ -205,7 +206,7 @@ const Value = p => {
 }
 
 const getMenu = p => {
-  if (p.isSuggestion || p.type === 'stellar') {
+  if (!p.isYours || p.isSuggestion || p.type === 'stellar') {
     return {}
   }
 

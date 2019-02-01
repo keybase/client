@@ -32,6 +32,7 @@ const mapStateToProps = (state, ownProps) => {
     _metas: a.metas,
     _sigID: a.sigID,
     color: a.color,
+    isYours: ownProps.username === state.config.username,
     proofURL: a.proofURL,
     siteIcon: a.siteIcon,
     siteURL: a.siteURL,
@@ -67,6 +68,7 @@ const mapDispatchToProps = dispatch => ({
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   color: stateProps.color,
   isSuggestion: !!ownProps.isSuggestion,
+  isYours: stateProps.isYours,
   metas: stateProps._metas.map(({color, label}) => ({color, label})),
   onCopyAddress: () => dispatchProps._onCopyAddress(stateProps.value),
   onCreateProof: ownProps.isSuggestion ? () => dispatchProps._onCreateProof(stateProps.type) : undefined,
