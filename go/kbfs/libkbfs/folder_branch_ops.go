@@ -923,6 +923,7 @@ func (fbo *folderBranchOps) doPartialSync(
 	}
 
 	chs := make(map[string]<-chan struct{}, len(syncConfig.Paths))
+	lState := makeFBOLockState()
 	// Look up and solo-sync each lead-up component of the path.
 pathLoop:
 	for _, p := range syncConfig.Paths {
@@ -941,7 +942,8 @@ pathLoop:
 				continue
 			}
 			// TODO: parallelize the parent fetches and lookups.
-			currNode, _, err = fbo.Lookup(ctx, currNode, parent)
+			currNode, _, err = fbo.blocks.Lookup(
+				ctx, lState, latestMerged.ReadOnly(), currNode, parent)
 			switch errors.Cause(err).(type) {
 			case NoSuchNameError:
 				fbo.log.CDebugf(ctx, "Synced path %s doesn't exist yet", p)
@@ -962,7 +964,8 @@ pathLoop:
 		}
 
 		// Kick off a full deep sync of `syncedElem`.
-		elemNode, _, err := fbo.Lookup(ctx, currNode, syncedElem)
+		elemNode, _, err := fbo.blocks.Lookup(
+			ctx, lState, latestMerged.ReadOnly(), currNode, syncedElem)
 		switch errors.Cause(err).(type) {
 		case NoSuchNameError:
 			fbo.log.CDebugf(ctx, "Synced element %s doesn't exist yet", p)
