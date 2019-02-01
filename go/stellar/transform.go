@@ -89,7 +89,7 @@ func TransformRequestDetails(mctx libkb.MetaContext, details stellar1.RequestDet
 			code = details.Asset.Code
 		}
 
-		amountDesc, err := FormatAmountWithSuffix(details.Amount, false /* precisionTwo */, true /* simplify */, code)
+		amountDesc, err := FormatAmountWithSuffix(mctx, details.Amount, false /* precisionTwo */, true /* simplify */, code)
 		if err != nil {
 			amountDesc = fmt.Sprintf("%s %s", details.Amount, code)
 			mctx.CDebugf("error formatting amount for asset: %s", err)
@@ -382,7 +382,7 @@ func decryptNote(mctx libkb.MetaContext, txid stellar1.TransactionID, note strin
 func newPaymentLocal(mctx libkb.MetaContext, txID stellar1.TransactionID, ctime stellar1.TimeMs, amount string, asset stellar1.Asset) (*stellar1.PaymentLocal, error) {
 	loc := stellar1.NewPaymentLocal(txID, ctime)
 
-	formatted, err := FormatAmountDescriptionAsset(amount, asset)
+	formatted, err := FormatAmountDescriptionAsset(mctx, amount, asset)
 	if err != nil {
 		return nil, err
 	}
@@ -443,7 +443,7 @@ func RemotePendingToLocal(mctx libkb.MetaContext, remoter remote.Remoter, accoun
 func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stellar1.AccountID, details stellar1.AccountDetails, isPrimary bool, accountName string, accountMode stellar1.AccountMode) (stellar1.WalletAccountLocal, error) {
 
 	var empty stellar1.WalletAccountLocal
-	balance, err := balanceList(details.Balances).balanceDescription()
+	balance, err := balanceList(details.Balances).balanceDescription(mctx)
 	if err != nil {
 		return empty, err
 	}
@@ -471,11 +471,11 @@ func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stella
 type balanceList []stellar1.Balance
 
 // Example: "56.0227002 XLM + more"
-func (a balanceList) balanceDescription() (res string, err error) {
+func (a balanceList) balanceDescription(mctx libkb.MetaContext) (res string, err error) {
 	var more bool
 	for _, b := range a {
 		if b.Asset.IsNativeXLM() {
-			res, err = FormatAmountDescriptionXLM(b.Amount)
+			res, err = FormatAmountDescriptionXLM(mctx, b.Amount)
 			if err != nil {
 				return "", err
 			}
