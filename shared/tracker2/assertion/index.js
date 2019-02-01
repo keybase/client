@@ -293,7 +293,14 @@ class Assertion extends React.PureComponent<Props, State> {
         style={styles.container}
         fullWidth={true}
       >
-        <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} gapStart={true} gapEnd={true}>
+        <Kb.Box2
+          alignItems="center"
+          direction="horizontal"
+          gap="tiny"
+          fullWidth={true}
+          gapStart={true}
+          gapEnd={true}
+        >
           <Kb.Icon
             type={siteIcon(p.type)}
             onClick={p.onCreateProof || p.onShowSite}
@@ -316,26 +323,19 @@ class Assertion extends React.PureComponent<Props, State> {
             color={p.isSuggestion ? Styles.globalColors.black_20 : assertionColorToColor(p.color)}
           />
           {items ? (
-            <Kb.Icon
-              className="hover-visible"
-              type="iconfont-caret-down"
-              onClick={this._toggleMenu}
-              boxStyle={styles.menuIcon}
-            />
-          ) : (
-            <Kb.Box2 direction="vertical" />
-          )}
-          {items ? (
-            <Kb.FloatingMenu
-              closeOnSelect={true}
-              visible={this.state.showingMenu}
-              onHidden={this._hideMenu}
-              attachTo={this._getRef}
-              position="bottom right"
-              containerStyle={styles.floatingMenu}
-              header={header}
-              items={items}
-            />
+            <>
+              <Kb.Icon className="hover-visible" type="iconfont-caret-down" onClick={this._toggleMenu} />
+              <Kb.FloatingMenu
+                closeOnSelect={true}
+                visible={this.state.showingMenu}
+                onHidden={this._hideMenu}
+                attachTo={this._getRef}
+                position="bottom right"
+                containerStyle={styles.floatingMenu}
+                header={header}
+                items={items}
+              />
+            </>
           ) : (
             <Kb.Box2 direction="vertical" />
           )}
@@ -367,7 +367,6 @@ const styles = Styles.styleSheetCreate({
     borderStyle: 'solid',
     padding: Styles.globalMargins.small,
   },
-  menuIcon: {alignSelf: 'center', height: 17},
   metaContainer: {flexShrink: 0, paddingLeft: 20 + Styles.globalMargins.tiny * 2 - 4}, // icon spacing plus meta has 2 padding for some reason
   site: {color: Styles.globalColors.black_20},
   stateIcon: {height: 17},

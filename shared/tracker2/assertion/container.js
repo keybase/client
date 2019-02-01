@@ -30,6 +30,7 @@ const mapStateToProps = (state, ownProps) => {
   }
   return {
     _metas: a.metas,
+    _sigID: a.sigID,
     color: a.color,
     proofURL: a.proofURL,
     siteIcon: a.siteIcon,
@@ -43,12 +44,12 @@ const mapDispatchToProps = dispatch => ({
   _onCopyAddress: (text: string) => dispatch(ConfigGen.createCopyToClipboard({text})),
   // $FlowIssue we need to make this more flexible later
   _onCreateProof: (type: string) => dispatch(ProfileGen.createAddProof({platform: type})),
-  _onRevokeProof: (type: string, value: string) =>
+  _onRevokeProof: (type: string, value: string, id: string) =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
         path: [
           {
-            props: {platform: type, platformHandle: key, proofId: 0},
+            props: {platform: type, platformHandle: value, proofId: id},
             selected: 'revoke',
           },
         ],
@@ -68,14 +69,14 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   metas: stateProps._metas.map(({color, label}) => ({color, label})),
   onCopyAddress: () => dispatchProps._onCopyAddress(stateProps.value),
   onCreateProof: () => (ownProps.isSuggestion ? dispatchProps._onCreateProof(stateProps.type) : undefined),
+  onRecheck: () => console.log('aaa TODO '),
   onRequestLumens: () =>
     dispatchProps._onSendOrRequestLumens(stateProps.value.split('*')[0], true, 'keybaseUser'),
+  onRevoke: () => dispatchProps._onRevokeProof(stateProps.type, stateProps.value, stateProps._sigID),
   onSendLumens: () =>
     dispatchProps._onSendOrRequestLumens(stateProps.value.split('*')[0], false, 'keybaseUser'),
   onShowProof: () => (stateProps.proofURL ? openUrl(stateProps.proofURL) : undefined),
   onShowSite: () => (stateProps.siteURL ? openUrl(stateProps.siteURL) : undefined),
-  onRecheck: () => console.log('aaa TODO '),
-  onRevoke: () => dispatchProps._onRevoke(stateProps.type, stateProps.value),
   onWhatIsStellar: () => openUrl('https://keybase.io/what-is-stellar'),
   proofURL: stateProps.proofURL,
   siteIcon: stateProps.siteIcon,

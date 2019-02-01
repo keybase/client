@@ -33,6 +33,7 @@ export const makeAssertion: I.RecordFactory<Types._Assertion> = I.Record({
   color: 'gray',
   metas: [],
   proofURL: '',
+  sigID: '',
   siteIcon: '',
   siteURL: '',
   state: 'error',

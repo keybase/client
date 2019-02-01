@@ -46,6 +46,7 @@ const setupEngineListeners = () => {
           guiID: row.guiID,
           metas: (row.metas || []).map(m => ({color: Constants.rpcRowColorToColor(m.color), label: m.label})),
           proofURL: row.proofURL,
+          sigID: row.sigID,
           siteIcon: row.siteIcon,
           siteURL: row.siteURL,
           state: Constants.rpcRowStateToAssertionState(row.state),

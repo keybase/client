@@ -91,6 +91,7 @@ export default function(state: Types.State = initialState, action: Tracker2Gen.A
               color: action.payload.color,
               metas: action.payload.metas.map(Constants.makeMeta),
               proofURL: action.payload.proofURL,
+              sigID: action.payload.sigID,
               siteIcon: action.payload.siteIcon,
               siteURL: action.payload.siteURL,
               state: action.payload.state,

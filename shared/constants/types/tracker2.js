@@ -24,6 +24,7 @@ export type _Assertion = {
   color: AssertionColor,
   metas: $ReadOnlyArray<AssertionMeta>,
   proofURL: string, // http://twitter.com/bob/post/1234
+  sigID: string,
   siteIcon: string, // https://keybase.io/_/icons/twitter.png
   siteURL: string, // https://twitter.com/bob
   state: AssertionState,
