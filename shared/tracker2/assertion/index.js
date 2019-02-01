@@ -183,8 +183,9 @@ const Value = p => {
           str = `${last.substr(0, 4)} ${last.substr(4, 4)} ${last.substr(8, 4)} ${last.substr(12, 4)}`
           break
         }
-        case 'btc':
-          style = styles.btc
+        case 'btc': // fallthrough
+        case 'zcash':
+          style = styles.crypto
           break
       }
     }
@@ -353,10 +354,10 @@ class Assertion extends React.PureComponent<Props, State> {
 }
 
 const styles = Styles.styleSheetCreate({
-  btc: Styles.platformStyles({
+  container: {flexShrink: 0, paddingBottom: 4, paddingTop: 4},
+  crypto: Styles.platformStyles({
     isElectron: {display: 'inline-block', fontSize: 11, wordBreak: 'break-all'},
   }),
-  container: {flexShrink: 0, paddingBottom: 4, paddingTop: 4},
   floatingMenu: {
     maxWidth: 240,
     minWidth: 196,

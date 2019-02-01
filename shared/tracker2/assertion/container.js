@@ -69,7 +69,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   isSuggestion: !!ownProps.isSuggestion,
   metas: stateProps._metas.map(({color, label}) => ({color, label})),
   onCopyAddress: () => dispatchProps._onCopyAddress(stateProps.value),
-  onCreateProof: () => (ownProps.isSuggestion ? dispatchProps._onCreateProof(stateProps.type) : undefined),
+  onCreateProof: ownProps.isSuggestion ? () => dispatchProps._onCreateProof(stateProps.type) : undefined,
   onRecheck: () => dispatchProps._onRecheck(stateProps._sigID),
   onRequestLumens: () =>
     dispatchProps._onSendOrRequestLumens(stateProps.value.split('*')[0], true, 'keybaseUser'),
