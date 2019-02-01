@@ -4,6 +4,7 @@ import * as Kb from '../../../common-adapters'
 import * as Types from '../../../constants/types/wallets'
 import * as Constants from '../../../constants/wallets'
 import * as Styles from '../../../styles'
+import openURL from '../../../util/open-url'
 import shallowEqual from 'shallowequal'
 
 type Props = {|
@@ -30,9 +31,33 @@ const Accepted = p =>
       <Kb.Box2 noShrink={true} fullWidth={true} direction="vertical" style={styles.content} gap="medium">
         <Kb.Box2 direction="vertical" style={styles.grow} />
         <Kb.Icon type="icon-fancy-airdrop-star-shining-happy-120" style={styles.star} />
-        <Kb.Text backgroundMode="Terminal" center={true} type="Header">
-          You're in!
-        </Kb.Text>
+        <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} alignItems="center">
+          <Kb.Text backgroundMode="Terminal" center={true} type="Header">
+            You're in!
+          </Kb.Text>
+          <Kb.Text backgroundMode="Terminal" center={true} type="Body">
+            Your Lumens will show up in your default wallet account.
+          </Kb.Text>
+        </Kb.Box2>
+        <Kb.Box2 direction="vertical" style={styles.grow} />
+        <Kb.Divider />
+        <Kb.Box2 direction="vertical" style={styles.grow} />
+        <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} alignItems="center">
+          <Kb.Text backgroundMode="Terminal" center={true} type="BodySemibold">
+            Now bring your friends!
+          </Kb.Text>
+          <Kb.Text backgroundMode="Terminal" center={true} type="BodySemibold">
+            Share this link:{' '}
+            <Kb.Text
+              backgroundMode="Terminal"
+              center={true}
+              type="BodyPrimaryLink"
+              onClick={() => openURL('https://keybase.io/airdrop')}
+            >
+              https://keybase.io/airdrop
+            </Kb.Text>
+          </Kb.Text>
+        </Kb.Box2>
         <Kb.Box2 direction="vertical" style={styles.grow} />
         <Kb.Button
           onClick={p.onCancel}
@@ -136,18 +161,20 @@ class Qualified extends React.PureComponent<Props, State> {
           'fade-anim-enter-active': p.state !== 'accepted',
         })}
       >
-        <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true} gap="medium" style={styles.content}>
-          <Kb.Box2 direction="vertical" style={styles.grow} />
-          <Kb.Icon
-            type={
-              loading
-                ? 'icon-fancy-airdrop-star-faded-loading-120'
-                : p.state === 'qualified'
-                ? 'icon-fancy-airdrop-star-shining-happy-120'
-                : 'icon-fancy-airdrop-star-faded-sad-120'
-            }
-            style={styles.star}
-          />
+        <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true} gap="tiny" style={styles.content}>
+          <>
+            <Kb.Box2 direction="vertical" style={styles.grow} />
+            <Kb.Icon
+              type={
+                loading
+                  ? 'icon-fancy-airdrop-star-faded-loading-120'
+                  : p.state === 'qualified'
+                  ? 'icon-fancy-airdrop-star-shining-happy-120'
+                  : 'icon-fancy-airdrop-star-faded-sad-120'
+              }
+              style={styles.star}
+            />
+          </>
           <Kb.Text
             center={true}
             type={loading ? 'BodySemibold' : 'Header'}
@@ -172,6 +199,7 @@ class Qualified extends React.PureComponent<Props, State> {
                 <Row key={r.title} {...r} first={idx === 0} loading={idx > this.state.rowIdxLoaded} />
               ))}
             </Kb.Box2>
+            <Kb.Box2 direction="vertical" style={styles.grow} />
           </>
           {p.state === 'qualified' && (
             <Kb.WaitingButton

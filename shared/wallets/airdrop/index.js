@@ -64,11 +64,13 @@ class Airdrop extends React.Component<Props> {
       <Kb.ScrollView style={styles.scrollView}>
         <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true} gap="medium">
           {p.signedUp ? (
-            <Kb.Box2 fullWidth={true} direction="horizontal" style={styles.signedUpHeader} gap="small">
-              <Kb.Icon type="icon-airdrop-star-32" />
-              <Kb.Text backgroundMode="Terminal" type="BodySemibold" style={styles.yourIn}>
-                You’re in. The next lumens airdrop will show up in your default wallet account.
-              </Kb.Text>
+            <Kb.Box2 direction="horizontal" fullWidth={true}>
+              <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.signedUpHeader} gap="small">
+                <Kb.Icon type="icon-airdrop-star-32" />
+                <Kb.Text backgroundMode="Terminal" type="BodySemibold" style={styles.yourIn}>
+                  You’re in. The next lumens airdrop will show up in your default wallet account.
+                </Kb.Text>
+              </Kb.Box2>
             </Kb.Box2>
           ) : (
             <Kb.Box2
@@ -124,14 +126,7 @@ class Airdrop extends React.Component<Props> {
               </Kb.Box2>
             ))}
           </Kb.Box2>
-          {p.signedUp ? (
-            <Kb.WaitingButton
-              type="Danger"
-              label="Leave program"
-              onClick={p.onReject}
-              waitingKey={Constants.airdropWaitingKey}
-            />
-          ) : (
+          {!p.signedUp && (
             <Kb.Button type="PrimaryGreen" label="See if you qualify" onClick={p.onCheckQualify} />
           )}
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.friendContainer} gap="large">
@@ -151,6 +146,14 @@ class Airdrop extends React.Component<Props> {
             </Kb.Box2>
             <Kb.Icon type="icon-fancy-airdrop-friends-120" />
           </Kb.Box2>
+          {p.signedUp && (
+            <Kb.WaitingButton
+              type="Danger"
+              label="Leave airdrop"
+              onClick={p.onReject}
+              waitingKey={Constants.airdropWaitingKey}
+            />
+          )}
         </Kb.Box2>
       </Kb.ScrollView>
     )
@@ -199,7 +202,8 @@ const styles = Styles.styleSheetCreate({
   },
   friendContainer: {
     backgroundColor: Styles.globalColors.blue5,
-    padding: Styles.globalMargins.medium,
+    paddingLeft: Styles.globalMargins.medium,
+    paddingRight: Styles.globalMargins.medium,
   },
   grow: {flexGrow: 1},
   header: {backgroundColor: Styles.globalColors.purple2},
@@ -222,7 +226,7 @@ const styles = Styles.styleSheetCreate({
     flexShrink: 1,
   },
   signedUpHeader: {
-    backgroundColor: Styles.globalColors.green,
+    backgroundColor: Styles.globalColors.green2,
     borderRadius: Styles.borderRadius,
     flexShrink: 1,
     marginLeft: Styles.globalMargins.small,
