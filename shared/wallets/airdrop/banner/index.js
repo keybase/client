@@ -4,32 +4,63 @@ import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 
 type Props = {|
+  headerBody: string,
   onCheckQualify: () => void,
   onCancel: () => void,
   show: boolean,
 |}
 
-const Banner = (p: Props) =>
-  p.show ? (
-    <Kb.Box2 noShrink={true} fullWidth={true} direction="horizontal" style={styles.container} gap="small">
-      <Kb.Box2 direction="horizontal" centerChildren={true}>
-        <Kb.Icon type="iconfont-nav-wallets" />
+const Banner = (p: Props) => {
+  if (!p.show) return null
+
+  const join = (
+    <Kb.Button
+      type="PrimaryColoredBackground"
+      backgroundMode="Purple"
+      label="Join the airdrop"
+      onClick={p.onCheckQualify}
+      style={styles.button}
+    />
+  )
+
+  const textAndButtons = Styles.isMobile ? (
+    <Kb.Box2 direction="horizontal" style={styles.grow}>
+      <Kb.Box2 direction="vertical" fullWidth={true}>
+        <Kb.Markdown styleOverride={markdownOverride} style={styles.markdown}>
+          {p.headerBody}
+        </Kb.Markdown>
+        <Kb.Box2 direction="horizontal" gap="tiny" style={styles.buttonContainer}>
+          {join}
+          <Kb.Button
+            type="SecondaryColoredBackground"
+            backgroundMode="Purple"
+            style={styles.laterButton}
+            label="Later"
+            onClick={p.onCancel}
+          />
+        </Kb.Box2>
       </Kb.Box2>
+    </Kb.Box2>
+  ) : (
+    <Kb.Box2 direction="horizontal" style={styles.grow} alignItems="flex-start" gap="small">
       <Kb.Markdown styleOverride={markdownOverride} style={styles.markdown}>
-        Starting March 1, Keybase will divide *50,000 XLM* (Stellar Lumens) among qualified Keybase users,
-        every month.
+        {p.headerBody}
       </Kb.Markdown>
-      <Kb.Button
-        type="PrimaryColoredBackground"
-        backgroundMode="Purple"
-        label="Join the airdrop"
-        onClick={p.onCheckQualify}
-        style={styles.button}
-      />
+      {join}
       <Kb.Box2 direction="vertical" style={styles.grow} />
       <Kb.Icon type="iconfont-close" onClick={p.onCancel} style={styles.close} />
     </Kb.Box2>
-  ) : null
+  )
+
+  return (
+    <Kb.Box2 noShrink={true} fullWidth={true} direction="horizontal" style={styles.container} gap="xsmall">
+      <Kb.Box2 direction="horizontal" centerChildren={true} alignSelf="flex-start">
+        <Kb.Icon type="icon-airdrop-star-32" />
+      </Kb.Box2>
+      {textAndButtons}
+    </Kb.Box2>
+  )
+}
 
 const markdownOverride = {
   paragraph: {
@@ -38,14 +69,16 @@ const markdownOverride = {
 }
 
 const styles = Styles.styleSheetCreate({
-  button: {alignSelf: 'flex-start'},
+  button: {alignSelf: 'flex-start', marginTop: Styles.isMobile ? Styles.globalMargins.small : 0},
+  buttonContainer: {flexWrap: 'wrap'},
   close: {padding: Styles.globalMargins.xxtiny},
   container: {
     backgroundColor: Styles.globalColors.purple2,
-    padding: Styles.globalMargins.small,
+    padding: Styles.globalMargins.xsmall,
   },
   grow: {flexGrow: 1, flexShrink: 1},
-  markdown: {alignSelf: 'center'},
+  laterButton: {marginTop: Styles.isMobile ? Styles.globalMargins.small : 0},
+  markdown: {alignSelf: Styles.isMobile ? 'center' : 'flex-start'},
   textContainer: {
     flexGrow: 1,
     flexShrink: 1,

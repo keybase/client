@@ -17,6 +17,7 @@ const rows = [
 
 const props = {
   onCancel: Sb.action('onCancel'),
+  onLoad: Sb.action('onLoad'),
   onSubmit: Sb.action('onSubmit'),
   rows,
 }

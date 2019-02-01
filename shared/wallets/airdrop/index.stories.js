@@ -6,7 +6,8 @@ import qualify from './qualify/index.stories'
 import banner from './banner/index.stories'
 
 const props = {
-  headerBody: 'Monthly starting March 1, Keybase will divide 50,000 XLM (Stellar Lumens) among Keybase',
+  headerBody:
+    'Starting March 1, Keybase will divide *50,000 XLM* (Stellar Lumens) among qualified Keybase users, every month.',
   headerTitle: 'Get free lumens every month',
   loading: false,
   onBack: Sb.action('onBack'),
@@ -39,7 +40,7 @@ const props = {
       section: 'Where are the Lumens dropped?',
     },
     {
-      icon: 'icon-fancy-no-access-desktop-96-94',
+      icon: 'icon-fancy-user-card-desktop-star-80-99',
       lines: [{bullet: false, text: "You'll earn a star, visbile on your profile"}],
       section: 'Anything else to know?',
     },
@@ -51,7 +52,7 @@ const noIconSections = props.sections.map(b => ({...b, icon: null}))
 const badIconSections = props.sections.map(b => ({...b, icon: 'not a real icon'}))
 
 const load = () => {
-  Sb.storiesOf('Settings/AirdropSettings', module)
+  Sb.storiesOf('Settings/AirdropDetails', module)
     .add('Participating', () => <Airdrop {...props} signedUp={true} />)
     .add('Loading', () => <Airdrop {...props} loading={true} />)
     .add('Participating no image', () => <Airdrop {...props} signedUp={true} sections={noIconSections} />)

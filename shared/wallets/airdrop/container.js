@@ -38,6 +38,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
     section: s.section,
   })),
   signedUp: stateProps.signedUp,
+  title: 'Airdrop!',
 })
 
 export default connect<OwnProps, _, _, _, _>(

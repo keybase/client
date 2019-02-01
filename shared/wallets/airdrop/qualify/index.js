@@ -18,34 +18,32 @@ type Props = {|
   |}>,
 |}
 
-const Accepted = p => (
-  <Kb.ScrollView
-    style={styles.scrollView}
-    className={Styles.classNames({
-      'fade-anim-enter': true,
-      'fade-anim-enter-active': p.state === 'accepted',
-    })}
-  >
-    <Kb.Box2 noShrink={true} fullWidth={true} direction="vertical" style={styles.content} gap="medium">
-      <Kb.Box2 direction="vertical" style={styles.grow} />
-      <Kb.Icon type="icon-stellar-coins-stacked-16" style={styles.star} />
-      <Kb.Text backgroundMode="Terminal" center={true} type="Header">
-        You're in.
-      </Kb.Text>
-      <Kb.Text center={true} type="BodySemibold" style={styles.loadingText}>
-        The next airdrop will happen March 1.
-      </Kb.Text>
-      <Kb.Box2 direction="vertical" style={styles.grow} />
-      <Kb.Button
-        onClick={p.onCancel}
-        fullWidth={true}
-        type="Wallet"
-        label="Close"
-        style={styles.buttonClose}
-      />
-    </Kb.Box2>
-  </Kb.ScrollView>
-)
+const Accepted = p =>
+  Styles.isMobile && p.state !== 'accepted' ? null : (
+    <Kb.ScrollView
+      style={styles.scrollView}
+      className={Styles.classNames({
+        'fade-anim-enter': true,
+        'fade-anim-enter-active': p.state === 'accepted',
+      })}
+    >
+      <Kb.Box2 noShrink={true} fullWidth={true} direction="vertical" style={styles.content} gap="medium">
+        <Kb.Box2 direction="vertical" style={styles.grow} />
+        <Kb.Icon type="icon-fancy-airdrop-star-shining-happy-120" style={styles.star} />
+        <Kb.Text backgroundMode="Terminal" center={true} type="Header">
+          You're in!
+        </Kb.Text>
+        <Kb.Box2 direction="vertical" style={styles.grow} />
+        <Kb.Button
+          onClick={p.onCancel}
+          fullWidth={true}
+          type="Wallet"
+          label="Close"
+          style={styles.buttonClose}
+        />
+      </Kb.Box2>
+    </Kb.ScrollView>
+  )
 
 const Row = p => (
   <Kb.Box2
@@ -84,6 +82,9 @@ class Qualified extends React.PureComponent<Props, State> {
   _loadingTimerID: ?TimeoutID
 
   _kickNextLoad = () => {
+    if (__STORYSHOT__) {
+      return
+    }
     this._loadingTimerID && clearTimeout(this._loadingTimerID)
     this._loadingTimerID = undefined
     if (this.state.rowIdxLoaded >= this.props.rows.length - 1) {
@@ -123,6 +124,10 @@ class Qualified extends React.PureComponent<Props, State> {
     const loadingRows = !!rows.length && this.state.rowIdxLoaded < rows.length - 1
     const loading = p.state === 'loading' || loadingRows
 
+    if (Styles.isMobile && p.state === 'accepted') {
+      return null
+    }
+
     return (
       <Kb.ScrollView
         style={styles.scrollView}
@@ -136,10 +141,10 @@ class Qualified extends React.PureComponent<Props, State> {
           <Kb.Icon
             type={
               loading
-                ? 'icon-stellar-coins-stacked-16'
+                ? 'icon-fancy-airdrop-star-faded-loading-120'
                 : p.state === 'qualified'
-                ? 'icon-stellar-coins-flying-2-48'
-                : 'icon-stellar-coins-flying-48'
+                ? 'icon-fancy-airdrop-star-shining-happy-120'
+                : 'icon-fancy-airdrop-star-faded-sad-120'
             }
             style={styles.star}
           />
@@ -230,7 +235,10 @@ const styles = Styles.styleSheetCreate({
       minHeight: 550,
       padding: Styles.globalMargins.medium,
     },
-    isMobile: {padding: Styles.globalMargins.small},
+    isMobile: {
+      minHeight: '100%',
+      padding: Styles.globalMargins.small,
+    },
   }),
   grow: {
     flexGrow: 1,

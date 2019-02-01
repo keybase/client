@@ -9,6 +9,7 @@ import flags from '../../../util/feature-flags'
 type OwnProps = {||}
 
 const mapStateToProps = state => ({
+  headerBody: state.wallets.airdropDetails.header.body,
   show:
     flags.airdrop &&
     state.wallets.airdropShowBanner &&

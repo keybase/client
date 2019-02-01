@@ -20,6 +20,7 @@ type Props = {|
     section: string,
     icon: ?string,
   |}>,
+  title: string,
 |}
 
 class Loading extends React.Component<{}, {waited: boolean}> {
@@ -63,21 +64,23 @@ class Airdrop extends React.Component<Props> {
       <Kb.ScrollView style={styles.scrollView}>
         <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true} gap="medium">
           {p.signedUp ? (
-            <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.signedUpHeader} gap="small">
-              <Kb.Icon type="icon-stellar-coins-stacked-16" />
-              <Kb.Text backgroundMode="Terminal" type="BodySemibold" style={styles.shrink}>
-                You’re in!
+            <Kb.Box2 fullWidth={true} direction="horizontal" style={styles.signedUpHeader} gap="small">
+              <Kb.Icon type="icon-airdrop-star-32" />
+              <Kb.Text backgroundMode="Terminal" type="BodySemibold" style={styles.yourIn}>
+                You’re in. The next lumens airdrop will show up in your default wallet account.
               </Kb.Text>
             </Kb.Box2>
           ) : (
-            <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
-              <Kb.Box2 direction="vertical" centerChildren={true} style={styles.starContainer}>
-                <Kb.Icon
-                  type={Styles.isMobile ? 'icon-stellar-coins-stacked-16' : 'icon-stellar-coins-flying-48'}
-                  style={styles.bigStar}
-                />
+            <Kb.Box2
+              alignItems={Styles.isMobile ? 'center' : undefined}
+              direction={Styles.isMobile ? 'vertical' : 'horizontal'}
+              fullWidth={true}
+              style={styles.header}
+            >
+              <Kb.Box2 direction="vertical" centerChildren={true}>
+                <Kb.Icon type="icon-fancy-airdrop-star-shining-120" />
               </Kb.Box2>
-              <Kb.Box2 direction="vertical" gap="small" style={styles.shrink}>
+              <Kb.Box2 direction="vertical" gap="small" style={styles.headerText}>
                 <Kb.Markdown styleOverride={headerOverride}>{p.headerTitle}</Kb.Markdown>
                 <Kb.Markdown styleOverride={bodyOverride}>{p.headerBody}</Kb.Markdown>
                 <Kb.Button
@@ -92,7 +95,13 @@ class Airdrop extends React.Component<Props> {
           )}
           <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true} style={styles.body} gap="small">
             {p.sections.map(b => (
-              <Kb.Box2 key={b.section} direction="horizontal" gap="large" fullWidth={true}>
+              <Kb.Box2
+                key={b.section}
+                direction="horizontal"
+                gap="large"
+                fullWidth={true}
+                style={styles.shrink}
+              >
                 <Kb.Box2 direction="vertical" gap="xtiny" alignSelf="flex-start">
                   <Kb.Markdown style={styles.section} styleOverride={sectionOverride}>
                     {b.section}
@@ -140,10 +149,7 @@ class Airdrop extends React.Component<Props> {
                 .
               </Kb.Text>
             </Kb.Box2>
-            <Kb.Icon
-              type={Styles.isMobile ? 'icon-stellar-coins-stacked-16' : 'icon-stellar-coins-flying-48'}
-              style={styles.friendsStar}
-            />
+            <Kb.Icon type="icon-fancy-airdrop-friends-120" />
           </Kb.Box2>
         </Kb.Box2>
       </Kb.ScrollView>
@@ -156,6 +162,7 @@ const headerOverride = {
     ...Styles.globalStyles.fontSemibold,
     color: Styles.globalColors.white,
     fontSize: Styles.isMobile ? 20 : 16,
+    textAlign: Styles.isMobile ? 'center' : 'left',
   },
   strong: {...Styles.globalStyles.fontExtrabold},
 }
@@ -163,6 +170,7 @@ const bodyOverride = {
   paragraph: {
     color: Styles.globalColors.white,
     fontSize: Styles.isMobile ? 16 : 13,
+    textAlign: Styles.isMobile ? 'center' : 'left',
   },
   strong: {...Styles.globalStyles.fontExtrabold},
 }
@@ -178,28 +186,27 @@ const sectionBodyOverride = {
 }
 
 const styles = Styles.styleSheetCreate({
-  bannerButton: {alignSelf: 'flex-start'},
-  bigStar: Styles.platformStyles({
-    isElectron: {height: 80, width: 80},
-    isMobile: {height: 20, width: 20},
-  }),
+  bannerButton: {
+    alignSelf: Styles.isMobile ? 'center' : 'flex-start',
+  },
   body: {
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
+    paddingLeft: Styles.globalMargins.medium,
+    paddingRight: Styles.globalMargins.medium,
   },
   bullet: {
     marginLeft: Styles.globalMargins.tiny,
     marginRight: Styles.globalMargins.tiny,
   },
-  friendContainer: {backgroundColor: Styles.globalColors.lightGrey, padding: Styles.globalMargins.small},
-  friendsStar: Styles.platformStyles({
-    isElectron: {height: 100, width: 100},
-    isMobile: {height: 100, width: 100},
-  }),
+  friendContainer: {
+    backgroundColor: Styles.globalColors.blue5,
+    padding: Styles.globalMargins.medium,
+  },
   grow: {flexGrow: 1},
-  header: {
-    backgroundColor: Styles.globalColors.purple3,
-    padding: Styles.isMobile ? Styles.globalMargins.small : Styles.globalMargins.medium,
+  header: {backgroundColor: Styles.globalColors.purple2},
+  headerText: {
+    paddingBottom: Styles.globalMargins.medium,
+    paddingRight: Styles.globalMargins.large,
+    paddingTop: Styles.globalMargins.medium,
   },
   link: {color: Styles.globalColors.purple},
   progress: {
@@ -211,13 +218,22 @@ const styles = Styles.styleSheetCreate({
     width: '100%',
   },
   section: {marginBottom: Styles.globalMargins.xxtiny},
-  shrink: {flexShrink: 1},
+  shrink: {
+    flexShrink: 1,
+  },
   signedUpHeader: {
     backgroundColor: Styles.globalColors.green,
+    borderRadius: Styles.borderRadius,
     flexShrink: 1,
+    marginLeft: Styles.globalMargins.small,
+    marginRight: Styles.globalMargins.small,
+    marginTop: Styles.globalMargins.small,
     padding: Styles.globalMargins.tiny,
   },
-  starContainer: {width: Styles.isMobile ? 40 : 150},
+  yourIn: {
+    color: Styles.globalColors.green3,
+    flexShrink: 1,
+  },
 })
 
 export default (Styles.isMobile ? Kb.HeaderHoc(Airdrop) : Airdrop)

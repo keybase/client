@@ -8,7 +8,7 @@ const featureOn = (key: $Keys<FeatureFlags>) => features.includes(key)
 
 const ff: FeatureFlags = {
   admin: __DEV__,
-  airdrop: false,
+  airdrop: true,
   chatIndexProfilingEnabled: false,
   foldersInProfileTab: false,
   identify3: false,

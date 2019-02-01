@@ -1174,8 +1174,8 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     readLastSentXLM
   )
   yield* Saga.chainAction<WalletsGen.ChangeAirdropPayload>(WalletsGen.changeAirdrop, changeAirdrop)
-  yield* Saga.chainAction<WalletsGen.UpdateAirdropStatePayload>(
-    WalletsGen.updateAirdropDetails,
+  yield* Saga.chainAction<WalletsGen.UpdateAirdropStatePayload | ConfigGen.DaemonHandshakeDonePayload>(
+    [WalletsGen.updateAirdropDetails, ConfigGen.daemonHandshakeDone],
     updateAirdropDetails
   )
   yield* Saga.chainAction<WalletsGen.UpdateAirdropStatePayload | ConfigGen.DaemonHandshakeDonePayload>(

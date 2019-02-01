@@ -4,6 +4,8 @@ import * as Sb from '../../../stories/storybook'
 import Banner from '.'
 
 const props = {
+  headerBody:
+    'Starting March 1, Keybase will divide *50,000 XLM* (Stellar Lumens) among qualified Keybase users, every month',
   onCancel: Sb.action('onCancel'),
   onCheckQualify: Sb.action('onCheckQualify'),
   show: true,
