@@ -23,7 +23,7 @@ class Picker extends React.Component<Props> {
     if (!input) {
       return
     }
-    input.focus()
+    setImmediate(() => input.focus())
   }
 
   componentDidMount() {
