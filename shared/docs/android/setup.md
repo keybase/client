@@ -10,6 +10,16 @@ https://developer.android.com/ndk/downloads/older_releases , unzip it
 into `$ANDROID_HOME`, and symlink `ndk-bundle` to point to
 `android-ndk-r17c`.
 
+If you get an error like
+
+```
+15 is less than minimum platform for arm (16)
+```
+
+when running `yarn rn-gobuild-android`, your NDK is too new. Do `cat
+$ANDROID_HOME/ndk-bundle/source.properties` and make sure
+`Pkg.Revision` has major revision number 17.
+
 ## Emulator Setup
 
 ### macOS
