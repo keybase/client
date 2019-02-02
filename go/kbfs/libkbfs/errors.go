@@ -1272,3 +1272,11 @@ func (e NextMDNotCachedError) Error() string {
 	return fmt.Sprintf("The MD following %d for folder %s is not cached",
 		e.RootSeqno, e.TlfID)
 }
+
+// StopQRError indicates that we shouldn't retry QR for this folder.
+type StopQRError struct{}
+
+// Error implements the Error interface for StopQRError.
+func (e StopQRError) Error() string {
+	return "Stopping QR permanently"
+}

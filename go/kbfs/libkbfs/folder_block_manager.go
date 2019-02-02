@@ -828,8 +828,10 @@ func (fbm *folderBlockManager) getMostRecentGCRevision(
 				if !ok {
 					continue
 				}
-				fbm.log.CDebugf(ctx, "Found last gc op: %s", GCOp)
-				return GCOp.LatestRev, nil
+				if GCOp.LatestRev >= kbfsmd.RevisionInitial {
+					fbm.log.CDebugf(ctx, "Found last gc op: %s", GCOp)
+					return GCOp.LatestRev, nil
+				}
 			}
 		}
 
@@ -837,9 +839,17 @@ func (fbm *folderBlockManager) getMostRecentGCRevision(
 			endRev = rmds[0].Revision() - 1
 		}
 
-		if numNew < maxMDsAtATime || endRev < kbfsmd.RevisionInitial {
-			// Never been GC'd.
-			return kbfsmd.RevisionUninitialized, nil
+		if endRev < kbfsmd.RevisionInitial ||
+			head.Revision()-endRev > numMaxRevisionsPerQR {
+			// Either it's never been GC'd, or the last GC is too far
+			// back to bother with.  Let's just give up on GC'ing any
+			// old data.  TODO: fix this in the future with a better
+			// algorithm (binary search?) for QRing old TLFs, if
+			// unclaimed blocks from these degenerate folders becomes
+			// an issue.
+			fbm.log.CDebugf(ctx, "Giving up trying to find the latest GC "+
+				"revision (head=%d, endRev=%d)", head.Revision(), endRev)
+			return kbfsmd.RevisionUninitialized, errors.WithStack(StopQRError{})
 		}
 	}
 }
@@ -1164,7 +1174,7 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 func isPermanentQRError(err error) bool {
 	switch errors.Cause(err).(type) {
 	case WriteAccessError, kbfsmd.MetadataIsFinalError,
-		RevokedDeviceVerificationError:
+		RevokedDeviceVerificationError, StopQRError:
 		return true
 	default:
 		return false
