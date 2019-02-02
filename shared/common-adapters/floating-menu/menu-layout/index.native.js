@@ -79,7 +79,7 @@ class MenuLayout extends React.Component<MenuLayoutProps> {
           <Divider style={styles.divider} />
           <Box style={styles.menuGroup}>
             <MenuRow
-              title="Close"
+              title={this.props.closeText || 'Close'}
               index={0}
               numItems={1}
               onClick={this.props.onHidden} // pass in nothing to onHidden so it doesn't trigger it twice

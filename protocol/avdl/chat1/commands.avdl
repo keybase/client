@@ -12,15 +12,23 @@ protocol commands {
 
   enum ConversationCommandGroupsTyp {
     BUILTIN_0,
-    EXTENDED_1
+    CUSTOM_1
   }
 
-  record ConversationCommandGroupsExtended {
+  enum ConversationBuiltinCommandTyp {
+    NONE_0,
+    ADHOC_1,
+    SMALLTEAM_2,
+    BIGTEAM_3,
+    BIGTEAMGENERAL_4
+  }
+
+  record ConversationCommandGroupsCustom {
     array<ConversationCommand> commands;
   }
 
   variant ConversationCommandGroups switch (ConversationCommandGroupsTyp typ) {
-    case BUILTIN: void;
-    case EXTENDED: ConversationCommandGroupsExtended;
+    case BUILTIN: ConversationBuiltinCommandTyp;
+    case CUSTOM: ConversationCommandGroupsCustom;
   }
 }

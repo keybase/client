@@ -1,6 +1,5 @@
 // @flow
 import * as React from 'react'
-import * as ReactDOM from 'react-dom'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 import {resolveRootAsURL} from '../../../../../desktop/app/resolve-root.desktop'
@@ -24,6 +23,7 @@ type State = {
   height: number,
 }
 class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
+  _boxRef = React.createRef()
   state = {animating: false, children: copyChildren(this.props.children), height: 17}
   timerID: SharedTimerID
 
@@ -54,12 +54,11 @@ class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
       return
     }
 
-    if (__STORYSHOT__) {
-      // Storyshots with react 16.5 can't find the domNode and fails
-      return
-    }
+    this.setHeight()
+  }
 
-    const node = ReactDOM.findDOMNode(this)
+  setHeight() {
+    const node = this._boxRef.current
     if (node instanceof window.HTMLElement) {
       const height = node.clientHeight
       if (height && height !== this.state.height) {
@@ -88,6 +87,7 @@ class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
             position: 'relative',
           },
         ])}
+        forwardedRef={this._boxRef}
       >
         {this.state.children}
         <Ashes

@@ -86,6 +86,10 @@ func (r DummyChatUI) ChatGiphySearchResults(ctx context.Context, arg chat1.ChatG
 	return nil
 }
 
+func (r DummyChatUI) ChatShowManageChannels(ctx context.Context, arg chat1.ChatShowManageChannelsArg) error {
+	return nil
+}
+
 type DummyChatNotifications struct{}
 
 func (d DummyChatNotifications) NewChatActivity(ctx context.Context, arg chat1.NewChatActivityArg) error {

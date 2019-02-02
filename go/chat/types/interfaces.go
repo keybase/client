@@ -414,9 +414,16 @@ type ConversationCommand interface {
 	Export() chat1.ConversationCommand
 }
 
+type ConversationCommandsSpec interface {
+	GetMembersType() chat1.ConversationMembersType
+	GetTeamType() chat1.TeamType
+	GetTopicName() string
+}
+
 type ConversationCommandsSource interface {
-	ListCommands(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (chat1.ConversationCommandGroups, error)
-	GetBuiltins(ctx context.Context) []chat1.ConversationCommand
+	ListCommands(ctx context.Context, uid gregor1.UID, conv ConversationCommandsSpec) (chat1.ConversationCommandGroups, error)
+	GetBuiltins(ctx context.Context) []chat1.BuiltinCommandGroup
+	GetBuiltinCommandType(ctx context.Context, c ConversationCommandsSpec) chat1.ConversationBuiltinCommandTyp
 	AttemptBuiltinCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		tlfName string, body chat1.MessageBody) (bool, error)
 	PreviewBuiltinCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, text string)
@@ -436,6 +443,7 @@ type UnboxingError interface {
 	VersionKind() chat1.VersionKind
 	VersionNumber() int
 	IsCritical() bool
+	ToStatus() keybase1.Status
 }
 
 var _ error = (UnboxingError)(nil)

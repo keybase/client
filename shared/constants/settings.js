@@ -10,7 +10,7 @@ const initialState: Types.State = {
     unfurl: {},
   },
   email: {
-    emails: [],
+    emails: null,
     error: null,
     newEmail: '',
   },
@@ -67,6 +67,7 @@ export const invitationsTab = 'settingsTabs:invitationsTab'
 export const landingTab = 'settingsTabs:landingTab'
 export const notificationsTab = 'settingsTabs:notificationsTab'
 export const passphraseTab = 'settingsTabs:passphrase'
+export const refreshNotificationsWaitingKey = 'settingsTabs:refreshNotifications'
 export const screenprotectorTab = 'settingsTabs:screenprotector'
 export const updatePaymentTab = 'settingsTabs:updatePaymentTab'
 export const securityGroup = 'security'

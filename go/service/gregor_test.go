@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/gregor"
 	grclient "github.com/keybase/client/go/gregor/client"
 	"github.com/keybase/client/go/gregor/storage"
+	grutils "github.com/keybase/client/go/gregor/utils"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -865,7 +866,7 @@ func TestBroadcastRepeat(t *testing.T) {
 
 	tc.G.SetService()
 
-	_, err := kbtest.CreateAndSignupFakeUser("gregr", tc.G)
+	u, err := kbtest.CreateAndSignupFakeUser("gregr", tc.G)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -875,7 +876,7 @@ func TestBroadcastRepeat(t *testing.T) {
 	h.Init()
 	h.testingEvents = newTestingEvents()
 
-	m, err := h.templateMessage()
+	m, err := grutils.TemplateMessage(u.GetUID().ToBytes())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -884,7 +885,7 @@ func TestBroadcastRepeat(t *testing.T) {
 		Body_:     gregor1.Body([]byte("mike")),
 	}
 
-	m2, err := h.templateMessage()
+	m2, err := grutils.TemplateMessage(u.GetUID().ToBytes())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -893,9 +894,9 @@ func TestBroadcastRepeat(t *testing.T) {
 		Body_:     gregor1.Body([]byte("mike!!")),
 	}
 
-	broadcastMessageTesting(t, h, *m)
-	broadcastMessageTesting(t, h, *m2)
-	err = broadcastMessageTesting(t, h, *m)
+	broadcastMessageTesting(t, h, m)
+	broadcastMessageTesting(t, h, m2)
+	err = broadcastMessageTesting(t, h, m)
 	require.Error(t, err)
 	require.Equal(t, "ignored repeat message", err.Error())
 }

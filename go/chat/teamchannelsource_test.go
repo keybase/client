@@ -40,6 +40,7 @@ func TestTeamChannelSource(t *testing.T) {
 		g1 := ctc.world.Tcs[users[0].Username].Context()
 		uid2 := users[1].User.GetUID().ToBytes()
 		g2 := ctc.world.Tcs[users[1].Username].Context()
+		t.Logf("uid1: %v, uid2: %v", users[0].User.GetUID(), users[1].User.GetUID())
 
 		var tlfID chat1.TLFID
 		ctx := context.TODO()
@@ -81,9 +82,13 @@ func TestTeamChannelSource(t *testing.T) {
 				require.Equal(t, expected.TopicName, topicName)
 			}
 		}
+		assertTeamChannelSource(g1, uid1, nil)
+		assertTeamChannelSource(g2, uid2, nil)
 
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt,
 			ctc.as(t, users[1]).user())
+		consumeNewConversation(t, listener1, conv.Id)
+		consumeNewConversation(t, listener2, conv.Id)
 		tlfID = conv.Triple.Tlfid
 		generalChannel := expectedResult{
 			ConvID:       conv.Id,
@@ -107,35 +112,39 @@ func TestTeamChannelSource(t *testing.T) {
 				MembersType:   chat1.ConversationMembersType_TEAM,
 			})
 		require.NoError(t, err)
+		channelConvID := channel1.Conv.GetConvID()
+		consumeNewConversation(t, listener1, channelConvID)
+		assertNoNewConversation(t, listener2)
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_JOIN)
 		consumeTeamType(t, listener1)
 		consumeTeamType(t, listener2)
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
 		consumeNewMsgRemote(t, listener2, chat1.MessageType_SYSTEM)
+		t.Logf("created %v", topicName)
 
 		// Both members can see the #general channel and are ACTIVE
 		channel1User1 := expectedResult{
-			ConvID:       channel1.Conv.GetConvID(),
+			ConvID:       channelConvID,
 			Existence:    chat1.ConversationExistence_ACTIVE,
 			MemberStatus: chat1.ConversationMemberStatus_ACTIVE,
 			TopicName:    topicName,
 		}
-		expectedResults1[channel1.Conv.GetConvID().String()] = channel1User1
+		expectedResults1[channelConvID.String()] = channel1User1
 
 		channel1User2 := expectedResult{
-			ConvID:       channel1.Conv.GetConvID(),
+			ConvID:       channelConvID,
 			Existence:    chat1.ConversationExistence_ACTIVE,
 			MemberStatus: chat1.ConversationMemberStatus_NEVER_JOINED,
 			TopicName:    topicName,
 		}
-		expectedResults2[channel1.Conv.GetConvID().String()] = channel1User2
+		expectedResults2[channelConvID.String()] = channel1User2
 		assertTeamChannelSource(g1, uid1, expectedResults1)
 		assertTeamChannelSource(g2, uid2, expectedResults2)
 
 		// test rename
 		topicName = "channel1-renamed"
 		marg := chat1.PostMetadataNonblockArg{
-			ConversationID: channel1.Conv.GetConvID(),
+			ConversationID: channelConvID,
 			TlfName:        conv.TlfName,
 			TlfPublic:      false,
 			ChannelName:    topicName,
@@ -143,18 +152,19 @@ func TestTeamChannelSource(t *testing.T) {
 		_, err = ctc.as(t, users[0]).chatLocalHandler().PostMetadataNonblock(ctx1, marg)
 		require.NoError(t, err)
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_METADATA)
+		t.Logf("renamed %v", topicName)
 		// note listener2 will not receive the update since the don't have an
 		// active member status. they will list the channels correctly however
 
 		channel1User1.TopicName = topicName
 		channel1User2.TopicName = topicName
-		expectedResults1[channel1.Conv.GetConvID().String()] = channel1User1
-		expectedResults2[channel1.Conv.GetConvID().String()] = channel1User2
+		expectedResults1[channelConvID.String()] = channel1User1
+		expectedResults2[channelConvID.String()] = channel1User2
 		assertTeamChannelSource(g1, uid1, expectedResults1)
 		assertTeamChannelSource(g2, uid2, expectedResults2)
 
 		channel1User2.MemberStatus = chat1.ConversationMemberStatus_ACTIVE
-		expectedResults2[channel1.Conv.GetConvID().String()] = channel1User2
+		expectedResults2[channelConvID.String()] = channel1User2
 		_, err = ctc.as(t, users[1]).chatLocalHandler().JoinConversationLocal(ctx1, chat1.JoinConversationLocalArg{
 			TlfName:    conv.TlfName,
 			TopicType:  chat1.TopicType_CHAT,
@@ -169,14 +179,24 @@ func TestTeamChannelSource(t *testing.T) {
 
 		_, err = ctc.as(t, users[0]).chatLocalHandler().DeleteConversationLocal(ctx1,
 			chat1.DeleteConversationLocalArg{
-				ConvID: channel1.Conv.GetConvID(),
+				ConvID: channelConvID,
 			})
 		require.NoError(t, err)
 		consumeLeaveConv(t, listener1)
 		consumeTeamType(t, listener1)
-		delete(expectedResults1, channel1.Conv.GetConvID().String())
-		delete(expectedResults2, channel1.Conv.GetConvID().String())
+		delete(expectedResults1, channelConvID.String())
+		delete(expectedResults2, channelConvID.String())
 		assertTeamChannelSource(g1, uid1, expectedResults1)
 		assertTeamChannelSource(g2, uid2, expectedResults2)
+
+		updates := consumeNewThreadsStale(t, listener1)
+		require.Equal(t, 1, len(updates))
+		require.Equal(t, channelConvID, updates[0].ConvID, "wrong cid")
+		require.Equal(t, chat1.StaleUpdateType_CLEAR, updates[0].UpdateType)
+
+		updates = consumeNewThreadsStale(t, listener2)
+		require.Equal(t, 1, len(updates))
+		require.Equal(t, channelConvID, updates[0].ConvID, "wrong cid")
+		require.Equal(t, chat1.StaleUpdateType_CLEAR, updates[0].UpdateType)
 	})
 }

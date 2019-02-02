@@ -3,6 +3,7 @@ package commands
 import (
 	"context"
 	"errors"
+	"sort"
 	"strings"
 
 	"github.com/keybase/client/go/chat/globals"
@@ -19,7 +20,7 @@ type Source struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	builtin []types.ConversationCommand
+	builtins map[chat1.ConversationBuiltinCommandTyp][]types.ConversationCommand
 }
 
 func NewSource(g *globals.Context) *Source {
@@ -27,35 +28,113 @@ func NewSource(g *globals.Context) *Source {
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Commands.Source", false),
 	}
-	s.makeBuiltin()
+	s.makeBuiltins()
 	return s
 }
 
-func (s *Source) makeBuiltin() {
-	s.builtin = []types.ConversationCommand{
-		NewGiphy(s.G()),
-		NewHeadline(s.G()),
-		NewHide(s.G()),
-		NewJoin(s.G()),
-		NewLeave(s.G()),
-		NewMe(s.G()),
-		NewMsg(s.G()),
-		NewMute(s.G()),
-		NewShrug(s.G()),
-		NewUnhide(s.G()),
-	}
-}
+const (
+	cmdGiphy int = iota
+	cmdHeadline
+	cmdHide
+	cmdJoin
+	cmdLeave
+	cmdMe
+	cmdMsg
+	cmdMute
+	cmdShrug
+	cmdUnhide
+)
 
-func (s *Source) GetBuiltins(ctx context.Context) (res []chat1.ConversationCommand) {
-	for _, b := range s.builtin {
-		res = append(res, b.Export())
-	}
+func (s *Source) allCommands() (res map[int]types.ConversationCommand) {
+	res = make(map[int]types.ConversationCommand)
+	res[cmdHeadline] = NewHeadline(s.G())
+	res[cmdHide] = NewHide(s.G())
+	res[cmdJoin] = NewJoin(s.G())
+	res[cmdLeave] = NewLeave(s.G())
+	res[cmdMe] = NewMe(s.G())
+	res[cmdMsg] = NewMsg(s.G())
+	res[cmdMute] = NewMute(s.G())
+	res[cmdShrug] = NewShrug(s.G())
+	res[cmdUnhide] = NewUnhide(s.G())
 	return res
 }
 
-func (s *Source) ListCommands(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (res chat1.ConversationCommandGroups, err error) {
+func (s *Source) makeBuiltins() {
+	cmds := s.allCommands()
+	common := []types.ConversationCommand{
+		cmds[cmdHide],
+		cmds[cmdMe],
+		cmds[cmdMsg],
+		cmds[cmdMute],
+		cmds[cmdShrug],
+		cmds[cmdUnhide],
+	}
+	s.builtins = make(map[chat1.ConversationBuiltinCommandTyp][]types.ConversationCommand)
+	s.builtins[chat1.ConversationBuiltinCommandTyp_ADHOC] = common
+	s.builtins[chat1.ConversationBuiltinCommandTyp_BIGTEAM] = append([]types.ConversationCommand{
+		cmds[cmdHeadline],
+		cmds[cmdJoin],
+		cmds[cmdLeave],
+	}, common...)
+	s.builtins[chat1.ConversationBuiltinCommandTyp_BIGTEAMGENERAL] = append([]types.ConversationCommand{
+		cmds[cmdHeadline],
+		cmds[cmdJoin],
+	}, common...)
+	s.builtins[chat1.ConversationBuiltinCommandTyp_SMALLTEAM] = append([]types.ConversationCommand{
+		cmds[cmdJoin],
+	}, common...)
+}
+
+func (s *Source) GetBuiltins(ctx context.Context) (res []chat1.BuiltinCommandGroup) {
+	for typ, cmds := range s.builtins {
+		var exportCmds []chat1.ConversationCommand
+		for _, cmd := range cmds {
+			exportCmds = append(exportCmds, cmd.Export())
+		}
+		res = append(res, chat1.BuiltinCommandGroup{
+			Typ:      typ,
+			Commands: exportCmds,
+		})
+	}
+	sort.Slice(res, func(i, j int) bool {
+		return res[i].Typ < res[j].Typ
+	})
+	return res
+}
+
+func (s *Source) GetBuiltinCommandType(ctx context.Context, c types.ConversationCommandsSpec) chat1.ConversationBuiltinCommandTyp {
+	switch c.GetMembersType() {
+	case chat1.ConversationMembersType_TEAM:
+		switch c.GetTeamType() {
+		case chat1.TeamType_COMPLEX:
+			if c.GetTopicName() == globals.DefaultTeamTopic {
+				return chat1.ConversationBuiltinCommandTyp_BIGTEAMGENERAL
+			}
+			return chat1.ConversationBuiltinCommandTyp_BIGTEAM
+		default:
+			return chat1.ConversationBuiltinCommandTyp_SMALLTEAM
+		}
+	default:
+		return chat1.ConversationBuiltinCommandTyp_ADHOC
+	}
+}
+
+func (s *Source) ListCommands(ctx context.Context, uid gregor1.UID, conv types.ConversationCommandsSpec) (res chat1.ConversationCommandGroups, err error) {
 	defer s.Trace(ctx, func() error { return err }, "ListCommands")()
-	return chat1.NewConversationCommandGroupsWithBuiltin(), nil
+	return chat1.NewConversationCommandGroupsWithBuiltin(s.GetBuiltinCommandType(ctx, conv)), nil
+}
+
+func (s *Source) getConvByID(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (res types.RemoteConversation, err error) {
+	ib, err := s.G().InboxSource.ReadUnverified(ctx, uid, true, &chat1.GetInboxQuery{
+		ConvID: &convID,
+	}, nil)
+	if err != nil {
+		return res, err
+	}
+	if len(ib.ConvsUnverified) == 0 {
+		return res, errors.New("conv not found")
+	}
+	return ib.ConvsUnverified[0], nil
 }
 
 func (s *Source) AttemptBuiltinCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
@@ -68,7 +147,12 @@ func (s *Source) AttemptBuiltinCommand(ctx context.Context, uid gregor1.UID, con
 	if !strings.HasPrefix(text, "/") {
 		return false, nil
 	}
-	for _, cmd := range s.builtin {
+	conv, err := s.getConvByID(ctx, uid, convID)
+	if err != nil {
+		return false, err
+	}
+	typ := s.GetBuiltinCommandType(ctx, conv)
+	for _, cmd := range s.builtins[typ] {
 		if cmd.Match(ctx, text) {
 			s.Debug(ctx, "AttemptBuiltinCommand: matched command: %s, executing...", cmd.Name())
 			return true, cmd.Execute(ctx, uid, convID, tlfName, text)
@@ -79,7 +163,12 @@ func (s *Source) AttemptBuiltinCommand(ctx context.Context, uid gregor1.UID, con
 
 func (s *Source) PreviewBuiltinCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, text string) {
 	defer s.Trace(ctx, func() error { return nil }, "PreviewBuiltinCommand")()
-	for _, cmd := range s.builtin {
+	conv, err := s.getConvByID(ctx, uid, convID)
+	if err != nil {
+		return
+	}
+	typ := s.GetBuiltinCommandType(ctx, conv)
+	for _, cmd := range s.builtins[typ] {
 		// Run preview on everything as long as it is a slash command
 		cmd.Preview(ctx, uid, convID, text)
 	}

@@ -56,7 +56,7 @@ func (b *baseCommand) getConvByName(ctx context.Context, uid gregor1.UID, name s
 }
 
 func (b *baseCommand) tokenize(text string, minArgs int) (toks []string, err error) {
-	toks = strings.Split(text, " ")
+	toks = strings.Split(strings.TrimRight(text, " "), " ")
 	if len(toks) < minArgs {
 		return toks, ErrInvalidArguments
 	}
@@ -64,9 +64,12 @@ func (b *baseCommand) tokenize(text string, minArgs int) (toks []string, err err
 }
 
 func (b *baseCommand) commandAndMessage(text string) (cmd string, msg string, err error) {
-	toks, err := b.tokenize(text, 2)
+	toks, err := b.tokenize(text, 1)
 	if err != nil {
 		return "", "", err
+	}
+	if len(toks) == 1 {
+		return toks[0], "", nil
 	}
 	return toks[0], strings.Join(toks[1:], " "), nil
 }

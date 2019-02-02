@@ -9,7 +9,7 @@ import MaybeSwitcher from './maybe-switcher'
 type Props = {
   accountID: Types.AccountID,
   isDefaultWallet: boolean,
-  unreadPayments: number,
+  unreadPayments: boolean,
   onReceive: () => void,
   onBack: ?() => void,
   onRequest: () => void,
@@ -28,7 +28,7 @@ const Header = (props: Props) => {
   // Only show caret/unread badge when we have a switcher,
   // i.e. when isMobile is true.
   const caret = Styles.isMobile && <Kb.Icon key="icon" type="iconfont-caret-down" style={styles.caret} />
-  const unread = Styles.isMobile && !!props.unreadPayments && (
+  const unread = Styles.isMobile && props.unreadPayments && (
     <Kb.Box2 direction="vertical" style={styles.unread} />
   )
   const nameAndInfo = props.walletName ? (

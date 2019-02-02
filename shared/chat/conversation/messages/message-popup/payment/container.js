@@ -255,16 +255,13 @@ const RequestPaymentPopup = Container.connect<RequestOwnProps, _, _, _, _>(
 
 // Wrapper ==============================================
 const PaymentPopupChooser = (props: OwnProps) => {
-  switch (props.message.type) {
-    case 'sendPayment':
-      // $FlowIssue doesn't understand message is the right type
-      return <SendPaymentPopup {...props} />
-    case 'requestPayment':
-      // $FlowIssue doesn't understand message is the right type
-      return <RequestPaymentPopup {...props} />
-    default:
-      throw new Error(`PaymentPopup: impossible case encountered: ${props.message.type}`)
+  const {message, ...rest} = props
+  if (message.type === 'sendPayment') {
+    return <SendPaymentPopup {...rest} message={message} />
+  } else if (message.type === 'requestPayment') {
+    return <RequestPaymentPopup {...rest} message={message} />
   }
+  throw new Error(`PaymentPopup: impossible case encountered: ${message.type}`)
 }
 
 export default PaymentPopupChooser

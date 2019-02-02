@@ -158,9 +158,12 @@ func (t *BaseServiceType) DisplayGroup() string {
 	return *t.displayConf.Group
 }
 
-func (t *BaseServiceType) CanMakeNewProofs() bool {
+func (t *BaseServiceType) CanMakeNewProofs(mctx MetaContext) bool {
 	t.Lock()
 	defer t.Unlock()
+	if mctx.G().GetEnv().GetProveBypass() {
+		return true
+	}
 	if t.displayConf == nil {
 		return true
 	}

@@ -757,7 +757,8 @@ func TestDiskBlockCacheMoveBlock(t *testing.T) {
 		ctx, tlf1, block1Ptr.ID, block1Encoded, block1ServerHalf,
 		DiskBlockAnyCache)
 	require.NoError(t, err)
-	err = cache.UpdateMetadata(ctx, block1Ptr.ID, FinishedPrefetch)
+	err = cache.UpdateMetadata(
+		ctx, tlf1, block1Ptr.ID, FinishedPrefetch, DiskBlockAnyCache)
 	require.NoError(t, err)
 	require.Equal(t, 1, cache.workingSetCache.numBlocks)
 	require.Equal(t, 0, cache.syncCache.numBlocks)
@@ -804,7 +805,7 @@ func TestDiskBlockCacheHomeDirPriorities(t *testing.T) {
 
 	ctx := context.Background()
 
-	rand.Seed(time.Now().UnixNano())
+	rand.Seed(1)
 
 	t.Log("Set home directories on the cache")
 	homeTLF := tlf.FakeID(100, tlf.Private)

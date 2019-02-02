@@ -236,6 +236,14 @@
         {
           "type": "boolean",
           "name": "unread"
+        },
+        {
+          "type": "string",
+          "name": "batchID"
+        },
+        {
+          "type": "boolean",
+          "name": "fromAirdrop"
         }
       ]
     },
@@ -408,6 +416,14 @@
           "type": "string",
           "name": "externalTxURL",
           "lint": "ignore"
+        },
+        {
+          "type": "string",
+          "name": "batchID"
+        },
+        {
+          "type": "boolean",
+          "name": "fromAirdrop"
         }
       ]
     },
@@ -728,6 +744,47 @@
         {
           "type": "boolean",
           "name": "self"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AirdropState",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "AirdropQualification",
+      "fields": [
+        {
+          "type": "string",
+          "name": "title"
+        },
+        {
+          "type": "string",
+          "name": "subtitle"
+        },
+        {
+          "type": "boolean",
+          "name": "valid"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "AirdropStatus",
+      "fields": [
+        {
+          "type": "AirdropState",
+          "name": "state"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "AirdropQualification"
+          },
+          "name": "rows"
         }
       ]
     },
@@ -1760,6 +1817,37 @@
         }
       ],
       "response": "InflationDestinationResultLocal"
+    },
+    "airdropDetailsLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "string"
+    },
+    "airdropStatusLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "AirdropStatus"
+    },
+    "airdropRegisterLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "register",
+          "type": "boolean"
+        }
+      ],
+      "response": null
     },
     "balancesLocal": {
       "request": [

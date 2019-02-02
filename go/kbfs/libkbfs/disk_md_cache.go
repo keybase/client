@@ -56,7 +56,7 @@ type DiskMDCacheLocal struct {
 	// Protect the disk caches from being shutdown while they're being
 	// accessed, and mutable data.
 	lock       sync.RWMutex
-	headsDb    *levelDb // tlfID -> metadata block
+	headsDb    *LevelDb // tlfID -> metadata block
 	tlfsCached map[tlf.ID]kbfsmd.Revision
 	tlfsStaged map[tlf.ID][]diskMDBlock
 

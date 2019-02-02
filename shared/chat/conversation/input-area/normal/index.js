@@ -125,7 +125,7 @@ class Input extends React.Component<InputProps, InputState> {
   }
 
   _inputFocus = () => {
-    this._input && this._input.focus()
+    this.props.isActiveForFocus && this._input && this._input.focus()
   }
 
   _onSubmit = (text: string) => {
@@ -179,6 +179,10 @@ class Input extends React.Component<InputProps, InputState> {
 
   componentDidUpdate = (prevProps: InputProps) => {
     if (this.props.focusInputCounter !== prevProps.focusInputCounter) {
+      this._inputFocus()
+    }
+
+    if (this.props.isActiveForFocus !== prevProps.isActiveForFocus) {
       this._inputFocus()
     }
 
@@ -331,7 +335,13 @@ class Input extends React.Component<InputProps, InputState> {
     standardTransformer(`/${command.name}`, tData, preview)
 
   render = () => {
-    const {suggestUsers, suggestChannels, suggestCommands, ...platformInputProps} = this.props
+    const {
+      suggestUsers,
+      suggestChannels,
+      suggestCommands,
+      isActiveForFocus,
+      ...platformInputProps
+    } = this.props
     return (
       <PlatformInput
         {...platformInputProps}

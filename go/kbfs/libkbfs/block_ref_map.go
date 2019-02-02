@@ -32,6 +32,19 @@ func (brf blockRefStatus) toBlockStatus() keybase1.BlockStatus {
 	}
 }
 
+func (brf blockRefStatus) String() string {
+	switch brf {
+	case unknownBlockRef:
+		return "unknown"
+	case liveBlockRef:
+		return "live"
+	case archivedBlockRef:
+		return "archived"
+	default:
+		panic(fmt.Sprintf("Unknown ref status: %d", brf))
+	}
+}
+
 type blockContextMismatchError struct {
 	expected, actual kbfsblock.Context
 }

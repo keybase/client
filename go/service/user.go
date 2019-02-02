@@ -416,7 +416,7 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext) (ret []Proo
 	}
 
 	var suggestions []ProofSuggestion
-	serviceKeys := mctx.G().GetProofServices().ListServicesThatAcceptNewProofs()
+	serviceKeys := mctx.G().GetProofServices().ListServicesThatAcceptNewProofs(mctx)
 	for _, service := range serviceKeys {
 		switch service {
 		case "web", "dns", "http", "https":

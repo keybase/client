@@ -70,6 +70,10 @@
       "_description": "Actually start a conversation",
       "participants": "Array<string>"
     },
+    "changeFocus": {
+      "_description": "Where we want our focus for keypresses",
+      "nextFocus": "Types.Focus"
+    },
     // Update our badges in the nav
     "badgesUpdated": {
       "conversations": "Array<RPCTypes.BadgeConversationInfo>"

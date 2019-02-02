@@ -122,8 +122,11 @@ func testPrefetcherCheckGet(
 	if dcache == nil {
 		return
 	}
+	if dbcw, ok := dcache.(*diskBlockCacheWrapped); ok {
+		dbcw.waitForDeletes(context.Background())
+	}
 	require.Equal(t, expectedBlock, block)
-	_, _, prefetchStatus, err := dcache.Get(
+	prefetchStatus, err := dcache.GetPrefetchStatus(
 		context.Background(), tlfID, ptr.ID, DiskBlockAnyCache)
 	require.NoError(t, err)
 	require.Equal(t, expectedPrefetchStatus.String(), prefetchStatus.String(), ptr.String())
@@ -592,7 +595,7 @@ func TestPrefetcherEmptyDirectDirBlock(t *testing.T) {
 	q, bg, config := initPrefetcherTest(t)
 	defer shutdownPrefetcherTest(q)
 	prefetchSyncCh := make(chan struct{})
-	q.TogglePrefetcher(true, prefetchSyncCh)
+	q.TogglePrefetcher(true, prefetchSyncCh, nil)
 	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Initialize an empty direct dir block.")
@@ -793,7 +796,7 @@ func TestPrefetcherForSyncedTLF(t *testing.T) {
 	q, bg, config := initPrefetcherTest(t)
 	defer shutdownPrefetcherTest(q)
 	prefetchSyncCh := make(chan struct{})
-	q.TogglePrefetcher(true, prefetchSyncCh)
+	q.TogglePrefetcher(true, prefetchSyncCh, nil)
 	notifySyncCh(t, prefetchSyncCh)
 
 	kmd := makeKMD()
@@ -808,7 +811,7 @@ func TestPrefetcherForRequestedSync(t *testing.T) {
 	q, bg, config := initPrefetcherTest(t)
 	defer shutdownPrefetcherTest(q)
 	prefetchSyncCh := make(chan struct{})
-	q.TogglePrefetcher(true, prefetchSyncCh)
+	q.TogglePrefetcher(true, prefetchSyncCh, nil)
 	notifySyncCh(t, prefetchSyncCh)
 
 	kmd := makeKMD()
@@ -820,7 +823,7 @@ func TestPrefetcherMultiLevelIndirectFile(t *testing.T) {
 	q, bg, config := initPrefetcherTest(t)
 	defer shutdownPrefetcherTest(q)
 	prefetchSyncCh := make(chan struct{})
-	q.TogglePrefetcher(true, prefetchSyncCh)
+	q.TogglePrefetcher(true, prefetchSyncCh, nil)
 	notifySyncCh(t, prefetchSyncCh)
 	ctx, cancel := context.WithTimeout(
 		context.Background(), individualTestTimeout)
@@ -971,7 +974,7 @@ func TestPrefetcherBackwardPrefetch(t *testing.T) {
 	defer shutdownPrefetcherTest(q)
 	kmd := makeKMD()
 	prefetchSyncCh := make(chan struct{})
-	q.TogglePrefetcher(true, prefetchSyncCh)
+	q.TogglePrefetcher(true, prefetchSyncCh, nil)
 	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Initialize a folder tree with structure: " +
@@ -1121,7 +1124,7 @@ func TestPrefetcherUnsyncedThenSyncedPrefetch(t *testing.T) {
 	defer shutdownPrefetcherTest(q)
 	kmd := makeKMD()
 	prefetchSyncCh := make(chan struct{})
-	q.TogglePrefetcher(true, prefetchSyncCh)
+	q.TogglePrefetcher(true, prefetchSyncCh, nil)
 	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Initialize a folder tree with structure: " +
@@ -1181,7 +1184,7 @@ func TestPrefetcherUnsyncedThenSyncedPrefetch(t *testing.T) {
 	config.SetTlfSyncState(kmd.TlfID(), FolderSyncConfig{
 		Mode: keybase1.FolderSyncMode_ENABLED,
 	})
-	q.TogglePrefetcher(true, prefetchSyncCh)
+	q.TogglePrefetcher(true, prefetchSyncCh, nil)
 	notifySyncCh(t, prefetchSyncCh)
 
 	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, root,
@@ -1269,9 +1272,10 @@ func TestSyncBlockCacheWithPrefetcher(t *testing.T) {
 	ctx, cancel := context.WithTimeout(
 		context.Background(), individualTestTimeout)
 	defer cancel()
+	defer cache.Shutdown(ctx)
 	kmd := makeKMD()
 	prefetchSyncCh := make(chan struct{})
-	q.TogglePrefetcher(true, prefetchSyncCh)
+	q.TogglePrefetcher(true, prefetchSyncCh, nil)
 	notifySyncCh(t, prefetchSyncCh)
 
 	syncCache := cache.syncCache
@@ -1328,7 +1332,7 @@ func TestSyncBlockCacheWithPrefetcher(t *testing.T) {
 	config.SetTlfSyncState(kmd.TlfID(), FolderSyncConfig{
 		Mode: keybase1.FolderSyncMode_ENABLED,
 	})
-	q.TogglePrefetcher(true, prefetchSyncCh)
+	q.TogglePrefetcher(true, prefetchSyncCh, nil)
 	notifySyncCh(t, prefetchSyncCh)
 
 	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, root,
@@ -1362,7 +1366,7 @@ func TestPrefetcherBasicUnsyncedPrefetch(t *testing.T) {
 	defer shutdownPrefetcherTest(q)
 	kmd := makeKMD()
 	prefetchSyncCh := make(chan struct{})
-	q.TogglePrefetcher(true, prefetchSyncCh)
+	q.TogglePrefetcher(true, prefetchSyncCh, nil)
 	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Initialize a folder tree with structure: " +
@@ -1417,7 +1421,7 @@ func TestPrefetcherBasicUnsyncedBackwardPrefetch(t *testing.T) {
 	defer shutdownPrefetcherTest(q)
 	kmd := makeKMD()
 	prefetchSyncCh := make(chan struct{})
-	q.TogglePrefetcher(true, prefetchSyncCh)
+	q.TogglePrefetcher(true, prefetchSyncCh, nil)
 	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Initialize a folder tree with structure: " +
@@ -1480,7 +1484,7 @@ func TestPrefetcherUnsyncedPrefetchEvicted(t *testing.T) {
 	defer cancel()
 	kmd := makeKMD()
 	prefetchSyncCh := make(chan struct{})
-	q.TogglePrefetcher(true, prefetchSyncCh)
+	q.TogglePrefetcher(true, prefetchSyncCh, nil)
 	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Initialize a folder tree with structure: " +
@@ -1519,7 +1523,8 @@ func TestPrefetcherUnsyncedPrefetchEvicted(t *testing.T) {
 
 	t.Log("Set the metadata of the block in the disk cache to NoPrefetch, " +
 		"simulating an eviction and a BlockServer.Get.")
-	err = dbc.UpdateMetadata(ctx, rootPtr.ID, NoPrefetch)
+	err = dbc.UpdateMetadata(
+		ctx, kmd.TlfID(), rootPtr.ID, NoPrefetch, DiskBlockAnyCache)
 	require.NoError(t, err)
 
 	t.Log("Evict the root block from the block cache.")
@@ -1573,7 +1578,7 @@ func TestPrefetcherUnsyncedPrefetchChildCanceled(t *testing.T) {
 	defer cancel()
 	kmd := makeKMD()
 	prefetchSyncCh := make(chan struct{})
-	q.TogglePrefetcher(true, prefetchSyncCh)
+	q.TogglePrefetcher(true, prefetchSyncCh, nil)
 	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Initialize a folder tree with structure: " +
@@ -1626,7 +1631,8 @@ func TestPrefetcherUnsyncedPrefetchChildCanceled(t *testing.T) {
 
 	t.Log("Set the metadata of the root block in the disk cache to " +
 		"NoPrefetch, simulating an eviction and a BlockServer.Get.")
-	err = dbc.UpdateMetadata(ctx, rootPtr.ID, NoPrefetch)
+	err = dbc.UpdateMetadata(
+		ctx, kmd.TlfID(), rootPtr.ID, NoPrefetch, DiskBlockAnyCache)
 	require.NoError(t, err)
 
 	t.Log("Evict the root block from the block cache.")
@@ -1638,7 +1644,6 @@ func TestPrefetcherUnsyncedPrefetchChildCanceled(t *testing.T) {
 	ch = q.Request(
 		context.Background(), defaultOnDemandRequestPriority, kmd,
 		rootPtr, block, TransientEntry, BlockRequestWithPrefetch)
-	notifySyncCh(t, prefetchSyncCh)
 	err = <-ch
 	require.NoError(t, err)
 	// Notify sync channel for only child block `a`, since `b` wasn't newly
@@ -1690,7 +1695,7 @@ func TestPrefetcherUnsyncedPrefetchParentCanceled(t *testing.T) {
 	defer cancel()
 	kmd := makeKMD()
 	prefetchSyncCh := make(chan struct{})
-	q.TogglePrefetcher(true, prefetchSyncCh)
+	q.TogglePrefetcher(true, prefetchSyncCh, nil)
 	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Initialize a folder tree with structure: " +
@@ -1743,7 +1748,8 @@ func TestPrefetcherUnsyncedPrefetchParentCanceled(t *testing.T) {
 
 	t.Log("Set the metadata of the root block in the disk cache to " +
 		"NoPrefetch, simulating an eviction and a BlockServer.Get.")
-	err = dbc.UpdateMetadata(ctx, rootPtr.ID, NoPrefetch)
+	err = dbc.UpdateMetadata(
+		ctx, kmd.TlfID(), rootPtr.ID, NoPrefetch, DiskBlockAnyCache)
 	require.NoError(t, err)
 
 	t.Log("Evict the root block from the block cache.")
@@ -1793,6 +1799,15 @@ func TestPrefetcherUnsyncedPrefetchParentCanceled(t *testing.T) {
 	waitForPrefetchOrBust(t, ctx, q.Prefetcher(), rootPtr)
 }
 
+func waitDoneCh(t *testing.T, ctx context.Context, doneCh <-chan struct{}) {
+	t.Helper()
+	select {
+	case <-doneCh:
+	case <-ctx.Done():
+		t.Fatal(ctx.Err())
+	}
+}
+
 func TestPrefetcherReschedules(t *testing.T) {
 	t.Log("Test synced TLF prefetch rescheduling.")
 	cache, dbcConfig := initDiskBlockCacheTest(t)
@@ -1803,7 +1818,7 @@ func TestPrefetcherReschedules(t *testing.T) {
 	defer cancel()
 	kmd := makeKMD()
 	prefetchSyncCh := make(chan struct{})
-	q.TogglePrefetcher(true, prefetchSyncCh)
+	q.TogglePrefetcher(true, prefetchSyncCh, nil)
 	notifySyncCh(t, prefetchSyncCh)
 
 	syncCache := cache.syncCache
@@ -1860,11 +1875,17 @@ func TestPrefetcherReschedules(t *testing.T) {
 	config.SetTlfSyncState(kmd.TlfID(), FolderSyncConfig{
 		Mode: keybase1.FolderSyncMode_ENABLED,
 	})
-	q.TogglePrefetcher(true, prefetchSyncCh)
+	// We must use a special channel here to learn when each
+	// prefetcher operation has finished.  That's because we shouldn't
+	// adjust the disk limiter limits during the processing of a
+	// prefetcher operation.  If we do, we introduce racy behavior
+	// where sometimes the prefetcher will be able to write stuff to
+	// the cache, and sometimes not.
+	prefetchDoneCh := make(chan struct{})
+	q.TogglePrefetcher(true, prefetchSyncCh, prefetchDoneCh)
 	q.Prefetcher().(*blockPrefetcher).makeNewBackOff = func() backoff.BackOff {
 		return &backoff.ZeroBackOff{}
 	}
-	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Set the cache maximum bytes to the current total.")
 	syncBytes, workingBytes := testGetDiskCacheBytes(syncCache, workingCache)
@@ -1876,26 +1897,28 @@ func TestPrefetcherReschedules(t *testing.T) {
 	ch := q.Request(
 		ctx, defaultOnDemandRequestPriority, kmd,
 		rootPtr, block, TransientEntry, BlockRequestWithPrefetch)
-	notifySyncCh(t, prefetchSyncCh)
 	err = <-ch
 	require.NoError(t, err)
 
 	t.Log("Release reschedule request of root.")
 	notifySyncCh(t, prefetchSyncCh)
+	waitDoneCh(t, ctx, prefetchDoneCh)
 
 	testPrefetcherCheckGet(t, config.BlockCache(), rootPtr, root,
-		TriggeredPrefetch, kmd.TlfID(), config.DiskBlockCache())
+		NoPrefetch, kmd.TlfID(), config.DiskBlockCache())
 
 	t.Log("Make room in the cache.")
 	setLimiterLimits(limiter, math.MaxInt64, math.MaxInt64)
 
-	t.Log("Release reschedule request of root.")
+	t.Log("Handle root's prefetch request")
 	notifySyncCh(t, prefetchSyncCh)
-	notifySyncCh(t, prefetchSyncCh)
+	waitDoneCh(t, ctx, prefetchDoneCh)
 
-	t.Log("Release reschedule request of two root children.")
+	t.Log("Handle two child prefetch requests (a and b)")
 	notifySyncCh(t, prefetchSyncCh)
+	waitDoneCh(t, ctx, prefetchDoneCh)
 	notifySyncCh(t, prefetchSyncCh)
+	waitDoneCh(t, ctx, prefetchDoneCh)
 
 	blockA := &DirBlock{}
 	chA := q.Request(
@@ -1921,15 +1944,26 @@ func TestPrefetcherReschedules(t *testing.T) {
 	syncBytes, workingBytes = testGetDiskCacheBytes(syncCache, workingCache)
 	setLimiterLimits(limiter, syncBytes, workingBytes)
 
-	t.Log("Release reschedule requests of two more children.")
+	t.Log("Process requests of two more children (aa and ab)")
 	notifySyncCh(t, prefetchSyncCh)
+	waitDoneCh(t, ctx, prefetchDoneCh)
 	notifySyncCh(t, prefetchSyncCh)
+	waitDoneCh(t, ctx, prefetchDoneCh)
 
 	t.Log("Make room in the cache again.")
 	setLimiterLimits(limiter, math.MaxInt64, math.MaxInt64)
 
 	t.Log("Finish all the prefetching.")
 	close(prefetchSyncCh)
+	// We can't close the done channel right away since the prefetcher
+	// still needs to send on it for every remaining operation it
+	// processes, so just spawn a goroutine to drain it, and close the
+	// channel when the test is over.
+	defer close(prefetchDoneCh)
+	go func() {
+		for range prefetchDoneCh {
+		}
+	}()
 
 	waitForPrefetchOrBust(t, ctx, q.Prefetcher(), rootPtr)
 
@@ -1941,6 +1975,7 @@ func TestPrefetcherReschedules(t *testing.T) {
 		FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
 	testPrefetcherCheckGet(t, config.BlockCache(), abPtr, ab,
 		FinishedPrefetch, kmd.TlfID(), config.DiskBlockCache())
+	<-q.Prefetcher().Shutdown()
 }
 
 func TestPrefetcherWithDedupBlocks(t *testing.T) {
@@ -1955,7 +1990,7 @@ func TestPrefetcherWithDedupBlocks(t *testing.T) {
 	defer cancel()
 	kmd := makeKMD()
 	prefetchSyncCh := make(chan struct{})
-	q.TogglePrefetcher(true, prefetchSyncCh)
+	q.TogglePrefetcher(true, prefetchSyncCh, nil)
 	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Initialize a folder tree with structure: " +
@@ -2023,7 +2058,7 @@ func TestPrefetcherWithCanceledDedupBlocks(t *testing.T) {
 	defer cancel()
 	kmd := makeKMD()
 	prefetchSyncCh := make(chan struct{})
-	q.TogglePrefetcher(true, prefetchSyncCh)
+	q.TogglePrefetcher(true, prefetchSyncCh, nil)
 	notifySyncCh(t, prefetchSyncCh)
 
 	t.Log("Initialize a folder tree with structure: root -> a -> b")

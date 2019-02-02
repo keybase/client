@@ -324,7 +324,7 @@ func (p *Prove) getServiceType(m libkb.MetaContext) (err error) {
 	if p.st == nil {
 		return libkb.BadServiceError{Service: p.arg.Service}
 	}
-	if !p.st.CanMakeNewProofs() {
+	if !p.st.CanMakeNewProofs(m) {
 		return libkb.ServiceDoesNotSupportNewProofsError{Service: p.arg.Service}
 	}
 	return nil

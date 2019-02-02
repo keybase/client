@@ -196,6 +196,12 @@ func (s *SecretStoreFile) StoreSecret(m MetaContext, username NormalizedUsername
 
 func (s *SecretStoreFile) ClearSecret(m MetaContext, username NormalizedUsername) error {
 	// try both
+
+	if username.IsNil() {
+		m.CDebugf("NOOPing SecretStoreFile#ClearSecret for empty username")
+		return nil
+	}
+
 	errV1 := s.clearSecretV1(username)
 	errV2 := s.clearSecretV2(username)
 

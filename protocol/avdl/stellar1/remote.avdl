@@ -92,6 +92,8 @@ protocol remote {
     TimeMs rtime; // time of last status update
     string cursorToken;
     boolean fromPrimary;
+    string batchID;
+    boolean fromAirdrop;
   }
 
   record PaymentSummaryRelay {
@@ -118,6 +120,8 @@ protocol remote {
     // Summary of the most relevant claim. Either the successful one or latest pending.
     union { null, ClaimSummary } claim;
     string cursorToken;
+    string batchID;
+    boolean fromAirdrop;
   }
 
   record ClaimSummary {

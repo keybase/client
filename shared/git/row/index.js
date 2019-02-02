@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import KbfsPathContainer from '../../common-adapters/markdown/kbfs-path-container'
 
 type Props = {
   canDelete: boolean,
@@ -25,6 +26,7 @@ type Props = {
   onToggleChatEnabled: () => void,
   onToggleExpand: () => void,
   openUserTracker: (username: string) => void,
+  previewLink: string,
   _onOpenChannelSelection: () => void,
 }
 
@@ -109,6 +111,13 @@ class Row extends React.Component<Props> {
                   />
                 )}
               </Kb.Box>
+              <Kb.Box2 direction="horizontal" fullWidth={true} style={{marginTop: Styles.globalMargins.tiny}}>
+                <Kb.Text type="Body">Preview:</Kb.Text>
+                <KbfsPathContainer
+                  escapedPath={this.props.previewLink}
+                  allowFontScaling={true}
+                />
+              </Kb.Box2>
               <Kb.Box
                 style={{
                   ...Styles.globalStyles.flexBoxRow,

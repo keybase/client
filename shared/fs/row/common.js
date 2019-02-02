@@ -1,4 +1,5 @@
 // @flow
+import * as I from 'immutable'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/fs'
 import * as React from 'react'
@@ -105,6 +106,7 @@ export type StillCommonProps = {
   path: Types.Path,
   inDestinationPicker?: boolean,
   onOpen?: ?() => void,
+  routePath: I.List<string>,
 }
 
 export const StillCommon = (
@@ -121,11 +123,15 @@ export const StillCommon = (
       <PathItemIcon path={props.path} size={32} style={rowStyles.pathItemIcon} badge={props.badge} />
       {props.children}
     </Kb.ClickableBox>
-    {!props.inDestinationPicker && (
+    {!props.inDestinationPicker && Types.getPathLevel(props.path) > 2 && (
       <Kb.Box style={rowStyles.rightBox}>
         <OpenInSystemFileManager path={props.path} />
         <SendInAppAction path={props.path} sendIconClassName="fs-path-item-hover-icon" />
-        <PathItemAction path={props.path} actionIconClassName="fs-path-item-hover-icon" />
+        <PathItemAction
+          path={props.path}
+          actionIconClassName="fs-path-item-hover-icon"
+          routePath={props.routePath}
+        />
       </Kb.Box>
     )}
   </HoverBox>

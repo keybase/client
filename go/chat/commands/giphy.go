@@ -7,7 +7,6 @@ import (
 
 	"github.com/keybase/client/go/chat/giphy"
 	"github.com/keybase/client/go/chat/globals"
-	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -36,10 +35,19 @@ func (s *Giphy) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Conve
 	return nil
 }
 
-func (s *Giphy) getChatUI() chat1.ChatUiInterface {
+type nullChatUI struct {
+	libkb.ChatUI
+}
+
+func (n nullChatUI) ChatGiphySearchResults(ctx context.Context, convID chat1.ConversationID,
+	results []chat1.GiphySearchResult) error {
+	return nil
+}
+
+func (s *Giphy) getChatUI() libkb.ChatUI {
 	ui, err := s.G().UIRouter.GetChatUI()
 	if err != nil || ui == nil {
-		return utils.DummyChatUI{}
+		return nullChatUI{}
 	}
 	return ui
 }
@@ -64,9 +72,7 @@ func (s *Giphy) Preview(ctx context.Context, uid gregor1.UID, convID chat1.Conve
 		shown := s.shownResults[convID.String()]
 		if shown {
 			// tell UI to clear
-			s.getChatUI().ChatGiphySearchResults(ctx, chat1.ChatGiphySearchResultsArg{
-				ConvID: convID.String(),
-			})
+			s.getChatUI().ChatGiphySearchResults(ctx, convID, nil)
 			s.shownResults[convID.String()] = false
 		}
 		return
@@ -86,8 +92,5 @@ func (s *Giphy) Preview(ctx context.Context, uid gregor1.UID, convID chat1.Conve
 		return
 	}
 	s.shownResults[convID.String()] = true
-	s.getChatUI().ChatGiphySearchResults(ctx, chat1.ChatGiphySearchResultsArg{
-		ConvID:  convID.String(),
-		Results: results,
-	})
+	s.getChatUI().ChatGiphySearchResults(ctx, convID, results)
 }

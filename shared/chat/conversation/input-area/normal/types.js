@@ -24,7 +24,6 @@ type CommonProps = {|
   onSubmit: (text: string) => void,
   showWalletsIcon: boolean, // used on mobile to determine placeholder
 
-  typing: I.Set<string>,
   editText: string,
   quoteCounter: number,
   quoteText: string,
@@ -39,6 +38,7 @@ type CommonProps = {|
 
 type InputProps = {|
   ...CommonProps,
+  isActiveForFocus: boolean,
   suggestUsers: I.List<{username: string, fullName: string}>,
   suggestChannels: I.List<string>,
   suggestCommands: Array<RPCChatTypes.ConversationCommand>,

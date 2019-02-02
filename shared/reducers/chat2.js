@@ -375,6 +375,8 @@ const rootReducer = (
       return initialState
     case Chat2Gen.toggleSmallTeamsExpanded:
       return state.set('smallTeamsExpanded', !state.smallTeamsExpanded)
+    case Chat2Gen.changeFocus:
+      return state.set('focus', action.payload.nextFocus)
     case Chat2Gen.selectConversation:
       // ignore non-changing
       if (state.selectedConversation === action.payload.conversationIDKey) {

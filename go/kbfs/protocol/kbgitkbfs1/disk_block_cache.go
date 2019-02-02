@@ -97,6 +97,7 @@ type DeleteBlocksArg struct {
 }
 
 type UpdateBlockMetadataArg struct {
+	TlfID          []byte         `codec:"tlfID" json:"tlfID"`
 	BlockID        []byte         `codec:"blockID" json:"blockID"`
 	PrefetchStatus PrefetchStatus `codec:"prefetchStatus" json:"prefetchStatus"`
 }

@@ -493,7 +493,7 @@ export type MessageTypes = {|
     outParam: void,
   |},
   'keybase.1.identify3Ui.identify3UpdateRow': {|
-    inParam: $ReadOnly<{|guiID: Identify3GUIID, key: String, value: String, siteURL: String, siteIcon: String, proofURL: String, state: Identify3RowState, metas?: ?Array<Identify3RowMeta>, color: Identify3RowColor|}>,
+    inParam: $ReadOnly<{|guiID: Identify3GUIID, key: String, value: String, siteURL: String, siteIcon: String, proofURL: String, sigID: SigID, state: Identify3RowState, metas?: ?Array<Identify3RowMeta>, color: Identify3RowColor|}>,
     outParam: void,
   |},
   'keybase.1.identify3Ui.identify3UpdateUserCard': {|
@@ -1229,6 +1229,7 @@ export const constantsStatusCode = {
   scchatclienterror: 2516,
   scchatnotinteam: 2517,
   scchatstalepreviousstate: 2518,
+  scchatephemeralretentionpolicyviolatederror: 2519,
   scteambadmembership: 2604,
   scteamselfnotowner: 2607,
   scteamnotfound: 2614,
@@ -2225,7 +2226,7 @@ export type Identify3RowState =
   | 4 // WARNING_4
   | 5 // REVOKED_5
 
-export type IdentifyKey = $ReadOnly<{pgpFingerprint: Bytes, KID: KID, trackDiff?: ?TrackDiff, breaksTracking: Boolean}>
+export type IdentifyKey = $ReadOnly<{pgpFingerprint: Bytes, KID: KID, trackDiff?: ?TrackDiff, breaksTracking: Boolean, sigID: SigID}>
 export type IdentifyLiteRes = $ReadOnly<{ul: UserOrTeamLite, trackBreaks?: ?IdentifyTrackBreaks}>
 export type IdentifyOutcome = $ReadOnly<{username: String, status?: ?Status, warnings?: ?Array<String>, trackUsed?: ?TrackSummary, trackStatus: TrackStatus, numTrackFailures: Int, numTrackChanges: Int, numProofFailures: Int, numRevoked: Int, numProofSuccesses: Int, revoked?: ?Array<TrackDiff>, trackOptions: TrackOptions, forPGPPull: Boolean, reason: IdentifyReason}>
 export type IdentifyProofBreak = $ReadOnly<{remoteProof: RemoteProof, lcr: LinkCheckResult}>
@@ -2761,6 +2762,7 @@ export type StatusCode =
   | 2516 // SCChatClientError_2516
   | 2517 // SCChatNotInTeam_2517
   | 2518 // SCChatStalePreviousState_2518
+  | 2519 // SCChatEphemeralRetentionPolicyViolatedError_2519
   | 2604 // SCTeamBadMembership_2604
   | 2607 // SCTeamSelfNotOwner_2607
   | 2614 // SCTeamNotFound_2614
@@ -3040,7 +3042,7 @@ export type UpdateInfoStatus =
   | 2 // CRITICALLY_OUT_OF_DATE_2
 
 export type User = $ReadOnly<{uid: UID, username: String}>
-export type UserCard = $ReadOnly<{following: Int, followers: Int, uid: UID, fullName: String, location: String, bio: String, website: String, twitter: String, youFollowThem: Boolean, theyFollowYou: Boolean, teamShowcase?: ?Array<UserTeamShowcase>}>
+export type UserCard = $ReadOnly<{following: Int, followers: Int, uid: UID, fullName: String, location: String, bio: String, website: String, twitter: String, youFollowThem: Boolean, theyFollowYou: Boolean, teamShowcase?: ?Array<UserTeamShowcase>, registeredForAirdrop: Boolean}>
 export type UserEk = $ReadOnly<{seed: Bytes32, metadata: UserEkMetadata}>
 export type UserEkBoxMetadata = $ReadOnly<{box: String, recipientGeneration: EkGeneration, recipientDeviceID: DeviceID}>
 export type UserEkBoxed = $ReadOnly<{box: String, deviceEkGeneration: EkGeneration, metadata: UserEkMetadata}>

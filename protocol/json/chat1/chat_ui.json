@@ -144,6 +144,20 @@
           "name": "version"
         },
         {
+          "type": [
+            null,
+            "RetentionPolicy"
+          ],
+          "name": "convRetention"
+        },
+        {
+          "type": [
+            null,
+            "RetentionPolicy"
+          ],
+          "name": "teamRetention"
+        },
+        {
           "type": "MessageID",
           "name": "maxMsgID"
         },
@@ -1221,6 +1235,19 @@
             "type": "array",
             "items": "GiphySearchResult"
           }
+        }
+      ],
+      "response": null
+    },
+    "chatShowManageChannels": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "teamname",
+          "type": "string"
         }
       ],
       "response": null

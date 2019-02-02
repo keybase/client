@@ -35,6 +35,10 @@ const provider = Sb.createPropProviderWithCommon({
     selected: 0,
     visible: ownProps.visible,
   }),
+  Typing: ownProps => ({
+    conversationIDKey: ownProps.conversationIDKey,
+    names: Set(),
+  }),
   UserMentionHud: ownProps => {
     const users = [
       {fullName: 'Marco Munizaga', username: 'marcopolo'},
@@ -61,7 +65,6 @@ type Props = {
   isExploding: boolean,
   explodingModeSeconds: number,
   pendingWaiting: boolean,
-  typing: Set<string>,
 }
 
 // On mobile, we want full width and height. On desktop, we we want to
@@ -88,6 +91,7 @@ const InputContainer = (props: Props) => {
       Sb.action('getUnsentText')()
       return props.isEditing ? 'some text' : ''
     },
+    isActiveForFocus: true,
     isEditExploded: props.isEditExploded,
     isEditing: props.isEditing,
     isExploding: props.isExploding,
@@ -106,7 +110,7 @@ const InputContainer = (props: Props) => {
     quoteText: '',
     sendTyping: Sb.action('sendTyping'),
     setUnsentText: Sb.action('setUnsentText'),
-    showWalletsIcon: !props.isEditing && props.typing.size <= 1,
+    showWalletsIcon: !props.isEditing,
     suggestChannels: List(['general', 'random', 'spelunky', 'music', 'vidya-games']),
     suggestCommands: [
       {description: 'Hide current or given conv', name: 'hide', usage: '[conversation]'},
@@ -119,7 +123,6 @@ const InputContainer = (props: Props) => {
       {fullName: 'Mike Maxim', username: 'mikem'},
       {fullName: 'Alex Gessner', username: 'xgess'},
     ]),
-    typing: props.typing,
     unsentTextChanged: Sb.action('unsentTextChanged'),
     unsentTextRefresh: false,
   }
@@ -139,37 +142,6 @@ const load = () => {
         isEditing={false}
         isEditExploded={false}
         pendingWaiting={false}
-        typing={Set()}
-        isExploding={false}
-        explodingModeSeconds={0}
-      />
-    ))
-    .add('Typing 1', () => (
-      <InputContainer
-        isEditing={false}
-        isEditExploded={false}
-        pendingWaiting={false}
-        typing={Set(['chris'])}
-        isExploding={false}
-        explodingModeSeconds={0}
-      />
-    ))
-    .add('Typing 2', () => (
-      <InputContainer
-        isEditing={false}
-        isEditExploded={false}
-        pendingWaiting={false}
-        typing={Set(['chris', 'strib'])}
-        isExploding={false}
-        explodingModeSeconds={0}
-      />
-    ))
-    .add('Typing 3', () => (
-      <InputContainer
-        isEditing={false}
-        isEditExploded={false}
-        pendingWaiting={false}
-        typing={Set(['chris', 'strib', 'fred'])}
         isExploding={false}
         explodingModeSeconds={0}
       />
@@ -179,7 +151,6 @@ const load = () => {
         isEditing={true}
         isEditExploded={false}
         pendingWaiting={false}
-        typing={Set()}
         isExploding={false}
         explodingModeSeconds={0}
       />
@@ -189,7 +160,6 @@ const load = () => {
         isEditing={false}
         isEditExploded={false}
         pendingWaiting={true}
-        typing={Set()}
         isExploding={false}
         explodingModeSeconds={0}
       />
@@ -199,7 +169,6 @@ const load = () => {
         isEditing={false}
         isEditExploded={false}
         pendingWaiting={false}
-        typing={Set()}
         isExploding={true}
         explodingModeSeconds={0}
       />

@@ -1989,6 +1989,14 @@ func (e ChatStalePreviousStateError) ToStatus() keybase1.Status {
 	}
 }
 
+func (e ChatEphemeralRetentionPolicyViolatedError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCChatEphemeralRetentionPolicyViolatedError,
+		Name: "SC_CHAT_EPHEMERAL_RETENTION_POLICY_VIOLATED",
+		Desc: e.Error(),
+	}
+}
+
 func (e ChatConvExistsError) ToStatus() keybase1.Status {
 	kv := keybase1.StringKVPair{
 		Key:   "ConvID",

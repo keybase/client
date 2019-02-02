@@ -6,6 +6,7 @@ import {action, storiesOf} from '../../stories/storybook'
 const defaultProps = {
   badgeNumbers: {},
   hasRandomPW: null,
+  logoutInProgress: false,
   onLogout: action('onlogout'),
   onTabChange: action('ontabchange'),
   selectedTab: 'settingsTabs:landingTab',
@@ -20,6 +21,7 @@ const load = () => {
     .add('With a badge on Notifications (Mobile Only)', () => (
       <SettingsNav {...defaultProps} badgeNotifications={true} />
     ))
+    .add('Logging out', () => <SettingsNav {...defaultProps} logoutInProgress={true} />)
 }
 
 export default load

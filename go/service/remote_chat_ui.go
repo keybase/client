@@ -109,3 +109,10 @@ func (r *RemoteChatUI) ChatGiphySearchResults(ctx context.Context, convID chat1.
 		Results:   results,
 	})
 }
+
+func (r *RemoteChatUI) ChatShowManageChannels(ctx context.Context, teamname string) error {
+	return r.cli.ChatShowManageChannels(ctx, chat1.ChatShowManageChannelsArg{
+		SessionID: r.sessionID,
+		Teamname:  teamname,
+	})
+}

@@ -71,7 +71,7 @@ export type PassphraseState = {
 }
 
 export type EmailState = {
-  emails: Array<Email>,
+  emails: ?Array<Email>,
   newEmail: string,
   error: ?Error,
 }

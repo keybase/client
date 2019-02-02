@@ -78,12 +78,21 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 	if len(details.Balances) == 0 {
 		// add an empty xlm balance
 		s.G().Log.CDebugf(ctx, "Account has no balances - adding default 0 XLM balance")
+		stellar.EmptyAmountStack(mctx)
+		details.Available = "0"
 		details.Balances = []stellar1.Balance{
 			{
 				Amount: "0",
 				Asset:  stellar1.Asset{Type: "native"},
 			},
 		}
+	}
+
+	if details.Available == "" {
+		s.G().Log.CDebugf(ctx, "details.Available is empty: %+v", details)
+		stellar.EmptyAmountStack(mctx)
+		details.Available = "0"
+		s.G().Log.CDebugf(ctx, `set details.Available from empty to "0"`)
 	}
 
 	displayCurrency, err := stellar.GetAccountDisplayCurrency(mctx, arg.AccountID)
@@ -97,7 +106,7 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 	}
 
 	for _, d := range details.Balances {
-		fmtAmount, err := stellar.FormatAmount(d.Amount, false, stellar.FmtRound)
+		fmtAmount, err := stellar.FormatAmount(mctx, d.Amount, false, stellar.FmtRound)
 		if err != nil {
 			s.G().Log.CDebugf(ctx, "FormatAmount error: %s", err)
 			return nil, err
@@ -105,7 +114,12 @@ func (s *Server) GetAccountAssetsLocal(ctx context.Context, arg stellar1.GetAcco
 
 		if d.Asset.IsNativeXLM() {
 			availableAmount := stellar.SubtractFeeSoft(mctx, details.Available)
-			fmtAvailable, err := stellar.FormatAmount(availableAmount, false, stellar.FmtRound)
+			if availableAmount == "" {
+				s.G().Log.CDebugf(ctx, "stellar.SubtractFeeSoft returned empty available amount, setting it to 0")
+				stellar.EmptyAmountStack(mctx)
+				availableAmount = "0"
+			}
+			fmtAvailable, err := stellar.FormatAmount(mctx, availableAmount, false, stellar.FmtRound)
 			if err != nil {
 				return nil, err
 			}
@@ -948,4 +962,46 @@ func (s *Server) GetInflationDestinationLocal(ctx context.Context, arg stellar1.
 	}
 
 	return stellar.GetInflationDestination(mctx, arg.AccountID)
+}
+
+func (s *Server) AirdropDetailsLocal(ctx context.Context, sessionID int) (details string, err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName:       "AirdropDetailsLocal",
+		Err:           &err,
+		RequireWallet: false,
+	})
+	defer fin()
+	if err != nil {
+		return "", err
+	}
+
+	return remote.AirdropDetails(mctx)
+}
+
+func (s *Server) AirdropRegisterLocal(ctx context.Context, arg stellar1.AirdropRegisterLocalArg) (err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName:       "AirdropRegisterLocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return err
+	}
+
+	return remote.AirdropRegister(mctx, arg.Register)
+}
+
+func (s *Server) AirdropStatusLocal(ctx context.Context, sessionID int) (status stellar1.AirdropStatus, err error) {
+	mctx, fin, err := s.Preamble(ctx, preambleArg{
+		RPCName:       "AirdropStatusLocal",
+		Err:           &err,
+		RequireWallet: true,
+	})
+	defer fin()
+	if err != nil {
+		return stellar1.AirdropStatus{}, err
+	}
+
+	return stellar.AirdropStatus(mctx)
 }

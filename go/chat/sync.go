@@ -299,7 +299,7 @@ func (s *Syncer) notifyIncrementalSync(ctx context.Context, uid gregor1.UID,
 	m := make(map[chat1.TopicType][]chat1.ChatSyncIncrementalConv)
 	for _, c := range allConvs {
 		m[c.GetTopicType()] = append(m[c.GetTopicType()], chat1.ChatSyncIncrementalConv{
-			Conv: utils.PresentRemoteConversation(types.RemoteConversation{
+			Conv: utils.PresentRemoteConversation(ctx, s.G(), types.RemoteConversation{
 				Conv: c,
 			}),
 			ShouldUnbox: shouldUnboxMap[c.GetConvID().String()],

@@ -13,6 +13,7 @@ function SettingsRender(props: Props) {
         {!props.isModal && (
           <SettingsNav
             badgeNumbers={props.badgeNumbers}
+            logoutInProgress={props.logoutInProgress}
             selectedTab={props.selectedTab}
             onTabChange={props.onTabChange}
             onLogout={props.onLogout}

@@ -37,12 +37,23 @@
       "name": "ConversationCommandGroupsTyp",
       "symbols": [
         "BUILTIN_0",
-        "EXTENDED_1"
+        "CUSTOM_1"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "ConversationBuiltinCommandTyp",
+      "symbols": [
+        "NONE_0",
+        "ADHOC_1",
+        "SMALLTEAM_2",
+        "BIGTEAM_3",
+        "BIGTEAMGENERAL_4"
       ]
     },
     {
       "type": "record",
-      "name": "ConversationCommandGroupsExtended",
+      "name": "ConversationCommandGroupsCustom",
       "fields": [
         {
           "type": {
@@ -66,14 +77,14 @@
             "name": "BUILTIN",
             "def": false
           },
-          "body": null
+          "body": "ConversationBuiltinCommandTyp"
         },
         {
           "label": {
-            "name": "EXTENDED",
+            "name": "CUSTOM",
             "def": false
           },
-          "body": "ConversationCommandGroupsExtended"
+          "body": "ConversationCommandGroupsCustom"
         }
       ]
     }

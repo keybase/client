@@ -3,6 +3,7 @@ package ephemeral
 import (
 	"context"
 	"fmt"
+	"log"
 	"sort"
 	"strconv"
 	"strings"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/keybase/client/go/erasablekv"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -34,6 +36,35 @@ type DeviceEKStorage struct {
 	storage erasablekv.ErasableKVStore
 	cache   deviceEKCache
 	indexed bool
+	logger  *log.Logger
+}
+
+func getLogger(g *libkb.GlobalContext) *log.Logger {
+	filename := g.Env.GetEKLogFile()
+
+	lfc := &logger.LogFileConfig{
+		Path:               filename,
+		MaxAge:             30 * 24 * time.Hour, // 30 days
+		MaxKeepFiles:       3,
+		SkipRedirectStdErr: true,
+	}
+	switch g.GetAppType() {
+	case libkb.MobileAppType:
+		lfc.MaxSize = 1 * 1024 * 1024 // 1mb
+	default:
+		lfc.MaxSize = 128 * 1024 * 1024 // 128mb
+	}
+	lfw := logger.NewLogFileWriter(*lfc)
+	if err := lfw.Open(time.Now()); err != nil {
+		g.Log.CDebugf(context.TODO(), "Unable to getLogger %v", err)
+		return nil
+	}
+	l := log.New(lfw, getLogPrefix(g), log.LstdFlags|log.Lshortfile)
+	return l
+}
+
+func getLogPrefix(g *libkb.GlobalContext) string {
+	return fmt.Sprintf("[username=%v] ", g.Env.GetUsername())
 }
 
 func NewDeviceEKStorage(g *libkb.GlobalContext) *DeviceEKStorage {
@@ -41,7 +72,28 @@ func NewDeviceEKStorage(g *libkb.GlobalContext) *DeviceEKStorage {
 		Contextified: libkb.NewContextified(g),
 		storage:      erasablekv.NewFileErasableKVStore(g, deviceEKSubDir),
 		cache:        make(deviceEKCache),
+		logger:       getLogger(g),
 	}
+}
+
+func (s *DeviceEKStorage) SetLogPrefix() {
+	s.logger.SetPrefix(getLogPrefix(s.G()))
+}
+
+// Log sensitive deletion actions to a separate log file so we don't lose the
+// logs during normal rotation.
+func (s *DeviceEKStorage) ekLogf(ctx context.Context, format string, args ...interface{}) {
+	s.G().Log.CDebugf(ctx, format, args...)
+	if s.logger != nil {
+		s.logger.Printf(format, args...)
+	}
+}
+
+func (s *DeviceEKStorage) ekLogCTraceTimed(ctx context.Context, msg string, f func() error) func() {
+	if s.logger != nil {
+		s.logger.Print(msg)
+	}
+	return s.G().CTraceTimed(ctx, msg, f)
 }
 
 func (s *DeviceEKStorage) keyPrefixFromUsername(username libkb.NormalizedUsername) string {
@@ -191,9 +243,9 @@ func (s *DeviceEKStorage) get(ctx context.Context, generation keybase1.EkGenerat
 	if err = s.storage.Get(ctx, key, &deviceEK); err != nil {
 		switch err.(type) {
 		case erasablekv.UnboxError:
-			s.G().Log.CDebugf(ctx, "DeviceEKStorage#get: corrupted generation: %s -> %s: %v", key, generation, err)
+			s.ekLogf(ctx, "DeviceEKStorage#get: corrupted generation: %v -> %v: %v", key, generation, err)
 			if ierr := s.storage.Erase(ctx, key); ierr != nil {
-				s.G().Log.CDebugf(ctx, "DeviceEKStorage#get: unable to delete corrupted generation: %v", ierr)
+				s.ekLogf(ctx, "DeviceEKStorage#get: unable to delete corrupted generation: %v", ierr)
 			}
 		}
 		return deviceEK, err
@@ -212,7 +264,7 @@ func (s *DeviceEKStorage) Delete(ctx context.Context, generation keybase1.EkGene
 }
 
 func (s *DeviceEKStorage) delete(ctx context.Context, generation keybase1.EkGeneration) (err error) {
-	defer s.G().CTraceTimed(ctx, fmt.Sprintf("DeviceEKStorage#delete: generation:%v", generation), func() error { return err })()
+	defer s.ekLogCTraceTimed(ctx, fmt.Sprintf("DeviceEKStorage#delete: generation:%v", generation), func() error { return err })()
 
 	// clear the cache
 	cache, err := s.getCache(ctx)
@@ -390,10 +442,9 @@ func (s *DeviceEKStorage) DeleteExpired(ctx context.Context, merkleRoot libkb.Me
 
 	keyMap := make(keyExpiryMap)
 	// We delete expired and invalid cache entries but only return the expired.
-	toDelete := []keybase1.EkGeneration{}
 	for generation, cacheItem := range cache {
 		if cacheItem.Err != nil {
-			toDelete = append(toDelete, generation)
+			continue
 		} else {
 			deviceEK := cacheItem.DeviceEK
 			var ctime keybase1.Time
@@ -413,14 +464,6 @@ func (s *DeviceEKStorage) DeleteExpired(ctx context.Context, merkleRoot libkb.Me
 	epick := libkb.FirstErrorPicker{}
 	for _, generation := range expired {
 		epick.Push(s.delete(ctx, generation))
-	}
-
-	// Delete any invalid cache entries we were harboring but don't return the
-	// error to the caller.
-	for _, generation := range toDelete {
-		if err := s.delete(ctx, generation); err != nil {
-			s.G().Log.CDebugf(ctx, "unable to delete generation (with cache err) %v: %v", generation, err)
-		}
 	}
 
 	epick.Push(s.deletedWrongEldestSeqno(ctx))
@@ -484,7 +527,7 @@ func (s *DeviceEKStorage) getExpiredGenerations(ctx context.Context, keyMap keyE
 
 		expiryOffset := expiryOffset1 + expiryOffset2
 		if now.Sub(keyCtime) >= (libkb.MinEphemeralKeyLifetime + expiryOffset) {
-			s.G().Log.CDebugf(ctx, "getExpiredGenerations: expired generation:%v, now: %v, keyCtime:%v, expiryOffset:%v, keyMap: %v, i:%v",
+			s.ekLogf(ctx, "getExpiredGenerations: expired generation:%v, now: %v, keyCtime:%v, expiryOffset:%v, keyMap: %v, i:%v",
 				generation, now, keyCtime, expiryOffset, keyMap, i)
 			expired = append(expired, generation)
 		}
@@ -508,6 +551,7 @@ func (s *DeviceEKStorage) deletedWrongEldestSeqno(ctx context.Context) (err erro
 			continue
 		}
 		if eldestSeqno != uv.EldestSeqno {
+			s.ekLogf(ctx, "DeviceEKStorage#deletedWrongEldestSeqno: key: %v, uv: %v", key, uv)
 			epick.Push(s.storage.Erase(ctx, key))
 		}
 	}
@@ -515,7 +559,7 @@ func (s *DeviceEKStorage) deletedWrongEldestSeqno(ctx context.Context) (err erro
 }
 
 func (s *DeviceEKStorage) ForceDeleteAll(ctx context.Context, username libkb.NormalizedUsername) (err error) {
-	defer s.G().CTraceTimed(ctx, "DeviceEKStorage#ForceDeleteAll", func() error { return err })()
+	defer s.ekLogCTraceTimed(ctx, "DeviceEKStorage#ForceDeleteAll", func() error { return err })()
 
 	s.Lock()
 	defer s.Unlock()
@@ -527,6 +571,7 @@ func (s *DeviceEKStorage) ForceDeleteAll(ctx context.Context, username libkb.Nor
 	}
 	epick := libkb.FirstErrorPicker{}
 	for _, key := range keys {
+		s.ekLogf(ctx, "DeviceEKStorage#ForceDeleteAll: key: %v", key)
 		epick.Push(s.storage.Erase(ctx, key))
 	}
 

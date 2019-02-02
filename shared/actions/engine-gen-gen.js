@@ -25,6 +25,7 @@ export const chat1ChatUiChatSearchHit = 'engine-gen:chat1ChatUiChatSearchHit'
 export const chat1ChatUiChatSearchInboxDone = 'engine-gen:chat1ChatUiChatSearchInboxDone'
 export const chat1ChatUiChatSearchInboxHit = 'engine-gen:chat1ChatUiChatSearchInboxHit'
 export const chat1ChatUiChatSearchIndexStatus = 'engine-gen:chat1ChatUiChatSearchIndexStatus'
+export const chat1ChatUiChatShowManageChannels = 'engine-gen:chat1ChatUiChatShowManageChannels'
 export const chat1ChatUiChatStellarDataConfirm = 'engine-gen:chat1ChatUiChatStellarDataConfirm'
 export const chat1ChatUiChatStellarDataError = 'engine-gen:chat1ChatUiChatStellarDataError'
 export const chat1ChatUiChatStellarDone = 'engine-gen:chat1ChatUiChatStellarDone'
@@ -184,6 +185,7 @@ type _Chat1ChatUiChatSearchHitPayload = $ReadOnly<{|params: $Exact<$PropertyType
 type _Chat1ChatUiChatSearchInboxDonePayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchInboxDone'>, 'inParam'>>|}>
 type _Chat1ChatUiChatSearchInboxHitPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchInboxHit'>, 'inParam'>>|}>
 type _Chat1ChatUiChatSearchIndexStatusPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchIndexStatus'>, 'inParam'>>|}>
+type _Chat1ChatUiChatShowManageChannelsPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatShowManageChannels'>, 'inParam'>>|}>
 type _Chat1ChatUiChatStellarDataConfirmPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarDataConfirm'>, 'inParam'>>|}>
 type _Chat1ChatUiChatStellarDataErrorPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarDataError'>, 'inParam'>>|}>
 type _Chat1ChatUiChatStellarDonePayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarDone'>, 'inParam'>>|}>
@@ -343,6 +345,7 @@ export const createChat1ChatUiChatSearchHit = (payload: _Chat1ChatUiChatSearchHi
 export const createChat1ChatUiChatSearchInboxDone = (payload: _Chat1ChatUiChatSearchInboxDonePayload) => ({payload, type: chat1ChatUiChatSearchInboxDone})
 export const createChat1ChatUiChatSearchInboxHit = (payload: _Chat1ChatUiChatSearchInboxHitPayload) => ({payload, type: chat1ChatUiChatSearchInboxHit})
 export const createChat1ChatUiChatSearchIndexStatus = (payload: _Chat1ChatUiChatSearchIndexStatusPayload) => ({payload, type: chat1ChatUiChatSearchIndexStatus})
+export const createChat1ChatUiChatShowManageChannels = (payload: _Chat1ChatUiChatShowManageChannelsPayload) => ({payload, type: chat1ChatUiChatShowManageChannels})
 export const createChat1ChatUiChatStellarDataConfirm = (payload: _Chat1ChatUiChatStellarDataConfirmPayload) => ({payload, type: chat1ChatUiChatStellarDataConfirm})
 export const createChat1ChatUiChatStellarDataError = (payload: _Chat1ChatUiChatStellarDataErrorPayload) => ({payload, type: chat1ChatUiChatStellarDataError})
 export const createChat1ChatUiChatStellarDone = (payload: _Chat1ChatUiChatStellarDonePayload) => ({payload, type: chat1ChatUiChatStellarDone})
@@ -502,6 +505,7 @@ export type Chat1ChatUiChatSearchHitPayload = {|+payload: _Chat1ChatUiChatSearch
 export type Chat1ChatUiChatSearchInboxDonePayload = {|+payload: _Chat1ChatUiChatSearchInboxDonePayload, +type: 'engine-gen:chat1ChatUiChatSearchInboxDone'|}
 export type Chat1ChatUiChatSearchInboxHitPayload = {|+payload: _Chat1ChatUiChatSearchInboxHitPayload, +type: 'engine-gen:chat1ChatUiChatSearchInboxHit'|}
 export type Chat1ChatUiChatSearchIndexStatusPayload = {|+payload: _Chat1ChatUiChatSearchIndexStatusPayload, +type: 'engine-gen:chat1ChatUiChatSearchIndexStatus'|}
+export type Chat1ChatUiChatShowManageChannelsPayload = {|+payload: _Chat1ChatUiChatShowManageChannelsPayload, +type: 'engine-gen:chat1ChatUiChatShowManageChannels'|}
 export type Chat1ChatUiChatStellarDataConfirmPayload = {|+payload: _Chat1ChatUiChatStellarDataConfirmPayload, +type: 'engine-gen:chat1ChatUiChatStellarDataConfirm'|}
 export type Chat1ChatUiChatStellarDataErrorPayload = {|+payload: _Chat1ChatUiChatStellarDataErrorPayload, +type: 'engine-gen:chat1ChatUiChatStellarDataError'|}
 export type Chat1ChatUiChatStellarDonePayload = {|+payload: _Chat1ChatUiChatStellarDonePayload, +type: 'engine-gen:chat1ChatUiChatStellarDone'|}
@@ -663,6 +667,7 @@ export type Actions =
   | Chat1ChatUiChatSearchInboxDonePayload
   | Chat1ChatUiChatSearchInboxHitPayload
   | Chat1ChatUiChatSearchIndexStatusPayload
+  | Chat1ChatUiChatShowManageChannelsPayload
   | Chat1ChatUiChatStellarDataConfirmPayload
   | Chat1ChatUiChatStellarDataErrorPayload
   | Chat1ChatUiChatStellarDonePayload

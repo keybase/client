@@ -38,6 +38,8 @@ protocol chatUi {
     union{ null, ConversationNotificationInfo } notifications;
     gregor1.Time time;
     ConversationVers version;
+    union { null, RetentionPolicy } convRetention;
+    union { null, RetentionPolicy } teamRetention;
     MessageID maxMsgID;
     MessageID maxVisibleMsgID;
     MessageID readMsgID;
@@ -274,4 +276,6 @@ protocol chatUi {
     boolean previewIsVideo;
   }
   void chatGiphySearchResults(int sessionID, string convID, array<GiphySearchResult> results);
+
+  void chatShowManageChannels(int sessionID, string teamname);
 }

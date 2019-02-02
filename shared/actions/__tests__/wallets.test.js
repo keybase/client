@@ -18,6 +18,7 @@ jest.mock('../../engine/require')
 const blankStore = Testing.getInitialStore()
 const initialStore = {
   ...blankStore,
+  config: {loggedIn: true},
   wallets: blankStore.wallets.merge({
     accountMap: blankStore.wallets.accountMap.set(
       Types.stringToAccountID('fake account ID'),

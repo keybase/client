@@ -9,7 +9,7 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {connect} from '../../util/container'
 import {type BarePreviewProps} from './bare-preview'
 import View from './view-container'
-import PathItemAction from '../common/path-item-action-container'
+import {PathItemAction} from '../common'
 
 const mapDispatchToProps = (dispatch, {routePath}) => ({
   onBack: () =>
@@ -61,7 +61,7 @@ class BarePreview extends React.PureComponent<ConnectedBarePreviewProps, State> 
           />
         </Box>
         <Box style={styles.footer}>
-          <PathItemAction path={this.props.path} actionIconWhite={true} />
+          <PathItemAction path={this.props.path} actionIconWhite={true} routePath={this.props.routePath} />
         </Box>
         {this.state.loading && <ProgressIndicator style={styles.loading} white={true} />}
       </Box>

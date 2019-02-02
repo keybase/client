@@ -527,6 +527,23 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 			return res, err
 		}
 
+		// If no ephemeral data set, then let's double check to make sure no exploding policy
+		// or Gregor state should set it
+		if msg.EphemeralMetadata() == nil {
+			s.Debug(ctx, "Prepare: attempting to set ephemeral policy from conversation")
+			elf, err := utils.EphemeralLifetimeFromConv(ctx, s.G(), *conv)
+			if err != nil {
+				s.Debug(ctx, "Prepare: failed to get ephemeral lifetime from conv: %s", err)
+				elf = nil
+			}
+			if elf != nil {
+				s.Debug(ctx, "Prepare: setting ephemeral lifetime from conv: %v", *elf)
+				msg.ClientHeader.EphemeralMetadata = &chat1.MsgEphemeralMetadata{
+					Lifetime: *elf,
+				}
+			}
+		}
+
 		metadata, err := s.getSupersederEphemeralMetadata(ctx, uid, convID, msg)
 		if err != nil {
 			s.Debug(ctx, "Prepare: error getting superdeder ephemeral metadata: %s", err)
@@ -704,25 +721,25 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 			// If we didn't find it, then just attempt to join it and see what happens
 			switch msg.ClientHeader.MessageType {
 			case chat1.MessageType_JOIN, chat1.MessageType_LEAVE:
-				return chat1.OutboxID{}, nil, err
+				return nil, nil, err
 			default:
 				s.Debug(ctx,
 					"Send: conversation not found, attempting to join the conversation and try again")
 				if err = JoinConversation(ctx, s.G(), s.DebugLabeler, s.getRi, sender,
 					convID); err != nil {
-					return chat1.OutboxID{}, nil, err
+					return nil, nil, err
 				}
 				// Force hit the remote here, so there is no race condition against the local
 				// inbox
 				conv, err = GetUnverifiedConv(ctx, s.G(), sender, convID, false)
 				if err != nil {
 					s.Debug(ctx, "Send: failed to get conversation again, giving up: %s", err.Error())
-					return chat1.OutboxID{}, nil, err
+					return nil, nil, err
 				}
 			}
 		} else {
 			s.Debug(ctx, "Send: error getting conversation metadata: %s", err.Error())
-			return chat1.OutboxID{}, nil, err
+			return nil, nil, err
 		}
 	} else {
 		s.Debug(ctx, "Send: uid: %s in conversation %s with status: %v", sender,
@@ -738,7 +755,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		default:
 			s.Debug(ctx, "Send: user is in preview mode, joining conversation")
 			if err = JoinConversation(ctx, s.G(), s.DebugLabeler, s.getRi, sender, convID); err != nil {
-				return chat1.OutboxID{}, nil, err
+				return nil, nil, err
 			}
 		}
 	default:
@@ -756,7 +773,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		// Add a bunch of stuff to the message (like prev pointers, sender info, ...)
 		if prepareRes, err = s.Prepare(ctx, msg, conv.GetMembersType(), &conv); err != nil {
 			s.Debug(ctx, "Send: error in Prepare: %s", err.Error())
-			return chat1.OutboxID{}, nil, err
+			return nil, nil, err
 		}
 		boxed = &prepareRes.Boxed
 
@@ -804,14 +821,14 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 				continue
 			default:
 				s.Debug(ctx, "Send: failed to PostRemote, bailing: %s", err.Error())
-				return chat1.OutboxID{}, nil, err
+				return nil, nil, err
 			}
 		}
 		boxed.ServerHeader = &plres.MsgHeader
 		break
 	}
 	if err != nil {
-		return chat1.OutboxID{}, nil, err
+		return nil, nil, err
 	}
 
 	// If this message was sent from the Outbox, then we can remove it now
@@ -855,7 +872,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 		go s.G().Unfurler.UnfurlAndSend(BackgroundContext(ctx, s.G()), boxed.ClientHeader.Sender, convID,
 			unboxedMsg)
 	}
-	return []byte{}, boxed, nil
+	return nil, boxed, nil
 }
 
 const deliverMaxAttempts = 24            // two minutes in default mode

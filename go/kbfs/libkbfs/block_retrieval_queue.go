@@ -167,7 +167,7 @@ func newBlockRetrievalQueue(
 		workers: make([]*blockRetrievalWorker, 0,
 			numWorkers+numPrefetchWorkers),
 	}
-	q.prefetcher = newBlockPrefetcher(q, config, nil)
+	q.prefetcher = newBlockPrefetcher(q, config, nil, nil)
 	for i := 0; i < numWorkers; i++ {
 		q.workers = append(q.workers, newBlockRetrievalWorker(
 			config.blockGetter(), q, q.workerCh))
@@ -304,7 +304,7 @@ func (brq *blockRetrievalQueue) setPrefetchStatus(
 // BlockRetrievalQueue.
 func (brq *blockRetrievalQueue) PutInCaches(ctx context.Context,
 	ptr BlockPointer, tlfID tlf.ID, block Block, lifetime BlockCacheLifetime,
-	prefetchStatus PrefetchStatus) (err error) {
+	prefetchStatus PrefetchStatus, cacheType DiskBlockCacheType) (err error) {
 	err = brq.config.BlockCache().Put(ptr, tlfID, block, lifetime)
 	switch err.(type) {
 	case nil:
@@ -318,8 +318,8 @@ func (brq *blockRetrievalQueue) PutInCaches(ctx context.Context,
 		brq.setPrefetchStatus(ptr.ID, prefetchStatus)
 		return nil
 	}
-	err = dbc.UpdateMetadata(ctx, ptr.ID, prefetchStatus)
-	switch err.(type) {
+	err = dbc.UpdateMetadata(ctx, tlfID, ptr.ID, prefetchStatus, cacheType)
+	switch errors.Cause(err).(type) {
 	case nil:
 	case NoSuchBlockError:
 		// TODO: Add the block to the DBC. This is complicated because we
@@ -604,7 +604,7 @@ func (brq *blockRetrievalQueue) Shutdown() {
 // off. If an error is returned due to a context cancelation, the prefetcher is
 // never re-enabled.
 func (brq *blockRetrievalQueue) TogglePrefetcher(enable bool,
-	testSyncCh <-chan struct{}) <-chan struct{} {
+	testSyncCh <-chan struct{}, testDoneCh chan<- struct{}) <-chan struct{} {
 	// We must hold this lock for the whole function so that multiple calls to
 	// this function doesn't leak prefetchers.
 	brq.prefetchMtx.Lock()
@@ -612,7 +612,8 @@ func (brq *blockRetrievalQueue) TogglePrefetcher(enable bool,
 	// Allow the caller to block on the current shutdown.
 	ch := brq.prefetcher.Shutdown()
 	if enable {
-		brq.prefetcher = newBlockPrefetcher(brq, brq.config, testSyncCh)
+		brq.prefetcher = newBlockPrefetcher(
+			brq, brq.config, testSyncCh, testDoneCh)
 	}
 	return ch
 }

@@ -19,6 +19,17 @@ func (o ObjFactory) MakeBody(b []byte) (gregor.Body, error)         { return Bod
 func (o ObjFactory) MakeSystem(s string) (gregor.System, error)     { return System(s), nil }
 func (o ObjFactory) MakeCategory(s string) (gregor.Category, error) { return Category(s), nil }
 
+func castMsgID(msgid gregor.MsgID) (ret MsgID, err error) {
+	if msgid == nil {
+		return ret, err
+	}
+	ret, ok := msgid.(MsgID)
+	if !ok {
+		err = errors.New("bad Msg ID; wrong type")
+	}
+	return ret, nil
+}
+
 func castUID(uid gregor.UID) (ret UID, err error) {
 	if uid == nil {
 		return
@@ -260,6 +271,27 @@ func (o ObjFactory) MakeTimeOrOffsetFromTime(t time.Time) (gregor.TimeOrOffset, 
 
 func (o ObjFactory) MakeTimeOrOffsetFromOffset(d time.Duration) (gregor.TimeOrOffset, error) {
 	return TimeOrOffset{Offset_: DurationMsec(d / time.Millisecond)}, nil
+}
+
+func (o ObjFactory) ExportTimeOrOffset(t gregor.TimeOrOffset) TimeOrOffset {
+	if t.Time() != nil {
+		return TimeOrOffset{
+			Time_: ToTime(*t.Time()),
+		}
+	}
+	if t.Offset() != nil {
+		return TimeOrOffset{
+			Offset_: DurationMsec(*t.Offset() / time.Millisecond),
+		}
+	}
+	return TimeOrOffset{}
+}
+
+func (o ObjFactory) ExportTimeOrOffsets(ts []gregor.TimeOrOffset) (res []TimeOrOffset) {
+	for _, t := range ts {
+		res = append(res, o.ExportTimeOrOffset(t))
+	}
+	return res
 }
 
 func (o ObjFactory) MakeReminderID(u gregor.UID, msgid gregor.MsgID, seqno int) (gregor.ReminderID, error) {

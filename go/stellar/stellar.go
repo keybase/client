@@ -743,7 +743,7 @@ func SpecMiniChatPayments(mctx libkb.MetaContext, walletState *WalletState, paym
 		}
 	}
 
-	summary.XLMTotal, err = FormatAmountDescriptionXLM(summary.XLMTotal)
+	summary.XLMTotal, err = FormatAmountDescriptionXLM(mctx, summary.XLMTotal)
 	if err != nil {
 		return nil, err
 	}
@@ -779,7 +779,7 @@ func specMiniChatPayment(mctx libkb.MetaContext, walletState *WalletState, payme
 		return spec, 0
 	}
 
-	spec.XLMAmount, err = FormatAmountDescriptionXLM(xlmAmount)
+	spec.XLMAmount, err = FormatAmountDescriptionXLM(mctx, xlmAmount)
 	if err != nil {
 		spec.Error = err
 		return spec, 0
@@ -1459,7 +1459,7 @@ func FormatCurrency(mctx libkb.MetaContext, amount string, code stellar1.Outside
 		return "", fmt.Errorf("FormatCurrency error: cannot find curency code %q", code)
 	}
 
-	amountFmt, err := FormatAmount(amount, true, rounding)
+	amountFmt, err := FormatAmount(mctx, amount, true, rounding)
 	if err != nil {
 		return "", err
 	}
@@ -1531,9 +1531,9 @@ func assertAssetIsSane(asset stellar1.Asset) error {
 // Verified Domain visible.
 // If you are coming from CLI, FormatAmountDescriptionAssetEx might be a better
 // choice which is more verbose about non-native assets.
-func FormatAmountDescriptionAsset(amount string, asset stellar1.Asset) (string, error) {
+func FormatAmountDescriptionAsset(mctx libkb.MetaContext, amount string, asset stellar1.Asset) (string, error) {
 	if asset.IsNativeXLM() {
-		return FormatAmountDescriptionXLM(amount)
+		return FormatAmountDescriptionXLM(mctx, amount)
 	}
 	if err := assertAssetIsSane(asset); err != nil {
 		return "", err
@@ -1542,7 +1542,7 @@ func FormatAmountDescriptionAsset(amount string, asset stellar1.Asset) (string, 
 	if _, err := libkb.ParseStellarAccountID(asset.Issuer); err != nil {
 		return "", fmt.Errorf("asset issuer is not account ID: %v", asset.Issuer)
 	}
-	return FormatAmountWithSuffix(amount, false /* precisionTwo */, false /* simplify */, asset.Code)
+	return FormatAmountWithSuffix(mctx, amount, false /* precisionTwo */, false /* simplify */, asset.Code)
 }
 
 // FormatAmountDescriptionAssetEx is a more verbose version of FormatAmountDescriptionAsset.
@@ -1550,9 +1550,9 @@ func FormatAmountDescriptionAsset(amount string, asset stellar1.Asset) (string, 
 // Example: "157.5000000 XLM"
 // Example: "1,000.15 CATS/catmoney.example.com (GDWVJEG7CMYKRYGB2MWSRZNSPCWIGGA4FRNFTQBIR6RAEPNEGGEH4XYZ)"
 // Example: "1,000.15 BTC/Unknown (GBPEHURSE52GCBRPDWNV2VL3HRLCI42367OGRPBOO3AW6VAYEW5EO5PM)"
-func FormatAmountDescriptionAssetEx(amount string, asset stellar1.Asset) (string, error) {
+func FormatAmountDescriptionAssetEx(mctx libkb.MetaContext, amount string, asset stellar1.Asset) (string, error) {
 	if asset.IsNativeXLM() {
-		return FormatAmountDescriptionXLM(amount)
+		return FormatAmountDescriptionXLM(mctx, amount)
 	}
 	if err := assertAssetIsSane(asset); err != nil {
 		return "", err
@@ -1562,7 +1562,7 @@ func FormatAmountDescriptionAssetEx(amount string, asset stellar1.Asset) (string
 	if err != nil {
 		return "", fmt.Errorf("asset issuer is not account ID: %v", asset.Issuer)
 	}
-	amountFormatted, err := FormatAmount(amount, false /* precisionTwo */, FmtRound)
+	amountFormatted, err := FormatAmount(mctx, amount, false /* precisionTwo */, FmtRound)
 	if err != nil {
 		return "", err
 	}
@@ -1586,15 +1586,15 @@ func FormatAssetIssuerString(asset stellar1.Asset) string {
 }
 
 // Example: "157.5000000 XLM"
-func FormatAmountDescriptionXLM(amount string) (string, error) {
+func FormatAmountDescriptionXLM(mctx libkb.MetaContext, amount string) (string, error) {
 	// Do not simplify XLM amounts, all zeroes are important because
 	// that's the exact number of digits that Stellar protocol
 	// supports.
-	return FormatAmountWithSuffix(amount, false /* precisionTwo */, false /* simplify */, "XLM")
+	return FormatAmountWithSuffix(mctx, amount, false /* precisionTwo */, false /* simplify */, "XLM")
 }
 
-func FormatAmountWithSuffix(amount string, precisionTwo bool, simplify bool, suffix string) (string, error) {
-	formatted, err := FormatAmount(amount, precisionTwo, FmtRound)
+func FormatAmountWithSuffix(mctx libkb.MetaContext, amount string, precisionTwo bool, simplify bool, suffix string) (string, error) {
+	formatted, err := FormatAmount(mctx, amount, precisionTwo, FmtRound)
 	if err != nil {
 		return "", err
 	}
@@ -1604,9 +1604,10 @@ func FormatAmountWithSuffix(amount string, precisionTwo bool, simplify bool, suf
 	return fmt.Sprintf("%s %s", formatted, suffix), nil
 }
 
-func FormatAmount(amount string, precisionTwo bool, rounding FmtRounding) (string, error) {
+func FormatAmount(mctx libkb.MetaContext, amount string, precisionTwo bool, rounding FmtRounding) (string, error) {
 	if amount == "" {
-		return "", errors.New("empty amount")
+		EmptyAmountStack(mctx)
+		return "", fmt.Errorf("empty amount")
 	}
 	x, err := stellarnet.ParseAmount(amount)
 	if err != nil {
@@ -2163,4 +2164,12 @@ func AccountDetails(mctx libkb.MetaContext, remoter remote.Remoter, accountID st
 	mctx.G().GetStellar().UpdateUnreadCount(mctx.Ctx(), accountID, details.UnreadPayments)
 
 	return details, nil
+}
+
+func AirdropStatus(mctx libkb.MetaContext) (stellar1.AirdropStatus, error) {
+	apiStatus, err := remote.AirdropStatus(mctx)
+	if err != nil {
+		return stellar1.AirdropStatus{}, err
+	}
+	return TransformToAirdropStatus(apiStatus), nil
 }

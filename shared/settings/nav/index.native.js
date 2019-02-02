@@ -93,7 +93,12 @@ function SettingsNav(props: Props) {
             {onClick: () => props.onTabChange(Constants.aboutTab), text: 'About'},
             {onClick: () => props.onTabChange(Constants.feedbackTab), text: 'Feedback'},
             {onClick: () => props.onTabChange(Constants.advancedTab), text: 'Advanced'},
-            {onClick: props.onLogout, text: 'Sign out', textColor: globalColors.red},
+            {
+              inProgress: props.logoutInProgress,
+              onClick: props.onLogout,
+              text: 'Sign out',
+              textColor: globalColors.red,
+            },
           ],
           title: 'More',
         },
