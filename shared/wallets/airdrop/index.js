@@ -77,6 +77,7 @@ class Airdrop extends React.Component<Props> {
               alignItems={Styles.isMobile ? 'center' : undefined}
               direction={Styles.isMobile ? 'vertical' : 'horizontal'}
               fullWidth={true}
+              noShrink={true}
               style={styles.header}
             >
               <Kb.Box2 direction="vertical" centerChildren={true}>
@@ -130,7 +131,13 @@ class Airdrop extends React.Component<Props> {
             <Kb.Button type="PrimaryGreen" label="See if you qualify" onClick={p.onCheckQualify} />
           )}
           <Kb.Box2 direction="vertical" style={styles.grow} />
-          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.friendContainer} gap="large">
+          <Kb.Box2
+            direction="horizontal"
+            fullWidth={true}
+            style={styles.friendContainer}
+            gap="large"
+            noShrink={true}
+          >
             <Kb.Box2 direction="vertical" gap="tiny">
               <Kb.Text type="BodyBig">Your friends qualify?</Kb.Text>
               <Kb.Text type="Body">
@@ -210,11 +217,13 @@ const styles = Styles.styleSheetCreate({
   },
   fullHeight: {height: '100%'},
   grow: {flexGrow: 1, flexShrink: 1, width: 100},
-  header: {backgroundColor: Styles.globalColors.purple2},
-  headerText: {
+  header: {
+    backgroundColor: Styles.globalColors.purple2,
     paddingBottom: Styles.globalMargins.medium,
-    paddingRight: Styles.globalMargins.large,
     paddingTop: Styles.globalMargins.medium,
+  },
+  headerText: {
+    paddingRight: Styles.globalMargins.large,
   },
   leaveButtonBar: {marginBottom: Styles.globalMargins.small},
   link: {color: Styles.globalColors.purple2, fontWeight: '600'},
