@@ -117,7 +117,9 @@ class BioRender extends Component<Props> {
             >
               {username}
             </Text>
-            {this.props.showAirdrop && <Icon type="iconfont-add" style={{marginLeft: 4, marginTop: 6}} />}
+            {this.props.showAirdrop && (
+              <Icon type="icon-airdrop-star-16" style={{marginLeft: 4, marginTop: 6}} />
+            )}
           </Box>
           {!!userInfo.fullname && (
             <Text center={true} type="BodySemibold" selectable={true} style={stylesFullname}>
