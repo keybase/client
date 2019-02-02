@@ -417,14 +417,6 @@ const styles = Styles.styleSheetCreate({
     paddingLeft: 8,
     paddingRight: 8,
   },
-  uploadingContainer: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    backgroundColor: Styles.globalColors.white,
-    justifyContent: 'center',
-    minHeight: 32,
-    padding: 8,
-  },
   widgetContainer: {
     ...Styles.globalStyles.flexBoxColumn,
     backgroundColor: Styles.globalColors.white,
