@@ -4,7 +4,6 @@ import (
 	"errors"
 	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
 
 	"github.com/keybase/client/go/utils"
@@ -17,22 +16,22 @@ func findKeybaseBinary(name string) (string, error) {
 	// Is it near the kbnm binary?
 	binPath, err := utils.BinPath()
 	if err == nil {
-		binPath := filepath.Join(path.Dir(binPath), name)
-		if _, err := os.Stat(binPath); !os.IsNotExist(err) {
-			return binPath, nil
+		path := filepath.Join(filepath.Dir(binPath), name)
+		if _, err := os.Stat(path); !os.IsNotExist(err) {
+			return path, nil
 		}
 	}
 
 	// Is it in our PATH?
-	binPath, err = exec.LookPath(name)
+	path, err := exec.LookPath(name)
 	if err == nil {
-		return binPath, nil
+		return path, nil
 	}
 
 	// Last ditch effort!
-	binPath = guessKeybasePath(name)
-	if _, err := os.Stat(binPath); !os.IsNotExist(err) {
-		return binPath, nil
+	path = guessKeybasePath(name)
+	if _, err := os.Stat(path); !os.IsNotExist(err) {
+		return path, nil
 	}
 
 	return "", errKeybaseNotFound
