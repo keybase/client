@@ -23,6 +23,12 @@ class Picker extends React.Component<Props> {
     if (!input) {
       return
     }
+    // HACK: If Picker is placed within a Kb.FloatingBox, just doing
+    // input.focus() here doesn't work, but setImmediate does.
+    //
+    // There's some weird stuff happening with Modal in
+    // relative-popup-hoc.desktop.js that makes calling input.focus()
+    // immediately not work, but I'm not sure what.
     setImmediate(() => input.focus())
   }
 
