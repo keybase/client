@@ -59,7 +59,7 @@ const JoinAirdrop = p => (
       ])}
       direction="horizontal"
       fullWidth={true}
-      className="hover_background_color_purple3"
+      className="hover_background_color_blueGrey2"
     >
       <Kb.Icon type="icon-airdrop-star-32" style={Kb.iconCastPlatformStyles(styles.icon)} />
       <Kb.Text backgroundMode={p.selected ? 'Terminal' : 'Normal'} type="BodySemibold">
@@ -72,8 +72,8 @@ const JoinAirdrop = p => (
 const WhatIsStellar = (props: {onWhatIsStellar: () => void}) => (
   <Kb.ClickableBox onClick={props.onWhatIsStellar} style={styles.whatIsStellar}>
     <Kb.Box2 centerChildren={true} direction="horizontal">
-      <Kb.Icon size={16} type="iconfont-info" />
-      <Kb.Text style={styles.infoText} type="BodySemibold">
+      <Kb.Icon sizeType={'Small'} type="iconfont-info" />
+      <Kb.Text style={styles.infoText} type="BodySmallSemibold">
         What is Stellar?
       </Kb.Text>
     </Kb.Box2>
@@ -161,10 +161,15 @@ const styles = Styles.styleSheetCreate({
     position: 'relative',
     top: -1,
   },
-  joinAirdrop: {alignItems: 'center', height: rowHeight},
+  joinAirdrop: {
+    alignItems: 'center',
+    borderColor: Styles.globalColors.black_10,
+    borderTopStyle: `solid`,
+    borderWidth: `1px`,
+    height: rowHeight,
+  },
   progressIndicator: {height: 30, width: 30},
   whatIsStellar: {
-    backgroundColor: Styles.globalColors.blue5,
     height: Styles.globalMargins.large,
     justifyContent: 'center',
     width: '100%',
