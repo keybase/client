@@ -47,6 +47,7 @@ const (
 
 func (s *Source) allCommands() (res map[int]types.ConversationCommand) {
 	res = make(map[int]types.ConversationCommand)
+	res[cmdGiphy] = NewGiphy(s.G())
 	res[cmdHeadline] = NewHeadline(s.G())
 	res[cmdHide] = NewHide(s.G())
 	res[cmdJoin] = NewJoin(s.G())
@@ -62,6 +63,7 @@ func (s *Source) allCommands() (res map[int]types.ConversationCommand) {
 func (s *Source) makeBuiltins() {
 	cmds := s.allCommands()
 	common := []types.ConversationCommand{
+		cmds[cmdGiphy],
 		cmds[cmdHide],
 		cmds[cmdMe],
 		cmds[cmdMsg],
