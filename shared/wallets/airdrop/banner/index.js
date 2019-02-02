@@ -20,6 +20,7 @@ const Banner = (p: Props) => {
       label="Join the airdrop"
       onClick={p.onCheckQualify}
       style={styles.button}
+      small={true}
     />
   )
 
@@ -42,7 +43,13 @@ const Banner = (p: Props) => {
       </Kb.Box2>
     </Kb.Box2>
   ) : (
-    <Kb.Box2 direction="horizontal" style={styles.grow} alignItems="flex-start" gap="small">
+    <Kb.Box2
+      direction="horizontal"
+      style={styles.grow}
+      centerChildren={true}
+      alignItems="flex-start"
+      gap="small"
+    >
       <Kb.Markdown styleOverride={markdownOverride} style={styles.markdown}>
         {p.headerBody}
       </Kb.Markdown>
@@ -65,20 +72,24 @@ const Banner = (p: Props) => {
 const markdownOverride = {
   paragraph: {
     color: Styles.globalColors.white,
+    fontSize: 12,
+    fontWeight: 600,
+    lineHeight: `16px`,
   },
+  strong: {...Styles.globalStyles.fontExtrabold},
 }
 
 const styles = Styles.styleSheetCreate({
-  button: {alignSelf: 'flex-start', marginTop: Styles.isMobile ? Styles.globalMargins.small : 0},
+  button: {marginTop: Styles.isMobile ? Styles.globalMargins.small : 0},
   buttonContainer: {flexWrap: 'wrap'},
   close: {padding: Styles.globalMargins.xxtiny},
   container: {
     backgroundColor: Styles.globalColors.purple2,
-    padding: Styles.globalMargins.xsmall,
+    padding: Styles.globalMargins.tiny,
   },
   grow: {flexGrow: 1, flexShrink: 1},
   laterButton: {marginTop: Styles.isMobile ? Styles.globalMargins.small : 0},
-  markdown: {alignSelf: Styles.isMobile ? 'center' : 'flex-start'},
+  markdown: {alignSelf: 'center'},
   textContainer: {
     flexGrow: 1,
     flexShrink: 1,
