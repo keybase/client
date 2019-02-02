@@ -3,6 +3,13 @@ Follow instructions for "Building Projects with Native Code" at
 https://facebook.github.io/react-native/docs/getting-started.html to
 install and configure Android.
 
+However, do _not_ install the NDK via Android Studio's SDK manager, as
+we need a specific version of the NDK for gomobile. Instead, download
+Revision 17c from
+https://developer.android.com/ndk/downloads/older_releases , unzip it
+into `$ANDROID_HOME`, and symlink `ndk-bundle` to point to
+`android-ndk-r17c`.
+
 ## Emulator Setup
 
 ### macOS
