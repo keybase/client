@@ -20,14 +20,12 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
 })
 
 const injectSmile = rows =>
-  rows.length ? [...rows, {subTitle: '😁', title: 'A beautiful smile', valid: true}] : rows
-
+  rows.length ? [...rows, {subTitle: '', title: 'A beautiful smile', valid: true}] : rows
 const mergeProps = (stateProps, dispatchProps) => ({
   rows: injectSmile(stateProps._rows.toArray().map(r => r.toObject())),
   state: stateProps.state,
   ...dispatchProps,
 })
-
 export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,

@@ -46,13 +46,14 @@ const Accepted = p =>
           <Kb.Text backgroundMode="Terminal" center={true} type="BodySemibold">
             Now bring your friends!
           </Kb.Text>
-          <Kb.Text backgroundMode="Terminal" center={true} type="BodySemibold">
+          <Kb.Text backgroundMode="Terminal" center={true} type="Body">
             Share this link:{' '}
             <Kb.Text
               backgroundMode="Terminal"
               center={true}
               type="BodyPrimaryLink"
               onClick={() => openURL('https://keybase.io/airdrop')}
+              selectable={true}
             >
               https://keybase.io/airdrop
             </Kb.Text>
@@ -177,7 +178,7 @@ class Qualified extends React.PureComponent<Props, State> {
           </>
           <Kb.Text
             center={true}
-            type={loading ? 'BodySemibold' : 'Header'}
+            type={loading ? 'BodySmallSemibold' : 'Header'}
             style={loading ? styles.loadingText : styles.headerText}
           >
             {loading
