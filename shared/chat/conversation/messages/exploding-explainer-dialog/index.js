@@ -10,7 +10,7 @@ type Props = {|
 
 export const ExplodingExplainerElement = (props: Props) => (
   <Kb.MaybePopup onClose={props.onCancel}>
-    <Kb.Box style={styles.padding}>
+    <Kb.Box2 direction="vertical" centerChildren={true} fullWidth={Styles.isMobile} style={styles.padding}>
       <Kb.Icon type="icon-message-exploding-260" />
       <Kb.Text center={true} style={styles.text} type="Body">
         Exploding messages use temporary "ephemeral keys”, which enhance the security of very short-lived
@@ -38,7 +38,7 @@ export const ExplodingExplainerElement = (props: Props) => (
           fullWidth={Styles.isMobile}
         />
       </Kb.Box>
-    </Kb.Box>
+    </Kb.Box2>
   </Kb.MaybePopup>
 )
 
@@ -71,10 +71,7 @@ const styles = Styles.styleSheetCreate({
   },
   padding: Styles.platformStyles({
     common: {
-      ...Styles.globalStyles.flexBoxColumn,
-      alignItems: 'center',
       backgroundColor: Styles.globalColors.blue,
-      justifyContent: 'center',
       maxWidth: 560,
       padding: Styles.globalMargins.small,
     },
@@ -91,7 +88,6 @@ const styles = Styles.styleSheetCreate({
       flexShrink: 1,
       maxHeight: '100%',
       paddingTop: Styles.globalMargins.xlarge,
-      width: '100%',
     },
   }),
   text: {

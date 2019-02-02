@@ -1,20 +1,28 @@
 // @flow
 import ExplodingExplainer from '.'
 import {type RouteProps} from '../../../../route-tree/render-route'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import {compose, connect} from '../../../../util/container'
-import {isMobile} from '../../../../constants/platform'
 
 type OwnProps = RouteProps<{}, {}>
 
 const mapStateToProps = (state, ownProps: OwnProps) => ({})
 
 const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
-  onBack: isMobile ? undefined : () => dispatch(ownProps.navigateUp()),
-  onCancel: () => dispatch(ownProps.navigateUp()),
+  onCancel:
+    ownProps.routePath.size > 1
+      ? () =>
+          dispatch(
+            RouteTreeGen.createPutActionIfOnPath({
+              expectedPath: ownProps.routePath,
+              otherAction: RouteTreeGen.createNavigateUp(),
+            })
+          )
+      : () => {},
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({
-  onBack: dispatchProps.onBack,
+  onBack: dispatchProps.onCancel,
   onCancel: dispatchProps.onCancel,
 })
 
