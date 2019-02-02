@@ -61,14 +61,14 @@ class Airdrop extends React.Component<Props> {
     return p.loading ? (
       <Loading />
     ) : (
-      <Kb.ScrollView style={styles.scrollView}>
-        <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true} gap="medium">
+      <Kb.ScrollView style={styles.scrollView} contentContainerStyle={styles.fullHeight}>
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="medium" style={styles.fullHeight}>
           {p.signedUp ? (
             <Kb.Box2 direction="horizontal" fullWidth={true}>
               <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.signedUpHeader} gap="small">
                 <Kb.Icon type="icon-airdrop-star-32" />
-                <Kb.Text backgroundMode="Terminal" type="BodySemibold" style={styles.yourIn}>
-                  You’re in. The next lumens airdrop will show up in your default wallet account.
+                <Kb.Text backgroundMode="Terminal" type="BodySmallSemibold" style={styles.yourIn}>
+                  You're in. The next Lumens airdrop will show up in your default wallet account.
                 </Kb.Text>
               </Kb.Box2>
             </Kb.Box2>
@@ -129,9 +129,10 @@ class Airdrop extends React.Component<Props> {
           {!p.signedUp && (
             <Kb.Button type="PrimaryGreen" label="See if you qualify" onClick={p.onCheckQualify} />
           )}
+          <Kb.Box2 direction="vertical" style={styles.grow} />
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.friendContainer} gap="large">
             <Kb.Box2 direction="vertical" gap="tiny">
-              <Kb.Text type="BodySemibold">Your friends qualify?</Kb.Text>
+              <Kb.Text type="BodyBig">Your friends qualify?</Kb.Text>
               <Kb.Text type="Body">
                 Tell them to visit{' '}
                 <Kb.Text
@@ -147,12 +148,14 @@ class Airdrop extends React.Component<Props> {
             <Kb.Icon type="icon-fancy-airdrop-friends-120" />
           </Kb.Box2>
           {p.signedUp && (
-            <Kb.WaitingButton
-              type="Danger"
-              label="Leave airdrop"
-              onClick={p.onReject}
-              waitingKey={Constants.airdropWaitingKey}
-            />
+            <Kb.ButtonBar style={styles.leaveButtonBar}>
+              <Kb.WaitingButton
+                type="Danger"
+                label="Leave airdrop"
+                onClick={p.onReject}
+                waitingKey={Constants.airdropWaitingKey}
+              />
+            </Kb.ButtonBar>
           )}
         </Kb.Box2>
       </Kb.ScrollView>
@@ -205,14 +208,16 @@ const styles = Styles.styleSheetCreate({
     paddingLeft: Styles.globalMargins.medium,
     paddingRight: Styles.globalMargins.medium,
   },
-  grow: {flexGrow: 1},
+  fullHeight: {height: '100%'},
+  grow: {flexGrow: 1, flexShrink: 1, width: 100},
   header: {backgroundColor: Styles.globalColors.purple2},
   headerText: {
     paddingBottom: Styles.globalMargins.medium,
     paddingRight: Styles.globalMargins.large,
     paddingTop: Styles.globalMargins.medium,
   },
-  link: {color: Styles.globalColors.purple},
+  leaveButtonBar: {marginBottom: Styles.globalMargins.small},
+  link: {color: Styles.globalColors.purple2, fontWeight: 600},
   progress: {
     height: 20,
     width: 20,
@@ -226,12 +231,13 @@ const styles = Styles.styleSheetCreate({
     flexShrink: 1,
   },
   signedUpHeader: {
+    alignItems: 'center',
     backgroundColor: Styles.globalColors.green2,
     borderRadius: Styles.borderRadius,
     flexShrink: 1,
-    marginLeft: Styles.globalMargins.small,
-    marginRight: Styles.globalMargins.small,
-    marginTop: Styles.globalMargins.small,
+    marginLeft: Styles.globalMargins.medium,
+    marginRight: Styles.globalMargins.medium,
+    marginTop: Styles.globalMargins.medium,
     padding: Styles.globalMargins.tiny,
   },
   yourIn: {
