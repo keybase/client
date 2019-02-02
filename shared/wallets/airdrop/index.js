@@ -217,7 +217,7 @@ const styles = Styles.styleSheetCreate({
     paddingTop: Styles.globalMargins.medium,
   },
   leaveButtonBar: {marginBottom: Styles.globalMargins.small},
-  link: {color: Styles.globalColors.purple2, fontWeight: 600},
+  link: {color: Styles.globalColors.purple2, fontWeight: '600'},
   progress: {
     height: 20,
     width: 20,

@@ -164,8 +164,8 @@ const styles = Styles.styleSheetCreate({
   joinAirdrop: {
     alignItems: 'center',
     borderColor: Styles.globalColors.black_10,
-    borderTopStyle: `solid`,
-    borderWidth: `1px`,
+    borderStyle: `solid`,
+    borderTopWidth: 1,
     height: rowHeight,
   },
   progressIndicator: {height: 30, width: 30},
