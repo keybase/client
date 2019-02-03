@@ -4399,7 +4399,7 @@ func TestChatSrvRetentionSweepConv(t *testing.T) {
 				badLifetime := *ephemeralLifetime + 1
 				_, err := postLocalEphemeralForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}), &badLifetime)
 				require.Error(t, err)
-				aerr, ok = err.(libkb.AppStatusError)
+				aerr, ok := err.(libkb.AppStatusError)
 				require.True(t, ok)
 				require.EqualValues(t, keybase1.StatusCode_SCChatEphemeralRetentionPolicyViolatedError, aerr.Code)
 
@@ -4517,7 +4517,7 @@ func TestChatSrvRetentionSweepTeam(t *testing.T) {
 					badLifetime := *ephemeralLifetime + 1
 					_, err := postLocalEphemeralForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}), &badLifetime)
 					require.Error(t, err)
-					aerr, ok = err.(libkb.AppStatusError)
+					aerr, ok := err.(libkb.AppStatusError)
 					require.True(t, ok)
 					require.EqualValues(t, keybase1.StatusCode_SCChatEphemeralRetentionPolicyViolatedError, aerr.Code)
 
