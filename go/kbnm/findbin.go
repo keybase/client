@@ -14,9 +14,9 @@ var errKeybaseNotFound = errors.New("failed to find the keybase binary")
 // findKeybaseBinary returns the path to a Keybase binary, if it finds it.
 func findKeybaseBinary(name string) (string, error) {
 	// Is it near the kbnm binary?
-	dir, err := utils.BinPath()
+	binPath, err := utils.BinPath()
 	if err == nil {
-		path := filepath.Join(dir, name)
+		path := filepath.Join(filepath.Dir(binPath), name)
 		if _, err := os.Stat(path); !os.IsNotExist(err) {
 			return path, nil
 		}
