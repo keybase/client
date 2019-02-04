@@ -4357,12 +4357,12 @@ func TestChatSrvRetentionSweepConv(t *testing.T) {
 	sweepChannel := randSweepChannel()
 	t.Logf("sweepChannel: %v", sweepChannel)
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		switch mt {
+		case chat1.ConversationMembersType_KBFS:
+			t.Logf("skipping kbfs stage")
+			return
+		}
 		runWithRetentionPolicyTypes(t, func(policy chat1.RetentionPolicy, ephemeralLifetime *gregor1.DurationSec) {
-			switch mt {
-			case chat1.ConversationMembersType_KBFS:
-				t.Logf("skipping kbfs stage")
-				return
-			}
 
 			ctc := makeChatTestContext(t, "TestChatSrvRetention", 2)
 			defer ctc.cleanup()
@@ -4399,9 +4399,12 @@ func TestChatSrvRetentionSweepConv(t *testing.T) {
 				badLifetime := *ephemeralLifetime + 1
 				_, err := postLocalEphemeralForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}), &badLifetime)
 				require.Error(t, err)
+				aerr, ok := err.(libkb.AppStatusError)
+				require.True(t, ok)
+				require.EqualValues(t, keybase1.StatusCode_SCChatEphemeralRetentionPolicyViolatedError, aerr.Code)
 
-				_, err = postLocalEphemeralForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}), ephemeralLifetime)
-				require.NoError(t, err)
+				mustPostLocalEphemeralForTest(t, ctc, users[0], conv,
+					chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}), ephemeralLifetime)
 			}
 		})
 	})
@@ -4411,13 +4414,13 @@ func TestChatSrvRetentionSweepTeam(t *testing.T) {
 	sweepChannel := randSweepChannel()
 	t.Logf("sweepChannel: %v", sweepChannel)
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+		default:
+			t.Logf("skipping %v stage", mt)
+			return
+		}
 		runWithRetentionPolicyTypes(t, func(policy chat1.RetentionPolicy, ephemeralLifetime *gregor1.DurationSec) {
-			switch mt {
-			case chat1.ConversationMembersType_TEAM:
-			default:
-				t.Logf("skipping %v stage", mt)
-				return
-			}
 			ctc := makeChatTestContext(t, "TestChatSrvTeamRetention", 2)
 			defer ctc.cleanup()
 			users := ctc.users()
@@ -4514,15 +4517,130 @@ func TestChatSrvRetentionSweepTeam(t *testing.T) {
 					badLifetime := *ephemeralLifetime + 1
 					_, err := postLocalEphemeralForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}), &badLifetime)
 					require.Error(t, err)
+					aerr, ok := err.(libkb.AppStatusError)
+					require.True(t, ok)
+					require.EqualValues(t, keybase1.StatusCode_SCChatEphemeralRetentionPolicyViolatedError, aerr.Code)
 
-					_, err = postLocalEphemeralForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}), ephemeralLifetime)
-					require.NoError(t, err)
+					mustPostLocalEphemeralForTest(t, ctc, users[0], conv,
+						chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}), ephemeralLifetime)
 				}
 			}
 		})
 	})
 }
 
+func TestChatSrvEphemeralConvRetention(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		switch mt {
+		case chat1.ConversationMembersType_KBFS:
+			t.Logf("skipping kbfs stage")
+			return
+		}
+
+		ctc := makeChatTestContext(t, "TestChatSrvRetention", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
+		ctx := ctc.as(t, users[0]).startCtx
+
+		listener := newServerChatListener()
+		ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener)
+
+		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+			mt, ctc.as(t, users[1]).user())
+
+		msgID := mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
+
+		// set an ephemeral policy
+		age := gregor1.ToDurationSec(time.Hour * 24)
+		policy := chat1.NewRetentionPolicyWithEphemeral(chat1.RpEphemeral{Age: age})
+		mustSetConvRetentionPolicy(t, ctc, users[0], conv.Id, policy, 0)
+		require.True(t, consumeSetConvRetention(t, listener).Eq(conv.Id))
+
+		// make sure we can supersede existing messages
+		mustReactToMsg(ctx, t, ctc, users[0], conv, msgID)
+
+		ephemeralMsgID := mustPostLocalEphemeralForTest(t, ctc, users[0], conv,
+			chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}), &age)
+		mustReactToMsg(ctx, t, ctc, users[0], conv, ephemeralMsgID)
+	})
+}
+
+func TestChatSrvEphemeralTeamRetention(t *testing.T) {
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+		default:
+			t.Logf("skipping %v stage", mt)
+			return
+		}
+		ctc := makeChatTestContext(t, "TestChatSrvTeamRetention", 2)
+		defer ctc.cleanup()
+		users := ctc.users()
+		ctx := ctc.as(t, users[0]).startCtx
+		_ = ctc.as(t, users[1]).startCtx
+		for i, u := range users {
+			t.Logf("user[%v] %v %v", i, u.Username, u.User.GetUID())
+			ctc.world.Tcs[u.Username].ChatG.Syncer.(*Syncer).isConnected = true
+		}
+		listener := newServerChatListener()
+		ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener)
+
+		// 3 convs
+		// convA: inherit team expire policy (default)
+		// convB: expire policy
+		// convC: retain policy
+		var convs []chat1.ConversationInfoLocal
+		for i := 0; i < 3; i++ {
+			t.Logf("creating conv %v", i)
+			var topicName *string
+			if i > 0 {
+				s := fmt.Sprintf("regarding-%v-gons", i)
+				topicName = &s
+			}
+			conv := mustCreateChannelForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+				topicName, mt, ctc.as(t, users[1]).user())
+			convs = append(convs, conv)
+			if i > 0 {
+				mustJoinConversationByID(t, ctc, users[1], conv.Id)
+				consumeJoinConv(t, listener)
+			}
+		}
+		convA := convs[0]
+		convB := convs[1]
+		convC := convs[2]
+		teamID := tlfIDToTeamIDForce(t, convA.Triple.Tlfid)
+
+		age := gregor1.ToDurationSec(time.Hour * 24)
+		policy := chat1.NewRetentionPolicyWithEphemeral(chat1.RpEphemeral{Age: age})
+		teamPolicy := policy
+		convExpirePolicy := policy
+		convRetainPolicy := chat1.NewRetentionPolicyWithRetain(chat1.RpRetain{})
+
+		latestMsgMap := make(map[string] /*convID*/ chat1.MessageID)
+		latestMsg := func(convID chat1.ConversationID) chat1.MessageID {
+			return latestMsgMap[convID.String()]
+		}
+		for i, conv := range convs {
+			t.Logf("conv (%v/%v) %v in team %v", i+1, len(convs), conv.Id, tlfIDToTeamIDForce(t, conv.Triple.Tlfid))
+			msgID := mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
+			latestMsgMap[conv.Id.String()] = msgID
+		}
+
+		mustSetConvRetentionPolicy(t, ctc, users[0], convB.Id, convExpirePolicy, 0)
+		require.True(t, consumeSetConvRetention(t, listener).Eq(convB.Id))
+		mustSetTeamRetentionPolicy(t, ctc, users[0], teamID, teamPolicy, 0)
+		require.True(t, consumeSetTeamRetention(t, listener).Eq(teamID))
+		mustSetConvRetentionPolicy(t, ctc, users[0], convC.Id, convRetainPolicy, 0)
+		require.True(t, consumeSetConvRetention(t, listener).Eq(convC.Id))
+
+		for _, conv := range []chat1.ConversationInfoLocal{convA, convB} {
+			mustReactToMsg(ctx, t, ctc, users[0], conv, latestMsg(conv.Id))
+			ephemeralMsgID := mustPostLocalEphemeralForTest(t, ctc, users[0], conv,
+				chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}), &age)
+			mustReactToMsg(ctx, t, ctc, users[0], conv, ephemeralMsgID)
+		}
+	})
+}
 func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		// Only run this test for teams
