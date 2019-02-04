@@ -46,8 +46,10 @@ const Accepted = p =>
           <Kb.Text backgroundMode="Terminal" center={true} type="BodySemibold">
             Now bring your friends!
           </Kb.Text>
-          <Kb.Text backgroundMode="Terminal" center={true} type="Body">
-            Share this link:{' '}
+          <Kb.Box2 direction={Styles.isMobile ? 'vertical' : 'horizontal'}>
+            <Kb.Text backgroundMode="Terminal" center={true} type="Body" style={styles.friendText}>
+              Share this link:{' '}
+            </Kb.Text>
             <Kb.Text
               backgroundMode="Terminal"
               center={true}
@@ -57,7 +59,7 @@ const Accepted = p =>
             >
               https://keybase.io/airdrop
             </Kb.Text>
-          </Kb.Text>
+          </Kb.Box2>
         </Kb.Box2>
         <Kb.Box2 direction="vertical" style={styles.grow} />
         <Kb.Button
@@ -87,6 +89,7 @@ const Row = p => (
         <Kb.Icon
           type={p.valid ? 'iconfont-check' : 'iconfont-close'}
           color={p.valid ? Styles.globalColors.green : Styles.globalColors.red}
+          sizeType={'Default'}
         />
       )}
     </Kb.Box2>
@@ -245,7 +248,7 @@ class Qualify extends React.PureComponent<Props> {
 const styles = Styles.styleSheetCreate({
   buttonAccept: {flexGrow: 0},
   buttonClose: {
-    backgroundColor: Styles.globalColors.black_10,
+    backgroundColor: Styles.globalColors.black_20,
     flexGrow: 0,
   },
   container: Styles.platformStyles({
@@ -269,6 +272,9 @@ const styles = Styles.styleSheetCreate({
       padding: Styles.globalMargins.small,
     },
   }),
+  friendText: Styles.platformStyles({
+    isElectron: {whiteSpace: 'pre'},
+  }),
   grow: {
     flexGrow: 1,
     flexShrink: 1,
@@ -288,8 +294,10 @@ const styles = Styles.styleSheetCreate({
       paddingTop: Styles.globalMargins.xsmall,
     },
     isMobile: {
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingTop: Styles.globalMargins.tiny,
+      paddingBottom: Styles.globalMargins.xsmall,
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
+      paddingTop: Styles.globalMargins.xsmall,
     },
   }),
   rowBorder: {
@@ -301,7 +309,7 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.white,
     flexGrow: 1,
     flexShrink: 1,
-    marginRight: Styles.globalMargins.tiny,
+    marginRight: Styles.globalMargins.medium,
   },
   scrollView: {...Styles.globalStyles.fillAbsolute},
   star: {
