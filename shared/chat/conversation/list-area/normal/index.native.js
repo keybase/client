@@ -3,7 +3,9 @@ import * as React from 'react'
 import Message from '../../messages'
 import SpecialTopMessage from '../../messages/special-top-message'
 import SpecialBottomMessage from '../../messages/special-bottom-message'
+import {MOBILE_TYPING_CONTAINER_HEIGHT} from '../../input-area/normal/typing'
 import {Box, NativeVirtualizedList, ErrorBoundary} from '../../../../common-adapters/mobile.native'
+import * as Styles from '../../../../styles'
 import type {Props} from './index.types'
 
 class ConversationList extends React.PureComponent<Props> {
@@ -75,8 +77,9 @@ class ConversationList extends React.PureComponent<Props> {
   render() {
     return (
       <ErrorBoundary>
-        <Box style={containerStyle}>
+        <Box style={styles.container}>
           <NativeVirtualizedList
+            contentContainerStyle={styles.contentContainer}
             data={this.props.messageOrdinals}
             inverted={true}
             getItem={this._getItem}
@@ -96,8 +99,13 @@ class ConversationList extends React.PureComponent<Props> {
   }
 }
 
-const containerStyle = {
-  flex: 1,
-}
+const styles = Styles.styleSheetCreate({
+  container: {
+    flex: 1,
+  },
+  contentContainer: {
+    bottom: -MOBILE_TYPING_CONTAINER_HEIGHT,
+  },
+})
 
 export default ConversationList
