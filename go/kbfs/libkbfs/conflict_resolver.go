@@ -337,6 +337,16 @@ func (cr *ConflictResolver) getMDs(ctx context.Context, lState *lockState,
 		return nil, nil, err
 	}
 
+	for i, md := range unmerged {
+		newMd, err := reembedBlockChangesIntoCopyIfNeeded(
+			ctx, cr.config.Codec(), cr.config.BlockCache(),
+			cr.config.BlockOps(), cr.config.Mode(), md, cr.log)
+		if err != nil {
+			return nil, nil, err
+		}
+		unmerged[i] = newMd
+	}
+
 	if len(unmerged) > 0 && unmerged[0].BID() == kbfsmd.PendingLocalSquashBranchID {
 		cr.log.CDebugf(ctx, "Squashing local branch")
 		return unmerged, nil, nil

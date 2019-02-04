@@ -557,6 +557,36 @@ func reembedBlockChanges(ctx context.Context, codec kbfscodec.Codec,
 	return nil
 }
 
+func reembedBlockChangesIntoCopyIfNeeded(
+	ctx context.Context, codec kbfscodec.Codec,
+	bcache BlockCacheSimple, bops BlockOps, mode InitMode,
+	rmd ImmutableRootMetadata, log logger.Logger) (
+	ImmutableRootMetadata, error) {
+	if rmd.data.Changes.Ops != nil {
+		return rmd, nil
+	}
+
+	// This might be necessary if the MD was retrieved from the
+	// cache in between putting it to the server (with unembedded
+	// block changes), and re-loading the block changes back into
+	// the MD and re-inserting into the cache.
+	log.CDebugf(ctx,
+		"Reembedding block changes for revision %d", rmd.Revision())
+	rmdCopy, err := rmd.deepCopy(codec)
+	if err != nil {
+		return ImmutableRootMetadata{}, err
+	}
+	err = reembedBlockChanges(
+		ctx, codec, bcache, bops, mode, rmd.TlfID(),
+		&rmdCopy.data, rmd, log)
+	if err != nil {
+		return ImmutableRootMetadata{}, err
+	}
+	return MakeImmutableRootMetadata(
+		rmdCopy, rmd.lastWriterVerifyingKey, rmd.mdID,
+		rmd.localTimestamp, rmd.putToServer), nil
+}
+
 // decryptMDPrivateData does not use uid if the handle is a public one.
 func decryptMDPrivateData(ctx context.Context, codec kbfscodec.Codec,
 	crypto Crypto, bcache BlockCache, bops BlockOps,
