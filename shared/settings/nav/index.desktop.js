@@ -22,8 +22,8 @@ function SettingsNav(props: Props) {
       />
       <SettingsItem
         text="Files"
-        selected={props.selectedTab === Constants.fsSettingsTab}
-        onClick={() => props.onTabChange(Constants.fsSettingsTab)}
+        selected={props.selectedTab === Constants.fsTab}
+        onClick={() => props.onTabChange(Constants.fsTab)}
       />
       <SettingsItem
         text="Notifications"
