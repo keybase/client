@@ -1,6 +1,9 @@
 package identify3
 
 import (
+	"sync"
+	"testing"
+
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/kbtest"
@@ -9,8 +12,6 @@ import (
 	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
-	"sync"
-	"testing"
 )
 
 func SetupTest(tb libkb.TestingTB, name string) libkb.TestContext {
@@ -140,6 +141,7 @@ func addBTCAddr(tc libkb.TestContext, u *kbtest.FakeUser, addr string) {
 }
 
 func TestCryptocurrency(t *testing.T) {
+	t.Skip()
 	tc := SetupTest(t, "id3")
 	defer tc.Cleanup()
 	alice, err := kbtest.CreateAndSignupFakeUser("alice", tc.G)
