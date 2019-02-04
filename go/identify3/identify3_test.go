@@ -264,7 +264,7 @@ func runID3(t *testing.T, mctx libkb.MetaContext, user string, follow bool) id3r
 	require.NoError(t, err)
 	res := fakeUI3.results()
 	for _, row := range res.rows {
-		checkIcon(t, row.SiteIcon)
+		checkIcon(t, row.Key, row.SiteIcon)
 	}
 	return res
 }
@@ -293,8 +293,12 @@ func TestFollowResetFollow(t *testing.T) {
 	require.False(t, res.userWasReset)
 }
 
-func checkIcon(t testing.TB, icon []keybase1.SizedImage) {
-	require.Len(t, icon, 2)
+func checkIcon(t testing.TB, service string, icon []keybase1.SizedImage) {
+	if service == "theqrl.org" {
+		// Skip checking for logos for this one.
+		return
+	}
+	require.Len(t, icon, 2, "%v", service)
 	for _, icon := range icon {
 		if icon.Width < 2 {
 			t.Fatalf("unreasonable icon size")
