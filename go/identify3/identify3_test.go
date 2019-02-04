@@ -141,7 +141,6 @@ func addBTCAddr(tc libkb.TestContext, u *kbtest.FakeUser, addr string) {
 }
 
 func TestCryptocurrency(t *testing.T) {
-	t.Skip()
 	tc := SetupTest(t, "id3")
 	defer tc.Cleanup()
 	alice, err := kbtest.CreateAndSignupFakeUser("alice", tc.G)
@@ -158,11 +157,11 @@ func TestCryptocurrency(t *testing.T) {
 	require.False(t, res.userWasReset)
 
 	// We get one row of results, just the cryptocurrency row.
-	require.Equal(t, len(res.rows), 1)
-	require.Equal(t, res.rows[0].Key, "bitcoin")
-	require.Equal(t, res.rows[0].Value, addr)
-	require.Equal(t, res.rows[0].Color, keybase1.Identify3RowColor_GREEN)
-	require.Equal(t, res.rows[0].State, keybase1.Identify3RowState_VALID)
+	require.Equal(t, 1, len(res.rows))
+	require.Equal(t, "btc", res.rows[0].Key)
+	require.Equal(t, addr, res.rows[0].Value)
+	require.Equal(t, keybase1.Identify3RowColor_GREEN, res.rows[0].Color)
+	require.Equal(t, keybase1.Identify3RowState_VALID, res.rows[0].State)
 }
 
 func TestFollowUnfollowTracy(t *testing.T) {
