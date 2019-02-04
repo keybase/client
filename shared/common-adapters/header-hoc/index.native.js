@@ -87,8 +87,8 @@ export class HeaderHocHeader extends React.Component<Props, State> {
           <Box
             style={Styles.collapseStyles([
               styles.titleContainer,
-              rightActions && styles.titleContainerLeftPadding,
-              leftAction && styles.titleContainerRightPadding,
+              onLeftAction && styles.titleContainerRightPadding,
+              rightActions.length && styles.titleContainerLeftPadding,
             ])}
           >
             {this.props.titleComponent}
