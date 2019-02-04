@@ -12,7 +12,6 @@ import openUrl from '../../util/open-url'
 type OwnProps = {|
   isSuggestion?: boolean,
   username: string,
-  // allowMenu: boolean,
   assertionKey: string,
 |}
 
@@ -45,7 +44,7 @@ const mapDispatchToProps = dispatch => ({
   _onCopyAddress: (text: string) => dispatch(ConfigGen.createCopyToClipboard({text})),
   // $FlowIssue we need to make this more flexible later
   _onCreateProof: (type: string) => dispatch(ProfileGen.createAddProof({platform: type})),
-  _onRecheck: (sigID: string) => dispatch(ProfileGen.createCheckProof2({sigID})),
+  _onRecheck: (sigID: string) => dispatch(ProfileGen.createRecheckProof({sigID})),
   _onRevokeProof: (type: string, value: string, id: string) =>
     dispatch(
       RouteTreeGen.createNavigateAppend({

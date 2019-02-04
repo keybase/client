@@ -9,7 +9,7 @@
     "cancelAddProof": {},
     "cancelPgpGen": {},
     "checkProof": {},
-    "checkProof2": {"sigID": "string"},
+    "recheckProof": {"sigID": "string"},
     "cleanupUsername": {},
     "dropPgp": {"kid": "RPCTypes.KID"},
     "uploadAvatar": {
