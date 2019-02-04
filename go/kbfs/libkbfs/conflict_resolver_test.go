@@ -100,6 +100,11 @@ func crMakeFakeRMD(rev kbfsmd.Revision, bid kbfsmd.BranchID) ImmutableRootMetada
 			PrevRoot: kbfsmd.FakeID(byte(rev - 1)),
 		},
 		tlfHandle: &TlfHandle{name: "fake"},
+		data: PrivateMetadata{
+			Changes: BlockChanges{
+				Ops: []op{newGCOp(0)}, // arbitrary op to fool unembed checks
+			},
+		},
 	}, key, kbfsmd.FakeID(byte(rev)), time.Now(), true)
 }
 

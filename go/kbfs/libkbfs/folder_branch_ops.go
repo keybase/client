@@ -7662,6 +7662,15 @@ func (fbo *folderBranchOps) handleMDFlush(
 		return
 	}
 
+	rmd, err = reembedBlockChangesIntoCopyIfNeeded(
+		ctx, fbo.config.Codec(), fbo.config.BlockCache(),
+		fbo.config.BlockOps(), fbo.config.Mode(), rmd, fbo.log)
+	if err != nil {
+		fbo.log.CWarningf(ctx, "Couldn't reembed revision %d: %v",
+			rev, err)
+		return
+	}
+
 	err = fbo.handleEditNotifications(ctx, rmd)
 	if err != nil {
 		fbo.log.CWarningf(ctx, "Couldn't send edit notifications for "+
