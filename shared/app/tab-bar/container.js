@@ -3,7 +3,15 @@ import * as I from 'immutable'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import {connect, isMobile} from '../../util/container'
 import TabBarRender from '.'
-import {chatTab, peopleTab, profileTab, walletsTab, type Tab} from '../../constants/tabs'
+import {
+  chatTab,
+  peopleTab,
+  profileTab,
+  settingsTab,
+  teamsTab,
+  walletsTab,
+  type Tab,
+} from '../../constants/tabs'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {createShowUserProfile} from '../../actions/profile-gen'
 
@@ -94,7 +102,8 @@ const mergeProps = (stateProps, dispatchProps, {routeSelected}) => ({
     [walletsTab]: stateProps.isWalletsNew,
   },
   onTabClick: (tab: Tab) => dispatchProps._onTabClick(tab, stateProps.username, stateProps.isWalletsNew),
-  selectedTab: routeSelected,
+  // TODO DESKTOP-8924 remove this isMobile special case
+  selectedTab: isMobile && routeSelected === teamsTab ? settingsTab : routeSelected,
   username: stateProps.username || '',
 })
 
