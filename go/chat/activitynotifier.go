@@ -209,3 +209,12 @@ func (n *NotifyRouterActivityRouter) AttachmentUploadProgress(ctx context.Contex
 			bytesComplete, bytesTotal)
 	}
 }
+
+func (n *NotifyRouterActivityRouter) PromptUnfurl(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, msgID chat1.MessageID, domain string) {
+	defer n.Trace(ctx, func() error { return nil }, "PromptUnfurl(%s,%s)", convID, msgID)()
+	ctx = BackgroundContext(ctx, n.G())
+	n.notifyCh <- func() {
+		n.G().NotifyRouter.HandleChatPromptUnfurl(ctx, n.kuid(uid), convID, msgID, domain)
+	}
+}

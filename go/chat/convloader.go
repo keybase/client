@@ -188,6 +188,11 @@ func (b *BackgroundConvLoader) monitorAppState() {
 func (b *BackgroundConvLoader) Start(ctx context.Context, uid gregor1.UID) {
 	b.Lock()
 	defer b.Unlock()
+
+	if b.G().GetEnv().GetDisableBgConvLoader() {
+		b.Debug(ctx, "BackgroundConvLoader disabled, aborting Start")
+		return
+	}
 	b.Debug(ctx, "Start")
 	if b.started {
 		close(b.stopCh)
@@ -412,6 +417,10 @@ func (b *BackgroundConvLoader) retriableError(err error) bool {
 	if IsOfflineError(err) != OfflineErrorKindOnline {
 		return true
 	}
+	switch err {
+	case context.Canceled:
+		return true
+	}
 	switch err.(type) {
 	case storage.AbortedError:
 		return true
@@ -441,13 +450,16 @@ func (b *BackgroundConvLoader) load(ictx context.Context, task clTask, uid grego
 	}()
 
 	job := task.job
-	query := &chat1.GetThreadQuery{MarkAsRead: false}
+	query := job.Query
+	if query == nil {
+		query = &chat1.GetThreadQuery{MarkAsRead: false}
+	}
 	pagination := job.Pagination
 	if pagination == nil {
 		pagination = &chat1.Pagination{Num: 50}
 	}
-	tv, err := b.G().ConvSource.Pull(ctx, job.ConvID, uid, chat1.GetThreadReason_BACKGROUNDCONVLOAD, query,
-		pagination)
+	tv, err := b.G().ConvSource.Pull(ctx, job.ConvID, uid,
+		chat1.GetThreadReason_BACKGROUNDCONVLOAD, query, pagination)
 	if err != nil {
 		b.Debug(ctx, "load: ConvSource.Pull error: %s (%T)", err, err)
 		if b.retriableError(err) && task.attempt+1 < bgLoaderMaxAttempts {

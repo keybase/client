@@ -6,23 +6,23 @@ declare type MapStateToProps<A, B, S> = (state: S, ownProps: A) => B
 declare type MapDispatchToProps<A, B> = (dispatch: (action: TypedActions) => void, ownProps: A) => B
 declare type MergeProps<A, B, C, D> = (stateProps: A, dispatchProps: B, ownProps: C) => D
 
-// OP = OwnProps
+// OwnProps = OwnProps
 // RMP = Return from mergeProps
 // RSP = Return from mapStateToProps
 // RDP = Return from mapDispatchToProps
 // Com: Wrapped component
 // prettier-ignore
 declare export default function remoteConnect<
+  OwnProps,
   S,
   RMP,
   Com: ComponentType<RMP>,
   RSP,
-  RDP,
-  OP>(
-  mapStateToProps: MapStateToProps<OP, RSP, S>,
-  mapDispatchToProps: MapDispatchToProps<OP, RDP>,
-  mergeProps: MergeProps<RSP, RDP, OP, RMP>
-): (component: Com) => ComponentType<OP>
+  RDP>(
+  mapStateToProps: MapStateToProps<OwnProps, RSP, S>,
+  mapDispatchToProps: MapDispatchToProps<OwnProps, RDP>,
+  mergeProps: MergeProps<RSP, RDP, OwnProps, RMP>
+): (component: Com) => ComponentType<OwnProps>
 
 // See how spread is currently broken https://github.com/facebook/flow/issues/6526
 // type SpreadWorkaround<A, B> = $Rest<A, B> & B

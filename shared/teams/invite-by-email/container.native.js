@@ -6,19 +6,20 @@ import * as Constants from '../../constants/teams'
 import * as I from 'immutable'
 import {InviteByEmailMobile, type ContactDisplayProps} from '.'
 import {HeaderHoc} from '../../common-adapters'
-import {navigateAppend} from '../../actions/route-tree'
 import {
   connect,
   compose,
   withHandlers,
   withPropsOnChange,
+  withProps,
   withStateHandlers,
   lifecycle,
-  type TypedState,
+  type RouteProps,
 } from '../../util/container'
-import {type OwnProps} from './container'
 import {isAndroid} from '../../constants/platform'
 import {getContacts} from './permissions'
+
+type OwnProps = RouteProps<{teamname: string}, {}>
 
 const cleanPhoneNumber: string => string = (dirty: string) => {
   return dirty.replace(/\D/g, '')
@@ -30,7 +31,7 @@ const extractPhoneNumber: string => ?string = (name: string) => {
   return (matches && matches[1] && cleanPhoneNumber(matches[1])) || ''
 }
 
-const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
+const mapStateToProps = (state, {routeProps}: OwnProps) => {
   const teamname = routeProps.get('teamname')
   const inviteError = Constants.getEmailInviteError(state)
   return {
@@ -41,8 +42,7 @@ const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => ({
-  openAppSettings: () => dispatch(ConfigGen.createOpenAppSettings()),
+const mapDispatchToProps = (dispatch, {navigateAppend, navigateUp, routePath, routeProps}) => ({
   onClearError: () => dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''})),
   onClose: () => {
     dispatch(navigateUp())
@@ -70,33 +70,21 @@ const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => ({
     dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''}))
     dispatch(
       TeamsGen.createInviteToTeamByPhone({
-        teamname: routeProps.get('teamname'),
-        role,
-        phoneNumber: invitee,
         fullName,
+        phoneNumber: invitee,
+        role,
+        teamname: routeProps.get('teamname'),
       })
     )
     dispatch(TeamsGen.createGetTeams())
   },
-  onUninvite: (invitee: string, id?: string) => {
-    dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''}))
-    dispatch(
-      TeamsGen.createRemoveMemberOrPendingInvite({
-        email: invitee,
-        teamname: routeProps.get('teamname'),
-        username: '',
-        inviteID: id || '',
-      })
-    )
-  },
-
   onOpenRolePicker: (role: string, onComplete: string => void) => {
     dispatch(
       navigateAppend([
         {
           props: {
-            allowOwner: false,
             allowAdmin: false,
+            allowOwner: false,
             onComplete,
             selectedRole: role,
           },
@@ -105,24 +93,41 @@ const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => ({
       ])
     )
   },
+  onUninvite: (invitee: string, id?: string) => {
+    dispatch(TeamsGen.createSetEmailInviteError({malformed: [], message: ''}))
+    dispatch(
+      TeamsGen.createRemoveMemberOrPendingInvite({
+        email: invitee,
+        inviteID: id || '',
+        teamname: routeProps.get('teamname'),
+        username: '',
+      })
+    )
+  },
+
+  openAppSettings: () => dispatch(ConfigGen.createOpenAppSettings()),
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
+  connect<OwnProps, _, _, _, _>(
+    mapStateToProps,
+    mapDispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d})
+  ),
   compose(
     // basic state setters
     withStateHandlers(
-      {role: 'writer', contacts: [], hasPermission: true},
+      {contacts: [], hasPermission: true, role: 'writer'},
       {
-        onRoleChange: () => role => ({role}),
         _setContacts: () => contacts => ({contacts}),
         _setHasPermission: () => hasPermission => ({hasPermission}),
+        onRoleChange: () => role => ({role}),
       }
     ),
-    withPropsOnChange(['onExitSearch'], props => ({
+    withProps(props => ({
+      headerStyle: {borderBottomWidth: 0},
       onBack: () => props.onClose(),
       title: 'Invite contacts',
-      headerStyle: {borderBottomWidth: 0},
     })),
     // Go through the permission flow on mount
     lifecycle({
@@ -142,20 +147,6 @@ export default compose(
     }),
     // Checker for whether address is already in invited array
     withHandlers({
-      isSelected: ({_pendingInvites}) => (addr: string, name?: string): boolean => {
-        return !!_pendingInvites.find(rec => {
-          if (rec.email) {
-            return rec.email === addr
-          } else if (rec.name) {
-            const recPhoneNumber = extractPhoneNumber(rec.name)
-            if (recPhoneNumber) {
-              // Check bare numbers against one another
-              return recPhoneNumber === cleanPhoneNumber(addr)
-            }
-          }
-          return false
-        })
-      },
       isLoading: ({loadingInvites, _pendingInvites}) => (email: ?string, phoneNo: ?string): boolean => {
         if (email) {
           return loadingInvites.get(email)
@@ -174,6 +165,20 @@ export default compose(
         }
         return false
       },
+      isSelected: ({_pendingInvites}) => (addr: string, name?: string): boolean => {
+        return !!_pendingInvites.find(rec => {
+          if (rec.email) {
+            return rec.email === addr
+          } else if (rec.name) {
+            const recPhoneNumber = extractPhoneNumber(rec.name)
+            if (recPhoneNumber) {
+              // Check bare numbers against one another
+              return recPhoneNumber === cleanPhoneNumber(addr)
+            }
+          }
+          return false
+        })
+      },
     }),
     // Delegate to add / remove
     withHandlers({
@@ -190,7 +195,7 @@ export default compose(
           if (contact.email) {
             role && onInviteEmail({invitee: contact.email, role})
           } else if (contact.phoneNo) {
-            role && onInvitePhone({invitee: contact.phoneNo, role, fullName: contact.name})
+            role && onInvitePhone({fullName: contact.name, invitee: contact.phoneNo, role})
           }
         } else {
           if (contact.email) {
@@ -223,23 +228,23 @@ export default compose(
           const contactName = isAndroid ? contact.givenName : contact.givenName + ' ' + contact.familyName
           contact.emailAddresses.concat(contact.phoneNumbers).forEach(addr => {
             const cData = {
-              name: contactName,
-              phoneNo: addr.number,
               email: addr.email,
               label: addr.label,
-              thumbnailPath: contact.thumbnailPath,
+              name: contactName,
+              phoneNo: addr.number,
               recordID: contact.recordID + (addr.email ? addr.email : addr.number),
+              thumbnailPath: contact.thumbnailPath,
             }
 
             const id = contact.recordID + (addr.email ? addr.email : addr.number)
             if (!knownIDs.has(id)) {
               knownIDs.add(id)
               res.push({
+                contact: cData,
                 id,
                 loading: props.isLoading(addr.email, addr.number),
-                contact: cData,
-                selected: props.isSelected(cData.email || cData.phoneNo, cData.name),
                 onClick: () => props.onSelectContact(cData),
+                selected: props.isSelected(cData.email || cData.phoneNo, cData.name),
               })
             }
           })

@@ -42,7 +42,7 @@
   } else {
     NSLog(@"setAllFiles is true charging forward");
   }
-  
+
   // If the caller wants us to set everything in the directory, then let's do it now (one level down at least)
   NSArray<NSString*>* contents = [fm contentsOfDirectoryAtPath:path error:&error];
   if (contents == nil) {
@@ -60,8 +60,8 @@
 - (BOOL) maybeMigrateDirectory:(NSString*)source dest:(NSString*)dest {
   NSError* error = nil;
   NSFileManager* fm = [NSFileManager defaultManager];
-  
-  // Always do this copy in case it doesn't work on previous attempts.
+
+  // Always do this move in case it doesn't work on previous attempts.
   NSArray<NSString*>* sourceContents = [fm contentsOfDirectoryAtPath:source error:&error];
   if (nil == sourceContents) {
     NSLog(@"Error listing app contents directory: %@", error);
@@ -75,12 +75,12 @@
         NSLog(@"skipping directory: %@", file);
         continue;
       }
-      if (![fm copyItemAtPath:path toPath:destPath error:&error]) {
+      if (![fm moveItemAtPath:path toPath:destPath error:&error]) {
         if ([error code] == NSFileWriteFileExistsError) {
           // Just charge forward if the file is there already
           continue;
         }
-        NSLog(@"Error copying file: %@ error: %@", file, error);
+        NSLog(@"Error moving file: %@ error: %@", file, error);
         return NO;
       }
     }
@@ -106,7 +106,7 @@
   [self createBackgroundReadableDirectory:sharedKeybasePath setAllFiles:YES];
   [self createBackgroundReadableDirectory:sharedEraseableKVPath setAllFiles:YES];
   [self addSkipBackupAttributeToItemAtPath:sharedKeybasePath];
-  
+
   if (![self maybeMigrateDirectory:appKeybasePath dest:sharedKeybasePath]) {
     return home;
   }
@@ -134,7 +134,7 @@
   [self createBackgroundReadableDirectory:chatLevelDBPath setAllFiles:YES];
   [self createBackgroundReadableDirectory:levelDBPath setAllFiles:YES];
   [self createBackgroundReadableDirectory:logPath setAllFiles:NO];
-  
+
   return @{@"home": home,
            @"sharedHome": sharedHome,
            @"logFile": serviceLogFile

@@ -12,6 +12,7 @@ import notificationsSaga from '../actions/notifications'
 import peopleSaga from '../actions/people'
 import pinentrySaga from '../actions/pinentry'
 import profileSaga from '../actions/profile'
+import tracker2Saga from '../actions/tracker2'
 import routeSaga from '../actions/route-tree'
 import sagaMonitor from './saga-monitor'
 import searchSaga from '../actions/search'
@@ -23,36 +24,37 @@ import unlockFoldersSaga from '../actions/unlock-folders'
 import usersSaga from '../actions/users'
 import walletsSaga from '../actions/wallets'
 import {reduxSagaLogger} from '../local-debug'
-import {sagaTimer} from '../dev/user-timings'
+import {sagaTimer} from '../util/user-timings'
 import * as Saga from '../util/saga'
 
 function* mainSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.fork(chat2Saga)
-  yield Saga.fork(configSaga)
-  yield Saga.fork(deviceSaga)
-  yield Saga.fork(fsSaga)
-  yield Saga.fork(gregorSaga)
-  yield Saga.fork(loginSaga)
-  yield Saga.fork(provisionSaga)
-  yield Saga.fork(notificationsSaga)
-  yield Saga.fork(pinentrySaga)
-  yield Saga.fork(profileSaga)
-  yield Saga.fork(routeSaga)
-  yield Saga.fork(searchSaga)
-  yield Saga.fork(settingsSaga)
-  yield Saga.fork(trackerSaga)
-  yield Saga.fork(teamsSaga)
-  yield Saga.fork(unlockFoldersSaga)
-  yield Saga.fork(usersSaga)
-  yield Saga.fork(gitSaga)
-  yield Saga.fork(peopleSaga)
-  yield Saga.fork(walletsSaga)
-  yield Saga.fork(signupSaga)
+  yield Saga.spawn(chat2Saga)
+  yield Saga.spawn(configSaga)
+  yield Saga.spawn(deviceSaga)
+  yield Saga.spawn(fsSaga)
+  yield Saga.spawn(gregorSaga)
+  yield Saga.spawn(loginSaga)
+  yield Saga.spawn(provisionSaga)
+  yield Saga.spawn(notificationsSaga)
+  yield Saga.spawn(pinentrySaga)
+  yield Saga.spawn(profileSaga)
+  yield Saga.spawn(tracker2Saga)
+  yield Saga.spawn(routeSaga)
+  yield Saga.spawn(searchSaga)
+  yield Saga.spawn(settingsSaga)
+  yield Saga.spawn(trackerSaga)
+  yield Saga.spawn(teamsSaga)
+  yield Saga.spawn(unlockFoldersSaga)
+  yield Saga.spawn(usersSaga)
+  yield Saga.spawn(gitSaga)
+  yield Saga.spawn(peopleSaga)
+  yield Saga.spawn(walletsSaga)
+  yield Saga.spawn(signupSaga)
 }
 
 let middleWare
 function create(crashHandler: (err: any) => void) {
-  if (middleWare) {
+  if (!__DEV__ && middleWare) {
     throw new Error('Only create one saga middleware!')
   }
   middleWare = createSagaMiddleware({
@@ -63,7 +65,7 @@ function create(crashHandler: (err: any) => void) {
 }
 
 function run() {
-  middleWare.run(mainSaga)
+  middleWare && middleWare.run(mainSaga)
 }
 
 export {create, run}

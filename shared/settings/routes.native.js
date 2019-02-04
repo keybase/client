@@ -1,87 +1,74 @@
 // @flow
-import * as React from 'react'
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
-import TestPopup from '../dev/test-popup.native'
-import Settings from './'
-import InvitationsContainer from './invites/container'
-import InviteGenerated from './invite-generated/container'
-import Feedback from './feedback-container'
-import PushPrompt from '../app/push-prompt.native'
-import DevicesRoute from '../devices/routes'
-import WalletsRoute from '../wallets/routes'
-import GitRoute from '../git/routes'
-import FilesRoute from '../fs/routes'
-import WebLinks from './web-links.native'
-import Passphrase from './passphrase/container'
-
-import About from './about-container'
-import NotificationsContainer from './notifications/container'
-import DBNukeConfirm from './db-nuke-confirm/container'
-import DeleteContainer from './delete/container'
-import RemoveDevice from '../devices/device-revoke/container'
-import DeleteConfirm from './delete-confirm/container'
-import AdvancedContainer from './advanced/container'
-import DevMenu from '../dev/dev-menu'
-import Screenprotector from './screenprotector-container.native'
-
 import * as Constants from '../constants/settings'
 
-const routeTree = makeRouteDefNode({
-  component: Settings,
-  children: {
-    [Constants.aboutTab]: {
-      component: About,
-      children: {
-        privacyPolicy: {component: WebLinks},
-        terms: {component: WebLinks},
-      },
-    },
-    [Constants.passphraseTab]: {component: Passphrase},
-    [Constants.feedbackTab]: {component: Feedback},
-    [Constants.landingTab]: {component: About},
-    [Constants.screenprotectorTab]: {component: Screenprotector},
-    [Constants.invitationsTab]: {
-      component: InvitationsContainer,
-      children: {
-        inviteSent: {
-          component: InviteGenerated,
+const routeTree = () => {
+  const Settings = require('./').default
+  const InvitationsContainer = require('./invites/container').default
+  const InviteGenerated = require('./invite-generated/container').default
+  const Feedback = require('./feedback-container').default
+  const DevicesRoute = require('../devices/routes').default
+  const WalletsRoute = require('../wallets/routes').default
+  const GitRoute = require('../git/routes').default
+  const TeamsRoute = require('../teams/routes').default
+  const WebLinks = require('./web-links.native').default
+  const Passphrase = require('./passphrase/container').default
+  const About = require('./about-container').default
+  const NotificationsContainer = require('./notifications/container').default
+  const DBNukeConfirm = require('./db-nuke-confirm/container').default
+  const DeleteContainer = require('./delete/container').default
+  const RemoveDevice = require('../devices/device-revoke/container').default
+  const DeleteConfirm = require('./delete-confirm/container').default
+  const AdvancedContainer = require('./advanced/container').default
+  const ChatContainer = require('./chat/container').default
+  const Screenprotector = require('./screenprotector-container.native').default
+
+  return makeRouteDefNode({
+    children: {
+      [Constants.aboutTab]: {
+        children: {
+          privacyPolicy: {component: WebLinks},
+          terms: {component: WebLinks},
         },
+        component: About,
       },
-    },
-    [Constants.fsTab]: FilesRoute,
-    [Constants.devicesTab]: DevicesRoute,
-    [Constants.walletsTab]: WalletsRoute,
-    [Constants.gitTab]: GitRoute,
-    [Constants.notificationsTab]: {component: NotificationsContainer},
-    [Constants.advancedTab]: {
-      component: AdvancedContainer,
-      children: {
-        dbNukeConfirm: {
-          component: DBNukeConfirm,
-          tags: makeLeafTags({modal: true}),
+      [Constants.passphraseTab]: {component: Passphrase},
+      [Constants.feedbackTab]: {component: Feedback},
+      [Constants.landingTab]: {component: About},
+      [Constants.screenprotectorTab]: {component: Screenprotector},
+      [Constants.invitationsTab]: {
+        children: {
+          inviteSent: {
+            component: InviteGenerated,
+          },
         },
+        component: InvitationsContainer,
       },
-    },
-    [Constants.deleteMeTab]: {
-      component: DeleteContainer,
-      children: {
-        deleteConfirm: {component: DeleteConfirm},
-        removeDevice: {component: RemoveDevice},
-      },
-    },
-    [Constants.devMenuTab]: {
-      component: DevMenu,
-      children: {
-        push: {
-          component: () => <PushPrompt />,
+      [Constants.teamsTab]: TeamsRoute,
+      [Constants.devicesTab]: DevicesRoute,
+      [Constants.walletsTab]: WalletsRoute,
+      [Constants.gitTab]: GitRoute,
+      [Constants.notificationsTab]: {component: NotificationsContainer},
+      [Constants.chatTab]: {component: ChatContainer},
+      [Constants.advancedTab]: {
+        children: {
+          dbNukeConfirm: {
+            component: DBNukeConfirm,
+            tags: makeLeafTags({modal: true}),
+          },
         },
-        testPopup: {
-          component: TestPopup,
-          tags: makeLeafTags({layerOnTop: true}),
+        component: AdvancedContainer,
+      },
+      [Constants.deleteMeTab]: {
+        children: {
+          deleteConfirm: {component: DeleteConfirm},
+          removeDevice: {component: RemoveDevice},
         },
+        component: DeleteContainer,
       },
     },
-  },
-})
+    component: Settings,
+  })
+}
 
 export default routeTree

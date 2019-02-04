@@ -1,4 +1,5 @@
 // @flow
+// // TODO deprecate
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import * as Kb from '../../common-adapters'
@@ -14,7 +15,6 @@ const props = {
   onBioChange: () => Sb.action('onBioChange'),
   onCancel: () => Sb.action('onCancel'),
   onEditAvatarClick: () => Sb.action('onEditAvatarClick'),
-  onEditProfile: () => Sb.action('onEditProfile'),
   onFullnameChange: () => Sb.action('onFullnameChange'),
   onLocationChange: () => Sb.action('onLocationChange'),
   onSubmit: () => Sb.action('onSubmit'),

@@ -30,6 +30,7 @@ func newCmdChatCreateChannel(cl *libcmdline.CommandLine, g *libkb.GlobalContext)
 		ArgumentHelp: "<team name> <channel name>",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdChatCreateChannelRunner(g), "create-channel", c)
+			cl.SetLogForward(libcmdline.LogForwardNone)
 		},
 		Flags: mustGetChatFlags("topic-type"),
 	}

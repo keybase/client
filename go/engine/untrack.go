@@ -44,9 +44,7 @@ func (e *UntrackEngine) Prereqs() Prereqs {
 }
 
 func (e *UntrackEngine) RequiredUIs() []libkb.UIKind {
-	return []libkb.UIKind{
-		libkb.SecretUIKind,
-	}
+	return []libkb.UIKind{}
 }
 
 func (e *UntrackEngine) SubConsumers() []libkb.UIConsumer {
@@ -111,6 +109,7 @@ func (e *UntrackEngine) Run(m libkb.MetaContext) (err error) {
 
 	e.G().NotifyRouter.HandleTrackingChanged(e.arg.Me.GetUID(), e.arg.Me.GetNormalizedName(), false)
 	e.G().NotifyRouter.HandleTrackingChanged(them.GetUID(), them.GetNormalizedName(), false)
+	m.G().IdentifyDispatch.NotifyTrackingSuccess(m, them.GetUID())
 
 	return
 }
@@ -205,6 +204,7 @@ func (e *UntrackEngine) storeRemoteUntrack(m libkb.MetaContext, them *libkb.User
 
 	sigVersion := libkb.SigVersion(e.arg.SigVersion)
 	sig, sigID, _, err := libkb.MakeSig(
+		m,
 		signingKey,
 		libkb.LinkTypeUntrack,
 		e.untrackStatementBytes,

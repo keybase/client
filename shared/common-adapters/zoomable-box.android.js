@@ -130,8 +130,6 @@ class ZoomableBox extends React.Component<Props, State> {
 
   componentDidMount() {
     this._panResponder = NativePanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onStartShouldSetPanResponderCapture: () => true,
       onMoveShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponderCapture: () => true,
       onPanResponderGrant: (evt, gestureState) => {
@@ -148,7 +146,6 @@ class ZoomableBox extends React.Component<Props, State> {
           scaleOffset,
         })
       },
-      onPanResponderTerminationRequest: () => true,
       onPanResponderRelease: (evt, gestureState) => {
         // Gesture completed successfully
         this.setState({
@@ -188,7 +185,10 @@ class ZoomableBox extends React.Component<Props, State> {
         this._panZoomCalculator.releaseTouches()
         this._panZoomCalculator.releaseGestureState()
       },
+      onPanResponderTerminationRequest: () => true,
       onShouldBlockNativeResponder: () => true,
+      onStartShouldSetPanResponder: () => true,
+      onStartShouldSetPanResponderCapture: () => true,
     })
   }
 
@@ -203,14 +203,14 @@ class ZoomableBox extends React.Component<Props, State> {
   panX = () =>
     clamp(
       this.state.pan.x + this.state.panOffset.x,
-      (1 - this.scale()) * this.state.layoutWidth / 2,
-      (this.scale() - 1) * this.state.layoutWidth / 2
+      ((1 - this.scale()) * this.state.layoutWidth) / 2,
+      ((this.scale() - 1) * this.state.layoutWidth) / 2
     )
   panY = () =>
     clamp(
       this.state.pan.y + this.state.panOffset.y,
-      (1 - this.scale()) * this.state.layoutHeight / 2,
-      (this.scale() - 1) * this.state.layoutHeight / 2
+      ((1 - this.scale()) * this.state.layoutHeight) / 2,
+      ((this.scale() - 1) * this.state.layoutHeight) / 2
     )
 
   render() {

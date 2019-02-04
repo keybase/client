@@ -1,4 +1,5 @@
 // @flow strict
+import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import HiddenString from '../../util/hidden-string'
 import type {Email, Time} from './rpc-gen'
 import type {SimpleProofState} from './tracker'
@@ -66,12 +67,22 @@ export type PassphraseState = {
   newPassphraseConfirmError: ?HiddenString,
   hasPGPKeyOnServer: ?boolean,
   rememberPassphrase: boolean,
+  randomPW: ?boolean,
 }
 
 export type EmailState = {
-  emails: Array<Email>,
+  emails: ?Array<Email>,
   newEmail: string,
   error: ?Error,
+}
+
+export type ChatUnfurlState = {
+  unfurlMode?: RPCChatTypes.UnfurlMode,
+  unfurlWhitelist?: Array<string>,
+  unfurlError?: string,
+}
+export type ChatState = {
+  unfurl: ChatUnfurlState,
 }
 
 export type State = {
@@ -82,16 +93,18 @@ export type State = {
   email: EmailState,
   passphrase: PassphraseState,
   lockdownModeEnabled: ?boolean,
+  chat: ChatState,
 }
 
 type AboutTab = 'settingsTabs:aboutTab'
 type AdvancedTab = 'settingsTabs:advancedTab'
+type ChatTab = 'settingsTabs:chatTab'
 type DeleteMeTab = 'settingsTabs:deleteMeTab'
 type DevMenuTab = 'settingsTabs:devMenuTab'
 type DevicesTab = 'settingsTabs:devicesTab'
 type FeedbackTab = 'settingsTabs:feedbackTab'
 type FoldersTab = 'settingsTabs:foldersTab'
-type FsTab = 'settingsTabs:fsTab'
+type FsSettingsTab = 'settingsTabs:fsSettingsTab'
 type GitTab = 'settingsTabs:gitTab'
 type InvitationsTab = 'settingsTabs:invitationsTab'
 type LandingTab = 'settingsTabs:landingTab'
@@ -99,6 +112,7 @@ type NotificationsTab = 'settingsTabs:notificationsTab'
 type PassphraseTab = 'settingsTabs:passphrase'
 type ScreenprotectorTab = 'settingsTabs:screenprotector'
 type UpdatePaymentTab = 'settingsTabs:updatePaymentTab'
+type TeamsTab = 'settingsTabs:teamsTab'
 type WalletsTab = 'settingsTabs:walletsTab'
 
 export type Tab =
@@ -114,9 +128,11 @@ export type Tab =
   | DevicesTab
   | GitTab
   | FoldersTab
-  | FsTab
+  | FsSettingsTab
+  | TeamsTab
   | ScreenprotectorTab
   | PassphraseTab
   | WalletsTab
+  | ChatTab
 
 export type PlanLevel = string

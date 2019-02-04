@@ -2,6 +2,7 @@
 /* eslint-env jest */
 
 import Session from '../session'
+console.error('loaded mock index')
 
 class FakeEngine {
   constructor() {
@@ -9,10 +10,8 @@ class FakeEngine {
   }
   reset() {}
   dispatchWaitingAction() {}
-  cancelRPC() {}
   cancelSession() {}
   rpc() {}
-  setFailOnError() {}
   listenOnConnect() {}
   listenOnDisconnect() {}
   hasEverConnected() {}

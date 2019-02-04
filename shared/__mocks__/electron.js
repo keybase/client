@@ -1,4 +1,6 @@
 // @noflow
+import {action} from '@storybook/addon-actions'
+
 if (!__STORYBOOK__) {
   throw new Error('Invalid load of mock')
 }
@@ -11,10 +13,14 @@ export const remote = {
   Menu: {},
   getCurrentWindow: () => ({
     on: () => {},
+    removeListener: () => {},
   }),
 }
+
+const openExternal = action('openExternal')
+
 export const crashReporter = {}
-export const shell = {openExternal: () => {}}
+export const shell = {openExternal}
 export const ipcRenderer = {}
 export const globalShortcut = {}
 export const session = {}

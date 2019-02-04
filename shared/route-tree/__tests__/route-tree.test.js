@@ -35,8 +35,8 @@ describe('RouteDefNode', () => {
   it('constructor recurses children', () => {
     const node = makeRouteDefNode({
       children: {
-        object: {children: {}},
         node: emptyRouteDef,
+        object: {children: {}},
       },
     })
 
@@ -96,16 +96,15 @@ describe('RouteStateNode', () => {
 })
 
 const demoRouteDef = makeRouteDefNode({
-  defaultSelected: 'foo',
   children: {
+    etc: {
+      children: {},
+    },
     foo: {
       children: {
         bar: emptyRouteDef,
         baz: emptyRouteDef,
       },
-    },
-    etc: {
-      children: {},
     },
     persist: {
       children: {
@@ -114,6 +113,7 @@ const demoRouteDef = makeRouteDefNode({
       tags: makeLeafTags({persistChildren: true}),
     },
   },
+  defaultSelected: 'foo',
 })
 
 describe('routeSetProps', () => {
@@ -121,10 +121,10 @@ describe('routeSetProps', () => {
     const newRouteState = routeSetProps(demoRouteDef, null, [])
     expect(newRouteState).toEqual(
       makeRouteStateNode({
-        selected: 'foo',
         children: I.Map({
           foo: makeRouteStateNode({selected: null}),
         }),
+        selected: 'foo',
       })
     )
   })
@@ -135,7 +135,7 @@ describe('routeSetProps', () => {
     const routeState = routeSetProps(
       demoRouteDef,
       null,
-      ([{selected: 'foo', props: {objectProp, immutableProp}}]: PropsPath<*>)
+      ([{props: {immutableProp, objectProp}, selected: 'foo'}]: PropsPath<*>)
     )
     const child = routeState.getChild('foo')
     if (!child) {
@@ -149,34 +149,34 @@ describe('routeSetProps', () => {
     const startRouteState = routeSetProps(
       demoRouteDef,
       null,
-      ([{selected: 'foo', props: {hello: 'world'}}]: PropsPath<*>)
+      ([{props: {hello: 'world'}, selected: 'foo'}]: PropsPath<*>)
     )
     expect(startRouteState).toEqual(
       makeRouteStateNode({
-        selected: 'foo',
         children: I.Map({
-          foo: makeRouteStateNode({selected: null, props: I.Map({hello: 'world'})}),
+          foo: makeRouteStateNode({props: I.Map({hello: 'world'}), selected: null}),
         }),
+        selected: 'foo',
       })
     )
 
     const newRouteState2 = routeSetProps(
       demoRouteDef,
       startRouteState,
-      (['foo', {selected: 'bar', props: {it: 'works'}}]: PropsPath<*>)
+      (['foo', {props: {it: 'works'}, selected: 'bar'}]: PropsPath<*>)
     )
     expect(newRouteState2).toEqual(
       makeRouteStateNode({
-        selected: 'foo',
         children: I.Map({
           foo: makeRouteStateNode({
-            selected: 'bar',
-            props: I.Map({hello: 'world'}),
             children: I.Map({
-              bar: makeRouteStateNode({selected: null, props: I.Map({it: 'works'})}),
+              bar: makeRouteStateNode({props: I.Map({it: 'works'}), selected: null}),
             }),
+            props: I.Map({hello: 'world'}),
+            selected: 'bar',
           }),
         }),
+        selected: 'foo',
       })
     )
   })
@@ -185,10 +185,10 @@ describe('routeSetProps', () => {
     const startRouteState = routeSetProps(demoRouteDef, null, (['etc']: Array<string>))
     expect(startRouteState).toEqual(
       makeRouteStateNode({
-        selected: 'etc',
         children: I.Map({
           etc: makeRouteStateNode({selected: null}),
         }),
+        selected: 'etc',
       })
     )
 
@@ -200,16 +200,16 @@ describe('routeSetProps', () => {
     )
     expect(newRouteState).toEqual(
       makeRouteStateNode({
-        selected: 'etc',
         children: I.Map({
           etc: makeRouteStateNode({selected: null}),
           foo: makeRouteStateNode({
-            selected: 'bar',
             children: I.Map({
               bar: makeRouteStateNode({selected: null}),
             }),
+            selected: 'bar',
           }),
         }),
+        selected: 'etc',
       })
     )
   })
@@ -227,32 +227,32 @@ describe('routeNavigate', () => {
     const startRouteState = routeNavigate(
       demoRouteDef,
       null,
-      (['foo', {selected: 'bar', props: {hello: 'world'}}]: PropsPath<*>)
+      (['foo', {props: {hello: 'world'}, selected: 'bar'}]: PropsPath<*>)
     )
     expect(startRouteState).toEqual(
       makeRouteStateNode({
-        selected: 'foo',
         children: I.Map({
           foo: makeRouteStateNode({
-            selected: 'bar',
             children: I.Map({
               bar: makeRouteStateNode({
-                selected: null,
                 props: I.Map({hello: 'world'}),
+                selected: null,
               }),
             }),
+            selected: 'bar',
           }),
         }),
+        selected: 'foo',
       })
     )
 
     const newRouteState = routeNavigate(demoRouteDef, startRouteState, (['foo']: Array<string>))
     expect(newRouteState).toEqual(
       makeRouteStateNode({
-        selected: 'foo',
         children: I.Map({
           foo: makeRouteStateNode({selected: null}),
         }),
+        selected: 'foo',
       })
     )
   })
@@ -261,41 +261,41 @@ describe('routeNavigate', () => {
     const startRouteState = routeNavigate(
       demoRouteDef,
       null,
-      (['persist', {selected: 'child', props: {hello: 'world'}}]: PropsPath<*>)
+      (['persist', {props: {hello: 'world'}, selected: 'child'}]: PropsPath<*>)
     )
 
     expect(startRouteState).toEqual(
       makeRouteStateNode({
-        selected: 'persist',
         children: I.Map({
           persist: makeRouteStateNode({
-            selected: 'child',
             children: I.Map({
               child: makeRouteStateNode({
-                selected: null,
                 props: I.Map({hello: 'world'}),
+                selected: null,
               }),
             }),
+            selected: 'child',
           }),
         }),
+        selected: 'persist',
       })
     )
 
     const newRouteState = routeNavigate(demoRouteDef, startRouteState, (['persist']: Array<string>))
     expect(newRouteState).toEqual(
       makeRouteStateNode({
-        selected: 'persist',
         children: I.Map({
           persist: makeRouteStateNode({
-            selected: null,
             children: I.Map({
               child: makeRouteStateNode({
-                selected: null,
                 props: I.Map({hello: 'world'}),
+                selected: null,
               }),
             }),
+            selected: null,
           }),
         }),
+        selected: 'persist',
       })
     )
   })
@@ -308,20 +308,20 @@ describe('routeSetState', () => {
     const newRouteState = routeSetState(demoRouteDef, startRouteState, ['foo'], {state: 'value'})
     expect(newRouteState).toEqual(
       makeRouteStateNode({
-        selected: 'foo',
         children: I.Map({
           foo: makeRouteStateNode({selected: null, state: I.Map({state: 'value'})}),
         }),
+        selected: 'foo',
       })
     )
 
     const newRouteState2 = routeSetState(demoRouteDef, newRouteState, ['foo'], {another: 'thing'})
     expect(newRouteState2).toEqual(
       makeRouteStateNode({
-        selected: 'foo',
         children: I.Map({
-          foo: makeRouteStateNode({selected: null, state: I.Map({state: 'value', another: 'thing'})}),
+          foo: makeRouteStateNode({selected: null, state: I.Map({another: 'thing', state: 'value'})}),
         }),
+        selected: 'foo',
       })
     )
   })
@@ -342,17 +342,17 @@ describe('routeClear', () => {
     startRouteState = routeNavigate(
       demoRouteDef,
       null,
-      ([{selected: 'foo', props: {hello: 'world'}}]: PropsPath<*>)
+      ([{props: {hello: 'world'}, selected: 'foo'}]: PropsPath<*>)
     )
     expect(startRouteState).toEqual(
       makeRouteStateNode({
-        selected: 'foo',
         children: I.Map({
           foo: makeRouteStateNode({
-            selected: null,
             props: I.Map({hello: 'world'}),
+            selected: null,
           }),
         }),
+        selected: 'foo',
       })
     )
   })
@@ -361,10 +361,10 @@ describe('routeClear', () => {
     const newRouteState = routeClear(startRouteState, ['foo'])
     expect(newRouteState).toEqual(
       makeRouteStateNode({
-        selected: 'foo',
         children: I.Map({
           foo: null,
         }),
+        selected: 'foo',
       })
     )
   })
@@ -373,16 +373,16 @@ describe('routeClear', () => {
     const newRouteState = routeClear(startRouteState, ['foo', 'bar', 'baz'])
     expect(newRouteState).toEqual(
       makeRouteStateNode({
-        selected: 'foo',
         children: I.Map({
           foo: makeRouteStateNode({
-            selected: null,
-            props: I.Map({hello: 'world'}),
             children: I.Map({
               bar: null,
             }),
+            props: I.Map({hello: 'world'}),
+            selected: null,
           }),
         }),
+        selected: 'foo',
       })
     )
   })

@@ -7,14 +7,10 @@ import * as ProfileGen from '../actions/profile-gen'
 import * as TeamsGen from '../actions/teams-gen'
 import * as TrackerGen from '../actions/tracker-gen'
 import Tracker from './index.desktop'
-import {
-  branch,
-  remoteConnect,
-  compose,
-  lifecycle,
-  renderNothing,
-  withStateHandlers,
-} from '../util/container'
+import {branch, remoteConnect, compose, lifecycle, renderNothing, withStateHandlers} from '../util/container'
+
+type OwnProps = any //
+type State = any // this type is HUGE and annoying. lets not port it over
 
 // Props are handled by remote-proxy.desktop.js
 const mapDispatchToProps = (dispatch, {teamname}) => ({
@@ -24,22 +20,25 @@ const mapDispatchToProps = (dispatch, {teamname}) => ({
     dispatch(ConfigGen.createShowMain())
     dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'tracker'}))
   },
-  _onClickAvatar: (username: string) =>
-    dispatch(ProfileGen.createOnClickAvatar({openWebsite: true, username})),
+  _onClickAvatar: (username: string) => {
+    dispatch(ProfileGen.createOnClickAvatar({openWebsite: false, username}))
+    // Make sure the main app window is showing
+    dispatch(ConfigGen.createShowMain())
+  },
   _onClose: (username: string) => dispatch(TrackerGen.createOnClose({username})),
   _onFollow: (username: string) => dispatch(TrackerGen.createFollow({username})),
   _onIgnore: (username: string) => dispatch(TrackerGen.createIgnore({username})),
-  onJoinTeam: (teamname: string) => dispatch(TeamsGen.createJoinTeam({teamname})),
   _onRefollow: (username: string) => dispatch(TrackerGen.createRefollow({username})),
   _onRetry: (username: string) => dispatch(TrackerGen.createGetProfile({ignoreCache: true, username})),
   _onSetTeamJoinError: (error: string) => dispatch(TeamsGen.createSetTeamJoinError({error})),
   _onSetTeamJoinSuccess: (success: boolean) =>
     dispatch(TeamsGen.createSetTeamJoinSuccess({success, teamname: ''})),
   _onUnfollow: (username: string) => dispatch(TrackerGen.createUnfollow({username})),
-  _onUserClick: (username: string) =>
-    dispatch(TrackerGen.createGetProfile({username, ignoreCache: true, forceDisplay: true})),
   _onUpdateSelectedTeam: (selectedTeam: string, username: string) =>
     dispatch(TrackerGen.createUpdateSelectedTeam({selectedTeam, username})),
+  _onUserClick: (username: string) =>
+    dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: true, username})),
+  onJoinTeam: (teamname: string) => dispatch(TeamsGen.createJoinTeam({teamname})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
@@ -54,17 +53,17 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onRefollow: () => dispatchProps._onRefollow(stateProps.username),
   onRetry: stateProps.errorMessage ? () => dispatchProps._onRetry(stateProps.username) : null,
   onUnfollow: () => dispatchProps._onUnfollow(stateProps.username),
-  onUserClick: (username: string) => dispatchProps._onUserClick(username),
   onUpdateSelectedTeam: (selectedTeam: string) =>
     dispatchProps._onUpdateSelectedTeam(selectedTeam, stateProps.username),
+  onUserClick: (username: string) => dispatchProps._onUserClick(username),
 })
 
 export default compose(
-  withStateHandlers(
+  withStateHandlers<any, any, any>(
     {selectedTeamRect: null},
     {onSetSelectedTeamRect: () => selectedTeamRect => ({selectedTeamRect})}
   ),
-  remoteConnect(s => s, mapDispatchToProps, mergeProps),
+  remoteConnect<OwnProps, State, _, _, _, _>(s => s, mapDispatchToProps, mergeProps),
   branch(props => !props.nonUser && !props.username, renderNothing),
   lifecycle({
     componentDidMount() {

@@ -1,18 +1,39 @@
 // @flow
 import * as React from 'react'
-import {categories, emojiIndex, emojiNameMap, type EmojiData} from './data'
+import type {EmojiData} from './data'
 import {ClickableBox, Box2, Emoji, SectionList, Text} from '../../../../../common-adapters'
 import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../../../../styles'
 import {isAndroid} from '../../../../../constants/platform'
 import {chunk} from 'lodash-es'
+import {memoize} from '../../../../../util/memoize'
 
-// SectionList data is mostly static, map categories here
-// and chunk data within component
-const emojiSections = categories.map(c => ({
-  category: c.category,
-  data: {emojis: c.emojis, key: ''},
-  key: c.category,
-}))
+// defer loading this until we need to, very expensive
+const getData = memoize(() => {
+  const {categories, emojiIndex, emojiNameMap} = require('./data')
+  // SectionList data is mostly static, map categories here
+  // and chunk data within component
+  const emojiSections = categories.map(c => ({
+    category: c.category,
+    data: {emojis: c.emojis, key: ''},
+    key: c.category,
+  }))
+
+  // Get emoji results for a query and map
+  // to full emoji data
+  const getFilterResults = filter =>
+    emojiIndex
+      .search(filter, {maxResults: maxEmojiSearchResults})
+      .map(res => emojiNameMap[res.id])
+      // MUST sort this so its stable
+      .sort((a, b) => a.sort_order - b.sort_order)
+
+  return {
+    emojiIndex,
+    emojiSections,
+    getFilterResults,
+  }
+})
+
 const singleEmojiWidth = 32
 const emojiPadding = 4
 const emojiWidthWithPadding = singleEmojiWidth + 2 * emojiPadding
@@ -26,12 +47,6 @@ let cachedSections = null
 const cacheSections = (width: number, sections: Array<Section>) => {
   cachedWidth = width
   cachedSections = sections
-}
-
-// Get emoji results for a query and map
-// to full emoji data
-const getFilterResults = filter => {
-  return emojiIndex.search(filter, {maxResults: maxEmojiSearchResults}).map(res => emojiNameMap[res.id])
 }
 
 type Section = {
@@ -60,6 +75,8 @@ class EmojiPicker extends React.Component<Props, State> {
       this.setState(s => (s.sections === cachedSections ? null : {sections: cachedSections}))
       return
     }
+
+    const {emojiSections} = getData()
     // width is different from cached. make new sections & cache for next time
     let sections = []
     const emojisPerLine = Math.floor(this.props.width / emojiWidthWithPadding)
@@ -88,6 +105,7 @@ class EmojiPicker extends React.Component<Props, State> {
   }
 
   render() {
+    const {getFilterResults} = getData()
     // For filtered results, we have <= `maxEmojiSearchResults` emojis
     // to render. Render them directly rather than going through _chunkData
     // pipeline for fast list of results. Go through _chunkData only
@@ -106,7 +124,9 @@ class EmojiPicker extends React.Component<Props, State> {
           direction="horizontal"
           style={collapseStyles([styles.alignItemsCenter, styles.flexWrap, !!width && {width}])}
         >
-          {results.map(e => <EmojiRender key={e.short_name} emoji={e} onChoose={this.props.onChoose} />)}
+          {results.map(e => (
+            <EmojiRender key={e.short_name} emoji={e} onChoose={this.props.onChoose} />
+          ))}
         </Box2>
       )
     }
@@ -127,7 +147,9 @@ class EmojiPicker extends React.Component<Props, State> {
 
 const EmojiRow = (props: {item: {emojis: Array<EmojiData>, key: string}, onChoose: EmojiData => void}) => (
   <Box2 key={props.item.key} fullWidth={true} style={styles.alignItemsCenter} direction="horizontal">
-    {props.item.emojis.map(e => <EmojiRender key={e.short_name} emoji={e} onChoose={props.onChoose} />)}
+    {props.item.emojis.map(e => (
+      <EmojiRender key={e.short_name} emoji={e} onChoose={props.onChoose} />
+    ))}
   </Box2>
 )
 

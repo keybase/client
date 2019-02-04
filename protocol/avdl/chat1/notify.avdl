@@ -21,11 +21,13 @@ protocol NotifyChat {
     TEAMTYPE_8,
     EXPUNGE_9,
     EPHEMERAL_PURGE_10,
-    REACTION_UPDATE_11
+    REACTION_UPDATE_11,
+    MESSAGES_UPDATED_12
   }
 
   record IncomingMessage {
     UIMessage message;
+    union { null, UIMessage } modifiedMessage;
     ConversationID convID;
     boolean displayDesktopNotification;
     string desktopNotificationSnippet;
@@ -85,7 +87,6 @@ protocol NotifyChat {
   record EphemeralPurgeNotifInfo {
     ConversationID convID;
     array<UIMessage> msgs;
-    union { null, InboxUIItem } conv;
   }
 
   record ReactionUpdate {
@@ -96,6 +97,11 @@ protocol NotifyChat {
   record ReactionUpdateNotif {
     ConversationID convID;
     array<ReactionUpdate> reactionUpdates;
+  }
+
+  record MessagesUpdated {
+    ConversationID convID;
+    array<UIMessage> updates;
   }
 
   variant ChatActivity switch (ChatActivityType activityType) {
@@ -110,6 +116,7 @@ protocol NotifyChat {
     case EXPUNGE: ExpungeInfo;
     case EPHEMERAL_PURGE: EphemeralPurgeNotifInfo;
     case REACTION_UPDATE: ReactionUpdateNotif;
+    case MESSAGES_UPDATED: MessagesUpdated;
   }
 
   record TyperInfo {
@@ -127,7 +134,8 @@ protocol NotifyChat {
 
   enum StaleUpdateType {
     CLEAR_0,
-    NEWACTIVITY_1
+    NEWACTIVITY_1,
+    CONVUPDATE_2
   }
 
   record ConversationStaleUpdate {
@@ -135,8 +143,13 @@ protocol NotifyChat {
     StaleUpdateType updateType;
   }
 
+  record ChatSyncIncrementalConv {
+    UnverifiedInboxUIItem conv;
+    boolean shouldUnbox;
+  }
+
   record ChatSyncIncrementalInfo {
-    array<UnverifiedInboxUIItem> items;
+    array<ChatSyncIncrementalConv> items;
   }
 
   variant ChatSyncResult switch (SyncInboxResType syncType) {
@@ -229,4 +242,8 @@ protocol NotifyChat {
   @notify("")
   @lint("ignore")
   void ChatRequestInfo(keybase1.UID uid, ConversationID convID, MessageID msgID, UIRequestInfo info);
+
+  @notify("")
+  @lint("ignore")
+  void ChatPromptUnfurl(keybase1.UID uid, ConversationID convID, MessageID msgID, string domain);
 }

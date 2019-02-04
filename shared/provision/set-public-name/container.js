@@ -2,12 +2,12 @@
 import * as ProvisionGen from '../../actions/provision-gen'
 import * as Constants from '../../constants/provision'
 import SetPublicName from '.'
-import {connect, type TypedState, withStateHandlers, compose, safeSubmit} from '../../util/container'
+import {connect, withStateHandlers, compose, safeSubmit} from '../../util/container'
 import {type RouteProps} from '../../route-tree/render-route'
 
 type OwnProps = {deviceName: string, onChange: (text: string) => void} & RouteProps<{}, {}>
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   _existingDevices: state.provision.existingDevices,
   error: state.provision.error.stringValue(),
 })
@@ -30,12 +30,16 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 }
 
 export default compose(
-  withStateHandlers(
+  withStateHandlers<any, any, any>(
     {deviceName: ''},
     {
       onChange: () => (deviceName: string) => ({deviceName: Constants.cleanDeviceName(deviceName)}),
     }
   ),
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect<OwnProps, _, _, _, _>(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   safeSubmit(['onSubmit', 'onBack'], ['deviceName', 'error'])
 )(SetPublicName)

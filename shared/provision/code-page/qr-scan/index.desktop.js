@@ -1,14 +1,13 @@
 // @flow
 import * as React from 'react'
-import {Box2, ProgressIndicator} from '../../../common-adapters'
+import {Box2, ProgressIndicator, QRLines} from '../../../common-adapters'
 import {globalColors, styleSheetCreate} from '../../../styles'
-import QRScanLines from './lines'
 import type {Props} from '.'
 // Basically only used for storybook
 
 const QRScan = (props: Props) => (
   <Box2 direction="vertical" style={styles.container}>
-    <QRScanLines canScan={true} />
+    <QRLines canScan={true} />
     {props.waiting && <ProgressIndicator style={styles.waiting} type="Large" white={true} />}
   </Box2>
 )

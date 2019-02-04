@@ -28,6 +28,15 @@
           "name": "misc"
         }
       ]
+    },
+    {
+      "type": "enum",
+      "name": "AvatarUpdateType",
+      "symbols": [
+        "NONE_0",
+        "USER_1",
+        "TEAM_2"
+      ]
     }
   ],
   "messages": {
@@ -127,6 +136,10 @@
             "type": "array",
             "items": "AvatarFormat"
           }
+        },
+        {
+          "name": "typ",
+          "type": "AvatarUpdateType"
         }
       ],
       "response": null,

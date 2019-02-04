@@ -3,9 +3,13 @@ import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import OldProfileResetNotice from '.'
-import {connect, type TypedState} from '../../../../util/container'
+import {connect} from '../../../../util/container'
 
-const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
+type OwnProps = {|
+  conversationIDKey: Types.ConversationIDKey,
+|}
+
+const mapStateToProps = (state, {conversationIDKey}) => {
   const meta = Constants.getMeta(state, conversationIDKey)
   return {
     _participants: meta.participants,
@@ -14,7 +18,7 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   onOpenConversation: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'jumpFromReset'})),
   startConversation: (participants: Array<string>) =>
@@ -32,4 +36,8 @@ const mergeProps = (stateProps, dispatchProps) => {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(OldProfileResetNotice)
+export default connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(OldProfileResetNotice)

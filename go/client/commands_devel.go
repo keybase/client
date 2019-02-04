@@ -39,6 +39,7 @@ func getBuildSpecificChatCommands(cl *libcmdline.CommandLine, g *libkb.GlobalCon
 		newCmdChatDeleteHistoryDev(cl, g),
 		newCmdChatSetRetentionDev(cl, g),
 		newCmdChatKBFSUpgrade(cl, g),
+		newCmdChatProfileSearchDev(cl, g),
 	}
 }
 
@@ -52,13 +53,18 @@ func getBuildSpecificWalletCommands(cl *libcmdline.CommandLine, g *libkb.GlobalC
 	return []cli.Command{
 		newCmdWalletDump(cl, g),
 		newCmdWalletInit(cl, g),
-		newCmdWalletSetMobileOnly(cl, g),
 	}
 }
 
 func getBuildSpecificLogCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
 	return []cli.Command{
 		NewCmdLogProfile(cl, g),
+	}
+}
+
+func getBuildSpecificFSCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
+	return []cli.Command{
+		NewCmdSimpleFSUpgrade(cl, g),
 	}
 }
 

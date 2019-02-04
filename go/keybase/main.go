@@ -134,6 +134,58 @@ func checkSystemUser(log logger.Logger) {
 	}
 }
 
+func osPreconfigure(g *libkb.GlobalContext) {
+	switch libkb.RuntimeGroup() {
+	case keybase1.RuntimeGroup_LINUXLIKE:
+		// On Linux, we used to put the mountdir in a different location, and
+		// then we changed it, and also added a default mountdir config var so
+		// we'll know if the user has changed it.
+		// Update the mountdir to the new location, but only if they're still
+		// using the old mountpoint *and* they haven't changed it since we
+		// added a default. This functionality was originally in the
+		// run_keybase script.
+
+		configReader := g.Env.GetConfig()
+		if configReader == nil {
+			// some commands don't configure config.
+			return
+		}
+
+		userMountdir := configReader.GetMountDir()
+		userMountdirDefault := configReader.GetMountDirDefault()
+		oldMountdirDefault := g.Env.GetOldMountDirDefault()
+		mountdirDefault := g.Env.GetMountDirDefault()
+
+		// User has not set a mountdir yet; e.g., on initial install.
+		nonexistentMountdir := userMountdir == ""
+
+		// User does not have a mountdirdefault; e.g., if last used Keybase
+		// before the change mentioned above.
+		nonexistentMountdirDefault := userMountdirDefault == ""
+
+		usingOldMountdirByDefault := userMountdir == oldMountdirDefault && (userMountdirDefault == oldMountdirDefault || nonexistentMountdirDefault)
+
+		shouldResetMountdir := nonexistentMountdir || usingOldMountdirByDefault
+
+		if nonexistentMountdirDefault || shouldResetMountdir {
+			configWriter := g.Env.GetConfigWriter()
+			if configWriter == nil {
+				// some commands don't configure config.
+				return
+			}
+
+			// Set the user's mountdirdefault to the current one if it's
+			// currently empty.
+			configWriter.SetStringAtPath("mountdirdefault", mountdirDefault)
+
+			if shouldResetMountdir {
+				configWriter.SetStringAtPath("mountdir", mountdirDefault)
+			}
+		}
+	default:
+	}
+}
+
 func mainInner(g *libkb.GlobalContext, startupErrors []error) error {
 	cl := libcmdline.NewCommandLine(true, client.GetExtraFlags())
 	cl.AddCommands(client.GetCommands(cl, g))
@@ -179,6 +231,11 @@ func mainInner(g *libkb.GlobalContext, startupErrors []error) error {
 	logStartupIssues(startupErrors, g.Log)
 	tryToDisableProcessTracing(g.Log, g.Env)
 
+	// Don't configure mountdir on a nofork command like nix configure redirector.
+	if cl.GetForkCmd() != libcmdline.NoFork {
+		osPreconfigure(g)
+	}
+
 	if err := configOtherLibraries(g); err != nil {
 		return err
 	}
@@ -204,7 +261,6 @@ func configOtherLibraries(g *libkb.GlobalContext) error {
 // AutoFork? Standalone? ClientServer? Brew service?  This function deals with the
 // various run configurations that we can run in.
 func configureProcesses(g *libkb.GlobalContext, cl *libcmdline.CommandLine, cmd *libcmdline.Command) (err error) {
-
 	g.Log.Debug("+ configureProcesses")
 	defer func() {
 		g.Log.Debug("- configureProcesses -> %v", err)
@@ -215,7 +271,7 @@ func configureProcesses(g *libkb.GlobalContext, cl *libcmdline.CommandLine, cmd 
 	if cl.IsService() {
 		g.Log.Debug("| in configureProcesses, is service")
 		if runtime.GOOS == "linux" {
-			g.Log.Debug("| calling AutoInstall")
+			g.Log.Debug("| calling AutoInstall for Linux")
 			_, err := install.AutoInstall(g, "", false, 10*time.Second, g.Log)
 			if err != nil {
 				return err
@@ -294,6 +350,12 @@ func configureProcesses(g *libkb.GlobalContext, cl *libcmdline.CommandLine, cmd 
 		if err = client.FixVersionClash(g, cl); err != nil {
 			return err
 		}
+	}
+
+	// Ignore error
+	err = client.WarnOutdatedKBFS(g, cl)
+	if err != nil {
+		g.Log.Debug("| Could not do kbfs versioncheck: %s", err)
 	}
 
 	g.Log.Debug("| After forks; newProc=%v", newProc)

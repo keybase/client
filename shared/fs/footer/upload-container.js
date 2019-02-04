@@ -1,12 +1,12 @@
 // @flow
 import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
-import {compose, connect, setDisplayName, type TypedState} from '../../util/container'
+import {compose, namedConnect} from '../../util/container'
 import Upload from './upload'
 import UploadCountdownHOC, {type UploadCountdownHOCProps} from './upload-countdown-hoc'
 import {unknownPathItem} from '../../constants/fs'
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   _edits: state.fs.edits,
   _pathItems: state.fs.pathItems,
   _uploads: state.fs.uploads,
@@ -15,7 +15,7 @@ const mapStateToProps = (state: TypedState) => ({
 // NOTE flip this to show a button to debug the upload banner animations.
 const enableDebugUploadBanner = false
 
-const getDebugToggleShow = (dispatch: Dispatch) => {
+const getDebugToggleShow = dispatch => {
   if (!(__DEV__ && enableDebugUploadBanner)) {
     return undefined
   }
@@ -32,7 +32,7 @@ const getDebugToggleShow = (dispatch: Dispatch) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   debugToggleShow: getDebugToggleShow(dispatch),
 })
 
@@ -64,9 +64,9 @@ export const uploadsToUploadCountdownHOCProps = (
     // We just use syncingPaths rather than merging with writingToJournal here
     // since journal status comes a bit slower, and merging the two causes
     // flakes on our perception of overall upload status.
-    files: filePaths.size,
-    fileName: filePaths.size === 1 ? Types.getPathName(filePaths.first() || Types.stringToPath('')) : null,
     endEstimate: enableDebugUploadBanner ? uploads.endEstimate + 32000 : uploads.endEstimate,
+    fileName: filePaths.size === 1 ? Types.getPathName(filePaths.first() || Types.stringToPath('')) : null,
+    files: filePaths.size,
     totalSyncingBytes: uploads.totalSyncingBytes,
   }
 }
@@ -75,11 +75,11 @@ const mergeProps = ({_edits, _pathItems, _uploads}, {debugToggleShow}) =>
   ({
     ...uploadsToUploadCountdownHOCProps(_edits, _pathItems, _uploads),
     debugToggleShow,
+    // $FlowIssue
   }: UploadCountdownHOCProps)
 
 export default compose(
   // $FlowIssue @jzila
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  setDisplayName('ConnectedUpload'),
+  namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedUpload'),
   UploadCountdownHOC
 )(Upload)

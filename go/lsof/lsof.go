@@ -178,7 +178,10 @@ func parse(s string) ([]Process, error) {
 }
 
 func run(args []string) ([]Process, error) {
-	command := "/usr/sbin/lsof"
+	// Some systems (Arch, Debian) install lsof in /usr/bin and others (centos)
+	// install it in /usr/sbin, even though regular users can use it too. FreeBSD,
+	// on the other hand, puts it in /usr/local/sbin. So do not specify absolute path.
+	command := "lsof"
 	args = append([]string{"-w"}, args...)
 	output, err := exec.Command(command, args...).Output()
 	if err != nil {

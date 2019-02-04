@@ -3,12 +3,15 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 
+// TODO: This is now desktop-only, so remove references to isMobile.
+
 type Props = {|
-  isSelected: boolean,
-  name: string,
-  keybaseUser: string,
   contents: string,
+  isSelected: boolean,
+  keybaseUser: string,
+  name: string,
   onSelect: () => void,
+  unreadPayments: number,
 |}
 
 const rightColumnStyle = Styles.platformStyles({
@@ -20,7 +23,17 @@ const rightColumnStyle = Styles.platformStyles({
 })
 
 const styles = Styles.styleSheetCreate({
+  amount: {
+    ...rightColumnStyle,
+  },
+  amountSelected: {
+    ...rightColumnStyle,
+    color: Styles.globalColors.white,
+  },
   avatar: {marginRight: Styles.globalMargins.xtiny},
+  badge: {
+    marginLeft: 6,
+  },
   containerBox: {
     height: Styles.isMobile ? 56 : 48,
   },
@@ -42,22 +55,25 @@ const styles = Styles.styleSheetCreate({
     ...rightColumnStyle,
     color: Styles.globalColors.white,
   },
-
-  amount: {
-    ...rightColumnStyle,
-    color: Styles.globalColors.black_40,
-    fontSize: 11,
+  unread: {
+    backgroundColor: Styles.globalColors.orange,
+    borderRadius: 6,
+    flexShrink: 0,
+    height: Styles.globalMargins.tiny,
+    width: Styles.globalMargins.tiny,
   },
-  amountSelected: {
-    ...rightColumnStyle,
-    color: Styles.globalColors.white,
-    fontSize: 11,
+  unreadContainer: {
+    alignItems: 'center',
+    alignSelf: 'stretch',
+    flex: 1,
+    justifyContent: 'flex-end',
+    paddingRight: Styles.globalMargins.tiny,
   },
 })
 
 const HoverBox = Styles.isMobile
   ? Kb.Box2
-  : Styles.glamorous(Kb.Box2)({
+  : Styles.styled(Kb.Box2)({
       ':hover': {backgroundColor: Styles.globalColors.blueGrey2},
     })
 
@@ -67,13 +83,13 @@ const WalletRow = (props: Props) => {
       <HoverBox
         style={Styles.collapseStyles([
           styles.containerBox,
-          props.isSelected ? {backgroundColor: Styles.globalColors.blue} : {},
+          props.isSelected ? {backgroundColor: Styles.globalColors.purple3} : {},
         ])}
         direction="horizontal"
         fullWidth={true}
       >
         <Kb.Icon
-          type="icon-wallet-64"
+          type={props.isSelected ? 'icon-wallet-open-32' : 'icon-wallet-32'}
           color={Styles.globalColors.black_75}
           style={Kb.iconCastPlatformStyles(styles.icon)}
         />
@@ -94,10 +110,21 @@ const WalletRow = (props: Props) => {
             {props.contents}
           </Kb.Text>
         </Kb.Box2>
+        {!!props.unreadPayments && <UnreadIcon unreadPayments={props.unreadPayments} />}
       </HoverBox>
+      <Kb.Divider />
     </Kb.ClickableBox>
   )
 }
 
+const UnreadIcon = (props: {unreadPayments: number}) => (
+  <Kb.Box2 direction="horizontal" style={styles.unreadContainer}>
+    {Styles.isMobile ? (
+      <Kb.Badge badgeNumber={props.unreadPayments} badgeStyle={styles.badge} />
+    ) : (
+      <Kb.Box2 direction="vertical" style={styles.unread} />
+    )}
+  </Kb.Box2>
+)
 export type {Props}
 export {WalletRow}

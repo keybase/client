@@ -1,19 +1,19 @@
 // @flow
 import logger from '../../logger'
-import {type TypedState} from '../../constants/reducer'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as ConfigGen from '../config-gen'
+import * as ProfileGen from '../profile-gen'
 import * as GregorGen from '../gregor-gen'
 import * as Chat2Gen from '../chat2-gen'
+import * as Flow from '../../util/flow'
 import * as Tabs from '../../constants/tabs'
 import * as RouteTreeGen from '../route-tree-gen'
-import * as mime from 'react-native-mime-types'
 import * as Saga from '../../util/saga'
 import TouchID from 'react-native-touch-id'
 // this CANNOT be an import *, totally screws up the packager
 import {
+  Alert,
   NetInfo,
-  AsyncStorage,
   Linking,
   NativeModules,
   ActionSheetIOS,
@@ -23,10 +23,53 @@ import {
 } from 'react-native'
 import {getPath} from '../../route-tree'
 import RNFetchBlob from 'rn-fetch-blob'
+import * as PushNotifications from 'react-native-push-notification'
 import {isIOS, isAndroid} from '../../constants/platform'
 import pushSaga, {getStartupDetailsFromInitialPush} from './push.native'
+import {showImagePicker, type Response} from 'react-native-image-picker'
 
-function showShareActionSheet(options: {
+type NextURI = string
+function saveAttachmentDialog(filePath: string): Promise<NextURI> {
+  let goodPath = filePath
+  logger.debug('saveAttachment: ', goodPath)
+  return CameraRoll.saveToCameraRoll(goodPath)
+}
+
+async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): Promise<void> {
+  const fileURL = 'file://' + filePath
+  const saveType = mimeType.startsWith('video') ? 'video' : 'photo'
+  const logPrefix = '[saveAttachmentToCameraRoll] '
+  if (!isIOS) {
+    const permissionStatus = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+      {
+        message: 'Keybase needs access to your storage so we can download an attachment.',
+        title: 'Keybase Storage Permission',
+      }
+    )
+    if (permissionStatus !== 'granted') {
+      logger.error(logPrefix + 'Unable to acquire storage permissions')
+      throw new Error('Unable to acquire storage permissions')
+    }
+  }
+  try {
+    logger.info(logPrefix + `Attempting to save as ${saveType}`)
+    await CameraRoll.saveToCameraRoll(fileURL, saveType)
+    logger.info(logPrefix + 'Success')
+  } catch (e) {
+    // This can fail if the user backgrounds too quickly, so throw up a local notification
+    // just in case to get their attention.
+    PushNotifications.localNotification({
+      message: `Failed to save ${saveType} to camera roll`,
+    })
+    logger.debug(logPrefix + 'failed to save: ' + e)
+    throw e
+  } finally {
+    RNFetchBlob.fs.unlink(filePath)
+  }
+}
+
+function showShareActionSheetFromURL(options: {
   url?: ?any,
   message?: ?any,
   mimeType?: ?string,
@@ -43,66 +86,9 @@ function showShareActionSheet(options: {
   }
 }
 
-type NextURI = string
-function saveAttachmentDialog(filePath: string): Promise<NextURI> {
-  let goodPath = filePath
-  logger.debug('saveAttachment: ', goodPath)
-  return CameraRoll.saveToCameraRoll(goodPath)
-}
-
-async function saveAttachmentToCameraRoll(fileURL: string, mimeType: string): Promise<void> {
-  const logPrefix = '[saveAttachmentToCameraRoll] '
-  const saveType = mimeType.startsWith('video') ? 'video' : 'photo'
-  if (isIOS && saveType !== 'video') {
-    // iOS cannot save a video from a URL, so we can only do images here. Fallback to temp file
-    // method for videos.
-    logger.info(logPrefix + 'Saving iOS picture to camera roll')
-    await CameraRoll.saveToCameraRoll(fileURL)
-    return
-  }
-  if (!isIOS) {
-    const permissionStatus = await PermissionsAndroid.request(
-      PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-      {
-        message: 'Keybase needs access to your storage so we can download an attachment.',
-        title: 'Keybase Storage Permission',
-      }
-    )
-    if (permissionStatus !== 'granted') {
-      logger.error(logPrefix + 'Unable to acquire storage permissions')
-      throw new Error('Unable to acquire storage permissions')
-    }
-  }
-  const fetchURL = `${fileURL}&nostream=true`
-  logger.info(logPrefix + `Fetching from URL: ${fetchURL}`)
-  const download = await RNFetchBlob.config({
-    appendExt: mime.extension(mimeType),
-    fileCache: true,
-  }).fetch('GET', fetchURL)
-  logger.info(logPrefix + 'Fetching success, getting local file path')
-  const path = download.path()
-  logger.info(logPrefix + `Saving to ${path}`)
-  try {
-    logger.info(logPrefix + `Attempting to save as ${saveType}`)
-    await CameraRoll.saveToCameraRoll(`file://${path}`, saveType)
-    logger.info(logPrefix + 'Success')
-  } catch (err) {
-    logger.error(logPrefix + 'Failed:', err)
-    throw err
-  } finally {
-    logger.info(logPrefix + 'Deleting tmp file')
-    await RNFetchBlob.fs.unlink(path)
-  }
-}
-
-// Downloads a file, shows the shareactionsheet, and deletes the file afterwards
-function downloadAndShowShareActionSheet(fileURL: string, mimeType: string): Promise<void> {
-  const extension = mime.extension(mimeType)
-  return RNFetchBlob.config({appendExt: extension, fileCache: true})
-    .fetch('GET', fileURL)
-    .then(res => res.path())
-    .then(path => Promise.all([showShareActionSheet({url: path}), Promise.resolve(path)]))
-    .then(([_, path]) => RNFetchBlob.fs.unlink(path))
+// Shows the shareactionsheet for a file, and deletes the file afterwards
+function showShareActionSheetFromFile(filePath: string): Promise<void> {
+  return showShareActionSheetFromURL({url: 'file://' + filePath}).then(() => RNFetchBlob.fs.unlink(filePath))
 }
 
 const openAppSettings = () => {
@@ -122,14 +108,15 @@ const openAppSettings = () => {
 
 const getContentTypeFromURL = (
   url: string,
-  cb: ({error?: any, statusCode?: number, contentType?: string}) => void
+  cb: ({error?: any, statusCode?: number, contentType?: string, disposition?: string}) => void
 ) =>
   // For some reason HEAD doesn't work on Android. So just GET one byte.
   // TODO: fix HEAD for Android and get rid of this hack.
   isAndroid
-    ? fetch(url, {method: 'GET', headers: {Range: 'bytes=0-0'}}) // eslint-disable-line no-undef
+    ? fetch(url, {headers: {Range: 'bytes=0-0'}, method: 'GET'}) // eslint-disable-line no-undef
         .then(response => {
           let contentType = ''
+          let disposition = ''
           let statusCode = response.status
           if (
             statusCode === 200 ||
@@ -138,9 +125,10 @@ const getContentTypeFromURL = (
             statusCode === 416
           ) {
             contentType = response.headers.get('Content-Type') || ''
+            disposition = response.headers.get('Content-Disposition') || ''
             statusCode = 200 // Treat 200, 206, and 416 as 200.
           }
-          cb({statusCode, contentType})
+          cb({contentType, disposition, statusCode})
         })
         .catch(error => {
           console.log(error)
@@ -149,17 +137,19 @@ const getContentTypeFromURL = (
     : fetch(url, {method: 'HEAD'}) // eslint-disable-line no-undef
         .then(response => {
           let contentType = ''
+          let disposition = ''
           if (response.status === 200) {
             contentType = response.headers.get('Content-Type') || ''
+            disposition = response.headers.get('Content-Disposition') || ''
           }
-          cb({statusCode: response.status, contentType})
+          cb({contentType, disposition, statusCode: response.status})
         })
         .catch(error => {
           console.log(error)
           cb({error})
         })
 
-const updateChangedFocus = (action: ConfigGen.MobileAppStatePayload) => {
+const updateChangedFocus = (_, action) => {
   let appFocused
   let logState
   switch (action.payload.nextAppState) {
@@ -176,21 +166,24 @@ const updateChangedFocus = (action: ConfigGen.MobileAppStatePayload) => {
       logState = RPCTypes.appStateAppState.inactive
       break
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (v: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(action.payload.nextAppState);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action.payload.nextAppState)
       appFocused = false
       logState = RPCTypes.appStateAppState.foreground
   }
 
   logger.info(`setting app state on service to: ${logState}`)
-  return Saga.put(ConfigGen.createChangedFocus({appFocused}))
+  return ConfigGen.createChangedFocus({appFocused})
 }
 
-const clearRouteState = () => Saga.call(AsyncStorage.removeItem, 'routeState')
+function* clearRouteState() {
+  yield Saga.spawn(() =>
+    RPCTypes.configSetValueRpcPromise({path: 'ui.routeState', value: {isNull: false, s: ''}}).catch(() => {})
+  )
+}
 
-const persistRouteState = (state: TypedState) => {
+function* persistRouteState(state) {
+  // Put a delay in case we go to a route and crash immediately
+  yield Saga.callUntyped(Saga.delay, 3000)
   const routePath = getPath(state.routeTree.routeState)
   const selectedTab = routePath.first()
   if (Tabs.isValidInitialTabString(selectedTab)) {
@@ -201,23 +194,27 @@ const persistRouteState = (state: TypedState) => {
       tab: selectedTab,
     }
 
-    return Saga.spawn(AsyncStorage.setItem, 'routeState', JSON.stringify(item))
+    yield Saga.spawn(() =>
+      RPCTypes.configSetValueRpcPromise({
+        path: 'ui.routeState',
+        value: {isNull: false, s: JSON.stringify(item)},
+      }).catch(() => {})
+    )
   } else {
-    return Saga.spawn(AsyncStorage.removeItem, 'routeState')
+    yield clearRouteState()
   }
 }
 
-const setupNetInfoWatcher = () =>
-  Saga.call(function*() {
-    const channel = Saga.eventChannel(emitter => {
-      NetInfo.addEventListener('connectionChange', () => emitter('changed'))
-      return () => {}
-    }, Saga.buffers.dropping(1))
-    while (true) {
-      yield Saga.take(channel)
-      yield Saga.put(GregorGen.createCheckReachability())
-    }
-  })
+function* setupNetInfoWatcher() {
+  const channel = Saga.eventChannel(emitter => {
+    NetInfo.addEventListener('connectionChange', () => emitter('changed'))
+    return () => {}
+  }, Saga.buffers.dropping(1))
+  while (true) {
+    yield Saga.take(channel)
+    yield Saga.put(GregorGen.createCheckReachability())
+  }
+}
 
 function* loadStartupDetails() {
   let startupWasFromPush = false
@@ -226,9 +223,13 @@ function* loadStartupDetails() {
   let startupLink = ''
   let startupTab = null
 
-  const routeStateTask = yield Saga.fork(AsyncStorage.getItem, 'routeState')
-  const linkTask = yield Saga.fork(Linking.getInitialURL)
-  const initialPush = yield Saga.fork(getStartupDetailsFromInitialPush)
+  const routeStateTask = yield Saga._fork(() =>
+    RPCTypes.configGetValueRpcPromise({path: 'ui.routeState'})
+      .then(v => v.s || '')
+      .catch(e => {})
+  )
+  const linkTask = yield Saga._fork(Linking.getInitialURL)
+  const initialPush = yield Saga._fork(getStartupDetailsFromInitialPush)
   const [routeState, link, push] = yield Saga.join(routeStateTask, linkTask, initialPush)
 
   // Top priority, push
@@ -251,6 +252,9 @@ function* loadStartupDetails() {
         startupConversation = item.selectedConversationIDKey
         startupTab = item.tab
       }
+
+      // immediately clear route state in case this is a bad route
+      yield clearRouteState()
     } catch (_) {
       startupConversation = null
       startupTab = null
@@ -268,175 +272,200 @@ function* loadStartupDetails() {
   )
 }
 
-const waitForStartupDetails = (state: TypedState, action: ConfigGen.DaemonHandshakePayload) => {
+function* waitForStartupDetails(state, action) {
   // loadStartupDetails finished already
   if (state.config.startupDetailsLoaded) {
     return
   }
   // Else we have to wait for the loadStartupDetails to finish
-  return Saga.call(function*() {
-    yield Saga.put(
-      ConfigGen.createDaemonHandshakeWait({
-        increment: true,
-        name: 'platform.native-waitStartupDetails',
-        version: action.payload.version,
-      })
-    )
-    yield Saga.take(ConfigGen.setStartupDetails)
-    yield Saga.put(
-      ConfigGen.createDaemonHandshakeWait({
-        increment: false,
-        name: 'platform.native-waitStartupDetails',
-        version: action.payload.version,
-      })
-    )
-  })
+  yield Saga.put(
+    ConfigGen.createDaemonHandshakeWait({
+      increment: true,
+      name: 'platform.native-waitStartupDetails',
+      version: action.payload.version,
+    })
+  )
+  yield Saga.take(ConfigGen.setStartupDetails)
+  yield Saga.put(
+    ConfigGen.createDaemonHandshakeWait({
+      increment: false,
+      name: 'platform.native-waitStartupDetails',
+      version: action.payload.version,
+    })
+  )
 }
 
-const copyToClipboard = (_: any, action: ConfigGen.CopyToClipboardPayload) => {
+const copyToClipboard = (_, action) => {
   Clipboard.setString(action.payload.text)
 }
 
 // Dont re-enter this logic
 let inAskTouchID = false
 let wasBackgrounded = true
-const askTouchID = (state: TypedState, action) =>
-  Saga.call(function*() {
-    console.log('[TouchID]: checking', action.type)
+function * askTouchID (state, action) {
+  console.log('[TouchID]: checking', action.type)
 
-    if (state.config.daemonHandshakeState !== 'done') {
-      console.log('[TouchID]: still loading, bailing')
-      inAskTouchID = false
-      return
-    }
+  if (state.config.daemonHandshakeState !== 'done') {
+    console.log('[TouchID]: still loading, bailing')
+    inAskTouchID = false
+    return
+  }
 
-    if (!state.config.touchIDAllowedBySystem || !state.config.touchIDEnabled) {
-      console.log('[TouchID]: not enabled, bailing')
-      wasBackgrounded = false
-      inAskTouchID = false
-      return
-    }
-
-    if (inAskTouchID) {
-      console.log('[TouchID]: already working, bailing')
-      return
-    }
-
-    inAskTouchID = true
-
-    // only care if we're logged in
-    if (!state.config.loggedIn) {
-      console.log('[TouchID]: loggedout, bailing')
-      inAskTouchID = false
-      return
-    }
-
-    const appState = state.config.mobileAppState
-    console.log('[TouchID]: current app state', appState)
-
-    if (appState === 'background') {
-      console.log('[TouchID]: background, bailing')
-      yield Saga.put(ConfigGen.createTouchIDState({state: 'asking'}))
-      wasBackgrounded = true
-      inAskTouchID = false
-      return
-    }
-
-    // opening app
-    if (appState === 'active' && wasBackgrounded) {
-      try {
-        console.log('[TouchID]: active')
-        yield Saga.put(ConfigGen.createTouchIDState({state: 'asking'}))
-        yield Saga.call(() => TouchID.authenticate(`Authentication is required to gain access`))
-        console.log('[TouchID]: active success')
-        yield Saga.put(ConfigGen.createTouchIDState({state: 'done'}))
-      } catch (e) {
-        console.log('[TouchID]: active fail')
-        console.log('[TouchID]: logging out')
-        yield Saga.put(ConfigGen.createLogout())
-        yield Saga.take(ConfigGen.loggedOut)
-        yield Saga.put(ConfigGen.createTouchIDState({state: 'done'}))
-      }
-    }
-
-    console.log('[TouchID]: checking done')
+  if (!state.config.touchIDAllowedBySystem || !state.config.touchIDEnabled) {
+    console.log('[TouchID]: not enabled, bailing')
     wasBackgrounded = false
     inAskTouchID = false
-  })
+    return
+  }
 
-const loadTouchIDSettings = (_, action: ConfigGen.DaemonHandshakePayload) =>
-  Saga.call(function*() {
-    const loadTouchWaitKey = 'platform.specific.touchid'
-    yield Saga.put(
-      ConfigGen.createDaemonHandshakeWait({
-        increment: true,
-        name: loadTouchWaitKey,
-        version: action.payload.version,
-      })
-    )
-    const touchIDAllowedTask = yield Saga.fork(TouchID.isSupported)
-    const touchIDEnabledTask = yield Saga.fork(() =>
-      RPCTypes.configGetValueRpcPromise({path: 'ui.touchIDEnabled'}).catch(() => null)
-    )
-    const [touchIDAllowed, touchIDEnabledConfigValue] = yield Saga.join(
-      touchIDAllowedTask,
-      touchIDEnabledTask
-    )
+  if (inAskTouchID) {
+    console.log('[TouchID]: already working, bailing')
+    return
+  }
 
-    const touchIDString = isAndroid ? (touchIDAllowed ? 'biometric sensor' : '') : touchIDAllowed
-    const touchIDEnabled = !!(touchIDEnabledConfigValue && touchIDEnabledConfigValue.b)
+  inAskTouchID = true
 
-    console.log(
-      '[TouchID]: state allowed:',
-      touchIDAllowed,
-      ' enabled: ',
-      touchIDEnabled,
-      'enabled config value: ',
-      touchIDEnabledConfigValue
-    )
-    yield Saga.put(ConfigGen.createTouchIDAllowedBySystem({allowed: touchIDString}))
-    yield Saga.put(ConfigGen.createTouchIDEnabled({enabled: touchIDEnabled, writeToConfig: false}))
+  // only care if we're logged in
+  if (!state.config.loggedIn) {
+    console.log('[TouchID]: loggedout, bailing')
+    inAskTouchID = false
+    return
+  }
 
-    yield Saga.put(
-      ConfigGen.createDaemonHandshakeWait({
-        increment: false,
-        name: loadTouchWaitKey,
-        version: action.payload.version,
-      })
-    )
-  })
+  const appState = state.config.mobileAppState
+  console.log('[TouchID]: current app state', appState)
 
-const saveTouchIDEnabled = (_, action: ConfigGen.TouchIDEnabledPayload) => {
+  if (appState === 'background') {
+    console.log('[TouchID]: background, bailing')
+    yield Saga.put(ConfigGen.createTouchIDState({state: 'asking'}))
+    wasBackgrounded = true
+    inAskTouchID = false
+    return
+  }
+
+  // opening app
+  if (appState === 'active' && wasBackgrounded) {
+    try {
+      console.log('[TouchID]: active')
+      yield Saga.put(ConfigGen.createTouchIDState({state: 'asking'}))
+      yield Saga.callUntyped(() => TouchID.authenticate(`Authentication is required to gain access`))
+      console.log('[TouchID]: active success')
+      yield Saga.put(ConfigGen.createTouchIDState({state: 'done'}))
+    } catch (e) {
+      console.log('[TouchID]: active fail')
+      console.log('[TouchID]: logging out')
+      yield Saga.put(ConfigGen.createLogout())
+      yield Saga.take(ConfigGen.loggedOut)
+      yield Saga.put(ConfigGen.createTouchIDState({state: 'done'}))
+    }
+  }
+
+  console.log('[TouchID]: checking done')
+  wasBackgrounded = false
+  inAskTouchID = false
+}
+
+function* loadTouchIDSettings (_, action) {
+  const loadTouchWaitKey = 'platform.specific.touchid'
+  yield Saga.put(
+    ConfigGen.createDaemonHandshakeWait({
+      increment: true,
+      name: loadTouchWaitKey,
+      version: action.payload.version,
+    })
+  )
+  const touchIDAllowedTask = yield Saga._fork(TouchID.isSupported)
+  const touchIDEnabledTask = yield Saga._fork(() =>
+    RPCTypes.configGetValueRpcPromise({path: 'ui.touchIDEnabled'}).catch(() => null)
+  )
+  const [touchIDAllowed, touchIDEnabledConfigValue] = yield Saga.join(
+    touchIDAllowedTask,
+    touchIDEnabledTask
+  )
+
+  const touchIDString = isAndroid ? (touchIDAllowed ? 'biometric sensor' : '') : touchIDAllowed
+  const touchIDEnabled = !!(touchIDEnabledConfigValue && touchIDEnabledConfigValue.b)
+
+  console.log(
+    '[TouchID]: state allowed:',
+    touchIDAllowed,
+    ' enabled: ',
+    touchIDEnabled,
+    'enabled config value: ',
+    touchIDEnabledConfigValue
+  )
+  yield Saga.put(ConfigGen.createTouchIDAllowedBySystem({allowed: touchIDString}))
+  yield Saga.put(ConfigGen.createTouchIDEnabled({enabled: touchIDEnabled, writeToConfig: false}))
+
+  yield Saga.put(
+    ConfigGen.createDaemonHandshakeWait({
+      increment: false,
+      name: loadTouchWaitKey,
+      version: action.payload.version,
+    })
+  )
+}
+
+function* saveTouchIDEnabled (_, action) {
   console.log('[TouchID]: saving pref', action.payload.enabled)
-  return Saga.spawn(RPCTypes.configSetValueRpcPromise, {
+  yield Saga.spawn(RPCTypes.configSetValueRpcPromise, {
     path: 'ui.touchIDEnabled',
     value: {b: action.payload.enabled, isNull: false},
   })
 }
 
+const handleFilePickerError = (_, action) => {
+  Alert.alert('Error', action.payload.error.message)
+}
+
+const editAvatar = () =>
+  new Promise((resolve, reject) => {
+    showImagePicker({mediaType: 'photo'}, (response: Response) => {
+      if (response.didCancel) {
+        resolve()
+      } else if (response.error) {
+        resolve(ConfigGen.createFilePickerError({error: new Error(response.error)}))
+      } else {
+        resolve(
+          RouteTreeGen.createNavigateAppend({path: [{props: {image: response}, selected: 'editAvatar'}]})
+        )
+      }
+    })
+  })
+
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.actionToAction([ConfigGen.mobileAppState, ConfigGen.daemonHandshakeDone], askTouchID)
-  yield Saga.actionToAction(ConfigGen.touchIDEnabled, saveTouchIDEnabled)
-  yield Saga.safeTakeEveryPure(ConfigGen.mobileAppState, updateChangedFocus)
-  yield Saga.actionToAction(ConfigGen.loggedOut, clearRouteState)
-  yield Saga.actionToAction([RouteTreeGen.switchTo, Chat2Gen.selectConversation], persistRouteState)
-  yield Saga.actionToAction(ConfigGen.openAppSettings, openAppSettings)
-  yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupNetInfoWatcher)
-  yield Saga.actionToAction(ConfigGen.daemonHandshake, loadTouchIDSettings)
-  yield Saga.actionToAction(ConfigGen.copyToClipboard, copyToClipboard)
+  yield * Saga.chainGenerator<ConfigGen.MobileAppStatePayload| ConfigGen.DaemonHandshakeDonePalyload>([ConfigGen.mobileAppState, ConfigGen.daemonHandshakeDone], askTouchID)
+  yield * Saga.chainGenerator<ConfigGen.TouchIDEnabledPayload>(ConfigGen.touchIDEnabled, saveTouchIDEnabled)
+  yield * Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, loadTouchIDSettings)
 
-  yield Saga.actionToAction(ConfigGen.daemonHandshake, waitForStartupDetails)
+  yield* Saga.chainAction<ConfigGen.MobileAppStatePayload>(ConfigGen.mobileAppState, updateChangedFocus)
+  yield* Saga.chainGenerator<ConfigGen.LoggedOutPayload>(ConfigGen.loggedOut, clearRouteState)
+  yield* Saga.chainGenerator<RouteTreeGen.SwitchToPayload | Chat2Gen.SelectConversationPayload>(
+    [RouteTreeGen.switchTo, Chat2Gen.selectConversation],
+    persistRouteState
+  )
+  yield* Saga.chainAction<ConfigGen.OpenAppSettingsPayload>(ConfigGen.openAppSettings, openAppSettings)
+  yield* Saga.chainGenerator<ConfigGen.SetupEngineListenersPayload>(
+    ConfigGen.setupEngineListeners,
+    setupNetInfoWatcher
+  )
+  yield* Saga.chainAction<ConfigGen.CopyToClipboardPayload>(ConfigGen.copyToClipboard, copyToClipboard)
+  yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(
+    ConfigGen.daemonHandshake,
+    waitForStartupDetails
+  )
+  yield* Saga.chainAction<ConfigGen.FilePickerErrorPayload>(ConfigGen.filePickerError, handleFilePickerError)
+  yield* Saga.chainAction<ProfileGen.EditAvatarPayload>(ProfileGen.editAvatar, editAvatar)
   // Start this immediately instead of waiting so we can do more things in parallel
-  yield Saga.fork(loadStartupDetails)
-
-  yield Saga.fork(pushSaga)
+  yield Saga.spawn(loadStartupDetails)
+  yield Saga.spawn(pushSaga)
 }
 
 export {
-  downloadAndShowShareActionSheet,
+  showShareActionSheetFromFile,
+  showShareActionSheetFromURL,
   saveAttachmentDialog,
   saveAttachmentToCameraRoll,
-  showShareActionSheet,
   getContentTypeFromURL,
   platformConfigSaga,
 }

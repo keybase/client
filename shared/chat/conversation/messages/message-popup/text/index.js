@@ -3,7 +3,8 @@ import * as React from 'react'
 import MessagePopupHeader from '../header'
 import {FloatingMenu} from '../../../../../common-adapters/'
 import type {DeviceType} from '../../../../../constants/types/devices'
-import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
+import type {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
+import type {StylesCrossPlatform} from '../../../../../styles/css'
 
 type Props = {
   attachTo: () => ?React.Component<any>,
@@ -22,16 +23,17 @@ type Props = {
   onViewProfile: null | (() => void),
   position: Position,
   showDivider: boolean,
-  style?: Object,
+  style?: StylesCrossPlatform,
   timestamp: number,
   visible: boolean,
   yourMessage: boolean,
+  isDeleteable: boolean,
 }
 
 const TextPopupMenu = (props: Props) => {
   const items = [
     ...(props.showDivider ? ['Divider'] : []),
-    ...(props.yourMessage
+    ...(props.isDeleteable
       ? [
           {
             danger: true,
@@ -80,6 +82,7 @@ const TextPopupMenu = (props: Props) => {
       items={items}
       onHidden={props.onHidden}
       position={props.position}
+      positionFallbacks={[]}
       containerStyle={props.style}
       visible={props.visible}
     />

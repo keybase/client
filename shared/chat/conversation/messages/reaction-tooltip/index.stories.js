@@ -27,15 +27,15 @@ const examples = [
       {
         emoji: ':+1:',
         users: [
-          {username: 'ayoubd', fullName: 'Danny Ayoub'},
-          {username: 'chrisnojima', fullName: 'Chris Nojima'},
-          {username: 'cecileb', fullName: 'Cecile Boucheron'},
-          {username: 'chris', fullName: 'Chris Coyne'},
-          {username: 'cjb', fullName: 'Chris Ball'},
-          {username: 'mlsteele', fullName: 'Miles Steele'},
-          {username: 'max', fullName: 'Max Krohn'},
-          {username: 'mikem', fullName: 'Mike Maxim'},
-          {username: 'akalin', fullName: 'Fred Akalin'},
+          {fullName: 'Danny Ayoub', username: 'ayoubd'},
+          {fullName: 'Chris Nojima', username: 'chrisnojima'},
+          {fullName: 'Cecile Boucheron', username: 'cecileb'},
+          {fullName: 'Chris Coyne', username: 'chris'},
+          {fullName: 'Chris Ball', username: 'cjb'},
+          {fullName: 'Miles Steele', username: 'mlsteele'},
+          {fullName: 'Max Krohn', username: 'max'},
+          {fullName: 'Mike Maxim', username: 'mikem'},
+          {fullName: 'Fred Akalin', username: 'akalin'},
         ],
       },
     ],
@@ -45,7 +45,7 @@ const examples = [
     reactions: [
       {
         emoji: ':face_with_cowboy_hat:',
-        users: [{username: 'ayoubd', fullName: 'Danny Ayoub'}],
+        users: [{fullName: 'Danny Ayoub', username: 'ayoubd'}],
       },
     ],
   },
@@ -54,28 +54,28 @@ const examples = [
     reactions: [
       {
         emoji: ':face_with_cowboy_hat:',
-        users: [{username: 'ayoubd', fullName: 'Danny Ayoub'}],
+        users: [{fullName: 'Danny Ayoub', username: 'ayoubd'}],
       },
       {
         emoji: ':spider:',
         users: [
-          {username: 'chris', fullName: 'Chris Coyne'},
-          {username: 'jacobyoung', fullName: 'Jacob Young'},
+          {fullName: 'Chris Coyne', username: 'chris'},
+          {fullName: 'Jacob Young', username: 'jacobyoung'},
         ],
       },
       {
         emoji: ':bee:',
         users: [
-          {username: 'mlsteele', fullName: 'Miles Steele'},
-          {username: 'chrisnojima', fullName: 'Chris Nojima'},
+          {fullName: 'Miles Steele', username: 'mlsteele'},
+          {fullName: 'Chris Nojima', username: 'chrisnojima'},
         ],
       },
       {
         emoji: ':honey_pot:',
         users: [
-          {username: 'mikem', fullName: 'Mike Maxim'},
-          {username: 'ayoubd', fullName: 'Danny Ayoub'},
-          {username: 'patrick', fullName: 'Patrick Crosby'},
+          {fullName: 'Mike Maxim', username: 'mikem'},
+          {fullName: 'Danny Ayoub', username: 'ayoubd'},
+          {fullName: 'Patrick Crosby', username: 'patrick'},
         ],
       },
     ],
@@ -91,12 +91,14 @@ const vowels = 'AEIOU'.split('')
 const emoji = [':+1:', ':-1:', ':heavy_check_mark:', ':boom:', ':globe_with_meridians:', ':bathtub:']
 const rng = new Sb.Rnd(7324)
 const makeName = () => {
-  const length = rng.next() % 5 + 3
+  const length = (rng.next() % 5) + 3
   let res = ''
   for (let i = 0; i < length; i++) {
-    i % 2 === 0
-      ? (res += consonants[rng.next() % consonants.length])
-      : (res += vowels[rng.next() % vowels.length])
+    if (i % 2 === 0) {
+      res += consonants[rng.next() % consonants.length]
+    } else {
+      res += vowels[rng.next() % vowels.length]
+    }
   }
   return upperFirst(res.toLowerCase())
 }
@@ -119,7 +121,7 @@ examples.push({
   ...common,
   reactions: emoji.map(e => ({
     emoji: e,
-    users: makeUsers(rng.next() % maxUsersInReaction + 1),
+    users: makeUsers((rng.next() % maxUsersInReaction) + 1),
   })),
 })
 

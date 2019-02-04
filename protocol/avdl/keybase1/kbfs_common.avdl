@@ -37,8 +37,10 @@ protocol kbfsCommon {
     TOO_MANY_FOLDERS_11,
     EXDEV_NOT_SUPPORTED_12,
     DISK_LIMIT_REACHED_13,
-    DISK_CACHE_ERROR_LOG_SEND_14
-  }
+    DISK_CACHE_ERROR_LOG_SEND_14,
+    OFFLINE_ARCHIVED_15,
+    OFFLINE_UNSYNCED_16
+}
 
   record FSNotification {
     string filename;

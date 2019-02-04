@@ -11,4 +11,5 @@ export type Props = {
   onDownloadAttachment: ?() => void,
   onShowInFinder: ?() => void,
   onToggleZoom: () => void,
+  isVideo: boolean,
 }

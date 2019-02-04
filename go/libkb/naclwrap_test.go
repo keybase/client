@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"testing"
 
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/stretchr/testify/require"
 )
 
@@ -108,7 +109,7 @@ func TestVerifyBytesAccept(t *testing.T) {
 	msg := []byte("test message")
 	sig := keyPair.Private.Sign(msg)
 	if !keyPair.Public.Verify(msg, sig) {
-		t.Error(VerificationError{})
+		t.Error(kbcrypto.VerificationError{})
 	}
 }
 
@@ -124,10 +125,10 @@ func TestVerifyBytesReject(t *testing.T) {
 
 	// Corrupt signature.
 
-	var corruptSig NaclSignature
+	var corruptSig kbcrypto.NaclSignature
 	copy(corruptSig[:], sig[:])
 	corruptSig[0] = ^sig[0]
-	if keyPair.Public.Verify(msg, &corruptSig) {
+	if keyPair.Public.Verify(msg, corruptSig) {
 		t.Error("Corrupt signature unexpectedly passes")
 	}
 
@@ -236,7 +237,7 @@ func TestNaclPrefixedSigs(t *testing.T) {
 
 	msg := []byte("test message")
 
-	sig, err := keyPair.SignV2(msg, SignaturePrefixChatMBv1)
+	sig, err := keyPair.SignV2(msg, kbcrypto.SignaturePrefixChatMBv1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -251,33 +252,56 @@ func TestNaclPrefixedSigs(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected an error after we jiggled the version to 1")
 	}
-	if _, ok := err.(VerificationError); !ok {
+	if _, ok := err.(kbcrypto.VerificationError); !ok {
 		t.Fatal("expected a VerificationError")
 	}
 
 	sig.Version = 2
-	sig.Prefix = SignaturePrefixKBFS
+	sig.Prefix = kbcrypto.SignaturePrefixKBFS
 	_, err = sig.Verify()
 	if err == nil {
 		t.Fatal("expected an error after we jiggled the prefix to the wrong one")
 	}
-	if _, ok := err.(VerificationError); !ok {
+	if _, ok := err.(kbcrypto.VerificationError); !ok {
 		t.Fatal("expected a VerificationError")
 	}
 
-	_, err = keyPair.SignV2(msg, SignaturePrefix("a\x00b"))
+	_, err = keyPair.SignV2(msg, kbcrypto.SignaturePrefix("a\x00b"))
 	if err == nil {
 		t.Fatal("expected a BadSignaturePrefixError")
 	}
-	if _, ok := err.(BadSignaturePrefixError); !ok {
+	if _, ok := err.(kbcrypto.BadSignaturePrefixError); !ok {
 		t.Fatal("expected a BadSignaturePrefixError")
 	}
-	_, err = keyPair.SignV2(msg, SignaturePrefix(""))
+	_, err = keyPair.SignV2(msg, kbcrypto.SignaturePrefix(""))
 	if err == nil {
 		t.Fatal("expected a BadSignaturePrefixError")
 	}
-	if _, ok := err.(BadSignaturePrefixError); !ok {
+	if _, ok := err.(kbcrypto.BadSignaturePrefixError); !ok {
 		t.Fatal("expected a BadSignaturePrefixError")
+	}
+}
+
+func TestNaclBadPrefix(t *testing.T) {
+	keyPair, err := GenerateNaclSigningKeyPair()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Logf("keyPair: Public: %+v, Private: %+v", keyPair.Public, keyPair.Private)
+
+	msg := []byte("test message")
+
+	sig, err := keyPair.Sign(append([]byte("AA\x00"), msg...))
+	if err != nil {
+		t.Fatal(err)
+	}
+	sig.Version = 2
+	sig.Prefix = kbcrypto.SignaturePrefix("AA")
+	sig.Payload = msg
+	_, err = sig.Verify()
+	if err == nil {
+		t.Fatal("expected a signature verification error")
 	}
 }
 

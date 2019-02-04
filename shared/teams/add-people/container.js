@@ -5,7 +5,7 @@ import * as SearchConstants from '../../constants/search'
 import {getRole, isOwner, teamWaitingKey} from '../../constants/teams'
 import {upperFirst} from 'lodash-es'
 import AddPeople from '.'
-import {navigateAppend} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {anyWaiting} from '../../constants/waiting'
 import {
   connect,
@@ -14,17 +14,19 @@ import {
   withHandlers,
   withPropsOnChange,
   withStateHandlers,
-  type TypedState,
+  type RouteProps,
 } from '../../util/container'
 
-const mapStateToProps = (state: TypedState, {routeProps}) => {
+type OwnProps = RouteProps<{teamname: string}, {}>
+
+const mapStateToProps = (state, {routeProps}) => {
   const teamname = routeProps.get('teamname')
   return {
-    numberOfUsersSelected: SearchConstants.getUserInputItemIds(state, {searchKey: 'addToTeamSearch'}).length,
-    name: teamname,
     _yourRole: getRole(state, teamname),
     errorText: upperFirst(state.teams.teamInviteError),
     loading: anyWaiting(state, teamWaitingKey(teamname)),
+    name: teamname,
+    numberOfUsersSelected: SearchConstants.getUserInputItemIds(state, 'addToTeamSearch').size,
   }
 }
 
@@ -46,6 +48,12 @@ const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => ({
       })
     )
   },
+  onBack: () => {
+    dispatch(navigateUp())
+    dispatch(SearchGen.createClearSearchResults({searchKey: 'addToTeamSearch'}))
+    dispatch(SearchGen.createSetUserInputItems({searchKey: 'addToTeamSearch', searchResults: []}))
+    dispatch(TeamsGen.createSetTeamInviteError({error: ''}))
+  },
   onClearSearch: () => {
     dispatch(SearchGen.createClearSearchResults({searchKey: 'addToTeamSearch'}))
     dispatch(SearchGen.createSetUserInputItems({searchKey: 'addToTeamSearch', searchResults: []}))
@@ -58,12 +66,6 @@ const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => ({
     dispatch(SearchGen.createSetUserInputItems({searchKey: 'addToTeamSearch', searchResults: []}))
     dispatch(TeamsGen.createSetTeamInviteError({error: ''}))
   },
-  onBack: () => {
-    dispatch(navigateUp())
-    dispatch(SearchGen.createClearSearchResults({searchKey: 'addToTeamSearch'}))
-    dispatch(SearchGen.createSetUserInputItems({searchKey: 'addToTeamSearch', searchResults: []}))
-    dispatch(TeamsGen.createSetTeamInviteError({error: ''}))
-  },
   onOpenRolePicker: (
     role: string,
     sendNotification: boolean,
@@ -71,7 +73,7 @@ const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => ({
     onComplete: (string, boolean) => void
   ) => {
     dispatch(
-      navigateAppend([
+      RouteTreeGen.createNavigateAppend({path: [
         {
           props: {
             addButtonLabel: 'Add',
@@ -84,22 +86,26 @@ const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => ({
           },
           selected: 'controlledRolePicker',
         },
-      ])
+      ]})
     )
   },
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
+  connect<OwnProps, _, _, _, _>(
+    mapStateToProps,
+    mapDispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d})
+  ),
   compose(
     withStateHandlers(
       {role: 'writer', sendNotification: true},
       {
-        setSendNotification: () => sendNotification => ({sendNotification}),
         onRoleChange: () => role => ({role}),
+        setSendNotification: () => sendNotification => ({sendNotification}),
       }
     ),
-    withPropsOnChange(['onExitSearch', 'numberOfUsersSelected'], props => ({
+    withPropsOnChange(['numberOfUsersSelected'], props => ({
       addButtonLabel: props.numberOfUsersSelected > 0 ? `Add (${props.numberOfUsersSelected})` : 'Add',
       onCancel: () => props.onClose(),
       title: `Add to ${props.name}`,

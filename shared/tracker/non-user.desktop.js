@@ -1,7 +1,14 @@
 // @flow
 import * as React from 'react'
 import {Box, Text, Button, Icon, ButtonBar} from '../common-adapters'
-import {globalColors, globalStyles, desktopStyles, platformStyles, collapseStyles} from '../styles'
+import {
+  borderRadius,
+  globalColors,
+  globalStyles,
+  desktopStyles,
+  platformStyles,
+  collapseStyles,
+} from '../styles'
 import type {Props} from './non-user'
 
 const Top = ({onClose, reason, inviteLink, name, isPrivate}) => {
@@ -11,8 +18,8 @@ const Top = ({onClose, reason, inviteLink, name, isPrivate}) => {
   const icon = inviteLink
     ? 'icon-invite-link-negative-48'
     : isPrivate
-      ? 'icon-folder-private-success-negative-48'
-      : 'icon-folder-public-success-negative-48'
+    ? 'icon-folder-private-success-negative-48'
+    : 'icon-folder-public-success-negative-48'
 
   let textRef
   return (
@@ -74,7 +81,7 @@ const Bottom = ({onClose, name, serviceName}) => (
       </Text>
       <Text type="Body">In the meantime, you can continue to work in the folder.</Text>
     </Box>
-    <Box style={{flex: 1, alignItems: 'center'}} />
+    <Box style={{alignItems: 'center', flex: 1}} />
     <ButtonBar direction="row">
       <Button type="Secondary" label="Close" onClick={onClose} />
     </ButtonBar>
@@ -89,22 +96,22 @@ const Render = ({name, reason, inviteLink, onClose, isPrivate, serviceName}: Pro
 )
 
 const stylesMessage = {
-  textAlign: 'center',
   color: globalColors.white,
-  marginLeft: -5, // give a little breathing room
-  marginRight: -5,
+  marginLeft: -5,
+  marginRight: -5, // give a little breathing room
+  textAlign: 'center',
 }
 
 const stylesContainer = {
   ...desktopStyles.windowDragging,
   ...globalStyles.flexBoxColumn,
-  justifyContent: 'space-between',
-  cursor: 'default',
   alignItems: 'center',
-  position: 'relative',
   backgroundColor: globalColors.blue,
+  cursor: 'default',
   height: 235,
+  justifyContent: 'space-between',
   padding: 24,
+  position: 'relative',
 }
 
 const stylesClose = collapseStyles([
@@ -118,28 +125,28 @@ const stylesClose = collapseStyles([
 
 const stylesLinkBox = {
   ...globalStyles.flexBoxRow,
-  justifyContent: 'center',
   alignItems: 'center',
   alignSelf: 'stretch',
-  marginTop: 8,
-  borderRadius: 48,
-  height: 32,
   backgroundColor: globalColors.white,
+  borderRadius,
+  height: 32,
+  justifyContent: 'center',
+  marginTop: 8,
 }
 
 const stylesLink = platformStyles({
   isElectron: {
     ...desktopStyles.windowDraggingClickable,
+    color: globalColors.green,
     marginLeft: 7,
-    color: globalColors.green2,
   },
 })
 
 const stylesNext = {
   ...globalStyles.flexBoxColumn,
-  flex: 1,
-  backgroundColor: globalColors.white,
   alignItems: 'center',
+  backgroundColor: globalColors.white,
+  flex: 1,
   padding: 24,
 }
 

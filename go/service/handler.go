@@ -140,23 +140,6 @@ func (h *BaseHandler) NewRemoteSkipPromptIdentifyUI(sessionID int, g *libkb.Glob
 	return c
 }
 
-type UpdateUI struct {
-	sessionID int
-	cli       *keybase1.UpdateUiClient
-}
-
-func (u *UpdateUI) UpdatePrompt(ctx context.Context, arg keybase1.UpdatePromptArg) (keybase1.UpdatePromptRes, error) {
-	return u.cli.UpdatePrompt(ctx, arg)
-}
-
-func (u *UpdateUI) UpdateAppInUse(ctx context.Context, arg keybase1.UpdateAppInUseArg) (keybase1.UpdateAppInUseRes, error) {
-	return u.cli.UpdateAppInUse(ctx, arg)
-}
-
-func (u *UpdateUI) UpdateQuit(ctx context.Context, arg keybase1.UpdateQuitArg) (res keybase1.UpdateQuitRes, err error) {
-	return u.cli.UpdateQuit(ctx, arg)
-}
-
 type RekeyUI struct {
 	libkb.Contextified
 	sessionID    int

@@ -1,8 +1,8 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
-import {Box2, ClickableBox, Divider, Icon, Text, iconCastPlatformStyles} from '../../common-adapters'
-import {globalColors, globalMargins, platformStyles, styleSheetCreate} from '../../styles'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 
 export type Props = {
   availableToSend: string, // non-empty only if native currency
@@ -10,10 +10,12 @@ export type Props = {
   code: string, // The same as `name` except for XLM
   equivAvailableToSend: string, // non-empty only if native currency e.g. '$123.45 USD'
   equivBalance: string, // non-empty only if native currency
+  expanded?: boolean, // for testing
   issuerName: string, // verified issuer domain name, 'Stellar network' or 'Unknown'
   issuerAccountID: string, // issuing public key
   name: string, // Asset code or 'Lumens'
   reserves: Array<Types.Reserve>, // non-empty only if native currency
+  openStellarURL: () => void,
 }
 
 type State = {
@@ -21,7 +23,7 @@ type State = {
 }
 
 export default class Asset extends React.Component<Props, State> {
-  state = {expanded: false}
+  state = {expanded: !!this.props.expanded}
 
   _toggleExpanded = () => {
     this.setState(prevProps => ({
@@ -31,58 +33,48 @@ export default class Asset extends React.Component<Props, State> {
 
   render() {
     return (
-      <Box2 direction="vertical" fullWidth={true}>
-        <ClickableBox onClick={this._toggleExpanded}>
-          <Box2 direction="horizontal" fullWidth={true} style={styles.headerContainer}>
-            <Box2 direction="horizontal" gap="tiny" style={styles.labelContainer}>
-              <Icon
+      <Kb.Box2 direction="vertical" fullWidth={true}>
+        <Kb.ClickableBox onClick={this._toggleExpanded}>
+          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.headerContainer}>
+            <Kb.Box2 direction="horizontal" gap="tiny" style={styles.labelContainer}>
+              <Kb.Icon
                 type={this.state.expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
-                style={iconCastPlatformStyles(styles.caret)}
+                style={Kb.iconCastPlatformStyles(styles.caret)}
               />
-              <Box2 direction="vertical">
-                <Text type="BodySemibold" lineClamp={1}>
+              <Kb.Box2 direction="vertical">
+                <Kb.Text type="BodySemibold" lineClamp={1}>
                   {this.props.name}
-                </Text>
-                <Text type="BodySmall" lineClamp={1}>
+                </Kb.Text>
+                <Kb.Text type="BodySmall" lineClamp={1}>
                   {this.props.issuerName}
-                </Text>
-              </Box2>
-            </Box2>
-            <Box2 direction="vertical" style={styles.balanceContainer} fullHeight={true}>
-              <Text
-                type="BodyExtrabold"
-                lineClamp={1}
-                onClick={event => event.stopPropagation()}
-                selectable={true}
-                style={{color: globalColors.purple2}}
-              >
+                </Kb.Text>
+              </Kb.Box2>
+            </Kb.Box2>
+            <Kb.Box2 direction="vertical" style={styles.balanceContainer} fullHeight={true}>
+              <Kb.Text type="BodyExtrabold" lineClamp={1} style={styles.balance}>
                 {this.props.balance} {this.props.code}
-              </Text>
-              <Text
-                type="BodySmall"
-                lineClamp={1}
-                onClick={event => event.stopPropagation()}
-                selectable={true}
-              >
+              </Kb.Text>
+              <Kb.Text type="BodySmall" lineClamp={1}>
                 {this.props.equivBalance}
-              </Text>
-            </Box2>
-          </Box2>
-        </ClickableBox>
+              </Kb.Text>
+            </Kb.Box2>
+          </Kb.Box2>
+        </Kb.ClickableBox>
         {this.state.expanded && (
-          <Box2 direction="horizontal" fullWidth={true} style={styles.expandedRowContainer}>
+          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.expandedRowContainer}>
             {this.props.code === 'XLM' && (
               <BalanceSummary
                 availableToSend={this.props.availableToSend}
                 equivAvailableToSend={this.props.equivAvailableToSend}
                 reserves={this.props.reserves}
                 total={this.props.balance}
+                openStellarURL={this.props.openStellarURL}
               />
             )}
             {!!this.props.issuerAccountID && <IssuerAccountID issuerAccountID={this.props.issuerAccountID} />}
-          </Box2>
+          </Kb.Box2>
         )}
-      </Box2>
+      </Kb.Box2>
     )
   }
 }
@@ -92,44 +84,60 @@ type BalanceSummaryProps = {
   equivAvailableToSend: string,
   reserves: Array<Types.Reserve>,
   total: string,
+  openStellarURL: () => void,
 }
 
 const BalanceSummary = (props: BalanceSummaryProps) => (
-  <Box2 direction="vertical" fullWidth={true} style={styles.balanceSummaryContainer}>
-    <Divider style={{marginBottom: globalMargins.tiny}} />
-    <Box2 direction="horizontal" fullWidth={true}>
-      <Text type="BodySemibold" style={styles.leftColText}>
+  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.balanceSummaryContainer}>
+    <Kb.Divider style={styles.dividerTop} />
+    <Kb.Box2 direction="horizontal" fullWidth={true}>
+      <Kb.Text type="BodySemibold" style={styles.leftColText}>
         Total
-      </Text>
-      <Text type="BodyExtrabold" selectable={true}>
-        {props.total}
-      </Text>
-    </Box2>
+      </Kb.Text>
+      <Kb.Text type="BodyExtrabold" selectable={true}>
+        {props.total} XLM
+      </Kb.Text>
+    </Kb.Box2>
     {props.reserves.map(reserve => (
-      <Box2 direction="horizontal" fullWidth={true} key={reserve.description}>
-        <Text type="Body" lineClamp={1} style={styles.leftColText}>
-          Reserve ({reserve.description})
-        </Text>
-        <Text type="Body" lineClamp={1} selectable={true}>
-          -{reserve.amount}
-        </Text>
-      </Box2>
+      <Kb.Box2 direction="horizontal" fullWidth={true} key={reserve.description}>
+        <Kb.Box2 direction="horizontal" style={styles.leftColText}>
+          <Kb.Text type="Body" lineClamp={1}>
+            Reserve ({reserve.description})
+          </Kb.Text>
+          {reserve.description === 'account' && (
+            <Kb.WithTooltip
+              text="Minimum balances help protect the network from the creation of spam accounts."
+              multiline={true}
+            >
+              <Kb.Icon
+                fontSize={Styles.isMobile ? 18 : 12}
+                onClick={Styles.isMobile ? props.openStellarURL : null}
+                style={styles.questionMark}
+                type="iconfont-question-mark"
+              />
+            </Kb.WithTooltip>
+          )}
+        </Kb.Box2>
+        <Kb.Text type="Body" lineClamp={1} selectable={true}>
+          -{reserve.amount} XLM
+        </Kb.Text>
+      </Kb.Box2>
     ))}
-    <Divider style={{marginBottom: globalMargins.tiny, marginTop: globalMargins.tiny}} />
-    <Box2 direction="horizontal" fullWidth={true} style={{alignItems: 'flex-start'}}>
-      <Text type="BodySemibold" style={styles.leftColText}>
+    <Kb.Divider style={styles.divider} />
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={{alignItems: 'flex-start'}}>
+      <Kb.Text type="BodySemibold" style={styles.leftColText}>
         Available to send
-      </Text>
-      <Box2 direction="vertical" style={styles.balanceContainer}>
-        <Text type="Body" selectable={true} style={{fontWeight: '800'}}>
-          {props.availableToSend}
-        </Text>
-        <Text type="BodySmall" selectable={true}>
+      </Kb.Text>
+      <Kb.Box2 direction="vertical" style={styles.balanceContainer}>
+        <Kb.Text type="Body" selectable={true} style={{fontWeight: '800'}}>
+          {props.availableToSend} XLM
+        </Kb.Text>
+        <Kb.Text type="BodySmall" selectable={true}>
           {props.equivAvailableToSend}
-        </Text>
-      </Box2>
-    </Box2>
-  </Box2>
+        </Kb.Text>
+      </Kb.Box2>
+    </Kb.Box2>
+  </Kb.Box2>
 )
 
 type IssuerAccountIDProps = {
@@ -137,18 +145,16 @@ type IssuerAccountIDProps = {
 }
 
 const IssuerAccountID = (props: IssuerAccountIDProps) => (
-  <Box2 direction="vertical" fullWidth={true} style={styles.balanceSummaryContainer}>
-    <Text type="Body">Issuer:</Text>
-    <Text type="Body" selectable={true}>
-      {/* TODO (DA) make the full address copyable */}
-      {props.issuerAccountID.substr(0, 12) +
-        '..........' +
-        props.issuerAccountID.substr(props.issuerAccountID.length - 12)}
-    </Text>
-  </Box2>
+  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.balanceSummaryContainer}>
+    <Kb.Text type="Body">Issuer:</Kb.Text>
+    <Kb.Text type="Body" selectable={true}>
+      {props.issuerAccountID}
+    </Kb.Text>
+  </Kb.Box2>
 )
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
+  balance: {color: Styles.globalColors.purple2},
   balanceContainer: {
     alignItems: 'flex-end',
     justifyContent: 'flex-start',
@@ -157,25 +163,39 @@ const styles = styleSheetCreate({
     flexBasis: 355,
     flexShrink: 1,
   },
-  caret: platformStyles({
+  caret: Styles.platformStyles({
     isElectron: {lineHeight: '2'},
     isMobile: {marginTop: 6},
   }),
+  divider: {
+    marginBottom: Styles.globalMargins.tiny,
+    marginTop: Styles.globalMargins.tiny,
+  },
+  dividerTop: {marginBottom: Styles.globalMargins.tiny},
   expandedRowContainer: {
     justifyContent: 'flex-end',
-    paddingBottom: globalMargins.tiny,
-    paddingLeft: globalMargins.medium,
-    paddingRight: globalMargins.small,
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingLeft: Styles.globalMargins.medium,
+    paddingRight: Styles.globalMargins.small,
   },
   headerContainer: {
-    height: 48,
-    padding: globalMargins.tiny,
-    paddingRight: globalMargins.small,
+    height: Styles.isMobile ? 56 : 48,
+    padding: Styles.globalMargins.tiny,
+    paddingRight: Styles.globalMargins.small,
   },
   labelContainer: {
     flex: 1,
   },
   leftColText: {
+    alignItems: 'center',
     flex: 1,
   },
+  questionMark: Styles.platformStyles({
+    common: {
+      marginLeft: 4,
+    },
+    isElectron: {
+      cursor: 'pointer',
+    },
+  }),
 })

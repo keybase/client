@@ -18,14 +18,15 @@ type PostProofRes struct {
 }
 
 type PostProofArg struct {
-	Sig            string
-	SigInner       []byte
-	ID             keybase1.SigID
-	RemoteUsername string
-	ProofType      string
-	Supersede      bool
-	RemoteKey      string
-	SigningKey     GenericKey
+	Sig               string
+	SigInner          []byte
+	RemoteServiceType string
+	ID                keybase1.SigID
+	RemoteUsername    string
+	ProofType         string
+	Supersede         bool
+	RemoteKey         string
+	SigningKey        GenericKey
 }
 
 func PostProof(m MetaContext, arg PostProofArg) (*PostProofRes, error) {
@@ -41,6 +42,11 @@ func PostProof(m MetaContext, arg PostProofArg) (*PostProofRes, error) {
 	if len(arg.SigInner) > 0 {
 		hargs["sig_inner"] = S{string(arg.SigInner)}
 	}
+
+	if arg.ProofType == GenericSocialWebServiceBinding {
+		hargs["remote_service"] = S{arg.RemoteServiceType}
+	}
+
 	hargs.Add(arg.RemoteKey, S{arg.RemoteUsername})
 
 	res, err := m.G().API.Post(APIArg{
@@ -49,7 +55,6 @@ func PostProof(m MetaContext, arg PostProofArg) (*PostProofRes, error) {
 		Args:        hargs,
 		MetaContext: m,
 	})
-
 	if err != nil {
 		return nil, err
 	}

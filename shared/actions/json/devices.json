@@ -18,6 +18,9 @@
       "wasCurrentDevice": "boolean",
       "deviceName": "string"
     },
+    "badgeAppForDevices": {
+      "ids": "Array<string>"
+    },
     "showRevokePage": { "deviceID": "Types.DeviceID" },
     "showDevicePage": { "deviceID": "Types.DeviceID" },
     "showPaperKeyPage": {}

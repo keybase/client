@@ -13,69 +13,67 @@ export type Props = {|
 
 const RemoveAccountPopup = (props: Props) => {
   const buttons = [
-    <Kb.Button
-      fullWidth={Styles.isMobile}
-      key={0}
-      label="Cancel"
-      onClick={props.onClose}
-      type="Secondary"
-      style={styles.button}
-    />,
+    <Kb.Button fullWidth={Styles.isMobile} key={0} label="Cancel" onClick={props.onClose} type="Secondary" />,
     <Kb.Button
       fullWidth={Styles.isMobile}
       key={1}
       label="Yes, remove"
       onClick={props.onDelete}
       type="Danger"
-      style={styles.button}
     />,
   ]
 
   return (
     <WalletPopup
-      onClose={props.onClose}
+      onExit={props.onClose}
+      backButtonType="cancel"
       headerStyle={styles.header}
       bottomButtons={Styles.isMobile ? buttons.reverse() : buttons}
+      safeAreaViewBottomStyle={styles.safeAreaBottom}
     >
-      <Kb.Icon
-        type={Styles.isMobile ? 'icon-wallet-remove-64' : 'icon-wallet-remove-48'}
-        style={Kb.iconCastPlatformStyles(styles.icon)}
-      />
-      <Kb.Text style={styles.warningText} type="Header">
-        Are you sure you want to remove <Kb.Text type="HeaderItalic">{props.name}</Kb.Text> from Keybase?
-      </Kb.Text>
-      <Kb.Text type="BodySmall">Balance:</Kb.Text>
-      <Kb.Text type="BodySmallExtrabold">{props.balance}</Kb.Text>
+      <Kb.Box2 centerChildren={true} direction="vertical" style={styles.flexOne} fullWidth={true}>
+        <Kb.Icon
+          type={Styles.isMobile ? 'icon-wallet-remove-64' : 'icon-wallet-remove-48'}
+          style={Kb.iconCastPlatformStyles(styles.icon)}
+        />
+        <Kb.Text center={true} style={styles.warningText} type="Header">
+          This removes{' '}
+        </Kb.Text>
+        <Kb.Text center={true} type="HeaderItalic" style={styles.warningText}>
+          {props.name}
+        </Kb.Text>
+        <Kb.Text
+          center={true}
+          style={Styles.collapseStyles([styles.warningText, styles.marginBottomTiny])}
+          type="Header"
+        >
+          {' '}
+          from Keybase, but you can still use it elsewhere if you save the private key.
+        </Kb.Text>
+        <Kb.Text type="BodySmall">Balance:</Kb.Text>
+        <Kb.Text type="BodySmallExtrabold">{props.balance}</Kb.Text>
+      </Kb.Box2>
     </WalletPopup>
   )
 }
 
 const styles = Styles.styleSheetCreate({
-  header: {
-    borderBottomWidth: 0,
-  },
+  flexOne: {flex: 1},
+  header: {borderBottomWidth: 0},
   icon: Styles.platformStyles({
-    common: {
-      marginBottom: Styles.globalMargins.large,
-    },
-    isElectron: {
-      marginTop: Styles.globalMargins.medium,
-    },
-    isMobile: {
-      marginTop: Styles.globalMargins.xlarge,
-    },
+    common: {marginBottom: Styles.globalMargins.large},
+    isElectron: {marginTop: Styles.globalMargins.medium},
+    isMobile: {marginTop: Styles.globalMargins.xlarge},
   }),
+  marginBottomTiny: {marginBottom: Styles.globalMargins.tiny},
+  safeAreaBottom: {
+    backgroundColor: Styles.globalColors.fastBlank,
+  },
   warningText: Styles.platformStyles({
-    common: {
-      marginBottom: Styles.globalMargins.tiny,
-      textAlign: 'center',
-    },
-    isElectron: {
-      wordBreak: 'break-all',
-    },
+    isElectron: {wordBreak: 'break-word'},
     isMobile: {
-      marginLeft: Styles.globalMargins.small,
-      marginRight: Styles.globalMargins.small,
+      paddingLeft: Styles.globalMargins.medium,
+      paddingRight: Styles.globalMargins.medium,
     },
   }),
 })

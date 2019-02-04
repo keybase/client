@@ -41,9 +41,14 @@ protocol user {
     Time trackTime;
   }
 
+  @typedef("string")
+  record EmailAddress {}
+
   record Email {
-    string email;
+    EmailAddress email;
     boolean isVerified;
+    boolean isPrimary;
+    IdentityVisibility visibility;
   }
 
   record UserSettings {
@@ -93,24 +98,6 @@ protocol user {
   array<UserSummary> listTracking(int sessionID, string filter, string assertion);
   string listTrackingJSON(int sessionID, string filter, boolean verbose, string assertion);
 
-  record SearchComponent {
-    string key;
-    string value;
-    double score;
-  }
-
-  record SearchResult {
-    UID uid;
-    string username;
-    array<SearchComponent> components;
-    double score;
-  }
-
-  /**
-    Search for users who match a given query.
-    */
-  array<SearchResult> search(int sessionID, string query);
-
   /**
     Load all the user's public keys (even those in reset key families)
     from the server with no verification
@@ -150,7 +137,36 @@ protocol user {
   @lint("ignore")
   UPAKVersioned getUPAK(UID uid);
 
+  /**
+   getUPAKLite returns a UPKLiteV1AllIncarnations. Used mainly for debugging.
+  */
+  @lint("ignore")
+  UPKLiteV1AllIncarnations getUPAKLite(UID uid);
+
   void uploadUserAvatar(string filename, union { null, ImageCropRect } crop);
+
+  ProofSuggestionsRes proofSuggestions(int sessionID);
+  record ProofSuggestionsRes{
+    array<ProofSuggestion> suggestions;
+    boolean showMore;
+  }
+
+  // A proof the user doesn't have.
+  record ProofSuggestion {
+    string key;
+    boolean belowFold;
+    string profileText; // "Prove your Twitter", "Add a PGP key"
+    array<SizedImage> profileIcon; // TODO CORE-9882: this is an empty list for now
+    string pickerText; // "Twitter", "Your own website", "octodon.xyz"
+    string pickerSubtext; // "twitter.com", "Mastodon instance"
+    array<SizedImage> pickerIcon; // TODO CORE-9882: this is an empty list for now
+    array<Identify3RowMeta> metas; // for 'new' proof types
+  }
+
+  record SizedImage {
+    string path;
+    int width;
+  }
 
   record NextMerkleRootRes {
     union { null, MerkleRootV2 } res;
@@ -169,4 +185,6 @@ protocol user {
    the reset. Usually, we'll just turn up the next Merkle root, but not always.
   */
   NextMerkleRootRes findNextMerkleRootAfterReset(UID uid, Seqno resetSeqno, ResetMerkleRoot prev);
+
+  boolean loadHasRandomPw(int sessionID, boolean forceRepoll);
 }

@@ -2,8 +2,9 @@
 // Incoming and outgoing requests that are in a session
 import type {MethodKey, ResponseType} from './types'
 import type {invokeType} from './index.platform'
+import type {RPCError} from '../util/errors'
 
-type SimpleWaiting = (waiting: boolean) => void
+type SimpleWaiting = (waiting: boolean, err: ?RPCError) => void
 
 // Base class. Handles method and parameters. Waiting callback
 class Request {
@@ -12,7 +13,7 @@ class Request {
   // RPC parameters
   param: Object
   // Let others know our waiting state
-  _waitingHandler: (waiting: boolean) => void
+  _waitingHandler: SimpleWaiting
   // If we're waiting for a response
   _waiting: boolean = false
 
@@ -22,9 +23,9 @@ class Request {
     this._waitingHandler = waitingHandler
   }
 
-  updateWaiting(waiting: boolean): void {
+  updateWaiting(waiting: boolean, err: ?RPCError): void {
     this._waiting = waiting
-    this._waitingHandler(waiting)
+    this._waitingHandler(waiting, err)
   }
 }
 
@@ -47,7 +48,7 @@ class IncomingRequest extends Request {
   }
 
   _cleanup() {
-    this.updateWaiting(true) // We just responded to the server so now we're waiting
+    this.updateWaiting(true, null) // We just responded to the server so now we're waiting
   }
 
   result(...args: Array<any>) {
@@ -61,7 +62,7 @@ class IncomingRequest extends Request {
   }
 
   handle() {
-    this.updateWaiting(false) // we just got a response from the server so we're no longer waiting
+    this.updateWaiting(false, null) // we just got a response from the server so we're no longer waiting
 
     // Note we pass ourself to the handler and not the raw response. This allows us to clean up
     this._handler(this.param, this)
@@ -92,7 +93,7 @@ class OutgoingRequest extends Request {
   }
 
   _sendCallback(err: any, data: any): void {
-    this.updateWaiting(false)
+    this.updateWaiting(false, err)
     this._callback && this._callback(err, data)
   }
 }

@@ -4,6 +4,7 @@
 package service
 
 import (
+	"github.com/keybase/client/go/encrypteddb"
 	"path/filepath"
 	"strings"
 
@@ -13,10 +14,13 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
+	"github.com/keybase/client/go/tlfupgrade"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
+
+const favoritesEncryptionReason = "kbfs.favorites"
 
 type KBFSHandler struct {
 	*BaseHandler
@@ -118,4 +122,30 @@ func (h *KBFSHandler) CreateTLF(ctx context.Context, arg keybase1.CreateTLFArg) 
 
 func (h *KBFSHandler) GetKBFSTeamSettings(ctx context.Context, teamID keybase1.TeamID) (keybase1.KBFSTeamSettings, error) {
 	return teams.GetKBFSTeamSettings(ctx, h.G(), teamID.IsPublic(), teamID)
+}
+
+func (h *KBFSHandler) UpgradeTLF(ctx context.Context, arg keybase1.UpgradeTLFArg) error {
+	return tlfupgrade.UpgradeTLFForKBFS(ctx, h.G(), arg.TlfName, arg.Public)
+}
+
+// getKeyFn returns a function that gets an encryption key for storing
+// favorites.
+func (h *KBFSHandler) getKeyFn() func(context.Context) ([32]byte, error) {
+	keyFn := func(ctx context.Context) ([32]byte, error) {
+		return teams.GetLocalStorageSecretBoxKeyGeneric(ctx, h.G(), favoritesEncryptionReason)
+	}
+	return keyFn
+}
+
+// EncryptFavorites encrypts cached favorites to store on disk.
+func (h *KBFSHandler) EncryptFavorites(ctx context.Context,
+	dataToDecrypt []byte) (res []byte, err error) {
+	return encrypteddb.EncodeBox(ctx, dataToDecrypt, h.getKeyFn())
+}
+
+// DecryptFavorites decrypts cached favorites stored on disk.
+func (h *KBFSHandler) DecryptFavorites(ctx context.Context,
+	dataToEncrypt []byte) (res []byte, err error) {
+	err = encrypteddb.DecodeBox(ctx, dataToEncrypt, h.getKeyFn(), res)
+	return res, err
 }

@@ -1,6 +1,13 @@
 // @flow
 import React, {Component} from 'react'
-import {globalStyles, globalMargins, globalColors, collapseStyles, desktopStyles} from '../../styles'
+import {
+  borderRadius,
+  globalStyles,
+  globalMargins,
+  globalColors,
+  collapseStyles,
+  desktopStyles,
+} from '../../styles'
 import {Box, Button, Icon, Text} from '../../common-adapters'
 
 import type {Props} from './index'
@@ -20,22 +27,22 @@ class InviteGeneratedRender extends Component<Props> {
         <Icon type="iconfont-close" style={iconStyle} onClick={this.props.onClose} />
         <Icon type="icon-invite-link-48" />
         {this.props.email ? (
-          <Text type="Body" style={textStyle}>
-            Yay! We emailed <Text type="BodySemibold">{this.props.email}</Text>
-            , but you can also give them the below link:
+          <Text center={true} type="Body" style={textStyle}>
+            Yay! We emailed <Text type="BodySemibold">{this.props.email}</Text>, but you can also give them
+            the below link:
           </Text>
         ) : (
-          <Text type="Body" style={textStyle}>
+          <Text center={true} type="Body" style={textStyle}>
             Yay! Please share the below link with your friend. It contains signup &amp; install instructions.
           </Text>
         )}
         <Box style={linkContainerStyle}>
           <Icon
             type="iconfont-link"
-            style={{marginRight: globalMargins.tiny, height: 14}}
+            style={{height: 14, marginRight: globalMargins.tiny}}
             color={globalColors.black_10}
           />
-          <Text type="BodySemibold" selectable={true} style={{color: globalColors.green2}}>
+          <Text type="BodySemibold" selectable={true} style={{color: globalColors.green}}>
             {this.props.link}
           </Text>
         </Box>
@@ -52,7 +59,6 @@ class InviteGeneratedRender extends Component<Props> {
 
 const textStyle = {
   paddingTop: globalMargins.medium,
-  textAlign: 'center',
   width: 440,
 }
 
@@ -69,11 +75,11 @@ const linkContainerStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   backgroundColor: globalColors.green3,
-  borderRadius: 48,
+  borderRadius,
   height: 32,
   marginTop: globalMargins.tiny,
-  paddingLeft: globalMargins.medium,
-  paddingRight: globalMargins.medium,
+  paddingLeft: globalMargins.xsmall,
+  paddingRight: globalMargins.xsmall,
 }
 
 export default InviteGeneratedRender

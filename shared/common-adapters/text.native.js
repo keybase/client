@@ -2,13 +2,12 @@
 import React, {Component} from 'react'
 import openURL from '../util/open-url'
 import {defaultColor, fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.native'
-import {glamorous} from '../styles'
+import * as Styled from '../styles'
 import shallowEqual from 'shallowequal'
-import {StyleSheet} from 'react-native'
-
+import {NativeClipboard, NativeText, NativeStyleSheet, NativeAlert} from './native-wrappers.native'
 import type {Props, TextType, Background} from './text'
 
-const StyledText = glamorous.text({}, props => props.style)
+const StyledText = Styled.styled(NativeText)({}, props => props.style)
 
 const backgroundModes = [
   'Normal',
@@ -20,19 +19,24 @@ const backgroundModes = [
   'Terminal',
 ]
 
-const styleMap = Object.keys(metaData).reduce((map, type: TextType) => {
-  const meta = metaData[type]
-  backgroundModes.forEach(mode => {
-    map[`${type}:${mode}`] = {
-      ...fontSizeToSizeStyle(meta.fontSize),
-      color: meta.colorForBackgroundMode[mode] || defaultColor(mode),
-      ...meta.styleOverride,
-    }
-  })
-  return map
-}, {})
+const styleMap = Object.keys(metaData).reduce(
+  (map, type: TextType) => {
+    const meta = metaData[type]
+    backgroundModes.forEach(mode => {
+      map[`${type}:${mode}`] = {
+        ...fontSizeToSizeStyle(meta.fontSize),
+        color: meta.colorForBackgroundMode[mode] || defaultColor(mode),
+        ...meta.styleOverride,
+      }
+    })
+    return map
+  },
+  {
+    center: {textAlign: 'center'},
+  }
+)
 
-const styles = StyleSheet.create(styleMap)
+const styles = NativeStyleSheet.create(styleMap)
 
 // Init common styles for perf
 
@@ -42,6 +46,10 @@ class Text extends Component<Props> {
   }
   _nativeText: any
 
+  highlightText() {
+    // ignored
+  }
+
   focus() {
     if (this._nativeText) {
       this._nativeText.focus()
@@ -50,6 +58,21 @@ class Text extends Component<Props> {
 
   _urlClick = () => {
     openURL(this.props.onClickURL)
+  }
+
+  _urlCopy = (url: ?string) => {
+    if (!url) return
+    NativeClipboard.setString(url)
+  }
+
+  _urlChooseOption = () => {
+    const url = this.props.onLongPressURL
+    if (!url) return
+    NativeAlert.alert('', url, [
+      {style: 'cancel', text: 'Cancel'},
+      {onPress: () => openURL(url), text: 'Open Link'},
+      {onPress: () => this._urlCopy(url), text: 'Copy Link'},
+    ])
   }
 
   shouldComponentUpdate(nextProps: Props): boolean {
@@ -69,14 +92,23 @@ class Text extends Component<Props> {
     const dynamicStyle = {
       ...(this.props.backgroundMode === 'Normal'
         ? {}
-        : _getStyle(this.props.type, this.props.backgroundMode, this.props.lineClamp, !!this.props.onClick)),
+        : _getStyle(
+            this.props.type,
+            this.props.backgroundMode,
+            this.props.lineClamp,
+            !!this.props.onClick,
+            !!this.props.underline
+          )),
     }
 
     let style
     if (!Object.keys(dynamicStyle).length) {
-      style = this.props.style ? [baseStyle, this.props.style] : baseStyle
+      style =
+        this.props.style || this.props.center
+          ? [baseStyle, this.props.center && styles.center, this.props.style]
+          : baseStyle
     } else {
-      style = [baseStyle, dynamicStyle, this.props.style]
+      style = [baseStyle, dynamicStyle, this.props.center && styles.center, this.props.style]
     }
 
     const onPress =
@@ -85,6 +117,9 @@ class Text extends Component<Props> {
       // If selectable and there isn't already an onClick handler,
       // make a dummy one so that it shows the selection (on iOS).
       (this.props.selectable ? () => {} : undefined)
+
+    const onLongPress =
+      this.props.onLongPress || (this.props.onLongPressURL ? this._urlChooseOption : undefined)
 
     return (
       <StyledText
@@ -95,7 +130,7 @@ class Text extends Component<Props> {
         style={style}
         {...lineClamp(this.props.lineClamp, this.props.ellipsizeMode)}
         onPress={onPress}
-        onLongPress={this.props.onLongPress}
+        onLongPress={onLongPress}
         allowFontScaling={this.props.allowFontScaling}
       >
         {this.props.children}
@@ -109,9 +144,12 @@ function _getStyle(
   type: TextType,
   backgroundMode?: Background = 'Normal',
   lineClampNum?: ?number,
-  clickable?: ?boolean
+  clickable?: ?boolean,
+  forceUnderline: boolean
 ) {
-  if (backgroundMode === 'Normal') return null
+  if (backgroundMode === 'Normal') {
+    return forceUnderline ? {textDecorationLine: 'underline'} : {}
+  }
   const meta = metaData[type]
   const colorStyle = {color: meta.colorForBackgroundMode[backgroundMode] || defaultColor(backgroundMode)}
   const textDecoration = meta.isLink ? {textDecorationLine: 'underline'} : {}
@@ -143,3 +181,4 @@ function getStyle(
 export default Text
 export {getStyle}
 export {Text as TextMixed}
+export {allTextTypes} from './text.shared'

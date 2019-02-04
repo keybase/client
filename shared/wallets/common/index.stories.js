@@ -1,12 +1,12 @@
 // @flow
 import participantsRow from './participants-row/index.stories'
 import accountEntry from './account-entry/index.stories'
-import enterNamePopup from './enter-name-popup/index.stories'
+import enterName from './enter-name/index.stories'
 
 const load = () => {
   participantsRow()
   accountEntry()
-  enterNamePopup()
+  enterName()
 }
 
 export default load

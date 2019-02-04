@@ -27,10 +27,10 @@ class UpdatePassphrase extends Component<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
+      canSave: false,
       passphrase: '',
       passphraseConfirm: '',
       showTyping: false,
-      canSave: false,
     }
   }
 
@@ -50,7 +50,7 @@ class UpdatePassphrase extends Component<Props, State> {
 
   _canSave(passphrase: string, passphraseConfirm: string): boolean {
     const downloadedPGPState = this.props.hasPGPKeyOnServer !== null
-    return downloadedPGPState && passphrase === passphraseConfirm && this.state.passphrase.length >= 6
+    return downloadedPGPState && passphrase === passphraseConfirm && this.state.passphrase.length >= 8
   }
 
   render() {
@@ -58,12 +58,12 @@ class UpdatePassphrase extends Component<Props, State> {
     const notification = this.props.error
       ? {message: this.props.error.message, type: 'error'}
       : this.props.hasPGPKeyOnServer
-        ? {
-            message:
-              "Note: changing your passphrase will delete your PGP key from Keybase, and you'll need to generate or upload one again.",
-            type: 'error',
-          }
-        : null
+      ? {
+          message:
+            "Note: changing your passphrase will delete your PGP key from Keybase, and you'll need to generate or upload one again.",
+          type: 'error',
+        }
+      : null
     return (
       <StandardScreen onBack={this.props.onBack} notification={notification} style={{alignItems: 'center'}}>
         <Input
@@ -77,7 +77,7 @@ class UpdatePassphrase extends Component<Props, State> {
         />
         {!this.props.newPassphraseError && (
           <Text type="BodySmall" style={stylePasswordNote}>
-            (Minimum 6 characters)
+            (Minimum 8 characters)
           </Text>
         )}
         <Input

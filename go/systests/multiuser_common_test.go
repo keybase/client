@@ -119,6 +119,9 @@ func (t smuTerminalUI) PrintfUnescaped(fmt string, args ...interface{}) (int, er
 func (t smuTerminalUI) Prompt(libkb.PromptDescriptor, string) (string, error)         { return "", nil }
 func (t smuTerminalUI) PromptForConfirmation(prompt string) error                     { return nil }
 func (t smuTerminalUI) PromptPassword(libkb.PromptDescriptor, string) (string, error) { return "", nil }
+func (t smuTerminalUI) PromptPasswordMaybeScripted(libkb.PromptDescriptor, string) (string, error) {
+	return "", nil
+}
 func (t smuTerminalUI) PromptYesNo(libkb.PromptDescriptor, string, libkb.PromptDefault) (bool, error) {
 	return false, nil
 }

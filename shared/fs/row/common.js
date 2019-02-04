@@ -1,19 +1,18 @@
 // @flow
+import * as I from 'immutable'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/fs'
 import * as React from 'react'
-import {Box, Box2, ClickableBox} from '../../common-adapters'
-import PathItemIcon from '../common/path-item-icon'
-import PathItemAction from '../common/path-item-action-container'
-import OpenInSystemFileManager from '../common/open-in-system-file-manager-container'
+import * as Kb from '../../common-adapters'
+import {OpenInSystemFileManager, PathItemIcon, PathItemAction, SendInAppAction} from '../common'
 
 const rowBox = {
   ...Styles.globalStyles.flexBoxRow,
   alignItems: 'center',
   flex: 1,
   minWidth: 0,
-  paddingRight: Styles.globalMargins.small,
   paddingLeft: Styles.globalMargins.small,
+  paddingRight: Styles.globalMargins.small,
 }
 
 const itemBox = {
@@ -58,62 +57,35 @@ const rowText_30 = Styles.platformStyles({
 const leftBox = {
   ...Styles.globalStyles.flexBoxRow,
   flex: 1,
+  lineHeight: undefined, // unset this explicitly otherwise it messes up the badging
+}
+
+const leftBoxDisabled = {
+  ...leftBox,
+  opacity: 0.2,
 }
 
 const rightBox = {
   ...Styles.globalStyles.flexBoxRow,
+  alignItems: 'center',
   flexShrink: 1,
   justifyContent: 'flex-end',
-  alignItems: 'center',
 }
 
 const pathItemActionIcon = {
   padding: Styles.globalMargins.tiny,
 }
 
-const badgeContainer = {
-  position: 'absolute',
-  left: Styles.isMobile ? -24 : 24,
-  top: Styles.isMobile ? -20 : -1,
-  zIndex: 200,
-}
-
-const badgeContainerNew = {
-  ...badgeContainer,
-  left: Styles.isMobile ? -32 : 16,
-}
-
-const badgeContainerRekey = {
-  ...badgeContainer,
-  top: Styles.isMobile ? 5 : 24,
-  left: Styles.isMobile ? -40 : 16,
-}
-
-const downloadContainer = {
-  ...badgeContainer,
-  top: Styles.isMobile ? 2 : 22,
-  left: Styles.isMobile ? -28 : 20,
-}
-
-const badgeCount = {
-  marginLeft: 0,
-  marginRight: 0,
-}
-
 export const rowStyles = {
   ...Styles.styleSheetCreate({
-    rowBox,
     itemBox,
+    leftBox,
+    leftBoxDisabled,
+    pathItemActionIcon,
     pathItemIcon,
     pathItemIcon_30,
-    leftBox,
     rightBox,
-    pathItemActionIcon,
-    badgeContainer,
-    badgeContainerNew,
-    badgeContainerRekey,
-    downloadContainer,
-    badgeCount,
+    rowBox,
   }),
   // We need to annotate color but I can't figure out how to annotate on stuff
   // from Styles.styleSheetCreate.
@@ -122,41 +94,47 @@ export const rowStyles = {
 }
 
 const HoverBox = Styles.isMobile
-  ? Box
-  : Styles.glamorous(Box)({
-      '& .fs-path-item-hover-icon': {
-        color: Styles.globalColors.white,
-      },
-      ':hover .fs-path-item-hover-icon': {
-        color: Styles.globalColors.black_40,
-      },
-      '& .fs-path-item-hover-icon:hover': {
-        color: Styles.globalColors.black_60,
-      },
+  ? Kb.Box
+  : Styles.styled(Kb.Box)({
+      '& .fs-path-item-hover-icon': {color: Styles.globalColors.white},
+      '& .fs-path-item-hover-icon:hover': {color: Styles.globalColors.black_50},
+      ':hover .fs-path-item-hover-icon': {color: Styles.globalColors.black_50},
     })
 
 export type StillCommonProps = {
-  itemStyles: Types.ItemStyles,
   name: string,
   path: Types.Path,
-  onOpen: () => void,
+  inDestinationPicker?: boolean,
+  onOpen?: ?() => void,
+  routePath: I.List<string>,
 }
 
 export const StillCommon = (
   props: StillCommonProps & {
     children: React.Node,
+    badge?: ?Types.PathItemBadge,
   }
 ) => (
   <HoverBox style={rowStyles.rowBox}>
-    <ClickableBox onClick={props.onOpen} style={rowStyles.leftBox}>
-      <Box2 direction="vertical">
-        <PathItemIcon spec={props.itemStyles.iconSpec} style={rowStyles.pathItemIcon} />
-      </Box2>
+    <Kb.ClickableBox
+      onClick={props.onOpen}
+      style={props.onOpen ? rowStyles.leftBox : rowStyles.leftBoxDisabled}
+    >
+      <PathItemIcon path={props.path} size={32} style={rowStyles.pathItemIcon} badge={props.badge} />
       {props.children}
-    </ClickableBox>
-    <Box style={rowStyles.rightBox}>
-      <OpenInSystemFileManager path={props.path} />
-      <PathItemAction path={props.path} actionIconClassName="fs-path-item-hover-icon" />
-    </Box>
+    </Kb.ClickableBox>
+    {!props.inDestinationPicker && Types.getPathLevel(props.path) > 2 && (
+      <Kb.Box style={rowStyles.rightBox}>
+        <OpenInSystemFileManager path={props.path} />
+        <SendInAppAction path={props.path} sendIconClassName="fs-path-item-hover-icon" />
+        <PathItemAction
+          path={props.path}
+          actionIconClassName="fs-path-item-hover-icon"
+          routePath={props.routePath}
+        />
+      </Kb.Box>
+    )}
   </HoverBox>
 )
+
+export const rowHeight = Styles.isMobile ? 64 : 40

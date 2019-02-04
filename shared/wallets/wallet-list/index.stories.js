@@ -4,29 +4,30 @@ import * as Sb from '../../stories/storybook'
 import {WalletList} from '.'
 import walletRow from './wallet-row/index.stories'
 import {stringToAccountID} from '../../constants/types/wallets'
+import {isMobile} from '../../styles'
 
 const onSelect = Sb.action('onSelect')
 
 const mockWallets = {
   G43289XXXXX34OPL: {
-    keybaseUser: 'cecileb',
-    name: "cecileb's account",
     contents: '280.0871234 XLM + more',
     isSelected: true,
+    keybaseUser: 'cecileb',
+    name: "cecileb's account",
     onSelect,
   },
   G43289XXXXX34OPM: {
-    keybaseUser: '',
-    name: 'Second account',
     contents: '56.9618203 XLM',
     isSelected: false,
+    keybaseUser: '',
+    name: 'Second account',
     onSelect,
   },
   G43289XXXXX34OPMG43289XXXXX34OPM: {
-    keybaseUser: '',
-    name: 'G43289XXXXX34OPMG43289XXXXX34OPM',
     contents: '56.9618203 XLM',
     isSelected: false,
+    keybaseUser: '',
+    name: 'G43289XXXXX34OPMG43289XXXXX34OPM',
     onSelect,
   },
 }
@@ -36,10 +37,10 @@ const WalletRowProvider = mockWallets => ({
     const mockWallet = mockWallets[accountID]
     return (
       mockWallet || {
-        keybaseUser: '',
-        name: '',
         contents: '',
         isSelected: false,
+        keybaseUser: '',
+        name: '',
         onSelect,
       }
     )
@@ -55,10 +56,13 @@ const load = () => {
     .addDecorator(Sb.createPropProviderWithCommon(WalletRowProvider(mockWallets)))
     .add('Wallet List', () => (
       <WalletList
+        loading={false}
         accountIDs={accountIDs}
         onAddNew={Sb.action('onAddNew')}
         onLinkExisting={Sb.action('onLinkExisting')}
-        style={{height: '100%', width: 240}}
+        onWhatIsStellar={Sb.action('onWhatIsStellar')}
+        title="Wallets"
+        style={{height: isMobile ? '100%' : 600, width: isMobile ? '100%' : 240}}
       />
     ))
 }

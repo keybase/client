@@ -29,7 +29,6 @@ else
 fi
 
 local_client=${LOCAL_CLIENT:-"1"}
-local_kbfs=${LOCAL_KBFS:-}
 skip_gomobile_init=${SKIP_GOMOBILE_INIT:-}
 tmp_gopath=${TMP_GOPATH:-"/tmp/go-${arg}"}
 check_ci=${CHECK_CI:-}
@@ -40,7 +39,6 @@ GOPATH0=${GOPATH_ARRAY[0]}
 # Original sources
 client_dir="$GOPATH0/src/github.com/keybase/client"
 client_go_dir="$client_dir/go"
-kbfs_dir="$GOPATH0/src/github.com/keybase/kbfs"
 
 # Our custom GOPATH for mobile build.
 GOPATH="$tmp_gopath"
@@ -63,7 +61,6 @@ mkdir -p "$GOPATH/src/github.com/keybase"
 
 # Copy source
 go_client_dir="$tmp_gopath/src/github.com/keybase/client/go"
-go_kbfs_dir="$tmp_gopath/src/github.com/keybase/kbfs"
 
 if [ ! "$local_client" = "1" ]; then
   echo "Getting client (via git clone)... To use local copy, set LOCAL_CLIENT=1"
@@ -75,33 +72,18 @@ else
   cp -R "$client_go_dir"/* "$go_client_dir"
 fi
 
-if [ ! "$local_kbfs" = "1" ]; then
-  echo "Getting KBFS (via git clone)... To use local copy, set LOCAL_KBFS=1"
-  (cd "$GOPATH/src/github.com/keybase" && echo "Cloning KBFS to $GOPATH/src/github.com/keybase" && git clone --depth=1 https://github.com/keybase/kbfs)
-  kbfs_dir=$go_kbfs_dir
-else
-  # For testing local KBFS changes
-  echo "Getting KBFS (using local GOPATH)... To use git master, set LOCAL_KBFS=0"
-  mkdir -p "$go_kbfs_dir"
-  cp -R "$kbfs_dir"/* "$go_kbfs_dir"
-fi
-
 if [ "$check_ci" = "1" ]; then
   "$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
   release wait-ci --repo="client" --commit="$(git -C $client_dir rev-parse HEAD)" --context="continuous-integration/jenkins/branch" --context="ci/circleci"
-  release wait-ci --repo="kbfs" --commit="$(git -C $kbfs_dir rev-parse HEAD)" --context="continuous-integration/jenkins/branch"
 fi
 
 # Move all vendoring up a directory to github.com/keybase/vendor
 echo "Re-vendoring..."
 mkdir -p "$GOPATH/src/github.com/keybase/vendor"
-# Remove client vendored in kbfs
-rm -rf "$go_kbfs_dir/vendor/github.com/keybase/client/go"
 # Vendoring client over kbfs (ignore time)
-rsync -pr --ignore-times "$go_kbfs_dir/vendor" "$GOPATH/src/github.com/keybase"
+# TODO: is this still necessary since we removed KBFS?
 rsync -pr --ignore-times "$go_client_dir/vendor" "$GOPATH/src/github.com/keybase"
 # Remove their vendoring
-rm -rf "$go_kbfs_dir/vendor"
 rm -rf "$go_client_dir/vendor"
 
 vendor_path="$GOPATH/src/github.com/keybase/vendor"

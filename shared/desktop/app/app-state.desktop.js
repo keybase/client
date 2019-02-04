@@ -3,9 +3,7 @@
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import fs from 'fs'
 import path from 'path'
-import {appBundlePath} from './paths.desktop'
 import {isEqual} from 'lodash-es'
-import {windowStyle} from '../../styles'
 import logger from '../../logger'
 
 export type State = {
@@ -21,7 +19,6 @@ export type State = {
   dockHidden: boolean,
   notifySound: boolean,
   openAtLogin: boolean,
-  isUserActive: ?boolean,
 }
 
 export type Config = {
@@ -53,14 +50,13 @@ export default class AppState {
     this.state = {
       displayBounds: null,
       dockHidden: false,
-      height: windowStyle.height,
+      height: 600,
       isFullScreen: null,
       isMaximized: null,
       notifySound: false,
       openAtLogin: true,
-      isUserActive: true,
       tab: null,
-      width: windowStyle.width,
+      width: 800,
       windowHidden: false,
       x: null,
       y: null,
@@ -125,112 +121,16 @@ export default class AppState {
     this.setOSLoginState()
   }
 
-  getDarwinAppName() {
-    return __DEV__ ? 'Electron Helper' : 'Keybase'
-  }
-
   setOSLoginState() {
     if (__DEV__) {
       logger.info('Skipping auto login state change due to dev env. ')
       return
     }
-    // Comment this out if you want to test auto login stuff
 
-    const isDarwin = process.platform === 'darwin'
-    const isWindows = process.platform === 'win32'
-    // Electron has a bug where app.setLoginItemSettings() to false fails!
-    // https://github.com/electron/electron/issues/10880
-    if (isDarwin) {
-      this.setDarwinLoginState()
-    } else if (isWindows) {
-      this.setWinLoginState()
+    if (process.platform === 'darwin' || process.platform === 'win32') {
+      logger.info('Setting login item state', this.state.openAtLogin)
+      SafeElectron.getApp().setLoginItemSettings({openAtLogin: !!this.state.openAtLogin})
     }
-  }
-
-  setDarwinLoginState() {
-    const applescript = require('applescript')
-
-    try {
-      this.checkMultiDarwinLoginItems()
-      const appName = this.getDarwinAppName()
-      if (this.state.openAtLogin) {
-        applescript.execString(
-          `tell application "System Events" to get the name of login item "${appName}"`,
-          (err, result) => {
-            if (!err) {
-              // our login item is there, nothing to do
-              return
-            }
-            try {
-              applescript.execString(
-                `tell application "System Events" to make login item at end with properties {path:"${appBundlePath() ||
-                  ''}", hidden:false, name:"${appName}"}`,
-                (err, result) => {
-                  if (err) {
-                    logger.info(`apple script error making login item: ${err}, ${result}`)
-                  }
-                }
-              )
-            } catch (e) {
-              logger.info('Error setting apple startup prefs: ', e)
-            }
-          }
-        )
-      } else {
-        try {
-          applescript.execString(
-            `tell application "System Events" to delete login item "${appName}"`,
-            (err, result) => {
-              if (err) {
-                logger.info(`apple script error removing login item: ${err}, ${result}`)
-              }
-            }
-          )
-        } catch (e) {
-          logger.info('Error setting apple startup prefs: ', e)
-        }
-      }
-    } catch (e) {
-      logger.info('Error setting apple startup prefs: ', e)
-    }
-  }
-
-  // Remove all our entries but one to repair a previous bug. Can eventually be removed.
-  checkMultiDarwinLoginItems() {
-    const applescript = require('applescript')
-    const appName = this.getDarwinAppName()
-
-    applescript.execString(
-      `tell application "System Events" to get the name of every login item`,
-      (err, result) => {
-        if (err) {
-          logger.info(`Error getting every login item: ${err}, ${result}`)
-          return
-        }
-        var foundApp = false
-        for (var loginItem in result) {
-          if (result[loginItem] === appName) {
-            if (!foundApp) {
-              foundApp = true
-              continue
-            }
-            logger.info('login items: deleting ', appName)
-            applescript.execString(
-              `tell application "System Events" to delete login item "${appName}"`,
-              (err, result) => {
-                if (err) {
-                  logger.info(`apple script error deleting multi login items: ${err}, ${result}`)
-                }
-              }
-            )
-          }
-        }
-      }
-    )
-  }
-
-  setWinLoginState() {
-    SafeElectron.getApp().setLoginItemSettings({openAtLogin: !!this.state.openAtLogin})
   }
 
   manageWindow(win: any) {
@@ -349,9 +249,6 @@ export default class AppState {
         stateLoaded.openAtLogin = true
       }
 
-      // assume active on startup
-      stateLoaded.isUserActive = true
-
       this.state = stateLoaded
     } catch (e) {
       console.warn('Error loading app state:', e)
@@ -390,7 +287,6 @@ export default class AppState {
 
   _closedHandler() {
     this._clearWindow()
-    this.state.isUserActive = false
     this.saveState()
   }
 

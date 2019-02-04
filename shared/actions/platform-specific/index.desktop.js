@@ -16,25 +16,19 @@ import {kbfsNotification} from '../../util/kbfs-notifications'
 import {quit} from '../../util/quit-helper'
 import {showDockIcon} from '../../desktop/app/dock-icon.desktop'
 import {writeLogLinesToFile} from '../../util/forward-logs'
-import type {TypedState} from '../../constants/reducer'
+import InputMonitor from './input-monitor.desktop'
+import {skipAppFocusActions} from '../../local-debug.desktop'
 
-function showShareActionSheet(options: {
-  url?: ?any,
-  message?: ?any,
-}): Promise<{completed: boolean, method: string}> {
+export function showShareActionSheetFromURL(options: {url?: ?any, message?: ?any}): void {
   throw new Error('Show Share Action - unsupported on this platform')
 }
-
-function downloadAndShowShareActionSheet(fileURL: string) {
-  throw new Error('Download and show share action - unsupported on this platform')
+export function showShareActionSheetFromFile(fileURL: string): Promise<void> {
+  throw new Error('Show Share Action - unsupported on this platform')
 }
-
-type NextURI = string
-function saveAttachmentDialog(filePath: string): Promise<NextURI> {
+export function saveAttachmentDialog(filePath: string): Promise<void> {
   throw new Error('Save Attachment - unsupported on this platform')
 }
-
-async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): Promise<void> {
+export async function saveAttachmentToCameraRoll(filePath: string, mimeType: string): Promise<void> {
   throw new Error('Save Attachment to camera roll - unsupported on this platform')
 }
 
@@ -44,7 +38,7 @@ const showMainWindow = () => {
   showDockIcon()
 }
 
-function displayNewMessageNotification(
+export function displayNewMessageNotification(
   text: string,
   convID: ?string,
   badgeCount: ?number,
@@ -54,34 +48,77 @@ function displayNewMessageNotification(
   throw new Error('Display new message notification not available on this platform')
 }
 
-function clearAllNotifications() {
+export function clearAllNotifications() {
   throw new Error('Clear all notifications not available on this platform')
 }
 
-const getContentTypeFromURL = (
+export const getContentTypeFromURL = (
   url: string,
-  cb: ({error?: any, statusCode?: number, contentType?: string}) => void
+  cb: ({error?: any, statusCode?: number, contentType?: string, disposition?: string}) => void
 ) => {
-  const req = SafeElectron.getRemote().net.request({url, method: 'HEAD'})
+  const req = SafeElectron.getRemote().net.request({method: 'HEAD', url})
   req.on('response', response => {
     let contentType = ''
+    let disposition = ''
     if (response.statusCode === 200) {
       const contentTypeHeader = response.headers['content-type']
       contentType = Array.isArray(contentTypeHeader) && contentTypeHeader.length ? contentTypeHeader[0] : ''
+      const dispositionHeader = response.headers['content-disposition']
+      disposition = Array.isArray(dispositionHeader) && dispositionHeader.length ? dispositionHeader[0] : ''
     }
-    cb({statusCode: response.statusCode, contentType})
+    cb({contentType, disposition, statusCode: response.statusCode})
   })
   req.on('error', error => cb({error}))
   req.end()
 }
 
-const writeElectronSettingsOpenAtLogin = (_: any, action: ConfigGen.SetOpenAtLoginPayload) =>
+const writeElectronSettingsOpenAtLogin = (_, action) =>
   action.payload.writeFile &&
   SafeElectron.getIpcRenderer().send('setAppState', {openAtLogin: action.payload.open})
 
-const writeElectronSettingsNotifySound = (_: any, action: ConfigGen.SetNotifySoundPayload) =>
+const writeElectronSettingsNotifySound = (_, action) =>
   action.payload.writeFile &&
   SafeElectron.getIpcRenderer().send('setAppState', {notifySound: action.payload.sound})
+
+function* handleWindowFocusEvents(): Generator<any, void, any> {
+  const channel = Saga.eventChannel(emitter => {
+    window.addEventListener('focus', () => emitter('focus'))
+    window.addEventListener('blur', () => emitter('blur'))
+    return () => {}
+  }, Saga.buffers.expanding(1))
+  while (true) {
+    const type = yield Saga.take(channel)
+    if (skipAppFocusActions) {
+      console.log('Skipping app focus actions!')
+    } else {
+      switch (type) {
+        case 'focus':
+          yield Saga.put(ConfigGen.createChangedFocus({appFocused: true}))
+          break
+        case 'blur':
+          yield Saga.put(ConfigGen.createChangedFocus({appFocused: false}))
+          break
+      }
+    }
+  }
+}
+
+function* initializeInputMonitor(): Generator<any, void, any> {
+  const channel = Saga.eventChannel(emitter => {
+    // eslint-disable-next-line no-new
+    new InputMonitor(isActive => emitter(isActive ? 'active' : 'inactive'))
+    return () => {}
+  }, Saga.buffers.expanding(1))
+
+  while (true) {
+    const type = yield Saga.take(channel)
+    if (skipAppFocusActions) {
+      console.log('Skipping app focus actions!')
+    } else {
+      yield Saga.put(ConfigGen.createChangedActive({userActive: type === 'active'}))
+    }
+  }
+}
 
 // get this value from electron and update our store version
 function* initializeAppSettingsState(): Generator<any, void, any> {
@@ -91,7 +128,7 @@ function* initializeAppSettingsState(): Generator<any, void, any> {
       SafeElectron.getIpcRenderer().send('getAppState')
     })
 
-  const state = yield Saga.call(getAppState)
+  const state = yield* Saga.callPromise(getAppState)
   if (state) {
     yield Saga.put(ConfigGen.createSetOpenAtLogin({open: state.openAtLogin, writeFile: false}))
     yield Saga.put(ConfigGen.createSetNotifySound({sound: state.notifySound, writeFile: false}))
@@ -113,71 +150,69 @@ export const dumpLogs = (_: any, action: ?ConfigGen.DumpLogsPayload) =>
       }
     })
 
-const checkRPCOwnership = (_, action: ConfigGen.DaemonHandshakePayload) =>
-  Saga.call(function*() {
-    const waitKey = 'pipeCheckFail'
-    yield Saga.put(
-      ConfigGen.createDaemonHandshakeWait({increment: true, name: waitKey, version: action.payload.version})
-    )
-    try {
-      logger.info('Checking RPC ownership')
+function* checkRPCOwnership(_, action) {
+  const waitKey = 'pipeCheckFail'
+  yield Saga.put(
+    ConfigGen.createDaemonHandshakeWait({increment: true, name: waitKey, version: action.payload.version})
+  )
+  try {
+    logger.info('Checking RPC ownership')
 
-      const localAppData = String(process.env.LOCALAPPDATA)
-      var binPath = localAppData ? path.resolve(localAppData, 'Keybase', 'keybase.exe') : 'keybase.exe'
-      const args = ['pipeowner', socketPath]
-      yield Saga.call(
-        () =>
-          new Promise((resolve, reject) => {
-            execFile(binPath, args, {windowsHide: true}, (error, stdout, stderr) => {
-              if (error) {
-                logger.info(`pipeowner check result: ${stdout.toString()}`)
-                // error will be logged in bootstrap check
-                getEngine().reset()
-                reject(error)
-                return
-              }
-              const result = JSON.parse(stdout.toString())
-              if (result.isOwner) {
-                resolve()
-                return
-              }
+    const localAppData = String(process.env.LOCALAPPDATA)
+    var binPath = localAppData ? path.resolve(localAppData, 'Keybase', 'keybase.exe') : 'keybase.exe'
+    const args = ['pipeowner', socketPath]
+    yield Saga.callUntyped(
+      () =>
+        new Promise((resolve, reject) => {
+          execFile(binPath, args, {windowsHide: true}, (error, stdout, stderr) => {
+            if (error) {
               logger.info(`pipeowner check result: ${stdout.toString()}`)
-              reject(new Error('pipeowner check failed'))
-            })
+              // error will be logged in bootstrap check
+              getEngine().reset()
+              reject(error)
+              return
+            }
+            const result = JSON.parse(stdout.toString())
+            if (result.isOwner) {
+              resolve()
+              return
+            }
+            logger.info(`pipeowner check result: ${stdout.toString()}`)
+            reject(new Error('pipeowner check failed'))
           })
-      )
-      yield Saga.put(
-        ConfigGen.createDaemonHandshakeWait({
-          increment: false,
-          name: waitKey,
-          version: action.payload.version,
         })
-      )
-    } catch (e) {
-      yield Saga.put(
-        ConfigGen.createDaemonHandshakeWait({
-          failedFatal: true,
-          failedReason: e.message || 'windows pipe owner fail',
-          increment: false,
-          name: waitKey,
-          version: action.payload.version,
-        })
-      )
-    }
-  })
+    )
+    yield Saga.put(
+      ConfigGen.createDaemonHandshakeWait({
+        increment: false,
+        name: waitKey,
+        version: action.payload.version,
+      })
+    )
+  } catch (e) {
+    yield Saga.put(
+      ConfigGen.createDaemonHandshakeWait({
+        failedFatal: true,
+        failedReason: e.message || 'windows pipe owner fail',
+        increment: false,
+        name: waitKey,
+        version: action.payload.version,
+      })
+    )
+  }
+}
 
-const setupReachabilityWatcher = () =>
-  Saga.call(function*() {
-    const channel = Saga.eventChannel(emitter => {
-      window.addEventListener('online', () => emitter('online'))
-      window.addEventListener('offline', () => emitter('offline'))
-      return () => {}
-    }, Saga.buffers.dropping(1))
-    while (true) {
-      yield Saga.take(channel)
-      yield Saga.put(GregorGen.createCheckReachability())
-    }
-  })
+function* setupReachabilityWatcher() {
+  const channel = Saga.eventChannel(emitter => {
+    window.addEventListener('online', () => emitter('online'))
+    window.addEventListener('offline', () => emitter('offline'))
+    return () => {}
+  }, Saga.buffers.dropping(1))
+  while (true) {
+    yield Saga.take(channel)
+    yield Saga.put(GregorGen.createCheckReachability())
+  }
+}
 
 const setupEngineListeners = () => {
   getEngine().setCustomResponseIncomingCallMap({
@@ -193,8 +228,8 @@ const setupEngineListeners = () => {
       SafeElectron.getApp().exit(0)
     },
     'keybase.1.NotifyFS.FSActivity': ({notification}) =>
-      Saga.call(function*() {
-        const state = yield Saga.select()
+      Saga.callUntyped(function*() {
+        const state = yield* Saga.selectState()
         kbfsNotification(notification, NotifyPopup, state)
       }),
     'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile': () => {
@@ -202,9 +237,9 @@ const setupEngineListeners = () => {
         console.warn('Error in sending pgpPgpStorageDismissRpc:', err)
       })
     },
-    'keybase.1.NotifyService.shutdown': code => {
-      if (isWindows && code !== RPCTypes.ctlExitCode.restart) {
-        console.log('Quitting due to service shutdown')
+    'keybase.1.NotifyService.shutdown': request => {
+      if (isWindows && request.code !== RPCTypes.ctlExitCode.restart) {
+        console.log('Quitting due to service shutdown with code: ', request.code)
         // Quit just the app, not the service
         SafeElectron.getApp().quit()
       }
@@ -212,6 +247,9 @@ const setupEngineListeners = () => {
     'keybase.1.NotifySession.clientOutOfDate': ({upgradeTo, upgradeURI, upgradeMsg}) => {
       const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
       NotifyPopup('Client out of date!', {body}, 60 * 60)
+      // This is from the API server. Consider notifications from API server
+      // always critical.
+      return Saga.put(ConfigGen.createUpdateInfo({critical: true, isOutOfDate: true, message: upgradeMsg}))
     },
   })
 }
@@ -228,11 +266,11 @@ function* loadStartupDetails() {
   )
 }
 
-const copyToClipboard = (_: any, action: ConfigGen.CopyToClipboardPayload) => {
+const copyToClipboard = (_, action) => {
   SafeElectron.getClipboard().writeText(action.payload.text)
 }
 
-const sendKBServiceCheck = (state: TypedState, action: ConfigGen.DaemonHandshakeWaitPayload) => {
+const sendKBServiceCheck = (state, action) => {
   if (
     action.payload.version === state.config.daemonHandshakeVersion &&
     state.config.daemonHandshakeWaiters.size === 0 &&
@@ -242,32 +280,81 @@ const sendKBServiceCheck = (state: TypedState, action: ConfigGen.DaemonHandshake
   }
 }
 
-function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.actionToAction(ConfigGen.setOpenAtLogin, writeElectronSettingsOpenAtLogin)
-  yield Saga.actionToAction(ConfigGen.setNotifySound, writeElectronSettingsNotifySound)
-  yield Saga.actionToAction(ConfigGen.showMain, showMainWindow)
-  yield Saga.actionToAction(ConfigGen.dumpLogs, dumpLogs)
-  yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupReachabilityWatcher)
-  yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
-  yield Saga.actionToAction(ConfigGen.copyToClipboard, copyToClipboard)
-  yield Saga.fork(initializeAppSettingsState)
-  yield Saga.actionToAction(ConfigGen.daemonHandshakeWait, sendKBServiceCheck)
-
-  if (isWindows) {
-    yield Saga.actionToAction(ConfigGen.daemonHandshake, checkRPCOwnership)
+function* startOutOfDateCheckLoop() {
+  while (1) {
+    try {
+      const toPut = yield* Saga.callPromise(checkForUpdate)
+      yield Saga.put(toPut)
+      yield Saga.delay(3600 * 1000) // 1 hr
+    } catch (err) {
+      logger.warn('error getting update info: ', err)
+      yield Saga.delay(3600 * 1000) // 1 hr
+    }
   }
-
-  // Start this immediately
-  yield Saga.fork(loadStartupDetails)
 }
 
-export {
-  saveAttachmentDialog,
-  saveAttachmentToCameraRoll,
-  showShareActionSheet,
-  downloadAndShowShareActionSheet,
-  displayNewMessageNotification,
-  clearAllNotifications,
-  getContentTypeFromURL,
-  platformConfigSaga,
+const checkForUpdate = () =>
+  RPCTypes.configGetUpdateInfoRpcPromise().then(({status, message}) =>
+    ConfigGen.createUpdateInfo({
+      critical: status === RPCTypes.configUpdateInfoStatus.criticallyOutOfDate,
+      isOutOfDate: status !== RPCTypes.configUpdateInfoStatus.upToDate,
+      message,
+    })
+  )
+
+const updateNow = () =>
+  RPCTypes.configStartUpdateIfNeededRpcPromise().then(() =>
+    // * If user choose to update:
+    //   We'd get killed and it doesn't matter what happens here.
+    // * If user hits "Ignore":
+    //   Note that we ignore the snooze here, so the state shouldn't change,
+    //   and we'd back to where we think we still need an update. So we could
+    //   have just unset the "updating" flag.However, in case server has
+    //   decided to pull out the update between last time we asked the updater
+    //   and now, we'd be in a wrong state if we didn't check with the service.
+    //   Since user has interacted with it, we still ask the service to make
+    //   sure.
+    ConfigGen.createCheckForUpdate()
+  )
+
+export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
+  yield* Saga.chainAction<ConfigGen.SetOpenAtLoginPayload>(
+    ConfigGen.setOpenAtLogin,
+    writeElectronSettingsOpenAtLogin
+  )
+  yield* Saga.chainAction<ConfigGen.SetNotifySoundPayload>(
+    ConfigGen.setNotifySound,
+    writeElectronSettingsNotifySound
+  )
+  yield* Saga.chainAction<ConfigGen.ShowMainPayload>(ConfigGen.showMain, showMainWindow)
+  yield* Saga.chainAction<ConfigGen.DumpLogsPayload>(ConfigGen.dumpLogs, dumpLogs)
+  yield* Saga.chainGenerator<ConfigGen.SetupEngineListenersPayload>(
+    ConfigGen.setupEngineListeners,
+    setupReachabilityWatcher
+  )
+  yield* Saga.chainAction<ConfigGen.SetupEngineListenersPayload>(
+    ConfigGen.setupEngineListeners,
+    setupEngineListeners
+  )
+  yield* Saga.chainGenerator<ConfigGen.SetupEngineListenersPayload>(
+    ConfigGen.setupEngineListeners,
+    startOutOfDateCheckLoop
+  )
+  yield* Saga.chainAction<ConfigGen.CopyToClipboardPayload>(ConfigGen.copyToClipboard, copyToClipboard)
+  yield* Saga.chainAction<ConfigGen.UpdateNowPayload>(ConfigGen.updateNow, updateNow)
+  yield* Saga.chainAction<ConfigGen.CheckForUpdatePayload>(ConfigGen.checkForUpdate, checkForUpdate)
+  yield* Saga.chainAction<ConfigGen.DaemonHandshakeWaitPayload>(
+    ConfigGen.daemonHandshakeWait,
+    sendKBServiceCheck
+  )
+
+  if (isWindows) {
+    yield* Saga.chainGenerator<ConfigGen.DaemonHandshakePayload>(ConfigGen.daemonHandshake, checkRPCOwnership)
+  }
+
+  yield Saga.spawn(initializeInputMonitor)
+  yield Saga.spawn(handleWindowFocusEvents)
+  yield Saga.spawn(initializeAppSettingsState)
+  // Start this immediately
+  yield Saga.spawn(loadStartupDetails)
 }

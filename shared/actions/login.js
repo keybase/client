@@ -1,9 +1,11 @@
 // @flow
 // Look at this doc: https://goo.gl/7B6p4H
 import * as LoginGen from './login-gen'
+import * as ConfigGen from './config-gen'
 import * as Constants from '../constants/login'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
+import logger from '../logger'
 import openURL from '../util/open-url'
 import {isMobile} from '../constants/platform'
 import {niceError} from '../util/errors'
@@ -17,10 +19,7 @@ export function setupLoginHMR(cb: () => void) {
 
 const cancelDesc = 'Canceling RPC'
 const cancelOnCallback = (params, response) => {
-  response.error({
-    code: RPCTypes.constantsStatusCode.scgeneric,
-    desc: cancelDesc,
-  })
+  response.error({code: RPCTypes.constantsStatusCode.scgeneric, desc: cancelDesc})
 }
 const ignoreCallback = params => {}
 
@@ -29,7 +28,11 @@ const getPassphraseHandler = passphrase => (params, response) => {
     // Service asking us again due to a bad passphrase?
     if (params.pinentry.retryLabel) {
       cancelOnCallback(params, response)
-      return Saga.put(LoginGen.createLoginError({error: new HiddenString(params.pinentry.retryLabel)}))
+      let retryLabel = params.pinentry.retryLabel
+      if (retryLabel === 'Bad passphrase: Invalid passphrase. Server rejected login attempt..') {
+        retryLabel = 'Incorrect password'
+      }
+      return Saga.put(LoginGen.createLoginError({error: new HiddenString(retryLabel)}))
     } else {
       response.result({
         passphrase,
@@ -42,10 +45,10 @@ const getPassphraseHandler = passphrase => (params, response) => {
 }
 
 // Actually do a user/pass login. Don't get sucked into a provisioning flow
-const login = (_: any, action: LoginGen.LoginPayload) =>
-  Saga.call(function*() {
-    try {
-      yield RPCTypes.loginLoginRpcSaga({
+function* login(_, action) {
+  try {
+    yield* Saga.callRPCs(
+      RPCTypes.loginLoginRpcSaga({
         customResponseIncomingCallMap: {
           'keybase.1.gpgUi.selectKey': cancelOnCallback,
           'keybase.1.loginUi.getEmailOrUsername': cancelOnCallback,
@@ -69,23 +72,35 @@ const login = (_: any, action: LoginGen.LoginPayload) =>
         },
         waitingKey: Constants.waitingKey,
       })
-    } catch (e) {
-      // If we're canceling then ignore the error
-      if (e.desc !== cancelDesc) {
-        yield Saga.put(LoginGen.createLoginError({error: new HiddenString(niceError(e))}))
-      }
+    )
+    logger.info('login call succeeded')
+    yield Saga.put(ConfigGen.createLoggedIn({causedByStartup: false}))
+  } catch (e) {
+    // If we're canceling then ignore the error
+    if (e.desc !== cancelDesc) {
+      yield Saga.put(LoginGen.createLoginError({error: new HiddenString(niceError(e))}))
     }
-  })
+  }
+}
 
-const launchForgotPasswordWebPage = () => Saga.call(openURL, 'https://keybase.io/#password-reset')
-const launchAccountResetWebPage = () => Saga.call(openURL, 'https://keybase.io/#account-reset')
+const launchForgotPasswordWebPage = () => {
+  openURL('https://keybase.io/#password-reset')
+}
+const launchAccountResetWebPage = () => {
+  openURL('https://keybase.io/#account-reset')
+}
 
 function* loginSaga(): Saga.SagaGenerator<any, any> {
   // Actually log in
-  yield Saga.actionToAction(LoginGen.login, login)
-
-  yield Saga.actionToAction(LoginGen.launchForgotPasswordWebPage, launchForgotPasswordWebPage)
-  yield Saga.actionToAction(LoginGen.launchAccountResetWebPage, launchAccountResetWebPage)
+  yield* Saga.chainGenerator<LoginGen.LoginPayload>(LoginGen.login, login)
+  yield* Saga.chainAction<LoginGen.LaunchForgotPasswordWebPagePayload>(
+    LoginGen.launchForgotPasswordWebPage,
+    launchForgotPasswordWebPage
+  )
+  yield* Saga.chainAction<LoginGen.LaunchAccountResetWebPagePayload>(
+    LoginGen.launchAccountResetWebPage,
+    launchAccountResetWebPage
+  )
 }
 
 export default loginSaga

@@ -1,16 +1,19 @@
 // @flow
+import * as I from 'immutable'
 import * as Types from '../../constants/types/fs'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Util from '../../util/kbfs'
-import {isMobile} from '../../constants/platform'
-import {navigateUp} from '../../actions/route-tree'
-import {compose, connect, setDisplayName} from '../../util/container'
-import OpenHOC from '../common/open-hoc'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
+import {namedConnect} from '../../util/container'
 import FolderHeader from './header'
 
-const mapDispatchToProps = (dispatch, {path, routePath}) => ({
-  onBack: isMobile ? () => dispatch(navigateUp()) : undefined, // TODO: put if on route ...
-  onChat: () =>
+type OwnProps = {|
+  path: Types.Path,
+  routePath: I.List<string>,
+|}
+
+const mapDispatchToProps = (dispatch, {path, routePath}: OwnProps) => ({
+  _onChat: () =>
     dispatch(
       Chat2Gen.createPreviewConversation({
         reason: 'files',
@@ -19,21 +22,29 @@ const mapDispatchToProps = (dispatch, {path, routePath}) => ({
         ...Util.tlfToParticipantsOrTeamname(Types.pathToString(path)),
       })
     ),
+  onBack:
+    routePath.size > 1
+      ? () =>
+          dispatch(
+            RouteTreeGen.createPutActionIfOnPath({
+              expectedPath: routePath,
+              otherAction: RouteTreeGen.createNavigateUp(),
+            })
+          )
+      : null,
 })
 
-const mergeProps = (_, {onBack, onChat}, {path, routePath}) => {
+const mergeProps = (_, {onBack, _onChat}, {path, routePath}: OwnProps) => {
   const elems = Types.getPathElements(path)
   return {
-    path,
-    title: elems.length > 1 ? elems[elems.length - 1] : 'Keybase Files',
     onBack,
-    onChat: elems.length > 2 ? onChat : undefined,
+    onChat: elems.length > 2 ? _onChat : undefined,
+    path,
     routePath,
+    title: elems.length > 1 ? elems[elems.length - 1] : 'Keybase Files',
   }
 }
 
-export default compose(
-  connect(() => ({}), mapDispatchToProps, mergeProps),
-  setDisplayName('FolderHeader'),
-  OpenHOC
-)(FolderHeader)
+export default namedConnect<OwnProps, _, _, _, _>(() => ({}), mapDispatchToProps, mergeProps, 'FolderHeader')(
+  FolderHeader
+)

@@ -54,7 +54,7 @@ func lookupMaxMerkleSeqno(m MetaContext) (ret keybase1.Seqno, err error) {
 func findFirstLeafWithComparer(m MetaContext, id keybase1.UserOrTeamID, comparator merkleSearchComparator, prevRootSeqno keybase1.Seqno) (leaf *MerkleGenericLeaf, root *MerkleRoot, err error) {
 	defer m.CTrace(fmt.Sprintf("findFirstLeafWithComparer(%s,%d)", id, prevRootSeqno), func() error { return err })()
 
-	if m.G().Env.GetRunMode() == ProductionRunMode && prevRootSeqno < FirstProdMerkleTreeWithModernShape {
+	if m.G().Env.GetRunMode() == ProductionRunMode && prevRootSeqno < FirstProdMerkleSeqnoWithSkips {
 		return nil, nil, MerkleClientError{"can't operate on old merkle sequence number", merkleErrorOldTree}
 	}
 
@@ -130,15 +130,16 @@ func findFirstLeafWithComparer(m MetaContext, id keybase1.UserOrTeamID, comparat
 	return leaf, root, nil
 }
 
-// FindNextMerkleRootAfterRevoke loads the user for the given UID, and find the next merkle root
-// after the given key revocation happens. It uses the paremter arg.Prev to figure out where to start
-// looking and then keeps searching forward until finding a leaf that matches arg.Loc.
+// FindNextMerkleRootAfterRevoke loads the user for the given UID, and find the
+// next merkle root after the given key revocation happens. It uses the
+// parameter arg.Prev to figure out where to start looking and then keeps
+// searching forward until finding a leaf that matches arg.Loc.
 func FindNextMerkleRootAfterRevoke(m MetaContext, arg keybase1.FindNextMerkleRootAfterRevokeArg) (res keybase1.NextMerkleRootRes, err error) {
 
 	defer m.CTrace(fmt.Sprintf("FindNextMerkleRootAfterRevoke(%+v)", arg), func() error { return err })()
 
 	var u *User
-	u, err = LoadUser(NewLoadUserArgWithMetaContext(m).WithUID(arg.Uid))
+	u, err = LoadUser(NewLoadUserArgWithMetaContext(m).WithUID(arg.Uid).WithPublicKeyOptional())
 	if err != nil {
 		return res, err
 	}

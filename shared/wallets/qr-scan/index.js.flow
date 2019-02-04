@@ -1,0 +1,6 @@
+// @flow
+import * as React from 'react'
+export type Props = {
+  onSubmitCode: (?string) => void,
+}
+declare export default class QRScan extends React.Component<Props> {}

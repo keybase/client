@@ -1,19 +1,26 @@
 // @flow
-import * as Route from '../../../../actions/route-tree'
+import * as Types from '../../../../constants/types/chat2'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import {teamsTab} from '../../../../constants/tabs'
 import SystemSimpleToComplex from '.'
-import {connect, type TypedState} from '../../../../util/container'
+import {connect} from '../../../../util/container'
 
-const mapStateToProps = (state: TypedState) => ({
+type OwnProps = {|
+  message: Types.MessageSystemSimpleToComplex,
+|}
+
+const mapStateToProps = state => ({
   you: state.config.username || '',
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _onManageChannels: (teamname: string) =>
-    dispatch(Route.navigateAppend([{props: {teamname}, selected: 'manageChannels'}])),
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'manageChannels'}]})),
   onViewTeam: (teamname: string) => {
-    dispatch(Route.navigateTo([teamsTab, {props: {teamname}, selected: 'team'}]))
-    dispatch(Route.setRouteState([teamsTab, 'team'], {selectedTab: 'members'}))
+    dispatch(RouteTreeGen.createNavigateTo({path: [teamsTab, {props: {teamname}, selected: 'team'}]}))
+    dispatch(
+      RouteTreeGen.createSetRouteState({partialState: {selectedTab: 'members'}, path: [teamsTab, 'team']})
+    )
   },
 })
 
@@ -24,4 +31,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   you: stateProps.you,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(SystemSimpleToComplex)
+export default connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(SystemSimpleToComplex)

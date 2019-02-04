@@ -4,6 +4,7 @@ import type {RouteDefNode, RouteStateNode} from '../../route-tree'
 
 export type _State = {
   loggedInUserNavigated: boolean,
+  previousTab: ?string,
   routeDef: ?RouteDefNode,
   routeState: ?RouteStateNode,
 }

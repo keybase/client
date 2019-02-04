@@ -4,6 +4,7 @@
 package libkb
 
 import (
+	"github.com/keybase/client/go/kbcrypto"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -19,11 +20,11 @@ func GetKID(w *jsonw.Wrapper) (kid keybase1.KID, err error) {
 }
 
 func KIDIsDeviceVerify(kid keybase1.KID) bool {
-	return AlgoType(kid.GetKeyType()) == KIDNaclEddsa
+	return kbcrypto.AlgoType(kid.GetKeyType()) == kbcrypto.KIDNaclEddsa
 }
 
 func KIDIsDeviceEncrypt(kid keybase1.KID) bool {
-	return AlgoType(kid.GetKeyType()) == KIDNaclDH
+	return kbcrypto.AlgoType(kid.GetKeyType()) == kbcrypto.KIDNaclDH
 }
 
 func KIDIsPGP(kid keybase1.KID) bool {

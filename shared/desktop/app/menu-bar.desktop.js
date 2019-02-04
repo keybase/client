@@ -1,12 +1,14 @@
 // @flow
+// Entrypoint for the menubar node part
 import menubar from 'menubar'
-import {getRendererHTML} from './dev.desktop'
 import * as SafeElectron from '../../util/safe-electron.desktop'
 import {isDarwin, isWindows, isLinux} from '../../constants/platform'
-import {resolveImage} from './resolve-root.desktop'
+import {resolveImage, resolveRootAsURL} from './resolve-root.desktop'
 import type {BadgeType} from '../../constants/types/notifications'
 import {showDevTools, skipSecondaryDevtools} from '../../local-debug.desktop'
 import logger from '../../logger'
+
+const htmlFile = resolveRootAsURL('dist', `menubar${__DEV__ ? '.dev' : ''}.html`)
 
 let iconType: BadgeType = 'regular'
 
@@ -36,22 +38,22 @@ const getIcon = invertColors => {
 
 export default function(menubarWindowIDCallback: (id: number) => void) {
   const mb = menubar({
-    index: getRendererHTML('menubar'),
-    width: 360,
-    height: 480,
-    resizable: false,
     hasShadow: true,
-    transparent: true,
-    preloadWindow: true,
+    height: 480,
     icon: getIcon(false),
+    index: htmlFile,
+    preloadWindow: true,
+    resizable: false,
     // Without this flag set, menubar will hide the dock icon when the app
     // ready event fires. We manage the dock icon ourselves, so this flag
     // prevents menubar from changing the state.
     showDockIcon: true,
+    transparent: true,
     webPreferences: {
       nodeIntegration: true,
       nodeIntegrationInWorker: false,
     },
+    width: 360,
   })
 
   const updateIcon = invertColors => {

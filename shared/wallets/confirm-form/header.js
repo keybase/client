@@ -2,38 +2,39 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import {WalletBackButton} from '../common'
 
 type HeaderProps = {|
   onBack: () => void,
-  amount: string,
-  assetType: string,
-  assetConversion?: string,
+  sendingIntentionXLM: boolean,
+  displayAmountXLM: string,
+  displayAmountFiat: string,
 |}
 
 const Header = (props: HeaderProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.header}>
-    <Kb.BackButton
-      onClick={props.onBack}
-      style={styles.backButton}
-      iconColor={Styles.globalColors.white}
-      textStyle={styles.backButtonText}
-    />
     <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.headerContent}>
       <Kb.Icon
         type={
           Styles.isMobile
-            ? 'icon-fancy-stellar-sending-desktop-98-86'
-            : 'icon-fancy-stellar-sending-mobile-149-129'
+            ? 'icon-fancy-stellar-sending-mobile-149-129'
+            : 'icon-fancy-stellar-sending-desktop-98-86'
         }
         style={Kb.iconCastPlatformStyles(styles.headerIcon)}
       />
-      <Kb.Text selectable={true} type="BodySmall" style={styles.headerText}>
-        {'Sending Lumens worth'.toUpperCase()}
+      <Kb.Text selectable={true} type="BodyTiny" style={styles.headerText}>
+        {(props.sendingIntentionXLM ? 'Sending' : 'Sending Lumens worth').toUpperCase()}
       </Kb.Text>
       <Kb.Text selectable={true} type="HeaderBigExtrabold" style={styles.headerText}>
-        {props.assetConversion ? props.assetConversion : props.amount}
+        {props.sendingIntentionXLM ? props.displayAmountXLM : props.displayAmountFiat}
       </Kb.Text>
+      {props.sendingIntentionXLM && !!props.displayAmountFiat && (
+        <Kb.Text selectable={true} type="BodyTiny" style={styles.headerText}>
+          {'(APPROXIMATELY ' + props.displayAmountFiat + ')'}
+        </Kb.Text>
+      )}
     </Kb.Box2>
+    <WalletBackButton onBack={props.onBack} />
   </Kb.Box2>
 )
 
@@ -47,9 +48,9 @@ const styles = Styles.styleSheetCreate({
       minHeight: 144,
     },
     isMobile: {
+      flexBasis: 'auto',
       flexGrow: 1,
       flexShrink: 1,
-      flexBasis: 'auto',
       minHeight: 200,
     },
   }),
@@ -58,27 +59,10 @@ const styles = Styles.styleSheetCreate({
       marginTop: -20,
     },
   }),
-  headerText: {
-    color: Styles.globalColors.white,
-  },
   headerIcon: {
-    width: 100,
     marginBottom: Styles.globalMargins.small,
   },
-  backButton: Styles.platformStyles({
-    common: {
-      position: 'absolute',
-    },
-    isElectron: {
-      top: Styles.globalMargins.small,
-      left: Styles.globalMargins.small,
-    },
-    isMobile: {
-      top: Styles.globalMargins.tiny,
-      left: Styles.globalMargins.tiny,
-    },
-  }),
-  backButtonText: {
+  headerText: {
     color: Styles.globalColors.white,
   },
 })

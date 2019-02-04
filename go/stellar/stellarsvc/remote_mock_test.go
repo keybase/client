@@ -16,7 +16,6 @@ import (
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar/remote"
 	"github.com/keybase/stellarnet"
-	stellaramount "github.com/stellar/go/amount"
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/xdr"
 
@@ -266,8 +265,9 @@ func (t *txlogger) isCallerInImplicitTeam(tc *TestContext, teamID keybase1.TeamI
 }
 
 func (t *txlogger) Find(txID string) *stellar1.PaymentDetails {
+	t.Lock()
+	defer t.Unlock()
 	for _, tx := range t.transactions {
-
 		typ, err := tx.Summary.Typ()
 		require.NoError(t.T, err)
 		switch typ {
@@ -291,6 +291,28 @@ func (t *txlogger) Find(txID string) *stellar1.PaymentDetails {
 	return nil
 }
 
+func (t *txlogger) FindFirstUnclaimedFor(uv keybase1.UserVersion) (*stellar1.PaymentDetails, error) {
+	t.Lock()
+	defer t.Unlock()
+	for _, tx := range t.transactions {
+		typ, err := tx.Summary.Typ()
+		if err != nil {
+			return nil, err
+		}
+		if typ != stellar1.PaymentSummaryType_RELAY {
+			continue
+		}
+		relay := tx.Summary.Relay()
+		if relay.Claim != nil {
+			continue
+		}
+		if relay.To.Eq(uv) {
+			return &tx, nil
+		}
+	}
+	return nil, nil
+}
+
 type FakeAccount struct {
 	T             testing.TB
 	accountID     stellar1.AccountID
@@ -298,32 +320,33 @@ type FakeAccount struct {
 	balance       stellar1.Balance   // XLM
 	otherBalances []stellar1.Balance // other assets
 	subentries    int
+	inflationDest stellar1.AccountID
 }
 
 func (a *FakeAccount) AddBalance(amt string) {
-	n, err := stellaramount.ParseInt64(amt)
+	n, err := stellarnet.ParseStellarAmount(amt)
 	require.NoError(a.T, err)
 	a.AdjustBalance(n)
 }
 
 func (a *FakeAccount) SubtractBalance(amt string) {
-	n, err := stellaramount.ParseInt64(amt)
+	n, err := stellarnet.ParseStellarAmount(amt)
 	require.NoError(a.T, err)
 	a.AdjustBalance(-n)
 }
 
 func (a *FakeAccount) ZeroBalance() int64 {
-	res, err := stellaramount.ParseInt64(a.balance.Amount)
+	res, err := stellarnet.ParseStellarAmount(a.balance.Amount)
 	require.NoError(a.T, err)
 	a.balance.Amount = "0"
 	return res
 }
 
 func (a *FakeAccount) AdjustBalance(amt int64) {
-	b, err := stellaramount.ParseInt64(a.balance.Amount)
+	b, err := stellarnet.ParseStellarAmount(a.balance.Amount)
 	require.NoError(a.T, err)
 	b += amt
-	a.balance.Amount = stellaramount.StringFromInt64(b)
+	a.balance.Amount = stellarnet.StringFromStellarAmount(b)
 	if b < 0 {
 		require.Fail(a.T, "account balance went negative", "%v %v", a.accountID, a.balance.Amount)
 	}
@@ -337,9 +360,10 @@ func (a *FakeAccount) IsFunded() bool {
 // Check that the account balance makes sense.
 // Returns whether the account is funded.
 func (a *FakeAccount) Check() bool {
-	b, err := stellaramount.ParseInt64(a.balance.Amount)
+	b, err := stellarnet.ParseStellarAmount(a.balance.Amount)
 	require.NoError(a.T, err)
-	minimumReserve := stellaramount.MustParse("1.0")
+	minimumReserve, err := stellarnet.ParseStellarAmount("1.0")
+	require.NoError(a.T, err)
 	switch {
 	case b == 0:
 		return false
@@ -347,7 +371,7 @@ func (a *FakeAccount) Check() bool {
 		require.Fail(a.T, "account has negative balance", "%v", a.accountID)
 	case b < int64(minimumReserve):
 		require.Fail(a.T, "account has less than the minimum balance", "%v < %v %v",
-			stellaramount.StringFromInt64(b), stellaramount.String(minimumReserve), a.accountID)
+			stellarnet.StringFromStellarAmount(b), stellarnet.StringFromStellarAmount(minimumReserve), a.accountID)
 	default:
 		return true
 	}
@@ -366,17 +390,17 @@ func (a *FakeAccount) availableBalance() string {
 func (a *FakeAccount) AdjustAssetBalance(amount int64, asset stellar1.Asset) {
 	for i, v := range a.otherBalances {
 		if v.Asset.Eq(asset) {
-			b, err := stellaramount.ParseInt64(v.Amount)
+			b, err := stellarnet.ParseStellarAmount(v.Amount)
 			require.NoError(a.T, err)
 			b += amount
-			v.Amount = stellaramount.StringFromInt64(b)
+			v.Amount = stellarnet.StringFromStellarAmount(b)
 			a.otherBalances[i] = v
 			return
 		}
 	}
 
 	balance := stellar1.Balance{
-		Amount: stellaramount.StringFromInt64(amount),
+		Amount: stellarnet.StringFromStellarAmount(amount),
 		Asset:  asset,
 	}
 	a.otherBalances = append(a.otherBalances, balance)
@@ -420,15 +444,15 @@ func (r *RemoteClientMock) SubmitRelayClaim(ctx context.Context, post stellar1.R
 }
 
 func (r *RemoteClientMock) AcquireAutoClaimLock(ctx context.Context) (string, error) {
-	return "", fmt.Errorf("RemoteClientMock does not implement AcquireAutoClaimLock")
+	return r.Backend.AcquireAutoClaimLock(ctx, r.Tc)
 }
 
 func (r *RemoteClientMock) ReleaseAutoClaimLock(ctx context.Context, token string) error {
-	return fmt.Errorf("RemoteClientMock does not implement ReleaseAutoClaimLock")
+	return r.Backend.ReleaseAutoClaimLock(ctx, r.Tc, token)
 }
 
 func (r *RemoteClientMock) NextAutoClaim(ctx context.Context) (*stellar1.AutoClaim, error) {
-	return nil, fmt.Errorf("RemoteClientMock does not implement NextAutoClaim")
+	return r.Backend.NextAutoClaim(ctx, r.Tc)
 }
 
 func (r *RemoteClientMock) RecentPayments(ctx context.Context, accountID stellar1.AccountID, cursor *stellar1.PageCursor, limit int, skipPending bool) (stellar1.PaymentsPage, error) {
@@ -475,11 +499,32 @@ func (r *RemoteClientMock) SetAccountMobileOnly(ctx context.Context, acctID stel
 	return r.Backend.SetAccountMobileOnly(ctx, r.Tc, acctID)
 }
 
+func (r *RemoteClientMock) MakeAccountAllDevices(ctx context.Context, acctID stellar1.AccountID) error {
+	return r.Backend.MakeAccountAllDevices(ctx, r.Tc, acctID)
+}
+
 func (r *RemoteClientMock) IsAccountMobileOnly(ctx context.Context, acctID stellar1.AccountID) (bool, error) {
 	return r.Backend.IsAccountMobileOnly(ctx, r.Tc, acctID)
 }
 
+func (r *RemoteClientMock) ServerTimeboundsRecommendation(ctx context.Context) (stellar1.TimeboundsRecommendation, error) {
+	return r.Backend.ServerTimeboundsRecommendation(ctx, r.Tc)
+}
+
+func (r *RemoteClientMock) SetInflationDestination(ctx context.Context, signedTx string) error {
+	return r.Backend.SetInflationDestination(ctx, r.Tc, signedTx)
+}
+
+func (r *RemoteClientMock) GetInflationDestinations(ctx context.Context) (ret []stellar1.PredefinedInflationDestination, err error) {
+	return r.Backend.GetInflationDestinations(ctx, r.Tc)
+}
+
 var _ remote.Remoter = (*RemoteClientMock)(nil)
+
+const (
+	defaultExchangeRate   = "0.318328"
+	alternateExchangeRate = "0.212133"
+)
 
 // BackendMock is a mock of stellard.
 // Stores the data and services RemoteClientMock's calls.
@@ -491,6 +536,11 @@ type BackendMock struct {
 	accounts map[stellar1.AccountID]*FakeAccount
 	requests map[stellar1.KeybaseRequestID]*stellar1.RequestDetails
 	txLog    *txlogger
+	exchRate string
+	currency string
+
+	autoclaimEnabled map[keybase1.UID]bool
+	autoclaimLocks   map[keybase1.UID]bool
 }
 
 func NewBackendMock(t testing.TB) *BackendMock {
@@ -500,6 +550,11 @@ func NewBackendMock(t testing.TB) *BackendMock {
 		accounts: make(map[stellar1.AccountID]*FakeAccount),
 		requests: make(map[stellar1.KeybaseRequestID]*stellar1.RequestDetails),
 		txLog:    newTxLogger(t),
+		exchRate: defaultExchangeRate,
+		currency: "USD",
+
+		autoclaimEnabled: make(map[keybase1.UID]bool),
+		autoclaimLocks:   make(map[keybase1.UID]bool),
 	}
 }
 
@@ -589,6 +644,14 @@ func (r *BackendMock) SubmitPayment(ctx context.Context, tc *TestContext, post s
 		return stellar1.PaymentResult{}, errors.New("can only handle native")
 	}
 
+	require.NotNil(tc.T, extract.TimeBounds, "We are expecting TimeBounds in all txs")
+	if extract.TimeBounds != nil {
+		require.NotZero(tc.T, extract.TimeBounds.MaxTime, "We are expecting non-zero TimeBounds.MaxTime in all txs")
+		require.True(tc.T, time.Now().Before(time.Unix(int64(extract.TimeBounds.MaxTime), 0)))
+		// We always send MinTime=0 but this assertion should still hold.
+		require.True(tc.T, time.Now().After(time.Unix(int64(extract.TimeBounds.MinTime), 0)))
+	}
+
 	toIsFunded := false
 	b, toExists := r.accounts[extract.To]
 
@@ -609,29 +672,34 @@ func (r *BackendMock) SubmitPayment(ctx context.Context, tc *TestContext, post s
 		return stellar1.PaymentResult{}, fmt.Errorf("could not get self UV: %v", err)
 	}
 	summary := stellar1.NewPaymentSummaryWithDirect(stellar1.PaymentSummaryDirect{
-		KbTxID:          kbTxID,
-		TxID:            stellar1.TransactionID(txIDPrecalc),
-		TxStatus:        stellar1.TransactionStatus_SUCCESS,
-		FromStellar:     extract.From,
-		From:            caller,
-		FromDeviceID:    post.FromDeviceID,
-		ToStellar:       extract.To,
-		To:              post.To,
-		Amount:          extract.Amount,
-		Asset:           extract.Asset,
-		DisplayAmount:   &post.DisplayAmount,
-		DisplayCurrency: &post.DisplayCurrency,
-		NoteB64:         post.NoteB64,
-		Ctime:           stellar1.ToTimeMs(time.Now()),
-		Rtime:           stellar1.ToTimeMs(time.Now()),
+		KbTxID:              kbTxID,
+		TxID:                stellar1.TransactionID(txIDPrecalc),
+		TxStatus:            stellar1.TransactionStatus_SUCCESS,
+		FromStellar:         extract.From,
+		From:                caller,
+		FromDeviceID:        post.FromDeviceID,
+		FromDisplayAmount:   "123.23",
+		FromDisplayCurrency: "USD",
+		ToDisplayAmount:     "18.50",
+		ToDisplayCurrency:   "JPY",
+		ToStellar:           extract.To,
+		To:                  post.To,
+		Amount:              extract.Amount,
+		Asset:               extract.Asset,
+		DisplayAmount:       &post.DisplayAmount,
+		DisplayCurrency:     &post.DisplayCurrency,
+		NoteB64:             post.NoteB64,
+		Ctime:               stellar1.ToTimeMs(time.Now()),
+		Rtime:               stellar1.ToTimeMs(time.Now()),
 	})
 
 	memo, memoType := extractMemo(unpackedTx.Tx)
 
 	r.addPayment(stellar1.PaymentDetails{
-		Summary:  summary,
-		Memo:     memo,
-		MemoType: memoType,
+		Summary:       summary,
+		Memo:          memo,
+		MemoType:      memoType,
+		ExternalTxURL: fmt.Sprintf("https://stellar.expert/explorer/public/tx/%s", txIDPrecalc),
 	})
 
 	return stellar1.PaymentResult{
@@ -671,7 +739,7 @@ func (r *BackendMock) SubmitRelayPayment(ctx context.Context, tc *TestContext, p
 	}
 	const relayPaymentMinimumBalance = xdr.Int64(20100000) // 2.01 XLM
 	if extract.AmountXdr < relayPaymentMinimumBalance {
-		return res, fmt.Errorf("must send at least %v", stellaramount.String(relayPaymentMinimumBalance))
+		return res, fmt.Errorf("must send at least %v", stellarnet.StringFromStellarXdrAmount(relayPaymentMinimumBalance))
 	}
 
 	a, ok := r.accounts[extract.From]
@@ -695,6 +763,7 @@ func (r *BackendMock) SubmitRelayPayment(ctx context.Context, tc *TestContext, p
 		From:            caller,
 		FromDeviceID:    post.FromDeviceID,
 		To:              post.To,
+		ToAssertion:     post.ToAssertion,
 		RelayAccount:    extract.To,
 		Amount:          extract.Amount,
 		DisplayAmount:   &post.DisplayAmount,
@@ -734,7 +803,7 @@ func (r *BackendMock) SubmitRelayClaim(ctx context.Context, tc *TestContext, pos
 	if !ok {
 		return res, libkb.NotFoundError{Msg: fmt.Sprintf("claim target account not found: '%v'", extract.From)}
 	}
-	if stellaramount.MustParse(a.balance.Amount) == 0 {
+	if amt, _ := stellarnet.ParseStellarAmount(a.balance.Amount); amt == 0 {
 		return res, fmt.Errorf("claim source account has zero balance: %v", a.accountID)
 	}
 	a.AdjustBalance(-(int64(unpackedTx.Tx.Fee)))
@@ -755,6 +824,48 @@ func (r *BackendMock) SubmitRelayClaim(ctx context.Context, tc *TestContext, pos
 	return stellar1.RelayClaimResult{
 		ClaimStellarID: stellar1.TransactionID(txIDPrecalc),
 	}, nil
+}
+
+func (r *BackendMock) EnableAutoclaimMock(tc *TestContext) {
+	r.autoclaimEnabled[tc.Fu.GetUID()] = true
+	r.autoclaimLocks[tc.Fu.GetUID()] = false
+}
+
+func (r *BackendMock) AcquireAutoClaimLock(ctx context.Context, tc *TestContext) (string, error) {
+	uid := tc.Fu.GetUID()
+	if !r.autoclaimEnabled[uid] {
+		return "", fmt.Errorf("Autoclaims are not enabled for %q", tc.Fu.Username)
+	}
+	require.False(tc.T, r.autoclaimLocks[uid], "Lock already acquired")
+	r.autoclaimLocks[uid] = true
+	return "autoclaim_test_token", nil
+}
+
+func (r *BackendMock) ReleaseAutoClaimLock(ctx context.Context, tc *TestContext, token string) error {
+	uid := tc.Fu.GetUID()
+	require.True(tc.T, r.autoclaimEnabled[uid], "autoclaims have to be enabled for uid")
+	require.True(tc.T, r.autoclaimLocks[uid], "Lock has to be called first before Release")
+	r.autoclaimLocks[uid] = false
+	return nil
+}
+
+func (r *BackendMock) NextAutoClaim(ctx context.Context, tc *TestContext) (*stellar1.AutoClaim, error) {
+	caller, err := tc.G.GetMeUV(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("could not get self UV: %v", err)
+	}
+	uid := caller.Uid
+	require.True(tc.T, r.autoclaimEnabled[uid], "autoclaims have to be enabled for uid")
+	require.True(tc.T, r.autoclaimLocks[uid], "Lock has to be called first before NextAutoClaim")
+
+	payment, err := r.txLog.FindFirstUnclaimedFor(caller)
+	require.NoError(tc.T, err)
+	if payment != nil {
+		return &stellar1.AutoClaim{
+			KbTxID: payment.Summary.Relay().KbTxID,
+		}, nil
+	}
+	return nil, nil
 }
 
 func (r *BackendMock) RecentPayments(ctx context.Context, tc *TestContext, accountID stellar1.AccountID, cursor *stellar1.PageCursor, limit int, skipPending bool) (res stellar1.PaymentsPage, err error) {
@@ -787,6 +898,11 @@ func (r *BackendMock) PaymentDetails(ctx context.Context, tc *TestContext, txID 
 	return *p, nil
 }
 
+type accountCurrencyResult struct {
+	libkb.AppStatusEmbed
+	CurrencyDisplayPreference string `json:"currency_display_preference"`
+}
+
 func (r *BackendMock) Details(ctx context.Context, tc *TestContext, accountID stellar1.AccountID) (res stellar1.AccountDetails, err error) {
 	defer tc.G.CTraceTimed(ctx, "RemoteMock.Details", func() error { return err })()
 	r.Lock()
@@ -807,12 +923,35 @@ func (r *BackendMock) Details(ctx context.Context, tc *TestContext, accountID st
 	if a.balance.Amount != "" {
 		balances = []stellar1.Balance{a.balance}
 	}
+
+	// fetch the currency display preference for this account
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/accountcurrency",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"account_id": libkb.S{Val: string(accountID)},
+		},
+		NetContext: ctx,
+	}
+	var apiRes accountCurrencyResult
+	err = tc.G.API.GetDecode(apiArg, &apiRes)
+	if err != nil {
+		return res, err
+	}
+
+	var inflationDest *stellar1.AccountID
+	if a.inflationDest != "" {
+		inflationDest = &a.inflationDest
+	}
+
 	return stellar1.AccountDetails{
-		AccountID:     accountID,
-		Seqno:         strconv.FormatUint(r.seqnos[accountID], 10),
-		Balances:      balances,
-		SubentryCount: a.subentries,
-		Available:     a.availableBalance(),
+		AccountID:            accountID,
+		Seqno:                strconv.FormatUint(r.seqnos[accountID], 10),
+		Balances:             balances,
+		SubentryCount:        a.subentries,
+		Available:            a.availableBalance(),
+		DisplayCurrency:      apiRes.CurrencyDisplayPreference,
+		InflationDestination: inflationDest,
 	}, nil
 }
 
@@ -871,19 +1010,23 @@ func (r *BackendMock) addAccountByID(accountID stellar1.AccountID, funded bool) 
 }
 
 func (r *BackendMock) ImportAccountsForUser(tc *TestContext) (res []*FakeAccount) {
-	defer tc.G.CTraceTimed(context.Background(), "BackendMock.ImportAccountsForUser", func() error { return nil })()
+	mctx := tc.MetaContext()
+	defer mctx.CTraceTimed("BackendMock.ImportAccountsForUser", func() error { return nil })()
 	r.Lock()
-	defer r.Unlock()
-	bundle, _, err := remote.Fetch(context.Background(), tc.G)
+	bundle, err := fetchWholeBundleForTesting(mctx)
 	require.NoError(r.T, err)
 	for _, account := range bundle.Accounts {
 		if _, found := r.accounts[account.AccountID]; found {
 			continue
 		}
 		acc := r.addAccountByID(account.AccountID, false /* funded */)
-		acc.secretKey = stellar1.SecretKey(account.Signers[0])
+		acc.secretKey = stellar1.SecretKey(bundle.AccountBundles[account.AccountID].Signers[0])
 		res = append(res, acc)
 	}
+	r.Unlock()
+
+	tc.Srv.walletState.RefreshAll(mctx, "test")
+
 	return res
 }
 
@@ -905,14 +1048,32 @@ func (r *BackendMock) AssertBalance(accountID stellar1.AccountID, amount string)
 }
 
 func (r *BackendMock) GetAccountDisplayCurrency(ctx context.Context, tc *TestContext, accountID stellar1.AccountID) (string, error) {
-	return "USD", nil
+	r.Lock()
+	defer r.Unlock()
+	return r.currency, nil
+}
+
+func (r *BackendMock) SetDisplayCurrency(currency string) {
+	r.Lock()
+	defer r.Unlock()
+	r.currency = currency
 }
 
 func (r *BackendMock) ExchangeRate(ctx context.Context, tc *TestContext, currency string) (stellar1.OutsideExchangeRate, error) {
+	r.Lock()
+	defer r.Unlock()
 	return stellar1.OutsideExchangeRate{
 		Currency: stellar1.OutsideCurrencyCode(currency),
-		Rate:     "0.318328",
+		Rate:     r.exchRate,
 	}, nil
+}
+
+func (r *BackendMock) UseDefaultExchangeRate() {
+	r.exchRate = defaultExchangeRate
+}
+
+func (r *BackendMock) UseAlternateExchangeRate() {
+	r.exchRate = alternateExchangeRate
 }
 
 func (r *BackendMock) SubmitRequest(ctx context.Context, tc *TestContext, post stellar1.RequestPost) (res stellar1.KeybaseRequestID, err error) {
@@ -985,12 +1146,61 @@ func (r *BackendMock) SetAccountMobileOnly(ctx context.Context, tc *TestContext,
 	return remote.SetAccountMobileOnly(ctx, tc.G, accountID)
 }
 
+func (r *BackendMock) MakeAccountAllDevices(ctx context.Context, tc *TestContext, accountID stellar1.AccountID) error {
+	return remote.MakeAccountAllDevices(ctx, tc.G, accountID)
+}
+
+func (r *BackendMock) ServerTimeboundsRecommendation(ctx context.Context, tc *TestContext) (stellar1.TimeboundsRecommendation, error) {
+	// Call real timebounds endpoint for integration testing.
+	return remote.ServerTimeboundsRecommendation(ctx, tc.G)
+}
+
+func (r *BackendMock) SetInflationDestination(ctx context.Context, tc *TestContext, signedTx string) error {
+	unpackedTx, _, err := unpackTx(signedTx)
+	if err != nil {
+		return err
+	}
+
+	accountID := stellar1.AccountID(unpackedTx.Tx.SourceAccount.Address())
+	account, ok := r.accounts[accountID]
+	require.True(tc.T, ok)
+	require.True(tc.T, account.availableBalance() != "0", "inflation on empty account won't work")
+
+	require.Len(tc.T, unpackedTx.Tx.Operations, 1)
+	op := unpackedTx.Tx.Operations[0]
+	require.Nil(tc.T, op.SourceAccount)
+	require.Equal(tc.T, xdr.OperationTypeSetOptions, op.Body.Type)
+	setOpt, ok := op.Body.GetSetOptionsOp()
+	require.True(tc.T, ok)
+	require.NotNil(tc.T, setOpt.InflationDest)
+
+	require.NotNil(tc.T, unpackedTx.Tx.TimeBounds, "We are expecting TimeBounds in all txs")
+	if unpackedTx.Tx.TimeBounds != nil {
+		require.NotZero(tc.T, unpackedTx.Tx.TimeBounds.MaxTime, "We are expecting non-zero TimeBounds.MaxTime in all txs")
+		require.True(tc.T, time.Now().Before(time.Unix(int64(unpackedTx.Tx.TimeBounds.MaxTime), 0)))
+		// We always send MinTime=0 but this assertion should still hold.
+		require.True(tc.T, time.Now().After(time.Unix(int64(unpackedTx.Tx.TimeBounds.MinTime), 0)))
+	}
+
+	account.inflationDest = stellar1.AccountID(setOpt.InflationDest.Address())
+
+	tc.T.Logf("BackendMock set inflation destination of %q to %q", accountID, account.inflationDest)
+	return nil
+}
+
+func (r *BackendMock) GetInflationDestinations(ctx context.Context, tc *TestContext) ([]stellar1.PredefinedInflationDestination, error) {
+	// Call into real server for integration testing.
+	return remote.GetInflationDestinations(ctx, tc.G)
+}
+
 // Friendbot sends someone XLM
 func (r *BackendMock) Gift(accountID stellar1.AccountID, amount string) {
 	r.Lock()
 	defer r.Unlock()
 	require.NotNil(r.T, r.accounts[accountID], "account for gift")
-	r.accounts[accountID].AdjustBalance(int64(stellaramount.MustParse(amount)))
+	amt, err := stellarnet.ParseStellarAmount(amount)
+	require.NoError(r.T, err)
+	r.accounts[accountID].AdjustBalance(amt)
 }
 
 func (r *BackendMock) CreateFakeAsset(code string) stellar1.Asset {

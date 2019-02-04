@@ -9,7 +9,7 @@ type Props = {|
 |}
 
 const NoteAndMemo = (props: Props) => (
-  <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container}>
+  <Kb.Box2 direction="vertical" fullWidth={true}>
     {!!props.encryptedNote && (
       <React.Fragment>
         <Kb.Divider />
@@ -17,10 +17,10 @@ const NoteAndMemo = (props: Props) => (
           <Kb.Text type="BodyTinySemibold" style={styles.headingText}>
             Encrypted note
           </Kb.Text>
-          <Kb.Text type="Body" style={styles.bodyText}>
+          <Kb.Text selectable={true} type="Body" style={styles.bodyText}>
             {props.encryptedNote}
           </Kb.Text>
-        </Kb.Box2>{' '}
+        </Kb.Box2>
       </React.Fragment>
     )}
     {!!props.publicMemo && (
@@ -30,7 +30,7 @@ const NoteAndMemo = (props: Props) => (
           <Kb.Text type="BodyTinySemibold" style={styles.headingText}>
             Public note
           </Kb.Text>
-          <Kb.Text type="Body" style={styles.bodyText}>
+          <Kb.Text selectable={true} type="Body" style={styles.bodyText}>
             {props.publicMemo}
           </Kb.Text>
         </Kb.Box2>
@@ -40,18 +40,18 @@ const NoteAndMemo = (props: Props) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  memoContainer: {
-    paddingTop: Styles.globalMargins.tiny,
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
+  bodyText: {
+    color: Styles.globalColors.black_75,
   },
   headingText: {
     color: Styles.globalColors.blue,
     marginBottom: Styles.globalMargins.xtiny,
   },
-  bodyText: {
-    color: Styles.globalColors.black_75,
+  memoContainer: {
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
+    paddingTop: Styles.globalMargins.tiny,
   },
 })
 

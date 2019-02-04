@@ -1,19 +1,24 @@
 // @flow
-import {connect, type TypedState} from '../../util/container'
+import {connect, type RouteProps} from '../../util/container'
 import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
 import * as WalletsGen from '../../actions/wallets-gen'
 import ExportSecretKey from '.'
 
-export type OwnProps = {
-  accountID: Types.AccountID,
-}
+export type OwnProps = RouteProps<
+  {
+    accountID: Types.AccountID,
+  },
+  {}
+>
 
-const mapStateToProps = (state: TypedState, {routeProps}) => {
+const mapStateToProps = (state, {routeProps}) => {
   const accountID = routeProps.get('accountID')
+  const account = Constants.getAccount(state, accountID)
   const secretKey = Constants.getSecretKey(state, accountID).stringValue()
   return {
     accountID,
+    accountName: account.name,
     secretKey,
     username: state.config.username,
   }
@@ -33,4 +38,8 @@ const mergeProps = (stateProps, dispatchProps) => ({
   onLoadSecretKey: () => dispatchProps._onLoadSecretKey(stateProps.accountID),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(ExportSecretKey)
+export default connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(ExportSecretKey)

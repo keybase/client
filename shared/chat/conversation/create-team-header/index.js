@@ -10,7 +10,7 @@ type Props = {|
 const CreateTeamHeader = ({onShowNewTeamDialog}: Props) => (
   <Box style={stylesContainer}>
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-      <Text type="BodySmallSemibold" backgroundMode="HighRisk" style={{textAlign: 'center'}}>
+      <Text center={true} type="BodySmallSemibold" backgroundMode="HighRisk" >
         Create a team? You’ll be able to add and remove members as you wish.{' '}
       </Text>
       <Text
@@ -32,10 +32,10 @@ const stylesContainer = {
   alignItems: 'center',
   backgroundColor: globalColors.blue,
   justifyContent: 'center',
+  paddingBottom: globalMargins.tiny,
   paddingLeft: globalMargins.medium,
   paddingRight: globalMargins.medium,
   paddingTop: globalMargins.tiny,
-  paddingBottom: globalMargins.tiny,
 }
 
 export default CreateTeamHeader

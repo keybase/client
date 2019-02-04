@@ -1,9 +1,11 @@
 // @flow
 import EditAvatar from '.'
-import {connect, type TypedState} from '../../util/container'
-import {navigateUp} from '../../actions/route-tree'
+import {connect} from '../../util/container'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 
-const mapStateToProps = (state: TypedState) => {
+type OwnProps = {||}
+
+const mapStateToProps = state => {
   const username = state.config.username
   if (!username) {
     throw new Error('Not logged in')
@@ -13,13 +15,17 @@ const mapStateToProps = (state: TypedState) => {
   const userProofs = trackerState && trackerState.proofs
   const hasAvatarProof = userProofs && userProofs.some(p => p.type === 'github' || p.type === 'twitter')
   return {
-    keybaseUsername: username,
     hasAvatar: hasAvatarProof,
+    keybaseUsername: username,
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onAck: () => dispatch(navigateUp()),
+const mapDispatchToProps = dispatch => ({
+  onAck: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(EditAvatar)
+export default connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d})
+)(EditAvatar)

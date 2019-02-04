@@ -1,8 +1,0 @@
-// @flow
-
-export type StatResult = {
-  size: number,
-}
-
-declare function runAfterInteractions(f: Function, timeout: number): Promise<void> & {cancel: () => void}
-export {runAfterInteractions}

@@ -31,6 +31,7 @@ func newCmdChatListMembers(cl *libcmdline.CommandLine, g *libkb.GlobalContext) c
 		ArgumentHelp: "[conversation [channel name]]",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdChatListMembersRunner(g), "list-members", c)
+			cl.SetLogForward(libcmdline.LogForwardNone)
 		},
 		Flags: mustGetChatFlags("topic-type"),
 	}
@@ -72,7 +73,6 @@ func (c *CmdChatListMembers) Run() error {
 
 func (c *CmdChatListMembers) ParseArgv(ctx *cli.Context) (err error) {
 	if len(ctx.Args()) != 2 {
-		cli.ShowCommandHelp(ctx, "list-members")
 		return fmt.Errorf("Incorrect usage.")
 	}
 

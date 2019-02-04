@@ -29,14 +29,13 @@ function UsernameTips({platform}: {platform: PlatformsExpandedType}) {
     return (
       <InfoNote>
         <Box2 direction="vertical">
-          <Text type="BodySmall" style={{textAlign: 'center'}}>
+          <Text center={true} type="BodySmall">
             You can find your Facebook username at
           </Text>
           <Box2 direction="horizontal">
             <Text
-              type="BodySmallSecondaryLink"
+              center={true} type="BodySmallSecondaryLink"
               onClick={() => Linking.openURL('http://www.facebook.com/settings')}
-              style={{textAlign: 'center'}}
             >
               http://www.facebook.com/settings
             </Text>
@@ -77,7 +76,7 @@ class PrivateEnterUsernameRender extends Component<Props, State> {
   render() {
     const {floatingLabelText, hintText} = platformText[this.props.platform]
     const notification = this.props.errorText
-      ? {notification: {type: 'error', message: customError(this.props.errorText, this.props.errorCode)}}
+      ? {notification: {message: customError(this.props.errorText, this.props.errorCode), type: 'error'}}
       : {}
     return (
       <StandardScreen {...notification} onCancel={this.props.onCancel}>
@@ -130,19 +129,19 @@ const styleYellowBanner = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'flex-start',
   backgroundColor: globalColors.yellow,
-  paddingTop: globalMargins.tiny,
-  paddingBottom: globalMargins.tiny,
-  paddingLeft: globalMargins.medium,
-  paddingRight: globalMargins.medium,
-  marginTop: globalMargins.large,
   marginBottom: -globalMargins.medium,
   marginLeft: -globalMargins.medium,
   marginRight: -globalMargins.medium,
+  marginTop: globalMargins.large,
+  paddingBottom: globalMargins.tiny,
+  paddingLeft: globalMargins.medium,
+  paddingRight: globalMargins.medium,
+  paddingTop: globalMargins.tiny,
 }
 
 const styleButton = {
-  marginTop: globalMargins.large,
   marginBottom: globalMargins.large,
+  marginTop: globalMargins.large,
 }
 
 export default PrivateEnterUsernameRender

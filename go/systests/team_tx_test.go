@@ -180,7 +180,7 @@ func TestTeamTxDependency(t *testing.T) {
 	bob.loginAfterResetPukless()
 
 	tx = teams.CreateAddMemberTx(teamObj)
-	tx.AddMemberByAssertion(context.Background(), fmt.Sprintf("%s@rooter", tracy.username), keybase1.TeamRole_WRITER)
+	tx.AddMemberByAssertionOrEmail(context.Background(), fmt.Sprintf("%s@rooter", tracy.username), keybase1.TeamRole_WRITER)
 	tx.AddMemberByUsername(context.Background(), bob.username, keybase1.TeamRole_WRITER)
 
 	payloads = tx.DebugPayloads()

@@ -1,33 +1,36 @@
 // @flow
 import * as React from 'react'
 
-type TimerProps = {
-  setTimeout: (func: () => void, timing: number) => TimeoutID,
-  clearTimeout: (id: TimeoutID) => void,
-  setInterval: (func: () => void, timing: number) => IntervalID,
-  clearInterval: (id: IntervalID) => void,
-}
-
-// TODO couldn't figure out a quick way to type this correctly
-// type OptionalProps = {
-// innerRef?: ?(?React.Component<any>) => void,
-// }
+type TimerProps = {|
+  setTimeout: ((func: () => void, timing: number) => TimeoutID) | void,
+  clearTimeout: ((id: TimeoutID) => void) | void,
+  setInterval: ((func: () => void, timing: number) => IntervalID) | void,
+  clearInterval: ((id: IntervalID) => void) | void,
+|}
 
 // Use this to mix your props with timer props like type Props = PropsWithTimer<{foo: number}>
 export type PropsWithTimer<P> = {|
   ...$Exact<P>,
-  ...$Exact<TimerProps>,
+  setTimeout: (func: () => void, timing: number) => TimeoutID,
+  clearTimeout: (id: TimeoutID) => void,
+  setInterval: (func: () => void, timing: number) => IntervalID,
+  clearInterval: (id: IntervalID) => void,
 |}
 
-function getDisplayName(WrappedComponent): string {
-  return WrappedComponent.displayName || WrappedComponent.name || 'Component'
+function getDisplayName(Component): string {
+  return Component.displayName || Component.name || 'Component'
 }
 
-function HOCTimers<Props: TimerProps>(
-  WrappedComponent: React.ComponentType<Props>
-): React.ComponentType<$Diff<Props, TimerProps>> {
-  class TimersComponent extends React.Component<$Diff<Props, TimerProps>> {
-    static displayName = `HOCTimers(${getDisplayName(WrappedComponent)})`
+function hOCTimers<Config: {}, Instance>(
+  Component: React.AbstractComponent<Config, Instance>
+): React.AbstractComponent<$Diff<Config, TimerProps>, Instance> {
+  type HOCTimersProps = {|
+    ...$Exact<$Diff<Config, TimerProps>>,
+    forwardedRef: React.Ref<React.AbstractComponent<Config, Instance>>,
+  |}
+
+  class HOCTimers extends React.Component<HOCTimersProps> {
+    static displayName = `HOCTimers(${getDisplayName(Component)})`
     _timeoutIds: Array<TimeoutID> = []
     _intervalIds: Array<IntervalID> = []
 
@@ -38,7 +41,7 @@ function HOCTimers<Props: TimerProps>(
     }
 
     clearTimeout = id => {
-      if ((id || id === 0) && this._timeoutIds.includes(id)) {
+      if (id && this._timeoutIds.includes(id)) {
         this._timeoutIds.splice(this._timeoutIds.indexOf(id), 1)
         clearTimeout(id)
       }
@@ -51,7 +54,7 @@ function HOCTimers<Props: TimerProps>(
     }
 
     clearInterval = id => {
-      if ((id || id === 0) && this._intervalIds.includes(id)) {
+      if (id && this._intervalIds.includes(id)) {
         this._intervalIds.splice(this._intervalIds.indexOf(id), 1)
         clearInterval(id)
       }
@@ -63,12 +66,11 @@ function HOCTimers<Props: TimerProps>(
     }
 
     render() {
-      // $FlowIssue TODO type this
-      const innerRef = (this.props.innerRef: any)
+      const {forwardedRef, ...rest} = this.props
       return (
-        <WrappedComponent
-          {...this.props}
-          ref={innerRef}
+        <Component
+          ref={forwardedRef}
+          {...rest}
           setTimeout={this.setTimeout}
           setInterval={this.setInterval}
           clearInterval={this.clearInterval}
@@ -78,7 +80,7 @@ function HOCTimers<Props: TimerProps>(
     }
   }
 
-  return TimersComponent
+  return React.forwardRef<Config, Instance>((props, ref) => <HOCTimers {...props} forwardedRef={ref} />)
 }
 
-export default HOCTimers
+export default hOCTimers

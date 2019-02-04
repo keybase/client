@@ -1,5 +1,4 @@
 // @flow strict
-// $FlowIssue https://github.com/facebook/flow/issues/6628
 import * as I from 'immutable'
 import * as RPCTypes from './rpc-gen'
 import type {ConversationIDKey} from './chat2'
@@ -7,9 +6,7 @@ import type {RetentionPolicy} from './retention-policy'
 
 export type TeamRoleType = 'reader' | 'writer' | 'admin' | 'owner'
 export type MaybeTeamRoleType = 'none' | TeamRoleType
-
 export type TeamOperations = RPCTypes.TeamOperation
-
 export type PublicitySettings = {
   ignoreAccessRequests: boolean,
   openTeam: boolean,
@@ -21,6 +18,11 @@ export type PublicitySettings = {
 
 export type Teamname = string
 
+export type TeamProfileAddList = {|
+  disabledReason: string,
+  teamName: Teamname,
+  open: boolean,
+|}
 export type _PublicitySettings = {
   anyMemberShowcase: boolean,
   description: string,
@@ -114,7 +116,6 @@ export type _State = {
   teamJoinSuccess: boolean,
   teamJoinSuccessTeamName: string,
   teamCreationError: string,
-  teamCreationPending: boolean,
   teamNameToChannelInfos: I.Map<Teamname, I.Map<ConversationIDKey, ChannelInfo>>,
   teamNameToID: I.Map<Teamname, string>,
   teamNameToInvites: I.Map<Teamname, I.Set<InviteInfo>>,
@@ -133,9 +134,9 @@ export type _State = {
   teamNameToIsShowcasing: I.Map<Teamname, boolean>,
   teamnames: I.Set<Teamname>,
   teammembercounts: I.Map<Teamname, number>,
+  teamProfileAddList: I.List<TeamProfileAddList>,
   newTeams: I.Set<string>,
   newTeamRequests: I.List<string>,
-  loaded: boolean,
 }
 
 export type State = I.RecordOf<_State>

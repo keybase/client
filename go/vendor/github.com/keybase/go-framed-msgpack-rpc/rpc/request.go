@@ -7,8 +7,8 @@ import (
 type request interface {
 	rpcMessage
 	CancelFunc() context.CancelFunc
-	Reply(encoder, interface{}, interface{}) error
-	Serve(encoder, *ServeHandlerDescription, WrapErrorFunc)
+	Reply(*framedMsgpackEncoder, interface{}, interface{}) error
+	Serve(*framedMsgpackEncoder, *ServeHandlerDescription, WrapErrorFunc)
 	LogInvocation(err error)
 	LogCompletion(res interface{}, err error)
 }
@@ -48,7 +48,7 @@ func (r *callRequest) LogCompletion(res interface{}, err error) {
 	r.log.ServerReply(r.SeqNo(), r.Name(), err, res)
 }
 
-func (r *callRequest) Reply(enc encoder, res interface{}, errArg interface{}) (err error) {
+func (r *callRequest) Reply(enc *framedMsgpackEncoder, res interface{}, errArg interface{}) (err error) {
 	v := []interface{}{
 		MethodResponse,
 		r.SeqNo(),
@@ -67,9 +67,70 @@ func (r *callRequest) Reply(enc encoder, res interface{}, errArg interface{}) (e
 	return err
 }
 
-func (r *callRequest) Serve(transmitter encoder, handler *ServeHandlerDescription, wrapErrorFunc WrapErrorFunc) {
+func (r *callRequest) Serve(transmitter *framedMsgpackEncoder, handler *ServeHandlerDescription, wrapErrorFunc WrapErrorFunc) {
 
 	prof := r.log.StartProfiler("serve %s", r.Name())
+	arg := r.Arg()
+
+	r.LogInvocation(nil)
+	res, err := handler.Handler(r.ctx, arg)
+	prof.Stop()
+	r.LogCompletion(res, err)
+
+	r.Reply(transmitter, res, wrapError(wrapErrorFunc, err))
+}
+
+type callCompressedRequest struct {
+	*rpcCallCompressedMessage
+	requestImpl
+}
+
+func newCallCompressedRequest(rpc *rpcCallCompressedMessage, log LogInterface) *callCompressedRequest {
+	ctx, cancel := context.WithCancel(rpc.Context())
+	return &callCompressedRequest{
+		rpcCallCompressedMessage: rpc,
+		requestImpl: requestImpl{
+			ctx:        ctx,
+			cancelFunc: cancel,
+			log:        log,
+		},
+	}
+}
+
+func (r *callCompressedRequest) LogInvocation(err error) {
+	r.log.ServerCallCompressed(r.SeqNo(), r.Name(), err, r.Arg(), r.Compression())
+}
+
+func (r *callCompressedRequest) LogCompletion(res interface{}, err error) {
+	r.log.ServerReplyCompressed(r.SeqNo(), r.Name(), err, res, r.Compression())
+}
+
+func (r *callCompressedRequest) Reply(enc *framedMsgpackEncoder, res interface{}, errArg interface{}) (err error) {
+	res, err = enc.compressData(r.Compression(), res)
+	if err != nil {
+		return err
+	}
+	v := []interface{}{
+		MethodResponse,
+		r.SeqNo(),
+		errArg,
+		res,
+	}
+	errCh := enc.EncodeAndWrite(r.ctx, v, nil)
+	select {
+	case err := <-errCh:
+		if err != nil {
+			r.log.Warning("Reply error for %d: %s", r.SeqNo(), err.Error())
+		}
+	case <-r.ctx.Done():
+		r.log.Info("Call canceled after reply sent. Seq: %d", r.SeqNo())
+	}
+	return err
+}
+
+func (r *callCompressedRequest) Serve(transmitter *framedMsgpackEncoder, handler *ServeHandlerDescription, wrapErrorFunc WrapErrorFunc) {
+
+	prof := r.log.StartProfiler("serve-compressed %s", r.Name())
 	arg := r.Arg()
 
 	r.LogInvocation(nil)
@@ -105,7 +166,7 @@ func (r *notifyRequest) LogCompletion(_ interface{}, err error) {
 	r.log.ServerNotifyComplete(r.Name(), err)
 }
 
-func (r *notifyRequest) Serve(transmitter encoder, handler *ServeHandlerDescription, wrapErrorFunc WrapErrorFunc) {
+func (r *notifyRequest) Serve(transmitter *framedMsgpackEncoder, handler *ServeHandlerDescription, wrapErrorFunc WrapErrorFunc) {
 
 	prof := r.log.StartProfiler("serve-notify %s", r.Name())
 	arg := r.Arg()
@@ -116,6 +177,6 @@ func (r *notifyRequest) Serve(transmitter encoder, handler *ServeHandlerDescript
 	r.LogCompletion(nil, err)
 }
 
-func (r *notifyRequest) Reply(enc encoder, res interface{}, errArg interface{}) (err error) {
+func (r *notifyRequest) Reply(enc *framedMsgpackEncoder, res interface{}, errArg interface{}) (err error) {
 	return nil
 }

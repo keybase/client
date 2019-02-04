@@ -22,13 +22,16 @@ const Banner = ({onReadMore, onHideSubteamsBanner, teamname}: Props) => (
         hierarchy. Some random ideas:
       </Text>
       <Text backgroundMode="Terminal" type="BodySmallSemibold">
-        • {teamname}.devops
+        • {teamname}
+        .devops
       </Text>
       <Text backgroundMode="Terminal" type="BodySmallSemibold">
-        • {teamname}.legal
+        • {teamname}
+        .legal
       </Text>
       <Text backgroundMode="Terminal" type="BodySmallSemibold">
-        • {teamname}.customers.vip
+        • {teamname}
+        .customers.vip
       </Text>
 
       <Text
@@ -73,33 +76,16 @@ const styles = styleSheetCreate({
     margin: globalMargins.small,
   },
   containerText: platformStyles({
-    common: {
-      ...globalStyles.flexBoxColumn,
-    },
+    common: { ...globalStyles.flexBoxColumn },
     isElectron: {
       marginLeft: globalMargins.medium,
       maxWidth: 330,
     },
-    isMobile: {
-      alignItems: 'center',
-    },
+    isMobile: { alignItems: 'center' },
   }),
-  text: platformStyles({
-    common: {
-      marginBottom: globalMargins.small,
-    },
-    isMobile: {
-      textAlign: 'center',
-    },
-  }),
-  readmore: {
-    marginTop: globalMargins.small,
-  },
-
+  iconClose: { padding: globalMargins.tiny },
   iconCloseContainer: platformStyles({
-    common: {
-      position: 'absolute',
-    },
+    common: { position: 'absolute' },
     isElectron: {
       right: globalMargins.tiny,
       top: globalMargins.tiny,
@@ -109,9 +95,14 @@ const styles = styleSheetCreate({
       top: globalMargins.small,
     },
   }),
-  iconClose: {
-    padding: globalMargins.tiny,
+
+  readmore: {
+    marginTop: globalMargins.small,
   },
+  text: platformStyles({
+    common: {marginBottom: globalMargins.small},
+    isMobile: {textAlign: 'center'},
+  }),
 })
 
 export default Banner

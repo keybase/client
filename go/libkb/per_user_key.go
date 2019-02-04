@@ -9,6 +9,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/keybase/client/go/kbcrypto"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 	"golang.org/x/crypto/nacl/secretbox"
@@ -66,7 +67,7 @@ func NewPerUserKeyBox(contents PerUserKeySeed, receiverKey NaclDHKeyPair, sender
 	if err != nil {
 		return keybase1.PerUserKeyBox{}, err
 	}
-	boxStr, err := EncodePacketToArmoredString(encInfo)
+	boxStr, err := kbcrypto.EncodePacketToArmoredString(encInfo)
 	if err != nil {
 		return keybase1.PerUserKeyBox{}, err
 	}

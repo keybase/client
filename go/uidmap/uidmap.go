@@ -339,23 +339,29 @@ func (u *UIDMap) InformOfEldestSeqno(ctx context.Context, g libkb.UIDMapperConte
 	return isCurrent, nil
 }
 
-// MapUIDsToUsernamePackages maps the given set of UIDs to the username packages, which include
-// a username and a fullname, and when the mapping was loaded from the server. It blocks
-// on the network until all usernames are known. If the `forceNetworkForFullNames` flag is specified,
-// it will block on the network too. If the flag is not specified, then stale values (or unknown values)
-// are OK, we won't go to network if we lack them. All network calls are limited by the given timeBudget,
-// or if 0 is specified, there is indefinite budget. In the response, a nil FullNamePackage means that the
-// lookup failed. A non-nil FullNamePackage means that some previous lookup worked, but
-// might be arbitrarily out of date (depending on the cachedAt time). A non-nil FullNamePackage
-// with an empty fullName field means that the user just hasn't supplied a fullName.
-// FullNames can be cached bt the UIDMap, but expire after networkTimeBudget duration. If that value
-// is 0, then infinitely stale names are allowed. If non-zero, and some names aren't stale, we'll
-// have to go to the network.
+// MapUIDsToUsernamePackages maps the given set of UIDs to the username
+// packages, which include a username and a fullname, and when the mapping was
+// loaded from the server. It blocks on the network until all usernames are
+// known. If the `forceNetworkForFullNames` flag is specified, it will block on
+// the network too. If the flag is not specified, then stale values (or unknown
+// values) are OK, we won't go to network if we lack them. All network calls
+// are limited by the given timeBudget, or if 0 is specified, there is
+// indefinite budget. In the response, a nil FullNamePackage means that the
+// lookup failed. A non-nil FullNamePackage means that some previous lookup
+// worked, but might be arbitrarily out of date (depending on the cachedAt
+// time). A non-nil FullNamePackage with an empty fullName field means that the
+// user just hasn't supplied a fullName.  FullNames can be cached bt the
+// UIDMap, but expire after networkTimeBudget duration. If that value is 0,
+// then infinitely stale names are allowed. If non-zero, and some names aren't
+// stale, we'll have to go to the network.
 //
-// *NOTE* that this function can return useful data and an error. In this regard, the error is more
-// like a warning. But if, for instance, the mapper runs out of time budget, it will return the data
-// it was able to get, and also the error.
-func (u *UIDMap) MapUIDsToUsernamePackages(ctx context.Context, g libkb.UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration, networkTimeBudget time.Duration, forceNetworkForFullNames bool) (res []libkb.UsernamePackage, err error) {
+// *NOTE* that this function can return useful data and an error. In this
+// regard, the error is more like a warning. But if, for instance, the mapper
+// runs out of time budget, it will return the data it was able to get, and
+// also the error.
+func (u *UIDMap) MapUIDsToUsernamePackages(ctx context.Context, g libkb.UIDMapperContext,
+	uids []keybase1.UID, fullNameFreshness, networkTimeBudget time.Duration,
+	forceNetworkForFullNames bool) (res []libkb.UsernamePackage, err error) {
 	defer libkb.CTrace(ctx, g.GetLog(), fmt.Sprintf("MapUIDsToUserPackages(%s)", uidsToStringForLog(uids)), func() error { return err })()
 
 	u.Lock()

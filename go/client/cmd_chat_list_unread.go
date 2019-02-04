@@ -27,6 +27,7 @@ func newCmdChatListUnread(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 		ArgumentHelp: "",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&cmdChatListUnread{Contextified: libkb.NewContextified(g)}, "list-unread", c)
+			cl.SetLogForward(libcmdline.LogForwardNone)
 		},
 		Flags: getInboxFetcherUnreadFirstFlags(),
 	}

@@ -2,12 +2,16 @@ package chat
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/emails"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/phonenumbers"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -83,7 +87,24 @@ func proveRooter(t *testing.T, g *libkb.GlobalContext, fu *kbtest.FakeUser) {
 	}
 }
 
-func TestChatSrvSBS(t *testing.T) {
+func addAndVerifyPhone(t *testing.T, g *libkb.GlobalContext, phoneNumber keybase1.PhoneNumber) {
+	mctx := libkb.NewMetaContextTODO(g)
+	require.NoError(t, phonenumbers.AddPhoneNumber(mctx, phoneNumber, keybase1.IdentityVisibility_PRIVATE))
+
+	code, err := kbtest.GetPhoneVerificationCode(libkb.NewMetaContextTODO(g), phoneNumber)
+	require.NoError(t, err)
+
+	require.NoError(t, phonenumbers.VerifyPhoneNumber(mctx, phoneNumber, code))
+
+	t.Logf("Added and verified phone number: %s", phoneNumber.String())
+}
+
+type sbsTestCase struct {
+	getChatAssertion func(user *kbtest.FakeUser) string
+	sbsVerify        func(user *kbtest.FakeUser, g *libkb.GlobalContext)
+}
+
+func runChatSBSScenario(t *testing.T, testCase sbsTestCase) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		runWithEphemeral(t, mt, func(ephemeralLifetime *gregor1.DurationSec) {
 			ctc := makeChatTestContext(t, "TestChatSrvSBS", 2)
@@ -103,21 +124,27 @@ func TestChatSrvSBS(t *testing.T) {
 				ctc.as(t, users[1]).h.G().GetEKLib().KeygenIfNeeded(context.Background())
 			}
 
-			tc0 := ctc.world.Tcs[users[0].Username]
 			tc1 := ctc.world.Tcs[users[1].Username]
 			ctx := ctc.as(t, users[0]).startCtx
 			listener0 := newServerChatListener()
 			ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener0)
 			listener1 := newServerChatListener()
 			ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener1)
-			kickTeamRekeyd(tc0.Context().ExternalG(), t)
-			name := users[0].Username + "," + users[1].Username + "@rooter"
+
+			convoAssertions := []string{
+				users[0].Username,
+				testCase.getChatAssertion(users[1]),
+			}
+			displayName := strings.Join(convoAssertions, ",")
+
+			t.Logf("Creating a convo with display name %q", displayName)
+
 			ncres, err := ctc.as(t, users[0]).chatLocalHandler().NewConversationLocal(ctx,
 				chat1.NewConversationLocalArg{
-					TlfName:          name,
+					TlfName:          displayName,
 					TopicType:        chat1.TopicType_CHAT,
 					TlfVisibility:    keybase1.TLFVisibility_PRIVATE,
-					MembersType:      chat1.ConversationMembersType_IMPTEAMNATIVE,
+					MembersType:      mt,
 					IdentifyBehavior: keybase1.TLFIdentifyBehavior_CHAT_CLI,
 				})
 			require.NoError(t, err)
@@ -136,8 +163,11 @@ func TestChatSrvSBS(t *testing.T) {
 			require.Error(t, err)
 			require.IsType(t, libkb.ChatNotInTeamError{}, err)
 
-			t.Logf("proving rooter now")
-			proveRooter(t, tc1.Context().ExternalG(), users[1])
+			t.Logf("running sbsVerify now")
+
+			kickTeamRekeyd(tc1.Context().ExternalG(), t)
+			testCase.sbsVerify(users[1], tc1.Context().ExternalG())
+
 			t.Logf("uid1: %s", users[1].User.GetUID())
 			t.Logf("teamID: %s", ncres.Conv.Info.Triple.Tlfid)
 			t.Logf("convID: %x", ncres.Conv.GetConvID().DbShortForm())
@@ -152,6 +182,7 @@ func TestChatSrvSBS(t *testing.T) {
 			}
 			select {
 			case rres := <-listener1.joinedConv:
+				require.NotNil(t, rres)
 				require.Equal(t, ncres.Conv.GetConvID().String(), rres.ConvID)
 				require.Equal(t, 2, len(rres.Participants))
 			case <-time.After(20 * time.Second):
@@ -200,4 +231,43 @@ func TestChatSrvSBS(t *testing.T) {
 		})
 	})
 
+}
+
+func TestChatSrvRooter(t *testing.T) {
+	runChatSBSScenario(t, sbsTestCase{
+		getChatAssertion: func(user *kbtest.FakeUser) string {
+			return fmt.Sprintf("%s@rooter", user.Username)
+		},
+		sbsVerify: func(user *kbtest.FakeUser, g *libkb.GlobalContext) {
+			proveRooter(t, g, user)
+		},
+	})
+}
+
+func TestChatSrvPhone(t *testing.T) {
+	var phone string
+	runChatSBSScenario(t, sbsTestCase{
+		getChatAssertion: func(user *kbtest.FakeUser) string {
+			phone = kbtest.GenerateTestPhoneNumber()
+			return fmt.Sprintf("%s@phone", phone)
+		},
+		sbsVerify: func(user *kbtest.FakeUser, g *libkb.GlobalContext) {
+			phoneNumber := keybase1.PhoneNumber("+" + phone)
+			addAndVerifyPhone(t, g, phoneNumber)
+			phonenumbers.SetVisibilityPhoneNumber(libkb.NewMetaContextTODO(g), phoneNumber, keybase1.IdentityVisibility_PUBLIC)
+		},
+	})
+}
+
+func TestChatSrvEmail(t *testing.T) {
+	runChatSBSScenario(t, sbsTestCase{
+		getChatAssertion: func(user *kbtest.FakeUser) string {
+			return fmt.Sprintf("[%s]@email", user.Email)
+		},
+		sbsVerify: func(user *kbtest.FakeUser, g *libkb.GlobalContext) {
+			email := keybase1.EmailAddress(user.Email)
+			kbtest.VerifyEmailAuto(libkb.NewMetaContextTODO(g), email)
+			emails.SetVisibilityEmail(libkb.NewMetaContextTODO(g), email, keybase1.IdentityVisibility_PUBLIC)
+		},
+	})
 }

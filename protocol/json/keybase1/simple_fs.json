@@ -136,6 +136,37 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "PrefetchStatus",
+      "symbols": [
+        "NOT_STARTED_0",
+        "IN_PROGRESS_1",
+        "COMPLETE_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PrefetchProgress",
+      "fields": [
+        {
+          "type": "Time",
+          "name": "start"
+        },
+        {
+          "type": "Time",
+          "name": "endEstimate"
+        },
+        {
+          "type": "int64",
+          "name": "bytesTotal"
+        },
+        {
+          "type": "int64",
+          "name": "bytesFetched"
+        }
+      ]
+    },
+    {
       "type": "record",
       "name": "Dirent",
       "fields": [
@@ -162,6 +193,14 @@
         {
           "type": "boolean",
           "name": "writable"
+        },
+        {
+          "type": "PrefetchStatus",
+          "name": "prefetchStatus"
+        },
+        {
+          "type": "PrefetchProgress",
+          "name": "prefetchProgress"
         }
       ]
     },
@@ -262,7 +301,8 @@
       "name": "ListFilter",
       "symbols": [
         "NO_FILTER_0",
-        "FILTER_ALL_HIDDEN_1"
+        "FILTER_ALL_HIDDEN_1",
+        "FILTER_SYSTEM_HIDDEN_2"
       ]
     },
     {
@@ -589,6 +629,68 @@
           "name": "gitLimitBytes"
         }
       ]
+    },
+    {
+      "type": "enum",
+      "name": "FolderSyncMode",
+      "symbols": [
+        "DISABLED_0",
+        "ENABLED_1",
+        "PARTIAL_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FolderSyncConfig",
+      "fields": [
+        {
+          "type": "FolderSyncMode",
+          "name": "mode"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "paths"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FolderSyncStatus",
+      "fields": [
+        {
+          "type": "int64",
+          "name": "localDiskBytesAvailable"
+        },
+        {
+          "type": "int64",
+          "name": "localDiskBytesTotal"
+        },
+        {
+          "type": "PrefetchStatus",
+          "name": "prefetchStatus"
+        },
+        {
+          "type": "PrefetchProgress",
+          "name": "prefetchProgress"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FolderSyncConfigAndStatus",
+      "fields": [
+        {
+          "type": "FolderSyncConfig",
+          "name": "config"
+        },
+        {
+          "type": "FolderSyncStatus",
+          "name": "status"
+        }
+      ]
     }
   ],
   "messages": {
@@ -689,6 +791,20 @@
       ],
       "response": null,
       "doc": "Begin copy of file or directory"
+    },
+    "simpleFSSymlink": {
+      "request": [
+        {
+          "name": "target",
+          "type": "string"
+        },
+        {
+          "name": "link",
+          "type": "Path"
+        }
+      ],
+      "response": null,
+      "doc": "Make a symlink of file or directory"
     },
     "simpleFSCopyRecursive": {
       "request": [
@@ -827,6 +943,13 @@
         {
           "name": "path",
           "type": "Path"
+        },
+        {
+          "name": "identifyBehavior",
+          "type": [
+            null,
+            "TLFIdentifyBehavior"
+          ]
         }
       ],
       "response": "Dirent",
@@ -956,6 +1079,38 @@
       "request": [],
       "response": "SimpleFSQuotaUsage",
       "doc": "simpleFSGetUserQuotaUsage returns the quota usage for the logged-in\n   user.  It results in an RPC to the server, and any usage includes\n   local journal usage as well."
+    },
+    "simpleFSReset": {
+      "request": [
+        {
+          "name": "path",
+          "type": "Path"
+        }
+      ],
+      "response": null,
+      "doc": "simpleFSReset completely resets the KBFS folder referenced in `path`.\n   It should only be called after explicit user confirmation."
+    },
+    "simpleFSFolderSyncConfigAndStatus": {
+      "request": [
+        {
+          "name": "path",
+          "type": "Path"
+        }
+      ],
+      "response": "FolderSyncConfigAndStatus"
+    },
+    "simpleFSSetFolderSyncConfig": {
+      "request": [
+        {
+          "name": "path",
+          "type": "Path"
+        },
+        {
+          "name": "config",
+          "type": "FolderSyncConfig"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "keybase.1"

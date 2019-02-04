@@ -22,6 +22,7 @@ import (
 	"github.com/keybase/client/go/gregor"
 	grclient "github.com/keybase/client/go/gregor/client"
 	"github.com/keybase/client/go/gregor/storage"
+	grutils "github.com/keybase/client/go/gregor/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -229,7 +230,7 @@ type gregorHandler struct {
 	transportForTesting *connTransport
 }
 
-var _ libkb.GregorDismisser = (*gregorHandler)(nil)
+var _ libkb.GregorState = (*gregorHandler)(nil)
 var _ libkb.GregorListener = (*gregorHandler)(nil)
 
 func newGregorHandler(g *globals.Context) *gregorHandler {
@@ -642,7 +643,8 @@ func (g *gregorHandler) syncReplayThread() {
 // gregord. This can happen either on initial startup, or after a reconnect. Needs
 // to be called with gregorHandler locked.
 func (g *gregorHandler) serverSync(ctx context.Context,
-	cli gregor1.IncomingInterface, gcli *grclient.Client, syncRes *chat1.SyncAllNotificationRes) ([]gregor.InBandMessage, error) {
+	cli gregor1.IncomingInterface, gcli *grclient.Client, syncRes *chat1.SyncAllNotificationRes) (res []gregor.InBandMessage, err error) {
+	defer g.chatLog.Trace(ctx, func() error { return err }, "serverSync")()
 
 	// Get time of the last message we synced (unless this is our first time syncing)
 	var t time.Time
@@ -757,14 +759,15 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 		chat.NewCachingIdentifyNotifier(g.G()))
 	g.chatLog.Debug(ctx, "OnConnect begin")
 	syncAllRes, err := chatCli.SyncAll(ctx, chat1.SyncAllArg{
-		Uid:       uid,
-		DeviceID:  gcli.Device.(gregor1.DeviceID),
-		Session:   token,
-		InboxVers: iboxVers,
-		Ctime:     latestCtime,
-		Fresh:     g.isFirstConnect(),
-		ProtVers:  chat1.SyncAllProtVers_V1,
-		HostName:  g.GetURI().Host,
+		Uid:              uid,
+		DeviceID:         gcli.Device.(gregor1.DeviceID),
+		Session:          token,
+		InboxVers:        iboxVers,
+		Ctime:            latestCtime,
+		Fresh:            g.isFirstConnect(),
+		ProtVers:         chat1.SyncAllProtVers_V1,
+		HostName:         g.GetURI().Host,
+		SummarizeMaxMsgs: true,
 	})
 	if err != nil {
 		// This will cause us to try and refresh session on the next attempt
@@ -803,6 +806,7 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 
 	// Call out to reachability module if we have one
 	if g.reachability != nil {
+		g.chatLog.Debug(ctx, "setting reachability")
 		g.reachability.setReachability(keybase1.Reachability{
 			Reachable: keybase1.Reachable_YES,
 		})
@@ -810,11 +814,13 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 
 	// Broadcast reconnect oobm. Spawn this off into a goroutine so that we don't delay
 	// reconnection any longer than we have to.
+	g.chatLog.Debug(ctx, "broadcasting reconnect oobm")
 	go func(m gregor1.Message) {
 		g.BroadcastMessage(context.Background(), m)
 	}(g.makeReconnectOobm())
 
 	// No longer first connect if we are now connected
+	g.chatLog.Debug(ctx, "setting first connect to false")
 	g.setFirstConnect(false)
 	// On successful login we can reset this guy to not force a check
 	g.forceSessionCheck = false
@@ -1212,7 +1218,7 @@ func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.O
 		g.G().Log.Warning("Got non-exportable out-of-band message")
 	}
 
-	// Send the oobm to that chat system so that it can potentially handle it
+	// Send the oobm to the chat system so that it can potentially handle it
 	if g.G().PushHandler != nil {
 		handled, err := g.G().PushHandler.HandleOobm(ctx, obm)
 		if err != nil {
@@ -1223,9 +1229,18 @@ func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.O
 		}
 	}
 
+	// Send the oobm to the wallet system so that it can potentially handle it
+	if g.G().StellarPushHandler != nil {
+		handled, err := g.G().StellarPushHandler.HandleOobm(ctx, obm)
+		if err != nil {
+			return err
+		}
+		if handled {
+			return nil
+		}
+	}
+
 	switch obm.System().String() {
-	case "kbfs.favorites":
-		return g.kbfsFavorites(ctx, obm)
 	case "internal.reconnect":
 		g.G().Log.Debug("reconnected to push server")
 		return nil
@@ -1256,37 +1271,6 @@ func (g *gregorHandler) Reset() error {
 	g.Shutdown()
 	g.setFirstConnect(true)
 	return g.resetGregorClient(context.TODO())
-}
-
-func (g *gregorHandler) kbfsFavorites(ctx context.Context, m gregor.OutOfBandMessage) error {
-	if m.Body() == nil {
-		return errors.New("gregor handler for kbfs.favorites: nil message body")
-	}
-	body, err := jsonw.Unmarshal(m.Body().Bytes())
-	if err != nil {
-		return err
-	}
-
-	action, err := body.AtPath("action").GetString()
-	if err != nil {
-		return err
-	}
-
-	switch action {
-	case "create", "delete":
-		return g.notifyFavoritesChanged(ctx, m.UID())
-	default:
-		return fmt.Errorf("unhandled kbfs.favorites action %q", action)
-	}
-}
-
-func (g *gregorHandler) notifyFavoritesChanged(ctx context.Context, uid gregor.UID) error {
-	kbUID, err := keybase1.UIDFromString(hex.EncodeToString(uid.Bytes()))
-	if err != nil {
-		return err
-	}
-	g.G().NotifyRouter.HandleFavoritesChanged(kbUID)
-	return nil
 }
 
 type loggedInRes int
@@ -1412,10 +1396,11 @@ func (g *gregorHandler) pingLoop() {
 		id, duration, timeout, url.Host)
 	defer g.chatLog.Debug(ctx, "ping loop: id: %x terminating", id)
 
+	ticker := time.NewTicker(duration)
 	for {
 		ctx, shutdownCancel := context.WithCancel(context.Background())
 		select {
-		case <-g.G().Clock().After(duration):
+		case <-ticker.C:
 			var err error
 
 			doneCh := make(chan error)
@@ -1435,6 +1420,7 @@ func (g *gregorHandler) pingLoop() {
 					// library
 					g.chatLog.Debug(ctx, "ping loop: id: %x normal ping, not connected", id)
 					_, err = gregor1.IncomingClient{Cli: g.pingCli}.Ping(ctx)
+					g.chatLog.Debug(ctx, "ping loop: id: %x normal ping success", id)
 				}
 				select {
 				case <-ctx.Done():
@@ -1563,7 +1549,8 @@ func (g *gregorHandler) connectTLS() error {
 	g.conn = rpc.NewTLSConnection(rpc.NewFixedRemote(uri.HostPort),
 		[]byte(rawCA), libkb.NewContextifiedErrorUnwrapper(g.G().ExternalG()),
 		g, libkb.NewRPCLogFactory(g.G().ExternalG()),
-		logger.LogOutputWithDepthAdder{Logger: g.G().Log}, opts)
+		logger.LogOutputWithDepthAdder{Logger: g.G().Log},
+		rpc.DefaultMaxFrameLength, opts)
 
 	// The client we get here will reconnect to gregord on disconnect if necessary.
 	// We should grab it here instead of in OnConnect, since the connection is not
@@ -1616,36 +1603,8 @@ func (g *gregorHandler) connectNoTLS() error {
 	return nil
 }
 
-func NewGregorMsgID() (gregor1.MsgID, error) {
-	r, err := libkb.RandBytes(16) // TODO: Create a shared function for this.
-	if err != nil {
-		return nil, err
-	}
-	return gregor1.MsgID(r), nil
-}
-
-func (g *gregorHandler) templateMessage() (*gregor1.Message, error) {
-	uid := g.G().Env.GetUID()
-	if uid.IsNil() {
-		return nil, fmt.Errorf("Can't create new gregor items without a current UID.")
-	}
-	gregorUID := gregor1.UID(uid.ToBytes())
-
-	newMsgID, err := NewGregorMsgID()
-	if err != nil {
-		return nil, err
-	}
-
-	return &gregor1.Message{
-		Ibm_: &gregor1.InBandMessage{
-			StateUpdate_: &gregor1.StateUpdateMessage{
-				Md_: gregor1.Metadata{
-					Uid_:   gregorUID,
-					MsgID_: newMsgID,
-				},
-			},
-		},
-	}, nil
+func (g *gregorHandler) currentUID() gregor1.UID {
+	return gregor1.UID(g.G().ActiveDevice.UID().ToBytes())
 }
 
 // `cli` is the interface used to talk to gregor.
@@ -1660,20 +1619,15 @@ func (g *gregorHandler) DismissItem(ctx context.Context, cli gregor1.IncomingInt
 		func() error { return err },
 	)()
 	defer g.pushState(keybase1.PushReason_NEW_DATA)
-
-	dismissal, err := g.templateMessage()
+	dismissal, err := grutils.FormMessageForDismissItem(ctx, g.currentUID(), id)
 	if err != nil {
 		return err
-	}
-
-	dismissal.Ibm_.StateUpdate_.Dismissal_ = &gregor1.Dismissal{
-		MsgIDs_: []gregor1.MsgID{gregor1.MsgID(id.Bytes())},
 	}
 	gcli, err := g.getGregorCli()
 	if err != nil {
 		return err
 	}
-	return gcli.ConsumeMessage(ctx, *dismissal)
+	return gcli.ConsumeMessage(ctx, dismissal)
 }
 
 func (g *gregorHandler) LocalDismissItem(ctx context.Context, id gregor.MsgID) (err error) {
@@ -1699,7 +1653,7 @@ func (g *gregorHandler) DismissCategory(ctx context.Context, category gregor1.Ca
 	)()
 	defer g.pushState(keybase1.PushReason_NEW_DATA)
 
-	dismissal, err := g.templateMessage()
+	dismissal, err := grutils.TemplateMessage(g.currentUID())
 	if err != nil {
 		return err
 	}
@@ -1714,7 +1668,7 @@ func (g *gregorHandler) DismissCategory(ctx context.Context, category gregor1.Ca
 	if err != nil {
 		return err
 	}
-	return gcli.ConsumeMessage(ctx, *dismissal)
+	return gcli.ConsumeMessage(ctx, dismissal)
 }
 
 func (g *gregorHandler) InjectItem(ctx context.Context, cat string, body []byte, dtime gregor1.TimeOrOffset) (gregor1.MsgID, error) {
@@ -1724,21 +1678,17 @@ func (g *gregorHandler) InjectItem(ctx context.Context, cat string, body []byte,
 	)()
 	defer g.pushState(keybase1.PushReason_NEW_DATA)
 
-	creation, err := g.templateMessage()
+	creation, err := grutils.FormMessageForInjectItem(ctx, g.currentUID(), cat, body, dtime)
 	if err != nil {
 		return nil, err
-	}
-	creation.Ibm_.StateUpdate_.Creation_ = &gregor1.Item{
-		Category_: gregor1.Category(cat),
-		Body_:     gregor1.Body(body),
-		Dtime_:    dtime,
 	}
 
 	gcli, err := g.getGregorCli()
 	if err != nil {
 		return nil, err
 	}
-	return creation.Ibm_.StateUpdate_.Md_.MsgID_, gcli.ConsumeMessage(ctx, *creation)
+	retMsgID := gregor1.MsgID(creation.ToInBandMessage().Metadata().MsgID().Bytes())
+	return retMsgID, gcli.ConsumeMessage(ctx, creation)
 }
 
 func (g *gregorHandler) UpdateItem(ctx context.Context, msgID gregor1.MsgID, cat string, body []byte, dtime gregor1.TimeOrOffset) (gregor1.MsgID, error) {
@@ -1748,7 +1698,7 @@ func (g *gregorHandler) UpdateItem(ctx context.Context, msgID gregor1.MsgID, cat
 	)()
 	defer g.pushState(keybase1.PushReason_NEW_DATA)
 
-	msg, err := g.templateMessage()
+	msg, err := grutils.TemplateMessage(g.currentUID())
 	if err != nil {
 		return nil, err
 	}
@@ -1765,7 +1715,7 @@ func (g *gregorHandler) UpdateItem(ctx context.Context, msgID gregor1.MsgID, cat
 	if err != nil {
 		return nil, err
 	}
-	return msg.Ibm_.StateUpdate_.Md_.MsgID_, gcli.ConsumeMessage(ctx, *msg)
+	return msg.Ibm_.StateUpdate_.Md_.MsgID_, gcli.ConsumeMessage(ctx, msg)
 }
 
 func (g *gregorHandler) UpdateCategory(ctx context.Context, cat string, body []byte,
@@ -1775,7 +1725,7 @@ func (g *gregorHandler) UpdateCategory(ctx context.Context, cat string, body []b
 	)()
 	defer g.pushState(keybase1.PushReason_NEW_DATA)
 
-	msg, err := g.templateMessage()
+	msg, err := grutils.TemplateMessage(g.currentUID())
 	if err != nil {
 		return nil, err
 	}
@@ -1797,7 +1747,7 @@ func (g *gregorHandler) UpdateCategory(ctx context.Context, cat string, body []b
 	if err != nil {
 		return nil, err
 	}
-	return msgID, gcli.ConsumeMessage(ctx, *msg)
+	return msgID, gcli.ConsumeMessage(ctx, msg)
 }
 
 func (g *gregorHandler) InjectOutOfBandMessage(ctx context.Context, system string, body []byte) error {
@@ -1872,6 +1822,15 @@ func (g *gregorHandler) getState(ctx context.Context) (res gregor1.State, err er
 	return res, nil
 }
 
+func (g *gregorHandler) State(ctx context.Context) (res gregor.State, err error) {
+	defer g.G().CTraceTimed(ctx, "gregorHandler#State", func() error { return err })()
+	gcli, err := g.getGregorCli()
+	if err != nil {
+		return res, err
+	}
+	return gcli.StateMachineState(ctx, nil, true)
+}
+
 func (g *gregorRPCHandler) GetState(ctx context.Context) (res gregor1.State, err error) {
 	defer g.G().CTraceTimed(ctx, "gregorRPCHandler#GetState", func() error { return err })()
 	if res, err = g.gh.getState(ctx); err != nil {
@@ -1923,6 +1882,17 @@ func (t *timeoutClient) Call(ctx context.Context, method string, arg interface{}
 	ctx, timeoutCancel = context.WithTimeout(ctx, t.timeout)
 	defer timeoutCancel()
 	err := t.inner.Call(ctx, method, arg, res)
+	if err == context.DeadlineExceeded {
+		return t.timeoutErr
+	}
+	return err
+}
+
+func (t *timeoutClient) CallCompressed(ctx context.Context, method string, arg interface{}, res interface{}, ctype rpc.CompressionType) error {
+	var timeoutCancel context.CancelFunc
+	ctx, timeoutCancel = context.WithTimeout(ctx, t.timeout)
+	defer timeoutCancel()
+	err := t.inner.CallCompressed(ctx, method, arg, res, ctype)
 	if err == context.DeadlineExceeded {
 		return t.timeoutErr
 	}

@@ -18,6 +18,7 @@ const Search = (props: Props) => (
           onExitSearch={props.onClose}
           autoFocus={true}
           placeholder={placeholder}
+          showServiceFilter={true}
         />
       </Box>
       <Box style={{...styleSearchRow, ...desktopStyles.scrollable, justifyContent: 'center'}}>
@@ -28,11 +29,11 @@ const Search = (props: Props) => (
 )
 
 const styleSearchContainer = {
+  ...desktopStyles.boxShadow,
   ...globalStyles.flexBoxColumn,
   alignSelf: 'center',
   backgroundColor: globalColors.white,
   borderRadius: 5,
-  boxShadow: `0 2px 5px 0 ${globalColors.black_20}`,
   flex: 1,
   minWidth: 400,
   position: 'absolute',

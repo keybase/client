@@ -1,6 +1,6 @@
 // @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define */
+/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
 
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -25,20 +25,20 @@ type _UpdateHasPermissionsPayload = $ReadOnly<{|hasPermissions: boolean|}>
 type _UpdatePushTokenPayload = $ReadOnly<{|token: string|}>
 
 // Action Creators
-export const createNotification = (payload: _NotificationPayload) => ({error: false, payload, type: notification})
-export const createRejectPermissions = (payload: _RejectPermissionsPayload) => ({error: false, payload, type: rejectPermissions})
-export const createRequestPermissions = (payload: _RequestPermissionsPayload) => ({error: false, payload, type: requestPermissions})
-export const createShowPermissionsPrompt = (payload: _ShowPermissionsPromptPayload) => ({error: false, payload, type: showPermissionsPrompt})
-export const createUpdateHasPermissions = (payload: _UpdateHasPermissionsPayload) => ({error: false, payload, type: updateHasPermissions})
-export const createUpdatePushToken = (payload: _UpdatePushTokenPayload) => ({error: false, payload, type: updatePushToken})
+export const createNotification = (payload: _NotificationPayload) => ({payload, type: notification})
+export const createRejectPermissions = (payload: _RejectPermissionsPayload) => ({payload, type: rejectPermissions})
+export const createRequestPermissions = (payload: _RequestPermissionsPayload) => ({payload, type: requestPermissions})
+export const createShowPermissionsPrompt = (payload: _ShowPermissionsPromptPayload) => ({payload, type: showPermissionsPrompt})
+export const createUpdateHasPermissions = (payload: _UpdateHasPermissionsPayload) => ({payload, type: updateHasPermissions})
+export const createUpdatePushToken = (payload: _UpdatePushTokenPayload) => ({payload, type: updatePushToken})
 
 // Action Payloads
-export type NotificationPayload = $Call<typeof createNotification, _NotificationPayload>
-export type RejectPermissionsPayload = $Call<typeof createRejectPermissions, _RejectPermissionsPayload>
-export type RequestPermissionsPayload = $Call<typeof createRequestPermissions, _RequestPermissionsPayload>
-export type ShowPermissionsPromptPayload = $Call<typeof createShowPermissionsPrompt, _ShowPermissionsPromptPayload>
-export type UpdateHasPermissionsPayload = $Call<typeof createUpdateHasPermissions, _UpdateHasPermissionsPayload>
-export type UpdatePushTokenPayload = $Call<typeof createUpdatePushToken, _UpdatePushTokenPayload>
+export type NotificationPayload = {|+payload: _NotificationPayload, +type: 'push:notification'|}
+export type RejectPermissionsPayload = {|+payload: _RejectPermissionsPayload, +type: 'push:rejectPermissions'|}
+export type RequestPermissionsPayload = {|+payload: _RequestPermissionsPayload, +type: 'push:requestPermissions'|}
+export type ShowPermissionsPromptPayload = {|+payload: _ShowPermissionsPromptPayload, +type: 'push:showPermissionsPrompt'|}
+export type UpdateHasPermissionsPayload = {|+payload: _UpdateHasPermissionsPayload, +type: 'push:updateHasPermissions'|}
+export type UpdatePushTokenPayload = {|+payload: _UpdatePushTokenPayload, +type: 'push:updatePushToken'|}
 
 // All Actions
 // prettier-ignore
@@ -49,4 +49,4 @@ export type Actions =
   | ShowPermissionsPromptPayload
   | UpdateHasPermissionsPayload
   | UpdatePushTokenPayload
-  | {type: 'common:resetStore', payload: void}
+  | {type: 'common:resetStore', payload: null}

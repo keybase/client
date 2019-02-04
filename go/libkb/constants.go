@@ -4,7 +4,6 @@
 package libkb
 
 import (
-	"fmt"
 	"os"
 	"runtime"
 	"time"
@@ -19,6 +18,12 @@ const (
 	StagingServerURI    = "https://stage0.keybase.io"
 	ProductionServerURI = "https://api-0.core.keybaseapi.com"
 	TorServerURI        = "http://fncuwbiisyh6ak3i.onion"
+)
+
+const (
+	DevelSiteURI      = DevelServerURI
+	StagingSiteURI    = StagingServerURI
+	ProductionSiteURI = "https://keybase.io"
 )
 
 var TorProxy = "localhost:9050"
@@ -40,6 +45,12 @@ var ServerLookup = map[RunMode]string{
 	DevelRunMode:      DevelServerURI,
 	StagingRunMode:    StagingServerURI,
 	ProductionRunMode: ProductionServerURI,
+}
+
+var SiteURILookup = map[RunMode]string{
+	DevelRunMode:      DevelSiteURI,
+	StagingRunMode:    StagingSiteURI,
+	ProductionRunMode: ProductionSiteURI,
 }
 
 const (
@@ -74,7 +85,7 @@ const (
 )
 
 // Right now reddit is the only site that seems to have any requirements for
-// our User-Agent string. (See https://github.com/reddit/reddit/wiki/API.)If
+// our User-Agent string. (See https://github.com/reddit/reddit/wiki/API.) If
 // something else comes up, we'll want to make this more configurable.
 var UserAgent = runtime.GOOS + ":" + "Keybase CLI (" + runtime.Version() + "):" + Version
 
@@ -116,6 +127,7 @@ const (
 	UPAKCacheSize                     = 2000
 	UIDMapFullNameCacheSize           = 100000
 	ImplicitTeamConflictInfoCacheSize = 10000
+	ImplicitTeamCacheSize             = 10000
 
 	PayloadCacheSize = 1000
 
@@ -128,8 +140,8 @@ const (
 	TeamMerkleFreshnessForAdmin = 30 * time.Second
 	EphemeralKeyMerkleFreshness = 30 * time.Second
 
-	// By default, only 64 files can be opened.
-	LevelDBNumFiles = 64
+	// By default, only 48 files can be opened.
+	LevelDBNumFiles = 48
 
 	HomeCacheTimeout       = (time.Hour - time.Minute)
 	HomePeopleCacheTimeout = 10 * time.Minute
@@ -147,6 +159,7 @@ var MerkleTestKIDs = []string{
 }
 var MerkleStagingKIDs = []string{
 	"0101bed85ce72cc315828367c28b41af585b6b7d95646a62ca829691d70f49184fa70a",
+	"01202e045e19e8d68ddd3d1582113bfd397f244f0529025ad8ccad7f0397e13d69c60a",
 }
 
 var CodeSigningProdKIDs = []string{
@@ -159,6 +172,9 @@ var CodeSigningProdKIDs = []string{
 var CodeSigningTestKIDs = []string{}
 var CodeSigningStagingKIDs = []string{}
 
+// SigVersion describes how the signature is computed. In signatures v1, the payload is a JSON
+// blob. In Signature V2, it's a Msgpack wrapper that points via SHA256 to the V1 blob.
+// V2 sigs allow for bandwidth-saving eliding of signature bodies that aren't relevant to clients.
 type SigVersion int
 
 const (
@@ -168,7 +184,6 @@ const (
 )
 
 const (
-	KeybaseKIDV1     = 1 // Uses SHA-256
 	OneYearInSeconds = 24 * 60 * 60 * 365
 
 	SigExpireIn            = OneYearInSeconds * 16 // 16 years
@@ -184,132 +199,140 @@ const (
 
 // Status codes.  This list should match keybase/lib/status_codes.iced.
 const (
-	SCOk                               = int(keybase1.StatusCode_SCOk)
-	SCInputError                       = int(keybase1.StatusCode_SCInputError)
-	SCLoginRequired                    = int(keybase1.StatusCode_SCLoginRequired)
-	SCBadSession                       = int(keybase1.StatusCode_SCBadSession)
-	SCNoSession                        = int(keybase1.StatusCode_SCNoSession)
-	SCBadLoginUserNotFound             = int(keybase1.StatusCode_SCBadLoginUserNotFound)
-	SCBadLoginPassword                 = int(keybase1.StatusCode_SCBadLoginPassword)
-	SCNotFound                         = int(keybase1.StatusCode_SCNotFound)
-	SCDeleted                          = int(keybase1.StatusCode_SCDeleted)
-	SCThrottleControl                  = int(keybase1.StatusCode_SCThrottleControl)
-	SCGeneric                          = int(keybase1.StatusCode_SCGeneric)
-	SCAlreadyLoggedIn                  = int(keybase1.StatusCode_SCAlreadyLoggedIn)
-	SCCanceled                         = int(keybase1.StatusCode_SCCanceled)
-	SCInputCanceled                    = int(keybase1.StatusCode_SCInputCanceled)
-	SCExists                           = int(keybase1.StatusCode_SCExists)
-	SCInvalidAddress                   = int(keybase1.StatusCode_SCInvalidAddress)
-	SCReloginRequired                  = int(keybase1.StatusCode_SCReloginRequired)
-	SCResolutionFailed                 = int(keybase1.StatusCode_SCResolutionFailed)
-	SCProfileNotPublic                 = int(keybase1.StatusCode_SCProfileNotPublic)
-	SCBadSignupUsernameTaken           = int(keybase1.StatusCode_SCBadSignupUsernameTaken)
-	SCBadInvitationCode                = int(keybase1.StatusCode_SCBadInvitationCode)
-	SCFeatureFlag                      = int(keybase1.StatusCode_SCFeatureFlag)
-	SCMissingResult                    = int(keybase1.StatusCode_SCMissingResult)
-	SCKeyNotFound                      = int(keybase1.StatusCode_SCKeyNotFound)
-	SCKeyCorrupted                     = int(keybase1.StatusCode_SCKeyCorrupted)
-	SCKeyInUse                         = int(keybase1.StatusCode_SCKeyInUse)
-	SCKeyBadGen                        = int(keybase1.StatusCode_SCKeyBadGen)
-	SCKeyNoSecret                      = int(keybase1.StatusCode_SCKeyNoSecret)
-	SCKeyBadUIDs                       = int(keybase1.StatusCode_SCKeyBadUIDs)
-	SCKeyNoActive                      = int(keybase1.StatusCode_SCKeyNoActive)
-	SCKeyNoSig                         = int(keybase1.StatusCode_SCKeyNoSig)
-	SCKeyBadSig                        = int(keybase1.StatusCode_SCKeyBadSig)
-	SCKeyBadEldest                     = int(keybase1.StatusCode_SCKeyBadEldest)
-	SCKeyNoEldest                      = int(keybase1.StatusCode_SCKeyNoEldest)
-	SCKeyDuplicateUpdate               = int(keybase1.StatusCode_SCKeyDuplicateUpdate)
-	SCKeySyncedPGPNotFound             = int(keybase1.StatusCode_SCKeySyncedPGPNotFound)
-	SCKeyNoMatchingGPG                 = int(keybase1.StatusCode_SCKeyNoMatchingGPG)
-	SCKeyRevoked                       = int(keybase1.StatusCode_SCKeyRevoked)
-	SCSigCannotVerify                  = int(keybase1.StatusCode_SCSigCannotVerify)
-	SCSibkeyAlreadyExists              = int(keybase1.StatusCode_SCSibkeyAlreadyExists)
-	SCDecryptionKeyNotFound            = int(keybase1.StatusCode_SCDecryptionKeyNotFound)
-	SCBadTrackSession                  = int(keybase1.StatusCode_SCBadTrackSession)
-	SCDeviceBadName                    = int(keybase1.StatusCode_SCDeviceBadName)
-	SCDeviceNameInUse                  = int(keybase1.StatusCode_SCDeviceNameInUse)
-	SCDeviceNotFound                   = int(keybase1.StatusCode_SCDeviceNotFound)
-	SCDeviceMismatch                   = int(keybase1.StatusCode_SCDeviceMismatch)
-	SCDeviceRequired                   = int(keybase1.StatusCode_SCDeviceRequired)
-	SCDevicePrevProvisioned            = int(keybase1.StatusCode_SCDevicePrevProvisioned)
-	SCDeviceProvisionViaDevice         = int(keybase1.StatusCode_SCDeviceProvisionViaDevice)
-	SCDeviceNoProvision                = int(keybase1.StatusCode_SCDeviceNoProvision)
-	SCDeviceProvisionOffline           = int(keybase1.StatusCode_SCDeviceProvisionOffline)
-	SCStreamExists                     = int(keybase1.StatusCode_SCStreamExists)
-	SCStreamNotFound                   = int(keybase1.StatusCode_SCStreamNotFound)
-	SCStreamWrongKind                  = int(keybase1.StatusCode_SCStreamWrongKind)
-	SCStreamEOF                        = int(keybase1.StatusCode_SCStreamEOF)
-	SCGenericAPIError                  = int(keybase1.StatusCode_SCGenericAPIError)
-	SCAPINetworkError                  = int(keybase1.StatusCode_SCAPINetworkError)
-	SCTimeout                          = int(keybase1.StatusCode_SCTimeout)
-	SCProofError                       = int(keybase1.StatusCode_SCProofError)
-	SCIdentificationExpired            = int(keybase1.StatusCode_SCIdentificationExpired)
-	SCSelfNotFound                     = int(keybase1.StatusCode_SCSelfNotFound)
-	SCBadKexPhrase                     = int(keybase1.StatusCode_SCBadKexPhrase)
-	SCNoUI                             = int(keybase1.StatusCode_SCNoUI)
-	SCNoUIDelegation                   = int(keybase1.StatusCode_SCNoUIDelegation)
-	SCIdentifyFailed                   = int(keybase1.StatusCode_SCIdentifyFailed)
-	SCTrackingBroke                    = int(keybase1.StatusCode_SCTrackingBroke)
-	SCKeyNoPGPEncryption               = int(keybase1.StatusCode_SCKeyNoPGPEncryption)
-	SCKeyNoNaClEncryption              = int(keybase1.StatusCode_SCKeyNoNaClEncryption)
-	SCWrongCryptoFormat                = int(keybase1.StatusCode_SCWrongCryptoFormat)
-	SCGPGUnavailable                   = int(keybase1.StatusCode_SCGPGUnavailable)
-	SCDecryptionError                  = int(keybase1.StatusCode_SCDecryptionError)
-	SCChatInternal                     = int(keybase1.StatusCode_SCChatInternal)
-	SCChatRateLimit                    = int(keybase1.StatusCode_SCChatRateLimit)
-	SCChatConvExists                   = int(keybase1.StatusCode_SCChatConvExists)
-	SCChatUnknownTLFID                 = int(keybase1.StatusCode_SCChatUnknownTLFID)
-	SCChatNotInConv                    = int(keybase1.StatusCode_SCChatNotInConv)
-	SCChatNotInTeam                    = int(keybase1.StatusCode_SCChatNotInTeam)
-	SCChatBadMsg                       = int(keybase1.StatusCode_SCChatBadMsg)
-	SCChatBroadcast                    = int(keybase1.StatusCode_SCChatBroadcast)
-	SCChatAlreadySuperseded            = int(keybase1.StatusCode_SCChatAlreadySuperseded)
-	SCChatAlreadyDeleted               = int(keybase1.StatusCode_SCChatAlreadyDeleted)
-	SCChatTLFFinalized                 = int(keybase1.StatusCode_SCChatTLFFinalized)
-	SCChatCollision                    = int(keybase1.StatusCode_SCChatCollision)
-	SCChatStalePreviousState           = int(keybase1.StatusCode_SCChatStalePreviousState)
-	SCMerkleClientError                = int(keybase1.StatusCode_SCMerkleClientError)
-	SCBadEmail                         = int(keybase1.StatusCode_SCBadEmail)
-	SCIdentifySummaryError             = int(keybase1.StatusCode_SCIdentifySummaryError)
-	SCNeedSelfRekey                    = int(keybase1.StatusCode_SCNeedSelfRekey)
-	SCNeedOtherRekey                   = int(keybase1.StatusCode_SCNeedOtherRekey)
-	SCChatMessageCollision             = int(keybase1.StatusCode_SCChatMessageCollision)
-	SCChatDuplicateMessage             = int(keybase1.StatusCode_SCChatDuplicateMessage)
-	SCChatClientError                  = int(keybase1.StatusCode_SCChatClientError)
-	SCAccountReset                     = int(keybase1.StatusCode_SCAccountReset)
-	SCIdentifiesFailed                 = int(keybase1.StatusCode_SCIdentifiesFailed)
-	SCTeamReadError                    = int(keybase1.StatusCode_SCTeamReadError)
-	SCTeamWritePermDenied              = int(keybase1.StatusCode_SCTeamWritePermDenied)
-	SCNoOp                             = int(keybase1.StatusCode_SCNoOp)
-	SCTeamNotFound                     = int(keybase1.StatusCode_SCTeamNotFound)
-	SCTeamTarDuplicate                 = int(keybase1.StatusCode_SCTeamTarDuplicate)
-	SCTeamTarNotFound                  = int(keybase1.StatusCode_SCTeamTarNotFound)
-	SCTeamMemberExists                 = int(keybase1.StatusCode_SCTeamMemberExists)
-	SCTeamFTLOutdated                  = int(keybase1.StatusCode_SCTeamFTLOutdated)
-	SCLoginStateTimeout                = int(keybase1.StatusCode_SCLoginStateTimeout)
-	SCRevokeCurrentDevice              = int(keybase1.StatusCode_SCRevokeCurrentDevice)
-	SCRevokeLastDevice                 = int(keybase1.StatusCode_SCRevokeLastDevice)
-	SCRevokeLastDevicePGP              = int(keybase1.StatusCode_SCRevokeLastDevicePGP)
-	SCTeamKeyMaskNotFound              = int(keybase1.StatusCode_SCTeamKeyMaskNotFound)
-	SCGitInternal                      = int(keybase1.StatusCode_SCGitInternal)
-	SCGitRepoAlreadyExists             = int(keybase1.StatusCode_SCGitRepoAlreadyExists)
-	SCGitInvalidRepoName               = int(keybase1.StatusCode_SCGitInvalidRepoName)
-	SCGitCannotDelete                  = int(keybase1.StatusCode_SCGitCannotDelete)
-	SCGitRepoDoesntExist               = int(keybase1.StatusCode_SCGitRepoDoesntExist)
-	SCTeamBanned                       = int(keybase1.StatusCode_SCTeamBanned)
-	SCTeamInvalidBan                   = int(keybase1.StatusCode_SCTeamInvalidBan)
-	SCNoSpaceOnDevice                  = int(keybase1.StatusCode_SCNoSpaceOnDevice)
-	SCTeamInviteBadToken               = int(keybase1.StatusCode_SCTeamInviteBadToken)
-	SCTeamInviteTokenReused            = int(keybase1.StatusCode_SCTeamInviteTokenReused)
-	SCTeamBadMembership                = int(keybase1.StatusCode_SCTeamBadMembership)
-	SCTeamProvisionalCanKey            = int(keybase1.StatusCode_SCTeamProvisionalCanKey)
-	SCTeamProvisionalCannotKey         = int(keybase1.StatusCode_SCTeamProvisionalCannotKey)
-	SCBadSignupUsernameDeleted         = int(keybase1.StatusCode_SCBadSignupUsernameDeleted)
-	SCEphemeralPairwiseMACsMissingUIDs = int(keybase1.StatusCode_SCEphemeralPairwiseMACsMissingUIDs)
-)
-
-const (
-	IDSuffixKID = 0x0a
+	SCOk                                        = int(keybase1.StatusCode_SCOk)
+	SCInputError                                = int(keybase1.StatusCode_SCInputError)
+	SCLoginRequired                             = int(keybase1.StatusCode_SCLoginRequired)
+	SCBadSession                                = int(keybase1.StatusCode_SCBadSession)
+	SCNoSession                                 = int(keybase1.StatusCode_SCNoSession)
+	SCBadLoginUserNotFound                      = int(keybase1.StatusCode_SCBadLoginUserNotFound)
+	SCBadLoginPassword                          = int(keybase1.StatusCode_SCBadLoginPassword)
+	SCNotFound                                  = int(keybase1.StatusCode_SCNotFound)
+	SCDeleted                                   = int(keybase1.StatusCode_SCDeleted)
+	SCThrottleControl                           = int(keybase1.StatusCode_SCThrottleControl)
+	SCGeneric                                   = int(keybase1.StatusCode_SCGeneric)
+	SCAlreadyLoggedIn                           = int(keybase1.StatusCode_SCAlreadyLoggedIn)
+	SCCanceled                                  = int(keybase1.StatusCode_SCCanceled)
+	SCInputCanceled                             = int(keybase1.StatusCode_SCInputCanceled)
+	SCExists                                    = int(keybase1.StatusCode_SCExists)
+	SCInvalidAddress                            = int(keybase1.StatusCode_SCInvalidAddress)
+	SCReloginRequired                           = int(keybase1.StatusCode_SCReloginRequired)
+	SCResolutionFailed                          = int(keybase1.StatusCode_SCResolutionFailed)
+	SCProfileNotPublic                          = int(keybase1.StatusCode_SCProfileNotPublic)
+	SCRateLimit                                 = int(keybase1.StatusCode_SCRateLimit)
+	SCBadSignupUsernameTaken                    = int(keybase1.StatusCode_SCBadSignupUsernameTaken)
+	SCBadInvitationCode                         = int(keybase1.StatusCode_SCBadInvitationCode)
+	SCFeatureFlag                               = int(keybase1.StatusCode_SCFeatureFlag)
+	SCMissingResult                             = int(keybase1.StatusCode_SCMissingResult)
+	SCKeyNotFound                               = int(keybase1.StatusCode_SCKeyNotFound)
+	SCKeyCorrupted                              = int(keybase1.StatusCode_SCKeyCorrupted)
+	SCKeyInUse                                  = int(keybase1.StatusCode_SCKeyInUse)
+	SCKeyBadGen                                 = int(keybase1.StatusCode_SCKeyBadGen)
+	SCKeyNoSecret                               = int(keybase1.StatusCode_SCKeyNoSecret)
+	SCKeyBadUIDs                                = int(keybase1.StatusCode_SCKeyBadUIDs)
+	SCKeyNoActive                               = int(keybase1.StatusCode_SCKeyNoActive)
+	SCKeyNoSig                                  = int(keybase1.StatusCode_SCKeyNoSig)
+	SCKeyBadSig                                 = int(keybase1.StatusCode_SCKeyBadSig)
+	SCKeyBadEldest                              = int(keybase1.StatusCode_SCKeyBadEldest)
+	SCKeyNoEldest                               = int(keybase1.StatusCode_SCKeyNoEldest)
+	SCKeyDuplicateUpdate                        = int(keybase1.StatusCode_SCKeyDuplicateUpdate)
+	SCKeySyncedPGPNotFound                      = int(keybase1.StatusCode_SCKeySyncedPGPNotFound)
+	SCKeyNoMatchingGPG                          = int(keybase1.StatusCode_SCKeyNoMatchingGPG)
+	SCKeyRevoked                                = int(keybase1.StatusCode_SCKeyRevoked)
+	SCSigCannotVerify                           = int(keybase1.StatusCode_SCSigCannotVerify)
+	SCSibkeyAlreadyExists                       = int(keybase1.StatusCode_SCSibkeyAlreadyExists)
+	SCSigCreationDisallowed                     = int(keybase1.StatusCode_SCSigCreationDisallowed)
+	SCDecryptionKeyNotFound                     = int(keybase1.StatusCode_SCDecryptionKeyNotFound)
+	SCBadTrackSession                           = int(keybase1.StatusCode_SCBadTrackSession)
+	SCDeviceBadName                             = int(keybase1.StatusCode_SCDeviceBadName)
+	SCDeviceNameInUse                           = int(keybase1.StatusCode_SCDeviceNameInUse)
+	SCDeviceNotFound                            = int(keybase1.StatusCode_SCDeviceNotFound)
+	SCDeviceMismatch                            = int(keybase1.StatusCode_SCDeviceMismatch)
+	SCDeviceRequired                            = int(keybase1.StatusCode_SCDeviceRequired)
+	SCDevicePrevProvisioned                     = int(keybase1.StatusCode_SCDevicePrevProvisioned)
+	SCDeviceProvisionViaDevice                  = int(keybase1.StatusCode_SCDeviceProvisionViaDevice)
+	SCDeviceNoProvision                         = int(keybase1.StatusCode_SCDeviceNoProvision)
+	SCDeviceProvisionOffline                    = int(keybase1.StatusCode_SCDeviceProvisionOffline)
+	SCStreamExists                              = int(keybase1.StatusCode_SCStreamExists)
+	SCStreamNotFound                            = int(keybase1.StatusCode_SCStreamNotFound)
+	SCStreamWrongKind                           = int(keybase1.StatusCode_SCStreamWrongKind)
+	SCStreamEOF                                 = int(keybase1.StatusCode_SCStreamEOF)
+	SCGenericAPIError                           = int(keybase1.StatusCode_SCGenericAPIError)
+	SCAPINetworkError                           = int(keybase1.StatusCode_SCAPINetworkError)
+	SCTimeout                                   = int(keybase1.StatusCode_SCTimeout)
+	SCProofError                                = int(keybase1.StatusCode_SCProofError)
+	SCIdentificationExpired                     = int(keybase1.StatusCode_SCIdentificationExpired)
+	SCSelfNotFound                              = int(keybase1.StatusCode_SCSelfNotFound)
+	SCBadKexPhrase                              = int(keybase1.StatusCode_SCBadKexPhrase)
+	SCNoUI                                      = int(keybase1.StatusCode_SCNoUI)
+	SCNoUIDelegation                            = int(keybase1.StatusCode_SCNoUIDelegation)
+	SCIdentifyFailed                            = int(keybase1.StatusCode_SCIdentifyFailed)
+	SCTrackingBroke                             = int(keybase1.StatusCode_SCTrackingBroke)
+	SCKeyNoPGPEncryption                        = int(keybase1.StatusCode_SCKeyNoPGPEncryption)
+	SCKeyNoNaClEncryption                       = int(keybase1.StatusCode_SCKeyNoNaClEncryption)
+	SCWrongCryptoFormat                         = int(keybase1.StatusCode_SCWrongCryptoFormat)
+	SCGPGUnavailable                            = int(keybase1.StatusCode_SCGPGUnavailable)
+	SCDecryptionError                           = int(keybase1.StatusCode_SCDecryptionError)
+	SCChatInternal                              = int(keybase1.StatusCode_SCChatInternal)
+	SCChatRateLimit                             = int(keybase1.StatusCode_SCChatRateLimit)
+	SCChatConvExists                            = int(keybase1.StatusCode_SCChatConvExists)
+	SCChatUnknownTLFID                          = int(keybase1.StatusCode_SCChatUnknownTLFID)
+	SCChatNotInConv                             = int(keybase1.StatusCode_SCChatNotInConv)
+	SCChatNotInTeam                             = int(keybase1.StatusCode_SCChatNotInTeam)
+	SCChatBadMsg                                = int(keybase1.StatusCode_SCChatBadMsg)
+	SCChatBroadcast                             = int(keybase1.StatusCode_SCChatBroadcast)
+	SCChatAlreadySuperseded                     = int(keybase1.StatusCode_SCChatAlreadySuperseded)
+	SCChatAlreadyDeleted                        = int(keybase1.StatusCode_SCChatAlreadyDeleted)
+	SCChatTLFFinalized                          = int(keybase1.StatusCode_SCChatTLFFinalized)
+	SCChatCollision                             = int(keybase1.StatusCode_SCChatCollision)
+	SCChatStalePreviousState                    = int(keybase1.StatusCode_SCChatStalePreviousState)
+	SCChatEphemeralRetentionPolicyViolatedError = int(keybase1.StatusCode_SCChatEphemeralRetentionPolicyViolatedError)
+	SCMerkleClientError                         = int(keybase1.StatusCode_SCMerkleClientError)
+	SCBadEmail                                  = int(keybase1.StatusCode_SCBadEmail)
+	SCIdentifySummaryError                      = int(keybase1.StatusCode_SCIdentifySummaryError)
+	SCNeedSelfRekey                             = int(keybase1.StatusCode_SCNeedSelfRekey)
+	SCNeedOtherRekey                            = int(keybase1.StatusCode_SCNeedOtherRekey)
+	SCChatMessageCollision                      = int(keybase1.StatusCode_SCChatMessageCollision)
+	SCChatDuplicateMessage                      = int(keybase1.StatusCode_SCChatDuplicateMessage)
+	SCChatClientError                           = int(keybase1.StatusCode_SCChatClientError)
+	SCAccountReset                              = int(keybase1.StatusCode_SCAccountReset)
+	SCIdentifiesFailed                          = int(keybase1.StatusCode_SCIdentifiesFailed)
+	SCTeamReadError                             = int(keybase1.StatusCode_SCTeamReadError)
+	SCTeamWritePermDenied                       = int(keybase1.StatusCode_SCTeamWritePermDenied)
+	SCNoOp                                      = int(keybase1.StatusCode_SCNoOp)
+	SCTeamNotFound                              = int(keybase1.StatusCode_SCTeamNotFound)
+	SCTeamTarDuplicate                          = int(keybase1.StatusCode_SCTeamTarDuplicate)
+	SCTeamTarNotFound                           = int(keybase1.StatusCode_SCTeamTarNotFound)
+	SCTeamMemberExists                          = int(keybase1.StatusCode_SCTeamMemberExists)
+	SCTeamFTLOutdated                           = int(keybase1.StatusCode_SCTeamFTLOutdated)
+	SCLoginStateTimeout                         = int(keybase1.StatusCode_SCLoginStateTimeout)
+	SCRevokeCurrentDevice                       = int(keybase1.StatusCode_SCRevokeCurrentDevice)
+	SCRevokeLastDevice                          = int(keybase1.StatusCode_SCRevokeLastDevice)
+	SCRevokeLastDevicePGP                       = int(keybase1.StatusCode_SCRevokeLastDevicePGP)
+	SCTeamKeyMaskNotFound                       = int(keybase1.StatusCode_SCTeamKeyMaskNotFound)
+	SCGitInternal                               = int(keybase1.StatusCode_SCGitInternal)
+	SCGitRepoAlreadyExists                      = int(keybase1.StatusCode_SCGitRepoAlreadyExists)
+	SCGitInvalidRepoName                        = int(keybase1.StatusCode_SCGitInvalidRepoName)
+	SCGitCannotDelete                           = int(keybase1.StatusCode_SCGitCannotDelete)
+	SCGitRepoDoesntExist                        = int(keybase1.StatusCode_SCGitRepoDoesntExist)
+	SCTeamBanned                                = int(keybase1.StatusCode_SCTeamBanned)
+	SCTeamInvalidBan                            = int(keybase1.StatusCode_SCTeamInvalidBan)
+	SCNoSpaceOnDevice                           = int(keybase1.StatusCode_SCNoSpaceOnDevice)
+	SCTeamInviteBadToken                        = int(keybase1.StatusCode_SCTeamInviteBadToken)
+	SCTeamInviteTokenReused                     = int(keybase1.StatusCode_SCTeamInviteTokenReused)
+	SCTeamBadMembership                         = int(keybase1.StatusCode_SCTeamBadMembership)
+	SCTeamProvisionalCanKey                     = int(keybase1.StatusCode_SCTeamProvisionalCanKey)
+	SCTeamProvisionalCannotKey                  = int(keybase1.StatusCode_SCTeamProvisionalCannotKey)
+	SCBadSignupUsernameDeleted                  = int(keybase1.StatusCode_SCBadSignupUsernameDeleted)
+	SCEphemeralPairwiseMACsMissingUIDs          = int(keybase1.StatusCode_SCEphemeralPairwiseMACsMissingUIDs)
+	SCEphemeralDeviceAfterEK                    = int(keybase1.StatusCode_SCEphemeralDeviceAfterEK)
+	SCEphemeralMemberAfterEK                    = int(keybase1.StatusCode_SCEphemeralMemberAfterEK)
+	SCEphemeralDeviceStale                      = int(keybase1.StatusCode_SCEphemeralDeviceStale)
+	SCEphemeralUserStale                        = int(keybase1.StatusCode_SCEphemeralUserStale)
+	SCStellarNeedDisclaimer                     = int(keybase1.StatusCode_SCStellarNeedDisclaimer)
+	SCStellarDeviceNotMobile                    = int(keybase1.StatusCode_SCStellarDeviceNotMobile)
+	SCStellarMobileOnlyPurgatory                = int(keybase1.StatusCode_SCStellarMobileOnlyPurgatory)
+	SCStellarIncompatibleVersion                = int(keybase1.StatusCode_SCStellarIncompatibleVersion)
+	SCStellarMissingAccount                     = int(keybase1.StatusCode_SCStellarMissingAccount)
 )
 
 const (
@@ -401,20 +424,24 @@ var PGPArmorHeaders = map[string]string{
 	"Comment": DownloadURL,
 }
 
+const GenericSocialWebServiceBinding = "web_service_binding.generic_social"
+
 var RemoteServiceTypes = map[string]keybase1.ProofType{
-	"keybase":    keybase1.ProofType_KEYBASE,
-	"twitter":    keybase1.ProofType_TWITTER,
-	"facebook":   keybase1.ProofType_FACEBOOK,
-	"github":     keybase1.ProofType_GITHUB,
-	"reddit":     keybase1.ProofType_REDDIT,
-	"coinbase":   keybase1.ProofType_COINBASE,
-	"hackernews": keybase1.ProofType_HACKERNEWS,
-	"https":      keybase1.ProofType_GENERIC_WEB_SITE,
-	"http":       keybase1.ProofType_GENERIC_WEB_SITE,
-	"dns":        keybase1.ProofType_DNS,
-	"rooter":     keybase1.ProofType_ROOTER,
+	"keybase":        keybase1.ProofType_KEYBASE,
+	"twitter":        keybase1.ProofType_TWITTER,
+	"facebook":       keybase1.ProofType_FACEBOOK,
+	"github":         keybase1.ProofType_GITHUB,
+	"reddit":         keybase1.ProofType_REDDIT,
+	"coinbase":       keybase1.ProofType_COINBASE,
+	"hackernews":     keybase1.ProofType_HACKERNEWS,
+	"https":          keybase1.ProofType_GENERIC_WEB_SITE,
+	"http":           keybase1.ProofType_GENERIC_WEB_SITE,
+	"dns":            keybase1.ProofType_DNS,
+	"rooter":         keybase1.ProofType_ROOTER,
+	"generic_social": keybase1.ProofType_GENERIC_SOCIAL,
 }
 
+// TODO Remove with CORE-9923
 var RemoteServiceOrder = []keybase1.ProofType{
 	keybase1.ProofType_KEYBASE,
 	keybase1.ProofType_TWITTER,
@@ -424,6 +451,7 @@ var RemoteServiceOrder = []keybase1.ProofType{
 	keybase1.ProofType_COINBASE,
 	keybase1.ProofType_HACKERNEWS,
 	keybase1.ProofType_GENERIC_WEB_SITE,
+	keybase1.ProofType_GENERIC_SOCIAL,
 	keybase1.ProofType_ROOTER,
 }
 
@@ -442,63 +470,6 @@ const (
 	HTTPRetryInitialTimeout = 1 * time.Second
 	HTTPRetryMutliplier     = 1.5
 	HTTPRetryCount          = 6
-)
-
-type PacketVersion int
-
-const (
-	KeybasePacketV1 PacketVersion = 1
-)
-
-// PacketTag are tags for OpenPGP and Keybase packets. It is a uint to
-// be backwards compatible with older versions of codec that encoded
-// positive ints as uints.
-type PacketTag uint
-
-const (
-	TagP3skb      PacketTag = 513
-	TagSignature  PacketTag = 514
-	TagEncryption PacketTag = 515
-)
-
-func (t PacketTag) String() string {
-	switch t {
-	case TagP3skb:
-		return "PacketTag(P3skb)"
-	case TagSignature:
-		return "PacketTag(Signature)"
-	case TagEncryption:
-		return "PacketTag(Encryption)"
-	default:
-		return fmt.Sprintf("PacketTag(%d)", uint(t))
-	}
-}
-
-const (
-	KIDPGPBase    AlgoType = 0x00
-	KIDPGPRsa     AlgoType = 0x1
-	KIDPGPElgamal AlgoType = 0x10
-	KIDPGPDsa     AlgoType = 0x11
-	KIDPGPEcdh    AlgoType = 0x12
-	KIDPGPEcdsa   AlgoType = 0x13
-	KIDPGPEddsa   AlgoType = 0x16
-	KIDNaclEddsa  AlgoType = 0x20
-	KIDNaclDH     AlgoType = 0x21
-)
-
-// OpenPGP hash IDs, taken from http://tools.ietf.org/html/rfc4880#section-9.4
-const (
-	HashPGPMd5       = 1
-	HashPGPSha1      = 2
-	HashPGPRipemd160 = 3
-	HashPGPSha256    = 8
-	HashPGPSha384    = 9
-	HashPGPSha512    = 10
-	HashPGPSha224    = 11
-)
-
-const (
-	SigKbEddsa = KIDNaclEddsa
 )
 
 const (
@@ -530,14 +501,6 @@ const (
 )
 
 const (
-	KexScryptCost       = 32768
-	KexScryptR          = 8
-	KexScryptP          = 1
-	KexScryptKeylen     = 32
-	KexSessionIDEntropy = 65 // kex doc specifies 65 bits of entropy
-)
-
-const (
 	Kex2PhraseEntropy  = 88
 	Kex2PhraseEntropy2 = 99 // we've upped the entropy to 99 bits after the 2018 NCC Audit
 	Kex2ScryptCost     = 1 << 17
@@ -560,11 +523,12 @@ const (
 	PaperKeyVersionBits   = 4
 	PaperKeyVersion       = 0
 	PaperKeyWordCountMin  = 13 // this should never change to a value greater than 13
+	PaperKeyNoPrefixLen   = 11 // word count min - 2
 )
 
 const UserSummaryLimit = 500 // max number of user summaries in one request
 
-const MinPassphraseLength = 6
+const MinPassphraseLength = 8
 
 const TrackingRateLimitSeconds = 50
 
@@ -586,6 +550,7 @@ const (
 
 const (
 	ServiceLogFileName = "keybase.service.log"
+	EKLogFileName      = "keybase.ek.log"
 	KBFSLogFileName    = kbconst.KBFSLogFileName
 	GitLogFileName     = "keybase.git.log"
 	UpdaterLogFileName = "keybase.updater.log"
@@ -599,17 +564,6 @@ const (
 )
 
 const (
-	SignaturePrefixKBFS           SignaturePrefix = "Keybase-KBFS-1"
-	SignaturePrefixSigchain       SignaturePrefix = "Keybase-Sigchain-1"
-	SignaturePrefixChatAttachment SignaturePrefix = "Keybase-Chat-Attachment-1"
-	SignaturePrefixTesting        SignaturePrefix = "Keybase-Testing-1"
-	SignaturePrefixNIST           SignaturePrefix = "Keybase-Auth-NIST-1"
-	// Chat prefixes for each MessageBoxedVersion.
-	SignaturePrefixChatMBv1 SignaturePrefix = "Keybase-Chat-1"
-	SignaturePrefixChatMBv2 SignaturePrefix = "Keybase-Chat-2"
-)
-
-const (
 	NotificationDismissPGPPrefix = "pgp_secret_store"
 	NotificationDismissPGPValue  = "dismissed"
 )
@@ -618,6 +572,7 @@ const (
 	EncryptionReasonChatLocalStorage       EncryptionReason = "Keybase-Chat-Local-Storage-1"
 	EncryptionReasonChatMessage            EncryptionReason = "Keybase-Chat-Message-1"
 	EncryptionReasonTeamsLocalStorage      EncryptionReason = "Keybase-Teams-Local-Storage-1"
+	EncryptionReasonTeamsFTLLocalStorage   EncryptionReason = "Keybase-Teams-FTL-Local-Storage-1"
 	EncryptionReasonErasableKVLocalStorage EncryptionReason = "Keybase-Erasable-KV-Local-Storage-1"
 )
 
@@ -627,9 +582,10 @@ const (
 	DeriveReasonPUKSigning    DeriveReason = "Derived-User-NaCl-EdDSA-1"
 	DeriveReasonPUKEncryption DeriveReason = "Derived-User-NaCl-DH-1"
 	// Context used for chaining generations of PerUserKeys.
-	DeriveReasonPUKPrev            DeriveReason = "Derived-User-NaCl-SecretBox-1"
-	DeriveReasonPUKStellarBundle   DeriveReason = "Derived-User-NaCl-SecretBox-StellarBundle-1"
-	DeriveReasonPUKStellarNoteSelf DeriveReason = "Derived-User-NaCl-SecretBox-StellarSelfNote-1"
+	DeriveReasonPUKPrev              DeriveReason = "Derived-User-NaCl-SecretBox-1"
+	DeriveReasonPUKStellarBundle     DeriveReason = "Derived-User-NaCl-SecretBox-StellarBundle-1"
+	DeriveReasonPUKStellarNoteSelf   DeriveReason = "Derived-User-NaCl-SecretBox-StellarSelfNote-1"
+	DeriveReasonPUKStellarAcctBundle DeriveReason = "Derived-User-NaCl-SecretBox-StellarAcctBundle-1"
 
 	DeriveReasonDeviceEKEncryption  DeriveReason = "Derived-Ephemeral-Device-NaCl-DH-1"
 	DeriveReasonUserEKEncryption    DeriveReason = "Derived-Ephemeral-User-NaCl-DH-1"
@@ -711,11 +667,21 @@ const MinEphemeralContentLifetime = time.Second * 30
 
 // NOTE: If you change this value you should change it in lib/constants.iced
 // and go/ekreaperd/reaper.go as well.
-// Keys last at most one week
-const MaxEphemeralKeyStaleness = time.Hour * 24 * 30 // one month
+// Devices are considered stale and not included in new keys after this interval
+const MaxEphemeralKeyStaleness = time.Hour * 24 * 30 * 3 // three months
 // Everyday we want to generate a new key if possible
 const EphemeralKeyGenInterval = time.Hour * 24 // one day
 // Our keys must last at least this long.
 const MinEphemeralKeyLifetime = MaxEphemeralContentLifetime + EphemeralKeyGenInterval
 
 const MaxTeamMembersForPairwiseMAC = 100
+
+const (
+	MaxStellarPaymentNoteLength      = 500
+	MaxStellarPaymentBoxedNoteLength = 2000
+)
+
+const ClientTriplesecVersion = 3
+
+// Also hard-coded in packaging/linux/{post_install.sh,run_keybase}
+const DisableRootRedirectorConfigKey = "disable-root-redirector"

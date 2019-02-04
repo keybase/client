@@ -1,11 +1,40 @@
 // @flow
-import Body from '.'
-import {compose, connect, setDisplayName, type TypedState} from '../../../util/container'
+import {SendBody as SendBodyComponent, RequestBody as RequestBodyComponent} from '.'
+import {namedConnect} from '../../../util/container'
+import * as Constants from '../../../constants/wallets'
+import * as WalletsGen from '../../../actions/wallets-gen'
 
-const mapStateToProps = (state: TypedState) => ({})
+type OwnProps = {||}
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({})
+const mapStateToProps = state => ({
+  _failed: !!state.wallets.sentPaymentError,
+  banners: state.wallets.building.isRequest
+    ? state.wallets.builtRequest.builtBanners
+    : state.wallets.builtPayment.builtBanners,
+})
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({...stateProps, ...dispatchProps, ...ownProps})
+const mapDispatchToProps = dispatch => ({
+  _onReviewPayments: () => dispatch(WalletsGen.createExitFailedPayment()),
+})
 
-export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps), setDisplayName('Body'))(Body)
+const mergeProps = (stateProps, dispatchProps) => ({
+  banners: (stateProps.banners || []).map(banner => ({
+    bannerBackground: Constants.bannerLevelToBackground(banner.level),
+    bannerText: banner.message,
+  })),
+  onReviewPayments: stateProps._failed ? dispatchProps._onReviewPayments : null,
+})
+
+export const SendBody = namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'ConnectedSendBody'
+)(SendBodyComponent)
+
+export const RequestBody = namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'ConnectedRequestBody'
+)(RequestBodyComponent)

@@ -6,14 +6,22 @@
 package service
 
 import (
+	"encoding/json"
 	"fmt"
 	"sort"
+	"strings"
+	"sync"
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
+	chatwallet "github.com/keybase/client/go/chat/wallet"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/stellar1"
+	"github.com/keybase/stellarnet"
+	"github.com/stellar/go/build"
+	"github.com/stellar/go/clients/horizon"
 	"golang.org/x/net/context"
 )
 
@@ -52,7 +60,7 @@ func (t *DebuggingHandler) Script(ctx context.Context, arg keybase1.ScriptArg) (
 		err := engine.RunEngine2(m, eng)
 		log("GetProofSet: %v", spew.Sdump(eng.GetProofSet()))
 		log("ConfirmResult: %v", spew.Sdump(eng.ConfirmResult()))
-		eres, eerr := eng.Result()
+		eres, eerr := eng.Result(m)
 		if eres != nil {
 			log("Result.Upk.Username: %v", spew.Sdump(eres.Upk.GetName()))
 			log("Result.IdentifiedAt: %v", spew.Sdump(eres.IdentifiedAt))
@@ -90,7 +98,166 @@ func (t *DebuggingHandler) Script(ctx context.Context, arg keybase1.ScriptArg) (
 		sort.Slice(eldestSeqnos, func(i, j int) bool {
 			return eldestSeqnos[i] < eldestSeqnos[j]
 		})
-		log("%v", eldestSeqnos)
+		obj := struct {
+			Seqnos []keybase1.Seqno `json:"seqnos"`
+		}{eldestSeqnos}
+		bs, err := json.Marshal(obj)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("%v\n", string(bs)), nil
+	case "userhigh":
+		// List user high links
+		if len(args) != 1 {
+			return "", fmt.Errorf("require 1 arg: username")
+		}
+		user, err := libkb.LoadUser(libkb.NewLoadUserArgWithMetaContext(m).WithName(args[0]).WithPublicKeyOptional())
+		if err != nil {
+			return "", err
+		}
+		hls, err := user.GetHighLinkSeqnos(m)
+		if err != nil {
+			return "", err
+		}
+		obj := struct {
+			Seqnos []keybase1.Seqno `json:"seqnos"`
+		}{hls}
+		bs, err := json.Marshal(obj)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("%v\n", string(bs)), nil
+	case "buildpayment":
+		// Run build a bunch of times with a tight spread.
+		if len(args) != 1 {
+			return "", fmt.Errorf("require 1 args: <recipient>")
+		}
+		recipient := args[0]
+		count := 30
+		var wg sync.WaitGroup
+		for i := 0; i < count; i++ {
+			i := i
+			wg.Add(1)
+			if i%5 == 0 {
+				time.Sleep(100 * time.Millisecond)
+			}
+			if i == 10 {
+				time.Sleep(2 * time.Second)
+			}
+			start := time.Now()
+			log("build[%v] starting", i)
+			go func() {
+				defer wg.Done()
+				ctx := libkb.WithLogTagWithValue(ctx, "DGI", fmt.Sprintf("%vx", i))
+				res, err := t.walletHandler.BuildPaymentLocal(ctx, stellar1.BuildPaymentLocalArg{
+					SessionID:          500 + i,
+					FromPrimaryAccount: true,
+					To:                 recipient,
+					Amount:             "0.01",
+					SecretNote:         "xx",
+					PublicMemo:         "yy",
+				})
+				took := time.Now().Sub(start)
+				if err != nil {
+					log("build[%v] [%v] error: %v", i, took, err)
+					return
+				}
+				log("build[%v] [%v] ok", i, took)
+				if i == count-1 || err == nil {
+					log("build[%v] res: %v", i, spew.Sdump(res))
+				}
+			}()
+		}
+		wg.Wait()
+		return "", nil
+	case "reviewpayment":
+		// Send a payment including the review stage.
+		if len(args) != 1 {
+			return "", fmt.Errorf("require 1 args: <recipient>")
+		}
+		recipient := args[0]
+		sessionIDNext := 500
+		sessionID := func() int {
+			sessionIDNext++
+			return sessionIDNext - 1
+		}
+		bid, err := t.walletHandler.StartBuildPaymentLocal(ctx, sessionID())
+		if err != nil {
+			return "", err
+		}
+		log("%v", bid)
+
+		buildRes, err := t.walletHandler.BuildPaymentLocal(ctx, stellar1.BuildPaymentLocalArg{
+			SessionID:          sessionID(),
+			Bid:                bid,
+			FromPrimaryAccount: true,
+			To:                 recipient,
+			Amount:             "3.004",
+			SecretNote:         "xx",
+			PublicMemo:         "yy",
+		})
+		if err != nil {
+			return "", err
+		}
+		log("%v", spew.Sdump(buildRes))
+
+		err = t.walletHandler.ReviewPaymentLocal(ctx, stellar1.ReviewPaymentLocalArg{
+			SessionID: sessionID(),
+			Bid:       bid,
+		})
+		if err != nil {
+			return "", err
+		}
+		// Assume that the review closed because it succeeded.
+		// This is not necessarily true. Better would be to use stellar UI.
+		// Grep for "sending UIPaymentReview".
+
+		sendRes, err := t.walletHandler.SendPaymentLocal(ctx, stellar1.SendPaymentLocalArg{
+			SessionID:  sessionID(),
+			Bid:        bid,
+			From:       buildRes.From,
+			To:         recipient,
+			Amount:     "3.004",
+			Asset:      stellar1.AssetNative(),
+			SecretNote: "xx",
+			PublicMemo: "yy",
+		})
+		if err != nil {
+			return "", err
+		}
+		log("%v", spew.Sdump(sendRes))
+		return "done\n", nil
+	case "minichatpayment":
+		parsed := chatwallet.FindChatTxCandidates(strings.Join(args, " "))
+		minis := make([]libkb.MiniChatPayment, len(parsed))
+		for i, p := range parsed {
+			if p.Username == nil {
+				return "", fmt.Errorf("missing username")
+			}
+			mini := libkb.MiniChatPayment{
+				Username: libkb.NewNormalizedUsername(*p.Username),
+				Amount:   p.Amount,
+				Currency: p.CurrencyCode,
+			}
+			minis[i] = mini
+		}
+		stellarnet.SetClientAndNetwork(horizon.DefaultTestNetClient, build.TestNetwork)
+
+		results, err := t.G().GetStellar().SendMiniChatPayments(m, nil, minis)
+		if err != nil {
+			return "", err
+		}
+		log("send mini results: %+v", results)
+		return "success", nil
+	case "proof-suggestions":
+		if len(args) > 0 {
+			return "", fmt.Errorf("require 0 args")
+		}
+		ret, err := t.userHandler.ProofSuggestions(ctx, 0)
+		if err != nil {
+			return "", err
+		}
+		log("%v", spew.Sdump(ret))
 		return "", nil
 	case "":
 		return "", fmt.Errorf("empty script name")

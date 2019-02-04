@@ -4,35 +4,56 @@ import * as Constants from '../../../constants/chat2'
 import * as WaitingConstants from '../../../constants/waiting'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as TrackerGen from '../../../actions/tracker-gen'
-import * as RouteTree from '../../../actions/route-tree'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import Normal from '.'
-import {compose, connect, withStateHandlers, type TypedState} from '../../../util/container'
+import {compose, connect, withStateHandlers} from '../../../util/container'
 import {chatTab} from '../../../constants/tabs'
 
-const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
+type OwnProps = {|
+  conversationIDKey: Types.ConversationIDKey,
+  isPending: boolean,
+|}
+
+const mapStateToProps = (state, {conversationIDKey, isPending}) => {
   const showLoader = WaitingConstants.anyWaiting(state, Constants.waitingKeyThreadLoad(conversationIDKey))
   const meta = Constants.getMeta(state, conversationIDKey)
   const infoPanelOpen = Constants.isInfoPanelOpen(state)
-  const isSearching =
-    state.chat2.pendingMode === 'searchingForUsers' &&
-    conversationIDKey === Constants.pendingConversationIDKey
-  return {conversationIDKey, infoPanelOpen, isSearching, showLoader, threadLoadedOffline: meta.offline}
+  const isSearching = state.chat2.pendingMode === 'searchingForUsers' && isPending
+  return {
+    conversationIDKey,
+    infoPanelOpen,
+    isPending,
+    isSearching,
+    showLoader,
+    threadLoadedOffline: meta.offline,
+  }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _onAttach: (conversationIDKey: Types.ConversationIDKey, paths: Array<string>) =>
+const mapDispatchToProps = dispatch => ({
+  _onAttach: (conversationIDKey: Types.ConversationIDKey, paths: Array<string>) => {
+    const pathAndOutboxIDs = paths.map(p => ({
+      outboxID: null,
+      path: p,
+    }))
     dispatch(
-      RouteTree.navigateAppend([{props: {conversationIDKey, paths}, selected: 'attachmentGetTitles'}])
-    ),
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'attachmentGetTitles'}],
+      })
+    )
+  },
+  _onPaste: (conversationIDKey: Types.ConversationIDKey, data: Buffer) =>
+    dispatch(Chat2Gen.createAttachmentPasted({conversationIDKey, data})),
   _onToggleInfoPanel: (isOpen: boolean, conversationIDKey: Types.ConversationIDKey) => {
     if (isOpen) {
-      dispatch(RouteTree.navigateTo(['conversation'], [chatTab]))
+      dispatch(RouteTreeGen.createNavigateTo({parentPath: [chatTab], path: ['conversation']}))
     } else {
-      dispatch(RouteTree.navigateAppend([{props: {conversationIDKey}, selected: 'infoPanel'}]))
+      dispatch(
+        RouteTreeGen.createNavigateAppend({path: [{props: {conversationIDKey}, selected: 'infoPanel'}]})
+      )
     }
   },
   onCancelSearch: () =>
-    dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'none', noneDestination: 'inbox'})),
+    dispatch(Chat2Gen.createSetPendingMode({noneDestination: 'inbox', pendingMode: 'none'})),
   onShowTracker: (username: string) =>
     dispatch(TrackerGen.createGetProfile({forceDisplay: true, ignoreCache: false, username})),
 })
@@ -41,9 +62,11 @@ const mergeProps = (stateProps, dispatchProps) => {
   return {
     conversationIDKey: stateProps.conversationIDKey,
     infoPanelOpen: stateProps.infoPanelOpen,
+    isPending: stateProps.isPending,
     isSearching: stateProps.isSearching,
     onAttach: (paths: Array<string>) => dispatchProps._onAttach(stateProps.conversationIDKey, paths),
     onCancelSearch: dispatchProps.onCancelSearch,
+    onPaste: (data: Buffer) => dispatchProps._onPaste(stateProps.conversationIDKey, data),
     onShowTracker: dispatchProps.onShowTracker,
     onToggleInfoPanel: () =>
       dispatchProps._onToggleInfoPanel(stateProps.infoPanelOpen, stateProps.conversationIDKey),
@@ -53,7 +76,11 @@ const mergeProps = (stateProps, dispatchProps) => {
 }
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect<OwnProps, _, _, _, _>(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   withStateHandlers(
     {focusInputCounter: 0, listScrollDownCounter: 0},
     {

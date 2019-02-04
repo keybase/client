@@ -3,9 +3,9 @@ import * as React from 'react'
 import * as Types from '../constants/types/people'
 
 export type Props = {
-  oldItems: Array<Types._PeopleScreenItem>,
-  newItems: Array<Types._PeopleScreenItem>,
-  followSuggestions: Array<Types._FollowSuggestion>,
+  oldItems: Array<Types.PeopleScreenItem>,
+  newItems: Array<Types.PeopleScreenItem>,
+  followSuggestions: Array<Types.FollowSuggestion>,
   getData: (markViewed?: boolean) => void,
   onSearch: () => void,
   onClickUser: (username: string) => void,

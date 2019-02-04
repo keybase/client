@@ -1,15 +1,17 @@
 // @flow
 import * as React from 'react'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import PushPrompt from './push-prompt.native'
-import RenderRoute from '../route-tree/render-route'
-import {connect, type TypedState} from '../util/container'
-import {navigateUp, setRouteState} from '../actions/route-tree'
+import RouterSwitcheroo from '../router-v2/switcheroo'
+import {connect} from '../util/container'
 import {GatewayDest} from 'react-gateway'
 import {NativeBackHandler} from '../common-adapters/mobile.native'
 import {View} from 'react-native'
 import {globalStyles} from '../styles'
 import {isAndroid} from '../constants/platform'
 import {getPath} from '../route-tree'
+
+type OwnProps = {||}
 
 type Props = {
   hideUI: boolean,
@@ -43,10 +45,12 @@ class Main extends React.Component<Props> {
 
     return (
       <React.Fragment>
-        <RenderRoute
-          routeDef={this.props.routeDef}
-          routeState={this.props.routeState}
-          setRouteState={this.props.setRouteState}
+        <RouterSwitcheroo
+          useNewRouter={false}
+          newRoutePath={[]}
+          oldRouteDef={this.props.routeDef}
+          oldRouteState={this.props.routeState}
+          oldSetRouteState={this.props.setRouteState}
         />
         <GatewayDest
           name="popup-root"
@@ -58,9 +62,9 @@ class Main extends React.Component<Props> {
     )
   }
 }
-const ViewForGatewayDest = (props: any) => <View {...props} />
+const ViewForGatewayDest = <T>(props: T) => <View {...props} />
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   hideUI: state.config.touchIDState === 'asking',
   routeDef: state.routeTree.routeDef,
   routeState: state.routeTree.routeState,
@@ -68,9 +72,13 @@ const mapStateToProps = (state: TypedState) => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-  navigateUp: () => dispatch(navigateUp()),
-  setRouteState: (path, partialState) => dispatch(setRouteState(path, partialState)),
+  navigateUp: () => dispatch(RouteTreeGen.createNavigateUp()),
+  setRouteState: (path, partialState) => dispatch(RouteTreeGen.createSetRouteState({partialState, path})),
 })
 
-const Connected = connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(Main)
+const Connected = connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d})
+)(Main)
 export default Connected

@@ -16,7 +16,7 @@ const AVATAR_SIZE = 32
 
 const UserNotice = ({bgColor, username, teamname, children, style, onClickAvatar}: Props) => (
   <Box style={{...styleOuterBox, ...style}}>
-    {(username || teamname) && (
+    {!!(username || teamname) && (
       <ClickableBox style={stylesAvatarWrapper(AVATAR_SIZE)} onClick={onClickAvatar}>
         <Avatar size={AVATAR_SIZE} {...(username ? {username} : {teamname})} style={stylesAvatar} />
       </ClickableBox>
@@ -49,13 +49,13 @@ const SmallUserNotice = (props: SmallProps) => (
 )
 const styleSmallNotice = platformStyles({
   common: {
-    flex: 1,
-    marginTop: globalMargins.xtiny,
-    marginBottom: globalMargins.xtiny,
-    marginRight: globalMargins.medium,
-    ...globalStyles.flexBoxRow,
     alignItems: 'flex-start',
+    flex: 1,
     justifyContent: 'flex-start',
+    marginBottom: globalMargins.xtiny,
+    ...globalStyles.flexBoxRow,
+    marginRight: globalMargins.medium,
+    marginTop: globalMargins.xtiny,
   },
   isElectron: {
     marginLeft: globalMargins.small,

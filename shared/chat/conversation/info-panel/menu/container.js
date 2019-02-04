@@ -1,17 +1,10 @@
 // @flow
 import * as Constants from '../../../../constants/teams'
 import * as React from 'react'
-import {createGetTeamOperations, createAddTeamWithChosenChannels} from '../../../../actions/teams-gen'
-import {
-  compose,
-  connect,
-  lifecycle,
-  setDisplayName,
-  type TypedState,
-  createCachedSelector,
-} from '../../../../util/container'
-import {type Props as _Props, InfoPanelMenu} from '.'
-import {navigateAppend, navigateTo, switchTo} from '../../../../actions/route-tree'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import * as TeamsGen from '../../../../actions/teams-gen'
+import {namedConnect} from '../../../../util/container'
+import {InfoPanelMenu} from '.'
 import {teamsTab} from '../../../../constants/tabs'
 
 export type OwnProps = {
@@ -22,42 +15,50 @@ export type OwnProps = {
   visible: boolean,
 }
 
-export type Props = _Props & {
-  _loadOperations: () => void,
+// can be expensive, don't run if not visible
+const moreThanOneSubscribedChannel = (metaMap, teamname) => {
+  let found = 0
+  return metaMap.some(c => {
+    if (c.teamname === teamname) {
+      found++
+    }
+    // got enough
+    if (found === 2) {
+      return true
+    }
+    return false
+  })
 }
 
-const moreThanOneSubscribedChannel = createCachedSelector(
-  (state, _) => state.chat2.metaMap,
-  (_, teamname) => teamname,
-  (metaMap, teamname) => {
-    let found = 0
-    return metaMap.some(c => {
-      found += c.teamname === teamname ? 1 : 0
-      // got enough
-      if (found === 2) {
-        return true
-      }
-      return false
-    })
+const mapStateToProps = (state, {teamname, isSmallTeam, visible}: OwnProps) => {
+  // skip a bunch of stuff for menus that aren't visible
+  if (!visible) {
+    return {
+      badgeSubscribe: false,
+      canAddPeople: false,
+      hasCanPerform: false,
+      isSmallTeam: false,
+      manageChannelsSubtitle: '',
+      manageChannelsTitle: '',
+      memberCount: 0,
+      teamname,
+    }
   }
-)((_, teamname) => teamname)
-
-const mapStateToProps = (state: TypedState, {teamname, isSmallTeam}: OwnProps) => {
   const yourOperations = Constants.getCanPerform(state, teamname)
   // We can get here without loading canPerform
-  const _hasCanPerform = Constants.hasCanPerform(state, teamname)
+  const hasCanPerform = Constants.hasCanPerform(state, teamname)
   const badgeSubscribe = !Constants.isTeamWithChosenChannels(state, teamname)
 
   const manageChannelsTitle = isSmallTeam
     ? 'Create chat channels...'
-    : moreThanOneSubscribedChannel(state, teamname) // this is kinda expensive so don't run it all the time
-      ? 'Manage chat channels'
-      : 'Subscribe to channels...'
+    : moreThanOneSubscribedChannel(state.chat2.metaMap, teamname)
+    ? 'Manage chat channels'
+    : 'Subscribe to channels...'
   const manageChannelsSubtitle = isSmallTeam ? 'Turns this into a big team' : ''
   return {
-    _hasCanPerform,
     badgeSubscribe,
     canAddPeople: yourOperations.manageMembers,
+    hasCanPerform,
     isSmallTeam,
     manageChannelsSubtitle,
     manageChannelsTitle,
@@ -67,46 +68,43 @@ const mapStateToProps = (state: TypedState, {teamname, isSmallTeam}: OwnProps) =
 }
 
 const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
-  _loadOperations: () => dispatch(createGetTeamOperations({teamname})),
+  loadOperations: () => dispatch(TeamsGen.createGetTeamOperations({teamname})),
   onAddPeople: () => {
     dispatch(
-      navigateTo(
-        [{selected: 'team', props: {teamname}}, {selected: 'addPeople', props: {teamname}}],
-        [teamsTab]
-      )
+      RouteTreeGen.createNavigateTo({
+        parentPath: [teamsTab],
+        path: [{props: {teamname}, selected: 'team'}, {props: {teamname}, selected: 'addPeople'}],
+      })
     )
-    dispatch(switchTo([teamsTab]))
+    dispatch(RouteTreeGen.createSwitchTo({path: [teamsTab]}))
   },
   onInvite: () => {
     dispatch(
-      navigateTo(
-        [{selected: 'team', props: {teamname}}, {selected: 'inviteByEmail', props: {teamname}}],
-        [teamsTab]
-      )
+      RouteTreeGen.createNavigateTo({
+        parentPath: [teamsTab],
+        path: [{props: {teamname}, selected: 'team'}, {props: {teamname}, selected: 'inviteByEmail'}],
+      })
     )
-    dispatch(switchTo([teamsTab]))
+    dispatch(RouteTreeGen.createSwitchTo({path: [teamsTab]}))
   },
   onLeaveTeam: () => {
-    dispatch(navigateAppend([{selected: 'reallyLeaveTeam', props: {teamname}}]))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'reallyLeaveTeam'}]}))
   },
   onManageChannels: () => {
-    dispatch(navigateAppend([{selected: 'manageChannels', props: {teamname}}]))
-    dispatch(createAddTeamWithChosenChannels({teamname}))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'manageChannels'}]}))
+    dispatch(TeamsGen.createAddTeamWithChosenChannels({teamname}))
   },
   onViewTeam: () => {
-    dispatch(navigateTo([{selected: 'team', props: {teamname}}], [teamsTab]))
-    dispatch(switchTo([teamsTab]))
+    dispatch(
+      RouteTreeGen.createNavigateTo({parentPath: [teamsTab], path: [{props: {teamname}, selected: 'team'}]})
+    )
+    dispatch(RouteTreeGen.createSwitchTo({path: [teamsTab]}))
   },
 })
 
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
-  setDisplayName('TeamDropdownMenu'),
-  lifecycle({
-    componentDidMount() {
-      if (!this.props._hasCanPerform) {
-        this.props._loadOperations()
-      }
-    },
-  })
+export default namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d}),
+  'TeamDropdownMenu'
 )(InfoPanelMenu)

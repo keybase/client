@@ -10,7 +10,6 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
-	context "golang.org/x/net/context"
 )
 
 // PerUserKeyUpgrade is an engine.
@@ -97,10 +96,6 @@ func (e *PerUserKeyUpgrade) inner(m libkb.MetaContext) error {
 	eng := NewPerUserKeyRoll(m.G(), arg)
 	err = RunEngine2(m, eng)
 	e.DidNewKey = eng.DidNewKey
-
-	if eng.DidNewKey {
-		m.G().GetStellar().CreateWalletSoft(context.Background())
-	}
 
 	return err
 }

@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"fmt"
+	"os"
 	"runtime"
 	"sort"
 	"strings"
@@ -10,7 +11,6 @@ import (
 
 	"encoding/hex"
 
-	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/kbtest"
@@ -22,17 +22,12 @@ import (
 )
 
 func setupInboxTest(t testing.TB, name string) (kbtest.ChatTestContext, *Inbox, gregor1.UID) {
-	ltc := setupCommonTest(t, name)
+	ctc := setupCommonTest(t, name)
 
-	tc := kbtest.ChatTestContext{
-		TestContext: ltc,
-		ChatG:       &globals.ChatContext{},
-	}
-	tc.Context().ServerCacheVersions = NewServerVersions(tc.Context())
-	u, err := kbtest.CreateAndSignupFakeUser("ib", ltc.G)
+	u, err := kbtest.CreateAndSignupFakeUser("ib", ctc.TestContext.G)
 	require.NoError(t, err)
 	uid := gregor1.UID(u.User.GetUID().ToBytes())
-	return tc, NewInbox(tc.Context()), uid
+	return ctc, NewInbox(ctc.Context()), uid
 }
 
 func makeTlfID() chat1.TLFID {
@@ -58,7 +53,7 @@ func makeConvo(mtime gregor1.Time, rmsg chat1.MessageID, mmsg chat1.MessageID) t
 				MaxMsgid:  mmsg,
 			},
 			// Make it look like there's a visible message in here too
-			MaxMsgSummaries: []chat1.MessageSummary{{MessageType: chat1.MessageType_TEXT}},
+			MaxMsgSummaries: []chat1.MessageSummary{{MessageType: chat1.MessageType_TEXT, MsgID: 1}},
 		},
 	}
 	return c
@@ -169,8 +164,7 @@ func TestInboxQueries(t *testing.T) {
 
 	// Make three unread convos
 	makeUnread := func(ri *chat1.ConversationReaderInfo) {
-		ri.MaxMsgid = 5
-		ri.ReadMsgid = 3
+		ri.ReadMsgid = 0
 	}
 	makeUnread(convs[5].Conv.ReaderInfo)
 	makeUnread(convs[13].Conv.ReaderInfo)
@@ -764,7 +758,7 @@ func TestInboxServerVersion(t *testing.T) {
 	require.IsType(t, MissError{}, err)
 
 	require.NoError(t, inbox.Merge(context.TODO(), uid, 1, utils.PluckConvs(convs), nil, nil))
-	idata, err := inbox.readDiskInbox(context.TODO(), uid)
+	idata, err := inbox.readDiskInbox(context.TODO(), uid, true)
 	require.NoError(t, err)
 	require.Equal(t, 5, idata.ServerVersion)
 }
@@ -798,6 +792,7 @@ func TestMobileSharedInbox(t *testing.T) {
 		HomeDir:             tc.Context().GetEnv().GetHome(),
 		MobileSharedHomeDir: "x",
 	}, nil, tc.Context().GetLog)
+	require.NoError(t, os.MkdirAll(tc.G.Env.GetConfigDir(), os.ModePerm))
 	numConvs := 10
 	var convs []types.RemoteConversation
 	for i := numConvs - 1; i >= 0; i-- {
@@ -811,7 +806,7 @@ func TestMobileSharedInbox(t *testing.T) {
 		convs = append(convs, conv)
 	}
 	require.NoError(t, inbox.Merge(context.TODO(), uid, 1, utils.PluckConvs(convs), nil, nil))
-	diskIbox, err := inbox.readDiskInbox(context.TODO(), uid)
+	diskIbox, err := inbox.readDiskInbox(context.TODO(), uid, true)
 	require.NoError(t, err)
 	diskIbox.Conversations[4].LocalMetadata = &types.RemoteConversationMetadata{
 		TopicName: "mike",
@@ -852,7 +847,7 @@ func TestInboxMembershipDupUpdate(t *testing.T) {
 	require.NoError(t, inbox.MembershipUpdate(context.TODO(), uid, 2, []chat1.Conversation{conv.Conv},
 		nil, otherJoinedConvs, nil, nil, nil))
 
-	_, res, err := inbox.ReadAll(context.TODO(), uid)
+	_, res, err := inbox.ReadAll(context.TODO(), uid, true)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(res))
 	require.Equal(t, 2, len(res[0].Conv.Metadata.AllList))
@@ -921,7 +916,7 @@ func TestInboxMembershipUpdate(t *testing.T) {
 		userRemovedConvs, otherJoinedConvs, otherRemovedConvs,
 		userResetConvs, otherResetConvs))
 
-	vers, res, err := inbox.ReadAll(context.TODO(), uid)
+	vers, res, err := inbox.ReadAll(context.TODO(), uid, true)
 	require.NoError(t, err)
 	require.Equal(t, chat1.InboxVers(2), vers)
 	for _, c := range res {
@@ -972,7 +967,7 @@ func TestInboxCacheOnLogout(t *testing.T) {
 	uid := keybase1.MakeTestUID(3)
 	inboxMemCache.Put(gregor1.UID(uid), &inboxDiskData{})
 	require.NotEmpty(t, len(inboxMemCache.datMap))
-	err := inboxMemCache.OnLogout()
+	err := inboxMemCache.OnLogout(libkb.NewMetaContextTODO(nil))
 	require.NoError(t, err)
 	require.Nil(t, inboxMemCache.Get(gregor1.UID(uid)))
 	require.Empty(t, len(inboxMemCache.datMap))

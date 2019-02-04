@@ -6,11 +6,12 @@ import * as Types from '../../../../../constants/types/chat2'
 import * as ConfigGen from '../../../../../actions/config-gen'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as FsGen from '../../../../../actions/fs-gen'
-import * as Route from '../../../../../actions/route-tree'
-import {compose, connect, isMobile, setDisplayName, type TypedState} from '../../../../../util/container'
+import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
+import {namedConnect, isMobile} from '../../../../../util/container'
 import {isIOS} from '../../../../../constants/platform'
 
-import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
+import type {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
+import type {StylesCrossPlatform} from '../../../../../styles/css'
 import Exploding from '.'
 
 export type OwnProps = {
@@ -18,10 +19,11 @@ export type OwnProps = {
   message: Types.MessageAttachment | Types.MessageText,
   onHidden: () => void,
   position: Position,
+  style?: StylesCrossPlatform,
   visible: boolean,
 }
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+const mapStateToProps = (state, ownProps: OwnProps) => {
   const yourMessage = ownProps.message.author === state.config.username
   const meta = Constants.getMeta(state, ownProps.message.conversationIDKey)
   const _canDeleteHistory =
@@ -45,12 +47,14 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   _onAddReaction: () => {
     dispatch(
-      Route.navigateAppend([
-        {
-          props: {conversationIDKey: ownProps.message.conversationIDKey, ordinal: ownProps.message.ordinal},
-          selected: 'chooseEmoji',
-        },
-      ])
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {conversationIDKey: ownProps.message.conversationIDKey, ordinal: ownProps.message.ordinal},
+            selected: 'chooseEmoji',
+          },
+        ],
+      })
     )
   },
   _onCopy: () => {
@@ -61,8 +65,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   _onDownload: () =>
     dispatch(
       Chat2Gen.createAttachmentDownload({
-        conversationIDKey: ownProps.message.conversationIDKey,
-        ordinal: ownProps.message.ordinal,
+        message: ownProps.message,
       })
     ),
   _onEdit: () =>
@@ -96,7 +99,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   _onShowInFinder: () => {
     ownProps.message.type === 'attachment' &&
       ownProps.message.downloadPath &&
-      dispatch(FsGen.createOpenLocalPathInSystemFileManager({path: ownProps.message.downloadPath}))
+      dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: ownProps.message.downloadPath}))
   },
 })
 
@@ -149,13 +152,16 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     items,
     onHidden: ownProps.onHidden,
     position: ownProps.position,
+    style: ownProps.style,
     timestamp: stateProps.timestamp,
     visible: ownProps.visible,
     yourMessage: stateProps.yourMessage,
   }
 }
 
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  setDisplayName('ExplodingPopup')
+export default namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'ExplodingPopup'
 )(Exploding)

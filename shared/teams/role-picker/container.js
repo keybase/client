@@ -1,13 +1,14 @@
 // @flow
+// TODO fix up all the typing here
 import * as I from 'immutable'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as Types from '../../constants/types/teams'
-import {connect} from '../../util/container'
+import {connect, type RouteProps} from '../../util/container'
 import {compose, withStateHandlers} from 'recompose'
 import RolePicker from '.'
 import {getTeamMembers, getRole, isOwner} from '../../constants/teams'
 
-import type {TypedState} from '../../constants/reducer'
+type OwnProps = RouteProps<{teamname: string, username: string}, {}>
 
 type StateProps = {
   _memberInfo: I.Map<string, Types.MemberInfo>,
@@ -17,7 +18,7 @@ type StateProps = {
   yourRole: Types.MaybeTeamRoleType,
 }
 
-const mapStateToProps = (state: TypedState, {routeProps}): StateProps => {
+const mapStateToProps = (state, {routeProps}): StateProps => {
   const teamname = routeProps.get('teamname')
   const username = routeProps.get('username')
   return {
@@ -45,14 +46,14 @@ const mapDispatchToProps = (dispatch, {navigateUp}): DispatchProps => ({
   _onAddMember: (teamname, username, role, sendNotification) =>
     dispatch(
       TeamsGen.createAddToTeam({
-        teamname,
-        username,
         role,
         sendChatNotification: sendNotification,
+        teamname,
+        username,
       })
     ),
   _onEditMember: (teamname, username, role) =>
-    dispatch(TeamsGen.createEditMembership({teamname, username, role})),
+    dispatch(TeamsGen.createEditMembership({role, teamname, username})),
   onCancel: () => dispatch(navigateUp()),
 })
 
@@ -70,26 +71,31 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownPro
   return {
     ...stateProps,
     ...dispatchProps,
+    // $FlowIssue
     ...ownProps,
     allowOwner: isOwner(stateProps.yourRole),
+    currentType: user ? user.type : 'reader',
     onComplete,
     showSendNotification,
-    currentType: user ? user.type : 'reader',
   }
 }
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect<OwnProps, _, _, _, _>(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   withStateHandlers(
     ({currentType}: {currentType: Types.TeamRoleType}) => ({
+      confirm: false,
       selectedRole: currentType,
       sendNotification: false,
-      confirm: false,
     }),
     {
+      setConfirm: () => confirm => ({confirm}),
       setSelectedRole: () => (selectedRole: Types.TeamRoleType) => ({selectedRole}),
       setSendNotification: () => sendNotification => ({sendNotification}),
-      setConfirm: () => confirm => ({confirm}),
     }
   )
 )(RolePicker)

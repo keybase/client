@@ -1,4 +1,5 @@
 // @flow
+// // TODO deprecate
 import * as React from 'react'
 import {globalStyles} from '../../styles'
 import {StandardScreen, Box, Button, Input, ButtonBar} from '../../common-adapters'
@@ -33,7 +34,7 @@ const EditProfileRender = (props: Props) => (
       />
       <ButtonBar>
         <Button type="Secondary" onClick={props.onCancel} label="Cancel" />
-        <Button type="Primary" disabled={props.bioLengthLeft <= 0} onClick={props.onSubmit} label="Save" />
+        <Button type="Primary" disabled={props.bioLengthLeft < 0} onClick={props.onSubmit} label="Save" />
       </ButtonBar>
     </Box>
   </StandardScreen>

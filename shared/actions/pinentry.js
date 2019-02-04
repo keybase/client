@@ -8,9 +8,15 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import engine from '../engine'
 
 // We keep track of sessionID to response objects since this is initiated by the daemon
-const sessionIDToResponse: {[key: string]: any} = {}
+type IncomingErrorCallback = (?{code?: number, desc?: string}) => void
+const sessionIDToResponse: {
+  [key: string]: {
+    error: IncomingErrorCallback,
+    result: ({+passphrase: string, +storeSecret: boolean}) => void,
+  },
+} = {}
 
-function setupEngineListeners() {
+const setupEngineListeners = () => {
   engine().actionOnConnect('registerSecretUI', () => {
     RPCTypes.delegateUiCtlRegisterSecretUIRpcPromise()
       .then(response => {
@@ -21,7 +27,7 @@ function setupEngineListeners() {
       })
   })
 
-  engine().setIncomingCallMap({
+  engine().setCustomResponseIncomingCallMap({
     'keybase.1.secretUi.getPassphrase': (param, response) => {
       logger.info('Asked for passphrase')
       const {prompt, submitLabel, cancelLabel, windowTitle, retryLabel, features, type} = param.pinentry
@@ -46,38 +52,31 @@ function setupEngineListeners() {
   })
 }
 
-function _onNewPinentry(action: PinentryGen.NewPinentryPayload) {
-  return Saga.put(
-    PinentryGen.createReplaceEntity({
-      entities: I.Map([[action.payload.sessionID, action.payload]]),
-      keyPath: ['sessionIDToPinentry'],
-    })
-  )
-}
+const onNewPinentry = (_, action) =>
+  PinentryGen.createReplaceEntity({
+    entities: I.Map([[action.payload.sessionID, action.payload]]),
+    keyPath: ['sessionIDToPinentry'],
+  })
 
-function _onSubmit(action: PinentryGen.OnSubmitPayload) {
+const onSubmit = (_, action) => {
   const {sessionID, passphrase} = action.payload
   _respond(sessionID, {passphrase})
-  return Saga.put(
-    PinentryGen.createDeleteEntity({
-      ids: [action.payload.sessionID],
-      keyPath: ['sessionIDToPinentry'],
-    })
-  )
+  return PinentryGen.createDeleteEntity({
+    ids: [action.payload.sessionID],
+    keyPath: ['sessionIDToPinentry'],
+  })
 }
 
-function _onCancel(action: PinentryGen.OnCancelPayload) {
+const onCancel = (_, action) => {
   const {sessionID} = action.payload
   _respond(sessionID, null, {
     code: RPCTypes.constantsStatusCode.scinputcanceled,
     desc: 'Input canceled',
   })
-  return Saga.put(
-    PinentryGen.createDeleteEntity({
-      ids: [action.payload.sessionID],
-      keyPath: ['sessionIDToPinentry'],
-    })
-  )
+  return PinentryGen.createDeleteEntity({
+    ids: [action.payload.sessionID],
+    keyPath: ['sessionIDToPinentry'],
+  })
 }
 
 function _respond(sessionID: number, result: any, err: ?any): void {
@@ -98,10 +97,13 @@ function _respond(sessionID: number, result: any, err: ?any): void {
 }
 
 function* pinentrySaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeEveryPure(PinentryGen.onSubmit, _onSubmit)
-  yield Saga.safeTakeEveryPure(PinentryGen.onCancel, _onCancel)
-  yield Saga.safeTakeEveryPure(PinentryGen.newPinentry, _onNewPinentry)
-  yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
+  yield* Saga.chainAction<PinentryGen.OnSubmitPayload>(PinentryGen.onSubmit, onSubmit)
+  yield* Saga.chainAction<PinentryGen.OnCancelPayload>(PinentryGen.onCancel, onCancel)
+  yield* Saga.chainAction<PinentryGen.NewPinentryPayload>(PinentryGen.newPinentry, onNewPinentry)
+  yield* Saga.chainAction<ConfigGen.SetupEngineListenersPayload>(
+    ConfigGen.setupEngineListeners,
+    setupEngineListeners
+  )
 }
 
 export default pinentrySaga

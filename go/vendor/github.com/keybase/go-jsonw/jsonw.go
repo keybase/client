@@ -1,9 +1,11 @@
 package jsonw
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"reflect"
 	"strconv"
 	"strings"
@@ -18,6 +20,16 @@ type Wrapper struct {
 type Error struct {
 	msg string
 }
+
+type DepthError struct {
+	msg string
+}
+
+func (d DepthError) Error() string {
+	return fmt.Sprintf("DepthError: %s", d.msg)
+}
+
+const defaultMaxDepth int = 50
 
 func (w *Wrapper) Marshal() ([]byte, error) {
 	return json.Marshal(w.dat)
@@ -41,11 +53,21 @@ func (w *Wrapper) MarshalToDebug() string {
 	}
 }
 
-func Unmarshal(raw []byte) (*Wrapper, error) {
+func Unmarshal(unsafeRaw []byte) (*Wrapper, error) {
+	return UnmarshalWithMaxDepth(unsafeRaw, defaultMaxDepth)
+}
+
+func UnmarshalWithMaxDepth(unsafeRaw []byte, maxDepth int) (*Wrapper, error) {
+	err := EnsureMaxDepth(bufio.NewReader(bytes.NewReader(unsafeRaw)), maxDepth)
+	if err != nil {
+		return nil, err
+	}
+	raw := unsafeRaw
+
 	var iface interface{}
 	dec := json.NewDecoder(bytes.NewReader(raw))
 	dec.UseNumber()
-	err := dec.Decode(&iface)
+	err = dec.Decode(&iface)
 	var ret *Wrapper
 	if err == nil {
 		ret = NewWrapper(iface)
@@ -680,4 +702,70 @@ func (w *Wrapper) AssertEqAtPath(path string, obj *Wrapper, errp *error) {
 			path, string(b1), string(b2))
 	}
 	return
+}
+
+const JSONEscape = byte('\\')
+const JSONDoubleQuotationMark = byte('"')
+const JSONLeftSquareBracket = byte('[')
+const JSONLeftCurlyBracket = byte('{')
+const JSONRightSquareBracket = byte(']')
+const JSONRightCurlyBracket = byte('}')
+
+// ensureMaxDepth returns an error if raw represents a valid JSON string whose
+// deserialization's maximum depth exceeds maxDepth.
+// If raw represents an invalid JSON string with a prefix that is a valid JSON prefix
+// whose depth exceeds maxDepth, an error will be returned as well).
+// See https://github.com/golang/go/blob/master/src/encoding/json/decode.go#L96.
+// Otherwise, behavior is undefined and an error may or may not be returned.
+// See the spec at https://json.org.
+func EnsureMaxDepth(unsafeRawReader *bufio.Reader, maxDepth int) error {
+	depth := 1
+	inString := false
+	lastByteWasEscape := false
+	for {
+		b, err := unsafeRawReader.ReadByte()
+		switch err {
+		case io.EOF:
+			return nil
+		case nil:
+		default:
+			return err
+		}
+		if depth >= maxDepth {
+			return DepthError{fmt.Sprintf("Invalid JSON or exceeds max depth %d.", maxDepth)}
+		}
+		if inString {
+			if lastByteWasEscape {
+				// i.e., if the last byte was an escape, we are no longer in an
+				// escape sequence. This is not strictly true: JSON unicode codepoint
+				// escape sequences are of the form \uXXXX where X is a hexadecimal
+				// character. However since X cannot be JSONEscape or JSONDoubleQuotationMark
+				// in valid JSON, there is no problem: later there will be an
+				// error parsing the JSON and this will occur before maxDepth
+				// is reached in the JSON parser.
+				lastByteWasEscape = false
+			} else if b == JSONEscape {
+				lastByteWasEscape = true
+			} else if b == JSONDoubleQuotationMark {
+				inString = false
+			}
+		} else {
+			switch b {
+			case JSONDoubleQuotationMark:
+				inString = true
+			case JSONLeftSquareBracket, JSONLeftCurlyBracket:
+				depth += 1
+			case JSONRightSquareBracket, JSONRightCurlyBracket:
+				depth -= 1
+			}
+		}
+	}
+}
+
+func EnsureMaxDepthDefault(unsafeRawReader *bufio.Reader) error {
+	return EnsureMaxDepth(unsafeRawReader, defaultMaxDepth)
+}
+
+func EnsureMaxDepthBytesDefault(unsafeRaw []byte) error {
+	return EnsureMaxDepthDefault(bufio.NewReader(bytes.NewReader(unsafeRaw)))
 }

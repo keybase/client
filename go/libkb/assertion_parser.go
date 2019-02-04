@@ -34,7 +34,8 @@ func (t Token) unexpectedError() error {
 	case EOF:
 		return NewAssertionParseError("Unexpected EOF")
 	case ERROR:
-		return NewAssertionParseError("Unexpected ERROR: (%v)", t.getString())
+		// Nothing was matched when arrived at t.value.
+		return NewAssertionParseError("Syntax error when parsing: %v", t.getString())
 	default:
 		return NewAssertionParseError("Unexpected token: %s", t.getString())
 	}
@@ -69,8 +70,14 @@ type Lexer struct {
 // Disjunction: '||' ','
 // Conjunction: '&&' '+'
 // Parens: '(' ')'
-// URL: Characters except for ' \n\t&|(),+'
-var lexerItemRxx = regexp.MustCompile(`^((\|\|)|(\,)|(\&\&)|(\+)|(\()|(\))|([^ \n\t&|(),+]+))`)
+
+// URL:
+var lexerURLCharsRxx = `([^ \n\t&|()\[\],+#]+)` // anything but control chars
+var lexerURLSquareRxx = `(\[[^ \n\t#\[\]]*\])`  // square bracket syntax, allows pretty much anything in
+// URL has a character group and optionally square bracket groups
+var lexerURLRxx = `((` + lexerURLCharsRxx + lexerURLSquareRxx + `?)|(` + lexerURLSquareRxx + `?` + lexerURLCharsRxx + `))`
+
+var lexerItemRxx = regexp.MustCompile(`^((\|\|)|(\,)|(\&\&)|(\+)|(\()|(\))|` + lexerURLRxx + `)`)
 var lexerWhitespaceRxx = regexp.MustCompile(`^([\n\t ]+)`)
 
 func NewLexer(s string) *Lexer {
@@ -105,7 +112,14 @@ func (lx *Lexer) Get() Token {
 	} else if len(lx.buffer) == 0 {
 		ret = NewToken(EOF)
 	} else if match := lexerItemRxx.FindSubmatchIndex(lx.buffer); match != nil {
-		// first 2 in seq are NONE: one for the full expr, another for the outer ^() group
+		// First 2 in seq are NONE: one for the full expr, another for the
+		// outer ^() group.
+
+		// NOTE: There are a lot more groups due to `lexerURLRxx` inclusion in
+		// `lexerItemRxx`, but they happen at the end and we ignore them. We
+		// only capture the "outer" group which is URL here. To keep things simple,
+		// make sure URL is the last group checked here.
+
 		seq := []int{NONE, NONE, OR, OR, AND, AND, LPAREN, RPAREN, URL}
 		for i := 2; i <= len(seq); i++ {
 			if match[i*2] >= 0 {
@@ -115,8 +129,8 @@ func (lx *Lexer) Get() Token {
 			}
 		}
 	} else {
+		ret = Token{Typ: ERROR, value: lx.buffer}
 		lx.buffer = nil
-		ret = NewToken(ERROR)
 	}
 	lx.last = ret
 	return ret

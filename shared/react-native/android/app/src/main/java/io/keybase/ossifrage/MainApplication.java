@@ -15,7 +15,9 @@ import com.imagepicker.ImagePickerPackage;
 import com.RNFetchBlob.RNFetchBlobPackage;
 import com.rnfingerprint.FingerprintAuthPackage;
 import com.rt2zz.reactnativecontacts.ReactNativeContacts;
+import com.dylanvann.fastimage.FastImageViewPackage;
 import org.reactnative.camera.RNCameraPackage;
+import com.airbnb.android.react.lottie.LottiePackage;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -70,7 +72,9 @@ public class MainApplication extends Application implements ReactApplication {
           new ImagePickerPackage(),
           new RNFetchBlobPackage(),
           new ReactNativeContacts(),
-          new FingerprintAuthPackage()
+          new FingerprintAuthPackage(),
+          new FastImageViewPackage(),
+          new LottiePackage()
         );
       }
 
@@ -82,7 +86,9 @@ public class MainApplication extends Application implements ReactApplication {
               new ImagePickerPackage(),
               new RNFetchBlobPackage(),
               new ReactNativeContacts(),
-              new FingerprintAuthPackage()
+              new FingerprintAuthPackage(),
+              new FastImageViewPackage(),
+              new LottiePackage()
       );
     }
 

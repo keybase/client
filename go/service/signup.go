@@ -69,16 +69,17 @@ func (h *SignupHandler) Signup(ctx context.Context, arg keybase1.SignupArg) (res
 		SessionID: arg.SessionID,
 	}
 	runarg := engine.SignupEngineRunArg{
-		Username:    arg.Username,
-		Email:       arg.Email,
-		InviteCode:  arg.InviteCode,
-		Passphrase:  arg.Passphrase,
-		StoreSecret: arg.StoreSecret,
-		DeviceName:  arg.DeviceName,
-		DeviceType:  arg.DeviceType,
-		SkipMail:    arg.SkipMail,
-		GenPGPBatch: arg.GenPGPBatch,
-		SkipPaper:   !arg.GenPaper,
+		Username:                 arg.Username,
+		Email:                    arg.Email,
+		InviteCode:               arg.InviteCode,
+		Passphrase:               arg.Passphrase,
+		GenerateRandomPassphrase: arg.RandomPw,
+		StoreSecret:              arg.StoreSecret,
+		DeviceName:               arg.DeviceName,
+		DeviceType:               arg.DeviceType,
+		SkipMail:                 arg.SkipMail,
+		GenPGPBatch:              arg.GenPGPBatch,
+		SkipPaper:                !arg.GenPaper,
 	}
 	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
 	eng := engine.NewSignupEngine(h.G(), &runarg)

@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	lru "github.com/hashicorp/golang-lru"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	context "golang.org/x/net/context"
@@ -39,7 +40,7 @@ func (b *blockEngineMemCacheImpl) writeBlock(ctx context.Context, uid gregor1.UI
 	b.blockCache.Add(key, bl)
 }
 
-func (b *blockEngineMemCacheImpl) OnLogout() error {
+func (b *blockEngineMemCacheImpl) OnLogout(m libkb.MetaContext) error {
 	b.blockCache.Purge()
 	return nil
 }

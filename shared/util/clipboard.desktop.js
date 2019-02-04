@@ -8,33 +8,20 @@ export type ClipboardData = {
   title: string,
 }
 
-function readImage(): Promise<?ClipboardData> {
+function readImage(): Promise<?Buffer> {
   return new Promise((resolve, reject) => {
-    tmpRandFile('.png').then(path => {
-      const image = SafeElectron.getClipboard().readImage()
-      if (!image) {
-        // Nothing to read
-        resolve(null)
-        return
-      }
-      const data = image.toPNG()
-
-      console.log('Saving image from clipboard to', path)
-      fs.writeFile(path, data, err => {
-        if (err) {
-          reject(err)
-          return
-        }
-        resolve({path, title: 'Pasted image'})
-      })
-    })
+    const image = SafeElectron.getClipboard().readImage()
+    if (!image) {
+      // Nothing to read
+      resolve(null)
+      return
+    }
+    const data = image.toPNG()
+    resolve(data)
   })
 }
 
-export function readImageFromClipboard(
-  event: SyntheticEvent<>,
-  willReadData: () => void
-): Promise<?ClipboardData> {
+export function readImageFromClipboard(event: SyntheticEvent<>, willReadData: () => void): Promise<?Buffer> {
   const formats = SafeElectron.getClipboard().availableFormats()
   console.log('Read clipboard, formats:', formats)
   const imageFormats = formats.filter(f => f.startsWith('image/'))

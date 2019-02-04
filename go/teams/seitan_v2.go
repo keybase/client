@@ -11,6 +11,7 @@ import (
 	"crypto/sha512"
 	"encoding/base64"
 
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/go-crypto/ed25519"
 	"golang.org/x/net/context"
@@ -128,7 +129,7 @@ func (sikey SeitanSIKeyV2) generateKeyPair() (key libkb.NaclSigningKeyPair, err 
 	}
 
 	copy(key.Public[:], pub[:])
-	key.Private = &libkb.NaclSigningKeyPrivate{}
+	key.Private = &kbcrypto.NaclSigningKeyPrivate{}
 	copy(key.Private[:], priv[:])
 	return key, nil
 }
@@ -166,8 +167,8 @@ func (sikey SeitanSIKeyV2) GeneratePackedEncryptedKey(ctx context.Context, team 
 }
 
 // "Signature"
-type SeitanSig libkb.NaclSignature
-type SeitanPubKey libkb.NaclSigningKeyPublic
+type SeitanSig kbcrypto.NaclSignature
+type SeitanPubKey kbcrypto.NaclSigningKeyPublic
 
 func GenerateSeitanSignatureMessage(uid keybase1.UID, eldestSeqno keybase1.Seqno, inviteID SCTeamInviteID, time keybase1.Time) (payload []byte, err error) {
 	type SigPayload struct {
@@ -191,8 +192,8 @@ func GenerateSeitanSignatureMessage(uid keybase1.UID, eldestSeqno keybase1.Seqno
 }
 
 func VerifySeitanSignatureMessage(pubKey SeitanPubKey, msg []byte, sig SeitanSig) error {
-	naclsig := libkb.NaclSignature(sig)
-	valid := libkb.NaclSigningKeyPublic(pubKey).Verify(msg, &naclsig)
+	naclsig := kbcrypto.NaclSignature(sig)
+	valid := kbcrypto.NaclSigningKeyPublic(pubKey).Verify(msg, naclsig)
 	if !valid {
 		return libkb.KeyCannotVerifyError{}
 	}
@@ -218,7 +219,7 @@ func (sikey SeitanSIKeyV2) GenerateSignature(uid keybase1.UID, eldestSeqno keyba
 		return sig, encoded, err
 	}
 
-	sig = SeitanSig(*keyPair.Private.Sign(payload))
+	sig = SeitanSig(keyPair.Private.Sign(payload))
 	encoded = base64.StdEncoding.EncodeToString(sig[:])
 	return sig, encoded, nil
 }

@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Styles from '../../styles'
-import Avatar from '../avatar'
+import Avatar, {type AvatarSize} from '../avatar'
 import Box from '../box'
 import ClickableBox from '../clickable-box'
 import Icon, {castPlatformStyles, type IconType} from '../icon'
@@ -12,8 +12,11 @@ type Size = 'small' | 'default' | 'large'
 
 // Exposed style props for the top-level container and box around metadata arbitrarily
 export type NameWithIconProps = {|
+  avatarSize?: AvatarSize,
   avatarStyle?: Styles.StylesCrossPlatform,
+  colorBroken?: boolean,
   colorFollowing?: boolean,
+  notFollowingColorOverride?: string,
   containerStyle?: Styles.StylesCrossPlatform,
   editableIcon?: boolean,
   horizontal?: boolean,
@@ -25,12 +28,13 @@ export type NameWithIconProps = {|
   // both will fire unless the inner clicks call `event.preventDefault()`
   onClick?: () => void,
   clickType?: 'tracker' | 'profile',
-  onEditIcon?: any => void,
+  onEditIcon?: ?(e?: SyntheticEvent<Element>) => void,
   size?: Size,
   teamname?: string,
   // for non-users
   title?: string,
   titleStyle?: Styles.StylesCrossPlatform,
+  underline?: boolean,
   username?: string,
 |}
 
@@ -58,7 +62,7 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
         <Avatar
           editable={this.props.editableIcon}
           onEditAvatarClick={this.props.editableIcon ? this.props.onEditIcon : undefined}
-          size={this.props.horizontal ? commonHeight : adapterProps.iconSize}
+          size={this.props.avatarSize || (this.props.horizontal ? commonHeight : adapterProps.iconSize)}
           showFollowingStatus={this.props.horizontal ? undefined : true}
           username={this.props.username}
           teamname={this.props.teamname}
@@ -91,8 +95,13 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
           this.props.horizontal ? undefined : Styles.isMobile ? undefined : styles.vUsernameContainerStyle
         }
         inline={!this.props.horizontal}
+        underline={this.props.underline}
         usernames={[this.props.username]}
+        colorBroken={this.props.colorBroken}
         colorFollowing={this.props.colorFollowing}
+        colorYou={this.props.notFollowingColorOverride}
+        notFollowingColorOverride={this.props.notFollowingColorOverride}
+        style={styles.fullWidthText}
       />
     ) : (
       <Text
@@ -106,21 +115,21 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
     const metaOne = (
       <TextOrComponent
         textType={this.props.horizontal ? 'BodySmall' : adapterProps.metaOneType}
-        val={this.props.metaOne}
+        val={this.props.metaOne || null}
         style={this.props.horizontal ? undefined : styles.fullWidthText}
       />
     )
     const metaTwo = (
       <TextOrComponent
         textType={this.props.horizontal ? 'BodySmall' : adapterProps.metaOneType}
-        val={this.props.metaTwo}
+        val={this.props.metaTwo || null}
         style={this.props.horizontal ? undefined : styles.fullWidthText}
       />
     )
     const metas = this.props.horizontal ? (
-      <Box style={Styles.globalStyles.flexBoxRow}>
+      <Box style={styles.metasBox}>
         {metaOne}
-        {!!this.props.metaTwo && this.props.horizontal && <Text type="BodySmall">&nbsp;·&nbsp;</Text>}
+        {!!(this.props.metaTwo && this.props.metaOne) && <Text type="BodySmall">&nbsp;·&nbsp;</Text>}
         {metaTwo}
       </Box>
     ) : (
@@ -177,8 +186,10 @@ const TextOrComponent = (props: {
 }
 
 const styles = Styles.styleSheetCreate({
-  fullWidthText: Styles.platformStyles({isElectron: {width: '100%', whiteSpace: 'nowrap', display: 'unset'}}),
-  fullWidthTextContainer: Styles.platformStyles({isElectron: {width: '100%', textAlign: 'center'}}),
+  fullWidthText: Styles.platformStyles({
+    isElectron: {display: 'unset', whiteSpace: 'nowrap', width: '100%', wordBreak: 'break-all'},
+  }),
+  fullWidthTextContainer: Styles.platformStyles({isElectron: {textAlign: 'center', width: '100%'}}),
   hAvatarStyle: Styles.platformStyles({
     isElectron: {marginRight: Styles.globalMargins.tiny},
     isMobile: {marginRight: Styles.globalMargins.small},
@@ -196,6 +207,11 @@ const styles = Styles.styleSheetCreate({
     ...Styles.globalStyles.flexBoxColumn,
     ...Styles.globalStyles.flexBoxCenter,
     marginTop: Styles.globalMargins.tiny,
+  },
+  metasBox: {
+    ...Styles.globalStyles.flexBoxRow,
+    maxWidth: '100%',
+    width: '100%',
   },
   vContainerStyle: {
     ...Styles.globalStyles.flexBoxColumn,

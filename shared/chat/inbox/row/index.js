@@ -1,5 +1,6 @@
 // @flow
 import React from 'react'
+import logger from '../../../logger'
 import BigTeamHeader from './big-team-header/container'
 import BigTeamChannel from './big-team-channel/container'
 import FilterBigTeamChannel from './filter-big-team-channel/container'
@@ -17,6 +18,7 @@ type MakeRowOptions = {
   teamname: string,
   type: 'small' | 'bigHeader' | 'bigTeamsLabel' | 'big',
 }
+
 const makeRow = (options: MakeRowOptions) => {
   if (options.type === 'bigTeamsLabel') {
     return (
@@ -33,8 +35,6 @@ const makeRow = (options: MakeRowOptions) => {
           <FilterBigTeamChannel
             key={options.conversationIDKey}
             conversationIDKey={options.conversationIDKey}
-            channelname={options.channelname}
-            teamname={options.teamname}
           />
         )
       case 'small':
@@ -42,8 +42,6 @@ const makeRow = (options: MakeRowOptions) => {
           <FilterSmallTeamChannel
             key={options.conversationIDKey}
             conversationIDKey={options.conversationIDKey}
-            channelname={options.channelname}
-            teamname={options.teamname}
           />
         )
     }
@@ -60,17 +58,11 @@ const makeRow = (options: MakeRowOptions) => {
           />
         )
       case 'small':
-        return (
-          <SmallTeam
-            key={options.conversationIDKey}
-            conversationIDKey={options.conversationIDKey}
-            channelname={options.channelname}
-            teamname={options.teamname}
-          />
-        )
+        return <SmallTeam key={options.conversationIDKey} conversationIDKey={options.conversationIDKey} />
     }
   }
-  return new Error(`Unhandled row type ${options.type}`)
+  logger.error(`Unhandled row type ${options.type}`)
+  return null
 }
 
 const _bigTeamLabelStyle = {

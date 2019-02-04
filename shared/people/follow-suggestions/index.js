@@ -5,7 +5,7 @@ import {Box, ConnectedNameWithIcon, ScrollView, Text} from '../../common-adapter
 import {globalColors, globalMargins, globalStyles, platformStyles, styleSheetCreate} from '../../styles'
 import {isMobile} from '../../constants/platform'
 
-export type FollowSuggestion = Types._FollowSuggestion
+export type FollowSuggestion = Types.FollowSuggestion
 
 export type Props = {|
   suggestions: Array<FollowSuggestion>,
@@ -17,7 +17,7 @@ export default (props: Props) => (
       Consider following...
     </Text>
     <ScrollView
-      {...(isMobile ? {horizontal: true, alwaysBounceHorizontal: false} : {})} // Causes error on desktop
+      {...(isMobile ? {alwaysBounceHorizontal: false, horizontal: true} : {})} // Causes error on desktop
       contentContainerStyle={styles.scrollViewContainer}
     >
       {props.suggestions.map(suggestion => (
@@ -68,8 +68,15 @@ const styles = styleSheetCreate({
     height: 106,
     width: 112,
   },
-  text: {
-    marginBottom: globalMargins.tiny,
-    marginLeft: globalMargins.tiny,
-  },
+  text: platformStyles({
+    common: {
+      marginBottom: globalMargins.tiny,
+    },
+    isElectron: {
+      marginLeft: globalMargins.small,
+    },
+    isMobile: {
+      marginLeft: globalMargins.tiny,
+    },
+  }),
 })

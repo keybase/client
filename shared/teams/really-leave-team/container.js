@@ -7,7 +7,9 @@ import LastOwnerDialog from './last-owner'
 import {getTeamMemberCount, isSubteam, leaveTeamWaitingKey} from '../../constants/teams'
 import {anyWaiting} from '../../constants/waiting'
 
-const mapStateToProps = (state: Container.TypedState, {routeProps}) => {
+type OwnProps = Container.RouteProps<{teamname: string}, {}>
+
+const mapStateToProps = (state, {routeProps}) => {
   const name = routeProps.get('teamname')
   const memberCount = getTeamMemberCount(state, name)
   const _lastOwner = memberCount <= 1 && !isSubteam(name)
@@ -36,7 +38,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 })
 
 export default Container.compose(
-  Container.connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  Container.connect<OwnProps, _, _, _, _>(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   Container.safeSubmit(['onLeave'], ['_leaving']),
   branch(props => props._lastOwner, renderComponent(LastOwnerDialog))
 )(ReallyLeaveTeam)

@@ -1,41 +1,70 @@
 // @flow
-import {debounce} from 'lodash-es'
+import * as I from 'immutable'
+import * as React from 'react'
 import * as Constants from '../../../constants/chat2'
 import * as Types from '../../../constants/types/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Inbox from '..'
-import {
-  connect,
-  compose,
-  lifecycle,
-  setDisplayName,
-  withStateHandlers,
-  isMobile,
-} from '../../../util/container'
-import type {TypedState} from '../../../util/container'
+import {namedConnect} from '../../../util/container'
+import type {Props as _Props, RowItemSmall, RowItemBig} from '../index.types'
 import normalRowData from './normal'
 import filteredRowData from './filtered'
+import ff from '../../../util/feature-flags'
 
-const mapStateToProps = (state: TypedState, {routeState}) => {
+type OwnProps = {|
+  routeState: I.RecordOf<{
+    smallTeamsExpanded: boolean,
+  }>,
+  navigateAppend: (...Array<any>) => any,
+|}
+
+const mapStateToProps = state => {
+  const metaMap = state.chat2.metaMap
   const filter = state.chat2.inboxFilter
-  const smallTeamsExpanded = routeState.get('smallTeamsExpanded')
-  const rowMetadata = filter ? filteredRowData(state) : normalRowData(state, smallTeamsExpanded)
-  const _selectedConversationIDKey = Constants.getSelectedConversation(state)
+  const username = state.config.username
+  const {allowShowFloatingButton, rows, smallTeamsExpanded} = filter
+    ? filteredRowData(metaMap, filter, username)
+    : normalRowData(metaMap, state.chat2.smallTeamsExpanded)
   const neverLoaded = !state.chat2.inboxHasLoaded
+  const _canRefreshOnMount = neverLoaded && !Constants.anyChatWaitingKeys(state)
 
   return {
-    ...rowMetadata,
-    _selectedConversationIDKey,
+    _canRefreshOnMount,
+    _selectedConversationIDKey: Constants.getSelectedConversation(state),
+    allowShowFloatingButton,
     filter,
-    isLoading: Constants.anyChatWaitingKeys(state),
     neverLoaded,
+    rows,
+    smallTeamsExpanded,
   }
 }
 
-const mapDispatchToProps = (dispatch, {routeState, setRouteState, navigateAppend}) => ({
+const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
   _onSelect: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxFilterChanged'})),
-  onNewChat: () => dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'searchingForUsers'})),
+  _onSelectNext: (rows, selectedConversationIDKey, direction) => {
+    const goodRows: Array<RowItemSmall | RowItemBig> = rows.reduce((arr, row) => {
+      if (row.type === 'small' || row.type === 'big') {
+        arr.push(row)
+      }
+      return arr
+    }, [])
+    const idx = goodRows.findIndex(row => row.conversationIDKey === selectedConversationIDKey)
+    if (goodRows.length) {
+      const {conversationIDKey} = goodRows[(idx + direction + goodRows.length) % goodRows.length]
+      dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxFilterArrow'}))
+    }
+  },
+  _refreshInbox: () => dispatch(Chat2Gen.createInboxRefresh({reason: 'componentNeverLoaded'})),
+  onNewChat: () =>
+    dispatch(
+      ff.newTeamBuildingForChat
+        ? RouteTreeGen.createNavigateAppend({
+            path: [{props: {}, selected: 'newChat'}],
+          })
+        : Chat2Gen.createSetPendingMode({pendingMode: 'searchingForUsers'})
+    ),
   onUntrustedInboxVisible: (conversationIDKeys: Array<Types.ConversationIDKey>) =>
     dispatch(
       Chat2Gen.createMetaNeedsUpdating({
@@ -43,73 +72,103 @@ const mapDispatchToProps = (dispatch, {routeState, setRouteState, navigateAppend
         reason: 'untrusted inbox visible',
       })
     ),
-  refreshInbox: (force: boolean) => dispatch(Chat2Gen.createInboxRefresh({reason: 'componentNeverLoaded'})),
-  toggleSmallTeamsExpanded: () =>
-    setRouteState({
-      smallTeamsExpanded: !routeState.get('smallTeamsExpanded'),
-    }),
+  toggleSmallTeamsExpanded: () => dispatch(Chat2Gen.createToggleSmallTeamsExpanded()),
 })
 
 // This merge props is not spreading on purpose so we never have any random props that might mutate and force a re-render
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  filter: stateProps.filter,
-  isLoading: stateProps.isLoading,
-  neverLoaded: stateProps.neverLoaded,
-  onNewChat: dispatchProps.onNewChat,
-  onSelect: (conversationIDKey: Types.ConversationIDKey) => dispatchProps._onSelect(conversationIDKey),
-  onSelectDebounced: debounce(
-    (conversationIDKey: Types.ConversationIDKey) => dispatchProps._onSelect(conversationIDKey),
-    400,
-    {maxWait: 600}
-  ),
-  onUntrustedInboxVisible: dispatchProps.onUntrustedInboxVisible,
-  refreshInbox: dispatchProps.refreshInbox,
-  rows: stateProps.rows,
-  showSmallTeamsExpandDivider: stateProps.showSmallTeamsExpandDivider,
-  smallIDsHidden: stateProps.smallIDsHidden,
-  smallTeamsExpanded: stateProps.smallTeamsExpanded,
-  toggleSmallTeamsExpanded: dispatchProps.toggleSmallTeamsExpanded,
-})
-
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  setDisplayName('Inbox'),
-  withStateHandlers(
-    {filterFocusCount: 0},
-    {focusFilter: ({filterFocusCount}) => () => ({filterFocusCount: filterFocusCount + 1})}
-  ),
-  lifecycle({
-    componentDidMount() {
-      if (this.props.neverLoaded && !this.props.isLoading) {
-        this.props.refreshInbox()
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  return {
+    _canRefreshOnMount: stateProps._canRefreshOnMount,
+    _refreshInbox: dispatchProps._refreshInbox,
+    allowShowFloatingButton: stateProps.allowShowFloatingButton,
+    filter: stateProps.filter,
+    neverLoaded: stateProps.neverLoaded,
+    onEnsureSelection: () => {
+      // $ForceType
+      if (stateProps.rows.find(r => r.conversationIDKey === stateProps._selectedConversationIDKey)) {
+        return
+      }
+      const first = stateProps.rows[0]
+      if ((first && first.type === 'small') || first.type === 'big') {
+        dispatchProps._onSelect(first.conversationIDKey)
       }
     },
-    componentDidUpdate(prevProps) {
-      const loadedForTheFirstTime = prevProps.rows.length === 0 && this.props.rows.length > 0
-      // See if the first 6 are small, this implies it's expanded
-      const smallRowsPlusOne = prevProps.rows.slice(0, 6).filter(r => r.type === 'small')
-      const expandedForTheFirstTime = smallRowsPlusOne.length === 5 && this.props.rows.length > 5
-      if (loadedForTheFirstTime || expandedForTheFirstTime) {
-        const toUnbox = this.props.rows.slice(0, 20).reduce((arr, row) => {
-          if (row.type === 'small' || row.type === 'big') {
-            arr.push(row.conversationIDKey)
-          }
-          return arr
-        }, [])
-        if (toUnbox.length) {
-          this.props.onUntrustedInboxVisible(toUnbox)
-        }
-      }
+    onNewChat: dispatchProps.onNewChat,
+    onSelectDown: () =>
+      dispatchProps._onSelectNext(stateProps.rows, stateProps._selectedConversationIDKey, 1),
+    onSelectUp: () => dispatchProps._onSelectNext(stateProps.rows, stateProps._selectedConversationIDKey, -1),
+    onUntrustedInboxVisible: dispatchProps.onUntrustedInboxVisible,
+    rows: stateProps.rows,
+    smallTeamsExpanded: stateProps.smallTeamsExpanded,
+    toggleSmallTeamsExpanded: dispatchProps.toggleSmallTeamsExpanded,
+  }
+}
 
-      // keep first item selected if filter changes
-      if (!isMobile) {
-        if (this.props.filter && prevProps.filter !== this.props.filter && this.props.rows.length > 0) {
-          const row = this.props.rows[0]
-          if (row.conversationIDKey) {
-            this.props.onSelectDebounced(row.conversationIDKey)
-          }
+type Props = $Diff<
+  {|
+    ..._Props,
+    _refreshInbox: () => void,
+    _canRefreshOnMount: boolean,
+  |},
+  {
+    filterFocusCount: number,
+    focusFilter: () => void,
+  }
+>
+
+type State = {
+  filterFocusCount: number,
+}
+class InboxWrapper extends React.PureComponent<Props, State> {
+  state = {
+    filterFocusCount: 0,
+  }
+  _focusFilter = () => {
+    this.setState(p => ({filterFocusCount: p.filterFocusCount + 1}))
+  }
+
+  _onSelectUp = () => this.props.onSelectUp()
+  _onSelectDown = () => this.props.onSelectDown()
+
+  componentDidMount() {
+    if (this.props._canRefreshOnMount) {
+      this.props._refreshInbox()
+    }
+  }
+
+  componentDidUpdate(prevProps) {
+    const loadedForTheFirstTime = prevProps.rows.length === 0 && this.props.rows.length > 0
+    // See if the first 6 are small, this implies it's expanded
+    const smallRowsPlusOne = prevProps.rows.slice(0, 6).filter(r => r.type === 'small')
+    const expandedForTheFirstTime = smallRowsPlusOne.length === 5 && this.props.rows.length > 5
+    if (loadedForTheFirstTime || expandedForTheFirstTime) {
+      const toUnbox = this.props.rows.slice(0, 20).reduce((arr, row) => {
+        if (row.type === 'small' || row.type === 'big') {
+          arr.push(row.conversationIDKey)
         }
+        return arr
+      }, [])
+      if (toUnbox.length) {
+        this.props.onUntrustedInboxVisible(toUnbox)
       }
-    },
-  })
-)(Inbox.default)
+    }
+  }
+
+  render() {
+    const Component = Inbox.default
+    const {_refreshInbox, _canRefreshOnMount, ...rest} = this.props
+    return (
+      <Component
+        {...rest}
+        filterFocusCount={this.state.filterFocusCount}
+        focusFilter={this._focusFilter}
+        onSelectUp={this._onSelectUp}
+        onSelectDown={this._onSelectDown}
+      />
+    )
+  }
+}
+
+export default namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'Inbox')(
+  InboxWrapper
+)

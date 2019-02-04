@@ -1,2 +1,2 @@
-// @flow
-declare var exports: any
+// @flow strict
+declare module.exports: string

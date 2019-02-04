@@ -3,7 +3,6 @@ package client
 import (
 	"fmt"
 	"math"
-	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
@@ -232,23 +231,9 @@ func (v conversationListView) show(g *libkb.GlobalContext, myUsername string, sh
 
 		unread := ""
 		// Show the last visible message.
-		var msg *chat1.MessageUnboxed
-		for _, m := range conv.MaxMessages {
-			mv2, err := newMessageView(g, conv.Info.Id, m)
-			if err != nil {
-				g.Log.CDebugf(context.TODO(), "Message render error: %s", err)
-				continue
-			}
-			if !mv2.Renderable {
-				continue
-			}
-			if conv.ReaderInfo.ReadMsgid < m.GetMessageID() {
-				unread = "*"
-			}
-			if msg == nil || m.GetMessageID() > msg.GetMessageID() {
-				mCopy := m
-				msg = &mCopy
-			}
+		msg := conv.Info.SnippetMsg
+		if msg != nil && conv.ReaderInfo.ReadMsgid < msg.GetMessageID() {
+			unread = "*"
 		}
 		mv := newMessageViewNoMessages()
 		if msg != nil {
@@ -342,10 +327,7 @@ func (v conversationView) show(g *libkb.GlobalContext, showDeviceName bool) erro
 	w, _ := ui.TerminalSize()
 	showRevokeAdvisory := false
 
-	headline, err := v.headline(g)
-	if err != nil {
-		return err
-	}
+	headline := v.conversation.Info.Headline
 	if headline != "" {
 		g.UI.GetTerminalUI().Printf("headline: %s\n\n", headline)
 	}
@@ -428,29 +410,6 @@ func (v conversationView) show(g *libkb.GlobalContext, showDeviceName bool) erro
 	return nil
 }
 
-// Read the headline off the HEADLINE message in MaxMessages.
-// Returns "" when there is no headline set.
-func (v conversationView) headline(g *libkb.GlobalContext) (string, error) {
-	for _, m := range v.conversation.MaxMessages {
-		if !m.IsValid() {
-			continue
-		}
-		body := m.Valid().MessageBody
-		typ, err := body.MessageType()
-		if err != nil {
-			continue
-		}
-		switch typ {
-		case chat1.MessageType_HEADLINE:
-			return body.Headline().Headline, nil
-		default:
-			continue
-		}
-	}
-
-	return "", nil
-}
-
 // Everything you need to show a message.
 // Takes into account superseding edits and deletions.
 type messageView struct {
@@ -510,20 +469,23 @@ func formatSendPaymentMessage(g *libkb.GlobalContext, body chat1.MessageSendPaym
 		g.Log.CDebugf(ctx, "GetWalletClient() error: %s", err)
 		return "[error getting payment details]"
 	}
-	details, err := cli.PaymentDetailCLILocal(ctx, body.PaymentID.TxID.String())
+	details, err := cli.PaymentDetailCLILocal(ctx, stellar1.TransactionIDFromPaymentID(body.PaymentID).String())
 	if err != nil {
 		g.Log.CDebugf(ctx, "PaymentDetailCLILocal() error: %s", err)
 		return "[error getting payment details]"
 	}
 
-	ls := strings.ToLower(details.Status)
-	if ls != "completed" && ls != "pending" {
-		return fmt.Sprintf("error sending payment: %s", details.StatusDetail)
-	}
-
-	verb := "sent"
-	if ls == "pending" {
+	var verb string
+	statusStr := strings.ToLower(details.Status)
+	switch statusStr {
+	case "completed", "claimable":
+		verb = "sent"
+	case "canceled":
+		verb = "canceled sending"
+	case "pending":
 		verb = "sending"
+	default:
+		return fmt.Sprintf("error sending payment: %s %s", details.Status, details.StatusDetail)
 	}
 
 	amountXLM := fmt.Sprintf("%s XLM", libkb.StellarSimplifyAmount(details.Amount))
@@ -536,6 +498,10 @@ func formatSendPaymentMessage(g *libkb.GlobalContext, body chat1.MessageSendPaym
 	}
 
 	view := verb + " " + amountDescription
+	if statusStr == "claimable" {
+		// e.g. "Waiting for the recipient to open the app to claim, or the sender to cancel."
+		view += fmt.Sprintf("\n%s", details.StatusDetail)
+	}
 	if details.Note != "" {
 		view += "\n> " + details.Note
 	}
@@ -606,11 +572,7 @@ func newMessageViewValid(g *libkb.GlobalContext, conversationID chat1.Conversati
 	case chat1.MessageType_ATTACHMENT:
 		mv.Renderable = true
 		att := body.Attachment()
-		title := att.Object.Title
-		if title == "" {
-			title = filepath.Base(att.Object.Filename)
-		}
-		mv.Body = fmt.Sprintf("%s <attachment ID: %d>", title, m.ServerHeader.MessageID)
+		mv.Body = fmt.Sprintf("%s <attachment ID: %d>", att.GetTitle(), m.ServerHeader.MessageID)
 		if len(att.Previews) > 0 {
 			mv.Body += " [preview available]"
 		}

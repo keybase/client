@@ -1,55 +1,80 @@
 // @flow
-import {connect, type TypedState} from '../../util/container'
+import {connect} from '../../util/container'
 import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
-import * as StellarRPCTypes from '../../constants/types/rpc-stellar-gen'
+import * as ProfileGen from '../../actions/profile-gen'
+import * as WalletsGen from '../../actions/wallets-gen'
 import Transaction from '.'
-import {navigateAppend} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 
 export type OwnProps = {
   accountID: Types.AccountID,
-  paymentID: StellarRPCTypes.PaymentID,
-  status: Types.StatusSimplified,
+  paymentID: Types.PaymentID,
 }
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
-  _transaction:
-    ownProps.status === 'pending'
-      ? Constants.getPendingPayment(state, ownProps.accountID, ownProps.paymentID)
-      : Constants.getPayment(state, ownProps.accountID, ownProps.paymentID),
+const mapStateToProps = (state, ownProps: OwnProps) => ({
+  _oldestUnread: Constants.getOldestUnread(state, ownProps.accountID),
+  _transaction: Constants.getPayment(state, ownProps.accountID, ownProps.paymentID),
+  _unread: Constants.isPaymentUnread(state, ownProps.accountID, ownProps.paymentID),
   _you: state.config.username,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _onSelectTransaction: (paymentID: string, accountID: Types.AccountID, status: Types.StatusSimplified) =>
+const mapDispatchToProps = dispatch => ({
+  _onCancelPayment: (paymentID: Types.PaymentID) => dispatch(WalletsGen.createCancelPayment({paymentID})),
+  _onSelectTransaction: (paymentID: Types.PaymentID, accountID: Types.AccountID) =>
     dispatch(
-      navigateAppend([
-        {
-          props: {accountID, paymentID, status},
-          selected: 'transactionDetails',
-        },
-      ])
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {accountID, paymentID},
+            selected: 'transactionDetails',
+          },
+        ],
+      })
     ),
+  onShowProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const tx = stateProps._transaction
-  const yourRoleAndCounterparty = Constants.paymentToYourRoleAndCounterparty(tx)
+  const {yourRole, counterparty, counterpartyType} = Constants.paymentToYourInfoAndCounterparty(tx)
+  const memo = tx.note.stringValue()
+
+  let readState
+  if (tx.unread) {
+    readState = tx.id === stateProps._oldestUnread ? 'oldestUnread' : 'unread'
+  } else {
+    readState = 'read'
+  }
+
+  const isRelayRecipient = tx.statusSimplified === 'claimable' && yourRole === 'receiverOnly'
+
   return {
-    ...yourRoleAndCounterparty,
     amountUser: tx.worth,
     amountXLM: tx.amountDescription,
-    large: yourRoleAndCounterparty.counterpartyType !== 'wallet',
-    memo: tx.note.stringValue(),
-    // TODO -- waiting on CORE integration for these two
-    onCancelPayment: undefined,
-    onRetryPayment: undefined,
-    onSelectTransaction: () =>
-      dispatchProps._onSelectTransaction(ownProps.paymentID, ownProps.accountID, tx.statusSimplified),
+    approxWorth: tx.worthAtSendTime,
+    counterparty,
+    counterpartyType,
+    issuerDescription: tx.issuerDescription,
+    memo,
+    onCancelPayment: tx.showCancel && !isRelayRecipient ? () => dispatchProps._onCancelPayment(tx.id) : null,
+    onCancelPaymentWaitingKey: Constants.cancelPaymentWaitingKey(tx.id),
+    onSelectTransaction: isRelayRecipient
+      ? null
+      : () => dispatchProps._onSelectTransaction(ownProps.paymentID, ownProps.accountID),
+    onShowProfile: dispatchProps.onShowProfile,
+    readState,
+    selectableText: false,
     status: tx.statusSimplified,
     statusDetail: tx.statusDetail,
     timestamp: tx.time ? new Date(tx.time) : null,
+    unread: stateProps._unread,
+    yourRole,
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Transaction)
+export default connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(Transaction)

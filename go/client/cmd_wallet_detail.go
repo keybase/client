@@ -44,6 +44,7 @@ func (c *cmdWalletDetail) ParseArgv(ctx *cli.Context) (err error) {
 }
 
 func (c *cmdWalletDetail) Run() (err error) {
+	defer transformStellarCLIError(&err)
 	cli, err := GetWalletClient(c.G())
 	if err != nil {
 		return err
@@ -53,7 +54,7 @@ func (c *cmdWalletDetail) Run() (err error) {
 		return err
 	}
 	dui := c.G().UI.GetDumbOutputUI()
-	printPayment(c.G(), detail, true, dui)
+	printPayment(c.G(), detail, true /* verbose */, dui)
 	return nil
 }
 

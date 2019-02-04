@@ -97,11 +97,11 @@ class AutosizeInput extends Component<Props, State> {
           }}
           style={{
             ...resetStyle,
-            whiteSpace: 'pre',
+            left: -9999,
             ...this.props.inputStyle,
             position: 'absolute',
-            left: -9999,
             top: -9999,
+            whiteSpace: 'pre',
           }}
         >
           {this.props.value || this.props.placeholder}
@@ -113,8 +113,8 @@ class AutosizeInput extends Component<Props, State> {
 
 const resetStyle = {
   ...getTextStyle('Body'),
-  padding: 0,
   border: 'none',
+  padding: 0,
 }
 
 const placeholderColorCSS = `

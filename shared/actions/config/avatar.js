@@ -3,8 +3,6 @@ import * as I from 'immutable'
 import * as ConfigGen from '../config-gen'
 import * as Saga from '../../util/saga'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import shallowEqual from 'shallowequal'
-import {type TypedState} from '../../constants/reducer'
 
 const maxAvatarsPerLoad = 50
 
@@ -15,7 +13,7 @@ const avatarsToLoad = {
   users: I.Set(),
 }
 
-function* addToAvatarQueue(action: ConfigGen.LoadAvatarsPayload | ConfigGen.LoadTeamAvatarsPayload) {
+const addToAvatarQueue = (state, action) => {
   if (action.type === ConfigGen.loadAvatars) {
     const usernames = _validNames(action.payload.usernames)
     avatarsToLoad.users = avatarsToLoad.users.concat(usernames)
@@ -23,37 +21,32 @@ function* addToAvatarQueue(action: ConfigGen.LoadAvatarsPayload | ConfigGen.Load
     const teamnames = _validNames(action.payload.teamnames)
     avatarsToLoad.teams = avatarsToLoad.teams.concat(teamnames)
   }
-
-  if (avatarChannel) {
-    yield Saga.put(avatarChannel, ConfigGen.create_avatarQueue())
-  }
 }
 
 const avatarSizes = [960, 256, 192]
 function* avatarCallAndHandle(names: Array<string>, method: Function) {
   try {
-    const resp = yield Saga.call(method, {
+    const resp = yield* Saga.callPromise(method, {
       formats: avatarSizes.map(s => `square_${s}`),
       names,
     })
 
-    const state: TypedState = yield Saga.select()
+    const state = yield* Saga.selectState()
     const old = state.config.avatars
-    const nameToUrlMap = Object.keys(resp.picmap).reduce((nameToUrlMap, name) => {
-      const vals = avatarSizes.reduce((map, s) => {
-        map[s] = resp.picmap[name][`square_${s}`] || null
-        return map
-      }, {})
+    const vals = []
+    Object.keys(resp.picmap).forEach(name => {
+      const map = resp.picmap[name] || {}
+      const sizes = I.Map(avatarSizes.map(size => [size, map[`square_${size}`]]))
 
       // only send if it changed
-      if (!old[name] || !shallowEqual(old[name], vals)) {
-        nameToUrlMap[name] = vals
+      if (!sizes.equals(old.get(name))) {
+        vals.push([name, sizes])
       }
+    })
 
-      return nameToUrlMap
-    }, {})
-
-    yield Saga.put(ConfigGen.createLoadedAvatars({nameToUrlMap}))
+    if (vals.length) {
+      yield Saga.put(ConfigGen.createLoadedAvatars({avatars: I.Map(vals)}))
+    }
   } catch (error) {
     if (error.code === RPCTypes.constantsStatusCode.scinputerror) {
       yield Saga.put(ConfigGen.createGlobalError({globalError: error}))
@@ -61,36 +54,35 @@ function* avatarCallAndHandle(names: Array<string>, method: Function) {
   }
 }
 
-let avatarChannel
 function* handleAvatarQueue() {
-  avatarChannel = yield Saga.channel(Saga.buffers.dropping(1))
   while (true) {
-    yield Saga.call(Saga.delay, 100)
-    yield Saga.take(avatarChannel)
+    // nothign in queue, keep listening
+    if (!avatarsToLoad.users.size && !avatarsToLoad.teams.size) {
+      yield Saga.take([ConfigGen.loadAvatars, ConfigGen.loadTeamAvatars])
+    }
 
     const usernames = avatarsToLoad.users.take(maxAvatarsPerLoad).toArray()
     avatarsToLoad.users = avatarsToLoad.users.skip(maxAvatarsPerLoad)
     if (usernames.length) {
-      yield Saga.call(avatarCallAndHandle, usernames, RPCTypes.avatarsLoadUserAvatarsRpcPromise)
+      yield* avatarCallAndHandle(usernames, RPCTypes.avatarsLoadUserAvatarsRpcPromise)
     }
 
     const teamnames = avatarsToLoad.teams.take(maxAvatarsPerLoad).toArray()
     avatarsToLoad.teams = avatarsToLoad.teams.skip(maxAvatarsPerLoad)
     if (teamnames.length) {
-      yield Saga.call(avatarCallAndHandle, teamnames, RPCTypes.avatarsLoadTeamAvatarsRpcPromise)
+      yield* avatarCallAndHandle(teamnames, RPCTypes.avatarsLoadTeamAvatarsRpcPromise)
     }
 
-    // more to load?
-    if (avatarsToLoad.users.size || avatarsToLoad.teams.size) {
-      yield Saga.put(avatarChannel, ConfigGen.create_avatarQueue())
-    }
+    yield Saga.delay(100)
   }
 }
 
 function* avatarSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeEvery(ConfigGen.loadAvatars, addToAvatarQueue)
-  yield Saga.safeTakeEvery(ConfigGen.loadTeamAvatars, addToAvatarQueue)
-  yield Saga.fork(handleAvatarQueue)
+  yield* Saga.chainAction<ConfigGen.LoadAvatarsPayload | ConfigGen.LoadTeamAvatarsPayload>(
+    [ConfigGen.loadAvatars, ConfigGen.loadTeamAvatars],
+    addToAvatarQueue
+  )
+  yield Saga.spawn(handleAvatarQueue)
 }
 
 export default avatarSaga

@@ -25,19 +25,24 @@ const commonBannerStyle = {
   paddingTop: 8,
 }
 
-const BannerBox = props => (
+const BannerBox = (props: {children: React.Node, color: string}) => (
   <Box style={{...commonBannerStyle, backgroundColor: props.color}}>{props.children}</Box>
 )
 
 const BannerText = props => (
-  <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{textAlign: 'center'}} {...props} />
+  <Text center={true} type="BodySmallSemibold" backgroundMode="Announcements" {...props} />
 )
 
 function brokenSeparator(idx, item, arr) {
   if (idx === arr.length) {
     return null
   } else if (idx === arr.length - 1) {
-    return <BannerText key={idx}>{arr.length === 1 ? '' : ','}&nbsp;and&nbsp;</BannerText>
+    return (
+      <BannerText key={idx}>
+        {arr.length === 1 ? '' : ','}
+        &nbsp;and&nbsp;
+      </BannerText>
+    )
   } else {
     return <BannerText key={idx}>,&nbsp;</BannerText>
   }

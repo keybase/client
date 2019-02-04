@@ -2,6 +2,7 @@ package engine
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"sync"
 	"testing"
@@ -9,12 +10,13 @@ import (
 
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	clockwork "github.com/keybase/clockwork"
 	jsonw "github.com/keybase/go-jsonw"
 	require "github.com/stretchr/testify/require"
 )
 
 func importTrackingLink(t *testing.T, g *libkb.GlobalContext) *libkb.TrackChainLink {
-	cl, err := libkb.ImportLinkFromServer(g, nil, []byte(trackingServerReply), trackingUID)
+	cl, err := libkb.ImportLinkFromServer(libkb.NewMetaContextBackground(g), nil, []byte(trackingServerReply), trackingUID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -77,14 +79,19 @@ func newIdentify2WithUIDTester(g *libkb.GlobalContext) *Identify2WithUIDTester {
 }
 
 func (i *Identify2WithUIDTester) ListProofCheckers() []string { return nil }
-func (i *Identify2WithUIDTester) AllStringKeys() []string     { return nil }
+func (i *Identify2WithUIDTester) ListServicesThatAcceptNewProofs(libkb.MetaContext) []string {
+	return nil
+}
+func (i *Identify2WithUIDTester) ListDisplayConfigs() []keybase1.ServiceDisplayConfig { return nil }
+func (i *Identify2WithUIDTester) SuggestionFoldPriority() int                         { return 0 }
+func (i *Identify2WithUIDTester) Key() string                                         { return i.GetTypeName() }
 func (i *Identify2WithUIDTester) CheckProofText(text string, id keybase1.SigID, sig string) error {
 	return nil
 }
-func (i *Identify2WithUIDTester) DisplayName(n string) string { return n }
-func (i *Identify2WithUIDTester) GetPrompt() string           { return "" }
-func (i *Identify2WithUIDTester) GetProofType() string        { return "" }
-func (i *Identify2WithUIDTester) GetTypeName() string         { return "" }
+func (i *Identify2WithUIDTester) DisplayName() string  { return "Identify2WithUIDTester" }
+func (i *Identify2WithUIDTester) GetPrompt() string    { return "" }
+func (i *Identify2WithUIDTester) GetProofType() string { return "" }
+func (i *Identify2WithUIDTester) GetTypeName() string  { return "" }
 func (i *Identify2WithUIDTester) NormalizeRemoteName(_ libkb.MetaContext, name string) (string, error) {
 	return name, nil
 }
@@ -99,13 +106,15 @@ func (i *Identify2WithUIDTester) MakeProofChecker(_ libkb.RemoteProofChainLink) 
 	return i
 }
 func (i *Identify2WithUIDTester) GetServiceType(n string) libkb.ServiceType { return i }
+func (i *Identify2WithUIDTester) PickerSubtext() string                     { return "" }
 
-func (i *Identify2WithUIDTester) CheckStatus(m libkb.MetaContext, h libkb.SigHint, pcm libkb.ProofCheckerMode, _ keybase1.MerkleStoreEntry) libkb.ProofError {
+func (i *Identify2WithUIDTester) CheckStatus(m libkb.MetaContext, h libkb.SigHint,
+	pcm libkb.ProofCheckerMode, _ keybase1.MerkleStoreEntry) (*libkb.SigHint, libkb.ProofError) {
 	if i.checkStatusHook != nil {
-		return i.checkStatusHook(h, pcm)
+		return nil, i.checkStatusHook(h, pcm)
 	}
 	m.CDebugf("Check status rubber stamp: %+v", h)
-	return nil
+	return nil, nil
 }
 
 func (i *Identify2WithUIDTester) GetTorError() libkb.ProofError {
@@ -122,6 +131,9 @@ func (i *Identify2WithUIDTester) FinishWebProofCheck(keybase1.RemoteProof, keyba
 	return nil
 }
 func (i *Identify2WithUIDTester) DisplayCryptocurrency(keybase1.Cryptocurrency) error {
+	return nil
+}
+func (i *Identify2WithUIDTester) DisplayStellarAccount(keybase1.StellarAccount) error {
 	return nil
 }
 func (i *Identify2WithUIDTester) DisplayKey(keybase1.IdentifyKey) error {
@@ -463,7 +475,8 @@ func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
 		}
 
 		waiter := launchWaiter(t, tester.finishCh)
-		err := eng.Run(identify2MetaContext(tc, tester))
+		m := identify2MetaContext(tc, tester)
+		err := eng.Run(m)
 		// Since we threw away the test UI, we have to manually complete the UI here,
 		// otherwise the waiter() will block indefinitely.
 		origUI.Finish()
@@ -471,7 +484,7 @@ func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
 		if err != nil {
 			t.Fatalf("expected no ID2 error; got %v", err)
 		}
-		res, err := eng.Result()
+		res, err := eng.Result(m)
 		if err != nil {
 			t.Fatalf("unexpected export error: %s", err)
 		}
@@ -540,11 +553,18 @@ func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
 		t.Fatalf("bad cache stats: %+v, %+v", tester.fastStats, tester.slowStats)
 	}
 
+	// The fast cached should have been primed with the slow cache, so we expected
+	// a fast cache hit
+	runChatGUI()
+	if !tester.fastStats.eq(2, 1, 2, 0, 1) || !tester.slowStats.eq(1, 0, 2, 0, 1) {
+		t.Fatalf("bad cache stats: %+v, %+v", tester.fastStats, tester.slowStats)
+	}
+
 	tester.incNow(time.Second + libkb.Identify2CacheBrokenTimeout)
 	runChatGUI()
 
 	// After the broken timeout passes, we should get timeouts on both caches
-	if !tester.fastStats.eq(1, 2, 2, 0, 1) || !tester.slowStats.eq(1, 1, 2, 0, 1) {
+	if !tester.fastStats.eq(2, 2, 2, 0, 1) || !tester.slowStats.eq(1, 1, 2, 0, 1) {
 		t.Fatalf("bad cache stats: %+v, %+v", tester.fastStats, tester.slowStats)
 	}
 }
@@ -925,13 +945,14 @@ func TestIdentify2NoSigchain(t *testing.T) {
 		IdentifyBehavior: keybase1.TLFIdentifyBehavior_CLI,
 	}
 	eng := NewResolveThenIdentify2(tc.G, arg)
-	err := eng.Run(identify2MetaContext(tc, i))
+	m := identify2MetaContext(tc, i)
+	err := eng.Run(m)
 	if err != nil {
 		t.Fatalf("identify2 failed on user with no keys: %s", err)
 	}
 
 	// kbfs would like to have some info about the user
-	result, err := eng.Result()
+	result, err := eng.Result(m)
 	if err != nil {
 		t.Fatalf("unexpeted export error: %s", err)
 	}
@@ -1115,25 +1136,78 @@ func TestResolveAndCheck(t *testing.T) {
 		{"t_alice", libkb.UIDMismatchError{}, true},
 		{"t_alice+t_tracy@rooter", libkb.UnmetAssertionError{}, true},
 		{"t_alice+" + string(aliceUID) + "@uid", libkb.UnmetAssertionError{}, true},
-		// NOTE: Generic proofs are a WIP, this should change to a
-		// NotFoundError and a success case as the implementation proceeds.
-		// See CORE-8787
-		{"foobunny@gubble.social", libkb.AppStatusError{}, false},
-		// TODO set this up for success!
-		{"t_alice@gubble.social", libkb.AppStatusError{}, false},
+		{"foobunny@gubble.social", libkb.ResolutionError{}, false},
 	}
 	for _, test := range tests {
 		tc.G.Resolver = goodResolver
 		if test.useEvil {
 			tc.G.Resolver = &evilResolver
 		}
-		upk, err := ResolveAndCheck(m, test.s, true)
+		upk, err := ResolveAndCheck(m, test.s, true /*useTracking*/)
 		require.IsType(t, test.e, err)
 		if err == nil {
 			require.True(t, upk.GetUID().Equal(tracyUID))
 			require.Equal(t, upk.GetName(), "t_tracy")
 		}
 	}
+
+	// Test happy path for gubble social assertion
+	fu := CreateAndSignupFakeUser(tc, "track")
+	proveGubbleSocial(tc, fu, libkb.KeybaseSignatureV2)
+	assertion := fmt.Sprintf("%s@gubble.social", fu.Username)
+	upk, err := ResolveAndCheck(m, assertion, true /* useTracking */)
+	require.NoError(t, err)
+	require.True(t, upk.GetUID().Equal(fu.UID()))
+	require.Equal(t, upk.GetName(), fu.Username)
+}
+
+// TestTrackThenRevokeWithDifferentChatModes is described in CORE-9372. The scenario
+// is that: (1) bob proves rooter; (2) alice follows bob; (3) bob revokes rooter;
+// (4) alice ID's bob with CHAT_GUI, and that should work; (5)
+// alice ID's bob with CHAT_GUI_STRICT, and that should fail
+func TestTrackThenRevokeThenIdentifyWithDifferentChatModes(t *testing.T) {
+	tc := SetupEngineTest(t, "id")
+	defer tc.Cleanup()
+
+	fakeClock := clockwork.NewFakeClockAt(time.Now())
+	tc.G.SetClock(fakeClock)
+
+	bob := CreateAndSignupFakeUser(tc, "b")
+	_, sigID, err := proveRooter(tc.G, bob, 2)
+	require.NoError(t, err)
+	alice := CreateAndSignupFakeUser(tc, "a")
+	trackUser(tc, alice, bob.NormalizedUsername(), 2)
+	Logout(tc)
+	bob.Login(tc.G)
+	err = doRevokeSig(tc, bob, sigID)
+	require.NoError(t, err)
+	Logout(tc)
+	alice.Login(tc.G)
+
+	// Blast through the cache
+	fakeClock.Advance(libkb.Identify2CacheLongTimeout + time.Minute)
+
+	runIdentify := func(idb keybase1.TLFIdentifyBehavior) (err error) {
+		idUI := &FakeIdentifyUI{}
+		arg := keybase1.Identify2Arg{
+			UserAssertion:    bob.Username,
+			UseDelegateUI:    false,
+			CanSuppressUI:    true,
+			IdentifyBehavior: idb,
+		}
+
+		uis := libkb.UIs{
+			LogUI:      tc.G.UI.GetLogUI(),
+			IdentifyUI: idUI,
+		}
+		eng := NewResolveThenIdentify2(tc.G, &arg)
+		m := NewMetaContextForTest(tc).WithUIs(uis)
+		err = RunEngine2(m, eng)
+		return err
+	}
+
+	err = runIdentify(keybase1.TLFIdentifyBehavior_CHAT_GUI)
+	require.NoError(t, err)
 }
 
 var aliceUID = keybase1.UID("295a7eea607af32040647123732bc819")

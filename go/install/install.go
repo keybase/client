@@ -12,9 +12,9 @@ import (
 	"strings"
 
 	"github.com/blang/semver"
-	"github.com/kardianos/osext"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/utils"
 )
 
 // Log is the logging interface for this package
@@ -257,9 +257,10 @@ func chooseBinPath(bp string) (string, error) {
 	return BinPath()
 }
 
-// BinPath returns path to the keybase executable
+// BinPath returns path to the keybase executable. If the executable path is a
+// symlink, the target path is returned.
 func BinPath() (string, error) {
-	return osext.Executable()
+	return utils.BinPath()
 }
 
 func binName() (string, error) {
@@ -293,4 +294,9 @@ func kbfsBinPathDefault(runMode libkb.RunMode, binPath string) (string, error) {
 		return "", err
 	}
 	return filepath.Join(filepath.Dir(path), kbfsBinName()), nil
+}
+
+type CommonLsofResult struct {
+	PID     string
+	Command string
 }

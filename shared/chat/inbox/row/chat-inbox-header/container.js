@@ -1,33 +1,37 @@
 // @flow
-import type {RowItem} from '../../index.types'
-import {connect, compose, setDisplayName} from '../../../../util/container'
-import type {TypedState, Dispatch} from '../../../../util/container'
+import * as Constants from '../../../../constants/chat2'
+import {namedConnect} from '../../../../util/container'
 import ChatInboxHeader from '.'
 
 type OwnProps = {
-  onNewChat: () => void,
   filterFocusCount: number,
   focusFilter: () => void,
-  rows: Array<RowItem>,
+  onEnsureSelection: () => void,
+  onNewChat: () => void,
+  onSelectDown: () => void,
+  onSelectUp: () => void,
 }
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
-  filter: state.chat2.inboxFilter,
-  neverLoaded: state.chat2.metaMap.isEmpty(),
+const mapStateToProps = (state, ownProps: OwnProps) => ({
+  showNewChat:
+    !state.chat2.inboxFilter &&
+    state.chat2.inboxHasLoaded &&
+    !state.chat2.metaMap.some((_, id) => Constants.isValidConversationIDKey(id)),
 })
-
-const mapDispatchToProps = (dispatch: Dispatch) => ({})
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   filterFocusCount: ownProps.filterFocusCount,
   focusFilter: ownProps.focusFilter,
-  neverLoaded: stateProps.neverLoaded,
+  onEnsureSelection: ownProps.onEnsureSelection,
   onNewChat: ownProps.onNewChat,
-  rows: ownProps.rows,
-  showNewChat: !(ownProps.rows.length || stateProps.filter),
+  onSelectDown: ownProps.onSelectDown,
+  onSelectUp: ownProps.onSelectUp,
+  showNewChat: stateProps.showNewChat,
 })
 
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  setDisplayName('ChatInboxHeaderContainer')
+export default namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  () => ({}),
+  mergeProps,
+  'ChatInboxHeaderContainer'
 )(ChatInboxHeader)

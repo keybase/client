@@ -13,6 +13,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
@@ -146,7 +147,7 @@ func (e *PGPKeyExportEngine) exportSecret(m libkb.MetaContext) error {
 	}
 	fp := libkb.GetPGPFingerprintFromGenericKey(key)
 	if fp == nil {
-		return libkb.BadKeyError{Msg: "no fingerprint found"}
+		return kbcrypto.BadKeyError{Msg: "no fingerprint found"}
 	}
 
 	if !e.queryMatch(key) {
@@ -154,12 +155,12 @@ func (e *PGPKeyExportEngine) exportSecret(m libkb.MetaContext) error {
 	}
 
 	if _, ok := key.(*libkb.PGPKeyBundle); !ok {
-		return libkb.BadKeyError{Msg: "Expected a PGP key"}
+		return kbcrypto.BadKeyError{Msg: "Expected a PGP key"}
 	}
 
 	raw := skb.RawUnlockedKey()
 	if raw == nil {
-		return libkb.BadKeyError{Msg: "can't get raw representation of key"}
+		return kbcrypto.BadKeyError{Msg: "can't get raw representation of key"}
 	}
 
 	if e.encrypted {
@@ -203,7 +204,7 @@ func (e *PGPKeyExportEngine) encryptKey(m libkb.MetaContext, raw []byte) ([]byte
 	}
 
 	if entity.PrivateKey == nil {
-		return nil, libkb.BadKeyError{Msg: "No secret part in PGP key."}
+		return nil, kbcrypto.BadKeyError{Msg: "No secret part in PGP key."}
 	}
 
 	desc := "Enter passphrase to protect your PGP key. Secure passphrases have at least 8 characters."

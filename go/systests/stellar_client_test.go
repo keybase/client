@@ -188,9 +188,9 @@ func (s *stellarRetryClient) GetDisplayCurrencyLocal(ctx context.Context, arg st
 	return res, err
 }
 
-func (s *stellarRetryClient) GetWalletSettingsLocal(ctx context.Context, sid int) (res stellar1.WalletSettings, err error) {
+func (s *stellarRetryClient) HasAcceptedDisclaimerLocal(ctx context.Context, sid int) (res bool, err error) {
 	for i := 0; i < retryCount; i++ {
-		res, err = s.cli.GetWalletSettingsLocal(ctx, sid)
+		res, err = s.cli.HasAcceptedDisclaimerLocal(ctx, sid)
 		if err == nil {
 			break
 		}
@@ -198,9 +198,9 @@ func (s *stellarRetryClient) GetWalletSettingsLocal(ctx context.Context, sid int
 	return res, err
 }
 
-func (s *stellarRetryClient) SetAcceptedDisclaimerLocal(ctx context.Context, sid int) (err error) {
+func (s *stellarRetryClient) AcceptDisclaimerLocal(ctx context.Context, sid int) (err error) {
 	for i := 0; i < retryCount; i++ {
-		err = s.cli.SetAcceptedDisclaimerLocal(ctx, sid)
+		err = s.cli.AcceptDisclaimerLocal(ctx, sid)
 		if err == nil {
 			break
 		}
@@ -238,6 +238,37 @@ func (s *stellarRetryClient) GetSendAssetChoicesLocal(ctx context.Context, arg s
 	return res, err
 }
 
+func (s *stellarRetryClient) BuildRequestLocal(ctx context.Context, arg stellar1.BuildRequestLocalArg) (res stellar1.BuildRequestResLocal, err error) {
+	for i := 0; i < retryCount; i++ {
+		res, err = s.cli.BuildRequestLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return res, err
+
+}
+
+func (s *stellarRetryClient) StartBuildPaymentLocal(ctx context.Context, arg int) (res stellar1.BuildPaymentID, err error) {
+	for i := 0; i < retryCount; i++ {
+		res, err = s.cli.StartBuildPaymentLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return res, err
+}
+
+func (s *stellarRetryClient) StopBuildPaymentLocal(ctx context.Context, arg stellar1.StopBuildPaymentLocalArg) (err error) {
+	for i := 0; i < retryCount; i++ {
+		err = s.cli.StopBuildPaymentLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return err
+}
+
 func (s *stellarRetryClient) BuildPaymentLocal(ctx context.Context, arg stellar1.BuildPaymentLocalArg) (res stellar1.BuildPaymentResLocal, err error) {
 	for i := 0; i < retryCount; i++ {
 		res, err = s.cli.BuildPaymentLocal(ctx, arg)
@@ -246,7 +277,16 @@ func (s *stellarRetryClient) BuildPaymentLocal(ctx context.Context, arg stellar1
 		}
 	}
 	return res, err
+}
 
+func (s *stellarRetryClient) ReviewPaymentLocal(ctx context.Context, arg stellar1.ReviewPaymentLocalArg) (err error) {
+	for i := 0; i < retryCount; i++ {
+		err = s.cli.ReviewPaymentLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return err
 }
 
 func (s *stellarRetryClient) SendPaymentLocal(ctx context.Context, arg stellar1.SendPaymentLocalArg) (res stellar1.SendPaymentResLocal, err error) {
@@ -277,6 +317,16 @@ func (s *stellarRetryClient) CancelRequestLocal(ctx context.Context, arg stellar
 		}
 	}
 	return err
+}
+
+func (s *stellarRetryClient) CancelPaymentLocal(ctx context.Context, arg stellar1.CancelPaymentLocalArg) (res stellar1.RelayClaimResult, err error) {
+	for i := 0; i < retryCount; i++ {
+		res, err = s.cli.CancelPaymentLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return res, err
 }
 
 func (s *stellarRetryClient) BalancesLocal(ctx context.Context, arg stellar1.AccountID) (res []stellar1.Balance, err error) {
@@ -492,3 +542,86 @@ func (s *stellarRetryClient) SetAccountMobileOnlyLocal(ctx context.Context, arg 
 	}
 	return err
 }
+
+func (s *stellarRetryClient) SetAccountAllDevicesLocal(ctx context.Context, arg stellar1.SetAccountAllDevicesLocalArg) error {
+	var err error
+	for i := 0; i < retryCount; i++ {
+		err = s.cli.SetAccountAllDevicesLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return err
+}
+
+func (s *stellarRetryClient) SetInflationDestinationLocal(ctx context.Context, arg stellar1.SetInflationDestinationLocalArg) (err error) {
+	for i := 0; i < retryCount; i++ {
+		err = s.cli.SetInflationDestinationLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return err
+}
+
+func (s *stellarRetryClient) GetInflationDestinationLocal(ctx context.Context, arg stellar1.GetInflationDestinationLocalArg) (res stellar1.InflationDestinationResultLocal, err error) {
+	for i := 0; i < retryCount; i++ {
+		res, err = s.cli.GetInflationDestinationLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return res, err
+}
+
+func (s *stellarRetryClient) GetPredefinedInflationDestinationsLocal(ctx context.Context, sessionID int) (res []stellar1.PredefinedInflationDestination, err error) {
+	for i := 0; i < retryCount; i++ {
+		res, err = s.cli.GetPredefinedInflationDestinationsLocal(ctx, sessionID)
+		if err == nil {
+			break
+		}
+	}
+	return res, err
+}
+
+func (s *stellarRetryClient) BatchLocal(ctx context.Context, arg stellar1.BatchLocalArg) (res stellar1.BatchResultLocal, err error) {
+	for i := 0; i < retryCount; i++ {
+		res, err = s.cli.BatchLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return res, err
+}
+
+func (s *stellarRetryClient) AirdropDetailsLocal(ctx context.Context, sessionID int) (res string, err error) {
+	for i := 0; i < retryCount; i++ {
+		res, err = s.cli.AirdropDetailsLocal(ctx, sessionID)
+		if err == nil {
+			break
+		}
+	}
+	return res, err
+}
+
+func (s *stellarRetryClient) AirdropRegisterLocal(ctx context.Context, arg stellar1.AirdropRegisterLocalArg) (err error) {
+	for i := 0; i < retryCount; i++ {
+		err = s.cli.AirdropRegisterLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return err
+}
+
+func (s *stellarRetryClient) AirdropStatusLocal(ctx context.Context, sessionID int) (res stellar1.AirdropStatus, err error) {
+	for i := 0; i < retryCount; i++ {
+		res, err = s.cli.AirdropStatusLocal(ctx, sessionID)
+		if err == nil {
+			break
+		}
+	}
+	return res, err
+}
+
+var _ stellar1.LocalInterface = (*stellarRetryClient)(nil)

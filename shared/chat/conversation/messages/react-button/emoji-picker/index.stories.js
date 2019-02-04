@@ -4,8 +4,6 @@ import {Box, Box2, NewInput} from '../../../../../common-adapters'
 import {action, storiesOf} from '../../../../../stories/storybook'
 import ChooseEmoji from '.'
 
-const filters = ['smile', 'flag', 'firework', 'sad', 'e']
-
 class WithFilter extends React.Component<{}, {filter: string}> {
   state = {filter: ''}
   render() {
@@ -18,14 +16,10 @@ class WithFilter extends React.Component<{}, {filter: string}> {
   }
 }
 
-const load = () => {
-  const story = storiesOf('Chat/Emoji picker', module)
+const load = () =>
+  storiesOf('Chat/Emoji picker', module)
     .addDecorator(story => <Box style={{height: 400, overflow: 'hidden', width: 300}}>{story()}</Box>)
     .add('Default', () => <ChooseEmoji onChoose={action('onChoose')} width={300} />)
     .add('Custom filter', () => <WithFilter />)
-  filters.forEach(f =>
-    story.add(`Filter: ${f}`, () => <ChooseEmoji onChoose={action('onChoose')} width={300} filter={f} />)
-  )
-}
 
 export default load

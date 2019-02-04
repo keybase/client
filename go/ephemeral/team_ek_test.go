@@ -56,7 +56,7 @@ func TestNewTeamEK(t *testing.T) {
 	teamEKBoxStorage := tc.G.GetTeamEKBoxStorage()
 	maxGeneration, err := teamEKBoxStorage.MaxGeneration(context.Background(), teamID)
 	require.NoError(t, err)
-	ek, err := teamEKBoxStorage.Get(context.Background(), teamID, maxGeneration)
+	ek, err := teamEKBoxStorage.Get(context.Background(), teamID, maxGeneration, nil)
 	require.NoError(t, err)
 	require.Equal(t, ek.Metadata, publishedMetadata)
 

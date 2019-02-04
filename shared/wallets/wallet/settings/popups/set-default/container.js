@@ -1,12 +1,14 @@
 // @flow
-import {compose, connect, setDisplayName, type TypedState} from '../../../../../util/container'
+import {namedConnect, type RouteProps} from '../../../../../util/container'
 import * as Constants from '../../../../../constants/wallets'
 import * as Types from '../../../../../constants/types/wallets'
 import * as WalletsGen from '../../../../../actions/wallets-gen'
 import {anyWaiting} from '../../../../../constants/waiting'
 import SetDefaultAccountPopup from '.'
 
-const mapStateToProps = (state: TypedState, {routeProps}) => {
+type OwnProps = RouteProps<{accountID: Types.AccountID}, {}>
+
+const mapStateToProps = (state, {routeProps}) => {
   const accountID = routeProps.get('accountID')
 
   return {
@@ -16,24 +18,26 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
     waiting: anyWaiting(state, Constants.setAccountAsDefaultWaitingKey),
   }
 }
-const mapDispatchToProps = (dispatch: Dispatch, {navigateUp}) => ({
-  _onClose: () => dispatch(navigateUp()),
+const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   _onAccept: (accountID: Types.AccountID) =>
     dispatch(
       WalletsGen.createSetAccountAsDefault({
         accountID,
       })
     ),
+  _onClose: () => dispatch(navigateUp()),
 })
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   accountName: stateProps.accountName,
+  onAccept: () => dispatchProps._onAccept(stateProps.accountID),
+  onClose: () => dispatchProps._onClose(),
   username: stateProps.username,
   waiting: stateProps.waiting,
-  onClose: () => dispatchProps._onClose(),
-  onAccept: () => dispatchProps._onAccept(stateProps.accountID),
 })
 
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  setDisplayName('SetDefaultAccountPopup')
+export default namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'SetDefaultAccountPopup'
 )(SetDefaultAccountPopup)

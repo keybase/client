@@ -14,7 +14,7 @@ const Divider = ({label}: {label: string}) => (
     }}
   >
     <Box style={{...globalStyles.flexBoxRow, flexGrow: 1}}>
-      <Text style={{color: globalColors.black_40}} type="BodySmall">
+      <Text style={{color: globalColors.black_50}} type="BodySmall">
         {label}
       </Text>
     </Box>

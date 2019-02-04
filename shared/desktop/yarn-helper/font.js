@@ -4,15 +4,19 @@ import fs from 'fs'
 import path from 'path'
 import {execSync} from 'child_process'
 import prettier from 'prettier'
-import webfontsGenerator from 'webfonts-generator'
+import crypto from 'crypto'
 
 const commands = {
-  'updated-fonts': {
-    code: updatedFonts,
+  'update-icon-font': {
+    code: () => updateIconFont(false),
     help: 'Update our font sizes automatically',
   },
+  'update-web-font': {
+    code: () => updateIconFont(true),
+    help: 'Update our web font automatically',
+  },
   'update-icon-constants': {
-    code: updateConstants,
+    code: updateIconConstants,
     help: 'Update icon.constants.js with new/removed files',
   },
   'unused-assets': {
@@ -25,6 +29,8 @@ const paths = {
   iconfont: path.resolve(__dirname, '../../images/iconfont'),
   iconpng: path.resolve(__dirname, '../../images/icons'),
   fonts: path.resolve(__dirname, '../../fonts'),
+  webFonts: path.resolve(__dirname, '../../fonts-for-web'),
+  webFontsCss: path.resolve(__dirname, '../../fonts-for-web/fonts_custom.styl'),
   iconConstants: path.resolve(__dirname, '../../common-adapters/icon.constants.js'),
 }
 
@@ -34,9 +40,11 @@ const descent = fontHeight / descentFraction
 const baseCharCode = 0xe900
 
 const iconfontRegex = /^(\d+)-kb-iconfont-(.*)-(\d+).svg$/
-const mapPaths = shouldPrintSkipped => path => {
+const mapPaths = skipUnmatchedFile => path => {
   const match = path.match(iconfontRegex)
-  if (!match || match.length !== 4) return console.error(`Filename did not match, skipping ${path}`)
+  if (!match || match.length !== 4) {
+    return skipUnmatchedFile ? undefined : console.error(`Filename did not match, skipping ${path}`)
+  }
   const [, counter, name, size] = match
 
   if (!counter) {
@@ -50,15 +58,15 @@ const mapPaths = shouldPrintSkipped => path => {
   const score = Number(counter)
   return !isNaN(score) ? {filePath: path, counter: score, name, size} : null
 }
-const getSvgNames = shouldPrintSkipped =>
+const getSvgNames = skipUnmatchedFile =>
   fs
     .readdirSync(paths.iconfont)
-    .map(mapPaths(shouldPrintSkipped))
+    .map(mapPaths(skipUnmatchedFile))
     .filter(Boolean)
     .sort((x, y) => x.counter - y.counter)
 
-const getSvgPaths = shouldPrintSkipped =>
-  getSvgNames(shouldPrintSkipped).map(i => path.resolve(paths.iconfont, i.filePath))
+const getSvgPaths = skipUnmatchedFile =>
+  getSvgNames(skipUnmatchedFile).map(i => path.resolve(paths.iconfont, i.filePath))
 
 /*
  * This function will read all of the SVG files specified above, and generate a
@@ -67,23 +75,39 @@ const getSvgPaths = shouldPrintSkipped =>
  *
  * For config options: https://github.com/sunflowerdeath/webfonts-generator
  */
-function updatedFonts() {
+function updateIconFont(web) {
+  let webfontsGenerator
+  try {
+    webfontsGenerator = require('webfonts-generator')
+  } catch (e) {
+    console.error(
+      '\n\n\n\n>> Web fonts generation is optional, run a full yarn (and not yarn modules) to install it << \n\n\n'
+    )
+    throw e
+  }
   console.log('Created new webfont')
   const svgFilePaths = getSvgPaths(true /* print skipped */)
+
+  if (web) {
+    try {
+      fs.mkdirSync(paths.webFonts)
+    } catch (_) {}
+  }
+
   webfontsGenerator(
     {
       // An intermediate svgfont will be generated and then converted to TTF by webfonts-generator
-      types: ['ttf'],
+      types: web ? ['ttf', 'woff', 'svg'] : ['ttf'],
       files: svgFilePaths,
       dest: paths.fonts,
       startCodepoint: baseCharCode,
       fontName: 'kb',
+      classSelector: 'icon-kb',
       css: false,
       html: false,
+      writeFiles: false,
       formatOptions: {
-        ttf: {
-          ts: Date.now(),
-        },
+        ttf: {ts: 0}, // make this reproducible, sadly fontforge messes this up
         // Setting descent to zero on font generation will prevent the final
         // glyphs from being shifted down
         svg: {
@@ -92,19 +116,97 @@ function updatedFonts() {
         },
       },
     },
-    error => (error ? fontsGeneratedError(error) : fontsGeneratedSuccess())
+    (error, result) => (error ? fontsGeneratedError(error) : fontsGeneratedSuccess(web, result))
   )
 }
 
-const fontsGeneratedSuccess = () => {
-  console.log('Webfont generated successfully... updating constants and flow types')
-  // Webfonts generator seems always produce an svg fontfile regardless of the `type` option set above.
-  const svgFont = path.resolve(paths.fonts, 'kb.svg')
-  if (fs.existsSync(svgFont)) {
-    fs.unlinkSync(svgFont)
+const fontsGeneratedSuccess = (web, result) => {
+  if (web) {
+    generateWebCSS(result)
+  } else {
+    console.log('Webfont generated successfully... updating constants and flow types')
+    fs.writeFileSync(path.join(paths.fonts, 'kb.ttf'), result.ttf)
+    setFontMetrics()
+    updateIconConstants()
   }
-  setFontMetrics()
-  updateConstants()
+}
+
+const generateWebCSS = result => {
+  const svgFilenames = getSvgNames(false /* print skipped */)
+  const rules = svgFilenames.reduce((map, {counter, name, size}) => {
+    map[`kb-iconfont-${name}`] = baseCharCode + counter - 1
+    return map
+  }, {})
+
+  const typeToFormat = {
+    ttf: 'truetype',
+    woff: 'woff',
+    svg: 'svg',
+  }
+
+  // hash and write
+  const types = ['ttf', 'woff', 'svg'].map(type => {
+    var hash = crypto.createHash('md5')
+    hash.update(result[type])
+    try {
+      fs.writeFileSync(path.join(paths.webFonts, `kb.${type}`), result[type])
+    } catch (e) {
+      console.error(e)
+    }
+    return {type, hash: hash.digest('hex'), format: typeToFormat[type]}
+  })
+  const urls = types
+    .map(type => `url('/fonts/kb.${type.type}?${type.hash}') format('${type.format}')`)
+    .join(',\n')
+
+  const css = `
+/*
+ This file is how we serve our custom Coinbase, etc., fonts on the website
+
+ ALSO see fonts.styl
+ SOURCE:
+  1. Go to client and run \`yarn update-web-font\`
+  2. Copy client/shared/fonts-for-web/fonts_custom.styl here
+  3. Copy fonts to public/fonts
+*/
+
+@font-face {
+  font-family: "kb";
+  src: ${urls};
+  font-weight: normal;
+  font-style: normal;
+}
+
+[class^="icon-kb-iconfont-"], [class*=" icon-kb-iconfont-"] {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: 'kb' !important;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+  font-size: 16px;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+${Object.keys(rules)
+    .map(
+      name => `.icon-${name}:before {
+  content: "\\${rules[name].toString(16)}";
+}`
+    )
+    .join('\n')}
+`
+
+  try {
+    fs.writeFileSync(paths.webFontsCss, css, 'utf8')
+  } catch (e) {
+    console.error(e)
+  }
 }
 
 const fontsGeneratedError = error => {
@@ -113,14 +215,13 @@ const fontsGeneratedError = error => {
   )
 }
 
-function updateConstants() {
+function updateIconConstants() {
   console.log('Generating icon constants')
 
   const icons = {}
 
   // Build constants for the png assests.
-  fs
-    .readdirSync(paths.iconpng)
+  fs.readdirSync(paths.iconpng)
     .filter(i => i.indexOf('@') === -1 && i.startsWith('icon-'))
     .forEach(i => {
       const shortName = i.slice(0, -4)
@@ -142,7 +243,7 @@ function updateConstants() {
   }, {})
 
   const iconConstants = `// @flow strict
-  // This file is GENERATED by yarn run updated-fonts. DON'T hand edit
+  // This file is GENERATED by yarn run update-icon-font. DON'T hand edit
   /* eslint-disable prettier/prettier */
 
   type IconMeta = {
@@ -157,20 +258,15 @@ function updateConstants() {
   ${
     /* eslint-disable */
     Object.keys(icons)
+      .sort()
       .map(name => {
         const icon = icons[name]
         const meta = [
-          `isFont: ${icon.isFont}`,
-          icon.gridSize ? [`gridSize: ${icons[name].gridSize}`] : [],
           icon.charCode ? [`charCode: 0x${icons[name].charCode.toString(16)}`] : [],
           icon.extension ? [`extension: '${icons[name].extension}'`] : [],
-          icon.require
-            ? [
-                `// $FlowIssue https://github.com/facebook/flow/issues/6628\nrequire: require(${
-                  icons[name].require
-                })`,
-              ]
-            : [],
+          icon.gridSize ? [`gridSize: ${icons[name].gridSize}`] : [],
+          `isFont: ${icon.isFont}`,
+          icon.require ? [`require: require(${icons[name].require})`] : [],
         ]
 
         return `'${name}': {

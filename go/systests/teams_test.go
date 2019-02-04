@@ -116,19 +116,15 @@ func newTeamTester(t *testing.T) *teamTester {
 }
 
 func (tt *teamTester) addUser(pre string) *userPlusDevice {
-	return tt.addUserHelper(pre, true, false, true)
+	return tt.addUserHelper(pre, true, false)
 }
 
 func (tt *teamTester) addUserWithPaper(pre string) *userPlusDevice {
-	return tt.addUserHelper(pre, true, true, true)
+	return tt.addUserHelper(pre, true, true)
 }
 
 func (tt *teamTester) addPuklessUser(pre string) *userPlusDevice {
-	return tt.addUserHelper(pre, false, false, true)
-}
-
-func (tt *teamTester) addWalletlessUser(pre string) *userPlusDevice {
-	return tt.addUserHelper(pre, true, false, false)
+	return tt.addUserHelper(pre, false, false)
 }
 
 func (tt *teamTester) logUserNames() {
@@ -147,17 +143,14 @@ func installInsecureTriplesec(g *libkb.GlobalContext) {
 		isProduction := func() bool {
 			return g.Env.GetRunMode() == libkb.ProductionRunMode
 		}
-		return insecureTriplesec.NewCipher(passphrase, salt, warner, isProduction)
+		return insecureTriplesec.NewCipher(passphrase, salt, libkb.ClientTriplesecVersion, warner, isProduction)
 	}
 }
 
-func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool, wallet bool) *userPlusDevice {
+func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool) *userPlusDevice {
 	tctx := setupTest(tt.t, pre)
 	if !puk {
 		tctx.Tp.DisableUpgradePerUserKey = true
-	}
-	if !wallet {
-		tctx.Tp.DisableAutoWallet = true
 	}
 
 	var u userPlusDevice
@@ -211,6 +204,7 @@ func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool, wallet boo
 	require.NoError(tt.t, err)
 
 	u.teamsClient = keybase1.TeamsClient{Cli: cli}
+	u.userClient = keybase1.UserClient{Cli: cli}
 	u.stellarClient = newStellarRetryClient(cli)
 
 	g.ConfigureConfig()
@@ -247,6 +241,7 @@ type userPlusDevice struct {
 	tc                       *libkb.TestContext
 	deviceClient             keybase1.DeviceClient
 	teamsClient              keybase1.TeamsClient
+	userClient               keybase1.UserClient
 	stellarClient            stellar1.LocalInterface
 	notifications            *teamNotifyHandler
 	suppressTeamChatAnnounce bool
@@ -860,6 +855,10 @@ func (u *userPlusDevice) perUserKeyUpgrade() {
 	require.NoError(t, err, "Run engine.NewPerUserKeyUpgrade")
 }
 
+func (u *userPlusDevice) MetaContext() libkb.MetaContext {
+	return libkb.NewMetaContextForTest(*u.tc)
+}
+
 func kickTeamRekeyd(g *libkb.GlobalContext, t libkb.TestingTB) {
 	const workTimeSec = 1 // team_rekeyd delay before retrying job if it wasn't finished.
 	args := libkb.HTTPArgs{
@@ -1395,6 +1394,70 @@ func TestTeamCanUserPerform(t *testing.T) {
 	require.False(t, donnyPerms.Chat)
 }
 
+func TestBatchAddMembersCLI(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	alice := tt.addUser("alice")
+	bob := tt.addUser("bob")
+	dodo := tt.addUser("dodo")
+	john := tt.addPuklessUser("john")
+	tt.logUserNames()
+	teamID, teamName := alice.createTeam2()
+
+	dodo.proveRooter()
+	users := []keybase1.UserRolePair{
+		{AssertionOrEmail: bob.username, Role: keybase1.TeamRole_ADMIN},
+		{AssertionOrEmail: dodo.username + "+" + dodo.username + "@rooter", Role: keybase1.TeamRole_WRITER},
+		{AssertionOrEmail: john.username + "@rooter", Role: keybase1.TeamRole_ADMIN},
+		{AssertionOrEmail: "[rob@gmail.com]@email", Role: keybase1.TeamRole_READER},
+	}
+	_, err := teams.AddMembers(context.Background(), alice.tc.G, teamName.String(), users)
+	require.NoError(t, err)
+
+	team := alice.loadTeamByID(teamID, true /* admin */)
+	members, err := team.Members()
+	require.NoError(t, err)
+	require.Equal(t, members.Owners, []keybase1.UserVersion{{Uid: alice.uid, EldestSeqno: 1}})
+	require.Equal(t, members.Admins, []keybase1.UserVersion{{Uid: bob.uid, EldestSeqno: 1}})
+	require.Equal(t, members.Writers, []keybase1.UserVersion{{Uid: dodo.uid, EldestSeqno: 1}})
+	require.Len(t, members.Readers, 0)
+
+	invites := team.GetActiveAndObsoleteInvites()
+	t.Logf("invites: %s", spew.Sdump(invites))
+	for _, invite := range invites {
+		switch invite.Type.C__ {
+		case keybase1.TeamInviteCategory_SBS:
+			require.Equal(t, invite.Type.Sbs(), keybase1.TeamInviteSocialNetwork("rooter"))
+			require.Equal(t, invite.Name, keybase1.TeamInviteName(john.username))
+			require.Equal(t, invite.Role, keybase1.TeamRole_ADMIN)
+		case keybase1.TeamInviteCategory_EMAIL:
+			require.Equal(t, invite.Name, keybase1.TeamInviteName("rob@gmail.com"))
+			require.Equal(t, invite.Role, keybase1.TeamRole_READER)
+		default:
+			require.FailNowf(t, "unexpected invite type", "%v", spew.Sdump(invite))
+		}
+	}
+
+	// It should fail to combine assertions with email addresses
+	users = []keybase1.UserRolePair{
+		{AssertionOrEmail: "[job@gmail.com]@email+job33", Role: keybase1.TeamRole_READER},
+	}
+	_, err = teams.AddMembers(context.Background(), alice.tc.G, teamName.String(), users)
+	require.Error(t, err)
+	require.IsType(t, err, teams.AddMembersError{})
+	require.IsType(t, err.(teams.AddMembersError).Err, teams.MixedServerTrustAssertionError{})
+
+	// It should also fail to combine invites with other assertions
+	users = []keybase1.UserRolePair{
+		{AssertionOrEmail: "xxffee22ee@twitter+jjjejiei3i@rooter", Role: keybase1.TeamRole_READER},
+	}
+	_, err = teams.AddMembers(context.Background(), alice.tc.G, teamName.String(), users)
+	require.Error(t, err)
+	require.IsType(t, err, teams.AddMembersError{})
+	require.IsType(t, err.(teams.AddMembersError).Err, teams.CompoundInviteError{})
+}
+
 func TestBatchAddMembers(t *testing.T) {
 	tt := newTeamTester(t)
 	defer tt.cleanup()
@@ -1417,7 +1480,16 @@ func TestBatchAddMembers(t *testing.T) {
 	expectInvite := []bool{false, true, true, true, true}
 	expectUsername := []bool{true, true, true, false, false}
 	role := keybase1.TeamRole_OWNER
-	res, err := teams.AddMembers(context.Background(), alice.tc.G, teamName.String(), assertions, role)
+
+	makeUserRolePairs := func(v []string, role keybase1.TeamRole) []keybase1.UserRolePair {
+		var ret []keybase1.UserRolePair
+		for _, s := range v {
+			ret = append(ret, keybase1.UserRolePair{AssertionOrEmail: s, Role: role})
+		}
+		return ret
+	}
+
+	res, err := teams.AddMembers(context.Background(), alice.tc.G, teamName.String(), makeUserRolePairs(assertions, role))
 	require.Error(t, err, "can't invite assertions as owners")
 	require.IsType(t, teams.AttemptedInviteSocialOwnerError{}, err)
 	require.Nil(t, res)
@@ -1431,7 +1503,7 @@ func TestBatchAddMembers(t *testing.T) {
 	require.Len(t, members.Readers, 0)
 
 	role = keybase1.TeamRole_ADMIN
-	res, err = teams.AddMembers(context.Background(), alice.tc.G, teamName.String(), assertions, role)
+	res, err = teams.AddMembers(context.Background(), alice.tc.G, teamName.String(), makeUserRolePairs(assertions, role))
 	require.NoError(t, err)
 	require.Len(t, res, len(assertions))
 	for i, r := range res {

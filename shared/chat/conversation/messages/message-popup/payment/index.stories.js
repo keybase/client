@@ -9,26 +9,32 @@ const receiveIcon = 'receiving'
 const sendIcon = 'sending'
 
 const commonProps = {
+  approxWorth: '',
+  bottomLine: '',
+  cancelButtonLabel: '',
   loading: false,
   onCancel: null,
+  onClaimLumens: null,
   onHidden: Sb.action('onHidden'),
+  onSeeDetails: null,
   position: 'bottom left',
   senderDeviceName: 'iPhone 6',
+  status: 'completed',
   timestamp: 'Yesterday 8:11 PM',
   visible: true,
 }
 
 const onCancel = Sb.action('onCancel')
+const onSeeDetails = Sb.action('onSeeDetails')
 
 const theyRequestProps = {
   ...commonProps,
   amountNominal: '$34',
   balanceChange: '',
   balanceChangeColor: '',
-  bottomLine: '',
   icon: receiveIcon,
   sender: 'kamel',
-  topLine: 'requested lumens worth',
+  topLine: 'requested Lumens worth',
   txVerb: 'requested',
 }
 
@@ -36,11 +42,11 @@ const youReceiveProps = {
   ...commonProps,
   amountNominal: '$1',
   balanceChange: '+5.0200803 XLM',
-  balanceChangeColor: S.globalColors.green2,
-  bottomLine: '',
+  balanceChangeColor: S.globalColors.green,
   icon: receiveIcon,
+  onSeeDetails,
   sender: 'kamel',
-  topLine: 'you received lumens worth',
+  topLine: 'you received Lumens worth',
   txVerb: 'sent',
 }
 
@@ -49,11 +55,11 @@ const youRequestProps = {
   amountNominal: '$34',
   balanceChange: '',
   balanceChangeColor: '',
-  bottomLine: '',
+  cancelButtonLabel: 'Cancel request',
   icon: receiveIcon,
   onCancel,
   sender: 'cecileb',
-  topLine: 'you requested lumens worth',
+  topLine: 'you requested Lumens worth',
   txVerb: 'requested',
 }
 
@@ -61,11 +67,11 @@ const youSendProps = {
   ...commonProps,
   amountNominal: '$1',
   balanceChange: '-170.6827309 XLM',
-  balanceChangeColor: S.globalColors.red,
-  bottomLine: '',
+  balanceChangeColor: S.globalColors.black_75,
   icon: sendIcon,
+  onSeeDetails,
   sender: 'cecileb',
-  topLine: 'you sent lumens worth',
+  topLine: 'you sent Lumens worth',
   txVerb: 'sent',
 }
 
@@ -75,6 +81,7 @@ const youRequestBTCProps = {
   balanceChange: '',
   balanceChangeColor: '',
   bottomLine: 'stronghold.com',
+  cancelButtonLabel: 'Cancel request',
   icon: receiveIcon,
   onCancel,
   sender: 'cecileb',
@@ -86,9 +93,10 @@ const youReceiveBTCProps = {
   ...commonProps,
   amountNominal: '1 BTC',
   balanceChange: '+1 BTC',
-  balanceChangeColor: S.globalColors.green2,
+  balanceChangeColor: S.globalColors.green,
   bottomLine: 'stronghold.com',
   icon: receiveIcon,
+  onSeeDetails,
   sender: 'kamel',
   topLine: 'you received',
   txVerb: 'sent',
@@ -98,9 +106,23 @@ const youSendBTCProps = {
   ...commonProps,
   amountNominal: '1 BTC',
   balanceChange: '-1 BTC',
-  balanceChangeColor: S.globalColors.red,
+  balanceChangeColor: S.globalColors.black_75,
   bottomLine: 'stronghold.com',
   icon: sendIcon,
+  onSeeDetails,
+  sender: 'cecileb',
+  topLine: 'you sent',
+  txVerb: 'sent',
+}
+
+const youSendXLMProps = {
+  ...commonProps,
+  amountNominal: '1 XLM',
+  approxWorth: '$901.23 USD',
+  balanceChange: '-1 XLM',
+  balanceChangeColor: S.globalColors.black_75,
+  icon: sendIcon,
+  onSeeDetails,
   sender: 'cecileb',
   topLine: 'you sent',
   txVerb: 'sent',
@@ -111,7 +133,6 @@ const loadingProps = {
   amountNominal: '',
   balanceChange: '',
   balanceChangeColor: '',
-  bottomLine: '',
   icon: sendIcon,
   loading: true,
   sender: '',
@@ -119,15 +140,28 @@ const loadingProps = {
   txVerb: 'sent',
 }
 
+const completedProps = {
+  ...theyRequestProps,
+  status: 'completed',
+}
+
+const canceledProps = {
+  ...theyRequestProps,
+  status: 'canceled',
+}
+
 const load = () => {
   Sb.storiesOf('Chat/Conversation/Message popup/Payments', module)
-    .add('They request lumens', () => <PaymentPopupMoved {...theyRequestProps} />)
-    .add('You receive lumens', () => <PaymentPopupMoved {...youReceiveProps} />)
-    .add('You request lumens', () => <PaymentPopupMoved {...youRequestProps} />)
-    .add('You send lumens', () => <PaymentPopupMoved {...youSendProps} />)
+    .add('They request Lumens', () => <PaymentPopupMoved {...theyRequestProps} />)
+    .add('You receive Lumens', () => <PaymentPopupMoved {...youReceiveProps} />)
+    .add('You request Lumens', () => <PaymentPopupMoved {...youRequestProps} />)
+    .add('You send Lumens', () => <PaymentPopupMoved {...youSendProps} />)
     .add('You request BTC', () => <PaymentPopupMoved {...youRequestBTCProps} />)
     .add('You receive BTC', () => <PaymentPopupMoved {...youReceiveBTCProps} />)
     .add('You send BTC', () => <PaymentPopupMoved {...youSendBTCProps} />)
+    .add('You send XLM', () => <PaymentPopupMoved {...youSendXLMProps} />)
+    .add('Completed request', () => <PaymentPopupMoved {...completedProps} />)
+    .add('Canceled request', () => <PaymentPopupMoved {...canceledProps} />)
     .add('Loading', () => <PaymentPopupMoved {...loadingProps} />)
 }
 

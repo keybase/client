@@ -4,6 +4,7 @@ import * as Types from '../constants/types/login'
 import * as LoginGen from '../actions/login-gen'
 import * as SignupGen from '../actions/signup-gen'
 import * as ProvisionGen from '../actions/provision-gen'
+import * as Flow from '../util/flow'
 
 const initialState = Constants.makeState()
 
@@ -19,16 +20,13 @@ export default function(
     case ProvisionGen.startProvision:
       return state.merge({error: initialState.error})
     case LoginGen.loginError:
-      return state.set('error', action.payload.error || initialState.error)
+      return state.merge({error: action.payload.error || initialState.error})
     // Saga only actions
     case LoginGen.launchAccountResetWebPage:
     case LoginGen.launchForgotPasswordWebPage:
       return state
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(action);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

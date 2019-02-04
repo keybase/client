@@ -19,6 +19,7 @@ export type BaseUsernamesProps = {|
   backgroundMode?: Background,
   colorBroken?: boolean,
   colorFollowing?: boolean,
+  notFollowingColorOverride?: string,
   colorYou?: boolean | string,
   commaColor?: string,
   containerStyle?: Styles.StylesCrossPlatform,
@@ -52,62 +53,65 @@ function UsernameText(props: Props) {
     styles.joinerStyle,
     {color: props.commaColor},
   ])
-  return props.users.map((u, i) => {
-    let userStyle = {
-      ...(!Styles.isMobile ? {textDecoration: 'inherit'} : null),
-      ...(props.colorFollowing && !u.you
-        ? {color: u.following ? Styles.globalColors.green2 : Styles.globalColors.blue}
-        : null),
-      ...(props.colorBroken && u.broken && !u.you
-        ? {color: props.redColor || Styles.globalColors.red}
-        : null),
-      ...(props.inline && !Styles.isMobile ? {display: 'inline'} : null),
-      ...(u.you ? Styles.globalStyles.italic : null),
-      ...(props.colorYou && u.you
-        ? {color: typeof props.colorYou === 'string' ? props.colorYou : Styles.globalColors.black_75}
-        : null),
-    }
-    userStyle = Styles.collapseStyles([props.style, userStyle])
+  return (
+    <>
+      {props.users.map((u, i) => {
+        let userStyle = {
+          ...(props.colorFollowing && !u.you
+            ? {
+                color: u.following
+                  ? Styles.globalColors.green
+                  : props.notFollowingColorOverride || Styles.globalColors.blue,
+              }
+            : null),
+          ...(props.colorBroken && u.broken && !u.you
+            ? {color: props.redColor || Styles.globalColors.red}
+            : null),
+          ...(props.inline && !Styles.isMobile ? {display: 'inline'} : null),
+          ...(props.colorYou && u.you
+            ? {color: typeof props.colorYou === 'string' ? props.colorYou : Styles.globalColors.black_75}
+            : null),
+        }
+        userStyle = Styles.collapseStyles([props.style, userStyle])
 
-    // Make sure onClick is undefined when _onUsernameClicked is, so
-    // as to not override any existing onClick handler from containers
-    // on native. (See DESKTOP-3963.)
-    const _onUsernameClicked = props.onUsernameClicked
-    return (
-      <Text type={props.type} key={u.username}>
-        {i !== 0 &&
-          i === props.users.length - 1 &&
-          props.showAnd && (
-            <Text type={props.type} backgroundMode={props.backgroundMode} style={derivedJoinerStyle}>
-              {'and '}
+        // Make sure onClick is undefined when _onUsernameClicked is, so
+        // as to not override any existing onClick handler from containers
+        // on native. (See DESKTOP-3963.)
+        const _onUsernameClicked = props.onUsernameClicked
+        return (
+          <Text type={props.type} key={u.username}>
+            {i !== 0 && i === props.users.length - 1 && props.showAnd && (
+              <Text type={props.type} backgroundMode={props.backgroundMode} style={derivedJoinerStyle}>
+                {'and '}
+              </Text>
+            )}
+            <Text
+              type={props.type}
+              backgroundMode={props.backgroundMode}
+              className={Styles.classNames({'hover-underline': props.underline})}
+              onClick={_onUsernameClicked ? () => _onUsernameClicked(u.username) : undefined}
+              style={userStyle}
+            >
+              {u.username}
             </Text>
-          )}
-        <Text
-          type={props.type}
-          backgroundMode={props.backgroundMode}
-          className={props.underline ? 'hover-underline' : undefined}
-          onClick={_onUsernameClicked ? () => _onUsernameClicked(u.username) : undefined}
-          style={userStyle}
-        >
-          {u.username}
-        </Text>
-        {/* Injecting the commas here so we never wrap and have newlines starting with a , */}
-        {i !== props.users.length - 1 &&
-          (!props.inlineGrammar || props.users.length > 2) && (
-            <Text type={props.type} backgroundMode={props.backgroundMode} style={derivedJoinerStyle}>
-              ,
-            </Text>
-          )}
-        {i !== props.users.length - 1 && ' '}
-      </Text>
-    )
-  })
+            {/* Injecting the commas here so we never wrap and have newlines starting with a , */}
+            {i !== props.users.length - 1 && (!props.inlineGrammar || props.users.length > 2) && (
+              <Text type={props.type} backgroundMode={props.backgroundMode} style={derivedJoinerStyle}>
+                ,
+              </Text>
+            )}
+            {i !== props.users.length - 1 && ' '}
+          </Text>
+        )
+      })}
+    </>
+  )
 }
 UsernameText.defaultProps = {
   colorBroken: true,
   inlineGrammar: false,
   showAnd: false,
-  underline: false,
+  underline: true,
 }
 
 const inlineProps = Styles.isMobile ? {lineClamp: 1} : {}
@@ -192,17 +196,17 @@ class PlaintextUsernames extends React.Component<PlaintextProps> {
 }
 
 const styles = Styles.styleSheetCreate({
-  joinerStyle: Styles.platformStyles({
-    isElectron: {
-      textDecoration: 'none',
-    },
-  }),
   inlineStyle: Styles.platformStyles({
     isElectron: {
       display: 'inline',
       overflow: 'hidden',
       textOverflow: 'ellipsis',
       whiteSpace: 'nowrap',
+    },
+  }),
+  joinerStyle: Styles.platformStyles({
+    isElectron: {
+      textDecoration: 'none',
     },
   }),
   nonInlineStyle: Styles.platformStyles({

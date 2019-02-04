@@ -1,45 +1,48 @@
 // @flow
+import * as I from 'immutable'
 import * as Types from '../../constants/types/fs'
-import * as Constants from '../../constants/fs'
-import {compose, connect, setDisplayName, type TypedState} from '../../util/container'
-import {fsTab} from '../../constants/tabs'
-import {navigateTo} from '../../actions/route-tree'
-import Breadcrumb from './breadcrumb.desktop'
+import {namedConnect} from '../../util/container'
+import * as FsGen from '../../actions/fs-gen'
+import Breadcrumb, {type Props as BreadcrumbProps} from './breadcrumb.desktop'
 
 type OwnProps = {
   path: Types.Path,
+  routePath: I.List<string>,
+  inDestinationPicker?: boolean,
 }
 
-const mapStateToProps = (state: TypedState) => ({
-  _username: state.config.username,
-})
+type BreadcrumbAccumulator = {
+  previousPath: Types.Path,
+  items: Array<Types.PathBreadcrumbItem>,
+}
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _navigateTo: (path: Types.Path) => dispatch(navigateTo([fsTab, {props: {path}, selected: 'folder'}])),
-})
-
-const mergeProps = ({_username}, {_navigateTo}, {path}: OwnProps) => {
-  const {items} = Types.getPathElements(path).reduce(
-    ({previousPath, items}, elem, i, elems) => {
+export const makeBreadcrumbProps = (
+  _username: string,
+  _navigateToPath: (path: Types.Path) => void,
+  _path: Types.Path
+): BreadcrumbProps => {
+  const {items} = Types.getPathElements(_path).reduce(
+    ({previousPath, items}: BreadcrumbAccumulator, elem, i, elems) => {
       const itemPath = Types.pathConcat(previousPath, elem)
       return {
-        previousPath: itemPath,
         items: items.concat({
-          isTeamTlf: i === 2 && elems[i - 1] === 'team',
           isLastItem: i === elems.length - 1,
+          isTeamTlf: i === 2 && elems[i - 1] === 'team',
           name: elem,
+          onClick: () => _navigateToPath(itemPath),
           path: itemPath,
-          iconSpec: Constants.getItemStyles(elems.slice(0, i + 1), 'folder', _username).iconSpec,
-          onClick: () => _navigateTo(itemPath),
         }),
+        previousPath: itemPath,
       }
     },
-    {previousPath: Types.stringToPath('/'), items: []}
+    ({items: [], previousPath: Types.stringToPath('/')}: BreadcrumbAccumulator)
   )
 
   return items.length > 3
     ? {
-        dropdownItems: items.slice(0, items.length - 2),
+        // Note that .reverse() is in-place, so call it here instead of in
+        // component.
+        dropdownItems: items.slice(0, items.length - 2).reverse(),
         shownItems: items.slice(items.length - 2),
       }
     : {
@@ -48,7 +51,22 @@ const mergeProps = ({_username}, {_navigateTo}, {path}: OwnProps) => {
       }
 }
 
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  setDisplayName('ConnectedBreadcrumb')
+const mapStateToProps = state => ({
+  _username: state.config.username,
+})
+
+const mapDispatchToProps = (dispatch, {inDestinationPicker, routePath}: OwnProps) => ({
+  _navigateToPath: inDestinationPicker
+    ? (path: Types.Path) => dispatch(FsGen.createMoveOrCopyOpen({currentIndex: 0, path, routePath}))
+    : (path: Types.Path) => dispatch(FsGen.createOpenPathItem({path, routePath})),
+})
+
+const mergeProps = ({_username}, {_navigateToPath}, {path}: OwnProps) =>
+  makeBreadcrumbProps(_username, _navigateToPath, path)
+
+export default namedConnect<OwnProps, BreadcrumbProps, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'ConnectedBreadcrumb'
 )(Breadcrumb)

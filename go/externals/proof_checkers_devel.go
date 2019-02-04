@@ -11,6 +11,6 @@ const useDevelProofCheckers = true
 
 func getBuildSpecificStaticProofServices() []libkb.ServiceType {
 	return []libkb.ServiceType{
-		RooterServiceType{},
+		&RooterServiceType{},
 	}
 }

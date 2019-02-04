@@ -6,7 +6,7 @@ import type {Props} from './scroll-view'
 const ScrollView = (props: Props) => {
   const {contentContainerStyle, style, ...rest} = props
   return (
-    <div style={collapseStyles([styles.overflowAuto, style])}>
+    <div style={collapseStyles([styles.overflowAuto, style])} onScroll={props.onScroll}>
       <div style={contentContainerStyle} {...rest} />
     </div>
   )

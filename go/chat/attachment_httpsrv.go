@@ -36,8 +36,10 @@ type AttachmentHTTPSrv struct {
 
 	endpoint        string
 	pendingEndpoint string
+	unfurlEndpoint  string
 	httpSrv         *kbhttp.Srv
 	urlMap          *lru.Cache
+	unfurlMap       *lru.Cache
 	fetcher         types.AttachmentFetcher
 	ri              func() chat1.RemoteInterface
 }
@@ -49,13 +51,19 @@ func NewAttachmentHTTPSrv(g *globals.Context, fetcher types.AttachmentFetcher, r
 	if err != nil {
 		panic(err)
 	}
+	um, err := lru.New(200)
+	if err != nil {
+		panic(err)
+	}
 	r := &AttachmentHTTPSrv{
 		Contextified:    globals.NewContextified(g),
 		DebugLabeler:    utils.NewDebugLabeler(g.GetLog(), "AttachmentHTTPSrv", false),
 		endpoint:        "at",
 		pendingEndpoint: "pe",
+		unfurlEndpoint:  "uf",
 		ri:              ri,
 		urlMap:          l,
+		unfurlMap:       um,
 		fetcher:         fetcher,
 	}
 	r.initHTTPSrv()
@@ -115,10 +123,15 @@ func (r *AttachmentHTTPSrv) startHTTPSrv() {
 	}
 	r.httpSrv.HandleFunc("/"+r.endpoint, r.serve)
 	r.httpSrv.HandleFunc("/"+r.pendingEndpoint, r.servePendingPreview)
+	r.httpSrv.HandleFunc("/"+r.unfurlEndpoint, r.serveUnfurlAsset)
 }
 
 func (r *AttachmentHTTPSrv) GetAttachmentFetcher() types.AttachmentFetcher {
 	return r.fetcher
+}
+
+func (r *AttachmentHTTPSrv) randURLKey(prefix string) (string, error) {
+	return libkb.RandHexString(prefix, 8)
 }
 
 func (r *AttachmentHTTPSrv) GetURL(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID,
@@ -135,7 +148,7 @@ func (r *AttachmentHTTPSrv) GetURL(ctx context.Context, convID chat1.Conversatio
 		r.Debug(ctx, "GetURL: failed to get HTTP server address: %s", err)
 		return ""
 	}
-	key, err := libkb.RandHexString("at", 8)
+	key, err := r.randURLKey("at")
 	if err != nil {
 		r.Debug(ctx, "GetURL: failed to generate URL key: %s", err)
 		return ""
@@ -161,6 +174,33 @@ func (r *AttachmentHTTPSrv) GetPendingPreviewURL(ctx context.Context, outboxID c
 	return url
 }
 
+type unfurlAsset struct {
+	asset  chat1.Asset
+	convID chat1.ConversationID
+}
+
+func (r *AttachmentHTTPSrv) GetUnfurlAssetURL(ctx context.Context, convID chat1.ConversationID,
+	asset chat1.Asset) string {
+	defer r.Trace(ctx, func() error { return nil }, "GetUnfurlAssetURL")()
+	addr, err := r.httpSrv.Addr()
+	if err != nil {
+		r.Debug(ctx, "GetUnfurlAssetURL: failed to get HTTP server address: %s", err)
+		return ""
+	}
+	key, err := r.randURLKey("uf")
+	if err != nil {
+		r.Debug(ctx, "GetURL: failed to generate URL key: %s", err)
+		return ""
+	}
+	r.unfurlMap.Add(key, unfurlAsset{
+		asset:  asset,
+		convID: convID,
+	})
+	url := fmt.Sprintf("http://%s/%s?key=%s", addr, r.unfurlEndpoint, key)
+	r.Debug(ctx, "GetUnfurlAssetURL: handler URL: %s", url)
+	return url
+}
+
 func (r *AttachmentHTTPSrv) servePendingPreview(w http.ResponseWriter, req *http.Request) {
 	ctx := Context(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
 		NewSimpleIdentifyNotifier(r.G()))
@@ -182,6 +222,38 @@ func (r *AttachmentHTTPSrv) servePendingPreview(w http.ResponseWriter, req *http
 	}
 }
 
+func (r *AttachmentHTTPSrv) serveUnfurlAsset(w http.ResponseWriter, req *http.Request) {
+	ctx := Context(context.Background(), r.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil,
+		NewSimpleIdentifyNotifier(r.G()))
+	defer r.Trace(ctx, func() error { return nil }, "serveUnfurlAsset")()
+	key := req.URL.Query().Get("key")
+	val, ok := r.unfurlMap.Get(key)
+	if !ok {
+		r.makeError(ctx, w, http.StatusInternalServerError, "invalid key: %s", key)
+		return
+	}
+	ua := val.(unfurlAsset)
+	if r.shouldServeContent(ctx, ua.asset, req) {
+		if r.serveUnfurlVideoHostPage(ctx, w, req) {
+			// if we served the host page, just bail out
+			return
+		}
+		r.Debug(ctx, "serveUnfurlAsset: streaming: req: method: %s range: %s", req.Method,
+			req.Header.Get("Range"))
+		rs, err := r.fetcher.StreamAttachment(ctx, ua.convID, ua.asset, r.ri, r)
+		if err != nil {
+			r.makeError(ctx, w, http.StatusInternalServerError, "failed to get streamer: %s", err)
+			return
+		}
+		http.ServeContent(w, req, ua.asset.Filename, time.Time{}, rs)
+	} else {
+		if err := r.fetcher.FetchAttachment(ctx, w, ua.convID, ua.asset, r.ri, r, blankProgress); err != nil {
+			r.makeError(ctx, w, http.StatusInternalServerError, "failed to fetch attachment: %s", err)
+			return
+		}
+	}
+}
+
 func (r *AttachmentHTTPSrv) makeError(ctx context.Context, w http.ResponseWriter, code int, msg string,
 	args ...interface{}) {
 	r.Debug(ctx, "serve: error code: %d msg %s", code, fmt.Sprintf(msg, args...))
@@ -195,6 +267,47 @@ func (r *AttachmentHTTPSrv) shouldServeContent(ctx context.Context, asset chat1.
 		return false
 	}
 	return strings.HasPrefix(asset.MimeType, "video")
+}
+
+func (r *AttachmentHTTPSrv) serveUnfurlVideoHostPage(ctx context.Context, w http.ResponseWriter, req *http.Request) bool {
+	contentForce := "true" == req.URL.Query().Get("contentforce")
+	if r.G().GetAppType() == libkb.MobileAppType && !contentForce {
+		r.Debug(ctx, "serveUnfurlVideoHostPage: mobile client detected, showing the HTML video viewer")
+		w.Header().Set("Content-Type", "text/html")
+		autoplay := ""
+		if req.URL.Query().Get("autoplay") != "true" {
+			autoplay = `onloadeddata="togglePlay('pause')"`
+		}
+		if _, err := w.Write([]byte(fmt.Sprintf(`
+			<html>
+				<head>
+					<meta name="viewport" content="initial-scale=1, viewport-fit=cover">
+					<title>Keybase Video Viewer</title>
+					<script>
+						window.playVideo = function(data) {
+							var vid = document.getElementById("vid");
+							vid.play()
+						}
+						window.togglePlay = function(data) {
+							var vid = document.getElementById("vid");
+							if (data === "play") {
+								vid.play();
+							} else {
+								vid.pause();
+							}
+						}
+					</script>
+				</head>
+				<body style="margin: 0px; background-color: rgba(0,0,0,0.05)">
+					<video id="vid" %s preload="auto" style="width: 100%%; height: 100%%; border-radius: 4px; object-fit:fill" src="%s" playsinline webkit-playsinline loop autoplay muted />
+				</body>
+			</html>
+		`, autoplay, req.URL.String()+"&contentforce=true"))); err != nil {
+			r.Debug(ctx, "serveUnfurlVideoHostPage: failed to write HTML video player: %s", err)
+		}
+		return true
+	}
+	return false
 }
 
 func (r *AttachmentHTTPSrv) serveVideoHostPage(ctx context.Context, w http.ResponseWriter, req *http.Request) bool {
@@ -219,8 +332,8 @@ func (r *AttachmentHTTPSrv) serveVideoHostPage(ctx context.Context, w http.Respo
 						  }
 					</script>
 				</head>
-				<body style="margin: 0px">
-					<video id="vid" style="width: 100%%" poster="%s" src="%s" preload="none" playsinline webkit-playsinline />
+				<body style="margin: 0px; background-color: rgba(0,0,0,0.05)">
+					<video id="vid" style="width: 100%%; border-radius: 8px" poster="%s" src="%s" preload="none" playsinline webkit-playsinline />
 				</body>
 			</html>
 		`, req.URL.Query().Get("poster"), req.URL.String()+"&contentforce=true"))); err != nil {

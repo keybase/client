@@ -48,13 +48,18 @@ var testVectors = []struct {
 	{"3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy", CryptocurrencyTypeBTCMultiSig},
 	{"3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLyx", CryptocurrencyTypeNone},
 	{"3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLx", CryptocurrencyTypeNone},
+	{"zs165czn4y5jfa552kux7yl3y5l8ge4cl6af45y9dh3yzfnkgd68vajyjdlkht54ve958qx693jjak", CryptocurrencyTypeZCashSapling},
+	{"zs1x2q4pej08shm9pd5fx8jvl97f8f7t8sej8lsgp08jsczxsucr5gkff0yasc0gc43dtv3wczerv5", CryptocurrencyTypeZCashSapling},
+	{"zs1fw4tgx9gccv2f8af6ugu727slx7pq0nc46yflcuqyluruxtcmg20hxh3r4d9ec9yejj6gfrf2hc", CryptocurrencyTypeZCashSapling},
+	{"ZS1FW4TGX9GCCV2F8AF6UGU727SLX7PQ0NC46YFLCUQYLURUXTCMG20HXH3R4D9EC9YEJJ6GFRF2HC", CryptocurrencyTypeZCashSapling},
+	{"zs1fw4tgx9gccv2f8af6ugu727slx7pq0nc46yflcuqyluruxtcmg20hxh3r4d9ec9yejj6gfrf2hd", CryptocurrencyTypeNone},
 }
 
 func TestCryptocurrencyParseAndCheck(t *testing.T) {
 	for i, v := range testVectors {
 		typ, _, err := CryptocurrencyParseAndCheck(v.address)
 		if typ != v.wantedType {
-			t.Fatalf("Address %s (%d): got wrong CryptocurrencyTyp: %v != %v (%v)", v.address, i, typ, v.wantedType, err)
+			t.Fatalf("Address %s (%d): got wrong CryptocurrencyTyp: %d != %d (%v)", v.address, i, typ, v.wantedType, err)
 		}
 	}
 }

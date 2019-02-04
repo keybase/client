@@ -8,36 +8,46 @@ import ConnectedUsernames from '../common-adapters/usernames/remote-container'
 
 type FileUpdateProps = {|
   name: string,
+  path: FsTypes.Path,
   tlfType: FsTypes.TlfType,
+  uploading: boolean,
   onClick: () => void,
 |}
 
 type FileUpdatesProps = {|
   updates: Array<FileUpdateProps>,
-  tlfType: FsTypes.TlfType,
 |}
 
 export type UserTlfUpdateRowProps = {|
   tlf: string,
   onSelectPath: () => void,
-  iconSpec: FsTypes.PathItemIconSpec,
+  path: FsTypes.Path,
   writer: string,
   tlfType: FsTypes.TlfType,
   participants: Array<string>,
   teamname: string,
   timestamp: string,
   updates: Array<FileUpdateProps>,
+  username: string,
 |}
 
 type FilesPreviewProps = {|
   userTlfUpdates: Array<UserTlfUpdateRowProps>,
 |}
 
-const FileUpdate = (props: FileUpdateProps) => (
+export const FileUpdate = (props: FileUpdateProps) => (
   <Kb.ClickableBox onClick={props.onClick}>
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.fileUpdateRow}>
-      <Kb.Icon type={props.tlfType === 'public' ? 'icon-file-public-32' : 'icon-file-private-32'} style={Kb.iconCastPlatformStyles(styles.iconStyle)} />
-      <Kb.Text type="BodySecondaryLink">
+      <Kb.Icon
+        type={props.tlfType === 'public' ? 'icon-file-public-32' : 'icon-file-private-32'}
+        style={Kb.iconCastPlatformStyles(styles.iconStyle)}
+      />
+      {props.uploading && (
+        <Kb.Box style={styles.iconBadgeBox}>
+          <Kb.Icon type="icon-addon-file-uploading" style={Kb.iconCastPlatformStyles(styles.iconBadge)} />
+        </Kb.Box>
+      )}
+      <Kb.Text type="BodySecondaryLink" style={styles.fileUpdateName}>
         {props.name}
       </Kb.Text>
     </Kb.Box2>
@@ -54,7 +64,13 @@ const FileUpdatesHoc = (ComposedComponent: React.ComponentType<any>) =>
       isShowingAll: false,
     }
     render() {
-      return <ComposedComponent {...this.props} onShowAll={() => this.setState({isShowingAll: !this.state.isShowingAll})} isShowingAll={this.state.isShowingAll} />
+      return (
+        <ComposedComponent
+          {...this.props}
+          onShowAll={() => this.setState({isShowingAll: !this.state.isShowingAll})}
+          isShowingAll={this.state.isShowingAll}
+        />
+      )
     }
   }
 
@@ -71,7 +87,9 @@ const FileUpdatesShowAll = (props: ShowAllProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={false}>
     <Kb.ClickableBox onClick={props.onShowAll} className="toggleButtonClass" style={styles.toggleButton}>
       <Kb.Text type="BodySmallSemibold" style={styles.buttonText}>
-        {props.isShowingAll ? 'Collapse' : `+ ${(props.numUpdates - defaultNumFileOptionsShown).toString()} more`}
+        {props.isShowingAll
+          ? 'Collapse'
+          : `+ ${(props.numUpdates - defaultNumFileOptionsShown).toString()} more`}
       </Kb.Text>
     </Kb.ClickableBox>
   </Kb.Box2>
@@ -79,14 +97,18 @@ const FileUpdatesShowAll = (props: ShowAllProps) => (
 
 const defaultNumFileOptionsShown = 3
 
-const FileUpdates = (props: (FileUpdatesProps & FileUpdatesHocProps)) => (
+const FileUpdates = (props: FileUpdatesProps & FileUpdatesHocProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true}>
     {props.updates.slice(0, props.isShowingAll ? props.updates.length : defaultNumFileOptionsShown).map(u => (
-      <FileUpdate key={u.name} {...u} tlfType={props.tlfType} />
+      <FileUpdate key={FsTypes.pathToString(u.path)} {...u} />
     ))}
     {props.updates.length > defaultNumFileOptionsShown && (
       // $FlowIssue ¯\_(ツ)_/¯
-      <FileUpdatesShowAll onShowAll={props.onShowAll} isShowingAll={props.isShowingAll} numUpdates={props.updates.length} />
+      <FileUpdatesShowAll
+        onShowAll={props.onShowAll}
+        isShowingAll={props.isShowingAll}
+        numUpdates={props.updates.length}
+      />
     )}
   </Kb.Box2>
 )
@@ -95,7 +117,13 @@ const ComposedFileUpdates = FileUpdatesHoc(FileUpdates)
 
 const UserTlfUpdateRow = (props: UserTlfUpdateRowProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.tlfRowContainer}>
-    <PathItemIcon spec={props.iconSpec} style={styles.tlfRowAvatar} />
+    <PathItemIcon
+      path={props.path}
+      size={32}
+      type="folder"
+      username={props.username}
+      style={styles.tlfRowAvatar}
+    />
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.tlfTopLine}>
         <ConnectedUsernames
@@ -114,10 +142,19 @@ const UserTlfUpdateRow = (props: UserTlfUpdateRowProps) => (
           in&nbsp;
         </Kb.Text>
         <Kb.Text type="BodySmallSecondaryLink" style={styles.tlfParticipants} onClick={props.onSelectPath}>
-          {props.tlfType === 'team' ? props.teamname : props.participants.join(',')}
+          {props.tlfType === 'team' ? (
+            props.teamname
+          ) : props.tlfType === 'public' ? (
+            <Kb.Box2 direction="horizontal" gap="xtiny" fullWidth={true}>
+              {props.participants.join(',')}
+              <Kb.Meta backgroundColor={Styles.globalColors.yellowGreen} size="Small" title="PUBLIC" />
+            </Kb.Box2>
+          ) : (
+            `${props.participants.join(',')}`
+          )}
         </Kb.Text>
       </Kb.Box2>
-      <ComposedFileUpdates updates={props.updates} tlfType={props.tlfType} />
+      <ComposedFileUpdates updates={props.updates} />
     </Kb.Box2>
   </Kb.Box2>
 )
@@ -138,52 +175,68 @@ export const FilesPreview = (props: FilesPreviewProps) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  buttonText: {color: Styles.globalColors.black_60},
+  buttonText: {color: Styles.globalColors.black_50},
+  fileUpdateName: Styles.platformStyles({
+    isElectron: {
+      wordBreak: 'break-all',
+    },
+  }),
+  fileUpdateRow: {
+    alignItems: 'center',
+    marginTop: Styles.globalMargins.xtiny,
+  },
+  iconBadge: {
+    height: 12,
+    width: 12,
+  },
+  iconBadgeBox: {
+    marginLeft: -12,
+    marginRight: 12,
+    marginTop: 12,
+    width: 0,
+    zIndex: 100,
+  },
   iconStyle: {
-    width: 16,
     height: 16,
     marginRight: Styles.globalMargins.xtiny,
+    width: 16,
   },
   tlfContainer: {
-    paddingTop: Styles.globalMargins.tiny,
-    paddingBottom: Styles.globalMargins.tiny,
     backgroundColor: Styles.globalColors.white,
     color: Styles.globalColors.black,
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingTop: Styles.globalMargins.tiny,
+  },
+  tlfParticipants: {
+    fontSize: 12,
+  },
+  tlfRowAvatar: {
+    marginRight: Styles.globalMargins.tiny,
+  },
+  tlfRowContainer: {
+    paddingLeft: Styles.globalMargins.tiny,
+    paddingTop: Styles.globalMargins.tiny,
+  },
+  tlfSectionHeader: {
+    backgroundColor: Styles.globalColors.black_05,
+    color: Styles.globalColors.black_50,
+    paddingBottom: Styles.globalMargins.xtiny,
+    paddingLeft: Styles.globalMargins.tiny,
+    paddingTop: Styles.globalMargins.xtiny,
   },
   tlfSectionHeaderContainer: {
     backgroundColor: Styles.globalColors.white,
   },
-  tlfSectionHeader: {
-    backgroundColor: Styles.globalColors.black_05,
-    color: Styles.globalColors.black_40,
-    paddingTop: Styles.globalMargins.xtiny,
-    paddingBottom: Styles.globalMargins.xtiny,
-    paddingLeft: Styles.globalMargins.tiny,
-  },
-  tlfRowContainer: {
-    paddingTop: Styles.globalMargins.tiny,
-    paddingLeft: Styles.globalMargins.tiny,
-  },
-  tlfRowAvatar: {
+  tlfTime: {
     marginRight: Styles.globalMargins.tiny,
   },
   tlfTopLine: {
     justifyContent: 'space-between',
   },
-  tlfTime: {
-    marginRight: Styles.globalMargins.tiny,
-  },
-  tlfParticipants: {
-    fontSize: 12,
-  },
-  fileUpdateRow: {
-    marginTop: Styles.globalMargins.xtiny,
-    alignItems: 'center',
-  },
   toggleButton: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.black_05,
-      borderRadius: 19,
+      borderRadius: Styles.borderRadius,
       marginBottom: Styles.globalMargins.xtiny,
       marginTop: Styles.globalMargins.xtiny,
       paddingBottom: Styles.globalMargins.xtiny,

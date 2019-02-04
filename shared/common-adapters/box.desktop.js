@@ -1,110 +1,73 @@
 // @flow
 import * as React from 'react'
-import {globalStyles, collapseStyles, globalMargins} from '../styles'
 import {intersperseFn} from '../util/arrays'
 import type {Box2Props} from './box'
 
-class Box extends React.Component<any> {
+class Box extends React.PureComponent<any> {
   render() {
-    return <div {...this.props} />
+    const {forwardedRef, ...rest} = this.props
+    return <div {...rest} ref={this.props.forwardedRef} />
   }
 }
 
-const injectGaps = (Component, _children, gap, gapStart, gapEnd) => {
+const injectGaps = (component, _children, gap, gapStart, gapEnd) => {
   let children = _children
   if (gap) {
-    children = intersperseFn(index => <Component key={index} gap={gap} />, React.Children.toArray(_children))
+    children = intersperseFn(index => component(index, gap), React.Children.toArray(_children))
     if (gapStart) {
-      children.unshift(<Component key="gapStart" gap={gap} />)
+      children.unshift(component('gapStart', gap))
     }
     if (gapEnd) {
-      children.push(<Component key="gapEnd" gap={gap} />)
+      children.push(component('gapEnd', gap))
     }
   }
 
   return children
 }
 
+const box2 = (props: Box2Props) => {
+  let horizontal = props.direction === 'horizontal' || props.direction === 'horizontalReverse'
+
+  const className = [
+    `box2_${props.direction}`,
+    props.fullHeight && 'box2_fullHeight',
+    props.fullWidth && 'box2_fullWidth',
+    !props.fullHeight && !props.fullWidth && 'box2_centered',
+    props.centerChildren && 'box2_centeredChildren',
+    props.alignSelf && `box2_alignSelf_${props.alignSelf}`,
+    props.alignItems && `box2_alignItems_${props.alignItems}`,
+    props.noShrink && 'box2_no_shrink',
+    props.className,
+  ]
+    .filter(Boolean)
+    .join(' ')
+
+  let style = props.style
+  // uncomment this to get debugging colors
+  // style = {
+  // ...style,
+  // backgroundColor: `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`,
+  // }
+  return (
+    <div
+      onMouseLeave={props.onMouseLeave}
+      onMouseOver={props.onMouseOver}
+      className={className}
+      style={style}
+    >
+      {injectGaps(horizontal ? hBoxGap : vBoxGap, props.children, props.gap, props.gapStart, props.gapEnd)}
+    </div>
+  )
+}
+
 class Box2 extends React.Component<Box2Props> {
   render() {
-    let horizontal = this.props.direction === 'horizontal' || this.props.direction === 'horizontalReverse'
-    let directionStyle
-    switch (this.props.direction) {
-      case 'horizontal':
-        directionStyle = styles.hbox
-        break
-      case 'horizontalReverse':
-        directionStyle = styles.hrbox
-        break
-      case 'verticalReverse':
-        directionStyle = styles.vrbox
-        break
-      case 'vertical':
-      default:
-        directionStyle = styles.vbox
-        break
-    }
-
-    const style = collapseStyles([
-      directionStyle,
-      this.props.fullHeight && styles.fullHeight,
-      this.props.fullWidth && styles.fullWidth,
-      !this.props.fullHeight && !this.props.fullWidth && styles.centered,
-      this.props.centerChildren && styles.centeredChildren,
-      // uncomment this to get debugging colors
-      // {backgroundColor: `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`},
-      this.props.style,
-    ])
-    return (
-      <div
-        onMouseLeave={this.props.onMouseLeave}
-        onMouseOver={this.props.onMouseOver}
-        style={style}
-        className={this.props.className}
-      >
-        {injectGaps(
-          horizontal ? HBoxGap : VBoxGap,
-          this.props.children,
-          this.props.gap,
-          this.props.gapStart,
-          this.props.gapEnd
-        )}
-      </div>
-    )
+    return box2(this.props)
   }
 }
-const VBoxGap = ({gap}) => <div style={{flexShrink: 0, height: globalMargins[gap]}} />
-const HBoxGap = ({gap}) => <div style={{flexShrink: 0, width: globalMargins[gap]}} />
 
-const styles = {
-  centered: {alignSelf: 'center'},
-  centeredChildren: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  fullHeight: {height: '100%'},
-  fullWidth: {width: '100%'},
-  vbox: {
-    ...globalStyles.flexBoxColumn,
-    alignItems: 'stretch',
-    justifyContent: 'flex-start',
-  },
-  vrbox: {
-    ...globalStyles.flexBoxColumnReverse,
-    alignItems: 'stretch',
-    justifyContent: 'flex-start',
-  },
-  hbox: {
-    ...globalStyles.flexBoxRow,
-    alignItems: 'stretch',
-    justifyContent: 'flex-start',
-  },
-  hrbox: {
-    ...globalStyles.flexBoxRowReverse,
-    alignItems: 'stretch',
-    justifyContent: 'flex-start',
-  },
-}
+const vBoxGap = (key, gap) => <div key={key} className={`box2_gap_vertical_${gap}`} />
+const hBoxGap = (key, gap) => <div key={key} className={`box2_gap_horizontal_${gap}`} />
 
 export default Box
 export {Box, Box2}

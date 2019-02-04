@@ -46,6 +46,11 @@ func (i *IdentifyUIServer) DisplayCryptocurrency(_ context.Context, arg keybase1
 	return nil
 }
 
+func (i *IdentifyUIServer) DisplayStellarAccount(_ context.Context, arg keybase1.DisplayStellarAccountArg) error {
+	i.ui.DisplayStellarAccount(arg.A)
+	return nil
+}
+
 func (i *IdentifyUIServer) DisplayKey(_ context.Context, arg keybase1.DisplayKeyArg) error {
 	i.ui.DisplayKey(arg.Key)
 	return nil
@@ -98,3 +103,51 @@ func (i *IdentifyUIServer) Dismiss(_ context.Context, arg keybase1.DismissArg) e
 func (i *IdentifyUIServer) DisplayTLFCreateWithInvite(_ context.Context, arg keybase1.DisplayTLFCreateWithInviteArg) error {
 	return i.ui.DisplayTLFCreateWithInvite(arg)
 }
+
+func NewNullIdentifyUIProtocol() rpc.Protocol {
+	return keybase1.IdentifyUiProtocol(&nullIdentifyUI{})
+}
+
+type nullIdentifyUI struct{}
+
+func (c nullIdentifyUI) Start(context.Context, keybase1.StartArg) error {
+	return nil
+}
+func (c nullIdentifyUI) FinishWebProofCheck(context.Context, keybase1.FinishWebProofCheckArg) error {
+	return nil
+}
+func (c nullIdentifyUI) FinishSocialProofCheck(context.Context, keybase1.FinishSocialProofCheckArg) error {
+	return nil
+}
+func (c nullIdentifyUI) Confirm(context.Context, keybase1.ConfirmArg) (keybase1.ConfirmResult, error) {
+	return keybase1.ConfirmResult{}, nil
+}
+func (c nullIdentifyUI) DisplayCryptocurrency(context.Context, keybase1.DisplayCryptocurrencyArg) error {
+	return nil
+}
+func (c nullIdentifyUI) DisplayStellarAccount(context.Context, keybase1.DisplayStellarAccountArg) error {
+	return nil
+}
+func (c nullIdentifyUI) DisplayKey(context.Context, keybase1.DisplayKeyArg) error { return nil }
+func (c nullIdentifyUI) ReportLastTrack(context.Context, keybase1.ReportLastTrackArg) error {
+	return nil
+}
+func (c nullIdentifyUI) LaunchNetworkChecks(context.Context, keybase1.LaunchNetworkChecksArg) error {
+	return nil
+}
+func (c nullIdentifyUI) DisplayTrackStatement(context.Context, keybase1.DisplayTrackStatementArg) error {
+	return nil
+}
+func (c nullIdentifyUI) DisplayUserCard(context.Context, keybase1.DisplayUserCardArg) error {
+	return nil
+}
+func (c nullIdentifyUI) ReportTrackToken(context.Context, keybase1.ReportTrackTokenArg) error {
+	return nil
+}
+func (c nullIdentifyUI) Cancel(context.Context, int) error { return nil }
+func (c nullIdentifyUI) Finish(context.Context, int) error { return nil }
+func (c nullIdentifyUI) DisplayTLFCreateWithInvite(context.Context, keybase1.DisplayTLFCreateWithInviteArg) error {
+	return nil
+}
+func (c nullIdentifyUI) Dismiss(context.Context, keybase1.DismissArg) error { return nil }
+func (c nullIdentifyUI) DelegateIdentifyUI(context.Context) (int, error)    { return 0, nil }

@@ -70,13 +70,12 @@ func TestBackgroundPurge(t *testing.T) {
 				purgedIDs = append(purgedIDs, purgedMsg.GetMessageID())
 			}
 			require.Equal(t, msgIDs, purgedIDs)
-			require.Equal(t, convID.String(), info.Conv.ConvID)
 		}
 	}
 
 	// Load our conv with the initial tlf msg
 	require.NoError(t, tc.Context().ConvLoader.Queue(context.TODO(),
-		types.NewConvLoaderJob(res.ConvID, &chat1.Pagination{Num: 3}, types.ConvLoaderPriorityHigh, nil)))
+		types.NewConvLoaderJob(res.ConvID, nil, &chat1.Pagination{Num: 3}, types.ConvLoaderPriorityHigh, nil)))
 	t.Logf("assert listener 0")
 	assertListener(res.ConvID)
 
@@ -156,4 +155,70 @@ func TestBackgroundPurge(t *testing.T) {
 		IsActive:        true,
 	})
 	assertEphemeralPurgeNotifInfo(res.ConvID, []chat1.MessageID{msgUnboxed3.GetMessageID()})
+}
+
+func TestQueueState(t *testing.T) {
+	ctx, tc, world, _, _, _, _ := setupLoaderTest(t)
+	defer world.Cleanup()
+
+	g := globals.NewContext(tc.G, tc.ChatG)
+	u := world.GetUsers()[0]
+	uid := gregor1.UID(u.GetUID().ToBytes())
+
+	chatStorage := storage.New(g, nil)
+	chatStorage.SetClock(world.Fc)
+	purger := NewBackgroundEphemeralPurger(g, chatStorage)
+	purger.SetClock(world.Fc)
+	purger.Start(context.Background(), uid)
+	<-purger.Stop(context.Background())
+
+	pq := purger.pq
+	require.NotNil(t, pq)
+	require.Zero(t, pq.Len())
+	require.Nil(t, pq.Peek())
+
+	now := world.Fc.Now()
+
+	purgeInfo := chat1.EphemeralPurgeInfo{
+		ConvID:          chat1.ConversationID("conv1"),
+		MinUnexplodedID: 0,
+		NextPurgeTime:   gregor1.ToTime(now.Add(time.Hour)),
+		IsActive:        true,
+	}
+
+	purger.Queue(ctx, purgeInfo)
+	require.Equal(t, 1, pq.Len())
+	queueItem := pq.Peek()
+	require.NotNil(t, queueItem)
+	require.Zero(t, queueItem.index)
+	require.Equal(t, purgeInfo, queueItem.purgeInfo)
+
+	// Insert an item with a shorter time and make sure it's updated appropiated
+	purgeInfo2 := chat1.EphemeralPurgeInfo{
+		ConvID:          chat1.ConversationID("conv1"),
+		MinUnexplodedID: 5,
+		NextPurgeTime:   gregor1.ToTime(now.Add(time.Hour).Add(time.Minute)),
+		IsActive:        true,
+	}
+	purger.Queue(ctx, purgeInfo2)
+	require.Equal(t, 1, pq.Len())
+	queueItem = pq.Peek()
+	require.NotNil(t, queueItem)
+	require.Zero(t, queueItem.index)
+	require.Equal(t, purgeInfo2, queueItem.purgeInfo)
+
+	// Insert a second item make sure it is distinct
+	purgeInfo3 := chat1.EphemeralPurgeInfo{
+		ConvID:          chat1.ConversationID("conv2"),
+		MinUnexplodedID: 0,
+		NextPurgeTime:   gregor1.ToTime(now.Add(30 * time.Minute)),
+		IsActive:        true,
+	}
+	purger.Queue(ctx, purgeInfo3)
+	require.Equal(t, 2, pq.Len())
+	queueItem = pq.Peek()
+	require.NotNil(t, queueItem)
+	require.Zero(t, queueItem.index)
+	require.Equal(t, purgeInfo3, queueItem.purgeInfo)
+
 }

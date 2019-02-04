@@ -17,9 +17,11 @@ import (
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/gregor"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams"
 	"github.com/keybase/clockwork"
 	"github.com/keybase/go-codec/codec"
 	"golang.org/x/net/context"
@@ -83,7 +85,7 @@ func (g *gregorMessageOrderer) addToWaitersLocked(ctx context.Context, uid grego
 func (g *gregorMessageOrderer) waitOnWaiters(ctx context.Context, vers chat1.InboxVers,
 	waiters []messageWaiterEntry) (res chan struct{}) {
 	res = make(chan struct{})
-	go func() {
+	go func(ctx context.Context) {
 		for _, w := range waiters {
 			select {
 			case <-w.cb:
@@ -92,7 +94,7 @@ func (g *gregorMessageOrderer) waitOnWaiters(ctx context.Context, vers chat1.Inb
 			}
 		}
 		close(res)
-	}()
+	}(BackgroundContext(ctx, g.G()))
 	return res
 }
 
@@ -120,13 +122,13 @@ func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 	// Out of order update, we are going to wait a fixed amount of time for the correctly
 	// ordered update
 	deadline := g.clock.Now().Add(time.Second)
-	go func() {
+	go func(ctx context.Context) {
 		defer close(res)
 		g.Lock()
 		vers, err := g.latestInboxVersion(ctx, uid)
 		if err != nil {
-			g.Debug(ctx, "WaitForTurn: failed to get current inbox version: %s", err.Error())
 			vers = newVers - 1
+			g.Debug(ctx, "WaitForTurn: failed to get current inbox version: %v. Proceeding with vers %d", err, vers)
 		}
 		waiters := g.addToWaitersLocked(ctx, uid, vers, newVers)
 		g.Unlock()
@@ -145,7 +147,7 @@ func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 			g.cleanupAfterTimeoutLocked(uid, newVers)
 			g.Unlock()
 		}
-	}()
+	}(BackgroundContext(ctx, g.G()))
 	return res
 }
 
@@ -210,15 +212,13 @@ func (g *PushHandler) TlfFinalize(ctx context.Context, m gregor.OutOfBandMessage
 	var update chat1.TLFFinalizeUpdate
 	reader := bytes.NewReader(m.Body().Bytes())
 	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
-	err = dec.Decode(&update)
-	if err != nil {
+	if err = dec.Decode(&update); err != nil {
 		return err
 	}
 	uid := gregor1.UID(m.UID().Bytes())
 
 	// Order updates based on inbox version of the update from the server
 	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
-	bctx := BackgroundContext(ctx, g.G())
 	go func(ctx context.Context) {
 		defer g.Trace(ctx, func() error { return err }, "TlfFinalize(goroutine)")()
 		<-cb
@@ -230,7 +230,7 @@ func (g *PushHandler) TlfFinalize(ctx context.Context, m gregor.OutOfBandMessage
 		var convs []chat1.ConversationLocal
 		if convs, err = g.G().InboxSource.TlfFinalize(ctx, m.UID().Bytes(), update.InboxVers,
 			update.ConvIDs, update.FinalizeInfo); err != nil {
-			g.Debug(ctx, "tlf finalize: unable to update inbox: %s", err.Error())
+			g.Debug(ctx, "tlf finalize: unable to update inbox: %v", err.Error())
 		}
 		convMap := make(map[string]chat1.ConversationLocal)
 		for _, conv := range convs {
@@ -252,7 +252,7 @@ func (g *PushHandler) TlfFinalize(ctx context.Context, m gregor.OutOfBandMessage
 			g.G().ActivityNotifier.TLFFinalize(ctx, uid,
 				convID, topicType, update.FinalizeInfo, g.presentUIItem(ctx, conv, uid))
 		}
-	}(bctx)
+	}(BackgroundContext(ctx, g.G()))
 
 	return nil
 }
@@ -269,15 +269,13 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 	var update chat1.TLFResolveUpdate
 	reader := bytes.NewReader(m.Body().Bytes())
 	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
-	err = dec.Decode(&update)
-	if err != nil {
+	if err = dec.Decode(&update); err != nil {
 		return err
 	}
 	uid := gregor1.UID(m.UID().Bytes())
 
 	// Order updates based on inbox version of the update from the server
 	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
-	bctx := BackgroundContext(ctx, g.G())
 	go func(ctx context.Context) {
 		defer g.Trace(ctx, func() error { return nil }, "TlfResolve(goroutine)")()
 		<-cb
@@ -285,15 +283,16 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 		defer g.Unlock()
 		defer g.orderer.CompleteTurn(ctx, uid, update.InboxVers)
 		// Get and localize the conversation to get the new tlfname.
-		inbox, err := g.G().InboxSource.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
-			ConvIDs: []chat1.ConversationID{update.ConvID},
-		}, nil)
+		inbox, _, err := g.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil,
+			&chat1.GetInboxLocalQuery{
+				ConvIDs: []chat1.ConversationID{update.ConvID},
+			}, nil)
 		if err != nil {
-			g.Debug(ctx, "resolve: unable to read conversation: %s", err.Error())
+			g.Debug(ctx, "resolve: unable to read conversation: %v", err.Error())
 			return
 		}
 		if len(inbox.Convs) != 1 {
-			g.Debug(ctx, "resolve: unable to find conversation")
+			g.Debug(ctx, "resolve: unable to find conversation, found: %d, expected 1", len(inbox.Convs))
 			return
 		}
 		updateConv := inbox.Convs[0]
@@ -305,9 +304,48 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 			updateConv.Info.TlfName)
 		g.G().ActivityNotifier.TLFResolve(ctx, uid,
 			update.ConvID, updateConv.GetTopicType(), resolveInfo)
-	}(bctx)
+	}(BackgroundContext(ctx, g.G()))
 
 	return nil
+}
+
+// squashChanMention will silence a chanMention if sent by a non-admin on a
+// large (> chat1.MaxChanMentionConvSize member) team. The server drives this
+// for mobile push notifications, client checks this for desktop notifications
+func (g *PushHandler) squashChanMention(ctx context.Context, conv *chat1.ConversationLocal,
+	mvalid chat1.MessageUnboxedValid) (bool, error) {
+	// Verify the chanMention is for a TEAM that is larger than
+	// MaxChanMentionConvSize
+	if conv == nil ||
+		conv.Info.MembersType != chat1.ConversationMembersType_TEAM ||
+		len(conv.Info.Participants) < chat1.MaxChanMentionConvSize {
+		return false, nil
+	}
+	teamID, err := keybase1.TeamIDFromString(mvalid.ClientHeader.Conv.Tlfid.String())
+	if err != nil {
+		return false, err
+	}
+	extG := g.G().ExternalG()
+	team, err := teams.Load(ctx, extG, keybase1.LoadTeamArg{
+		ID:     teamID,
+		Public: mvalid.ClientHeader.TlfPublic,
+	})
+	if err != nil {
+		return false, err
+	}
+	senderUID := keybase1.UID(mvalid.ClientHeader.Sender.String())
+	upak, _, err := g.G().GetUPAKLoader().LoadV2(
+		libkb.NewLoadUserByUIDArg(ctx, extG, senderUID))
+	if err != nil {
+		return false, err
+	}
+	uv := upak.Current.ToUserVersion()
+	role, err := team.MemberRole(ctx, uv)
+	if err != nil {
+		return false, err
+	}
+	// if the sender is not an admin, large squash the mention.
+	return !role.IsOrAbove(keybase1.TeamRole_ADMIN), nil
 }
 
 func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
@@ -326,13 +364,31 @@ func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
 		body := msg.Valid().MessageBody
 		typ, err := body.MessageType()
 		if err != nil {
-			g.Debug(ctx, "shouldDisplayDesktopNotification: failed to get message type: %s", err.Error())
+			g.Debug(ctx, "shouldDisplayDesktopNotification: failed to get message type: %v", err.Error())
 			return false
 		}
 		apptype := keybase1.DeviceType_DESKTOP
 		kind := chat1.NotificationKind_GENERIC
-		switch typ {
-		case chat1.MessageType_TEXT, chat1.MessageType_SYSTEM:
+		if utils.IsNotifiableChatMessageType(typ, msg.Valid().AtMentions, msg.Valid().ChannelMention) {
+			// Check to make sure this is an eligible reaction message
+			if msg.GetMessageType() == chat1.MessageType_REACTION {
+				g.Debug(ctx, "shouldDisplayDesktopNotification: checking reaction")
+				supersedes, err := utils.GetSupersedes(msg)
+				if err != nil || len(supersedes) == 0 {
+					g.Debug(ctx, "shouldDisplayDesktopNotification: failed to get supersedes id from reaction, skipping: %v", err)
+					return false
+				}
+				supersedesMsg, err := g.G().ConvSource.GetMessages(ctx, conv, uid, supersedes, nil)
+				if err != nil || len(supersedesMsg) == 0 || !supersedesMsg[0].IsValid() {
+					g.Debug(ctx, "shouldDisplayDesktopNotification: failed to get supersedes message from reaction, skipping: %v", err)
+					return false
+				}
+				if !supersedesMsg[0].Valid().ClientHeader.Sender.Eq(uid) {
+					g.Debug(ctx, "shouldDisplayDesktopNotification: skipping reaction post, not sender")
+					return false
+				}
+			}
+
 			// Check for generic hit on desktop right off and return true if we hit
 			if conv.Notifications.Settings[apptype][kind] {
 				return true
@@ -345,14 +401,18 @@ func (g *PushHandler) shouldDisplayDesktopNotification(ctx context.Context,
 			}
 			chanMention := msg.Valid().ChannelMention
 			notifyFromChanMention := false
-			if chanMention == chat1.ChannelMention_HERE || chanMention == chat1.ChannelMention_ALL {
+			switch chanMention {
+			case chat1.ChannelMention_HERE, chat1.ChannelMention_ALL:
 				notifyFromChanMention = conv.Notifications.ChannelWide
+				shouldSquash, err := g.squashChanMention(ctx, conv, msg.Valid())
+				if err != nil {
+					g.Debug(ctx, "shouldDisplayDesktopNotification: failed to squashChanMention: %v", err)
+				}
+				if shouldSquash {
+					notifyFromChanMention = false
+				}
 			}
 			return conv.Notifications.Settings[apptype][kind] || notifyFromChanMention
-		case chat1.MessageType_ATTACHMENT:
-			return conv.Notifications.Settings[apptype][kind]
-		default:
-			return false
 		}
 	}
 	return false
@@ -363,6 +423,30 @@ func (g *PushHandler) presentUIItem(ctx context.Context, conv *chat1.Conversatio
 		return PresentConversationLocalWithFetchRetry(ctx, g.G(), uid, *conv)
 	}
 	return res
+}
+
+func (g *PushHandler) getSupersedesTarget(ctx context.Context, uid gregor1.UID, conv *chat1.ConversationLocal,
+	msg chat1.MessageUnboxed) (res *chat1.UIMessage) {
+	if !msg.IsValid() || conv == nil {
+		return nil
+	}
+	switch msg.GetMessageType() {
+	case chat1.MessageType_EDIT:
+		targetMsgID := msg.Valid().MessageBody.Edit().MessageID
+		msgs, err := g.G().ConvSource.GetMessages(ctx, conv, uid, []chat1.MessageID{targetMsgID}, nil)
+		if err != nil {
+			g.Debug(ctx, "getSupersedesTarget: failed to get message: %v", err)
+			return nil
+		}
+		msgs, err = g.G().ConvSource.TransformSupersedes(ctx, conv, uid, msgs)
+		if err != nil || len(msgs) == 0 {
+			g.Debug(ctx, "getSupersedesTarget: failed to get xform'd message: %v", err)
+			return nil
+		}
+		uiMsg := utils.PresentMessageUnboxed(ctx, g.G(), msgs[0], uid, conv.GetConvID())
+		return &uiMsg
+	}
+	return nil
 }
 
 func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
@@ -379,9 +463,8 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 	uid := m.UID().Bytes()
 	reader := bytes.NewReader(m.Body().Bytes())
 	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
-	err = dec.Decode(&gm)
-	if err != nil {
-		g.Debug(ctx, "chat activity: failed to decode into generic payload: %s", err.Error())
+	if err = dec.Decode(&gm); err != nil {
+		g.Debug(ctx, "chat activity: failed to decode into generic payload: %v", err)
 		return err
 	}
 	convID := gm.ConvID
@@ -389,7 +472,6 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 
 	// Order updates based on inbox version of the update from the server
 	cb := g.orderer.WaitForTurn(ctx, uid, gm.InboxVers)
-	bctx := BackgroundContext(ctx, g.G())
 	go func(ctx context.Context) {
 		defer g.Trace(ctx, func() error { return nil }, "Activity(goroutine)")()
 		<-cb
@@ -405,9 +487,8 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 		switch action {
 		case types.ActionNewMessage:
 			var nm chat1.NewMessagePayload
-			err = dec.Decode(&nm)
-			if err != nil {
-				g.Debug(ctx, "chat activity: error decoding newMessage: %s", err.Error())
+			if err = dec.Decode(&nm); err != nil {
+				g.Debug(ctx, "chat activity: error decoding newMessage: %v", err)
 				return
 			}
 			g.Debug(ctx, "chat activity: newMessage: convID: %s sender: %s msgID: %d",
@@ -434,11 +515,11 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 
 			decmsg, appended, pushErr := g.G().ConvSource.Push(ctx, nm.ConvID, gregor1.UID(uid), nm.Message)
 			if pushErr != nil {
-				g.Debug(ctx, "chat activity: unable to push message: %s", pushErr.Error())
+				g.Debug(ctx, "chat activity: unable to push message: %v", pushErr)
 			}
-			if conv, err = g.G().InboxSource.NewMessage(ctx, uid, nm.InboxVers, nm.ConvID, nm.Message,
-				nm.MaxMsgs); err != nil {
-				g.Debug(ctx, "chat activity: unable to update inbox: %s", err.Error())
+			if conv, err = g.G().InboxSource.NewMessage(ctx, uid, nm.InboxVers, nm.ConvID,
+				nm.Message, nm.MaxMsgs); err != nil {
+				g.Debug(ctx, "chat activity: unable to update inbox: %v", err)
 			}
 
 			// If we have no error on this message, then notify the frontend
@@ -448,17 +529,23 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				pager := pager.NewThreadPager()
 				page, err := pager.MakePage(pmsgs, 1, 0)
 				if err != nil {
-					g.Debug(ctx, "chat activity: error making page: %s", err.Error())
+					g.Debug(ctx, "chat activity: error making page: %v", err)
 				}
 
 				desktopNotification := g.shouldDisplayDesktopNotification(ctx, uid, conv, decmsg)
+				notificationSnippet := ""
+				if desktopNotification {
+					notificationSnippet = utils.GetDesktopNotificationSnippet(conv,
+						g.G().Env.GetUsername().String(), &decmsg)
+				}
 				activity = new(chat1.ChatActivity)
 				*activity = chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
-					Message: utils.PresentMessageUnboxed(ctx, g.G(), decmsg, uid, nm.ConvID),
-					ConvID:  nm.ConvID,
-					Conv:    g.presentUIItem(ctx, conv, uid),
+					Message:         utils.PresentMessageUnboxed(ctx, g.G(), decmsg, uid, nm.ConvID),
+					ModifiedMessage: g.getSupersedesTarget(ctx, uid, conv, decmsg),
+					ConvID:          nm.ConvID,
+					Conv:            g.presentUIItem(ctx, conv, uid),
 					DisplayDesktopNotification: desktopNotification,
-					DesktopNotificationSnippet: utils.GetDesktopNotificationSnippet(conv, g.G().Env.GetUsername().String()),
+					DesktopNotificationSnippet: notificationSnippet,
 					Pagination:                 utils.PresentPagination(page),
 				})
 			}
@@ -483,17 +570,15 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			}
 		case types.ActionReadMessage:
 			var nm chat1.ReadMessagePayload
-			err = dec.Decode(&nm)
-			if err != nil {
-				g.Debug(ctx, "chat activity: error decoding: %s", err.Error())
+			if err = dec.Decode(&nm); err != nil {
+				g.Debug(ctx, "chat activity: error decoding: %v", err)
 				return
 			}
-			g.Debug(ctx, "chat activity: readMessage: convID: %s msgID: %d",
-				nm.ConvID, nm.MsgID)
+			g.Debug(ctx, "chat activity: readMessage: convID: %s msgID: %d", nm.ConvID, nm.MsgID)
 
 			uid := m.UID().Bytes()
 			if conv, err = g.G().InboxSource.ReadMessage(ctx, uid, nm.InboxVers, nm.ConvID, nm.MsgID); err != nil {
-				g.Debug(ctx, "chat activity: unable to update inbox: %s", err.Error())
+				g.Debug(ctx, "chat activity: unable to update inbox: %v", err)
 			}
 			activity = new(chat1.ChatActivity)
 			*activity = chat1.NewChatActivityWithReadMessage(chat1.ReadMessageInfo{
@@ -503,17 +588,15 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			})
 		case types.ActionSetStatus:
 			var nm chat1.SetStatusPayload
-			err = dec.Decode(&nm)
-			if err != nil {
-				g.Debug(ctx, "chat activity: error decoding: %s", err.Error())
+			if err = dec.Decode(&nm); err != nil {
+				g.Debug(ctx, "chat activity: error decoding: %v", err)
 				return
 			}
-			g.Debug(ctx, "chat activity: setStatus: convID: %s status: %d",
-				nm.ConvID, nm.Status)
+			g.Debug(ctx, "chat activity: setStatus: convID: %s status: %d", nm.ConvID, nm.Status)
 
 			uid := m.UID().Bytes()
 			if conv, err = g.G().InboxSource.SetStatus(ctx, uid, nm.InboxVers, nm.ConvID, nm.Status); err != nil {
-				g.Debug(ctx, "chat activity: unable to update inbox: %s", err.Error())
+				g.Debug(ctx, "chat activity: unable to update inbox: %v", err)
 			}
 			activity = new(chat1.ChatActivity)
 			*activity = chat1.NewChatActivityWithSetStatus(chat1.SetStatusInfo{
@@ -523,9 +606,8 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			})
 		case types.ActionSetAppNotificationSettings:
 			var nm chat1.SetAppNotificationSettingsPayload
-			err = dec.Decode(&nm)
-			if err != nil {
-				g.Debug(ctx, "chat activity: error decoding: %s", err.Error())
+			if err = dec.Decode(&nm); err != nil {
+				g.Debug(ctx, "chat activity: error decoding: %v", err)
 				return
 			}
 			g.Debug(ctx, "chat activity: setAppNotificationSettings: convID: %s num settings: %d",
@@ -534,7 +616,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			uid := m.UID().Bytes()
 			if _, err = g.G().InboxSource.SetAppNotificationSettings(ctx, uid, nm.InboxVers,
 				nm.ConvID, nm.Settings); err != nil {
-				g.Debug(ctx, "chat activity: unable to update inbox: %s", err.Error())
+				g.Debug(ctx, "chat activity: unable to update inbox: %v", err)
 			}
 			info := chat1.SetAppNotificationSettingsInfo{
 				ConvID:   nm.ConvID,
@@ -544,9 +626,8 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			*activity = chat1.NewChatActivityWithSetAppNotificationSettings(info)
 		case types.ActionNewConversation:
 			var nm chat1.NewConversationPayload
-			err = dec.Decode(&nm)
-			if err != nil {
-				g.Debug(ctx, "chat activity: error decoding: %s", err.Error())
+			if err = dec.Decode(&nm); err != nil {
+				g.Debug(ctx, "chat activity: error decoding: %v", err)
 				return
 			}
 			g.Debug(ctx, "chat activity: newConversation: convID: %s ", nm.ConvID)
@@ -555,39 +636,44 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 
 			// We need to get this conversation and then localize it
 			var inbox types.Inbox
-			if inbox, err = g.G().InboxSource.Read(ctx, uid, nil, false, &chat1.GetInboxLocalQuery{
-				ConvIDs: []chat1.ConversationID{nm.ConvID},
-			}, nil); err != nil {
-				g.Debug(ctx, "chat activity: unable to read conversation: %s", err.Error())
+			if inbox, _, err = g.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, false,
+				nil, &chat1.GetInboxLocalQuery{
+					ConvIDs:      []chat1.ConversationID{nm.ConvID},
+					MemberStatus: chat1.AllConversationMemberStatuses(),
+				}, nil); err != nil {
+				g.Debug(ctx, "chat activity: unable to read conversation: %v", err)
 				return
 			}
 			if len(inbox.Convs) != 1 {
-				g.Debug(ctx, "chat activity: unable to find conversation")
+				g.Debug(ctx, "chat activity: unable to find conversation, found: %d, expected 1", len(inbox.Convs))
 				return
 			}
 			updateConv := inbox.ConvsUnverified[0].Conv
 			if err = g.G().InboxSource.NewConversation(ctx, uid, nm.InboxVers, updateConv); err != nil {
-				g.Debug(ctx, "chat activity: unable to update inbox: %s", err.Error())
+				g.Debug(ctx, "chat activity: unable to update inbox: %v", err)
 			}
 			conv = &inbox.Convs[0]
-
-			activity = new(chat1.ChatActivity)
-			*activity = chat1.NewChatActivityWithNewConversation(chat1.NewConversationInfo{
-				Conv:   g.presentUIItem(ctx, conv, uid),
-				ConvID: conv.GetConvID(),
-			})
+			switch memberStatus := conv.ReaderInfo.Status; memberStatus {
+			case chat1.ConversationMemberStatus_LEFT, chat1.ConversationMemberStatus_NEVER_JOINED:
+				g.Debug(ctx, "chat activity: newConversation: suppressing ChatActivity, membersStatus: %v", memberStatus)
+			default:
+				activity = new(chat1.ChatActivity)
+				*activity = chat1.NewChatActivityWithNewConversation(chat1.NewConversationInfo{
+					Conv:   g.presentUIItem(ctx, conv, uid),
+					ConvID: conv.GetConvID(),
+				})
+			}
 		case types.ActionTeamType:
 			var nm chat1.TeamTypePayload
-			err = dec.Decode(&nm)
-			if err != nil {
-				g.Debug(ctx, "chat activity: error decoding: %s", err.Error())
+			if err = dec.Decode(&nm); err != nil {
+				g.Debug(ctx, "chat activity: error decoding: %v", err)
 				return
 			}
 			g.Debug(ctx, "chat activity: team type: convID: %s ", nm.ConvID)
 
 			uid := m.UID().Bytes()
 			if conv, err = g.G().InboxSource.TeamTypeChanged(ctx, uid, nm.InboxVers, nm.ConvID, nm.TeamType); err != nil {
-				g.Debug(ctx, "chat activity: unable to update inbox: %s", err.Error())
+				g.Debug(ctx, "chat activity: unable to update inbox: %v", err)
 			}
 			activity = new(chat1.ChatActivity)
 			*activity = chat1.NewChatActivityWithTeamtype(chat1.TeamTypeInfo{
@@ -597,19 +683,18 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			})
 		case types.ActionExpunge:
 			var nm chat1.ExpungePayload
-			err = dec.Decode(&nm)
-			if err != nil {
-				g.Debug(ctx, "chat activity: error decoding: %s", err.Error())
+			if err = dec.Decode(&nm); err != nil {
+				g.Debug(ctx, "chat activity: error decoding: %v", err)
 				return
 			}
 			g.Debug(ctx, "chat activity: expunge: convID: %s expunge: %v",
 				nm.ConvID, nm.Expunge)
 			uid := m.UID().Bytes()
 			if err = g.G().ConvSource.Expunge(ctx, nm.ConvID, uid, nm.Expunge); err != nil {
-				g.Debug(ctx, "chat activity: unable to update conv: %s", err.Error())
+				g.Debug(ctx, "chat activity: unable to update conv: %v", err)
 			}
 			if _, err = g.G().InboxSource.Expunge(ctx, uid, nm.InboxVers, nm.ConvID, nm.Expunge, nm.MaxMsgs); err != nil {
-				g.Debug(ctx, "chat activity: unable to update inbox: %s", err.Error())
+				g.Debug(ctx, "chat activity: unable to update inbox: %v", err)
 			}
 		default:
 			g.Debug(ctx, "unhandled chat.activity action %q", action)
@@ -623,7 +708,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 		} else {
 			g.Debug(ctx, "chat activity: skipping notify, activity is nil")
 		}
-	}(bctx)
+	}(BackgroundContext(ctx, g.G()))
 	return nil
 }
 
@@ -662,7 +747,7 @@ func (g *PushHandler) notifyMembersUpdate(ctx context.Context, uid gregor1.UID,
 			uidMap[uids[index].String()] = p.NormalizedUsername.String()
 		}
 	} else {
-		g.Debug(ctx, "notifyMembersUpdate: failed to get usernames, not sending them: %s", err)
+		g.Debug(ctx, "notifyMembersUpdate: failed to get usernames, not sending them: %v", err)
 	}
 	convMap := make(map[string][]chat1.MemberInfo)
 	addStatus := func(status chat1.ConversationMemberStatus, l []chat1.ConversationMember) {
@@ -695,6 +780,18 @@ func (g *PushHandler) notifyMembersUpdate(ctx context.Context, uid gregor1.UID,
 	}
 }
 
+func (g *PushHandler) notifyConversationsUpdate(ctx context.Context, uid gregor1.UID,
+	updates []chat1.ConversationUpdate) {
+	var supdate []chat1.ConversationStaleUpdate
+	for _, update := range updates {
+		supdate = append(supdate, chat1.ConversationStaleUpdate{
+			ConvID:     update.ConvID,
+			UpdateType: chat1.StaleUpdateType_CLEAR,
+		})
+	}
+	g.G().Syncer.SendChatStaleNotifications(ctx, uid, supdate, true)
+}
+
 func (g *PushHandler) Typing(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
@@ -707,8 +804,7 @@ func (g *PushHandler) Typing(ctx context.Context, m gregor.OutOfBandMessage) (er
 	var update chat1.RemoteUserTypingUpdate
 	reader := bytes.NewReader(m.Body().Bytes())
 	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
-	err = dec.Decode(&update)
-	if err != nil {
+	if err = dec.Decode(&update); err != nil {
 		return err
 	}
 
@@ -717,7 +813,7 @@ func (g *PushHandler) Typing(ctx context.Context, m gregor.OutOfBandMessage) (er
 	kdid := keybase1.DeviceID(update.DeviceID.String())
 	user, device, dtype, err := g.G().GetUPAKLoader().LookupUsernameAndDevice(ctx, kuid, kdid)
 	if err != nil {
-		g.Debug(ctx, "Typing: failed to lookup username/device: msg: %s", err.Error())
+		g.Debug(ctx, "Typing: failed to lookup username/device: msg: %v", err)
 		return err
 	}
 
@@ -744,15 +840,13 @@ func (g *PushHandler) UpgradeKBFSToImpteam(ctx context.Context, m gregor.OutOfBa
 	var update chat1.KBFSImpteamUpgradeUpdate
 	reader := bytes.NewReader(m.Body().Bytes())
 	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
-	err = dec.Decode(&update)
-	if err != nil {
+	if err = dec.Decode(&update); err != nil {
 		return err
 	}
 	uid := gregor1.UID(m.UID().Bytes())
 
 	// Order updates based on inbox version of the update from the server
 	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
-	bctx := BackgroundContext(ctx, g.G())
 	go func(ctx context.Context) (err error) {
 		defer g.Trace(ctx, func() error { return err }, "UpgradeKBFSToImpteam(goroutine)")()
 		<-cb
@@ -762,18 +856,18 @@ func (g *PushHandler) UpgradeKBFSToImpteam(ctx context.Context, m gregor.OutOfBa
 
 		if _, err = g.G().InboxSource.UpgradeKBFSToImpteam(ctx, uid, update.InboxVers,
 			update.ConvID); err != nil {
-			g.Debug(ctx, "UpgradeKBFSToImpteam: failed to update KBFS upgrade: %s", err)
+			g.Debug(ctx, "UpgradeKBFSToImpteam: failed to update KBFS upgrade: %v", err)
 			return err
 		}
 
 		// Just blow away anything we have locally, there might be unboxing errors in here during the
 		// transition.
 		if err = g.G().ConvSource.Clear(ctx, update.ConvID, uid); err != nil {
-			g.Debug(ctx, "UpgradeKBFSToImpteam: failed to clear convsource: %s", err)
+			g.Debug(ctx, "UpgradeKBFSToImpteam: failed to clear convsource: %v", err)
 		}
 		g.G().ActivityNotifier.KBFSToImpteamUpgrade(ctx, uid, update.ConvID, update.TopicType)
 		return nil
-	}(bctx)
+	}(BackgroundContext(ctx, g.G()))
 
 	return nil
 }
@@ -790,15 +884,13 @@ func (g *PushHandler) MembershipUpdate(ctx context.Context, m gregor.OutOfBandMe
 	var update chat1.UpdateConversationMembership
 	reader := bytes.NewReader(m.Body().Bytes())
 	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
-	err = dec.Decode(&update)
-	if err != nil {
+	if err = dec.Decode(&update); err != nil {
 		return err
 	}
 	uid := gregor1.UID(m.UID().Bytes())
 
 	// Order updates based on inbox version of the update from the server
 	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
-	bctx := BackgroundContext(ctx, g.G())
 	go func(ctx context.Context) (err error) {
 		defer g.Trace(ctx, func() error { return err }, "MembershipUpdate(goroutine)")()
 		<-cb
@@ -810,7 +902,7 @@ func (g *PushHandler) MembershipUpdate(ctx context.Context, m gregor.OutOfBandMe
 		updateRes, err := g.G().InboxSource.MembershipUpdate(ctx, uid, update.InboxVers, update.Joined,
 			update.Removed, update.Reset, update.Previewed)
 		if err != nil {
-			g.Debug(ctx, "MembershipUpdate: failed to update membership on inbox: %s", err.Error())
+			g.Debug(ctx, "MembershipUpdate: failed to update membership on inbox: %v", err)
 			return err
 		}
 
@@ -837,29 +929,47 @@ func (g *PushHandler) MembershipUpdate(ctx context.Context, m gregor.OutOfBandMe
 		}
 
 		return nil
-	}(bctx)
+	}(BackgroundContext(ctx, g.G()))
 
 	return nil
 }
 
-func (g *PushHandler) TeamChannels(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
+func (g *PushHandler) ConversationsUpdate(ctx context.Context, m gregor.OutOfBandMessage) (err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, g.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, &identBreaks,
 		g.identNotifier)
-	defer g.Trace(ctx, func() error { return err }, "TeamChannels")()
+	defer g.Trace(ctx, func() error { return err }, "ConversationsUpdate")()
 	if m.Body() == nil {
-		return errors.New("gregor handler for team channels update: nil message body")
+		return errors.New("gregor handler for conversations update: nil message body")
 	}
 
-	var update chat1.TeamChannelUpdate
+	var update chat1.UpdateConversations
 	reader := bytes.NewReader(m.Body().Bytes())
 	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
-	err = dec.Decode(&update)
-	if err != nil {
+	if err = dec.Decode(&update); err != nil {
 		return err
 	}
+	uid := gregor1.UID(m.UID().Bytes())
 
-	g.G().TeamChannelSource.ChannelsChanged(ctx, update.TeamID)
+	// Order updates based on inbox version of the update from the server
+	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
+	go func(ctx context.Context) (err error) {
+		defer g.Trace(ctx, func() error { return err }, "ConversationsUpdate(goroutine)")()
+		<-cb
+		g.Lock()
+		defer g.Unlock()
+		defer g.orderer.CompleteTurn(ctx, uid, update.InboxVers)
+
+		// Write out changes to local storage
+		if err := g.G().InboxSource.ConversationsUpdate(ctx, uid, update.InboxVers, update.ConvUpdates); err != nil {
+			g.Debug(ctx, "ConversationsUpdate: failed to update membership on inbox: %v", err)
+			return err
+		}
+
+		// Send out notifications
+		g.notifyConversationsUpdate(ctx, uid, update.ConvUpdates)
+		return nil
+	}(BackgroundContext(ctx, g.G()))
 
 	return nil
 }
@@ -876,15 +986,13 @@ func (g *PushHandler) SetConvRetention(ctx context.Context, m gregor.OutOfBandMe
 	var update chat1.SetConvRetentionUpdate
 	reader := bytes.NewReader(m.Body().Bytes())
 	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
-	err = dec.Decode(&update)
-	if err != nil {
+	if err = dec.Decode(&update); err != nil {
 		return err
 	}
 	uid := gregor1.UID(m.UID().Bytes())
 
 	// Order updates based on inbox version of the update from the server
 	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
-	bctx := BackgroundContext(ctx, g.G())
 	go func(ctx context.Context) {
 		defer g.Trace(ctx, func() error { return err }, "SetConvRetention(goroutine)")()
 		<-cb
@@ -896,7 +1004,7 @@ func (g *PushHandler) SetConvRetention(ctx context.Context, m gregor.OutOfBandMe
 		conv, err := g.G().InboxSource.SetConvRetention(ctx, m.UID().Bytes(), update.InboxVers,
 			update.ConvID, update.Policy)
 		if err != nil {
-			g.Debug(ctx, "SetConvRetention: unable to update inbox: %s", err.Error())
+			g.Debug(ctx, "SetConvRetention: unable to update inbox: %v", err)
 			return
 		}
 		if conv == nil {
@@ -905,7 +1013,7 @@ func (g *PushHandler) SetConvRetention(ctx context.Context, m gregor.OutOfBandMe
 		// Send notify for the conv
 		g.G().ActivityNotifier.SetConvRetention(ctx, uid,
 			conv.GetConvID(), conv.GetTopicType(), g.presentUIItem(ctx, conv, uid))
-	}(bctx)
+	}(BackgroundContext(ctx, g.G()))
 
 	return nil
 }
@@ -922,15 +1030,13 @@ func (g *PushHandler) SetTeamRetention(ctx context.Context, m gregor.OutOfBandMe
 	var update chat1.SetTeamRetentionUpdate
 	reader := bytes.NewReader(m.Body().Bytes())
 	dec := codec.NewDecoder(reader, &codec.MsgpackHandle{WriteExt: true})
-	err = dec.Decode(&update)
-	if err != nil {
+	if err = dec.Decode(&update); err != nil {
 		return err
 	}
 	uid := gregor1.UID(m.UID().Bytes())
 
 	// Order updates based on inbox version of the update from the server
 	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
-	bctx := BackgroundContext(ctx, g.G())
 	go func(ctx context.Context) {
 		defer g.Trace(ctx, func() error { return err }, "SetTeamRetention(goroutine)")()
 		<-cb
@@ -942,7 +1048,7 @@ func (g *PushHandler) SetTeamRetention(ctx context.Context, m gregor.OutOfBandMe
 		var convs []chat1.ConversationLocal
 		if convs, err = g.G().InboxSource.SetTeamRetention(ctx, m.UID().Bytes(), update.InboxVers,
 			update.TeamID, update.Policy); err != nil {
-			g.Debug(ctx, "SetTeamRetention: unable to update inbox: %s", err.Error())
+			g.Debug(ctx, "SetTeamRetention: unable to update inbox: %v", err)
 			return
 		}
 		if len(convs) == 0 {
@@ -960,7 +1066,7 @@ func (g *PushHandler) SetTeamRetention(ctx context.Context, m gregor.OutOfBandMe
 		for topicType, items := range convUIItems {
 			g.G().ActivityNotifier.SetTeamRetention(ctx, uid, update.TeamID, topicType, items)
 		}
-	}(bctx)
+	}(BackgroundContext(ctx, g.G()))
 
 	return nil
 }
@@ -984,7 +1090,6 @@ func (g *PushHandler) SetConvSettings(ctx context.Context, m gregor.OutOfBandMes
 
 	// Order updates based on inbox version of the update from the server
 	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
-	bctx := BackgroundContext(ctx, g.G())
 	go func(ctx context.Context) {
 		defer g.Trace(ctx, func() error { return err }, "SetConvSettings(goroutine)")()
 		<-cb
@@ -996,7 +1101,7 @@ func (g *PushHandler) SetConvSettings(ctx context.Context, m gregor.OutOfBandMes
 		conv, err := g.G().InboxSource.SetConvSettings(ctx, m.UID().Bytes(), update.InboxVers,
 			update.ConvID, update.ConvSettings)
 		if err != nil {
-			g.Debug(ctx, "SetConvSettings: unable to update inbox: %s", err.Error())
+			g.Debug(ctx, "SetConvSettings: unable to update inbox: %v", err)
 			return
 		}
 		if conv == nil {
@@ -1005,7 +1110,7 @@ func (g *PushHandler) SetConvSettings(ctx context.Context, m gregor.OutOfBandMes
 		// Send notify for the conv
 		g.G().ActivityNotifier.SetConvSettings(ctx, uid,
 			conv.GetConvID(), conv.GetTopicType(), g.presentUIItem(ctx, conv, uid))
-	}(bctx)
+	}(BackgroundContext(ctx, g.G()))
 
 	return nil
 }
@@ -1026,7 +1131,6 @@ func (g *PushHandler) SubteamRename(ctx context.Context, m gregor.OutOfBandMessa
 
 	// Order updates based on inbox version of the update from the server
 	cb := g.orderer.WaitForTurn(ctx, uid, update.InboxVers)
-	bctx := BackgroundContext(ctx, g.G())
 	go func(ctx context.Context) {
 		defer g.Trace(ctx, func() error { return nil }, "SubteamRename(goroutine)")()
 		<-cb
@@ -1036,7 +1140,7 @@ func (g *PushHandler) SubteamRename(ctx context.Context, m gregor.OutOfBandMessa
 		// Update inbox and get conversations
 		convs, err := g.G().InboxSource.SubteamRename(ctx, uid, update.InboxVers, update.ConvIDs)
 		if err != nil {
-			g.Debug(ctx, "SubteamRename: unable to read conversation: %s", err.Error())
+			g.Debug(ctx, "SubteamRename: unable to read conversation: %v", err)
 			return
 		}
 		if len(convs) != len(update.ConvIDs) {
@@ -1056,7 +1160,7 @@ func (g *PushHandler) SubteamRename(ctx context.Context, m gregor.OutOfBandMessa
 			cids := convIDs[topicType]
 			g.G().ActivityNotifier.SubteamRename(ctx, uid, cids, topicType, items)
 		}
-	}(bctx)
+	}(BackgroundContext(ctx, g.G()))
 
 	return nil
 }
@@ -1077,8 +1181,6 @@ func (g *PushHandler) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessag
 		return true, g.Typing(ctx, obm)
 	case types.PushMembershipUpdate:
 		return true, g.MembershipUpdate(ctx, obm)
-	case types.PushTeamChannels:
-		return true, g.TeamChannels(ctx, obm)
 	case types.PushConvRetention:
 		return true, g.SetConvRetention(ctx, obm)
 	case types.PushTeamRetention:
@@ -1089,6 +1191,8 @@ func (g *PushHandler) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessag
 		return true, g.UpgradeKBFSToImpteam(ctx, obm)
 	case types.PushSubteamRename:
 		return true, g.SubteamRename(ctx, obm)
+	case types.PushConversationsUpdate:
+		return true, g.ConversationsUpdate(ctx, obm)
 	}
 
 	return false, nil

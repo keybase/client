@@ -6,7 +6,6 @@ export type Props = {|
   attachTo: () => ?React.ElementRef<any>,
   visible: boolean,
   onHidden: () => void,
-  isNew: boolean,
   selected: number,
   onSelect: number => void,
   items: MessageExplodeDescription[],

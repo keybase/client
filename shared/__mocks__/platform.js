@@ -14,15 +14,8 @@ export const isElectron = true
 export const isDarwin = true
 export const isWindows = false
 export const isLinux = false
-export const isSimulator = false
 export const isIPhoneX = false
-export const isDeviceSecureAndroid = false
-export const isAndroidNewerThanM = false
-export const isAndroidNewerThanN = false
 export const fileUIName = 'Finder'
 export const version = ''
-export const appVersionName = ''
-export const appVersionCode = ''
-export const mobileOsVersion = ''
 export const logFileName = () => ''
 export const pprofDir = () => ''

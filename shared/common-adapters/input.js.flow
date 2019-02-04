@@ -50,6 +50,8 @@ export type Props = {
   type?: 'password' | 'text' | 'passwordVisible',
   value?: ?string,
   selectTextOnFocus?: boolean,
+  // Incrememnt this to clear the text (avoids having to deal with refs)
+  clearTextCounter?: number,
 
   // Looks like desktop only, but used on mobile for onSubmitEditing (!).
   // TODO: Have a separate onSubmitEditing prop.

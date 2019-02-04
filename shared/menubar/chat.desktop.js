@@ -30,16 +30,14 @@ type ChatPreviewProps = {
 export const ChatPreview = ({onViewAll, onSelectConversation, convRows}: ChatPreviewProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.chatContainer}>
     {convRows.map(r => {
-      return (
-        <SmallTeam.SmallTeam key={r.conversationIDKey} {...r} />
-      )
+      return <SmallTeam.SmallTeam key={r.conversationIDKey} {...r} />
     })}
     <ChatViewAll onViewAll={onViewAll} />
   </Kb.Box2>
 )
 
 const styles = Styles.styleSheetCreate({
-  buttonText: {color: Styles.globalColors.black_60},
+  buttonText: {color: Styles.globalColors.black_50},
   chatContainer: {
     backgroundColor: Styles.globalColors.white,
     color: Styles.globalColors.black,
@@ -47,7 +45,7 @@ const styles = Styles.styleSheetCreate({
   toggleButton: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.black_05,
-      borderRadius: 19,
+      borderRadius: Styles.borderRadius,
       marginBottom: Styles.globalMargins.xtiny,
       marginTop: Styles.globalMargins.xtiny,
       paddingBottom: Styles.globalMargins.xtiny,

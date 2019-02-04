@@ -1,24 +1,25 @@
 // @flow strict
-// $FlowIssue https://github.com/facebook/flow/issues/6628
 import * as I from 'immutable'
 import {type ConversationIDKey} from './chat2'
 import {type Tab} from '../tabs'
 import {type DeviceID} from './rpc-gen'
 import {RPCError} from '../../util/errors'
 
-export type AvatarSizes = {
-  '200': string,
-  '360': string,
-  '40': string,
+export type _OutOfDate = {
+  critical: boolean,
+  message?: string,
+  updating: boolean,
 }
+export type OutOfDate = I.RecordOf<_OutOfDate>
+export type DaemonHandshakeState = 'starting' | 'waitingForWaiters' | 'done'
 
 export type _State = {
   appFocused: boolean,
   appFocusedCount: number,
-  avatars: {[username: string]: AvatarSizes}, // MUST be a plain object for remotes to work correctly
+  avatars: I.Map<string, I.Map<number, string>>,
   configuredAccounts: I.List<string>,
   daemonError: ?Error,
-  daemonHandshakeState: 'starting' | 'waitingForWaiters' | 'done',
+  daemonHandshakeState: DaemonHandshakeState,
   daemonHandshakeFailedReason: string,
   daemonHandshakeRetriesLeft: number,
   daemonHandshakeWaiters: I.Map<string, number>,
@@ -39,6 +40,7 @@ export type _State = {
   mobileAppState: 'active' | 'background' | 'inactive',
   notifySound: boolean,
   openAtLogin: boolean,
+  outOfDate?: ?OutOfDate,
   pushLoaded: boolean,
   registered: boolean,
   startupDetailsLoaded: boolean,
@@ -51,6 +53,7 @@ export type _State = {
   touchIDEnabled: boolean,
   touchIDAllowedBySystem: string,
   uid: string,
+  useNewRouter: boolean,
   userActive: boolean,
   username: string,
 }

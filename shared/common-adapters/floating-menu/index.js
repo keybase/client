@@ -8,12 +8,13 @@
 
 import * as React from 'react'
 import Overlay from '../overlay'
-import type {Position} from '../relative-popup-hoc'
+import type {Position} from '../relative-popup-hoc.types'
 import MenuLayout, {type MenuItem} from './menu-layout'
 import {type StylesCrossPlatform} from '../../styles'
 
 export type Props = {|
   closeOnSelect: boolean,
+  closeText?: ?string, // mobile only; default to "Close"
   containerStyle?: StylesCrossPlatform,
   items: Array<MenuItem | 'Divider' | null>,
   header?: MenuItem,
@@ -44,6 +45,7 @@ export default (props: Props) => {
         onHidden={props.onHidden}
         items={props.items}
         closeOnClick={props.closeOnSelect}
+        closeText={props.closeText}
       />
     </Overlay>
   )

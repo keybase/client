@@ -62,23 +62,17 @@ const BOOL isDebug = NO;
                                                    } error:&err];
 }
 
-#ifdef SYSTRACING
-- (NSURL *)sourceURLForBridge:(RCTBridge *)bridge {
-  return [NSURL URLWithString:@"http://localhost:8081/index.ios.bundle?platform=ios&dev=true"];
-}
-
-- (BOOL)shouldBridgeUseCxxBridge:(RCTBridge *)bridge {
-  return NO;
-}
-#endif
-
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+- (void) setupLogger
 {
   self.fileLogger = [[DDFileLogger alloc] init];
   self.fileLogger.rollingFrequency = 60 * 60 * 24; // 24 hour rolling
   self.fileLogger.logFileManager.maximumNumberOfLogFiles = 3; // 3 days
   [DDLog addLogger:self.fileLogger];
+}
 
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+{
+  [self setupLogger];
   [self setupGo];
   [self notifyAppState:application];
 
@@ -181,6 +175,21 @@ const BOOL isDebug = NO;
       completionHandler(UIBackgroundFetchResultNewData);
       NSLog(@"Remote notification handle finished...");
     });
+  } else if (type != nil && [type isEqualToString:@"chat.newmessage"]) {
+    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^(void){
+      NSError* err = nil;
+      NSString* convID = notification[@"convID"];
+      NSString* body = notification[@"m"];
+      int membersType = [notification[@"t"] intValue];
+      int messageID = [notification[@"msgID"] intValue];
+      KeybaseHandleBackgroundNotification(convID, body, membersType, false,
+                                          messageID, @"", 0, 0, @"", nil, &err);
+      if (err != nil) {
+        NSLog(@"Failed to handle in engine: %@", err);
+      }
+    });
+    [RCTPushNotificationManager didReceiveRemoteNotification:notification];
+    completionHandler(UIBackgroundFetchResultNewData);
   } else {
     [RCTPushNotificationManager didReceiveRemoteNotification:notification];
     completionHandler(UIBackgroundFetchResultNewData);

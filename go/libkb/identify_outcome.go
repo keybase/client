@@ -65,7 +65,16 @@ func (i *IdentifyOutcome) TrackSet() *TrackSet {
 }
 
 func (i *IdentifyOutcome) ProofChecksSorted() []*LinkCheckResult {
+	useDisplayPriority := i.G().ShouldUseParameterizedProofs()
+	if useDisplayPriority {
+		return i.proofChecksSortedByDisplayPriority()
+	}
+	return i.proofChecksSortedByProofType()
 
+}
+
+// TODO Remove with CORE-9923
+func (i *IdentifyOutcome) proofChecksSortedByProofType() []*LinkCheckResult {
 	// Treat DNS and Web as the same type, and sort them together
 	// in the same bucket.
 	dnsToWeb := func(t keybase1.ProofType) keybase1.ProofType {
@@ -91,6 +100,30 @@ func (i *IdentifyOutcome) ProofChecksSorted() []*LinkCheckResult {
 		res = append(res, pc...)
 	}
 	return res
+}
+
+func (i *IdentifyOutcome) proofChecksSortedByDisplayPriority() []*LinkCheckResult {
+	pc := make([]*LinkCheckResult, len(i.ProofChecks))
+	copy(pc, i.ProofChecks)
+	proofServices := i.G().GetProofServices()
+	serviceTypes := map[string]int{}
+	for _, lcr := range pc {
+		key := lcr.link.DisplayPriorityKey()
+		if _, ok := serviceTypes[key]; !ok {
+			st := proofServices.GetServiceType(key)
+			displayPriority := 0
+			if st != nil {
+				displayPriority = st.DisplayPriority()
+			}
+			serviceTypes[key] = displayPriority
+		}
+	}
+	sort.Slice(pc, func(a, b int) bool {
+		keyA := pc[a].link.DisplayPriorityKey()
+		keyB := pc[b].link.DisplayPriorityKey()
+		return serviceTypes[keyA] > serviceTypes[keyB]
+	})
+	return pc
 }
 
 // Revoked proofs are those we used to look for but are gone!
@@ -223,8 +256,20 @@ func (i IdentifyOutcome) GetErrorAndWarnings(strict bool) (warnings Warnings, er
 		}
 	}
 
+	// For revoked proofs, we almost always want to return an error. The one exception
+	// is a snoozed tracker proof in non-strict mode.
 	for _, revoked := range i.Revoked {
-		softErr(revoked.ToDisplayString())
+		errString := revoked.ToDisplayString()
+		isSnoozed := false
+		if _, ok := revoked.(TrackDiffSnoozedRevoked); ok {
+			isSnoozed = true
+		}
+
+		if !strict && isSnoozed {
+			warnings.Push(StringWarning(errString))
+		} else {
+			probs = append(probs, errString)
+		}
 	}
 
 	if nfails := i.NumProofFailures(); nfails > 0 {

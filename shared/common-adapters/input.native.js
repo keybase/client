@@ -51,6 +51,23 @@ class Input extends Component<Props, State> {
     this._timeoutIds.forEach(clearTimeout)
   }
 
+  componentDidUpdate = (prevProps: Props) => {
+    if (prevProps.clearTextCounter !== this.props.clearTextCounter) {
+      this._clearText()
+    }
+  }
+
+  _clearText = () => {
+    if (!this.props.uncontrolled) {
+      throw new Error('clearTextCounter only works on uncontrolled components')
+    }
+
+    this.transformText(() => ({
+      selection: {end: 0, start: 0},
+      text: '',
+    }))
+  }
+
   _setInputRef = (ref: NativeTextInput | null) => {
     this._input = ref
   }
@@ -101,7 +118,7 @@ class Input extends Component<Props, State> {
   }
 
   selection = (): Selection => {
-    return this._lastNativeSelection || {start: 0, end: 0}
+    return this._lastNativeSelection || {end: 0, start: 0}
   }
 
   _onChangeTextDone = (value: string) => {
@@ -127,8 +144,8 @@ class Input extends Component<Props, State> {
     }
 
     const textInfo: TextInfo = {
-      text: this._getValue(),
       selection: this.selection(),
+      text: this._getValue(),
     }
     const newTextInfo = fn(textInfo)
     checkTextInfo(newTextInfo)
@@ -145,7 +162,7 @@ class Input extends Component<Props, State> {
       let {start, end} = newTextInfo.selection
       end = Math.max(0, Math.min(end, text.length))
       start = Math.max(0, Math.min(start, end))
-      const selection = {start, end}
+      const selection = {end, start}
       this.setNativeProps({selection})
       this._lastNativeSelection = selection
     }, 0)
@@ -192,8 +209,8 @@ class Input extends Component<Props, State> {
       ? {
           ...globalStyles.flexBoxRow,
           backgroundColor: globalColors.fastBlank,
-          borderBottomWidth: 1,
           borderBottomColor: underlineColor,
+          borderBottomWidth: 1,
           flex: 1,
         }
       : {
@@ -210,7 +227,7 @@ class Input extends Component<Props, State> {
     // https://github.com/facebook/react-native/issues/18579 .
     const start = Math.min(_start, _end)
     const end = Math.max(_start, _end)
-    this._lastNativeSelection = {start, end}
+    this._lastNativeSelection = {end, start}
     // Bit of a hack here: Unlike the desktop case, where the text and
     // selection are updated simultaneously, on mobile the text gets
     // updated first, so handlers that rely on an updated selection
@@ -226,18 +243,18 @@ class Input extends Component<Props, State> {
     const containerStyle = this._containerStyle(underlineColor)
 
     const commonInputStyle = {
-      color: globalColors.black_75_on_white,
-      lineHeight: lineHeight,
       backgroundColor: globalColors.fastBlank,
-      flexGrow: 1,
       borderWidth: 0,
+      color: globalColors.black_75_on_white,
+      flexGrow: 1,
+      lineHeight: lineHeight,
       ...(this.props.small
         ? {...globalStyles.fontRegular, fontSize: _bodyTextStyle.fontSize, textAlign: 'left'}
         : {
             ...globalStyles.fontSemibold,
             fontSize: _headerTextStyle.fontSize,
-            textAlign: 'center',
             minWidth: 200,
+            textAlign: 'center',
           }),
     }
 
@@ -284,22 +301,22 @@ class Input extends Component<Props, State> {
     // too. Unfortunately, that triggers an Android crash:
     // https://github.com/facebook/react-native/issues/18316 .
     const commonProps: {value?: string} = {
-      autoCorrect: this.props.hasOwnProperty('autoCorrect') && this.props.autoCorrect,
       autoCapitalize: this.props.autoCapitalize || 'none',
+      autoCorrect: this.props.hasOwnProperty('autoCorrect') && this.props.autoCorrect,
+      autoFocus: this.props.autoFocus,
       editable: this.props.hasOwnProperty('editable') ? this.props.editable : true,
       keyboardType,
-      autoFocus: this.props.autoFocus,
       onBlur: this._onBlur,
       onChangeText: this._onChangeText,
+      onEndEditing: this.props.onEndEditing,
       onFocus: this._onFocus,
       onSelectionChange: this._onSelectionChange,
       onSubmitEditing: this.props.onEnterKeyDown,
-      onEndEditing: this.props.onEndEditing,
       placeholder: this.props.hintText,
       ref: this._setInputRef,
       returnKeyType: this.props.returnKeyType,
-      selectTextOnFocus: this.props.selectTextOnFocus,
       secureTextEntry: this.props.type === 'password',
+      selectTextOnFocus: this.props.selectTextOnFocus,
       underlineColorAndroid: 'transparent',
       ...(this.props.maxLength ? {maxlength: this.props.maxLength} : null),
     }
@@ -316,8 +333,8 @@ class Input extends Component<Props, State> {
 
     const multilineProps = {
       ...commonProps,
-      multiline: true,
       blurOnSubmit: false,
+      multiline: true,
       onContentSizeChange: this._onContentSizeChange,
       style: collapseStyles([multilineStyle, this.props.inputStyle]),
       ...(this.props.rowsMax ? {maxHeight: this._rowsToHeight(this.props.rowsMax)} : {}),
@@ -325,22 +342,19 @@ class Input extends Component<Props, State> {
 
     return (
       <Box style={[containerStyle, this.props.style]}>
-        {!this.props.small &&
-          !this.props.hideLabel && (
-            <Text type="BodySmall" style={styles.floating}>
-              {floatingHintText}
-            </Text>
-          )}
-        {!!this.props.small &&
-          !!this.props.smallLabel &&
-          !this.props.hideLabel && (
-            <Text
-              type="BodySmall"
-              style={collapseStyles([styles.smallLabel, {lineHeight}, this.props.smallLabelStyle])}
-            >
-              {this.props.smallLabel}
-            </Text>
-          )}
+        {!this.props.small && !this.props.hideLabel && (
+          <Text center={true} type="BodySmall" style={styles.floating}>
+            {floatingHintText}
+          </Text>
+        )}
+        {!!this.props.small && !!this.props.smallLabel && !this.props.hideLabel && (
+          <Text
+            type="BodySmall"
+            style={collapseStyles([styles.smallLabel, {lineHeight}, this.props.smallLabelStyle])}
+          >
+            {this.props.smallLabel}
+          </Text>
+        )}
         <Box
           style={
             this.props.small
@@ -351,7 +365,11 @@ class Input extends Component<Props, State> {
           <NativeTextInput {...(this.props.multiline ? multilineProps : singlelineProps)} />
         </Box>
         {!this.props.small && (
-          <Text type="BodySmallError" style={collapseStyles([styles.error, this.props.errorStyle])}>
+          <Text
+            center={true}
+            type="BodySmallError"
+            style={collapseStyles([styles.error, this.props.errorStyle])}
+          >
             {this.props.errorText || ''}
           </Text>
         )}
@@ -366,19 +384,13 @@ const _bodySmallTextStyle = getTextStyle('BodySmall')
 const _bodyErrorTextStyle = getTextStyle('BodySmallError')
 
 const styles = styleSheetCreate({
-  error: {
-    minHeight: _bodyErrorTextStyle.lineHeight,
-    textAlign: 'center',
-  },
+  error: {minHeight: _bodyErrorTextStyle.lineHeight},
   floating: {
     color: globalColors.blue,
     marginBottom: 9,
     minHeight: _bodySmallTextStyle.lineHeight,
-    textAlign: 'center',
   },
-  inputContainer: {
-    borderBottomWidth: 1,
-  },
+  inputContainer: {borderBottomWidth: 1},
   inputContainerSmall: {
     backgroundColor: globalColors.fastBlank,
     flex: 1,

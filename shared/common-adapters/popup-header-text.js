@@ -12,12 +12,13 @@ export type HeaderTextProps = {
 
 const PopupHeaderText = (props: HeaderTextProps) => (
   <Text
+    center={true}
     type="BodySmallSemibold"
     style={Styles.collapseStyles([
       styles.text,
       {
-        color: props.color,
         backgroundColor: props.backgroundColor,
+        color: props.color,
       },
       props.style,
     ])}
@@ -28,11 +29,10 @@ const PopupHeaderText = (props: HeaderTextProps) => (
 
 const styles = Styles.styleSheetCreate({
   text: {
-    textAlign: 'center',
+    paddingBottom: Styles.globalMargins.tiny,
     paddingLeft: Styles.globalMargins.small,
     paddingRight: Styles.globalMargins.small,
     paddingTop: Styles.globalMargins.tiny,
-    paddingBottom: Styles.globalMargins.tiny,
   },
 })
 

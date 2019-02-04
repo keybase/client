@@ -1,16 +1,9 @@
 // @flow
 import * as React from 'react'
-import * as ReactDOM from 'react-dom'
+import * as Kb from '../../../../../common-adapters'
+import * as Styles from '../../../../../styles'
 import {resolveRootAsURL} from '../../../../../desktop/app/resolve-root.desktop'
 import {urlsToImgSet} from '../../../../../common-adapters/icon.desktop'
-import {Box, ConnectedUsernames, Text} from '../../../../../common-adapters'
-import {
-  collapseStyles,
-  glamorous,
-  globalColors,
-  platformStyles,
-  styleSheetCreate,
-} from '../../../../../styles'
 import type {Props} from './index.types'
 import SharedTimer, {type SharedTimerID} from '../../../../../util/shared-timers'
 
@@ -29,7 +22,8 @@ type State = {
   children: ?React.Node,
   height: number,
 }
-class ExplodingHeightRetainer extends React.Component<Props, State> {
+class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
+  _boxRef = React.createRef()
   state = {animating: false, children: copyChildren(this.props.children), height: 17}
   timerID: SharedTimerID
 
@@ -60,12 +54,11 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
       return
     }
 
-    if (__STORYSHOT__) {
-      // Storyshots with react 16.5 can't find the domNode and fails
-      return
-    }
+    this.setHeight()
+  }
 
-    const node = ReactDOM.findDOMNode(this)
+  setHeight() {
+    const node = this._boxRef.current
     if (node instanceof window.HTMLElement) {
       const height = node.clientHeight
       if (height && height !== this.state.height) {
@@ -81,8 +74,9 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
 
   render() {
     return (
-      <Box
-        style={collapseStyles([
+      <Kb.Box
+        style={Styles.collapseStyles([
+          styles.container,
           this.props.style,
           // paddingRight is to compensate for the message menu
           // to make sure we don't rewrap text when showing the animation
@@ -93,6 +87,7 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
             position: 'relative',
           },
         ])}
+        forwardedRef={this._boxRef}
       >
         {this.state.children}
         <Ashes
@@ -101,18 +96,18 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
           explodedBy={this.props.explodedBy}
           height={this.state.height}
         />
-      </Box>
+      </Kb.Box>
     )
   }
 }
 
-const AshBox = glamorous.div({
+const AshBox = Styles.styled.div({
   '&.full-width': {
     overflow: 'visible',
     transition: `width ${animationDuration}ms linear`,
     width: '100%',
   },
-  backgroundColor: globalColors.white, // exploded messages don't have hover effects and we need to cover the message
+  backgroundColor: Styles.globalColors.white, // exploded messages don't have hover effects and we need to cover the message
   backgroundImage: explodedIllustrationUrl,
   backgroundRepeat: 'repeat',
   backgroundSize: '400px 68px',
@@ -128,9 +123,9 @@ const Ashes = (props: {doneExploding: boolean, exploded: boolean, explodedBy: ?s
   let explodedTag = null
   if (props.doneExploding) {
     explodedTag = props.explodedBy ? (
-      <Text type="BodyTiny" style={styles.exploded}>
+      <Kb.Text type="BodyTiny" style={styles.exploded}>
         EXPLODED BY{' '}
-        <ConnectedUsernames
+        <Kb.ConnectedUsernames
           type="BodySmallSemibold"
           onUsernameClicked="profile"
           usernames={[props.explodedBy]}
@@ -139,15 +134,15 @@ const Ashes = (props: {doneExploding: boolean, exploded: boolean, explodedBy: ?s
           colorYou={true}
           underline={true}
         />
-      </Text>
+      </Kb.Text>
     ) : (
-      <Text type="BodyTiny" style={styles.exploded}>
+      <Kb.Text type="BodyTiny" style={styles.exploded}>
         EXPLODED
-      </Text>
+      </Kb.Text>
     )
   }
   return (
-    <AshBox className={props.exploded ? 'full-width' : undefined}>
+    <AshBox className={Styles.classNames({'full-width': props.exploded})}>
       {props.exploded && explodedTag}
       <FlameFront height={props.height} stop={props.doneExploding} />
     </AshBox>
@@ -166,13 +161,13 @@ const FlameFront = (props: {height: number, stop: boolean}) => {
     children.push(<Flame key={i} stop={props.stop} />)
   }
   return (
-    <Box className="flame-container" style={styles.flameContainer}>
+    <Kb.Box className="flame-container" style={styles.flameContainer}>
       {children}
-    </Box>
+    </Kb.Box>
   )
 }
 
-const colors = ['yellow', 'red', globalColors.grey, globalColors.black]
+const colors = ['yellow', 'red', Styles.globalColors.grey, Styles.globalColors.black]
 const randWidth = () => Math.round(Math.random() * maxFlameWidth) + flameOffset
 const randColor = () => colors[Math.floor(Math.random() * colors.length)]
 
@@ -200,8 +195,8 @@ class Flame extends React.Component<{}, {color: string, timer: number, width: nu
 
   render() {
     return (
-      <Box
-        style={collapseStyles([
+      <Kb.Box
+        style={Styles.collapseStyles([
           {
             backgroundColor: this.state.color,
             width: this.state.width * (1 + this.state.timer / 1000),
@@ -213,13 +208,15 @@ class Flame extends React.Component<{}, {color: string, timer: number, width: nu
   }
 }
 
-const styles = styleSheetCreate({
-  exploded: platformStyles({
+const styles = Styles.styleSheetCreate({
+  container: {...Styles.globalStyles.flexBoxColumn, flex: 1},
+  exploded: Styles.platformStyles({
     isElectron: {
-      backgroundColor: globalColors.white,
+      backgroundColor: Styles.globalColors.white,
       bottom: 0,
-      color: globalColors.black_20_on_white,
+      color: Styles.globalColors.black_20_on_white,
       padding: 2,
+      paddingLeft: Styles.globalMargins.tiny,
       paddingTop: 0,
       position: 'absolute',
       right: 0,

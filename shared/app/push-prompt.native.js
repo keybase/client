@@ -6,6 +6,8 @@ import * as Kb from '../common-adapters/mobile.native'
 import * as Styles from '../styles'
 import * as Container from '../util/container'
 
+type OwnProps = {||}
+
 type Props = {
   onRequestPermissions: () => void,
   onNoPermissions: () => void,
@@ -15,21 +17,22 @@ const PushPrompt = (props: Props) => (
   <Kb.ScrollView contentContainerStyle={styles.scrollContent}>
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} gap="small" style={styles.container}>
       <Kb.Box style={styles.spacer} />
-      <Kb.Text type="Header" style={styles.text}>
+      <Kb.Text center={true} type="Header" style={styles.text}>
         Please turn on notifications!
       </Kb.Text>
       <Kb.RequireImage
+        resizeMode="contain"
         style={styles.image}
         src={require('../images/illustrations/illustration-turn-on-notifications-460-x-252.png')}
       />
-      <Kb.Text type="BodySmallSemibold" style={styles.text}>
+      <Kb.Text center={true} type="BodySmallSemibold" style={styles.text}>
         It's{' '}
-        <Kb.Text type="BodySmallSemiboldItalic" style={styles.text}>
+        <Kb.Text center={true} type="BodySmallSemiboldItalic" style={styles.text}>
           very
         </Kb.Text>{' '}
         important you enable notifications.
       </Kb.Text>
-      <Kb.Text type="BodySmall" style={styles.text}>
+      <Kb.Text center={true} type="BodySmall" style={styles.text}>
         This phone may need to perform crypto for you, which the Keybase servers cannot do. For example, if
         you provision a new device, this phone will be contacted.
       </Kb.Text>
@@ -59,7 +62,6 @@ const styles = Styles.styleSheetCreate({
   image: Styles.platformStyles({
     isMobile: {
       height: 200,
-      resizeMode: 'contain',
       width: '170%',
     },
   }),
@@ -67,18 +69,21 @@ const styles = Styles.styleSheetCreate({
   spacer: {flexGrow: 1},
   text: {
     color: Styles.globalColors.black,
-    textAlign: 'center',
   },
 })
 
 const mapStateToProps = () => ({})
-const mapDispatchToProps = (dispatch: Container.Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   onNoPermissions: () => dispatch(PushGen.createRejectPermissions()),
   onRequestPermissions: () => dispatch(PushGen.createRequestPermissions()),
 })
 
 export default Container.compose(
-  Container.connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
-  Container.setDisplayName('PushPrompt'),
+  Container.namedConnect<OwnProps, _, _, _, _>(
+    mapStateToProps,
+    mapDispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d}),
+    'PushPrompt'
+  ),
   Container.safeSubmitPerMount(['onRequestPermissions', 'onNoPermissions'])
 )(PushPrompt)

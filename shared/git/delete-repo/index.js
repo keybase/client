@@ -60,7 +60,8 @@ class DeleteRepo extends React.Component<Props, State> {
             </Box>
           )}
           <Text type="Header" style={{marginBottom: 27}}>
-            Are you sure you want to delete this {this.props.teamname ? 'team ' : ''}repository?
+            Are you sure you want to delete this {this.props.teamname ? 'team ' : ''}
+            repository?
           </Text>
           <Icon type={this.props.teamname ? 'icon-repo-team-delete-48' : 'icon-repo-personal-delete-48'} />
           <Box
@@ -82,7 +83,7 @@ class DeleteRepo extends React.Component<Props, State> {
               {this.props.teamname ? `${this.props.teamname}/${this.props.name}` : this.props.name}
             </Text>
           </Box>
-          <Text type="Body" style={{marginBottom: globalMargins.medium, textAlign: 'center'}}>
+          <Text center={true} type="Body" style={{marginBottom: globalMargins.medium}}>
             {this.props.teamname
               ? 'This will permanently delete your remote files and history, and all members of the team will be notified.  This action cannot be undone.'
               : 'This will permanently delete your remote files and history. This action cannot be undone.'}

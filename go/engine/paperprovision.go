@@ -54,7 +54,7 @@ func (e *PaperProvisionEngine) Run(m libkb.MetaContext) (err error) {
 	defer m.CTrace("PaperProvisionEngine#Run", func() error { return err })()
 
 	// clear out any existing session:
-	e.G().Logout()
+	e.G().Logout(m.Ctx())
 
 	m = m.WithNewProvisionalLoginContext()
 

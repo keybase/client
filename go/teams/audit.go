@@ -1,34 +1,36 @@
 package teams
 
 import (
+	"context"
 	"crypto/rand"
 	"fmt"
-	lru "github.com/hashicorp/golang-lru"
-	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/pipeliner"
 	"math/big"
 	"sort"
 	"sync"
 	"time"
+
+	lru "github.com/hashicorp/golang-lru"
+	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/pipeliner"
 )
 
 // AuditCurrentVersion is the version that works with this code. Older stored
 // versions will be discarded on load from level DB.
-const AuditCurrentVersion = keybase1.AuditVersion_V2
+const AuditCurrentVersion = keybase1.AuditVersion_V3
 
 var desktopParams = libkb.TeamAuditParams{
-	RootFreshness:         time.Minute,
-	MerkleMovementTrigger: keybase1.Seqno(1000),
-	NumPreProbes:          25,
-	NumPostProbes:         25,
-	Parallelism:           5,
+	RootFreshness:         5 * time.Minute,
+	MerkleMovementTrigger: keybase1.Seqno(10000),
+	NumPreProbes:          20,
+	NumPostProbes:         20,
+	Parallelism:           4,
 	LRUSize:               1000,
 }
 
 var mobileParams = libkb.TeamAuditParams{
 	RootFreshness:         10 * time.Minute,
-	MerkleMovementTrigger: keybase1.Seqno(10000),
+	MerkleMovementTrigger: keybase1.Seqno(100000),
 	NumPreProbes:          10,
 	NumPostProbes:         10,
 	Parallelism:           3,
@@ -61,6 +63,15 @@ func getAuditParams(m libkb.MetaContext) libkb.TeamAuditParams {
 	return desktopParams
 }
 
+type dummyAuditor struct{}
+
+func (d dummyAuditor) AuditTeam(m libkb.MetaContext, id keybase1.TeamID, isPublic bool,
+	headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno) error {
+	return nil
+}
+
+func (d dummyAuditor) OnLogout(m libkb.MetaContext) {}
+
 type Auditor struct {
 
 	// single-flight lock on TeamID
@@ -81,10 +92,13 @@ func NewAuditor(g *libkb.GlobalContext) *Auditor {
 
 // NewAuditorAndInstall makes a new Auditor and dangles it
 // off of the given GlobalContext.
-func NewAuditorAndInstall(g *libkb.GlobalContext) *Auditor {
-	a := NewAuditor(g)
-	g.SetTeamAuditor(a)
-	return a
+func NewAuditorAndInstall(g *libkb.GlobalContext) {
+	if g.GetEnv().GetDisableTeamAuditor() {
+		g.Log.CDebugf(context.TODO(), "Using dummy auditor, audit disabled")
+		g.SetTeamAuditor(dummyAuditor{})
+	} else {
+		g.SetTeamAuditor(NewAuditor(g))
+	}
 }
 
 // AuditTeam runs an audit on the links of the given team chain (or team chain suffix).

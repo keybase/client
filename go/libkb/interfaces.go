@@ -15,6 +15,7 @@ package libkb
 import (
 	"io"
 	"net/http"
+	"sync"
 	"time"
 
 	"golang.org/x/net/context"
@@ -35,17 +36,18 @@ type configGetter interface {
 	GetAppType() AppType
 	IsMobileExtension() (bool, bool)
 	GetSlowGregorConn() (bool, bool)
+	GetReadDeletedSigChain() (bool, bool)
 	GetAutoFork() (bool, bool)
 	GetChatDbFilename() string
 	GetPvlKitFilename() string
 	GetParamProofKitFilename() string
+	GetProveBypass() (bool, bool)
 	GetCodeSigningKIDs() []string
 	GetConfigFilename() string
 	GetDbFilename() string
 	GetDebug() (bool, bool)
 	GetDisplayRawUntrustedOutput() (bool, bool)
 	GetUpgradePerUserKey() (bool, bool)
-	GetAutoWallet() (bool, bool)
 	GetGpg() string
 	GetGpgHome() string
 	GetGpgOptions() []string
@@ -61,10 +63,14 @@ type configGetter interface {
 	GetLocalRPCDebug() string
 	GetLocalTrackMaxAge() (time.Duration, bool)
 	GetLogFile() string
+	GetEKLogFile() string
+	GetUseDefaultLogFile() (bool, bool)
+	GetUseRootConfigFile() (bool, bool)
 	GetLogPrefix() string
 	GetLogFormat() string
 	GetMerkleKIDs() []string
 	GetMountDir() string
+	GetMountDirDefault() string
 	GetPidFile() string
 	GetPinentry() string
 	GetProofCacheSize() (int, bool)
@@ -94,6 +100,12 @@ type configGetter interface {
 	GetRememberPassphrase() (bool, bool)
 	GetAttachmentHTTPStartPort() (int, bool)
 	GetAttachmentDisableMulti() (bool, bool)
+	GetChatOutboxStorageEngine() string
+	GetDisableTeamAuditor() (bool, bool)
+	GetDisableMerkleAuditor() (bool, bool)
+	GetDisableSearchIndexer() (bool, bool)
+	GetDisableBgConvLoader() (bool, bool)
+	GetEnableBotLiteMode() (bool, bool)
 }
 
 type CommandLine interface {
@@ -300,6 +312,7 @@ type IdentifyUI interface {
 	FinishSocialProofCheck(keybase1.RemoteProof, keybase1.LinkCheckResult) error
 	Confirm(*keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error)
 	DisplayCryptocurrency(keybase1.Cryptocurrency) error
+	DisplayStellarAccount(keybase1.StellarAccount) error
 	DisplayKey(keybase1.IdentifyKey) error
 	ReportLastTrack(*keybase1.TrackSummary) error
 	LaunchNetworkChecks(*keybase1.Identity, *keybase1.User) error
@@ -387,6 +400,14 @@ type ChatUI interface {
 	ChatConfirmChannelDelete(context.Context, chat1.ChatConfirmChannelDeleteArg) (bool, error)
 	ChatSearchHit(context.Context, chat1.ChatSearchHitArg) error
 	ChatSearchDone(context.Context, chat1.ChatSearchDoneArg) error
+	ChatSearchInboxHit(context.Context, chat1.ChatSearchInboxHitArg) error
+	ChatSearchInboxDone(context.Context, chat1.ChatSearchInboxDoneArg) error
+	ChatSearchIndexStatus(context.Context, chat1.ChatSearchIndexStatusArg) error
+	ChatStellarShowConfirm(context.Context) error
+	ChatStellarDataConfirm(context.Context, chat1.UIChatPaymentSummary) (bool, error)
+	ChatStellarDataError(context.Context, string) (bool, error)
+	ChatStellarDone(context.Context, bool) error
+	ChatShowManageChannels(context.Context, string) error
 }
 
 type PromptDefault int
@@ -401,7 +422,7 @@ type PromptDescriptor int
 type OutputDescriptor int
 
 type TerminalUI interface {
-	// The ErrorWriter is not escaped: 	it should not be used to show unescaped user-originated data.
+	// The ErrorWriter is not escaped: it should not be used to show unescaped user-originated data.
 	ErrorWriter() io.Writer
 	Output(string) error
 	OutputDesc(OutputDescriptor, string) error
@@ -413,6 +434,7 @@ type TerminalUI interface {
 	Prompt(PromptDescriptor, string) (string, error)
 	PromptForConfirmation(prompt string) error
 	PromptPassword(PromptDescriptor, string) (string, error)
+	PromptPasswordMaybeScripted(PromptDescriptor, string) (string, error)
 	PromptYesNo(PromptDescriptor, string, PromptDefault) (bool, error)
 	TerminalSize() (width int, height int)
 }
@@ -450,6 +472,9 @@ type UIRouter interface {
 	GetRekeyUI() (keybase1.RekeyUIInterface, int, error)
 	GetRekeyUINoSessionID() (keybase1.RekeyUIInterface, error)
 	GetHomeUI() (keybase1.HomeUIInterface, error)
+	GetIdentify3UIAdapter(MetaContext) (IdentifyUI, error)
+	GetIdentify3UI(MetaContext) (keybase1.Identify3UiInterface, error)
+	GetChatUI() (ChatUI, error)
 
 	Shutdown()
 }
@@ -471,7 +496,9 @@ type Clock interface {
 	Now() time.Time
 }
 
-type GregorDismisser interface {
+type GregorState interface {
+	State(ctx context.Context) (gregor.State, error)
+	InjectItem(ctx context.Context, cat string, body []byte, dtime gregor1.TimeOrOffset) (gregor1.MsgID, error)
 	DismissItem(ctx context.Context, cli gregor1.IncomingInterface, id gregor.MsgID) error
 	LocalDismissItem(ctx context.Context, id gregor.MsgID) error
 }
@@ -536,14 +563,17 @@ const (
 )
 
 type ProofChecker interface {
-	CheckStatus(m MetaContext, h SigHint, pcm ProofCheckerMode, pvlU keybase1.MerkleStoreEntry) ProofError
+	// `h` is the server provided sigHint. If the client can provide validated
+	// information it returns this. The verifiedSigHint is preferred over the
+	// server-trust one when displaying to users.
+	CheckStatus(m MetaContext, h SigHint, pcm ProofCheckerMode, pvlU keybase1.MerkleStoreEntry) (*SigHint, ProofError)
 	GetTorError() ProofError
 }
 
 // ServiceType is an interface for describing an external proof service, like 'Twitter'
 // or 'GitHub', etc.
 type ServiceType interface {
-	AllStringKeys() []string
+	Key() string
 
 	// NormalizeUsername normalizes the given username, assuming
 	// that it's free of any leading strings like '@' or 'dns://'.
@@ -565,21 +595,30 @@ type ServiceType interface {
 	PreProofWarning(remotename string) *Markup
 	ToServiceJSON(remotename string) *jsonw.Wrapper
 	PostInstructions(remotename string) *Markup
-	DisplayName(remotename string) string
+	DisplayName() string
 	RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, remotename string) (warning *Markup, err error)
 	GetProofType() string
 	GetTypeName() string
+	PickerSubtext() string
 	CheckProofText(text string, id keybase1.SigID, sig string) error
-	FormatProofText(MetaContext, *PostProofRes) (string, error)
+	FormatProofText(mctx MetaContext, ppr *PostProofRes,
+		kbUsername string, sigID keybase1.SigID) (string, error)
 	GetAPIArgKey() string
 	IsDevelOnly() bool
 
 	MakeProofChecker(l RemoteProofChainLink) ProofChecker
+	SetDisplayConfig(*keybase1.ServiceDisplayConfig)
+	CanMakeNewProofs(mctx MetaContext) bool
+	DisplayPriority() int
+	DisplayGroup() string
 }
 
 type ExternalServicesCollector interface {
 	GetServiceType(n string) ServiceType
 	ListProofCheckers() []string
+	ListServicesThatAcceptNewProofs(MetaContext) []string
+	ListDisplayConfigs() (res []keybase1.ServiceDisplayConfig)
+	SuggestionFoldPriority() int
 }
 
 // Generic store for data that is hashed into the merkle root. Used by pvl and
@@ -631,6 +670,7 @@ type FastTeamLoader interface {
 	// Untrusted hint of what a team's latest seqno is
 	HintLatestSeqno(m MetaContext, id keybase1.TeamID, seqno keybase1.Seqno) error
 	VerifyTeamName(m MetaContext, id keybase1.TeamID, name keybase1.TeamName, forceRefresh bool) error
+	ForceRepollUntil(m MetaContext, t gregor.TimeOrOffset) error
 	OnLogout()
 }
 
@@ -639,13 +679,49 @@ type TeamAuditor interface {
 	OnLogout(m MetaContext)
 }
 
+// MiniChatPayment is the argument for sending an in-chat payment.
+type MiniChatPayment struct {
+	Username NormalizedUsername
+	Amount   string
+	Currency string
+}
+
+// MiniChatPaymentResult is the result of sending an in-chat payment to
+// one username.
+type MiniChatPaymentResult struct {
+	Username  NormalizedUsername
+	PaymentID stellar1.PaymentID
+	Error     error
+}
+
+// MiniChatPaymentSpec describes the amounts involved in a MiniChatPayment.
+type MiniChatPaymentSpec struct {
+	Username      NormalizedUsername
+	Error         error
+	XLMAmount     string
+	DisplayAmount string // optional
+}
+
+// MiniChatPaymentSummary contains all the recipients and the amounts they
+// will receive plus a total in XLM and in the sender's preferred currency.
+type MiniChatPaymentSummary struct {
+	Specs        []MiniChatPaymentSpec
+	XLMTotal     string
+	DisplayTotal string
+}
+
 type Stellar interface {
 	OnLogout()
-	CreateWalletGated(context.Context) error
 	CreateWalletSoft(context.Context)
 	Upkeep(context.Context) error
 	GetServerDefinitions(context.Context) (stellar1.StellarServerDefinitions, error)
 	KickAutoClaimRunner(MetaContext, gregor.MsgID)
+	UpdateUnreadCount(ctx context.Context, accountID stellar1.AccountID, unread int) error
+	GetMigrationLock() *sync.Mutex
+	SpecMiniChatPayments(mctx MetaContext, payments []MiniChatPayment) (*MiniChatPaymentSummary, error)
+	SendMiniChatPayments(mctx MetaContext, convID chat1.ConversationID, payments []MiniChatPayment) ([]MiniChatPaymentResult, error)
+	HandleOobm(context.Context, gregor.OutOfBandMessage) (bool, error)
+	RemovePendingTx(mctx MetaContext, accountID stellar1.AccountID, txID stellar1.TransactionID) error
 }
 
 type DeviceEKStorage interface {
@@ -659,11 +735,13 @@ type DeviceEKStorage interface {
 	ForceDeleteAll(ctx context.Context, username NormalizedUsername) error
 	// For keybase log send
 	ListAllForUser(ctx context.Context) ([]string, error)
+	// Called on login/logout hooks to set the logged in username in the EK log
+	SetLogPrefix()
 }
 
 type UserEKBoxStorage interface {
 	Put(ctx context.Context, generation keybase1.EkGeneration, userEKBoxed keybase1.UserEkBoxed) error
-	Get(ctx context.Context, generation keybase1.EkGeneration) (keybase1.UserEk, error)
+	Get(ctx context.Context, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.UserEk, error)
 	MaxGeneration(ctx context.Context) (keybase1.EkGeneration, error)
 	DeleteExpired(ctx context.Context, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
 	ClearCache()
@@ -671,7 +749,7 @@ type UserEKBoxStorage interface {
 
 type TeamEKBoxStorage interface {
 	Put(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration, teamEKBoxed keybase1.TeamEkBoxed) error
-	Get(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration) (keybase1.TeamEk, error)
+	Get(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error)
 	MaxGeneration(ctx context.Context, teamID keybase1.TeamID) (keybase1.EkGeneration, error)
 	DeleteExpired(ctx context.Context, teamID keybase1.TeamID, merkleRoot MerkleRoot) ([]keybase1.EkGeneration, error)
 	PurgeCacheForTeamID(ctx context.Context, teamID keybase1.TeamID) error
@@ -682,7 +760,7 @@ type TeamEKBoxStorage interface {
 type EKLib interface {
 	KeygenIfNeeded(ctx context.Context) error
 	GetOrCreateLatestTeamEK(ctx context.Context, teamID keybase1.TeamID) (keybase1.TeamEk, error)
-	GetTeamEK(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration) (keybase1.TeamEk, error)
+	GetTeamEK(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error)
 	PurgeCachesForTeamIDAndGeneration(ctx context.Context, teamID keybase1.TeamID, generation keybase1.EkGeneration)
 	PurgeCachesForTeamID(ctx context.Context, teamID keybase1.TeamID)
 	NewEphemeralSeed() (keybase1.Bytes32, error)
@@ -722,6 +800,11 @@ type LRUer interface {
 	Put(context.Context, LRUContext, LRUKeyer, interface{}) error
 }
 
+type MemLRUer interface {
+	Get(key interface{}) (interface{}, bool)
+	Put(key, value interface{}) bool
+}
+
 type ClockContext interface {
 	GetClock() clockwork.Clock
 }
@@ -751,19 +834,25 @@ type UIDMapper interface {
 	// hardcoded map.
 	CheckUIDAgainstUsername(uid keybase1.UID, un NormalizedUsername) bool
 
-	// MapUIDToUsernamePackages maps the given set of UIDs to the username packages, which include
-	// a username and a fullname, and when the mapping was loaded from the server. It blocks
-	// on the network until all usernames are known. If the `forceNetworkForFullNames` flag is specified,
-	// it will block on the network too. If the flag is not specified, then stale values (or unknown values)
-	// are OK, we won't go to network if we lack them. All network calls are limited by the given timeBudget,
-	// or if 0 is specified, there is indefinite budget. In the response, a nil FullNamePackage means that the
-	// lookup failed. A non-nil FullNamePackage means that some previous lookup worked, but
-	// might be arbitrarily out of date (depending on the cachedAt time). A non-nil FullNamePackage
-	// with an empty fullName field means that the user just hasn't supplied a fullName.
+	// MapUIDToUsernamePackages maps the given set of UIDs to the username
+	// packages, which include a username and a fullname, and when the mapping
+	// was loaded from the server. It blocks on the network until all usernames
+	// are known. If the `forceNetworkForFullNames` flag is specified, it will
+	// block on the network too. If the flag is not specified, then stale
+	// values (or unknown values) are OK, we won't go to network if we lack
+	// them. All network calls are limited by the given timeBudget, or if 0 is
+	// specified, there is indefinite budget. In the response, a nil
+	// FullNamePackage means that the lookup failed. A non-nil FullNamePackage
+	// means that some previous lookup worked, but might be arbitrarily out of
+	// date (depending on the cachedAt time). A non-nil FullNamePackage with an
+	// empty fullName field means that the user just hasn't supplied a
+	// fullName.
 	//
-	// *NOTE* that this function can return useful data and an error. In this regard, the error is more
-	// like a warning. But if, for instance, the mapper runs out of time budget, it will return the data
-	MapUIDsToUsernamePackages(ctx context.Context, g UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration, networktimeBudget time.Duration, forceNetworkForFullNames bool) ([]UsernamePackage, error)
+	// *NOTE* that this function can return useful data and an error. In this
+	// regard, the error is more like a warning. But if, for instance, the
+	// mapper runs out of time budget, it will return the data
+	MapUIDsToUsernamePackages(ctx context.Context, g UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration,
+		networktimeBudget time.Duration, forceNetworkForFullNames bool) ([]UsernamePackage, error)
 
 	// SetTestingNoCachingMode puts the UID mapper into a mode where it never serves cached results, *strictly
 	// for use in tests*
@@ -783,13 +872,13 @@ type UIDMapper interface {
 
 type ChatHelper interface {
 	SendTextByID(ctx context.Context, convID chat1.ConversationID,
-		trip chat1.ConversationIDTriple, tlfName string, text string) error
+		tlfName string, text string) error
 	SendMsgByID(ctx context.Context, convID chat1.ConversationID,
-		trip chat1.ConversationIDTriple, tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error
+		tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error
 	SendTextByIDNonblock(ctx context.Context, convID chat1.ConversationID,
-		trip chat1.ConversationIDTriple, tlfName string, text string) error
+		tlfName string, text string) error
 	SendMsgByIDNonblock(ctx context.Context, convID chat1.ConversationID,
-		trip chat1.ConversationIDTriple, tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error
+		tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error
 	SendTextByName(ctx context.Context, name string, topicName *string,
 		membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, text string) error
 	SendMsgByName(ctx context.Context, name string, topicName *string,
@@ -803,9 +892,13 @@ type ChatHelper interface {
 	FindConversations(ctx context.Context, useLocalData bool, name string, topicName *string,
 		topicType chat1.TopicType, membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility) ([]chat1.ConversationLocal, error)
 	FindConversationsByID(ctx context.Context, convIDs []chat1.ConversationID) ([]chat1.ConversationLocal, error)
+	JoinConversationByID(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) error
+	JoinConversationByName(ctx context.Context, uid gregor1.UID, tlfName, topicName string,
+		topicType chat1.TopicType, vid keybase1.TLFVisibility) error
+	LeaveConversation(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) error
 	GetChannelTopicName(context.Context, keybase1.TeamID, chat1.TopicType, chat1.ConversationID) (string, error)
 	GetMessages(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-		msgIDs []chat1.MessageID, resolveSupersedes bool) ([]chat1.MessageUnboxed, error)
+		msgIDs []chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason) ([]chat1.MessageUnboxed, error)
 	UpgradeKBFSToImpteam(ctx context.Context, tlfName string, tlfID chat1.TLFID, public bool) error
 }
 
@@ -822,6 +915,7 @@ type Resolver interface {
 	ResolveWithBody(m MetaContext, input string) ResolveResult
 	Resolve(m MetaContext, input string) ResolveResult
 	PurgeResolveCache(m MetaContext, input string) error
+	CacheTeamResolution(m MetaContext, id keybase1.TeamID, name keybase1.TeamName)
 }
 
 type EnginePrereqs struct {

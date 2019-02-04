@@ -1,17 +1,20 @@
 // @flow
+import * as React from 'react'
 import Git from '.'
 import * as I from 'immutable'
 import * as GitGen from '../actions/git-gen'
-import * as Types from '../constants/types/git'
 import * as Constants from '../constants/git'
+import * as Kb from '../common-adapters'
 import {anyWaiting} from '../constants/waiting'
-import {compose, lifecycle, connect, type TypedState} from '../util/container'
-import {createSelector} from 'reselect'
+import {compose, connect, isMobile, type RouteProps} from '../util/container'
 import {sortBy, partition} from 'lodash-es'
+
+type OwnProps = RouteProps<{}, {expandedSet: I.Set<string>}>
 
 const sortRepos = git => sortBy(git, ['teamname', 'name'])
 
-const getRepos = createSelector([Constants.getIdToGit], (git: ?I.Map<string, Types.GitInfo>) => {
+const getRepos = state => {
+  const git = Constants.getIdToGit(state)
   if (!git) {
     return {
       personals: [],
@@ -24,9 +27,9 @@ const getRepos = createSelector([Constants.getIdToGit], (git: ?I.Map<string, Typ
     personals: sortRepos(personals).map(g => g.id),
     teams: sortRepos(teams).map(g => g.id),
   }
-})
+}
 
-const mapStateToProps = (state: TypedState, {routeState}) => {
+const mapStateToProps = (state, {routeState}) => {
   return {
     ...getRepos(state),
     expandedSet: routeState.get('expandedSet'),
@@ -56,11 +59,51 @@ const mapDispatchToProps = (dispatch: any, {navigateAppend, setRouteState, route
   },
 })
 
+class GitReloadable extends React.PureComponent<{
+  ...{|_loadGit: () => void|},
+  ...React.ElementConfig<typeof Git>,
+}> {
+  render() {
+    return (
+      <Kb.Reloadable
+        waitingKeys={Constants.loadingWaitingKey}
+        onBack={isMobile ? this.props.onBack : undefined}
+        onReload={this.props._loadGit}
+        reloadOnMount={true}
+      >
+        <Git
+          expandedSet={this.props.expandedSet}
+          loading={this.props.loading}
+          onShowDelete={this.props.onShowDelete}
+          onNewPersonalRepo={this.props.onNewPersonalRepo}
+          onNewTeamRepo={this.props.onNewTeamRepo}
+          onToggleExpand={this.props.onToggleExpand}
+          personals={this.props.personals}
+          teams={this.props.teams}
+          onBack={this.props.onBack}
+        />
+      </Kb.Reloadable>
+    )
+  }
+}
+
+const mergeProps = (s, d, o) => ({
+  _loadGit: d._loadGit,
+  expandedSet: s.expandedSet,
+  loading: s.loading,
+  onBack: d.onBack,
+  onNewPersonalRepo: d.onNewPersonalRepo,
+  onNewTeamRepo: d.onNewTeamRepo,
+  onShowDelete: d.onShowDelete,
+  onToggleExpand: d.onToggleExpand,
+  personals: s.personals,
+  teams: s.teams,
+})
+
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
-  lifecycle({
-    componentDidMount() {
-      this.props._loadGit()
-    },
-  })
-)(Git)
+  connect<OwnProps, _, _, _, _>(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  )
+)(GitReloadable)

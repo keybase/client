@@ -5,6 +5,7 @@ import {globalStyles, globalColors, globalMargins} from '../../styles'
 import * as PushGen from '../../actions/push-gen'
 import {connect} from '../../util/container'
 
+type OwnProps = {||}
 const notificationMonster = require('../../images/illustrations/illustration-turn-on-notifications-460-x-252.png')
 
 export type Props = {
@@ -15,24 +16,24 @@ const TurnOnNotifications = (props: Props) => (
   <Box
     style={{
       ...globalStyles.flexBoxColumn,
+      backgroundColor: globalColors.red,
+      height: 330,
+      overflow: 'hidden',
       position: 'relative',
       width: '100%',
-      height: 330,
-      backgroundColor: globalColors.red,
-      overflow: 'hidden',
     }}
   >
-    <Box style={{height: 270, width: 250, position: 'absolute', top: -20, left: globalMargins.medium}}>
+    <Box style={{height: 270, left: globalMargins.medium, position: 'absolute', top: -20, width: 250}}>
       <NativeImage resizeMode="contain" source={notificationMonster} />
     </Box>
     <Text
       type="BodySemibold"
+      center={true}
       backgroundMode="HighRisk"
       style={{
-        textAlign: 'center',
-        position: 'absolute',
         bottom: globalMargins.medium,
         left: globalMargins.small,
+        position: 'absolute',
         right: globalMargins.small,
       }}
     >
@@ -40,7 +41,8 @@ const TurnOnNotifications = (props: Props) => (
       <Text type="BodySemiboldItalic" backgroundMode="HighRisk">
         very
       </Text>{' '}
-      important you turn them back on.{'\n'}
+      important you turn them back on.
+      {'\n'}
       <Text onClick={props.onEnable} type="BodySemiboldLink" backgroundMode="HighRisk">
         Enable notifications
       </Text>
@@ -50,10 +52,12 @@ const TurnOnNotifications = (props: Props) => (
 
 const mapStateToProps = () => ({})
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   onEnable: () => dispatch(PushGen.createRequestPermissions()),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(
-  TurnOnNotifications
-)
+export default connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d})
+)(TurnOnNotifications)

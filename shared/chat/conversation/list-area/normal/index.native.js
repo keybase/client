@@ -19,6 +19,7 @@ class ConversationList extends React.PureComponent<Props> {
 
       return (
         <Message
+          key={ordinal}
           ordinal={ordinal}
           previous={prevOrdinal}
           measure={null}
@@ -66,6 +67,11 @@ class ConversationList extends React.PureComponent<Props> {
     }
   }
 
+  // not highly documented. keeps new content from shifting around the list if you're scrolled up
+  _maintainVisibleContentPosition = {
+    minIndexForVisible: 0,
+  }
+
   render() {
     return (
       <ErrorBoundary>
@@ -76,7 +82,9 @@ class ConversationList extends React.PureComponent<Props> {
             getItem={this._getItem}
             getItemCount={this._getItemCount}
             renderItem={this._renderItem}
+            maintainVisibleContentPosition={this._maintainVisibleContentPosition}
             onViewableItemsChanged={this._onViewableItemsChanged}
+            keyboardShouldPersistTaps="handled"
             keyExtractor={this._keyExtractor}
             // Limit the number of pages rendered ahead of time (which also limits attachment previews loaded)
             windowSize={5}

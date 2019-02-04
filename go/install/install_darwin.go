@@ -5,6 +5,7 @@ package install
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -21,6 +22,7 @@ import (
 	kbnminstaller "github.com/keybase/client/go/kbnm/installer"
 	"github.com/keybase/client/go/launchd"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/mounter"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -1385,5 +1387,29 @@ func fallbackKillProcess(context Context, log Log, label string, infoPath, pidPa
 	}
 	log.Debug("fallback pid file %s for %s removed", fpid, svc.Label())
 
+	return nil
+}
+
+// StartUpdateIfNeeded starts to update the app if there's one available. It
+// calls `updater check` internally so it ignores the snooze.
+func StartUpdateIfNeeded(ctx context.Context, log logger.Logger) error {
+	updaterPath, err := UpdaterBinPath()
+	if err != nil {
+		return err
+	}
+	cmd := exec.Command(updaterPath, "check")
+	if err = cmd.Start(); err != nil {
+		return err
+	}
+	pid := -1
+	if cmd.Process != nil {
+		pid = cmd.Process.Pid
+	}
+	log.Debug("Started background updater process (%s). pid=%d", updaterPath, pid)
+	cmd.Wait()
+	// Ignore the exit status here as user may have hit "Ignore". If we are
+	// here without getting killed, it's likely user has hit "Ignore". Just
+	// just return `nil` and GUI would check for update info again where it'd
+	// know we don't need to update anymore.
 	return nil
 }

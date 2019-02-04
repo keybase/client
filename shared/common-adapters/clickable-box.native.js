@@ -22,7 +22,7 @@ class ClickableBox extends React.Component<Props> {
             pointerEvents={props.pointerEvents}
             style={clickStyle}
             underlayColor={props.underlayColor || globalColors.white}
-            activeOpacity={0.7}
+            activeOpacity={this.props.activeOpacity ?? 0.7}
           >
             {props.children}
           </TouchableOpacity>

@@ -184,7 +184,7 @@ func (l *LoaderContextG) perUserEncryptionKey(ctx context.Context, userSeqno key
 }
 
 func perUserEncryptionKey(m libkb.MetaContext, userSeqno keybase1.Seqno) (*libkb.NaclDHKeyPair, error) {
-	kr, err := m.G().GetPerUserKeyring()
+	kr, err := m.G().GetPerUserKeyring(m.Ctx())
 	if err != nil {
 		return nil, err
 	}

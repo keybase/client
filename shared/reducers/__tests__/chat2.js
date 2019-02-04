@@ -51,7 +51,7 @@ describe('chat2 reducer', () => {
     messageOrdinals: I.Map([
       [
         conversationIDKey,
-        I.SortedSet([
+        I.OrderedSet([
           Types.numberToOrdinal(1),
           Types.numberToOrdinal(2),
           Types.numberToOrdinal(3),

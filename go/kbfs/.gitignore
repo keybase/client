@@ -1,0 +1,20 @@
+# Generated during `go build`
+kbfsfuse/kbfsfuse
+kbfsdokan/kbfsdokan
+# Generated when running `kbfsfuse` without specifying `--server-root-dir`
+kbfsfuse/kbfs_branches/
+kbfsfuse/kbfs_handles/
+kbfsfuse/kbfs_key/
+kbfsfuse/kbfs_md/
+kbfstool/kbfstool
+kbfsfuse/revision
+kbfsgit/git-remote-keybase/git-remote-keybase
+kbpagesd/kbpagesd
+kbpagesconfig/kbpagesconfig
+kbpagesconfig/kbpagesconfig.test
+libpages/config/config.test
+libpages/libpages.test
+libmime/builder/node_modules
+*.test
+
+**/vim-go-test-compile

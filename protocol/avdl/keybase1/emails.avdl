@@ -1,0 +1,19 @@
+@namespace("keybase.1")
+protocol emails {
+    import idl "common.avdl";
+
+    record EmailLookupResult {
+        EmailAddress email;
+        union { null, UID } uid;
+    }
+
+    void addEmail(int sessionID, EmailAddress email, IdentityVisibility visibility);
+    void deleteEmail(int sessionID, EmailAddress email);
+    void editEmail(int sessionID, EmailAddress oldEmail, EmailAddress email, IdentityVisibility visibility);
+    void setPrimaryEmail(int sessionID, EmailAddress email);
+    void sendVerificationEmail(int sessionID, EmailAddress email);
+    array<EmailLookupResult> bulkLookupEmails(int sessionID, array<string> emailContacts);
+    void setVisibilityEmail(int sessionID, EmailAddress email, IdentityVisibility visibility);
+    void setVisibilityAllEmail(int sessionID, IdentityVisibility visibility);
+    array<Email> getEmails(int sessionID);
+}

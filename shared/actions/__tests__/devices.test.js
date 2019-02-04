@@ -6,14 +6,14 @@ import * as Constants from '../../constants/devices'
 import * as Tabs from '../../constants/tabs'
 import * as DevicesGen from '../devices-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import * as RouteTree from '../route-tree'
+import * as RouteTreeGen from '../route-tree-gen'
 import devicesSaga from '../devices'
 import appRouteTree from '../../app/routes-app'
 import * as Testing from '../../util/testing'
 import {getPath as getRoutePath} from '../../route-tree'
 import HiddenString from '../../util/hidden-string'
 
-jest.mock('../../engine')
+jest.mock('../../engine/require')
 
 // We want to be logged in usually
 const blankStore = Testing.getInitialStore()
@@ -128,8 +128,8 @@ const details = [
 ]
 
 const startOnDevicesTab = dispatch => {
-  dispatch(RouteTree.switchRouteDef(appRouteTree))
-  dispatch(RouteTree.navigateTo([Tabs.devicesTab]))
+  dispatch(RouteTreeGen.createSwitchRouteDef({routeDef: appRouteTree}))
+  dispatch(RouteTreeGen.createNavigateTo({path: [Tabs.devicesTab]}))
 }
 
 const startReduxSaga = Testing.makeStartReduxSaga(devicesSaga, initialStore, startOnDevicesTab)
@@ -187,7 +187,7 @@ describe('load', () => {
   it('load leads to loaded', () => {
     const {dispatch, getState} = init
     rpc = jest.spyOn(RPCTypes, 'deviceDeviceHistoryListRpcPromise')
-    rpc.mockImplementation(() => new Promise(resolve => resolve(details)))
+    rpc.mockImplementation(() => Promise.resolve(details))
 
     dispatch(DevicesGen.createLoad())
     return Testing.flushPromises().then(() => {
@@ -199,7 +199,7 @@ describe('load', () => {
   it('loaded handles null', () => {
     const {dispatch, getState} = init
     rpc = jest.spyOn(RPCTypes, 'deviceDeviceHistoryListRpcPromise')
-    rpc.mockImplementation(() => new Promise(resolve => resolve()))
+    rpc.mockImplementation(() => Promise.resolve())
     dispatch(DevicesGen.createLoad())
     return Testing.flushPromises().then(() => {
       expect(getState().devices.deviceMap).toEqual(I.Map())
@@ -221,7 +221,7 @@ describe('revoking other', () => {
   it('works', () => {
     const {dispatch, getState} = init
     rpc = jest.spyOn(RPCTypes, 'revokeRevokeDeviceRpcPromise')
-    rpc.mockImplementation(() => new Promise(resolve => resolve()))
+    rpc.mockImplementation(() => Promise.resolve())
 
     const deviceID = Types.stringToDeviceID('456')
 
@@ -244,7 +244,7 @@ describe('revoking self', () => {
   it('works', () => {
     const {dispatch, getState} = init
     rpc = jest.spyOn(RPCTypes, 'loginDeprovisionRpcPromise')
-    rpc.mockImplementation(() => new Promise(resolve => resolve()))
+    rpc.mockImplementation(() => Promise.resolve())
 
     const deviceID = Types.stringToDeviceID('123')
 
@@ -301,7 +301,7 @@ describe('shows revoke page correctly', () => {
     const {dispatch, getState} = init
     const deviceID = Types.stringToDeviceID('456')
     rpc = jest.spyOn(RPCTypes, 'rekeyGetRevokeWarningRpcPromise')
-    rpc.mockImplementation(() => new Promise(resolve => resolve()))
+    rpc.mockImplementation(() => Promise.resolve())
     dispatch(DevicesGen.createShowRevokePage({deviceID}))
     const targetDevice = deviceID
     const actingDevice = getState().config.deviceID
@@ -312,7 +312,7 @@ describe('shows revoke page correctly', () => {
     const {dispatch, getState} = init
     const deviceID = Types.stringToDeviceID('456')
     rpc = jest.spyOn(RPCTypes, 'rekeyGetRevokeWarningRpcPromise')
-    rpc.mockImplementation(() => new Promise(resolve => resolve({})))
+    rpc.mockImplementation(() => Promise.resolve({}))
     dispatch(DevicesGen.createShowRevokePage({deviceID}))
     return Testing.flushPromises().then(() => {
       expect(getState().devices.endangeredTLFMap.get(deviceID)).toEqual(I.Set())
@@ -323,9 +323,7 @@ describe('shows revoke page correctly', () => {
     const {dispatch, getState} = init
     const deviceID = Types.stringToDeviceID('456')
     rpc = jest.spyOn(RPCTypes, 'rekeyGetRevokeWarningRpcPromise')
-    rpc.mockImplementation(
-      () => new Promise(resolve => resolve({endangeredTLFs: [{name: 'one'}, {name: 'two'}]}))
-    )
+    rpc.mockImplementation(() => Promise.resolve({endangeredTLFs: [{name: 'one'}, {name: 'two'}]}))
     dispatch(DevicesGen.createShowRevokePage({deviceID}))
     return Testing.flushPromises().then(() => {
       expect(getState().devices.endangeredTLFMap.get(deviceID)).toEqual(I.Set.of('one', 'two'))
@@ -368,7 +366,7 @@ describe('shows paperkey page correctly', () => {
   it('creates a paperkey', () => {
     const {dispatch} = init
     rpc = jest.spyOn(RPCTypes, 'loginPaperKeyRpcSaga')
-    rpc.mockImplementation(() => new Promise(resolve => resolve()))
+    rpc.mockImplementation(() => Promise.resolve())
     dispatch(DevicesGen.createShowPaperKeyPage())
     expect(rpc).toHaveBeenCalled()
   })

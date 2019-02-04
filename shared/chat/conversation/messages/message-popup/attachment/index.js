@@ -2,9 +2,9 @@
 import * as React from 'react'
 import MessagePopupHeader from '../header'
 import {FloatingMenu} from '../../../../../common-adapters/'
-import {fileUIName} from '../../../../../styles'
+import {fileUIName, type StylesCrossPlatform} from '../../../../../styles'
 import type {DeviceType} from '../../../../../constants/types/devices'
-import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
+import type {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
 
 type Props = {
   attachTo: () => ?React.Component<any>,
@@ -21,15 +21,16 @@ type Props = {
   onShowInFinder: null | (() => void),
   pending: boolean,
   position: Position,
-  style?: Object,
+  style?: StylesCrossPlatform,
   timestamp: number,
   visible: boolean,
   yourMessage: boolean,
+  isDeleteable: boolean,
 }
 
 const AttachmentPopupMenu = (props: Props) => {
   const items = [
-    ...(props.yourMessage
+    ...(props.isDeleteable
       ? [
           'Divider',
           {
@@ -76,6 +77,7 @@ const AttachmentPopupMenu = (props: Props) => {
       onHidden={props.onHidden}
       closeOnSelect={true}
       position={props.position}
+      positionFallbacks={[]}
       containerStyle={props.style}
       visible={props.visible}
     />

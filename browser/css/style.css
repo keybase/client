@@ -1,4 +1,3 @@
-
 .keybase-reply {
   text-align: left;
 }
@@ -7,11 +6,13 @@
   font-family: Open Sans, sans-serif !important;
 }
 
-.fixed-form form, form.fixed-form {
+.fixed-form form,
+form.fixed-form {
   position: fixed !important;
 }
 
-li.keybase-reply form, form.keybase-reply {
+li.keybase-reply form,
+form.keybase-reply {
   overflow: hidden;
   z-index: 9999;
   position: absolute;
@@ -19,7 +20,8 @@ li.keybase-reply form, form.keybase-reply {
   border-radius: 4px;
 }
 
-.keybase-reply form, form.keybase-reply {
+.keybase-reply form,
+form.keybase-reply {
   display: block !important;
   background: #fff;
   margin-top: 3em;
@@ -39,8 +41,8 @@ li.keybase-reply form, form.keybase-reply {
   display: inline-block;
 }
 
-.keybase-reply a, 
-.keybase-reply a:visited, 
+.keybase-reply a,
+.keybase-reply a:visited,
 .keybase-reply a:link {
   text-decoration: none;
   font-weight: 600;
@@ -50,7 +52,7 @@ li.keybase-reply form, form.keybase-reply {
 }
 
 .keybase-body {
-  font-weight:normal;
+  font-weight: normal;
   margin: 24px;
   color: rgba(0, 0, 0, 0.75);
 }
@@ -98,7 +100,7 @@ img.keybase-icon {
   border-radius: 16px;
 }
 .keybase-user span {
-  color: #4C8EFF;
+  color: #4c8eff;
 }
 
 .keybase-reply .keybase-service {
@@ -107,7 +109,7 @@ img.keybase-icon {
 }
 
 .keybase-reply a.external-user {
-  color: #3663EA !important;
+  color: #3663ea !important;
   padding: 0 !important;
   font-weight: normal !important;
 }
@@ -121,14 +123,15 @@ img.keybase-icon {
   font-weight: 600;
 }
 
-.keybase-reply textarea, .keybase-reply textarea:focus {
+.keybase-reply textarea,
+.keybase-reply textarea:focus {
   width: 97%;
   font-size: 13px;
-  font-weight:normal;
+  font-weight: normal;
   color: rgba(0, 0, 0, 0.75);
   padding: 0.5em;
   border-radius: 4px;
-  border: solid 1px #4C8EFF;
+  border: solid 1px #4c8eff;
   margin: 8px 0 8px 0;
   box-shadow: inherit;
 }
@@ -144,8 +147,8 @@ img.keybase-icon {
 a.keybase-button {
   font-size: 14px;
   display: inline-block;
-  border-radius: 50px;
-  background-color: #4C8EFF;
+  border-radius: 4px;
+  background-color: #4c8eff;
   color: white !important;
   padding: 0.6em 1.5em !important;
   font-weight: normal !important;
@@ -153,7 +156,7 @@ a.keybase-button {
 
 .keybase-reply h3 {
   text-align: center;
-  background: #4C8EFF;
+  background: #4c8eff;
   color: #fff;
   height: 40px;
   line-height: 40px;
@@ -173,12 +176,13 @@ a.keybase-button {
   margin: 0 2px -2px 0;
 }
 
-.keybase-reply input[type="submit"], .keybase-reply input[type="button"] {
+.keybase-reply input[type='submit'],
+.keybase-reply input[type='button'] {
   width: 116px;
   height: 32px;
   border: 0;
-  border-radius: 50px;
-  background-color: #4C8EFF;
+  border-radius: 4px;
+  background-color: #4c8eff;
   color: #fff;
   font-size: 14px;
   font-style: normal;
@@ -188,17 +192,17 @@ a.keybase-button {
   cursor: pointer;
 }
 
-.keybase-reply input[type="submit"]:disabled {
+.keybase-reply input[type='submit']:disabled {
   opacity: 0.3;
 }
 
-.keybase-reply input[type="button"] {
+.keybase-reply input[type='button'] {
   background: #e6e6e6;
   color: rgba(0, 0, 0, 0.75);
 }
 
 span.keybase-close:hover {
-  color: rgba(0,0,0,0.3);
+  color: rgba(0, 0, 0, 0.3);
 }
 span.keybase-close {
   position: absolute;
@@ -209,11 +213,11 @@ span.keybase-close {
   font-size: 24px;
   font-weight: bold;
   padding: 5px;
-  color: rgba(0,0,0,0.4);
+  color: rgba(0, 0, 0, 0.4);
   cursor: pointer;
 }
 span.keybase-close::before {
-  content: "\00d7"; /* multiply sign */
+  content: '\00d7'; /* multiply sign */
 }
 
 .keybase-copy {
@@ -226,7 +230,7 @@ span.keybase-close::before {
 .keybase-copy.copied::after {
   position: absolute;
   margin: 3px 0 0 2px;
-  content: "\1f4cb"; /* clipboard */
+  content: '\1f4cb'; /* clipboard */
 }
 
 a.keybase-chat {
@@ -238,9 +242,8 @@ a.keybase-chat {
   font-family: 'Open Sans', sans-serif !important;
   font-size: 13px;
   font-weight: 600;
-  border-radius: 4px;
   color: #fff !important;
-  background-color: #4C8EFF;
+  background-color: #4c8eff;
   white-space: nowrap !important;
   cursor: pointer;
   text-align: center;
@@ -248,7 +251,7 @@ a.keybase-chat {
   height: 28px;
   width: 134px;
   line-height: 28px;
-  border-radius: 28px;
+  border-radius: 4px;
 }
 #fbProfileCover a.keybase-chat {
   vertical-align: bottom;
@@ -265,13 +268,13 @@ a.keybase-chat:focus img {
 }
 a.keybase-chat:hover {
   text-decoration: none !important;
-  background-color: #73A6FF;
+  background-color: #73a6ff;
 }
 
 a.keybase-profile-chat {
   /* Chat button for keybase profile page. */
-  background-color: #4C8EFF;
-  color: rgb(255,255,255);
+  background-color: #4c8eff;
+  color: rgb(255, 255, 255);
 }
 a.keybase-profile-chat img {
   height: 16px;
@@ -281,6 +284,6 @@ a.keybase-profile-chat img {
 }
 
 a.keybase-profile-chat:hover {
-  color: rgb(255,255,255);
-  background-color: #73A6FF;
+  color: rgb(255, 255, 255);
+  background-color: #73a6ff;
 }

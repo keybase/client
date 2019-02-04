@@ -21,8 +21,6 @@ if NOT DEFINED DevEnvDir call "%ProgramFiles(x86)%\\Microsoft Visual Studio 14.0
 IF [%UpdateChannel%] == [Smoke2] goto:done_ci
 
 :: NOTE: We depend on the bot or caller to checkout client first
-:: call:checkout_keybase client, %ClientRevision% || goto:build_error || EXIT /B 1
-call:checkout_keybase kbfs, %KBFSRevision% || goto:build_error || EXIT /B 1
 call:checkout_keybase go-updater, %UpdaterRevision% || goto:build_error || EXIT /B 1
 call:checkout_keybase release, %ReleaseRevision% || goto:build_error || EXIT /B 1
 
@@ -89,6 +87,8 @@ s3browser-con upload prerelease.keybase.io  %GOPATH%\src\github.com\keybase\clie
 if %UpdateChannel% NEQ "None" (
     :: Test channel json
     s3browser-con upload prerelease.keybase.io  %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%\update-windows-prod-test-v2.json prerelease.keybase.io || goto:build_error || EXIT /B 1
+    echo "Creating index files"
+    %GOPATH%\src\github.com\keybase\release\release index-html --bucket-name=prerelease.keybase.io --prefixes="windows/" --upload="windows/index.html"
 ) else (
     echo "No update channel"
 )
@@ -126,7 +126,7 @@ set BUILD_TAG_ENCODED=!BUILD_TAG:+=%%2B!
 ::Publish smoke updater jsons to S3
 if [%UpdateChannel%] NEQ [Smoke2] (
     echo "Non Smoke2 build"
-    %OUTPUT% "Successfully built Windows with client: %KEYBASE_VERSION%, kbfs: %KBFS_BUILD%"
+    %OUTPUT% "Successfully built Windows with client: %KEYBASE_VERSION%"
     %OUTPUT% "https://prerelease.keybase.io/windows/Keybase_%BUILD_TAG_ENCODED%.%GOARCH%.msi"
     goto :no_smokeb
 )
@@ -170,13 +170,11 @@ EXIT /B 1
 
 :check_ci 
 for /f %%i in ('git -C %GOPATH%\src\github.com\keybase\client rev-parse --short^=8 HEAD') do set clientCommit=%%i
-for /f %%i in ('git -C %GOPATH%\src\github.com\keybase\kbfs rev-parse --short^=8 HEAD') do set kbfsCommit=%%i
-echo [%clientCommit%] [%kbfsCommit%]
+echo [%clientCommit%]
 :: need GITHUB_TOKEN
 pushd %GOPATH%\src\github.com\keybase\release
 go build || goto:build_error || EXIT /B 1
 release wait-ci --repo="client" --commit="%clientCommit%" --context="continuous-integration/jenkins/branch" --context="ci/circleci"  || goto:ci_error
-release wait-ci --repo="kbfs" --commit="%kbfsCommit%" --context="continuous-integration/jenkins/branch" --context="ci/circleci"  || goto:ci_error
 popd
 EXIT /B 0
 

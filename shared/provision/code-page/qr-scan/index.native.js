@@ -1,10 +1,8 @@
 // @flow
 import * as React from 'react'
 import {RNCamera} from 'react-native-camera'
-import {Box2, ProgressIndicator} from '../../../common-adapters'
+import {Box2, ProgressIndicator, QRLines, QRNotAuthorized} from '../../../common-adapters'
 import {globalColors, styleSheetCreate, globalStyles} from '../../../styles'
-import QRScanLines from './lines'
-import QRScanNotAuthorized from './not-authorized'
 import type {Props} from '.'
 
 const QRScan = (props: Props) => (
@@ -18,13 +16,13 @@ const QRScan = (props: Props) => (
         flashMode={RNCamera.Constants.FlashMode.off}
         permissionDialogTitle={'Permission to use camera'}
         permissionDialogMessage={'We need access to your camera to scan in the secret code'}
-        notAuthorizedView={<QRScanNotAuthorized onOpenSettings={props.onOpenSettings} />}
+        notAuthorizedView={<QRNotAuthorized />}
         onBarCodeRead={({data}) => props.onSubmitTextCode(data)}
         barCodeTypes={[RNCamera.Constants.BarCodeType.qr]}
         style={styles.camera}
       />
     )}
-    {!props.waiting && <QRScanLines canScan={true} />}
+    {!props.waiting && <QRLines canScan={true} />}
     {props.waiting && <ProgressIndicator style={styles.waiting} type="Large" white={true} />}
   </Box2>
 )

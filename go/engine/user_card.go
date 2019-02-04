@@ -21,9 +21,10 @@ type card struct {
 		Website  string `json:"website"`
 		Twitter  string `json:"twitter"`
 	} `json:"profile"`
-	YouFollowThem bool                        `json:"you_follow_them"`
-	TheyFollowYou bool                        `json:"they_follow_you"`
-	TeamShowcase  []keybase1.UserTeamShowcase `json:"team_showcase"`
+	YouFollowThem        bool                        `json:"you_follow_them"`
+	TheyFollowYou        bool                        `json:"they_follow_you"`
+	TeamShowcase         []keybase1.UserTeamShowcase `json:"team_showcase"`
+	RegisteredForAirdrop bool                        `json:"airdrop_registered"`
 }
 
 func (c *card) GetAppStatus() *libkb.AppStatus {
@@ -61,17 +62,18 @@ func getUserCard(m libkb.MetaContext, uid keybase1.UID, useSession bool) (ret *k
 	}
 
 	ret = &keybase1.UserCard{
-		Following:     card.FollowSummary.Following,
-		Followers:     card.FollowSummary.Followers,
-		Uid:           uid,
-		FullName:      card.Profile.FullName,
-		Location:      card.Profile.Location,
-		Bio:           card.Profile.Bio,
-		Website:       card.Profile.Website,
-		Twitter:       card.Profile.Twitter,
-		YouFollowThem: card.YouFollowThem,
-		TheyFollowYou: card.TheyFollowYou,
-		TeamShowcase:  card.TeamShowcase,
+		Following:            card.FollowSummary.Following,
+		Followers:            card.FollowSummary.Followers,
+		Uid:                  uid,
+		FullName:             card.Profile.FullName,
+		Location:             card.Profile.Location,
+		Bio:                  card.Profile.Bio,
+		Website:              card.Profile.Website,
+		Twitter:              card.Profile.Twitter,
+		YouFollowThem:        card.YouFollowThem,
+		TheyFollowYou:        card.TheyFollowYou,
+		TeamShowcase:         card.TeamShowcase,
+		RegisteredForAirdrop: card.RegisteredForAirdrop,
 	}
 
 	if err := m.G().CardCache().Set(ret, useSession); err != nil {

@@ -5,7 +5,7 @@ import (
 	"io"
 
 	"github.com/keybase/client/go/chat/utils"
-	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/logger"
 
 	lru "github.com/hashicorp/golang-lru"
@@ -19,7 +19,7 @@ type decodingReadSeeker struct {
 	source       io.ReadSeeker
 	encKey       SecretboxKey
 	verifyKey    VerifyKey
-	sigPrefix    libkb.SignaturePrefix
+	sigPrefix    kbcrypto.SignaturePrefix
 	nonce        Nonce
 	size, offset int64
 	chunks       *lru.Cache
@@ -28,7 +28,7 @@ type decodingReadSeeker struct {
 var _ io.ReadSeeker = (*decodingReadSeeker)(nil)
 
 func NewDecodingReadSeeker(ctx context.Context, log logger.Logger, source io.ReadSeeker, size int64,
-	encKey SecretboxKey, verifyKey VerifyKey, signaturePrefix libkb.SignaturePrefix, nonce Nonce,
+	encKey SecretboxKey, verifyKey VerifyKey, signaturePrefix kbcrypto.SignaturePrefix, nonce Nonce,
 	c *lru.Cache) io.ReadSeeker {
 	if c == nil {
 		// If the caller didn't give us a cache, then let's just make one

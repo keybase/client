@@ -2,6 +2,8 @@
 import React, {PureComponent} from 'react'
 import ReactList from 'react-list'
 import {globalStyles, collapseStyles, styleSheetCreate, platformStyles} from '../styles'
+import logger from '../logger'
+import {throttle, once} from 'lodash-es'
 
 import type {Props} from './list'
 
@@ -14,7 +16,23 @@ class List extends PureComponent<Props<any>, void> {
       return null
     }
     const item = this.props.items[index]
-    return this.props.renderItem(index, item)
+    const children = this.props.renderItem(index, item)
+
+    if (this.props.indexAsKey) {
+      // if indexAsKey is set, just use index.
+      return <React.Fragment key={String(index)}>{children}</React.Fragment>
+    }
+    const keyProp = this.props.keyProperty || 'key'
+    if (item[keyProp]) {
+      const key = item[keyProp]
+      // otherwise, see if key is set on item directly.
+      return <React.Fragment key={key}>{children}</React.Fragment>
+    }
+    // We still don't have a key. So hopefully renderItem will provide the key.
+    logger.info(
+      'Setting key from renderItem does not work on native. Please set it directly on items or use indexAsKey.'
+    )
+    return children
   }
 
   _setListRef = r => {
@@ -25,6 +43,11 @@ class List extends PureComponent<Props<any>, void> {
     if (this.props.selectedIndex !== -1 && this.props.selectedIndex !== prevProps.selectedIndex) {
       this._list && this._list.scrollAround(this.props.selectedIndex)
     }
+
+    if (this.props.items !== prevProps.items) {
+      // Items changed so let's also reset the onEndReached call
+      this._onEndReached = once(() => this.props.onEndReached && this.props.onEndReached())
+    }
   }
 
   _getType() {
@@ -34,11 +57,23 @@ class List extends PureComponent<Props<any>, void> {
     return this.props.fixedHeight ? 'uniform' : 'simple'
   }
 
+  _checkOnEndReached = throttle(target => {
+    const diff = target.scrollHeight - (target.scrollTop + target.clientHeight)
+    if (diff < 5) {
+      this._onEndReached()
+    }
+  }, 100)
+
+  // This matches the way onEndReached works for flatlist on RN
+  _onEndReached = once(() => this.props.onEndReached && this.props.onEndReached())
+
+  _onScroll = e => e.currentTarget && this._checkOnEndReached(e.currentTarget)
+
   render() {
     return (
       <div style={collapseStyles([styles.outerDiv, this.props.style])}>
         <div style={globalStyles.fillAbsolute}>
-          <div style={styles.innerDiv}>
+          <div style={styles.innerDiv} onScroll={this.props.onEndReached ? this._onScroll : undefined}>
             <ReactList
               ref={this._setListRef}
               useTranslate3d={false}

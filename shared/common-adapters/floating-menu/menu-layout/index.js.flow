@@ -4,6 +4,7 @@ import * as React from 'react'
 export type MenuItem = {|
   danger?: boolean,
   disabled?: boolean,
+  newTag?: ?boolean,
   onClick?: ?(evt?: SyntheticEvent<>) => void,
   onPress?: void,
   style?: Object,
@@ -12,13 +13,16 @@ export type MenuItem = {|
   view?: React.Node, // Required for header
 |}
 
+export type MenuItems = Array<MenuItem | 'Divider' | null>
+
 export type MenuLayoutProps = {
-  items: Array<MenuItem | 'Divider' | null>,
+  items: MenuItems,
   header?: ?MenuItem,
   onHidden: () => void,
   closeOnClick?: boolean,
   style?: Object,
   hoverColor?: string,
+  closeText?:?string, // mobile only; default to "Close"
 }
 
 export default class MenuLayout extends React.Component<MenuLayoutProps> {}

@@ -72,6 +72,7 @@ func NewCmdShowNotifications(cl *libcmdline.CommandLine, g *libkb.GlobalContext)
 		Usage: "Display all notifications sent by daemon in real-time",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdShowNotifications{Contextified: libkb.NewContextified(g)}, "show-notifications", c)
+			cl.SetNoStandalone()
 		},
 		Flags: []cli.Flag{},
 	}
@@ -118,6 +119,10 @@ func (d *notificationDisplay) ClientOutOfDate(_ context.Context, arg keybase1.Cl
 
 func (d *notificationDisplay) UserChanged(_ context.Context, uid keybase1.UID) error {
 	return d.printf("User %s changed\n", uid)
+}
+
+func (d *notificationDisplay) PasswordChanged(_ context.Context) error {
+	return d.printf("Password changed\n")
 }
 
 func (d *notificationDisplay) FSActivity(_ context.Context, notification keybase1.FSNotification) error {

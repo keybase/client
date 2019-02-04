@@ -1,46 +1,36 @@
 // @flow
-import {
-  compose,
-  connect,
-  lifecycle,
-  setDisplayName,
-  type TypedState,
-} from '../../util/container'
+import {compose, namedConnect, lifecycle} from '../../util/container'
+import * as I from 'immutable'
 import * as FsGen from '../../actions/fs-gen'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import {navigateUp} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import Header from './header'
 
-const mapStateToProps = (state: TypedState, {path}) => {
-  const pathItem = state.fs.pathItems.get(path, Constants.unknownPathItem)
-  return {
-    path,
-    pathItem,
-  }
-}
+type OwnProps = {|
+  path: Types.Path,
+  routePath: I.List<string>,
+|}
 
-const mapDispatchToProps = (dispatch, {routePath}) => ({
-  loadFilePreview: (path: Types.Path) => dispatch(FsGen.createFilePreviewLoad({path})),
-  onBack: () => dispatch(navigateUp()),
+const mapStateToProps = (state, {path}: OwnProps) => ({
+  _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  const {path, pathItem} = stateProps
-  const {loadFilePreview, onBack} = dispatchProps
-  return {
-    pathItem,
+const mapDispatchToProps = dispatch => ({
+  loadFilePreview: (path: Types.Path) => dispatch(FsGen.createFilePreviewLoad({path})),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+})
 
-    onBack,
-
-    loadFilePreview,
-    path,
-  }
-}
+const mergeProps = (stateProps, dispatchProps, {path, routePath}) => ({
+  loadFilePreview: dispatchProps.loadFilePreview,
+  name: stateProps._pathItem.name,
+  onBack: dispatchProps.onBack,
+  path,
+  routePath,
+})
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  setDisplayName('FilePreviewHeader'),
+  namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'FilePreviewHeader'),
   lifecycle({
     componentDidMount() {
       this.props.loadFilePreview(this.props.path)

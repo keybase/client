@@ -29,6 +29,7 @@ declare export var globalStyles: {
   rounded: {|borderRadius: 3|},
 }
 declare export var desktopStyles: {
+  boxShadow?: CSS._StylesDesktop,
   clickable?: CSS._StylesDesktop,
   editable?: CSS._StylesDesktop,
   fadeOpacity?: CSS._StylesDesktop,
@@ -40,11 +41,10 @@ declare export var desktopStyles: {
 declare export var mobileStyles: {}
 declare export var fileUIName: string
 declare export var statusBarHeight: number
+declare export var borderRadius: number
 declare export var hairlineWidth: number
 declare export function backgroundURL(...path: Array<string>): string
-declare export function styleSheetCreate(map: {[styleName: string]: CSS.StylesCrossPlatform}): {
-  [styleName: string]: CSS.StylesCrossPlatform,
-}
+declare export function styleSheetCreate<T: {[styleName: string]: CSS.StylesCrossPlatform}>(map: T): T
 
 type _Elem = Object | null | false | void
 // CollapsibleStyle is a generic version of ?StylesMobile and family,
@@ -63,9 +63,10 @@ declare export var windowStyle: {
   height: number,
 }
 
-declare export function glamorous(
-  Component: any // React.ComponentType<P>
-): (...styles: Array<any>) => any // React.Component<P>
+declare export function styled<T>(Component: T): (...styles: Array<any>) => T
+
+declare export var styledCss: any // TODO better type
+declare export var styledKeyframes: any // TODO better type
 
 declare export var isAndroid: boolean
 declare export var isIOS: boolean
@@ -80,3 +81,4 @@ export type {
   Color,
   StylesCrossPlatformWithSomeDisallowed,
 } from './css'
+export {default as classNames} from 'classnames'

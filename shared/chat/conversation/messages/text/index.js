@@ -1,27 +1,44 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
-import {Markdown} from '../../../../common-adapters'
-import {globalColors, globalMargins, platformStyles, styleSheetCreate} from '../../../../styles'
+import * as Kb from '../../../../common-adapters'
+import * as Styles from '../../../../styles'
 
 export type Props = {
+  isEditing: boolean,
+  message: Types.MessageText,
   text: string,
   type: 'error' | 'pending' | 'sent',
-  isEditing: boolean,
-  mentionsAt: Types.MentionsAt,
-  mentionsChannel: Types.MentionsChannel,
-  mentionsChannelName: Types.MentionsChannelName,
 }
 
-const MessageText = ({text, type, isEditing, mentionsAt, mentionsChannel, mentionsChannelName}: Props) => (
-  <Markdown
-    style={getStyle(type, isEditing)}
-    meta={{mentionsAt, mentionsChannel, mentionsChannelName}}
-    allowFontScaling={true}
-  >
-    {text}
-  </Markdown>
-)
+const MessageText = ({
+  text,
+  type,
+  isEditing,
+  mentionsAt,
+  mentionsChannel,
+  mentionsChannelName,
+  message,
+}: Props) => {
+  const markdown = (
+    <Kb.Markdown
+      style={getStyle(type, isEditing)}
+      meta={{message}}
+      styleOverride={Styles.isMobile ? {paragraph: getStyle(type, isEditing)} : undefined}
+      allowFontScaling={true}
+    >
+      {text}
+    </Kb.Markdown>
+  )
+
+  return Styles.isMobile ? (
+    <Kb.Box2 direction="vertical" style={styles.wrapper}>
+      {markdown}
+    </Kb.Box2>
+  ) : (
+    markdown
+  )
+}
 
 // Encoding all 4 states as static objects so we don't re-render
 const getStyle = (type, isEditing) => {
@@ -33,24 +50,22 @@ const getStyle = (type, isEditing) => {
 }
 
 const editing = {
-  backgroundColor: globalColors.yellow3,
+  backgroundColor: Styles.globalColors.yellow3,
   borderRadius: 2,
-  paddingLeft: globalMargins.tiny,
-  paddingRight: globalMargins.tiny,
+  paddingLeft: Styles.globalMargins.tiny,
+  paddingRight: Styles.globalMargins.tiny,
 }
-const sent = platformStyles({
-  common: {
-    width: '100%',
-  },
+const sent = Styles.platformStyles({
   isElectron: {
     // Make text selectable. On mobile we implement that differently.
     cursor: 'text',
     userSelect: 'text',
     whiteSpace: 'pre-wrap',
+    width: '100%',
     wordBreak: 'break-word',
   },
   isMobile: {
-    color: globalColors.black_75,
+    ...Styles.globalStyles.flexBoxColumn,
   },
 })
 const sentEditing = {
@@ -64,12 +79,13 @@ const pendingFailEditing = {
   ...pendingFail,
   ...editing,
 }
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   editing,
   pendingFail,
   pendingFailEditing,
   sent,
   sentEditing,
+  wrapper: {alignSelf: 'flex-start', flex: 1},
 })
 
 export default MessageText

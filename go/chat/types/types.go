@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"github.com/keybase/client/go/chat/s3"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -21,32 +22,27 @@ const (
 	ActionTeamType                   = "teamType"
 	ActionExpunge                    = "expunge"
 
-	PushActivity         = "chat.activity"
-	PushTyping           = "chat.typing"
-	PushMembershipUpdate = "chat.membershipUpdate"
-	PushTLFFinalize      = "chat.tlffinalize"
-	PushTLFResolve       = "chat.tlfresolve"
-	PushTeamChannels     = "chat.teamchannels"
-	PushKBFSUpgrade      = "chat.kbfsupgrade"
-	PushConvRetention    = "chat.convretention"
-	PushTeamRetention    = "chat.teamretention"
-	PushConvSettings     = "chat.convsettings"
-	PushSubteamRename    = "chat.subteamrename"
+	PushActivity            = "chat.activity"
+	PushTyping              = "chat.typing"
+	PushMembershipUpdate    = "chat.membershipUpdate"
+	PushTLFFinalize         = "chat.tlffinalize"
+	PushTLFResolve          = "chat.tlfresolve"
+	PushTeamChannels        = "chat.teamchannels"
+	PushKBFSUpgrade         = "chat.kbfsupgrade"
+	PushConvRetention       = "chat.convretention"
+	PushTeamRetention       = "chat.teamretention"
+	PushConvSettings        = "chat.convsettings"
+	PushSubteamRename       = "chat.subteamrename"
+	PushConversationsUpdate = "chat.conversationsupdate"
 )
 
 func NewAllCryptKeys() AllCryptKeys {
 	return make(AllCryptKeys)
 }
 
-type NameInfoUntrusted struct {
+type NameInfo struct {
 	ID            chat1.TLFID
 	CanonicalName string
-}
-
-type NameInfo struct {
-	ID               chat1.TLFID
-	CanonicalName    string
-	IdentifyFailures []keybase1.TLFIdentifyFailure
 }
 
 func NewNameInfo() *NameInfo {
@@ -70,6 +66,7 @@ func (m MembershipUpdateRes) AllOtherUsers() (res []gregor1.UID) {
 }
 
 type RemoteConversationMetadata struct {
+	Name              string   `codec:"n"`
 	TopicName         string   `codec:"t"`
 	Snippet           string   `codec:"s"`
 	SnippetDecoration string   `codec:"d"`
@@ -93,6 +90,21 @@ func (rc RemoteConversation) GetConvID() chat1.ConversationID {
 
 func (rc RemoteConversation) GetVersion() chat1.ConversationVers {
 	return rc.Conv.Metadata.Version
+}
+
+func (rc RemoteConversation) GetMembersType() chat1.ConversationMembersType {
+	return rc.Conv.GetMembersType()
+}
+
+func (rc RemoteConversation) GetTeamType() chat1.TeamType {
+	return rc.Conv.GetTeamType()
+}
+
+func (rc RemoteConversation) GetTopicName() string {
+	if rc.LocalMetadata != nil {
+		return rc.LocalMetadata.TopicName
+	}
+	return ""
 }
 
 func (rc RemoteConversation) GetName() string {
@@ -133,6 +145,7 @@ func (c ConvLoaderPriority) HigherThan(c2 ConvLoaderPriority) bool {
 
 type ConvLoaderJob struct {
 	ConvID       chat1.ConversationID
+	Query        *chat1.GetThreadQuery
 	Pagination   *chat1.Pagination
 	Priority     ConvLoaderPriority
 	PostLoadHook func(context.Context, chat1.ThreadView, ConvLoaderJob)
@@ -146,15 +159,30 @@ func (j ConvLoaderJob) String() string {
 	return fmt.Sprintf("[convID: %s pagination: %s]", j.ConvID, j.Pagination)
 }
 
-func NewConvLoaderJob(convID chat1.ConversationID, pagination *chat1.Pagination, priority ConvLoaderPriority,
+func NewConvLoaderJob(convID chat1.ConversationID, query *chat1.GetThreadQuery,
+	pagination *chat1.Pagination, priority ConvLoaderPriority,
 	postLoadHook func(context.Context, chat1.ThreadView, ConvLoaderJob)) ConvLoaderJob {
 	return ConvLoaderJob{
 		ConvID:       convID,
+		Query:        query,
 		Pagination:   pagination,
 		Priority:     priority,
 		PostLoadHook: postLoadHook,
 	}
 }
+
+type AsyncInboxResult struct {
+	Conv      chat1.Conversation
+	ConvLocal chat1.ConversationLocal
+	InboxRes  *Inbox // set if we are returning the whole inbox
+}
+
+type ConversationLocalizerTyp int
+
+const (
+	ConversationLocalizerBlocking ConversationLocalizerTyp = iota
+	ConversationLocalizerNonblocking
+)
 
 type AttachmentUploaderTaskStatus int
 
@@ -169,6 +197,38 @@ type AttachmentUploadResult struct {
 	Object   chat1.Asset
 	Preview  *chat1.Asset
 	Metadata []byte
+}
+
+type BoxerEncryptionInfo struct {
+	Key                   CryptKey
+	SigningKeyPair        libkb.NaclSigningKeyPair
+	EphemeralSeed         *keybase1.TeamEk
+	PairwiseMACRecipients []keybase1.KID
+	Version               chat1.MessageBoxedVersion
+}
+
+type SenderPrepareResult struct {
+	Boxed               chat1.MessageBoxed
+	EncryptionInfo      BoxerEncryptionInfo
+	PendingAssetDeletes []chat1.Asset
+	AtMentions          []gregor1.UID
+	ChannelMention      chat1.ChannelMention
+	TopicNameState      *chat1.TopicNameState
+}
+
+type ParsedStellarPayment struct {
+	Username libkb.NormalizedUsername
+	Full     string
+	Amount   string
+	Currency string
+}
+
+func (p ParsedStellarPayment) ToMini() libkb.MiniChatPayment {
+	return libkb.MiniChatPayment{
+		Username: p.Username,
+		Amount:   p.Amount,
+		Currency: p.Currency,
+	}
 }
 
 type DummyAttachmentFetcher struct{}
@@ -208,6 +268,11 @@ func (d DummyAttachmentHTTPSrv) GetPendingPreviewURL(ctx context.Context, outbox
 	return ""
 }
 
+func (d DummyAttachmentHTTPSrv) GetUnfurlAssetURL(ctx context.Context, convID chat1.ConversationID,
+	asset chat1.Asset) string {
+	return ""
+}
+
 func (d DummyAttachmentHTTPSrv) GetAttachmentFetcher() AttachmentFetcher {
 	return DummyAttachmentFetcher{}
 }
@@ -220,4 +285,108 @@ func (d DummyStellarLoader) LoadPayment(ctx context.Context, convID chat1.Conver
 
 func (d DummyStellarLoader) LoadRequest(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, requestID stellar1.KeybaseRequestID) *chat1.UIRequestInfo {
 	return nil
+}
+
+type DummyEphemeralPurger struct{}
+
+func (d DummyEphemeralPurger) Start(ctx context.Context, uid gregor1.UID) {}
+func (d DummyEphemeralPurger) Stop(ctx context.Context) chan struct{} {
+	return nil
+}
+func (d DummyEphemeralPurger) Queue(ctx context.Context, purgeInfo chat1.EphemeralPurgeInfo) error {
+	return nil
+}
+
+type DummyIndexer struct{}
+
+func (d DummyIndexer) Start(ctx context.Context, uid gregor1.UID) {}
+func (d DummyIndexer) Stop(ctx context.Context) chan struct{} {
+	return nil
+}
+func (d DummyIndexer) Search(ctx context.Context, uid gregor1.UID, query string, opts chat1.SearchOpts,
+	hitUICh chan chat1.ChatSearchInboxHit, indexUICh chan chat1.ChatSearchIndexStatus) (*chat1.ChatSearchInboxResults, error) {
+	return nil, nil
+}
+func (d DummyIndexer) Add(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msg []chat1.MessageUnboxed) error {
+	return nil
+}
+func (d DummyIndexer) Remove(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, msg []chat1.MessageUnboxed) error {
+	return nil
+}
+func (d DummyIndexer) IndexInbox(ctx context.Context, uid gregor1.UID) (map[string]chat1.ProfileSearchConvStats, error) {
+	return nil, nil
+}
+
+type DummyNativeVideoHelper struct{}
+
+func (d DummyNativeVideoHelper) ThumbnailAndDuration(ctx context.Context, filename string) ([]byte, int, error) {
+	return nil, 0, nil
+}
+
+type UnfurlerTaskStatus int
+
+const (
+	UnfurlerTaskStatusUnfurling UnfurlerTaskStatus = iota
+	UnfurlerTaskStatusSuccess
+	UnfurlerTaskStatusFailed
+	UnfurlerTaskStatusPermFailed
+)
+
+type DummyUnfurler struct{}
+
+func (d DummyUnfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	msg chat1.MessageUnboxed) {
+}
+func (d DummyUnfurler) Prefetch(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, msgText string) int {
+	return 0
+}
+func (d DummyUnfurler) Status(ctx context.Context, outboxID chat1.OutboxID) (UnfurlerTaskStatus, *chat1.UnfurlResult, error) {
+	return UnfurlerTaskStatusFailed, nil, nil
+}
+func (d DummyUnfurler) Retry(ctx context.Context, outboxID chat1.OutboxID)    {}
+func (d DummyUnfurler) Complete(ctx context.Context, outboxID chat1.OutboxID) {}
+
+func (d DummyUnfurler) GetSettings(ctx context.Context, uid gregor1.UID) (res chat1.UnfurlSettings, err error) {
+	return res, nil
+}
+
+func (d DummyUnfurler) WhitelistAdd(ctx context.Context, uid gregor1.UID, domain string) error {
+	return nil
+}
+
+func (d DummyUnfurler) WhitelistRemove(ctx context.Context, uid gregor1.UID, domain string) error {
+	return nil
+}
+
+func (d DummyUnfurler) WhitelistAddExemption(ctx context.Context, uid gregor1.UID,
+	exemption WhitelistExemption) {
+}
+
+func (d DummyUnfurler) SetMode(ctx context.Context, uid gregor1.UID, mode chat1.UnfurlMode) error {
+	return nil
+}
+
+func (d DummyUnfurler) SetSettings(ctx context.Context, uid gregor1.UID, settings chat1.UnfurlSettings) error {
+	return nil
+}
+
+type DummyStellarSender struct{}
+
+func (d DummyStellarSender) ParsePayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	body string) []ParsedStellarPayment {
+	return nil
+}
+
+func (d DummyStellarSender) DescribePayments(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, payments []ParsedStellarPayment) (res chat1.UIChatPaymentSummary, toSend []ParsedStellarPayment, err error) {
+	return res, toSend, nil
+}
+
+func (d DummyStellarSender) SendPayments(ctx context.Context, convID chat1.ConversationID, payments []ParsedStellarPayment) ([]chat1.TextPayment, error) {
+	return nil, nil
+}
+
+func (d DummyStellarSender) DecorateWithPayments(ctx context.Context, body string,
+	payments []chat1.TextPayment) string {
+	return body
 }

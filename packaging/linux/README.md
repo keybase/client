@@ -32,10 +32,13 @@ be corrupt repo metadata for everyone on Ubuntu/Deb/RPM.
 
 If you need to forcibly skip CI, set NOWAIT=1 in the environment.
 
-If you want to test the build without pushing live, set
-KEYBASE_DRY_RUN=1 in the environment. Be very careful not to typo that
-variable. You should see "This build+push is a DRY RUN." after all the
-git fetches in the build output, if you did this right.
+If you want to test the build without pushing live, set KEYBASE_DRY_RUN=1 in
+the environment. Be very careful not to typo that variable. You should see
+"This build+push is a DRY RUN." after all the git fetches in the build output,
+if you did this right. A dry run will push the package to the s3 bucket
+jack-testing.keybase.io, but this is not exposed on the internet.  You
+could copy the repo to somewhere in prerelease.keybase.io to test a `yum
+install`, for example.
 
 == Making changes ==
 
@@ -44,7 +47,7 @@ in the Dockerfile in this directory. Whenenever you make changes that
 affect the docker image, you also need to bump its version number in
 docker_build.sh. Look for the line that looks like this:
 
-    image=keybase_packaging_v16
+    image=keybase_packaging_v17
 
 Increment that number, so that everyone who's running these builds
 automatically rebuilds the docker image with your change.

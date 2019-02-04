@@ -14,13 +14,15 @@ const Downloads = (props: DownloadsProps) =>
   !!props.downloadKeys.length && (
     <Box2 direction="horizontal" fullWidth={true} style={styles.box}>
       <Box style={styles.downloadsBox}>
-        {props.downloadKeys.map(key => <Download downloadKey={key} key={key} />)}
+        {props.downloadKeys.map(key => (
+          <Download downloadKey={key} key={key} />
+        ))}
       </Box>
       <Box style={styles.buttonsBox}>
         {props.thereAreMore ? (
           <WithTooltip text="Open Downloads folder">
             <ClickableBox style={styles.iconBoxEllipsis} onClick={props.openDownloadFolder}>
-              <Icon type="iconfont-ellipsis" hint="Open downloads folder" color={globalColors.black_40} />
+              <Icon type="iconfont-ellipsis" hint="Open downloads folder" color={globalColors.black_50} />
             </ClickableBox>
           </WithTooltip>
         ) : (
@@ -31,7 +33,7 @@ const Downloads = (props: DownloadsProps) =>
             <Icon
               type="iconfont-folder-downloads"
               hint="Open downloads folder"
-              color={globalColors.black_40}
+              color={globalColors.black_50}
             />
           </ClickableBox>
         </WithTooltip>
@@ -41,34 +43,34 @@ const Downloads = (props: DownloadsProps) =>
 
 const styles = styleSheetCreate({
   box: {
-    height: 40,
     backgroundColor: globalColors.blue5,
     borderStyle: 'solid',
-    borderTopWidth: 1,
     borderTopColor: globalColors.black_10,
-  },
-  iconBoxOpenDownload: {
-    padding: globalMargins.tiny,
-  },
-  iconBoxEllipsis: {
-    padding: globalMargins.tiny,
-    backgroundColor: globalColors.black_10,
-    borderRadius: 4,
-    marginLeft: globalMargins.xtiny,
-  },
-  downloadsBox: {
-    ...globalStyles.flexBoxRow,
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    overflow: 'hidden',
+    borderTopWidth: 1,
+    height: 40,
   },
   buttonsBox: {
     ...globalStyles.flexBoxRow,
     ...globalStyles.flexGrow,
+    alignItems: 'center',
+    justifyContent: 'space-between',
     minWidth: globalMargins.xtiny + 32 + globalMargins.tiny + 32 + globalMargins.tiny,
     paddingRight: globalMargins.tiny,
-    justifyContent: 'space-between',
+  },
+  downloadsBox: {
+    ...globalStyles.flexBoxRow,
     alignItems: 'center',
+    justifyContent: 'flex-start',
+    overflow: 'hidden',
+  },
+  iconBoxEllipsis: {
+    backgroundColor: globalColors.black_10,
+    borderRadius: 4,
+    marginLeft: globalMargins.xtiny,
+    padding: globalMargins.tiny,
+  },
+  iconBoxOpenDownload: {
+    padding: globalMargins.tiny,
   },
 })
 

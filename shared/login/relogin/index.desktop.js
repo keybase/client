@@ -10,34 +10,17 @@ type State = {
   open: boolean,
 }
 
-const ItemBox = Styles.glamorous(Kb.Box)({
+const ItemBox = Styles.styled(Kb.Box)({
   ...Styles.globalStyles.flexBoxCenter,
-  ':hover': {
-    backgroundColor: Styles.globalColors.blue3_40,
-  },
   borderBottom: `1px solid ${Styles.globalColors.lightGrey2}`,
   minHeight: 40,
   width: '100%',
 })
 
-const ButtonBox = Styles.glamorous(Kb.Box)({
-  ...Styles.globalStyles.flexBoxRow,
-  ':hover': {
-    border: `solid 1px ${Styles.globalColors.blue2}`,
-    color: Styles.globalColors.blue2,
-  },
-  alignItems: 'center',
-  color: Styles.globalColors.lightGrey2,
-  border: `solid 1px ${Styles.globalColors.lightGrey2}`,
-  borderRadius: 100,
-  paddingRight: Styles.globalMargins.small,
-  width: 270,
-})
-
 const other = 'Someone else...'
 
-const UserRow = ({user, onClick}) => (
-  <ItemBox onClick={onClick}>
+const UserRow = ({user}) => (
+  <ItemBox>
     <Kb.Text
       type="Header"
       style={{color: user === other ? Styles.globalColors.black_75 : Styles.globalColors.orange}}
@@ -56,6 +39,16 @@ class Login extends React.Component<Props, State> {
     this.setState(prevState => ({open: !prevState.open}))
   }
 
+  _onClickUser = (selected: React.Element<typeof UserRow>) => {
+    if (selected.props.user === other) {
+      this._toggleOpen()
+      this.props.onSomeoneElse()
+    } else {
+      this._toggleOpen()
+      this.props.selectedUserChange(selected.props.user)
+    }
+  }
+
   render() {
     const inputProps = {
       autoFocus: true,
@@ -63,84 +56,42 @@ class Login extends React.Component<Props, State> {
       floatingHintTextOverride: '',
       hintText: 'Passphrase',
       key: this.props.inputKey,
-      type: this.props.showTyping ? 'passwordVisible' : 'password',
       onChangeText: passphrase => this.props.passphraseChange(passphrase),
       onEnterKeyDown: () => this.props.onSubmit(),
+      type: this.props.showTyping ? 'passwordVisible' : 'password',
       uncontrolled: true,
     }
 
     const checkboxProps = [
       {
-        label: 'Show typing',
         checked: this.props.showTyping,
+        label: 'Show typing',
         onCheck: check => {
           this.props.showTypingChange(check)
         },
       },
     ]
 
+    const userRows = this.props.users.concat(other).map(u => <UserRow user={u} key={u} />)
+
+    const selectedIdx = this.props.users.indexOf(this.props.selectedUser)
+
     return (
       <Kb.Box style={stylesContainer}>
         <Kb.UserCard username={this.props.selectedUser}>
-          <ButtonBox onClick={this._toggleOpen}>
-            <Kb.Button
-              type="Primary"
-              label={this.props.selectedUser}
-              labelStyle={{color: Styles.globalColors.orange, fontSize: 16, paddingLeft: 18}}
-              onClick={() => {
-                /* handled by the ButtonBox */
-              }}
-              style={{backgroundColor: Styles.globalColors.transparent, flex: 1}}
-            />
-            <Kb.Icon
-              type="iconfont-caret-down"
-              color={Styles.globalColors.black_40}
-              style={{marginBottom: 4}}
-            />
-          </ButtonBox>
-          {this.state.open && (
-            <Kb.PopupDialog
-              onClose={this._toggleOpen}
-              styleCover={{backgroundColor: Styles.globalColors.transparent, zIndex: 999}}
-              styleClose={{opacity: 0}}
-              styleClipContainer={{borderRadius: 0, marginTop: 100}}
-            >
-              <Kb.Box style={{height: '100%', width: '100%'}}>
-                <Kb.Box
-                  style={{
-                    ...Styles.globalStyles.flexBoxColumn,
-                    ...Styles.desktopStyles.scrollable,
-                    border: `1px solid ${Styles.globalColors.blue}`,
-                    borderRadius: 4,
-                    maxHeight: 300,
-                    width: 270,
-                  }}
-                >
-                  {this.props.users.concat(other).map(u => (
-                    <UserRow
-                      user={u}
-                      key={u}
-                      onClick={() => {
-                        if (u === other) {
-                          this._toggleOpen()
-                          this.props.onSomeoneElse()
-                        } else {
-                          this._toggleOpen()
-                          this.props.selectedUserChange(u)
-                        }
-                      }}
-                    />
-                  ))}
-                </Kb.Box>
-              </Kb.Box>
-            </Kb.PopupDialog>
-          )}
+          <Kb.Dropdown
+            onChanged={this._onClickUser}
+            selected={userRows[selectedIdx]}
+            items={userRows}
+            position={'bottom center'}
+          />
           <Kb.FormWithCheckbox
             style={{alignSelf: 'stretch'}}
             inputProps={inputProps}
             checkboxesProps={checkboxProps}
           />
           <Kb.WaitingButton
+            disabled={!this.props.passphrase}
             waitingKey={Constants.waitingKey}
             style={{marginTop: 0}}
             type="Primary"
@@ -167,9 +118,9 @@ class Login extends React.Component<Props, State> {
 const stylesContainer = {
   ...Styles.globalStyles.flexBoxColumn,
   alignItems: 'center',
-  justifyContent: 'center',
-  flex: 1,
   backgroundColor: Styles.globalColors.white,
+  flex: 1,
+  justifyContent: 'center',
 }
 
 export default Login

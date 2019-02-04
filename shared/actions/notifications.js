@@ -2,12 +2,12 @@
 import * as Constants from '../constants/notifications'
 import * as ConfigGen from './config-gen'
 import * as NotificationsGen from './notifications-gen'
+import * as FsGen from './fs-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import {getEngine} from '../engine'
 import logger from '../logger'
 import {isMobile} from '../constants/platform'
-import type {TypedState} from '../constants/reducer'
 
 const setupEngineListeners = () => {
   const channels = {
@@ -21,7 +21,9 @@ const setupEngineListeners = () => {
     ephemeral: false,
     favorites: false,
     kbfs: true,
-    kbfsrequest: !isMobile,
+    kbfsdesktop: !isMobile,
+    kbfslegacy: false,
+    kbfsrequest: false,
     keyfamily: false,
     paperkeys: false,
     pgp: true,
@@ -48,14 +50,23 @@ const setupEngineListeners = () => {
   })
 }
 
-const receivedBadgeState = (state: TypedState, action: NotificationsGen.ReceivedBadgeStatePayload) => {
-  const payload = Constants.badgeStateToBadges(action.payload.badgeState, state)
-  return payload ? Saga.put(NotificationsGen.createSetAppBadgeState(payload)) : null
+const receivedBadgeState = (state, action) => {
+  const payload = Constants.badgeStateToBadgeCounts(action.payload.badgeState, state)
+  return [
+    payload && NotificationsGen.createSetBadgeCounts(payload),
+    Constants.shouldTriggerTlfLoad(action.payload.badgeState) && FsGen.createFavoritesLoad(),
+  ]
 }
 
 function* notificationsSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.actionToAction(NotificationsGen.receivedBadgeState, receivedBadgeState)
-  yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
+  yield* Saga.chainAction<NotificationsGen.ReceivedBadgeStatePayload>(
+    NotificationsGen.receivedBadgeState,
+    receivedBadgeState
+  )
+  yield* Saga.chainAction<ConfigGen.SetupEngineListenersPayload>(
+    ConfigGen.setupEngineListeners,
+    setupEngineListeners
+  )
 }
 
 export default notificationsSaga

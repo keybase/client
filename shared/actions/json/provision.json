@@ -30,7 +30,8 @@
       "error": "?HiddenString"
     },
     "showFinalErrorPage": {
-      "finalError": "RPCError"
+      "finalError": "RPCError",
+      "fromDeviceAdd": "boolean"
     },
     "showGPGPage": {},
     "showPassphrasePage": {

@@ -33,7 +33,7 @@ describe('TransportShared', () => {
     arg1: 5,
     arg2: 'value',
   }
-  const invokeArg = {program: 'myProgram', method: 'myMethod', args: [args], notify: false}
+  const invokeArg = {args: [args], method: 'myMethod', notify: false, program: 'myProgram'}
 
   const expectedMessage = [0, 1, 'myProgram.myMethod', [args]]
 

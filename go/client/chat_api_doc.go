@@ -58,8 +58,11 @@ Send a message to a public channel:
 Mute a conversation:
     {"method": "setstatus", "params": {"options": {"channel": {"name": "you,them"}, "status": "muted"}}}
 
+Search the inbox:
+    {"method": "searchinbox", "params": {"options": {"query": "hi", "sent_by": "you", "max_hits": 1000, "sent_after":"09/10/2017"}}}
+
 Search conversation with a regex:
-    {"method": "searchregexp", "params": {"options": {"channel": {"name": "you,them"}, "query": "a.*", "is_regex": true}}}
+    {"method": "searchregexp", "params": {"options": {"channel": {"name": "you,them"}, "query": "a.*", "is_regex": true, "sent_by": "you", "sent_before":"09/10/2017"}}}
 
 Read a team conversation:
     {"method": "read", "params": {"options": {"channel": {"name": "treehouse", "members_type": "team", "topic_name": "general"}}}}
@@ -69,4 +72,16 @@ Read a team conversation channel:
 
 Send a message to a team conversation channel:
     {"method": "send", "params": {"options": {"channel": {"name": "treehouse", "members_type": "team", "topic_name": "random"}, "message": {"body": "time for lunch?"}}}}
+
+Create a new blank conversation:
+    {"method": "newconv", "params": {"options": {"channel": {"name": "you,them"}}}}
+
+List conversations on a name:
+    {"method": "listconvsonname", "params": {"options": {"topic_type": "CHAT", "members_type": "team", "name": "treehouse"}}}
+
+Join a team conversation:
+    {"method": "join", "params": {"options": {"channel": {"name": "treehouse", "members_type": "team", "topic_name": "random"}}}}
+
+Leave a team conversation:
+    {"method": "leave", "params": {"options": {"channel": {"name": "treehouse", "members_type": "team", "topic_name": "random"}}}}
 `

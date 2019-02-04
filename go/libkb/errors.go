@@ -14,7 +14,9 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/gregor"
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -74,6 +76,14 @@ func NewProofError(s keybase1.ProofStatus, d string, a ...interface{}) *ProofErr
 		return &ProofErrorImpl{s, d}
 	}
 	return &ProofErrorImpl{s, fmt.Sprintf(d, a...)}
+}
+
+func NewInvalidPVLSelectorError(selector keybase1.SelectorEntry) error {
+	return NewProofError(
+		keybase1.ProofStatus_INVALID_PVL,
+		"JSON selector entry must be a string, int, or 'all' %v",
+		selector,
+	)
 }
 
 func (e *ProofErrorImpl) Error() string {
@@ -166,6 +176,22 @@ func (e AssertionParseError) Error() string {
 
 func NewAssertionParseError(s string, a ...interface{}) AssertionParseError {
 	return AssertionParseError{
+		err: fmt.Sprintf(s, a...),
+	}
+}
+
+//=============================================================================
+
+type AssertionCheckError struct {
+	err string
+}
+
+func (e AssertionCheckError) Error() string {
+	return e.err
+}
+
+func NewAssertionCheckError(s string, a ...interface{}) AssertionCheckError {
+	return AssertionCheckError{
 		err: fmt.Sprintf(s, a...),
 	}
 }
@@ -282,6 +308,10 @@ func (e NotFoundError) Error() string {
 func IsNotFoundError(err error) bool {
 	_, ok := err.(NotFoundError)
 	return ok
+}
+
+func NewNotFoundError(s string) error {
+	return NotFoundError{s}
 }
 
 //=============================================================================
@@ -412,20 +442,6 @@ func (e BadEmailError) Error() string {
 
 //=============================================================================
 
-type BadKeyError struct {
-	Msg string
-}
-
-func (p BadKeyError) Error() string {
-	msg := "Bad key found"
-	if len(p.Msg) != 0 {
-		msg = msg + ": " + p.Msg
-	}
-	return msg
-}
-
-//=============================================================================
-
 type BadFingerprintError struct {
 	fp1, fp2 PGPFingerprint
 }
@@ -484,6 +500,11 @@ func (a AppStatusError) Error() string {
 	}
 
 	return fmt.Sprintf("%s%s (error %d)", a.Desc, fields, a.Code)
+}
+
+func (a AppStatusError) WithDesc(desc string) AppStatusError {
+	a.Desc = desc
+	return a
 }
 
 func IsAppStatusErrorCode(err error, code keybase1.StatusCode) bool {
@@ -666,6 +687,18 @@ func NewWebUnreachableError(h string) WebUnreachableError {
 
 //=============================================================================
 
+type ProtocolSchemeMismatch struct {
+	msg string
+}
+
+func (h ProtocolSchemeMismatch) Error() string {
+	return h.msg
+}
+func NewProtocolSchemeMismatch(msg string) ProtocolSchemeMismatch {
+	return ProtocolSchemeMismatch{msg: msg}
+}
+
+//=============================================================================
 type ProtocolDowngradeError struct {
 	msg string
 }
@@ -730,28 +763,6 @@ func (e NoUsernameError) Error() string {
 }
 
 func NewNoUsernameError() NoUsernameError { return NoUsernameError{} }
-
-//=============================================================================
-
-type UnmarshalError struct {
-	ExpectedTag PacketTag
-	Tag         PacketTag
-}
-
-func (u UnmarshalError) Error() string {
-	return fmt.Sprintf("Expected %s packet, got %s packet", u.ExpectedTag, u.Tag)
-}
-
-type VerificationError struct {
-	Cause error
-}
-
-func (e VerificationError) Error() string {
-	if e.Cause == nil {
-		return "Verification failed"
-	}
-	return fmt.Sprintf("Verification failed: %v", e.Cause)
-}
 
 //=============================================================================
 
@@ -938,6 +949,17 @@ func (e BadServiceError) Error() string {
 	return e.Service + ": unsupported service"
 }
 
+type ServiceDoesNotSupportNewProofsError struct {
+	Service string
+}
+
+func (e ServiceDoesNotSupportNewProofsError) Error() string {
+	if len(e.Service) == 0 {
+		return fmt.Sprintf("New proofs of that type are not supported")
+	}
+	return fmt.Sprintf("New %s proofs are not supported", e.Service)
+}
+
 //=============================================================================
 
 type NotConfirmedError struct{}
@@ -1068,7 +1090,7 @@ func (r KeyExpiredError) Error() string {
 //=============================================================================
 
 type UnknownKeyTypeError struct {
-	typ AlgoType
+	typ kbcrypto.AlgoType
 }
 
 func (e UnknownKeyTypeError) Error() string {
@@ -1224,6 +1246,20 @@ type MerkleClientError struct {
 	t merkleClientErrorType
 }
 
+func NewClientMerkleSkipHashMismatchError(m string) MerkleClientError {
+	return MerkleClientError{
+		t: merkleErrorSkipHashMismatch,
+		m: m,
+	}
+}
+
+func NewClientMerkleSkipMissingError(m string) MerkleClientError {
+	return MerkleClientError{
+		t: merkleErrorSkipMissing,
+		m: m,
+	}
+}
+
 func (m MerkleClientError) Error() string {
 	return fmt.Sprintf("Error checking merkle tree: %s", m.m)
 }
@@ -1234,6 +1270,10 @@ func (m MerkleClientError) IsNotFound() bool {
 
 func (m MerkleClientError) IsOldTree() bool {
 	return m.t == merkleErrorOldTree
+}
+
+func (m MerkleClientError) IsSkipHashMismatch() bool {
+	return m.t == merkleErrorSkipHashMismatch
 }
 
 type MerklePathNotFoundError struct {
@@ -1352,11 +1392,11 @@ func NewUntrackError(d string, a ...interface{}) UntrackError {
 //=============================================================================
 
 type APINetError struct {
-	err error
+	Err error
 }
 
 func (e APINetError) Error() string {
-	return fmt.Sprintf("API network error: %s", e.err)
+	return fmt.Sprintf("API network error: %s", e.Err)
 }
 
 //=============================================================================
@@ -1400,6 +1440,30 @@ type ChainLinkWrongSeqnoError struct {
 
 func (e ChainLinkWrongSeqnoError) Error() string {
 	return fmt.Sprintf("Chain link wrong seqno error: %s", e.Msg)
+}
+
+func NewChainLinkWrongSeqnoError(s string) error {
+	return ChainLinkWrongSeqnoError{s}
+}
+
+//=============================================================================
+
+type ChainLinkHighSkipHashMismatchError struct {
+	Msg string
+}
+
+func (e ChainLinkHighSkipHashMismatchError) Error() string {
+	return fmt.Sprintf("Chain link HighSkipHash mismatch error: %s", e.Msg)
+}
+
+//=============================================================================
+
+type ChainLinkWrongHighSkipSeqnoError struct {
+	Msg string
+}
+
+func (e ChainLinkWrongHighSkipSeqnoError) Error() string {
+	return fmt.Sprintf("Chain link wrong HighSkipSeqno error: %s", e.Msg)
 }
 
 //=============================================================================
@@ -1640,6 +1704,9 @@ const (
 	ResolutionErrorGeneral ResolutionErrorKind = iota
 	ResolutionErrorNotFound
 	ResolutionErrorAmbiguous
+	ResolutionErrorRateLimited
+	ResolutionErrorInvalidInput
+	ResolutionErrorRequestFailed
 )
 
 type ResolutionError struct {
@@ -1655,6 +1722,14 @@ func (e ResolutionError) Error() string {
 func IsResolutionError(err error) bool {
 	_, ok := err.(ResolutionError)
 	return ok
+}
+
+func IsResolutionNotFoundError(err error) bool {
+	rerr, ok := err.(ResolutionError)
+	if !ok {
+		return false
+	}
+	return rerr.Kind == ResolutionErrorNotFound
 }
 
 //=============================================================================
@@ -1793,20 +1868,6 @@ func IsExecError(err error) bool {
 }
 
 //=============================================================================
-
-type BadSignaturePrefixError struct{}
-
-func (e BadSignaturePrefixError) Error() string { return "bad signature prefix" }
-
-//=============================================================================
-
-type UnhandledSignatureError struct {
-	version int
-}
-
-func (e UnhandledSignatureError) Error() string {
-	return fmt.Sprintf("unhandled signature version: %d", e.version)
-}
 
 type UserDeletedError struct {
 	Msg string
@@ -2029,7 +2090,17 @@ func (e ChatClientError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
 type ChatStalePreviousStateError struct{}
 
 func (e ChatStalePreviousStateError) Error() string {
-	return "stale previous state error"
+	return "Unable to change chat channels"
+}
+
+//=============================================================================
+
+type ChatEphemeralRetentionPolicyViolatedError struct {
+	MaxAge gregor1.DurationSec
+}
+
+func (e ChatEphemeralRetentionPolicyViolatedError) Error() string {
+	return fmt.Sprintf("messages in this conversation are required to be exploding with a maximum lifetime of %v", e.MaxAge.ToDuration())
 }
 
 //=============================================================================
@@ -2517,3 +2588,42 @@ func (f FeatureFlagError) Error() string {
 }
 
 var _ error = FeatureFlagError{}
+
+//=============================================================================
+
+type UserReverifyNeededError struct {
+	msg string
+}
+
+func NewUserReverifyNeededError(s string) error {
+	return UserReverifyNeededError{s}
+}
+
+func (e UserReverifyNeededError) Error() string {
+	return fmt.Sprintf("User green link error: %s", e.msg)
+}
+
+//=============================================================================
+
+type VerboseError interface {
+	Error() string
+	Verbose() string
+}
+
+type InvalidStellarAccountIDError struct {
+	details string
+}
+
+func NewInvalidStellarAccountIDError(details string) InvalidStellarAccountIDError {
+	return InvalidStellarAccountIDError{
+		details: details,
+	}
+}
+
+func (e InvalidStellarAccountIDError) Error() string {
+	return "Invalid Stellar address."
+}
+
+func (e InvalidStellarAccountIDError) Verbose() string {
+	return fmt.Sprintf("Invalid Stellar address: %s", e.details)
+}

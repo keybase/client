@@ -4,9 +4,15 @@ import {Box, Icon, Text, ConnectedUsernames} from '../../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../../styles'
 import type {Props} from './index.types'
 
-const ShhIcon = (props) => (
-  <Box style={{height: 0, position: 'relative', width: 0, alignSelf: 'flex-start'}}>
-    <Icon type="iconfont-shh" style={shhIconStyle} color={shhIconColor} fontSize={shhIconFontSize} onClick={props.onClick} />
+const ShhIcon = props => (
+  <Box style={{alignSelf: 'flex-start', height: 0, position: 'relative', width: 0}}>
+    <Icon
+      type="iconfont-shh"
+      style={shhIconStyle}
+      color={shhIconColor}
+      fontSize={shhIconFontSize}
+      onClick={props.onClick}
+    />
   </Box>
 )
 
@@ -23,7 +29,7 @@ const ChannelHeader = (props: Props) => (
     >
       <Text
         type={props.smallTeam ? 'BodyBig' : 'BodySmallSemibold'}
-        style={props.smallTeam ? {color: globalColors.black_75} : {color: globalColors.black_40}}
+        style={props.smallTeam ? {color: globalColors.black_75} : {color: globalColors.black_50}}
       >
         {props.teamName}
       </Text>
@@ -52,7 +58,7 @@ const UsernameHeader = (props: Props) => (
         colorFollowing={true}
         underline={true}
         inline={false}
-        commaColor={globalColors.black_40}
+        commaColor={globalColors.black_50}
         type="BodyBig"
         usernames={props.participants}
         containerStyle={styleCenter}

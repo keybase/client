@@ -27,7 +27,8 @@ func TestTeamPlusApplicationKeysExim(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	exported, err := team.ExportToTeamPlusApplicationKeys(context.TODO(), keybase1.Time(0), keybase1.TeamApplication_KBFS)
+	exported, err := team.ExportToTeamPlusApplicationKeys(context.TODO(), keybase1.Time(0),
+		keybase1.TeamApplication_KBFS, true)
 	if err != nil {
 		t.Fatalf("Error during export: %s", err)
 	}
@@ -65,7 +66,7 @@ func TestImplicitTeamLTPAK(t *testing.T) {
 		t.Logf("Created team public: %t, %s %s", public, createdTeam.ID, impTeamName)
 
 		for _, u := range []*kbtest.FakeUser{u1, u2, u0, nil} {
-			require.NoError(t, tc.G.Logout())
+			require.NoError(t, tc.G.Logout(context.TODO()))
 			if u != nil {
 				require.NoError(t, u.Login(tc.G))
 				t.Logf("Testing as user %s", u.Username)
@@ -74,7 +75,7 @@ func TestImplicitTeamLTPAK(t *testing.T) {
 			}
 
 			ret, err := LoadTeamPlusApplicationKeys(context.Background(), tc.G, createdTeam.ID,
-				keybase1.TeamApplication_KBFS, keybase1.TeamRefreshers{})
+				keybase1.TeamApplication_KBFS, keybase1.TeamRefreshers{}, true)
 			if !public && (u == nil || u == u0) {
 				require.Error(t, err)
 				continue
@@ -92,7 +93,7 @@ func TestImplicitTeamLTPAK(t *testing.T) {
 			}
 		}
 
-		require.NoError(t, tc.G.Logout())
+		require.NoError(t, tc.G.Logout(context.TODO()))
 		require.NoError(t, u2.Login(tc.G))
 	}
 }

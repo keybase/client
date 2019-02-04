@@ -1,94 +1,91 @@
 // @flow
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import * as Constants from '../constants/settings'
-import Settings from './'
-import LandingContainer from './landing/container'
-import UpdatePayment from './payment/container'
-import AdvancedContainer from './advanced/container'
-import FilesContainer from './files/container'
-import DBNukeConfirm from './db-nuke-confirm/container'
-import InvitationsContainer from './invites/container'
-import NotificationsContainer from './notifications/container'
-import DeleteContainer from './delete/container'
-import DeleteConfirm from './delete-confirm/container'
-import RemoveDevice from '../devices/device-revoke/container'
-import InviteGenerated from './invite-generated/container'
-import DevMenu from '../dev/dev-menu'
-import Passphrase from './passphrase/container'
-import UserEmail from './email/container'
-// import PlanDetails from './plan-details/container'
-import SecurityPrefs from '../fs/common/security-prefs-container.desktop'
 
-const routeTree = makeRouteDefNode({
-  defaultSelected: Constants.landingTab,
-  containerComponent: Settings,
-  children: {
-    [Constants.landingTab]: {
-      component: LandingContainer,
-      children: {
-        changePassphrase: {
-          component: Passphrase,
-        },
-        changeEmail: {
-          component: UserEmail,
-        },
-        // changePlan: {
-        // component: PlanDetails,
-        // },
-      },
-    },
-    [Constants.updatePaymentTab]: {
-      component: UpdatePayment,
-    },
-    [Constants.invitationsTab]: {
-      component: InvitationsContainer,
-      children: {
-        inviteSent: {
-          component: InviteGenerated,
-        },
-      },
-    },
-    [Constants.notificationsTab]: {
-      component: NotificationsContainer,
-    },
-    [Constants.deleteMeTab]: {
-      component: DeleteContainer,
-      children: {
-        deleteConfirm: {
-          component: DeleteConfirm,
-          tags: makeLeafTags({modal: true}),
-        },
-        removeDevice: {
-          component: RemoveDevice,
-          tags: makeLeafTags({modal: true}),
-        },
-      },
-    },
-    ...(__DEV__
-      ? {
-          [Constants.devMenuTab]: {
-            component: DevMenu,
+const routeTree = () => {
+  const Settings = require('./').default
+  const LandingContainer = require('./landing/container').default
+  // const UpdatePayment = require('./payment/container').default
+  const AdvancedContainer = require('./advanced/container').default
+  const FilesSettingsContainer = require('./files/container').default
+  const DBNukeConfirm = require('./db-nuke-confirm/container').default
+  const InvitationsContainer = require('./invites/container').default
+  const NotificationsContainer = require('./notifications/container').default
+  const ChatContainer = require('./chat/container').default
+  const DeleteContainer = require('./delete/container').default
+  const DeleteConfirm = require('./delete-confirm/container').default
+  const RemoveDevice = require('../devices/device-revoke/container').default
+  const InviteGenerated = require('./invite-generated/container').default
+  const Passphrase = require('./passphrase/container').default
+  const UserEmail = require('./email/container').default
+  const SecurityPrefs = require('../fs/common/security-prefs-container.desktop').default
+  return makeRouteDefNode({
+    children: {
+      [Constants.landingTab]: {
+        children: {
+          changeEmail: {
+            component: UserEmail,
           },
-        }
-      : {}),
-    [Constants.advancedTab]: {
-      component: AdvancedContainer,
-      children: {
-        dbNukeConfirm: {
-          component: DBNukeConfirm,
-          tags: makeLeafTags({modal: true}),
+          changePassphrase: {
+            component: Passphrase,
+          },
+          // changePlan: {
+          // component: PlanDetails,
+          // },
         },
+        component: LandingContainer,
+      },
+      // [Constants.updatePaymentTab]: {
+      // component: UpdatePayment,
+      // },
+      [Constants.invitationsTab]: {
+        children: {
+          inviteSent: {
+            component: InviteGenerated,
+          },
+        },
+        component: InvitationsContainer,
+      },
+      [Constants.notificationsTab]: {
+        component: NotificationsContainer,
+      },
+      [Constants.deleteMeTab]: {
+        children: {
+          deleteConfirm: {
+            component: DeleteConfirm,
+            tags: makeLeafTags({modal: true}),
+          },
+          removeDevice: {
+            component: RemoveDevice,
+            tags: makeLeafTags({modal: true}),
+          },
+        },
+        component: DeleteContainer,
+      },
+      [Constants.advancedTab]: {
+        children: {
+          dbNukeConfirm: {
+            component: DBNukeConfirm,
+            tags: makeLeafTags({modal: true}),
+          },
+        },
+        component: AdvancedContainer,
+      },
+      [Constants.fsSettingsTab]: {
+        children: {
+          securityPrefs: {
+            component: SecurityPrefs,
+          },
+        },
+        component: FilesSettingsContainer,
+      },
+      [Constants.chatTab]: {
+        component: ChatContainer,
       },
     },
-    [Constants.fsTab]: {
-      component: FilesContainer,
-      children: {
-        securityPrefs: {
-          component: SecurityPrefs,
-        },
-      },
-    },
-  },
-})
+    containerComponent: Settings,
+    defaultSelected: Constants.landingTab,
+  })
+}
 
 export default routeTree

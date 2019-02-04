@@ -1,110 +1,95 @@
 // @flow
-import logger from '../../logger'
 import * as Constants from '../../constants/profile'
-import * as TrackerGen from '../tracker-gen'
 import * as ProfileGen from '../profile-gen'
+import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Saga from '../../util/saga'
 import * as SearchConstants from '../../constants/search'
-import * as Selectors from '../../constants/selectors'
-import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as TrackerConstants from '../../constants/tracker2'
+import * as TrackerGen from '../tracker-gen'
+import * as Tracker2Gen from '../tracker2-gen'
 import keybaseUrl from '../../constants/urls'
+import logger from '../../logger'
 import openURL from '../../util/open-url'
 import {getPathProps} from '../../route-tree'
-import {navigateTo, navigateUp} from '../../actions/route-tree'
+import type {RPCError} from '../../util/errors'
 import {peopleTab} from '../../constants/tabs'
 import {pgpSaga} from './pgp'
 import {proofsSaga} from './proofs'
+import flags from '../../util/feature-flags'
+import {isMobile} from '../../constants/platform'
 
-import type {TypedState} from '../../constants/reducer'
+const editProfile = (state, action) =>
+  RPCTypes.userProfileEditRpcPromise(
+    {
+      bio: action.payload.bio,
+      fullName: action.payload.fullname,
+      location: action.payload.location,
+    },
+    TrackerConstants.waitingKey
+  ).then(() => {
+    if (flags.identify3) {
+      return Tracker2Gen.createLoad({
+        assertion: state.config.username,
+        guiID: TrackerConstants.generateGUIID(),
+        ignoreCache: true,
+        inTracker: false,
+        reason: '',
+      })
+    } else {
+      return TrackerGen.createGetMyProfile({ignoreCache: true})
+    }
+  })
 
-function _editProfile(action: ProfileGen.EditProfilePayload) {
-  const {bio, fullname, location} = action.payload
-  return Saga.sequentially([
-    Saga.call(RPCTypes.userProfileEditRpcPromise, {
-      bio,
-      fullName: fullname,
-      location,
-    }),
-    // If the profile tab remained on the edit profile screen, navigate back to the top level.
-    Saga.put(navigateUp()),
-  ])
-}
+const uploadAvatar = (_, action) =>
+  RPCTypes.userUploadUserAvatarRpcPromise({
+    crop: action.payload.crop,
+    filename: action.payload.filename,
+  }).then(() => RouteTreeGen.createNavigateUp())
 
-function _uploadAvatar(action: ProfileGen.UploadAvatarPayload) {
-  const {filename, crop} = action.payload
-  return Saga.sequentially([
-    Saga.call(RPCTypes.userUploadUserAvatarRpcPromise, {
-      crop,
-      filename,
-    }),
-    Saga.put(navigateUp()),
-  ])
-}
+const finishRevoking = () => [
+  TrackerGen.createGetMyProfile({ignoreCache: true}),
+  ProfileGen.createRevokeFinish(),
+  RouteTreeGen.createNavigateUp(),
+]
 
-function _finishRevoking() {
-  return Saga.sequentially([
-    Saga.put(TrackerGen.createGetMyProfile({ignoreCache: true})),
-    Saga.put(ProfileGen.createRevokeFinish()),
-    Saga.put(navigateUp()),
-  ])
-}
-
-function _showUserProfile(action: ProfileGen.ShowUserProfilePayload, state: TypedState) {
+const showUserProfile = (state, action) => {
   const {username: userId} = action.payload
-  const searchResultMap = Selectors.searchResultMapSelector(state)
-  const username = SearchConstants.maybeUpgradeSearchResultIdToKeybaseId(searchResultMap, userId)
-  const me = state.config.username || ''
+  // TODO search itself should handle this
+  const username = SearchConstants.maybeUpgradeSearchResultIdToKeybaseId(
+    state.entities.search.searchResults,
+    userId
+  )
   // Get the peopleTab path
   const peopleRouteProps = getPathProps(state.routeTree.routeState, [peopleTab])
-  const onlyProfilesPath = Constants.getProfilePath(peopleRouteProps, username, me, state)
+  const path = Constants.getProfilePath(peopleRouteProps, username, state.config.username, state)
   // $FlowIssue
-  return Saga.put(navigateTo(onlyProfilesPath))
+  return path && RouteTreeGen.createNavigateTo({path})
 }
 
-function _onClickAvatar(action: ProfileGen.OnClickAvatarPayload) {
+const onClickAvatar = (_, action) => {
   if (!action.payload.username) {
     return
   }
 
   if (!action.payload.openWebsite) {
-    return Saga.put(ProfileGen.createShowUserProfile({username: action.payload.username}))
+    return ProfileGen.createShowUserProfile({username: action.payload.username})
   } else {
-    return Saga.call(openURL, `${keybaseUrl}/${action.payload.username}`)
+    openURL(`${keybaseUrl}/${action.payload.username}`)
   }
 }
 
-function _openProfileOrWebsite(
-  action: ProfileGen.OnClickFollowersPayload | ProfileGen.OnClickFollowingPayload
-) {
-  if (!action.payload.username) {
-    return
-  }
-
-  if (!action.payload.openWebsite) {
-    return Saga.put(ProfileGen.createShowUserProfile({username: action.payload.username}))
-  } else {
-    return Saga.call(openURL, `${keybaseUrl}/${action.payload.username}#profile-tracking-section`)
-  }
-}
-
-function* _submitRevokeProof(action: ProfileGen.SubmitRevokeProofPayload): Saga.SagaGenerator<any, any> {
-  try {
-    yield Saga.put(ProfileGen.createRevokeWaiting({waiting: true}))
-    yield Saga.call(RPCTypes.revokeRevokeSigsRpcPromise, {sigIDQueries: [action.payload.proofId]})
-    yield Saga.put(ProfileGen.createRevokeWaiting({waiting: false}))
-    yield Saga.put(ProfileGen.createFinishRevoking())
-  } catch (error) {
-    logger.warn(`Error when revoking proof ${action.payload.proofId}`, error)
-    yield Saga.put(ProfileGen.createRevokeWaiting({waiting: false}))
-    yield Saga.put(
-      ProfileGen.createRevokeFinishError({
+const submitRevokeProof = (_, action) =>
+  RPCTypes.revokeRevokeSigsRpcPromise({sigIDQueries: [action.payload.proofId]}, Constants.waitingKey)
+    .then(() => ProfileGen.createFinishRevoking())
+    .catch((error: RPCError) => {
+      logger.warn(`Error when revoking proof ${action.payload.proofId}`, error)
+      return ProfileGen.createRevokeFinishError({
         error: 'There was an error revoking your proof. You can click the button to try again.',
       })
-    )
-  }
-}
+    })
 
-function _openURLIfNotNull(nullableThing, url, metaText): void {
+const openURLIfNotNull = (nullableThing, url, metaText) => {
   if (nullableThing == null) {
     logger.warn("Can't open URL because we have a null", metaText)
     return
@@ -112,58 +97,65 @@ function _openURLIfNotNull(nullableThing, url, metaText): void {
   openURL(url)
 }
 
-function _outputInstructionsActionLink(
-  action: ProfileGen.OutputInstructionsActionLinkPayload,
-  state: TypedState
-) {
+const outputInstructionsActionLink = (state, action) => {
   const profile = state.profile
   switch (profile.platform) {
     case 'twitter':
-      return Saga.call(
-        _openURLIfNotNull,
+      openURLIfNotNull(
         profile.proofText,
         `https://twitter.com/home?status=${profile.proofText || ''}`,
         'twitter url'
       )
+      break
     case 'github':
-      return Saga.call(openURL, 'https://gist.github.com/')
+      openURL('https://gist.github.com/')
+      break
     case 'reddit':
-      return Saga.call(_openURLIfNotNull, profile.proofText, profile.proofText, 'reddit url')
+      openURLIfNotNull(profile.proofText, profile.proofText, 'reddit url')
+      break
     case 'facebook':
-      return Saga.call(_openURLIfNotNull, profile.proofText, profile.proofText, 'facebook url')
+      openURLIfNotNull(profile.proofText, profile.proofText, 'facebook url')
+      break
     case 'hackernews':
-      return Saga.call(openURL, `https://news.ycombinator.com/user?id=${profile.username}`)
+      openURL(`https://news.ycombinator.com/user?id=${profile.username}`)
+      break
     default:
       break
   }
 }
 
-function _backToProfile() {
-  return Saga.sequentially([
-    Saga.put(TrackerGen.createGetMyProfile({})),
-    Saga.put(navigateTo(['profile'], [peopleTab])),
-  ])
-}
+const editAvatar = () =>
+  isMobile
+    ? undefined // handled in platform specific
+    : RouteTreeGen.createNavigateAppend({path: [{props: {image: null}, selected: 'editAvatar'}]})
 
-function* _profileSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.safeTakeEvery(ProfileGen.submitRevokeProof, _submitRevokeProof)
-  yield Saga.safeTakeEveryPure(ProfileGen.backToProfile, _backToProfile)
-  yield Saga.safeTakeEveryPure(ProfileGen.editProfile, _editProfile)
-  yield Saga.safeTakeEveryPure(ProfileGen.uploadAvatar, _uploadAvatar)
-  yield Saga.safeTakeEveryPure(ProfileGen.finishRevoking, _finishRevoking)
-  yield Saga.safeTakeEveryPure(ProfileGen.onClickAvatar, _onClickAvatar)
-  yield Saga.safeTakeEveryPure(
-    [ProfileGen.onClickFollowers, ProfileGen.onClickFollowing],
-    _openProfileOrWebsite
+const backToProfile = () => [
+  TrackerGen.createGetMyProfile({}),
+  RouteTreeGen.createNavigateTo({parentPath: [peopleTab], path: ['profile']}),
+]
+
+function* _profileSaga() {
+  yield* Saga.chainAction<ProfileGen.SubmitRevokeProofPayload>(
+    ProfileGen.submitRevokeProof,
+    submitRevokeProof
   )
-  yield Saga.safeTakeEveryPure(ProfileGen.outputInstructionsActionLink, _outputInstructionsActionLink)
-  yield Saga.safeTakeEveryPure(ProfileGen.showUserProfile, _showUserProfile)
+  yield* Saga.chainAction<ProfileGen.BackToProfilePayload>(ProfileGen.backToProfile, backToProfile)
+  yield* Saga.chainAction<ProfileGen.EditProfilePayload>(ProfileGen.editProfile, editProfile)
+  yield* Saga.chainAction<ProfileGen.UploadAvatarPayload>(ProfileGen.uploadAvatar, uploadAvatar)
+  yield* Saga.chainAction<ProfileGen.FinishRevokingPayload>(ProfileGen.finishRevoking, finishRevoking)
+  yield* Saga.chainAction<ProfileGen.OnClickAvatarPayload>(ProfileGen.onClickAvatar, onClickAvatar)
+  yield* Saga.chainAction<ProfileGen.OutputInstructionsActionLinkPayload>(
+    ProfileGen.outputInstructionsActionLink,
+    outputInstructionsActionLink
+  )
+  yield* Saga.chainAction<ProfileGen.ShowUserProfilePayload>(ProfileGen.showUserProfile, showUserProfile)
+  yield* Saga.chainAction<ProfileGen.EditAvatarPayload>(ProfileGen.editAvatar, editAvatar)
 }
 
 function* profileSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.fork(_profileSaga)
-  yield Saga.fork(pgpSaga)
-  yield Saga.fork(proofsSaga)
+  yield Saga.spawn(_profileSaga)
+  yield Saga.spawn(pgpSaga)
+  yield Saga.spawn(proofsSaga)
 }
 
 export default profileSaga

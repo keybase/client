@@ -4,10 +4,12 @@ import * as FsGen from '../../../actions/fs-gen'
 import * as FsTypes from '../../../constants/types/fs'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import Title from '.'
-import {connect, type TypedState} from '../../../util/container'
+import {connect} from '../../../util/container'
 import {anyWaiting} from '../../../constants/waiting'
 
-const mapStateToProps = (state: TypedState, {teamname}) => {
+type OwnProps = {teamname: string}
+
+const mapStateToProps = (state, {teamname}) => {
   const yourOperations = Constants.getCanPerform(state, teamname)
   return {
     canChat: !yourOperations.joinTeam,
@@ -17,7 +19,7 @@ const mapStateToProps = (state: TypedState, {teamname}) => {
 }
 
 const mapDispatchToProps = (dispatch, {teamname}) => ({
-  onChat: () => dispatch(Chat2Gen.createPreviewConversation({teamname, reason: 'teamHeader'})),
+  onChat: () => dispatch(Chat2Gen.createPreviewConversation({reason: 'teamHeader', teamname})),
   onOpenFolder: () =>
     dispatch(FsGen.createOpenPathInFilesTab({path: FsTypes.stringToPath(`/keybase/team/${teamname}`)})),
 })
@@ -31,4 +33,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   teamname: ownProps.teamname,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Title)
+export default connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(Title)

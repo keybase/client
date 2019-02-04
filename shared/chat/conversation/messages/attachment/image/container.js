@@ -2,7 +2,7 @@
 import * as Types from '../../../../../constants/types/chat2'
 import * as FsGen from '../../../../../actions/fs-gen'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
-import {connect, type TypedState, isMobile} from '../../../../../util/container'
+import {connect, isMobile} from '../../../../../util/container'
 import {globalColors} from '../../../../../styles'
 import ImageAttachment from '.'
 import {imgMaxWidth} from './image-render'
@@ -12,9 +12,9 @@ type OwnProps = {
   toggleMessageMenu: () => void,
 }
 
-const mapStateToProps = (state: TypedState) => ({})
+const mapStateToProps = state => ({})
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   _onClick: (message: Types.MessageAttachment) => {
     dispatch(
       Chat2Gen.createAttachmentPreviewSelect({
@@ -31,7 +31,7 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
   },
   _onShowInFinder: (message: Types.MessageAttachment) => {
     message.downloadPath &&
-      dispatch(FsGen.createOpenLocalPathInSystemFileManager({path: message.downloadPath}))
+      dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: message.downloadPath}))
   },
 })
 
@@ -43,23 +43,31 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     ? message.downloadPath
       ? globalColors.green
       : message.transferState === 'downloading'
-        ? globalColors.blue
-        : ''
+      ? globalColors.blue
+      : ''
     : ''
   const progressLabel =
     message.transferState === 'downloading'
       ? 'Downloading'
       : message.transferState === 'uploading'
-        ? 'Uploading'
-        : message.transferState === 'remoteUploading'
-          ? 'waiting...'
-          : ''
+      ? 'Uploading'
+      : message.transferState === 'mobileSaving'
+      ? 'Saving...'
+      : message.transferState === 'remoteUploading'
+      ? 'waiting...'
+      : ''
   const buttonType = message.showPlayButton ? 'play' : null
-  const hasProgress = !!message.transferState && message.transferState !== 'remoteUploading'
+  const hasProgress =
+    !!message.transferState &&
+    message.transferState !== 'remoteUploading' &&
+    message.transferState !== 'mobileSaving'
 
   return {
     arrowColor,
+    fullPath: message.fileURL,
+    hasProgress,
     height: message.previewHeight,
+    inlineVideoPlayable: message.inlineVideoPlayable,
     message,
     onClick: () => dispatchProps._onClick(message),
     onDoubleClick: () => dispatchProps._onDoubleClick(message),
@@ -72,17 +80,18 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
           }
         : null,
     path: message.previewURL,
-    fullPath: message.fileURL,
     progress: message.transferProgress,
     progressLabel,
     showButton: buttonType,
-    videoDuration: message.videoDuration || '',
-    inlineVideoPlayable: message.inlineVideoPlayable,
     title: message.title,
     toggleMessageMenu: ownProps.toggleMessageMenu,
+    videoDuration: message.videoDuration || '',
     width: Math.min(message.previewWidth, imgMaxWidth()),
-    hasProgress,
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(ImageAttachment)
+export default connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(ImageAttachment)

@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import KbfsPathContainer from '../../common-adapters/markdown/kbfs-path-container'
 
 type Props = {
   canDelete: boolean,
@@ -25,6 +26,7 @@ type Props = {
   onToggleChatEnabled: () => void,
   onToggleExpand: () => void,
   openUserTracker: (username: string) => void,
+  previewLink: string,
   _onOpenChannelSelection: () => void,
 }
 
@@ -36,7 +38,7 @@ class Row extends React.Component<Props> {
 
   render() {
     return (
-      <Kb.Box>
+      <Kb.Box style={{width: '100%'}}>
         <Kb.Box
           style={{
             ...(this.props.expanded
@@ -98,18 +100,24 @@ class Row extends React.Component<Props> {
               >
                 <Kb.Text type="Body">Clone:</Kb.Text>
                 <Kb.Box2 direction="horizontal" style={styles.copyTextContainer}>
-                  <Kb.CopyText text={this.props.url} />
+                  <Kb.CopyText text={this.props.url} containerStyle={{width: '100%'}} />
                 </Kb.Box2>
-                {!Styles.isMobile &&
-                  this.props.canDelete && (
-                    <Kb.Button
-                      type="Danger"
-                      small={true}
-                      label="Delete repo"
-                      onClick={this.props.onShowDelete}
-                    />
-                  )}
+                {!Styles.isMobile && this.props.canDelete && (
+                  <Kb.Button
+                    type="Danger"
+                    small={true}
+                    label="Delete repo"
+                    onClick={this.props.onShowDelete}
+                  />
+                )}
               </Kb.Box>
+              <Kb.Box2 direction="horizontal" fullWidth={true} style={{marginTop: Styles.globalMargins.tiny}}>
+                <Kb.Text type="Body">Preview:</Kb.Text>
+                <KbfsPathContainer
+                  escapedPath={this.props.previewLink}
+                  allowFontScaling={true}
+                />
+              </Kb.Box2>
               <Kb.Box
                 style={{
                   ...Styles.globalStyles.flexBoxRow,
@@ -124,28 +132,26 @@ class Row extends React.Component<Props> {
                     !!this.props.teamname && !!this.props.lastEditUser ? ' by ' : ''
                   }`}
                 </Kb.Text>
-                {!!this.props.teamname &&
-                  !!this.props.lastEditUser && (
-                    <Kb.Avatar
-                      username={this.props.lastEditUser}
-                      size={16}
-                      style={{marginLeft: Styles.isMobile ? 0 : 4}}
+                {!!this.props.teamname && !!this.props.lastEditUser && (
+                  <Kb.Avatar
+                    username={this.props.lastEditUser}
+                    size={16}
+                    style={{marginLeft: Styles.isMobile ? 0 : 4}}
+                  />
+                )}
+                {!!this.props.teamname && !!this.props.lastEditUser && (
+                  <Kb.Box style={{marginLeft: 2}}>
+                    <Kb.Usernames
+                      type="BodySmallSemibold"
+                      underline={true}
+                      colorFollowing={true}
+                      users={[
+                        {following: this.props.lastEditUserFollowing, username: this.props.lastEditUser},
+                      ]}
+                      onUsernameClicked={() => this.props.openUserTracker(this.props.lastEditUser)}
                     />
-                  )}
-                {!!this.props.teamname &&
-                  !!this.props.lastEditUser && (
-                    <Kb.Box style={{marginLeft: 2}}>
-                      <Kb.Usernames
-                        type="BodySmallSemibold"
-                        underline={true}
-                        colorFollowing={true}
-                        users={[
-                          {following: this.props.lastEditUserFollowing, username: this.props.lastEditUser},
-                        ]}
-                        onUsernameClicked={() => this.props.openUserTracker(this.props.lastEditUser)}
-                      />
-                    </Kb.Box>
-                  )}
+                  </Kb.Box>
+                )}
                 {Styles.isMobile && <Kb.Text type="BodySmall">. </Kb.Text>}
                 <Kb.Text type="BodySmall">
                   <Kb.Text type="BodySmall">
@@ -191,16 +197,15 @@ class Row extends React.Component<Props> {
                   )}
                 </Kb.Box>
               )}
-              {Styles.isMobile &&
-                this.props.canDelete && (
-                  <Kb.Button
-                    type="Danger"
-                    small={false}
-                    label="Delete repo"
-                    onClick={this.props.onShowDelete}
-                    style={{marginTop: Styles.globalMargins.tiny, alignSelf: 'flex-start'}}
-                  />
-                )}
+              {Styles.isMobile && this.props.canDelete && (
+                <Kb.Button
+                  type="Danger"
+                  small={false}
+                  label="Delete repo"
+                  onClick={this.props.onShowDelete}
+                  style={{alignSelf: 'flex-start', marginTop: Styles.globalMargins.tiny}}
+                />
+              )}
             </Kb.Box>
           )}
         </Kb.Box>
@@ -208,8 +213,8 @@ class Row extends React.Component<Props> {
           style={{
             ...(this.props.expanded
               ? {
-                  height: 6,
                   backgroundColor: Styles.globalColors.blueGrey,
+                  height: 6,
                 }
               : {}),
           }}
@@ -232,7 +237,7 @@ const styles = Styles.styleSheetCreate({
 const _deviceStyle = {
   ...Styles.globalStyles.fontSemibold,
   ...Styles.globalStyles.italic,
-  color: Styles.globalColors.black_60,
+  color: Styles.globalColors.black_50,
 }
 
 const _rowBottomStyle = {
@@ -260,8 +265,8 @@ const _metaStyle = {
 const _rowTopStyle = {
   ...Styles.globalStyles.flexBoxRow,
   alignItems: 'center',
-  paddingLeft: Styles.globalMargins.tiny,
   marginBottom: Styles.globalMargins.xtiny,
+  paddingLeft: Styles.globalMargins.tiny,
 }
 
 const _rowStyle = {
@@ -274,8 +279,8 @@ const _rowStyle = {
 }
 const _rowClickStyle = {
   ...Styles.globalStyles.flexBoxColumn,
-  paddingTop: Styles.globalMargins.tiny,
   paddingBottom: Styles.globalMargins.tiny,
+  paddingTop: Styles.globalMargins.tiny,
   width: '100%',
 }
 

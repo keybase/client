@@ -56,7 +56,7 @@ function autoResize() {
 
 const getMainWindow = (): ?SafeElectron.BrowserWindowType => {
   const w = SafeElectron.BrowserWindow.getAllWindows().find(
-    w => w.webContents.getURL().indexOf('mainWindow') !== -1
+    w => w.webContents.getURL().indexOf('/main.') !== -1
   )
   return w
 }

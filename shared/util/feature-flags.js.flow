@@ -1,11 +1,17 @@
-// @flow
+// @flow strict
 export type FeatureFlags = {|
   admin: boolean,
-  avatarUploadsEnabled: boolean,
-  explodingMessagesEnabled: boolean,
+  chatIndexProfilingEnabled: boolean,
+  foldersInProfileTab: boolean,
+  identify3: boolean,
+  moveOrCopy: boolean,
+  newTeamBuildingForChat: boolean,
+  // Enables the "Add up to 14 more people. Need more? Make it a team." feature
+  newTeamBuildingForChatAllowMakeTeam: boolean,
+  outOfDateBanner: boolean,
   plansEnabled: boolean,
+  useNewRouter: boolean,
   walletsEnabled: boolean,
-  fileWidgetEnabled?: boolean,
 |}
 
 declare var ff: FeatureFlags

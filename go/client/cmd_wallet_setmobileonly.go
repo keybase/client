@@ -20,8 +20,9 @@ func newCmdWalletSetMobileOnly(cl *libcmdline.CommandLine, g *libkb.GlobalContex
 		Contextified: libkb.NewContextified(g),
 	}
 	return cli.Command{
-		Name:        "set-mobile-only",
-		Usage:       "Set an account to mobile-only mode",
+		Name: "set-mobile-only",
+		// Hide this command from `keybase wallet -h`, `keybase help wallet`:
+		// Usage: "Set an account to mobile-only mode",
 		Description: "Set an account to mobile-only mode",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(cmd, "set-mobile-only", c)
@@ -39,7 +40,8 @@ func (c *cmdWalletSetMobileOnly) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (c *cmdWalletSetMobileOnly) Run() error {
+func (c *cmdWalletSetMobileOnly) Run() (err error) {
+	defer transformStellarCLIError(&err)
 	accountID, err := libkb.ParseStellarAccountID(c.accountID)
 	if err != nil {
 		return err

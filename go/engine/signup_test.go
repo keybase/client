@@ -274,7 +274,7 @@ func TestSignupPassphrases(t *testing.T) {
 	tc := SetupEngineTest(t, "signup")
 	defer tc.Cleanup()
 	CreateAndSignupFakeUserWithPassphrase(tc, "pass", "123456789012")
-	CreateAndSignupFakeUserWithPassphrase(tc, "pass", "123456")
+	CreateAndSignupFakeUserWithPassphrase(tc, "pass", "12345678")
 }
 
 func TestSignupShortPassphrase(t *testing.T) {
@@ -282,7 +282,7 @@ func TestSignupShortPassphrase(t *testing.T) {
 	defer tc.Cleanup()
 
 	fu := NewFakeUserOrBust(t, "sup")
-	fu.Passphrase = "1234"
+	fu.Passphrase = "1234567"
 	uis := libkb.UIs{
 		LogUI:    tc.G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},

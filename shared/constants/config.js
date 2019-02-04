@@ -2,6 +2,7 @@
 import * as I from 'immutable'
 import * as Types from './types/config'
 import * as ChatConstants from './chat2'
+import flags from '../util/feature-flags'
 import {uniq} from 'lodash-es'
 import {runMode} from './platform'
 
@@ -18,10 +19,68 @@ export const publicFolderWithUsers = (users: Array<string>) =>
   `${defaultKBFSPath}${defaultPublicPrefix}${uniq(users).join(',')}`
 export const teamFolder = (team: string) => `${defaultKBFSPath}${defaultTeamPrefix}${team}`
 
+export const makeOutOfDate: I.RecordFactory<Types._OutOfDate> = I.Record({
+  critical: false,
+  message: undefined,
+  updating: false,
+})
+
+export const urlToUsername = (url: {
+  protocol: string,
+  username: string,
+  password: string,
+  hostname: string,
+  port: string,
+  pathname: string,
+}) => {
+  const protocol = url.protocol
+  if (protocol !== 'http:' && protocol !== 'https:') {
+    return null
+  }
+
+  if (url.username || url.password) {
+    return null
+  }
+
+  const hostname = url.hostname
+  if (hostname !== 'keybase.io' && hostname !== 'www.keybase.io') {
+    return null
+  }
+
+  const port = url.port
+  if (port) {
+    if (protocol === 'http:' && port !== '80') {
+      return null
+    }
+
+    if (protocol === 'https:' && port !== '443') {
+      return null
+    }
+  }
+
+  const pathname = url.pathname
+  // Adapted username regexp (see libkb/checkers.go) with a leading / and an
+  // optional trailing /.
+  const match = pathname.match(/^\/((?:[a-zA-Z0-9][a-zA-Z0-9_]?)+)\/?$/)
+  if (!match) {
+    return null
+  }
+
+  const usernameMatch = match[1]
+  if (usernameMatch.length < 2 || usernameMatch.length > 16) {
+    return null
+  }
+
+  // Ignore query string and hash parameters.
+
+  const username = usernameMatch.toLowerCase()
+  return username
+}
+
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   appFocused: true,
   appFocusedCount: 0,
-  avatars: {}, // Can't be an I.Map since it's used by remotes
+  avatars: I.Map(),
   configuredAccounts: I.List(),
   daemonError: null,
   daemonHandshakeFailedReason: '',
@@ -44,6 +103,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   mobileAppState: 'active',
   notifySound: false,
   openAtLogin: true,
+  outOfDate: undefined,
   pgpPopupOpen: false,
   pushLoaded: false,
   registered: false,
@@ -57,6 +117,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   touchIDEnabled: false,
   touchIDState: 'done',
   uid: '',
+  useNewRouter: flags.useNewRouter,
   userActive: true,
   username: '',
 })

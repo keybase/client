@@ -1,20 +1,20 @@
 // @flow
 import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
-import * as Route from '../../../actions/route-tree'
-import {connect, type TypedState} from '../../../util/container'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import {connect} from '../../../util/container'
 import Error from '.'
 
 type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
 |}
 
-const mapStateToProps = (state: TypedState, {conversationIDKey}: OwnProps) => ({
+const mapStateToProps = (state, {conversationIDKey}: OwnProps) => ({
   text: Constants.getMeta(state, conversationIDKey).snippet,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onBack: () => dispatch(Route.navigateUp()),
+const mapDispatchToProps = dispatch => ({
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({
@@ -22,4 +22,8 @@ const mergeProps = (stateProps, dispatchProps) => ({
   text: stateProps.text,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Error)
+export default connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(Error)

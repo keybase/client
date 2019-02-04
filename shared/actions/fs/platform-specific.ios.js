@@ -1,44 +1,38 @@
 // @flow
 import logger from '../../logger'
+import * as Flow from '../../util/flow'
 import * as Saga from '../../util/saga'
 import * as FsGen from '../fs-gen'
-import {type TypedState} from '../../util/container'
 import {pickAndUploadToPromise} from './common.native'
-import {saveAttachmentDialog, showShareActionSheet} from '../platform-specific'
+import {saveAttachmentDialog, showShareActionSheetFromURL} from '../platform-specific'
 
-const downloadSuccessToAction = (state: TypedState, action: FsGen.DownloadSuccessPayload) => {
+function* downloadSuccessToAction(state, action) {
   const {key, mimeType} = action.payload
   const download = state.fs.downloads.get(key)
   if (!download) {
     logger.warn('missing download key', key)
-    return null
+    return
   }
   const {intent, localPath} = download.meta
   switch (intent) {
     case 'camera-roll':
-      return Saga.sequentially([
-        Saga.call(saveAttachmentDialog, localPath),
-        Saga.put(FsGen.createDismissDownload({key})),
-      ])
+      yield Saga.callUntyped(saveAttachmentDialog, localPath)
+      yield Saga.put(FsGen.createDismissDownload({key}))
+      break
     case 'share':
-      return Saga.sequentially([
-        Saga.call(showShareActionSheet, {url: localPath, mimeType}),
-        Saga.put(FsGen.createDismissDownload({key})),
-      ])
+      yield Saga.callUntyped(showShareActionSheetFromURL, {mimeType, url: localPath})
+      yield Saga.put(FsGen.createDismissDownload({key}))
+      break
     case 'none':
-      return null
+      break
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(intent);
-      */
-      return null
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(intent)
   }
 }
 
 function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.actionToPromise(FsGen.pickAndUpload, pickAndUploadToPromise)
-  yield Saga.actionToAction(FsGen.downloadSuccess, downloadSuccessToAction)
+  yield* Saga.chainAction<FsGen.PickAndUploadPayload>(FsGen.pickAndUpload, pickAndUploadToPromise)
+  yield* Saga.chainGenerator<FsGen.DownloadSuccessPayload>(FsGen.downloadSuccess, downloadSuccessToAction)
 }
 
 export default platformSpecificSaga

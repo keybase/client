@@ -8,6 +8,8 @@ protocol notifyCtl {
     boolean session;
     boolean users;
     boolean kbfs;
+    boolean kbfsdesktop;
+    boolean kbfslegacy;
     boolean tracking;
     boolean favorites;
     boolean paperkeys;
@@ -16,7 +18,7 @@ protocol notifyCtl {
     boolean app;
     boolean chat;
     boolean pgp;
-    boolean kbfsrequest;
+    boolean kbfsrequest; // deprecated
     boolean badges;
     boolean reachability;
     boolean team;

@@ -1,13 +1,13 @@
 // @flow
-import logger from '../logger'
-import * as Shared from './icon.shared'
-import ClickableBox from './clickable-box'
 import * as React from 'react'
-import NativeImage from './native-image.native'
-import {globalColors, glamorous, collapseStyles} from '../styles'
-import {iconMeta} from './icon.constants'
-import {NativeStyleSheet} from './native-wrappers.native'
+import * as Shared from './icon.shared'
+import * as Styles from '../styles'
+import ClickableBox from './clickable-box'
+import logger from '../logger'
 import type {IconType, Props} from './icon'
+import {NativeImage} from './native-image.native'
+import {NativeStyleSheet, NativeText} from './native-wrappers.native'
+import {iconMeta} from './icon.constants'
 
 // In order to optimize this commonly used component we use StyleSheet on all the default variants
 // so we can pass IDs around instead of full objects
@@ -24,11 +24,12 @@ const fontSizes = Object.keys(iconMeta).reduce((map: any, type: IconType) => {
 
 const styles = NativeStyleSheet.create(fontSizes)
 
-const Text = glamorous.text(
+const Text = Styles.styled(NativeText)(
   // static styles
   {
-    color: globalColors.black_40,
+    color: Styles.globalColors.black_50, // MUST set this or it can be inherited from outside text
     fontFamily: 'kb',
+    fontWeight: 'normal', // MUST set this or it can be inherited from outside text
   },
   // dynamic styles. check for undefined and send null
   props =>
@@ -38,7 +39,11 @@ const Text = glamorous.text(
         }
       : null,
   props => {
-    const color = props.color || Shared.defaultColor(props.type) || (props.opacity && globalColors.lightGrey)
+    const color =
+      props.colorOverride ||
+      props.color ||
+      Shared.defaultColor(props.type) ||
+      (props.opacity && Styles.globalColors.lightGrey)
     if (color) {
       return {color}
     } else return null
@@ -64,10 +69,7 @@ const Text = glamorous.text(
     props.style && props.style.backgroundColor ? {backgroundColor: props.style.backgroundColor} : null
 )
 
-const Image = glamorous(NativeImage)(
-  {
-    resizeMode: 'contain',
-  },
+const Image = Styles.styled(NativeImage)(
   props =>
     props.style && props.style.width !== undefined
       ? {
@@ -105,22 +107,34 @@ class Icon extends React.PureComponent<Props> {
 
     if (iconMeta[iconType].isFont) {
       const code = String.fromCharCode(iconMeta[iconType].charCode || 0)
-      if (props.color) {
-        iconStyle = collapseStyles([iconStyle, {color: props.color}])
+      if (props.colorOverride || props.color) {
+        iconStyle = Styles.collapseStyles([iconStyle, {color: props.colorOverride || props.color}])
       }
+
+      // explicit
+      let fontSize
+      if (this.props.fontSize) {
+        fontSize = this.props.fontSize
+      } else if (this.props.sizeType) {
+        fontSize = Shared.typeToFontSize(this.props.sizeType)
+      } else {
+        const temp = Shared.fontSize(iconType)
+        fontSize = temp && temp.fontSize
+      }
+
       icon = (
-        <Text style={iconStyle} type={props.type} fontSize={props.fontSize}>
+        <Text style={iconStyle} type={props.type} fontSize={fontSize}>
           {code}
         </Text>
       )
     } else {
-      icon = <Image source={iconMeta[iconType].require} style={iconStyle} />
+      icon = <Image source={iconMeta[iconType].require} style={iconStyle} resizeMode="contain" />
     }
 
     return props.onClick ? (
       <ClickableBox
         activeOpacity={0.8}
-        underlayColor={props.underlayColor || globalColors.white}
+        underlayColor={props.underlayColor || Styles.globalColors.white}
         onClick={props.onClick}
         style={props.style}
       >

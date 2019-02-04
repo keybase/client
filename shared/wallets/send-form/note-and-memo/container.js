@@ -1,31 +1,57 @@
 // @flow
-import NoteAndMemo from '.'
+import {SecretNote as SecretNoteComponent, PublicMemo as PublicMemoComponent} from '.'
 import * as WalletsGen from '../../../actions/wallets-gen'
-import {compose, connect, setDisplayName, type TypedState} from '../../../util/container'
+import {namedConnect} from '../../../util/container'
 import HiddenString from '../../../util/hidden-string'
 
-const mapStateToProps = (state: TypedState) => {
-  const recipientType = state.wallets.buildingPayment.recipientType
-  const built = state.wallets.builtPayment
-  return {
-    memoError: built.publicMemoErrMsg.stringValue(),
-    noteError: built.secretNoteErrMsg.stringValue(),
-    toSelf: recipientType === 'otherAccount',
-  }
+type OwnProps = {||}
+
+const secretNoteConnector = {
+  mapDispatchToProps: (dispatch, ownProps) => ({
+    onChangeSecretNote: (secretNote: string) =>
+      dispatch(WalletsGen.createSetBuildingSecretNote({secretNote: new HiddenString(secretNote)})),
+  }),
+  mapStateToProps: state => {
+    const recipientType = state.wallets.building.recipientType
+    const building = state.wallets.building
+    const built = building.isRequest ? state.wallets.builtRequest : state.wallets.builtPayment
+    return {
+      secretNote: building.secretNote.stringValue(),
+      secretNoteError: built.secretNoteErrMsg.stringValue(),
+      toSelf: recipientType === 'otherAccount',
+    }
+  },
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-  onChangePublicMemo: (publicMemo: string) =>
-    dispatch(
-      WalletsGen.createSetBuildingPublicMemo({
-        publicMemo: new HiddenString(publicMemo),
-      })
-    ),
-  onChangeSecretNote: (secretNote: string) =>
-    dispatch(WalletsGen.createSetBuildingSecretNote({secretNote: new HiddenString(secretNote)})),
-})
+const publicMemoConnector = {
+  mapDispatchToProps: (dispatch, ownProps) => ({
+    onChangePublicMemo: (publicMemo: string) =>
+      dispatch(
+        WalletsGen.createSetBuildingPublicMemo({
+          publicMemo: new HiddenString(publicMemo),
+        })
+      ),
+  }),
+  mapStateToProps: state => {
+    const building = state.wallets.building
+    const built = state.wallets.builtPayment
+    return {
+      publicMemo: building.publicMemo.stringValue(),
+      publicMemoError: built.publicMemoErrMsg.stringValue(),
+    }
+  },
+}
 
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
-  setDisplayName('NoteAndMemo')
-)(NoteAndMemo)
+export const SecretNote = namedConnect<OwnProps, _, _, _, _>(
+  secretNoteConnector.mapStateToProps,
+  secretNoteConnector.mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d}),
+  'ConnectedSecretNote'
+)(SecretNoteComponent)
+
+export const PublicMemo = namedConnect<OwnProps, _, _, _, _>(
+  publicMemoConnector.mapStateToProps,
+  publicMemoConnector.mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d}),
+  'ConnectedPublicMemo'
+)(PublicMemoComponent)

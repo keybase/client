@@ -1,19 +1,13 @@
 // @flow
 import * as React from 'react'
-import {
-  Text,
-  Icon,
-  Box,
-  NativeDimensions,
-  NativeFlatList,
-  ErrorBoundary,
-} from '../../common-adapters/mobile.native'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
+import * as Kb from '../../common-adapters/mobile.native'
+import * as Styles from '../../styles'
 import {makeRow} from './row'
 import BuildTeam from './row/build-team/container'
 import ChatInboxHeader from './row/chat-inbox-header/container'
 import BigTeamsDivider from './row/big-teams-divider/container'
 import TeamsDivider from './row/teams-divider/container'
+import {virtualListMarks} from '../../local-debug'
 import {debounce} from 'lodash-es'
 import {Owl} from './owl'
 import * as RowSizes from './row/sizes'
@@ -21,20 +15,20 @@ import * as RowSizes from './row/sizes'
 import type {Props, RowItem, RowItemSmall} from './index.types'
 
 const NoChats = () => (
-  <Box
+  <Kb.Box
     style={{
-      ...globalStyles.flexBoxColumn,
-      ...globalStyles.fillAbsolute,
+      ...Styles.globalStyles.flexBoxColumn,
+      ...Styles.globalStyles.fillAbsolute,
       alignItems: 'center',
       justifyContent: 'center',
       top: 48,
     }}
   >
-    <Icon type="icon-fancy-chat-103-x-75" style={{marginBottom: globalMargins.medium}} />
-    <Text type="BodySmallSemibold" backgroundMode="Terminal" style={{color: globalColors.black_40}}>
+    <Kb.Icon type="icon-fancy-chat-103-x-75" style={{marginBottom: Styles.globalMargins.medium}} />
+    <Kb.Text type="BodySmallSemibold" backgroundMode="Terminal" style={{color: Styles.globalColors.black_50}}>
       All conversations are end-to-end encrypted.
-    </Text>
-  </Box>
+    </Kb.Text>
+  </Kb.Box>
 )
 
 type State = {
@@ -52,24 +46,31 @@ class Inbox extends React.PureComponent<Props, State> {
 
   _renderItem = ({item, index}) => {
     const row = item
+    let element
     if (row.type === 'divider') {
-      return (
+      element = (
         <TeamsDivider
           key="divider"
           showButton={row.showButton}
           toggle={this.props.toggleSmallTeamsExpanded}
-          smallIDsHidden={this.props.smallIDsHidden}
+          rows={this.props.rows}
         />
       )
+    } else {
+      element = makeRow({
+        channelname: row.channelname,
+        conversationIDKey: row.conversationIDKey,
+        filtered: !!this.props.filter,
+        teamname: row.teamname,
+        type: row.type,
+      })
     }
 
-    return makeRow({
-      channelname: row.channelname,
-      conversationIDKey: row.conversationIDKey,
-      filtered: !!this.props.filter,
-      teamname: row.teamname,
-      type: row.type,
-    })
+    if (virtualListMarks) {
+      return <Kb.Box style={{backgroundColor: 'purple', overflow: 'hidden'}}>{element}</Kb.Box>
+    }
+
+    return element
   }
 
   _keyExtractor = (item, index) => {
@@ -135,13 +136,17 @@ class Inbox extends React.PureComponent<Props, State> {
     }
   }, 1000)
 
-  _maxVisible = Math.ceil(NativeDimensions.get('window').height / 64)
+  _maxVisible = Math.ceil(Kb.NativeDimensions.get('window').height / 64)
 
   _setRef = r => {
     this._list = r
   }
 
   _getItemLayout = (data, index) => {
+    if (this.props.filter.length) {
+      return {index, length: RowSizes.smallRowHeight, offset: RowSizes.smallRowHeight * (index - 1)}
+    }
+
     // We cache the divider location so we can divide the list into small and large. We can calculate the small cause they're all
     // the same height. We iterate over the big since that list is small and we don't know the number of channels easily
     const smallHeight = RowSizes.smallRowHeight
@@ -158,15 +163,20 @@ class Inbox extends React.PureComponent<Props, State> {
       return {index, length, offset}
     }
 
-    let offset = smallHeight * (this._dividerIndex - 1) + dividerHeight
+    let offset = smallHeight * this._dividerIndex + dividerHeight
+    let i = this._dividerIndex + 1
 
-    for (let i = this._dividerIndex; i < index; ++i) {
-      const h = data[index].type === 'big' ? RowSizes.bigRowHeight : RowSizes.bigHeaderHeight
+    for (; i < index; ++i) {
+      const h = data[i].type === 'big' ? RowSizes.bigRowHeight : RowSizes.bigHeaderHeight
       offset += h
     }
-    const length = data[index].type === 'big' ? RowSizes.bigRowHeight : RowSizes.bigHeaderHeight
+    const length = data[i].type === 'big' ? RowSizes.bigRowHeight : RowSizes.bigHeaderHeight
     return {index, length, offset}
   }
+
+  _onEnsureSelection = () => this.props.onEnsureSelection()
+  _onSelectUp = () => this.props.onSelectUp()
+  _onSelectDown = () => this.props.onSelectDown()
 
   render() {
     this._dividerShowButton = false
@@ -178,24 +188,25 @@ class Inbox extends React.PureComponent<Props, State> {
       return false
     })
 
-    const noChats = !this.props.isLoading && !this.props.rows.length && !this.props.filter && <NoChats />
+    const noChats = !this.props.neverLoaded && !this.props.rows.length && !this.props.filter && <NoChats />
     const owl = !this.props.rows.length && !!this.props.filter && <Owl />
-    const floatingDivider = this.state.showFloating &&
-      this.props.showSmallTeamsExpandDivider && (
-        <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
-      )
+    const floatingDivider = this.state.showFloating && this.props.allowShowFloatingButton && (
+      <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
+    )
     const HeadComponent = (
       <ChatInboxHeader
         filterFocusCount={this.props.filterFocusCount}
         focusFilter={this.props.focusFilter}
         onNewChat={this.props.onNewChat}
-        rows={this.props.rows}
+        onEnsureSelection={this._onEnsureSelection}
+        onSelectUp={this._onSelectUp}
+        onSelectDown={this._onSelectDown}
       />
     )
     return (
-      <ErrorBoundary>
-        <Box style={boxStyle}>
-          <NativeFlatList
+      <Kb.ErrorBoundary>
+        <Kb.Box style={boxStyle}>
+          <Kb.NativeFlatList
             ListHeaderComponent={HeadComponent}
             data={this.props.rows}
             keyExtractor={this._keyExtractor}
@@ -210,15 +221,15 @@ class Inbox extends React.PureComponent<Props, State> {
           {noChats}
           {owl}
           {floatingDivider || <BuildTeam />}
-        </Box>
-      </ErrorBoundary>
+        </Kb.Box>
+      </Kb.ErrorBoundary>
     )
   }
 }
 
 const boxStyle = {
-  ...globalStyles.flexBoxColumn,
-  backgroundColor: globalColors.fastBlank,
+  ...Styles.globalStyles.flexBoxColumn,
+  backgroundColor: Styles.globalColors.fastBlank,
   flex: 1,
   position: 'relative',
 }

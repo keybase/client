@@ -2,18 +2,20 @@
 import * as I from 'immutable'
 import * as Types from './types/fs'
 import * as RPCTypes from './types/rpc-gen'
+import * as ChatConstants from './chat2'
 import * as FsGen from '../actions/fs-gen'
+import * as Flow from '../util/flow'
 import {type TypedState} from '../util/container'
 import {isLinux, isWindows, isMobile} from './platform'
 import uuidv1 from 'uuid/v1'
 import logger from '../logger'
 import {globalColors} from '../styles'
 import {downloadFilePath, downloadFilePathNoSearch} from '../util/file'
-import type {IconType} from '../common-adapters'
 import {tlfToPreferredOrder} from '../util/kbfs'
-import {memoize, findKey} from 'lodash-es'
+import * as RouteTreeGen from '../actions/route-tree-gen'
+import {findKey} from 'lodash-es'
 
-export const defaultPath = '/keybase'
+export const defaultPath = Types.stringToPath('/keybase')
 
 // See Installer.m: KBExitFuseKextError
 export const ExitCodeFuseKextError = 4
@@ -23,21 +25,22 @@ export const ExitCodeFuseKextPermissionError = 5
 export const ExitCodeAuthCanceledError = 6
 
 export const makeNewFolder: I.RecordFactory<Types._NewFolder> = I.Record({
-  type: 'new-folder',
-  status: 'editing',
-  name: 'New Folder',
   hint: 'New Folder',
+  name: 'New Folder',
   parentPath: Types.stringToPath('/keybase'),
+  status: 'editing',
+  type: 'new-folder',
 })
+export const emptyFolder = makeNewFolder()
 
 const pathItemMetadataDefault = {
-  name: 'unknown',
-  lastModifiedTimestamp: 0,
-  size: 0,
-  lastWriter: {uid: '', username: ''},
   badgeCount: 0,
-  writable: false,
+  lastModifiedTimestamp: 0,
+  lastWriter: {uid: '', username: ''},
+  name: 'unknown',
+  size: 0,
   tlfMeta: undefined,
+  writable: false,
 }
 
 export const makeFolder: I.RecordFactory<Types._FolderPathItem> = I.Record({
@@ -47,16 +50,21 @@ export const makeFolder: I.RecordFactory<Types._FolderPathItem> = I.Record({
   type: 'folder',
 })
 
+export const makeMime: I.RecordFactory<Types._Mime> = I.Record({
+  displayPreview: false,
+  mimeType: '',
+})
+
 export const makeFile: I.RecordFactory<Types._FilePathItem> = I.Record({
   ...pathItemMetadataDefault,
+  mimeType: null,
   type: 'file',
-  mimeType: '',
 })
 
 export const makeSymlink: I.RecordFactory<Types._SymlinkPathItem> = I.Record({
   ...pathItemMetadataDefault,
-  type: 'symlink',
   linkTarget: '',
+  type: 'symlink',
 })
 
 export const makeUnknownPathItem: I.RecordFactory<Types._UnknownPathItem> = I.Record({
@@ -67,14 +75,14 @@ export const makeUnknownPathItem: I.RecordFactory<Types._UnknownPathItem> = I.Re
 export const unknownPathItem = makeUnknownPathItem()
 
 export const makeTlf: I.RecordFactory<Types._Tlf> = I.Record({
-  tlfType: 'private',
-  name: '',
   isFavorite: false,
   isIgnored: false,
   isNew: false,
+  name: '',
   needsRekey: false,
   resetParticipants: I.List(),
   teamId: '',
+  tlfType: 'private',
   waitingForParticipantUnlock: I.List(),
   youCanUnlock: I.List(),
 })
@@ -84,20 +92,23 @@ export const makeSortSetting: I.RecordFactory<Types._SortSetting> = I.Record({
   sortOrder: 'asc',
 })
 
+export const defaultSortSetting = makeSortSetting({})
+
 export const makePathUserSetting: I.RecordFactory<Types._PathUserSetting> = I.Record({
   sort: makeSortSetting(),
 })
 
 export const makeDownloadMeta: I.RecordFactory<Types._DownloadMeta> = I.Record({
-  type: 'download',
   entryType: 'unknown',
   intent: 'none',
-  path: Types.stringToPath(''),
   localPath: '',
   opID: null,
+  path: Types.stringToPath(''),
+  type: 'download',
 })
 
 export const makeDownloadState: I.RecordFactory<Types._DownloadState> = I.Record({
+  canceled: false,
   completePortion: 0,
   endEstimate: undefined,
   error: undefined,
@@ -111,11 +122,11 @@ export const makeDownload: I.RecordFactory<Types._Download> = I.Record({
 })
 
 export const makeFlags: I.RecordFactory<Types._Flags> = I.Record({
-  kbfsOpening: false,
-  kbfsInstalling: false,
   fuseInstalling: false,
+  kbfsInstalling: false,
+  kbfsOpening: false,
   kextPermissionError: false,
-  securityPrefsPropmted: false,
+  securityPrefsPrompted: false,
   showBanner: true,
   syncing: false,
 })
@@ -126,12 +137,12 @@ export const makeLocalHTTPServer: I.RecordFactory<Types._LocalHTTPServer> = I.Re
 })
 
 export const makeUploads: I.RecordFactory<Types._Uploads> = I.Record({
-  writingToJournal: I.Set(),
+  endEstimate: undefined,
   errors: I.Map(),
 
-  totalSyncingBytes: 0,
-  endEstimate: undefined,
   syncingPaths: I.Set(),
+  totalSyncingBytes: 0,
+  writingToJournal: I.Set(),
 })
 
 export const makeTlfs: I.RecordFactory<Types._Tlfs> = I.Record({
@@ -143,10 +154,10 @@ export const makeTlfs: I.RecordFactory<Types._Tlfs> = I.Record({
 const placeholderAction = FsGen.createPlaceholderAction()
 
 const _makeError: I.RecordFactory<Types._FsError> = I.Record({
-  time: 0,
   error: 'unknown error',
   erroredAction: placeholderAction,
   retriableAction: undefined,
+  time: 0,
 })
 
 // Populate `time` with Date.now() if not provided.
@@ -158,140 +169,65 @@ export const makeError = (record?: {
 }): I.RecordOf<Types._FsError> => {
   let {time, error, erroredAction, retriableAction} = record || {}
   return _makeError({
-    time: time || Date.now(),
     error: !error ? 'unknown error' : error.message || JSON.stringify(error),
     erroredAction,
     retriableAction,
+    time: time || Date.now(),
   })
 }
 
+export const makeMoveOrCopy: I.RecordFactory<Types._MoveOrCopy> = I.Record({
+  destinationParentPath: I.List(),
+  sourceItemPath: Types.stringToPath(''),
+})
+
+export const makeSendLinkToChat: I.RecordFactory<Types._SendLinkToChat> = I.Record({
+  channels: I.Map(),
+  convID: ChatConstants.noConversationIDKey,
+  path: Types.stringToPath('/keybase'),
+})
+
+export const makePathItemActionMenu: I.RecordFactory<Types._PathItemActionMenu> = I.Record({
+  downloadKey: null,
+  previousView: 'root',
+  view: 'root',
+})
+
 export const makeState: I.RecordFactory<Types._State> = I.Record({
+  downloads: I.Map(),
+  edits: I.Map(),
+  errors: I.Map(),
   flags: makeFlags(),
   fuseStatus: null,
-  pathItems: I.Map([[Types.stringToPath('/keybase'), makeFolder()]]),
-  tlfs: makeTlfs(),
-  edits: I.Map(),
-  pathUserSettings: I.Map([[Types.stringToPath('/keybase'), makePathUserSetting()]]),
-  loadingPaths: I.Set(),
-  downloads: I.Map(),
-  uploads: makeUploads(),
+  loadingPaths: I.Map(),
   localHTTPServerInfo: null,
-  errors: I.Map(),
+  moveOrCopy: makeMoveOrCopy(),
+  pathItemActionMenu: makePathItemActionMenu(),
+  pathItems: I.Map([[Types.stringToPath('/keybase'), makeFolder()]]),
+  pathUserSettings: I.Map([[Types.stringToPath('/keybase'), makePathUserSetting()]]),
+  sendLinkToChat: makeSendLinkToChat(),
   tlfUpdates: I.List(),
-})
-
-const makeBasicPathItemIconSpec = (iconType: IconType, iconColor: string): Types.PathItemIconSpec => ({
-  type: 'basic',
-  iconType,
-  iconColor,
-})
-
-const makeTeamAvatarPathItemIconSpec = (teamName: string): Types.PathItemIconSpec => ({
-  type: 'teamAvatar',
-  teamName,
-})
-
-const makeAvatarPathItemIconSpec = (username: string): Types.PathItemIconSpec => ({
-  type: 'avatar',
-  username,
-})
-
-const makeAvatarsPathItemIconSpec = (usernames: Array<string>): Types.PathItemIconSpec => ({
-  type: 'avatars',
-  usernames,
+  tlfs: makeTlfs(),
+  uploads: makeUploads(),
 })
 
 export const makeUUID = () => uuidv1({}, Buffer.alloc(16), 0)
+
 export const fsPathToRpcPathString = (p: Types.Path): string =>
   Types.pathToString(p).substring('/keybase'.length) || '/'
 
-const privateIconColor = globalColors.darkBlue2
-const privateTextColor = globalColors.black_75
-const publicIconColor = globalColors.yellowGreen
-const publicTextColor = globalColors.yellowGreen2
-const unknownTextColor = globalColors.grey
-
-const folderTextType = 'BodySemibold'
-const fileTextType = 'Body'
-
-const itemStylesTeamList = {
-  iconSpec: makeBasicPathItemIconSpec('icon-folder-team-32', privateIconColor),
-  textColor: privateTextColor,
-  textType: folderTextType,
-}
-const itemStylesPublicFolder = {
-  iconSpec: makeBasicPathItemIconSpec('icon-folder-public-32', publicIconColor),
-  textColor: publicTextColor,
-  textType: folderTextType,
-}
-const itemStylesPublicFile = {
-  iconSpec: makeBasicPathItemIconSpec('icon-file-public-32', publicIconColor),
-  textColor: publicTextColor,
-  textType: fileTextType,
-}
-const itemStylesPrivateFolder = {
-  iconSpec: makeBasicPathItemIconSpec('icon-folder-private-32', privateIconColor),
-  textColor: privateTextColor,
-  textType: folderTextType,
-}
-const itemStylesPrivateFile = {
-  iconSpec: makeBasicPathItemIconSpec('icon-file-private-32', privateIconColor),
-  textColor: privateTextColor,
-  textType: fileTextType,
-}
-const itemStylesPublicUnknown = {
-  iconSpec: makeBasicPathItemIconSpec('iconfont-question-mark', unknownTextColor),
-  textColor: publicTextColor,
-  textType: fileTextType,
-}
-const itemStylesPrivateUnknown = {
-  iconSpec: makeBasicPathItemIconSpec('iconfont-question-mark', unknownTextColor),
-  textColor: privateTextColor,
-  textType: fileTextType,
-}
-const itemStylesKeybase = {
-  iconSpec: makeBasicPathItemIconSpec('iconfont-folder-private', unknownTextColor),
-  textColor: unknownTextColor,
-  textType: folderTextType,
+export const getPathTextColor = (path: Types.Path) => {
+  const elems = Types.getPathElements(path)
+  return elems.length >= 2 && elems[1] === 'public' ? globalColors.yellowGreen2 : globalColors.black_75
 }
 
-const getIconSpecFromUsernames = (usernames: Array<string>, me?: ?string) => {
-  return usernames.length === 0
-    ? makeBasicPathItemIconSpec('iconfont-question-mark', unknownTextColor)
-    : usernames.length === 1
-      ? makeAvatarPathItemIconSpec(usernames[0])
-      : makeAvatarsPathItemIconSpec(usernames.filter(username => username !== me))
-}
-export const getIconSpecFromUsernamesAndTeamname = (
-  usernames: ?Array<string>,
-  teamname: ?string,
-  me?: ?string
-) => {
-  return teamname && teamname.length > 0
-    ? makeTeamAvatarPathItemIconSpec(teamname)
-    : getIconSpecFromUsernames(usernames || [], me)
-}
-const splitTlfIntoUsernames = (tlf: string): Array<string> =>
+export const pathTypeToTextType = (type: Types.PathType) => (type === 'folder' ? 'BodySemibold' : 'Body')
+
+export const splitTlfIntoUsernames = (tlf: string): Array<string> =>
   tlf
     .split(' ')[0]
     .replace(/#/g, ',')
     .split(',')
-
-const itemStylesPublicTlf = memoize((tlf: string, me?: ?string) => ({
-  iconSpec: getIconSpecFromUsernames(splitTlfIntoUsernames(tlf), me),
-  textColor: publicTextColor,
-  textType: folderTextType,
-}))
-const itemStylesPrivateTlf = memoize((tlf: string, me?: ?string) => ({
-  iconSpec: getIconSpecFromUsernames(splitTlfIntoUsernames(tlf), me),
-  textColor: privateTextColor,
-  textType: folderTextType,
-}))
-const itemStylesTeamTlf = memoize((teamName: string) => ({
-  iconSpec: makeTeamAvatarPathItemIconSpec(teamName),
-  textColor: privateTextColor,
-  textType: folderTextType,
-}))
 
 export const humanReadableFileSize = (size: number) => {
   const kib = 1024
@@ -307,66 +243,17 @@ export const humanReadableFileSize = (size: number) => {
   return `${size} B`
 }
 
-export const getItemStyles = (
-  pathElems: Array<string>,
-  type: Types.PathType,
-  username?: ?string
-): Types.ItemStyles => {
-  if (pathElems.length === 1 && pathElems[0] === 'keybase') {
-    return itemStylesKeybase
-  }
-  // For /keybase/team, the icon is different from directories inside a TLF.
-  if (pathElems.length === 2 && pathElems[1] === 'team') {
-    return itemStylesTeamList
-  }
-
-  if (pathElems.length === 3) {
-    switch (pathElems[1]) {
-      case 'public':
-        return itemStylesPublicTlf(pathElems[2], username)
-      case 'private':
-        return itemStylesPrivateTlf(pathElems[2], username)
-      case 'team':
-        return itemStylesTeamTlf(pathElems[2])
-      default:
-        return itemStylesPrivateUnknown
-    }
-  }
-
-  // For icon purposes, we are treating team folders as private.
-  const isPublic = pathElems[1] === 'public'
-
-  switch (type) {
-    case 'folder':
-      return isPublic ? itemStylesPublicFolder : itemStylesPrivateFolder
-    case 'file':
-      // TODO: different file types
-      return isPublic ? itemStylesPublicFile : itemStylesPrivateFile
-    case 'symlink':
-      return isPublic ? itemStylesPublicFile : itemStylesPrivateFile
-    default:
-      return isPublic ? itemStylesPublicUnknown : itemStylesPrivateUnknown
-  }
-}
-
 export const editTypeToPathType = (type: Types.EditType): Types.PathType => {
   switch (type) {
     case 'new-folder':
       return 'folder'
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (type: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(type);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(type)
       return 'unknown'
   }
 }
 
-const makeDownloadKey = (path: Types.Path) => `download:${Types.pathToString(path)}:${makeUUID()}`
-export const makeDownloadPayload = (path: Types.Path): {|path: Types.Path, key: string|} => ({
-  path,
-  key: makeDownloadKey(path),
-})
+export const makeDownloadKey = (path: Types.Path) => `download:${Types.pathToString(path)}:${makeUUID()}`
 export const getDownloadIntentFromAction = (
   action: FsGen.DownloadPayload | FsGen.ShareNativePayload | FsGen.SaveMediaPayload
 ): Types.DownloadIntent =>
@@ -420,10 +307,10 @@ const _fillMetadataInFavoritesResult = (
           const last = numDevices > 1 ? devices.pop() : null
 
           return {
-            name: favoritesResult.users[userID],
             devices: `Tell them to turn on${numDevices > 1 ? ':' : ' '} ${devices.join(', ')}${
               last ? ` or ${last}` : ''
             }.`,
+            name: favoritesResult.users[userID],
           }
         })
       : []
@@ -484,10 +371,10 @@ export const createFavoritesLoadedFromJSONResults = (
         reset_members,
       } = folder
       const tlf = makeTlf({
-        name: tlfToPreferredOrder(name, username),
         isFavorite: true,
         isIgnored,
         isNew,
+        name: tlfToPreferredOrder(name, username),
         needsRekey,
         resetParticipants: I.List(reset_members || []),
         teamId: team_id || '',
@@ -514,16 +401,16 @@ export const createFavoritesLoadedFromJSONResults = (
 }
 
 export const makeTlfUpdate: I.RecordFactory<Types._TlfUpdate> = I.Record({
-  path: Types.stringToPath(''),
-  writer: '',
-  serverTime: 0,
   history: I.List(),
+  path: Types.stringToPath(''),
+  serverTime: 0,
+  writer: '',
 })
 
 export const makeTlfEdit: I.RecordFactory<Types._TlfEdit> = I.Record({
+  editType: 'unknown',
   filename: '',
   serverTime: 0,
-  editType: 'unknown',
 })
 
 const fsNotificationTypeToEditType = (fsNotificationType: number): Types.FileEditType => {
@@ -551,20 +438,20 @@ export const userTlfHistoryRPCToState = (
     const tlfUpdates = folder.history
       ? folder.history.map(({writerName, edits}) =>
           makeTlfUpdate({
-            path,
-            serverTime: updateServerTime,
-            writer: writerName,
             history: I.List(
               edits
                 ? edits.map(({filename, notificationType, serverTime}) =>
                     makeTlfEdit({
+                      editType: fsNotificationTypeToEditType(notificationType),
                       filename,
                       serverTime,
-                      editType: fsNotificationTypeToEditType(notificationType),
                     })
                   )
                 : []
             ),
+            path,
+            serverTime: updateServerTime,
+            writer: writerName,
           })
         )
       : []
@@ -573,18 +460,21 @@ export const userTlfHistoryRPCToState = (
   return I.List(updates)
 }
 
-export const viewTypeFromMimeType = (mimeType: string): Types.FileViewType => {
-  if (mimeType === 'text/plain') {
-    return 'text'
-  }
-  if (mimeType.startsWith('image/')) {
-    return 'image'
-  }
-  if (mimeType.startsWith('audio/') || mimeType.startsWith('video/')) {
-    return 'av'
-  }
-  if (mimeType === 'application/pdf') {
-    return 'pdf'
+export const viewTypeFromMimeType = (mime: ?Types.Mime): Types.FileViewType => {
+  if (mime && mime.displayPreview) {
+    const mimeType = mime.mimeType
+    if (mimeType === 'text/plain') {
+      return 'text'
+    }
+    if (mimeType.startsWith('image/')) {
+      return 'image'
+    }
+    if (mimeType.startsWith('audio/') || mimeType.startsWith('video/')) {
+      return 'av'
+    }
+    if (mimeType === 'application/pdf') {
+      return 'pdf'
+    }
   }
   return 'default'
 }
@@ -593,7 +483,10 @@ export const isMedia = (pathItem: Types.PathItem): boolean =>
   pathItem.type === 'file' && ['image', 'av'].includes(viewTypeFromMimeType(pathItem.mimeType))
 
 const slashKeybaseSlashLength = '/keybase/'.length
-export const generateFileURL = (path: Types.Path, localHTTPServerInfo: ?Types._LocalHTTPServer): string => {
+export const generateFileURL = (
+  path: Types.Path,
+  localHTTPServerInfo: ?$ReadOnly<Types._LocalHTTPServer>
+): string => {
   if (localHTTPServerInfo === null) {
     return 'about:blank'
   }
@@ -623,11 +516,11 @@ export const folderRPCFromPath = (path: Types.Path): ?RPCTypes.Folder => {
   if (name === '') return null
 
   return {
+    created: false,
     folderType: Types.getRPCFolderTypeFromVisibility(visibility),
     name,
-    private: isPrivate,
     notificationsOn: false,
-    created: false,
+    private: isPrivate,
   }
 }
 
@@ -651,7 +544,7 @@ export const syntheticEventToTargetRect = (evt?: SyntheticEvent<>): ?ClientRect 
 // shouldUseOldMimeType determines if mimeType from newItem should reuse
 // what's in oldItem.
 export const shouldUseOldMimeType = (oldItem: Types.FilePathItem, newItem: Types.FilePathItem): boolean => {
-  if (oldItem.mimeType === '' || newItem.mimeType !== '') {
+  if (!oldItem.mimeType || newItem.mimeType) {
     return false
   }
 
@@ -669,7 +562,7 @@ export const notFoundError = new Error('not found')
 
 export const makeEditID = (): Types.EditID => Types.stringToEditID(uuidv1())
 
-export const getTlfListFromType = (tlfs: Types.Tlfs, tlfType: Types.TlfType) => {
+export const getTlfListFromType = (tlfs: Types.Tlfs, tlfType: Types.TlfType): Types.TlfList => {
   switch (tlfType) {
     case 'private':
       return tlfs.private
@@ -678,13 +571,18 @@ export const getTlfListFromType = (tlfs: Types.Tlfs, tlfType: Types.TlfType) => 
     case 'team':
       return tlfs.team
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTlfTypesAbove: (tlfType: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTlfTypesAbove(tlfType);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(tlfType)
       return I.Map()
   }
 }
+
+export const computeBadgeNumberForTlfList = (tlfList: Types.TlfList): number =>
+  tlfList.reduce((accumulator, tlf) => (tlfIsBadged(tlf) ? accumulator + 1 : accumulator), 0)
+
+export const computeBadgeNumberForAll = (tlfs: Types.Tlfs): number =>
+  ['private', 'public', 'team']
+    .map(tlfType => computeBadgeNumberForTlfList(getTlfListFromType(tlfs, tlfType)))
+    .reduce((sum, count) => sum + count, 0)
 
 export const getTlfListAndTypeFromPath = (
   tlfs: Types.Tlfs,
@@ -705,13 +603,14 @@ export const getTlfListAndTypeFromPath = (
   }
 }
 
+export const unknownTlf = makeTlf()
 export const getTlfFromPath = (tlfs: Types.Tlfs, path: Types.Path): Types.Tlf => {
   const elems = Types.getPathElements(path)
   if (elems.length !== 3) {
-    return makeTlf()
+    return unknownTlf
   }
   const {tlfList} = getTlfListAndTypeFromPath(tlfs, path)
-  return tlfList.get(elems[2], makeTlf())
+  return tlfList.get(elems[2], unknownTlf)
 }
 
 export const getTlfFromTlfs = (tlfs: Types.Tlfs, tlfType: Types.TlfType, name: string): Types.Tlf => {
@@ -723,10 +622,7 @@ export const getTlfFromTlfs = (tlfs: Types.Tlfs, tlfType: Types.TlfType, name: s
     case 'team':
       return tlfs.team.get(name, makeTlf())
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTlfTypesAbove: (tlfType: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTlfTypesAbove(tlfType);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(tlfType)
       return makeTlf()
   }
 }
@@ -737,7 +633,7 @@ export const tlfTypeAndNameToPath = (tlfType: Types.TlfType, name: string): Type
 export const kbfsEnabled = (state: TypedState) =>
   !isMobile &&
   (isLinux ||
-    (state.fs.fuseStatus &&
+    (!!state.fs.fuseStatus &&
       state.fs.fuseStatus.kextStarted &&
       // on Windows, check that the driver is up to date too
       !(isWindows && state.fs.fuseStatus.installAction === 2)))
@@ -762,6 +658,152 @@ export const isPendingDownload = (download: Types.Download, path: Types.Path, in
 
 export const getUploadedPath = (parentPath: Types.Path, localPath: string) =>
   Types.pathConcat(parentPath, Types.getLocalPathName(localPath))
+
+export const usernameInPath = (username: string, path: Types.Path) => {
+  const elems = Types.getPathElements(path)
+  return elems.length >= 3 && elems[2].split(',').includes(username)
+}
+
+// To make sure we have consistent badging, all badging related stuff should go
+// through this function. That is:
+// * When calculating number of TLFs being badged, a TLF should be counted if
+//   and only if this function returns true.
+// * When an individual TLF is shown (e.g. as a row), it should be badged if
+//   and only if this funciton returns true.
+//
+// If we add more badges, this function should be updated.
+export const tlfIsBadged = (tlf: Types.Tlf) => !tlf.isIgnored && (tlf.isNew || tlf.needsRekey)
+
+export const pathsInSameTlf = (a: Types.Path, b: Types.Path): boolean => {
+  const elemsA = Types.getPathElements(a)
+  const elemsB = Types.getPathElements(b)
+  return elemsA.length >= 3 && elemsB.length >= 3 && elemsA[1] === elemsB[1] && elemsA[2] === elemsB[2]
+}
+
+export const destinationPickerGoToPathAction = (
+  routePath: I.List<string>,
+  destinationParentPath: Types.Path
+) => {
+  const to = {props: {destinationParentPath}, selected: 'destinationPicker'}
+  return RouteTreeGen.createPutActionIfOnPath({
+    expectedPath: routePath,
+    otherAction: isMobile
+      ? RouteTreeGen.createNavigateAppend({path: [to]})
+      : RouteTreeGen.createNavigateTo({path: [to]}),
+  })
+}
+
+export const escapePath = (path: Types.Path): string =>
+  Types.pathToString(path).replace(/(\\)|( )/g, (match, p1, p2) => `\\${p1 || p2}`)
+export const unescapePath = (escaped: string): Types.Path =>
+  // turns "\\" into "\", and "\ " into " "
+  Types.stringToPath(escaped.replace(/\\(\\)|\\( )/g, (match, p1, p2) => p1 || p2))
+
+export const parsedPathRoot: Types.ParsedPathRoot = I.Record({kind: 'root'})()
+export const parsedPathPrivateList: Types.ParsedPathTlfList = I.Record({
+  kind: 'tlf-list',
+  tlfType: 'private',
+})()
+export const parsedPathPublicList: Types.ParsedPathTlfList = I.Record({kind: 'tlf-list', tlfType: 'public'})()
+export const parsedPathTeamList: Types.ParsedPathTlfList = I.Record({kind: 'tlf-list', tlfType: 'team'})()
+
+const makeParsedPathGroupTlf: I.RecordFactory<Types._ParsedPathGroupTlf> = I.Record({
+  kind: 'group-tlf',
+  readers: null,
+  tlfType: 'private',
+  writers: I.List(),
+})
+
+const makeParsedPathTeamTlf: I.RecordFactory<Types._ParsedPathTeamTlf> = I.Record({
+  kind: 'team-tlf',
+  team: '',
+  tlfType: 'team',
+})
+
+const makeParsedPathInGroupTlf: I.RecordFactory<Types._ParsedPathInGroupTlf> = I.Record({
+  kind: 'in-group-tlf',
+  readers: null,
+  rest: I.List(),
+  tlfType: 'private',
+  writers: I.List(),
+})
+
+const makeParsedPathInTeamTlf: I.RecordFactory<Types._ParsedPathInTeamTlf> = I.Record({
+  kind: 'in-team-tlf',
+  rest: I.List(),
+  team: '',
+  tlfType: 'team',
+})
+
+const splitTlfIntoReadersAndWriters = (
+  tlf: string
+): {|readers: ?I.List<string>, writers: I.List<string>|} => {
+  const [w, r] = tlf.split('#')
+  return {
+    readers: r ? I.List(r.split(',').filter(i => !!i)) : null,
+    writers: I.List(w.split(',').filter(i => !!i)),
+  }
+}
+
+// returns parsedPathRoot if unknown
+export const parsePath = (path: Types.Path): Types.ParsedPath => {
+  const elems = Types.getPathElements(path)
+  if (elems.length <= 1) {
+    return parsedPathRoot
+  }
+  switch (elems[1]) {
+    case 'private':
+      switch (elems.length) {
+        case 2:
+          return parsedPathPrivateList
+        case 3:
+          return makeParsedPathGroupTlf({
+            ...splitTlfIntoReadersAndWriters(elems[2]),
+            tlfType: 'private',
+          })
+        default:
+          return makeParsedPathInGroupTlf({
+            ...splitTlfIntoReadersAndWriters(elems[2]),
+            rest: I.List(elems.slice(3)),
+            tlfType: 'private',
+          })
+      }
+    case 'public':
+      switch (elems.length) {
+        case 2:
+          return parsedPathPublicList
+        case 3:
+          return makeParsedPathGroupTlf({
+            ...splitTlfIntoReadersAndWriters(elems[2]),
+            tlfType: 'public',
+          })
+        default:
+          return makeParsedPathInGroupTlf({
+            ...splitTlfIntoReadersAndWriters(elems[2]),
+            rest: I.List(elems.slice(3)),
+            tlfType: 'public',
+          })
+      }
+    case 'team':
+      switch (elems.length) {
+        case 2:
+          return parsedPathTeamList
+        case 3:
+          return makeParsedPathTeamTlf({
+            team: elems[2],
+            tlfType: 'team',
+          })
+        default:
+          return makeParsedPathInTeamTlf({
+            rest: I.List(elems.slice(3)),
+            team: elems[2],
+            tlfType: 'team',
+          })
+      }
+    default:
+      return parsedPathRoot
+  }
+}
 
 export const erroredActionToMessage = (action: FsGen.Actions): string => {
   switch (action.type) {
@@ -788,7 +830,17 @@ export const erroredActionToMessage = (action: FsGen.Actions): string => {
     case FsGen.openPathInSystemFileManager:
       return `Failed to open path: ${Types.pathToString(action.payload.path)}.`
     case FsGen.openLocalPathInSystemFileManager:
-      return `Failed to open path: ${action.payload.path}.`
+      return `Failed to open path: ${action.payload.localPath}.`
+    case FsGen.deleteFile:
+      return `Failed to delete file: ${Types.pathToString(action.payload.path)}.`
+    case FsGen.move:
+      return `Failed to move file(s).`
+    case FsGen.copy:
+      return `Failed to copy file(s).`
+    case FsGen.openPathItem:
+      return `Failed to open path: ${Types.pathToString(action.payload.path)}.`
+    case FsGen.openPathInFilesTab:
+      return `Failed to open path: ${Types.pathToString(action.payload.path)}.`
     default:
       return 'An unexplainable error has occurred.'
   }

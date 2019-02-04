@@ -1,11 +1,22 @@
 // @flow
 import * as React from 'react'
-import {Box2, Button, CopyText, Icon, InfoNote, Text, iconCastPlatformStyles} from '../../common-adapters'
+import {
+  Box2,
+  Button,
+  CopyText,
+  Icon,
+  ProgressIndicator,
+  Text,
+  iconCastPlatformStyles,
+} from '../../common-adapters'
 import * as Styles from '../../styles'
-import {WalletPopup} from '../common'
+import {SmallAccountID, WalletPopup} from '../common'
+import * as Types from '../../constants/types/wallets'
 
 type Props = {
-  secretKey: ?string,
+  accountID: Types.AccountID,
+  accountName: string,
+  secretKey: string,
   onClose: () => void,
   onLoadSecretKey: () => void,
   username: string,
@@ -19,24 +30,23 @@ export default class ExportSecretKeyPopup extends React.Component<Props> {
   render() {
     const header = (
       <React.Fragment>
-        <Text type="BodySmallSemibold">{this.props.username}’s account</Text>
-        <Text type={Styles.isMobile ? 'BodyBig' : 'Header'} style={styles.headerText}>
+        {this.props.accountName ? (
+          <Text type="BodySmallSemibold">{this.props.accountName}</Text>
+        ) : (
+          <SmallAccountID accountID={this.props.accountID} />
+        )}
+        <Text center={true} type={Styles.isMobile ? 'BodyBig' : 'Header'} style={styles.headerText}>
           Secret key
         </Text>
       </React.Fragment>
     )
 
-    const mobileHeaderWrapper = (
-      <Box2 direction="horizontal" centerChildren={true} style={styles.header}>
-        <Box2 direction="vertical">{header}</Box2>
-      </Box2>
-    )
-
     return (
       <WalletPopup
-        onClose={this.props.onClose}
-        customCancelText="Close"
-        customComponent={Styles.isMobile && mobileHeaderWrapper}
+        onExit={this.props.onClose}
+        backButtonType="close"
+        accountName={this.props.accountName}
+        headerTitle="Secret key"
         containerStyle={styles.container}
       >
         <Icon
@@ -44,16 +54,21 @@ export default class ExportSecretKeyPopup extends React.Component<Props> {
           style={iconCastPlatformStyles(styles.icon)}
         />
         {!Styles.isMobile && header}
-        {!!this.props.secretKey && (
-          <Box2 direction="vertical" style={styles.secretKeyContainer}>
-            <CopyText withReveal={true} text={this.props.secretKey} />
-          </Box2>
-        )}
-        <InfoNote>
-          <Text type="BodySmall" style={styles.infoNoteText}>
-            Only paste your secret key in 100% safe places.
+        <Box2 direction="horizontal" style={styles.warningContainer}>
+          <Text center={true} backgroundMode="Information" type="BodySmallSemibold">
+            Only paste your secret key in 100% safe places. Anyone with this key could steal your
+            Stellar&nbsp;account.
           </Text>
-        </InfoNote>
+        </Box2>
+        <Box2 direction="vertical" fullWidth={true} style={styles.secretKeyContainer}>
+          <CopyText multiline={true} withReveal={true} text={this.props.secretKey} />
+          {!this.props.secretKey && (
+            <Box2 direction="horizontal" gap="tiny" fullWidth={true} style={styles.progressContainer}>
+              <ProgressIndicator style={styles.progressIndicator} type="Small" />
+              <Text type="BodySmall">fetching and decrypting secret key...</Text>
+            </Box2>
+          )}
+        </Box2>
         {!Styles.isMobile && <Button label="Close" onClick={this.props.onClose} type="Secondary" />}
       </WalletPopup>
     )
@@ -63,8 +78,10 @@ export default class ExportSecretKeyPopup extends React.Component<Props> {
 const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
     isMobile: {
-      paddingTop: Styles.globalMargins.medium,
       paddingBottom: Styles.globalMargins.xlarge,
+      paddingLeft: Styles.globalMargins.medium,
+      paddingRight: Styles.globalMargins.medium,
+      paddingTop: Styles.globalMargins.medium,
     },
   }),
   header: Styles.platformStyles({
@@ -74,11 +91,8 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   headerText: Styles.platformStyles({
-    common: {
-      textAlign: 'center',
-    },
     isElectron: {
-      marginBottom: Styles.globalMargins.xlarge,
+      marginBottom: Styles.globalMargins.medium,
     },
   }),
   icon: Styles.platformStyles({
@@ -89,23 +103,38 @@ const styles = Styles.styleSheetCreate({
       marginBottom: 50,
     },
   }),
-  infoNoteText: {
-    marginBottom: Styles.globalMargins.medium,
-    textAlign: 'center',
-  },
-  progressContainer: {
-    marginBottom: Styles.globalMargins.medium,
-  },
-  secretKeyContainer: Styles.platformStyles({
+  progressContainer: Styles.platformStyles({
     common: {
-      width: '100%',
-    },
-    isElectron: {
-      maxWidth: 272,
-      marginBottom: Styles.globalMargins.medium,
-    },
-    isMobile: {
-      marginBottom: Styles.globalMargins.xlarge,
+      ...Styles.globalStyles.fillAbsolute,
+      alignItems: 'center',
+      backgroundColor: Styles.globalColors.white_90,
+      display: 'flex',
+      justifyContent: 'center',
     },
   }),
+  progressIndicator: Styles.platformStyles({
+    isElectron: {
+      height: 17,
+      width: 17,
+    },
+    isMobile: {
+      height: 22,
+      width: 22,
+    },
+  }),
+  secretKeyContainer: Styles.platformStyles({
+    common: {
+      position: 'relative',
+    },
+    isElectron: {
+      marginBottom: Styles.globalMargins.medium,
+    },
+  }),
+  warningContainer: {
+    backgroundColor: Styles.globalColors.yellow,
+    borderRadius: Styles.borderRadius,
+    marginBottom: Styles.globalMargins.medium,
+    padding: Styles.globalMargins.xsmall,
+    width: '100%',
+  },
 })

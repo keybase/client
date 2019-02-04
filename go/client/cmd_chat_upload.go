@@ -44,6 +44,7 @@ func newCmdChatUpload(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 				done:         make(chan bool, 1),
 			}
 			cl.ChooseCommand(cmd, "upload", c)
+			cl.SetLogForward(libcmdline.LogForwardNone)
 		},
 		Flags: flags,
 	}
@@ -87,7 +88,7 @@ func (c *CmdChatUpload) Run() error {
 	}()
 
 	h := newChatServiceHandler(c.G())
-	reply := h.AttachV1(ctx, opts)
+	reply := h.AttachV1(ctx, opts, NewChatCLIUI(c.G()), NewChatCLINotifications(c.G()))
 
 	c.G().Log.Debug("AttachV1 done")
 	c.done <- true

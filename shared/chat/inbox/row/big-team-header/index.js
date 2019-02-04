@@ -1,40 +1,22 @@
 // @flow
 import React from 'react'
-import {
-  Avatar,
-  Box,
-  ClickableBox,
-  Icon,
-  Text,
-  type OverlayParentProps,
-  OverlayParentHOC,
-} from '../../../../common-adapters'
+import * as Kb from '../../../../common-adapters'
 import TeamMenu from '../../../conversation/info-panel/menu/container'
-import {
-  desktopStyles,
-  collapseStyles,
-  globalStyles,
-  globalColors,
-  globalMargins,
-  isMobile,
-  platformStyles,
-  styleSheetCreate,
-} from '../../../../styles'
+import * as Styles from '../../../../styles'
 import * as RowSizes from '../sizes'
 
 type Props = {
   badgeSubscribe: boolean,
-  memberCount: number,
   onClick: () => void,
   teamname: string,
-} & OverlayParentProps
+} & Kb.OverlayParentProps
 
 class _BigTeamHeader extends React.PureComponent<Props> {
   render() {
     const props = this.props
 
     return (
-      <Box style={styles.teamRowContainer}>
+      <Kb.Box style={styles.teamRowContainer}>
         <TeamMenu
           attachTo={props.getAttachmentRef}
           visible={props.showingMenu}
@@ -42,61 +24,87 @@ class _BigTeamHeader extends React.PureComponent<Props> {
           teamname={props.teamname}
           isSmallTeam={false}
         />
-        <Avatar onClick={props.onClick} teamname={props.teamname} size={32} />
-        <Text onClick={props.onClick} type="BodySmallSemibold" style={styles.team}>
-          {props.teamname}
-        </Text>
-        <ClickableBox onClick={props.toggleShowingMenu} ref={props.setAttachmentRef} style={styles.showMenu}>
-          <Icon className="icon" type="iconfont-gear" fontSize={iconFontSize} color={globalColors.black_20} />
-          <Box
-            style={collapseStyles([
-              styles.badge,
-              props.badgeSubscribe && {backgroundColor: globalColors.blue},
-            ])}
+        <Kb.Avatar onClick={props.onClick} teamname={props.teamname} size={32} />
+        <Kb.BoxGrow style={styles.teamnameContainer}>
+          <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true} style={{alignItems: 'center'}}>
+            <Kb.Text
+              ellipsizeMode="middle"
+              onClick={props.onClick}
+              type="BodySmallSemibold"
+              style={styles.team}
+              lineClamp={1}
+            >
+              {props.teamname}
+            </Kb.Text>
+          </Kb.Box2>
+        </Kb.BoxGrow>
+        <Kb.ClickableBox
+          onClick={props.toggleShowingMenu}
+          ref={props.setAttachmentRef}
+          style={styles.showMenu}
+        >
+          <Kb.Icon
+            className="Kb.icon"
+            type="iconfont-gear"
+            fontSize={iconFontSize}
+            color={Styles.globalColors.black_50}
           />
-        </ClickableBox>
-      </Box>
+          <Kb.Box
+            style={Styles.collapseStyles([styles.badge, props.badgeSubscribe && styles.badgeVisible])}
+          />
+        </Kb.ClickableBox>
+      </Kb.Box>
     )
   }
 }
 
-const BigTeamHeader = OverlayParentHOC(_BigTeamHeader)
-const iconFontSize = isMobile ? 20 : 16
+const BigTeamHeader = Kb.OverlayParentHOC(_BigTeamHeader)
+const iconFontSize = Styles.isMobile ? 20 : 14
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   badge: {
-    borderRadius: 6,
     height: 8,
     position: 'absolute',
-    right: isMobile ? -1 : -3,
-    top: -1,
+    right: Styles.isMobile ? 4 : 2,
+    top: Styles.isMobile ? 7 : 4,
     width: 8,
   },
+  badgeVisible: {
+    backgroundColor: Styles.globalColors.blue,
+    borderColor: Styles.globalColors.blueGrey,
+    borderRadius: Styles.borderRadius,
+    borderStyle: `solid`,
+    borderWidth: 1,
+  },
   showMenu: {
-    ...globalStyles.flexBoxRow,
+    ...Styles.globalStyles.flexBoxRow,
     padding: 6,
     position: 'relative',
-    right: globalMargins.xtiny,
   },
-  team: platformStyles({
+  team: Styles.platformStyles({
     common: {
-      color: globalColors.black_60,
-      flexGrow: 1,
-      marginLeft: globalMargins.tiny,
-      marginRight: globalMargins.tiny,
+      color: Styles.globalColors.black_50,
+      marginLeft: Styles.globalMargins.tiny,
+      marginRight: Styles.globalMargins.tiny,
     },
-    isMobile: {backgroundColor: globalColors.fastBlank},
+    isElectron: {display: 'inline'},
+    isMobile: {backgroundColor: Styles.globalColors.fastBlank},
   }),
-  teamRowContainer: platformStyles({
+  teamRowContainer: Styles.platformStyles({
     common: {
-      ...globalStyles.flexBoxRow,
+      ...Styles.globalStyles.flexBoxRow,
       alignItems: 'center',
       flexShrink: 0,
       height: RowSizes.bigHeaderHeight,
-      paddingLeft: globalMargins.tiny,
-      paddingRight: globalMargins.tiny,
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
     },
-    isElectron: desktopStyles.clickable,
+    isElectron: Styles.desktopStyles.clickable,
+  }),
+  teamnameContainer: Styles.platformStyles({
+    isMobile: {
+      height: '100%',
+    },
   }),
 })
 

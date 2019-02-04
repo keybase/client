@@ -1,5 +1,4 @@
 // @flow strict
-// $FlowIssue https://github.com/facebook/flow/issues/6628
 import * as I from 'immutable'
 import HiddenString from '../../util/hidden-string'
 
@@ -26,6 +25,7 @@ export type _State = {
   newPaperkey: HiddenString,
   selectedDeviceID: ?DeviceID,
   justRevokedSelf: string,
+  isNew: I.Set<string>,
 }
 export type State = I.RecordOf<_State>
 

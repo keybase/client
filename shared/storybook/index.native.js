@@ -13,11 +13,11 @@ const load = () => {
   loadStories()
 
   const StorybookUI = getStorybookUI({
-    disableWebsockets: true, // TEMP since the webui isn't working
+    disableWebsockets: false,
     host: 'localhost',
     // set this to true to show the in-app UI or just use the web ui
     // https://github.com/storybooks/storybook/pull/3746#issuecomment-416623500
-    onDeviceUI: true, // prefer false but babel7 webpack is currently busted
+    onDeviceUI: false,
     port: 7007,
   })
 
@@ -27,7 +27,6 @@ const load = () => {
 const stories = {...sharedStories, ...nativeStories}
 
 // Load common-adapter stories
-// TODO(mm) is the configure necessary here? It breaks HMR on desktop
 const loadStories = () => {
   configure(() => {
     addDecorator(rootDecorator)

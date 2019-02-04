@@ -19,6 +19,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	isatty "github.com/mattn/go-isatty"
 )
 
@@ -67,12 +68,21 @@ func newCmdChatSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdChatSendRunner(g), "send", c)
 			cl.SetNoStandalone()
+			cl.SetLogForward(libcmdline.LogForwardNone)
 		},
 		Flags: flags,
 	}
 }
 
 func (c *CmdChatSend) Run() (err error) {
+	ui := NewChatCLIUI(c.G())
+	protocols := []rpc.Protocol{
+		chat1.ChatUiProtocol(ui),
+	}
+	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
+		return err
+	}
+
 	if c.resolvingRequest.TlfName != "" {
 		if err = annotateResolvingRequest(c.G(), &c.resolvingRequest); err != nil {
 			return err
@@ -190,17 +200,14 @@ func (c *CmdChatSend) ParseArgv(ctx *cli.Context) (err error) {
 			}
 			c.message = "" // get message through prompt later
 		default:
-			cli.ShowCommandHelp(ctx, "send")
 			return fmt.Errorf("chat send takes 0, 1 or 2 args")
 		}
 	}
 
 	if nActions < 1 {
-		cli.ShowCommandHelp(ctx, "send")
 		return fmt.Errorf("incorrect usage")
 	}
 	if nActions > 1 {
-		cli.ShowCommandHelp(ctx, "send")
 		return fmt.Errorf("only one of message, --set-headline, --clear-headline allowed")
 	}
 

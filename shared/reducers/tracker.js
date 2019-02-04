@@ -2,6 +2,7 @@
 import * as TrackerGen from '../actions/tracker-gen'
 import * as Types from '../constants/types/tracker'
 import * as Constants from '../constants/tracker'
+import * as Flow from '../util/flow'
 
 const sortByTeamName = (a, b) => a.fqName.localeCompare(b.fqName)
 
@@ -48,9 +49,8 @@ export default function(
   switch (action.type) {
     case TrackerGen.resetStore:
       return {
-        ...state,
-        trackers: {},
-        nonUserTrackers: {},
+        ...Constants.initialState,
+        serverStarted: state.serverStarted,
       }
     case TrackerGen.cacheIdentify: {
       const {goodTill, uid} = action.payload
@@ -175,10 +175,10 @@ export default function(
       const {username} = action.payload
       return updateUserState(state, username, s => ({
         ...s,
+        eldestKidChanged: false,
         lastAction: 'refollowed',
         reason: `You have re-followed ${username}.`,
         trackerState: 'normal',
-        eldestKidChanged: false,
       }))
     }
     case TrackerGen.setOnUnfollow: {
@@ -327,15 +327,15 @@ export default function(
     case TrackerGen.updateUserInfo: {
       const {userCard, username} = action.payload
       const userInfo = {
-        fullname: userCard.fullName,
+        avatar: `https://keybase.io/${username}/picture`,
+        bio: userCard.bio,
         followersCount: userCard.followers,
         followingCount: userCard.following,
         followsYou: userCard.theyFollowYou,
-        uid: userCard.uid,
-        bio: userCard.bio,
-        avatar: `https://keybase.io/${username}/picture`,
+        fullname: userCard.fullName,
         location: userCard.location,
         showcasedTeams: (userCard.teamShowcase || []).sort(sortByTeamName),
+        uid: userCard.uid,
       }
       return updateUserState(state, action.payload.username, s => ({
         ...s,
@@ -352,8 +352,8 @@ export default function(
     case TrackerGen.reportLastTrack: {
       const {tracking} = action.payload
       return updateUserState(state, action.payload.username, s => {
-        const proofs = (s ? s.proofs : []).map(
-          p => (['btc', 'pgp'].includes(p.type) ? {...p, isTracked: tracking} : p)
+        const proofs = (s ? s.proofs : []).map(p =>
+          ['btc', 'pgp'].includes(p.type) ? {...p, isTracked: tracking} : p
         )
         return {
           ...s,
@@ -377,8 +377,8 @@ export default function(
       const {trackers, tracking} = action.payload
       return updateUserState(state, action.payload.username, s => ({
         ...s,
-        trackersLoaded: true,
         trackers,
+        trackersLoaded: true,
         tracking,
       }))
     }
@@ -404,6 +404,13 @@ export default function(
         }))
       }
     }
+    case TrackerGen.updateStellarAddress: {
+      const {federationAddress} = action.payload
+      return updateUserState(state, action.payload.username, s => ({
+        ...s,
+        stellarFederationAddress: federationAddress,
+      }))
+    }
     // Saga only actions
     case TrackerGen.follow:
     case TrackerGen.getMyProfile:
@@ -416,10 +423,7 @@ export default function(
     case TrackerGen.updateTrackers:
       return state
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(action);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

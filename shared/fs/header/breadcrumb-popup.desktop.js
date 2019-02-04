@@ -12,7 +12,7 @@ import {
 } from '../../common-adapters'
 import {globalMargins, globalStyles} from '../../styles'
 import {isMobile} from '../../constants/platform'
-import PathItemIcon from '../common/path-item-icon'
+import {PathItemIcon} from '../common'
 
 type Props = {
   items: Array<Types.PathBreadcrumbItem>,
@@ -32,12 +32,12 @@ const BreadcrumbPopup = (props: Props & OverlayParentProps) => (
       attachTo={props.getAttachmentRef}
       visible={props.showingMenu}
       onHidden={props.toggleShowingMenu}
-      items={props.items.reverse().map(({onClick, name, iconSpec}) => ({
+      items={props.items.map(({onClick, name, path, iconSpec}) => ({
         onClick,
         title: name,
         view: (
           <Box style={stylesRow}>
-            <PathItemIcon spec={iconSpec} style={pathItemIconStyle} small={true} />
+            <PathItemIcon path={path} style={pathItemIconStyle} size={16} />
             <Text type="Body" lineClamp={1}>
               {name}
             </Text>
@@ -51,9 +51,9 @@ const BreadcrumbPopup = (props: Props & OverlayParentProps) => (
 )
 
 const stylePopup = {
-  width: isMobile ? '100%' : 196,
-  marginTop: isMobile ? undefined : 12,
   marginLeft: isMobile ? undefined : -12,
+  marginTop: isMobile ? undefined : 12,
+  width: isMobile ? '100%' : 196,
 }
 
 const stylesRow = {

@@ -1,0 +1,5 @@
+// @flow
+import * as React from 'react'
+import type {Props} from './index.types'
+
+export default class DisplayCurrencyDropdown extends React.Component<Props> {}

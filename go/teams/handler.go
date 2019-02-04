@@ -182,6 +182,10 @@ func sweepOpenTeamResetAndDeletedMembers(ctx context.Context, g *libkb.GlobalCon
 	return needRepoll, err
 }
 
+func refreshKBFSFavoritesCache(g *libkb.GlobalContext) {
+	g.NotifyRouter.HandleFavoritesChanged(g.GetMyUID())
+}
+
 func handleChangeSingle(ctx context.Context, g *libkb.GlobalContext, row keybase1.TeamChangeRow, change keybase1.TeamChangeSet) (err error) {
 	change.KeyRotated = row.KeyRotated
 	change.MembershipChanged = row.MembershipChanged
@@ -190,19 +194,16 @@ func handleChangeSingle(ctx context.Context, g *libkb.GlobalContext, row keybase
 
 	defer m.CTrace(fmt.Sprintf("team.handleChangeSingle(%+v, %+v)", row, change), func() error { return err })()
 
-	if err = g.GetTeamLoader().HintLatestSeqno(ctx, row.Id, row.LatestSeqno); err != nil {
-		m.CWarningf("error in HintLatestSeqno: %v", err)
-		return nil
-	}
+	HintLatestSeqno(m, row.Id, row.LatestSeqno)
 
-	if err = g.GetFastTeamLoader().HintLatestSeqno(m, row.Id, row.LatestSeqno); err != nil {
-		m.CWarningf("error in FastTeamLoader#HintLatestSeqno: %v", err)
-		err = nil // non-fatal
-	}
-
-	// If we're handling a rename we should also purge the resolver cache
+	// If we're handling a rename we should also purge the resolver cache and
+	// the KBFS favorites cache
 	if change.Renamed {
-		PurgeResolverTeamID(ctx, g, row.Id)
+		if err = PurgeResolverTeamID(ctx, g, row.Id); err != nil {
+			m.CWarningf("error in PurgeResolverTeamID: %v", err)
+			err = nil // non-fatal
+		}
+		refreshKBFSFavoritesCache(g)
 	}
 	// Send teamID and teamName in two separate notifications. It is
 	// server-trust that they are the same team.
@@ -240,6 +241,11 @@ func HandleDeleteNotification(ctx context.Context, g *libkb.GlobalContext, rows 
 		}
 		g.NotifyRouter.HandleTeamDeleted(ctx, row.Id)
 	}
+
+	// refresh the KBFS Favorites cache since it no longer should contain
+	// this team.
+	refreshKBFSFavoritesCache(g)
+
 	return nil
 }
 
@@ -255,6 +261,10 @@ func HandleExitNotification(ctx context.Context, g *libkb.GlobalContext, rows []
 			ekLib.PurgeCachesForTeamID(ctx, row.Id)
 		}
 		g.NotifyRouter.HandleTeamExit(ctx, row.Id)
+
+		// refresh the KBFS Favorites cache since it no longer should contain
+		// this team.
+		refreshKBFSFavoritesCache(g)
 	}
 	return nil
 }
@@ -267,6 +277,11 @@ func HandleNewlyAddedToTeamNotification(ctx context.Context, g *libkb.GlobalCont
 			ekLib.PurgeCachesForTeamID(ctx, row.Id)
 		}
 		g.NotifyRouter.HandleNewlyAddedToTeam(ctx, row.Id)
+
+		// refresh the KBFS Favorites cache since it now should contain
+		// this team.
+		refreshKBFSFavoritesCache(g)
+
 	}
 	return nil
 }
@@ -330,7 +345,7 @@ func handleSBSSingle(ctx context.Context, g *libkb.GlobalContext, teamID keybase
 			if err := engine.RunEngine2(m, eng); err != nil {
 				return err
 			}
-		case keybase1.TeamInviteCategory_EMAIL:
+		case keybase1.TeamInviteCategory_EMAIL, keybase1.TeamInviteCategory_PHONE:
 			// nothing to verify, need to trust the server
 		case keybase1.TeamInviteCategory_KEYBASE:
 			// Check if UV in `untrustedInviteeFromGregor` is the same
@@ -621,7 +636,7 @@ func handleSeitanSingleV2(key keybase1.SeitanPubKey, invite keybase1.TeamInvite,
 
 	var sig SeitanSig
 	decodedSig, err := base64.StdEncoding.DecodeString(string(seitan.Akey)) // For V2 the server responds with sig in the akey field
-	if len(sig) != len(decodedSig) {
+	if err != nil || len(sig) != len(decodedSig) {
 		return errors.New("Signature length verification failed (seitan)")
 	}
 	copy(sig[:], decodedSig[:])
@@ -644,5 +659,10 @@ func handleSeitanSingleV2(key keybase1.SeitanPubKey, invite keybase1.TeamInvite,
 }
 
 func HandleForceRepollNotification(ctx context.Context, g *libkb.GlobalContext, dtime gregor.TimeOrOffset) error {
-	return g.GetTeamLoader().ForceRepollUntil(ctx, dtime)
+	e1 := g.GetTeamLoader().ForceRepollUntil(ctx, dtime)
+	e2 := g.GetFastTeamLoader().ForceRepollUntil(libkb.NewMetaContext(ctx, g), dtime)
+	if e1 != nil {
+		return e1
+	}
+	return e2
 }

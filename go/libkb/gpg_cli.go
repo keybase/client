@@ -93,7 +93,7 @@ func (g *GpgCLI) Path() string {
 	return ""
 }
 
-func (g *GpgCLI) ImportKey(secret bool, fp PGPFingerprint, tty string) (*PGPKeyBundle, error) {
+func (g *GpgCLI) ImportKeyArmored(secret bool, fp PGPFingerprint, tty string) (string, error) {
 	g.outputVersion()
 	var cmd string
 	var which string
@@ -112,7 +112,7 @@ func (g *GpgCLI) ImportKey(secret bool, fp PGPFingerprint, tty string) (*PGPKeyB
 
 	res := g.Run2(arg)
 	if res.Err != nil {
-		return nil, res.Err
+		return "", res.Err
 	}
 
 	buf := new(bytes.Buffer)
@@ -123,11 +123,21 @@ func (g *GpgCLI) ImportKey(secret bool, fp PGPFingerprint, tty string) (*PGPKeyB
 	armored = PosixLineEndings(armored)
 
 	if err := res.Wait(); err != nil {
-		return nil, err
+		return "", err
 	}
 
 	if len(armored) == 0 {
-		return nil, NoKeyError{fmt.Sprintf("No %skey found for fingerprint %s", which, fp)}
+		return "", NoKeyError{fmt.Sprintf("No %skey found for fingerprint %s", which, fp)}
+	}
+
+	return armored, nil
+}
+
+func (g *GpgCLI) ImportKey(secret bool, fp PGPFingerprint, tty string) (*PGPKeyBundle, error) {
+
+	armored, err := g.ImportKeyArmored(secret, fp, tty)
+	if err != nil {
+		return nil, err
 	}
 
 	bundle, w, err := ReadOneKeyFromString(armored)
@@ -152,6 +162,28 @@ func (g *GpgCLI) ImportKey(secret bool, fp PGPFingerprint, tty string) (*PGPKeyB
 	}
 
 	return bundle, nil
+}
+
+func (g *GpgCLI) ExportKeyArmored(s string) (err error) {
+	g.outputVersion()
+	arg := RunGpg2Arg{
+		Arguments: []string{"--import"},
+		Stdin:     true,
+	}
+	res := g.Run2(arg)
+	if res.Err != nil {
+		return res.Err
+	}
+	_, err = res.Stdin.Write([]byte(s))
+	if err != nil {
+		return err
+	}
+	err = res.Stdin.Close()
+	if err != nil {
+		return err
+	}
+	err = res.Wait()
+	return err
 }
 
 func (g *GpgCLI) ExportKey(k PGPKeyBundle, private bool, batch bool) (err error) {

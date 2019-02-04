@@ -4,7 +4,6 @@ import fs from 'fs'
 import EXIF from 'exif-js'
 import {noop, isNumber} from 'lodash-es'
 import logger from '../logger'
-import {Image as ImageComponent} from '../common-adapters'
 import type {Props} from './oriented-image.types'
 
 type State = {
@@ -39,7 +38,7 @@ const transformMap: {[orientation: string]: TransformFn} = {
   },
   '3': (canvas, ctx, width, height) => {
     ctx.translate(width, height)
-    ctx.rotate(180 * Math.PI / 180)
+    ctx.rotate((180 * Math.PI) / 180)
   },
   '4': (canvas, ctx, width, height) => {
     ctx.translate(0, height)
@@ -48,19 +47,19 @@ const transformMap: {[orientation: string]: TransformFn} = {
   '5': (canvas, ctx, width, height) => {
     canvas.width = height
     canvas.height = width
-    ctx.rotate(90 * Math.PI / 180)
+    ctx.rotate((90 * Math.PI) / 180)
     ctx.scale(1, -1)
   },
   '6': (canvas, ctx, width, height) => {
     canvas.width = height
     canvas.height = width
-    ctx.rotate(90 * Math.PI / 180)
+    ctx.rotate((90 * Math.PI) / 180)
     ctx.translate(0, -height)
   },
   '7': (canvas, ctx, width, height) => {
     canvas.width = height
     canvas.height = width
-    ctx.rotate(-90 * Math.PI / 180)
+    ctx.rotate((-90 * Math.PI) / 180)
     ctx.translate(-width, height)
     ctx.scale(1, -1)
   },
@@ -68,9 +67,13 @@ const transformMap: {[orientation: string]: TransformFn} = {
     canvas.width = height
     canvas.height = width
     ctx.translate(0, width)
-    ctx.rotate(-90 * Math.PI / 180)
+    ctx.rotate((-90 * Math.PI) / 180)
   },
 }
+
+const ImageRef = React.forwardRef((props, ref) => (
+  <img src={props.src} style={props.style} onDragStart={props.onDragStart} onLoad={props.onLoad} ref={ref} />
+))
 
 /*
  * OrientedImage handles two situations of reading EXIF orientation bits.
@@ -154,11 +157,15 @@ class OrientedImage extends React.Component<Props, State> {
   _fetchExifUploaded = () => {
     const {src} = this.props
     return new Promise((resolve, reject) => {
-      const ret = EXIF.getData({src}, function() {
-        const orientation = EXIF.getTag(this, 'Orientation')
-        resolve(orientation)
-      })
-      if (!ret) reject(new Error('EXIF failed to fetch image data'))
+      try {
+        const ret = EXIF.getData({src}, function() {
+          const orientation = EXIF.getTag(this, 'Orientation')
+          resolve(orientation)
+        })
+        if (!ret) reject(new Error('EXIF failed to fetch image data'))
+      } catch (e) {
+        reject(e)
+      }
     })
   }
 
@@ -169,9 +176,17 @@ class OrientedImage extends React.Component<Props, State> {
     return new Promise((resolve, reject) => {
       // data is a Node Buffer which is backed by a JavaScript ArrayBuffer.
       // EXIF.readFromBinaryFile takes an ArrayBuffer
-      const data = fs.readFileSync(src)
-      const tags = EXIF.readFromBinaryFile(data.buffer)
-      tags ? resolve(tags['Orientation']) : reject(new Error('EXIF failed to read exif data'))
+      try {
+        const data = fs.readFileSync(src)
+        const tags = EXIF.readFromBinaryFile(data.buffer)
+        if (tags) {
+          resolve(tags['Orientation'])
+        } else {
+          reject(new Error('EXIF failed to read exif data'))
+        }
+      } catch (e) {
+        reject(e)
+      }
     })
   }
 
@@ -187,7 +202,7 @@ class OrientedImage extends React.Component<Props, State> {
     this._canvasImageTransform(orientation)
   }
 
-  // Mark this image path as no transform and set the ImageComponent src to the original source
+  // Mark this image path as no transform and set the ImageRef src to the original source
   _handleOrientationFailure = () => {
     _cacheNoTransforms[this.props.src] = NO_TRANSFORM
     logger.info(`OrientedImage failed to read EXIF data for image src: ${this.props.src}`)
@@ -245,7 +260,8 @@ class OrientedImage extends React.Component<Props, State> {
     return (
       <React.Fragment>
         {this.state.srcTransformed && (
-          <ImageComponent
+          <ImageRef
+            ref={this.props.forwardedRef}
             src={this.state.srcTransformed}
             style={this.props.style}
             onDragStart={this.props.onDragStart}

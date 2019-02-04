@@ -20,7 +20,7 @@ const Offline = () => (
       width: '100%',
     }}
   >
-    <Text style={{textAlign: 'center'}} type="BodySmallSemibold">
+    <Text center={true} type="BodySmallSemibold">
       Couldn't load all chat messages due to network connectivity. Retrying...
     </Text>
   </Box>
@@ -31,23 +31,25 @@ class Conversation extends React.PureComponent<Props> {
     return (
       <Box style={containerStyle}>
         {this.props.isSearching && (
-          <HeaderHocHeader title="New chat" onCancel={this.props.onCancelSearch} headerStyle={_headerStyle} />
+          <HeaderHocHeader title="New chat" leftAction="cancel" onLeftAction={this.props.onCancelSearch} headerStyle={_headerStyle} />
         )}
         {this.props.threadLoadedOffline && <Offline />}
         <HeaderArea
-          onToggleInfoPanel={this.props.onToggleInfoPanel}
+          isPending={this.props.isPending}
           infoPanelOpen={false}
+          onToggleInfoPanel={this.props.onToggleInfoPanel}
           conversationIDKey={this.props.conversationIDKey}
         />
         {this.props.showLoader && <LoadingLine />}
         <ListArea
-          onToggleInfoPanel={this.props.onToggleInfoPanel}
+          isPending={this.props.isPending}
           listScrollDownCounter={this.props.listScrollDownCounter}
           onFocusInput={this.props.onFocusInput}
           conversationIDKey={this.props.conversationIDKey}
         />
         <Banner conversationIDKey={this.props.conversationIDKey} />
         <InputArea
+          isPending={this.props.isPending}
           focusInputCounter={this.props.focusInputCounter}
           onScrollDown={this.props.onScrollDown}
           conversationIDKey={this.props.conversationIDKey}

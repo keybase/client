@@ -19,7 +19,7 @@ export default ({username, theme, style, allowFontScaling, onClick}: Props) => (
   <Text
     type="BodySemibold"
     onClick={onClick || undefined}
-    className={Styles.isMobile ? undefined : 'hover-underline'}
+    className={Styles.classNames({'hover-underline': !Styles.isMobile})}
     style={Styles.collapseStyles([style, styles[theme || 'none']])}
     allowFontScaling={allowFontScaling}
   >
@@ -31,7 +31,7 @@ const styles = Styles.styleSheetCreate({
   follow: {
     backgroundColor: Styles.globalColors.green3,
     borderRadius: 2,
-    color: Styles.globalColors.green2,
+    color: Styles.globalColors.green,
   },
   highlight: {
     backgroundColor: Styles.globalColors.yellow,

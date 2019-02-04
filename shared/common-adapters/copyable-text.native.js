@@ -1,5 +1,5 @@
 // @flow
-import React, {Component} from 'react'
+import * as React from 'react'
 import type {Props as PropsCommon} from './copyable-text'
 import HOCTimers, {type PropsWithTimer} from './hoc-timers'
 import Text from './text'
@@ -16,16 +16,9 @@ type State = {
   hasCopied: boolean,
 }
 
-class CopyableText<P: Props> extends Component<P, State> {
-  state: State
+class CopyableText extends React.Component<Props, State> {
+  state = {hasCopied: false}
   lastCopyTimeoutId: TimeoutID
-
-  constructor(props: P) {
-    super(props)
-    this.state = {
-      hasCopied: false,
-    }
-  }
 
   _handleCopy() {
     Clipboard.setString(this.props.value)
@@ -64,14 +57,15 @@ class CopyableText<P: Props> extends Component<P, State> {
 
 const styleBase = {
   ...globalStyles.flexBoxColumn,
-  position: 'relative',
   alignItems: 'flex-start',
   backgroundColor: globalColors.lightGrey,
-  padding: 10,
-  borderWidth: 1,
   borderColor: globalColors.black_10,
   borderRadius: 3,
-  minHeight: globalMargins.medium + globalMargins.tiny + 2 * globalMargins.small + 24, // Guarantee that the first line of text is shown above the 'Tap to Copy' toast
+  borderWidth: 1,
+  // Guarantee that the first line of text is shown above the 'Tap to Copy' toast
+  minHeight: globalMargins.medium + globalMargins.tiny + 2 * globalMargins.small + 24,
+  padding: 10,
+  position: 'relative',
 }
 
 const styleText = {
@@ -82,16 +76,16 @@ const styleText = {
 const styleCopyToastContainer = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
-  position: 'absolute',
   bottom: globalMargins.small,
   left: 0,
+  position: 'absolute',
   right: 0,
 }
 
 const styleCopyToast = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
-  backgroundColor: globalColors.black_40,
+  backgroundColor: globalColors.black_50,
   borderRadius: globalMargins.large,
   height: globalMargins.medium + globalMargins.tiny,
   paddingLeft: globalMargins.medium,

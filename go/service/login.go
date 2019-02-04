@@ -4,6 +4,8 @@
 package service
 
 import (
+	"fmt"
+
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -28,9 +30,25 @@ func (h *LoginHandler) GetConfiguredAccounts(context context.Context, sessionID 
 	return h.G().GetConfiguredAccounts(context)
 }
 
-func (h *LoginHandler) Logout(ctx context.Context, sessionID int) (err error) {
-	defer h.G().CTraceTimed(ctx, "Logout [service RPC]", func() error { return err })()
-	return h.G().Logout()
+type canLogoutRet struct {
+	libkb.AppStatusEmbed
+	CanLogout bool   `json:"can_logout"`
+	Reason    string `json:"reason,omitempty"`
+}
+
+// canLogout asks API server whether we should allow logging out or not.
+func canLogout(mctx libkb.MetaContext) (res canLogoutRet, err error) {
+	err = mctx.G().API.GetDecode(libkb.APIArg{
+		Endpoint:    "user/can_logout",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		MetaContext: mctx,
+	}, &res)
+	return res, err
+}
+
+func (h *LoginHandler) Logout(ctx context.Context, arg keybase1.LogoutArg) (err error) {
+	defer h.G().CTraceTimed(ctx, fmt.Sprintf("Logout(force=%t) [service RPC]", arg.Force), func() error { return err })()
+	return h.G().Logout(ctx)
 }
 
 func (h *LoginHandler) Deprovision(ctx context.Context, arg keybase1.DeprovisionArg) error {

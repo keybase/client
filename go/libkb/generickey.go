@@ -6,10 +6,9 @@ package libkb
 import (
 	"strings"
 
+	"github.com/keybase/client/go/kbcrypto"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
-
-type AlgoType int
 
 type VerifyContext interface {
 	Debug(format string, args ...interface{})
@@ -21,7 +20,7 @@ type RawPrivateKey []byte
 type GenericKey interface {
 	GetKID() keybase1.KID
 	GetBinaryKID() keybase1.BinaryKID
-	GetAlgoType() AlgoType
+	GetAlgoType() kbcrypto.AlgoType
 
 	// Sign to an ASCII signature (which includes the message
 	// itself) and return it, along with a derived ID.

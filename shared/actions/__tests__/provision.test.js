@@ -5,7 +5,7 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/provision'
 import * as Tabs from '../../constants/tabs'
 import * as ProvisionGen from '../provision-gen'
-import * as RouteTree from '../route-tree'
+import * as RouteTreeGen from '../route-tree-gen'
 import HiddenString from '../../util/hidden-string'
 import provisionSaga, {_testing} from '../provision'
 import {RPCError} from '../../util/errors'
@@ -13,6 +13,7 @@ import {createStore, applyMiddleware} from 'redux'
 import rootReducer from '../../reducers'
 import createSagaMiddleware from 'redux-saga'
 import loginRouteTree from '../../app/routes-login'
+import appRouteTree from '../../app/routes-app'
 import {getPath as getRoutePath} from '../../route-tree'
 
 jest.mock('../../engine')
@@ -65,12 +66,12 @@ const startReduxSaga = (initialStore = undefined) => {
   const dispatch = store.dispatch
   sagaMiddleware.run(provisionSaga)
 
-  dispatch(RouteTree.switchRouteDef(loginRouteTree))
-  dispatch(RouteTree.navigateTo([Tabs.loginTab]))
+  dispatch(RouteTreeGen.createSwitchRouteDef({routeDef: loginRouteTree}))
+  dispatch(RouteTreeGen.createNavigateTo({path: [Tabs.loginTab]}))
 
   return {
     dispatch,
-    getRoutePath: () => getRoutePath(getState().routeTree.routeState, [Tabs.loginTab]),
+    getRoutePath: () => getRoutePath(getState().routeTree.routeState),
     getState,
     sagaMiddleware,
   }
@@ -88,8 +89,8 @@ describe('provisioningManagerProvisioning', () => {
       callMap[k]((undefined: any), response)
       expect(response.result).not.toHaveBeenCalled()
       expect(response.error).toHaveBeenCalledWith({
-        code: RPCTypes.constantsStatusCode.scgeneric,
-        desc: Constants.cancelDesc,
+        code: RPCTypes.constantsStatusCode.scinputcanceled,
+        desc: 'Input canceled',
       })
     })
   })
@@ -124,6 +125,19 @@ describe('text code happy path', () => {
     dispatch(ProvisionGen.createSubmitTextCode({phrase: new HiddenString('')}))
     expect(response.result).not.toHaveBeenCalled()
     expect(response.error).toHaveBeenCalled()
+  })
+
+  it('submit text code with spaces works', () => {
+    const {dispatch, response, getState} = init
+    dispatch(
+      ProvisionGen.createSubmitTextCode({
+        phrase: new HiddenString('   this   is a text   code\n\nthat works'),
+      })
+    )
+    const good = 'this is a text code that works'
+    expect(getState().provision.codePageOutgoingTextCode.stringValue()).toEqual(good)
+    expect(response.result).toHaveBeenCalledWith({code: null, phrase: good})
+    expect(response.error).not.toHaveBeenCalled()
   })
 
   it('submit text code', () => {
@@ -606,11 +620,11 @@ describe('canceling provision', () => {
       method: 'keybase.1.provisionUi.DisplayAndPromptSecret',
       payload: {phrase: 'aaa'},
     })
-    dispatch(RouteTree.navigateUp())
+    dispatch(RouteTreeGen.createNavigateUp())
     expect(response.result).not.toHaveBeenCalled()
     expect(response.error).toHaveBeenCalledWith({
-      code: RPCTypes.constantsStatusCode.scgeneric,
-      desc: Constants.cancelDesc,
+      code: RPCTypes.constantsStatusCode.scinputcanceled,
+      desc: 'Input canceled',
     })
     expect(manager._stashedResponse).toEqual(null)
     expect(manager._stashedResponseKey).toEqual(null)
@@ -623,7 +637,7 @@ describe('canceling provision', () => {
     })
     const error = new HiddenString('generic error')
     dispatch(ProvisionGen.createProvisionError({error}))
-    dispatch(RouteTree.navigateUp())
+    dispatch(RouteTreeGen.createNavigateUp())
     expect(getState().provision.error).toEqual(noError)
     expect(getState().provision.finalError).toEqual(null)
   })
@@ -660,23 +674,44 @@ describe('final errors show', () => {
   it('shows the final error page', () => {
     const {getState, dispatch, getRoutePath} = startReduxSaga()
     const error = new RPCError('something bad happened', 1, [])
-    dispatch(ProvisionGen.createShowFinalErrorPage({finalError: error}))
+    dispatch(ProvisionGen.createShowFinalErrorPage({finalError: error, fromDeviceAdd: false}))
     expect(getState().provision.finalError).toBeTruthy()
     expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'error']))
   })
 
   it('ignore cancel', () => {
     const {getState, dispatch, getRoutePath} = startReduxSaga()
-    const error = new RPCError(Constants.cancelDesc, RPCTypes.constantsStatusCode.scgeneric)
-    dispatch(ProvisionGen.createShowFinalErrorPage({finalError: error}))
+    const error = new RPCError('Input canceled', RPCTypes.constantsStatusCode.scinputcanceled)
+    dispatch(ProvisionGen.createShowFinalErrorPage({finalError: error, fromDeviceAdd: false}))
     expect(getState().provision.finalError).toEqual(null)
     expect(getRoutePath()).toEqual(I.List([Tabs.loginTab]))
+  })
+
+  it('shows the final error page (devices add)', () => {
+    const {getState, dispatch, getRoutePath} = startReduxSaga()
+    dispatch(RouteTreeGen.createSwitchRouteDef({routeDef: appRouteTree}))
+    dispatch(RouteTreeGen.createNavigateTo({path: [Tabs.devicesTab]}))
+    expect(getRoutePath()).toEqual(I.List([Tabs.devicesTab]))
+    const error = new RPCError('something bad happened', 1, [])
+    dispatch(ProvisionGen.createShowFinalErrorPage({finalError: error, fromDeviceAdd: true}))
+    expect(getState().provision.finalError).toBeTruthy()
+    expect(getRoutePath()).toEqual(I.List([Tabs.devicesTab, 'error']))
+  })
+
+  it('ignore cancel (devices add)', () => {
+    const {getState, dispatch, getRoutePath} = startReduxSaga()
+    dispatch(RouteTreeGen.createSwitchRouteDef({routeDef: appRouteTree}))
+    dispatch(RouteTreeGen.createNavigateTo({path: [Tabs.devicesTab]}))
+    const error = new RPCError('Input canceled', RPCTypes.constantsStatusCode.scinputcanceled)
+    dispatch(ProvisionGen.createShowFinalErrorPage({finalError: error, fromDeviceAdd: true}))
+    expect(getState().provision.finalError).toEqual(null)
+    expect(getRoutePath()).toEqual(I.List([Tabs.devicesTab]))
   })
 })
 
 describe('reset works', () => {
   const {getState, dispatch} = startReduxSaga()
-  dispatch(RouteTree.setInitialRouteDef(loginRouteTree))
+  dispatch(RouteTreeGen.createSetInitialRouteDef({routeDef: loginRouteTree}))
   dispatch({type: 'common:resetStore'})
   expect(getState().provision).toEqual(Constants.makeState())
 })

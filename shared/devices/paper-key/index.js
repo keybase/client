@@ -36,7 +36,7 @@ class PaperKey extends React.Component<Props, State> {
           </Kb.Text>
           <Kb.Box2 direction="vertical" style={styles.keyBox} centerChildren={true} fullWidth={true}>
             {this.props.paperkey ? (
-              <Kb.Text type="Header" selectable={true} style={styles.text}>
+              <Kb.Text center={true} type="Header" selectable={true} style={styles.text}>
                 {this.props.paperkey}
               </Kb.Text>
             ) : (
@@ -91,7 +91,6 @@ const styles = Styles.styleSheetCreate({
   text: {
     ...Styles.globalStyles.fontTerminal,
     color: Styles.globalColors.darkBlue,
-    textAlign: 'center',
   },
 })
 

@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"context"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -75,7 +76,7 @@ func checkPerUserKeyCount(tc *libkb.TestContext, n int) {
 
 func checkPerUserKeyCountLocal(tc *libkb.TestContext, n int) {
 	t := tc.T
-	pukring, err := tc.G.GetPerUserKeyring()
+	pukring, err := tc.G.GetPerUserKeyring(context.Background())
 	require.NoError(t, err)
 	hak := pukring.HasAnyKeys()
 	if n == 0 {

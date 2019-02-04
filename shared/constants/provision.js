@@ -4,11 +4,16 @@ import * as DeviceTypes from './types/devices'
 import * as Types from './types/provision'
 import * as RPCTypes from './types/rpc-gen'
 import HiddenString from '../util/hidden-string'
+import type {CommonResponseHandler, RPCError} from '../engine/types'
 
 export const waitingKey = 'provision:waiting'
 
-// Do NOT change this. This is the value used by the daemon also so this way we can ignore it when they do it / when we do
-export const cancelDesc = 'kex canceled by caller'
+// Do NOT change this. These values are used by the daemon also so this way we can ignore it when they do it / when we do
+export const errorCausedByUsCanceling = (e: ?RPCError) =>
+  e?.desc === 'Input canceled' || e?.desc === 'kex canceled by caller'
+export const cancelOnCallback = (_: any, response: CommonResponseHandler) => {
+  response.error({code: RPCTypes.constantsStatusCode.scinputcanceled, desc: 'Input canceled'})
+}
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   codePageIncomingTextCode: new HiddenString(''),

@@ -26,7 +26,6 @@ import flags from '../util/feature-flags'
 import {appRouteTreeTitle} from './route-constants'
 
 const appRouteTree = makeRouteDefNode({
-  tags: makeLeafTags({title: appRouteTreeTitle}),
   children: {
     [chatTab]: chatRoutes,
     [fsTab]: fsRoutes,
@@ -34,16 +33,17 @@ const appRouteTree = makeRouteDefNode({
     [peopleTab]: peopleRoutes,
     [profileTab]: profileRoutes,
     [settingsTab]: settingsRoutes,
-    [teamsTab]: teamsRoutes,
     ...(flags.walletsEnabled && !isMobile ? {[walletsTab]: walletsRoutes} : {}),
     ...(isMobile
       ? {}
       : {
           [devicesTab]: devicesRoutes, // not a top level route in mobile
+          [teamsTab]: teamsRoutes,
         }),
   },
   containerComponent: Nav,
   defaultSelected: peopleTab,
+  tags: makeLeafTags({title: appRouteTreeTitle}),
 })
 
 export default appRouteTree

@@ -5,6 +5,7 @@ import * as SignupGen from '../actions/signup-gen'
 import HiddenString from '../util/hidden-string'
 import {trim} from 'lodash-es'
 import {isValidEmail, isValidName, isValidUsername} from '../util/simple-validators'
+import * as Flow from '../util/flow'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -24,12 +25,12 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
         usernameError: '',
       })
     case SignupGen.requestedAutoInvite:
-      return state.set('inviteCode', action.error ? '' : action.payload.inviteCode)
+      return state.merge({inviteCode: action.error ? '' : action.payload.inviteCode})
     case SignupGen.checkInviteCode:
-      return state.set('inviteCode', action.payload.inviteCode)
+      return state.merge({inviteCode: action.payload.inviteCode})
     case SignupGen.checkedInviteCode:
       return action.payload.inviteCode === state.inviteCode
-        ? state.set('inviteCodeError', (action.error && action.payload.error) || '')
+        ? state.merge({inviteCodeError: (action.error && action.payload.error) || ''})
         : state
     case SignupGen.checkUsernameEmail: {
       const {email, username} = action.payload
@@ -71,8 +72,8 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
         passphraseError = new HiddenString('Fields cannot be blank')
       } else if (p1 !== p2) {
         passphraseError = new HiddenString('Passphrases must match')
-      } else if (p1.length < 6) {
-        passphraseError = new HiddenString('Passphrase must be at least 6 characters long')
+      } else if (p1.length < 8) {
+        passphraseError = new HiddenString('Passphrase must be at least 8 characters long')
       }
       return state.merge({
         passphrase: action.payload.pass1,
@@ -86,18 +87,15 @@ export default function(state: Types.State = initialState, action: SignupGen.Act
     }
     case SignupGen.checkedDevicename:
       return action.payload.devicename === state.devicename
-        ? state.set('devicenameError', (action.error && action.payload.error) || '')
+        ? state.merge({devicenameError: (action.error && action.payload.error) || ''})
         : state
     case SignupGen.signedup:
-      return state.set('signupError', (action.error && action.payload.error) || new HiddenString(''))
+      return state.merge({signupError: (action.error && action.payload.error) || new HiddenString('')})
     // Saga only actions
     case SignupGen.requestAutoInvite:
       return state
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(action);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

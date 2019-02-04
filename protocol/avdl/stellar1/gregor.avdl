@@ -4,6 +4,7 @@ protocol gregor {
 
   // stellar.payment_status gregor message body
   record PaymentStatusMsg {
+    AccountID accountID;
     KeybaseTransactionID kbTxID;
     TransactionID txID;
   }

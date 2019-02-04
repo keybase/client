@@ -6,6 +6,10 @@ import {Provider} from 'react-redux'
 import {createStore} from 'redux'
 import {GatewayProvider, GatewayDest} from 'react-gateway'
 import {action} from '@storybook/addon-actions'
+import Box from '../common-adapters/box'
+import Text from '../common-adapters/text'
+import ClickableBox from '../common-adapters/clickable-box'
+import RandExp from 'randexp'
 
 type SelectorMap = {
   [componentDisplayName: string]: (any => any) | Object,
@@ -76,12 +80,12 @@ class StorybookErrorBoundary extends React.Component<
 
   constructor(props: any) {
     super(props)
-    this.state = {hasError: false, error: null, info: null}
+    this.state = {error: null, hasError: false, info: null}
 
     // Disallow catching errors when snapshot testing
     if (!__STORYSHOT__) {
       this.componentDidCatch = (error: Error, info: {componentStack: string}) => {
-        this.setState({hasError: true, error, info})
+        this.setState({error, hasError: true, info})
       }
     } else {
       this.componentDidCatch = undefined
@@ -94,10 +98,10 @@ class StorybookErrorBoundary extends React.Component<
         <Kb.Box
           style={{
             ...Styles.globalStyles.flexBoxColumn,
-            padding: 10,
-            borderWidth: 2,
             borderColor: Styles.globalColors.red_75,
             borderStyle: 'solid',
+            borderWidth: 2,
+            padding: 10,
           }}
         >
           <Kb.Text type="Terminal" style={{color: Styles.globalColors.black, marginBottom: 8}}>
@@ -107,7 +111,7 @@ class StorybookErrorBoundary extends React.Component<
             style={{
               ...Styles.globalStyles.flexBoxColumn,
               backgroundColor: Styles.globalColors.darkBlue3,
-              borderRadius: 4,
+              borderRadius: Styles.borderRadius,
               padding: 10,
               whiteSpace: 'pre-line',
             }}
@@ -130,13 +134,26 @@ class StorybookErrorBoundary extends React.Component<
 
 class Rnd {
   _seed = 0
-  constructor(seed: number) {
-    this._seed = seed
+  constructor(seed: number | string) {
+    if (typeof seed === 'string') {
+      this._seed = seed.split('').reduce((acc, _, i) => seed.charCodeAt(i) + acc, 0)
+    } else {
+      this._seed = seed
+    }
   }
 
   next = () => {
     this._seed = (this._seed * 16807) % 2147483647
     return this._seed
+  }
+
+  // Inclusive
+  randInt = (low: number, high: number) => (this.next() % (high + 1 - low)) + low
+
+  generateString = (regex: RegExp): string => {
+    const r = new RandExp(regex)
+    r.randInt = this.randInt
+    return r.gen()
   }
 }
 
@@ -144,4 +161,54 @@ const scrollViewDecorator = (story: any) => (
   <Kb.ScrollView style={{height: '100%', width: '100%'}}>{story()}</Kb.ScrollView>
 )
 
-export {unexpected, createPropProvider, StorybookErrorBoundary, Rnd, scrollViewDecorator, action}
+class PerfBox extends React.Component<{copiesToRender: number, children: React.Node}, {key: number}> {
+  state = {key: 1}
+  _text = null
+  _startTime = 0
+  _endTime = 0
+
+  _incrementKey = () => {
+    this.setState(old => ({key: old.key + 1}))
+  }
+
+  _updateTime = () => {
+    this._endTime = this._getTime()
+    const diff = this._endTime - this._startTime
+    console.log('PerfTiming: ', diff)
+  }
+
+  _getTime = typeof performance !== 'undefined' ? () => performance.now() : () => Date.now() // eslint-disable-line
+
+  render() {
+    this._startTime = this._getTime()
+    setTimeout(this._updateTime, 0)
+    return (
+      <Box key={this.state.key}>
+        <ClickableBox onClick={this._incrementKey}>
+          <Text type="Body">Refresh: #{this.state.key}</Text>
+        </ClickableBox>
+        {new Array(this.props.copiesToRender).fill(0).map((_, idx) => (
+          <Box key={idx}>{this.props.children}</Box>
+        ))}
+      </Box>
+    )
+  }
+}
+
+const perfDecorator = (copiesToRender: number = 100) => (story: any) => (
+  <PerfBox copiesToRender={copiesToRender}>{story()} </PerfBox>
+)
+
+// Used to pass extra props to a component in a story without flow typing
+const propOverridesForStory = (p: any): {} => ({storyProps: p})
+
+export {
+  unexpected,
+  createPropProvider,
+  propOverridesForStory,
+  StorybookErrorBoundary,
+  Rnd,
+  scrollViewDecorator,
+  action,
+  perfDecorator,
+}

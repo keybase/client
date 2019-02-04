@@ -4,8 +4,9 @@
 package libkb
 
 import (
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"sync"
+
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 type SecretRetriever interface {
@@ -212,11 +213,18 @@ func (s *SecretStoreLocked) StoreSecret(m MetaContext, username NormalizedUserna
 }
 
 func (s *SecretStoreLocked) ClearSecret(m MetaContext, username NormalizedUsername) error {
+
+	if username.IsNil() {
+		m.CDebugf("NOOPing SecretStoreLocked#ClearSecret for empty username")
+		return nil
+	}
+
 	if s == nil || s.isNil() {
 		return nil
 	}
 	s.Lock()
 	defer s.Unlock()
+
 	err := s.mem.ClearSecret(m, username)
 	if err != nil {
 		m.CDebugf("SecretStoreLocked#ClearSecret: failed to clear memory: %s", err.Error())

@@ -1,32 +1,28 @@
 // @flow
 import EnterPaperkey from '../../../provision/paper-key'
 import {createCheckPaperKey} from '../../../actions/unlock-folders-gen'
-import {connect, compose, withStateHandlers} from '../../../util/container'
-import {navigateUp} from '../../../actions/route-tree'
+import {connect} from '../../../util/container'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
+
+type OwnProps = {||}
 
 const mapStateToProps = () => ({
   error: '',
+  hint: '',
   waitingForResponse: false,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
-  _onEnterPaperkey: (paperKey: string) => {
+const mapDispatchToProps = dispatch => ({
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onSubmit: (paperKey: string) => {
     dispatch(createCheckPaperKey({paperKey}))
-    dispatch(navigateUp())
-    dispatch(navigateUp())
+    dispatch(RouteTreeGen.createNavigateUp())
+    dispatch(RouteTreeGen.createNavigateUp())
   },
-  onBack: () => dispatch(navigateUp()),
 })
 
-export default compose(
-  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
-  withStateHandlers(
-    {paperKey: null},
-    {
-      onChangePaperKey: () => paperKey => ({paperKey}),
-      onSubmit: (_, {paperKey, _onEnterPaperkey}) => () => {
-        _onEnterPaperkey(paperKey)
-      },
-    }
-  )
+export default connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d})
 )(EnterPaperkey)

@@ -2,12 +2,11 @@ package teams
 
 import (
 	"context"
-	"testing"
-
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
+	"testing"
 )
 
 func getStorageFromG(g *libkb.GlobalContext) *Storage {
@@ -24,6 +23,7 @@ func TestStorageMem(t *testing.T) {
 	for _, public := range []bool{false, true} {
 		teamID := NewSubteamID(false /*public*/)
 		st := getStorageFromG(tc.G)
+		mctx := libkb.NewMetaContextForTest(tc)
 		obj := keybase1.TeamData{
 			Chain: keybase1.TeamSigChainState{
 				Id:     teamID,
@@ -31,10 +31,10 @@ func TestStorageMem(t *testing.T) {
 			},
 		}
 
-		res := st.Get(context.TODO(), teamID, public)
+		res := st.Get(mctx, teamID, public)
 		require.Nil(t, res)
-		st.Put(context.TODO(), &obj)
-		res = st.Get(context.TODO(), teamID, public)
+		st.Put(mctx, &obj)
+		res = st.Get(mctx, teamID, public)
 		require.NotNil(t, res, "cache miss")
 		require.True(t, res == &obj, "should be the same obj from mem")
 	}
@@ -49,6 +49,7 @@ func TestStorageDisk(t *testing.T) {
 	for _, public := range []bool{false, true} {
 		teamID := NewSubteamID(false /*public*/)
 		st := getStorageFromG(tc.G)
+		mctx := libkb.NewMetaContextForTest(tc)
 		obj := keybase1.TeamData{
 			Chain: keybase1.TeamSigChainState{
 				Id:     teamID,
@@ -56,12 +57,12 @@ func TestStorageDisk(t *testing.T) {
 			},
 		}
 
-		res := st.Get(context.TODO(), teamID, public)
+		res := st.Get(mctx, teamID, public)
 		require.Nil(t, res)
-		st.Put(context.TODO(), &obj)
+		st.Put(mctx, &obj)
 		t.Logf("throwing out mem storage")
 		st.mem.lru.Purge()
-		res = st.Get(context.TODO(), teamID, public)
+		res = st.Get(mctx, teamID, public)
 		require.NotNil(t, res, "cache miss")
 		require.False(t, res == &obj, "should be the a different object read from disk")
 		require.Equal(t, teamID, res.Chain.Id)
@@ -84,24 +85,25 @@ func TestStorageLogout(t *testing.T) {
 				Public: public,
 			},
 		}
-		st.Put(context.TODO(), &obj)
-		res := st.Get(context.TODO(), teamID, public)
+		mctx := libkb.NewMetaContextForTest(tc)
+		st.Put(mctx, &obj)
+		res := st.Get(mctx, teamID, public)
 		require.NotNil(t, res, "cache miss")
 		require.True(t, res == &obj, "should be the same obj from mem")
 
 		t.Logf("logout")
-		tc.G.Logout()
+		tc.G.Logout(context.TODO())
 
 		require.Equal(t, 0, st.mem.lru.Len(), "mem cache still populated")
 
-		res = st.Get(context.TODO(), teamID, public)
+		res = st.Get(mctx, teamID, public)
 		require.Nil(t, res, "got from cache, but should be gone")
 
 		t.Logf("login as someone else")
 		_, err = kbtest.CreateAndSignupFakeUser("team", tc.G)
 		require.NoError(t, err)
 
-		res = st.Get(context.TODO(), teamID, public)
+		res = st.Get(mctx, teamID, public)
 		require.Nil(t, res, "got from cache, but should be gone")
 	}
 }
@@ -125,10 +127,11 @@ func TestStorageUpdate(t *testing.T) {
 			},
 			CachedAt: keybase1.ToTime(tc.G.Clock().Now()),
 		}
-		st.Put(context.TODO(), team)
+		mctx := libkb.NewMetaContextForTest(tc)
+		st.Put(mctx, team)
 
 		t.Logf("get 1")
-		team = st.Get(context.TODO(), teamID, public)
+		team = st.Get(mctx, teamID, public)
 		require.NotNil(t, team)
 
 		t.Logf("store updated")
@@ -140,7 +143,7 @@ func TestStorageUpdate(t *testing.T) {
 		require.True(t, newTime.Equal(team.CachedAt.Time()), "%v != %v", newTime, team.CachedAt.Time())
 
 		t.Logf("get updated")
-		team = st.Get(context.TODO(), teamID, public)
+		team = st.Get(mctx, teamID, public)
 		require.NotNil(t, team)
 
 		require.True(t, newTime.Equal(team.CachedAt.Time()))
@@ -166,22 +169,23 @@ func TestStorageDelete(t *testing.T) {
 			},
 			CachedAt: keybase1.ToTime(tc.G.Clock().Now()),
 		}
-		st.Put(context.TODO(), team)
+		mctx := libkb.NewMetaContextForTest(tc)
+		st.Put(mctx, team)
 
 		t.Logf("get 1")
-		team = st.Get(context.TODO(), teamID, public)
+		team = st.Get(mctx, teamID, public)
 		require.NotNil(t, team)
 
 		t.Logf("delete")
-		err = st.Delete(context.TODO(), teamID, public)
+		err = st.Delete(mctx, teamID, public)
 		require.NoError(t, err)
 
 		t.Logf("delete again")
-		err = st.Delete(context.TODO(), teamID, public)
+		err = st.Delete(mctx, teamID, public)
 		require.NoError(t, err)
 
 		t.Logf("get deleted")
-		team = st.Get(context.TODO(), teamID, public)
+		team = st.Get(mctx, teamID, public)
 		require.Nil(t, team, "should be deleted")
 	}
 }

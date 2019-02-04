@@ -2,12 +2,14 @@ package lru
 
 import (
 	json "encoding/json"
+	"reflect"
+	"sync"
+
 	lru "github.com/hashicorp/golang-lru"
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	jsonw "github.com/keybase/go-jsonw"
 	context "golang.org/x/net/context"
-	"reflect"
-	"sync"
 )
 
 type Cache struct {
@@ -75,6 +77,12 @@ func (c *Cache) Get(ctx context.Context, lctx libkb.LRUContext, k libkb.LRUKeyer
 	if len(w.Data) > 0 {
 		tmp := reflect.New(c.typ)
 		ret = tmp.Interface()
+
+		err = jsonw.EnsureMaxDepthBytesDefault([]byte(w.Data))
+		if err != nil {
+			return nil, err
+		}
+
 		err = json.Unmarshal([]byte(w.Data), ret)
 		if err != nil {
 			return nil, err

@@ -1,17 +1,19 @@
 // @flow
-import {hot} from 'react-hot-loader'
-// Uncomment to get more info on hot loading
-// import { setConfig } from 'react-hot-loader'
-// setConfig({ logLevel: 'debug' })
+import {hot} from 'react-hot-loader/root'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import React, {Component} from 'react'
-import RenderRoute from '../route-tree/render-route'
-import {connect, type TypedState} from '../util/container'
+import RouterSwitcheroo from '../router-v2/switcheroo'
+import {connect} from '../util/container'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {isWindows} from '../constants/platform'
 import {resolveImage} from '../desktop/app/resolve-root.desktop'
 import {getMainWindow} from '../desktop/remote/util.desktop'
-import {navigateUp, setRouteState} from '../actions/route-tree'
 import {type RouteDefNode, type RouteStateNode, type Path} from '../route-tree'
+// Uncomment to get more info on hot loading
+// import {setConfig} from 'react-hot-loader'
+// setConfig({logLevel: 'debug'})
+
+type OwnProps = any // the types here and RouteProps don't agree
 
 type Props = {
   widgetBadge: boolean,
@@ -52,32 +54,36 @@ class Main extends Component<Props> {
 
   render() {
     return (
-      <RenderRoute
-        routeDef={this.props.routeDef}
-        routeState={this.props.routeState}
-        setRouteState={this.props.setRouteState}
+      <RouterSwitcheroo
+        useNewRouter={false}
+        newRoutePath={[]}
+        oldRouteDef={this.props.routeDef}
+        oldRouteState={this.props.routeState}
+        oldSetRouteState={this.props.setRouteState}
       />
     )
   }
 }
 
-const mapStateToProps = (state: TypedState) => {
-  return {
-    desktopAppBadgeCount: state.notifications.get('desktopAppBadgeCount'),
-    routeDef: state.routeTree.routeDef,
-    routeState: state.routeTree.routeState,
-    username: state.config.username,
-    widgetBadge: state.notifications.get('widgetBadge') || false,
-  }
-}
+const mapStateToProps = state => ({
+  desktopAppBadgeCount: state.notifications.get('desktopAppBadgeCount'),
+  routeDef: state.routeTree.routeDef,
+  routeState: state.routeTree.routeState,
+  username: state.config.username,
+  widgetBadge: state.notifications.get('widgetBadge') || false,
+})
 
 const mapDispatchToProps = dispatch => ({
-  navigateUp: () => dispatch(navigateUp()),
+  navigateUp: () => dispatch(RouteTreeGen.createNavigateUp()),
   setRouteState: (path, partialState) => {
-    dispatch(setRouteState(path, partialState))
+    dispatch(RouteTreeGen.createSetRouteState({partialState, path}))
   },
 })
 
-export default hot(module)(
-  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(Main)
+export default hot(
+  connect<OwnProps, _, _, _, _>(
+    mapStateToProps,
+    mapDispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d})
+  )(Main)
 )

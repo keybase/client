@@ -5,10 +5,10 @@ import * as React from 'react'
 import {RPCError} from '../../util/errors'
 import {constantsStatusCode} from '../../constants/types/rpc-gen'
 import {Box2, Text, Markdown} from '../../common-adapters'
-import {styleSheetCreate, globalStyles, globalMargins, isMobile, platformStyles} from '../../styles'
+import {styleSheetCreate, globalStyles, globalMargins, isMobile} from '../../styles'
 
 type Props = {
-  error: RPCError,
+  error: ?RPCError,
   onAccountReset: () => void,
   onBack: () => void,
   onBack: () => void,
@@ -22,7 +22,7 @@ const List = p => (
   </Box2>
 )
 
-const Wrapper = p => (
+const Wrapper = (p: {onBack: () => void, children: React.Node}) => (
   <Container onBack={p.onBack}>
     <Text type="Header" style={styles.header}>
       There was an error provisioning
@@ -32,6 +32,11 @@ const Wrapper = p => (
     </Box2>
   </Container>
 )
+
+const rewriteErrorDesc = {
+  'Provisioner is a different user than we wanted.':
+    'Is the other device using the username you expect? It seems to be different. Please try again!',
+}
 
 // Normally this would be a component but I want the children to be flat so i can use a Box2 as the parent and have nice gaps
 const Render = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}: Props) => {
@@ -59,10 +64,10 @@ const Render = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}: Prop
     case constantsStatusCode.scdevicenoprovision:
       return (
         <Wrapper onBack={onBack}>
-          <Text type="Body" style={styles.centerText}>
+          <Text center={true} type="Body">
             You can't authorize by passphrase, since you have established device or paper keys.
           </Text>
-          <Text type="Body" style={styles.centerText}>
+          <Text center={true} type="Body">
             You can go back and pick a device or paper key, or{' '}
             <Text type="BodyPrimaryLink" onClick={onAccountReset}>
               reset your account entirely
@@ -148,11 +153,11 @@ const Render = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}: Prop
         </Wrapper>
       ) : (
         <Wrapper onBack={onBack}>
-          <Text type="Body" style={styles.centerText}>
+          <Text center={true} type="Body">
             Your PGP keychain has multiple keys installed, and we're not sure which one to use to provision
             your account. continue.
           </Text>
-          <Text type="Body" style={styles.centerText}>
+          <Text center={true} type="Body">
             Please run <Text type="TerminalInline">keybase login</Text> on the command line to
           </Text>
         </Wrapper>
@@ -160,11 +165,11 @@ const Render = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}: Prop
     case constantsStatusCode.scnotfound:
       return (
         <Wrapper onBack={onBack}>
-          <Text type="Body" style={styles.centerText}>
-            The username you provided doesn't exist on Keybase.
+          <Text center={true} type="Body">
+            The username or email you provided doesn't exist on Keybase.
           </Text>
-          <Text type="Body" style={styles.centerText}>
-            Please try logging in again with a different username.
+          <Text center={true} type="Body">
+            Please try logging in again with a different one.
           </Text>
         </Wrapper>
       )
@@ -172,7 +177,7 @@ const Render = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}: Prop
       return (
         <Wrapper onBack={onBack}>
           <Text type="Body">Looks like that's a bad passphrase.</Text>
-          <Text type="BodyPrimaryLink" onClick={onPasswordReset} style={styles.centerText}>
+          <Text center={true} type="BodyPrimaryLink" onClick={onPasswordReset}>
             Reset your passphrase?
           </Text>
         </Wrapper>
@@ -182,7 +187,7 @@ const Render = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}: Prop
     case constantsStatusCode.sckeynosecret:
       return (
         <Wrapper onBack={onBack}>
-          <Text type="Body" style={styles.centerText}>
+          <Text center={true} type="Body">
             Sorry, your account is already established with a PGP public key, but we can't access the
             corresponding private key.
           </Text>
@@ -241,7 +246,7 @@ const Render = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}: Prop
         <Wrapper onBack={onBack}>
           <Text type="Body">
             <Text type="Body" selectable={true}>
-              {error.desc}
+              {rewriteErrorDesc[error.desc] || error.desc}
             </Text>
             <Text type="BodySmall" selectable={true}>
               {' '}
@@ -254,27 +259,19 @@ const Render = ({error, onBack, onAccountReset, onPasswordReset, onKBHome}: Prop
 }
 
 const styles = styleSheetCreate({
-  centerText: platformStyles({
-    common: {
-      textAlign: 'center',
-    },
-    isElectron: {
-      display: 'inline-block',
-    },
-  }),
   container: {
     maxWidth: 550,
   },
   header: {
     alignSelf: 'center',
-    marginTop: 46,
     marginBottom: 20,
+    marginTop: 46,
   },
   list: {
     marginBottom: 10,
-    maxWidth: 460,
-    ...globalStyles.flexBoxColumn,
     marginLeft: globalMargins.tiny,
+    ...globalStyles.flexBoxColumn,
+    maxWidth: 460,
   },
 })
 

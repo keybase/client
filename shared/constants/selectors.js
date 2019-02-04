@@ -1,6 +1,5 @@
 // @flow
 // Not use util/container as we have import loops otherwise
-import {createSelector} from 'reselect'
 import {type TypedState} from './reducer'
 import {type SearchQuery} from './types/search'
 
@@ -26,14 +25,6 @@ const searchResultSelector = (
 
 const amIFollowing = (state: TypedState, otherUser: string) => state.config.following.has(otherUser)
 const amIBeingFollowed = (state: TypedState, otherUser: string) => state.config.followers.has(otherUser)
-
-const searchResultMapSelector = createSelector(
-  ({
-    entities: {
-      search: {searchResults},
-    },
-  }: TypedState) => searchResults,
-  searchResults => searchResults
-)
+const searchResultMapSelector = (state: TypedState) => state.entities.search.searchResults
 
 export {amIBeingFollowed, amIFollowing, cachedSearchResults, searchResultMapSelector, searchResultSelector}

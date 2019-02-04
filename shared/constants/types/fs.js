@@ -1,11 +1,13 @@
 // @flow
 import * as I from 'immutable'
 import * as RPCTypes from './rpc-gen'
+import * as ChatTypes from './chat2'
 import * as Devices from './devices'
 import * as TeamsTypes from '../../constants/types/teams'
 import type {IconType} from '../../common-adapters/icon.constants'
 import {type TextType} from '../../common-adapters/text'
 import {isWindows} from '../platform'
+import {memoize} from '../../util/memoize'
 // lets not create cycles in flow, lets discuss how to fix this
 // import {type Actions} from '../../actions/fs-gen'
 
@@ -51,10 +53,67 @@ export type _Tlf = {
   needsRekey: boolean,
   resetParticipants: I.List<ResetMember>,
   teamId: RPCTypes.TeamID,
+  // Following two fields are calculated but not in-use today yet.
+  //
+  // waitingForParticipantUnlock is the list of participants that can unlock
+  // this folder, when this folder needs a rekey.
   waitingForParticipantUnlock?: I.List<ParticipantUnlock>,
+  // youCanUnlock has a list of devices that can unlock this folder, when this
+  // folder needs a rekey.
   youCanUnlock?: I.List<Device>,
 }
 export type Tlf = I.RecordOf<_Tlf>
+
+export type _ParsedPathRoot = {
+  kind: 'root',
+}
+export type ParsedPathRoot = I.RecordOf<_ParsedPathRoot>
+
+export type _ParsedPathTlfList = {
+  kind: 'tlf-list',
+  tlfType: TlfType,
+}
+export type ParsedPathTlfList = I.RecordOf<_ParsedPathTlfList>
+
+export type _ParsedPathGroupTlf = {
+  kind: 'group-tlf',
+  tlfType: 'private' | 'public',
+  writers: I.List<string>,
+  readers: ?I.List<string>,
+}
+export type ParsedPathGroupTlf = I.RecordOf<_ParsedPathGroupTlf>
+
+export type _ParsedPathTeamTlf = {
+  kind: 'team-tlf',
+  tlfType: 'team',
+  team: string,
+}
+export type ParsedPathTeamTlf = I.RecordOf<_ParsedPathTeamTlf>
+
+export type _ParsedPathInGroupTlf = {
+  kind: 'in-group-tlf',
+  tlfType: 'private' | 'public',
+  writers: I.List<string>,
+  readers: ?I.List<string>,
+  rest: I.List<string>,
+}
+export type ParsedPathInGroupTlf = I.RecordOf<_ParsedPathInGroupTlf>
+
+export type _ParsedPathInTeamTlf = {
+  kind: 'in-team-tlf',
+  tlfType: 'team',
+  team: string,
+  rest: I.List<string>,
+}
+export type ParsedPathInTeamTlf = I.RecordOf<_ParsedPathInTeamTlf>
+
+export type ParsedPath =
+  | ParsedPathRoot
+  | ParsedPathTlfList
+  | ParsedPathGroupTlf
+  | ParsedPathTeamTlf
+  | ParsedPathInGroupTlf
+  | ParsedPathInTeamTlf
 
 // name -> Tlf
 export type TlfList = I.Map<string, Tlf>
@@ -87,9 +146,15 @@ export type _SymlinkPathItem = {
 } & PathItemMetadata
 export type SymlinkPathItem = I.RecordOf<_SymlinkPathItem>
 
+export type _Mime = {
+  mimeType: string,
+  displayPreview: boolean,
+}
+export type Mime = I.RecordOf<_Mime>
+
 export type _FilePathItem = {
   type: 'file',
-  mimeType: string,
+  mimeType: ?Mime,
 } & PathItemMetadata
 export type FilePathItem = I.RecordOf<_FilePathItem>
 
@@ -143,6 +208,7 @@ export type _DownloadMeta = {
 export type DownloadMeta = I.RecordOf<_DownloadMeta>
 
 export type _DownloadState = {
+  canceled: boolean,
   completePortion: number,
   endEstimate?: number,
   error?: FsError,
@@ -156,6 +222,8 @@ export type _Download = {
   state: DownloadState,
 }
 export type Download = I.RecordOf<_Download>
+
+export type Downloads = I.Map<string, Download>
 
 export type _Uploads = {
   writingToJournal: I.Set<Path>,
@@ -176,7 +244,7 @@ export type _Flags = {
   kbfsInstalling: boolean,
   fuseInstalling: boolean,
   kextPermissionError: boolean,
-  securityPrefsPropmted: boolean,
+  securityPrefsPrompted: boolean,
   showBanner: boolean,
 }
 
@@ -213,19 +281,52 @@ export type PathItems = I.Map<Path, PathItem>
 
 export type Edits = I.Map<EditID, Edit>
 
+export type _MoveOrCopy = {
+  sourceItemPath: Path,
+  // id -> Path mapping. This is useful for mobile when we have multiple layers
+  // stacked on top of each other, and we need to keep track of them for the
+  // back button. We don't put this in routeProps directly as that'd
+  // complicate stuff for desktop because we don't have something like a
+  // routeToSibling.
+  destinationParentPath: I.List<Path>,
+}
+export type MoveOrCopy = I.RecordOf<_MoveOrCopy>
+
+export type _SendLinkToChat = {
+  path: Path,
+  // This is the convID that we are sending into. So for group chats or small
+  // teams, this is the conversation. For big teams, this is the selected
+  // channel.
+  convID: ChatTypes.ConversationIDKey,
+  // populated for teams only
+  channels: I.Map<ChatTypes.ConversationIDKey, string>, // id -> channelname
+}
+export type SendLinkToChat = I.RecordOf<_SendLinkToChat>
+
+export type PathItemActionMenuView = 'root' | 'share' | 'confirm-save-media' | 'confirm-send-to-other-app'
+export type _PathItemActionMenu = {
+  view: PathItemActionMenuView,
+  previousView: PathItemActionMenuView,
+  downloadKey: ?string,
+}
+export type PathItemActionMenu = I.RecordOf<_PathItemActionMenu>
+
 export type _State = {
   pathItems: PathItems,
   tlfs: Tlfs,
   edits: Edits,
   pathUserSettings: I.Map<Path, PathUserSetting>,
-  loadingPaths: I.Set<Path>,
-  downloads: I.Map<string, Download>,
+  loadingPaths: I.Map<Path, I.Set<string>>,
+  downloads: Downloads,
   uploads: Uploads,
   fuseStatus: ?RPCTypes.FuseStatus,
   flags: Flags,
   localHTTPServerInfo: ?LocalHTTPServer,
   errors: I.Map<string, FsError>,
   tlfUpdates: UserTlfUpdates,
+  moveOrCopy: MoveOrCopy,
+  sendLinkToChat: SendLinkToChat,
+  pathItemActionMenu: PathItemActionMenu,
 }
 export type State = I.RecordOf<_State>
 
@@ -264,7 +365,9 @@ export const getPathParent = (p: Path): Path =>
         .split('/')
         .slice(0, -1)
         .join('/')
-export const getPathElements = (p: Path): Array<string> => (!p ? [] : p.split('/').slice(1))
+export const getPathElements = memoize<Path, void, void, void, _>(
+  (p: Path): Array<string> => (!p ? [] : p.split('/').slice(1))
+)
 export const getPathFromElements = (elems: Array<string>): Path => [''].concat(elems).join('/')
 export const getVisibilityFromElems = (elems: Array<string>) => {
   if (elems.length < 2 || !elems[1]) return null
@@ -351,7 +454,7 @@ type sortSettingDisplayParams = {
   sortSettingIconType: IconType,
 }
 
-export const sortSettingToIconTypeAndText = (s: _SortSetting): sortSettingDisplayParams => {
+export const sortSettingToIconTypeAndText = (s: SortSetting): sortSettingDisplayParams => {
   switch (s.sortBy) {
     case 'name':
       return s.sortOrder === 'asc'
@@ -408,7 +511,6 @@ export type PathBreadcrumbItem = {
   isLastItem: boolean,
   name: string,
   path: Path,
-  iconSpec: PathItemIconSpec,
   onClick: (evt?: SyntheticEvent<>) => void,
 }
 
@@ -481,6 +583,10 @@ export type PlaceholderRowItem = {
   type: 'folder' | 'file',
 }
 
+export type EmptyRowItem = {
+  rowType: 'empty',
+}
+
 export type RowItem =
   | TlfTypeRowItem
   | TlfRowItem
@@ -488,6 +594,16 @@ export type RowItem =
   | EditingRowItem
   | UploadingRowItem
   | PlaceholderRowItem
+  | EmptyRowItem
+
+export type RowItemWithKey =
+  | ({key: string} & TlfTypeRowItem)
+  | ({key: string} & TlfRowItem)
+  | ({key: string} & StillRowItem)
+  | ({key: string} & EditingRowItem)
+  | ({key: string} & UploadingRowItem)
+  | ({key: string} & PlaceholderRowItem)
+  | ({key: string} & EmptyRowItem)
 
 // RefreshTag is used by components in FsGen.folderListLoad and
 // FsGen.mimeTypeLoad actions, to indicate that it's interested in refreshing
@@ -496,4 +612,6 @@ export type RowItem =
 // unsubscribe when it's not interested anymore. Instead, we use a simple
 // heuristic where Saga only keeps track of latest call from each component and
 // refresh only the most recently reuested paths for each component.
-export type RefreshTag = 'main' | 'path-item-action-popup'
+export type RefreshTag = 'main' | 'path-item-action-popup' | 'destination-picker'
+
+export type PathItemBadge = 'upload' | 'download' | 'new' | 'rekey' | number

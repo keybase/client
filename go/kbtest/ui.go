@@ -76,6 +76,7 @@ type FakeIdentifyUI struct {
 	BrokenTracking  bool
 	DisplayTLFArg   keybase1.DisplayTLFCreateWithInviteArg
 	DisplayTLFCount int
+	StellarAccounts []keybase1.StellarAccount
 	sync.Mutex
 }
 
@@ -126,6 +127,13 @@ func (ui *FakeIdentifyUI) Confirm(outcome *keybase1.IdentifyOutcome) (result key
 }
 
 func (ui *FakeIdentifyUI) DisplayCryptocurrency(keybase1.Cryptocurrency) error {
+	return nil
+}
+
+func (ui *FakeIdentifyUI) DisplayStellarAccount(acc keybase1.StellarAccount) error {
+	ui.Lock()
+	defer ui.Unlock()
+	ui.StellarAccounts = append(ui.StellarAccounts, acc)
 	return nil
 }
 

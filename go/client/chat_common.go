@@ -52,7 +52,8 @@ func postRetentionPolicy(ctx context.Context, lcli chat1.LocalClient, tui libkb.
 		}
 		return lcli.SetTeamRetentionLocal(ctx, chat1.SetTeamRetentionLocalArg{
 			TeamID: teamID,
-			Policy: policy})
+			Policy: policy,
+		})
 	}
 	return lcli.SetConvRetentionLocal(ctx, chat1.SetConvRetentionLocalArg{
 		ConvID: conv.Info.Id,

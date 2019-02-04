@@ -1,30 +1,11 @@
 // @flow
 import * as React from 'react'
-import * as ReactDOM from 'react-dom'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 import fs from 'fs'
 import {clamp} from 'lodash-es'
 import HOCTimers, {type PropsWithTimer} from '../../common-adapters/hoc-timers'
-import {
-  Box,
-  Button,
-  ButtonBar,
-  Icon,
-  MaybePopup,
-  OrientedImage,
-  ProgressIndicator,
-  Text,
-  WaitingButton,
-  iconCastPlatformStyles,
-} from '../../common-adapters'
 import {EDIT_AVATAR_ZINDEX} from '../../constants/profile'
-import {
-  collapseStyles,
-  glamorous,
-  globalColors,
-  globalMargins,
-  globalStyles,
-  styleSheetCreate,
-} from '../../styles'
 import type {Props} from '.'
 
 type _Props = PropsWithTimer<Props>
@@ -60,8 +41,7 @@ const VIEWPORT_CENTER = AVATAR_SIZE / 2
 
 class EditAvatar extends React.Component<_Props, State> {
   _file: ?HTMLInputElement
-  _image: ?OrientedImage
-
+  _image = React.createRef()
   constructor(props: _Props) {
     super(props)
     this.state = {
@@ -87,10 +67,6 @@ class EditAvatar extends React.Component<_Props, State> {
       viewingCenterX: 0,
       viewingCenterY: 0,
     }
-  }
-
-  _imageSetRef = (ref: ?OrientedImage) => {
-    this._image = ref
   }
 
   _filePickerFiles = () => (this._file && this._file.files) || []
@@ -176,19 +152,14 @@ class EditAvatar extends React.Component<_Props, State> {
     this.setState({imageSource: path})
   }
 
-  _getImage = (): HTMLImageElement => {
-    const img: HTMLImageElement = (ReactDOM.findDOMNode(this._image): any)
-    return img
-  }
-
   _onImageLoad = (e: SyntheticEvent<any>) => {
     // TODO: Make RPC to check file size and warn them before they try submitting.
 
     let height = AVATAR_SIZE
-    let width = AVATAR_SIZE * e.currentTarget.naturalWidth / e.currentTarget.naturalHeight
+    let width = (AVATAR_SIZE * e.currentTarget.naturalWidth) / e.currentTarget.naturalHeight
 
     if (width < AVATAR_SIZE) {
-      height = AVATAR_SIZE * e.currentTarget.naturalHeight / e.currentTarget.naturalWidth
+      height = (AVATAR_SIZE * e.currentTarget.naturalHeight) / e.currentTarget.naturalWidth
       width = AVATAR_SIZE
     }
 
@@ -239,9 +210,9 @@ class EditAvatar extends React.Component<_Props, State> {
   }
 
   _onMouseDown = (e: SyntheticMouseEvent<any>) => {
-    if (!this.state.hasPreview) return
+    if (!this.state.hasPreview || !this._image) return
 
-    const img = this._getImage()
+    const img = this._image.current
 
     this.setState({
       dragStartX: e.pageX,
@@ -253,9 +224,9 @@ class EditAvatar extends React.Component<_Props, State> {
   }
 
   _onMouseUp = () => {
-    if (!this.state.hasPreview) return
+    if (!this.state.hasPreview || !this._image) return
 
-    const img = this._getImage()
+    const img = this._image.current
 
     this.setState({
       dragStopX: img && img.style.left ? parseInt(img.style.left, 10) : this.state.dragStopX,
@@ -307,9 +278,9 @@ class EditAvatar extends React.Component<_Props, State> {
 
   render() {
     return (
-      <MaybePopup
+      <Kb.MaybePopup
         onClose={this.props.onClose}
-        styleCover={collapseStyles([
+        styleCover={Styles.collapseStyles([
           styles.cover,
           {
             cursor: this.state.dragging ? '-webkit-grabbing' : 'default',
@@ -319,40 +290,38 @@ class EditAvatar extends React.Component<_Props, State> {
         onMouseDown={this._onMouseDown}
         onMouseMove={this._onMouseMove}
       >
-        <Box
-          className={this.state.dropping ? 'dropping' : ''}
+        <Kb.Box
+          className={Styles.classNames({dropping: this.state.dropping})}
           onDragLeave={this._onDragLeave}
           onDragOver={this._onDragOver}
           onDrop={this._onDrop}
-          style={collapseStyles([
+          style={Styles.collapseStyles([
             styles.container,
             {
-              paddingTop: this.props.createdTeam ? 0 : globalMargins.xlarge,
+              paddingTop: this.props.createdTeam ? 0 : Styles.globalMargins.xlarge,
             },
           ])}
         >
           {this.props.createdTeam && (
-            <Box style={styles.createdBanner}>
-              <Text type="BodySmallSemibold" backgroundMode="Announcements">
+            <Kb.Box style={styles.createdBanner}>
+              <Kb.Text type="BodySmallSemibold" backgroundMode="Announcements">
                 Hoorah! Your team {this.props.teamname} was created.
-              </Text>
-            </Box>
+              </Kb.Text>
+            </Kb.Box>
           )}
-          <Text type="Body" style={styles.instructions}>
+          <Kb.Text center={true} type="Body" style={styles.instructions}>
             Drag and drop a {this.props.teamname ? 'team' : 'profile'} avatar or{' '}
-            <Text type="BodyPrimaryLink" className="hover-underline" onClick={this._filePickerOpen}>
+            <Kb.Text type="BodyPrimaryLink" className="hover-underline" onClick={this._filePickerOpen}>
               browse your computer for one
-            </Text>.
-          </Text>
+            </Kb.Text>
+            .
+          </Kb.Text>
           <HoverBox
-            className={this.state.hasPreview ? 'filled' : ''}
+            className={Styles.classNames({filled: this.state.hasPreview})}
             onClick={this.state.hasPreview ? null : this._filePickerOpen}
-            style={collapseStyles([
-              styles.imageContainer,
-              {
-                borderRadius: this.props.teamname ? 32 : AVATAR_CONTAINER_SIZE,
-              },
-            ])}
+            style={{
+              borderRadius: this.props.teamname ? 32 : AVATAR_CONTAINER_SIZE,
+            }}
           >
             <input
               accept="image/*"
@@ -363,12 +332,12 @@ class EditAvatar extends React.Component<_Props, State> {
               type="file"
             />
             {this.state.loading && (
-              <Box style={styles.spinnerContainer}>
-                <ProgressIndicator style={iconCastPlatformStyles(styles.spinner)} />
-              </Box>
+              <Kb.Box style={styles.spinnerContainer}>
+                <Kb.ProgressIndicator style={Kb.iconCastPlatformStyles(styles.spinner)} />
+              </Kb.Box>
             )}
-            <OrientedImage
-              ref={this._imageSetRef}
+            <Kb.OrientedImage
+              forwardedRef={this._image}
               src={this.state.imageSource}
               style={{
                 height: this.state.scaledImageHeight,
@@ -382,16 +351,15 @@ class EditAvatar extends React.Component<_Props, State> {
               onDragStart={e => e.preventDefault()}
               onLoad={this._onImageLoad}
             />
-            {!this.state.loading &&
-              !this.state.hasPreview && (
-                <Icon
-                  className="icon"
-                  color={globalColors.grey}
-                  fontSize={48}
-                  style={iconCastPlatformStyles(styles.icon)}
-                  type="iconfont-camera"
-                />
-              )}
+            {!this.state.loading && !this.state.hasPreview && (
+              <Kb.Icon
+                className="icon"
+                color={Styles.globalColors.grey}
+                fontSize={48}
+                style={Kb.iconCastPlatformStyles(styles.icon)}
+                type="iconfont-camera"
+              />
+            )}
           </HoverBox>
           {this.state.hasPreview && (
             <input
@@ -401,96 +369,83 @@ class EditAvatar extends React.Component<_Props, State> {
               onChange={this._onRangeChange}
               onMouseMove={e => e.stopPropagation()}
               step="any"
-              style={styles.slider}
               type="range"
               value={this.state.scale}
             />
           )}
-          <ButtonBar>
-            <Button
+          <Kb.ButtonBar>
+            <Kb.Button
               disabled={this.state.submitting}
               label={this.props.createdTeam ? 'Later, thanks' : 'Cancel'}
               onClick={this.props.onClose}
               type="Secondary"
             />
-            <WaitingButton
+            <Kb.WaitingButton
               disabled={!this.state.hasPreview}
               label="Save"
               onClick={this._onSave}
               type="Primary"
               waitingKey={null}
             />
-          </ButtonBar>
-        </Box>
-      </MaybePopup>
+          </Kb.ButtonBar>
+        </Kb.Box>
+      </Kb.MaybePopup>
     )
   }
 }
 
-const HoverBox = glamorous(Box)({
+const HoverBox = Styles.styled(Kb.Box)({
   '&.filled': {
-    backgroundColor: globalColors.white,
-    borderColor: globalColors.lightGrey2,
+    backgroundColor: Styles.globalColors.white,
+    borderColor: Styles.globalColors.lightGrey2,
     borderStyle: 'solid',
     cursor: '-webkit-grab',
   },
-  '&.filled:active': {
-    cursor: '-webkit-grabbing',
-  },
+  '&.filled:active': {cursor: '-webkit-grabbing'},
   '&.filled:hover': {
-    backgroundColor: globalColors.white,
-    borderColor: globalColors.lightGrey2,
+    backgroundColor: Styles.globalColors.white,
+    borderColor: Styles.globalColors.lightGrey2,
   },
-  '&:hover': {
-    borderColor: globalColors.black_40,
-  },
-  '&:hover .icon': {
-    color: globalColors.black_40,
-  },
+  '&:hover': {borderColor: Styles.globalColors.black_50},
+  '&:hover .icon': {color: Styles.globalColors.black_50},
   '.dropping &': {
-    backgroundColor: globalColors.blue_60,
-    borderColor: globalColors.blue_60,
+    backgroundColor: Styles.globalColors.blue_60,
+    borderColor: Styles.globalColors.blue_60,
   },
-  '.dropping & .icon': {
-    color: globalColors.blue_60,
-  },
-  backgroundColor: globalColors.lightGrey2,
-  borderColor: globalColors.grey,
+  '.dropping & .icon': {color: Styles.globalColors.blue_60},
+  backgroundColor: Styles.globalColors.lightGrey2,
+  borderColor: Styles.globalColors.grey,
   borderStyle: 'dotted',
   borderWidth: AVATAR_BORDER_SIZE,
   cursor: 'pointer',
   flex: 0,
   height: AVATAR_CONTAINER_SIZE,
-  marginBottom: globalMargins.small,
-  marginTop: globalMargins.medium,
+  marginBottom: Styles.globalMargins.small,
+  marginTop: Styles.globalMargins.medium,
   overflow: 'hidden',
   position: 'relative',
   width: AVATAR_CONTAINER_SIZE,
 })
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   container: {
-    ...globalStyles.flexBoxColumn,
+    ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',
     minWidth: 460,
-    paddingBottom: globalMargins.xlarge,
+    paddingBottom: Styles.globalMargins.xlarge,
   },
-  cover: {
-    zIndex: EDIT_AVATAR_ZINDEX,
-  },
+  cover: {zIndex: EDIT_AVATAR_ZINDEX},
   createdBanner: {
-    backgroundColor: globalColors.green,
+    backgroundColor: Styles.globalColors.green,
     borderTopLeftRadius: 4,
     borderTopRightRadius: 4,
-    marginBottom: globalMargins.large,
-    paddingBottom: globalMargins.xsmall,
-    paddingTop: globalMargins.xsmall,
+    marginBottom: Styles.globalMargins.large,
+    paddingBottom: Styles.globalMargins.xsmall,
+    paddingTop: Styles.globalMargins.xsmall,
     textAlign: 'center',
     width: '100%',
   },
-  hidden: {
-    display: 'none',
-  },
+  hidden: {display: 'none'},
   icon: {
     left: '50%',
     marginLeft: -24,
@@ -500,7 +455,6 @@ const styles = styleSheetCreate({
   },
   instructions: {
     maxWidth: 200,
-    textAlign: 'center',
   },
   spinner: {
     left: '50%',
@@ -510,7 +464,7 @@ const styles = styleSheetCreate({
     top: '50%',
   },
   spinnerContainer: {
-    backgroundColor: globalColors.lightGrey2,
+    backgroundColor: Styles.globalColors.lightGrey2,
     height: '100%',
     width: '100%',
   },

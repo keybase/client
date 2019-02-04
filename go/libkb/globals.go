@@ -38,7 +38,7 @@ type LoginHook interface {
 }
 
 type LogoutHook interface {
-	OnLogout() error
+	OnLogout(m MetaContext) error
 }
 
 type StandaloneChatConnector interface {
@@ -63,7 +63,9 @@ type GlobalContext struct {
 	DNSNSFetcher     DNSNameServerFetcher // The mobile apps potentially pass an implementor of this interface which is used to grab currently configured DNS name servers
 	AppState         *AppState            // The state of focus for the currently running instance of the app
 	ChatHelper       ChatHelper           // conveniently send chat messages
-	RPCCanceller     *RPCCanceller        // register live RPCs so they can be cancelleed en masse
+	RPCCanceler      *RPCCanceler         // register live RPCs so they can be cancelleed en masse
+	IdentifyDispatch *IdentifyDispatch    // get notified of identify successes
+	Identify3State   *Identify3State      // keep track of Identify3 sessions
 
 	cacheMu          *sync.RWMutex   // protects all caches
 	ProofCache       *ProofCache     // where to cache proof results
@@ -80,6 +82,7 @@ type GlobalContext struct {
 	teamEKBoxStorage TeamEKBoxStorage // Store team ephemeral key boxes
 	ekLib            EKLib            // Wrapper to call ephemeral key methods
 	itciCacher       LRUer            // Cacher for implicit team conflict info
+	iteamCacher      MemLRUer         // In memory cacher for implicit teams
 	cardCache        *UserCardCache   // cache of keybase1.UserCard objects
 	fullSelfer       FullSelfer       // a loader that gets the full self object
 	pvlSource        MerkleStore      // a cache and fetcher for pvl
@@ -115,7 +118,7 @@ type GlobalContext struct {
 	hookMu             *sync.RWMutex             // protects loginHooks, logoutHooks
 	loginHooks         []LoginHook               // call these on login
 	logoutHooks        []LogoutHook              // call these on logout
-	GregorDismisser    GregorDismisser           // for dismissing gregor items that we've handled
+	GregorState        GregorState               // for dismissing gregor items that we've handled
 	GregorListener     GregorListener            // for alerting about clients connecting and registering UI protocols
 	oodiMu             *sync.RWMutex             // For manipulating the OutOfDateInfo
 	outOfDateInfo      *keybase1.OutOfDateInfo   // Stores out of date messages we got from API server headers.
@@ -230,7 +233,10 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.ConnectivityMonitor = NullConnectivityMonitor{}
 	g.localSigchainGuard = NewLocalSigchainGuard(g)
 	g.AppState = NewAppState(g)
-	g.RPCCanceller = NewRPCCanceller()
+	g.RPCCanceler = NewRPCCanceler()
+	g.IdentifyDispatch = NewIdentifyDispatch()
+	g.Identify3State = NewIdentify3State(g)
+	g.GregorState = newNullGregorState()
 
 	g.Log.Debug("GlobalContext#Init(%p)\n", g)
 
@@ -259,6 +265,10 @@ func (g *GlobalContext) SetDNSNameServerFetcher(d DNSNameServerFetcher) {
 	g.DNSNSFetcher = d
 }
 
+func (g *GlobalContext) SetUPAKLoader(u UPAKLoader) {
+	g.upakLoader = u
+}
+
 // simulateServiceRestart simulates what happens when a service restarts for the
 // purposes of testing.
 func (g *GlobalContext) simulateServiceRestart() {
@@ -267,20 +277,26 @@ func (g *GlobalContext) simulateServiceRestart() {
 	g.ActiveDevice.Clear()
 }
 
-func (g *GlobalContext) Logout() error {
+func (g *GlobalContext) Logout(ctx context.Context) (err error) {
+	mctx := NewMetaContext(ctx, g).WithLogTag("LOGOUT")
+	ctx = mctx.Ctx()
+
+	defer mctx.CTrace("GlobalContext#Logout", func() error { return err })()
+
 	g.switchUserMu.Lock()
 	defer g.switchUserMu.Unlock()
 
-	ctx := context.Background()
-	mctx := NewMetaContext(ctx, g)
+	mctx.CDebugf("GlobalContext#Logout: after switchUserMu acquisition")
 
 	username := g.Env.GetUsername()
 
 	g.ActiveDevice.Clear()
 
-	g.LocalSigchainGuard().Clear(ctx, "Logout")
+	g.LocalSigchainGuard().Clear(mctx.Ctx(), "Logout")
 
-	g.CallLogoutHooks()
+	mctx.CDebugf("+ GlobalContext#Logout: calling logout hooks")
+	g.CallLogoutHooks(mctx)
+	mctx.CDebugf("- GlobalContext#Logout: called logout hooks")
 
 	g.ClearPerUserKeyring()
 
@@ -310,22 +326,26 @@ func (g *GlobalContext) Logout() error {
 
 	// remove stored secret
 	g.secretStoreMu.Lock()
-	if g.secretStore != nil {
+	if g.secretStore != nil && !username.IsNil() {
 		if err := g.secretStore.ClearSecret(mctx, username); err != nil {
-			g.Log.Debug("clear stored secret error: %s", err)
+			mctx.CDebugf("clear stored secret error: %s", err)
 		}
 	}
 	g.secretStoreMu.Unlock()
 
 	// reload config to clear anything in memory
 	if err := g.ConfigReload(); err != nil {
-		g.Log.Debug("Logout ConfigReload error: %s", err)
+		mctx.CDebugf("Logout ConfigReload error: %s", err)
 	}
 
 	// send logout notification
 	g.NotifyRouter.HandleLogout()
 
 	g.FeatureFlags.Clear()
+
+	g.IdentifyDispatch.OnLogout()
+
+	g.Identify3State.OnLogout()
 
 	return nil
 }
@@ -341,10 +361,17 @@ func (g *GlobalContext) ConfigureLogging() error {
 			logFile = filePrefix + ".log"
 		}
 	}
+	// Configure the log file, setting a default one if not specified and LogPrefix is not specified
+	// Does not redirect logs to file until g.Log.RotateLogFile is called
 	if logFile == "" {
 		g.Log.Configure(style, debug, g.Env.GetDefaultLogFile())
 	} else {
 		g.Log.Configure(style, debug, logFile)
+	}
+
+	// If specified or explicitly requested to use default log file, redirect logs.
+	// If not called, prints logs to stdout.
+	if logFile != "" || g.Env.GetUseDefaultLogFile() {
 		g.Log.RotateLogFile()
 	}
 	g.Output = os.Stdout
@@ -357,12 +384,8 @@ func (g *GlobalContext) PushShutdownHook(sh ShutdownHook) {
 }
 
 func (g *GlobalContext) ConfigureConfig() error {
-	err := RemoteSettingsRepairman(g)
-	if err != nil {
-		return err
-	}
 	c := NewJSONConfigFile(g, g.Env.GetConfigFilename())
-	err = c.Load(false)
+	err := c.Load(false)
 	if err != nil {
 		return err
 	}
@@ -591,6 +614,18 @@ func (g *GlobalContext) SetImplicitTeamConflictInfoCacher(l LRUer) {
 	g.itciCacher = l
 }
 
+func (g *GlobalContext) GetImplicitTeamCacher() MemLRUer {
+	g.cacheMu.RLock()
+	defer g.cacheMu.RUnlock()
+	return g.iteamCacher
+}
+
+func (g *GlobalContext) SetImplicitTeamCacher(l MemLRUer) {
+	g.cacheMu.RLock()
+	defer g.cacheMu.RUnlock()
+	g.iteamCacher = l
+}
+
 func (g *GlobalContext) GetFullSelfer() FullSelfer {
 	g.cacheMu.RLock()
 	defer g.cacheMu.RUnlock()
@@ -667,6 +702,8 @@ func (g *GlobalContext) Shutdown() error {
 			epick.Push(hook())
 		}
 
+		g.Identify3State.Shutdown()
+
 		err = epick.Error()
 
 		g.Log.Debug("exiting shutdown code=%d; err=%v", g.ExitCode, err)
@@ -692,8 +729,7 @@ func (g *GlobalContext) ConfigureCommand(line CommandLine, cmd Command) error {
 
 func (g *GlobalContext) Configure(line CommandLine, usage Usage) error {
 	g.SetCommandLine(line)
-	err := g.ConfigureLogging()
-	if err != nil {
+	if err := g.ConfigureLogging(); err != nil {
 		return err
 	}
 
@@ -848,6 +884,10 @@ func (g *GlobalContext) GetCacheDir() string {
 	return g.Env.GetCacheDir()
 }
 
+func (g *GlobalContext) GetSharedCacheDir() string {
+	return g.Env.GetSharedCacheDir()
+}
+
 func (g *GlobalContext) GetRuntimeDir() string {
 	return g.Env.GetRuntimeDir()
 }
@@ -925,7 +965,7 @@ func (g *GlobalContext) CallLoginHooks() {
 	g.Log.Debug("G#CallLoginHooks")
 
 	// Trigger the creation of a per-user-keyring
-	_, _ = g.GetPerUserKeyring()
+	_, _ = g.GetPerUserKeyring(context.TODO())
 
 	// Do so outside the lock below
 	g.GetFullSelfer().OnLogin()
@@ -946,12 +986,12 @@ func (g *GlobalContext) AddLogoutHook(hook LogoutHook) {
 	g.logoutHooks = append(g.logoutHooks, hook)
 }
 
-func (g *GlobalContext) CallLogoutHooks() {
+func (g *GlobalContext) CallLogoutHooks(m MetaContext) {
 	g.hookMu.RLock()
 	defer g.hookMu.RUnlock()
 	for _, h := range g.logoutHooks {
-		if err := h.OnLogout(); err != nil {
-			g.Log.Warning("OnLogout hook error: %s", err)
+		if err := h.OnLogout(m); err != nil {
+			m.CWarningf("OnLogout hook error: %s", err)
 		}
 	}
 }
@@ -988,21 +1028,22 @@ func (g *GlobalContext) NewRPCLogFactory() *RPCLogFactory {
 
 // LogoutSelfCheck checks with the API server to see if this uid+device pair should
 // logout.
-func (g *GlobalContext) LogoutSelfCheck() error {
+func (g *GlobalContext) LogoutSelfCheck(ctx context.Context) error {
+	mctx := NewMetaContext(ctx, g)
 	uid := g.ActiveDevice.UID()
 	if uid.IsNil() {
-		g.Log.Debug("LogoutSelfCheck: no uid")
+		mctx.CDebugf("LogoutSelfCheck: no uid")
 		return nil
 	}
 	deviceID := g.ActiveDevice.DeviceID()
 	if deviceID.IsNil() {
-		g.Log.Debug("LogoutSelfCheck: no device id")
+		mctx.CDebugf("LogoutSelfCheck: no device id")
 		return nil
 	}
 
 	arg := APIArg{
-		NetContext: context.Background(),
-		Endpoint:   "selfcheck",
+		MetaContext: mctx,
+		Endpoint:    "selfcheck",
 		Args: HTTPArgs{
 			"uid":       S{Val: uid.String()},
 			"device_id": S{Val: deviceID.String()},
@@ -1019,10 +1060,10 @@ func (g *GlobalContext) LogoutSelfCheck() error {
 		return err
 	}
 
-	g.Log.Debug("LogoutSelfCheck: should log out? %v", logout)
+	mctx.CDebugf("LogoutSelfCheck: should log out? %v", logout)
 	if logout {
-		g.Log.Debug("LogoutSelfCheck: logging out...")
-		return g.Logout()
+		mctx.CDebugf("LogoutSelfCheck: logging out...")
+		return g.Logout(mctx.Ctx())
 	}
 
 	return nil
@@ -1142,7 +1183,7 @@ func (g *GlobalContext) UserChanged(u keybase1.UID) {
 	g.Log.Debug("+ UserChanged(%s)", u)
 	defer g.Log.Debug("- UserChanged(%s)", u)
 
-	_, _ = g.GetPerUserKeyring()
+	_, _ = g.GetPerUserKeyring(context.TODO())
 
 	g.BustLocalUserCache(u)
 	if g.NotifyRouter != nil {
@@ -1162,7 +1203,7 @@ func (g *GlobalContext) UserChanged(u keybase1.UID) {
 }
 
 // GetPerUserKeyring recreates PerUserKeyring if the uid changes or this is none installed.
-func (g *GlobalContext) GetPerUserKeyring() (ret *PerUserKeyring, err error) {
+func (g *GlobalContext) GetPerUserKeyring(ctx context.Context) (ret *PerUserKeyring, err error) {
 	defer g.Trace("G#GetPerUserKeyring", func() error { return err })()
 
 	myUID := g.ActiveDevice.UID()
@@ -1178,11 +1219,11 @@ func (g *GlobalContext) GetPerUserKeyring() (ret *PerUserKeyring, err error) {
 	makeNew := func() (*PerUserKeyring, error) {
 		pukring, err := NewPerUserKeyring(g, myUID)
 		if err != nil {
-			g.Log.Warning("G#GetPerUserKeyring -> failed: %s", err)
+			g.Log.CWarningf(ctx, "G#GetPerUserKeyring -> failed: %s", err)
 			g.perUserKeyring = nil
 			return nil, err
 		}
-		g.Log.Debug("G#GetPerUserKeyring -> new")
+		g.Log.CDebugf(ctx, "G#GetPerUserKeyring -> new")
 		g.perUserKeyring = pukring
 		return g.perUserKeyring, nil
 	}
@@ -1286,4 +1327,14 @@ func (g *GlobalContext) GetMeUV(ctx context.Context) (res keybase1.UserVersion, 
 		return keybase1.UserVersion{}, LoginRequiredError{}
 	}
 	return res, nil
+}
+
+// TODO CORE-9923: set this to true and remove it
+// Whether to use parameterized proofs apparatus on normal clients.
+// Affects non-parameterized proof listing too.
+func (g *GlobalContext) ShouldUseParameterizedProofs() bool {
+	return g.Env.GetRunMode() == DevelRunMode ||
+		g.Env.RunningInCI() ||
+		g.Env.GetFeatureFlags().Admin() ||
+		g.Env.GetProveBypass()
 }

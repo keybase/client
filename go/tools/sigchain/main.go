@@ -106,7 +106,7 @@ func main() {
 			errout(err.Error())
 		}
 
-		if err := sc.VerifyChain(m); err != nil {
+		if err := sc.VerifyChain(m, keybase1.UID(*uid)); err != nil {
 			errout(err.Error())
 		}
 

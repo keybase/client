@@ -4,14 +4,44 @@ import * as I from 'immutable'
 import * as Types from '../constants/types/config'
 import * as Constants from '../constants/config'
 import * as ChatConstants from '../constants/chat2'
+import * as Tracker2Gen from '../actions/tracker2-gen'
+import * as DevicesGen from '../actions/devices-gen'
 import * as ConfigGen from '../actions/config-gen'
 import * as Stats from '../engine/stats'
 import {isEOFError, isErrorTransient} from '../util/errors'
+import * as Flow from '../util/flow'
 
 const initialState = Constants.makeState()
 
-export default function(state: Types.State = initialState, action: ConfigGen.Actions): Types.State {
+type Actions = ConfigGen.Actions | DevicesGen.RevokedPayload | Tracker2Gen.UpdatedDetailsPayload
+
+export default function(state: Types.State = initialState, action: Actions): Types.State {
   switch (action.type) {
+    case DevicesGen.revoked:
+      return state.merge({
+        configuredAccounts: state.configuredAccounts,
+        defaultUsername: action.payload.wasCurrentDevice // if revoking self find another name if it exists
+          ? state.configuredAccounts.find(n => n !== state.defaultUsername) || ''
+          : state.defaultUsername,
+      })
+    case Tracker2Gen.updatedDetails: {
+      let followers = state.followers
+      let following = state.following
+      const {username} = action.payload
+
+      if (action.payload.followThem) {
+        following = following.add(username)
+      } else {
+        following = following.delete(username)
+      }
+
+      if (action.payload.followsYou) {
+        followers = followers.add(username)
+      } else {
+        followers = followers.delete(username)
+      }
+      return state.merge({followers, following})
+    }
     case ConfigGen.resetStore:
       return initialState.merge({
         appFocused: state.appFocused,
@@ -119,6 +149,8 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
       return state.merge({pushLoaded: action.payload.pushLoaded})
     case ConfigGen.bootstrapStatusLoaded:
       return state.merge({
+        // keep it if we're logged out
+        defaultUsername: action.payload.username || state.defaultUsername,
         deviceID: action.payload.deviceID,
         deviceName: action.payload.deviceName,
         followers: I.Set(action.payload.followers),
@@ -134,9 +166,8 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
       return state.merge({loggedIn: false})
     case ConfigGen.updateFollowing: {
       const {isTracking, username} = action.payload
-      return state.updateIn(
-        ['following'],
-        following => (isTracking ? following.add(username) : following.delete(username))
+      return state.updateIn(['following'], following =>
+        isTracking ? following.add(username) : following.delete(username)
       )
     }
     case ConfigGen.globalError: {
@@ -153,8 +184,6 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
       }
       return state.merge({globalError})
     }
-    case ConfigGen.debugDump:
-      return state.merge({debugDump: action.payload.items})
     case ConfigGen.daemonError: {
       const {daemonError} = action.payload
       if (daemonError) {
@@ -169,15 +198,8 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
       })
     case ConfigGen.changedActive:
       return state.merge({userActive: action.payload.userActive})
-    case ConfigGen.loadedAvatars: {
-      const {nameToUrlMap} = action.payload
-      return state.merge({
-        avatars: {
-          ...state.avatars,
-          ...nameToUrlMap,
-        },
-      })
-    }
+    case ConfigGen.loadedAvatars:
+      return state.merge({avatars: state.avatars.merge(action.payload.avatars)})
     case ConfigGen.setNotifySound:
       return state.merge({notifySound: action.payload.sound})
     case ConfigGen.setOpenAtLogin:
@@ -185,12 +207,21 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
     case ConfigGen.updateMenubarWindowID:
       return state.merge({menubarWindowID: action.payload.id})
     case ConfigGen.setAccounts:
+      // already have one?
+      let defaultUsername = state.defaultUsername
+      if (action.payload.usernames.indexOf(defaultUsername) === -1) {
+        defaultUsername = action.payload.defaultUsername
+      }
+
       return state.merge({
         configuredAccounts: I.List(action.payload.usernames),
-        defaultUsername: action.payload.defaultUsername,
+        defaultUsername,
       })
     case ConfigGen.setDeletedSelf:
       return state.merge({justDeletedSelf: action.payload.deletedUsername})
+    case ConfigGen.swapRouter: {
+      return state.set('useNewRouter', action.payload.useNewRouter)
+    }
     case ConfigGen.daemonHandshakeDone:
       return state.merge({daemonHandshakeState: 'done'})
     case ConfigGen.mobileAppState:
@@ -201,6 +232,18 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
       return state.merge({touchIDEnabled: action.payload.enabled})
     case ConfigGen.touchIDAllowedBySystem:
       return state.merge({touchIDAllowedBySystem: action.payload.allowed})
+    case ConfigGen.updateNow:
+      return state.update('outOfDate', outOfDate => outOfDate && outOfDate.set('updating', true))
+    case ConfigGen.updateInfo:
+      return state.set(
+        'outOfDate',
+        action.payload.isOutOfDate
+          ? Constants.makeOutOfDate({
+              critical: action.payload.critical,
+              message: action.payload.message,
+            })
+          : null
+      )
     // Saga only actions
     case ConfigGen.loadTeamAvatars:
     case ConfigGen.loadAvatars:
@@ -212,13 +255,11 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
     case ConfigGen.setupEngineListeners:
     case ConfigGen.installerRan:
     case ConfigGen.copyToClipboard:
-    case ConfigGen._avatarQueue:
+    case ConfigGen.checkForUpdate:
+    case ConfigGen.filePickerError:
       return state
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(action);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

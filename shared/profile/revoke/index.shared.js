@@ -20,6 +20,7 @@ function formatMessage(platform: PlatformsExpandedType) {
     case 'dns':
     case 'http':
     case 'https':
+    case 'web':
       body = 'website'
       break
     case 'hackernews':

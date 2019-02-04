@@ -169,7 +169,7 @@ func (e *PGPPullEngine) processUserWithIdentify(m libkb.MetaContext, u string) e
 		return nil
 	}
 
-	idRes, err := ieng.Result()
+	idRes, err := ieng.Result(m)
 	if err != nil {
 		return err
 	}

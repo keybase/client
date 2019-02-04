@@ -14,7 +14,7 @@ const commonProps: Props = {
   onSubmit: Sb.action('onSubmit'),
   passphrase: '',
   passphraseChange: Sb.action('passphraseChange'),
-  selectedUser: '',
+  selectedUser: 'awendland',
   selectedUserChange: Sb.action('selectedUserChange'),
   showTyping: false,
   showTypingChange: Sb.action('showTypingChange'),
@@ -25,8 +25,9 @@ const load = () => {
   Sb.storiesOf('Login/Login', module)
     .add('Single previous user', () => <Login {...commonProps} />)
     .add('Error', () => <Login {...commonProps} error="Oh, no! What a mess!" />)
-    .add('Multiple previous users', () => (
-      <Login {...commonProps} users={['awendland', 'mgood', 'marcopolo']} />
+    .add('3 previous users', () => <Login {...commonProps} users={['awendland', 'mgood', 'marcopolo']} />)
+    .add('5 previous users', () => (
+      <Login {...commonProps} users={['awendland', 'mgood', 'marcopolo', 'trex', 'chrisnojima']} />
     ))
 }
 

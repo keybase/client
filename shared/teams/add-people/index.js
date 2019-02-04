@@ -57,7 +57,8 @@ const AddPeople = (props: Props) => (
           {props.errorText.split('\n').map(line => (
             <Kb.Box key={line} style={Styles.globalStyles.flexBoxRow}>
               <Kb.Text
-                style={{margin: Styles.globalMargins.tiny, textAlign: 'center', width: '100%'}}
+                center={true}
+                style={{margin: Styles.globalMargins.tiny, width: '100%'}}
                 type="BodySemibold"
                 backgroundMode="HighRisk"
               >
@@ -75,6 +76,7 @@ const AddPeople = (props: Props) => (
           onExitSearch={props.onClearSearch}
           placeholder="Add people"
           searchKey={'addToTeamSearch'}
+          showServiceFilter={true}
         />
       </Kb.Box>
       <Kb.Box style={{...Styles.desktopStyles.scrollable, flex: 1}}>
@@ -85,7 +87,7 @@ const AddPeople = (props: Props) => (
             searchKey={'addToTeamSearch'}
             disableIfInTeamName={props.name}
             style={
-              Styles.isMobile ? {position: 'absolute', top: 0, bottom: 0, right: 0, left: 0} : {height: 300}
+              Styles.isMobile ? {bottom: 0, left: 0, position: 'absolute', right: 0, top: 0} : {height: 300}
             }
             keyboardDismissMode="on-drag"
           />
@@ -94,10 +96,11 @@ const AddPeople = (props: Props) => (
       {!Styles.isMobile && (
         <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, padding: Styles.globalMargins.medium}}>
           <Kb.Box style={{...Styles.globalStyles.flexBoxRow, justifyContent: 'center'}}>
-            <Kb.Button
+            <Kb.WaitingButton
               disabled={!props.numberOfUsersSelected}
               onClick={props.onOpenRolePicker}
               label={props.addButtonLabel}
+              waitingKey={null}
               type="Primary"
             />
           </Kb.Box>
@@ -122,8 +125,8 @@ const styles = Styles.styleSheetCreate({
       alignSelf: 'center',
     },
     isElectron: {
+      ...Styles.desktopStyles.boxShadow,
       borderRadius: 4,
-      boxShadow: `0 2px 5px 0 ${Styles.globalColors.black_20}`,
       height: 520,
       margin: 40,
       width: 620,

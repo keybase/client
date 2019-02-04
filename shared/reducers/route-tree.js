@@ -202,8 +202,13 @@ export default function routeTreeReducer(state: Types.State = initialState, acti
     }
   }
 
+  // When moving tabs, record the old tab so we can go back to it later.
+  const oldTab = routeState && routeState.get('selected')
+  const newTab = newRouteState && newRouteState.get('selected')
+  const previousTab = oldTab && newTab && oldTab !== newTab && oldTab
   return state.merge({
     loggedInUserNavigated: newLoggedInUserNavigated,
+    previousTab: previousTab || state.get('previousTab'),
     routeDef: newRouteDef,
     routeState: newRouteState,
   })

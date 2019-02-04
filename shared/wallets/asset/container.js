@@ -1,15 +1,16 @@
 // @flow
 import * as Types from '../../constants/types/wallets'
 import * as Constants from '../../constants/wallets'
-import {connect, type TypedState} from '../../util/container'
+import {connect} from '../../util/container'
 import Asset from '.'
+import openURL from '../../util/open-url'
 
 type OwnProps = {
   accountID: Types.AccountID,
   index: number,
 }
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => ({
+const mapStateToProps = (state, ownProps: OwnProps) => ({
   _asset: Constants.getAssets(state, ownProps.accountID).get(ownProps.index, Constants.makeAssets()),
 })
 
@@ -19,13 +20,18 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     availableToSend: asset.balanceAvailableToSend,
     balance: asset.balanceTotal,
     code: asset.assetCode,
-    equivAvailableToSend: `${asset.availableToSendWorth} ${asset.worthCurrency}`,
-    equivBalance: `${asset.worth} ${asset.worthCurrency}`,
+    equivAvailableToSend: `${asset.availableToSendWorth}`,
+    equivBalance: `${asset.worth}`,
     issuerAccountID: asset.issuerAccountID,
-    issuerName: asset.issuerName || 'Unknown',
+    issuerName: asset.issuerVerifiedDomain || asset.issuerName || 'Unknown',
     name: asset.name,
+    openStellarURL: () => openURL('https://www.stellar.org/faq/#_Why_is_there_a_minimum_balance'),
     reserves: asset.reserves.toArray(),
   }
 }
 
-export default connect(mapStateToProps, () => ({}), mergeProps)(Asset)
+export default connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  () => ({}),
+  mergeProps
+)(Asset)

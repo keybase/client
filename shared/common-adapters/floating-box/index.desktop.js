@@ -7,7 +7,7 @@ import type {Props} from './index.types'
 import logger from '../../logger'
 
 const StyleOnlyBox = (props: any) => <Box children={props.children} />
-const RelativeFloatingBox = ModalPositionRelative(StyleOnlyBox)
+const RelativeFloatingBox = ModalPositionRelative<any>(StyleOnlyBox)
 
 type State = {
   targetRect: ?ClientRect,
@@ -74,6 +74,7 @@ class FloatingBox extends React.Component<Props, State> {
         position={this.props.position || 'bottom center'}
         positionFallbacks={this.props.positionFallbacks}
         targetRect={this.state.targetRect}
+        matchDimension={!!this.props.matchDimension}
         onClosePopup={this._onHidden}
         propagateOutsideClicks={this.props.propagateOutsideClicks}
         style={this.props.containerStyle}

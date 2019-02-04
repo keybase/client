@@ -42,8 +42,8 @@ class Screenprotector extends Component<{}, State> {
       <Box
         style={{
           ...globalStyles.flexBoxColumn,
-          flex: 1,
           alignItems: 'stretch',
+          flex: 1,
           justifyContent: 'flex-start',
           marginLeft: globalMargins.medium,
           marginRight: globalMargins.medium,

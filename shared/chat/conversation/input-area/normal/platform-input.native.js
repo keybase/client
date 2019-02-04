@@ -1,30 +1,36 @@
 // @flow
 /* eslint-env browser */
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker'
-import React, {Component} from 'react'
+import React, {PureComponent} from 'react'
 import {
   Box,
   Box2,
   Icon,
-  Input,
+  PlainInput,
   Text,
   iconCastPlatformStyles,
   OverlayParentHOC,
-  type OverlayParentProps,
 } from '../../../../common-adapters'
-import {globalMargins, globalStyles, globalColors, platformStyles, styleSheetCreate} from '../../../../styles'
+import {
+  collapseStyles,
+  globalMargins,
+  globalStyles,
+  globalColors,
+  platformStyles,
+  styleSheetCreate,
+} from '../../../../styles'
 import {isIOS, isLargeScreen} from '../../../../constants/platform'
-import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
-import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-container'
 import {
   NativeKeyboard,
   NativeTouchableWithoutFeedback,
 } from '../../../../common-adapters/native-wrappers.native'
 import SetExplodingMessagePicker from '../../messages/set-explode-popup/container'
 import {ExplodingMeta} from './shared'
-import type {PlatformInputProps} from './types'
-import flags from '../../../../util/feature-flags'
+import Typing from './typing/container'
 import FilePickerPopup from '../filepicker-popup'
+import WalletsIcon from './wallets-icon/container'
+import type {PlatformInputPropsInternal} from './platform-input'
+import AddSuggestors, {standardTransformer} from '../suggestors'
 
 type menuType = 'exploding' | 'filepickerpopup'
 
@@ -32,27 +38,29 @@ type State = {
   hasText: boolean,
 }
 
-class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, State> {
-  _input: ?Input
+class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
+  _input: null | PlainInput
+  _lastText: ?string
   _whichMenu: menuType
 
-  constructor(props: PlatformInputProps & OverlayParentProps) {
+  constructor(props: PlatformInputPropsInternal) {
     super(props)
     this.state = {
       hasText: false,
     }
   }
 
-  _inputSetRef = (ref: ?Input) => {
+  _inputSetRef = (ref: null | PlainInput) => {
     this._input = ref
     this.props.inputSetRef(ref)
+    this.props.inputRef.current = ref
   }
 
   _openFilePicker = () => {
     this._toggleShowingMenu('filepickerpopup')
   }
 
-  _launchNativeImagePicker = (mediaType: string, location: string) => {
+  _launchNativeImagePicker = (mediaType: 'photo' | 'video' | 'mixed', location: string) => {
     let title = 'Select a Photo'
     let takePhotoButtonTitle = 'Take Photo...'
     let permDeniedText = 'Allow Keybase to take photos and choose images from your library?'
@@ -74,10 +82,10 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
         break
     }
     const permissionDenied = {
-      title: 'Permissions needed',
-      text: permDeniedText,
-      reTryTitle: 'allow in settings',
       okTitle: 'deny',
+      reTryTitle: 'allow in settings',
+      text: permDeniedText,
+      title: 'Permissions needed',
     }
     const handleSelection = response => {
       if (response.didCancel || !this.props.conversationIDKey) {
@@ -95,20 +103,21 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
 
     switch (location) {
       case 'camera':
-        launchCamera({mediaType, title, takePhotoButtonTitle, permissionDenied}, handleSelection)
+        launchCamera({mediaType, permissionDenied, takePhotoButtonTitle, title}, handleSelection)
         break
       case 'library':
-        launchImageLibrary({mediaType, title, takePhotoButtonTitle, permissionDenied}, handleSelection)
+        launchImageLibrary({mediaType, permissionDenied, takePhotoButtonTitle, title}, handleSelection)
         break
     }
   }
 
   _getText = () => {
-    return this._input ? this._input.getValue() : ''
+    return this._lastText || ''
   }
 
   _onChangeText = (text: string) => {
     this.setState({hasText: !!text})
+    this._lastText = text
     this.props.onChangeText(text)
   }
 
@@ -123,42 +132,38 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
     // Hide the keyboard on mobile when showing the menu.
     NativeKeyboard.dismiss()
     this._whichMenu = menu
-    this.props.onSeenExplodingMessages()
     this.props.toggleShowingMenu()
+  }
+
+  _onLayout = ({
+    nativeEvent: {
+      layout: {x, y, width, height},
+    },
+  }) => this.props.setHeight(height)
+
+  _insertMentionMarker = () => {
+    if (this._input) {
+      const input = this._input
+      input.focus()
+      input.transformText(
+        ({selection: {end, start}, text}) => standardTransformer('@', {position: {end, start}, text}, true),
+        true
+      )
+    }
   }
 
   render = () => {
     let hintText = 'Write a message'
-    if (this.props.isExploding) {
-      hintText = isLargeScreen ? 'Write an exploding message' : 'Exploding message'
+    if (this.props.isExploding && isLargeScreen) {
+      hintText = this.props.showWalletsIcon ? 'Exploding message' : 'Write an exploding message'
+    } else if (this.props.isExploding && !isLargeScreen) {
+      hintText = this.props.showWalletsIcon ? 'Exploding' : 'Exploding message'
     } else if (this.props.isEditing) {
       hintText = 'Edit your message'
     }
 
     return (
-      <Box>
-        {this.props.mentionPopupOpen && (
-          <MentionHud
-            conversationIDKey={this.props.conversationIDKey}
-            selectDownCounter={this.props.downArrowCounter}
-            selectUpCounter={this.props.upArrowCounter}
-            pickSelectedUserCounter={this.props.pickSelectedCounter}
-            onPickUser={this.props.insertMention}
-            onSelectUser={this.props.insertMention}
-            filter={this.props.mentionFilter}
-          />
-        )}
-        {this.props.channelMentionPopupOpen && (
-          <ChannelMentionHud
-            conversationIDKey={this.props.conversationIDKey}
-            selectDownCounter={this.props.downArrowCounter}
-            selectUpCounter={this.props.upArrowCounter}
-            pickSelectedChannelCounter={this.props.pickSelectedCounter}
-            onPickChannel={this.props.insertChannelMention}
-            onSelectChannel={this.props.insertChannelMention}
-            filter={this.props.channelMentionFilter}
-          />
-        )}
+      <Box onLayout={this._onLayout}>
         {this.props.showingMenu && this._whichMenu === 'filepickerpopup' ? (
           <FilePickerPopup
             attachTo={this.props.getAttachmentRef}
@@ -174,6 +179,7 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
             visible={this.props.showingMenu}
           />
         )}
+        <Typing conversationIDKey={this.props.conversationIDKey} />
         <Box style={styles.container}>
           {this.props.isEditing && (
             <Box style={styles.editingTabStyle}>
@@ -183,36 +189,31 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
               </Text>
             </Box>
           )}
-          <Input
+          <PlainInput
             autoCorrect={true}
             autoCapitalize="sentences"
-            autoFocus={false}
-            hideUnderline={true}
-            hintText={hintText}
+            placeholder={hintText}
             multiline={true}
             onBlur={this.props.onBlur}
             onFocus={this.props.onFocus}
             // TODO: Call onCancelQuoting on text change or selection
             // change to match desktop.
             onChangeText={this._onChangeText}
+            onSelectionChange={this.props.onSelectionChange}
             ref={this._inputSetRef}
-            small={true}
             style={styles.input}
-            uncontrolled={true}
             rowsMax={3}
             rowsMin={1}
           />
-
-          {this.props.typing.size > 0 && <Typing />}
           <Action
             hasText={this.state.hasText}
             onSubmit={this._onSubmit}
             isEditing={this.props.isEditing}
             openExplodingPicker={() => this._toggleShowingMenu('exploding')}
             openFilePicker={this._openFilePicker}
-            insertMentionMarker={this.props.insertMentionMarker}
+            insertMentionMarker={this._insertMentionMarker}
             isExploding={this.props.isExploding}
-            isExplodingNew={this.props.isExplodingNew}
+            showWalletsIcon={this.props.showWalletsIcon}
             explodingModeSeconds={this.props.explodingModeSeconds}
           />
         </Box>
@@ -220,65 +221,44 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
     )
   }
 }
-
-const InputAccessory = Component => props => (
-  <Box style={styles.accessoryContainer}>
-    <Box style={styles.accessory}>
-      <Component {...props} />
-    </Box>
-  </Box>
-)
-
-const MentionHud = InputAccessory(props => (
-  <ConnectedMentionHud style={styles.mentionHud} {...props} conversationIDKey={props.conversationIDKey} />
-))
-
-const ChannelMentionHud = InputAccessory(props => (
-  <ConnectedChannelMentionHud style={styles.mentionHud} {...props} />
-))
-
-const Typing = () => (
-  <Box style={styles.typing}>
-    <Icon type="icon-typing-24" style={iconCastPlatformStyles(styles.typingIcon)} />
-  </Box>
-)
+const PlatformInput = AddSuggestors(_PlatformInput)
 
 const Action = ({
+  explodingModeSeconds,
   hasText,
-  onSubmit,
+  insertMentionMarker,
   isEditing,
+  isExploding,
+  onSubmit,
   openExplodingPicker,
   openFilePicker,
-  insertMentionMarker,
-  isExploding,
-  isExplodingNew,
-  explodingModeSeconds,
+  showWalletsIcon,
 }) =>
   hasText ? (
     <Box2 direction="horizontal" gap="small" style={styles.actionText}>
-      {flags.explodingMessagesEnabled &&
-        isExploding &&
-        !isEditing && (
-          <ExplodingIcon
-            explodingModeSeconds={explodingModeSeconds}
-            isExploding={isExploding}
-            isExplodingNew={isExplodingNew}
-            openExplodingPicker={openExplodingPicker}
-          />
-        )}
+      {isExploding && !isEditing && (
+        <ExplodingIcon
+          explodingModeSeconds={explodingModeSeconds}
+          isExploding={isExploding}
+          openExplodingPicker={openExplodingPicker}
+        />
+      )}
       <Text type="BodyBigLink" onClick={onSubmit}>
         {isEditing ? 'Save' : 'Send'}
       </Text>
     </Box2>
   ) : (
-    <Box2 direction="horizontal" gap="small" style={styles.actionIconsContainer}>
-      {flags.explodingMessagesEnabled && (
+    <Box2 direction="horizontal" style={styles.actionIconsContainer}>
+      <>
         <ExplodingIcon
           explodingModeSeconds={explodingModeSeconds}
           isExploding={isExploding}
-          isExplodingNew={isExplodingNew}
           openExplodingPicker={openExplodingPicker}
         />
+        {smallGap}
+      </>
+      {showWalletsIcon && (
+        <WalletsIcon size={22} style={collapseStyles([styles.actionButton, styles.marginRightSmall])} />
       )}
       <Icon
         onClick={insertMentionMarker}
@@ -286,6 +266,7 @@ const Action = ({
         style={iconCastPlatformStyles(styles.actionButton)}
         fontSize={22}
       />
+      {smallGap}
       <Icon
         onClick={openFilePicker}
         type="iconfont-camera"
@@ -295,16 +276,16 @@ const Action = ({
     </Box2>
   )
 
-const ExplodingIcon = ({explodingModeSeconds, isExploding, isExplodingNew, openExplodingPicker}) => (
+const ExplodingIcon = ({explodingModeSeconds, isExploding, openExplodingPicker}) => (
   <NativeTouchableWithoutFeedback onPress={openExplodingPicker}>
     <Box style={explodingIconContainer}>
       <Icon
         color={isExploding ? globalColors.black_75 : null}
         style={iconCastPlatformStyles(styles.actionButton)}
-        type="iconfont-bomb"
+        type="iconfont-timer"
         fontSize={22}
       />
-      <ExplodingMeta explodingModeSeconds={explodingModeSeconds} isNew={isExplodingNew} />
+      <ExplodingMeta explodingModeSeconds={explodingModeSeconds} />
     </Box>
   </NativeTouchableWithoutFeedback>
 )
@@ -353,6 +334,7 @@ const styles = styleSheetCreate({
     padding: globalMargins.xtiny,
   },
   input: {
+    flex: 1,
     marginLeft: globalMargins.tiny,
     marginRight: globalMargins.tiny,
     ...(isIOS
@@ -362,6 +344,9 @@ const styles = styleSheetCreate({
           marginTop: -4, // android has a bug where the lineheight isn't respected
         }),
   },
+  marginRightSmall: {
+    marginRight: globalMargins.small,
+  },
   mentionHud: {
     borderColor: globalColors.black_20,
     borderTopWidth: 1,
@@ -369,21 +354,14 @@ const styles = styleSheetCreate({
     height: 160,
     width: '100%',
   },
-  typing: {
-    ...globalStyles.flexBoxRow,
-    alignItems: 'center',
-    alignSelf: 'center',
-    borderRadius: 10,
-    height: 20,
-    justifyContent: 'center',
-    marginRight: globalMargins.tiny,
-    paddingLeft: globalMargins.tiny,
-    paddingRight: globalMargins.tiny,
-  },
-  typingIcon: {
-    width: 20,
+  smallGap: {
+    height: globalMargins.small,
+    width: globalMargins.small,
   },
 })
+
+// Use manual gap when Box2 is inserting too many (for children that deliberately render nothing)
+const smallGap = <Box style={styles.smallGap} />
 
 const explodingIconContainer = platformStyles({
   common: {

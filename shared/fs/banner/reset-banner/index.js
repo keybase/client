@@ -30,14 +30,14 @@ const Banner = ({
     <Box style={bannerStyle}>
       <Icon
         type={isMobile ? 'icon-skull-64' : 'icon-skull-48'}
-        style={{margin: globalMargins.medium, height: globalMargins.xlarge}}
+        style={{height: globalMargins.xlarge, margin: globalMargins.medium}}
       />
       <Box style={textContainerStyle}>
         <Box style={globalStyles.flexBoxRow}>
           <Text
             type="BodySemibold"
             backgroundMode="Terminal"
-            style={{paddingRight: globalMargins.large, paddingLeft: globalMargins.large}}
+            style={{paddingLeft: globalMargins.large, paddingRight: globalMargins.large}}
           >
             <ConnectedUsernames
               type="BodySemiboldLink"
@@ -113,8 +113,8 @@ const bannerStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
   backgroundColor: globalColors.red,
-  paddingTop: globalMargins.medium,
   paddingBottom: globalMargins.medium,
+  paddingTop: globalMargins.medium,
 }
 
 const textContainerStyle = {
@@ -138,8 +138,8 @@ const listTextContentStyle = {
 }
 
 const firstButtonStyle = {
-  marginRight: globalMargins.tiny,
   marginBottom: isMobile ? globalMargins.tiny : 0,
+  marginRight: globalMargins.tiny,
 }
 
 const bottomTextStyle = {

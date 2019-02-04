@@ -3,17 +3,19 @@ package stellar
 import (
 	"context"
 	"fmt"
+	"runtime/debug"
 	"sync"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar/remote"
+	"github.com/keybase/stellarnet"
 )
 
-func loadUvUpk(ctx context.Context, g *libkb.GlobalContext, uv keybase1.UserVersion) (res *keybase1.UserPlusKeysV2, err error) {
-	loadArg := libkb.NewLoadUserArgWithContext(ctx, g).WithUID(uv.Uid)
-	upkv2, _, err := g.GetUPAKLoader().LoadV2(loadArg)
+func loadUvUpk(mctx libkb.MetaContext, uv keybase1.UserVersion) (res *keybase1.UserPlusKeysV2, err error) {
+	loadArg := libkb.NewLoadUserArgWithMetaContext(mctx).WithUID(uv.Uid)
+	upkv2, _, err := mctx.G().GetUPAKLoader().LoadV2(loadArg)
 	if err != nil {
 		return nil, err
 	}
@@ -31,18 +33,17 @@ func loadUvUpk(ctx context.Context, g *libkb.GlobalContext, uv keybase1.UserVers
 	return nil, fmt.Errorf("could not load user: %v (v)", uv.String())
 }
 
-func loadOwnLatestPuk(ctx context.Context, g *libkb.GlobalContext) (gen keybase1.PerUserKeyGeneration, seed libkb.PerUserKeySeed, err error) {
-	pukring, err := g.GetPerUserKeyring()
+func loadOwnLatestPuk(mctx libkb.MetaContext) (gen keybase1.PerUserKeyGeneration, seed libkb.PerUserKeySeed, err error) {
+	pukring, err := mctx.G().GetPerUserKeyring(mctx.Ctx())
 	if err != nil {
 		return 0, seed, err
 	}
-	m := libkb.NewMetaContext(ctx, g)
-	err = pukring.Sync(m)
+	err = pukring.Sync(mctx)
 	if err != nil {
 		return 0, seed, err
 	}
 	gen = pukring.CurrentGeneration()
-	seed, err = pukring.GetSeedByGeneration(m, gen)
+	seed, err = pukring.GetSeedByGeneration(mctx, gen)
 	return gen, seed, err
 }
 
@@ -58,21 +59,21 @@ type ownAccountLookupCacheImpl struct {
 }
 
 // NewOwnAccountLookupCache fetches the list of accounts in the background and stores them.
-func NewOwnAccountLookupCache(ctx context.Context, g *libkb.GlobalContext) OwnAccountLookupCache {
+func NewOwnAccountLookupCache(mctx libkb.MetaContext) OwnAccountLookupCache {
 	c := &ownAccountLookupCacheImpl{
 		accounts: make(map[stellar1.AccountID]*string),
 	}
 	c.Lock()
-	go c.fetch(ctx, g)
+	go c.fetch(mctx)
 	return c
 }
 
 // Fetch populates the cache in the background.
-func (c *ownAccountLookupCacheImpl) fetch(ctx context.Context, g *libkb.GlobalContext) {
+func (c *ownAccountLookupCacheImpl) fetch(mctx libkb.MetaContext) {
 	go func() {
-		ctx := libkb.CopyTagsToBackground(ctx)
+		mc := mctx.BackgroundWithLogTags()
 		defer c.Unlock()
-		bundle, _, err := remote.Fetch(ctx, g)
+		bundle, err := remote.FetchSecretlessBundle(mc)
 		c.loadErr = err
 		if err != nil {
 			return
@@ -96,4 +97,29 @@ func (c *ownAccountLookupCacheImpl) OwnAccount(ctx context.Context, accountID st
 		return false, "", nil
 	}
 	return true, *name, nil
+}
+
+func LookupSenderSeed(mctx libkb.MetaContext) (stellar1.AccountID, stellarnet.SeedStr, error) {
+	senderEntry, senderAccountBundle, err := LookupSenderPrimary(mctx)
+	if err != nil {
+		return "", "", err
+	}
+	senderSeed, err := stellarnet.NewSeedStr(senderAccountBundle.Signers[0].SecureNoLogString())
+	if err != nil {
+		return "", "", err
+	}
+
+	return senderEntry.AccountID, senderSeed, nil
+}
+
+func isAmountLessThanMin(amount, min string) bool {
+	cmp, err := stellarnet.CompareStellarAmounts(amount, min)
+	if err == nil && cmp == -1 {
+		return true
+	}
+	return false
+}
+
+func EmptyAmountStack(mctx libkb.MetaContext) {
+	mctx.CDebugf("unexpected empty amount\n%v", string(debug.Stack()))
 }

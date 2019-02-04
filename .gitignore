@@ -33,7 +33,7 @@ go/revision
 *-fuzz.zip
 
 # Xcode
-build
+./build
 # vscode
 .vscode
 
@@ -41,16 +41,21 @@ npm-debug.log
 yarn-error.log
 shared/coverage
 shared/node_modules
+shared/.static-storybook
+shared/fonts-for-web
 packaging/desktop/node_modules
 packaging/prerelease/node_modules
 visdiff/node_modules
 pvl-tools/node_modules
+# Storybook
+shared/.cache
 
 Keybase.app.dSYM.zip
 
 shared/react-native/ios/fastlane
 shared/react-native/android/keybaselib/keybaselib-sources.jar
 shared/react-native/android/app/.idea/
+shared/react-native/android/captures
 shared/react-native/android/app/local.properties
 
 browser/node_modules

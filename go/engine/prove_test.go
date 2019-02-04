@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/stretchr/testify/require"
 )
 
 func TestProveRooter(t *testing.T) {
@@ -22,22 +23,12 @@ func _testProveRooter(t *testing.T, sigVersion libkb.SigVersion) {
 	fu := CreateAndSignupFakeUser(tc, "prove")
 
 	proveUI, _, err := proveRooter(tc.G, fu, sigVersion)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
-	if proveUI.overwrite {
-		t.Error("unexpected prompt for overwrite in test")
-	}
-	if proveUI.warning {
-		t.Error("got unexpected warning in test")
-	}
-	if proveUI.recheck {
-		t.Error("unexpected recheck")
-	}
-	if !proveUI.checked {
-		t.Error("OkToCheck never called")
-	}
+	require.False(t, proveUI.overwrite)
+	require.False(t, proveUI.warning)
+	require.False(t, proveUI.recheck)
+	require.True(t, proveUI.checked)
 }
 
 // Make sure the prove engine uses the secret store.
@@ -51,9 +42,7 @@ func _testProveRooterWithSecretStore(t *testing.T, sigVersion libkb.SigVersion) 
 	testEngineWithSecretStore(t, func(
 		tc libkb.TestContext, fu *FakeUser, secretUI libkb.SecretUI) {
 		_, _, err := proveRooterWithSecretUI(tc.G, fu, secretUI, sigVersion)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.NoError(t, err)
 	})
 }
 
@@ -67,7 +56,15 @@ func TestProveRooterCachedKeys(t *testing.T) {
 	clearCaches(tc.G)
 
 	_, _, err := proveRooterWithSecretUI(tc.G, fu, &libkb.TestSecretUI{}, sigVersion)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
+}
+
+func TestProveGenericSocial(t *testing.T) {
+	tc := SetupEngineTest(t, "prove")
+	defer tc.Cleanup()
+	sigVersion := libkb.KeybaseSignatureV2
+
+	fu := CreateAndSignupFakeUser(tc, "prove")
+	proveGubbleSocial(tc, fu, sigVersion)
+	proveGubbleCloud(tc, fu, sigVersion)
 }

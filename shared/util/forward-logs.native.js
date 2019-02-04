@@ -18,8 +18,8 @@ const writeLogLinesToFile: (lines: Array<LogLineWithLevelISOTimestamp>) => Promi
       resolve()
       return
     }
-    const dir = logFileDir()
-    const logPath = logFileName()
+    const dir = logFileDir
+    const logPath = logFileName
 
     RNFetchBlob.fs
       .isDir(dir)

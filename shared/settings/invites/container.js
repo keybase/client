@@ -3,10 +3,11 @@ import * as SettingsGen from '../../actions/settings-gen'
 import * as Types from '../../constants/types/settings'
 import Invites from '.'
 import {createShowUserProfile} from '../../actions/profile-gen'
-import {navigateAppend} from '../../actions/route-tree'
-import {connect, type TypedState, lifecycle, compose} from '../../util/container'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
+import {connect, lifecycle, compose} from '../../util/container'
 
-const mapStateToProps = (state: TypedState) => ({
+type OwnProps = {||}
+const mapStateToProps = state => ({
   ...state.settings.invites,
   inviteEmail: '',
   inviteMessage: '',
@@ -14,19 +15,23 @@ const mapStateToProps = (state: TypedState) => ({
   waitingForResponse: state.settings.waitingForResponse,
 })
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   onClearError: () => dispatch(SettingsGen.createInvitesClearError()),
   onGenerateInvitation: (email: string, message: string) =>
     dispatch(SettingsGen.createInvitesSend({email, message})),
   onReclaimInvitation: (inviteId: string) => dispatch(SettingsGen.createInvitesReclaim({inviteId})),
   onRefresh: () => dispatch(SettingsGen.createInvitesRefresh()),
   onSelectPendingInvite: (invite: Types.PendingInvite) =>
-    dispatch(navigateAppend([{props: {email: invite.email, link: invite.url}, selected: 'inviteSent'}])),
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {email: invite.email, link: invite.url}, selected: 'inviteSent'}]})),
   onSelectUser: (username: string) => dispatch(createShowUserProfile({username})),
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
+  connect<OwnProps, _, _, _, _>(
+    mapStateToProps,
+    mapDispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d})
+  ),
   lifecycle({
     componentDidMount() {
       this.props.onRefresh()

@@ -693,7 +693,8 @@
       "symbols": [
         "V0_0",
         "V1_1",
-        "V2_2"
+        "V2_2",
+        "V3_3"
       ]
     },
     {
@@ -759,7 +760,8 @@
         "KEYBASE_2",
         "EMAIL_3",
         "SBS_4",
-        "SEITAN_5"
+        "SEITAN_5",
+        "PHONE_6"
       ]
     },
     {
@@ -1077,8 +1079,11 @@
           "name": "openTeamJoinAs"
         },
         {
-          "type": "TLFID",
-          "name": "tlfID"
+          "type": {
+            "type": "array",
+            "items": "TLFID"
+          },
+          "name": "tlfIDs"
         },
         {
           "type": {
@@ -1612,6 +1617,17 @@
         },
         {
           "type": {
+            "type": "map",
+            "values": {
+              "type": "array",
+              "items": "TeamApplication"
+            },
+            "keys": "PerTeamKeyGeneration"
+          },
+          "name": "needApplicationsAtGenerationsWithKBFS"
+        },
+        {
+          "type": {
             "type": "array",
             "items": "UserVersion"
           },
@@ -1854,6 +1870,11 @@
           "jsonkey": "is_implicit_team"
         },
         {
+          "type": "string",
+          "name": "impTeamDisplayName",
+          "jsonkey": "implicit_team_display_name"
+        },
+        {
           "type": "boolean",
           "name": "isOpenTeam",
           "jsonkey": "is_open_team"
@@ -1989,6 +2010,33 @@
     },
     {
       "type": "record",
+      "name": "SubteamListEntry",
+      "fields": [
+        {
+          "type": "TeamName",
+          "name": "name"
+        },
+        {
+          "type": "int",
+          "name": "memberCount"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SubteamListResult",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "SubteamListEntry"
+          },
+          "name": "entries"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "TeamCreateResult",
       "fields": [
         {
@@ -2093,6 +2141,20 @@
         {
           "type": "boolean",
           "name": "isMemberShowcased"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserRolePair",
+      "fields": [
+        {
+          "type": "string",
+          "name": "assertionOrEmail"
+        },
+        {
+          "type": "TeamRole",
+          "name": "role"
         }
       ]
     },
@@ -2286,6 +2348,10 @@
         {
           "type": "boolean",
           "name": "deleteChatHistory"
+        },
+        {
+          "type": "boolean",
+          "name": "deleteOtherMessages"
         }
       ]
     },
@@ -2306,6 +2372,24 @@
         {
           "type": "TeamSigChainState",
           "name": "chain"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TeamProfileAddEntry",
+      "fields": [
+        {
+          "type": "TeamName",
+          "name": "teamName"
+        },
+        {
+          "type": "boolean",
+          "name": "open"
+        },
+        {
+          "type": "string",
+          "name": "disabledReason"
         }
       ]
     }
@@ -2519,6 +2603,30 @@
       ],
       "response": null
     },
+    "teamAddMembersMultiRole": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "string"
+        },
+        {
+          "name": "users",
+          "type": {
+            "type": "array",
+            "items": "UserRolePair"
+          }
+        },
+        {
+          "name": "sendChatNotification",
+          "type": "boolean"
+        }
+      ],
+      "response": null
+    },
     "teamRemoveMember": {
       "request": [
         {
@@ -2706,6 +2814,19 @@
       ],
       "response": "TeamTreeResult"
     },
+    "teamGetSubteams": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "TeamName"
+        }
+      ],
+      "response": "SubteamListResult"
+    },
     "teamDelete": {
       "request": [
         {
@@ -2859,6 +2980,10 @@
         {
           "name": "refreshers",
           "type": "TeamRefreshers"
+        },
+        {
+          "name": "includeKBFSKeys",
+          "type": "boolean"
         }
       ],
       "response": "TeamPlusApplicationKeys",
@@ -2982,6 +3107,22 @@
         }
       ],
       "response": null
+    },
+    "teamProfileAddList": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "TeamProfileAddEntry"
+      }
     },
     "uploadTeamAvatar": {
       "request": [

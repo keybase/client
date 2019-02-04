@@ -4,18 +4,17 @@ import {makeRetentionPolicy} from '../../../../constants/teams'
 import {Box} from '../../../../common-adapters'
 import {action, storiesOf} from '../../../../stories/storybook'
 import {globalStyles} from '../../../../styles'
-import RetentionPicker from './'
+import RetentionPicker from '.'
 
 const policyRetain = makeRetentionPolicy({type: 'retain'})
 const policyInherit = makeRetentionPolicy({type: 'inherit'})
-const policy30Days = makeRetentionPolicy({type: 'expire', days: 30})
-const policy7Days = makeRetentionPolicy({type: 'expire', days: 7})
+const policy30Days = makeRetentionPolicy({seconds: 30 * 3600 * 24, type: 'expire'})
+const policy7Days = makeRetentionPolicy({seconds: 7 * 3600 * 24, type: 'expire'})
 
 const actions = {
-  saveRetentionPolicy: action('saveRetentionPolicy'),
   onSelect: action('onSelectPolicy'),
-  onShowDropdown: action('onShowDropdown'),
   onShowWarning: action('onShowWarning'),
+  saveRetentionPolicy: action('saveRetentionPolicy'),
 }
 
 const commonProps = {

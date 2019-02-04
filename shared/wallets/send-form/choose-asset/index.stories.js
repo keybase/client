@@ -18,17 +18,25 @@ const props = {
   ],
   onBack: action('onBack'),
   onChoose: action('onChoose'),
+  onRefresh: action('onRefresh'),
   otherChoices: [
-    {code: 'BTC', disabledExplanation: '', issuer: 'Stronghold.co', selected: false, type: 'other choice'},
-    {code: 'KEYZ', disabledExplanation: '', issuer: 'Unknown', selected: false, type: 'other choice'},
     {
-      code: 'HUGZ',
+      currencyCode: 'BTC',
+      disabledExplanation: '',
+      issuer: 'Stronghold.co',
+      selected: false,
+      type: 'other choice',
+    },
+    {currencyCode: 'KEYZ', disabledExplanation: '', issuer: 'Unknown', selected: false, type: 'other choice'},
+    {
+      currencyCode: 'HUGZ',
       disabledExplanation: `max doesn't accept HUGZ.`,
       issuer: 'Jed',
       selected: false,
       type: 'other choice',
     },
   ],
+  selected: 'XLM',
 }
 
 const load = () => {

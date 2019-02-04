@@ -3,6 +3,7 @@ import * as I from 'immutable'
 import * as Types from '../types/chat2'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
+import * as TeamBuildingConstants from '../../constants/team-building'
 import {chatTab} from '../tabs'
 import type {TypedState} from '../reducer'
 import {getPath} from '../../route-tree'
@@ -14,18 +15,20 @@ import {
   conversationIDKeyToString,
   isValidConversationIDKey,
 } from '../types/chat2/common'
-import {makeConversationMeta, getMeta} from './meta'
+import {makeConversationMeta, getEffectiveRetentionPolicy, getMeta} from './meta'
 import {formatTextForQuoting} from '../../util/chat'
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   accountsInfoMap: I.Map(),
+  attachmentFullscreenMessage: null,
   badgeMap: I.Map(),
   editingMap: I.Map(),
   explodingModeLocks: I.Map(),
   explodingModes: I.Map(),
-  inboxHasLoaded: false,
+  focus: null,
   inboxFilter: '',
-  isExplodingNew: true,
+  inboxHasLoaded: false,
+  isWalletsNew: true,
   messageMap: I.Map(),
   messageOrdinals: I.Map(),
   metaMap: I.Map([
@@ -33,14 +36,22 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   ]),
   moreToLoadMap: I.Map(),
   orangeLineMap: I.Map(),
+  paymentConfirmInfo: null,
+  paymentStatusMap: I.Map(),
   pendingMode: 'none',
-  pendingStatus: 'none',
   pendingOutboxToOrdinal: I.Map(),
+  pendingStatus: 'none',
   quote: null,
   selectedConversation: noConversationIDKey,
+  smallTeamsExpanded: false,
   staticConfig: null,
   typingMap: I.Map(),
+  unfurlPromptMap: I.Map(),
   unreadMap: I.Map(),
+  unsentTextMap: I.Map(),
+
+  // Team Building
+  ...TeamBuildingConstants.makeSubState(),
 })
 
 // We stash the resolved pending conversation idkey into the meta itself
@@ -55,13 +66,17 @@ export const makeQuoteInfo: I.RecordFactory<Types._QuoteInfo> = I.Record({
 })
 
 export const makeStaticConfig: I.RecordFactory<Types._StaticConfig> = I.Record({
+  builtinCommands: [],
   deletableByDeleteHistory: I.Set(),
 })
 
 export const getMessageOrdinals = (state: TypedState, id: Types.ConversationIDKey) =>
-  state.chat2.messageOrdinals.get(id, I.SortedSet())
-export const getMessage = (state: TypedState, id: Types.ConversationIDKey, ordinal: Types.Ordinal) =>
-  state.chat2.messageMap.getIn([id, ordinal])
+  state.chat2.messageOrdinals.get(id, I.OrderedSet())
+export const getMessage = (
+  state: TypedState,
+  id: Types.ConversationIDKey,
+  ordinal: Types.Ordinal
+): ?Types.Message => state.chat2.messageMap.getIn([id, ordinal])
 export const getMessageKey = (message: Types.Message) =>
   `${message.conversationIDKey}:${Types.ordinalToNumber(message.ordinal)}`
 export const getHasBadge = (state: TypedState, id: Types.ConversationIDKey) =>
@@ -107,7 +122,7 @@ export const isUserActivelyLookingAtThisThread = (
   conversationIDKey: Types.ConversationIDKey
 ) => {
   const selectedConversationIDKey = getSelectedConversation(state)
-  const appFocused = state.config.appFocused
+
   const routePath = getPath(state.routeTree.routeState)
   let chatThreadSelected = false
   if (isMobile) {
@@ -118,7 +133,8 @@ export const isUserActivelyLookingAtThisThread = (
   }
 
   return (
-    appFocused && // app focused?
+    state.config.appFocused && // app focused?
+    state.config.userActive && // actually interacting w/ the app
     chatThreadSelected && // looking at the chat tab?
     conversationIDKey === selectedConversationIDKey // looking at the selected thread?
   )
@@ -150,38 +166,40 @@ export const waitingKeyUnboxing = (conversationIDKey: Types.ConversationIDKey) =
   `chat:unboxing:${conversationIDKeyToString(conversationIDKey)}`
 
 export const anyChatWaitingKeys = (state: TypedState) =>
-  state.waiting.keySeq().some(k => k.startsWith('chat:'))
+  state.waiting.counts.keySeq().some(k => k.startsWith('chat:'))
 
-// When we see that exploding messages are in the app, we set
-// seenExplodingGregorKey. Once newExplodingGregorOffset time
-// passes, we stop showing the 'NEW' tag.
-export const seenExplodingGregorKey = 'chat.seenExplodingMessages'
-export const newExplodingGregorOffset = 1000 * 3600 * 24 * 3 // 3 days in ms
-export const getIsExplodingNew = (state: TypedState) => state.chat2.get('isExplodingNew')
-export const explodingModeGregorKeyPrefix = 'exploding:'
 /**
  * Gregor key for exploding conversations
  * Used as the `category` when setting the exploding mode on a conversation
  * `body` is the number of seconds to exploding message etime
+ * Note: The core service also uses this value, so if it changes, please notify core
  */
+export const explodingModeGregorKeyPrefix = 'exploding:'
 export const explodingModeGregorKey = (c: Types.ConversationIDKey): string =>
   `${explodingModeGregorKeyPrefix}${c}`
-export const getConversationExplodingMode = (state: TypedState, c: Types.ConversationIDKey) => {
+export const getConversationExplodingMode = (state: TypedState, c: Types.ConversationIDKey): number => {
   let mode = state.chat2.getIn(['explodingModeLocks', c], null)
   if (mode === null) {
     mode = state.chat2.getIn(['explodingModes', c], 0)
   }
-  return mode
+  const meta = getMeta(state, c)
+  const convRetention = getEffectiveRetentionPolicy(meta)
+  mode = convRetention.type === 'explode' ? Math.min(mode || Infinity, convRetention.seconds) : mode
+  return mode || 0
 }
 export const isExplodingModeLocked = (state: TypedState, c: Types.ConversationIDKey) =>
   state.chat2.getIn(['explodingModeLocks', c], null) !== null
+
+// When user clicks wallets icon in chat input, set seenWalletsGregorKey with
+// body of 'true'
+export const seenWalletsGregorKey = 'chat.seenWallets'
 
 export const makeInboxQuery = (
   convIDKeys: Array<Types.ConversationIDKey>
 ): RPCChatTypes.GetInboxLocalQuery => {
   return {
-    convIDs: convIDKeys.map(Types.keyToConversationID),
     computeActiveList: true,
+    convIDs: convIDKeys.map(Types.keyToConversationID),
     readOnly: false,
     status: Object.keys(RPCChatTypes.commonConversationStatus)
       .filter(k => !['ignored', 'blocked', 'reported'].includes(k))
@@ -216,12 +234,18 @@ const numMessagesOnInitialLoad = isMobile ? 20 : 100
 const numMessagesOnScrollback = isMobile ? 100 : 100
 
 export {
+  getChannelSuggestions,
+  getCommands,
   getConversationIDKeyMetasToLoad,
+  getEffectiveRetentionPolicy,
   getMeta,
+  getParticipantSuggestions,
   getRowParticipants,
   getRowStyles,
   inboxUIItemToConversationMeta,
+  isDecryptingSnippet,
   makeConversationMeta,
+  shouldShowWalletsIcon,
   timestampToString,
   unverifiedInboxUIItemToConversationMeta,
   updateMeta,
@@ -230,14 +254,14 @@ export {
 
 export {
   allMessageTypes,
-  authorIsCollapsible,
-  decoratedMessageTypes,
   enoughTimeBetweenMessages,
   getClientPrev,
   getDeletableByDeleteHistory,
   getMessageID,
   getRequestMessageInfo,
   getPaymentMessageInfo,
+  hasSuccessfulInlinePayments,
+  isPendingPaymentMessage,
   isSpecialMention,
   isVideoAttachment,
   makeChatRequestInfo,
@@ -254,12 +278,14 @@ export {
   reactionMapToReactions,
   rpcErrorToString,
   serviceMessageTypeToMessageTypes,
-  showAuthorMessageTypes,
+  shouldShowPopup,
+  specialMentions,
   uiMessageEditToMessage,
   uiMessageToMessage,
   uiPaymentInfoToChatPaymentInfo,
   uiRequestInfoToChatRequestInfo,
   upgradeMessage,
+  mergeMessage,
 } from './message'
 
 export {

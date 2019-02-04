@@ -4,6 +4,7 @@ import * as Constants from '../constants/provision'
 import * as Types from '../constants/types/provision'
 import * as ProvisionGen from '../actions/provision-gen'
 import HiddenString from '../util/hidden-string'
+import * as Flow from '../util/flow'
 
 const initialState = Constants.makeState()
 
@@ -15,13 +16,13 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
     case ProvisionGen.provisionError:
     case ProvisionGen.showPassphrasePage: // fallthrough
     case ProvisionGen.showPaperkeyPage: // fallthrough
-      return state.set('error', action.payload.error || initialState.error)
+      return state.merge({error: action.payload.error || initialState.error})
     case ProvisionGen.submitPassphrase: // fallthrough
     case ProvisionGen.submitPaperkey:
       return state.merge({error: initialState.error})
     case ProvisionGen.showFinalErrorPage:
       // Ignore cancels
-      if (action.payload.finalError && action.payload.finalError.desc === Constants.cancelDesc) {
+      if (Constants.errorCausedByUsCanceling(action.payload.finalError)) {
         return state
       }
       return state.merge({finalError: action.payload.finalError})
@@ -53,8 +54,13 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
         error: initialState.error,
       })
     case ProvisionGen.submitTextCode:
+      // clean up spaces
+      const good = action.payload.phrase
+        .stringValue()
+        .replace(/\W+/g, ' ')
+        .trim()
       return state.merge({
-        codePageOutgoingTextCode: action.payload.phrase,
+        codePageOutgoingTextCode: new HiddenString(good),
         error: initialState.error,
       })
     case ProvisionGen.submitDeviceName:
@@ -85,18 +91,15 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
         usernameOrEmail: action.payload.usernameOrEmail,
       })
     case ProvisionGen.switchToGPGSignOnly:
-      return state.set('gpgImportError', action.payload.importError)
+      return state.merge({gpgImportError: action.payload.importError})
     case ProvisionGen.submitGPGSignOK:
-      return state.set('gpgImportError', null)
+      return state.merge({gpgImportError: null})
     // Saga only actions
     case ProvisionGen.showGPGPage:
     case ProvisionGen.submitGPGMethod:
       return state
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(action);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

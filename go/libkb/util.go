@@ -6,7 +6,6 @@ package libkb
 import (
 	"bufio"
 	"bytes"
-	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base32"
@@ -24,10 +23,12 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 	"unicode"
 
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/profiling"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -88,11 +89,11 @@ func MakeParentDirs(log SkinnyLogger, filename string) error {
 }
 
 func FastByteArrayEq(a, b []byte) bool {
-	return bytes.Equal(a, b)
+	return kbcrypto.FastByteArrayEq(a, b)
 }
 
 func SecureByteArrayEq(a, b []byte) bool {
-	return hmac.Equal(a, b)
+	return kbcrypto.SecureByteArrayEq(a, b)
 }
 
 func FormatTime(tm time.Time) string {
@@ -297,6 +298,13 @@ func IsValidHostname(s string) bool {
 		return false
 	}
 	return true
+}
+
+var phoneRE = regexp.MustCompile("^[1-9][0-9]{1,14}$")
+
+// IsPossiblePhoneNumber checks if s is string of digits starting with 1.
+func IsPossiblePhoneNumber(s string) bool {
+	return phoneRE.MatchString(s)
 }
 
 func RandBytes(length int) ([]byte, error) {
@@ -901,4 +909,75 @@ func DecodeHexFixed(dst, src []byte) error {
 			"error decoding fixed-length hex: expected %v bytes but got %v", len(dst), n))
 	}
 	return nil
+}
+
+func IsIOS() bool {
+	return isIOS
+}
+
+// AcquireWithContext attempts to acquire a lock with a context.
+// Returns nil if the lock was acquired.
+// Returns an error if it was not. The error is from ctx.Err().
+func AcquireWithContext(ctx context.Context, lock sync.Locker) (err error) {
+	if err = ctx.Err(); err != nil {
+		return err
+	}
+	acquiredCh := make(chan struct{})
+	shouldReleaseCh := make(chan bool, 1)
+	go func() {
+		lock.Lock()
+		close(acquiredCh)
+		shouldRelease := <-shouldReleaseCh
+		if shouldRelease {
+			lock.Unlock()
+		}
+	}()
+	select {
+	case <-acquiredCh:
+		err = nil
+	case <-ctx.Done():
+		err = ctx.Err()
+	}
+	shouldReleaseCh <- err != nil
+	return err
+}
+
+// AcquireWithTimeout attempts to acquire a lock with a timeout.
+// Convenience wrapper around AcquireWithContext.
+// Returns nil if the lock was acquired.
+// Returns context.DeadlineExceeded if it was not.
+func AcquireWithTimeout(lock sync.Locker, timeout time.Duration) (err error) {
+	ctx2, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	return AcquireWithContext(ctx2, lock)
+}
+
+// AcquireWithContextAndTimeout attempts to acquire a lock with a context and a timeout.
+// Convenience wrapper around AcquireWithContext.
+// Returns nil if the lock was acquired.
+// Returns context.DeadlineExceeded or the error from ctx.Err() if it was not.
+func AcquireWithContextAndTimeout(ctx context.Context, lock sync.Locker, timeout time.Duration) (err error) {
+	ctx2, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+	return AcquireWithContext(ctx2, lock)
+}
+
+func Once(f func()) func() {
+	var once sync.Once
+	return func() {
+		once.Do(f)
+	}
+}
+
+func RuntimeGroup() keybase1.RuntimeGroup {
+	switch runtime.GOOS {
+	case "linux", "dragonfly", "freebsd", "netbsd", "openbsd":
+		return keybase1.RuntimeGroup_LINUXLIKE
+	case "darwin":
+		return keybase1.RuntimeGroup_DARWINLIKE
+	case "windows":
+		return keybase1.RuntimeGroup_WINDOWSLIKE
+	default:
+		return keybase1.RuntimeGroup_UNKNOWN
+	}
 }

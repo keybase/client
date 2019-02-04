@@ -1,5 +1,4 @@
 // @flow
-import * as React from 'react'
 export type Position =
   | 'top left'
   | 'top right'
@@ -9,14 +8,4 @@ export type Position =
   | 'left center'
   | 'top center'
   | 'bottom center'
-
-export type Props<PP: {}> = {|
-  ...PP,
-  targetRect: ?ClientRect,
-  position: Position,
-  style?: Object,
-|}
-
-export type RelativePopupHocType<PP> = (
-  PopupComponent: React.ComponentType<PP>
-) => React.ComponentType<Props<PP>>
+  | 'center center'

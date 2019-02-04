@@ -21,7 +21,7 @@ const Row = ({username, onUsernameClicked}) => (
         <Text
           type="BodySmall"
           backgroundMode="Terminal"
-          style={{lineHeight: 17, color: globalColors.blue3_40}}
+          style={{color: globalColors.blue3_40, lineHeight: 17}}
         >
           Can rekey this chat by opening the Keybase app.
         </Text>
@@ -34,8 +34,8 @@ const ParticipantRekey = ({rekeyers, onShowProfile: onUsernameClicked}: Props) =
   <Box style={containerStyle}>
     <Box style={{...globalStyles.flexBoxRow, backgroundColor: globalColors.red, justifyContent: 'center'}}>
       <Text
-        backgroundMode="Terminal"
-        style={{paddingBottom: 8, paddingLeft: 24, paddingRight: 24, paddingTop: 8, textAlign: 'center'}}
+        center={true} backgroundMode="Terminal"
+        style={{paddingBottom: 8, paddingLeft: 24, paddingRight: 24, paddingTop: 8}}
         type="BodySemibold"
       >
         This conversation is waiting for a participant to open their Keybase app.
@@ -64,17 +64,17 @@ const containerStyle = {
 const rowStyle = {
   ...globalStyles.flexBoxRow,
   ...desktopStyles.clickable,
-  minHeight: 56,
   alignItems: 'center',
+  minHeight: 56,
 }
 
 const innerRowStyle = {
   ...globalStyles.flexBoxColumn,
-  borderBottomWidth: 1,
   borderBottomColor: globalColors.black_10,
+  borderBottomWidth: 1,
   flex: 1,
-  minHeight: 56,
   justifyContent: 'center',
+  minHeight: 56,
 }
 
 export default HeaderHoc(ParticipantRekey)

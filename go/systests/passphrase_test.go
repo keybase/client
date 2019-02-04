@@ -297,6 +297,9 @@ func (n *testRecoverUIRecover) Prompt(pd libkb.PromptDescriptor, s string) (ret 
 func (n *testRecoverUIRecover) PromptPassword(pd libkb.PromptDescriptor, _ string) (string, error) {
 	return "", fmt.Errorf("unexpected prompt password")
 }
+func (n *testRecoverUIRecover) PromptPasswordMaybeScripted(pd libkb.PromptDescriptor, _ string) (string, error) {
+	return "", fmt.Errorf("unexpected prompt password")
+}
 func (n *testRecoverUIRecover) Output(s string) error {
 	n.G().Log.Debug("Terminal Output: %s", s)
 	return nil

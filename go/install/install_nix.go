@@ -14,13 +14,21 @@ import (
 // IsInUse returns true if the mount is in use. This may be used by the updater
 // to determine if it's safe to apply an update and restart.
 func IsInUse(mountDir string, log Log) bool {
-	log.Debug("Mount dir: %s", mountDir)
+	// ignore error
+	lsofResults, _ := LsofMount(mountDir, log)
+	return len(lsofResults) > 0
+}
+
+// LsofMount does not return an error if it was unable to lsof
+// the mountpoint or the mountpoint does not exist.
+func LsofMount(mountDir string, log Log) ([]CommonLsofResult, error) {
+	log.Debug("Mount dir to lsof: %s", mountDir)
 	if mountDir == "" {
-		return false
+		return nil, nil
 	}
 	if _, serr := os.Stat(mountDir); os.IsNotExist(serr) {
-		log.Debug("%s doesn't exist", mountDir)
-		return false
+		log.Debug("%s, mount dir lsof target, doesn't exist", mountDir)
+		return nil, nil
 	}
 
 	log.Debug("Checking mount (lsof)")
@@ -29,11 +37,12 @@ func IsInUse(mountDir string, log Log) bool {
 		// If there is an error in lsof it's ok to continue
 		// An exit status of 1 means that the mount is not in use, and is
 		// not really an error.
-		// TODO: Remove this when we fix lsof
-		log.Warning("Continuing despite error in lsof: %s", err)
+		log.Debug("Continuing despite error in lsof: %s", err)
+		return nil, nil
 	}
-	if len(processes) != 0 {
-		return true
+	var ret []CommonLsofResult
+	for _, process := range processes {
+		ret = append(ret, CommonLsofResult{process.PID, process.Command})
 	}
-	return false
+	return ret, nil
 }

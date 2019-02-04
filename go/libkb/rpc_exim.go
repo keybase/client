@@ -16,6 +16,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -23,6 +24,7 @@ import (
 	pgpErrors "github.com/keybase/go-crypto/openpgp/errors"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	pkgErrors "github.com/pkg/errors"
+	"golang.org/x/net/context"
 )
 
 func (sh SigHint) Export() *keybase1.SigHint {
@@ -66,7 +68,7 @@ func (l LinkCheckResult) Export() keybase1.LinkCheckResult {
 		}
 	}
 	if l.hint != nil {
-		ret.Hint = l.hint.Export()
+		ret.Hint = l.GetHint().Export()
 	}
 	ret.TmpTrackExpireTime = keybase1.ToTime(l.tmpTrackExpireTime)
 	ret.BreaksTracking = bt
@@ -149,22 +151,25 @@ func ImportProofError(e keybase1.ProofResult) ProofError {
 }
 
 func ExportErrorAsStatus(g *GlobalContext, e error) (ret *keybase1.Status) {
-	if e == nil {
+	switch e {
+	case nil:
 		return nil
-	}
-
-	if e == io.EOF {
+	case io.EOF:
 		return &keybase1.Status{
 			Code: SCStreamEOF,
 			Name: "STREAM_EOF",
 		}
-	}
-
-	if e == pgpErrors.ErrKeyIncorrect {
+	case pgpErrors.ErrKeyIncorrect:
 		return &keybase1.Status{
 			Code: SCKeyNoActive,
 			Name: "SC_KEY_NO_ACTIVE",
 			Desc: "No PGP key found",
+		}
+	case context.Canceled:
+		return &keybase1.Status{
+			Code: SCCanceled,
+			Name: "SC_CANCELED",
+			Desc: "Canceled",
 		}
 	}
 
@@ -299,6 +304,12 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		return IdentifyDidNotCompleteError{}
 	case SCSibkeyAlreadyExists:
 		return SibkeyAlreadyExistsError{}
+	case SCSigCreationDisallowed:
+		service := ""
+		if len(s.Fields) > 0 && s.Fields[0].Key == "remote_service" {
+			service = s.Fields[0].Value
+		}
+		return ServiceDoesNotSupportNewProofsError{Service: service}
 	case SCNoUI:
 		return NoUIError{Which: s.Desc}
 	case SCNoUIDelegation:
@@ -422,7 +433,7 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		}
 		return ret
 	case SCSigCannotVerify:
-		ret := VerificationError{}
+		ret := kbcrypto.VerificationError{}
 		for _, field := range s.Fields {
 			switch field.Key {
 			case "Cause":
@@ -1704,6 +1715,14 @@ func (e SibkeyAlreadyExistsError) ToStatus() keybase1.Status {
 	}
 }
 
+func (e ServiceDoesNotSupportNewProofsError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCSigCreationDisallowed,
+		Name: "SC_SIG_CREATION_DISALLOWED",
+		Desc: e.Error(),
+	}
+}
+
 func (e UIDelegationUnavailableError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCNoUIDelegation,
@@ -1915,17 +1934,7 @@ func (e DecryptionError) ToStatus() keybase1.Status {
 		Code: SCDecryptionError,
 		Name: "SC_DECRYPTION_ERROR",
 		Fields: []keybase1.StringKVPair{
-			{Key: "Cause", Value: e.Cause.Error()},
-		},
-	}
-}
-
-func (e VerificationError) ToStatus() keybase1.Status {
-	return keybase1.Status{
-		Code: SCSigCannotVerify,
-		Name: "SC_SIG_CANNOT_VERIFY",
-		Fields: []keybase1.StringKVPair{
-			{Key: "Cause", Value: e.Cause.Error()},
+			{Key: "Cause", Value: e.Error()},
 		},
 	}
 }
@@ -1976,6 +1985,14 @@ func (e ChatStalePreviousStateError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCChatStalePreviousState,
 		Name: "SC_CHAT_STALE_PREVIOUS_STATE",
+		Desc: e.Error(),
+	}
+}
+
+func (e ChatEphemeralRetentionPolicyViolatedError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCChatEphemeralRetentionPolicyViolatedError,
+		Name: "SC_CHAT_EPHEMERAL_RETENTION_POLICY_VIOLATED",
 		Desc: e.Error(),
 	}
 }

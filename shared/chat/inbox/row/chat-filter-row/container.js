@@ -1,25 +1,24 @@
 // @flow
 import * as Constants from '../../../../constants/chat2'
-import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
-import {isDarwin} from '../../../../constants/platform'
-import {connect, compose, setDisplayName, withProps} from '../../../../util/container'
-import type {TypedState} from '../../../../util/container'
-import type {RowItem, RowItemSmall, RowItemBig} from '../../index.types'
-import ChatFilterRow from '.'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import {isDarwin, isMobile} from '../../../../constants/platform'
+import {namedConnect, compose, withProps} from '../../../../util/container'
+import ConversationFilterInput from '../../../conversation-filter-input'
+import flags from '../../../../util/feature-flags'
 
 type OwnProps = {
-  onNewChat: () => void,
   filterFocusCount: number,
   focusFilter: () => void,
-  rows: Array<RowItem>,
+  onEnsureSelection: () => void,
+  onNewChat: () => void,
+  onSelectDown: () => void,
+  onSelectUp: () => void,
 }
 
-const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
+const mapStateToProps = (state, ownProps: OwnProps) => {
   const filter = state.chat2.inboxFilter
-  const _selectedConversationIDKey = Constants.getSelectedConversation(state)
   return {
-    _selectedConversationIDKey,
     filter,
     isLoading: Constants.anyChatWaitingKeys(state),
   }
@@ -28,28 +27,19 @@ const mapStateToProps = (state: TypedState, ownProps: OwnProps) => {
 const mapDispatchToProps = (dispatch, {focusFilter}) => ({
   _onHotkey: (cmd: string) => {
     if (cmd.endsWith('+n')) {
-      dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'searchingForUsers'}))
+      dispatch(
+        flags.newTeamBuildingForChat
+          ? RouteTreeGen.createNavigateAppend({
+              path: [{props: {}, selected: 'newChat'}],
+            })
+          : Chat2Gen.createSetPendingMode({pendingMode: 'searchingForUsers'})
+      )
     } else {
       focusFilter()
     }
   },
-  _onSelectNext: (
-    rows: Array<RowItem>,
-    selectedConversationIDKey: ?Types.ConversationIDKey,
-    direction: -1 | 1
-  ) => {
-    const goodRows: Array<RowItemSmall | RowItemBig> = rows.reduce((arr, row) => {
-      if (row.type === 'small' || row.type === 'big') {
-        arr.push(row)
-      }
-      return arr
-    }, [])
-    const idx = goodRows.findIndex(row => row.conversationIDKey === selectedConversationIDKey)
-    if (goodRows.length) {
-      const {conversationIDKey} = goodRows[(idx + direction + goodRows.length) % goodRows.length]
-      dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxFilterArrow'}))
-    }
-  },
+  onBlur: () => dispatch(Chat2Gen.createChangeFocus({nextFocus: null})),
+  onFocus: () => dispatch(Chat2Gen.createChangeFocus({nextFocus: 'filter'})),
   onSetFilter: (filter: string) => dispatch(Chat2Gen.createSetInboxFilter({filter})),
 })
 
@@ -59,16 +49,20 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   filterFocusCount: ownProps.filterFocusCount,
   hotkeys: isDarwin ? ['command+n', 'command+k'] : ['ctrl+n', 'ctrl+k'],
   isLoading: stateProps.isLoading,
+  onBlur: dispatchProps.onBlur,
+  onEnsureSelection: ownProps.onEnsureSelection,
+  onFocus: dispatchProps.onFocus,
   onNewChat: ownProps.onNewChat,
-  onSelectDown: () => dispatchProps._onSelectNext(ownProps.rows, stateProps._selectedConversationIDKey, 1),
-  onSelectUp: () => dispatchProps._onSelectNext(ownProps.rows, stateProps._selectedConversationIDKey, -1),
+  onSelectDown: ownProps.onSelectDown,
+  onSelectUp: ownProps.onSelectUp,
   onSetFilter: dispatchProps.onSetFilter,
 })
 
+const KeyHandler = isMobile ? c => c : require('../../../../util/key-handler.desktop').default
+
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  setDisplayName('ChatFilterRow'),
-  withProps(props => ({
+  namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'ChatFilterRow'),
+  withProps<any, any, any>(props => ({
     onHotkey: (cmd: string) => props._onHotkey(cmd),
   }))
-)(ChatFilterRow)
+)(isMobile ? ConversationFilterInput : KeyHandler(ConversationFilterInput))

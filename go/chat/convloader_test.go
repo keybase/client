@@ -30,12 +30,13 @@ func setupLoaderTest(t *testing.T) (context.Context, *kbtest.ChatTestContext, *k
 		},
 		MessageBody: chat1.MessageBody{},
 	}
-	firstMessageBoxed, _, _, _, _, err := baseSender.Prepare(ctx, firstMessagePlaintext,
+	prepareRes, err := baseSender.Prepare(ctx, firstMessagePlaintext,
 		chat1.ConversationMembersType_KBFS, nil)
+	firstMessageBoxed := prepareRes.Boxed
 	require.NoError(t, err)
 	res, err := ri.NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{
 		IdTriple:   trip,
-		TLFMessage: *firstMessageBoxed,
+		TLFMessage: firstMessageBoxed,
 	})
 	require.NoError(t, err)
 	return ctx, tc, world, func() chat1.RemoteInterface { return ri }, baseSender, listener, res
@@ -46,7 +47,7 @@ func TestConvLoader(t *testing.T) {
 	defer world.Cleanup()
 
 	require.NoError(t, tc.Context().ConvLoader.Queue(ctx,
-		types.NewConvLoaderJob(res.ConvID, nil, types.ConvLoaderPriorityHigh, nil)))
+		types.NewConvLoaderJob(res.ConvID, nil, nil, types.ConvLoaderPriorityHigh, nil)))
 	select {
 	case convID := <-listener.bgConvLoads:
 		if !convID.Eq(res.ConvID) {
@@ -96,7 +97,7 @@ func TestConvLoaderSuspend(t *testing.T) {
 		return slowRi
 	}
 	require.NoError(t, tc.Context().ConvLoader.Queue(context.TODO(),
-		types.NewConvLoaderJob(res.ConvID, nil, types.ConvLoaderPriorityHigh, nil)))
+		types.NewConvLoaderJob(res.ConvID, nil, nil, types.ConvLoaderPriorityHigh, nil)))
 	select {
 	case <-slowRi.callCh:
 	case <-time.After(20 * time.Second):
@@ -145,7 +146,7 @@ func TestConvLoaderAppState(t *testing.T) {
 	}
 	tc.ChatG.ConvSource.(*HybridConversationSource).Clear(context.TODO(), res.ConvID, uid)
 	require.NoError(t, tc.Context().ConvLoader.Queue(context.TODO(),
-		types.NewConvLoaderJob(res.ConvID, nil, types.ConvLoaderPriorityHigh, nil)))
+		types.NewConvLoaderJob(res.ConvID, nil, nil, types.ConvLoaderPriorityHigh, nil)))
 	clock.BlockUntil(1)
 	clock.Advance(200 * time.Millisecond) // Get by small sleep
 	select {
@@ -185,7 +186,7 @@ func TestConvLoaderAppState(t *testing.T) {
 	}
 
 	require.NoError(t, tc.Context().ConvLoader.Queue(context.TODO(),
-		types.NewConvLoaderJob(res.ConvID, nil, types.ConvLoaderPriorityHigh, nil)))
+		types.NewConvLoaderJob(res.ConvID, nil, nil, types.ConvLoaderPriorityHigh, nil)))
 
 	clock.BlockUntil(1)
 	clock.Advance(200 * time.Millisecond) // Get by small sleep
@@ -252,12 +253,11 @@ func TestConvLoaderPageBack(t *testing.T) {
 			},
 			MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{Body: "foo"}),
 		}
-		boxed, err := NewBoxer(tc.Context()).BoxMessage(ctx, pt, conv.GetMembersType(), skp)
+		boxed, err := NewBoxer(tc.Context()).BoxMessage(ctx, pt, conv.GetMembersType(), skp, nil)
 		require.NoError(t, err)
-		require.NotNil(t, boxed)
 		_, err = ri().PostRemote(ctx, chat1.PostRemoteArg{
 			ConversationID: conv.GetConvID(),
-			MessageBoxed:   *boxed,
+			MessageBoxed:   boxed,
 		})
 		require.NoError(t, err)
 	}
@@ -268,7 +268,7 @@ func TestConvLoaderPageBack(t *testing.T) {
 	}
 
 	require.NoError(t, tc.Context().ConvLoader.Queue(context.TODO(),
-		types.NewConvLoaderJob(res.ConvID, &chat1.Pagination{Num: 1}, types.ConvLoaderPriorityHigh,
+		types.NewConvLoaderJob(res.ConvID, nil, &chat1.Pagination{Num: 1}, types.ConvLoaderPriorityHigh,
 			newConvLoaderPagebackHook(tc.Context(), 0, 1))))
 	for i := 0; i < 2; i++ {
 		select {
@@ -282,7 +282,7 @@ func TestConvLoaderPageBack(t *testing.T) {
 func TestConvLoaderJobQueue(t *testing.T) {
 	j := newJobQueue(10)
 	newTask := func(p types.ConvLoaderPriority) clTask {
-		job := types.NewConvLoaderJob(chat1.ConversationID{}, nil, p, nil)
+		job := types.NewConvLoaderJob(chat1.ConversationID{}, nil, nil, p, nil)
 		return clTask{job: job}
 	}
 

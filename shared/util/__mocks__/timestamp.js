@@ -14,6 +14,10 @@ export function formatTimeForPopup(time: number): string {
   return '[mocked]'
 }
 
+export function formatTimeForStellarDetail(time: number): string {
+  return '[mocked]'
+}
+
 export function formatTimeForStellarTooltip(time: number): string {
   return '[mocked]'
 }
@@ -31,6 +35,10 @@ export function msToDHMS(ms: number): string {
 }
 
 export function formatDurationShort(ms: number): string {
+  return '[mocked]'
+}
+
+export function formatTimeForPeopleItem(time: number): string {
   return '[mocked]'
 }
 

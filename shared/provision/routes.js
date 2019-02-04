@@ -8,16 +8,18 @@ import CodePage from './code-page/container'
 import SetPublicName from './set-public-name/container'
 import RegisterError from './error/container'
 import GPGSign from './gpg-sign/container'
-import {isIPhoneX} from '../constants/platform'
 
 const addTags = component => ({
   component,
   // We don't use the statusbar which removes the padding for iphone X so force that back in
-  tags: makeLeafTags({hideStatusBar: true, underStatusBar: !isIPhoneX}),
+  tags: makeLeafTags({hideStatusBar: true}),
 })
 
 const children = {
-  codePage: addTags(CodePage),
+  codePage: {
+    component: CodePage,
+    tags: makeLeafTags({hideStatusBar: true, underNotch: true}),
+  },
   error: addTags(RegisterError),
   gpgSign: addTags(GPGSign),
   paperkey: addTags(PaperKey),

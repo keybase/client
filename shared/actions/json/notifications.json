@@ -1,7 +1,7 @@
 {
   "prelude": [
     "import * as Types from '../constants/types/notifications'",
-    "import * as Tabs from '../constants/tabs'",
+    "import * as Tabs from '../constants/tabs'"
   ],
   "actions": {
     "badgeApp": {
@@ -12,10 +12,8 @@
     "receivedBadgeState": {
       "badgeState": "RPCTypes.BadgeState"
     },
-    "setAppBadgeState": {
-      "desktopAppBadgeCount": "number",
-      "mobileAppBadgeCount": "number",
-      "navBadges": "I.Map<Tabs.Tab, number>",
+    "setBadgeCounts": {
+      "counts": "I.Map<Tabs.Tab, number>"
     },
     "listenForNotifications": {},
     "listenForKBFSNotifications": {}

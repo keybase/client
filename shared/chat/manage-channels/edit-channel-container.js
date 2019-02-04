@@ -1,12 +1,19 @@
 // @flow
-import * as React from 'react'
-import * as I from 'immutable'
 import * as Constants from '../../constants/teams'
 import * as TeamsGen from '../../actions/teams-gen'
-import {type ConversationIDKey} from '../../constants/types/chat2'
+import * as Types from '../../constants/types/chat2'
 import EditChannel, {type Props} from './edit-channel'
-import {connect, compose, lifecycle, type TypedState} from '../../util/container'
-const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps}) => {
+import {connect, compose, lifecycle, type RouteProps} from '../../util/container'
+
+type OwnProps = RouteProps<
+  {
+    conversationIDKey: Types.ConversationIDKey,
+    teamname: string,
+  },
+  {waitingForSave: number}
+>
+
+const mapStateToProps = (state, {navigateUp, routePath, routeProps}) => {
   const conversationIDKey = routeProps.get('conversationIDKey')
   if (!conversationIDKey) {
     throw new Error('conversationIDKey unexpectedly empty')
@@ -38,26 +45,29 @@ const mapStateToProps = (state: TypedState, {navigateUp, routePath, routeProps})
   const yourRole = Constants.getRole(state, teamname)
   const canDelete = Constants.isAdmin(yourRole) || Constants.isOwner(yourRole)
   return {
+    canDelete,
+    channelName,
     conversationIDKey,
     teamname,
-    channelName,
     topic,
-    canDelete,
     waitingForGetInfo: !channelInfo,
   }
 }
 
 const mapDispatchToProps = (dispatch, {navigateUp, routePath, routeProps}) => {
   return {
-    _loadChannelInfo: (teamname: string, conversationIDKey: ConversationIDKey) =>
-      dispatch(TeamsGen.createGetChannelInfo({teamname, conversationIDKey})),
+    _loadChannelInfo: (teamname: string, conversationIDKey: Types.ConversationIDKey) =>
+      dispatch(TeamsGen.createGetChannelInfo({conversationIDKey, teamname})),
     _navigateUp: () => dispatch(navigateUp()),
-    _updateChannelName: (teamname: string, conversationIDKey: ConversationIDKey, newChannelName: string) =>
-      dispatch(TeamsGen.createUpdateChannelName({teamname, conversationIDKey, newChannelName})),
-    _updateTopic: (teamname: string, conversationIDKey: ConversationIDKey, newTopic: string) =>
-      dispatch(TeamsGen.createUpdateTopic({teamname, conversationIDKey, newTopic})),
-    _onConfirmedDelete: (teamname: string, conversationIDKey: ConversationIDKey) =>
-      dispatch(TeamsGen.createDeleteChannelConfirmed({teamname, conversationIDKey})),
+    _onConfirmedDelete: (teamname: string, conversationIDKey: Types.ConversationIDKey) =>
+      dispatch(TeamsGen.createDeleteChannelConfirmed({conversationIDKey, teamname})),
+    _updateChannelName: (
+      teamname: string,
+      conversationIDKey: Types.ConversationIDKey,
+      newChannelName: string
+    ) => dispatch(TeamsGen.createUpdateChannelName({conversationIDKey, newChannelName, teamname})),
+    _updateTopic: (teamname: string, conversationIDKey: Types.ConversationIDKey, newTopic: string) =>
+      dispatch(TeamsGen.createUpdateTopic({conversationIDKey, newTopic, teamname})),
   }
 }
 
@@ -66,16 +76,13 @@ const mergeProps = (stateProps, dispatchProps, {routeState}): Props => {
   const deleteRenameDisabled = channelName === 'general'
   return {
     _loadChannelInfo: () => dispatchProps._loadChannelInfo(teamname, conversationIDKey),
-    teamname,
     channelName,
-    topic,
+    deleteRenameDisabled,
     onCancel: dispatchProps._navigateUp,
     onConfirmedDelete: () => {
       dispatchProps._onConfirmedDelete(teamname, conversationIDKey)
       dispatchProps._navigateUp()
     },
-    showDelete: stateProps.canDelete,
-    deleteRenameDisabled,
     onSave: (newChannelName: string, newTopic: string) => {
       if (!deleteRenameDisabled && newChannelName !== channelName) {
         dispatchProps._updateChannelName(teamname, conversationIDKey, newChannelName)
@@ -87,16 +94,19 @@ const mergeProps = (stateProps, dispatchProps, {routeState}): Props => {
 
       dispatchProps._navigateUp()
     },
+    showDelete: stateProps.canDelete,
+    teamname,
+    topic,
     waitingForGetInfo: stateProps.waitingForGetInfo,
   }
 }
 
-const ConnectedEditChannel: React.ComponentType<{
-  navigateUp: Function,
-  routeProps: I.RecordOf<{conversationIDKey: ConversationIDKey, teamname: string}>,
-  routeState: I.RecordOf<{waitingForSave: number}>,
-}> = compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+const ConnectedEditChannel = compose(
+  connect<OwnProps, _, _, _, _>(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   lifecycle({
     componentDidMount() {
       if (this.props.waitingForGetInfo) {

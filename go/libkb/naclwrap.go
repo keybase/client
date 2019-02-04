@@ -12,30 +12,18 @@ import (
 	"fmt"
 	"io"
 
+	"github.com/keybase/client/go/kbcrypto"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-crypto/ed25519"
 	"golang.org/x/crypto/nacl/box"
 )
 
-type NaclSignature [ed25519.SignatureSize]byte
-
-type NaclSigInfo struct {
-	Kid      keybase1.BinaryKID `codec:"key"`
-	Payload  []byte             `codec:"payload,omitempty"`
-	Sig      NaclSignature      `codec:"sig"`
-	SigType  AlgoType           `codec:"sig_type"`
-	HashType int                `codec:"hash_type"`
-	Detached bool               `codec:"detached"`
-	Version  int                `codec:"version,omitempty"`
-	Prefix   SignaturePrefix    `codec:"prefix,omitempty"`
-}
-
 type NaclEncryptionInfo struct {
-	Ciphertext     []byte   `codec:"ciphertext"`
-	EncryptionType AlgoType `codec:"enc_type"`
-	Nonce          []byte   `codec:"nonce"`
-	Receiver       []byte   `codec:"receiver_key"`
-	Sender         []byte   `codec:"sender_key"`
+	Ciphertext     []byte            `codec:"ciphertext"`
+	EncryptionType kbcrypto.AlgoType `codec:"enc_type"`
+	Nonce          []byte            `codec:"nonce"`
+	Receiver       []byte            `codec:"receiver_key"`
+	Sender         []byte            `codec:"sender_key"`
 }
 
 const NaclDHKeysize = 32
@@ -51,22 +39,9 @@ const NaclDHNonceSize = 24
 
 const NaclSecretBoxKeySize = 32
 
-type NaclSigningKeyPublic [ed25519.PublicKeySize]byte
-type NaclSigningKeyPrivate [ed25519.PrivateKeySize]byte
-
-func (k NaclSigningKeyPrivate) Sign(msg []byte) *NaclSignature {
-	var sig NaclSignature
-	copy(sig[:], ed25519.Sign(k[:], msg))
-	return &sig
-}
-
-func (k NaclSigningKeyPublic) Verify(msg []byte, sig *NaclSignature) bool {
-	return ed25519.Verify(k[:], msg, sig[:])
-}
-
 type NaclSigningKeyPair struct {
-	Public  NaclSigningKeyPublic
-	Private *NaclSigningKeyPrivate
+	Public  kbcrypto.NaclSigningKeyPublic
+	Private *kbcrypto.NaclSigningKeyPrivate
 }
 
 var _ GenericKey = NaclSigningKeyPair{}
@@ -105,12 +80,12 @@ func importNaclHex(s string, typ byte, bodyLen int) (ret []byte, err error) {
 func importNaclKid(bkid []byte, typ byte, bodyLen int) (ret []byte, err error) {
 	l := len(bkid)
 	if l != bodyLen+3 {
-		err = BadKeyError{fmt.Sprintf("Wrong length; wanted %d, got %d", bodyLen+3, l)}
+		err = kbcrypto.BadKeyError{Msg: fmt.Sprintf("Wrong length; wanted %d, got %d", bodyLen+3, l)}
 		return
 	}
 
-	if bkid[0] != byte(KeybaseKIDV1) || bkid[l-1] != byte(IDSuffixKID) || bkid[1] != typ {
-		err = BadKeyError{"bad header or trailer bytes"}
+	if bkid[0] != byte(kbcrypto.KeybaseKIDV1) || bkid[l-1] != byte(kbcrypto.IDSuffixKID) || bkid[1] != typ {
+		err = kbcrypto.BadKeyError{Msg: "bad header or trailer bytes"}
 		return
 	}
 	ret = bkid[2:(l - 1)]
@@ -119,15 +94,15 @@ func importNaclKid(bkid []byte, typ byte, bodyLen int) (ret []byte, err error) {
 
 func ImportNaclSigningKeyPairFromBytes(pub []byte, priv []byte) (ret NaclSigningKeyPair, err error) {
 	var body []byte
-	if body, err = importNaclKid(pub, byte(KIDNaclEddsa), ed25519.PublicKeySize); err != nil {
+	if body, err = importNaclKid(pub, byte(kbcrypto.KIDNaclEddsa), ed25519.PublicKeySize); err != nil {
 		return
 	}
 	copy(ret.Public[:], body)
 	if priv == nil {
 	} else if len(priv) != ed25519.PrivateKeySize {
-		err = BadKeyError{"Secret key was wrong size"}
+		err = kbcrypto.BadKeyError{Msg: "Secret key was wrong size"}
 	} else {
-		ret.Private = &NaclSigningKeyPrivate{}
+		ret.Private = &kbcrypto.NaclSigningKeyPrivate{}
 		copy(ret.Private[:], priv)
 	}
 	return
@@ -137,33 +112,33 @@ func ImportKeypairFromKID(k keybase1.KID) (key GenericKey, err error) {
 	kid := k.ToBytes()
 	l := len(kid)
 	if l < 3 {
-		err = BadKeyError{"KID was way too short"}
+		err = kbcrypto.BadKeyError{Msg: "KID was way too short"}
 		return
 	}
-	if kid[0] != byte(KeybaseKIDV1) || kid[l-1] != byte(IDSuffixKID) {
-		err = BadKeyError{"bad header or trailer found"}
+	if kid[0] != byte(kbcrypto.KeybaseKIDV1) || kid[l-1] != byte(kbcrypto.IDSuffixKID) {
+		err = kbcrypto.BadKeyError{Msg: "bad header or trailer found"}
 		return
 	}
 	raw := kid[2:(l - 1)]
 	switch kid[1] {
-	case byte(KIDNaclEddsa):
+	case byte(kbcrypto.KIDNaclEddsa):
 		if len(raw) != ed25519.PublicKeySize {
-			err = BadKeyError{"Bad EdDSA key size"}
+			err = kbcrypto.BadKeyError{Msg: "Bad EdDSA key size"}
 		} else {
 			tmp := NaclSigningKeyPair{}
 			copy(tmp.Public[:], raw)
 			key = tmp
 		}
-	case byte(KIDNaclDH):
+	case byte(kbcrypto.KIDNaclDH):
 		if len(raw) != NaclDHKeysize {
-			err = BadKeyError{"Bad DH key size"}
+			err = kbcrypto.BadKeyError{Msg: "Bad DH key size"}
 		} else {
 			tmp := NaclDHKeyPair{}
 			copy(tmp.Public[:], raw)
 			key = tmp
 		}
 	default:
-		err = BadKeyError{fmt.Sprintf("Bad key prefix: %d", kid[1])}
+		err = kbcrypto.BadKeyError{Msg: fmt.Sprintf("Bad key prefix: %d", kid[1])}
 	}
 	return
 }
@@ -182,7 +157,7 @@ func ImportDHKeypairFromKID(k keybase1.KID) (*NaclDHKeyPair, error) {
 
 func ImportNaclSigningKeyPairFromHex(s string) (ret NaclSigningKeyPair, err error) {
 	var body []byte
-	if body, err = importNaclHex(s, byte(KIDNaclEddsa), ed25519.PublicKeySize); err != nil {
+	if body, err = importNaclHex(s, byte(kbcrypto.KIDNaclEddsa), ed25519.PublicKeySize); err != nil {
 		return
 	}
 	copy(ret.Public[:], body)
@@ -191,13 +166,13 @@ func ImportNaclSigningKeyPairFromHex(s string) (ret NaclSigningKeyPair, err erro
 
 func ImportNaclDHKeyPairFromBytes(pub []byte, priv []byte) (ret NaclDHKeyPair, err error) {
 	var body []byte
-	if body, err = importNaclKid(pub, byte(KIDNaclDH), NaclDHKeysize); err != nil {
+	if body, err = importNaclKid(pub, byte(kbcrypto.KIDNaclDH), NaclDHKeysize); err != nil {
 		return
 	}
 	copy(ret.Public[:], body)
 	if priv == nil {
 	} else if len(priv) != NaclDHKeysize {
-		err = BadKeyError{"Secret key was wrong size"}
+		err = kbcrypto.BadKeyError{Msg: "Secret key was wrong size"}
 	} else {
 		ret.Private = &NaclDHKeyPrivate{}
 		copy(ret.Private[:], priv)
@@ -207,7 +182,7 @@ func ImportNaclDHKeyPairFromBytes(pub []byte, priv []byte) (ret NaclDHKeyPair, e
 
 func ImportNaclDHKeyPairFromHex(s string) (ret NaclDHKeyPair, err error) {
 	var body []byte
-	if body, err = importNaclHex(s, byte(KIDNaclDH), NaclDHKeysize); err != nil {
+	if body, err = importNaclHex(s, byte(kbcrypto.KIDNaclDH), NaclDHKeysize); err != nil {
 		return
 	}
 	copy(ret.Public[:], body)
@@ -220,10 +195,10 @@ func (k NaclDHKeyPublic) GetKID() keybase1.KID {
 
 func (k NaclDHKeyPublic) GetBinaryKID() keybase1.BinaryKID {
 	prefix := []byte{
-		byte(KeybaseKIDV1),
-		byte(KIDNaclDH),
+		byte(kbcrypto.KeybaseKIDV1),
+		byte(kbcrypto.KIDNaclDH),
 	}
-	suffix := byte(IDSuffixKID)
+	suffix := byte(kbcrypto.IDSuffixKID)
 	out := append(prefix, k[:]...)
 	out = append(out, suffix)
 	return keybase1.BinaryKID(out)
@@ -233,27 +208,12 @@ func (k NaclDHKeyPair) GetFingerprintP() *PGPFingerprint {
 	return nil
 }
 
-func (k NaclDHKeyPair) GetAlgoType() AlgoType {
-	return KIDNaclDH
+func (k NaclDHKeyPair) GetAlgoType() kbcrypto.AlgoType {
+	return kbcrypto.KIDNaclDH
 }
 
-func (k NaclSigningKeyPair) GetAlgoType() AlgoType {
-	return KIDNaclEddsa
-}
-
-func (k NaclSigningKeyPublic) GetBinaryKID() keybase1.BinaryKID {
-	prefix := []byte{
-		byte(KeybaseKIDV1),
-		byte(KIDNaclEddsa),
-	}
-	suffix := byte(IDSuffixKID)
-	out := append(prefix, k[:]...)
-	out = append(out, suffix)
-	return keybase1.BinaryKID(out)
-}
-
-func (k NaclSigningKeyPublic) GetKID() keybase1.KID {
-	return k.GetBinaryKID().ToKID()
+func (k NaclSigningKeyPair) GetAlgoType() kbcrypto.AlgoType {
+	return kbcrypto.KIDNaclEddsa
 }
 
 func (k NaclSigningKeyPair) GetKID() (ret keybase1.KID) {
@@ -323,95 +283,42 @@ func (k NaclDHKeyPair) HasSecretKey() bool {
 func (k NaclSigningKeyPair) CanSign() bool { return k.Private != nil }
 func (k NaclDHKeyPair) CanSign() bool      { return false }
 
-func (k NaclSigningKeyPair) Sign(msg []byte) (ret *NaclSigInfo, err error) {
+func (k NaclSigningKeyPair) Sign(msg []byte) (kbcrypto.NaclSigInfo, error) {
 	if k.Private == nil {
-		err = NoSecretKeyError{}
-		return
+		return kbcrypto.NaclSigInfo{}, NoSecretKeyError{}
 	}
 
-	// Version 0 is just over the unprefixed message (assume version 0 if no version present)
-	// Version 1 is the same.
-	ret = &NaclSigInfo{
-		Kid:      k.GetBinaryKID(),
-		Payload:  msg,
-		Sig:      *k.Private.Sign(msg),
-		SigType:  SigKbEddsa,
-		HashType: HashPGPSha512,
-		Detached: true,
-		Version:  0,
-	}
-	return
+	return k.Private.SignInfoV0(msg, k.Public), nil
 }
 
 func (k NaclSigningKeyPair) SecretSymmetricKey(reason EncryptionReason) (NaclSecretBoxKey, error) {
 	return NaclSecretBoxKey{}, KeyCannotEncryptError{}
 }
 
-type SignaturePrefix string
-
 const encryptionReasonMinLength = 8
 
 type EncryptionReason string
-
-func (p SignaturePrefix) hasNullByte() bool {
-	return bytes.IndexByte([]byte(p), byte(0)) != -1
-}
-
-func (p SignaturePrefix) Prefix(msg []byte) []byte {
-	prefix := append([]byte(p), 0)
-	return append(prefix, msg...)
-}
 
 func (r EncryptionReason) Bytes() []byte {
 	return []byte(r)
 }
 
-func (k NaclSigningKeyPair) SignV2(msg []byte, prefix SignaturePrefix) (ret *NaclSigInfo, err error) {
+func (k NaclSigningKeyPair) SignV2(msg []byte, prefix kbcrypto.SignaturePrefix) (kbcrypto.NaclSigInfo, error) {
 	if k.Private == nil {
-		err = NoSecretKeyError{}
-		return
+		return kbcrypto.NaclSigInfo{}, NoSecretKeyError{}
 	}
 
-	if prefix.hasNullByte() || len(prefix) == 0 {
-		err = BadSignaturePrefixError{}
-		return
-	}
-
-	// Version 0 is just over the unprefixed message (assume version 0 if no version present)
-	// Version 1 is the same.
-	ret = &NaclSigInfo{
-		Kid:      k.GetBinaryKID(),
-		Payload:  msg,
-		Sig:      *k.Private.Sign(prefix.Prefix(msg)),
-		SigType:  SigKbEddsa,
-		HashType: HashPGPSha512,
-		Detached: true,
-		Version:  2,
-		Prefix:   prefix,
-	}
-	return
+	return k.Private.SignInfoV2(msg, k.Public, prefix)
 }
 
-func (k NaclSigningKeyPair) SignToString(msg []byte) (sig string, id keybase1.SigID, err error) {
-	naclSig, err := k.Sign(msg)
-	if err != nil {
-		return
-	}
-
-	body, err := EncodePacketToBytes(naclSig)
-	if err != nil {
-		return
-	}
-
-	sig = base64.StdEncoding.EncodeToString(body)
-	id = ComputeSigIDFromSigBody(body)
-	return
+func (k NaclSigningKeyPair) SignToString(msg []byte) (string, keybase1.SigID, error) {
+	return k.Private.SignToStringV0(msg, k.Public)
 }
 
 func (k NaclSigningKeyPair) VerifyStringAndExtract(ctx VerifyContext, sig string) (msg []byte, id keybase1.SigID, err error) {
-	var keyInSignature GenericKey
+	var keyInSignature *kbcrypto.NaclSigningKeyPublic
 	var fullSigBody []byte
-	keyInSignature, msg, fullSigBody, err = NaclVerifyAndExtract(sig)
+	keyInSignature, msg, fullSigBody, err = kbcrypto.NaclVerifyAndExtract(sig)
 	if err != nil {
 		return
 	}
@@ -423,34 +330,8 @@ func (k NaclSigningKeyPair) VerifyStringAndExtract(ctx VerifyContext, sig string
 		return
 	}
 
-	id = ComputeSigIDFromSigBody(fullSigBody)
+	id = kbcrypto.ComputeSigIDFromSigBody(fullSigBody)
 	return
-}
-
-// NaclVerifyAndExtract interprets the given string as a NaCl-signed messaged, in
-// the keybase NaclSigInfo (v1) format. It will check that the signature verified, and if so,
-// will return the key that was used for the verification, the payload of the signature,
-// the full body of the decoded SignInfo, and an error
-func NaclVerifyAndExtract(s string) (key GenericKey, payload []byte, fullBody []byte, err error) {
-	fullBody, err = base64.StdEncoding.DecodeString(s)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-
-	naclSig, err := DecodeNaclSigInfoPacket(fullBody)
-	if err != nil {
-		return nil, nil, nil, err
-	}
-
-	var nk *NaclSigningKeyPublic
-	nk, err = naclSig.Verify()
-	if err != nil {
-		return nil, nil, nil, err
-	}
-
-	key = NaclSigningKeyPair{Public: *nk}
-	payload = naclSig.Payload
-	return key, payload, fullBody, nil
 }
 
 func (k NaclSigningKeyPair) VerifyString(ctx VerifyContext, sig string, msg []byte) (id keybase1.SigID, err error) {
@@ -481,56 +362,14 @@ func (k NaclDHKeyPair) VerifyString(ctx VerifyContext, sig string, msg []byte) (
 	return
 }
 
-func (s *NaclSigInfo) GetTagAndVersion() (PacketTag, PacketVersion) {
-	return TagSignature, KeybasePacketV1
-}
-
-func KIDToNaclSigningKeyPublic(bk []byte) *NaclSigningKeyPublic {
-	if len(bk) != 3+ed25519.PublicKeySize {
-		return nil
-	}
-	if bk[0] != byte(KeybaseKIDV1) || bk[1] != byte(KIDNaclEddsa) || bk[len(bk)-1] != byte(IDSuffixKID) {
-		return nil
-	}
-	var ret NaclSigningKeyPublic
-	copy(ret[:], bk[2:len(bk)-1])
-	return &ret
-}
-
 func EncryptionKIDToPublicKeyBytes(bk []byte) ([]byte, error) {
 	if len(bk) != 3+NaclDHKeysize {
-		return []byte{}, fmt.Errorf("invalid DH encryption key KID (wrong length)")
+		return []byte{}, fmt.Errorf("invalid DH encryption key kbcrypto.KID (wrong length)")
 	}
-	if bk[0] != byte(KeybaseKIDV1) || bk[1] != byte(KIDNaclDH) || bk[len(bk)-1] != byte(IDSuffixKID) {
-		return []byte{}, fmt.Errorf("invalid DH encryption key KID (wrong type)")
+	if bk[0] != byte(kbcrypto.KeybaseKIDV1) || bk[1] != byte(kbcrypto.KIDNaclDH) || bk[len(bk)-1] != byte(kbcrypto.IDSuffixKID) {
+		return []byte{}, fmt.Errorf("invalid DH encryption key kbcrypto.KID (wrong type)")
 	}
 	return bk[2 : len(bk)-1], nil
-}
-
-func (s NaclSigInfo) Verify() (*NaclSigningKeyPublic, error) {
-	key := KIDToNaclSigningKeyPublic(s.Kid)
-	if key == nil {
-		return nil, BadKeyError{}
-	}
-
-	switch s.Version {
-	case 0, 1:
-		if !key.Verify(s.Payload, &s.Sig) {
-			return nil, VerificationError{}
-		}
-	case 2:
-		if !key.Verify(s.Prefix.Prefix(s.Payload), &s.Sig) {
-			return nil, VerificationError{}
-		}
-	default:
-		return nil, UnhandledSignatureError{}
-	}
-
-	return key, nil
-}
-
-func (s *NaclSigInfo) ArmoredEncode() (ret string, err error) {
-	return EncodePacketToArmoredString(s)
 }
 
 func (k NaclSigningKeyPair) ExportPublicAndPrivate() (RawPublicKey, RawPrivateKey, error) {
@@ -547,8 +386,8 @@ func makeNaclSigningKeyPair(reader io.Reader) (NaclSigningKeyPair, error) {
 		return NaclSigningKeyPair{}, err
 	}
 
-	var publicArray NaclSigningKeyPublic
-	var privateArray NaclSigningKeyPrivate
+	var publicArray kbcrypto.NaclSigningKeyPublic
+	var privateArray kbcrypto.NaclSigningKeyPrivate
 
 	copy(publicArray[:], publicKey)
 	copy(privateArray[:], privateKey)
@@ -638,16 +477,16 @@ func KbOpenSig(armored string) ([]byte, error) {
 
 func SigExtractKbPayloadAndKID(armored string) (payload []byte, kid keybase1.KID, sigID keybase1.SigID, err error) {
 	var byt []byte
-	var sig NaclSigInfo
+	var sig kbcrypto.NaclSigInfo
 
 	if byt, err = KbOpenSig(armored); err != nil {
 		return nil, kid, sigID, err
 	}
 
-	if sig, err = DecodeNaclSigInfoPacket(byt); err != nil {
+	if sig, err = kbcrypto.DecodeNaclSigInfoPacket(byt); err != nil {
 		return nil, kid, sigID, err
 	}
-	sigID = ComputeSigIDFromSigBody(byt)
+	sigID = kbcrypto.ComputeSigIDFromSigBody(byt)
 	kid = sig.Kid.ToKID()
 	payload = sig.Payload
 	return payload, kid, sigID, nil
@@ -696,7 +535,7 @@ func (k NaclDHKeyPair) IsNil() bool {
 }
 
 func (k NaclSigningKeyPair) IsNil() bool {
-	var empty NaclSigningKeyPublic
+	var empty kbcrypto.NaclSigningKeyPublic
 	return bytes.Equal(k.Public[:], empty[:])
 }
 
@@ -724,7 +563,7 @@ func (k NaclDHKeyPair) Encrypt(msg []byte, sender *NaclDHKeyPair) (*NaclEncrypti
 	ctext = box.Seal(ctext, msg, &nonce, ((*[32]byte)(&k.Public)), ((*[32]byte)(sender.Private)))
 	ret := &NaclEncryptionInfo{
 		Ciphertext:     ctext,
-		EncryptionType: KIDNaclDH,
+		EncryptionType: kbcrypto.KIDNaclDH,
 		Nonce:          nonce[:],
 		Receiver:       k.GetKID().ToBytes(),
 		Sender:         sender.GetKID().ToBytes(),
@@ -750,7 +589,7 @@ func (k NaclDHKeyPair) EncryptToString(plaintext []byte, sender GenericKey) (str
 		return "", err
 	}
 
-	return EncodePacketToArmoredString(info)
+	return kbcrypto.EncodePacketToArmoredString(info)
 }
 
 func (k NaclDHKeyPair) SecretSymmetricKey(reason EncryptionReason) (NaclSecretBoxKey, error) {
@@ -832,12 +671,12 @@ func DeriveFromSecret(inKey [32]byte, reason DeriveReason) (outKey [32]byte, err
 	return outKey, nil
 }
 
-func (k *NaclEncryptionInfo) GetTagAndVersion() (PacketTag, PacketVersion) {
-	return TagEncryption, KeybasePacketV1
+func (k *NaclEncryptionInfo) GetTagAndVersion() (kbcrypto.PacketTag, kbcrypto.PacketVersion) {
+	return kbcrypto.TagEncryption, kbcrypto.KeybasePacketV1
 }
 
 // DecryptFromString decrypts the output of EncryptToString above,
-// and returns the KID of the other end.
+// and returns the kbcrypto.KID of the other end.
 func (k NaclDHKeyPair) DecryptFromString(ciphertext string) (msg []byte, sender keybase1.KID, err error) {
 	var nei NaclEncryptionInfo
 
@@ -849,13 +688,13 @@ func (k NaclDHKeyPair) DecryptFromString(ciphertext string) (msg []byte, sender 
 }
 
 // Decrypt a NaclEncryptionInfo packet, and on success return the plaintext
-// and the KID of the sender (which might be an ephemeral key).
+// and the kbcrypto.KID of the sender (which might be an ephemeral key).
 func (k NaclDHKeyPair) Decrypt(nei *NaclEncryptionInfo) (plaintext []byte, sender keybase1.KID, err error) {
 	if k.Private == nil {
 		err = NoSecretKeyError{}
 		return
 	}
-	if nei.EncryptionType != KIDNaclDH {
+	if nei.EncryptionType != kbcrypto.KIDNaclDH {
 		err = DecryptBadPacketTypeError{}
 		return
 	}

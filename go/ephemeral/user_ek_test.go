@@ -13,15 +13,15 @@ import (
 
 func publishAndVerifyUserEK(t *testing.T, tc libkb.TestContext, merkleRoot libkb.MerkleRoot, uid keybase1.UID) keybase1.EkGeneration {
 
-	uids := []keybase1.UID{uid}
 	publishedMetadata, err := publishNewUserEK(context.Background(), tc.G, merkleRoot)
 	require.NoError(t, err)
 
 	s := tc.G.GetUserEKBoxStorage()
-	userEK, err := s.Get(context.Background(), publishedMetadata.Generation)
+	userEK, err := s.Get(context.Background(), publishedMetadata.Generation, nil)
 	require.NoError(t, err)
 	require.Equal(t, userEK.Metadata, publishedMetadata)
 
+	uids := []keybase1.UID{uid}
 	statements, err := fetchUserEKStatements(context.Background(), tc.G, uids)
 	require.NoError(t, err)
 	statement, ok := statements[uid]
@@ -34,7 +34,7 @@ func publishAndVerifyUserEK(t *testing.T, tc libkb.TestContext, merkleRoot libkb
 	userEKBoxStorage := tc.G.GetUserEKBoxStorage()
 	maxGeneration, err := userEKBoxStorage.MaxGeneration(context.Background())
 	require.NoError(t, err)
-	ek, err := userEKBoxStorage.Get(context.Background(), maxGeneration)
+	ek, err := userEKBoxStorage.Get(context.Background(), maxGeneration, nil)
 	require.NoError(t, err)
 	require.Equal(t, ek.Metadata, publishedMetadata)
 	return maxGeneration
@@ -131,7 +131,7 @@ func testDeviceRevoke(t *testing.T, skipUserEKForTesting bool) {
 		statement, ok = statements[uid]
 		require.True(t, ok)
 		require.EqualValues(t, statement.CurrentUserEkMetadata.Generation, 2, "after revoke, should have userEK gen 2")
-		userEK, err := tc.G.GetUserEKBoxStorage().Get(context.Background(), 2)
+		userEK, err := tc.G.GetUserEKBoxStorage().Get(context.Background(), 2, nil)
 		require.NoError(t, err)
 		require.Equal(t, statement.CurrentUserEkMetadata, userEK.Metadata)
 	}
@@ -140,15 +140,14 @@ func testDeviceRevoke(t *testing.T, skipUserEKForTesting bool) {
 	merkleRootPtr, err := tc.G.GetMerkleClient().FetchRootFromServer(m, libkb.EphemeralKeyMerkleFreshness)
 	require.NoError(t, err)
 	merkleRoot := *merkleRootPtr
-	ekLib := NewEKLib(tc.G)
-	defer ekLib.Shutdown()
+	lib := tc.G.GetEKLib()
+	ekLib, ok := lib.(*EKLib)
+	require.True(t, ok)
+	// disable background keygen
+	ekLib.Shutdown()
 	needed, err := ekLib.NewUserEKNeeded(context.Background())
 	require.NoError(t, err)
-	if skipUserEKForTesting {
-		require.True(t, needed)
-	} else {
-		require.False(t, needed)
-	}
+	require.Equal(t, skipUserEKForTesting, needed)
 	publishAndVerifyUserEK(t, tc, merkleRoot, uid)
 }
 
@@ -181,7 +180,7 @@ func TestPukRollNewUserEK(t *testing.T) {
 	secondStatement, ok := statements[uid]
 	require.True(t, ok)
 	require.EqualValues(t, secondStatement.CurrentUserEkMetadata.Generation, 2, "after PUK roll, should have userEK gen 2")
-	userEK, err := tc.G.GetUserEKBoxStorage().Get(context.Background(), 2)
+	userEK, err := tc.G.GetUserEKBoxStorage().Get(context.Background(), 2, nil)
 	require.NoError(t, err)
 	require.Equal(t, secondStatement.CurrentUserEkMetadata, userEK.Metadata)
 

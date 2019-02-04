@@ -53,11 +53,11 @@ const makeRoleOption = (
       ...globalStyles.flexBoxRow,
       alignItems: 'center',
       backgroundColor: selected === role ? globalColors.blue : globalColors.white,
-      width: '100%',
       borderRadius: 0,
       padding: globalMargins.tiny,
       paddingLeft: globalMargins.small,
       paddingRight: globalMargins.large,
+      width: '100%',
     }}
     onClick={() => setSelected(role)}
   >
@@ -78,7 +78,7 @@ const makeRoleOption = (
           {pluralizeRoleName ? pluralize(typeToLabel[role]) : typeToLabel[role]}
         </Text>
       </Box>
-      <Text style={{color: selected === role ? globalColors.white : globalColors.black_40}} type="BodySmall">
+      <Text style={{color: selected === role ? globalColors.white : globalColors.black_50}} type="BodySmall">
         {role && roleDescMap[role]}
       </Text>
     </Box>
@@ -113,7 +113,7 @@ export const RoleOptions = ({
     {makeRoleOption('writer', selectedRole, setSelectedRole, pluralizeRoleName)}
     {makeRoleOption('reader', selectedRole, setSelectedRole, pluralizeRoleName)}
     {showSendNotification && (
-      <Box style={{marginTop: globalMargins.small, marginBottom: globalMargins.tiny}}>
+      <Box style={{marginBottom: globalMargins.tiny, marginTop: globalMargins.small}}>
         <Checkbox label="Send chat notification" onCheck={setSendNotification} checked={sendNotification} />
       </Box>
     )}
@@ -246,7 +246,7 @@ const styles = styleSheetCreate({
     marginTop: globalMargins.small,
   },
   headerTitle: {
-    color: globalColors.black_40,
+    color: globalColors.black_50,
   },
   promptBox: {
     margin: globalMargins.tiny,
@@ -256,6 +256,7 @@ const styles = styleSheetCreate({
 })
 
 // Conglomerate role displays
+// $FlowIssue
 export const RolePicker = (props: RolePickerProps) => (
   <ScrollView>{props.confirm ? <RoleConfirm {...props} /> : <RoleOptions {...props} />}</ScrollView>
 )

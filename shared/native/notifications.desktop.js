@@ -1,5 +1,6 @@
 // @flow
 import {debounce} from 'lodash-es'
+import logger from '../logger'
 
 const rateLimit: {[key: string]: () => void} = {}
 const rateLimitPayloads: {[key: string]: {title: string, opts: ?Object, onClick: ?() => void}} = {}
@@ -35,6 +36,7 @@ export function NotifyPopup(
     }
   }
 
+  logger.info('NotifyPopup: creating notification')
   const notification: any = new window.Notification(title, {...opts, silent: !sound})
   notification.onclick = onClick
   notification.onclose = onClose

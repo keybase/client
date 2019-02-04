@@ -2,93 +2,134 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {compose, renameProp} from 'recompose'
+import AccountPageHeader from './account-page-header'
+import {compose, withProps} from 'recompose'
 
-type WalletModalProps = {|
-  children: React.Node,
-  onBack?: () => void,
-  onClose: () => void,
-  containerStyle?: Styles.StylesCrossPlatform,
-  // Since the header is only displayed on mobile, its styles only apply to mobile.
-  headerStyle?: Styles.StylesCrossPlatform,
+// WalletPopup - wraps all stellar modals except for the send / request forms.
+//
+// Handles platform split between desktop modal / native screen + header
+
+type WalletPopupProps = {|
+  onExit?: () => void, // called onExit so to avoid name conflict with other header props
   // Buttons to be placed in the bottom Button Bar.
   // If none are included, the bar is not rendered.
   bottomButtons?: Array<React.Node>,
+  buttonBarDirection?: 'column' | 'row',
+  buttonBarStyle?: Styles.StylesCrossPlatform,
+  children: React.Node,
+  containerStyle?: Styles.StylesCrossPlatform,
+  // Header props, only applies on mobile. backButtonType === 'back' renders back button on desktop
+  accountName?: string,
+  backButtonType: 'back' | 'cancel' | 'close', // 'back' -> '<' ; 'cancel' -> 'Cancel' ; 'close' -> 'Close'
+  headerStyle?: Styles.StylesCrossPlatform,
+  headerTitle?: string,
+  safeAreaViewBottomStyle?: Styles.StylesCrossPlatform,
+  safeAreaViewTopStyle?: Styles.StylesCrossPlatform,
 |}
 
-const WalletPopup = (props: WalletModalProps) => (
+const backButtonTypeToFcnHandle = {
+  back: 'onBack', // Displays back button on desktop
+  cancel: 'onCancel',
+  close: 'onCancel',
+}
+
+const WalletPopup = (props: WalletPopupProps) => (
   <Kb.Box2 direction="vertical" style={styles.outerContainer}>
-    {props.onBack && <Kb.HeaderHocHeader onBack={props.onBack} headerStyle={styles.header} />}
-    <Kb.Box2
-      direction="vertical"
-      fullHeight={true}
-      fullWidth={true}
-      centerChildren={true}
-      style={Styles.collapseStyles([
-        styles.container,
-        props.onBack ? {paddingTop: Styles.globalMargins.small} : {},
-        props.containerStyle,
-      ])}
+    <Kb.ScrollView
+      alwaysBounceVertical={false}
+      style={styles.scrollView}
+      contentContainerStyle={styles.scrollViewContentContainer}
     >
-      {props.children}
-      {props.bottomButtons &&
-        props.bottomButtons.length > 0 && (
+      <Kb.Box2
+        direction="vertical"
+        fullHeight={!Styles.isMobile}
+        fullWidth={true}
+        centerChildren={true}
+        style={Styles.collapseStyles([
+          styles.container,
+          props.backButtonType === 'back' && !Styles.isMobile ? {paddingTop: Styles.globalMargins.small} : {},
+          props.containerStyle,
+        ])}
+      >
+        {props.children}
+        {props.bottomButtons && props.bottomButtons.length > 0 && (
           <Kb.Box2 direction="vertical" style={styles.buttonBarContainer} fullWidth={true}>
             <Kb.ButtonBar
-              direction={Styles.isMobile ? 'column' : 'row'}
+              direction={props.buttonBarDirection || (Styles.isMobile ? 'column' : 'row')}
               fullWidth={Styles.isMobile}
-              style={styles.buttonBar}
+              style={Styles.collapseStyles([styles.buttonBar, props.buttonBarStyle])}
             >
               {props.bottomButtons}
             </Kb.ButtonBar>
           </Kb.Box2>
         )}
-    </Kb.Box2>
+      </Kb.Box2>
+    </Kb.ScrollView>
   </Kb.Box2>
 )
 
 const styles = Styles.styleSheetCreate({
-  outerContainer: Styles.platformStyles({
+  buttonBar: Styles.platformStyles({
     isElectron: {
-      height: 525,
-      width: 360,
-      borderRadius: 4,
+      minHeight: 0,
     },
+  }),
+  buttonBarContainer: Styles.platformStyles({
+    isElectron: {flex: 1, justifyContent: 'flex-end'},
     isMobile: {
-      width: '100%',
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
     },
+  }),
+  container: Styles.platformStyles({
+    common: {
+      flexGrow: 1,
+    },
+    isElectron: {
+      borderRadius: 'inherit',
+      paddingBottom: Styles.globalMargins.xlarge,
+      paddingLeft: Styles.globalMargins.medium,
+      paddingRight: Styles.globalMargins.medium,
+      paddingTop: Styles.globalMargins.xlarge,
+      textAlign: 'center',
+    },
+    isMobile: {},
   }),
   header: Styles.platformStyles({
     isElectron: {
       borderRadius: 4,
     },
   }),
-  container: Styles.platformStyles({
-    common: {
-      alignItems: 'center',
-      paddingLeft: Styles.globalMargins.medium,
-      paddingRight: Styles.globalMargins.medium,
-    },
+  outerContainer: Styles.platformStyles({
     isElectron: {
-      borderRadius: 'inherit',
-      paddingBottom: Styles.globalMargins.xlarge,
-      paddingTop: Styles.globalMargins.xlarge,
-      textAlign: 'center',
+      borderRadius: 4,
+      height: 525,
+      width: 360,
     },
     isMobile: {
-      paddingBottom: Styles.globalMargins.medium,
-      paddingTop: Styles.globalMargins.xlarge,
+      width: '100%',
     },
   }),
-  buttonBarContainer: {
-    flex: 1,
-    justifyContent: 'flex-end',
+  popup: Styles.platformStyles({isElectron: {height: '525px', overflow: 'hidden'}}),
+  scrollView: {
+    ...Styles.globalStyles.flexBoxColumn,
+    flexGrow: 1,
+    height: '100%',
+    width: '100%',
   },
-  buttonBar: Styles.platformStyles({
-    isElectron: {
-      minHeight: 0,
-    },
-  }),
+  scrollViewContentContainer: {...Styles.globalStyles.flexBoxColumn, flexGrow: 1},
 })
 
-export default compose(renameProp('onClose', 'onCancel'), Kb.HeaderOrPopup)(WalletPopup)
+export default compose(
+  withProps<any, any, any>((props: WalletPopupProps) => ({
+    [backButtonTypeToFcnHandle[props.backButtonType]]: (props.onExit: any), // cast to any for flow "incompatible with undefined"
+    customCancelText: props.backButtonType === 'close' ? 'Close' : '',
+    customComponent: props.headerTitle && (
+      <AccountPageHeader accountName={props.accountName} title={props.headerTitle} />
+    ),
+    customSafeAreaBottomStyle: props.safeAreaViewBottomStyle,
+    customSafeAreaTopStyle: props.safeAreaViewTopStyle,
+    style: (styles.popup: any), // cast to any for flow complaining about every possible style
+  })),
+  Kb.HeaderOrPopupWithHeader
+)(WalletPopup)

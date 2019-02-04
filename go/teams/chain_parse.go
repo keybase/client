@@ -12,6 +12,7 @@ import (
 type SCTeamName string
 type SCTeamID string
 type SCTeamInviteID string
+type SCTeamBoxSummaryHash string
 
 // SCTeamEntropy is used to render stubbed out links unguessable.
 // Basically, we shove a random 18-byte string into sensitive links.
@@ -27,20 +28,21 @@ type SCTeamMember keybase1.UserVersion
 type SCMapInviteIDToUV map[keybase1.TeamInviteID]keybase1.UserVersionPercentForm
 
 type SCTeamSection struct {
-	ID               SCTeamID          `json:"id"`
-	Name             *SCTeamName       `json:"name,omitempty"`
-	Members          *SCTeamMembers    `json:"members,omitempty"`
-	Parent           *SCTeamParent     `json:"parent,omitempty"`
-	Subteam          *SCSubteam        `json:"subteam,omitempty"`
-	PerTeamKey       *SCPerTeamKey     `json:"per_team_key,omitempty"`
-	Admin            *SCTeamAdmin      `json:"admin,omitempty"`
-	Invites          *SCTeamInvites    `json:"invites,omitempty"`
-	CompletedInvites SCMapInviteIDToUV `json:"completed_invites,omitempty"`
-	Implicit         bool              `json:"is_implicit,omitempty"`
-	Public           bool              `json:"is_public,omitempty"`
-	Entropy          SCTeamEntropy     `json:"entropy,omitempty"`
-	Settings         *SCTeamSettings   `json:"settings,omitempty"`
-	KBFS             *SCTeamKBFS       `json:"kbfs,omitempty"`
+	ID               SCTeamID              `json:"id"`
+	Name             *SCTeamName           `json:"name,omitempty"`
+	Members          *SCTeamMembers        `json:"members,omitempty"`
+	Parent           *SCTeamParent         `json:"parent,omitempty"`
+	Subteam          *SCSubteam            `json:"subteam,omitempty"`
+	PerTeamKey       *SCPerTeamKey         `json:"per_team_key,omitempty"`
+	Admin            *SCTeamAdmin          `json:"admin,omitempty"`
+	Invites          *SCTeamInvites        `json:"invites,omitempty"`
+	CompletedInvites SCMapInviteIDToUV     `json:"completed_invites,omitempty"`
+	Implicit         bool                  `json:"is_implicit,omitempty"`
+	Public           bool                  `json:"is_public,omitempty"`
+	Entropy          SCTeamEntropy         `json:"entropy,omitempty"`
+	Settings         *SCTeamSettings       `json:"settings,omitempty"`
+	KBFS             *SCTeamKBFS           `json:"kbfs,omitempty"`
+	BoxSummaryHash   *SCTeamBoxSummaryHash `json:"box_summary_hash,omitempty"`
 }
 
 type SCTeamMembers struct {
@@ -142,13 +144,13 @@ func (s *SCTeamMember) MarshalJSON() (b []byte, err error) {
 // -------------------------
 
 type SCChainLink struct {
-	Seqno        keybase1.Seqno `json:"seqno"`
-	Sig          string         `json:"sig"`
-	SigV2Payload string         `json:"s2"`
-	Payload      string         `json:"payload_json"` // String containing json of a SCChainLinkPayload
-	UID          keybase1.UID   `json:"uid"`          // UID of the signer
-	EldestSeqno  keybase1.Seqno `json:"eldest_seqno"` // Eldest seqn of the signer
-	Version      int            `json:"version"`
+	Seqno        keybase1.Seqno   `json:"seqno"`
+	Sig          string           `json:"sig"`
+	SigV2Payload string           `json:"s2"`
+	Payload      string           `json:"payload_json"` // String containing json of a SCChainLinkPayload
+	UID          keybase1.UID     `json:"uid"`          // UID of the signer
+	EldestSeqno  keybase1.Seqno   `json:"eldest_seqno"` // Eldest seqn of the signer
+	Version      libkb.SigVersion `json:"version"`
 }
 
 func (link *SCChainLink) UnmarshalPayload() (res SCChainLinkPayload, err error) {
@@ -194,7 +196,7 @@ type SCPayloadBody struct {
 	Key        *SCKeySection       `json:"key,omitempty"`
 	Type       string              `json:"type,omitempty"`
 	MerkleRoot SCMerkleRootSection `json:"merkle_root"`
-	Version    int                 `json:"version"`
+	Version    libkb.SigVersion    `json:"version"`
 
 	Team *SCTeamSection `json:"team,omitempty"`
 }

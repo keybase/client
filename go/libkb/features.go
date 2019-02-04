@@ -9,6 +9,10 @@ import (
 type Feature string
 type FeatureFlags []Feature
 
+const (
+	EnvironmentFeatureAllowHighSkips = Feature("env_allow_high_skips")
+)
+
 // StringToFeatureFlags returns a set of feature flags
 func StringToFeatureFlags(s string) (ret FeatureFlags) {
 	s = strings.TrimSpace(s)
@@ -26,6 +30,15 @@ func StringToFeatureFlags(s string) (ret FeatureFlags) {
 func (set FeatureFlags) Admin() bool {
 	for _, f := range set {
 		if f == Feature("admin") {
+			return true
+		}
+	}
+	return false
+}
+
+func (set FeatureFlags) HasFeature(feature Feature) bool {
+	for _, f := range set {
+		if f == feature {
 			return true
 		}
 	}
@@ -51,7 +64,8 @@ type FeatureFlagSet struct {
 }
 
 const (
-	FeatureFTL = Feature("ftl")
+	FeatureFTL     = Feature("ftl")
+	FeatureIMPTOFU = Feature("imptofu")
 )
 
 // NewFeatureFlagSet makes a new set of feature flags.
@@ -90,6 +104,13 @@ func (r *rawFeatures) GetAppStatus() *AppStatus {
 func (f *featureSlot) readFrom(m MetaContext, r rawFeatureSlot) {
 	f.on = r.Value
 	f.cacheUntil = m.G().Clock().Now().Add(time.Duration(r.CacheSec) * time.Second)
+}
+
+func (s *FeatureFlagSet) InvalidateCache(m MetaContext, f Feature) {
+	featureSlot := s.getOrMakeSlot(f)
+	featureSlot.Lock()
+	defer featureSlot.Unlock()
+	featureSlot.cacheUntil = m.G().Clock().Now().Add(time.Duration(-1) * time.Second)
 }
 
 // EnabledWithError returns if the given feature is enabled, it will return true if it's

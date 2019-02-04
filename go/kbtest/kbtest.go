@@ -80,27 +80,40 @@ func (fu *FakeUser) Login(g *libkb.GlobalContext) error {
 }
 
 func CreateAndSignupFakeUser(prefix string, g *libkb.GlobalContext) (*FakeUser, error) {
-	return createAndSignupFakeUser(prefix, g, true)
+	return createAndSignupFakeUser(prefix, g, true /* skipPaper */, keybase1.DeviceType_DESKTOP, false /* randomPW */)
 }
 
 func CreateAndSignupFakeUserPaper(prefix string, g *libkb.GlobalContext) (*FakeUser, error) {
-	return createAndSignupFakeUser(prefix, g, false)
+	return createAndSignupFakeUser(prefix, g, false /* skipPaper */, keybase1.DeviceType_DESKTOP, false /* randomPW */)
 }
 
-func createAndSignupFakeUser(prefix string, g *libkb.GlobalContext, skipPaper bool) (*FakeUser, error) {
+func CreateAndSignupFakeUserMobile(prefix string, g *libkb.GlobalContext) (*FakeUser, error) {
+	return createAndSignupFakeUser(prefix, g, true /* skipPaper */, keybase1.DeviceType_MOBILE, false /* randomPW */)
+}
+
+func CreateAndSignupFakeUserRandomPW(prefix string, g *libkb.GlobalContext) (*FakeUser, error) {
+	return createAndSignupFakeUser(prefix, g, true /* skipPaper */, keybase1.DeviceType_DESKTOP, true /* randomPW */)
+}
+
+func createAndSignupFakeUser(prefix string, g *libkb.GlobalContext, skipPaper bool, deviceType keybase1.DeviceType, randomPW bool) (*FakeUser, error) {
 	fu, err := NewFakeUser(prefix)
 	if err != nil {
 		return nil, err
 	}
+	if randomPW {
+		fu.Passphrase = ""
+	}
 	arg := engine.SignupEngineRunArg{
-		Username:   fu.Username,
-		Email:      fu.Email,
-		InviteCode: testInviteCode,
-		Passphrase: fu.Passphrase,
-		DeviceName: DefaultDeviceName,
-		SkipGPG:    true,
-		SkipMail:   true,
-		SkipPaper:  skipPaper,
+		Username:                 fu.Username,
+		Email:                    fu.Email,
+		InviteCode:               testInviteCode,
+		Passphrase:               fu.Passphrase,
+		DeviceName:               DefaultDeviceName,
+		DeviceType:               deviceType,
+		SkipGPG:                  true,
+		SkipMail:                 true,
+		SkipPaper:                skipPaper,
+		GenerateRandomPassphrase: randomPW,
 	}
 	uis := libkb.UIs{
 		LogUI:    g.UI.GetLogUI(),
@@ -124,9 +137,7 @@ func createAndSignupFakeUser(prefix string, g *libkb.GlobalContext, skipPaper bo
 func ResetAccount(tc libkb.TestContext, u *FakeUser) {
 	m := libkb.NewMetaContextForTest(tc)
 	err := libkb.ResetAccount(m, u.NormalizedUsername(), u.Passphrase)
-	if err != nil {
-		tc.T.Fatalf("In account reset: %s", err)
-	}
+	require.NoError(tc.T, err)
 	tc.T.Logf("Account reset for user %s", u.Username)
 	Logout(tc)
 }
@@ -134,16 +145,14 @@ func ResetAccount(tc libkb.TestContext, u *FakeUser) {
 func DeleteAccount(tc libkb.TestContext, u *FakeUser) {
 	m := libkb.NewMetaContextForTest(tc)
 	err := libkb.DeleteAccount(m, u.NormalizedUsername(), u.Passphrase)
-	if err != nil {
-		tc.T.Fatalf("In account reset: %s", err)
-	}
-	tc.T.Logf("Account reset for user %s", u.Username)
+	require.NoError(tc.T, err)
+	tc.T.Logf("Account deleted for user %s", u.Username)
 	Logout(tc)
 }
 
 // copied from engine/common_test.go
 func Logout(tc libkb.TestContext) {
-	if err := tc.G.Logout(); err != nil {
+	if err := tc.G.Logout(context.TODO()); err != nil {
 		tc.T.Fatalf("logout error: %s", err)
 	}
 }
@@ -163,9 +172,10 @@ func FakeSalt() []byte {
 // This was adapted from engine/kex2_test.go
 // Note that it uses Errorf in goroutines, so if it fails
 // the test will not fail until later.
-// tcX is a TestContext where device X (the provisioner) is already provisioned and logged in.
-// this function will provision a new device Y inside tcY
-func ProvisionNewDeviceKex(tcX *libkb.TestContext, tcY *libkb.TestContext, userX *FakeUser) {
+// `tcX` is a TestContext where device X (the provisioner) is already provisioned and logged in.
+// this function will provision a new device Y inside `tcY`
+// `newDeviceType` is libkb.DeviceTypeMobile or libkb.DeviceTypeDesktop.
+func ProvisionNewDeviceKex(tcX *libkb.TestContext, tcY *libkb.TestContext, userX *FakeUser, newDeviceType string) {
 	// tcX is the device X (provisioner) context:
 	// tcX should already have been logged in.
 	t := tcX.T
@@ -203,7 +213,7 @@ func ProvisionNewDeviceKex(tcX *libkb.TestContext, tcY *libkb.TestContext, userX
 			device := &libkb.Device{
 				ID:          deviceID,
 				Description: &dname,
-				Type:        libkb.DeviceTypeDesktop,
+				Type:        newDeviceType,
 			}
 			provisionee := engine.NewKex2Provisionee(tcY.G, device, secretY, userX.GetUID(), FakeSalt())
 			return engine.RunEngine2(m, provisionee)
@@ -369,4 +379,49 @@ func RunTrackWithOptions(tc libkb.TestContext, fu *FakeUser, username string, op
 	err = engine.RunEngine2(m, eng)
 	them = eng.User()
 	return them, err
+}
+
+// GenerateTestPhoneNumber generates a random phone number in US with 555 area
+// code. It passes serverside "strict phone number" checker test, and it's
+// considered `possible`, but not `valid` by libphonenumber.
+func GenerateTestPhoneNumber() string {
+	ret := make([]byte, 7)
+	rand.Read(ret)
+	for i := range ret {
+		ret[i] = "0123456789"[int(ret[i])%10]
+	}
+	return fmt.Sprintf("1555%s", string(ret))
+}
+
+type getCodeResponse struct {
+	libkb.AppStatusEmbed
+	VerificationCode string `json:"verification_code"`
+}
+
+func GetPhoneVerificationCode(mctx libkb.MetaContext, phoneNumber keybase1.PhoneNumber) (code string, err error) {
+	arg := libkb.APIArg{
+		Endpoint:    "test/phone_number_code",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"phone_number": libkb.S{Val: phoneNumber.String()},
+		},
+	}
+	var resp getCodeResponse
+	err = mctx.G().API.GetDecode(arg, &resp)
+	if err != nil {
+		return "", err
+	}
+	return resp.VerificationCode, nil
+}
+
+func VerifyEmailAuto(mctx libkb.MetaContext, email keybase1.EmailAddress) error {
+	arg := libkb.APIArg{
+		Endpoint:    "test/verify_email_auto",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"email": libkb.S{Val: string(email)},
+		},
+	}
+	_, err := mctx.G().API.Post(arg)
+	return err
 }

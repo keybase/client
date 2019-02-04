@@ -120,8 +120,7 @@ declare class electron$App extends events$EventEmitter {
   getName(): string;
   setName(name: string): void;
   getLocale(): string;
-  makeSingleInstance(callback: (argv: Array<string>, workingDirectory: string) => void): boolean;
-  releaseSingleInstance(): void;
+  requestSingleInstanceLock(): boolean;
   disableHardwareAcceleration(): void;
   getLoginItemSettings(options?: {
     path?: string,

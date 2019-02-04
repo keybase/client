@@ -23,6 +23,7 @@ protocol identifyUi {
     KID KID;
     union { null, TrackDiff } trackDiff;
     boolean breaksTracking;
+    SigID sigID;
   }
 
   record Cryptocurrency {
@@ -35,9 +36,16 @@ protocol identifyUi {
     string family;
   }
 
+  record StellarAccount {
+    string accountID;
+    string federationAddress;
+    SigID sigID;
+  }
+
   record RevokedProof {
     RemoteProof proof;
     TrackDiff diff;
+    boolean snoozed;
   }
 
   record Identity {
@@ -113,6 +121,7 @@ protocol identifyUi {
     boolean youFollowThem;
     boolean theyFollowYou;
     array<UserTeamShowcase> teamShowcase;
+    boolean registeredForAirdrop;
   }
 
   record ConfirmResult {
@@ -149,6 +158,7 @@ protocol identifyUi {
   void finishWebProofCheck(int sessionID, RemoteProof rp, LinkCheckResult lcr);
   void finishSocialProofCheck(int sessionID, RemoteProof rp, LinkCheckResult lcr);
   void displayCryptocurrency(int sessionID, Cryptocurrency c);
+  void displayStellarAccount(int sessionID, StellarAccount a);
   void reportTrackToken(int sessionID, TrackToken trackToken);
   void displayUserCard(int sessionID, UserCard card);
   ConfirmResult confirm(int sessionID, IdentifyOutcome outcome);

@@ -187,7 +187,7 @@ func (e *RevokeEngine) Run(m libkb.MetaContext) error {
 	var newPukGeneration keybase1.PerUserKeyGeneration
 	var newPukSeed *libkb.PerUserKeySeed
 
-	pukring, err := e.G().GetPerUserKeyring()
+	pukring, err := e.G().GetPerUserKeyring(m.Ctx())
 	if err != nil {
 		return err
 	}

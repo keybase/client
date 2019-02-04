@@ -2,10 +2,14 @@
 import * as ConfigGen from '../../actions/config-gen'
 import * as ProfileGen from '../../actions/profile-gen'
 import PostProof from '.'
-import {compose, connect, lifecycle, withStateHandlers, type TypedState} from '../../util/container'
+import {compose, connect, lifecycle, withStateHandlers} from '../../util/container'
 import {type ProvablePlatformsType} from '../../constants/types/more'
 
-const mapStateToProps = (state: TypedState, {onAllowProofCheck}) => {
+type OwnProps = {|
+  onAllowProofCheck: boolean,
+|}
+
+const mapStateToProps = (state, {onAllowProofCheck}) => {
   const profile = state.profile
 
   if (
@@ -23,7 +27,6 @@ const mapStateToProps = (state: TypedState, {onAllowProofCheck}) => {
 
   return {
     errorMessage: profile.errorText,
-    isOnCompleteWaiting: profile.waiting,
     onCancelText: 'Cancel',
     platform,
     platformUserName: profile.username,
@@ -31,18 +34,22 @@ const mapStateToProps = (state: TypedState, {onAllowProofCheck}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
+  copyToClipboard: text => dispatch(ConfigGen.createCopyToClipboard({text})),
   onCancel: () => dispatch(ProfileGen.createCancelAddProof()),
   onComplete: () => dispatch(ProfileGen.createCheckProof()),
   proofAction: () => dispatch(ProfileGen.createOutputInstructionsActionLink()),
-  copyToClipboard: text => dispatch(ConfigGen.createCopyToClipboard({text})),
 })
 
-export default compose(
+export default (compose(
   withStateHandlers(({allowProofCheck: boolean}) => ({allowProofCheck: true}), {
     onAllowProofCheck: () => (allowProofCheck: boolean) => ({allowProofCheck}),
   }),
-  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
+  connect<OwnProps, _, _, _, _>(
+    mapStateToProps,
+    mapDispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d})
+  ),
   lifecycle({
     componentDidMount() {
       // Activate the proof check after they've completed the first step for these services.
@@ -51,4 +58,4 @@ export default compose(
       }
     },
   })
-)(PostProof)
+): any)(PostProof)

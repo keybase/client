@@ -101,9 +101,9 @@ func (h *AccountHandler) ResetAccount(ctx context.Context, arg keybase1.ResetAcc
 		return err
 	}
 
-	h.G().Log.Debug("reset account succeeded, logging out.")
+	m.CDebugf("reset account succeeded, logging out.")
 
-	return h.G().Logout()
+	return h.G().Logout(m.Ctx())
 }
 
 type GetLockdownResponse struct {

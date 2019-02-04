@@ -2,7 +2,7 @@
 import * as React from 'react'
 import {connect} from '../../../../util/container'
 import {AddPeopleHow} from '.'
-import {navigateTo, switchTo} from '../../../../actions/route-tree'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import {teamsTab} from '../../../../constants/tabs'
 
 type OwnProps = {
@@ -16,23 +16,29 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => {
   return {
     onAddPeople: () => {
       dispatch(
-        navigateTo(
-          [{selected: 'team', props: {teamname}}, {selected: 'addPeople', props: {teamname}}],
-          [teamsTab]
+        RouteTreeGen.createNavigateTo({
+          parentPath: [teamsTab],
+          path: [{props: {teamname}, selected: 'team'}, {props: {teamname}, selected: 'addPeople'}],
+        }
         )
       )
-      dispatch(switchTo([teamsTab]))
+      dispatch(RouteTreeGen.createSwitchTo({path: [teamsTab]}))
     },
     onInvite: () => {
       dispatch(
-        navigateTo(
-          [{selected: 'team', props: {teamname}}, {selected: 'inviteByEmail', props: {teamname}}],
-          [teamsTab]
+        RouteTreeGen.createNavigateTo({
+          parentPath: [teamsTab],
+          path: [{props: {teamname}, selected: 'team'}, {props: {teamname}, selected: 'inviteByEmail'}],
+        }
         )
       )
-      dispatch(switchTo([teamsTab]))
+      dispatch(RouteTreeGen.createSwitchTo({path: [teamsTab]}))
     },
   }
 }
 
-export default connect(() => ({}), mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(AddPeopleHow)
+export default connect<OwnProps, _, _, _, _>(
+  () => ({}),
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d})
+)(AddPeopleHow)

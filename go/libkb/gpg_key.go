@@ -7,6 +7,7 @@ import (
 	"crypto/sha256"
 	"errors"
 
+	"github.com/keybase/client/go/kbcrypto"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
@@ -40,8 +41,8 @@ func (g *GPGKey) GetFingerprintP() *PGPFingerprint {
 	return g.fp
 }
 
-func (g *GPGKey) GetAlgoType() AlgoType {
-	return KIDPGPBase
+func (g *GPGKey) GetAlgoType() kbcrypto.AlgoType {
+	return kbcrypto.KIDPGPBase
 }
 
 func (g *GPGKey) SignToString(msg []byte) (sig string, id keybase1.SigID, err error) {

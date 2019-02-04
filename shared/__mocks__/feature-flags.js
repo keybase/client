@@ -8,9 +8,15 @@ if (!__STORYBOOK__) {
 
 const ff: FeatureFlags = {
   admin: false,
-  avatarUploadsEnabled: true,
-  explodingMessagesEnabled: true,
+  chatIndexProfilingEnabled: false,
+  foldersInProfileTab: true,
+  identify3: true,
+  moveOrCopy: true,
+  newTeamBuildingForChat: false,
+  newTeamBuildingForChatAllowMakeTeam: false,
+  outOfDateBanner: true,
   plansEnabled: false,
+  useNewRouter: false,
   walletsEnabled: true,
 }
 

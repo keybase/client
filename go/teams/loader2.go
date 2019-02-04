@@ -554,14 +554,15 @@ func (l *TeamLoader) checkParentChildOperations(ctx context.Context,
 
 		reason: "checkParentChildOperations-parent",
 
-		needAdmin:                     false,
-		needKeyGeneration:             0,
-		needApplicationsAtGenerations: nil,
-		wantMembers:                   nil,
-		wantMembersRole:               keybase1.TeamRole_NONE,
-		forceFullReload:               false,
-		forceRepoll:                   false,
-		staleOK:                       true, // stale is fine, as long as get those seqnos.
+		needAdmin:                             false,
+		needKeyGeneration:                     0,
+		needApplicationsAtGenerations:         nil,
+		needApplicationsAtGenerationsWithKBFS: nil,
+		wantMembers:                           nil,
+		wantMembersRole:                       keybase1.TeamRole_NONE,
+		forceFullReload:                       false,
+		forceRepoll:                           false,
+		staleOK:                               true, // stale is fine, as long as get those seqnos.
 
 		needSeqnos:    needParentSeqnos,
 		readSubteamID: &readSubteamID,

@@ -47,6 +47,7 @@ func (c *cmdWalletExport) ParseArgv(ctx *cli.Context) (err error) {
 }
 
 func (c *cmdWalletExport) Run() (err error) {
+	defer transformStellarCLIError(&err)
 	protocols := []rpc.Protocol{
 		NewSecretUIProtocol(c.G()),
 	}

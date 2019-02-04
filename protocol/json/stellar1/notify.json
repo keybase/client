@@ -25,12 +25,12 @@
     "paymentStatusNotification": {
       "request": [
         {
-          "name": "kbTxID",
-          "type": "KeybaseTransactionID"
+          "name": "accountID",
+          "type": "AccountID"
         },
         {
-          "name": "txID",
-          "type": "TransactionID"
+          "name": "paymentID",
+          "type": "PaymentID"
         }
       ],
       "response": null,
@@ -41,6 +41,64 @@
         {
           "name": "reqID",
           "type": "KeybaseRequestID"
+        }
+      ],
+      "response": null,
+      "notify": ""
+    },
+    "accountDetailsUpdate": {
+      "request": [
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "account",
+          "type": "WalletAccountLocal"
+        }
+      ],
+      "response": null,
+      "notify": ""
+    },
+    "accountsUpdate": {
+      "request": [
+        {
+          "name": "accounts",
+          "type": {
+            "type": "array",
+            "items": "WalletAccountLocal"
+          }
+        }
+      ],
+      "response": null,
+      "notify": ""
+    },
+    "pendingPaymentsUpdate": {
+      "request": [
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "pending",
+          "type": {
+            "type": "array",
+            "items": "PaymentOrErrorLocal"
+          }
+        }
+      ],
+      "response": null,
+      "notify": ""
+    },
+    "recentPaymentsUpdate": {
+      "request": [
+        {
+          "name": "accountID",
+          "type": "AccountID"
+        },
+        {
+          "name": "firstPage",
+          "type": "PaymentsPageLocal"
         }
       ],
       "response": null,

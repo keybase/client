@@ -2,20 +2,19 @@
 import * as ProvisionGen from '../../actions/provision-gen'
 import {connect} from '../../util/container'
 import {type RouteProps} from '../../route-tree/render-route'
-import type {TypedState} from '../../constants/reducer'
 import GPGSign from '.'
 
 type OwnProps = RouteProps<{}, {}>
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   importError: state.provision.gpgImportError,
 })
 
 const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
-  onBack: () => dispatch(ownProps.navigateUp()),
-  onSubmitGpgMethod: exportKey => dispatch(ProvisionGen.createSubmitGPGMethod({exportKey})),
   onAcceptGpgSign: () => dispatch(ProvisionGen.createSubmitGPGSignOK({accepted: true})),
+  onBack: () => dispatch(ownProps.navigateUp()),
   onRejectGpgSign: () => dispatch(ProvisionGen.createSubmitGPGSignOK({accepted: false})),
+  onSubmitGpgMethod: exportKey => dispatch(ProvisionGen.createSubmitGPGMethod({exportKey})),
 })
 
 // If we are asked to switch to gpg sign, we either accept or reject.
@@ -32,4 +31,8 @@ const mergeProps = ({importError}, dispatchProps) =>
         onSubmit: dispatchProps.onSubmitGpgMethod,
       }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(GPGSign)
+export default connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(GPGSign)

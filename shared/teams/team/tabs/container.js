@@ -1,16 +1,23 @@
 // @flow
 import * as Constants from '../../../constants/teams'
 import * as I from 'immutable'
+import * as Types from '../../../constants/types/teams'
 import Tabs from '.'
-import {connect, type TypedState} from '../../../util/container'
+import {connect} from '../../../util/container'
 import {anyWaiting} from '../../../constants/waiting'
 
-const mapStateToProps = (state: TypedState, {teamname, selectedTab, setSelectedTab}) => {
+type OwnProps = {
+  teamname: string,
+  selectedTab: string,
+  setSelectedTab: Types.TabKey => void,
+}
+
+const mapStateToProps = (state, {teamname, selectedTab, setSelectedTab}) => {
   const yourOperations = Constants.getCanPerform(state, teamname)
   return {
     _newTeamRequests: state.teams.getIn(['newTeamRequests'], I.List()),
     admin: yourOperations.manageMembers,
-    loading: anyWaiting(state, Constants.teamWaitingKey(teamname)),
+    loading: anyWaiting(state, Constants.teamWaitingKey(teamname), Constants.teamTarsWaitingKey(teamname)),
     memberCount: Constants.getTeamMemberCount(state, teamname),
     numInvites: Constants.getTeamInvites(state, teamname).size,
     numRequests: Constants.getTeamRequests(state, teamname).size,
@@ -23,7 +30,7 @@ const mapStateToProps = (state: TypedState, {teamname, selectedTab, setSelectedT
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({})
+const mapDispatchToProps = dispatch => ({})
 
 const mergeProps = (stateProps, dispatchProps) => {
   return {
@@ -42,4 +49,8 @@ const mergeProps = (stateProps, dispatchProps) => {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(Tabs)
+export default connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(Tabs)

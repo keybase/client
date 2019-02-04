@@ -58,7 +58,7 @@ func TestEphemeralAddMemberNoTeamEK(t *testing.T) {
 }
 
 func getTeamEK(g *libkb.GlobalContext, teamID keybase1.TeamID, generation keybase1.EkGeneration) (keybase1.TeamEk, error) {
-	return g.GetTeamEKBoxStorage().Get(context.Background(), teamID, generation)
+	return g.GetTeamEKBoxStorage().Get(context.Background(), teamID, generation, nil)
 }
 
 func runAddMember(t *testing.T, createTeamEK bool) {
@@ -103,7 +103,14 @@ func runAddMember(t *testing.T, createTeamEK bool) {
 		require.NoError(t, bobErr)
 	} else {
 		require.Error(t, annErr)
+		require.IsType(t, ephemeral.EphemeralKeyError{}, annErr)
+		ekErr := annErr.(ephemeral.EphemeralKeyError)
+		require.Equal(t, ephemeral.DefaultHumanErrMsg, ekErr.HumanError())
+
 		require.Error(t, bobErr)
+		require.IsType(t, ephemeral.EphemeralKeyError{}, bobErr)
+		ekErr = bobErr.(ephemeral.EphemeralKeyError)
+		require.Equal(t, ephemeral.DefaultHumanErrMsg, ekErr.HumanError())
 	}
 	require.Equal(t, bobTeamEK.Metadata, expectedMetadata)
 	require.Equal(t, annTeamEK.Metadata, expectedMetadata)
@@ -148,12 +155,15 @@ func TestEphemeralResetMember(t *testing.T) {
 
 	// Bob should not have access to this teamEK since he's no longer in the
 	// team after resetting.
+	bob.loginAfterReset(10)
+	bobG = bob.getPrimaryGlobalContext()
 	bobTeamEK, bobErr := getTeamEK(bobG, teamID, expectedGeneration)
 	require.Error(t, bobErr)
+	require.IsType(t, libkb.AppStatusError{}, bobErr)
+	appStatusErr := bobErr.(libkb.AppStatusError)
+	require.Equal(t, appStatusErr.Code, libkb.SCNotFound)
 
-	// Readd bob to the team, who has no userEKs
 	// Also add joe who has a valid userEK
-	bob.loginAfterReset(10)
 	ann.addWriter(team, bob)
 	ann.addWriter(team, joe)
 
@@ -172,8 +182,8 @@ func TestEphemeralResetMember(t *testing.T) {
 	require.NoError(t, annErr)
 
 	bobTeamEK, bobErr = getTeamEK(bobG, teamID, expectedGeneration2)
-	require.Error(t, bobErr)
-	require.Equal(t, bobTeamEK.Metadata, keybase1.TeamEkMetadata{})
+	require.NoError(t, bobErr)
+	require.Equal(t, bobTeamEK.Metadata, expectedMetadata2)
 
 	joeTeamEk, joeErr := getTeamEK(joeG, teamID, expectedGeneration2)
 	require.NoError(t, joeErr)
@@ -219,19 +229,16 @@ func runRotate(t *testing.T, createTeamEK bool) {
 	ann.waitForRotateByID(teamID, keybase1.Seqno(3))
 
 	storage := annG.GetTeamEKBoxStorage()
-	teamEK, err := storage.Get(context.Background(), teamID, expectedGeneration)
-	var expectedMaxGeneration keybase1.EkGeneration
+	teamEK, err := storage.Get(context.Background(), teamID, expectedGeneration, nil)
 	if createTeamEK {
 		require.NoError(t, err)
-		expectedMaxGeneration = teamEK.Metadata.Generation
 	} else {
 		require.Error(t, err)
+		require.IsType(t, ephemeral.EphemeralKeyError{}, err)
+		ekErr := err.(ephemeral.EphemeralKeyError)
+		require.Equal(t, ephemeral.DefaultHumanErrMsg, ekErr.HumanError())
 		require.Equal(t, teamEK, keybase1.TeamEk{})
-		expectedMaxGeneration = -1
 	}
-	maxGeneration, err := storage.MaxGeneration(context.Background(), teamID)
-	require.NoError(t, err)
-	require.Equal(t, maxGeneration, expectedMaxGeneration)
 }
 
 func TestEphemeralRotateSkipTeamEKRoll(t *testing.T) {
@@ -271,7 +278,7 @@ func TestEphemeralRotateSkipTeamEKRoll(t *testing.T) {
 	teamEKBoxStorage.ClearCache()
 	_, err = annG.LocalDb.Nuke() // Force us to refetch and verify the key from the server
 	require.NoError(t, err)
-	teamEKPostRoll, err := teamEKBoxStorage.Get(context.Background(), teamID, teamEKPreRoll.Metadata.Generation)
+	teamEKPostRoll, err := teamEKBoxStorage.Get(context.Background(), teamID, teamEKPreRoll.Metadata.Generation, nil)
 	require.NoError(t, err)
 	require.Equal(t, teamEKPreRoll, teamEKPostRoll)
 
@@ -304,7 +311,7 @@ func TestEphemeralNewUserEKAndTeamEKAfterRevokes(t *testing.T) {
 	userEKBoxStorage := annG.GetUserEKBoxStorage()
 	gen, err := userEKBoxStorage.MaxGeneration(context.Background())
 	require.NoError(t, err)
-	userEKPreRevoke, err := userEKBoxStorage.Get(context.Background(), gen)
+	userEKPreRevoke, err := userEKBoxStorage.Get(context.Background(), gen, nil)
 	require.NoError(t, err)
 
 	// Provision a new device that we can revoke.
@@ -331,7 +338,7 @@ func TestEphemeralNewUserEKAndTeamEKAfterRevokes(t *testing.T) {
 	userEKBoxStorage.ClearCache()
 	_, err = annG.LocalDb.Nuke() // Force us to refetch and verify the key from the server
 	require.NoError(t, err)
-	userEKPostRevoke, err := userEKBoxStorage.Get(context.Background(), userEKPreRevoke.Metadata.Generation)
+	userEKPostRevoke, err := userEKBoxStorage.Get(context.Background(), userEKPreRevoke.Metadata.Generation, nil)
 	require.NoError(t, err)
 	require.Equal(t, userEKPreRevoke, userEKPostRevoke)
 
@@ -380,18 +387,21 @@ func readdToTeamWithEKs(t *testing.T, leave bool) {
 	}
 
 	// After leaving user2 won't have access to the current teamEK
-	_, err = user2.tc.G.GetTeamEKBoxStorage().Get(context.Background(), teamID, currentGen)
+	_, err = user2.tc.G.GetTeamEKBoxStorage().Get(context.Background(), teamID, currentGen, nil)
 	require.Error(t, err)
+	require.IsType(t, libkb.AppStatusError{}, err)
+	appStatusErr := err.(libkb.AppStatusError)
+	require.Equal(t, appStatusErr.Code, libkb.SCNotFound)
 
 	user1.addTeamMember(teamName.String(), user2.username, keybase1.TeamRole_WRITER)
 	user2.waitForNewlyAddedToTeamByID(teamID)
 
 	// Test that user1 and user2 both have access to the currentTeamEK
 	// (whether we recreated or reboxed)
-	teamEK2U1, err := user1.tc.G.GetTeamEKBoxStorage().Get(context.Background(), teamID, expectedGen)
+	teamEK2U1, err := user1.tc.G.GetTeamEKBoxStorage().Get(context.Background(), teamID, expectedGen, nil)
 	require.NoError(t, err)
 
-	teamEK2U2, err := user2.tc.G.GetTeamEKBoxStorage().Get(context.Background(), teamID, expectedGen)
+	teamEK2U2, err := user2.tc.G.GetTeamEKBoxStorage().Get(context.Background(), teamID, expectedGen, nil)
 	require.NoError(t, err)
 
 	require.Equal(t, teamEK2U1, teamEK2U2)
@@ -403,4 +413,56 @@ func TestEphemeralTeamMemberLeaveAndReadd(t *testing.T) {
 
 func TestEphemeralTeamMemberRemoveAndReadd(t *testing.T) {
 	readdToTeamWithEKs(t, false /* leave */)
+}
+
+func TestEphemeralAfterEKError(t *testing.T) {
+	tt := newTeamTester(t)
+	defer tt.cleanup()
+
+	user1 := makeUserStandalone(t, "user1", standaloneUserArgs{
+		disableGregor:            true,
+		suppressTeamChatAnnounce: true,
+	})
+	teamID, teamName := user1.createTeam2()
+	g1 := user1.tc.G
+	ephemeral.ServiceInit(g1)
+	ctx := context.Background()
+	merkleRoot, err := g1.GetMerkleClient().FetchRootFromServer(libkb.NewMetaContextForTest(*user1.tc), libkb.EphemeralKeyMerkleFreshness)
+	require.NoError(t, err)
+	// Force two team EKs to be created and then create/add u2 to the team.
+	// They should not be able to access the first key since they were added
+	// after (they are reboxed for the second as part of the add
+	teamEKMetadata1, err := ephemeral.ForcePublishNewTeamEKForTesting(ctx, g1, teamID, *merkleRoot)
+	require.NoError(t, err)
+	teamEKMetadata2, err := ephemeral.ForcePublishNewTeamEKForTesting(ctx, g1, teamID, *merkleRoot)
+	require.NoError(t, err)
+
+	user2 := tt.addUserWithPaper("u2")
+	user1.addTeamMember(teamName.String(), user2.username, keybase1.TeamRole_WRITER)
+	user2.waitForNewlyAddedToTeamByID(teamID)
+
+	g2 := user2.tc.G
+	_, err = g2.GetTeamEKBoxStorage().Get(ctx, teamID, teamEKMetadata1.Generation, nil)
+	require.Error(t, err)
+	require.IsType(t, ephemeral.EphemeralKeyError{}, err)
+	ekErr := err.(ephemeral.EphemeralKeyError)
+	require.Equal(t, libkb.SCEphemeralMemberAfterEK, ekErr.StatusCode)
+
+	teamEK2, err := g2.GetTeamEKBoxStorage().Get(ctx, teamID, teamEKMetadata2.Generation, nil)
+	require.NoError(t, err)
+	require.Equal(t, teamEKMetadata2, teamEK2.Metadata)
+
+	// Force a second userEK so when the new device is provisioned it is only
+	// reboxed for the second userEK. Try to access the first userEK and fail.
+	userEKMetdata, err := ephemeral.ForcePublishNewUserEKForTesting(ctx, g2, *merkleRoot)
+	require.NoError(t, err)
+	newDevice := user2.provisionNewDevice()
+	require.NoError(t, err)
+	g2 = newDevice.tctx.G
+
+	_, err = g2.GetUserEKBoxStorage().Get(ctx, userEKMetdata.Generation-1, nil)
+	require.Error(t, err)
+	require.IsType(t, ephemeral.EphemeralKeyError{}, err)
+	ekErr = err.(ephemeral.EphemeralKeyError)
+	require.Equal(t, libkb.SCEphemeralDeviceAfterEK, ekErr.StatusCode)
 }

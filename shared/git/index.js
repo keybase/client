@@ -73,7 +73,9 @@ class _Git extends React.Component<Props & OverlayParentProps, {}> {
               />
             )}
           </Box>
-          {this.props.personals.map(p => <Row key={p} {...this._rowPropsToProps(p)} />)}
+          {this.props.personals.map(p => (
+            <Row key={p} {...this._rowPropsToProps(p)} />
+          ))}
           <Box style={_sectionHeaderStyle}>
             <Text type="BodySmallSemibold">Team</Text>
             {this.props.loading && (
@@ -82,7 +84,9 @@ class _Git extends React.Component<Props & OverlayParentProps, {}> {
               />
             )}
           </Box>
-          {this.props.teams.map(p => <Row key={p} {...this._rowPropsToProps(p)} />)}
+          {this.props.teams.map(p => (
+            <Row key={p} {...this._rowPropsToProps(p)} />
+          ))}
         </ScrollView>
         <FloatingMenu
           attachTo={this.props.getAttachmentRef}
@@ -102,8 +106,8 @@ const _sectionHeaderStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   height: isMobile ? 32 : 24,
-  paddingLeft: globalMargins.tiny,
   marginTop: globalMargins.small,
+  paddingLeft: globalMargins.tiny,
   width: '100%',
 }
 

@@ -6,7 +6,6 @@ import Avatar from './avatar'
 import Box from './box'
 import * as React from 'react'
 import {globalStyles, type StylesCrossPlatform, collapseStyles} from '../styles'
-import {createSelector} from 'reselect'
 
 import type {Props as AvatarProps, AvatarSize} from './avatar'
 
@@ -64,7 +63,7 @@ const singleStyle = {
   width: '100%',
 }
 
-const leftAvatar = createSelector([a => a, (_, b) => b], (offset = 0, style) =>
+const leftAvatar = (offset = 0, style) =>
   collapseStyles([
     {
       left: 0,
@@ -73,9 +72,8 @@ const leftAvatar = createSelector([a => a, (_, b) => b], (offset = 0, style) =>
     },
     style,
   ])
-)
 
-const rightAvatar = createSelector([a => a, (_, b) => b], (offset = 0, style) =>
+const rightAvatar = (offset = 0, style) =>
   collapseStyles([
     {
       bottom: offset,
@@ -84,6 +82,5 @@ const rightAvatar = createSelector([a => a, (_, b) => b], (offset = 0, style) =>
     },
     style,
   ])
-)
 
 export default MultiAvatar

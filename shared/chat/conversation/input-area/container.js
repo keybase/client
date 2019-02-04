@@ -5,11 +5,11 @@ import * as Constants from '../../../constants/chat2'
 import Normal from './normal/container'
 import Preview from './preview/container'
 import {connect} from '../../../util/container'
-import type {TypedState} from '../../../util/container'
 
 type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
   focusInputCounter: number,
+  isPending: boolean,
   onScrollDown: () => void,
 |}
 type Props = {|
@@ -18,24 +18,20 @@ type Props = {|
   noInput: boolean,
 |}
 
-const mapStateToProps = (state: TypedState, {conversationIDKey}: OwnProps) => {
+const mapStateToProps = (state, {conversationIDKey, isPending}: OwnProps) => {
   const meta = Constants.getMeta(state, conversationIDKey)
   let noInput = !meta.resetParticipants.isEmpty() || !!meta.wasFinalizedBy
-  let conversationIDKeyToShow = conversationIDKey
 
-  if (conversationIDKey === Constants.pendingConversationIDKey) {
-    const resolved = Constants.getResolvedPendingConversationIDKey(state)
-    if (!Constants.isValidConversationIDKey(resolved)) {
+  if (isPending) {
+    if (!Constants.isValidConversationIDKey(conversationIDKey)) {
       noInput = true
-    } else {
-      conversationIDKeyToShow = resolved
     }
   } else if (conversationIDKey === Constants.pendingWaitingConversationIDKey) {
     noInput = true
   }
 
   return {
-    conversationIDKey: conversationIDKeyToShow,
+    conversationIDKey,
     isPreview: meta.membershipType === 'youArePreviewing',
     noInput,
   }
@@ -59,4 +55,8 @@ class InputArea extends React.PureComponent<Props> {
   }
 }
 
-export default connect(mapStateToProps, () => ({}), (s, d, o) => ({...o, ...s, ...d}))(InputArea)
+export default connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  () => ({}),
+  (s, d, o) => ({...o, ...s, ...d})
+)(InputArea)

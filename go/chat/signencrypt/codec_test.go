@@ -11,7 +11,7 @@ import (
 
 	"golang.org/x/crypto/nacl/secretbox"
 
-	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/go-crypto/ed25519"
 	"github.com/stretchr/testify/require"
 )
@@ -51,8 +51,8 @@ func zeroSignKey() SignKey {
 	return &key
 }
 
-func testingPrefix() libkb.SignaturePrefix {
-	return libkb.SignaturePrefixTesting
+func testingPrefix() kbcrypto.SignaturePrefix {
+	return kbcrypto.SignaturePrefixTesting
 }
 
 func zeroEncoder() *Encoder {
@@ -566,7 +566,7 @@ func TestCoverageHacks(t *testing.T) {
 }
 
 func TestNullInPrefix(t *testing.T) {
-	encoder := NewEncoder(zeroSecretboxKey(), zeroSignKey(), libkb.SignaturePrefix("Keybase-bad-prefix\x00"), zeroNonce())
+	encoder := NewEncoder(zeroSecretboxKey(), zeroSignKey(), kbcrypto.SignaturePrefix("Keybase-bad-prefix\x00"), zeroNonce())
 	encoder.Write([]byte("kaboom"))
 	shouldPanic(t, func() {
 		encoder.Finish()

@@ -5,8 +5,10 @@ import (
 	"os"
 	"strings"
 
+	"github.com/keybase/client/go/stellar"
 	"github.com/keybase/client/go/terminalescaper"
 	isatty "github.com/mattn/go-isatty"
+	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
@@ -20,13 +22,17 @@ func printPayment(g *libkb.GlobalContext, p stellar1.PaymentCLILocal, verbose bo
 		dui.Printf(format+"\n", args...)
 	}
 	timeStr := p.Time.Time().Format("2006/01/02 15:04")
-	lineUnescaped("%v", ColorString(g, "bold", timeStr))
-	amount := fmt.Sprintf("%v XLM", libkb.StellarSimplifyAmount(p.Amount))
-	if !p.Asset.IsNativeXLM() {
-		amount = fmt.Sprintf("%v %v/%v", p.Amount, p.Asset.Code, p.Asset.Issuer)
+	if p.Unread {
+		timeStr += " *"
 	}
-	if p.DisplayAmount != nil && p.DisplayCurrency != nil && len(*p.DisplayAmount) > 0 && len(*p.DisplayAmount) > 0 {
-		amount = fmt.Sprintf("%v %v (%v)", *p.DisplayAmount, *p.DisplayCurrency, amount)
+	lineUnescaped("%v", ColorString(g, "bold", timeStr))
+	amount, err := stellar.FormatAmountDescriptionAssetEx(libkb.NewMetaContext(context.TODO(), g), p.Amount, p.Asset)
+	if err == nil {
+		if p.DisplayAmount != nil && p.DisplayCurrency != nil && len(*p.DisplayAmount) > 0 && len(*p.DisplayAmount) > 0 {
+			amount = fmt.Sprintf("%v %v (%v)", *p.DisplayAmount, *p.DisplayCurrency, amount)
+		}
+	} else {
+		lineUnescaped("%v %s", ColorString(g, "red", "Error while formatting amount:"), err)
 	}
 	lineUnescaped("%v", ColorString(g, "green", amount))
 	// Show sender and recipient. Prefer keybase form, fall back to stellar abbreviations.
@@ -55,8 +61,12 @@ func printPayment(g *libkb.GlobalContext, p stellar1.PaymentCLILocal, verbose bo
 		lineUnescaped("%v", ColorString(g, "red", "missing recipient info"))
 	}
 	line("%v -> %v", from, to)
-	// If an abbreviation was shown, show the full addresses
 	if showedAbbreviation || verbose {
+		// If an abbreviation was shown, show the full addresses. We could skip
+		// the "%v -> %v" line above if both `to` and `from` are address IDs,
+		// because we are printing full IDs anyway, but it serves an important
+		// purpose of telling user that that the entire transfer happened
+		// outside of Keybase.
 		line("From: %v", p.FromStellar.String())
 		if p.ToStellar != nil {
 			line("To:   %v", p.ToStellar.String())
@@ -108,4 +118,20 @@ func printPaymentFilterNote(note string) string {
 
 func cicmp(a, b string) bool {
 	return strings.ToLower(a) == strings.ToLower(b)
+}
+
+func transformStellarCLIError(err *error) {
+	if err == nil {
+		return
+	}
+	switch e := (*err).(type) {
+	case libkb.AppStatusError:
+		if e.Code == libkb.SCStellarNeedDisclaimer {
+			*err = libkb.NewAppStatusError(&libkb.AppStatus{
+				Code: e.Code,
+				Name: e.Name,
+				Desc: "Stellar disclaimer not yet accepted. Run 'keybase wallet get-started'",
+			})
+		}
+	}
 }

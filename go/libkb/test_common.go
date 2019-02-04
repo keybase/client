@@ -269,7 +269,7 @@ func setupTestContext(tb TestingTB, name string, tcPrev *TestContext) (tc TestCo
 		return
 	}
 
-	g.GregorDismisser = &FakeGregorDismisser{}
+	g.GregorState = &FakeGregorState{}
 	g.SetUIDMapper(NewTestUIDMapper(g.GetUPAKLoader()))
 	tc.G = g
 	tc.T = tb
@@ -306,6 +306,9 @@ func SetupTest(tb TestingTB, name string, depth int) (tc TestContext) {
 			break
 		}
 	}
+
+	AddEnvironmentFeatureForTest(tc, EnvironmentFeatureAllowHighSkips)
+
 	return tc
 }
 
@@ -454,19 +457,31 @@ func (t *TestLoginCancelUI) GetEmailOrUsername(_ context.Context, _ int) (string
 	return "", InputCanceledError{}
 }
 
-type FakeGregorDismisser struct {
+type FakeGregorState struct {
 	dismissedIDs []gregor.MsgID
 }
 
-var _ GregorDismisser = (*FakeGregorDismisser)(nil)
+var _ GregorState = (*FakeGregorState)(nil)
 
-func (f *FakeGregorDismisser) DismissItem(_ context.Context, cli gregor1.IncomingInterface, id gregor.MsgID) error {
+func (f *FakeGregorState) State(_ context.Context) (gregor.State, error) {
+	return gregor1.State{}, nil
+}
+
+func (f *FakeGregorState) InjectItem(ctx context.Context, cat string, body []byte, dtime gregor1.TimeOrOffset) (gregor1.MsgID, error) {
+	return gregor1.MsgID{}, nil
+}
+
+func (f *FakeGregorState) DismissItem(_ context.Context, cli gregor1.IncomingInterface, id gregor.MsgID) error {
 	f.dismissedIDs = append(f.dismissedIDs, id)
 	return nil
 }
 
-func (f *FakeGregorDismisser) LocalDismissItem(ctx context.Context, id gregor.MsgID) error {
+func (f *FakeGregorState) LocalDismissItem(ctx context.Context, id gregor.MsgID) error {
 	return nil
+}
+
+func (f *FakeGregorState) PeekDismissedIDs() []gregor.MsgID {
+	return f.dismissedIDs
 }
 
 type TestUIDMapper struct {
@@ -508,7 +523,7 @@ func (t TestUIDMapper) SetTestingNoCachingMode(enabled bool) {
 }
 
 func NewMetaContextForTest(tc TestContext) MetaContext {
-	return NewMetaContext(context.TODO(), tc.G).WithLogTag("TST")
+	return NewMetaContextBackground(tc.G).WithLogTag("TST")
 }
 
 func NewMetaContextForTestWithLogUI(tc TestContext) MetaContext {
@@ -534,4 +549,14 @@ func CreateClonedDevice(tc TestContext, m MetaContext) {
 
 	d := runAndGetDeviceCloneState()
 	require.True(tc.T, d.IsClone())
+}
+
+func ModifyFeatureForTest(m MetaContext, feature Feature, on bool, cacheSec int) {
+	slot := m.G().FeatureFlags.getOrMakeSlot(feature)
+	rawFeature := rawFeatureSlot{on, cacheSec}
+	slot.readFrom(m, rawFeature)
+}
+
+func AddEnvironmentFeatureForTest(tc TestContext, feature Feature) {
+	tc.Tp.EnvironmentFeatureFlags = append(tc.Tp.EnvironmentFeatureFlags, feature)
 }

@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/stellar1"
 	jsonw "github.com/keybase/go-jsonw"
 	"golang.org/x/net/context"
 )
@@ -29,14 +30,17 @@ type BadgeState struct {
 	inboxVers chat1.InboxVers
 	// Map from ConversationID.String to BadgeConversationInfo.
 	chatUnreadMap map[string]keybase1.BadgeConversationInfo
+
+	walletUnreadMap map[stellar1.AccountID]int
 }
 
 // NewBadgeState creates a new empty BadgeState.
 func NewBadgeState(log logger.Logger) *BadgeState {
 	return &BadgeState{
-		log:           log,
-		inboxVers:     chat1.InboxVers(0),
-		chatUnreadMap: make(map[string]keybase1.BadgeConversationInfo),
+		log:             log,
+		inboxVers:       chat1.InboxVers(0),
+		chatUnreadMap:   make(map[string]keybase1.BadgeConversationInfo),
+		walletUnreadMap: make(map[stellar1.AccountID]int),
 	}
 }
 
@@ -50,6 +54,12 @@ func (b *BadgeState) Export() (keybase1.BadgeState, error) {
 		b.state.Conversations = append(b.state.Conversations, info)
 	}
 	b.state.InboxVers = int(b.inboxVers)
+
+	b.state.UnreadWalletAccounts = []keybase1.WalletAccountInfo{}
+	for accountID, count := range b.walletUnreadMap {
+		info := keybase1.WalletAccountInfo{AccountID: string(accountID), NumUnread: count}
+		b.state.UnreadWalletAccounts = append(b.state.UnreadWalletAccounts, info)
+	}
 
 	return b.state, nil
 }
@@ -72,10 +82,57 @@ type memberOutBody struct {
 	} `json:"reset_user"`
 }
 
+type homeTodoMap map[keybase1.HomeScreenTodoType]int
+type homeItemMap map[keybase1.HomeScreenItemType]homeTodoMap
+
 type homeStateBody struct {
-	Version        int           `json:"version"`
-	BadgeCount     int           `json:"badge_count"`
-	LastViewedTime keybase1.Time `json:"last_viewed_time"`
+	Version              int           `json:"version"`
+	BadgeCountMap        homeItemMap   `json:"badge_count_map"`
+	LastViewedTime       keybase1.Time `json:"last_viewed_time"`
+	AnnouncementsVersion int           `json:"announcements_version"`
+}
+
+// countKnownBadges looks at the map sent down by gregor and considers only those
+// types that are known to the client. The rest, it assumes it cannot display,
+// and doesn't count those badges toward the badge count. Note that the shape
+// of this map is two-deep.
+//
+//   { 1 : { 2 : 3, 4 : 5 }, 3 : { 10001 : 1 } }
+//
+// Implies that are 3 badges on TODO type PROOF, 5 badges on TODO type FOLLOW,
+// and 1 badges in ANNOUNCEMENTs.
+//
+func countKnownBadges(m homeItemMap) int {
+	var ret int
+	for itemType, todoMap := range m {
+		if _, found := keybase1.HomeScreenItemTypeRevMap[itemType]; !found {
+			continue
+		}
+		for todoType, v := range todoMap {
+			_, found := keybase1.HomeScreenTodoTypeRevMap[todoType]
+			if (itemType == keybase1.HomeScreenItemType_TODO && found) ||
+				(itemType == keybase1.HomeScreenItemType_ANNOUNCEMENT && todoType >= keybase1.HomeScreenTodoType_ANNONCEMENT_PLACEHOLDER) {
+				ret += v
+			}
+		}
+	}
+	return ret
+}
+
+func homeStateLessThan(a *homeStateBody, b homeStateBody) bool {
+	if a == nil {
+		return true
+	}
+	if a.Version < b.Version {
+		return true
+	}
+	if a.Version == b.Version && a.LastViewedTime < b.LastViewedTime {
+		return true
+	}
+	if a.AnnouncementsVersion < b.AnnouncementsVersion {
+		return true
+	}
+	return false
 }
 
 // UpdateWithGregor updates the badge state from a gregor state.
@@ -87,6 +144,8 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 	b.state.NewFollowers = 0
 	b.state.RekeysNeeded = 0
 	b.state.NewGitRepoGlobalUniqueIDs = []string{}
+	b.state.NewDevices = []keybase1.DeviceID{}
+	b.state.RevokedDevices = []keybase1.DeviceID{}
 	b.state.NewTeamNames = nil
 	b.state.NewTeamAccessRequests = nil
 	b.state.HomeTodoItems = 0
@@ -116,9 +175,9 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 				continue
 			}
 			sentUp := false
-			if hsb == nil || hsb.Version < tmp.Version || (hsb.Version == tmp.Version && hsb.LastViewedTime < tmp.LastViewedTime) {
+			if homeStateLessThan(hsb, tmp) {
 				hsb = &tmp
-				b.state.HomeTodoItems = hsb.BadgeCount
+				b.state.HomeTodoItems = countKnownBadges(hsb.BadgeCountMap)
 				sentUp = true
 			}
 			b.log.Debug("incoming home.state (sentUp=%v): %+v", sentUp, tmp)
@@ -146,6 +205,30 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 			b.state.RekeysNeeded += body.Count
 		case "follow":
 			b.state.NewFollowers++
+		case "device.new":
+			jsw, err := jsonw.Unmarshal(item.Body().Bytes())
+			if err != nil {
+				b.log.CDebugf(ctx, "BadgeState encountered non-json 'device.new' item: %v", err)
+				continue
+			}
+			newDeviceID, err := jsw.AtKey("device_id").GetString()
+			if err != nil {
+				b.log.CDebugf(ctx, "BadgeState encountered gregor 'device.new' item without 'device_id': %v", err)
+				continue
+			}
+			b.state.NewDevices = append(b.state.NewDevices, keybase1.DeviceID(newDeviceID))
+		case "device.revoked":
+			jsw, err := jsonw.Unmarshal(item.Body().Bytes())
+			if err != nil {
+				b.log.CDebugf(ctx, "BadgeState encountered non-json 'device.revoked' item: %v", err)
+				continue
+			}
+			revokedDeviceID, err := jsw.AtKey("device_id").GetString()
+			if err != nil {
+				b.log.CDebugf(ctx, "BadgeState encountered gregor 'device.revoked' item without 'device_id': %v", err)
+				continue
+			}
+			b.state.RevokedDevices = append(b.state.RevokedDevices, keybase1.DeviceID(revokedDeviceID))
 		case "new_git_repo":
 			jsw, err := jsonw.Unmarshal(item.Body().Bytes())
 			if err != nil {
@@ -260,6 +343,7 @@ func (b *BadgeState) Clear() {
 	b.state = keybase1.BadgeState{}
 	b.inboxVers = chat1.InboxVers(0)
 	b.chatUnreadMap = make(map[string]keybase1.BadgeConversationInfo)
+	b.walletUnreadMap = make(map[stellar1.AccountID]int)
 }
 
 func (b *BadgeState) updateWithChat(ctx context.Context, update chat1.UnreadUpdate) {
@@ -284,16 +368,9 @@ func (b *BadgeState) updateWithChat(ctx context.Context, update chat1.UnreadUpda
 	}
 }
 
-func (b *BadgeState) FindResetMemberBadges(teamName string) (badges []keybase1.TeamMemberOutReset) {
+// SetWalletAccountUnreadCount sets the unread count for a wallet account.
+func (b *BadgeState) SetWalletAccountUnreadCount(accountID stellar1.AccountID, unreadCount int) {
 	b.Lock()
-	defer b.Unlock()
-
-	for _, badge := range b.state.TeamsWithResetUsers {
-		if badge.Teamname != teamName {
-			continue
-		}
-		badges = append(badges, badge)
-	}
-
-	return badges
+	b.walletUnreadMap[accountID] = unreadCount
+	b.Unlock()
 }

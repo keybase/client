@@ -1,4 +1,0 @@
-// @flow
-import {Component} from 'react'
-
-export default class DevMenu extends Component<void> {}

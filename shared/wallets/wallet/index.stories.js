@@ -9,22 +9,29 @@ import settings from './settings/index.stories'
 const provider = Sb.createPropProviderWithCommon({
   // TODO mock out meaningful values once type `OwnProps` is defined
   Header: props => ({
+    accountID: stringToAccountID('fakeAccountID'),
+    isDefaultWallet: true,
+    keybaseUser: 'cecileb',
     onReceive: Sb.action('onReceive'),
     onSendToAnotherAccount: Sb.action('onSendToAnotherAccount'),
     onSendToKeybaseUser: Sb.action('onSendToKeybaseUser'),
     onSendToStellarAddress: Sb.action('onSendToStellarAddress'),
     onSettings: Sb.action('onSettings'),
     onShowSecretKey: Sb.action('onShowSecretKey'),
-    isDefaultWallet: true,
-    keybaseUser: 'cecileb',
     walletName: "cecileb's account",
   }),
 })
 
 const props = {
+  acceptedDisclaimer: true,
   accountID: stringToAccountID('fakeAccountID'),
+  loadingMore: false,
   navigateAppend: Sb.action('navigateAppend'),
-  sections: [{title: 'Your assets', data: []}, {title: 'History', data: ['noPayments']}],
+  onBack: Sb.action('onBack'),
+  onLoadMore: Sb.action('onLoadMore'),
+  onMarkAsRead: Sb.action('onMarkRead'),
+  refresh: Sb.action('refresh'),
+  sections: [{data: [], title: 'Your assets'}, {data: ['noPayments'], title: 'History'}],
 }
 
 const load = () => {

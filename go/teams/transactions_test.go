@@ -7,6 +7,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
@@ -119,4 +120,27 @@ func TestTransactionRotateKey(t *testing.T) {
 	// member removals.
 	team = loadTeam()
 	require.EqualValues(t, 2, team.Generation())
+}
+
+func TestPreprocessAssertions(t *testing.T) {
+	tc := externalstest.SetupTest(t, "assertions", 0)
+	defer tc.Cleanup()
+
+	tests := []struct {
+		s         string
+		isEmail   bool
+		hasSingle bool
+		isError   bool
+	}{
+		{"bob", false, true, false},
+		{"bob+bob@twitter", false, false, false},
+		{"[bob@gmail.com]@email", true, true, false},
+		{"[bob@gmail.com]@email+bob", false, false, true},
+	}
+	for _, test := range tests {
+		isEmail, single, err := preprocessAssertion(libkb.NewMetaContextForTest(tc), test.s)
+		require.Equal(t, isEmail, test.isEmail)
+		require.Equal(t, (single != nil), test.hasSingle)
+		require.Equal(t, (err != nil), test.isError)
+	}
 }

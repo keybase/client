@@ -1,26 +1,31 @@
 // @flow
-import EditAvatar, {type Props} from '.'
+import EditAvatar from '.'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as TeamsGen from '../../actions/teams-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
-import {connect, type TypedState} from '../../util/container'
-import {navigateUp} from '../../actions/route-tree'
+import {connect} from '../../util/container'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import type {RouteProps} from '../../route-tree/render-route'
 
-const mapStateToProps = (
-  state: TypedState,
+type OwnProps = RouteProps<
   {
-    routeProps,
-  }: RouteProps<{createdTeam: boolean, image: any, sendChatNotification: boolean, teamname: string}, {}>
-) => ({
-  createdTeam: routeProps.get('createdTeam'),
-  image: routeProps.get('image'),
-  sendChatNotification: routeProps.get('sendChatNotification') || false,
-  teamname: routeProps.get('teamname'),
+    createdTeam: boolean,
+    image: any,
+    sendChatNotification: boolean,
+    teamname: string,
+  },
+  {}
+>
+
+const mapStateToProps = (state, ownProps) => ({
+  createdTeam: ownProps.routeProps.get('createdTeam'),
+  image: ownProps.routeProps.get('image'),
+  sendChatNotification: ownProps.routeProps.get('sendChatNotification') || false,
+  teamname: ownProps.routeProps.get('teamname'),
 })
 
-const mapDispatchToProps = (dispatch, ownProps: Props) => ({
-  onClose: () => dispatch(navigateUp()),
+const mapDispatchToProps = (dispatch, ownProps) => ({
+  onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
   onSaveTeamAvatar: (
     filename: string,
     teamname: string,
@@ -31,7 +36,7 @@ const mapDispatchToProps = (dispatch, ownProps: Props) => ({
     dispatch(ProfileGen.createUploadAvatar({crop, filename})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps: Props) => ({
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   createdTeam: stateProps.createdTeam,
   image: stateProps.image,
   onClose: dispatchProps.onClose,
@@ -43,4 +48,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: Props) => ({
   teamname: stateProps.teamname,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(EditAvatar)
+export default connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(EditAvatar)

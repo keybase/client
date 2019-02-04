@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/stretchr/testify/require"
@@ -48,6 +49,36 @@ func TestNoteCorruptCiphertext(t *testing.T) {
 	_, err = noteDecryptHelper(context.Background(), encNote, sk)
 	require.Error(t, err)
 	require.Equal(t, "could not decrypt note secretbox", err.Error())
+}
+
+func TestNoteLengthLimit(t *testing.T) {
+	tc := libkb.SetupTest(t, "stellar", 2)
+	defer tc.Cleanup()
+
+	_, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
+	require.NoError(t, err)
+
+	user2, err := kbtest.CreateAndSignupFakeUser("t", tc.G)
+	require.NoError(t, err)
+	uv2 := user2.GetUserVersion()
+
+	// verify we can encrypt content with max length
+	pre := sampleNote()
+	note, err := libkb.RandString("", libkb.MaxStellarPaymentNoteLength)
+	require.NoError(t, err)
+	pre.Note = note[:libkb.MaxStellarPaymentNoteLength]
+	expect := pre.DeepCopy()
+	encNote, err := NoteEncryptB64(libkb.NewMetaContextForTest(tc), pre, &uv2)
+	require.NoError(t, err)
+	post, err := NoteDecryptB64(libkb.NewMetaContextForTest(tc), encNote)
+	require.NoError(t, err)
+	require.Equal(t, expect, post)
+
+	// encryption fails for content exceeding max length
+	pre.Note = pre.Note + "!"
+	encNote, err = NoteEncryptB64(libkb.NewMetaContextForTest(tc), pre, &uv2)
+	require.Error(t, err)
+	require.Equal(t, "", encNote)
 }
 
 func randomSymmetricKey(t testing.TB) libkb.NaclSecretBoxKey {

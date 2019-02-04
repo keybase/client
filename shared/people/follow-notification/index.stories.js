@@ -2,44 +2,44 @@
 import * as React from 'react'
 import * as C from '../../constants/people'
 import * as Sb from '../../stories/storybook'
-import FollowNotification, {type Props} from '.'
+import FollowNotification from '.'
 import moment from 'moment'
 
-const singleFollowProps1: Props = {
-  type: 'notification',
-  newFollows: [C.makeFollowedNotification({username: 'mmaxim'})],
+const singleFollowProps1 = {
   badged: true,
+  newFollows: [C.makeFollowedNotification({username: 'mmaxim'})],
   notificationTime: new Date(),
   onClickUser: Sb.action('onClickUser'),
+  type: 'notification',
 }
 
-const singleFollowProps2: Props = {
-  type: 'notification',
-  newFollows: [C.makeFollowedNotification({username: 'max'})],
+const singleFollowProps2 = {
   badged: false,
+  newFollows: [C.makeFollowedNotification({username: 'max'})],
   notificationTime: moment()
     .subtract(3, 'days')
     .toDate(),
   onClickUser: Sb.action('onClickUser'),
+  type: 'notification',
 }
 
-const multiFollowProps1: Props = {
-  type: 'notification',
+const multiFollowProps1 = {
+  badged: true,
   newFollows: [
     C.makeFollowedNotification({username: 'max'}),
     C.makeFollowedNotification({username: 'mmaxim'}),
     C.makeFollowedNotification({username: 'chrisnojima'}),
   ],
-  badged: true,
   notificationTime: moment()
     .subtract(3, 'weeks')
     .toDate(),
   numAdditional: 0,
   onClickUser: Sb.action('onClickUser'),
+  type: 'notification',
 }
 
-const multiFollowProps2: Props = {
-  type: 'notification',
+const multiFollowProps2 = {
+  badged: false,
   newFollows: [
     C.makeFollowedNotification({username: 'max'}),
     C.makeFollowedNotification({username: 'mmaxim'}),
@@ -54,12 +54,12 @@ const multiFollowProps2: Props = {
     C.makeFollowedNotification({username: 'mlsteele'}),
     C.makeFollowedNotification({username: 'joshblum'}),
   ],
-  badged: false,
   notificationTime: moment()
     .subtract(3, 'months')
     .toDate(),
   numAdditional: 5,
   onClickUser: Sb.action('onClickUser'),
+  type: 'notification',
 }
 
 const load = () => {

@@ -10,9 +10,11 @@ import {
   lifecycle,
   withHandlers,
   withStateHandlers,
-  type TypedState,
+  type RouteProps,
 } from '../../util/container'
 import SelectChannel from '.'
+
+type OwnProps = RouteProps<{teamname: string, selected: boolean, repoID: string}, {}>
 
 export type SelectChannelProps = {
   teamname: string,
@@ -20,15 +22,15 @@ export type SelectChannelProps = {
   selected: string,
 }
 
-const mapStateToProps = (state: TypedState, {routeProps}) => {
+const mapStateToProps = (state, {routeProps}) => {
   const teamname = routeProps.get('teamname')
   const selected = routeProps.get('selected')
   const _channelInfos = getTeamChannelInfos(state, teamname)
   return {
     _channelInfos,
-    waiting: anyWaiting(state, getChannelsWaitingKey(teamname)),
-    loaded: !!_channelInfos.size,
     _selected: selected,
+    loaded: !!_channelInfos.size,
+    waiting: anyWaiting(state, getChannelsWaitingKey(teamname)),
   }
 }
 
@@ -39,10 +41,10 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => {
     _onSubmit: (channelName: string) =>
       dispatch(
         GitGen.createSetTeamRepoSettings({
-          chatDisabled: false,
           channelName,
-          teamname: teamname,
+          chatDisabled: false,
           repoID: repoID,
+          teamname: teamname,
         })
       ),
     onCancel: () => dispatch(navigateUp()),
@@ -58,13 +60,16 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   return {
     ...stateProps,
     ...dispatchProps,
-    ...ownProps,
     channelNames,
   }
 }
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  connect<OwnProps, _, _, _, _>(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  ),
   lifecycle({
     componentDidMount() {
       this.props.onLoad()

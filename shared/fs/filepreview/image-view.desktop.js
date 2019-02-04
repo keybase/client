@@ -13,12 +13,12 @@ const ImageView = (props: ImageViewProps) => (
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
   ...globalStyles.flexGrow,
-  width: '100%',
-  flex: 1,
   alignItems: 'center',
+  flex: 1,
   justifyContent: 'center',
-  marginTop: globalMargins.medium,
   marginBottom: globalMargins.medium,
+  marginTop: globalMargins.medium,
+  width: '100%',
 }
 
 const stylesImage = {

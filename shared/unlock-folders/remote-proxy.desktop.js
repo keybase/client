@@ -2,18 +2,21 @@
 import * as React from 'react'
 import SyncProps from '../desktop/remote/sync-props.desktop'
 import SyncBrowserWindow from '../desktop/remote/sync-browser-window.desktop'
-import {NullComponent, connect, type TypedState, compose} from '../util/container'
+import {NullComponent, connect, compose} from '../util/container'
+import {serialize} from './remote-serializer.desktop'
+
+type OwnProps = {||}
 
 const windowOpts = {height: 300, width: 500}
 
-const unlockFolderMapPropsToState = (state: TypedState) => {
+const unlockFolderMapPropsToState = state => {
   const {devices, phase, paperkeyError, waiting} = state.unlockFolders
   return {
     devices,
     paperkeyError,
     phase,
     waiting,
-    windowComponent: 'unlockFolders',
+    windowComponent: 'unlock-folders',
     windowOpts,
     windowParam: '',
     windowTitle: 'UnlockFolders',
@@ -34,9 +37,13 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
 
 // Actions are handled by remote-container
 const UnlockFolder = compose(
-  connect(unlockFolderMapPropsToState, () => ({}), mergeProps),
+  connect<OwnProps, _, _, _, _>(
+    unlockFolderMapPropsToState,
+    () => ({}),
+    mergeProps
+  ),
   SyncBrowserWindow,
-  SyncProps
+  SyncProps(serialize)
 )(NullComponent)
 
 type Props = {
@@ -48,8 +55,12 @@ class UnlockFolders extends React.PureComponent<Props> {
   }
 }
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   show: state.unlockFolders.popupOpen,
 })
 
-export default connect(mapStateToProps, () => ({}), (s, d, o) => ({...o, ...s, ...d}))(UnlockFolders)
+export default connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  () => ({}),
+  (s, d, o) => ({...o, ...s, ...d})
+)(UnlockFolders)

@@ -1,17 +1,7 @@
 // @flow
 import React, {PureComponent} from 'react'
-import {Box, Text, Icon, ClickableBox} from '../../../../common-adapters'
-import {
-  collapseStyles,
-  glamorous,
-  globalStyles,
-  globalColors,
-  globalMargins,
-  isMobile,
-  desktopStyles,
-  styleSheetCreate,
-  platformStyles,
-} from '../../../../styles'
+import * as Kb from '../../../../common-adapters'
+import * as Styles from '../../../../styles'
 import * as RowSizes from '../sizes'
 
 type Props = {
@@ -25,126 +15,156 @@ type Props = {
   onSelectConversation: () => void,
 }
 
-const HoverBox = isMobile
-  ? Box
-  : glamorous(Box)({
-      ':hover': {backgroundColor: globalColors.blueGrey2},
-    })
+type State = {
+  isHovered: boolean,
+}
 
-class BigTeamChannel extends PureComponent<Props> {
+class BigTeamChannel extends PureComponent<Props, State> {
+  state = {
+    isHovered: false,
+  }
+
+  _onMouseLeave = () => this.setState({isHovered: false})
+  _onMouseOver = () => this.setState({isHovered: true})
+
   render() {
     return (
-      <ClickableBox onClick={this.props.onSelectConversation} style={styles.container}>
-        <Box style={styles.rowContainer}>
-          <HoverBox
-            style={collapseStyles([
+      <Kb.ClickableBox onClick={this.props.onSelectConversation} style={styles.container}>
+        <Kb.Box style={styles.rowContainer}>
+          <Kb.Box2
+            className="hover_background_color_blueGrey2"
+            direction="horizontal"
+            fullWidth={!Styles.isMobile}
+            style={Styles.collapseStyles([
               styles.channelBackground,
               this.props.isSelected && styles.selectedChannelBackground,
             ])}
+            onMouseLeave={this._onMouseLeave}
+            onMouseOver={this._onMouseOver}
           >
-            <Text
+            <Kb.Text
+              lineClamp={1}
               type={this.props.isSelected ? 'BodySemibold' : 'Body'}
-              style={
+              style={Styles.collapseStyles([
+                styles.channelText,
                 this.props.isError
                   ? styles.textError
                   : this.props.isSelected
-                    ? this.props.hasUnread
-                      ? styles.textSelectedBold
-                      : styles.textSelected
-                    : this.props.hasUnread
-                      ? styles.textPlainBold
-                      : styles.textPlain
-              }
+                  ? this.props.hasUnread
+                    ? styles.textSelectedBold
+                    : styles.textSelected
+                  : this.props.hasUnread
+                  ? styles.textPlainBold
+                  : styles.textPlain,
+              ])}
             >
               #{this.props.channelname}
-            </Text>
-            {this.props.isMuted && <MutedIcon isSelected={this.props.isSelected} />}
+            </Kb.Text>
+            {this.props.isMuted && (
+              <MutedIcon isHovered={this.state.isHovered} isSelected={this.props.isSelected} />
+            )}
             {this.props.hasBadge && <UnreadIcon />}
-          </HoverBox>
-        </Box>
-      </ClickableBox>
+          </Kb.Box2>
+        </Kb.Box>
+      </Kb.ClickableBox>
     )
   }
 }
 
-const MutedIcon = ({isSelected}) => (
-  <Icon
+const MutedIcon = ({isHovered, isSelected}) => (
+  <Kb.Icon
     type={
-      isSelected
-        ? isMobile
+      Styles.isMobile
+        ? isSelected
           ? 'icon-shh-active-24'
-          : 'icon-shh-active-16'
-        : isMobile
-          ? 'icon-shh-24'
-          : 'icon-shh-16'
+          : 'icon-shh-24'
+        : isSelected
+        ? 'icon-shh-active-16'
+        : isHovered
+        ? 'icon-shh-hover-16'
+        : 'icon-shh-16'
     }
     style={mutedStyle}
   />
 )
 
 const mutedStyle = {
-  marginLeft: globalMargins.xtiny,
+  marginLeft: Styles.globalMargins.xtiny,
 }
 
 const UnreadIcon = () => (
-  <Box style={styles.unreadContainer}>
-    <Box style={styles.unread} />
-  </Box>
+  <Kb.Box style={styles.unreadContainer}>
+    <Kb.Box style={styles.unread} />
+  </Kb.Box>
 )
 
-const styles = styleSheetCreate({
-  channelBackground: {
-    ...globalStyles.flexBoxRow,
-    ...(isMobile ? globalStyles.fillAbsolute : {width: '100%'}),
-    alignItems: 'center',
-    borderBottomLeftRadius: 3,
-    borderTopLeftRadius: 3,
-    marginLeft: globalMargins.large,
-    paddingLeft: globalMargins.tiny,
-    paddingRight: globalMargins.tiny,
-  },
-  container: {flexShrink: 0, height: RowSizes.bigRowHeight},
-  rowContainer: platformStyles({
+const styles = Styles.styleSheetCreate({
+  channelBackground: Styles.platformStyles({
     common: {
-      ...globalStyles.flexBoxRow,
+      ...Styles.globalStyles.flexBoxRow,
+      alignItems: 'center',
+      marginLeft: Styles.globalMargins.large,
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
+    },
+    isElectron: {
+      borderBottomLeftRadius: 3,
+      borderTopLeftRadius: 3,
+    },
+    isMobile: {
+      ...Styles.globalStyles.fillAbsolute,
+      flex: 1,
+    },
+  }),
+  channelText: Styles.platformStyles({
+    isElectron: {
+      wordBreak: 'break-all',
+    },
+  }),
+  container: {flexShrink: 0, height: RowSizes.bigRowHeight},
+  rowContainer: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxRow,
       alignItems: 'stretch',
       height: '100%',
-      paddingLeft: globalMargins.tiny,
+      paddingLeft: Styles.globalMargins.tiny,
       paddingRight: 0,
     },
-    isElectron: desktopStyles.clickable,
+    isElectron: Styles.desktopStyles.clickable,
   }),
   selectedChannelBackground: {
-    backgroundColor: globalColors.blue,
+    backgroundColor: Styles.globalColors.blue,
   },
   textError: {
-    color: globalColors.red,
+    color: Styles.globalColors.red,
   },
-  textPlain: {
-    ...(isMobile ? {backgroundColor: globalColors.fastBlank} : {}),
-    color: globalColors.black_75_on_white,
-  },
-  textPlainBold: {
-    ...(isMobile ? {backgroundColor: globalColors.fastBlank} : {}),
-    color: globalColors.black_75_on_white,
-    ...globalStyles.fontBold,
-  },
+  textPlain: Styles.platformStyles({
+    common: {color: Styles.globalColors.black_75_on_white},
+    isMobile: {backgroundColor: Styles.globalColors.fastBlank},
+  }),
+  textPlainBold: Styles.platformStyles({
+    common: {
+      color: Styles.globalColors.black_75_on_white,
+      ...Styles.globalStyles.fontBold,
+    },
+    isMobile: {backgroundColor: Styles.globalColors.fastBlank},
+  }),
   textSelected: {
-    color: globalColors.white,
+    color: Styles.globalColors.white,
   },
   textSelectedBold: {
-    color: globalColors.white,
-    ...globalStyles.fontBold,
+    color: Styles.globalColors.white,
+    ...Styles.globalStyles.fontBold,
   },
   unread: {
-    backgroundColor: globalColors.orange,
-    borderRadius: 6,
+    backgroundColor: Styles.globalColors.orange,
+    borderRadius: Styles.borderRadius,
     flexShrink: 0,
     height: 8,
     width: 8,
   },
   unreadContainer: {
-    ...globalStyles.flexBoxRow,
+    ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     alignSelf: 'stretch',
     flex: 1,

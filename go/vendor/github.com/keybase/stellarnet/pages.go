@@ -80,3 +80,45 @@ type Operation struct {
 	To        string `json:"to"`
 	Amount    string `json:"amount"`
 }
+
+// EffectsPage is for decoding the effects.
+type EffectsPage struct {
+	Embedded struct {
+		Records []Effect
+	} `json:"_embedded"`
+}
+
+// Effect is a single effect.
+type Effect struct {
+	Type   string `json:"type"`
+	Amount string `json:"amount"`
+}
+
+// AssetEmbed is a single asset in the AssetsPage.
+type AssetEmbed struct {
+	Links struct {
+		WellKnown horizon.Link `json:"toml"`
+	} `json:"_links"`
+	AssetType   string `json:"asset_type"`
+	AssetCode   string `json:"asset_code"`
+	AssetIssuer string `json:"asset_issuer"`
+	PagingToken string `json:"paging_token"`
+	Amount      string `json:"amount"`
+	NumAccounts int    `json:"num_accounts"`
+	Flags       struct {
+		AuthRequired  bool `json:"auth_required"`
+		AuthRevocable bool `json:"auth_revocable"`
+	} `json:"flags"`
+}
+
+// AssetsPage contains all the page data for an assets request.
+type AssetsPage struct {
+	Links struct {
+		Self horizon.Link `json:"self"`
+		Next horizon.Link `json:"next"`
+		Prev horizon.Link `json:"prev"`
+	} `json:"_links"`
+	Embedded struct {
+		Records []AssetEmbed `json:"records"`
+	} `json:"_embedded"`
+}

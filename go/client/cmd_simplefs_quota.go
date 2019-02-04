@@ -71,14 +71,14 @@ func (c *CmdSimpleFSQuota) Run() error {
 	return c.output(usage)
 }
 
-func (c *CmdSimpleFSQuota) humanizeBytes(n int64) string {
+func humanizeBytes(n int64, bytesOnly bool) string {
 	const kb = 1024
 	const kbf = float64(kb)
 	const mb = kb * 1024
 	const mbf = float64(mb)
 	const gb = mb * 1024
 	const gbf = float64(gb)
-	if c.bytes || n < kb {
+	if bytesOnly || n < kb {
 		return fmt.Sprintf("%d bytes", n)
 	} else if n < mb {
 		return fmt.Sprintf("%.2f KB", float64(n)/kbf)
@@ -86,6 +86,10 @@ func (c *CmdSimpleFSQuota) humanizeBytes(n int64) string {
 		return fmt.Sprintf("%.2f MB", float64(n)/mbf)
 	}
 	return fmt.Sprintf("%.2f GB", float64(n)/gbf)
+}
+
+func (c *CmdSimpleFSQuota) humanizeBytes(n int64) string {
+	return humanizeBytes(n, c.bytes)
 }
 
 type simpleFSQuotaStruct struct {

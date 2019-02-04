@@ -4,6 +4,7 @@
 package client
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"os"
@@ -13,7 +14,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/terminalescaper"
-	"github.com/mattn/go-isatty"
+	isatty "github.com/mattn/go-isatty"
 
 	"golang.org/x/net/context"
 
@@ -520,7 +521,13 @@ func (ui *BaseIdentifyUI) FinishWebProofCheck(p keybase1.RemoteProof, l keybase1
 }
 
 func (ui *BaseIdentifyUI) DisplayCryptocurrency(l keybase1.Cryptocurrency) error {
-	msg := (BTC + " " + " " + l.Family + " " + ColorString(ui.G(), "green", l.Address))
+	msg := fmt.Sprintf("%s  %s %s", BTC, l.Family, ColorString(ui.G(), "green", l.Address))
+	ui.ReportHook(msg)
+	return nil
+}
+
+func (ui *BaseIdentifyUI) DisplayStellarAccount(l keybase1.StellarAccount) error {
+	msg := fmt.Sprintf("%s  Stellar %s (%s)", XLM, ColorString(ui.G(), "green", l.AccountID), l.FederationAddress)
 	ui.ReportHook(msg)
 	return nil
 }
@@ -819,6 +826,17 @@ func (ui *UI) Configure() error {
 
 	ui.SecretEntry = NewSecretEntry(ui.G(), ui.Terminal, ui.getTTY())
 	return nil
+}
+
+func (ui *UI) PromptPasswordMaybeScripted(pd libkb.PromptDescriptor, prompt string) (ret string, err error) {
+	if isatty.IsTerminal(os.Stdin.Fd()) {
+		return ui.PromptPassword(pd, prompt)
+	}
+	ret, err = bufio.NewReader(os.Stdin).ReadString('\n')
+	if err == io.EOF && len(ret) > 0 {
+		err = nil
+	}
+	return ret, err
 }
 
 func (ui *UI) GetTerminalSize() (int, int) {

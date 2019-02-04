@@ -2,13 +2,6 @@ package rpc
 
 import "fmt"
 
-// TestLogger is an interface for things, like *testing.T, that have a
-// Logf and Helper function.
-type TestLogger interface {
-	Logf(format string, args ...interface{})
-	Helper()
-}
-
 type testLogOutput struct {
 	t TestLogger
 }

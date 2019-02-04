@@ -1,59 +1,65 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
+import * as Constants from '../../constants/fs'
+import * as Flow from '../../util/flow'
 import * as Styles from '../../styles'
 import {rowStyles, StillCommon, type StillCommonProps} from './common'
-import {Box, Box2, Icon, Meta, Text} from '../../common-adapters'
-import PathItemInfo from '../common/path-item-info'
+import * as Kb from '../../common-adapters'
+import {PathItemInfo} from '../common'
 
 type StillProps = StillCommonProps & {
-  isDownloading?: boolean,
+  intentIfDownloading?: ?Types.DownloadIntent,
   isEmpty: boolean,
-  lastModifiedTimestamp: number,
-  lastWriter: string,
   type: Types.PathType,
 }
 
-const RowMeta = ({isDownloading}) => {
-  if (!isDownloading) {
-    return null
+const getDownloadingText = (intent: Types.DownloadIntent) => {
+  switch (intent) {
+    case 'none':
+      return 'Downloading ...'
+    case 'camera-roll':
+      return 'Saving ...'
+    case 'share':
+      return 'Preparing to send to other app ...'
+    default:
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(intent)
+      return ''
   }
-
-  return (
-    <Box style={{width: 0, display: 'flex'}}>
-      {isDownloading && (
-        <Box style={rowStyles.downloadContainer}>
-          <Icon type="icon-addon-file-downloading" />
-        </Box>
-      )}
-    </Box>
-  )
 }
 
 const Still = (props: StillProps) => (
-  <StillCommon itemStyles={props.itemStyles} name={props.name} path={props.path} onOpen={props.onOpen}>
-    <RowMeta isDownloading={props.isDownloading} />
-    <Box style={rowStyles.itemBox}>
-      <Box2 direction="horizontal" fullWidth={true}>
-        <Text
-          type={props.itemStyles.textType}
-          style={Styles.collapseStyles([rowStyles.rowText, {color: props.itemStyles.textColor}])}
+  <StillCommon
+    name={props.name}
+    path={props.path}
+    onOpen={props.onOpen}
+    inDestinationPicker={props.inDestinationPicker}
+    badge={props.intentIfDownloading ? 'download' : null}
+    routePath={props.routePath}
+  >
+    <Kb.Box style={rowStyles.itemBox}>
+      <Kb.Box2 direction="horizontal" fullWidth={true}>
+        <Kb.Text
+          type={Constants.pathTypeToTextType(props.type)}
+          style={Styles.collapseStyles([rowStyles.rowText, {color: Constants.getPathTextColor(props.path)}])}
           lineClamp={Styles.isMobile ? 1 : undefined}
         >
           {props.name}
-        </Text>
+        </Kb.Text>
         {props.isEmpty && (
-          <Meta
+          <Kb.Meta
             title="empty"
             backgroundColor={Styles.globalColors.grey}
             style={{marginLeft: Styles.globalMargins.tiny, marginTop: Styles.globalMargins.xxtiny}}
           />
         )}
-      </Box2>
-      {props.type !== 'folder' && (
-        <PathItemInfo lastModifiedTimestamp={props.lastModifiedTimestamp} lastWriter={props.lastWriter} />
+      </Kb.Box2>
+      {props.intentIfDownloading ? (
+        <Kb.Text type="BodySmall">{getDownloadingText(props.intentIfDownloading)}</Kb.Text>
+      ) : (
+        props.type !== 'folder' && <PathItemInfo path={props.path} mode="row" />
       )}
-    </Box>
+    </Kb.Box>
   </StillCommon>
 )
 

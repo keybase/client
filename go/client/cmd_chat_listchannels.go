@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/keybase/cli"
@@ -15,6 +16,7 @@ type CmdChatListChannels struct {
 
 	tlfName   string
 	topicType chat1.TopicType
+	json      bool
 }
 
 func NewCmdChatListChannelsRunner(g *libkb.GlobalContext) *CmdChatListChannels {
@@ -24,6 +26,11 @@ func NewCmdChatListChannelsRunner(g *libkb.GlobalContext) *CmdChatListChannels {
 }
 
 func newCmdChatListChannels(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	flags := mustGetChatFlags("topic-type")
+	flags = append(flags, cli.BoolFlag{
+		Name:  "j, json",
+		Usage: "Output channels as JSON",
+	})
 	return cli.Command{
 		Name:         "list-channels",
 		Usage:        "List of channels on a team",
@@ -31,7 +38,7 @@ func newCmdChatListChannels(cl *libcmdline.CommandLine, g *libkb.GlobalContext) 
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdChatListChannelsRunner(g), "list-channels", c)
 		},
-		Flags: mustGetChatFlags("topic-type"),
+		Flags: flags,
 	}
 }
 
@@ -52,6 +59,15 @@ func (c *CmdChatListChannels) Run() error {
 		return err
 	}
 
+	if c.json {
+		b, err := json.Marshal(listRes)
+		if err != nil {
+			return err
+		}
+		ui.Printf("%s\n", string(b))
+		return nil
+	}
+
 	ui.Printf("Listing channels on %s:\n\n", c.tlfName)
 	for _, c := range listRes.Convs {
 		convLine := fmt.Sprintf("#%s", c.Channel)
@@ -62,15 +78,13 @@ func (c *CmdChatListChannels) Run() error {
 			convLine += fmt.Sprintf(" (created by: %s on: %s)", c.CreatorInfo.Username,
 				c.CreatorInfo.Ctime.Time().Format("2006-01-02"))
 		}
-		ui.Printf(convLine + "\n")
+		ui.Printf("%s\n", convLine)
 	}
-
 	return nil
 }
 
 func (c *CmdChatListChannels) ParseArgv(ctx *cli.Context) (err error) {
 	if len(ctx.Args()) != 1 {
-		cli.ShowCommandHelp(ctx, "list-channels")
 		return fmt.Errorf("incorrect usage")
 	}
 
@@ -78,6 +92,8 @@ func (c *CmdChatListChannels) ParseArgv(ctx *cli.Context) (err error) {
 	if c.topicType, err = parseConversationTopicType(ctx); err != nil {
 		return err
 	}
+
+	c.json = ctx.Bool("json")
 	return nil
 }
 

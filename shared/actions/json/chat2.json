@@ -7,6 +7,7 @@
     "import type {RetentionPolicy} from '../constants/types/retention-policy'"
   ],
   "actions": {
+    "toggleSmallTeamsExpanded": {},
     // Select a conversation (or leave nothing selected)
     "selectConversation": {
       "conversationIDKey": "Types.ConversationIDKey",
@@ -18,6 +19,7 @@
         "'sendingToPending'", // select the pending we sent into
         "'createdMessagePrivately'", // messaging privately and maybe made it
         "'extension'", // from a notification from iOS share extension
+        "'files'", // from the Files tab
         "'findNewestConversation'", // find a new chat to select
         "'inboxBig'", // inbox row
         "'inboxFilterArrow'", // arrow keys in inbox filter
@@ -59,12 +61,18 @@
         "'teamHeader'",
         "'convertAdHoc'",
         "'memberView'",
-        "'newChannel'"
+        "'newChannel'",
+        "'transaction'",
+        "'requestedPayment'"
       ]
     },
     "createConversation": {
       "_description": "Actually start a conversation",
       "participants": "Array<string>"
+    },
+    "changeFocus": {
+      "_description": "Where we want our focus for keypresses",
+      "nextFocus": "Types.Focus"
     },
     // Update our badges in the nav
     "badgesUpdated": {
@@ -109,7 +117,6 @@
       "neverCreate?": "boolean", // If true never create a brand new meta, only update
       "clearExistingMetas?": "boolean", // If true, clear out the existing metaMap before inserting
       "clearExistingMessages?": "boolean", // If true, clear out any message data we already have.
-      "fromEphemeralPurge?": "boolean", // If true, use meta updating logic for when messages explode
       "fromExpunge?": "boolean", // If true, use meta updating logic for retention policy deletes
       "fromInboxRefresh?": "boolean" // If true from an inbox refresh
     },
@@ -150,8 +157,7 @@
       "outboxID": "Types.OutboxID"
     },
     "setPendingConversationExistingConversationIDKey": {
-      "_description":
-        "When the search changes we need to find any existing conversations to stash into the metaMap",
+      "_description": "When the search changes we need to find any existing conversations to stash into the metaMap",
       "conversationIDKey": "Types.ConversationIDKey"
     },
     // Start editing a message / or edit the last message / or clear editing
@@ -185,6 +191,11 @@
       "mentionsAt": "I.Set<string>",
       "mentionsChannel": "'none' | 'all' | 'here'",
       "mentionsChannelName": "I.Map<string, Types.ConversationIDKey>"
+    },
+    "pendingMessageWasEdited": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal",
+      "text": "HiddenString"
     },
     // Mark a message as deleted
     "messagesWereDeleted": {
@@ -290,9 +301,17 @@
     },
     // We want to save an attachment to the local disk
     "attachmentDownload": {
+      "message": "Types.Message"
+    },
+    // Saving an attachment to mobile storage
+    "attachmentMobileSave": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "Types.Ordinal",
-      "forShare?": "boolean"
+      "ordinal": "Types.Ordinal"
+    },
+    // Saving an attachment to mobile storage has finished
+    "attachmentMobileSaved": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal"
     },
     // Update the loading bars
     "attachmentLoading": {
@@ -303,15 +322,13 @@
     },
     // We saved an attachment to the local disk
     "attachmentDownloaded": {
-      "conversationIDKey": "Types.ConversationIDKey",
-      "ordinal": "Types.Ordinal",
-      "path?": "string",
-      "forShare?": "boolean"
+      "message": "Types.Message",
+      "path?": "string"
     },
     // We want to upload some attachments
     "attachmentsUpload": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "paths": "Array<string>",
+      "paths": "Array<Types.PathAndOutboxID>",
       "titles": "Array<string>"
     },
     // Update progress on an upload
@@ -325,20 +342,29 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "Types.Ordinal"
     },
+    // Image data pasted into a conversation
+    "attachmentPasted": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "data": "Buffer"
+    },
+    "attachmentFullscreenSelection": {
+      "message": "Types.Message"
+    },
+    "attachmentFullscreenNext": {
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "Types.MessageID",
+      "backInTime": "boolean"
+    },
     // We got an uploaded attachment, while online this is like an edit of the placeholder
     "messageAttachmentUploaded": {
       "conversationIDKey": "Types.ConversationIDKey",
       "placeholderID": "RPCChatTypes.MessageID",
       "message": "Types.MessageAttachment"
     },
-    // Update who's typing in a conversation
-    "updateTypers": {
-      "conversationToTypers": "I.Map<Types.ConversationIDKey, I.Set<string>>"
-    },
     // Tell server we're typing
     "sendTyping": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "typing": "boolean"
+      "text": "HiddenString"
     },
     // On startup we're automatically loading a thread sometimes. When we first view it we should
     // go through our marking as read logic
@@ -352,6 +378,7 @@
     },
     // Navigation helpers. Nav is slightly different on mobile / desktop
     "navigateToInbox": {
+      "avoidConversationID?": "Types.ConversationIDKey",
       "findNewConversation": "boolean"
     },
     "navigateToThread": {},
@@ -393,8 +420,7 @@
       "policy": "RetentionPolicy"
     },
     "updateConvRetentionPolicy": {
-      "_description":
-        "Consume a service notification that a conversation's retention policy has been updated",
+      "_description": "Consume a service notification that a conversation's retention policy has been updated",
       "conv": "RPCChatTypes.InboxUIItem"
     },
     "updateTeamRetentionPolicy": {
@@ -415,25 +441,18 @@
       "_description": "Handle an update to our conversation exploding modes.",
       "modes": "Array<{conversationIDKey: Types.ConversationIDKey, seconds: number}>"
     },
-    "setExplodingMessagesNew": {
-      "_description": "Set whether exploding messages are a new feature or not.",
-      "new": "boolean"
+    "setWalletsOld": {
+      "_description": "Set that wallets in chat is not new."
     },
-    "handleSeeingExplodingMessages": {
-      "_description":
-        "Some things need to happen when the user interacts with the exploding messages feature. Trigger the handler that takes care of those things."
+    "handleSeeingWallets": {
+      "_description": "The user has interacted with wallets in chat."
     },
     "staticConfigLoaded": {
       "_description": "Static configuration info was loaded from the service.",
       "staticConfig": "Types.StaticConfig"
     },
-    "filePickerError": {
-      "_description": "Sent whenever the mobile file picker encounters an error.",
-      "error": "Error"
-    },
     "setMinWriterRole": {
-      "_description":
-        "Set the minimum role required to write into a conversation. Valid only for team conversations.",
+      "_description": "Set the minimum role required to write into a conversation. Valid only for team conversations.",
       "conversationIDKey": "Types.ConversationIDKey",
       "role": "TeamsTypes.TeamRoleType"
     },
@@ -456,6 +475,59 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "messageID": "RPCChatTypes.MessageID",
       "requestInfo": "Types.ChatRequestInfo"
+    },
+    "prepareFulfillRequestForm": {
+      "_description": "Prime data to fulfill this message's request and navigate to the send form.",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "ordinal": "Types.Ordinal"
+    },
+    "unfurlResolvePrompt": {
+      "_description": "Response to an unfurl prompt",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "Types.MessageID",
+      "domain": "string",
+      "result": "RPCChatTypes.UnfurlPromptResult"
+    },
+    "unfurlTogglePrompt": {
+      "_description": "Add an unfurl prompt to a message",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "Types.MessageID",
+      "domain": "string",
+      "show": "boolean"
+    },
+    "unfurlRemove": {
+      "_description": "Remove an unfurl",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "Types.MessageID"
+    },
+    "updateMessages": {
+      "_description": "Update messages that we might have in the store",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messages": "Array<{messageID: Types.MessageID, message: Types.Message}>"
+    },
+    "clearPaymentConfirmInfo": {
+      "_description": "Clear data for payment confirm modal"
+    },
+    "setPaymentConfirmInfo": {
+      "_description": "Set the payment confirm modal payment data",
+      "summary": "RPCChatTypes.UIChatPaymentSummary",
+      "canError": {
+        "error": "string"
+      }
+    },
+    "confirmScreenResponse": {
+      "_description": "User responded to the chat Stellar confirm screen",
+      "accept": "boolean"
+    },
+    "setUnsentText": {
+      "_description": "Set unsent text for a conversation",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "text": "HiddenString"
+    },
+    "updateUnreadline": {
+      "_description": "Update the unreadline line position for a conversation",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "Types.MessageID"
     }
   }
 }

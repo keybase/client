@@ -1,11 +1,22 @@
 // @flow
 import * as I from 'immutable'
-import type {State} from './types/waiting'
+import * as Types from './types/waiting'
+import type {RPCError} from '../util/errors'
+import {isString} from 'lodash-es'
 
-const anyWaiting = (state: {+waiting: State}, ...keys: Array<string>) => {
-  return keys.reduce((acc, k) => acc + state.waiting.get(k, 0), 0) > 0
+export const anyWaiting = (state: {+waiting: Types.State}, ...keys: Array<string>) => {
+  return keys.reduce((acc, k) => acc + state.waiting.counts.get(k, 0), 0) > 0
 }
 
-const initialState: State = I.Map()
+export const anyErrors = (state: {+waiting: Types.State}, keys: string | Array<string>): ?RPCError => {
+  if (isString(keys)) {
+    return state.waiting.errors.get(keys, null)
+  }
 
-export {anyWaiting, initialState}
+  return keys.reduce((acc, k) => acc || state.waiting.errors.get(k, null), null)
+}
+
+export const makeState: I.RecordFactory<Types._State> = I.Record({
+  counts: I.Map(),
+  errors: I.Map(),
+})

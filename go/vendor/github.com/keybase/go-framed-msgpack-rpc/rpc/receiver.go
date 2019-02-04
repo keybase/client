@@ -13,7 +13,7 @@ type receiver interface {
 }
 
 type receiveHandler struct {
-	writer      encoder
+	writer      *framedMsgpackEncoder
 	protHandler *protocolHandler
 
 	tasks map[int]context.CancelFunc
@@ -31,7 +31,7 @@ type receiveHandler struct {
 	log LogInterface
 }
 
-func newReceiveHandler(enc encoder, protHandler *protocolHandler, l LogInterface) *receiveHandler {
+func newReceiveHandler(enc *framedMsgpackEncoder, protHandler *protocolHandler, l LogInterface) *receiveHandler {
 	r := &receiveHandler{
 		writer:      enc,
 		protHandler: protHandler,
@@ -85,6 +85,8 @@ func (r *receiveHandler) Receive(rpc rpcMessage) error {
 		return r.receiveResponse(message)
 	case *rpcCancelMessage:
 		return r.receiveCancel(message)
+	case *rpcCallCompressedMessage:
+		return r.receiveCallCompressed(message)
 	default:
 		return NewReceiverError("invalid message type, %d", rpc.Type())
 	}
@@ -97,6 +99,11 @@ func (r *receiveHandler) receiveNotify(rpc *rpcNotifyMessage) error {
 
 func (r *receiveHandler) receiveCall(rpc *rpcCallMessage) error {
 	req := newCallRequest(rpc, r.log)
+	return r.handleReceiveDispatch(req)
+}
+
+func (r *receiveHandler) receiveCallCompressed(rpc *rpcCallCompressedMessage) error {
+	req := newCallCompressedRequest(rpc, r.log)
 	return r.handleReceiveDispatch(req)
 }
 

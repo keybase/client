@@ -28,6 +28,12 @@
     },
     {
       "type": "record",
+      "name": "PaymentID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
       "name": "KeybaseTransactionID",
       "fields": [],
       "typedef": "string"
@@ -52,16 +58,6 @@
     },
     {
       "type": "record",
-      "name": "PaymentID",
-      "fields": [
-        {
-          "type": "TransactionID",
-          "name": "txID"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "Asset",
       "fields": [
         {
@@ -75,6 +71,14 @@
         {
           "type": "string",
           "name": "issuer"
+        },
+        {
+          "type": "string",
+          "name": "verifiedDomain"
+        },
+        {
+          "type": "string",
+          "name": "issuerName"
         }
       ]
     },
@@ -126,7 +130,8 @@
       "name": "RequestStatus",
       "symbols": [
         "OK_0",
-        "CANCELED_1"
+        "CANCELED_1",
+        "DONE_2"
       ]
     },
     {
@@ -150,6 +155,10 @@
       "type": "record",
       "name": "PaymentResult",
       "fields": [
+        {
+          "type": "AccountID",
+          "name": "senderAccountID"
+        },
         {
           "type": "KeybaseTransactionID",
           "name": "keybaseID"
@@ -358,6 +367,15 @@
           "type": "string",
           "name": "relayCursor"
         }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "AccountMode",
+      "symbols": [
+        "NONE_0",
+        "USER_1",
+        "MOBILE_2"
       ]
     }
   ],

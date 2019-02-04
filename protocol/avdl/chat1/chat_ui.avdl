@@ -6,6 +6,8 @@ protocol chatUi {
   import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
   import idl "github.com/keybase/client/go/protocol/stellar1" as stellar1;
   import idl "common.avdl";
+  import idl "unfurl.avdl";
+  import idl "commands.avdl";
 
   record UIPagination {
     string next;
@@ -26,6 +28,7 @@ protocol chatUi {
   record UnverifiedInboxUIItem {
     string convID;
     TopicType topicType;
+    boolean isPublic;
     string name;
     keybase1.TLFVisibility visibility;
     ConversationStatus status;
@@ -35,13 +38,18 @@ protocol chatUi {
     union{ null, ConversationNotificationInfo } notifications;
     gregor1.Time time;
     ConversationVers version;
+    union { null, RetentionPolicy } convRetention;
+    union { null, RetentionPolicy } teamRetention;
     MessageID maxMsgID;
+    MessageID maxVisibleMsgID;
     MessageID readMsgID;
     union { null , UnverifiedInboxUIItemMetadata } localMetadata;
 
     union { null, ConversationFinalizeInfo } finalizeInfo;
     array<ConversationMetadata> supersedes;
     array<ConversationMetadata> supersededBy;
+
+    ConversationCommandGroups commands;
   }
 
   record UnverifiedInboxUIItems {
@@ -53,6 +61,7 @@ protocol chatUi {
   record InboxUIItem {
     string convID;
     TopicType topicType;
+    boolean isPublic;
     boolean isEmpty;
     string name;
     string snippet;
@@ -72,6 +81,7 @@ protocol chatUi {
     union { null, ConversationCreatorInfoLocal } creatorInfo;
     ConversationVers version;
     MessageID maxMsgID;
+    MessageID maxVisibleMsgID;
     MessageID readMsgID;
     union { null, RetentionPolicy } convRetention;
     union { null, RetentionPolicy } teamRetention;
@@ -81,6 +91,8 @@ protocol chatUi {
     union { null, ConversationFinalizeInfo } finalizeInfo;
     array<ConversationMetadata> supersedes;
     array<ConversationMetadata> supersededBy;
+
+    ConversationCommandGroups commands;
   }
 
   record InboxUIItemError {
@@ -113,20 +125,34 @@ protocol chatUi {
   }
 
   record UIPaymentInfo {
-    string amountDescription;       // "1,323.1234567 XLM"
-    string worth;                   // "$123.23"
-    stellar1.BalanceDelta delta;    // NONE/INCREASE/DECREASE (e.g. INCREASE for "+ 1,323.1234567 XLM" amount above)
-    string note;                    // secret note
-    stellar1.PaymentStatus status;  // NONE, PENDING, CLAIMABLE, COMPLETED, ERROR, UNKNOWN
-    string statusDescription;       // "pending", "completed", "error"
+    union { null, stellar1.AccountID } accountID; // "GXXXXXXX..."
+    string amountDescription;                     // "1,323.1234567 XLM"
+    string worth;                                 // "$123.23"
+    string worthAtSendTime;                       // "$123.23 CLP", amount in current user's display currency if this is a pure XLM tx
+    stellar1.BalanceDelta delta;                  // NONE/INCREASE/DECREASE (e.g. INCREASE for "+ 1,323.1234567 XLM" amount above)
+    string note;                                  // secret note
+    stellar1.PaymentID paymentID;                 // opaque paymentID
+    stellar1.PaymentStatus status;                // NONE, PENDING, CLAIMABLE, COMPLETED, ERROR, UNKNOWN
+    string statusDescription;                     // "pending", "completed", "error"
+    string statusDetail;
+    boolean showCancel;                           // true if cancel is an option for this payment
+    string fromUsername;
+    string toUsername;
   }
 
   record UIRequestInfo {
-    string amount; 
-    string amountDescription; 
+    string amount;
+    string amountDescription;
     union { null, stellar1.Asset } asset;
     union { null, stellar1.OutsideCurrencyCode } currency;
+    string worthAtRequestTime;
     stellar1.RequestStatus status;
+  }
+
+  record UIMessageUnfurlInfo {
+    MessageID unfurlMessageID;
+    string url;
+    UnfurlDisplay unfurl;
   }
 
   record UIMessageValid {
@@ -134,9 +160,12 @@ protocol chatUi {
     gregor1.Time ctime;
     union { null, string } outboxID;
     MessageBody messageBody;
+    union { null, string } decoratedTextBody;
     string senderUsername;
     string senderDeviceName;
     string senderDeviceType;
+    gregor1.UID senderUID;
+    gregor1.DeviceID senderDeviceID;
     boolean superseded;
     union { null, UIAssetUrlInfo } assetUrlInfo;
     union { null, gregor1.Time } senderDeviceRevokedAt;
@@ -150,8 +179,9 @@ protocol chatUi {
     // reactionText -> [Reaction(username, reactionMsgID)...]
     ReactionMap reactions;
     boolean hasPairwiseMacs;
-    union { null, UIPaymentInfo } paymentInfo;
+    array<UIPaymentInfo> paymentInfos;
     union { null, UIRequestInfo } requestInfo;
+    array<UIMessageUnfurlInfo> unfurls;
   }
 
   record UIMessageOutbox {
@@ -159,6 +189,7 @@ protocol chatUi {
     string outboxID;
     MessageType messageType;
     string body;
+    union { null, string } decoratedTextBody;
     gregor1.Time ctime;
     double ordinal;
 
@@ -187,6 +218,18 @@ protocol chatUi {
     union { null, UIPagination } pagination;
   }
 
+  enum UITextDecorationTyp {
+    PAYMENT_0,
+    ATMENTION_1,
+    CHANNELNAMEMENTION_2
+  }
+
+  variant UITextDecoration switch (UITextDecorationTyp typ) {
+    case PAYMENT: TextPayment;
+    case ATMENTION: string;
+    case CHANNELNAMEMENTION: UIChannelNameMention;
+  }
+
   void chatAttachmentDownloadStart(int sessionID);
   void chatAttachmentDownloadProgress(int sessionID, long bytesComplete, long bytesTotal) oneway;
   void chatAttachmentDownloadDone(int sessionID);
@@ -198,15 +241,32 @@ protocol chatUi {
   void chatThreadCached(int sessionID, union { null, string } thread) oneway;
   void chatThreadFull(int sessionID, string thread) oneway;
 
-  record ChatSearchHit {
-    array<UIMessage> beforeMessages;
-    UIMessage hitMessage;
-    array<UIMessage> afterMessages;
-    array<string>  matches;
-  }
-
   void chatSearchHit(int sessionID, ChatSearchHit searchHit);
   void chatSearchDone(int sessionID, int numHits);
 
+  void chatSearchInboxHit(int sessionID, ChatSearchInboxHit searchHit);
+  void chatSearchInboxDone(int sessionID, ChatSearchInboxDone res);
+  void chatSearchIndexStatus(int sessionID, ChatSearchIndexStatus status);
+
   boolean chatConfirmChannelDelete(int sessionID, string channel);
+
+  // Chat Stellar send confirm screen UI
+  record UIChatPayment {
+    string username;
+    string fullName;
+    string xlmAmount;
+    union { null, string } error;
+    union { null, string } displayAmount;
+  }
+  record UIChatPaymentSummary {
+    string xlmTotal;
+    string displayTotal;
+    array<UIChatPayment> payments;
+  }
+  void chatStellarShowConfirm(int sessionID);
+  boolean chatStellarDataConfirm(int sessionID, UIChatPaymentSummary summary);
+  boolean chatStellarDataError(int sessionID, string message);
+  void chatStellarDone(int sessionID, boolean canceled);
+
+  void chatShowManageChannels(int sessionID, string teamname);
 }

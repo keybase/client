@@ -1,11 +1,16 @@
 // @flow
 import * as React from 'react'
+import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
 import {BrokenTrackerBanner, InviteBanner} from '.'
-import {connect, type TypedState} from '../../../util/container'
+import {connect} from '../../../util/container'
 import {createGetProfile} from '../../../actions/tracker-gen'
 import {isMobile} from '../../../constants/platform'
 import {createShowUserProfile} from '../../../actions/profile-gen'
+
+type OwnProps = {|
+  conversationIDKey: Types.ConversationIDKey,
+|}
 
 type Props = {
   type: 'invite' | 'none' | 'broken',
@@ -23,10 +28,11 @@ class BannerContainer extends React.PureComponent<Props> {
       case 'none':
         return null
     }
+    return null
   }
 }
 
-const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
+const mapStateToProps = (state, {conversationIDKey}) => {
   const _following = state.config.following
   const _meta = Constants.getMeta(state, conversationIDKey)
   const _users = state.users
@@ -37,13 +43,13 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   onClick: isMobile
     ? (username: string) => dispatch(createShowUserProfile({username}))
     : (username: string) => dispatch(createGetProfile({forceDisplay: true, ignoreCache: true, username})),
 })
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = (stateProps, dispatchProps) => {
   let type
   let users
 
@@ -74,4 +80,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(BannerContainer)
+export default connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(BannerContainer)

@@ -1,18 +1,19 @@
 // @flow
-import {connect, type TypedState} from '../../../util/container'
+import {connect} from '../../../util/container'
 import * as Constants from '../../../constants/teams'
 import * as Chat2Gen from '../../../actions/chat2-gen'
+import * as ConfigGen from '../../../actions/config-gen'
 import * as Types from '../../../constants/types/teams'
 import type {Response} from 'react-native-image-picker'
 import {createAddResultsToUserInput} from '../../../actions/search-gen'
-import {navigateAppend} from '../../../actions/route-tree'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {TeamHeader} from '.'
 
 export type OwnProps = {
   teamname: Types.Teamname,
 }
 
-const mapStateToProps = (state: TypedState, {teamname}: OwnProps) => {
+const mapStateToProps = (state, {teamname}: OwnProps) => {
   const yourOperations = Constants.getCanPerform(state, teamname)
   return {
     _you: state.config.username,
@@ -32,15 +33,19 @@ const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
     if (!you) {
       return
     }
-    dispatch(navigateAppend([{props: {teamname}, selected: 'addPeople'}]))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'addPeople'}]}))
     dispatch(createAddResultsToUserInput({searchKey: 'addToTeamSearch', searchResults: [you]}))
   },
-  onChat: () => dispatch(Chat2Gen.createPreviewConversation({teamname, reason: 'teamHeader'})),
-  onEditDescription: () => dispatch(navigateAppend([{props: {teamname}, selected: 'editTeamDescription'}])),
+  onChat: () => dispatch(Chat2Gen.createPreviewConversation({reason: 'teamHeader', teamname})),
+  onEditDescription: () =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'editTeamDescription'}]})
+    ),
   onEditIcon: (image?: Response) =>
     dispatch(
-      navigateAppend([{props: {image, sendChatNotification: true, teamname}, selected: 'editTeamAvatar'}])
+      RouteTreeGen.createNavigateAppend({path: [{props: {image, sendChatNotification: true, teamname}, selected: 'editTeamAvatar'}]})
     ),
+  onFilePickerError: (error: Error) => dispatch(ConfigGen.createFilePickerError({error})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
@@ -54,9 +59,14 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onChat: dispatchProps.onChat,
   onEditDescription: dispatchProps.onEditDescription,
   onEditIcon: dispatchProps.onEditIcon,
+  onFilePickerError: dispatchProps.onFilePickerError,
   openTeam: stateProps.openTeam,
   role: stateProps.role,
   teamname: ownProps.teamname,
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(TeamHeader)
+export default connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(TeamHeader)

@@ -80,6 +80,11 @@ type Reply struct {
 	Result  interface{} `json:"result,omitempty"`
 }
 
+// Checker implementations can check their options for errors.
+type Checker interface {
+	Check() error
+}
+
 // cmdAPI contains common functionality for json api commands
 type cmdAPI struct {
 	indent     bool
@@ -201,4 +206,44 @@ func (c *cmdAPI) decode(ctx context.Context, r io.Reader, w io.Writer, h handler
 
 	return nil
 
+}
+
+// encodeResult JSON encodes a successful result to the wr writer.
+func encodeResult(call Call, result interface{}, wr io.Writer, indent bool) error {
+	reply := Reply{
+		Result: result,
+	}
+	return encodeReply(call, reply, wr, indent)
+}
+
+// encodeErr JSON encodes an error.
+func encodeErr(call Call, err error, wr io.Writer, indent bool) error {
+	reply := Reply{Error: &CallError{Message: err.Error()}}
+	return encodeReply(call, reply, wr, indent)
+}
+
+// encodeReply JSON encodes all replies.
+func encodeReply(call Call, reply Reply, wr io.Writer, indent bool) error {
+	// copy jsonrpc fields from call to reply
+	reply.Jsonrpc = call.Jsonrpc
+	reply.ID = call.ID
+
+	enc := json.NewEncoder(wr)
+	if indent {
+		enc.SetIndent("", "    ")
+	}
+	return enc.Encode(reply)
+}
+
+// unmarshalOptions unmarshals any options in Call into opts,
+// and verify they pass the Checker checks.
+func unmarshalOptions(c Call, opts Checker) error {
+	if len(c.Params.Options) == 0 {
+		// still check the options in case any fields are required.
+		return opts.Check()
+	}
+	if err := json.Unmarshal(c.Params.Options, opts); err != nil {
+		return err
+	}
+	return opts.Check()
 }

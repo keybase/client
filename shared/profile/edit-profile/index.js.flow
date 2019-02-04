@@ -1,4 +1,5 @@
 // @flow
+// // TODO deprecate
 import {Component} from 'react'
 
 export type Props = {
@@ -9,8 +10,7 @@ export type Props = {
   location: string,
   onBack: () => void,
   onBioChange: (bio: string) => void,
-  onCancel: () => void,
-  onEditProfile?: () => void,
+  onCancel?: () => void,
   onFullnameChange: (fullname: string) => void,
   onLocationChange: (location: string) => void,
   onSubmit: () => void,

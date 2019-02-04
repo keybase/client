@@ -31,8 +31,11 @@ func (d DeviceCloneState) IsClone() bool {
 	return d.Clones > 1
 }
 
-func UpdateDeviceCloneState(m MetaContext) (before int, after int, err error) {
+func UpdateDeviceCloneState(m MetaContext) (before, after int, err error) {
 	d, err := GetDeviceCloneState(m)
+	if err != nil {
+		return 0, 0, err
+	}
 	before = d.Clones
 
 	prior, stage := d.Prior, d.Stage
@@ -45,8 +48,7 @@ func UpdateDeviceCloneState(m MetaContext) (before int, after int, err error) {
 		if err != nil {
 			return 0, 0, err
 		}
-		err = SetDeviceCloneState(m, DeviceCloneState{Prior: prior, Stage: stage, Clones: d.Clones})
-		if err != nil {
+		if err = SetDeviceCloneState(m, DeviceCloneState{Prior: prior, Stage: stage, Clones: d.Clones}); err != nil {
 			return 0, 0, err
 		}
 	}
@@ -63,13 +65,12 @@ func UpdateDeviceCloneState(m MetaContext) (before int, after int, err error) {
 		MetaContext: m,
 	}
 	var res cloneDetectionResponse
-	err = m.G().API.PostDecode(arg, &res)
-	if err != nil {
+	if err = m.G().API.PostDecode(arg, &res); err != nil {
 		return 0, 0, err
 	}
 
-	err = SetDeviceCloneState(m, DeviceCloneState{Prior: res.Token, Stage: "", Clones: res.Clones})
 	after = res.Clones
+	err = SetDeviceCloneState(m, DeviceCloneState{Prior: res.Token, Stage: "", Clones: after})
 	return before, after, err
 }
 
@@ -81,8 +82,11 @@ func deviceCloneJSONPaths(m MetaContext) (string, string, string) {
 	return p, s, c
 }
 
-func GetDeviceCloneState(m MetaContext) (DeviceCloneState, error) {
+func GetDeviceCloneState(m MetaContext) (state DeviceCloneState, err error) {
 	reader, err := newDeviceCloneStateReader(m)
+	if err != nil {
+		return state, err
+	}
 	pPath, sPath, cPath := deviceCloneJSONPaths(m)
 	p, _ := reader.GetStringAtPath(pPath)
 	s, _ := reader.GetStringAtPath(sPath)
@@ -90,10 +94,13 @@ func GetDeviceCloneState(m MetaContext) (DeviceCloneState, error) {
 	if c < 1 {
 		c = 1
 	}
-	return DeviceCloneState{Prior: p, Stage: s, Clones: c}, err
+	state = DeviceCloneState{Prior: p, Stage: s, Clones: c}
+	m.CDebugf("GetDeviceCloneState: %+v", state)
+	return state, nil
 }
 
 func SetDeviceCloneState(m MetaContext, d DeviceCloneState) error {
+	m.CDebugf("SetDeviceCloneState: %+v", d)
 	writer, err := newDeviceCloneStateWriter(m)
 	if err != nil {
 		return err
@@ -112,20 +119,16 @@ func SetDeviceCloneState(m MetaContext, d DeviceCloneState) error {
 	}()
 
 	pPath, sPath, cPath := deviceCloneJSONPaths(m)
-	err = writer.SetStringAtPath(pPath, d.Prior)
-	if err != nil {
+	if err = writer.SetStringAtPath(pPath, d.Prior); err != nil {
 		return err
 	}
-	err = writer.SetStringAtPath(sPath, d.Stage)
-	if err != nil {
+	if err = writer.SetStringAtPath(sPath, d.Stage); err != nil {
 		return err
 	}
-	err = writer.SetIntAtPath(cPath, d.Clones)
-	if err != nil {
+	if err = writer.SetIntAtPath(cPath, d.Clones); err != nil {
 		return err
 	}
-	err = tx.Commit()
-	if err != nil {
+	if err = tx.Commit(); err != nil {
 		return err
 	}
 

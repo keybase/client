@@ -113,6 +113,18 @@ func (b *StdinSource) Seek(offset int64, whence int) (int64, error) {
 	return 0, errors.New("StdinSource does not support Seek")
 }
 
+// isValidFile verifies the file in question is not actually a directory.
+func isValidFile(file *os.File) error {
+	finfo, err := file.Stat()
+	if err != nil {
+		return err
+	}
+	if mode := finfo.Mode(); mode.IsDir() {
+		return fmt.Errorf("A directory is not a valid file")
+	}
+	return nil
+}
+
 type FileSource struct {
 	name string
 	file *os.File
@@ -125,6 +137,9 @@ func NewFileSource(s string) *FileSource {
 func (s *FileSource) Open() error {
 	f, err := os.OpenFile(s.name, os.O_RDONLY, 0)
 	if err != nil {
+		return err
+	}
+	if err = isValidFile(f); err != nil {
 		return err
 	}
 	s.file = f
@@ -258,6 +273,10 @@ func (s *FileSink) lazyOpen() error {
 			s.failed = true
 			return fmt.Errorf("Failed to open %s for writing: %s",
 				s.name, err)
+		}
+		if err := isValidFile(f); err != nil {
+			s.failed = true
+			return err
 		}
 		s.file = f
 		s.bufw = bufio.NewWriter(f)

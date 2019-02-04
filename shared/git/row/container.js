@@ -1,10 +1,12 @@
 // @flow
 import Row from '.'
 import * as Constants from '../../constants/git'
+import * as FsConstants from '../../constants/fs'
+import * as FsTypes from '../../constants/types/fs'
 import * as ConfigGen from '../../actions/config-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as GitGen from '../../actions/git-gen'
-import {connect, type TypedState, compose, withHandlers, isMobile} from '../../util/container'
+import {namedConnect, compose, withHandlers, isMobile} from '../../util/container'
 import * as TrackerGen from '../../actions/tracker-gen'
 import {gitTab, settingsTab} from '../../constants/tabs'
 import {gitTab as settingsGitTab} from '../../constants/settings'
@@ -17,11 +19,11 @@ type OwnProps = {
   onToggleExpand: string => void,
 }
 
-const mapStateToProps = (state: TypedState, {id, expanded}: OwnProps) => {
+const mapStateToProps = (state, {id, expanded}: OwnProps) => {
   const git = state.git.getIn(['idToInfo', id], Constants.makeGitInfo())
   return {
-    git,
     expanded,
+    git,
     isNew: !!state.git.getIn(['isNew', id], false),
     lastEditUserFollowing: state.config.following.has(git.lastEditUser),
     you: state.config.username,
@@ -29,31 +31,33 @@ const mapStateToProps = (state: TypedState, {id, expanded}: OwnProps) => {
 }
 
 const mapDispatchToProps = dispatch => ({
-  copyToClipboard: text => dispatch(ConfigGen.createCopyToClipboard({text})),
-  openUserTracker: (username: string) =>
-    dispatch(TrackerGen.createGetProfile({username, forceDisplay: true})),
-  _setDisableChat: (disabled: boolean, repoID: string, teamname: ?string) =>
-    dispatch(
-      GitGen.createSetTeamRepoSettings({
-        chatDisabled: disabled,
-        repoID,
-        teamname: teamname || '',
-        channelName: null,
-      })
-    ),
   _onOpenChannelSelection: (repoID: string, teamname: ?string, selected: string) =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{selected: 'selectChannel', props: {repoID, teamname, selected}}],
         parentPath: isMobile ? [settingsTab, settingsGitTab] : [gitTab],
+        path: [{props: {repoID, selected, teamname}, selected: 'selectChannel'}],
       })
     ),
+  _setDisableChat: (disabled: boolean, repoID: string, teamname: ?string) =>
+    dispatch(
+      GitGen.createSetTeamRepoSettings({
+        channelName: null,
+        chatDisabled: disabled,
+        repoID,
+        teamname: teamname || '',
+      })
+    ),
+  copyToClipboard: text => dispatch(ConfigGen.createCopyToClipboard({text})),
+  openUserTracker: (username: string) =>
+    dispatch(TrackerGen.createGetProfile({forceDisplay: true, username})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const git = stateProps.git
 
   return {
+    _onOpenChannelSelection: () =>
+      dispatchProps._onOpenChannelSelection(git.repoID, git.teamname, git.channelName || 'general'),
     canDelete: git.canDelete,
     canEdit: git.canDelete && !!git.teamname,
     channelName: git.channelName,
@@ -65,24 +69,23 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     lastEditUser: git.lastEditUser,
     lastEditUserFollowing: stateProps.lastEditUserFollowing,
     name: git.name,
-    teamname: git.teamname,
-    url: git.url,
-    you: stateProps.you,
     onClickDevice: () => {
       git.lastEditUser && openURL(`https://keybase.io/${git.lastEditUser}/devices`)
     },
     onCopy: () => dispatchProps.copyToClipboard(git.url),
     onShowDelete: () => ownProps.onShowDelete(git.id),
-    openUserTracker: dispatchProps.openUserTracker,
-    _onOpenChannelSelection: () =>
-      dispatchProps._onOpenChannelSelection(git.repoID, git.teamname, git.channelName || 'general'),
     onToggleChatEnabled: () => dispatchProps._setDisableChat(!git.chatDisabled, git.repoID, git.teamname),
     onToggleExpand: () => ownProps.onToggleExpand(git.id),
+    openUserTracker: dispatchProps.openUserTracker,
+    previewLink: FsConstants.escapePath(FsTypes.stringToPath(git.url.replace(/keybase:\/\/((private|public|team)\/[^/]*)\/(.*)/, '/keybase/$1/.kbfs_autogit/$3'))),
+    teamname: git.teamname,
+    url: git.url,
+    you: stateProps.you,
   }
 }
 
 const ConnectedRow = compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
+  namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'GitRow'),
   withHandlers({
     onChannelClick: ({chatDisabled, _onOpenChannelSelection}) => e => {
       if (chatDisabled) {

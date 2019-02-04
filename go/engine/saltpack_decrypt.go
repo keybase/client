@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"io"
 
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/saltpack"
@@ -104,7 +105,7 @@ func (e *SaltpackDecrypt) makeMessageInfo(me *libkb.User, mki *saltpack.MessageK
 	}
 	ckf := me.GetComputedKeyFamily()
 	for _, nr := range mki.NamedReceivers {
-		kid := keybase1.KIDFromRawKey(nr, byte(libkb.KIDNaclDH))
+		kid := keybase1.KIDFromRawKey(nr, byte(kbcrypto.KIDNaclDH))
 		if dev, _ := ckf.GetDeviceForKID(kid); dev != nil {
 			edev := dev.ProtExport()
 			edev.EncryptKey = kid
@@ -140,7 +141,7 @@ func (e *SaltpackDecrypt) Run(m libkb.MetaContext) (err error) {
 	if e.arg.Opts.UsePaperKey {
 		// Prompt the user for a paper key. This doesn't require you to be
 		// logged in.
-		keypair, _, err := getPaperKey(m, nil)
+		keypair, _, err := getPaperKey(m, nil, nil)
 		if err != nil {
 			return err
 		}
@@ -172,7 +173,7 @@ func (e *SaltpackDecrypt) Run(m libkb.MetaContext) (err error) {
 		m.CDebugf("adding device key for decryption: %v", key.GetKID())
 		addToKeyring(keyring, key)
 
-		perUserKeyring, err := m.G().GetPerUserKeyring()
+		perUserKeyring, err := m.G().GetPerUserKeyring(m.Ctx())
 		if err != nil {
 			return err
 		}

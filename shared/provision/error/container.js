@@ -1,12 +1,12 @@
 // @flow
 import RenderError from '.'
-import {connect, type TypedState} from '../../util/container'
+import {connect} from '../../util/container'
 import {type RouteProps} from '../../route-tree/render-route'
 import openURL from '../../util/open-url'
 
 type OwnProps = RouteProps<{}, {}>
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   error: state.provision.finalError,
 })
 
@@ -17,4 +17,8 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   onPasswordReset: () => openURL('https://keybase.io/#password-reset'),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(RenderError)
+export default connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d})
+)(RenderError)

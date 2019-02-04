@@ -12,6 +12,7 @@ import (
 	"golang.org/x/crypto/nacl/box"
 	"golang.org/x/crypto/scrypt"
 
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -138,7 +139,7 @@ func (e *PaperKeyGen) getUID() keybase1.UID {
 
 func (e *PaperKeyGen) syncPUK(m libkb.MetaContext) error {
 	// Sync the per-user-key keyring before updating other things.
-	pukring, err := e.getPerUserKeyring()
+	pukring, err := e.getPerUserKeyring(m)
 	if err != nil {
 		return err
 	}
@@ -162,7 +163,7 @@ func (e *PaperKeyGen) makeSigKey(seed []byte) error {
 
 	var key libkb.NaclSigningKeyPair
 	copy(key.Public[:], pub[:])
-	key.Private = &libkb.NaclSigningKeyPrivate{}
+	key.Private = &kbcrypto.NaclSigningKeyPrivate{}
 	copy(key.Private[:], priv[:])
 
 	e.sigKey = key
@@ -308,7 +309,7 @@ func (e *PaperKeyGen) makePerUserKeyBoxes(m libkb.MetaContext) ([]keybase1.PerUs
 	m.CDebugf("PaperKeyGen#makePerUserKeyBoxes")
 
 	var pukBoxes []keybase1.PerUserKeyBox
-	pukring, err := e.getPerUserKeyring()
+	pukring, err := e.getPerUserKeyring(m)
 	if err != nil {
 		return nil, err
 	}
@@ -328,11 +329,11 @@ func (e *PaperKeyGen) makePerUserKeyBoxes(m libkb.MetaContext) ([]keybase1.PerUs
 	return pukBoxes, nil
 }
 
-func (e *PaperKeyGen) getPerUserKeyring() (ret *libkb.PerUserKeyring, err error) {
+func (e *PaperKeyGen) getPerUserKeyring(mctx libkb.MetaContext) (ret *libkb.PerUserKeyring, err error) {
 	ret = e.arg.PerUserKeyring
 	if ret != nil {
 		return
 	}
-	ret, err = e.G().GetPerUserKeyring()
+	ret, err = e.G().GetPerUserKeyring(mctx.Ctx())
 	return
 }

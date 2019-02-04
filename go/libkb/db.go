@@ -60,6 +60,10 @@ func jsonLocalDbGetInto(ops LocalDbOps, obj interface{}, id DbKey) (found bool, 
 	var buf []byte
 	buf, found, err = ops.Get(id)
 	if err == nil && found {
+		err = jsonw.EnsureMaxDepthBytesDefault(buf)
+		if err != nil {
+			return found, err
+		}
 		err = json.Unmarshal(buf, &obj)
 	}
 	return found, err
@@ -172,8 +176,13 @@ const (
 	DBTeamChain         = 0x10
 	DBUserPlusAllKeysV1 = 0x19
 
+	DBMerkleAudit              = 0xca
+	DBUnfurler                 = 0xcb
+	DBStellarDisclaimer        = 0xcc
+	DBFTLStorage               = 0xcd
 	DBTeamAuditor              = 0xce
 	DBAttachmentUploader       = 0xcf
+	DBHasRandomPW              = 0xd0
 	DBDiskLRUEntries           = 0xda
 	DBDiskLRUIndex             = 0xdb
 	DBImplicitTeamConflictInfo = 0xdc
@@ -192,6 +201,7 @@ const (
 	DBChatActive               = 0xea
 	DBUserEKBox                = 0xeb
 	DBTeamEKBox                = 0xec
+	DBChatIndex                = 0xed
 	DBMerkleRoot               = 0xf0
 	DBTrackers                 = 0xf1
 	DBGregor                   = 0xf2

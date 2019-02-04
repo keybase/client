@@ -25,7 +25,7 @@ func NewPendingPreviews(g *globals.Context) *PendingPreviews {
 }
 
 func (p *PendingPreviews) getDir() string {
-	return filepath.Join(p.G().GetCacheDir(), "pendingpreviews")
+	return filepath.Join(p.G().GetSharedCacheDir(), "pendingpreviews")
 }
 
 func (p *PendingPreviews) getPath(outboxID chat1.OutboxID) string {

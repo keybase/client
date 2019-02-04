@@ -318,3 +318,27 @@ func (h *PGPHandler) PGPStorageDismiss(ctx context.Context, sessionID int) error
 	key := libkb.DbKeyNotificationDismiss(libkb.NotificationDismissPGPPrefix, username)
 	return h.G().LocalDb.PutRaw(key, []byte(libkb.NotificationDismissPGPValue))
 }
+
+func (h *PGPHandler) PGPPushPrivate(ctx context.Context, arg keybase1.PGPPushPrivateArg) error {
+	uis := libkb.UIs{
+		LogUI:     h.getLogUI(arg.SessionID),
+		SessionID: arg.SessionID,
+		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
+		GPGUI:     h.getGPGUI(arg.SessionID),
+	}
+	eng := engine.NewPGPPushPrivate(arg)
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	return engine.RunEngine2(m, eng)
+}
+
+func (h *PGPHandler) PGPPullPrivate(ctx context.Context, arg keybase1.PGPPullPrivateArg) error {
+	uis := libkb.UIs{
+		LogUI:     h.getLogUI(arg.SessionID),
+		SessionID: arg.SessionID,
+		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
+		GPGUI:     h.getGPGUI(arg.SessionID),
+	}
+	eng := engine.NewPGPPullPrivate(arg)
+	m := libkb.NewMetaContext(ctx, h.G()).WithUIs(uis)
+	return engine.RunEngine2(m, eng)
+}

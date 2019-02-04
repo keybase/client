@@ -2,7 +2,7 @@
 import * as React from 'react'
 
 export type Props = {
-  onClose: () => void,
+  onClose?: ?() => void,
   onMouseUp?: (e: SyntheticMouseEvent<>) => void,
   onMouseDown?: (e: SyntheticMouseEvent<>) => void,
   onMouseMove?: (e: SyntheticMouseEvent<>) => void,

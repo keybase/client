@@ -7,9 +7,11 @@ import {remoteConnect} from '../util/container'
 import {createOpenPopup as createOpenRekeyPopup} from '../actions/unlock-folders-gen'
 import {executeActionsForContext} from '../util/quit-helper.desktop'
 import {loginTab, type Tab} from '../constants/tabs'
-import {navigateTo, switchTo} from '../actions/route-tree'
+import {throttle} from 'lodash-es'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {urlHelper} from '../util/url-helper'
+import {isWindows, isDarwin} from '../constants/platform'
 
 const closeWindow = () => {
   SafeElectron.getRemote()
@@ -25,7 +27,7 @@ const mapDispatchToProps = dispatch => ({
   },
   logIn: () => {
     dispatch(ConfigGen.createShowMain())
-    dispatch(navigateTo([loginTab]))
+    dispatch(RouteTreeGen.createNavigateTo({path: [loginTab]}))
   },
   onRekey: () => {
     dispatch(createOpenRekeyPopup())
@@ -33,7 +35,7 @@ const mapDispatchToProps = dispatch => ({
   },
   openApp: (tab?: Tab) => {
     dispatch(ConfigGen.createShowMain())
-    tab && dispatch(switchTo([tab]))
+    tab && dispatch(RouteTreeGen.createSwitchTo({path: [tab]}))
   },
   quit: () => {
     closeWindow()
@@ -43,7 +45,7 @@ const mapDispatchToProps = dispatch => ({
       executeActionsForContext('quitButton')
     }, 2000)
   },
-  refresh: () => dispatch(FsGen.createUserFileEditsLoad()),
+  refresh: throttle(() => dispatch(FsGen.createUserFileEditsLoad()), 1000 * 5),
   showBug: () => {
     const version = __VERSION__ // eslint-disable-line no-undef
     SafeElectron.getShell().openExternal(
@@ -57,11 +59,17 @@ const mapDispatchToProps = dispatch => ({
     link && openUrl(link)
     closeWindow()
   },
+  showInFinder: path => dispatch(FsGen.createOpenPathInSystemFileManager(path)),
+  updateNow: isWindows || isDarwin ? () => dispatch(ConfigGen.createUpdateNow()) : undefined,
 })
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  ...stateProps,
-  ...dispatchProps,
-  showUser: () => dispatchProps._showUser(stateProps.username),
-  ...ownProps,
-})
-export default remoteConnect(state => state, mapDispatchToProps, mergeProps)(Menubar)
+
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  return {
+    ...stateProps,
+    ...dispatchProps,
+    refresh: dispatchProps.refresh,
+    showUser: () => dispatchProps._showUser(stateProps.username),
+    ...ownProps,
+  }
+}
+export default remoteConnect<{||}, any, _, _, _, _>(state => state, mapDispatchToProps, mergeProps)(Menubar)

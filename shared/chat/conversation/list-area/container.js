@@ -1,16 +1,24 @@
 // @flow
 import * as React from 'react'
 import * as SearchConstants from '../../../constants/search'
+import * as Flow from '../../../util/flow'
 import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
 import * as ProfileGen from '../../../actions/profile-gen'
 import * as TrackerGen from '../../../actions/tracker-gen'
 import Normal from './normal/container'
 import SearchResultsList from '../../../search/results-list/container'
-import {connect, type TypedState, isMobile} from '../../../util/container'
+import {connect, isMobile} from '../../../util/container'
 import {desktopStyles} from '../../../styles'
 import StartConversation from './start-conversation/container'
 import Waiting from './waiting'
+
+type OwnProps = {|
+  conversationIDKey: Types.ConversationIDKey,
+  isPending: boolean,
+  listScrollDownCounter: number,
+  onFocusInput: () => void,
+|}
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey,
@@ -44,10 +52,7 @@ class ListArea extends React.PureComponent<Props> {
       case 'waiting':
         return <Waiting />
       default:
-        /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (type: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(this.props.type);
-      */
+        Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(this.props.type)
         return null
     }
   }
@@ -55,23 +60,25 @@ class ListArea extends React.PureComponent<Props> {
 
 const searchResultStyle = {...desktopStyles.scrollable, flexGrow: 1}
 
-const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
+const mapStateToProps = (state, {conversationIDKey, isPending}) => {
   let type
-  let conversationIDKeyToShow = conversationIDKey
   if (
-    conversationIDKey === Constants.pendingConversationIDKey &&
+    isPending &&
     state.chat2.pendingMode === 'searchingForUsers' &&
-    !!SearchConstants.getSearchResultIdsArray(state, {searchKey: 'chatSearch'})
+    !!SearchConstants.getSearchResultIds(state, 'chatSearch')
   ) {
     // There are search results; show list
     type = 'search'
   } else {
-    if (conversationIDKey === Constants.pendingConversationIDKey) {
-      const resolvedPendingConversationIDKey = Constants.getResolvedPendingConversationIDKey(state)
-      const inputResults = SearchConstants.getUserInputItemIds(state, {searchKey: 'chatSearch'})
-      switch (resolvedPendingConversationIDKey) {
+    if (isPending) {
+      const inputResults = SearchConstants.getUserInputItemIds(state, 'chatSearch')
+      switch (conversationIDKey) {
+        case Constants.pendingConversationIDKey: // fallthrough
         case Constants.noConversationIDKey:
-          if (state.chat2.pendingMode === 'searchingForUsers' && !inputResults.length) {
+          if (state.chat2.pendingMode === 'newTeamBuilding') {
+            type = 'waiting'
+            break
+          } else if (state.chat2.pendingMode === 'searchingForUsers' && !inputResults.size) {
             // No search results + no users in input; show spinner
             type = 'waiting'
             break
@@ -86,7 +93,6 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
         default:
           // No search results + convo exists; show thread
           type = 'normal'
-          conversationIDKeyToShow = resolvedPendingConversationIDKey
           break
       }
     } else {
@@ -95,12 +101,12 @@ const mapStateToProps = (state: TypedState, {conversationIDKey}) => {
   }
 
   return {
-    conversationIDKey: conversationIDKeyToShow,
+    conversationIDKey,
     type,
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   onShowTracker: (username: string) =>
     isMobile
       ? dispatch(ProfileGen.createShowUserProfile({username}))
@@ -117,4 +123,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps, mergeProps)(ListArea)
+export default connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps
+)(ListArea)

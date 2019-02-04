@@ -1,8 +1,18 @@
 // @flow
 import React from 'react'
-import type {SettingsItemProps} from './index'
-import {Badge, ClickableBox, Text, Icon} from '../../common-adapters'
+import {Badge, ClickableBox, Text, Icon, type IconType, ProgressIndicator} from '../../common-adapters'
 import * as Style from '../../styles'
+
+type SettingsItemProps = {
+  badgeNumber?: number,
+  icon?: IconType,
+  inProgress?: boolean,
+  largerBadgeMinWidthFix?: boolean,
+  onClick: () => void,
+  text: string,
+  textColor?: Style.Color,
+  selected?: boolean,
+}
 
 export default function SettingsItem(props: SettingsItemProps) {
   return (
@@ -35,8 +45,10 @@ export default function SettingsItem(props: SettingsItemProps) {
       >
         {props.text}
       </Text>
-      {!!props.badgeNumber &&
-        props.badgeNumber > 0 && <Badge badgeNumber={props.badgeNumber} badgeStyle={styles.badge} />}
+      {props.inProgress && <ProgressIndicator style={styles.progress} />}
+      {!!props.badgeNumber && props.badgeNumber > 0 && (
+        <Badge badgeNumber={props.badgeNumber} badgeStyle={styles.badge} />
+      )}
     </ClickableBox>
   )
 }
@@ -54,8 +66,8 @@ const styles = Style.styleSheetCreate({
       position: 'relative',
     },
     isElectron: {
-      textTransform: 'uppercase',
       height: 32,
+      textTransform: 'uppercase',
       width: '100%',
     },
     isMobile: {
@@ -66,12 +78,15 @@ const styles = Style.styleSheetCreate({
   }),
   itemText: Style.platformStyles({
     isElectron: {
-      color: Style.globalColors.black_60,
+      color: Style.globalColors.black_50,
     },
     isMobile: {
       color: Style.globalColors.black_75,
     },
   }),
+  progress: {
+    marginLeft: 6,
+  },
   selectedText: {
     color: Style.globalColors.black_75,
   },

@@ -9,6 +9,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/jsonhelpers"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -30,7 +31,7 @@ type LoadUserArg struct {
 	uider                    UIDer
 	abortIfSigchainUnchanged bool
 	resolveBody              *jsonw.Wrapper // some load paths plumb this through
-
+	upakLite                 bool
 	// NOTE: We used to have these feature flags, but we got rid of them, to
 	// avoid problems where a yes-features load doesn't accidentally get served
 	// the result of an earlier no-features load from cache. We shouldn't add
@@ -43,8 +44,7 @@ type LoadUserArg struct {
 	// failed LoadUserPlusKeys load
 	merkleLeaf *MerkleUserLeaf
 	sigHints   *SigHints
-
-	m MetaContext
+	m          MetaContext
 }
 
 func (arg LoadUserArg) String() string {
@@ -155,6 +155,11 @@ func (arg LoadUserArg) WithUID(uid keybase1.UID) LoadUserArg {
 
 func (arg LoadUserArg) WithPublicKeyOptional() LoadUserArg {
 	arg.publicKeyOptional = true
+	return arg
+}
+
+func (arg LoadUserArg) ForUPAKLite() LoadUserArg {
+	arg.upakLite = true
 	return arg
 }
 
@@ -354,7 +359,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	}
 
 	if ret.HasActiveKey() {
-		if err = ret.MakeIDTable(); err != nil {
+		if err = ret.MakeIDTable(m); err != nil {
 			return ret, err
 		}
 
@@ -463,25 +468,43 @@ func LoadUserEmails(g *GlobalContext) (emails []keybase1.Email, err error) {
 	if err != nil {
 		return
 	}
-	var email string
-	var isVerified int
-	primary := res.Body.AtKey("them").AtKey("emails").AtKey("primary")
-	email, err = primary.AtKey("email").GetString()
+
+	emailPayloads, err := jsonhelpers.JSONGetChildren(res.Body.AtKey("them").AtKey("emails").AtKey("emails"))
 	if err != nil {
-		return
+		return nil, err
 	}
-	isVerified, err = primary.AtKey("is_verified").GetInt()
-	if err != nil {
-		return
+	for _, emailPayload := range emailPayloads {
+		email, err := emailPayload.AtKey("email").GetString()
+		if err != nil {
+			return nil, err
+		}
+		isPrimary, err := emailPayload.AtKey("is_primary").GetInt()
+		if err != nil {
+			return nil, err
+		}
+		isVerified, err := emailPayload.AtKey("is_verified").GetInt()
+		if err != nil {
+			return nil, err
+		}
+		visibilityCode, err := emailPayload.AtKey("visibility").GetInt()
+		if err != nil {
+			return nil, err
+		}
+		emails = append(emails, keybase1.Email{
+			Email:      keybase1.EmailAddress(email),
+			IsVerified: isVerified == 1,
+			IsPrimary:  isPrimary == 1,
+			Visibility: keybase1.IdentityVisibility(visibilityCode),
+		})
 	}
-	emails = []keybase1.Email{keybase1.Email{Email: email, IsVerified: isVerified == 1}}
+
 	return
 }
 
 func LoadUserFromServer(m MetaContext, uid keybase1.UID, body *jsonw.Wrapper) (u *User, err error) {
 	m.CDebugf("Load User from server: %s", uid)
 
-	// Res.body might already have been preloaded a a result of a Resolve call earlier.
+	// Res.body might already have been preloaded as a result of a Resolve call earlier.
 	if body == nil {
 		res, err := m.G().API.Get(APIArg{
 			Endpoint:    "user/lookup",

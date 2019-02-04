@@ -8,7 +8,6 @@ import (
 
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/stellarnet"
-	stellaramount "github.com/stellar/go/amount"
 	"github.com/stellar/go/xdr"
 )
 
@@ -22,13 +21,14 @@ func unpackTx(signedTx string) (unpackedTx xdr.TransactionEnvelope, txIDPrecalc 
 }
 
 type ExtractedPayment struct {
-	Tx        xdr.Transaction
-	OpType    xdr.OperationType
-	From      stellar1.AccountID
-	To        stellar1.AccountID
-	AmountXdr xdr.Int64
-	Amount    string
-	Asset     stellar1.Asset
+	Tx         xdr.Transaction
+	OpType     xdr.OperationType
+	From       stellar1.AccountID
+	To         stellar1.AccountID
+	AmountXdr  xdr.Int64
+	Amount     string
+	Asset      stellar1.Asset
+	TimeBounds *xdr.TimeBounds
 }
 
 // Extract the balance transfer from a transaction.
@@ -50,6 +50,7 @@ func extractPaymentTx(tx xdr.Transaction) (res ExtractedPayment, err error) {
 	res.From = stellar1.AccountID(tx.SourceAccount.Address())
 	op := tx.Operations[0].Body
 	res.OpType = op.Type
+	res.TimeBounds = tx.TimeBounds
 	if op, ok := op.GetPaymentOp(); ok {
 		res.To = stellar1.AccountID(op.Destination.Address())
 		res.AmountXdr = op.Amount
@@ -62,7 +63,7 @@ func extractPaymentTx(tx xdr.Transaction) (res ExtractedPayment, err error) {
 	if op, ok := op.GetCreateAccountOp(); ok {
 		res.To = stellar1.AccountID(op.Destination.Address())
 		res.AmountXdr = op.StartingBalance
-		res.Amount = stellaramount.String(op.StartingBalance)
+		res.Amount = stellarnet.StringFromStellarXdrAmount(op.StartingBalance)
 		res.Asset = stellar1.AssetNative()
 		return res, nil
 	}
@@ -123,7 +124,7 @@ func extractRelocateTx(tx xdr.Transaction) (res ExtractedRelocate, err error) {
 			res.To, stellar1.AccountID(createAccount.Destination.Address()))
 	}
 	if createAccount.StartingBalance != xdr.Int64(10000000) {
-		return res, fmt.Errorf("unexpected relocation amount: %v != 1 XLM", stellaramount.String(createAccount.StartingBalance))
+		return res, fmt.Errorf("unexpected relocation amount: %v != 1 XLM", stellarnet.StringFromStellarXdrAmount(createAccount.StartingBalance))
 	}
 	// Return case 2
 	return res, nil
@@ -133,7 +134,7 @@ func balanceXdrToProto(amountXdr xdr.Int64, assetXdr xdr.Asset) (amount string, 
 	unpad := func(in []byte) (out string) {
 		return strings.TrimRight(string(in), string([]byte{0}))
 	}
-	amount = stellaramount.String(amountXdr)
+	amount = stellarnet.StringFromStellarXdrAmount(amountXdr)
 	switch assetXdr.Type {
 	case xdr.AssetTypeAssetTypeNative:
 		return amount, stellar1.AssetNative(), nil

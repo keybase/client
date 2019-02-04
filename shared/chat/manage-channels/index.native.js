@@ -13,7 +13,6 @@ import {
   WaitingButton,
 } from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
-import {renameProp, compose, withProps} from 'recompose'
 import type {Props, RowProps} from './index.types'
 
 const Edit = ({onClick, style}: {onClick: () => void, style: Object}) => (
@@ -42,7 +41,7 @@ const Row = (
       onCheck={props.onToggle}
     />
     <Box
-      style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative', paddingLeft: globalMargins.tiny}}
+      style={{...globalStyles.flexBoxColumn, flex: 1, paddingLeft: globalMargins.tiny, position: 'relative'}}
     >
       <Text
         type="BodySemiboldLink"
@@ -56,17 +55,16 @@ const Row = (
         {props.description}
       </Text>
     </Box>
-    {props.showEdit &&
-      props.canEditChannels && (
-        <Edit
-          style={{
-            ...globalStyles.flexBoxRow,
-            justifyContent: 'flex-end',
-            alignItems: 'center',
-          }}
-          onClick={props.onEdit}
-        />
-      )}
+    {props.showEdit && props.canEditChannels && (
+      <Edit
+        style={{
+          ...globalStyles.flexBoxRow,
+          alignItems: 'center',
+          justifyContent: 'flex-end',
+        }}
+        onClick={props.onEdit}
+      />
+    )}
   </Box>
 )
 
@@ -178,10 +176,8 @@ const _createIcon = {
   marginRight: globalMargins.xtiny,
 }
 
-export default compose(
-  renameProp('onClose', 'onBack'),
-  withProps(props => ({
-    customComponent: <Header {...props} />,
-  })),
-  HeaderHoc
-)(ManageChannels)
+const Wrapper = (p: Props) => (
+  <ManageChannels {...p} onClose={undefined} onBack={p.onClose} customComponent={<Header {...p} />} />
+)
+
+export default HeaderHoc(Wrapper)

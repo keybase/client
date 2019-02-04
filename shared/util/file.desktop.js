@@ -5,8 +5,7 @@ import os from 'os'
 import path from 'path'
 import {findAvailableFilename} from './file.shared'
 import {cacheRoot} from '../constants/platform.desktop'
-
-import type {StatResult} from './file'
+import type {StatResult, WriteStream, Encoding} from './file'
 
 export function tmpDir(): string {
   return cacheRoot
@@ -54,7 +53,7 @@ export function stat(filepath: string): Promise<StatResult> {
       if (err) {
         return reject(err)
       }
-      resolve({size: stats.size, lastModified: stats.mtime.getTime()})
+      resolve({lastModified: stats.mtime.getTime(), size: stats.size})
     })
   })
 }
@@ -94,6 +93,26 @@ export function unlink(filepath: string): Promise<void> {
   return new Promise((resolve, reject) => fs.unlink(filepath, () => resolve()))
 }
 
-export function writeStream(filepath: string, encoding: string, append?: boolean): Promise<void> {
-  return Promise.reject(new Error('not implemented'))
+export function writeStream(filepath: string, encoding: string, append?: boolean): Promise<WriteStream> {
+  const ws = fs.createWriteStream(filepath, {encoding, flags: append ? 'a' : 'w'})
+  return Promise.resolve({
+    close: () => ws.end(),
+    write: d => {
+      ws.write(d)
+      return Promise.resolve()
+    },
+  })
+}
+
+export function readFile(filepath: string, encoding: Encoding): Promise<any> {
+  return new Promise((resolve, reject) => {
+    // $FlowIssue
+    fs.readFile(filepath, {encoding}, (err, data) => {
+      if (err) {
+        reject(err)
+      } else {
+        resolve(data)
+      }
+    })
+  })
 }

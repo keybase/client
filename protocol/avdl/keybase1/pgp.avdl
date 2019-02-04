@@ -91,7 +91,7 @@ protocol pgp {
   }
 
   @lint("ignore")
-  void pgpKeyGen(int sessionID, int primaryBits, int subkeyBits, PGPCreateUids createUids, boolean allowMulti, boolean doExport, 
+  void pgpKeyGen(int sessionID, int primaryBits, int subkeyBits, PGPCreateUids createUids, boolean allowMulti, boolean doExport,
   boolean exportEncrypted, boolean pushSecret);
 
   @lint("ignore")
@@ -121,4 +121,16 @@ protocol pgp {
     Dismiss the PGP unlock via secret_store_file notification.
     */
   void pgpStorageDismiss(int sessionID);
+
+  /**
+   push the PGP key that matches the given fingerprints from GnuPG to KBFS. If it is empty, then
+   push all matching PGP keys in the user's sigchain.
+   */
+  void pgpPushPrivate(int sessionID, array<PGPFingerprint> fingerprints);
+
+  /**
+   pull the given PGP keys from KBFS to the local GnuPG keychain. If it is empty, then
+   attempt to pull all matching PGP keys in the user's sigchain.
+   */
+  void pgpPullPrivate(int sessionID, array<PGPFingerprint> fingerprints);
 }

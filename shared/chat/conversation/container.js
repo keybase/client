@@ -2,24 +2,33 @@
 import * as React from 'react'
 import * as Constants from '../../constants/chat2'
 import * as Types from '../../constants/types/chat2'
+import * as Flow from '../../util/flow'
 import {isMobile} from '../../styles'
-import {connect, type TypedState} from '../../util/container'
+import {connect} from '../../util/container'
 import Normal from './normal/container'
 import NoConversation from './no-conversation'
 import Error from './error/container'
 import YouAreReset from './you-are-reset'
 import Rekey from './rekey/container'
 
+type OwnProps = {||}
+
 type SwitchProps = {
   conversationIDKey: Types.ConversationIDKey,
+  isPending: boolean,
   type: 'error' | 'noConvo' | 'rekey' | 'youAreReset' | 'normal' | 'rekey',
 }
 
+const DONT_RENDER_CONVERSATION = __DEV__ && false
+
 class Conversation extends React.PureComponent<SwitchProps> {
   render() {
+    if (DONT_RENDER_CONVERSATION) {
+      return <NoConversation />
+    }
     switch (this.props.type) {
       case 'error':
-        return this.props.conversationIDKey && <Error conversationIDKey={this.props.conversationIDKey} />
+        return <Error conversationIDKey={this.props.conversationIDKey} />
       case 'noConvo':
         // When navigating back to the inbox on mobile, we delelect
         // conversationIDKey by called mobileChangeSelection. This results in
@@ -33,32 +42,40 @@ class Conversation extends React.PureComponent<SwitchProps> {
         // To solve this we render a blank screen on mobile conversation views with "noConvo"
         return isMobile ? null : <NoConversation />
       case 'normal':
-        return <Normal conversationIDKey={this.props.conversationIDKey} />
+        return <Normal conversationIDKey={this.props.conversationIDKey} isPending={this.props.isPending} />
       case 'youAreReset':
         return <YouAreReset />
       case 'rekey':
         return <Rekey conversationIDKey={this.props.conversationIDKey} />
       default:
-        /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(this.props.type);
-      */
+        Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(this.props.type)
         return <NoConversation />
     }
   }
 }
 
-const mapStateToProps = (state: TypedState) => {
+const mapStateToProps = state => {
   let conversationIDKey = Constants.getSelectedConversation(state)
   let _meta = Constants.getMeta(state, conversationIDKey)
+  let isPending = false
+
+  // If its a pending thats been resolved, treat it as the resolved one and pass down pending as a boolean
+  if (conversationIDKey === Constants.pendingConversationIDKey) {
+    isPending = true
+    const resolvedPendingConversationIDKey = Constants.getResolvedPendingConversationIDKey(state)
+    if (Constants.isValidConversationIDKey(resolvedPendingConversationIDKey)) {
+      conversationIDKey = resolvedPendingConversationIDKey
+    }
+  }
 
   return {
     _meta,
     conversationIDKey,
+    isPending,
   }
 }
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
+const mergeProps = (stateProps, dispatchProps) => {
   let type
   switch (stateProps.conversationIDKey) {
     case Constants.noConversationIDKey:
@@ -68,7 +85,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
       type = 'normal'
       break
     default:
-      if (stateProps._meta.membershipType === 'youAreReset') {
+      if (stateProps.isPending) {
+        type = 'normal'
+      } else if (stateProps._meta.membershipType === 'youAreReset') {
         type = 'youAreReset'
       } else if (stateProps._meta.rekeyers.size > 0) {
         type = 'rekey'
@@ -81,8 +100,13 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 
   return {
     conversationIDKey: stateProps.conversationIDKey, // we pass down conversationIDKey so this can be calculated once and also this lets us have chat things in other contexts so we can theoretically show multiple chats at the same time (like in a modal)
+    isPending: stateProps.isPending,
     type,
   }
 }
 
-export default connect(mapStateToProps, () => ({}), mergeProps)(Conversation)
+export default connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  () => ({}),
+  mergeProps
+)(Conversation)

@@ -11,21 +11,28 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/keybase/client/go/protocol/chat1"
 	"golang.org/x/net/context"
 )
 
 type handlerTracker struct {
-	listV1         int
-	readV1         int
-	sendV1         int
-	editV1         int
-	reactionV1     int
-	deleteV1       int
-	attachV1       int
-	downloadV1     int
-	setstatusV1    int
-	markV1         int
-	searchRegexpV1 int
+	listV1          int
+	readV1          int
+	getV1           int
+	sendV1          int
+	editV1          int
+	reactionV1      int
+	deleteV1        int
+	attachV1        int
+	downloadV1      int
+	setstatusV1     int
+	markV1          int
+	searchInboxV1   int
+	searchRegexpV1  int
+	newConvV1       int
+	listConvsOnName int
+	joinV1          int
+	leaveV1         int
 }
 
 func (h *handlerTracker) ListV1(context.Context, Call, io.Writer) error {
@@ -35,6 +42,11 @@ func (h *handlerTracker) ListV1(context.Context, Call, io.Writer) error {
 
 func (h *handlerTracker) ReadV1(context.Context, Call, io.Writer) error {
 	h.readV1++
+	return nil
+}
+
+func (h *handlerTracker) GetV1(context.Context, Call, io.Writer) error {
+	h.getV1++
 	return nil
 }
 
@@ -78,8 +90,33 @@ func (h *handlerTracker) MarkV1(context.Context, Call, io.Writer) error {
 	return nil
 }
 
+func (h *handlerTracker) SearchInboxV1(context.Context, Call, io.Writer) error {
+	h.searchInboxV1++
+	return nil
+}
+
 func (h *handlerTracker) SearchRegexpV1(context.Context, Call, io.Writer) error {
 	h.searchRegexpV1++
+	return nil
+}
+
+func (h *handlerTracker) NewConvV1(context.Context, Call, io.Writer) error {
+	h.newConvV1++
+	return nil
+}
+
+func (h *handlerTracker) ListConvsOnNameV1(context.Context, Call, io.Writer) error {
+	h.listConvsOnName++
+	return nil
+}
+
+func (h *handlerTracker) JoinV1(context.Context, Call, io.Writer) error {
+	h.joinV1++
+	return nil
+}
+
+func (h *handlerTracker) LeaveV1(context.Context, Call, io.Writer) error {
+	h.leaveV1++
 	return nil
 }
 
@@ -99,7 +136,11 @@ func (c *chatEcho) ReadV1(context.Context, readOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
 
-func (c *chatEcho) SendV1(context.Context, sendOptionsV1) Reply {
+func (c *chatEcho) GetV1(context.Context, getOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) SendV1(context.Context, sendOptionsV1, chat1.ChatUiInterface) Reply {
 	return Reply{Result: echoOK}
 }
 
@@ -115,11 +156,12 @@ func (c *chatEcho) ReactionV1(context.Context, reactionOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
 
-func (c *chatEcho) AttachV1(context.Context, attachOptionsV1) Reply {
+func (c *chatEcho) AttachV1(context.Context, attachOptionsV1, chat1.ChatUiInterface,
+	chat1.NotifyChatInterface) Reply {
 	return Reply{Result: echoOK}
 }
 
-func (c *chatEcho) DownloadV1(context.Context, downloadOptionsV1) Reply {
+func (c *chatEcho) DownloadV1(context.Context, downloadOptionsV1, chat1.ChatUiInterface) Reply {
 	return Reply{Result: echoOK}
 }
 
@@ -131,7 +173,27 @@ func (c *chatEcho) MarkV1(context.Context, markOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
 
+func (c *chatEcho) SearchInboxV1(context.Context, searchInboxOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
 func (c *chatEcho) SearchRegexpV1(context.Context, searchRegexpOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) NewConvV1(context.Context, newConvOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) ListConvsOnNameV1(context.Context, listConvsOnNameOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) JoinV1(context.Context, joinOptionsV1) Reply {
+	return Reply{Result: echoOK}
+}
+
+func (c *chatEcho) LeaveV1(context.Context, leaveOptionsV1) Reply {
 	return Reply{Result: echoOK}
 }
 
@@ -147,6 +209,7 @@ type topTest struct {
 	attachV1       int
 	downloadV1     int
 	markV1         int
+	searchInboxV1  int
 	searchRegexpV1 int
 }
 
@@ -172,6 +235,7 @@ var topTests = []topTest{
 	{input: `{"method": "attach", "params":{"version": 1}}`, attachV1: 1},
 	{input: `{"method": "download", "params":{"version": 1, "options": {"message_id": 34, "channel": {"name": "a123,nfnf,t_bob"}, "output": "/tmp/file"}}}`, downloadV1: 1},
 	{input: `{"id": 39, "method": "mark", "params":{"version": 1}}`, markV1: 1},
+	{input: `{"id": 39, "method": "searchinbox", "params":{"version": 1}}`, searchInboxV1: 1},
 	{input: `{"id": 39, "method": "searchregexp", "params":{"version": 1}}`, searchRegexpV1: 1},
 }
 
@@ -220,6 +284,9 @@ func TestChatAPIVersionHandlerTop(t *testing.T) {
 		if h.markV1 != test.markV1 {
 			t.Errorf("test %d: input %s => markV1 = %d, expected %d", i, test.input, h.markV1, test.markV1)
 		}
+		if h.searchInboxV1 != test.searchInboxV1 {
+			t.Errorf("test %d: input %s => searchInboxV1 = %d, expected %d", i, test.input, h.searchInboxV1, test.searchInboxV1)
+		}
 		if h.searchRegexpV1 != test.searchRegexpV1 {
 			t.Errorf("test %d: input %s => searchRegexpV1 = %d, expected %d", i, test.input, h.searchRegexpV1, test.searchRegexpV1)
 		}
@@ -251,13 +318,6 @@ var optTests = []optTest{
 		input: `{"method": "read", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}}`,
 	},
 	{
-		input: `{"method": "read", "params":{"version": 1, "options": {"conversation_id": "123"}}}`,
-	},
-	{
-		input: `{"method": "read", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "conversation_id": "999111"}}}`,
-		err:   ErrInvalidOptions{},
-	},
-	{
 		input: `{"method": "send", "params":{"version": 1}}`,
 		err:   ErrInvalidOptions{},
 	},
@@ -273,27 +333,10 @@ var optTests = []optTest{
 		input: `{"method": "send", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message": {"body": "hi"}}}}`,
 	},
 	{
-		input: `{"method": "send", "params":{"version": 1, "options": {"conversation_id": "123", "message": {"body": "hi"}}}}`,
-	},
-	{
-		input: `{"method": "send", "params":{"version": 1, "options": {"conversation_id": "222", "channel": {"name": "alice,bob"}, "message": {"body": "hi"}}}}`,
-		err:   ErrInvalidOptions{},
-	},
-	{
-		input: `{"method": "send", "params":{"version": 1, "options": {"conversation_id": "123", "message": {"body": "hi"}, "exploding_lifetime": "5m"}}}`,
-	},
-	{
-		input: `{"method": "send", "params":{"version": 1, "options": {"conversation_id": "123", "message": {"body": "hi"}, "exploding_lifetime": "1s"}}}`,
-		err:   ErrInvalidOptions{},
-	},
-	{
 		input: `{"method": "list", "params":{"version": 1}}{"method": "list", "params":{"version": 1}}`,
 	},
 	{
 		input: `{"method": "list", "params":{"version": 1, "options": {"topic_type": "dEv"}}}`,
-	},
-	{
-		input: `{"method": "list", "params":{"version": 1}}{"method": "read", "params":{"version": 1, "options": {"conversation_id": "7777"}}}`,
 	},
 	{
 		input: `{"method": "read", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}}}`, /* missing closing bracket at end */
@@ -342,9 +385,6 @@ var optTests = []optTest{
 		input: `{"id": 30, "method": "edit", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123, "message": {"body": "edited"}}}}`,
 	},
 	{
-		input: `{"id": 30, "method": "edit", "params":{"version": 1, "options": {"conversation_id": "333", "message_id": 123, "message": {"body": "edited"}}}}`,
-	},
-	{
 		input: `{"id": 29, "method": "reaction", "params":{"version": 1}}`,
 		err:   ErrInvalidOptions{},
 	},
@@ -370,9 +410,6 @@ var optTests = []optTest{
 	},
 	{
 		input: `{"id": 30, "method": "reaction", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123, "message": {"body": ":+1:"}}}}`,
-	},
-	{
-		input: `{"id": 30, "method": "reaction", "params":{"version": 1, "options": {"conversation_id": "333", "message_id": 123, "message": {"body": ":+1:"}}}}`,
 	},
 	{
 		input: `{"id": 30, "method": "delete", "params":{"version": 1}}`,
@@ -490,10 +527,6 @@ var echoTests = []echoTest{
 		output: `{"result":{"status":"ok"}}`,
 	},
 	{
-		input:  `{"method": "read", "params":{"version": 1, "options": {"conversation_id": "123"}}}`,
-		output: `{"result":{"status":"ok"}}`,
-	},
-	{
 		input:  `{"method": "send", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message": {"body": "hi"}}}}`,
 		output: `{"result":{"status":"ok"}}`,
 	},
@@ -503,10 +536,6 @@ var echoTests = []echoTest{
 	},
 	{
 		input:  `{"method": "list", "params":{"version": 1}}{"method": "list", "params":{"version": 1}}`,
-		output: `{"result":{"status":"ok"}}` + "\n" + `{"result":{"status":"ok"}}`,
-	},
-	{
-		input:  `{"method": "list", "params":{"version": 1}}{"method": "read", "params":{"version": 1, "options": {"conversation_id": "123"}}}`,
 		output: `{"result":{"status":"ok"}}` + "\n" + `{"result":{"status":"ok"}}`,
 	},
 	{
@@ -539,6 +568,10 @@ var echoTests = []echoTest{
 	},
 	{
 		input:  `{"method": "mark", "params":{"version": 1, "options": {"channel": {"name": "alice,bob"}, "message_id": 123}}}`,
+		output: `{"result":{"status":"ok"}}`,
+	},
+	{
+		input:  `{"method": "searchinbox", "params":{"version": 1, "options": {"query": "hi"}}}`,
 		output: `{"result":{"status":"ok"}}`,
 	},
 	{

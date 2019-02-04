@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/kbcrypto"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
 )
@@ -73,7 +74,7 @@ type skbPacket struct {
 // encoder/decoder catches panics and turns them back into errors.
 
 func (s *skbPacket) CodecEncodeSelf(e *codec.Encoder) {
-	err := EncodePacket(s.skb, e)
+	err := kbcrypto.EncodePacket(s.skb, e)
 	if err != nil {
 		panic(err)
 	}
@@ -81,7 +82,7 @@ func (s *skbPacket) CodecEncodeSelf(e *codec.Encoder) {
 
 func (s *skbPacket) CodecDecodeSelf(d *codec.Decoder) {
 	var skb SKB
-	err := DecodePacket(d, &skb)
+	err := kbcrypto.DecodePacket(d, &skb)
 	if err != nil {
 		panic(err)
 	}
@@ -89,7 +90,7 @@ func (s *skbPacket) CodecDecodeSelf(d *codec.Decoder) {
 }
 
 func encodeSKBPacketList(skbs []*SKB, w io.Writer) error {
-	ch := codecHandle()
+	ch := kbcrypto.CodecHandle()
 	encoder := codec.NewEncoder(w, ch)
 
 	packets := make([]skbPacket, len(skbs))
@@ -101,7 +102,7 @@ func encodeSKBPacketList(skbs []*SKB, w io.Writer) error {
 }
 
 func decodeSKBPacketList(r io.Reader, g *GlobalContext) ([]*SKB, error) {
-	ch := codecHandle()
+	ch := kbcrypto.CodecHandle()
 	decoder := codec.NewDecoder(r, ch)
 
 	var packets []skbPacket

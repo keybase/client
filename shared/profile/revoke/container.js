@@ -1,11 +1,23 @@
 // @flow
 import * as ProfileGen from '../../actions/profile-gen'
 import Revoke from '.'
-import {connect, type TypedState} from '../../util/container'
+import * as Constants from '../../constants/profile'
+import * as Waiting from '../../constants/waiting'
+import {connect, type RouteProps} from '../../util/container'
+import type {PlatformsExpandedType} from '../../constants/types/more'
 
-const mapStateToProps = (state: TypedState, {routeProps}) => ({
-  errorMessage: state.profile.revoke.error,
-  isWaiting: state.profile.revoke.waiting,
+type OwnProps = RouteProps<
+  {
+    platform: PlatformsExpandedType,
+    platformHandle: string,
+    proofId: string,
+  },
+  {}
+>
+
+const mapStateToProps = (state, {routeProps}) => ({
+  errorMessage: state.profile.revokeError,
+  isWaiting: Waiting.anyWaiting(state, Constants.waitingKey),
   platform: routeProps.get('platform'),
   platformHandle: routeProps.get('platformHandle'),
 })
@@ -21,4 +33,8 @@ const mapDispatchToProps = (dispatch, {routeProps}) => ({
   },
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(Revoke)
+export default connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d) => ({...s, ...d})
+)(Revoke)

@@ -9,7 +9,6 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
-	triplesec "github.com/keybase/go-triplesec"
 )
 
 type SignupJoinEngine struct {
@@ -46,6 +45,7 @@ type SignupJoinEngineRunArg struct {
 	InviteCode string
 	PWHash     []byte
 	PWSalt     []byte
+	RandomPW   bool
 	PDPKA5KID  keybase1.KID
 	SkipMail   bool
 }
@@ -53,20 +53,27 @@ type SignupJoinEngineRunArg struct {
 func (s *SignupJoinEngine) Post(m libkb.MetaContext, arg SignupJoinEngineRunArg) (err error) {
 	var res *libkb.APIRes
 	var ppGenTmp int
+	postArgs := libkb.HTTPArgs{
+		"salt":          libkb.S{Val: hex.EncodeToString(arg.PWSalt)},
+		"pwh":           libkb.S{Val: hex.EncodeToString(arg.PWHash)},
+		"random_pw":     libkb.B{Val: arg.RandomPW},
+		"username":      libkb.S{Val: arg.Username},
+		"invitation_id": libkb.S{Val: arg.InviteCode},
+		"pwh_version":   libkb.I{Val: int(libkb.ClientTriplesecVersion)},
+		"skip_mail":     libkb.B{Val: arg.SkipMail},
+		"pdpka5_kid":    libkb.S{Val: arg.PDPKA5KID.String()},
+		"platform":      libkb.S{Val: libkb.GetPlatformString()},
+	}
+	if len(arg.Email) > 0 {
+		postArgs["email"] = libkb.S{Val: arg.Email}
+	} else {
+		postArgs["no_email"] = libkb.B{Val: true}
+	}
 	res, err = m.G().API.Post(libkb.APIArg{
 		Endpoint:   "signup",
 		NetContext: m.Ctx(),
-		Args: libkb.HTTPArgs{
-			"salt":          libkb.S{Val: hex.EncodeToString(arg.PWSalt)},
-			"pwh":           libkb.S{Val: hex.EncodeToString(arg.PWHash)},
-			"username":      libkb.S{Val: arg.Username},
-			"email":         libkb.S{Val: arg.Email},
-			"invitation_id": libkb.S{Val: arg.InviteCode},
-			"pwh_version":   libkb.I{Val: int(triplesec.Version)},
-			"skip_mail":     libkb.B{Val: arg.SkipMail},
-			"pdpka5_kid":    libkb.S{Val: arg.PDPKA5KID.String()},
-			"platform":      libkb.S{Val: libkb.GetPlatformString()},
-		}})
+		Args:       postArgs,
+	})
 	if err == nil {
 		s.username = libkb.NewNormalizedUsername(arg.Username)
 		libkb.GetUIDVoid(res.Body.AtKey("uid"), &s.uv.Uid, &err)

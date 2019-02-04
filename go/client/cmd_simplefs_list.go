@@ -174,7 +174,7 @@ func (c *CmdSimpleFSList) Run() error {
 	if len(paths) > 1 {
 		var listResult keybase1.SimpleFSListResult
 		for _, path := range paths {
-			e, err := cli.SimpleFSStat(context.TODO(), path)
+			e, err := cli.SimpleFSStat(context.TODO(), keybase1.SimpleFSStatArg{Path: path})
 			if err != nil {
 				return err
 			}

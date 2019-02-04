@@ -65,4 +65,19 @@ protocol kbfs {
   */
   KBFSTeamSettings getKBFSTeamSettings(TeamID teamID);
 
+  /**
+    upgradeTLF upgrades a TLF to use implicit team keys
+  */
+  void upgradeTLF(string tlfName, boolean public);
+
+  /**
+    Encrypt cached favorites to store on disk.
+  */
+  bytes encryptFavorites(bytes dataToEncrypt);
+
+  /**
+    Decrypt cached favorites stored on disk.
+  */
+  bytes decryptFavorites(bytes dataToEncrypt);
+
 }

@@ -43,13 +43,13 @@ const enterNameProps = {
 const load = () => {
   storiesOf('Wallets/Link existing', module)
     .addDecorator(story => (
-      <Box style={platformStyles({common: {minHeight: 525, maxWidth: 360}, isElectron: {height: 525}})}>
+      <Box style={platformStyles({common: {maxWidth: 360, minHeight: 525}, isElectron: {height: 525}})}>
         {story()}
       </Box>
     ))
     .add('Enter key', () => <LinkExisting {...enterKeyProps} />)
     .add('Secret key error', () => <LinkExisting {...keyErrorProps} />)
-    .add('Enter name', () => <LinkExisting {...enterNameProps} />)
+    .add('Enter name', () => <LinkExisting {...enterNameProps} onBack={action('onBack')} />)
 }
 
 export default load

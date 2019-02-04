@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {Box, ButtonBar, StandardScreen, WaitingButton} from '../../common-adapters'
-import {NativeDimensions, NativeImage, ZoomableBox} from '../../common-adapters/mobile.native'
+import {NativeDimensions, NativeFastImage, ZoomableBox} from '../../common-adapters/mobile.native'
 import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
 import {isIOS} from '../../constants/platform'
 import type {Props} from '.'
@@ -56,10 +56,10 @@ class AvatarUpload extends React.Component<Props> {
     if (!this.props.image) return
 
     let height = AVATAR_SIZE
-    let width = AVATAR_SIZE * this.props.image.width / this.props.image.height
+    let width = (AVATAR_SIZE * this.props.image.width) / this.props.image.height
 
     if (width < AVATAR_SIZE) {
-      height = AVATAR_SIZE * this.props.image.height / this.props.image.width
+      height = (AVATAR_SIZE * this.props.image.height) / this.props.image.width
       width = AVATAR_SIZE
     }
 
@@ -107,7 +107,7 @@ class AvatarUpload extends React.Component<Props> {
                   : null
               }
             >
-              <NativeImage
+              <NativeFastImage
                 resizeMode="cover"
                 source={{uri: `${this.props.image ? this.props.image.uri : ''}`}}
                 style={this._imageDimensions()}

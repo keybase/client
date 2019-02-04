@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/protocol/stellar1"
 )
 
 type InboxVersionSource interface {
@@ -73,8 +74,7 @@ func (b *Badger) SetInboxVersionSource(s InboxVersionSource) {
 func (b *Badger) PushState(ctx context.Context, state gregor1.State) {
 	b.G().Log.CDebugf(ctx, "Badger update with gregor state")
 	b.badgeState.UpdateWithGregor(ctx, state)
-	err := b.Send(ctx)
-	if err != nil {
+	if err := b.Send(ctx); err != nil {
 		b.G().Log.Warning("Badger send (pushstate) failed: %v", err)
 	}
 }
@@ -82,8 +82,7 @@ func (b *Badger) PushState(ctx context.Context, state gregor1.State) {
 func (b *Badger) PushChatUpdate(ctx context.Context, update chat1.UnreadUpdate, inboxVers chat1.InboxVers) {
 	b.G().Log.CDebugf(ctx, "Badger update with chat update")
 	b.badgeState.UpdateWithChat(ctx, update, inboxVers)
-	err := b.Send(ctx)
-	if err != nil {
+	if err := b.Send(ctx); err != nil {
 		b.G().Log.CDebugf(ctx, "Badger send (pushchatupdate) failed: %v", err)
 	}
 }
@@ -120,8 +119,7 @@ func (b *Badger) Resync(ctx context.Context, chatRemote func() chat1.RemoteInter
 	}
 	b.badgeState.UpdateWithChatFull(ctx, *update)
 	b.badgeState.UpdateWithGregor(ctx, state)
-	err = b.Send(ctx)
-	if err != nil {
+	if err = b.Send(ctx); err != nil {
 		b.G().Log.CDebugf(ctx, "Badger send (resync) failed: %v", err)
 	} else {
 		b.G().Log.CDebugf(ctx, "Badger resync complete")
@@ -129,10 +127,16 @@ func (b *Badger) Resync(ctx context.Context, chatRemote func() chat1.RemoteInter
 	return err
 }
 
+func (b *Badger) SetWalletAccountUnreadCount(ctx context.Context, accountID stellar1.AccountID, unreadCount int) {
+	b.badgeState.SetWalletAccountUnreadCount(accountID, unreadCount)
+	if err := b.Send(ctx); err != nil {
+		b.G().Log.CDebugf(ctx, "Badger send (SetWalletAccountUnreadCount) failed: %s", err)
+	}
+}
+
 func (b *Badger) Clear(ctx context.Context) {
 	b.badgeState.Clear()
-	err := b.Send(ctx)
-	if err != nil {
+	if err := b.Send(ctx); err != nil {
 		b.G().Log.CDebugf(ctx, "Badger send (clear) failed: %v", err)
 	}
 }

@@ -1,6 +1,6 @@
 // @flow
-import {globalColors} from '../styles'
-import type {IconType} from './icon'
+import {globalColors, isMobile} from '../styles'
+import type {IconType, SizeType} from './icon'
 import {iconMeta} from './icon.constants'
 
 export function defaultColor(type: IconType): ?string {
@@ -8,7 +8,7 @@ export function defaultColor(type: IconType): ?string {
     case 'iconfont-proof-broken':
       return globalColors.red
     case 'iconfont-proof-pending':
-      return globalColors.black_40
+      return globalColors.black_50
     case 'iconfont-close':
       return globalColors.black_20
     default:
@@ -22,7 +22,7 @@ export function defaultHoverColor(type: IconType): ?string {
     case 'iconfont-proof-pending':
       return defaultColor(type)
     case 'iconfont-close':
-      return globalColors.black_60
+      return globalColors.black_50
     default:
       return null
   }
@@ -73,6 +73,19 @@ export function fontSize(type: IconType): ?Object {
   }
 }
 
+export function typeToFontSize(sizeType: SizeType) {
+  switch (sizeType) {
+    case 'Big':
+      return isMobile ? 32 : 24
+    case 'Default':
+      return isMobile ? 22 : 16
+    case 'Small':
+      return isMobile ? 16 : 12
+    case 'Tiny':
+      return isMobile ? 10 : 8
+  }
+}
+
 const idealSizeMultMap = {
   '128': {'1': 256, '2': 256, '3': 960},
   '16': {'1': 256, '2': 256, '3': 192},
@@ -82,11 +95,17 @@ const idealSizeMultMap = {
   '96': {'1': 192, '2': 192, '3': 960},
 }
 
-export function getMultsMap(imgMap: {[size: string]: any}, targetSize: number): any {
+const _getMultsMapCache = {}
+export function getMultsMap(imgMap: {[size: string]: any}, targetSize: number): Object {
   let sizes: any = Object.keys(imgMap)
 
   if (!sizes.length) {
-    return null
+    return {}
+  }
+
+  const sizeKey = targetSize + ']' + sizes.join(':')
+  if (_getMultsMapCache[sizeKey]) {
+    return _getMultsMapCache[sizeKey] || {}
   }
 
   sizes = sizes.map(s => parseInt(s, 10)).sort((a: number, b: number) => a - b)
@@ -114,6 +133,7 @@ export function getMultsMap(imgMap: {[size: string]: any}, targetSize: number): 
     multsMap[mult] = size || sizes[sizes.length - 1]
   })
 
+  _getMultsMapCache[sizeKey] = multsMap
   return multsMap
 }
 

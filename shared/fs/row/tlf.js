@@ -1,56 +1,42 @@
 // @flow
+import * as I from 'immutable'
 import * as React from 'react'
 import * as Styles from '../../styles'
+import * as Constants from '../../constants/fs'
 import {rowStyles, StillCommon, type StillCommonProps} from './common'
-import {Box, Box2, Meta, Text} from '../../common-adapters'
-import PathItemInfo from '../common/path-item-info'
+import * as Kb from '../../common-adapters'
+import {TlfInfo} from '../common'
 
 type TlfProps = StillCommonProps & {
-  isIgnored: boolean,
   isNew: boolean,
-  isUserReset: boolean,
   needsRekey: boolean,
-  resetParticipants: Array<string>,
-}
-
-const RowMeta = ({isNew, isIgnored, needsRekey}) => {
-  if (isIgnored || !(isNew || needsRekey)) {
-    return null
-  }
-
-  return (
-    <Box style={{width: 0, display: 'flex'}}>
-      {needsRekey && (
-        <Box style={rowStyles.badgeContainerRekey}>
-          <Meta title="rekey" backgroundColor={Styles.globalColors.red} />
-        </Box>
-      )}
-      {isNew && (
-        <Box style={rowStyles.badgeContainerNew}>
-          <Meta title="new" backgroundColor={Styles.globalColors.orange} />
-        </Box>
-      )}
-    </Box>
-  )
+  // We don't use this at the moment. In the future this will be used for
+  // showing ignored folders when we allow user to show ignored folders in GUI.
+  isIgnored: boolean,
+  routePath: I.List<string>,
 }
 
 const Tlf = (props: TlfProps) => (
-  <StillCommon itemStyles={props.itemStyles} name={props.name} path={props.path} onOpen={props.onOpen}>
-    <RowMeta isIgnored={props.isIgnored} isNew={props.isNew} needsRekey={props.needsRekey} />
-    <Box style={rowStyles.itemBox}>
-      <Box2 direction="horizontal" fullWidth={true}>
-        <Text
-          type={props.itemStyles.textType}
-          style={Styles.collapseStyles([rowStyles.rowText, {color: props.itemStyles.textColor}])}
+  <StillCommon
+    name={props.name}
+    path={props.path}
+    onOpen={props.onOpen}
+    inDestinationPicker={props.inDestinationPicker}
+    badge={props.isNew ? 'new' : props.needsRekey ? 'rekey' : null}
+    routePath={props.routePath}
+  >
+    <Kb.Box style={rowStyles.itemBox}>
+      <Kb.Box2 direction="horizontal" fullWidth={true}>
+        <Kb.Text
+          type={Constants.pathTypeToTextType('folder')}
+          style={Styles.collapseStyles([rowStyles.rowText, {color: Constants.getPathTextColor(props.path)}])}
           lineClamp={Styles.isMobile ? 1 : undefined}
         >
           {props.name}
-        </Text>
-      </Box2>
-      {props.resetParticipants.length !== 0 && (
-        <PathItemInfo resetParticipants={props.resetParticipants} isUserReset={props.isUserReset} />
-      )}
-    </Box>
+        </Kb.Text>
+      </Kb.Box2>
+      <TlfInfo path={props.path} mode="row" />
+    </Kb.Box>
   </StillCommon>
 )
 

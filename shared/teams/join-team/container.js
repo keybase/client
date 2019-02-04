@@ -2,19 +2,12 @@
 import * as TeamsGen from '../../actions/teams-gen'
 import JoinTeamDialog from '.'
 import {upperFirst} from 'lodash-es'
-import {
-  connect,
-  compose,
-  lifecycle,
-  withStateHandlers,
-  withHandlers,
-  type TypedState,
-} from '../../util/container'
+import {connect, compose, lifecycle, withStateHandlers, withHandlers} from '../../util/container'
 import {type RouteProps} from '../../route-tree/render-route'
 
-type OwnProps = RouteProps<void, void>
+type OwnProps = RouteProps<{}, {}>
 
-const mapStateToProps = (state: TypedState) => ({
+const mapStateToProps = state => ({
   errorText: upperFirst(state.teams.teamJoinError),
   success: state.teams.teamJoinSuccess,
   successTeamName: state.teams.teamJoinSuccessTeamName,
@@ -34,10 +27,12 @@ const mapDispatchToProps = (dispatch, {navigateUp}: OwnProps) => ({
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
-  withStateHandlers(({name}) => ({name: name || ''}), {
-    onNameChange: () => (name: string) => ({name: name.toLowerCase()}),
-  }),
+  connect<OwnProps, _, _, _, _>(
+    mapStateToProps,
+    mapDispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d})
+  ),
+  withStateHandlers({name: ''}, {onNameChange: () => (name: string) => ({name: name.toLowerCase()})}),
   withHandlers({
     onSubmit: ({name, _onJoinTeam}) => () => _onJoinTeam(name),
   }),

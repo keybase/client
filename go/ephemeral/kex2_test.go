@@ -44,7 +44,7 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 	if upgradePerUserKey {
 		// The test user has a PUK, but it's not automatically loaded. We have to
 		// explicitly sync it.
-		keyring, err := tcX.G.GetPerUserKeyring()
+		keyring, err := tcX.G.GetPerUserKeyring(context.Background())
 		require.NoError(t, err)
 		err = keyring.Sync(libkb.NewMetaContext(context.Background(), tcX.G))
 		require.NoError(t, err)
@@ -62,7 +62,7 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 	var userEKX keybase1.UserEk
 	if upgradePerUserKey {
 		require.True(t, userEKGenX > 0)
-		userEKX, err = userEKBoxStorageX.Get(context.Background(), userEKGenX)
+		userEKX, err = userEKBoxStorageX.Get(context.Background(), userEKGenX, nil)
 		require.NoError(t, err)
 	} else {
 		require.EqualValues(t, userEKGenX, -1)
@@ -168,7 +168,7 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 	require.EqualValues(t, userEKGenX, userEKGenY)
 
 	if upgradePerUserKey {
-		userEKY, err := userEKBoxStorageY.Get(context.Background(), userEKGenY)
+		userEKY, err := userEKBoxStorageY.Get(context.Background(), userEKGenY, nil)
 		require.NoError(t, err)
 		require.Equal(t, userEKX, userEKY)
 
@@ -177,7 +177,7 @@ func subTestKex2Provision(t *testing.T, upgradePerUserKey bool) {
 		rawUserEKBoxStorage.Delete(context.Background(), userEKGenY)
 		userEKBoxStorageY.ClearCache()
 
-		userEKYFetched, err := userEKBoxStorageY.Get(context.Background(), userEKGenY)
+		userEKYFetched, err := userEKBoxStorageY.Get(context.Background(), userEKGenY, nil)
 		require.NoError(t, err)
 		require.Equal(t, userEKX, userEKYFetched)
 	}

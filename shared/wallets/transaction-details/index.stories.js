@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Sb from '../../stories/storybook'
+import {stringToAccountID} from '../../constants/types/wallets'
 import moment from 'moment'
 import {Box2} from '../../common-adapters'
 import TransactionDetails from '.'
@@ -13,6 +14,37 @@ const yesterday = moment(now)
 const memo =
   'Stellar deal!! You guys rock. This is to show a very long private note. Blah blah blah blah. Plus, emojis. 🍺'
 
+const props = {
+  amountUser: '',
+  amountXLM: '',
+  approxWorth: '',
+  counterparty: 'yen',
+  counterpartyMeta: null,
+  counterpartyType: 'keybaseUser',
+  issuerAccountID: null,
+  issuerDescription: '',
+  loading: false,
+  memo,
+  onBack: Sb.action('onBack'),
+  onCancelPayment: null,
+  onCancelPaymentWaitingKey: '',
+  onChat: Sb.action('onChat'),
+  onLoadPaymentDetail: Sb.action('onLoadPaymentDetail'),
+  onShowProfile: Sb.action('onShowProfile'),
+  onViewTransaction: Sb.action('onViewTransaction'),
+  recipientAccountID: stringToAccountID('GBCCH4KHE5MUXXYSFCKJ3BRN4U3MTXOXD2GBJH5V7QF6OJ6S5R23DWYF'),
+  selectableText: false,
+  senderAccountID: stringToAccountID('GCHRPJ4AI54NMJSJWTCA5ZMTKVSDWGDY6KNJOXLYGRHA4FU5OJVRJR3F'),
+  status: 'completed',
+  statusDetail: '',
+  timestamp: yesterday,
+  title: 'Details',
+  transactionID: '998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591',
+  you: 'cjb',
+  yourAccountName: '',
+  yourRole: 'senderOnly',
+}
+
 const load = () => {
   Sb.storiesOf('Wallets/Transaction Details', module)
     .addDecorator(story => (
@@ -20,121 +52,117 @@ const load = () => {
         {story()}
       </Box2>
     ))
+    .addDecorator(Sb.scrollViewDecorator)
     .add('Sending to Keybase user', () => (
       <TransactionDetails
-        counterparty="yen"
+        {...props}
         counterpartyMeta="Addie Stokes"
         counterpartyType="keybaseUser"
         amountUser="$12.50"
-        onBack={Sb.action('onBack')}
-        title="Details"
         amountXLM="53.1688643 XLM"
-        yourRole="senderOnly"
-        memo={memo}
-        timestamp={yesterday}
-        transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
-        onLoadPaymentDetail={Sb.action('onLoadPaymentDetail')}
-        onViewTransaction={Sb.action('onViewTransaction')}
-        you="cjb"
-        status="completed"
-        statusDetail=""
       />
     ))
     .add('Sending to Stellar public key', () => (
       <TransactionDetails
-        counterparty="G43289XXXXX34OPL"
-        onBack={Sb.action('onBack')}
-        title="Details"
+        {...props}
+        counterparty="G43289KHE5MUXXYSFCKJ3BRN4U3MTXOXD2GBJH5V7QF6OJ6S5R2340PL"
+        counterpartyMeta={null}
         counterpartyType="stellarPublicKey"
         amountUser="$15.65"
         amountXLM="42.535091 XLM"
-        yourRole="senderOnly"
-        memo={memo}
-        timestamp={yesterday}
-        transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
-        onLoadPaymentDetail={Sb.action('onLoadPaymentDetail')}
-        onViewTransaction={Sb.action('onViewTransaction')}
-        you="cjb"
-        status="completed"
-        statusDetail=""
+      />
+    ))
+    .add('Sending to Stellar public key (non-native asset)', () => (
+      <TransactionDetails
+        {...props}
+        counterparty="G43289KHE5MUXXYSFCKJ3BRN4U3MTXOXD2GBJH5V7QF6OJ6S5R2340PL"
+        counterpartyMeta={null}
+        counterpartyType="stellarPublicKey"
+        amountXLM="53.1688643 HUGS"
+        amountUser=""
+        memo="Make sure to redeem that hug! 🤗"
+        issuerDescription="example.com"
+        issuerAccountID={stringToAccountID('GD6TAJEGIL7PZFBPSZLCBTQCW45YT6UZJ6YS274OAFVBLQSMJTETVCNU')}
       />
     ))
     .add('Sending to Keybase user (pending)', () => (
       <TransactionDetails
-        counterparty="yen"
+        {...props}
         counterpartyMeta="Addie Stokes"
         counterpartyType="keybaseUser"
-        onBack={Sb.action('onBack')}
-        title="Details"
         amountUser="$12.50"
         amountXLM="53.1688643 XLM"
-        yourRole="senderOnly"
-        memo={memo}
         timestamp={null}
-        transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
-        onLoadPaymentDetail={Sb.action('onLoadPaymentDetail')}
-        onViewTransaction={Sb.action('onViewTransaction')}
-        you="cjb"
-        status="completed"
-        statusDetail=""
+        onCancelPayment={Sb.action('onCancelPayment')}
       />
     ))
     .add('Received from Keybase user', () => (
       <TransactionDetails
-        counterparty="yen"
+        {...props}
         counterpartyMeta="Addie Stokes"
         counterpartyType="keybaseUser"
-        onBack={Sb.action('onBack')}
-        title="Details"
         amountUser="$12.50"
         amountXLM="53.1688643 XLM"
         yourRole="receiverOnly"
-        memo={memo}
         publicMemo="Foo bar"
-        timestamp={yesterday}
-        transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
-        onLoadPaymentDetail={Sb.action('onLoadPaymentDetail')}
-        onViewTransaction={Sb.action('onViewTransaction')}
-        you="cjb"
-        status="completed"
-        statusDetail=""
       />
     ))
     .add('Received from Keybase user (pending)', () => (
       <TransactionDetails
-        counterparty="yen"
+        {...props}
         counterpartyMeta="Addie Stokes"
         counterpartyType="keybaseUser"
         amountUser="$12.50"
-        onBack={Sb.action('onBack')}
-        title="Details"
         amountXLM="53.1688643 XLM"
         yourRole="receiverOnly"
-        memo={memo}
-        onLoadPaymentDetail={Sb.action('onLoadPaymentDetail')}
         timestamp={null}
-        you="cjb"
         status="pending"
-        statusDetail=""
       />
     ))
     .add('Received from another account', () => (
       <TransactionDetails
+        {...props}
         counterparty="Second account"
         counterpartyType="otherAccount"
+        counterpartyMeta={null}
         amountUser="$100"
         amountXLM="545.2562704 XLM"
+        yourAccountName="First account"
         yourRole="receiverOnly"
-        memo={memo}
+        memo=""
+      />
+    ))
+    .add('Received from another account with note', () => (
+      <TransactionDetails
+        {...props}
+        counterparty="Second account"
+        counterpartyType="otherAccount"
+        counterpartyMeta={null}
+        amountUser="$100"
+        amountXLM="545.2562704 XLM"
+        yourAccountName="First account"
+        yourRole="receiverOnly"
+      />
+    ))
+    .add('Loading', () => (
+      <TransactionDetails
+        loading={true}
         onBack={Sb.action('onBack')}
-        title="Details"
-        timestamp={yesterday}
-        transactionID="998e29a665642a8b7289312469664b73b38c1fe9e61d4012d8114a8dae5d7591"
         onLoadPaymentDetail={Sb.action('onLoadPaymentDetail')}
-        onViewTransaction={Sb.action('onViewTransaction')}
-        you="cjb"
-        status="completed"
-        statusDetail=""
+        title="Transaction Details"
+      />
+    ))
+    .add('Received from Stellar account with warning', () => (
+      <TransactionDetails
+        {...props}
+        counterparty="G43289KHE5MUXXYSFCKJ3BRN4U3MTXOXD2GBJH5V7QF6OJ6S5R2340PL"
+        counterpartyType="stellarPublicKey"
+        counterpartyMeta={null}
+        amountUser="$100"
+        amountXLM="545.2562704 XLM"
+        publicMemo="compliance trigger warning"
+        yourAccountName="First account"
+        yourRole="receiverOnly"
       />
     ))
 }

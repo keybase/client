@@ -152,8 +152,8 @@ const styleHeader = {
 
 const styleHeaderMobile = {
   ...styleHeader,
-  paddingTop: globalMargins.medium,
   paddingBottom: globalMargins.tiny,
+  paddingTop: globalMargins.medium,
 }
 
 const styleRadioButton = {

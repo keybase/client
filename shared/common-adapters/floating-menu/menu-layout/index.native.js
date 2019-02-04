@@ -1,15 +1,19 @@
 // @flow
-import React, {Component} from 'react'
-import {TouchableOpacity} from 'react-native'
+import * as React from 'react'
+import * as Styles from '../../../styles'
+import {TouchableOpacity, SafeAreaView} from 'react-native'
 import Box from '../../box'
 import Text from '../../text'
-import {globalColors, globalMargins, globalStyles, styleSheetCreate, collapseStyles} from '../../../styles'
-import {isIPhoneX} from '../../../constants/platform'
+import Meta from '../../meta'
+import Divider from '../../divider'
+import ScrollView from '../../scroll-view'
+import {isLargeScreen} from '../../../constants/platform'
 import type {MenuItem, MenuLayoutProps} from '.'
 
 type MenuRowProps = {
   ...MenuItem,
   isHeader?: boolean,
+  newTag?: ?boolean,
   index: number,
   numItems: number,
   onHidden?: ?() => void,
@@ -25,14 +29,19 @@ const MenuRow = (props: MenuRowProps) => (
     style={styles.row}
   >
     {props.view || (
-      <Text type={'BodyBig'} style={styleRowText(props)}>
-        {props.title}
-      </Text>
+      <>
+        <Text center={true} type="BodyBig" style={styleRowText(props)}>
+          {props.title}
+        </Text>
+        {props.newTag && (
+          <Meta title="New" size="Small" backgroundColor={Styles.globalColors.blue} style={styles.badge} />
+        )}
+      </>
     )}
   </TouchableOpacity>
 )
 
-class MenuLayout extends Component<MenuLayoutProps> {
+class MenuLayout extends React.Component<MenuLayoutProps> {
   render() {
     const menuItemsNoDividers = this.props.items.reduce((arr, mi) => {
       if (mi && mi !== 'Divider') {
@@ -42,11 +51,21 @@ class MenuLayout extends Component<MenuLayoutProps> {
     }, [])
 
     return (
-      <Box style={styles.overlay}>
-        <Box style={collapseStyles([styles.menuBox, this.props.style])}>
+      <SafeAreaView style={styles.safeArea}>
+        <Box style={Styles.collapseStyles([styles.menuBox, this.props.style])}>
           {/* Display header if there is one */}
           {this.props.header && this.props.header.view}
-          <Box style={styles.menuGroup}>
+          <ScrollView
+            alwaysBounceVertical={false}
+            style={Styles.collapseStyles([
+              styles.flexGrow,
+              // if we set it to numItems * 56 exactly, the scrollview
+              // shrinks by 2px for some reason, which undermines alwaysBounceVertical={false}
+              // Add 2px to compensate
+              {height: Math.min(menuItemsNoDividers.length * 56 + 2, isLargeScreen ? 500 : 350)},
+            ])}
+            contentContainerStyle={styles.menuGroup}
+          >
             {menuItemsNoDividers.map((mi, idx) => (
               <MenuRow
                 key={mi.title}
@@ -56,10 +75,11 @@ class MenuLayout extends Component<MenuLayoutProps> {
                 onHidden={this.props.closeOnClick ? this.props.onHidden : undefined}
               />
             ))}
-          </Box>
-          <Box style={styles.cancelGroup}>
+          </ScrollView>
+          <Divider style={styles.divider} />
+          <Box style={styles.menuGroup}>
             <MenuRow
-              title="Cancel"
+              title={this.props.closeText || 'Close'}
               index={0}
               numItems={1}
               onClick={this.props.onHidden} // pass in nothing to onHidden so it doesn't trigger it twice
@@ -67,46 +87,54 @@ class MenuLayout extends Component<MenuLayoutProps> {
             />
           </Box>
         </Box>
-      </Box>
+      </SafeAreaView>
     )
   }
 }
 
 const styleRowText = (props: {isHeader?: boolean, danger?: boolean, disabled?: boolean}) => {
-  const dangerColor = props.danger ? globalColors.red : globalColors.blue
-  const color = props.isHeader ? globalColors.white : dangerColor
-  return {color, ...(props.disabled ? {opacity: 0.6} : {}), textAlign: 'center'}
+  const dangerColor = props.danger ? Styles.globalColors.red : Styles.globalColors.blue
+  const color = props.isHeader ? Styles.globalColors.white : dangerColor
+  return {color, ...(props.disabled ? {opacity: 0.6} : {})}
 }
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
+  badge: {
+    alignSelf: 'center',
+    marginLeft: Styles.globalMargins.tiny,
+  },
+  divider: {
+    marginBottom: Styles.globalMargins.tiny,
+    marginTop: Styles.globalMargins.tiny,
+  },
+  flexGrow: {
+    flexGrow: 1,
+  },
   menuBox: {
-    ...globalStyles.flexBoxColumn,
-    justifyContent: 'flex-end',
+    ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'stretch',
-    backgroundColor: globalColors.white,
+    backgroundColor: Styles.globalColors.white,
+    justifyContent: 'flex-end',
+    paddingBottom: Styles.globalMargins.tiny,
   },
   menuGroup: {
-    ...globalStyles.flexBoxColumn,
-    justifyContent: 'flex-end',
+    ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'stretch',
-  },
-  cancelGroup: {
-    ...globalStyles.flexBoxColumn,
     justifyContent: 'flex-end',
-    alignItems: 'stretch',
-    borderColor: globalColors.black_10,
-    borderTopWidth: 1,
-    paddingBottom: isIPhoneX ? globalMargins.medium : 0, // otherwise too close to the gesture bar
   },
   row: {
-    ...globalStyles.flexBoxColumn,
+    ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
-    height: 56,
+    backgroundColor: Styles.globalColors.white,
     justifyContent: 'center',
-    paddingLeft: globalMargins.medium,
-    paddingRight: globalMargins.medium,
-    backgroundColor: globalColors.white,
-    borderColor: globalColors.black_10,
+    minHeight: 56,
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingLeft: Styles.globalMargins.medium,
+    paddingRight: Styles.globalMargins.medium,
+    paddingTop: Styles.globalMargins.tiny,
+  },
+  safeArea: {
+    backgroundColor: Styles.globalColors.white,
   },
 })
 

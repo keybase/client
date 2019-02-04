@@ -9,6 +9,7 @@ import (
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	clockwork "github.com/keybase/clockwork"
+	"github.com/stretchr/testify/require"
 )
 
 func newTestResolverCache(g *libkb.GlobalContext) (*libkb.ResolverImpl, clockwork.FakeClock) {
@@ -30,52 +31,41 @@ func TestResolveSimple(t *testing.T) {
 
 	goodResolve := func(s string) {
 		res := r.Resolve(m, s)
-		if err := res.GetError(); err != nil {
-			t.Fatal(err)
-		}
-		if res.GetUID() != tracyUID {
-			t.Fatalf("Got wrong UID; wanted %s but got %s", tracyUID, res.GetUID())
-		}
+		err := res.GetError()
+		require.NoError(t, err)
+		require.Equal(t, res.GetUID(), tracyUID)
 	}
+
 	goodResolve("eb72f49f2dde6429e5d78003dae0c919@uid")
-	if !r.Stats.Eq(0, 0, 0, 0, 0) {
-		t.Fatalf("Got bad cache stats: %+v\n", r.Stats)
-	}
+	require.True(t, r.Stats.Eq(0, 0, 0, 0, 0))
+
 	goodResolve("t_tracy@keybase")
-	if !r.Stats.Eq(1, 0, 0, 0, 0) {
-		t.Fatalf("Got bad cache stats: %+v\n", r.Stats)
-	}
+	require.True(t, r.Stats.Eq(1, 0, 0, 0, 0))
+
 	goodResolve("t_tracy@keybase")
-	if !r.Stats.Eq(1, 0, 0, 0, 1) {
-		t.Fatalf("Got bad cache stats: %+v\n", r.Stats)
-	}
+	require.True(t, r.Stats.Eq(1, 0, 0, 0, 1))
+
 	clock.Advance(libkb.ResolveCacheMaxAge * 10)
 	goodResolve("t_tracy@keybase")
-	if !r.Stats.Eq(1, 1, 0, 0, 1) {
-		t.Fatalf("Got bad cache stats: %+v\n", r.Stats)
-	}
+	require.True(t, r.Stats.Eq(1, 1, 0, 0, 1))
+
 	goodResolve("t_tracy@rooter")
-	if !r.Stats.Eq(2, 1, 0, 0, 1) {
-		t.Fatalf("Got bad cache stats: %+v\n", r.Stats)
-	}
+	require.True(t, r.Stats.Eq(2, 1, 0, 0, 1))
+
 	clock.Advance(libkb.ResolveCacheMaxAgeMutable / 2)
 	goodResolve("t_tracy@rooter")
-	if !r.Stats.Eq(2, 1, 0, 0, 2) {
-		t.Fatalf("Got bad cache stats: %+v\n", r.Stats)
-	}
+	require.True(t, r.Stats.Eq(2, 1, 0, 0, 2))
+
 	clock.Advance(libkb.ResolveCacheMaxAgeMutable * 2)
 	goodResolve("t_tracy@rooter")
-	if !r.Stats.Eq(2, 1, 1, 0, 2) {
-		t.Fatalf("Got bad cache stats: %+v\n", r.Stats)
-	}
+	require.True(t, r.Stats.Eq(2, 1, 1, 0, 2))
+
 	res := r.Resolve(m, "tacovontaco@twitter")
-	if err := res.GetError(); err == nil {
-		t.Fatal("Expected an ambiguous error on taconvontaco")
-	} else if terr, ok := err.(libkb.ResolutionError); !ok {
-		t.Fatal("wrong error type")
-	} else if !strings.Contains(terr.Msg, "ambiguous") {
-		t.Fatal("didn't get ambiguous error")
-	}
+	err := res.GetError()
+	require.Error(t, err)
+	terr, ok := err.(libkb.ResolutionError)
+	require.True(t, ok)
+	require.True(t, strings.Contains(terr.Msg, "ambiguous"))
 }
 
 func TestResolveNeedUsername(t *testing.T) {
@@ -87,35 +77,25 @@ func TestResolveNeedUsername(t *testing.T) {
 	goodResolve := func(s string) {
 		lctx := libkb.WithLogTag(ctx, "RSLV")
 		res := r.ResolveFullExpressionNeedUsername(libkb.NewMetaContext(lctx, tc.G), s)
-		if err := res.GetError(); err != nil {
-			t.Fatal(err)
-		}
-		if res.GetUID() != tracyUID {
-			t.Fatalf("Got wrong UID; wanted %s but got %s", tracyUID, res.GetUID())
-		}
+		err := res.GetError()
+		require.NoError(t, err)
+		require.Equal(t, res.GetUID(), tracyUID)
 	}
 	goodResolve("t_tracy")
-	if !r.Stats.Eq(1, 0, 0, 0, 0) {
-		t.Fatalf("Got bad cache stats: %+v\n", r.Stats)
-	}
+	require.True(t, r.Stats.Eq(1, 0, 0, 0, 0))
+
 	goodResolve("t_tracy")
-	if !r.Stats.Eq(1, 0, 0, 0, 1) {
-		t.Fatalf("Got bad cache stats: %+v\n", r.Stats)
-	}
+	require.True(t, r.Stats.Eq(1, 0, 0, 0, 1))
+
 	clock.Advance(libkb.ResolveCacheMaxAge * 10)
 	goodResolve("t_tracy")
-	if !r.Stats.EqWithDiskHits(1, 1, 0, 0, 1, 1) {
-		t.Fatalf("Got bad cache stats: %+v\n", r.Stats)
-	}
+	require.True(t, r.Stats.EqWithDiskHits(1, 1, 0, 0, 1, 1))
 
 	goodResolve("uid:" + string(tracyUID))
-	if !r.Stats.EqWithDiskHits(2, 1, 0, 0, 1, 1) {
-		t.Fatalf("Got bad cache stats: %+v\n", r.Stats)
-	}
+	require.True(t, r.Stats.EqWithDiskHits(2, 1, 0, 0, 1, 1))
+
 	goodResolve("uid:" + string(tracyUID))
-	if !r.Stats.EqWithDiskHits(2, 1, 0, 0, 2, 1) {
-		t.Fatalf("Got bad cache stats: %+v\n", r.Stats)
-	}
+	require.True(t, r.Stats.EqWithDiskHits(2, 1, 0, 0, 2, 1))
 
 	clock.Advance(libkb.ResolveCacheMaxAge * 10)
 
@@ -123,7 +103,5 @@ func TestResolveNeedUsername(t *testing.T) {
 	// and we don't write it to disk. So we're going to totally miss
 	// the cache here.
 	goodResolve("uid:" + string(tracyUID))
-	if !r.Stats.EqWithDiskHits(2, 2, 0, 0, 2, 1) {
-		t.Fatalf("Got bad cache stats: %+v\n", r.Stats)
-	}
+	require.True(t, r.Stats.EqWithDiskHits(2, 2, 0, 0, 2, 1))
 }

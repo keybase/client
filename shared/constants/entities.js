@@ -5,15 +5,15 @@ import * as Git from './git'
 import * as Types from './types/entities'
 
 const makeSearchSubState: I.RecordFactory<Types._SearchSubState> = I.Record({
-  searchResults: I.Map(),
-  searchQueryToResult: I.Map(),
-  searchKeyToResults: I.Map(),
+  searchKeyToClearSearchTextInput: I.Map(),
   searchKeyToPending: I.Map(),
+  searchKeyToResults: I.Map(),
+  searchKeyToSearchResultQuery: I.Map(),
   searchKeyToSelectedId: I.Map(),
   searchKeyToShowSearchSuggestion: I.Map(),
   searchKeyToUserInputItemIds: I.Map(),
-  searchKeyToSearchResultQuery: I.Map(),
-  searchKeyToClearSearchTextInput: I.Map(),
+  searchQueryToResult: I.Map(),
+  searchResults: I.Map(),
 })
 
 const makePaginationState = I.Record({
@@ -34,9 +34,9 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   git: Git.makeState(),
   messageUpdates: I.Map(),
   messages: I.Map(),
+  pagination: makePaginationState(),
   search: makeSearchSubState(),
   searchQueryToResult: I.Map(),
   searchResults: I.Map(),
   teams: Teams.makeState(),
-  pagination: makePaginationState(),
 })

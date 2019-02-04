@@ -19,6 +19,14 @@
     {
       "path": "common.avdl",
       "type": "idl"
+    },
+    {
+      "path": "unfurl.avdl",
+      "type": "idl"
+    },
+    {
+      "path": "commands.avdl",
+      "type": "idl"
     }
   ],
   "types": [
@@ -93,6 +101,10 @@
           "name": "topicType"
         },
         {
+          "type": "boolean",
+          "name": "isPublic"
+        },
+        {
           "type": "string",
           "name": "name"
         },
@@ -132,8 +144,26 @@
           "name": "version"
         },
         {
+          "type": [
+            null,
+            "RetentionPolicy"
+          ],
+          "name": "convRetention"
+        },
+        {
+          "type": [
+            null,
+            "RetentionPolicy"
+          ],
+          "name": "teamRetention"
+        },
+        {
           "type": "MessageID",
           "name": "maxMsgID"
+        },
+        {
+          "type": "MessageID",
+          "name": "maxVisibleMsgID"
         },
         {
           "type": "MessageID",
@@ -166,6 +196,10 @@
             "items": "ConversationMetadata"
           },
           "name": "supersededBy"
+        },
+        {
+          "type": "ConversationCommandGroups",
+          "name": "commands"
         }
       ]
     },
@@ -204,6 +238,10 @@
         {
           "type": "TopicType",
           "name": "topicType"
+        },
+        {
+          "type": "boolean",
+          "name": "isPublic"
         },
         {
           "type": "boolean",
@@ -299,6 +337,10 @@
         },
         {
           "type": "MessageID",
+          "name": "maxVisibleMsgID"
+        },
+        {
+          "type": "MessageID",
           "name": "readMsgID"
         },
         {
@@ -342,6 +384,10 @@
             "items": "ConversationMetadata"
           },
           "name": "supersededBy"
+        },
+        {
+          "type": "ConversationCommandGroups",
+          "name": "commands"
         }
       ]
     },
@@ -450,12 +496,23 @@
       "name": "UIPaymentInfo",
       "fields": [
         {
+          "type": [
+            null,
+            "stellar1.AccountID"
+          ],
+          "name": "accountID"
+        },
+        {
           "type": "string",
           "name": "amountDescription"
         },
         {
           "type": "string",
           "name": "worth"
+        },
+        {
+          "type": "string",
+          "name": "worthAtSendTime"
         },
         {
           "type": "stellar1.BalanceDelta",
@@ -466,12 +523,32 @@
           "name": "note"
         },
         {
+          "type": "stellar1.PaymentID",
+          "name": "paymentID"
+        },
+        {
           "type": "stellar1.PaymentStatus",
           "name": "status"
         },
         {
           "type": "string",
           "name": "statusDescription"
+        },
+        {
+          "type": "string",
+          "name": "statusDetail"
+        },
+        {
+          "type": "boolean",
+          "name": "showCancel"
+        },
+        {
+          "type": "string",
+          "name": "fromUsername"
+        },
+        {
+          "type": "string",
+          "name": "toUsername"
         }
       ]
     },
@@ -502,8 +579,30 @@
           "name": "currency"
         },
         {
+          "type": "string",
+          "name": "worthAtRequestTime"
+        },
+        {
           "type": "stellar1.RequestStatus",
           "name": "status"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UIMessageUnfurlInfo",
+      "fields": [
+        {
+          "type": "MessageID",
+          "name": "unfurlMessageID"
+        },
+        {
+          "type": "string",
+          "name": "url"
+        },
+        {
+          "type": "UnfurlDisplay",
+          "name": "unfurl"
         }
       ]
     },
@@ -531,6 +630,13 @@
           "name": "messageBody"
         },
         {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "decoratedTextBody"
+        },
+        {
           "type": "string",
           "name": "senderUsername"
         },
@@ -541,6 +647,14 @@
         {
           "type": "string",
           "name": "senderDeviceType"
+        },
+        {
+          "type": "gregor1.UID",
+          "name": "senderUID"
+        },
+        {
+          "type": "gregor1.DeviceID",
+          "name": "senderDeviceID"
         },
         {
           "type": "boolean",
@@ -606,11 +720,11 @@
           "name": "hasPairwiseMacs"
         },
         {
-          "type": [
-            null,
-            "UIPaymentInfo"
-          ],
-          "name": "paymentInfo"
+          "type": {
+            "type": "array",
+            "items": "UIPaymentInfo"
+          },
+          "name": "paymentInfos"
         },
         {
           "type": [
@@ -618,6 +732,13 @@
             "UIRequestInfo"
           ],
           "name": "requestInfo"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UIMessageUnfurlInfo"
+          },
+          "name": "unfurls"
         }
       ]
     },
@@ -640,6 +761,13 @@
         {
           "type": "string",
           "name": "body"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "decoratedTextBody"
         },
         {
           "type": "gregor1.Time",
@@ -735,33 +863,95 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "UITextDecorationTyp",
+      "symbols": [
+        "PAYMENT_0",
+        "ATMENTION_1",
+        "CHANNELNAMEMENTION_2"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "UITextDecoration",
+      "switch": {
+        "type": "UITextDecorationTyp",
+        "name": "typ"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "PAYMENT",
+            "def": false
+          },
+          "body": "TextPayment"
+        },
+        {
+          "label": {
+            "name": "ATMENTION",
+            "def": false
+          },
+          "body": "string"
+        },
+        {
+          "label": {
+            "name": "CHANNELNAMEMENTION",
+            "def": false
+          },
+          "body": "UIChannelNameMention"
+        }
+      ]
+    },
+    {
       "type": "record",
-      "name": "ChatSearchHit",
+      "name": "UIChatPayment",
       "fields": [
         {
-          "type": {
-            "type": "array",
-            "items": "UIMessage"
-          },
-          "name": "beforeMessages"
+          "type": "string",
+          "name": "username"
         },
         {
-          "type": "UIMessage",
-          "name": "hitMessage"
+          "type": "string",
+          "name": "fullName"
+        },
+        {
+          "type": "string",
+          "name": "xlmAmount"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "error"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "displayAmount"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UIChatPaymentSummary",
+      "fields": [
+        {
+          "type": "string",
+          "name": "xlmTotal"
+        },
+        {
+          "type": "string",
+          "name": "displayTotal"
         },
         {
           "type": {
             "type": "array",
-            "items": "UIMessage"
+            "items": "UIChatPayment"
           },
-          "name": "afterMessages"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "string"
-          },
-          "name": "matches"
+          "name": "payments"
         }
       ]
     }
@@ -903,6 +1093,45 @@
       ],
       "response": null
     },
+    "chatSearchInboxHit": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "searchHit",
+          "type": "ChatSearchInboxHit"
+        }
+      ],
+      "response": null
+    },
+    "chatSearchInboxDone": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "res",
+          "type": "ChatSearchInboxDone"
+        }
+      ],
+      "response": null
+    },
+    "chatSearchIndexStatus": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "status",
+          "type": "ChatSearchIndexStatus"
+        }
+      ],
+      "response": null
+    },
     "chatConfirmChannelDelete": {
       "request": [
         {
@@ -915,6 +1144,67 @@
         }
       ],
       "response": "boolean"
+    },
+    "chatStellarShowConfirm": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": null
+    },
+    "chatStellarDataConfirm": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "summary",
+          "type": "UIChatPaymentSummary"
+        }
+      ],
+      "response": "boolean"
+    },
+    "chatStellarDataError": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "message",
+          "type": "string"
+        }
+      ],
+      "response": "boolean"
+    },
+    "chatStellarDone": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "canceled",
+          "type": "boolean"
+        }
+      ],
+      "response": null
+    },
+    "chatShowManageChannels": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "teamname",
+          "type": "string"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "chat.1"

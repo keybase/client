@@ -41,23 +41,32 @@ func (rc *WebChecker) GetTorError() libkb.ProofError {
 	return nil
 }
 
-func (rc *WebChecker) CheckStatus(m libkb.MetaContext, h libkb.SigHint, pcm libkb.ProofCheckerMode, pvlU keybase1.MerkleStoreEntry) libkb.ProofError {
+func (rc *WebChecker) CheckStatus(mctx libkb.MetaContext, h libkb.SigHint, pcm libkb.ProofCheckerMode,
+	pvlU keybase1.MerkleStoreEntry) (*libkb.SigHint, libkb.ProofError) {
 	if pcm != libkb.ProofCheckerModeActive {
-		m.CDebugf("Web check skipped since proof checking was not in active mode (%s)", h.GetAPIURL())
-		return libkb.ProofErrorUnchecked
+		mctx.CDebugf("Web check skipped since proof checking was not in active mode (%s)", h.GetAPIURL())
+		return nil, libkb.ProofErrorUnchecked
 	}
-	return CheckProofPvl(m, keybase1.ProofType_GENERIC_WEB_SITE, rc.proof, h, pvlU)
+	// TODO CORE-8951 see if we can populate verifiedHint with anything useful.
+	return nil, CheckProofPvl(mctx, keybase1.ProofType_GENERIC_WEB_SITE, rc.proof, h, pvlU)
 }
 
 //
 //=============================================================================
 
-type WebServiceType struct{ libkb.BaseServiceType }
+type WebServiceType struct {
+	libkb.BaseServiceType
+	scheme string
+}
 
-func (t WebServiceType) AllStringKeys() []string     { return []string{"web", "http", "https"} }
-func (t WebServiceType) PrimaryStringKeys() []string { return []string{"https", "http"} }
+func (t *WebServiceType) Key() string {
+	if t.scheme == "" {
+		return "web"
+	}
+	return t.scheme
+}
 
-func (t WebServiceType) NormalizeUsername(s string) (ret string, err error) {
+func (t *WebServiceType) NormalizeUsername(s string) (ret string, err error) {
 	// The username is just the (lowercased) hostname.
 	if !libkb.IsValidHostname(s) {
 		return "", libkb.NewInvalidHostnameError(s)
@@ -79,20 +88,20 @@ func ParseWeb(s string) (hostname string, prot string, err error) {
 	return
 }
 
-func (t WebServiceType) NormalizeRemoteName(m libkb.MetaContext, s string) (ret string, err error) {
+func (t *WebServiceType) NormalizeRemoteName(mctx libkb.MetaContext, s string) (ret string, err error) {
 	// The remote name is a full (case-preserved) URL.
 	var prot, host string
 	if host, prot, err = ParseWeb(s); err != nil {
 		return
 	}
 	var res *libkb.APIRes
-	res, err = m.G().GetAPI().Get(libkb.APIArg{
+	res, err = mctx.G().GetAPI().Get(libkb.APIArg{
 		Endpoint:    "remotes/check",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
 			"hostname": libkb.S{Val: host},
 		},
-		MetaContext: m,
+		MetaContext: mctx,
 	})
 	if err != nil {
 		return
@@ -103,7 +112,14 @@ func (t WebServiceType) NormalizeRemoteName(m libkb.MetaContext, s string) (ret 
 		err = libkb.NewWebUnreachableError(host)
 		return
 	}
-	if len(prot) > 0 && prot == "https" && found != "https:" {
+	if len(t.scheme) > 0 && len(prot) > 0 && prot != t.scheme {
+		msg := fmt.Sprintf("You tried to prove ownership of %s over %s but gave a %s link.", host, t.scheme, prot)
+		err = libkb.NewProtocolSchemeMismatch(msg)
+		return
+	}
+	protocolAssertsHTTPS := prot == "https"
+	proofTypeAssertsHTTPS := t.scheme == "https"
+	if (protocolAssertsHTTPS || proofTypeAssertsHTTPS) && found != "https:" {
 		msg := fmt.Sprintf("You specified HTTPS for %s but only HTTP is available", host)
 		err = libkb.NewProtocolDowngradeError(msg)
 		return
@@ -113,11 +129,11 @@ func (t WebServiceType) NormalizeRemoteName(m libkb.MetaContext, s string) (ret 
 	return
 }
 
-func (t WebServiceType) GetPrompt() string {
+func (t *WebServiceType) GetPrompt() string {
 	return "Web site to check"
 }
 
-func (t WebServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
+func (t *WebServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
 	h, p, _ := ParseWeb(un)
 	ret := jsonw.NewDictionary()
 	ret.SetKey("protocol", jsonw.NewString(p+":"))
@@ -125,7 +141,7 @@ func (t WebServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
 	return ret
 }
 
-func (t WebServiceType) MarkupFilenames(un string, mkp *libkb.Markup) {
+func (t *WebServiceType) MarkupFilenames(un string, mkp *libkb.Markup) {
 	mkp.Append(`<ul>`)
 	first := true
 	for _, f := range webKeybaseFiles {
@@ -141,22 +157,23 @@ func (t WebServiceType) MarkupFilenames(un string, mkp *libkb.Markup) {
 	mkp.Append(`</ul>`)
 }
 
-func (t WebServiceType) PreProofWarning(un string) *libkb.Markup {
+func (t *WebServiceType) PreProofWarning(un string) *libkb.Markup {
 	mkp := libkb.FmtMarkup(`<p>You will be asked to post a file to:</p>`)
 	t.MarkupFilenames(un, mkp)
 	return mkp
 }
 
-func (t WebServiceType) PostInstructions(un string) *libkb.Markup {
+func (t *WebServiceType) PostInstructions(un string) *libkb.Markup {
 	mkp := libkb.FmtMarkup(`<p>Make the following file available at:</p>`)
 	t.MarkupFilenames(un, mkp)
 	return mkp
 }
 
-func (t WebServiceType) DisplayName(un string) string { return "Web" }
-func (t WebServiceType) GetTypeName() string          { return "web" }
+func (t *WebServiceType) DisplayName() string   { return "Web" }
+func (t *WebServiceType) GetTypeName() string   { return "web" }
+func (t *WebServiceType) PickerSubtext() string { return t.GetTypeName() }
 
-func (t WebServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *libkb.Markup, err error) {
+func (t *WebServiceType) RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, _ string) (warning *libkb.Markup, err error) {
 	if status == keybase1.ProofStatus_PERMISSION_DENIED {
 		warning = libkb.FmtMarkup("Permission denied! Make sure your proof page is <strong>public</strong>.")
 	} else {
@@ -164,15 +181,17 @@ func (t WebServiceType) RecheckProofPosting(tryNumber int, status keybase1.Proof
 	}
 	return
 }
-func (t WebServiceType) GetProofType() string { return "web_service_binding.generic" }
+func (t *WebServiceType) GetProofType() string { return "web_service_binding.generic" }
 
-func (t WebServiceType) CheckProofText(text string, id keybase1.SigID, sig string) (err error) {
+func (t *WebServiceType) CheckProofText(text string, id keybase1.SigID, sig string) (err error) {
 	return t.BaseCheckProofTextFull(text, id, sig)
 }
 
-func (t WebServiceType) GetAPIArgKey() string { return "remote_host" }
-func (t WebServiceType) LastWriterWins() bool { return false }
+func (t *WebServiceType) GetAPIArgKey() string { return "remote_host" }
+func (t *WebServiceType) LastWriterWins() bool { return false }
 
-func (t WebServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) libkb.ProofChecker {
+func (t *WebServiceType) MakeProofChecker(l libkb.RemoteProofChainLink) libkb.ProofChecker {
 	return &WebChecker{l}
 }
+
+//=============================================================================

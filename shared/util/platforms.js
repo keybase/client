@@ -9,14 +9,15 @@ const ProveMessages = {
   facebook: 'Prove your Facebook',
   github: 'Prove your GitHub',
   hackernews: 'Prove your Hacker News',
-  http: 'Prove your website',
-  https: 'Prove your website',
+  http: 'Prove your HTTP website',
+  https: 'Prove your HTTPS website',
   keybase: '',
   none: '',
   pgp: 'Add a PGP key',
   reddit: 'Prove your Reddit',
   rooter: 'Prove your Rooter',
   twitter: 'Prove your Twitter',
+  web: 'Prove your website',
   zcash: 'Set a Zcash address',
 }
 
@@ -32,6 +33,7 @@ export function subtitle(platform: PlatformsExpandedType): ?string {
     case 'dns':
     case 'http':
     case 'https':
+    case 'web':
       return platform
     default:
       return `@${platform}`

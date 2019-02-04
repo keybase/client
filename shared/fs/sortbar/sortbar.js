@@ -5,7 +5,6 @@ import * as Styles from '../../styles'
 import {
   Box,
   ClickableBox,
-  Divider,
   Text,
   Icon,
   iconCastPlatformStyles,
@@ -17,7 +16,7 @@ import * as Types from '../../constants/types/fs'
 
 export type SortBarProps = {
   folderIsPending: boolean,
-  sortSetting: Types._SortSetting,
+  sortSetting: Types.SortSetting,
   sortSettingToAction: Types.SortSetting => () => void,
 }
 
@@ -56,14 +55,13 @@ const SortBar = (props: SortBarProps & OverlayParentProps) => {
   const {sortSettingIconType, sortSettingText} = Types.sortSettingToIconTypeAndText(props.sortSetting)
   return (
     <Box>
-      <Divider />
       <Box style={styles.sortBar}>
         <ClickableBox
           onClick={props.toggleShowingMenu}
           style={styles.sortSetting}
           ref={props.setAttachmentRef}
         >
-          <Box style={styles.iconBox}>
+          <Box>
             <Icon type={sortSettingIconType} style={iconCastPlatformStyles(styles.icon)} fontSize={11} />
           </Box>
           <Text type="BodySmallSemibold">{sortSettingText}</Text>
@@ -87,11 +85,18 @@ const SortBar = (props: SortBarProps & OverlayParentProps) => {
 }
 
 const styles = Styles.styleSheetCreate({
+  icon: {
+    marginRight: Styles.globalMargins.xtiny,
+  },
+  loading: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    marginLeft: 'auto',
+    marginRight: 32,
+  },
   sortBar: {
     ...Styles.globalStyles.flexBoxRow,
     backgroundColor: Styles.globalColors.blue5,
-    borderTopColor: Styles.globalColors.black_10,
-    borderTopWidth: 1,
     paddingLeft: 16,
   },
   sortSetting: {
@@ -99,15 +104,6 @@ const styles = Styles.styleSheetCreate({
     alignItems: 'center',
     justifyContent: 'flex-start',
     minHeight: Styles.isMobile ? 32 : 24,
-  },
-  icon: {
-    marginRight: Styles.globalMargins.xtiny,
-  },
-  loading: {
-    ...Styles.globalStyles.flexBoxRow,
-    marginLeft: 'auto',
-    marginRight: 32,
-    alignItems: 'center',
   },
   text: Styles.platformStyles({
     isMobile: {

@@ -1,14 +1,15 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
+import * as Constants from '../../constants/fs'
 import * as Styles from '../../styles'
 import {rowStyles} from './common'
-import {Box, Icon, Meta, Text} from '../../common-adapters'
-import PathItemIcon from '../common/path-item-icon'
+import * as Kb from '../../common-adapters'
+import {PathItemIcon} from '../common'
 
 type UploadingProps = {
-  name: string,
-  itemStyles: Types.ItemStyles,
+  path: Types.Path,
+  type: Types.PathType,
   error: boolean,
   writingToJournal: boolean,
   syncing: boolean,
@@ -31,35 +32,22 @@ const getStatusText = ({error, writingToJournal, syncing}: UploadingProps): stri
 }
 
 const Uploading = (props: UploadingProps) => (
-  <Box style={rowStyles.rowBox}>
-    <PathItemIcon spec={props.itemStyles.iconSpec} style={rowStyles.pathItemIcon_30} />
-    <Box style={stylesIconBadge}>
-      <Icon type="icon-addon-file-uploading" />
-    </Box>
-    <Box key="main" style={rowStyles.itemBox}>
-      <Text
-        type={props.itemStyles.textType}
-        style={Styles.collapseStyles([rowStyles.rowText_30, {color: props.itemStyles.textColor}])}
+  <Kb.Box style={rowStyles.rowBox}>
+    <PathItemIcon path={props.path} size={32} style={rowStyles.pathItemIcon_30} badge="upload" />
+    <Kb.Box key="main" style={rowStyles.itemBox}>
+      <Kb.Text
+        type={Constants.pathTypeToTextType(props.type)}
+        style={Styles.collapseStyles([rowStyles.rowText_30, {color: Constants.getPathTextColor(props.path)}])}
         lineClamp={Styles.isMobile ? 1 : undefined}
       >
-        {props.name}
-      </Text>
-      <Meta
+        {Types.getPathName(props.path)}
+      </Kb.Text>
+      <Kb.Meta
         title={getStatusText(props)}
         backgroundColor={props.error ? Styles.globalColors.red : Styles.globalColors.blue}
       />
-    </Box>
-  </Box>
+    </Kb.Box>
+  </Kb.Box>
 )
-
-const xOffset = -28
-const yOffset = 20
-const stylesIconBadge = {
-  marginLeft: xOffset,
-  marginRight: -xOffset,
-  marginTop: yOffset,
-  width: 0,
-  zIndex: 100,
-}
 
 export default Uploading

@@ -18,7 +18,7 @@ type Props = {
 
 const HoverBox = Styles.isMobile
   ? Box2
-  : Styles.glamorous(Box2)({
+  : Styles.styled(Box2)({
       ':hover': {
         backgroundColor: Styles.globalColors.blue4,
       },

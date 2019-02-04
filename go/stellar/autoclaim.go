@@ -8,30 +8,29 @@ import (
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/stellar1"
-	"github.com/keybase/client/go/stellar/remote"
 )
 
 // Claims relay payments in the background.
 // Threadsafe.
 type AutoClaimRunner struct {
-	startOnce  sync.Once
-	shutdownCh chan struct{}
-	kickCh     chan gregor.MsgID
-	remoter    remote.Remoter
+	startOnce   sync.Once
+	shutdownCh  chan struct{}
+	kickCh      chan gregor.MsgID
+	walletState *WalletState
 }
 
-func NewAutoClaimRunner(remoter remote.Remoter) *AutoClaimRunner {
+func NewAutoClaimRunner(walletState *WalletState) *AutoClaimRunner {
 	return &AutoClaimRunner{
-		shutdownCh: make(chan struct{}, 1),
-		kickCh:     make(chan gregor.MsgID, 100),
-		remoter:    remoter,
+		shutdownCh:  make(chan struct{}, 1),
+		kickCh:      make(chan gregor.MsgID, 100),
+		walletState: walletState,
 	}
 }
 
 // Kick the processor into gear.
 // It will run until all relays in the queue are claimed.
 // And then dismiss the gregor message.
-// `trigger` is of the gregor message that caused the kick.
+// `trigger` is optional, and is of the gregor message that caused the kick.
 func (r *AutoClaimRunner) Kick(mctx libkb.MetaContext, trigger gregor.MsgID) {
 	mctx.CDebugf("AutoClaimRunner.Kick(trigger:%v)", trigger)
 	var onced bool
@@ -60,6 +59,7 @@ const (
 	autoClaimLoopActionSnooze    autoClaimLoopAction = "snooze"
 )
 
+// `trigger` is optional
 func (r *AutoClaimRunner) loop(mctx libkb.MetaContext, trigger gregor.MsgID) {
 	var i int
 	for {
@@ -97,12 +97,13 @@ func (r *AutoClaimRunner) loop(mctx libkb.MetaContext, trigger gregor.MsgID) {
 	}
 }
 
+// `trigger` is optional
 func (r *AutoClaimRunner) step(mctx libkb.MetaContext, i int, trigger gregor.MsgID) (action autoClaimLoopAction, err error) {
 	log := func(format string, args ...interface{}) {
 		mctx.CDebugf(fmt.Sprintf("AutoClaimRunnner round[%v] ", i) + fmt.Sprintf(format, args...))
 	}
 	log("step begin")
-	token, err := r.remoter.AcquireAutoClaimLock(mctx.Ctx())
+	token, err := r.walletState.AcquireAutoClaimLock(mctx.Ctx())
 	if err != nil {
 		return autoClaimLoopActionSnooze, err
 	}
@@ -111,24 +112,26 @@ func (r *AutoClaimRunner) step(mctx libkb.MetaContext, i int, trigger gregor.Msg
 		return autoClaimLoopActionSnooze, nil
 	}
 	defer func() {
-		rerr := r.remoter.ReleaseAutoClaimLock(mctx.Ctx(), token)
+		rerr := r.walletState.ReleaseAutoClaimLock(mctx.Ctx(), token)
 		if rerr != nil {
 			log("error releasing autoclaim lock: %v", rerr)
 		}
 	}()
-	ac, err := r.remoter.NextAutoClaim(mctx.Ctx())
+	ac, err := r.walletState.NextAutoClaim(mctx.Ctx())
 	if err != nil {
 		return autoClaimLoopActionSnooze, err
 	}
 	if ac == nil {
 		log("no more autoclaims")
-		log("dismissing kick: %v", trigger)
-		err = mctx.G().GregorDismisser.DismissItem(mctx.Ctx(), nil, trigger)
-		if err != nil {
-			log("error dismissing gregor kick: %v", err)
-			return autoClaimLoopActionHibernate, err
+		if trigger.String() != "" {
+			log("dismissing kick: %v", trigger)
+			err = mctx.G().GregorState.DismissItem(mctx.Ctx(), nil, trigger)
+			if err != nil {
+				log("error dismissing gregor kick: %v", err)
+				return autoClaimLoopActionHibernate, err
+			}
+			log("successfully dismissed kick")
 		}
-		log("successfully dismissed kick")
 		return autoClaimLoopActionHibernate, nil
 	}
 	log("got next autoclaim: %v", ac.KbTxID)
@@ -141,15 +144,14 @@ func (r *AutoClaimRunner) step(mctx libkb.MetaContext, i int, trigger gregor.Msg
 }
 
 func (r *AutoClaimRunner) claim(mctx libkb.MetaContext, kbTxID stellar1.KeybaseTransactionID, token string) (err error) {
-	CreateWalletSoft(mctx.Ctx(), mctx.G())
-	into, err := GetOwnPrimaryAccountID(mctx.Ctx(), mctx.G())
+	CreateWalletSoft(mctx)
+	into, err := GetOwnPrimaryAccountID(mctx)
 	if err != nil {
 		return err
 	}
 	// Explicitly CLAIM. We don't want to accidentally auto YANK.
 	dir := stellar1.RelayDirection_CLAIM
 	// Use the user's autoclaim lock that we acquired.
-	_, err = Claim(mctx.Ctx(), mctx.G(), r.remoter,
-		kbTxID.String(), into, &dir, &token)
+	_, err = Claim(mctx, r.walletState, kbTxID.String(), into, &dir, &token)
 	return err
 }

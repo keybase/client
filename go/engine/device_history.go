@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
@@ -160,7 +161,7 @@ func (e *DeviceHistory) loadDevices(m libkb.MetaContext, user *libkb.User) error
 
 func (e *DeviceHistory) provisioner(m libkb.MetaContext, d *libkb.Device, ckis *libkb.ComputedKeyInfos, info *libkb.ComputedKeyInfo) (*libkb.Device, error) {
 	for _, v := range info.Delegations {
-		if libkb.AlgoType(v.GetKeyType()) != libkb.KIDNaclEddsa {
+		if kbcrypto.AlgoType(v.GetKeyType()) != kbcrypto.KIDNaclEddsa {
 			// only concerned with device history, not pgp provisioners
 			continue
 		}

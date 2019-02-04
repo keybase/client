@@ -132,7 +132,7 @@ class TransportShared extends RobustTransport {
       calls.forEach(call => {
         payload.response[call] = _wrap({
           enforceOnlyOnce: true,
-          extra: payload,
+          extra: response => ({payload, response}),
           handler: (...args) => {
             oldResponse[call](...args)
           },

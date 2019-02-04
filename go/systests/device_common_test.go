@@ -111,6 +111,10 @@ func (t *testUI) Tablify(headings []string, rowfunc func() []string) {
 	libkb.Tablify(t.OutputWriter(), headings, rowfunc)
 }
 
+func (t *testUI) PromptPasswordMaybeScripted(_ libkb.PromptDescriptor, _ string) (string, error) {
+	return "", nil
+}
+
 func (t *testUI) TerminalSize() (width int, height int) {
 	return 80, 24
 }

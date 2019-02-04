@@ -115,6 +115,10 @@ func (a *APIServerHandler) doPostJSON(rawarg keybase1.PostJSONArg) (res keybase1
 	jsonPayload := make(libkb.JSONPayload)
 	for _, kvpair := range rawarg.JSONPayload {
 		var value interface{}
+		err = jsonw.EnsureMaxDepthBytesDefault([]byte(kvpair.Value))
+		if err != nil {
+			return keybase1.APIRes{}, err
+		}
 		err := json.Unmarshal([]byte(kvpair.Value), &value)
 		if err != nil {
 			return keybase1.APIRes{}, err

@@ -7,12 +7,14 @@ import {
   lifecycle,
   withStateHandlers,
   connect,
-  type TypedState,
+  type RouteProps,
 } from '../../util/container'
-import {navigateTo} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {upperFirst} from 'lodash-es'
 
-const mapStateToProps = (state: TypedState, {routeProps}) => {
+type OwnProps = RouteProps<{teamname: string}, {}>
+
+const mapStateToProps = (state, {routeProps}) => {
   return {
     errorText: upperFirst(state.teams.channelCreationError),
     teamname: routeProps.get('teamname'),
@@ -20,23 +22,28 @@ const mapStateToProps = (state: TypedState, {routeProps}) => {
 }
 
 const mapDispatchToProps = (dispatch, {navigateUp, routePath}) => ({
-  _onSetChannelCreationError: error => {
-    dispatch(TeamsGen.createSetChannelCreationError({error}))
-  },
-  onBack: () => dispatch(navigateTo(['manageChannels'], routePath.butLast())),
-  onClose: () => dispatch(navigateUp()),
   _onCreateChannel: ({channelname, description, teamname}) => {
     const rootPath = routePath.take(1)
     const sourceSubPath = routePath.rest()
     const destSubPath = sourceSubPath.butLast()
     dispatch(
-      TeamsGen.createCreateChannel({teamname, channelname, description, rootPath, sourceSubPath, destSubPath})
+      TeamsGen.createCreateChannel({channelname, description, destSubPath, rootPath, sourceSubPath, teamname})
     )
   },
+  _onSetChannelCreationError: error => {
+    dispatch(TeamsGen.createSetChannelCreationError({error}))
+  },
+  onBack: () =>
+    dispatch(RouteTreeGen.createNavigateTo({parentPath: routePath.butLast(), path: ['manageChannels']})),
+  onClose: () => dispatch(navigateUp()),
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
+  connect<OwnProps, _, _, _, _>(
+    mapStateToProps,
+    mapDispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d})
+  ),
   withStateHandlers(
     {
       channelname: null,

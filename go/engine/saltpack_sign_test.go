@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-codec/codec"
@@ -395,7 +396,7 @@ func TestSaltpackVerifyRevoked(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected error during verify")
 	}
-	verificationError, ok := err.(libkb.VerificationError)
+	verificationError, ok := err.(kbcrypto.VerificationError)
 	if !ok {
 		t.Fatal("expected VerificationError during verify")
 	}

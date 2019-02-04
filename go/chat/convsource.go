@@ -64,7 +64,7 @@ func (s *baseConversationSource) DeleteAssets(ctx context.Context, uid gregor1.U
 	}
 
 	// Fire off a background load of the thread with a post hook to delete the bodies cache
-	s.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, nil, types.ConvLoaderPriorityHigh,
+	s.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, nil /*query*/, nil /*pagination*/, types.ConvLoaderPriorityHigh,
 		func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
 			fetcher := s.G().AttachmentURLSrv.GetAttachmentFetcher()
 			if err := fetcher.DeleteAssets(ctx, convID, assets, s.ri, s); err != nil {
@@ -74,33 +74,16 @@ func (s *baseConversationSource) DeleteAssets(ctx context.Context, uid gregor1.U
 }
 
 func (s *baseConversationSource) addPendingPreviews(ctx context.Context, thread *chat1.ThreadView) {
-	pp := attachments.NewPendingPreviews(s.G())
 	for index, m := range thread.Messages {
-		typ, err := m.State()
-		if err != nil {
-			s.Debug(ctx, "addPendingPreviews: failed to get state: %s", err)
-			continue
-		}
-		if typ != chat1.MessageUnboxedState_OUTBOX {
+		if !m.IsOutbox() {
 			continue
 		}
 		obr := m.Outbox()
-		pre, err := pp.Get(ctx, obr.OutboxID)
-		if err != nil {
+		if err := attachments.AddPendingPreview(ctx, s.G(), &obr); err != nil {
 			s.Debug(ctx, "addPendingPreviews: failed to get pending preview: outboxID: %s err: %s",
 				obr.OutboxID, err)
 			continue
 		}
-		mpr, err := pre.Export(func() *chat1.PreviewLocation {
-			loc := chat1.NewPreviewLocationWithUrl(s.G().AttachmentURLSrv.GetPendingPreviewURL(ctx,
-				obr.OutboxID))
-			return &loc
-		})
-		if err != nil {
-			s.Debug(ctx, "addPendingPreviews: failed to export: %s", err)
-			continue
-		}
-		obr.Preview = &mpr
 		thread.Messages[index] = chat1.NewMessageUnboxedWithOutbox(obr)
 	}
 }
@@ -108,6 +91,9 @@ func (s *baseConversationSource) addPendingPreviews(ctx context.Context, thread 
 func (s *baseConversationSource) postProcessThread(ctx context.Context, uid gregor1.UID,
 	conv types.UnboxConversationInfo, thread *chat1.ThreadView, q *chat1.GetThreadQuery,
 	superXform supersedesTransform, checkPrev bool, patchPagination bool) (err error) {
+	if q != nil && q.DisablePostProcessThread {
+		return nil
+	}
 	s.Debug(ctx, "postProcessThread: thread messages starting out: %d", len(thread.Messages))
 	// Sanity check the prev pointers in this thread.
 	// TODO: We'll do this against what's in the cache once that's ready,
@@ -150,7 +136,7 @@ func (s *baseConversationSource) postProcessThread(ctx context.Context, uid greg
 	s.Debug(ctx, "postProcessThread: thread messages after type filter: %d", len(thread.Messages))
 	// If we have exploded any messages while fetching them from cache, remove
 	// them now.
-	thread.Messages = utils.FilterExploded(conv.GetExpunge(), thread.Messages, s.boxer.clock.Now())
+	thread.Messages = utils.FilterExploded(conv, thread.Messages, s.boxer.clock.Now())
 	s.Debug(ctx, "postProcessThread: thread messages after explode filter: %d", len(thread.Messages))
 
 	// Fetch outbox and tack onto the result
@@ -195,6 +181,25 @@ func (s *baseConversationSource) patchPaginationLast(ctx context.Context, conv t
 		// If any message is prior to the nukepoint, say this is the last page.
 		page.Last = true
 	}
+}
+
+func (s *baseConversationSource) MarkAsRead(ctx context.Context, convID chat1.ConversationID,
+	uid gregor1.UID, msgID chat1.MessageID) (err error) {
+	defer s.Trace(ctx, func() error { return err }, "MarkAsRead(%s,%d)", convID, msgID)()
+	// Check local copy to see if we have this convo, and have fully read it. If so, we skip the remote call
+	readRes, err := storage.NewInbox(s.G()).GetConversation(ctx, uid, convID)
+	if err == nil && readRes.GetConvID().Eq(convID) &&
+		readRes.Conv.ReaderInfo.ReadMsgid == readRes.Conv.ReaderInfo.MaxMsgid {
+		s.Debug(ctx, "MarkAsRead: conversation fully read: %s, not sending remote call", convID)
+		return nil
+	}
+	if _, err = s.ri().MarkAsRead(ctx, chat1.MarkAsReadArg{
+		ConversationID: convID,
+		MsgID:          msgID,
+	}); err != nil {
+		return err
+	}
+	return nil
 }
 
 type RemoteConversationSource struct {
@@ -317,6 +322,18 @@ func (s *RemoteConversationSource) GetMessagesWithRemotes(ctx context.Context,
 		return nil, OfflineError{}
 	}
 	return s.boxer.UnboxMessages(ctx, msgs, conv)
+}
+
+func (s *RemoteConversationSource) GetUnreadline(ctx context.Context,
+	convID chat1.ConversationID, uid gregor1.UID, readMsgID chat1.MessageID) (*chat1.MessageID, error) {
+	res, err := s.ri().GetUnreadlineRemote(ctx, chat1.GetUnreadlineRemoteArg{
+		ConvID:    convID,
+		ReadMsgID: readMsgID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return res.UnreadlineID, nil
 }
 
 func (s *RemoteConversationSource) Expunge(ctx context.Context,
@@ -546,6 +563,15 @@ func (s *HybridConversationSource) completeAttachmentUpload(ctx context.Context,
 	}
 }
 
+func (s *HybridConversationSource) completeUnfurl(ctx context.Context, msg chat1.MessageUnboxed) {
+	if msg.GetMessageType() == chat1.MessageType_UNFURL {
+		outboxID := msg.OutboxID()
+		if outboxID != nil {
+			s.G().Unfurler.Complete(ctx, *outboxID)
+		}
+	}
+}
+
 func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.ConversationID,
 	uid gregor1.UID, msg chat1.MessageBoxed) (decmsg chat1.MessageUnboxed, continuousUpdate bool, err error) {
 	defer s.Trace(ctx, func() error { return err }, "Push")()
@@ -565,7 +591,7 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 		return decmsg, continuousUpdate, err
 	}
 
-	decmsg, err = s.boxer.UnboxMessage(ctx, msg, conv)
+	decmsg, err = s.boxer.UnboxMessage(ctx, msg, conv, nil)
 	if err != nil {
 		return decmsg, continuousUpdate, err
 	}
@@ -586,6 +612,8 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 	}
 	// Remove any pending previews from storage
 	s.completeAttachmentUpload(ctx, decmsg)
+	// complete any active unfurl
+	s.completeUnfurl(ctx, decmsg)
 
 	return decmsg, continuousUpdate, nil
 }
@@ -752,11 +780,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 				// requested.
 				if query != nil && query.MarkAsRead && len(thread.Messages) > 0 {
 					readMsgID := thread.Messages[0].GetMessageID()
-					_, err := s.ri().MarkAsRead(ctx, chat1.MarkAsReadArg{
-						ConversationID: convID,
-						MsgID:          readMsgID,
-					})
-					if err != nil {
+					if err = s.MarkAsRead(ctx, convID, uid, readMsgID); err != nil {
 						return chat1.ThreadView{}, err
 					}
 					if _, err = s.G().InboxSource.ReadMessage(ctx, uid, 0, convID, readMsgID); err != nil {
@@ -932,12 +956,6 @@ func (s *HybridConversationSource) Clear(ctx context.Context, convID chat1.Conve
 	return s.storage.ClearAll(ctx, convID, uid)
 }
 
-type ByMsgID []chat1.MessageUnboxed
-
-func (m ByMsgID) Len() int           { return len(m) }
-func (m ByMsgID) Swap(i, j int)      { m[i], m[j] = m[j], m[i] }
-func (m ByMsgID) Less(i, j int) bool { return m[i].GetMessageID() > m[j].GetMessageID() }
-
 func (s *HybridConversationSource) GetMessages(ctx context.Context, conv types.UnboxConversationInfo,
 	uid gregor1.UID, msgIDs []chat1.MessageID, threadReason *chat1.GetThreadReason) ([]chat1.MessageUnboxed, error) {
 	convID := conv.GetConvID()
@@ -986,7 +1004,7 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, conv types.U
 			return nil, err
 		}
 
-		sort.Sort(ByMsgID(rmsgsUnboxed))
+		sort.Sort(utils.ByMsgUnboxedMsgID(rmsgsUnboxed))
 		for _, rmsg := range rmsgsUnboxed {
 			rmsgsTab[rmsg.GetMessageID()] = rmsg
 		}
@@ -1054,7 +1072,7 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 				return nil, OfflineError{}
 			}
 
-			unboxed, err := s.boxer.UnboxMessage(ctx, msg, conv)
+			unboxed, err := s.boxer.UnboxMessage(ctx, msg, conv, nil)
 			if err != nil {
 				return res, err
 			}
@@ -1063,7 +1081,7 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 		}
 	}
 	if len(merges) > 0 {
-		sort.Sort(ByMsgID(merges))
+		sort.Sort(utils.ByMsgUnboxedMsgID(merges))
 		if err := s.mergeMaybeNotify(ctx, convID, uid, merges); err != nil {
 			return res, err
 		}
@@ -1075,8 +1093,28 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 		return res, ierr
 	}
 
-	sort.Sort(ByMsgID(res))
+	sort.Sort(utils.ByMsgUnboxedMsgID(res))
 	return res, nil
+}
+
+func (s *HybridConversationSource) GetUnreadline(ctx context.Context,
+	convID chat1.ConversationID, uid gregor1.UID, readMsgID chat1.MessageID) (unreadlineID *chat1.MessageID, err error) {
+	defer s.Trace(ctx, func() error { return err }, fmt.Sprintf("GetUnreadline: convID: %v, readMsgID: %v", convID, readMsgID))()
+	unreadlineID, err = storage.New(s.G(), s).FetchUnreadlineID(ctx, convID, uid, readMsgID)
+	if err != nil {
+		return nil, err
+	}
+	if unreadlineID == nil {
+		res, err := s.ri().GetUnreadlineRemote(ctx, chat1.GetUnreadlineRemoteArg{
+			ConvID:    convID,
+			ReadMsgID: readMsgID,
+		})
+		if err != nil {
+			return nil, err
+		}
+		unreadlineID = res.UnreadlineID
+	}
+	return unreadlineID, nil
 }
 
 func (s *HybridConversationSource) notifyExpunge(ctx context.Context, uid gregor1.UID,
@@ -1100,8 +1138,38 @@ func (s *HybridConversationSource) notifyExpunge(ctx context.Context, uid gregor
 	}
 }
 
+func (s *HybridConversationSource) notifyUnfurls(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, msgs []chat1.MessageUnboxed) {
+	if len(msgs) == 0 {
+		s.Debug(ctx, "notifyUnfurls: nothing to do")
+		return
+	}
+	s.Debug(ctx, "notifyUnfurls: notifying %d messages", len(msgs))
+	conv, err := GetUnverifiedConv(ctx, s.G(), uid, convID, true)
+	if err != nil {
+		s.Debug(ctx, "notifyUnfurls: failed to get conv: %s", err)
+		return
+	}
+	unfurledMsgs, err := s.TransformSupersedes(ctx, conv, uid, msgs)
+	if err != nil {
+		s.Debug(ctx, "notifyUnfurls: failed to transform supersedes: %s", err)
+		return
+	}
+	s.Debug(ctx, "notifyUnfurls: %d messages after transform", len(unfurledMsgs))
+	notif := chat1.MessagesUpdated{
+		ConvID: convID,
+	}
+	for _, msg := range unfurledMsgs {
+		notif.Updates = append(notif.Updates, utils.PresentMessageUnboxed(ctx, s.G(), msg, uid, convID))
+	}
+	act := chat1.NewChatActivityWithMessagesUpdated(notif)
+	s.G().ActivityNotifier.Activity(ctx, uid, chat1.TopicType_CHAT,
+		&act, chat1.ChatActivitySource_LOCAL)
+}
+
 // notifyReactionUpdates notifies the GUI after reactions are received
-func (s *HybridConversationSource) notifyReactionUpdates(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, msgs []chat1.MessageUnboxed) {
+func (s *HybridConversationSource) notifyReactionUpdates(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, msgs []chat1.MessageUnboxed) {
 	s.Debug(ctx, "notifyReactionUpdates: %d msgs to update", len(msgs))
 	if len(msgs) > 0 {
 		conv, err := GetVerifiedConv(ctx, s.G(), uid, convID, true /* useLocalData */)
@@ -1128,7 +1196,8 @@ func (s *HybridConversationSource) notifyReactionUpdates(ctx context.Context, ui
 				ReactionUpdates: reactionUpdates,
 				ConvID:          convID,
 			})
-			s.G().ActivityNotifier.Activity(ctx, uid, conv.GetTopicType(), &activity, chat1.ChatActivitySource_LOCAL)
+			s.G().ActivityNotifier.Activity(ctx, uid, conv.GetTopicType(), &activity,
+				chat1.ChatActivitySource_LOCAL)
 		}
 	}
 }
@@ -1137,15 +1206,8 @@ func (s *HybridConversationSource) notifyReactionUpdates(ctx context.Context, ui
 func (s *HybridConversationSource) notifyEphemeralPurge(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, explodedMsgs []chat1.MessageUnboxed) {
 	s.Debug(ctx, "notifyEphemeralPurge: exploded: %d", len(explodedMsgs))
 	if len(explodedMsgs) > 0 {
-		var inboxItem *chat1.InboxUIItem
-		topicType := chat1.TopicType_NONE
-		conv, err := GetVerifiedConv(ctx, s.G(), uid, convID, true /* useLocalData */)
-		if err != nil {
-			s.Debug(ctx, "notifyEphemeralPurge: failed to get conversations: %s", err)
-		} else {
-			inboxItem = PresentConversationLocalWithFetchRetry(ctx, s.G(), uid, conv)
-			topicType = conv.GetTopicType()
-		}
+		// Blast out an EphemeralPurgeNotifInfo since it's time sensitive for the UI
+		// to update.
 		purgedMsgs := []chat1.UIMessage{}
 		for _, msg := range explodedMsgs {
 			purgedMsgs = append(purgedMsgs, utils.PresentMessageUnboxed(ctx, s.G(), msg, uid, convID))
@@ -1153,9 +1215,16 @@ func (s *HybridConversationSource) notifyEphemeralPurge(ctx context.Context, uid
 		act := chat1.NewChatActivityWithEphemeralPurge(chat1.EphemeralPurgeNotifInfo{
 			ConvID: convID,
 			Msgs:   purgedMsgs,
-			Conv:   inboxItem,
 		})
-		s.G().ActivityNotifier.Activity(ctx, uid, topicType, &act, chat1.ChatActivitySource_LOCAL)
+		s.G().ActivityNotifier.Activity(ctx, uid, chat1.TopicType_CHAT, &act, chat1.ChatActivitySource_LOCAL)
+
+		// Send an additional notification to refresh the thread
+		s.G().ActivityNotifier.ThreadsStale(ctx, uid, []chat1.ConversationStaleUpdate{
+			chat1.ConversationStaleUpdate{
+				ConvID:     convID,
+				UpdateType: chat1.StaleUpdateType_CONVUPDATE,
+			},
+		})
 	}
 }
 
@@ -1191,6 +1260,7 @@ func (s *HybridConversationSource) mergeMaybeNotify(ctx context.Context,
 	s.notifyExpunge(ctx, uid, convID, mergeRes)
 	s.notifyEphemeralPurge(ctx, uid, convID, mergeRes.Exploded)
 	s.notifyReactionUpdates(ctx, uid, convID, mergeRes.ReactionTargets)
+	s.notifyUnfurls(ctx, uid, convID, mergeRes.UnfurlTargets)
 	return nil
 }
 
@@ -1224,7 +1294,7 @@ func (s *HybridConversationSource) ClearFromDelete(ctx context.Context, uid greg
 	// Fire off a background load of the thread with a post hook to delete the bodies cache
 	s.Debug(ctx, "ClearFromDelete: delete not found, clearing")
 	p := &chat1.Pagination{Num: s.numExpungeReload}
-	s.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, p, types.ConvLoaderPriorityHighest,
+	s.G().ConvLoader.Queue(ctx, types.NewConvLoaderJob(convID, nil /*query */, p, types.ConvLoaderPriorityHighest,
 		func(ctx context.Context, tv chat1.ThreadView, job types.ConvLoaderJob) {
 			if len(tv.Messages) == 0 {
 				return

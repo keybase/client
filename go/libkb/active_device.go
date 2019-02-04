@@ -14,6 +14,7 @@ type ActiveDevice struct {
 	uv            keybase1.UserVersion
 	deviceID      keybase1.DeviceID
 	deviceName    string
+	deviceCtime   keybase1.Time
 	signingKey    GenericKey   // cached secret signing key
 	encryptionKey GenericKey   // cached secret encryption key
 	nistFactory   *NISTFactory // Non-Interactive Session Token
@@ -32,6 +33,7 @@ func (a *ActiveDevice) Dump(m MetaContext, prefix string) {
 	m.CDebugf("%sUsername (via env): %s", prefix, a.Username(m))
 	m.CDebugf("%sDeviceID: %s", prefix, a.deviceID)
 	m.CDebugf("%sDeviceName: %s", prefix, a.deviceName)
+	m.CDebugf("%sDeviceCtime: %s", prefix, a.deviceCtime)
 	if a.signingKey != nil {
 		m.CDebugf("%sSigKey: %s", prefix, a.signingKey.GetKID())
 	}
@@ -99,9 +101,10 @@ func (a *ActiveDevice) Copy(m MetaContext, src *ActiveDevice) error {
 	sigKey := src.signingKey
 	encKey := src.encryptionKey
 	name := src.deviceName
+	ctime := src.deviceCtime
 	src.Unlock()
 
-	return a.Set(m, uv, deviceID, sigKey, encKey, name)
+	return a.Set(m, uv, deviceID, sigKey, encKey, name, ctime)
 }
 
 func (a *ActiveDevice) SetOrClear(m MetaContext, a2 *ActiveDevice) error {
@@ -115,8 +118,9 @@ func (a *ActiveDevice) SetOrClear(m MetaContext, a2 *ActiveDevice) error {
 
 // Set acquires the write lock and sets all the fields in ActiveDevice.
 // The acct parameter is not used for anything except to help ensure
-// that this is called from inside a LogingState account request.
-func (a *ActiveDevice) Set(m MetaContext, uv keybase1.UserVersion, deviceID keybase1.DeviceID, sigKey, encKey GenericKey, deviceName string) error {
+// that this is called from inside a LoginState account request.
+func (a *ActiveDevice) Set(m MetaContext, uv keybase1.UserVersion, deviceID keybase1.DeviceID,
+	sigKey, encKey GenericKey, deviceName string, deviceCtime keybase1.Time) error {
 	a.Lock()
 	defer a.Unlock()
 
@@ -127,6 +131,7 @@ func (a *ActiveDevice) Set(m MetaContext, uv keybase1.UserVersion, deviceID keyb
 	a.signingKey = sigKey
 	a.encryptionKey = encKey
 	a.deviceName = deviceName
+	a.deviceCtime = deviceCtime
 	a.nistFactory = NewNISTFactory(m.G(), uv.Uid, deviceID, sigKey)
 	a.secretSyncer = NewSecretSyncer(m.G())
 
@@ -136,7 +141,8 @@ func (a *ActiveDevice) Set(m MetaContext, uv keybase1.UserVersion, deviceID keyb
 // setSigningKey acquires the write lock and sets the signing key.
 // The acct parameter is not used for anything except to help ensure
 // that this is called from inside a LogingState account request.
-func (a *ActiveDevice) setSigningKey(g *GlobalContext, uv keybase1.UserVersion, deviceID keybase1.DeviceID, sigKey GenericKey, deviceName string) error {
+func (a *ActiveDevice) setSigningKey(g *GlobalContext, uv keybase1.UserVersion, deviceID keybase1.DeviceID,
+	sigKey GenericKey, deviceName string) error {
 	a.Lock()
 	defer a.Unlock()
 
@@ -169,7 +175,7 @@ func (a *ActiveDevice) setEncryptionKey(uv keybase1.UserVersion, deviceID keybas
 
 // setDeviceName acquires the write lock and sets the device name.
 // The acct parameter is not used for anything except to help ensure
-// that this is called from inside a LogingState account request.
+// that this is called from inside a LoginState account request.
 func (a *ActiveDevice) setDeviceName(uv keybase1.UserVersion, deviceID keybase1.DeviceID, deviceName string) error {
 	a.Lock()
 	defer a.Unlock()
@@ -350,6 +356,23 @@ func (a *ActiveDevice) Valid() bool {
 
 func (a *ActiveDevice) valid() bool {
 	return a.signingKey != nil && a.encryptionKey != nil && !a.uv.IsNil() && !a.deviceID.IsNil() && a.deviceName != ""
+}
+
+func (a *ActiveDevice) Ctime(m MetaContext) (keybase1.Time, error) {
+	a.Lock()
+	defer a.Unlock()
+	if a.deviceCtime > 0 {
+		return a.deviceCtime, nil
+	}
+	if !a.valid() {
+		return 0, fmt.Errorf("Active device is not valid")
+	}
+	decKeys := NewDeviceWithKeysOnly(a.encryptionKey, a.signingKey)
+	if _, err := decKeys.Populate(m); err != nil {
+		return 0, nil
+	}
+	a.deviceCtime = decKeys.DeviceCtime()
+	return a.deviceCtime, nil
 }
 
 func (a *ActiveDevice) IsValidFor(uid keybase1.UID, deviceID keybase1.DeviceID) bool {

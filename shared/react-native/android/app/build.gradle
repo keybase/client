@@ -103,7 +103,7 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         applicationId "io.keybase.ossifrage"
         versionCode timestamp()
-        versionName "2.7.0"
+        versionName "3.0.0"
         ndk {
             abiFilters "armeabi-v7a", "x86"
         }
@@ -178,11 +178,10 @@ configurations.all {
 
 dependencies {
     def supportLibVersion = project.supportLibVersion
-    def googlePlayServicesVersion = project.googlePlayServicesVersion
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'org.msgpack:msgpack:0.6.12'
-    implementation "com.google.android.gms:play-services-gcm:$googlePlayServicesVersion"
+    implementation "com.google.firebase:firebase-messaging:17.3.0"
     implementation "com.android.support:appcompat-v7:$supportLibVersion"
     implementation project(':react-native-touch-id')
     implementation project(':react-native-push-notification')
@@ -196,5 +195,7 @@ dependencies {
     implementation project(':react-native-image-picker')
     implementation project(':react-native-fetch-blob')
     implementation project(':react-native-contacts')
+    implementation project(':react-native-fast-image')
+    implementation project(':lottie-react-native')
     implementation 'com.evernote:android-job:1.2.6'
 }

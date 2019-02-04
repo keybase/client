@@ -4,5 +4,13 @@ import * as PropProviders from './prop-providers'
 
 const createPropProviderWithCommon = PropProviders.createPropProviderWithCommon
 export {PropProviders, createPropProviderWithCommon}
-export {createPropProvider, unexpected, Rnd, scrollViewDecorator, action} from './storybook.shared'
+export {
+  createPropProvider,
+  unexpected,
+  Rnd,
+  scrollViewDecorator,
+  action,
+  perfDecorator,
+  propOverridesForStory,
+} from './storybook.shared'
 export {storiesOf} from '@storybook/react-native'

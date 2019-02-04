@@ -16,17 +16,17 @@ const DeleteHistoryWarning = ({onCancel, onDeleteHistory}: Props) => (
         ...globalStyles.flexBoxColumn,
         ...stylePadding,
         alignItems: 'center',
-        justifyContent: 'center',
         backgroundColor: globalColors.white,
-        padding: globalMargins.small,
+        justifyContent: 'center',
         maxWidth: 560,
+        padding: globalMargins.small,
       }}
     >
       <Icon type={isMobile ? 'icon-message-deletion-64' : 'icon-message-deletion-48'} />
       <Text style={{padding: globalMargins.small}} type="Header">
         Delete conversation history?
       </Text>
-      <Text style={styleText} type="Body">
+      <Text center={isMobile} style={styleText} type="Body">
         You are about to delete all the messages in this conversation. For everyone.
       </Text>
       <Box style={styleButtonBox}>
@@ -44,50 +44,33 @@ const DeleteHistoryWarning = ({onCancel, onDeleteHistory}: Props) => (
 )
 
 const stylePadding = platformStyles({
-  isMobile: {
-    paddingTop: globalMargins.xlarge,
-  },
   isElectron: {
     marginBottom: 40,
     marginLeft: 80,
     marginRight: 80,
     marginTop: 40,
   },
+  isMobile: { paddingTop: globalMargins.xlarge },
 })
 
 const styleButtonBox = platformStyles({
-  common: {
-    marginTop: globalMargins.xlarge,
-  },
+  common: { marginTop: globalMargins.xlarge },
+  isElectron: { ...globalStyles.flexBoxRow },
   isMobile: {
     ...globalStyles.flexBoxColumn,
-    flex: 1,
     alignItems: 'stretch',
-    width: '100%',
+    flex: 1,
     flexDirection: 'column-reverse',
     paddingTop: globalMargins.xlarge,
-  },
-  isElectron: {
-    ...globalStyles.flexBoxRow,
+    width: '100%',
   },
 })
 
 const styleButton = platformStyles({
-  isElectron: {
-    marginLeft: globalMargins.tiny,
-  },
-  isMobile: {
-    marginTop: globalMargins.tiny,
-  },
+  isElectron: { marginLeft: globalMargins.tiny },
+  isMobile: { marginTop: globalMargins.tiny },
 })
 
-const styleText = platformStyles({
-  common: {
-    padding: globalMargins.small,
-  },
-  isMobile: {
-    textAlign: 'center',
-  },
-})
+const styleText = { padding: globalMargins.small }
 
 export default HeaderOnMobile(DeleteHistoryWarning)

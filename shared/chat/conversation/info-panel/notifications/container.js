@@ -3,20 +3,13 @@ import * as Constants from '../../../../constants/chat2'
 import * as Types from '../../../../constants/types/chat2'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import {Notifications} from '.'
-import {
-  compose,
-  connect,
-  lifecycle,
-  setDisplayName,
-  withStateHandlers,
-  type TypedState,
-} from '../../../../util/container'
+import {compose, namedConnect, lifecycle, withStateHandlers} from '../../../../util/container'
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
 }
 
-const mapStateToProps = (state: TypedState, {conversationIDKey}: OwnProps) => {
+const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   const meta = Constants.getMeta(state, conversationIDKey)
 
   return {
@@ -62,9 +55,14 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 }
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, mergeProps),
-  setDisplayName('LifecycleNotifications'),
+  namedConnect<OwnProps, _, _, _, _>(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps,
+    'LifecycleNotifications'
+  ),
   withStateHandlers(
+    // $FlowIssue don't use recompose
     props => ({
       channelWide: props._storeChannelWide,
       desktop: props._storeDesktop,
@@ -73,6 +71,12 @@ export default compose(
       saving: false,
     }),
     {
+      syncLocalToStore: (state, props) => (channelWide, desktop, mobile, muted) => ({
+        channelWide,
+        desktop,
+        mobile,
+        muted,
+      }),
       toggleChannelWide: (state, props) => () => {
         props._updateNotifications(state.desktop, state.mobile, !state.channelWide)
         return {channelWide: !state.channelWide}
@@ -83,25 +87,20 @@ export default compose(
       },
       updateDesktop: (state, props) => (desktop: Types.NotificationsType) => {
         if (desktop === state.desktop) {
-          return
+          return undefined
         }
         props._updateNotifications(desktop, state.mobile, state.channelWide)
         return {desktop}
       },
       updateMobile: (state, props) => (mobile: Types.NotificationsType) => {
         if (mobile === state.mobile) {
-          return
+          return undefined
         }
         props._updateNotifications(state.desktop, mobile, state.channelWide)
         return {mobile}
       },
-      updateSaving: ({saving: oldSaving}) => (saving: boolean) => (oldSaving === saving ? null : {saving}),
-      syncLocalToStore: (state, props) => (channelWide, desktop, mobile, muted) => ({
-        channelWide,
-        desktop,
-        mobile,
-        muted,
-      }),
+      updateSaving: ({saving: oldSaving}) => (saving: boolean) =>
+        oldSaving === saving ? undefined : {saving},
     }
   ),
   lifecycle({

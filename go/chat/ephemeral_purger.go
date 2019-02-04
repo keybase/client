@@ -200,8 +200,16 @@ func (b *BackgroundEphemeralPurger) Queue(ctx context.Context, purgeInfo chat1.E
 	if head == nil || purgeInfo.NextPurgeTime < head.purgeInfo.NextPurgeTime {
 		b.resetTimer(ctx, purgeInfo)
 	}
-	b.Debug(ctx, "Queue purgeInfo: %v, head: %v, looping: %v, len(queue): %v", purgeInfo, head, b.looping, len(b.pq.queue))
 	b.updateQueue(purgeInfo)
+	b.Debug(ctx, "Queue purgeInfo: %v, head: %+v, looping: %v, len(queue): %v",
+		purgeInfo, head, b.looping, len(b.pq.queue))
+
+	// Sanity check to force our timer to fire if it hasn't for some reason.
+	head = b.pq.Peek()
+	if head.purgeInfo.NextPurgeTime.Time().Before(b.clock.Now()) {
+		b.Debug(ctx, "Queue resetting timer, head is in the past.")
+		b.resetTimer(ctx, head.purgeInfo)
+	}
 	return nil
 }
 
@@ -212,6 +220,8 @@ func (b *BackgroundEphemeralPurger) initQueue(ctx context.Context) {
 
 	// Create a new queue
 	b.pq = newPriorityQueue()
+	heap.Init(b.pq)
+
 	allPurgeInfo, err := b.storage.GetAllPurgeInfo(ctx, b.uid)
 	if err != nil {
 		b.Debug(ctx, "unable to get purgeInfo: %v", allPurgeInfo)
@@ -268,7 +278,7 @@ func (b *BackgroundEphemeralPurger) queuePurges(ctx context.Context) bool {
 		now := b.clock.Now()
 		nextPurgeTime := purgeInfo.NextPurgeTime.Time()
 		if nextPurgeTime.Before(now) || nextPurgeTime.Equal(now) {
-			job := types.NewConvLoaderJob(purgeInfo.ConvID, &chat1.Pagination{},
+			job := types.NewConvLoaderJob(purgeInfo.ConvID, nil /* query */, nil, /* pagination */
 				types.ConvLoaderPriorityHigh, newConvLoaderEphemeralPurgeHook(b.G(), b.uid, &purgeInfo))
 			if err := b.G().ConvLoader.Queue(ctx, job); err != nil {
 				b.Debug(ctx, "convLoader Queue error %s", err)

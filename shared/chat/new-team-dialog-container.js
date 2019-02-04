@@ -1,16 +1,21 @@
 // @flow
+import * as Types from '../constants/types/chat2'
 import * as TeamsGen from '../actions/teams-gen'
 import * as Chat2Gen from '../actions/chat2-gen'
+import * as WaitingConstants from '../constants/waiting'
+import * as Constants from '../constants/teams'
 import NewTeamDialog from '../teams/new-team'
 import {upperFirst} from 'lodash-es'
-import {connect, lifecycle, type TypedState, compose, withStateHandlers} from '../util/container'
+import {connect, lifecycle, compose, withStateHandlers, type RouteProps} from '../util/container'
 
-const mapStateToProps = (state: TypedState) => ({
+type OwnProps = RouteProps<{conversationIDKey: Types.ConversationIDKey}, {}>
+
+const mapStateToProps = state => ({
   baseTeam: '',
   errorText: upperFirst(state.teams.teamCreationError),
   isSubteam: false,
   joinSubteam: false,
-  pending: state.teams.teamCreationPending,
+  pending: WaitingConstants.anyWaiting(state, Constants.teamCreationWaitingKey),
 })
 
 const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
@@ -30,8 +35,13 @@ const mapDispatchToProps = (dispatch, {navigateUp, routeProps}) => ({
 })
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
+  connect<OwnProps, _, _, _, _>(
+    mapStateToProps,
+    mapDispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d})
+  ),
   withStateHandlers(
+    // $FlowIssue don't use recompose
     {name: ''},
     {
       onNameChange: () => (name: string) => ({name}),

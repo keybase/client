@@ -10,6 +10,8 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/stretchr/testify/require"
+
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 func testTail(t *testing.T, testname, filename string, count, actual int, first, last string) {
@@ -76,8 +78,12 @@ func TestMergeExtendedStatus(t *testing.T) {
 	status := `{"status":{"foo":"bar"}}`
 	fullStatus = lsCtx.mergeExtendedStatus(status)
 	require.True(t, strings.Contains(fullStatus, status))
+
+	err := jsonw.EnsureMaxDepthBytesDefault([]byte(fullStatus))
+	require.NoError(t, err)
+
 	fullStatusMap := map[string]interface{}{}
-	err := json.Unmarshal([]byte(fullStatus), &fullStatusMap)
+	err = json.Unmarshal([]byte(fullStatus), &fullStatusMap)
 	require.NoError(t, err)
 	_, ok := fullStatusMap["status"]
 	require.True(t, ok)

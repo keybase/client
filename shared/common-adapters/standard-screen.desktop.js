@@ -3,7 +3,7 @@ import * as React from 'react'
 import Box from './box'
 import Text from './text'
 import HeaderHoc from './header-hoc'
-import {globalStyles, globalColors, globalMargins, desktopStyles} from '../styles'
+import {globalStyles, globalColors, globalMargins, desktopStyles, collapseStyles} from '../styles'
 import type {Props, NotificationType} from './standard-screen'
 
 const StandardScreen = ({theme = 'light', ...props}: Props) => {
@@ -25,7 +25,7 @@ const StandardScreen = ({theme = 'light', ...props}: Props) => {
     <Box style={{...styleContainer, ...backgroundColorThemed[theme]}}>
       <Box style={styleTopStack}>{topStack}</Box>
       <Box style={{...styleInnerContainer, paddingBottom: topStackCount * globalMargins.large}}>
-        <Box style={{...styleContentContainer, ...props.style}}>{props.children}</Box>
+        <Box style={collapseStyles([styleContentContainer, props.style])}>{props.children}</Box>
       </Box>
     </Box>
   )
@@ -34,40 +34,40 @@ const StandardScreen = ({theme = 'light', ...props}: Props) => {
 const styleContainer = {
   ...globalStyles.flexBoxColumn,
   ...desktopStyles.scrollable,
-  flex: 1,
   alignItems: 'stretch',
+  flex: 1,
   position: 'relative',
 }
 
 const styleTopStack = {
   ...globalStyles.flexBoxColumn,
-  position: 'relative',
   alignItems: 'stretch',
+  position: 'relative',
   width: '100%',
 }
 
 const backgroundColorThemed = {
-  light: {
-    backgroundColor: globalColors.white,
-  },
   dark: {
     backgroundColor: globalColors.darkBlue3,
+  },
+  light: {
+    backgroundColor: globalColors.white,
   },
 }
 
 const styleBanner = (notificationType: NotificationType) => ({
   ...globalStyles.flexBoxColumn,
-  justifyContent: 'center',
   alignItems: 'center',
-  width: '100%',
+  backgroundColor: notificationType === 'error' ? globalColors.red : globalColors.green,
+  justifyContent: 'center',
+  minHeight: globalMargins.large,
+  paddingBottom: globalMargins.tiny,
   paddingLeft: globalMargins.xlarge,
   paddingRight: globalMargins.xlarge,
   paddingTop: globalMargins.tiny,
-  paddingBottom: globalMargins.tiny,
   textAlign: 'center',
+  width: '100%',
   zIndex: 1,
-  minHeight: globalMargins.large,
-  backgroundColor: notificationType === 'error' ? globalColors.red : globalColors.green,
 })
 
 const styleBannerText = {
@@ -76,16 +76,16 @@ const styleBannerText = {
 
 const styleInnerContainer = {
   ...globalStyles.flexBoxColumn,
-  flex: 1,
   alignItems: 'center',
+  flex: 1,
   position: 'relative',
 }
 
 const styleContentContainer = {
   ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
   flex: 1,
   justifyContent: 'center',
-  alignItems: 'center',
   margin: globalMargins.large,
   textAlign: 'center',
 }

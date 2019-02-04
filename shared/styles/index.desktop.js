@@ -4,13 +4,7 @@ import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
 import path from 'path'
 import {type CollapsibleStyle} from './index.types'
 import * as Shared from './shared'
-
-export const windowStyle = {
-  height: 600, // Default height
-  minHeight: 400,
-  minWidth: 600,
-  width: 800, // Default width
-}
+import {isEmpty} from 'lodash-es'
 
 const fontCommon = {
   WebkitFontSmoothing: 'antialiased',
@@ -69,6 +63,7 @@ export const globalStyles = {
 
 export const mobileStyles = {}
 export const desktopStyles = {
+  boxShadow: {boxShadow: `0 2px 5px 0 ${globalColors.black_20}`},
   clickable: {cursor: 'pointer'},
   editable: {cursor: 'text'},
   fadeOpacity: {transition: 'opacity .25s ease-in-out'},
@@ -110,6 +105,32 @@ export const backgroundURL = (...to: Array<string>) => {
   return ''
 }
 
+export const initDesktopStyles = () => {
+  const head = document.head
+  if (!head) {
+    console.error('initDesktopStyles failed')
+    return
+  }
+  const style = document.createElement('style')
+  style.type = 'text/css'
+  const css = Object.keys(globalColors).reduce((s, name) => {
+    const color = globalColors[name]
+    if (color) {
+      return (
+        s +
+        `.color_${name} {color: ${color};}\n` +
+        `.hover_color_${name}:hover {color: ${color};}\n` +
+        `.background_color_${name} {background-color: ${color};}\n` +
+        `.hover_background_color_${name}:hover {background-color: ${color};}\n`
+      )
+    } else {
+      return s
+    }
+  }, '')
+  style.appendChild(document.createTextNode(css))
+  head.appendChild(style)
+}
+
 export const hairlineWidth = 1
 export const styleSheetCreate = (obj: Object) => obj
 export const collapseStyles = (styles: $ReadOnlyArray<CollapsibleStyle>): Object => {
@@ -120,17 +141,20 @@ export const collapseStyles = (styles: $ReadOnlyArray<CollapsibleStyle>): Object
   if (valid.length === 1) {
     const s = valid[0]
     if (typeof s === 'object') {
-      // $ForceType
       return s
     }
   }
 
   const flattenedStyles = styles.reduce((a, e) => a.concat(e), [])
-  return flattenedStyles.reduce((o, e) => (e ? {...o, ...e} : o), {})
+  const style = flattenedStyles.reduce((o, e) => (e ? {...o, ...e} : o), {})
+  return isEmpty(style) ? undefined : style
 }
 export {isMobile, fileUIName, isIPhoneX, isIOS, isAndroid} from '../constants/platform'
 export {globalMargins, backgroundModeToColor, platformStyles} from './shared'
-export {default as glamorous} from 'glamorous'
+export {css as styledCss, keyframes as styledKeyframes} from '@emotion/core'
+export {default as styled} from '@emotion/styled'
 export {default as globalColors} from './colors'
 export const statusBarHeight = 0
+export const borderRadius = 4
+export {default as classNames} from 'classnames'
 export type {StylesCrossPlatform} from './index.types'

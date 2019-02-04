@@ -12,7 +12,7 @@ const EditAvatar = ({keybaseUsername, hasAvatar, onAck}: Props) => {
     <StandardScreen style={{...globalStyles.flexBoxColumn, flex: 1}} onBack={onAck}>
       <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', padding: globalMargins.small}}>
         <Avatar size={128} username={keybaseUsername} />
-        <Text type="Body" style={styleCaption}>
+        <Text center={true} type="Body" style={styleCaption}>
           {text}
         </Text>
         <ButtonBar>
@@ -24,10 +24,9 @@ const EditAvatar = ({keybaseUsername, hasAvatar, onAck}: Props) => {
 }
 
 const styleCaption = {
-  marginTop: globalMargins.medium,
   marginLeft: globalMargins.small,
   marginRight: globalMargins.small,
-  textAlign: 'center',
+  marginTop: globalMargins.medium,
 }
 
 export default EditAvatar

@@ -12,6 +12,7 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"regexp"
@@ -412,6 +413,8 @@ func (l LinkID) Eq(l2 LinkID) bool {
 func (l LinkID) IsNil() bool {
 	return len(l) == 0
 }
+
+func NilTeamID() TeamID { return TeamID("") }
 
 func (s Seqno) Eq(s2 Seqno) bool {
 	return s == s2
@@ -1022,6 +1025,9 @@ func (r BlockReferenceCount) String() string {
 }
 
 func (sa SocialAssertion) String() string {
+	if sa.Service == "email" {
+		return fmt.Sprintf("[%s]@email", sa.User)
+	}
 	return fmt.Sprintf("%s@%s", sa.User, sa.Service)
 }
 
@@ -1218,13 +1224,22 @@ func (t TLFID) ToBytes() []byte {
 	return b
 }
 
+func (b TLFIdentifyBehavior) UnblockThenForceIDTable() bool {
+	switch b {
+	case TLFIdentifyBehavior_GUI_PROFILE:
+		return true
+	default:
+		return false
+	}
+}
+
 func (b TLFIdentifyBehavior) AlwaysRunIdentify() bool {
 	switch b {
 	case TLFIdentifyBehavior_CHAT_CLI,
 		TLFIdentifyBehavior_CHAT_GUI,
-		TLFIdentifyBehavior_CHAT_GUI_STRICT,
 		TLFIdentifyBehavior_SALTPACK,
-		TLFIdentifyBehavior_KBFS_CHAT:
+		TLFIdentifyBehavior_KBFS_CHAT,
+		TLFIdentifyBehavior_GUI_PROFILE:
 		return true
 	default:
 		return false
@@ -1234,7 +1249,6 @@ func (b TLFIdentifyBehavior) AlwaysRunIdentify() bool {
 func (b TLFIdentifyBehavior) CanUseUntrackedFastPath() bool {
 	switch b {
 	case TLFIdentifyBehavior_CHAT_GUI,
-		TLFIdentifyBehavior_CHAT_GUI_STRICT,
 		TLFIdentifyBehavior_SALTPACK,
 		TLFIdentifyBehavior_RESOLVE_AND_CHECK:
 		return true
@@ -1248,7 +1262,7 @@ func (b TLFIdentifyBehavior) CanUseUntrackedFastPath() bool {
 func (b TLFIdentifyBehavior) WarningInsteadOfErrorOnBrokenTracks() bool {
 	switch b {
 	case TLFIdentifyBehavior_CHAT_GUI:
-		// The chat GUI (in non-strict mode) is specifically exempted from broken
+		// The chat GUI is specifically exempted from broken
 		// track errors, because people need to be able to use it to ask each other
 		// about the fact that proofs are broken.
 		return true
@@ -1291,7 +1305,6 @@ func (b TLFIdentifyBehavior) AllowDeletedUsers() bool {
 func (b TLFIdentifyBehavior) ShouldSuppressTrackerPopups() bool {
 	switch b {
 	case TLFIdentifyBehavior_CHAT_GUI,
-		TLFIdentifyBehavior_CHAT_GUI_STRICT,
 		TLFIdentifyBehavior_CHAT_CLI,
 		TLFIdentifyBehavior_KBFS_REKEY,
 		TLFIdentifyBehavior_KBFS_QR,
@@ -2106,6 +2119,10 @@ func (t TeamName) RootAncestorName() TeamName {
 	}
 }
 
+func (t TeamName) RootID() TeamID {
+	return t.RootAncestorName().ToTeamID(false)
+}
+
 func (t TeamName) Parent() (TeamName, error) {
 	if len(t.Parts) == 0 {
 		return t, fmt.Errorf("empty team name")
@@ -2295,6 +2312,9 @@ func TeamInviteTypeFromString(s string, isDev bool) (TeamInviteType, error) {
 		if isDev && s == "rooter" {
 			return NewTeamInviteTypeWithSbs(TeamInviteSocialNetwork(s)), nil
 		}
+		if isDev && s == "phone" {
+			return NewTeamInviteTypeDefault(TeamInviteCategory_PHONE), nil
+		}
 		// Don't want to break existing clients if we see an unknown invite
 		// type.
 		return NewTeamInviteTypeWithUnknown(s), nil
@@ -2311,6 +2331,8 @@ func (t TeamInviteType) String() (string, error) {
 		return "keybase", nil
 	case TeamInviteCategory_EMAIL:
 		return "email", nil
+	case TeamInviteCategory_PHONE:
+		return "phone", nil
 	case TeamInviteCategory_SBS:
 		return string(t.Sbs()), nil
 	case TeamInviteCategory_SEITAN:
@@ -2389,8 +2411,8 @@ func (n ImplicitTeamDisplayName) String() string {
 	return name
 }
 
-func (c ImplicitTeamConflictInfo) IsConflict() bool {
-	return c.Generation > ConflictGeneration(0)
+func (c *ImplicitTeamConflictInfo) IsConflict() bool {
+	return c != nil && c.Generation > ConflictGeneration(0)
 }
 
 const (
@@ -2595,4 +2617,52 @@ func (path Path) String() string {
 	default:
 		return ""
 	}
+}
+
+func (se *SelectorEntry) UnmarshalJSON(b []byte) error {
+	if err := json.Unmarshal(b, &se.Index); err == nil {
+		se.IsIndex = true
+		return nil
+	}
+
+	if err := json.Unmarshal(b, &se.Key); err == nil {
+		se.IsKey = true
+		return nil
+	}
+
+	m := make(map[string]bool)
+	if err := json.Unmarshal(b, &m); err != nil {
+		return fmt.Errorf("invalid selector (not dict)")
+	}
+	ok1, ok2 := m["all"]
+	if ok1 && ok2 {
+		se.IsAll = true
+		return nil
+	}
+	ok1, ok2 = m["contents"]
+	if ok1 && ok2 {
+		se.IsContents = true
+		return nil
+	}
+	return fmt.Errorf("invalid selector (not recognized)")
+}
+
+func (p PhoneNumber) String() string {
+	return string(p)
+}
+
+func (d TeamData) ID() TeamID {
+	return d.Chain.Id
+}
+
+func (d TeamData) IsPublic() bool {
+	return d.Chain.Public
+}
+
+func (d FastTeamData) ID() TeamID {
+	return d.Chain.ID
+}
+
+func (d FastTeamData) IsPublic() bool {
+	return d.Chain.Public
 }

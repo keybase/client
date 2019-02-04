@@ -79,9 +79,10 @@ func (c *ConversationRetry) fixInboxFetch(ctx context.Context, uid gregor1.UID) 
 	c.Debug(ctx, "fixInboxFetch: retrying conversation")
 
 	// Reload this conversation and hope it works
-	inbox, err := c.G().InboxSource.Read(ctx, uid, nil, true, &chat1.GetInboxLocalQuery{
-		ConvIDs: []chat1.ConversationID{c.convID},
-	}, nil)
+	inbox, _, err := c.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil,
+		&chat1.GetInboxLocalQuery{
+			ConvIDs: []chat1.ConversationID{c.convID},
+		}, nil)
 	if err != nil {
 		c.Debug(ctx, "fixInboxFetch: failed to read inbox: msg: %s", err.Error())
 		return err

@@ -2,9 +2,9 @@
 // @flow strict
 import * as Common from './common'
 import * as RPCTypes from '../rpc-gen'
+import * as RPCChatTypes from '../rpc-chat-gen'
 import * as RPCStellarTypes from '../rpc-stellar-gen'
 import * as WalletTypes from '../wallets'
-// $FlowIssue https://github.com/facebook/flow/issues/6628
 import * as I from 'immutable'
 import HiddenString from '../../../util/hidden-string'
 import type {DeviceType} from '../devices'
@@ -20,6 +20,8 @@ export type _Reaction = {
 }
 export type Reaction = I.RecordOf<_Reaction>
 export type Reactions = I.Map<string, I.Set<Reaction>>
+
+export type UnfurlMap = I.Map<string, RPCChatTypes.UIMessageUnfurlInfo>
 
 // We use the ordinal as the primary ID throughout the UI. The reason we have this vs a messageID is
 // 1. We don't have messageIDs for messages we're trying to send (pending messages)
@@ -46,6 +48,11 @@ export type MentionsChannel = 'none' | 'all' | 'here'
 export type MentionsChannelName = I.Map<string, Common.ConversationIDKey>
 
 export type MessageExplodeDescription = {text: string, seconds: number}
+
+export type PathAndOutboxID = {
+  path: string,
+  outboxID: ?RPCChatTypes.OutboxID,
+}
 
 // Message types have a lot of copy and paste. Originally I had this split out but this
 // causes flow to get confused or makes the error messages a million times harder to understand
@@ -81,6 +88,7 @@ export type MessageDeleted = I.RecordOf<_MessageDeleted>
 export type _MessageText = {
   author: string,
   conversationIDKey: Common.ConversationIDKey,
+  decoratedText: ?HiddenString,
   deviceName: string,
   deviceRevokedAt: ?number,
   deviceType: DeviceType,
@@ -92,6 +100,8 @@ export type _MessageText = {
   explodingUnreadable: boolean, // if we can't read this message bc we have no keys
   hasBeenEdited: boolean,
   id: MessageID,
+  inlinePaymentIDs: ?I.List<WalletTypes.PaymentID>,
+  inlinePaymentSuccessful: boolean,
   reactions: Reactions,
   submitState: null | 'deleting' | 'editing' | 'pending' | 'failed',
   mentionsAt: MentionsAt,
@@ -101,6 +111,7 @@ export type _MessageText = {
   outboxID: ?OutboxID,
   text: HiddenString,
   timestamp: number,
+  unfurls: UnfurlMap,
   type: 'text',
 }
 export type MessageText = I.RecordOf<_MessageText>
@@ -148,7 +159,7 @@ export type _MessageAttachment = {
   timestamp: number,
   title: string,
   transferProgress: number, // 0-1 // only for the file
-  transferState: 'uploading' | 'downloading' | 'remoteUploading' | null,
+  transferState: 'uploading' | 'downloading' | 'remoteUploading' | 'mobileSaving' | null,
   type: 'attachment',
   videoDuration: ?string,
 }
@@ -158,8 +169,11 @@ export type _ChatRequestInfo = {
   amount: string,
   amountDescription: string,
   asset: WalletTypes.Asset,
+  canceled: boolean,
   currencyCode: string, // set if asset === 'currency'
+  done: boolean,
   type: 'requestInfo',
+  worthAtRequestTime: string,
 }
 export type ChatRequestInfo = I.RecordOf<_ChatRequestInfo>
 
@@ -171,7 +185,7 @@ export type _MessageRequestPayment = {
   deviceType: DeviceType,
   errorReason: ?string,
   id: MessageID,
-  note: string,
+  note: HiddenString,
   ordinal: Ordinal,
   outboxID: ?OutboxID,
   reactions: Reactions,
@@ -183,14 +197,22 @@ export type _MessageRequestPayment = {
 export type MessageRequestPayment = I.RecordOf<_MessageRequestPayment>
 
 export type _ChatPaymentInfo = {
+  accountID: WalletTypes.AccountID,
   amountDescription: string,
   delta: 'none' | 'increase' | 'decrease',
+  fromUsername: string,
   note: HiddenString,
+  paymentID: WalletTypes.PaymentID,
   status: WalletTypes.StatusSimplified,
   statusDescription: string,
+  statusDetail: string,
+  showCancel: boolean,
+  toUsername: string,
   type: 'paymentInfo',
   worth: string,
+  worthAtSendTime: string,
 }
+
 export type ChatPaymentInfo = I.RecordOf<_ChatPaymentInfo>
 
 export type _MessageSendPayment = {

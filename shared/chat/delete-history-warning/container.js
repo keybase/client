@@ -3,12 +3,12 @@ import * as Types from '../../constants/types/chat2'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import DeleteHistoryWarning from '.'
 import {type RouteProps} from '../../route-tree/render-route'
-import {compose, connect, type TypedState} from '../../util/container'
+import {compose, connect} from '../../util/container'
 import {isMobile} from '../../constants/platform'
 
 type OwnProps = RouteProps<{conversationIDKey: Types.ConversationIDKey}, {}>
 
-const mapStateToProps = (state: TypedState, {routeProps}: OwnProps) => ({})
+const mapStateToProps = (state, {routeProps}: OwnProps) => ({})
 
 const mapDispatchToProps = (dispatch, {navigateUp, routeProps}: OwnProps) => ({
   onBack: isMobile ? null : () => dispatch(navigateUp()),
@@ -26,4 +26,10 @@ const mergeProps = (stateProps, dispatchProps) => ({
   onDeleteHistory: dispatchProps.onDeleteHistory,
 })
 
-export default compose(connect(mapStateToProps, mapDispatchToProps, mergeProps))(DeleteHistoryWarning)
+export default compose(
+  connect<OwnProps, _, _, _, _>(
+    mapStateToProps,
+    mapDispatchToProps,
+    mergeProps
+  )
+)(DeleteHistoryWarning)

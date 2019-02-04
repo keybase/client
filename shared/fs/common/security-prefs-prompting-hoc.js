@@ -1,8 +1,10 @@
 // @flow
-import {branch, compose, connect, renderNothing, type TypedState} from '../../util/container'
-import {isLinux, isMobile} from '../../constants/platform'
+import * as React from 'react'
 import * as FsGen from '../../actions/fs-gen'
-import {navigateAppend} from '../../actions/route-tree'
+import * as Constants from '../../constants/fs'
+import {connect} from '../../util/container'
+import {isMobile} from '../../constants/platform'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 
 // On desktop, SecurityPrefsPromptingHoc prompts user about going to security
 // preferences to allow the kext if needed. It prompts at most once per
@@ -12,28 +14,35 @@ import {navigateAppend} from '../../actions/route-tree'
 // spamming the user.  We have a link in the Settings page so if the user wants
 // they can still find the instructions.
 
-const mapStateToProps = (state: TypedState) => {
-  const {securityPrefsPropmted, kextPermissionError} = state.fs.flags
-  const kbfsEnabled = isLinux || (state.fs.fuseStatus && state.fs.fuseStatus.kextStarted)
+type MergedProps = {|
+  shouldPromptSecurityPrefs: boolean,
+  showSecurityPrefsOnce: () => void,
+|}
+
+const mapStateToProps = state => {
+  const {securityPrefsPrompted, kextPermissionError} = state.fs.flags
+  const kbfsEnabled = Constants.kbfsEnabled(state)
   return {
-    shouldPromptSecurityPrefs: !securityPrefsPropmted && !kbfsEnabled && kextPermissionError,
+    shouldPromptSecurityPrefs: !securityPrefsPrompted && !kbfsEnabled && kextPermissionError,
   }
 }
 
-const mapDispatchToProps = (dispatch: Dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   showSecurityPrefsOnce: () => {
     dispatch(
       FsGen.createSetFlags({
-        securityPrefsPropmted: true,
+        securityPrefsPrompted: true,
       })
     )
     dispatch(
-      navigateAppend([
-        {
-          props: {},
-          selected: 'securityPrefs',
-        },
-      ])
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {},
+            selected: 'securityPrefs',
+          },
+        ],
+      })
     )
   },
 })
@@ -43,11 +52,24 @@ const displayOnce = ({shouldPromptSecurityPrefs, showSecurityPrefsOnce}) => {
   return shouldPromptSecurityPrefs
 }
 
-const DesktopSecurityPrefsPromptingHoc = compose(
-  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
-  branch(displayOnce, renderNothing)
-)
+const DesktopSecurityPrefsBranch = <P>(
+  ComposedComponent: React.ComponentType<P>
+): React.ComponentType<MergedProps & P> =>
+  class extends React.PureComponent<MergedProps & P> {
+    render = () => (!displayOnce(this.props) ? <ComposedComponent {...this.props} /> : null)
+  }
 
-const SecurityPrefsPromptingHoc = isMobile ? (i: any) => i : DesktopSecurityPrefsPromptingHoc
+const DesktopSecurityPrefsPromptingHoc = <P>(
+  ComposedComponent: React.ComponentType<P>
+): React.ComponentType<P> =>
+  connect<P, _, _, _, _>(
+    mapStateToProps,
+    mapDispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d})
+  )(DesktopSecurityPrefsBranch<P>(ComposedComponent))
+
+const SecurityPrefsPromptingHoc = isMobile
+  ? <P>(i: React.ComponentType<P>): React.ComponentType<P> => i
+  : DesktopSecurityPrefsPromptingHoc
 
 export default SecurityPrefsPromptingHoc

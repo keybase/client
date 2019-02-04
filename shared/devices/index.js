@@ -22,6 +22,7 @@ type Props = {|
   loadDevices: () => void,
   onBack: () => void,
   revokedItems: Array<Item>,
+  hasNewlyRevoked: boolean,
   waiting: boolean,
   title: string,
   ...$Exact<Kb.OverlayParentProps>,
@@ -35,18 +36,27 @@ class Devices extends React.PureComponent<Props, State> {
     this.props.loadDevices()
   }
 
+  componentDidUpdate(prevProps: Props, prevState: State) {
+    if (this.props.hasNewlyRevoked && !prevState.revokedExpanded) {
+      this.setState({revokedExpanded: true})
+    }
+  }
+
   _toggleExpanded = () => this.setState(p => ({revokedExpanded: !p.revokedExpanded}))
 
-  _renderRow = (index, item) =>
-    item.type === 'revokedHeader' ? (
-      <RevokedHeader
-        key="revokedHeader"
-        expanded={this.state.revokedExpanded}
-        onToggleExpanded={this._toggleExpanded}
-      />
-    ) : (
-      <DeviceRow key={item.id} deviceID={item.id} firstItem={index === 0} />
-    )
+  _renderRow = (index, item) => {
+    if (item.type === 'revokedHeader') {
+      return (
+        <RevokedHeader
+          key="revokedHeader"
+          expanded={this.state.revokedExpanded}
+          onToggleExpanded={this._toggleExpanded}
+        />
+      )
+    } else {
+      return <DeviceRow key={item.id} deviceID={item.id} firstItem={index === 0} />
+    }
+  }
 
   render() {
     const items = [
@@ -129,12 +139,12 @@ const RevokedHeader = ({children, onToggleExpanded, expanded}) => (
         </Kb.Text>
         <Kb.Icon
           type={expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
-          color={Styles.globalColors.black_60}
+          color={Styles.globalColors.black_50}
           fontSize={10}
         />
       </Kb.Box2>
       {expanded && (
-        <Kb.Text type="BodySmallSemibold" style={revokedHeaderStyles.desc}>
+        <Kb.Text center={true} type="BodySmallSemibold" style={revokedHeaderStyles.desc}>
           Revoked devices will no longer be able to access your Keybase account.
         </Kb.Text>
       )}
@@ -146,13 +156,15 @@ const revokedHeaderStyles = Styles.styleSheetCreate({
     alignSelf: 'center',
     paddingLeft: Styles.globalMargins.small,
     paddingRight: Styles.globalMargins.small,
-    textAlign: 'center',
   },
-  text: {color: Styles.globalColors.black_60},
+  text: {color: Styles.globalColors.black_50},
   textContainer: {
     alignItems: 'center',
     minHeight: Styles.isMobile ? 32 : 24,
   },
 })
 
-export default compose(Kb.OverlayParentHOC, Kb.HeaderOnMobile)(Devices)
+export default compose(
+  Kb.OverlayParentHOC,
+  Kb.HeaderOnMobile
+)(Devices)

@@ -1,7 +1,9 @@
 // @flow
-import {connect} from '../../util/container'
-import {navigateUp} from '../../actions/route-tree'
+import {connect, type RouteProps} from '../../util/container'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import InviteGenerated from '.'
+
+type OwnProps = RouteProps<{email: string, link: string}, {}>
 
 const mapStateToProps = (state: any, {routeProps}) => ({
   email: routeProps.get('email'),
@@ -9,9 +11,11 @@ const mapStateToProps = (state: any, {routeProps}) => ({
 })
 
 const mapDispatchToProps = (dispatch: any) => ({
-  onClose: () => dispatch(navigateUp()),
+  onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
-export default connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}))(
-  InviteGenerated
-)
+export default connect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d})
+)(InviteGenerated)

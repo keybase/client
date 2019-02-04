@@ -25,6 +25,7 @@ type ServerResponseRepo struct {
 	LastModifyingDeviceID keybase1.DeviceID             `json:"last_writer_device_id"`
 	ChatConvID            string                        `json:"chat_conv_id"`
 	ChatDisabled          bool                          `json:"chat_disabled"`
+	IsImplicit            bool                          `json:"is_implicit"`
 }
 
 type ServerResponse struct {
@@ -50,7 +51,28 @@ func formatUniqueRepoID(teamID keybase1.TeamID, repoID keybase1.RepoID) string {
 
 // Implicit teams need to be converted back into the folder that matches their
 // display name. Regular teams become a regular team folder.
-func folderFromTeamID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID) (keybase1.Folder, error) {
+func folderFromTeamID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, isImplicit bool) (keybase1.Folder, error) {
+	if isImplicit {
+		return folderFromTeamIDImplicit(ctx, g, teamID)
+	}
+	return folderFromTeamIDNamed(ctx, g, teamID)
+}
+
+func folderFromTeamIDNamed(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID) (keybase1.Folder, error) {
+	name, err := teams.ResolveIDToName(ctx, g, teamID)
+	if err != nil {
+		return keybase1.Folder{}, err
+	}
+	return keybase1.Folder{
+		Name:       name.String(),
+		FolderType: keybase1.FolderType_TEAM,
+		Private:    !teamID.IsPublic(),
+	}, nil
+}
+
+// folderFromTeamIDImplicit converts from a teamID for implicit teams
+func folderFromTeamIDImplicit(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID) (keybase1.Folder, error) {
+
 	team, err := teams.Load(ctx, g, keybase1.LoadTeamArg{
 		ID:     teamID,
 		Public: teamID.IsPublic(),
@@ -58,27 +80,24 @@ func folderFromTeamID(ctx context.Context, g *libkb.GlobalContext, teamID keybas
 	if err != nil {
 		return keybase1.Folder{}, err
 	}
-	if team.IsImplicit() {
-		// TODO: This function doesn't currently support conflict info.
-		name, err := team.ImplicitTeamDisplayNameString(ctx)
-		if err != nil {
-			return keybase1.Folder{}, err
-		}
-		var folderType keybase1.FolderType
-		if team.IsPublic() {
-			folderType = keybase1.FolderType_PUBLIC
-		} else {
-			folderType = keybase1.FolderType_PRIVATE
-		}
-		return keybase1.Folder{
-			Name:       name,
-			FolderType: folderType,
-			Private:    !team.IsPublic(),
-		}, nil
+	if !team.IsImplicit() {
+		return keybase1.Folder{}, fmt.Errorf("Expected an implicit team, but team load said otherwise (%s)", teamID)
+	}
+
+	// TODO: This function doesn't currently support conflict info.
+	name, err := team.ImplicitTeamDisplayNameString(ctx)
+	if err != nil {
+		return keybase1.Folder{}, err
+	}
+	var folderType keybase1.FolderType
+	if team.IsPublic() {
+		folderType = keybase1.FolderType_PUBLIC
+	} else {
+		folderType = keybase1.FolderType_PRIVATE
 	}
 	return keybase1.Folder{
-		Name:       team.Name().String(),
-		FolderType: keybase1.FolderType_TEAM,
+		Name:       name,
+		FolderType: folderType,
 		Private:    !team.IsPublic(),
 	}, nil
 }
@@ -155,7 +174,7 @@ func getMetadataInnerSingle(ctx context.Context, g *libkb.GlobalContext,
 	if folder != nil {
 		repoFolder = *folder
 	} else {
-		repoFolder, err = folderFromTeamID(ctx, g, responseRepo.TeamID)
+		repoFolder, err = folderFromTeamID(ctx, g, responseRepo.TeamID, responseRepo.IsImplicit)
 		if err != nil {
 			return nil, false, err
 		}

@@ -1,9 +1,8 @@
 // @flow
 import React from 'react'
 import {RoleOptions} from '.'
-import {connect, compose, withHandlers, withStateHandlers} from '../../util/container'
+import {connect, compose, withHandlers, withStateHandlers, type RouteProps} from '../../util/container'
 import {HeaderOrPopup, ScrollView} from '../../common-adapters/index'
-import {type TypedState} from '../../constants/reducer'
 import {type TeamRoleType} from '../../constants/types/teams'
 
 /*
@@ -24,9 +23,17 @@ export type ControlledRolePickerProps = {
   showNotificationCheckbox?: boolean,
   sendNotificationChecked?: boolean,
   styleCover?: Object,
+  teamname: string,
 }
 
-const mapStateToProps = (state: TypedState, {routeProps}) => {
+type OwnProps = RouteProps<
+  {
+    ...ControlledRolePickerProps,
+  },
+  {}
+>
+
+const mapStateToProps = (state, {routeProps}) => {
   const currentType = routeProps.get('selectedRole')
   const _onComplete = routeProps.get('onComplete')
   const addButtonLabel = routeProps.get('addButtonLabel')
@@ -58,14 +65,19 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   onCancel: () => dispatch(navigateUp()),
 })
 
-const ControlledRolePicker = props => (
+// TODO fix typing
+const ControlledRolePicker = (props: any) => (
   <ScrollView>
     <RoleOptions {...props} />
   </ScrollView>
 )
 
 export default compose(
-  connect(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d})),
+  connect<OwnProps, _, _, _, _>(
+    mapStateToProps,
+    mapDispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d})
+  ),
   withStateHandlers(
     ({currentType, sendNotificationChecked}) => ({
       selectedRole: currentType,

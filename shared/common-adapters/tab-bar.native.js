@@ -6,12 +6,13 @@ import {NativeTouchableWithoutFeedback, NativeStyleSheet} from './native-wrapper
 import Badge from './badge'
 import Box from './box'
 import Icon from './icon'
+import Meta from './meta'
 import Text from './text'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 
 class TabBarItem extends React.Component<ItemProps> {
   render() {
-    return this.props.children
+    return this.props.children || null
   }
 }
 
@@ -22,7 +23,7 @@ class SimpleTabBarButton extends React.Component<ItemProps> {
       <Box style={{...stylesTab, ...this.props.style}}>
         <Text
           type="BodySmallSemibold"
-          style={{...stylesLabel, color: this.props.selected ? globalColors.black_75 : globalColors.black_40}}
+          style={{...stylesLabel, color: this.props.selected ? globalColors.black_75 : globalColors.black_50}}
         >
           {!!this.props.label && this.props.label.toUpperCase()}
         </Text>
@@ -35,14 +36,14 @@ class SimpleTabBarButton extends React.Component<ItemProps> {
 const UnderlineHighlight = () => (
   <Box
     style={{
-      position: 'absolute',
-      bottom: 0,
-      left: 24,
-      right: 24,
-      height: 2,
+      backgroundColor: globalColors.white,
       borderTopLeftRadius: 3,
       borderTopRightRadius: 3,
-      backgroundColor: globalColors.white,
+      bottom: 0,
+      height: 2,
+      left: 24,
+      position: 'absolute',
+      right: 24,
     }}
   />
 )
@@ -54,7 +55,7 @@ const TabBarButton = (props: TabBarButtonProps) => {
   if (props.badgeNumber) {
     if (props.badgePosition === 'top-right') {
       badgeComponent = (
-        <Badge badgeNumber={props.badgeNumber} badgeStyle={{position: 'absolute', top: 2, left: '52%'}} />
+        <Badge badgeNumber={props.badgeNumber} badgeStyle={{left: '52%', position: 'absolute', top: 2}} />
       )
     } else {
       badgeComponent = <Badge badgeNumber={badgeNumber} badgeStyle={{marginLeft: 5}} />
@@ -74,11 +75,21 @@ const TabBarButton = (props: TabBarButtonProps) => {
         }}
       />
       {!!props.label && (
-        <Text type="BodySemibold" style={{textAlign: 'center', ...props.styleLabel}}>
+        <Text center={true} type="BodySemibold" style={{...props.styleLabel}}>
           {props.label}
         </Text>
       )}
       {badgeComponent}
+      {props.isNew && (
+        <Box style={styleBadgeNav}>
+          <Meta
+            title="new"
+            size="Small"
+            style={{alignSelf: 'center', marginRight: 4}}
+            backgroundColor={globalColors.blue2}
+          />
+        </Box>
+      )}
       {props.underlined && <UnderlineHighlight />}
     </Box>
   )
@@ -111,7 +122,7 @@ class TabBar extends React.Component<Props> {
   }
 
   _content(): any {
-    return (this.props.children || []).find(i => i.props.selected)
+    return React.Children.toArray(this.props.children || []).find(i => i.props.selected)
   }
 
   render() {
@@ -129,6 +140,12 @@ class TabBar extends React.Component<Props> {
       </Box>
     )
   }
+}
+
+const styleBadgeNav = {
+  position: 'absolute',
+  right: 12,
+  top: 4,
 }
 
 const stylesContainer = {
@@ -152,16 +169,16 @@ const stylesTabBarButtonIcon = {
 }
 
 const stylesLabel = {
-  marginTop: 11,
-  marginBottom: 11,
   height: globalMargins.small,
+  marginBottom: 11,
+  marginTop: 11,
 }
 
 const stylesSelectedUnderline = color => ({
-  height: 3,
-  marginBottom: -1,
   alignSelf: 'stretch',
   backgroundColor: color,
+  height: 3,
+  marginBottom: -1,
 })
 
 const stylesUnselected = {
@@ -169,9 +186,9 @@ const stylesUnselected = {
 }
 
 const stylesUnderline = {
-  height: NativeStyleSheet.hairlineWidth,
   alignSelf: 'stretch',
   backgroundColor: globalColors.black_10,
+  height: NativeStyleSheet.hairlineWidth,
 }
 
 export {TabBarItem, TabBarButton}

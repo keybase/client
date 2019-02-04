@@ -114,12 +114,12 @@ export debian_arch=i386
 # found.  "psmisc" provides "killall", which is used in run_keybase.
 # "initscripts" provides "service", which is used to start atd in the
 # post-install.
-dependencies="Requires: at, fuse, libXss.so.1, /sbin/service, psmisc"
+dependencies="Requires: at, fuse, libXss.so.1, /sbin/service, psmisc, lsof, procps"
 build_one_architecture
 
 export rpm_arch=x86_64
 export debian_arch=amd64
 # Requiring "libXss.so" here installs the 32-bit version. See
 # https://github.com/keybase/client/pull/5226.
-dependencies="Requires: at, fuse, libXss.so.1()(64bit), /sbin/service, psmisc"
+dependencies="Requires: at, fuse, libXss.so.1()(64bit), /sbin/service, psmisc, lsof, procps"
 build_one_architecture
