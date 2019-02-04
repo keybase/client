@@ -136,6 +136,7 @@ type LocalDbOps interface {
 	Delete(id DbKey) error
 	Get(id DbKey) ([]byte, bool, error)
 	Lookup(alias DbKey) ([]byte, bool, error)
+	Stats() string
 }
 
 type LocalDbTransaction interface {
