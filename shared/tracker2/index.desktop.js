@@ -111,7 +111,7 @@ const getButtons = (props: Props) => {
 }
 
 const TeamShowcase = ({name}) => (
-  <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.teamShowcase}>
+  <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" alignItems="center">
     <Kb.Avatar size={32} teamname={name} isTeam={true} />
     <Kb.Text type="BodySemibold">{name}</Kb.Text>
   </Kb.Box2>
@@ -261,7 +261,6 @@ const styles = Styles.styleSheetCreate({
     flexShrink: 0,
     height: barHeight,
   },
-  teamShowcase: {alignItems: 'center'},
   teamShowcases: {
     backgroundColor: Styles.globalColors.white,
     flexShrink: 0,
