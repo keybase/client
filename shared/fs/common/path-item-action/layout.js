@@ -52,7 +52,7 @@ const getRawLayout = (path: Types.Path, pathItem: Types.PathItem): Layout => {
         ...empty,
         copyPath: true,
         ignoreTlf: true,
-        sendLinkToChat: isMobile,
+        sendLinkToChat: false, // TODO enable mobile // desktop uses separate button
         showInSystemFileManager: !isMobile,
       }
     default:

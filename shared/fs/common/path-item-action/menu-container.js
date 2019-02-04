@@ -142,7 +142,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     // share items
     // eslint-disable-next-line sort-keys
     sendAttachmentToChat: null, // TODO
-    sendLinkToChat: layout.sendToOtherApp ? c(dispatchProps._sendLinkToChat) : null,
+    sendLinkToChat: layout.sendLinkToChat ? c(dispatchProps._sendLinkToChat) : null,
     sendToOtherApp: layout.sendToOtherApp ? getSendToOtherApp(stateProps, dispatchProps, c) : null,
     share: layout.share ? dispatchProps._share : null,
   }
