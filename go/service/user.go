@@ -6,6 +6,7 @@ package service
 import (
 	"fmt"
 	"sort"
+	"strings"
 
 	"github.com/keybase/client/go/avatars"
 	"github.com/keybase/client/go/chat"
@@ -368,42 +369,32 @@ type ProofSuggestion struct {
 	Priority int
 }
 
-var dummyIcon []keybase1.SizedImage // TODO CORE-9882: Get some icons
-
 var pgpProofSuggestion = keybase1.ProofSuggestion{
 	Key:           "pgp",
 	ProfileText:   "Add a PGP key",
-	ProfileIcon:   dummyIcon,
 	PickerText:    "PGP key",
 	PickerSubtext: "",
-	PickerIcon:    dummyIcon,
 }
 
 var webProofSuggestion = keybase1.ProofSuggestion{
 	Key:           "web",
 	ProfileText:   "Prove your website",
-	ProfileIcon:   dummyIcon,
 	PickerText:    "Your own website",
 	PickerSubtext: "",
-	PickerIcon:    dummyIcon,
 }
 
 var bitcoinProofSuggestion = keybase1.ProofSuggestion{
 	Key:           "btc",
 	ProfileText:   "Set a Bitcoin address",
-	ProfileIcon:   dummyIcon,
 	PickerText:    "Bitcoin address",
 	PickerSubtext: "",
-	PickerIcon:    dummyIcon,
 }
 
 var zcashProofSuggestion = keybase1.ProofSuggestion{
 	Key:           "zcash",
 	ProfileText:   "Set a Zcash address",
-	ProfileIcon:   dummyIcon,
 	PickerText:    "Zcash address",
 	PickerSubtext: "",
-	PickerIcon:    dummyIcon,
 }
 
 func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext) (ret []ProofSuggestion, err error) {
@@ -440,10 +431,8 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext) (ret []Proo
 		suggestions = append(suggestions, ProofSuggestion{ProofSuggestion: keybase1.ProofSuggestion{
 			Key:           service,
 			ProfileText:   fmt.Sprintf("Prove your %v", serviceType.DisplayName()),
-			ProfileIcon:   dummyIcon,
 			PickerText:    serviceType.DisplayName(),
 			PickerSubtext: subtext,
-			PickerIcon:    dummyIcon,
 		}})
 	}
 	hasPGP := len(user.GetActivePGPKeys(true)) > 0
@@ -457,6 +446,15 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext) (ret []Proo
 	}
 	if !user.IDTable().HasActiveCryptocurrencyFamily(libkb.CryptocurrencyFamilyZCash) {
 		suggestions = append(suggestions, ProofSuggestion{ProofSuggestion: zcashProofSuggestion})
+	}
+
+	// Attach icon urls
+	for i := range suggestions {
+		suggestion := &suggestions[i]
+		suggestion.ProfileIcon = makeIcons(mctx, suggestion.Key, "logo_black", 16)
+		if serviceHasFullIcon(suggestion.Key) {
+			suggestion.PickerIcon = makeIcons(mctx, suggestion.Key, "logo_full", 32)
+		}
 	}
 
 	// Alphabetize so that ties later on in SliceStable are deterministic.
@@ -526,6 +524,49 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext) (ret []Proo
 		return suggestions[i].Priority < suggestions[j].Priority
 	})
 	return suggestions, nil
+}
+
+func iconKeyMangle(key string) string {
+	switch key {
+	case "bitcoin":
+		return "btc"
+	case "zcash.t", "zcash.z", "zcash.s":
+		return "zcash"
+	case "http", "https", "dns":
+		return "web"
+	default:
+		return key
+	}
+}
+
+func serviceHasFullIcon(key string) bool {
+	switch iconKeyMangle(key) {
+	case "btc", "facebook", "github", "hackernews", "pgp", "reddit", "rooter",
+		"stellar", "twitter", "web", "zcash":
+		return false
+	}
+	// Parameterized proofs should have full icons.
+	return true
+}
+
+func makeIcons(mctx libkb.MetaContext, serviceKey, imgName string, size int) (res []keybase1.SizedImage) {
+	for _, factor := range []int{1, 2} {
+		factorix := ""
+		if factor > 1 {
+			factorix = fmt.Sprintf("@%vx", factor)
+		}
+
+		res = append(res, keybase1.SizedImage{
+			Path: strings.Join([]string{
+				libkb.SiteURILookup[mctx.G().Env.GetRunMode()],
+				"images/paramproofs/services",
+				iconKeyMangle(serviceKey),
+				fmt.Sprintf("%v_%v%v.png", imgName, size, factorix),
+			}, "/"),
+			Width: size * factor,
+		})
+	}
+	return res
 }
 
 func (h *UserHandler) FindNextMerkleRootAfterRevoke(ctx context.Context, arg keybase1.FindNextMerkleRootAfterRevokeArg) (ret keybase1.NextMerkleRootRes, err error) {
