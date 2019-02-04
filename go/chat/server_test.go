@@ -6106,13 +6106,7 @@ func TestChatSrvStellarMessages(t *testing.T) {
 				Note:      "Test note",
 			})
 
-			if ephemeralLifetime != nil {
-				_, err := postLocalEphemeralForTest(t, ctc, users[0], created, body, ephemeralLifetime)
-				require.Error(t, err)
-				return
-			}
-
-			_, err := postLocalForTestNoAdvanceClock(t, ctc, users[0], created, body)
+			_, err := postLocalEphemeralForTest(t, ctc, users[0], created, body, ephemeralLifetime)
 			require.NoError(t, err)
 
 			var unboxed chat1.UIMessage
@@ -6122,6 +6116,7 @@ func TestChatSrvStellarMessages(t *testing.T) {
 				require.True(t, unboxed.IsValid(), "invalid message")
 				require.Equal(t, chat1.MessageType_REQUESTPAYMENT, unboxed.GetMessageType(), "invalid type")
 				require.Equal(t, body.Requestpayment(), unboxed.Valid().MessageBody.Requestpayment())
+				require.False(t, unboxed.IsEphemeral())
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no event received")
 			}
