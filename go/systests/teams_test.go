@@ -228,6 +228,9 @@ func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool) *userPlusD
 func (tt *teamTester) cleanup() {
 	for _, u := range tt.users {
 		u.device.tctx.Cleanup()
+		if u.device.service != nil {
+			u.device.service.Stop(0)
+		}
 	}
 }
 
