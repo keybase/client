@@ -73,7 +73,7 @@ export const Typing = (props: Props) => (
     <Kb.Box style={styles.typingIconContainer}>
       <Kb.Animation animationType="typing" containerStyle={styles.isTypingAnimation} />
     </Kb.Box>
-    <Kb.Text type={Styles.isMobile ? 'BodyTiny' : 'BodySmall'} style={styles.isTypingText}>
+    <Kb.Text lineClamp={1} type={Styles.isMobile ? 'BodyTiny' : 'BodySmall'} style={styles.isTypingText}>
       <Names names={props.names} />
     </Kb.Text>
   </Kb.Box>
@@ -92,6 +92,7 @@ const styles = Styles.styleSheetCreate({
   }),
   isTypingContainer: Styles.platformStyles({
     common: {
+      flexGrow: 1,
       opacity: 0,
     },
     isMobile: {
