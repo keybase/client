@@ -31,10 +31,10 @@ function SettingsNav(props: Props) {
         {
           data: [
             {
-              badgeNumber: props.badgeNumbers[TabConstants.teamsTab],
-              icon: 'iconfont-nav-teams',
-              onClick: () => props.onTabChange(Constants.teamsTab),
-              text: 'Teams',
+              badgeNumber: props.badgeNumbers[TabConstants.fsTab],
+              icon: 'iconfont-nav-files',
+              onClick: () => props.onTabChange(Constants.fsTab),
+              text: 'Files',
             },
             {
               badgeNumber: props.badgeNumbers[TabConstants.gitTab],
