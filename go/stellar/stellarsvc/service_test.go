@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 	"sync"
 	"testing"
@@ -1430,6 +1431,7 @@ func setupTestsWithSettings(t *testing.T, settings []usetting) ([]*TestContext, 
 		switch setting {
 		case usettingFull:
 		case usettingMobile:
+			os.Setenv("KEYBASE_APP_TYPE", string(libkb.MobileAppType))
 		case usettingPukless:
 			tc.Tp.DisableUpgradePerUserKey = true
 		}
@@ -1457,6 +1459,7 @@ func setupTestsWithSettings(t *testing.T, settings []usetting) ([]*TestContext, 
 	cleanup := func() {
 		for _, tc := range tcs {
 			tc.Cleanup()
+			os.Unsetenv("KEYBASE_APP_TYPE")
 		}
 	}
 	for i, tc := range tcs {
