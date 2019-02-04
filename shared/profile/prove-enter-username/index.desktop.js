@@ -1,8 +1,9 @@
 // @flow
 import React, {Component} from 'react'
-import {Box, Box2, Icon, InfoNote, Text, Button, Input, PlatformIcon} from '../../common-adapters'
+import {Box, Box2, Icon, InfoNote, Text, WaitingButton, Input, PlatformIcon} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins, desktopStyles, collapseStyles} from '../../styles'
 import {platformText} from './shared'
+import {waitingKey} from '../../constants/profile'
 import type {PlatformsExpandedType} from '../../constants/types/more'
 import type {Props} from '.'
 import openURL from '../../util/open-url'
@@ -101,13 +102,16 @@ class PrivateEnterUsernameRender extends Component<Props, State> {
         />
         <UsernameTips platform={this.props.platform} />
         <Box style={{...globalStyles.flexBoxRow, marginTop: 32}}>
-          <Button
+          <WaitingButton
+            waitingKey={waitingKey}
+            onlyDisable={true}
             type="Secondary"
             onClick={this.props.onCancel}
             label="Cancel"
             style={{marginRight: globalMargins.tiny}}
           />
-          <Button
+          <WaitingButton
+            waitingKey={waitingKey}
             type="Primary"
             disabled={!this.props.canContinue}
             onClick={() => this.handleContinue()}
