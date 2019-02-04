@@ -49,8 +49,8 @@ const renderItem = (item: MenuItem, isLast: boolean, hideMenu: () => void) => {
       }
       return (
         <Row isLast={isLast} key={item.key} onPress={onPress}>
-          <Kb.Box2 direction="horizontal" alignItems="center" gap="small">
-            <Kb.Icon type="icon-stellar-coins-stacked-16" />
+          <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny">
+            <Kb.Icon type="icon-airdrop-star-32" />
             <Kb.Text center={true} type="BodyBig" style={{color: Styles.globalColors.blue}}>
               {item.title}
             </Kb.Text>
