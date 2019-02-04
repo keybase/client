@@ -6,6 +6,7 @@ import * as FsGen from '../actions/fs-gen'
 import * as FsTypes from '../constants/types/fs'
 import * as GregorGen from '../actions/gregor-gen'
 import * as TeamsGen from '../actions/teams-gen'
+import * as Tabs from '../constants/tabs'
 import Teams from './main'
 import openURL from '../util/open-url'
 import * as RouteTreeGen from '../actions/route-tree-gen'
@@ -29,7 +30,14 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = (dispatch, {routePath, navigateUp}) => ({
   _loadTeams: () => dispatch(TeamsGen.createGetTeams()),
-  onBack: () => dispatch(navigateUp()),
+  onBack: () => {
+    if (isMobile) {
+      // TODO remove with DESKTOP-8924
+      dispatch(RouteTreeGen.createSwitchTo({parentPath: [], path: [Tabs.settingsTab]}))
+    } else {
+      dispatch(navigateUp())
+    }
+  },
   onCreateTeam: () => {
     dispatch(
       RouteTreeGen.createNavigateAppend({

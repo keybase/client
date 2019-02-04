@@ -33,12 +33,12 @@ const appRouteTree = makeRouteDefNode({
     [peopleTab]: peopleRoutes,
     [profileTab]: profileRoutes,
     [settingsTab]: settingsRoutes,
+    [teamsTab]: teamsRoutes, // TODO remove with DESKTOP-8924
     ...(flags.walletsEnabled && !isMobile ? {[walletsTab]: walletsRoutes} : {}),
     ...(isMobile
       ? {}
       : {
           [devicesTab]: devicesRoutes, // not a top level route in mobile
-          [teamsTab]: teamsRoutes,
         }),
   },
   containerComponent: Nav,
