@@ -236,6 +236,7 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.RPCCanceler = NewRPCCanceler()
 	g.IdentifyDispatch = NewIdentifyDispatch()
 	g.Identify3State = NewIdentify3State(g)
+	g.GregorState = newNullGregorState()
 
 	g.Log.Debug("GlobalContext#Init(%p)\n", g)
 
