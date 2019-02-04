@@ -6,12 +6,12 @@ package service
 import (
 	"fmt"
 	"sort"
-	"strings"
 
 	"github.com/keybase/client/go/avatars"
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/engine"
+	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -451,9 +451,9 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext) (ret []Proo
 	// Attach icon urls
 	for i := range suggestions {
 		suggestion := &suggestions[i]
-		suggestion.ProfileIcon = makeIcons(mctx, suggestion.Key, "logo_black", 16)
-		if serviceHasFullIcon(suggestion.Key) {
-			suggestion.PickerIcon = makeIcons(mctx, suggestion.Key, "logo_full", 32)
+		suggestion.ProfileIcon = externals.MakeIcons(mctx, suggestion.Key, "logo_black", 16)
+		if externals.ServiceHasFullIcon(suggestion.Key) {
+			suggestion.PickerIcon = externals.MakeIcons(mctx, suggestion.Key, "logo_full", 32)
 		}
 	}
 
@@ -524,49 +524,6 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext) (ret []Proo
 		return suggestions[i].Priority < suggestions[j].Priority
 	})
 	return suggestions, nil
-}
-
-func iconKeyMangle(key string) string {
-	switch key {
-	case "bitcoin":
-		return "btc"
-	case "zcash.t", "zcash.z", "zcash.s":
-		return "zcash"
-	case "http", "https", "dns":
-		return "web"
-	default:
-		return key
-	}
-}
-
-func serviceHasFullIcon(key string) bool {
-	switch iconKeyMangle(key) {
-	case "btc", "facebook", "github", "hackernews", "pgp", "reddit", "rooter",
-		"stellar", "twitter", "web", "zcash":
-		return false
-	}
-	// Parameterized proofs should have full icons.
-	return true
-}
-
-func makeIcons(mctx libkb.MetaContext, serviceKey, imgName string, size int) (res []keybase1.SizedImage) {
-	for _, factor := range []int{1, 2} {
-		factorix := ""
-		if factor > 1 {
-			factorix = fmt.Sprintf("@%vx", factor)
-		}
-
-		res = append(res, keybase1.SizedImage{
-			Path: strings.Join([]string{
-				libkb.SiteURILookup[mctx.G().Env.GetRunMode()],
-				"images/paramproofs/services",
-				iconKeyMangle(serviceKey),
-				fmt.Sprintf("%v_%v%v.png", imgName, size, factorix),
-			}, "/"),
-			Width: size * factor,
-		})
-	}
-	return res
 }
 
 func (h *UserHandler) FindNextMerkleRootAfterRevoke(ctx context.Context, arg keybase1.FindNextMerkleRootAfterRevokeArg) (ret keybase1.NextMerkleRootRes, err error) {
