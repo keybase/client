@@ -8,7 +8,7 @@ import * as Tabs from '../../constants/tabs'
 import * as RouteTreeGen from '../route-tree-gen'
 import {isMobile} from '../../constants/platform'
 
-const fsRootRoute = isMobile ? [Tabs.settingsTab, SettingsConstants.fsTab] : [Tabs.fsTab]
+export const fsRootRoute = isMobile ? [Tabs.settingsTab, SettingsConstants.fsTab] : [Tabs.fsTab]
 
 const _getRouteChangeActionForPermissionError = (path: Types.Path) =>
   RouteTreeGen.createNavigateTo({

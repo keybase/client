@@ -8,7 +8,6 @@ import * as RPCChatTypes from '../../constants/types/rpc-chat-gen'
 import * as ChatTypes from '../../constants/types/chat2'
 import * as Saga from '../../util/saga'
 import * as Flow from '../../util/flow'
-import * as SettingsConstants from '../../constants/settings'
 import * as Tabs from '../../constants/tabs'
 import engine from '../../engine'
 import * as NotificationsGen from '../notifications-gen'
@@ -19,7 +18,7 @@ import {getContentTypeFromURL} from '../platform-specific'
 import {isMobile} from '../../constants/platform'
 import * as RouteTreeGen from '../route-tree-gen'
 import {getPathProps} from '../../route-tree'
-import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
+import {fsRootRoute, makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
 
 const loadFavorites = (state, action) =>
   RPCTypes.apiserverGetWithSessionRpcPromise({
@@ -607,25 +606,31 @@ const commitEdit = (state, action) => {
 const _getRouteChangeForOpenPathInFilesTab = (action: FsGen.OpenPathInFilesTabPayload, finalRoute: any) =>
   isMobile
     ? RouteTreeGen.createNavigateTo({
-        path: [
-          Tabs.settingsTab,
-          SettingsConstants.fsTab,
-          // Construct all parent folders so back button works all the way back
-          // to /keybase
-          ...Types.getPathElements(action.payload.path)
-            .slice(1, -1) // fsTab default to /keybase, so we skip one here
-            .reduce((routes, elem) => [
-              ...routes,
-              {
-                props: {
-                  path: routes.length
-                    ? Types.pathConcat(routes[routes.length - 1].props.path, elem)
-                    : Types.stringToPath(`/keybase/${elem}`),
-                },
-                selected: 'main',
-              },
-            ]),
-        ],
+        path:
+          action.payload.path === Constants.defaultPath
+            ? fsRootRoute
+            : [
+                ...fsRootRoute,
+                // Construct all parent folders so back button works all the way back
+                // to /keybase
+                ...Types.getPathElements(action.payload.path)
+                  .slice(1, -1) // fsTab default to /keybase, so we skip one here
+                  .reduce(
+                    (routes, elem) => [
+                      ...routes,
+                      {
+                        props: {
+                          path: routes.length
+                            ? Types.pathConcat(routes[routes.length - 1].props.path, elem)
+                            : Types.stringToPath(`/keybase/${elem}`),
+                        },
+                        selected: 'main',
+                      },
+                    ],
+                    []
+                  ),
+                finalRoute,
+              ],
       })
     : RouteTreeGen.createNavigateTo({
         path: [
