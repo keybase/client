@@ -14,7 +14,7 @@ func newNullGregorState() nullGregorState {
 }
 
 func (n nullGregorState) State(ctx context.Context) (gregor.State, error) {
-	return nil, nil
+	return gregor1.State{}, nil
 }
 
 func (n nullGregorState) InjectItem(ctx context.Context, cat string, body []byte, dtime gregor1.TimeOrOffset) (gregor1.MsgID, error) {
