@@ -6054,11 +6054,13 @@ func TestChatSrvEphemeralPolicy(t *testing.T) {
 	_, err := tc.Context().GregorState.InjectItem(ctx, fmt.Sprintf("exploding:%s", impconv.Id),
 		[]byte("3600"), gregor1.TimeOrOffset{})
 	require.NoError(t, err)
-	mustPostLocalForTest(t, ctc, users[0], impconv,
+	msgID := mustPostLocalForTest(t, ctc, users[0], impconv,
 		chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: "HI",
 		}))
 	checkEph(impconv.Id, 3600)
+	mustDeleteMsg(ctx, t, ctc, users[0], impconv, msgID)
+	consumeNewMsgRemote(t, listener0, chat1.MessageType_DELETE)
 
 	teamconv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_TEAM)
@@ -6067,11 +6069,13 @@ func TestChatSrvEphemeralPolicy(t *testing.T) {
 			Age: gregor1.DurationSec(86400),
 		}), 0)
 	consumeSetTeamRetention(t, listener0)
-	mustPostLocalForTest(t, ctc, users[0], teamconv,
+	msgID = mustPostLocalForTest(t, ctc, users[0], teamconv,
 		chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: "HI",
 		}))
 	checkEph(teamconv.Id, 86400)
+	mustDeleteMsg(ctx, t, ctc, users[0], teamconv, msgID)
+	consumeNewMsgRemote(t, listener0, chat1.MessageType_DELETE)
 }
 
 func TestChatSrvStellarMessages(t *testing.T) {
@@ -6102,13 +6106,7 @@ func TestChatSrvStellarMessages(t *testing.T) {
 				Note:      "Test note",
 			})
 
-			if ephemeralLifetime != nil {
-				_, err := postLocalEphemeralForTest(t, ctc, users[0], created, body, ephemeralLifetime)
-				require.Error(t, err)
-				return
-			}
-
-			_, err := postLocalForTestNoAdvanceClock(t, ctc, users[0], created, body)
+			_, err := postLocalEphemeralForTest(t, ctc, users[0], created, body, ephemeralLifetime)
 			require.NoError(t, err)
 
 			var unboxed chat1.UIMessage
@@ -6118,6 +6116,7 @@ func TestChatSrvStellarMessages(t *testing.T) {
 				require.True(t, unboxed.IsValid(), "invalid message")
 				require.Equal(t, chat1.MessageType_REQUESTPAYMENT, unboxed.GetMessageType(), "invalid type")
 				require.Equal(t, body.Requestpayment(), unboxed.Valid().MessageBody.Requestpayment())
+				require.False(t, unboxed.IsEphemeral())
 			case <-time.After(20 * time.Second):
 				require.Fail(t, "no event received")
 			}
