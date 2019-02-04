@@ -307,7 +307,6 @@ const styles = Styles.styleSheetCreate({
     },
     isAndroid: {
       alignItems: 'flex-start',
-      flexShrink: 1,
     },
     isIOS: {
       paddingLeft: Styles.globalMargins.tiny,
