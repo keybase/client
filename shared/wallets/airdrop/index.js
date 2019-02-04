@@ -68,7 +68,7 @@ class Airdrop extends React.Component<Props> {
         <Kb.Box2 direction="vertical" fullWidth={true} gap="medium" style={styles.fullHeight}>
           {p.signedUp ? (
             <Kb.Box2 direction="horizontal" fullWidth={true}>
-              <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.signedUpHeader} gap="small">
+              <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.signedUpHeader} gap="tiny">
                 <Kb.Icon type="icon-airdrop-star-32" />
                 <Kb.Text backgroundMode="Terminal" type="BodySmallSemibold" style={styles.yourIn}>
                   You're in. The next Lumens airdrop will show up in your default wallet account.
@@ -259,16 +259,19 @@ const styles = Styles.styleSheetCreate({
   shrink: {
     flexShrink: 1,
   },
-  signedUpHeader: {
-    alignItems: 'center',
-    backgroundColor: Styles.globalColors.green2,
-    borderRadius: Styles.borderRadius,
-    flexShrink: 1,
-    marginLeft: Styles.globalMargins.medium,
-    marginRight: Styles.globalMargins.medium,
-    marginTop: Styles.globalMargins.medium,
-    padding: Styles.globalMargins.tiny,
-  },
+  signedUpHeader: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.green2,
+      borderRadius: Styles.borderRadius,
+      flexShrink: 1,
+      marginLeft: Styles.globalMargins.medium,
+      marginRight: Styles.globalMargins.medium,
+      marginTop: Styles.globalMargins.medium,
+      padding: Styles.globalMargins.tiny,
+    },
+    isElectron: {alignItems: 'center'},
+    isMobile: {alignItems: 'flex-start'},
+  }),
   yourIn: {
     color: Styles.globalColors.green3,
     flexShrink: 1,
