@@ -33,6 +33,7 @@ const mapDispatchToProps = (dispatch, {routePath, navigateUp}) => ({
   onBack: () => {
     if (isMobile) {
       // TODO remove with DESKTOP-8924
+      dispatch(RouteTreeGen.createNavigateTo({parentPath: [Tabs.settingsTab], path: []}))
       dispatch(RouteTreeGen.createSwitchTo({parentPath: [], path: [Tabs.settingsTab]}))
     } else {
       dispatch(navigateUp())
