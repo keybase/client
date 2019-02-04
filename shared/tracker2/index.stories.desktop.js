@@ -173,6 +173,7 @@ const provider = Sb.createPropProviderWithCommon({
         ? [props.assertions[0]]
         : [...props.assertions],
     followThem: p.username === 'green' ? true : props.followThem,
+    isYou: p.username === 'yourUsername',
     reason:
       p.username === 'longreason'
         ? 'This is a very very very very very very very very very very very very very very very very very very very very very very very very very very very very long reason'
@@ -203,6 +204,7 @@ const load = () => {
     .add('Green', () => <Tracker username="green" />)
     .add('Red', () => <Tracker username="red" />)
     .add('Teams', () => <Tracker username="teams" />)
+    .add('Your username', () => <Tracker username="yourUsername" />)
 }
 
 const wrapper = {

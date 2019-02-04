@@ -16,6 +16,7 @@ type Props = {|
   followingCount: ?number,
   followsYou: ?boolean,
   guiID: ?string,
+  isYou: boolean,
   location: ?string,
   onFollow: () => void,
   onChat: () => void,
@@ -59,6 +60,10 @@ const getButtons = (props: Props) => {
       <Kb.Icon type="iconfont-chat" color={Styles.globalColors.white} style={styles.chatIcon} />
     </Kb.WaitingButton>
   )
+
+  if (props.isYou) {
+    return [buttonClose, buttonChat]
+  }
 
   switch (props.state) {
     case 'checking':
