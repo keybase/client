@@ -19,7 +19,6 @@ const Banner = (p: Props) => {
       backgroundMode="Purple"
       label="Join the airdrop"
       onClick={p.onCheckQualify}
-      style={styles.button}
       small={true}
     />
   )
@@ -38,6 +37,7 @@ const Banner = (p: Props) => {
             style={styles.laterButton}
             label="Later"
             onClick={p.onCancel}
+            small={true}
           />
         </Kb.Box2>
       </Kb.Box2>
@@ -70,25 +70,34 @@ const Banner = (p: Props) => {
 }
 
 const markdownOverride = {
-  paragraph: {
-    color: Styles.globalColors.white,
-    fontSize: 12,
-    fontWeight: 600,
-    lineHeight: `16px`,
-  },
+  paragraph: Styles.platformStyles({
+    common: {
+      color: Styles.globalColors.white,
+      fontWeight: '600',
+    },
+    isElectron: {fontSize: 12, lineHeight: '16px'},
+    isMobile: {fontSize: 14, lineHeight: 19},
+  }),
   strong: {...Styles.globalStyles.fontExtrabold},
 }
 
 const styles = Styles.styleSheetCreate({
-  button: {marginTop: Styles.isMobile ? Styles.globalMargins.small : 0},
-  buttonContainer: {flexWrap: 'wrap'},
+  buttonContainer: Styles.platformStyles({
+    common: {
+      alignSelf: 'flex-start',
+      flexWrap: 'wrap',
+    },
+    isMobile: {
+      marginBottom: Styles.globalMargins.xtiny,
+      marginTop: Styles.globalMargins.tiny,
+    },
+  }),
   close: {padding: Styles.globalMargins.xxtiny},
   container: {
     backgroundColor: Styles.globalColors.purple2,
     padding: Styles.globalMargins.tiny,
   },
   grow: {flexGrow: 1, flexShrink: 1},
-  laterButton: {marginTop: Styles.isMobile ? Styles.globalMargins.small : 0},
   markdown: {alignSelf: 'center'},
   textContainer: {
     flexGrow: 1,
