@@ -169,7 +169,7 @@ func VisibleChatMessageTypes() []MessageType {
 	return visibleMessageTypes
 }
 
-func IsEphemeralSuperseder(typ MessageType) bool {
+func IsEphemeralSupersederType(typ MessageType) bool {
 	switch typ {
 	case MessageType_EDIT,
 		MessageType_ATTACHMENTUPLOADED,
@@ -181,7 +181,7 @@ func IsEphemeralSuperseder(typ MessageType) bool {
 	}
 }
 
-func IsEphemeralNonSuperseder(typ MessageType) bool {
+func IsEphemeralNonSupersederType(typ MessageType) bool {
 	switch typ {
 	case MessageType_TEXT,
 		MessageType_ATTACHMENT:
@@ -189,6 +189,10 @@ func IsEphemeralNonSuperseder(typ MessageType) bool {
 	default:
 		return false
 	}
+}
+
+func IsEphemeralType(typ MessageType) bool {
+	return IsEphemeralNonSupersederType(typ) || IsEphemeralSupersederType(typ)
 }
 
 func DeletableMessageTypesByDeleteHistory() (res []MessageType) {

@@ -367,10 +367,10 @@ func (s *BlockingSender) getMessage(ctx context.Context, uid gregor1.UID,
 func (s *BlockingSender) getSupersederEphemeralMetadata(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, msg chat1.MessagePlaintext) (metadata *chat1.MsgEphemeralMetadata, err error) {
 
-	if chat1.IsEphemeralNonSuperseder(msg.ClientHeader.MessageType) {
+	if chat1.IsEphemeralNonSupersederType(msg.ClientHeader.MessageType) {
 		// Leave whatever was previously set
 		return msg.ClientHeader.EphemeralMetadata, nil
-	} else if !chat1.IsEphemeralSuperseder(msg.ClientHeader.MessageType) {
+	} else if !chat1.IsEphemeralSupersederType(msg.ClientHeader.MessageType) {
 		// clear out any defaults, this msg is a non-ephemeral type
 		return nil, nil
 	}
