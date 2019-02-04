@@ -40,7 +40,7 @@ class Loading extends React.Component<{}, {waited: boolean}> {
       this.state.waited && (
         <Kb.Box2 centerChildren={true} noShrink={true} direction="vertical" gap="medium" style={styles.grow}>
           <Kb.ProgressIndicator style={styles.progress} />
-          <Kb.Text type="BodySemibold" style={styles.shrink}>
+          <Kb.Text type="BodySmallSemibold" style={styles.shrink}>
             Thinking...
           </Kb.Text>
         </Kb.Box2>
@@ -61,7 +61,10 @@ class Airdrop extends React.Component<Props> {
     return p.loading ? (
       <Loading />
     ) : (
-      <Kb.ScrollView style={styles.scrollView} contentContainerStyle={styles.fullHeight}>
+      <Kb.ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={Styles.isMobile ? undefined : styles.fullHeight}
+      >
         <Kb.Box2 direction="vertical" fullWidth={true} gap="medium" style={styles.fullHeight}>
           {p.signedUp ? (
             <Kb.Box2 direction="horizontal" fullWidth={true}>
@@ -115,7 +118,7 @@ class Airdrop extends React.Component<Props> {
                         <Kb.Icon
                           type="iconfont-check"
                           color={Styles.globalColors.green}
-                          fontSize={12}
+                          sizeType={'Small'}
                           style={styles.bullet}
                         />
                       )}
@@ -135,22 +138,26 @@ class Airdrop extends React.Component<Props> {
             direction="horizontal"
             fullWidth={true}
             style={styles.friendContainer}
-            gap="large"
+            gap={Styles.isMobile ? 'small' : 'large'}
             noShrink={true}
           >
             <Kb.Box2 direction="vertical" gap="tiny">
               <Kb.Text type="BodyBig">Your friends qualify?</Kb.Text>
-              <Kb.Text type="Body">
-                Tell them to visit{' '}
-                <Kb.Text
-                  type="BodyPrimaryLink"
-                  style={styles.link}
-                  onClick={() => openURL('https://keybase.io/airdrop')}
-                >
-                  https://keybase.io/airdrop
+              <Kb.Box2 direction={Styles.isMobile ? 'vertical' : 'horizontal'}>
+                <Kb.Text type="Body" style={styles.friendText}>
+                  Tell them to visit{' '}
                 </Kb.Text>
-                .
-              </Kb.Text>
+                <Kb.Text type="Body">
+                  <Kb.Text
+                    type="BodyPrimaryLink"
+                    style={styles.link}
+                    onClick={() => openURL('https://keybase.io/airdrop')}
+                  >
+                    https://keybase.io/airdrop
+                  </Kb.Text>
+                  .
+                </Kb.Text>
+              </Kb.Box2>
             </Kb.Box2>
             <Kb.Icon type="icon-fancy-airdrop-friends-120" />
           </Kb.Box2>
@@ -209,22 +216,35 @@ const styles = Styles.styleSheetCreate({
   bullet: {
     marginLeft: Styles.globalMargins.tiny,
     marginRight: Styles.globalMargins.tiny,
+    marginTop: Styles.globalMargins.xtiny,
   },
   friendContainer: {
     backgroundColor: Styles.globalColors.blue5,
     paddingLeft: Styles.globalMargins.medium,
     paddingRight: Styles.globalMargins.medium,
   },
+  friendText: Styles.platformStyles({
+    isElectron: {whiteSpace: 'pre'},
+  }),
   fullHeight: {height: '100%'},
   grow: {flexGrow: 1, flexShrink: 1, width: 100},
-  header: {
-    backgroundColor: Styles.globalColors.purple2,
-    paddingBottom: Styles.globalMargins.medium,
-    paddingTop: Styles.globalMargins.medium,
-  },
-  headerText: {
-    paddingRight: Styles.globalMargins.large,
-  },
+  header: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.purple2,
+      paddingBottom: Styles.globalMargins.medium,
+    },
+    isElectron: {paddingTop: Styles.globalMargins.medium},
+  }),
+  headerText: Styles.platformStyles({
+    isElectron: {
+      paddingRight: Styles.globalMargins.large,
+    },
+    isMobile: {
+      paddingLeft: Styles.globalMargins.medium,
+      paddingRight: Styles.globalMargins.medium,
+      paddingTop: Styles.globalMargins.small,
+    },
+  }),
   leaveButtonBar: {marginBottom: Styles.globalMargins.small},
   link: {color: Styles.globalColors.purple2, fontWeight: '600'},
   progress: {
