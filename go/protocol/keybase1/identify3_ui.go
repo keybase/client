@@ -140,7 +140,7 @@ type Identify3UpdateRowArg struct {
 	Key      string             `codec:"key" json:"key"`
 	Value    string             `codec:"value" json:"value"`
 	SiteURL  string             `codec:"siteURL" json:"siteURL"`
-	SiteIcon []SizedImage       `codec:"siteIcon" json:"siteIcon"`
+	SiteIcon string             `codec:"siteIcon" json:"siteIcon"`
 	ProofURL string             `codec:"proofURL" json:"proofURL"`
 	SigID    SigID              `codec:"sigID" json:"sigID"`
 	State    Identify3RowState  `codec:"state" json:"state"`

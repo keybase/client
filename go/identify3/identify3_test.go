@@ -1,8 +1,6 @@
 package identify3
 
 import (
-	"io/ioutil"
-	"net/http"
 	"sync"
 	"testing"
 
@@ -247,6 +245,7 @@ func TestFollowUnfollowTracy(t *testing.T) {
 }
 
 func runID3(t *testing.T, mctx libkb.MetaContext, user string, follow bool) id3results {
+
 	guiid, err := libkb.NewIdentify3GUIID()
 	require.NoError(t, err)
 	resultCh := make(chan keybase1.Identify3ResultType)
@@ -262,11 +261,7 @@ func runID3(t *testing.T, mctx libkb.MetaContext, user string, follow bool) id3r
 		Follow: follow,
 	})
 	require.NoError(t, err)
-	res := fakeUI3.results()
-	for _, row := range res.rows {
-		checkIcon(t, row.SiteIcon)
-	}
-	return res
+	return fakeUI3.results()
 }
 
 func TestFollowResetFollow(t *testing.T) {
@@ -291,21 +286,4 @@ func TestFollowResetFollow(t *testing.T) {
 	require.True(t, res.userWasReset)
 	res = runID3(t, mctx, alice.Username, true)
 	require.False(t, res.userWasReset)
-}
-
-func checkIcon(t testing.TB, icon []keybase1.SizedImage) {
-	require.Len(t, icon, 2)
-	for _, icon := range icon {
-		if icon.Width < 2 {
-			t.Fatalf("unreasonable icon size")
-		}
-		resp, err := http.Get(icon.Path)
-		require.Equal(t, 200, resp.StatusCode, "icon file should be reachable")
-		require.NoError(t, err)
-		body, err := ioutil.ReadAll(resp.Body)
-		require.NoError(t, err)
-		if len(body) < 150 {
-			t.Fatalf("unreasonable icon payload size")
-		}
-	}
 }

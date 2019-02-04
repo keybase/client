@@ -493,7 +493,7 @@ export type MessageTypes = {|
     outParam: void,
   |},
   'keybase.1.identify3Ui.identify3UpdateRow': {|
-    inParam: $ReadOnly<{|guiID: Identify3GUIID, key: String, value: String, siteURL: String, siteIcon?: ?Array<SizedImage>, proofURL: String, sigID: SigID, state: Identify3RowState, metas?: ?Array<Identify3RowMeta>, color: Identify3RowColor|}>,
+    inParam: $ReadOnly<{|guiID: Identify3GUIID, key: String, value: String, siteURL: String, siteIcon: String, proofURL: String, sigID: SigID, state: Identify3RowState, metas?: ?Array<Identify3RowMeta>, color: Identify3RowColor|}>,
     outParam: void,
   |},
   'keybase.1.identify3Ui.identify3UpdateUserCard': {|

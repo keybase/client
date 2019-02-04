@@ -181,24 +181,18 @@ func (i *UIAdapter) finishRemoteCheck(proof keybase1.RemoteProof, lcr keybase1.L
 		humanURLOrSigchainURL = i.makeSigchainViewURL(proof.SigID)
 	}
 
-	iconKey := proof.Key
 	arg.ProofURL = humanURLOrSigchainURL
 	switch proof.ProofType {
 	case keybase1.ProofType_TWITTER:
 		arg.SiteURL = fmt.Sprintf("https://twitter.com/%v", proof.Value)
-		iconKey = "twitter"
 	case keybase1.ProofType_GITHUB:
 		arg.SiteURL = fmt.Sprintf("https://github.com/%v", proof.Value)
-		iconKey = "github"
 	case keybase1.ProofType_REDDIT:
 		arg.SiteURL = fmt.Sprintf("https://reddit.com/user/%v", proof.Value)
-		iconKey = "reddit"
 	case keybase1.ProofType_HACKERNEWS:
 		arg.SiteURL = fmt.Sprintf("https://news.ycombinator.com/user?id=%v", proof.Value)
-		iconKey = "hackernews"
 	case keybase1.ProofType_FACEBOOK:
 		arg.SiteURL = fmt.Sprintf("https://facebook.com/%v", proof.Value)
-		iconKey = "facebook"
 	case keybase1.ProofType_GENERIC_SOCIAL:
 		arg.SiteURL = humanURLOrSigchainURL
 		serviceType := i.G().GetProofServices().GetServiceType(proof.Key)
@@ -217,17 +211,14 @@ func (i *UIAdapter) finishRemoteCheck(proof keybase1.RemoteProof, lcr keybase1.L
 			protocol = "http"
 		}
 		arg.SiteURL = fmt.Sprintf("%v://%v", protocol, proof.Value)
-		iconKey = "web"
 	case keybase1.ProofType_DNS:
 		arg.SiteURL = fmt.Sprintf("http://%v", proof.Value)
 		arg.ProofURL = i.makeSigchainViewURL(proof.SigID)
-		iconKey = "web"
 	default:
 		if lcr.Hint != nil {
 			arg.SiteURL = humanURLOrSigchainURL
 		}
 	}
-	arg.SiteIcon = externals.MakeIcons(i.M(), iconKey, "logo_black", 16)
 
 	needUpgrade := i.setRowStatus(&arg, lcr)
 	if needUpgrade {
@@ -325,7 +316,6 @@ func (i *UIAdapter) plumbUncheckedProofs(proofs []keybase1.IdentifyRow) {
 }
 
 func (i *UIAdapter) plumbUncheckedProof(row keybase1.IdentifyRow) {
-	// xxx icon
 	i.updateRow(keybase1.Identify3UpdateRowArg{
 		Key:   row.Proof.Key,
 		Value: row.Proof.Value,
@@ -413,7 +403,6 @@ func (i *UIAdapter) plumbCryptocurrency(crypto keybase1.Cryptocurrency) {
 		Color:    keybase1.Identify3RowColor_GREEN,
 		SigID:    crypto.SigID,
 		SiteURL:  i.makeSigchainViewURL(crypto.SigID),
-		SiteIcon: externals.MakeIcons(i.M(), key, "logo_black", 16),
 		ProofURL: i.makeSigchainViewURL(crypto.SigID),
 	})
 }
@@ -426,13 +415,11 @@ func (i *UIAdapter) plumbStellarAccount(str keybase1.StellarAccount) {
 		Color:    keybase1.Identify3RowColor_GREEN,
 		SigID:    str.SigID,
 		SiteURL:  i.makeSigchainViewURL(str.SigID),
-		SiteIcon: externals.MakeIcons(i.M(), "stellar", "logo_black", 16),
 		ProofURL: i.makeSigchainViewURL(str.SigID),
 	})
 }
 
 func (i *UIAdapter) plumbRevoked(row keybase1.RevokedProof) {
-	// xxx icon
 	i.updateRow(keybase1.Identify3UpdateRowArg{
 		Key:   row.Proof.Key,
 		Value: row.Proof.Value,
