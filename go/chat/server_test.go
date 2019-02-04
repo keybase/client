@@ -6054,11 +6054,13 @@ func TestChatSrvEphemeralPolicy(t *testing.T) {
 	_, err := tc.Context().GregorState.InjectItem(ctx, fmt.Sprintf("exploding:%s", impconv.Id),
 		[]byte("3600"), gregor1.TimeOrOffset{})
 	require.NoError(t, err)
-	mustPostLocalForTest(t, ctc, users[0], impconv,
+	msgID := mustPostLocalForTest(t, ctc, users[0], impconv,
 		chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: "HI",
 		}))
 	checkEph(impconv.Id, 3600)
+	mustDeleteMsg(ctx, t, ctc, users[0], impconv, msgID)
+	consumeNewMsgRemote(t, listener0, chat1.MessageType_DELETE)
 
 	teamconv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_TEAM)
@@ -6067,11 +6069,13 @@ func TestChatSrvEphemeralPolicy(t *testing.T) {
 			Age: gregor1.DurationSec(86400),
 		}), 0)
 	consumeSetTeamRetention(t, listener0)
-	mustPostLocalForTest(t, ctc, users[0], teamconv,
+	msgID = mustPostLocalForTest(t, ctc, users[0], teamconv,
 		chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: "HI",
 		}))
 	checkEph(teamconv.Id, 86400)
+	mustDeleteMsg(ctx, t, ctc, users[0], teamconv, msgID)
+	consumeNewMsgRemote(t, listener0, chat1.MessageType_DELETE)
 }
 
 func TestChatSrvStellarMessages(t *testing.T) {
