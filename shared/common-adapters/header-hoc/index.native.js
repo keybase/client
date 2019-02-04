@@ -83,7 +83,17 @@ export class HeaderHocHeader extends React.Component<Props, State> {
           onLeftAction={onLeftAction}
           theme={this.props.theme}
         />
-        {this.props.titleComponent && <Box style={styles.titleContainer}>{this.props.titleComponent}</Box>}
+        {this.props.titleComponent && (
+          <Box
+            style={Styles.collapseStyles([
+              styles.titleContainer,
+              onLeftAction && styles.titleContainerRightPadding,
+              rightActions.length && styles.titleContainerLeftPadding,
+            ])}
+          >
+            {this.props.titleComponent}
+          </Box>
+        )}
         <RightActions
           floatingMenuVisible={this.state.floatingMenuVisible}
           hasTextTitle={hasTextTitle}
@@ -301,6 +311,16 @@ const styles = Styles.styleSheetCreate({
     isIOS: {
       paddingLeft: Styles.globalMargins.tiny,
       paddingRight: Styles.globalMargins.tiny,
+    },
+  }),
+  titleContainerLeftPadding: Styles.platformStyles({
+    isAndroid: {
+      paddingLeft: Styles.globalMargins.small,
+    },
+  }),
+  titleContainerRightPadding: Styles.platformStyles({
+    isAndroid: {
+      paddingRight: Styles.globalMargins.small,
     },
   }),
   titleTextContainer: {
