@@ -99,7 +99,10 @@
         },
         {
           "name": "siteIcon",
-          "type": "string"
+          "type": {
+            "type": "array",
+            "items": "SizedImage"
+          }
         },
         {
           "name": "proofURL",
