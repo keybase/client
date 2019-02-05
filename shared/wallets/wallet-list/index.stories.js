@@ -59,6 +59,21 @@ const load = () => {
         loading={false}
         accountIDs={accountIDs}
         airdropSelected={false}
+        inAirdrop={false}
+        onAddNew={Sb.action('onAddNew')}
+        onLinkExisting={Sb.action('onLinkExisting')}
+        onWhatIsStellar={Sb.action('onWhatIsStellar')}
+        onJoinAirdrop={Sb.action('onJoinAirdrop')}
+        title="Wallets"
+        style={{height: isMobile ? '100%' : 600, width: isMobile ? '100%' : 240}}
+      />
+    ))
+    .add('Wallet List in airdrop', () => (
+      <WalletList
+        loading={false}
+        accountIDs={accountIDs}
+        airdropSelected={false}
+        inAirdrop={true}
         onAddNew={Sb.action('onAddNew')}
         onLinkExisting={Sb.action('onLinkExisting')}
         onWhatIsStellar={Sb.action('onWhatIsStellar')}

@@ -34,7 +34,6 @@ const Banner = (p: Props) => {
           <Kb.Button
             type="SecondaryColoredBackground"
             backgroundMode="Purple"
-            style={styles.laterButton}
             label="Later"
             onClick={p.onCancel}
             small={true}

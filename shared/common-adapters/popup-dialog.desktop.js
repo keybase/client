@@ -62,6 +62,7 @@ const styles = Styles.styleSheetCreate({
       borderRadius: Styles.borderRadius,
       flex: 1,
       maxWidth: '100%',
+      overflow: 'hidden',
       position: 'relative',
     },
   }),

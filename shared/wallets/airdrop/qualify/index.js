@@ -235,7 +235,10 @@ class Qualify extends React.PureComponent<Props> {
   }
   render() {
     return (
-      <Kb.MaybePopup onClose={this.props.onCancel}>
+      <Kb.MaybePopup
+        onClose={this.props.onCancel}
+        styleContainer={Styles.isMobile ? undefined : styles.popupContainer}
+      >
         <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
           <Accepted {...this.props} />
           <Qualified {...this.props} />
@@ -282,6 +285,7 @@ const styles = Styles.styleSheetCreate({
   },
   headerText: {color: Styles.globalColors.white},
   loadingText: {color: Styles.globalColors.white_40},
+  popupContainer: {backgroundColor: Styles.globalColors.purple2},
   progress: {
     color: Styles.globalColors.white,
     height: 20,

@@ -15,6 +15,7 @@ const mapStateToProps = state => {
   return {
     accounts: Constants.getAccountIDs(state),
     airdropSelected: path === 'airdrop' || path === 'airdropQualify',
+    inAirdrop: state.wallets.airdropState === 'accepted',
     loading: anyWaiting(state, Constants.loadAccountsWaitingKey),
   }
 }
@@ -41,6 +42,7 @@ const mapDispatchToProps = dispatch => ({
 const mergeProps = (stateProps, dispatchProps, ownProps): Props => ({
   accountIDs: stateProps.accounts.toArray(),
   airdropSelected: stateProps.airdropSelected,
+  inAirdrop: stateProps.inAirdrop,
   loading: stateProps.loading,
   onAddNew: dispatchProps.onAddNew,
   onJoinAirdrop: dispatchProps.onJoinAirdrop,

@@ -63,7 +63,7 @@ const JoinAirdrop = p => (
     >
       <Kb.Icon type="icon-airdrop-star-32" style={Kb.iconCastPlatformStyles(styles.icon)} />
       <Kb.Text backgroundMode={p.selected ? 'Terminal' : 'Normal'} type="BodySemibold">
-        Join the airdrop
+        {p.inAirdrop ? 'Airdrop' : 'Join the airdrop'}
       </Kb.Text>
     </Kb.Box2>
   </Kb.ClickableBox>
@@ -80,17 +80,18 @@ const WhatIsStellar = (props: {onWhatIsStellar: () => void}) => (
   </Kb.ClickableBox>
 )
 
-type Props = {
+type Props = {|
   accountIDs: Array<AccountID>,
   airdropSelected: boolean,
   style?: Styles.StylesCrossPlatform,
   loading: boolean,
+  inAirdrop: boolean,
   onAddNew: () => void,
   onJoinAirdrop: () => void,
   onLinkExisting: () => void,
   onWhatIsStellar: () => void,
   title: string,
-}
+|}
 
 type Row = {type: 'wallet', accountID: AccountID} | {type: 'add wallet'} | {type: 'join airdrop'}
 
@@ -112,6 +113,7 @@ class WalletList extends React.Component<Props> {
           <JoinAirdrop
             key={row.type}
             onJoinAirdrop={this.props.onJoinAirdrop}
+            inAirdrop={this.props.inAirdrop}
             selected={this.props.airdropSelected}
           />
         )

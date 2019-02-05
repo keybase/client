@@ -39,6 +39,12 @@ type MenuItem =
       accountID: Types.AccountID,
       type: 'wallet',
     |}
+  | {|
+      key: string,
+      onPress: () => void,
+      title: string,
+      type: 'airdrop',
+    |}
 
 const renderItem = (item: MenuItem, isLast: boolean, hideMenu: () => void) => {
   switch (item.type) {

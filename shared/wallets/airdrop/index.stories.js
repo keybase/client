@@ -46,6 +46,7 @@ const props = {
     },
   ],
   signedUp: false,
+  title: '',
 }
 
 const noIconSections = props.sections.map(b => ({...b, icon: null}))
