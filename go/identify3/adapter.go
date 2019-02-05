@@ -26,7 +26,8 @@ type UIAdapter struct {
 	// An downcall is when the frontend initiates the ID.
 	// Probably as directed by KBFS or the CLI.
 	// "Tell Nojima we're about to hit him."
-	isUpcall bool
+	isUpcall    bool
+	priorityMap map[string]int // map from proof key to display priority
 }
 
 var _ libkb.IdentifyUI = (*UIAdapter)(nil)
@@ -36,6 +37,7 @@ func NewUIAdapter(mctx libkb.MetaContext, ui keybase1.Identify3UiInterface) (*UI
 		MetaContextified: libkb.NewMetaContextified(mctx),
 		ui:               ui,
 	}
+	ret.initPriorityMap()
 	return ret, nil
 }
 
@@ -95,6 +97,39 @@ func (i *UIAdapter) Start(user string, reason keybase1.IdentifyReason, force boo
 		i.M().CDebugf("Failed to call Identify3ShowTracker: %s", err)
 	}
 	return err
+}
+
+func (i *UIAdapter) initPriorityMap() {
+	i.priorityMap = make(map[string]int)
+	for _, displayConfig := range i.M().G().GetProofServices().ListDisplayConfigs() {
+		i.priorityMap[displayConfig.Key] = displayConfig.Priority
+		var altKey string
+		switch displayConfig.Key {
+		case "zcash.t", "zcash.z", "zcash.s":
+			altKey = "zcash"
+		case "bitcoin":
+			altKey = "btc"
+		case "http", "https", "dns":
+			altKey = "web"
+		}
+		if len(altKey) > 0 {
+			if _, ok := i.priorityMap[altKey]; !ok {
+				i.priorityMap[altKey] = displayConfig.Priority
+			}
+		}
+	}
+}
+
+func (i *UIAdapter) priority(key string) int {
+	if i.priorityMap == nil {
+		return 0 // should be impossible but don't crash.
+	}
+	p, ok := i.priorityMap[key]
+	if !ok {
+		// Put it at the bottom of the list.
+		return 9999999
+	}
+	return p
 }
 
 // return true if we need an upgrade
@@ -168,9 +203,10 @@ func (i *UIAdapter) setRowStatus(arg *keybase1.Identify3UpdateRowArg, lcr keybas
 
 func (i *UIAdapter) rowPartial(proof keybase1.RemoteProof, lcr *keybase1.LinkCheckResult) (row keybase1.Identify3UpdateRowArg) {
 	row = keybase1.Identify3UpdateRowArg{
-		Key:   proof.Key,
-		Value: proof.Value,
-		SigID: proof.SigID,
+		Key:      proof.Key,
+		Value:    proof.Value,
+		SigID:    proof.SigID,
+		Priority: i.priority(proof.Key),
 	}
 
 	var humanURLOrSigchainURL string
@@ -281,10 +317,11 @@ func (i *UIAdapter) displayKey(key keybase1.IdentifyKey) {
 	}
 
 	arg := keybase1.Identify3UpdateRowArg{
-		Key:     "pgp",
-		Value:   hex.EncodeToString(key.PGPFingerprint),
-		SigID:   key.SigID,
-		SiteURL: i.makeKeybaseProfileURL(),
+		Key:      "pgp",
+		Value:    hex.EncodeToString(key.PGPFingerprint),
+		SigID:    key.SigID,
+		Priority: i.priority("pgp"),
+		SiteURL:  i.makeKeybaseProfileURL(),
 		// key.SigID is blank if the PGP key was there pre-sigchain
 		ProofURL: i.makeSigchainViewURL(key.SigID),
 		SiteIcon: externals.MakeIcons(i.M(), "pgp", "logo_black", 16),
@@ -412,6 +449,7 @@ func (i *UIAdapter) plumbCryptocurrency(crypto keybase1.Cryptocurrency) {
 	i.updateRow(keybase1.Identify3UpdateRowArg{
 		Key:      key,
 		Value:    crypto.Address,
+		Priority: i.priority(key),
 		State:    keybase1.Identify3RowState_VALID,
 		Color:    keybase1.Identify3RowColor_GREEN,
 		SigID:    crypto.SigID,
@@ -425,6 +463,7 @@ func (i *UIAdapter) plumbStellarAccount(str keybase1.StellarAccount) {
 	i.updateRow(keybase1.Identify3UpdateRowArg{
 		Key:      "stellar",
 		Value:    str.FederationAddress,
+		Priority: i.priority("stellar"),
 		State:    keybase1.Identify3RowState_VALID,
 		Color:    keybase1.Identify3RowColor_GREEN,
 		SigID:    str.SigID,

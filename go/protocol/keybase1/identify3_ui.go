@@ -139,6 +139,7 @@ type Identify3UpdateRowArg struct {
 	GuiID    Identify3GUIID     `codec:"guiID" json:"guiID"`
 	Key      string             `codec:"key" json:"key"`
 	Value    string             `codec:"value" json:"value"`
+	Priority int                `codec:"priority" json:"priority"`
 	SiteURL  string             `codec:"siteURL" json:"siteURL"`
 	SiteIcon []SizedImage       `codec:"siteIcon" json:"siteIcon"`
 	ProofURL string             `codec:"proofURL" json:"proofURL"`
