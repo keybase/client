@@ -147,6 +147,7 @@ type LocalDbTransaction interface {
 type LocalDb interface {
 	LocalDbOps
 	Open() error
+	Stats() string
 	ForceOpen() error
 	Close() error
 	Nuke() (string, error)

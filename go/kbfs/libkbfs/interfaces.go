@@ -43,6 +43,10 @@ type codecGetter interface {
 	Codec() kbfscodec.Codec
 }
 
+type blockOpsGetter interface {
+	BlockOps() BlockOps
+}
+
 type blockServerGetter interface {
 	BlockServer() BlockServer
 }
@@ -2350,6 +2354,7 @@ type Config interface {
 	logMaker
 	blockCacher
 	blockServerGetter
+	blockOpsGetter
 	codecGetter
 	cryptoPureGetter
 	keyGetterGetter
@@ -2395,7 +2400,6 @@ type Config interface {
 	SetMDOps(MDOps)
 	KeyOps() KeyOps
 	SetKeyOps(KeyOps)
-	BlockOps() BlockOps
 	SetBlockOps(BlockOps)
 	MDServer() MDServer
 	SetMDServer(MDServer)

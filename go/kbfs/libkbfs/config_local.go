@@ -1343,7 +1343,7 @@ func (c *ConfigLocal) getQuotaUsage(
 	return quota
 }
 
-// EnableDiskLimiter fills in c.ciskLimiter for use in journaling and
+// EnableDiskLimiter fills in c.diskLimiter for use in journaling and
 // disk caching. It returns the EventuallyConsistentQuotaUsage object
 // used by the disk limiter.
 func (c *ConfigLocal) EnableDiskLimiter(configRoot string) error {

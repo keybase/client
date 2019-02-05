@@ -234,6 +234,20 @@
         {
           "type": "DeviceID",
           "name": "defaultDeviceID"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "localDbStats"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "localChatDbStats"
         }
       ]
     },

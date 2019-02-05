@@ -59,8 +59,9 @@ func (dd *dirData) blockGetter(
 }
 
 var hiddenEntries = map[string]bool{
-	".kbfs_git":     true,
-	".kbfs_autogit": true,
+	".kbfs_git":           true,
+	".kbfs_autogit":       true,
+	".kbfs_deleted_repos": true,
 }
 
 func (dd *dirData) getTopBlock(ctx context.Context, rtype blockReqType) (
