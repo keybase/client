@@ -152,7 +152,7 @@
     "react-gateway": "3.0.0",
     "react-list": "0.8.11",
     "react-measure": "2.2.2",
-    "react-native": "git://github.com/keybase/react-native#keybase-fixes-off-578",
+    "react-native": "0.58.3",
     "react-native-camera": "1.4.3",
     "react-native-contacts": "2.2.5",
     "react-native-fast-image": "5.1.1",
