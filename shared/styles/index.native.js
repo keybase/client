@@ -7,19 +7,19 @@ import * as Shared from './shared'
 
 const font = isIOS
   ? {
-      fontBold: {fontFamily: 'OpenSans', fontWeight: '700'},
-      fontExtrabold: {fontFamily: 'OpenSans', fontWeight: '800'},
-      fontRegular: {fontFamily: 'OpenSans', fontWeight: '400'},
-      fontSemibold: {fontFamily: 'OpenSans', fontWeight: '600'},
+      fontBold: {fontFamily: 'Keybase', fontWeight: '700'},
+      fontExtrabold: {fontFamily: 'Keybase', fontWeight: '800'},
+      fontRegular: {fontFamily: 'Keybase', fontWeight: '500'},
+      fontSemibold: {fontFamily: 'Keybase', fontWeight: '600'},
       fontTerminal: {fontFamily: 'Source Code Pro'},
       fontTerminalSemibold: {fontFamily: 'Source Code Pro', fontWeight: '600'},
       italic: {fontStyle: 'italic'},
     }
   : {
-      fontBold: {fontFamily: 'OpenSans', fontWeight: 'bold'},
-      fontExtrabold: {fontFamily: 'OpenSans-ExtraBold', fontWeight: '800'},
-      fontRegular: {fontFamily: 'OpenSans', fontWeight: 'normal'},
-      fontSemibold: {fontFamily: 'OpenSans-Semi', fontWeight: 'bold'},
+      fontBold: {fontFamily: 'Keybase', fontWeight: 'bold'},
+      fontExtrabold: {fontFamily: 'Keybase-ExtraBold', fontWeight: '800'},
+      fontRegular: {fontFamily: 'Keybase-Medium', fontWeight: 'normal'},
+      fontSemibold: {fontFamily: 'Keybase-SemiBold', fontWeight: 'bold'},
       fontTerminal: {fontFamily: 'SourceCodePro'},
       fontTerminalSemibold: {fontFamily: 'SourceCodePro-Semi', fontWeight: 'bold'},
       italic: {fontStyle: 'italic'},
