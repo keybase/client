@@ -132,8 +132,8 @@ const metaMapReducer = (metaMap, action) => {
         logger.warn('Invalid inboxUIItem received in conv retention policy update')
         return metaMap
       }
-      // don't insert inbox item if this is the first we've heard about this convo
       if (metaMap.has(newMeta.conversationIDKey)) {
+        // only insert if the convo is already in the inbox
         return metaMap.set(newMeta.conversationIDKey, newMeta)
       }
       return metaMap
@@ -141,8 +141,8 @@ const metaMapReducer = (metaMap, action) => {
       const {convs} = action.payload
       const newMetas = convs.reduce((updated, conv) => {
         const newMeta = Constants.inboxUIItemToConversationMeta(conv, true)
-        // don't insert inbox item if this is the first we've heard about this convo
         if (newMeta && metaMap.has(newMeta.conversationIDKey)) {
+          // only insert if the convo is already in the inbox
           updated[Types.conversationIDKeyToString(newMeta.conversationIDKey)] = newMeta
         }
         return updated
