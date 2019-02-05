@@ -94,12 +94,19 @@
           "type": "string"
         },
         {
+          "name": "priority",
+          "type": "int"
+        },
+        {
           "name": "siteURL",
           "type": "string"
         },
         {
           "name": "siteIcon",
-          "type": "string"
+          "type": {
+            "type": "array",
+            "items": "SizedImage"
+          }
         },
         {
           "name": "proofURL",

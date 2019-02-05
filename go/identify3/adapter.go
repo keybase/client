@@ -22,7 +22,12 @@ type UIAdapter struct {
 	username    string
 	iFollowThem bool
 	sentResult  bool
+	// An upcall is when the service initiates the ID interaction.
+	// An downcall is when the frontend initiates the ID.
+	// Probably as directed by KBFS or the CLI.
+	// "Tell Nojima we're about to hit him."
 	isUpcall    bool
+	priorityMap map[string]int // map from proof key to display priority
 }
 
 var _ libkb.IdentifyUI = (*UIAdapter)(nil)
@@ -32,6 +37,7 @@ func NewUIAdapter(mctx libkb.MetaContext, ui keybase1.Identify3UiInterface) (*UI
 		MetaContextified: libkb.NewMetaContextified(mctx),
 		ui:               ui,
 	}
+	ret.initPriorityMap()
 	return ret, nil
 }
 
@@ -91,6 +97,39 @@ func (i *UIAdapter) Start(user string, reason keybase1.IdentifyReason, force boo
 		i.M().CDebugf("Failed to call Identify3ShowTracker: %s", err)
 	}
 	return err
+}
+
+func (i *UIAdapter) initPriorityMap() {
+	i.priorityMap = make(map[string]int)
+	for _, displayConfig := range i.M().G().GetProofServices().ListDisplayConfigs() {
+		i.priorityMap[displayConfig.Key] = displayConfig.Priority
+		var altKey string
+		switch displayConfig.Key {
+		case "zcash.t", "zcash.z", "zcash.s":
+			altKey = "zcash"
+		case "bitcoin":
+			altKey = "btc"
+		case "http", "https", "dns":
+			altKey = "web"
+		}
+		if len(altKey) > 0 {
+			if _, ok := i.priorityMap[altKey]; !ok {
+				i.priorityMap[altKey] = displayConfig.Priority
+			}
+		}
+	}
+}
+
+func (i *UIAdapter) priority(key string) int {
+	if i.priorityMap == nil {
+		return 0 // should be impossible but don't crash.
+	}
+	p, ok := i.priorityMap[key]
+	if !ok {
+		// Put it at the bottom of the list.
+		return 9999999
+	}
+	return p
 }
 
 // return true if we need an upgrade
@@ -162,64 +201,76 @@ func (i *UIAdapter) setRowStatus(arg *keybase1.Identify3UpdateRowArg, lcr keybas
 	return needUpgrade
 }
 
-func (i *UIAdapter) finishRemoteCheck(proof keybase1.RemoteProof, lcr keybase1.LinkCheckResult) error {
-	if lcr.BreaksTracking {
-		i.session.SetTrackBroken()
-	}
-
-	arg := keybase1.Identify3UpdateRowArg{
-		Key:   proof.Key,
-		Value: proof.Value,
-		SigID: proof.SigID,
+func (i *UIAdapter) rowPartial(proof keybase1.RemoteProof, lcr *keybase1.LinkCheckResult) (row keybase1.Identify3UpdateRowArg) {
+	row = keybase1.Identify3UpdateRowArg{
+		Key:      proof.Key,
+		Value:    proof.Value,
+		SigID:    proof.SigID,
+		Priority: i.priority(proof.Key),
 	}
 
 	var humanURLOrSigchainURL string
-	if lcr.Hint != nil {
+	if lcr != nil && lcr.Hint != nil {
 		humanURLOrSigchainURL = lcr.Hint.HumanUrl
 	}
 	if len(humanURLOrSigchainURL) == 0 {
 		humanURLOrSigchainURL = i.makeSigchainViewURL(proof.SigID)
 	}
 
-	arg.ProofURL = humanURLOrSigchainURL
+	iconKey := proof.Key
+	row.ProofURL = humanURLOrSigchainURL
 	switch proof.ProofType {
 	case keybase1.ProofType_TWITTER:
-		arg.SiteURL = fmt.Sprintf("https://twitter.com/%v", proof.Value)
+		row.SiteURL = fmt.Sprintf("https://twitter.com/%v", proof.Value)
+		iconKey = "twitter"
 	case keybase1.ProofType_GITHUB:
-		arg.SiteURL = fmt.Sprintf("https://github.com/%v", proof.Value)
+		row.SiteURL = fmt.Sprintf("https://github.com/%v", proof.Value)
+		iconKey = "github"
 	case keybase1.ProofType_REDDIT:
-		arg.SiteURL = fmt.Sprintf("https://reddit.com/user/%v", proof.Value)
+		row.SiteURL = fmt.Sprintf("https://reddit.com/user/%v", proof.Value)
+		iconKey = "reddit"
 	case keybase1.ProofType_HACKERNEWS:
-		arg.SiteURL = fmt.Sprintf("https://news.ycombinator.com/user?id=%v", proof.Value)
+		row.SiteURL = fmt.Sprintf("https://news.ycombinator.com/user?id=%v", proof.Value)
+		iconKey = "hackernews"
 	case keybase1.ProofType_FACEBOOK:
-		arg.SiteURL = fmt.Sprintf("https://facebook.com/%v", proof.Value)
+		row.SiteURL = fmt.Sprintf("https://facebook.com/%v", proof.Value)
+		iconKey = "facebook"
 	case keybase1.ProofType_GENERIC_SOCIAL:
-		arg.SiteURL = humanURLOrSigchainURL
+		row.SiteURL = humanURLOrSigchainURL
 		serviceType := i.G().GetProofServices().GetServiceType(proof.Key)
 		if serviceType != nil {
 			if serviceType, ok := serviceType.(*externals.GenericSocialProofServiceType); ok {
 				profileURL, err := serviceType.ProfileURL(proof.Value)
 				if err == nil {
-					arg.SiteURL = profileURL
+					row.SiteURL = profileURL
 				}
 			}
 		}
-		arg.ProofURL = i.makeSigchainViewURL(proof.SigID)
+		row.ProofURL = i.makeSigchainViewURL(proof.SigID)
 	case keybase1.ProofType_GENERIC_WEB_SITE:
 		protocol := "https"
 		if proof.Key != "https" {
 			protocol = "http"
 		}
-		arg.SiteURL = fmt.Sprintf("%v://%v", protocol, proof.Value)
+		row.SiteURL = fmt.Sprintf("%v://%v", protocol, proof.Value)
+		iconKey = "web"
 	case keybase1.ProofType_DNS:
-		arg.SiteURL = fmt.Sprintf("http://%v", proof.Value)
-		arg.ProofURL = i.makeSigchainViewURL(proof.SigID)
+		row.SiteURL = fmt.Sprintf("http://%v", proof.Value)
+		row.ProofURL = i.makeSigchainViewURL(proof.SigID)
+		iconKey = "web"
 	default:
-		if lcr.Hint != nil {
-			arg.SiteURL = humanURLOrSigchainURL
-		}
+		row.SiteURL = humanURLOrSigchainURL
+	}
+	row.SiteIcon = externals.MakeIcons(i.M(), iconKey, "logo_black", 16)
+	return row
+}
+
+func (i *UIAdapter) finishRemoteCheck(proof keybase1.RemoteProof, lcr keybase1.LinkCheckResult) error {
+	if lcr.BreaksTracking {
+		i.session.SetTrackBroken()
 	}
 
+	arg := i.rowPartial(proof, &lcr)
 	needUpgrade := i.setRowStatus(&arg, lcr)
 	if needUpgrade {
 		i.session.SetNeedUpgrade()
@@ -266,12 +317,14 @@ func (i *UIAdapter) displayKey(key keybase1.IdentifyKey) {
 	}
 
 	arg := keybase1.Identify3UpdateRowArg{
-		Key:     "pgp",
-		Value:   hex.EncodeToString(key.PGPFingerprint),
-		SigID:   key.SigID,
-		SiteURL: i.makeKeybaseProfileURL(),
+		Key:      "pgp",
+		Value:    hex.EncodeToString(key.PGPFingerprint),
+		SigID:    key.SigID,
+		Priority: i.priority("pgp"),
+		SiteURL:  i.makeKeybaseProfileURL(),
 		// key.SigID is blank if the PGP key was there pre-sigchain
 		ProofURL: i.makeSigchainViewURL(key.SigID),
+		SiteIcon: externals.MakeIcons(i.M(), "pgp", "logo_black", 16),
 	}
 
 	switch {
@@ -316,13 +369,10 @@ func (i *UIAdapter) plumbUncheckedProofs(proofs []keybase1.IdentifyRow) {
 }
 
 func (i *UIAdapter) plumbUncheckedProof(row keybase1.IdentifyRow) {
-	i.updateRow(keybase1.Identify3UpdateRowArg{
-		Key:   row.Proof.Key,
-		Value: row.Proof.Value,
-		State: keybase1.Identify3RowState_CHECKING,
-		Color: keybase1.Identify3RowColor_GRAY,
-		SigID: row.Proof.SigID,
-	})
+	arg := i.rowPartial(row.Proof, nil)
+	arg.State = keybase1.Identify3RowState_CHECKING
+	arg.Color = keybase1.Identify3RowColor_GRAY
+	i.updateRow(arg)
 }
 
 func (i *UIAdapter) updateRow(arg keybase1.Identify3UpdateRowArg) error {
@@ -399,10 +449,12 @@ func (i *UIAdapter) plumbCryptocurrency(crypto keybase1.Cryptocurrency) {
 	i.updateRow(keybase1.Identify3UpdateRowArg{
 		Key:      key,
 		Value:    crypto.Address,
+		Priority: i.priority(key),
 		State:    keybase1.Identify3RowState_VALID,
 		Color:    keybase1.Identify3RowColor_GREEN,
 		SigID:    crypto.SigID,
 		SiteURL:  i.makeSigchainViewURL(crypto.SigID),
+		SiteIcon: externals.MakeIcons(i.M(), key, "logo_black", 16),
 		ProofURL: i.makeSigchainViewURL(crypto.SigID),
 	})
 }
@@ -411,21 +463,21 @@ func (i *UIAdapter) plumbStellarAccount(str keybase1.StellarAccount) {
 	i.updateRow(keybase1.Identify3UpdateRowArg{
 		Key:      "stellar",
 		Value:    str.FederationAddress,
+		Priority: i.priority("stellar"),
 		State:    keybase1.Identify3RowState_VALID,
 		Color:    keybase1.Identify3RowColor_GREEN,
 		SigID:    str.SigID,
 		SiteURL:  i.makeSigchainViewURL(str.SigID),
+		SiteIcon: externals.MakeIcons(i.M(), "stellar", "logo_black", 16),
 		ProofURL: i.makeSigchainViewURL(str.SigID),
 	})
 }
 
 func (i *UIAdapter) plumbRevoked(row keybase1.RevokedProof) {
-	i.updateRow(keybase1.Identify3UpdateRowArg{
-		Key:   row.Proof.Key,
-		Value: row.Proof.Value,
-		State: keybase1.Identify3RowState_REVOKED,
-		Color: keybase1.Identify3RowColor_RED,
-	})
+	arg := i.rowPartial(row.Proof, nil)
+	arg.State = keybase1.Identify3RowState_REVOKED
+	arg.Color = keybase1.Identify3RowColor_RED
+	i.updateRow(arg)
 }
 
 func (i *UIAdapter) plumbRevokeds(rows []keybase1.RevokedProof) {
