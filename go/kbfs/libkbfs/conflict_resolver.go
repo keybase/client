@@ -3341,7 +3341,8 @@ func (cr *ConflictResolver) makeDirtyBcache(
 		}
 		cleanupFn = dbc.Shutdown
 	} else {
-		tempDir, err := ioutil.TempDir(cr.config.StorageRoot(), "kbfscr")
+		tempDir, err := ioutil.TempDir(
+			cr.config.StorageRoot(), "kbfs_conflict_disk_cache")
 		if err != nil {
 			return nil, nil, err
 		}
