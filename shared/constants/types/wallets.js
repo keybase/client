@@ -212,12 +212,17 @@ export type Payment = I.RecordOf<_Payment>
 
 export type Currency = I.RecordOf<_LocalCurrency>
 
+export type AccountMode = StellarRPCTypes.AccountMode
+export const accountModeNone = StellarRPCTypes.commonAccountMode.none
+
 export type _Account = {
   accountID: AccountID,
   balanceDescription: string,
   displayCurrency: Currency,
   isDefault: boolean,
   name: string,
+  accountMode: AccountMode,
+  mobileOnlyEditable: boolean,
 }
 export type Account = I.RecordOf<_Account>
 
