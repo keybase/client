@@ -34,9 +34,8 @@ type CmdChatAPIListen struct {
 
 func newCmdChatAPIListen(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name: "api-listen",
-		// No "Usage" field makes it hidden in command list.
-		Description: "Listen and print incoming chat actions in JSON format",
+		Name:  "api-listen",
+		Usage: "Listen and print incoming chat actions in JSON format",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdChatAPIListen{
 				Contextified: libkb.NewContextified(g),
