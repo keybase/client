@@ -259,19 +259,23 @@ body {
 
 .fade-anim-enter {
   opacity: 0;
+  pointer-events: none;
 }
 
 .fade-anim-enter.fade-anim-enter-active {
   opacity: 1;
+  pointer-events: auto;
   transition: opacity 250ms ease-in-out;
 }
 
 .fade-anim-exit {
   opacity: 1;
+  pointer-events: auto;
 }
 
 .fade-anim-exit.fade-anim-exit-active {
   opacity: 0;
+  pointer-events: none;
   transition: opacity 250ms ease-in-out;
 }
 
