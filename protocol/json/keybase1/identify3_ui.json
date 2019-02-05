@@ -94,6 +94,10 @@
           "type": "string"
         },
         {
+          "name": "priority",
+          "type": "int"
+        },
+        {
           "name": "siteURL",
           "type": "string"
         },
