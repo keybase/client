@@ -562,6 +562,12 @@ export const localHeaderPlaintextVersion = {
   v10: 10,
 }
 
+export const localMessageIDControlMode = {
+  oldermessages: 0,
+  newermessages: 1,
+  centered: 2,
+}
+
 export const localMessageSystemType = {
   addedtoteam: 0,
   inviteaddedtoteam: 1,
@@ -944,7 +950,12 @@ export type MessageDeleteHistory = $ReadOnly<{upto: MessageID}>
 export type MessageEdit = $ReadOnly<{messageID: MessageID, body: String}>
 export type MessageHeadline = $ReadOnly<{headline: String}>
 export type MessageID = Uint
-export type MessageIDControl = $ReadOnly<{pivot?: ?MessageID, recent: Boolean, num: Int}>
+export type MessageIDControl = $ReadOnly<{pivot?: ?MessageID, mode: MessageIDControlMode, num: Int}>
+export type MessageIDControlMode =
+  | 0 // OLDERMESSAGES_0
+  | 1 // NEWERMESSAGES_1
+  | 2 // CENTERED_2
+
 export type MessageJoin = $ReadOnly<{}>
 export type MessageLeave = $ReadOnly<{}>
 export type MessagePlaintext = $ReadOnly<{clientHeader: MessageClientHeader, messageBody: MessageBody, supersedesOutboxID?: ?OutboxID}>

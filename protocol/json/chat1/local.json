@@ -1655,6 +1655,15 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "MessageIDControlMode",
+      "symbols": [
+        "OLDERMESSAGES_0",
+        "NEWERMESSAGES_1",
+        "CENTERED_2"
+      ]
+    },
+    {
       "type": "record",
       "name": "MessageIDControl",
       "fields": [
@@ -1666,8 +1675,8 @@
           "name": "pivot"
         },
         {
-          "type": "boolean",
-          "name": "recent"
+          "type": "MessageIDControlMode",
+          "name": "mode"
         },
         {
           "type": "int",

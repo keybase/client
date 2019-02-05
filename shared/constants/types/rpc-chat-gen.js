@@ -198,6 +198,12 @@ export const localHeaderPlaintextVersion = {
   v10: 10,
 }
 
+export const localMessageIDControlMode = {
+  oldermessages: 0,
+  newermessages: 1,
+  centered: 2,
+}
+
 export const localMessageSystemType = {
   addedtoteam: 0,
   inviteaddedtoteam: 1,

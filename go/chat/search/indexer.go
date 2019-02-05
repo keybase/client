@@ -405,10 +405,10 @@ func (idx *Indexer) reindexConv(ctx context.Context, conv chat1.Conversation, ui
 			MarkAsRead:               false,
 		}
 		for i := minIdxID; i < maxIdxID; i += chat1.MessageID(idx.pageSize) {
-			pagination := utils.XlateMessageIDControlToPagination(&chat1.MessageIDControl{
-				Num:    idx.pageSize,
-				Pivot:  &i,
-				Recent: true,
+			pagination := utils.MessageIDControlToPagination(&chat1.MessageIDControl{
+				Num:   idx.pageSize,
+				Pivot: &i,
+				Mode:  chat1.MessageIDControlMode_NEWERMESSAGES,
 			})
 			if opts.forceReindex { // block on gathering results
 				tv, err := idx.G().ConvSource.Pull(ctx, convID, uid, reason, query, pagination)

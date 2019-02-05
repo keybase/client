@@ -478,7 +478,7 @@ func (h *Server) GetThreadLocal(ctx context.Context, arg chat1.GetThreadLocalArg
 
 	// Xlate pager control into pagination if given
 	if arg.Query != nil && arg.Query.MessageIDControl != nil {
-		arg.Pagination = utils.XlateMessageIDControlToPagination(arg.Query.MessageIDControl)
+		arg.Pagination = utils.MessageIDControlToPagination(arg.Query.MessageIDControl)
 	}
 
 	// Get messages from the source
@@ -723,13 +723,14 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 	}
 	arg.Query.EnableDeletePlaceholders = true
 
-	// Xlate pager control into pagination if given
+	// Parse out options
 	if arg.Query != nil && arg.Query.MessageIDControl != nil {
-		pagination = utils.XlateMessageIDControlToPagination(arg.Query.MessageIDControl)
+		// Pager control into pagination if given
+		pagination = utils.MessageIDControlToPagination(arg.Query.MessageIDControl)
+	} else {
+		// Apply any pager mode transformations
+		pagination = h.applyPagerModeIncoming(ctx, arg.ConversationID, pagination, arg.Pgmode)
 	}
-
-	// Apply any pager mode transformations
-	pagination = h.applyPagerModeIncoming(ctx, arg.ConversationID, pagination, arg.Pgmode)
 	if pagination != nil && pagination.Last {
 		return res, nil
 	}

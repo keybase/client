@@ -1577,7 +1577,7 @@ func (p pagerMsg) GetMessageID() chat1.MessageID {
 	return p.msgID
 }
 
-func XlateMessageIDControlToPagination(control *chat1.MessageIDControl) (res *chat1.Pagination) {
+func MessageIDControlToPagination(control *chat1.MessageIDControl) (res *chat1.Pagination) {
 	if control == nil {
 		return res
 	}
@@ -1585,11 +1585,17 @@ func XlateMessageIDControlToPagination(control *chat1.MessageIDControl) (res *ch
 	res = new(chat1.Pagination)
 	res.Num = control.Num
 	if control.Pivot != nil {
-		pm := pagerMsg{msgID: *control.Pivot}
 		var err error
-		if control.Recent {
+		pm := pagerMsg{msgID: *control.Pivot}
+		switch control.Mode {
+		case chat1.MessageIDControlMode_OLDERMESSAGES:
+			res.Next, err = pag.MakeIndex(pm)
+		case chat1.MessageIDControlMode_NEWERMESSAGES:
 			res.Previous, err = pag.MakeIndex(pm)
-		} else {
+		case chat1.MessageIDControlMode_CENTERED:
+			// Heuristic that we might want to revisit, get older messages from a little ahead of where
+			// we want to center on
+			pm.msgID += 10
 			res.Next, err = pag.MakeIndex(pm)
 		}
 		if err != nil {
