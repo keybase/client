@@ -103,6 +103,8 @@ type fstatus struct {
 	PlatformInfo         keybase1.PlatformInfo
 	OSVersion            string
 	DeviceEKNames        []string
+	LocalDbStats         []string
+	LocalChatDbStats     []string
 }
 
 func (c *CmdStatus) Run() error {
@@ -214,6 +216,8 @@ func (c *CmdStatus) load() (*fstatus, error) {
 	status.Clients = extStatus.Clients
 	status.PlatformInfo = extStatus.PlatformInfo
 	status.DeviceEKNames = extStatus.DeviceEkNames
+	status.LocalDbStats = extStatus.LocalDbStats
+	status.LocalChatDbStats = extStatus.LocalChatDbStats
 
 	// set anything os-specific:
 	if err := c.osSpecific(&status); err != nil {
@@ -311,6 +315,8 @@ func (c *CmdStatus) outputTerminal(status *fstatus) error {
 	dui.Printf("Other users:   %s\n", strings.Join(status.ProvisionedUsernames, ", "))
 	dui.Printf("Known DeviceEKs:\n")
 	dui.Printf("    %s \n", strings.Join(status.DeviceEKNames, "\n    "))
+	dui.Printf("LocalDbStats:\n%s \n", strings.Join(status.LocalDbStats, "\n"))
+	dui.Printf("LocalChatDbStats:\n%s \n", strings.Join(status.LocalChatDbStats, "\n"))
 
 	c.outputClients(dui, status.Clients)
 	return nil
