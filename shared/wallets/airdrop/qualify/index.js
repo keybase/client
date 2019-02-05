@@ -167,7 +167,6 @@ class Qualified extends React.PureComponent<Props, State> {
       >
         <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true} gap="tiny" style={styles.content}>
           <>
-            <Kb.Box2 direction="vertical" style={styles.grow} />
             <Kb.Icon
               type={
                 loading
@@ -179,33 +178,32 @@ class Qualified extends React.PureComponent<Props, State> {
               style={styles.star}
             />
           </>
-          <Kb.Text
-            center={true}
-            type={loading ? 'BodySmallSemibold' : 'Header'}
-            style={loading ? styles.loadingText : styles.headerText}
-          >
-            {loading
-              ? 'Analyzing your account...'
-              : p.state === 'qualified'
-              ? 'You are qualified to join!'
-              : 'Sorry, you are not qualified to join.'}
-          </Kb.Text>
-          <>
-            <Kb.Box2 direction="vertical" style={styles.grow} />
-            <Kb.Box2
-              direction="vertical"
-              className={Styles.classNames({
-                growFadeInBig: rows.length,
-                growFadeInSmall: true,
-              })}
+          <Kb.Box2 direction="vertical" style={styles.titleBox}>
+            <Kb.Text
+              center={true}
+              type={loading ? 'BodySmallSemibold' : 'Header'}
+              style={loading ? styles.loadingText : styles.headerText}
             >
-              {rows.map((r, idx) => (
-                <Row key={r.title} {...r} first={idx === 0} loading={idx > this.state.rowIdxLoaded} />
-              ))}
-            </Kb.Box2>
-            <Kb.Box2 direction="vertical" style={styles.grow} />
-          </>
-          {p.state === 'qualified' && !loading && (
+              {loading
+                ? 'Analyzing your account...'
+                : p.state === 'qualified'
+                ? 'You are qualified to join!'
+                : 'Sorry, you are not qualified to join.'}
+            </Kb.Text>
+          </Kb.Box2>
+          <Kb.Box2
+            direction="vertical"
+            className={Styles.classNames({
+              growFadeInBig: rows.length,
+              growFadeInSmall: true,
+            })}
+          >
+            {rows.map((r, idx) => (
+              <Row key={r.title} {...r} first={idx === 0} loading={idx > this.state.rowIdxLoaded} />
+            ))}
+          </Kb.Box2>
+          <Kb.Box2 direction="vertical" style={styles.grow} />
+          {p.state === 'qualified' && (
             <Kb.WaitingButton
               onClick={p.onSubmit}
               fullWidth={true}
@@ -213,7 +211,7 @@ class Qualified extends React.PureComponent<Props, State> {
               label="Become a lucky airdropee"
               disabled={loadingRows}
               waitingKey={Constants.airdropWaitingKey}
-              style={styles.buttonAccept}
+              style={loading ? styles.buttonAcceptLoading : styles.buttonAccept}
             />
           )}
           <Kb.Button
@@ -250,6 +248,7 @@ class Qualify extends React.PureComponent<Props> {
 
 const styles = Styles.styleSheetCreate({
   buttonAccept: {flexGrow: 0},
+  buttonAcceptLoading: {flexGrow: 0, opacity: 0},
   buttonClose: {
     backgroundColor: Styles.globalColors.black_20,
     flexGrow: 0,
@@ -286,12 +285,24 @@ const styles = Styles.styleSheetCreate({
   headerText: {color: Styles.globalColors.white},
   loadingText: {color: Styles.globalColors.white_40},
   popupContainer: {backgroundColor: Styles.globalColors.purple2},
-  progress: {
-    color: Styles.globalColors.white,
-    height: 20,
-    width: 20,
-  },
+  progress: Styles.platformStyles({
+    common: {
+      color: Styles.globalColors.white_75,
+    },
+    isElectron: {
+      height: 16,
+      width: 16,
+    },
+    isMobile: {
+      height: 22,
+      width: 22,
+    },
+  }),
   row: Styles.platformStyles({
+    common: {
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
+    },
     isElectron: {
       minHeight: Styles.globalMargins.large,
       paddingBottom: Styles.globalMargins.xsmall,
@@ -299,8 +310,6 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {
       paddingBottom: Styles.globalMargins.xsmall,
-      paddingLeft: Styles.globalMargins.tiny,
-      paddingRight: Styles.globalMargins.tiny,
       paddingTop: Styles.globalMargins.xsmall,
     },
   }),
@@ -319,7 +328,14 @@ const styles = Styles.styleSheetCreate({
   star: {
     alignSelf: 'center',
     height: 120,
+    marginTop: Styles.globalMargins.medium,
     width: 120,
+  },
+  titleBox: {
+    height: 28,
+    justifyContent: 'center',
+    marginBottom: Styles.globalMargins.small,
+    marginTop: Styles.globalMargins.medium,
   },
 })
 
