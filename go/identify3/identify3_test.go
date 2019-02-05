@@ -304,6 +304,7 @@ func checkIcon(t testing.TB, service string, icon []keybase1.SizedImage) {
 			t.Fatalf("unreasonable icon size")
 		}
 		resp, err := http.Get(icon.Path)
+		require.NoError(t, err, "%v", service)
 		require.Equal(t, 200, resp.StatusCode, "icon file should be reachable")
 		require.NoError(t, err)
 		body, err := ioutil.ReadAll(resp.Body)
