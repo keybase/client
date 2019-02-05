@@ -405,7 +405,7 @@ const rememberPassphrase = (_, action) =>
 
 const loadLockdownMode = state =>
   state.config.loggedIn &&
-  RPCTypes.accountGetLockdownModeRpcPromise(undefined, Constants.waitingKey)
+  RPCTypes.accountGetLockdownModeRpcPromise(undefined, Constants.loadLockdownModeWaitingKey)
     .then((result: RPCTypes.GetLockdownResponse) =>
       SettingsGen.createLoadedLockdownMode({status: result.status})
     )
@@ -413,7 +413,10 @@ const loadLockdownMode = state =>
 
 const setLockdownMode = (state, action) =>
   state.config.loggedIn &&
-  RPCTypes.accountSetLockdownModeRpcPromise({enabled: action.payload.enabled}, Constants.waitingKey)
+  RPCTypes.accountSetLockdownModeRpcPromise(
+    {enabled: action.payload.enabled},
+    Constants.setLockdownModeWaitingKey
+  )
     .then(() => SettingsGen.createLoadedLockdownMode({status: action.payload.enabled}))
     .catch(() => SettingsGen.createLoadLockdownMode())
 

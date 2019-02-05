@@ -10,18 +10,25 @@ import {
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {HeaderHoc} from '../../common-adapters'
 import * as Constants from '../../constants/settings'
+import {anyErrors, anyWaiting} from '../../constants/waiting'
 import {compose} from 'recompose'
 import Advanced from './index'
 import {connect, lifecycle} from '../../util/container'
 
 type OwnProps = {||}
-const mapStateToProps = state => ({
-  hasRandomPW: !!state.settings.passphrase.randomPW,
-  lockdownModeEnabled: state.settings.lockdownModeEnabled,
-  openAtLogin: state.config.openAtLogin,
-  processorProfileInProgress: Constants.processorProfileInProgress(state),
-  traceInProgress: Constants.traceInProgress(state),
-})
+const mapStateToProps = state => {
+  const settingLockdownMode = anyWaiting(state, Constants.setLockdownModeWaitingKey)
+  const setLockdownModeError = anyErrors(state, Constants.setLockdownModeWaitingKey)
+  return {
+    hasRandomPW: !!state.settings.passphrase.randomPW,
+    lockdownModeEnabled: state.settings.lockdownModeEnabled,
+    openAtLogin: state.config.openAtLogin,
+    processorProfileInProgress: Constants.processorProfileInProgress(state),
+    setLockdownModeError: setLockdownModeError?.message ?? '',
+    settingLockdownMode,
+    traceInProgress: Constants.traceInProgress(state),
+  }
+}
 
 const mapDispatchToProps = dispatch => ({
   _loadHasRandomPW: () => dispatch(createLoadHasRandomPw()),
