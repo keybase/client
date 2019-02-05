@@ -52,8 +52,20 @@ class Loading extends React.Component<{}, {waited: boolean}> {
 const validIcon = (s: any) => !!s && !!iconMeta[s]
 
 class Airdrop extends React.Component<Props> {
+  _ref = React.createRef<Kb.ScrollView>()
+
   componentDidMount() {
     this.props.onLoad()
+  }
+
+  _onCheckQualify = () => {
+    if (Styles.isMobile) {
+      const scroll = this._ref.current
+      if (scroll && scroll.scrollTo) {
+        scroll.scrollTo({x: 0, y: 0})
+      }
+    }
+    this.props.onCheckQualify()
   }
 
   render() {
@@ -62,6 +74,7 @@ class Airdrop extends React.Component<Props> {
       <Loading />
     ) : (
       <Kb.ScrollView
+        ref={this._ref}
         style={styles.scrollView}
         contentContainerStyle={Styles.isMobile ? undefined : styles.fullHeight}
       >
@@ -93,7 +106,7 @@ class Airdrop extends React.Component<Props> {
                   backgroundMode="Purple"
                   type="PrimaryColoredBackground"
                   label="See if you qualify"
-                  onClick={p.onCheckQualify}
+                  onClick={this._onCheckQualify}
                   style={styles.bannerButton}
                 />
               </Kb.Box2>
@@ -131,7 +144,7 @@ class Airdrop extends React.Component<Props> {
             ))}
           </Kb.Box2>
           {!p.signedUp && (
-            <Kb.Button type="PrimaryGreen" label="See if you qualify" onClick={p.onCheckQualify} />
+            <Kb.Button type="PrimaryGreen" label="See if you qualify" onClick={this._onCheckQualify} />
           )}
           <Kb.Box2 direction="vertical" style={styles.grow} />
           <Kb.Box2

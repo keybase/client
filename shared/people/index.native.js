@@ -5,7 +5,6 @@ import {PeoplePageSearchBar, PeoplePageList} from './index.shared'
 import {type Props} from '.'
 import {globalStyles, styleSheetCreate} from '../styles'
 import {isIOS} from '../constants/platform'
-import AirdropBanner from '../wallets/airdrop/banner/container'
 
 const People = (props: Props) => (
   <>
@@ -25,7 +24,6 @@ const People = (props: Props) => (
       ]}
       titleComponent={<PeoplePageSearchBar {...props} />}
     />
-    {props.showAirdrop && <AirdropBanner />}
     <Kb.ScrollView
       style={styles.scrollView}
       refreshControl={

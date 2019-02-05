@@ -8,6 +8,7 @@ export type Props = {|
   style?: StylesCrossPlatform,
   onScroll?: ?Function,
   className?: ?string,
+  ref?: ?React.Ref<any>,
 
   // mobile only
   bounces?: boolean,
@@ -26,4 +27,6 @@ export type Props = {|
   refreshControl?: React.Element<any>,
 |}
 
-export default class ScrollView extends React.Component<Props> {}
+export default class ScrollView extends React.Component<Props> {
+  scrollTo: ?({x: number, y: number, animated?: boolean}) => void
+}
