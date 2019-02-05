@@ -78,7 +78,7 @@ const getDownloadingState = memoize<
   }
   const download = downloads.get(downloadKey)
   const intent = download && download.meta.intent
-  const done = !download || download.state.completePortion === 1
+  const done = !download || download.state.isDone || !!download.state.error || download.state.canceled
   if (!intent) {
     return {done, saving: false, sharing: false}
   }
@@ -94,8 +94,8 @@ const addCancelIfNeeded = (action: () => void, cancel: string => void, toCancel:
     : action
 
 const shouldHideMenu = stateProps => {
-  const {saving, done} = getDownloadingState(stateProps._downloads, stateProps._downloadKey)
-  return saving && done
+  const {saving, sharing, done} = getDownloadingState(stateProps._downloads, stateProps._downloadKey)
+  return (saving || sharing) && done
 }
 
 const getSendToOtherApp = (stateProps, dispatchProps, c) => {
@@ -142,7 +142,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     // share items
     // eslint-disable-next-line sort-keys
     sendAttachmentToChat: null, // TODO
-    sendLinkToChat: !isMobile && layout.sendToOtherApp ? c(dispatchProps._sendLinkToChat) : null, // TODO enable mobile
+    sendLinkToChat: layout.sendLinkToChat ? c(dispatchProps._sendLinkToChat) : null,
     sendToOtherApp: layout.sendToOtherApp ? getSendToOtherApp(stateProps, dispatchProps, c) : null,
     share: layout.share ? dispatchProps._share : null,
   }

@@ -24,6 +24,7 @@ export type Props = {|
   onSearch: () => void,
   onEditAvatar: ?() => void,
   state: Types.DetailsState,
+  suggestionKeys: ?Array<string>,
   username: string,
 |}
 
@@ -78,9 +79,14 @@ const Proofs = p => {
   let assertions
   if (p.assertionKeys) {
     const unsorted = [...p.assertionKeys]
-    assertions = unsorted
-      .sort(Constants.sortAssertionKeys)
-      .map(a => <Assertion key={a} username={p.username} assertionKey={a} />)
+    assertions = [
+      ...unsorted
+        .sort(Constants.sortAssertionKeys)
+        .map(a => <Assertion key={a} username={p.username} assertionKey={a} />),
+      ...(p.suggestionKeys || []).map(s => (
+        <Assertion isSuggestion={true} key={s} username={p.username} assertionKey={s} />
+      )),
+    ]
   } else {
     assertions = null
   }

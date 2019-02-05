@@ -6,6 +6,9 @@ import * as ProfileGen from '../profile-gen'
 import * as Saga from '../../util/saga'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as RouteTreeGen from '../route-tree-gen'
+import * as Tracker2Gen from '../tracker2-gen'
+import * as Tracker2Constants from '../../constants/tracker2'
+import flags from '../../util/feature-flags'
 import {peopleTab} from '../../constants/tabs'
 
 const checkProof = (state, action) => {
@@ -37,6 +40,18 @@ const checkProof = (state, action) => {
       })
     })
 }
+
+const recheckProof = (state, action) =>
+  flags.identify3 &&
+  RPCTypes.proveCheckProofRpcPromise({sigID: action.payload.sigID}, Constants.waitingKey).then(() =>
+    Tracker2Gen.createLoad({
+      assertion: state.config.username,
+      guiID: Tracker2Constants.generateGUIID(),
+      ignoreCache: true,
+      inTracker: false,
+      reason: '',
+    })
+  )
 
 const addProof = (_, action) => {
   // Special cases
@@ -219,7 +234,10 @@ const submitCryptoAddress = (state, action) => {
       throw new Error('Unknown wantedfamily')
   }
 
-  RPCTypes.cryptocurrencyRegisterAddressRpcPromise({address, force: true, wantedFamily}, Constants.waitingKey)
+  return RPCTypes.cryptocurrencyRegisterAddressRpcPromise(
+    {address, force: true, wantedFamily},
+    Constants.waitingKey
+  )
     .then(() => [
       ProfileGen.createUpdateProofStatus({found: true, status: RPCTypes.proveCommonProofStatus.ok}),
       RouteTreeGen.createNavigateAppend({parentPath: [peopleTab], path: ['confirmOrPending']}),
@@ -239,6 +257,7 @@ function* proofsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<ProfileGen.AddProofPayload>(ProfileGen.addProof, addProof)
   yield* Saga.chainGenerator<ProfileGen.AddProofPayload>(ProfileGen.addProof, addServiceProof)
   yield* Saga.chainAction<ProfileGen.CheckProofPayload>(ProfileGen.checkProof, checkProof)
+  yield* Saga.chainAction<ProfileGen.RecheckProofPayload>(ProfileGen.recheckProof, recheckProof)
 }
 
 export {proofsSaga}

@@ -169,6 +169,32 @@ func VisibleChatMessageTypes() []MessageType {
 	return visibleMessageTypes
 }
 
+func IsEphemeralSupersederType(typ MessageType) bool {
+	switch typ {
+	case MessageType_EDIT,
+		MessageType_ATTACHMENTUPLOADED,
+		MessageType_REACTION,
+		MessageType_UNFURL:
+		return true
+	default:
+		return false
+	}
+}
+
+func IsEphemeralNonSupersederType(typ MessageType) bool {
+	switch typ {
+	case MessageType_TEXT,
+		MessageType_ATTACHMENT:
+		return true
+	default:
+		return false
+	}
+}
+
+func IsEphemeralType(typ MessageType) bool {
+	return IsEphemeralNonSupersederType(typ) || IsEphemeralSupersederType(typ)
+}
+
 func DeletableMessageTypesByDeleteHistory() (res []MessageType) {
 	banned := make(map[MessageType]bool)
 	for _, mt := range nonDeletableMessageTypesByDeleteHistory {

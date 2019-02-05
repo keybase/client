@@ -851,6 +851,11 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-message-deletion-64.png'),
   },
+  'icon-message-exploding-260': {
+    extension: 'gif',
+    isFont: false,
+    require: require('../images/icons/icon-message-exploding-260.gif'),
+  },
   'icon-message-retention-32': {
     extension: 'png',
     isFont: false,

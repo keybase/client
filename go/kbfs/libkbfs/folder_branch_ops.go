@@ -5162,7 +5162,7 @@ type cleanupFn func(context.Context, *lockState, []BlockPointer, error)
 func (fbo *folderBranchOps) startSyncLocked(ctx context.Context,
 	lState *lockState, md *RootMetadata, node Node, file path) (
 	doSync, stillDirty bool, fblock *FileBlock, dirtyDe *DirEntry,
-	bps blockPutState, syncState fileSyncState,
+	bps blockPutStateCopiable, syncState fileSyncState,
 	cleanup cleanupFn, err error) {
 	fbo.mdWriterLock.AssertLocked(lState)
 
@@ -5459,7 +5459,7 @@ func (fbo *folderBranchOps) syncAllLocked(
 		fbo.log.CDebugf(ctx, "Syncing file %v (%s)", ref, file)
 
 		// Start the sync for this dirty file.
-		doSync, stillDirty, _, dirtyDe, newBps, syncState, cleanup, err :=
+		doSync, stillDirty, fblock, dirtyDe, newBps, syncState, cleanup, err :=
 			fbo.startSyncLocked(ctx, lState, md, node, file)
 		if cleanup != nil {
 			// Note: This passes the same `blocksToRemove` into each
@@ -5493,9 +5493,9 @@ func (fbo *folderBranchOps) syncAllLocked(
 		resolvedPaths[file.tailPointer()] = file
 		parent := file.parentPath().tailPointer()
 		if _, ok := fileBlocks[parent]; !ok {
-			fileBlocks[parent] = make(map[string]BlockPointer)
+			fileBlocks[parent] = make(map[string]*FileBlock)
 		}
-		fileBlocks[parent][file.tailName()] = file.tailPointer()
+		fileBlocks[parent][file.tailName()] = fblock
 
 		// Collect its `afterUpdateFn` along with all the others, so
 		// they all get invoked under the same lock, to avoid any
@@ -5560,9 +5560,9 @@ func (fbo *folderBranchOps) syncAllLocked(
 	// Squash the batch of updates together into a set of blocks and
 	// ready `md` for putting to the server.
 	md.AddOp(newResolutionOp())
-	_, newBps, blocksToDelete, err := fbo.prepper.prepUpdateForPaths(
+	_, blocksToDelete, err := fbo.prepper.prepUpdateForPaths(
 		ctx, lState, md, syncChains, dummyHeadChains, tempIRMD, head,
-		resolvedPaths, lbc, fileBlocks, fbo.config.DirtyBlockCache(),
+		resolvedPaths, lbc, fileBlocks, fbo.config.DirtyBlockCache(), bps,
 		prepFolderDontCopyIndirectFileBlocks)
 	if err != nil {
 		return err
@@ -5570,10 +5570,6 @@ func (fbo *folderBranchOps) syncAllLocked(
 	if len(blocksToDelete) > 0 {
 		return errors.Errorf("Unexpectedly found unflushed blocks to delete "+
 			"during syncAllLocked: %v", blocksToDelete)
-	}
-	err = bps.mergeOtherBps(ctx, newBps)
-	if err != nil {
-		return err
 	}
 
 	defer func() {
@@ -7658,6 +7654,15 @@ func (fbo *folderBranchOps) handleMDFlush(
 		rev, kbfsmd.Merged, nil)
 	if err != nil {
 		fbo.log.CWarningf(ctx, "Couldn't get revision %d for archiving: %v",
+			rev, err)
+		return
+	}
+
+	rmd, err = reembedBlockChangesIntoCopyIfNeeded(
+		ctx, fbo.config.Codec(), fbo.config.BlockCache(),
+		fbo.config.BlockOps(), fbo.config.Mode(), rmd, fbo.log)
+	if err != nil {
+		fbo.log.CWarningf(ctx, "Couldn't reembed revision %d: %v",
 			rev, err)
 		return
 	}

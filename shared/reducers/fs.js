@@ -275,14 +275,13 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
             ],
             error
           )
+        case FsGen.saveMedia:
+        case FsGen.shareNative:
         case FsGen.download:
-          if (erroredAction.payload.intent !== 'none') {
-            return nextState
-          }
           // $FlowFixMe
           return nextState.updateIn(
             ['downloads', erroredAction.payload.key, 'state'],
-            original => original && original.set('isDone', true).set('error', error)
+            original => original && original.set('error', error)
           )
         default:
           return nextState
