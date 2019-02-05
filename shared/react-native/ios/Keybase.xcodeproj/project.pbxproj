@@ -27,6 +27,8 @@
 		375CA6651FFD40D300210B11 /* Storybook.m in Sources */ = {isa = PBXBuildFile; fileRef = 375CA6641FFD40D300210B11 /* Storybook.m */; };
 		3791A8A120C71DC0001C2E86 /* PushPrompt.m in Sources */ = {isa = PBXBuildFile; fileRef = 3791A8A020C71DC0001C2E86 /* PushPrompt.m */; };
 		3791A8A320C71FE6001C2E86 /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3791A8A220C71FE6001C2E86 /* UserNotifications.framework */; };
+		664073EB220A0B70009B2ED7 /* SourceCodePro-Semibold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 664073E9220A0B70009B2ED7 /* SourceCodePro-Semibold.ttf */; };
+		664073EC220A0B70009B2ED7 /* SourceCodePro-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 664073EA220A0B70009B2ED7 /* SourceCodePro-Medium.ttf */; };
 		665BAD142209FC4D00E3CC93 /* keybase-medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = 665BAD0E2209FC4D00E3CC93 /* keybase-medium.otf */; };
 		665BAD152209FC4D00E3CC93 /* keybase-semibold.otf in Resources */ = {isa = PBXBuildFile; fileRef = 665BAD0F2209FC4D00E3CC93 /* keybase-semibold.otf */; };
 		665BAD162209FC4D00E3CC93 /* keybase-extrabold.otf in Resources */ = {isa = PBXBuildFile; fileRef = 665BAD102209FC4D00E3CC93 /* keybase-extrabold.otf */; };
@@ -60,8 +62,6 @@
 		DBBCC6181D9C5C6A00312652 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = DBBCC6171D9C5C6A00312652 /* main.m */; };
 		DBCE36251B90F14800ECADDE /* Engine.m in Sources */ = {isa = PBXBuildFile; fileRef = DBCE36241B90F14800ECADDE /* Engine.m */; };
 		DBDC800B1DE7CC8E005387B3 /* kb.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBDC80031DE7CC8E005387B3 /* kb.ttf */; };
-		DBDC80111DE7CC8E005387B3 /* SourceCodePro-Semi_bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBDC80091DE7CC8E005387B3 /* SourceCodePro-Semi_bold.ttf */; };
-		DBDC80121DE7CC8E005387B3 /* SourceCodePro.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBDC800A1DE7CC8E005387B3 /* SourceCodePro.ttf */; };
 		DBDCF30E1B8D03DD00BA95D8 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */; };
 		DBEE30801FE8511F0020EBA5 /* DDTTYLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = DBEE306C1FE8511F0020EBA5 /* DDTTYLogger.m */; };
 		DBEE30811FE8511F0020EBA5 /* DDOSLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = DBEE306F1FE8511F0020EBA5 /* DDOSLogger.m */; };
@@ -504,6 +504,8 @@
 		3791A8A020C71DC0001C2E86 /* PushPrompt.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PushPrompt.m; sourceTree = "<group>"; };
 		3791A8A220C71FE6001C2E86 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
 		6266E16BBFF8461CAF2DDCB9 /* RCTContacts.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RCTContacts.xcodeproj; path = "../../node_modules/react-native-contacts/ios/RCTContacts.xcodeproj"; sourceTree = "<group>"; };
+		664073E9220A0B70009B2ED7 /* SourceCodePro-Semibold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SourceCodePro-Semibold.ttf"; sourceTree = "<group>"; };
+		664073EA220A0B70009B2ED7 /* SourceCodePro-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SourceCodePro-Medium.ttf"; sourceTree = "<group>"; };
 		665BAD0E2209FC4D00E3CC93 /* keybase-medium.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-medium.otf"; sourceTree = "<group>"; };
 		665BAD0F2209FC4D00E3CC93 /* keybase-semibold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-semibold.otf"; sourceTree = "<group>"; };
 		665BAD102209FC4D00E3CC93 /* keybase-extrabold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-extrabold.otf"; sourceTree = "<group>"; };
@@ -545,8 +547,6 @@
 		DBCE36231B90F14800ECADDE /* Engine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Engine.h; sourceTree = "<group>"; };
 		DBCE36241B90F14800ECADDE /* Engine.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Engine.m; sourceTree = "<group>"; };
 		DBDC80031DE7CC8E005387B3 /* kb.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = kb.ttf; sourceTree = "<group>"; };
-		DBDC80091DE7CC8E005387B3 /* SourceCodePro-Semi_bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SourceCodePro-Semi_bold.ttf"; sourceTree = "<group>"; };
-		DBDC800A1DE7CC8E005387B3 /* SourceCodePro.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = SourceCodePro.ttf; sourceTree = "<group>"; };
 		DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		DBDCF3091B8D03DD00BA95D8 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		DBDCF3441B8D04FC00BA95D8 /* Keybase-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Keybase-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -928,8 +928,8 @@
 				665BAD0E2209FC4D00E3CC93 /* keybase-medium.otf */,
 				665BAD122209FC4D00E3CC93 /* keybase-semibold-italic.otf */,
 				665BAD0F2209FC4D00E3CC93 /* keybase-semibold.otf */,
-				DBDC80091DE7CC8E005387B3 /* SourceCodePro-Semi_bold.ttf */,
-				DBDC800A1DE7CC8E005387B3 /* SourceCodePro.ttf */,
+				664073EA220A0B70009B2ED7 /* SourceCodePro-Medium.ttf */,
+				664073E9220A0B70009B2ED7 /* SourceCodePro-Semibold.ttf */,
 			);
 			name = fonts;
 			path = ../../../fonts;
@@ -1605,15 +1605,15 @@
 				DBEE30851FE8511F0020EBA5 /* LICENSE.txt in Resources */,
 				C3A47BFE1E8B148A00974A63 /* keybasemessage.wav in Resources */,
 				665BAD192209FC4D00E3CC93 /* keybase-bold.otf in Resources */,
-				DBDC80111DE7CC8E005387B3 /* SourceCodePro-Semi_bold.ttf in Resources */,
+				664073EB220A0B70009B2ED7 /* SourceCodePro-Semibold.ttf in Resources */,
 				665BAD142209FC4D00E3CC93 /* keybase-medium.otf in Resources */,
 				665BAD162209FC4D00E3CC93 /* keybase-extrabold.otf in Resources */,
 				665BAD182209FC4D00E3CC93 /* keybase-semibold-italic.otf in Resources */,
+				664073EC220A0B70009B2ED7 /* SourceCodePro-Medium.ttf in Resources */,
 				665BAD172209FC4D00E3CC93 /* keybase-medium-italic.otf in Resources */,
 				DBDC800B1DE7CC8E005387B3 /* kb.ttf in Resources */,
 				0044E59D1BCD7CEA008EF7EE /* LaunchScreen.storyboard in Resources */,
 				DBDCF30E1B8D03DD00BA95D8 /* Images.xcassets in Resources */,
-				DBDC80121DE7CC8E005387B3 /* SourceCodePro.ttf in Resources */,
 				665BAD152209FC4D00E3CC93 /* keybase-semibold.otf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

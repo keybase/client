@@ -35,6 +35,7 @@ const font = {
   fontTerminal: {
     ...fontCommon,
     fontFamily: 'Source Code Pro',
+    fontWeight: 500,
   },
   fontTerminalSemibold: {
     ...fontCommon,

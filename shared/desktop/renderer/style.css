@@ -149,14 +149,14 @@ table {
 /* Source Code Pro */
 @font-face {
   font-family: 'Source Code Pro';
-  font-weight: 400;
-  src: url('../../fonts/SourceCodePro.ttf') format('truetype');
+  font-weight: 500;
+  src: url('../../fonts/SourceCodePro-Medium.ttf') format('truetype');
 }
 
 @font-face {
   font-family: 'Source Code Pro';
   font-weight: 600;
-  src: url('../../fonts/SourceCodePro-Semi_bold.ttf') format('truetype');
+  src: url('../../fonts/SourceCodePro-Semibold.ttf') format('truetype');
 }
 /* End Source Code Pro */
 

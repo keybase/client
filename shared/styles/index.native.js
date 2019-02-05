@@ -11,7 +11,7 @@ const font = isIOS
       fontExtrabold: {fontFamily: 'Keybase', fontWeight: '800'},
       fontRegular: {fontFamily: 'Keybase', fontWeight: '500'},
       fontSemibold: {fontFamily: 'Keybase', fontWeight: '600'},
-      fontTerminal: {fontFamily: 'Source Code Pro'},
+      fontTerminal: {fontFamily: 'Source Code Pro Medium'},
       fontTerminalSemibold: {fontFamily: 'Source Code Pro', fontWeight: '600'},
       italic: {fontStyle: 'italic'},
     }
@@ -20,7 +20,7 @@ const font = isIOS
       fontExtrabold: {fontFamily: 'Keybase-ExtraBold', fontWeight: '800'},
       fontRegular: {fontFamily: 'Keybase-Medium', fontWeight: 'normal'},
       fontSemibold: {fontFamily: 'Keybase-SemiBold', fontWeight: 'bold'},
-      fontTerminal: {fontFamily: 'SourceCodePro'},
+      fontTerminal: {fontFamily: 'SourceCodePro-Medium'},
       fontTerminalSemibold: {fontFamily: 'SourceCodePro-Semi', fontWeight: 'bold'},
       italic: {fontStyle: 'italic'},
     }

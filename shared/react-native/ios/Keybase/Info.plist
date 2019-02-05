@@ -51,8 +51,8 @@
 		<string>keybase-medium-italic.otf</string>
 		<string>keybase-semibold.otf</string>
 		<string>keybase-semibold-italic.otf</string>
-		<string>SourceCodePro.ttf</string>
-		<string>SourceCodePro-Semi_bold.ttf</string>
+		<string>SourceCodePro-Medium.ttf</string>
+		<string>SourceCodePro-Semibold.ttf</string>
 		<string>kb.ttf</string>
 	</array>
 	<key>UIBackgroundModes</key>
