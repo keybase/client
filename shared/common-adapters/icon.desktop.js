@@ -11,6 +11,13 @@ import type {Props, IconType} from './icon'
 
 const invertedColors = invert(Styles.globalColors)
 
+// Put character in ::before so it's not selectable
+const NoSelectIcon = Styles.styled.span(({charCode}) => ({
+  '&::before': {
+    content: `"\\${charCode.toString(16)}"`,
+  },
+}))
+
 class Icon extends Component<Props, void> {
   shouldComponentUpdate(nextProps: Props, nextState: any): boolean {
     return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
@@ -71,7 +78,7 @@ class Icon extends Component<Props, void> {
     let iconElement
 
     if (isFontIcon) {
-      iconElement = String.fromCharCode(iconMeta[iconType].charCode || 0)
+      iconElement = <NoSelectIcon charCode={iconMeta[iconType].charCode || 0} />
     } else {
       const imgStyle = Styles.collapseStyles([
         Styles.desktopStyles.noSelect,
