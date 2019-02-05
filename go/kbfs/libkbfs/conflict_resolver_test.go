@@ -100,6 +100,11 @@ func crMakeFakeRMD(rev kbfsmd.Revision, bid kbfsmd.BranchID) ImmutableRootMetada
 			PrevRoot: kbfsmd.FakeID(byte(rev - 1)),
 		},
 		tlfHandle: &TlfHandle{name: "fake"},
+		data: PrivateMetadata{
+			Changes: BlockChanges{
+				Ops: []op{newGCOp(0)}, // arbitrary op to fool unembed checks
+			},
+		},
 	}, key, kbfsmd.FakeID(byte(rev)), time.Now(), true)
 }
 
@@ -1431,12 +1436,8 @@ func TestCRDoActionsWriteConflict(t *testing.T) {
 			mergedRootPath.tailPointer())
 	} else if len(blocks) != 1 {
 		t.Errorf("Unexpected number of blocks")
-	} else if fptr, ok := blocks[mergedName]; !ok {
-		t.Errorf("No pointer for name %s", mergedName)
-	} else if block, err := dirtyBcache.Get(ctx, fb.Tlf, fptr, fb.Branch); err != nil {
-		t.Errorf("Couldn't get fblock: %v", err)
-	} else if fblock, ok := block.(*FileBlock); !ok {
-		t.Errorf("No file block for name %s, block %T", mergedName, block)
+	} else if fblock, ok := blocks[mergedName]; !ok {
+		t.Errorf("No block for name %s", mergedName)
 	} else if fblock.IsInd {
 		t.Errorf("Unexpected indirect block")
 	} else if g, e := fblock.Contents, unmergedData; !reflect.DeepEqual(g, e) {

@@ -29,7 +29,7 @@ func TestChatCommands(t *testing.T) {
 	users := ctc.users()
 	useRemoteMock = false
 	defer func() { useRemoteMock = true }()
-	timeout := 2 * time.Second
+	timeout := 20 * time.Second
 	checkMsgText := func(list *serverChatListener, text string) {
 		select {
 		case msg := <-list.newMessageRemote:

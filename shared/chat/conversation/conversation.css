@@ -28,6 +28,8 @@
 }
 .WrapperMessage-hoverColor:hover {
   background-color: #f7f9fc;
+  /* Using a second box shadow instead of a border to prevent changing the height of the box. */
+  box-shadow: 0 2px 1px 0 rgba(0, 0, 0, 0.1), 0 1px 0 rgba(0, 0, 0, 0.05);
 }
 .WrapperMessage-decorated {
 }
@@ -44,9 +46,6 @@
 .WrapperMessage-hoverBox:hover .WrapperMessage-emojiButton {
   box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.1);
 }
-.WrapperMessage-hoverBox:hover .WrapperMessage-emojiButtonLast {
-  box-shadow: 0 -1px 1px 0 rgba(0, 0, 0, 0.1);
-}
 .WrapperMessage-hoverBox:hover .WrapperMessage-emojiButton.noShadow,
 .WrapperMessage-hoverBox:hover .WrapperMessage-emojiButton:active {
   box-shadow: none;
@@ -56,4 +55,7 @@
 }
 .WrapperMessage-hoverBox:hover .WrapperMessage-newEmojiButton {
   visibility: visible;
+}
+.WrapperMessage-hoverBox:hover .WrapperMessage-emojiRow {
+  box-shadow: 0 2px 1px 0 rgba(0, 0, 0, 0.1);
 }

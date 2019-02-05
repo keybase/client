@@ -100,5 +100,5 @@ func (r *avatarGregorHandler) clearName(ctx context.Context, cli gregor1.Incomin
 		r.G().NotifyRouter.HandleAvatarUpdated(ctx, msg.Name, msg.Formats, msg.Typ)
 	}
 
-	return r.G().GregorDismisser.DismissItem(ctx, cli, item.Metadata().MsgID())
+	return r.G().GregorState.DismissItem(ctx, cli, item.Metadata().MsgID())
 }

@@ -1928,11 +1928,11 @@
 			"revisionTime": "2018-10-12T20:00:37Z"
 		},
 		{
-			"checksumSHA1": "CiVqywIy/F+pvCs7Vwc6mKjc/XE=",
+			"checksumSHA1": "Z3Ze0VcuKoR+2UGdTl4Gy+eNq6A=",
 			"origin": "github.com/keybase/go-git/plumbing/format/packfile",
 			"path": "gopkg.in/src-d/go-git.v4/plumbing/format/packfile",
-			"revision": "2e89fc61e599832d99af61b8ada501fa436e3932",
-			"revisionTime": "2018-10-12T20:00:37Z"
+			"revision": "43f51f14af06767be41f8a56f47626462c802b51",
+			"revisionTime": "2019-02-01T01:02:22Z"
 		},
 		{
 			"checksumSHA1": "07LwJZ9qvq98nM+KABN1BZxWkjU=",

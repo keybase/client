@@ -46,6 +46,12 @@ export type StaticConfig = I.RecordOf<_StaticConfig>
 export type MetaMap = I.Map<Common.ConversationIDKey, Meta.ConversationMeta>
 export type ConversationCountMap = I.Map<Common.ConversationIDKey, number>
 
+// Where focus should be going to.
+// Null represents the default chat input.
+// This is very simple for now, but we can make
+// it fancier by using a stack and more types
+export type Focus = 'filter' | null
+
 export type _State = {
   accountsInfoMap: I.Map<
     Common.ConversationIDKey,
@@ -53,6 +59,7 @@ export type _State = {
   >, // temp cache for requestPayment and sendPayment message data
   badgeMap: ConversationCountMap, // id to the badge count
   editingMap: I.Map<Common.ConversationIDKey, Message.Ordinal>, // current message being edited
+  focus: Focus,
   inboxFilter: string, // filters 'jump to chat'
   inboxHasLoaded: boolean, // if we've ever loaded
   smallTeamsExpanded: boolean, // if we're showing all small teams

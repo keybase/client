@@ -493,7 +493,7 @@ export type MessageTypes = {|
     outParam: void,
   |},
   'keybase.1.identify3Ui.identify3UpdateRow': {|
-    inParam: $ReadOnly<{|guiID: Identify3GUIID, key: String, value: String, siteURL: String, siteIcon: String, proofURL: String, sigID: SigID, state: Identify3RowState, metas?: ?Array<Identify3RowMeta>, color: Identify3RowColor|}>,
+    inParam: $ReadOnly<{|guiID: Identify3GUIID, key: String, value: String, priority: Int, siteURL: String, siteIcon?: ?Array<SizedImage>, proofURL: String, sigID: SigID, state: Identify3RowState, metas?: ?Array<Identify3RowMeta>, color: Identify3RowColor|}>,
     outParam: void,
   |},
   'keybase.1.identify3Ui.identify3UpdateUserCard': {|
@@ -1233,6 +1233,7 @@ export const constantsStatusCode = {
   scchatclienterror: 2516,
   scchatnotinteam: 2517,
   scchatstalepreviousstate: 2518,
+  scchatephemeralretentionpolicyviolatederror: 2519,
   scteambadmembership: 2604,
   scteamselfnotowner: 2607,
   scteamnotfound: 2614,
@@ -2029,7 +2030,7 @@ export type ExitCode =
   | 2 // NOTOK_2
   | 4 // RESTART_4
 
-export type ExtendedStatus = $ReadOnly<{standalone: Boolean, passphraseStreamCached: Boolean, tsecCached: Boolean, deviceSigKeyCached: Boolean, deviceEncKeyCached: Boolean, paperSigKeyCached: Boolean, paperEncKeyCached: Boolean, storedSecret: Boolean, secretPromptSkip: Boolean, rememberPassphrase: Boolean, device?: ?Device, deviceErr?: ?LoadDeviceErr, logDir: String, session?: ?SessionStatus, defaultUsername: String, provisionedUsernames?: ?Array<String>, Clients?: ?Array<ClientDetails>, deviceEkNames?: ?Array<String>, platformInfo: PlatformInfo, defaultDeviceID: DeviceID}>
+export type ExtendedStatus = $ReadOnly<{standalone: Boolean, passphraseStreamCached: Boolean, tsecCached: Boolean, deviceSigKeyCached: Boolean, deviceEncKeyCached: Boolean, paperSigKeyCached: Boolean, paperEncKeyCached: Boolean, storedSecret: Boolean, secretPromptSkip: Boolean, rememberPassphrase: Boolean, device?: ?Device, deviceErr?: ?LoadDeviceErr, logDir: String, session?: ?SessionStatus, defaultUsername: String, provisionedUsernames?: ?Array<String>, Clients?: ?Array<ClientDetails>, deviceEkNames?: ?Array<String>, platformInfo: PlatformInfo, defaultDeviceID: DeviceID, localDbStats?: ?Array<String>, localChatDbStats?: ?Array<String>}>
 export type ExternalServiceConfig = $ReadOnly<{schemaVersion: Int, display?: ?ServiceDisplayConfig, config?: ?ParamProofServiceConfig}>
 export type FSEditListRequest = $ReadOnly<{folder: Folder, requestID: Int}>
 export type FSErrorType =
@@ -2765,6 +2766,7 @@ export type StatusCode =
   | 2516 // SCChatClientError_2516
   | 2517 // SCChatNotInTeam_2517
   | 2518 // SCChatStalePreviousState_2518
+  | 2519 // SCChatEphemeralRetentionPolicyViolatedError_2519
   | 2604 // SCTeamBadMembership_2604
   | 2607 // SCTeamSelfNotOwner_2607
   | 2614 // SCTeamNotFound_2614

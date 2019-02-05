@@ -27,6 +27,7 @@ export const attachmentUploading = 'chat2:attachmentUploading'
 export const attachmentsUpload = 'chat2:attachmentsUpload'
 export const badgesUpdated = 'chat2:badgesUpdated'
 export const blockConversation = 'chat2:blockConversation'
+export const changeFocus = 'chat2:changeFocus'
 export const clearPaymentConfirmInfo = 'chat2:clearPaymentConfirmInfo'
 export const confirmScreenResponse = 'chat2:confirmScreenResponse'
 export const createConversation = 'chat2:createConversation'
@@ -121,6 +122,7 @@ type _AttachmentUploadingPayload = $ReadOnly<{|conversationIDKey: Types.Conversa
 type _AttachmentsUploadPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, paths: Array<Types.PathAndOutboxID>, titles: Array<string>|}>
 type _BadgesUpdatedPayload = $ReadOnly<{|conversations: Array<RPCTypes.BadgeConversationInfo>|}>
 type _BlockConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, reportUser: boolean|}>
+type _ChangeFocusPayload = $ReadOnly<{|nextFocus: Types.Focus|}>
 type _ClearPaymentConfirmInfoPayload = void
 type _ConfirmScreenResponsePayload = $ReadOnly<{|accept: boolean|}>
 type _CreateConversationPayload = $ReadOnly<{|participants: Array<string>|}>
@@ -322,6 +324,10 @@ export const createRequestInfoReceived = (payload: _RequestInfoReceivedPayload) 
  * When the search changes we need to find any existing conversations to stash into the metaMap
  */
 export const createSetPendingConversationExistingConversationIDKey = (payload: _SetPendingConversationExistingConversationIDKeyPayload) => ({payload, type: setPendingConversationExistingConversationIDKey})
+/**
+ * Where we want our focus for keypresses
+ */
+export const createChangeFocus = (payload: _ChangeFocusPayload) => ({payload, type: changeFocus})
 export const createAttachmentDownload = (payload: _AttachmentDownloadPayload) => ({payload, type: attachmentDownload})
 export const createAttachmentDownloaded = (payload: _AttachmentDownloadedPayload) => ({payload, type: attachmentDownloaded})
 export const createAttachmentFullscreenNext = (payload: _AttachmentFullscreenNextPayload) => ({payload, type: attachmentFullscreenNext})
@@ -401,6 +407,7 @@ export type AttachmentUploadingPayload = {|+payload: _AttachmentUploadingPayload
 export type AttachmentsUploadPayload = {|+payload: _AttachmentsUploadPayload, +type: 'chat2:attachmentsUpload'|}
 export type BadgesUpdatedPayload = {|+payload: _BadgesUpdatedPayload, +type: 'chat2:badgesUpdated'|}
 export type BlockConversationPayload = {|+payload: _BlockConversationPayload, +type: 'chat2:blockConversation'|}
+export type ChangeFocusPayload = {|+payload: _ChangeFocusPayload, +type: 'chat2:changeFocus'|}
 export type ClearPaymentConfirmInfoPayload = {|+payload: _ClearPaymentConfirmInfoPayload, +type: 'chat2:clearPaymentConfirmInfo'|}
 export type ConfirmScreenResponsePayload = {|+payload: _ConfirmScreenResponsePayload, +type: 'chat2:confirmScreenResponse'|}
 export type CreateConversationPayload = {|+payload: _CreateConversationPayload, +type: 'chat2:createConversation'|}
@@ -498,6 +505,7 @@ export type Actions =
   | AttachmentsUploadPayload
   | BadgesUpdatedPayload
   | BlockConversationPayload
+  | ChangeFocusPayload
   | ClearPaymentConfirmInfoPayload
   | ConfirmScreenResponsePayload
   | CreateConversationPayload

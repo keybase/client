@@ -147,7 +147,8 @@ func (e *TrackToken) Run(m libkb.MetaContext) (err error) {
 
 		// Dismiss any associated gregor item.
 		if outcome.ResponsibleGregorItem != nil {
-			err = m.G().GregorDismisser.DismissItem(m.Ctx(), nil, outcome.ResponsibleGregorItem.Metadata().MsgID())
+			err = m.G().GregorState.DismissItem(m.Ctx(), nil,
+				outcome.ResponsibleGregorItem.Metadata().MsgID())
 		}
 	}
 

@@ -52,7 +52,7 @@ const getRawLayout = (path: Types.Path, pathItem: Types.PathItem): Layout => {
         ...empty,
         copyPath: true,
         ignoreTlf: true,
-        sendLinkToChat: isMobile,
+        sendLinkToChat: false, // TODO enable mobile // desktop uses separate button
         showInSystemFileManager: !isMobile,
       }
     default:
@@ -67,8 +67,8 @@ const getRawLayout = (path: Types.Path, pathItem: Types.PathItem): Layout => {
         showInSystemFileManager: !isMobile,
         // share menu items
         // eslint-disable-next-line sort-keys
-        sendAttachmentToChat: pathItem.type === 'file' && isMobile, // desktop uses separate button
-        sendLinkToChat: isMobile, // desktop uses separate button
+        sendAttachmentToChat: false, // TODO enable mobile pathItem.type === 'file' && isMobile, // desktop uses separate button
+        sendLinkToChat: false, // TODO enable mobile // desktop uses separate button
         sendToOtherApp: pathItem.type === 'file' && isMobile,
       }
   }

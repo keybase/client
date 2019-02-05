@@ -10,7 +10,7 @@ const routeTree = () => {
   const DevicesRoute = require('../devices/routes').default
   const WalletsRoute = require('../wallets/routes').default
   const GitRoute = require('../git/routes').default
-  const TeamsRoute = require('../teams/routes').default
+  const FilesRoute = require('../fs/routes').default
   const WebLinks = require('./web-links.native').default
   const Passphrase = require('./passphrase/container').default
   const About = require('./about-container').default
@@ -44,7 +44,7 @@ const routeTree = () => {
         },
         component: InvitationsContainer,
       },
-      [Constants.teamsTab]: TeamsRoute,
+      [Constants.fsTab]: FilesRoute,
       [Constants.devicesTab]: DevicesRoute,
       [Constants.walletsTab]: WalletsRoute,
       [Constants.gitTab]: GitRoute,

@@ -1744,6 +1744,71 @@ func IsPermanentErr(err error) bool {
 	return err != nil
 }
 
+func EphemeralLifetimeFromConv(ctx context.Context, g *globals.Context, conv chat1.Conversation) (res *gregor1.DurationSec, err error) {
+	// Check to see if the conversation has an exploding policy
+	var retentionRes *gregor1.DurationSec
+	var gregorRes *gregor1.DurationSec
+	var rentTyp chat1.RetentionPolicyType
+	var convSet bool
+	if conv.ConvRetention != nil {
+		if rentTyp, err = conv.ConvRetention.Typ(); err != nil {
+			return res, err
+		}
+		if rentTyp == chat1.RetentionPolicyType_EPHEMERAL {
+			e := conv.ConvRetention.Ephemeral()
+			retentionRes = &e.Age
+		}
+		convSet = rentTyp != chat1.RetentionPolicyType_INHERIT
+	}
+	if !convSet && conv.TeamRetention != nil {
+		if rentTyp, err = conv.TeamRetention.Typ(); err != nil {
+			return res, err
+		}
+		if rentTyp == chat1.RetentionPolicyType_EPHEMERAL {
+			e := conv.TeamRetention.Ephemeral()
+			retentionRes = &e.Age
+		}
+	}
+
+	// See if there is anything in Gregor
+	st, err := g.GregorState.State(ctx)
+	if err != nil {
+		return res, err
+	}
+	// Note: this value is present on the JS frontend as well
+	key := fmt.Sprintf("exploding:%s", conv.GetConvID())
+	cat, err := gregor1.ObjFactory{}.MakeCategory(key)
+	if err != nil {
+		return res, err
+	}
+	items, err := st.ItemsWithCategoryPrefix(cat)
+	if err != nil {
+		return res, err
+	}
+	if len(items) > 0 {
+		it := items[0]
+		body := string(it.Body().Bytes())
+		sec, err := strconv.ParseInt(body, 0, 0)
+		if err != nil {
+			return res, nil
+		}
+		gsec := gregor1.DurationSec(sec)
+		gregorRes = &gsec
+	}
+	if retentionRes != nil && gregorRes != nil {
+		if *gregorRes < *retentionRes {
+			return gregorRes, nil
+		}
+		return retentionRes, nil
+	} else if retentionRes != nil {
+		return retentionRes, nil
+	} else if gregorRes != nil {
+		return gregorRes, nil
+	} else {
+		return nil, nil
+	}
+}
+
 var decorateBegin = "$>kb$"
 var decorateEnd = "$<kb$"
 var decorateEscapeRe = regexp.MustCompile(`\\*\$\>kb\$`)

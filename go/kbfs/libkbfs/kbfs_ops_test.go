@@ -4314,6 +4314,8 @@ func waitForPrefetchInTest(
 }
 
 func TestKBFSOpsPartialSync(t *testing.T) {
+	t.Skip("Broken, KBFS-3840")
+
 	var u1 kbname.NormalizedUsername = "u1"
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
 	defer kbfsConcurTestShutdown(t, config, ctx, cancel)

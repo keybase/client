@@ -25,6 +25,7 @@ import {isMobile} from '../constants/platform'
 import {chatTab, teamsTab} from '../constants/tabs'
 import openSMS from '../util/sms'
 import {convertToError, logError} from '../util/errors'
+import {getPath} from '../route-tree'
 
 function* createNewTeam(_, action) {
   const {destSubPath, joinSubteam, rootPath, sourceSubPath, teamname} = action.payload
@@ -1151,9 +1152,15 @@ const setupEngineListeners = () => {
         logger.info(`Got teamChanged for ${param.teamName} from service`)
         const state = yield* Saga.selectState()
         const selectedTeamNames = Constants.getSelectedTeamNames(state)
-        if (selectedTeamNames.includes(param.teamName)) {
+        if (
+          selectedTeamNames.includes(param.teamName) &&
+          getPath(state.routeTree.routeState).first() === teamsTab
+        ) {
           // only reload if that team is selected
-          yield arrayOfActionsToSequentially(getLoadCalls(param.teamName))
+          yield arrayOfActionsToSequentially([
+            TeamsGen.createGetTeams(),
+            TeamsGen.createGetDetails({teamname: param.teamName}),
+          ])
         }
         yield arrayOfActionsToSequentially(getLoadCalls())
       }),

@@ -225,92 +225,97 @@ func (s *Stellar) HandleOobm(ctx context.Context, obm gregor.OutOfBandMessage) (
 		return false, errors.New("nil system in out of band message")
 	}
 
+	// make a new background context for the handlers
+	mctx := libkb.NewMetaContextBackground(s.G()).WithLogTag("WAOOBM")
+
+	// all of these handlers should be in goroutines so they don't block the
+	// oobm handler thread.
+
 	switch obm.System().String() {
 	case "internal.reconnect":
-		s.handleReconnect(ctx)
+		go s.handleReconnect(mctx)
 		// returning false, nil here so that others can handle this one too
 		return false, nil
 	case stellar1.PushPaymentStatus:
-		return true, s.handlePaymentStatus(ctx, obm)
+		go s.handlePaymentStatus(mctx, obm)
+		return true, nil
 	case stellar1.PushPaymentNotification:
-		return true, s.handlePaymentNotification(ctx, obm)
+		go s.handlePaymentNotification(mctx, obm)
+		return true, nil
 	case stellar1.PushRequestStatus:
-		return true, s.handleRequestStatus(ctx, obm)
+		go s.handleRequestStatus(mctx, obm)
+		return true, nil
 	}
 
 	return false, nil
 }
 
-func (s *Stellar) handleReconnect(ctx context.Context) {
-	defer s.G().CTraceTimed(ctx, "Stellar.handleReconnect", func() error { return nil })()
-	go func() {
-		mctx := libkb.NewMetaContextBackground(s.G()).WithLogTag("WARE")
-		if s.walletState.Primed() {
-			s.G().Log.CDebugf(ctx, "stellar received reconnect msg, doing delayed wallet refresh")
-			time.Sleep(4 * time.Second)
-			mctx.CDebugf("stellar reconnect msg delay complete, refreshing wallet state")
-		} else {
-			mctx.CDebugf("stellar received reconnect msg, doing wallet refresh on unprimed wallet")
-		}
-		if err := s.walletState.RefreshAll(mctx, "reconnect"); err != nil {
-			mctx.CDebugf("Stellar.handleReconnect RefreshAll error: %s", err)
-		}
-	}()
+func (s *Stellar) handleReconnect(mctx libkb.MetaContext) {
+	defer mctx.CTraceTimed("Stellar.handleReconnect", func() error { return nil })()
+	if s.walletState.Primed() {
+		mctx.CDebugf("stellar received reconnect msg, doing delayed wallet refresh")
+		time.Sleep(4 * time.Second)
+		mctx.CDebugf("stellar reconnect msg delay complete, refreshing wallet state")
+	} else {
+		mctx.CDebugf("stellar received reconnect msg, doing wallet refresh on unprimed wallet")
+	}
+	if err := s.walletState.RefreshAll(mctx, "reconnect"); err != nil {
+		mctx.CDebugf("Stellar.handleReconnect RefreshAll error: %s", err)
+	}
 }
 
-func (s *Stellar) handlePaymentStatus(ctx context.Context, obm gregor.OutOfBandMessage) (err error) {
-	defer s.G().CTraceTimed(ctx, "Stellar.handlePaymentStatus", func() error { return err })()
+func (s *Stellar) handlePaymentStatus(mctx libkb.MetaContext, obm gregor.OutOfBandMessage) {
+	var err error
+	defer mctx.CTraceTimed("Stellar.handlePaymentStatus", func() error { return err })()
 	var msg stellar1.PaymentStatusMsg
 	if err = json.Unmarshal(obm.Body().Bytes(), &msg); err != nil {
-		s.G().Log.CDebugf(ctx, "error unmarshaling obm PaymentStatusMsg: %s", err)
-		return err
+		mctx.CDebugf("error unmarshaling obm PaymentStatusMsg: %s", err)
+		return
 	}
 
 	paymentID := stellar1.NewPaymentID(msg.TxID)
-	if err = s.refreshPaymentFromNotification(ctx, msg.AccountID, paymentID); err != nil {
-		return err
+	if err = s.refreshPaymentFromNotification(mctx, msg.AccountID, paymentID); err != nil {
+		mctx.CDebugf("refreshPaymentFromNotification error: %s", err)
+		return
 	}
-	s.G().NotifyRouter.HandleWalletPaymentStatusNotification(ctx, msg.AccountID, paymentID)
 
-	return nil
+	s.G().NotifyRouter.HandleWalletPaymentStatusNotification(mctx.Ctx(), msg.AccountID, paymentID)
 }
 
-func (s *Stellar) handlePaymentNotification(ctx context.Context, obm gregor.OutOfBandMessage) (err error) {
-	defer s.G().CTraceTimed(ctx, "Stellar.handlePaymentNotification", func() error { return err })()
+func (s *Stellar) handlePaymentNotification(mctx libkb.MetaContext, obm gregor.OutOfBandMessage) {
+	var err error
+	defer mctx.CTraceTimed("Stellar.handlePaymentNotification", func() error { return err })()
 	var msg stellar1.PaymentNotificationMsg
 	if err = json.Unmarshal(obm.Body().Bytes(), &msg); err != nil {
-		s.G().Log.CDebugf(ctx, "error unmarshaling obm PaymentNotificationMsg: %s", err)
-		return err
+		mctx.CDebugf("error unmarshaling obm PaymentNotificationMsg: %s", err)
+		return
 	}
 
-	if err = s.refreshPaymentFromNotification(ctx, msg.AccountID, msg.PaymentID); err != nil {
-		return err
+	if err = s.refreshPaymentFromNotification(mctx, msg.AccountID, msg.PaymentID); err != nil {
+		mctx.CDebugf("refreshPaymentFromNotification error: %s", err)
+		return
 	}
-	s.G().NotifyRouter.HandleWalletPaymentNotification(ctx, msg.AccountID, msg.PaymentID)
-
-	return nil
+	s.G().NotifyRouter.HandleWalletPaymentNotification(mctx.Ctx(), msg.AccountID, msg.PaymentID)
 }
 
-func (s *Stellar) refreshPaymentFromNotification(ctx context.Context, accountID stellar1.AccountID, paymentID stellar1.PaymentID) error {
-	mctx := libkb.NewMetaContext(ctx, s.G()).WithLogTag("WANO")
+func (s *Stellar) refreshPaymentFromNotification(mctx libkb.MetaContext, accountID stellar1.AccountID, paymentID stellar1.PaymentID) error {
 	s.walletState.Refresh(mctx, accountID, "notification received")
-	DefaultLoader(s.G()).UpdatePayment(ctx, paymentID)
+	DefaultLoader(s.G()).UpdatePayment(mctx.Ctx(), paymentID)
 
 	return nil
 }
 
-func (s *Stellar) handleRequestStatus(ctx context.Context, obm gregor.OutOfBandMessage) (err error) {
-	defer s.G().CTraceTimed(ctx, "Stellar.handleRequestStatus", func() error { return err })()
+func (s *Stellar) handleRequestStatus(mctx libkb.MetaContext, obm gregor.OutOfBandMessage) {
+	var err error
+	defer mctx.CTraceTimed("Stellar.handleRequestStatus", func() error { return err })()
 	var msg stellar1.RequestStatusMsg
 	if err = json.Unmarshal(obm.Body().Bytes(), &msg); err != nil {
-		s.G().Log.CDebugf(ctx, "error unmarshaling obm RequestStatusMsg: %s", err)
-		return err
+		mctx.CDebugf("error unmarshaling obm RequestStatusMsg: %s", err)
+		return
 	}
 
-	s.G().NotifyRouter.HandleWalletRequestStatusNotification(ctx, msg.ReqID)
-	DefaultLoader(s.G()).UpdateRequest(ctx, msg.ReqID)
-
-	return nil
+	mctx.G().NotifyRouter.HandleWalletRequestStatusNotification(mctx.Ctx(), msg.ReqID)
+	DefaultLoader(mctx.G()).UpdateRequest(mctx.Ctx(), msg.ReqID)
 }
 
 type hasAcceptedDisclaimerDBEntry struct {
