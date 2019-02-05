@@ -4,6 +4,7 @@ import * as RPCTypes from './rpc-gen'
 import * as ChatTypes from './chat2'
 import * as Devices from './devices'
 import * as TeamsTypes from '../../constants/types/teams'
+import * as FsGen from '../../actions/fs-gen'
 import type {IconType} from '../../common-adapters/icon.constants'
 import {type TextType} from '../../common-adapters/text'
 import {isWindows} from '../platform'
@@ -20,8 +21,8 @@ export type ProgressType = 'favorite' | 'pending' | 'loaded'
 export type _FsError = {
   time: number,
   error: string,
-  erroredAction: any, // Actions,
-  retriableAction?: any, // Actions,
+  erroredAction: FsGen.Actions,
+  retriableAction?: ?FsGen.Actions,
 }
 export type FsError = I.RecordOf<_FsError>
 
