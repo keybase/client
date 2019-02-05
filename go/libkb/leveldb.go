@@ -328,10 +328,6 @@ type LevelDbTransaction struct {
 	tr *leveldb.Transaction
 }
 
-func (l LevelDbTransaction) Stats() string {
-	return ""
-}
-
 func (l LevelDbTransaction) Put(id DbKey, aliases []DbKey, value []byte) error {
 	return levelDbPut(l.tr, id, aliases, value)
 }
