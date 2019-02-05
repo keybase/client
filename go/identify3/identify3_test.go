@@ -1,6 +1,9 @@
 package identify3
 
 import (
+	"sync"
+	"testing"
+
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/kbtest"
@@ -9,8 +12,6 @@ import (
 	insecureTriplesec "github.com/keybase/go-triplesec-insecure"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
-	"sync"
-	"testing"
 )
 
 func SetupTest(tb libkb.TestingTB, name string) libkb.TestContext {
@@ -156,11 +157,11 @@ func TestCryptocurrency(t *testing.T) {
 	require.False(t, res.userWasReset)
 
 	// We get one row of results, just the cryptocurrency row.
-	require.Equal(t, len(res.rows), 1)
-	require.Equal(t, res.rows[0].Key, "bitcoin")
-	require.Equal(t, res.rows[0].Value, addr)
-	require.Equal(t, res.rows[0].Color, keybase1.Identify3RowColor_GREEN)
-	require.Equal(t, res.rows[0].State, keybase1.Identify3RowState_VALID)
+	require.Equal(t, 1, len(res.rows))
+	require.Equal(t, "btc", res.rows[0].Key)
+	require.Equal(t, addr, res.rows[0].Value)
+	require.Equal(t, keybase1.Identify3RowColor_GREEN, res.rows[0].Color)
+	require.Equal(t, keybase1.Identify3RowState_VALID, res.rows[0].State)
 }
 
 func TestFollowUnfollowTracy(t *testing.T) {

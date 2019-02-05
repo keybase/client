@@ -18,7 +18,7 @@ import {getContentTypeFromURL} from '../platform-specific'
 import {isMobile} from '../../constants/platform'
 import * as RouteTreeGen from '../route-tree-gen'
 import {getPathProps} from '../../route-tree'
-import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
+import {fsRootRoute, makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
 
 const loadFavorites = (state, action) =>
   RPCTypes.apiserverGetWithSessionRpcPromise({
@@ -608,9 +608,9 @@ const _getRouteChangeForOpenPathInFilesTab = (action: FsGen.OpenPathInFilesTabPa
     ? RouteTreeGen.createNavigateTo({
         path:
           action.payload.path === Constants.defaultPath
-            ? [Tabs.fsTab]
+            ? fsRootRoute
             : [
-                Tabs.fsTab,
+                ...fsRootRoute,
                 // Construct all parent folders so back button works all the way back
                 // to /keybase
                 ...Types.getPathElements(action.payload.path)

@@ -36,10 +36,6 @@ func NewCmdSignup(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 				Name:  "username",
 				Usage: "Specify a username.",
 			},
-			cli.BoolFlag{
-				Name:  "no-passphrase",
-				Usage: "Sign up without passphrase.",
-			},
 		},
 	}
 
@@ -117,10 +113,6 @@ func (s *CmdSignup) ParseArgv(ctx *cli.Context) (err error) {
 	if s.defaultDevice == "" {
 		s.defaultDevice = "home computer"
 	}
-	s.randomPassphrase = ctx.Bool("no-passphrase")
-	if s.randomPassphrase && s.defaultPassphrase != "" {
-		return fmt.Errorf("cannot pass both --no-passphrase and --passphrase")
-	}
 
 	if ctx.Bool("batch") {
 		s.fields = &PromptFields{
@@ -136,6 +128,10 @@ func (s *CmdSignup) ParseArgv(ctx *cli.Context) (err error) {
 		s.genPaper = true
 		s.doPrompt = false
 		s.storeSecret = true
+		s.randomPassphrase = ctx.Bool("no-passphrase")
+		if s.randomPassphrase && s.defaultPassphrase != "" {
+			return fmt.Errorf("cannot pass both --no-passphrase and --passphrase")
+		}
 	} else {
 		s.doPrompt = true
 	}

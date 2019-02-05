@@ -2,6 +2,7 @@
 import confirmPayment from './payments/confirm/index.stories'
 import conversationList from './conversation-list/index.stories'
 import createChannel from './create-channel/index.stories'
+import explodingMessageExplainer from './conversation/messages/exploding-explainer-dialog/index.stories'
 import giphy from './conversation/giphy/index.stories'
 import headerArea from './conversation/header-area/normal/index.stories'
 import inbox from './inbox/index.stories.js'
@@ -23,6 +24,7 @@ const load = () => {
     confirmPayment,
     conversationList,
     createChannel,
+    explodingMessageExplainer,
     giphy,
     headerArea,
     inbox,

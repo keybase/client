@@ -3,6 +3,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters/mobile.native'
 import * as Styles from '../../styles'
+import {waitingKey} from '../../constants/tracker2'
 
 import type {Props} from '.'
 
@@ -38,7 +39,8 @@ const EditProfileRender = (props: Props) => (
       </Kb.Text>
     )}
     <Kb.ButtonBar fullWidth={true}>
-      <Kb.Button
+      <Kb.WaitingButton
+        waitingKey={waitingKey}
         disabled={props.bioLengthLeft < 0}
         style={styles.button}
         type="Primary"

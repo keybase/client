@@ -37,7 +37,7 @@ const editProfile = (state, action) =>
         reason: '',
       })
     } else {
-      return TrackerGen.createGetMyProfile({ignoreCache: true})
+      return RouteTreeGen.createNavigateUp()
     }
   })
 
