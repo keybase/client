@@ -265,6 +265,9 @@ func runID3(t *testing.T, mctx libkb.MetaContext, user string, follow bool) id3r
 	res := fakeUI3.results()
 	for _, row := range res.rows {
 		checkIcon(t, row.Key, row.SiteIcon)
+		if row.Priority == 0 || row.Priority == 9999999 {
+			t.Fatalf("unexpected priority %v %v", row.Key, row.Priority)
+		}
 	}
 	return res
 }
