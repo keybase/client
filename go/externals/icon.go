@@ -8,7 +8,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
-func iconKeyMangle(key string) string {
+func normalizeIconKey(key string) string {
 	switch key {
 	case "bitcoin":
 		return "btc"
@@ -22,7 +22,7 @@ func iconKeyMangle(key string) string {
 }
 
 func ServiceHasFullIcon(key string) bool {
-	switch iconKeyMangle(key) {
+	switch normalizeIconKey(key) {
 	case "btc", "facebook", "github", "hackernews", "pgp", "reddit", "rooter",
 		"stellar", "twitter", "web", "zcash":
 		return false
@@ -42,7 +42,7 @@ func MakeIcons(mctx libkb.MetaContext, serviceKey, imgName string, size int) (re
 			Path: strings.Join([]string{
 				libkb.SiteURILookup[mctx.G().Env.GetRunMode()],
 				"images/paramproofs/services",
-				iconKeyMangle(serviceKey),
+				normalizeIconKey(serviceKey),
 				fmt.Sprintf("%v_%v%v.png", imgName, size, factorix),
 			}, "/"),
 			Width: size * factor,
