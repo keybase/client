@@ -451,8 +451,11 @@ func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stella
 
 	isMobile := mctx.G().GetAppType() == libkb.MobileAppType
 	ctime, err := mctx.G().ActiveDevice.Ctime(mctx)
-	ctimeEpochSeconds := int64(ctime) / 1000
-	deviceAge := time.Since(time.Unix(ctimeEpochSeconds, 0)).Hours() / 24.0 // in days
+	if err != nil {
+		return empty, err
+	}
+	deviceProvisionedAt := time.Unix(int64(ctime)/1000, 0)
+	deviceAge := mctx.G().Clock().Since(deviceProvisionedAt)
 
 	acct := stellar1.WalletAccountLocal{
 		AccountID:           accountID,
@@ -461,7 +464,7 @@ func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stella
 		BalanceDescription:  balance,
 		Seqno:               details.Seqno,
 		AccountMode:         accountMode,
-		AccountModeEditable: isMobile && deviceAge > 7,
+		AccountModeEditable: isMobile && deviceAge > 7*24*time.Hour,
 	}
 
 	conf, err := mctx.G().GetStellar().GetServerDefinitions(mctx.Ctx())
