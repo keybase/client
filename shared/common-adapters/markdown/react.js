@@ -54,7 +54,10 @@ const neutralPreviewStyle = Styles.platformStyles({
 })
 
 const boldStyle = Styles.platformStyles({
-  common: {...wrapStyle},
+  common: {
+    ...Styles.globalStyles.fontBold,
+    ...wrapStyle,
+  },
   isElectron: {color: 'inherit'},
   isMobile: {color: undefined},
 })
