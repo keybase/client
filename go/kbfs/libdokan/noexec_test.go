@@ -89,7 +89,6 @@ func testNoExec(t *testing.T, users []string) error {
 
 }
 func TestNoExec(t *testing.T) {
-	t.Skip("Flaky")
 	err := testNoExec(t, []string{"jdoe", "janedoe"})
 	if err == nil {
 		t.Fatal("Unexpected success executing go on kbfs, expected fail (noexec)")
@@ -100,7 +99,6 @@ func TestNoExec(t *testing.T) {
 }
 
 func TestNoExecWhitelist(t *testing.T) {
-	t.Skip("Flaky KBFS-3830")
 	err := testNoExec(t, []string{"jdoe"})
 	if err != nil {
 		t.Fatal("Unexpected failure executing go on kbfs, expected success (whitelist): ", err)
