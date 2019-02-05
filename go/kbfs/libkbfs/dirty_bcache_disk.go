@@ -118,7 +118,7 @@ func (d *DirtyBlockCacheDisk) Put(
 	}
 
 	// Need to ready the block, since the disk cache expects encrypted
-	// and a block ID that can be verified against that data.
+	// data and a block ID that can be verified against that data.
 	id, _, readyBlockData, err := d.config.BlockOps().Ready(ctx, d.kmd, block)
 	if err != nil {
 		return err
