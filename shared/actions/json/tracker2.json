@@ -1,7 +1,5 @@
 {
-  "prelude": [
-    "import * as Types from '../constants/types/tracker2'"
-  ],
+  "prelude": ["import * as Types from '../constants/types/tracker2'"],
   "actions": {
     "load": {
       "assertion": "string",
@@ -10,7 +8,7 @@
       "guiID": "string",
       "ignoreCache?": "boolean",
       "reason": "string",
-      "inTracker": "boolean",
+      "inTracker": "boolean"
     },
     "updatedDetails": {
       "guiID": "string",
@@ -22,20 +20,21 @@
       "fullname": "string",
       "location": "string",
       "username": "string",
-      "teamShowcase": "Array<Types._TeamShowcase>",
+      "teamShowcase": "Array<Types._TeamShowcase>"
     },
     "updateResult": {
       "guiID": "string",
       "result": "Types.DetailsState",
-      "reason": "?string",
+      "reason": "?string"
     },
     "closeTracker": {
-      "guiID": "string",
+      "guiID": "string"
     },
     "updateAssertion": {
       "guiID": "string",
       "type": "string",
       "value": "string",
+      "sigID": "string",
       "siteURL": "string",
       "siteIcon": "string",
       "proofURL": "string",
@@ -48,12 +47,14 @@
       "follow": "boolean"
     },
     "ignore": {
-      "guiID": "string",
+      "guiID": "string"
     },
     "updateFollowers": {
       "username": "string",
       "following": "Array<{following: boolean, followsYou: boolean, fullname: string, username: string}>",
-      "followers": "Array<{following: boolean, followsYou: boolean, fullname: string, username: string}>",
+      "followers": "Array<{following: boolean, followsYou: boolean, fullname: string, username: string}>"
     },
+    "getProofSuggestions": {},
+    "proofSuggestionsUpdated": {"suggestions": "$ReadOnlyArray<Types.Assertion>"}
   }
 }

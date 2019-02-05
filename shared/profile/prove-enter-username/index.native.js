@@ -34,7 +34,8 @@ function UsernameTips({platform}: {platform: PlatformsExpandedType}) {
           </Text>
           <Box2 direction="horizontal">
             <Text
-              center={true} type="BodySmallSecondaryLink"
+              center={true}
+              type="BodySmallSecondaryLink"
               onClick={() => Linking.openURL('http://www.facebook.com/settings')}
             >
               http://www.facebook.com/settings
@@ -74,7 +75,12 @@ class PrivateEnterUsernameRender extends Component<Props, State> {
   }
 
   render() {
-    const {floatingLabelText, hintText} = platformText[this.props.platform]
+    const pt = platformText[this.props.platform]
+    if (!pt) {
+      // TODO support generic proofs
+      throw new Error(`Proofs for platform ${this.props.platform} are unsupported.`)
+    }
+    const {floatingLabelText, hintText} = pt
     const notification = this.props.errorText
       ? {notification: {message: customError(this.props.errorText, this.props.errorCode), type: 'error'}}
       : {}
