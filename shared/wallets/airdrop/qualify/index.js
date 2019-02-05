@@ -151,7 +151,7 @@ class Qualified extends React.PureComponent<Props, State> {
     const p = this.props
     const rows = this.props.rows
     const loadingRows = !!rows.length && this.state.rowIdxLoaded < rows.length - 1
-    const loading = p.state === 'loading' || loadingRows
+    const loading = p.state === 'loading' || !!loadingRows
 
     if (Styles.isMobile && p.state === 'accepted') {
       return null
@@ -205,7 +205,7 @@ class Qualified extends React.PureComponent<Props, State> {
             </Kb.Box2>
             <Kb.Box2 direction="vertical" style={styles.grow} />
           </>
-          {p.state === 'qualified' && (
+          {p.state === 'qualified' && !loading && (
             <Kb.WaitingButton
               onClick={p.onSubmit}
               fullWidth={true}
