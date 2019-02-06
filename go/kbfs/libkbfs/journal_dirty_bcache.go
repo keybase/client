@@ -13,7 +13,7 @@ import (
 )
 
 type journalDirtyBlockCache struct {
-	jServer      *JournalServer
+	jServer      *JournalManager
 	syncCache    DirtyBlockCache
 	journalCache DirtyBlockCache
 }

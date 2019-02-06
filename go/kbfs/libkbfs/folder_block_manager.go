@@ -545,7 +545,7 @@ func (fbm *folderBlockManager) processBlocksToDelete(ctx context.Context, toDele
 
 	// Make sure all blocks in the journal (if journaling is enabled)
 	// are flushed before attempting to delete any of them.
-	if jServer, err := GetJournalServer(fbm.config); err == nil {
+	if jServer, err := GetJournalManager(fbm.config); err == nil {
 		fbm.log.CDebugf(ctx, "Waiting for journal to flush")
 		if err := jServer.WaitForCompleteFlush(ctx, fbm.id); err != nil {
 			return err

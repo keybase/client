@@ -20,7 +20,7 @@ import (
 
 func setupJournalBlockServerTest(t *testing.T) (
 	tempdir string, ctx context.Context, cancel context.CancelFunc,
-	config *ConfigLocal, jServer *JournalServer) {
+	config *ConfigLocal, jServer *JournalManager) {
 	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_block_server")
 	require.NoError(t, err)
 
@@ -57,7 +57,7 @@ func setupJournalBlockServerTest(t *testing.T) (
 	err = config.EnableJournaling(
 		ctx, tempdir, TLFJournalBackgroundWorkEnabled)
 	require.NoError(t, err)
-	jServer, err = GetJournalServer(config)
+	jServer, err = GetJournalManager(config)
 	require.NoError(t, err)
 	blockServer := jServer.blockServer()
 	// Turn this on for testing.

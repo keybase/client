@@ -13,7 +13,7 @@ import (
 )
 
 type journalBlockServer struct {
-	jServer *JournalServer
+	jServer *JournalManager
 	BlockServer
 	enableAddBlockReference bool
 }

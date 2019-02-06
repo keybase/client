@@ -642,7 +642,7 @@ func TestFileLocking(t *testing.T) {
 	// Make sure the journal didn't flush.
 	err = fs.SyncAll()
 	require.NoError(t, err)
-	jServer, err := libkbfs.GetJournalServer(fs.config)
+	jServer, err := libkbfs.GetJournalManager(fs.config)
 	require.NoError(t, err)
 	status, err := jServer.JournalStatus(fs.root.GetFolderBranch().Tlf)
 	require.NoError(t, err)

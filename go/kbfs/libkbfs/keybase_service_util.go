@@ -67,7 +67,7 @@ func serviceLoggedIn(ctx context.Context, config Config, session SessionInfo,
 	bws TLFJournalBackgroundWorkStatus) (wg *sync.WaitGroup) {
 	wg = &sync.WaitGroup{} // To avoid returning a nil pointer.
 	log := config.MakeLogger("")
-	if jServer, err := GetJournalServer(config); err == nil {
+	if jServer, err := GetJournalManager(config); err == nil {
 		err := jServer.EnableExistingJournals(
 			ctx, session.UID, session.VerifyingKey, bws)
 		if err != nil {
@@ -112,7 +112,7 @@ func serviceLoggedIn(ctx context.Context, config Config, session SessionInfo,
 
 // serviceLoggedOut should be called when the current user logs out.
 func serviceLoggedOut(ctx context.Context, config Config) {
-	if jServer, err := GetJournalServer(config); err == nil {
+	if jServer, err := GetJournalManager(config); err == nil {
 		jServer.shutdownExistingJournals(ctx)
 	}
 	config.ResetCaches()

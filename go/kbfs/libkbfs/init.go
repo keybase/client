@@ -96,7 +96,7 @@ type InitParams struct {
 	LogFileConfig logger.LogFileConfig
 
 	// TLFJournalBackgroundWorkStatus is the status to use to
-	// pass into JournalServer.enableJournaling. Only has an effect when
+	// pass into JournalManager.enableJournaling. Only has an effect when
 	// EnableJournal is non-empty.
 	TLFJournalBackgroundWorkStatus TLFJournalBackgroundWorkStatus
 

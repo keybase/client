@@ -19,7 +19,7 @@ import (
 
 func setupJournalMDOpsTest(t *testing.T) (
 	tempdir string, ctx context.Context, cancel context.CancelFunc,
-	config *ConfigLocal, oldMDOps MDOps, jServer *JournalServer) {
+	config *ConfigLocal, oldMDOps MDOps, jServer *JournalManager) {
 	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_md_ops")
 	require.NoError(t, err)
 
@@ -57,7 +57,7 @@ func setupJournalMDOpsTest(t *testing.T) (
 	err = config.EnableJournaling(
 		ctx, tempdir, TLFJournalBackgroundWorkEnabled)
 	require.NoError(t, err)
-	jServer, err = GetJournalServer(config)
+	jServer, err = GetJournalManager(config)
 	// Turn off listeners to avoid background MD pushes for CR.
 	jServer.onBranchChange = nil
 	jServer.onMDFlush = nil

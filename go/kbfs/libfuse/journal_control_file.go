@@ -44,7 +44,7 @@ func (f *JournalControlFile) Write(ctx context.Context, req *fuse.WriteRequest,
 		return nil
 	}
 
-	jServer, err := libkbfs.GetJournalServer(f.folder.fs.config)
+	jServer, err := libkbfs.GetJournalManager(f.folder.fs.config)
 	if err != nil {
 		return err
 	}

@@ -97,7 +97,7 @@ func (k *LibKBFS) InitTest(ver kbfsmd.MetadataVer,
 			}
 			config.EnableJournaling(context.Background(), journalRoot,
 				libkbfs.TLFJournalBackgroundWorkEnabled)
-			jServer, err := libkbfs.GetJournalServer(config)
+			jServer, err := libkbfs.GetJournalManager(config)
 			if err != nil {
 				panic(fmt.Sprintf("No journal server for %s: %+v", name, err))
 			}
@@ -729,7 +729,7 @@ func (k *LibKBFS) EnableJournal(u User, tlfName string, t tlf.Type) error {
 		return err
 	}
 
-	jServer, err := libkbfs.GetJournalServer(config)
+	jServer, err := libkbfs.GetJournalManager(config)
 	if err != nil {
 		return err
 	}
@@ -754,7 +754,7 @@ func (k *LibKBFS) PauseJournal(u User, tlfName string, t tlf.Type) error {
 		return err
 	}
 
-	jServer, err := libkbfs.GetJournalServer(config)
+	jServer, err := libkbfs.GetJournalManager(config)
 	if err != nil {
 		return err
 	}
@@ -774,7 +774,7 @@ func (k *LibKBFS) ResumeJournal(u User, tlfName string, t tlf.Type) error {
 		return err
 	}
 
-	jServer, err := libkbfs.GetJournalServer(config)
+	jServer, err := libkbfs.GetJournalManager(config)
 	if err != nil {
 		return err
 	}
@@ -794,7 +794,7 @@ func (k *LibKBFS) FlushJournal(u User, tlfName string, t tlf.Type) error {
 		return err
 	}
 
-	jServer, err := libkbfs.GetJournalServer(config)
+	jServer, err := libkbfs.GetJournalManager(config)
 	if err != nil {
 		return err
 	}

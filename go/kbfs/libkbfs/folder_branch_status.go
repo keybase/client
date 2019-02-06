@@ -68,7 +68,7 @@ type KBFSStatus struct {
 	GitArchiveBytes      int64
 	GitLimitBytes        int64
 	FailingServices      map[string]error
-	JournalServer        *JournalServerStatus            `json:",omitempty"`
+	JournalManager       *JournalManagerStatus           `json:",omitempty"`
 	DiskBlockCacheStatus map[string]DiskBlockCacheStatus `json:",omitempty"`
 	DiskMDCacheStatus    DiskMDCacheStatus               `json:",omitempty"`
 	DiskQuotaCacheStatus DiskQuotaCacheStatus            `json:",omitempty"`
@@ -312,7 +312,7 @@ func (fbsk *folderBranchStatusKeeper) getStatus(ctx context.Context,
 	// TODO: Ideally, the journal would push status
 	// updates to this object instead, so we can notify
 	// listeners.
-	jServer, err := GetJournalServer(fbsk.config)
+	jServer, err := GetJournalManager(fbsk.config)
 	if err != nil {
 		return fbs, ch, nil
 	}

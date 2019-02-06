@@ -163,7 +163,7 @@ func (f *File) Lock() (err error) {
 	if err != nil {
 		return err
 	}
-	jServer, err := libkbfs.GetJournalServer(f.fs.config)
+	jServer, err := libkbfs.GetJournalManager(f.fs.config)
 	if err != nil {
 		return err
 	}
@@ -206,7 +206,7 @@ func (f *File) Unlock() (err error) {
 	if err != nil {
 		return err
 	}
-	jServer, err := libkbfs.GetJournalServer(f.fs.config)
+	jServer, err := libkbfs.GetJournalManager(f.fs.config)
 	if err != nil {
 		return err
 	}

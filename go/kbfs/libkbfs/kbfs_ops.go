@@ -1044,8 +1044,8 @@ func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 		}
 	}
 	failures, ch := fs.currentStatus.CurrentStatus()
-	var jServerStatus *JournalServerStatus
-	jServer, jErr := GetJournalServer(fs.config)
+	var jServerStatus *JournalManagerStatus
+	jServer, jErr := GetJournalManager(fs.config)
 	if jErr == nil {
 		status, tlfIDs := jServer.Status(ctx)
 		jServerStatus = &status
@@ -1089,7 +1089,7 @@ func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 		GitArchiveBytes:      gitArchiveBytes,
 		GitLimitBytes:        gitLimitBytes,
 		FailingServices:      failures,
-		JournalServer:        jServerStatus,
+		JournalManager:       jServerStatus,
 		DiskBlockCacheStatus: dbcStatus,
 		DiskMDCacheStatus:    dmcStatus,
 		DiskQuotaCacheStatus: dqcStatus,

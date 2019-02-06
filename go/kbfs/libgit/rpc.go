@@ -58,7 +58,7 @@ func (rh *RPCHandler) waitForJournal(
 		return err
 	}
 
-	jServer, err := libkbfs.GetJournalServer(gitConfig)
+	jServer, err := libkbfs.GetJournalManager(gitConfig)
 	if err != nil {
 		rh.log.CDebugf(ctx, "No journal server: %+v", err)
 		return nil

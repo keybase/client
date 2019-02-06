@@ -56,10 +56,10 @@ func (a JournalAction) String() string {
 	return fmt.Sprintf("JournalAction(%d)", int(a))
 }
 
-// Execute performs the action on the given JournalServer for the
+// Execute performs the action on the given JournalManager for the
 // given TLF.
 func (a JournalAction) Execute(
-	ctx context.Context, jServer *libkbfs.JournalServer,
+	ctx context.Context, jServer *libkbfs.JournalManager,
 	tlfID tlf.ID, h *libkbfs.TlfHandle) error {
 	// These actions don't require TLF IDs.
 	switch a {
