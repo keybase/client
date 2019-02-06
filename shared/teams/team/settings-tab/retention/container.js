@@ -106,7 +106,8 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     throw new Error(`RetentionPicker: impossible entityType encountered: ${entityType}`)
   }
 
-  const policyIsExploding = policy.type === 'explode'
+  const policyIsExploding =
+    policy.type === 'explode' || (policy.type === 'inherit' && teamPolicy.type === 'explode')
   const _path = getPath(state.routeTree.routeState)
   return {
     _path,

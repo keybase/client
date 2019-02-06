@@ -196,21 +196,21 @@ class _RetentionPicker extends React.Component<Kb.PropsWithOverlay<Props>, State
           </Kb.Box2>
           <Kb.Icon type="iconfont-caret-down" inheritColor={true} fontSize={7} />
         </Kb.ClickableBox>
-        {this.props.showOverrideNotice && (
-          <Kb.Text style={{marginTop: Styles.globalMargins.xtiny}} type="BodySmall">
-            Individual channels can override this.
-          </Kb.Text>
-        )}
         {this.props.policyIsExploding && (
           <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} gap="xtiny">
             <Kb.Text type="BodySmall">Participants will see their message explode.</Kb.Text>
-            <Kb.Icon
-              color={Styles.globalColors.black_75}
-              fontSize={Styles.isMobile ? 44 : 35}
-              style={boomIconStyle}
-              type="iconfont-boom"
-            />
+            <Kb.Box style={boomIconBoxStyle}>
+              <Kb.Icon
+                color={Styles.globalColors.black_75}
+                fontSize={Styles.isMobile ? 44 : 35}
+                style={Kb.iconCastPlatformStyles(boomIconStyle)}
+                type="iconfont-boom"
+              />
+            </Kb.Box>
           </Kb.Box2>
+        )}
+        {this.props.showOverrideNotice && (
+          <Kb.Text type="BodySmall">Individual channels can override this.</Kb.Text>
         )}
         {this.props.showSaveIndicator && (
           <SaveIndicator
@@ -258,9 +258,24 @@ const headingStyle = {
   marginBottom: Styles.globalMargins.tiny,
 }
 
-const boomIconStyle = {
-  opacity: 0.4,
+const boomIconBoxStyle = {
+  position: 'relative',
 }
+
+const boomIconStyle = Styles.platformStyles({
+  common: {
+    opacity: 0.4,
+    position: 'absolute',
+  },
+  isElectron: {
+    left: 0,
+    top: -16,
+  },
+  isMobile: {
+    left: 0,
+    top: -22,
+  },
+})
 
 const displayHeadingStyle = {
   ...headingStyle,
@@ -275,6 +290,7 @@ const dropdownStyle = Styles.platformStyles({
     borderRadius: Styles.borderRadius,
     borderStyle: 'solid',
     borderWidth: 1,
+    marginBottom: Styles.globalMargins.tiny,
     minWidth: 220,
     paddingRight: Styles.globalMargins.small,
   },
