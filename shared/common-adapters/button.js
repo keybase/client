@@ -95,7 +95,12 @@ class Button extends React.Component<Props> {
     )
 
     return (
-      <ClickableBox style={containerStyle} onClick={onClick}>
+      <ClickableBox
+        style={containerStyle}
+        onClick={onClick}
+        onMouseEnter={this.props.onMouseEnter}
+        onMouseLeave={this.props.onMouseLeave}
+      >
         <Box
           style={collapseStyles([
             globalStyles.flexBoxRow,
