@@ -116,6 +116,7 @@ export const newRoutes = {
   postProof: {getScreen: () => require('./post-proof/container').default},
   profile: {
     getScreen: () => (flags.identify3 ? require('./user/container').default : require('./container').default),
+    upgraded: true,
   },
   proveEnterUsername: {getScreen: () => require('./prove-enter-username/container').default},
   proveWebsiteChoice: {getScreen: () => require('./prove-website-choice/container').default},

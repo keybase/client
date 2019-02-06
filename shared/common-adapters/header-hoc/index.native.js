@@ -46,67 +46,64 @@ export class HeaderHocHeader extends React.Component<Props, State> {
     const hasTextTitle = !!this.props.title && !this.props.titleComponent
 
     return (
-      <>
-        {flags.useNewRouter && <SafeAreaViewTop />}
-        <Box
-          style={Styles.collapseStyles([
-            styles.header,
-            this.props.borderless && styles.borderless,
-            this.props.headerStyle,
-          ])}
-        >
-          {this.props.customComponent}
-          {hasTextTitle && (
-            <Box
-              style={Styles.collapseStyles([
-                styles.titleContainer,
-                styles.titleTextContainer,
-                Styles.isIOS && {
-                  paddingLeft: titlePadding,
-                  paddingRight: titlePadding,
-                },
-                Styles.isAndroid && {
-                  paddingLeft: onLeftAction ? titlePaddingLeft : Styles.globalMargins.small,
-                  paddingRight: titlePadding,
-                },
-              ])}
-            >
-              <Text type="BodyBig" style={styles.title} lineClamp={1}>
-                {this.props.title}
-              </Text>
-            </Box>
-          )}
-          <LeftAction
-            badgeNumber={this.props.badgeNumber}
-            customCancelText={this.props.customCancelText}
-            disabled={false}
-            hasTextTitle={hasTextTitle}
-            hideBackLabel={this.props.hideBackLabel}
-            leftAction={leftAction}
-            leftActionText={this.props.leftActionText}
-            onLeftAction={onLeftAction}
-            theme={this.props.theme}
-          />
-          {this.props.titleComponent && (
-            <Box
-              style={Styles.collapseStyles([
-                styles.titleContainer,
-                onLeftAction && styles.titleContainerRightPadding,
-                rightActions.length && styles.titleContainerLeftPadding,
-              ])}
-            >
-              {this.props.titleComponent}
-            </Box>
-          )}
-          <RightActions
-            floatingMenuVisible={this.state.floatingMenuVisible}
-            hasTextTitle={hasTextTitle}
-            hideFloatingMenu={this._hideFloatingMenu}
-            rightActions={rightActions}
-            showFloatingMenu={this._showFloatingMenu}
-          />
-        </Box>
-      </>
+      <Box
+        style={Styles.collapseStyles([
+          styles.header,
+          this.props.borderless && styles.borderless,
+          this.props.headerStyle,
+        ])}
+      >
+        {this.props.customComponent}
+        {hasTextTitle && (
+          <Box
+            style={Styles.collapseStyles([
+              styles.titleContainer,
+              styles.titleTextContainer,
+              Styles.isIOS && {
+                paddingLeft: titlePadding,
+                paddingRight: titlePadding,
+              },
+              Styles.isAndroid && {
+                paddingLeft: onLeftAction ? titlePaddingLeft : Styles.globalMargins.small,
+                paddingRight: titlePadding,
+              },
+            ])}
+          >
+            <Text type="BodyBig" style={styles.title} lineClamp={1}>
+              {this.props.title}
+            </Text>
+          </Box>
+        )}
+        <LeftAction
+          badgeNumber={this.props.badgeNumber}
+          customCancelText={this.props.customCancelText}
+          disabled={false}
+          hasTextTitle={hasTextTitle}
+          hideBackLabel={this.props.hideBackLabel}
+          leftAction={leftAction}
+          leftActionText={this.props.leftActionText}
+          onLeftAction={onLeftAction}
+          theme={this.props.theme}
+        />
+        {this.props.titleComponent && (
+          <Box
+            style={Styles.collapseStyles([
+              styles.titleContainer,
+              onLeftAction && styles.titleContainerRightPadding,
+              rightActions.length && styles.titleContainerLeftPadding,
+            ])}
+          >
+            {this.props.titleComponent}
+          </Box>
+        )}
+        <RightActions
+          floatingMenuVisible={this.state.floatingMenuVisible}
+          hasTextTitle={hasTextTitle}
+          hideFloatingMenu={this._hideFloatingMenu}
+          rightActions={rightActions}
+          showFloatingMenu={this._showFloatingMenu}
+        />
+      </Box>
     )
   }
 }

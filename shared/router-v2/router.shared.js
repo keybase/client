@@ -1,45 +1,54 @@
 // @flow
 import * as I from 'immutable'
 import * as React from 'react'
+import * as Kb from '../common-adapters/mobile.native'
 import {StackActions} from '@react-navigation/core'
 import shallowEqual from 'shallowequal'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 
 // Wraps all our screens with a component that injects bridging props that the old screens assumed (routeProps, routeState, etc)
 // TODO eventually remove this when we clean up all those components
-export const shimRoutes = (routes: any, ModalHeader: any) =>
+export const shimRoutes = (routes: any) =>
   Object.keys(routes).reduce((map, route) => {
-    const Original = routes[route].getScreen()
-    const Shimmed = p => (
-      <>
-        {ModalHeader && <ModalHeader {...p} />}
-        <Original
-          {...p}
-          routeProps={{
-            get: key => p.navigation.getParam(key),
-          }}
-          shouldRender={true}
-          routeState={{
-            get: key => {
-              throw new Error('Route state NOT supported anymore')
-            },
-          }}
-          routeSelected={null}
-          routePath={I.List()}
-          routeLeafTags={I.Map()}
-          routeStack={I.Map()}
-          setRouteState={() => {
-            throw new Error('Route state NOT supported anymore')
-          }}
-          navigateUp={() => RouteTreeGen.createNavigateUp()}
-          navigateAppend={p => RouteTreeGen.createNavigateAppend(p)}
-        />
-      </>
-    )
+    const getOriginal = routes[route].getScreen
+    // don't wrap upgraded ones
+    if (routes[route].upgraded) {
+      map[route] = routes[route]
+    } else {
+      map[route] = {
+        getScreen: () => {
+          const Original = getOriginal()
+          const Shimmed = p => (
+            <>
+              <Kb.SafeAreaViewTop />
+              <Original
+                {...p}
+                routeProps={{
+                  get: key => p.navigation.getParam(key),
+                }}
+                shouldRender={true}
+                routeState={{
+                  get: key => {
+                    throw new Error('Route state NOT supported anymore')
+                  },
+                }}
+                routeSelected={null}
+                routePath={I.List()}
+                routeLeafTags={I.Map()}
+                routeStack={I.Map()}
+                setRouteState={() => {
+                  throw new Error('Route state NOT supported anymore')
+                }}
+                navigateUp={() => RouteTreeGen.createNavigateUp()}
+                navigateAppend={p => RouteTreeGen.createNavigateAppend(p)}
+              />
+            </>
+          )
 
-    Shimmed.navigationOptions = Original.navigationOptions
-    map[route] = {
-      getScreen: () => Shimmed,
+          Shimmed.navigationOptions = Original.navigationOptions
+          return Shimmed
+        },
+      }
     }
     return map
   }, {})
