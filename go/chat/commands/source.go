@@ -133,9 +133,10 @@ func (s *Source) AttemptBuiltinCommand(ctx context.Context, uid gregor1.UID, con
 	if !strings.HasPrefix(text, "/") {
 		return false, nil
 	}
-	ib, err := s.G().InboxSource.ReadUnverified(ctx, uid, true, &chat1.GetInboxQuery{
-		ConvID: &convID,
-	}, nil)
+	ib, err := s.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll,
+		&chat1.GetInboxQuery{
+			ConvID: &convID,
+		}, nil)
 	if err != nil {
 		return false, err
 	}

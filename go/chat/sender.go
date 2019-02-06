@@ -715,7 +715,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	// otherwise we give up and return an error.
 	var conv chat1.Conversation
 	sender := gregor1.UID(s.G().Env.GetUID().ToBytes())
-	conv, err = GetUnverifiedConv(ctx, s.G(), sender, convID, true)
+	conv, err = GetUnverifiedConv(ctx, s.G(), sender, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		if err == errGetUnverifiedConvNotFound {
 			// If we didn't find it, then just attempt to join it and see what happens
@@ -731,7 +731,8 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 				}
 				// Force hit the remote here, so there is no race condition against the local
 				// inbox
-				conv, err = GetUnverifiedConv(ctx, s.G(), sender, convID, false)
+				conv, err = GetUnverifiedConv(ctx, s.G(), sender, convID,
+					types.InboxSourceDataSourceRemoteOnly)
 				if err != nil {
 					s.Debug(ctx, "Send: failed to get conversation again, giving up: %s", err.Error())
 					return nil, nil, err

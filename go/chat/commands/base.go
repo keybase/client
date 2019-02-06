@@ -35,7 +35,7 @@ func newBaseCommand(g *globals.Context, name, usage, desc string, aliases ...str
 
 func (b *baseCommand) getConvByName(ctx context.Context, uid gregor1.UID, name string) (res chat1.ConversationLocal, err error) {
 	find := func(mt chat1.ConversationMembersType, name string, topicName *string) (conv chat1.ConversationLocal, err error) {
-		convs, err := b.G().ChatHelper.FindConversations(ctx, true, name, topicName,
+		convs, err := b.G().ChatHelper.FindConversations(ctx, name, topicName,
 			chat1.TopicType_CHAT, mt, keybase1.TLFVisibility_PRIVATE)
 		if err != nil {
 			return res, err

@@ -81,7 +81,8 @@ func (h *MobilePush) formatTextPush(ctx context.Context, uid gregor1.UID, convID
 	case chat1.ConversationMembersType_TEAM:
 		var channelName string
 		// Try to get the channel name
-		ib, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil,
+		ib, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
+			types.InboxSourceDataSourceAll, nil,
 			&chat1.GetInboxLocalQuery{
 				ConvIDs: []chat1.ConversationID{convID},
 			}, nil)
@@ -113,7 +114,8 @@ func (h *MobilePush) formatReactionPush(ctx context.Context, uid gregor1.UID, co
 	switch membersType {
 	case chat1.ConversationMembersType_TEAM:
 		// Try to get the channel name
-		ib, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil,
+		ib, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
+			types.InboxSourceDataSourceAll, nil,
 			&chat1.GetInboxLocalQuery{
 				ConvIDs: []chat1.ConversationID{convID},
 			}, nil)
