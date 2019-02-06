@@ -588,6 +588,7 @@ func (a *AccountState) ForceSeqnoRefresh(mctx libkb.MetaContext) error {
 			delete(a.pendingTxs, k)
 		}
 	}
+
 	// delete any stale inuse seqnos (in case missed notification somehow)
 	for k, v := range a.inuseSeqnos {
 		age := time.Since(v.ctime)
@@ -597,23 +598,14 @@ func (a *AccountState) ForceSeqnoRefresh(mctx libkb.MetaContext) error {
 		}
 	}
 
-	/*
-		if len(a.pendingTxs) == 0 {
-			// if no pending tx, then network should be correct
-			mctx.CDebugf("ForceSeqnoRefresh corrected seqno for %s: %d => %d", a.accountID, a.seqno, seqno)
-			a.seqno = seqno
-			return nil
-		}
-	*/
-	if len(a.inuseSeqnos) == 0 {
-		// if no inuse seqnos, then network should be correct
+	if len(a.pendingTxs) == 0 && len(a.inuseSeqnos) == 0 {
+		// if no pending tx or inuse seqnos, then network should be correct
 		mctx.CDebugf("ForceSeqnoRefresh corrected seqno for %s: %d => %d", a.accountID, a.seqno, seqno)
 		a.seqno = seqno
 		return nil
 	}
 
-	mctx.CDebugf("ForceSeqnoRefresh did not update AccountState for %s due to pending tx (existing: %d, remote: %d, inuse seqnos: %d)", a.accountID, a.seqno, seqno, len(a.inuseSeqnos))
-	mctx.CDebugf("ForceSeqnoRefresh did not update AccountState for %s due to pending tx (existing: %d, remote: %d, pending tx: %d)", a.accountID, a.seqno, seqno, len(a.pendingTxs))
+	mctx.CDebugf("ForceSeqnoRefresh did not update AccountState for %s due to pending tx/seqnos (existing: %d, remote: %d, pending txs: %d, inuse seqnos: %d)", a.accountID, a.seqno, seqno, len(a.pendingTxs), len(a.inuseSeqnos))
 
 	return nil
 }
@@ -632,7 +624,13 @@ func (a *AccountState) AccountSeqnoAndBump(ctx context.Context) (uint64, error) 
 	a.Lock()
 	defer a.Unlock()
 	result := a.seqno
+
+	// need to keep track that we are going to use this seqno
+	// in a tx.  This record keeping avoids a race where
+	// multiple seqno providers rushing to use seqnos before
+	// AddPendingTx is called.
 	a.inuseSeqnos[result] = inuseSeqno{ctime: time.Now()}
+
 	a.seqno++
 	return result, nil
 }
@@ -643,6 +641,9 @@ func (a *AccountState) AccountSeqnoAndBump(ctx context.Context) (uint64, error) 
 func (a *AccountState) AddPendingTx(ctx context.Context, txID stellar1.TransactionID, seqno uint64) error {
 	a.Lock()
 	defer a.Unlock()
+
+	// remove the inuse seqno since the pendingTx will track it now
+	delete(a.inuseSeqnos, seqno)
 
 	a.pendingTxs[txID] = txPending{seqno: seqno, ctime: time.Now()}
 
@@ -656,17 +657,6 @@ func (a *AccountState) RemovePendingTx(ctx context.Context, txID stellar1.Transa
 	defer a.Unlock()
 
 	delete(a.pendingTxs, txID)
-
-	return nil
-}
-
-// RemoveInuseSeqno removes an inuse seqno from WalletState.  It doesn't matter
-// if it succeeded or failed, just that it is no longer used.
-func (a *AccountState) RemoveInuseSeqno(ctx context.Context, seqno uint64) error {
-	a.Lock()
-	defer a.Unlock()
-
-	delete(a.inuseSeqnos, seqno)
 
 	return nil
 }
