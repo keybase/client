@@ -2,7 +2,6 @@ package stellarsvc
 
 import (
 	"context"
-	"fmt"
 	"testing"
 
 	"github.com/keybase/client/go/protocol/stellar1"
@@ -21,7 +20,6 @@ import (
 // from the network.
 //
 func TestSeqno(t *testing.T) {
-	t.Skip("make sure seqno change in mock passes other tests")
 	tcs, cleanup := setupNTests(t, 1)
 	defer cleanup()
 
@@ -54,10 +52,11 @@ func TestSeqno(t *testing.T) {
 	seqno2, err := sp2.SequenceForAccount(accountID1.String())
 	require.NoError(t, err)
 
+	t.Logf("seqno0: %d", seqno0)
+	t.Logf("seqno1: %d", seqno1)
+	t.Logf("seqno2: %d", seqno2)
+
 	require.Equal(t, seqno0+1, seqno1, "seqno1")
 	require.Equal(t, seqno0+2, seqno2, "seqno2")
 
-	fmt.Printf("seqno0: %d\n", seqno0)
-	fmt.Printf("seqno1: %d\n", seqno1)
-	fmt.Printf("seqno2: %d\n", seqno2)
 }
