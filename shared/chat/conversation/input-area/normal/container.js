@@ -119,6 +119,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
   onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
   onFilePickerError: dispatchProps.onFilePickerError,
+  onScrollDown: ownProps.onScrollDown,
   onSubmit: (text: string) => {
     if (stateProps._editOrdinal) {
       dispatchProps._onEditMessage(stateProps.conversationIDKey, stateProps._editOrdinal, text)

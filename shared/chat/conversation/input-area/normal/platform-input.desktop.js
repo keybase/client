@@ -100,10 +100,13 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
       'ArrowDown',
       'Enter',
     ].includes(ev.key)
+    const isListSpecialKey = ['PageDown', 'PageUp'].includes(ev.key)
     if (isUploadKey) {
       this._filePickerOpen()
     } else if (ev.type === 'keypress' || isPasteKey || isValidSpecialKey) {
       this._inputFocus()
+    } else if (isListSpecialKey) {
+      this.props.onScrollDown()
     }
   }
 

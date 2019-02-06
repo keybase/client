@@ -90,8 +90,7 @@ class Thread extends React.PureComponent<Props, State> {
 
     // someone requested we scroll down
     if (this.props.listScrollDownCounter !== prevProps.listScrollDownCounter) {
-      this.setState(p => (p.isLockedToBottom ? null : {isLockedToBottom: true}))
-      this._scrollToBottom()
+      this._listRef.current && this._listRef.current.focus()
       return
     }
 
