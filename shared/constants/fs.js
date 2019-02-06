@@ -805,6 +805,22 @@ export const parsePath = (path: Types.Path): Types.ParsedPath => {
   }
 }
 
+export const canSendLinkToChat = (parsedPath: Types.ParsedPath) => {
+  switch (parsedPath.kind) {
+    case 'root':
+    case 'tlf-list':
+      return false
+    case 'group-tlf':
+    case 'team-tlf':
+    case 'in-group-tlf':
+    case 'in-team-tlf':
+      return parsedPath.tlfType !== 'public'
+    default:
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(parsedPath)
+      return false
+  }
+}
+
 export const erroredActionToMessage = (action: FsGen.Actions): string => {
   switch (action.type) {
     case FsGen.favoritesLoad:

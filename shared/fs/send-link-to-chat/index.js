@@ -41,16 +41,16 @@ type Props = {|
   send?: ?() => void,
 |}
 
-const who = (props: Props) => {
+const getPermissionText = (props: Props) => {
   switch (props.conversation.type) {
     case 'person':
-      return props.conversation.name
+      return `Only ${props.conversation.name} has access to the file.`
     case 'group':
-      return 'your group'
+      return `Only your group have access to the file.`
     case 'small-team':
-      return 'team members'
+      return `Only team members have access to the file.`
     case 'big-team':
-      return 'team members'
+      return `Only team members have access to the file.`
     case 'none':
       return ''
     default:
@@ -69,19 +69,24 @@ class BigTeamChannelDropdownMobile extends React.PureComponent<BigTeam, {visible
   render() {
     return (
       <>
-        <Kb.ClickableBox onClick={this._show} style={styles.dropdown}>
-          <Kb.Box2 direction="horizontal" gap="small" fullWidth={true}>
-            <Kb.Text type="BodyBig" style={styles.dropdownTextMobile} lineClamp={1}>
-              {this.props.selectedChannel ? `#${this.props.selectedChannel.channelname}` : 'Pick a channel'}
-            </Kb.Text>
-            <Kb.Icon
-              type="iconfont-caret-down"
-              inheritColor={true}
-              fontSize={12}
-              style={styles.dropdownIconMobile}
-            />
-          </Kb.Box2>
-        </Kb.ClickableBox>
+        <Kb.DropdownButton
+          selected={
+            <Kb.Box2
+              direction="horizontal"
+              fullWidth={true}
+              centerChildren={true}
+              gap="small"
+              gapStart={true}
+              gapEnd={true}
+            >
+              <Kb.Text type="BodyBig" style={styles.dropdownTextMobile} lineClamp={1}>
+                {this.props.selectedChannel ? `#${this.props.selectedChannel.channelname}` : 'Pick a channel'}
+              </Kb.Text>
+            </Kb.Box2>
+          }
+          style={styles.dropdown}
+          toggleOpen={this._show}
+        />
         <Kb.FloatingPicker
           items={this.props.channels.map(({convID, channelname}) => ({
             label: `#${channelname}`,
@@ -181,7 +186,7 @@ const SendLinkToChatMain = (props: Props) => (
     </Kb.Box2>
     {props.conversation.type !== 'none' && (
       <Kb.Text type="BodySmall" style={styles.onlyWhoGetAccess}>
-        Only {who(props)} will get access to the file.
+        {getPermissionText(props)}
       </Kb.Text>
     )}
     <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.centerBox}>
@@ -243,19 +248,9 @@ const styles = Styles.styleSheetCreate({
     paddingRight: Styles.globalMargins.mediumLarge,
     paddingTop: Styles.globalMargins.mediumLarge,
   },
-  dropdown: Styles.platformStyles({
-    common: {
-      marginTop: Styles.globalMargins.mediumLarge,
-    },
-    isMobile: {
-      borderColor: Styles.globalColors.black_10,
-      borderRadius: Styles.borderRadius,
-      borderStyle: 'solid',
-      borderWidth: 1,
-      padding: Styles.globalMargins.tiny,
-      width: 240,
-    },
-  }),
+  dropdown: {
+    marginTop: Styles.globalMargins.mediumLarge,
+  },
   dropdownBoxDesktop: Styles.platformStyles({
     isElectron: {
       overflow: 'hidden',
@@ -264,9 +259,6 @@ const styles = Styles.styleSheetCreate({
       textOverflow: 'ellipsis',
     },
   }),
-  dropdownIconMobile: {
-    marginTop: 4,
-  },
   dropdownTextMobile: {
     flex: 1,
     textAlign: 'center',
