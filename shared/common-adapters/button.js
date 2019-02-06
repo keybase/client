@@ -19,7 +19,6 @@ import {
 export type Props = {|
   children?: React.Node,
   onClick?: null | ((event: SyntheticEvent<>) => void),
-  onPress?: void,
   onMouseEnter?: Function,
   onMouseLeave?: Function,
   label?: string,
