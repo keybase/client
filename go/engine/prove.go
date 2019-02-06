@@ -322,6 +322,12 @@ func (p *Prove) promptPostedLoop(m libkb.MetaContext) (err error) {
 
 // Poll forever until the proof succeeds.
 func (p *Prove) verifyLoop(m libkb.MetaContext) (err error) {
+	uierr := m.UIs().ProveUI.Checking(m.Ctx(), keybase1.CheckingArg{
+		Name: p.serviceType.DisplayName(),
+	})
+	if uierr != nil {
+		m.CWarningf("prove ui Checking call error: %s", uierr)
+	}
 	for i := 0; ; i++ {
 		found, status, _, err := libkb.CheckPosted(m, p.postRes.ID)
 		if err != nil {

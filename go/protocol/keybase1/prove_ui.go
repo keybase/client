@@ -110,6 +110,11 @@ type OkToCheckArg struct {
 	Attempt   int    `codec:"attempt" json:"attempt"`
 }
 
+type CheckingArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Name      string `codec:"name" json:"name"`
+}
+
 type DisplayRecheckWarningArg struct {
 	SessionID int  `codec:"sessionID" json:"sessionID"`
 	Text      Text `codec:"text" json:"text"`
@@ -122,6 +127,7 @@ type ProveUiInterface interface {
 	PreProofWarning(context.Context, PreProofWarningArg) (bool, error)
 	OutputInstructions(context.Context, OutputInstructionsArg) error
 	OkToCheck(context.Context, OkToCheckArg) (bool, error)
+	Checking(context.Context, CheckingArg) error
 	DisplayRecheckWarning(context.Context, DisplayRecheckWarningArg) error
 }
 
@@ -219,6 +225,21 @@ func ProveUiProtocol(i ProveUiInterface) rpc.Protocol {
 					return
 				},
 			},
+			"checking": {
+				MakeArg: func() interface{} {
+					var ret [1]CheckingArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]CheckingArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]CheckingArg)(nil), args)
+						return
+					}
+					err = i.Checking(ctx, typedArgs[0])
+					return
+				},
+			},
 			"displayRecheckWarning": {
 				MakeArg: func() interface{} {
 					var ret [1]DisplayRecheckWarningArg
@@ -269,6 +290,11 @@ func (c ProveUiClient) OutputInstructions(ctx context.Context, __arg OutputInstr
 
 func (c ProveUiClient) OkToCheck(ctx context.Context, __arg OkToCheckArg) (res bool, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.proveUi.okToCheck", []interface{}{__arg}, &res)
+	return
+}
+
+func (c ProveUiClient) Checking(ctx context.Context, __arg CheckingArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.proveUi.checking", []interface{}{__arg}, nil)
 	return
 }
 

@@ -375,6 +375,9 @@
         "keybase1ProveUiOkToCheck": {
             "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.okToCheck'>, 'inParam'>>"
         },
+        "keybase1ProveUiChecking": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.checking'>, 'inParam'>>"
+        },
         "keybase1ProveUiDisplayRecheckWarning": {
             "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.displayRecheckWarning'>, 'inParam'>>"
         },

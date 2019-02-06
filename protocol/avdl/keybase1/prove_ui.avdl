@@ -48,6 +48,9 @@ protocol proveUi {
   // Returns whether to keep checking.
   boolean okToCheck(int sessionID, string name, int attempt);
 
+  // The proof is being checked in the background.
+  void checking(int sessionID, string name);
+
   // The proof was still not verifiable.
   void displayRecheckWarning(int sessionID, Text text);
 }

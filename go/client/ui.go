@@ -704,6 +704,13 @@ func (p ProveUI) OkToCheck(_ context.Context, arg keybase1.OkToCheckArg) (bool, 
 	return p.terminal.PromptYesNo(PromptDescriptorProveOKToCheck, prompt, libkb.PromptDefaultYes)
 }
 
+func (p ProveUI) Checking(_ context.Context, arg keybase1.CheckingArg) error {
+	p.render(keybase1.Text{
+		Data: fmt.Sprintf("Checking will continue while you go authorize the proof on %v. To cancel hit C-c.\n", arg.Name),
+	})
+	return nil
+}
+
 func (p ProveUI) DisplayRecheckWarning(_ context.Context, arg keybase1.DisplayRecheckWarningArg) error {
 	p.render(arg.Text)
 	return nil
