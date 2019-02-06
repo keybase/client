@@ -54,8 +54,8 @@ let config = {
 
 // Developer settings
 if (__DEV__) {
-  config.enableActionLogging = true
-  config.enableStoreLogging = false
+  config.enableActionLogging = false
+  config.enableStoreLogging = true
   config.immediateStateLogging = false
   // Move this outside the if statement to get notifications working
   // with a "Profile" build on a phone.
@@ -63,7 +63,7 @@ if (__DEV__) {
   config.printOutstandingRPCs = false
   config.printOutstandingTimerListeners = false
   config.printRPCWaitingSession = false
-  config.printRPC = false
+  config.printRPC = true
   config.printRPCStats = false
   config.reduxSagaLoggerMasked = false
   config.userTimings = false

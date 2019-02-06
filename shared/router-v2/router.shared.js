@@ -49,6 +49,9 @@ export const oldActionToNewAction = (action: any, navigation: any) => {
         const p = action.payload.path.last
           ? action.payload.path.last()
           : action.payload.path[action.payload.path.length - 1]
+        if (!p) {
+          return
+        }
         let routeName = null
         let params
 

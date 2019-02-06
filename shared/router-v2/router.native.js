@@ -256,8 +256,14 @@ class RNApp extends React.Component<any, any> {
   // getState = () => this._nav.state
   // dispatch = (p: any) => p && this._nav.dispatch(p)
   // TODO remove this eventually, just so we can handle the old style actions
-  dispatchOldAction = (action: any) =>
-    this._nav.dispatch(Shared.oldActionToNewAction(action, this._nav._navigation))
+  dispatchOldAction = (old: any) => {
+    const nav = this._nav
+    if (!nav) {
+      throw new Error('Missing nav?')
+    }
+    const action = Shared.oldActionToNewAction(old, nav._navigation)
+    action && nav.dispatch(action)
+  }
 
   render() {
     // selectedTab={this.state.selectedTab}
