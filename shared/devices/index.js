@@ -20,6 +20,7 @@ type Props = {|
   addNewPhone: () => void,
   items: Array<Item>,
   loadDevices: () => void,
+  onAddDevice: () => void,
   onBack: () => void,
   revokedItems: Array<Item>,
   hasNewlyRevoked: boolean,
@@ -75,7 +76,7 @@ class Devices extends React.PureComponent<Props, State> {
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
         <DeviceHeader
           setAttachmentRef={this.props.setAttachmentRef}
-          onAddNew={this.props.toggleShowingMenu}
+          onAddNew={this.props.onAddDevice}
           waiting={this.props.waiting}
         />
         {this.props.waiting && <Kb.ProgressIndicator style={styles.progress} />}

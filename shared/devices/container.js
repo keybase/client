@@ -9,6 +9,7 @@ import * as I from 'immutable'
 import * as Kb from '../common-adapters'
 import {compose, isMobile, namedConnect, safeSubmitPerMount} from '../util/container'
 import {partition} from 'lodash-es'
+import type {RouteProps} from '../route-tree/render-route'
 
 const mapStateToProps = state => ({
   _deviceMap: state.devices.deviceMap,
@@ -16,10 +17,11 @@ const mapStateToProps = state => ({
   waiting: Constants.isWaiting(state),
 })
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
   addNewComputer: () => dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'desktop'})),
   addNewPaperKey: () => dispatch(DevicesGen.createShowPaperKeyPage()),
   addNewPhone: () => dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'mobile'})),
+  onAddDevice: () => dispatch(navigateAppend(['addDevice'])),
   loadDevices: () => dispatch(DevicesGen.createLoad()),
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
@@ -40,7 +42,7 @@ const splitAndSortDevices = deviceMap =>
     d => d.revokedAt
   )
 
-type OwnProps = void
+type OwnProps = RouteProps<{}, {}>
 
 function mergeProps(stateProps, dispatchProps, ownProps: OwnProps) {
   const [revoked, normal] = splitAndSortDevices(stateProps._deviceMap)
@@ -54,6 +56,7 @@ function mergeProps(stateProps, dispatchProps, ownProps: OwnProps) {
     hasNewlyRevoked: newlyRevokedIds.size > 0,
     items: normal.map(deviceToItem),
     loadDevices: dispatchProps.loadDevices,
+    onAddDevice: dispatchProps.onAddDevice,
     onBack: dispatchProps.onBack,
     revokedItems: revokedItems,
     title: 'Devices',
@@ -76,6 +79,7 @@ class ReloadableDevices extends React.PureComponent<React.ElementConfig<typeof D
           addNewComputer={this.props.addNewComputer}
           addNewPaperKey={this.props.addNewPaperKey}
           addNewPhone={this.props.addNewPhone}
+          onAddDevice={this.props.onAddDevice}
           hasNewlyRevoked={this.props.hasNewlyRevoked}
           items={this.props.items}
           loadDevices={this.props.loadDevices}
