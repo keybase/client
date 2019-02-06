@@ -22,7 +22,6 @@ type Props = {
   onAttach: (destination: Types.Path, dropPaths: Array<string>) => void,
   path: Types.Path,
   routePath: I.List<string>,
-  writable: boolean,
 }
 
 export const WrapRow = ({children}: {children: React.Node}) => (
