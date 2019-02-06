@@ -1,6 +1,8 @@
-
 @namespace("keybase.1")
 protocol proveUi {
+  // UI for creating new proofs. Started by prove.startProof.
+  // Used by GUI and CLI.
+
   import idl "common.avdl";
 
   enum PromptOverwriteType {
@@ -8,11 +10,28 @@ protocol proveUi {
     SITE_1
   }
 
+  // An existing proof exists that would be overridden.
+  // Returns whether to continue.
   boolean promptOverwrite(int sessionID, string account, PromptOverwriteType typ);
+
+  // Prompt for the username or website domain.
   string promptUsername(int sessionID, string prompt, union {null, Status } prevError);
+
+  // Output from pre-checks before creating sig.
+  // Used to report bad HN karma before flunking the prove.
   void outputPrechecks(int sessionID, Text text);
+
+  // Another warning and prompt.
+  // Auto-accepted by gui.
+  // Used by web proofs.
   boolean preProofWarning(int sessionID, Text text);
+
   void outputInstructions(int sessionID, Text instructions, string proof);
+
+  // Ask the user whether they have posted the proof.
+  // Returns whether to stay in this loop of questioning.
   boolean okToCheck(int sessionID, string name, int attempt);
+
+  // The proof was still not verifiable.
   void displayRecheckWarning(int sessionID, Text text);
 }
