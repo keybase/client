@@ -23,7 +23,7 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-type journalServerConfig struct {
+type journalManagerConfig struct {
 	// EnableAuto, if true, means the user has explicitly set its
 	// value. If false, then either the user turned it on and then
 	// off, or the user hasn't turned it on at all.
@@ -34,7 +34,7 @@ type journalServerConfig struct {
 	EnableAutoSetByUser bool
 }
 
-func (jsc journalServerConfig) getEnableAuto(currentUID keybase1.UID) (
+func (jsc journalManagerConfig) getEnableAuto(currentUID keybase1.UID) (
 	enableAuto, enableAutoSetByUser bool) {
 	// If EnableAuto is true, the user has explicitly set its value.
 	if jsc.EnableAuto {
@@ -53,10 +53,10 @@ func (jsc journalServerConfig) getEnableAuto(currentUID keybase1.UID) (
 	return true, false
 }
 
-// JournalServerStatus represents the overall status of the
-// JournalServer for display in diagnostics. It is suitable for
+// JournalManagerStatus represents the overall status of the
+// JournalManager for display in diagnostics. It is suitable for
 // encoding directly as JSON.
-type JournalServerStatus struct {
+type JournalManagerStatus struct {
 	RootDir             string
 	Version             int
 	CurrentUID          keybase1.UID
@@ -94,10 +94,7 @@ type mdFlushListener interface {
 	onMDFlush(tlf.ID, kbfsmd.BranchID, kbfsmd.Revision)
 }
 
-// TODO: JournalServer isn't really a server, although it can create
-// objects that act as servers. Rename to JournalManager.
-
-// JournalServer is the server that handles write journals. It
+// JournalManager is the server that handles write journals. It
 // interposes itself in front of BlockServer and MDOps. It uses MDOps
 // instead of MDServer because it has to potentially modify the
 // RootMetadata passed in, and by the time it hits MDServer it's
@@ -109,7 +106,7 @@ type mdFlushListener interface {
 // everything else.
 //
 //   /v1/de...-...(53 characters total)...ff(/tlf journal)
-type JournalServer struct {
+type JournalManager struct {
 	config Config
 
 	log      traceLogger
@@ -139,18 +136,18 @@ type JournalServer struct {
 	tlfJournals         map[tlf.ID]*tlfJournal
 	dirtyOps            map[tlf.ID]uint
 	dirtyOpsDone        *sync.Cond
-	serverConfig        journalServerConfig
+	serverConfig        journalManagerConfig
 }
 
-func makeJournalServer(
+func makeJournalManager(
 	config Config, log logger.Logger, dir string,
 	bcache BlockCache, dirtyBcache DirtyBlockCache, bserver BlockServer,
 	mdOps MDOps, onBranchChange branchChangeListener,
-	onMDFlush mdFlushListener) *JournalServer {
+	onMDFlush mdFlushListener) *JournalManager {
 	if len(dir) == 0 {
 		panic("journal root path string unexpectedly empty")
 	}
-	jServer := JournalServer{
+	jServer := JournalManager{
 		config:                  config,
 		log:                     traceLogger{log},
 		deferLog:                traceLogger{log.CloneWithAddedDepth(1)},
@@ -168,23 +165,23 @@ func makeJournalServer(
 	return &jServer
 }
 
-func (j *JournalServer) rootPath() string {
+func (j *JournalManager) rootPath() string {
 	return filepath.Join(j.dir, "v1")
 }
 
-func (j *JournalServer) configPath() string {
+func (j *JournalManager) configPath() string {
 	return filepath.Join(j.rootPath(), "config.json")
 }
 
-func (j *JournalServer) readConfig() error {
+func (j *JournalManager) readConfig() error {
 	return ioutil.DeserializeFromJSONFile(j.configPath(), &j.serverConfig)
 }
 
-func (j *JournalServer) writeConfig() error {
+func (j *JournalManager) writeConfig() error {
 	return ioutil.SerializeToJSONFile(j.serverConfig, j.configPath())
 }
 
-func (j *JournalServer) tlfJournalPathLocked(tlfID tlf.ID) string {
+func (j *JournalManager) tlfJournalPathLocked(tlfID tlf.ID) string {
 	if j.currentVerifyingKey == (kbfscrypto.VerifyingKey{}) {
 		panic("currentVerifyingKey is zero")
 	}
@@ -213,12 +210,12 @@ func (j *JournalServer) tlfJournalPathLocked(tlfID tlf.ID) string {
 	return filepath.Join(j.rootPath(), dir)
 }
 
-func (j *JournalServer) getEnableAutoLocked() (
+func (j *JournalManager) getEnableAutoLocked() (
 	enableAuto, enableAutoSetByUser bool) {
 	return j.serverConfig.getEnableAuto(j.currentUID)
 }
 
-func (j *JournalServer) getTLFJournal(
+func (j *JournalManager) getTLFJournal(
 	tlfID tlf.ID, h *TlfHandle) (*tlfJournal, bool) {
 	getJournalFn := func() (*tlfJournal, bool, bool, bool) {
 		j.lock.RLock()
@@ -273,14 +270,14 @@ func (j *JournalServer) getTLFJournal(
 	return tlfJournal, ok
 }
 
-func (j *JournalServer) hasTLFJournal(tlfID tlf.ID) bool {
+func (j *JournalManager) hasTLFJournal(tlfID tlf.ID) bool {
 	j.lock.RLock()
 	defer j.lock.RUnlock()
 	_, ok := j.tlfJournals[tlfID]
 	return ok
 }
 
-func (j *JournalServer) makeFBOForJournal(
+func (j *JournalManager) makeFBOForJournal(
 	ctx context.Context, tj *tlfJournal, tlfID tlf.ID) error {
 	bid, err := tj.getBranchID()
 	if err != nil {
@@ -324,7 +321,7 @@ func (j *JournalServer) makeFBOForJournal(
 // initialized.  If the caller is not going to wait on the group, it
 // should provoide a context that won't be canceled before the wait
 // group is finished.
-func (j *JournalServer) MakeFBOsForExistingJournals(
+func (j *JournalManager) MakeFBOsForExistingJournals(
 	ctx context.Context) *sync.WaitGroup {
 	var wg sync.WaitGroup
 
@@ -353,11 +350,11 @@ func (j *JournalServer) MakeFBOsForExistingJournals(
 // EnableExistingJournals turns on the write journal for all TLFs for
 // the given (UID, device) tuple (with the device identified by its
 // verifying key) with an existing journal. Any returned error means
-// that the JournalServer remains in the same state as it was before.
+// that the JournalManager remains in the same state as it was before.
 //
 // Once this is called, this must not be called again until
 // shutdownExistingJournals is called.
-func (j *JournalServer) EnableExistingJournals(
+func (j *JournalManager) EnableExistingJournals(
 	ctx context.Context, currentUID keybase1.UID,
 	currentVerifyingKey kbfscrypto.VerifyingKey,
 	bws TLFJournalBackgroundWorkStatus) (err error) {
@@ -549,7 +546,7 @@ func (j *JournalServer) EnableExistingJournals(
 // enabledLocked returns an enabled journal; it is the caller's
 // responsibility to add it to `j.tlfJournals`.  This allows this
 // method to be called in parallel during initialization, if desired.
-func (j *JournalServer) enableLocked(
+func (j *JournalManager) enableLocked(
 	ctx context.Context, tlfID tlf.ID, chargedTo keybase1.UserOrTeamID,
 	bws TLFJournalBackgroundWorkStatus, allowEnableIfDirty bool) (
 	tj *tlfJournal, err error) {
@@ -613,7 +610,7 @@ func (j *JournalServer) enableLocked(
 
 // Enable turns on the write journal for the given TLF.  If h is nil,
 // it will be attempted to be fetched from the remote MD server.
-func (j *JournalServer) Enable(ctx context.Context, tlfID tlf.ID,
+func (j *JournalManager) Enable(ctx context.Context, tlfID tlf.ID,
 	h *TlfHandle, bws TLFJournalBackgroundWorkStatus) (err error) {
 	j.lock.Lock()
 	defer j.lock.Unlock()
@@ -647,7 +644,7 @@ func (j *JournalServer) Enable(ctx context.Context, tlfID tlf.ID,
 
 // EnableAuto turns on the write journal for all TLFs, even new ones,
 // persistently.
-func (j *JournalServer) EnableAuto(ctx context.Context) error {
+func (j *JournalManager) EnableAuto(ctx context.Context) error {
 	j.lock.Lock()
 	defer j.lock.Unlock()
 	if j.serverConfig.EnableAuto {
@@ -664,7 +661,7 @@ func (j *JournalServer) EnableAuto(ctx context.Context) error {
 // DisableAuto turns off automatic write journal for any
 // newly-accessed TLFs.  Existing journaled TLFs need to be disabled
 // manually.
-func (j *JournalServer) DisableAuto(ctx context.Context) error {
+func (j *JournalManager) DisableAuto(ctx context.Context) error {
 	j.lock.Lock()
 	defer j.lock.Unlock()
 	if enabled, _ := j.getEnableAutoLocked(); !enabled {
@@ -678,13 +675,13 @@ func (j *JournalServer) DisableAuto(ctx context.Context) error {
 	return j.writeConfig()
 }
 
-func (j *JournalServer) dirtyOpStart(tlfID tlf.ID) {
+func (j *JournalManager) dirtyOpStart(tlfID tlf.ID) {
 	j.lock.Lock()
 	defer j.lock.Unlock()
 	j.dirtyOps[tlfID]++
 }
 
-func (j *JournalServer) dirtyOpEnd(tlfID tlf.ID) {
+func (j *JournalManager) dirtyOpEnd(tlfID tlf.ID) {
 	j.lock.Lock()
 	defer j.lock.Unlock()
 	if j.dirtyOps[tlfID] == 0 {
@@ -701,7 +698,7 @@ func (j *JournalServer) dirtyOpEnd(tlfID tlf.ID) {
 
 // PauseBackgroundWork pauses the background work goroutine, if it's
 // not already paused.
-func (j *JournalServer) PauseBackgroundWork(ctx context.Context, tlfID tlf.ID) {
+func (j *JournalManager) PauseBackgroundWork(ctx context.Context, tlfID tlf.ID) {
 	j.log.CDebugf(ctx, "Signaling pause for %s", tlfID)
 	if tlfJournal, ok := j.getTLFJournal(tlfID, nil); ok {
 		tlfJournal.pauseBackgroundWork()
@@ -715,7 +712,7 @@ func (j *JournalServer) PauseBackgroundWork(ctx context.Context, tlfID tlf.ID) {
 
 // ResumeBackgroundWork resumes the background work goroutine, if it's
 // not already resumed.
-func (j *JournalServer) ResumeBackgroundWork(ctx context.Context, tlfID tlf.ID) {
+func (j *JournalManager) ResumeBackgroundWork(ctx context.Context, tlfID tlf.ID) {
 	j.log.CDebugf(ctx, "Signaling resume for %s", tlfID)
 	if tlfJournal, ok := j.getTLFJournal(tlfID, nil); ok {
 		tlfJournal.resumeBackgroundWork()
@@ -728,7 +725,7 @@ func (j *JournalServer) ResumeBackgroundWork(ctx context.Context, tlfID tlf.ID) 
 }
 
 // Flush flushes the write journal for the given TLF.
-func (j *JournalServer) Flush(ctx context.Context, tlfID tlf.ID) (err error) {
+func (j *JournalManager) Flush(ctx context.Context, tlfID tlf.ID) (err error) {
 	j.log.CDebugf(ctx, "Flushing journal for %s", tlfID)
 	if tlfJournal, ok := j.getTLFJournal(tlfID, nil); ok {
 		// TODO: do we want to plumb lc through here as well?
@@ -745,7 +742,7 @@ func (j *JournalServer) Flush(ctx context.Context, tlfID tlf.ID) (err error) {
 // context without leaving the journal in a partially-flushed state.
 // It does not wait for any conflicts or squashes resulting from
 // flushing the data currently in the journal.
-func (j *JournalServer) Wait(ctx context.Context, tlfID tlf.ID) (err error) {
+func (j *JournalManager) Wait(ctx context.Context, tlfID tlf.ID) (err error) {
 	j.log.CDebugf(ctx, "Waiting on journal for %s", tlfID)
 	if tlfJournal, ok := j.getTLFJournal(tlfID, nil); ok {
 		return tlfJournal.wait(ctx)
@@ -758,7 +755,7 @@ func (j *JournalServer) Wait(ctx context.Context, tlfID tlf.ID) (err error) {
 // WaitForCompleteFlush blocks until the write journal has finished
 // flushing everything.  Unlike `Wait()`, it also waits for any
 // conflicts or squashes detected during each flush attempt.
-func (j *JournalServer) WaitForCompleteFlush(
+func (j *JournalManager) WaitForCompleteFlush(
 	ctx context.Context, tlfID tlf.ID) (err error) {
 	j.log.CDebugf(ctx, "Finishing single op for %s", tlfID)
 	if tlfJournal, ok := j.getTLFJournal(tlfID, nil); ok {
@@ -772,7 +769,7 @@ func (j *JournalServer) WaitForCompleteFlush(
 // FinishSingleOp lets the write journal know that the application has
 // finished a single op, and then blocks until the write journal has
 // finished flushing everything.
-func (j *JournalServer) FinishSingleOp(ctx context.Context, tlfID tlf.ID,
+func (j *JournalManager) FinishSingleOp(ctx context.Context, tlfID tlf.ID,
 	lc *keybase1.LockContext, priority keybase1.MDPriority) (err error) {
 	j.log.CDebugf(ctx, "Finishing single op for %s", tlfID)
 	if tlfJournal, ok := j.getTLFJournal(tlfID, nil); ok {
@@ -784,7 +781,7 @@ func (j *JournalServer) FinishSingleOp(ctx context.Context, tlfID tlf.ID,
 }
 
 // Disable turns off the write journal for the given TLF.
-func (j *JournalServer) Disable(ctx context.Context, tlfID tlf.ID) (
+func (j *JournalManager) Disable(ctx context.Context, tlfID tlf.ID) (
 	wasEnabled bool, err error) {
 	j.log.CDebugf(ctx, "Disabling journal for %s", tlfID)
 	defer func() {
@@ -815,7 +812,7 @@ func (j *JournalServer) Disable(ctx context.Context, tlfID tlf.ID) (
 	// Disable the journal.  Note that we don't bother deleting the
 	// journal from j.tlfJournals, to avoid cases where something
 	// keeps it around doing background work or re-enables it, at the
-	// same time JournalServer creates a new journal for the same TLF.
+	// same time JournalManager creates a new journal for the same TLF.
 	wasEnabled, err = tlfJournal.disable()
 	if err != nil {
 		return false, err
@@ -827,24 +824,24 @@ func (j *JournalServer) Disable(ctx context.Context, tlfID tlf.ID) (
 	return wasEnabled, nil
 }
 
-func (j *JournalServer) blockCache() journalBlockCache {
+func (j *JournalManager) blockCache() journalBlockCache {
 	return journalBlockCache{j, j.delegateBlockCache}
 }
 
-func (j *JournalServer) dirtyBlockCache(
+func (j *JournalManager) dirtyBlockCache(
 	journalCache DirtyBlockCache) journalDirtyBlockCache {
 	return journalDirtyBlockCache{j, j.delegateDirtyBlockCache, journalCache}
 }
 
-func (j *JournalServer) blockServer() journalBlockServer {
+func (j *JournalManager) blockServer() journalBlockServer {
 	return journalBlockServer{j, j.delegateBlockServer, false}
 }
 
-func (j *JournalServer) mdOps() journalMDOps {
+func (j *JournalManager) mdOps() journalMDOps {
 	return journalMDOps{j.delegateMDOps, j}
 }
 
-func (j *JournalServer) maybeReturnOverQuotaError(
+func (j *JournalManager) maybeReturnOverQuotaError(
 	usedQuotaBytes, quotaBytes int64) error {
 	if usedQuotaBytes <= quotaBytes {
 		return nil
@@ -870,7 +867,7 @@ func (j *JournalServer) maybeReturnOverQuotaError(
 	}
 }
 
-func (j *JournalServer) maybeMakeDiskLimitErrorReportable(
+func (j *JournalManager) maybeMakeDiskLimitErrorReportable(
 	err *ErrDiskLimitTimeout) error {
 	j.lastDiskLimitErrorLock.Lock()
 	defer j.lastDiskLimitErrorLock.Unlock()
@@ -889,11 +886,11 @@ func (j *JournalServer) maybeMakeDiskLimitErrorReportable(
 	return err
 }
 
-// Status returns a JournalServerStatus object suitable for
+// Status returns a JournalManagerStatus object suitable for
 // diagnostics.  It also returns a list of TLF IDs which have journals
 // enabled.
-func (j *JournalServer) Status(
-	ctx context.Context) (JournalServerStatus, []tlf.ID) {
+func (j *JournalManager) Status(
+	ctx context.Context) (JournalManagerStatus, []tlf.ID) {
 	j.lock.RLock()
 	defer j.lock.RUnlock()
 	var totalStoredBytes, totalStoredFiles, totalUnflushedBytes int64
@@ -912,7 +909,7 @@ func (j *JournalServer) Status(
 		tlfIDs = append(tlfIDs, tlfJournal.tlfID)
 	}
 	enableAuto, enableAutoSetByUser := j.getEnableAutoLocked()
-	return JournalServerStatus{
+	return JournalManagerStatus{
 		RootDir:             j.rootPath(),
 		Version:             1,
 		CurrentUID:          j.currentUID,
@@ -930,7 +927,7 @@ func (j *JournalServer) Status(
 
 // JournalStatus returns a TLFServerStatus object for the given TLF
 // suitable for diagnostics.
-func (j *JournalServer) JournalStatus(tlfID tlf.ID) (
+func (j *JournalManager) JournalStatus(tlfID tlf.ID) (
 	TLFJournalStatus, error) {
 	tlfJournal, ok := j.getTLFJournal(tlfID, nil)
 	if !ok {
@@ -944,7 +941,7 @@ func (j *JournalServer) JournalStatus(tlfID tlf.ID) (
 // JournalStatusWithPaths returns a TLFServerStatus object for the
 // given TLF suitable for diagnostics, including paths for all the
 // unflushed entries.
-func (j *JournalServer) JournalStatusWithPaths(ctx context.Context,
+func (j *JournalManager) JournalStatusWithPaths(ctx context.Context,
 	tlfID tlf.ID, cpp chainsPathPopulator) (TLFJournalStatus, error) {
 	tlfJournal, ok := j.getTLFJournal(tlfID, nil)
 	if !ok {
@@ -960,7 +957,7 @@ func (j *JournalServer) JournalStatusWithPaths(ctx context.Context,
 // shutdowns are complete. It is safe to call multiple times in a row,
 // and once this is called, EnableExistingJournals may be called
 // again.
-func (j *JournalServer) shutdownExistingJournalsLocked(ctx context.Context) {
+func (j *JournalManager) shutdownExistingJournalsLocked(ctx context.Context) {
 	for len(j.dirtyOps) > 0 {
 		j.log.CDebugf(ctx,
 			"Waiting for %d TLFS with dirty ops before shutting down "+
@@ -984,13 +981,13 @@ func (j *JournalServer) shutdownExistingJournalsLocked(ctx context.Context) {
 // shutdowns are complete. It is safe to call multiple times in a row,
 // and once this is called, EnableExistingJournals may be called
 // again.
-func (j *JournalServer) shutdownExistingJournals(ctx context.Context) {
+func (j *JournalManager) shutdownExistingJournals(ctx context.Context) {
 	j.lock.Lock()
 	defer j.lock.Unlock()
 	j.shutdownExistingJournalsLocked(ctx)
 }
 
-func (j *JournalServer) shutdown(ctx context.Context) {
+func (j *JournalManager) shutdown(ctx context.Context) {
 	j.log.CDebugf(ctx, "Shutting down journal")
 	j.lock.Lock()
 	defer j.lock.Unlock()

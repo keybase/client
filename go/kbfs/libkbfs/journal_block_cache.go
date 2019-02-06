@@ -7,7 +7,7 @@ package libkbfs
 import "github.com/keybase/client/go/kbfs/tlf"
 
 type journalBlockCache struct {
-	jServer *JournalServer
+	jServer *JournalManager
 	BlockCache
 }
 

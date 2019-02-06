@@ -744,7 +744,7 @@ var errNoMergedRevWhileStaged = errors.New(
 // revisions, it returns errNoFlushedRevisions.
 func (fbo *folderBranchOps) getJournalPredecessorRevision(ctx context.Context) (
 	kbfsmd.Revision, error) {
-	jServer, err := GetJournalServer(fbo.config)
+	jServer, err := GetJournalManager(fbo.config)
 	if err != nil {
 		// Journaling is disabled entirely.
 		return kbfsmd.RevisionUninitialized, nil
@@ -1687,7 +1687,7 @@ func (fbo *folderBranchOps) setHeadLocked(
 		// for this TLF.  That's because we may have received the TLF
 		// ID from the service, rather than via a GetIDForHandle call,
 		// and so we might have skipped the journal.
-		if jServer, err := GetJournalServer(fbo.config); err == nil {
+		if jServer, err := GetJournalManager(fbo.config); err == nil {
 			_, _ = jServer.getTLFJournal(fbo.id(), md.GetTlfHandle())
 		}
 	}
@@ -2412,7 +2412,7 @@ func (fbo *folderBranchOps) initMDLocked(
 	// want the rekey to hit the journal and possibly end up on a
 	// conflict branch, so push straight to the server.
 	mdOps := fbo.config.MDOps()
-	if jServer, err := GetJournalServer(fbo.config); err == nil {
+	if jServer, err := GetJournalManager(fbo.config); err == nil {
 		mdOps = jServer.delegateMDOps
 	}
 	irmd, err := mdOps.Put(
@@ -3645,7 +3645,7 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 }
 
 func (fbo *folderBranchOps) waitForJournalLocked(ctx context.Context,
-	lState *lockState, jServer *JournalServer) error {
+	lState *lockState, jServer *JournalManager) error {
 	fbo.mdWriterLock.AssertLocked(lState)
 
 	if !TLFJournalEnabled(fbo.config, fbo.id()) {
@@ -3692,7 +3692,7 @@ func (fbo *folderBranchOps) finalizeMDRekeyWriteLocked(ctx context.Context,
 	// maybe we should consider letting these hit the journal and
 	// scrubbing them when converting it to a branch.
 	mdOps := fbo.config.MDOps()
-	if jServer, err := GetJournalServer(fbo.config); err == nil {
+	if jServer, err := GetJournalManager(fbo.config); err == nil {
 		if err = fbo.waitForJournalLocked(ctx, lState, jServer); err != nil {
 			return err
 		}

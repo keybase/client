@@ -1062,7 +1062,7 @@ func (c *ConfigLocal) resetCachesWithoutShutdown() DirtyBlockCache {
 // ResetCaches implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) ResetCaches() {
 	oldDirtyBcache := c.resetCachesWithoutShutdown()
-	jServer, err := GetJournalServer(c)
+	jServer, err := GetJournalManager(c)
 	if err == nil {
 		if err := c.journalizeBcaches(jServer); err != nil {
 			if log := c.MakeLogger(""); log != nil {
@@ -1296,7 +1296,7 @@ func (c *ConfigLocal) CheckStateOnShutdown() bool {
 	return false
 }
 
-func (c *ConfigLocal) journalizeBcaches(jServer *JournalServer) error {
+func (c *ConfigLocal) journalizeBcaches(jServer *JournalManager) error {
 	syncCache, ok := c.DirtyBlockCache().(*DirtyBlockCacheStandard)
 	if !ok {
 		return errors.Errorf("Dirty bcache unexpectedly type %T", syncCache)
@@ -1366,13 +1366,13 @@ func (c *ConfigLocal) EnableDiskLimiter(configRoot string) error {
 	return nil
 }
 
-// EnableJournaling creates a JournalServer and attaches it to
+// EnableJournaling creates a JournalManager and attaches it to
 // this config. journalRoot must be non-empty. Errors returned are
 // non-fatal.
 func (c *ConfigLocal) EnableJournaling(
 	ctx context.Context, journalRoot string,
 	bws TLFJournalBackgroundWorkStatus) error {
-	jServer, err := GetJournalServer(c)
+	jServer, err := GetJournalManager(c)
 	if err == nil {
 		// Journaling shouldn't be enabled twice for the same
 		// config.
@@ -1392,7 +1392,7 @@ func (c *ConfigLocal) EnableJournaling(
 		return err
 	}
 
-	jServer = makeJournalServer(c, log, journalRoot, c.BlockCache(),
+	jServer = makeJournalManager(c, log, journalRoot, c.BlockCache(),
 		c.DirtyBlockCache(), c.BlockServer(), c.MDOps(), branchListener,
 		flushListener)
 

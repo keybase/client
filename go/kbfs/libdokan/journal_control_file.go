@@ -31,7 +31,7 @@ func (f *JournalControlFile) WriteFile(ctx context.Context,
 		return 0, nil
 	}
 
-	jServer, err := libkbfs.GetJournalServer(f.folder.fs.config)
+	jServer, err := libkbfs.GetJournalManager(f.folder.fs.config)
 	if err != nil {
 		return 0, err
 	}

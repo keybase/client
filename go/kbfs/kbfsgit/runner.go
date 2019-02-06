@@ -447,7 +447,7 @@ func (r *runner) printStageStart(ctx context.Context,
 
 // caller should make sure doneCh is closed when journal is all flushed.
 func (r *runner) printJournalStatus(
-	ctx context.Context, jServer *libkbfs.JournalServer, tlfID tlf.ID,
+	ctx context.Context, jServer *libkbfs.JournalManager, tlfID tlf.ID,
 	doneCh <-chan struct{}) {
 	r.printStageEndIfNeeded(ctx)
 	// Note: the "first" status here gets us the number of unflushed
@@ -544,7 +544,7 @@ func (r *runner) waitForJournal(ctx context.Context) error {
 		return err
 	}
 
-	jServer, err := libkbfs.GetJournalServer(r.config)
+	jServer, err := libkbfs.GetJournalManager(r.config)
 	if err != nil {
 		r.log.CDebugf(ctx, "No journal server: %+v", err)
 		return nil
@@ -724,7 +724,7 @@ func (r *runner) printJournalStatusUntilFlushed(
 		return
 	}
 
-	jServer, err := libkbfs.GetJournalServer(r.config)
+	jServer, err := libkbfs.GetJournalManager(r.config)
 	if err != nil {
 		r.log.CDebugf(ctx, "No journal server: %+v", err)
 	}

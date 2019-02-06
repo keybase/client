@@ -24,10 +24,10 @@ import (
 	"golang.org/x/net/context"
 )
 
-func setupJournalServerTest(t *testing.T) (
+func setupJournalManagerTest(t *testing.T) (
 	tempdir string, ctx context.Context, cancel context.CancelFunc,
 	config *ConfigLocal, quotaUsage *EventuallyConsistentQuotaUsage,
-	jServer *JournalServer) {
+	jServer *JournalManager) {
 	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_server")
 	require.NoError(t, err)
 
@@ -65,7 +65,7 @@ func setupJournalServerTest(t *testing.T) (
 	err = config.EnableJournaling(
 		ctx, tempdir, TLFJournalBackgroundWorkEnabled)
 	require.NoError(t, err)
-	jServer, err = GetJournalServer(config)
+	jServer, err = GetJournalManager(config)
 	require.NoError(t, err)
 
 	session, err := config.KBPKI().GetCurrentSession(ctx)
@@ -76,7 +76,7 @@ func setupJournalServerTest(t *testing.T) (
 	return tempdir, ctx, cancel, config, quotaUsage, jServer
 }
 
-func teardownJournalServerTest(
+func teardownJournalManagerTest(
 	t *testing.T, tempdir string, ctx context.Context,
 	cancel context.CancelFunc, config Config) {
 	CheckConfigAndShutdown(ctx, t, config)
@@ -141,10 +141,10 @@ func (qbs *quotaBlockServer) GetTeamQuotaInfo(
 	return &infoCopy, nil
 }
 
-func TestJournalServerOverQuotaError(t *testing.T) {
+func TestJournalManagerOverQuotaError(t *testing.T) {
 	tempdir, ctx, cancel, config, quotaUsage, jServer :=
-		setupJournalServerTest(t)
-	defer teardownJournalServerTest(t, tempdir, ctx, cancel, config)
+		setupJournalManagerTest(t)
+	defer teardownJournalManagerTest(t, tempdir, ctx, cancel, config)
 
 	name := kbname.NormalizedUsername("t1")
 	subname := kbname.NormalizedUsername("t1.sub")
@@ -273,10 +273,10 @@ func (c tlfJournalConfigWithDiskLimitTimeout) diskLimitTimeout() time.Duration {
 	return c.dlTimeout
 }
 
-func TestJournalServerOverDiskLimitError(t *testing.T) {
+func TestJournalManagerOverDiskLimitError(t *testing.T) {
 	tempdir, ctx, cancel, config, quotaUsage, jServer :=
-		setupJournalServerTest(t)
-	defer teardownJournalServerTest(t, tempdir, ctx, cancel, config)
+		setupJournalManagerTest(t)
+	defer teardownJournalManagerTest(t, tempdir, ctx, cancel, config)
 
 	qbs := &quotaBlockServer{BlockServer: config.BlockServer()}
 	config.SetBlockServer(qbs)
@@ -366,9 +366,9 @@ func TestJournalServerOverDiskLimitError(t *testing.T) {
 	compare(false, err)
 }
 
-func TestJournalServerRestart(t *testing.T) {
-	tempdir, ctx, cancel, config, _, jServer := setupJournalServerTest(t)
-	defer teardownJournalServerTest(t, tempdir, ctx, cancel, config)
+func TestJournalManagerRestart(t *testing.T) {
+	tempdir, ctx, cancel, config, _, jServer := setupJournalManagerTest(t)
+	defer teardownJournalManagerTest(t, tempdir, ctx, cancel, config)
 
 	// Use a shutdown-only BlockServer so that it errors if the
 	// journal tries to access it.
@@ -415,7 +415,7 @@ func TestJournalServerRestart(t *testing.T) {
 
 	// Simulate a restart.
 
-	jServer = makeJournalServer(
+	jServer = makeJournalManager(
 		config, jServer.log, tempdir, jServer.delegateBlockCache,
 		jServer.delegateDirtyBlockCache,
 		jServer.delegateBlockServer, jServer.delegateMDOps, nil, nil)
@@ -440,9 +440,9 @@ func TestJournalServerRestart(t *testing.T) {
 	require.Equal(t, rmd.Revision(), head.Revision())
 }
 
-func TestJournalServerLogOutLogIn(t *testing.T) {
-	tempdir, ctx, cancel, config, _, jServer := setupJournalServerTest(t)
-	defer teardownJournalServerTest(t, tempdir, ctx, cancel, config)
+func TestJournalManagerLogOutLogIn(t *testing.T) {
+	tempdir, ctx, cancel, config, _, jServer := setupJournalManagerTest(t)
+	defer teardownJournalManagerTest(t, tempdir, ctx, cancel, config)
 
 	// Use a shutdown-only BlockServer so that it errors if the
 	// journal tries to access it.
@@ -520,9 +520,9 @@ func TestJournalServerLogOutLogIn(t *testing.T) {
 	require.Equal(t, rmd.Revision(), head.Revision())
 }
 
-func TestJournalServerLogOutDirtyOp(t *testing.T) {
-	tempdir, ctx, cancel, config, _, jServer := setupJournalServerTest(t)
-	defer teardownJournalServerTest(t, tempdir, ctx, cancel, config)
+func TestJournalManagerLogOutDirtyOp(t *testing.T) {
+	tempdir, ctx, cancel, config, _, jServer := setupJournalManagerTest(t)
+	defer teardownJournalManagerTest(t, tempdir, ctx, cancel, config)
 
 	tlfID := tlf.FakeID(2, tlf.Private)
 	err := jServer.Enable(ctx, tlfID, nil, TLFJournalBackgroundWorkPaused)
@@ -549,9 +549,9 @@ func TestJournalServerLogOutDirtyOp(t *testing.T) {
 	require.Equal(t, uint(0), dirtyOps)
 }
 
-func TestJournalServerMultiUser(t *testing.T) {
-	tempdir, ctx, cancel, config, _, jServer := setupJournalServerTest(t)
-	defer teardownJournalServerTest(t, tempdir, ctx, cancel, config)
+func TestJournalManagerMultiUser(t *testing.T) {
+	tempdir, ctx, cancel, config, _, jServer := setupJournalManagerTest(t)
+	defer teardownJournalManagerTest(t, tempdir, ctx, cancel, config)
 
 	// Use a shutdown-only BlockServer so that it errors if the
 	// journal tries to access it.
@@ -721,9 +721,9 @@ func TestJournalServerMultiUser(t *testing.T) {
 	require.Equal(t, id2.AsUserOrBust(), head.LastModifyingWriter())
 }
 
-func TestJournalServerEnableAuto(t *testing.T) {
-	tempdir, ctx, cancel, config, _, jServer := setupJournalServerTest(t)
-	defer teardownJournalServerTest(t, tempdir, ctx, cancel, config)
+func TestJournalManagerEnableAuto(t *testing.T) {
+	tempdir, ctx, cancel, config, _, jServer := setupJournalManagerTest(t)
+	defer teardownJournalManagerTest(t, tempdir, ctx, cancel, config)
 
 	err := jServer.EnableAuto(ctx)
 	require.NoError(t, err)
@@ -764,7 +764,7 @@ func TestJournalServerEnableAuto(t *testing.T) {
 	tj.shutdown(ctx)
 
 	// Simulate a restart.
-	jServer = makeJournalServer(
+	jServer = makeJournalManager(
 		config, jServer.log, tempdir, jServer.delegateBlockCache,
 		jServer.delegateDirtyBlockCache,
 		jServer.delegateBlockServer, jServer.delegateMDOps, nil, nil)
@@ -779,9 +779,9 @@ func TestJournalServerEnableAuto(t *testing.T) {
 	require.Len(t, tlfIDs, 1)
 }
 
-func TestJournalServerReaderTLFs(t *testing.T) {
-	tempdir, ctx, cancel, config, _, jServer := setupJournalServerTest(t)
-	defer teardownJournalServerTest(t, tempdir, ctx, cancel, config)
+func TestJournalManagerReaderTLFs(t *testing.T) {
+	tempdir, ctx, cancel, config, _, jServer := setupJournalManagerTest(t)
+	defer teardownJournalManagerTest(t, tempdir, ctx, cancel, config)
 
 	err := jServer.EnableAuto(ctx)
 	require.NoError(t, err)
@@ -842,9 +842,9 @@ func TestJournalServerReaderTLFs(t *testing.T) {
 	require.Len(t, tlfIDs, 1)
 }
 
-func TestJournalServerNukeEmptyJournalsOnRestart(t *testing.T) {
-	tempdir, ctx, cancel, config, _, jServer := setupJournalServerTest(t)
-	defer teardownJournalServerTest(t, tempdir, ctx, cancel, config)
+func TestJournalManagerNukeEmptyJournalsOnRestart(t *testing.T) {
+	tempdir, ctx, cancel, config, _, jServer := setupJournalManagerTest(t)
+	defer teardownJournalManagerTest(t, tempdir, ctx, cancel, config)
 
 	err := jServer.EnableAuto(ctx)
 	require.NoError(t, err)
@@ -886,7 +886,7 @@ func TestJournalServerNukeEmptyJournalsOnRestart(t *testing.T) {
 
 	// Simulate a restart and make sure the journal doesn't come back
 	// up.
-	jServer = makeJournalServer(
+	jServer = makeJournalManager(
 		config, jServer.log, tempdir, jServer.delegateBlockCache,
 		jServer.delegateDirtyBlockCache,
 		jServer.delegateBlockServer, jServer.delegateMDOps, nil, nil)
@@ -903,9 +903,9 @@ func TestJournalServerNukeEmptyJournalsOnRestart(t *testing.T) {
 	require.True(t, ioutil.IsNotExist(err))
 }
 
-func TestJournalServerTeamTLFWithRestart(t *testing.T) {
-	tempdir, ctx, cancel, config, _, jServer := setupJournalServerTest(t)
-	defer teardownJournalServerTest(t, tempdir, ctx, cancel, config)
+func TestJournalManagerTeamTLFWithRestart(t *testing.T) {
+	tempdir, ctx, cancel, config, _, jServer := setupJournalManagerTest(t)
+	defer teardownJournalManagerTest(t, tempdir, ctx, cancel, config)
 
 	name := kbname.NormalizedUsername("t1")
 	teamInfos := AddEmptyTeamsForTestOrBust(t, config, name)
@@ -954,7 +954,7 @@ func TestJournalServerTeamTLFWithRestart(t *testing.T) {
 
 	// Simulate a restart.
 
-	jServer = makeJournalServer(
+	jServer = makeJournalManager(
 		config, jServer.log, tempdir, jServer.delegateBlockCache,
 		jServer.delegateDirtyBlockCache,
 		jServer.delegateBlockServer, jServer.delegateMDOps, nil, nil)
@@ -986,8 +986,8 @@ func TestJournalServerTeamTLFWithRestart(t *testing.T) {
 }
 
 func TestJournalQuotaStatus(t *testing.T) {
-	tempdir, ctx, cancel, config, _, jServer := setupJournalServerTest(t)
-	defer teardownJournalServerTest(t, tempdir, ctx, cancel, config)
+	tempdir, ctx, cancel, config, _, jServer := setupJournalManagerTest(t)
+	defer teardownJournalManagerTest(t, tempdir, ctx, cancel, config)
 
 	// Set initial quota usage and refresh quotaUsage's cache.
 	qbs := &quotaBlockServer{BlockServer: config.BlockServer()}
@@ -1005,8 +1005,8 @@ func TestJournalQuotaStatus(t *testing.T) {
 }
 
 func TestJournalQuotaStatusForGitBlocks(t *testing.T) {
-	tempdir, ctx, cancel, config, _, jServer := setupJournalServerTest(t)
-	defer teardownJournalServerTest(t, tempdir, ctx, cancel, config)
+	tempdir, ctx, cancel, config, _, jServer := setupJournalManagerTest(t)
+	defer teardownJournalManagerTest(t, tempdir, ctx, cancel, config)
 	config.SetDefaultBlockType(keybase1.BlockType_GIT)
 
 	// Set initial quota usage and refresh quotaUsage's cache.

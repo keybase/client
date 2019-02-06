@@ -294,7 +294,7 @@ func ConfigAsUserWithMode(config *ConfigLocal,
 	}
 
 	// If journaling was on in `config`, disable it in `c`.
-	jServer, err := GetJournalServer(config)
+	jServer, err := GetJournalManager(config)
 	if err == nil {
 		c.SetBlockServer(jServer.delegateBlockServer)
 	}

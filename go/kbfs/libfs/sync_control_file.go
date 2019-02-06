@@ -33,7 +33,7 @@ func (a SyncAction) String() string {
 	return fmt.Sprintf("SyncAction(%d)", int(a))
 }
 
-// Execute performs the action on the given JournalServer for the
+// Execute performs the action on the given JournalManager for the
 // given TLF.
 func (a SyncAction) Execute(
 	ctx context.Context, c libkbfs.Config, fb libkbfs.FolderBranch,

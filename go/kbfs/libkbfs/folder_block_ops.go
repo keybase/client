@@ -1952,7 +1952,7 @@ func (fbo *folderBlockOps) writeDataLocked(
 	file path, data []byte, off int64) (
 	latestWrite WriteRange, dirtyPtrs []BlockPointer,
 	newlyDirtiedChildBytes int64, err error) {
-	if jServer, err := GetJournalServer(fbo.config); err == nil {
+	if jServer, err := GetJournalManager(fbo.config); err == nil {
 		jServer.dirtyOpStart(fbo.id())
 		defer jServer.dirtyOpEnd(fbo.id())
 	}
@@ -2174,7 +2174,7 @@ func (fbo *folderBlockOps) truncateExtendLocked(
 func (fbo *folderBlockOps) truncateLocked(
 	ctx context.Context, lState *lockState, kmd KeyMetadataWithRootDirEntry,
 	file path, size uint64) (*WriteRange, []BlockPointer, int64, error) {
-	if jServer, err := GetJournalServer(fbo.config); err == nil {
+	if jServer, err := GetJournalManager(fbo.config); err == nil {
 		jServer.dirtyOpStart(fbo.id())
 		defer jServer.dirtyOpEnd(fbo.id())
 	}
@@ -2771,7 +2771,7 @@ func (fbo *folderBlockOps) StartSync(ctx context.Context,
 	lState *lockState, md *RootMetadata, file path) (
 	fblock *FileBlock, bps blockPutStateCopiable, dirtyDe *DirEntry,
 	syncState fileSyncState, err error) {
-	if jServer, err := GetJournalServer(fbo.config); err == nil {
+	if jServer, err := GetJournalManager(fbo.config); err == nil {
 		jServer.dirtyOpStart(fbo.id())
 	}
 
@@ -2792,7 +2792,7 @@ func (fbo *folderBlockOps) CleanupSyncState(
 	ctx context.Context, lState *lockState, md ReadOnlyRootMetadata,
 	file path, blocksToRemove []BlockPointer,
 	result fileSyncState, err error) {
-	if jServer, err := GetJournalServer(fbo.config); err == nil {
+	if jServer, err := GetJournalManager(fbo.config); err == nil {
 		defer jServer.dirtyOpEnd(fbo.id())
 	}
 

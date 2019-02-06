@@ -188,7 +188,7 @@ func TestGetTLFCryptKeysWhileUnmergedAfterRestart(t *testing.T) {
 	err = config1.EnableJournaling(
 		ctx, tempdir, TLFJournalBackgroundWorkEnabled)
 	require.NoError(t, err)
-	jServer, err := GetJournalServer(config1)
+	jServer, err := GetJournalManager(config1)
 	require.NoError(t, err)
 	jServer.onBranchChange = nil
 	jServer.onMDFlush = nil
@@ -250,7 +250,7 @@ func TestGetTLFCryptKeysWhileUnmergedAfterRestart(t *testing.T) {
 	err = config1B.EnableJournaling(
 		ctx, tempdir, TLFJournalBackgroundWorkEnabled)
 	require.NoError(t, err)
-	jServer, err = GetJournalServer(config1B)
+	jServer, err = GetJournalManager(config1B)
 	require.NoError(t, err)
 	jServer.onBranchChange = nil
 	jServer.onMDFlush = nil

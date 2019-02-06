@@ -95,7 +95,7 @@ func TestGetOrCreateRepoAndID(t *testing.T) {
 	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
 		ctx, h, libkbfs.MasterBranch)
 	require.NoError(t, err)
-	jServer, err := libkbfs.GetJournalServer(config)
+	jServer, err := libkbfs.GetJournalManager(config)
 	require.NoError(t, err)
 	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf,
 		nil, keybase1.MDPriorityGit)
@@ -131,7 +131,7 @@ func TestCreateRepoAndID(t *testing.T) {
 	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
 		ctx, h, libkbfs.MasterBranch)
 	require.NoError(t, err)
-	jServer, err := libkbfs.GetJournalServer(config)
+	jServer, err := libkbfs.GetJournalManager(config)
 	require.NoError(t, err)
 	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf,
 		nil, keybase1.MDPriorityGit)
@@ -214,7 +214,7 @@ func TestCreateDuplicateRepo(t *testing.T) {
 		t.Fatal(ctx.Err())
 	}
 
-	jServer, err := libkbfs.GetJournalServer(config)
+	jServer, err := libkbfs.GetJournalManager(config)
 	require.NoError(t, err)
 	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf,
 		nil, keybase1.MDPriorityGit)
@@ -248,7 +248,7 @@ func TestGetRepoAndID(t *testing.T) {
 	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
 		ctx, h, libkbfs.MasterBranch)
 	require.NoError(t, err)
-	jServer, err := libkbfs.GetJournalServer(config)
+	jServer, err := libkbfs.GetJournalManager(config)
 	require.NoError(t, err)
 	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf,
 		nil, keybase1.MDPriorityGit)
@@ -273,7 +273,7 @@ func TestDeleteRepo(t *testing.T) {
 	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
 		ctx, h, libkbfs.MasterBranch)
 	require.NoError(t, err)
-	jServer, err := libkbfs.GetJournalServer(config)
+	jServer, err := libkbfs.GetJournalManager(config)
 	require.NoError(t, err)
 	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf,
 		nil, keybase1.MDPriorityGit)
