@@ -385,3 +385,54 @@ func TestBlockRetrievalWorkerPrefetchedPriorityElevation(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, testBlock1, block1)
 }
+
+func TestBlockRetrievalWorkerStopIfFull(t *testing.T) {
+	ctx, cancel := context.WithTimeout(
+		context.Background(), individualTestTimeout)
+	defer cancel()
+	dbc, dbcConfig := initDiskBlockCacheTest(t)
+	defer dbc.Shutdown(ctx)
+
+	bg := newFakeBlockGetter(false)
+	q := newBlockRetrievalQueue(
+		1, 1, 0, newTestBlockRetrievalConfig(t, bg, dbc))
+	require.NotNil(t, q)
+	<-q.TogglePrefetcher(false, nil, nil)
+	defer q.Shutdown()
+
+	ptr := makeRandomBlockPointer(t)
+	syncCache := dbc.syncCache
+	workingCache := dbc.workingSetCache
+
+	t.Log("Set the cache maximum bytes to the current total.")
+	syncBytes, workingBytes := testGetDiskCacheBytes(syncCache, workingCache)
+	limiter := dbcConfig.DiskLimiter().(*backpressureDiskLimiter)
+	setLimiterLimits(limiter, syncBytes, workingBytes)
+
+	t.Log("Request with stop-if-full, when full")
+	testBlock := &FileBlock{}
+	req := q.Request(
+		ctx, 1, makeKMD(), ptr, testBlock, NoCacheEntry,
+		BlockRequestPrefetchUntilFull)
+	select {
+	case err := <-req:
+		require.IsType(t, DiskCacheTooFullForBlockError{}, err)
+	case <-ctx.Done():
+		require.NoError(t, ctx.Err())
+	}
+
+	t.Log("Request without stop-if-full, when full")
+	block := makeFakeFileBlock(t, false)
+	startCh, continueCh := bg.setBlockToReturn(ptr, block)
+	req = q.Request(
+		ctx, 1, makeKMD(), ptr, testBlock, NoCacheEntry,
+		BlockRequestWithPrefetch)
+	<-startCh
+	continueCh <- nil
+	select {
+	case err := <-req:
+		require.NoError(t, err)
+	case <-ctx.Done():
+		require.NoError(t, ctx.Err())
+	}
+}
