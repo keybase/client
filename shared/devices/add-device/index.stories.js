@@ -7,6 +7,7 @@ const props = {
   onAddComputer: Sb.action('onAddComputer'),
   onAddPaperKey: Sb.action('onAddPaperKey'),
   onAddPhone: Sb.action('onAddPhone'),
+  onCancel: Sb.action('onCancel'),
 }
 
 const load = () => {

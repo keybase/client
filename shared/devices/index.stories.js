@@ -67,17 +67,12 @@ const provider = Sb.createPropProviderWithCommon({
   Devices: p => ({
     _stateOverride: p._stateOverride,
     hasNewlyRevoked: p.revoked.some(i => i.key === '7'),
-    hideMenu: Sb.action('hideMenu'),
     items: p.active,
     loadDevices: Sb.action('loaddevices'),
-    menuItems: [
-      {onClick: Sb.action('onAdd phone'), title: 'New phone'},
-      {onClick: Sb.action('onAdd computer'), title: 'New computer'},
-      {onClick: Sb.action('onAdd paper key'), title: 'New paper key'},
-    ],
+    onAddDevice: Sb.action('onAddDevice'),
+    onBack: Sb.action('onBack'),
     revokedItems: p.revoked,
-    showMenu: Sb.action('showMenu'),
-    showingMenu: false,
+    title: 'Devices',
     waiting: !!p.waiting,
   }),
 })

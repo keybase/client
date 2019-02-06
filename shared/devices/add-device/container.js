@@ -18,7 +18,7 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
     dispatch(navigateUp())
     dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'mobile'}))
   },
-  onClose: () => dispatch(navigateUp()),
+  onCancel: () => dispatch(navigateUp()),
 })
 
 export default Container.namedConnect<RouteProps<{}, {}>, _, _, _, _>(

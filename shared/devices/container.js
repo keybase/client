@@ -2,7 +2,6 @@
 import * as React from 'react'
 import Devices from '.'
 import * as DevicesGen from '../actions/devices-gen'
-import * as ProvisionGen from '../actions/provision-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Constants from '../constants/devices'
 import * as I from 'immutable'
@@ -18,11 +17,8 @@ const mapStateToProps = state => ({
 })
 
 const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
-  addNewComputer: () => dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'desktop'})),
-  addNewPaperKey: () => dispatch(DevicesGen.createShowPaperKeyPage()),
-  addNewPhone: () => dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'mobile'})),
-  onAddDevice: () => dispatch(navigateAppend(['addDevice'])),
   loadDevices: () => dispatch(DevicesGen.createLoad()),
+  onAddDevice: () => dispatch(navigateAppend(['addDevice'])),
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
@@ -50,9 +46,6 @@ function mergeProps(stateProps, dispatchProps, ownProps: OwnProps) {
   const newlyRevokedIds = I.Set(revokedItems.map(d => d.key)).intersect(stateProps._newlyChangedItemIds)
   return {
     _stateOverride: null,
-    addNewComputer: dispatchProps.addNewComputer,
-    addNewPaperKey: dispatchProps.addNewPaperKey,
-    addNewPhone: dispatchProps.addNewPhone,
     hasNewlyRevoked: newlyRevokedIds.size > 0,
     items: normal.map(deviceToItem),
     loadDevices: dispatchProps.loadDevices,
@@ -76,9 +69,6 @@ class ReloadableDevices extends React.PureComponent<React.ElementConfig<typeof D
       >
         <Devices
           _stateOverride={this.props._stateOverride}
-          addNewComputer={this.props.addNewComputer}
-          addNewPaperKey={this.props.addNewPaperKey}
-          addNewPhone={this.props.addNewPhone}
           onAddDevice={this.props.onAddDevice}
           hasNewlyRevoked={this.props.hasNewlyRevoked}
           items={this.props.items}

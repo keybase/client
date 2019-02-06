@@ -8,6 +8,7 @@ type Props = {|
   onAddComputer: () => void,
   onAddPaperKey: () => void,
   onAddPhone: () => void,
+  onCancel: () => void,
 |}
 
 const AddDevice = (props: Props) => (

@@ -15,9 +15,6 @@ type State = {
 type Props = {|
   // Only used by storybook
   _stateOverride: ?State,
-  addNewComputer: () => void,
-  addNewPaperKey: () => void,
-  addNewPhone: () => void,
   items: Array<Item>,
   loadDevices: () => void,
   onAddDevice: () => void,
@@ -26,7 +23,6 @@ type Props = {|
   hasNewlyRevoked: boolean,
   waiting: boolean,
   title: string,
-  ...$Exact<Kb.OverlayParentProps>,
 |}
 
 class Devices extends React.PureComponent<Props, State> {
@@ -66,29 +62,11 @@ class Devices extends React.PureComponent<Props, State> {
       ...(this.state.revokedExpanded ? this.props.revokedItems : []),
     ]
 
-    const menuItems = [
-      {onClick: this.props.addNewPhone, title: 'New phone'},
-      {onClick: this.props.addNewComputer, title: 'New computer'},
-      {onClick: this.props.addNewPaperKey, title: 'New paper key'},
-    ]
-
     return (
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
-        <DeviceHeader
-          setAttachmentRef={this.props.setAttachmentRef}
-          onAddNew={this.props.onAddDevice}
-          waiting={this.props.waiting}
-        />
+        <DeviceHeader onAddNew={this.props.onAddDevice} waiting={this.props.waiting} />
         {this.props.waiting && <Kb.ProgressIndicator style={styles.progress} />}
         <Kb.List items={items} renderItem={this._renderRow} />
-        <Kb.FloatingMenu
-          closeOnSelect={true}
-          attachTo={this.props.getAttachmentRef}
-          visible={this.props.showingMenu}
-          onHidden={this.props.toggleShowingMenu}
-          items={menuItems}
-          position="bottom center"
-        />
       </Kb.Box2>
     )
   }
@@ -106,18 +84,17 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-const DeviceHeader = ({onAddNew, setAttachmentRef, waiting}) => (
+const DeviceHeader = ({onAddNew, waiting}) => (
   <Kb.ClickableBox onClick={onAddNew}>
     <Kb.Box2
       direction="horizontal"
-      ref={setAttachmentRef}
       gap="xtiny"
       style={headerStyles.container}
       fullWidth={true}
       centerChildren={true}
     >
       <Kb.Icon type="iconfont-new" color={Styles.globalColors.blue} />
-      <Kb.Text type="BodyBigLink">Add new...</Kb.Text>
+      <Kb.Text type="BodyBigLink">Add a device</Kb.Text>
     </Kb.Box2>
   </Kb.ClickableBox>
 )
@@ -165,7 +142,4 @@ const revokedHeaderStyles = Styles.styleSheetCreate({
   },
 })
 
-export default compose(
-  Kb.OverlayParentHOC,
-  Kb.HeaderOnMobile
-)(Devices)
+export default compose(Kb.HeaderOnMobile)(Devices)
