@@ -220,7 +220,7 @@ func (s *Identify3Session) expire(mctx MetaContext) {
 		return
 	}
 	if cli == nil {
-		mctx.CWarningf("failed to get an electron UI to expire: got nil", s.id)
+		mctx.CWarningf("failed to get an electron UI to expire %s: got nil", s.id)
 		return
 	}
 	err = cli.Identify3TrackerTimedOut(mctx.Ctx(), s.id)
