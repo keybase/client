@@ -188,10 +188,10 @@ const mapDispatchToProps = dispatch => ({
 const mergeProps = (s, d, o: OwnProps) => ({
   destinationPickerIndex: o.destinationPickerIndex,
   items: getItemsFromStateProps(s, o.path, o.sortSetting),
-  onAttach: d.onAttach,
+  onAttach:
+    s._pathItems.get(o.path, Constants.unknownPathItem).writable ? d.onAttach : null,
   path: o.path,
   routePath: o.routePath,
-  writable: s._pathItems.get(o.path, Constants.unknownPathItem).writable,
 })
 
 export default compose(

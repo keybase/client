@@ -124,10 +124,9 @@ class Rows extends React.PureComponent<Props> {
   }
   render() {
     const onDrop = (dropPaths) => this.props.onAttach(this.props.path, dropPaths)
-    return (
-  <DropTarget onAttach={this.props.writable ? onDrop : null}>
-    {this.renderContents()}
-  </DropTarget>)
+    return this.props.onAttach ? (
+      <DropTarget onAttach={onDrop}>{this.renderContents()}</DropTarget>
+    ) : this.renderContents()
   }
 }
 

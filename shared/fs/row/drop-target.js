@@ -2,10 +2,16 @@
 import * as React from 'react'
 import {Box, Icon} from '../../common-adapters'
 import * as Styles from '../../styles'
+import {isMobile} from '../../constants/platform'
 
 type State = {|
   showDropOverlay: boolean,
 |}
+
+type Props = {
+  children?: React.Node,
+  onAttach: Array<string> => void,
+}
 
 const DropOverlay = ({onDragLeave, onDrop}) => (
   <Box style={styles.dropOverlayStyle} onDragLeave={onDragLeave} onDrop={onDrop}>
@@ -13,7 +19,7 @@ const DropOverlay = ({onDragLeave, onDrop}) => (
   </Box>
 )
 
-class DropTarget extends React.PureComponent<any, State> {
+class DropTarget extends React.PureComponent<Props, State> {
   state = {showDropOverlay: false}
 
   _onDrop = e => {
@@ -42,9 +48,9 @@ class DropTarget extends React.PureComponent<any, State> {
   }
 
   render() {
-    const {children, onAttach, ...otherProps} = this.props
+    const {children, onAttach} = this.props
     return (
-      <Box style={styles.containerStyle} onDragOver={onAttach ? this._onDragOver : null} {...otherProps}>
+      <Box style={styles.containerStyle} onDragOver={onAttach ? this._onDragOver : null}>
         {children}
         {this.state.showDropOverlay && <DropOverlay onDragLeave={this._onDragLeave} onDrop={this._onDrop} />}
       </Box>
@@ -72,4 +78,4 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-export default DropTarget
+export default (isMobile ? Box : DropTarget)
