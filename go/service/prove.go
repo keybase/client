@@ -107,5 +107,6 @@ func (ph *ProveHandler) CheckProof(ctx context.Context, arg keybase1.CheckProofA
 func (ph *ProveHandler) ListProofServices(ctx context.Context) (res []string, err error) {
 	ctx = libkb.WithLogTag(ctx, "PV")
 	defer ph.G().CTraceTimed(ctx, fmt.Sprintf("ListProofServices"), func() error { return err })()
-	return ph.G().GetProofServices().ListServicesThatAcceptNewProofs(), nil
+	mctx := libkb.NewMetaContext(ctx, ph.G())
+	return ph.G().GetProofServices().ListServicesThatAcceptNewProofs(mctx), nil
 }

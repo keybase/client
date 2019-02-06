@@ -22,8 +22,8 @@ function SettingsNav(props: Props) {
       />
       <SettingsItem
         text="Files"
-        selected={props.selectedTab === Constants.fsSettingsTab}
-        onClick={() => props.onTabChange(Constants.fsSettingsTab)}
+        selected={props.selectedTab === Constants.fsTab}
+        onClick={() => props.onTabChange(Constants.fsTab)}
       />
       <SettingsItem
         text="Notifications"
@@ -45,6 +45,8 @@ function SettingsNav(props: Props) {
         selected={props.selectedTab === Constants.deleteMeTab}
         onClick={() => props.onTabChange(Constants.deleteMeTab)}
       />
+      {/* TODO: Do something with logoutInProgress once Offline is
+        removed from the settings page. */}
       <SettingsItem text="Sign out" selected={false} onClick={props.onLogout} />
       {__DEV__ && (
         <SettingsItem

@@ -7,6 +7,7 @@ package libkbfs
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"os"
 	sysPath "path"
 	"runtime/debug"
@@ -335,6 +336,16 @@ func (cr *ConflictResolver) getMDs(ctx context.Context, lState *lockState,
 	}
 	if err != nil {
 		return nil, nil, err
+	}
+
+	for i, md := range unmerged {
+		newMd, err := reembedBlockChangesIntoCopyIfNeeded(
+			ctx, cr.config.Codec(), cr.config.BlockCache(),
+			cr.config.BlockOps(), cr.config.Mode(), md, cr.log)
+		if err != nil {
+			return nil, nil, err
+		}
+		unmerged[i] = newMd
 	}
 
 	if len(unmerged) > 0 && unmerged[0].BID() == kbfsmd.PendingLocalSquashBranchID {
@@ -3066,7 +3077,8 @@ func (cr *ConflictResolver) completeResolution(ctx context.Context,
 	unmergedPaths []path, mergedPaths map[BlockPointer]path,
 	mostRecentUnmergedMD, mostRecentMergedMD ImmutableRootMetadata,
 	lbc localBcache, newFileBlocks fileBlockMap,
-	dirtyBcache DirtyBlockCacheSimple, writerLocked bool) (err error) {
+	dirtyBcache DirtyBlockCacheSimple, bps blockPutState,
+	writerLocked bool) (err error) {
 	md, err := cr.createResolvedMD(
 		ctx, lState, unmergedPaths, unmergedChains,
 		mergedChains, mostRecentMergedMD)
@@ -3112,10 +3124,10 @@ func (cr *ConflictResolver) completeResolution(ctx context.Context,
 		}
 	}
 
-	updates, bps, blocksToDelete, err := cr.prepper.prepUpdateForPaths(
+	updates, blocksToDelete, err := cr.prepper.prepUpdateForPaths(
 		ctx, lState, md, unmergedChains, mergedChains,
 		mostRecentUnmergedMD, mostRecentMergedMD, resolvedPaths, lbc,
-		newFileBlocks, dirtyBcache, prepFolderCopyIndirectFileBlocks)
+		newFileBlocks, dirtyBcache, bps, prepFolderCopyIndirectFileBlocks)
 	if err != nil {
 		return err
 	}
@@ -3219,7 +3231,7 @@ type conflictRecord struct {
 	codec.UnknownFieldSetHandler `json:"-"`
 }
 
-func getAndDeserializeConflicts(config Config, db *leveldb.DB,
+func getAndDeserializeConflicts(config Config, db *LevelDb,
 	key []byte) ([]conflictRecord, error) {
 	conflictsSoFarSerialized, err := db.Get(key, nil)
 	var conflictsSoFar []conflictRecord
@@ -3237,7 +3249,7 @@ func getAndDeserializeConflicts(config Config, db *leveldb.DB,
 	return conflictsSoFar, nil
 }
 
-func serializeAndPutConflicts(config Config, db *leveldb.DB,
+func serializeAndPutConflicts(config Config, db *LevelDb,
 	key []byte, conflicts []conflictRecord) error {
 	conflictsSerialized, err := config.Codec().Encode(conflicts)
 	if err != nil {
@@ -3322,6 +3334,54 @@ func (cr *ConflictResolver) recordFinishResolve(
 	}
 
 	err = serializeAndPutConflicts(cr.config, db, key, conflictsSoFar)
+}
+
+func (cr *ConflictResolver) makeDiskBlockCache(ctx context.Context) (
+	dbc *DiskBlockCacheLocal, cleanupFn func(context.Context), err error) {
+	if cr.config.IsTestMode() {
+		// Enable the disk limiter if one doesn't exist yet.
+		_ = cr.config.(*ConfigLocal).EnableDiskLimiter(os.TempDir())
+
+		dbc, err = newDiskBlockCacheLocalForTest(
+			cr.config, syncCacheLimitTrackerType)
+		if err != nil {
+			return nil, nil, err
+		}
+		cleanupFn = dbc.Shutdown
+	} else {
+		tempDir, err := ioutil.TempDir(
+			cr.config.StorageRoot(), "kbfs_conflict_disk_cache")
+		if err != nil {
+			return nil, nil, err
+		}
+		dirCleanupFn := func(_ context.Context) {
+			err := os.RemoveAll(tempDir)
+			if err != nil {
+				cr.log.CDebugf(ctx, "Error cleaning up tempdir %s: %+v",
+					tempDir, err)
+			}
+		}
+		dbc, err = newDiskBlockCacheLocal(
+			cr.config, crDirtyBlockCacheLimitTrackerType, tempDir)
+		if err != nil {
+			dirCleanupFn(ctx)
+			return nil, nil, err
+		}
+		cleanupFn = func(ctx context.Context) {
+			dbc.Shutdown(ctx)
+			dirCleanupFn(ctx)
+		}
+	}
+
+	err = dbc.WaitUntilStarted()
+	if err != nil {
+		if cleanupFn != nil {
+			cleanupFn(ctx)
+		}
+		return nil, nil, err
+	}
+
+	return dbc, cleanupFn, nil
 }
 
 // CRWrapError wraps an error that happens during conflict resolution.
@@ -3478,10 +3538,11 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 		cr.log.CDebugf(ctx, "No updates to resolve, so finishing")
 		lbc := make(localBcache)
 		newFileBlocks := make(fileBlockMap)
+		bps := newBlockPutStateMemory(0)
 		err = cr.completeResolution(ctx, lState, unmergedChains,
 			mergedChains, unmergedPaths, mergedPaths,
 			unmergedMDs[len(unmergedMDs)-1], mostRecentMergedMD, lbc,
-			newFileBlocks, nil, doLock)
+			newFileBlocks, nil, bps, doLock)
 		return
 	}
 
@@ -3562,8 +3623,15 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	// references for all indirect pointers inside it.  If it is not
 	// an indirect block, just add a new reference to the block.
 	newFileBlocks := make(fileBlockMap)
-	dirtyBcache := simpleDirtyBlockCacheStandard()
-	// Simple dirty bcaches don't need to be shut down.
+	dbc, cleanupFn, err := cr.makeDiskBlockCache(ctx)
+	if err != nil {
+		return
+	}
+	if cleanupFn != nil {
+		defer cleanupFn(ctx)
+	}
+	dirtyBcache := newDirtyBlockCacheDisk(
+		cr.config, dbc, mergedChains.mostRecentChainMDInfo, cr.fbo.branch())
 
 	err = cr.doActions(ctx, lState, unmergedChains, mergedChains,
 		unmergedPaths, mergedPaths, actionMap, lbc, newFileBlocks, dirtyBcache)
@@ -3581,9 +3649,11 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	// Step 4: finish up by syncing all the blocks, computing and
 	// putting the final resolved MD, and issuing all the local
 	// notifications.
+	bps := newBlockPutStateDisk(
+		0, cr.config, dbc, mergedChains.mostRecentChainMDInfo)
 	err = cr.completeResolution(ctx, lState, unmergedChains, mergedChains,
 		unmergedPaths, mergedPaths, unmergedMDs[len(unmergedMDs)-1],
-		mostRecentMergedMD, lbc, newFileBlocks, dirtyBcache, doLock)
+		mostRecentMergedMD, lbc, newFileBlocks, dirtyBcache, bps, doLock)
 	if err != nil {
 		return
 	}
@@ -3595,9 +3665,9 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	// to clean up the quota anyway . . .)
 }
 
-func openCRDBInternal(config Config) (*leveldb.DB, error) {
+func openCRDBInternal(config Config) (*LevelDb, error) {
 	if config.IsTestMode() {
-		return leveldb.Open(storage.NewMemStorage(), leveldbOptions)
+		return openLevelDBWithOptions(storage.NewMemStorage(), leveldbOptions)
 	}
 	err := os.MkdirAll(sysPath.Join(config.StorageRoot(),
 		conflictResolverRecordsDir, conflictResolverRecordsVersionString),
@@ -3606,12 +3676,18 @@ func openCRDBInternal(config Config) (*leveldb.DB, error) {
 		return nil, err
 	}
 
-	return leveldb.OpenFile(sysPath.Join(config.StorageRoot(),
+	stor, err := storage.OpenFile(sysPath.Join(config.StorageRoot(),
 		conflictResolverRecordsDir, conflictResolverRecordsVersionString,
-		conflictResolverRecordsDB), leveldbOptions)
+		conflictResolverRecordsDB), false)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return openLevelDBWithOptions(stor, leveldbOptions)
 }
 
-func openCRDB(config Config) (db *leveldb.DB) {
+func openCRDB(config Config) (db *LevelDb) {
 	db, err := openCRDBInternal(config)
 	if err != nil {
 		panic(fmt.Sprintf("Could not open conflict resolver DB: %v", err))

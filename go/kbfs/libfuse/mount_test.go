@@ -1583,6 +1583,8 @@ func TestRemoveFileWhileOpenReadingAcrossMounts(t *testing.T) {
 	// Call in a closure since `f` is overridden below.
 	defer func() { syncAndClose(t, f) }()
 
+	syncFolderToServer(t, "user1,user2", fs2)
+
 	p2 := path.Join(mnt2.Dir, PrivateName, "user1,user2", "myfile")
 	if err := ioutil.Remove(p2); err != nil {
 		t.Fatalf("cannot delete file: %v", err)
@@ -1650,6 +1652,8 @@ func TestRenameOverFileWhileOpenReadingAcrossMounts(t *testing.T) {
 	}
 	// Call in a closure since `f` is overridden below.
 	defer func() { syncAndClose(t, f) }()
+
+	syncFolderToServer(t, "user1,user2", fs2)
 
 	p2Other := path.Join(mnt2.Dir, PrivateName, "user1,user2", "other")
 	p2 := path.Join(mnt2.Dir, PrivateName, "user1,user2", "myfile")
@@ -2485,6 +2489,8 @@ func TestInvalidateDataOnWrite(t *testing.T) {
 	}
 	syncFilename(t, p)
 
+	syncFolderToServer(t, "jdoe", fs2)
+
 	f, err := os.Open(path.Join(mnt2.Dir, PrivateName, "jdoe", "myfile"))
 	if err != nil {
 		t.Fatal(err)
@@ -2547,6 +2553,8 @@ func TestInvalidatePublicDataOnWrite(t *testing.T) {
 	}
 	syncFilename(t, p)
 
+	syncPublicFolderToServer(t, "jdoe", fs2)
+
 	f, err := os.Open(path.Join(mnt2.Dir, PublicName, "jdoe", "myfile"))
 	if err != nil {
 		t.Fatal(err)
@@ -2608,6 +2616,8 @@ func TestInvalidateDataOnTruncate(t *testing.T) {
 		t.Fatal(err)
 	}
 	syncFilename(t, p)
+
+	syncFolderToServer(t, "jdoe", fs2)
 
 	f, err := os.Open(path.Join(mnt2.Dir, PrivateName, "jdoe", "myfile"))
 	if err != nil {
@@ -2737,6 +2747,8 @@ func TestInvalidateEntryOnDelete(t *testing.T) {
 		t.Fatal(err)
 	}
 	syncFilename(t, p)
+
+	syncFolderToServer(t, "jdoe", fs2)
 
 	buf, err := ioutil.ReadFile(path.Join(mnt2.Dir, PrivateName, "jdoe", "myfile"))
 	if err != nil {
@@ -2873,6 +2885,8 @@ func TestInvalidateAcrossMounts(t *testing.T) {
 	}
 	syncFilename(t, mydira1)
 
+	syncFolderToServer(t, "user1,user2", fs2)
+
 	myfile2 := path.Join(mnt2.Dir, PrivateName, "user1,user2", "myfile")
 	buf, err := ioutil.ReadFile(myfile2)
 	if err != nil {
@@ -2955,6 +2969,7 @@ func TestInvalidateAppendAcrossMounts(t *testing.T) {
 		t.Fatal(err)
 	}
 	syncFilename(t, myfile1)
+	syncFolderToServer(t, "user1,user2", fs2)
 	myfile2 := path.Join(mnt2.Dir, PrivateName, "user1,user2", "myfile")
 	buf, err := ioutil.ReadFile(myfile2)
 	if err != nil {
@@ -3032,6 +3047,7 @@ func TestInvalidateRenameToUncachedDir(t *testing.T) {
 	}
 	mydirfile1 := path.Join(mydir1, "myfile")
 
+	syncFolderToServer(t, "user1,user2", fs2)
 	myfile2 := path.Join(mnt2.Dir, PrivateName, "user1,user2", "myfile")
 	f, err := os.OpenFile(myfile2, os.O_RDWR, 0644)
 	if err != nil {
@@ -3820,13 +3836,13 @@ func TestKbfsFileInfo(t *testing.T) {
 	ctx := libkbfs.BackgroundContextWithCancellationDelayer()
 	defer libkbfs.CleanupCancellationDelayer(ctx)
 	config1 := libkbfs.MakeTestConfigOrBust(t, "user1", "user2")
-	mnt1, fs1, cancelFn1 := makeFS(t, ctx, config1)
+	mnt1, _, cancelFn1 := makeFS(t, ctx, config1)
 	defer mnt1.Close()
 	defer cancelFn1()
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config1)
 
 	config2 := libkbfs.ConfigAsUser(config1, "user2")
-	mnt2, _, cancelFn2 := makeFS(t, ctx, config2)
+	mnt2, fs2, cancelFn2 := makeFS(t, ctx, config2)
 	defer mnt2.Close()
 	defer cancelFn2()
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config2)
@@ -3848,7 +3864,7 @@ func TestKbfsFileInfo(t *testing.T) {
 		t.Fatal(err)
 	}
 	syncFilename(t, myfile1)
-	syncFolderToServer(t, "user1,user2", fs1)
+	syncFolderToServer(t, "user1,user2", fs2)
 	fi2 := path.Join(mnt2.Dir, PrivateName, "user1,user2", "mydir", libfs.FileInfoPrefix+"myfile")
 	bs, err := ioutil.ReadFile(fi2)
 	if err != nil {
@@ -3868,13 +3884,13 @@ func TestDirSyncAll(t *testing.T) {
 	ctx := libkbfs.BackgroundContextWithCancellationDelayer()
 	defer libkbfs.CleanupCancellationDelayer(ctx)
 	config1 := libkbfs.MakeTestConfigOrBust(t, "user1", "user2")
-	mnt1, fs1, cancelFn1 := makeFS(t, ctx, config1)
+	mnt1, _, cancelFn1 := makeFS(t, ctx, config1)
 	defer mnt1.Close()
 	defer cancelFn1()
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config1)
 
 	config2 := libkbfs.ConfigAsUser(config1, "user2")
-	mnt2, _, cancelFn2 := makeFS(t, ctx, config2)
+	mnt2, fs2, cancelFn2 := makeFS(t, ctx, config2)
 	defer mnt2.Close()
 	defer cancelFn2()
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config2)
@@ -3899,7 +3915,7 @@ func TestDirSyncAll(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	syncFolderToServer(t, "user1,user2", fs1)
+	syncFolderToServer(t, "user1,user2", fs2)
 	myfile2 := path.Join(mnt2.Dir, PrivateName, "user1,user2", "mydir", "myfile")
 	gotData, err := ioutil.ReadFile(myfile2)
 	if err != nil {

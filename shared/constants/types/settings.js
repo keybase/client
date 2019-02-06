@@ -71,7 +71,7 @@ export type PassphraseState = {
 }
 
 export type EmailState = {
-  emails: Array<Email>,
+  emails: ?Array<Email>,
   newEmail: string,
   error: ?Error,
 }
@@ -104,7 +104,7 @@ type DevMenuTab = 'settingsTabs:devMenuTab'
 type DevicesTab = 'settingsTabs:devicesTab'
 type FeedbackTab = 'settingsTabs:feedbackTab'
 type FoldersTab = 'settingsTabs:foldersTab'
-type FsSettingsTab = 'settingsTabs:fsSettingsTab'
+type FsTab = 'settingsTabs:fsTab'
 type GitTab = 'settingsTabs:gitTab'
 type InvitationsTab = 'settingsTabs:invitationsTab'
 type LandingTab = 'settingsTabs:landingTab'
@@ -112,7 +112,6 @@ type NotificationsTab = 'settingsTabs:notificationsTab'
 type PassphraseTab = 'settingsTabs:passphrase'
 type ScreenprotectorTab = 'settingsTabs:screenprotector'
 type UpdatePaymentTab = 'settingsTabs:updatePaymentTab'
-type TeamsTab = 'settingsTabs:teamsTab'
 type WalletsTab = 'settingsTabs:walletsTab'
 
 export type Tab =
@@ -128,8 +127,7 @@ export type Tab =
   | DevicesTab
   | GitTab
   | FoldersTab
-  | FsSettingsTab
-  | TeamsTab
+  | FsTab
   | ScreenprotectorTab
   | PassphraseTab
   | WalletsTab

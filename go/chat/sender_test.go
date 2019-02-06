@@ -1084,7 +1084,7 @@ func TestPrevPointerAddition(t *testing.T) {
 		// simulate a chat with only long exploded ephemeral messages.
 		if ephemeralLifetime != nil {
 			t.Logf("expiry all ephemeral messages")
-			world.Fc.Advance(time.Second*time.Duration(*ephemeralLifetime) + chat1.ShowExplosionLifetime)
+			world.Fc.Advance(ephemeralLifetime.ToDuration() + chat1.ShowExplosionLifetime)
 			// Mock out pulling messages to return no messages
 			blockingSender.(*BlockingSender).G().ConvSource.(*HybridConversationSource).blackoutPullForTesting = true
 			// Prepare a regular message and make sure it gets prev pointers

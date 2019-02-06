@@ -9,6 +9,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"math"
+	"math/rand"
 
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfshash"
@@ -118,13 +119,18 @@ func MakeTemporaryID() (ID, error) {
 // the random variable over the interval [start, end), where the full range is
 // [0, MaxUint64). This corresponds to a normalized representation of the
 // range [kbfshash.RawDefaultHash{}, kbfshash.MaxDefaultHash).
-func MakeRandomIDInRange(start, end float64) (ID, error) {
+func MakeRandomIDInRange(start, end float64, mathRandForTest bool) (ID, error) {
 	if start < 0.0 || 1.0 < end || end <= start {
 		return ID{}, errors.New("Expected range within the interval [0.0, 1.0)")
 	}
 	rangeSize := end - start
 	randBuf := [8]byte{}
-	err := kbfscrypto.RandRead(randBuf[:])
+	var err error
+	if mathRandForTest {
+		_, err = rand.Read(randBuf[:])
+	} else {
+		err = kbfscrypto.RandRead(randBuf[:])
+	}
 	if err != nil {
 		return ID{}, err
 	}

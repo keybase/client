@@ -1,4 +1,5 @@
 // @flow
+import * as I from 'immutable'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/fs'
@@ -12,6 +13,7 @@ type TlfProps = StillCommonProps & {
   // We don't use this at the moment. In the future this will be used for
   // showing ignored folders when we allow user to show ignored folders in GUI.
   isIgnored: boolean,
+  routePath: I.List<string>,
 }
 
 const Tlf = (props: TlfProps) => (
@@ -21,6 +23,7 @@ const Tlf = (props: TlfProps) => (
     onOpen={props.onOpen}
     inDestinationPicker={props.inDestinationPicker}
     badge={props.isNew ? 'new' : props.needsRekey ? 'rekey' : null}
+    routePath={props.routePath}
   >
     <Kb.Box style={rowStyles.itemBox}>
       <Kb.Box2 direction="horizontal" fullWidth={true}>

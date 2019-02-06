@@ -64,7 +64,7 @@ export class HeaderHocHeader extends React.Component<Props, State> {
                 paddingRight: titlePadding,
               },
               Styles.isAndroid && {
-                paddingLeft: titlePaddingLeft,
+                paddingLeft: onLeftAction ? titlePaddingLeft : Styles.globalMargins.small,
                 paddingRight: titlePadding,
               },
             ])}
@@ -85,7 +85,17 @@ export class HeaderHocHeader extends React.Component<Props, State> {
           onLeftAction={onLeftAction}
           theme={this.props.theme}
         />
-        {this.props.titleComponent && <Box style={styles.titleContainer}>{this.props.titleComponent}</Box>}
+        {this.props.titleComponent && (
+          <Box
+            style={Styles.collapseStyles([
+              styles.titleContainer,
+              onLeftAction && styles.titleContainerRightPadding,
+              rightActions.length && styles.titleContainerLeftPadding,
+            ])}
+          >
+            {this.props.titleComponent}
+          </Box>
+        )}
         <RightActions
           floatingMenuVisible={this.state.floatingMenuVisible}
           hasTextTitle={hasTextTitle}
@@ -191,6 +201,7 @@ const renderAction = (action: Action, index: number): React.Node =>
     </Box>
   ) : action.icon ? (
     <Icon
+      color={action.iconColor || undefined}
       key={action.label || index}
       fontSize={22}
       onClick={action.onPress}
@@ -313,6 +324,16 @@ const styles = Styles.styleSheetCreate({
     isIOS: {
       paddingLeft: Styles.globalMargins.tiny,
       paddingRight: Styles.globalMargins.tiny,
+    },
+  }),
+  titleContainerLeftPadding: Styles.platformStyles({
+    isAndroid: {
+      paddingLeft: Styles.globalMargins.small,
+    },
+  }),
+  titleContainerRightPadding: Styles.platformStyles({
+    isAndroid: {
+      paddingRight: Styles.globalMargins.small,
     },
   }),
   titleTextContainer: {

@@ -243,15 +243,38 @@ function* refreshNotifications() {
     )
   })
 
-  const [json: ?{body: string}, chatGlobalSettings: ChatTypes.GlobalAppNotificationSettings] = yield Saga.all(
-    [
-      Saga.callUntyped(RPCTypes.apiserverGetWithSessionRpcPromise, {
-        args: [],
-        endpoint: 'account/subscriptions',
-      }),
-      Saga.callUntyped(ChatTypes.localGetGlobalAppNotificationSettingsLocalRpcPromise),
-    ]
-  )
+  let body = ''
+  let chatGlobalSettings: ChatTypes.GlobalAppNotificationSettings
+
+  try {
+    const [
+      json: ?{body: string},
+      _chatGlobalSettings: ChatTypes.GlobalAppNotificationSettings,
+    ] = yield Saga.all([
+      Saga.callUntyped(
+        RPCTypes.apiserverGetWithSessionRpcPromise,
+        {
+          args: [],
+          endpoint: 'account/subscriptions',
+        },
+        Constants.refreshNotificationsWaitingKey
+      ),
+      Saga.callUntyped(
+        ChatTypes.localGetGlobalAppNotificationSettingsLocalRpcPromise,
+        undefined,
+        Constants.refreshNotificationsWaitingKey
+      ),
+    ])
+    if (json) {
+      body = json.body
+    }
+    chatGlobalSettings = _chatGlobalSettings
+  } catch (err) {
+    // No need to throw black bars -- handled by Reloadable.
+    logger.warn(`Error getting notification settings: ${err.desc}`)
+    return
+  }
+
   yield Saga.cancel(delayThenEmptyTask)
 
   const results: {
@@ -273,7 +296,7 @@ function* refreshNotifications() {
         unsub: boolean,
       },
     },
-  } = JSON.parse((json && json.body) || '')
+  } = JSON.parse(body)
   // Add security group extra since it does not come from API endpoint
   results.notifications[Constants.securityGroup] = {
     settings: [
@@ -382,7 +405,7 @@ const rememberPassphrase = (_, action) =>
 
 const loadLockdownMode = state =>
   state.config.loggedIn &&
-  RPCTypes.accountGetLockdownModeRpcPromise(undefined, Constants.waitingKey)
+  RPCTypes.accountGetLockdownModeRpcPromise(undefined, Constants.loadLockdownModeWaitingKey)
     .then((result: RPCTypes.GetLockdownResponse) =>
       SettingsGen.createLoadedLockdownMode({status: result.status})
     )
@@ -390,7 +413,10 @@ const loadLockdownMode = state =>
 
 const setLockdownMode = (state, action) =>
   state.config.loggedIn &&
-  RPCTypes.accountSetLockdownModeRpcPromise({enabled: action.payload.enabled}, Constants.waitingKey)
+  RPCTypes.accountSetLockdownModeRpcPromise(
+    {enabled: action.payload.enabled},
+    Constants.setLockdownModeWaitingKey
+  )
     .then(() => SettingsGen.createLoadedLockdownMode({status: action.payload.enabled}))
     .catch(() => SettingsGen.createLoadLockdownMode())
 

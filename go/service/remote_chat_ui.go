@@ -100,3 +100,10 @@ func (r *RemoteChatUI) ChatStellarDone(ctx context.Context, canceled bool) error
 		Canceled:  canceled,
 	})
 }
+
+func (r *RemoteChatUI) ChatShowManageChannels(ctx context.Context, teamname string) error {
+	return r.cli.ChatShowManageChannels(ctx, chat1.ChatShowManageChannelsArg{
+		SessionID: r.sessionID,
+		Teamname:  teamname,
+	})
+}

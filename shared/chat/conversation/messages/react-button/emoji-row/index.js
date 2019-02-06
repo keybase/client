@@ -33,12 +33,16 @@ class HoverEmoji extends React.Component<
         {this.props.isReacjiIcon ? (
           <Kb.Icon
             color={Styles.globalColors.black_50}
-            fontSize={this.state.hovering ? 22 : 16}
+            fontSize={this.state.hovering ? 22 : 18}
             style={Kb.iconCastPlatformStyles(styles.reacjiIcon)}
             type="iconfont-reacji"
           />
         ) : (
-          <Kb.Emoji size={this.state.hovering ? 22 : 16} emojiName={this.props.name} />
+          <Kb.Emoji
+            disableSelecting={true}
+            size={this.state.hovering ? 22 : 18}
+            emojiName={this.props.name}
+          />
         )}
       </Kb.ClickableBox>
     )
@@ -91,11 +95,7 @@ class EmojiRow extends React.Component<Props, {showingPicker: boolean}> {
 const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
     isElectron: {
-      backgroundColor: Styles.globalColors.white,
-      borderColor: Styles.globalColors.black_10,
-      borderRadius: Styles.borderRadius,
-      borderStyle: 'solid',
-      borderWidth: 1,
+      backgroundColor: Styles.globalColors.blue5,
       height: Styles.globalMargins.medium,
     },
   }),

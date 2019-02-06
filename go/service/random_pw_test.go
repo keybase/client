@@ -41,14 +41,21 @@ func TestSignupRandomPWUser(t *testing.T) {
 	require.NoError(t, err)
 	require.True(t, ret)
 
+	// TODO: Bring back some kind "you shouldn't logout" test in CORE-10084.
+
 	handler := NewLoginHandler(nil, tc.G)
 	err = handler.Logout(context.Background(), keybase1.LogoutArg{})
-	require.Error(t, err)
-	require.Contains(t, err.Error(), "Cannot logout")
-	require.Contains(t, err.Error(), "Set a password first")
-	require.NoError(t, sessCheck(t, tc.G), "expecting to still have a valid session and no error in sesscheck")
-
-	err = handler.Logout(context.Background(), keybase1.LogoutArg{Force: true})
 	require.NoError(t, err)
 	require.Error(t, sessCheck(t, tc.G), "expecting to be logged out and error in sesscheck")
+
+	// handler := NewLoginHandler(nil, tc.G)
+	// err = handler.Logout(context.Background(), keybase1.LogoutArg{})
+	// require.Error(t, err)
+	// require.Contains(t, err.Error(), "Cannot logout")
+	// require.Contains(t, err.Error(), "Set a password first")
+	// require.NoError(t, sessCheck(t, tc.G), "expecting to still have a valid session and no error in sesscheck")
+
+	// err = handler.Logout(context.Background(), keybase1.LogoutArg{Force: true})
+	// require.NoError(t, err)
+	// require.Error(t, sessCheck(t, tc.G), "expecting to be logged out and error in sesscheck")
 }

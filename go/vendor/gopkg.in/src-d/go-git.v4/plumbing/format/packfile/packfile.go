@@ -103,7 +103,7 @@ func (p *Packfile) GetSizeByOffset(o int64) (size int64, err error) {
 	if err != nil {
 		return 0, err
 	}
-	return h.Length, nil
+	return p.getObjectSize(h)
 }
 
 func (p *Packfile) nextObjectHeader() (*ObjectHeader, error) {

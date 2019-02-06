@@ -56,7 +56,7 @@ func findPaperKeys(m libkb.MetaContext, me *libkb.User) (*libkb.DeviceWithKeys, 
 		return nil, libkb.NoPaperKeysError{}
 	}
 
-	passphrase, err := libkb.GetPaperKeyPassphrase(m, m.UIs().SecretUI, me.GetName(), nil)
+	passphrase, err := libkb.GetPaperKeyPassphrase(m, m.UIs().SecretUI, me.GetName(), nil, nil)
 	if err != nil {
 		return nil, err
 	}

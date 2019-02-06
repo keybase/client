@@ -110,8 +110,20 @@ class Icon extends React.PureComponent<Props> {
       if (props.colorOverride || props.color) {
         iconStyle = Styles.collapseStyles([iconStyle, {color: props.colorOverride || props.color}])
       }
+
+      // explicit
+      let fontSize
+      if (this.props.fontSize) {
+        fontSize = this.props.fontSize
+      } else if (this.props.sizeType) {
+        fontSize = Shared.typeToFontSize(this.props.sizeType)
+      } else {
+        const temp = Shared.fontSize(iconType)
+        fontSize = temp && temp.fontSize
+      }
+
       icon = (
-        <Text style={iconStyle} type={props.type} fontSize={props.fontSize}>
+        <Text style={iconStyle} type={props.type} fontSize={fontSize}>
           {code}
         </Text>
       )

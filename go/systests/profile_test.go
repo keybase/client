@@ -2,6 +2,8 @@ package systests
 
 import (
 	"context"
+	"io/ioutil"
+	"net/http"
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
@@ -68,7 +70,7 @@ func TestProofSuggestions(t *testing.T) {
 			PickerText:    "PGP key",
 			PickerSubtext: "",
 		}, {
-			Key:           "bitcoin",
+			Key:           "btc",
 			ProfileText:   "Set a Bitcoin address",
 			PickerText:    "Bitcoin address",
 			PickerSubtext: "",
@@ -93,7 +95,7 @@ func TestProofSuggestions(t *testing.T) {
 	require.Equal(t, expected.ShowMore, res.ShowMore)
 	require.Equal(t, len(expected.Suggestions), len(res.Suggestions))
 	for i, b := range res.Suggestions {
-		t.Logf("row %v", i)
+		t.Logf("row %v %v", i, b.Key)
 		a := expected.Suggestions[i]
 		require.Equal(t, a.Key, b.Key)
 		require.Equal(t, a.BelowFold, b.BelowFold)
@@ -101,6 +103,32 @@ func TestProofSuggestions(t *testing.T) {
 		require.Equal(t, a.PickerText, b.PickerText)
 		require.Equal(t, a.PickerSubtext, b.PickerSubtext)
 		require.Nil(t, b.Metas)
+
+		if b.Key == "theqrl.org" {
+			// Skip checking for logos for this one.
+			continue
+		}
+		require.Len(t, b.ProfileIcon, 2)
+		for _, icon := range b.ProfileIcon {
+			checkIcon(t, icon)
+		}
+		for _, icon := range b.PickerIcon {
+			checkIcon(t, icon)
+		}
+	}
+}
+
+func checkIcon(t testing.TB, icon keybase1.SizedImage) {
+	if icon.Width < 2 {
+		t.Fatalf("unreasonable icon size")
+	}
+	resp, err := http.Get(icon.Path)
+	require.Equal(t, 200, resp.StatusCode, "icon file should be reachable")
+	require.NoError(t, err)
+	body, err := ioutil.ReadAll(resp.Body)
+	require.NoError(t, err)
+	if len(body) < 150 {
+		t.Fatalf("unreasonable icon payload size")
 	}
 }
 

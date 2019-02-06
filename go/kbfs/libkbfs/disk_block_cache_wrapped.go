@@ -127,6 +127,54 @@ func (cache *diskBlockCacheWrapped) IsSyncCacheEnabled() bool {
 	return cache.syncCache != nil
 }
 
+func (cache *diskBlockCacheWrapped) rankCachesLocked(
+	preferredCacheType DiskBlockCacheType) (
+	primaryCache, secondaryCache *DiskBlockCacheLocal) {
+	if preferredCacheType != DiskBlockWorkingSetCache {
+		if cache.syncCache == nil {
+			log := cache.config.MakeLogger("DBC")
+			log.Warning("Sync cache is preferred, but there is no sync cache")
+			return cache.workingSetCache, nil
+		}
+		return cache.syncCache, cache.workingSetCache
+	}
+	return cache.workingSetCache, cache.syncCache
+}
+
+func (cache *diskBlockCacheWrapped) moveBetweenCachesWithBlockLocked(
+	ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID, buf []byte,
+	serverHalf kbfscrypto.BlockCryptKeyServerHalf,
+	prefetchStatus PrefetchStatus, newCacheType DiskBlockCacheType) {
+	primaryCache, secondaryCache := cache.rankCachesLocked(newCacheType)
+	// Move the block into its preferred cache.
+	err := primaryCache.Put(ctx, tlfID, blockID, buf, serverHalf)
+	if err != nil {
+		// The cache will log the non-fatal error, so just return.
+		return
+	}
+
+	if prefetchStatus == FinishedPrefetch {
+		// Don't propagate a finished status to the primary
+		// cache, since the status needs to be with respect to
+		// that particular cache (i.e., if the primary cache
+		// is the sync cache, all the child blocks must be in
+		// the sync cache, for this block to be considered
+		// synced, and we can't verify that here).
+		prefetchStatus = TriggeredPrefetch
+	}
+	if prefetchStatus != NoPrefetch {
+		_ = primaryCache.UpdateMetadata(ctx, blockID, prefetchStatus)
+	}
+
+	// Remove the block from the non-preferred cache (which is
+	// set to be the secondary cache at this point).
+	cache.deleteGroup.Add(1)
+	go func() {
+		defer cache.deleteGroup.Done()
+		secondaryCache.Delete(ctx, []kbfsblock.ID{blockID})
+	}()
+}
+
 // Get implements the DiskBlockCache interface for diskBlockCacheWrapped.
 func (cache *diskBlockCacheWrapped) Get(
 	ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID,
@@ -135,20 +183,10 @@ func (cache *diskBlockCacheWrapped) Get(
 	prefetchStatus PrefetchStatus, err error) {
 	cache.mtx.RLock()
 	defer cache.mtx.RUnlock()
-	primaryCache := cache.workingSetCache
-	secondaryCache := cache.syncCache
-	if preferredCacheType == DiskBlockSyncCache {
-		if cache.syncCache != nil {
-			primaryCache, secondaryCache =
-				cache.syncCache, cache.workingSetCache
-		} else {
-			log := cache.config.MakeLogger("DBC")
-			log.Warning("Sync cache is preferred, but there is no sync cache")
-		}
-	}
+	primaryCache, secondaryCache := cache.rankCachesLocked(preferredCacheType)
 	// Check both caches if the primary cache doesn't have the block.
 	buf, serverHalf, prefetchStatus, err = primaryCache.Get(ctx, tlfID, blockID)
-	if _, isNoSuchBlockError := err.(NoSuchBlockError); isNoSuchBlockError &&
+	if _, isNoSuchBlockError := errors.Cause(err).(NoSuchBlockError); isNoSuchBlockError &&
 		secondaryCache != nil {
 		buf, serverHalf, prefetchStatus, err = secondaryCache.Get(
 			ctx, tlfID, blockID)
@@ -156,33 +194,9 @@ func (cache *diskBlockCacheWrapped) Get(
 			return nil, kbfscrypto.BlockCryptKeyServerHalf{}, NoPrefetch, err
 		}
 		if preferredCacheType != DiskBlockAnyCache {
-			// Move the block into its preferred cache.
-			err := primaryCache.Put(ctx, tlfID, blockID, buf, serverHalf)
-			if err != nil {
-				// The cache will log the non-fatal error, so just return nil.
-				return buf, serverHalf, prefetchStatus, nil
-			}
-
-			if prefetchStatus == FinishedPrefetch {
-				// Don't propagate a finished status to the primary
-				// cache, since the status needs to be with respect to
-				// that particular cache (i.e., if the primary cache
-				// is the sync cache, all the child blocks must be in
-				// the sync cache, for this block to be considered
-				// synced, and we can't verify that here).
-				prefetchStatus = TriggeredPrefetch
-			}
-			if prefetchStatus != NoPrefetch {
-				_ = primaryCache.UpdateMetadata(ctx, blockID, prefetchStatus)
-			}
-
-			// Remove the block from the non-preferred cache (which is
-			// set to be the secondary cache at this point).
-			cache.deleteGroup.Add(1)
-			go func() {
-				defer cache.deleteGroup.Done()
-				secondaryCache.Delete(ctx, []kbfsblock.ID{blockID})
-			}()
+			cache.moveBetweenCachesWithBlockLocked(
+				ctx, tlfID, blockID, buf, serverHalf, prefetchStatus,
+				preferredCacheType)
 		}
 	}
 	return buf, serverHalf, prefetchStatus, err
@@ -207,10 +221,25 @@ func (cache *diskBlockCacheWrapped) GetMetadata(ctx context.Context,
 	return cache.workingSetCache.GetMetadata(ctx, blockID)
 }
 
+func (cache *diskBlockCacheWrapped) moveBetweenCachesLocked(
+	ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID,
+	newCacheType DiskBlockCacheType) (moved bool) {
+	_, secondaryCache := cache.rankCachesLocked(newCacheType)
+	buf, serverHalf, prefetchStatus, err := secondaryCache.Get(
+		ctx, tlfID, blockID)
+	if err != nil {
+		// The block isn't in the secondary cache, so there's nothing to move.
+		return false
+	}
+	cache.moveBetweenCachesWithBlockLocked(
+		ctx, tlfID, blockID, buf, serverHalf, prefetchStatus, newCacheType)
+	return true
+}
+
 // GetPefetchStatus implements the DiskBlockCache interface for
 // diskBlockCacheWrapped.
 func (cache *diskBlockCacheWrapped) GetPrefetchStatus(
-	ctx context.Context, _ tlf.ID, blockID kbfsblock.ID,
+	ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID,
 	cacheType DiskBlockCacheType) (prefetchStatus PrefetchStatus, err error) {
 	cache.mtx.RLock()
 	defer cache.mtx.RUnlock()
@@ -223,6 +252,16 @@ func (cache *diskBlockCacheWrapped) GetPrefetchStatus(
 			return md.PrefetchStatus(), nil
 		case ldberrors.ErrNotFound:
 			if cacheType == DiskBlockSyncCache {
+				// Try moving the block and getting it again.
+				moved := cache.moveBetweenCachesLocked(
+					ctx, tlfID, blockID, cacheType)
+				if moved {
+					md, err := cache.syncCache.GetMetadata(ctx, blockID)
+					if err != nil {
+						return NoPrefetch, err
+					}
+					return md.PrefetchStatus(), nil
+				}
 				return NoPrefetch, err
 			}
 			// Otherwise try the working set cache below.
@@ -299,21 +338,30 @@ func (cache *diskBlockCacheWrapped) Delete(ctx context.Context,
 
 // UpdateMetadata implements the DiskBlockCache interface for
 // diskBlockCacheWrapped.
-func (cache *diskBlockCacheWrapped) UpdateMetadata(ctx context.Context,
-	blockID kbfsblock.ID, prefetchStatus PrefetchStatus) error {
+func (cache *diskBlockCacheWrapped) UpdateMetadata(
+	ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID,
+	prefetchStatus PrefetchStatus, cacheType DiskBlockCacheType) error {
 	// This is a write operation but we are only reading the pointers to the
 	// caches. So we use a read lock.
 	cache.mtx.RLock()
 	defer cache.mtx.RUnlock()
-	// Try to update metadata for both caches.
-	if cache.syncCache != nil {
-		err := cache.syncCache.UpdateMetadata(ctx, blockID, prefetchStatus)
-		_, isNoSuchBlockError := err.(NoSuchBlockError)
-		if !isNoSuchBlockError {
-			return err
-		}
+	primaryCache, secondaryCache := cache.rankCachesLocked(cacheType)
+
+	err := primaryCache.UpdateMetadata(ctx, blockID, prefetchStatus)
+	_, isNoSuchBlockError := errors.Cause(err).(NoSuchBlockError)
+	if !isNoSuchBlockError {
+		return err
 	}
-	return cache.workingSetCache.UpdateMetadata(ctx, blockID, prefetchStatus)
+	if cacheType == DiskBlockSyncCache {
+		// Try moving the block and getting it again.
+		moved := cache.moveBetweenCachesLocked(
+			ctx, tlfID, blockID, cacheType)
+		if moved {
+			err = primaryCache.UpdateMetadata(ctx, blockID, prefetchStatus)
+		}
+		return err
+	}
+	return secondaryCache.UpdateMetadata(ctx, blockID, prefetchStatus)
 }
 
 // ClearAllTlfBlocks implements the DiskBlockCache interface for

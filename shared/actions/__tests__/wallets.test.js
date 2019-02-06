@@ -18,6 +18,7 @@ jest.mock('../../engine/require')
 const blankStore = Testing.getInitialStore()
 const initialStore = {
   ...blankStore,
+  config: {loggedIn: true},
   wallets: blankStore.wallets.merge({
     accountMap: blankStore.wallets.accountMap.set(
       Types.stringToAccountID('fake account ID'),
@@ -151,7 +152,7 @@ const buildRequestRes: RPCStellarTypes.BuildRequestResLocal = {
   builtBanners: null,
   displayAmountFiat: '$5.00 USD',
   displayAmountXLM: '21.4168160 XLM',
-  readyToRequest: false,
+  readyToRequest: true,
   secretNoteErrMsg: '',
   sendingIntentionXLM: false,
   toErrMsg: '',

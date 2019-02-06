@@ -1,4 +1,5 @@
 // @flow
+import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Styles from '../../styles'
@@ -6,12 +7,12 @@ import * as Kb from '../../common-adapters'
 import * as Kbfs from '../common'
 import {isMobile} from '../../constants/platform'
 
-type HeaderProps = {
+type HeaderProps = {|
   path: Types.Path,
   name: string,
-
   onBack: () => void,
-}
+  routePath: I.List<string>,
+|}
 
 const Header = (props: HeaderProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container} gap="xtiny">
@@ -25,7 +26,7 @@ const Header = (props: HeaderProps) => (
     <Kb.Box style={styles.headerIcons}>
       <Kbfs.OpenInSystemFileManager path={props.path} />
       <Kbfs.SendInAppAction path={props.path} sendIconClassName="" />
-      <Kbfs.PathItemAction path={props.path} fontSize={16} />
+      <Kbfs.PathItemAction path={props.path} actionIconFontSize={16} routePath={props.routePath} />
     </Kb.Box>
   </Kb.Box2>
 )
@@ -36,7 +37,7 @@ const styles = Styles.styleSheetCreate({
       marginLeft: Styles.globalMargins.tiny,
     },
   }),
-  container: { minHeight: 48 },
+  container: {minHeight: 48},
   filePreviewHeader: {
     flex: 1,
     flexShrink: 1,

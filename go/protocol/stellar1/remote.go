@@ -301,6 +301,8 @@ type PaymentSummaryDirect struct {
 	Rtime               TimeMs                `codec:"rtime" json:"rtime"`
 	CursorToken         string                `codec:"cursorToken" json:"cursorToken"`
 	FromPrimary         bool                  `codec:"fromPrimary" json:"fromPrimary"`
+	BatchID             string                `codec:"batchID" json:"batchID"`
+	FromAirdrop         bool                  `codec:"fromAirdrop" json:"fromAirdrop"`
 }
 
 func (o PaymentSummaryDirect) DeepCopy() PaymentSummaryDirect {
@@ -345,6 +347,8 @@ func (o PaymentSummaryDirect) DeepCopy() PaymentSummaryDirect {
 		Rtime:               o.Rtime.DeepCopy(),
 		CursorToken:         o.CursorToken,
 		FromPrimary:         o.FromPrimary,
+		BatchID:             o.BatchID,
+		FromAirdrop:         o.FromAirdrop,
 	}
 }
 
@@ -368,6 +372,8 @@ type PaymentSummaryRelay struct {
 	TeamID          keybase1.TeamID       `codec:"teamID" json:"teamID"`
 	Claim           *ClaimSummary         `codec:"claim,omitempty" json:"claim,omitempty"`
 	CursorToken     string                `codec:"cursorToken" json:"cursorToken"`
+	BatchID         string                `codec:"batchID" json:"batchID"`
+	FromAirdrop     bool                  `codec:"fromAirdrop" json:"fromAirdrop"`
 }
 
 func (o PaymentSummaryRelay) DeepCopy() PaymentSummaryRelay {
@@ -415,6 +421,8 @@ func (o PaymentSummaryRelay) DeepCopy() PaymentSummaryRelay {
 			return &tmp
 		})(o.Claim),
 		CursorToken: o.CursorToken,
+		BatchID:     o.BatchID,
+		FromAirdrop: o.FromAirdrop,
 	}
 }
 

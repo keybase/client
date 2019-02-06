@@ -470,10 +470,16 @@ func (md *RootMetadata) updateFromTlfHandle(newHandle *TlfHandle) error {
 // loadCachedBlockChanges swaps any cached block changes so that
 // future local accesses to this MD (from the cache) can directly
 // access the ops without needing to re-embed the block changes.
+// Possibly copies the MD, returns the copy if so, and whether copied.
 func (md *RootMetadata) loadCachedBlockChanges(
-	ctx context.Context, bps blockPutState, log logger.Logger) {
+	ctx context.Context, bps blockPutState, log logger.Logger,
+	codec kbfscodec.Codec) (*RootMetadata, bool) {
 	if md.data.Changes.Ops != nil {
-		return
+		return md, false
+	}
+	md, err := md.deepCopy(codec)
+	if err != nil {
+		panic("MD could not be copied")
 	}
 
 	if len(md.data.cachedChanges.Ops) == 0 {
@@ -540,6 +546,7 @@ func (md *RootMetadata) loadCachedBlockChanges(
 	for _, info := range infos {
 		md.data.Changes.Ops[0].AddRefBlock(info.BlockPointer)
 	}
+	return md, true
 }
 
 // GetTLFCryptKeyParams wraps the respective method of the underlying BareRootMetadata for convenience.

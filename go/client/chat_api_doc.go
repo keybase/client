@@ -75,4 +75,13 @@ Send a message to a team conversation channel:
 
 Create a new blank conversation:
     {"method": "newconv", "params": {"options": {"channel": {"name": "you,them"}}}}
+
+List conversations on a name:
+    {"method": "listconvsonname", "params": {"options": {"topic_type": "CHAT", "members_type": "team", "name": "treehouse"}}}
+
+Join a team conversation:
+    {"method": "join", "params": {"options": {"channel": {"name": "treehouse", "members_type": "team", "topic_name": "random"}}}}
+
+Leave a team conversation:
+    {"method": "leave", "params": {"options": {"channel": {"name": "treehouse", "members_type": "team", "topic_name": "random"}}}}
 `

@@ -5,6 +5,7 @@ import * as I from 'immutable'
 import type {TypedState} from './reducer'
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
+  proofSuggestions: I.List(),
   usernameToDetails: I.Map(),
 })
 
@@ -32,6 +33,7 @@ export const makeAssertion: I.RecordFactory<Types._Assertion> = I.Record({
   color: 'gray',
   metas: [],
   proofURL: '',
+  sigID: '',
   siteIcon: '',
   siteURL: '',
   state: 'error',
@@ -129,7 +131,7 @@ const _scoreAssertionKey = a => {
       return 40
     case 'stellar':
       return 30
-    case 'bitcoin':
+    case 'btc':
       return 20
     case 'zcash':
       return 10

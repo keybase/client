@@ -6,6 +6,7 @@ export type Action = {
   custom?: React.Node,
   label?: string, // TODO: make this required after updates are fully integrated
   icon?: IconType,
+  iconColor?: string,
   onPress?: ?Function,
 }
 export type Props = {

@@ -17,7 +17,6 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/teams"
 	"github.com/keybase/client/go/uidmap"
 	"golang.org/x/sync/errgroup"
 )
@@ -910,8 +909,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	}
 
 	// Get conversation commands
-	conversationLocal.Commands, err = s.G().CommandsSource.ListCommands(ctx, uid,
-		conversationRemote.GetConvID())
+	conversationLocal.Commands, err = s.G().CommandsSource.ListCommands(ctx, uid, conversationLocal)
 	if err != nil {
 		s.Debug(ctx, "localizeConversation: failed to list commands: %s", err)
 	}
@@ -945,35 +943,14 @@ func (s *localizerPipeline) checkRekeyError(ctx context.Context, fromErr error, 
 func (s *localizerPipeline) checkRekeyErrorInner(ctx context.Context, fromErr error, conversationRemote chat1.Conversation, unverifiedTLFName string) (*chat1.ConversationErrorLocal, error) {
 	convErrTyp := chat1.ConversationErrorType_TRANSIENT
 	var rekeyInfo *chat1.ConversationErrorRekey
+	var ok bool
 
-	switch fromErr := fromErr.(type) {
-	case types.UnboxingError:
-		switch conversationRemote.GetMembersType() {
-		case chat1.ConversationMembersType_KBFS:
-			switch fromErr := fromErr.Inner().(type) {
-			case libkb.NeedSelfRekeyError:
-				convErrTyp = chat1.ConversationErrorType_SELFREKEYNEEDED
-				rekeyInfo = &chat1.ConversationErrorRekey{
-					TlfName: fromErr.Tlf,
-				}
-			case libkb.NeedOtherRekeyError:
-				convErrTyp = chat1.ConversationErrorType_OTHERREKEYNEEDED
-				rekeyInfo = &chat1.ConversationErrorRekey{
-					TlfName: fromErr.Tlf,
-				}
-			}
-		default:
-			if teams.IsTeamReadError(fromErr.Inner()) {
-				convErrTyp = chat1.ConversationErrorType_OTHERREKEYNEEDED
-				rekeyInfo = &chat1.ConversationErrorRekey{
-					TlfName: unverifiedTLFName,
-				}
-			}
-		}
-	}
-	if rekeyInfo == nil {
-		// Not a rekey error.
+	// check for rekey error type
+	if convErrTyp, ok = IsRekeyError(fromErr); !ok {
 		return nil, nil
+	}
+	rekeyInfo = &chat1.ConversationErrorRekey{
+		TlfName: unverifiedTLFName,
 	}
 
 	if len(conversationRemote.MaxMsgSummaries) == 0 {

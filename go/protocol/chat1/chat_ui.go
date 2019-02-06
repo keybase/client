@@ -81,6 +81,8 @@ type UnverifiedInboxUIItem struct {
 	Notifications   *ConversationNotificationInfo  `codec:"notifications,omitempty" json:"notifications,omitempty"`
 	Time            gregor1.Time                   `codec:"time" json:"time"`
 	Version         ConversationVers               `codec:"version" json:"version"`
+	ConvRetention   *RetentionPolicy               `codec:"convRetention,omitempty" json:"convRetention,omitempty"`
+	TeamRetention   *RetentionPolicy               `codec:"teamRetention,omitempty" json:"teamRetention,omitempty"`
 	MaxMsgID        MessageID                      `codec:"maxMsgID" json:"maxMsgID"`
 	MaxVisibleMsgID MessageID                      `codec:"maxVisibleMsgID" json:"maxVisibleMsgID"`
 	ReadMsgID       MessageID                      `codec:"readMsgID" json:"readMsgID"`
@@ -109,8 +111,22 @@ func (o UnverifiedInboxUIItem) DeepCopy() UnverifiedInboxUIItem {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Notifications),
-		Time:            o.Time.DeepCopy(),
-		Version:         o.Version.DeepCopy(),
+		Time:    o.Time.DeepCopy(),
+		Version: o.Version.DeepCopy(),
+		ConvRetention: (func(x *RetentionPolicy) *RetentionPolicy {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.ConvRetention),
+		TeamRetention: (func(x *RetentionPolicy) *RetentionPolicy {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.TeamRetention),
 		MaxMsgID:        o.MaxMsgID.DeepCopy(),
 		MaxVisibleMsgID: o.MaxVisibleMsgID.DeepCopy(),
 		ReadMsgID:       o.ReadMsgID.DeepCopy(),
@@ -1167,6 +1183,11 @@ type ChatStellarDoneArg struct {
 	Canceled  bool `codec:"canceled" json:"canceled"`
 }
 
+type ChatShowManageChannelsArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Teamname  string `codec:"teamname" json:"teamname"`
+}
+
 type ChatUiInterface interface {
 	ChatAttachmentDownloadStart(context.Context, int) error
 	ChatAttachmentDownloadProgress(context.Context, ChatAttachmentDownloadProgressArg) error
@@ -1186,6 +1207,7 @@ type ChatUiInterface interface {
 	ChatStellarDataConfirm(context.Context, ChatStellarDataConfirmArg) (bool, error)
 	ChatStellarDataError(context.Context, ChatStellarDataErrorArg) (bool, error)
 	ChatStellarDone(context.Context, ChatStellarDoneArg) error
+	ChatShowManageChannels(context.Context, ChatShowManageChannelsArg) error
 }
 
 func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
@@ -1462,6 +1484,21 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 					return
 				},
 			},
+			"chatShowManageChannels": {
+				MakeArg: func() interface{} {
+					var ret [1]ChatShowManageChannelsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChatShowManageChannelsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChatShowManageChannelsArg)(nil), args)
+						return
+					}
+					err = i.ChatShowManageChannels(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -1560,5 +1597,10 @@ func (c ChatUiClient) ChatStellarDataError(ctx context.Context, __arg ChatStella
 
 func (c ChatUiClient) ChatStellarDone(ctx context.Context, __arg ChatStellarDoneArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.chatUi.chatStellarDone", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ChatUiClient) ChatShowManageChannels(ctx context.Context, __arg ChatShowManageChannelsArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatShowManageChannels", []interface{}{__arg}, nil)
 	return
 }

@@ -32,6 +32,6 @@ const _serviceIdToAccentColor = {
 const serviceIdToAccentColor = (service: ServiceIdWithContact): string =>
   _serviceIdToAccentColor[`serviceAccentFor${capitalize(service)}`]
 
-const inactiveServiceAccentColor = Styles.globalColors.black_10
+const inactiveServiceAccentColor = Styles.globalColors.black_50
 
 export {serviceIdToIconFont, serviceIdToAccentColor, inactiveServiceAccentColor}

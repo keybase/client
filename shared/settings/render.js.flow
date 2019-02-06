@@ -7,6 +7,7 @@ export type Props = {
   children: React.Node,
   badgeNumbers: {[key: TabConstants.Tab]: number},
   isModal: boolean,
+  logoutInProgress: boolean,
   selectedTab: Tab,
   onTabChange: (tab: Tab) => void,
   onLogout: () => void,

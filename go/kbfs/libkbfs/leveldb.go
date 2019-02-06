@@ -35,19 +35,22 @@ var leveldbOptions = &opt.Options{
 	OpenFilesCacheCapacity: 10,
 }
 
-type levelDb struct {
+// LevelDb is a libkbfs wrapper for leveldb.DB.
+type LevelDb struct {
 	*leveldb.DB
 	closer io.Closer
 }
 
-func (ldb *levelDb) Close() (err error) {
+// Close closes the DB.
+func (ldb *LevelDb) Close() (err error) {
 	err = ldb.DB.Close()
 	// Hide the closer error.
 	_ = ldb.closer.Close()
 	return err
 }
 
-func (ldb *levelDb) Get(key []byte, ro *opt.ReadOptions) (
+// Get gets data from the DB.
+func (ldb *LevelDb) Get(key []byte, ro *opt.ReadOptions) (
 	value []byte, err error) {
 	defer func() {
 		if err != nil {
@@ -57,7 +60,8 @@ func (ldb *levelDb) Get(key []byte, ro *opt.ReadOptions) (
 	return ldb.DB.Get(key, ro)
 }
 
-func (ldb *levelDb) GetWithMeter(key []byte, hitMeter, missMeter *CountMeter) (
+// GetWithMeter gets data from the DB while tracking the hit rate.
+func (ldb *LevelDb) GetWithMeter(key []byte, hitMeter, missMeter *CountMeter) (
 	value []byte, err error) {
 	defer func() {
 		if err == nil {
@@ -71,7 +75,8 @@ func (ldb *levelDb) GetWithMeter(key []byte, hitMeter, missMeter *CountMeter) (
 	return ldb.Get(key, nil)
 }
 
-func (ldb *levelDb) Put(key, value []byte, wo *opt.WriteOptions) (err error) {
+// Put puts data into the DB.
+func (ldb *LevelDb) Put(key, value []byte, wo *opt.WriteOptions) (err error) {
 	defer func() {
 		if err != nil {
 			err = errors.WithStack(err)
@@ -80,7 +85,8 @@ func (ldb *levelDb) Put(key, value []byte, wo *opt.WriteOptions) (err error) {
 	return ldb.DB.Put(key, value, wo)
 }
 
-func (ldb *levelDb) PutWithMeter(key, value []byte, putMeter *CountMeter) (
+// PutWithMeter gets data from the DB while tracking the hit rate.
+func (ldb *LevelDb) PutWithMeter(key, value []byte, putMeter *CountMeter) (
 	err error) {
 	defer func() {
 		if err == nil && putMeter != nil {
@@ -93,7 +99,7 @@ func (ldb *levelDb) PutWithMeter(key, value []byte, putMeter *CountMeter) (
 // openLevelDB opens or recovers a leveldb.DB with a passed-in storage.Storage
 // as its underlying storage layer, and with the options specified.
 func openLevelDBWithOptions(stor storage.Storage, options *opt.Options) (
-	*levelDb, error) {
+	*LevelDb, error) {
 	db, err := leveldb.Open(stor, options)
 	if ldberrors.IsCorrupted(err) {
 		// There's a possibility that if the leveldb wasn't closed properly
@@ -107,12 +113,12 @@ func openLevelDBWithOptions(stor storage.Storage, options *opt.Options) (
 		stor.Close()
 		return nil, err
 	}
-	return &levelDb{db, stor}, nil
+	return &LevelDb{db, stor}, nil
 }
 
 // openLevelDB opens or recovers a leveldb.DB with a passed-in storage.Storage
 // as its underlying storage layer.
-func openLevelDB(stor storage.Storage) (*levelDb, error) {
+func openLevelDB(stor storage.Storage) (*LevelDb, error) {
 	return openLevelDBWithOptions(stor, leveldbOptions)
 }
 
@@ -201,7 +207,7 @@ func getVersionedPathForDiskCache(
 // lives.
 func openVersionedLevelDB(log logger.Logger, storageRoot string,
 	dbFolderName string, currentDiskCacheVersion uint64, dbFilename string) (
-	db *levelDb, err error) {
+	db *LevelDb, err error) {
 	dbPath := filepath.Join(storageRoot, dbFolderName)
 	versionPath, err := getVersionedPathForDiskCache(
 		log, dbPath, dbFolderName, currentDiskCacheVersion)

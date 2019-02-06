@@ -10,6 +10,7 @@ import {formatDurationShort} from '../../../../util/timestamp'
 import {KeyEventHandler} from '../../../../util/key-event-handler.desktop'
 import WalletsIcon from './wallets-icon/container'
 import type {PlatformInputPropsInternal} from './platform-input'
+import Typing from './typing/container'
 import AddSuggestors from '../suggestors'
 
 type State = {
@@ -259,13 +260,14 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
             />
           </Kb.Box>
           <Kb.Box style={styles.footerContainer}>
-            {this.props.typing.size > 0 && (
-              <Kb.Animation animationType="typing" containerStyle={styles.isTypingAnimation} />
-            )}
-            <Kb.Text type="BodySmall" style={styles.isTyping}>
-              {isTyping(this.props.typing)}
-            </Kb.Text>
-            <Kb.Text type="BodySmall" style={styles.footer} onClick={this._inputFocus} selectable={true}>
+            <Typing conversationIDKey={this.props.conversationIDKey} />
+            <Kb.Text
+              lineClamp={1}
+              type="BodySmall"
+              style={styles.footer}
+              onClick={this._inputFocus}
+              selectable={true}
+            >
               *bold*, _italics_, `code`, >quote
             </Kb.Text>
           </Kb.Box>
@@ -275,38 +277,6 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
   }
 }
 const PlatformInput = AddSuggestors(_PlatformInput)
-
-const isTyping = typing => {
-  switch (typing.size) {
-    case 0:
-      return ''
-    case 1:
-      return [
-        <Kb.Text key={0} type="BodySmallSemibold">
-          {typing.first()}
-        </Kb.Text>,
-        ` is typing`,
-      ]
-    case 2:
-      return [
-        <Kb.Text key={0} type="BodySmallSemibold">
-          {typing.first()}
-        </Kb.Text>,
-        ` and `,
-        <Kb.Text key={1} type="BodySmallSemibold">
-          {typing.skip(1).first()}
-        </Kb.Text>,
-        ` are typing`,
-      ]
-    default:
-      return [
-        <Kb.Text key={0} type="BodySmallSemibold">
-          {typing.join(', ')}
-        </Kb.Text>,
-        ` are typing`,
-      ]
-  }
-}
 
 const EmojiPicker = ({emojiPickerToggle, onClick}) => (
   <Kb.Box>
@@ -404,6 +374,7 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   footer: {
+    alignSelf: 'flex-end',
     color: Styles.globalColors.black_20,
     marginBottom: Styles.globalMargins.xtiny,
     marginRight: Styles.globalMargins.medium + 2,
@@ -412,6 +383,7 @@ const styles = Styles.styleSheetCreate({
   footerContainer: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'flex-start',
+    justifyContent: 'space-between',
   },
   hidden: {
     display: 'none',
@@ -442,16 +414,6 @@ const styles = Styles.styleSheetCreate({
     borderWidth: 1,
     marginLeft: Styles.globalMargins.small,
     marginRight: Styles.globalMargins.small,
-  },
-  isTyping: {
-    flexGrow: 1,
-    marginBottom: Styles.globalMargins.xtiny,
-    marginLeft: 58,
-    textAlign: 'left',
-  },
-  isTypingAnimation: {
-    left: 24,
-    position: 'absolute',
   },
   mentionCatcher: {
     ...Styles.globalStyles.fillAbsolute,

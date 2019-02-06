@@ -4,7 +4,9 @@
 package libkb
 
 import (
+	"errors"
 	"runtime"
+	"strings"
 
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
@@ -58,8 +60,12 @@ func GetExtendedStatus(m MetaContext) (res keybase1.ExtendedStatus, err error) {
 		res.Clients = g.ConnectionManager.ListAllLabeledConnections()
 	}
 
-	err = g.GetFullSelfer().WithSelf(m.Ctx(), func(me *User) error {
-		device, err := me.GetComputedKeyFamily().GetCurrentDevice(g)
+	if err = g.GetFullSelfer().WithSelf(m.Ctx(), func(me *User) error {
+		ckf := me.GetComputedKeyFamily()
+		if ckf == nil {
+			return errors.New("Couldn't load key family")
+		}
+		device, err := ckf.GetCurrentDevice(g)
 		if err != nil {
 			m.CDebugf("| GetCurrentDevice failed: %s", err)
 			res.DeviceErr = &keybase1.LoadDeviceErr{Where: "ckf.GetCurrentDevice", Desc: err.Error()}
@@ -75,8 +81,7 @@ func GetExtendedStatus(m MetaContext) (res keybase1.ExtendedStatus, err error) {
 			}
 		}
 		return nil
-	})
-	if err != nil {
+	}); err != nil {
 		m.CDebugf("| could not load me user: %s", err)
 		res.DeviceErr = &keybase1.LoadDeviceErr{Where: "libkb.LoadMe", Desc: err.Error()}
 	}
@@ -125,6 +130,9 @@ func GetExtendedStatus(m MetaContext) (res keybase1.ExtendedStatus, err error) {
 		}
 		res.DeviceEkNames = dekNames
 	}
+
+	res.LocalDbStats = strings.Split(g.LocalDb.Stats(), "\n")
+	res.LocalChatDbStats = strings.Split(g.LocalChatDb.Stats(), "\n")
 
 	return res, nil
 }

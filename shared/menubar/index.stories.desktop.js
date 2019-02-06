@@ -25,6 +25,7 @@ const props = {
   conversations: [
     // TODO: fill in a few.
   ],
+  daemonHandshakeState: 'done',
   fileName: null,
   files: 0,
   folderProps: null,
@@ -62,6 +63,8 @@ const load = () => {
   Storybook.storiesOf('Menubar', module)
     .addDecorator(providers)
     .add('Normal', () => <Menubar {...props} />)
+    .add('Starting up', () => <Menubar {...props} daemonHandshakeState={'starting'} />)
+    .add('Waiting on bootstrap', () => <Menubar {...props} daemonHandshakeState={'waitingForWaiters'} />)
     .add('Not logged in', () => <Menubar {...props} loggedIn={false} />)
     .add('With a file notification', () => (
       <Menubar

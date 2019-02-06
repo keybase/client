@@ -28,6 +28,7 @@ export const fileUIName = 'File Explorer'
 export const mobileOsVersion = Platform.Version
 export const isAndroidNewerThanM = isAndroid && parseInt(mobileOsVersion) > 22
 export const isAndroidNewerThanN = isAndroid && parseInt(mobileOsVersion, 10) >= 26
+export const shortcutSymbol = ''
 
 export const isIPhoneX =
   Platform.OS === 'ios' && !Platform.isPad && !Platform.isTVOS && Dimensions.get('window').height >= 812

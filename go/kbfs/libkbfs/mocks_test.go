@@ -17,7 +17,6 @@ import (
 	chat1 "github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	go_metrics "github.com/rcrowley/go-metrics"
-	leveldb "github.com/syndtr/goleveldb/leveldb"
 	context "golang.org/x/net/context"
 	go_billy_v4 "gopkg.in/src-d/go-billy.v4"
 	reflect "reflect"
@@ -207,6 +206,43 @@ func (m *MockcodecGetter) Codec() kbfscodec.Codec {
 func (mr *MockcodecGetterMockRecorder) Codec() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Codec", reflect.TypeOf((*MockcodecGetter)(nil).Codec))
+}
+
+// MockblockOpsGetter is a mock of blockOpsGetter interface
+type MockblockOpsGetter struct {
+	ctrl     *gomock.Controller
+	recorder *MockblockOpsGetterMockRecorder
+}
+
+// MockblockOpsGetterMockRecorder is the mock recorder for MockblockOpsGetter
+type MockblockOpsGetterMockRecorder struct {
+	mock *MockblockOpsGetter
+}
+
+// NewMockblockOpsGetter creates a new mock instance
+func NewMockblockOpsGetter(ctrl *gomock.Controller) *MockblockOpsGetter {
+	mock := &MockblockOpsGetter{ctrl: ctrl}
+	mock.recorder = &MockblockOpsGetterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockblockOpsGetter) EXPECT() *MockblockOpsGetterMockRecorder {
+	return m.recorder
+}
+
+// BlockOps mocks base method
+func (m *MockblockOpsGetter) BlockOps() BlockOps {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BlockOps")
+	ret0, _ := ret[0].(BlockOps)
+	return ret0
+}
+
+// BlockOps indicates an expected call of BlockOps
+func (mr *MockblockOpsGetterMockRecorder) BlockOps() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockOps", reflect.TypeOf((*MockblockOpsGetter)(nil).BlockOps))
 }
 
 // MockblockServerGetter is a mock of blockServerGetter interface
@@ -2238,20 +2274,6 @@ func (m *MockKBFSOps) GetNodeMetadata(ctx context.Context, node Node) (NodeMetad
 func (mr *MockKBFSOpsMockRecorder) GetNodeMetadata(ctx, node interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetNodeMetadata", reflect.TypeOf((*MockKBFSOps)(nil).GetNodeMetadata), ctx, node)
-}
-
-// GetConflictResolutionDB mocks base method
-func (m *MockKBFSOps) GetConflictResolutionDB() *leveldb.DB {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetConflictResolutionDB")
-	ret0, _ := ret[0].(*leveldb.DB)
-	return ret0
-}
-
-// GetConflictResolutionDB indicates an expected call of GetConflictResolutionDB
-func (mr *MockKBFSOpsMockRecorder) GetConflictResolutionDB() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetConflictResolutionDB", reflect.TypeOf((*MockKBFSOps)(nil).GetConflictResolutionDB))
 }
 
 // Shutdown mocks base method
@@ -5202,17 +5224,17 @@ func (mr *MockDiskBlockCacheMockRecorder) Delete(ctx, blockIDs, cacheType interf
 }
 
 // UpdateMetadata mocks base method
-func (m *MockDiskBlockCache) UpdateMetadata(ctx context.Context, blockID kbfsblock.ID, prefetchStatus PrefetchStatus) error {
+func (m *MockDiskBlockCache) UpdateMetadata(ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID, prefetchStatus PrefetchStatus, cacheType DiskBlockCacheType) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdateMetadata", ctx, blockID, prefetchStatus)
+	ret := m.ctrl.Call(m, "UpdateMetadata", ctx, tlfID, blockID, prefetchStatus, cacheType)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // UpdateMetadata indicates an expected call of UpdateMetadata
-func (mr *MockDiskBlockCacheMockRecorder) UpdateMetadata(ctx, blockID, prefetchStatus interface{}) *gomock.Call {
+func (mr *MockDiskBlockCacheMockRecorder) UpdateMetadata(ctx, tlfID, blockID, prefetchStatus, cacheType interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMetadata", reflect.TypeOf((*MockDiskBlockCache)(nil).UpdateMetadata), ctx, blockID, prefetchStatus)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateMetadata", reflect.TypeOf((*MockDiskBlockCache)(nil).UpdateMetadata), ctx, tlfID, blockID, prefetchStatus, cacheType)
 }
 
 // ClearAllTlfBlocks mocks base method
@@ -6515,6 +6537,7 @@ func (mr *MockPrefetcherMockRecorder) WaitChannelForBlockPrefetch(ctx, ptr inter
 
 // Status mocks base method
 func (m *MockPrefetcher) Status(ctx context.Context, ptr BlockPointer) (PrefetchProgress, error) {
+	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Status", ctx, ptr)
 	ret0, _ := ret[0].(PrefetchProgress)
 	ret1, _ := ret[1].(error)
@@ -6523,6 +6546,7 @@ func (m *MockPrefetcher) Status(ctx context.Context, ptr BlockPointer) (Prefetch
 
 // Status indicates an expected call of Status
 func (mr *MockPrefetcherMockRecorder) Status(ctx, ptr interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Status", reflect.TypeOf((*MockPrefetcher)(nil).Status), ctx, ptr)
 }
 
@@ -9027,6 +9051,20 @@ func (mr *MockConfigMockRecorder) BlockServer() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockServer", reflect.TypeOf((*MockConfig)(nil).BlockServer))
 }
 
+// BlockOps mocks base method
+func (m *MockConfig) BlockOps() BlockOps {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "BlockOps")
+	ret0, _ := ret[0].(BlockOps)
+	return ret0
+}
+
+// BlockOps indicates an expected call of BlockOps
+func (mr *MockConfigMockRecorder) BlockOps() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockOps", reflect.TypeOf((*MockConfig)(nil).BlockOps))
+}
+
 // Codec mocks base method
 func (m *MockConfig) Codec() kbfscodec.Codec {
 	m.ctrl.T.Helper()
@@ -9708,20 +9746,6 @@ func (mr *MockConfigMockRecorder) SetKeyOps(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetKeyOps", reflect.TypeOf((*MockConfig)(nil).SetKeyOps), arg0)
 }
 
-// BlockOps mocks base method
-func (m *MockConfig) BlockOps() BlockOps {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "BlockOps")
-	ret0, _ := ret[0].(BlockOps)
-	return ret0
-}
-
-// BlockOps indicates an expected call of BlockOps
-func (mr *MockConfigMockRecorder) BlockOps() *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BlockOps", reflect.TypeOf((*MockConfig)(nil).BlockOps))
-}
-
 // SetBlockOps mocks base method
 func (m *MockConfig) SetBlockOps(arg0 BlockOps) {
 	m.ctrl.T.Helper()
@@ -10005,10 +10029,10 @@ func (mr *MockConfigMockRecorder) SetDefaultBlockType(blockType interface{}) *go
 }
 
 // GetConflictResolutionDB mocks base method
-func (m *MockConfig) GetConflictResolutionDB() *leveldb.DB {
+func (m *MockConfig) GetConflictResolutionDB() *LevelDb {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetConflictResolutionDB")
-	ret0, _ := ret[0].(*leveldb.DB)
+	ret0, _ := ret[0].(*LevelDb)
 	return ret0
 }
 
@@ -10803,31 +10827,31 @@ func (mr *MockBlockRetrieverMockRecorder) Request(ctx, priority, kmd, ptr, block
 }
 
 // PutInCaches mocks base method
-func (m *MockBlockRetriever) PutInCaches(ctx context.Context, ptr BlockPointer, tlfID tlf.ID, block Block, lifetime BlockCacheLifetime, prefetchStatus PrefetchStatus) error {
+func (m *MockBlockRetriever) PutInCaches(ctx context.Context, ptr BlockPointer, tlfID tlf.ID, block Block, lifetime BlockCacheLifetime, prefetchStatus PrefetchStatus, cacheType DiskBlockCacheType) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "PutInCaches", ctx, ptr, tlfID, block, lifetime, prefetchStatus)
+	ret := m.ctrl.Call(m, "PutInCaches", ctx, ptr, tlfID, block, lifetime, prefetchStatus, cacheType)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // PutInCaches indicates an expected call of PutInCaches
-func (mr *MockBlockRetrieverMockRecorder) PutInCaches(ctx, ptr, tlfID, block, lifetime, prefetchStatus interface{}) *gomock.Call {
+func (mr *MockBlockRetrieverMockRecorder) PutInCaches(ctx, ptr, tlfID, block, lifetime, prefetchStatus, cacheType interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutInCaches", reflect.TypeOf((*MockBlockRetriever)(nil).PutInCaches), ctx, ptr, tlfID, block, lifetime, prefetchStatus)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutInCaches", reflect.TypeOf((*MockBlockRetriever)(nil).PutInCaches), ctx, ptr, tlfID, block, lifetime, prefetchStatus, cacheType)
 }
 
 // TogglePrefetcher mocks base method
-func (m *MockBlockRetriever) TogglePrefetcher(enable bool, syncCh <-chan struct{}) <-chan struct{} {
+func (m *MockBlockRetriever) TogglePrefetcher(enable bool, syncCh <-chan struct{}, doneCh chan<- struct{}) <-chan struct{} {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "TogglePrefetcher", enable, syncCh)
+	ret := m.ctrl.Call(m, "TogglePrefetcher", enable, syncCh, doneCh)
 	ret0, _ := ret[0].(<-chan struct{})
 	return ret0
 }
 
 // TogglePrefetcher indicates an expected call of TogglePrefetcher
-func (mr *MockBlockRetrieverMockRecorder) TogglePrefetcher(enable, syncCh interface{}) *gomock.Call {
+func (mr *MockBlockRetrieverMockRecorder) TogglePrefetcher(enable, syncCh, doneCh interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TogglePrefetcher", reflect.TypeOf((*MockBlockRetriever)(nil).TogglePrefetcher), enable, syncCh)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TogglePrefetcher", reflect.TypeOf((*MockBlockRetriever)(nil).TogglePrefetcher), enable, syncCh, doneCh)
 }
 
 // MockChat is a mock of Chat interface
@@ -11019,34 +11043,6 @@ func (mr *MockblockPutStateMockRecorder) oldPtr(ctx, blockPtr interface{}) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "oldPtr", reflect.TypeOf((*MockblockPutState)(nil).oldPtr), ctx, blockPtr)
 }
 
-// mergeOtherBps mocks base method
-func (m *MockblockPutState) mergeOtherBps(ctx context.Context, other blockPutState) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "mergeOtherBps", ctx, other)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// mergeOtherBps indicates an expected call of mergeOtherBps
-func (mr *MockblockPutStateMockRecorder) mergeOtherBps(ctx, other interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "mergeOtherBps", reflect.TypeOf((*MockblockPutState)(nil).mergeOtherBps), ctx, other)
-}
-
-// removeOtherBps mocks base method
-func (m *MockblockPutState) removeOtherBps(ctx context.Context, other blockPutState) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "removeOtherBps", ctx, other)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// removeOtherBps indicates an expected call of removeOtherBps
-func (mr *MockblockPutStateMockRecorder) removeOtherBps(ctx, other interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "removeOtherBps", reflect.TypeOf((*MockblockPutState)(nil).removeOtherBps), ctx, other)
-}
-
 // ptrs mocks base method
 func (m *MockblockPutState) ptrs() []BlockPointer {
 	m.ctrl.T.Helper()
@@ -11119,32 +11115,198 @@ func (mr *MockblockPutStateMockRecorder) numBlocks() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "numBlocks", reflect.TypeOf((*MockblockPutState)(nil).numBlocks))
 }
 
+// MockblockPutStateCopiable is a mock of blockPutStateCopiable interface
+type MockblockPutStateCopiable struct {
+	ctrl     *gomock.Controller
+	recorder *MockblockPutStateCopiableMockRecorder
+}
+
+// MockblockPutStateCopiableMockRecorder is the mock recorder for MockblockPutStateCopiable
+type MockblockPutStateCopiableMockRecorder struct {
+	mock *MockblockPutStateCopiable
+}
+
+// NewMockblockPutStateCopiable creates a new mock instance
+func NewMockblockPutStateCopiable(ctrl *gomock.Controller) *MockblockPutStateCopiable {
+	mock := &MockblockPutStateCopiable{ctrl: ctrl}
+	mock.recorder = &MockblockPutStateCopiableMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockblockPutStateCopiable) EXPECT() *MockblockPutStateCopiableMockRecorder {
+	return m.recorder
+}
+
+// addNewBlock mocks base method
+func (m *MockblockPutStateCopiable) addNewBlock(ctx context.Context, blockPtr BlockPointer, block Block, readyBlockData ReadyBlockData, syncedCb func() error) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "addNewBlock", ctx, blockPtr, block, readyBlockData, syncedCb)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// addNewBlock indicates an expected call of addNewBlock
+func (mr *MockblockPutStateCopiableMockRecorder) addNewBlock(ctx, blockPtr, block, readyBlockData, syncedCb interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "addNewBlock", reflect.TypeOf((*MockblockPutStateCopiable)(nil).addNewBlock), ctx, blockPtr, block, readyBlockData, syncedCb)
+}
+
+// saveOldPtr mocks base method
+func (m *MockblockPutStateCopiable) saveOldPtr(ctx context.Context, oldPtr BlockPointer) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "saveOldPtr", ctx, oldPtr)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// saveOldPtr indicates an expected call of saveOldPtr
+func (mr *MockblockPutStateCopiableMockRecorder) saveOldPtr(ctx, oldPtr interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "saveOldPtr", reflect.TypeOf((*MockblockPutStateCopiable)(nil).saveOldPtr), ctx, oldPtr)
+}
+
+// oldPtr mocks base method
+func (m *MockblockPutStateCopiable) oldPtr(ctx context.Context, blockPtr BlockPointer) (BlockPointer, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "oldPtr", ctx, blockPtr)
+	ret0, _ := ret[0].(BlockPointer)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// oldPtr indicates an expected call of oldPtr
+func (mr *MockblockPutStateCopiableMockRecorder) oldPtr(ctx, blockPtr interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "oldPtr", reflect.TypeOf((*MockblockPutStateCopiable)(nil).oldPtr), ctx, blockPtr)
+}
+
+// ptrs mocks base method
+func (m *MockblockPutStateCopiable) ptrs() []BlockPointer {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ptrs")
+	ret0, _ := ret[0].([]BlockPointer)
+	return ret0
+}
+
+// ptrs indicates an expected call of ptrs
+func (mr *MockblockPutStateCopiableMockRecorder) ptrs() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ptrs", reflect.TypeOf((*MockblockPutStateCopiable)(nil).ptrs))
+}
+
+// getBlock mocks base method
+func (m *MockblockPutStateCopiable) getBlock(ctx context.Context, blockPtr BlockPointer) (Block, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "getBlock", ctx, blockPtr)
+	ret0, _ := ret[0].(Block)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// getBlock indicates an expected call of getBlock
+func (mr *MockblockPutStateCopiableMockRecorder) getBlock(ctx, blockPtr interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "getBlock", reflect.TypeOf((*MockblockPutStateCopiable)(nil).getBlock), ctx, blockPtr)
+}
+
+// getReadyBlockData mocks base method
+func (m *MockblockPutStateCopiable) getReadyBlockData(ctx context.Context, blockPtr BlockPointer) (ReadyBlockData, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "getReadyBlockData", ctx, blockPtr)
+	ret0, _ := ret[0].(ReadyBlockData)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// getReadyBlockData indicates an expected call of getReadyBlockData
+func (mr *MockblockPutStateCopiableMockRecorder) getReadyBlockData(ctx, blockPtr interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "getReadyBlockData", reflect.TypeOf((*MockblockPutStateCopiable)(nil).getReadyBlockData), ctx, blockPtr)
+}
+
+// synced mocks base method
+func (m *MockblockPutStateCopiable) synced(blockPtr BlockPointer) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "synced", blockPtr)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// synced indicates an expected call of synced
+func (mr *MockblockPutStateCopiableMockRecorder) synced(blockPtr interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "synced", reflect.TypeOf((*MockblockPutStateCopiable)(nil).synced), blockPtr)
+}
+
+// numBlocks mocks base method
+func (m *MockblockPutStateCopiable) numBlocks() int {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "numBlocks")
+	ret0, _ := ret[0].(int)
+	return ret0
+}
+
+// numBlocks indicates an expected call of numBlocks
+func (mr *MockblockPutStateCopiableMockRecorder) numBlocks() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "numBlocks", reflect.TypeOf((*MockblockPutStateCopiable)(nil).numBlocks))
+}
+
+// mergeOtherBps mocks base method
+func (m *MockblockPutStateCopiable) mergeOtherBps(ctx context.Context, other blockPutStateCopiable) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "mergeOtherBps", ctx, other)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// mergeOtherBps indicates an expected call of mergeOtherBps
+func (mr *MockblockPutStateCopiableMockRecorder) mergeOtherBps(ctx, other interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "mergeOtherBps", reflect.TypeOf((*MockblockPutStateCopiable)(nil).mergeOtherBps), ctx, other)
+}
+
+// removeOtherBps mocks base method
+func (m *MockblockPutStateCopiable) removeOtherBps(ctx context.Context, other blockPutStateCopiable) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "removeOtherBps", ctx, other)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// removeOtherBps indicates an expected call of removeOtherBps
+func (mr *MockblockPutStateCopiableMockRecorder) removeOtherBps(ctx, other interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "removeOtherBps", reflect.TypeOf((*MockblockPutStateCopiable)(nil).removeOtherBps), ctx, other)
+}
+
 // deepCopy mocks base method
-func (m *MockblockPutState) deepCopy(ctx context.Context) (blockPutState, error) {
+func (m *MockblockPutStateCopiable) deepCopy(ctx context.Context) (blockPutStateCopiable, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "deepCopy", ctx)
-	ret0, _ := ret[0].(blockPutState)
+	ret0, _ := ret[0].(blockPutStateCopiable)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // deepCopy indicates an expected call of deepCopy
-func (mr *MockblockPutStateMockRecorder) deepCopy(ctx interface{}) *gomock.Call {
+func (mr *MockblockPutStateCopiableMockRecorder) deepCopy(ctx interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "deepCopy", reflect.TypeOf((*MockblockPutState)(nil).deepCopy), ctx)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "deepCopy", reflect.TypeOf((*MockblockPutStateCopiable)(nil).deepCopy), ctx)
 }
 
 // deepCopyWithBlacklist mocks base method
-func (m *MockblockPutState) deepCopyWithBlacklist(ctx context.Context, blacklist map[BlockPointer]bool) (blockPutState, error) {
+func (m *MockblockPutStateCopiable) deepCopyWithBlacklist(ctx context.Context, blacklist map[BlockPointer]bool) (blockPutStateCopiable, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "deepCopyWithBlacklist", ctx, blacklist)
-	ret0, _ := ret[0].(blockPutState)
+	ret0, _ := ret[0].(blockPutStateCopiable)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // deepCopyWithBlacklist indicates an expected call of deepCopyWithBlacklist
-func (mr *MockblockPutStateMockRecorder) deepCopyWithBlacklist(ctx, blacklist interface{}) *gomock.Call {
+func (mr *MockblockPutStateCopiableMockRecorder) deepCopyWithBlacklist(ctx, blacklist interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "deepCopyWithBlacklist", reflect.TypeOf((*MockblockPutState)(nil).deepCopyWithBlacklist), ctx, blacklist)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "deepCopyWithBlacklist", reflect.TypeOf((*MockblockPutStateCopiable)(nil).deepCopyWithBlacklist), ctx, blacklist)
 }

@@ -58,14 +58,14 @@ const (
 
 type mdToCleanIfUnused struct {
 	md  ReadOnlyRootMetadata
-	bps blockPutState
+	bps blockPutStateCopiable
 }
 
 type syncInfo struct {
 	oldInfo         BlockInfo
 	op              *syncOp
 	unrefs          []BlockInfo
-	bps             blockPutState
+	bps             blockPutStateCopiable
 	refBytes        uint64
 	unrefBytes      uint64
 	toCleanIfUnused []mdToCleanIfUnused
@@ -2555,7 +2555,7 @@ type fileSyncState struct {
 // entry, dirtyDe will be nil.
 func (fbo *folderBlockOps) startSyncWrite(ctx context.Context,
 	lState *lockState, md *RootMetadata, file path) (
-	fblock *FileBlock, bps blockPutState, syncState fileSyncState,
+	fblock *FileBlock, bps blockPutStateCopiable, syncState fileSyncState,
 	dirtyDe *DirEntry, err error) {
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
@@ -2769,7 +2769,7 @@ func (fbo *folderBlockOps) mergeDirtyEntryWithLBC(
 //  })
 func (fbo *folderBlockOps) StartSync(ctx context.Context,
 	lState *lockState, md *RootMetadata, file path) (
-	fblock *FileBlock, bps blockPutState, dirtyDe *DirEntry,
+	fblock *FileBlock, bps blockPutStateCopiable, dirtyDe *DirEntry,
 	syncState fileSyncState, err error) {
 	if jServer, err := GetJournalServer(fbo.config); err == nil {
 		jServer.dirtyOpStart(fbo.id())
@@ -3689,7 +3689,10 @@ func (fbo *folderBlockOps) MarkNode(
 
 	for _, info := range infos {
 		err = dbc.Mark(ctx, info.BlockPointer.ID, tag, cacheType)
-		if err != nil {
+		switch errors.Cause(err).(type) {
+		case nil:
+		case NoSuchBlockError:
+		default:
 			return err
 		}
 	}

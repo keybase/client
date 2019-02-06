@@ -111,7 +111,7 @@ func (s SocketInfo) dialSocket(dialFile string) (ret net.Conn, err error) {
 		if err != nil {
 			return nil, fmt.Errorf("Error getting working directory: %s", err)
 		}
-		s.log.Warning("| Changing current working directory because path for dialing is too long")
+		s.log.Debug("| Changing current working directory because path for dialing is too long")
 		dir := filepath.Dir(dialFile)
 		s.log.Debug("| os.Chdir(%s)", dir)
 		if err := os.Chdir(dir); err != nil {

@@ -18,7 +18,6 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	metrics "github.com/rcrowley/go-metrics"
-	"github.com/syndtr/goleveldb/leveldb"
 	"golang.org/x/net/context"
 	billy "gopkg.in/src-d/go-billy.v4"
 )
@@ -42,6 +41,10 @@ type keyGetterGetter interface {
 
 type codecGetter interface {
 	Codec() kbfscodec.Codec
+}
+
+type blockOpsGetter interface {
+	BlockOps() BlockOps
 }
 
 type blockServerGetter interface {
@@ -1320,7 +1323,10 @@ type DiskBlockCache interface {
 		preferredCacheType DiskBlockCacheType) (
 		buf []byte, serverHalf kbfscrypto.BlockCryptKeyServerHalf,
 		prefetchStatus PrefetchStatus, err error)
-	// GetPrefetchStatus returns just the prefetchStatus for the block.
+	// GetPrefetchStatus returns just the prefetchStatus for the
+	// block. If a specific preferred cache type is given, the block
+	// and its metadata are moved to that cache if they're not yet in
+	// it.
 	GetPrefetchStatus(
 		ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID,
 		cacheType DiskBlockCacheType) (PrefetchStatus, error)
@@ -1336,9 +1342,12 @@ type DiskBlockCache interface {
 		ctx context.Context, blockIDs []kbfsblock.ID,
 		cacheType DiskBlockCacheType) (
 		numRemoved int, sizeRemoved int64, err error)
-	// UpdateMetadata updates metadata for a given block in the disk cache.
-	UpdateMetadata(ctx context.Context, blockID kbfsblock.ID,
-		prefetchStatus PrefetchStatus) error
+	// UpdateMetadata updates metadata for a given block in the disk
+	// cache.  If a specific preferred cache type is given, the block
+	// and its metadata are moved to that cache if they're not yet in
+	// it.
+	UpdateMetadata(ctx context.Context, tlfID tlf.ID, blockID kbfsblock.ID,
+		prefetchStatus PrefetchStatus, cacheType DiskBlockCacheType) error
 	// ClearAllTlfBlocks deletes all the synced blocks corresponding
 	// to the given TLF ID from the cache.  It doesn't affect
 	// transient blocks for unsynced TLFs.
@@ -2345,6 +2354,7 @@ type Config interface {
 	logMaker
 	blockCacher
 	blockServerGetter
+	blockOpsGetter
 	codecGetter
 	cryptoPureGetter
 	keyGetterGetter
@@ -2390,7 +2400,6 @@ type Config interface {
 	SetMDOps(MDOps)
 	KeyOps() KeyOps
 	SetKeyOps(KeyOps)
-	BlockOps() BlockOps
 	SetBlockOps(BlockOps)
 	MDServer() MDServer
 	SetMDServer(MDServer)
@@ -2415,7 +2424,7 @@ type Config interface {
 	SetDefaultBlockType(blockType keybase1.BlockType)
 	// GetConflictResolutionDB gets the levelDB in which conflict resolution
 	// status is stored.
-	GetConflictResolutionDB() (db *leveldb.DB)
+	GetConflictResolutionDB() (db *LevelDb)
 	RekeyQueue() RekeyQueue
 	SetRekeyQueue(RekeyQueue)
 	// ReqsBufSize indicates the number of read or write operations
@@ -2674,9 +2683,9 @@ type BlockRetriever interface {
 	// the disk cache metadata is updated.
 	PutInCaches(ctx context.Context, ptr BlockPointer, tlfID tlf.ID,
 		block Block, lifetime BlockCacheLifetime,
-		prefetchStatus PrefetchStatus) error
+		prefetchStatus PrefetchStatus, cacheType DiskBlockCacheType) error
 	// TogglePrefetcher creates a new prefetcher.
-	TogglePrefetcher(enable bool, syncCh <-chan struct{}) <-chan struct{}
+	TogglePrefetcher(enable bool, syncCh <-chan struct{}, doneCh chan<- struct{}) <-chan struct{}
 }
 
 // ChatChannelNewMessageCB is a callback function that can be called
@@ -2729,22 +2738,31 @@ type Chat interface {
 	ClearCache()
 }
 
+// blockPutState is an interface for keeping track of readied blocks
+// before putting them to the bserver.
 type blockPutState interface {
 	addNewBlock(
 		ctx context.Context, blockPtr BlockPointer, block Block,
 		readyBlockData ReadyBlockData, syncedCb func() error) error
 	saveOldPtr(ctx context.Context, oldPtr BlockPointer) error
 	oldPtr(ctx context.Context, blockPtr BlockPointer) (BlockPointer, error)
-	mergeOtherBps(ctx context.Context, other blockPutState) error
-	removeOtherBps(ctx context.Context, other blockPutState) error
 	ptrs() []BlockPointer
 	getBlock(ctx context.Context, blockPtr BlockPointer) (Block, error)
 	getReadyBlockData(
 		ctx context.Context, blockPtr BlockPointer) (ReadyBlockData, error)
 	synced(blockPtr BlockPointer) error
 	numBlocks() int
-	deepCopy(ctx context.Context) (blockPutState, error)
+}
+
+// blockPutStateCopiable is a more manipulatable interface around
+// `blockPutState`, allowing copying as well as merging/unmerging.
+type blockPutStateCopiable interface {
+	blockPutState
+
+	mergeOtherBps(ctx context.Context, other blockPutStateCopiable) error
+	removeOtherBps(ctx context.Context, other blockPutStateCopiable) error
+	deepCopy(ctx context.Context) (blockPutStateCopiable, error)
 	deepCopyWithBlacklist(
 		ctx context.Context, blacklist map[BlockPointer]bool) (
-		blockPutState, error)
+		blockPutStateCopiable, error)
 }

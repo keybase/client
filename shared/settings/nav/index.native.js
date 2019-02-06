@@ -31,10 +31,10 @@ function SettingsNav(props: Props) {
         {
           data: [
             {
-              badgeNumber: props.badgeNumbers[TabConstants.teamsTab],
-              icon: 'iconfont-nav-teams',
-              onClick: () => props.onTabChange(Constants.teamsTab),
-              text: 'Teams',
+              badgeNumber: props.badgeNumbers[TabConstants.fsTab],
+              icon: 'iconfont-nav-files',
+              onClick: () => props.onTabChange(Constants.fsTab),
+              text: 'Files',
             },
             {
               badgeNumber: props.badgeNumbers[TabConstants.gitTab],
@@ -93,7 +93,12 @@ function SettingsNav(props: Props) {
             {onClick: () => props.onTabChange(Constants.aboutTab), text: 'About'},
             {onClick: () => props.onTabChange(Constants.feedbackTab), text: 'Feedback'},
             {onClick: () => props.onTabChange(Constants.advancedTab), text: 'Advanced'},
-            {onClick: props.onLogout, text: 'Sign out', textColor: globalColors.red},
+            {
+              inProgress: props.logoutInProgress,
+              onClick: props.onLogout,
+              text: 'Sign out',
+              textColor: globalColors.red,
+            },
           ],
           title: 'More',
         },

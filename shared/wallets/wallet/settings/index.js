@@ -58,7 +58,7 @@ class AccountSettings extends React.Component<SettingsProps> {
             gap="tiny"
             fullHeight={!Styles.isMobile}
           >
-            <Kb.ClickableBox onClick={props.onEditName}>
+            <Kb.ClickableBox onClick={props.onEditName} style={styles.noShrink}>
               <Kb.Box2 direction="vertical" gap="xtiny" style={styles.section} fullWidth={true}>
                 <Kb.Text type="BodySmallSemibold">Account name</Kb.Text>
                 <Kb.Box2 direction="horizontal" fullWidth={true}>
@@ -181,27 +181,39 @@ class AccountSettings extends React.Component<SettingsProps> {
                 style={styles.setupInflation}
               />
             </Kb.Box2>
-            <Kb.Box2 direction="vertical" fullWidth={true} style={styles.removeContainer}>
-              <Divider />
-              <Kb.ClickableBox style={styles.remove} onClick={props.isDefault ? null : props.onDelete}>
-                <Kb.Icon
-                  type="iconfont-trash"
-                  style={Styles.collapseStyles([styles.rightMargin, props.isDefault && styles.deleteOpacity])}
-                  color={Styles.globalColors.red}
-                />
-                <Kb.Text
-                  type="BodySemibold"
-                  style={Styles.collapseStyles([styles.red, props.isDefault && styles.deleteOpacity])}
-                  className={Styles.classNames({'hover-underline': !props.isDefault})}
-                >
-                  Remove account
-                </Kb.Text>
-              </Kb.ClickableBox>
-              {props.isDefault && (
-                <Kb.Text center={true} type="BodySmall">
-                  You can’t remove your default account.
-                </Kb.Text>
-              )}
+            <Kb.Box2
+              direction="vertical"
+              noShrink={true}
+              gap="small"
+              gapEnd={true}
+              fullWidth={true}
+              style={styles.removeContainer}
+            >
+              <Kb.Divider />
+              <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
+                <Kb.ClickableBox style={styles.remove} onClick={props.isDefault ? null : props.onDelete}>
+                  <Kb.Icon
+                    type="iconfont-trash"
+                    style={Styles.collapseStyles([
+                      styles.rightMargin,
+                      props.isDefault && styles.deleteOpacity,
+                    ])}
+                    color={Styles.globalColors.red}
+                  />
+                  <Kb.Text
+                    type="BodySemibold"
+                    style={Styles.collapseStyles([styles.red, props.isDefault && styles.deleteOpacity])}
+                    className={Styles.classNames({'hover-underline': !props.isDefault})}
+                  >
+                    Remove account
+                  </Kb.Text>
+                </Kb.ClickableBox>
+                {props.isDefault && (
+                  <Kb.Text center={true} type="BodySmall">
+                    You can’t remove your default account.
+                  </Kb.Text>
+                )}
+              </Kb.Box2>
             </Kb.Box2>
           </Kb.Box2>
         </Kb.ScrollView>
@@ -225,7 +237,6 @@ const styles = Styles.styleSheetCreate({
     borderBottomColor: Styles.globalColors.black_10,
     borderBottomWidth: 1,
     borderStyle: 'solid',
-    marginBottom: Styles.isMobile ? 0 : Styles.globalMargins.xsmall,
   },
   icon: {marginLeft: Styles.globalMargins.xtiny},
   identityBox: {
@@ -235,6 +246,7 @@ const styles = Styles.styleSheetCreate({
   mobileOnlySpinner: {
     backgroundColor: Styles.globalColors.white_90,
   },
+  noShrink: {flexShrink: 0},
   red: {color: Styles.globalColors.red},
   remove: {
     ...Styles.globalStyles.flexBoxRow,
@@ -242,7 +254,6 @@ const styles = Styles.styleSheetCreate({
     justifyContent: 'center',
   },
   removeContainer: Styles.platformStyles({
-    common: {flexShrink: 0},
     isElectron: {marginTop: 'auto'},
     isMobile: {marginTop: Styles.globalMargins.medium},
   }),
@@ -252,6 +263,7 @@ const styles = Styles.styleSheetCreate({
   scrollView: {
     display: 'flex',
     flexGrow: 1,
+    paddingTop: Styles.isMobile ? 0 : Styles.globalMargins.xsmall,
     width: '100%',
   },
   section: {
@@ -268,7 +280,6 @@ const styles = Styles.styleSheetCreate({
     alignSelf: 'flex-start',
     backgroundColor: Styles.globalColors.white,
     flexShrink: 0,
-    paddingBottom: Styles.globalMargins.small,
     paddingTop: Styles.isMobile ? Styles.globalMargins.small : 0,
   },
   setupInflation: {

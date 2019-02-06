@@ -101,7 +101,7 @@ func (h *Handler) accountChange(mctx libkb.MetaContext, cli gregor1.IncomingInte
 	}
 
 	// We will locally dismiss for now so that each client only plays them once:
-	if err := h.G().GregorDismisser.LocalDismissItem(mctx.Ctx(), item.Metadata().MsgID()); err != nil {
+	if err := h.G().GregorState.LocalDismissItem(mctx.Ctx(), item.Metadata().MsgID()); err != nil {
 		h.G().Log.CDebugf(mctx.Ctx(), "failed to local dismiss account_change: %s", err)
 	}
 
@@ -113,7 +113,7 @@ func (h *Handler) paymentStatus(mctx libkb.MetaContext, cli gregor1.IncomingInte
 	mctx.CDebugf("%v: %v received IBM, ignoring it", h.Name(), category)
 
 	// We will locally dismiss for now so that each client only plays them once:
-	if err := h.G().GregorDismisser.LocalDismissItem(mctx.Ctx(), item.Metadata().MsgID()); err != nil {
+	if err := h.G().GregorState.LocalDismissItem(mctx.Ctx(), item.Metadata().MsgID()); err != nil {
 		h.G().Log.CDebugf(mctx.Ctx(), "failed to local dismiss payment_status: %s", err)
 	}
 
@@ -125,7 +125,7 @@ func (h *Handler) paymentNotification(mctx libkb.MetaContext, cli gregor1.Incomi
 	mctx.CDebugf("%s: %s received IBM, ignoring it", h.Name(), category)
 
 	// We will locally dismiss for now so that each client only plays them once:
-	if err := h.G().GregorDismisser.LocalDismissItem(mctx.Ctx(), item.Metadata().MsgID()); err != nil {
+	if err := h.G().GregorState.LocalDismissItem(mctx.Ctx(), item.Metadata().MsgID()); err != nil {
 		h.G().Log.CDebugf(mctx.Ctx(), "failed to local dismiss payment_notification: %s", err)
 	}
 
@@ -137,7 +137,7 @@ func (h *Handler) requestStatus(mctx libkb.MetaContext, cli gregor1.IncomingInte
 	mctx.CDebugf("%v: %v received IBM, ignoring it", h.Name(), category)
 
 	// We will locally dismiss for now so that each client only plays them once:
-	if err := h.G().GregorDismisser.LocalDismissItem(mctx.Ctx(), item.Metadata().MsgID()); err != nil {
+	if err := h.G().GregorState.LocalDismissItem(mctx.Ctx(), item.Metadata().MsgID()); err != nil {
 		h.G().Log.CDebugf(mctx.Ctx(), "failed to local dismiss request_status: %s", err)
 	}
 

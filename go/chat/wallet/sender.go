@@ -113,6 +113,7 @@ func (s *Sender) ParsePayments(ctx context.Context, uid gregor1.UID, convID chat
 	if len(parsed) == 0 {
 		return nil
 	}
+	// FIXME error is ignored.
 	parts, membersType, err := s.getConvParseInfo(ctx, uid, convID)
 	for _, p := range parsed {
 		var username string

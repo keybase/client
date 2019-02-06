@@ -86,10 +86,10 @@ type DiskBlockCacheLocal struct {
 	// Protect the disk caches from being shutdown while they're being
 	// accessed, and mutable data.
 	lock        sync.RWMutex
-	blockDb     *levelDb
-	metaDb      *levelDb
-	tlfDb       *levelDb
-	lastUnrefDb *levelDb
+	blockDb     *LevelDb
+	metaDb      *LevelDb
+	tlfDb       *LevelDb
+	lastUnrefDb *LevelDb
 	cacheType   diskLimitTrackerType
 	// Track the number of blocks in the cache per TLF and overall.
 	tlfCounts map[tlf.ID]int
@@ -779,6 +779,10 @@ func (cache *DiskBlockCacheLocal) UpdateMetadata(ctx context.Context,
 	if err != nil {
 		return NoSuchBlockError{blockID}
 	}
+	if md.FinishedPrefetch {
+		// Don't update md that's already completed.
+		return nil
+	}
 	md.TriggeredPrefetch = false
 	md.FinishedPrefetch = false
 	switch prefetchStatus {
@@ -885,7 +889,7 @@ func (cache *DiskBlockCacheLocal) Delete(ctx context.Context,
 // if we need to consider 100 out of 400 blocks, and we assume that the block
 // IDs are uniformly distributed, then our random start point should be in the
 // [0,0.75) interval on the [0,1.0) block ID space.
-func (*DiskBlockCacheLocal) getRandomBlockID(numElements,
+func (cache *DiskBlockCacheLocal) getRandomBlockID(numElements,
 	totalElements int) (kbfsblock.ID, error) {
 	if totalElements == 0 {
 		return kbfsblock.ID{}, errors.New("")
@@ -897,7 +901,7 @@ func (*DiskBlockCacheLocal) getRandomBlockID(numElements,
 	}
 	// Generate a random block ID to start the range.
 	pivot := (1.0 - (float64(numElements) / float64(totalElements)))
-	return kbfsblock.MakeRandomIDInRange(0, pivot)
+	return kbfsblock.MakeRandomIDInRange(0, pivot, cache.config.IsTestMode())
 }
 
 // evictSomeBlocks tries to evict `numBlocks` blocks from the cache. If
@@ -1033,7 +1037,8 @@ func (cache *DiskBlockCacheLocal) evictLocked(ctx context.Context,
 			}
 			tlfBytes := tlfID.Bytes()
 
-			blockID, err := cache.getRandomBlockID(numElements, cache.tlfCounts[tlfID])
+			blockID, err := cache.getRandomBlockID(numElements,
+				cache.tlfCounts[tlfID])
 			if err != nil {
 				return 0, 0, err
 			}
