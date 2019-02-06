@@ -12,7 +12,6 @@ import {
 } from '../utils/sort'
 import FilesLoadingHoc from './files-loading-hoc'
 import Rows from './rows'
-import * as FsGen from '../../actions/fs-gen'
 
 type OwnProps = {
   path: Types.Path, // path to the parent folder containering the rows
@@ -178,18 +177,12 @@ const mapStateToProps = state => ({
   _username: state.config.username,
 })
 
-const mapDispatchToProps = dispatch => ({
-  onAttach: (parentPath: Types.Path, paths: Array<string>) => {
-    paths.forEach(localPath => dispatch(FsGen.createUpload({localPath, parentPath})))
-  },
-})
+const mapDispatchToProps = dispatch => ({})
 
 // $FlowIssue
 const mergeProps = (s, d, o: OwnProps) => ({
   destinationPickerIndex: o.destinationPickerIndex,
   items: getItemsFromStateProps(s, o.path, o.sortSetting),
-  onAttach:
-    s._pathItems.get(o.path, Constants.unknownPathItem).writable ? d.onAttach : null,
   path: o.path,
   routePath: o.routePath,
 })

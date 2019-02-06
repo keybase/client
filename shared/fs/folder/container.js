@@ -5,11 +5,19 @@ import Files from '.'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import SecurityPrefsPromptingHoc from '../common/security-prefs-prompting-hoc'
+import * as FsGen from '../../actions/fs-gen'
 
 const mapStateToProps = (state, {path}) => ({
+  _pathItems: state.fs.pathItems,
   _tlfs: state.fs.tlfs,
   _username: state.config.username,
   sortSetting: state.fs.pathUserSettings.get(path, Constants.makePathUserSetting()).get('sort'),
+})
+
+const mapDispatchToProps = dispatch => ({
+  onAttach: (parentPath: Types.Path, paths: Array<string>) => {
+    paths.forEach(localPath => dispatch(FsGen.createUpload({localPath, parentPath})))
+  },
 })
 
 const mergeProps = (stateProps, dispatchProps, {path, routePath}) => {
@@ -21,7 +29,9 @@ const mergeProps = (stateProps, dispatchProps, {path, routePath}) => {
     .toArray()
   const isUserReset = !!stateProps._username && resetParticipants.includes(stateProps._username)
   const {sortSetting} = stateProps
-  return {isUserReset, path, resetParticipants, routePath, sortSetting}
+  const writable = stateProps._pathItems.get(path, Constants.unknownPathItem).writable
+  const onAttach = writable ? dispatchProps.onAttach : null
+  return {isUserReset, onAttach, path, resetParticipants, routePath, sortSetting}
 }
 
 type OwnProps = {
@@ -31,5 +41,5 @@ type OwnProps = {
 
 // flow can't figure out type when compose is used.
 export default SecurityPrefsPromptingHoc<OwnProps>(
-  namedConnect<OwnProps, _, _, _, _>(mapStateToProps, () => ({}), mergeProps, 'Files')(Files)
+  namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'Files')(Files)
 )
