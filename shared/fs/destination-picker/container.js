@@ -37,15 +37,15 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
     ),
   _onCopyHere: destinationParentPath => {
     dispatch(FsGen.createCopy({destinationParentPath}))
-    dispatch(FsGen.createCancelMoveOrCopy())
+    dispatch(FsGen.createCloseMoveOrCopy())
   },
   _onMoveHere: destinationParentPath => {
     dispatch(FsGen.createMove({destinationParentPath}))
-    dispatch(FsGen.createCancelMoveOrCopy())
+    dispatch(FsGen.createOpenPathInFilesTab({path: destinationParentPath, routePath: ownProps.routePath}))
   },
   _onNewFolder: destinationParentPath =>
     dispatch(FsGen.createNewFolderRow({parentPath: destinationParentPath})),
-  onCancel: () => dispatch(FsGen.createCancelMoveOrCopy()),
+  onCancel: () => dispatch(FsGen.createCloseMoveOrCopy()),
 })
 
 const canWrite = memoize(

@@ -4,6 +4,7 @@
 package libkb
 
 import (
+	"errors"
 	"runtime"
 	"strings"
 
@@ -60,7 +61,11 @@ func GetExtendedStatus(m MetaContext) (res keybase1.ExtendedStatus, err error) {
 	}
 
 	if err = g.GetFullSelfer().WithSelf(m.Ctx(), func(me *User) error {
-		device, err := me.GetComputedKeyFamily().GetCurrentDevice(g)
+		ckf := me.GetComputedKeyFamily()
+		if ckf == nil {
+			return errors.New("Couldn't load key family")
+		}
+		device, err := ckf.GetCurrentDevice(g)
 		if err != nil {
 			m.CDebugf("| GetCurrentDevice failed: %s", err)
 			res.DeviceErr = &keybase1.LoadDeviceErr{Where: "ckf.GetCurrentDevice", Desc: err.Error()}

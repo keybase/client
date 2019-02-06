@@ -364,7 +364,6 @@ type folderBranchOps struct {
 	branchChanges      kbfssync.RepeatedWaitGroup
 	mdFlushes          kbfssync.RepeatedWaitGroup
 	forcedFastForwards kbfssync.RepeatedWaitGroup
-	merkleFetches      kbfssync.RepeatedWaitGroup
 	editActivity       kbfssync.RepeatedWaitGroup
 	partialSyncs       kbfssync.RepeatedWaitGroup
 	launchEditMonitor  sync.Once
@@ -522,7 +521,6 @@ func (fbo *folderBranchOps) Shutdown(ctx context.Context) error {
 	}
 
 	close(fbo.shutdownChan)
-	fbo.merkleFetches.Wait(ctx)
 	fbo.cr.Shutdown()
 	fbo.fbm.shutdown()
 	fbo.rekeyFSM.Shutdown()
@@ -3883,17 +3881,6 @@ func (fbo *folderBranchOps) canonicalPath(ctx context.Context, dir Node, name st
 func (fbo *folderBranchOps) signalWrite() {
 	select {
 	case fbo.syncNeededChan <- struct{}{}:
-		// Kick off a merkle root fetch in the background, so that it's
-		// ready by the time we do the SyncAll.
-		fbo.merkleFetches.Add(1)
-		go func() {
-			defer fbo.merkleFetches.Done()
-			newCtx := fbo.ctxWithFBOID(context.Background())
-			_, _, err := fbo.config.KBPKI().GetCurrentMerkleRoot(newCtx)
-			if err != nil {
-				fbo.log.CDebugf(newCtx, "Couldn't fetch merkle root: %+v", err)
-			}
-		}()
 	default:
 	}
 	// A local write always means any ongoing CR should be canceled,
@@ -5162,7 +5149,7 @@ type cleanupFn func(context.Context, *lockState, []BlockPointer, error)
 func (fbo *folderBranchOps) startSyncLocked(ctx context.Context,
 	lState *lockState, md *RootMetadata, node Node, file path) (
 	doSync, stillDirty bool, fblock *FileBlock, dirtyDe *DirEntry,
-	bps blockPutState, syncState fileSyncState,
+	bps blockPutStateCopiable, syncState fileSyncState,
 	cleanup cleanupFn, err error) {
 	fbo.mdWriterLock.AssertLocked(lState)
 
@@ -5560,9 +5547,9 @@ func (fbo *folderBranchOps) syncAllLocked(
 	// Squash the batch of updates together into a set of blocks and
 	// ready `md` for putting to the server.
 	md.AddOp(newResolutionOp())
-	_, newBps, blocksToDelete, err := fbo.prepper.prepUpdateForPaths(
+	_, blocksToDelete, err := fbo.prepper.prepUpdateForPaths(
 		ctx, lState, md, syncChains, dummyHeadChains, tempIRMD, head,
-		resolvedPaths, lbc, fileBlocks, fbo.config.DirtyBlockCache(),
+		resolvedPaths, lbc, fileBlocks, fbo.config.DirtyBlockCache(), bps,
 		prepFolderDontCopyIndirectFileBlocks)
 	if err != nil {
 		return err
@@ -5570,10 +5557,6 @@ func (fbo *folderBranchOps) syncAllLocked(
 	if len(blocksToDelete) > 0 {
 		return errors.Errorf("Unexpectedly found unflushed blocks to delete "+
 			"during syncAllLocked: %v", blocksToDelete)
-	}
-	err = bps.mergeOtherBps(ctx, newBps)
-	if err != nil {
-		return err
 	}
 
 	defer func() {

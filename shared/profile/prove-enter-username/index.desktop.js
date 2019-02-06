@@ -75,7 +75,12 @@ class PrivateEnterUsernameRender extends Component<Props, State> {
   }
 
   render() {
-    const {headerText, floatingLabelText, hintText} = platformText[this.props.platform]
+    const pt = platformText[this.props.platform]
+    if (!pt) {
+      // TODO support generic proofs
+      throw new Error(`Proofs for platform ${this.props.platform} are unsupported.`)
+    }
+    const {headerText, floatingLabelText, hintText} = pt
 
     return (
       <Box style={styleContainer}>

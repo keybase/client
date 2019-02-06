@@ -63,7 +63,7 @@ export class HeaderHocHeader extends React.Component<Props, State> {
                 paddingRight: titlePadding,
               },
               Styles.isAndroid && {
-                paddingLeft: titlePaddingLeft,
+                paddingLeft: onLeftAction ? titlePaddingLeft : Styles.globalMargins.small,
                 paddingRight: titlePadding,
               },
             ])}

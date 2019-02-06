@@ -3077,7 +3077,8 @@ func (cr *ConflictResolver) completeResolution(ctx context.Context,
 	unmergedPaths []path, mergedPaths map[BlockPointer]path,
 	mostRecentUnmergedMD, mostRecentMergedMD ImmutableRootMetadata,
 	lbc localBcache, newFileBlocks fileBlockMap,
-	dirtyBcache DirtyBlockCacheSimple, writerLocked bool) (err error) {
+	dirtyBcache DirtyBlockCacheSimple, bps blockPutState,
+	writerLocked bool) (err error) {
 	md, err := cr.createResolvedMD(
 		ctx, lState, unmergedPaths, unmergedChains,
 		mergedChains, mostRecentMergedMD)
@@ -3123,10 +3124,10 @@ func (cr *ConflictResolver) completeResolution(ctx context.Context,
 		}
 	}
 
-	updates, bps, blocksToDelete, err := cr.prepper.prepUpdateForPaths(
+	updates, blocksToDelete, err := cr.prepper.prepUpdateForPaths(
 		ctx, lState, md, unmergedChains, mergedChains,
 		mostRecentUnmergedMD, mostRecentMergedMD, resolvedPaths, lbc,
-		newFileBlocks, dirtyBcache, prepFolderCopyIndirectFileBlocks)
+		newFileBlocks, dirtyBcache, bps, prepFolderCopyIndirectFileBlocks)
 	if err != nil {
 		return err
 	}
@@ -3335,11 +3336,8 @@ func (cr *ConflictResolver) recordFinishResolve(
 	err = serializeAndPutConflicts(cr.config, db, key, conflictsSoFar)
 }
 
-func (cr *ConflictResolver) makeDirtyBcache(
-	ctx context.Context, kmd KeyMetadata) (
-	dirtyBcache DirtyBlockCacheSimple, cleanupFn func(context.Context),
-	err error) {
-	var dbc *DiskBlockCacheLocal
+func (cr *ConflictResolver) makeDiskBlockCache(ctx context.Context) (
+	dbc *DiskBlockCacheLocal, cleanupFn func(context.Context), err error) {
 	if cr.config.IsTestMode() {
 		// Enable the disk limiter if one doesn't exist yet.
 		_ = cr.config.(*ConfigLocal).EnableDiskLimiter(os.TempDir())
@@ -3383,8 +3381,7 @@ func (cr *ConflictResolver) makeDirtyBcache(
 		return nil, nil, err
 	}
 
-	dirtyBcache = newDirtyBlockCacheDisk(cr.config, dbc, kmd, cr.fbo.branch())
-	return dirtyBcache, cleanupFn, nil
+	return dbc, cleanupFn, nil
 }
 
 // CRWrapError wraps an error that happens during conflict resolution.
@@ -3541,10 +3538,11 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 		cr.log.CDebugf(ctx, "No updates to resolve, so finishing")
 		lbc := make(localBcache)
 		newFileBlocks := make(fileBlockMap)
+		bps := newBlockPutStateMemory(0)
 		err = cr.completeResolution(ctx, lState, unmergedChains,
 			mergedChains, unmergedPaths, mergedPaths,
 			unmergedMDs[len(unmergedMDs)-1], mostRecentMergedMD, lbc,
-			newFileBlocks, nil, doLock)
+			newFileBlocks, nil, bps, doLock)
 		return
 	}
 
@@ -3625,14 +3623,15 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	// references for all indirect pointers inside it.  If it is not
 	// an indirect block, just add a new reference to the block.
 	newFileBlocks := make(fileBlockMap)
-	dirtyBcache, cleanupFn, err := cr.makeDirtyBcache(
-		ctx, mergedChains.mostRecentChainMDInfo)
+	dbc, cleanupFn, err := cr.makeDiskBlockCache(ctx)
 	if err != nil {
 		return
 	}
 	if cleanupFn != nil {
 		defer cleanupFn(ctx)
 	}
+	dirtyBcache := newDirtyBlockCacheDisk(
+		cr.config, dbc, mergedChains.mostRecentChainMDInfo, cr.fbo.branch())
 
 	err = cr.doActions(ctx, lState, unmergedChains, mergedChains,
 		unmergedPaths, mergedPaths, actionMap, lbc, newFileBlocks, dirtyBcache)
@@ -3650,9 +3649,11 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	// Step 4: finish up by syncing all the blocks, computing and
 	// putting the final resolved MD, and issuing all the local
 	// notifications.
+	bps := newBlockPutStateDisk(
+		0, cr.config, dbc, mergedChains.mostRecentChainMDInfo)
 	err = cr.completeResolution(ctx, lState, unmergedChains, mergedChains,
 		unmergedPaths, mergedPaths, unmergedMDs[len(unmergedMDs)-1],
-		mostRecentMergedMD, lbc, newFileBlocks, dirtyBcache, doLock)
+		mostRecentMergedMD, lbc, newFileBlocks, dirtyBcache, bps, doLock)
 	if err != nil {
 		return
 	}
