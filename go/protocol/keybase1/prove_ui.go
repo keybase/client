@@ -34,6 +34,46 @@ func (e PromptOverwriteType) String() string {
 	return ""
 }
 
+type ProveParameters struct {
+	LogoFull    []SizedImage `codec:"logoFull" json:"logoFull"`
+	LogoBlack   []SizedImage `codec:"logoBlack" json:"logoBlack"`
+	Title       string       `codec:"title" json:"title"`
+	Subtext     string       `codec:"subtext" json:"subtext"`
+	Suffix      string       `codec:"suffix" json:"suffix"`
+	ButtonLabel string       `codec:"buttonLabel" json:"buttonLabel"`
+}
+
+func (o ProveParameters) DeepCopy() ProveParameters {
+	return ProveParameters{
+		LogoFull: (func(x []SizedImage) []SizedImage {
+			if x == nil {
+				return nil
+			}
+			ret := make([]SizedImage, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.LogoFull),
+		LogoBlack: (func(x []SizedImage) []SizedImage {
+			if x == nil {
+				return nil
+			}
+			ret := make([]SizedImage, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.LogoBlack),
+		Title:       o.Title,
+		Subtext:     o.Subtext,
+		Suffix:      o.Suffix,
+		ButtonLabel: o.ButtonLabel,
+	}
+}
+
 type PromptOverwriteArg struct {
 	SessionID int                 `codec:"sessionID" json:"sessionID"`
 	Account   string              `codec:"account" json:"account"`
@@ -41,9 +81,10 @@ type PromptOverwriteArg struct {
 }
 
 type PromptUsernameArg struct {
-	SessionID int     `codec:"sessionID" json:"sessionID"`
-	Prompt    string  `codec:"prompt" json:"prompt"`
-	PrevError *Status `codec:"prevError,omitempty" json:"prevError,omitempty"`
+	SessionID  int              `codec:"sessionID" json:"sessionID"`
+	Prompt     string           `codec:"prompt" json:"prompt"`
+	PrevError  *Status          `codec:"prevError,omitempty" json:"prevError,omitempty"`
+	Parameters *ProveParameters `codec:"parameters,omitempty" json:"parameters,omitempty"`
 }
 
 type OutputPrechecksArg struct {
@@ -57,9 +98,10 @@ type PreProofWarningArg struct {
 }
 
 type OutputInstructionsArg struct {
-	SessionID    int    `codec:"sessionID" json:"sessionID"`
-	Instructions Text   `codec:"instructions" json:"instructions"`
-	Proof        string `codec:"proof" json:"proof"`
+	SessionID    int              `codec:"sessionID" json:"sessionID"`
+	Instructions Text             `codec:"instructions" json:"instructions"`
+	Proof        string           `codec:"proof" json:"proof"`
+	Parameters   *ProveParameters `codec:"parameters,omitempty" json:"parameters,omitempty"`
 }
 
 type OkToCheckArg struct {

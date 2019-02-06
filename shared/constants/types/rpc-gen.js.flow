@@ -701,7 +701,7 @@ export type MessageTypes = {|
     outParam: Boolean,
   |},
   'keybase.1.proveUi.outputInstructions': {|
-    inParam: $ReadOnly<{|instructions: Text, proof: String|}>,
+    inParam: $ReadOnly<{|instructions: Text, proof: String, parameters?: ?ProveParameters|}>,
     outParam: void,
   |},
   'keybase.1.proveUi.outputPrechecks': {|
@@ -717,7 +717,7 @@ export type MessageTypes = {|
     outParam: Boolean,
   |},
   'keybase.1.proveUi.promptUsername': {|
-    inParam: $ReadOnly<{|prompt: String, prevError?: ?Status|}>,
+    inParam: $ReadOnly<{|prompt: String, prevError?: ?Status, parameters?: ?ProveParameters|}>,
     outParam: String,
   |},
   'keybase.1.provisionUi.DisplayAndPromptSecret': {|
@@ -2509,6 +2509,7 @@ export type ProofType =
   | 100001 // ROOTER_100001
 
 export type Proofs = $ReadOnly<{social?: ?Array<TrackProof>, web?: ?Array<WebProof>, publicKeys?: ?Array<PublicKey>}>
+export type ProveParameters = $ReadOnly<{logoFull?: ?Array<SizedImage>, logoBlack?: ?Array<SizedImage>, title: String, subtext: String, suffix: String, buttonLabel: String}>
 export type ProvisionMethod =
   | 0 // DEVICE_0
   | 1 // PAPER_KEY_1

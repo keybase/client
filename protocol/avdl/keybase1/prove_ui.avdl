@@ -10,12 +10,24 @@ protocol proveUi {
     SITE_1
   }
 
+  record ProveParameters {
+    array<SizedImage> logoFull;
+    array<SizedImage> logoBlack;
+    string title;
+    string subtext;
+    string suffix; // Example: "@boardgames.social"
+    string buttonLabel; // Example: "Authorize on boardgames.social"
+  }
+
   // An existing proof exists that would be overridden.
   // Returns whether to continue.
   boolean promptOverwrite(int sessionID, string account, PromptOverwriteType typ);
 
   // Prompt for the username or website domain.
-  string promptUsername(int sessionID, string prompt, union {null, Status } prevError);
+  string promptUsername(int sessionID,
+    string prompt,
+    union {null, Status } prevError,
+    union {null, ProveParameters} parameters);
 
   // Output from pre-checks before creating sig.
   // Used to report bad HN karma before flunking the prove.
@@ -26,7 +38,10 @@ protocol proveUi {
   // Used by web proofs.
   boolean preProofWarning(int sessionID, Text text);
 
-  void outputInstructions(int sessionID, Text instructions, string proof);
+  void outputInstructions(int sessionID,
+    Text instructions,
+    string proof,
+    union {null, ProveParameters} parameters);
 
   // Ask the user whether they have posted the proof.
   // Returns whether to stay in this loop of questioning.
