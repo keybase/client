@@ -25,7 +25,7 @@ import {
 import {createAppContainer} from '@react-navigation/native'
 import {createBottomTabNavigator} from 'react-navigation-tabs'
 import {createStackNavigator} from 'react-navigation-stack'
-import {routes, nameToTab} from './routes'
+import {modalRoutes, routes, nameToTab} from './routes'
 import {LeftAction} from '../common-adapters/header-hoc'
 import * as Shared from './router.shared'
 import {useScreens} from 'react-native-screens'
@@ -119,7 +119,7 @@ useScreens()
 // We need to wrap the params that come into the components so the old way isn't totally broken short term
 const shimmedRoutes = Shared.shimRoutes(routes)
 
-const StackNavigator = createStackNavigator(shimmedRoutes, {
+const MainStackNavigator = createStackNavigator(shimmedRoutes, {
   defaultNavigationOptions: p => ({
     // header: p => <Kb.SafeAreaViewTop />,
     // headerMode: 'none',
@@ -166,6 +166,21 @@ const StackNavigator = createStackNavigator(shimmedRoutes, {
   }),
   initialRouteName: 'tabs:peopleTab',
 })
+
+const shimmedModalRoutes = Shared.shimRoutes(modalRoutes)
+const RootStackNavigator = createStackNavigator(
+  {
+    Main: {
+      screen: MainStackNavigator,
+    },
+    ...shimmedModalRoutes,
+  },
+  {
+    headerMode: 'none',
+    mode: 'modal',
+  }
+)
+
 // // NOT using rn-bototm tab
 // const tabNavigator = createBottomTabNavigator({
 // people: stackNavigator,
@@ -187,7 +202,8 @@ function getActiveRouteName(navigationState) {
   return route.routeName
 }
 class CustomStackNavigator extends React.PureComponent<any> {
-  static router = StackNavigator.router
+  static router = RootStackNavigator.router
+  // static router = MainStackNavigator.router
 
   render() {
     // const p = this.props
@@ -227,7 +243,7 @@ class CustomStackNavigator extends React.PureComponent<any> {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
         <Kb.NativeKeyboardAvoidingView style={styles.keyboard} behavior="padding">
-          <StackNavigator navigation={this.props.navigation} />
+          <RootStackNavigator navigation={this.props.navigation} />
         </Kb.NativeKeyboardAvoidingView>
         <TabBar selectedTab={nameToTab[this.props.activeKey]} />
         <GlobalError />

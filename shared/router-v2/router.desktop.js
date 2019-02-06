@@ -151,9 +151,11 @@ const createElectronApp = App => {
         </NavigationProvider>
       )
     }
-    // getState = () => this.state
-    dispatchOldAction = (action: any) => this.dispatch(Shared.oldActionToNewAction(action, this._navigation))
-    dispatch = action => {
+    dispatchOldAction = (old: any) => {
+      const action = Shared.oldActionToNewAction(old, this._navigation)
+      action && this.dispatch(action)
+    }
+    dispatch = (action: any) => {
       const lastState = this.state.nav
       const newState = App.router.getStateForAction(action, lastState)
       const dispatchEvents = () =>

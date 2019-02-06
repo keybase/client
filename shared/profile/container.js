@@ -222,7 +222,13 @@ const connected = connect<OwnProps, _, _, _, _>(
 const ConnectedHeader = connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
-  mergeProps
+  (stateProps, dispatchProps) => {
+    const props = mergeProps(stateProps, dispatchProps)
+    return {
+      onBack: props.okProps ? props.okProps.onBack : null,
+      onSearch: props.okProps ? props.okProps.onSearch : null,
+    }
+  }
 )(PeoplePageSearchBar)
 
 connected.navigationOptions = hp => ({
