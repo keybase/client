@@ -79,6 +79,7 @@ export const Typing = (props: Props) => (
   </Kb.Box>
 )
 
+export const mobileTypingContainerHeight = 18
 const styles = Styles.styleSheetCreate({
   isTypingAnimation: Styles.platformStyles({
     isElectron: {
@@ -98,10 +99,12 @@ const styles = Styles.styleSheetCreate({
     isMobile: {
       ...Styles.globalStyles.flexBoxRow,
       alignItems: 'flex-end',
-      bottom: 2,
-      height: 16,
-      left: 3,
-      position: 'relative',
+      backgroundColor: Styles.globalColors.white,
+      height: mobileTypingContainerHeight,
+      left: 0,
+      position: 'absolute',
+      right: 0,
+      top: -mobileTypingContainerHeight,
     },
   }),
   isTypingContainerVisible: {
@@ -131,7 +134,7 @@ const styles = Styles.styleSheetCreate({
   typingIconContainer: Styles.platformStyles({
     isMobile: {
       alignItems: 'center',
-      width: 45,
+      width: 48,
     },
   }),
 })
