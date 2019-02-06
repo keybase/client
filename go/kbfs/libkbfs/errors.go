@@ -1272,3 +1272,17 @@ func (e NextMDNotCachedError) Error() string {
 	return fmt.Sprintf("The MD following %d for folder %s is not cached",
 		e.RootSeqno, e.TlfID)
 }
+
+// DiskCacheTooFullForBlockError indicates that the disk cache is too
+// full to fetch a block requested with the `StopIfFull` action type.
+type DiskCacheTooFullForBlockError struct {
+	Ptr    BlockPointer
+	Action BlockRequestAction
+}
+
+// Error implements the Error interface for DiskCacheTooFullForBlockError.
+func (e DiskCacheTooFullForBlockError) Error() string {
+	return fmt.Sprintf(
+		"Disk cache too full for block %s requested with action %s",
+		e.Ptr, e.Action)
+}
