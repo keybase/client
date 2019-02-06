@@ -10,6 +10,7 @@ import openURL from '../util/open-url'
 import {isMobile} from '../constants/platform'
 import {niceError} from '../util/errors'
 import HiddenString from '../util/hidden-string'
+import type {TypedState} from '../constants/reducer'
 
 // Login dips into the routing dep tree, so we need to tell
 // webpack that we can still handle updates that propagate to here.
@@ -44,8 +45,28 @@ const getPassphraseHandler = passphrase => (params, response) => {
   }
 }
 
+const promptStartProvisioning = (state: TypedState, usernameOrEmail: string) => (params, response) => {
+  cancelOnCallback(params, response)
+  const newConfiguredAccounts = state.config.configuredAccounts.filter(u => u !== usernameOrEmail).toArray()
+  return Saga.all([
+    Saga.put(
+      ConfigGen.createSetAccounts({
+        defaultUsername: newConfiguredAccounts[0] || '',
+        usernames: newConfiguredAccounts,
+      })
+    ),
+    Saga.put(
+      LoginGen.createLoginError({
+        error: new HiddenString(
+          `This device needs to be provisioned. Try again with the "Someone else..." option`
+        ),
+      })
+    ),
+  ])
+}
+
 // Actually do a user/pass login. Don't get sucked into a provisioning flow
-function* login(_, action) {
+function* login(state, action) {
   try {
     yield* Saga.callRPCs(
       RPCTypes.loginLoginRpcSaga({
@@ -53,7 +74,10 @@ function* login(_, action) {
           'keybase.1.gpgUi.selectKey': cancelOnCallback,
           'keybase.1.loginUi.getEmailOrUsername': cancelOnCallback,
           'keybase.1.provisionUi.DisplayAndPromptSecret': cancelOnCallback,
-          'keybase.1.provisionUi.PromptNewDeviceName': cancelOnCallback,
+          'keybase.1.provisionUi.PromptNewDeviceName': promptStartProvisioning(
+            state,
+            action.payload.usernameOrEmail
+          ),
           'keybase.1.provisionUi.chooseDevice': cancelOnCallback,
           'keybase.1.provisionUi.chooseGPGMethod': cancelOnCallback,
           'keybase.1.secretUi.getPassphrase': getPassphraseHandler(action.payload.passphrase.stringValue()),
