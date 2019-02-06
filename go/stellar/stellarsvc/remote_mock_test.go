@@ -573,14 +573,18 @@ func (r *BackendMock) trace(err *error, name string, format string, args ...inte
 	}
 }
 
-func (r *BackendMock) addPayment(payment stellar1.PaymentDetails) {
+func (r *BackendMock) addPayment(accountID stellar1.AccountID, payment stellar1.PaymentDetails) {
 	defer r.trace(nil, "BackendMock.addPayment", "")()
 	r.txLog.Add(payment)
+
+	r.seqnos[accountID]++
 }
 
-func (r *BackendMock) addClaim(kbTxID stellar1.KeybaseTransactionID, summary stellar1.ClaimSummary) {
+func (r *BackendMock) addClaim(accountID stellar1.AccountID, kbTxID stellar1.KeybaseTransactionID, summary stellar1.ClaimSummary) {
 	defer r.trace(nil, "BackendMock.addClaim", "")()
 	r.txLog.AddClaim(kbTxID, summary)
+
+	r.seqnos[accountID]++
 }
 
 func (r *BackendMock) AccountSeqno(ctx context.Context, accountID stellar1.AccountID) (res uint64, err error) {
@@ -591,7 +595,10 @@ func (r *BackendMock) AccountSeqno(ctx context.Context, accountID stellar1.Accou
 	if !ok {
 		r.seqnos[accountID] = uint64(time.Now().UnixNano())
 	}
-	r.seqnos[accountID]++
+
+	// XXX this is wrong
+	// r.seqnos[accountID]++
+
 	return r.seqnos[accountID], nil
 }
 
@@ -695,7 +702,7 @@ func (r *BackendMock) SubmitPayment(ctx context.Context, tc *TestContext, post s
 
 	memo, memoType := extractMemo(unpackedTx.Tx)
 
-	r.addPayment(stellar1.PaymentDetails{
+	r.addPayment(extract.From, stellar1.PaymentDetails{
 		Summary:       summary,
 		Memo:          memo,
 		MemoType:      memoType,
@@ -773,7 +780,7 @@ func (r *BackendMock) SubmitRelayPayment(ctx context.Context, tc *TestContext, p
 		BoxB64:          post.BoxB64,
 		TeamID:          post.TeamID,
 	})
-	r.addPayment(stellar1.PaymentDetails{Summary: summary})
+	r.addPayment(extract.From, stellar1.PaymentDetails{Summary: summary})
 
 	return stellar1.PaymentResult{
 		StellarID: stellar1.TransactionID(txIDPrecalc),
@@ -813,7 +820,7 @@ func (r *BackendMock) SubmitRelayClaim(ctx context.Context, tc *TestContext, pos
 	if err != nil {
 		return stellar1.RelayClaimResult{}, fmt.Errorf("could not get self UV: %v", err)
 	}
-	r.addClaim(post.KeybaseID, stellar1.ClaimSummary{
+	r.addClaim(extract.From, post.KeybaseID, stellar1.ClaimSummary{
 		TxID:      stellar1.TransactionID(txIDPrecalc),
 		TxStatus:  stellar1.TransactionStatus_SUCCESS,
 		Dir:       post.Dir,
