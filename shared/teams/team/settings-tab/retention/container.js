@@ -107,7 +107,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   }
 
   const policyIsExploding =
-    policy.type === 'explode' || (policy.type === 'inherit' && teamPolicy.type === 'explode')
+    policy.type === 'explode' || (policy.type === 'inherit' && teamPolicy && teamPolicy.type === 'explode')
   const _path = getPath(state.routeTree.routeState)
   return {
     _path,
