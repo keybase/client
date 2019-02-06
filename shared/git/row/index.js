@@ -185,7 +185,7 @@ class Row extends React.Component<Props> {
                 <Kb.Button
                   type="Secondary"
                   small={true}
-                  label="Browse"
+                  label="View files"
                   onClick={this.props.onBrowseGitRepo}
                 >
                   <Kb.Icon
