@@ -434,7 +434,11 @@ class LoadTransactionDetails extends React.Component<Props> {
     // which means details need to be retrieved again.
     // Also, recentPaymentsReceived can race with paymentDetailReceived
     // so that loading finishes before transactionID is ever seen here.
-    if ((!this.props.transactionID || !this.props.senderAccountID) && !this.props.loading) {
+    // which means details need to be retrieved again
+    if (
+      (!this.props.transactionID && prevProps.transactionID) ||
+      (!this.props.senderAccountID && prevProps.senderAccountID && !this.props.loading)
+    ) {
       this.props.onLoadPaymentDetail()
     }
   }
