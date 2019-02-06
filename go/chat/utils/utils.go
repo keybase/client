@@ -1595,7 +1595,7 @@ func MessageIDControlToPagination(control *chat1.MessageIDControl) (res *chat1.P
 		case chat1.MessageIDControlMode_CENTERED:
 			// Heuristic that we might want to revisit, get older messages from a little ahead of where
 			// we want to center on
-			pm.msgID += 10
+			pm.msgID = pm.msgID.Advance(uint(control.Num) / 2)
 			res.Next, err = pag.MakeIndex(pm)
 		}
 		if err != nil {
@@ -1605,7 +1605,7 @@ func MessageIDControlToPagination(control *chat1.MessageIDControl) (res *chat1.P
 	return res
 }
 
-// assetsForMessage gathers all assets on a message
+// AssetsForMessage gathers all assets on a message
 func AssetsForMessage(g *globals.Context, msgBody chat1.MessageBody) (assets []chat1.Asset) {
 	typ, err := msgBody.MessageType()
 	if err != nil {

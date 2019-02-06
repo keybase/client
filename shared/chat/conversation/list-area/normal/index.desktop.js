@@ -303,7 +303,9 @@ class Thread extends React.PureComponent<Props, State> {
 
   render() {
     const items = this._makeItems()
-
+    if (this._listRef && this._listRef.current) {
+      console.log(this._listRef.current.scrollTop)
+    }
     return (
       <ErrorBoundary>
         <div style={containerStyle} onClick={this._handleListClick} onCopyCapture={this._onCopyCapture}>

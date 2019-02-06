@@ -599,7 +599,8 @@ func (h *Server) applyPagerModeOutgoing(ctx context.Context, convID chat1.Conver
 			return
 		}
 		if incoming.FirstPage() {
-			h.Debug(ctx, "applyPagerModeOutgoing: resetting pagination: convID: %s p: %s", convID, pagination)
+			h.Debug(ctx, "applyPagerModeOutgoing: resetting pagination: convID: %s p: %s", convID,
+				pagination)
 			h.convPageStatus[convID.String()] = *pagination
 		} else {
 			oldStored := h.convPageStatus[convID.String()]

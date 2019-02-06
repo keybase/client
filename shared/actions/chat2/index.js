@@ -874,6 +874,7 @@ function* loadMoreMessages(state, action) {
   // Get the conversationIDKey
   let key = null
   let reason: string = ''
+  let messsageIDControl = null
 
   switch (action.type) {
     case ConfigGen.changedFocus:
@@ -913,6 +914,15 @@ function* loadMoreMessages(state, action) {
 
       if (key === Constants.pendingConversationIDKey) {
         key = Constants.getResolvedPendingConversationIDKey(state)
+      } else {
+        const meta = Constants.getMeta(state, key)
+        messsageIDControl = meta
+          ? {
+              pivot: meta.readMsgID,
+              mode: RPCChatTypes.localMessageIDControlMode.centered,
+              num: Constants.numMessagesOnInitialLoad,
+            }
+          : null
       }
       break
     case Chat2Gen.metasReceived:
@@ -1037,6 +1047,7 @@ function* loadMoreMessages(state, action) {
           enableDeletePlaceholders: true,
           markAsRead: false,
           messageTypes: loadThreadMessageTypes,
+          messageIDControl,
         },
         reason: reasonToRPCReason(reason),
       },
