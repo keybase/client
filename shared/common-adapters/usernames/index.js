@@ -79,7 +79,7 @@ function UsernameText(props: Props) {
         // on native. (See DESKTOP-3963.)
         const _onUsernameClicked = props.onUsernameClicked
         return (
-          <Text type={props.type} key={u.username}>
+          <>
             {i !== 0 && i === props.users.length - 1 && props.showAnd && (
               <Text type={props.type} backgroundMode={props.backgroundMode} style={derivedJoinerStyle}>
                 {'and '}
@@ -100,8 +100,12 @@ function UsernameText(props: Props) {
                 ,
               </Text>
             )}
-            {i !== props.users.length - 1 && ' '}
-          </Text>
+            {i !== props.users.length - 1 && (
+              <Text type={props.type} backgroundMode={props.backgroundMode}>
+                &nbsp;
+              </Text>
+            )}
+          </>
         )
       })}
     </>
@@ -127,18 +131,11 @@ class Usernames extends React.Component<Props> {
   }
 
   render() {
-    const containerStyle = this.props.inline ? styles.inlineStyle : styles.nonInlineStyle
     const rwers = this.props.users.filter(u => !u.readOnly)
     const readers = this.props.users.filter(u => !!u.readOnly)
 
     return (
-      <Text
-        type={this.props.type}
-        backgroundMode={this.props.backgroundMode}
-        style={Styles.collapseStyles([containerStyle, this.props.containerStyle])}
-        title={this.props.title}
-        {...(this.props.inline ? inlineProps : {})}
-      >
+      <>
         {!!this.props.prefix && (
           <Text type={this.props.type} backgroundMode={this.props.backgroundMode} style={this.props.style}>
             {this.props.prefix}
@@ -160,7 +157,7 @@ class Usernames extends React.Component<Props> {
             {this.props.suffix}
           </Text>
         )}
-      </Text>
+      </>
     )
   }
 }
@@ -207,15 +204,6 @@ const styles = Styles.styleSheetCreate({
   joinerStyle: Styles.platformStyles({
     isElectron: {
       textDecoration: 'none',
-    },
-  }),
-  nonInlineStyle: Styles.platformStyles({
-    common: {
-      ...Styles.globalStyles.flexBoxRow,
-      flexWrap: 'wrap',
-    },
-    isElectron: {
-      textDecoration: 'inherit',
     },
   }),
 })
