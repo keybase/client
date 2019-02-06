@@ -6,7 +6,6 @@ package simplefs
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -26,6 +25,7 @@ import (
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
 	billy "gopkg.in/src-d/go-billy.v4"
 	"gopkg.in/src-d/go-billy.v4/osfs"
@@ -657,7 +657,7 @@ func (k *SimpleFS) SimpleFSList(ctx context.Context, arg keybase1.SimpleFSListAr
 				res, err = k.favoriteList(ctx, arg.Path, tlf.SingleTeam)
 			default:
 				fs, finalElem, err := k.getFSIfExists(ctx, arg.Path)
-				switch err.(type) {
+				switch errors.Cause(err).(type) {
 				case nil:
 				case libfs.TlfDoesNotExist:
 					// TLF doesn't exist yet; just return an empty result.
@@ -735,7 +735,7 @@ func (k *SimpleFS) listRecursiveToDepth(opID keybase1.OpID,
 		var paths []pathStackElem
 
 		fs, finalElem, err := k.getFSIfExists(ctx, path)
-		switch err.(type) {
+		switch errors.Cause(err).(type) {
 		case nil:
 		case libfs.TlfDoesNotExist:
 			// TLF doesn't exist yet; just return an empty result.
@@ -1480,9 +1480,22 @@ func (k *SimpleFS) SimpleFSStat(ctx context.Context, arg keybase1.SimpleFSStatAr
 	defer func() { k.doneSyncOp(ctx, err) }()
 
 	fs, finalElem, err := k.getFSIfExists(ctx, arg.Path)
-	if err != nil {
+	switch errors.Cause(err).(type) {
+	case nil:
+	case libfs.TlfDoesNotExist:
+		if finalElem != "" && finalElem != "." {
+			return keybase1.Dirent{}, err
+		}
+
+		// TLF doesn't exist yet; just return an empty result.
+		return keybase1.Dirent{
+			DirentType: keybase1.DirentType_DIR,
+			Writable:   false,
+		}, nil
+	default:
 		return keybase1.Dirent{}, err
 	}
+
 	// Use LStat so we don't follow symlinks.
 	fi, err := fs.Lstat(finalElem)
 	if err != nil {
