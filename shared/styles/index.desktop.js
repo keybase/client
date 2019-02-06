@@ -25,7 +25,7 @@ const font = {
   fontRegular: {
     ...fontCommon,
     fontFamily: 'Keybase',
-    fontWeight: 500,
+    fontWeight: 400,
   },
   fontSemibold: {
     ...fontCommon,
