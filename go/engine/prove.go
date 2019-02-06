@@ -5,7 +5,9 @@ package engine
 
 import (
 	"strings"
+	"time"
 
+	"github.com/keybase/client/go/externals"
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
@@ -14,16 +16,17 @@ import (
 // Prove is an engine used for proving ownership of remote accounts,
 // like Twitter, GitHub, etc.
 type Prove struct {
-	arg         *keybase1.StartProofArg
-	me          *libkb.User
-	serviceType libkb.ServiceType
-	supersede   bool
-	proof       *jsonw.Wrapper
-	sig         string
-	sigID       keybase1.SigID
-	postRes     *libkb.PostProofRes
-	signingKey  libkb.GenericKey
-	sigInner    []byte
+	arg               *keybase1.StartProofArg
+	me                *libkb.User
+	serviceType       libkb.ServiceType
+	serviceParameters *keybase1.ProveParameters
+	supersede         bool
+	proof             *jsonw.Wrapper
+	sig               string
+	sigID             keybase1.SigID
+	postRes           *libkb.PostProofRes
+	signingKey        libkb.GenericKey
+	sigInner          []byte
 
 	remoteNameNormalized string
 
@@ -105,8 +108,9 @@ func (p *Prove) promptRemoteName(m libkb.MetaContext) error {
 	var normalizationError error
 	for {
 		un, err := m.UIs().ProveUI.PromptUsername(m.Ctx(), keybase1.PromptUsernameArg{
-			Prompt:    p.serviceType.GetPrompt(),
-			PrevError: libkb.ExportErrorAsStatus(m.G(), normalizationError),
+			Prompt:     p.serviceType.GetPrompt(),
+			PrevError:  libkb.ExportErrorAsStatus(m.G(), normalizationError),
+			Parameters: p.serviceParameters,
 		})
 		if err != nil {
 			// Errors here are conditions like EOF. Return them rather than retrying.
@@ -243,7 +247,8 @@ func (p *Prove) instructAction(m libkb.MetaContext) (err error) {
 		// All of our proof verifying code (PVL) should already be flexible
 		// with surrounding whitespace, because users are pasting proofs by
 		// hand anyway.
-		Proof: strings.TrimSpace(txt),
+		Proof:      strings.TrimSpace(txt),
+		Parameters: p.serviceParameters,
 	})
 	if err != nil {
 		return err
@@ -276,6 +281,8 @@ func (p *Prove) checkAutoPost(m libkb.MetaContext, txt string) error {
 	return nil
 }
 
+// Keep asking the user whether they posted the proof
+// until it works or they give up.
 func (p *Prove) promptPostedLoop(m libkb.MetaContext) (err error) {
 	found := false
 	for i := 0; ; i++ {
@@ -313,6 +320,25 @@ func (p *Prove) promptPostedLoop(m libkb.MetaContext) (err error) {
 	return err
 }
 
+// Poll forever until the proof succeeds.
+func (p *Prove) verifyLoop(m libkb.MetaContext) (err error) {
+	for i := 0; ; i++ {
+		found, status, _, err := libkb.CheckPosted(m, p.postRes.ID)
+		if err != nil {
+			return err
+		}
+		m.CDebugf("Prove.verifyLoop round:%v found:%v status:%v", i, found, status)
+		if found {
+			return nil
+		}
+		wakeAt := m.G().Clock().Now().Add(2 * time.Second)
+		err = libkb.SleepUntilWithContext(m.Ctx(), m.G().Clock(), wakeAt)
+		if err != nil {
+			return err
+		}
+	}
+}
+
 func (p *Prove) checkProofText(m libkb.MetaContext) error {
 	m.CDebugf("p.postRes.Text: %q", p.postRes.Text)
 	m.CDebugf("p.sigID: %q", p.sigID)
@@ -326,6 +352,10 @@ func (p *Prove) getServiceType(m libkb.MetaContext) (err error) {
 	}
 	if !p.serviceType.CanMakeNewProofs(m) {
 		return libkb.ServiceDoesNotSupportNewProofsError{Service: p.arg.Service}
+	}
+	if serviceType, ok := p.serviceType.(*externals.GenericSocialProofServiceType); ok {
+		tmp := serviceType.ProveParameters(m)
+		p.serviceParameters = &tmp
 	}
 	return nil
 }
@@ -398,8 +428,14 @@ func (p *Prove) Run(m libkb.MetaContext) (err error) {
 	}
 
 	stage("PromptPostedLoop")
-	if err = p.promptPostedLoop(m); err != nil {
-		return err
+	if p.serviceParameters == nil {
+		if err = p.promptPostedLoop(m); err != nil {
+			return err
+		}
+	} else {
+		if err = p.verifyLoop(m); err != nil {
+			return err
+		}
 	}
 	m.UIs().LogUI.Notice("Success!")
 	return nil

@@ -10,6 +10,7 @@ protocol proveUi {
     SITE_1
   }
 
+  // Only present for parameterized proofs.
   record ProveParameters {
     array<SizedImage> logoFull;
     array<SizedImage> logoBlack;
@@ -44,7 +45,7 @@ protocol proveUi {
     union {null, ProveParameters} parameters);
 
   // Ask the user whether they have posted the proof.
-  // Returns whether to stay in this loop of questioning.
+  // Returns whether to keep checking.
   boolean okToCheck(int sessionID, string name, int attempt);
 
   // The proof was still not verifiable.
