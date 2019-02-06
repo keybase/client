@@ -121,14 +121,15 @@ const mergeProps = (stateProps, {onCancel, _send, _selectChannel}, ownProps) => 
       channels,
       name: elems[2],
       selectChannel: convID => _selectChannel(convID),
-      selectedChannel: stateProps._sendLinkToChat.convID
-        ? {
-            channelname: (
-              channels.find(({convID}) => convID === stateProps._sendLinkToChat.convID) || {channelname: ''}
-            ).channelname,
-            convID: stateProps._sendLinkToChat.convID,
-          }
-        : null,
+      selectedChannel:
+        stateProps._sendLinkToChat.convID === ChatConstants.noConversationIDKey
+          ? null
+          : {
+              channelname: (
+                channels.find(({convID}) => convID === stateProps._sendLinkToChat.convID) || {channelname: ''}
+              ).channelname,
+              convID: stateProps._sendLinkToChat.convID,
+            },
       type: 'big-team',
     },
     onCancel,
