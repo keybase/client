@@ -971,13 +971,6 @@ func (md *RootMetadataV2) RevisionNumber() Revision {
 	return md.Revision
 }
 
-// MerkleRoot implements the RootMetadata interface for
-// RootMetadataV2.
-func (md *RootMetadataV2) MerkleRoot() keybase1.MerkleRootV2 {
-	// No v2 MDs will have had this field set.
-	return keybase1.MerkleRootV2{}
-}
-
 // BID implements the RootMetadata interface for RootMetadataV2.
 func (md *RootMetadataV2) BID() BranchID {
 	return md.WriterMetadataV2.BID
@@ -1079,12 +1072,6 @@ func (md *RootMetadataV2) SetWriterMetadataCopiedBit() {
 // SetRevision implements the MutableRootMetadata interface for RootMetadataV2.
 func (md *RootMetadataV2) SetRevision(revision Revision) {
 	md.Revision = revision
-}
-
-// SetMerkleRoot implements the MutableRootMetadata interface for
-// RootMetadataV2.
-func (md *RootMetadataV2) SetMerkleRoot(root keybase1.MerkleRootV2) {
-	// V2 doesn't support merkle seqnos, just ignore.
 }
 
 // SetUnresolvedReaders implements the MutableRootMetadata interface for RootMetadataV2.

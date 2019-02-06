@@ -319,7 +319,7 @@ const stylesTabBarNavIcon = {
   ...Styles.desktopStyles.clickable,
   alignItems: 'center',
   flex: 1,
-  height: 56,
+  height: 58,
   justifyContent: 'center',
   position: 'relative',
   width: 80,
@@ -340,8 +340,8 @@ const navRealCSS = `
 `
 
 const stylesNavText = {
-  fontSize: 10,
-  marginTop: 0,
+  fontSize: 11,
+  marginTop: 2,
 }
 
 const styleBadgeAvatar = {

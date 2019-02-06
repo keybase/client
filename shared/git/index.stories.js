@@ -4,8 +4,6 @@ import deleteRepo from './delete-repo/index.stories'
 import * as Sb from '../stories/storybook'
 import * as I from 'immutable'
 import * as React from 'react'
-import * as FsConstants from '../constants/fs'
-import * as FsTypes from '../constants/types/fs'
 import List from '.'
 
 const props = {
@@ -33,13 +31,13 @@ const Provider = {
     lastEditUser: 'a',
     lastEditUserFollowing: false,
     name: props.id,
+    onBrowseGitRepo: Sb.action('onBrowseGitRepo'),
     onClickDevice: Sb.action('onClickDevice'),
     onCopy: Sb.action('onCopy'),
     onShowDelete: Sb.action('onShowDelete'),
     onToggleChatEnabled: Sb.action('onToggleChatEnabled'),
     onToggleExpand: Sb.action('onToggleExpand'),
     openUserTracker: Sb.action('openUserTracker'),
-    previewLink: FsConstants.escapePath(FsTypes.stringToPath('/keybase/private/you/.kbfs_autogit/hello')),
     teamname: props.id.startsWith('team') ? 'team' : null,
     url: 'a url for you to click on one two three four five end!',
     you: 'username',

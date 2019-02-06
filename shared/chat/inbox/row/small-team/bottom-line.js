@@ -152,8 +152,6 @@ const styles = styleSheetCreate({
     isElectron: {
       color: globalColors.black_50,
       display: 'block',
-      fontSize: 12,
-      lineHeight: 15,
       minHeight: 16,
       overflow: 'hidden',
       paddingRight: 10,
@@ -165,7 +163,6 @@ const styles = styleSheetCreate({
       backgroundColor: globalColors.fastBlank,
       color: globalColors.black_50,
       flex: 1,
-      fontSize: 14,
       paddingRight: 40,
       paddingTop: 2, // so the tops of emoji aren't chopped off
     },
