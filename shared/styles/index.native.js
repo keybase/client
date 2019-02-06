@@ -16,10 +16,10 @@ const font = isIOS
       italic: {fontStyle: 'italic'},
     }
   : {
-      fontBold: {fontFamily: 'keybase-bold'},
-      fontExtrabold: {fontFamily: 'keybase-extrabold'},
-      fontRegular: {fontFamily: 'keybase-medium'},
-      fontSemibold: {fontFamily: 'keybase-semibold'},
+      fontBold: {fontFamily: 'keybase-bold', fontWeight: 'normal'},
+      fontExtrabold: {fontFamily: 'keybase-extrabold', fontWeight: 'normal'},
+      fontRegular: {fontFamily: 'keybase-medium', fontWeight: 'normal'},
+      fontSemibold: {fontFamily: 'keybase-semibold', fontWeight: 'normal'},
       fontTerminal: {fontFamily: 'SourceCodePro-Medium'},
       fontTerminalSemibold: {fontFamily: 'SourceCodePro-Semi', fontWeight: 'bold'},
       italic: {fontStyle: 'italic'},
