@@ -24,11 +24,11 @@ const lineClamp = (lines: number) => ({
 
 function fontSizeToSizeStyle(fontSize: number): ?Object {
   const height = {
-    '12': 15,
-    '13': 16,
-    '14': 17,
-    '15': 18,
-    '18': 20,
+    '12': 16,
+    '13': 17,
+    '14': 18,
+    '15': 19,
+    '18': 22,
     '24': 28,
   }[String(fontSize)]
 

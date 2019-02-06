@@ -25,10 +25,10 @@ function fontSizeToSizeStyle(fontSize: number): ?Object {
   const lineHeight = {
     '13': 17,
     '15': 19,
-    '16': 21,
-    '17': 23,
-    '20': 25,
-    '28': 33,
+    '16': 20,
+    '17': 21,
+    '20': 24,
+    '28': 32,
   }[String(fontSize)]
 
   return {
