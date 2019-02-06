@@ -22,7 +22,7 @@
 
 .text_Header {
   font-size: 18px;
-  line-height: 20px;
+  line-height: 22px;
   color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -32,7 +32,7 @@
 
 .text_HeaderItalic {
   font-size: 18px;
-  line-height: 20px;
+  line-height: 22px;
   color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -43,7 +43,7 @@
 
 .text_HeaderExtrabold {
   font-size: 18px;
-  line-height: 20px;
+  line-height: 22px;
   color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -53,7 +53,7 @@
 
 .text_HeaderLink {
   font-size: 18px;
-  line-height: 20px;
+  line-height: 22px;
   color: rgb(76, 142, 255);
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
@@ -64,7 +64,7 @@
 
 .text_BodyBig {
   font-size: 15px;
-  line-height: 18px;
+  line-height: 19px;
   color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -74,7 +74,7 @@
 
 .text_BodyBigExtrabold {
   font-size: 15px;
-  line-height: 18px;
+  line-height: 19px;
   color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -84,7 +84,7 @@
 
 .text_BodyBigLink {
   font-size: 15px;
-  line-height: 18px;
+  line-height: 19px;
   color: rgb(76, 142, 255);
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
@@ -95,7 +95,7 @@
 
 .text_Body {
   font-size: 14px;
-  line-height: 17px;
+  line-height: 18px;
   color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -105,7 +105,7 @@
 
 .text_BodyItalic {
   font-size: 14px;
-  line-height: 17px;
+  line-height: 18px;
   color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -116,7 +116,7 @@
 
 .text_BodySemibold {
   font-size: 14px;
-  line-height: 17px;
+  line-height: 18px;
   color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -127,7 +127,7 @@
 .text_BodySemiboldItalic {
   font-size: 14px;
   font-style: italic;
-  line-height: 17px;
+  line-height: 18px;
   color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -137,7 +137,7 @@
 
 .text_BodySemiboldLink {
   font-size: 14px;
-  line-height: 17px;
+  line-height: 18px;
   color: rgb(76, 142, 255);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -147,7 +147,7 @@
 
 .text_BodyExtrabold {
   font-size: 14px;
-  line-height: 17px;
+  line-height: 18px;
   color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -157,7 +157,7 @@
 
 .text_BodyPrimaryLink {
   font-size: 14px;
-  line-height: 17px;
+  line-height: 18px;
   color: rgb(76, 142, 255);
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
@@ -168,7 +168,7 @@
 
 .text_BodySecondaryLink {
   font-size: 14px;
-  line-height: 17px;
+  line-height: 18px;
   color: rgba(0, 0, 0, 0.5);
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
@@ -189,7 +189,7 @@
 
 .text_BodySmallItalic {
   font-size: 13px;
-  line-height: 16px;
+  line-height: 17px;
   color: rgba(0, 0, 0, 0.5);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -200,7 +200,7 @@
 
 .text_BodySmallPrimaryLink {
   font-size: 13px;
-  line-height: 16px;
+  line-height: 17px;
   color: #4c8eff;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
@@ -211,7 +211,7 @@
 
 .text_BodySmallExtrabold {
   font-size: 13px;
-  line-height: 16px;
+  line-height: 17px;
   color: rgba(0, 0, 0, 0.5);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -222,7 +222,7 @@
 .text_BodySmallSemiboldItalic {
   font-size: 13px;
   font-style: italic;
-  line-height: 16px;
+  line-height: 17px;
   color: rgba(0, 0, 0, 0.5);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -232,7 +232,7 @@
 
 .text_BodySmallSemiboldPrimaryLink {
   font-size: 13px;
-  line-height: 16px;
+  line-height: 17px;
   color: rgb(76, 142, 255);
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
@@ -243,7 +243,7 @@
 
 .text_BodySmallSemiboldSecondaryLink {
   font-size: 13px;
-  line-height: 16px;
+  line-height: 17px;
   color: rgb(0, 0, 0, 0.6);
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
@@ -254,7 +254,7 @@
 
 .text_BodySmallSecondaryLink {
   font-size: 13px;
-  line-height: 16px;
+  line-height: 17px;
   color: rgba(0, 0, 0, 0.5);
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
@@ -265,7 +265,7 @@
 
 .text_BodySmallExtraboldSecondaryLink {
   font-size: 13px;
-  line-height: 16px;
+  line-height: 17px;
   color: rgba(0, 0, 0, 0.5);
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
@@ -276,7 +276,7 @@
 
 .text_BodySmallError {
   font-size: 13px;
-  line-height: 16px;
+  line-height: 17px;
   color: rgb(255, 77, 97);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -286,7 +286,7 @@
 
 .text_BodySmallSuccess {
   font-size: 13px;
-  line-height: 16px;
+  line-height: 17px;
   color: rgb(55, 189, 153);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -296,7 +296,7 @@
 
 .text_BodySmallWallet {
   font-size: 13px;
-  line-height: 16px;
+  line-height: 17px;
   color: rgb(132, 92, 219);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -306,7 +306,7 @@
 
 .text_BodyTiny {
   font-size: 12px;
-  line-height: 15px;
+  line-height: 16px;
   color: rgba(0, 0, 0, 0.5);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -316,7 +316,7 @@
 
 .text_BodyTinyBold {
   font-size: 12px;
-  line-height: 15px;
+  line-height: 16px;
   color: rgba(0, 0, 0, 0.5);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -326,7 +326,7 @@
 
 .text_BodyTinySemibold {
   font-size: 12px;
-  line-height: 15px;
+  line-height: 16px;
   color: rgba(0, 0, 0, 0.5);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -336,7 +336,7 @@
 
 .text_BodySmallSemibold {
   font-size: 13px;
-  line-height: 16px;
+  line-height: 17px;
   color: rgba(0, 0, 0, 0.5);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
