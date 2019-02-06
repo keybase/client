@@ -286,8 +286,7 @@ func TestDeleteRepo(t *testing.T) {
 	require.NoError(t, err)
 	children, err := config.KBFSOps().GetDirChildren(ctx, gitNode)
 	require.NoError(t, err)
-	require.Len(t, children, 1)
-	require.Contains(t, children, kbfsDeletedReposDir)
+	require.Len(t, children, 0) // .kbfs_deleted_repos is hidden
 
 	deletedReposNode, _, err := config.KBFSOps().Lookup(
 		ctx, gitNode, kbfsDeletedReposDir)

@@ -8,5 +8,6 @@
 +(BOOL)checkFile:(NSString *)linkPath isType:(NSFileAttributeType)fileType;
 +(void)checkKeybaseResource:(NSURL *)bin identifier:(NSString *)identifier error:(NSError **)error;
 +(BOOL)checkAbsolutePath:(NSString *)path hasAbsolutePrefix:(NSString *)prefix;
++(BOOL)checkIfPathIsFishy:(NSString *)path;
 
 @end

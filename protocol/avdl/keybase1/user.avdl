@@ -156,16 +156,11 @@ protocol user {
     string key;
     boolean belowFold;
     string profileText; // "Prove your Twitter", "Add a PGP key"
-    array<SizedImage> profileIcon; // TODO CORE-9882: this is an empty list for now
+    array<SizedImage> profileIcon;
     string pickerText; // "Twitter", "Your own website", "octodon.xyz"
     string pickerSubtext; // "twitter.com", "Mastodon instance"
-    array<SizedImage> pickerIcon; // TODO CORE-9882: this is an empty list for now
+    array<SizedImage> pickerIcon;
     array<Identify3RowMeta> metas; // for 'new' proof types
-  }
-
-  record SizedImage {
-    string path;
-    int width;
   }
 
   record NextMerkleRootRes {

@@ -169,6 +169,9 @@ const rpcMetaRequestConversationIDKeys = (state, action) => {
     case Chat2Gen.selectConversation:
       keys = [action.payload.conversationIDKey].filter(Constants.isValidConversationIDKey)
       break
+    case Chat2Gen.metasReceived:
+      keys = [Constants.getSelectedConversation(state)]
+      break
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       throw new Error('Invalid action passed to unboxRows')
@@ -2682,10 +2685,9 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainGenerator<Chat2Gen.MetaHandleQueuePayload>(Chat2Gen.metaHandleQueue, requestMeta)
 
   // Actually try and unbox conversations
-  yield* Saga.chainGenerator<Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectConversationPayload>(
-    [Chat2Gen.metaRequestTrusted, Chat2Gen.selectConversation],
-    unboxRows
-  )
+  yield* Saga.chainGenerator<
+    Chat2Gen.MetaRequestTrustedPayload | Chat2Gen.SelectConversationPayload | Chat2Gen.MetasReceivedPayload
+  >([Chat2Gen.metaRequestTrusted, Chat2Gen.selectConversation, Chat2Gen.metasReceived], unboxRows)
 
   // Load the selected thread
   yield* Saga.chainGenerator<

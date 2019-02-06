@@ -1512,6 +1512,43 @@ func TestCrBothSetMtimeDir(t *testing.T) {
 	)
 }
 
+// alice and bob both set the mtime on a dir, while bob writes a file
+// in the same parent directory as the mtime'd dir.  Regression test
+// for KBFS-3813 (which was already fixed by KBFS-3770).
+func TestCrBothSetMtimeDirWithWrittenFile(t *testing.T) {
+	targetMtime1 := time.Now().Add(1 * time.Minute)
+	targetMtime2 := targetMtime1.Add(1 * time.Minute)
+	test(t,
+		skip("dokan", "Dokan can't read mtimes on symlinks."),
+		users("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+			mkfile("b", "foo"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			setmtime("a", targetMtime1),
+		),
+		as(bob, noSync(),
+			setmtime("a", targetMtime2),
+			write("b", "foo2"),
+			reenableUpdates(),
+			lsdir("", m{"a$": "DIR", crnameEsc("a", bob): "SYM", "b$": "FILE"}),
+			mtime("a", targetMtime1),
+			mtime(crname("a", bob), targetMtime2),
+			read("b", "foo2"),
+		),
+		as(alice,
+			lsdir("", m{"a$": "DIR", crnameEsc("a", bob): "SYM", "b$": "FILE"}),
+			mtime("a", targetMtime1),
+			mtime(crname("a", bob), targetMtime2),
+			read("b", "foo2"),
+		),
+	)
+}
+
 // alice and bob both create the same dir structure and make and
 // rename the same file in it.  Regression for KBFS-2883.
 func TestCrBothCreateSameRenamedFileInSameNewDir(t *testing.T) {

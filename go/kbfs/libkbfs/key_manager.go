@@ -101,7 +101,7 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 	}
 
 	if keyGen < kbfsmd.FirstValidKeyGen {
-		return kbfscrypto.TLFCryptKey{}, kbfsmd.InvalidKeyGenerationError{TlfID: tlfID, KeyGen: keyGen}
+		return kbfscrypto.TLFCryptKey{}, errors.WithStack(kbfsmd.InvalidKeyGenerationError{TlfID: tlfID, KeyGen: keyGen})
 	}
 	// Is this some key we don't know yet?  Shouldn't really ever
 	// happen, but during migration there was a race that made this
