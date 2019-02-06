@@ -8,9 +8,7 @@ import Icon from '../icon'
 import SafeAreaView, {SafeAreaViewTop} from '../safe-area-view'
 import * as Styles from '../../styles'
 import type {Action, Props} from './types'
-// import flags from '../../util/feature-flags'
-// TODO i think we'll leave it like this and slowly pull headers out
-const flags = {useNewRouter: false}
+import flags from '../../util/feature-flags'
 
 const MAX_RIGHT_ACTIONS = 3
 type State = {|
@@ -48,64 +46,67 @@ export class HeaderHocHeader extends React.Component<Props, State> {
     const hasTextTitle = !!this.props.title && !this.props.titleComponent
 
     return (
-      <Box
-        style={Styles.collapseStyles([
-          styles.header,
-          (this.props.borderless || !!flags.useNewRouter) && styles.borderless,
-          this.props.headerStyle,
-        ])}
-      >
-        {this.props.customComponent}
-        {hasTextTitle && (
-          <Box
-            style={Styles.collapseStyles([
-              styles.titleContainer,
-              styles.titleTextContainer,
-              Styles.isIOS && {
-                paddingLeft: titlePadding,
-                paddingRight: titlePadding,
-              },
-              Styles.isAndroid && {
-                paddingLeft: onLeftAction ? titlePaddingLeft : Styles.globalMargins.small,
-                paddingRight: titlePadding,
-              },
-            ])}
-          >
-            <Text type="BodyBig" style={styles.title} lineClamp={1}>
-              {this.props.title}
-            </Text>
-          </Box>
-        )}
-        <LeftAction
-          badgeNumber={this.props.badgeNumber}
-          customCancelText={this.props.customCancelText}
-          disabled={false}
-          hasTextTitle={hasTextTitle}
-          hideBackLabel={this.props.hideBackLabel}
-          leftAction={leftAction}
-          leftActionText={this.props.leftActionText}
-          onLeftAction={onLeftAction}
-          theme={this.props.theme}
-        />
-        {this.props.titleComponent && (
-          <Box
-            style={Styles.collapseStyles([
-              styles.titleContainer,
-              onLeftAction && styles.titleContainerRightPadding,
-              rightActions.length && styles.titleContainerLeftPadding,
-            ])}
-          >
-            {this.props.titleComponent}
-          </Box>
-        )}
-        <RightActions
-          floatingMenuVisible={this.state.floatingMenuVisible}
-          hasTextTitle={hasTextTitle}
-          hideFloatingMenu={this._hideFloatingMenu}
-          rightActions={rightActions}
-          showFloatingMenu={this._showFloatingMenu}
-        />
-      </Box>
+      <>
+        {flags.useNewRouter && <SafeAreaViewTop />}
+        <Box
+          style={Styles.collapseStyles([
+            styles.header,
+            this.props.borderless && styles.borderless,
+            this.props.headerStyle,
+          ])}
+        >
+          {this.props.customComponent}
+          {hasTextTitle && (
+            <Box
+              style={Styles.collapseStyles([
+                styles.titleContainer,
+                styles.titleTextContainer,
+                Styles.isIOS && {
+                  paddingLeft: titlePadding,
+                  paddingRight: titlePadding,
+                },
+                Styles.isAndroid && {
+                  paddingLeft: onLeftAction ? titlePaddingLeft : Styles.globalMargins.small,
+                  paddingRight: titlePadding,
+                },
+              ])}
+            >
+              <Text type="BodyBig" style={styles.title} lineClamp={1}>
+                {this.props.title}
+              </Text>
+            </Box>
+          )}
+          <LeftAction
+            badgeNumber={this.props.badgeNumber}
+            customCancelText={this.props.customCancelText}
+            disabled={false}
+            hasTextTitle={hasTextTitle}
+            hideBackLabel={this.props.hideBackLabel}
+            leftAction={leftAction}
+            leftActionText={this.props.leftActionText}
+            onLeftAction={onLeftAction}
+            theme={this.props.theme}
+          />
+          {this.props.titleComponent && (
+            <Box
+              style={Styles.collapseStyles([
+                styles.titleContainer,
+                onLeftAction && styles.titleContainerRightPadding,
+                rightActions.length && styles.titleContainerLeftPadding,
+              ])}
+            >
+              {this.props.titleComponent}
+            </Box>
+          )}
+          <RightActions
+            floatingMenuVisible={this.state.floatingMenuVisible}
+            hasTextTitle={hasTextTitle}
+            hideFloatingMenu={this._hideFloatingMenu}
+            rightActions={rightActions}
+            showFloatingMenu={this._showFloatingMenu}
+          />
+        </Box>
+      </>
     )
   }
 }
@@ -217,22 +218,18 @@ const renderAction = (action: Action, index: number): React.Node =>
   )
 
 function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
-  const HeaderHocWrapper = (props: P & Props) =>
-    // headers are separate things in the new router so just make this the body short term
-    flags.useNewRouter ? (
-      <WrappedComponent {...(props: P)} />
-    ) : (
-      <Box style={styles.container}>
-        {!!props.customSafeAreaTopStyle && <SafeAreaViewTop style={props.customSafeAreaTopStyle} />}
-        <HeaderHocHeader {...props} />
-        <Box style={styles.grow}>
-          <Box style={styles.innerWrapper}>
-            <WrappedComponent {...(props: P)} />
-          </Box>
+  const HeaderHocWrapper = (props: P & Props) => (
+    <Box style={styles.container}>
+      {!!props.customSafeAreaTopStyle && <SafeAreaViewTop style={props.customSafeAreaTopStyle} />}
+      <HeaderHocHeader {...props} />
+      <Box style={styles.grow}>
+        <Box style={styles.innerWrapper}>
+          <WrappedComponent {...(props: P)} />
         </Box>
-        {!!props.customSafeAreaBottomStyle && <SafeAreaView style={props.customSafeAreaBottomStyle} />}
       </Box>
-    )
+      {!!props.customSafeAreaBottomStyle && <SafeAreaView style={props.customSafeAreaBottomStyle} />}
+    </Box>
+  )
 
   return HeaderHocWrapper
 }
