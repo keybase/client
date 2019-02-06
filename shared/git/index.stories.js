@@ -4,8 +4,6 @@ import deleteRepo from './delete-repo/index.stories'
 import * as Sb from '../stories/storybook'
 import * as I from 'immutable'
 import * as React from 'react'
-import * as FsConstants from '../constants/fs'
-import * as FsTypes from '../constants/types/fs'
 import List from '.'
 
 const props = {

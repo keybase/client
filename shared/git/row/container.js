@@ -1,7 +1,6 @@
 // @flow
 import Row from '.'
 import * as Constants from '../../constants/git'
-import * as FsConstants from '../../constants/fs'
 import * as FsTypes from '../../constants/types/fs'
 import * as ConfigGen from '../../actions/config-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
