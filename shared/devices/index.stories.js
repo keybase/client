@@ -6,6 +6,7 @@ import DevicesReal from './container'
 import devicePage from './device-page/index.stories'
 import deviceRevoke from './device-revoke/index.stories'
 import paperKey from './paper-key/index.stories'
+import addDevice from './add-device/index.stories'
 
 const idToType = i => {
   switch (i) {
@@ -85,6 +86,7 @@ const load = () => {
   devicePage()
   deviceRevoke()
   paperKey()
+  addDevice()
   Sb.storiesOf('Devices/List', module)
     .addDecorator(provider)
     .add('Current computer', () => <Devices active={activeDevices(false)} revoked={revokedDevices(false)} />)
