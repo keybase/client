@@ -68,7 +68,7 @@ export class HeaderHocHeader extends React.Component<Props, State> {
               },
             ])}
           >
-            <Text type="BodySemibold" style={styles.title} lineClamp={1}>
+            <Text type="BodyBig" style={styles.title} lineClamp={1}>
               {this.props.title}
             </Text>
           </Box>

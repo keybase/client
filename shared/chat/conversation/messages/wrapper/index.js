@@ -602,10 +602,9 @@ const styles = Styles.styleSheetCreate({
     isMobile: {right: 0},
   }),
   timestamp: Styles.platformStyles({
-    isMobile: {
-      position: 'relative',
-      top: 2,
-    },
+    common: {position: 'relative'},
+    isElectron: {top: 1},
+    isMobile: {top: 2},
   }),
 })
 

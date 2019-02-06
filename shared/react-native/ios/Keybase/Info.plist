@@ -37,22 +37,22 @@
 	<string>Inviting contacts to Keybase</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string></string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Recording audio when taking a video</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Saving images from chat messages</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Attaching images to chat messages</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>Recording audio when taking a video</string>
 	<key>UIAppFonts</key>
 	<array>
-		<string>OpenSans_bold.ttf</string>
-		<string>OpenSans_italic.ttf</string>
-		<string>OpenSans-ExtraBold.ttf</string>
-		<string>OpenSans-Semi_bold.ttf</string>
-		<string>OpenSans-Semi_bold_Italic.ttf</string>
-		<string>OpenSans.ttf</string>
-		<string>SourceCodePro.ttf</string>
-		<string>SourceCodePro-Semi_bold.ttf</string>
+		<string>keybase-bold.otf</string>
+		<string>keybase-extrabold.otf</string>
+		<string>keybase-medium.otf</string>
+		<string>keybase-medium-italic.otf</string>
+		<string>keybase-semibold.otf</string>
+		<string>keybase-semibold-italic.otf</string>
+		<string>SourceCodePro-Medium.ttf</string>
+		<string>SourceCodePro-Semibold.ttf</string>
 		<string>kb.ttf</string>
 	</array>
 	<key>UIBackgroundModes</key>
