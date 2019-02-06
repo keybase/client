@@ -6,6 +6,7 @@ import * as FsTypes from '../../constants/types/fs'
 import * as ConfigGen from '../../actions/config-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as GitGen from '../../actions/git-gen'
+import * as FsGen from '../../actions/fs-gen'
 import {namedConnect, compose, withHandlers, isMobile} from '../../util/container'
 import * as TrackerGen from '../../actions/tracker-gen'
 import {gitTab, settingsTab} from '../../constants/tabs'
@@ -31,6 +32,7 @@ const mapStateToProps = (state, {id, expanded}: OwnProps) => {
 }
 
 const mapDispatchToProps = dispatch => ({
+  _onBrowseGitRepo: (path: FsTypes.Path) => dispatch(FsGen.createOpenPathInFilesTab({path})),
   _onOpenChannelSelection: (repoID: string, teamname: ?string, selected: string) =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
@@ -69,6 +71,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     lastEditUser: git.lastEditUser,
     lastEditUserFollowing: stateProps.lastEditUserFollowing,
     name: git.name,
+    onBrowseGitRepo: () => dispatchProps._onBrowseGitRepo(
+      FsTypes.stringToPath(
+        git.url.replace(/keybase:\/\/((private|public|team)\/[^/]*)\/(.*)/, '/keybase/$1/.kbfs_autogit/$3')
+      )
+    ),
     onClickDevice: () => {
       git.lastEditUser && openURL(`https://keybase.io/${git.lastEditUser}/devices`)
     },
@@ -77,7 +84,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onToggleChatEnabled: () => dispatchProps._setDisableChat(!git.chatDisabled, git.repoID, git.teamname),
     onToggleExpand: () => ownProps.onToggleExpand(git.id),
     openUserTracker: dispatchProps.openUserTracker,
-    previewLink: FsConstants.escapePath(FsTypes.stringToPath(git.url.replace(/keybase:\/\/((private|public|team)\/[^/]*)\/(.*)/, '/keybase/$1/.kbfs_autogit/$3'))),
     teamname: git.teamname,
     url: git.url,
     you: stateProps.you,
