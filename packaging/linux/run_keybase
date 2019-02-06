@@ -179,14 +179,16 @@ startup_all() {
 }
 
 usage() {
-    echo "Usage: run_keybase [-hgfak]"
-    echo "Starts the Keybase service, KBFS, and the GUI."
-    echo "If services are already running, they will be restarted."
-    echo "Passing -h prints this help text."
-    echo "Passing -g, or the environment variable KEYBASE_NO_GUI=1, causes the script to not start the gui."
-    echo "Passing -f, or the environment variable KEYBASE_NO_KBFS, causes the KBFS not to start (only effective with -g)."
-    echo "Passing -a, or the environment variable KEYBASE_AUTOSTART=1, causes the GUI to stay minimized in system tray after startup."
-    echo "Passing -k, or the environment variable KEYBASE_KILL=1, causes all Keybase services to shut down."
+  echo "Usage: run_keybase [-afghk]"
+  echo "Starts the Keybase service, KBFS, and the GUI."
+  echo "If services are already running, they will be restarted."
+  echo ""
+  echo "Options can also be controlled by setting related environment variables to 1"
+  echo "  -a  keep the GUI minimized in system tray after startup (KEYBASE_AUTOSTART)"
+  echo "  -f  do not start KBFS (only effective with -g, KEYBASE_NO_KBFS)"
+  echo "  -g  do not start the gui (KEYBASE_NO_GUI)"
+  echo "  -h  print this help text"
+  echo "  -k  shut down all Keybase services (KEYBASE_KILL)"
 }
 
 KEYBASE_NO_GUI="${KEYBASE_NO_GUI:-0}"
@@ -194,12 +196,12 @@ KEYBASE_NO_KBFS="${KEYBASE_NO_KBFS:-0}"
 KEYBASE_AUTOSTART="${KEYBASE_AUTOSTART:-0}"
 KEYBASE_KILL="${KEYBASE_KILL:-0}"
 # NOTE: Make sure to update the Linux User Guide doc if you change this!
-while getopts "hgfak" flag; do
+while getopts "afghk" flag; do
     case $flag in
-        h) usage; exit 0;;
-        g) KEYBASE_NO_GUI=1;;
-        f) KEYBASE_NO_KBFS=1;;
         a) KEYBASE_AUTOSTART=1;;
+        f) KEYBASE_NO_KBFS=1;;
+        g) KEYBASE_NO_GUI=1;;
+        h) usage; exit 0;;
         k) KEYBASE_KILL=1;;
         ?) usage; exit 1;;
     esac
