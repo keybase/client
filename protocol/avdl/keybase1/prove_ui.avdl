@@ -46,9 +46,11 @@ protocol proveUi {
 
   // Ask the user whether they have posted the proof.
   // Returns whether to keep checking.
+  // Not used by parameterized proofs
   boolean okToCheck(int sessionID, string name, int attempt);
 
   // The proof is being checked in the background.
+  // Used by parameterized proofs only
   void checking(int sessionID, string name);
 
   // The proof was still not verifiable.

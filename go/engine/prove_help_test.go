@@ -5,12 +5,14 @@ package engine
 
 import (
 	"fmt"
+	"testing"
 
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/jsonhelpers"
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -18,6 +20,7 @@ type ProveUIMock struct {
 	username, recheck, overwrite, warning, checked bool
 	postID                                         string
 	hook                                           func(arg keybase1.OkToCheckArg) (bool, string, error)
+	outputInstructionsHook                         func(context.Context, keybase1.OutputInstructionsArg) error
 }
 
 func (p *ProveUIMock) PromptOverwrite(_ context.Context, arg keybase1.PromptOverwriteArg) (bool, error) {
@@ -39,7 +42,10 @@ func (p *ProveUIMock) PreProofWarning(_ context.Context, arg keybase1.PreProofWa
 	return true, nil
 }
 
-func (p *ProveUIMock) OutputInstructions(_ context.Context, arg keybase1.OutputInstructionsArg) error {
+func (p *ProveUIMock) OutputInstructions(ctx context.Context, arg keybase1.OutputInstructionsArg) error {
+	if p.outputInstructionsHook != nil {
+		return p.outputInstructionsHook(ctx, arg)
+	}
 	return nil
 }
 
@@ -54,10 +60,7 @@ func (p *ProveUIMock) OkToCheck(_ context.Context, arg keybase1.OkToCheckArg) (b
 }
 
 func (p *ProveUIMock) Checking(_ context.Context, arg keybase1.CheckingArg) error {
-	if !p.checked {
-		p.checked = true
-		// xxx what's this?
-	}
+	p.checked = true
 	return nil
 }
 
@@ -248,8 +251,8 @@ func proveGubbleUniverse(tc libkb.TestContext, serviceName, endpoint string, fu 
 	}
 	eng := NewProve(g, &arg)
 
-	// Post the proof the gubble network and verify the sig hash
-	hook := func(arg keybase1.OkToCheckArg) (bool, string, error) {
+	// Post the proof to the gubble network and verify the sig hash
+	hook := func(_ context.Context, _ keybase1.OutputInstructionsArg) error {
 		sigID := eng.sigID
 		require.False(tc.T, sigID.IsNil())
 
@@ -292,13 +295,14 @@ func proveGubbleUniverse(tc libkb.TestContext, serviceName, endpoint string, fu 
 		require.True(tc.T, len(proofs) >= 1)
 		for _, proof := range proofs {
 			if proof.KbUsername == fu.Username && sigID.Equal(proof.SigHash) {
-				return true, sigID.String(), nil
+				return nil
 			}
 		}
-		return false, "", fmt.Errorf("proof not found")
+		assert.Fail(tc.T, "proof not found")
+		return nil
 	}
 
-	proveUI := &ProveUIMock{hook: hook}
+	proveUI := &ProveUIMock{outputInstructionsHook: hook}
 	uis := libkb.UIs{
 		LogUI:    g.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),
@@ -306,6 +310,7 @@ func proveGubbleUniverse(tc libkb.TestContext, serviceName, endpoint string, fu 
 	}
 	m := libkb.NewMetaContextTODO(g).WithUIs(uis)
 	err := RunEngine2(m, eng)
+	checkFailed(tc.T.(testing.TB))
 	require.NoError(tc.T, err)
 	require.False(tc.T, proveUI.overwrite)
 	require.False(tc.T, proveUI.warning)
@@ -363,4 +368,11 @@ func proveGubbleSocialFail(g *libkb.GlobalContext, fu *FakeUser, sigVersion libk
 	m := libkb.NewMetaContextTODO(g).WithUIs(uis)
 	err := RunEngine2(m, eng)
 	return proveUI, err
+}
+
+func checkFailed(t testing.TB) {
+	if t.Failed() {
+		// The test failed. Possibly in anothe goroutine. Look earlier in the logs for the real failure.
+		require.FailNow(t, "test already failed")
+	}
 }
