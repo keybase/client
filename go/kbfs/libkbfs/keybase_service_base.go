@@ -1238,9 +1238,9 @@ func (k *KeybaseServiceBase) FSSyncStatusRequest(ctx context.Context,
 	resp := keybase1.FSSyncStatusArg{RequestID: req.RequestID}
 
 	// For now, just return the number of syncing bytes.
-	jServer, err := GetJournalManager(k.config)
+	jManager, err := GetJournalManager(k.config)
 	if err == nil {
-		status, _ := jServer.Status(ctx)
+		status, _ := jManager.Status(ctx)
 		resp.Status.TotalSyncingBytes = status.UnflushedBytes
 		k.log.CDebugf(ctx, "Sending sync status response with %d syncing bytes",
 			status.UnflushedBytes)

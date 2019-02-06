@@ -85,12 +85,12 @@ func commitWorktree(
 	h *libkbfs.TlfHandle, worktreeFS billy.Filesystem) {
 	err := worktreeFS.(*libfs.FS).SyncAll()
 	require.NoError(t, err)
-	jServer, err := libkbfs.GetJournalManager(config)
+	jManager, err := libkbfs.GetJournalManager(config)
 	require.NoError(t, err)
 	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
 		ctx, h, libkbfs.MasterBranch)
 	require.NoError(t, err)
-	err = jServer.FinishSingleOp(ctx,
+	err = jManager.FinishSingleOp(ctx,
 		rootNode.GetFolderBranch().Tlf, nil, keybase1.MDPriorityNormal)
 	require.NoError(t, err)
 }

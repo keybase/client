@@ -1890,12 +1890,12 @@ func (k *SimpleFS) SimpleFSSyncStatus(ctx context.Context, filter keybase1.ListF
 	ctx, cancel := context.WithTimeout(
 		k.makeContext(ctx), simpleFSFastActionTimeout)
 	defer cancel()
-	jServer, jErr := libkbfs.GetJournalManager(k.config)
+	jManager, jErr := libkbfs.GetJournalManager(k.config)
 	if jErr != nil {
 		k.log.CDebugf(ctx, "Journal not enabled; sending empty response")
 		return keybase1.FSSyncStatus{}, nil
 	}
-	status, tlfIDs := jServer.Status(ctx)
+	status, tlfIDs := jManager.Status(ctx)
 	err := libkbfs.FillInJournalStatusUnflushedPaths(
 		ctx, k.config, &status, tlfIDs)
 	if err != nil {

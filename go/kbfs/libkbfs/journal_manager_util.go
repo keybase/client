@@ -22,14 +22,14 @@ func GetJournalManager(config Config) (*JournalManager, error) {
 	if !ok {
 		return nil, errors.New("Write journal not enabled")
 	}
-	return jbserver.jServer, nil
+	return jbserver.jManager, nil
 }
 
 // TLFJournalEnabled returns true if journaling is enabled for the
 // given TLF.
 func TLFJournalEnabled(config Config, tlfID tlf.ID) bool {
-	if jServer, err := GetJournalManager(config); err == nil {
-		_, err := jServer.JournalStatus(tlfID)
+	if jManager, err := GetJournalManager(config); err == nil {
+		_, err := jManager.JournalStatus(tlfID)
 		return err == nil
 	}
 	return false
@@ -39,9 +39,9 @@ func TLFJournalEnabled(config Config, tlfID tlf.ID) bool {
 // one exists.
 func WaitForTLFJournal(ctx context.Context, config Config, tlfID tlf.ID,
 	log logger.Logger) error {
-	if jServer, err := GetJournalManager(config); err == nil {
+	if jManager, err := GetJournalManager(config); err == nil {
 		log.CDebugf(ctx, "Waiting for journal to flush")
-		if err := jServer.Wait(ctx, tlfID); err != nil {
+		if err := jManager.Wait(ctx, tlfID); err != nil {
 			return err
 		}
 	}

@@ -97,11 +97,11 @@ func (k *LibKBFS) InitTest(ver kbfsmd.MetadataVer,
 			}
 			config.EnableJournaling(context.Background(), journalRoot,
 				libkbfs.TLFJournalBackgroundWorkEnabled)
-			jServer, err := libkbfs.GetJournalManager(config)
+			jManager, err := libkbfs.GetJournalManager(config)
 			if err != nil {
 				panic(fmt.Sprintf("No journal server for %s: %+v", name, err))
 			}
-			err = jServer.DisableAuto(context.Background())
+			err = jManager.DisableAuto(context.Background())
 			if err != nil {
 				panic(fmt.Sprintf("Couldn't disable journaling: %+v", err))
 			}
@@ -729,7 +729,7 @@ func (k *LibKBFS) EnableJournal(u User, tlfName string, t tlf.Type) error {
 		return err
 	}
 
-	jServer, err := libkbfs.GetJournalManager(config)
+	jManager, err := libkbfs.GetJournalManager(config)
 	if err != nil {
 		return err
 	}
@@ -739,7 +739,7 @@ func (k *LibKBFS) EnableJournal(u User, tlfName string, t tlf.Type) error {
 		return err
 	}
 
-	return jServer.Enable(ctx, dir.GetFolderBranch().Tlf, h,
+	return jManager.Enable(ctx, dir.GetFolderBranch().Tlf, h,
 		libkbfs.TLFJournalBackgroundWorkEnabled)
 }
 
@@ -754,12 +754,12 @@ func (k *LibKBFS) PauseJournal(u User, tlfName string, t tlf.Type) error {
 		return err
 	}
 
-	jServer, err := libkbfs.GetJournalManager(config)
+	jManager, err := libkbfs.GetJournalManager(config)
 	if err != nil {
 		return err
 	}
 
-	jServer.PauseBackgroundWork(ctx, dir.GetFolderBranch().Tlf)
+	jManager.PauseBackgroundWork(ctx, dir.GetFolderBranch().Tlf)
 	return nil
 }
 
@@ -774,12 +774,12 @@ func (k *LibKBFS) ResumeJournal(u User, tlfName string, t tlf.Type) error {
 		return err
 	}
 
-	jServer, err := libkbfs.GetJournalManager(config)
+	jManager, err := libkbfs.GetJournalManager(config)
 	if err != nil {
 		return err
 	}
 
-	jServer.ResumeBackgroundWork(ctx, dir.GetFolderBranch().Tlf)
+	jManager.ResumeBackgroundWork(ctx, dir.GetFolderBranch().Tlf)
 	return nil
 }
 
@@ -794,12 +794,12 @@ func (k *LibKBFS) FlushJournal(u User, tlfName string, t tlf.Type) error {
 		return err
 	}
 
-	jServer, err := libkbfs.GetJournalManager(config)
+	jManager, err := libkbfs.GetJournalManager(config)
 	if err != nil {
 		return err
 	}
 
-	return jServer.Flush(ctx, dir.GetFolderBranch().Tlf)
+	return jManager.Flush(ctx, dir.GetFolderBranch().Tlf)
 }
 
 // UnflushedPaths implements the Engine interface.

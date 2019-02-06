@@ -19,7 +19,7 @@ import (
 
 func setupJournalMDOpsTest(t *testing.T) (
 	tempdir string, ctx context.Context, cancel context.CancelFunc,
-	config *ConfigLocal, oldMDOps MDOps, jServer *JournalManager) {
+	config *ConfigLocal, oldMDOps MDOps, jManager *JournalManager) {
 	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_md_ops")
 	require.NoError(t, err)
 
@@ -57,19 +57,19 @@ func setupJournalMDOpsTest(t *testing.T) (
 	err = config.EnableJournaling(
 		ctx, tempdir, TLFJournalBackgroundWorkEnabled)
 	require.NoError(t, err)
-	jServer, err = GetJournalManager(config)
+	jManager, err = GetJournalManager(config)
 	// Turn off listeners to avoid background MD pushes for CR.
-	jServer.onBranchChange = nil
-	jServer.onMDFlush = nil
+	jManager.onBranchChange = nil
+	jManager.onMDFlush = nil
 	require.NoError(t, err)
 
 	// Tests need to explicitly enable journaling, to avoid races
 	// where journals are enabled before they can be paused.
-	err = jServer.DisableAuto(ctx)
+	err = jManager.DisableAuto(ctx)
 	require.NoError(t, err)
 
 	setupSucceeded = true
-	return tempdir, ctx, cancel, config, oldMDOps, jServer
+	return tempdir, ctx, cancel, config, oldMDOps, jManager
 }
 
 func teardownJournalMDOpsTest(t *testing.T, tempdir string, ctx context.Context,
@@ -96,7 +96,7 @@ func makeMDForJournalMDOpsTest(
 // TODO: Clean up the test below.
 
 func TestJournalMDOpsBasics(t *testing.T) {
-	tempdir, ctx, cancel, config, oldMDOps, jServer := setupJournalMDOpsTest(t)
+	tempdir, ctx, cancel, config, oldMDOps, jManager := setupJournalMDOpsTest(t)
 	defer teardownJournalMDOpsTest(t, tempdir, ctx, cancel, config)
 
 	session, err := config.KBPKI().GetCurrentSession(ctx)
@@ -111,7 +111,7 @@ func TestJournalMDOpsBasics(t *testing.T) {
 		ctx, bh, bh.Type(), config.KBPKI(), config.KBPKI(), nil)
 	require.NoError(t, err)
 
-	mdOps := jServer.mdOps()
+	mdOps := jManager.mdOps()
 
 	id, err := mdOps.GetIDForHandle(ctx, h)
 	require.NoError(t, err)
@@ -121,7 +121,7 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	require.Equal(t, ImmutableRootMetadata{}, irmd)
 	h.tlfID = id
 
-	err = jServer.Enable(ctx, id, nil, TLFJournalBackgroundWorkPaused)
+	err = jManager.Enable(ctx, id, nil, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 
 	rmd := makeMDForJournalMDOpsTest(t, config, id, h, kbfsmd.Revision(1))
@@ -150,7 +150,7 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, ImmutableRootMetadata{}, head)
 
-	err = jServer.Flush(ctx, id)
+	err = jManager.Flush(ctx, id)
 	require.NoError(t, err)
 
 	head, err = mdOps.GetForTLF(ctx, id, nil)
@@ -181,7 +181,7 @@ func TestJournalMDOpsBasics(t *testing.T) {
 		prevRoot = irmd.mdID
 	}
 
-	err = jServer.Flush(ctx, id)
+	err = jManager.Flush(ctx, id)
 	require.NoError(t, err)
 
 	head, err = mdOps.GetForTLF(ctx, id, nil)
@@ -195,7 +195,7 @@ func TestJournalMDOpsBasics(t *testing.T) {
 	require.Equal(t, kbfsmd.Revision(8), head.Revision())
 
 	// Find the branch ID.
-	tlfJournal, ok := jServer.getTLFJournal(id, nil)
+	tlfJournal, ok := jManager.getTLFJournal(id, nil)
 	require.True(t, ok)
 	bid := tlfJournal.mdJournal.branchID
 
@@ -274,7 +274,7 @@ func TestJournalMDOpsBasics(t *testing.T) {
 // range with the journal.
 
 func TestJournalMDOpsPutUnmerged(t *testing.T) {
-	tempdir, ctx, cancel, config, _, jServer := setupJournalMDOpsTest(t)
+	tempdir, ctx, cancel, config, _, jManager := setupJournalMDOpsTest(t)
 	defer teardownJournalMDOpsTest(t, tempdir, ctx, cancel, config)
 
 	session, err := config.KBPKI().GetCurrentSession(ctx)
@@ -288,7 +288,7 @@ func TestJournalMDOpsPutUnmerged(t *testing.T) {
 		ctx, bh, bh.Type(), config.KBPKI(), config.KBPKI(), nil)
 	require.NoError(t, err)
 
-	mdOps := jServer.mdOps()
+	mdOps := jManager.mdOps()
 
 	id, err := mdOps.GetIDForHandle(ctx, h)
 	require.NoError(t, err)
@@ -297,7 +297,7 @@ func TestJournalMDOpsPutUnmerged(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, ImmutableRootMetadata{}, irmd)
 
-	err = jServer.Enable(ctx, id, nil, TLFJournalBackgroundWorkPaused)
+	err = jManager.Enable(ctx, id, nil, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 
 	rmd := makeMDForJournalMDOpsTest(t, config, id, h, kbfsmd.Revision(2))
@@ -309,7 +309,7 @@ func TestJournalMDOpsPutUnmerged(t *testing.T) {
 }
 
 func TestJournalMDOpsPutUnmergedError(t *testing.T) {
-	tempdir, ctx, cancel, config, _, jServer := setupJournalMDOpsTest(t)
+	tempdir, ctx, cancel, config, _, jManager := setupJournalMDOpsTest(t)
 	defer teardownJournalMDOpsTest(t, tempdir, ctx, cancel, config)
 
 	session, err := config.KBPKI().GetCurrentSession(ctx)
@@ -323,7 +323,7 @@ func TestJournalMDOpsPutUnmergedError(t *testing.T) {
 		ctx, bh, bh.Type(), config.KBPKI(), config.KBPKI(), nil)
 	require.NoError(t, err)
 
-	mdOps := jServer.mdOps()
+	mdOps := jManager.mdOps()
 
 	id, err := mdOps.GetIDForHandle(ctx, h)
 	require.NoError(t, err)
@@ -332,7 +332,7 @@ func TestJournalMDOpsPutUnmergedError(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, ImmutableRootMetadata{}, irmd)
 
-	err = jServer.Enable(ctx, id, nil, TLFJournalBackgroundWorkPaused)
+	err = jManager.Enable(ctx, id, nil, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 
 	rmd := makeMDForJournalMDOpsTest(t, config, id, h, kbfsmd.Revision(1))
@@ -342,7 +342,7 @@ func TestJournalMDOpsPutUnmergedError(t *testing.T) {
 }
 
 func TestJournalMDOpsLocalSquashBranch(t *testing.T) {
-	tempdir, ctx, cancel, config, _, jServer := setupJournalMDOpsTest(t)
+	tempdir, ctx, cancel, config, _, jManager := setupJournalMDOpsTest(t)
 	defer teardownJournalMDOpsTest(t, tempdir, ctx, cancel, config)
 
 	session, err := config.KBPKI().GetCurrentSession(ctx)
@@ -356,16 +356,16 @@ func TestJournalMDOpsLocalSquashBranch(t *testing.T) {
 		ctx, bh, bh.Type(), config.KBPKI(), config.KBPKI(), nil)
 	require.NoError(t, err)
 
-	mdOps := jServer.mdOps()
+	mdOps := jManager.mdOps()
 	id, err := mdOps.GetIDForHandle(ctx, h)
 	require.NoError(t, err)
 	irmd, err := mdOps.GetForTLF(ctx, id, nil)
 	require.NoError(t, err)
 	require.Equal(t, ImmutableRootMetadata{}, irmd)
-	err = jServer.Enable(ctx, id, nil, TLFJournalBackgroundWorkPaused)
+	err = jManager.Enable(ctx, id, nil, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 
-	tlfJournal, ok := jServer.getTLFJournal(id, nil)
+	tlfJournal, ok := jManager.getTLFJournal(id, nil)
 	require.True(t, ok)
 
 	// Prepare the md journal to have a leading local squash revision.

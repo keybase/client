@@ -188,11 +188,11 @@ func TestGetTLFCryptKeysWhileUnmergedAfterRestart(t *testing.T) {
 	err = config1.EnableJournaling(
 		ctx, tempdir, TLFJournalBackgroundWorkEnabled)
 	require.NoError(t, err)
-	jServer, err := GetJournalManager(config1)
+	jManager, err := GetJournalManager(config1)
 	require.NoError(t, err)
-	jServer.onBranchChange = nil
-	jServer.onMDFlush = nil
-	jServer.EnableAuto(ctx)
+	jManager.onBranchChange = nil
+	jManager.onMDFlush = nil
+	jManager.EnableAuto(ctx)
 
 	config2 := ConfigAsUser(config1, userName2)
 	defer CheckConfigAndShutdown(ctx, t, config2)
@@ -212,7 +212,7 @@ func TestGetTLFCryptKeysWhileUnmergedAfterRestart(t *testing.T) {
 	DisableCRForTesting(config1, rootNode1.GetFolderBranch())
 
 	// Wait for "a" to flush to the server.
-	err = jServer.Wait(ctx, rootNode1.GetFolderBranch().Tlf)
+	err = jManager.Wait(ctx, rootNode1.GetFolderBranch().Tlf)
 	require.NoError(t, err)
 
 	// then user2 write to the file
@@ -239,7 +239,7 @@ func TestGetTLFCryptKeysWhileUnmergedAfterRestart(t *testing.T) {
 	require.NoError(t, err)
 
 	// Wait for the conflict to be detected.
-	err = jServer.Wait(ctx, rootNode1.GetFolderBranch().Tlf)
+	err = jManager.Wait(ctx, rootNode1.GetFolderBranch().Tlf)
 	require.NoError(t, err)
 
 	// now re-login u1
@@ -250,10 +250,10 @@ func TestGetTLFCryptKeysWhileUnmergedAfterRestart(t *testing.T) {
 	err = config1B.EnableJournaling(
 		ctx, tempdir, TLFJournalBackgroundWorkEnabled)
 	require.NoError(t, err)
-	jServer, err = GetJournalManager(config1B)
+	jManager, err = GetJournalManager(config1B)
 	require.NoError(t, err)
-	jServer.onBranchChange = nil
-	jServer.onMDFlush = nil
+	jManager.onBranchChange = nil
+	jManager.onMDFlush = nil
 
 	DisableCRForTesting(config1B, rootNode1.GetFolderBranch())
 

@@ -59,15 +59,15 @@ func (a JournalAction) String() string {
 // Execute performs the action on the given JournalManager for the
 // given TLF.
 func (a JournalAction) Execute(
-	ctx context.Context, jServer *libkbfs.JournalManager,
+	ctx context.Context, jManager *libkbfs.JournalManager,
 	tlfID tlf.ID, h *libkbfs.TlfHandle) error {
 	// These actions don't require TLF IDs.
 	switch a {
 	case JournalEnableAuto:
-		return jServer.EnableAuto(ctx)
+		return jManager.EnableAuto(ctx)
 
 	case JournalDisableAuto:
-		return jServer.DisableAuto(ctx)
+		return jManager.DisableAuto(ctx)
 	}
 
 	if tlfID == (tlf.ID{}) {
@@ -76,26 +76,26 @@ func (a JournalAction) Execute(
 
 	switch a {
 	case JournalEnable:
-		err := jServer.Enable(
+		err := jManager.Enable(
 			ctx, tlfID, h, libkbfs.TLFJournalBackgroundWorkEnabled)
 		if err != nil {
 			return err
 		}
 
 	case JournalFlush:
-		err := jServer.Flush(ctx, tlfID)
+		err := jManager.Flush(ctx, tlfID)
 		if err != nil {
 			return err
 		}
 
 	case JournalPauseBackgroundWork:
-		jServer.PauseBackgroundWork(ctx, tlfID)
+		jManager.PauseBackgroundWork(ctx, tlfID)
 
 	case JournalResumeBackgroundWork:
-		jServer.ResumeBackgroundWork(ctx, tlfID)
+		jManager.ResumeBackgroundWork(ctx, tlfID)
 
 	case JournalDisable:
-		_, err := jServer.Disable(ctx, tlfID)
+		_, err := jManager.Disable(ctx, tlfID)
 		if err != nil {
 			return err
 		}
