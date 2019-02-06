@@ -181,20 +181,25 @@ class Row extends React.Component<Props> {
                   )}
                 </Kb.Box>
               )}
-              <Kb.Box2 direction="horizontal" fullWidth={true} style={{marginTop: Styles.globalMargins.tiny}}>
+              <Kb.Box2 direction="horizontal" fullWidth={true} style={{marginTop: Styles.globalMargins.tiny}} gap="tiny">
                 <Kb.Button
                   type="Secondary"
                   small={true}
                   label="Browse"
                   onClick={this.props.onBrowseGitRepo}
-                />
+                >
+                  <Kb.Icon
+                    type="iconfont-nav-files"
+                    fontSize={16}
+                    style={{marginRight: Styles.globalMargins.xtiny}}
+                  />
+                </Kb.Button>
                 {this.props.canDelete && (
                   <Kb.Button
                     type="Danger"
                     small={true}
                     label="Delete repo"
                     onClick={this.props.onShowDelete}
-                    style={{marginLeft: Styles.globalMargins.tiny}}
                   />
                 )}
               </Kb.Box2>
