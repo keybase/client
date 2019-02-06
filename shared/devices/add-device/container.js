@@ -24,6 +24,6 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
 export default Container.namedConnect<RouteProps<{}, {}>, _, _, _, _>(
   () => ({}),
   mapDispatchToProps,
-  (s, d, o) => d,
+  (s, d, o) => ({...d, title: 'Add a device'}),
   'AddDevice'
 )(AddDevice)

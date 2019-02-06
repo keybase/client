@@ -8,6 +8,7 @@ const props = {
   onAddPaperKey: Sb.action('onAddPaperKey'),
   onAddPhone: Sb.action('onAddPhone'),
   onCancel: Sb.action('onCancel'),
+  title: 'Add a device',
 }
 
 const load = () => {

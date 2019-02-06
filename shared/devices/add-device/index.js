@@ -9,32 +9,37 @@ type Props = {|
   onAddPaperKey: () => void,
   onAddPhone: () => void,
   onCancel: () => void,
+  title: string,
 |}
 
 const AddDevice = (props: Props) => (
-  <Kb.Box2
-    direction="vertical"
-    gap="medium"
-    alignItems="center"
-    style={styles.container}
-    gapStart={true}
-    gapEnd={true}
-  >
-    <Kb.Box2 direction="vertical" gap="tiny" alignItems="center">
-      <Kb.Text type="Header">Add a device</Kb.Text>
-      <Kb.Text type="Body">Protect your account by having more devices and paper keys.</Kb.Text>
-    </Kb.Box2>
+  <Kb.ScrollView alwaysBounceVertical={false}>
     <Kb.Box2
-      direction={Styles.isMobile ? 'vertical' : 'horizontal'}
-      gap="large"
+      direction="vertical"
+      gap="medium"
+      alignItems="center"
+      style={styles.container}
       gapStart={true}
       gapEnd={true}
     >
-      <DeviceOption onClick={props.onAddComputer} type="computer" />
-      <DeviceOption onClick={props.onAddPhone} type="phone" />
-      <DeviceOption onClick={props.onAddPaperKey} type="paper key" />
+      <Kb.Box2 direction="vertical" gap="tiny" alignItems="center">
+        {!Styles.isMobile && <Kb.Text type="Header">Add a device</Kb.Text>}
+        <Kb.Text type="Body" center={true}>
+          Protect your account by having more devices and paper keys.
+        </Kb.Text>
+      </Kb.Box2>
+      <Kb.Box2
+        direction={Styles.isMobile ? 'vertical' : 'horizontal'}
+        gap="large"
+        gapStart={true}
+        gapEnd={true}
+      >
+        <DeviceOption onClick={props.onAddComputer} type="computer" />
+        <DeviceOption onClick={props.onAddPhone} type="phone" />
+        <DeviceOption onClick={props.onAddPaperKey} type="paper key" />
+      </Kb.Box2>
     </Kb.Box2>
-  </Kb.Box2>
+  </Kb.ScrollView>
 )
 
 const DeviceBox = Styles.isMobile
