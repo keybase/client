@@ -87,6 +87,9 @@ type RootMetadataV3 struct {
 	// of writing to the given folder.
 	FinalizedInfo *tlf.HandleExtension `codec:"fi,omitempty"`
 
+	// KBMerkleRoot is now DEPRECATED, and shouldn't be relied on for
+	// future features.  Below is the original text for historians:
+	//
 	// The root of the global Keybase Merkle tree at the time this
 	// update was created (from the writer's perspective).  This field
 	// was added to V3 after it was live for a while, and older
@@ -1117,12 +1120,6 @@ func (md *RootMetadataV3) RevisionNumber() Revision {
 	return md.Revision
 }
 
-// MerkleRoot implements the RootMetadata interface for
-// RootMetadataV3.
-func (md *RootMetadataV3) MerkleRoot() keybase1.MerkleRootV2 {
-	return *md.KBMerkleRoot
-}
-
 // BID implements the RootMetadata interface for RootMetadataV3.
 func (md *RootMetadataV3) BID() BranchID {
 	return md.WriterMetadata.BID
@@ -1218,12 +1215,6 @@ func (md *RootMetadataV3) SetWriterMetadataCopiedBit() {
 // SetRevision implements the MutableRootMetadata interface for RootMetadataV3.
 func (md *RootMetadataV3) SetRevision(revision Revision) {
 	md.Revision = revision
-}
-
-// SetMerkleRoot implements the MutableRootMetadata interface for
-// RootMetadataV3.
-func (md *RootMetadataV3) SetMerkleRoot(root keybase1.MerkleRootV2) {
-	md.KBMerkleRoot = &root
 }
 
 func (md *RootMetadataV3) updateKeyBundles(codec kbfscodec.Codec,
