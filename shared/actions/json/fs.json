@@ -204,7 +204,7 @@
       "path": "Types.Path"
     },
     "showMoveOrCopy": {"initialDestinationParentPath": "Types.Path"},
-    "cancelMoveOrCopy": {},
+    "closeMoveOrCopy": {},
     "moveOrCopyOpen": {
       "routePath": "I.List<string>",
       "path": "Types.Path",

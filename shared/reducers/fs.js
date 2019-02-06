@@ -345,7 +345,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.move:
     case FsGen.copy:
     case FsGen.moveOrCopyOpen:
-    case FsGen.cancelMoveOrCopy:
+    case FsGen.closeMoveOrCopy:
     case FsGen.clearRefreshTag:
     case FsGen.loadPathMetadata:
       return state
