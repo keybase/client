@@ -14,39 +14,64 @@ const assertion = {
   state: 'valid',
 }
 
-const github = {...assertion, assertion: 'githubuser:github', siteIcon: 'iconfont-identity-github'}
+const github = {
+  ...assertion,
+  assertion: 'github:githubuser',
+  siteIcon: 'iconfont-identity-github',
+  type: 'github',
+}
 const twitter = {
   ...assertion,
-  assertion: 'twitteruser:twitter',
+  assertion: 'twitter:twitteruser',
   color: 'gray',
   siteIcon: 'iconfont-identity-twitter',
   state: 'checking',
+  type: 'twitter',
 }
 const facebook = {
   ...assertion,
-  assertion: 'facebookuser:facebook',
+  assertion: 'facebook:facebookuser',
   color: 'red',
   siteIcon: 'iconfont-identity-facebook',
   state: 'error',
+  type: 'facebook',
 }
 const hackernews = {
   ...assertion,
-  assertion: 'hackernewsuser:hackernews',
+  assertion: 'hackernews:hackernewsuser',
   color: 'yellow',
   siteIcon: 'iconfont-identity-hn',
   state: 'warning',
+  type: 'hackernews',
 }
 const reddit = {
   ...assertion,
-  assertion: 'reddituser:reddit',
+  assertion: 'reddit:reddituser',
   color: 'red',
   siteIcon: 'iconfont-identity-reddit',
   state: 'revoked',
+  type: 'reddit',
 }
-const pgp = {...assertion, assertion: 'DEADBEEFFEEBDAED:pgp', siteIcon: 'iconfont-identity-pgp'}
-const https = {...assertion, assertion: 'httpsuser:https', siteIcon: 'iconfont-identity-website'}
-const rooter = {...assertion, assertion: 'rooteruser:rooter', siteIcon: 'iconfont-thunderbolt'}
-const dns = {...assertion, assertion: 'dnsuser:dns', siteIcon: 'iconfont-identity-website'}
+const pgp = {...assertion, assertion: 'pgp:DEADBEEFFEEBDAED', siteIcon: 'iconfont-identity-pgp', type: 'pgp'}
+const https = {
+  ...assertion,
+  assertion: 'https:httpsuser',
+  siteIcon: 'iconfont-identity-website',
+  type: 'https',
+}
+const rooter = {
+  ...assertion,
+  assertion: 'rooter:rooteruser',
+  siteIcon: 'iconfont-thunderbolt',
+  type: 'rooter',
+}
+const dns = {...assertion, assertion: 'dns:dnsuser', siteIcon: 'iconfont-identity-website', type: 'dns'}
+const btc = {
+  ...assertion,
+  assertion: 'btc:fakebitcoinaddress',
+  siteIcon: 'iconfont-identity-bitcoin',
+  type: 'btc',
+}
 
 const shorter = a => ({
   ...a,
@@ -57,8 +82,9 @@ const shorter = a => ({
 })
 const web1 = {
   ...assertion,
-  assertion: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com:https',
+  assertion: 'https:thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com',
   siteIcon: 'iconfont-identity-website',
+  type: 'https',
 }
 const web2 = shorter(web1)
 const web3 = shorter(web2)
@@ -75,6 +101,7 @@ const allAssertions = [
   pgp,
   https,
   dns,
+  btc,
   web1,
   web2,
   web3,
@@ -125,7 +152,6 @@ const provider = Sb.createPropProviderWithCommon({
       throw new Error('cant happen')
     }
     const parts = a.assertion.split(':')
-    const site = parts[1]
     return {
       color: a.color,
       metas: a.metas,
@@ -137,8 +163,8 @@ const provider = Sb.createPropProviderWithCommon({
       siteIcon: a.siteIcon,
       siteURL: a.siteURL,
       state: a.state,
-      type: site,
-      value: parts[0],
+      type: a.type,
+      value: parts[1],
       ...p.storyProps,
     }
   },

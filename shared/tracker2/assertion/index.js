@@ -82,7 +82,7 @@ const assertionColorToColor = (c: Types.AssertionColor) => {
 // TODO get read icon from core
 const siteIcon = icon => {
   switch (icon) {
-    case 'bitcoin':
+    case 'btc':
       return 'iconfont-identity-bitcoin'
     case 'facebook':
       return 'iconfont-identity-facebook'
@@ -174,7 +174,8 @@ const Value = p => {
         str = `${last.substr(0, 4)} ${last.substr(4, 4)} ${last.substr(8, 4)} ${last.substr(12, 4)}`
         break
       }
-      case 'bitcoin':
+      case 'zcash':
+      case 'btc':
         style = styles.bitcoin
         break
     }
