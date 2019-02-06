@@ -20,12 +20,14 @@ type SmallTeam = {|
   name: string,
 |}
 
+type Channel = {|convID: ChatTypes.ConversationIDKey, channelname: string|}
+
 type BigTeam = {|
   type: 'big-team',
   name: string,
-  channels: Array<{|convID: ChatTypes.ConversationIDKey, channelname: string|}>,
+  channels: Array<Channel>,
   selectChannel: (convID: ChatTypes.ConversationIDKey) => void,
-  selectedChannelname?: ?string,
+  selectedChannel?: ?Channel,
 |}
 
 type None = {|
@@ -57,42 +59,93 @@ const who = (props: Props) => {
   }
 }
 
-const BigTeamChannelDropdown = ({conversation}: Props) =>
-  conversation.type === 'big-team' && (
-    <Kb.Dropdown
-      style={styles.dropdown}
-      items={conversation.channels.map(({convID, channelname}) => (
-        <Kb.Box2
-          direction="horizontal"
-          centerChildren={true}
-          gap="tiny"
-          gapStart={true}
-          key={ChatTypes.conversationIDKeyToString(convID)}
-        >
+class BigTeamChannelDropdownMobile extends React.PureComponent<BigTeam, {visible: boolean}> {
+  state = {visible: false}
+  _show = () => this.setState({visible: true})
+  _hide = () => this.setState({visible: false})
+  _select = convIDStr => {
+    this.props.selectChannel(ChatTypes.stringToConversationIDKey(convIDStr))
+  }
+  render() {
+    return (
+      <>
+        <Kb.ClickableBox onClick={this._show} style={styles.dropdown}>
+          <Kb.Box2 direction="horizontal" gap="small" fullWidth={true}>
+            <Kb.Text type="BodyBig" style={styles.dropdownTextMobile} lineClamp={1}>
+              {this.props.selectedChannel ? `#${this.props.selectedChannel.channelname}` : 'Pick a channel'}
+            </Kb.Text>
+            <Kb.Icon
+              type="iconfont-caret-down"
+              inheritColor={true}
+              fontSize={12}
+              style={styles.dropdownIconMobile}
+            />
+          </Kb.Box2>
+        </Kb.ClickableBox>
+        <Kb.FloatingPicker
+          items={this.props.channels.map(({convID, channelname}) => ({
+            label: `#${channelname}`,
+            value: ChatTypes.conversationIDKeyToString(convID),
+          }))}
+          visible={this.state.visible}
+          selectedValue={
+            this.props.selectedChannel &&
+            ChatTypes.conversationIDKeyToString(this.props.selectedChannel.convID)
+          }
+          promptString="Pick a channel"
+          prompt={
+            <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny" centerChildren={true}>
+              <Kb.Text type="BodySmallSemibold">Pick a channel</Kb.Text>
+            </Kb.Box2>
+          }
+          onCancel={this._hide}
+          onHidden={this._hide}
+          onDone={this._hide}
+          onSelect={this._select}
+        />
+      </>
+    )
+  }
+}
+
+const BigTeamChannelDropdownDesktop = (conversation: BigTeam) => (
+  <Kb.Dropdown
+    style={styles.dropdown}
+    items={conversation.channels.map(({convID, channelname}) => (
+      <Kb.Box2
+        direction="horizontal"
+        centerChildren={true}
+        fullWidth={true}
+        key={ChatTypes.conversationIDKeyToString(convID)}
+      >
+        <Kb.Box style={styles.dropdownBoxDesktop}>
           <Kb.Text type="Body">#{channelname}</Kb.Text>
-        </Kb.Box2>
-      ))}
-      selected={
-        conversation.selectedChannelname ? (
-          <Kb.Text type="BodyBig" key="placeholder-select">
-            #{conversation.selectedChannelname}
-          </Kb.Text>
-        ) : (
-          <Kb.Text type="BodyBig" key="placeholder-select">
-            Pick a channel
-          </Kb.Text>
-        )
+        </Kb.Box>
+      </Kb.Box2>
+    ))}
+    selected={
+      conversation.selectedChannel ? (
+        <Kb.Box style={styles.dropdownBoxDesktop}>
+          <Kb.Text type="BodyBig">#{conversation.selectedChannel.channelname}</Kb.Text>
+        </Kb.Box>
+      ) : (
+        <Kb.Text type="BodyBig" key="placeholder-select">
+          Pick a channel
+        </Kb.Text>
+      )
+    }
+    onChanged={(node: React.Node) => {
+      if (React.isValidElement(node)) {
+        // $FlowIssue React.isValidElement refinement doesn't happen, see https://github.com/facebook/flow/issues/6392
+        const element = (node: React.Element<any>)
+        // $FlowIssue flow doesn't know key is string
+        conversation.selectChannel(ChatTypes.stringToConversationIDKey(element.key))
       }
-      onChanged={(node: React.Node) => {
-        if (React.isValidElement(node)) {
-          // $FlowIssue React.isValidElement refinement doesn't happen, see https://github.com/facebook/flow/issues/6392
-          const element = (node: React.Element<any>)
-          // $FlowIssue flow doesn't know key is string
-          conversation.selectChannel(ChatTypes.stringToConversationIDKey(element.key))
-        }
-      }}
-    />
-  )
+    }}
+  />
+)
+
+const BigTeamChannelDropdown = Styles.isMobile ? BigTeamChannelDropdownMobile : BigTeamChannelDropdownDesktop
 
 const HeaderContent = (props: Props) =>
   props.conversation.type === 'none' ? (
@@ -132,7 +185,7 @@ const SendLinkToChatMain = (props: Props) => (
       </Kb.Text>
     )}
     <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.centerBox}>
-      <BigTeamChannelDropdown {...props} />
+      {props.conversation.type === 'big-team' && <BigTeamChannelDropdown {...props.conversation} />}
     </Kb.Box2>
   </Kb.Box2>
 )
@@ -190,8 +243,33 @@ const styles = Styles.styleSheetCreate({
     paddingRight: Styles.globalMargins.mediumLarge,
     paddingTop: Styles.globalMargins.mediumLarge,
   },
-  dropdown: {
-    marginTop: Styles.globalMargins.mediumLarge,
+  dropdown: Styles.platformStyles({
+    common: {
+      marginTop: Styles.globalMargins.mediumLarge,
+    },
+    isMobile: {
+      borderColor: Styles.globalColors.black_10,
+      borderRadius: Styles.borderRadius,
+      borderStyle: 'solid',
+      borderWidth: 1,
+      padding: Styles.globalMargins.tiny,
+      width: 240,
+    },
+  }),
+  dropdownBoxDesktop: Styles.platformStyles({
+    isElectron: {
+      overflow: 'hidden',
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
+      textOverflow: 'ellipsis',
+    },
+  }),
+  dropdownIconMobile: {
+    marginTop: 4,
+  },
+  dropdownTextMobile: {
+    flex: 1,
+    textAlign: 'center',
   },
   footer: {
     marginBottom: Styles.globalMargins.large,
