@@ -116,8 +116,8 @@ class FriendshipTabs extends React.Component<
         }
       >
         {following
-          ? `Following (${this.props.following.length})`
-          : `Followers (${this.props.followers.length})`}
+          ? `FOLLOWING (${this.props.following.length})`
+          : `FOLLOWERS (${this.props.followers.length})`}
       </Kb.Text>
     </Kb.ClickableBox>
   )
@@ -305,7 +305,7 @@ const styles = Styles.styleSheetCreate({
   },
   bio: Styles.platformStyles({
     common: {alignSelf: 'flex-start'},
-    isElectron: {width: 350},
+    isElectron: {marginBottom: Styles.globalMargins.small, width: 350},
     isMobile: {width: '100%'},
   }),
   bioAndProofs: Styles.platformStyles({
@@ -359,8 +359,7 @@ const styles = Styles.styleSheetCreate({
   followTabTextSelected: {color: Styles.globalColors.black_75},
   friendRow: Styles.platformStyles({
     common: {
-      marginBottom: Styles.globalMargins.xtiny,
-      marginTop: Styles.globalMargins.xtiny,
+      marginTop: Styles.globalMargins.tiny,
       maxWidth: '100%',
       minWidth: 0,
     },
@@ -417,7 +416,7 @@ const styles = Styles.styleSheetCreate({
   searchLabel: {color: Styles.globalColors.white_75},
   sectionList: Styles.platformStyles({common: {width: '100%'}, isElectron: {willChange: 'transform'}}),
   sectionListContentStyle: Styles.platformStyles({
-    common: {backgroundColor: Styles.globalColors.white},
+    common: {backgroundColor: Styles.globalColors.white, paddingBottom: Styles.globalMargins.xtiny},
     isMobile: {minHeight: '100%'},
   }),
   teamLink: {color: Styles.globalColors.black_75},
