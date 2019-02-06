@@ -16,11 +16,12 @@ const font = isIOS
       italic: {fontStyle: 'italic'},
     }
   : {
+      // The fontFamily names must match the font file's name exactly on Android.
       fontBold: {fontFamily: 'keybase-bold', fontWeight: 'normal'},
       fontExtrabold: {fontFamily: 'keybase-extrabold', fontWeight: 'normal'},
       fontRegular: {fontFamily: 'keybase-medium', fontWeight: 'normal'},
       fontSemibold: {fontFamily: 'keybase-semibold', fontWeight: 'normal'},
-      fontTerminal: {fontFamily: 'SourceCodePro-Medium'},
+      fontTerminal: {fontFamily: 'SourceCodePro-Medium', fontWeight: 'normal'},
       fontTerminalSemibold: {fontFamily: 'SourceCodePro-Semi', fontWeight: 'bold'},
       italic: {fontStyle: 'italic'},
     }
