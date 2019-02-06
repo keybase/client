@@ -874,7 +874,7 @@ function* loadMoreMessages(state, action) {
   // Get the conversationIDKey
   let key = null
   let reason: string = ''
-  let messsageIDControl = null
+  let messageIDControl = null
 
   switch (action.type) {
     case ConfigGen.changedFocus:
@@ -916,11 +916,11 @@ function* loadMoreMessages(state, action) {
         key = Constants.getResolvedPendingConversationIDKey(state)
       } else {
         const meta = Constants.getMeta(state, key)
-        messsageIDControl = meta
+        messageIDControl = meta
           ? {
-              pivot: meta.readMsgID,
               mode: RPCChatTypes.localMessageIDControlMode.centered,
               num: Constants.numMessagesOnInitialLoad,
+              pivot: meta.readMsgID,
             }
           : null
       }
@@ -1046,8 +1046,8 @@ function* loadMoreMessages(state, action) {
           disableResolveSupersedes: false,
           enableDeletePlaceholders: true,
           markAsRead: false,
-          messageTypes: loadThreadMessageTypes,
           messageIDControl,
+          messageTypes: loadThreadMessageTypes,
         },
         reason: reasonToRPCReason(reason),
       },

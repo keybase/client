@@ -727,6 +727,8 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 	// Parse out options
 	if arg.Query != nil && arg.Query.MessageIDControl != nil {
 		// Pager control into pagination if given
+		h.Debug(ctx, "GetThreadNonblock: using message ID control for pagination: %v",
+			*arg.Query.MessageIDControl)
 		pagination = utils.MessageIDControlToPagination(arg.Query.MessageIDControl)
 	} else {
 		// Apply any pager mode transformations
