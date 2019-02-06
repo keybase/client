@@ -96,6 +96,7 @@ const connected = connect<OwnProps, _, _, _, _>(
 
 connected.navigationOptions = (p: any) => ({
   ...p.navigationOptions,
+  header: undefined,
   headerTitle: hp => <ConnectedHeader />,
   headerTitleContainerStyle: {
     ...p.navigationOptions.headerTitleContainerStyle,

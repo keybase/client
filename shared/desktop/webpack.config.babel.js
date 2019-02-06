@@ -51,7 +51,7 @@ const config = (_, {mode}) => {
         use: [babelRule],
       },
       {
-        test: [/emoji-datasource.*\.(gif|png)$/, /\.ttf$/],
+        test: [/emoji-datasource.*\.(gif|png)$/, /\.ttf$/, /\.otf$/],
         use: [fileLoaderRule],
       },
       {

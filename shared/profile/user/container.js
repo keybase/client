@@ -1,4 +1,5 @@
 // @flow
+import * as React from 'react'
 import * as I from 'immutable'
 import * as Constants from '../../constants/tracker2'
 import * as Container from '../../util/container'
@@ -10,9 +11,9 @@ import * as Styles from '../../styles'
 import Profile2 from '.'
 import type {RouteProps} from '../../route-tree/render-route'
 import type {Response} from 'react-native-image-picker'
-// import {PeoplePageSearchBar} from '../people/index.shared'
+import {PeoplePageSearchBar} from '../../people/index.shared'
 
-type OwnProps = RouteProps<{username: string}, {}>
+type OwnProps = RouteProps<{username: string}, {}> & {navigation: any}
 const emptySet = I.OrderedSet()
 
 const headerBackgroundColor = (state, followThem) => {
@@ -24,7 +25,9 @@ const headerBackgroundColor = (state, followThem) => {
 }
 
 const mapStateToProps = (state, ownProps) => {
-  const username = ownProps.routeProps.get('username')
+  const username = ownProps.routeProps
+    ? ownProps.routeProps.get('username')
+    : ownProps.navigation.getParam('username')
   const d = Constants.getDetails(state, username)
   const followThem = Constants.followThem(state, username)
   const _userIsYou = username === state.config.username
@@ -82,12 +85,17 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   username: stateProps.username,
 })
 
-// TODO don'tn pass all props down
-// const ConnectedHeader = connect<OwnProps, _, _, _, _>(
-// mapStateToProps,
-// mapDispatchToProps,
-// mergeProps
-// )(PeoplePageSearchBar)
+const ConnectedHeader = Container.connect<{}, _, _, _, _>(
+  () => ({}),
+  dispatch => ({
+    onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+    onSearch: () => {
+      dispatch(SearchGen.createSearchSuggestions({searchKey: 'profileSearch'}))
+      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'search'}]}))
+    },
+  }),
+  (s, d, o) => ({...o, ...s, ...d})
+)(PeoplePageSearchBar)
 
 const connected = Container.namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
@@ -96,12 +104,14 @@ const connected = Container.namedConnect<OwnProps, _, _, _, _>(
   'Profile2'
 )(Profile2)
 
-// connected.navigationOptions = hp => ({
-// headerTitle: hp => <ConnectedHeader />,
-// headerTitleContainerStyle: {
-// left: 60,
-// right: 20,
-// },
-// headerTransparent: true,
-// })
+connected.navigationOptions = hp => ({
+  header: undefined,
+  headerTitle: hp => <ConnectedHeader />,
+  headerTitleContainerStyle: {
+    left: 60,
+    right: 20,
+  },
+  headerTransparent: true,
+})
+
 export default connected

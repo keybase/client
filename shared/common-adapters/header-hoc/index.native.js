@@ -8,7 +8,9 @@ import Icon from '../icon'
 import SafeAreaView, {SafeAreaViewTop} from '../safe-area-view'
 import * as Styles from '../../styles'
 import type {Action, Props} from './types'
-import flags from '../../util/feature-flags'
+// import flags from '../../util/feature-flags'
+// TODO i think we'll leave it like this and slowly pull headers out
+const flags = {useNewRouter: false}
 
 const MAX_RIGHT_ACTIONS = 3
 type State = {|
@@ -69,7 +71,7 @@ export class HeaderHocHeader extends React.Component<Props, State> {
               },
             ])}
           >
-            <Text type="BodySemibold" style={styles.title} lineClamp={1}>
+            <Text type="BodyBig" style={styles.title} lineClamp={1}>
               {this.props.title}
             </Text>
           </Box>

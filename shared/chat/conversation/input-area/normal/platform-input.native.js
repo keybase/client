@@ -31,6 +31,7 @@ import FilePickerPopup from '../filepicker-popup'
 import WalletsIcon from './wallets-icon/container'
 import type {PlatformInputPropsInternal} from './platform-input'
 import AddSuggestors, {standardTransformer} from '../suggestors'
+import {metaData} from '../../../../common-adapters/text.meta.native'
 
 type menuType = 'exploding' | 'filepickerpopup'
 
@@ -335,6 +336,7 @@ const styles = styleSheetCreate({
   },
   input: {
     flex: 1,
+    fontSize: metaData['BodyBig'].fontSize,
     marginLeft: globalMargins.tiny,
     marginRight: globalMargins.tiny,
     ...(isIOS

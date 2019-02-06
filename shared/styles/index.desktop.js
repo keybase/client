@@ -14,27 +14,28 @@ const fontCommon = {
 const font = {
   fontBold: {
     ...fontCommon,
-    fontFamily: 'OpenSans',
+    fontFamily: 'Keybase',
     fontWeight: 700,
   },
   fontExtrabold: {
     ...fontCommon,
-    fontFamily: 'OpenSans',
+    fontFamily: 'Keybase',
     fontWeight: 800,
   },
   fontRegular: {
     ...fontCommon,
-    fontFamily: 'OpenSans',
-    fontWeight: 400,
+    fontFamily: 'Keybase',
+    fontWeight: 500,
   },
   fontSemibold: {
     ...fontCommon,
-    fontFamily: 'OpenSans',
+    fontFamily: 'Keybase',
     fontWeight: 600,
   },
   fontTerminal: {
     ...fontCommon,
     fontFamily: 'Source Code Pro',
+    fontWeight: 500,
   },
   fontTerminalSemibold: {
     ...fontCommon,

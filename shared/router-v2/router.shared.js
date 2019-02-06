@@ -7,31 +7,34 @@ import * as RouteTreeGen from '../actions/route-tree-gen'
 
 // Wraps all our screens with a component that injects bridging props that the old screens assumed (routeProps, routeState, etc)
 // TODO eventually remove this when we clean up all those components
-export const shimRoutes = (routes: any) =>
+export const shimRoutes = (routes: any, ModalHeader: any) =>
   Object.keys(routes).reduce((map, route) => {
     const Original = routes[route].getScreen()
     const Shimmed = p => (
-      <Original
-        {...p}
-        routeProps={{
-          get: key => p.navigation.getParam(key),
-        }}
-        shouldRender={true}
-        routeState={{
-          get: key => {
+      <>
+        {ModalHeader && <ModalHeader {...p} />}
+        <Original
+          {...p}
+          routeProps={{
+            get: key => p.navigation.getParam(key),
+          }}
+          shouldRender={true}
+          routeState={{
+            get: key => {
+              throw new Error('Route state NOT supported anymore')
+            },
+          }}
+          routeSelected={null}
+          routePath={I.List()}
+          routeLeafTags={I.Map()}
+          routeStack={I.Map()}
+          setRouteState={() => {
             throw new Error('Route state NOT supported anymore')
-          },
-        }}
-        routeSelected={null}
-        routePath={I.List()}
-        routeLeafTags={I.Map()}
-        routeStack={I.Map()}
-        setRouteState={() => {
-          throw new Error('Route state NOT supported anymore')
-        }}
-        navigateUp={() => RouteTreeGen.createNavigateUp()}
-        navigateAppend={p => RouteTreeGen.createNavigateAppend(p)}
-      />
+          }}
+          navigateUp={() => RouteTreeGen.createNavigateUp()}
+          navigateAppend={p => RouteTreeGen.createNavigateAppend(p)}
+        />
+      </>
     )
 
     Shimmed.navigationOptions = Original.navigationOptions

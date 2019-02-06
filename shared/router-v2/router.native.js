@@ -1,7 +1,12 @@
 // @flow
-// // TODO modals
-// keyboard avoiding?
-// gateway
+//
+// Notes:
+// leaving headerhoc
+// default screens have no header
+// opt into new split header, MUST set header to undefined in their connector navigatinoOptions
+//
+//
+//
 // statusbar handling
 // inject old ownprops?
 import * as Kb from '../common-adapters/mobile.native'
@@ -23,6 +28,7 @@ import {
   SceneView,
 } from '@react-navigation/core'
 import {createAppContainer} from '@react-navigation/native'
+import StackHeader from 'react-navigation-stack/src/views/Header/Header'
 import {createBottomTabNavigator} from 'react-navigation-tabs'
 import {createStackNavigator} from 'react-navigation-stack'
 import {modalRoutes, routes, nameToTab} from './routes'
@@ -125,7 +131,6 @@ const MainStackNavigator = createStackNavigator(shimmedRoutes, {
     // headerMode: 'none',
     // headerTransitionPreset: 'fade-in-place',
     // cardOverlayEnabled: true,
-
     // static navigationOptions = p => {
     // return {
     // headerTitle: p.navigation.getParam('username'),
@@ -158,16 +163,36 @@ const MainStackNavigator = createStackNavigator(shimmedRoutes, {
     // </Kb.Text>
     // </Kb.SafeAreaViewTop>
     // ),
+    header: null,
+    headerTitle: null,
     headerMode: 'float',
     // headerTransitionPreset: 'uikit',
     // cardOverlayEnabled: true,
     // }
     // }
   }),
+  // headerMode: 'none',
   initialRouteName: 'tabs:peopleTab',
 })
 
-const shimmedModalRoutes = Shared.shimRoutes(modalRoutes)
+// The nested modal nav can't easily show a header so we just inject it in
+const ModalHeader = p => {
+  // const scene = {index: 0, isActive: true, descriptor: {options: {}}}
+  const scene = {descriptor: {options: {...p.navigationOptions}}, index: 0, isActive: true}
+  const scenes = [scene]
+  // const navigation = {state: {index: 0}}
+  // const getScreenDetails = () => ({
+  // options: {
+  // title: 'Modal',
+  // // headerLeft: <Kb.Button type='title="Cancel" onPress={() => p.navigation.goBack()} />,
+  // },
+  // })
+  // <StackHeader scene={scene} scenes={scenes} navigation={navigation} getScreenDetails={getScreenDetails} />
+  return <StackHeader mode="screen" scene={scene} scenes={scenes} navigation={p.navigation} />
+}
+
+// const shimmedModalRoutes = Shared.shimRoutes(modalRoutes)
+const shimmedModalRoutes = Shared.shimRoutes(modalRoutes) // , ModalHeader)
 const RootStackNavigator = createStackNavigator(
   {
     Main: {
