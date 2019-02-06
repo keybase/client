@@ -147,7 +147,7 @@ func makeJournalManager(
 	if len(dir) == 0 {
 		panic("journal root path string unexpectedly empty")
 	}
-	jServer := JournalManager{
+	jManager := JournalManager{
 		config:                  config,
 		log:                     traceLogger{log},
 		deferLog:                traceLogger{log.CloneWithAddedDepth(1)},
@@ -161,8 +161,8 @@ func makeJournalManager(
 		tlfJournals:             make(map[tlf.ID]*tlfJournal),
 		dirtyOps:                make(map[tlf.ID]uint),
 	}
-	jServer.dirtyOpsDone = sync.NewCond(&jServer.lock)
-	return &jServer
+	jManager.dirtyOpsDone = sync.NewCond(&jManager.lock)
+	return &jManager
 }
 
 func (j *JournalManager) rootPath() string {

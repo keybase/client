@@ -154,19 +154,19 @@ func (s *NaïveStaller) StallMDOp(stalledOp StallableMDOp, maxStalls int,
 	unstallCh := make(chan struct{})
 	oldMDOps := s.config.MDOps()
 	var oldJDelegate MDOps
-	if jServer, err := GetJournalManager(s.config); err == nil && stallDelegate {
-		oldJDelegate = jServer.delegateMDOps
+	if jManager, err := GetJournalManager(s.config); err == nil && stallDelegate {
+		oldJDelegate = jManager.delegateMDOps
 		// Stall the delegate server as well
-		jServer.delegateMDOps = &stallingMDOps{
+		jManager.delegateMDOps = &stallingMDOps{
 			stallOpName: stalledOp,
 			stallKey:    stallKeyStallEverything,
 			staller: staller{
 				stalled: onStalledCh,
 				unstall: unstallCh,
 			},
-			delegate: jServer.delegateMDOps,
+			delegate: jManager.delegateMDOps,
 		}
-		s.config.SetMDOps(jServer.mdOps())
+		s.config.SetMDOps(jManager.mdOps())
 	} else {
 		s.config.SetMDOps(&stallingMDOps{
 			stallOpName: stalledOp,
@@ -229,9 +229,9 @@ func (s *NaïveStaller) UndoStallBlockOp(stalledOp StallableBlockOp) {
 // should have been called upon stalledOp, otherwise this would panic.
 func (s *NaïveStaller) UndoStallMDOp(stalledOp StallableMDOp) {
 	ns := s.getNaïveStallInfoForMDOpOrBust(stalledOp)
-	if jServer, err := GetJournalManager(s.config); err == nil &&
+	if jManager, err := GetJournalManager(s.config); err == nil &&
 		ns.oldJournalDelegateMDOps != nil {
-		jServer.delegateMDOps = ns.oldJournalDelegateMDOps
+		jManager.delegateMDOps = ns.oldJournalDelegateMDOps
 	}
 	s.config.SetMDOps(ns.oldMDOps)
 	close(ns.unstall)

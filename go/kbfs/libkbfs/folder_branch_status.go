@@ -312,7 +312,7 @@ func (fbsk *folderBranchStatusKeeper) getStatus(ctx context.Context,
 	// TODO: Ideally, the journal would push status
 	// updates to this object instead, so we can notify
 	// listeners.
-	jServer, err := GetJournalManager(fbsk.config)
+	jManager, err := GetJournalManager(fbsk.config)
 	if err != nil {
 		return fbs, ch, nil
 	}
@@ -320,10 +320,10 @@ func (fbsk *folderBranchStatusKeeper) getStatus(ctx context.Context,
 	var jStatus TLFJournalStatus
 	if blocks != nil {
 		jStatus, err =
-			jServer.JournalStatusWithPaths(ctx, tlfID, blocks)
+			jManager.JournalStatusWithPaths(ctx, tlfID, blocks)
 	} else {
 		jStatus, err =
-			jServer.JournalStatus(tlfID)
+			jManager.JournalStatus(tlfID)
 	}
 	if err != nil {
 		log := fbsk.config.MakeLogger("")

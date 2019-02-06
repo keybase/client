@@ -20,7 +20,7 @@ import (
 
 func setupJournalBlockServerTest(t *testing.T) (
 	tempdir string, ctx context.Context, cancel context.CancelFunc,
-	config *ConfigLocal, jServer *JournalManager) {
+	config *ConfigLocal, jManager *JournalManager) {
 	tempdir, err := ioutil.TempDir(os.TempDir(), "journal_block_server")
 	require.NoError(t, err)
 
@@ -57,15 +57,15 @@ func setupJournalBlockServerTest(t *testing.T) (
 	err = config.EnableJournaling(
 		ctx, tempdir, TLFJournalBackgroundWorkEnabled)
 	require.NoError(t, err)
-	jServer, err = GetJournalManager(config)
+	jManager, err = GetJournalManager(config)
 	require.NoError(t, err)
-	blockServer := jServer.blockServer()
+	blockServer := jManager.blockServer()
 	// Turn this on for testing.
 	blockServer.enableAddBlockReference = true
 	config.SetBlockServer(blockServer)
 
 	setupSucceeded = true
-	return tempdir, ctx, cancel, config, jServer
+	return tempdir, ctx, cancel, config, jManager
 }
 
 func teardownJournalBlockServerTest(
@@ -82,15 +82,15 @@ type shutdownOnlyBlockServer struct{ BlockServer }
 func (shutdownOnlyBlockServer) Shutdown(context.Context) {}
 
 func TestJournalBlockServerPutGetAddReference(t *testing.T) {
-	tempdir, ctx, cancel, config, jServer := setupJournalBlockServerTest(t)
+	tempdir, ctx, cancel, config, jManager := setupJournalBlockServerTest(t)
 	defer teardownJournalBlockServerTest(t, tempdir, ctx, cancel, config)
 
 	// Use a shutdown-only BlockServer so that it errors if the
 	// journal tries to access it.
-	jServer.delegateBlockServer = shutdownOnlyBlockServer{}
+	jManager.delegateBlockServer = shutdownOnlyBlockServer{}
 
 	tlfID := tlf.FakeID(2, tlf.Private)
-	err := jServer.Enable(ctx, tlfID, nil, TLFJournalBackgroundWorkPaused)
+	err := jManager.Enable(ctx, tlfID, nil, TLFJournalBackgroundWorkPaused)
 	require.NoError(t, err)
 
 	blockServer := config.BlockServer()

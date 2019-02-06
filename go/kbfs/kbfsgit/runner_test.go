@@ -417,9 +417,9 @@ func TestRunnerExitEarlyOnEOF(t *testing.T) {
 	require.NoError(t, err)
 
 	// Pause journal to force the processing to pause.
-	jServer, err := libkbfs.GetJournalManager(config)
+	jManager, err := libkbfs.GetJournalManager(config)
 	require.NoError(t, err)
-	jServer.PauseBackgroundWork(ctx, rootNode.GetFolderBranch().Tlf)
+	jManager.PauseBackgroundWork(ctx, rootNode.GetFolderBranch().Tlf)
 
 	// Input a full push batch, but let the reader EOF without giving
 	// the final \n.
@@ -1013,12 +1013,12 @@ func TestRunnerWithKBFSReset(t *testing.T) {
 	// Sync data and flush journal.
 	err = rootFS.SyncAll()
 	require.NoError(t, err)
-	jServer, err := libkbfs.GetJournalManager(config)
+	jManager, err := libkbfs.GetJournalManager(config)
 	require.NoError(t, err)
 	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
 		ctx, h, libkbfs.MasterBranch)
 	require.NoError(t, err)
-	err = jServer.FinishSingleOp(ctx,
+	err = jManager.FinishSingleOp(ctx,
 		rootNode.GetFolderBranch().Tlf, nil, keybase1.MDPriorityGit)
 	require.NoError(t, err)
 }
