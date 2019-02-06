@@ -1,4 +1,4 @@
-== Running a build ==
+## Running a build
 
 Clone kbfs adjacent to client (this repo). The exact path doesn't
 matter.
@@ -40,7 +40,7 @@ jack-testing.keybase.io, but this is not exposed on the internet.  You
 could copy the repo to somewhere in prerelease.keybase.io to test a `yum
 install`, for example.
 
-== Making changes ==
+## Making changes
 
 The most common change is bumping the version of Go we're using. Do that
 in the Dockerfile in this directory. Whenenever you make changes that
@@ -52,7 +52,7 @@ docker_build.sh. Look for the line that looks like this:
 Increment that number, so that everyone who's running these builds
 automatically rebuilds the docker image with your change.
 
-== Setting up the automated slackbot ==
+## Setting up the automated slackbot
 
 Clone https://github.com/keybase/slackbot and follow the instructions in
 systemd/README.md.
