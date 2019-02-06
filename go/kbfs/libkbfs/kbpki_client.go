@@ -374,7 +374,8 @@ func (k *KBPKIClient) FavoriteDelete(ctx context.Context, folder keybase1.Folder
 }
 
 // FavoriteList implements the KBPKI interface for KBPKIClient.
-func (k *KBPKIClient) FavoriteList(ctx context.Context) ([]keybase1.Folder, error) {
+func (k *KBPKIClient) FavoriteList(ctx context.Context) (
+	keybase1.FavoritesResult, error) {
 	const sessionID = 0
 	return k.serviceOwner.KeybaseService().FavoriteList(ctx, sessionID)
 }

@@ -51,8 +51,8 @@ func TestFavoritesAddTwice(t *testing.T) {
 	defer favTestShutdown(t, mockCtrl, config, f)
 
 	// Call Add twice in a row, but only get one Add KBPKI call
-	fav1 := favToAdd{Favorite{"test", tlf.Public}, false}
-	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(nil, nil)
+	fav1 := favToAdd{Favorite{"test", tlf.Public}, favoriteData{}, false}
+	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(keybase1.FavoritesResult{}, nil)
 	config.mockKbpki.EXPECT().FavoriteAdd(gomock.Any(), fav1.ToKBFolder()).
 		Return(nil)
 	config.mockClock.EXPECT().Now().Return(time.Unix(0, 0)).Times(2)
@@ -72,20 +72,20 @@ func TestFavoriteAddCreatedAlwaysGoThrough(t *testing.T) {
 	f.InitForTest()
 	defer favTestShutdown(t, mockCtrl, config, f)
 
-	fav1 := favToAdd{Favorite{"test", tlf.Public}, false}
+	fav1 := favToAdd{Favorite{"test", tlf.Public}, favoriteData{}, false}
 	expected1 := keybase1.Folder{
 		Name:       "test",
 		FolderType: keybase1.FolderType_PUBLIC,
 		Created:    false,
 	}
-	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(nil, nil)
+	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(keybase1.FavoritesResult{}, nil)
 	config.mockKbpki.EXPECT().FavoriteAdd(gomock.Any(), expected1).Return(nil)
 	config.mockClock.EXPECT().Now().Return(time.Unix(0, 0)).Times(2)
 	if err := f.Add(ctx, fav1); err != nil {
 		t.Fatalf("Couldn't add favorite: %v", err)
 	}
 
-	fav2 := favToAdd{Favorite{"test", tlf.Public}, true}
+	fav2 := favToAdd{Favorite{"test", tlf.Public}, favoriteData{}, true}
 	expected2 := keybase1.Folder{
 		Name:       "test",
 		FolderType: keybase1.FolderType_PUBLIC,
@@ -104,8 +104,8 @@ func TestFavoritesAddCreated(t *testing.T) {
 	defer favTestShutdown(t, mockCtrl, config, f)
 
 	// Call Add with created = true
-	fav1 := favToAdd{Favorite{"test", tlf.Public}, true}
-	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(nil, nil)
+	fav1 := favToAdd{Favorite{"test", tlf.Public}, favoriteData{}, true}
+	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(keybase1.FavoritesResult{}, nil)
 	config.mockClock.EXPECT().Now().Return(time.Unix(0, 0))
 	expected := keybase1.Folder{
 		Name:       "test",
@@ -125,8 +125,8 @@ func TestFavoritesAddRemoveAdd(t *testing.T) {
 	f.InitForTest()
 	defer favTestShutdown(t, mockCtrl, config, f)
 
-	fav1 := favToAdd{Favorite{"test", tlf.Public}, false}
-	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(nil, nil)
+	fav1 := favToAdd{Favorite{"test", tlf.Public}, favoriteData{}, false}
+	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(keybase1.FavoritesResult{}, nil)
 	folder1 := fav1.ToKBFolder()
 
 	config.mockKbpki.EXPECT().FavoriteAdd(gomock.Any(), folder1).
@@ -157,8 +157,8 @@ func TestFavoritesAddAsync(t *testing.T) {
 	defer favTestShutdown(t, mockCtrl, config, f)
 
 	// Call Add twice in a row, but only get one Add KBPKI call
-	fav1 := favToAdd{Favorite{"test", tlf.Public}, false}
-	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(nil, nil)
+	fav1 := favToAdd{Favorite{"test", tlf.Public}, favoriteData{}, false}
+	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(keybase1.FavoritesResult{}, nil)
 	config.mockClock.EXPECT().Now().Return(time.Unix(0, 0))
 
 	c := make(chan struct{})
@@ -186,13 +186,13 @@ func TestFavoritesListFailsDuringAddAsync(t *testing.T) {
 	defer favTestShutdown(t, mockCtrl, config, f)
 
 	// Call Add twice in a row, but only get one Add KBPKI call
-	fav1 := favToAdd{Favorite{"test", tlf.Public}, false}
+	fav1 := favToAdd{Favorite{"test", tlf.Public}, favoriteData{}, false}
 
 	config.mockClock.EXPECT().Now().Return(time.Unix(0, 0)).Times(2)
 
 	// Cancel the first list request
-	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).
-		Return(nil, context.Canceled)
+	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(keybase1.
+		FavoritesResult{}, context.Canceled)
 
 	f.AddAsync(ctx, fav1) // this will fail
 	// Wait so the next one doesn't get batched together with this one
@@ -203,7 +203,7 @@ func TestFavoritesListFailsDuringAddAsync(t *testing.T) {
 	// Now make sure the second time around, the favorites get listed
 	// and one gets added, even if its context gets added
 	c := make(chan struct{})
-	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(nil, nil)
+	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(keybase1.FavoritesResult{}, nil)
 	config.mockKbpki.EXPECT().FavoriteAdd(gomock.Any(), fav1.ToKBFolder()).
 		Do(func(_ context.Context, _ keybase1.Folder) {
 			c <- struct{}{}
@@ -219,7 +219,7 @@ func TestFavoritesControlUserHistory(t *testing.T) {
 	f.Initialize(ctx)
 	defer favTestShutdown(t, mockCtrl, config, f)
 
-	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(nil, nil)
+	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(keybase1.FavoritesResult{}, nil)
 	config.mockKbpki.EXPECT().FavoriteAdd(gomock.Any(), gomock.Any()).
 		Return(nil)
 	config.mockKbs.EXPECT().EncryptFavorites(gomock.Any(),
@@ -272,14 +272,14 @@ func TestFavoritesDiskCache(t *testing.T) {
 
 	// Add a favorite. Expect that it will be encoded to disk.
 	fav1 := Favorite{"test", tlf.Public}
-	fav1Add := favToAdd{fav1, false}
+	fav1Add := favToAdd{fav1, favoriteData{}, false}
 
 	var decodedData favoritesCacheForDisk
 	var decodedDataFromDisk favoritesCacheEncryptedForDisk
 	encodedData := []byte("encoded data")
 	encryptedData := []byte("encrypted data")
 	diskData := []byte("disk data")
-	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(nil, nil)
+	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(keybase1.FavoritesResult{}, nil)
 	config.mockKbpki.EXPECT().FavoriteAdd(gomock.Any(), gomock.Any()).Return(nil)
 	config.mockCodec.EXPECT().Encode(gomock.Any()).Do(func(
 		f favoritesCacheForDisk) {
@@ -334,8 +334,8 @@ func TestFavoritesDiskCache(t *testing.T) {
 	}).Return(nil)
 
 	// Pretend we are offline and cannot retrieve favorites right now.
-	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(nil,
-		errDisconnected{})
+	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(keybase1.
+		FavoritesResult{}, errDisconnected{})
 	f.Initialize(ctx)
 
 	// Ensure that the favorite we added before is still present.

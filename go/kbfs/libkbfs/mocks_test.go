@@ -1837,17 +1837,17 @@ func (mr *MockKBFSOpsMockRecorder) ClearCachedFavorites(ctx interface{}) *gomock
 }
 
 // AddFavorite mocks base method
-func (m *MockKBFSOps) AddFavorite(ctx context.Context, fav Favorite) error {
+func (m *MockKBFSOps) AddFavorite(ctx context.Context, fav Favorite, data favoriteData) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AddFavorite", ctx, fav)
+	ret := m.ctrl.Call(m, "AddFavorite", ctx, fav, data)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // AddFavorite indicates an expected call of AddFavorite
-func (mr *MockKBFSOpsMockRecorder) AddFavorite(ctx, fav interface{}) *gomock.Call {
+func (mr *MockKBFSOpsMockRecorder) AddFavorite(ctx, fav, data interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddFavorite", reflect.TypeOf((*MockKBFSOps)(nil).AddFavorite), ctx, fav)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AddFavorite", reflect.TypeOf((*MockKBFSOps)(nil).AddFavorite), ctx, fav, data)
 }
 
 // DeleteFavorite mocks base method
@@ -2812,10 +2812,10 @@ func (mr *MockKeybaseServiceMockRecorder) FavoriteDelete(ctx, folder interface{}
 }
 
 // FavoriteList mocks base method
-func (m *MockKeybaseService) FavoriteList(ctx context.Context, sessionID int) ([]keybase1.Folder, error) {
+func (m *MockKeybaseService) FavoriteList(ctx context.Context, sessionID int) (keybase1.FavoritesResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FavoriteList", ctx, sessionID)
-	ret0, _ := ret[0].([]keybase1.Folder)
+	ret0, _ := ret[0].(keybase1.FavoritesResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -3717,10 +3717,10 @@ func (mr *MockKBPKIMockRecorder) FavoriteDelete(ctx, folder interface{}) *gomock
 }
 
 // FavoriteList mocks base method
-func (m *MockKBPKI) FavoriteList(ctx context.Context) ([]keybase1.Folder, error) {
+func (m *MockKBPKI) FavoriteList(ctx context.Context) (keybase1.FavoritesResult, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FavoriteList", ctx)
-	ret0, _ := ret[0].([]keybase1.Folder)
+	ret0, _ := ret[0].(keybase1.FavoritesResult)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }

@@ -338,7 +338,7 @@ type KBFSOps interface {
 	ClearCachedFavorites(ctx context.Context)
 	// AddFavorite adds the favorite to both the server and
 	// the local cache.
-	AddFavorite(ctx context.Context, fav Favorite) error
+	AddFavorite(ctx context.Context, fav Favorite, data favoriteData) error
 	// DeleteFavorite deletes the favorite from both the server and
 	// the local cache.  Idempotent, so it succeeds even if the folder
 	// isn't favorited.
@@ -695,7 +695,8 @@ type KeybaseService interface {
 	FavoriteDelete(ctx context.Context, folder keybase1.Folder) error
 
 	// FavoriteList returns the current list of favorites.
-	FavoriteList(ctx context.Context, sessionID int) ([]keybase1.Folder, error)
+	FavoriteList(ctx context.Context, sessionID int) (keybase1.FavoritesResult,
+		error)
 
 	// EncryptFavorites encrypts cached favorites to store on disk.
 	EncryptFavorites(ctx context.Context, dataToEncrypt []byte) ([]byte, error)
@@ -894,7 +895,7 @@ type KBPKI interface {
 
 	// FavoriteList returns the list of all favorite folders for
 	// the logged in user.
-	FavoriteList(ctx context.Context) ([]keybase1.Folder, error)
+	FavoriteList(ctx context.Context) (keybase1.FavoritesResult, error)
 
 	// CreateTeamTLF associates the given TLF ID with the team ID in
 	// the team's sigchain.  If the team already has a TLF ID

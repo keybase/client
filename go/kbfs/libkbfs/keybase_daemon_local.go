@@ -890,14 +890,23 @@ func (k *KeybaseDaemonLocal) FavoriteDelete(
 
 // FavoriteList implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) FavoriteList(
-	ctx context.Context, sessionID int) ([]keybase1.Folder, error) {
+	ctx context.Context, sessionID int) (keybase1.FavoritesResult, error) {
 	if err := checkContext(ctx); err != nil {
-		return nil, err
+		return keybase1.FavoritesResult{}, err
 	}
 
 	k.lock.Lock()
 	defer k.lock.Unlock()
-	return k.favoriteStore.FavoriteList(k.currentUID)
+	// TODO: determine if this is okay
+	favs, err := k.favoriteStore.FavoriteList(k.currentUID)
+	if err != nil {
+		return keybase1.FavoritesResult{}, err
+	}
+	return keybase1.FavoritesResult{
+		FavoriteFolders: favs,
+		IgnoredFolders:  []keybase1.Folder{},
+		NewFolders:      []keybase1.Folder{},
+	}, nil
 }
 
 // EncryptFavorites implements KeybaseService for KeybaseDaemonLocal
