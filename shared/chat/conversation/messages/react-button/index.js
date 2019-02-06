@@ -75,7 +75,7 @@ const ReactButton = (props: Props) => (
       </Box2>
       <Text
         type="BodyTinyBold"
-        style={{color: props.active ? Styles.globalColors.blue : Styles.globalColors.black_50}}
+        style={Styles.collapseStyles([styles.count, props.active && styles.countActive])}
       >
         {props.count}
       </Text>
@@ -251,6 +251,14 @@ const styles = Styles.styleSheetCreate({
       paddingTop: Styles.globalMargins.tiny,
     },
   }),
+  count: {
+    color: Styles.globalColors.black_50,
+    position: 'relative',
+    top: 1,
+  },
+  countActive: {
+    color: Styles.globalColors.blue,
+  },
   emojiContainer: Styles.platformStyles({
     isElectron: {
       ...Styles.desktopStyles.boxShadow,
