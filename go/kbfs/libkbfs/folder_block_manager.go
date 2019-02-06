@@ -825,7 +825,7 @@ func (fbm *folderBlockManager) getMostRecentGCRevision(
 			}
 			for j := len(rmd.data.Changes.Ops) - 1; j >= 0; j-- {
 				GCOp, ok := rmd.data.Changes.Ops[j].(*GCOp)
-				if !ok {
+				if !ok || GCOp.LatestRev == kbfsmd.RevisionUninitialized {
 					continue
 				}
 				fbm.log.CDebugf(ctx, "Found last gc op: %s", GCOp)
@@ -1142,6 +1142,11 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 		ctx, lastGCRev, mostRecentRev)
 	if err != nil {
 		return err
+	}
+	if lastRev == kbfsmd.RevisionUninitialized {
+		fbm.log.CDebugf(ctx, "No recent revisions to GC")
+		complete = true
+		return nil
 	}
 	if len(ptrs) == 0 && !shortened {
 		complete = true

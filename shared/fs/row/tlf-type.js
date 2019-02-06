@@ -1,4 +1,5 @@
 // @flow
+import * as I from 'immutable'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Constants from '../../constants/fs'
@@ -7,6 +8,7 @@ import * as Kb from '../../common-adapters'
 
 type TlfTypeProps = StillCommonProps & {
   badgeCount: number,
+  routePath: I.List<string>,
 }
 
 const TlfType = (props: TlfTypeProps) => (
@@ -16,6 +18,7 @@ const TlfType = (props: TlfTypeProps) => (
     onOpen={props.onOpen}
     inDestinationPicker={props.inDestinationPicker}
     badge={props.badgeCount}
+    routePath={props.routePath}
   >
     <Kb.Box style={rowStyles.itemBox}>
       <Kb.Box2 direction="horizontal" fullWidth={true}>

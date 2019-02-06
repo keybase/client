@@ -33,6 +33,7 @@ const trackerMapStateToProps = (state, ownProps) => {
     state: d.state,
     teamShowcase: d.teamShowcase,
     waiting: state.waiting.counts.get(Constants.waitingKey) || 0,
+    yourUsername: state.config.username,
   }
 }
 
@@ -46,6 +47,7 @@ const trackerMergeProps = (stateProps, dispatchProps, ownProps) => {
     followsYou: stateProps.followsYou,
     fullname: stateProps.fullname,
     guiID: stateProps.guiID,
+    isYou: stateProps.yourUsername === ownProps.username,
     location: stateProps.location,
     reason: stateProps.reason,
     state: stateProps.state,

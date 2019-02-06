@@ -36,7 +36,9 @@ const mapDispatchToProps = dispatch => ({
         dispatch(RouteTree.createSwitchTo({path: [Tabs.chatTab]}))
         break
       case RPCTypes.homeAppLinkType.files:
-        dispatch(RouteTree.createSwitchTo({path: [Tabs.fsTab]}))
+        dispatch(
+          RouteTree.createSwitchTo({path: isMobile ? [Tabs.settingsTab, SettingsTabs.fsTab] : [Tabs.fsTab]})
+        )
         break
       case RPCTypes.homeAppLinkType.wallet:
         dispatch(

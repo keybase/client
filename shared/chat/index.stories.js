@@ -16,10 +16,12 @@ import headerArea from './conversation/header-area/normal/index.stories'
 import confirmPayment from './payments/confirm/index.stories'
 import paymentStatus from './payments/status/index.stories'
 import conversationList from './conversation-list/index.stories'
+import explodingMessageExplainer from './conversation/messages/exploding-explainer-dialog/index.stories'
 
 const load = () => {
   ;[
     createChannel,
+    explodingMessageExplainer,
     inbox,
     infoPanel,
     infoPanelNotifications,

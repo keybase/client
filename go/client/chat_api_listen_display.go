@@ -13,14 +13,14 @@ type chatNotificationDisplay struct {
 	*baseNotificationDisplay
 	svc           *chatServiceHandler
 	showLocal     bool
-	showExploding bool
+	hideExploding bool
 }
 
-func newChatNotificationDisplay(g *libkb.GlobalContext, showLocal, showExploding bool) *chatNotificationDisplay {
+func newChatNotificationDisplay(g *libkb.GlobalContext, showLocal, hideExploding bool) *chatNotificationDisplay {
 	return &chatNotificationDisplay{
 		baseNotificationDisplay: newBaseNotificationDisplay(g),
 		showLocal:               showLocal,
-		showExploding:           showExploding,
+		hideExploding:           hideExploding,
 		svc:                     newChatServiceHandler(g),
 	}
 }
@@ -112,7 +112,7 @@ func (d *chatNotificationDisplay) NewChatActivity(ctx context.Context, arg chat1
 	switch typ {
 	case chat1.ChatActivityType_INCOMING_MESSAGE:
 		inMsg := activity.IncomingMessage()
-		if !d.showExploding && inMsg.Message.IsEphemeral() {
+		if d.hideExploding && inMsg.Message.IsEphemeral() {
 			// Skip exploding message
 			return nil
 		}

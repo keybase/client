@@ -5,14 +5,16 @@ import * as Styles from '../styles'
 import * as Platforms from '../constants/platform'
 
 export type Props = {|
-  isLoading: boolean,
   filter: string,
   filterFocusCount: number,
+  isLoading: boolean,
+  onBlur: () => void,
+  onEnsureSelection: () => void,
+  onFocus: () => void,
   onNewChat?: () => void,
-  onSetFilter: (filter: string) => void,
   onSelectDown: () => void,
   onSelectUp: () => void,
-  onEnsureSelection: () => void,
+  onSetFilter: (filter: string) => void,
   style?: Styles.StylesCrossPlatform,
 |}
 
@@ -33,10 +35,12 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
 
   _startEditing = () => {
     this.setState({isEditing: true})
+    this.props.onFocus()
   }
 
   _stopEditing = () => {
     this.setState({isEditing: false})
+    this.props.onBlur()
   }
 
   _onKeyDown = (e: SyntheticKeyboardEvent<>, isComposingIME: boolean) => {

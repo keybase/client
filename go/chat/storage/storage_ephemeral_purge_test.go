@@ -118,7 +118,7 @@ func TestStorageEphemeralPurge(t *testing.T) {
 	}
 
 	lifetime := gregor1.DurationSec(1)
-	sleepLifetime := time.Second * time.Duration(lifetime)
+	sleepLifetime := lifetime.ToDuration()
 	now := gregor1.ToTime(clock.Now())
 	msgA := makeMsgWithType(1, chat1.MessageType_TLFNAME)
 	msgB := makeText(2, "some text")

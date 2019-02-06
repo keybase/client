@@ -594,7 +594,7 @@ func (d *Service) startupGregor() {
 		d.G().ConnectivityMonitor = d.reachability
 
 		d.gregor.badger = d.badger
-		d.G().GregorDismisser = d.gregor
+		d.G().GregorState = d.gregor
 		d.G().GregorListener = d.gregor
 
 		// Add default handlers

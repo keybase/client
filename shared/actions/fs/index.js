@@ -18,7 +18,7 @@ import {getContentTypeFromURL} from '../platform-specific'
 import {isMobile} from '../../constants/platform'
 import * as RouteTreeGen from '../route-tree-gen'
 import {getPathProps} from '../../route-tree'
-import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
+import {fsRootRoute, makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
 
 const loadFavorites = (state, action) =>
   RPCTypes.apiserverGetWithSessionRpcPromise({
@@ -293,7 +293,10 @@ function* download(state, action) {
     const mimeType = yield* _loadMimeType(path)
     yield Saga.put(FsGen.createDownloadSuccess({key, mimeType: mimeType?.mimeType || ''}))
   } catch (error) {
+    // This needs to be before the dismiss below, so that if it's a legit
+    // error we'd show the red bar.
     yield Saga.put(makeRetriableErrorHandler(action)(error))
+  } finally {
     if (intent !== 'none') {
       // If it's a normal download, we show a red card for the user to dismiss.
       // TODO: when we get rid of download cards on Android, check isMobile
@@ -332,10 +335,9 @@ function* upload(_, action) {
   }
 }
 
-function cancelDownload(state, {payload: {key}}) {
-  const download = state.fs.downloads.get(key)
+const cancelDownload = (state, action) => {
+  const download = state.fs.downloads.get(action.payload.key)
   if (!download) {
-    console.log(`unknown download: ${key}`)
     return
   }
   const {
@@ -604,28 +606,31 @@ const commitEdit = (state, action) => {
 const _getRouteChangeForOpenPathInFilesTab = (action: FsGen.OpenPathInFilesTabPayload, finalRoute: any) =>
   isMobile
     ? RouteTreeGen.createNavigateTo({
-        path: [
-          Tabs.fsTab,
-          // Construct all parent folders so back button works all the way back
-          // to /keybase
-          ...Types.getPathElements(action.payload.path)
-            .slice(1, -1) // fsTab default to /keybase, so we skip one here
-            .reduce(
-              (routes, elem) => [
-                ...routes,
-                {
-                  props: {
-                    path: routes.length
-                      ? Types.pathConcat(routes[routes.length - 1].props.path, elem)
-                      : Types.stringToPath(`/keybase/${elem}`),
-                  },
-                  selected: 'main',
-                },
+        path:
+          action.payload.path === Constants.defaultPath
+            ? fsRootRoute
+            : [
+                ...fsRootRoute,
+                // Construct all parent folders so back button works all the way back
+                // to /keybase
+                ...Types.getPathElements(action.payload.path)
+                  .slice(1, -1) // fsTab default to /keybase, so we skip one here
+                  .reduce(
+                    (routes, elem) => [
+                      ...routes,
+                      {
+                        props: {
+                          path: routes.length
+                            ? Types.pathConcat(routes[routes.length - 1].props.path, elem)
+                            : Types.stringToPath(`/keybase/${elem}`),
+                        },
+                        selected: 'main',
+                      },
+                    ],
+                    []
+                  ),
+                finalRoute,
               ],
-              []
-            ),
-          finalRoute,
-        ],
       })
     : RouteTreeGen.createNavigateTo({
         path: [

@@ -49,8 +49,9 @@ protocol identify3Ui {
     Identify3GUIID guiID,          // id used to tie these things together
     string key,                    // e.g., "twitter", "web", "github", "btc", "pgp"
     string value,                  // e.g., "bob", "foo.com", "1BYzrCvfbn81dfiksmD1Bdgt8pgLi1SD7Z", "8EFBE2E4DD56B35273634E8F6052B2AD31A6631C"
+    int priority,                  // Display priority. Lesser means higher.
     string siteURL,                // https://twitter.com/bob
-    string siteIcon,               // https://keybase.io/_/icons/twitter.png
+    array<SizedImage> siteIcon,
     string proofURL,               // http://twitter.com/bob/post/1234
     SigID sigID,                   // so we can later revoke the sig....
     Identify3RowState state,       // 'checking' | 'valid' | 'error' | 'warning' | 'revoked',

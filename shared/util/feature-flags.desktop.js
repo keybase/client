@@ -16,7 +16,7 @@ const ff: FeatureFlags = {
   foldersInProfileTab: false,
   identify3: false,
   moveOrCopy: false,
-  newTeamBuildingForChat: false,
+  newTeamBuildingForChat: true,
   newTeamBuildingForChatAllowMakeTeam: false,
   outOfDateBanner: false,
   plansEnabled: false,
@@ -27,7 +27,6 @@ const ff: FeatureFlags = {
 const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
   chatIndexProfilingEnabled: true,
   moveOrCopy: true,
-  newTeamBuildingForChat: true,
 }
 
 // load overrides

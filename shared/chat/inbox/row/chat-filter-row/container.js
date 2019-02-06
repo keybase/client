@@ -38,6 +38,8 @@ const mapDispatchToProps = (dispatch, {focusFilter}) => ({
       focusFilter()
     }
   },
+  onBlur: () => dispatch(Chat2Gen.createChangeFocus({nextFocus: null})),
+  onFocus: () => dispatch(Chat2Gen.createChangeFocus({nextFocus: 'filter'})),
   onSetFilter: (filter: string) => dispatch(Chat2Gen.createSetInboxFilter({filter})),
 })
 
@@ -47,7 +49,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   filterFocusCount: ownProps.filterFocusCount,
   hotkeys: isDarwin ? ['command+n', 'command+k'] : ['ctrl+n', 'ctrl+k'],
   isLoading: stateProps.isLoading,
+  onBlur: dispatchProps.onBlur,
   onEnsureSelection: ownProps.onEnsureSelection,
+  onFocus: dispatchProps.onFocus,
   onNewChat: ownProps.onNewChat,
   onSelectDown: ownProps.onSelectDown,
   onSelectUp: ownProps.onSelectUp,

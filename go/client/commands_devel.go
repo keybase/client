@@ -85,6 +85,10 @@ var restrictedSignupFlags = []cli.Flag{
 		Name:  "pgp",
 		Usage: "Add a server-synced pgp key",
 	},
+	cli.BoolFlag{
+		Name:  "no-passphrase",
+		Usage: "Sign up without passphrase.",
+	},
 }
 
 var restrictedProveFlags = []cli.Flag{

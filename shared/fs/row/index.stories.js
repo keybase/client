@@ -201,6 +201,7 @@ const load = () =>
             onOpen={Sb.action('onOpen')}
             onAction={Sb.action('onAction')}
             isEmpty={false}
+            routePath={I.List([])}
           />
         </WrapRow>
         <WrapRow key="download-save">
@@ -212,6 +213,7 @@ const load = () =>
             onOpen={Sb.action('onOpen')}
             onAction={Sb.action('onAction')}
             isEmpty={false}
+            routePath={I.List([])}
           />
         </WrapRow>
         <WrapRow key="download-share">
@@ -223,6 +225,7 @@ const load = () =>
             onOpen={Sb.action('onOpen')}
             onAction={Sb.action('onAction')}
             isEmpty={false}
+            routePath={I.List([])}
           />
         </WrapRow>
         <WrapRow key="13">
@@ -247,6 +250,7 @@ const load = () =>
             onOpen={Sb.action('onOpen')}
             onAction={Sb.action('onAction')}
             isEmpty={false}
+            routePath={I.List([])}
           />
         </WrapRow>
         <WrapRow key="17">
@@ -256,6 +260,7 @@ const load = () =>
             badgeCount={0}
             onOpen={Sb.action('onOpen')}
             onAction={Sb.action('onAction')}
+            routePath={I.List([])}
           />
         </WrapRow>
         <WrapRow key="18">
@@ -265,6 +270,7 @@ const load = () =>
             badgeCount={3}
             onOpen={Sb.action('onOpen')}
             onAction={Sb.action('onAction')}
+            routePath={I.List([])}
           />
         </WrapRow>
         <WrapRow key="19">
@@ -276,6 +282,7 @@ const load = () =>
             isNew={true}
             onOpen={Sb.action('onOpen')}
             onAction={Sb.action('onAction')}
+            routePath={I.List([])}
           />
         </WrapRow>
         <WrapRow key="20">
@@ -287,6 +294,7 @@ const load = () =>
             isNew={true}
             onOpen={Sb.action('onOpen')}
             onAction={Sb.action('onAction')}
+            routePath={I.List([])}
           />
         </WrapRow>
         <WrapRow key="21">
@@ -298,6 +306,7 @@ const load = () =>
             isNew={true}
             onOpen={Sb.action('onOpen')}
             onAction={Sb.action('onAction')}
+            routePath={I.List([])}
           />
         </WrapRow>
       </Box>

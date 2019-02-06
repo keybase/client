@@ -208,6 +208,7 @@ export type _DownloadMeta = {
 export type DownloadMeta = I.RecordOf<_DownloadMeta>
 
 export type _DownloadState = {
+  canceled: boolean,
   completePortion: number,
   endEstimate?: number,
   error?: FsError,
@@ -221,6 +222,8 @@ export type _Download = {
   state: DownloadState,
 }
 export type Download = I.RecordOf<_Download>
+
+export type Downloads = I.Map<string, Download>
 
 export type _Uploads = {
   writingToJournal: I.Set<Path>,
@@ -300,13 +303,21 @@ export type _SendLinkToChat = {
 }
 export type SendLinkToChat = I.RecordOf<_SendLinkToChat>
 
+export type PathItemActionMenuView = 'root' | 'share' | 'confirm-save-media' | 'confirm-send-to-other-app'
+export type _PathItemActionMenu = {
+  view: PathItemActionMenuView,
+  previousView: PathItemActionMenuView,
+  downloadKey: ?string,
+}
+export type PathItemActionMenu = I.RecordOf<_PathItemActionMenu>
+
 export type _State = {
   pathItems: PathItems,
   tlfs: Tlfs,
   edits: Edits,
   pathUserSettings: I.Map<Path, PathUserSetting>,
   loadingPaths: I.Map<Path, I.Set<string>>,
-  downloads: I.Map<string, Download>,
+  downloads: Downloads,
   uploads: Uploads,
   fuseStatus: ?RPCTypes.FuseStatus,
   flags: Flags,
@@ -315,6 +326,7 @@ export type _State = {
   tlfUpdates: UserTlfUpdates,
   moveOrCopy: MoveOrCopy,
   sendLinkToChat: SendLinkToChat,
+  pathItemActionMenu: PathItemActionMenu,
 }
 export type State = I.RecordOf<_State>
 

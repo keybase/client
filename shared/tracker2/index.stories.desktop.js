@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Sb from '../stories/storybook'
 import * as Kb from '../common-adapters'
-import Tracker from './container.desktop'
+import Tracker from './index.desktop'
 
 const assertion = {
   assertion: '',
@@ -81,24 +81,30 @@ const allAssertions = [
   web4,
   web5,
 ]
-const props = {
-  assertions: allAssertions.map(a => a.assertion),
+const trackerOnlyProps = {
   bio:
     'Etsy photo booth mlkshk semiotics, 8-bit literally slow-carb keytar bushwick +1. Plaid migas etsy yuccie, locavore street art mlkshk lumbersexual. Literally microdosing pug disrupt iPhone raw denim, quinoa meggings kitsch.',
   followThem: false,
   followersCount: 1871,
   followingCount: 356,
   followsYou: false,
-  fullname: 'Gabriel Handford',
+  guiID: '',
   location: 'San Francisco, California, USA, Earth, Milky Way',
   onAccept: Sb.action('onAccept'),
   onChat: Sb.action('onChat'),
+  onClose: Sb.action('onClose'),
   onFollow: Sb.action('onFollow'),
   onIgnoreFor24Hours: Sb.action('onIgnoreFor24Hours'),
+  onReload: Sb.action('onReload'),
   reason: 'You accessed a private folder with gabrielh.',
   state: 'valid',
   teamShowcase: [],
   username: 'darksim905',
+}
+const props = {
+  ...trackerOnlyProps,
+  assertions: allAssertions.map(a => a.assertion),
+  fullname: 'Gabriel Handford',
 }
 
 const teams = [
@@ -162,24 +168,21 @@ const provider = Sb.createPropProviderWithCommon({
         ? 'This is a very very very very very very very very very very very very very very very very very very very very very very very very very very very very long location'
         : props.location,
   }),
-  Tracker2: p => ({
-    ...props,
-    ...p,
-    ...p.storyProps,
-    assertionKeys:
-      p.username === 'noProofs'
-        ? []
-        : p.username === 'oneProof'
-        ? [props.assertions[0]]
-        : [...props.assertions],
-    followThem: p.username === 'green' ? true : props.followThem,
-    reason:
-      p.username === 'longreason'
-        ? 'This is a very very very very very very very very very very very very very very very very very very very very very very very very very very very very long reason'
-        : props.reason,
-    state: p.username === 'red' ? 'error' : p.username === 'green' ? 'valid' : props.state,
-    teamShowcase: p.username === 'teams' ? teams : props.teamShowcase,
-  }),
+})
+
+const trackerProps = username => ({
+  ...trackerOnlyProps,
+  assertionKeys:
+    username === 'noProofs' ? [] : username === 'oneProof' ? [props.assertions[0]] : [...props.assertions],
+  followThem: username === 'green' ? true : props.followThem,
+  isYou: username === 'yourUsername',
+  reason:
+    username === 'longreason'
+      ? 'This is a very very very very very very very very very very very very very very very very very very very very very very very very very very very very long reason'
+      : props.reason,
+  state: username === 'red' ? 'error' : username === 'green' ? 'valid' : props.state,
+  teamShowcase: username === 'teams' ? teams : props.teamShowcase,
+  username,
 })
 
 const load = () => {
@@ -190,19 +193,20 @@ const load = () => {
         {story()}
       </Kb.Box2>
     ))
-    .add('Normal', () => <Tracker username="darksim905" />)
-    .add('Long reason', () => <Tracker username="longreason" />)
-    .add('Long bio', () => <Tracker username="longbio" />)
-    .add('Long location', () => <Tracker username="longlocation" />)
-    .add('Long username', () => <Tracker username="a23456789012345" />)
-    .add('Long fullanme', () => <Tracker username="longfullname" />)
-    .add('No fullanme', () => <Tracker username="nofullname" />)
-    .add('No followcounts', () => <Tracker username="nofollowcounts" />)
-    .add('OneProof', () => <Tracker username="oneProof" />)
-    .add('NoProofs', () => <Tracker username="noProofs" />)
-    .add('Green', () => <Tracker username="green" />)
-    .add('Red', () => <Tracker username="red" />)
-    .add('Teams', () => <Tracker username="teams" />)
+    .add('Normal', () => <Tracker {...trackerProps('darksim905')} />)
+    .add('Long reason', () => <Tracker {...trackerProps('longreason')} />)
+    .add('Long bio', () => <Tracker {...trackerProps('longbio')} />)
+    .add('Long location', () => <Tracker {...trackerProps('longlocation')} />)
+    .add('Long username', () => <Tracker {...trackerProps('a23456789012345')} />)
+    .add('Long fullanme', () => <Tracker {...trackerProps('longfullname')} />)
+    .add('No fullanme', () => <Tracker {...trackerProps('nofullname')} />)
+    .add('No followcounts', () => <Tracker {...trackerProps('nofollowcounts')} />)
+    .add('OneProof', () => <Tracker {...trackerProps('oneProof')} />)
+    .add('NoProofs', () => <Tracker {...trackerProps('noProofs')} />)
+    .add('Green', () => <Tracker {...trackerProps('green')} />)
+    .add('Red', () => <Tracker {...trackerProps('red')} />)
+    .add('Teams', () => <Tracker {...trackerProps('teams')} />)
+    .add('Your username', () => <Tracker {...trackerProps('yourUsername')} />)
 }
 
 const wrapper = {

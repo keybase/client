@@ -108,6 +108,7 @@ export const makeDownloadMeta: I.RecordFactory<Types._DownloadMeta> = I.Record({
 })
 
 export const makeDownloadState: I.RecordFactory<Types._DownloadState> = I.Record({
+  canceled: false,
   completePortion: 0,
   endEstimate: undefined,
   error: undefined,
@@ -186,6 +187,12 @@ export const makeSendLinkToChat: I.RecordFactory<Types._SendLinkToChat> = I.Reco
   path: Types.stringToPath('/keybase'),
 })
 
+export const makePathItemActionMenu: I.RecordFactory<Types._PathItemActionMenu> = I.Record({
+  downloadKey: null,
+  previousView: 'root',
+  view: 'root',
+})
+
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   downloads: I.Map(),
   edits: I.Map(),
@@ -195,6 +202,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   loadingPaths: I.Map(),
   localHTTPServerInfo: null,
   moveOrCopy: makeMoveOrCopy(),
+  pathItemActionMenu: makePathItemActionMenu(),
   pathItems: I.Map([[Types.stringToPath('/keybase'), makeFolder()]]),
   pathUserSettings: I.Map([[Types.stringToPath('/keybase'), makePathUserSetting()]]),
   sendLinkToChat: makeSendLinkToChat(),
@@ -245,11 +253,7 @@ export const editTypeToPathType = (type: Types.EditType): Types.PathType => {
   }
 }
 
-const makeDownloadKey = (path: Types.Path) => `download:${Types.pathToString(path)}:${makeUUID()}`
-export const makeDownloadPayload = (path: Types.Path): {|path: Types.Path, key: string|} => ({
-  key: makeDownloadKey(path),
-  path,
-})
+export const makeDownloadKey = (path: Types.Path) => `download:${Types.pathToString(path)}:${makeUUID()}`
 export const getDownloadIntentFromAction = (
   action: FsGen.DownloadPayload | FsGen.ShareNativePayload | FsGen.SaveMediaPayload
 ): Types.DownloadIntent =>
