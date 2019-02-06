@@ -433,6 +433,10 @@ type txPending struct {
 	ctime time.Time
 }
 
+type inuseSeqno struct {
+	ctime time.Time
+}
+
 // AccountState holds the current data for a stellar account.
 type AccountState struct {
 	// these are only set when AccountState created, they never change
@@ -453,6 +457,7 @@ type AccountState struct {
 	rtime        time.Time // time of last refresh
 	done         bool
 	pendingTxs   map[stellar1.TransactionID]txPending
+	inuseSeqnos  map[uint64]inuseSeqno
 }
 
 func newAccountState(accountID stellar1.AccountID, r remote.Remoter, reqsCh chan stellar1.AccountID) *AccountState {
@@ -462,6 +467,7 @@ func newAccountState(accountID stellar1.AccountID, r remote.Remoter, reqsCh chan
 		refreshGroup: &singleflight.Group{},
 		refreshReqs:  reqsCh,
 		pendingTxs:   make(map[stellar1.TransactionID]txPending),
+		inuseSeqnos:  make(map[uint64]inuseSeqno),
 	}
 }
 
@@ -582,14 +588,31 @@ func (a *AccountState) ForceSeqnoRefresh(mctx libkb.MetaContext) error {
 			delete(a.pendingTxs, k)
 		}
 	}
+	// delete any stale inuse seqnos (in case missed notification somehow)
+	for k, v := range a.inuseSeqnos {
+		age := time.Since(v.ctime)
+		if age > 30*time.Second {
+			mctx.CDebugf("ForceSeqnoRefresh removing inuse seqno %d due to old age (%s)", k, age)
+			delete(a.inuseSeqnos, k)
+		}
+	}
 
-	if len(a.pendingTxs) == 0 {
-		// if no pending tx, then network should be correct
+	/*
+		if len(a.pendingTxs) == 0 {
+			// if no pending tx, then network should be correct
+			mctx.CDebugf("ForceSeqnoRefresh corrected seqno for %s: %d => %d", a.accountID, a.seqno, seqno)
+			a.seqno = seqno
+			return nil
+		}
+	*/
+	if len(a.inuseSeqnos) == 0 {
+		// if no inuse seqnos, then network should be correct
 		mctx.CDebugf("ForceSeqnoRefresh corrected seqno for %s: %d => %d", a.accountID, a.seqno, seqno)
 		a.seqno = seqno
 		return nil
 	}
 
+	mctx.CDebugf("ForceSeqnoRefresh did not update AccountState for %s due to pending tx (existing: %d, remote: %d, inuse seqnos: %d)", a.accountID, a.seqno, seqno, len(a.inuseSeqnos))
 	mctx.CDebugf("ForceSeqnoRefresh did not update AccountState for %s due to pending tx (existing: %d, remote: %d, pending tx: %d)", a.accountID, a.seqno, seqno, len(a.pendingTxs))
 
 	return nil
@@ -609,6 +632,7 @@ func (a *AccountState) AccountSeqnoAndBump(ctx context.Context) (uint64, error) 
 	a.Lock()
 	defer a.Unlock()
 	result := a.seqno
+	a.inuseSeqnos[result] = inuseSeqno{ctime: time.Now()}
 	a.seqno++
 	return result, nil
 }
@@ -632,6 +656,17 @@ func (a *AccountState) RemovePendingTx(ctx context.Context, txID stellar1.Transa
 	defer a.Unlock()
 
 	delete(a.pendingTxs, txID)
+
+	return nil
+}
+
+// RemoveInuseSeqno removes an inuse seqno from WalletState.  It doesn't matter
+// if it succeeded or failed, just that it is no longer used.
+func (a *AccountState) RemoveInuseSeqno(ctx context.Context, seqno uint64) error {
+	a.Lock()
+	defer a.Unlock()
+
+	delete(a.inuseSeqnos, seqno)
 
 	return nil
 }

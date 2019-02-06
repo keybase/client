@@ -36,8 +36,8 @@ func TestSeqno(t *testing.T) {
 	mctx := tcs[0].MetaContext()
 	ws := tcs[0].Srv.walletState
 
-	// in-chat send creates a new seqno provider for each one, so this
-	// is simulating three in-chat sends starting before the submit
+	// in-chat send creates a new seqno provider for each message, so this
+	// is simulating three in-chat send messages starting before the submit
 	// payment happens.
 
 	sp0 := stellar.NewSeqnoProvider(mctx, ws)
