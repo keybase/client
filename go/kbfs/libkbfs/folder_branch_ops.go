@@ -8055,6 +8055,7 @@ func (fbo *folderBranchOps) ForceFastForward(ctx context.Context) {
 		// cleared.
 		return
 	}
+	fbo.hasBeenCleared = false
 
 	fbo.forcedFastForwards.Add(1)
 	go func() {
@@ -8063,10 +8064,33 @@ func (fbo *folderBranchOps) ForceFastForward(ctx context.Context) {
 		defer cancelFunc()
 
 		fbo.log.CDebugf(ctx, "Forcing a fast-forward")
-		currHead, err := fbo.config.MDOps().GetForTLF(ctx, fbo.id(), nil)
-		if err != nil {
-			fbo.log.CDebugf(ctx, "Fast-forward failed: %v", err)
-			return
+		var currHead ImmutableRootMetadata
+		var err error
+	getMD:
+		for i := 0; ; i++ {
+			currHead, err = fbo.config.MDOps().GetForTLF(ctx, fbo.id(), nil)
+			switch errors.Cause(err).(type) {
+			case nil:
+				break getMD
+			case kbfsmd.ServerErrorUnauthorized:
+				// The MD server connection might not be authorized
+				// yet, so give it a few chances to go through.
+				if i > 5 {
+					fbo.log.CDebugf(ctx,
+						"Still unauthorized for TLF %s; giving up fast-forward",
+						fbo.id())
+					return
+				}
+				if i == 0 {
+					fbo.log.CDebugf(
+						ctx, "Got unauthorized error when fast-forwarding %s; "+
+							"trying again after a delay", fbo.id())
+				}
+				time.Sleep(1 * time.Second)
+			default:
+				fbo.log.CDebugf(ctx, "Fast-forward failed: %+v", err)
+				return
+			}
 		}
 		if currHead == (ImmutableRootMetadata{}) {
 			fbo.log.CDebugf(ctx, "No MD yet")
