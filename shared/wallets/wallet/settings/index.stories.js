@@ -75,11 +75,6 @@ const secondarySettingsProps = {
   name: 'some other account',
 }
 
-const withMobileOnlyEditable = {
-  ...secondarySettingsProps,
-  mobileOnlyEditable: true,
-}
-
 const load = () => {
   Sb.storiesOf('Wallets/Wallet/Settings', module)
     .add('Default', () => <Settings {...defaultSettingsProps} />)
@@ -87,7 +82,7 @@ const load = () => {
       <Settings {...defaultSettingsProps} inflationDestination="Stellar Development Foundation" />
     ))
     .add('Secondary', () => <Settings {...secondarySettingsProps} />)
-    .add('MobileOnlyEditable', () => <Settings {...withMobileOnlyEditable} />)
+    .add('MobileOnlyEditable', () => <Settings {...secondarySettingsProps} mobileOnlyEditable={true} />)
   popups()
 }
 
