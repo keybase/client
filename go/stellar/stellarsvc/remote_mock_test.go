@@ -596,9 +596,6 @@ func (r *BackendMock) AccountSeqno(ctx context.Context, accountID stellar1.Accou
 		r.seqnos[accountID] = uint64(time.Now().UnixNano())
 	}
 
-	// XXX this is wrong
-	// r.seqnos[accountID]++
-
 	return r.seqnos[accountID], nil
 }
 
