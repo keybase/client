@@ -431,13 +431,10 @@ class LoadTransactionDetails extends React.Component<Props> {
   }
   componentDidUpdate(prevProps: Props) {
     // An erased transaction ID likely means the payment was updated,
-    // which means details need to be retrieved again
-    if (
-      (!this.props.transactionID || !this.props.senderAccountID) &&
-      prevProps.transactionID &&
-      prevProps.senderAccountID &&
-      !this.props.loading
-    ) {
+    // which means details need to be retrieved again.
+    // Also, recentPaymentsReceived can race with paymentDetailReceived
+    // so that loading finishes before transactionID is ever seen here.
+    if ((!this.props.transactionID || !this.props.senderAccountID) && !this.props.loading) {
       this.props.onLoadPaymentDetail()
     }
   }
