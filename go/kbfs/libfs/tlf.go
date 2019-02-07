@@ -58,6 +58,13 @@ func FilterTLFEarlyExitError(ctx context.Context, err error, log logger.Logger, 
 			name)
 		return true, nil
 
+	case libkbfs.NonExistentTeamForHandleError:
+		// Same as above; cannot fallthrough in type switch
+		log.CDebugf(ctx,
+			"No permission to write to %s, so pretending it's empty",
+			name)
+		return true, nil
+
 	default:
 		if strings.Contains(err.Error(), "need writer access") {
 			// The service returns an untyped error when we try to
