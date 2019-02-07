@@ -63,6 +63,7 @@ const findVisibleRoute = s => {
 export const oldActionToNewAction = (action: any, navigation: any) => {
   switch (action.type) {
     case RouteTreeGen.navigateTo: // fallthrough
+    case RouteTreeGen.switchTo: // fallthrough
     case RouteTreeGen.navigateAppend: {
       if (!navigation) {
         return

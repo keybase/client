@@ -450,8 +450,14 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
 
   if (flags.useNewRouter) {
     yield* Saga.chainAction<
-      RouteTreeGen.NavigateAppendPayload | RouteTreeGen.NavigateToPayload | RouteTreeGen.NavigateUpPayload
-    >([RouteTreeGen.navigateAppend, RouteTreeGen.navigateTo, RouteTreeGen.navigateUp], newNavigation)
+      | RouteTreeGen.NavigateAppendPayload
+      | RouteTreeGen.NavigateToPayload
+      | RouteTreeGen.NavigateUpPayload
+      | RouteTreeGen.SwitchToPayload
+    >(
+      [RouteTreeGen.navigateAppend, RouteTreeGen.navigateTo, RouteTreeGen.navigateUp, RouteTreeGen.switchTo],
+      newNavigation
+    )
   }
 
   // Kick off platform specific stuff
