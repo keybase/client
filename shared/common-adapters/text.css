@@ -3,7 +3,7 @@
 .text_HeaderBig {
   font-size: 26px;
   line-height: 31px;
-  color: rgba(0, 0, 0, 0.85);
+  color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: Keybase;
@@ -13,7 +13,7 @@
 .text_HeaderBigExtrabold {
   font-size: 26px;
   line-height: 31px;
-  color: rgba(0, 0, 0, 0.85);
+  color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: Keybase;
@@ -23,7 +23,7 @@
 .text_Header {
   font-size: 20px;
   line-height: 25px;
-  color: rgba(0, 0, 0, 0.85);
+  color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: Keybase;
@@ -33,7 +33,7 @@
 .text_HeaderItalic {
   font-size: 20px;
   line-height: 25px;
-  color: rgba(0, 0, 0, 0.85);
+  color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: Keybase;
@@ -44,7 +44,7 @@
 .text_HeaderExtrabold {
   font-size: 20px;
   line-height: 25px;
-  color: rgba(0, 0, 0, 0.85);
+  color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: Keybase;
@@ -65,7 +65,7 @@
 .text_BodyBig {
   font-size: 17px;
   line-height: 22px;
-  color: rgba(0, 0, 0, 0.85);
+  color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: Keybase;
@@ -75,7 +75,7 @@
 .text_BodyBigExtrabold {
   font-size: 17px;
   line-height: 22px;
-  color: rgba(0, 0, 0, 0.85);
+  color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: Keybase;
@@ -96,7 +96,7 @@
 .text_Body {
   font-size: 15px;
   line-height: 20px;
-  color: rgba(0, 0, 0, 0.85);
+  color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: Keybase;
@@ -106,7 +106,7 @@
 .text_BodyItalic {
   font-size: 15px;
   line-height: 20px;
-  color: rgba(0, 0, 0, 0.85);
+  color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: Keybase;
@@ -117,7 +117,7 @@
 .text_BodySemibold {
   font-size: 15px;
   line-height: 20px;
-  color: rgba(0, 0, 0, 0.85);
+  color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: Keybase;
@@ -128,7 +128,7 @@
   font-size: 15px;
   font-style: it9lic;
   line-height: 18px;
-  color: rgba(0, 0, 0, 0.85);
+  color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: Keybase;
@@ -148,7 +148,7 @@
 .text_BodyExtrabold {
   font-size: 15px;
   line-height: 20px;
-  color: rgba(0, 0, 0, 0.85);
+  color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: Keybase;
