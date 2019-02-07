@@ -1,55 +1,59 @@
 // @flow
+import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
-import {Box, Button, Text} from '../../common-adapters'
-import {PathItemInfo, PathItemIcon} from '../common'
+import * as Kb from '../../common-adapters'
+import {PathItemActionWithClickableComponent, PathItemInfo, PathItemIcon} from '../common'
 import {memoize} from 'lodash-es'
 import {fileUIName, isMobile, isIOS} from '../../constants/platform'
+import {hasShare} from '../common/path-item-action/layout'
 
 type DefaultViewProps = {
+  download: () => void,
   fileUIEnabled: boolean,
   path: Types.Path,
   pathItem: Types.PathItem,
-
-  download: () => void,
-  saveMedia: () => void,
-  shareNative: () => void,
+  routePath: I.List<string>,
   showInSystemFileManager: () => void,
 }
 
 const DefaultView = (props: DefaultViewProps) => (
-  <Box style={stylesContainer}>
+  <Kb.Box style={stylesContainer}>
     <PathItemIcon path={props.path} size={32} />
-    <Text type="BodyBig" style={stylesFilename(Constants.getPathTextColor(props.path))}>
+    <Kb.Text type="BodyBig" style={stylesFilename(Constants.getPathTextColor(props.path))}>
       {props.pathItem.name}
-    </Text>
-    <Text type="BodySmall">{Constants.humanReadableFileSize(props.pathItem.size)}</Text>
+    </Kb.Text>
+    <Kb.Text type="BodySmall">{Constants.humanReadableFileSize(props.pathItem.size)}</Kb.Text>
     {isMobile && <PathItemInfo path={props.path} mode="default" />}
     {props.pathItem.type === 'symlink' && (
-      <Text type="BodySmall" style={stylesSymlink}>
+      <Kb.Text type="BodySmall" style={stylesSymlink}>
         {'This is a symlink' + (props.pathItem.linkTarget ? ` to: ${props.pathItem.linkTarget}.` : '.')}
-      </Text>
+      </Kb.Text>
     )}
     {isMobile && (
-      <Text center={true} type="BodySmall" style={stylesNoOpenMobile}>
+      <Kb.Text center={true} type="BodySmall" style={stylesNoOpenMobile}>
         This document can not be opened on mobile. You can still interact with it using the ••• menu.
-      </Text>
+      </Kb.Text>
     )}
     {// Enable this button for desktop when we have in-app sharing.
-    isMobile && (
-      <Button
-        key="share"
-        type="Primary"
-        label="Share"
-        style={{marginTop: globalMargins.medium}}
-        onClick={props.shareNative}
-      />
+    hasShare(props.path, props.pathItem) && (
+      <>
+        <Kb.Box2 direction="vertical" gap="medium" gapStart={true} />
+        <PathItemActionWithClickableComponent
+          clickable={({onClick, setRef}) => (
+            <Kb.Button key="share" type="Primary" label="Share" onClick={onClick} ref={setRef} />
+          )}
+          path={props.path}
+          routePath={props.routePath}
+          initView="share"
+        />
+      </>
     )}
     {!isIOS &&
       (props.fileUIEnabled ? (
-        <Button
+        <Kb.Button
           key="open"
           type="Secondary"
           label={'Show in ' + fileUIName}
@@ -57,7 +61,7 @@ const DefaultView = (props: DefaultViewProps) => (
           onClick={props.showInSystemFileManager}
         />
       ) : (
-        <Button
+        <Kb.Button
           key="download"
           type="Secondary"
           label="Download a copy"
@@ -65,7 +69,7 @@ const DefaultView = (props: DefaultViewProps) => (
           onClick={props.download}
         />
       ))}
-  </Box>
+  </Kb.Box>
 )
 
 const stylesContainer = platformStyles({
