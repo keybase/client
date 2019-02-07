@@ -11,6 +11,7 @@ export type Props = {
   children: React.Node,
   when?: Date,
   contentStyle?: any,
+  type?: String,
 }
 
 export default (props: Props) => (
@@ -21,7 +22,8 @@ export default (props: Props) => (
       borderBottomColor: props.badged ? globalColors.white : globalColors.black_10,
     }}
   >
-    <Kb.Box style={iconContainerStyle}>{props.icon}</Kb.Box>
+    {props.icon && <Kb.Box style={iconContainerStyle}>{props.icon}</Kb.Box>}
+
     <Kb.Box2
       direction="vertical"
       gap="tiny"
@@ -32,8 +34,8 @@ export default (props: Props) => (
     >
       {props.children}
     </Kb.Box2>
-    <Kb.Box style={timestampContainerStyle}>
-      {!!props.when && <Kb.Text type="BodySmall">{formatTimeForPeopleItem(props.when.getTime())}</Kb.Text>}
+    <Kb.Box style={props.type === 'multi' ? timestampContainerStyleMulti : timestampContainerStyleSingle}>
+      {!!props.when && <Kb.Text type="BodyTiny">{formatTimeForPeopleItem(props.when.getTime())}</Kb.Text>}
       {props.badged && <Kb.Box style={badgeStyle} />}
     </Kb.Box>
   </Kb.Box>
@@ -43,7 +45,7 @@ const containerStyle = {
   ...globalStyles.flexBoxRow,
   borderBottomWidth: 1,
   paddingBottom: globalMargins.tiny,
-  paddingLeft: 12,
+  paddingLeft: globalMargins.small,
   paddingTop: globalMargins.tiny,
   position: 'relative',
   ...(isMobile ? null : {borderStyle: 'solid'}),
@@ -53,17 +55,24 @@ const iconContainerStyle = {marginRight: 20, width: isMobile ? 48 : 32}
 
 const childrenContainerStyle = {
   overflow: 'hidden',
-  paddingRight: isMobile ? 100 : 80,
+  paddingRight: isMobile ? globalMargins.large : globalMargins.medium,
   position: 'relative',
   width: 'auto',
 }
 
-const timestampContainerStyle = {
+const timestampContainerStyleMulti = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
+  alignSelf: 'flex-start',
   position: 'absolute',
-  right: isMobile ? globalMargins.tiny : globalMargins.small,
-  top: 12,
+  right: globalMargins.small,
+  top: globalMargins.xsmall,
+}
+
+const timestampContainerStyleSingle = {
+  ...timestampContainerStyleMulti,
+  alignSelf: 'center',
+  top: 'inherit',
 }
 
 const badgeStyle = {

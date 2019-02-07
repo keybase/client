@@ -52,6 +52,7 @@ export const FollowNotification = (props: Props) => {
         }
         when={props.notificationTime}
         contentStyle={{justifyContent: 'center'}}
+        type="single"
       >
         <Text type="Body">
           <ConnectedUsernames
@@ -72,22 +73,7 @@ export const MultiFollowNotification = (props: Props) => {
   }
   const usernames = props.newFollows.map(f => f.username)
   return (
-    <PeopleItem
-      badged={props.badged}
-      icon={
-        <Box style={multiIconContainerStyle}>
-          <Icon type={isMobile ? 'icon-followers-new-48' : 'icon-followers-new-32'} />
-          <Box style={multiMetaContainerStyle}>
-            <Meta
-              title={`+${props.newFollows.length + (props.numAdditional || 0)}`}
-              backgroundColor={globalColors.blue}
-              style={multiMetaStyle}
-            />
-          </Box>
-        </Box>
-      }
-      when={props.notificationTime}
-    >
+    <PeopleItem type="multi" badged={props.badged} when={props.notificationTime}>
       <Text
         type="Body"
         style={platformStyles({
