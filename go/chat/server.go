@@ -182,7 +182,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 	// Invoke nonblocking inbox read and get remote inbox version to send back
 	// as our result
 	_, localizeCb, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerNonblocking,
-		true, arg.MaxUnbox, arg.Query, arg.Pagination)
+		types.InboxSourceDataSourceAll, arg.MaxUnbox, arg.Query, arg.Pagination)
 	if err != nil {
 		// If this is a convID based query, let's go ahead and drop those onto
 		// the retrier
@@ -354,7 +354,8 @@ func (h *Server) GetInboxUILocal(ctx context.Context, arg chat1.GetInboxUILocalA
 		return res, err
 	}
 	// Read inbox from the source
-	ib, err := h.G().InboxSource.ReadUnverified(ctx, uid, true, rquery, arg.Pagination)
+	ib, err := h.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll, rquery,
+		arg.Pagination)
 	if err != nil {
 		if _, ok := err.(UnknownTLFNameError); ok {
 			h.Debug(ctx, "GetInboxAndUnboxLocal: got unknown TLF name error, returning blank results")
@@ -389,8 +390,8 @@ func (h *Server) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.GetInboxAn
 	}
 
 	// Read inbox from the source
-	ib, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil,
-		arg.Query, arg.Pagination)
+	ib, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
+		types.InboxSourceDataSourceAll, nil, arg.Query, arg.Pagination)
 	if err != nil {
 		if _, ok := err.(UnknownTLFNameError); ok {
 			h.Debug(ctx, "GetInboxAndUnboxLocal: got unknown TLF name error, returning blank results")
@@ -420,8 +421,8 @@ func (h *Server) GetInboxAndUnboxUILocal(ctx context.Context, arg chat1.GetInbox
 		return res, err
 	}
 	// Read inbox from the source
-	ib, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil,
-		arg.Query, arg.Pagination)
+	ib, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
+		types.InboxSourceDataSourceAll, nil, arg.Query, arg.Pagination)
 	if err != nil {
 		if _, ok := err.(UnknownTLFNameError); ok {
 			h.Debug(ctx, "GetInboxAndUnboxUILocal: got unknown TLF name error, returning blank results")
@@ -1718,7 +1719,8 @@ func (h *Server) FindConversationsLocal(ctx context.Context,
 		return res, err
 	}
 
-	res.Conversations, err = FindConversations(ctx, h.G(), h.DebugLabeler, true /* useLocalData */, h.remoteClient,
+	res.Conversations, err = FindConversations(ctx, h.G(), h.DebugLabeler,
+		types.InboxSourceDataSourceAll, h.remoteClient,
 		uid, arg.TlfName, arg.TopicType, arg.MembersType, arg.Visibility, arg.TopicName, arg.OneChatPerTLF)
 	if err != nil {
 		return res, err
@@ -2045,7 +2047,8 @@ func (h *Server) AddTeamMemberAfterReset(ctx context.Context,
 	}
 
 	// Lookup conversation to get team ID
-	iboxRes, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil,
+	iboxRes, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
+		types.InboxSourceDataSourceAll, nil,
 		&chat1.GetInboxLocalQuery{
 			ConvIDs: []chat1.ConversationID{arg.ConvID},
 		}, nil)
@@ -2104,9 +2107,10 @@ func (h *Server) GetTeamRetentionLocal(ctx context.Context, teamID keybase1.Team
 		return res, err
 	}
 	p := chat1.Pagination{Num: 1}
-	ib, err := h.G().InboxSource.ReadUnverified(ctx, uid, true, &chat1.GetInboxQuery{
-		TlfID: &tlfID,
-	}, &p)
+	ib, err := h.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll,
+		&chat1.GetInboxQuery{
+			TlfID: &tlfID,
+		}, &p)
 	if err != nil {
 		return res, err
 	}
@@ -2133,7 +2137,8 @@ func (h *Server) UpgradeKBFSConversationToImpteam(ctx context.Context, convID ch
 		return err
 	}
 
-	ibox, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil,
+	ibox, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
+		types.InboxSourceDataSourceAll, nil,
 		&chat1.GetInboxLocalQuery{
 			ConvIDs: []chat1.ConversationID{convID},
 		}, nil)
@@ -2308,7 +2313,7 @@ func (h *Server) ResolveUnfurlPrompt(ctx context.Context, arg chat1.ResolveUnfur
 		return err
 	}
 	fetchAndUnfurl := func() error {
-		conv, err := GetUnverifiedConv(ctx, h.G(), uid, arg.ConvID, true)
+		conv, err := GetUnverifiedConv(ctx, h.G(), uid, arg.ConvID, types.InboxSourceDataSourceAll)
 		if err != nil {
 			return err
 		}

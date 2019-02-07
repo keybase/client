@@ -79,7 +79,8 @@ func (c *ConversationRetry) fixInboxFetch(ctx context.Context, uid gregor1.UID) 
 	c.Debug(ctx, "fixInboxFetch: retrying conversation")
 
 	// Reload this conversation and hope it works
-	inbox, _, err := c.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil,
+	inbox, _, err := c.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
+		types.InboxSourceDataSourceAll, nil,
 		&chat1.GetInboxLocalQuery{
 			ConvIDs: []chat1.ConversationID{c.convID},
 		}, nil)
@@ -169,7 +170,7 @@ func (f FullInboxRetry) Fix(ctx context.Context, uid gregor1.UID) error {
 		f.Debug(ctx, "Fix: failed to convert query: %s", err.Error())
 		return err
 	}
-	_, err = f.G().InboxSource.ReadUnverified(ctx, uid, true, query, f.pagination)
+	_, err = f.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll, query, f.pagination)
 	if err != nil {
 		f.Debug(ctx, "Fix: failed to load again: %d", err.Error())
 	}
