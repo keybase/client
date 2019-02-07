@@ -106,7 +106,7 @@ class BottomLine extends PureComponent<Props> {
             </Box2>
           )}
           {!exploded && !!this.props.snippet && (
-            <Markdown type="BodySmall" preview={true} style={style}>
+            <Markdown preview={true} style={style}>
               {this.props.snippet}
             </Markdown>
           )}
@@ -163,6 +163,7 @@ const styles = styleSheetCreate({
       backgroundColor: globalColors.fastBlank,
       color: globalColors.black_50,
       flex: 1,
+      fontSize: 15,
       paddingRight: 40,
       paddingTop: 2, // so the tops of emoji aren't chopped off
     },

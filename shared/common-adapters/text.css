@@ -1,8 +1,8 @@
 /* Used by text on desktop to speed up perf */
 
 .text_HeaderBig {
-  font-size: 24px;
-  line-height: 28px;
+  font-size: 26px;
+  line-height: 31px;
   color: rgba(0, 0, 0, 0.85);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -11,8 +11,8 @@
 }
 
 .text_HeaderBigExtrabold {
-  font-size: 24px;
-  line-height: 28px;
+  font-size: 26px;
+  line-height: 31px;
   color: rgba(0, 0, 0, 0.85);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -21,8 +21,8 @@
 }
 
 .text_Header {
-  font-size: 18px;
-  line-height: 22px;
+  font-size: 20px;
+  line-height: 25px;
   color: rgba(0, 0, 0, 0.85);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -31,8 +31,8 @@
 }
 
 .text_HeaderItalic {
-  font-size: 18px;
-  line-height: 22px;
+  font-size: 20px;
+  line-height: 25px;
   color: rgba(0, 0, 0, 0.85);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -42,8 +42,8 @@
 }
 
 .text_HeaderExtrabold {
-  font-size: 18px;
-  line-height: 22px;
+  font-size: 20px;
+  line-height: 25px;
   color: rgba(0, 0, 0, 0.85);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -52,8 +52,8 @@
 }
 
 .text_HeaderLink {
-  font-size: 18px;
-  line-height: 22px;
+  font-size: 20px;
+  line-height: 25px;
   color: rgb(76, 142, 255);
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
@@ -63,8 +63,8 @@
 }
 
 .text_BodyBig {
-  font-size: 15px;
-  line-height: 19px;
+  font-size: 17px;
+  line-height: 22px;
   color: rgba(0, 0, 0, 0.85);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -73,8 +73,8 @@
 }
 
 .text_BodyBigExtrabold {
-  font-size: 15px;
-  line-height: 19px;
+  font-size: 17px;
+  line-height: 22px;
   color: rgba(0, 0, 0, 0.85);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -83,8 +83,8 @@
 }
 
 .text_BodyBigLink {
-  font-size: 15px;
-  line-height: 19px;
+  font-size: 17px;
+  line-height: 22px;
   color: rgb(76, 142, 255);
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
@@ -94,8 +94,8 @@
 }
 
 .text_Body {
-  font-size: 14px;
-  line-height: 18px;
+  font-size: 15px;
+  line-height: 20px;
   color: rgba(0, 0, 0, 0.85);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -104,8 +104,8 @@
 }
 
 .text_BodyItalic {
-  font-size: 14px;
-  line-height: 18px;
+  font-size: 15px;
+  line-height: 20px;
   color: rgba(0, 0, 0, 0.85);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -115,8 +115,8 @@
 }
 
 .text_BodySemibold {
-  font-size: 14px;
-  line-height: 18px;
+  font-size: 15px;
+  line-height: 20px;
   color: rgba(0, 0, 0, 0.85);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -125,8 +125,8 @@
 }
 
 .text_BodySemiboldItalic {
-  font-size: 14px;
-  font-style: italic;
+  font-size: 15px;
+  font-style: it9lic;
   line-height: 18px;
   color: rgba(0, 0, 0, 0.85);
   -webkit-font-smoothing: antialiased;
@@ -136,8 +136,8 @@
 }
 
 .text_BodySemiboldLink {
-  font-size: 14px;
-  line-height: 18px;
+  font-size: 15px;
+  line-height: 20px;
   color: rgb(76, 142, 255);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -146,8 +146,8 @@
 }
 
 .text_BodyExtrabold {
-  font-size: 14px;
-  line-height: 18px;
+  font-size: 15px;
+  line-height: 20px;
   color: rgba(0, 0, 0, 0.85);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -156,8 +156,8 @@
 }
 
 .text_BodyPrimaryLink {
-  font-size: 14px;
-  line-height: 18px;
+  font-size: 15px;
+  line-height: 20px;
   color: rgb(76, 142, 255);
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
@@ -167,8 +167,8 @@
 }
 
 .text_BodySecondaryLink {
-  font-size: 14px;
-  line-height: 18px;
+  font-size: 15px;
+  line-height: 20px;
   color: rgba(0, 0, 0, 0.5);
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
@@ -178,8 +178,8 @@
 }
 
 .text_BodySmall {
-  font-size: 13px;
-  line-height: 16px;
+  font-size: 14px;
+  line-height: 19px;
   color: rgba(0, 0, 0, 0.5);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -188,8 +188,8 @@
 }
 
 .text_BodySmallItalic {
-  font-size: 13px;
-  line-height: 17px;
+  font-size: 14px;
+  line-height: 19px;
   color: rgba(0, 0, 0, 0.5);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -199,8 +199,8 @@
 }
 
 .text_BodySmallPrimaryLink {
-  font-size: 13px;
-  line-height: 17px;
+  font-size: 14px;
+  line-height: 19px;
   color: #4c8eff;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
@@ -210,8 +210,8 @@
 }
 
 .text_BodySmallExtrabold {
-  font-size: 13px;
-  line-height: 17px;
+  font-size: 14px;
+  line-height: 19px;
   color: rgba(0, 0, 0, 0.5);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -220,8 +220,8 @@
 }
 
 .text_BodySmallSemiboldItalic {
-  font-size: 13px;
-  font-style: italic;
+  font-size: 14px;
+  font-style: it9lic;
   line-height: 17px;
   color: rgba(0, 0, 0, 0.5);
   -webkit-font-smoothing: antialiased;
@@ -231,8 +231,8 @@
 }
 
 .text_BodySmallSemiboldPrimaryLink {
-  font-size: 13px;
-  line-height: 17px;
+  font-size: 14px;
+  line-height: 19px;
   color: rgb(76, 142, 255);
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
@@ -242,8 +242,8 @@
 }
 
 .text_BodySmallSemiboldSecondaryLink {
-  font-size: 13px;
-  line-height: 17px;
+  font-size: 14px;
+  line-height: 19px;
   color: rgb(0, 0, 0, 0.6);
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
@@ -253,8 +253,8 @@
 }
 
 .text_BodySmallSecondaryLink {
-  font-size: 13px;
-  line-height: 17px;
+  font-size: 14px;
+  line-height: 19px;
   color: rgba(0, 0, 0, 0.5);
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
@@ -264,8 +264,8 @@
 }
 
 .text_BodySmallExtraboldSecondaryLink {
-  font-size: 13px;
-  line-height: 17px;
+  font-size: 14px;
+  line-height: 19px;
   color: rgba(0, 0, 0, 0.5);
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
@@ -275,8 +275,8 @@
 }
 
 .text_BodySmallError {
-  font-size: 13px;
-  line-height: 17px;
+  font-size: 14px;
+  line-height: 19px;
   color: rgb(255, 77, 97);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -285,8 +285,8 @@
 }
 
 .text_BodySmallSuccess {
-  font-size: 13px;
-  line-height: 17px;
+  font-size: 14px;
+  line-height: 19px;
   color: rgb(55, 189, 153);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -295,8 +295,8 @@
 }
 
 .text_BodySmallWallet {
-  font-size: 13px;
-  line-height: 17px;
+  font-size: 14px;
+  line-height: 19px;
   color: rgb(132, 92, 219);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -306,7 +306,7 @@
 
 .text_BodyTiny {
   font-size: 12px;
-  line-height: 16px;
+  line-height: 17px;
   color: rgba(0, 0, 0, 0.5);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -316,7 +316,7 @@
 
 .text_BodyTinyBold {
   font-size: 12px;
-  line-height: 16px;
+  line-height: 17px;
   color: rgba(0, 0, 0, 0.5);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -326,16 +326,6 @@
 
 .text_BodyTinySemibold {
   font-size: 12px;
-  line-height: 16px;
-  color: rgba(0, 0, 0, 0.5);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-  font-family: Keybase;
-  font-weight: 600;
-}
-
-.text_BodySmallSemibold {
-  font-size: 13px;
   line-height: 17px;
   color: rgba(0, 0, 0, 0.5);
   -webkit-font-smoothing: antialiased;
@@ -344,9 +334,19 @@
   font-weight: 600;
 }
 
+.text_BodySmallSemibold {
+  font-size: 14px;
+  line-height: 19px;
+  color: rgba(0, 0, 0, 0.5);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: Keybase;
+  font-weight: 600;
+}
+
 .text_Terminal {
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 14px;
+  line-height: 29px;
   color: #a8ccff;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -354,8 +354,8 @@
 }
 
 .text_TerminalComment {
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 14px;
+  line-height: 29px;
   color: rgba(168, 204, 255, 0.4);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -363,8 +363,8 @@
 }
 
 .text_TerminalEmpty {
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 14px;
+  line-height: 29px;
   color: rgba(168, 204, 255, 0.4);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
@@ -373,8 +373,8 @@
 }
 
 .text_TerminalInline {
-  font-size: 13px;
-  line-height: 16px;
+  font-size: 14px;
+  line-height: 19px;
   color: #2645a3;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;

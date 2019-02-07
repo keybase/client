@@ -27,15 +27,15 @@ export type MarkdownMeta = {|
 |}
 
 export type StyleOverride = {
-    paragraph?: Styles.StylesCrossPlatform,
-    fence?: Styles.StylesCrossPlatform,
-    inlineCode?: Styles.StylesCrossPlatform,
-    strong?: Styles.StylesCrossPlatform,
-    em?: Styles.StylesCrossPlatform,
-    del?: Styles.StylesCrossPlatform,
-    link?: Styles.StylesCrossPlatform,
-    mailto?: Styles.StylesCrossPlatform,
-    preview?: Styles.StylesCrossPlatform,
+  paragraph?: Styles.StylesCrossPlatform,
+  fence?: Styles.StylesCrossPlatform,
+  inlineCode?: Styles.StylesCrossPlatform,
+  strong?: Styles.StylesCrossPlatform,
+  em?: Styles.StylesCrossPlatform,
+  del?: Styles.StylesCrossPlatform,
+  link?: Styles.StylesCrossPlatform,
+  mailto?: Styles.StylesCrossPlatform,
+  preview?: Styles.StylesCrossPlatform,
 }
 
 export type Props = {
