@@ -63,6 +63,9 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
     return this._lastText || ''
   }
 
+  // Key-handling code shared by both the input key handler
+  // (_onKeyDown) and the global key handler
+  // (_globalKeyDownPressHandler).
   _commonOnKeyDown = (e: SyntheticKeyboardEvent<> | KeyboardEvent) => {
     const text = this._getText()
     if (e.key === 'ArrowUp' && !this.props.isEditing && !text) {
