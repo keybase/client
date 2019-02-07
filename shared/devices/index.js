@@ -177,16 +177,10 @@ const paperKeyNudgeStyles = Styles.styleSheetCreate({
       flex: 1,
     },
     isElectron: {
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-      paddingTop: Styles.globalMargins.tiny,
+      ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.small),
     },
     isMobile: {
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingLeft: Styles.globalMargins.xsmall,
-      paddingRight: Styles.globalMargins.xsmall,
-      paddingTop: Styles.globalMargins.tiny,
+      ...Styles.padding(Styles.globalMargins.tiny, Styles.globalMargins.xsmall),
     },
   }),
   container: Styles.platformStyles({
