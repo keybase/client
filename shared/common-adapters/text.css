@@ -187,6 +187,16 @@
   font-weight: 400;
 }
 
+.text_BodySmallBold {
+  font-size: 13px;
+  line-height: 16px;
+  color: rgba(0, 0, 0, 0.5);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: Keybase;
+  font-weight: 700;
+}
+
 .text_BodySmallItalic {
   font-size: 13px;
   line-height: 17px;

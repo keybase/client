@@ -102,7 +102,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               colorBroken={true}
               colorFollowing={true}
               colorYou={true}
-              type="BodySmallSemibold"
+              type="BodySmallBold"
               usernames={[this.props.showUsername]}
               onUsernameClicked={this._onAuthorClick}
             />
@@ -604,7 +604,7 @@ const styles = Styles.styleSheetCreate({
   timestamp: Styles.platformStyles({
     common: {position: 'relative'},
     isElectron: {top: 1},
-    isMobile: {top: 2},
+    isMobile: {top: 1.5},
   }),
 })
 
