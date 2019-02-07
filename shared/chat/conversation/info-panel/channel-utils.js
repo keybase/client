@@ -1,26 +1,18 @@
 // @flow
 import * as React from 'react'
-import {
-  Box,
-  Button,
-  ButtonBar,
-  ClickableBox,
-  Icon,
-  Text,
-  type IconType,
-  WaitingButton,
-} from '../../../common-adapters'
-import {globalColors, globalMargins, globalStyles} from '../../../styles'
+import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
 
 const CaptionedButton = (props: {
   label: string,
   caption: string,
   onClick: () => void,
+  style?: Styles.StylesCrossPlatform,
   waitOnClick?: boolean,
 }) => (
-  <Box style={{...globalStyles.flexBoxColumn}}>
+  <Kb.Box2 style={{...Styles.globalStyles.flexBoxColumn, ...props.style}} gap="tiny">
     {props.waitOnClick ? (
-      <WaitingButton
+      <Kb.WaitingButton
         type="Primary"
         small={true}
         label={props.label}
@@ -28,18 +20,18 @@ const CaptionedButton = (props: {
         waitingKey={null}
       />
     ) : (
-      <Button type="Primary" small={true} label={props.label} onClick={props.onClick} />
+      <Kb.Button type="Primary" small={true} label={props.label} onClick={props.onClick} />
     )}
-    <Text center={true} style={{marginTop: globalMargins.xtiny}} type="BodySmall">
+    <Kb.Text center={true} type="BodySmall">
       {props.caption}
-    </Text>
-  </Box>
+    </Kb.Text>
+  </Kb.Box2>
 )
 
 const DangerButton = (props: {label: string, onClick: () => void}) => (
-  <ButtonBar small={true}>
-    <Button type="Danger" small={true} label={props.label} onClick={props.onClick} />
-  </ButtonBar>
+  <Kb.ButtonBar small={true}>
+    <Kb.Button type="Danger" small={true} label={props.label} onClick={props.onClick} />
+  </Kb.ButtonBar>
 )
 
 const CaptionedDangerIcon = ({
@@ -51,21 +43,21 @@ const CaptionedDangerIcon = ({
   caption: string,
   onClick: () => void,
 }) => (
-  <ClickableBox
+  <Kb.ClickableBox
     style={{
-      ...globalStyles.flexBoxRow,
+      ...Styles.globalStyles.flexBoxRow,
       alignItems: 'center',
       justifyContent: 'center',
-      paddingBottom: globalMargins.tiny,
-      paddingTop: globalMargins.tiny,
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingTop: Styles.globalMargins.tiny,
     }}
     onClick={onClick}
   >
-    <Icon type={icon} style={{marginRight: globalMargins.tiny}} color={globalColors.red} />
-    <Text type="BodySemibold" style={{color: globalColors.red}} className="hover-underline">
+    <Kb.Icon type={icon} style={{marginRight: Styles.globalMargins.tiny}} color={Styles.globalColors.red} />
+    <Kb.Text type="BodySemibold" style={{color: Styles.globalColors.red}} className="hover-underline">
       {caption}
-    </Text>
-  </ClickableBox>
+    </Kb.Text>
+  </Kb.ClickableBox>
 )
 
 export {CaptionedButton, DangerButton, CaptionedDangerIcon}
