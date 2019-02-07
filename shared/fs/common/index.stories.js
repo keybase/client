@@ -6,7 +6,7 @@ import * as Sb from '../../stories/storybook'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/fs'
 import * as Kb from '../../common-adapters'
-import PathItemAction from './path-item-action'
+import PathItemAction from './path-item-action/path-item-action-default'
 import PathItemIcon, {type Size} from './path-item-icon'
 import PathItemInfo from './path-item-info'
 import TlfInfo from './tlf-info'
@@ -15,7 +15,7 @@ import Errs from './errs'
 import {type OwnProps as PathItemIconOwnProps} from './path-item-icon-container'
 import {type OwnProps as PathItemInfoOwnProps} from './path-item-info-container'
 
-const pathItemActionRootHeaderProps = (props: any) => ({
+const PathItemActionMenuHeaderProps = (props: any) => ({
   childrenFiles: 0,
   childrenFolders: 0,
   loadFolderList: Sb.action('loadFolderList'),
@@ -25,8 +25,9 @@ const pathItemActionRootHeaderProps = (props: any) => ({
   type: 'folder',
 })
 
-const pathItemActionProps = (props: any) => ({
+const pathItemActionWithClickableComponentProps = (props: any) => ({
   ...props,
+  init: Sb.action('init'),
   onHidden: Sb.action('onHidden'),
 })
 
@@ -35,7 +36,7 @@ const pathItemActionChooseViewProps = (props: any) => ({
   view: 'root',
 })
 
-const pathItemActionRootProps = (props: any) => ({
+const PathItemActionMenuProps = (props: any) => ({
   ...props,
   copyPath: Sb.action('copyPath'),
   deleteFileOrFolder: Sb.action('deleteFileOrFolder'),
@@ -55,10 +56,10 @@ export const commonProvider = {
   ConnectedErrs: () => ({
     errs: [],
   }),
-  PathItemAction: pathItemActionProps,
   PathItemActionChooseView: pathItemActionChooseViewProps,
-  PathItemActionRoot: pathItemActionRootProps,
-  PathItemActionRootHeader: pathItemActionRootHeaderProps,
+  PathItemActionMenu: PathItemActionMenuProps,
+  PathItemActionMenuHeader: PathItemActionMenuHeaderProps,
+  PathItemActionWithClickableComponent: pathItemActionWithClickableComponentProps,
   PathItemIcon: (ownProps: PathItemIconOwnProps) => ({
     ...ownProps,
     type: Types.getPathElements(ownProps.path).length > 3 ? 'file' : 'folder',
@@ -90,21 +91,18 @@ const load = () => {
       >
         <PathItemAction
           path={Types.stringToPath('/keybase/private/meatball/folder/treat')}
-          onHidden={Sb.action('onHidden')}
           routePath={I.List()}
         />
         <PathItemAction
           path={Types.stringToPath(
             '/keybase/private/meatball/treat treat treat treat treat treat treat treat treat treat treat treat treat treat treat treat'
           )}
-          onHidden={Sb.action('onHidden')}
           routePath={I.List()}
         />
         <PathItemAction
           path={Types.stringToPath(
             '/keybaes/private/meatball/foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar'
           )}
-          onHidden={Sb.action('onHidden')}
           routePath={I.List()}
         />
       </Kb.Box2>

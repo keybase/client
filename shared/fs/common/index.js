@@ -1,5 +1,8 @@
 // @flow
-export {default as PathItemAction} from './path-item-action/container'
+export {default as PathItemAction} from './path-item-action/path-item-action-default'
+export {
+  default as PathItemActionWithClickableComponent,
+} from './path-item-action/path-item-action-with-clickable-component-container'
 export {default as SendInAppAction} from './send-in-app-action'
 export {default as OpenInSystemFileManager} from './open-in-system-file-manager-container'
 export {default as PathItemInfo} from './path-item-info-container'
