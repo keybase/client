@@ -296,23 +296,17 @@ func (s *Syncer) notifyIncrementalSync(ctx context.Context, uid gregor1.UID,
 			chat1.NewChatSyncResultWithCurrent())
 		return
 	}
-	// gather local metadata
-	mds := make(map[string]*types.RemoteConversationMetadata)
-	ibox, err := s.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceLocalOnly,
-		&chat1.GetInboxQuery{
-			ConvIDs: utils.PluckConvIDs(allConvs),
-		}, nil)
-	if err == nil {
-		for _, c := range ibox.ConvsUnverified {
-			mds[c.GetConvID().String()] = c.LocalMetadata
-		}
-	}
 	m := make(map[chat1.TopicType][]chat1.ChatSyncIncrementalConv)
 	for _, c := range allConvs {
+		var md *types.RemoteConversationMetadata
+		rc, err := GetUnverifiedConv(ctx, s.G(), uid, c.GetConvID(), types.InboxSourceDataSourceLocalOnly)
+		if err == nil {
+			md = rc.LocalMetadata
+		}
 		m[c.GetTopicType()] = append(m[c.GetTopicType()], chat1.ChatSyncIncrementalConv{
 			Conv: utils.PresentRemoteConversation(ctx, s.G(), types.RemoteConversation{
 				Conv:          c,
-				LocalMetadata: mds[c.GetConvID().String()],
+				LocalMetadata: md,
 			}),
 			ShouldUnbox: shouldUnboxMap[c.GetConvID().String()],
 		})

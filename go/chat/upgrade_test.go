@@ -53,7 +53,7 @@ func TestChatKBFSUpgradeMixed(t *testing.T) {
 
 	boxer := NewBoxer(tc.Context())
 	sender := NewBlockingSender(tc.Context(), boxer, func() chat1.RemoteInterface { return ri })
-	prepareRes, err := sender.Prepare(ctx, kbfsPlain, chat1.ConversationMembersType_KBFS, &conv)
+	prepareRes, err := sender.Prepare(ctx, kbfsPlain, chat1.ConversationMembersType_KBFS, &conv.Conv)
 	require.NoError(t, err)
 	kbfsBoxed := prepareRes.Boxed
 	kbfsBoxed.ServerHeader = &chat1.MessageServerHeader{
@@ -64,7 +64,7 @@ func TestChatKBFSUpgradeMixed(t *testing.T) {
 	require.NoError(t, teams.UpgradeTLFIDToImpteam(ctx, tc.G, u.Username, tlfID, false,
 		keybase1.TeamApplication_CHAT, cres.CryptKeys))
 
-	conv.Metadata.MembersType = chat1.ConversationMembersType_IMPTEAMUPGRADE
+	conv.Conv.Metadata.MembersType = chat1.ConversationMembersType_IMPTEAMUPGRADE
 	ctx = CtxAddTestingNameInfoSource(ctx, nil)
 	header = chat1.MessageClientHeader{
 		TlfPublic:   false,
@@ -73,7 +73,7 @@ func TestChatKBFSUpgradeMixed(t *testing.T) {
 	}
 	teamPlain := textMsgWithHeader(t, "team", header)
 	prepareRes, err = sender.Prepare(ctx, teamPlain,
-		chat1.ConversationMembersType_IMPTEAMUPGRADE, &conv)
+		chat1.ConversationMembersType_IMPTEAMUPGRADE, &conv.Conv)
 	require.NoError(t, err)
 	teamBoxed := prepareRes.Boxed
 	teamBoxed.ServerHeader = &chat1.MessageServerHeader{
@@ -82,7 +82,7 @@ func TestChatKBFSUpgradeMixed(t *testing.T) {
 	}
 
 	checkUnbox := func() {
-		unboxed, err := boxer.UnboxMessages(ctx, []chat1.MessageBoxed{teamBoxed, kbfsBoxed}, conv)
+		unboxed, err := boxer.UnboxMessages(ctx, []chat1.MessageBoxed{teamBoxed, kbfsBoxed}, conv.Conv)
 		require.NoError(t, err)
 		require.Len(t, unboxed, 2)
 		for _, u := range unboxed {

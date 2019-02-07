@@ -229,14 +229,14 @@ func GetMessages(ctx context.Context, g *globals.Context, uid gregor1.UID, convI
 	}
 
 	// use ConvSource to get the messages, to try the cache first
-	messages, err := g.ConvSource.GetMessages(ctx, conv, uid, msgIDs, reason)
+	messages, err := g.ConvSource.GetMessages(ctx, conv.Conv, uid, msgIDs, reason)
 	if err != nil {
 		return nil, err
 	}
 
 	// unless arg says not to, transform the superseded messages
 	if resolveSupersedes {
-		messages, err = g.ConvSource.TransformSupersedes(ctx, conv, uid, messages)
+		messages, err = g.ConvSource.TransformSupersedes(ctx, conv.Conv, uid, messages)
 		if err != nil {
 			return nil, err
 		}
@@ -394,22 +394,22 @@ var errGetUnverifiedConvNotFound = errors.New("GetUnverifiedConv: conversation n
 var errGetVerifiedConvNotFound = errors.New("GetVerifiedConv: conversation not found")
 
 func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
-	convID chat1.ConversationID, dataSource types.InboxSourceDataSourceTyp) (chat1.Conversation, error) {
+	convID chat1.ConversationID, dataSource types.InboxSourceDataSourceTyp) (res types.RemoteConversation, err error) {
 
 	inbox, err := g.InboxSource.ReadUnverified(ctx, uid, dataSource, &chat1.GetInboxQuery{
 		ConvIDs: []chat1.ConversationID{convID},
 	}, nil)
 	if err != nil {
-		return chat1.Conversation{}, fmt.Errorf("GetUnverifiedConv: %s", err.Error())
+		return res, fmt.Errorf("GetUnverifiedConv: %s", err.Error())
 	}
 	if len(inbox.ConvsUnverified) == 0 {
-		return chat1.Conversation{}, errGetUnverifiedConvNotFound
+		return res, errGetUnverifiedConvNotFound
 	}
 	if !inbox.ConvsUnverified[0].GetConvID().Eq(convID) {
-		return chat1.Conversation{}, fmt.Errorf("GetUnverifiedConv: convID mismatch: %s != %s",
+		return res, fmt.Errorf("GetUnverifiedConv: convID mismatch: %s != %s",
 			inbox.ConvsUnverified[0].GetConvID(), convID)
 	}
-	return inbox.ConvsUnverified[0].Conv, nil
+	return inbox.ConvsUnverified[0], nil
 }
 
 func GetVerifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,

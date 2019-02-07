@@ -2317,11 +2317,11 @@ func (h *Server) ResolveUnfurlPrompt(ctx context.Context, arg chat1.ResolveUnfur
 		if err != nil {
 			return err
 		}
-		msgs, err := h.G().ConvSource.GetMessages(ctx, conv, uid, []chat1.MessageID{arg.MsgID}, nil)
+		msgs, err := h.G().ConvSource.GetMessages(ctx, conv.Conv, uid, []chat1.MessageID{arg.MsgID}, nil)
 		if err != nil {
 			return err
 		}
-		msgs, err = h.G().ConvSource.TransformSupersedes(ctx, conv, uid, msgs)
+		msgs, err = h.G().ConvSource.TransformSupersedes(ctx, conv.Conv, uid, msgs)
 		if err != nil {
 			return err
 		}
