@@ -122,14 +122,12 @@ const Username = (props: {
 }) => (
   <Kb.Box2 direction="vertical" style={styles.username}>
     <Kb.Text
-      type={Styles.isMobile ? 'BodySemibold' : 'BodySmallSemibold'}
+      type="BodySemibold"
       style={followingStateToStyle(props.keybaseResult ? props.followingState : 'NoState')}
     >
       {props.username}
     </Kb.Text>
-    {!!props.prettyName && (
-      <Kb.Text type={Styles.isMobile ? 'Body' : 'BodySmall'}>{props.prettyName}</Kb.Text>
-    )}
+    {!!props.prettyName && <Kb.Text type="BodySmall">{props.prettyName}</Kb.Text>}
   </Kb.Box2>
 )
 
@@ -163,7 +161,7 @@ const Services = ({
     return (
       <Kb.Box2 direction="horizontal" style={styles.services}>
         <Kb.Icon type={'icon-keybase-logo-16'} style={Kb.iconCastPlatformStyles(styles.keybaseServiceIcon)} />
-        <Kb.Text type="BodySmallSemibold" style={followingStateToStyle(followingState)}>
+        <Kb.Text type="BodySemibold" style={followingStateToStyle(followingState)}>
           {keybaseUsername}
         </Kb.Text>
       </Kb.Box2>
@@ -252,9 +250,12 @@ const styles = Styles.styleSheetCreate({
     height: ActionButtonSize,
     width: ActionButtonSize,
   },
-  highlighted: {
-    backgroundColor: Styles.globalColors.blue4,
-  },
+  highlighted: Styles.platformStyles({
+    isElectron: {
+      backgroundColor: Styles.globalColors.blue4,
+      borderRadius: Styles.borderRadius,
+    },
+  }),
   keybaseServiceIcon: Styles.platformStyles({
     common: {
       marginRight: Styles.globalMargins.xtiny,
@@ -270,9 +271,6 @@ const styles = Styles.styleSheetCreate({
   },
   rowContainer: Styles.platformStyles({
     common: {
-      borderBottomColor: Styles.globalColors.black_10,
-      borderBottomWidth: 1,
-      borderStyle: 'solid',
       paddingBottom: Styles.globalMargins.tiny,
       paddingTop: Styles.globalMargins.tiny,
     },

@@ -7,6 +7,7 @@ import GoButton from './go-button'
 import ServiceTabBar from './service-tab-bar'
 import UserResult from './user-result'
 import flags from '../util/feature-flags'
+import {serviceIdToAccentColor, serviceIdToIconFont, serviceIdToLabel} from './shared'
 import type {ServiceIdWithContact, FollowingState} from '../constants/types/team-building'
 
 type SearchResult = {
@@ -89,6 +90,30 @@ class TeamBuilding extends React.PureComponent<Props, void> {
             />
             <Kb.Text type="BodySmallSemibold">Loading</Kb.Text>
           </Kb.Box2>
+        ) : !showRecs && !props.showServiceResultCount ? (
+          <Kb.Box2
+            centerChildren={true}
+            direction="vertical"
+            fullHeight={true}
+            fullWidth={true}
+            gap="tiny"
+            style={styles.emptyContainer}
+          >
+            <Kb.Icon
+              fontSize={64}
+              type={serviceIdToIconFont(props.selectedService)}
+              style={Styles.collapseStyles([
+                !!props.selectedService && {color: serviceIdToAccentColor(props.selectedService)},
+              ])}
+            />
+            <Kb.Text style={styles.emptyContainerText} type="BodyBig">
+              Enter a {serviceIdToLabel(props.selectedService)} username above.
+            </Kb.Text>
+            <Kb.Text style={styles.emptyContainerText} type="BodySmall">
+              Start a Keybase chat with anyone on {serviceIdToLabel(props.selectedService)}, even if they
+              don’t have a Keybase account.
+            </Kb.Text>
+          </Kb.Box2>
         ) : (
           <Kb.List
             items={showRecs ? props.recommendations || [] : props.searchResults || []}
@@ -131,6 +156,24 @@ const styles = Styles.styleSheetCreate({
       width: 470,
     },
   }),
+  emptyContainer: Styles.platformStyles({
+    common: {
+      flex: 1,
+    },
+    isElectron: {
+      alignSelf: 'center',
+      maxWidth: 275,
+      paddingBottom: 40,
+    },
+    isMobile: {
+      alignSelf: 'center',
+      maxWidth: '80%',
+      paddingBottom: 150,
+    },
+  }),
+  emptyContainerText: {
+    textAlign: 'center',
+  },
   list: Styles.platformStyles({
     common: {
       paddingBottom: Styles.globalMargins.small,
