@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -40,7 +41,7 @@ func TestChatKBFSUpgradeMixed(t *testing.T) {
 	tlfID := cres.NameIDBreaks.TlfID
 	t.Logf("TLFID: %s", tlfID)
 	require.Equal(t, info.Triple.Tlfid, chat1.TLFID(tlfID.ToBytes()))
-	conv, err := GetUnverifiedConv(context.TODO(), tc.Context(), uid, info.Id, true)
+	conv, err := GetUnverifiedConv(context.TODO(), tc.Context(), uid, info.Id, types.InboxSourceDataSourceAll)
 	require.NoError(t, err)
 
 	header := chat1.MessageClientHeader{
