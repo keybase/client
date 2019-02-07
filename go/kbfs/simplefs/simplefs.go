@@ -861,6 +861,11 @@ func (k *SimpleFS) SimpleFSReadList(_ context.Context, opid keybase1.OpID) (keyb
 	return lr, nil
 }
 
+func (k *SimpleFS) SimpleFSListFavorites(_ context.Context) (
+	keybase1.FavoritesResult, error) {
+	return k.config.KBFSOps().GetFavoritesAll()
+}
+
 func recursiveByteAndFileCount(fs billy.Filesystem) (
 	bytes, files int64, err error) {
 	fileInfos, err := fs.ReadDir("/")

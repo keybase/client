@@ -259,6 +259,16 @@ func (fs *KBFSOpsStandard) GetFavorites(ctx context.Context) (
 	return fs.favs.Get(ctx)
 }
 
+// GetFavoritesAll implements the KBFSOps interface for
+// KBFSOpsStandard.
+func (fs *KBFSOpsStandard) GetFavoritesAll(ctx context.Context) (keybase1.
+	FavoritesResult, error) {
+	timeTrackerDone := fs.longOperationDebugDumper.Begin(ctx)
+	defer timeTrackerDone()
+
+	return fs.favs.GetAll(ctx)
+}
+
 // RefreshCachedFavorites implements the KBFSOps interface for
 // KBFSOpsStandard.
 func (fs *KBFSOpsStandard) RefreshCachedFavorites(ctx context.Context) {

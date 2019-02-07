@@ -1812,6 +1812,21 @@ func (mr *MockKBFSOpsMockRecorder) GetFavorites(ctx interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFavorites", reflect.TypeOf((*MockKBFSOps)(nil).GetFavorites), ctx)
 }
 
+// GetFavoritesAll mocks base method
+func (m *MockKBFSOps) GetFavoritesAll(ctx context.Context) (keybase1.FavoritesResult, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetFavoritesAll", ctx)
+	ret0, _ := ret[0].(keybase1.FavoritesResult)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetFavoritesAll indicates an expected call of GetFavoritesAll
+func (mr *MockKBFSOpsMockRecorder) GetFavoritesAll(ctx interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFavoritesAll", reflect.TypeOf((*MockKBFSOps)(nil).GetFavoritesAll), ctx)
+}
+
 // RefreshCachedFavorites mocks base method
 func (m *MockKBFSOps) RefreshCachedFavorites(ctx context.Context) {
 	m.ctrl.T.Helper()

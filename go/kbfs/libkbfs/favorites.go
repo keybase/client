@@ -70,6 +70,7 @@ type favReq struct {
 	toAdd   []favToAdd
 	toDel   []Favorite
 	favs    chan<- []Favorite
+	favsAll chan<- keybase1.FavoritesResult
 
 	// Closed when the request is done.
 	done chan struct{}
@@ -427,6 +428,10 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 		req.favs <- favorites
 	}
 
+	if req.favsAll != nil {
+		// TODO: implement this
+	}
+
 	return nil
 }
 
@@ -649,6 +654,37 @@ func (f *Favorites) Get(ctx context.Context) ([]Favorite, error) {
 	err := f.sendReq(ctx, req)
 	if err != nil {
 		return nil, err
+	}
+	return <-favChan, nil
+}
+
+// GetAll returns the logged-in user's list of favorite, new, and ignored TLFs.
+// It uses the cache.
+func (f *Favorites) GetAll(ctx context.Context) (keybase1.FavoritesResult,
+	error) {
+	if f.disabled {
+		//session, err := f.config.KBPKI().GetCurrentSession(ctx)
+		//if err == nil {
+		// TODO: Add favorites only for the current user.
+		//return []Favorite{
+		//	{string(session.Name), tlf.Private},
+		//	{string(session.Name), tlf.Public},
+		//}, nil
+		//}
+		return keybase1.FavoritesResult{}, nil
+	}
+	if f.hasShutdown() {
+		return keybase1.FavoritesResult{}, ShutdownHappenedError{}
+	}
+	favChan := make(chan keybase1.FavoritesResult, 1)
+	req := &favReq{
+		ctx:     ctx,
+		favsAll: favChan,
+		done:    make(chan struct{}),
+	}
+	err := f.sendReq(ctx, req)
+	if err != nil {
+		return keybase1.FavoritesResult{}, err
 	}
 	return <-favChan, nil
 }
