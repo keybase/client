@@ -5,6 +5,7 @@ import * as Styles from '../../styles'
 import {isLargeScreen} from '../../constants/platform'
 
 type Props = {|
+  highlight?: ?Array<'computer' | 'phone' | 'paper key'>,
   onAddComputer: () => void,
   onAddPaperKey: () => void,
   onAddPhone: () => void,
@@ -31,12 +32,24 @@ const AddDevice = (props: Props) => (
       <Kb.Box2
         direction={Styles.isMobile ? 'vertical' : 'horizontal'}
         gap="large"
-        gapStart={true}
+        style={styles.deviceOptions}
         gapEnd={true}
       >
-        <DeviceOption onClick={props.onAddComputer} type="computer" />
-        <DeviceOption onClick={props.onAddPhone} type="phone" />
-        <DeviceOption onClick={props.onAddPaperKey} type="paper key" />
+        <DeviceOption
+          onClick={props.onAddComputer}
+          type="computer"
+          highlight={props.highlight && props.highlight.includes('computer')}
+        />
+        <DeviceOption
+          onClick={props.onAddPhone}
+          type="phone"
+          highlight={props.highlight && props.highlight.includes('phone')}
+        />
+        <DeviceOption
+          onClick={props.onAddPaperKey}
+          type="paper key"
+          highlight={props.highlight && props.highlight.includes('paper key')}
+        />
       </Kb.Box2>
     </Kb.Box2>
   </Kb.ScrollView>
@@ -49,10 +62,6 @@ const DeviceBox = Styles.isMobile
       '&:hover': {
         backgroundColor: Styles.globalColors.blue4,
       },
-      border: `1px solid ${Styles.globalColors.black_05}`,
-      borderRadius: Styles.borderRadius,
-      padding: Styles.globalMargins.tiny,
-      width: 140,
     })
 const bigIcon = isLargeScreen && Styles.isMobile
 const typeToIcon = {
@@ -60,9 +69,15 @@ const typeToIcon = {
   'paper key': bigIcon ? `icon-paper-key-96` : `icon-paper-key-64`,
   phone: bigIcon ? `icon-phone-96` : `icon-phone-64`,
 }
-const DeviceOption = ({onClick, type}) => (
+const DeviceOption = ({highlight, onClick, type}) => (
   <Kb.ClickableBox onClick={onClick}>
-    <DeviceBox direction="vertical" centerChildren={true} gap="xtiny" gapEnd={true}>
+    <DeviceBox
+      style={Styles.collapseStyles([styles.deviceOption, highlight && styles.deviceOptionHighlighted])}
+      direction="vertical"
+      centerChildren={true}
+      gap="xtiny"
+      gapEnd={!Styles.isMobile}
+    >
       <Kb.Icon type={typeToIcon[type]} />
       <Kb.Text type="BodySemibold">
         {type === 'paper key' ? 'Create' : 'Add'} a {type}
@@ -75,6 +90,23 @@ const styles = Styles.styleSheetCreate({
   container: {
     padding: Styles.globalMargins.small,
   },
+  deviceOption: {
+    borderColor: Styles.globalColors.black_05,
+    borderRadius: Styles.borderRadius,
+    borderStyle: 'solid',
+    borderWidth: 1,
+    padding: Styles.globalMargins.tiny,
+    width: Styles.isMobile ? 160 : 140,
+  },
+  deviceOptionHighlighted: {backgroundColor: Styles.globalColors.blue4},
+  deviceOptions: Styles.platformStyles({
+    isElectron: {
+      paddingLeft: Styles.globalMargins.large,
+    },
+    isMobile: {
+      paddingTop: Styles.globalMargins.medium,
+    },
+  }),
 })
 
 export default Kb.HeaderOrPopup(AddDevice)

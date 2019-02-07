@@ -17,7 +17,7 @@ type Props = {|
   _stateOverride: ?State,
   items: Array<Item>,
   loadDevices: () => void,
-  onAddDevice: () => void,
+  onAddDevice: (highlight?: Array<'computer' | 'phone' | 'paper key'>) => void,
   onBack: () => void,
   revokedItems: Array<Item>,
   showPaperKeyNudge: boolean,
@@ -65,8 +65,10 @@ class Devices extends React.PureComponent<Props, State> {
 
     return (
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
-        <DeviceHeader onAddNew={this.props.onAddDevice} waiting={this.props.waiting} />
-        {this.props.showPaperKeyNudge && <PaperKeyNudge onAddDevice={this.props.onAddDevice} />}
+        <DeviceHeader onAddNew={() => this.props.onAddDevice()} waiting={this.props.waiting} />
+        {this.props.showPaperKeyNudge && (
+          <PaperKeyNudge onAddDevice={() => this.props.onAddDevice(['paper key'])} />
+        )}
         {this.props.waiting && <Kb.ProgressIndicator style={styles.progress} />}
         <Kb.List bounces={false} items={items} renderItem={this._renderRow} style={{width: '100%'}} />
       </Kb.Box2>

@@ -21,9 +21,15 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   onCancel: () => dispatch(navigateUp()),
 })
 
-export default Container.namedConnect<RouteProps<{}, {}>, _, _, _, _>(
+export default Container.namedConnect<
+  RouteProps<{highlight: Array<'computer' | 'phone' | 'paper key'>}, {}>,
+  _,
+  _,
+  _,
+  _
+>(
   () => ({}),
   mapDispatchToProps,
-  (s, d, o) => ({...d, title: 'Add a device'}),
+  (s, d, o) => ({...d, highlight: o.routeProps.get('highlight'), title: 'Add a device'}),
   'AddDevice'
 )(AddDevice)
