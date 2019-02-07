@@ -120,7 +120,7 @@ func TestCanLogoutTimeout(t *testing.T) {
 	ret2, err = userHandler.CanLogout(context.Background(), 0)
 	require.NoError(t, err)
 	require.False(t, ret2.CanLogout)
-	require.Contains(t, ret2.Reason, "Set a password first.")
+	require.Contains(t, ret2.Reason, "set a password first")
 	require.Equal(t, 2, fakeAPI.callCount)
 
 	// Back to "offline" state.
@@ -131,7 +131,7 @@ func TestCanLogoutTimeout(t *testing.T) {
 	ret2, err = userHandler.CanLogout(context.Background(), 0)
 	require.NoError(t, err)
 	require.False(t, ret2.CanLogout)
-	require.Contains(t, ret2.Reason, "Set a password first.")
+	require.Contains(t, ret2.Reason, "set a password first")
 	require.Equal(t, 3, fakeAPI.callCount)
 
 	// Back to real API because we are going to change passphrase.
