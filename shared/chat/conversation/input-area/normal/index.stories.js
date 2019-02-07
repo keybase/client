@@ -104,6 +104,7 @@ const InputContainer = (props: Props) => {
     onEditLastMessage: Sb.action('onEditLastMessage'),
     onFilePickerError: Sb.action('onFilePickerError'),
     onScrollDown: Sb.action('onScrollDown'),
+    onScrollUp: Sb.action('onScrollUp'),
     onSubmit: (text: string) => {
       Sb.action('onSubmit')(text)
     },

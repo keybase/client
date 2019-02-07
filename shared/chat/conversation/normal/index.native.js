@@ -31,7 +31,12 @@ class Conversation extends React.PureComponent<Props> {
     return (
       <Box style={containerStyle}>
         {this.props.isSearching && (
-          <HeaderHocHeader title="New chat" leftAction="cancel" onLeftAction={this.props.onCancelSearch} headerStyle={_headerStyle} />
+          <HeaderHocHeader
+            title="New chat"
+            leftAction="cancel"
+            onLeftAction={this.props.onCancelSearch}
+            headerStyle={_headerStyle}
+          />
         )}
         {this.props.threadLoadedOffline && <Offline />}
         <HeaderArea
@@ -44,6 +49,7 @@ class Conversation extends React.PureComponent<Props> {
         <ListArea
           isPending={this.props.isPending}
           listScrollDownCounter={this.props.listScrollDownCounter}
+          listScrollUpCounter={this.props.listScrollUpCounter}
           onFocusInput={this.props.onFocusInput}
           conversationIDKey={this.props.conversationIDKey}
         />
@@ -52,6 +58,7 @@ class Conversation extends React.PureComponent<Props> {
           isPending={this.props.isPending}
           focusInputCounter={this.props.focusInputCounter}
           onScrollDown={this.props.onScrollDown}
+          onScrollUp={this.props.onScrollUp}
           conversationIDKey={this.props.conversationIDKey}
         />
       </Box>

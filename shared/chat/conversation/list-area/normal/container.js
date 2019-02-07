@@ -9,6 +9,7 @@ import {connect, compose, lifecycle, withStateHandlers} from '../../../../util/c
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
   listScrollDownCounter: number,
+  listScrollUpCounter: number,
   onFocusInput: () => void,
 }
 
@@ -43,6 +44,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   editingOrdinal: stateProps.editingOrdinal,
   lastMessageIsOurs: stateProps.lastMessageIsOurs,
   listScrollDownCounter: ownProps.listScrollDownCounter,
+  listScrollUpCounter: ownProps.listScrollUpCounter,
   markInitiallyLoadedThreadAsRead: dispatchProps._markInitiallyLoadedThreadAsRead,
   messageOrdinals: stateProps.messageOrdinals.toList(),
   onFocusInput: ownProps.onFocusInput,

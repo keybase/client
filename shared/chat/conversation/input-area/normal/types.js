@@ -22,6 +22,7 @@ type CommonProps = {|
   onCancelEditing: () => void,
   onFilePickerError: (error: Error) => void,
   onScrollDown: () => void,
+  onScrollUp: () => void,
   onSubmit: (text: string) => void,
   showWalletsIcon: boolean, // used on mobile to determine placeholder
 

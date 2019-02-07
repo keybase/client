@@ -55,6 +55,20 @@ class Thread extends React.PureComponent<Props, State> {
     }
   }
 
+  _scrollDown = () => {
+    const list = this._listRef.current
+    if (list) {
+      list.scrollTop += list.clientHeight
+    }
+  }
+
+  _scrollUp = () => {
+    const list = this._listRef.current
+    if (list) {
+      list.scrollTop -= list.clientHeight
+    }
+  }
+
   componentDidMount() {
     if (this.state.isLockedToBottom) {
       setImmediate(() => this._scrollToBottom())
@@ -90,10 +104,13 @@ class Thread extends React.PureComponent<Props, State> {
 
     // someone requested we scroll down
     if (this.props.listScrollDownCounter !== prevProps.listScrollDownCounter) {
-      const list = this._listRef.current
-      if (list) {
-        list.scrollTop -= list.clientHeight
-      }
+      this._scrollDown()
+      return
+    }
+
+    // someone requested we scroll up
+    if (this.props.listScrollUpCounter !== prevProps.listScrollUpCounter) {
+      this._scrollDown()
       return
     }
 

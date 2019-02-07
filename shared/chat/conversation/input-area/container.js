@@ -11,6 +11,7 @@ type OwnProps = {|
   focusInputCounter: number,
   isPending: boolean,
   onScrollDown: () => void,
+  onScrollUp: () => void,
 |}
 type Props = {|
   ...OwnProps,
@@ -49,6 +50,7 @@ class InputArea extends React.PureComponent<Props> {
       <Normal
         focusInputCounter={this.props.focusInputCounter}
         onScrollDown={this.props.onScrollDown}
+        onScrollUp={this.props.onScrollUp}
         conversationIDKey={this.props.conversationIDKey}
       />
     )

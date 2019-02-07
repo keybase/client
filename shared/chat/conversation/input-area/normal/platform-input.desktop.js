@@ -72,11 +72,10 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
       this.props.onCancelEditing()
     } else if (e.key === 'u' && (e.ctrlKey || e.metaKey)) {
       this._filePickerOpen()
-    }
-
-    const isListSpecialKey = ['PageDown', 'PageUp'].includes(e.key)
-    if (isListSpecialKey) {
+    } else if (e.key === 'PageDown') {
       this.props.onScrollDown()
+    } else if (e.key === 'PageUp') {
+      this.props.onScrollUp()
     }
 
     this.props.onKeyDown && this.props.onKeyDown(e, isComposingIME)
@@ -105,13 +104,14 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
       'ArrowDown',
       'Enter',
     ].includes(ev.key)
-    const isListSpecialKey = ['PageDown', 'PageUp'].includes(ev.key)
     if (isUploadKey) {
       this._filePickerOpen()
     } else if (ev.type === 'keypress' || isPasteKey || isValidSpecialKey) {
       this._inputFocus()
-    } else if (isListSpecialKey) {
+    } else if (ev.key === 'PageDown') {
       this.props.onScrollDown()
+    } else if (ev.key === 'PageUp') {
+      this.props.onScrollUp()
     }
   }
 
