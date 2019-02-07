@@ -380,8 +380,6 @@ type folderBranchOps struct {
 	convID   chat1.ConversationID
 }
 
-var _ KBFSOps = (*folderBranchOps)(nil)
-
 var _ fbmHelper = (*folderBranchOps)(nil)
 
 // newFolderBranchOps constructs a new folderBranchOps object.
@@ -538,33 +536,6 @@ func (fbo *folderBranchOps) id() tlf.ID {
 
 func (fbo *folderBranchOps) branch() BranchName {
 	return fbo.folderBranch.Branch
-}
-
-func (fbo *folderBranchOps) GetFavorites(ctx context.Context) (
-	[]Favorite, error) {
-	return nil, errors.New("GetFavorites is not supported by folderBranchOps")
-}
-
-func (fbo *folderBranchOps) RefreshCachedFavorites(ctx context.Context) {
-	// no-op
-}
-
-func (fbo *folderBranchOps) ClearCachedFavorites(ctx context.Context) {
-	// no-op
-}
-
-func (fbo *folderBranchOps) RefreshEditHistory(fav Favorite) {
-	// no-op
-}
-
-func (fbo *folderBranchOps) DeleteFavorite(ctx context.Context,
-	fav Favorite) error {
-	return errors.New("DeleteFavorite is not supported by folderBranchOps")
-}
-
-func (fbo *folderBranchOps) AddFavorite(ctx context.Context,
-	fav Favorite) error {
-	return errors.New("AddFavorite is not supported by folderBranchOps")
 }
 
 func (fbo *folderBranchOps) addToFavorites(ctx context.Context,
@@ -2453,27 +2424,6 @@ func (fbo *folderBranchOps) initMDLocked(
 	}
 
 	return nil
-}
-
-func (fbo *folderBranchOps) GetTLFCryptKeys(ctx context.Context,
-	h *TlfHandle) (keys []kbfscrypto.TLFCryptKey, id tlf.ID, err error) {
-	return nil, tlf.ID{}, errors.New("GetTLFCryptKeys is not supported by folderBranchOps")
-}
-
-func (fbo *folderBranchOps) GetTLFID(ctx context.Context, h *TlfHandle) (tlf.ID, error) {
-	return tlf.ID{}, errors.New("GetTLFID is not supported by folderBranchOps")
-}
-
-func (fbo *folderBranchOps) GetOrCreateRootNode(
-	ctx context.Context, h *TlfHandle, branch BranchName) (
-	node Node, ei EntryInfo, err error) {
-	return nil, EntryInfo{}, errors.New("GetOrCreateRootNode is not supported by folderBranchOps")
-}
-
-func (fbo *folderBranchOps) GetRootNode(
-	ctx context.Context, h *TlfHandle, branch BranchName) (
-	node Node, ei EntryInfo, err error) {
-	return nil, EntryInfo{}, errors.New("GetRootNode is not supported by folderBranchOps")
 }
 
 func (fbo *folderBranchOps) checkNode(node Node) error {
@@ -8403,13 +8353,6 @@ func (fbo *folderBranchOps) InvalidateNodeAndChildren(
 		fbo.observers.batchChanges(ctx, changes, affectedNodeIDs)
 	}
 	return nil
-}
-
-// KickoffAllOutstandingRekeys (does not) implement the KBFSOps interface for
-// folderBranchOps.
-func (fbo *folderBranchOps) KickoffAllOutstandingRekeys() error {
-	return errors.New(
-		"KickoffAllOutstandingRekeys is not supported on *folderBranchOps")
 }
 
 // NewNotificationChannel implements the KBFSOps interface for
