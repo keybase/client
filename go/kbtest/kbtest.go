@@ -24,6 +24,9 @@ const testInviteCode = "202020202020202020202020"
 
 const DefaultDeviceName = "my device"
 
+// CORE-10146
+const SkipIconRemoteTest = true
+
 type FakeUser struct {
 	Username    string
 	Email       string
