@@ -2079,7 +2079,7 @@ func (h *Server) AddTeamMemberAfterReset(ctx context.Context,
 
 func (h *Server) SetConvRetentionLocal(ctx context.Context, arg chat1.SetConvRetentionLocalArg) (err error) {
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "SetConvRetention(%v, %v)", arg.ConvID, arg.Policy.Summary())()
+	defer h.Trace(ctx, func() error { return err }, "SetConvRetentionLocal(%v, %v)", arg.ConvID, arg.Policy.Summary())()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return err
@@ -2144,7 +2144,7 @@ func (h *Server) SetConvRetentionLocal(ctx context.Context, arg chat1.SetConvRet
 
 func (h *Server) SetTeamRetentionLocal(ctx context.Context, arg chat1.SetTeamRetentionLocalArg) (err error) {
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "SetTeamRetention(%v, %v)", arg.TeamID, arg.Policy.Summary())()
+	defer h.Trace(ctx, func() error { return err }, "SetTeamRetentionLocal(%v, %v)", arg.TeamID, arg.Policy.Summary())()
 	if _, err = utils.AssertLoggedInUID(ctx, h.G()); err != nil {
 		return err
 	}
