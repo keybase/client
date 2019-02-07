@@ -2,16 +2,21 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
+import {resolveImageAsURL} from '../../../desktop/app/resolve-root.desktop'
 import UnfurlImage from '../messages/wrapper/unfurl/image'
 import {getMargin, scaledWidth} from './width'
 import type {Props} from './index.types'
 
 const gridHeight = 100
 const gridWidthMax = 130
+const poweredByImg = 'powered-by-giphy.png'
 
 const GiphySearch = (props: Props) => {
   return (
     <Kb.ScrollView style={styles.scrollContainer} horizontal={Styles.isMobile}>
+      <Kb.Box2 direction="horizontal" style={styles.poweredByContainer} fullWidth={true}>
+        <Kb.Image src={resolveImageAsURL('', poweredByImg)} style={styles.poweredBy} />
+      </Kb.Box2>
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
         {(props.previews || []).map(p => {
           const margin = getMargin(p.previewWidth, gridWidthMax)
@@ -37,13 +42,11 @@ const GiphySearch = (props: Props) => {
 }
 
 const styles = Styles.styleSheetCreate({
-  container: Styles.platformStyles({
-    isElectron: {
-      flexWrap: 'wrap',
-      justifyContent: 'center',
-      minHeight: 200,
-    },
-  }),
+  container: {
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    minHeight: 200,
+  },
   image: {
     borderRadius: 0,
   },
@@ -55,14 +58,16 @@ const styles = Styles.styleSheetCreate({
     margin: -1,
     overflow: 'hidden',
   },
-  scrollContainer: Styles.platformStyles({
-    isElectron: {
-      maxHeight: 300,
-    },
-    isMobile: {
-      maxHeight: 100,
-    },
-  }),
+  poweredBy: {
+    height: 25,
+    width: 'auto',
+  },
+  poweredByContainer: {
+    justifyContent: 'center',
+  },
+  scrollContainer: {
+    maxHeight: 300,
+  },
 })
 
 export default GiphySearch
