@@ -81,13 +81,25 @@ func (brw *blockRetrievalWorker) HandleRequest() (err error) {
 		action = retrieval.action
 	}()
 
-	cacheType := DiskBlockAnyCache
-	if action.Sync() {
-		cacheType = DiskBlockSyncCache
+	// If we running with a "stop-if-full" action, before we fetch the
+	// block, make sure the disk cache has room for it.
+	if action.StopIfFull() {
+		dbc := brw.queue.config.DiskBlockCache()
+		if dbc != nil {
+			hasRoom, err := dbc.DoesCacheHaveSpace(
+				retrieval.ctx, action.CacheType())
+			if err != nil {
+				return err
+			}
+			if !hasRoom {
+				return DiskCacheTooFullForBlockError{retrieval.blockPtr, action}
+			}
+		}
 	}
 
 	return brw.getBlock(
-		retrieval.ctx, retrieval.kmd, retrieval.blockPtr, block, cacheType)
+		retrieval.ctx, retrieval.kmd, retrieval.blockPtr, block,
+		action.CacheType())
 }
 
 // Shutdown shuts down the blockRetrievalWorker once its current work is done.

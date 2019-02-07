@@ -720,11 +720,11 @@ func (e *fsEngine) InitTest(ver kbfsmd.MetadataVer,
 			}
 			c.EnableJournaling(context.Background(),
 				journalRoot, libkbfs.TLFJournalBackgroundWorkEnabled)
-			jServer, err := libkbfs.GetJournalServer(c)
+			jManager, err := libkbfs.GetJournalManager(c)
 			if err != nil {
 				panic(fmt.Sprintf("No journal server for %d: %+v", i, err))
 			}
-			err = jServer.DisableAuto(context.Background())
+			err = jManager.DisableAuto(context.Background())
 			if err != nil {
 				panic(fmt.Sprintf("Couldn't disable journaling: %+v", err))
 			}

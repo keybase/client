@@ -52,6 +52,7 @@ func TestGetWalletAccountsLocal(t *testing.T) {
 	require.True(t, accts[0].IsDefault)
 	require.Equal(t, "qq", accts[0].Name)
 	require.Equal(t, stellar1.AccountMode_USER, accts[0].AccountMode)
+	require.Equal(t, false, accts[0].AccountModeEditable)
 	require.Equal(t, "10,000.00 XLM", accts[0].BalanceDescription)
 	currencyLocal := accts[0].CurrencyLocal
 	require.Equal(t, stellar1.OutsideCurrencyCode("USD"), currencyLocal.Code)
@@ -63,6 +64,7 @@ func TestGetWalletAccountsLocal(t *testing.T) {
 	require.False(t, accts[1].IsDefault)
 	require.Equal(t, firstAccountName(t, tcs[0]), accts[1].Name)
 	require.Equal(t, stellar1.AccountMode_USER, accts[1].AccountMode)
+	require.Equal(t, false, accts[1].AccountModeEditable)
 	require.Equal(t, "0 XLM", accts[1].BalanceDescription)
 	currencyLocal = accts[1].CurrencyLocal
 	require.Equal(t, stellar1.OutsideCurrencyCode("USD"), currencyLocal.Code)
@@ -74,6 +76,7 @@ func TestGetWalletAccountsLocal(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "qq", details.Name)
 	require.Equal(t, stellar1.AccountMode_USER, details.AccountMode)
+	require.Equal(t, false, accts[1].AccountModeEditable)
 	require.True(t, details.IsDefault)
 	require.Equal(t, "10,000.00 XLM", details.BalanceDescription)
 	require.NotEmpty(t, details.Seqno)
@@ -2593,6 +2596,7 @@ func TestSetMobileOnly(t *testing.T) {
 	details, err := tcs[0].Srv.GetWalletAccountLocal(context.Background(), walletAcctLocalArg)
 	require.NoError(t, err)
 	require.Equal(t, stellar1.AccountMode_USER, details.AccountMode)
+	require.Equal(t, true, details.AccountModeEditable)
 
 	err = tcs[0].Srv.SetAccountMobileOnlyLocal(context.Background(), stellar1.SetAccountMobileOnlyLocalArg{AccountID: accountID})
 	require.NoError(t, err)
@@ -2608,6 +2612,7 @@ func TestSetMobileOnly(t *testing.T) {
 	details, err = tcs[0].Srv.GetWalletAccountLocal(context.Background(), walletAcctLocalArg)
 	require.NoError(t, err)
 	require.Equal(t, stellar1.AccountMode_MOBILE, details.AccountMode)
+	require.Equal(t, true, details.AccountModeEditable)
 
 	// service_test verifies that `SetAccountMobileOnlyLocal` behaves correctly under the covers
 }

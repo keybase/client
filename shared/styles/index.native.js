@@ -12,7 +12,7 @@ const font = isIOS
       fontRegular: {fontFamily: 'Keybase', fontWeight: '500'},
       fontSemibold: {fontFamily: 'Keybase', fontWeight: '600'},
       fontTerminal: {fontFamily: 'Source Code Pro Medium'},
-      fontTerminalSemibold: {fontFamily: 'Source Code Pro', fontWeight: '600'},
+      fontTerminalSemibold: {fontFamily: 'Source Code Pro Semibold', fontWeight: '600'},
       italic: {fontStyle: 'italic'},
     }
   : {

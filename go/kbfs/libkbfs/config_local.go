@@ -1062,9 +1062,9 @@ func (c *ConfigLocal) resetCachesWithoutShutdown() DirtyBlockCache {
 // ResetCaches implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) ResetCaches() {
 	oldDirtyBcache := c.resetCachesWithoutShutdown()
-	jServer, err := GetJournalServer(c)
+	jManager, err := GetJournalManager(c)
 	if err == nil {
-		if err := c.journalizeBcaches(jServer); err != nil {
+		if err := c.journalizeBcaches(jManager); err != nil {
 			if log := c.MakeLogger(""); log != nil {
 				log.CWarningf(nil, "Error journalizing dirty block cache: %+v", err)
 			}
@@ -1296,12 +1296,12 @@ func (c *ConfigLocal) CheckStateOnShutdown() bool {
 	return false
 }
 
-func (c *ConfigLocal) journalizeBcaches(jServer *JournalServer) error {
+func (c *ConfigLocal) journalizeBcaches(jManager *JournalManager) error {
 	syncCache, ok := c.DirtyBlockCache().(*DirtyBlockCacheStandard)
 	if !ok {
 		return errors.Errorf("Dirty bcache unexpectedly type %T", syncCache)
 	}
-	jServer.delegateDirtyBlockCache = syncCache
+	jManager.delegateDirtyBlockCache = syncCache
 
 	// Make a dirty block cache specifically for the journal
 	// server.  Since this doesn't rely directly on the network,
@@ -1311,10 +1311,10 @@ func (c *ConfigLocal) journalizeBcaches(jServer *JournalServer) error {
 	log := c.MakeLogger("DBCJ")
 	journalCache := NewDirtyBlockCacheStandard(c.clock, log,
 		maxSyncBufferSize, maxSyncBufferSize, maxSyncBufferSize)
-	c.SetDirtyBlockCache(jServer.dirtyBlockCache(journalCache))
+	c.SetDirtyBlockCache(jManager.dirtyBlockCache(journalCache))
 
-	jServer.delegateBlockCache = c.BlockCache()
-	c.SetBlockCache(jServer.blockCache())
+	jManager.delegateBlockCache = c.BlockCache()
+	c.SetBlockCache(jManager.blockCache())
 	return nil
 }
 
@@ -1366,13 +1366,13 @@ func (c *ConfigLocal) EnableDiskLimiter(configRoot string) error {
 	return nil
 }
 
-// EnableJournaling creates a JournalServer and attaches it to
+// EnableJournaling creates a JournalManager and attaches it to
 // this config. journalRoot must be non-empty. Errors returned are
 // non-fatal.
 func (c *ConfigLocal) EnableJournaling(
 	ctx context.Context, journalRoot string,
 	bws TLFJournalBackgroundWorkStatus) error {
-	jServer, err := GetJournalServer(c)
+	jManager, err := GetJournalManager(c)
 	if err == nil {
 		// Journaling shouldn't be enabled twice for the same
 		// config.
@@ -1392,14 +1392,14 @@ func (c *ConfigLocal) EnableJournaling(
 		return err
 	}
 
-	jServer = makeJournalServer(c, log, journalRoot, c.BlockCache(),
+	jManager = makeJournalManager(c, log, journalRoot, c.BlockCache(),
 		c.DirtyBlockCache(), c.BlockServer(), c.MDOps(), branchListener,
 		flushListener)
 
-	c.SetBlockServer(jServer.blockServer())
-	c.SetMDOps(jServer.mdOps())
+	c.SetBlockServer(jManager.blockServer())
+	c.SetMDOps(jManager.mdOps())
 
-	bcacheErr := c.journalizeBcaches(jServer)
+	bcacheErr := c.journalizeBcaches(jManager)
 	enableErr := func() error {
 		// If this fails, then existing journals will be
 		// enabled when we receive the login notification.
@@ -1408,13 +1408,13 @@ func (c *ConfigLocal) EnableJournaling(
 			return err
 		}
 
-		err = jServer.EnableExistingJournals(
+		err = jManager.EnableExistingJournals(
 			ctx, session.UID, session.VerifyingKey, bws)
 		if err != nil {
 			return err
 		}
 
-		wg := jServer.MakeFBOsForExistingJournals(ctx)
+		wg := jManager.MakeFBOsForExistingJournals(ctx)
 		wg.Wait()
 		return nil
 	}()

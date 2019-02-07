@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -448,13 +449,26 @@ func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stella
 		return empty, err
 	}
 
+	activeDeviceType, err := mctx.G().ActiveDevice.DeviceType()
+	if err != nil {
+		return empty, err
+	}
+	isMobile := activeDeviceType == libkb.DeviceTypeMobile
+	ctime, err := mctx.G().ActiveDevice.Ctime(mctx)
+	if err != nil {
+		return empty, err
+	}
+	deviceProvisionedAt := time.Unix(int64(ctime)/1000, 0)
+	deviceAge := mctx.G().Clock().Since(deviceProvisionedAt)
+
 	acct := stellar1.WalletAccountLocal{
-		AccountID:          accountID,
-		IsDefault:          isPrimary,
-		Name:               accountName,
-		BalanceDescription: balance,
-		Seqno:              details.Seqno,
-		AccountMode:        accountMode,
+		AccountID:           accountID,
+		IsDefault:           isPrimary,
+		Name:                accountName,
+		BalanceDescription:  balance,
+		Seqno:               details.Seqno,
+		AccountMode:         accountMode,
+		AccountModeEditable: isMobile && deviceAge > 7*24*time.Hour,
 	}
 
 	conf, err := mctx.G().GetStellar().GetServerDefinitions(mctx.Ctx())

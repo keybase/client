@@ -218,6 +218,7 @@ export type _Account = {
   displayCurrency: Currency,
   isDefault: boolean,
   name: string,
+  mobileOnlyEditable: boolean,
 }
 export type Account = I.RecordOf<_Account>
 

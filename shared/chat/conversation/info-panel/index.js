@@ -111,7 +111,6 @@ const retentionStyles = {
     common: {
       paddingLeft: 16,
       paddingRight: 16,
-      width: '100%',
     },
     isMobile: {
       marginRight: 16,

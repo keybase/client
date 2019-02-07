@@ -67,8 +67,8 @@ func serviceLoggedIn(ctx context.Context, config Config, session SessionInfo,
 	bws TLFJournalBackgroundWorkStatus) (wg *sync.WaitGroup) {
 	wg = &sync.WaitGroup{} // To avoid returning a nil pointer.
 	log := config.MakeLogger("")
-	if jServer, err := GetJournalServer(config); err == nil {
-		err := jServer.EnableExistingJournals(
+	if jManager, err := GetJournalManager(config); err == nil {
+		err := jManager.EnableExistingJournals(
 			ctx, session.UID, session.VerifyingKey, bws)
 		if err != nil {
 			log.CWarningf(ctx,
@@ -82,7 +82,7 @@ func serviceLoggedIn(ctx context.Context, config Config, session SessionInfo,
 				CtxKeybaseServiceIDKey, CtxKeybaseServiceOpID, log)
 			log.CDebugf(ctx, "Making FBOs in background: %s=%v",
 				CtxKeybaseServiceOpID, newCtx.Value(CtxKeybaseServiceIDKey))
-			wg = jServer.MakeFBOsForExistingJournals(newCtx)
+			wg = jManager.MakeFBOsForExistingJournals(newCtx)
 		}
 	}
 	err := config.MakeDiskBlockCacheIfNotExists()
@@ -112,8 +112,8 @@ func serviceLoggedIn(ctx context.Context, config Config, session SessionInfo,
 
 // serviceLoggedOut should be called when the current user logs out.
 func serviceLoggedOut(ctx context.Context, config Config) {
-	if jServer, err := GetJournalServer(config); err == nil {
-		jServer.shutdownExistingJournals(ctx)
+	if jManager, err := GetJournalManager(config); err == nil {
+		jManager.shutdownExistingJournals(ctx)
 	}
 	config.ResetCaches()
 	config.UserHistory().Clear()
