@@ -5,7 +5,7 @@ import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
 import * as Kb from '../../common-adapters'
-import {PathItemActionWithClickableComponent, PathItemInfo, PathItemIcon} from '../common'
+import {PathItemAction, PathItemInfo, PathItemIcon} from '../common'
 import {memoize} from 'lodash-es'
 import {fileUIName, isMobile, isIOS} from '../../constants/platform'
 import {hasShare} from '../common/path-item-action/layout'
@@ -41,10 +41,13 @@ const DefaultView = (props: DefaultViewProps) => (
     hasShare(props.path, props.pathItem) && (
       <>
         <Kb.Box2 direction="vertical" gap="medium" gapStart={true} />
-        <PathItemActionWithClickableComponent
-          clickable={({onClick, setRef}) => (
-            <Kb.Button key="share" type="Primary" label="Share" onClick={onClick} ref={setRef} />
-          )}
+        <PathItemAction
+          clickable={{
+            component: ({onClick, setRef}) => (
+              <Kb.Button key="share" type="Primary" label="Share" onClick={onClick} ref={setRef} />
+            ),
+            type: 'component',
+          }}
           path={props.path}
           routePath={props.routePath}
           initView="share"

@@ -3,12 +3,10 @@ import * as I from 'immutable'
 import * as Types from '../../../constants/types/fs'
 import * as FsGen from '../../../actions/fs-gen'
 import {namedConnect} from '../../../util/container'
-import PathItemActionWithClickableComponent, {
-  type ClickableComponent,
-} from './path-item-action-with-clickable-component'
+import PathItemAction, {type Clickable} from './path-item-action'
 
 type OwnProps = {|
-  clickable: ClickableComponent,
+  clickable: Clickable,
   path: Types.Path,
   routePath: I.List<string>,
   initView: Types.PathItemActionMenuView,
@@ -39,5 +37,5 @@ export default namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps,
-  'PathItemActionWithClickableComponent'
-)(PathItemActionWithClickableComponent)
+  'PathItemAction'
+)(PathItemAction)

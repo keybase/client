@@ -26,7 +26,15 @@ const Header = (props: HeaderProps) => (
     <Kb.Box style={styles.headerIcons}>
       <Kbfs.OpenInSystemFileManager path={props.path} />
       <Kbfs.SendInAppAction path={props.path} sendIconClassName="" />
-      <Kbfs.PathItemAction path={props.path} actionIconFontSize={16} routePath={props.routePath} />
+      <Kbfs.PathItemAction
+        path={props.path}
+        clickable={{
+          actionIconFontSize: 16,
+          type: 'icon',
+        }}
+        routePath={props.routePath}
+        initView="root"
+      />
     </Kb.Box>
   </Kb.Box2>
 )
