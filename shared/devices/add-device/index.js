@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import {upperFirst} from 'lodash-es'
+import {isLargeScreen} from '../../constants/platform'
 
 type Props = {|
   onAddComputer: () => void,
@@ -45,25 +45,26 @@ const AddDevice = (props: Props) => (
 const DeviceBox = Styles.isMobile
   ? Kb.Box2
   : Styles.styled(Kb.Box2)({
-      ...Styles.transition('transform', 'box-shadow'),
+      ...Styles.transition('background-color'),
       '&:hover': {
-        ...Styles.desktopStyles.boxShadow,
-        transform: 'scale(1.005)',
+        backgroundColor: Styles.globalColors.blue4,
       },
       border: `1px solid ${Styles.globalColors.black_05}`,
       borderRadius: Styles.borderRadius,
       padding: Styles.globalMargins.tiny,
+      width: 130,
     })
+const bigIcon = isLargeScreen && Styles.isMobile
 const typeToIcon = {
-  computer: 'icon-computer-96',
-  'paper key': 'icon-paper-key-96',
-  phone: 'icon-phone-96',
+  computer: bigIcon ? `icon-computer-96` : `icon-computer-64`,
+  'paper key': bigIcon ? `icon-paper-key-96` : `icon-paper-key-64`,
+  phone: bigIcon ? `icon-phone-96` : `icon-phone-64`,
 }
 const DeviceOption = ({onClick, type}) => (
   <Kb.ClickableBox onClick={onClick}>
     <DeviceBox direction="vertical" centerChildren={true} gap="xtiny" gapEnd={true}>
       <Kb.Icon type={typeToIcon[type]} />
-      <Kb.Text type="BodySemibold">{upperFirst(type)}</Kb.Text>
+      <Kb.Text type="BodySemibold">Add a {type}</Kb.Text>
     </DeviceBox>
   </Kb.ClickableBox>
 )
