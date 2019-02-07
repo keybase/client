@@ -439,12 +439,44 @@ func (d DurationMsec) ToDuration() time.Duration {
 	return time.Duration(d) * time.Millisecond
 }
 
+func (d DurationMsec) ToHumanDuration() string {
+	return ToHumanDuration(d.ToDuration())
+}
+
 func ToDurationSec(d time.Duration) DurationSec {
 	return DurationSec(d / time.Second)
 }
 
 func (d DurationSec) ToDuration() time.Duration {
 	return time.Duration(d) * time.Second
+}
+
+func (d DurationSec) ToHumanDuration() string {
+	return ToHumanDuration(d.ToDuration())
+}
+
+func ToHumanDuration(duration time.Duration) string {
+	var value float64
+	var unit string
+	if int(duration.Hours()) >= 24 {
+		value = duration.Hours() / 24
+		unit = "day"
+	} else if int(duration.Hours()) >= 1 {
+		value = duration.Hours()
+		unit = "hour"
+	} else if int(duration.Minutes()) >= 1 {
+		value = duration.Minutes()
+		unit = "minute"
+	} else if int(duration.Seconds()) >= 1 {
+		value = duration.Seconds()
+		unit = "second"
+	} else {
+		return ""
+	}
+	if int(value) > 1 {
+		unit = unit + "s"
+	}
+	return fmt.Sprintf("%.0f %s", value, unit)
 }
 
 // DeviceID returns the deviceID in a SyncArc, or interface nil

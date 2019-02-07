@@ -23,7 +23,7 @@ function parsePublicAdmins(publicAdmins: Array<string>, you: ?string): SortedAdm
   return {publicAdmins, publicAdminsOthers}
 }
 
-// Parses retention polcies into a string suitable for display at the top of a conversation
+// Parses retention policies into a string suitable for display at the top of a conversation
 function makeRetentionNotice(
   policy: RetentionPolicy,
   teamPolicy: RetentionPolicy,
