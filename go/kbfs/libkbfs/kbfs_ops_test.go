@@ -142,7 +142,7 @@ func kbfsOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 		SessionInfo{}, err)
 	kbfsops.favs.Initialize(ctx)
 	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).AnyTimes().
-		Return(nil, nil)
+		Return(keybase1.FavoritesResult{}, nil)
 	config.mockKbs.EXPECT().EncryptFavorites(gomock.Any(), gomock.Any()).
 		AnyTimes().Return(nil, nil)
 	config.mockKbpki.EXPECT().FavoriteAdd(gomock.Any(), gomock.Any()).
@@ -331,7 +331,8 @@ func TestKBFSOpsGetFavoritesFail(t *testing.T) {
 	config.SetKBPKI(config.mockKbpki)
 
 	// expect one call to favorites, and fail it
-	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(nil, err)
+	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(keybase1.
+		FavoritesResult{}, err)
 
 	if _, err2 := config.KBFSOps().GetFavorites(ctx); err2 != err {
 		t.Errorf("Got bad error on favorites: %+v", err2)
