@@ -542,8 +542,6 @@ func getRekeyFSM(ctx context.Context, ops KBFSOps, tlfID tlf.ID) RekeyFSM {
 	case *KBFSOpsStandard:
 		return o.getOpsNoAdd(
 			ctx, FolderBranch{Tlf: tlfID, Branch: MasterBranch}).rekeyFSM
-	case *folderBranchOps:
-		return o.rekeyFSM
 	default:
 		panic("unknown KBFSOps")
 	}
