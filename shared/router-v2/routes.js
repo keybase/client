@@ -9,6 +9,7 @@ import {newRoutes as peopleNewRoutes} from '../people/routes'
 import {newRoutes as fsNewRoutes} from '../fs/routes'
 import {newRoutes as settingsNewRoutes} from '../settings/routes'
 import {newRoutes as teamsNewRoutes} from '../teams/routes'
+import {newRoutes as walletsNewRoutes} from '../wallets/routes'
 import {newRoutes as _loggedOutRoutes} from '../login/routes'
 import {newRoutes as profileNewRoutes, newModalRoutes as profileNewModalRoutes} from '../profile/routes'
 // import OldPeopleRoutes from '../people/routes'
@@ -51,6 +52,7 @@ const newRoutes = [
   {route: fsNewRoutes, tab: Tabs.fsTab},
   {route: settingsNewRoutes, tab: Tabs.settingsTab},
   {route: teamsNewRoutes, tab: Tabs.teamsTab},
+  {route: walletsNewRoutes, tab: Tabs.walletsTab},
 ]
 
 newRoutes.forEach(({route, tab}) => {

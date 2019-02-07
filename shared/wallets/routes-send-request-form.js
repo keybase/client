@@ -66,3 +66,14 @@ const routeTree = () => {
 }
 
 export default routeTree
+
+export const newRoutes = {
+  [Constants.chooseAssetFormRouteKey]: {
+    getScreen: () => require('./send-form/choose-asset/container').default,
+  },
+  [Constants.confirmFormRouteKey]: {getScreen: () => require('./confirm-form/container').default},
+  createNewAccount: {getScreen: () => require('./create-account/container').default},
+  linkExisting: {getScreen: () => require('./link-existing/container').default},
+  qrScan: {getScreen: () => require('./qr-scan/container').default},
+  sendReceiveForm: {getScreen: () => require('./send-form/container').default},
+}
