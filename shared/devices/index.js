@@ -113,13 +113,14 @@ const RevokedHeader = ({children, onToggleExpanded, expanded}) => (
         style={revokedHeaderStyles.textContainer}
       >
         <Kb.Text type="BodySmallSemibold" style={revokedHeaderStyles.text}>
-          Revoked devices
+          Revoked devices{' '}
+          <Kb.Icon
+            boxStyle={revokedHeaderStyles.icon}
+            type={expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
+            color={Styles.globalColors.black_50}
+            fontSize={10}
+          />
         </Kb.Text>
-        <Kb.Icon
-          type={expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
-          color={Styles.globalColors.black_50}
-          fontSize={10}
-        />
       </Kb.Box2>
       {expanded && (
         <Kb.Text center={true} type="BodySmallSemibold" style={revokedHeaderStyles.desc}>
@@ -135,9 +136,9 @@ const revokedHeaderStyles = Styles.styleSheetCreate({
     paddingLeft: Styles.globalMargins.small,
     paddingRight: Styles.globalMargins.small,
   },
-  text: {color: Styles.globalColors.black_50},
+  icon: Styles.platformStyles({isElectron: {display: 'inline-block'}}),
+  text: {color: Styles.globalColors.black_50, paddingLeft: Styles.globalMargins.tiny},
   textContainer: {
-    alignItems: 'center',
     minHeight: Styles.isMobile ? 32 : 24,
   },
 })
