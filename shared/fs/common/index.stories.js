@@ -6,7 +6,7 @@ import * as Sb from '../../stories/storybook'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/fs'
 import * as Kb from '../../common-adapters'
-import PathItemAction from './path-item-action/path-item-action-default'
+import PathItemAction from './path-item-action/path-item-action'
 import PathItemIcon, {type Size} from './path-item-icon'
 import PathItemInfo from './path-item-info'
 import TlfInfo from './tlf-info'
@@ -25,7 +25,7 @@ const PathItemActionMenuHeaderProps = (props: any) => ({
   type: 'folder',
 })
 
-const pathItemActionWithClickableComponentProps = (props: any) => ({
+const pathItemActionProps = (props: any) => ({
   ...props,
   init: Sb.action('init'),
   onHidden: Sb.action('onHidden'),
@@ -56,10 +56,10 @@ export const commonProvider = {
   ConnectedErrs: () => ({
     errs: [],
   }),
+  PathItemAction: pathItemActionProps,
   PathItemActionChooseView: pathItemActionChooseViewProps,
   PathItemActionMenu: PathItemActionMenuProps,
   PathItemActionMenuHeader: PathItemActionMenuHeaderProps,
-  PathItemActionWithClickableComponent: pathItemActionWithClickableComponentProps,
   PathItemIcon: (ownProps: PathItemIconOwnProps) => ({
     ...ownProps,
     type: Types.getPathElements(ownProps.path).length > 3 ? 'file' : 'folder',
@@ -79,6 +79,12 @@ export const commonProvider = {
 
 export const provider = Sb.createPropProviderWithCommon(commonProvider)
 
+const pathItemActionCommonProps = {
+  clickable: {type: 'icon'},
+  init: Sb.action('init'),
+  onHidden: Sb.action('onHidden'),
+}
+
 const load = () => {
   Sb.storiesOf('Files', module)
     .addDecorator(provider)
@@ -92,18 +98,21 @@ const load = () => {
         <PathItemAction
           path={Types.stringToPath('/keybase/private/meatball/folder/treat')}
           routePath={I.List()}
+          {...pathItemActionCommonProps}
         />
         <PathItemAction
           path={Types.stringToPath(
             '/keybase/private/meatball/treat treat treat treat treat treat treat treat treat treat treat treat treat treat treat treat'
           )}
           routePath={I.List()}
+          {...pathItemActionCommonProps}
         />
         <PathItemAction
           path={Types.stringToPath(
             '/keybaes/private/meatball/foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar'
           )}
           routePath={I.List()}
+          {...pathItemActionCommonProps}
         />
       </Kb.Box2>
     ))

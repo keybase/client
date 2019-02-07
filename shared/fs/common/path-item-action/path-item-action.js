@@ -11,17 +11,41 @@ type ClickableProps = {|
   setRef: (?React.Component<any>) => void,
 |}
 
-export type ClickableComponent = React.ComponentType<ClickableProps>
+type ClickableComponent = {|
+  component: React.ComponentType<ClickableProps>,
+  type: 'component',
+|}
+
+type ClickableIcon = {|
+  actionIconClassName?: string,
+  actionIconFontSize?: number,
+  actionIconWhite?: boolean,
+  type: 'icon',
+|}
+
+export type Clickable = ClickableComponent | ClickableIcon
 
 type Props = {|
-  clickable: ClickableComponent,
+  clickable: Clickable,
   init: () => void,
   onHidden: () => void,
   path: Types.Path,
   routePath: I.List<string>,
 |}
 
-const PathItemActionWithClickableComponent = Kb.OverlayParentHOC((props: Props & Kb.OverlayParentProps) => {
+const IconClickable = props => (
+  <Kb.ClickableBox onClick={props.onClick} ref={props.setRef}>
+    <Kb.Icon
+      type="iconfont-ellipsis"
+      color={props.actionIconWhite ? Styles.globalColors.white : Styles.globalColors.black_50}
+      style={Kb.iconCastPlatformStyles(styles.actionIcon)}
+      fontSize={props.actionIconFontSize}
+      className={props.actionIconClassName}
+    />
+  </Kb.ClickableBox>
+)
+
+const PathItemAction = Kb.OverlayParentHOC((props: Props & Kb.OverlayParentProps) => {
   const hideMenuOnce = (() => {
     let hideMenuCalled = false
     return () => {
@@ -41,7 +65,18 @@ const PathItemActionWithClickableComponent = Kb.OverlayParentHOC((props: Props &
 
   return (
     <>
-      <props.clickable onClick={onClick} setRef={props.setAttachmentRef} />
+      {props.clickable.type === 'component' && (
+        <props.clickable.component onClick={onClick} setRef={props.setAttachmentRef} />
+      )}
+      {props.clickable.type === 'icon' && (
+        <IconClickable
+          onClick={onClick}
+          setRef={props.setAttachmentRef}
+          actionIconClassName={props.clickable.actionIconClassName}
+          actionIconFontSize={props.clickable.actionIconFontSize}
+          actionIconWhite={props.clickable.actionIconWhite}
+        />
+      )}
       {props.showingMenu && (
         <ChooseView
           path={props.path}
@@ -59,6 +94,9 @@ const PathItemActionWithClickableComponent = Kb.OverlayParentHOC((props: Props &
 })
 
 const styles = Styles.styleSheetCreate({
+  actionIcon: {
+    padding: Styles.globalMargins.tiny,
+  },
   floatingContainer: Styles.platformStyles({
     common: {
       overflow: 'visible',
@@ -74,4 +112,4 @@ const styles = Styles.styleSheetCreate({
   }),
 })
 
-export default PathItemActionWithClickableComponent
+export default PathItemAction
