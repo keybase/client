@@ -194,9 +194,10 @@ const ActionButton = (props: {
         centerChildren={true}
         style={Styles.collapseStyles([
           styles.actionButton,
-          props.highlight
-            ? {backgroundColor: props.inTeam ? Styles.globalColors.red : Styles.globalColors.blue}
-            : null,
+          props.inTeam && {backgroundColor: null},
+          props.highlight && {
+            backgroundColor: props.inTeam ? Styles.globalColors.red : Styles.globalColors.blue,
+          },
         ])}
       >
         <Icon />
@@ -220,7 +221,7 @@ const RemoveButton = () => (
 )
 
 const AlreadyAddedIconButton = () => (
-  <Kb.Icon type="iconfont-check" fontSize={16} color={Styles.globalColors.black_75} />
+  <Kb.Icon type="iconfont-check" fontSize={16} color={Styles.globalColors.blue} />
 )
 
 const ActionButtonSize = isMobile ? 40 : 32
