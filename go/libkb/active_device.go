@@ -270,6 +270,21 @@ func (a *ActiveDevice) DeviceID() keybase1.DeviceID {
 	return a.deviceID
 }
 
+func (a *ActiveDevice) DeviceType() (string, error) {
+	devices, err := a.secretSyncer.Devices()
+	if err != nil {
+		return "", err
+	}
+	for devID, dev := range devices {
+		if devID == a.DeviceID() {
+			return dev.Type, nil
+		}
+	}
+	return "", NotFoundError{
+		Msg: "Not found: device type",
+	}
+}
+
 // SigningKey returns the signing key for the active device.
 // Safe for use by concurrent goroutines.
 func (a *ActiveDevice) SigningKey() (GenericKey, error) {

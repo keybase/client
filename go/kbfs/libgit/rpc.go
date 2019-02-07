@@ -58,13 +58,13 @@ func (rh *RPCHandler) waitForJournal(
 		return err
 	}
 
-	jServer, err := libkbfs.GetJournalServer(gitConfig)
+	jManager, err := libkbfs.GetJournalManager(gitConfig)
 	if err != nil {
 		rh.log.CDebugf(ctx, "No journal server: %+v", err)
 		return nil
 	}
 
-	_, err = jServer.JournalStatus(rootNode.GetFolderBranch().Tlf)
+	_, err = jManager.JournalStatus(rootNode.GetFolderBranch().Tlf)
 	if err != nil {
 		rh.log.CDebugf(ctx, "No journal: %+v", err)
 		return nil
@@ -74,14 +74,14 @@ func (rh *RPCHandler) waitForJournal(
 	// revision, to make sure that no partial states of the bare repo
 	// are seen by other readers of the TLF.  It also waits for any
 	// necessary conflict resolution to complete.
-	err = jServer.FinishSingleOp(ctx,
+	err = jManager.FinishSingleOp(ctx,
 		rootNode.GetFolderBranch().Tlf, nil, keybase1.MDPriorityGit)
 	if err != nil {
 		return err
 	}
 
 	// Make sure that everything is truly flushed.
-	status, err := jServer.JournalStatus(rootNode.GetFolderBranch().Tlf)
+	status, err := jManager.JournalStatus(rootNode.GetFolderBranch().Tlf)
 	if err != nil {
 		return err
 	}

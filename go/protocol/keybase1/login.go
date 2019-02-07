@@ -47,8 +47,7 @@ type ClearStoredSecretArg struct {
 }
 
 type LogoutArg struct {
-	SessionID int  `codec:"sessionID" json:"sessionID"`
-	Force     bool `codec:"force" json:"force"`
+	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
 type DeprovisionArg struct {
@@ -114,7 +113,7 @@ type LoginInterface interface {
 	// Removes any existing stored secret for the given username.
 	// loginWithStoredSecret(_, username) will fail after this is called.
 	ClearStoredSecret(context.Context, ClearStoredSecretArg) error
-	Logout(context.Context, LogoutArg) error
+	Logout(context.Context, int) error
 	Deprovision(context.Context, DeprovisionArg) error
 	RecoverAccountFromEmailAddress(context.Context, string) error
 	// PaperKey generates paper backup keys for restoring an account.
@@ -224,7 +223,7 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]LogoutArg)(nil), args)
 						return
 					}
-					err = i.Logout(ctx, typedArgs[0])
+					err = i.Logout(ctx, typedArgs[0].SessionID)
 					return
 				},
 			},
@@ -402,7 +401,8 @@ func (c LoginClient) ClearStoredSecret(ctx context.Context, __arg ClearStoredSec
 	return
 }
 
-func (c LoginClient) Logout(ctx context.Context, __arg LogoutArg) (err error) {
+func (c LoginClient) Logout(ctx context.Context, sessionID int) (err error) {
+	__arg := LogoutArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.login.logout", []interface{}{__arg}, nil)
 	return
 }

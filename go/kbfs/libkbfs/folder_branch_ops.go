@@ -744,13 +744,13 @@ var errNoMergedRevWhileStaged = errors.New(
 // revisions, it returns errNoFlushedRevisions.
 func (fbo *folderBranchOps) getJournalPredecessorRevision(ctx context.Context) (
 	kbfsmd.Revision, error) {
-	jServer, err := GetJournalServer(fbo.config)
+	jManager, err := GetJournalManager(fbo.config)
 	if err != nil {
 		// Journaling is disabled entirely.
 		return kbfsmd.RevisionUninitialized, nil
 	}
 
-	jStatus, err := jServer.JournalStatus(fbo.id())
+	jStatus, err := jManager.JournalStatus(fbo.id())
 	if err != nil {
 		// Journaling is disabled for this TLF, so use the local head.
 		// TODO: JournalStatus could return other errors (likely
@@ -1687,8 +1687,8 @@ func (fbo *folderBranchOps) setHeadLocked(
 		// for this TLF.  That's because we may have received the TLF
 		// ID from the service, rather than via a GetIDForHandle call,
 		// and so we might have skipped the journal.
-		if jServer, err := GetJournalServer(fbo.config); err == nil {
-			_, _ = jServer.getTLFJournal(fbo.id(), md.GetTlfHandle())
+		if jManager, err := GetJournalManager(fbo.config); err == nil {
+			_, _ = jManager.getTLFJournal(fbo.id(), md.GetTlfHandle())
 		}
 	}
 	if !wasReadable && md.IsReadable() {
@@ -2412,8 +2412,8 @@ func (fbo *folderBranchOps) initMDLocked(
 	// want the rekey to hit the journal and possibly end up on a
 	// conflict branch, so push straight to the server.
 	mdOps := fbo.config.MDOps()
-	if jServer, err := GetJournalServer(fbo.config); err == nil {
-		mdOps = jServer.delegateMDOps
+	if jManager, err := GetJournalManager(fbo.config); err == nil {
+		mdOps = jManager.delegateMDOps
 	}
 	irmd, err := mdOps.Put(
 		ctx, md, session.VerifyingKey, nil, keybase1.MDPriorityNormal)
@@ -3645,7 +3645,7 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 }
 
 func (fbo *folderBranchOps) waitForJournalLocked(ctx context.Context,
-	lState *lockState, jServer *JournalServer) error {
+	lState *lockState, jManager *JournalManager) error {
 	fbo.mdWriterLock.AssertLocked(lState)
 
 	if !TLFJournalEnabled(fbo.config, fbo.id()) {
@@ -3653,13 +3653,13 @@ func (fbo *folderBranchOps) waitForJournalLocked(ctx context.Context,
 		return nil
 	}
 
-	if err := jServer.Wait(ctx, fbo.id()); err != nil {
+	if err := jManager.Wait(ctx, fbo.id()); err != nil {
 		return err
 	}
 
 	// Make sure everything flushed successfully, since we're holding
 	// the writer lock, no other revisions could have snuck in.
-	jStatus, err := jServer.JournalStatus(fbo.id())
+	jStatus, err := jManager.JournalStatus(fbo.id())
 	if err != nil {
 		return err
 	}
@@ -3692,11 +3692,11 @@ func (fbo *folderBranchOps) finalizeMDRekeyWriteLocked(ctx context.Context,
 	// maybe we should consider letting these hit the journal and
 	// scrubbing them when converting it to a branch.
 	mdOps := fbo.config.MDOps()
-	if jServer, err := GetJournalServer(fbo.config); err == nil {
-		if err = fbo.waitForJournalLocked(ctx, lState, jServer); err != nil {
+	if jManager, err := GetJournalManager(fbo.config); err == nil {
+		if err = fbo.waitForJournalLocked(ctx, lState, jManager); err != nil {
 			return err
 		}
-		mdOps = jServer.delegateMDOps
+		mdOps = jManager.delegateMDOps
 	}
 
 	var key kbfscrypto.VerifyingKey
@@ -8055,6 +8055,7 @@ func (fbo *folderBranchOps) ForceFastForward(ctx context.Context) {
 		// cleared.
 		return
 	}
+	fbo.hasBeenCleared = false
 
 	fbo.forcedFastForwards.Add(1)
 	go func() {
@@ -8063,10 +8064,33 @@ func (fbo *folderBranchOps) ForceFastForward(ctx context.Context) {
 		defer cancelFunc()
 
 		fbo.log.CDebugf(ctx, "Forcing a fast-forward")
-		currHead, err := fbo.config.MDOps().GetForTLF(ctx, fbo.id(), nil)
-		if err != nil {
-			fbo.log.CDebugf(ctx, "Fast-forward failed: %v", err)
-			return
+		var currHead ImmutableRootMetadata
+		var err error
+	getMD:
+		for i := 0; ; i++ {
+			currHead, err = fbo.config.MDOps().GetForTLF(ctx, fbo.id(), nil)
+			switch errors.Cause(err).(type) {
+			case nil:
+				break getMD
+			case kbfsmd.ServerErrorUnauthorized:
+				// The MD server connection might not be authorized
+				// yet, so give it a few chances to go through.
+				if i > 5 {
+					fbo.log.CDebugf(ctx,
+						"Still unauthorized for TLF %s; giving up fast-forward",
+						fbo.id())
+					return
+				}
+				if i == 0 {
+					fbo.log.CDebugf(
+						ctx, "Got unauthorized error when fast-forwarding %s; "+
+							"trying again after a delay", fbo.id())
+				}
+				time.Sleep(1 * time.Second)
+			default:
+				fbo.log.CDebugf(ctx, "Fast-forward failed: %+v", err)
+				return
+			}
 		}
 		if currHead == (ImmutableRootMetadata{}) {
 			fbo.log.CDebugf(ctx, "No MD yet")

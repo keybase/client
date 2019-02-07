@@ -28,7 +28,12 @@ const mapStateToProps = (state, {teamname}: OwnProps) => {
     publicityMember,
     publicityTeam,
     teamname,
-    waitingForSavePublicity: anyWaiting(state, `setPublicity:${teamname}`, `getDetails:${teamname}`),
+    waitingForSavePublicity: anyWaiting(
+      state,
+      `team:${teamname}`,
+      `teamRetention:${teamname}`,
+      `teamSettings:${teamname}`
+    ),
     yourOperations: Constants.getCanPerform(state, teamname),
   }
 }

@@ -306,14 +306,19 @@ func checkIcon(t testing.TB, service string, icon []keybase1.SizedImage) {
 		if icon.Width < 2 {
 			t.Fatalf("unreasonable icon size")
 		}
-		resp, err := http.Get(icon.Path)
-		require.NoError(t, err, "%v", service)
-		require.Equal(t, 200, resp.StatusCode, "icon file should be reachable")
-		require.NoError(t, err)
-		body, err := ioutil.ReadAll(resp.Body)
-		require.NoError(t, err)
-		if len(body) < 150 {
-			t.Fatalf("unreasonable icon payload size")
+		if kbtest.SkipIconRemoteTest() {
+			t.Logf("Skipping icon remote test")
+			require.True(t, len(icon.Path) > 8)
+		} else {
+			resp, err := http.Get(icon.Path)
+			require.NoError(t, err, "%v", service)
+			require.Equal(t, 200, resp.StatusCode, "icon file should be reachable")
+			require.NoError(t, err)
+			body, err := ioutil.ReadAll(resp.Body)
+			require.NoError(t, err)
+			if len(body) < 150 {
+				t.Fatalf("unreasonable icon payload size")
+			}
 		}
 	}
 }

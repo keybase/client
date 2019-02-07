@@ -9,24 +9,26 @@ import (
 )
 
 type WalletAccountLocal struct {
-	AccountID          AccountID     `codec:"accountID" json:"accountID"`
-	IsDefault          bool          `codec:"isDefault" json:"isDefault"`
-	Name               string        `codec:"name" json:"name"`
-	BalanceDescription string        `codec:"balanceDescription" json:"balanceDescription"`
-	Seqno              string        `codec:"seqno" json:"seqno"`
-	CurrencyLocal      CurrencyLocal `codec:"currencyLocal" json:"currencyLocal"`
-	AccountMode        AccountMode   `codec:"accountMode" json:"accountMode"`
+	AccountID           AccountID     `codec:"accountID" json:"accountID"`
+	IsDefault           bool          `codec:"isDefault" json:"isDefault"`
+	Name                string        `codec:"name" json:"name"`
+	BalanceDescription  string        `codec:"balanceDescription" json:"balanceDescription"`
+	Seqno               string        `codec:"seqno" json:"seqno"`
+	CurrencyLocal       CurrencyLocal `codec:"currencyLocal" json:"currencyLocal"`
+	AccountMode         AccountMode   `codec:"accountMode" json:"accountMode"`
+	AccountModeEditable bool          `codec:"accountModeEditable" json:"accountModeEditable"`
 }
 
 func (o WalletAccountLocal) DeepCopy() WalletAccountLocal {
 	return WalletAccountLocal{
-		AccountID:          o.AccountID.DeepCopy(),
-		IsDefault:          o.IsDefault,
-		Name:               o.Name,
-		BalanceDescription: o.BalanceDescription,
-		Seqno:              o.Seqno,
-		CurrencyLocal:      o.CurrencyLocal.DeepCopy(),
-		AccountMode:        o.AccountMode.DeepCopy(),
+		AccountID:           o.AccountID.DeepCopy(),
+		IsDefault:           o.IsDefault,
+		Name:                o.Name,
+		BalanceDescription:  o.BalanceDescription,
+		Seqno:               o.Seqno,
+		CurrencyLocal:       o.CurrencyLocal.DeepCopy(),
+		AccountMode:         o.AccountMode.DeepCopy(),
+		AccountModeEditable: o.AccountModeEditable,
 	}
 }
 
