@@ -347,6 +347,18 @@
 			"revisionTime": "2018-09-11T21:33:45Z"
 		},
 		{
+			"checksumSHA1": "3rTP4rq+lgaSQuUUH/MfcVaFYEI=",
+			"path": "github.com/gocolly/colly/debug",
+			"revision": "b3032e87d3efbd3c00423aeb84f1fb7772c7d8a6",
+			"revisionTime": "2019-02-04T14:09:05Z"
+		},
+		{
+			"checksumSHA1": "Yr0WHKEt2ZtOZQt1G9PZABc8vDg=",
+			"path": "github.com/gocolly/colly/storage",
+			"revision": "b3032e87d3efbd3c00423aeb84f1fb7772c7d8a6",
+			"revisionTime": "2019-02-04T14:09:05Z"
+		},
+		{
 			"checksumSHA1": "nbCxiVT48CWEg6l8L4SEJ5VfN9c=",
 			"path": "github.com/golang/groupcache/lru",
 			"revision": "c65c006176ff7ff98bb916961c7abbc6b0afc0aa",
@@ -489,6 +501,12 @@
 			"path": "github.com/keybase/clockwork",
 			"revision": "976f45f4a979cd2fd048a639630ba20d8378c9d8",
 			"revisionTime": "2016-12-09T16:02:51-05:00"
+		},
+		{
+			"checksumSHA1": "qNbpTjCsRF1JrIzqdZ+GG7KqcRQ=",
+			"path": "github.com/keybase/colly",
+			"revision": "9a56fbe6c0e6633629b1483a3a215b5c38ac1b5f",
+			"revisionTime": "2019-02-07T01:05:05Z"
 		},
 		{
 			"checksumSHA1": "AzpolYksuMdnqRhFpzPm1bEztJ0=",

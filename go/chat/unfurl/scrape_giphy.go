@@ -2,6 +2,7 @@ package unfurl
 
 import (
 	"context"
+	"net/http"
 	"strconv"
 	"strings"
 
@@ -21,9 +22,6 @@ func (s *Scraper) scrapeGiphy(ctx context.Context, sourceURL string) (res chat1.
 	}
 
 	c.WithTransport(giphy.WebClient().Transport)
-	c.OnRequest(func(r *colly.Request) {
-		r.Headers.Add("Host", giphy.Host)
-	})
 	c.OnHTML("head meta[content][property]", func(e *colly.HTMLElement) {
 		attr := strings.ToLower(e.Attr("property"))
 		if attr == "og:video" {
@@ -45,7 +43,9 @@ func (s *Scraper) scrapeGiphy(ctx context.Context, sourceURL string) (res chat1.
 	if err != nil {
 		return res, err
 	}
-	if err := c.Visit(uri); err != nil {
+	hdr := make(http.Header)
+	hdr.Add("Host", giphy.Host)
+	if err := c.Request("GET", uri, nil, nil, hdr); err != nil {
 		return res, err
 	}
 	if generic.ImageUrl == nil {

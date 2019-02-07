@@ -3,11 +3,10 @@ package unfurl
 import (
 	"context"
 
-	"github.com/gocolly/colly"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/logger"
-
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/colly"
 )
 
 type Scraper struct {
