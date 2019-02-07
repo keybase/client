@@ -6,7 +6,10 @@ import DeviceRow from './row/container'
 import * as Styles from '../styles'
 import {compose} from '../util/container'
 
-type Item = {key: string, id: Types.DeviceID, type: 'device'} | {key: string, type: 'revokedHeader'}
+type Item =
+  | {key: string, id: Types.DeviceID, type: 'device'}
+  | {key: string, type: 'revokedHeader'}
+  | {key: string, type: 'paperKeyNudge'}
 
 type State = {
   revokedExpanded: boolean,
@@ -50,6 +53,8 @@ class Devices extends React.PureComponent<Props, State> {
           onToggleExpanded={this._toggleExpanded}
         />
       )
+    } else if (item.type === 'paperKeyNudge') {
+      return null // TODO
     } else {
       return <DeviceRow key={item.id} deviceID={item.id} firstItem={index === 0} />
     }

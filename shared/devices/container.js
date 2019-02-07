@@ -44,10 +44,15 @@ function mergeProps(stateProps, dispatchProps, ownProps: OwnProps) {
   const [revoked, normal] = splitAndSortDevices(stateProps._deviceMap)
   const revokedItems = revoked.map(deviceToItem)
   const newlyRevokedIds = I.Set(revokedItems.map(d => d.key)).intersect(stateProps._newlyChangedItemIds)
+  const showPaperKeyNudge = !stateProps._deviceMap.some(v => v.type === 'backup')
+  const items = normal.map(deviceToItem)
+  if (showPaperKeyNudge) {
+    items.push({key: 'paperKeyNudge', type: 'paperKeyNudge'})
+  }
   return {
     _stateOverride: null,
     hasNewlyRevoked: newlyRevokedIds.size > 0,
-    items: normal.map(deviceToItem),
+    items,
     loadDevices: dispatchProps.loadDevices,
     onAddDevice: dispatchProps.onAddDevice,
     onBack: dispatchProps.onBack,
