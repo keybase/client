@@ -13,131 +13,37 @@ import * as React from 'react'
 import GlobalError from '../app/global-errors/container'
 // import Offline from '../offline/container'
 import TabBar from './tab-bar/container'
-import {
-  createNavigator,
-  SwitchRouter,
-  StackRouter,
-  StackActions,
-  NavigationActions,
-  NavigationContext,
-  getNavigation,
-  NavigationProvider,
-  NavigationEvents,
-  SceneView,
-} from '@react-navigation/core'
 import {createAppContainer} from '@react-navigation/native'
+import {createSwitchNavigator} from '@react-navigation/core'
 import StackHeader from 'react-navigation-stack/src/views/Header/Header'
 // import {createBottomTabNavigator} from 'react-navigation-tabs'
 import {createStackNavigator} from 'react-navigation-stack'
-import {modalRoutes, routes, nameToTab} from './routes'
+import {modalRoutes, routes, nameToTab, loggedOutRoutes} from './routes'
 import {LeftAction} from '../common-adapters/header-hoc'
 import * as Shared from './router.shared'
 import {useScreens} from 'react-native-screens'
 // turn on screens
 useScreens()
 
-// deprecating routestate concept entirely
-// const emptyMap = I.Map()
-// // don't path this likely
-// const emptyList = I.List()
-// class BridgeSceneView extends React.PureComponent {
-// _routeProps = {
-// get: key => this.props.navigation.getParam(key),
-// }
-// _pop = () => this.props.navigation.pop()
+// Wrappers
+const KeyboardAvoid = p => (
+  <Kb.NativeKeyboardAvoidingView style={styles.keyboard} behavior="padding">
+    {p.children}
+  </Kb.NativeKeyboardAvoidingView>
+)
 
-// // TODO remove all the routeprops etc
-// render() {
-// const Component = this.props.component
-// const options = Component.navigationOptions || {}
-// return (
-// <NavigationContext.Provider value={this.props.navigation}>
-// <Kb.ErrorBoundary>
-// <Component
-// routeProps={this._routeProps}
-// routePath={emptyList}
-// routeState={emptyMap}
-// navigation={this.props.navigation}
-// />
-// </Kb.ErrorBoundary>
-// {!options.skipOffline && <Offline />}
-// <GlobalError />
-// </NavigationContext.Provider>
-// )
-// }
-// }
+const SafeTopAndKeyboardAvoid = p => (
+  <Kb.SafeAreaViewTop style={styles.safeAreaViewTop}>
+    <KeyboardAvoid>{p.children}</KeyboardAvoid>
+  </Kb.SafeAreaViewTop>
+)
 
-// The app with a tab bar on the left and content area on the right
-// A single content view and n modals on top
-// class AppView extends React.PureComponent {
-// render() {
-// const p = this.props
-// const index = p.navigation.state.index
-// // Find topmost non modal
-// let nonModalIndex = index
-// let modals = []
-// while (nonModalIndex >= 0) {
-// const activeKey = p.navigation.state.routes[nonModalIndex].key
-// const descriptor = p.descriptors[activeKey]
-// const Component = descriptor.getComponent()
-// const options = Component.navigationOptions || {}
-// if (!options.isModal) {
-// break
-// }
-// modals.unshift(descriptor)
-// --nonModalIndex
-// }
-
-// const activeKey = p.navigation.state.routes[nonModalIndex].key
-// const descriptor = p.descriptors[activeKey]
-
-// return (
-// <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
-// <TabBar selectedTab={nameToTab[descriptor.state.routeName]} />
-// <Kb.Box2 direction="vertical" fullHeight={true} style={styles.contentArea}>
-// <BridgeSceneView navigation={descriptor.navigation} component={descriptor.getComponent()} />
-// </Kb.Box2>
-// {modals.map(modal => {
-// const Component = modal.getComponent()
-// return (
-// <Component
-// key={modal.key}
-// routeProps={{get: key => modal.navigation.getParam(key)}}
-// routePath={emptyList}
-// routeState={emptyMap}
-// navigation={modal.navigation}
-// />
-// )
-// })}
-// </Kb.Box2>
-// )
-// }
-// }
-
-// const StackNavigator = createNavigator(AppView, routes, {
-// headerMode: 'none',
-// initialRouteName: 'tabs:peopleTab',
-// })
-
-//
 // We need to wrap the params that come into the components so the old way isn't totally broken short term
-const shimmedRoutes = Shared.shimRoutes(routes)
+const shimmedRoutes = Shared.shimRoutes(routes, SafeTopAndKeyboardAvoid, KeyboardAvoid)
 
 const MainStackNavigator = createStackNavigator(shimmedRoutes, {
   defaultNavigationOptions: p => ({
-    // header: p => <Kb.SafeAreaViewTop />,
-    // headerMode: 'none',
-    // headerTransitionPreset: 'fade-in-place',
-    // cardOverlayEnabled: true,
-    // static navigationOptions = p => {
-    // return {
-    // headerTitle: p.navigation.getParam('username'),
-    // headerTitle: hp => (
-    // <Kb.Text center={true} type="Body">
-    // CUSTOM{p.navigation.getParam('username')} long long long long lonlong long long long lonlong long long
-    // long longgglong long long long long
-    // </Kb.Text>
-    // ),
+    header: null,
     headerLeft: hp => (
       <LeftAction
         badgeNumber={0}
@@ -146,54 +52,33 @@ const MainStackNavigator = createStackNavigator(shimmedRoutes, {
         disabled={hp.scene.index === 0}
       />
     ),
-    // headerRight: (
-    // maybe move tabbar etc to  ElectronApp
-    // <Kb.Box2 direction="horizontal" fullHeight={true} centerChildren={true}>
-    // <Kb.Icon type="iconfont-ellipsis" />
-    // <Kb.Icon type="iconfont-ellipsis" />
-    // <Kb.Icon type="iconfont-ellipsis" />
-    // </Kb.Box2>
-    // ),
-    // header: hp => (
-    // <Kb.SafeAreaViewTop style={hp.style}>
-    // <Kb.Text center={true} type="Body">
-    // {p.navigation.getParam('username')}
-    // </Kb.Text>
-    // </Kb.SafeAreaViewTop>
-    // ),
-    header: null,
-    headerTitle: null,
     headerMode: 'float',
-    // headerTransitionPreset: 'uikit',
-    // cardOverlayEnabled: true,
-    // }
-    // }
+    headerTitle: null,
   }),
-  // headerMode: 'none',
+  disableKeyboardHandling: true,
   initialRouteName: 'tabs:peopleTab',
   initialRouteParams: undefined,
 })
 
 // The nested modal nav can't easily show a header so we just inject it in
 // TODO move this into common
-const ModalHeader = p => {
-  // const scene = {index: 0, isActive: true, descriptor: {options: {}}}
-  const scene = {descriptor: {options: {...p.navigationOptions}}, index: 0, isActive: true}
-  const scenes = [scene]
-  // const navigation = {state: {index: 0}}
-  // const getScreenDetails = () => ({
-  // options: {
-  // title: 'Modal',
-  // // headerLeft: <Kb.Button type='title="Cancel" onPress={() => p.navigation.goBack()} />,
-  // },
-  // })
-  // <StackHeader scene={scene} scenes={scenes} navigation={navigation} getScreenDetails={getScreenDetails} />
-  return <StackHeader mode="screen" scene={scene} scenes={scenes} navigation={p.navigation} />
-}
+// const ModalHeader = p => {
+// // const scene = {index: 0, isActive: true, descriptor: {options: {}}}
+// const scene = {descriptor: {options: {...p.navigationOptions}}, index: 0, isActive: true}
+// const scenes = [scene]
+// // const navigation = {state: {index: 0}}
+// // const getScreenDetails = () => ({
+// // options: {
+// // title: 'Modal',
+// // // headerLeft: <Kb.Button type='title="Cancel" onPress={() => p.navigation.goBack()} />,
+// // },
+// // })
+// // <StackHeader scene={scene} scenes={scenes} navigation={navigation} getScreenDetails={getScreenDetails} />
+// return <StackHeader mode="screen" scene={scene} scenes={scenes} navigation={p.navigation} />
+// }
 
-// const shimmedModalRoutes = Shared.shimRoutes(modalRoutes)
-const shimmedModalRoutes = Shared.shimRoutes(modalRoutes) // , ModalHeader)
-const RootStackNavigator = createStackNavigator(
+const shimmedModalRoutes = Shared.shimRoutes(modalRoutes, SafeTopAndKeyboardAvoid, KeyboardAvoid)
+const LoggedInStackNavigator = createStackNavigator(
   {
     Main: {
       screen: MainStackNavigator,
@@ -206,13 +91,41 @@ const RootStackNavigator = createStackNavigator(
   }
 )
 
-// // NOT using rn-bototm tab
-// const tabNavigator = createBottomTabNavigator({
-// people: stackNavigator,
-// chat: stackNavigator,
-// files: stackNavigator,
-// settings: stackNavigator,
-// })
+const shimmedLoggedOutRoutes = Shared.shimRoutes(loggedOutRoutes, SafeTopAndKeyboardAvoid, KeyboardAvoid)
+const LoggedOutStackNavigator = createStackNavigator(
+  {
+    ...shimmedLoggedOutRoutes,
+  },
+  {
+    defaultNavigationOptions: p => ({
+      header: null,
+      headerLeft: hp => (
+        <LeftAction
+          badgeNumber={0}
+          leftAction="back"
+          onLeftAction={hp.onPress}
+          disabled={hp.scene.index === 0}
+        />
+      ),
+      headerMode: 'float',
+      headerTitle: null,
+    }),
+    disableKeyboardHandling: true,
+    initialRouteName: 'login',
+    initialRouteParams: undefined,
+  }
+)
+
+const LoadingScreen = () => <Kb.Text type="Header">Loading...</Kb.Text>
+
+// TODO desktop side also
+const RootStackNavigator = createSwitchNavigator(
+  {
+    loggedIn: LoggedInStackNavigator,
+    loggedOut: LoggedOutStackNavigator,
+  },
+  {initialRouteName: 'loggedOut'}
+)
 
 /// / gets the current screen from navigation state
 function getActiveRouteName(navigationState) {
@@ -265,11 +178,10 @@ class CustomStackNavigator extends React.PureComponent<any> {
     //
     //
     //
+    // <Kb.NativeKeyboardAvoidingView style={styles.keyboard} behavior="padding">
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-        <Kb.NativeKeyboardAvoidingView style={styles.keyboard} behavior="padding">
-          <RootStackNavigator navigation={this.props.navigation} />
-        </Kb.NativeKeyboardAvoidingView>
+        <RootStackNavigator navigation={this.props.navigation} />
         <TabBar selectedTab={nameToTab[this.props.activeKey]} />
         <GlobalError />
       </Kb.Box2>
@@ -278,7 +190,7 @@ class CustomStackNavigator extends React.PureComponent<any> {
 }
 const AppContainer = createAppContainer(CustomStackNavigator)
 
-class RNApp extends React.Component<any, any> {
+class RNApp extends React.PureComponent<any, any> {
   // state = {selectedTab: 'tabs:peopleTab'}
   state = {activeKey: 'tabs:peopleTab'}
   _nav = null
@@ -302,8 +214,9 @@ class RNApp extends React.Component<any, any> {
     if (!nav) {
       throw new Error('Missing nav?')
     }
-    const action = Shared.oldActionToNewAction(old, nav._navigation)
-    action && nav.dispatch(action)
+
+    const actions = Shared.oldActionToNewActions(old, nav._navigation) || []
+    actions.forEach(a => nav.dispatch(a))
   }
 
   render() {
@@ -382,6 +295,9 @@ const styles = Styles.styleSheetCreate({
     position: 'relative',
   },
   keyboard: {
+    flexGrow: 1,
+  },
+  safeAreaViewTop: {
     flexGrow: 1,
   },
   modalContainer: {},

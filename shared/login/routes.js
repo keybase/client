@@ -31,6 +31,10 @@ const RootLogin = connect<OwnProps, _, _, _, _>(
   (s, d, o) => ({...o, ...s, ...d})
 )(_RootLogin)
 
+RootLogin.navigationOptions = {
+  header: null,
+}
+
 const addTags = component => ({component, tags: makeLeafTags({hideStatusBar: true})})
 
 const routeTree = () => {
@@ -54,3 +58,10 @@ const routeTree = () => {
 }
 
 export default routeTree
+
+export const newRoutes = {
+  feedback: {getScreen: () => require('../settings/feedback-container').default},
+  login: {getScreen: () => RootLogin},
+  ...require('../provision/routes').newRoutes,
+  ...require('./signup/routes').newRoutes,
+}

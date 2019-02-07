@@ -8,6 +8,7 @@ import {newRoutes as chatNewRoutes} from '../chat/routes'
 import {newRoutes as peopleNewRoutes} from '../people/routes'
 import {newRoutes as fsNewRoutes} from '../fs/routes'
 import {newRoutes as settingsNewRoutes} from '../settings/routes'
+import {newRoutes as _loggedOutRoutes} from '../login/routes'
 import {newRoutes as profileNewRoutes, newModalRoutes as profileNewModalRoutes} from '../profile/routes'
 // import OldPeopleRoutes from '../people/routes'
 import * as Tabs from '../constants/tabs'
@@ -64,7 +65,10 @@ export const modalRoutes = {
   ...profileNewModalRoutes,
 }
 
+export const loggedOutRoutes = _loggedOutRoutes
+
 // TEMP
 console.log('aaa all routes', routes)
+console.log('aaa all loggedout routes', loggedOutRoutes)
 console.log('aaa all modal routes', modalRoutes)
 console.log('aaa routes to tab', nameToTab)

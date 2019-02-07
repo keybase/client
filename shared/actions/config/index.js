@@ -454,8 +454,15 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
       | RouteTreeGen.NavigateToPayload
       | RouteTreeGen.NavigateUpPayload
       | RouteTreeGen.SwitchToPayload
+      | RouteTreeGen.SwitchRouteDefPayload
     >(
-      [RouteTreeGen.navigateAppend, RouteTreeGen.navigateTo, RouteTreeGen.navigateUp, RouteTreeGen.switchTo],
+      [
+        RouteTreeGen.navigateAppend,
+        RouteTreeGen.navigateTo,
+        RouteTreeGen.navigateUp,
+        RouteTreeGen.switchTo,
+        RouteTreeGen.switchRouteDef,
+      ],
       newNavigation
     )
   }

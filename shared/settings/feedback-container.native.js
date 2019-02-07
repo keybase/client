@@ -181,7 +181,7 @@ const extraChatLogs = state => {
 const mapStateToProps = (state, {routeProps}) => {
   return {
     chat: extraChatLogs(state),
-    heading: routeProps.get('heading') || 'Your feedback is welcomed!',
+    heading: routeProps?.get('heading') || 'Your feedback is welcomed!',
     status: {
       appVersionCode,
       appVersionName,

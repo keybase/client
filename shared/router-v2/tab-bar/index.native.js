@@ -14,20 +14,21 @@ const icons = {
 }
 
 const tabs = [Tabs.peopleTab, Tabs.chatTab, Tabs.fsTab, Tabs.settingsTab]
-const TabBar = p => (
-  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
-    {tabs.map(t => (
-      <Kb.Icon
-        key={t}
-        type={icons[t]}
-        onClick={() => p.onTabClick(t)}
-        fontSize={32}
-        style={t === p.selectedTab ? styles.tabSelected : styles.tab}
-        color={t === p.selectedTab ? Styles.globalColors.white : Styles.globalColors.darkBlue4}
-      />
-    ))}
-  </Kb.Box2>
-)
+const TabBar = p =>
+  !!p.username && (
+    <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
+      {tabs.map(t => (
+        <Kb.Icon
+          key={t}
+          type={icons[t]}
+          onClick={() => p.onTabClick(t)}
+          fontSize={32}
+          style={t === p.selectedTab ? styles.tabSelected : styles.tab}
+          color={t === p.selectedTab ? Styles.globalColors.white : Styles.globalColors.darkBlue4}
+        />
+      ))}
+    </Kb.Box2>
+  )
 
 const tab = {}
 const styles = Styles.styleSheetCreate({

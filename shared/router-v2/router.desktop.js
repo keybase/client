@@ -152,8 +152,8 @@ const createElectronApp = App => {
       )
     }
     dispatchOldAction = (old: any) => {
-      const action = Shared.oldActionToNewAction(old, this._navigation)
-      action && this.dispatch(action)
+      const actions = Shared.oldActionToNewActions(old, this._navigation) || []
+      actions.forEach(a => this.dispatch(a))
     }
     dispatch = (action: any) => {
       const lastState = this.state.nav
