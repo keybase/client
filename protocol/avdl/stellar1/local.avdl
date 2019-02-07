@@ -14,6 +14,7 @@ protocol local {
     string seqno;               // the stellar sequence number for this account
     CurrencyLocal currencyLocal;// user configurable, defaults to USD and related details
     AccountMode accountMode;    // mobile only vs all devices
+    boolean accountModeEditable;// is this device able to change it
   }
   array<WalletAccountLocal> getWalletAccountsLocal(int sessionID);
   WalletAccountLocal getWalletAccountLocal(int sessionID, AccountID accountID);
@@ -486,7 +487,7 @@ protocol local {
   InflationDestinationResultLocal getInflationDestinationLocal(int sessionID, AccountID accountID);
 
   // airdropDetailsLocal returns a json blob of details about the current
-  // airdrop.  If the current airdrop has expired, it will return an 
+  // airdrop.  If the current airdrop has expired, it will return an
   // expired error.
   string airdropDetailsLocal(int sessionID);
 

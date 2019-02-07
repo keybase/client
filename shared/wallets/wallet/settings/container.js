@@ -12,6 +12,7 @@ const mapStateToProps = (state, {routeProps}) => {
   const accountID = routeProps.get('accountID')
   const account = Constants.getAccount(state, accountID)
   const name = account.name
+  const mobileOnlyEditable = account.mobileOnlyEditable
   const me = state.config.username || ''
   const user = account.isDefault ? me : ''
   const currencies = Constants.getDisplayCurrencies(state)
@@ -36,6 +37,7 @@ const mapStateToProps = (state, {routeProps}) => {
         ? ''
         : inflationDest.name || inflationDest.accountID,
     isDefault: account.isDefault,
+    mobileOnlyEditable,
     mobileOnlyMode,
     mobileOnlyWaiting,
     name,

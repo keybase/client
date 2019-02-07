@@ -449,7 +449,7 @@ export type TransactionStatus =
   | 4 // ERROR_PERMANENT_4
 
 export type UIPaymentReviewed = $ReadOnly<{bid: BuildPaymentID, reviewID: Int, seqno: Int, banners?: ?Array<SendBannerLocal>, nextButton: String}>
-export type WalletAccountLocal = $ReadOnly<{accountID: AccountID, isDefault: Boolean, name: String, balanceDescription: String, seqno: String, currencyLocal: CurrencyLocal, accountMode: AccountMode}>
+export type WalletAccountLocal = $ReadOnly<{accountID: AccountID, isDefault: Boolean, name: String, balanceDescription: String, seqno: String, currencyLocal: CurrencyLocal, accountMode: AccountMode, accountModeEditable: Boolean}>
 
 export type IncomingCallMapType = {|
   'stellar.1.notify.paymentNotification'?: (params: $Exact<$PropertyType<$PropertyType<MessageTypes, 'stellar.1.notify.paymentNotification'>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn,
