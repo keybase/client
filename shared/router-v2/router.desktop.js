@@ -1,23 +1,25 @@
 // @flow
+// TODO look at whats shared w/ native and move it around
 import * as Kb from '../common-adapters'
-import * as I from 'immutable'
+// import * as I from 'immutable'
 import * as Styles from '../styles'
 import * as React from 'react'
-import GlobalError from '../app/global-errors/container'
-import Offline from '../offline/container'
+// import GlobalError from '../app/global-errors/container'
+// import Offline from '../offline/container'
 import TabBar from './tab-bar/container'
 import {
   createNavigator,
-  SwitchRouter,
+  // SwitchRouter,
   StackRouter,
-  StackActions,
+  // StackActions,
   NavigationActions,
-  NavigationContext,
+  // NavigationContext,
   getNavigation,
   NavigationProvider,
   SceneView,
+  createSwitchNavigator,
 } from '@react-navigation/core'
-import {modalRoutes, routes, nameToTab} from './routes'
+import {modalRoutes, routes, nameToTab, loggedOutRoutes} from './routes'
 import * as Shared from './router.shared'
 import Header from './header/index.desktop'
 
@@ -40,7 +42,7 @@ import Header from './header/index.desktop'
 
 // The app with a tab bar on the left and content area on the right
 // A single content view and n modals on top
-class AppView extends React.PureComponent {
+class AppView extends React.PureComponent<any> {
   render() {
     const navigation = this.props.navigation
     const index = navigation.state.index
@@ -64,7 +66,7 @@ class AppView extends React.PureComponent {
   }
 }
 
-class ModalView extends React.PureComponent {
+class ModalView extends React.PureComponent<any> {
   render() {
     const navigation = this.props.navigation
     const index = navigation.state.index
@@ -101,13 +103,12 @@ class ModalView extends React.PureComponent {
 const shimmedRoutes = Shared.shimRoutes(routes)
 const MainNavigator = createNavigator(
   AppView,
-  // TODO don't hardcode this
   StackRouter(shimmedRoutes, {initialRouteName: 'tabs:peopleTab'}),
   {}
 )
 
 const shimmedModalRoutes = Shared.shimRoutes(modalRoutes)
-const RootNavigator = createNavigator(
+const LoggedInStackNavigator = createNavigator(
   ModalView,
   StackRouter(
     {
@@ -119,6 +120,28 @@ const RootNavigator = createNavigator(
     {}
   ),
   {}
+)
+
+const shimmedLoggedOutRoutes = Shared.shimRoutes(loggedOutRoutes)
+const LoggedOutStackNavigator = createNavigator(
+  AppView,
+  StackRouter(
+    {
+      ...shimmedLoggedOutRoutes,
+    },
+    {
+      initialRouteName: 'login',
+    }
+  ),
+  {}
+)
+
+const RootStackNavigator = createSwitchNavigator(
+  {
+    loggedIn: LoggedInStackNavigator,
+    loggedOut: LoggedOutStackNavigator,
+  },
+  {initialRouteName: 'loggedOut'}
 )
 
 const createElectronApp = App => {
@@ -172,7 +195,7 @@ const createElectronApp = App => {
   return ElectronApp
 }
 
-const ElectronApp = createElectronApp(RootNavigator)
+const ElectronApp = createElectronApp(RootStackNavigator)
 
 const styles = Styles.styleSheetCreate({
   back: Styles.platformStyles({

@@ -14,6 +14,7 @@ export const Header = (props: Props) => (
       {
         custom: (
           <Kb.Avatar
+            key="avatar"
             username={props.myUsername}
             onClick={() => props.onClickUser(props.myUsername)}
             size={32}

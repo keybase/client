@@ -25,6 +25,23 @@ import {useScreens} from 'react-native-screens'
 // turn on screens
 useScreens()
 
+// The nested modal nav can't easily show a header so we just inject it in
+// TODO move this into common
+// const ModalHeader = p => {
+// // const scene = {index: 0, isActive: true, descriptor: {options: {}}}
+// const scene = {descriptor: {options: {...p.navigationOptions}}, index: 0, isActive: true}
+// const scenes = [scene]
+// // const navigation = {state: {index: 0}}
+// // const getScreenDetails = () => ({
+// // options: {
+// // title: 'Modal',
+// // // headerLeft: <Kb.Button type='title="Cancel" onPress={() => p.navigation.goBack()} />,
+// // },
+// // })
+// // <StackHeader scene={scene} scenes={scenes} navigation={navigation} getScreenDetails={getScreenDetails} />
+// return <StackHeader mode="screen" scene={scene} scenes={scenes} navigation={p.navigation} />
+// }
+
 // Wrappers
 const KeyboardAvoid = p => (
   <Kb.NativeKeyboardAvoidingView style={styles.keyboard} behavior="padding">
@@ -59,23 +76,6 @@ const MainStackNavigator = createStackNavigator(shimmedRoutes, {
   initialRouteName: 'tabs:peopleTab',
   initialRouteParams: undefined,
 })
-
-// The nested modal nav can't easily show a header so we just inject it in
-// TODO move this into common
-// const ModalHeader = p => {
-// // const scene = {index: 0, isActive: true, descriptor: {options: {}}}
-// const scene = {descriptor: {options: {...p.navigationOptions}}, index: 0, isActive: true}
-// const scenes = [scene]
-// // const navigation = {state: {index: 0}}
-// // const getScreenDetails = () => ({
-// // options: {
-// // title: 'Modal',
-// // // headerLeft: <Kb.Button type='title="Cancel" onPress={() => p.navigation.goBack()} />,
-// // },
-// // })
-// // <StackHeader scene={scene} scenes={scenes} navigation={navigation} getScreenDetails={getScreenDetails} />
-// return <StackHeader mode="screen" scene={scene} scenes={scenes} navigation={p.navigation} />
-// }
 
 const shimmedModalRoutes = Shared.shimRoutes(modalRoutes, SafeTopAndKeyboardAvoid, KeyboardAvoid)
 const LoggedInStackNavigator = createStackNavigator(
@@ -116,9 +116,6 @@ const LoggedOutStackNavigator = createStackNavigator(
   }
 )
 
-const LoadingScreen = () => <Kb.Text type="Header">Loading...</Kb.Text>
-
-// TODO desktop side also
 const RootStackNavigator = createSwitchNavigator(
   {
     loggedIn: LoggedInStackNavigator,

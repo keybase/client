@@ -42,44 +42,45 @@ const tabs = [
   Tabs.settingsTab,
 ]
 
-const TabBar = p => (
-  <Kb.Box2 className="tab-container" direction="vertical" fullHeight={true}>
-    <Kb.Box2 direction="horizontal" style={styles.osButtons} fullWidth={true} />
-    <Kb.ClickableBox onClick={p.onProfileClick}>
-      <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} style={styles.nameContainer}>
-        <Kb.Avatar
-          size={16}
-          borderColor={Styles.globalColors.blue}
-          username={p.username}
-          style={styles.avatar}
-        />
-        <Kb.Text className="username" type="BodySemibold" style={styles.username}>
-          Hi {p.username}
-        </Kb.Text>
-        <Kb.Icon type="iconfont-arrow-down" color={Styles.globalColors.blue3} />
-      </Kb.Box2>
-    </Kb.ClickableBox>
-    <Kb.Divider style={styles.divider} />
-    {tabs.map(t => (
-      <Kb.ClickableBox key={t} onClick={() => p.onTabClick(t)}>
-        <Kb.WithTooltip text={labels[t]} toastClassName="tab-tooltip">
-          <Kb.Box2
-            direction="horizontal"
-            fullWidth={true}
-            className={t === p.selectedTab ? 'tab-selected' : 'tab'}
-            style={styles.tab}
-          >
-            <Kb.Box2 className="tab-highlight" direction="vertical" fullHeight={true} />
-            <Kb.Icon className="tab-icon" type={icons[t]} />
-            <Kb.Text className="tab-label" type="BodySmallSemibold">
-              {labels[t]}
-            </Kb.Text>
-          </Kb.Box2>
-        </Kb.WithTooltip>
+const TabBar = p =>
+  !!p.username && (
+    <Kb.Box2 className="tab-container" direction="vertical" fullHeight={true}>
+      <Kb.Box2 direction="horizontal" style={styles.osButtons} fullWidth={true} />
+      <Kb.ClickableBox onClick={p.onProfileClick}>
+        <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} style={styles.nameContainer}>
+          <Kb.Avatar
+            size={16}
+            borderColor={Styles.globalColors.blue}
+            username={p.username}
+            style={styles.avatar}
+          />
+          <Kb.Text className="username" type="BodySemibold" style={styles.username}>
+            Hi {p.username}
+          </Kb.Text>
+          <Kb.Icon type="iconfont-arrow-down" color={Styles.globalColors.blue3} />
+        </Kb.Box2>
       </Kb.ClickableBox>
-    ))}
-  </Kb.Box2>
-)
+      <Kb.Divider style={styles.divider} />
+      {tabs.map(t => (
+        <Kb.ClickableBox key={t} onClick={() => p.onTabClick(t)}>
+          <Kb.WithTooltip text={labels[t]} toastClassName="tab-tooltip">
+            <Kb.Box2
+              direction="horizontal"
+              fullWidth={true}
+              className={t === p.selectedTab ? 'tab-selected' : 'tab'}
+              style={styles.tab}
+            >
+              <Kb.Box2 className="tab-highlight" direction="vertical" fullHeight={true} />
+              <Kb.Icon className="tab-icon" type={icons[t]} />
+              <Kb.Text className="tab-label" type="BodySmallSemibold">
+                {labels[t]}
+              </Kb.Text>
+            </Kb.Box2>
+          </Kb.WithTooltip>
+        </Kb.ClickableBox>
+      ))}
+    </Kb.Box2>
+  )
 
 const styles = Styles.styleSheetCreate({
   avatar: {marginLeft: 14},
