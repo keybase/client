@@ -1577,7 +1577,8 @@ func (p pagerMsg) GetMessageID() chat1.MessageID {
 	return p.msgID
 }
 
-func MessageIDControlToPagination(control *chat1.MessageIDControl) (res *chat1.Pagination) {
+func MessageIDControlToPagination(ctx context.Context, logger DebugLabeler, control *chat1.MessageIDControl,
+	conv *types.RemoteConversation) (res *chat1.Pagination) {
 	if control == nil {
 		return res
 	}
@@ -1595,7 +1596,20 @@ func MessageIDControlToPagination(control *chat1.MessageIDControl) (res *chat1.P
 		case chat1.MessageIDControlMode_CENTERED:
 			// Heuristic that we might want to revisit, get older messages from a little ahead of where
 			// we want to center on
-			pm.msgID = pm.msgID.Advance(uint(control.Num) / 2)
+			maxForward := 1000
+			if conv != nil {
+				logger.Debug(ctx,
+					"MessageIDControlToPagination: max visible ID: %d pivot: %d",
+					conv.Conv.MaxVisibleMsgID(), pm.msgID)
+				maxForward = int(conv.Conv.ReaderInfo.MaxMsgid - pm.msgID)
+			}
+			desired := int(pm.msgID) + control.Num*4/5
+			logger.Debug(ctx, "MessageIDControlToPagination: max forward: %d desired: %d", maxForward,
+				desired)
+			if desired > maxForward {
+				desired = maxForward
+			}
+			pm.msgID = pm.msgID.Advance(uint(desired) + 1)
 			res.Next, err = pag.MakeIndex(pm)
 		}
 		if err != nil {

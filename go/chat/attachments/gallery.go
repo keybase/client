@@ -66,10 +66,10 @@ func (g *Gallery) NextMessage(ctx context.Context, uid gregor1.UID,
 	if opts.BackInTime {
 		mode = chat1.MessageIDControlMode_OLDERMESSAGES
 	}
-	pagination := utils.MessageIDControlToPagination(&chat1.MessageIDControl{
+	pagination := utils.MessageIDControlToPagination(ctx, g.DebugLabeler, &chat1.MessageIDControl{
 		Pivot: &pivot,
 		Mode:  mode,
-	})
+	}, nil)
 	if opts.BackInTime {
 		reverseFn = func(tv chat1.ThreadView) []chat1.MessageUnboxed {
 			return tv.Messages
@@ -90,11 +90,11 @@ func (g *Gallery) NextMessage(ctx context.Context, uid gregor1.UID,
 		}
 		nextPageFn = func(p *chat1.Pagination) (res *chat1.Pagination) {
 			pivot += chat1.MessageID(g.PrevStride)
-			return utils.MessageIDControlToPagination(&chat1.MessageIDControl{
+			return utils.MessageIDControlToPagination(ctx, g.DebugLabeler, &chat1.MessageIDControl{
 				Pivot: &pivot,
 				Num:   g.PrevStride,
 				Mode:  chat1.MessageIDControlMode_NEWERMESSAGES,
-			})
+			}, nil)
 		}
 		pagination.Num = g.PrevStride
 	}
