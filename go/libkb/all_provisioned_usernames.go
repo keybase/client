@@ -49,14 +49,15 @@ func GetAllProvisionedUsernames(m MetaContext) (current NormalizedUsername, all 
 	if currentUC != nil {
 		current, err = getUsernameIfProvisioned(m, *currentUC)
 		if err != nil {
-			return current, nil, err
+			m.CErrorf("Error while checking user %q uid=%q, `current` will be nil", currentUC.GetUsername(), currentUC.GetUID())
 		}
 	}
 
 	for _, u := range allUCs {
 		tmp, err := getUsernameIfProvisioned(m, u)
 		if err != nil {
-			return current, nil, err
+			m.CErrorf("Error while checking user %q uid=%q, skipping", currentUC.GetUsername(), currentUC.GetUID())
+			continue
 		}
 		if !tmp.IsNil() {
 			all = append(all, tmp)

@@ -127,17 +127,22 @@ const metaMapReducer = (metaMap, action) => {
       })
     case Chat2Gen.updateConvRetentionPolicy:
       const {conv} = action.payload
-      const newMeta = Constants.inboxUIItemToConversationMeta(conv)
+      const newMeta = Constants.inboxUIItemToConversationMeta(conv, true)
       if (!newMeta) {
         logger.warn('Invalid inboxUIItem received in conv retention policy update')
         return metaMap
       }
-      return metaMap.set(newMeta.conversationIDKey, newMeta)
+      if (metaMap.has(newMeta.conversationIDKey)) {
+        // only insert if the convo is already in the inbox
+        return metaMap.set(newMeta.conversationIDKey, newMeta)
+      }
+      return metaMap
     case Chat2Gen.updateTeamRetentionPolicy:
       const {convs} = action.payload
       const newMetas = convs.reduce((updated, conv) => {
-        const newMeta = Constants.inboxUIItemToConversationMeta(conv)
-        if (newMeta) {
+        const newMeta = Constants.inboxUIItemToConversationMeta(conv, true)
+        if (newMeta && metaMap.has(newMeta.conversationIDKey)) {
+          // only insert if the convo is already in the inbox
           updated[Types.conversationIDKeyToString(newMeta.conversationIDKey)] = newMeta
         }
         return updated

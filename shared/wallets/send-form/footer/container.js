@@ -33,7 +33,6 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = (dispatch, {onConfirm}: OwnProps) => ({
   onClickRequest: () => {
-    dispatch(WalletsGen.createBuildPayment())
     dispatch(WalletsGen.createRequestPayment())
   },
   onClickSend: () => {

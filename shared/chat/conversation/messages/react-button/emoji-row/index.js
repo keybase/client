@@ -38,7 +38,11 @@ class HoverEmoji extends React.Component<
             type="iconfont-reacji"
           />
         ) : (
-          <Kb.Emoji size={this.state.hovering ? 22 : 18} emojiName={this.props.name} />
+          <Kb.Emoji
+            disableSelecting={true}
+            size={this.state.hovering ? 22 : 18}
+            emojiName={this.props.name}
+          />
         )}
       </Kb.ClickableBox>
     )

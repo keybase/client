@@ -43,6 +43,10 @@ type codecGetter interface {
 	Codec() kbfscodec.Codec
 }
 
+type blockOpsGetter interface {
+	BlockOps() BlockOps
+}
+
 type blockServerGetter interface {
 	BlockServer() BlockServer
 }
@@ -2350,6 +2354,7 @@ type Config interface {
 	logMaker
 	blockCacher
 	blockServerGetter
+	blockOpsGetter
 	codecGetter
 	cryptoPureGetter
 	keyGetterGetter
@@ -2395,7 +2400,6 @@ type Config interface {
 	SetMDOps(MDOps)
 	KeyOps() KeyOps
 	SetKeyOps(KeyOps)
-	BlockOps() BlockOps
 	SetBlockOps(BlockOps)
 	MDServer() MDServer
 	SetMDServer(MDServer)
@@ -2734,22 +2738,31 @@ type Chat interface {
 	ClearCache()
 }
 
+// blockPutState is an interface for keeping track of readied blocks
+// before putting them to the bserver.
 type blockPutState interface {
 	addNewBlock(
 		ctx context.Context, blockPtr BlockPointer, block Block,
 		readyBlockData ReadyBlockData, syncedCb func() error) error
 	saveOldPtr(ctx context.Context, oldPtr BlockPointer) error
 	oldPtr(ctx context.Context, blockPtr BlockPointer) (BlockPointer, error)
-	mergeOtherBps(ctx context.Context, other blockPutState) error
-	removeOtherBps(ctx context.Context, other blockPutState) error
 	ptrs() []BlockPointer
 	getBlock(ctx context.Context, blockPtr BlockPointer) (Block, error)
 	getReadyBlockData(
 		ctx context.Context, blockPtr BlockPointer) (ReadyBlockData, error)
 	synced(blockPtr BlockPointer) error
 	numBlocks() int
-	deepCopy(ctx context.Context) (blockPutState, error)
+}
+
+// blockPutStateCopiable is a more manipulatable interface around
+// `blockPutState`, allowing copying as well as merging/unmerging.
+type blockPutStateCopiable interface {
+	blockPutState
+
+	mergeOtherBps(ctx context.Context, other blockPutStateCopiable) error
+	removeOtherBps(ctx context.Context, other blockPutStateCopiable) error
+	deepCopy(ctx context.Context) (blockPutStateCopiable, error)
 	deepCopyWithBlacklist(
 		ctx context.Context, blacklist map[BlockPointer]bool) (
-		blockPutState, error)
+		blockPutStateCopiable, error)
 }

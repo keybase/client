@@ -261,7 +261,13 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
           </Kb.Box>
           <Kb.Box style={styles.footerContainer}>
             <Typing conversationIDKey={this.props.conversationIDKey} />
-            <Kb.Text type="BodySmall" style={styles.footer} onClick={this._inputFocus} selectable={true}>
+            <Kb.Text
+              lineClamp={1}
+              type="BodySmall"
+              style={styles.footer}
+              onClick={this._inputFocus}
+              selectable={true}
+            >
               *bold*, _italics_, `code`, >quote
             </Kb.Text>
           </Kb.Box>

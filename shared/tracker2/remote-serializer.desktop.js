@@ -15,6 +15,7 @@ export const serialize: any = {
   followsYou: v => v,
   fullname: v => v,
   guiID: v => v,
+  isYou: v => v,
   location: v => v,
   publishedTeams: (v, o) => (o && shallowEqual(v, o) ? undefined : v),
   reason: v => v,

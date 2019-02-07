@@ -46,7 +46,8 @@ const setupEngineListeners = () => {
           guiID: row.guiID,
           metas: (row.metas || []).map(m => ({color: Constants.rpcRowColorToColor(m.color), label: m.label})),
           proofURL: row.proofURL,
-          siteIcon: row.siteIcon,
+          sigID: row.sigID,
+          siteIcon: '', // TODO
           siteURL: row.siteURL,
           state: Constants.rpcRowStateToAssertionState(row.state),
           type: row.key,
@@ -175,6 +176,25 @@ const loadFollow = (_, action) => {
   )
 }
 
+const getProofSuggestions = () =>
+  RPCTypes.userProofSuggestionsRpcPromise().then(({suggestions, showMore}) =>
+    Tracker2Gen.createProofSuggestionsUpdated({
+      suggestions: (suggestions || []).map(s =>
+        Constants.makeAssertion({
+          assertionKey: s.key,
+          color: 'gray',
+          metas: [],
+          proofURL: '',
+          siteIcon: '',
+          siteURL: '',
+          state: 'suggestion',
+          type: s.key,
+          value: s.profileText,
+        })
+      ),
+    })
+  )
+
 function* tracker2Saga(): Saga.SagaGenerator<any, any> {
   if (!flags.identify3) {
     return
@@ -194,6 +214,10 @@ function* tracker2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainGenerator<Tracker2Gen.LoadPayload>(Tracker2Gen.load, load)
   yield* Saga.chainAction<Tracker2Gen.LoadPayload>(Tracker2Gen.load, loadFollow)
 
+  yield* Saga.chainAction<Tracker2Gen.GetProofSuggestionsPayload>(
+    Tracker2Gen.getProofSuggestions,
+    getProofSuggestions
+  )
   // TEMP until actions/tracker is deprecated
   yield* Saga.chainAction<GetProfilePayloadOLD>(getProfileOLD, _getProfileOLD) // TEMP
   // end TEMP until actions/tracker is deprecated

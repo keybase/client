@@ -189,6 +189,16 @@ func (l *LevelDb) ForceOpen() error {
 	return l.doWhileOpenAndNukeIfCorrupted(func() error { return nil })
 }
 
+func (l *LevelDb) Stats() (stats string) {
+	if err := l.doWhileOpenAndNukeIfCorrupted(func() (err error) {
+		stats, err = l.db.GetProperty("leveldb.stats")
+		return err
+	}); err != nil {
+		return ""
+	}
+	return stats
+}
+
 func (l *LevelDb) GetFilename() string {
 	if len(l.filename) == 0 {
 		l.G().Log.Fatalf("DB filename empty")

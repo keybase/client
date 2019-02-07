@@ -24,27 +24,17 @@ const Meta = (props: Props) => (
   <Box
     style={collapseStyles([
       styles.container,
-      props.backgroundColor ? {backgroundColor: props.backgroundColor} : null,
+      props.backgroundColor && {backgroundColor: props.backgroundColor},
       props.style,
-      props.size === 'Small'
-        ? {
-            paddingLeft: 2,
-            paddingRight: 2,
-          }
-        : null,
+      props.size === 'Small' && styles.containerSmall,
     ])}
   >
     <Text
       type="Header"
       style={collapseStyles([
         styles.text,
-        props.color ? {color: props.color} : null,
-        props.size === 'Small'
-          ? platformStyles({
-              isElectron: {fontSize: 10, lineHeight: '12px'},
-              isMobile: {fontSize: 11, lineHeight: 13},
-            })
-          : null,
+        props.color && {color: props.color},
+        props.size === 'Small' && styles.textSmall,
       ])}
     >
       {props.noUppercase ? props.title : props.title.toUpperCase()}
@@ -72,6 +62,10 @@ const styles = styleSheetCreate({
       paddingTop: 2,
     },
   }),
+  containerSmall: {
+    paddingLeft: 2,
+    paddingRight: 2,
+  },
   text: platformStyles({
     common: {
       color: globalColors.white,
@@ -80,13 +74,25 @@ const styles = styleSheetCreate({
       display: 'block',
       fontSize: 11,
       fontWeight: '700',
-      lineHeight: '13px',
+      lineHeight: '11px',
+      paddingTop: 1,
     },
     isMobile: {
       fontSize: 12,
       fontWeight: '700',
       height: 14,
       lineHeight: 14,
+    },
+  }),
+  textSmall: platformStyles({
+    isElectron: {
+      fontSize: 10,
+      lineHeight: '11px',
+      marginBottom: -1,
+    },
+    isMobile: {
+      fontSize: 11,
+      lineHeight: 13,
     },
   }),
 })
