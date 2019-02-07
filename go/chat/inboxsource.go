@@ -334,15 +334,9 @@ func (s *RemoteInboxSource) Read(ctx context.Context, uid gregor1.UID,
 
 func (s *RemoteInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 	dataSource types.InboxSourceDataSourceTyp, rquery *chat1.GetInboxQuery, p *chat1.Pagination) (types.Inbox, error) {
-
 	if s.IsOffline(ctx) {
 		return types.Inbox{}, OfflineError{}
 	}
-	switch dataSource {
-	case types.InboxSourceDataSourceLocalOnly:
-		return types.Inbox{}, errors.New("local only mode incompatible with RemoteInboxSource")
-	}
-
 	ib, err := s.getChatInterface().GetInboxRemote(ctx, chat1.GetInboxRemoteArg{
 		Query:      rquery,
 		Pagination: p,
@@ -350,7 +344,6 @@ func (s *RemoteInboxSource) ReadUnverified(ctx context.Context, uid gregor1.UID,
 	if err != nil {
 		return types.Inbox{}, err
 	}
-
 	return types.Inbox{
 		Version:         ib.Inbox.Full().Vers,
 		ConvsUnverified: utils.RemoteConvs(ib.Inbox.Full().Conversations),
