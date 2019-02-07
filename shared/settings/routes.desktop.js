@@ -104,6 +104,5 @@ export const newRoutes = {
   deleteConfirm: {getScreen: () => require('./delete-confirm/container').default},
   inviteSent: {getScreen: () => require('./invite-generated/container').default},
   removeDevice: {getScreen: () => require('../devices/device-revoke/container').default},
-  securityPrefs: {getScreen: () => require('../fs/common/security-prefs-container.desktop').default},
   'tabs:settingsTab': {getScreen: () => require('./').default},
 }
