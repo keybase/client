@@ -2,3 +2,4 @@
 import {makeRouteDefNode} from '../route-tree'
 
 export default makeRouteDefNode()
+export const newRoutes = {}

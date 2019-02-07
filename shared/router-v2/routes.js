@@ -7,6 +7,7 @@ import {newRoutes as deviceNewRoutes} from '../devices/routes'
 import {newRoutes as chatNewRoutes} from '../chat/routes'
 import {newRoutes as peopleNewRoutes} from '../people/routes'
 import {newRoutes as fsNewRoutes} from '../fs/routes'
+import {newRoutes as settingsNewRoutes} from '../settings/routes'
 import {newRoutes as profileNewRoutes, newModalRoutes as profileNewModalRoutes} from '../profile/routes'
 // import OldPeopleRoutes from '../people/routes'
 import * as Tabs from '../constants/tabs'
@@ -46,6 +47,7 @@ const newRoutes = [
   {route: peopleNewRoutes, tab: Tabs.peopleTab},
   {route: profileNewRoutes, tab: Tabs.peopleTab},
   {route: fsNewRoutes, tab: Tabs.fsTab},
+  {route: settingsNewRoutes, tab: Tabs.settingsTab},
 ]
 
 newRoutes.forEach(({route, tab}) => {

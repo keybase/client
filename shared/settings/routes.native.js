@@ -72,3 +72,23 @@ const routeTree = () => {
 }
 
 export default routeTree
+
+export const newRoutes = {
+  [Constants.aboutTab]: {getScreen: () => require('./about-container').default},
+  [Constants.advancedTab]: {getScreen: () => require('./advanced/container').default},
+  [Constants.chatTab]: {getScreen: () => require('./chat/container').default},
+  [Constants.deleteMeTab]: {getScreen: () => require('./delete/container').default},
+  [Constants.feedbackTab]: {getScreen: () => require('./feedback-container').default},
+  [Constants.invitationsTab]: {getScreen: () => require('./invites/container').default},
+  [Constants.landingTab]: {getScreen: () => require('./about-container').default},
+  [Constants.notificationsTab]: {getScreen: () => require('./notifications/container').default},
+  [Constants.passphraseTab]: {getScreen: () => require('./passphrase/container').default},
+  [Constants.screenprotectorTab]: {getScreen: () => require('./screenprotector-container.native').default},
+  dbNukeConfirm: {getScreen: () => require('./db-nuke-confirm/container').default},
+  deleteConfirm: {getScreen: () => require('./delete-confirm/container').default},
+  inviteSent: {getScreen: () => require('./invite-generated/container').default},
+  privacyPolicy: {getScreen: () => require('./web-links.native').default},
+  removeDevice: {getScreen: () => require('../devices/device-revoke/container').default},
+  'tabs:settingsTab': {getScreen: () => require('./').default},
+  terms: {getScreen: () => require('./web-links.native').default},
+}

@@ -89,3 +89,21 @@ const routeTree = () => {
 }
 
 export default routeTree
+
+export const newRoutes = {
+  [Constants.advancedTab]: {getScreen: () => require('./advanced/container').default},
+  [Constants.chatTab]: {getScreen: () => require('./chat/container').default},
+  [Constants.deleteMeTab]: {getScreen: () => require('./delete/container').default},
+  [Constants.fsTab]: {getScreen: () => require('./files/container').default},
+  [Constants.invitationsTab]: {getScreen: () => require('./invites/container').default},
+  [Constants.landingTab]: {getScreen: () => require('./landing/container').default},
+  [Constants.notificationsTab]: {getScreen: () => require('./notifications/container').default},
+  changeEmail: {getScreen: () => require('./email/container').default},
+  changePassphrase: {getScreen: () => require('./passphrase/container').default},
+  dbNukeConfirm: {getScreen: () => require('./db-nuke-confirm/container').default},
+  deleteConfirm: {getScreen: () => require('./delete-confirm/container').default},
+  inviteSent: {getScreen: () => require('./invite-generated/container').default},
+  removeDevice: {getScreen: () => require('../devices/device-revoke/container').default},
+  securityPrefs: {getScreen: () => require('../fs/common/security-prefs-container.desktop').default},
+  'tabs:settingsTab': {getScreen: () => require('./').default},
+}

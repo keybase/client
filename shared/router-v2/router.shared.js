@@ -2,7 +2,7 @@
 import * as I from 'immutable'
 import * as React from 'react'
 import * as Kb from '../common-adapters/mobile.native'
-import {StackActions, NavigationActions} from '@react-navigation/core'
+import {StackActions} from '@react-navigation/core'
 import shallowEqual from 'shallowequal'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 
@@ -19,8 +19,7 @@ export const shimRoutes = (routes: any) =>
         getScreen: () => {
           const Original = getOriginal()
           const Shimmed = p => (
-            <>
-              <Kb.SafeAreaViewTop />
+            <Kb.SafeAreaViewTop>
               <Original
                 {...p}
                 routeProps={{
@@ -42,7 +41,7 @@ export const shimRoutes = (routes: any) =>
                 navigateUp={() => RouteTreeGen.createNavigateUp()}
                 navigateAppend={p => RouteTreeGen.createNavigateAppend(p)}
               />
-            </>
+            </Kb.SafeAreaViewTop>
           )
 
           Shimmed.navigationOptions = Original.navigationOptions
