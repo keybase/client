@@ -3,7 +3,7 @@ import * as I from 'immutable'
 import * as Types from '../../../constants/types/fs'
 import * as FsGen from '../../../actions/fs-gen'
 import {namedConnect} from '../../../util/container'
-import PathItemAction, {type Clickable} from './path-item-action'
+import PathItemAction, {type Clickable} from '.'
 
 type OwnProps = {|
   clickable: Clickable,
