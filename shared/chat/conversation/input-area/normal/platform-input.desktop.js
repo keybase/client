@@ -74,6 +74,11 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
       this._filePickerOpen()
     }
 
+    const isListSpecialKey = ['PageDown', 'PageUp'].includes(e.key)
+    if (isListSpecialKey) {
+      this.props.onScrollDown()
+    }
+
     this.props.onKeyDown && this.props.onKeyDown(e, isComposingIME)
   }
 
