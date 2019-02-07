@@ -677,16 +677,16 @@ func TestChatSrvNewConversationLocal(t *testing.T) {
 		conv, err := GetUnverifiedConv(ctx, tc.Context(), uid, created.Id,
 			types.InboxSourceDataSourceRemoteOnly)
 		require.NoError(t, err)
-		require.NotZero(t, len(conv.MaxMsgSummaries))
+		require.NotZero(t, len(conv.Conv.MaxMsgSummaries))
 		switch mt {
 		case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAMNATIVE:
 			refName := string(kbtest.CanonicalTlfNameForTest(
 				ctc.as(t, users[0]).user().Username + "," + ctc.as(t, users[1]).user().Username),
 			)
-			require.Equal(t, refName, conv.MaxMsgSummaries[0].TlfName)
+			require.Equal(t, refName, conv.Conv.MaxMsgSummaries[0].TlfName)
 		case chat1.ConversationMembersType_TEAM:
 			teamName := ctc.teamCache[teamKey(ctc.users())]
-			require.Equal(t, strings.ToLower(teamName), conv.MaxMsgSummaries[0].TlfName)
+			require.Equal(t, strings.ToLower(teamName), conv.Conv.MaxMsgSummaries[0].TlfName)
 		}
 	})
 }
@@ -806,8 +806,8 @@ func TestChatSrvGetInboxAndUnboxLocal(t *testing.T) {
 		conv, err := GetUnverifiedConv(ctx, tc.Context(), uid, created.Id,
 			types.InboxSourceDataSourceRemoteOnly)
 		require.NoError(t, err)
-		if conversations[0].Info.TlfName != conv.MaxMsgSummaries[0].TlfName {
-			t.Fatalf("unexpected TlfName in response from GetInboxAndUnboxLocal. %s != %s (mt = %v)", conversations[0].Info.TlfName, conv.MaxMsgSummaries[0].TlfName, mt)
+		if conversations[0].Info.TlfName != conv.Conv.MaxMsgSummaries[0].TlfName {
+			t.Fatalf("unexpected TlfName in response from GetInboxAndUnboxLocal. %s != %s (mt = %v)", conversations[0].Info.TlfName, conv.Conv.MaxMsgSummaries[0].TlfName, mt)
 		}
 		if !conversations[0].Info.Id.Eq(created.Id) {
 			t.Fatalf("unexpected Id in response from GetInboxAndUnboxLocal. %s != %s\n", conversations[0].Info.Id, created.Id)
@@ -1104,7 +1104,7 @@ func TestChatSrvGetInboxAndUnboxLocalTlfName(t *testing.T) {
 		conv, err := GetUnverifiedConv(ctx, tc.Context(), uid, created.Id,
 			types.InboxSourceDataSourceRemoteOnly)
 		require.NoError(t, err)
-		require.Equal(t, conversations[0].Info.TlfName, conv.MaxMsgSummaries[0].TlfName)
+		require.Equal(t, conversations[0].Info.TlfName, conv.Conv.MaxMsgSummaries[0].TlfName)
 		require.Equal(t, conversations[0].Info.Id, created.Id)
 		require.Equal(t, chat1.TopicType_CHAT, conversations[0].Info.Triple.TopicType)
 	})
@@ -4693,10 +4693,10 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 				gregor1.UID(user.GetUID().ToBytes()), convID, types.InboxSourceDataSourceRemoteOnly)
 			require.NoError(t, err)
 			if role == nil {
-				require.Nil(t, conv.ConvSettings)
+				require.Nil(t, conv.Conv.ConvSettings)
 			} else {
-				require.NotNil(t, conv.ConvSettings)
-				require.Equal(t, expectedInfo, conv.ConvSettings.MinWriterRoleInfo)
+				require.NotNil(t, conv.Conv.ConvSettings)
+				require.Equal(t, expectedInfo, conv.Conv.ConvSettings.MinWriterRoleInfo)
 			}
 
 			gilres, err := tc.chatLocalHandler().GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
@@ -4955,11 +4955,11 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		})
 		sender := NewBlockingSender(tc.Context(), NewBoxer(tc.Context()),
 			func() chat1.RemoteInterface { return ri })
-		prepareRes, err := sender.Prepare(ctx, plarg.Msg, mt, &convRemote)
+		prepareRes, err := sender.Prepare(ctx, plarg.Msg, mt, &convRemote.Conv)
 		require.NoError(t, err)
 		msg1 := prepareRes.Boxed
 		ts1 := prepareRes.TopicNameState
-		prepareRes, err = sender.Prepare(ctx, plarg.Msg, mt, &convRemote)
+		prepareRes, err = sender.Prepare(ctx, plarg.Msg, mt, &convRemote.Conv)
 		require.NoError(t, err)
 		msg2 := prepareRes.Boxed
 		ts2 := prepareRes.TopicNameState
@@ -5020,7 +5020,7 @@ func TestChatSrvUnboxMobilePushNotification(t *testing.T) {
 		ri := ctc.as(t, users[0]).ri
 		sender := NewBlockingSender(tc.Context(), NewBoxer(tc.Context()),
 			func() chat1.RemoteInterface { return ri })
-		prepareRes, err := sender.Prepare(ctx, plarg.Msg, mt, &convRemote)
+		prepareRes, err := sender.Prepare(ctx, plarg.Msg, mt, &convRemote.Conv)
 		require.NoError(t, err)
 		msg := prepareRes.Boxed
 		msg.ServerHeader = &chat1.MessageServerHeader{
@@ -5110,7 +5110,7 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 		conv, err := GetUnverifiedConv(ctx, tc.Context(), uid, ncres.Conv.Info.Id,
 			types.InboxSourceDataSourceRemoteOnly)
 		require.NoError(t, err)
-		require.NotEmpty(t, conv.MaxMsgSummaries, "created conversation does not have a message")
+		require.NotEmpty(t, conv.Conv.MaxMsgSummaries, "created conversation does not have a message")
 		require.Equal(t, ncres.Conv.Info.MembersType, chat1.ConversationMembersType_IMPTEAMNATIVE,
 			"implicit team")
 
@@ -5244,9 +5244,9 @@ func TestChatSrvTeamTypeChanged(t *testing.T) {
 		uconv, err := GetUnverifiedConv(ctx, ctc.as(t, users[0]).h.G(), users[0].GetUID().ToBytes(),
 			conv.Id, types.InboxSourceDataSourceRemoteOnly)
 		require.NoError(t, err)
-		require.NotNil(t, uconv.Notifications)
+		require.NotNil(t, uconv.Conv.Notifications)
 		require.False(t,
-			uconv.Notifications.Settings[keybase1.DeviceType_DESKTOP][chat1.NotificationKind_GENERIC])
+			uconv.Conv.Notifications.Settings[keybase1.DeviceType_DESKTOP][chat1.NotificationKind_GENERIC])
 
 		inboxRes, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxAndUnboxLocal(ctx,
 			chat1.GetInboxAndUnboxLocalArg{

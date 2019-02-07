@@ -816,7 +816,7 @@ func (s *HybridInboxSource) TeamTypeChanged(ctx context.Context, uid gregor1.UID
 		return nil, err
 	}
 	ib := s.createInbox()
-	if cerr := ib.TeamTypeChanged(ctx, uid, vers, convID, teamType, remoteConv.Notifications); cerr != nil {
+	if cerr := ib.TeamTypeChanged(ctx, uid, vers, convID, teamType, remoteConv.Conv.Notifications); cerr != nil {
 		err = s.handleInboxError(ctx, cerr, uid)
 		return nil, err
 	}
