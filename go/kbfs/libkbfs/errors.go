@@ -1286,3 +1286,16 @@ func (e DiskCacheTooFullForBlockError) Error() string {
 		"Disk cache too full for block %s requested with action %s",
 		e.Ptr, e.Action)
 }
+
+// NonExistentTeamForHandleError indicates that we're trying to create
+// a TLF for a handle that has no corresponding implicit team yet.
+// Likely a writer needs to create the implicit team first.
+type NonExistentTeamForHandleError struct {
+	h *TlfHandle
+}
+
+// Error implements the Error interface for NonExistentTeamForHandleError.
+func (e NonExistentTeamForHandleError) Error() string {
+	return fmt.Sprintf("Can't create TLF ID for non-team-backed handle %s",
+		e.h.GetCanonicalPath())
+}
