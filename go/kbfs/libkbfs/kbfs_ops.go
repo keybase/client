@@ -442,7 +442,7 @@ func (fs *KBFSOpsStandard) getOpsByHandle(ctx context.Context,
 
 func (fs *KBFSOpsStandard) resetTlfID(ctx context.Context, h *TlfHandle) error {
 	if !h.IsBackedByTeam() {
-		return errors.New("Can't create TLF ID for non-team-backed handle")
+		return errors.WithStack(NonExistentTeamForHandleError{h})
 	}
 
 	teamID, err := h.FirstResolvedWriter().AsTeam()

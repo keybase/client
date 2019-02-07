@@ -745,10 +745,10 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	defer s.lockTab.Release(ctx, uid, convID)
 
 	// Get conversation metadata
-	rc, err := GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
+	rconv, err := GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 	var unboxConv types.UnboxConversationInfo
 	if err == nil {
-		conv := rc.Conv
+		conv := rconv.Conv
 		unboxConv = conv
 		// Try locally first
 		var holesFilled int
