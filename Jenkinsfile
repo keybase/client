@@ -102,10 +102,16 @@ helpers.rootLinuxNode(env, {
               }
               checkDiffs(['./go/', './protocol/'], 'Please run \\"make\\" inside the client/protocol directory.')
             }
+
             parallel (
               test_linux: {
+
                 def packagesToTest = [:]
                 if (hasGoChanges) {
+                  dir('go') {
+                    // Make sure vendored stellar external packages haven't changed
+                    sh 'make shavendorstellar'
+                  }
                   packagesToTest = getPackagesToTest()
                 } else {
                   // Ensure that the change target branch has been fetched,

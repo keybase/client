@@ -78,7 +78,6 @@ gen-deps:
 	./gen_deps.pl
 
 shavendorstellar:
-	echo "expecting f3a7d9906dab5c481669b5b4f852bf447388bd3d:"
-	find vendor/github.com/stellar -type f -print0 | sort -z | xargs -0 shasum | shasum
+	test/check_stellar_vendor.sh
 
 .PHONY: test splint fmt lint vet cover testclean coverclient coverdaemon coverengine coverlibcmdline coverlibkb coverclean shavendorstellar gen-deps
