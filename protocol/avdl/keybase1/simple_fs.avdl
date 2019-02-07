@@ -413,6 +413,12 @@ protocol SimpleFS {
    */
   FSFolderEditHistory simpleFSFolderEditHistory(Path path);
 
+  /**
+   simpleFSListFavorites gets the current favorites, ignored folders, and new
+   folders from the KBFS cache.
+   */
+  FavoritesResult simpleFSListFavorites();
+
   record SimpleFSQuotaUsage {
     int64 usageBytes;
     int64 archiveBytes;
