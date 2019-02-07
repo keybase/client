@@ -7,7 +7,6 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/gregor"
-	grclient "github.com/keybase/client/go/gregor/client"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -106,34 +105,9 @@ func (b *Badger) inboxVersion(ctx context.Context) chat1.InboxVers {
 	return vers
 }
 
-func (b *Badger) Resync(ctx context.Context, chatRemote func() chat1.RemoteInterface,
-	gcli *grclient.Client, update *chat1.UnreadUpdateFull) (err error) {
-	if update == nil {
-		iboxVersion := b.inboxVersion(ctx)
-		b.G().Log.Debug("Badger: Resync(): using inbox version: %v", iboxVersion)
-		update = new(chat1.UnreadUpdateFull)
-		*update, err = chatRemote().GetUnreadUpdateFull(ctx, iboxVersion)
-		if err != nil {
-			b.G().Log.Warning("Badger resync failed: %v", err)
-			return err
-		}
-	} else {
-		b.G().Log.CDebugf(ctx, "Badger: Resync(): skipping remote call, data previously obtained")
-	}
-
-	state, err := gcli.StateMachineState(ctx, nil, false)
-	if err != nil {
-		b.G().Log.CDebugf(ctx, "Badger: Resync(): unable to get state: %s", err.Error())
-		state = gregor1.State{}
-	}
-	b.badgeState.UpdateWithChatFull(ctx, *update)
-	b.badgeState.UpdateWithGregor(ctx, state)
-	if err = b.Send(ctx); err != nil {
-		b.G().Log.CDebugf(ctx, "Badger send (resync) failed: %v", err)
-	} else {
-		b.G().Log.CDebugf(ctx, "Badger resync complete")
-	}
-	return err
+func (b *Badger) GetInboxVersionForTest(ctx context.Context) (chat1.InboxVers, error) {
+	uid := b.G().Env.GetUID()
+	return b.iboxVersSource.GetInboxVersion(ctx, uid.ToBytes())
 }
 
 func (b *Badger) SetWalletAccountUnreadCount(ctx context.Context, accountID stellar1.AccountID, unreadCount int) {
