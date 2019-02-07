@@ -7,13 +7,11 @@
 //
 //
 //
-// statusbar handling
-// inject old ownprops?
 import * as Kb from '../common-adapters/mobile.native'
 import * as Styles from '../styles'
 import * as React from 'react'
 import GlobalError from '../app/global-errors/container'
-import Offline from '../offline/container'
+// import Offline from '../offline/container'
 import TabBar from './tab-bar/container'
 import {
   createNavigator,
@@ -29,7 +27,7 @@ import {
 } from '@react-navigation/core'
 import {createAppContainer} from '@react-navigation/native'
 import StackHeader from 'react-navigation-stack/src/views/Header/Header'
-import {createBottomTabNavigator} from 'react-navigation-tabs'
+// import {createBottomTabNavigator} from 'react-navigation-tabs'
 import {createStackNavigator} from 'react-navigation-stack'
 import {modalRoutes, routes, nameToTab} from './routes'
 import {LeftAction} from '../common-adapters/header-hoc'
@@ -173,9 +171,11 @@ const MainStackNavigator = createStackNavigator(shimmedRoutes, {
   }),
   // headerMode: 'none',
   initialRouteName: 'tabs:peopleTab',
+  initialRouteParams: undefined,
 })
 
 // The nested modal nav can't easily show a header so we just inject it in
+// TODO move this into common
 const ModalHeader = p => {
   // const scene = {index: 0, isActive: true, descriptor: {options: {}}}
   const scene = {descriptor: {options: {...p.navigationOptions}}, index: 0, isActive: true}

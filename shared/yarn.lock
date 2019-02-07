@@ -11692,16 +11692,7 @@ react-native-fast-image@5.1.1:
   resolved "https://registry.yarnpkg.com/react-native-fast-image/-/react-native-fast-image-5.1.1.tgz#2595323a926ade0b3a37bd627eb55e3ebf67598b"
   integrity sha512-kEzgZxbbXYhy27u5GnhrKitn+XDBFAHSDUJdYC6llMi5cDPjgcqhOAQABj0K+ga5pn+/xPZLmD882rrUGiwVVA==
 
-react-native-gesture-handler@1.0.14:
-  version "1.0.14"
-  resolved "https://registry.yarnpkg.com/react-native-gesture-handler/-/react-native-gesture-handler-1.0.14.tgz#0e79fcc7175c9bb2e550917a35488100eec8738b"
-  integrity sha512-mp+VD7ukS/gI6HhIJMp9GTIUzbNB+1MS9CvvtWEYoVp0eWFHuDA4W+t1cFNZv08kgDI9mBNbV9jj05hlzefSTw==
-  dependencies:
-    hoist-non-react-statics "^2.3.1"
-    invariant "^2.2.2"
-    prop-types "^15.5.10"
-
-react-native-gesture-handler@~1.0.14:
+react-native-gesture-handler@1.0.15, react-native-gesture-handler@~1.0.14:
   version "1.0.15"
   resolved "https://registry.yarnpkg.com/react-native-gesture-handler/-/react-native-gesture-handler-1.0.15.tgz#7e0d0a457820a3c9325a3d492daaed14400508a6"
   integrity sha512-BePn+YOKcspHb1xPkUdJs+H6jiaECrT2c98txADBYWHwuUeundE+uUJG0r3FQLFvM2MoGeiJeD96sePzk+WSvQ==
@@ -11755,13 +11746,6 @@ react-native-tab-view@^0.0.67:
   integrity sha1-zdFG/l5dS6/2yJ8tXQsV+iPbOdA=
   dependencies:
     prop-types "^15.5.8"
-
-react-native-tab-view@^1.0.0:
-  version "1.3.1"
-  resolved "https://registry.yarnpkg.com/react-native-tab-view/-/react-native-tab-view-1.3.1.tgz#f9932d6bd5ba7dad75ef9335a68f13d85ba5bd56"
-  integrity sha512-QNt6VkEW8SP1UJ7yjD5P4bOTWwHQfoIMD5CqnA06pcubdNwHR1NmjiNZsVnIvp5wAEVbW6yTHjLXOh1fzab4xg==
-  dependencies:
-    prop-types "^15.6.1"
 
 "react-native@git://github.com/keybase/react-native#keybase-fixes-off-578":
   version "0.57.8"
@@ -11824,16 +11808,6 @@ react-navigation-stack@1.0.9:
   version "1.0.9"
   resolved "https://registry.yarnpkg.com/react-navigation-stack/-/react-navigation-stack-1.0.9.tgz#cbdcc224f709202ea62b3f2a2d84561cd199493a"
   integrity sha512-N1h0Kkz8WmSHbBbPHEpVh+ss/1NwWoWk6v2L68kxbpTcEH986t5mz0abp4KHY8pb0nHGbY0jkn5IYiOJBfN0tQ==
-
-react-navigation-tabs@1.0.2:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/react-navigation-tabs/-/react-navigation-tabs-1.0.2.tgz#cc6c61db0c61054388ef6f726a8ffc183d6095b5"
-  integrity sha512-ffWPVdo+L0GLbQlLAzH7ITYqh9V9NdqT/juj8QtESH5/2yUqfvqTxQoSowvFIrtiIHHFH6tLoQy1sZZciTxmeg==
-  dependencies:
-    hoist-non-react-statics "^2.5.0"
-    prop-types "^15.6.1"
-    react-lifecycles-compat "^3.0.4"
-    react-native-tab-view "^1.0.0"
 
 "react-navigation@git://github.com/keybase/react-navigation#keybase-fixes-off-beta-12":
   version "1.0.0-beta.12"

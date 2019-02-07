@@ -2,7 +2,7 @@
 import * as I from 'immutable'
 import * as React from 'react'
 import * as Kb from '../common-adapters/mobile.native'
-import {StackActions} from '@react-navigation/core'
+import {StackActions, NavigationActions} from '@react-navigation/core'
 import shallowEqual from 'shallowequal'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 
@@ -53,42 +53,51 @@ export const shimRoutes = (routes: any) =>
     return map
   }, {})
 
+const findVisibleRoute = s => {
+  if (!s) return null
+  if (!s.routes) return s
+  const route = s.routes[s.index]
+  if (!route) return null
+  if (route.routes) return findVisibleRoute(route)
+  return route
+}
 export const oldActionToNewAction = (action: any, navigation: any) => {
   switch (action.type) {
     case RouteTreeGen.navigateTo: // fallthrough
-    case RouteTreeGen.navigateAppend:
-      {
-        const p = action.payload.path.last
-          ? action.payload.path.last()
-          : action.payload.path[action.payload.path.length - 1]
-        if (!p) {
+    case RouteTreeGen.navigateAppend: {
+      if (!navigation) {
+        return
+      }
+      const p = action.payload.path.last
+        ? action.payload.path.last()
+        : action.payload.path[action.payload.path.length - 1]
+      if (!p) {
+        return
+      }
+      let routeName = null
+      let params
+
+      if (typeof p === 'string') {
+        routeName = p
+      } else {
+        routeName = p.selected
+        params = p.props
+      }
+
+      if (!routeName) {
+        return
+      }
+      // don't allow pushing a dupe
+      const visible = findVisibleRoute(navigation.state)
+      if (visible) {
+        if (routeName === visible.routeName && shallowEqual(visible.params, params)) {
+          console.log('Skipping append dupe')
           return
         }
-        let routeName = null
-        let params
-
-        if (typeof p === 'string') {
-          routeName = p
-        } else {
-          routeName = p.selected
-          params = p.props
-        }
-
-        if (routeName && navigation) {
-          const state = navigation.state
-          // don't allow pushing a dupe
-          const topRoute = state.routes[state.index]
-          if (topRoute) {
-            if (routeName === topRoute.routeName && shallowEqual(topRoute.params, params)) {
-              console.log('Skipping append dupe')
-              return
-            }
-          }
-
-          return StackActions.push({params, routeName})
-        }
       }
-      break
+
+      return StackActions.push({params, routeName})
+    }
     case RouteTreeGen.navigateUp:
       return StackActions.pop()
   }
