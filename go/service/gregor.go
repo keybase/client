@@ -785,7 +785,19 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 		return fmt.Errorf("error authenticating: %s", err)
 	}
 
+	// Update badging for chat.
+	// This happens before Syncer.Connected for a reason.
+	// If the new inbox version (e.g. 8) were committed to disk and then the
+	// app lost connection and bailed out of OnConnect before applying the
+	// badging update (7->8) then on reconnect an incomplete chat badge update (8->9)
+	// could be received.
+	// See: https://github.com/keybase/client/pull/12651
+	if g.badger != nil {
+		g.badger.PushChatFullUpdate(ctx, syncAllRes.Badge)
+	}
+
 	// Sync chat data using a Syncer object
+	// This commits the new inbox version to persistent storage.
 	if err := g.G().Syncer.Connected(ctx, chatCli, uid, &syncAllRes.Chat); err != nil {
 		return fmt.Errorf("error running chat sync: %s", err)
 	}
@@ -797,10 +809,14 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 		return fmt.Errorf("error running state sync: %s", err)
 	}
 
-	// Sync badge state in the background
+	// Update bading from gregor.
 	if g.badger != nil {
-		if err := g.badger.Resync(ctx, g.GetClient, gcli, &syncAllRes.Badge); err != nil {
-			g.chatLog.Debug(ctx, "badger failure: %s", err)
+		state, err := gcli.StateMachineState(ctx, nil, false)
+		if err != nil {
+			g.chatLog.Debug(ctx, "unable to get state: %v", err)
+			g.badger.PushState(ctx, gregor1.State{})
+		} else {
+			g.badger.PushState(ctx, state)
 		}
 	}
 

@@ -6,6 +6,7 @@ package badges
 import (
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/gregor"
 	grclient "github.com/keybase/client/go/gregor/client"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -71,11 +72,11 @@ func (b *Badger) SetInboxVersionSource(s InboxVersionSource) {
 	b.iboxVersSource = s
 }
 
-func (b *Badger) PushState(ctx context.Context, state gregor1.State) {
+func (b *Badger) PushState(ctx context.Context, state gregor.State) {
 	b.G().Log.CDebugf(ctx, "Badger update with gregor state")
 	b.badgeState.UpdateWithGregor(ctx, state)
 	if err := b.Send(ctx); err != nil {
-		b.G().Log.Warning("Badger send (pushstate) failed: %v", err)
+		b.G().Log.Warning("Badger send (PushState) failed: %v", err)
 	}
 }
 
@@ -83,7 +84,15 @@ func (b *Badger) PushChatUpdate(ctx context.Context, update chat1.UnreadUpdate, 
 	b.G().Log.CDebugf(ctx, "Badger update with chat update")
 	b.badgeState.UpdateWithChat(ctx, update, inboxVers)
 	if err := b.Send(ctx); err != nil {
-		b.G().Log.CDebugf(ctx, "Badger send (pushchatupdate) failed: %v", err)
+		b.G().Log.CDebugf(ctx, "Badger send (PushChatUpdate) failed: %v", err)
+	}
+}
+
+func (b *Badger) PushChatFullUpdate(ctx context.Context, update chat1.UnreadUpdateFull) {
+	b.G().Log.CDebugf(ctx, "Badger update with chat full update")
+	b.badgeState.UpdateWithChatFull(ctx, update)
+	if err := b.Send(ctx); err != nil {
+		b.G().Log.CDebugf(ctx, "Badger send (PushChatFullUpdate) failed: %v", err)
 	}
 }
 
