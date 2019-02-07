@@ -90,7 +90,10 @@ class Thread extends React.PureComponent<Props, State> {
 
     // someone requested we scroll down
     if (this.props.listScrollDownCounter !== prevProps.listScrollDownCounter) {
-      this._listRef.current && this._listRef.current.focus()
+      const list = this._listRef.current
+      if (list) {
+        list.scrollTop -= list.clientHeight
+      }
       return
     }
 
