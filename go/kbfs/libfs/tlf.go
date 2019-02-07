@@ -38,7 +38,8 @@ func FilterTLFEarlyExitError(ctx context.Context, err error, log logger.Logger, 
 			name)
 		return true, nil
 
-	case libkbfs.WriteAccessError:
+	case libkbfs.WriteAccessError, kbfsmd.ServerErrorWriteAccess,
+		libkbfs.NonExistentTeamForHandleError:
 		// No permission to create TLF, so pretend it's still
 		// empty.
 		//
@@ -46,20 +47,6 @@ func FilterTLFEarlyExitError(ctx context.Context, err error, log logger.Logger, 
 		// is created, but in practice, the Linux kernel
 		// doesn't cache readdir results, and probably not
 		// OSXFUSE either.
-		log.CDebugf(ctx,
-			"No permission to write to %s, so pretending it's empty",
-			name)
-		return true, nil
-
-	case kbfsmd.ServerErrorWriteAccess:
-		// Same as above; cannot fallthrough in type switch
-		log.CDebugf(ctx,
-			"No permission to write to %s, so pretending it's empty",
-			name)
-		return true, nil
-
-	case libkbfs.NonExistentTeamForHandleError:
-		// Same as above; cannot fallthrough in type switch
 		log.CDebugf(ctx,
 			"No permission to write to %s, so pretending it's empty",
 			name)
