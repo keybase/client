@@ -201,10 +201,15 @@ func CleanOldDeletedReposTimeLimited(
 	ctx, cancel := context.WithTimeout(ctx, cleaningTimeLimit)
 	defer cancel()
 	err := CleanOldDeletedRepos(ctx, config, tlfHandle)
-	if errors.Cause(err) == context.DeadlineExceeded {
+	switch errors.Cause(err) {
+	case context.DeadlineExceeded, context.Canceled:
 		return nil
+	default:
+		if _, ok := err.(libkbfs.OfflineUnsyncedError); ok {
+			return nil
+		}
+		return err
 	}
-	return err
 }
 
 // UpdateRepoMD lets the Keybase service know that a repo's MD has
