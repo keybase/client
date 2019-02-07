@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/keybase/client/go/chat/attachments"
+	"github.com/keybase/client/go/chat/giphy"
 	"github.com/keybase/client/go/chat/s3"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
@@ -205,18 +206,20 @@ func (p *Packager) packageGeneric(ctx context.Context, uid gregor1.UID, convID c
 func (p *Packager) packageGiphy(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	raw chat1.UnfurlRaw) (res chat1.Unfurl, err error) {
 	var g chat1.UnfurlGiphy
-	imgBody, imgLength, err := p.assetBodyAndLength(ctx, raw.Giphy().ImageUrl)
-	defer imgBody.Close()
+	p.Debug(ctx, "Package: image url: %s", raw.Giphy().ImageUrl)
+	imgBody, imgLength, err := giphy.Asset(ctx, raw.Giphy().ImageUrl)
 	if err != nil {
 		p.Debug(ctx, "Package: failed to get body specs for giphy image: %s", err)
 		return res, err
 	}
+	defer imgBody.Close()
 	if raw.Giphy().Video != nil {
 		// If we found a video, then let's see if it is smaller than the image, if so we will
 		// set it (which means it will get used by the frontend)
-		vidBody, vidLength, err := p.assetBodyAndLength(ctx, raw.Giphy().Video.Url)
-		defer vidBody.Close()
+		vidBody, vidLength, err := giphy.Asset(ctx, raw.Giphy().Video.Url)
 		if err == nil && vidLength < imgLength && vidLength < p.maxAssetSize {
+			p.Debug(ctx, "Package: found video: len: %d", vidLength)
+			defer vidBody.Close()
 			asset, err := p.uploadVideoWithBody(ctx, uid, convID, vidBody, int64(vidLength),
 				*raw.Giphy().Video)
 			if err != nil {
@@ -227,6 +230,7 @@ func (p *Packager) packageGiphy(ctx context.Context, uid gregor1.UID, convID cha
 		} else if err != nil {
 			p.Debug(ctx, "Package: failed to get video specs: %s", err)
 		} else {
+			defer vidBody.Close()
 			p.Debug(ctx, "Package: not selecting video: %d(video) > %d(image)", vidLength, imgLength)
 		}
 	}

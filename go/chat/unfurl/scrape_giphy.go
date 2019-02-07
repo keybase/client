@@ -5,19 +5,25 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/gocolly/colly"
+	"github.com/keybase/client/go/chat/giphy"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/colly"
 )
 
-func (s *Scraper) scrapeGiphy(ctx context.Context, uri string) (res chat1.UnfurlRaw, err error) {
+func (s *Scraper) scrapeGiphy(ctx context.Context, sourceURL string) (res chat1.UnfurlRaw, err error) {
 	c := s.makeCollector()
-	var giphy chat1.UnfurlGiphyRaw
+	var rawgiphy chat1.UnfurlGiphyRaw
 	var video chat1.UnfurlVideo
 	video.MimeType = "video/mp4"
 	generic := new(scoredGenericRaw)
-	if err = s.addGenericScraperToCollector(ctx, c, generic, uri, "giphy.com"); err != nil {
+	if err = s.addGenericScraperToCollector(ctx, c, generic, sourceURL, "giphy.com"); err != nil {
 		return res, err
 	}
+
+	c.WithTransport(giphy.WebClient().Transport)
+	c.OnRequest(func(r *colly.Request) {
+		r.Headers.Add("Host", giphy.Host)
+	})
 	c.OnHTML("head meta[content][property]", func(e *colly.HTMLElement) {
 		attr := strings.ToLower(e.Attr("property"))
 		if attr == "og:video" {
@@ -35,6 +41,10 @@ func (s *Scraper) scrapeGiphy(ctx context.Context, uri string) (res chat1.Unfurl
 			s.setAttr(ctx, attr, "giphy.com", "giphy.com", generic, e)
 		}
 	})
+	uri, err := giphy.ProxyURL(sourceURL)
+	if err != nil {
+		return res, err
+	}
 	if err := c.Visit(uri); err != nil {
 		return res, err
 	}
@@ -44,9 +54,9 @@ func (s *Scraper) scrapeGiphy(ctx context.Context, uri string) (res chat1.Unfurl
 		return s.exportGenericResult(generic)
 	}
 	if len(video.Url) > 0 && video.Height > 0 && video.Width > 0 {
-		giphy.Video = &video
+		rawgiphy.Video = &video
 	}
-	giphy.ImageUrl = *generic.ImageUrl
-	giphy.FaviconUrl = generic.FaviconUrl
-	return chat1.NewUnfurlRawWithGiphy(giphy), nil
+	rawgiphy.ImageUrl = *generic.ImageUrl
+	rawgiphy.FaviconUrl = generic.FaviconUrl
+	return chat1.NewUnfurlRawWithGiphy(rawgiphy), nil
 }
