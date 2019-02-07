@@ -108,7 +108,6 @@ const profileRoute = () => {
 export const newRoutes = {
   addToTeam: {getScreen: () => require('./add-to-team/container').default},
   confirmOrPending: {getScreen: () => require('./confirm-or-pending/container').default},
-  controlledRolePicker: {getScreen: () => require('../teams/role-picker/controlled-container').default},
   editAvatar: {getScreen: () => require('./edit-avatar/container').default},
   editAvatarPlaceholder: {getScreen: () => require('./edit-avatar-placeholder/container').default},
   editProfile: {getScreen: () => require('./edit-profile/container').default},

@@ -11,14 +11,18 @@ import {mapStateHelper as memberMapStateHelper, getRows as getMemberRows} from '
 import {mapStateHelper as subteamsMapStateHelper, getRows as getSubteamsRows} from './subteams-tab/helper'
 import type {RouteProps} from '../../route-tree/render-route'
 
-type OwnProps = RouteProps<{teamname: string}, {selectedTab: ?string}>
+type OwnProps = RouteProps<{teamname: string}, {}> & {selectedTab: ?string, setSelectedTab: string => void}
 
-const mapStateToProps = (state, {routeProps, routeState}: OwnProps) => {
-  const teamname = routeProps.get('teamname')
+// keep track during session
+const lastSelectedTabs = {}
+
+const mapStateToProps = (state, ownProps: OwnProps) => {
+  const teamname = ownProps.routeProps.get('teamname')
   if (!teamname) {
     throw new Error('There was a problem loading the team page, please report this error.')
   }
-  const selectedTab = routeState.get('selectedTab') || 'members'
+
+  const selectedTab = ownProps.selectedTab || lastSelectedTabs[teamname] || 'members'
 
   return {
     ...(selectedTab === 'members' ? memberMapStateHelper(state, {teamname}) : {}),
@@ -29,13 +33,14 @@ const mapStateToProps = (state, {routeProps, routeState}: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {navigateUp, setRouteState, routeProps}: OwnProps) => {
-  return {
-    _loadTeam: (teamname: string) => dispatch(TeamsGen.createGetDetails({teamname})),
-    onBack: () => dispatch(navigateUp()),
-    setSelectedTab: (selectedTab: string) => setRouteState({selectedTab}),
-  }
-}
+const mapDispatchToProps = (dispatch, {navigateUp, setRouteState, routeProps, setSelectedTab}: OwnProps) => ({
+  _loadTeam: (teamname: string) => dispatch(TeamsGen.createGetDetails({teamname})),
+  _setSelectedTab: (teamname: string, selectedTab: string) => {
+    lastSelectedTabs[teamname] = selectedTab
+    setSelectedTab(selectedTab)
+  },
+  onBack: () => dispatch(navigateUp()),
+})
 
 const mergeProps = (stateProps, dispatchProps) => {
   let tabSpecificRows = []
@@ -61,7 +66,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     onBack: dispatchProps.onBack,
     rows,
     selectedTab: stateProps.selectedTab,
-    setSelectedTab: dispatchProps.setSelectedTab,
+    setSelectedTab: selectedTab => dispatchProps._setSelectedTab(stateProps.teamname, selectedTab),
     teamname: stateProps.teamname,
   }
 }
@@ -95,7 +100,24 @@ class Reloadable extends React.PureComponent<{
   }
 }
 
-export default compose(
+type State = {|
+  selectedTab: 'members' | 'invites' | 'subteams' | 'settings' | null,
+|}
+
+// We don't use route state anymore
+class TabsState extends React.PureComponent<React.ElementConfig<typeof Team>, State> {
+  state = {selectedTab: null}
+  _setSelectedTab = selectedTab => {
+    this.setState({selectedTab})
+  }
+  render() {
+    return (
+      <Connected {...this.props} setSelectedTab={this._setSelectedTab} selectedTab={this.state.selectedTab} />
+    )
+  }
+}
+
+const Connected = compose(
   connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
@@ -103,3 +125,5 @@ export default compose(
   ),
   Kb.HeaderHoc
 )(Reloadable)
+
+export default TabsState
