@@ -63,21 +63,31 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
     return this._lastText || ''
   }
 
-  _onKeyDown = (e: SyntheticKeyboardEvent<>, isComposingIME: boolean) => {
+  _commonOnKeyDown = (e: SyntheticKeyboardEvent<> | KeyboardEvent) => {
     const text = this._getText()
     if (e.key === 'ArrowUp' && !this.props.isEditing && !text) {
       e.preventDefault()
       this.props.onEditLastMessage()
+      return true
     } else if (e.key === 'Escape' && this.props.isEditing) {
       this.props.onCancelEditing()
+      return true
     } else if (e.key === 'u' && (e.ctrlKey || e.metaKey)) {
       this._filePickerOpen()
+      return true
     } else if (e.key === 'PageDown') {
       this.props.onRequestScrollDown()
+      return true
     } else if (e.key === 'PageUp') {
       this.props.onRequestScrollUp()
+      return true
     }
 
+    return false
+  }
+
+  _onKeyDown = (e: SyntheticKeyboardEvent<>, isComposingIME: boolean) => {
+    this._commonOnKeyDown(e)
     this.props.onKeyDown && this.props.onKeyDown(e, isComposingIME)
   }
 
@@ -93,8 +103,11 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
       return
     }
 
+    if (this._commonOnKeyDown(ev)) {
+      return
+    }
+
     const isPasteKey = ev.key === 'v' && (ev.ctrlKey || ev.metaKey)
-    const isUploadKey = ev.key === 'u' && (ev.ctrlKey || ev.metaKey)
     const isValidSpecialKey = [
       'Backspace',
       'Delete',
@@ -104,9 +117,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
       'ArrowDown',
       'Enter',
     ].includes(ev.key)
-    if (isUploadKey) {
-      this._filePickerOpen()
-    } else if (ev.type === 'keypress' || isPasteKey || isValidSpecialKey) {
+    if (ev.type === 'keypress' || isPasteKey || isValidSpecialKey) {
       this._inputFocus()
     } else if (ev.key === 'PageDown') {
       this.props.onRequestScrollDown()
