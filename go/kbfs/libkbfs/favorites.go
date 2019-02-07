@@ -28,11 +28,11 @@ const (
 	favoritesCacheExpirationTime     = time.Hour * 24 * 7 // one week
 	kbfsFavoritesCacheSubfolder      = "kbfs_favorites"
 	favoritesDiskCacheFilename       = "kbfsFavorites.leveldb"
-	favoritesDiskCacheVersion        = 1
+	favoritesDiskCacheVersion        = 2
 	favoritesDiskCacheStorageVersion = 2
 )
 
-var errNoFavoritesCache = errors.New("Disk favorites cache not present")
+var errNoFavoritesCache = errors.New("disk favorites cache not present")
 
 type errIncorrectFavoritesCacheVersion struct {
 	cache   string
@@ -158,8 +158,10 @@ func NewFavorites(config Config) *Favorites {
 }
 
 type favoritesCacheForDisk struct {
-	version int
-	cache   map[Favorite]favoriteData
+	version      int
+	favCache     map[Favorite]favoriteData
+	newCache     map[Favorite]favoriteData
+	ignoredCache map[Favorite]favoriteData
 }
 type favoritesCacheEncryptedForDisk struct {
 	version        int
@@ -213,17 +215,19 @@ func (f *Favorites) readCacheFromDisk(ctx context.Context) error {
 	}
 
 	// Decode the data into the a map
-	var cache favoritesCacheForDisk
-	err = f.config.Codec().Decode(decryptedData, &cache)
+	var cacheDecoded favoritesCacheForDisk
+	err = f.config.Codec().Decode(decryptedData, &cacheDecoded)
 	if err != nil {
 		return err
 	}
-	if cache.version != favoritesDiskCacheVersion {
+	if cacheDecoded.version != favoritesDiskCacheVersion {
 		return errIncorrectFavoritesCacheVersion{cache: "encrypted",
 			version: decodedData.version}
 	}
 
-	f.favCache = cache.cache
+	f.favCache = cacheDecoded.favCache
+	f.newCache = cacheDecoded.newCache
+	f.ignoredCache = cacheDecoded.ignoredCache
 	return nil
 }
 
@@ -233,8 +237,10 @@ func (f *Favorites) writeCacheToDisk(ctx context.Context) error {
 	}
 	// Encode the cache map into a byte buffer
 	cacheForDisk := favoritesCacheForDisk{
-		cache:   f.favCache,
-		version: favoritesDiskCacheVersion,
+		favCache:     f.favCache,
+		newCache:     f.newCache,
+		ignoredCache: f.ignoredCache,
+		version:      favoritesDiskCacheVersion,
 	}
 	cacheSerialized, err := f.config.Codec().Encode(cacheForDisk)
 	if err != nil {
