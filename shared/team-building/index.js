@@ -90,7 +90,7 @@ class TeamBuilding extends React.PureComponent<Props, void> {
             />
             <Kb.Text type="BodySmallSemibold">Loading</Kb.Text>
           </Kb.Box2>
-        ) : !showRecs && !props.showServiceResultCount ? (
+        ) : !showRecs && !props.showServiceResultCount && !!props.selectedService ? (
           <Kb.Box2
             centerChildren={true}
             direction="vertical"
