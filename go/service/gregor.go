@@ -785,13 +785,6 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 		return fmt.Errorf("error authenticating: %s", err)
 	}
 
-	// Sync badge state in the background
-	if g.badger != nil {
-		if err := g.badger.Resync(ctx, g.GetClient, gcli, &syncAllRes.Badge); err != nil {
-			g.chatLog.Debug(ctx, "badger failure: %s", err)
-		}
-	}
-
 	// Sync chat data using a Syncer object
 	if err := g.G().Syncer.Connected(ctx, chatCli, uid, &syncAllRes.Chat); err != nil {
 		return fmt.Errorf("error running chat sync: %s", err)
@@ -802,6 +795,13 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 		&syncAllRes.Notification); err != nil {
 		g.chatLog.Debug(ctx, "serverSync: failure: %s", err)
 		return fmt.Errorf("error running state sync: %s", err)
+	}
+
+	// Sync badge state in the background
+	if g.badger != nil {
+		if err := g.badger.Resync(ctx, g.GetClient, gcli, &syncAllRes.Badge); err != nil {
+			g.chatLog.Debug(ctx, "badger failure: %s", err)
+		}
 	}
 
 	// Call out to reachability module if we have one
