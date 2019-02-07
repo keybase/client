@@ -418,7 +418,7 @@ func TestBlockRetrievalWorkerStopIfFull(t *testing.T) {
 	case err := <-req:
 		require.IsType(t, DiskCacheTooFullForBlockError{}, err)
 	case <-ctx.Done():
-		require.NoError(t, ctx.Err())
+		require.FailNow(t, ctx.Err().Error())
 	}
 
 	t.Log("Request without stop-if-full, when full")
@@ -433,6 +433,6 @@ func TestBlockRetrievalWorkerStopIfFull(t *testing.T) {
 	case err := <-req:
 		require.NoError(t, err)
 	case <-ctx.Done():
-		require.NoError(t, ctx.Err())
+		require.FailNow(t, ctx.Err().Error())
 	}
 }
