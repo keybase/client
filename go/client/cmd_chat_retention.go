@@ -73,7 +73,7 @@ Use the team policy for this channel:
 			},
 			cli.StringFlag{
 				Name:  "explode",
-				Usage: `Require all messages to be explode with a maximum lifetime of one of [30s, 5m, 1h, 6h, 1d, 3d, 1w]`,
+				Usage: `Require all messages to be exploding with a maximum lifetime of one of [30s, 5m, 1h, 6h, 1d, 3d, 1w]`,
 			},
 			cli.BoolFlag{
 				Name:  "inherit",

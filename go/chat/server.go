@@ -2105,7 +2105,7 @@ func (h *Server) SetConvRetentionLocal(ctx context.Context, arg chat1.SetConvRet
 	}
 
 	p := chat1.Pagination{Num: 1}
-	ib, err := h.G().InboxSource.ReadUnverified(ctx, uid, true, &chat1.GetInboxQuery{
+	ib, err := h.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll, &chat1.GetInboxQuery{
 		ConvID: &arg.ConvID,
 	}, &p)
 	if err != nil {
