@@ -163,15 +163,15 @@ table {
 /* Keybase */
 @font-face {
   font-family: 'Keybase';
-  font-weight: 400;
-  src: url('../../fonts/keybase-regular.otf') format('opentype');
+  font-weight: 500;
+  src: url('../../fonts/keybase-medium.otf') format('opentype');
 }
 
 @font-face {
   font-family: 'Keybase';
-  font-weight: 400;
+  font-weight: 500;
   font-style: italic;
-  src: url('../../fonts/keybase-regular-italic.otf') format('opentype');
+  src: url('../../fonts/keybase-medium-italic.otf') format('opentype');
 }
 
 @font-face {

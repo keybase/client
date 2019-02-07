@@ -102,7 +102,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               colorBroken={true}
               colorFollowing={true}
               colorYou={true}
-              type="BodySmallSemibold"
+              type="BodySmallBold"
               usernames={[this.props.showUsername]}
               onUsernameClicked={this._onAuthorClick}
             />

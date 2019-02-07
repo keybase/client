@@ -100,7 +100,7 @@
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: Keybase;
-  font-weight: 400;
+  font-weight: 500;
 }
 
 .text_BodyItalic {
@@ -110,7 +110,7 @@
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: Keybase;
-  font-weight: 400;
+  font-weight: 500;
   font-style: italic;
 }
 
@@ -163,7 +163,7 @@
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: Keybase;
-  font-weight: 400;
+  font-weight: 500;
 }
 
 .text_BodySecondaryLink {
@@ -174,7 +174,7 @@
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: Keybase;
-  font-weight: 400;
+  font-weight: 500;
 }
 
 .text_BodySmall {
@@ -184,7 +184,17 @@
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: Keybase;
-  font-weight: 400;
+  font-weight: 500;
+}
+
+.text_BodySmallBold {
+  font-size: 14px;
+  line-height: 19px;
+  color: rgba(0, 0, 0, 0.5);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: Keybase;
+  font-weight: 700;
 }
 
 .text_BodySmallItalic {
@@ -194,7 +204,7 @@
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: Keybase;
-  font-weight: 400;
+  font-weight: 500;
   font-style: italic;
 }
 
@@ -206,7 +216,7 @@
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: Keybase;
-  font-weight: 400;
+  font-weight: 500;
 }
 
 .text_BodySmallExtrabold {
@@ -260,7 +270,7 @@
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: Keybase;
-  font-weight: 400;
+  font-weight: 500;
 }
 
 .text_BodySmallExtraboldSecondaryLink {
@@ -281,7 +291,7 @@
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: Keybase;
-  font-weight: 400;
+  font-weight: 500;
 }
 
 .text_BodySmallSuccess {
@@ -291,7 +301,7 @@
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: Keybase;
-  font-weight: 400;
+  font-weight: 500;
 }
 
 .text_BodySmallWallet {
@@ -301,7 +311,7 @@
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: Keybase;
-  font-weight: 400;
+  font-weight: 500;
 }
 
 .text_BodyTiny {
@@ -311,7 +321,7 @@
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-family: Keybase;
-  font-weight: 400;
+  font-weight: 500;
 }
 
 .text_BodyTinyBold {

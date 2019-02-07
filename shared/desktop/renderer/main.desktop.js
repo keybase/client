@@ -129,7 +129,7 @@ const FontLoader = () => (
     <p style={{fontFamily: 'kb'}}>kb</p>
     <p style={{fontFamily: 'Source Code Pro', fontWeight: 500}}>source code pro 500</p>
     <p style={{fontFamily: 'Source Code Pro', fontWeight: 600}}>source code pro 600</p>
-    <p style={{fontFamily: 'Keybase', fontWeight: 400}}>keybase 400</p>
+    <p style={{fontFamily: 'Keybase', fontWeight: 500}}>keybase 500</p>
     <p style={{fontFamily: 'Keybase', fontStyle: 'italic', fontWeight: 400}}>keybase 400 i</p>
     <p style={{fontFamily: 'Keybase', fontWeight: 600}}>keybase 600</p>
     <p style={{fontFamily: 'Keybase', fontStyle: 'italic', fontWeight: 600}}>keybase 600 i</p>

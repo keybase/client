@@ -19,6 +19,7 @@ export const allTextTypes = {
   BodySmallItalic: 'BodySmallItalic',
   BodySmallPrimaryLink: 'BodySmallPrimaryLink',
   BodySmallSecondaryLink: 'BodySmallSecondaryLink',
+  BodySmallBold: 'BodySmallBold',
   BodySmallSemibold: 'BodySmallSemibold',
   BodySmallSemiboldItalic: 'BodySmallSemiboldItalic',
   BodySmallSemiboldSecondaryLink: 'BodySmallSemiboldSecondaryLink',

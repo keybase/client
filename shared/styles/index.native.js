@@ -9,7 +9,7 @@ const font = isIOS
   ? {
       fontBold: {fontFamily: 'Keybase', fontWeight: '700'},
       fontExtrabold: {fontFamily: 'Keybase', fontWeight: '800'},
-      fontRegular: {fontFamily: 'Keybase', fontWeight: '400'},
+      fontRegular: {fontFamily: 'Keybase', fontWeight: '500'},
       fontSemibold: {fontFamily: 'Keybase', fontWeight: '600'},
       fontTerminal: {fontFamily: 'Source Code Pro Medium'},
       fontTerminalSemibold: {fontFamily: 'Source Code Pro', fontWeight: '600'},
@@ -19,7 +19,7 @@ const font = isIOS
       // The fontFamily name must match the font file's name exactly on Android.
       fontBold: {fontFamily: 'keybase-bold', fontWeight: 'normal'},
       fontExtrabold: {fontFamily: 'keybase-extrabold', fontWeight: 'normal'},
-      fontRegular: {fontFamily: 'keybase-regular', fontWeight: 'normal'},
+      fontRegular: {fontFamily: 'keybase-medium', fontWeight: 'normal'},
       fontSemibold: {fontFamily: 'keybase-semibold', fontWeight: 'normal'},
       fontTerminal: {fontFamily: 'SourceCodePro-Medium', fontWeight: 'normal'},
       fontTerminalSemibold: {fontFamily: 'SourceCodePro-Semi', fontWeight: 'bold'},
