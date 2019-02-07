@@ -2085,23 +2085,21 @@ func (h *Server) SetConvRetentionLocal(ctx context.Context, arg chat1.SetConvRet
 		return err
 	}
 	policy := arg.Policy
-	_, err = h.remoteClient().SetConvRetention(ctx, chat1.SetConvRetentionArg{
+	if _, err = h.remoteClient().SetConvRetention(ctx, chat1.SetConvRetentionArg{
 		ConvID: arg.ConvID,
 		Policy: policy,
-	})
-	if err != nil {
+	}); err != nil {
 		return err
 	}
 
+	// Post a SYSTEM message to conversation about the change. If we're
+	// inheriting the team policy, fetch that for the message.
 	isInherit := false
-	// If we have an INHERIT policy we need to check if the team has one.
 	typ, err := policy.Typ()
 	if err != nil {
 		return err
 	}
 	switch typ {
-	case chat1.RetentionPolicyType_NONE:
-		return nil
 	case chat1.RetentionPolicyType_INHERIT:
 		isInherit = true
 	}
@@ -2114,16 +2112,17 @@ func (h *Server) SetConvRetentionLocal(ctx context.Context, arg chat1.SetConvRet
 		return err
 	}
 	if len(ib.ConvsUnverified) != 1 {
-		h.Debug(ctx, "no conversation found for SYSTEM message")
+		h.Debug(ctx, "no conversation found for retention policy SYSTEM message")
 		return nil
 	}
 	conv := ib.ConvsUnverified[0].Conv
 	if isInherit {
 		teamRetention := conv.TeamRetention
 		if teamRetention == nil {
-			return nil
+			policy = chat1.RetentionPolicy{}
+		} else {
+			policy = *teamRetention
 		}
-		policy = *teamRetention
 	}
 	membersType := conv.Metadata.MembersType
 	info, err := CreateNameInfoSource(ctx, h.G(), membersType).LookupName(
@@ -2146,34 +2145,18 @@ func (h *Server) SetConvRetentionLocal(ctx context.Context, arg chat1.SetConvRet
 func (h *Server) SetTeamRetentionLocal(ctx context.Context, arg chat1.SetTeamRetentionLocalArg) (err error) {
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err }, "SetTeamRetention(%v, %v)", arg.TeamID, arg.Policy.Summary())()
-	_, err = utils.AssertLoggedInUID(ctx, h.G())
-	if err != nil {
+	if _, err = utils.AssertLoggedInUID(ctx, h.G()); err != nil {
 		return err
 	}
-	_, err = h.remoteClient().SetTeamRetention(ctx, chat1.SetTeamRetentionArg{
+	if _, err = h.remoteClient().SetTeamRetention(ctx, chat1.SetTeamRetentionArg{
 		TeamID: arg.TeamID,
 		Policy: arg.Policy,
-	})
-	if err != nil {
+	}); err != nil {
 		return err
 	}
 
-	typ, err := arg.Policy.Typ()
-	if err != nil {
-		return err
-	}
-	// don't both with sysmessages in these cases
-	switch typ {
-	case chat1.RetentionPolicyType_NONE,
-		chat1.RetentionPolicyType_INHERIT:
-		return nil
-	}
-
+	// Post a SYSTEM message to the #general channel about the change.
 	tlfID, err := chat1.MakeTLFID(arg.TeamID.String())
-	if err != nil {
-		return err
-	}
-	info, err := CreateNameInfoSource(ctx, h.G(), chat1.ConversationMembersType_TEAM).LookupName(ctx, tlfID, false)
 	if err != nil {
 		return err
 	}
@@ -2186,7 +2169,10 @@ func (h *Server) SetTeamRetentionLocal(ctx context.Context, arg chat1.SetTeamRet
 		Policy:      arg.Policy,
 	})
 	body := chat1.NewMessageBodyWithSystem(subBody)
-
+	info, err := CreateNameInfoSource(ctx, h.G(), chat1.ConversationMembersType_TEAM).LookupName(ctx, tlfID, false)
+	if err != nil {
+		return err
+	}
 	return h.G().ChatHelper.SendMsgByName(ctx, info.CanonicalName, &globals.DefaultTeamTopic,
 		chat1.ConversationMembersType_TEAM, keybase1.TLFIdentifyBehavior_CHAT_CLI, body,
 		chat1.MessageType_SYSTEM)

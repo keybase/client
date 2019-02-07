@@ -1529,6 +1529,30 @@ func (c ConversationMemberStatus) ToGregorDBStringAssert() string {
 	return s
 }
 
+func humanizeDuration(duration time.Duration) string {
+	var value float64
+	var unit string
+	if int(duration.Hours()) >= 24 {
+		value = duration.Hours() / 24
+		unit = "day"
+	} else if int(duration.Hours()) >= 1 {
+		value = duration.Hours()
+		unit = "hour"
+	} else if int(duration.Minutes()) >= 1 {
+		value = duration.Minutes()
+		unit = "minute"
+	} else if int(duration.Seconds()) >= 1 {
+		value = duration.Seconds()
+		unit = "second"
+	} else {
+		return ""
+	}
+	if int(value) > 1 {
+		unit = unit + "s"
+	}
+	return fmt.Sprintf("%.0f %s", value, unit)
+}
+
 func (p RetentionPolicy) HumanSummary() (summary string) {
 	typ, err := p.Typ()
 	if err != nil {
@@ -1539,12 +1563,12 @@ func (p RetentionPolicy) HumanSummary() (summary string) {
 	case RetentionPolicyType_NONE, RetentionPolicyType_RETAIN:
 		summary = "be retained indefinitely"
 	case RetentionPolicyType_EXPIRE:
-		duration := p.Expire().Age.ToHumanDuration()
+		duration := humanizeDuration(p.Expire().Age.ToDuration())
 		if duration != "" {
 			summary = fmt.Sprintf("expire after %s", duration)
 		}
 	case RetentionPolicyType_EPHEMERAL:
-		duration := p.Ephemeral().Age.ToHumanDuration()
+		duration := humanizeDuration(p.Ephemeral().Age.ToDuration())
 		if duration != "" {
 			summary = fmt.Sprintf("explode after %s by default", duration)
 		}
