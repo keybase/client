@@ -314,6 +314,27 @@ func (f *Favorites) sendChangesToEditHistory(oldCache map[Favorite]favoriteData)
 	}
 }
 
+type favoriteType int
+
+const (
+	typeIgnored favoriteType = iota
+	typeNew
+	typeFavorite
+)
+
+func toFolder(fav Favorite, data favoriteData,
+	favType favoriteType) keybase1.Folder {
+	return keybase1.Folder{
+		Name:    fav.Name,
+		Private: data.Private,
+		// TODO: figure out what the deal is here
+		NotificationsOn: favType == typeFavorite,
+		Created:         false,
+		FolderType:      data.FolderType,
+		TeamID:          &data.TeamID,
+	}
+}
+
 func (f *Favorites) handleReq(req *favReq) (err error) {
 	defer func() { f.closeReq(req, err) }()
 
@@ -429,7 +450,27 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 	}
 
 	if req.favsAll != nil {
-		// TODO: implement this
+		favFolders := make([]keybase1.Folder, 0, len(f.favCache))
+		newFolders := make([]keybase1.Folder, 0, len(f.newCache))
+		ignoredFolders := make([]keybase1.Folder, 0, len(f.ignoredCache))
+
+		for fav, data := range f.favCache {
+			favFolders = append(favFolders, toFolder(fav, data, typeFavorite))
+		}
+		for fav, data := range f.newCache {
+			newFolders = append(newFolders, toFolder(fav, data, typeNew))
+		}
+		for fav, data := range f.ignoredCache {
+			ignoredFolders = append(ignoredFolders,
+				toFolder(fav, data, typeIgnored))
+		}
+
+		req.favsAll <- keybase1.FavoritesResult{
+			NewFolders:      newFolders,
+			IgnoredFolders:  ignoredFolders,
+			FavoriteFolders: favFolders,
+		}
+		// TODO: send info on reset users
 	}
 
 	return nil
