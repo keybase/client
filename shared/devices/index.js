@@ -6,10 +6,7 @@ import DeviceRow from './row/container'
 import * as Styles from '../styles'
 import {compose} from '../util/container'
 
-type Item =
-  | {key: string, id: Types.DeviceID, type: 'device'}
-  | {key: string, type: 'revokedHeader'}
-  | {key: string, type: 'paperKeyNudge'}
+type Item = {key: string, id: Types.DeviceID, type: 'device'} | {key: string, type: 'revokedHeader'}
 
 type State = {
   revokedExpanded: boolean,
@@ -54,8 +51,6 @@ class Devices extends React.PureComponent<Props, State> {
           onToggleExpanded={this._toggleExpanded}
         />
       )
-    } else if (item.type === 'paperKeyNudge') {
-      return !Styles.isMobile && <PaperKeyNudge />
     } else {
       return <DeviceRow key={item.id} deviceID={item.id} firstItem={index === 0} />
     }
@@ -71,9 +66,9 @@ class Devices extends React.PureComponent<Props, State> {
     return (
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
         <DeviceHeader onAddNew={this.props.onAddDevice} waiting={this.props.waiting} />
+        {this.props.showPaperKeyNudge && <PaperKeyNudge onAddDevice={this.props.onAddDevice} />}
         {this.props.waiting && <Kb.ProgressIndicator style={styles.progress} />}
-        <Kb.List items={items} renderItem={this._renderRow} style={{width: '100%'}} />
-        {this.props.showPaperKeyNudge && Styles.isMobile && <PaperKeyNudge />}
+        <Kb.List bounces={false} items={items} renderItem={this._renderRow} style={{width: '100%'}} />
       </Kb.Box2>
     )
   }
@@ -92,21 +87,26 @@ const styles = Styles.styleSheetCreate({
 })
 
 const DeviceHeader = ({onAddNew, waiting}) => (
-  <Kb.ClickableBox onClick={onAddNew}>
-    <Kb.Box2
-      direction="horizontal"
-      gap="xtiny"
-      style={headerStyles.container}
-      fullWidth={true}
-      centerChildren={true}
-    >
-      <Kb.Icon type="iconfont-new" color={Styles.globalColors.blue} />
-      <Kb.Text type="BodyBigLink">Add a device</Kb.Text>
-    </Kb.Box2>
+  <Kb.ClickableBox onClick={onAddNew} style={headerStyles.container}>
+    <Kb.Button type="Primary" label="Add device">
+      <Kb.Icon
+        type="iconfont-new"
+        color={Styles.globalColors.white}
+        style={Kb.iconCastPlatformStyles(headerStyles.icon)}
+      />
+    </Kb.Button>
   </Kb.ClickableBox>
 )
 const headerStyles = Styles.styleSheetCreate({
-  container: {height: Styles.isMobile ? 64 : 48},
+  container: {
+    ...Styles.globalStyles.flexBoxRow,
+    height: Styles.isMobile ? 64 : 48,
+    justifyContent: 'center',
+  },
+  icon: {
+    alignSelf: 'center',
+    marginRight: Styles.globalMargins.tiny,
+  },
 })
 
 const RevokedHeader = ({children, onToggleExpanded, expanded}) => (
@@ -150,32 +150,49 @@ const revokedHeaderStyles = Styles.styleSheetCreate({
   },
 })
 
-const PaperKeyNudge = () => (
-  <Kb.Box2 direction="horizontal" style={paperKeyNudgeStyles.container} fullWidth={true}>
-    <Kb.Box2 direction="horizontal" gap="xsmall" alignItems="center" style={paperKeyNudgeStyles.border}>
-      <Kb.Icon type="icon-paper-key-48" />
-      <Kb.Box2 direction="vertical" style={{flex: 1}}>
-        <Kb.Text type="BodySemibold">Create a paper key</Kb.Text>
-        <Kb.Text type={Styles.isMobile ? 'BodySmall' : 'Body'} style={paperKeyNudgeStyles.desc}>
-          A paper key can be used to access your account on a new device. Keep one in a safe place (like in a
-          wallet) to keep your data safe.
-        </Kb.Text>
+const PaperKeyNudge = ({onAddDevice}) => (
+  <Kb.ClickableBox onClick={onAddDevice}>
+    <Kb.Box2 direction="horizontal" style={paperKeyNudgeStyles.container} fullWidth={true}>
+      <Kb.Box2 direction="horizontal" gap="xsmall" alignItems="center" style={paperKeyNudgeStyles.border}>
+        <Kb.Icon type={Styles.isMobile ? 'icon-onboarding-paper-key-48' : 'icon-onboarding-paper-key-32'} />
+        <Kb.Box2 direction="vertical" style={paperKeyNudgeStyles.flexOne}>
+          <Kb.Text type="BodySemibold">Create a paper key</Kb.Text>
+          <Kb.Text type={Styles.isMobile ? 'BodySmall' : 'Body'} style={paperKeyNudgeStyles.desc}>
+            A paper key can be used to access your account in case you lose all your devices. Keep one in a
+            safe place (like a wallet) to keep your data safe.
+          </Kb.Text>
+        </Kb.Box2>
+        {!Styles.isMobile && <Kb.Text type="BodyBigLink">Create a paper key</Kb.Text>}
       </Kb.Box2>
     </Kb.Box2>
-  </Kb.Box2>
+  </Kb.ClickableBox>
 )
 const paperKeyNudgeStyles = Styles.styleSheetCreate({
-  border: {
-    borderColor: Styles.globalColors.black_05,
-    borderRadius: Styles.borderRadius,
-    borderStyle: 'solid',
-    borderWidth: 1,
-    flex: 1,
-    padding: Styles.globalMargins.tiny,
-  },
+  border: Styles.platformStyles({
+    common: {
+      borderColor: Styles.globalColors.black_05,
+      borderRadius: Styles.borderRadius,
+      borderStyle: 'solid',
+      borderWidth: 1,
+      flex: 1,
+    },
+    isElectron: {
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+      paddingTop: Styles.globalMargins.tiny,
+    },
+    isMobile: {
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingLeft: Styles.globalMargins.xsmall,
+      paddingRight: Styles.globalMargins.xsmall,
+      paddingTop: Styles.globalMargins.tiny,
+    },
+  }),
   container: Styles.platformStyles({
     common: {
       padding: Styles.globalMargins.small,
+      paddingTop: 0,
     },
     isMobile: {
       padding: Styles.globalMargins.tiny,
@@ -186,6 +203,7 @@ const paperKeyNudgeStyles = Styles.styleSheetCreate({
       maxWidth: 450,
     },
   }),
+  flexOne: {flex: 1},
 })
 
 export default compose(Kb.HeaderOnMobile)(Devices)

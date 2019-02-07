@@ -46,14 +46,10 @@ function mergeProps(stateProps, dispatchProps, ownProps: OwnProps) {
   const newlyRevokedIds = I.Set(revokedItems.map(d => d.key)).intersect(stateProps._newlyChangedItemIds)
   const showPaperKeyNudge =
     !stateProps._deviceMap.isEmpty() && !stateProps._deviceMap.some(v => v.type === 'backup')
-  const items = normal.map(deviceToItem)
-  if (showPaperKeyNudge) {
-    items.push({key: 'paperKeyNudge', type: 'paperKeyNudge'})
-  }
   return {
     _stateOverride: null,
     hasNewlyRevoked: newlyRevokedIds.size > 0,
-    items,
+    items: normal.map(deviceToItem),
     loadDevices: dispatchProps.loadDevices,
     onAddDevice: dispatchProps.onAddDevice,
     onBack: dispatchProps.onBack,
