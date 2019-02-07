@@ -667,7 +667,7 @@ func TestGregorBadgesIBM(t *testing.T) {
 	ri := func() chat1.RemoteInterface {
 		return dummyRemoteClient{RemoteClient: chat1.RemoteClient{Cli: h.cli}}
 	}
-	badgerResync(context.TODO(), t, h.badger, ri, h.gregorCli, nil)
+	badgerResync(context.TODO(), t, h.badger, ri, h.gregorCli)
 
 	listener.getBadgeState(t) // skip one since resync sends 2
 	bs := listener.getBadgeState(t)
@@ -682,7 +682,7 @@ func TestGregorBadgesIBM(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("client sync complete")
 
-	badgerResync(context.TODO(), t, h.badger, ri, h.gregorCli, nil)
+	badgerResync(context.TODO(), t, h.badger, ri, h.gregorCli)
 
 	bs = listener.getBadgeState(t)
 	require.Equal(t, 1, bs.NewTlfs, "no more badges")
@@ -720,7 +720,7 @@ func TestGregorTeamBadges(t *testing.T) {
 	ri := func() chat1.RemoteInterface {
 		return dummyRemoteClient{RemoteClient: chat1.RemoteClient{Cli: h.cli}}
 	}
-	badgerResync(context.TODO(), t, h.badger, ri, h.gregorCli, nil)
+	badgerResync(context.TODO(), t, h.badger, ri, h.gregorCli)
 
 	listener.getBadgeState(t) // skip one since resync sends 2
 	bs := listener.getBadgeState(t)
@@ -1044,24 +1044,16 @@ func TestOfflineConsume(t *testing.T) {
 }
 
 func badgerResync(ctx context.Context, t testing.TB, b *badges.Badger, chatRemote func() chat1.RemoteInterface,
-	gcli *grclient.Client, update *chat1.UnreadUpdateFull) {
-	if update == nil {
-		iboxVersion, err := b.GetInboxVersionForTest(ctx)
-		require.NoError(t, err)
-		b.G().Log.Debug("Badger: Resync(): using inbox version: %v", iboxVersion)
-		update = new(chat1.UnreadUpdateFull)
-		*update, err = chatRemote().GetUnreadUpdateFull(ctx, iboxVersion)
-		require.NoError(t, err)
-	} else {
-		b.G().Log.CDebugf(ctx, "Badger: Resync(): skipping remote call, data previously obtained")
-	}
+	gcli *grclient.Client) {
+	iboxVersion, err := b.GetInboxVersionForTest(ctx)
+	require.NoError(t, err)
+	b.G().Log.Debug("Badger: Resync(): using inbox version: %v", iboxVersion)
+	update, err := chatRemote().GetUnreadUpdateFull(ctx, iboxVersion)
+	require.NoError(t, err)
 
 	state, err := gcli.StateMachineState(ctx, nil, false)
-	if err != nil {
-		b.G().Log.CDebugf(ctx, "Badger: Resync(): unable to get state: %s", err.Error())
-		state = gregor1.State{}
-	}
+	require.NoError(t, err)
 
-	b.PushChatFullUpdate(ctx, *update)
+	b.PushChatFullUpdate(ctx, update)
 	b.PushState(ctx, state)
 }
