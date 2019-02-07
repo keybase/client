@@ -52,7 +52,7 @@ const DeviceBox = Styles.isMobile
       border: `1px solid ${Styles.globalColors.black_05}`,
       borderRadius: Styles.borderRadius,
       padding: Styles.globalMargins.tiny,
-      width: 130,
+      width: 140,
     })
 const bigIcon = isLargeScreen && Styles.isMobile
 const typeToIcon = {
@@ -64,7 +64,9 @@ const DeviceOption = ({onClick, type}) => (
   <Kb.ClickableBox onClick={onClick}>
     <DeviceBox direction="vertical" centerChildren={true} gap="xtiny" gapEnd={true}>
       <Kb.Icon type={typeToIcon[type]} />
-      <Kb.Text type="BodySemibold">Add a {type}</Kb.Text>
+      <Kb.Text type="BodySemibold">
+        {type === 'paper key' ? 'Create' : 'Add'} a {type}
+      </Kb.Text>
     </DeviceBox>
   </Kb.ClickableBox>
 )
