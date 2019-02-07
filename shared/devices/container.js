@@ -44,7 +44,8 @@ function mergeProps(stateProps, dispatchProps, ownProps: OwnProps) {
   const [revoked, normal] = splitAndSortDevices(stateProps._deviceMap)
   const revokedItems = revoked.map(deviceToItem)
   const newlyRevokedIds = I.Set(revokedItems.map(d => d.key)).intersect(stateProps._newlyChangedItemIds)
-  const showPaperKeyNudge = !stateProps._deviceMap.some(v => v.type === 'backup')
+  const showPaperKeyNudge =
+    !stateProps._deviceMap.isEmpty() && !stateProps._deviceMap.some(v => v.type === 'backup')
   const items = normal.map(deviceToItem)
   if (showPaperKeyNudge) {
     items.push({key: 'paperKeyNudge', type: 'paperKeyNudge'})
@@ -57,6 +58,7 @@ function mergeProps(stateProps, dispatchProps, ownProps: OwnProps) {
     onAddDevice: dispatchProps.onAddDevice,
     onBack: dispatchProps.onBack,
     revokedItems: revokedItems,
+    showPaperKeyNudge,
     title: 'Devices',
     waiting: stateProps.waiting,
   }
@@ -80,6 +82,7 @@ class ReloadableDevices extends React.PureComponent<React.ElementConfig<typeof D
           loadDevices={this.props.loadDevices}
           onBack={this.props.onBack}
           revokedItems={this.props.revokedItems}
+          showPaperKeyNudge={this.props.showPaperKeyNudge}
           title={this.props.title}
           waiting={this.props.waiting}
         />

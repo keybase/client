@@ -23,6 +23,7 @@ type Props = {|
   onAddDevice: () => void,
   onBack: () => void,
   revokedItems: Array<Item>,
+  showPaperKeyNudge: boolean,
   hasNewlyRevoked: boolean,
   waiting: boolean,
   title: string,
@@ -54,7 +55,7 @@ class Devices extends React.PureComponent<Props, State> {
         />
       )
     } else if (item.type === 'paperKeyNudge') {
-      return null // TODO
+      return !Styles.isMobile && <PaperKeyNudge />
     } else {
       return <DeviceRow key={item.id} deviceID={item.id} firstItem={index === 0} />
     }
@@ -71,7 +72,8 @@ class Devices extends React.PureComponent<Props, State> {
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
         <DeviceHeader onAddNew={this.props.onAddDevice} waiting={this.props.waiting} />
         {this.props.waiting && <Kb.ProgressIndicator style={styles.progress} />}
-        <Kb.List items={items} renderItem={this._renderRow} />
+        <Kb.List items={items} renderItem={this._renderRow} style={{width: '100%'}} />
+        {this.props.showPaperKeyNudge && Styles.isMobile && <PaperKeyNudge />}
       </Kb.Box2>
     )
   }
@@ -146,6 +148,44 @@ const revokedHeaderStyles = Styles.styleSheetCreate({
   textContainer: {
     minHeight: Styles.isMobile ? 32 : 24,
   },
+})
+
+const PaperKeyNudge = () => (
+  <Kb.Box2 direction="horizontal" style={paperKeyNudgeStyles.container} fullWidth={true}>
+    <Kb.Box2 direction="horizontal" gap="xsmall" alignItems="center" style={paperKeyNudgeStyles.border}>
+      <Kb.Icon type="icon-paper-key-48" />
+      <Kb.Box2 direction="vertical" style={{flex: 1}}>
+        <Kb.Text type="BodySemibold">Create a paper key</Kb.Text>
+        <Kb.Text type={Styles.isMobile ? 'BodySmall' : 'Body'} style={paperKeyNudgeStyles.desc}>
+          A paper key can be used to access your account on a new device. Keep one in a safe place (like in a
+          wallet) to keep your data safe.
+        </Kb.Text>
+      </Kb.Box2>
+    </Kb.Box2>
+  </Kb.Box2>
+)
+const paperKeyNudgeStyles = Styles.styleSheetCreate({
+  border: {
+    borderColor: Styles.globalColors.black_05,
+    borderRadius: Styles.borderRadius,
+    borderStyle: 'solid',
+    borderWidth: 1,
+    flex: 1,
+    padding: Styles.globalMargins.tiny,
+  },
+  container: Styles.platformStyles({
+    common: {
+      padding: Styles.globalMargins.small,
+    },
+    isMobile: {
+      padding: Styles.globalMargins.tiny,
+    },
+  }),
+  desc: Styles.platformStyles({
+    isElectron: {
+      maxWidth: 450,
+    },
+  }),
 })
 
 export default compose(Kb.HeaderOnMobile)(Devices)
