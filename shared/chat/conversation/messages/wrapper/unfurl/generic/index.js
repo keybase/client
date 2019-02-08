@@ -62,7 +62,7 @@ class UnfurlGeneric extends React.Component<Props> {
           {!!this.props.description && (
             <Kb.Text type="Body" lineClamp={5}>
               {this.props.description}
-              {showBottomImage && (
+              {!Styles.isMobile && showBottomImage && (
                 <React.Fragment>
                   {' '}
                   <Kb.Icon

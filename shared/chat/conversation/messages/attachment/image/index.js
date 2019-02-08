@@ -73,14 +73,15 @@ class ImageAttachment extends React.PureComponent<Props, State> {
   render() {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.Text type="BodyTiny">
-          {this.props.fileName}{' '}
+        <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
+          <Kb.Text type="BodyTiny">{this.props.fileName}</Kb.Text>
           <Kb.Icon
             boxStyle={styles.collapseBox}
+            style={styles.collapse}
             onClick={this.props.onCollapse}
             type={this.props.isCollapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'}
           />
-        </Kb.Text>
+        </Kb.Box2>
         {!this.props.isCollapsed && (
           <Kb.ClickableBox
             style={styles.imageContainer}
@@ -217,11 +218,15 @@ const styles = Styles.styleSheetCreate({
     maxWidth: 330,
     position: 'relative',
   },
-  collapseBox: Styles.platformStyles({
-    isElectron: {
-      display: 'inline',
+  collapse: Styles.platformStyles({
+    isMobile: {
+      alignSelf: 'center',
     },
   }),
+  collapseBox: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+  },
   downloadIcon: {
     maxHeight: 14,
     position: 'relative',

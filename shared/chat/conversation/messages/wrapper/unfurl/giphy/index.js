@@ -26,6 +26,8 @@ class UnfurlGiphy extends React.Component<Props> {
               {!!this.props.faviconURL && <Kb.Image src={this.props.faviconURL} style={styles.favicon} />}
               <Kb.Text type="BodySmall">Giphy</Kb.Text>
               <Kb.Icon
+                boxStyle={styles.collapseBox}
+                style={styles.collapse}
                 onClick={this.props.onCollapse}
                 type={this.props.isCollapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'}
               />
@@ -55,6 +57,15 @@ class UnfurlGiphy extends React.Component<Props> {
 }
 
 const styles = Styles.styleSheetCreate({
+  collapse: Styles.platformStyles({
+    isMobile: {
+      alignSelf: 'center',
+    },
+  }),
+  collapseBox: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+  },
   container: Styles.platformStyles({
     common: {
       alignSelf: 'flex-start',
