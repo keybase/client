@@ -41,6 +41,7 @@ export const inviteToTeamByPhone = 'teams:inviteToTeamByPhone'
 export const joinTeam = 'teams:joinTeam'
 export const leaveTeam = 'teams:leaveTeam'
 export const leftTeam = 'teams:leftTeam'
+export const reAddToTeam = 'teams:reAddToTeam'
 export const removeMemberOrPendingInvite = 'teams:removeMemberOrPendingInvite'
 export const removeParticipant = 'teams:removeParticipant'
 export const saveChannelMembership = 'teams:saveChannelMembership'
@@ -105,6 +106,7 @@ type _InviteToTeamByPhonePayload = $ReadOnly<{|teamname: string, role: Types.Tea
 type _JoinTeamPayload = $ReadOnly<{|teamname: string|}>
 type _LeaveTeamPayload = $ReadOnly<{|teamname: string, context: 'teams' | 'chat'|}>
 type _LeftTeamPayload = $ReadOnly<{|teamname: string, context: 'teams' | 'chat'|}>
+type _ReAddToTeamPayload = $ReadOnly<{|teamname: string, username: string|}>
 type _RemoveMemberOrPendingInvitePayload = $ReadOnly<{|email: string, teamname: string, username: string, inviteID: string|}>
 type _RemoveParticipantPayload = $ReadOnly<{|teamname: string, conversationIDKey: ChatTypes.ConversationIDKey, participant: string|}>
 type _SaveChannelMembershipPayload = $ReadOnly<{|teamname: string, oldChannelState: Types.ChannelMembershipState, newChannelState: Types.ChannelMembershipState, you: string|}>
@@ -185,6 +187,7 @@ export const createInviteToTeamByEmail = (payload: _InviteToTeamByEmailPayload) 
 export const createInviteToTeamByPhone = (payload: _InviteToTeamByPhonePayload) => ({payload, type: inviteToTeamByPhone})
 export const createJoinTeam = (payload: _JoinTeamPayload) => ({payload, type: joinTeam})
 export const createLeaveTeam = (payload: _LeaveTeamPayload) => ({payload, type: leaveTeam})
+export const createReAddToTeam = (payload: _ReAddToTeamPayload) => ({payload, type: reAddToTeam})
 export const createRemoveMemberOrPendingInvite = (payload: _RemoveMemberOrPendingInvitePayload) => ({payload, type: removeMemberOrPendingInvite})
 export const createRemoveParticipant = (payload: _RemoveParticipantPayload) => ({payload, type: removeParticipant})
 export const createSaveChannelMembership = (payload: _SaveChannelMembershipPayload) => ({payload, type: saveChannelMembership})
@@ -248,6 +251,7 @@ export type InviteToTeamByPhonePayload = {|+payload: _InviteToTeamByPhonePayload
 export type JoinTeamPayload = {|+payload: _JoinTeamPayload, +type: 'teams:joinTeam'|}
 export type LeaveTeamPayload = {|+payload: _LeaveTeamPayload, +type: 'teams:leaveTeam'|}
 export type LeftTeamPayload = {|+payload: _LeftTeamPayload, +type: 'teams:leftTeam'|}
+export type ReAddToTeamPayload = {|+payload: _ReAddToTeamPayload, +type: 'teams:reAddToTeam'|}
 export type RemoveMemberOrPendingInvitePayload = {|+payload: _RemoveMemberOrPendingInvitePayload, +type: 'teams:removeMemberOrPendingInvite'|}
 export type RemoveParticipantPayload = {|+payload: _RemoveParticipantPayload, +type: 'teams:removeParticipant'|}
 export type SaveChannelMembershipPayload = {|+payload: _SaveChannelMembershipPayload, +type: 'teams:saveChannelMembership'|}
@@ -314,6 +318,7 @@ export type Actions =
   | JoinTeamPayload
   | LeaveTeamPayload
   | LeftTeamPayload
+  | ReAddToTeamPayload
   | RemoveMemberOrPendingInvitePayload
   | RemoveParticipantPayload
   | SaveChannelMembershipPayload
