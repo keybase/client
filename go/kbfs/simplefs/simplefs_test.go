@@ -129,6 +129,51 @@ func checkPendingOp(ctx context.Context,
 	}
 }
 
+func testListWithFilterAndUsername(
+	t *testing.T, ctx context.Context, sfs *SimpleFS, path keybase1.Path,
+	filter keybase1.ListFilter, username string, expectedEntries ...string) {
+	opid, err := sfs.SimpleFSMakeOpid(ctx)
+	require.NoError(t, err)
+	err = sfs.SimpleFSList(ctx, keybase1.SimpleFSListArg{
+		OpID:   opid,
+		Path:   path,
+		Filter: filter,
+	})
+	require.NoError(t, err)
+	checkPendingOp(
+		ctx, t, sfs, opid, keybase1.AsyncOps_LIST, path, keybase1.Path{}, true)
+	err = sfs.SimpleFSWait(ctx, opid)
+	require.NoError(t, err)
+	listResult, err := sfs.SimpleFSReadList(ctx, opid)
+	require.NoError(t, err)
+	require.Len(t, listResult.Entries, len(expectedEntries))
+	sort.Slice(listResult.Entries, func(i, j int) bool {
+		return strings.Compare(listResult.Entries[i].Name,
+			listResult.Entries[j].Name) < 0
+	})
+	sort.Strings(expectedEntries)
+	for i, entry := range listResult.Entries {
+		require.Equal(t, expectedEntries[i], entry.Name)
+		require.Equal(t, username, entry.LastWriterUnverified.Username)
+	}
+
+	// Assume we've exhausted the list now, so expect error
+	_, err = sfs.SimpleFSReadList(ctx, opid)
+	require.Error(t, err)
+
+	// Verify error on double wait
+	err = sfs.SimpleFSWait(ctx, opid)
+	require.Error(t, err)
+}
+
+func testList(
+	t *testing.T, ctx context.Context, sfs *SimpleFS, path keybase1.Path,
+	expectedEntries ...string) {
+	testListWithFilterAndUsername(
+		t, ctx, sfs, path, keybase1.ListFilter_NO_FILTER, "jdoe",
+		expectedEntries...)
+}
+
 func TestList(t *testing.T) {
 	ctx := context.Background()
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
@@ -139,60 +184,18 @@ func TestList(t *testing.T) {
 	defer closeSimpleFS(ctx, t, sfs)
 
 	pathRoot := keybase1.NewPathWithKbfs(`/`)
-	opid, err := sfs.SimpleFSMakeOpid(ctx)
-	require.NoError(t, err)
-	err = sfs.SimpleFSList(ctx, keybase1.SimpleFSListArg{
-		OpID: opid,
-		Path: pathRoot,
-	})
-	require.NoError(t, err)
-	checkPendingOp(ctx, t, sfs, opid, keybase1.AsyncOps_LIST, pathRoot, keybase1.Path{}, true)
-	err = sfs.SimpleFSWait(ctx, opid)
-	require.NoError(t, err)
-	listResult, err := sfs.SimpleFSReadList(ctx, opid)
-	require.NoError(t, err)
-	require.Len(t, listResult.Entries, 3, "Expected 3 directory entries in listing")
-	sort.Slice(listResult.Entries, func(i, j int) bool {
-		return strings.Compare(listResult.Entries[i].Name,
-			listResult.Entries[j].Name) < 0
-	})
-	require.Equal(t, listResult.Entries[0].Name, "private")
-	require.Equal(t, listResult.Entries[1].Name, "public")
-	require.Equal(t, listResult.Entries[2].Name, "team")
+	testListWithFilterAndUsername(
+		t, ctx, sfs, pathRoot, keybase1.ListFilter_NO_FILTER, "",
+		"private", "public", "team")
 
 	pathPrivate := keybase1.NewPathWithKbfs(`/private`)
-	opid, err = sfs.SimpleFSMakeOpid(ctx)
-	require.NoError(t, err)
-	err = sfs.SimpleFSList(ctx, keybase1.SimpleFSListArg{
-		OpID: opid,
-		Path: pathPrivate,
-	})
-	require.NoError(t, err)
-	checkPendingOp(ctx, t, sfs, opid, keybase1.AsyncOps_LIST, pathPrivate, keybase1.Path{}, true)
-	err = sfs.SimpleFSWait(ctx, opid)
-	require.NoError(t, err)
-	listResult, err = sfs.SimpleFSReadList(ctx, opid)
-	require.NoError(t, err)
-	require.Len(t, listResult.Entries, 1, "Expected 1 directory entries in listing")
-	require.Equal(t, listResult.Entries[0].Name, "jdoe")
+	testListWithFilterAndUsername(
+		t, ctx, sfs, pathPrivate, keybase1.ListFilter_NO_FILTER, "",
+		"jdoe")
 
 	t.Log("List directory before it's created")
 	path1 := keybase1.NewPathWithKbfs(`/private/jdoe`)
-	opid, err = sfs.SimpleFSMakeOpid(ctx)
-	require.NoError(t, err)
-	err = sfs.SimpleFSList(ctx, keybase1.SimpleFSListArg{
-		OpID: opid,
-		Path: path1,
-	})
-	require.NoError(t, err)
-	checkPendingOp(
-		ctx, t, sfs, opid, keybase1.AsyncOps_LIST, path1, keybase1.Path{}, true)
-	err = sfs.SimpleFSWait(ctx, opid)
-	require.NoError(t, err)
-	listResult, err = sfs.SimpleFSReadList(ctx, opid)
-	require.NoError(t, err)
-	require.Len(t, listResult.Entries, 0,
-		"Expected 0 directory entries in listing")
+	testList(t, ctx, sfs, path1)
 
 	t.Log("Shouldn't have created the TLF")
 	h, err := libkbfs.ParseTlfHandle(
@@ -214,93 +217,19 @@ func TestList(t *testing.T) {
 	syncFS(ctx, t, sfs, "/private/jdoe") // Make a revision.
 	writeRemoteFile(ctx, t, sfs, pathAppend(path1, `test2.txt`), []byte(`foo`))
 	writeRemoteFile(ctx, t, sfs, pathAppend(path1, `.testfile`), []byte(`foo`))
-	opid, err = sfs.SimpleFSMakeOpid(ctx)
-	require.NoError(t, err)
 
-	err = sfs.SimpleFSList(ctx, keybase1.SimpleFSListArg{
-		OpID:   opid,
-		Path:   path1,
-		Filter: keybase1.ListFilter_FILTER_ALL_HIDDEN,
-	})
-	require.NoError(t, err)
+	testListWithFilterAndUsername(
+		t, ctx, sfs, path1, keybase1.ListFilter_FILTER_ALL_HIDDEN, "jdoe",
+		"test1.txt", "test2.txt")
 
-	checkPendingOp(ctx, t, sfs, opid, keybase1.AsyncOps_LIST, path1, keybase1.Path{}, true)
-	err = sfs.SimpleFSWait(ctx, opid)
-	require.NoError(t, err)
-
-	listResult, err = sfs.SimpleFSReadList(ctx, opid)
-	require.NoError(t, err)
-	require.Equal(
-		t, "jdoe", listResult.Entries[0].LastWriterUnverified.Username)
-	require.Equal(
-		t, "jdoe", listResult.Entries[1].LastWriterUnverified.Username)
-
-	require.Len(t, listResult.Entries, 2, "Expected 2 directory entries in listing")
-
-	// Assume we've exhausted the list now, so expect error
-	_, err = sfs.SimpleFSReadList(ctx, opid)
-	require.Error(t, err)
-
-	// Verify error on double wait
-	err = sfs.SimpleFSWait(ctx, opid)
-	require.Error(t, err)
-
-	opid, err = sfs.SimpleFSMakeOpid(ctx)
-	require.NoError(t, err)
-
-	err = sfs.SimpleFSList(ctx, keybase1.SimpleFSListArg{
-		OpID: opid,
-		Path: pathAppend(path1, `test1.txt`),
-	})
-	require.NoError(t, err)
-
-	err = sfs.SimpleFSWait(ctx, opid)
-	require.NoError(t, err)
-
-	listResult, err = sfs.SimpleFSReadList(ctx, opid)
-	require.NoError(t, err)
-
-	require.Len(t, listResult.Entries, 1, "Expected 1 directory entries in listing")
-	require.Equal(
-		t, "jdoe", listResult.Entries[0].LastWriterUnverified.Username)
-
-	// Assume we've exhausted the list now, so expect error
-	_, err = sfs.SimpleFSReadList(ctx, opid)
-	require.Error(t, err)
+	testList(t, ctx, sfs, pathAppend(path1, `test1.txt`), "test1.txt")
 
 	// Check for hidden files too.
-	opid, err = sfs.SimpleFSMakeOpid(ctx)
-	require.NoError(t, err)
-	err = sfs.SimpleFSList(ctx, keybase1.SimpleFSListArg{
-		OpID: opid,
-		Path: path1,
-	})
-	require.NoError(t, err)
-
-	checkPendingOp(ctx, t, sfs, opid, keybase1.AsyncOps_LIST, path1, keybase1.Path{}, true)
-	err = sfs.SimpleFSWait(ctx, opid)
-	require.NoError(t, err)
-	listResult, err = sfs.SimpleFSReadList(ctx, opid)
-	require.NoError(t, err)
-	require.Len(
-		t, listResult.Entries, 3, "Expected 3 directory entries in listing")
+	testList(
+		t, ctx, sfs, path1, "test1.txt", "test2.txt", ".testfile")
 
 	// A single, requested hidden file shows up even if the filter is on.
-	opid, err = sfs.SimpleFSMakeOpid(ctx)
-	require.NoError(t, err)
-	err = sfs.SimpleFSList(ctx, keybase1.SimpleFSListArg{
-		OpID:   opid,
-		Path:   pathAppend(path1, `.testfile`),
-		Filter: keybase1.ListFilter_FILTER_ALL_HIDDEN,
-	})
-	require.NoError(t, err)
-
-	err = sfs.SimpleFSWait(ctx, opid)
-	require.NoError(t, err)
-	listResult, err = sfs.SimpleFSReadList(ctx, opid)
-	require.NoError(t, err)
-	require.Len(
-		t, listResult.Entries, 1, "Expected 1 directory entries in listing")
+	testList(t, ctx, sfs, pathAppend(path1, `.testfile`), ".testfile")
 
 	// Test that the first archived revision shows no directory entries.
 	pathArchivedRev1 := keybase1.NewPathWithKbfsArchived(
@@ -308,34 +237,14 @@ func TestList(t *testing.T) {
 			Path:          `/private/jdoe`,
 			ArchivedParam: keybase1.NewKBFSArchivedParamWithRevision(1),
 		})
-	checkArchived := func(pathArchived keybase1.Path, expected int) {
-		opid, err = sfs.SimpleFSMakeOpid(ctx)
-		require.NoError(t, err)
-		err = sfs.SimpleFSList(ctx, keybase1.SimpleFSListArg{
-			OpID: opid,
-			Path: pathArchived,
-		})
-		require.NoError(t, err)
-
-		checkPendingOp(
-			ctx, t, sfs, opid, keybase1.AsyncOps_LIST, pathArchived,
-			keybase1.Path{}, true)
-		err = sfs.SimpleFSWait(ctx, opid)
-		require.NoError(t, err)
-		listResult, err = sfs.SimpleFSReadList(ctx, opid)
-		require.NoError(t, err)
-		require.Len(
-			t, listResult.Entries, expected,
-			"Expected 0 directory entries in listing")
-	}
-	checkArchived(pathArchivedRev1, 0)
+	testList(t, ctx, sfs, pathArchivedRev1)
 
 	pathArchivedRev2 := keybase1.NewPathWithKbfsArchived(
 		keybase1.KBFSArchivedPath{
 			Path:          `/private/jdoe`,
 			ArchivedParam: keybase1.NewKBFSArchivedParamWithRevision(2),
 		})
-	checkArchived(pathArchivedRev2, 1)
+	testList(t, ctx, sfs, pathArchivedRev2, "test1.txt")
 
 	// Same test, with by-time archived paths.
 	pathArchivedTime := keybase1.NewPathWithKbfsArchived(
@@ -344,7 +253,7 @@ func TestList(t *testing.T) {
 			ArchivedParam: keybase1.NewKBFSArchivedParamWithTime(
 				keybase1.ToTime(rev1Time)),
 		})
-	checkArchived(pathArchivedTime, 0)
+	testList(t, ctx, sfs, pathArchivedTime)
 
 	pathArchivedTimeString := keybase1.NewPathWithKbfsArchived(
 		keybase1.KBFSArchivedPath{
@@ -352,7 +261,7 @@ func TestList(t *testing.T) {
 			ArchivedParam: keybase1.NewKBFSArchivedParamWithTimeString(
 				rev1Time.String()),
 		})
-	checkArchived(pathArchivedTimeString, 0)
+	testList(t, ctx, sfs, pathArchivedTimeString)
 
 	pathArchivedRelTimeString := keybase1.NewPathWithKbfsArchived(
 		keybase1.KBFSArchivedPath{
@@ -360,16 +269,10 @@ func TestList(t *testing.T) {
 			ArchivedParam: keybase1.NewKBFSArchivedParamWithRelTimeString(
 				"45s"),
 		})
-	checkArchived(pathArchivedRelTimeString, 0)
+	testList(t, ctx, sfs, pathArchivedRelTimeString)
 
 	clock.Add(1 * time.Minute)
-	pathArchivedRelTimeString = keybase1.NewPathWithKbfsArchived(
-		keybase1.KBFSArchivedPath{
-			Path: `/private/jdoe`,
-			ArchivedParam: keybase1.NewKBFSArchivedParamWithRelTimeString(
-				"45s"),
-		})
-	checkArchived(pathArchivedRelTimeString, 1)
+	testList(t, ctx, sfs, pathArchivedRelTimeString, "test1.txt")
 }
 
 func TestListRecursive(t *testing.T) {
