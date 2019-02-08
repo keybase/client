@@ -39,9 +39,9 @@ const props = {
   editingOrdinal: null,
   lastLoadMoreOrdinal: null,
   lastMessageIsOurs: false,
+  onFocusInput: Sb.action('onFocusInput'),
   scrollListDownCounter: 0,
   scrollListUpCounter: 0,
-  onFocusInput: Sb.action('onFocusInput'),
 }
 
 // prettier-ignore
