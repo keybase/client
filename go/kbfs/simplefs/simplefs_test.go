@@ -920,6 +920,161 @@ func TestRemoveRecursive(t *testing.T) {
 	testList(t, ctx, sfs, pathKbfs)
 }
 
+func TestMoveWithinTlf(t *testing.T) {
+	ctx := context.Background()
+	sfs := newSimpleFS(
+		env.EmptyAppStateUpdater{}, libkbfs.MakeTestConfigOrBust(t, "jdoe"))
+	defer closeSimpleFS(ctx, t, sfs)
+
+	t.Log("Make a file to move")
+	pathKbfs := keybase1.NewPathWithKbfs("/private/jdoe")
+	writeRemoteFile(
+		ctx, t, sfs, pathAppend(pathKbfs, "test1.txt"), []byte("foo"))
+	syncFS(ctx, t, sfs, "/private/jdoe")
+
+	t.Log("Make sure the file is there")
+	testList(t, ctx, sfs, pathKbfs, "test1.txt")
+
+	t.Log("Move the file")
+	pathFileOld := pathAppend(pathKbfs, "test1.txt")
+	pathFileNew := pathAppend(pathKbfs, "test2.txt")
+	opid, err := sfs.SimpleFSMakeOpid(ctx)
+	require.NoError(t, err)
+	err = sfs.SimpleFSMove(ctx, keybase1.SimpleFSMoveArg{
+		OpID: opid,
+		Src:  pathFileOld,
+		Dest: pathFileNew,
+	})
+	require.NoError(t, err)
+	checkPendingOp(
+		ctx, t, sfs, opid, keybase1.AsyncOps_MOVE, pathFileOld, pathFileNew,
+		true)
+	err = sfs.SimpleFSWait(ctx, opid)
+	require.NoError(t, err)
+
+	t.Log("Make sure it's moved")
+	testList(t, ctx, sfs, pathKbfs, "test2.txt")
+
+	t.Log("Move into subdir")
+	pathDir := pathAppend(pathKbfs, "a")
+	writeRemoteDir(ctx, t, sfs, pathDir)
+	pathFileOld = pathFileNew
+	pathFileNew = pathAppend(pathDir, "test3.txt")
+	opid, err = sfs.SimpleFSMakeOpid(ctx)
+	require.NoError(t, err)
+	err = sfs.SimpleFSMove(ctx, keybase1.SimpleFSMoveArg{
+		OpID: opid,
+		Src:  pathFileOld,
+		Dest: pathFileNew,
+	})
+	require.NoError(t, err)
+	checkPendingOp(
+		ctx, t, sfs, opid, keybase1.AsyncOps_MOVE, pathFileOld, pathFileNew,
+		true)
+	err = sfs.SimpleFSWait(ctx, opid)
+	require.NoError(t, err)
+
+	t.Log("Make sure it's moved")
+	testList(t, ctx, sfs, pathKbfs, "a")
+	testList(t, ctx, sfs, pathDir, "test3.txt")
+
+	t.Log("Move into different, parallel subdir")
+	pathDirB := pathAppend(pathKbfs, "b")
+	writeRemoteDir(ctx, t, sfs, pathDirB)
+	pathDirC := pathAppend(pathDirB, "c")
+	writeRemoteDir(ctx, t, sfs, pathDirC)
+	pathFileOld = pathFileNew
+	pathFileNew = pathAppend(pathDirC, "test3.txt")
+	opid, err = sfs.SimpleFSMakeOpid(ctx)
+	require.NoError(t, err)
+	err = sfs.SimpleFSMove(ctx, keybase1.SimpleFSMoveArg{
+		OpID: opid,
+		Src:  pathFileOld,
+		Dest: pathFileNew,
+	})
+	require.NoError(t, err)
+	checkPendingOp(
+		ctx, t, sfs, opid, keybase1.AsyncOps_MOVE, pathFileOld, pathFileNew,
+		true)
+	err = sfs.SimpleFSWait(ctx, opid)
+	require.NoError(t, err)
+
+	t.Log("Make sure it's moved")
+	testList(t, ctx, sfs, pathDir)
+	testList(t, ctx, sfs, pathDirC, "test3.txt")
+}
+
+func TestMoveBetweenTlfs(t *testing.T) {
+	ctx := context.Background()
+	sfs := newSimpleFS(
+		env.EmptyAppStateUpdater{}, libkbfs.MakeTestConfigOrBust(t, "jdoe"))
+	defer closeSimpleFS(ctx, t, sfs)
+
+	t.Log("Make a file to move")
+	pathPrivate := keybase1.NewPathWithKbfs("/private/jdoe")
+	writeRemoteFile(
+		ctx, t, sfs, pathAppend(pathPrivate, "test1.txt"), []byte("foo"))
+	syncFS(ctx, t, sfs, "/private/jdoe")
+
+	t.Log("Make sure the file is there")
+	testList(t, ctx, sfs, pathPrivate, "test1.txt")
+
+	t.Log("Move the file")
+	pathFileOld := pathAppend(pathPrivate, "test1.txt")
+	pathPublic := keybase1.NewPathWithKbfs("/public/jdoe")
+	pathFileNew := pathAppend(pathPublic, "test2.txt")
+	opid, err := sfs.SimpleFSMakeOpid(ctx)
+	require.NoError(t, err)
+	err = sfs.SimpleFSMove(ctx, keybase1.SimpleFSMoveArg{
+		OpID: opid,
+		Src:  pathFileOld,
+		Dest: pathFileNew,
+	})
+	require.NoError(t, err)
+	checkPendingOp(
+		ctx, t, sfs, opid, keybase1.AsyncOps_MOVE, pathFileOld, pathFileNew,
+		true)
+	err = sfs.SimpleFSWait(ctx, opid)
+	require.NoError(t, err)
+	syncFS(ctx, t, sfs, "/public/jdoe")
+
+	t.Log("Make sure it's moved")
+	testList(t, ctx, sfs, pathPrivate)
+	testList(t, ctx, sfs, pathPublic, "test2.txt")
+
+	t.Log("Now move a whole populated directory")
+	pathDir := pathAppend(pathPrivate, "a")
+	writeRemoteDir(ctx, t, sfs, pathDir)
+	writeRemoteFile(ctx, t, sfs, pathAppend(pathDir, "test1.txt"), []byte("1"))
+	writeRemoteFile(ctx, t, sfs, pathAppend(pathDir, "test2.txt"), []byte("2"))
+	pathDir2 := pathAppend(pathDir, "b")
+	writeRemoteDir(ctx, t, sfs, pathDir2)
+	writeRemoteFile(ctx, t, sfs, pathAppend(pathDir2, "test3.txt"), []byte("3"))
+	syncFS(ctx, t, sfs, "/private/jdoe")
+
+	opid, err = sfs.SimpleFSMakeOpid(ctx)
+	require.NoError(t, err)
+	err = sfs.SimpleFSMove(ctx, keybase1.SimpleFSMoveArg{
+		OpID: opid,
+		Src:  pathDir,
+		Dest: pathPublic,
+	})
+	require.NoError(t, err)
+	checkPendingOp(
+		ctx, t, sfs, opid, keybase1.AsyncOps_MOVE, pathDir, pathPublic, true)
+	err = sfs.SimpleFSWait(ctx, opid)
+	require.NoError(t, err)
+	syncFS(ctx, t, sfs, "/public/jdoe")
+
+	t.Log("Make sure it's moved (one file was overwritten)")
+	testList(t, ctx, sfs, pathPrivate)
+	testList(t, ctx, sfs, pathPublic, "test1.txt", "test2.txt", "b")
+	testList(t, ctx, sfs, pathAppend(pathPublic, "b"), "test3.txt")
+	require.Equal(t, "2",
+		string(readRemoteFile(
+			ctx, t, sfs, pathAppend(pathPublic, "test2.txt"))))
+}
+
 func TestTlfEditHistory(t *testing.T) {
 	ctx := context.Background()
 	sfs := newSimpleFS(
