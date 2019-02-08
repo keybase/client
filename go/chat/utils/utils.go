@@ -1274,8 +1274,9 @@ func PresentUnfurl(ctx context.Context, g *globals.Context, convID chat1.Convers
 	return &ud
 }
 
-func PresentUnfurls(ctx context.Context, g *globals.Context, convID chat1.ConversationID,
+func PresentUnfurls(ctx context.Context, g *globals.Context, uid gregor1.UID, convID chat1.ConversationID,
 	unfurls map[chat1.MessageID]chat1.UnfurlResult) (res []chat1.UIMessageUnfurlInfo) {
+	collapses := NewCollapses(g)
 	for unfurlMessageID, u := range unfurls {
 		ud := PresentUnfurl(ctx, g, convID, u.Unfurl)
 		if ud != nil {
@@ -1283,6 +1284,7 @@ func PresentUnfurls(ctx context.Context, g *globals.Context, convID chat1.Conver
 				Unfurl:          *ud,
 				UnfurlMessageID: unfurlMessageID,
 				Url:             u.Url,
+				IsCollapsed:     collapses.IsCollapsed(ctx, uid, convID, unfurlMessageID),
 			})
 		}
 	}
@@ -1370,7 +1372,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			HasPairwiseMacs:       valid.HasPairwiseMacs(),
 			PaymentInfos:          presentPaymentInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
 			RequestInfo:           presentRequestInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
-			Unfurls:               PresentUnfurls(ctx, g, convID, valid.Unfurls),
+			Unfurls:               PresentUnfurls(ctx, g, uid, convID, valid.Unfurls),
 		})
 	case chat1.MessageUnboxedState_OUTBOX:
 		var body, title, filename string

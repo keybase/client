@@ -4146,6 +4146,23 @@
         }
       ],
       "response": null
+    },
+    "toggleMessageCollapse": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "msgID",
+          "type": "MessageID"
+        },
+        {
+          "name": "collapsed",
+          "type": "boolean"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "chat.1"
