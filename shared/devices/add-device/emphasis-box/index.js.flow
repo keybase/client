@@ -1,0 +1,9 @@
+// @flow
+import * as React from 'react'
+
+export type Props = {
+  children: React.Node,
+  emphasize: boolean,
+}
+
+export default class extends React.Component<Props> {}

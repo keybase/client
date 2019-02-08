@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import EmphasisBox from './emphasis-box'
 import {isLargeScreen} from '../../constants/platform'
 
 type Props = {|
@@ -38,17 +39,17 @@ const AddDevice = (props: Props) => (
         <DeviceOption
           onClick={props.onAddComputer}
           type="computer"
-          highlight={props.highlight && props.highlight.includes('computer')}
+          highlight={!!props.highlight && props.highlight.includes('computer')}
         />
         <DeviceOption
           onClick={props.onAddPhone}
           type="phone"
-          highlight={props.highlight && props.highlight.includes('phone')}
+          highlight={!!props.highlight && props.highlight.includes('phone')}
         />
         <DeviceOption
           onClick={props.onAddPaperKey}
           type="paper key"
-          highlight={props.highlight && props.highlight.includes('paper key')}
+          highlight={!!props.highlight && props.highlight.includes('paper key')}
         />
       </Kb.Box2>
     </Kb.Box2>
@@ -71,18 +72,23 @@ const typeToIcon = {
 }
 const DeviceOption = ({highlight, onClick, type}) => (
   <Kb.ClickableBox onClick={onClick}>
-    <DeviceBox
-      style={Styles.collapseStyles([styles.deviceOption, highlight && styles.deviceOptionHighlighted])}
-      direction="vertical"
-      centerChildren={true}
-      gap="xtiny"
-      gapEnd={!Styles.isMobile}
-    >
-      <Kb.Icon type={typeToIcon[type]} />
-      <Kb.Text type="BodySemibold">
-        {type === 'paper key' ? 'Create' : 'Add'} a {type}
-      </Kb.Text>
-    </DeviceBox>
+    <EmphasisBox emphasize={highlight}>
+      <DeviceBox
+        style={Styles.collapseStyles([
+          styles.deviceOption,
+          Styles.isMobile && highlight && styles.deviceOptionHighlighted,
+        ])}
+        direction="vertical"
+        centerChildren={true}
+        gap="xtiny"
+        gapEnd={!Styles.isMobile}
+      >
+        <Kb.Icon type={typeToIcon[type]} />
+        <Kb.Text type="BodySemibold">
+          {type === 'paper key' ? 'Create' : 'Add'} a {type}
+        </Kb.Text>
+      </DeviceBox>
+    </EmphasisBox>
   </Kb.ClickableBox>
 )
 
