@@ -49,5 +49,5 @@ export default namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps,
-  'PathItemActionRootHeader'
+  'PathItemActionMenuHeader'
 )(Header)

@@ -1404,6 +1404,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Preview:           preview,
 			Title:             title,
 			Filename:          filename,
+			IsEphemeral:       rawMsg.Outbox().Msg.IsEphemeral(),
 		})
 	case chat1.MessageUnboxedState_ERROR:
 		res = chat1.NewUIMessageWithError(rawMsg.Error())

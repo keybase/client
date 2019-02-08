@@ -252,7 +252,7 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	// Get conversation metadata
-	conv, err := GetUnverifiedConv(ctx, s.G(), uid, convID, true)
+	conv, err := GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		return chat1.ThreadView{}, err
 	}
@@ -269,13 +269,13 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		return chat1.ThreadView{}, err
 	}
 
-	thread, err := s.boxer.UnboxThread(ctx, boxed.Thread, conv)
+	thread, err := s.boxer.UnboxThread(ctx, boxed.Thread, conv.Conv)
 	if err != nil {
 		return chat1.ThreadView{}, err
 	}
 
 	// Post process thread before returning
-	if err = s.postProcessThread(ctx, uid, conv, &thread, query, nil, true, false); err != nil {
+	if err = s.postProcessThread(ctx, uid, conv.Conv, &thread, query, nil, true, false); err != nil {
 		return chat1.ThreadView{}, err
 	}
 
@@ -581,7 +581,7 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 	defer s.lockTab.Release(ctx, uid, convID)
 
 	// Grab conversation information before pushing
-	conv, err := GetUnverifiedConv(ctx, s.G(), uid, convID, true)
+	conv, err := GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		return decmsg, continuousUpdate, err
 	}
@@ -591,7 +591,7 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 		return decmsg, continuousUpdate, err
 	}
 
-	decmsg, err = s.boxer.UnboxMessage(ctx, msg, conv, nil)
+	decmsg, err = s.boxer.UnboxMessage(ctx, msg, conv.Conv, nil)
 	if err != nil {
 		return decmsg, continuousUpdate, err
 	}
@@ -745,9 +745,10 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	defer s.lockTab.Release(ctx, uid, convID)
 
 	// Get conversation metadata
-	conv, err := GetUnverifiedConv(ctx, s.G(), uid, convID, true)
+	rconv, err := GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 	var unboxConv types.UnboxConversationInfo
 	if err == nil {
+		conv := rconv.Conv
 		unboxConv = conv
 		// Try locally first
 		var holesFilled int
@@ -1122,7 +1123,7 @@ func (s *HybridConversationSource) notifyExpunge(ctx context.Context, uid gregor
 	if mergeRes.Expunged != nil {
 		var inboxItem *chat1.InboxUIItem
 		topicType := chat1.TopicType_NONE
-		conv, err := GetVerifiedConv(ctx, s.G(), uid, convID, true /* useLocalData */)
+		conv, err := GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 		if err != nil {
 			s.Debug(ctx, "notifyExpunge: failed to get conversations: %s", err)
 		} else {
@@ -1145,12 +1146,12 @@ func (s *HybridConversationSource) notifyUnfurls(ctx context.Context, uid gregor
 		return
 	}
 	s.Debug(ctx, "notifyUnfurls: notifying %d messages", len(msgs))
-	conv, err := GetUnverifiedConv(ctx, s.G(), uid, convID, true)
+	conv, err := GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		s.Debug(ctx, "notifyUnfurls: failed to get conv: %s", err)
 		return
 	}
-	unfurledMsgs, err := s.TransformSupersedes(ctx, conv, uid, msgs)
+	unfurledMsgs, err := s.TransformSupersedes(ctx, conv.Conv, uid, msgs)
 	if err != nil {
 		s.Debug(ctx, "notifyUnfurls: failed to transform supersedes: %s", err)
 		return
@@ -1172,7 +1173,7 @@ func (s *HybridConversationSource) notifyReactionUpdates(ctx context.Context, ui
 	convID chat1.ConversationID, msgs []chat1.MessageUnboxed) {
 	s.Debug(ctx, "notifyReactionUpdates: %d msgs to update", len(msgs))
 	if len(msgs) > 0 {
-		conv, err := GetVerifiedConv(ctx, s.G(), uid, convID, true /* useLocalData */)
+		conv, err := GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 		if err != nil {
 			s.Debug(ctx, "notifyReactionUpdates: failed to get conversations: %s", err)
 			return

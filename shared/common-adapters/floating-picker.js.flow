@@ -7,7 +7,7 @@ export type PickerItem<T> = {|label: string, value: T|}
 
 export type Props<T: string | number> = {
   items: PickerItem<T>[], // values must be unique
-  selectedValue: T,
+  selectedValue: ?T,
   onSelect: T => void,
   header?: React.Node,
   prompt?: React.Node,

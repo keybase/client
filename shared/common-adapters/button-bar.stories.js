@@ -13,7 +13,6 @@ const commonButtonProps = {
   onClick: Sb.action('onClick'),
   onMouseEnter: Sb.action('onMouseEnter'),
   onMouseLeave: Sb.action('onMouseLeave'),
-  onPress: Sb.action('onPress'),
   small: false,
   style: {alignSelf: undefined}, // button really shouldn't have this set
   waiting: false,

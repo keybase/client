@@ -24,7 +24,7 @@ type blockPutStateMemory struct {
 	lastBlock   BlockPointer
 }
 
-var _ blockPutState = (*blockPutStateMemory)(nil)
+var _ blockPutStateCopiable = (*blockPutStateMemory)(nil)
 
 func newBlockPutStateMemory(length int) *blockPutStateMemory {
 	bps := &blockPutStateMemory{}
@@ -72,7 +72,7 @@ func (bps *blockPutStateMemory) oldPtr(
 }
 
 func (bps *blockPutStateMemory) mergeOtherBps(
-	_ context.Context, other blockPutState) error {
+	_ context.Context, other blockPutStateCopiable) error {
 	otherMem, ok := other.(*blockPutStateMemory)
 	if !ok {
 		return errors.Errorf("Cannot remove other bps of type %T", other)
@@ -85,7 +85,7 @@ func (bps *blockPutStateMemory) mergeOtherBps(
 }
 
 func (bps *blockPutStateMemory) removeOtherBps(
-	ctx context.Context, other blockPutState) error {
+	ctx context.Context, other blockPutStateCopiable) error {
 	otherMem, ok := other.(*blockPutStateMemory)
 	if !ok {
 		return errors.Errorf("Cannot remove other bps of type %T", other)
@@ -154,7 +154,7 @@ func (bps *blockPutStateMemory) numBlocks() int {
 }
 
 func (bps *blockPutStateMemory) deepCopy(
-	_ context.Context) (blockPutState, error) {
+	_ context.Context) (blockPutStateCopiable, error) {
 	newBps := &blockPutStateMemory{}
 	newBps.blockStates = make(map[BlockPointer]blockState, len(bps.blockStates))
 	for ptr, bs := range bps.blockStates {
@@ -164,7 +164,8 @@ func (bps *blockPutStateMemory) deepCopy(
 }
 
 func (bps *blockPutStateMemory) deepCopyWithBlacklist(
-	_ context.Context, blacklist map[BlockPointer]bool) (blockPutState, error) {
+	_ context.Context, blacklist map[BlockPointer]bool) (
+	blockPutStateCopiable, error) {
 	newBps := &blockPutStateMemory{}
 	newLen := len(bps.blockStates) - len(blacklist)
 	if newLen < 0 {

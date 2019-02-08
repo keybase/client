@@ -14,22 +14,22 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-// GetJournalServer returns the JournalServer tied to a particular
+// GetJournalManager returns the JournalManager tied to a particular
 // config.
-func GetJournalServer(config Config) (*JournalServer, error) {
+func GetJournalManager(config Config) (*JournalManager, error) {
 	bserver := config.BlockServer()
 	jbserver, ok := bserver.(journalBlockServer)
 	if !ok {
 		return nil, errors.New("Write journal not enabled")
 	}
-	return jbserver.jServer, nil
+	return jbserver.jManager, nil
 }
 
 // TLFJournalEnabled returns true if journaling is enabled for the
 // given TLF.
 func TLFJournalEnabled(config Config, tlfID tlf.ID) bool {
-	if jServer, err := GetJournalServer(config); err == nil {
-		_, err := jServer.JournalStatus(tlfID)
+	if jManager, err := GetJournalManager(config); err == nil {
+		_, err := jManager.JournalStatus(tlfID)
 		return err == nil
 	}
 	return false
@@ -39,9 +39,9 @@ func TLFJournalEnabled(config Config, tlfID tlf.ID) bool {
 // one exists.
 func WaitForTLFJournal(ctx context.Context, config Config, tlfID tlf.ID,
 	log logger.Logger) error {
-	if jServer, err := GetJournalServer(config); err == nil {
+	if jManager, err := GetJournalManager(config); err == nil {
 		log.CDebugf(ctx, "Waiting for journal to flush")
-		if err := jServer.Wait(ctx, tlfID); err != nil {
+		if err := jManager.Wait(ctx, tlfID); err != nil {
 			return err
 		}
 	}
@@ -51,7 +51,7 @@ func WaitForTLFJournal(ctx context.Context, config Config, tlfID tlf.ID,
 // FillInJournalStatusUnflushedPaths adds the unflushed paths to the
 // given journal status.
 func FillInJournalStatusUnflushedPaths(ctx context.Context, config Config,
-	jStatus *JournalServerStatus, tlfIDs []tlf.ID) error {
+	jStatus *JournalManagerStatus, tlfIDs []tlf.ID) error {
 	if len(tlfIDs) == 0 {
 		// Nothing to do.
 		return nil

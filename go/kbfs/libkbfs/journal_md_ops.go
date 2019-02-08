@@ -37,7 +37,7 @@ import (
 // rev. Fix this.
 type journalMDOps struct {
 	MDOps
-	jServer *JournalServer
+	jManager *JournalManager
 }
 
 var _ MDOps = journalMDOps{}
@@ -57,11 +57,11 @@ func (j journalMDOps) convertImmutableBareRMDToIRMD(ctx context.Context,
 
 	rmd := makeRootMetadata(brmd, ibrmd.extra, handle)
 
-	config := j.jServer.config
+	config := j.jManager.config
 	pmd, err := decryptMDPrivateData(ctx, config.Codec(), config.Crypto(),
 		config.BlockCache(), config.BlockOps(), config.KeyManager(),
 		config.KBPKI(), config.Mode(), uid, rmd.GetSerializedPrivateMetadata(),
-		rmd, rmd, j.jServer.log)
+		rmd, rmd, j.jManager.log)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
@@ -81,7 +81,7 @@ func (j journalMDOps) getHeadFromJournal(
 	ctx context.Context, id tlf.ID, bid kbfsmd.BranchID, mStatus kbfsmd.MergeStatus,
 	handle *TlfHandle) (
 	ImmutableRootMetadata, error) {
-	tlfJournal, ok := j.jServer.getTLFJournal(id, handle)
+	tlfJournal, ok := j.jManager.getTLFJournal(id, handle)
 	if !ok {
 		return ImmutableRootMetadata{}, nil
 	}
@@ -129,23 +129,23 @@ func (j journalMDOps) getHeadFromJournal(
 
 	if handle == nil {
 		handle, err = MakeTlfHandle(
-			ctx, headBareHandle, id.Type(), j.jServer.config.KBPKI(),
-			j.jServer.config.KBPKI(), constIDGetter{id})
+			ctx, headBareHandle, id.Type(), j.jManager.config.KBPKI(),
+			j.jManager.config.KBPKI(), constIDGetter{id})
 		if err != nil {
 			return ImmutableRootMetadata{}, err
 		}
 	} else {
 		// Check for mutual handle resolution.
 		headHandle, err := MakeTlfHandle(
-			ctx, headBareHandle, id.Type(), j.jServer.config.KBPKI(),
-			j.jServer.config.KBPKI(), constIDGetter{id})
+			ctx, headBareHandle, id.Type(), j.jManager.config.KBPKI(),
+			j.jManager.config.KBPKI(), constIDGetter{id})
 		if err != nil {
 			return ImmutableRootMetadata{}, err
 		}
 
-		if err := headHandle.MutuallyResolvesTo(ctx, j.jServer.config.Codec(),
-			j.jServer.config.KBPKI(), j.jServer.config.MDOps(), *handle,
-			head.RevisionNumber(), head.TlfID(), j.jServer.log); err != nil {
+		if err := headHandle.MutuallyResolvesTo(ctx, j.jManager.config.Codec(),
+			j.jManager.config.KBPKI(), j.jManager.config.MDOps(), *handle,
+			head.RevisionNumber(), head.TlfID(), j.jManager.log); err != nil {
 			return ImmutableRootMetadata{}, err
 		}
 	}
@@ -163,7 +163,7 @@ func (j journalMDOps) getRangeFromJournal(
 	ctx context.Context, id tlf.ID, bid kbfsmd.BranchID, mStatus kbfsmd.MergeStatus,
 	start, stop kbfsmd.Revision) (
 	[]ImmutableRootMetadata, error) {
-	tlfJournal, ok := j.jServer.getTLFJournal(id, nil)
+	tlfJournal, ok := j.jManager.getTLFJournal(id, nil)
 	if !ok {
 		return nil, nil
 	}
@@ -200,8 +200,8 @@ func (j journalMDOps) getRangeFromJournal(
 		return nil, err
 	}
 	handle, err := MakeTlfHandle(
-		ctx, bareHandle, id.Type(), j.jServer.config.KBPKI(),
-		j.jServer.config.KBPKI(), constIDGetter{id})
+		ctx, bareHandle, id.Type(), j.jManager.config.KBPKI(),
+		j.jManager.config.KBPKI(), constIDGetter{id})
 	if err != nil {
 		return nil, err
 	}
@@ -238,7 +238,7 @@ func (j journalMDOps) GetIDForHandle(
 		return id, nil
 	}
 	// Create the journal if needed, while we have access to `handle`.
-	_, _ = j.jServer.getTLFJournal(id, handle)
+	_, _ = j.jManager.getTLFJournal(id, handle)
 	return id, nil
 }
 
@@ -270,9 +270,9 @@ func (j journalMDOps) getForTLF(ctx context.Context, id tlf.ID, bid kbfsmd.Branc
 func (j journalMDOps) GetForTLF(
 	ctx context.Context, id tlf.ID, lockBeforeGet *keybase1.LockID) (
 	irmd ImmutableRootMetadata, err error) {
-	j.jServer.log.LazyTrace(ctx, "jMDOps: GetForTLF %s", id)
+	j.jManager.log.LazyTrace(ctx, "jMDOps: GetForTLF %s", id)
 	defer func() {
-		j.jServer.deferLog.LazyTrace(ctx, "jMDOps: GetForTLF %s done (err=%v)", id, err)
+		j.jManager.deferLog.LazyTrace(ctx, "jMDOps: GetForTLF %s done (err=%v)", id, err)
 	}()
 
 	return j.getForTLF(
@@ -291,9 +291,9 @@ func (j journalMDOps) GetForTLFByTime(
 func (j journalMDOps) GetUnmergedForTLF(
 	ctx context.Context, id tlf.ID, bid kbfsmd.BranchID) (
 	irmd ImmutableRootMetadata, err error) {
-	j.jServer.log.LazyTrace(ctx, "jMDOps: GetUnmergedForTLF %s %s", id, bid)
+	j.jManager.log.LazyTrace(ctx, "jMDOps: GetUnmergedForTLF %s %s", id, bid)
 	defer func() {
-		j.jServer.deferLog.LazyTrace(ctx, "jMDOps: GetForTLF %s %s done (err=%v)", id, bid, err)
+		j.jManager.deferLog.LazyTrace(ctx, "jMDOps: GetForTLF %s %s done (err=%v)", id, bid, err)
 	}()
 
 	delegateFn := func(ctx context.Context, id tlf.ID, _ *keybase1.LockID) (
@@ -380,9 +380,9 @@ func (j journalMDOps) getRange(
 func (j journalMDOps) GetRange(ctx context.Context, id tlf.ID, start,
 	stop kbfsmd.Revision, lockBeforeGet *keybase1.LockID) (
 	irmds []ImmutableRootMetadata, err error) {
-	j.jServer.log.LazyTrace(ctx, "jMDOps: GetRange %s %d-%d", id, start, stop)
+	j.jManager.log.LazyTrace(ctx, "jMDOps: GetRange %s %d-%d", id, start, stop)
 	defer func() {
-		j.jServer.deferLog.LazyTrace(ctx, "jMDOps: GetRange %s %d-%d done (err=%v)", id, start, stop, err)
+		j.jManager.deferLog.LazyTrace(ctx, "jMDOps: GetRange %s %d-%d done (err=%v)", id, start, stop, err)
 	}()
 
 	return j.getRange(ctx, id, kbfsmd.NullBranchID, kbfsmd.Merged, start, stop, lockBeforeGet,
@@ -392,9 +392,9 @@ func (j journalMDOps) GetRange(ctx context.Context, id tlf.ID, start,
 func (j journalMDOps) GetUnmergedRange(
 	ctx context.Context, id tlf.ID, bid kbfsmd.BranchID,
 	start, stop kbfsmd.Revision) (irmd []ImmutableRootMetadata, err error) {
-	j.jServer.log.LazyTrace(ctx, "jMDOps: GetUnmergedRange %s %d-%d", id, start, stop)
+	j.jManager.log.LazyTrace(ctx, "jMDOps: GetUnmergedRange %s %d-%d", id, start, stop)
 	defer func() {
-		j.jServer.deferLog.LazyTrace(ctx, "jMDOps: GetUnmergedRange %s %d-%d done (err=%v)", id, start, stop, err)
+		j.jManager.deferLog.LazyTrace(ctx, "jMDOps: GetUnmergedRange %s %d-%d done (err=%v)", id, start, stop, err)
 	}()
 
 	delegateFn := func(ctx context.Context, id tlf.ID,
@@ -410,12 +410,12 @@ func (j journalMDOps) Put(ctx context.Context, rmd *RootMetadata,
 	verifyingKey kbfscrypto.VerifyingKey,
 	lc *keybase1.LockContext, priority keybase1.MDPriority) (
 	irmd ImmutableRootMetadata, err error) {
-	j.jServer.log.LazyTrace(ctx, "jMDOps: Put %s %d", rmd.TlfID(), rmd.Revision())
+	j.jManager.log.LazyTrace(ctx, "jMDOps: Put %s %d", rmd.TlfID(), rmd.Revision())
 	defer func() {
-		j.jServer.deferLog.LazyTrace(ctx, "jMDOps: Put %s %d done (err=%v)", rmd.TlfID(), rmd.Revision(), err)
+		j.jManager.deferLog.LazyTrace(ctx, "jMDOps: Put %s %d done (err=%v)", rmd.TlfID(), rmd.Revision(), err)
 	}()
 
-	if tlfJournal, ok := j.jServer.getTLFJournal(
+	if tlfJournal, ok := j.jManager.getTLFJournal(
 		rmd.TlfID(), rmd.GetTlfHandle()); ok {
 		if lc != nil {
 			return ImmutableRootMetadata{}, errors.New(
@@ -446,12 +446,12 @@ func (j journalMDOps) Put(ctx context.Context, rmd *RootMetadata,
 func (j journalMDOps) PutUnmerged(ctx context.Context, rmd *RootMetadata,
 	verifyingKey kbfscrypto.VerifyingKey) (
 	irmd ImmutableRootMetadata, err error) {
-	j.jServer.log.LazyTrace(ctx, "jMDOps: PutUnmerged %s %d", rmd.TlfID(), rmd.Revision())
+	j.jManager.log.LazyTrace(ctx, "jMDOps: PutUnmerged %s %d", rmd.TlfID(), rmd.Revision())
 	defer func() {
-		j.jServer.deferLog.LazyTrace(ctx, "jMDOps: PutUnmerged %s %d done (err=%v)", rmd.TlfID(), rmd.Revision(), err)
+		j.jManager.deferLog.LazyTrace(ctx, "jMDOps: PutUnmerged %s %d done (err=%v)", rmd.TlfID(), rmd.Revision(), err)
 	}()
 
-	if tlfJournal, ok := j.jServer.getTLFJournal(
+	if tlfJournal, ok := j.jManager.getTLFJournal(
 		rmd.TlfID(), rmd.GetTlfHandle()); ok {
 		rmd.SetUnmerged()
 		irmd, err := tlfJournal.putMD(ctx, rmd, verifyingKey)
@@ -470,12 +470,12 @@ func (j journalMDOps) PutUnmerged(ctx context.Context, rmd *RootMetadata,
 
 func (j journalMDOps) PruneBranch(
 	ctx context.Context, id tlf.ID, bid kbfsmd.BranchID) (err error) {
-	j.jServer.log.LazyTrace(ctx, "jMDOps: PruneBranch %s %s", id, bid)
+	j.jManager.log.LazyTrace(ctx, "jMDOps: PruneBranch %s %s", id, bid)
 	defer func() {
-		j.jServer.deferLog.LazyTrace(ctx, "jMDOps: PruneBranch %s %s (err=%v)", id, bid, err)
+		j.jManager.deferLog.LazyTrace(ctx, "jMDOps: PruneBranch %s %s (err=%v)", id, bid, err)
 	}()
 
-	if tlfJournal, ok := j.jServer.getTLFJournal(id, nil); ok {
+	if tlfJournal, ok := j.jManager.getTLFJournal(id, nil); ok {
 		// Prune the journal, too.
 		err := tlfJournal.clearMDs(ctx, bid)
 		switch errors.Cause(err).(type) {
@@ -496,12 +496,12 @@ func (j journalMDOps) ResolveBranch(
 	blocksToDelete []kbfsblock.ID, rmd *RootMetadata,
 	verifyingKey kbfscrypto.VerifyingKey) (
 	irmd ImmutableRootMetadata, err error) {
-	j.jServer.log.LazyTrace(ctx, "jMDOps: ResolveBranch %s %s", id, bid)
+	j.jManager.log.LazyTrace(ctx, "jMDOps: ResolveBranch %s %s", id, bid)
 	defer func() {
-		j.jServer.deferLog.LazyTrace(ctx, "jMDOps: ResolveBranch %s %s (err=%v)", id, bid, err)
+		j.jManager.deferLog.LazyTrace(ctx, "jMDOps: ResolveBranch %s %s (err=%v)", id, bid, err)
 	}()
 
-	if tlfJournal, ok := j.jServer.getTLFJournal(id, rmd.GetTlfHandle()); ok {
+	if tlfJournal, ok := j.jManager.getTLFJournal(id, rmd.GetTlfHandle()); ok {
 		irmd, err := tlfJournal.resolveBranch(
 			ctx, bid, blocksToDelete, rmd, verifyingKey)
 		switch errors.Cause(err).(type) {

@@ -984,6 +984,18 @@ func (e IdentityVisibility) String() string {
 	return ""
 }
 
+type SizedImage struct {
+	Path  string `codec:"path" json:"path"`
+	Width int    `codec:"width" json:"width"`
+}
+
+func (o SizedImage) DeepCopy() SizedImage {
+	return SizedImage{
+		Path:  o.Path,
+		Width: o.Width,
+	}
+}
+
 type CommonInterface interface {
 }
 

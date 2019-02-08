@@ -45,6 +45,7 @@ const sharedSettingsProps = {
   currencies: testCurrencies,
   currencyWaiting: false,
   inflationDestination: '',
+  mobileOnlyEditable: false,
   mobileOnlyMode: false,
   mobileOnlyWaiting: false,
   onBack: Sb.action('onBack'),
@@ -81,6 +82,7 @@ const load = () => {
       <Settings {...defaultSettingsProps} inflationDestination="Stellar Development Foundation" />
     ))
     .add('Secondary', () => <Settings {...secondarySettingsProps} />)
+    .add('MobileOnlyEditable', () => <Settings {...secondarySettingsProps} mobileOnlyEditable={true} />)
   popups()
 }
 

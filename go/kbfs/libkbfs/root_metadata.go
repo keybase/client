@@ -286,13 +286,6 @@ func (md *RootMetadata) MakeSuccessor(
 		return nil, errors.New("MD with invalid revision")
 	}
 	newMd.SetRevision(md.Revision() + 1)
-
-	merkleRoot, _, err := merkleGetter.GetCurrentMerkleRoot(ctx)
-	if err != nil {
-		return nil, err
-	}
-	newMd.SetMerkleRoot(merkleRoot)
-
 	return newMd, nil
 }
 
@@ -677,12 +670,6 @@ func (md *RootMetadata) Revision() kbfsmd.Revision {
 	return md.bareMd.RevisionNumber()
 }
 
-// MerkleRoot wraps the respective method of the underlying
-// BareRootMetadata for convenience.
-func (md *RootMetadata) MerkleRoot() keybase1.MerkleRootV2 {
-	return md.bareMd.MerkleRoot()
-}
-
 // MergedStatus wraps the respective method of the underlying BareRootMetadata for convenience.
 func (md *RootMetadata) MergedStatus() kbfsmd.MergeStatus {
 	return md.bareMd.MergedStatus()
@@ -765,12 +752,6 @@ func (md *RootMetadata) SetWriterMetadataCopiedBit() {
 // SetRevision wraps the respective method of the underlying BareRootMetadata for convenience.
 func (md *RootMetadata) SetRevision(revision kbfsmd.Revision) {
 	md.bareMd.SetRevision(revision)
-}
-
-// SetMerkleRoot wraps the respective method of the underlying
-// BareRootMetadata for convenience.
-func (md *RootMetadata) SetMerkleRoot(root keybase1.MerkleRootV2) {
-	md.bareMd.SetMerkleRoot(root)
 }
 
 // SetWriters wraps the respective method of the underlying BareRootMetadata for convenience.

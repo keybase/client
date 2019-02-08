@@ -8,7 +8,7 @@ declare export var transition: (...properties: Array<string>) => Object
 // Flow gets very confused if I mark these as CSS._StylesCrossPlatform. This fixes the common pattern of using
 // spread like {...globalStyles.fontBold, width: 123} etc but it breaks using them directly like
 // style={globalStyles.fontBold}. It does work if you do style={{...globalStyles.fontBold}} though
-type _fakeFontDefSeeCommentsOnThisStyle = {|fontFamily: 'OpenSans', fontWeight: '700', fontStyle: 'normal'|}
+type _fakeFontDefSeeCommentsOnThisStyle = {|fontFamily: 'Keybase', fontWeight: '700', fontStyle: 'normal'|}
 declare export var globalStyles: {
   fillAbsolute: {|bottom: 0, left: 0, position: 'absolute', right: 0, top: 0|},
   flexBoxCenter: {|alignItems: 'center', justifyContent: 'center'|},
@@ -17,7 +17,7 @@ declare export var globalStyles: {
   flexBoxRow: {|flexDirection: 'row'|},
   flexBoxRowReverse: {|flexDirection: 'row-reverse'|},
   flexGrow: {|flexGrow: 1|},
-  fontBold: {|fontFamily: 'OpenSans', fontWeight: '700', fontStyle: 'normal'|},
+  fontBold: {|fontFamily: 'Keybase', fontWeight: '700', fontStyle: 'normal'|},
   fontExtrabold: _fakeFontDefSeeCommentsOnThisStyle,
   fontRegular: _fakeFontDefSeeCommentsOnThisStyle,
   fontSemibold: _fakeFontDefSeeCommentsOnThisStyle,

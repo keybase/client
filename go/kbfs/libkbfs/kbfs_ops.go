@@ -442,7 +442,7 @@ func (fs *KBFSOpsStandard) getOpsByHandle(ctx context.Context,
 
 func (fs *KBFSOpsStandard) resetTlfID(ctx context.Context, h *TlfHandle) error {
 	if !h.IsBackedByTeam() {
-		return errors.New("Can't create TLF ID for non-team-backed handle")
+		return errors.WithStack(NonExistentTeamForHandleError{h})
 	}
 
 	teamID, err := h.FirstResolvedWriter().AsTeam()
@@ -1044,13 +1044,13 @@ func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 		}
 	}
 	failures, ch := fs.currentStatus.CurrentStatus()
-	var jServerStatus *JournalServerStatus
-	jServer, jErr := GetJournalServer(fs.config)
+	var jManagerStatus *JournalManagerStatus
+	jManager, jErr := GetJournalManager(fs.config)
 	if jErr == nil {
-		status, tlfIDs := jServer.Status(ctx)
-		jServerStatus = &status
+		status, tlfIDs := jManager.Status(ctx)
+		jManagerStatus = &status
 		err := FillInJournalStatusUnflushedPaths(
-			ctx, fs.config, jServerStatus, tlfIDs)
+			ctx, fs.config, jManagerStatus, tlfIDs)
 		if err != nil {
 			// The caller might depend on the channel (e.g., in
 			// libfs/remote_status.go), even in the case where err !=
@@ -1089,7 +1089,7 @@ func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 		GitArchiveBytes:      gitArchiveBytes,
 		GitLimitBytes:        gitLimitBytes,
 		FailingServices:      failures,
-		JournalServer:        jServerStatus,
+		JournalManager:       jManagerStatus,
 		DiskBlockCacheStatus: dbcStatus,
 		DiskMDCacheStatus:    dmcStatus,
 		DiskQuotaCacheStatus: dqcStatus,

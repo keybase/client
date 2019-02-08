@@ -547,9 +547,7 @@ func mustPostLocalEphemeralForTest(t *testing.T, ctc *chatTestContext,
 
 func postLocalForTestNoAdvanceClock(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser, conv chat1.ConversationInfoLocal, msg chat1.MessageBody) (chat1.PostLocalRes, error) {
 	mt, err := msg.MessageType()
-	if err != nil {
-		t.Fatalf("msg.MessageType() error: %v\n", err)
-	}
+	require.NoError(t, err)
 	tc := ctc.as(t, asUser)
 	return tc.chatLocalHandler().PostLocal(tc.startCtx, chat1.PostLocalArg{
 		ConversationID: conv.Id,
@@ -585,7 +583,27 @@ func mustPostLocalForTest(t *testing.T, ctc *chatTestContext,
 	return msgID
 }
 
-func mustSetConvRetentionPolicy(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser,
+func mustSetConvRetentionLocal(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser,
+	convID chat1.ConversationID, policy chat1.RetentionPolicy) {
+	tc := ctc.as(t, asUser)
+	err := tc.chatLocalHandler().SetConvRetentionLocal(tc.startCtx, chat1.SetConvRetentionLocalArg{
+		ConvID: convID,
+		Policy: policy,
+	})
+	require.NoError(t, err)
+}
+
+func mustSetTeamRetentionLocal(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser,
+	teamID keybase1.TeamID, policy chat1.RetentionPolicy) {
+	tc := ctc.as(t, asUser)
+	err := tc.chatLocalHandler().SetTeamRetentionLocal(tc.startCtx, chat1.SetTeamRetentionLocalArg{
+		TeamID: teamID,
+		Policy: policy,
+	})
+	require.NoError(t, err)
+}
+
+func mustSetConvRetention(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser,
 	convID chat1.ConversationID, policy chat1.RetentionPolicy, sweepChannel uint64) {
 	tc := ctc.as(t, asUser)
 	// Use the remote version instead of the local version in order to have access to sweepChannel.
@@ -597,7 +615,7 @@ func mustSetConvRetentionPolicy(t *testing.T, ctc *chatTestContext, asUser *kbte
 	require.NoError(t, err)
 }
 
-func mustSetTeamRetentionPolicy(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser,
+func mustSetTeamRetention(t *testing.T, ctc *chatTestContext, asUser *kbtest.FakeUser,
 	teamID keybase1.TeamID, policy chat1.RetentionPolicy, sweepChannel uint64) {
 	tc := ctc.as(t, asUser)
 	// Use the remote version instead of the local version in order to have access to sweepChannel.
@@ -674,18 +692,19 @@ func TestChatSrvNewConversationLocal(t *testing.T) {
 		tc := ctc.world.Tcs[users[0].Username]
 		ctx := ctc.as(t, users[0]).startCtx
 		uid := users[0].User.GetUID().ToBytes()
-		conv, err := GetUnverifiedConv(ctx, tc.Context(), uid, created.Id, false)
+		conv, err := GetUnverifiedConv(ctx, tc.Context(), uid, created.Id,
+			types.InboxSourceDataSourceRemoteOnly)
 		require.NoError(t, err)
-		require.NotZero(t, len(conv.MaxMsgSummaries))
+		require.NotZero(t, len(conv.Conv.MaxMsgSummaries))
 		switch mt {
 		case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_IMPTEAMNATIVE:
 			refName := string(kbtest.CanonicalTlfNameForTest(
 				ctc.as(t, users[0]).user().Username + "," + ctc.as(t, users[1]).user().Username),
 			)
-			require.Equal(t, refName, conv.MaxMsgSummaries[0].TlfName)
+			require.Equal(t, refName, conv.Conv.MaxMsgSummaries[0].TlfName)
 		case chat1.ConversationMembersType_TEAM:
 			teamName := ctc.teamCache[teamKey(ctc.users())]
-			require.Equal(t, strings.ToLower(teamName), conv.MaxMsgSummaries[0].TlfName)
+			require.Equal(t, strings.ToLower(teamName), conv.Conv.MaxMsgSummaries[0].TlfName)
 		}
 	})
 }
@@ -802,10 +821,11 @@ func TestChatSrvGetInboxAndUnboxLocal(t *testing.T) {
 		tc := ctc.world.Tcs[users[0].Username]
 		uid := users[0].User.GetUID().ToBytes()
 
-		conv, err := GetUnverifiedConv(ctx, tc.Context(), uid, created.Id, false)
+		conv, err := GetUnverifiedConv(ctx, tc.Context(), uid, created.Id,
+			types.InboxSourceDataSourceRemoteOnly)
 		require.NoError(t, err)
-		if conversations[0].Info.TlfName != conv.MaxMsgSummaries[0].TlfName {
-			t.Fatalf("unexpected TlfName in response from GetInboxAndUnboxLocal. %s != %s (mt = %v)", conversations[0].Info.TlfName, conv.MaxMsgSummaries[0].TlfName, mt)
+		if conversations[0].Info.TlfName != conv.Conv.MaxMsgSummaries[0].TlfName {
+			t.Fatalf("unexpected TlfName in response from GetInboxAndUnboxLocal. %s != %s (mt = %v)", conversations[0].Info.TlfName, conv.Conv.MaxMsgSummaries[0].TlfName, mt)
 		}
 		if !conversations[0].Info.Id.Eq(created.Id) {
 			t.Fatalf("unexpected Id in response from GetInboxAndUnboxLocal. %s != %s\n", conversations[0].Info.Id, created.Id)
@@ -1099,9 +1119,10 @@ func TestChatSrvGetInboxAndUnboxLocalTlfName(t *testing.T) {
 		require.Equal(t, 1, len(conversations))
 		tc := ctc.world.Tcs[users[0].Username]
 		uid := users[0].User.GetUID().ToBytes()
-		conv, err := GetUnverifiedConv(ctx, tc.Context(), uid, created.Id, false)
+		conv, err := GetUnverifiedConv(ctx, tc.Context(), uid, created.Id,
+			types.InboxSourceDataSourceRemoteOnly)
 		require.NoError(t, err)
-		require.Equal(t, conversations[0].Info.TlfName, conv.MaxMsgSummaries[0].TlfName)
+		require.Equal(t, conversations[0].Info.TlfName, conv.Conv.MaxMsgSummaries[0].TlfName)
 		require.Equal(t, conversations[0].Info.Id, created.Id)
 		require.Equal(t, chat1.TopicType_CHAT, conversations[0].Info.Triple.TopicType)
 	})
@@ -3766,15 +3787,16 @@ func consumeNewPendingMsg(t *testing.T, listener *serverChatListener) {
 	}
 }
 
-func consumeNewMsgLocal(t *testing.T, listener *serverChatListener, typ chat1.MessageType) {
-	consumeNewMsgWhileIgnoring(t, listener, typ, nil, chat1.ChatActivitySource_LOCAL)
+func consumeNewMsgLocal(t *testing.T, listener *serverChatListener, typ chat1.MessageType) chat1.UIMessage {
+	return consumeNewMsgWhileIgnoring(t, listener, typ, nil, chat1.ChatActivitySource_LOCAL)
 }
 
-func consumeNewMsgRemote(t *testing.T, listener *serverChatListener, typ chat1.MessageType) {
-	consumeNewMsgWhileIgnoring(t, listener, typ, nil, chat1.ChatActivitySource_REMOTE)
+func consumeNewMsgRemote(t *testing.T, listener *serverChatListener, typ chat1.MessageType) chat1.UIMessage {
+	return consumeNewMsgWhileIgnoring(t, listener, typ, nil, chat1.ChatActivitySource_REMOTE)
 }
 
-func consumeNewMsgWhileIgnoring(t *testing.T, listener *serverChatListener, typ chat1.MessageType, ignoreTypes []chat1.MessageType, source chat1.ChatActivitySource) {
+func consumeNewMsgWhileIgnoring(t *testing.T, listener *serverChatListener, typ chat1.MessageType,
+	ignoreTypes []chat1.MessageType, source chat1.ChatActivitySource) chat1.UIMessage {
 	require.False(t, inMessageTypes(typ, ignoreTypes), "can't ignore the hunted")
 	timeoutCh := time.After(20 * time.Second)
 	var newMsgCh chan chat1.IncomingMessage
@@ -3796,11 +3818,11 @@ func consumeNewMsgWhileIgnoring(t *testing.T, listener *serverChatListener, typ 
 			t.Logf("consumed newMessage(%v): %v%v", source, msg.Message.GetMessageType(), ignoredStr)
 			if !ignore {
 				require.Equal(t, typ, msg.Message.GetMessageType())
-				return
+				return msg.Message
 			}
 		case <-timeoutCh:
 			require.Fail(t, fmt.Sprintf("failed to get newMessage %v notification: %v", source, typ))
-			return
+			return chat1.UIMessage{}
 		}
 	}
 }
@@ -4381,7 +4403,7 @@ func TestChatSrvRetentionSweepConv(t *testing.T) {
 			mustPostLocalForTest(t, ctc, users[1], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
 			consumeNewMsgRemote(t, listener, chat1.MessageType_TEXT)
 
-			mustSetConvRetentionPolicy(t, ctc, users[0], conv.Id, policy, sweepChannel)
+			mustSetConvRetention(t, ctc, users[0], conv.Id, policy, sweepChannel)
 			require.True(t, consumeSetConvRetention(t, listener).Eq(conv.Id))
 
 			// This will take at least 1 second. For the deletable message to get old enough.
@@ -4477,11 +4499,11 @@ func TestChatSrvRetentionSweepTeam(t *testing.T) {
 				consumeNewMsgWhileIgnoring(t, listener, chat1.MessageType_TEXT, ignoreTypes, chat1.ChatActivitySource_REMOTE)
 			}
 
-			mustSetConvRetentionPolicy(t, ctc, users[0], convB.Id, convExpirePolicy, sweepChannel)
+			mustSetConvRetention(t, ctc, users[0], convB.Id, convExpirePolicy, sweepChannel)
 			require.True(t, consumeSetConvRetention(t, listener).Eq(convB.Id))
-			mustSetTeamRetentionPolicy(t, ctc, users[0], teamID, teamPolicy, sweepChannel)
+			mustSetTeamRetention(t, ctc, users[0], teamID, teamPolicy, sweepChannel)
 			require.True(t, consumeSetTeamRetention(t, listener).Eq(teamID))
-			mustSetConvRetentionPolicy(t, ctc, users[0], convC.Id, convRetainPolicy, sweepChannel)
+			mustSetConvRetention(t, ctc, users[0], convC.Id, convRetainPolicy, sweepChannel)
 			require.True(t, consumeSetConvRetention(t, listener).Eq(convC.Id))
 
 			// This will take at least 1 second.
@@ -4529,6 +4551,20 @@ func TestChatSrvRetentionSweepTeam(t *testing.T) {
 	})
 }
 
+func verifyChangeRetentionSystemMessage(t *testing.T, msg chat1.UIMessage, expectedMsg chat1.MessageSystemChangeRetention) {
+	require.True(t, msg.IsValid())
+	body := msg.Valid().MessageBody
+	typ, err := body.MessageType()
+	require.NoError(t, err)
+	require.Equal(t, chat1.MessageType_SYSTEM, typ)
+	sysMsg := body.System()
+	sysTyp, err := sysMsg.SystemType()
+	require.NoError(t, err)
+	require.Equal(t, chat1.MessageSystemType_CHANGERETENTION, sysTyp)
+	retMsg := sysMsg.Changeretention()
+	require.Equal(t, expectedMsg, retMsg)
+}
+
 func TestChatSrvEphemeralConvRetention(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		switch mt {
@@ -4549,12 +4585,21 @@ func TestChatSrvEphemeralConvRetention(t *testing.T) {
 			mt, ctc.as(t, users[1]).user())
 
 		msgID := mustPostLocalForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}))
+		consumeNewMsgRemote(t, listener, chat1.MessageType_TEXT)
 
 		// set an ephemeral policy
 		age := gregor1.ToDurationSec(time.Hour * 24)
 		policy := chat1.NewRetentionPolicyWithEphemeral(chat1.RpEphemeral{Age: age})
-		mustSetConvRetentionPolicy(t, ctc, users[0], conv.Id, policy, 0)
+		mustSetConvRetentionLocal(t, ctc, users[0], conv.Id, policy)
 		require.True(t, consumeSetConvRetention(t, listener).Eq(conv.Id))
+		msg := consumeNewMsgRemote(t, listener, chat1.MessageType_SYSTEM)
+		verifyChangeRetentionSystemMessage(t, msg, chat1.MessageSystemChangeRetention{
+			IsTeam:      false,
+			IsInherit:   false,
+			Policy:      policy,
+			MembersType: mt,
+			User:        users[0].Username,
+		})
 
 		// make sure we can supersede existing messages
 		mustReactToMsg(ctx, t, ctc, users[0], conv, msgID)
@@ -4626,19 +4671,74 @@ func TestChatSrvEphemeralTeamRetention(t *testing.T) {
 			latestMsgMap[conv.Id.String()] = msgID
 		}
 
-		mustSetConvRetentionPolicy(t, ctc, users[0], convB.Id, convExpirePolicy, 0)
+		// drain remote messages
+		drain := func() {
+			for {
+				select {
+				case msg := <-listener.newMessageRemote:
+					t.Logf("drained %v", msg.Message.GetMessageType())
+				case <-time.After(100 * time.Millisecond):
+					return
+				}
+			}
+		}
+		drain()
+
+		mustSetConvRetentionLocal(t, ctc, users[0], convB.Id, convExpirePolicy)
 		require.True(t, consumeSetConvRetention(t, listener).Eq(convB.Id))
-		mustSetTeamRetentionPolicy(t, ctc, users[0], teamID, teamPolicy, 0)
+		msg := consumeNewMsgRemote(t, listener, chat1.MessageType_SYSTEM)
+		verifyChangeRetentionSystemMessage(t, msg, chat1.MessageSystemChangeRetention{
+			IsTeam:      false,
+			IsInherit:   false,
+			Policy:      convExpirePolicy,
+			MembersType: mt,
+			User:        users[0].Username,
+		})
+
+		mustSetTeamRetentionLocal(t, ctc, users[0], teamID, teamPolicy)
 		require.True(t, consumeSetTeamRetention(t, listener).Eq(teamID))
-		mustSetConvRetentionPolicy(t, ctc, users[0], convC.Id, convRetainPolicy, 0)
+		msg = consumeNewMsgRemote(t, listener, chat1.MessageType_SYSTEM)
+		verifyChangeRetentionSystemMessage(t, msg, chat1.MessageSystemChangeRetention{
+			IsTeam:      true,
+			IsInherit:   false,
+			Policy:      teamPolicy,
+			MembersType: mt,
+			User:        users[0].Username,
+		})
+
+		mustSetConvRetentionLocal(t, ctc, users[0], convC.Id, convRetainPolicy)
 		require.True(t, consumeSetConvRetention(t, listener).Eq(convC.Id))
+		msg = consumeNewMsgRemote(t, listener, chat1.MessageType_SYSTEM)
+		verifyChangeRetentionSystemMessage(t, msg, chat1.MessageSystemChangeRetention{
+			IsTeam:      false,
+			IsInherit:   false,
+			Policy:      convRetainPolicy,
+			MembersType: mt,
+			User:        users[0].Username,
+		})
 
 		for _, conv := range []chat1.ConversationInfoLocal{convA, convB} {
 			mustReactToMsg(ctx, t, ctc, users[0], conv, latestMsg(conv.Id))
+			consumeNewMsgRemote(t, listener, chat1.MessageType_REACTION)
 			ephemeralMsgID := mustPostLocalEphemeralForTest(t, ctc, users[0], conv,
 				chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}), &age)
+			consumeNewMsgRemote(t, listener, chat1.MessageType_TEXT)
 			mustReactToMsg(ctx, t, ctc, users[0], conv, ephemeralMsgID)
+			consumeNewMsgRemote(t, listener, chat1.MessageType_REACTION)
 		}
+
+		// revert convC to inherit
+		convInheritPolicy := chat1.NewRetentionPolicyWithInherit(chat1.RpInherit{})
+		mustSetConvRetentionLocal(t, ctc, users[0], convC.Id, convInheritPolicy)
+		require.True(t, consumeSetConvRetention(t, listener).Eq(convC.Id))
+		msg = consumeNewMsgRemote(t, listener, chat1.MessageType_SYSTEM)
+		verifyChangeRetentionSystemMessage(t, msg, chat1.MessageSystemChangeRetention{
+			IsTeam:      false,
+			IsInherit:   true,
+			MembersType: mt,
+			Policy:      teamPolicy,
+			User:        users[0].Username,
+		})
 	})
 }
 func TestChatSrvSetConvMinWriterRole(t *testing.T) {
@@ -4687,13 +4787,13 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 			}
 
 			conv, err := GetUnverifiedConv(ctx, ctc.world.Tcs[user.Username].Context(),
-				gregor1.UID(user.GetUID().ToBytes()), convID, false)
+				gregor1.UID(user.GetUID().ToBytes()), convID, types.InboxSourceDataSourceRemoteOnly)
 			require.NoError(t, err)
 			if role == nil {
-				require.Nil(t, conv.ConvSettings)
+				require.Nil(t, conv.Conv.ConvSettings)
 			} else {
-				require.NotNil(t, conv.ConvSettings)
-				require.Equal(t, expectedInfo, conv.ConvSettings.MinWriterRoleInfo)
+				require.NotNil(t, conv.Conv.ConvSettings)
+				require.Equal(t, expectedInfo, conv.Conv.ConvSettings.MinWriterRoleInfo)
 			}
 
 			gilres, err := tc.chatLocalHandler().GetInboxAndUnboxLocal(ctx, chat1.GetInboxAndUnboxLocalArg{
@@ -4898,7 +4998,7 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
 
-		convRemote, err := GetUnverifiedConv(ctx, tc.Context(), uid, conv.Id, true)
+		convRemote, err := GetUnverifiedConv(ctx, tc.Context(), uid, conv.Id, types.InboxSourceDataSourceAll)
 		require.NoError(t, err)
 
 		// Creating a conversation with same topic name just returns the matching one
@@ -4952,11 +5052,11 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		})
 		sender := NewBlockingSender(tc.Context(), NewBoxer(tc.Context()),
 			func() chat1.RemoteInterface { return ri })
-		prepareRes, err := sender.Prepare(ctx, plarg.Msg, mt, &convRemote)
+		prepareRes, err := sender.Prepare(ctx, plarg.Msg, mt, &convRemote.Conv)
 		require.NoError(t, err)
 		msg1 := prepareRes.Boxed
 		ts1 := prepareRes.TopicNameState
-		prepareRes, err = sender.Prepare(ctx, plarg.Msg, mt, &convRemote)
+		prepareRes, err = sender.Prepare(ctx, plarg.Msg, mt, &convRemote.Conv)
 		require.NoError(t, err)
 		msg2 := prepareRes.Boxed
 		ts2 := prepareRes.TopicNameState
@@ -4997,7 +5097,7 @@ func TestChatSrvUnboxMobilePushNotification(t *testing.T) {
 		tc := ctc.world.Tcs[users[0].Username]
 		uid := users[0].User.GetUID().ToBytes()
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
-		convRemote, err := GetUnverifiedConv(ctx, tc.Context(), uid, conv.Id, true)
+		convRemote, err := GetUnverifiedConv(ctx, tc.Context(), uid, conv.Id, types.InboxSourceDataSourceAll)
 		require.NoError(t, err)
 		plarg := chat1.PostLocalArg{
 			ConversationID: conv.Id,
@@ -5017,7 +5117,7 @@ func TestChatSrvUnboxMobilePushNotification(t *testing.T) {
 		ri := ctc.as(t, users[0]).ri
 		sender := NewBlockingSender(tc.Context(), NewBoxer(tc.Context()),
 			func() chat1.RemoteInterface { return ri })
-		prepareRes, err := sender.Prepare(ctx, plarg.Msg, mt, &convRemote)
+		prepareRes, err := sender.Prepare(ctx, plarg.Msg, mt, &convRemote.Conv)
 		require.NoError(t, err)
 		msg := prepareRes.Boxed
 		msg.ServerHeader = &chat1.MessageServerHeader{
@@ -5104,9 +5204,10 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 		consumeIdentify(ctx, listener0) //encrypt for first message
 
 		uid := users[0].User.GetUID().ToBytes()
-		conv, err := GetUnverifiedConv(ctx, tc.Context(), uid, ncres.Conv.Info.Id, false)
+		conv, err := GetUnverifiedConv(ctx, tc.Context(), uid, ncres.Conv.Info.Id,
+			types.InboxSourceDataSourceRemoteOnly)
 		require.NoError(t, err)
-		require.NotEmpty(t, conv.MaxMsgSummaries, "created conversation does not have a message")
+		require.NotEmpty(t, conv.Conv.MaxMsgSummaries, "created conversation does not have a message")
 		require.Equal(t, ncres.Conv.Info.MembersType, chat1.ConversationMembersType_IMPTEAMNATIVE,
 			"implicit team")
 
@@ -5238,11 +5339,11 @@ func TestChatSrvTeamTypeChanged(t *testing.T) {
 
 		// Check remote notifications
 		uconv, err := GetUnverifiedConv(ctx, ctc.as(t, users[0]).h.G(), users[0].GetUID().ToBytes(),
-			conv.Id, false)
+			conv.Id, types.InboxSourceDataSourceRemoteOnly)
 		require.NoError(t, err)
-		require.NotNil(t, uconv.Notifications)
+		require.NotNil(t, uconv.Conv.Notifications)
 		require.False(t,
-			uconv.Notifications.Settings[keybase1.DeviceType_DESKTOP][chat1.NotificationKind_GENERIC])
+			uconv.Conv.Notifications.Settings[keybase1.DeviceType_DESKTOP][chat1.NotificationKind_GENERIC])
 
 		inboxRes, err = ctc.as(t, users[0]).chatLocalHandler().GetInboxAndUnboxLocal(ctx,
 			chat1.GetInboxAndUnboxLocalArg{
@@ -6042,10 +6143,20 @@ func TestChatSrvEphemeralPolicy(t *testing.T) {
 
 	impconv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_IMPTEAMNATIVE)
-	mustSetConvRetentionPolicy(t, ctc, users[0], impconv.Id, chat1.NewRetentionPolicyWithEphemeral(chat1.RpEphemeral{
+	policy := chat1.NewRetentionPolicyWithEphemeral(chat1.RpEphemeral{
 		Age: gregor1.DurationSec(86400),
-	}), 0)
+	})
+	mustSetConvRetentionLocal(t, ctc, users[0], impconv.Id, policy)
 	consumeSetConvRetention(t, listener0)
+	msg := consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+	verifyChangeRetentionSystemMessage(t, msg, chat1.MessageSystemChangeRetention{
+		IsTeam:      false,
+		IsInherit:   false,
+		Policy:      policy,
+		MembersType: chat1.ConversationMembersType_IMPTEAMNATIVE,
+		User:        users[0].Username,
+	})
+
 	mustPostLocalForTest(t, ctc, users[0], impconv,
 		chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: "HI",
@@ -6064,11 +6175,19 @@ func TestChatSrvEphemeralPolicy(t *testing.T) {
 
 	teamconv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_TEAM)
-	mustSetTeamRetentionPolicy(t, ctc, users[0], keybase1.TeamID(teamconv.Triple.Tlfid.String()),
-		chat1.NewRetentionPolicyWithEphemeral(chat1.RpEphemeral{
-			Age: gregor1.DurationSec(86400),
-		}), 0)
+	policy = chat1.NewRetentionPolicyWithEphemeral(chat1.RpEphemeral{
+		Age: gregor1.DurationSec(86400),
+	})
+	mustSetTeamRetentionLocal(t, ctc, users[0], keybase1.TeamID(teamconv.Triple.Tlfid.String()), policy)
 	consumeSetTeamRetention(t, listener0)
+	msg = consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+	verifyChangeRetentionSystemMessage(t, msg, chat1.MessageSystemChangeRetention{
+		IsTeam:      true,
+		IsInherit:   false,
+		Policy:      policy,
+		MembersType: chat1.ConversationMembersType_TEAM,
+		User:        users[0].Username,
+	})
 	msgID = mustPostLocalForTest(t, ctc, users[0], teamconv,
 		chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body: "HI",

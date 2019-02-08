@@ -81,6 +81,7 @@ export default function(state: Types.State = initialState, action: ProfileGen.Ac
         })
       )
     case ProfileGen.cancelAddProof: // fallthrough
+    case ProfileGen.recheckProof: // fallthrough
     case ProfileGen.checkProof:
       return state.merge({errorCode: null, errorText: ''})
     case ProfileGen.submitBTCAddress:

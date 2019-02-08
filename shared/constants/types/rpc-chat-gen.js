@@ -205,6 +205,7 @@ export const localMessageSystemType = {
   createteam: 3,
   gitpush: 4,
   changeavatar: 5,
+  changeretention: 6,
 }
 
 export const localMessageUnboxedErrorType = {
