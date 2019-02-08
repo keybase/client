@@ -4158,7 +4158,7 @@
           "type": "MessageID"
         },
         {
-          "name": "collapsed",
+          "name": "collapse",
           "type": "boolean"
         }
       ],

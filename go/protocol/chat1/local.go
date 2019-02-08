@@ -5078,9 +5078,9 @@ type SaveUnfurlSettingsArg struct {
 }
 
 type ToggleMessageCollapseArg struct {
-	ConvID    ConversationID `codec:"convID" json:"convID"`
-	MsgID     MessageID      `codec:"msgID" json:"msgID"`
-	Collapsed bool           `codec:"collapsed" json:"collapsed"`
+	ConvID   ConversationID `codec:"convID" json:"convID"`
+	MsgID    MessageID      `codec:"msgID" json:"msgID"`
+	Collapse bool           `codec:"collapse" json:"collapse"`
 }
 
 type LocalInterface interface {

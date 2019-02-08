@@ -2406,10 +2406,47 @@ func (h *Server) SaveUnfurlSettings(ctx context.Context, arg chat1.SaveUnfurlSet
 
 func (h *Server) ToggleMessageCollapse(ctx context.Context, arg chat1.ToggleMessageCollapseArg) (err error) {
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "ToggleMessageCollapse")()
+	defer h.Trace(ctx, func() error { return err }, "ToggleMessageCollapse(%s,%d,%v)", arg.ConvID, arg.MsgID,
+		arg.Collapse)()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return err
 	}
-	return utils.NewCollapses(h.G()).ToggleSingle(ctx, uid, arg.ConvID, arg.MsgID, arg.Collapsed)
+	if err := utils.NewCollapses(h.G()).ToggleSingle(ctx, uid, arg.ConvID, arg.MsgID, arg.Collapse); err != nil {
+		return err
+	}
+	msg, err := GetMessage(ctx, h.G(), uid, arg.ConvID, arg.MsgID, true, nil)
+	if err != nil {
+		h.Debug(ctx, "ToggleMessageCollapse: failed to get message: %s", err)
+		return nil
+	}
+	if !msg.IsValid() {
+		h.Debug(ctx, "ToggleMessageCollapse: invalid message")
+		return nil
+	}
+	if msg.Valid().MessageBody.IsType(chat1.MessageType_UNFURL) {
+		unfurledMsg, err := GetMessage(ctx, h.G(), uid, arg.ConvID,
+			msg.Valid().MessageBody.Unfurl().MessageID, true, nil)
+		if err != nil {
+			h.Debug(ctx, "ToggleMessageCollapse: failed to get unfurl base message: %s", err)
+			return nil
+		}
+		// give a notification about the unfurled message
+		notif := chat1.MessagesUpdated{
+			ConvID:  arg.ConvID,
+			Updates: []chat1.UIMessage{utils.PresentMessageUnboxed(ctx, h.G(), unfurledMsg, uid, arg.ConvID)},
+		}
+		act := chat1.NewChatActivityWithMessagesUpdated(notif)
+		h.G().ActivityNotifier.Activity(ctx, uid, chat1.TopicType_CHAT,
+			&act, chat1.ChatActivitySource_LOCAL)
+	} else if msg.Valid().MessageBody.IsType(chat1.MessageType_ATTACHMENT) {
+		notif := chat1.MessagesUpdated{
+			ConvID:  arg.ConvID,
+			Updates: []chat1.UIMessage{utils.PresentMessageUnboxed(ctx, h.G(), msg, uid, arg.ConvID)},
+		}
+		act := chat1.NewChatActivityWithMessagesUpdated(notif)
+		h.G().ActivityNotifier.Activity(ctx, uid, chat1.TopicType_CHAT,
+			&act, chat1.ChatActivitySource_LOCAL)
+	}
+	return nil
 }

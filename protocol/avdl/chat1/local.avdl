@@ -970,5 +970,5 @@ protocol local {
   UnfurlSettingsDisplay getUnfurlSettings();
   void saveUnfurlSettings(UnfurlMode mode, array<string> whitelist);
 
-  void toggleMessageCollapse(ConversationID convID, MessageID msgID, boolean collapsed);
+  void toggleMessageCollapse(ConversationID convID, MessageID msgID, boolean collapse);
 }
