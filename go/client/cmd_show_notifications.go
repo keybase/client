@@ -151,3 +151,7 @@ func (d *notificationDisplay) FSSyncStatusResponse(
 func (d *notificationDisplay) TrackingChanged(_ context.Context, arg keybase1.TrackingChangedArg) error {
 	return d.printf("Tracking changed for %s (%s)\n", arg.Username, arg.Uid)
 }
+
+func (d *notificationDisplay) RootAuditError(_ context.Context, arg keybase1.RootAuditErrorArg) (err error) {
+	return d.printf("Merkle root audit error: %s\n", arg.Message)
+}
