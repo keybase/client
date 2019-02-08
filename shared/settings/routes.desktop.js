@@ -94,7 +94,6 @@ export const newRoutes = {
   [Constants.advancedTab]: {getScreen: () => require('./advanced/container').default},
   [Constants.chatTab]: {getScreen: () => require('./chat/container').default},
   [Constants.deleteMeTab]: {getScreen: () => require('./delete/container').default},
-  [Constants.fsTab]: {getScreen: () => require('./files/container').default},
   [Constants.invitationsTab]: {getScreen: () => require('./invites/container').default},
   [Constants.landingTab]: {getScreen: () => require('./landing/container').default},
   [Constants.notificationsTab]: {getScreen: () => require('./notifications/container').default},

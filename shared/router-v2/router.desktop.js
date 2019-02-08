@@ -100,39 +100,23 @@ class ModalView extends React.PureComponent<any> {
   }
 }
 
-const shimmedRoutes = Shared.shimRoutes(routes)
-const MainNavigator = createNavigator(
-  AppView,
-  StackRouter(shimmedRoutes, {initialRouteName: 'tabs:peopleTab'}),
-  {}
-)
+const MainNavigator = createNavigator(AppView, StackRouter(routes, {initialRouteName: 'tabs:peopleTab'}), {})
 
-const shimmedModalRoutes = Shared.shimRoutes(modalRoutes)
 const LoggedInStackNavigator = createNavigator(
   ModalView,
   StackRouter(
     {
-      Main: {
-        screen: MainNavigator,
-      },
-      ...shimmedModalRoutes,
+      Main: {screen: MainNavigator},
+      ...modalRoutes,
     },
     {}
   ),
   {}
 )
 
-const shimmedLoggedOutRoutes = Shared.shimRoutes(loggedOutRoutes)
 const LoggedOutStackNavigator = createNavigator(
   AppView,
-  StackRouter(
-    {
-      ...shimmedLoggedOutRoutes,
-    },
-    {
-      initialRouteName: 'login',
-    }
-  ),
+  StackRouter({...loggedOutRoutes}, {initialRouteName: 'login'}),
   {}
 )
 
@@ -149,9 +133,16 @@ const createElectronApp = App => {
 
   // Based on https://github.com/react-navigation/react-navigation-web/blob/master/src/createBrowserApp.js
   class ElectronApp extends React.Component<any, any> {
-    state = {nav: App.router.getStateForAction(initAction)}
+    _nav: any // always use this value and not whats in state since thats async
     _actionEventSubscribers = new Set()
     _navigation: any
+
+    constructor(props: any) {
+      super(props)
+      this._nav = App.router.getStateForAction(initAction)
+      this.state = {nav: this._nav}
+    }
+
     componentDidMount() {
       this._actionEventSubscribers.forEach(subscriber =>
         subscriber({action: initAction, lastState: null, state: this.state.nav, type: 'action'})
@@ -179,17 +170,20 @@ const createElectronApp = App => {
       actions.forEach(a => this.dispatch(a))
     }
     dispatch = (action: any) => {
-      const lastState = this.state.nav
+      const lastState = this._nav
       const newState = App.router.getStateForAction(action, lastState)
+      this._nav = newState
       const dispatchEvents = () =>
         this._actionEventSubscribers.forEach(subscriber =>
           subscriber({action, lastState, state: newState, type: 'action'})
         )
       if (newState && newState !== lastState) {
         this.setState({nav: newState}, dispatchEvents)
+        return true
       } else {
         dispatchEvents()
       }
+      return false
     }
   }
   return ElectronApp

@@ -308,7 +308,7 @@ class User extends React.Component<Props, State> {
 const usernameSelectedFollowing = {}
 
 const avatarSize = 128
-const headerHeight = 48
+const headerHeight = Styles.isMobile ? 48 : 72
 
 const styles = Styles.styleSheetCreate({
   backButton: {color: Styles.globalColors.white},
