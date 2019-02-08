@@ -84,7 +84,8 @@ class Row extends React.Component<Props, LocalState> {
             inTeam={this.props.inTeam}
             onAdd={this.props.onAdd}
             onRemove={this.props.onRemove}
-            highlight={this.props.highlight || this.state.hovering}
+            highlight={this.props.highlight}
+            hover={this.state.hovering}
           />
         </Kb.Box2>
       </Kb.ClickableBox>
@@ -174,11 +175,18 @@ const Services = ({
 
 const ActionButton = (props: {
   highlight: boolean,
+  hover: boolean,
   inTeam: boolean,
   onAdd: () => void,
   onRemove: () => void,
 }) => {
-  const Icon = props.inTeam ? ActionButtonUserInTeam : ActionButtonUserNotInTeam
+  let Icon = props.inTeam ? AlreadyAddedIconButton : AddButton
+
+  if (props.highlight) {
+    Icon = props.inTeam ? RemoveButton : AddButtonHover
+  } else if (props.hover) {
+    Icon = props.inTeam ? RemoveButton : AddButton
+  }
 
   return (
     <Kb.ClickableBox onClick={props.inTeam ? props.onRemove : props.onAdd}>
@@ -193,15 +201,7 @@ const ActionButton = (props: {
             : null,
         ])}
       >
-        {props.highlight ? (
-          props.inTeam ? (
-            <RemoveButton />
-          ) : (
-            <AddButtonHover />
-          )
-        ) : (
-          <Icon containerStyle={styles.actionButtonHoverContainer} />
-        )}
+        <Icon />
       </Kb.Box2>
     </Kb.ClickableBox>
   )
@@ -225,10 +225,6 @@ const AlreadyAddedIconButton = () => (
   <Kb.Icon type="iconfont-check" fontSize={16} color={Styles.globalColors.black_75} />
 )
 
-const ActionButtonUserInTeam = Kb.HoverHoc(AlreadyAddedIconButton, RemoveButton)
-const ActionButtonUserNotInTeam = Kb.HoverHoc(AddButton, AddButtonHover)
-
-// TODO fix size for mobile
 const ActionButtonSize = isMobile ? 40 : 32
 const styles = Styles.styleSheetCreate({
   actionButton: Styles.platformStyles({

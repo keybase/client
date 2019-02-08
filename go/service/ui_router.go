@@ -116,6 +116,15 @@ func (u *UIRouter) GetIdentify3UIAdapter(m libkb.MetaContext) (libkb.IdentifyUI,
 	return identify3.NewUIAdapterMakeSessionForUpcall(m, id3i)
 }
 
+func (u *UIRouter) GetChatUI() (libkb.ChatUI, error) {
+	x, _ := u.getUI(libkb.ChatUIKind)
+	if x == nil {
+		return nil, nil
+	}
+	cli := rpc.NewClient(x, libkb.NewContextifiedErrorUnwrapper(u.G()), nil)
+	return NewRemoteChatUI(0, cli), nil
+}
+
 func (u *UIRouter) GetIdentifyUICtx(ctx context.Context) (int, libkb.IdentifyUI, error) {
 	x, _ := u.getUI(libkb.IdentifyUIKind)
 	if x == nil {

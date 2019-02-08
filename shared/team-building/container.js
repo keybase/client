@@ -24,7 +24,7 @@ type OwnProps = {
   onChangeService: (newService: ServiceIdWithContact) => void,
   incHighlightIndex: (maxIndex: number) => void,
   decHighlightIndex: () => void,
-  resetHighlightIndex: () => void,
+  resetHighlightIndex: (resetToHidden?: boolean) => void,
 }
 
 type LocalState = {
@@ -34,7 +34,7 @@ type LocalState = {
 }
 
 const initialState: LocalState = {
-  highlightedIndex: -1,
+  highlightedIndex: 0,
   searchString: '',
   selectedService: 'keybase',
 }
@@ -173,7 +173,7 @@ const deriveOnAdd = memoize(
     }
     changeText('')
     dispatchOnAdd(user)
-    resetHighlightIndex()
+    resetHighlightIndex(true)
   }
 )
 
@@ -181,10 +181,12 @@ const deriveOnChangeText = memoize(
   (
     onChangeText: (newText: string) => void,
     search: (text: string, service: ServiceIdWithContact) => void,
-    selectedService: ServiceIdWithContact
+    selectedService: ServiceIdWithContact,
+    resetHighlightIndex: Function
   ) => (newText: string) => {
     onChangeText(newText)
     search(newText, selectedService)
+    resetHighlightIndex()
   }
 )
 
@@ -208,7 +210,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const onChangeText = deriveOnChangeText(
     ownProps.onChangeText,
     dispatchProps._search,
-    ownProps.selectedService
+    ownProps.selectedService,
+    ownProps.resetHighlightIndex
   )
 
   const onSearchForMore = deriveOnSearchForMore({
@@ -296,7 +299,8 @@ class StateWrapperForTeamBuilding extends React.Component<{}, LocalState> {
       highlightedIndex: state.highlightedIndex < 1 ? 0 : state.highlightedIndex - 1,
     }))
 
-  resetHighlightIndex = () => this.setState({highlightedIndex: initialState.highlightedIndex})
+  resetHighlightIndex = (resetToHidden?: boolean) =>
+    this.setState({highlightedIndex: resetToHidden ? -1 : initialState.highlightedIndex})
 
   render() {
     return (

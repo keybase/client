@@ -129,6 +129,12 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.dismissDownload: {
       return state.removeIn(['downloads', action.payload.key])
     }
+    case FsGen.cancelDownload:
+      return state.update('downloads', downloads =>
+        downloads.update(action.payload.key, download =>
+          download.update('state', state => state.set('canceled', true))
+        )
+      )
     case FsGen.uploadStarted:
       return state.updateIn(['uploads', 'writingToJournal'], writingToJournal =>
         writingToJournal.add(action.payload.path)
@@ -241,6 +247,17 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.removeIn(['edits', action.payload.editID])
     case FsGen.fsError:
       const {erroredAction, error} = action.payload.error
+      if (
+        erroredAction.type === FsGen.saveMedia ||
+        erroredAction.type === FsGen.shareNative ||
+        erroredAction.type === FsGen.download
+      ) {
+        const download = state.downloads.get(erroredAction.payload.key)
+        if (!download || download.state.canceled) {
+          // Ignore errors for canceled downloads.
+          return state
+        }
+      }
       logger.error('error (fs)', erroredAction.type, error)
       const nextState: Types.State = state.setIn(['errors', Constants.makeUUID()], action.payload.error)
 
@@ -258,14 +275,13 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
             ],
             error
           )
+        case FsGen.saveMedia:
+        case FsGen.shareNative:
         case FsGen.download:
-          if (erroredAction.payload.intent !== 'none') {
-            return nextState
-          }
           // $FlowFixMe
           return nextState.updateIn(
             ['downloads', erroredAction.payload.key, 'state'],
-            original => original && original.set('isDone', true).set('error', error)
+            original => original && original.set('error', error)
           )
         default:
           return nextState
@@ -292,10 +308,17 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.setSendLinkToChatChannels:
       // $FlowIssue
       return state.setIn(['sendLinkToChat', 'channels'], action.payload.channels)
+    case FsGen.setPathItemActionMenuView:
+      return state.update('pathItemActionMenu', pathItemActionMenu =>
+        pathItemActionMenu.set('previousView', pathItemActionMenu.view).set('view', action.payload.view)
+      )
+    case FsGen.setPathItemActionMenuDownloadKey:
+      return state.update('pathItemActionMenu', pathItemActionMenu =>
+        pathItemActionMenu.set('downloadKey', action.payload.key)
+      )
     case FsGen.folderListLoad:
     case FsGen.placeholderAction:
     case FsGen.filePreviewLoad:
-    case FsGen.cancelDownload:
     case FsGen.download:
     case FsGen.favoritesLoad:
     case FsGen.fuseStatus:

@@ -28,17 +28,17 @@ import {appRouteTreeTitle} from './route-constants'
 const appRouteTree = makeRouteDefNode({
   children: {
     [chatTab]: chatRoutes,
-    [fsTab]: fsRoutes,
     [gitTab]: gitRoutes,
     [peopleTab]: peopleRoutes,
     [profileTab]: profileRoutes,
     [settingsTab]: settingsRoutes,
+    [teamsTab]: teamsRoutes,
     ...(flags.walletsEnabled && !isMobile ? {[walletsTab]: walletsRoutes} : {}),
     ...(isMobile
       ? {}
       : {
           [devicesTab]: devicesRoutes, // not a top level route in mobile
-          [teamsTab]: teamsRoutes,
+          [fsTab]: fsRoutes,
         }),
   },
   containerComponent: Nav,

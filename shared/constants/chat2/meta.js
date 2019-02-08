@@ -56,14 +56,13 @@ export const unverifiedInboxUIItemToConversationMeta = (
   )
 
   const participants = I.List(i.localMetadata ? i.localMetadata.writerNames || [] : (i.name || '').split(','))
-  const channelname =
-    i.membersType === RPCChatTypes.commonConversationMembersType.team && i.localMetadata
-      ? i.localMetadata.channelName
-      : ''
+  const isTeam = i.membersType === RPCChatTypes.commonConversationMembersType.team
+  const channelname = isTeam && i.localMetadata ? i.localMetadata.channelName : ''
 
   const supersededBy = conversationMetadataToMetaSupersedeInfo(i.supersededBy)
   const supersedes = conversationMetadataToMetaSupersedeInfo(i.supersedes)
-  const teamname = i.membersType === RPCChatTypes.commonConversationMembersType.team ? i.name : ''
+  const teamname = isTeam ? i.name : ''
+  const {retentionPolicy, teamRetentionPolicy} = UIItemToRetentionPolicies(i, isTeam)
 
   return makeConversationMeta({
     channelname,
@@ -77,10 +76,12 @@ export const unverifiedInboxUIItemToConversationMeta = (
     participants,
     readMsgID: i.readMsgID,
     resetParticipants,
+    retentionPolicy,
     snippet: i.localMetadata ? i.localMetadata.snippet : '',
     snippetDecoration: i.localMetadata ? i.localMetadata.snippetDecoration : '',
     supersededBy: supersededBy ? Types.stringToConversationIDKey(supersededBy) : noConversationIDKey,
     supersedes: supersedes ? Types.stringToConversationIDKey(supersedes) : noConversationIDKey,
+    teamRetentionPolicy,
     teamType: getTeamType(i),
     teamname,
     timestamp: i.time,
@@ -115,43 +116,29 @@ export const getEffectiveRetentionPolicy = (meta: Types.ConversationMeta) => {
 // Upgrade a meta, try and keep existing values if possible to reduce render thrashing in components
 // Enforce the verions only increase and we only go from untrusted to trusted, etc
 export const updateMeta = (
-  old: Types.ConversationMeta,
-  meta: Types.ConversationMeta
+  oldMeta: Types.ConversationMeta,
+  newMeta: Types.ConversationMeta
 ): Types.ConversationMeta => {
-  // Older/same version and same state?
-  if (meta.trustedState === old.trustedState) {
-    if (meta.inboxVersion === old.inboxVersion) {
-      return old.merge({
-        snippet: meta.snippet,
-        snippetDecoration: meta.snippetDecoration,
+  if (newMeta.inboxVersion < oldMeta.inboxVersion) {
+    // new is older, keep old
+    return oldMeta
+  } else if (oldMeta.inboxVersion === newMeta.inboxVersion) {
+    // same version, only take data if untrusted -> trusted
+    if (newMeta.trustedState === 'trusted' && oldMeta.trustedState !== 'trusted') {
+      // prettier-ignore
+      return newMeta.withMutations(nm => {
+        // keep immutable stuff to reduce render thrashing
+        I.is(oldMeta.participants, nm.participants) && nm.set('participants', oldMeta.participants)
+        I.is(oldMeta.rekeyers, nm.rekeyers) && nm.set('rekeyers', oldMeta.rekeyers)
+        I.is(oldMeta.resetParticipants, nm.resetParticipants) && nm.set('resetParticipants', oldMeta.resetParticipants)
+        I.is(oldMeta.retentionPolicy, nm.retentionPolicy) && nm.set('retentionPolicy', oldMeta.retentionPolicy)
+        I.is(oldMeta.teamRetentionPolicy, nm.teamRetentionPolicy) && nm.set('teamRetentionPolicy', oldMeta.teamRetentionPolicy)
       })
-    } else if (meta.inboxVersion < old.inboxVersion) {
-      return old
     }
+    return oldMeta
   }
-  const participants = old.participants.equals(meta.participants) ? old.participants : meta.participants
-  const rekeyers = old.rekeyers.equals(meta.rekeyers) ? old.rekeyers : meta.rekeyers
-  const resetParticipants = old.resetParticipants.equals(meta.resetParticipants)
-    ? old.resetParticipants
-    : meta.resetParticipants
-
-  return meta.withMutations(m => {
-    // don't downgrade trusted status for an inbox update that doesn't contain a newer version of the
-    // meta
-    m.set(
-      'trustedState',
-      old.trustedState === 'trusted' &&
-        meta.trustedState === 'untrusted' &&
-        old.inboxVersion >= meta.inboxVersion
-        ? 'trusted'
-        : meta.trustedState
-    )
-    m.set('channelname', meta.channelname || old.channelname)
-    m.set('participants', participants)
-    m.set('rekeyers', rekeyers)
-    m.set('resetParticipants', resetParticipants)
-    m.set('teamname', meta.teamname || old.teamname)
-  })
+  // higher inbox version, use new
+  return newMeta
 }
 
 const parseNotificationSettings = (notifications: ?RPCChatTypes.ConversationNotificationInfo) => {
@@ -202,6 +189,25 @@ export const updateMetaWithNotificationSettings = (
   }): Types.ConversationMeta)
 }
 
+const UIItemToRetentionPolicies = (i, isTeam) => {
+  // default inherit for teams, retain for ad-hoc
+  // TODO remove these hard-coded defaults if core starts sending the defaults instead of nil to represent 'unset'
+  let retentionPolicy = isTeam
+    ? TeamConstants.makeRetentionPolicy({type: 'inherit'})
+    : TeamConstants.makeRetentionPolicy()
+  if (i.convRetention) {
+    // it has been set for this conversation
+    retentionPolicy = TeamConstants.serviceRetentionPolicyToRetentionPolicy(i.convRetention)
+  }
+
+  // default for team-wide policy is 'retain'
+  let teamRetentionPolicy = TeamConstants.makeRetentionPolicy()
+  if (i.teamRetention) {
+    teamRetentionPolicy = TeamConstants.serviceRetentionPolicyToRetentionPolicy(i.teamRetention)
+  }
+  return {retentionPolicy, teamRetentionPolicy}
+}
+
 export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allowEmpty?: boolean) => {
   // Private chats only
   if (i.visibility !== RPCTypes.commonTLFVisibility.private) {
@@ -235,21 +241,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
     notificationsMobile,
   } = parseNotificationSettings(i.notifications)
 
-  // default inherit for teams, retain for ad-hoc
-  // TODO remove these hard-coded defaults if core starts sending the defaults instead of nil to represent 'unset'
-  let retentionPolicy = isTeam
-    ? TeamConstants.makeRetentionPolicy({type: 'inherit'})
-    : TeamConstants.makeRetentionPolicy()
-  if (i.convRetention) {
-    // it has been set for this conversation
-    retentionPolicy = TeamConstants.serviceRetentionPolicyToRetentionPolicy(i.convRetention)
-  }
-
-  // default for team-wide policy is 'retain'
-  let teamRetentionPolicy = TeamConstants.makeRetentionPolicy()
-  if (i.teamRetention) {
-    teamRetentionPolicy = TeamConstants.serviceRetentionPolicyToRetentionPolicy(i.teamRetention)
-  }
+  const {retentionPolicy, teamRetentionPolicy} = UIItemToRetentionPolicies(i, isTeam)
 
   const minWriterRoleEnum =
     i.convSettings && i.convSettings.minWriterRoleInfo && i.convSettings.minWriterRoleInfo.role
@@ -348,8 +340,8 @@ export const getChannelSuggestions = (state: TypedState, teamname: string) =>
 
 export const getCommands = (state: TypedState, id: Types.ConversationIDKey) => {
   const {commands} = getMeta(state, id)
-  if (commands.typ === RPCChatTypes.commandsConversationCommandGroupsTyp.builtin) {
-    return state.chat2.staticConfig ? state.chat2.staticConfig.builtinCommands : []
+  if (commands.typ === RPCChatTypes.commandsConversationCommandGroupsTyp.builtin && commands.builtin) {
+    return state.chat2.staticConfig ? state.chat2.staticConfig.builtinCommands[commands.builtin] : []
   } else {
     return []
   }

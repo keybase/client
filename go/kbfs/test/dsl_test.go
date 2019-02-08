@@ -432,6 +432,7 @@ type ctx struct {
 	rootNode   Node
 	noSyncInit bool
 	staller    *libkbfs.NaïveStaller
+	noSyncEnd  bool
 }
 
 func runFileOpHelper(c *ctx, fop fileOp) (string, error) {
@@ -480,6 +481,16 @@ func noSync() fileOp {
 	}, IsInit, "noSync()"}
 }
 
+// noSyncEnd turns off the SyncFromServer call at the end of each `as`
+// block.  It's also turned off by a `disableUpdates()` call or a
+// `noSync()` call.
+func noSyncEnd() fileOp {
+	return fileOp{func(c *ctx) error {
+		c.noSyncEnd = true
+		return nil
+	}, IsInit, "noSyncEnd()"}
+}
+
 func (o *opt) expectSuccess(reason string, err error) {
 	if err != nil {
 		if o.isParallel {
@@ -521,6 +532,11 @@ func as(user username, fops ...fileOp) optionOp {
 		if !ctx.noSyncInit {
 			err := ctx.engine.SyncAll(ctx.user, ctx.tlfName, ctx.tlfType)
 			ctx.expectSuccess("SyncAll", err)
+			if !ctx.noSyncEnd {
+				err := ctx.engine.SyncFromServer(
+					ctx.user, ctx.tlfName, ctx.tlfType)
+				ctx.expectSuccess("SyncFromServer", err)
+			}
 		}
 	}
 }
@@ -767,6 +783,7 @@ func rename(src, dst string) fileOp {
 
 func disableUpdates() fileOp {
 	return fileOp{func(c *ctx) error {
+		c.noSyncEnd = true
 		err := c.engine.SyncFromServer(c.user, c.tlfName, c.tlfType)
 		if err != nil {
 			return err
@@ -925,6 +942,7 @@ func undoStallOnMDResolveBranch() fileOp {
 
 func reenableUpdates() fileOp {
 	return fileOp{func(c *ctx) error {
+		c.noSyncEnd = false
 		err := c.engine.ReenableUpdates(c.user, c.tlfName, c.tlfType)
 		if err != nil {
 			return err

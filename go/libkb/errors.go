@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -953,11 +954,10 @@ type ServiceDoesNotSupportNewProofsError struct {
 }
 
 func (e ServiceDoesNotSupportNewProofsError) Error() string {
-	service := e.Service
-	if len(service) > 0 {
-		service = fmt.Sprintf("%q", service)
+	if len(e.Service) == 0 {
+		return fmt.Sprintf("New proofs of that type are not supported")
 	}
-	return fmt.Sprintf("New %s proofs are no longer supported", service)
+	return fmt.Sprintf("New %s proofs are not supported", e.Service)
 }
 
 //=============================================================================
@@ -2091,6 +2091,16 @@ type ChatStalePreviousStateError struct{}
 
 func (e ChatStalePreviousStateError) Error() string {
 	return "Unable to change chat channels"
+}
+
+//=============================================================================
+
+type ChatEphemeralRetentionPolicyViolatedError struct {
+	MaxAge gregor1.DurationSec
+}
+
+func (e ChatEphemeralRetentionPolicyViolatedError) Error() string {
+	return fmt.Sprintf("messages in this conversation are required to be exploding with a maximum lifetime of %v", e.MaxAge.ToDuration())
 }
 
 //=============================================================================

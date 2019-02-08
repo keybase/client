@@ -47,6 +47,7 @@ type IdentifyKey struct {
 	KID            KID        `codec:"KID" json:"KID"`
 	TrackDiff      *TrackDiff `codec:"trackDiff,omitempty" json:"trackDiff,omitempty"`
 	BreaksTracking bool       `codec:"breaksTracking" json:"breaksTracking"`
+	SigID          SigID      `codec:"sigID" json:"sigID"`
 }
 
 func (o IdentifyKey) DeepCopy() IdentifyKey {
@@ -66,6 +67,7 @@ func (o IdentifyKey) DeepCopy() IdentifyKey {
 			return &tmp
 		})(o.TrackDiff),
 		BreaksTracking: o.BreaksTracking,
+		SigID:          o.SigID.DeepCopy(),
 	}
 }
 
@@ -334,17 +336,18 @@ func (o UserTeamShowcase) DeepCopy() UserTeamShowcase {
 }
 
 type UserCard struct {
-	Following     int                `codec:"following" json:"following"`
-	Followers     int                `codec:"followers" json:"followers"`
-	Uid           UID                `codec:"uid" json:"uid"`
-	FullName      string             `codec:"fullName" json:"fullName"`
-	Location      string             `codec:"location" json:"location"`
-	Bio           string             `codec:"bio" json:"bio"`
-	Website       string             `codec:"website" json:"website"`
-	Twitter       string             `codec:"twitter" json:"twitter"`
-	YouFollowThem bool               `codec:"youFollowThem" json:"youFollowThem"`
-	TheyFollowYou bool               `codec:"theyFollowYou" json:"theyFollowYou"`
-	TeamShowcase  []UserTeamShowcase `codec:"teamShowcase" json:"teamShowcase"`
+	Following            int                `codec:"following" json:"following"`
+	Followers            int                `codec:"followers" json:"followers"`
+	Uid                  UID                `codec:"uid" json:"uid"`
+	FullName             string             `codec:"fullName" json:"fullName"`
+	Location             string             `codec:"location" json:"location"`
+	Bio                  string             `codec:"bio" json:"bio"`
+	Website              string             `codec:"website" json:"website"`
+	Twitter              string             `codec:"twitter" json:"twitter"`
+	YouFollowThem        bool               `codec:"youFollowThem" json:"youFollowThem"`
+	TheyFollowYou        bool               `codec:"theyFollowYou" json:"theyFollowYou"`
+	TeamShowcase         []UserTeamShowcase `codec:"teamShowcase" json:"teamShowcase"`
+	RegisteredForAirdrop bool               `codec:"registeredForAirdrop" json:"registeredForAirdrop"`
 }
 
 func (o UserCard) DeepCopy() UserCard {
@@ -370,6 +373,7 @@ func (o UserCard) DeepCopy() UserCard {
 			}
 			return ret
 		})(o.TeamShowcase),
+		RegisteredForAirdrop: o.RegisteredForAirdrop,
 	}
 }
 

@@ -146,7 +146,7 @@ type ConfigLocal struct {
 	blockCryptVersion kbfscrypto.EncryptionVer
 
 	// conflictResolutionDB stores information about failed CRs
-	conflictResolutionDB *leveldb.DB
+	conflictResolutionDB *LevelDb
 
 	mode InitMode
 
@@ -446,7 +446,7 @@ func NewConfigLocal(mode InitMode,
 	config.ResetCaches()
 	config.SetKeyOps(&KeyOpsStandard{config})
 	config.SetRekeyQueue(NewRekeyQueueStandard(config))
-	config.SetUserHistory(kbfsedits.NewUserHistory())
+	config.SetUserHistory(kbfsedits.NewUserHistory(config.MakeLogger("HIS")))
 
 	config.maxNameBytes = maxNameBytesDefault
 	config.rwpWaitTime = rekeyWithPromptWaitTimeDefault
@@ -1343,7 +1343,7 @@ func (c *ConfigLocal) getQuotaUsage(
 	return quota
 }
 
-// EnableDiskLimiter fills in c.ciskLimiter for use in journaling and
+// EnableDiskLimiter fills in c.diskLimiter for use in journaling and
 // disk caching. It returns the EventuallyConsistentQuotaUsage object
 // used by the disk limiter.
 func (c *ConfigLocal) EnableDiskLimiter(configRoot string) error {
@@ -1529,7 +1529,7 @@ func (c *ConfigLocal) MakeBlockMetadataStoreIfNotExists() (err error) {
 	return nil
 }
 
-func (c *ConfigLocal) openConfigLevelDB(configName string) (*levelDb, error) {
+func (c *ConfigLocal) openConfigLevelDB(configName string) (*LevelDb, error) {
 	dbPath := filepath.Join(c.storageRoot, configName)
 	stor, err := storage.OpenFile(dbPath, false)
 	if err != nil {
@@ -1717,7 +1717,7 @@ func (c *ConfigLocal) GetRekeyFSMLimiter() *OngoingWorkLimiter {
 }
 
 // GetConflictResolutionDB implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) GetConflictResolutionDB() (db *leveldb.DB) {
+func (c *ConfigLocal) GetConflictResolutionDB() (db *LevelDb) {
 	return c.conflictResolutionDB
 }
 

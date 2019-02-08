@@ -304,6 +304,10 @@ export type MessageTypes = {|
     inParam: void,
     outParam: void,
   |},
+  'keybase.1.delegateUiCtl.registerChatUI': {|
+    inParam: void,
+    outParam: void,
+  |},
   'keybase.1.delegateUiCtl.registerGregorFirehoseFiltered': {|
     inParam: $ReadOnly<{|systems?: ?Array<String>|}>,
     outParam: void,
@@ -489,7 +493,7 @@ export type MessageTypes = {|
     outParam: void,
   |},
   'keybase.1.identify3Ui.identify3UpdateRow': {|
-    inParam: $ReadOnly<{|guiID: Identify3GUIID, key: String, value: String, siteURL: String, siteIcon: String, proofURL: String, state: Identify3RowState, metas?: ?Array<Identify3RowMeta>, color: Identify3RowColor|}>,
+    inParam: $ReadOnly<{|guiID: Identify3GUIID, key: String, value: String, siteURL: String, siteIcon: String, proofURL: String, sigID: SigID, state: Identify3RowState, metas?: ?Array<Identify3RowMeta>, color: Identify3RowColor|}>,
     outParam: void,
   |},
   'keybase.1.identify3Ui.identify3UpdateUserCard': {|
@@ -1225,6 +1229,7 @@ export const constantsStatusCode = {
   scchatclienterror: 2516,
   scchatnotinteam: 2517,
   scchatstalepreviousstate: 2518,
+  scchatephemeralretentionpolicyviolatederror: 2519,
   scteambadmembership: 2604,
   scteamselfnotowner: 2607,
   scteamnotfound: 2614,
@@ -2021,7 +2026,7 @@ export type ExitCode =
   | 2 // NOTOK_2
   | 4 // RESTART_4
 
-export type ExtendedStatus = $ReadOnly<{standalone: Boolean, passphraseStreamCached: Boolean, tsecCached: Boolean, deviceSigKeyCached: Boolean, deviceEncKeyCached: Boolean, paperSigKeyCached: Boolean, paperEncKeyCached: Boolean, storedSecret: Boolean, secretPromptSkip: Boolean, rememberPassphrase: Boolean, device?: ?Device, deviceErr?: ?LoadDeviceErr, logDir: String, session?: ?SessionStatus, defaultUsername: String, provisionedUsernames?: ?Array<String>, Clients?: ?Array<ClientDetails>, deviceEkNames?: ?Array<String>, platformInfo: PlatformInfo, defaultDeviceID: DeviceID}>
+export type ExtendedStatus = $ReadOnly<{standalone: Boolean, passphraseStreamCached: Boolean, tsecCached: Boolean, deviceSigKeyCached: Boolean, deviceEncKeyCached: Boolean, paperSigKeyCached: Boolean, paperEncKeyCached: Boolean, storedSecret: Boolean, secretPromptSkip: Boolean, rememberPassphrase: Boolean, device?: ?Device, deviceErr?: ?LoadDeviceErr, logDir: String, session?: ?SessionStatus, defaultUsername: String, provisionedUsernames?: ?Array<String>, Clients?: ?Array<ClientDetails>, deviceEkNames?: ?Array<String>, platformInfo: PlatformInfo, defaultDeviceID: DeviceID, localDbStats?: ?Array<String>, localChatDbStats?: ?Array<String>}>
 export type ExternalServiceConfig = $ReadOnly<{schemaVersion: Int, display?: ?ServiceDisplayConfig, config?: ?ParamProofServiceConfig}>
 export type FSEditListRequest = $ReadOnly<{folder: Folder, requestID: Int}>
 export type FSErrorType =
@@ -2221,7 +2226,7 @@ export type Identify3RowState =
   | 4 // WARNING_4
   | 5 // REVOKED_5
 
-export type IdentifyKey = $ReadOnly<{pgpFingerprint: Bytes, KID: KID, trackDiff?: ?TrackDiff, breaksTracking: Boolean}>
+export type IdentifyKey = $ReadOnly<{pgpFingerprint: Bytes, KID: KID, trackDiff?: ?TrackDiff, breaksTracking: Boolean, sigID: SigID}>
 export type IdentifyLiteRes = $ReadOnly<{ul: UserOrTeamLite, trackBreaks?: ?IdentifyTrackBreaks}>
 export type IdentifyOutcome = $ReadOnly<{username: String, status?: ?Status, warnings?: ?Array<String>, trackUsed?: ?TrackSummary, trackStatus: TrackStatus, numTrackFailures: Int, numTrackChanges: Int, numProofFailures: Int, numRevoked: Int, numProofSuccesses: Int, revoked?: ?Array<TrackDiff>, trackOptions: TrackOptions, forPGPPull: Boolean, reason: IdentifyReason}>
 export type IdentifyProofBreak = $ReadOnly<{remoteProof: RemoteProof, lcr: LinkCheckResult}>
@@ -2757,6 +2762,7 @@ export type StatusCode =
   | 2516 // SCChatClientError_2516
   | 2517 // SCChatNotInTeam_2517
   | 2518 // SCChatStalePreviousState_2518
+  | 2519 // SCChatEphemeralRetentionPolicyViolatedError_2519
   | 2604 // SCTeamBadMembership_2604
   | 2607 // SCTeamSelfNotOwner_2607
   | 2614 // SCTeamNotFound_2614
@@ -3036,7 +3042,7 @@ export type UpdateInfoStatus =
   | 2 // CRITICALLY_OUT_OF_DATE_2
 
 export type User = $ReadOnly<{uid: UID, username: String}>
-export type UserCard = $ReadOnly<{following: Int, followers: Int, uid: UID, fullName: String, location: String, bio: String, website: String, twitter: String, youFollowThem: Boolean, theyFollowYou: Boolean, teamShowcase?: ?Array<UserTeamShowcase>}>
+export type UserCard = $ReadOnly<{following: Int, followers: Int, uid: UID, fullName: String, location: String, bio: String, website: String, twitter: String, youFollowThem: Boolean, theyFollowYou: Boolean, teamShowcase?: ?Array<UserTeamShowcase>, registeredForAirdrop: Boolean}>
 export type UserEk = $ReadOnly<{seed: Bytes32, metadata: UserEkMetadata}>
 export type UserEkBoxMetadata = $ReadOnly<{box: String, recipientGeneration: EkGeneration, recipientDeviceID: DeviceID}>
 export type UserEkBoxed = $ReadOnly<{box: String, deviceEkGeneration: EkGeneration, metadata: UserEkMetadata}>
@@ -3317,6 +3323,7 @@ declare export function configStartUpdateIfNeededRpcPromise(params: $PropertyTyp
 declare export function configWaitForClientRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.waitForClient'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.waitForClient'>, 'outParam'>>
 declare export function cryptocurrencyRegisterAddressRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.cryptocurrency.registerAddress'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.cryptocurrency.registerAddress'>, 'outParam'>>
 declare export function ctlDbNukeRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.ctl.dbNuke'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.ctl.dbNuke'>, 'outParam'>>
+declare export function delegateUiCtlRegisterChatUIRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.delegateUiCtl.registerChatUI'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.delegateUiCtl.registerChatUI'>, 'outParam'>>
 declare export function delegateUiCtlRegisterGregorFirehoseFilteredRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.delegateUiCtl.registerGregorFirehoseFiltered'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.delegateUiCtl.registerGregorFirehoseFiltered'>, 'outParam'>>
 declare export function delegateUiCtlRegisterHomeUIRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.delegateUiCtl.registerHomeUI'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.delegateUiCtl.registerHomeUI'>, 'outParam'>>
 declare export function delegateUiCtlRegisterIdentify3UIRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.delegateUiCtl.registerIdentify3UI'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.delegateUiCtl.registerIdentify3UI'>, 'outParam'>>

@@ -11,6 +11,7 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -36,12 +37,14 @@ type tlfKey struct {
 type UserHistory struct {
 	lock      sync.RWMutex
 	histories map[tlfKey]writersByRevision
+	log       logger.Logger
 }
 
 // NewUserHistory constructs a UserHistory instance.
-func NewUserHistory() *UserHistory {
+func NewUserHistory(log logger.Logger) *UserHistory {
 	return &UserHistory{
 		histories: make(map[tlfKey]writersByRevision),
+		log:       log,
 	}
 }
 
@@ -50,6 +53,8 @@ func NewUserHistory() *UserHistory {
 func (uh *UserHistory) UpdateHistory(
 	tlfName tlf.CanonicalName, tlfType tlf.Type, tlfHistory *TlfHistory,
 	loggedInUser string) {
+	uh.log.CDebugf(nil, "Updating user history for TLF %s, "+
+		"user %s", tlfName, loggedInUser)
 	history := tlfHistory.getHistory(loggedInUser)
 	key := tlfKey{tlfName, tlfType}
 
@@ -134,7 +139,7 @@ func (uh *UserHistory) Get(loggedInUser string) (
 	history []keybase1.FSFolderEditHistory) {
 	uh.lock.RLock()
 	defer uh.lock.RUnlock()
-
+	uh.log.CDebugf(nil, "User history requested: %s", loggedInUser)
 	var clusters historyClusters
 	for key := range uh.histories {
 		history := uh.getTlfHistoryLocked(key.tlfName, key.tlfType)
@@ -166,7 +171,8 @@ func (uh *UserHistory) Get(loggedInUser string) (
 		}
 	}
 
-	// We need to sort these by clusters, not by the full TLF time.
+	// We need to sort these by the ServerTime of these particular edits,
+	// not by the full TLF time.
 	sort.Sort(clusters)
 
 	// TODO: consolidate neighboring clusters that share the same folder?

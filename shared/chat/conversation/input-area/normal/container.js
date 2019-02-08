@@ -44,6 +44,7 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
     conversationIDKey,
     editText: editInfo ? editInfo.text : '',
     explodingModeSeconds,
+    isActiveForFocus: state.chat2.focus === null,
     isEditExploded: editInfo ? editInfo.exploded : false,
     isExploding,
     quoteCounter: quoteInfo ? quoteInfo.counter : 0,
@@ -110,6 +111,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   focusInputCounter: ownProps.focusInputCounter,
   getUnsentText: () =>
     stateProps.unsentText.length > 0 ? stateProps.unsentText : getUnsentText(stateProps.conversationIDKey),
+  isActiveForFocus: stateProps.isActiveForFocus,
   isEditExploded: stateProps.isEditExploded,
   isEditing: !!stateProps._editOrdinal,
   isExploding: stateProps.isExploding,
@@ -145,7 +147,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   suggestChannels: stateProps.suggestChannels,
   suggestCommands: stateProps.suggestCommands,
   suggestUsers: stateProps.suggestUsers,
-  typing: stateProps.typing,
   unsentTextRefresh: stateProps.unsentText.length > 0,
 })
 

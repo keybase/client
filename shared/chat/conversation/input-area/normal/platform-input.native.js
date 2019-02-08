@@ -11,6 +11,7 @@ import {
 } from '../../../../common-adapters/native-wrappers.native'
 import SetExplodingMessagePicker from '../../messages/set-explode-popup/container'
 import {ExplodingMeta} from './shared'
+import Typing from './typing/container'
 import FilePickerPopup from '../filepicker-popup'
 import WalletsIcon from './wallets-icon/container'
 import type {PlatformInputPropsInternal} from './platform-input'
@@ -163,6 +164,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
             visible={this.props.showingMenu}
           />
         )}
+        <Typing conversationIDKey={this.props.conversationIDKey} />
         <Kb.Box style={styles.container}>
           {this.props.isEditing && (
             <Kb.Box style={styles.editingTabStyle}>
@@ -188,10 +190,6 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
             rowsMax={3}
             rowsMin={1}
           />
-
-          {this.props.typing.size > 0 && (
-            <Kb.Animation animationType="typing" containerStyle={styles.typing} />
-          )}
           <Action
             hasText={this.state.hasText}
             onSubmit={this._onSubmit}
@@ -347,20 +345,6 @@ const styles = Styles.styleSheetCreate({
   smallGap: {
     height: Styles.globalMargins.small,
     width: Styles.globalMargins.small,
-  },
-  typing: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    alignSelf: 'center',
-    borderRadius: 10,
-    height: 20,
-    justifyContent: 'center',
-    marginRight: Styles.globalMargins.tiny,
-    paddingLeft: Styles.globalMargins.tiny,
-    paddingRight: Styles.globalMargins.tiny,
-  },
-  typingIcon: {
-    width: 20,
   },
 })
 

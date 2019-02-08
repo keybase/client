@@ -20,7 +20,6 @@ export type Props = {
     sms?: Group,
     security?: Group,
   },
-  onRefresh: () => void,
   onToggle: (groupName: string, name: string) => void,
   onToggleUnsubscribeAll: (group: string) => void,
   mobileHasPermissions: boolean,

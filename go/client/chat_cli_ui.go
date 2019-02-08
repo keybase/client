@@ -309,3 +309,7 @@ func (c *ChatCLIUI) ChatStellarDataError(ctx context.Context, arg chat1.ChatStel
 func (c *ChatCLIUI) ChatStellarDone(ctx context.Context, arg chat1.ChatStellarDoneArg) error {
 	return nil
 }
+
+func (c *ChatCLIUI) ChatShowManageChannels(ctx context.Context, arg chat1.ChatShowManageChannelsArg) error {
+	return nil
+}

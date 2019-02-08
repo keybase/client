@@ -292,7 +292,7 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 			return
 		}
 		if len(inbox.Convs) != 1 {
-			g.Debug(ctx, "resolve: unable to find conversation")
+			g.Debug(ctx, "resolve: unable to find conversation, found: %d, expected 1", len(inbox.Convs))
 			return
 		}
 		updateConv := inbox.Convs[0]
@@ -536,7 +536,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				notificationSnippet := ""
 				if desktopNotification {
 					notificationSnippet = utils.GetDesktopNotificationSnippet(conv,
-						g.G().Env.GetUsername().String())
+						g.G().Env.GetUsername().String(), &decmsg)
 				}
 				activity = new(chat1.ChatActivity)
 				*activity = chat1.NewChatActivityWithIncomingMessage(chat1.IncomingMessage{
@@ -638,13 +638,14 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 			var inbox types.Inbox
 			if inbox, _, err = g.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, false,
 				nil, &chat1.GetInboxLocalQuery{
-					ConvIDs: []chat1.ConversationID{nm.ConvID},
+					ConvIDs:      []chat1.ConversationID{nm.ConvID},
+					MemberStatus: chat1.AllConversationMemberStatuses(),
 				}, nil); err != nil {
 				g.Debug(ctx, "chat activity: unable to read conversation: %v", err)
 				return
 			}
 			if len(inbox.Convs) != 1 {
-				g.Debug(ctx, "chat activity: unable to find conversation")
+				g.Debug(ctx, "chat activity: unable to find conversation, found: %d, expected 1", len(inbox.Convs))
 				return
 			}
 			updateConv := inbox.ConvsUnverified[0].Conv
@@ -652,12 +653,16 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				g.Debug(ctx, "chat activity: unable to update inbox: %v", err)
 			}
 			conv = &inbox.Convs[0]
-
-			activity = new(chat1.ChatActivity)
-			*activity = chat1.NewChatActivityWithNewConversation(chat1.NewConversationInfo{
-				Conv:   g.presentUIItem(ctx, conv, uid),
-				ConvID: conv.GetConvID(),
-			})
+			switch memberStatus := conv.ReaderInfo.Status; memberStatus {
+			case chat1.ConversationMemberStatus_LEFT, chat1.ConversationMemberStatus_NEVER_JOINED:
+				g.Debug(ctx, "chat activity: newConversation: suppressing ChatActivity, membersStatus: %v", memberStatus)
+			default:
+				activity = new(chat1.ChatActivity)
+				*activity = chat1.NewChatActivityWithNewConversation(chat1.NewConversationInfo{
+					Conv:   g.presentUIItem(ctx, conv, uid),
+					ConvID: conv.GetConvID(),
+				})
+			}
 		case types.ActionTeamType:
 			var nm chat1.TeamTypePayload
 			if err = dec.Decode(&nm); err != nil {

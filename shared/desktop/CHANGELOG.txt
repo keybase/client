@@ -1,5 +1,13 @@
-• Links to KBFS paths work in chat now!
-• Better handling of error messaging when you can't decode an exploded message
-• New retry screen for handling network issues on the people page
-• New alerts when we don't have correct permissions for photo uploading
-• Various bug fixes and stability improvements
+• New reaction bar. Quickly add reactions by hovering over any message.
+• A new clearer and faster way to start a new conversation
+• New slash commands. Hit / to see a list of useful shortcuts
+• Set short term retention policies on teams and direct messages
+• Better 'who is typing' indicator
+
+Bugfixes:
+• Menubar widget more accurately shows logging in state
+• Fixed 'empty amount' errors
+• Fix for attachment saving failing
+• Images in chat url previews are clickable now
+• Better waiting indicators in the teams tab
+• Startup screen could be stretched on some screens

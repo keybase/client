@@ -90,6 +90,9 @@ func (e *MerkleAudit) SubConsumers() []libkb.UIConsumer {
 // Run starts the engine.
 // Returns immediately, kicks off a background goroutine.
 func (e *MerkleAudit) Run(m libkb.MetaContext) (err error) {
+	if m.G().GetEnv().GetDisableMerkleAuditor() {
+		m.G().Log.CDebugf(m.Ctx(), "merkle audit disabled, aborting run")
+	}
 	return RunEngine2(m, e.task)
 }
 

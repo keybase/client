@@ -9,6 +9,8 @@ import (
 	"github.com/keybase/client/go/ephemeral"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 )
@@ -85,6 +87,20 @@ func (e PermanentUnboxingError) InternalError() string {
 	}
 }
 
+func (e PermanentUnboxingError) ToStatus() (status keybase1.Status) {
+	if ee, ok := e.inner.(libkb.ExportableError); ok {
+		status = ee.ToStatus()
+		status.Desc = e.Error()
+	} else {
+		status = keybase1.Status{
+			Name: "GENERIC",
+			Code: libkb.SCGeneric,
+			Desc: e.Error(),
+		}
+	}
+	return status
+}
+
 //=============================================================================
 
 func NewTransientUnboxingError(inner error) types.UnboxingError {
@@ -124,6 +140,20 @@ func (e TransientUnboxingError) InternalError() string {
 	default:
 		return err.Error()
 	}
+}
+
+func (e TransientUnboxingError) ToStatus() (status keybase1.Status) {
+	if ee, ok := e.inner.(libkb.ExportableError); ok {
+		status = ee.ToStatus()
+		status.Desc = e.Error()
+	} else {
+		status = keybase1.Status{
+			Name: "GENERIC",
+			Code: libkb.SCGeneric,
+			Desc: e.Error(),
+		}
+	}
+	return status
 }
 
 //=============================================================================
@@ -507,6 +537,22 @@ func IsOfflineError(err error) OfflineErrorKind {
 		return OfflineErrorKindOfflineBasic
 	}
 	return OfflineErrorKindOnline
+}
+
+func IsRekeyError(err error) (typ chat1.ConversationErrorType, ok bool) {
+	switch err := err.(type) {
+	case types.UnboxingError:
+		return IsRekeyError(err.Inner())
+	case libkb.NeedSelfRekeyError:
+		return chat1.ConversationErrorType_SELFREKEYNEEDED, true
+	case libkb.NeedOtherRekeyError:
+		return chat1.ConversationErrorType_OTHERREKEYNEEDED, true
+	default:
+		if teams.IsTeamReadError(err) {
+			return chat1.ConversationErrorType_OTHERREKEYNEEDED, true
+		}
+	}
+	return chat1.ConversationErrorType_NONE, false
 }
 
 //=============================================================================

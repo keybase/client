@@ -7,7 +7,7 @@ const routeTree = () => {
   const LandingContainer = require('./landing/container').default
   // const UpdatePayment = require('./payment/container').default
   const AdvancedContainer = require('./advanced/container').default
-  const FilesSettingsContainer = require('./files/container').default
+  const FilesContainer = require('./files/container').default
   const DBNukeConfirm = require('./db-nuke-confirm/container').default
   const InvitationsContainer = require('./invites/container').default
   const NotificationsContainer = require('./notifications/container').default
@@ -71,13 +71,13 @@ const routeTree = () => {
         },
         component: AdvancedContainer,
       },
-      [Constants.fsSettingsTab]: {
+      [Constants.fsTab]: {
         children: {
           securityPrefs: {
             component: SecurityPrefs,
           },
         },
-        component: FilesSettingsContainer,
+        component: FilesContainer,
       },
       [Constants.chatTab]: {
         component: ChatContainer,

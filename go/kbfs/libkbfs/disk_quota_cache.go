@@ -46,7 +46,7 @@ type DiskQuotaCacheLocal struct {
 	// Protect the disk caches from being shutdown while they're being
 	// accessed, and mutable data.
 	lock         sync.RWMutex
-	db           *levelDb // id -> quota info
+	db           *LevelDb // id -> quota info
 	quotasCached map[keybase1.UserOrTeamID]bool
 
 	startedCh  chan struct{}

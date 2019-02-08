@@ -188,6 +188,11 @@ func (b *BackgroundConvLoader) monitorAppState() {
 func (b *BackgroundConvLoader) Start(ctx context.Context, uid gregor1.UID) {
 	b.Lock()
 	defer b.Unlock()
+
+	if b.G().GetEnv().GetDisableBgConvLoader() {
+		b.Debug(ctx, "BackgroundConvLoader disabled, aborting Start")
+		return
+	}
 	b.Debug(ctx, "Start")
 	if b.started {
 		close(b.stopCh)

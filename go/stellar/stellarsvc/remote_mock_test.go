@@ -1174,6 +1174,14 @@ func (r *BackendMock) SetInflationDestination(ctx context.Context, tc *TestConte
 	require.True(tc.T, ok)
 	require.NotNil(tc.T, setOpt.InflationDest)
 
+	require.NotNil(tc.T, unpackedTx.Tx.TimeBounds, "We are expecting TimeBounds in all txs")
+	if unpackedTx.Tx.TimeBounds != nil {
+		require.NotZero(tc.T, unpackedTx.Tx.TimeBounds.MaxTime, "We are expecting non-zero TimeBounds.MaxTime in all txs")
+		require.True(tc.T, time.Now().Before(time.Unix(int64(unpackedTx.Tx.TimeBounds.MaxTime), 0)))
+		// We always send MinTime=0 but this assertion should still hold.
+		require.True(tc.T, time.Now().After(time.Unix(int64(unpackedTx.Tx.TimeBounds.MinTime), 0)))
+	}
+
 	account.inflationDest = stellar1.AccountID(setOpt.InflationDest.Address())
 
 	tc.T.Logf("BackendMock set inflation destination of %q to %q", accountID, account.inflationDest)

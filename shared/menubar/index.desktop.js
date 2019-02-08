@@ -12,8 +12,10 @@ import * as SafeElectron from '../util/safe-electron.desktop'
 import OutOfDate from './out-of-date'
 import Upload from '../fs/footer/upload'
 import UploadCountdownHOC, {type UploadCountdownHOCProps} from '../fs/footer/upload-countdown-hoc'
+import type {DaemonHandshakeState} from '../constants/types/config'
 
 export type Props = {
+  daemonHandshakeState: DaemonHandshakeState,
   logIn: () => void,
   loggedIn: boolean,
   updateNow: () => void,
@@ -61,24 +63,27 @@ class MenubarRender extends React.Component<Props, State> {
 
   render() {
     // TODO: refactor all this duplicated code!
+    if (this.props.daemonHandshakeState !== 'done') {
+      return this._renderDaemonHandshakeWait()
+    }
     return this.props.loggedIn ? this._renderLoggedIn() : this._renderLoggedOut()
   }
 
   _renderLoggedOut() {
     const menuColor = this.state.showingMenu ? Styles.globalColors.black_50 : Styles.globalColors.black_50
-    const menuStyle = Styles.platformStyles({
-      isElectron: {
-        ...Styles.desktopStyles.clickable,
-      },
-    })
 
     return (
       <Kb.Box style={styles.widgetContainer}>
         {isDarwin && <style>{_realCSS}</style>}
         {isDarwin && <ArrowTick />}
-        <Kb.Box style={Styles.collapseStyles([styles.topRow, {justifyContent: 'flex-end'}])}>
+        <Kb.Box
+          style={Styles.collapseStyles([
+            styles.topRow,
+            {justifyContent: 'flex-end'},
+            Styles.desktopStyles.clickable,
+          ])}
+        >
           <Kb.Icon
-            style={menuStyle}
             color={menuColor}
             hoverColor={menuColor}
             type="iconfont-nav-more"
@@ -118,6 +123,70 @@ class MenubarRender extends React.Component<Props, State> {
     )
   }
 
+  _renderDaemonHandshakeWait() {
+    const menuColor = this.state.showingMenu ? Styles.globalColors.black_50 : Styles.globalColors.black_50
+    const text =
+      this.props.daemonHandshakeState === 'waitingForWaiters'
+        ? `Connecting UI services to crypto engine... This may take a few seconds`
+        : `Starting up Keybase`
+
+    return (
+      <Kb.Box style={styles.widgetContainer}>
+        {isDarwin && <style>{_realCSS}</style>}
+        {isDarwin && <ArrowTick />}
+        <Kb.Box
+          style={Styles.collapseStyles([
+            styles.topRow,
+            {justifyContent: 'flex-end'},
+            Styles.desktopStyles.clickable,
+          ])}
+        >
+          <Kb.Icon
+            color={menuColor}
+            hoverColor={menuColor}
+            type="iconfont-nav-more"
+            onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
+            ref={this.attachmentRef}
+          />
+          <Kb.FloatingMenu
+            closeOnSelect={true}
+            visible={this.state.showingMenu}
+            attachTo={this._getAttachmentRef}
+            items={this._menuItems(this.props.badgeInfo || {}, true)}
+            onHidden={() => this.setState({showingMenu: false})}
+          />
+        </Kb.Box>
+        <OutOfDate outOfDate={this.props.outOfDate} updateNow={this.props.updateNow} />
+        <Kb.Box
+          style={{
+            ...Styles.globalStyles.flexBoxColumn,
+            alignItems: 'center',
+            flex: 1,
+            justifyContent: 'center',
+          }}
+        >
+          <Kb.Icon
+            type="icon-keybase-logo-logged-out-64"
+            style={Kb.iconCastPlatformStyles(styles.logo)}
+            color={Styles.globalColors.yellow}
+          />
+          <Kb.Text
+            type="Body"
+            small={true}
+            style={{
+              alignSelf: 'center',
+              marginTop: 6,
+              paddingLeft: Styles.globalMargins.small,
+              paddingRight: Styles.globalMargins.small,
+            }}
+          >
+            {text}
+          </Kb.Text>
+        </Kb.Box>
+      </Kb.Box>
+    )
+  }
+
   _menuView(title: string, iconType: Kb.IconType, count: number) {
     return (
       <Kb.Box2 direction="horizontal" style={{width: '100%'}}>
@@ -132,17 +201,19 @@ class MenubarRender extends React.Component<Props, State> {
     )
   }
 
-  _menuItems(countMap: Object) {
-    return [
-      ...(Flags.walletsEnabled
-        ? [
-            {
-              onClick: () => this.props.openApp(Tabs.walletsTab),
-              title: 'Wallet',
-              view: this._menuView('Wallet', 'iconfont-nav-wallets', countMap[Tabs.walletsTab] || 0),
-            },
-          ]
-        : []),
+  _menuItems(countMap: Object, startingUp?: boolean = false) {
+    const wallet = Flags.walletsEnabled
+      ? [
+          {
+            onClick: () => this.props.openApp(Tabs.walletsTab),
+            title: 'Wallet',
+            view: this._menuView('Wallet', 'iconfont-nav-wallets', countMap[Tabs.walletsTab] || 0),
+          },
+        ]
+      : []
+
+    const tabs = [
+      ...wallet,
       {
         onClick: () => this.props.openApp(Tabs.gitTab),
         title: 'Git',
@@ -158,15 +229,26 @@ class MenubarRender extends React.Component<Props, State> {
         title: 'Settings',
         view: this._menuView('Settings', 'iconfont-nav-settings', countMap[Tabs.settingsTab] || 0),
       },
-      'Divider',
-      ...(this.props.loggedIn ? [{onClick: () => this.props.openApp(), title: 'Open main app'}] : []),
-      {onClick: () => this.props.showInFinder('/'), title: `Open folders in ${Styles.fileUIName}`},
-      'Divider',
-      {onClick: () => this.props.showUser(), title: 'Keybase.io'},
+    ]
+
+    const openMainApp = [{onClick: () => this.props.openApp(), title: 'Open main app'}]
+
+    return [
+      ...(startingUp ? [] : tabs),
+      !startingUp ? 'Divider' : null,
+      ...(this.props.loggedIn && !startingUp ? openMainApp : []),
+      !startingUp
+        ? {
+            onClick: () => this.props.showInFinder('/'),
+            title: `Open folders in ${Styles.fileUIName}`,
+          }
+        : null,
+      !startingUp ? 'Divider' : null,
+      !startingUp ? {onClick: () => this.props.showUser(), title: 'Keybase.io'} : null,
       {onClick: this.props.showBug, title: 'Report a bug'},
       {onClick: this.props.showHelp, title: 'Help'},
       {onClick: this.props.quit, title: 'Quit app'},
-    ]
+    ].filter(i => !!i)
   }
 
   _getAttachmentRef = () => this.attachmentRef.current
@@ -345,7 +427,7 @@ const styles = Styles.styleSheetCreate({
   },
   widgetContainer: {
     ...Styles.globalStyles.flexBoxColumn,
-    backgroundColor: Styles.globalColors.darkBlue,
+    backgroundColor: Styles.globalColors.white,
     borderTopLeftRadius: Styles.globalMargins.xtiny,
     borderTopRightRadius: Styles.globalMargins.xtiny,
     flex: 1,

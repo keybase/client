@@ -30,6 +30,7 @@ type testErrput struct {
 }
 
 func (te testErrput) Write(buf []byte) (int, error) {
+	te.t.Helper()
 	te.t.Log(string(buf))
 	return 0, nil
 }
@@ -352,6 +353,7 @@ func testRunnerPushFetch(t *testing.T, cloning bool, secondRepoHasBranch bool) {
 }
 
 func TestRunnerPushFetch(t *testing.T) {
+	t.Skip("KBFS-3778: currently flaking")
 	testRunnerPushFetch(t, false, false)
 }
 
@@ -360,6 +362,7 @@ func TestRunnerPushClone(t *testing.T) {
 }
 
 func TestRunnerPushFetchWithBranch(t *testing.T) {
+	t.Skip("KBFS-3589: currently flaking")
 	testRunnerPushFetch(t, false, true)
 }
 
@@ -1036,6 +1039,7 @@ func testHandlePushBatch(t *testing.T, ctx context.Context,
 }
 
 func TestRunnerHandlePushBatch(t *testing.T) {
+	t.Skip("KBFS-3836: currently flaking a lot")
 	ctx, config, tempdir := initConfigForRunner(t)
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 	defer os.RemoveAll(tempdir)

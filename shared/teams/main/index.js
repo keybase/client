@@ -63,4 +63,4 @@ const Teams = (props: Props) => (
   </Kb.Box>
 )
 
-export default Kb.HeaderOnMobile(Teams)
+export default Teams

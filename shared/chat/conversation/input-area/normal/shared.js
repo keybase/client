@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Meta} from '../../../../common-adapters'
-import {globalColors, platformStyles, styleSheetCreate} from '../../../../styles'
+import * as Kb from '../../../../common-adapters'
+import * as Styles from '../../../../styles'
 import {formatDurationShort} from '../../../../util/timestamp'
 
 export const ExplodingMeta = ({explodingModeSeconds}: {explodingModeSeconds: number}) => {
@@ -10,8 +10,8 @@ export const ExplodingMeta = ({explodingModeSeconds}: {explodingModeSeconds: num
     return null
   }
   return (
-    <Meta
-      backgroundColor={globalColors.black_75_on_white}
+    <Kb.Meta
+      backgroundColor={Styles.globalColors.black_75_on_white}
       noUppercase={true}
       style={styles.timeBadge}
       size="Small"
@@ -20,10 +20,10 @@ export const ExplodingMeta = ({explodingModeSeconds}: {explodingModeSeconds: num
   )
 }
 
-const styles = styleSheetCreate({
-  timeBadge: platformStyles({
+const styles = Styles.styleSheetCreate({
+  timeBadge: Styles.platformStyles({
     common: {
-      borderColor: globalColors.white,
+      borderColor: Styles.globalColors.white,
       borderRadius: 3,
       borderStyle: 'solid',
       paddingBottom: 1,

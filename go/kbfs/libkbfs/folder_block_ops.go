@@ -3689,7 +3689,10 @@ func (fbo *folderBlockOps) MarkNode(
 
 	for _, info := range infos {
 		err = dbc.Mark(ctx, info.BlockPointer.ID, tag, cacheType)
-		if err != nil {
+		switch errors.Cause(err).(type) {
+		case nil:
+		case NoSuchBlockError:
+		default:
 			return err
 		}
 	}

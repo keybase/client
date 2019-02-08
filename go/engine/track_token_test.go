@@ -439,18 +439,26 @@ func TestTrackFailTempRecover(t *testing.T) {
 	assertTracking(tc, username)
 }
 
-type FakeGregorDismisser struct {
+type FakeGregorState struct {
 	dismissedMsgID gregor.MsgID
 }
 
-var _ libkb.GregorDismisser = (*FakeGregorDismisser)(nil)
+var _ libkb.GregorState = (*FakeGregorState)(nil)
 
-func (d *FakeGregorDismisser) DismissItem(ctx context.Context, cli gregor1.IncomingInterface, id gregor.MsgID) error {
+func (d *FakeGregorState) State(ctx context.Context) (gregor.State, error) {
+	return nil, nil
+}
+
+func (d *FakeGregorState) InjectItem(ctx context.Context, cat string, body []byte, dtime gregor1.TimeOrOffset) (gregor1.MsgID, error) {
+	return nil, nil
+}
+
+func (d *FakeGregorState) DismissItem(ctx context.Context, cli gregor1.IncomingInterface, id gregor.MsgID) error {
 	d.dismissedMsgID = id
 	return nil
 }
 
-func (d *FakeGregorDismisser) LocalDismissItem(ctx context.Context, id gregor.MsgID) error {
+func (d *FakeGregorState) LocalDismissItem(ctx context.Context, id gregor.MsgID) error {
 	return nil
 }
 
@@ -460,8 +468,8 @@ func TestTrackWithTokenDismissesGregor(t *testing.T) {
 	sigVersion := libkb.GetDefaultSigVersion(tc.G)
 	fu := CreateAndSignupFakeUser(tc, "track")
 
-	dismisser := &FakeGregorDismisser{}
-	tc.G.GregorDismisser = dismisser
+	dismisser := &FakeGregorState{}
+	tc.G.GregorState = dismisser
 
 	msgID := gregor1.MsgID("my_random_id")
 	responsibleGregorItem := gregor1.ItemAndMetadata{

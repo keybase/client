@@ -75,7 +75,7 @@ class Checkbox extends Component<Props, State> {
           </NativeAnimated.View>
           {!!this.props.labelComponent && <Box style={styleLabel}>{this.props.labelComponent}</Box>}
           {!this.props.labelComponent && (
-            <Text type="Body" style={styleText}>
+            <Text type="Body" style={collapseStyles([styleText, this.props.disabled && {opacity: 0.3}])}>
               {this.props.label}
             </Text>
           )}

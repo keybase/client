@@ -77,13 +77,9 @@ func (ncs *nodeCacheStandard) newChildForParentLocked(parent Node) (*nodeStandar
 	return nodeStandard, nil
 }
 func (ncs *nodeCacheStandard) wrapNodeStandard(
-	n Node, rootWrappers []func(Node) Node) Node {
-	ns, ok := n.(*nodeStandard)
-	if !ok {
-		return n
-	}
-	if ns.core.parent != nil {
-		return ns.core.parent.WrapChild(n)
+	n Node, rootWrappers []func(Node) Node, parent Node) Node {
+	if parent != nil {
+		return parent.WrapChild(n)
 	}
 	for _, f := range rootWrappers {
 		n = f(n)
@@ -104,7 +100,7 @@ func (ncs *nodeCacheStandard) GetOrCreate(
 	var rootWrappers []func(Node) Node
 	defer func() {
 		if n != nil {
-			n = ncs.wrapNodeStandard(n, rootWrappers)
+			n = ncs.wrapNodeStandard(n, rootWrappers, parent)
 		}
 	}()
 
@@ -163,9 +159,10 @@ func (ncs *nodeCacheStandard) Get(ref BlockRef) (n Node) {
 	}
 
 	var rootWrappers []func(Node) Node
+	var parent Node
 	defer func() {
 		if n != nil {
-			n = ncs.wrapNodeStandard(n, rootWrappers)
+			n = ncs.wrapNodeStandard(n, rootWrappers, parent)
 		}
 	}()
 
@@ -176,7 +173,9 @@ func (ncs *nodeCacheStandard) Get(ref BlockRef) (n Node) {
 	if !ok {
 		return nil
 	}
-	return ncs.makeNodeStandardForEntryLocked(entry)
+	ns := ncs.makeNodeStandardForEntryLocked(entry)
+	parent = ns.core.parent // get while under lock
+	return ns
 }
 
 // UpdatePointer implements the NodeCache interface for nodeCacheStandard.

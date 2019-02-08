@@ -25,6 +25,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   editingMap: I.Map(),
   explodingModeLocks: I.Map(),
   explodingModes: I.Map(),
+  focus: null,
   inboxFilter: '',
   inboxHasLoaded: false,
   isWalletsNew: true,
@@ -171,6 +172,7 @@ export const anyChatWaitingKeys = (state: TypedState) =>
  * Gregor key for exploding conversations
  * Used as the `category` when setting the exploding mode on a conversation
  * `body` is the number of seconds to exploding message etime
+ * Note: The core service also uses this value, so if it changes, please notify core
  */
 export const explodingModeGregorKeyPrefix = 'exploding:'
 export const explodingModeGregorKey = (c: Types.ConversationIDKey): string =>
@@ -224,16 +226,6 @@ export const anyToConversationMembersType = (a: any): ?RPCChatTypes.Conversation
   }
 }
 
-const successfulInlinePaymentStatuses = ['completed', 'claimable']
-export const hasSuccessfulInlinePayments = (state: TypedState, message: Types.Message) => {
-  if (message.type !== 'text' || !message.inlinePaymentIDs) {
-    return false
-  }
-  return message.inlinePaymentIDs.some(id =>
-    successfulInlinePaymentStatuses.includes(state.chat2.paymentStatusMap.get(id)?.status)
-  )
-}
-
 export const threadRoute = isMobile
   ? [chatTab, 'conversation']
   : [{props: {}, selected: chatTab}, {props: {}, selected: null}]
@@ -268,6 +260,7 @@ export {
   getMessageID,
   getRequestMessageInfo,
   getPaymentMessageInfo,
+  hasSuccessfulInlinePayments,
   isPendingPaymentMessage,
   isSpecialMention,
   isVideoAttachment,

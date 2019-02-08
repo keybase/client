@@ -8,11 +8,21 @@ import nav from './nav/index.stories'
 import notifications from './notifications/index.stories'
 import passphrase from './passphrase/index.stories'
 import chat from './chat/index.stories'
+import landing from './landing/index.stories'
 
 const load = () => {
-  ;[email, passphrase, deleteMe, deleteConfirm, notifications, inviteGenerated, invites, nav, chat].forEach(
-    load => load()
-  )
+  ;[
+    email,
+    passphrase,
+    deleteMe,
+    deleteConfirm,
+    notifications,
+    inviteGenerated,
+    invites,
+    nav,
+    chat,
+    landing,
+  ].forEach(load => load())
 }
 
 export default load

@@ -923,6 +923,7 @@ func (fbo *folderBranchOps) doPartialSync(
 	}
 
 	chs := make(map[string]<-chan struct{}, len(syncConfig.Paths))
+	lState := makeFBOLockState()
 	// Look up and solo-sync each lead-up component of the path.
 pathLoop:
 	for _, p := range syncConfig.Paths {
@@ -941,7 +942,8 @@ pathLoop:
 				continue
 			}
 			// TODO: parallelize the parent fetches and lookups.
-			currNode, _, err = fbo.Lookup(ctx, currNode, parent)
+			currNode, _, err = fbo.blocks.Lookup(
+				ctx, lState, latestMerged.ReadOnly(), currNode, parent)
 			switch errors.Cause(err).(type) {
 			case NoSuchNameError:
 				fbo.log.CDebugf(ctx, "Synced path %s doesn't exist yet", p)
@@ -962,7 +964,8 @@ pathLoop:
 		}
 
 		// Kick off a full deep sync of `syncedElem`.
-		elemNode, _, err := fbo.Lookup(ctx, currNode, syncedElem)
+		elemNode, _, err := fbo.blocks.Lookup(
+			ctx, lState, latestMerged.ReadOnly(), currNode, syncedElem)
 		switch errors.Cause(err).(type) {
 		case NoSuchNameError:
 			fbo.log.CDebugf(ctx, "Synced element %s doesn't exist yet", p)
@@ -2423,7 +2426,11 @@ func (fbo *folderBranchOps) initMDLocked(
 		return RekeyConflictError{err}
 	}
 
-	md.loadCachedBlockChanges(ctx, bps, fbo.log)
+	md, irmd, err = fbo.loadCachedMDChanges(ctx, bps,
+		session.VerifyingKey, md, irmd)
+	if err != nil {
+		return err
+	}
 
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
@@ -3411,6 +3418,25 @@ func (fbo *folderBranchOps) handleUnflushedEditNotifications(
 	return nil
 }
 
+func (fbo *folderBranchOps) loadCachedMDChanges(ctx context.Context,
+	bps blockPutState, key kbfscrypto.VerifyingKey, md *RootMetadata,
+	irmd ImmutableRootMetadata) (*RootMetadata, ImmutableRootMetadata, error) {
+	md, copied := md.loadCachedBlockChanges(ctx, bps, fbo.log,
+		fbo.config.Codec())
+
+	if copied {
+		irmd = MakeImmutableRootMetadata(
+			md, key, irmd.mdID, fbo.config.Clock().Now(), true)
+
+		err := fbo.config.MDCache().Replace(irmd, irmd.BID())
+		if err != nil {
+			return nil, ImmutableRootMetadata{}, err
+		}
+	}
+	return md, irmd, nil
+
+}
+
 func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 	lState *lockState, md *RootMetadata, bps blockPutState, excl Excl,
 	notifyFn func(ImmutableRootMetadata) error) (
@@ -3468,7 +3494,8 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 		return err
 	}
 
-	if !fbo.isUnmergedLocked(lState) {
+	isMerged := !fbo.isUnmergedLocked(lState)
+	if isMerged {
 		// only do a normal Put if we're not already staged.
 		irmd, err = mdops.Put(
 			ctx, md, session.VerifyingKey, nil, keybase1.MDPriorityNormal)
@@ -3558,7 +3585,11 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 		}
 	}
 
-	md.loadCachedBlockChanges(ctx, bps, fbo.log)
+	md, irmd, err = fbo.loadCachedMDChanges(ctx, bps,
+		session.VerifyingKey, md, irmd)
+	if err != nil {
+		return err
+	}
 
 	rebased := (oldPrevRoot != md.PrevRoot())
 	if rebased {
@@ -3707,7 +3738,10 @@ func (fbo *folderBranchOps) finalizeMDRekeyWriteLocked(ctx context.Context,
 		fbo.cr.Resolve(ctx, md.Revision(), kbfsmd.RevisionUninitialized)
 	}
 
-	md.loadCachedBlockChanges(ctx, nil, fbo.log)
+	md, irmd, err = fbo.loadCachedMDChanges(ctx, nil, key, md, irmd)
+	if err != nil {
+		return err
+	}
 
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
@@ -3772,7 +3806,12 @@ func (fbo *folderBranchOps) finalizeGCOp(ctx context.Context, gco *GCOp) (
 	}
 
 	fbo.setBranchIDLocked(lState, kbfsmd.NullBranchID)
-	md.loadCachedBlockChanges(ctx, bps, fbo.log)
+
+	md, irmd, err = fbo.loadCachedMDChanges(ctx, bps,
+		session.VerifyingKey, md, irmd)
+	if err != nil {
+		return err
+	}
 
 	rebased := (oldPrevRoot != md.PrevRoot())
 	if rebased {
@@ -5420,7 +5459,7 @@ func (fbo *folderBranchOps) syncAllLocked(
 		fbo.log.CDebugf(ctx, "Syncing file %v (%s)", ref, file)
 
 		// Start the sync for this dirty file.
-		doSync, stillDirty, _, dirtyDe, newBps, syncState, cleanup, err :=
+		doSync, stillDirty, fblock, dirtyDe, newBps, syncState, cleanup, err :=
 			fbo.startSyncLocked(ctx, lState, md, node, file)
 		if cleanup != nil {
 			// Note: This passes the same `blocksToRemove` into each
@@ -5454,9 +5493,9 @@ func (fbo *folderBranchOps) syncAllLocked(
 		resolvedPaths[file.tailPointer()] = file
 		parent := file.parentPath().tailPointer()
 		if _, ok := fileBlocks[parent]; !ok {
-			fileBlocks[parent] = make(map[string]BlockPointer)
+			fileBlocks[parent] = make(map[string]*FileBlock)
 		}
-		fileBlocks[parent][file.tailName()] = file.tailPointer()
+		fileBlocks[parent][file.tailName()] = fblock
 
 		// Collect its `afterUpdateFn` along with all the others, so
 		// they all get invoked under the same lock, to avoid any
@@ -7417,7 +7456,11 @@ func (fbo *folderBranchOps) finalizeResolutionLocked(ctx context.Context,
 		defer fbo.config.RekeyQueue().Enqueue(md.TlfID())
 	}
 
-	md.loadCachedBlockChanges(ctx, bps, fbo.log)
+	md, irmd, err = fbo.loadCachedMDChanges(ctx, bps,
+		session.VerifyingKey, md, irmd)
+	if err != nil {
+		return err
+	}
 
 	// Set the head to the new MD.
 	fbo.headLock.Lock(lState)
@@ -7615,6 +7658,15 @@ func (fbo *folderBranchOps) handleMDFlush(
 		rev, kbfsmd.Merged, nil)
 	if err != nil {
 		fbo.log.CWarningf(ctx, "Couldn't get revision %d for archiving: %v",
+			rev, err)
+		return
+	}
+
+	rmd, err = reembedBlockChangesIntoCopyIfNeeded(
+		ctx, fbo.config.Codec(), fbo.config.BlockCache(),
+		fbo.config.BlockOps(), fbo.config.Mode(), rmd, fbo.log)
+	if err != nil {
+		fbo.log.CWarningf(ctx, "Couldn't reembed revision %d: %v",
 			rev, err)
 		return
 	}

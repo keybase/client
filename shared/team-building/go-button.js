@@ -8,7 +8,7 @@ export type Props = {
 }
 
 const Go = () => (
-  <Kb.Text type="BodySmallSemibold" style={styles.go}>
+  <Kb.Text type="BodyBig" style={styles.go}>
     Go!
   </Kb.Text>
 )
@@ -16,7 +16,7 @@ const Go = () => (
 const GoIcon = () => (
   <Kb.Icon
     type="iconfont-return"
-    fontSize={22}
+    fontSize={16}
     color={Styles.globalColors.white}
     style={Kb.iconCastPlatformStyles(styles.goIcon)}
   />

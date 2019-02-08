@@ -29,5 +29,8 @@ func (s *Me) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Conversa
 	if err != nil {
 		return err
 	}
+	if len(msg) == 0 {
+		return nil
+	}
 	return s.G().ChatHelper.SendTextByIDNonblock(ctx, convID, tlfName, fmt.Sprintf("_%s_", msg))
 }

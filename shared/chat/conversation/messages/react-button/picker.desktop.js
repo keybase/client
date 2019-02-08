@@ -7,6 +7,10 @@ import {type Props} from './picker'
 class Picker extends React.Component<Props> {
   _picker: EmojiPicker
 
+  _setPicker = picker => {
+    this._picker = picker
+  }
+
   // Setting autoFocus={true} on Picker doesn't work, so focus it
   // ourselves on mount/update.
 
@@ -23,7 +27,13 @@ class Picker extends React.Component<Props> {
     if (!input) {
       return
     }
-    input.focus()
+    // HACK: If Picker is placed within a Kb.FloatingBox, just doing
+    // input.focus() here doesn't work, but setImmediate does.
+    //
+    // There's some weird stuff happening with Modal in
+    // relative-popup-hoc.desktop.js that makes calling input.focus()
+    // immediately not work, but I'm not sure what.
+    setImmediate(() => input.focus())
   }
 
   componentDidMount() {
@@ -39,7 +49,7 @@ class Picker extends React.Component<Props> {
       <EmojiPicker
         autoFocus={true}
         emoji="star-struck"
-        ref={picker => (this._picker = picker)}
+        ref={this._setPicker}
         title="reacjibase"
         onClick={this.props.onClick}
         backgroundImageFn={this.props.backgroundImageFn}

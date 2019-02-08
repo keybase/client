@@ -2,8 +2,11 @@ package identify3
 
 import (
 	"encoding/hex"
+	"fmt"
+	"strings"
 	"sync"
 
+	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
@@ -16,6 +19,7 @@ type UIAdapter struct {
 	libkb.MetaContextified
 	session     *libkb.Identify3Session
 	ui          keybase1.Identify3UiInterface
+	username    string
 	iFollowThem bool
 	sentResult  bool
 	isUpcall    bool
@@ -68,6 +72,10 @@ func NewUIAdapterWithSession(mctx libkb.MetaContext, ui keybase1.Identify3UiInte
 }
 
 func (i *UIAdapter) Start(user string, reason keybase1.IdentifyReason, force bool) error {
+	i.Lock()
+	i.username = user
+	i.Unlock()
+
 	if !i.isUpcall {
 		return nil
 	}
@@ -162,11 +170,54 @@ func (i *UIAdapter) finishRemoteCheck(proof keybase1.RemoteProof, lcr keybase1.L
 	arg := keybase1.Identify3UpdateRowArg{
 		Key:   proof.Key,
 		Value: proof.Value,
+		SigID: proof.SigID,
 	}
 
+	var humanURLOrSigchainURL string
 	if lcr.Hint != nil {
-		arg.SiteURL = lcr.Hint.HumanUrl
-		arg.ProofURL = lcr.Hint.ApiUrl
+		humanURLOrSigchainURL = lcr.Hint.HumanUrl
+	}
+	if len(humanURLOrSigchainURL) == 0 {
+		humanURLOrSigchainURL = i.makeSigchainViewURL(proof.SigID)
+	}
+
+	arg.ProofURL = humanURLOrSigchainURL
+	switch proof.ProofType {
+	case keybase1.ProofType_TWITTER:
+		arg.SiteURL = fmt.Sprintf("https://twitter.com/%v", proof.Value)
+	case keybase1.ProofType_GITHUB:
+		arg.SiteURL = fmt.Sprintf("https://github.com/%v", proof.Value)
+	case keybase1.ProofType_REDDIT:
+		arg.SiteURL = fmt.Sprintf("https://reddit.com/user/%v", proof.Value)
+	case keybase1.ProofType_HACKERNEWS:
+		arg.SiteURL = fmt.Sprintf("https://news.ycombinator.com/user?id=%v", proof.Value)
+	case keybase1.ProofType_FACEBOOK:
+		arg.SiteURL = fmt.Sprintf("https://facebook.com/%v", proof.Value)
+	case keybase1.ProofType_GENERIC_SOCIAL:
+		arg.SiteURL = humanURLOrSigchainURL
+		serviceType := i.G().GetProofServices().GetServiceType(proof.Key)
+		if serviceType != nil {
+			if serviceType, ok := serviceType.(*externals.GenericSocialProofServiceType); ok {
+				profileURL, err := serviceType.ProfileURL(proof.Value)
+				if err == nil {
+					arg.SiteURL = profileURL
+				}
+			}
+		}
+		arg.ProofURL = i.makeSigchainViewURL(proof.SigID)
+	case keybase1.ProofType_GENERIC_WEB_SITE:
+		protocol := "https"
+		if proof.Key != "https" {
+			protocol = "http"
+		}
+		arg.SiteURL = fmt.Sprintf("%v://%v", protocol, proof.Value)
+	case keybase1.ProofType_DNS:
+		arg.SiteURL = fmt.Sprintf("http://%v", proof.Value)
+		arg.ProofURL = i.makeSigchainViewURL(proof.SigID)
+	default:
+		if lcr.Hint != nil {
+			arg.SiteURL = humanURLOrSigchainURL
+		}
 	}
 
 	needUpgrade := i.setRowStatus(&arg, lcr)
@@ -210,14 +261,17 @@ func (i *UIAdapter) DisplayKey(key keybase1.IdentifyKey) error {
 }
 
 func (i *UIAdapter) displayKey(key keybase1.IdentifyKey) {
-
 	if key.PGPFingerprint == nil {
 		return
 	}
 
 	arg := keybase1.Identify3UpdateRowArg{
-		Key:   "pgp",
-		Value: hex.EncodeToString(key.PGPFingerprint),
+		Key:     "pgp",
+		Value:   hex.EncodeToString(key.PGPFingerprint),
+		SigID:   key.SigID,
+		SiteURL: i.makeKeybaseProfileURL(),
+		// key.SigID is blank if the PGP key was there pre-sigchain
+		ProofURL: i.makeSigchainViewURL(key.SigID),
 	}
 
 	switch {
@@ -267,6 +321,7 @@ func (i *UIAdapter) plumbUncheckedProof(row keybase1.IdentifyRow) {
 		Value: row.Proof.Value,
 		State: keybase1.Identify3RowState_CHECKING,
 		Color: keybase1.Identify3RowColor_GRAY,
+		SigID: row.Proof.SigID,
 	})
 }
 
@@ -306,21 +361,61 @@ func (i *UIAdapter) sendResult(typ keybase1.Identify3ResultType) error {
 	return err
 }
 
+func (i *UIAdapter) makeKeybaseProfileURL() string {
+	url := libkb.SiteURILookup[i.M().G().Env.GetRunMode()]
+	var parts []string
+	if url == "" {
+		return url
+	}
+	parts = append(parts, url, i.username)
+	return strings.Join(parts, "/")
+}
+
+func (i *UIAdapter) makeSigchainViewURL(s keybase1.SigID) string {
+	url := libkb.SiteURILookup[i.M().G().Env.GetRunMode()]
+	var parts []string
+	if url == "" {
+		return url
+	}
+	parts = append(parts, url, i.username)
+	page := "sigchain"
+	if !s.IsNil() {
+		page = page + "#" + s.String()
+	}
+	parts = append(parts, page)
+	return strings.Join(parts, "/")
+}
+
 func (i *UIAdapter) plumbCryptocurrency(crypto keybase1.Cryptocurrency) {
+	key := crypto.Type
+	switch crypto.Family {
+	case string(libkb.CryptocurrencyFamilyBitcoin):
+		key = "btc"
+	case string(libkb.CryptocurrencyFamilyZCash):
+		key = "zcash"
+	default:
+		i.M().CDebugf("unrecgonized crypto family: %v, %v", crypto.Type, crypto.Family)
+	}
 	i.updateRow(keybase1.Identify3UpdateRowArg{
-		Key:   crypto.Type,
-		Value: crypto.Address,
-		State: keybase1.Identify3RowState_VALID,
-		Color: keybase1.Identify3RowColor_GREEN,
+		Key:      key,
+		Value:    crypto.Address,
+		State:    keybase1.Identify3RowState_VALID,
+		Color:    keybase1.Identify3RowColor_GREEN,
+		SigID:    crypto.SigID,
+		SiteURL:  i.makeSigchainViewURL(crypto.SigID),
+		ProofURL: i.makeSigchainViewURL(crypto.SigID),
 	})
 }
 
 func (i *UIAdapter) plumbStellarAccount(str keybase1.StellarAccount) {
 	i.updateRow(keybase1.Identify3UpdateRowArg{
-		Key:   "stellar",
-		Value: str.FederationAddress,
-		State: keybase1.Identify3RowState_VALID,
-		Color: keybase1.Identify3RowColor_GREEN,
+		Key:      "stellar",
+		Value:    str.FederationAddress,
+		State:    keybase1.Identify3RowState_VALID,
+		Color:    keybase1.Identify3RowColor_GREEN,
+		SigID:    str.SigID,
+		SiteURL:  i.makeSigchainViewURL(str.SigID),
+		ProofURL: i.makeSigchainViewURL(str.SigID),
 	})
 }
 

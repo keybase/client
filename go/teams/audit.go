@@ -1,6 +1,7 @@
 package teams
 
 import (
+	"context"
 	"crypto/rand"
 	"fmt"
 	"math/big"
@@ -93,6 +94,7 @@ func NewAuditor(g *libkb.GlobalContext) *Auditor {
 // off of the given GlobalContext.
 func NewAuditorAndInstall(g *libkb.GlobalContext) {
 	if g.GetEnv().GetDisableTeamAuditor() {
+		g.Log.CDebugf(context.TODO(), "Using dummy auditor, audit disabled")
 		g.SetTeamAuditor(dummyAuditor{})
 	} else {
 		g.SetTeamAuditor(NewAuditor(g))

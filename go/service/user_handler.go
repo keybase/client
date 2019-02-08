@@ -59,7 +59,7 @@ func (r *userHandler) passwordChange(m libkb.MetaContext, cli gregor1.IncomingIn
 	m.CDebugf("userHandler: %s received", category)
 
 	r.G().NotifyRouter.HandlePasswordChanged(m.Ctx())
-	return r.G().GregorDismisser.DismissItem(m.Ctx(), cli, item.Metadata().MsgID())
+	return r.G().GregorState.DismissItem(m.Ctx(), cli, item.Metadata().MsgID())
 }
 
 func (r *userHandler) Dismiss(ctx context.Context, cli gregor1.IncomingInterface, category string, item gregor.Item) (bool, error) {

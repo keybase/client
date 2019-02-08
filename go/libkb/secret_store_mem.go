@@ -26,6 +26,10 @@ func (s *SecretStoreMem) StoreSecret(m MetaContext, username NormalizedUsername,
 }
 
 func (s *SecretStoreMem) ClearSecret(m MetaContext, username NormalizedUsername) error {
+	if username.IsNil() {
+		m.CDebugf("NOOPing SecretStoreMem#ClearSecret for empty username")
+		return nil
+	}
 	delete(s.secrets, username)
 	return nil
 }

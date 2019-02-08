@@ -169,12 +169,19 @@ func (cache *DiskBlockCacheService) UpdateBlockMetadata(ctx context.Context,
 	if dbc == nil {
 		return DiskBlockCacheError{"Disk cache is nil"}
 	}
-	blockID := kbfsblock.ID{}
-	err := blockID.UnmarshalBinary(arg.BlockID)
+	tlfID := tlf.ID{}
+	err := tlfID.UnmarshalBinary(arg.TlfID)
 	if err != nil {
 		return newDiskBlockCacheError(err)
 	}
-	err = dbc.UpdateMetadata(ctx, blockID, PrefetchStatus(arg.PrefetchStatus))
+	blockID := kbfsblock.ID{}
+	err = blockID.UnmarshalBinary(arg.BlockID)
+	if err != nil {
+		return newDiskBlockCacheError(err)
+	}
+	err = dbc.UpdateMetadata(
+		ctx, tlfID, blockID, PrefetchStatus(arg.PrefetchStatus),
+		DiskBlockAnyCache)
 	if err != nil {
 		return newDiskBlockCacheError(err)
 	}

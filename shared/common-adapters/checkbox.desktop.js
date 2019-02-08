@@ -51,7 +51,7 @@ class Checkbox extends Component<Props> {
             fontSize={9}
           />
         </div>
-        <Text type="Body" style={{color: globalColors.black_75}}>
+        <Text type="Body" style={collapseStyles([styleText, this.props.disabled && {opacity: 0.3}])}>
           {this.props.labelComponent || this.props.label}
         </Text>
       </div>
@@ -71,6 +71,10 @@ const styleIcon = {
   left: 1,
   position: 'absolute',
   top: 1,
+}
+
+const styleText = {
+  color: globalColors.black_75,
 }
 
 export default Checkbox

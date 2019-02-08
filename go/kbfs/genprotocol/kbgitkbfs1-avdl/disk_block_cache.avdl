@@ -54,5 +54,5 @@ protocol DiskBlockCache {
   /**
     UpdateBlockMetadata updates the metadata for a block in the disk cache.
     */
-  void UpdateBlockMetadata(bytes blockID, PrefetchStatus prefetchStatus);
+  void UpdateBlockMetadata(bytes tlfID, bytes blockID, PrefetchStatus prefetchStatus);
 }

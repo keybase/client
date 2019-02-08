@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/stretchr/testify/require"
 )
 
@@ -67,6 +68,7 @@ var fmtTests = []fmtTest{
 }
 
 func TestFormatAmount(t *testing.T) {
+	tc := libkb.SetupTest(t, "fmt", 1)
 	for i, test := range fmtTests {
 		switch test.rounding {
 		case "", "round", "truncate":
@@ -81,7 +83,7 @@ func TestFormatAmount(t *testing.T) {
 				continue
 			}
 			desc := fmt.Sprintf("amount: %v (2pt prec %v) (rounding %v)", test.amount, test.precTwo, rounding)
-			x, err := FormatAmount(test.amount, test.precTwo, rounding)
+			x, err := FormatAmount(libkb.NewMetaContextForTest(tc), test.amount, test.precTwo, rounding)
 			if test.valid {
 				require.NoError(t, err, "%v => error: %v", desc, err)
 				require.Equal(t, test.out, x, "%v => %q, expected: %q", desc, x, test.out)
