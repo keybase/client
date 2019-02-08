@@ -33,6 +33,8 @@ type WalletState struct {
 	rateGroup      *singleflight.Group
 	shutdownOnce   sync.Once
 	sync.Mutex
+	seqnoMu       sync.Mutex
+	seqnoLockHeld bool
 }
 
 // NewWalletState creates a wallet state with a remoter that will be
@@ -73,6 +75,24 @@ func (w *WalletState) Shutdown() error {
 		mctx.CDebugf("WalletState shut down complete")
 	})
 	return nil
+}
+
+// SeqnoLock acquires a lock on seqno operations.  NewSeqnoProvider calls it.
+// After all operations with a seqno provider are done (i.e. fully submitted
+// to stellard), then the lock should be released with SeqnoUnlock.
+func (w *WalletState) SeqnoLock() {
+	w.seqnoMu.Lock()
+	w.Lock()
+	w.seqnoLockHeld = true
+	w.Unlock()
+}
+
+// SeqnoUnlock releases the lock on seqno operations.
+func (w *WalletState) SeqnoUnlock() {
+	w.Lock()
+	w.seqnoMu.Unlock()
+	w.seqnoLockHeld = false
+	w.Unlock()
 }
 
 // accountState returns the AccountState object for an accountID.
@@ -230,6 +250,12 @@ func (w *WalletState) AccountSeqno(ctx context.Context, accountID stellar1.Accou
 // AccountSeqnoAndBump gets the current seqno for an account and increments
 // the stored value.
 func (w *WalletState) AccountSeqnoAndBump(ctx context.Context, accountID stellar1.AccountID) (uint64, error) {
+	w.Lock()
+	hasSeqnoLock := w.seqnoLockHeld
+	w.Unlock()
+	if !hasSeqnoLock {
+		return 0, errors.New("you must hold SeqnoLock() before AccountSeqnoAndBump")
+	}
 	a, err := w.accountStateRefresh(ctx, accountID, "AccountSeqnoAndBump")
 	if err != nil {
 		return 0, err
@@ -332,8 +358,36 @@ func (w *WalletState) RemovePendingTx(ctx context.Context, accountID stellar1.Ac
 	return a.RemovePendingTx(ctx, txID)
 }
 
+// SubmitPayment is an override of remoter's SubmitPayment.
+func (w *WalletState) SubmitPayment(ctx context.Context, post stellar1.PaymentDirectPost) (stellar1.PaymentResult, error) {
+	w.Lock()
+	hasSeqnoLock := w.seqnoLockHeld
+	w.Unlock()
+	if !hasSeqnoLock {
+		return stellar1.PaymentResult{}, errors.New("you must hold SeqnoLock() before SubmitPayment")
+	}
+	return w.Remoter.SubmitPayment(ctx, post)
+}
+
+// SubmitRelayPayment is an override of remoter's SubmitRelayPayment.
+func (w *WalletState) SubmitRelayPayment(ctx context.Context, post stellar1.PaymentRelayPost) (stellar1.PaymentResult, error) {
+	w.Lock()
+	hasSeqnoLock := w.seqnoLockHeld
+	w.Unlock()
+	if !hasSeqnoLock {
+		return stellar1.PaymentResult{}, errors.New("you must hold SeqnoLock() before SubmitRelayPayment")
+	}
+	return w.Remoter.SubmitRelayPayment(ctx, post)
+}
+
 // SubmitRelayClaim is an override of remoter's SubmitRelayClaim.
 func (w *WalletState) SubmitRelayClaim(ctx context.Context, post stellar1.RelayClaimPost) (stellar1.RelayClaimResult, error) {
+	w.Lock()
+	hasSeqnoLock := w.seqnoLockHeld
+	w.Unlock()
+	if !hasSeqnoLock {
+		return stellar1.RelayClaimResult{}, errors.New("you must hold SeqnoLock() before SubmitRelayClaim")
+	}
 	result, err := w.Remoter.SubmitRelayClaim(ctx, post)
 	if err == nil {
 		mctx := libkb.NewMetaContext(ctx, w.G())

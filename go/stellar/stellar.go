@@ -554,7 +554,7 @@ func sendPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg SendP
 	if recipient.AccountID == nil || sendArg.ForceRelay {
 		return sendRelayPayment(mctx, walletState,
 			senderSeed, recipient, sendArg.Amount, sendArg.DisplayBalance,
-			sendArg.SecretNote, sendArg.PublicMemo, sendArg.QuickReturn)
+			sendArg.SecretNote, sendArg.PublicMemo, sendArg.QuickReturn, senderEntry.IsPrimary)
 	}
 
 	ownRecipient, _, err := OwnAccount(mctx, stellar1.AccountID(recipient.AccountID.String()))
@@ -599,7 +599,8 @@ func sendPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg SendP
 		return res, fmt.Errorf("you must send at least %s XLM to fund the account for %s", minAmountCreateAccountXLM, sendArg.To)
 	}
 
-	sp := NewSeqnoProvider(mctx, walletState)
+	sp, unlock := NewSeqnoProvider(mctx, walletState)
+	defer unlock()
 
 	tb, err := getTimeboundsForSending(mctx, walletState)
 	if err != nil {
@@ -800,7 +801,8 @@ func SendMiniChatPayments(m libkb.MetaContext, walletState *WalletState, convID 
 		return nil, err
 	}
 
-	prepared, err := PrepareMiniChatPayments(m, walletState, senderSeed, convID, payments)
+	prepared, unlock, err := PrepareMiniChatPayments(m, walletState, senderSeed, convID, payments)
+	defer unlock()
 	if err != nil {
 		return nil, err
 	}
@@ -855,13 +857,13 @@ type MiniPrepared struct {
 	Error    error
 }
 
-func PrepareMiniChatPayments(m libkb.MetaContext, walletState *WalletState, senderSeed stellarnet.SeedStr, convID chat1.ConversationID, payments []libkb.MiniChatPayment) ([]*MiniPrepared, error) {
+func PrepareMiniChatPayments(m libkb.MetaContext, walletState *WalletState, senderSeed stellarnet.SeedStr, convID chat1.ConversationID, payments []libkb.MiniChatPayment) ([]*MiniPrepared, func(), error) {
 	prepared := make(chan *MiniPrepared)
 
-	sp := NewSeqnoProvider(m, walletState)
+	sp, unlock := NewSeqnoProvider(m, walletState)
 	tb, err := getTimeboundsForSending(m, walletState)
 	if err != nil {
-		return nil, err
+		return nil, unlock, err
 	}
 
 	for _, payment := range payments {
@@ -877,7 +879,7 @@ func PrepareMiniChatPayments(m libkb.MetaContext, walletState *WalletState, send
 	}
 	sort.Slice(preparedList, func(a, b int) bool { return preparedList[a].Seqno < preparedList[b].Seqno })
 
-	return preparedList, nil
+	return preparedList, unlock, nil
 }
 
 func prepareMiniChatPayment(m libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, tb *build.Timebounds, senderSeed stellarnet.SeedStr, convID chat1.ConversationID, payment libkb.MiniChatPayment) *MiniPrepared {
@@ -1024,7 +1026,7 @@ func prepareMiniChatPaymentRelay(mctx libkb.MetaContext, remoter remote.Remoter,
 // The balance of the relay account can be claimed by either party.
 func sendRelayPayment(mctx libkb.MetaContext, walletState *WalletState,
 	from stellar1.SecretKey, recipient stellarcommon.Recipient, amount string, displayBalance DisplayBalance,
-	secretNote string, publicMemo string, quickReturn bool) (res SendPaymentResult, err error) {
+	secretNote string, publicMemo string, quickReturn bool, senderEntryPrimary bool) (res SendPaymentResult, err error) {
 	defer mctx.CTraceTimed("Stellar.sendRelayPayment", func() error { return err })()
 	appKey, teamID, err := relays.GetKey(mctx, recipient)
 	if err != nil {
@@ -1035,7 +1037,8 @@ func sendRelayPayment(mctx libkb.MetaContext, walletState *WalletState,
 		return res, fmt.Errorf("you must send at least %s XLM to fund the account for %s", minAmountRelayXLM, recipient.Input)
 	}
 
-	sp := NewSeqnoProvider(mctx, walletState)
+	sp, unlock := NewSeqnoProvider(mctx, walletState)
+	defer unlock()
 	tb, err := getTimeboundsForSending(mctx, walletState)
 	if err != nil {
 		return res, err
@@ -1090,9 +1093,20 @@ func sendRelayPayment(mctx libkb.MetaContext, walletState *WalletState,
 		}
 	}
 
-	if err := chatSendPaymentMessage(mctx, recipient, rres.StellarID); err != nil {
-		// if the chat message fails to send, just log the error
-		mctx.CDebugf("failed to send chat SendPayment message: %s", err)
+	if senderEntryPrimary {
+		sendChat := func(mctx libkb.MetaContext) {
+			if err := chatSendPaymentMessage(mctx, recipient, rres.StellarID); err != nil {
+				// if the chat message fails to send, just log the error
+				mctx.CDebugf("failed to send chat SendPayment message: %s", err)
+			}
+		}
+		if post.QuickReturn {
+			go sendChat(mctx.WithCtx(context.Background()))
+		} else {
+			sendChat(mctx)
+		}
+	} else {
+		mctx.CDebugf("not sending chat message (relay): sending from non-primary account")
 	}
 
 	return SendPaymentResult{
@@ -1171,7 +1185,9 @@ func claimPaymentWithDetail(mctx libkb.MetaContext, walletState *WalletState,
 		// Direction from caller
 		useDir = *dir
 	}
-	sp := NewSeqnoProvider(mctx, walletState)
+
+	sp, unlock := NewSeqnoProvider(mctx, walletState)
+	defer unlock()
 	tb, err := getTimeboundsForSending(mctx, walletState)
 	if err != nil {
 		return res, err

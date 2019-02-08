@@ -36,7 +36,8 @@ func TestPrepareBatchRelays(t *testing.T) {
 	senderSeed, err := stellarnet.NewSeedStr(senderAccountBundle.Signers[0].SecureNoLogString())
 	require.NoError(t, err)
 
-	prepared, err := stellar.PrepareBatchPayments(mctx, tc.Srv.walletState, senderSeed, payments)
+	prepared, unlock, err := stellar.PrepareBatchPayments(mctx, tc.Srv.walletState, senderSeed, payments)
+	defer unlock()
 	require.NoError(t, err)
 	require.Len(t, prepared, 2)
 	for i, p := range prepared {
@@ -90,7 +91,8 @@ func TestPrepareBatchLowAmounts(t *testing.T) {
 	senderSeed, err := stellarnet.NewSeedStr(senderAccountBundle.Signers[0].SecureNoLogString())
 	require.NoError(t, err)
 
-	prepared, err := stellar.PrepareBatchPayments(mctx, tc.Srv.walletState, senderSeed, payments)
+	prepared, unlock, err := stellar.PrepareBatchPayments(mctx, tc.Srv.walletState, senderSeed, payments)
+	defer unlock()
 	require.NoError(t, err)
 	require.Len(t, prepared, 2)
 	for i, p := range prepared {

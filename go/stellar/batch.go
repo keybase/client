@@ -44,8 +44,9 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 	mctx.CDebugf("Batch size: %d", len(arg.Payments))
 
 	// prepare the payments
-	prepared, err := PrepareBatchPayments(mctx, walletState, senderSeed, arg.Payments)
+	prepared, unlock, err := PrepareBatchPayments(mctx, walletState, senderSeed, arg.Payments)
 	if err != nil {
+		walletState.SeqnoUnlock()
 		return res, err
 	}
 
@@ -54,6 +55,7 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 	// make a listener that will get payment status updates
 	listenerID, listenerCh, err := DefaultLoader(mctx.G()).GetListener()
 	if err != nil {
+		unlock()
 		return res, err
 	}
 	defer DefaultLoader(mctx.G()).RemoveListener(listenerID)
@@ -65,6 +67,7 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 	// need to submit tx one at a time, in order
 	for i := 0; i < len(prepared); i++ {
 		if prepared[i] == nil {
+			unlock()
 			// this should never happen
 			return res, errors.New("batch prepare failed")
 		}
@@ -86,6 +89,9 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 		bpResult.StatusDescription = stellar1.PaymentStatusRevMap[bpResult.Status]
 		resultList[i] = bpResult
 	}
+
+	// release the lock before waiting for the payments
+	unlock()
 
 	res.AllSubmittedTime = stellar1.ToTimeMs(time.Now())
 
@@ -147,12 +153,12 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 // PrepareBatchPayments prepares a list of payments to be submitted.
 // Each payment is prepared concurrently.
 // (this is an exposed function to make testing from outside this package easier)
-func PrepareBatchPayments(mctx libkb.MetaContext, walletState *WalletState, senderSeed stellarnet.SeedStr, payments []stellar1.BatchPaymentArg) ([]*MiniPrepared, error) {
+func PrepareBatchPayments(mctx libkb.MetaContext, walletState *WalletState, senderSeed stellarnet.SeedStr, payments []stellar1.BatchPaymentArg) ([]*MiniPrepared, func(), error) {
 	mctx.CDebugf("preparing %d batch payments", len(payments))
 
 	prepared := make(chan *MiniPrepared)
 
-	sp := NewSeqnoProvider(mctx, walletState)
+	sp, unlock := NewSeqnoProvider(mctx, walletState)
 	for _, payment := range payments {
 		go func(p stellar1.BatchPaymentArg) {
 			prepared <- prepareBatchPayment(mctx, walletState, sp, senderSeed, p)
@@ -166,7 +172,7 @@ func PrepareBatchPayments(mctx libkb.MetaContext, walletState *WalletState, send
 	}
 	sort.Slice(preparedList, func(a, b int) bool { return preparedList[a].Seqno < preparedList[b].Seqno })
 
-	return preparedList, nil
+	return preparedList, unlock, nil
 }
 
 func prepareBatchPayment(mctx libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, senderSeed stellarnet.SeedStr, payment stellar1.BatchPaymentArg) *MiniPrepared {
