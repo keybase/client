@@ -16,13 +16,15 @@ import Waiting from './waiting'
 type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
   isPending: boolean,
-  listScrollDownCounter: number,
+  scrollListDownCounter: number,
+  scrollListUpCounter: number,
   onFocusInput: () => void,
 |}
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey,
-  listScrollDownCounter: number,
+  scrollListDownCounter: number,
+  scrollListUpCounter: number,
   onFocusInput: () => void,
   onShowTracker: (user: string) => void,
   type: 'search' | 'normal' | 'start' | 'waiting',
@@ -42,7 +44,8 @@ class ListArea extends React.PureComponent<Props> {
       case 'normal':
         return (
           <Normal
-            listScrollDownCounter={this.props.listScrollDownCounter}
+            scrollListDownCounter={this.props.scrollListDownCounter}
+            scrollListUpCounter={this.props.scrollListUpCounter}
             onFocusInput={this.props.onFocusInput}
             conversationIDKey={this.props.conversationIDKey}
           />
@@ -116,9 +119,10 @@ const mapDispatchToProps = dispatch => ({
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   return {
     conversationIDKey: stateProps.conversationIDKey,
-    listScrollDownCounter: ownProps.listScrollDownCounter,
     onFocusInput: ownProps.onFocusInput,
     onShowTracker: dispatchProps.onShowTracker,
+    scrollListDownCounter: ownProps.scrollListDownCounter,
+    scrollListUpCounter: ownProps.scrollListUpCounter,
     type: stateProps.type,
   }
 }

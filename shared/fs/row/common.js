@@ -129,8 +129,9 @@ export const StillCommon = (
         <SendInAppAction path={props.path} sendIconClassName="fs-path-item-hover-icon" />
         <PathItemAction
           path={props.path}
-          actionIconClassName="fs-path-item-hover-icon"
+          clickable={{actionIconClassName: 'fs-path-item-hover-icon', type: 'icon'}}
           routePath={props.routePath}
+          initView="root"
         />
       </Kb.Box>
     )}

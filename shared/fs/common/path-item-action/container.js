@@ -3,32 +3,34 @@ import * as I from 'immutable'
 import * as Types from '../../../constants/types/fs'
 import * as FsGen from '../../../actions/fs-gen'
 import {namedConnect} from '../../../util/container'
-import PathItemAction from '.'
+import PathItemAction, {type Clickable} from '.'
 
 type OwnProps = {|
-  actionIconClassName?: string,
-  actionIconFontSize?: number,
-  actionIconWhite?: boolean,
+  clickable: Clickable,
   path: Types.Path,
   routePath: I.List<string>,
+  initView: Types.PathItemActionMenuView,
 |}
 
 const mapStateToProps = state => ({
   _downloadKey: state.fs.pathItemActionMenu.downloadKey,
 })
 
-const mapDispatchToProps = dispatch => ({
+const mapDispatchToProps = (dispatch, {initView}) => ({
   _onHidden: (toCancel: ?string) => {
     dispatch(FsGen.createClearRefreshTag({refreshTag: 'path-item-action-popup'}))
-    dispatch(FsGen.createSetPathItemActionMenuView({view: 'root'}))
     dispatch(FsGen.createSetPathItemActionMenuDownloadKey({key: null}))
     toCancel && dispatch(FsGen.createCancelDownload({key: toCancel}))
   },
+  init: () => dispatch(FsGen.createSetPathItemActionMenuView({view: initView})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  ...ownProps,
+  clickable: ownProps.clickable,
+  init: dispatchProps.init,
   onHidden: () => dispatchProps._onHidden(stateProps._downloadKey),
+  path: ownProps.path,
+  routePath: ownProps.routePath,
 })
 
 export default namedConnect<OwnProps, _, _, _, _>(

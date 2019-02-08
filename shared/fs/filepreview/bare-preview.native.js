@@ -61,7 +61,12 @@ class BarePreview extends React.PureComponent<ConnectedBarePreviewProps, State> 
           />
         </Box>
         <Box style={styles.footer}>
-          <PathItemAction path={this.props.path} actionIconWhite={true} routePath={this.props.routePath} />
+          <PathItemAction
+            path={this.props.path}
+            clickable={{actionIconWhite: true, type: 'icon'}}
+            routePath={this.props.routePath}
+            initView="root"
+          />
         </Box>
         {this.state.loading && <ProgressIndicator style={styles.loading} white={true} />}
       </Box>
