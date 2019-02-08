@@ -98,9 +98,13 @@ const Proofs = p => {
   )
 }
 
-class FriendshipTabs extends React.Component<
-  Props & {onChangeFollowing: boolean => void, selectedFollowing: boolean}
-> {
+type FriendshipTabsProps = {|
+  onChangeFollowing: boolean => void,
+  selectedFollowing: boolean,
+  numFollowers: number,
+  numFollowing: number,
+|}
+class FriendshipTabs extends React.Component<FriendshipTabsProps> {
   _tab = following => (
     <Kb.ClickableBox
       style={Styles.collapseStyles([
@@ -115,9 +119,7 @@ class FriendshipTabs extends React.Component<
           following === this.props.selectedFollowing ? styles.followTabTextSelected : styles.followTabText
         }
       >
-        {following
-          ? `FOLLOWING (${this.props.following.length})`
-          : `FOLLOWERS (${this.props.followers.length})`}
+        {following ? `FOLLOWING (${this.props.numFollowing})` : `FOLLOWERS (${this.props.numFollowers})`}
       </Kb.Text>
     </Kb.ClickableBox>
   )
@@ -151,7 +153,12 @@ class FriendRow extends React.PureComponent<{|usernames: Array<string>, itemWidt
   }
 }
 
-class BioTeamProofs extends React.PureComponent<Props> {
+type BioTeamProofsProps = {|
+  backgroundColor: string,
+  onEditAvatar: ?() => void,
+  username: string,
+|}
+class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
   render() {
     return Styles.isMobile ? (
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.bioAndProofs}>
@@ -225,7 +232,8 @@ class User extends React.Component<Props, State> {
     return (
       <FriendshipTabs
         key="tabs"
-        {...this.props}
+        numFollowers={this.props.followers.length}
+        numFollowing={this.props.following.length}
         onChangeFollowing={this._changeFollowing}
         selectedFollowing={this.state.selectedFollowing}
       />
@@ -236,7 +244,16 @@ class User extends React.Component<Props, State> {
     <FriendRow key={'friend' + index} usernames={item} itemWidth={section.itemWidth} />
   )
 
-  _bioTeamProofsSection = {data: ['bioTeamProofs'], renderItem: () => <BioTeamProofs {...this.props} />}
+  _bioTeamProofsSection = {
+    data: ['bioTeamProofs'],
+    renderItem: () => (
+      <BioTeamProofs
+        backgroundColor={this.props.backgroundColor}
+        username={this.props.username}
+        onEditAvatar={this.props.onEditAvatar}
+      />
+    ),
+  }
 
   _onMeasured = width => this.setState(p => (p.width !== width ? {width} : null))
   _keyExtractor = (item, index) => index
@@ -277,9 +294,7 @@ class User extends React.Component<Props, State> {
               ]}
               style={Styles.collapseStyles([
                 styles.sectionList,
-                {
-                  backgroundColor: Styles.isMobile ? this.props.backgroundColor : Styles.globalColors.white,
-                },
+                {backgroundColor: Styles.isMobile ? this.props.backgroundColor : Styles.globalColors.white},
               ])}
               contentContainerStyle={styles.sectionListContentStyle}
             />
