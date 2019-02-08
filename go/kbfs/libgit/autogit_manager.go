@@ -155,7 +155,7 @@ func (am *AutogitManager) removeOldCheckoutsForHandle(
 		defer am.registryLock.Unlock()
 		delete(am.deleteCancels, h.GetCanonicalPath())
 	}()
-	err = recursiveDelete(ctx, fs, fi)
+	err = libfs.RecursiveDelete(ctx, fs, fi)
 }
 
 func (am *AutogitManager) removeOldCheckouts(node libkbfs.Node) {
