@@ -122,10 +122,6 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
     ].includes(ev.key)
     if (ev.type === 'keypress' || isPasteKey || isValidSpecialKey) {
       this._inputFocus()
-    } else if (ev.key === 'PageDown') {
-      this.props.onRequestScrollDown()
-    } else if (ev.key === 'PageUp') {
-      this.props.onRequestScrollUp()
     }
   }
 
