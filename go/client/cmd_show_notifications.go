@@ -38,12 +38,14 @@ func (c *CmdShowNotifications) Run() error {
 		keybase1.NotifyUsersProtocol(display),
 		keybase1.NotifyFSProtocol(display),
 		keybase1.NotifyTrackingProtocol(display),
+		keybase1.NotifyAuditProtocol(display),
 	}
 	channels := keybase1.NotificationChannels{
 		Session:  true,
 		Users:    true,
 		Kbfs:     true,
 		Tracking: true,
+		Audit:    true,
 	}
 
 	if err := RegisterProtocolsWithContext(protocols, c.G()); err != nil {
@@ -152,6 +154,6 @@ func (d *notificationDisplay) TrackingChanged(_ context.Context, arg keybase1.Tr
 	return d.printf("Tracking changed for %s (%s)\n", arg.Username, arg.Uid)
 }
 
-func (d *notificationDisplay) RootAuditError(_ context.Context, arg keybase1.RootAuditErrorArg) (err error) {
-	return d.printf("Merkle root audit error: %s\n", arg.Message)
+func (d *notificationDisplay) RootAuditError(_ context.Context, msg string) (err error) {
+	return d.printf("Merkle root audit error: %s\n", msg)
 }
