@@ -564,7 +564,7 @@ const styles = Styles.styleSheetCreate({
       borderTopRightRadius: Styles.borderRadius,
       paddingBottom: Styles.globalMargins.xtiny,
       paddingTop: Styles.globalMargins.tiny,
-      top: -Styles.globalMargins.mediumLarge,
+      top: -Styles.globalMargins.mediumLarge + 1, // compensation for the orange line
     },
   }),
   fail: {color: Styles.globalColors.red},
