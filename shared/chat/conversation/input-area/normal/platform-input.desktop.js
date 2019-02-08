@@ -73,9 +73,9 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
     } else if (e.key === 'u' && (e.ctrlKey || e.metaKey)) {
       this._filePickerOpen()
     } else if (e.key === 'PageDown') {
-      this.props.onScrollDown()
+      this.props.onRequestScrollDown()
     } else if (e.key === 'PageUp') {
-      this.props.onScrollUp()
+      this.props.onRequestScrollUp()
     }
 
     this.props.onKeyDown && this.props.onKeyDown(e, isComposingIME)
@@ -109,9 +109,9 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
     } else if (ev.type === 'keypress' || isPasteKey || isValidSpecialKey) {
       this._inputFocus()
     } else if (ev.key === 'PageDown') {
-      this.props.onScrollDown()
+      this.props.onRequestScrollDown()
     } else if (ev.key === 'PageUp') {
-      this.props.onScrollUp()
+      this.props.onRequestScrollUp()
     }
   }
 

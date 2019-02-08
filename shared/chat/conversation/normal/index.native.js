@@ -57,8 +57,8 @@ class Conversation extends React.PureComponent<Props> {
         <InputArea
           isPending={this.props.isPending}
           focusInputCounter={this.props.focusInputCounter}
-          onScrollDown={this.props.onScrollDown}
-          onScrollUp={this.props.onScrollUp}
+          onRequestScrollDown={this.props.onRequestScrollDown}
+          onRequestScrollUp={this.props.onRequestScrollUp}
           conversationIDKey={this.props.conversationIDKey}
         />
       </Box>

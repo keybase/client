@@ -85,8 +85,10 @@ export default compose(
     {focusInputCounter: 0, scrollListDownCounter: 0, scrollListUpCounter: 0},
     {
       onFocusInput: ({focusInputCounter}) => () => ({focusInputCounter: focusInputCounter + 1}),
-      onScrollDown: ({scrollListDownCounter}) => () => ({scrollListDownCounter: scrollListDownCounter + 1}),
-      onScrollUp: ({scrollListUpCounter}) => () => ({scrollListUpCounter: scrollListUpCounter + 1}),
+      onRequestScrollDown: ({scrollListDownCounter}) => () => ({
+        scrollListDownCounter: scrollListDownCounter + 1,
+      }),
+      onRequestScrollUp: ({scrollListUpCounter}) => () => ({scrollListUpCounter: scrollListUpCounter + 1}),
     }
   )
 )(Normal)

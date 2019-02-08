@@ -11,8 +11,8 @@ import Input, {type Props} from '.'
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
   focusInputCounter: number,
-  onScrollDown: () => void,
-  onScrollUp: () => void,
+  onRequestScrollDown: () => void,
+  onRequestScrollUp: () => void,
 }
 
 // We used to store this in the route state but that's so complicated. We just want a map of id => text if we haven't sent
@@ -120,8 +120,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
   onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
   onFilePickerError: dispatchProps.onFilePickerError,
-  onScrollDown: ownProps.onScrollDown,
-  onScrollUp: ownProps.onScrollUp,
+  onRequestScrollDown: ownProps.onRequestScrollDown,
+  onRequestScrollUp: ownProps.onRequestScrollUp,
   onSubmit: (text: string) => {
     if (stateProps._editOrdinal) {
       dispatchProps._onEditMessage(stateProps.conversationIDKey, stateProps._editOrdinal, text)
