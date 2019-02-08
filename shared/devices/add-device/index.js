@@ -66,9 +66,9 @@ const DeviceBox = Styles.isMobile
     })
 const bigIcon = isLargeScreen && Styles.isMobile
 const typeToIcon = {
-  computer: bigIcon ? `icon-computer-96` : `icon-computer-64`,
-  'paper key': bigIcon ? `icon-paper-key-96` : `icon-paper-key-64`,
-  phone: bigIcon ? `icon-phone-96` : `icon-phone-64`,
+  computer: bigIcon ? 'icon-computer-96' : 'icon-computer-64',
+  'paper key': bigIcon ? 'icon-paper-key-96' : 'icon-paper-key-64',
+  phone: bigIcon ? 'icon-phone-96' : 'icon-phone-64',
 }
 const DeviceOption = ({highlight, onClick, type}) => (
   <Kb.ClickableBox onClick={onClick}>

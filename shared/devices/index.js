@@ -4,7 +4,6 @@ import * as React from 'react'
 import * as Kb from '../common-adapters'
 import DeviceRow from './row/container'
 import * as Styles from '../styles'
-import {compose} from '../util/container'
 
 type Item = {key: string, id: Types.DeviceID, type: 'device'} | {key: string, type: 'revokedHeader'}
 
@@ -202,4 +201,4 @@ const paperKeyNudgeStyles = Styles.styleSheetCreate({
   flexOne: {flex: 1},
 })
 
-export default compose(Kb.HeaderOnMobile)(Devices)
+export default Kb.HeaderOnMobile(Devices)
