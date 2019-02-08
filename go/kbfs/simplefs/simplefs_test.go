@@ -833,6 +833,93 @@ func TestCopyProgress(t *testing.T) {
 	require.NoError(t, err)
 }
 
+func TestRemove(t *testing.T) {
+	ctx := context.Background()
+	sfs := newSimpleFS(
+		env.EmptyAppStateUpdater{}, libkbfs.MakeTestConfigOrBust(t, "jdoe"))
+	defer closeSimpleFS(ctx, t, sfs)
+
+	t.Log("Make a file to remove")
+	pathKbfs := keybase1.NewPathWithKbfs("/private/jdoe")
+	writeRemoteFile(
+		ctx, t, sfs, pathAppend(pathKbfs, "test.txt"), []byte("foo"))
+	syncFS(ctx, t, sfs, "/private/jdoe")
+
+	t.Log("Make sure the file is there")
+	testList(t, ctx, sfs, pathKbfs, "test.txt")
+
+	t.Log("Remove the file")
+	pathFile := keybase1.NewPathWithKbfs("/private/jdoe/test.txt")
+	opid, err := sfs.SimpleFSMakeOpid(ctx)
+	require.NoError(t, err)
+	err = sfs.SimpleFSRemove(ctx, keybase1.SimpleFSRemoveArg{
+		OpID: opid,
+		Path: pathFile,
+	})
+	require.NoError(t, err)
+	checkPendingOp(
+		ctx, t, sfs, opid, keybase1.AsyncOps_REMOVE, pathFile, keybase1.Path{},
+		true)
+	err = sfs.SimpleFSWait(ctx, opid)
+	require.NoError(t, err)
+
+	t.Log("Make sure it's gone")
+	testList(t, ctx, sfs, pathKbfs)
+}
+
+func TestRemoveRecursive(t *testing.T) {
+	ctx := context.Background()
+	sfs := newSimpleFS(
+		env.EmptyAppStateUpdater{}, libkbfs.MakeTestConfigOrBust(t, "jdoe"))
+	defer closeSimpleFS(ctx, t, sfs)
+
+	t.Log("Make a directory to remove")
+	pathKbfs := keybase1.NewPathWithKbfs("/private/jdoe")
+	pathDir := pathAppend(pathKbfs, "a")
+	writeRemoteDir(ctx, t, sfs, pathDir)
+	writeRemoteFile(ctx, t, sfs, pathAppend(pathDir, "test1.txt"), []byte("1"))
+	writeRemoteFile(ctx, t, sfs, pathAppend(pathDir, "test2.txt"), []byte("2"))
+	pathDir2 := pathAppend(pathDir, "b")
+	writeRemoteDir(ctx, t, sfs, pathDir2)
+	writeRemoteFile(ctx, t, sfs, pathAppend(pathDir2, "test3.txt"), []byte("3"))
+	syncFS(ctx, t, sfs, "/private/jdoe")
+
+	t.Log("Make sure the files are there")
+	testList(t, ctx, sfs, pathDir, "test1.txt", "test2.txt", "b")
+
+	t.Log("Remove dir without recursion, expect error")
+	opid, err := sfs.SimpleFSMakeOpid(ctx)
+	require.NoError(t, err)
+	err = sfs.SimpleFSRemove(ctx, keybase1.SimpleFSRemoveArg{
+		OpID: opid,
+		Path: pathDir,
+	})
+	require.NoError(t, err)
+	checkPendingOp(
+		ctx, t, sfs, opid, keybase1.AsyncOps_REMOVE, pathDir, keybase1.Path{},
+		true)
+	err = sfs.SimpleFSWait(ctx, opid)
+	require.Error(t, err)
+
+	t.Log("Remove the dir recursively")
+	opid, err = sfs.SimpleFSMakeOpid(ctx)
+	require.NoError(t, err)
+	err = sfs.SimpleFSRemove(ctx, keybase1.SimpleFSRemoveArg{
+		OpID:      opid,
+		Path:      pathDir,
+		Recursive: true,
+	})
+	require.NoError(t, err)
+	checkPendingOp(
+		ctx, t, sfs, opid, keybase1.AsyncOps_REMOVE, pathDir, keybase1.Path{},
+		true)
+	err = sfs.SimpleFSWait(ctx, opid)
+	require.NoError(t, err)
+
+	t.Log("Make sure it's gone")
+	testList(t, ctx, sfs, pathKbfs)
+}
+
 func TestTlfEditHistory(t *testing.T) {
 	ctx := context.Background()
 	sfs := newSimpleFS(

@@ -167,6 +167,7 @@ protocol SimpleFS {
   record RemoveArgs {
     OpID opID;
     Path path;
+    boolean recursive;
   }
 
   record ReadArgs {
@@ -315,7 +316,7 @@ protocol SimpleFS {
   /**
    Remove file or directory from filesystem
    */
-  void simpleFSRemove(OpID opID, Path path);
+  void simpleFSRemove(OpID opID, Path path, boolean recursive);
 
   /**
    Get info about file
