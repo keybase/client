@@ -41,19 +41,21 @@ useScreens()
 // return <StackHeader mode="screen" scene={scene} scenes={scenes} navigation={p.navigation} />
 // }
 
+const defaultNavigationOptions = {
+  header: null,
+  headerLeft: hp => (
+    <LeftAction badgeNumber={0} leftAction="back" onLeftAction={hp.onPress} disabled={hp.scene.index === 0} />
+  ),
+  headerTitle: hp => (
+    <Kb.Text type="BodyBig" style={styles.headerTitle} lineClamp={1}>
+      {hp.children}
+    </Kb.Text>
+  ),
+}
 const headerMode = 'float'
 const MainStackNavigator = createStackNavigator(routes, {
   defaultNavigationOptions: p => ({
-    header: null,
-    headerLeft: hp => (
-      <LeftAction
-        badgeNumber={0}
-        leftAction="back"
-        onLeftAction={hp.onPress}
-        disabled={hp.scene.index === 0}
-      />
-    ),
-    headerTitle: null,
+    ...defaultNavigationOptions,
   }),
   headerMode,
   initialRouteName: 'tabs:peopleTab',
@@ -75,16 +77,7 @@ const LoggedOutStackNavigator = createStackNavigator(
   {...loggedOutRoutes},
   {
     defaultNavigationOptions: p => ({
-      header: null,
-      headerLeft: hp => (
-        <LeftAction
-          badgeNumber={0}
-          leftAction="back"
-          onLeftAction={hp.onPress}
-          disabled={hp.scene.index === 0}
-        />
-      ),
-      headerTitle: null,
+      ...defaultNavigationOptions,
     }),
     headerMode,
     initialRouteName: 'login',
@@ -226,6 +219,7 @@ const styles = Styles.styleSheetCreate({
     flexGrow: 1,
     position: 'relative',
   },
+  headerTitle: {color: Styles.globalColors.black_75},
   safeAreaViewTop: {flexGrow: 1},
   modalContainer: {},
 })

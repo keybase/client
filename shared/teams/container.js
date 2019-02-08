@@ -106,7 +106,7 @@ class Reloadable extends React.PureComponent<{
   }
 }
 
-export default compose(
+const Connected = compose(
   connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
@@ -118,3 +118,10 @@ export default compose(
     },
   })
 )(Reloadable)
+
+Connected.navigationOptions = {
+  header: undefined,
+  title: 'Teams',
+}
+
+export default Connected

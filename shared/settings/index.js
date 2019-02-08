@@ -39,7 +39,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   selectedTab: stateProps.selectedTab,
 })
 
-export default compose(
+const Connected = compose(
   connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
@@ -51,3 +51,10 @@ export default compose(
     },
   })
 )(SettingsContainer)
+
+Connected.navigationOptions = {
+  header: undefined,
+  title: 'Settings',
+}
+
+export default Connected
