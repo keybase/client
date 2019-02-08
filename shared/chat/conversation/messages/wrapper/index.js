@@ -102,7 +102,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               colorBroken={true}
               colorFollowing={true}
               colorYou={true}
-              type="BodySmallSemibold"
+              type="BodySmallBold"
               usernames={[this.props.showUsername]}
               onUsernameClicked={this._onAuthorClick}
             />
@@ -546,8 +546,10 @@ const styles = Styles.styleSheetCreate({
       borderBottomRightRadius: Styles.borderRadius,
       borderLeft: `1px solid ${Styles.globalColors.black_10}`,
       borderRight: `1px solid ${Styles.globalColors.black_10}`,
-      bottom: -24,
+      bottom: -Styles.globalMargins.mediumLarge,
+      height: Styles.globalMargins.mediumLarge,
       paddingBottom: Styles.globalMargins.tiny,
+      paddingTop: Styles.globalMargins.xtiny,
       position: 'absolute',
       right: 96,
       zIndex: 2,
@@ -560,9 +562,9 @@ const styles = Styles.styleSheetCreate({
       borderBottomRightRadius: 0,
       borderTopLeftRadius: Styles.borderRadius,
       borderTopRightRadius: Styles.borderRadius,
-      paddingBottom: 0,
+      paddingBottom: Styles.globalMargins.xtiny,
       paddingTop: Styles.globalMargins.tiny,
-      top: -23,
+      top: -Styles.globalMargins.mediumLarge + 1, // compensation for the orange line
     },
   }),
   fail: {color: Styles.globalColors.red},
@@ -602,9 +604,8 @@ const styles = Styles.styleSheetCreate({
     isMobile: {right: 0},
   }),
   timestamp: Styles.platformStyles({
-    common: {position: 'relative'},
-    isElectron: {top: 1},
-    isMobile: {top: 2},
+    isElectron: {lineHeight: 18},
+    isMobile: {lineHeight: 20},
   }),
 })
 
