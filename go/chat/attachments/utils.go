@@ -6,11 +6,15 @@ import (
 	"errors"
 	"io"
 	"os"
+	"strings"
+	"sync/atomic"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 )
 
@@ -75,13 +79,18 @@ func AssetFromMessage(ctx context.Context, g *globals.Context, uid gregor1.UID, 
 	return res, nil
 }
 
+type ReadCloseResetter interface {
+	io.ReadCloser
+	Reset() error
+}
+
 type FileReadResetter struct {
 	filename string
 	file     *os.File
 	buf      *bufio.Reader
 }
 
-func NewFileReadResetter(name string) (*FileReadResetter, error) {
+func NewFileReadResetter(name string) (ReadCloseResetter, error) {
 	f := &FileReadResetter{filename: name}
 	if err := f.open(); err != nil {
 		return nil, err
@@ -118,6 +127,85 @@ func (f *FileReadResetter) Close() error {
 		return f.file.Close()
 	}
 	return nil
+}
+
+type KbfsReadResetter struct {
+	client *keybase1.SimpleFSClient
+	opid   keybase1.OpID
+	offset int64
+	ctx    context.Context
+}
+
+const (
+	kbfsPrefix        = "/keybase"
+	kbfsPrefixPrivate = "/keybase/private/"
+	kbfsPrefixPublic  = "/keybase/public/"
+	kbfsPrefixTeam    = "/keybase/team/"
+)
+
+func IsKbfsPath(p string) bool {
+	return strings.HasPrefix(p, kbfsPrefixPrivate) ||
+		strings.HasPrefix(p, kbfsPrefixPublic) ||
+		strings.HasPrefix(p, kbfsPrefixTeam)
+}
+
+func NewKbfsReadResetter(ctx context.Context, g *libkb.GlobalContext, kbfsPath string) (ReadCloseResetter, error) {
+	if !IsKbfsPath(kbfsPath) {
+		return nil, errors.New("not a kbfs path")
+	}
+	xp := g.ConnectionManager.LookupByClientType(keybase1.ClientType_KBFS)
+	if xp == nil {
+		return nil, libkb.KBFSNotRunningError{}
+	}
+	client := &keybase1.SimpleFSClient{
+		Cli: rpc.NewClient(xp, libkb.NewContextifiedErrorUnwrapper(g), nil),
+	}
+
+	opid, err := client.SimpleFSMakeOpid(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = client.SimpleFSOpen(ctx, keybase1.SimpleFSOpenArg{
+		OpID:  opid,
+		Dest:  keybase1.NewPathWithKbfs(kbfsPath[len(kbfsPrefix):]),
+		Flags: keybase1.OpenFlags_READ | keybase1.OpenFlags_EXISTING,
+	}); err != nil {
+		return nil, err
+	}
+
+	return &KbfsReadResetter{
+		client: client,
+		ctx:    ctx,
+		opid:   opid,
+	}, nil
+}
+
+func (f *KbfsReadResetter) Read(p []byte) (int, error) {
+	content, err := f.client.SimpleFSRead(f.ctx, keybase1.SimpleFSReadArg{
+		OpID:   f.opid,
+		Offset: atomic.LoadInt64(&f.offset),
+		Size:   len(p),
+	})
+	if err != nil {
+		return 0, err
+	}
+	if len(content.Data) == 0 {
+		// Unfortunately SimpleFSRead doesn't return EOF error.
+		return 0, io.EOF
+	}
+	atomic.AddInt64(&f.offset, int64(len(content.Data)))
+	copy(p, content.Data)
+	return len(content.Data), nil
+}
+
+func (f *KbfsReadResetter) Reset() error {
+	atomic.StoreInt64(&f.offset, 0)
+	return nil
+}
+
+func (f *KbfsReadResetter) Close() error {
+	return f.client.SimpleFSClose(f.ctx, f.opid)
 }
 
 type BufReadResetter struct {
