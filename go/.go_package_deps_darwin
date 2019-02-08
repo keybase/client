@@ -12017,6 +12017,18 @@
       "github.com/keybase/client/go/kbfs/libgit" : 1,
       "github.com/keybase/client/go/kbfs/libpages" : 1
    },
+   "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4/internal/url" : {
+      "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
+      "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
+      "github.com/keybase/client/go/kbfs/kbfsgit" : 1,
+      "github.com/keybase/client/go/kbfs/kbfsgit/git-remote-keybase" : 1,
+      "github.com/keybase/client/go/kbfs/kbfstool" : 1,
+      "github.com/keybase/client/go/kbfs/kbpagesd" : 1,
+      "github.com/keybase/client/go/kbfs/libdokan" : 1,
+      "github.com/keybase/client/go/kbfs/libfuse" : 1,
+      "github.com/keybase/client/go/kbfs/libgit" : 1,
+      "github.com/keybase/client/go/kbfs/libpages" : 1
+   },
    "github.com/keybase/client/go/vendor/gopkg.in/src-d/go-git.v4/plumbing" : {
       "github.com/keybase/client/go/kbfs/kbfsdokan" : 1,
       "github.com/keybase/client/go/kbfs/kbfsfuse" : 1,
