@@ -82,7 +82,7 @@ const load = () => {
     .add('Default with inflation dest', () => (
       <Settings {...defaultSettingsProps} inflationDestination="Stellar Development Foundation" />
     ))
-    .add("Not founded account (can't make tx)", () => (
+    .add("Not funded account (can't make tx)", () => (
       <Settings {...defaultSettingsProps} canSubmitTx={false} />
     ))
     .add('Secondary', () => <Settings {...secondarySettingsProps} />)
