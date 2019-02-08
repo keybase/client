@@ -254,6 +254,39 @@ func TestFavoritesControlUserHistory(t *testing.T) {
 	require.Empty(t, userHistory)
 }
 
+func TestFavoritesGetAll(t *testing.T) {
+	mockCtrl, config, ctx := favTestInit(t, false)
+	f := NewFavorites(config)
+	f.Initialize(ctx)
+	defer favTestShutdown(t, mockCtrl, config, f)
+
+	// Mock out the API server.
+	teamID := keybase1.TeamID(0xdeadbeef)
+	fol := keybase1.Folder{
+		Name:       "fake folder",
+		Private:    true,
+		Created:    false,
+		FolderType: keybase1.FolderType_TEAM,
+		TeamID:     &teamID,
+	}
+	res := keybase1.FavoritesResult{
+		IgnoredFolders: []keybase1.Folder{fol},
+	}
+	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(res, nil)
+	config.mockClock.EXPECT().Now().Return(time.Unix(0, 0)).Times(1)
+	config.mockCodec.EXPECT().Encode(gomock.Any()).Return(nil, nil).Times(2)
+	config.mockKbs.EXPECT().EncryptFavorites(gomock.Any(),
+		gomock.Any()).Return(nil, nil)
+
+	// Require that we correctly return the data inserted into the cache by
+	// the server.
+	res2, err := f.GetAll(ctx)
+	require.NoError(t, err)
+	require.Equal(t, res.IgnoredFolders, res2.IgnoredFolders)
+	require.Len(t, res2.NewFolders, 0)
+	require.Len(t, res2.FavoriteFolders, 2)
+}
+
 func TestFavoritesDiskCache(t *testing.T) {
 	mockCtrl, config, ctx := favTestInit(t, true)
 
