@@ -17,7 +17,7 @@ import SetChannelname from '../set-channelname/container'
 import TextMessage from '../text/container'
 import AttachmentMessage from '../attachment/container'
 import PaymentMessage from '../account-payment/container'
-import Placeholder from '../placeholder/container'
+import MessagePlaceholder from '../placeholder/container'
 import ExplodingHeightRetainer from './exploding-height-retainer'
 import ExplodingMeta from './exploding-meta/container'
 import LongPressable from './long-pressable'
@@ -330,7 +330,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         child = <PaymentMessage key="sendPayment" message={message} />
         break
       case 'placeholder':
-        child = <Placeholder key="placeholder" message={message} />
+        child = <MessagePlaceholder key="placeholder" message={message} />
         break
       case 'systemInviteAccepted':
         child = <SystemInviteAccepted key="systemInviteAccepted" message={message} />
