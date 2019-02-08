@@ -2,17 +2,8 @@
 import React from 'react'
 import PeopleItem from '../item'
 import * as Types from '../../constants/types/people'
-import {
-  Avatar,
-  Box,
-  ClickableBox,
-  ConnectedUsernames,
-  Icon,
-  Meta,
-  ScrollView,
-  Text,
-} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
+import {Avatar, ClickableBox, ConnectedUsernames, ScrollView, Text} from '../../common-adapters'
+import {globalStyles, globalMargins, platformStyles} from '../../styles'
 import {isMobile} from '../../constants/platform'
 
 const connectedUsernamesProps = {
