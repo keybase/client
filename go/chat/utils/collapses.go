@@ -12,8 +12,14 @@ import (
 	"golang.org/x/net/context"
 )
 
-type collapseRecord struct {
+type singleCollapseRecord struct {
 	Collapsed bool
+	Time      time.Time
+}
+
+type rangeCollapseRecord struct {
+	Collapsed bool
+	MsgID     chat1.MessageID
 	Time      time.Time
 }
 
@@ -39,16 +45,17 @@ func (c *Collapses) singleKey(uid gregor1.UID, convID chat1.ConversationID, msgI
 	}
 }
 
-func (c *Collapses) rangeKey(uid gregor1.UID, convID chat1.ConversationID, msgID chat1.MessageID) libkb.DbKey {
+func (c *Collapses) rangeKey(uid gregor1.UID, convID chat1.ConversationID) libkb.DbKey {
 	return libkb.DbKey{
 		Typ: libkb.DBChatCollapses,
-		Key: fmt.Sprintf("range:%s:%s:%d", uid, convID, msgID),
+		Key: fmt.Sprintf("range:%s:%s", uid, convID),
 	}
 }
 
-func (c *Collapses) toggle(ctx context.Context, key libkb.DbKey, uid gregor1.UID, convID chat1.ConversationID,
+func (c *Collapses) ToggleSingle(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msgID chat1.MessageID, collapsed bool) error {
-	if err := c.G().GetKVStore().PutObj(key, nil, collapseRecord{
+	key := c.singleKey(uid, convID, msgID)
+	if err := c.G().GetKVStore().PutObj(key, nil, singleCollapseRecord{
 		Collapsed: collapsed,
 		Time:      c.clock.Now(),
 	}); err != nil {
@@ -57,22 +64,26 @@ func (c *Collapses) toggle(ctx context.Context, key libkb.DbKey, uid gregor1.UID
 	return nil
 }
 
-func (c *Collapses) ToggleSingle(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	msgID chat1.MessageID, collapsed bool) error {
-	return c.toggle(ctx, c.singleKey(uid, convID, msgID), uid, convID, msgID, collapsed)
-}
-
 func (c *Collapses) ToggleRange(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msgID chat1.MessageID, collapsed bool) error {
-	return c.toggle(ctx, c.rangeKey(uid, convID, msgID), uid, convID, msgID, collapsed)
+	key := c.rangeKey(uid, convID)
+	if err := c.G().GetKVStore().PutObj(key, nil, rangeCollapseRecord{
+		Collapsed: collapsed,
+		MsgID:     msgID,
+		Time:      c.clock.Now(),
+	}); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (c *Collapses) IsCollapsed(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msgID chat1.MessageID) bool {
 	singleKey := c.singleKey(uid, convID, msgID)
-	rangeKey := c.rangeKey(uid, convID, msgID)
+	rangeKey := c.rangeKey(uid, convID)
 	// Get both to see which one takes precedence in time order
-	var singleRec, rangeRec collapseRecord
+	var singleRec singleCollapseRecord
+	var rangeRec rangeCollapseRecord
 	singleFound, err := c.G().GetKVStore().GetInto(&singleRec, singleKey)
 	if err != nil {
 		c.Debug(ctx, "IsCollapsed: failed to read single record: %s", err)
@@ -86,14 +97,21 @@ func (c *Collapses) IsCollapsed(ctx context.Context, uid gregor1.UID, convID cha
 	if singleFound && !rangeFound {
 		return singleRec.Collapsed
 	} else if !singleFound && rangeFound {
-		return rangeRec.Collapsed
+		if msgID <= rangeRec.MsgID {
+			return rangeRec.Collapsed
+		}
+		return false
 	} else if !singleFound && !rangeFound {
 		return false
 	} else if singleFound && rangeFound {
+		c.Debug(ctx, "IsCollapsed: found single and range: %v vs. %v", singleRec.Time, rangeRec.Time)
 		if singleRec.Time.After(rangeRec.Time) {
 			return singleRec.Collapsed
 		}
-		return rangeRec.Collapsed
+		if msgID <= rangeRec.MsgID {
+			return rangeRec.Collapsed
+		}
+		return false
 	}
 	return false
 }

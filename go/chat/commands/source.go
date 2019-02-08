@@ -33,7 +33,9 @@ func NewSource(g *globals.Context) *Source {
 }
 
 const (
-	cmdHeadline int = iota
+	cmdCollapse int = iota
+	cmdExpand
+	cmdHeadline
 	cmdHide
 	cmdJoin
 	cmdLeave
@@ -46,6 +48,8 @@ const (
 
 func (s *Source) allCommands() (res map[int]types.ConversationCommand) {
 	res = make(map[int]types.ConversationCommand)
+	res[cmdCollapse] = NewCollapse(s.G())
+	res[cmdExpand] = NewExpand(s.G())
 	res[cmdHeadline] = NewHeadline(s.G())
 	res[cmdHide] = NewHide(s.G())
 	res[cmdJoin] = NewJoin(s.G())
@@ -61,6 +65,8 @@ func (s *Source) allCommands() (res map[int]types.ConversationCommand) {
 func (s *Source) makeBuiltins() {
 	cmds := s.allCommands()
 	common := []types.ConversationCommand{
+		cmds[cmdCollapse],
+		cmds[cmdExpand],
 		cmds[cmdHide],
 		cmds[cmdMe],
 		cmds[cmdMsg],
