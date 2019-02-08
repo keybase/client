@@ -7,11 +7,11 @@ import {formatTimeForPeopleItem} from '../../util/timestamp'
 
 export type Props = {
   badged: boolean,
-  icon: React.Node,
+  icon?: React.Node,
   children: React.Node,
   when?: Date,
   contentStyle?: any,
-  format?: String,
+  format?: string,
 }
 
 export default (props: Props) => (
