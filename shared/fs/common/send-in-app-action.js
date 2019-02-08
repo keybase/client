@@ -8,6 +8,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {namedConnect} from '../../util/container'
 import {isMobile} from '../../constants/platform'
+import flags from '../../util/feature-flags'
 
 type OwnProps = {
   path: Types.Path,
@@ -42,7 +43,7 @@ const YouSeeAButtonYouPushIt = Kb.OverlayParentHOC(
           position="bottom left"
           items={[
             {onClick: props.onClickLink, title: 'Send link to chat'},
-            ...(Types.getPathLevel(props.path) > 3
+            ...(flags.sendAttachmentToChat && Types.getPathLevel(props.path) > 3
               ? [{onClick: props.onClickAttachment, title: 'Send attachment to chat'}]
               : []),
           ]}

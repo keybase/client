@@ -14,7 +14,11 @@ type Props = {|
   send?: ?() => void,
 |}
 
-const MobileWithHeader = Kb.HeaderHoc(ChooseConversationHOC<{}>(ConversationList))
+const MobileWithHeader = Kb.HeaderHoc(
+  ChooseConversationHOC<{
+    onDone?: ?() => void,
+  }>(ConversationList)
+)
 
 const MobileHeader = (props: Props) => (
   <Kb.Box2 direction="horizontal" centerChildren={true} fullWidth={true} style={mobileStyles.headerContainer}>

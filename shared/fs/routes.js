@@ -42,6 +42,7 @@ const routeTree = () => {
     sendAttachmentToChat: {
       component: SendAttachmentToChat,
       tags: makeLeafTags({
+        fullscreen: isMobile,
         layerOnTop: !isMobile,
         renderTopmostOnly: !isMobile,
         title: 'Send attachment to chat',

@@ -99,6 +99,12 @@ const getRows = (numShown, upstreamOnSelect) => {
   ]
 }
 
+const actions = {
+  onEnsureSelection: Sb.action('onEnsureSelection'),
+  onSelectDown: Sb.action('onSelectDown'),
+  onSelectUp: Sb.action('onSelectUp'),
+}
+
 const filter = {
   filter: '',
   filterFocusCount: 0,
@@ -110,7 +116,9 @@ const filter = {
   onSelectDown: Sb.action('onSelectDown'),
   onSelectUp: Sb.action('onSelectUp'),
   onSetFilter: Sb.action('onSetFilter'),
+  ...actions,
 }
+
 export const provider = {
   ChooseConversation: (props: {}) => ({...props, selectedText: 'Choose a conversation'}),
   ConversationList: ({onSelect}: {onSelect?: () => void}) => ({
@@ -124,9 +132,9 @@ export const provider = {
 export default () =>
   Sb.storiesOf('Chat/ConversationList', module)
     .addDecorator(Sb.createPropProviderWithCommon(provider))
-    .add('Collapsed - no filter', () => <ConversationList rows={getRows(8)} />)
-    .add('Collapsed', () => <ConversationList rows={getRows(8)} filter={filter} />)
-    .add('Expanded', () => <ConversationList rows={getRows()} filter={filter} />)
+    .add('Collapsed - no filter', () => <ConversationList rows={getRows(8)} {...actions} />)
+    .add('Collapsed', () => <ConversationList rows={getRows(8)} filter={filter} {...actions} />)
+    .add('Expanded', () => <ConversationList rows={getRows()} filter={filter} {...actions} />)
     .add('ChooseConversation (Desktop)', () => (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
         <ChooseConversation

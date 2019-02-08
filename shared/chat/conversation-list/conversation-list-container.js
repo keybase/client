@@ -10,6 +10,7 @@ import getFilteredRowsAndMetadata from '../inbox/container/filtered'
 
 type OwnProps = {|
   filter?: string,
+  onDone?: ?() => void,
   onSelect: (conversationIDKey: Types.ConversationIDKey) => void,
   onSetFilter?: (filter: string) => void,
   selected: Types.ConversationIDKey, // mobile only
@@ -76,32 +77,47 @@ const getSortedConversationIDKeys = memoize(
   }
 )
 
-const getRows = (stateProps, ownProps: OwnProps) =>
-  ownProps.filter
-    ? getFilteredRowsAndMetadata(stateProps._metaMap, ownProps.filter, stateProps._username).rows.map(row => {
-        // This should never happen to have empty conversationIDKey, but
-        // provide default to make flow happy
-        const conversationIDKey = row.conversationIDKey || Constants.noConversationIDKey
-        const common = {
-          conversationIDKey,
-          isSelected: conversationIDKey === ownProps.selected,
-          onSelectConversation: () => ownProps.onSelect(conversationIDKey),
+const getRows = (stateProps, ownProps: OwnProps) => {
+  let selectedIndex = null
+  const rows = ownProps.filter
+    ? getFilteredRowsAndMetadata(stateProps._metaMap, ownProps.filter, stateProps._username).rows.map(
+        (row, index) => {
+          // This should never happen to have empty conversationIDKey, but
+          // provide default to make flow happy
+          const conversationIDKey = row.conversationIDKey || Constants.noConversationIDKey
+          const common = {
+            conversationIDKey,
+            isSelected: conversationIDKey === ownProps.selected,
+            onSelectConversation: () => {
+              ownProps.onSelect(conversationIDKey)
+              ownProps.onDone && ownProps.onDone()
+            },
+          }
+          if (common.isSelected) {
+            selectedIndex = index
+          }
+          return row.type === 'big'
+            ? ({
+                ...common,
+                type: 'big',
+              }: BigTeamChannelRowItem)
+            : ({
+                ...common,
+                type: 'small',
+              }: SmallTeamRowItem)
         }
-        return row.type === 'big'
-          ? ({
-              ...common,
-              type: 'big',
-            }: BigTeamChannelRowItem)
-          : ({
-              ...common,
-              type: 'small',
-            }: SmallTeamRowItem)
-      })
-    : getSortedConversationIDKeys(stateProps._metaMap).map(({conversationIDKey, type}) => {
+      )
+    : getSortedConversationIDKeys(stateProps._metaMap).map(({conversationIDKey, type}, index) => {
         const common = {
           conversationIDKey,
           isSelected: conversationIDKey === ownProps.selected,
-          onSelectConversation: () => ownProps.onSelect(conversationIDKey),
+          onSelectConversation: () => {
+            ownProps.onSelect(conversationIDKey)
+            ownProps.onDone && ownProps.onDone()
+          },
+        }
+        if (common.isSelected) {
+          selectedIndex = index
         }
         return type === 'big'
           ? ({
@@ -113,6 +129,8 @@ const getRows = (stateProps, ownProps: OwnProps) =>
               type: 'small',
             }: SmallTeamRowItem)
       })
+  return {rows, selectedIndex}
+}
 
 const mapStateToProps = state => ({
   _metaMap: state.chat2.metaMap,
@@ -121,14 +139,46 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({})
 
-const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  filter: ownProps.onSetFilter && {
-    filter: ownProps.filter || '',
-    isLoading: false,
-    onSetFilter: ownProps.onSetFilter,
-  },
-  rows: getRows(stateProps, ownProps),
-})
+const selectNext = (rows, current, delta) => {
+  if (!rows.length) {
+    return null
+  }
+  const nextIndex = (current === null ? (delta > 0 ? 0 : rows.length - 1) : current + delta) % rows.length
+  if (rows[nextIndex].type === 'more-less') {
+    const row = rows[(nextIndex + 1) % rows.length]
+    // two 'more-less' in a row: either that's the only we have or something's
+    // wrong elsewhere.
+    return row.type === 'more-less' ? null : row.conversationIDKey
+  }
+  return rows[nextIndex].conversationIDKey
+}
+
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  const {selectedIndex, rows} = getRows(stateProps, ownProps)
+  return {
+    filter: ownProps.onSetFilter && {
+      filter: ownProps.filter || '',
+      isLoading: false,
+      onSetFilter: ownProps.onSetFilter,
+    },
+    onEnsureSelection: () => {
+      if (selectedIndex === null) {
+        const nextConvIDKey = selectNext(rows, selectedIndex, 1)
+        nextConvIDKey && ownProps.onSelect(nextConvIDKey)
+      }
+      ownProps.onDone && ownProps.onDone()
+    },
+    onSelectDown: () => {
+      const nextConvIDKey = selectNext(rows, selectedIndex, 1)
+      nextConvIDKey && ownProps.onSelect(nextConvIDKey)
+    },
+    onSelectUp: () => {
+      const nextConvIDKey = selectNext(rows, selectedIndex, -1)
+      nextConvIDKey && ownProps.onSelect(nextConvIDKey)
+    },
+    rows,
+  }
+}
 
 export default namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,

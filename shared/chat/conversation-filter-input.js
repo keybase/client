@@ -10,6 +10,7 @@ export type Props = {|
   filterFocusCount: number,
   isLoading: boolean,
   onBack: () => void,
+  noShortcut: ?boolean,
   onBlur: () => void,
   onEnsureSelection: () => void,
   onFocus: () => void,
@@ -154,7 +155,7 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
               <Kb.Text type="BodySemibold" style={styles.text}>
                 Jump to...
               </Kb.Text>
-              {!Styles.isMobile && (
+              {!Styles.isMobile && !this.props.noShortcut && (
                 <Kb.Text type="BodySemibold" style={styles.textFaint}>
                   ({Platforms.shortcutSymbol}K)
                 </Kb.Text>

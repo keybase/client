@@ -23,10 +23,7 @@ class ChooseConversation extends React.Component<Props & Kb.OverlayParentProps, 
   _toggleOpen = () => {
     this.setState(prevState => ({expanded: !prevState.expanded}))
   }
-  _onSelect = (conversationIDKey: Types.ConversationIDKey) => {
-    this.setState({expanded: false})
-    this.props.onSelect(conversationIDKey)
-  }
+  _onDone = () => this.setState({expanded: false})
   render() {
     return (
       <>
@@ -45,7 +42,8 @@ class ChooseConversation extends React.Component<Props & Kb.OverlayParentProps, 
           visible={this.state.expanded}
         >
           <ConversationList
-            onSelect={this._onSelect}
+            onSelect={this.props.onSelect}
+            onDone={this._onDone}
             filter={this.props.filter}
             onSetFilter={this.props.onSetFilter}
             selected={this.props.selected}

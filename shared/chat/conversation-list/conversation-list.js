@@ -39,6 +39,9 @@ type Props = {|
     filter: string,
     onSetFilter: (filter: string) => void,
   },
+  onEnsureSelection: () => void,
+  onSelectDown: () => void,
+  onSelectUp: () => void,
 |}
 
 const _itemRenderer = (index, row) => {
@@ -91,11 +94,12 @@ const ConversationList = (props: Props) => {
           filter={props.filter.filter}
           onSetFilter={props.filter.onSetFilter}
           filterFocusCount={0}
+          noShortcut={true}
           onBlur={() => {}}
           onFocus={() => {}}
-          onSelectDown={() => {} /* TODO: make these work */}
-          onSelectUp={() => {}}
-          onEnsureSelection={() => {}}
+          onSelectDown={props.onSelectDown}
+          onSelectUp={props.onSelectUp}
+          onEnsureSelection={props.onEnsureSelection}
         />
       )}
       <Kb.List2
