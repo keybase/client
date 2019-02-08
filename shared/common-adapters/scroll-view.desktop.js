@@ -1,23 +1,27 @@
 // @flow
 import * as React from 'react'
-import {collapseStyles, platformStyles, styleSheetCreate} from '../styles'
+import {collapseStyles} from '../styles'
 import type {Props} from './scroll-view'
 
 const ScrollView = (props: Props) => {
-  const {contentContainerStyle, style, ...rest} = props
+  const {contentContainerStyle, style, hideVerticalScroll, ...rest} = props
+  const className = hideVerticalScroll ? 'hide-scrollbar scroll-container' : ''
+  const overflowStyle = hideVerticalScroll ? overflowHidden : overflowAuto
   return (
-    <div style={collapseStyles([styles.overflowAuto, style])} onScroll={props.onScroll}>
+    <div style={collapseStyles([overflowStyle, style])} onScroll={props.onScroll} className={className}>
       <div style={contentContainerStyle} {...rest} />
     </div>
   )
 }
 
-const styles = styleSheetCreate({
-  overflowAuto: platformStyles({
-    isElectron: {
-      overflow: 'auto',
-    },
-  }),
-})
+// not using a stylesheet because StylesCrossPlatform
+// doesn't include overflowX and overflowY
+const overflowAuto = {
+  overflow: 'auto',
+}
+const overflowHidden = {
+  overflowX: 'hidden',
+  overflowY: 'auto',
+}
 
 export default ScrollView
