@@ -10,7 +10,11 @@ const CaptionedButton = (props: {
   style?: Styles.StylesCrossPlatform,
   waitOnClick?: boolean,
 }) => (
-  <Kb.Box2 style={{...Styles.globalStyles.flexBoxColumn, ...props.style}} gap="tiny">
+  <Kb.Box2
+    direction="vertical"
+    style={Styles.collapseStyles([Styles.globalStyles.flexBoxColumn, props.style])}
+    gap="tiny"
+  >
     {props.waitOnClick ? (
       <Kb.WaitingButton
         type="Primary"
@@ -39,7 +43,7 @@ const CaptionedDangerIcon = ({
   caption,
   onClick,
 }: {
-  icon: IconType,
+  icon: Kb.IconType,
   caption: string,
   onClick: () => void,
 }) => (
