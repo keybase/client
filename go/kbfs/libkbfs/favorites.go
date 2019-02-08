@@ -92,7 +92,11 @@ type favoriteData struct {
 
 func favoriteDataFrom(folder keybase1.Folder) favoriteData {
 	return favoriteData{
-		Name: folder.Name,
+		Name:       folder.Name,
+		FolderType: folder.FolderType,
+		// TODO: get ID??
+		Private: folder.Private,
+		TeamID:  *folder.TeamID,
 	}
 }
 
