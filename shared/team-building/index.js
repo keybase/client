@@ -51,6 +51,7 @@ class TeamBuilding extends React.PureComponent<Props, void> {
   render = () => {
     const props = this.props
     const showRecPending = !props.searchString && !(props.recommendations && props.recommendations.length)
+    const showLoading = !!props.searchString && !(props.searchResults && props.searchResults.length)
     const showRecs = props.showRecs
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
@@ -82,7 +83,7 @@ class TeamBuilding extends React.PureComponent<Props, void> {
           serviceResultCount={props.serviceResultCount}
           showServiceResultCount={props.showServiceResultCount}
         />
-        {showRecPending ? (
+        {showRecPending || showLoading ? (
           <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" style={styles.loadingContainer}>
             <Kb.Icon
               style={Kb.iconCastPlatformStyles(styles.loadingIcon)}
