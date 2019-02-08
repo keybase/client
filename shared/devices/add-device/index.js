@@ -56,14 +56,6 @@ const AddDevice = (props: Props) => (
   </Kb.ScrollView>
 )
 
-const DeviceBox = Styles.isMobile
-  ? Kb.Box2
-  : Styles.styled(Kb.Box2)({
-      ...Styles.transition('background-color'),
-      '&:hover': {
-        backgroundColor: Styles.globalColors.blue4,
-      },
-    })
 const bigIcon = isLargeScreen && Styles.isMobile
 const typeToIcon = {
   computer: bigIcon ? 'icon-computer-96' : 'icon-computer-64',
@@ -73,7 +65,8 @@ const typeToIcon = {
 const DeviceOption = ({highlight, onClick, type}) => (
   <Kb.ClickableBox onClick={onClick}>
     <EmphasisBox emphasize={highlight}>
-      <DeviceBox
+      <Kb.Box2
+        className="hover_background_color_blue4"
         style={Styles.collapseStyles([
           styles.deviceOption,
           Styles.isMobile && highlight && styles.deviceOptionHighlighted,
@@ -87,7 +80,7 @@ const DeviceOption = ({highlight, onClick, type}) => (
         <Kb.Text type="BodySemibold">
           {type === 'paper key' ? 'Create' : 'Add'} a {type}
         </Kb.Text>
-      </DeviceBox>
+      </Kb.Box2>
     </EmphasisBox>
   </Kb.ClickableBox>
 )
@@ -97,6 +90,7 @@ const styles = Styles.styleSheetCreate({
     padding: Styles.globalMargins.small,
   },
   deviceOption: {
+    ...Styles.transition('background-color'),
     borderColor: Styles.globalColors.black_05,
     borderRadius: Styles.borderRadius,
     borderStyle: 'solid',
