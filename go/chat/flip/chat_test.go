@@ -25,9 +25,13 @@ type chatClient struct {
 	server     *chatServer
 	dealer     *Dealer
 	history    []GameMessageWrappedEncoded
+	clock      clockwork.FakeClock
 }
 
 func (c *chatClient) Clock() clockwork.Clock {
+	if c.clock != nil {
+		return c.clock
+	}
 	return c.server.clock
 }
 
@@ -344,12 +348,14 @@ func testBadLeader(t *testing.T, nTotal int) {
 }
 
 func TestRepeatedGame(t *testing.T) {
+
 	srv := newChatServer()
 	ctx := context.Background()
 	go srv.run(ctx)
 	defer srv.stop()
 	conversationID := ConversationID(randBytes(6))
 	clients := srv.makeAndRunClients(ctx, conversationID, 5)
+	defer srv.stopClients()
 
 	gameID := GenerateGameID()
 	var reveal Secret
@@ -373,4 +379,32 @@ func TestRepeatedGame(t *testing.T) {
 	require.NoError(t, err)
 	clients[0].consumeCommitment(t)
 	forAllClients(clients[1:], func(c *chatClient) { c.consumeError(t, GameReplayError{}) })
+}
+
+func testLeaderClockSkew(t *testing.T, skew time.Duration) {
+
+	srv := newChatServer()
+	ctx := context.Background()
+	go srv.run(ctx)
+	defer srv.stop()
+	conversationID := ConversationID(randBytes(6))
+	n := 6
+	clients := srv.makeAndRunClients(ctx, conversationID, n)
+	defer srv.stopClients()
+
+	srv.clock = clockwork.NewFakeClockAt(time.Now())
+	now := srv.clock.Now()
+	start := NewStartWithBigInt(now, pi())
+	forAllClients(clients[1:], func(c *chatClient) { c.clock = clockwork.NewFakeClockAt(now.Add(skew)) })
+	err := clients[0].dealer.StartFlip(ctx, start, conversationID)
+	require.NoError(t, err)
+	forAllClients(clients[1:], func(c *chatClient) { c.consumeError(t, BadLeaderClockError{}) })
+}
+
+func TestLeaderClockSkewFast(t *testing.T) {
+	testLeaderClockSkew(t, 2*time.Hour)
+}
+
+func TestLeaderClockSkewSlow(t *testing.T) {
+	testLeaderClockSkew(t, -2*time.Hour)
 }
