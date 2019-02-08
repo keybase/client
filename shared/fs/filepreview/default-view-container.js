@@ -19,21 +19,18 @@ const mapStateToProps = (state, {path}: OwnProps) => ({
 
 const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
   download: () => dispatch(FsGen.createDownload({key: Constants.makeDownloadKey(path), path})),
-  saveMedia: () => dispatch(FsGen.createSaveMedia({key: Constants.makeDownloadKey(path), path})),
-  shareNative: () => dispatch(FsGen.createShareNative({key: Constants.makeDownloadKey(path), path})),
   showInSystemFileManager: () => dispatch(FsGen.createOpenPathInSystemFileManager({path})),
 })
 
-const mergeProps = (stateProps, dispatchProps, {path}) => {
+const mergeProps = (stateProps, dispatchProps, {path, routePath}) => {
   const {fileUIEnabled, pathItem} = stateProps
-  const {download, saveMedia, shareNative, showInSystemFileManager} = dispatchProps
+  const {download, showInSystemFileManager} = dispatchProps
   return {
     download,
     fileUIEnabled,
     path,
     pathItem,
-    saveMedia,
-    shareNative,
+    routePath,
     showInSystemFileManager,
   }
 }

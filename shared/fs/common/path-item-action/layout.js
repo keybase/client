@@ -105,3 +105,6 @@ export const getRootLayout = (path: Types.Path, pathItem: Types.PathItem): Layou
 
 export const getShareLayout = (path: Types.Path, pathItem: Types.PathItem): Layout =>
   filterForOnlyShares(getRawLayout(path, pathItem))
+
+export const hasShare = (path: Types.Path, pathItem: Types.PathItem): boolean =>
+  totalShare(getRawLayout(path, pathItem)) > 0

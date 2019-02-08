@@ -55,7 +55,8 @@ protocol local {
     COMPLEXTEAM_2,
     CREATETEAM_3,
     GITPUSH_4,
-    CHANGEAVATAR_5
+    CHANGEAVATAR_5,
+    CHANGERETENTION_6
   }
 
   record MessageSystemAddedToTeam {
@@ -100,6 +101,14 @@ protocol local {
     string user;
   }
 
+  record MessageSystemChangeRetention {
+    boolean isTeam;
+    boolean isInherit;
+    ConversationMembersType membersType;
+    RetentionPolicy policy;
+    string user;
+  }
+
   variant MessageSystem switch (MessageSystemType systemType) {
     case ADDEDTOTEAM: MessageSystemAddedToTeam;
     case INVITEADDEDTOTEAM: MessageSystemInviteAddedToTeam;
@@ -107,6 +116,7 @@ protocol local {
     case CREATETEAM: MessageSystemCreateTeam;
     case GITPUSH: MessageSystemGitPush;
     case CHANGEAVATAR: MessageSystemChangeAvatar;
+    case CHANGERETENTION: MessageSystemChangeRetention;
   }
 
   record MessageDeleteHistory {

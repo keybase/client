@@ -4301,6 +4301,7 @@ func TestKBFSOpsPartialSyncConfig(t *testing.T) {
 
 func waitForPrefetchInTest(
 	t *testing.T, ctx context.Context, config Config, node Node) {
+	t.Helper()
 	md, err := config.KBFSOps().GetNodeMetadata(ctx, node)
 	require.NoError(t, err)
 	ch, err := config.BlockOps().Prefetcher().WaitChannelForBlockPrefetch(
@@ -4309,13 +4310,34 @@ func waitForPrefetchInTest(
 	select {
 	case <-ch:
 	case <-ctx.Done():
-		t.Fatal(ctx.Err())
+		require.FailNow(t, ctx.Err().Error())
+	}
+}
+
+func waitForIndirectPtrBlocksInTest(
+	t *testing.T, ctx context.Context, config Config, node Node,
+	kmd KeyMetadata) {
+	t.Helper()
+	md, err := config.KBFSOps().GetNodeMetadata(ctx, node)
+	require.NoError(t, err)
+	block, err := config.BlockCache().Get(md.BlockInfo.BlockPointer)
+	require.NoError(t, err)
+	if !block.IsIndirect() {
+		return
+	}
+	b := block.(BlockWithPtrs)
+	require.NotNil(t, b)
+	for i := 0; i < b.NumIndirectPtrs(); i++ {
+		info, _ := b.IndirectPtr(i)
+		newBlock := block.NewEmpty()
+		t.Logf("Waiting for block %s", info.BlockPointer)
+		err := config.BlockOps().Get(
+			ctx, kmd, info.BlockPointer, newBlock, TransientEntry)
+		require.NoError(t, err)
 	}
 }
 
 func TestKBFSOpsPartialSync(t *testing.T) {
-	t.Skip("Broken, KBFS-3840")
-
 	var u1 kbname.NormalizedUsername = "u1"
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
 	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
@@ -4361,17 +4383,30 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
+	ops := getOps(config, rootNode.GetFolderBranch().Tlf)
+	kmd := ops.head
+
 	t.Log("Root block and 'a' block should be synced")
-	checkSyncCache := func(expectedBlocks uint64) {
-		waitForPrefetchInTest(t, ctx, config, rootNode)
-		waitForPrefetchInTest(t, ctx, config, aNode)
+	checkSyncCache := func(expectedBlocks uint64, nodesToWaitOn ...Node) {
+		for _, node := range nodesToWaitOn {
+			waitForPrefetchInTest(t, ctx, config, node)
+		}
+
+		// We can't wait for root and `a` to be prefetched, because
+		// `a/b2` will not be prefetched, so those node prefetches
+		// won't necessarily complete in this test.  Instead, wait for
+		// all their indirect pointers to be retrieved and cached, so
+		// the sync cache counts will be correct.
+		waitForIndirectPtrBlocksInTest(t, ctx, config, rootNode, kmd)
+		waitForIndirectPtrBlocksInTest(t, ctx, config, aNode, kmd)
+
 		syncStatusMap := dbc.syncCache.Status(ctx)
 		require.Len(t, syncStatusMap, 1)
 		syncStatus, ok := syncStatusMap[syncCacheName]
 		require.True(t, ok)
 		require.Equal(t, expectedBlocks, syncStatus.NumBlocks)
 	}
-	checkSyncCache(2)
+	checkSyncCache(2, rootNode, aNode)
 
 	t.Log("First device completes synced path, along with others")
 	bNode, _, err := kbfsOps2.CreateDir(ctx, aNode, "b")
@@ -4399,7 +4434,7 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 	// 8 blocks: root node (1 indirect, 2 direct), `a` node (1
 	// indirect, 2 direct), `b` node, `c` node (and the old archived
 	// ones have been GC'd from the sync cache).
-	checkSyncCache(8)
+	checkSyncCache(8, bNode, cNode)
 
 	checkStatus := func(node Node, expectedStatus PrefetchStatus) {
 		md, err := kbfsOps.GetNodeMetadata(ctx, node)
@@ -4441,7 +4476,7 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
-	checkSyncCache(10)
+	checkSyncCache(10, cNode)
 	checkStatus(cNode, FinishedPrefetch)
 	checkStatus(eNode, FinishedPrefetch)
 	checkStatus(fNode, FinishedPrefetch)
@@ -4461,7 +4496,7 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
-	checkSyncCache(10)
+	checkSyncCache(10, cNode)
 	checkStatus(cNode, FinishedPrefetch)
 	checkStatus(eNode, FinishedPrefetch)
 	checkStatus(fNode, FinishedPrefetch)
@@ -4473,7 +4508,7 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
-	checkSyncCache(12)
+	checkSyncCache(12, cNode, dNode)
 	checkStatus(cNode, FinishedPrefetch)
 	checkStatus(eNode, FinishedPrefetch)
 	checkStatus(fNode, FinishedPrefetch)
@@ -4487,7 +4522,7 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
-	checkSyncCache(10)
+	checkSyncCache(10, cNode)
 	checkStatus(bNode, FinishedPrefetch)
 	checkStatus(cNode, FinishedPrefetch)
 	checkStatus(eNode, FinishedPrefetch)
@@ -4508,12 +4543,11 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Log("Trigger a mark-and-sweep right away, to simulate the timer")
-	ops := getOps(config, rootNode.GetFolderBranch().Tlf)
 	ops.triggerMarkAndSweepLocked()
 	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
 	require.NoError(t, err)
 
-	checkSyncCache(8)
+	checkSyncCache(8, cNode)
 	checkStatus(bNode, FinishedPrefetch)
 	checkStatus(cNode, FinishedPrefetch)
 	checkStatus(eNode, NoPrefetch)

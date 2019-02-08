@@ -449,7 +449,7 @@ func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stella
 		return empty, err
 	}
 
-	activeDeviceType, err := mctx.G().ActiveDevice.DeviceType()
+	activeDeviceType, err := mctx.G().ActiveDevice.DeviceType(mctx)
 	if err != nil {
 		return empty, err
 	}

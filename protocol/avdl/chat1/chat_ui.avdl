@@ -192,6 +192,7 @@ protocol chatUi {
     union { null, string } decoratedTextBody;
     gregor1.Time ctime;
     double ordinal;
+    boolean isEphemeral;
 
     // For attachments
     string filename;

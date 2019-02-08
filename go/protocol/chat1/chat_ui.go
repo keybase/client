@@ -677,6 +677,7 @@ type UIMessageOutbox struct {
 	DecoratedTextBody *string         `codec:"decoratedTextBody,omitempty" json:"decoratedTextBody,omitempty"`
 	Ctime             gregor1.Time    `codec:"ctime" json:"ctime"`
 	Ordinal           float64         `codec:"ordinal" json:"ordinal"`
+	IsEphemeral       bool            `codec:"isEphemeral" json:"isEphemeral"`
 	Filename          string          `codec:"filename" json:"filename"`
 	Title             string          `codec:"title" json:"title"`
 	Preview           *MakePreviewRes `codec:"preview,omitempty" json:"preview,omitempty"`
@@ -695,10 +696,11 @@ func (o UIMessageOutbox) DeepCopy() UIMessageOutbox {
 			tmp := (*x)
 			return &tmp
 		})(o.DecoratedTextBody),
-		Ctime:    o.Ctime.DeepCopy(),
-		Ordinal:  o.Ordinal,
-		Filename: o.Filename,
-		Title:    o.Title,
+		Ctime:       o.Ctime.DeepCopy(),
+		Ordinal:     o.Ordinal,
+		IsEphemeral: o.IsEphemeral,
+		Filename:    o.Filename,
+		Title:       o.Title,
 		Preview: (func(x *MakePreviewRes) *MakePreviewRes {
 			if x == nil {
 				return nil
