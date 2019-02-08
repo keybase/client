@@ -163,7 +163,7 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: {
       alignSelf: 'center',
-      maxWidth: 275,
+      maxWidth: 290,
       paddingBottom: 40,
     },
     isMobile: {
