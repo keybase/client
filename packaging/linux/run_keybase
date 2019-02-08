@@ -196,6 +196,7 @@ KEYBASE_NO_KBFS="${KEYBASE_NO_KBFS:-0}"
 KEYBASE_AUTOSTART="${KEYBASE_AUTOSTART:-0}"
 KEYBASE_KILL="${KEYBASE_KILL:-0}"
 # NOTE: Make sure to update the Linux User Guide doc if you change this!
+#   http://keybase.io/docs/linux-user-guide
 while getopts "afghk" flag; do
     case $flag in
         a) KEYBASE_AUTOSTART=1;;
