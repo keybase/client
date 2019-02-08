@@ -29,7 +29,7 @@ const (
 	kbfsFavoritesCacheSubfolder      = "kbfs_favorites"
 	favoritesDiskCacheFilename       = "kbfsFavorites.leveldb"
 	favoritesDiskCacheVersion        = 2
-	favoritesDiskCacheStorageVersion = 2
+	favoritesDiskCacheStorageVersion = 1
 )
 
 var errNoFavoritesCache = errors.New("disk favorites cache not present")
@@ -96,11 +96,21 @@ func favoriteDataFrom(folder keybase1.Folder) favoriteData {
 	}
 }
 
+type homeTLFInfo struct {
+	PublicID      keybase1.TLFID
+	PrivateID     keybase1.TLFID
+	PublicTeamID  keybase1.TeamID
+	PrivateTeamID keybase1.TeamID
+}
+
 // Favorites manages a user's favorite list.
 type Favorites struct {
 	config   Config
 	disabled bool
 	log      logger.Logger
+
+	// homeTLFInfo stores the IDs for the logged-in user's home TLFs
+	homeTLFInfo homeTLFInfo
 
 	// Channels for interacting with the favorites cache
 	reqChan chan *favReq
@@ -320,24 +330,13 @@ func (f *Favorites) sendChangesToEditHistory(oldCache map[Favorite]favoriteData)
 	}
 }
 
-type favoriteType int
-
-const (
-	typeIgnored favoriteType = iota
-	typeNew
-	typeFavorite
-)
-
-func toFolder(fav Favorite, data favoriteData,
-	favType favoriteType) keybase1.Folder {
+func toFolder(fav Favorite, data favoriteData) keybase1.Folder {
 	return keybase1.Folder{
-		Name:    fav.Name,
-		Private: data.Private,
-		// TODO: figure out what the deal is here
-		NotificationsOn: favType == typeFavorite,
-		Created:         false,
-		FolderType:      data.FolderType,
-		TeamID:          &data.TeamID,
+		Name:       fav.Name,
+		Private:    data.Private,
+		Created:    false,
+		FolderType: data.FolderType,
+		TeamID:     &data.TeamID,
 	}
 }
 
@@ -394,16 +393,16 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 				f.favCache[Favorite{string(session.Name), tlf.Private}] = favoriteData{
 					Name:       string(session.Name),
 					FolderType: tlf.Private.FolderType(),
-					// TODO: get the TLF ID
-					// ID:          ,
-					Private: true,
+					ID:         f.homeTLFInfo.PrivateID,
+					TeamID:     f.homeTLFInfo.PrivateTeamID,
+					Private:    true,
 				}
 				f.favCache[Favorite{string(session.Name), tlf.Public}] = favoriteData{
 					Name:       string(session.Name),
 					FolderType: tlf.Private.FolderType(),
-					// TODO: get the TLF ID
-					// ID:           ,
-					Private: false,
+					ID:         f.homeTLFInfo.PublicID,
+					TeamID:     f.homeTLFInfo.PublicTeamID,
+					Private:    false,
 				}
 				err = f.writeCacheToDisk(req.ctx)
 				if err != nil {
@@ -461,14 +460,13 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 		ignoredFolders := make([]keybase1.Folder, 0, len(f.ignoredCache))
 
 		for fav, data := range f.favCache {
-			favFolders = append(favFolders, toFolder(fav, data, typeFavorite))
+			favFolders = append(favFolders, toFolder(fav, data))
 		}
 		for fav, data := range f.newCache {
-			newFolders = append(newFolders, toFolder(fav, data, typeNew))
+			newFolders = append(newFolders, toFolder(fav, data))
 		}
 		for fav, data := range f.ignoredCache {
-			ignoredFolders = append(ignoredFolders,
-				toFolder(fav, data, typeIgnored))
+			ignoredFolders = append(ignoredFolders, toFolder(fav, data))
 		}
 
 		req.favsAll <- keybase1.FavoritesResult{
