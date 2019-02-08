@@ -52,7 +52,7 @@ export const FollowNotification = (props: Props) => {
         }
         when={props.notificationTime}
         contentStyle={{justifyContent: 'center'}}
-        type="single"
+        format="single"
       >
         <Text type="Body">
           <ConnectedUsernames
@@ -73,7 +73,7 @@ export const MultiFollowNotification = (props: Props) => {
   }
   const usernames = props.newFollows.map(f => f.username)
   return (
-    <PeopleItem type="multi" badged={props.badged} when={props.notificationTime}>
+    <PeopleItem format="multi" badged={props.badged} when={props.notificationTime}>
       <Text
         type="Body"
         style={platformStyles({

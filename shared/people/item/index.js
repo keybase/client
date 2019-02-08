@@ -11,7 +11,7 @@ export type Props = {
   children: React.Node,
   when?: Date,
   contentStyle?: any,
-  type?: String,
+  format?: String,
 }
 
 export default (props: Props) => (
@@ -34,7 +34,7 @@ export default (props: Props) => (
     >
       {props.children}
     </Kb.Box2>
-    <Kb.Box style={props.type === 'multi' ? timestampContainerStyleMulti : timestampContainerStyleSingle}>
+    <Kb.Box style={props.format === 'multi' ? timestampContainerStyleMulti : timestampContainerStyleSingle}>
       {!!props.when && <Kb.Text type="BodyTiny">{formatTimeForPeopleItem(props.when.getTime())}</Kb.Text>}
       {props.badged && <Kb.Box style={badgeStyle} />}
     </Kb.Box>
