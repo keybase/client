@@ -39,8 +39,8 @@ const props = {
   editingOrdinal: null,
   lastLoadMoreOrdinal: null,
   lastMessageIsOurs: false,
-  listScrollDownCounter: 0,
-  listScrollUpCounter: 0,
+  scrollListDownCounter: 0,
+  scrollListUpCounter: 0,
   onFocusInput: Sb.action('onFocusInput'),
 }
 

@@ -8,9 +8,9 @@ import {connect, compose, lifecycle, withStateHandlers} from '../../../../util/c
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
-  listScrollDownCounter: number,
-  listScrollUpCounter: number,
   onFocusInput: () => void,
+  scrollListDownCounter: number,
+  scrollListUpCounter: number,
 }
 
 const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
@@ -43,11 +43,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   copyToClipboard: dispatchProps.copyToClipboard,
   editingOrdinal: stateProps.editingOrdinal,
   lastMessageIsOurs: stateProps.lastMessageIsOurs,
-  listScrollDownCounter: ownProps.listScrollDownCounter,
-  listScrollUpCounter: ownProps.listScrollUpCounter,
   markInitiallyLoadedThreadAsRead: dispatchProps._markInitiallyLoadedThreadAsRead,
   messageOrdinals: stateProps.messageOrdinals.toList(),
   onFocusInput: ownProps.onFocusInput,
+  scrollListDownCounter: ownProps.scrollListDownCounter,
+  scrollListUpCounter: ownProps.scrollListUpCounter,
 })
 
 // We load the first thread automatically so in order to mark it read

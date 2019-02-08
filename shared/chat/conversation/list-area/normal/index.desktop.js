@@ -103,13 +103,13 @@ class Thread extends React.PureComponent<Props, State> {
     }
 
     // someone requested we scroll down
-    if (this.props.listScrollDownCounter !== prevProps.listScrollDownCounter) {
+    if (this.props.scrollListDownCounter !== prevProps.scrollListDownCounter) {
       this._scrollDown()
       return
     }
 
     // someone requested we scroll up
-    if (this.props.listScrollUpCounter !== prevProps.listScrollUpCounter) {
+    if (this.props.scrollListUpCounter !== prevProps.scrollListUpCounter) {
       this._scrollUp()
       return
     }
