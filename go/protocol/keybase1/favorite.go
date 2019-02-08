@@ -44,21 +44,19 @@ func (e FolderType) String() string {
 // This type is likely to change significantly as all the various parts are
 // connected and tested.
 type Folder struct {
-	Name            string     `codec:"name" json:"name"`
-	Private         bool       `codec:"private" json:"private"`
-	NotificationsOn bool       `codec:"notificationsOn" json:"notificationsOn"`
-	Created         bool       `codec:"created" json:"created"`
-	FolderType      FolderType `codec:"folderType" json:"folderType"`
-	TeamID          *TeamID    `codec:"team_id,omitempty" json:"team_id,omitempty"`
+	Name       string     `codec:"name" json:"name"`
+	Private    bool       `codec:"private" json:"private"`
+	Created    bool       `codec:"created" json:"created"`
+	FolderType FolderType `codec:"folderType" json:"folderType"`
+	TeamID     *TeamID    `codec:"team_id,omitempty" json:"team_id,omitempty"`
 }
 
 func (o Folder) DeepCopy() Folder {
 	return Folder{
-		Name:            o.Name,
-		Private:         o.Private,
-		NotificationsOn: o.NotificationsOn,
-		Created:         o.Created,
-		FolderType:      o.FolderType.DeepCopy(),
+		Name:       o.Name,
+		Private:    o.Private,
+		Created:    o.Created,
+		FolderType: o.FolderType.DeepCopy(),
 		TeamID: (func(x *TeamID) *TeamID {
 			if x == nil {
 				return nil

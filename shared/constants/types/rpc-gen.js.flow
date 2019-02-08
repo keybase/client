@@ -2130,7 +2130,7 @@ export type FileType =
 
 export type FindNextMDResponse = $ReadOnly<{kbfsRoot: MerkleRoot, merkleNodes?: ?Array<Bytes>, rootSeqno: Seqno, rootHash: HashMeta}>
 export type FirstStepResult = $ReadOnly<{valPlusTwo: Int}>
-export type Folder = $ReadOnly<{name: String, private: Boolean, notificationsOn: Boolean, created: Boolean, folderType: FolderType, team_id /* teamID */?: ?TeamID}>
+export type Folder = $ReadOnly<{name: String, private: Boolean, created: Boolean, folderType: FolderType, team_id /* teamID */?: ?TeamID}>
 export type FolderSyncConfig = $ReadOnly<{mode: FolderSyncMode, paths?: ?Array<String>}>
 export type FolderSyncConfigAndStatus = $ReadOnly<{config: FolderSyncConfig, status: FolderSyncStatus}>
 export type FolderSyncMode =

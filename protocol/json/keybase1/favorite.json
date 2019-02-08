@@ -31,10 +31,6 @@
         },
         {
           "type": "boolean",
-          "name": "notificationsOn"
-        },
-        {
-          "type": "boolean",
           "name": "created"
         },
         {
