@@ -897,7 +897,8 @@ func (k *KeybaseDaemonLocal) FavoriteList(
 
 	k.lock.Lock()
 	defer k.lock.Unlock()
-	// TODO: determine if this is okay
+
+	// This is only used for testing, so it's okay to only have favorites here.
 	favs, err := k.favoriteStore.FavoriteList(k.currentUID)
 	if err != nil {
 		return keybase1.FavoritesResult{}, err
