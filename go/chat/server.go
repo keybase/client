@@ -2104,18 +2104,11 @@ func (h *Server) SetConvRetentionLocal(ctx context.Context, arg chat1.SetConvRet
 		isInherit = true
 	}
 
-	p := chat1.Pagination{Num: 1}
-	ib, err := h.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll, &chat1.GetInboxQuery{
-		ConvID: &arg.ConvID,
-	}, &p)
+	rc, err := GetUnverifiedConv(ctx, h.G(), uid, arg.ConvID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		return err
 	}
-	if len(ib.ConvsUnverified) != 1 {
-		h.Debug(ctx, "no conversation found for retention policy SYSTEM message")
-		return nil
-	}
-	conv := ib.ConvsUnverified[0].Conv
+	conv := rc.Conv
 	if isInherit {
 		teamRetention := conv.TeamRetention
 		if teamRetention == nil {
