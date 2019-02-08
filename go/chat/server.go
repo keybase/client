@@ -2406,8 +2406,8 @@ func (h *Server) SaveUnfurlSettings(ctx context.Context, arg chat1.SaveUnfurlSet
 
 func (h *Server) ToggleMessageCollapse(ctx context.Context, arg chat1.ToggleMessageCollapseArg) (err error) {
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, "ToggleMessageCollapse(%s,%d,%v)", arg.ConvID, arg.MsgID,
-		arg.Collapse)()
+	defer h.Trace(ctx, func() error { return err }, "ToggleMessageCollapse convID=%s msgID=%d collapsed=%v",
+		arg.ConvID, arg.MsgID, arg.Collapse)()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return err

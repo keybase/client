@@ -55,26 +55,20 @@ func (c *Collapses) rangeKey(uid gregor1.UID, convID chat1.ConversationID) libkb
 func (c *Collapses) ToggleSingle(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msgID chat1.MessageID, collapsed bool) error {
 	key := c.singleKey(uid, convID, msgID)
-	if err := c.G().GetKVStore().PutObj(key, nil, singleCollapseRecord{
+	return c.G().GetKVStore().PutObj(key, nil, singleCollapseRecord{
 		Collapsed: collapsed,
 		Time:      c.clock.Now(),
-	}); err != nil {
-		return err
-	}
-	return nil
+	})
 }
 
 func (c *Collapses) ToggleRange(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msgID chat1.MessageID, collapsed bool) error {
 	key := c.rangeKey(uid, convID)
-	if err := c.G().GetKVStore().PutObj(key, nil, rangeCollapseRecord{
+	return c.G().GetKVStore().PutObj(key, nil, rangeCollapseRecord{
 		Collapsed: collapsed,
 		MsgID:     msgID,
 		Time:      c.clock.Now(),
-	}); err != nil {
-		return err
-	}
-	return nil
+	})
 }
 
 func (c *Collapses) IsCollapsed(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
