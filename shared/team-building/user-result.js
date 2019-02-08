@@ -299,7 +299,7 @@ const styles = Styles.styleSheetCreate({
   },
   username: {
     flex: 1,
-    marginLeft: Styles.globalMargins.tiny,
+    marginLeft: Styles.globalMargins.small,
   },
 })
 
