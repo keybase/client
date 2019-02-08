@@ -166,7 +166,7 @@ function LoadingProofRow() {
     <Box style={styleRow}>
       <Box style={styleProofNameSection}>
         <Box style={styleProofNameLabelContainer}>
-          <Placeholder style={stylePlaceholder} />
+          <Placeholder width={160} style={stylePlaceholder} />
         </Box>
       </Box>
     </Box>
