@@ -12,7 +12,7 @@ type Props = {|
   isTeam: boolean,
   isInherit: boolean,
   membersType: RPCChatTypes.ConversationMembersType,
-  onClickUserAvatar: (username: string) => void,
+  onClickUserAvatar: () => void,
   onManageRetention: () => void,
   policy: RPCChatTypes.RetentionPolicy,
   user: string,
@@ -65,34 +65,30 @@ const ChangeRetention = (props: Props) => {
   const manageText = props.canManage ? 'Manage this' : ''
   return (
     <UserNotice
-      style={{marginTop: Styles.globalMargins.small}}
+      style={styles.userNotice}
       username={props.user}
       bgColor={Styles.globalColors.blue4}
-      onClickAvatar={() => props.onClickUserAvatar(props.user)}
+      onClickAvatar={() => props.onClickUserAvatar()}
     >
-      <Kb.Text
-        type="BodySmallSemibold"
-        backgroundMode="Announcements"
-        style={{color: Styles.globalColors.black_50}}
-      >
+      <Kb.Text type="BodySmallSemibold" backgroundMode="Announcements" style={styles.text}>
         {formatTimeForMessages(props.timestamp)}
       </Kb.Text>
-      <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, alignItems: 'center'}}>
-        <Kb.Text
-          type="BodySmallSemibold"
-          center={true}
-          backgroundMode="Announcements"
-          style={{color: Styles.globalColors.black_50}}
-        >
-          {changedBy} changed the {convType} retention policy {inheritDescription}. Messages will{' '}
-          {policySummary}
+      <Kb.Box2 direction="vertical" centerChildren={true}>
+        <Kb.Text type="BodySmallSemibold" center={true} backgroundMode="Announcements" style={styles.text}>
+          {changedBy} changed the {convType} retention policy{inheritDescription}. Messages will{' '}
+          {policySummary}.
         </Kb.Text>
         <Kb.Text onClick={props.onManageRetention} type="BodySmallSemiboldPrimaryLink">
           {manageText}
         </Kb.Text>
-      </Kb.Box>
+      </Kb.Box2>
     </UserNotice>
   )
 }
+
+const styles = Styles.styleSheetCreate({
+  text: {color: Styles.globalColors.black_50},
+  userNotice: {marginTop: Styles.globalMargins.small},
+})
 
 export default ChangeRetention

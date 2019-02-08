@@ -84,7 +84,6 @@ const getUsernameToShow = (message, previous, you, orangeLineAbove) => {
     case 'systemInviteAccepted':
       return message.invitee === you ? '' : message.invitee
     case 'systemLeft':
-    case 'systemChangeRetention':
     case 'setDescription':
       return message.author
   }
