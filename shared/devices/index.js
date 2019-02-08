@@ -70,7 +70,7 @@ class Devices extends React.PureComponent<Props, State> {
           <PaperKeyNudge onAddDevice={() => this.props.onAddDevice(['paper key'])} />
         )}
         {this.props.waiting && <Kb.ProgressIndicator style={styles.progress} />}
-        <Kb.List bounces={false} items={items} renderItem={this._renderRow} style={{width: '100%'}} />
+        <Kb.List bounces={false} items={items} renderItem={this._renderRow} />
       </Kb.Box2>
     )
   }
