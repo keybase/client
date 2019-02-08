@@ -165,6 +165,7 @@ const createElectronApp = App => {
         </NavigationProvider>
       )
     }
+    getNavState = () => this._nav
     dispatchOldAction = (old: any) => {
       const actions = Shared.oldActionToNewActions(old, this._navigation) || []
       actions.forEach(a => this.dispatch(a))

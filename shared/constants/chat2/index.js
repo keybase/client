@@ -17,6 +17,8 @@ import {
 } from '../types/chat2/common'
 import {makeConversationMeta, getEffectiveRetentionPolicy, getMeta} from './meta'
 import {formatTextForQuoting} from '../../util/chat'
+import * as Router2 from '../router2'
+import flags from '../../util/feature-flags'
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   accountsInfoMap: I.Map(),
@@ -123,13 +125,19 @@ export const isUserActivelyLookingAtThisThread = (
 ) => {
   const selectedConversationIDKey = getSelectedConversation(state)
 
-  const routePath = getPath(state.routeTree.routeState)
   let chatThreadSelected = false
-  if (isMobile) {
+  if (flags.useNewRouter) {
+    const routePath = Router2.getVisiblePath()
     chatThreadSelected =
-      routePath.size === 2 && routePath.get(0) === chatTab && routePath.get(1) === 'conversation'
+      routePath[routePath.length - 1]?.routeName === isMobile ? 'chatConversation' : 'tabs:chatTab'
   } else {
-    chatThreadSelected = routePath.size >= 1 && routePath.get(0) === chatTab
+    const routePath = getPath(state.routeTree.routeState)
+    if (isMobile) {
+      chatThreadSelected =
+        routePath.size === 2 && routePath.get(0) === chatTab && routePath.get(1) === 'conversation'
+    } else {
+      chatThreadSelected = routePath.size >= 1 && routePath.get(0) === chatTab
+    }
   }
 
   return (

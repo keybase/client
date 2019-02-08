@@ -144,6 +144,8 @@ class RNApp extends React.PureComponent<any, any> {
     actions.forEach(a => nav.dispatch(a))
   }
 
+  getNavState = () => this._nav.state?.nav
+
   render() {
     // selectedTab={this.state.selectedTab}
     return (

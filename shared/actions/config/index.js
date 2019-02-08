@@ -13,6 +13,7 @@ import * as Saga from '../../util/saga'
 import * as PlatformSpecific from '../platform-specific'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Tabs from '../../constants/tabs'
+import * as Router2 from '../../constants/router2'
 import URL from 'url-parse'
 import appRouteTree from '../../app/routes-app'
 import loginRouteTree from '../../app/routes-login'
@@ -379,12 +380,12 @@ const updateServerConfig = (state: TypedState) =>
       logger.info('updateServerConfig fail', e)
     })
 
-let _navigator = null
 const setNavigator = (_, action) => {
-  _navigator = action.payload.navigator
+  Router2._setNavigator(action.payload.navigator)
 }
 const newNavigation = (_, action) => {
-  _navigator && _navigator.dispatchOldAction(action)
+  const n = Router2._getNavigator()
+  n && n.dispatchOldAction(action)
 }
 
 function* configSaga(): Saga.SagaGenerator<any, any> {
