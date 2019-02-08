@@ -93,6 +93,7 @@ class TeamBuilding extends React.PureComponent<Props, void> {
           </Kb.Box2>
         ) : !showRecs && !props.showServiceResultCount && !!props.selectedService ? (
           <Kb.Box2
+            alignSelf="center"
             centerChildren={true}
             direction="vertical"
             fullHeight={true}
@@ -107,10 +108,10 @@ class TeamBuilding extends React.PureComponent<Props, void> {
                 !!props.selectedService && {color: serviceIdToAccentColor(props.selectedService)},
               ])}
             />
-            <Kb.Text style={styles.emptyContainerText} type="BodyBig">
+            <Kb.Text center={true} type="BodyBig">
               Enter a {serviceIdToLabel(props.selectedService)} username above.
             </Kb.Text>
-            <Kb.Text style={styles.emptyContainerText} type="BodySmall">
+            <Kb.Text center={true} type="BodySmall">
               Start a Keybase chat with anyone on {serviceIdToLabel(props.selectedService)}, even if they
               don’t have a Keybase account.
             </Kb.Text>
@@ -162,19 +163,14 @@ const styles = Styles.styleSheetCreate({
       flex: 1,
     },
     isElectron: {
-      alignSelf: 'center',
       maxWidth: 290,
       paddingBottom: 40,
     },
     isMobile: {
-      alignSelf: 'center',
       maxWidth: '80%',
       paddingBottom: 150,
     },
   }),
-  emptyContainerText: {
-    textAlign: 'center',
-  },
   list: Styles.platformStyles({
     common: {
       paddingBottom: Styles.globalMargins.small,
