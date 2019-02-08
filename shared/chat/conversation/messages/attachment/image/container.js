@@ -22,6 +22,15 @@ const mapDispatchToProps = dispatch => ({
       })
     )
   },
+  _onCollapse: (message: Types.MessageAttachment) => {
+    dispatch(
+      Chat2Gen.createToggleMessageCollapse({
+        collapse: !message.isCollapsed,
+        conversationIDKey: message.conversationIDKey,
+        messageID: message.id,
+      })
+    )
+  },
   _onDoubleClick: (message: Types.MessageAttachment) => {
     dispatch(
       Chat2Gen.createAttachmentPreviewSelect({
@@ -64,12 +73,15 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 
   return {
     arrowColor,
+    fileName: message.fileName,
     fullPath: message.fileURL,
     hasProgress,
     height: message.previewHeight,
     inlineVideoPlayable: message.inlineVideoPlayable,
+    isCollapsed: message.isCollapsed,
     message,
     onClick: () => dispatchProps._onClick(message),
+    onCollapse: () => dispatchProps._onCollapse(message),
     onDoubleClick: () => dispatchProps._onDoubleClick(message),
     onShowInFinder:
       !isMobile && message.downloadPath

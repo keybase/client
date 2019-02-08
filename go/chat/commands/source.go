@@ -88,6 +88,11 @@ func (s *Source) makeBuiltins() {
 	s.builtins[chat1.ConversationBuiltinCommandTyp_SMALLTEAM] = append([]types.ConversationCommand{
 		cmds[cmdJoin],
 	}, common...)
+	for _, cmds := range s.builtins {
+		sort.Slice(cmds, func(i, j int) bool {
+			return cmds[i].Name() < cmds[j].Name()
+		})
+	}
 }
 
 func (s *Source) GetBuiltins(ctx context.Context) (res []chat1.BuiltinCommandGroup) {
