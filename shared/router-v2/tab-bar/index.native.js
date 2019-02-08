@@ -7,13 +7,13 @@ import * as Tabs from '../../constants/tabs'
 
 const icons = {
   [Tabs.chatTab]: 'iconfont-nav-chat',
-  [Tabs.fsTab]: 'iconfont-nav-files',
+  [Tabs.teamsTab]: 'iconfont-nav-teams',
   [Tabs.peopleTab]: 'iconfont-nav-people',
   [Tabs.settingsTab]: 'iconfont-nav-more',
   [Tabs.walletsTab]: 'iconfont-nav-wallets',
 }
 
-const tabs = [Tabs.peopleTab, Tabs.chatTab, Tabs.fsTab, Tabs.settingsTab]
+const tabs = [Tabs.peopleTab, Tabs.chatTab, Tabs.teamsTab, Tabs.settingsTab]
 const TabBar = p =>
   !!p.username && (
     <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
