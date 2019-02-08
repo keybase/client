@@ -5,39 +5,47 @@ import {StackActions, NavigationActions} from '@react-navigation/core'
 import shallowEqual from 'shallowequal'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 
-// Wraps all our screens with a component that injects bridging props that the old screens assumed (routeProps, routeState, etc)
+// Wraps all our screens with a Parent that injects bridging props that the old screens assumed (routeProps, routeState, etc)
 // TODO eventually remove this when we clean up all those components
-// letting native/desktop specifcy a wrapper component. maybe we don't nedd this. think about it
-export const shimRoutes = (routes: any, Parent: any, UpgradedParent: any) =>
+// Wraps all new routes with a UpgradedParent that adds keyboard avoiding etc (maybe we can move this up)
+
+export const shimRoutes = (routes: any) =>
   Object.keys(routes).reduce((map, route) => {
     const getOriginal = routes[route].getScreen
     // don't wrap upgraded ones
     if (routes[route].upgraded) {
-      if (UpgradedParent) {
-        map[route] = {
-          ...routes[route],
-          getScreen: () => {
-            const Original = getOriginal()
-            class Shimmed extends React.PureComponent<any> {
-              static navigationOptions = Original.navigationOptions
-              render() {
-                return (
-                  <UpgradedParent>
-                    <Original {...this.props} />
-                  </UpgradedParent>
-                )
-              }
-            }
-            return Shimmed
-          },
-        }
-      } else {
-        map[route] = routes[route]
-      }
+      // if (UpgradedParent) {
+      // // Don't recreate these classes every time getScreen is called
+      // let _cached = null
+      // map[route] = {
+      // ...routes[route],
+      // getScreen: () => {
+      // if (_cached) return _cached
+
+      // const Original = getOriginal()
+      // class Shimmed extends React.PureComponent<any> {
+      // static navigationOptions = Original.navigationOptions
+      // render() {
+      // return (
+      // <UpgradedParent>
+      // <Original {...this.props} />
+      // </UpgradedParent>
+      // )
+      // }
+      // }
+      // _cached = Shimmed
+      // return Shimmed
+      // },
+      // }
+      // } else {
+      map[route] = routes[route]
+      // }
     } else {
+      let _cached = null
       map[route] = {
         ...routes[route],
         getScreen: () => {
+          if (_cached) return _cached
           const Original = getOriginal()
           class Shimmed extends React.PureComponent<any> {
             static navigationOptions = Original.navigationOptions
@@ -72,9 +80,11 @@ export const shimRoutes = (routes: any, Parent: any, UpgradedParent: any) =>
                   navigateAppend={this._navigateAppend}
                 />
               )
-              return Parent ? <Parent>{wrapped}</Parent> : wrapped
+              // return Parent ? <Parent>{wrapped}</Parent> : wrapped
+              return wrapped
             }
           }
+          _cached = Shimmed
           return Shimmed
         },
       }

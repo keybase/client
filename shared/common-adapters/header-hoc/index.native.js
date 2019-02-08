@@ -45,7 +45,7 @@ export class HeaderHocHeader extends React.Component<Props, State> {
 
     const hasTextTitle = !!this.props.title && !this.props.titleComponent
 
-    return (
+    const header = (
       <Box
         style={Styles.collapseStyles([
           styles.header,
@@ -105,6 +105,8 @@ export class HeaderHocHeader extends React.Component<Props, State> {
         />
       </Box>
     )
+
+    return flags.useNewRouter ? <SafeAreaViewTop>{header}</SafeAreaViewTop> : header
   }
 }
 

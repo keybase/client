@@ -77,6 +77,7 @@ export default routeTree
 
 export const newRoutes = {
   'tabs:fsTab': {getScreen: () => require('./container').default},
+  'settingsTabs:fsTab': {getScreen: () => require('./container').default},
   barePreview: {getScreen: () => require('./filepreview').BarePreview},
   destinationPicker: {getScreen: () => require('./destination-picker/container').default},
   oops: {getScreen: () => require('./oops/container').default},

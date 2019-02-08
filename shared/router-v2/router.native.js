@@ -5,18 +5,17 @@
 // default screens have no header
 // opt into new split header, MUST set header to undefined in their connector navigatinoOptions
 //
+// Offline
 //
 //
 import * as Kb from '../common-adapters/mobile.native'
 import * as Styles from '../styles'
 import * as React from 'react'
 import GlobalError from '../app/global-errors/container'
-// import Offline from '../offline/container'
 import TabBar from './tab-bar/container'
 import {createAppContainer} from '@react-navigation/native'
 import {createSwitchNavigator} from '@react-navigation/core'
 import StackHeader from 'react-navigation-stack/src/views/Header/Header'
-// import {createBottomTabNavigator} from 'react-navigation-tabs'
 import {createStackNavigator} from 'react-navigation-stack'
 import {modalRoutes, routes, nameToTab, loggedOutRoutes} from './routes'
 import {LeftAction} from '../common-adapters/header-hoc'
@@ -42,21 +41,8 @@ useScreens()
 // return <StackHeader mode="screen" scene={scene} scenes={scenes} navigation={p.navigation} />
 // }
 
-// Wrappers
-const KeyboardAvoid = p => (
-  <Kb.NativeKeyboardAvoidingView style={styles.keyboard} behavior="padding">
-    {p.children}
-  </Kb.NativeKeyboardAvoidingView>
-)
-
-const SafeTopAndKeyboardAvoid = p => (
-  <Kb.SafeAreaViewTop style={styles.safeAreaViewTop}>
-    <KeyboardAvoid>{p.children}</KeyboardAvoid>
-  </Kb.SafeAreaViewTop>
-)
-
 // We need to wrap the params that come into the components so the old way isn't totally broken short term
-const shimmedRoutes = Shared.shimRoutes(routes, SafeTopAndKeyboardAvoid, KeyboardAvoid)
+const shimmedRoutes = Shared.shimRoutes(routes)
 
 const MainStackNavigator = createStackNavigator(shimmedRoutes, {
   defaultNavigationOptions: p => ({
@@ -72,12 +58,11 @@ const MainStackNavigator = createStackNavigator(shimmedRoutes, {
     headerMode: 'float',
     headerTitle: null,
   }),
-  disableKeyboardHandling: true,
   initialRouteName: 'tabs:peopleTab',
   initialRouteParams: undefined,
 })
 
-const shimmedModalRoutes = Shared.shimRoutes(modalRoutes, SafeTopAndKeyboardAvoid, KeyboardAvoid)
+const shimmedModalRoutes = Shared.shimRoutes(modalRoutes)
 const LoggedInStackNavigator = createStackNavigator(
   {
     Main: {
@@ -91,7 +76,7 @@ const LoggedInStackNavigator = createStackNavigator(
   }
 )
 
-const shimmedLoggedOutRoutes = Shared.shimRoutes(loggedOutRoutes, SafeTopAndKeyboardAvoid, KeyboardAvoid)
+const shimmedLoggedOutRoutes = Shared.shimRoutes(loggedOutRoutes)
 const LoggedOutStackNavigator = createStackNavigator(
   {
     ...shimmedLoggedOutRoutes,
@@ -110,7 +95,6 @@ const LoggedOutStackNavigator = createStackNavigator(
       headerMode: 'float',
       headerTitle: null,
     }),
-    disableKeyboardHandling: true,
     initialRouteName: 'login',
     initialRouteParams: undefined,
   }
@@ -138,47 +122,13 @@ function getActiveRouteName(navigationState) {
 }
 class CustomStackNavigator extends React.PureComponent<any> {
   static router = RootStackNavigator.router
-  // static router = MainStackNavigator.router
 
   render() {
-    // const p = this.props
-    // const index = p.navigation.state.index
-    // // Find topmost non modal TODO maybe we odn't need this with multiple stacks?
-    // let nonModalIndex = index
-    // let modals = []
-    // while (nonModalIndex >= 0) {
-    // const activeKey = p.navigation.state.routes[nonModalIndex].key
-    // const descriptor = p.descriptors[activeKey]
-    // const Component = descriptor.getComponent()
-    // const options = Component.navigationOptions || {}
-    // if (!options.isModal) {
-    // break
-    // }
-    // modals.unshift(descriptor)
-    // --nonModalIndex
-    // }
-    // {nameToTab[descriptor.state.routeName]}
-    // const activeKey = p.navigation.state.routes[nonModalIndex].key
-    // const descriptor = p.descriptors[activeKey]
-
-    // let isUnderNotch = false
-    // const route = routes[this.props.activeKey]
-    // if (route) {
-    // if (route.getScreen) {
-    // const options = route.getScreen().navigationOptions || {}
-    // if (options.isUnderNotch) {
-    // isUnderNotch = true
-    // }
-    // }
-    // }
-    // {!isUnderNotch && <Kb.SafeAreaViewTop />}
-    //
-    //
-    //
-    // <Kb.NativeKeyboardAvoidingView style={styles.keyboard} behavior="padding">
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-        <RootStackNavigator navigation={this.props.navigation} />
+        <Kb.NativeKeyboardAvoidingView style={styles.keyboard} behavior="padding">
+          <RootStackNavigator navigation={this.props.navigation} />
+        </Kb.NativeKeyboardAvoidingView>
         <TabBar selectedTab={nameToTab[this.props.activeKey]} />
         <GlobalError />
       </Kb.Box2>
@@ -193,13 +143,6 @@ class RNApp extends React.PureComponent<any, any> {
   _nav = null
   _onNavigationStateChange = (prevState, currentState) => {
     const activeKey = getActiveRouteName(currentState)
-    // const prevScreen = getActiveRouteName(prevState)
-
-    // if (prevScreen !== currentScreen) {
-    // console.log('aaaa', currentScreen)
-    // const selectedTab = nameToTab[currentScreen]
-    // this.setState(p => (p.selectedTab === selectedTab ? null : {selectedTab}))
-    // }
     this.setState(p => (p.activeKey === activeKey ? null : {activeKey}))
   }
 
@@ -287,16 +230,11 @@ class RNApp extends React.PureComponent<any, any> {
 // const RNApp = createAppContainer(tabNavigator)
 
 const styles = Styles.styleSheetCreate({
-  contentArea: {
+  keyboard: {
     flexGrow: 1,
     position: 'relative',
   },
-  keyboard: {
-    flexGrow: 1,
-  },
-  safeAreaViewTop: {
-    flexGrow: 1,
-  },
+  safeAreaViewTop: {flexGrow: 1},
   modalContainer: {},
 })
 

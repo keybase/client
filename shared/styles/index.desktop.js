@@ -159,3 +159,5 @@ export const statusBarHeight = 0
 export const borderRadius = 4
 export {default as classNames} from 'classnames'
 export type {StylesCrossPlatform} from './index.types'
+export const dimensionWidth = 0
+export const dimensionHeight = 0

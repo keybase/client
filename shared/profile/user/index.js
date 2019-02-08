@@ -201,12 +201,16 @@ class BioTeamProofs extends React.PureComponent<Props> {
 
 type State = {|
   selectedFollowing: boolean,
+  // only used on desktop to know how wide the screen is
   width: number,
 |}
 class User extends React.Component<Props, State> {
   constructor(props: Props) {
     super(props)
-    this.state = {selectedFollowing: !!usernameSelectedFollowing[props.username], width: 0}
+    this.state = {
+      selectedFollowing: !!usernameSelectedFollowing[props.username],
+      width: Styles.dimensionWidth,
+    }
   }
 
   _changeFollowing = following => {
@@ -269,7 +273,7 @@ class User extends React.Component<Props, State> {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
         <Kb.Box2 direction="vertical" style={styles.innerContainer}>
-          <Measure onMeasured={this._onMeasured} />
+          {!Styles.isMobile && <Measure onMeasured={this._onMeasured} />}
           <Kb.SafeAreaViewTop style={{backgroundColor: this.props.backgroundColor, flexGrow: 0}} />
           {!!this.state.width && (
             <Kb.SectionList

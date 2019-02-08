@@ -42,6 +42,7 @@ export const newRoutes = {
   devicePaperKey: {getScreen: () => require('./paper-key/container').default},
   deviceRevoke: {getScreen: () => require('./device-revoke/container').default},
   'tabs:devicesTab': {getScreen: () => require('./container').default},
+  'settingsTabs:devicesTab': {getScreen: () => require('./container').default},
 }
 
 export default routeTree
