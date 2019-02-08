@@ -11,7 +11,7 @@ export type Props = {
   children: React.Node,
   when?: Date,
   contentStyle?: any,
-  format?: string,
+  format?: 'single' | 'multi',
 }
 
 export default (props: Props) => (
@@ -26,7 +26,7 @@ export default (props: Props) => (
 
     <Kb.Box2
       direction="vertical"
-      gap="tiny"
+      gap="xtiny"
       style={{
         ...childrenContainerStyle,
         ...props.contentStyle,
@@ -34,7 +34,12 @@ export default (props: Props) => (
     >
       {props.children}
     </Kb.Box2>
-    <Kb.Box style={props.format === 'multi' ? timestampContainerStyleMulti : timestampContainerStyleSingle}>
+    <Kb.Box
+      style={{
+        ...timestampContainerStyle,
+        ...(props.format === 'multi' ? timestampContainerStyleMulti : timestampContainerStyleSingle),
+      }}
+    >
       {!!props.when && <Kb.Text type="BodyTiny">{formatTimeForPeopleItem(props.when.getTime())}</Kb.Text>}
       {props.badged && <Kb.Box style={badgeStyle} />}
     </Kb.Box>
@@ -44,35 +49,39 @@ export default (props: Props) => (
 const containerStyle = {
   ...globalStyles.flexBoxRow,
   borderBottomWidth: 1,
-  paddingBottom: globalMargins.tiny,
-  paddingLeft: globalMargins.small,
-  paddingTop: globalMargins.tiny,
+  paddingBottom: globalMargins.xsmall,
+  paddingTop: globalMargins.xsmall,
   position: 'relative',
   ...(isMobile ? null : {borderStyle: 'solid'}),
 }
 
-const iconContainerStyle = {marginRight: 20, width: isMobile ? 48 : 32}
+const iconContainerStyle = {
+  marginLeft: globalMargins.small,
+  marginRight: globalMargins.xsmall,
+  width: isMobile ? 48 : 32,
+}
 
 const childrenContainerStyle = {
   overflow: 'hidden',
-  paddingRight: isMobile ? globalMargins.large : globalMargins.medium,
   position: 'relative',
   width: 'auto',
 }
 
-const timestampContainerStyleMulti = {
+const timestampContainerStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   alignSelf: 'flex-start',
   position: 'absolute',
   right: globalMargins.small,
-  top: globalMargins.xsmall,
+}
+
+const timestampContainerStyleMulti = {
+  alignSelf: 'flex-start',
+  top: globalMargins.small,
 }
 
 const timestampContainerStyleSingle = {
-  ...timestampContainerStyleMulti,
   alignSelf: 'center',
-  top: 'inherit',
 }
 
 const badgeStyle = {
@@ -80,6 +89,5 @@ const badgeStyle = {
   borderRadius: 6,
   height: 8,
   marginLeft: globalMargins.xtiny,
-  marginTop: isMobile ? 3 : 1,
   width: 8,
 }

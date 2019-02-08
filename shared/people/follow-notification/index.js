@@ -74,13 +74,7 @@ export const MultiFollowNotification = (props: Props) => {
   const usernames = props.newFollows.map(f => f.username)
   return (
     <PeopleItem format="multi" badged={props.badged} when={props.notificationTime}>
-      <Text
-        type="Body"
-        style={platformStyles({
-          common: {marginTop: 2},
-          isElectron: {display: 'inline'},
-        })}
-      >
+      <Text type="Body" style={multiTextStyle}>
         <ConnectedUsernames
           containerStyle={platformStyles({isElectron: {whiteSpace: 'wrap'}})}
           inlineGrammar={true}
@@ -110,29 +104,20 @@ export const MultiFollowNotification = (props: Props) => {
   )
 }
 
-const multiIconContainerStyle = {
-  ...globalStyles.flexBoxColumn,
-  height: isMobile ? 48 : 32,
-  position: 'relative',
-  width: isMobile ? 48 : 32,
-}
-
-const multiMetaContainerStyle = {
-  ...globalStyles.flexBoxColumn,
-  left: 0,
-  position: 'absolute',
-  right: 0,
-  top: isMobile ? 30 : 20,
-}
-
-const multiMetaStyle = {
-  alignSelf: 'center',
-  minWidth: isMobile ? 24 : 16,
-  ...(isMobile ? undefined : {textAlign: 'center'}),
-}
+const multiTextStyle = platformStyles({
+  common: {
+    marginLeft: globalMargins.small,
+    marginRight: globalMargins.xlarge,
+    marginTop: 2,
+  },
+  isElectron: {display: 'inline'},
+})
 
 const scrollViewContainerStyle = {
   ...globalStyles.flexBoxRow,
+  paddingBottom: globalMargins.tiny,
+  paddingLeft: globalMargins.small,
+  paddingRight: globalMargins.small,
   ...(isMobile
     ? null
     : {...globalStyles.flexBoxRow, flexWrap: 'wrap', height: 32, overflow: 'hidden', width: '100%'}),
