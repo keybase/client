@@ -62,8 +62,9 @@ func (brw *blockRetrievalWorker) HandleRequest() (err error) {
 	}
 
 	var block Block
+	var cacheType DiskBlockCacheType
 	defer func() {
-		brw.queue.FinalizeRequest(retrieval, block, err)
+		brw.queue.FinalizeRequest(retrieval, block, cacheType, err)
 	}()
 
 	// Handle canceled contexts.
@@ -97,9 +98,9 @@ func (brw *blockRetrievalWorker) HandleRequest() (err error) {
 		}
 	}
 
+	cacheType = action.CacheType()
 	return brw.getBlock(
-		retrieval.ctx, retrieval.kmd, retrieval.blockPtr, block,
-		action.CacheType())
+		retrieval.ctx, retrieval.kmd, retrieval.blockPtr, block, cacheType)
 }
 
 // Shutdown shuts down the blockRetrievalWorker once its current work is done.
