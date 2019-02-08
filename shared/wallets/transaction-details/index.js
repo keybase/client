@@ -437,7 +437,7 @@ class LoadTransactionDetails extends React.Component<Props> {
     // which means details need to be retrieved again
     if (
       (!this.props.transactionID && prevProps.transactionID) ||
-      (!this.props.senderAccountID && prevProps.senderAccountID && !this.props.loading)
+      (!this.props.senderAccountID && prevProps.senderAccountID) && !this.props.loading
     ) {
       this.props.onLoadPaymentDetail()
     }
