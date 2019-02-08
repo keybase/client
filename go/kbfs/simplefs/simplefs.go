@@ -1141,12 +1141,20 @@ func (k *SimpleFS) SimpleFSCopyRecursive(ctx context.Context,
 		})
 }
 
-func (k *SimpleFS) doRemove(ctx context.Context, path keybase1.Path) error {
+func (k *SimpleFS) doRemove(
+	ctx context.Context, path keybase1.Path, recursive bool) error {
 	fs, finalElem, err := k.getFS(ctx, path)
 	if err != nil {
 		return err
 	}
-	return fs.Remove(finalElem)
+	if !recursive {
+		return fs.Remove(finalElem)
+	}
+	fi, err := fs.Stat(finalElem)
+	if err != nil {
+		return err
+	}
+	return libfs.RecursiveDelete(ctx, fs, fi)
 }
 
 // SimpleFSMove - Begin move of file or directory, from/to KBFS only
@@ -1164,7 +1172,7 @@ func (k *SimpleFS) SimpleFSMove(ctx context.Context, arg keybase1.SimpleFSMoveAr
 			if err != nil {
 				return err
 			}
-			return k.doRemove(ctx, arg.Src)
+			return k.doRemove(ctx, arg.Src, false)
 		})
 }
 
@@ -1458,10 +1466,10 @@ func (k *SimpleFS) SimpleFSRemove(ctx context.Context,
 	return k.startAsync(ctx, arg.OpID, keybase1.AsyncOps_REMOVE,
 		keybase1.NewOpDescriptionWithRemove(
 			keybase1.RemoveArgs{
-				OpID: arg.OpID, Path: arg.Path,
+				OpID: arg.OpID, Path: arg.Path, Recursive: arg.Recursive,
 			}),
 		func(ctx context.Context) (err error) {
-			return k.doRemove(ctx, arg.Path)
+			return k.doRemove(ctx, arg.Path, arg.Recursive)
 		})
 }
 

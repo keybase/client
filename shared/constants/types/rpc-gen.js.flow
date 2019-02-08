@@ -185,7 +185,7 @@ export type MessageTypes = {|
     outParam: SimpleFSListResult,
   |},
   'keybase.1.SimpleFS.simpleFSRemove': {|
-    inParam: $ReadOnly<{|opID: OpID, path: Path|}>,
+    inParam: $ReadOnly<{|opID: OpID, path: Path, recursive: Boolean|}>,
     outParam: void,
   |},
   'keybase.1.SimpleFS.simpleFSStat': {|
@@ -2553,7 +2553,7 @@ export type RekeyEventType =
 export type RekeyRequest = $ReadOnly<{folderID: String, revision: Long}>
 export type RemoteProof = $ReadOnly<{proofType: ProofType, key: String, value: String, displayMarkup: String, sigID: SigID, mTime: Time}>
 export type RemoteTrack = $ReadOnly<{username: String, uid: UID, linkID: LinkID}>
-export type RemoveArgs = $ReadOnly<{opID: OpID, path: Path}>
+export type RemoveArgs = $ReadOnly<{opID: OpID, path: Path, recursive: Boolean}>
 export type RepoID = String
 export type ResetLink = $ReadOnly<{ctime: UnixTime, merkleRoot: ResetMerkleRoot, prev: ResetPrev, resetSeqno: Seqno, type: ResetType, uid: UID}>
 export type ResetMerkleRoot = $ReadOnly<{hashMeta: HashMeta, seqno: Seqno}>
