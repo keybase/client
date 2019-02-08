@@ -861,9 +861,9 @@ func (k *SimpleFS) SimpleFSReadList(_ context.Context, opid keybase1.OpID) (keyb
 	return lr, nil
 }
 
-func (k *SimpleFS) SimpleFSListFavorites(_ context.Context) (
+func (k *SimpleFS) SimpleFSListFavorites(ctx context.Context) (
 	keybase1.FavoritesResult, error) {
-	return k.config.KBFSOps().GetFavoritesAll()
+	return k.config.KBFSOps().GetFavoritesAll(ctx)
 }
 
 func recursiveByteAndFileCount(fs billy.Filesystem) (
