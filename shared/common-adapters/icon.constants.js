@@ -796,6 +796,11 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-keybase-logo-logged-out-80.png'),
   },
+  'icon-keybase-wordmark-128-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-keybase-wordmark-128-48.png'),
+  },
   'icon-loader-connecting-266': {
     extension: 'gif',
     isFont: false,

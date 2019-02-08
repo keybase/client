@@ -2,6 +2,7 @@
 import * as Types from '../../../constants/types/fs'
 import * as Constants from '../../../constants/fs'
 import {isMobile, isIOS} from '../../../constants/platform'
+import * as Flow from '../../../util/flow'
 
 export type Layout = {
   copyPath: boolean,
@@ -35,27 +36,28 @@ const empty = {
 }
 
 const getRawLayout = (path: Types.Path, pathItem: Types.PathItem): Layout => {
-  const level = Types.getPathLevel(path)
-  switch (level) {
-    case 0:
-    case 1:
+  const parsedPath = Constants.parsePath(path)
+  switch (parsedPath.kind) {
+    case 'root':
       // should never happen
       return empty
-    case 2: // private/public/team
+    case 'tlf-list':
       return {
         ...empty,
         copyPath: true,
         showInSystemFileManager: !isMobile,
       }
-    case 3: // tlf
+    case 'group-tlf':
+    case 'team-tlf':
       return {
         ...empty,
         copyPath: true,
         ignoreTlf: true,
-        sendLinkToChat: false, // TODO enable mobile // desktop uses separate button
+        sendLinkToChat: isMobile && Constants.canSendLinkToChat(parsedPath), // desktop uses separate button
         showInSystemFileManager: !isMobile,
       }
-    default:
+    case 'in-group-tlf':
+    case 'in-team-tlf':
       // inside tlf
       return {
         ...empty,
@@ -68,9 +70,12 @@ const getRawLayout = (path: Types.Path, pathItem: Types.PathItem): Layout => {
         // share menu items
         // eslint-disable-next-line sort-keys
         sendAttachmentToChat: false, // TODO enable mobile pathItem.type === 'file' && isMobile, // desktop uses separate button
-        sendLinkToChat: false, // TODO enable mobile // desktop uses separate button
+        sendLinkToChat: isMobile && Constants.canSendLinkToChat(parsedPath), // desktop uses separate button
         sendToOtherApp: pathItem.type === 'file' && isMobile,
       }
+    default:
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(parsedPath)
+      return empty
   }
 }
 
@@ -100,3 +105,6 @@ export const getRootLayout = (path: Types.Path, pathItem: Types.PathItem): Layou
 
 export const getShareLayout = (path: Types.Path, pathItem: Types.PathItem): Layout =>
   filterForOnlyShares(getRawLayout(path, pathItem))
+
+export const hasShare = (path: Types.Path, pathItem: Types.PathItem): boolean =>
+  totalShare(getRawLayout(path, pathItem)) > 0

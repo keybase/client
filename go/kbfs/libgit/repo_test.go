@@ -95,9 +95,9 @@ func TestGetOrCreateRepoAndID(t *testing.T) {
 	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
 		ctx, h, libkbfs.MasterBranch)
 	require.NoError(t, err)
-	jServer, err := libkbfs.GetJournalServer(config)
+	jManager, err := libkbfs.GetJournalManager(config)
 	require.NoError(t, err)
-	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf,
+	err = jManager.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf,
 		nil, keybase1.MDPriorityGit)
 	require.NoError(t, err)
 }
@@ -131,9 +131,9 @@ func TestCreateRepoAndID(t *testing.T) {
 	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
 		ctx, h, libkbfs.MasterBranch)
 	require.NoError(t, err)
-	jServer, err := libkbfs.GetJournalServer(config)
+	jManager, err := libkbfs.GetJournalManager(config)
 	require.NoError(t, err)
-	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf,
+	err = jManager.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf,
 		nil, keybase1.MDPriorityGit)
 	require.NoError(t, err)
 }
@@ -214,9 +214,9 @@ func TestCreateDuplicateRepo(t *testing.T) {
 		t.Fatal(ctx.Err())
 	}
 
-	jServer, err := libkbfs.GetJournalServer(config)
+	jManager, err := libkbfs.GetJournalManager(config)
 	require.NoError(t, err)
-	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf,
+	err = jManager.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf,
 		nil, keybase1.MDPriorityGit)
 	require.NoError(t, err)
 }
@@ -248,9 +248,9 @@ func TestGetRepoAndID(t *testing.T) {
 	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
 		ctx, h, libkbfs.MasterBranch)
 	require.NoError(t, err)
-	jServer, err := libkbfs.GetJournalServer(config)
+	jManager, err := libkbfs.GetJournalManager(config)
 	require.NoError(t, err)
-	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf,
+	err = jManager.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf,
 		nil, keybase1.MDPriorityGit)
 	require.NoError(t, err)
 }
@@ -273,9 +273,9 @@ func TestDeleteRepo(t *testing.T) {
 	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
 		ctx, h, libkbfs.MasterBranch)
 	require.NoError(t, err)
-	jServer, err := libkbfs.GetJournalServer(config)
+	jManager, err := libkbfs.GetJournalManager(config)
 	require.NoError(t, err)
-	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf,
+	err = jManager.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf,
 		nil, keybase1.MDPriorityGit)
 	require.NoError(t, err)
 
@@ -310,7 +310,7 @@ func TestDeleteRepo(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, children, 0)
 
-	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf,
+	err = jManager.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf,
 		nil, keybase1.MDPriorityGit)
 	require.NoError(t, err)
 }

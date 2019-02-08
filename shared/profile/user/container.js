@@ -26,10 +26,12 @@ const mapStateToProps = (state, ownProps) => {
   const username = ownProps.routeProps.get('username')
   const d = Constants.getDetails(state, username)
   const followThem = Constants.followThem(state, username)
+  const _userIsYou = username === state.config.username
 
   return {
     _assertions: d.assertions,
-    _userIsYou: username === state.config.username,
+    _suggestionKeys: _userIsYou ? state.tracker2.proofSuggestions : null,
+    _userIsYou,
     backgroundColor: headerBackgroundColor(d.state, followThem),
     followThem,
     followers: state.tracker2.usernameToDetails.getIn([username, 'followers']) || emptySet,
@@ -41,7 +43,7 @@ const mapStateToProps = (state, ownProps) => {
 }
 const mapDispatchToProps = (dispatch, ownProps) => ({
   _onEditAvatar: (image?: Response) => dispatch(ProfileGen.createEditAvatar()),
-  _onReload: (assertion: string) => {
+  _onReload: (assertion: string, isYou: boolean) => {
     dispatch(
       Tracker2Gen.createLoad({
         assertion,
@@ -51,6 +53,10 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
         reason: '',
       })
     )
+
+    if (isYou) {
+      dispatch(Tracker2Gen.createGetProofSuggestions())
+    }
   },
   onBack: () => dispatch(ownProps.navigateUp()),
   onSearch: () => {
@@ -66,9 +72,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   following: stateProps.following.toArray(),
   onBack: dispatchProps.onBack,
   onEditAvatar: stateProps._userIsYou ? dispatchProps._onEditAvatar : null,
-  onReload: () => dispatchProps._onReload(stateProps.username),
+  onReload: () => dispatchProps._onReload(stateProps.username, stateProps._userIsYou),
   onSearch: dispatchProps.onSearch,
   state: stateProps.state,
+  suggestionKeys: stateProps._suggestionKeys
+    ? stateProps._suggestionKeys.map(s => s.assertionKey).toArray()
+    : null,
   username: stateProps.username,
 })
 

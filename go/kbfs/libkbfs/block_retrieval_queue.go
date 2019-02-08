@@ -232,7 +232,7 @@ func (brq *blockRetrievalQueue) popIfNotEmpty() *blockRetrieval {
 func (brq *blockRetrievalQueue) shutdownRetrieval() {
 	retrieval := brq.popIfNotEmpty()
 	if retrieval != nil {
-		brq.FinalizeRequest(retrieval, nil, io.EOF)
+		brq.FinalizeRequest(retrieval, nil, DiskBlockAnyCache, io.EOF)
 	}
 }
 
@@ -524,7 +524,8 @@ func (brq *blockRetrievalQueue) Request(ctx context.Context,
 // preventing more requests from mutating the retrieval, then notifies all
 // subscribed requests.
 func (brq *blockRetrievalQueue) FinalizeRequest(
-	retrieval *blockRetrieval, block Block, err error) {
+	retrieval *blockRetrieval, block Block, cacheType DiskBlockCacheType,
+	err error) {
 	brq.mtx.Lock()
 	// This might have already been removed if the context has been canceled.
 	// That's okay, because this will then be a no-op.
@@ -544,6 +545,21 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 	// with its own mutex in both places.
 	retrieval.reqMtx.RLock()
 	defer retrieval.reqMtx.RUnlock()
+
+	dbc := brq.config.DiskBlockCache()
+	if dbc != nil && cacheType != retrieval.action.CacheType() {
+		brq.log.CDebugf(retrieval.ctx,
+			"Cache type changed from %s to %s since we made the request for %s",
+			cacheType, retrieval.action.CacheType(),
+			retrieval.blockPtr)
+		_, _, _, err := dbc.Get(
+			retrieval.ctx, retrieval.kmd.TlfID(), retrieval.blockPtr.ID,
+			retrieval.action.CacheType())
+		if err != nil {
+			brq.log.CDebugf(retrieval.ctx,
+				"Couldn't move block to preferred cache: %+v", err)
+		}
+	}
 
 	// Cache the block and trigger prefetches if there is no error.
 	if retrieval.action.PrefetchTracked() {

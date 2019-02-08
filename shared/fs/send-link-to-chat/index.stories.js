@@ -14,6 +14,10 @@ const common = {
 }
 
 const channels = [
+  {
+    channelname: 'aaabbbccclongnameblahblahblahblahfoiwehfioewuhf',
+    convID: ChatTypes.stringToConversationIDKey('0'),
+  },
   {channelname: 'aaa', convID: ChatTypes.stringToConversationIDKey('1')},
   {channelname: 'bbb', convID: ChatTypes.stringToConversationIDKey('2')},
   {channelname: 'ccc', convID: ChatTypes.stringToConversationIDKey('3')},
@@ -85,12 +89,14 @@ const load = () =>
     .add('SendLinkToChat - Big Team - Selected', () => (
       <SendLinkToChat
         {...common}
-        pathTextToCopy={makePathTextToCopy('/keybase/team/kbkbfstest')}
+        pathTextToCopy={makePathTextToCopy(
+          '/keybase/team/kbkbfstest/blahblah/long-name/blah/woeifj/wioejfoiwej'
+        )}
         conversation={{
           channels,
           name: 'kbkbfstest',
           selectChannel: Sb.action('selectChannel'),
-          selectedChannelname: 'aaa',
+          selectedChannel: channels[0],
           type: 'big-team',
         }}
       />

@@ -335,6 +335,30 @@ func (md *MDOpsStandard) startOfValidatedChainForLeaf(
 	return min
 }
 
+func (md *MDOpsStandard) mdserver(ctx context.Context) (
+	mds MDServer, err error) {
+	// The init code sets the MDOps before it sets the MDServer, and
+	// so it might be used before the MDServer is available (e.g., if
+	// the Keybase service is established before the MDServer is set,
+	// and it tries to look up handles for the user's public and
+	// private TLFs).  So just wait until it's available, which should
+	// be happen very quickly.
+	first := true
+	for mds = md.config.MDServer(); mds == nil; mds = md.config.MDServer() {
+		if first {
+			md.log.CDebugf(ctx, "Waiting for mdserver")
+			first = false
+		}
+		time.Sleep(10 * time.Millisecond)
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		default:
+		}
+	}
+	return mds, nil
+}
+
 func (md *MDOpsStandard) checkRevisionCameBeforeMerkle(
 	ctx context.Context, rmds *RootMetadataSigned,
 	verifyingKey kbfscrypto.VerifyingKey, irmd ImmutableRootMetadata,
@@ -348,8 +372,12 @@ func (md *MDOpsStandard) checkRevisionCameBeforeMerkle(
 	case NextMDNotCachedError:
 		md.log.CDebugf(ctx, "Finding next MD for TLF %s after global root %d",
 			rmds.MD.TlfID(), root.Seqno)
+		mdserv, err := md.mdserver(ctx)
+		if err != nil {
+			return err
+		}
 		kbfsRoot, merkleNodes, rootSeqno, err =
-			md.config.MDServer().FindNextMD(ctx, rmds.MD.TlfID(), root.Seqno)
+			mdserv.FindNextMD(ctx, rmds.MD.TlfID(), root.Seqno)
 		if err != nil {
 			return err
 		}
@@ -378,12 +406,15 @@ func (md *MDOpsStandard) checkRevisionCameBeforeMerkle(
 		}
 		treeID := mdToMerkleTreeID(irmd)
 		// TODO: cache the latest KBFS merkle root somewhere for a while?
-		latestKbfsRoot, err := md.config.MDServer().GetMerkleRootLatest(
-			ctx, treeID)
+		mdserv, err := md.mdserver(ctx)
 		if err != nil {
 			return err
 		}
-		serverOffset, _ := md.config.MDServer().OffsetFromServerTime()
+		latestKbfsRoot, err := mdserv.GetMerkleRootLatest(ctx, treeID)
+		if err != nil {
+			return err
+		}
+		serverOffset, _ := mdserv.OffsetFromServerTime()
 		if (serverOffset < 0 && serverOffset < -time.Hour) ||
 			(serverOffset > 0 && serverOffset > time.Hour) {
 			return errors.Errorf("The offset between the server clock "+
@@ -775,7 +806,11 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 	}
 
 	localTimestamp := rmds.untrustedServerTimestamp
-	if offset, ok := md.config.MDServer().OffsetFromServerTime(); ok {
+	mdserv, err := md.mdserver(ctx)
+	if err != nil {
+		return ImmutableRootMetadata{}, err
+	}
+	if offset, ok := mdserv.OffsetFromServerTime(); ok {
 		localTimestamp = localTimestamp.Add(offset)
 	}
 
@@ -862,7 +897,10 @@ func (md *MDOpsStandard) getForHandle(ctx context.Context, handle *TlfHandle,
 		}
 	}()
 
-	mdserv := md.config.MDServer()
+	mdserv, err := md.mdserver(ctx)
+	if err != nil {
+		return tlf.ID{}, ImmutableRootMetadata{}, err
+	}
 	bh, err := handle.ToBareHandle()
 	if err != nil {
 		return tlf.ID{}, ImmutableRootMetadata{}, err
@@ -1013,8 +1051,11 @@ func (md *MDOpsStandard) processSignedMD(
 func (md *MDOpsStandard) getForTLF(ctx context.Context, id tlf.ID,
 	bid kbfsmd.BranchID, mStatus kbfsmd.MergeStatus, lockBeforeGet *keybase1.LockID) (
 	ImmutableRootMetadata, error) {
-	rmds, err := md.config.MDServer().GetForTLF(
-		ctx, id, bid, mStatus, lockBeforeGet)
+	mdserv, err := md.mdserver(ctx)
+	if err != nil {
+		return ImmutableRootMetadata{}, err
+	}
+	rmds, err := mdserv.GetForTLF(ctx, id, bid, mStatus, lockBeforeGet)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
@@ -1046,7 +1087,11 @@ func (md *MDOpsStandard) GetForTLFByTime(
 				id, serverTime, err)
 		}
 	}()
-	rmds, err := md.config.MDServer().GetForTLFByTime(ctx, id, serverTime)
+	mdserv, err := md.mdserver(ctx)
+	if err != nil {
+		return ImmutableRootMetadata{}, err
+	}
+	rmds, err := mdserv.GetForTLFByTime(ctx, id, serverTime)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
@@ -1170,7 +1215,11 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id tlf.ID,
 func (md *MDOpsStandard) getRange(ctx context.Context, id tlf.ID,
 	bid kbfsmd.BranchID, mStatus kbfsmd.MergeStatus, start, stop kbfsmd.Revision,
 	lockBeforeGet *keybase1.LockID) ([]ImmutableRootMetadata, error) {
-	rmds, err := md.config.MDServer().GetRange(
+	mdserv, err := md.mdserver(ctx)
+	if err != nil {
+		return nil, err
+	}
+	rmds, err := mdserv.GetRange(
 		ctx, id, bid, mStatus, start, stop, lockBeforeGet)
 	if err != nil {
 		return nil, err
@@ -1227,7 +1276,11 @@ func (md *MDOpsStandard) put(ctx context.Context, rmd *RootMetadata,
 		return ImmutableRootMetadata{}, err
 	}
 
-	err = md.config.MDServer().Put(ctx, rmds, rmd.extra, lockContext, priority)
+	mdserv, err := md.mdserver(ctx)
+	if err != nil {
+		return ImmutableRootMetadata{}, err
+	}
+	err = mdserv.Put(ctx, rmds, rmd.extra, lockContext, priority)
 	if err != nil {
 		return ImmutableRootMetadata{}, err
 	}
@@ -1279,7 +1332,11 @@ func (md *MDOpsStandard) PutUnmerged(
 // PruneBranch implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) PruneBranch(
 	ctx context.Context, id tlf.ID, bid kbfsmd.BranchID) error {
-	return md.config.MDServer().PruneBranch(ctx, id, bid)
+	mdserv, err := md.mdserver(ctx)
+	if err != nil {
+		return err
+	}
+	return mdserv.PruneBranch(ctx, id, bid)
 }
 
 // ResolveBranch implements the MDOps interface for MDOpsStandard.
@@ -1306,8 +1363,12 @@ func (md *MDOpsStandard) ResolveBranch(
 // GetLatestHandleForTLF implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) GetLatestHandleForTLF(ctx context.Context, id tlf.ID) (
 	tlf.Handle, error) {
+	mdserv, err := md.mdserver(ctx)
+	if err != nil {
+		return tlf.Handle{}, err
+	}
 	// TODO: Verify this mapping using a Merkle tree.
-	return md.config.MDServer().GetLatestHandleForTLF(ctx, id)
+	return mdserv.GetLatestHandleForTLF(ctx, id)
 }
 
 // ValidateLatestHandleNotFinal implements the MDOps interface for
@@ -1370,7 +1431,10 @@ func (md *MDOpsStandard) getExtraMD(ctx context.Context, brmd kbfsmd.RootMetadat
 		// Pre-v3 metadata embed key bundles and as such won't set any IDs.
 		return nil, nil
 	}
-	mdserv := md.config.MDServer()
+	mdserv, err := md.mdserver(ctx)
+	if err != nil {
+		return nil, err
+	}
 	kbcache := md.config.KeyBundleCache()
 	tlf := brmd.TlfID()
 	// Check the cache.

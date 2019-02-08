@@ -302,18 +302,6 @@ func (o ProofSuggestion) DeepCopy() ProofSuggestion {
 	}
 }
 
-type SizedImage struct {
-	Path  string `codec:"path" json:"path"`
-	Width int    `codec:"width" json:"width"`
-}
-
-func (o SizedImage) DeepCopy() SizedImage {
-	return SizedImage{
-		Path:  o.Path,
-		Width: o.Width,
-	}
-}
-
 type NextMerkleRootRes struct {
 	Res *MerkleRootV2 `codec:"res,omitempty" json:"res,omitempty"`
 }
@@ -327,6 +315,18 @@ func (o NextMerkleRootRes) DeepCopy() NextMerkleRootRes {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Res),
+	}
+}
+
+type CanLogoutRes struct {
+	CanLogout bool   `codec:"canLogout" json:"canLogout"`
+	Reason    string `codec:"reason" json:"reason"`
+}
+
+func (o CanLogoutRes) DeepCopy() CanLogoutRes {
+	return CanLogoutRes{
+		CanLogout: o.CanLogout,
+		Reason:    o.Reason,
 	}
 }
 
@@ -459,6 +459,10 @@ type LoadHasRandomPwArg struct {
 	ForceRepoll bool `codec:"forceRepoll" json:"forceRepoll"`
 }
 
+type CanLogoutArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type UserInterface interface {
 	ListTrackers(context.Context, ListTrackersArg) ([]Tracker, error)
 	ListTrackersByName(context.Context, ListTrackersByNameArg) ([]Tracker, error)
@@ -507,6 +511,7 @@ type UserInterface interface {
 	// the reset. Usually, we'll just turn up the next Merkle root, but not always.
 	FindNextMerkleRootAfterReset(context.Context, FindNextMerkleRootAfterResetArg) (NextMerkleRootRes, error)
 	LoadHasRandomPw(context.Context, LoadHasRandomPwArg) (bool, error)
+	CanLogout(context.Context, int) (CanLogoutRes, error)
 }
 
 func UserProtocol(i UserInterface) rpc.Protocol {
@@ -888,6 +893,21 @@ func UserProtocol(i UserInterface) rpc.Protocol {
 					return
 				},
 			},
+			"canLogout": {
+				MakeArg: func() interface{} {
+					var ret [1]CanLogoutArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]CanLogoutArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]CanLogoutArg)(nil), args)
+						return
+					}
+					ret, err = i.CanLogout(ctx, typedArgs[0].SessionID)
+					return
+				},
+			},
 		},
 	}
 }
@@ -1047,5 +1067,11 @@ func (c UserClient) FindNextMerkleRootAfterReset(ctx context.Context, __arg Find
 
 func (c UserClient) LoadHasRandomPw(ctx context.Context, __arg LoadHasRandomPwArg) (res bool, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.user.loadHasRandomPw", []interface{}{__arg}, &res)
+	return
+}
+
+func (c UserClient) CanLogout(ctx context.Context, sessionID int) (res CanLogoutRes, err error) {
+	__arg := CanLogoutArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.user.canLogout", []interface{}{__arg}, &res)
 	return
 }

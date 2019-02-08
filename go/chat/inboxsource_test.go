@@ -42,7 +42,7 @@ func TestInboxSourceUpdateRace(t *testing.T) {
 	require.NoError(t, err)
 
 	ib, _, err := tc.ChatG.InboxSource.Read(ctx, u.User.GetUID().ToBytes(),
-		types.ConversationLocalizerBlocking, true, nil, nil, nil)
+		types.ConversationLocalizerBlocking, types.InboxSourceDataSourceAll, nil, nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, chat1.InboxVers(0), ib.Version, "wrong version")
 
@@ -68,7 +68,7 @@ func TestInboxSourceUpdateRace(t *testing.T) {
 	wg.Wait()
 
 	ib, _, err = tc.ChatG.InboxSource.Read(ctx, u.User.GetUID().ToBytes(),
-		types.ConversationLocalizerBlocking, true, nil, nil, nil)
+		types.ConversationLocalizerBlocking, types.InboxSourceDataSourceAll, nil, nil, nil)
 	require.NoError(t, err)
 	require.Equal(t, chat1.InboxVers(1), ib.Version, "wrong version")
 }
@@ -88,7 +88,7 @@ func TestInboxSourceSkipAhead(t *testing.T) {
 
 	assertInboxVersion := func(v int) {
 		ib, _, err := tc.ChatG.InboxSource.Read(ctx, u.User.GetUID().ToBytes(),
-			types.ConversationLocalizerBlocking, true, nil, nil, nil)
+			types.ConversationLocalizerBlocking, types.InboxSourceDataSourceAll, nil, nil, nil)
 		require.Equal(t, chat1.InboxVers(v), ib.Version, "wrong version")
 		require.NoError(t, err)
 	}
@@ -180,7 +180,7 @@ func TestInboxSourceFlushLoop(t *testing.T) {
 		t.Skip()
 	}
 	newBlankConv(ctx, t, tc, uid, ri, sender, u.Username)
-	_, err := hbs.ReadUnverified(ctx, uid, true, nil, nil)
+	_, err := hbs.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll, nil, nil)
 	require.NoError(t, err)
 	inbox := hbs.createInbox()
 	flushCh := make(chan struct{}, 10)
@@ -219,4 +219,42 @@ func TestInboxSourceFlushLoop(t *testing.T) {
 	}
 	_, rc, err = inbox.ReadAll(ctx, uid, false)
 	require.Equal(t, 2, len(rc))
+}
+
+func TestInboxSourceLocalOnly(t *testing.T) {
+	ctc := makeChatTestContext(t, "TestInboxSourceLocalOnly", 1)
+	defer ctc.cleanup()
+	users := ctc.users()
+	useRemoteMock = false
+	defer func() { useRemoteMock = true }()
+
+	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+		chat1.ConversationMembersType_IMPTEAMNATIVE)
+	ctx := ctc.as(t, users[0]).startCtx
+	tc := ctc.world.Tcs[users[0].Username]
+	uid := users[0].User.GetUID().ToBytes()
+
+	attempt := func(mode types.InboxSourceDataSourceTyp, success bool) {
+		ib, err := tc.Context().InboxSource.ReadUnverified(ctx, uid, mode,
+			&chat1.GetInboxQuery{
+				ConvID: &conv.Id,
+			}, nil)
+		if success {
+			require.NoError(t, err)
+			require.Equal(t, 1, len(ib.ConvsUnverified))
+			require.Equal(t, conv.Id, ib.ConvsUnverified[0].GetConvID())
+		} else {
+			require.Error(t, err)
+			require.IsType(t, storage.MissError{}, err)
+		}
+	}
+
+	attempt(types.InboxSourceDataSourceAll, true)
+	attempt(types.InboxSourceDataSourceLocalOnly, true)
+	require.NoError(t, tc.Context().InboxSource.Clear(ctx, uid))
+	attempt(types.InboxSourceDataSourceLocalOnly, false)
+	attempt(types.InboxSourceDataSourceRemoteOnly, true)
+	attempt(types.InboxSourceDataSourceLocalOnly, false)
+	attempt(types.InboxSourceDataSourceAll, true)
+	attempt(types.InboxSourceDataSourceLocalOnly, true)
 }

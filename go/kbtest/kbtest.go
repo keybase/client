@@ -7,7 +7,9 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"os"
 	"sync"
+	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
@@ -424,4 +426,20 @@ func VerifyEmailAuto(mctx libkb.MetaContext, email keybase1.EmailAddress) error 
 	}
 	_, err := mctx.G().API.Post(arg)
 	return err
+}
+
+func RunningInCI() bool {
+	x := os.Getenv("KEYBASE_RUN_CI")
+	return len(x) > 0 && x != "0" && x[0] != byte('n')
+}
+
+func SkipTestOnNonMasterCI(t *testing.T, reason string) {
+	if RunningInCI() && os.Getenv("BRANCH_NAME") != "master" {
+		t.Skipf("skip test on non-master CI run: %v", reason)
+	}
+}
+
+// CORE-10146
+func SkipIconRemoteTest() bool {
+	return RunningInCI()
 }

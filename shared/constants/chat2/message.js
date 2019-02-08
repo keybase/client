@@ -550,6 +550,14 @@ const uiMessageToSystemMessage = (minimum, body, reactions): ?Types.Message => {
         ...minimum,
       })
     }
+    case RPCChatTypes.localMessageSystemType.changeretention: {
+      const {user = '???'} = body.changeretention || {}
+      return makeMessageSystemText({
+        reactions,
+        text: new HiddenString(`${user} changed the retention policy`),
+        ...minimum,
+      })
+    }
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(body.systemType)
       return null

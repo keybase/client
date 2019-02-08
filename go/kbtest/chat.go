@@ -1223,7 +1223,7 @@ func (m *MockChatHelper) SendMsgByNameNonblock(ctx context.Context, name string,
 	return nil
 }
 
-func (m *MockChatHelper) FindConversations(ctx context.Context, userLocalData bool, name string,
+func (m *MockChatHelper) FindConversations(ctx context.Context, name string,
 	topicName *string, topicType chat1.TopicType,
 	membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility) ([]chat1.ConversationLocal, error) {
 

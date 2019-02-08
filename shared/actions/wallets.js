@@ -22,15 +22,26 @@ import {RPCError} from '../util/errors'
 import {isMobile} from '../constants/platform'
 import {actionHasError} from '../util/container'
 
+const stateToBuildRequestParams = state => ({
+  amount: state.wallets.building.amount,
+  currency: state.wallets.building.currency === 'XLM' ? null : state.wallets.building.currency,
+  secretNote: state.wallets.building.secretNote.stringValue(),
+  to: state.wallets.building.to,
+})
+
+const buildErrCatcher = err => {
+  if (err instanceof RPCError && err.code === RPCTypes.constantsStatusCode.sccanceled) {
+    // ignore cancellation
+  } else {
+    logger.error(`buildPayment error: ${err.message}`)
+    throw err
+  }
+}
+
 const buildPayment = (state, action) =>
   (state.wallets.building.isRequest
     ? RPCStellarTypes.localBuildRequestLocalRpcPromise(
-        {
-          amount: state.wallets.building.amount,
-          currency: state.wallets.building.currency === 'XLM' ? null : state.wallets.building.currency,
-          secretNote: state.wallets.building.secretNote.stringValue(),
-          to: state.wallets.building.to,
-        },
+        stateToBuildRequestParams(state),
         Constants.buildPaymentWaitingKey
       ).then(build =>
         WalletsGen.createBuiltRequestReceived({
@@ -61,14 +72,7 @@ const buildPayment = (state, action) =>
           forBuildCounter: state.wallets.buildCounter,
         })
       )
-  ).catch(err => {
-    if (err instanceof RPCError && err.code === RPCTypes.constantsStatusCode.sccanceled) {
-      // ignore cancellation
-    } else {
-      logger.error(`buildPayment error: ${err.message}`)
-      throw err
-    }
-  })
+  ).catch(buildErrCatcher)
 
 const spawnBuildPayment = (state, action) => {
   if (!state.config.loggedIn) {
@@ -158,8 +162,34 @@ const setLastSentXLM = (state, action) =>
     writeFile: true,
   })
 
-const requestPayment = state =>
-  RPCStellarTypes.localMakeRequestLocalRpcPromise(
+function* requestPayment(state) {
+  let buildRes
+  try {
+    buildRes = yield* Saga.callPromise(
+      RPCStellarTypes.localBuildRequestLocalRpcPromise,
+      stateToBuildRequestParams(state),
+      Constants.requestPaymentWaitingKey
+    )
+  } catch (err) {
+    buildErrCatcher(err)
+    return
+  }
+  if (!buildRes.readyToRequest) {
+    logger.warn(
+      `requestPayment: invalid form submitted. amountErr: ${buildRes.amountErrMsg}; secretNoteErr: ${
+        buildRes.secretNoteErrMsg
+      }; toErrMsg: ${buildRes.toErrMsg}`
+    )
+    yield Saga.put(
+      WalletsGen.createBuiltRequestReceived({
+        build: Constants.buildRequestResultToBuiltRequest(buildRes),
+        forBuildCounter: state.wallets.buildCounter,
+      })
+    )
+    return
+  }
+  const kbRqID = yield* Saga.callPromise(
+    RPCStellarTypes.localMakeRequestLocalRpcPromise,
     {
       amount: state.wallets.building.amount,
       // FIXME -- support other assets.
@@ -172,14 +202,19 @@ const requestPayment = state =>
       recipient: state.wallets.building.to,
     },
     Constants.requestPaymentWaitingKey
-  ).then(kbRqID => [
-    maybeNavigateAwayFromSendForm(state),
-    WalletsGen.createRequestedPayment({
-      kbRqID: new HiddenString(kbRqID),
-      lastSentXLM: state.wallets.building.currency === 'XLM',
-      requestee: state.wallets.building.to,
-    }),
+  )
+  const navAction = maybeNavigateAwayFromSendForm(state)
+  yield Saga.sequentially([
+    ...(navAction ? [Saga.put(navAction)] : []),
+    Saga.put(
+      WalletsGen.createRequestedPayment({
+        kbRqID: new HiddenString(kbRqID),
+        lastSentXLM: state.wallets.building.currency === 'XLM',
+        requestee: state.wallets.building.to,
+      })
+    ),
   ])
+}
 
 const startPayment = state =>
   state.wallets.acceptedDisclaimer && !state.wallets.building.isRequest
@@ -1033,7 +1068,7 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     maybeNavigateAwayFromSendForm
   )
 
-  yield* Saga.chainAction<WalletsGen.RequestPaymentPayload>(WalletsGen.requestPayment, requestPayment)
+  yield* Saga.chainGenerator<WalletsGen.RequestPaymentPayload>(WalletsGen.requestPayment, requestPayment)
   yield* Saga.chainAction<WalletsGen.RequestedPaymentPayload | WalletsGen.AbandonPaymentPayload>(
     [WalletsGen.requestedPayment, WalletsGen.abandonPayment],
     clearBuiltRequest

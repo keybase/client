@@ -17,37 +17,50 @@ type Props = {
   onTrace: (durationSeconds: number) => void,
   onProcessorProfile: (durationSeconds: number) => void,
   onBack: () => void,
+  setLockdownModeError: string,
+  settingLockdownMode: boolean,
   traceInProgress: boolean,
   processorProfileInProgress: boolean,
   hasRandomPW: boolean,
 }
 
-const Advanced = (props: Props) => (
-  <Kb.Box style={styles.advancedContainer}>
-    <Kb.Box style={styles.checkboxContainer}>
-      <Kb.Checkbox
-        checked={!!props.lockdownModeEnabled}
-        disabled={props.lockdownModeEnabled == null || props.hasRandomPW}
-        label={
-          'Forbid account changes from the website' +
-          (props.hasRandomPW ? ' (you need to set a passphrase first)' : '')
-        }
-        onCheck={props.onChangeLockdownMode}
-        style={styles.checkbox}
-      />
-    </Kb.Box>
-    {!Styles.isMobile && !isLinux && (
-      <Kb.Box style={styles.openAtLoginCheckboxContainer}>
+const Advanced = (props: Props) => {
+  const disabled = props.lockdownModeEnabled == null || props.hasRandomPW || props.settingLockdownMode
+  return (
+    <Kb.Box style={styles.advancedContainer}>
+      <Kb.Box style={styles.progressContainer}>
+        {props.settingLockdownMode && <Kb.ProgressIndicator />}
+      </Kb.Box>
+      <Kb.Box style={styles.checkboxContainer}>
         <Kb.Checkbox
-          label="Open Keybase on startup"
-          checked={props.openAtLogin}
-          onCheck={props.onSetOpenAtLogin}
+          checked={!!props.lockdownModeEnabled}
+          disabled={disabled}
+          label={
+            'Forbid account changes from the website' +
+            (props.hasRandomPW ? ' (you need to set a passphrase first)' : '')
+          }
+          onCheck={props.onChangeLockdownMode}
+          style={styles.checkbox}
         />
       </Kb.Box>
-    )}
-    <Developer {...props} />
-  </Kb.Box>
-)
+      {!!props.setLockdownModeError && (
+        <Kb.Text type="BodySmall" style={styles.error}>
+          {props.setLockdownModeError}
+        </Kb.Text>
+      )}
+      {!Styles.isMobile && !isLinux && (
+        <Kb.Box style={styles.openAtLoginCheckboxContainer}>
+          <Kb.Checkbox
+            label="Open Keybase on startup"
+            checked={props.openAtLogin}
+            onCheck={props.onSetOpenAtLogin}
+          />
+        </Kb.Box>
+      )}
+      <Developer {...props} />
+    </Kb.Box>
+  )
+}
 
 type StartButtonProps = {
   label: string,
@@ -105,9 +118,7 @@ class Developer extends React.Component<Props, State> {
     return (
       <Kb.Box style={styles.developerContainer}>
         <Kb.Text center={true} type="BodySmallSemibold" onClick={this._onLabelClick} style={styles.text}>
-          {Styles.isMobile
-            ? `Please don't do anything here unless instructed to by a developer.`
-            : `Please don't do anything below here unless instructed to by a developer.`}
+          Please don't do anything below here unless instructed to by a developer.
         </Kb.Text>
         <Kb.Divider style={styles.divider} />
         <Kb.Button
@@ -181,6 +192,9 @@ const styles = Styles.styleSheetCreate({
     marginTop: Styles.globalMargins.xsmall,
     width: '100%',
   },
+  error: {
+    color: Styles.globalColors.red,
+  },
   filler: {
     flex: 1,
   },
@@ -188,6 +202,12 @@ const styles = Styles.styleSheetCreate({
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'flex-start',
     flex: 1,
+  },
+  progressContainer: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 32,
   },
   text: Styles.platformStyles({
     isElectron: {

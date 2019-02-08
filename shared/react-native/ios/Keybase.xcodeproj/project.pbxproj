@@ -8,8 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		0044E59D1BCD7CEA008EF7EE /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 0044E59C1BCD7CEA008EF7EE /* LaunchScreen.storyboard */; };
-		272DA236209C3D9F002CE7A6 /* OpenSans-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 272DA208209C3D9F002CE7A6 /* OpenSans-ExtraBold.ttf */; };
-		272DA237209C3D9F002CE7A6 /* OpenSans-ExtraBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 272DA208209C3D9F002CE7A6 /* OpenSans-ExtraBold.ttf */; };
 		2746CFFA1E9884BD00E579B0 /* libresolv.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 274AFB721E972F5300615A64 /* libresolv.tbd */; };
 		279FB5A02139AB6A005E4864 /* ShareViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 279FB59F2139AB6A005E4864 /* ShareViewController.m */; };
 		279FB5A32139AB6A005E4864 /* MainInterface.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 279FB5A12139AB6A005E4864 /* MainInterface.storyboard */; };
@@ -29,6 +27,14 @@
 		375CA6651FFD40D300210B11 /* Storybook.m in Sources */ = {isa = PBXBuildFile; fileRef = 375CA6641FFD40D300210B11 /* Storybook.m */; };
 		3791A8A120C71DC0001C2E86 /* PushPrompt.m in Sources */ = {isa = PBXBuildFile; fileRef = 3791A8A020C71DC0001C2E86 /* PushPrompt.m */; };
 		3791A8A320C71FE6001C2E86 /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3791A8A220C71FE6001C2E86 /* UserNotifications.framework */; };
+		664073EB220A0B70009B2ED7 /* SourceCodePro-Semibold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 664073E9220A0B70009B2ED7 /* SourceCodePro-Semibold.ttf */; };
+		664073EC220A0B70009B2ED7 /* SourceCodePro-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 664073EA220A0B70009B2ED7 /* SourceCodePro-Medium.ttf */; };
+		665BAD142209FC4D00E3CC93 /* keybase-medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = 665BAD0E2209FC4D00E3CC93 /* keybase-medium.otf */; };
+		665BAD152209FC4D00E3CC93 /* keybase-semibold.otf in Resources */ = {isa = PBXBuildFile; fileRef = 665BAD0F2209FC4D00E3CC93 /* keybase-semibold.otf */; };
+		665BAD162209FC4D00E3CC93 /* keybase-extrabold.otf in Resources */ = {isa = PBXBuildFile; fileRef = 665BAD102209FC4D00E3CC93 /* keybase-extrabold.otf */; };
+		665BAD172209FC4D00E3CC93 /* keybase-medium-italic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 665BAD112209FC4D00E3CC93 /* keybase-medium-italic.otf */; };
+		665BAD182209FC4D00E3CC93 /* keybase-semibold-italic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 665BAD122209FC4D00E3CC93 /* keybase-semibold-italic.otf */; };
+		665BAD192209FC4D00E3CC93 /* keybase-bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = 665BAD132209FC4D00E3CC93 /* keybase-bold.otf */; };
 		A90CD4A81FCE1D0B00F97901 /* NativeLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = A90CD4A61FCE1D0A00F97901 /* NativeLogger.m */; };
 		A969A40A1CF65C9C00F273F2 /* LogSend.m in Sources */ = {isa = PBXBuildFile; fileRef = A969A4091CF65C9C00F273F2 /* LogSend.m */; };
 		A9BB30DF1E6A274900E713E5 /* libRCTCameraRoll.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A9BB30C51E6A273A00E713E5 /* libRCTCameraRoll.a */; };
@@ -56,13 +62,6 @@
 		DBBCC6181D9C5C6A00312652 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = DBBCC6171D9C5C6A00312652 /* main.m */; };
 		DBCE36251B90F14800ECADDE /* Engine.m in Sources */ = {isa = PBXBuildFile; fileRef = DBCE36241B90F14800ECADDE /* Engine.m */; };
 		DBDC800B1DE7CC8E005387B3 /* kb.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBDC80031DE7CC8E005387B3 /* kb.ttf */; };
-		DBDC800C1DE7CC8E005387B3 /* OpenSans-Semi_bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBDC80041DE7CC8E005387B3 /* OpenSans-Semi_bold.ttf */; };
-		DBDC800D1DE7CC8E005387B3 /* OpenSans-Semi_bold_italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBDC80051DE7CC8E005387B3 /* OpenSans-Semi_bold_italic.ttf */; };
-		DBDC800E1DE7CC8E005387B3 /* OpenSans.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBDC80061DE7CC8E005387B3 /* OpenSans.ttf */; };
-		DBDC800F1DE7CC8E005387B3 /* OpenSans_bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBDC80071DE7CC8E005387B3 /* OpenSans_bold.ttf */; };
-		DBDC80101DE7CC8E005387B3 /* OpenSans_italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBDC80081DE7CC8E005387B3 /* OpenSans_italic.ttf */; };
-		DBDC80111DE7CC8E005387B3 /* SourceCodePro-Semi_bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBDC80091DE7CC8E005387B3 /* SourceCodePro-Semi_bold.ttf */; };
-		DBDC80121DE7CC8E005387B3 /* SourceCodePro.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DBDC800A1DE7CC8E005387B3 /* SourceCodePro.ttf */; };
 		DBDCF30E1B8D03DD00BA95D8 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */; };
 		DBEE30801FE8511F0020EBA5 /* DDTTYLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = DBEE306C1FE8511F0020EBA5 /* DDTTYLogger.m */; };
 		DBEE30811FE8511F0020EBA5 /* DDOSLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = DBEE306F1FE8511F0020EBA5 /* DDOSLogger.m */; };
@@ -479,7 +478,6 @@
 		00E356F21AD99517003FC87E /* KeybaseTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = KeybaseTests.m; sourceTree = "<group>"; };
 		0F50E60CFE3C4C26BAB60DFC /* LottieReactNative.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = LottieReactNative.xcodeproj; path = "../../node_modules/lottie-react-native/src/ios/LottieReactNative.xcodeproj"; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* Keybase.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Keybase.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		272DA208209C3D9F002CE7A6 /* OpenSans-ExtraBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "OpenSans-ExtraBold.ttf"; sourceTree = "<group>"; };
 		274AFB721E972F5300615A64 /* libresolv.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libresolv.tbd; path = usr/lib/libresolv.tbd; sourceTree = SDKROOT; };
 		279FB59C2139AB6A005E4864 /* KeybaseShare.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = KeybaseShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		279FB59E2139AB6A005E4864 /* ShareViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShareViewController.h; sourceTree = "<group>"; };
@@ -506,6 +504,14 @@
 		3791A8A020C71DC0001C2E86 /* PushPrompt.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PushPrompt.m; sourceTree = "<group>"; };
 		3791A8A220C71FE6001C2E86 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
 		6266E16BBFF8461CAF2DDCB9 /* RCTContacts.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = RCTContacts.xcodeproj; path = "../../node_modules/react-native-contacts/ios/RCTContacts.xcodeproj"; sourceTree = "<group>"; };
+		664073E9220A0B70009B2ED7 /* SourceCodePro-Semibold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SourceCodePro-Semibold.ttf"; sourceTree = "<group>"; };
+		664073EA220A0B70009B2ED7 /* SourceCodePro-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SourceCodePro-Medium.ttf"; sourceTree = "<group>"; };
+		665BAD0E2209FC4D00E3CC93 /* keybase-medium.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-medium.otf"; sourceTree = "<group>"; };
+		665BAD0F2209FC4D00E3CC93 /* keybase-semibold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-semibold.otf"; sourceTree = "<group>"; };
+		665BAD102209FC4D00E3CC93 /* keybase-extrabold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-extrabold.otf"; sourceTree = "<group>"; };
+		665BAD112209FC4D00E3CC93 /* keybase-medium-italic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-medium-italic.otf"; sourceTree = "<group>"; };
+		665BAD122209FC4D00E3CC93 /* keybase-semibold-italic.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-semibold-italic.otf"; sourceTree = "<group>"; };
+		665BAD132209FC4D00E3CC93 /* keybase-bold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "keybase-bold.otf"; sourceTree = "<group>"; };
 		A76C0DB4F73E4C83A1521058 /* FastImage.xcodeproj */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = "wrapper.pb-project"; name = FastImage.xcodeproj; path = "../../node_modules/react-native-fast-image/ios/FastImage.xcodeproj"; sourceTree = "<group>"; };
 		A90CD4A61FCE1D0A00F97901 /* NativeLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NativeLogger.m; sourceTree = "<group>"; };
 		A90CD4A71FCE1D0A00F97901 /* NativeLogger.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NativeLogger.h; sourceTree = "<group>"; };
@@ -541,13 +547,6 @@
 		DBCE36231B90F14800ECADDE /* Engine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Engine.h; sourceTree = "<group>"; };
 		DBCE36241B90F14800ECADDE /* Engine.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Engine.m; sourceTree = "<group>"; };
 		DBDC80031DE7CC8E005387B3 /* kb.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = kb.ttf; sourceTree = "<group>"; };
-		DBDC80041DE7CC8E005387B3 /* OpenSans-Semi_bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "OpenSans-Semi_bold.ttf"; sourceTree = "<group>"; };
-		DBDC80051DE7CC8E005387B3 /* OpenSans-Semi_bold_italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "OpenSans-Semi_bold_italic.ttf"; sourceTree = "<group>"; };
-		DBDC80061DE7CC8E005387B3 /* OpenSans.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = OpenSans.ttf; sourceTree = "<group>"; };
-		DBDC80071DE7CC8E005387B3 /* OpenSans_bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = OpenSans_bold.ttf; sourceTree = "<group>"; };
-		DBDC80081DE7CC8E005387B3 /* OpenSans_italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = OpenSans_italic.ttf; sourceTree = "<group>"; };
-		DBDC80091DE7CC8E005387B3 /* SourceCodePro-Semi_bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SourceCodePro-Semi_bold.ttf"; sourceTree = "<group>"; };
-		DBDC800A1DE7CC8E005387B3 /* SourceCodePro.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = SourceCodePro.ttf; sourceTree = "<group>"; };
 		DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		DBDCF3091B8D03DD00BA95D8 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		DBDCF3441B8D04FC00BA95D8 /* Keybase-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Keybase-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -923,14 +922,14 @@
 			isa = PBXGroup;
 			children = (
 				DBDC80031DE7CC8E005387B3 /* kb.ttf */,
-				DBDC80041DE7CC8E005387B3 /* OpenSans-Semi_bold.ttf */,
-				DBDC80051DE7CC8E005387B3 /* OpenSans-Semi_bold_italic.ttf */,
-				272DA208209C3D9F002CE7A6 /* OpenSans-ExtraBold.ttf */,
-				DBDC80061DE7CC8E005387B3 /* OpenSans.ttf */,
-				DBDC80071DE7CC8E005387B3 /* OpenSans_bold.ttf */,
-				DBDC80081DE7CC8E005387B3 /* OpenSans_italic.ttf */,
-				DBDC80091DE7CC8E005387B3 /* SourceCodePro-Semi_bold.ttf */,
-				DBDC800A1DE7CC8E005387B3 /* SourceCodePro.ttf */,
+				665BAD132209FC4D00E3CC93 /* keybase-bold.otf */,
+				665BAD102209FC4D00E3CC93 /* keybase-extrabold.otf */,
+				665BAD112209FC4D00E3CC93 /* keybase-medium-italic.otf */,
+				665BAD0E2209FC4D00E3CC93 /* keybase-medium.otf */,
+				665BAD122209FC4D00E3CC93 /* keybase-semibold-italic.otf */,
+				665BAD0F2209FC4D00E3CC93 /* keybase-semibold.otf */,
+				664073EA220A0B70009B2ED7 /* SourceCodePro-Medium.ttf */,
+				664073E9220A0B70009B2ED7 /* SourceCodePro-Semibold.ttf */,
 			);
 			name = fonts;
 			path = ../../../fonts;
@@ -1604,18 +1603,18 @@
 			buildActionMask = 2147483647;
 			files = (
 				DBEE30851FE8511F0020EBA5 /* LICENSE.txt in Resources */,
-				DBDC800D1DE7CC8E005387B3 /* OpenSans-Semi_bold_italic.ttf in Resources */,
 				C3A47BFE1E8B148A00974A63 /* keybasemessage.wav in Resources */,
-				DBDC80111DE7CC8E005387B3 /* SourceCodePro-Semi_bold.ttf in Resources */,
-				DBDC800E1DE7CC8E005387B3 /* OpenSans.ttf in Resources */,
-				DBDC800C1DE7CC8E005387B3 /* OpenSans-Semi_bold.ttf in Resources */,
-				DBDC800F1DE7CC8E005387B3 /* OpenSans_bold.ttf in Resources */,
+				665BAD192209FC4D00E3CC93 /* keybase-bold.otf in Resources */,
+				664073EB220A0B70009B2ED7 /* SourceCodePro-Semibold.ttf in Resources */,
+				665BAD142209FC4D00E3CC93 /* keybase-medium.otf in Resources */,
+				665BAD162209FC4D00E3CC93 /* keybase-extrabold.otf in Resources */,
+				665BAD182209FC4D00E3CC93 /* keybase-semibold-italic.otf in Resources */,
+				664073EC220A0B70009B2ED7 /* SourceCodePro-Medium.ttf in Resources */,
+				665BAD172209FC4D00E3CC93 /* keybase-medium-italic.otf in Resources */,
 				DBDC800B1DE7CC8E005387B3 /* kb.ttf in Resources */,
-				DBDC80101DE7CC8E005387B3 /* OpenSans_italic.ttf in Resources */,
 				0044E59D1BCD7CEA008EF7EE /* LaunchScreen.storyboard in Resources */,
 				DBDCF30E1B8D03DD00BA95D8 /* Images.xcassets in Resources */,
-				DBDC80121DE7CC8E005387B3 /* SourceCodePro.ttf in Resources */,
-				272DA236209C3D9F002CE7A6 /* OpenSans-ExtraBold.ttf in Resources */,
+				665BAD152209FC4D00E3CC93 /* keybase-semibold.otf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1633,7 +1632,6 @@
 			files = (
 				DB75391B1D776CC400AFA61B /* LaunchScreen.storyboard in Resources */,
 				DB75391D1D776CC400AFA61B /* Images.xcassets in Resources */,
-				272DA237209C3D9F002CE7A6 /* OpenSans-ExtraBold.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

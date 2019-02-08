@@ -44,12 +44,6 @@ const UnmutedNotificationPrefs = (props: Props) => {
 
       <Box style={isMobile ? styleHeaderMobile : styleHeader}>
         <Text type="BodySmallSemibold">Desktop notifications</Text>
-        <Icon
-          style={{paddingLeft: globalMargins.xtiny}}
-          fontSize={isMobile ? 20 : 16}
-          color={globalColors.black_20}
-          type="iconfont-notifications-desktop"
-        />
       </Box>
 
       <Box style={styleRadioButton}>
@@ -79,12 +73,6 @@ const UnmutedNotificationPrefs = (props: Props) => {
 
       <Box style={styleHeader}>
         <Text type="BodySmallSemibold">Mobile notifications</Text>
-        <Icon
-          style={{paddingLeft: globalMargins.xtiny}}
-          fontSize={isMobile ? 20 : 16}
-          type="iconfont-notifications-mobile"
-          color={globalColors.black_20}
-        />
       </Box>
 
       <Box style={styleRadioButton}>

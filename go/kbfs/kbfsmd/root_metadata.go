@@ -124,9 +124,6 @@ type RootMetadata interface {
 	MDDiskUsage() uint64
 	// RevisionNumber returns the revision number associated with this metadata structure.
 	RevisionNumber() Revision
-	// MerkleRoot returns the root of the global Keybase Merkle tree
-	// at the time the MD was written.
-	MerkleRoot() keybase1.MerkleRootV2
 	// BID returns the per-device branch ID associated with this metadata revision.
 	BID() BranchID
 	// GetPrevRoot returns the hash of the previous metadata revision.
@@ -216,9 +213,6 @@ type MutableRootMetadata interface {
 	SetWriterMetadataCopiedBit()
 	// SetRevision sets the revision number of the underlying metadata.
 	SetRevision(revision Revision)
-	// SetMerkleRoot sets the root of the global Keybase Merkle tree
-	// at the time the MD was written.
-	SetMerkleRoot(root keybase1.MerkleRootV2)
 	// SetUnresolvedReaders sets the list of unresolved readers associated with this folder.
 	SetUnresolvedReaders(readers []keybase1.SocialAssertion)
 	// SetUnresolvedWriters sets the list of unresolved writers associated with this folder.
