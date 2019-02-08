@@ -71,7 +71,12 @@ const ReactButton = (props: Props) => (
   >
     <Box2 centerChildren={true} fullHeight={true} direction="horizontal" gap="xtiny" style={styles.container}>
       <Box2 direction="horizontal" style={styles.emojiWrapper}>
-        <EmojiIfExists size={Styles.isMobile ? 16 : 18} lineClamp={1} emojiName={props.emoji} />
+        <EmojiIfExists
+          disableSelecting={true}
+          size={Styles.isMobile ? 16 : 18}
+          lineClamp={1}
+          emojiName={props.emoji}
+        />
       </Box2>
       <Text
         type="BodyTinyBold"

@@ -171,6 +171,7 @@ class EmojiIfExists extends PureComponent<
       <Emoji
         emojiName={emojiNameLower}
         size={this.props.size}
+        disableSelecting={this.props.disableSelecting}
         allowFontScaling={this.props.allowFontScaling}
       />
     ) : (
