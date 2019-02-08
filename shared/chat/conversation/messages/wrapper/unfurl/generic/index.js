@@ -63,21 +63,21 @@ class UnfurlGeneric extends React.Component<Props> {
             <Kb.Text type="Body" lineClamp={5}>
               {this.props.description}
               {!Styles.isMobile && showBottomImage && (
-                <React.Fragment>
+                <>
                   {' '}
                   <Kb.Icon
                     boxStyle={styles.collapseBox}
                     onClick={this.props.onCollapse}
                     type={this.props.isCollapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'}
                   />
-                </React.Fragment>
+                </>
               )}
             </Kb.Text>
           )}
           {showBottomImage && !this.props.isCollapsed && (
             <Kb.Box2 direction="vertical" fullWidth={true}>
               <UnfurlImage
-                url={this.props.imageURL || ''}
+                url={this.props.imageURL || ''} // showBottomImage checks all these, this is to pass Flow.
                 linkURL={this.props.url}
                 height={this.props.imageHeight || 0}
                 width={this.props.imageWidth || 0}

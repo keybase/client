@@ -15,29 +15,26 @@ type OwnProps = {
 const mapStateToProps = state => ({})
 
 const mapDispatchToProps = dispatch => ({
-  _onClick: (message: Types.MessageAttachment) => {
+  _onClick: (message: Types.MessageAttachment) =>
     dispatch(
       Chat2Gen.createAttachmentPreviewSelect({
         message,
       })
-    )
-  },
-  _onCollapse: (message: Types.MessageAttachment) => {
+    ),
+  _onCollapse: (message: Types.MessageAttachment) =>
     dispatch(
       Chat2Gen.createToggleMessageCollapse({
         collapse: !message.isCollapsed,
         conversationIDKey: message.conversationIDKey,
         messageID: message.id,
       })
-    )
-  },
-  _onDoubleClick: (message: Types.MessageAttachment) => {
+    ),
+  _onDoubleClick: (message: Types.MessageAttachment) =>
     dispatch(
       Chat2Gen.createAttachmentPreviewSelect({
         message,
       })
-    )
-  },
+    ),
   _onShowInFinder: (message: Types.MessageAttachment) => {
     message.downloadPath &&
       dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: message.downloadPath}))

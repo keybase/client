@@ -16,12 +16,10 @@ const mapStateToProps = (state, {conversationIDKey, ordinal}: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch, {conversationIDKey}: OwnProps) => ({
-  onClose: (messageID: Types.MessageID) => {
-    dispatch(Chat2Gen.createUnfurlRemove({conversationIDKey, messageID}))
-  },
-  onCollapse: (messageID: Types.MessageID, collapse: boolean) => {
-    dispatch(Chat2Gen.createToggleMessageCollapse({collapse, conversationIDKey, messageID}))
-  },
+  onClose: (messageID: Types.MessageID) =>
+    dispatch(Chat2Gen.createUnfurlRemove({conversationIDKey, messageID})),
+  onCollapse: (messageID: Types.MessageID, collapse: boolean) =>
+    dispatch(Chat2Gen.createToggleMessageCollapse({collapse, conversationIDKey, messageID})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
