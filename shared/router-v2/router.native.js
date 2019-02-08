@@ -44,6 +44,8 @@ useScreens()
 // We need to wrap the params that come into the components so the old way isn't totally broken short term
 const shimmedRoutes = Shared.shimRoutes(routes)
 
+const headerMode = 'float'
+
 const MainStackNavigator = createStackNavigator(shimmedRoutes, {
   defaultNavigationOptions: p => ({
     header: null,
@@ -55,9 +57,9 @@ const MainStackNavigator = createStackNavigator(shimmedRoutes, {
         disabled={hp.scene.index === 0}
       />
     ),
-    headerMode: 'float',
     headerTitle: null,
   }),
+  headerMode,
   initialRouteName: 'tabs:peopleTab',
   initialRouteParams: undefined,
 })
@@ -92,9 +94,9 @@ const LoggedOutStackNavigator = createStackNavigator(
           disabled={hp.scene.index === 0}
         />
       ),
-      headerMode: 'float',
       headerTitle: null,
     }),
+    headerMode,
     initialRouteName: 'login',
     initialRouteParams: undefined,
   }

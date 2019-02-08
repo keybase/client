@@ -38,6 +38,7 @@ const mapDispatchToProps = (dispatch, {focusFilter}) => ({
       focusFilter()
     }
   },
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onBlur: () => dispatch(Chat2Gen.createChangeFocus({nextFocus: null})),
   onFocus: () => dispatch(Chat2Gen.createChangeFocus({nextFocus: 'filter'})),
   onSetFilter: (filter: string) => dispatch(Chat2Gen.createSetInboxFilter({filter})),
@@ -49,6 +50,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   filterFocusCount: ownProps.filterFocusCount,
   hotkeys: isDarwin ? ['command+n', 'command+k'] : ['ctrl+n', 'ctrl+k'],
   isLoading: stateProps.isLoading,
+  onBack: dispatchProps.onBack,
   onBlur: dispatchProps.onBlur,
   onEnsureSelection: ownProps.onEnsureSelection,
   onFocus: dispatchProps.onFocus,
