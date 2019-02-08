@@ -1529,6 +1529,56 @@ func (c ConversationMemberStatus) ToGregorDBStringAssert() string {
 	return s
 }
 
+func humanizeDuration(duration time.Duration) string {
+	var value float64
+	var unit string
+	if int(duration.Hours()) >= 24 {
+		value = duration.Hours() / 24
+		unit = "day"
+	} else if int(duration.Hours()) >= 1 {
+		value = duration.Hours()
+		unit = "hour"
+	} else if int(duration.Minutes()) >= 1 {
+		value = duration.Minutes()
+		unit = "minute"
+	} else if int(duration.Seconds()) >= 1 {
+		value = duration.Seconds()
+		unit = "second"
+	} else {
+		return ""
+	}
+	if int(value) > 1 {
+		unit = unit + "s"
+	}
+	return fmt.Sprintf("%.0f %s", value, unit)
+}
+
+func (p RetentionPolicy) HumanSummary() (summary string) {
+	typ, err := p.Typ()
+	if err != nil {
+		return ""
+	}
+
+	switch typ {
+	case RetentionPolicyType_NONE, RetentionPolicyType_RETAIN:
+		summary = "be retained indefinitely"
+	case RetentionPolicyType_EXPIRE:
+		duration := humanizeDuration(p.Expire().Age.ToDuration())
+		if duration != "" {
+			summary = fmt.Sprintf("expire after %s", duration)
+		}
+	case RetentionPolicyType_EPHEMERAL:
+		duration := humanizeDuration(p.Ephemeral().Age.ToDuration())
+		if duration != "" {
+			summary = fmt.Sprintf("explode after %s by default", duration)
+		}
+	}
+	if summary != "" {
+		summary = fmt.Sprintf("Messages will %s", summary)
+	}
+	return summary
+}
+
 func (p RetentionPolicy) Summary() string {
 	typ, err := p.Typ()
 	if err != nil {
@@ -2138,4 +2188,63 @@ func (g GlobalAppNotificationSetting) FlagName() string {
 	default:
 		return ""
 	}
+}
+
+func (m MessageSystem) String() string {
+	typ, err := m.SystemType()
+	if err != nil {
+		return "<unknown system message>"
+	}
+	switch typ {
+	case MessageSystemType_ADDEDTOTEAM:
+		return fmt.Sprintf("[Added @%s to the team]", m.Addedtoteam().Addee)
+	case MessageSystemType_INVITEADDEDTOTEAM:
+		return fmt.Sprintf("[Added %s to the team (invited by @%s)]",
+			m.Inviteaddedtoteam().Invitee, m.Inviteaddedtoteam().Inviter)
+	case MessageSystemType_COMPLEXTEAM:
+		return fmt.Sprintf("[Created a new channel in %s]", m.Complexteam().Team)
+	case MessageSystemType_CREATETEAM:
+		return fmt.Sprintf("[%s created the team %s]", m.Createteam().Creator, m.Createteam().Team)
+	case MessageSystemType_GITPUSH:
+		body := m.Gitpush()
+		switch body.PushType {
+		case keybase1.GitPushType_CREATEREPO:
+			return fmt.Sprintf("[git %s created the repo %s]", body.Pusher, body.RepoName)
+		case keybase1.GitPushType_RENAMEREPO:
+			return fmt.Sprintf("[git %s changed the name of the repo %s to %s]", body.Pusher, body.PreviousRepoName, body.RepoName)
+		default:
+			total := keybase1.TotalNumberOfCommits(body.Refs)
+			names := keybase1.RefNames(body.Refs)
+			return fmt.Sprintf("[git (%s) %s pushed %d commits to %s]", body.RepoName,
+				body.Pusher, total, names)
+		}
+	case MessageSystemType_CHANGEAVATAR:
+		return fmt.Sprintf("[%s changed team avatar]", m.Changeavatar().User)
+	case MessageSystemType_CHANGERETENTION:
+		return m.Changeretention().String()
+	default:
+		return "<unknown system message>"
+	}
+}
+
+func (m MessageSystemChangeRetention) String() string {
+	var appliesTo string
+	switch m.MembersType {
+	case ConversationMembersType_TEAM:
+		if m.IsTeam {
+			appliesTo = "team"
+		} else {
+			appliesTo = "channel"
+		}
+	default:
+		appliesTo = "conversation"
+	}
+	var inheritDescription string
+	if m.IsInherit {
+		inheritDescription = " to inherit from the team policy"
+	}
+
+	format := "[%s changed the %s retention policy%s. %s]"
+	summary := m.Policy.HumanSummary()
+	return fmt.Sprintf(format, m.User, appliesTo, inheritDescription, summary)
 }
