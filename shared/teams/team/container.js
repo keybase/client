@@ -33,7 +33,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   }
 }
 
-const mapDispatchToProps = (dispatch, {navigateUp, setRouteState, routeProps, setSelectedTab}: OwnProps) => ({
+const mapDispatchToProps = (dispatch, {navigateUp, routeProps, setSelectedTab}: OwnProps) => ({
   _loadTeam: (teamname: string) => dispatch(TeamsGen.createGetDetails({teamname})),
   _setSelectedTab: (teamname: string, selectedTab: string) => {
     lastSelectedTabs[teamname] = selectedTab
