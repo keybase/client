@@ -155,7 +155,6 @@ export const newRoutes = {
   chatDeleteHistoryWarning: {getScreen: () => require('./delete-history-warning/container').default},
   chatEditChannel: {getScreen: () => require('./manage-channels/edit-channel-container').default},
   chatEnterPaperkey: {getScreen: () => require('./conversation/rekey/enter-paper-key').default},
-  chatInfoPanel: {getScreen: () => require('./conversation/info-panel/container').default},
   chatManageChannels: {getScreen: () => require('./manage-channels/container').default},
   chatNewChat: {getScreen: () => require('../team-building/container').default},
   chatPaymentsConfirm: {getScreen: () => require('./payments/confirm/container').default},
@@ -172,6 +171,10 @@ export const newRoutes = {
     getScreen: () =>
       isMobile ? require('./inbox/container').default : require('./inbox-and-conversation-2.desktop').default,
   },
+}
+
+export const newModalRoutes = {
+  chatInfoPanel: {getScreen: () => require('./conversation/info-panel/container').default},
 }
 
 export default routeTree

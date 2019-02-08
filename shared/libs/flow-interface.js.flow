@@ -38,3 +38,6 @@ declare module '@emotion/core' {
 declare module 'react-native-fast-image' {
   declare module.exports: any
 }
+declare module 'react-native-screens' {
+  declare module.exports: any
+}

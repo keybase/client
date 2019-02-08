@@ -7,7 +7,7 @@ import * as I from 'immutable'
 import * as React from 'react'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import {newRoutes as deviceNewRoutes} from '../devices/routes'
-import {newRoutes as chatNewRoutes} from '../chat/routes'
+import {newRoutes as chatNewRoutes, newModalRoutes as chatNewModalRoutes} from '../chat/routes'
 import {newRoutes as peopleNewRoutes} from '../people/routes'
 import {newRoutes as fsNewRoutes} from '../fs/routes'
 import {newRoutes as settingsNewRoutes} from '../settings/routes'
@@ -72,6 +72,7 @@ _newRoutes.forEach(({route, tab}) => {
 
 const _modalRoutes = {
   ...profileNewModalRoutes,
+  ...chatNewModalRoutes,
 }
 
 // TEMP

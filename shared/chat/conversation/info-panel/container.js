@@ -4,6 +4,7 @@ import * as Constants from '../../../constants/chat2'
 import * as React from 'react'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Types from '../../../constants/types/chat2'
+import flags from '../../../util/feature-flags'
 import {InfoPanel} from '.'
 import {connect, isMobile, type RouteProps} from '../../../util/container'
 import {createShowUserProfile} from '../../../actions/profile-gen'
@@ -12,7 +13,8 @@ import {Box} from '../../../common-adapters'
 
 type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
-  onBack: () => void,
+  onBack?: () => void,
+  onCancel?: () => void,
 |}
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
@@ -103,9 +105,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   canSetMinWriterRole: stateProps.canSetMinWriterRole,
   canSetRetention: stateProps.canSetRetention,
   channelname: stateProps.channelname,
+  customCancelText: 'Done',
   description: stateProps.description,
   isPreview: stateProps.isPreview,
   onBack: ownProps.onBack,
+  onCancel: ownProps.onCancel,
   onEditChannel: () => dispatchProps._onEditChannel(stateProps.teamname),
   onJoinChannel: dispatchProps.onJoinChannel,
   onLeaveConversation: dispatchProps.onLeaveConversation,
@@ -161,7 +165,11 @@ class InfoPanelSelector extends React.PureComponent<Props> {
     }
 
     return isMobile ? (
-      <ConnectedInfoPanel onBack={this.props.onBack} conversationIDKey={this.props.conversationIDKey} />
+      <ConnectedInfoPanel
+        onBack={flags.useNewRouter ? undefined : this.props.onBack}
+        onCancel={flags.useNewRouter ? this.props.onBack : undefined}
+        conversationIDKey={this.props.conversationIDKey}
+      />
     ) : (
       <Box onClick={this.props.onBack} style={clickCatcherStyle}>
         <Box style={panelContainerStyle} onClick={evt => evt.stopPropagation()}>
@@ -189,8 +197,6 @@ const InfoConnected = connect<SelectorOwnProps, _, _, _, _>(
   mergeSelectorProps
 )(InfoPanelSelector)
 
-InfoConnected.navigationOptions = {
-  isModal: true,
-}
+InfoConnected.navigationOptions = {}
 
 export default InfoConnected
