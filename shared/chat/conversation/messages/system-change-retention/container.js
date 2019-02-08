@@ -18,9 +18,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   if (meta.teamType === 'adhoc') {
     canManage = true
   } else {
-    // we need to check for permission
-    const teamname = meta.teamname
-    canManage = getCanPerform(state, teamname).setRetentionPolicy
+    canManage = getCanPerform(state, meta.teamname).setRetentionPolicy
   }
   return {
     canManage: canManage,

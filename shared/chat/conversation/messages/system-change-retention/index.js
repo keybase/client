@@ -20,53 +20,7 @@ type Props = {|
   timestamp: number,
 |}
 
-const ManageComponent = (props: {canManage: boolean, onManageRetention: () => void}) => {
-  const textType = 'BodySmallSemiboldPrimaryLink'
-  if (props.canManage) {
-    return (
-      <Kb.Text onClick={props.onManageRetention} type={textType}>
-        Manage this
-      </Kb.Text>
-    )
-  }
-  return ''
-}
-
-const connectedUsernamesProps = {
-  colorFollowing: true,
-  inline: true,
-  onUsernameClicked: 'profile',
-  type: 'BodySmallSemibold',
-  underline: true,
-}
-
-const YouOrUsername = (props: {username: string, you: string}) => {
-  if (props.username === props.you) {
-    return 'You'
-  }
-  return <Kb.ConnectedUsernames {...connectedUsernamesProps} usernames={[props.username]} />
-}
-
-const AppliesTo = (props: {membersType: RPCChatTypes.ConversationMembersType, isTeam: boolean}) => {
-  switch (props.membersType) {
-    case RPCChatTypes.commonConversationMembersType.team:
-      if (props.isTeam) {
-        return 'team'
-      } else {
-        return 'channel'
-      }
-  }
-  return 'conversation'
-}
-
-const InheritDescription = (props: {isInherit: boolean}) => {
-  if (props.isInherit) {
-    return ' to inherit from the team policy'
-  }
-  return ''
-}
-
-const PolicySummary = (props: {policy: RPCChatTypes.RetentionPolicy, isTeam: boolean}) => {
+const getPolicySummary = props => {
   switch (props.policy.typ) {
     case RPCChatTypes.commonRetentionPolicyType.none:
     case RPCChatTypes.commonRetentionPolicyType.retain:
@@ -88,6 +42,27 @@ const PolicySummary = (props: {policy: RPCChatTypes.RetentionPolicy, isTeam: boo
 }
 
 const ChangeRetention = (props: Props) => {
+  const changedBy =
+    props.you === props.user ? (
+      'You'
+    ) : (
+      <Kb.ConnectedUsernames
+        colorFollowing={true}
+        inline={true}
+        onUsernameClicked={'profile'}
+        type={'BodySmallSemibold'}
+        underline={true}
+        usernames={[props.user]}
+      />
+    )
+  let convType = 'conversation'
+  switch (props.membersType) {
+    case RPCChatTypes.commonConversationMembersType.team:
+      convType = props.isTeam ? 'team' : 'channel'
+  }
+  const inheritDescription = props.isInherit ? ' to inherit from the team policy' : ''
+  const policySummary = getPolicySummary(props)
+  const manageText = props.canManage ? 'Manage this' : ''
   return (
     <UserNotice
       style={{marginTop: Styles.globalMargins.small}}
@@ -109,12 +84,12 @@ const ChangeRetention = (props: Props) => {
           backgroundMode="Announcements"
           style={{color: Styles.globalColors.black_50}}
         >
-          <YouOrUsername username={props.user} you={props.you} /> changed the{' '}
-          <AppliesTo membersType={props.membersType} isTeam={props.isTeam} /> retention policy
-          <InheritDescription isInherit={props.isInherit} />. Messages will{' '}
-          <PolicySummary policy={props.policy} isTeam={props.isTeam} />.
+          {changedBy} changed the {convType} retention policy {inheritDescription}. Messages will{' '}
+          {policySummary}
         </Kb.Text>
-        <ManageComponent canManage={props.canManage} onManageRetention={props.onManageRetention} />
+        <Kb.Text onClick={props.onManageRetention} type="BodySmallSemiboldPrimaryLink">
+          {manageText}
+        </Kb.Text>
       </Kb.Box>
     </UserNotice>
   )
