@@ -101,7 +101,6 @@ func (c *Collapses) IsCollapsed(ctx context.Context, uid gregor1.UID, convID cha
 	} else if !singleFound && !rangeFound {
 		return false
 	} else if singleFound && rangeFound {
-		c.Debug(ctx, "IsCollapsed: found single and range: %v vs. %v", singleRec.Time, rangeRec.Time)
 		if singleRec.Time.After(rangeRec.Time) {
 			return singleRec.Collapsed
 		}
