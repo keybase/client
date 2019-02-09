@@ -41,6 +41,17 @@ const mapDispatchToProps = dispatch => ({
   },
 })
 
+const getFilenameDisplay = fileName => {
+  const maxLength = 30
+  if (isMobile && fileName.length > maxLength) {
+    const toks = fileName.split('.')
+    return toks.length === 2
+      ? `${toks[0].substr(0, maxLength)}...${toks[1]}`
+      : fileName.substr(0, maxLength) + '...'
+  }
+  return fileName
+}
+
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const {message} = ownProps
   // On mobile we use this icon to indicate we have the file stored locally, and it can be viewed. This is a
@@ -70,7 +81,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 
   return {
     arrowColor,
-    fileName: message.fileName,
+    fileName: getFilenameDisplay(message.fileName),
     fullPath: message.fileURL,
     hasProgress,
     height: message.previewHeight,
