@@ -2,7 +2,6 @@ package commands
 
 import (
 	"context"
-	"strings"
 	"sync"
 
 	"github.com/keybase/client/go/chat/giphy"
@@ -27,12 +26,35 @@ func NewGiphy(g *globals.Context) *Giphy {
 	}
 }
 
+func (s *Giphy) getQuery(text string) *string {
+	var query *string
+	_, q, err := s.commandAndMessage(text)
+	if err != nil {
+		return nil
+	}
+	if len(q) > 0 {
+		query = &q
+	}
+	return query
+}
+
 func (s *Giphy) Execute(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	tlfName, text string) (err error) {
 	if !s.Match(ctx, text) {
 		return ErrInvalidCommand
 	}
-	return nil
+	results, err := giphy.Search(libkb.NewMetaContext(ctx, s.G().ExternalG()), s.getQuery(text),
+		s.G().AttachmentURLSrv)
+	if err != nil {
+		s.Debug(ctx, "Execute: failed to get Giphy results: %s", err)
+		return
+	}
+	if len(results) == 0 {
+		s.Debug(ctx, "Execute: failed to find any results")
+		return nil
+	}
+	res := results[libkb.RandIntn(len(results))]
+	return s.G().ChatHelper.SendTextByIDNonblock(ctx, convID, tlfName, res.TargetUrl)
 }
 
 type nullChatUI struct {
@@ -77,16 +99,8 @@ func (s *Giphy) Preview(ctx context.Context, uid gregor1.UID, convID chat1.Conve
 		}
 		return
 	}
-	var query *string
-	toks, err := s.tokenize(text, 1)
-	if err != nil {
-		return
-	}
-	q := strings.Join(toks[1:], " ")
-	if len(q) > 0 {
-		query = &q
-	}
-	results, err := giphy.Search(libkb.NewMetaContext(ctx, s.G().ExternalG()), query, s.G().AttachmentURLSrv)
+	results, err := giphy.Search(libkb.NewMetaContext(ctx, s.G().ExternalG()), s.getQuery(text),
+		s.G().AttachmentURLSrv)
 	if err != nil {
 		s.Debug(ctx, "Preview: failed to get Giphy results: %s", err)
 		return
