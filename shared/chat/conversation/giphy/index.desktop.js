@@ -13,7 +13,7 @@ const poweredByImg = 'powered-by-giphy.png'
 
 const GiphySearch = (props: Props) => {
   return (
-    <Kb.ScrollView style={styles.scrollContainer} horizontal={Styles.isMobile}>
+    <Kb.ScrollView style={styles.scrollContainer}>
       <Kb.Box2 direction="horizontal" style={styles.poweredByContainer} fullWidth={true}>
         <Kb.Image src={resolveImageAsURL('', poweredByImg)} style={styles.poweredBy} />
       </Kb.Box2>
@@ -54,7 +54,7 @@ const styles = Styles.styleSheetCreate({
     alignSelf: 'flex-start',
     borderColor: Styles.globalColors.black,
     borderStyle: 'solid',
-    borderWidth: 2,
+    borderWidth: Styles.globalMargins.xxtiny,
     margin: -1,
     overflow: 'hidden',
   },

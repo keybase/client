@@ -1,13 +1,6 @@
 // @flow
-export type GifPreview = {
-  targetUrl: string,
-  previewUrl: string,
-  previewHeight: number,
-  previewWidth: number,
-  previewIsVideo: boolean,
-}
-
+import * as RPCChatTypes from '../../../constants/types/rpc-chat-gen'
 export type Props = {
-  previews: Array<GifPreview>,
+  previews: Array<RPCChatTypes.GiphySearchResult>,
   onClick: string => void,
 }

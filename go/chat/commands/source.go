@@ -9,6 +9,7 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 )
@@ -69,13 +70,16 @@ func (s *Source) makeBuiltins() {
 	common := []types.ConversationCommand{
 		cmds[cmdCollapse],
 		cmds[cmdExpand],
-		cmds[cmdGiphy],
 		cmds[cmdHide],
 		cmds[cmdMe],
 		cmds[cmdMsg],
 		cmds[cmdMute],
 		cmds[cmdShrug],
 		cmds[cmdUnhide],
+	}
+	// /giphy only available on desktop for the moment
+	if s.G().GetAppType() != libkb.MobileAppType {
+		common = append(common, cmds[cmdGiphy])
 	}
 	s.builtins = make(map[chat1.ConversationBuiltinCommandTyp][]types.ConversationCommand)
 	s.builtins[chat1.ConversationBuiltinCommandTyp_ADHOC] = common

@@ -206,7 +206,6 @@ func (p *Packager) packageGeneric(ctx context.Context, uid gregor1.UID, convID c
 func (p *Packager) packageGiphy(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	raw chat1.UnfurlRaw) (res chat1.Unfurl, err error) {
 	var g chat1.UnfurlGiphy
-	p.Debug(ctx, "Package: image url: %s", raw.Giphy().ImageUrl)
 	imgBody, imgLength, err := giphy.Asset(ctx, raw.Giphy().ImageUrl)
 	if err != nil {
 		p.Debug(ctx, "Package: failed to get body specs for giphy image: %s", err)

@@ -9,17 +9,8 @@ type OwnProps = {|conversationIDKey: Types.ConversationIDKey|}
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const {conversationIDKey} = ownProps
-  const previews = (state.chat2.giphyResultMap.getIn([conversationIDKey]) || []).map(r => {
-    return {
-      previewHeight: r.previewHeight,
-      previewIsVideo: r.previewIsVideo,
-      previewUrl: r.previewUrl,
-      previewWidth: r.previewWidth,
-      targetUrl: r.targetUrl,
-    }
-  })
   return {
-    previews,
+    previews: state.chat2.giphyResultMap.getIn([conversationIDKey]) || [],
   }
 }
 
