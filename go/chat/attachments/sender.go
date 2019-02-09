@@ -27,12 +27,7 @@ func NewSender(gc *globals.Context) *Sender {
 
 func (s *Sender) MakePreview(ctx context.Context, filename string, outboxID chat1.OutboxID) (res chat1.MakePreviewRes, err error) {
 	defer s.Trace(ctx, func() error { return err }, "MakePreview")()
-	var src ReadCloseResetter
-	if IsKbfsPath(filename) {
-		src, err = NewKbfsReadResetter(ctx, s.G().GlobalContext, filename)
-	} else {
-		src, err = NewFileReadResetter(filename)
-	}
+	src, err := NewReadCloseResetter(ctx, s.G().GlobalContext, filename)
 	if err != nil {
 		return res, err
 	}
@@ -54,12 +49,7 @@ func (s *Sender) MakePreview(ctx context.Context, filename string, outboxID chat
 }
 
 func (s *Sender) preprocess(ctx context.Context, filename string, callerPreview *chat1.MakePreviewRes) (res Preprocess, err error) {
-	var src ReadCloseResetter
-	if IsKbfsPath(filename) {
-		src, err = NewKbfsReadResetter(ctx, s.G().GlobalContext, filename)
-	} else {
-		src, err = NewFileReadResetter(filename)
-	}
+	src, err := NewReadCloseResetter(ctx, s.G().GlobalContext, filename)
 	if err != nil {
 		return res, err
 	}

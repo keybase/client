@@ -79,26 +79,30 @@ func AssetFromMessage(ctx context.Context, g *globals.Context, uid gregor1.UID, 
 	return res, nil
 }
 
+// ReadCloseResetter is io.ReadCloser plus a Reset method. This is used by
+// attachment uploads.
 type ReadCloseResetter interface {
 	io.ReadCloser
 	Reset() error
 }
 
-type FileReadResetter struct {
+type FileReadCloseResetter struct {
 	filename string
 	file     *os.File
 	buf      *bufio.Reader
 }
 
-func NewFileReadResetter(name string) (ReadCloseResetter, error) {
-	f := &FileReadResetter{filename: name}
+// NewFileReadCloseResetter creates a ReadCloseResetter that uses an on-disk file as
+// source of data.
+func NewFileReadCloseResetter(name string) (ReadCloseResetter, error) {
+	f := &FileReadCloseResetter{filename: name}
 	if err := f.open(); err != nil {
 		return nil, err
 	}
 	return f, nil
 }
 
-func (f *FileReadResetter) open() error {
+func (f *FileReadCloseResetter) open() error {
 	ff, err := os.Open(f.filename)
 	if err != nil {
 		return err
@@ -108,11 +112,11 @@ func (f *FileReadResetter) open() error {
 	return nil
 }
 
-func (f *FileReadResetter) Read(p []byte) (int, error) {
+func (f *FileReadCloseResetter) Read(p []byte) (int, error) {
 	return f.buf.Read(p)
 }
 
-func (f *FileReadResetter) Reset() error {
+func (f *FileReadCloseResetter) Reset() error {
 	_, err := f.file.Seek(0, io.SeekStart)
 	if err != nil {
 		return err
@@ -121,7 +125,7 @@ func (f *FileReadResetter) Reset() error {
 	return nil
 }
 
-func (f *FileReadResetter) Close() error {
+func (f *FileReadCloseResetter) Close() error {
 	f.buf = nil
 	if f.file != nil {
 		return f.file.Close()
@@ -129,7 +133,9 @@ func (f *FileReadResetter) Close() error {
 	return nil
 }
 
-type KbfsReadResetter struct {
+// KbfsReadCloseResetter is an implementation of ReadCloseResetter that uses
+// SimpleFS as source of data.
+type KbfsReadCloseResetter struct {
 	client *keybase1.SimpleFSClient
 	opid   keybase1.OpID
 	offset int64
@@ -138,19 +144,22 @@ type KbfsReadResetter struct {
 
 const (
 	kbfsPrefix        = "/keybase"
-	kbfsPrefixPrivate = "/keybase/private/"
-	kbfsPrefixPublic  = "/keybase/public/"
-	kbfsPrefixTeam    = "/keybase/team/"
+	kbfsPrefixPrivate = kbfsPrefix + "/private/"
+	kbfsPrefixPublic  = kbfsPrefix + "/public/"
+	kbfsPrefixTeam    = kbfsPrefix + "/team/"
 )
 
-func IsKbfsPath(p string) bool {
+func isKbfsPath(p string) bool {
 	return strings.HasPrefix(p, kbfsPrefixPrivate) ||
 		strings.HasPrefix(p, kbfsPrefixPublic) ||
 		strings.HasPrefix(p, kbfsPrefixTeam)
 }
 
-func NewKbfsReadResetter(ctx context.Context, g *libkb.GlobalContext, kbfsPath string) (ReadCloseResetter, error) {
-	if !IsKbfsPath(kbfsPath) {
+// NewKbfsReadCloseResetter creates a ReadCloseResetter that uses SimpleFS as source
+// of data. kbfsPath must start with "/keybase/<tlf-type>/".
+func NewKbfsReadCloseResetter(ctx context.Context, g *libkb.GlobalContext,
+	kbfsPath string) (ReadCloseResetter, error) {
+	if !isKbfsPath(kbfsPath) {
 		return nil, errors.New("not a kbfs path")
 	}
 	xp := g.ConnectionManager.LookupByClientType(keybase1.ClientType_KBFS)
@@ -174,14 +183,15 @@ func NewKbfsReadResetter(ctx context.Context, g *libkb.GlobalContext, kbfsPath s
 		return nil, err
 	}
 
-	return &KbfsReadResetter{
+	return &KbfsReadCloseResetter{
 		client: client,
 		ctx:    ctx,
 		opid:   opid,
 	}, nil
 }
 
-func (f *KbfsReadResetter) Read(p []byte) (int, error) {
+// Read implements the ReadCloseResetter interface.
+func (f *KbfsReadCloseResetter) Read(p []byte) (int, error) {
 	content, err := f.client.SimpleFSRead(f.ctx, keybase1.SimpleFSReadArg{
 		OpID:   f.opid,
 		Offset: atomic.LoadInt64(&f.offset),
@@ -199,13 +209,25 @@ func (f *KbfsReadResetter) Read(p []byte) (int, error) {
 	return len(content.Data), nil
 }
 
-func (f *KbfsReadResetter) Reset() error {
+// Reset implements the ReadCloseResetter interface.
+func (f *KbfsReadCloseResetter) Reset() error {
 	atomic.StoreInt64(&f.offset, 0)
 	return nil
 }
 
-func (f *KbfsReadResetter) Close() error {
+// Close implements the ReadCloseResetter interface.
+func (f *KbfsReadCloseResetter) Close() error {
 	return f.client.SimpleFSClose(f.ctx, f.opid)
+}
+
+// NewReadCloseResetter creates a ReadCloseResetter using either on-disk file
+// or SimpleFS depending on if p is a KBFS path.
+func NewReadCloseResetter(ctx context.Context, g *libkb.GlobalContext,
+	p string) (ReadCloseResetter, error) {
+	if isKbfsPath(p) {
+		return NewKbfsReadCloseResetter(ctx, g, p)
+	}
+	return NewFileReadCloseResetter(p)
 }
 
 type BufReadResetter struct {
