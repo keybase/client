@@ -12,6 +12,7 @@ import {isMobile} from '../constants/platform'
 const setupEngineListeners = () => {
   const channels = {
     app: true,
+    audit: true,
     badges: true,
     chat: true,
     chatattachments: true,
