@@ -393,12 +393,7 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 	if err != nil {
 		return res, err
 	}
-	var src ReadCloseResetter
-	if IsKbfsPath(filename) {
-		src, err = NewKbfsReadResetter(bgctx, u.G().GlobalContext, filename)
-	} else {
-		src, err = NewFileReadResetter(filename)
-	}
+	src, err := NewReadCloseResetter(bgctx, u.G().GlobalContext, filename)
 	if err != nil {
 		return res, err
 	}
