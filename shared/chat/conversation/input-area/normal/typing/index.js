@@ -101,10 +101,10 @@ const styles = Styles.styleSheetCreate({
       alignItems: 'flex-end',
       backgroundColor: Styles.globalColors.white,
       height: mobileTypingContainerHeight,
-      left: 0,
+      left: Styles.globalMargins.xtiny,
       position: 'absolute',
-      right: 0,
-      top: -mobileTypingContainerHeight,
+      top: -mobileTypingContainerHeight / 2 - 2,
+      zIndex: 999,
     },
   }),
   isTypingContainerVisible: {
@@ -117,6 +117,9 @@ const styles = Styles.styleSheetCreate({
       marginTop: 2,
       position: 'absolute',
       textAlign: 'left',
+    },
+    isMobile: {
+      marginRight: Styles.globalMargins.tiny,
     },
   }),
   typingIcon: Styles.platformStyles({
@@ -135,7 +138,8 @@ const styles = Styles.styleSheetCreate({
   typingIconContainer: Styles.platformStyles({
     isMobile: {
       alignItems: 'center',
-      width: 48,
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
     },
   }),
 })
