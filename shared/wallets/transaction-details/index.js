@@ -437,7 +437,9 @@ class LoadTransactionDetails extends React.Component<Props> {
     // which means details need to be retrieved again
     if (
       ((!this.props.transactionID && prevProps.transactionID) ||
-        (!this.props.senderAccountID && prevProps.senderAccountID)) &&
+        (!this.props.senderAccountID && prevProps.senderAccountID) ||
+        // $FlowIssue Props definitely has a status member
+        (this.props.status !== 'pending' && this.props.status && this.props.status !== prevProps.status)) &&
       !this.props.loading
     ) {
       this.props.onLoadPaymentDetail()
