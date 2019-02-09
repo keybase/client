@@ -73,15 +73,17 @@ class ImageAttachment extends React.PureComponent<Props, State> {
   render() {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
-          <Kb.Text type="BodyTiny">{this.props.fileName}</Kb.Text>
-          <Kb.Icon
-            boxStyle={styles.collapseBox}
-            style={styles.collapse}
-            onClick={this.props.onCollapse}
-            type={this.props.isCollapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'}
-          />
-        </Kb.Box2>
+        {(!Styles.isMobile || this.props.isCollapsed) && (
+          <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
+            <Kb.Text type="BodyTiny">{this.props.fileName}</Kb.Text>
+            <Kb.Icon
+              boxStyle={styles.collapseBox}
+              style={styles.collapse}
+              onClick={this.props.onCollapse}
+              type={this.props.isCollapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'}
+            />
+          </Kb.Box2>
+        )}
         {!this.props.isCollapsed && (
           <Kb.ClickableBox
             style={styles.imageContainer}
