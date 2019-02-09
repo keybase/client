@@ -2,36 +2,54 @@
 import * as Styles from '../styles'
 import type {ServiceIdWithContact} from '../constants/types/team-building'
 import type {IconType} from '../common-adapters/icon.constants'
-import {capitalize} from 'lodash-es'
 
-const _serviceIdToIconFont = {
-  contact: 'iconfont-identity-twitter',
-  facebook: 'iconfont-identity-facebook',
-  github: 'iconfont-identity-github',
-  hackernews: 'iconfont-identity-hn',
-  keybase: 'iconfont-keybase',
-  pgp: 'iconfont-identity-pgp',
-  reddit: 'iconfont-identity-reddit',
-  twitter: 'iconfont-identity-twitter',
+const services = {
+  contact: {
+    color: '#000',
+    icon: 'iconfont-identity-twitter',
+    label: 'Your contacts', // TODO: rethink this for the empty state when we're actually using it
+  },
+  facebook: {
+    color: '#3B5998',
+    icon: 'iconfont-identity-facebook',
+    label: 'Facebook',
+  },
+  github: {
+    color: '#333',
+    icon: 'iconfont-identity-github',
+    label: 'GitHub',
+  },
+  hackernews: {
+    color: '#FF6600',
+    icon: 'iconfont-identity-hn',
+    label: 'Hacker News',
+  },
+  keybase: {
+    color: '#4C8EFF',
+    icon: 'iconfont-keybase',
+    label: 'Keybase',
+  },
+  pgp: {
+    color: '#000',
+    icon: 'iconfont-identity-pgp',
+    label: 'PGP',
+  },
+  reddit: {
+    color: '#ff4500',
+    icon: 'iconfont-identity-reddit',
+    label: 'Reddit',
+  },
+  twitter: {
+    color: '#1DA1F2',
+    icon: 'iconfont-identity-twitter',
+    label: 'Twitter',
+  },
 }
-const serviceIdToIconFont = (service: ServiceIdWithContact): IconType => _serviceIdToIconFont[service]
 
-const _serviceIdToAccentColor = {
-  // Service Accent Colors
-  // These are custom per service so they may not be associated with the keybase color scheme
-  serviceAccentForContact: '#000000',
-  serviceAccentForFacebook: '#3B5998',
-  serviceAccentForGithub: '#333',
-  serviceAccentForHackernews: '#FF6600',
-  serviceAccentForKeybase: '#4C8EFF',
-  serviceAccentForPgp: '#000000',
-  serviceAccentForReddit: '#ff4500',
-  serviceAccentForTwitter: '#1DA1F2',
-}
-
-const serviceIdToAccentColor = (service: ServiceIdWithContact): string =>
-  _serviceIdToAccentColor[`serviceAccentFor${capitalize(service)}`]
+const serviceIdToAccentColor = (service: ServiceIdWithContact): string => services[service].color
+const serviceIdToIconFont = (service: ServiceIdWithContact): IconType => services[service].icon
+const serviceIdToLabel = (service: ServiceIdWithContact): string => services[service].label
 
 const inactiveServiceAccentColor = Styles.globalColors.black_50
 
-export {serviceIdToIconFont, serviceIdToAccentColor, inactiveServiceAccentColor}
+export {serviceIdToIconFont, serviceIdToAccentColor, inactiveServiceAccentColor, serviceIdToLabel}

@@ -13,6 +13,7 @@ export const allTextTypes = {
   BodySemiboldLink: 'BodySemiboldLink',
   BodySemiboldItalic: 'BodySemiboldItalic',
   BodySmall: 'BodySmall',
+  BodySmallBold: 'BodySmallBold',
   BodySmallExtrabold: 'BodySmallExtrabold',
   BodySmallExtraboldSecondaryLink: 'BodySmallExtraboldSecondaryLink',
   BodySmallError: 'BodySmallError',

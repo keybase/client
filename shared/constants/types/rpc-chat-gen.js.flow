@@ -573,6 +573,7 @@ export const localMessageSystemType = {
   createteam: 3,
   gitpush: 4,
   changeavatar: 5,
+  changeretention: 6,
 }
 
 export const localMessageUnboxedErrorType = {
@@ -958,9 +959,10 @@ export type MessageRequestPayment = $ReadOnly<{requestID: Stellar1.KeybaseReques
 export type MessageSendPayment = $ReadOnly<{paymentID: Stellar1.PaymentID}>
 export type MessageServerHeader = $ReadOnly<{messageID: MessageID, supersededBy: MessageID, r /* reactionIDs */?: ?Array<MessageID>, u /* unfurlIDs */?: ?Array<MessageID>, ctime: Gregor1.Time, n /* now */: Gregor1.Time, rt /* rtime */?: ?Gregor1.Time}>
 export type MessageSummary = $ReadOnly<{msgID: MessageID, messageType: MessageType, tlfName: String, tlfPublic: Boolean, ctime: Gregor1.Time}>
-export type MessageSystem = {systemType: 0, addedtoteam: ?MessageSystemAddedToTeam} | {systemType: 1, inviteaddedtoteam: ?MessageSystemInviteAddedToTeam} | {systemType: 2, complexteam: ?MessageSystemComplexTeam} | {systemType: 3, createteam: ?MessageSystemCreateTeam} | {systemType: 4, gitpush: ?MessageSystemGitPush} | {systemType: 5, changeavatar: ?MessageSystemChangeAvatar}
+export type MessageSystem = {systemType: 0, addedtoteam: ?MessageSystemAddedToTeam} | {systemType: 1, inviteaddedtoteam: ?MessageSystemInviteAddedToTeam} | {systemType: 2, complexteam: ?MessageSystemComplexTeam} | {systemType: 3, createteam: ?MessageSystemCreateTeam} | {systemType: 4, gitpush: ?MessageSystemGitPush} | {systemType: 5, changeavatar: ?MessageSystemChangeAvatar} | {systemType: 6, changeretention: ?MessageSystemChangeRetention}
 export type MessageSystemAddedToTeam = $ReadOnly<{team: String, adder: String, addee: String, owners?: ?Array<String>, admins?: ?Array<String>, writers?: ?Array<String>, readers?: ?Array<String>}>
 export type MessageSystemChangeAvatar = $ReadOnly<{team: String, user: String}>
+export type MessageSystemChangeRetention = $ReadOnly<{isTeam: Boolean, isInherit: Boolean, membersType: ConversationMembersType, policy: RetentionPolicy, user: String}>
 export type MessageSystemComplexTeam = $ReadOnly<{team: String}>
 export type MessageSystemCreateTeam = $ReadOnly<{team: String, creator: String}>
 export type MessageSystemGitPush = $ReadOnly<{team: String, pusher: String, repoName: String, repoID: Keybase1.RepoID, refs?: ?Array<Keybase1.GitRefMetadata>, pushType: Keybase1.GitPushType, previousRepoName: String}>
@@ -972,6 +974,7 @@ export type MessageSystemType =
   | 3 // CREATETEAM_3
   | 4 // GITPUSH_4
   | 5 // CHANGEAVATAR_5
+  | 6 // CHANGERETENTION_6
 
 export type MessageText = $ReadOnly<{body: String, payments?: ?Array<TextPayment>}>
 export type MessageType =

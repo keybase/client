@@ -32,7 +32,12 @@ type State = {
   items: Array<MenuItem | 'Divider' | null>,
 }
 
-class _RetentionPicker extends React.Component<Kb.PropsWithOverlay<Props>, State> {
+type PropsWithOverlay<P> = {|
+  ...$Exact<P>,
+  ...$Exact<Kb.OverlayParentProps>,
+|}
+
+class _RetentionPicker extends React.Component<PropsWithOverlay<Props>, State> {
   state = {
     items: [],
     saving: false,
@@ -157,7 +162,7 @@ class _RetentionPicker extends React.Component<Kb.PropsWithOverlay<Props>, State
     this._init()
   }
 
-  componentDidUpdate(prevProps: Kb.PropsWithOverlay<Props>, prevState: State) {
+  componentDidUpdate(prevProps: PropsWithOverlay<Props>, prevState: State) {
     if (
       !policyEquals(this.props.policy, prevProps.policy) ||
       !policyEquals(this.props.teamPolicy, prevProps.teamPolicy)

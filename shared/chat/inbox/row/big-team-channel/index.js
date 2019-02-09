@@ -145,7 +145,7 @@ const styles = Styles.styleSheetCreate({
   textPlainBold: Styles.platformStyles({
     common: {
       color: Styles.globalColors.black_75_on_white,
-      ...Styles.globalStyles.fontExtrabold,
+      ...Styles.globalStyles.fontBold,
     },
     isMobile: {backgroundColor: Styles.globalColors.fastBlank},
   }),
@@ -154,7 +154,7 @@ const styles = Styles.styleSheetCreate({
   },
   textSelectedBold: {
     color: Styles.globalColors.white,
-    ...Styles.globalStyles.fontExtrabold,
+    ...Styles.globalStyles.fontBold,
   },
   unread: {
     backgroundColor: Styles.globalColors.orange,

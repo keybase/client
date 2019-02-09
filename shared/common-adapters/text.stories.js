@@ -75,6 +75,7 @@ const groups = [
   ],
   [
     {label: 'Body small Body small', type: 'BodySmall'},
+    {label: 'Body small bold Body small bold', type: 'BodySmallBold'},
     {label: 'Body small extrabold Body small extrabold', type: 'BodySmallExtrabold'},
     {label: 'Body small semibold', type: 'BodySmallSemibold'},
     {action: true, label: 'Body small primary link semibold', type: 'BodySmallSemiboldPrimaryLink'},
