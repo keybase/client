@@ -153,6 +153,7 @@ protocol chatUi {
     MessageID unfurlMessageID;
     string url;
     UnfurlDisplay unfurl;
+    boolean isCollapsed;
   }
 
   record UIMessageValid {
@@ -182,6 +183,7 @@ protocol chatUi {
     array<UIPaymentInfo> paymentInfos;
     union { null, UIRequestInfo } requestInfo;
     array<UIMessageUnfurlInfo> unfurls;
+    boolean isCollapsed;
   }
 
   record UIMessageOutbox {

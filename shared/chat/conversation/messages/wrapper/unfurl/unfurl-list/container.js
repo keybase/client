@@ -16,9 +16,10 @@ const mapStateToProps = (state, {conversationIDKey, ordinal}: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch, {conversationIDKey}: OwnProps) => ({
-  onClose: (messageID: Types.MessageID) => {
-    dispatch(Chat2Gen.createUnfurlRemove({conversationIDKey, messageID}))
-  },
+  onClose: (messageID: Types.MessageID) =>
+    dispatch(Chat2Gen.createUnfurlRemove({conversationIDKey, messageID})),
+  onCollapse: (messageID: Types.MessageID, collapse: boolean) =>
+    dispatch(Chat2Gen.createToggleMessageCollapse({collapse, conversationIDKey, messageID})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
@@ -27,9 +28,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
         .toList()
         .map(u => {
           return {
+            isCollapsed: u.isCollapsed,
             onClose: stateProps.showClose
               ? () => dispatchProps.onClose(Types.numberToMessageID(u.unfurlMessageID))
               : undefined,
+            onCollapse: () =>
+              dispatchProps.onCollapse(Types.numberToMessageID(u.unfurlMessageID), !u.isCollapsed),
             unfurl: u.unfurl,
             url: u.url,
           }
