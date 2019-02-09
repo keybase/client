@@ -5,7 +5,7 @@ import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 
 const Names = ({names}: {names: I.Set<string>}) => {
-  const textType = Styles.isMobile ? 'BodyTinySemibold' : 'BodySmallSemibold'
+  const textType = 'BodyTinySemibold'
   let ret
   switch (names.size) {
     case 0:
@@ -73,7 +73,7 @@ export const Typing = (props: Props) => (
     <Kb.Box style={styles.typingIconContainer}>
       <Kb.Animation animationType="typing" containerStyle={styles.isTypingAnimation} />
     </Kb.Box>
-    <Kb.Text lineClamp={1} type={Styles.isMobile ? 'BodyTiny' : 'BodySmall'} style={styles.isTypingText}>
+    <Kb.Text lineClamp={1} type="BodyTiny" style={styles.isTypingText}>
       <Names names={props.names} />
     </Kb.Text>
   </Kb.Box>
@@ -114,6 +114,7 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       flexGrow: 1,
       left: 57,
+      marginTop: 2,
       position: 'absolute',
       textAlign: 'left',
     },
