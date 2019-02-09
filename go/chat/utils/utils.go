@@ -374,6 +374,14 @@ func IsVisibleChatMessageType(messageType chat1.MessageType) bool {
 	return false
 }
 
+func IsCollapsibleMessageType(messageType chat1.MessageType) bool {
+	switch messageType {
+	case chat1.MessageType_UNFURL, chat1.MessageType_ATTACHMENT:
+		return true
+	}
+	return false
+}
+
 func IsNotifiableChatMessageType(messageType chat1.MessageType, atMentions []gregor1.UID,
 	chanMention chat1.ChannelMention) bool {
 	if IsVisibleChatMessageType(messageType) {
@@ -1281,7 +1289,8 @@ func PresentUnfurls(ctx context.Context, g *globals.Context, uid gregor1.UID,
 		ud := PresentUnfurl(ctx, g, convID, u.Unfurl)
 		if ud != nil {
 			res = append(res, chat1.UIMessageUnfurlInfo{
-				IsCollapsed:     collapses.IsCollapsed(ctx, uid, convID, unfurlMessageID),
+				IsCollapsed: collapses.IsCollapsed(ctx, uid, convID, unfurlMessageID,
+					chat1.MessageType_UNFURL),
 				Unfurl:          *ud,
 				UnfurlMessageID: unfurlMessageID,
 				Url:             u.Url,
@@ -1373,7 +1382,8 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			PaymentInfos:          presentPaymentInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
 			RequestInfo:           presentRequestInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
 			Unfurls:               PresentUnfurls(ctx, g, uid, convID, valid.Unfurls),
-			IsCollapsed:           collapses.IsCollapsed(ctx, uid, convID, rawMsg.GetMessageID()),
+			IsCollapsed: collapses.IsCollapsed(ctx, uid, convID, rawMsg.GetMessageID(),
+				rawMsg.GetMessageType()),
 		})
 	case chat1.MessageUnboxedState_OUTBOX:
 		var body, title, filename string

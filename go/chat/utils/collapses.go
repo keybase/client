@@ -72,7 +72,10 @@ func (c *Collapses) ToggleRange(ctx context.Context, uid gregor1.UID, convID cha
 }
 
 func (c *Collapses) IsCollapsed(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
-	msgID chat1.MessageID) bool {
+	msgID chat1.MessageID, msgType chat1.MessageType) bool {
+	if !IsCollapsibleMessageType(msgType) {
+		return false
+	}
 	singleKey := c.singleKey(uid, convID, msgID)
 	rangeKey := c.rangeKey(uid, convID)
 	// Get both to see which one takes precedence in time order
