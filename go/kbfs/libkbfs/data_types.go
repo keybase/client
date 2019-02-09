@@ -1033,7 +1033,13 @@ func (bra BlockRequestAction) String() string {
 // Combine returns a new action by taking `other` into account.
 func (bra BlockRequestAction) Combine(
 	other BlockRequestAction) BlockRequestAction {
-	return bra | other
+	combined := bra | other
+	// If the actions don't agree on stop-if-full, we should remove it
+	// from the combined result.
+	if bra.StopIfFull() != other.StopIfFull() {
+		combined = combined &^ blockRequestStopIfFull
+	}
+	return combined
 }
 
 func (bra BlockRequestAction) prefetch() bool {

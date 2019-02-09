@@ -202,6 +202,7 @@ export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachm
   fileURL: '',
   fileURLCached: false,
   inlineVideoPlayable: false,
+  isCollapsed: false,
   previewHeight: 0,
   previewTransferState: null,
   previewURL: '',
@@ -550,6 +551,14 @@ const uiMessageToSystemMessage = (minimum, body, reactions): ?Types.Message => {
         ...minimum,
       })
     }
+    case RPCChatTypes.localMessageSystemType.changeretention: {
+      const {user = '???'} = body.changeretention || {}
+      return makeMessageSystemText({
+        reactions,
+        text: new HiddenString(`${user} changed the retention policy`),
+        ...minimum,
+      })
+    }
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(body.systemType)
       return null
@@ -733,6 +742,7 @@ const validUIMessagetoMessage = (
         fileURL,
         fileURLCached,
         inlineVideoPlayable,
+        isCollapsed: m.isCollapsed,
         previewHeight: pre.height,
         previewURL,
         previewWidth: pre.width,
@@ -1008,6 +1018,7 @@ export const makePendingAttachmentMessage = (
     errorReason: errorReason,
     fileName: fileName,
     id: Types.numberToMessageID(0),
+    isCollapsed: false,
     ordinal: ordinal,
     outboxID: outboxID,
     previewHeight: previewSpec.height,

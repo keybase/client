@@ -182,7 +182,7 @@ func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNo
 	// Invoke nonblocking inbox read and get remote inbox version to send back
 	// as our result
 	_, localizeCb, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerNonblocking,
-		true, arg.MaxUnbox, arg.Query, arg.Pagination)
+		types.InboxSourceDataSourceAll, arg.MaxUnbox, arg.Query, arg.Pagination)
 	if err != nil {
 		// If this is a convID based query, let's go ahead and drop those onto
 		// the retrier
@@ -354,7 +354,8 @@ func (h *Server) GetInboxUILocal(ctx context.Context, arg chat1.GetInboxUILocalA
 		return res, err
 	}
 	// Read inbox from the source
-	ib, err := h.G().InboxSource.ReadUnverified(ctx, uid, true, rquery, arg.Pagination)
+	ib, err := h.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll, rquery,
+		arg.Pagination)
 	if err != nil {
 		if _, ok := err.(UnknownTLFNameError); ok {
 			h.Debug(ctx, "GetInboxAndUnboxLocal: got unknown TLF name error, returning blank results")
@@ -389,8 +390,8 @@ func (h *Server) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.GetInboxAn
 	}
 
 	// Read inbox from the source
-	ib, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil,
-		arg.Query, arg.Pagination)
+	ib, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
+		types.InboxSourceDataSourceAll, nil, arg.Query, arg.Pagination)
 	if err != nil {
 		if _, ok := err.(UnknownTLFNameError); ok {
 			h.Debug(ctx, "GetInboxAndUnboxLocal: got unknown TLF name error, returning blank results")
@@ -420,8 +421,8 @@ func (h *Server) GetInboxAndUnboxUILocal(ctx context.Context, arg chat1.GetInbox
 		return res, err
 	}
 	// Read inbox from the source
-	ib, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil,
-		arg.Query, arg.Pagination)
+	ib, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
+		types.InboxSourceDataSourceAll, nil, arg.Query, arg.Pagination)
 	if err != nil {
 		if _, ok := err.(UnknownTLFNameError); ok {
 			h.Debug(ctx, "GetInboxAndUnboxUILocal: got unknown TLF name error, returning blank results")
@@ -1718,7 +1719,8 @@ func (h *Server) FindConversationsLocal(ctx context.Context,
 		return res, err
 	}
 
-	res.Conversations, err = FindConversations(ctx, h.G(), h.DebugLabeler, true /* useLocalData */, h.remoteClient,
+	res.Conversations, err = FindConversations(ctx, h.G(), h.DebugLabeler,
+		types.InboxSourceDataSourceAll, h.remoteClient,
 		uid, arg.TlfName, arg.TopicType, arg.MembersType, arg.Visibility, arg.TopicName, arg.OneChatPerTLF)
 	if err != nil {
 		return res, err
@@ -2061,7 +2063,8 @@ func (h *Server) AddTeamMemberAfterReset(ctx context.Context,
 	}
 
 	// Lookup conversation to get team ID
-	iboxRes, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil,
+	iboxRes, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
+		types.InboxSourceDataSourceAll, nil,
 		&chat1.GetInboxLocalQuery{
 			ConvIDs: []chat1.ConversationID{arg.ConvID},
 		}, nil)
@@ -2091,21 +2094,97 @@ func (h *Server) AddTeamMemberAfterReset(ctx context.Context,
 }
 
 func (h *Server) SetConvRetentionLocal(ctx context.Context, arg chat1.SetConvRetentionLocalArg) (err error) {
-	defer h.Trace(ctx, func() error { return err }, "SetConvRetention(%v, %v)", arg.ConvID, arg.Policy.Summary())()
-	_, err = h.remoteClient().SetConvRetention(ctx, chat1.SetConvRetentionArg{
+	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "SetConvRetentionLocal(%v, %v)", arg.ConvID, arg.Policy.Summary())()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return err
+	}
+	policy := arg.Policy
+	if _, err = h.remoteClient().SetConvRetention(ctx, chat1.SetConvRetentionArg{
 		ConvID: arg.ConvID,
-		Policy: arg.Policy,
+		Policy: policy,
+	}); err != nil {
+		return err
+	}
+
+	// Post a SYSTEM message to conversation about the change. If we're
+	// inheriting the team policy, fetch that for the message.
+	isInherit := false
+	typ, err := policy.Typ()
+	if err != nil {
+		return err
+	}
+	switch typ {
+	case chat1.RetentionPolicyType_INHERIT:
+		isInherit = true
+	}
+
+	rc, err := GetUnverifiedConv(ctx, h.G(), uid, arg.ConvID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		return err
+	}
+	conv := rc.Conv
+	if isInherit {
+		teamRetention := conv.TeamRetention
+		if teamRetention == nil {
+			policy = chat1.RetentionPolicy{}
+		} else {
+			policy = *teamRetention
+		}
+	}
+	membersType := conv.Metadata.MembersType
+	info, err := CreateNameInfoSource(ctx, h.G(), membersType).LookupName(
+		ctx, conv.Metadata.IdTriple.Tlfid, conv.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC)
+	if err != nil {
+		return err
+	}
+	username := h.G().Env.GetUsername()
+	subBody := chat1.NewMessageSystemWithChangeretention(chat1.MessageSystemChangeRetention{
+		User:        username.String(),
+		IsTeam:      false,
+		IsInherit:   isInherit,
+		MembersType: membersType,
+		Policy:      policy,
 	})
-	return err
+	body := chat1.NewMessageBodyWithSystem(subBody)
+	return h.G().ChatHelper.SendMsgByID(ctx, arg.ConvID, info.CanonicalName, body, chat1.MessageType_SYSTEM)
 }
 
 func (h *Server) SetTeamRetentionLocal(ctx context.Context, arg chat1.SetTeamRetentionLocalArg) (err error) {
-	defer h.Trace(ctx, func() error { return err }, "SetTeamRetention(%v, %v)", arg.TeamID, arg.Policy.Summary())()
-	_, err = h.remoteClient().SetTeamRetention(ctx, chat1.SetTeamRetentionArg{
+	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "SetTeamRetentionLocal(%v, %v)", arg.TeamID, arg.Policy.Summary())()
+	if _, err = utils.AssertLoggedInUID(ctx, h.G()); err != nil {
+		return err
+	}
+	if _, err = h.remoteClient().SetTeamRetention(ctx, chat1.SetTeamRetentionArg{
 		TeamID: arg.TeamID,
 		Policy: arg.Policy,
+	}); err != nil {
+		return err
+	}
+
+	// Post a SYSTEM message to the #general channel about the change.
+	tlfID, err := chat1.MakeTLFID(arg.TeamID.String())
+	if err != nil {
+		return err
+	}
+	username := h.G().Env.GetUsername()
+	subBody := chat1.NewMessageSystemWithChangeretention(chat1.MessageSystemChangeRetention{
+		User:        username.String(),
+		IsTeam:      true,
+		IsInherit:   false,
+		MembersType: chat1.ConversationMembersType_TEAM,
+		Policy:      arg.Policy,
 	})
-	return err
+	body := chat1.NewMessageBodyWithSystem(subBody)
+	info, err := CreateNameInfoSource(ctx, h.G(), chat1.ConversationMembersType_TEAM).LookupName(ctx, tlfID, false)
+	if err != nil {
+		return err
+	}
+	return h.G().ChatHelper.SendMsgByName(ctx, info.CanonicalName, &globals.DefaultTeamTopic,
+		chat1.ConversationMembersType_TEAM, keybase1.TLFIdentifyBehavior_CHAT_CLI, body,
+		chat1.MessageType_SYSTEM)
 }
 
 func (h *Server) GetTeamRetentionLocal(ctx context.Context, teamID keybase1.TeamID) (res *chat1.RetentionPolicy, err error) {
@@ -2120,9 +2199,10 @@ func (h *Server) GetTeamRetentionLocal(ctx context.Context, teamID keybase1.Team
 		return res, err
 	}
 	p := chat1.Pagination{Num: 1}
-	ib, err := h.G().InboxSource.ReadUnverified(ctx, uid, true, &chat1.GetInboxQuery{
-		TlfID: &tlfID,
-	}, &p)
+	ib, err := h.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll,
+		&chat1.GetInboxQuery{
+			TlfID: &tlfID,
+		}, &p)
 	if err != nil {
 		return res, err
 	}
@@ -2149,7 +2229,8 @@ func (h *Server) UpgradeKBFSConversationToImpteam(ctx context.Context, convID ch
 		return err
 	}
 
-	ibox, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil,
+	ibox, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
+		types.InboxSourceDataSourceAll, nil,
 		&chat1.GetInboxLocalQuery{
 			ConvIDs: []chat1.ConversationID{convID},
 		}, nil)
@@ -2324,15 +2405,15 @@ func (h *Server) ResolveUnfurlPrompt(ctx context.Context, arg chat1.ResolveUnfur
 		return err
 	}
 	fetchAndUnfurl := func() error {
-		conv, err := GetUnverifiedConv(ctx, h.G(), uid, arg.ConvID, true)
+		conv, err := GetUnverifiedConv(ctx, h.G(), uid, arg.ConvID, types.InboxSourceDataSourceAll)
 		if err != nil {
 			return err
 		}
-		msgs, err := h.G().ConvSource.GetMessages(ctx, conv, uid, []chat1.MessageID{arg.MsgID}, nil)
+		msgs, err := h.G().ConvSource.GetMessages(ctx, conv.Conv, uid, []chat1.MessageID{arg.MsgID}, nil)
 		if err != nil {
 			return err
 		}
-		msgs, err = h.G().ConvSource.TransformSupersedes(ctx, conv, uid, msgs)
+		msgs, err = h.G().ConvSource.TransformSupersedes(ctx, conv.Conv, uid, msgs)
 		if err != nil {
 			return err
 		}
@@ -2413,4 +2494,51 @@ func (h *Server) SaveUnfurlSettings(ctx context.Context, arg chat1.SaveUnfurlSet
 		Mode:      arg.Mode,
 		Whitelist: wm,
 	})
+}
+
+func (h *Server) ToggleMessageCollapse(ctx context.Context, arg chat1.ToggleMessageCollapseArg) (err error) {
+	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "ToggleMessageCollapse convID=%s msgID=%d collapsed=%v",
+		arg.ConvID, arg.MsgID, arg.Collapse)()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return err
+	}
+	if err := utils.NewCollapses(h.G()).ToggleSingle(ctx, uid, arg.ConvID, arg.MsgID, arg.Collapse); err != nil {
+		return err
+	}
+	msg, err := GetMessage(ctx, h.G(), uid, arg.ConvID, arg.MsgID, true, nil)
+	if err != nil {
+		h.Debug(ctx, "ToggleMessageCollapse: failed to get message: %s", err)
+		return nil
+	}
+	if !msg.IsValid() {
+		h.Debug(ctx, "ToggleMessageCollapse: invalid message")
+		return nil
+	}
+	if msg.Valid().MessageBody.IsType(chat1.MessageType_UNFURL) {
+		unfurledMsg, err := GetMessage(ctx, h.G(), uid, arg.ConvID,
+			msg.Valid().MessageBody.Unfurl().MessageID, true, nil)
+		if err != nil {
+			h.Debug(ctx, "ToggleMessageCollapse: failed to get unfurl base message: %s", err)
+			return nil
+		}
+		// give a notification about the unfurled message
+		notif := chat1.MessagesUpdated{
+			ConvID:  arg.ConvID,
+			Updates: []chat1.UIMessage{utils.PresentMessageUnboxed(ctx, h.G(), unfurledMsg, uid, arg.ConvID)},
+		}
+		act := chat1.NewChatActivityWithMessagesUpdated(notif)
+		h.G().ActivityNotifier.Activity(ctx, uid, chat1.TopicType_CHAT,
+			&act, chat1.ChatActivitySource_LOCAL)
+	} else if msg.Valid().MessageBody.IsType(chat1.MessageType_ATTACHMENT) {
+		notif := chat1.MessagesUpdated{
+			ConvID:  arg.ConvID,
+			Updates: []chat1.UIMessage{utils.PresentMessageUnboxed(ctx, h.G(), msg, uid, arg.ConvID)},
+		}
+		act := chat1.NewChatActivityWithMessagesUpdated(notif)
+		h.G().ActivityNotifier.Activity(ctx, uid, chat1.TopicType_CHAT,
+			&act, chat1.ChatActivitySource_LOCAL)
+	}
+	return nil
 }

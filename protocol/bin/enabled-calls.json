@@ -43,6 +43,7 @@
   "chat.1.local.setConvRetentionLocal": {"promise": true},
   "chat.1.local.setGlobalAppNotificationSettingsLocal": {"promise": true},
   "chat.1.local.setTeamRetentionLocal": {"promise": true},
+  "chat.1.local.toggleMessageCollapse": {"promise": true},
   "chat.1.local.unboxMobilePushNotification": {"promise": true},
   "chat.1.local.updateTyping": {"promise": true},
   "chat.1.local.updateUnsentText": {"promise": true},

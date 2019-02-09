@@ -115,6 +115,13 @@ func MakeTemporaryID() (ID, error) {
 	return ID{h}, nil
 }
 
+const (
+	// UseMathRandForTest tells MakeRandomIDInRange to use math/rand for PRNG.
+	UseMathRandForTest = true
+	// UseRealRandomness tells MakeRandomIDInRange to use crypto/rand for PRNG.
+	UseRealRandomness = false
+)
+
 // MakeRandomIDInRange generates a random block ID using a CSPRNG, distributing
 // the random variable over the interval [start, end), where the full range is
 // [0, MaxUint64). This corresponds to a normalized representation of the

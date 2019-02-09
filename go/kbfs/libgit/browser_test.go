@@ -44,13 +44,21 @@ func testBrowser(t *testing.T, sharedCache sharedInBrowserCache) {
 	require.NoError(t, err)
 	repo, err := gogit.Init(dotgitStorage, worktreeFS)
 	require.NoError(t, err)
+
+	t.Log("Check that the browser for an empty master branch works.")
+	b, err := NewBrowser(dotgitFS, config.Clock(), "", sharedCache)
+	require.NoError(t, err)
+	fis, err := b.ReadDir("")
+	require.NoError(t, err)
+	require.Len(t, fis, 0)
+
 	addFileToWorktreeAndCommit(
 		t, ctx, config, h, repo, worktreeFS, "foo", "hello")
 	addFileToWorktreeAndCommit(
 		t, ctx, config, h, repo, worktreeFS, "dir/foo", "olleh")
 
 	t.Log("Browse the repo and verify the data.")
-	b, err := NewBrowser(dotgitFS, config.Clock(), "", sharedCache)
+	b, err = NewBrowser(dotgitFS, config.Clock(), "", sharedCache)
 	require.NoError(t, err)
 
 	if sharedCache != (noopSharedInBrowserCache{}) {
@@ -79,7 +87,7 @@ func testBrowser(t *testing.T, sharedCache sharedInBrowserCache) {
 	require.NoError(t, err)
 	require.Equal(t, "hello", string(data))
 
-	fis, err := b.ReadDir("dir")
+	fis, err = b.ReadDir("dir")
 	require.NoError(t, err)
 	require.Len(t, fis, 1)
 

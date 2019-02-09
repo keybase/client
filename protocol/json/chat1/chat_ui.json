@@ -603,6 +603,10 @@
         {
           "type": "UnfurlDisplay",
           "name": "unfurl"
+        },
+        {
+          "type": "boolean",
+          "name": "isCollapsed"
         }
       ]
     },
@@ -739,6 +743,10 @@
             "items": "UIMessageUnfurlInfo"
           },
           "name": "unfurls"
+        },
+        {
+          "type": "boolean",
+          "name": "isCollapsed"
         }
       ]
     },
@@ -776,6 +784,10 @@
         {
           "type": "double",
           "name": "ordinal"
+        },
+        {
+          "type": "boolean",
+          "name": "isEphemeral"
         },
         {
           "type": "string",

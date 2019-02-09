@@ -33,7 +33,9 @@ func NewSource(g *globals.Context) *Source {
 }
 
 const (
-	cmdGiphy int = iota
+	cmdCollapse int = iota
+	cmdExpand
+	cmdGiphy
 	cmdHeadline
 	cmdHide
 	cmdJoin
@@ -47,6 +49,8 @@ const (
 
 func (s *Source) allCommands() (res map[int]types.ConversationCommand) {
 	res = make(map[int]types.ConversationCommand)
+	res[cmdCollapse] = NewCollapse(s.G())
+	res[cmdExpand] = NewExpand(s.G())
 	res[cmdGiphy] = NewGiphy(s.G())
 	res[cmdHeadline] = NewHeadline(s.G())
 	res[cmdHide] = NewHide(s.G())
@@ -63,6 +67,8 @@ func (s *Source) allCommands() (res map[int]types.ConversationCommand) {
 func (s *Source) makeBuiltins() {
 	cmds := s.allCommands()
 	common := []types.ConversationCommand{
+		cmds[cmdCollapse],
+		cmds[cmdExpand],
 		cmds[cmdGiphy],
 		cmds[cmdHide],
 		cmds[cmdMe],
@@ -85,6 +91,11 @@ func (s *Source) makeBuiltins() {
 	s.builtins[chat1.ConversationBuiltinCommandTyp_SMALLTEAM] = append([]types.ConversationCommand{
 		cmds[cmdJoin],
 	}, common...)
+	for _, cmds := range s.builtins {
+		sort.Slice(cmds, func(i, j int) bool {
+			return cmds[i].Name() < cmds[j].Name()
+		})
+	}
 }
 
 func (s *Source) GetBuiltins(ctx context.Context) (res []chat1.BuiltinCommandGroup) {
@@ -127,9 +138,10 @@ func (s *Source) ListCommands(ctx context.Context, uid gregor1.UID, conv types.C
 }
 
 func (s *Source) getConvByID(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (res types.RemoteConversation, err error) {
-	ib, err := s.G().InboxSource.ReadUnverified(ctx, uid, true, &chat1.GetInboxQuery{
-		ConvID: &convID,
-	}, nil)
+	ib, err := s.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll,
+		&chat1.GetInboxQuery{
+			ConvID: &convID,
+		}, nil)
 	if err != nil {
 		return res, err
 	}

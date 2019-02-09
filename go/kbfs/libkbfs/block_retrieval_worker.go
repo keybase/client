@@ -62,8 +62,9 @@ func (brw *blockRetrievalWorker) HandleRequest() (err error) {
 	}
 
 	var block Block
+	var cacheType DiskBlockCacheType
 	defer func() {
-		brw.queue.FinalizeRequest(retrieval, block, err)
+		brw.queue.FinalizeRequest(retrieval, block, cacheType, err)
 	}()
 
 	// Handle canceled contexts.
@@ -81,11 +82,23 @@ func (brw *blockRetrievalWorker) HandleRequest() (err error) {
 		action = retrieval.action
 	}()
 
-	cacheType := DiskBlockAnyCache
-	if action.Sync() {
-		cacheType = DiskBlockSyncCache
+	// If we running with a "stop-if-full" action, before we fetch the
+	// block, make sure the disk cache has room for it.
+	if action.StopIfFull() {
+		dbc := brw.queue.config.DiskBlockCache()
+		if dbc != nil {
+			hasRoom, err := dbc.DoesCacheHaveSpace(
+				retrieval.ctx, action.CacheType())
+			if err != nil {
+				return err
+			}
+			if !hasRoom {
+				return DiskCacheTooFullForBlockError{retrieval.blockPtr, action}
+			}
+		}
 	}
 
+	cacheType = action.CacheType()
 	return brw.getBlock(
 		retrieval.ctx, retrieval.kmd, retrieval.blockPtr, block, cacheType)
 }

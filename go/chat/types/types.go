@@ -65,6 +65,14 @@ func (m MembershipUpdateRes) AllOtherUsers() (res []gregor1.UID) {
 	return res
 }
 
+type InboxSourceDataSourceTyp int
+
+const (
+	InboxSourceDataSourceAll InboxSourceDataSourceTyp = iota
+	InboxSourceDataSourceRemoteOnly
+	InboxSourceDataSourceLocalOnly
+)
+
 type RemoteConversationMetadata struct {
 	Name              string   `codec:"n"`
 	TopicName         string   `codec:"t"`

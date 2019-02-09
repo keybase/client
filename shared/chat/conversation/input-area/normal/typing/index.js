@@ -113,8 +113,8 @@ const styles = Styles.styleSheetCreate({
   isTypingText: Styles.platformStyles({
     isElectron: {
       flexGrow: 1,
-      marginBottom: Styles.globalMargins.xtiny,
-      marginLeft: 56,
+      left: 57,
+      position: 'absolute',
       textAlign: 'left',
     },
   }),

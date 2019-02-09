@@ -11,6 +11,7 @@ const provider = Sb.createPropProviderWithCommon({
     faviconURL: p.unfurl.faviconURL,
     imageURL: p.unfurl.image ? p.unfurl.image.url : undefined,
     onClose: p.onClose,
+    onCollapse: p.onCollapse,
     publishTime: p.unfurl.publishTime,
     showImageOnSide: p.unfurl.image ? p.unfurl.image.height >= p.unfurl.image.width : false,
     siteName: p.unfurl.siteName,
@@ -21,7 +22,9 @@ const provider = Sb.createPropProviderWithCommon({
 
 const unfurls = [
   {
+    isCollapsed: false,
     onClose: Sb.action('onClose'),
+    onCollapse: Sb.action('onCollapse'),
     unfurl: {
       generic: {
         description:
@@ -48,7 +51,9 @@ const unfurls = [
     url: 'https://www.wsj.com/articles/global-stocks-rally-to-end-a-tough-month-1540976261',
   },
   {
+    isCollapsed: false,
     onClose: Sb.action('onClose'),
+    onCollapse: Sb.action('onCollapse'),
     unfurl: {
       generic: {
         description: 'Keybase Go Library, Client, Service, OS X, iOS, Android, Electron - keybase/client',

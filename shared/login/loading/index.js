@@ -46,9 +46,7 @@ class Splash extends React.Component<Props, State> {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container} gap="small">
         <Kb.Icon type={this.props.onRetry ? 'icon-keybase-logo-logged-out-80' : 'icon-keybase-logo-80'} />
-        <Kb.Text style={styles.header} type="HeaderBig">
-          Keybase
-        </Kb.Text>
+        <Kb.Icon type="icon-keybase-wordmark-128-48" />
         {!!this.props.status && <Kb.Text type="BodySmall">{this.props.status}</Kb.Text>}
         {!!this.props.failed && (
           <Kb.Text type="BodySmall">
@@ -70,7 +68,6 @@ class Splash extends React.Component<Props, State> {
 
 const styles = Styles.styleSheetCreate({
   container: {alignItems: 'center', justifyContent: 'center'},
-  header: {color: Styles.globalColors.orange},
 })
 
 export default Kb.HOCTimers(Splash)

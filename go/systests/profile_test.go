@@ -8,6 +8,7 @@ import (
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/keybase/client/go/engine"
+	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/stretchr/testify/require"
@@ -122,13 +123,18 @@ func checkIcon(t testing.TB, icon keybase1.SizedImage) {
 	if icon.Width < 2 {
 		t.Fatalf("unreasonable icon size")
 	}
-	resp, err := http.Get(icon.Path)
-	require.Equal(t, 200, resp.StatusCode, "icon file should be reachable")
-	require.NoError(t, err)
-	body, err := ioutil.ReadAll(resp.Body)
-	require.NoError(t, err)
-	if len(body) < 150 {
-		t.Fatalf("unreasonable icon payload size")
+	if kbtest.SkipIconRemoteTest() {
+		t.Logf("Skipping icon remote test")
+		require.True(t, len(icon.Path) > 8)
+	} else {
+		resp, err := http.Get(icon.Path)
+		require.Equal(t, 200, resp.StatusCode, "icon file should be reachable")
+		require.NoError(t, err)
+		body, err := ioutil.ReadAll(resp.Body)
+		require.NoError(t, err)
+		if len(body) < 150 {
+			t.Fatalf("unreasonable icon payload size")
+		}
 	}
 }
 

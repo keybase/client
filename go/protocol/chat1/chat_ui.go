@@ -525,6 +525,7 @@ type UIMessageUnfurlInfo struct {
 	UnfurlMessageID MessageID     `codec:"unfurlMessageID" json:"unfurlMessageID"`
 	Url             string        `codec:"url" json:"url"`
 	Unfurl          UnfurlDisplay `codec:"unfurl" json:"unfurl"`
+	IsCollapsed     bool          `codec:"isCollapsed" json:"isCollapsed"`
 }
 
 func (o UIMessageUnfurlInfo) DeepCopy() UIMessageUnfurlInfo {
@@ -532,6 +533,7 @@ func (o UIMessageUnfurlInfo) DeepCopy() UIMessageUnfurlInfo {
 		UnfurlMessageID: o.UnfurlMessageID.DeepCopy(),
 		Url:             o.Url,
 		Unfurl:          o.Unfurl.DeepCopy(),
+		IsCollapsed:     o.IsCollapsed,
 	}
 }
 
@@ -561,6 +563,7 @@ type UIMessageValid struct {
 	PaymentInfos          []UIPaymentInfo        `codec:"paymentInfos" json:"paymentInfos"`
 	RequestInfo           *UIRequestInfo         `codec:"requestInfo,omitempty" json:"requestInfo,omitempty"`
 	Unfurls               []UIMessageUnfurlInfo  `codec:"unfurls" json:"unfurls"`
+	IsCollapsed           bool                   `codec:"isCollapsed" json:"isCollapsed"`
 }
 
 func (o UIMessageValid) DeepCopy() UIMessageValid {
@@ -666,6 +669,7 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 			}
 			return ret
 		})(o.Unfurls),
+		IsCollapsed: o.IsCollapsed,
 	}
 }
 
@@ -677,6 +681,7 @@ type UIMessageOutbox struct {
 	DecoratedTextBody *string         `codec:"decoratedTextBody,omitempty" json:"decoratedTextBody,omitempty"`
 	Ctime             gregor1.Time    `codec:"ctime" json:"ctime"`
 	Ordinal           float64         `codec:"ordinal" json:"ordinal"`
+	IsEphemeral       bool            `codec:"isEphemeral" json:"isEphemeral"`
 	Filename          string          `codec:"filename" json:"filename"`
 	Title             string          `codec:"title" json:"title"`
 	Preview           *MakePreviewRes `codec:"preview,omitempty" json:"preview,omitempty"`
@@ -695,10 +700,11 @@ func (o UIMessageOutbox) DeepCopy() UIMessageOutbox {
 			tmp := (*x)
 			return &tmp
 		})(o.DecoratedTextBody),
-		Ctime:    o.Ctime.DeepCopy(),
-		Ordinal:  o.Ordinal,
-		Filename: o.Filename,
-		Title:    o.Title,
+		Ctime:       o.Ctime.DeepCopy(),
+		Ordinal:     o.Ordinal,
+		IsEphemeral: o.IsEphemeral,
+		Filename:    o.Filename,
+		Title:       o.Title,
 		Preview: (func(x *MakePreviewRes) *MakePreviewRes {
 			if x == nil {
 				return nil

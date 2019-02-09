@@ -38,6 +38,10 @@
         {
           "type": "AccountMode",
           "name": "accountMode"
+        },
+        {
+          "type": "boolean",
+          "name": "accountModeEditable"
         }
       ]
     },

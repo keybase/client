@@ -364,6 +364,10 @@ export type MessageTypes = {|
     inParam: $ReadOnly<{|teamID: Keybase1.TeamID, policy: RetentionPolicy|}>,
     outParam: void,
   |},
+  'chat.1.local.toggleMessageCollapse': {|
+    inParam: $ReadOnly<{|convID: ConversationID, msgID: MessageID, collapse: Boolean|}>,
+    outParam: void,
+  |},
   'chat.1.local.unboxMobilePushNotification': {|
     inParam: $ReadOnly<{|payload: String, convID: String, membersType: ConversationMembersType, pushIDs?: ?Array<String>, shouldAck: Boolean|}>,
     outParam: String,
@@ -577,6 +581,7 @@ export const localMessageSystemType = {
   createteam: 3,
   gitpush: 4,
   changeavatar: 5,
+  changeretention: 6,
 }
 
 export const localMessageUnboxedErrorType = {
@@ -963,9 +968,10 @@ export type MessageRequestPayment = $ReadOnly<{requestID: Stellar1.KeybaseReques
 export type MessageSendPayment = $ReadOnly<{paymentID: Stellar1.PaymentID}>
 export type MessageServerHeader = $ReadOnly<{messageID: MessageID, supersededBy: MessageID, r /* reactionIDs */?: ?Array<MessageID>, u /* unfurlIDs */?: ?Array<MessageID>, ctime: Gregor1.Time, n /* now */: Gregor1.Time, rt /* rtime */?: ?Gregor1.Time}>
 export type MessageSummary = $ReadOnly<{msgID: MessageID, messageType: MessageType, tlfName: String, tlfPublic: Boolean, ctime: Gregor1.Time}>
-export type MessageSystem = {systemType: 0, addedtoteam: ?MessageSystemAddedToTeam} | {systemType: 1, inviteaddedtoteam: ?MessageSystemInviteAddedToTeam} | {systemType: 2, complexteam: ?MessageSystemComplexTeam} | {systemType: 3, createteam: ?MessageSystemCreateTeam} | {systemType: 4, gitpush: ?MessageSystemGitPush} | {systemType: 5, changeavatar: ?MessageSystemChangeAvatar}
+export type MessageSystem = {systemType: 0, addedtoteam: ?MessageSystemAddedToTeam} | {systemType: 1, inviteaddedtoteam: ?MessageSystemInviteAddedToTeam} | {systemType: 2, complexteam: ?MessageSystemComplexTeam} | {systemType: 3, createteam: ?MessageSystemCreateTeam} | {systemType: 4, gitpush: ?MessageSystemGitPush} | {systemType: 5, changeavatar: ?MessageSystemChangeAvatar} | {systemType: 6, changeretention: ?MessageSystemChangeRetention}
 export type MessageSystemAddedToTeam = $ReadOnly<{team: String, adder: String, addee: String, owners?: ?Array<String>, admins?: ?Array<String>, writers?: ?Array<String>, readers?: ?Array<String>}>
 export type MessageSystemChangeAvatar = $ReadOnly<{team: String, user: String}>
+export type MessageSystemChangeRetention = $ReadOnly<{isTeam: Boolean, isInherit: Boolean, membersType: ConversationMembersType, policy: RetentionPolicy, user: String}>
 export type MessageSystemComplexTeam = $ReadOnly<{team: String}>
 export type MessageSystemCreateTeam = $ReadOnly<{team: String, creator: String}>
 export type MessageSystemGitPush = $ReadOnly<{team: String, pusher: String, repoName: String, repoID: Keybase1.RepoID, refs?: ?Array<Keybase1.GitRefMetadata>, pushType: Keybase1.GitPushType, previousRepoName: String}>
@@ -977,6 +983,7 @@ export type MessageSystemType =
   | 3 // CREATETEAM_3
   | 4 // GITPUSH_4
   | 5 // CHANGEAVATAR_5
+  | 6 // CHANGERETENTION_6
 
 export type MessageText = $ReadOnly<{body: String, payments?: ?Array<TextPayment>}>
 export type MessageType =
@@ -1164,9 +1171,9 @@ export type UIChannelNameMention = $ReadOnly<{name: String, convID: String}>
 export type UIChatPayment = $ReadOnly<{username: String, fullName: String, xlmAmount: String, error?: ?String, displayAmount?: ?String}>
 export type UIChatPaymentSummary = $ReadOnly<{xlmTotal: String, displayTotal: String, payments?: ?Array<UIChatPayment>}>
 export type UIMessage = {state: 1, valid: ?UIMessageValid} | {state: 2, error: ?MessageUnboxedError} | {state: 3, outbox: ?UIMessageOutbox} | {state: 4, placeholder: ?MessageUnboxedPlaceholder}
-export type UIMessageOutbox = $ReadOnly<{state: OutboxState, outboxID: String, messageType: MessageType, body: String, decoratedTextBody?: ?String, ctime: Gregor1.Time, ordinal: Double, filename: String, title: String, preview?: ?MakePreviewRes}>
-export type UIMessageUnfurlInfo = $ReadOnly<{unfurlMessageID: MessageID, url: String, unfurl: UnfurlDisplay}>
-export type UIMessageValid = $ReadOnly<{messageID: MessageID, ctime: Gregor1.Time, outboxID?: ?String, messageBody: MessageBody, decoratedTextBody?: ?String, senderUsername: String, senderDeviceName: String, senderDeviceType: String, senderUID: Gregor1.UID, senderDeviceID: Gregor1.DeviceID, superseded: Boolean, assetUrlInfo?: ?UIAssetUrlInfo, senderDeviceRevokedAt?: ?Gregor1.Time, atMentions?: ?Array<String>, channelMention: ChannelMention, channelNameMentions?: ?Array<UIChannelNameMention>, isEphemeral: Boolean, isEphemeralExpired: Boolean, explodedBy?: ?String, etime: Gregor1.Time, reactions: ReactionMap, hasPairwiseMacs: Boolean, paymentInfos?: ?Array<UIPaymentInfo>, requestInfo?: ?UIRequestInfo, unfurls?: ?Array<UIMessageUnfurlInfo>}>
+export type UIMessageOutbox = $ReadOnly<{state: OutboxState, outboxID: String, messageType: MessageType, body: String, decoratedTextBody?: ?String, ctime: Gregor1.Time, ordinal: Double, isEphemeral: Boolean, filename: String, title: String, preview?: ?MakePreviewRes}>
+export type UIMessageUnfurlInfo = $ReadOnly<{unfurlMessageID: MessageID, url: String, unfurl: UnfurlDisplay, isCollapsed: Boolean}>
+export type UIMessageValid = $ReadOnly<{messageID: MessageID, ctime: Gregor1.Time, outboxID?: ?String, messageBody: MessageBody, decoratedTextBody?: ?String, senderUsername: String, senderDeviceName: String, senderDeviceType: String, senderUID: Gregor1.UID, senderDeviceID: Gregor1.DeviceID, superseded: Boolean, assetUrlInfo?: ?UIAssetUrlInfo, senderDeviceRevokedAt?: ?Gregor1.Time, atMentions?: ?Array<String>, channelMention: ChannelMention, channelNameMentions?: ?Array<UIChannelNameMention>, isEphemeral: Boolean, isEphemeralExpired: Boolean, explodedBy?: ?String, etime: Gregor1.Time, reactions: ReactionMap, hasPairwiseMacs: Boolean, paymentInfos?: ?Array<UIPaymentInfo>, requestInfo?: ?UIRequestInfo, unfurls?: ?Array<UIMessageUnfurlInfo>, isCollapsed: Boolean}>
 export type UIMessages = $ReadOnly<{messages?: ?Array<UIMessage>, pagination?: ?UIPagination}>
 export type UIPagination = $ReadOnly<{next: String, previous: String, num: Int, last: Boolean}>
 export type UIPaymentInfo = $ReadOnly<{accountID?: ?Stellar1.AccountID, amountDescription: String, worth: String, worthAtSendTime: String, delta: Stellar1.BalanceDelta, note: String, paymentID: Stellar1.PaymentID, status: Stellar1.PaymentStatus, statusDescription: String, statusDetail: String, showCancel: Boolean, fromUsername: String, toUsername: String}>
@@ -1333,6 +1340,7 @@ declare export function localSetConvRetentionLocalRpcPromise(params: $PropertyTy
 declare export function localSetConversationStatusLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.SetConversationStatusLocal'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.SetConversationStatusLocal'>, 'outParam'>>
 declare export function localSetGlobalAppNotificationSettingsLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.setGlobalAppNotificationSettingsLocal'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.setGlobalAppNotificationSettingsLocal'>, 'outParam'>>
 declare export function localSetTeamRetentionLocalRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.setTeamRetentionLocal'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.setTeamRetentionLocal'>, 'outParam'>>
+declare export function localToggleMessageCollapseRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.toggleMessageCollapse'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.toggleMessageCollapse'>, 'outParam'>>
 declare export function localUnboxMobilePushNotificationRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.unboxMobilePushNotification'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.unboxMobilePushNotification'>, 'outParam'>>
 declare export function localUpdateTypingRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.updateTyping'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.updateTyping'>, 'outParam'>>
 declare export function localUpdateUnsentTextRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'chat.1.local.updateUnsentText'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'chat.1.local.updateUnsentText'>, 'outParam'>>

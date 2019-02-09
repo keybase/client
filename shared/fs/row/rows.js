@@ -115,7 +115,7 @@ class Rows extends React.PureComponent<Props> {
       </>
     ) : (
       <Kb.Box2 direction="vertical" style={styles.emptyContainer} centerChildren={true}>
-        <Kb.Text type="BodySmall">This is an empty folder.</Kb.Text>
+        <Kb.Text type="BodySmall">This folder is empty.</Kb.Text>
       </Kb.Box2>
     )
   }

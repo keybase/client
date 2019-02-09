@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -33,9 +34,24 @@ func newBaseCommand(g *globals.Context, name, usage, desc string, aliases ...str
 	}
 }
 
+func (b *baseCommand) getRemoteConvByID(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID) (res types.RemoteConversation, err error) {
+	ib, err := b.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll,
+		&chat1.GetInboxQuery{
+			ConvID: &convID,
+		}, nil)
+	if err != nil {
+		return res, err
+	}
+	if len(ib.ConvsUnverified) == 0 {
+		return res, errors.New("conv not found")
+	}
+	return ib.ConvsUnverified[0], nil
+}
+
 func (b *baseCommand) getConvByName(ctx context.Context, uid gregor1.UID, name string) (res chat1.ConversationLocal, err error) {
 	find := func(mt chat1.ConversationMembersType, name string, topicName *string) (conv chat1.ConversationLocal, err error) {
-		convs, err := b.G().ChatHelper.FindConversations(ctx, true, name, topicName,
+		convs, err := b.G().ChatHelper.FindConversations(ctx, name, topicName,
 			chat1.TopicType_CHAT, mt, keybase1.TLFVisibility_PRIVATE)
 		if err != nil {
 			return res, err

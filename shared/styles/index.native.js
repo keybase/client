@@ -12,11 +12,11 @@ const font = isIOS
       fontRegular: {fontFamily: 'Keybase', fontWeight: '500'},
       fontSemibold: {fontFamily: 'Keybase', fontWeight: '600'},
       fontTerminal: {fontFamily: 'Source Code Pro Medium'},
-      fontTerminalSemibold: {fontFamily: 'Source Code Pro', fontWeight: '600'},
+      fontTerminalSemibold: {fontFamily: 'Source Code Pro Semibold', fontWeight: '600'},
       italic: {fontStyle: 'italic'},
     }
   : {
-      // The fontFamily names must match the font file's name exactly on Android.
+      // The fontFamily name must match the font file's name exactly on Android.
       fontBold: {fontFamily: 'keybase-bold', fontWeight: 'normal'},
       fontExtrabold: {fontFamily: 'keybase-extrabold', fontWeight: 'normal'},
       fontRegular: {fontFamily: 'keybase-medium', fontWeight: 'normal'},

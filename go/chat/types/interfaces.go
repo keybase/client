@@ -141,9 +141,10 @@ type InboxSource interface {
 	Suspendable
 
 	Clear(ctx context.Context, uid gregor1.UID) error
-	Read(ctx context.Context, uid gregor1.UID, localizeTyp ConversationLocalizerTyp, useLocalData bool,
-		maxLocalize *int, query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (Inbox, chan AsyncInboxResult, error)
-	ReadUnverified(ctx context.Context, uid gregor1.UID, useLocalData bool,
+	Read(ctx context.Context, uid gregor1.UID, localizeTyp ConversationLocalizerTyp,
+		dataSource InboxSourceDataSourceTyp, maxLocalize *int, query *chat1.GetInboxLocalQuery,
+		p *chat1.Pagination) (Inbox, chan AsyncInboxResult, error)
+	ReadUnverified(ctx context.Context, uid gregor1.UID, dataSource InboxSourceDataSourceTyp,
 		query *chat1.GetInboxQuery, p *chat1.Pagination) (Inbox, error)
 	Localize(ctx context.Context, uid gregor1.UID, convs []RemoteConversation,
 		localizeTyp ConversationLocalizerTyp) ([]chat1.ConversationLocal, chan AsyncInboxResult, error)

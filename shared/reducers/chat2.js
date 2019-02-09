@@ -1040,6 +1040,7 @@ const rootReducer = (
     case Chat2Gen.giphySend:
     case Chat2Gen.unsentTextChanged:
     case Chat2Gen.confirmScreenResponse:
+    case Chat2Gen.toggleMessageCollapse:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

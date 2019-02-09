@@ -2134,6 +2134,15 @@ const setConvRetentionPolicy = (_, action) => {
   }
 }
 
+const toggleMessageCollapse = (_, action) => {
+  const {collapse, conversationIDKey, messageID} = action.payload
+  return RPCChatTypes.localToggleMessageCollapseRpcPromise({
+    collapse,
+    convID: Types.keyToConversationID(conversationIDKey),
+    msgID: messageID,
+  }).then(() => {})
+}
+
 const changePendingMode = (state, action) => {
   switch (action.type) {
     case Chat2Gen.previewConversation:
@@ -2862,6 +2871,10 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<Chat2Gen.SetConvRetentionPolicyPayload>(
     Chat2Gen.setConvRetentionPolicy,
     setConvRetentionPolicy
+  )
+  yield* Saga.chainAction<Chat2Gen.ToggleMessageCollapsePayload>(
+    Chat2Gen.toggleMessageCollapse,
+    toggleMessageCollapse
   )
   yield* Saga.chainGenerator<Chat2Gen.CreateConversationPayload>(
     Chat2Gen.createConversation,

@@ -88,41 +88,6 @@ func castNoSuchNameError(err error, repoName string) error {
 	}
 }
 
-func recursiveDelete(
-	ctx context.Context, fs *libfs.FS, fi os.FileInfo) error {
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	default:
-	}
-
-	if !fi.IsDir() {
-		// Delete regular files and symlinks directly.
-		return fs.Remove(fi.Name())
-	}
-
-	subdirFS, err := fs.Chroot(fi.Name())
-	if err != nil {
-		return err
-	}
-
-	children, err := subdirFS.ReadDir("/")
-	if err != nil {
-		return err
-	}
-	for _, childFI := range children {
-		if childFI.Name() == "." {
-			continue
-		}
-		err := recursiveDelete(ctx, subdirFS.(*libfs.FS), childFI)
-		if err != nil {
-			return err
-		}
-	}
-
-	return fs.Remove(fi.Name())
-}
-
 // CleanOldDeletedRepos completely removes any "deleted" repos that
 // have been deleted for longer than `minDeletedAgeForCleaning`.  The
 // caller is responsible for syncing any data to disk, if desired.
@@ -183,7 +148,7 @@ func CleanOldDeletedRepos(
 		}
 
 		log.CDebugf(ctx, "Cleaning deleted repo %s", fi.Name())
-		err = recursiveDelete(ctx, fs, fi)
+		err = libfs.RecursiveDelete(ctx, fs, fi)
 		if err != nil {
 			return err
 		}
@@ -201,10 +166,15 @@ func CleanOldDeletedReposTimeLimited(
 	ctx, cancel := context.WithTimeout(ctx, cleaningTimeLimit)
 	defer cancel()
 	err := CleanOldDeletedRepos(ctx, config, tlfHandle)
-	if errors.Cause(err) == context.DeadlineExceeded {
+	switch errors.Cause(err) {
+	case context.DeadlineExceeded, context.Canceled:
 		return nil
+	default:
+		if _, ok := err.(libkbfs.OfflineUnsyncedError); ok {
+			return nil
+		}
+		return err
 	}
-	return err
 }
 
 // UpdateRepoMD lets the Keybase service know that a repo's MD has
@@ -828,7 +798,7 @@ func RenameRepo(
 	if err != nil {
 		return err
 	}
-	err = recursiveDelete(ctx, fs, fi)
+	err = libfs.RecursiveDelete(ctx, fs, fi)
 	if err != nil {
 		return err
 	}
