@@ -69,13 +69,16 @@ func (s *Source) makeBuiltins() {
 	common := []types.ConversationCommand{
 		cmds[cmdCollapse],
 		cmds[cmdExpand],
-		cmds[cmdGiphy],
 		cmds[cmdHide],
 		cmds[cmdMe],
 		cmds[cmdMsg],
 		cmds[cmdMute],
 		cmds[cmdShrug],
 		cmds[cmdUnhide],
+	}
+	// Giphy only on for admins for now
+	if s.isAdmin() {
+		common = append(common, cmds[cmdGiphy])
 	}
 	s.builtins = make(map[chat1.ConversationBuiltinCommandTyp][]types.ConversationCommand)
 	s.builtins[chat1.ConversationBuiltinCommandTyp_ADHOC] = common
@@ -99,6 +102,7 @@ func (s *Source) makeBuiltins() {
 }
 
 func (s *Source) GetBuiltins(ctx context.Context) (res []chat1.BuiltinCommandGroup) {
+	s.G().ActiveDevice.UID()
 	for typ, cmds := range s.builtins {
 		var exportCmds []chat1.ConversationCommand
 		for _, cmd := range cmds {
@@ -172,4 +176,39 @@ func (s *Source) PreviewBuiltinCommand(ctx context.Context, uid gregor1.UID, con
 		// Run preview on everything as long as it is a slash command
 		cmd.Preview(ctx, uid, convID, text)
 	}
+}
+
+func (s *Source) isAdmin() bool {
+	username := s.G().GetEnv().GetUsername().String()
+	return admins[username]
+}
+
+var admins = map[string]bool{
+	"mikem":        true,
+	"max":          true,
+	"chris":        true,
+	"chrisnojima":  true,
+	"mlsteele":     true,
+	"xgess":        true,
+	"karenm":       true,
+	"joshblum":     true,
+	"cjb":          true,
+	"jzila":        true,
+	"patrick":      true,
+	"modalduality": true,
+	"strib":        true,
+	"songgao":      true,
+	"ayoubd":       true,
+	"cecileb":      true,
+	"adamjspooner": true,
+	"akalin":       true,
+	"marcopolo":    true,
+	"aimeedavid":   true,
+	"jinyang":      true,
+	"zapu":         true,
+	"jakob223":     true,
+	"taruti":       true,
+	"pzduniak":     true,
+	"zanderz":      true,
+	"giphy_tester": true,
 }
