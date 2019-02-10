@@ -1113,6 +1113,11 @@ func (c *ChatUI) ChatShowManageChannels(ctx context.Context, teamname string) er
 	return nil
 }
 
+func (c *ChatUI) ChatGiphySearchResults(ctx context.Context, convID chat1.ConversationID,
+	results []chat1.GiphySearchResult) error {
+	return nil
+}
+
 type DummyAssetDeleter struct{}
 
 func NewDummyAssetDeleter() DummyAssetDeleter {
