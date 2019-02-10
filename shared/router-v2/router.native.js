@@ -108,12 +108,13 @@ function getActiveRouteName(navigationState) {
 class CustomStackNavigator extends React.PureComponent<any> {
   static router = RootStackNavigator.router
 
+  // moving the nav around. if there's global one maybe it causes tehse transition issues
   render() {
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-        <Kb.NativeKeyboardAvoidingView style={styles.keyboard} behavior="padding">
-          <RootStackNavigator navigation={this.props.navigation} />
-        </Kb.NativeKeyboardAvoidingView>
+        {/* <Kb.NativeKeyboardAvoidingView style={styles.keyboard} behavior="padding"> */}
+        <RootStackNavigator navigation={this.props.navigation} />
+        {/* </Kb.NativeKeyboardAvoidingView> */}
         <TabBar selectedTab={nameToTab[this.props.activeKey]} />
         <GlobalError />
       </Kb.Box2>

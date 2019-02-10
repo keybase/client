@@ -18,6 +18,10 @@ import {newRoutes as gitNewRoutes} from '../git/routes'
 import {newRoutes as profileNewRoutes, newModalRoutes as profileNewModalRoutes} from '../profile/routes'
 // import OldPeopleRoutes from '../people/routes'
 import * as Tabs from '../constants/tabs'
+// TEMP to get keyboard avoid to see if it fixes nav issues
+import * as Kb from '../common-adapters/mobile'
+import * as Styles from '../styles'
+// end temp
 
 export const nameToTab = {}
 const _routes = {}
@@ -156,7 +160,12 @@ const shimRoutes = (routes: any) =>
                 />
               )
               // return Parent ? <Parent>{wrapped}</Parent> : wrapped
-              return wrapped
+              // return wrapped
+              return (
+                <Kb.NativeKeyboardAvoidingView style={styles.keyboard} behavior="padding">
+                  {wrapped}
+                </Kb.NativeKeyboardAvoidingView>
+              )
             }
           }
           _cached = Shimmed
@@ -170,3 +179,12 @@ const shimRoutes = (routes: any) =>
 export const loggedOutRoutes = shimRoutes(_loggedOutRoutes)
 export const modalRoutes = shimRoutes(_modalRoutes)
 export const routes = shimRoutes(_routes)
+
+// TEMP
+
+const styles = Styles.styleSheetCreate({
+  keyboard: {
+    flexGrow: 1,
+    position: 'relative',
+  },
+})
