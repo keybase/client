@@ -9,7 +9,6 @@ import (
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 )
@@ -70,16 +69,13 @@ func (s *Source) makeBuiltins() {
 	common := []types.ConversationCommand{
 		cmds[cmdCollapse],
 		cmds[cmdExpand],
+		cmds[cmdGiphy],
 		cmds[cmdHide],
 		cmds[cmdMe],
 		cmds[cmdMsg],
 		cmds[cmdMute],
 		cmds[cmdShrug],
 		cmds[cmdUnhide],
-	}
-	// /giphy only available on desktop for the moment
-	if s.G().GetAppType() != libkb.MobileAppType {
-		common = append(common, cmds[cmdGiphy])
 	}
 	s.builtins = make(map[chat1.ConversationBuiltinCommandTyp][]types.ConversationCommand)
 	s.builtins[chat1.ConversationBuiltinCommandTyp_ADHOC] = common
@@ -141,20 +137,6 @@ func (s *Source) ListCommands(ctx context.Context, uid gregor1.UID, conv types.C
 	return chat1.NewConversationCommandGroupsWithBuiltin(s.GetBuiltinCommandType(ctx, conv)), nil
 }
 
-func (s *Source) getConvByID(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (res types.RemoteConversation, err error) {
-	ib, err := s.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll,
-		&chat1.GetInboxQuery{
-			ConvID: &convID,
-		}, nil)
-	if err != nil {
-		return res, err
-	}
-	if len(ib.ConvsUnverified) == 0 {
-		return res, errors.New("conv not found")
-	}
-	return ib.ConvsUnverified[0], nil
-}
-
 func (s *Source) AttemptBuiltinCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	tlfName string, body chat1.MessageBody) (handled bool, err error) {
 	defer s.Trace(ctx, func() error { return err }, "AttemptBuiltinCommand")()
@@ -165,7 +147,7 @@ func (s *Source) AttemptBuiltinCommand(ctx context.Context, uid gregor1.UID, con
 	if !strings.HasPrefix(text, "/") {
 		return false, nil
 	}
-	conv, err := s.getConvByID(ctx, uid, convID)
+	conv, err := getConvByID(ctx, s.G(), uid, convID)
 	if err != nil {
 		return false, err
 	}
@@ -181,7 +163,7 @@ func (s *Source) AttemptBuiltinCommand(ctx context.Context, uid gregor1.UID, con
 
 func (s *Source) PreviewBuiltinCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, text string) {
 	defer s.Trace(ctx, func() error { return nil }, "PreviewBuiltinCommand")()
-	conv, err := s.getConvByID(ctx, uid, convID)
+	conv, err := getConvByID(ctx, s.G(), uid, convID)
 	if err != nil {
 		return
 	}

@@ -275,35 +275,6 @@ func (r *AttachmentHTTPSrv) serveGiphyLink(w http.ResponseWriter, req *http.Requ
 		r.makeError(ctx, w, http.StatusInternalServerError, "invalid key: %s", key)
 		return
 	}
-	contentForce := "true" == req.URL.Query().Get("contentforce")
-	if r.G().GetAppType() == libkb.MobileAppType && !contentForce {
-		r.Debug(ctx, "serveGiphyLink: mobile client detected, showing the HTML video viewer")
-		w.Header().Set("Content-Type", "text/html")
-		if _, err := w.Write([]byte(fmt.Sprintf(`
-			<html>
-				<head>
-					<meta name="viewport" content="initial-scale=1, viewport-fit=cover">
-					<title>Keybase Video Viewer</title>
-					<script>
-						window.togglePlay = function(data) {
-							var vid = document.getElementById("vid");
-							if (data === "play") {
-								vid.play();
-							} else {
-								vid.pause();
-							}
-						}
-					</script>
-				</head>
-				<body style="margin: 0px; background-color: rgba(0,0,0,0.05)">
-					<video id="vid" preload="none" style="width: 100%%; height: 100%%; object-fit:fill" src="%s" playsinline webkit-playsinline loop muted />
-				</body>
-			</html>
-		`, req.URL.String()+"&contentforce=true"))); err != nil {
-			r.Debug(ctx, "serveGiphyLink: failed to write HTML video player: %s", err)
-		}
-		return
-	}
 	// Grab range headers
 	rangeHeader := req.Header.Get("Range")
 	client := &http.Client{}
