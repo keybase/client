@@ -9,10 +9,6 @@ type State = {
   playingVideo: boolean,
 }
 
-const shouldStartLoad = () => {
-  return true
-}
-
 export class Video extends React.Component<Props, State> {
   _webviewRef = React.createRef()
   state = {playingVideo: this.props.autoPlay}
@@ -49,7 +45,6 @@ export class Video extends React.Component<Props, State> {
           scrollEnabled={false}
           automaticallyAdjustContentInsets={false}
           mediaPlaybackRequiresUserAction={false}
-          onShouldStartLoadWithRequest={shouldStartLoad}
         />
         <Kb.Box
           style={Styles.collapseStyles([
@@ -60,7 +55,7 @@ export class Video extends React.Component<Props, State> {
             },
           ])}
         >
-          {!this.state.playingVideo && !this.props.hidePlayButton && (
+          {!this.state.playingVideo && (
             <Kb.Icon type={'icon-play-64'} style={Kb.iconCastPlatformStyles(styles.playButton)} />
           )}
         </Kb.Box>

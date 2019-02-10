@@ -10,16 +10,11 @@ import openURL from '../../../../../../util/open-url'
 export type Props = {
   autoplayVideo: boolean,
   height: number,
-  hidePlayButton?: boolean,
-  width: number,
-  widthPadding?: number,
-  url: string,
-  linkURL?: string,
   isVideo: boolean,
-  maxSize?: number,
+  linkURL?: string,
   onClick?: () => void,
-  url: string,
   style?: Object,
+  url: string,
   width: number,
   widthPadding?: number,
 }
@@ -37,8 +32,7 @@ const clampImageSize = ({width = 0, height = 0}, maxSize) =>
 
 class UnfurlImage extends React.Component<Props> {
   _getDimensions() {
-    const maxSize =
-      Math.min(imgMaxWidth(), this.props.maxSize ? this.props.maxSize : 320) - (this.props.widthPadding || 0)
+    const maxSize = Math.min(imgMaxWidth(), 320) - (this.props.widthPadding || 0)
     const {height, width} = clampImageSize({height: this.props.height, width: this.props.width}, maxSize)
     return {
       flexGrow: 0,
@@ -62,7 +56,6 @@ class UnfurlImage extends React.Component<Props> {
       <Video
         autoPlay={this.props.autoplayVideo}
         height={dims.height}
-        hidePlayButton={this.props.hidePlayButton}
         onClick={this.props.onClick}
         style={style}
         url={this.props.url}

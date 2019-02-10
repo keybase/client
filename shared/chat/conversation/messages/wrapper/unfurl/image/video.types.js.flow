@@ -2,7 +2,6 @@
 export type Props = {
   autoPlay: boolean,
   height: number,
-  hidePlayButton?: boolean,
   style: Object,
   onClick?: () => void,
   url: string,
