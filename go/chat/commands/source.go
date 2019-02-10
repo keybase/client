@@ -102,7 +102,6 @@ func (s *Source) makeBuiltins() {
 }
 
 func (s *Source) GetBuiltins(ctx context.Context) (res []chat1.BuiltinCommandGroup) {
-	s.G().ActiveDevice.UID()
 	for typ, cmds := range s.builtins {
 		var exportCmds []chat1.ConversationCommand
 		for _, cmd := range cmds {
