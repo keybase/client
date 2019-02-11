@@ -89,6 +89,7 @@ func TestScraper(t *testing.T) {
 
 	clock := clockwork.NewFakeClock()
 	scraper.cache.setClock(clock)
+	scraper.giphyProxy = false
 
 	srv := createTestCaseHTTPSrv(t)
 	addr := srv.Start()

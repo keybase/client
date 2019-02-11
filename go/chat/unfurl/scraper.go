@@ -11,13 +11,15 @@ import (
 
 type Scraper struct {
 	utils.DebugLabeler
-	cache *unfurlCache
+	cache      *unfurlCache
+	giphyProxy bool
 }
 
 func NewScraper(logger logger.Logger) *Scraper {
 	return &Scraper{
 		DebugLabeler: utils.NewDebugLabeler(logger, "Scraper", false),
 		cache:        newUnfurlCache(),
+		giphyProxy:   true,
 	}
 }
 

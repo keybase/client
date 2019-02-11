@@ -21,7 +21,6 @@ func (s *Scraper) scrapeGiphy(ctx context.Context, sourceURL string) (res chat1.
 		return res, err
 	}
 
-	c.WithTransport(giphy.WebClient().Transport)
 	c.OnHTML("head meta[content][property]", func(e *colly.HTMLElement) {
 		attr := strings.ToLower(e.Attr("property"))
 		if attr == "og:video" {
@@ -39,9 +38,14 @@ func (s *Scraper) scrapeGiphy(ctx context.Context, sourceURL string) (res chat1.
 			s.setAttr(ctx, attr, "giphy.com", "giphy.com", generic, e)
 		}
 	})
-	uri, err := giphy.ProxyURL(sourceURL)
-	if err != nil {
-		return res, err
+	var uri string
+	if s.giphyProxy {
+		c.WithTransport(giphy.WebClient().Transport)
+		if uri, err = giphy.ProxyURL(sourceURL); err != nil {
+			return res, err
+		}
+	} else {
+		uri = sourceURL
 	}
 	hdr := make(http.Header)
 	hdr.Add("Host", giphy.Host)
