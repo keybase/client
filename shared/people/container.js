@@ -14,6 +14,28 @@ import * as WaitingConstants from '../constants/waiting'
 
 type OwnProps = RouteProps<{}, {}>
 
+const mapStateToPropsHeader = state => ({
+  myUsername: state.config.username,
+})
+
+const mapDispatchToPropsHeader = dispatch => ({
+  onClickUser: (username: string) => dispatch(createShowUserProfile({username})),
+  onSearch: () => {
+    dispatch(createSearchSuggestions({searchKey: 'profileSearch'}))
+    dispatch(RouteTreeGen.createNavigateAppend({path: ['search']}))
+  },
+})
+
+const mergePropsHeader = (stateProps, dispatchProps) => ({
+  myUsername: stateProps.myUsername,
+  ...dispatchProps,
+})
+const ConnectedHeader = connect<OwnProps, _, _, _, _>(
+  mapStateToPropsHeader,
+  mapDispatchToPropsHeader,
+  mergePropsHeader
+)(Header)
+
 type Props = {
   oldItems: I.List<Types.PeopleScreenItem>,
   newItems: I.List<Types.PeopleScreenItem>,
@@ -81,27 +103,19 @@ const mergeProps = (stateProps, dispatchProps) => {
   }
 }
 
-// TODO reduce the props sent to header
-const ConnectedHeader = connect<OwnProps, _, _, _, _>(
-  mapStateToProps,
-  mapDispatchToProps,
-  mergeProps
-)(Header)
-
 const connected = connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps
 )(LoadOnMount)
 
-connected.navigationOptions = (p: any) => ({
-  ...p.navigationOptions,
+connected.navigationOptions = {
   header: undefined,
   headerTitle: hp => <ConnectedHeader />,
   headerTitleContainerStyle: {
-    ...p.navigationOptions.headerTitleContainerStyle,
     left: 40,
     right: 0,
   },
-})
+  underNotch: true,
+}
 export default connected

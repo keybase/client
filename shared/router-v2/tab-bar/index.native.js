@@ -1,6 +1,5 @@
 // @flow
-// TODO badging
-import * as Kb from '../../common-adapters'
+import * as Kb from '../../common-adapters/mobile.native'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Tabs from '../../constants/tabs'
@@ -37,24 +36,31 @@ class TabBar extends React.PureComponent<Props, State> {
     const p = this.props
     return (
       !!p.username && (
-        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
-          {tabs.map(t => (
-            <Kb.Box2 key={t} direction="vertical" style={styles.iconContainer}>
-              <Kb.Icon
-                type={icons[t]}
-                onClick={() => this._onTabClick(t)}
-                fontSize={32}
-                style={styles.tab}
-                color={t === selectedTab ? Styles.globalColors.white : Styles.globalColors.darkBlue4}
-              />
-              {!!p.badgeNumbers[t] && <Kb.Badge badgeNumber={p.badgeNumbers[t]} badgeStyle={styles.badge} />}
-            </Kb.Box2>
-          ))}
-        </Kb.Box2>
+        <Kb.NativeSafeAreaView style={styles.safe}>
+          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
+            {tabs.map(t => (
+              <Kb.Box2 key={t} direction="vertical" style={styles.iconContainer}>
+                <Kb.Icon
+                  type={icons[t]}
+                  onClick={() => this._onTabClick(t)}
+                  fontSize={32}
+                  style={styles.tab}
+                  color={t === selectedTab ? Styles.globalColors.white : Styles.globalColors.darkBlue4}
+                />
+                {!!p.badgeNumbers[t] && (
+                  <Kb.Badge badgeNumber={p.badgeNumbers[t]} badgeStyle={styles.badge} />
+                )}
+              </Kb.Box2>
+            ))}
+          </Kb.Box2>
+        </Kb.NativeSafeAreaView>
       )
     )
   }
 }
+
+// TEMP to really know you're on this branch
+const backgroundColor = 'pink' // Styles.globalColors.darkBlue2,
 
 const styles = Styles.styleSheetCreate({
   badge: {
@@ -64,9 +70,7 @@ const styles = Styles.styleSheetCreate({
   },
   container: {
     alignItems: 'center',
-    // TEMP to really know you're on this branch
-    backgroundColor: 'pink',
-    // backgroundColor: Styles.globalColors.darkBlue2,
+    backgroundColor,
     height: Styles.isAndroid ? 56 : 48,
     justifyContent: 'space-around',
   },
@@ -78,6 +82,10 @@ const styles = Styles.styleSheetCreate({
     position: 'absolute',
     right: 0,
     top: 0,
+  },
+  safe: {
+    backgroundColor,
+    flexGrow: 0,
   },
   tab: {
     paddingBottom: 6,

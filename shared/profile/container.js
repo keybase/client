@@ -231,7 +231,7 @@ const ConnectedHeader = connect<OwnProps, _, _, _, _>(
   }
 )(PeoplePageSearchBar)
 
-connected.navigationOptions = hp => ({
+connected.navigationOptions = {
   header: undefined,
   headerTitle: hp => <ConnectedHeader />,
   headerTitleContainerStyle: {
@@ -239,6 +239,7 @@ connected.navigationOptions = hp => ({
     right: 20,
   },
   headerTransparent: true,
-})
+  underNotch: true,
+}
 
 export default connected

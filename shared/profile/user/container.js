@@ -104,7 +104,7 @@ const connected = Container.namedConnect<OwnProps, _, _, _, _>(
   'Profile2'
 )(Profile2)
 
-connected.navigationOptions = hp => ({
+connected.navigationOptions = {
   header: undefined,
   headerTitle: hp => <ConnectedHeader />,
   headerTitleContainerStyle: {
@@ -112,6 +112,7 @@ connected.navigationOptions = hp => ({
     right: 20,
   },
   headerTransparent: true,
-})
+  underNotch: true,
+}
 
 export default connected

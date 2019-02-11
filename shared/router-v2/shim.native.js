@@ -27,11 +27,26 @@ const shimNewRoute = (Original: any) => {
       this._didFocusSubscription = props.navigation.addListener('didFocus', this._didFocus)
     }
     render() {
-      return this.state.canDraw ? (
+      if (!this.state.canDraw) {
+        return null
+      }
+      const body = <Original {...this.props} />
+      const keyboardBody = (
         <Kb.NativeKeyboardAvoidingView style={styles.keyboard} behavior="padding">
-          <Original {...this.props} />
+          {body}
         </Kb.NativeKeyboardAvoidingView>
-      ) : null
+      )
+
+      // don't make safe areas
+      if (Original.navigationOptions && Original.navigationOptions.underNotch) {
+        return keyboardBody
+      }
+
+      const safeKeyboardBody = (
+        <Kb.NativeSafeAreaView style={styles.keyboard}>{keyboardBody}</Kb.NativeSafeAreaView>
+      )
+
+      return safeKeyboardBody
     }
   }
   return ShimmedNew

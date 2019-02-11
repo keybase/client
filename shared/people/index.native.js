@@ -10,6 +10,7 @@ import flags from '../util/feature-flags'
 export const Header = (props: Props) => (
   <Kb.HeaderHocHeader
     borderless={true}
+    underNotch={flags.useNewRouter}
     rightActions={[
       {
         custom: (

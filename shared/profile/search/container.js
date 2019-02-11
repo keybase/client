@@ -22,6 +22,6 @@ const connected = connect<OwnProps, _, _, _, _>(
   (s, d, o) => ({...o, ...s, ...d})
 )(Search)
 
-connected.navigationOptions = hp => ({})
+connected.navigationOptions = {}
 
 export default connected

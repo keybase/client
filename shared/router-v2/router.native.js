@@ -43,6 +43,7 @@ useScreens()
 // return <StackHeader mode="screen" scene={scene} scenes={scenes} navigation={p.navigation} />
 // }
 
+// Options used by default on all navigators
 const defaultNavigationOptions = {
   header: null,
   headerLeft: hp => (
@@ -55,7 +56,9 @@ const defaultNavigationOptions = {
   ),
 }
 const headerMode = 'float'
-const MainStackNavigator = createStackNavigator(Shim.shim(routes), {
+
+// Where the main app stuff happens. You're logged in and have a tab bar etc
+const MainStackNavigatorPlain = createStackNavigator(Shim.shim(routes), {
   defaultNavigationOptions: p => ({
     ...defaultNavigationOptions,
   }),
@@ -63,6 +66,19 @@ const MainStackNavigator = createStackNavigator(Shim.shim(routes), {
   initialRouteName: 'tabs:peopleTab',
   initialRouteParams: undefined,
 })
+class MainStackNavigator extends React.PureComponent<any> {
+  static router = MainStackNavigatorPlain.router
+
+  render() {
+    return (
+      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+        <MainStackNavigatorPlain navigation={this.props.navigation} />
+        <TabBar selectedTab={nameToTab[this.props.activeKey]} />
+        <GlobalError />
+      </Kb.Box2>
+    )
+  }
+}
 
 const LoggedInStackNavigator = createStackNavigator(
   {
@@ -107,23 +123,21 @@ function getActiveRouteName(navigationState) {
   }
   return route.routeName
 }
-class CustomStackNavigator extends React.PureComponent<any> {
-  static router = RootStackNavigator.router
+// class CustomStackNavigator extends React.PureComponent<any> {
+// static router = RootStackNavigator.router
 
-  // moving the nav around. if there's global one maybe it causes tehse transition issues
-  render() {
-    return (
-      <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
-        {/* <Kb.NativeKeyboardAvoidingView style={styles.keyboard} behavior="padding"> */}
-        <RootStackNavigator navigation={this.props.navigation} />
-        {/* </Kb.NativeKeyboardAvoidingView> */}
-        <TabBar selectedTab={nameToTab[this.props.activeKey]} />
-        <GlobalError />
-      </Kb.Box2>
-    )
-  }
-}
-const AppContainer = createAppContainer(CustomStackNavigator)
+// render() {
+// return (
+// <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
+// <RootStackNavigator navigation={this.props.navigation} />
+// <TabBar selectedTab={nameToTab[this.props.activeKey]} />
+// <GlobalError />
+// </Kb.Box2>
+// )
+// }
+// }
+// const AppContainer = createAppContainer(CustomStackNavigator)
+const AppContainer = createAppContainer(RootStackNavigator)
 
 class RNApp extends React.PureComponent<any, any> {
   // state = {selectedTab: 'tabs:peopleTab'}
@@ -220,13 +234,11 @@ class RNApp extends React.PureComponent<any, any> {
 // const RNApp = createAppContainer(tabNavigator)
 
 const styles = Styles.styleSheetCreate({
+  headerTitle: {color: Styles.globalColors.black_75},
   keyboard: {
     flexGrow: 1,
     position: 'relative',
   },
-  headerTitle: {color: Styles.globalColors.black_75},
-  safeAreaViewTop: {flexGrow: 1},
-  modalContainer: {},
 })
 
 export default RNApp

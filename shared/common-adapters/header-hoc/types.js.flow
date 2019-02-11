@@ -32,6 +32,8 @@ export type Props = {
   headerStyle?: StylesCrossPlatform,
   theme?: 'light' | 'dark', // defaults to 'light'
   rightActions?: (?Action)[],
+  // for nav2. if you use the actual header, its already safe so you can opt out of another safe
+  underNotch?: boolean,
 }
 export type LeftActionProps = {
   badgeNumber?: number,
