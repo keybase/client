@@ -328,17 +328,24 @@ func (g *Game) handleMessage(ctx context.Context, msg *GameMessageWrapped) error
 		now := g.dh.Clock().Now()
 		cc := msg.Msg.Body.CommitmentComplete()
 		for _, u := range cc.Players {
-			key := u.ToKey()
+			key := u.Ud.ToKey()
 			ps := g.players[key]
 			if ps == nil {
-				return UnregisteredUserError{G: g.md, U: u}
+				return UnregisteredUserError{G: g.md, U: u.Ud}
 			}
 			ps.included = true
 			g.nPlayers++
 		}
 
+		reveal := Reveal{
+			Secret: g.me.secret,
+		}
+
 		// for now, just warn if users who made it in on time weren't included.
 		for _, ps := range g.players {
+			if ps.included {
+				reveal.Udc = append(reveal.Udc, UserDeviceCommitment{Ud: ps.ud, C: ps.commitment})
+			}
 			if !ps.included && g.playerCommitedInTime(ps, now) {
 				g.dh.CLogf(ctx, "User %s wasn't included, but they should have been", ps.ud)
 			}
@@ -351,7 +358,7 @@ func (g *Game) handleMessage(ctx context.Context, msg *GameMessageWrapped) error
 		}
 
 		if g.me != nil {
-			g.sendOutgoingChat(ctx, NewGameMessageBodyWithReveal(g.me.secret))
+			g.sendOutgoingChat(ctx, NewGameMessageBodyWithReveal(reveal))
 		}
 
 	case MessageType_REVEAL:
@@ -367,7 +374,7 @@ func (g *Game) handleMessage(ctx context.Context, msg *GameMessageWrapped) error
 			g.dh.CLogf(ctx, "Skipping unincluded sender: %s", key)
 			return nil
 		}
-		err := g.setSecret(ctx, ps, msg.Msg.Body.Reveal())
+		err := g.setSecret(ctx, ps, msg.Msg.Body.Reveal().Secret)
 		if err != nil {
 			return err
 		}
@@ -391,7 +398,7 @@ func (g *Game) handleMessage(ctx context.Context, msg *GameMessageWrapped) error
 func (g *Game) completeCommitments(ctx context.Context) error {
 	var cc CommitmentComplete
 	for _, p := range g.players {
-		cc.Players = append(cc.Players, p.ud)
+		cc.Players = append(cc.Players, UserDeviceCommitment{Ud: p.ud, C: p.commitment})
 	}
 	body := NewGameMessageBodyWithCommitmentComplete(cc)
 	g.stageForTimeout = Stage_ROUND2
