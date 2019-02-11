@@ -1,5 +1,5 @@
 
-@namespace("flip")
+@namespace("chat.1")
 
 protocol flip {
 
@@ -14,10 +14,16 @@ protocol flip {
   record UID {}
 
   @typedef("bytes")
-  record ConversationID {}
-
-  @typedef("bytes")
   record DeviceID {}
+
+  @typedef("string")
+  record GameKey {}
+
+  @typedef("string")
+  record UserDeviceKey {}
+
+  @typedef("string")
+  record GameIDKey {}
 
   record Start {
     Time startTime;
@@ -59,7 +65,7 @@ protocol flip {
     case SHUFFLE: long;
   }
 
-  enum MessageType {
+  enum FlipMessageType {
     START_1,
     COMMITMENT_2,
     COMMITMENT_COMPLETE_3,
@@ -76,7 +82,7 @@ protocol flip {
   fixed Secret(32);
   fixed Commitment(32);
 
-  variant GameMessageBody switch (MessageType t) {
+  variant GameMessageBody switch (FlipMessageType t) {
     case START: Start;
     case COMMITMENT: Commitment;
     case COMMITMENT_COMPLETE: CommitmentComplete;

@@ -516,6 +516,31 @@ export const commonTopicType = {
   kbfsfileedit: 3,
 }
 
+export const flipFlipMessageType = {
+  start: 1,
+  commitment: 2,
+  commitmentComplete: 3,
+  reveal: 4,
+  end: 5,
+}
+
+export const flipFlipType = {
+  bool: 1,
+  int: 2,
+  big: 3,
+  shuffle: 4,
+}
+
+export const flipStage = {
+  round1: 1,
+  round2: 2,
+  roundCleanup: 3,
+}
+
+export const flipVersion = {
+  v1: 1,
+}
+
 export const localBodyPlaintextVersion = {
   v1: 1,
   v2: 2,
@@ -745,6 +770,8 @@ export type ChatSearchMatch = $ReadOnly<{startIndex: Int, endIndex: Int, match: 
 export type ChatSyncIncrementalConv = $ReadOnly<{conv: UnverifiedInboxUIItem, shouldUnbox: Boolean}>
 export type ChatSyncIncrementalInfo = $ReadOnly<{items?: ?Array<ChatSyncIncrementalConv>}>
 export type ChatSyncResult = {syncType: 0} | {syncType: 2} | {syncType: 1, incremental: ?ChatSyncIncrementalInfo}
+export type Commitment = ?string
+export type CommitmentComplete = $ReadOnly<{players?: ?Array<UserDevice>}>
 export type ConvTypingUpdate = $ReadOnly<{convID: ConversationID, typers?: ?Array<TyperInfo>}>
 export type Conversation = $ReadOnly<{metadata: ConversationMetadata, readerInfo?: ?ConversationReaderInfo, notifications?: ?ConversationNotificationInfo, maxMsgs?: ?Array<MessageBoxed>, maxMsgSummaries?: ?Array<MessageSummary>, creatorInfo?: ?ConversationCreatorInfo, expunge: Expunge, convRetention?: ?RetentionPolicy, teamRetention?: ?RetentionPolicy, cs /* convSettings */?: ?ConversationSettings}>
 export type ConversationBuiltinCommandTyp =
@@ -826,6 +853,7 @@ export type ConversationUpdate = $ReadOnly<{convID: ConversationID, existence: C
 export type ConversationVers = Uint64
 export type DeleteConversationLocalRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Array<RateLimit>}>
 export type DeleteConversationRemoteRes = $ReadOnly<{rateLimit?: ?RateLimit}>
+export type DeviceID = Bytes
 export type DownloadAttachmentLocalRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
 export type DownloadFileAttachmentLocalRes = $ReadOnly<{filename: String, offline: Boolean, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
 export type EditTarget = $ReadOnly<{messageID?: ?MessageID, outboxID?: ?OutboxID}>
@@ -837,6 +865,27 @@ export type ExpungeInfo = $ReadOnly<{convID: ConversationID, expunge: Expunge, c
 export type ExpungePayload = $ReadOnly<{Action: String, convID: ConversationID, inboxVers: InboxVers, expunge: Expunge, maxMsgs?: ?Array<MessageSummary>, topicType: TopicType, unreadUpdate?: ?UnreadUpdate}>
 export type FailedMessageInfo = $ReadOnly<{outboxRecords?: ?Array<OutboxRecord>, isEphemeralPurge: Boolean}>
 export type FindConversationsLocalRes = $ReadOnly<{conversations?: ?Array<ConversationLocal>, offline: Boolean, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
+export type FlipMessageType =
+  | 1 // START_1
+  | 2 // COMMITMENT_2
+  | 3 // COMMITMENT_COMPLETE_3
+  | 4 // REVEAL_4
+  | 5 // END_5
+
+export type FlipParameters = {t: 1} | {t: 2, int: ?Long} | {t: 3, big: ?Bytes} | {t: 4, shuffle: ?Long}
+export type FlipType =
+  | 1 // BOOL_1
+  | 2 // INT_2
+  | 3 // BIG_3
+  | 4 // SHUFFLE_4
+
+export type GameID = Bytes
+export type GameIDKey = String
+export type GameKey = String
+export type GameMessage = {v: 1, v1: ?GameMessageV1}
+export type GameMessageBody = {t: 1, start: ?Start} | {t: 2, commitment: ?Commitment} | {t: 3, commitmentComplete: ?CommitmentComplete} | {t: 4, reveal: ?Secret} | {t: 5}
+export type GameMessageV1 = $ReadOnly<{md: GameMetadata, body: GameMessageBody}>
+export type GameMetadata = $ReadOnly<{initiator: UserDevice, conversationID: ConversationID, gameID: GameID}>
 export type GenericPayload = $ReadOnly<{Action: String, inboxVers: InboxVers, convID: ConversationID, topicType: TopicType, unreadUpdate?: ?UnreadUpdate}>
 export type GetConversationForCLILocalQuery = $ReadOnly<{markAsRead: Boolean, MessageTypes?: ?Array<MessageType>, Since?: ?String, limit: UnreadFirstNumLimit, conv: ConversationLocal}>
 export type GetConversationForCLILocalRes = $ReadOnly<{conversation: ConversationLocal, messages?: ?Array<MessageUnboxed>, offline: Boolean, rateLimits?: ?Array<RateLimit>}>
@@ -1081,6 +1130,7 @@ export type SealedData = $ReadOnly<{v: Int, e: Bytes, n: Bytes}>
 export type SearchInboxRes = $ReadOnly<{res?: ?ChatSearchInboxResults, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
 export type SearchOpts = $ReadOnly<{sentBy: String, sentBefore: Gregor1.Time, sentAfter: Gregor1.Time, maxHits: Int, maxMessages: Int, beforeContext: Int, afterContext: Int, forceReindex: Boolean, maxConvs: Int}>
 export type SearchRegexpRes = $ReadOnly<{hits?: ?Array<ChatSearchHit>, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
+export type Secret = ?string
 export type ServerCacheVers = $ReadOnly<{inboxVers: Int, bodiesVers: Int}>
 export type SetAppNotificationSettingsInfo = $ReadOnly<{convID: ConversationID, settings: ConversationNotificationInfo}>
 export type SetAppNotificationSettingsLocalRes = $ReadOnly<{offline: Boolean, rateLimits?: ?Array<RateLimit>}>
@@ -1097,11 +1147,17 @@ export type SetStatusPayload = $ReadOnly<{Action: String, convID: ConversationID
 export type SetTeamRetentionUpdate = $ReadOnly<{inboxVers: InboxVers, teamID: Keybase1.TeamID, policy: RetentionPolicy}>
 export type SignEncryptedData = $ReadOnly<{v: Int, e: Bytes, n: Bytes}>
 export type SignatureInfo = $ReadOnly<{v: Int, s: Bytes, k: Bytes}>
+export type Stage =
+  | 1 // ROUND1_1
+  | 2 // ROUND2_2
+  | 3 // ROUND_CLEANUP_3
+
 export type StaleUpdateType =
   | 0 // CLEAR_0
   | 1 // NEWACTIVITY_1
   | 2 // CONVUPDATE_2
 
+export type Start = $ReadOnly<{startTime: Time, commitmentWindowMsec: Long, revealWindowMsec: Long, slackMsec: Long, params: FlipParameters}>
 export type StaticConfig = $ReadOnly<{deletableByDeleteHistory?: ?Array<MessageType>, builtinCommands?: ?Array<BuiltinCommandGroup>}>
 export type SubteamRenameUpdate = $ReadOnly<{convIDs?: ?Array<ConversationID>, inboxVers: InboxVers}>
 export type SweepRes = $ReadOnly<{foundTask: Boolean, deletedMessages: Boolean, expunge: Expunge}>
@@ -1144,6 +1200,7 @@ export type TextPaymentResultTyp =
 export type ThreadID = Bytes
 export type ThreadView = $ReadOnly<{messages?: ?Array<MessageUnboxed>, pagination?: ?Pagination}>
 export type ThreadViewBoxed = $ReadOnly<{messages?: ?Array<MessageBoxed>, pagination?: ?Pagination}>
+export type Time = Long
 export type TopicID = Bytes
 export type TopicNameState = Bytes
 export type TopicType =
@@ -1157,6 +1214,7 @@ export type UIAssetUrlInfo = $ReadOnly<{previewUrl: String, fullUrl: String, ful
 export type UIChannelNameMention = $ReadOnly<{name: String, convID: String}>
 export type UIChatPayment = $ReadOnly<{username: String, fullName: String, xlmAmount: String, error?: ?String, displayAmount?: ?String}>
 export type UIChatPaymentSummary = $ReadOnly<{xlmTotal: String, displayTotal: String, payments?: ?Array<UIChatPayment>}>
+export type UID = Bytes
 export type UIMessage = {state: 1, valid: ?UIMessageValid} | {state: 2, error: ?MessageUnboxedError} | {state: 3, outbox: ?UIMessageOutbox} | {state: 4, placeholder: ?MessageUnboxedPlaceholder}
 export type UIMessageOutbox = $ReadOnly<{state: OutboxState, outboxID: String, messageType: MessageType, body: String, decoratedTextBody?: ?String, ctime: Gregor1.Time, ordinal: Double, isEphemeral: Boolean, filename: String, title: String, preview?: ?MakePreviewRes}>
 export type UIMessageUnfurlInfo = $ReadOnly<{unfurlMessageID: MessageID, url: String, unfurl: UnfurlDisplay}>
@@ -1215,6 +1273,10 @@ export type UnverifiedInboxUIItemMetadata = $ReadOnly<{channelName: String, head
 export type UnverifiedInboxUIItems = $ReadOnly<{items?: ?Array<UnverifiedInboxUIItem>, pagination?: ?UIPagination, offline: Boolean}>
 export type UpdateConversationMembership = $ReadOnly<{inboxVers: InboxVers, joined?: ?Array<ConversationMember>, removed?: ?Array<ConversationMember>, reset?: ?Array<ConversationMember>, previewed?: ?Array<ConversationID>, unreadUpdate?: ?UnreadUpdate, unreadUpdates?: ?Array<UnreadUpdate>}>
 export type UpdateConversations = $ReadOnly<{inboxVers: InboxVers, convUpdates?: ?Array<ConversationUpdate>}>
+export type UserDevice = $ReadOnly<{d: DeviceID, u: UID}>
+export type UserDeviceKey = String
+export type Version = 1 // V1_1
+
 export type VersionKind = String
 
 export type IncomingCallMapType = {|

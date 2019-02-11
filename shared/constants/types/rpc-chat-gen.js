@@ -152,6 +152,31 @@ export const commonTopicType = {
   kbfsfileedit: 3,
 }
 
+export const flipFlipMessageType = {
+  start: 1,
+  commitment: 2,
+  commitmentComplete: 3,
+  reveal: 4,
+  end: 5,
+}
+
+export const flipFlipType = {
+  bool: 1,
+  int: 2,
+  big: 3,
+  shuffle: 4,
+}
+
+export const flipStage = {
+  round1: 1,
+  round2: 2,
+  roundCleanup: 3,
+}
+
+export const flipVersion = {
+  v1: 1,
+}
+
 export const localBodyPlaintextVersion = {
   v1: 1,
   v2: 2,

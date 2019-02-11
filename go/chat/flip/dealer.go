@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"io"
 	"math/big"
-	"strings"
 	"time"
 )
 
@@ -21,36 +20,9 @@ func (m GameMessageWrapped) isForwardable() bool {
 	return t != MessageType_END
 }
 
-func (g GameMetadata) ToKey() GameKey {
-	return GameKey(strings.Join([]string{g.Initiator.U.String(), g.Initiator.D.String(), g.ConversationID.String(), g.GameID.String()}, ","))
-}
-
-func (g GameMetadata) String() string {
-	return string(g.ToKey())
-}
-
-func (g GameMetadata) check() bool {
-	return g.Initiator.check() && g.ConversationID.check() && g.GameID.check()
-}
 
 func (m GameMessageWrapped) GameMetadata() GameMetadata {
 	return m.Msg.Md
-}
-
-type GameKey string
-type GameIDKey string
-type UserDeviceKey string
-
-func (u UserDevice) ToKey() UserDeviceKey {
-	return UserDeviceKey(strings.Join([]string{u.U.String(), u.D.String()}, ","))
-}
-
-func (u UserDevice) check() bool {
-	return u.U.check() && u.D.check()
-}
-
-func (g GameID) ToKey() GameIDKey {
-	return GameIDKey(g.String())
 }
 
 type Result struct {

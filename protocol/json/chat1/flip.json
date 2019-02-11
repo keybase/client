@@ -1,0 +1,288 @@
+{
+  "protocol": "flip",
+  "imports": [],
+  "types": [
+    {
+      "type": "record",
+      "name": "Time",
+      "fields": [],
+      "typedef": "long"
+    },
+    {
+      "type": "record",
+      "name": "GameID",
+      "fields": [],
+      "typedef": "bytes"
+    },
+    {
+      "type": "record",
+      "name": "UID",
+      "fields": [],
+      "typedef": "bytes"
+    },
+    {
+      "type": "record",
+      "name": "DeviceID",
+      "fields": [],
+      "typedef": "bytes"
+    },
+    {
+      "type": "record",
+      "name": "GameKey",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "UserDeviceKey",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "GameIDKey",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "Start",
+      "fields": [
+        {
+          "type": "Time",
+          "name": "startTime"
+        },
+        {
+          "type": "long",
+          "name": "commitmentWindowMsec"
+        },
+        {
+          "type": "long",
+          "name": "revealWindowMsec"
+        },
+        {
+          "type": "long",
+          "name": "slackMsec"
+        },
+        {
+          "type": "FlipParameters",
+          "name": "params"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserDevice",
+      "fields": [
+        {
+          "type": "DeviceID",
+          "name": "d"
+        },
+        {
+          "type": "UID",
+          "name": "u"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GameMetadata",
+      "fields": [
+        {
+          "type": "UserDevice",
+          "name": "initiator"
+        },
+        {
+          "type": "ConversationID",
+          "name": "conversationID"
+        },
+        {
+          "type": "GameID",
+          "name": "gameID"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "CommitmentComplete",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "UserDevice"
+          },
+          "name": "players"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "FlipType",
+      "symbols": [
+        "BOOL_1",
+        "INT_2",
+        "BIG_3",
+        "SHUFFLE_4"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "FlipParameters",
+      "switch": {
+        "type": "FlipType",
+        "name": "t"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "BOOL",
+            "def": false
+          },
+          "body": null
+        },
+        {
+          "label": {
+            "name": "INT",
+            "def": false
+          },
+          "body": "long"
+        },
+        {
+          "label": {
+            "name": "BIG",
+            "def": false
+          },
+          "body": "bytes"
+        },
+        {
+          "label": {
+            "name": "SHUFFLE",
+            "def": false
+          },
+          "body": "long"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "FlipMessageType",
+      "symbols": [
+        "START_1",
+        "COMMITMENT_2",
+        "COMMITMENT_COMPLETE_3",
+        "REVEAL_4",
+        "END_5"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "Stage",
+      "symbols": [
+        "ROUND1_1",
+        "ROUND2_2",
+        "ROUND_CLEANUP_3"
+      ]
+    },
+    {
+      "type": "fixed",
+      "name": "Secret",
+      "size": "32"
+    },
+    {
+      "type": "fixed",
+      "name": "Commitment",
+      "size": "32"
+    },
+    {
+      "type": "variant",
+      "name": "GameMessageBody",
+      "switch": {
+        "type": "FlipMessageType",
+        "name": "t"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "START",
+            "def": false
+          },
+          "body": "Start"
+        },
+        {
+          "label": {
+            "name": "COMMITMENT",
+            "def": false
+          },
+          "body": "Commitment"
+        },
+        {
+          "label": {
+            "name": "COMMITMENT_COMPLETE",
+            "def": false
+          },
+          "body": "CommitmentComplete"
+        },
+        {
+          "label": {
+            "name": "REVEAL",
+            "def": false
+          },
+          "body": "Secret"
+        },
+        {
+          "label": {
+            "name": "END",
+            "def": false
+          },
+          "body": null
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "Version",
+      "symbols": [
+        "V1_1"
+      ]
+    },
+    {
+      "type": "variant",
+      "name": "GameMessage",
+      "switch": {
+        "type": "Version",
+        "name": "v"
+      },
+      "cases": [
+        {
+          "label": {
+            "name": "V1",
+            "def": false
+          },
+          "body": "GameMessageV1"
+        },
+        {
+          "label": {
+            "def": true
+          },
+          "body": null
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GameMessageV1",
+      "fields": [
+        {
+          "type": "GameMetadata",
+          "name": "md"
+        },
+        {
+          "type": "GameMessageBody",
+          "name": "body"
+        }
+      ]
+    }
+  ],
+  "messages": {},
+  "namespace": "chat.1"
+}

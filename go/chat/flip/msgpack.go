@@ -1,7 +1,6 @@
 package flip
 
 import (
-	"github.com/keybase/go-codec/codec"
 )
 
 func codecHandle() *codec.MsgpackHandle {
