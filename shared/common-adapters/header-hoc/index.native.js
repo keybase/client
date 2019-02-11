@@ -119,7 +119,11 @@ const LeftAction = ({
   <Box style={Styles.collapseStyles([styles.leftAction, hasTextTitle && styles.grow])}>
     {onLeftAction &&
       (leftAction === 'cancel' ? (
-        <Text type="BodyBigLink" style={styles.action} onClick={onLeftAction}>
+        <Text
+          type="BodyBigLink"
+          style={Styles.collapseStyles([styles.action, theme === 'dark' && styles.lightText])}
+          onClick={onLeftAction}
+        >
           {leftActionText || customCancelText || 'Cancel'}
         </Text>
       ) : (
@@ -281,6 +285,9 @@ const styles = Styles.styleSheetCreate({
       paddingLeft: Styles.globalMargins.tiny,
     },
   }),
+  lightText: {
+    color: Styles.globalColors.white,
+  },
   rightActions: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxColumn,

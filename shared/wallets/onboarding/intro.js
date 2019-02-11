@@ -13,7 +13,7 @@ type IntroProps = {|
 const Intro = (props: IntroProps) => {
   const buttons = [
     <Kb.Button
-      style={Styles.collapseStyles([styles.buttonStyle, {backgroundColor: Styles.globalColors.white}])}
+      style={styles.buttonStyle}
       fullWidth={true}
       key={0}
       type="Secondary"
@@ -30,9 +30,13 @@ const Intro = (props: IntroProps) => {
       backButtonType="close"
       onExit={props.onClose}
       buttonBarDirection="column"
-      containerStyle={styles.container}
+      containerStyle={styles.background}
+      headerStyle={styles.background}
+      safeAreaViewBottomStyle={styles.background}
+      safeAreaViewTopStyle={styles.background}
+      theme="dark"
     >
-      <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true}>
+      <Kb.Box2 direction="vertical" fullWidth={true} centerChildren={true} style={styles.container}>
         <Kb.Text center={true} type="Header" style={styles.headerText}>
           Keybase supports Stellar wallets
         </Kb.Text>
@@ -54,33 +58,51 @@ const Intro = (props: IntroProps) => {
           .
         </Kb.Text>
 
-        <Kb.Icon
-          color={Styles.globalColors.black_75}
-          style={Kb.iconCastPlatformStyles(styles.illustration)}
-          type="icon-illustration-stellar-payments-200-188"
-        />
+        <Kb.Icon style={styles.illustration} type="icon-illustration-stellar-payments-200-188" />
       </Kb.Box2>
     </WalletPopup>
   )
 }
 
 const styles = Styles.styleSheetCreate({
-  bodyText: {color: Styles.globalColors.white, marginBottom: Styles.globalMargins.tiny},
+  background: {
+    backgroundColor: Styles.globalColors.purple2,
+    borderBottomWidth: 0,
+  },
+  bodyText: {
+    color: Styles.globalColors.white,
+    marginBottom: Styles.globalMargins.tiny,
+  },
   buttonLabelStyle: {color: Styles.globalColors.purple},
-  buttonStyle: {width: '100%'},
-  container: {backgroundColor: Styles.globalColors.purple2, padding: Styles.globalMargins.medium},
+  buttonStyle: {
+    backgroundColor: Styles.globalColors.white,
+    marginBottom: Styles.globalMargins.large,
+    width: '100%',
+  },
+  container: {
+    flex: 1,
+    paddingLeft: Styles.globalMargins.medium,
+    paddingRight: Styles.globalMargins.medium,
+  },
   headerText: {
     color: Styles.globalColors.white,
     marginBottom: Styles.globalMargins.small,
     marginTop: Styles.globalMargins.medium,
   },
   icon: {
+    marginRight: Styles.globalMargins.tiny,
     position: 'relative',
     top: -10,
   },
-  illustration: {
-    paddingBottom: Styles.globalMargins.mediumLarge,
-  },
+  illustration: Styles.platformStyles({
+    isElectron: {
+      paddingBottom: Styles.globalMargins.mediumLarge,
+    },
+    isMobile: {
+      marginBottom: 100,
+      marginTop: 50,
+    },
+  }),
   labelStyle: {
     color: Styles.globalColors.purple,
   },

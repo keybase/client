@@ -100,6 +100,12 @@ const routeTree = () => {
     ? makeRouteDefNode({
         children: walletChildren,
         component: Wallet,
+        tags: makeLeafTags({
+          fullscreen: isMobile,
+          layerOnTop: !isMobile,
+          renderTopmostOnly: true,
+          underNotch: true,
+        }),
       })
     : makeRouteDefNode({
         children: {

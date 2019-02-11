@@ -4,6 +4,7 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import AccountPageHeader from './account-page-header'
 import {compose, withProps} from 'recompose'
+import {setInitialRouteDef} from '../../actions/route-tree-gen'
 
 // WalletPopup - wraps all stellar modals except for the send / request forms.
 //
@@ -25,6 +26,7 @@ type WalletPopupProps = {|
   headerTitle?: string,
   safeAreaViewBottomStyle?: Styles.StylesCrossPlatform,
   safeAreaViewTopStyle?: Styles.StylesCrossPlatform,
+  theme?: string,
 |}
 
 const backButtonTypeToFcnHandle = {
@@ -130,6 +132,7 @@ export default compose(
     customSafeAreaBottomStyle: props.safeAreaViewBottomStyle,
     customSafeAreaTopStyle: props.safeAreaViewTopStyle,
     style: (styles.popup: any), // cast to any for flow complaining about every possible style
+    theme: props.theme,
   })),
   Kb.HeaderOrPopupWithHeader
 )(WalletPopup)
