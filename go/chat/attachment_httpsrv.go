@@ -206,7 +206,7 @@ func (r *AttachmentHTTPSrv) GetUnfurlAssetURL(ctx context.Context, convID chat1.
 }
 
 func (r *AttachmentHTTPSrv) GetGiphyURL(ctx context.Context, giphyURL string) string {
-	defer r.Trace(ctx, func() error { return nil }, "GetGiphyLink")()
+	defer r.Trace(ctx, func() error { return nil }, "GetGiphyURL")()
 	url := r.getURL(ctx, "gf", r.giphyEndpoint, r.giphyMap, giphyURL)
 	r.Debug(ctx, "GetGiphyURL: handler URL: %s", url)
 	return url
