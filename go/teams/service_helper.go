@@ -219,6 +219,14 @@ func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 			return err
 		}
 
+		loggedInRole, err := t.myRole(ctx)
+		if err != nil {
+			return err
+		}
+		if role == keybase1.TeamRole_OWNER && loggedInRole == keybase1.TeamRole_ADMIN {
+			return fmt.Errorf("Cannot add owner to team as an admin")
+		}
+
 		if inviteRequired && !uv.Uid.Exists() {
 			// Handle social invites without transactions.
 			res, err = t.InviteMember(ctx, username, role, resolvedUsername, uv)
