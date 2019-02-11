@@ -35,7 +35,7 @@ protocol flip {
   }
 
   record CommitmentComplete {
-    array<UserDevice> players;
+    array<UserDeviceCommitment> players;
   }
 
   enum FlipType {
@@ -69,11 +69,23 @@ protocol flip {
   fixed Secret(32);
   fixed Commitment(32);
 
+  record UserDeviceCommitment {
+    UserDevice ud;
+    Commitment c;
+  }
+
+  fixed Hash(32);
+
+  record Reveal {
+    Secret secret;
+    Hash cch; // Hash of comimtment complete (sent in prior round).
+  }
+
   variant GameMessageBody switch (MessageType t) {
     case START: Start;
     case COMMITMENT: Commitment;
     case COMMITMENT_COMPLETE: CommitmentComplete;
-    case REVEAL: Secret;
+    case REVEAL: Reveal;
     case END: void;
   }
 

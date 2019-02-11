@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"fmt"
+	"sort"
 
 	chat1 "github.com/keybase/client/go/protocol/chat1"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
@@ -80,4 +81,33 @@ func GenerateSecret() Secret {
 		panic(fmt.Sprintf("failed to generated secret: %s", err.Error()))
 	}
 	return ret
+}
+
+func checkUserDeviceCommitments(v []UserDeviceCommitment) bool {
+	for i := 1; i < len(v); i++ {
+		if !v[i-1].Ud.LessThan(v[i].Ud) {
+			return false
+		}
+	}
+	return true
+}
+
+func sortUserDeviceCommitments(v []UserDeviceCommitment) {
+	if !checkUserDeviceCommitments(v) {
+		sort.Slice(v, func(i, j int) bool { return v[i].Ud.LessThan(v[j].Ud) })
+	}
+}
+
+func hashUserDeviceCommitments(v []UserDeviceCommitment) (Hash, error) {
+	var ret Hash
+	sortUserDeviceCommitments(v)
+	raw, err := msgpackEncode(v)
+	if err != nil {
+		return ret, err
+	}
+	h := sha256.New()
+	h.Write(raw)
+	tmp := h.Sum(nil)
+	copy(ret[:], tmp[:])
+	return ret, nil
 }
