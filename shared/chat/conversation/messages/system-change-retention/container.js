@@ -28,26 +28,26 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     policy: ownProps.message.policy,
     timestamp: ownProps.message.timestamp,
     user: ownProps.message.user,
-    you: state.config.username || '',
+    you: state.config.username,
   }
 }
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
-  _onClickUserAvatar: ownProps => {
+  _onClickUserAvatar: username => {
     isMobile
-      ? dispatch(ProfileGen.createShowUserProfile({username: ownProps.message.user}))
+      ? dispatch(ProfileGen.createShowUserProfile({username}))
       : dispatch(
           TrackerGen.createGetProfile({
             forceDisplay: true,
             ignoreCache: true,
-            username: ownProps.message.user,
+            username,
           })
         )
   },
-  _onManageRetention: ownProps =>
+  _onManageRetention: conversationIDKey =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {conversationIDKey: ownProps.message.conversationIDKey}, selected: 'infoPanel'}],
+        path: [{props: {conversationIDKey}, selected: 'infoPanel'}],
       })
     ),
 })
@@ -57,8 +57,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   isInherit: stateProps.isInherit,
   isTeam: stateProps.isTeam,
   membersType: stateProps.membersType,
-  onClickUserAvatar: () => dispatchProps._onClickUserAvatar(ownProps),
-  onManageRetention: () => dispatchProps._onManageRetention(ownProps),
+  onClickUserAvatar: () => dispatchProps._onClickUserAvatar(ownProps.message.user),
+  onManageRetention: () => dispatchProps._onManageRetention(ownProps.message.conversationIDKey),
   policy: stateProps.policy,
   timestamp: stateProps.timestamp,
   user: stateProps.user,
