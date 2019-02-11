@@ -4,7 +4,7 @@ import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Tabs from '../../constants/tabs'
-import type Props from '.'
+import type {Props} from '.'
 
 const icons = {
   [Tabs.chatTab]: 'iconfont-nav-chat',
