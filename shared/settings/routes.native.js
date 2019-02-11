@@ -1,6 +1,7 @@
 // @flow
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import * as Constants from '../constants/settings'
+import {isMobile} from '../constants/platform'
 
 const routeTree = () => {
   const Settings = require('./').default
@@ -77,6 +78,12 @@ export const newRoutes = {
   [Constants.aboutTab]: {getScreen: () => require('./about-container').default},
   [Constants.advancedTab]: {getScreen: () => require('./advanced/container').default},
   [Constants.chatTab]: {getScreen: () => require('./chat/container').default},
+  [Constants.walletsTab]: {
+    getScreen: () =>
+      isMobile
+        ? require('../wallets/wallet/container').default
+        : require('../wallets/wallets-and-details/container').default,
+  },
   [Constants.deleteMeTab]: {getScreen: () => require('./delete/container').default},
   [Constants.feedbackTab]: {getScreen: () => require('./feedback-container').default},
   [Constants.invitationsTab]: {getScreen: () => require('./invites/container').default},
