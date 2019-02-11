@@ -380,8 +380,20 @@ const updateServerConfig = (state: TypedState) =>
       logger.info('updateServerConfig fail', e)
     })
 
-const setNavigator = (_, action) => {
-  Router2._setNavigator(action.payload.navigator)
+const setNavigator = (state, action) => {
+  const navigator = action.payload.navigator
+  Router2._setNavigator(navigator)
+
+  // If the navigator updates we should re-update the login state. If we don't delay for a frame it crashes for some reason
+  if (navigator) {
+    setTimeout(
+      () =>
+        navigator.dispatchOldAction(
+          RouteTreeGen.createSwitchRouteDef({routeDef: state.config.username ? appRouteTree : loginRouteTree})
+        ),
+      1
+    )
+  }
 }
 const newNavigation = (_, action) => {
   const n = Router2._getNavigator()

@@ -10,6 +10,7 @@ import {View} from 'react-native'
 import {globalStyles} from '../styles'
 import {isAndroid} from '../constants/platform'
 import {getPath} from '../route-tree'
+import flags from '../util/feature-flags'
 
 type OwnProps = {||}
 
@@ -24,7 +25,7 @@ type Props = {
 
 class Main extends React.Component<Props> {
   componentDidMount() {
-    if (isAndroid) {
+    if (!flags.useNewRouter && isAndroid) {
       NativeBackHandler.addEventListener('hardwareBackPress', () => {
         if (getPath(this.props.routeState).size === 1) {
           return false

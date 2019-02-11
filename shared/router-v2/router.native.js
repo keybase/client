@@ -14,10 +14,11 @@ import * as React from 'react'
 import GlobalError from '../app/global-errors/container'
 import TabBar from './tab-bar/container'
 import {createAppContainer} from '@react-navigation/native'
-import {createSwitchNavigator} from '@react-navigation/core'
+import {createSwitchNavigator, StackActions, NavigationActions} from '@react-navigation/core'
 import {createStackNavigator} from 'react-navigation-stack'
 import {modalRoutes, routes, nameToTab, loggedOutRoutes} from './routes'
 import {LeftAction} from '../common-adapters/header-hoc'
+import * as Constants from '../constants/router2'
 import * as Shared from './router.shared'
 import {useScreens} from 'react-native-screens'
 import * as Shim from './shim.native'
@@ -104,6 +105,7 @@ const LoggedOutStackNavigator = createStackNavigator(
   }
 )
 
+console.log('aaaa INIT again')
 const RootStackNavigator = createSwitchNavigator(
   {
     loggedIn: LoggedInStackNavigator,
@@ -125,6 +127,37 @@ class RNApp extends React.PureComponent<any, any> {
 
     const actions = Shared.oldActionToNewActions(old, nav._navigation) || []
     actions.forEach(a => nav.dispatch(a))
+  }
+
+  _handleAndroidBack = () => {
+    const path = Constants.getVisiblePath()
+
+    // We determine if we're at the root if we're at the root of our navigation hierarchy, which is slightly different if you're logged in or out
+    if (path[0].routeName === 'loggedIn') {
+      if (path[1].routeName === 'Main') {
+        if (path.length === 3) {
+          return false
+        }
+      }
+    } else {
+      if (path.length === 2) {
+        return false
+      }
+    }
+    this._nav.dispatch(StackActions.pop())
+    return true
+  }
+
+  componentDidMount() {
+    if (!Styles.isAndroid) {
+      return
+    }
+
+    Kb.NativeBackHandler.addEventListener('hardwareBackPress', this._handleAndroidBack)
+  }
+
+  componentWillUnmount() {
+    Kb.NativeBackHandler.removeEventListener('hardwareBackPress', this._handleAndroidBack)
   }
 
   getNavState = () => this._nav.state?.nav

@@ -23,6 +23,6 @@ const findVisibleRoute = (arr, s) => {
 export const getVisiblePath = () => {
   if (!_navigator) return []
   const TEMP = findVisibleRoute([], _navigator.getNavState())
-  console.log('aaaa rout epath', TEMP)
+  // console.log('aaaa rout epath', TEMP)
   return TEMP
 }
