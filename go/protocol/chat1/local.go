@@ -5128,6 +5128,12 @@ type SaveUnfurlSettingsArg struct {
 	Whitelist []string   `codec:"whitelist" json:"whitelist"`
 }
 
+type ToggleMessageCollapseArg struct {
+	ConvID   ConversationID `codec:"convID" json:"convID"`
+	MsgID    MessageID      `codec:"msgID" json:"msgID"`
+	Collapse bool           `codec:"collapse" json:"collapse"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetCachedThread(context.Context, GetCachedThreadArg) (GetThreadLocalRes, error)
@@ -5192,6 +5198,7 @@ type LocalInterface interface {
 	ResolveUnfurlPrompt(context.Context, ResolveUnfurlPromptArg) error
 	GetUnfurlSettings(context.Context) (UnfurlSettingsDisplay, error)
 	SaveUnfurlSettings(context.Context, SaveUnfurlSettingsArg) error
+	ToggleMessageCollapse(context.Context, ToggleMessageCollapseArg) error
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -6123,6 +6130,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"toggleMessageCollapse": {
+				MakeArg: func() interface{} {
+					var ret [1]ToggleMessageCollapseArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ToggleMessageCollapseArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ToggleMessageCollapseArg)(nil), args)
+						return
+					}
+					err = i.ToggleMessageCollapse(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -6453,5 +6475,10 @@ func (c LocalClient) GetUnfurlSettings(ctx context.Context) (res UnfurlSettingsD
 
 func (c LocalClient) SaveUnfurlSettings(ctx context.Context, __arg SaveUnfurlSettingsArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.saveUnfurlSettings", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) ToggleMessageCollapse(ctx context.Context, __arg ToggleMessageCollapseArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.toggleMessageCollapse", []interface{}{__arg}, nil)
 	return
 }

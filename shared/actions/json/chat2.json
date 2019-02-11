@@ -528,6 +528,12 @@
       "_description": "Update the unreadline line position for a conversation",
       "conversationIDKey": "Types.ConversationIDKey",
       "messageID": "Types.MessageID"
+    },
+    "toggleMessageCollapse": {
+      "_description": "Set the collapse status of a message",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "Types.MessageID",
+      "collapse": "boolean"
     }
   }
 }

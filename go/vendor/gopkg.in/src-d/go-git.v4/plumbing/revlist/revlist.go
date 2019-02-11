@@ -22,7 +22,21 @@ func Objects(
 	ignore []plumbing.Hash,
 	statusChan plumbing.StatusChan,
 ) ([]plumbing.Hash, error) {
-	ignore, err := objects(s, ignore, nil, nil, true)
+	return ObjectsWithStorageForIgnores(s, s, objs, ignore, statusChan)
+}
+
+// ObjectsWithStorageForIgnores is the same as Objects, but a
+// secondary storage layer can be provided, to be used to finding the
+// full set of objects to be ignored while finding the reachable
+// objects.  This is useful when the main `s` storage layer is slow
+// and/or remote, while the ignore list is available somewhere local.
+func ObjectsWithStorageForIgnores(
+	s, ignoreStore storer.EncodedObjectStorer,
+	objs,
+	ignore []plumbing.Hash,
+	statusChan plumbing.StatusChan,
+) ([]plumbing.Hash, error) {
+	ignore, err := objects(ignoreStore, ignore, nil, nil, true)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +139,6 @@ func reachableObjects(
 	i := object.NewCommitPreorderIter(commit, seen, ignore)
 	pending := make(map[plumbing.Hash]bool)
 	addPendingParents(pending, visited, commit)
-
 	for {
 		commit, err := i.Next()
 		if err == io.EOF {

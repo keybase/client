@@ -16,7 +16,7 @@ const font = isIOS
       italic: {fontStyle: 'italic'},
     }
   : {
-      // The fontFamily names must match the font file's name exactly on Android.
+      // The fontFamily name must match the font file's name exactly on Android.
       fontBold: {fontFamily: 'keybase-bold', fontWeight: 'normal'},
       fontExtrabold: {fontFamily: 'keybase-extrabold', fontWeight: 'normal'},
       fontRegular: {fontFamily: 'keybase-medium', fontWeight: 'normal'},
