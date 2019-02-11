@@ -65,12 +65,13 @@ func (f favToAdd) ToKBFolder() keybase1.Folder {
 // given ctx is used for all network operations.
 type favReq struct {
 	// Request types
-	clear   bool
-	refresh bool
-	toAdd   []favToAdd
-	toDel   []Favorite
-	favs    chan<- []Favorite
-	favsAll chan<- keybase1.FavoritesResult
+	clear       bool
+	refresh     bool
+	toAdd       []favToAdd
+	toDel       []Favorite
+	favs        chan<- []Favorite
+	favsAll     chan<- keybase1.FavoritesResult
+	homeTLFInfo *homeTLFInfo
 
 	// Closed when the request is done.
 	done chan struct{}
@@ -84,7 +85,6 @@ type favReq struct {
 type favoriteData struct {
 	Name         string
 	FolderType   keybase1.FolderType
-	ID           keybase1.TLFID
 	Private      bool
 	TeamID       keybase1.TeamID
 	ResetMembers []keybase1.User
@@ -94,15 +94,12 @@ func favoriteDataFrom(folder keybase1.Folder) favoriteData {
 	return favoriteData{
 		Name:       folder.Name,
 		FolderType: folder.FolderType,
-		// TODO: get ID??
-		Private: folder.Private,
-		TeamID:  *folder.TeamID,
+		Private:    folder.Private,
+		TeamID:     *folder.TeamID,
 	}
 }
 
 type homeTLFInfo struct {
-	PublicID      keybase1.TLFID
-	PrivateID     keybase1.TLFID
 	PublicTeamID  keybase1.TeamID
 	PrivateTeamID keybase1.TeamID
 }
@@ -373,6 +370,7 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 				"Serving possibly stale favorites; new data could not be"+
 					" fetched: %v", err)
 		} else { // Successfully got new favorites from server.
+			session, sessionErr := f.config.KBPKI().GetCurrentSession(req.ctx)
 			oldCache := f.favCache
 			f.newCache = make(map[Favorite]favoriteData)
 			f.favCache = make(map[Favorite]favoriteData)
@@ -382,6 +380,13 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 			for _, folder := range favResult.FavoriteFolders {
 				f.favCache[*NewFavoriteFromFolder(
 					folder)] = favoriteDataFrom(folder)
+				if sessionErr != nil && folder.Name == string(session.Name) {
+					if folder.Private {
+						f.homeTLFInfo.PrivateTeamID = *folder.TeamID
+					} else {
+						f.homeTLFInfo.PublicTeamID = *folder.TeamID
+					}
+				}
 			}
 			for _, folder := range favResult.IgnoredFolders {
 				f.ignoredCache[*NewFavoriteFromFolder(
@@ -391,20 +396,17 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 				f.newCache[*NewFavoriteFromFolder(
 					folder)] = favoriteDataFrom(folder)
 			}
-			session, err := f.config.KBPKI().GetCurrentSession(req.ctx)
 			if err == nil {
 				// Add favorites for the current user, that cannot be deleted.
 				f.favCache[Favorite{string(session.Name), tlf.Private}] = favoriteData{
 					Name:       string(session.Name),
 					FolderType: tlf.Private.FolderType(),
-					ID:         f.homeTLFInfo.PrivateID,
 					TeamID:     f.homeTLFInfo.PrivateTeamID,
 					Private:    true,
 				}
 				f.favCache[Favorite{string(session.Name), tlf.Public}] = favoriteData{
 					Name:       string(session.Name),
 					FolderType: tlf.Private.FolderType(),
-					ID:         f.homeTLFInfo.PublicID,
 					TeamID:     f.homeTLFInfo.PublicTeamID,
 					Private:    false,
 				}
@@ -479,6 +481,10 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 			FavoriteFolders: favFolders,
 		}
 		// TODO: send info on reset users
+	}
+
+	if req.homeTLFInfo != nil {
+		f.homeTLFInfo = *req.homeTLFInfo
 	}
 
 	return nil
@@ -707,19 +713,55 @@ func (f *Favorites) Get(ctx context.Context) ([]Favorite, error) {
 	return <-favChan, nil
 }
 
+// setHomeTLFInfo should be called when a new user logs in so that their home
+// TLFs can be returned as favorites.
+func (f *Favorites) setHomeTLFInfo(ctx context.Context, info homeTLFInfo) {
+	if f.hasShutdown() {
+		return
+	}
+	// This request is non-blocking, so use a throw-away done channel
+	// and context.
+	req := &favReq{
+		homeTLFInfo: &info,
+		done:        make(chan struct{}),
+		ctx:         context.Background(),
+	}
+	f.wg.Add(1)
+	select {
+	case f.reqChan <- req:
+	case <-ctx.Done():
+		f.wg.Done()
+		return
+	}
+}
+
 // GetAll returns the logged-in user's list of favorite, new, and ignored TLFs.
 // It uses the cache.
 func (f *Favorites) GetAll(ctx context.Context) (keybase1.FavoritesResult,
 	error) {
 	if f.disabled {
-		//session, err := f.config.KBPKI().GetCurrentSession(ctx)
-		//if err == nil {
-		// TODO: Add favorites only for the current user.
-		//return []Favorite{
-		//	{string(session.Name), tlf.Private},
-		//	{string(session.Name), tlf.Public},
-		//}, nil
-		//}
+		session, err := f.config.KBPKI().GetCurrentSession(ctx)
+		if err == nil {
+			// Add favorites only for the current user.
+			return keybase1.FavoritesResult{
+				FavoriteFolders: []keybase1.Folder{
+					{
+						Name:       string(session.Name),
+						Private:    false,
+						Created:    false,
+						FolderType: keybase1.FolderType_PUBLIC,
+						TeamID:     &f.homeTLFInfo.PublicTeamID,
+					},
+					{
+						Name:       string(session.Name),
+						Private:    true,
+						Created:    false,
+						FolderType: keybase1.FolderType_PRIVATE,
+						TeamID:     &f.homeTLFInfo.PrivateTeamID,
+					},
+				},
+			}, nil
+		}
 		return keybase1.FavoritesResult{}, nil
 	}
 	if f.hasShutdown() {

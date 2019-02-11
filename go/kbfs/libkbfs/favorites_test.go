@@ -269,8 +269,26 @@ func TestFavoritesGetAll(t *testing.T) {
 		FolderType: keybase1.FolderType_TEAM,
 		TeamID:     &teamID,
 	}
+	teamID2 := keybase1.TeamID(0xabcdef)
+	fol2 := keybase1.Folder{
+		Name:       "another folder",
+		Private:    false,
+		Created:    false,
+		FolderType: keybase1.FolderType_PUBLIC,
+		TeamID:     &teamID2,
+	}
+	teamID3 := keybase1.TeamID(0x87654321)
+	fol3 := keybase1.Folder{
+		Name:       "folder three",
+		Private:    true,
+		Created:    false,
+		FolderType: keybase1.FolderType_PRIVATE,
+		TeamID:     &teamID3,
+	}
 	res := keybase1.FavoritesResult{
-		IgnoredFolders: []keybase1.Folder{fol},
+		IgnoredFolders:  []keybase1.Folder{fol},
+		FavoriteFolders: []keybase1.Folder{fol2},
+		NewFolders:      []keybase1.Folder{fol3},
 	}
 	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(res, nil)
 	config.mockClock.EXPECT().Now().Return(time.Unix(0, 0)).Times(1)
@@ -283,8 +301,8 @@ func TestFavoritesGetAll(t *testing.T) {
 	res2, err := f.GetAll(ctx)
 	require.NoError(t, err)
 	require.Equal(t, res.IgnoredFolders, res2.IgnoredFolders)
-	require.Len(t, res2.NewFolders, 0)
-	require.Len(t, res2.FavoriteFolders, 2)
+	require.Equal(t, res.NewFolders, res2.NewFolders)
+	require.Equal(t, res.FavoriteFolders, res2.FavoriteFolders)
 }
 
 func TestFavoritesDiskCache(t *testing.T) {

@@ -105,8 +105,6 @@ func serviceLoggedIn(ctx context.Context, config Config, session SessionInfo,
 		go bServer.RefreshAuthToken(context.Background())
 	}
 
-	// TODO: get IDs and team IDs and put them in the favorites.
-
 	config.KBFSOps().RefreshCachedFavorites(ctx)
 	config.KBFSOps().PushStatusChange()
 	return wg
