@@ -7,7 +7,7 @@ type gifImage struct {
 }
 
 type gifObject struct {
-	URL    string `json:"bitly_url"`
+	URL    string
 	Images map[string]gifImage
 }
 
