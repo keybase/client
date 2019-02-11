@@ -918,8 +918,8 @@ function* loadMoreMessages(state, action) {
         let centerMsgID = null
         const meta = Constants.getMeta(state, key)
         if (meta) {
-          //          centerMsgID = meta.readMsgID
-          centerMsgID = 600
+          centerMsgID = meta.readMsgID
+          //centerMsgID = 600
           centerOrdinal = Types.numberToOrdinal(centerMsgID)
         }
         messageIDControl =
