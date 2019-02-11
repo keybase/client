@@ -2045,8 +2045,6 @@ func (booq *blockOpsOverQuota) Put(ctx context.Context, tlfID tlf.ID,
 // Test that a quota error causes deferred writes to error.
 // Regression test for KBFS-751.
 func TestKBFSOpsErrorOnBlockedWriteDuringSync(t *testing.T) {
-	t.Skip("Broken pending KBFS-1261")
-
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, "test_user")
 	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
 
