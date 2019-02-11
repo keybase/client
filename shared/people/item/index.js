@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
-import {globalColors, globalStyles, globalMargins} from '../../styles'
+import * as Styles from '../../styles'
 import {isMobile} from '../../constants/platform'
 import {formatTimeForPeopleItem} from '../../util/timestamp'
 
@@ -18,11 +18,11 @@ export default (props: Props) => (
   <Kb.Box
     style={{
       ...containerStyle,
-      backgroundColor: props.badged ? globalColors.blue4 : globalColors.white,
-      borderBottomColor: props.badged ? globalColors.white : globalColors.black_10,
+      backgroundColor: props.badged ? Styles.globalColors.blue4 : Styles.globalColors.white,
+      borderBottomColor: props.badged ? Styles.globalColors.white : Styles.globalColors.black_10,
     }}
   >
-    {props.icon && <Kb.Box style={iconContainerStyle}>{props.icon}</Kb.Box>}
+    {!!props.icon && <Kb.Box style={iconContainerStyle}>{props.icon}</Kb.Box>}
 
     <Kb.Box2
       direction="vertical"
@@ -35,10 +35,10 @@ export default (props: Props) => (
       {props.children}
     </Kb.Box2>
     <Kb.Box
-      style={{
-        ...timestampContainerStyle,
-        ...(props.format === 'multi' ? timestampContainerStyleMulti : timestampContainerStyleSingle),
-      }}
+      style={Styles.collapseStyles([
+        timestampContainerStyle,
+        props.format === 'multi' ? timestampContainerStyleMulti : timestampContainerStyleSingle,
+      ])}
     >
       {!!props.when && <Kb.Text type="BodyTiny">{formatTimeForPeopleItem(props.when.getTime())}</Kb.Text>}
       {props.badged && <Kb.Box style={badgeStyle} />}
@@ -47,17 +47,17 @@ export default (props: Props) => (
 )
 
 const containerStyle = {
-  ...globalStyles.flexBoxRow,
+  ...Styles.globalStyles.flexBoxRow,
   borderBottomWidth: 1,
-  paddingBottom: globalMargins.xsmall,
-  paddingTop: globalMargins.xsmall,
+  paddingBottom: Styles.globalMargins.xsmall,
+  paddingTop: Styles.globalMargins.xsmall,
   position: 'relative',
   ...(isMobile ? null : {borderStyle: 'solid'}),
 }
 
 const iconContainerStyle = {
-  marginLeft: globalMargins.small,
-  marginRight: globalMargins.xsmall,
+  marginLeft: Styles.globalMargins.small,
+  marginRight: Styles.globalMargins.xsmall,
   width: isMobile ? 48 : 32,
 }
 
@@ -68,16 +68,16 @@ const childrenContainerStyle = {
 }
 
 const timestampContainerStyle = {
-  ...globalStyles.flexBoxRow,
+  ...Styles.globalStyles.flexBoxRow,
   alignItems: 'center',
   alignSelf: 'flex-start',
   position: 'absolute',
-  right: globalMargins.small,
+  right: Styles.globalMargins.small,
 }
 
 const timestampContainerStyleMulti = {
   alignSelf: 'flex-start',
-  top: globalMargins.small,
+  top: Styles.globalMargins.small,
 }
 
 const timestampContainerStyleSingle = {
@@ -85,9 +85,9 @@ const timestampContainerStyleSingle = {
 }
 
 const badgeStyle = {
-  backgroundColor: globalColors.orange,
+  backgroundColor: Styles.globalColors.orange,
   borderRadius: 6,
   height: 8,
-  marginLeft: globalMargins.xtiny,
+  marginLeft: Styles.globalMargins.xtiny,
   width: 8,
 }
