@@ -974,9 +974,11 @@ func (t *teamSigchainPlayer) addInnerLink(
 
 		if team.Invites != nil {
 			if isImplicit {
-				additions, cancelations, err := t.sanityCheckInvites(signer.signer, *team.Invites, sanityCheckInvitesOptions{
-					implicitTeam: isImplicit,
-				})
+				signerIsExplicitOwner := true
+				additions, cancelations, err := t.sanityCheckInvites(signer.signer, signerIsExplicitOwner,
+					*team.Invites, sanityCheckInvitesOptions{
+						implicitTeam: isImplicit,
+					})
 				if err != nil {
 					return res, err
 				}
@@ -1470,14 +1472,15 @@ func (t *teamSigchainPlayer) addInnerLink(
 			return res, err
 		}
 
-		_, err = checkAdmin("invite")
+		signerIsExplicitOwner, err := checkAdmin("invite")
 		if err != nil {
 			return res, err
 		}
 
-		additions, cancelations, err := t.sanityCheckInvites(signer.signer, *team.Invites, sanityCheckInvitesOptions{
-			implicitTeam: prevState.IsImplicit(),
-		})
+		additions, cancelations, err := t.sanityCheckInvites(signer.signer, signerIsExplicitOwner,
+			*team.Invites, sanityCheckInvitesOptions{
+				implicitTeam: prevState.IsImplicit(),
+			})
 		if err != nil {
 			return res, err
 		}
@@ -1698,15 +1701,15 @@ func assertIsKeybaseInvite(g *libkb.GlobalContext, i SCTeamInvite) bool {
 // sanityCheckInvites sanity checks a raw SCTeamInvites section and coerces it into a
 // format that we can use. It checks:
 //  - no owners are invited
-//  - that invite IDs aren't repeated
-//  - that <name,type> pairs aren't reused
-//  - that IDs parse into proper keybase1.TeamInviteIDs
-//  - that the invite type parses into proper TeamInviteType, or that it's an unknown
+//  - invite IDs aren't repeated
+//  - <name,type> pairs aren't reused
+//  - IDs parse into proper keybase1.TeamInviteIDs
+//  - the invite type parses into proper TeamInviteType, or that it's an unknown
 //    invite that we're OK to not act upon.
 // Implicit teams are different:
 // - owners and readers are the only allowed roles
 func (t *teamSigchainPlayer) sanityCheckInvites(
-	signer keybase1.UserVersion, invites SCTeamInvites, options sanityCheckInvitesOptions,
+	signer keybase1.UserVersion, signerIsExplicitOwner bool, invites SCTeamInvites, options sanityCheckInvitesOptions,
 ) (additions map[keybase1.TeamRole][]keybase1.TeamInvite, cancelations []keybase1.TeamInviteID, err error) {
 
 	type assignment struct {
@@ -1719,7 +1722,10 @@ func (t *teamSigchainPlayer) sanityCheckInvites(
 	if invites.Owners != nil && len(*invites.Owners) > 0 {
 		additions[keybase1.TeamRole_OWNER] = nil
 		for _, i := range *invites.Owners {
-			if !options.implicitTeam && !assertIsKeybaseInvite(t.G(), i) {
+			if !signerIsExplicitOwner {
+				return nil, nil, fmt.Errorf("non-owner cannot invite an owner")
+			}
+			if !(options.implicitTeam || assertIsKeybaseInvite(t.G(), i)) {
 				return nil, nil, fmt.Errorf("encountered a disallowed owner invite")
 			}
 			all = append(all, assignment{i, keybase1.TeamRole_OWNER})
