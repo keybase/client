@@ -651,12 +651,14 @@ func sendPayment(mctx libkb.MetaContext, walletState *WalletState, sendArg SendP
 	// submit the transaction
 	rres, err := walletState.SubmitPayment(mctx.Ctx(), post)
 	if err != nil {
+		mctx.CDebugf("SEQNO SubmitPayment error seqno: %d txID: %s, err: %s", seqno, rres.StellarID, err)
 		if rerr := walletState.RemovePendingTx(mctx.Ctx(), senderAccountID, stellar1.TransactionID(txID)); rerr != nil {
 			mctx.CDebugf("error calling RemovePendingTx: %s", rerr)
 		}
 		return res, err
 	}
-	mctx.CDebugf("sent payment (direct) kbTxID:%v txID:%v pending:%v", rres.KeybaseID, rres.StellarID, rres.Pending)
+	mctx.CDebugf("sent payment (direct) kbTxID:%v txID:%v pending:%v", seqno, rres.KeybaseID, rres.StellarID, rres.Pending)
+	mctx.CDebugf("SEQNO SubmitPayment success seqno: %d txID: %s", seqno, rres.StellarID)
 	if !rres.Pending {
 		mctx.CDebugf("SubmitPayment result wasn't pending, removing from wallet state: %s/%s", senderAccountID, txID)
 		walletState.RemovePendingTx(mctx.Ctx(), senderAccountID, stellar1.TransactionID(txID))
@@ -820,7 +822,7 @@ func SendMiniChatPayments(m libkb.MetaContext, walletState *WalletState, convID 
 			mcpResult.Error = prepared[i].Error
 		} else {
 			// submit the transaction
-			m.CDebugf("submitting payment seqno %d", prepared[i].Seqno)
+			m.CDebugf("SEQNO ics %d submitting payment seqno %d", i, prepared[i].Seqno)
 
 			if err := walletState.AddPendingTx(m.Ctx(), senderAccountID, prepared[i].TxID, prepared[i].Seqno); err != nil {
 				m.CDebugf("error calling AddPendingTx: %s", err)
@@ -838,8 +840,10 @@ func SendMiniChatPayments(m libkb.MetaContext, walletState *WalletState, convID 
 
 			if err != nil {
 				mcpResult.Error = err
+				m.CDebugf("SEQNO ics %d submit error for txid %s, seqno %d: %s", i, prepared[i].TxID, prepared[i].Seqno, err)
 			} else {
 				mcpResult.PaymentID = stellar1.NewPaymentID(submitRes.StellarID)
+				m.CDebugf("SEQNO ics %d submit success txid %s, seqno %d", i, prepared[i].TxID, prepared[i].Seqno)
 			}
 		}
 		resultList[i] = mcpResult
