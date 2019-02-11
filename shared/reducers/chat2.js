@@ -939,6 +939,12 @@ const rootReducer = (
       const {message} = action.payload
       return state.set('attachmentFullscreenMessage', message)
     }
+    case Chat2Gen.setMessageCenterOrdinal: {
+      const {conversationIDKey, ordinal} = action.payload
+      return ordinal
+        ? state.update('messageCenterOrdinals', old => old.setIn([conversationIDKey], ordinal))
+        : state.update('messageCenterOrdinals', old => old.deleteIn([conversationIDKey]))
+    }
     case Chat2Gen.handleSeeingWallets: // fallthrough
     case Chat2Gen.setWalletsOld:
       return state.isWalletsNew ? state.set('isWalletsNew', false) : state

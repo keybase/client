@@ -875,7 +875,7 @@ function* loadMoreMessages(state, action) {
   let key = null
   let reason: string = ''
   let messageIDControl = null
-
+  let centerOrdinal = null
   switch (action.type) {
     case ConfigGen.changedFocus:
       if (!isMobile || !action.payload.appFocused) {
@@ -915,14 +915,21 @@ function* loadMoreMessages(state, action) {
       if (key === Constants.pendingConversationIDKey) {
         key = Constants.getResolvedPendingConversationIDKey(state)
       } else {
+        let centerMsgID = null
         const meta = Constants.getMeta(state, key)
-        messageIDControl = meta
-          ? {
-              mode: RPCChatTypes.localMessageIDControlMode.centered,
-              num: Constants.numMessagesOnInitialLoad,
-              pivot: meta.readMsgID,
-            }
-          : null
+        if (meta) {
+          //          centerMsgID = meta.readMsgID
+          centerMsgID = 600
+          centerOrdinal = Types.numberToOrdinal(centerMsgID)
+        }
+        messageIDControl =
+          centerMsgID && centerOrdinal
+            ? {
+                mode: RPCChatTypes.localMessageIDControlMode.centered,
+                num: Constants.numMessagesOnInitialLoad,
+                pivot: centerMsgID,
+              }
+            : null
       }
       break
     case Chat2Gen.metasReceived:
@@ -1008,6 +1015,10 @@ function* loadMoreMessages(state, action) {
 
     const moreToLoad = uiMessages.pagination ? !uiMessages.pagination.last : true
     actions.push(Saga.put(Chat2Gen.createUpdateMoreToLoad({conversationIDKey, moreToLoad})))
+    console.log('CENTERED: setting to: ' + centerOrdinal)
+    actions.push(
+      Saga.put(Chat2Gen.createSetMessageCenterOrdinal({conversationIDKey, ordinal: centerOrdinal}))
+    )
 
     if (messages.length) {
       actions.push(

@@ -82,9 +82,13 @@ class Thread extends React.PureComponent<Props, State> {
     // conversation changed
     if (this.props.conversationIDKey !== prevProps.conversationIDKey) {
       this._cleanupDebounced()
-      this._scrollHeight = 0
-      this.setState(p => (p.isLockedToBottom ? null : {isLockedToBottom: true}))
-      this._scrollToBottom()
+      if (this.props.centeredOrdinal) {
+        this._scrollToOrdinal(this.props.centeredOrdinal)
+      } else {
+        this._scrollHeight = 0
+        this.setState(p => (p.isLockedToBottom ? null : {isLockedToBottom: true}))
+        this._scrollToBottom()
+      }
       return
     }
 
@@ -120,25 +124,29 @@ class Thread extends React.PureComponent<Props, State> {
       this._scrollHeight = null
     }
 
-    if (list && this.props.editingOrdinal && this.props.editingOrdinal !== prevProps.editingOrdinal) {
-      const ordinal = this.props.editingOrdinal
-      const idx = this.props.messageOrdinals.indexOf(ordinal)
-      if (idx !== -1) {
-        const waypoints = list.querySelectorAll('[data-key]')
-        // find an id that should be our parent
-        const toFind = Types.ordinalToNumber(ordinal)
-        const found = Array.from(waypoints)
-          .reverse()
-          .find(w => parseInt(w.dataset.key, 10) < toFind)
-        if (found) {
-          found.scrollIntoView({behavior: 'smooth', block: 'center'})
-        }
-      }
+    if (this.props.editingOrdinal && this.props.editingOrdinal !== prevProps.editingOrdinal) {
+      this._scrollToOrdinal(this.props.editingOrdinal)
     }
   }
 
   componentWillUnmount() {
     this._cleanupDebounced()
+  }
+
+  _scrollToOrdinal = ordinal => {
+    const list = this._listRef.current
+    const idx = this.props.messageOrdinals.indexOf(ordinal)
+    if (list && idx !== -1) {
+      const waypoints = list.querySelectorAll('[data-key]')
+      // find an id that should be our parent
+      const toFind = Types.ordinalToNumber(ordinal)
+      const found = Array.from(waypoints)
+        .reverse()
+        .find(w => parseInt(w.dataset.key, 10) < toFind)
+      if (found) {
+        found.scrollIntoViewIfNeeded({behavior: 'smooth', block: 'center'})
+      }
+    }
   }
 
   _cleanupDebounced = () => {

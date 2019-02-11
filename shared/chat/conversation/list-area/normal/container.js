@@ -14,14 +14,16 @@ type OwnProps = {
 
 const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   const messageOrdinals = Constants.getMessageOrdinals(state, conversationIDKey)
+  const centeredOrdinal = Constants.getMessageCenterOrdinal(state, conversationIDKey)
   const lastOrdinal = messageOrdinals.last()
   let lastMessageIsOurs = false
   if (lastOrdinal) {
     const m = Constants.getMessage(state, conversationIDKey, lastOrdinal)
     lastMessageIsOurs = m && m.author === state.config.username
   }
-
+  console.log('CENTERED: ' + centeredOrdinal)
   return {
+    centeredOrdinal,
     conversationIDKey,
     editingOrdinal: state.chat2.editingMap.get(conversationIDKey),
     lastMessageIsOurs,
@@ -38,6 +40,7 @@ const mapDispatchToProps = (dispatch, {conversationIDKey}: OwnProps) => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   _loadMoreMessages: dispatchProps._loadMoreMessages,
+  centeredOrdinal: stateProps.centeredOrdinal,
   conversationIDKey: stateProps.conversationIDKey,
   copyToClipboard: dispatchProps.copyToClipboard,
   editingOrdinal: stateProps.editingOrdinal,

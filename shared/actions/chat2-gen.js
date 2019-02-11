@@ -83,6 +83,7 @@ export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
 export const setConversationOffline = 'chat2:setConversationOffline'
 export const setExplodingModeLock = 'chat2:setExplodingModeLock'
 export const setInboxFilter = 'chat2:setInboxFilter'
+export const setMessageCenterOrdinal = 'chat2:setMessageCenterOrdinal'
 export const setMinWriterRole = 'chat2:setMinWriterRole'
 export const setPaymentConfirmInfo = 'chat2:setPaymentConfirmInfo'
 export const setPendingConversationExistingConversationIDKey = 'chat2:setPendingConversationExistingConversationIDKey'
@@ -181,6 +182,7 @@ type _SetConvRetentionPolicyPayload = $ReadOnly<{|conversationIDKey: Types.Conve
 type _SetConversationOfflinePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, offline: boolean|}>
 type _SetExplodingModeLockPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, unset?: boolean|}>
 type _SetInboxFilterPayload = $ReadOnly<{|filter: string|}>
+type _SetMessageCenterOrdinalPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, ordinal: ?Types.Ordinal|}>
 type _SetMinWriterRolePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, role: TeamsTypes.TeamRoleType|}>
 type _SetPaymentConfirmInfoPayload = $ReadOnly<{|summary: RPCChatTypes.UIChatPaymentSummary|}>
 type _SetPaymentConfirmInfoPayloadError = $ReadOnly<{|error: string|}>
@@ -255,6 +257,10 @@ export const createSetExplodingModeLock = (payload: _SetExplodingModeLockPayload
  * Set that wallets in chat is not new.
  */
 export const createSetWalletsOld = (payload: _SetWalletsOldPayload) => ({payload, type: setWalletsOld})
+/**
+ * Set the message ordinal a thread should be centered on when loaded
+ */
+export const createSetMessageCenterOrdinal = (payload: _SetMessageCenterOrdinalPayload) => ({payload, type: setMessageCenterOrdinal})
 /**
  * Set the minimum role required to write into a conversation. Valid only for team conversations.
  */
@@ -463,6 +469,7 @@ export type SetConvRetentionPolicyPayload = {|+payload: _SetConvRetentionPolicyP
 export type SetConversationOfflinePayload = {|+payload: _SetConversationOfflinePayload, +type: 'chat2:setConversationOffline'|}
 export type SetExplodingModeLockPayload = {|+payload: _SetExplodingModeLockPayload, +type: 'chat2:setExplodingModeLock'|}
 export type SetInboxFilterPayload = {|+payload: _SetInboxFilterPayload, +type: 'chat2:setInboxFilter'|}
+export type SetMessageCenterOrdinalPayload = {|+payload: _SetMessageCenterOrdinalPayload, +type: 'chat2:setMessageCenterOrdinal'|}
 export type SetMinWriterRolePayload = {|+payload: _SetMinWriterRolePayload, +type: 'chat2:setMinWriterRole'|}
 export type SetPaymentConfirmInfoPayload = {|+payload: _SetPaymentConfirmInfoPayload, +type: 'chat2:setPaymentConfirmInfo'|}
 export type SetPaymentConfirmInfoPayloadError = {|+error: true, +payload: _SetPaymentConfirmInfoPayloadError, +type: 'chat2:setPaymentConfirmInfo'|}
@@ -561,6 +568,7 @@ export type Actions =
   | SetConversationOfflinePayload
   | SetExplodingModeLockPayload
   | SetInboxFilterPayload
+  | SetMessageCenterOrdinalPayload
   | SetMinWriterRolePayload
   | SetPaymentConfirmInfoPayload
   | SetPaymentConfirmInfoPayloadError

@@ -66,6 +66,7 @@ export type _State = {
   isWalletsNew: boolean, // controls new-ness of wallets in chat UI
   messageMap: I.Map<Common.ConversationIDKey, I.Map<Message.Ordinal, Message.Message>>, // messages in a thread
   messageOrdinals: I.Map<Common.ConversationIDKey, I.OrderedSet<Message.Ordinal>>, // ordered ordinals in a thread
+  messageCenterOrdinals: I.Map<Common.ConversationIDKey, Message.Ordinal>,
   metaMap: MetaMap, // metadata about a thread, There is a special node for the pending conversation
   moreToLoadMap: I.Map<Common.ConversationIDKey, boolean>, // if we have more data to load
   orangeLineMap: I.Map<Common.ConversationIDKey, number>, // last message we've seen
