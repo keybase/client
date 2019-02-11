@@ -61,6 +61,11 @@ const score = (lcFilter: string, lcYou: string, names: Array<string>, insertMatc
     rawScore += 10000
   }
 
+  if (rawScore && rawScore === insertionScore) {
+    // insertionScore already penalizes long names, don't do it again below
+    return rawScore
+  }
+
   // We subtract inputLength / 2 to give a bonus to shorter groups, but we never want that to make a matching score go to zero
   const inputLength = searchStr.length / 2
 
