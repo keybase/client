@@ -47,7 +47,7 @@ export const FileUpdate = (props: FileUpdateProps) => (
           <Kb.Icon type="icon-addon-file-uploading" style={Kb.iconCastPlatformStyles(styles.iconBadge)} />
         </Kb.Box>
       )}
-      <Kb.Text type="BodySecondaryLink" style={styles.fileUpdateName}>
+      <Kb.Text type="Body" style={styles.fileUpdateName}>
         {props.name}
       </Kb.Text>
     </Kb.Box2>
@@ -84,14 +84,17 @@ type ShowAllProps = FileUpdatesHocProps & {|
 |}
 
 const FileUpdatesShowAll = (props: ShowAllProps) => (
-  <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={false}>
-    <Kb.ClickableBox onClick={props.onShowAll} className="toggleButtonClass" style={styles.toggleButton}>
-      <Kb.Text type="BodySmallSemibold" style={styles.buttonText}>
-        {props.isShowingAll
+  <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={false} style={styles.buttonContainer}>
+    <Kb.Button
+      label={
+        props.isShowingAll
           ? 'Collapse'
-          : `+ ${(props.numUpdates - defaultNumFileOptionsShown).toString()} more`}
-      </Kb.Text>
-    </Kb.ClickableBox>
+          : `+ ${(props.numUpdates - defaultNumFileOptionsShown).toString()} more`
+      }
+      onClick={props.onShowAll}
+      small={true}
+      type="Secondary"
+    />
   </Kb.Box2>
 )
 
@@ -117,13 +120,15 @@ const ComposedFileUpdates = FileUpdatesHoc(FileUpdates)
 
 const UserTlfUpdateRow = (props: UserTlfUpdateRowProps) => (
   <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.tlfRowContainer}>
-    <PathItemIcon
-      path={props.path}
-      size={32}
-      type="folder"
-      username={props.username}
-      style={styles.tlfRowAvatar}
-    />
+    <Kb.ClickableBox onClick={props.onSelectPath}>
+      <PathItemIcon
+        path={props.path}
+        size={32}
+        type="folder"
+        username={props.username}
+        style={styles.tlfRowAvatar}
+      />
+    </Kb.ClickableBox>
     <Kb.Box2 direction="vertical" fullWidth={true}>
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.tlfTopLine}>
         <ConnectedUsernames
@@ -133,7 +138,7 @@ const UserTlfUpdateRow = (props: UserTlfUpdateRowProps) => (
           colorFollowing={true}
           colorBroken={true}
         />
-        <Kb.Text type="BodySmall" style={styles.tlfTime}>
+        <Kb.Text type="BodyTiny" style={styles.tlfTime}>
           {props.timestamp}
         </Kb.Text>
       </Kb.Box2>
@@ -141,7 +146,7 @@ const UserTlfUpdateRow = (props: UserTlfUpdateRowProps) => (
         <Kb.Text type="BodySmall" style={styles.tlfParticipants}>
           in&nbsp;
         </Kb.Text>
-        <Kb.Text type="BodySmallSecondaryLink" style={styles.tlfParticipants} onClick={props.onSelectPath}>
+        <Kb.Text type="BodySmall" style={styles.tlfParticipants} onClick={props.onSelectPath}>
           {props.tlfType === 'team' ? (
             props.teamname
           ) : props.tlfType === 'public' ? (
@@ -162,7 +167,7 @@ const UserTlfUpdateRow = (props: UserTlfUpdateRowProps) => (
 export const FilesPreview = (props: FilesPreviewProps) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tlfContainer}>
     <Kb.Box2 direction="vertical" fullWidth={true} style={styles.tlfSectionHeaderContainer}>
-      <Kb.Text type="BodySemibold" style={styles.tlfSectionHeader}>
+      <Kb.Text type="BodySmallSemibold" style={styles.tlfSectionHeader}>
         Recent files
       </Kb.Text>
     </Kb.Box2>
@@ -175,7 +180,9 @@ export const FilesPreview = (props: FilesPreviewProps) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  buttonText: {color: Styles.globalColors.black_50},
+  buttonContainer: {
+    marginTop: Styles.globalMargins.xtiny,
+  },
   fileUpdateName: Styles.platformStyles({
     isElectron: {
       wordBreak: 'break-all',
@@ -214,11 +221,12 @@ const styles = Styles.styleSheetCreate({
     marginRight: Styles.globalMargins.tiny,
   },
   tlfRowContainer: {
+    paddingBottom: Styles.globalMargins.tiny,
     paddingLeft: Styles.globalMargins.tiny,
     paddingTop: Styles.globalMargins.tiny,
   },
   tlfSectionHeader: {
-    backgroundColor: Styles.globalColors.black_05,
+    backgroundColor: Styles.globalColors.blue5,
     color: Styles.globalColors.black_50,
     paddingBottom: Styles.globalMargins.xtiny,
     paddingLeft: Styles.globalMargins.tiny,
@@ -237,7 +245,6 @@ const styles = Styles.styleSheetCreate({
     common: {
       backgroundColor: Styles.globalColors.black_05,
       borderRadius: Styles.borderRadius,
-      marginBottom: Styles.globalMargins.xtiny,
       marginTop: Styles.globalMargins.xtiny,
       paddingBottom: Styles.globalMargins.xtiny,
       paddingTop: Styles.globalMargins.xtiny,
