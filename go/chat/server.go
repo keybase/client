@@ -1731,7 +1731,7 @@ func (h *Server) FindConversationsLocal(ctx context.Context,
 func (h *Server) UpdateUnsentText(ctx context.Context, arg chat1.UpdateUnsentTextArg) (err error) {
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
 	defer h.Trace(ctx, func() error { return err },
-		fmt.Sprintf("UpdateUnsentText(%s)", arg.ConversationID))()
+		fmt.Sprintf("UpdateUnsentText convID: %s", arg.ConversationID))()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return err
