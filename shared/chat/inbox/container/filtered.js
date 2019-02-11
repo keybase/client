@@ -66,8 +66,8 @@ const score = (lcFilter: string, lcYou: string, names: Array<string>, insertMatc
     return rawScore
   }
 
-  // We subtract inputLength / 2 to give a bonus to shorter groups, but we never want that to make a matching score go to zero
-  const inputLength = searchStr.length / 2
+  // We subtract inputLength to give a bonus to shorter groups, but we never want that to make a matching score go to zero
+  const inputLength = searchStr.length
 
   return rawScore > 0 ? Math.max(1, rawScore - inputLength) : 0
 }
