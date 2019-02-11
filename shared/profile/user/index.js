@@ -116,8 +116,8 @@ class FriendshipTabs extends React.Component<
         }
       >
         {following
-          ? `FOLLOWING (${this.props.following.length})`
-          : `FOLLOWERS (${this.props.followers.length})`}
+          ? `Following (${this.props.following.length})`
+          : `Followers (${this.props.followers.length})`}
       </Kb.Text>
     </Kb.ClickableBox>
   )
@@ -333,7 +333,7 @@ const styles = Styles.styleSheetCreate({
       paddingTop: Styles.globalMargins.medium,
     },
     isMobile: {
-      height: Styles.globalMargins.large,
+      height: Styles.globalMargins.medium,
       width: '50%',
     },
   }),

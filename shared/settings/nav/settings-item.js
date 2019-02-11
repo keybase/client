@@ -67,7 +67,6 @@ const styles = Style.styleSheetCreate({
     },
     isElectron: {
       height: 32,
-      textTransform: 'uppercase',
       width: '100%',
     },
     isMobile: {
