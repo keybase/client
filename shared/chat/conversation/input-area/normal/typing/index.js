@@ -5,7 +5,7 @@ import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 
 const Names = ({names}: {names: I.Set<string>}) => {
-  const textType = Styles.isMobile ? 'BodyTinySemibold' : 'BodySmallSemibold'
+  const textType = 'BodyTinySemibold'
   let ret
   switch (names.size) {
     case 0:
@@ -73,7 +73,7 @@ export const Typing = (props: Props) => (
     <Kb.Box style={styles.typingIconContainer}>
       <Kb.Animation animationType="typing" containerStyle={styles.isTypingAnimation} />
     </Kb.Box>
-    <Kb.Text lineClamp={1} type={Styles.isMobile ? 'BodyTiny' : 'BodySmall'} style={styles.isTypingText}>
+    <Kb.Text lineClamp={1} type="BodyTiny" style={styles.isTypingText}>
       <Names names={props.names} />
     </Kb.Text>
   </Kb.Box>
@@ -101,10 +101,10 @@ const styles = Styles.styleSheetCreate({
       alignItems: 'flex-end',
       backgroundColor: Styles.globalColors.white,
       height: mobileTypingContainerHeight,
-      left: 0,
+      left: Styles.globalMargins.xtiny,
       position: 'absolute',
-      right: 0,
-      top: -mobileTypingContainerHeight,
+      top: -mobileTypingContainerHeight / 2 - 2,
+      zIndex: 999,
     },
   }),
   isTypingContainerVisible: {
@@ -113,9 +113,13 @@ const styles = Styles.styleSheetCreate({
   isTypingText: Styles.platformStyles({
     isElectron: {
       flexGrow: 1,
-      left: 57,
+      left: 56,
+      marginTop: 2,
       position: 'absolute',
       textAlign: 'left',
+    },
+    isMobile: {
+      marginRight: Styles.globalMargins.tiny,
     },
   }),
   typingIcon: Styles.platformStyles({
@@ -134,7 +138,8 @@ const styles = Styles.styleSheetCreate({
   typingIconContainer: Styles.platformStyles({
     isMobile: {
       alignItems: 'center',
-      width: 48,
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
     },
   }),
 })
