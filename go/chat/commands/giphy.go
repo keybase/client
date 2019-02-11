@@ -64,7 +64,7 @@ func (s *Giphy) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Conve
 		s.G().AttachmentURLSrv)
 	if err != nil {
 		s.Debug(ctx, "Execute: failed to get Giphy results: %s", err)
-		return
+		return err
 	}
 	if len(results) == 0 {
 		s.Debug(ctx, "Execute: failed to find any results")
