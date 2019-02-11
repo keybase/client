@@ -14,7 +14,10 @@ const poweredByImg = 'powered-by-giphy.png'
 const GiphySearch = (props: Props) => {
   return (
     <Kb.ScrollView style={styles.scrollContainer}>
-      <Kb.Box2 direction="horizontal" style={styles.poweredByContainer} fullWidth={true}>
+      <Kb.Box2 direction="horizontal" style={styles.poweredByContainer} fullWidth={true} gap="tiny">
+        <Kb.Text style={styles.instructions} type="BodySmall">
+          Hit enter for a random GIF, or click a preview to send
+        </Kb.Text>
         <Kb.Image src={resolveImageAsURL('', poweredByImg)} style={styles.poweredBy} />
       </Kb.Box2>
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
@@ -57,6 +60,9 @@ const styles = Styles.styleSheetCreate({
     borderWidth: Styles.globalMargins.xxtiny,
     margin: -1,
     overflow: 'hidden',
+  },
+  instructions: {
+    alignSelf: 'center',
   },
   poweredBy: {
     height: 25,

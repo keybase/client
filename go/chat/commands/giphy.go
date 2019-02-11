@@ -32,8 +32,12 @@ type Giphy struct {
 }
 
 func NewGiphy(g *globals.Context) *Giphy {
+	usage := "Search for and post GIFs"
+	if g.GetAppType() == libkb.MobileAppType {
+		usage = "Post a random GIF"
+	}
 	return &Giphy{
-		baseCommand:  newBaseCommand(g, "giphy", "[search terms]", "Search Giphy for GIFs"),
+		baseCommand:  newBaseCommand(g, "giphy", "[search terms]", usage),
 		shownResults: make(map[string]bool),
 		searcher:     defaultGiphySearcher{},
 	}
