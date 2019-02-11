@@ -92,6 +92,7 @@
       "github.com/keybase/client/go/service" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
+<<<<<<< HEAD
    "github.com/keybase/client/go/chat/giphy" : {
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/commands" : 1,
@@ -102,6 +103,10 @@
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
       "github.com/keybase/client/go/systests" : 1
+=======
+   "github.com/keybase/client/go/chat/flip" : {
+      "github.com/keybase/client/go/chat/flip" : 1
+>>>>>>> master
    },
    "github.com/keybase/client/go/chat/globals" : {
       "github.com/keybase/client/go/avatars" : 1,
@@ -3493,7 +3498,11 @@
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/commands" : 1,
+<<<<<<< HEAD
       "github.com/keybase/client/go/chat/giphy" : 1,
+=======
+      "github.com/keybase/client/go/chat/flip" : 1,
+>>>>>>> master
       "github.com/keybase/client/go/chat/globals" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
       "github.com/keybase/client/go/chat/signencrypt" : 1,
@@ -4160,7 +4169,11 @@
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/commands" : 1,
+<<<<<<< HEAD
       "github.com/keybase/client/go/chat/giphy" : 1,
+=======
+      "github.com/keybase/client/go/chat/flip" : 1,
+>>>>>>> master
       "github.com/keybase/client/go/chat/globals" : 1,
       "github.com/keybase/client/go/chat/msgchecker" : 1,
       "github.com/keybase/client/go/chat/pager" : 1,
@@ -4264,7 +4277,11 @@
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/commands" : 1,
+<<<<<<< HEAD
       "github.com/keybase/client/go/chat/giphy" : 1,
+=======
+      "github.com/keybase/client/go/chat/flip" : 1,
+>>>>>>> master
       "github.com/keybase/client/go/chat/globals" : 1,
       "github.com/keybase/client/go/chat/msgchecker" : 1,
       "github.com/keybase/client/go/chat/pager" : 1,
@@ -4370,7 +4387,11 @@
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/commands" : 1,
+<<<<<<< HEAD
       "github.com/keybase/client/go/chat/giphy" : 1,
+=======
+      "github.com/keybase/client/go/chat/flip" : 1,
+>>>>>>> master
       "github.com/keybase/client/go/chat/globals" : 1,
       "github.com/keybase/client/go/chat/msgchecker" : 1,
       "github.com/keybase/client/go/chat/pager" : 1,
@@ -5711,7 +5732,11 @@
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/commands" : 1,
+<<<<<<< HEAD
       "github.com/keybase/client/go/chat/giphy" : 1,
+=======
+      "github.com/keybase/client/go/chat/flip" : 1,
+>>>>>>> master
       "github.com/keybase/client/go/chat/globals" : 1,
       "github.com/keybase/client/go/chat/msgchecker" : 1,
       "github.com/keybase/client/go/chat/pager" : 1,
@@ -5808,7 +5833,11 @@
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/commands" : 1,
+<<<<<<< HEAD
       "github.com/keybase/client/go/chat/giphy" : 1,
+=======
+      "github.com/keybase/client/go/chat/flip" : 1,
+>>>>>>> master
       "github.com/keybase/client/go/chat/globals" : 1,
       "github.com/keybase/client/go/chat/msgchecker" : 1,
       "github.com/keybase/client/go/chat/pager" : 1,
@@ -6340,7 +6369,11 @@
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/commands" : 1,
+<<<<<<< HEAD
       "github.com/keybase/client/go/chat/giphy" : 1,
+=======
+      "github.com/keybase/client/go/chat/flip" : 1,
+>>>>>>> master
       "github.com/keybase/client/go/chat/globals" : 1,
       "github.com/keybase/client/go/chat/msgchecker" : 1,
       "github.com/keybase/client/go/chat/pager" : 1,
@@ -7385,7 +7418,11 @@
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/commands" : 1,
+<<<<<<< HEAD
       "github.com/keybase/client/go/chat/giphy" : 1,
+=======
+      "github.com/keybase/client/go/chat/flip" : 1,
+>>>>>>> master
       "github.com/keybase/client/go/chat/globals" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
       "github.com/keybase/client/go/chat/signencrypt" : 1,
@@ -8153,7 +8190,11 @@
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/commands" : 1,
+<<<<<<< HEAD
       "github.com/keybase/client/go/chat/giphy" : 1,
+=======
+      "github.com/keybase/client/go/chat/flip" : 1,
+>>>>>>> master
       "github.com/keybase/client/go/chat/globals" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
       "github.com/keybase/client/go/chat/signencrypt" : 1,
@@ -8246,7 +8287,11 @@
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/commands" : 1,
+<<<<<<< HEAD
       "github.com/keybase/client/go/chat/giphy" : 1,
+=======
+      "github.com/keybase/client/go/chat/flip" : 1,
+>>>>>>> master
       "github.com/keybase/client/go/chat/globals" : 1,
       "github.com/keybase/client/go/chat/search" : 1,
       "github.com/keybase/client/go/chat/signencrypt" : 1,
@@ -10613,7 +10658,11 @@
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/commands" : 1,
+<<<<<<< HEAD
       "github.com/keybase/client/go/chat/giphy" : 1,
+=======
+      "github.com/keybase/client/go/chat/flip" : 1,
+>>>>>>> master
       "github.com/keybase/client/go/chat/globals" : 1,
       "github.com/keybase/client/go/chat/msgchecker" : 1,
       "github.com/keybase/client/go/chat/pager" : 1,
@@ -12795,7 +12844,11 @@
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/commands" : 1,
+<<<<<<< HEAD
       "github.com/keybase/client/go/chat/giphy" : 1,
+=======
+      "github.com/keybase/client/go/chat/flip" : 1,
+>>>>>>> master
       "github.com/keybase/client/go/chat/globals" : 1,
       "github.com/keybase/client/go/chat/msgchecker" : 1,
       "github.com/keybase/client/go/chat/pager" : 1,
@@ -12900,7 +12953,11 @@
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/commands" : 1,
+<<<<<<< HEAD
       "github.com/keybase/client/go/chat/giphy" : 1,
+=======
+      "github.com/keybase/client/go/chat/flip" : 1,
+>>>>>>> master
       "github.com/keybase/client/go/chat/globals" : 1,
       "github.com/keybase/client/go/chat/msgchecker" : 1,
       "github.com/keybase/client/go/chat/pager" : 1,
@@ -13005,7 +13062,11 @@
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/commands" : 1,
+<<<<<<< HEAD
       "github.com/keybase/client/go/chat/giphy" : 1,
+=======
+      "github.com/keybase/client/go/chat/flip" : 1,
+>>>>>>> master
       "github.com/keybase/client/go/chat/globals" : 1,
       "github.com/keybase/client/go/chat/msgchecker" : 1,
       "github.com/keybase/client/go/chat/pager" : 1,
@@ -13110,7 +13171,11 @@
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/commands" : 1,
+<<<<<<< HEAD
       "github.com/keybase/client/go/chat/giphy" : 1,
+=======
+      "github.com/keybase/client/go/chat/flip" : 1,
+>>>>>>> master
       "github.com/keybase/client/go/chat/globals" : 1,
       "github.com/keybase/client/go/chat/msgchecker" : 1,
       "github.com/keybase/client/go/chat/pager" : 1,
@@ -13215,7 +13280,11 @@
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/commands" : 1,
+<<<<<<< HEAD
       "github.com/keybase/client/go/chat/giphy" : 1,
+=======
+      "github.com/keybase/client/go/chat/flip" : 1,
+>>>>>>> master
       "github.com/keybase/client/go/chat/globals" : 1,
       "github.com/keybase/client/go/chat/msgchecker" : 1,
       "github.com/keybase/client/go/chat/pager" : 1,
@@ -13320,7 +13389,11 @@
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/commands" : 1,
+<<<<<<< HEAD
       "github.com/keybase/client/go/chat/giphy" : 1,
+=======
+      "github.com/keybase/client/go/chat/flip" : 1,
+>>>>>>> master
       "github.com/keybase/client/go/chat/globals" : 1,
       "github.com/keybase/client/go/chat/msgchecker" : 1,
       "github.com/keybase/client/go/chat/pager" : 1,
@@ -13425,7 +13498,11 @@
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/commands" : 1,
+<<<<<<< HEAD
       "github.com/keybase/client/go/chat/giphy" : 1,
+=======
+      "github.com/keybase/client/go/chat/flip" : 1,
+>>>>>>> master
       "github.com/keybase/client/go/chat/globals" : 1,
       "github.com/keybase/client/go/chat/msgchecker" : 1,
       "github.com/keybase/client/go/chat/pager" : 1,
@@ -13530,7 +13607,11 @@
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/commands" : 1,
+<<<<<<< HEAD
       "github.com/keybase/client/go/chat/giphy" : 1,
+=======
+      "github.com/keybase/client/go/chat/flip" : 1,
+>>>>>>> master
       "github.com/keybase/client/go/chat/globals" : 1,
       "github.com/keybase/client/go/chat/msgchecker" : 1,
       "github.com/keybase/client/go/chat/pager" : 1,
@@ -13635,7 +13716,11 @@
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/commands" : 1,
+<<<<<<< HEAD
       "github.com/keybase/client/go/chat/giphy" : 1,
+=======
+      "github.com/keybase/client/go/chat/flip" : 1,
+>>>>>>> master
       "github.com/keybase/client/go/chat/globals" : 1,
       "github.com/keybase/client/go/chat/msgchecker" : 1,
       "github.com/keybase/client/go/chat/pager" : 1,
@@ -13740,7 +13825,11 @@
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/commands" : 1,
+<<<<<<< HEAD
       "github.com/keybase/client/go/chat/giphy" : 1,
+=======
+      "github.com/keybase/client/go/chat/flip" : 1,
+>>>>>>> master
       "github.com/keybase/client/go/chat/globals" : 1,
       "github.com/keybase/client/go/chat/msgchecker" : 1,
       "github.com/keybase/client/go/chat/pager" : 1,
@@ -13845,7 +13934,11 @@
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/commands" : 1,
+<<<<<<< HEAD
       "github.com/keybase/client/go/chat/giphy" : 1,
+=======
+      "github.com/keybase/client/go/chat/flip" : 1,
+>>>>>>> master
       "github.com/keybase/client/go/chat/globals" : 1,
       "github.com/keybase/client/go/chat/msgchecker" : 1,
       "github.com/keybase/client/go/chat/pager" : 1,
@@ -13953,7 +14046,11 @@
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/commands" : 1,
+<<<<<<< HEAD
       "github.com/keybase/client/go/chat/giphy" : 1,
+=======
+      "github.com/keybase/client/go/chat/flip" : 1,
+>>>>>>> master
       "github.com/keybase/client/go/chat/globals" : 1,
       "github.com/keybase/client/go/chat/msgchecker" : 1,
       "github.com/keybase/client/go/chat/pager" : 1,
@@ -14058,7 +14155,11 @@
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/commands" : 1,
+<<<<<<< HEAD
       "github.com/keybase/client/go/chat/giphy" : 1,
+=======
+      "github.com/keybase/client/go/chat/flip" : 1,
+>>>>>>> master
       "github.com/keybase/client/go/chat/globals" : 1,
       "github.com/keybase/client/go/chat/msgchecker" : 1,
       "github.com/keybase/client/go/chat/pager" : 1,
@@ -14163,7 +14264,11 @@
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/commands" : 1,
+<<<<<<< HEAD
       "github.com/keybase/client/go/chat/giphy" : 1,
+=======
+      "github.com/keybase/client/go/chat/flip" : 1,
+>>>>>>> master
       "github.com/keybase/client/go/chat/globals" : 1,
       "github.com/keybase/client/go/chat/msgchecker" : 1,
       "github.com/keybase/client/go/chat/pager" : 1,
@@ -14268,7 +14373,11 @@
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/chat/attachments" : 1,
       "github.com/keybase/client/go/chat/commands" : 1,
+<<<<<<< HEAD
       "github.com/keybase/client/go/chat/giphy" : 1,
+=======
+      "github.com/keybase/client/go/chat/flip" : 1,
+>>>>>>> master
       "github.com/keybase/client/go/chat/globals" : 1,
       "github.com/keybase/client/go/chat/msgchecker" : 1,
       "github.com/keybase/client/go/chat/pager" : 1,
