@@ -1193,6 +1193,10 @@ func isAccountFunded(ctx context.Context, remoter remote.Remoter, accountID stel
 	if err != nil {
 		return false, err
 	}
+	return hasPositiveLumenBalance(balances)
+}
+
+func hasPositiveLumenBalance(balances []stellar1.Balance) (res bool, err error) {
 	for _, b := range balances {
 		if b.Asset.IsNativeXLM() {
 			a, err := stellarnet.ParseStellarAmount(b.Amount)

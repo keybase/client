@@ -17,6 +17,8 @@ type WalletAccountLocal struct {
 	CurrencyLocal       CurrencyLocal `codec:"currencyLocal" json:"currencyLocal"`
 	AccountMode         AccountMode   `codec:"accountMode" json:"accountMode"`
 	AccountModeEditable bool          `codec:"accountModeEditable" json:"accountModeEditable"`
+	IsFunded            bool          `codec:"isFunded" json:"isFunded"`
+	CanSubmitTx         bool          `codec:"canSubmitTx" json:"canSubmitTx"`
 }
 
 func (o WalletAccountLocal) DeepCopy() WalletAccountLocal {
@@ -29,6 +31,8 @@ func (o WalletAccountLocal) DeepCopy() WalletAccountLocal {
 		CurrencyLocal:       o.CurrencyLocal.DeepCopy(),
 		AccountMode:         o.AccountMode.DeepCopy(),
 		AccountModeEditable: o.AccountModeEditable,
+		IsFunded:            o.IsFunded,
+		CanSubmitTx:         o.CanSubmitTx,
 	}
 }
 
