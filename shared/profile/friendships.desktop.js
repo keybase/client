@@ -113,7 +113,7 @@ class FriendshipsRender extends Component<Props> {
       <TabBar style={this.props.style}>
         <TabBarItem
           selected={this.props.currentTab === 'Followers'}
-          label={`FOLLOWERS (${followers})`}
+          label={`Followers (${followers})`}
           onClick={() => {
             this.props.onSwitchTab && this.props.onSwitchTab('Followers')
           }}
@@ -134,7 +134,7 @@ class FriendshipsRender extends Component<Props> {
         </TabBarItem>
         <TabBarItem
           selected={this.props.currentTab === 'Following'}
-          label={`FOLLOWING (${following})`}
+          label={`Following (${following})`}
           onClick={() => {
             this.props.onSwitchTab && this.props.onSwitchTab('Following')
           }}
