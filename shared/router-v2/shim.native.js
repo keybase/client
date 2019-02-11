@@ -32,7 +32,10 @@ const shimNewRoute = (Original: any) => {
       }
       const body = <Original {...this.props} />
       const keyboardBody = (
-        <Kb.NativeKeyboardAvoidingView style={styles.keyboard} behavior="padding">
+        <Kb.NativeKeyboardAvoidingView
+          style={styles.keyboard}
+          behavior={Styles.isIOS ? 'padding' : undefined}
+        >
           {body}
         </Kb.NativeKeyboardAvoidingView>
       )
