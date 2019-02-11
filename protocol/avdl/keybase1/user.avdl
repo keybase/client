@@ -41,9 +41,14 @@ protocol user {
     Time trackTime;
   }
 
+  @typedef("string")
+  record EmailAddress {}
+
   record Email {
-    string email;
+    EmailAddress email;
     boolean isVerified;
+    boolean isPrimary;
+    IdentityVisibility visibility;
   }
 
   record UserSettings {
@@ -140,6 +145,24 @@ protocol user {
 
   void uploadUserAvatar(string filename, union { null, ImageCropRect } crop);
 
+  ProofSuggestionsRes proofSuggestions(int sessionID);
+  record ProofSuggestionsRes{
+    array<ProofSuggestion> suggestions;
+    boolean showMore;
+  }
+
+  // A proof the user doesn't have.
+  record ProofSuggestion {
+    string key;
+    boolean belowFold;
+    string profileText; // "Prove your Twitter", "Add a PGP key"
+    array<SizedImage> profileIcon;
+    string pickerText; // "Twitter", "Your own website", "octodon.xyz"
+    string pickerSubtext; // "twitter.com", "Mastodon instance"
+    array<SizedImage> pickerIcon;
+    array<Identify3RowMeta> metas; // for 'new' proof types
+  }
+
   record NextMerkleRootRes {
     union { null, MerkleRootV2 } res;
   }
@@ -158,4 +181,11 @@ protocol user {
   */
   NextMerkleRootRes findNextMerkleRootAfterReset(UID uid, Seqno resetSeqno, ResetMerkleRoot prev);
 
+  boolean loadHasRandomPw(int sessionID, boolean forceRepoll);
+
+  record CanLogoutRes {
+    boolean canLogout;
+    string reason;
+  }
+  CanLogoutRes canLogout(int sessionID);
 }

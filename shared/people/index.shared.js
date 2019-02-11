@@ -1,19 +1,13 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../constants/types/people'
-import {Box, ClickableBox, Icon, Text} from '../common-adapters'
-import Todo from './task/container'
+import * as Kb from '../common-adapters'
+import * as Styles from '../styles'
+import Todo from './todo/container'
 import FollowNotification from './follow-notification'
+import Announcement from './announcement/container'
 import FollowSuggestions from './follow-suggestions'
 import {type Props} from '.'
-import {
-  borderRadius,
-  globalStyles,
-  globalColors,
-  globalMargins,
-  desktopStyles,
-  collapseStyles,
-} from '../styles'
 
 export const itemToComponent: (Types.PeopleScreenItem, Props) => React.Node = (item, props) => {
   switch (item.type) {
@@ -37,77 +31,80 @@ export const itemToComponent: (Types.PeopleScreenItem, Props) => React.Node = (i
           notificationTime={item.notificationTime}
           badged={item.badged}
           numAdditional={item.numAdditional}
-          key={item.notificationTime}
+          key={String(item.notificationTime.getTime())}
           onClickUser={props.onClickUser}
+        />
+      )
+    case 'announcement':
+      return (
+        <Announcement
+          appLink={item.appLink}
+          badged={item.badged}
+          confirmLabel={item.confirmLabel}
+          dismissable={item.dismissable}
+          iconUrl={item.iconUrl}
+          id={item.id}
+          key={item.text}
+          text={item.text}
+          url={item.url}
         />
       )
   }
   return null
 }
 
-export const PeoplePageSearchBar = (
-  props: Props & {
-    styleRowContainer?: any,
-    styleSearchContainer?: any,
-    styleSearch?: any,
-    styleSearchText?: any,
-  }
-) => (
-  <Box style={collapseStyles([styleRowContainer, props.styleRowContainer])}>
-    <ClickableBox
-      onClick={props.onSearch}
-      style={collapseStyles([styleSearchContainer, props.styleSearchContainer])}
-    >
-      <Icon
-        style={collapseStyles([styleSearch, props.styleSearch])}
-        type="iconfont-search"
-        color={globalColors.black_20}
-      />
-      <Text style={collapseStyles([styleSearchText, props.styleSearchText])} type="Body">
-        Search people
-      </Text>
-    </ClickableBox>
-  </Box>
+export const PeoplePageSearchBar = (props: Props) => (
+  <Kb.ClickableBox onClick={props.onSearch} style={styles.searchContainer}>
+    <Kb.Icon
+      color={Styles.globalColors.black_50}
+      fontSize={Styles.isMobile ? 20 : 16}
+      style={styles.searchIcon}
+      type="iconfont-search"
+    />
+    <Kb.Text style={styles.searchText} type="BodySemibold">
+      Search people
+    </Kb.Text>
+  </Kb.ClickableBox>
 )
 
-const styleRowContainer = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  justifyContent: 'center',
-  height: 48,
-  position: 'absolute',
-  top: 0,
-  right: 0,
-  backgroundColor: globalColors.white_90,
-  zIndex: 1,
-}
-
 export const PeoplePageList = (props: Props) => (
-  <Box style={{...globalStyles.flexBoxColumn, width: '100%', position: 'relative', marginTop: 48}}>
+  <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, position: 'relative', width: '100%'}}>
     {props.newItems.map(item => itemToComponent(item, props))}
     <FollowSuggestions suggestions={props.followSuggestions} />
     {props.oldItems.map(item => itemToComponent(item, props))}
-  </Box>
+  </Kb.Box>
 )
 
-const styleSearchContainer = {
-  ...globalStyles.flexBoxRow,
-  ...desktopStyles.clickable,
-  alignItems: 'center',
-  alignSelf: 'center',
-  backgroundColor: globalColors.black_10,
-  borderRadius,
-  justifyContent: 'center',
-  zIndex: 20,
-}
-
-const styleSearch = {
-  padding: globalMargins.xtiny,
-}
-
-const styleSearchText = {
-  ...styleSearch,
-  color: globalColors.black_40,
-  position: 'relative',
-  top: -1,
-}
+const styles = Styles.styleSheetCreate({
+  searchContainer: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxRow,
+      alignItems: 'center',
+      alignSelf: 'center',
+      backgroundColor: Styles.globalColors.black_10,
+      borderRadius: Styles.borderRadius,
+      justifyContent: 'center',
+      zIndex: 20,
+    },
+    isElectron: {
+      ...Styles.desktopStyles.clickable,
+      height: 24,
+      marginLeft: Styles.globalMargins.small,
+      marginRight: Styles.globalMargins.small,
+      marginTop: Styles.globalMargins.xsmall,
+      width: 240,
+    },
+    isMobile: {
+      height: 32,
+      width: '100%',
+    },
+  }),
+  searchIcon: {
+    paddingRight: Styles.globalMargins.tiny,
+    position: 'relative',
+    top: 1,
+  },
+  searchText: {
+    color: Styles.globalColors.black_50,
+  },
+})

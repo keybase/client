@@ -9,7 +9,7 @@ function SubHeading({children}: Props) {
   return (
     <Box style={{...globalStyles.flexBoxColumn, marginBottom: 2}}>
       <Text
-        style={{color: globalColors.black_40, marginBottom: globalMargins.xtiny}}
+        style={{color: globalColors.black_50, marginBottom: globalMargins.xtiny}}
         type="BodySmallSemibold"
       >
         {children}

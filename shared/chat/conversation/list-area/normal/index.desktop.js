@@ -55,6 +55,20 @@ class Thread extends React.PureComponent<Props, State> {
     }
   }
 
+  _scrollDown = () => {
+    const list = this._listRef.current
+    if (list) {
+      list.scrollTop += list.clientHeight
+    }
+  }
+
+  _scrollUp = () => {
+    const list = this._listRef.current
+    if (list) {
+      list.scrollTop -= list.clientHeight
+    }
+  }
+
   componentDidMount() {
     if (this.state.isLockedToBottom) {
       setImmediate(() => this._scrollToBottom())
@@ -89,9 +103,14 @@ class Thread extends React.PureComponent<Props, State> {
     }
 
     // someone requested we scroll down
-    if (this.props.listScrollDownCounter !== prevProps.listScrollDownCounter) {
-      this.setState(p => (p.isLockedToBottom ? null : {isLockedToBottom: true}))
-      this._scrollToBottom()
+    if (this.props.scrollListDownCounter !== prevProps.scrollListDownCounter) {
+      this._scrollDown()
+      return
+    }
+
+    // someone requested we scroll up
+    if (this.props.scrollListUpCounter !== prevProps.scrollListUpCounter) {
+      this._scrollUp()
       return
     }
 
@@ -144,9 +163,11 @@ class Thread extends React.PureComponent<Props, State> {
   _cleanupDebounced = () => {
     this._onAfterScroll.cancel()
     this._onScrollThrottled.cancel()
+    this._checkForLoadMoreThrottled.cancel()
   }
 
   _onScroll = e => {
+    this._checkForLoadMoreThrottled()
     if (this._ignoreScrollToBottomRefCount > 0) {
       this._ignoreScrollToBottomRefCount--
       return
@@ -165,6 +186,16 @@ class Thread extends React.PureComponent<Props, State> {
       }
       this._onAfterScroll()
 
+      // not locked to bottom while scrolling
+      const isLockedToBottom = false
+      this.setState(p => (p.isLockedToBottom === isLockedToBottom ? null : {isLockedToBottom}))
+    },
+    100,
+    {leading: true, trailing: true}
+  )
+
+  _checkForLoadMoreThrottled = throttle(
+    () => {
       // are we at the top?
       const list = this._listRef.current
       if (list) {
@@ -172,10 +203,6 @@ class Thread extends React.PureComponent<Props, State> {
           this.props.loadMoreMessages()
         }
       }
-
-      // not locked to bottom while scrolling
-      const isLockedToBottom = false
-      this.setState(p => (p.isLockedToBottom === isLockedToBottom ? null : {isLockedToBottom}))
     },
     100,
     // trailing = true cause you can be on top but keep scrolling which can keep the throttle going and ultimately miss out
@@ -517,7 +544,7 @@ const listStyle = {
   outline: 'none',
   overflowX: 'hidden',
   overflowY: 'auto',
-  paddingBottom: globalMargins.tiny,
+  paddingBottom: globalMargins.small,
   // get our own layer so we can scroll faster
   willChange: 'transform',
 }

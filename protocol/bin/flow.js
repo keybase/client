@@ -9,6 +9,16 @@ const colors = require('colors')
 const json5 = require('json5')
 const enabledCalls = json5.parse(fs.readFileSync(path.join(__dirname, 'enabled-calls.json')))
 
+// Sanity check this json file
+Object.keys(enabledCalls).forEach(rpc =>
+  Object.keys(enabledCalls[rpc]).forEach(type => {
+    if (!['engineSaga', 'promise', 'incoming'].includes(type)) {
+      console.log(colors.red('ERROR! Invalid enabled call?\n\n '), rpc, type)
+      process.exit(1)
+    }
+  })
+)
+
 var projects = {
   chat1: {
     customResponseIncomingMaps: {},
@@ -55,23 +65,28 @@ var projects = {
 const reduceArray = arr => arr.reduce((acc, cur) => acc.concat(cur), [])
 
 const keys = Object.keys(projects)
-keys.forEach(key => {
-  const project = projects[key]
-  fs
-    .readdirAsync(project.root)
-    .filter(jsonOnly)
-    .map(file => load(file, project))
-    .map(json => analyze(json, project))
-    .reduce((map, next) => {
-      map.consts = {...map.consts, ...next.consts}
-      map.types = {...map.types, ...next.types}
-      map.messages = {...map.messages, ...next.messages}
-      return map
-    }, {})
-    .then(typeDefs => {
-      writeFlow(typeDefs, project)
-      write(typeDefs, project)
-    })
+Promise.all(
+  keys.map(key => {
+    const project = projects[key]
+    return fs
+      .readdirAsync(project.root)
+      .filter(jsonOnly)
+      .map(file => load(file, project))
+      .map(json => analyze(json, project))
+      .reduce((map, next) => {
+        map.consts = {...map.consts, ...next.consts}
+        map.types = {...map.types, ...next.types}
+        map.messages = {...map.messages, ...next.messages}
+        return map
+      }, {})
+      .then(typeDefs => {
+        writeFlow(typeDefs, project)
+        write(typeDefs, project)
+      })
+  })
+).then(() => {
+  writeAll()
+  writeActions()
 })
 
 function jsonOnly(file) {
@@ -219,7 +234,6 @@ function analyzeMessages(json, project) {
       project.incomingMaps[
         methodName
       ] = `(params: $Exact<$PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'inParam'>> & {|sessionID: number|}) => IncomingReturn`
-
       if (!message.hasOwnProperty('notify')) {
         project.customResponseIncomingMaps[
           methodName
@@ -229,8 +243,6 @@ function analyzeMessages(json, project) {
 
     const rpcPromise = isUIMethod ? '' : rpcPromiseGen(methodName, name, false)
     const rpcPromiseType = isUIMethod ? '' : rpcPromiseGen(methodName, name, true)
-    const rpcChannelMap = isUIMethod ? '' : rpcChannelMapGen(methodName, name, false)
-    const rpcChannelMapType = isUIMethod ? '' : rpcChannelMapGen(methodName, name, true)
     const engineSaga = isUIMethod ? '' : engineSagaGen(methodName, name, false)
     const engineSagaType = isUIMethod ? '' : engineSagaGen(methodName, name, true)
 
@@ -240,14 +252,12 @@ function analyzeMessages(json, project) {
     }
 
     // Must be an rpc we use
-    if (rpcPromiseType || rpcChannelMapType || engineSagaType || isUIMethod) {
+    if (rpcPromiseType || engineSagaType || isUIMethod) {
       map[methodName] = {
         inParam,
         outParam: outParam === 'null' ? 'void' : outParam,
         rpcPromise,
         rpcPromiseType,
-        rpcChannelMap,
-        rpcChannelMapType,
         engineSaga,
         engineSagaType,
       }
@@ -266,17 +276,8 @@ function engineSagaGen(methodName, name, justType) {
     return ''
   }
   return justType
-    ? `declare export function ${name}RpcSaga (p: {params: $PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'inParam'>, incomingCallMap: IncomingCallMapType, customResponseIncomingCallMap?: CustomResponseIncomingCallMap, waitingKey?: string}): CallEffect<void, () => void, Array<void>>`
+    ? `declare export function ${name}RpcSaga (p: {params: $PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'inParam'>, incomingCallMap: IncomingCallMapType, customResponseIncomingCallMap?: CustomResponseIncomingCallMap, waitingKey?: WaitingKey}): CallEffect<void, () => void, Array<void>>`
     : `export const ${name}RpcSaga = (p) => call(getEngineSaga(), {method: ${methodName}, params: p.params, incomingCallMap: p.incomingCallMap, customResponseIncomingCallMap: p.customResponseIncomingCallMap, waitingKey: p.waitingKey})`
-}
-
-function rpcChannelMapGen(methodName, name, justType) {
-  if (!enabledCall(methodName, 'channelMap')) {
-    return ''
-  }
-  return justType
-    ? `declare export function ${name}RpcChannelMap (configKeys: Array<string>, request: $PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'inParam'>): void /* not void but this is deprecated */`
-    : `export const ${name}RpcChannelMap = (configKeys, request) => engine()._channelMapRpcHelper(configKeys, ${methodName}, request)`
 }
 
 function rpcPromiseGen(methodName, name, justType) {
@@ -284,7 +285,7 @@ function rpcPromiseGen(methodName, name, justType) {
     return ''
   }
   return justType
-    ? `declare export function ${name}RpcPromise (params: $PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'inParam'>, waitingKey?: string): Promise<$PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'outParam'>>`
+    ? `declare export function ${name}RpcPromise (params: $PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, ${methodName}>, 'outParam'>>`
     : `export const ${name}RpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: ${methodName}, params, callback: (error, result) => error ? reject(error) : resolve(result), waitingKey}))`
 }
 
@@ -374,6 +375,67 @@ function parseVariant(t, project) {
   return cases || 'void'
 }
 
+function writeActions() {
+  const toWrite = JSON.stringify(
+    {
+      prelude: Object.keys(projects).map(
+        p => `import * as ${p}Types from '../constants/types/${projects[p].out}'`
+      ),
+      actions: Object.keys(projects).reduce((map, p) => {
+        const callMap = projects[p].incomingMaps
+        callMap &&
+          Object.keys(callMap).reduce((map, method) => {
+            const name = method
+              .replace(/'/g, '')
+              .split('.')
+              .map((p, idx) => (idx ? capitalize(p) : p))
+              .join('')
+            map[name] = {
+              params: `$Exact<$PropertyType<$PropertyType<${p}Types.MessageTypes, ${method}>, 'inParam'>>`,
+            }
+            return map
+          }, map)
+        return map
+      }, {}),
+    },
+    null,
+    4
+  )
+  fs.writeFileSync(`js/engine-gen.json`, toWrite)
+}
+
+function writeAll() {
+  const prelude = `
+// @flow strict
+  `
+  const imports = Object.keys(projects)
+    .map(
+      p => `import type {
+  CustomResponseIncomingCallMap as ${p}CustomResponseIncomingCallMap,
+  IncomingCallMapType as ${p}IncomingCallMap,
+} from './${projects[p].out}'
+`
+    )
+    .join('\n')
+
+  const exports = `
+  export type IncomingCallMapType = {|
+  ${Object.keys(projects)
+    .map(p => `...${p}IncomingCallMap,`)
+    .join('\n')}
+  |}
+  export type CustomResponseIncomingCallMapType = {|
+  ${Object.keys(projects)
+    .map(p => `...${p}CustomResponseIncomingCallMap,`)
+    .join('\n')}
+  |}
+  `
+  const toWrite = [prelude, imports, exports].join('\n')
+  const destinationFile = `types/all.js.flow` // Only used by prettier so we can set an override in .prettierrc
+  const formatted = prettier.format(toWrite, prettier.resolveConfig.sync(destinationFile))
+  fs.writeFileSync(`js/rpc-all-gen.js.flow`, formatted)
+}
+
 function writeFlow(typeDefs, project) {
   const importMap = {
     Gregor1: "import * as Gregor1 from './rpc-gregor-gen'",
@@ -397,31 +459,29 @@ export type Long = number
 export type String = string
 export type Uint = number
 export type Uint64 = number
+type WaitingKey = string | Array<string>
 type IncomingErrorCallback = (?{code?: number, desc?: string}) => void
 type IncomingReturn = Effect | null | void | false | Array<Effect | null | void | false>
 `
   const consts = Object.keys(typeDefs.consts).map(k => typeDefs.consts[k])
   const types = Object.keys(typeDefs.types).map(k => typeDefs.types[k])
   const messagePromise = Object.keys(typeDefs.messages).map(k => typeDefs.messages[k].rpcPromiseType)
-  const messageChannelMap = Object.keys(typeDefs.messages).map(k => typeDefs.messages[k].rpcChannelMapType)
   const messageEngineSaga = Object.keys(typeDefs.messages).map(k => typeDefs.messages[k].engineSagaType)
   const callMapType = Object.keys(project.incomingMaps).length ? 'IncomingCallMapType' : 'void'
-  const incomingMap =
-    `\nexport type IncomingCallMapType = {|` +
-    Object.keys(project.incomingMaps)
+  const incomingMap = `\nexport type IncomingCallMapType = {|
+    ${Object.keys(project.incomingMaps)
       .map(im => `  ${im}?: ${project.incomingMaps[im]}`)
-      .join(',') +
-    '|}'
+      .join(',')}
+    |}`
 
   const customResponseCallMapType = Object.keys(project.customResponseIncomingMaps).length
     ? 'CustomResponseIncomingCallMap'
     : 'void'
-  const customResponseIncomingMap =
-    `\nexport type CustomResponseIncomingCallMap = {|` +
-    Object.keys(project.customResponseIncomingMaps)
+  const customResponseIncomingMap = `\nexport type CustomResponseIncomingCallMap = {|
+    ${Object.keys(project.customResponseIncomingMaps)
       .map(im => `  ${im}?: ${project.customResponseIncomingMaps[im]}`)
-      .join(',') +
-    '|}'
+      .join(',')}
+    |}`
 
   const messageTypesData = Object.keys(typeDefs.messages)
     .map(k => {
@@ -444,7 +504,7 @@ ${messageTypesData}
     ...[...consts, ...types].sort(),
     incomingMap,
     customResponseIncomingMap,
-    ...[...messagePromise, ...messageChannelMap, ...messageEngineSaga].sort(),
+    ...[...messagePromise, ...messageEngineSaga].sort(),
   ]
     .filter(Boolean)
     .join('\n')
@@ -474,9 +534,8 @@ import {getEngine as engine, getEngineSaga} from '../../engine/require'
 `
   const consts = Object.keys(typeDefs.consts).map(k => typeDefs.consts[k])
   const messagePromise = Object.keys(typeDefs.messages).map(k => typeDefs.messages[k].rpcPromise)
-  const messageChannelMap = Object.keys(typeDefs.messages).map(k => typeDefs.messages[k].rpcChannelMap)
   const messageEngineSaga = Object.keys(typeDefs.messages).map(k => typeDefs.messages[k].engineSaga)
-  const data = [...consts, ...messagePromise, ...messageChannelMap, ...messageEngineSaga]
+  const data = [...consts, ...messagePromise, ...messageEngineSaga]
     .filter(Boolean)
     .sort()
     .join('\n')
@@ -596,7 +655,7 @@ function lintJSON(json) {
 
 function lintError(s, lint) {
   if (lint === 'ignore') {
-    console.log('Ignoring lint error:', colors.yellow(s))
+    // console.log('Ignoring lint error:', colors.yellow(s))
   } else {
     console.log(colors.red(s))
     process.exit(1)

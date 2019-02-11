@@ -21,20 +21,30 @@ func TestErasableKVStore(t *testing.T) {
 
 	subDir := ""
 	s := NewFileErasableKVStore(tc.G, subDir)
-	key := "test-key"
+	key := "test-key.key"
 	expected := "value"
-	var val string
-
 	err = s.Put(context.Background(), key, expected)
 	require.NoError(t, err)
 
-	err = s.Get(context.Background(), key, val)
-	require.Error(t, err)
-	require.NotEqual(t, expected, val)
-
-	keys, err := s.AllKeys(context.Background())
+	var val string
+	err = s.Get(context.Background(), key, &val)
 	require.NoError(t, err)
-	require.Equal(t, []string{key}, keys)
+	require.Equal(t, expected, val)
+
+	// create a tmp file in the storage dir, ensure we clean it up when calling
+	// `AllKeys`
+	tmp, err := ioutil.TempFile(s.storageDir, key)
+	require.NoError(t, err)
+	for i := 0; i < 5; i++ {
+		keys, err := s.AllKeys(context.Background(), ".key")
+		require.NoError(t, err)
+		require.Equal(t, []string{key}, keys)
+		exists, err := libkb.FileExists(tmp.Name())
+		require.NoError(t, err)
+		if !exists {
+			break
+		}
+	}
 
 	// Test noise file corruption
 	noiseName := fmt.Sprintf("%s%s", key, noiseSuffix)
@@ -52,7 +62,7 @@ func TestErasableKVStore(t *testing.T) {
 	require.NoError(t, err)
 
 	var corrupt string
-	err = s.Get(context.Background(), key, corrupt)
+	err = s.Get(context.Background(), key, &corrupt)
 	require.Error(t, err)
 	uerr, ok := err.(UnboxError)
 	require.True(t, ok)
@@ -62,7 +72,7 @@ func TestErasableKVStore(t *testing.T) {
 	err = s.Erase(context.Background(), key)
 	require.NoError(t, err)
 
-	keys, err = s.AllKeys(context.Background())
+	keys, err := s.AllKeys(context.Background(), ".key")
 	require.NoError(t, err)
 	require.Equal(t, []string(nil), keys)
 }

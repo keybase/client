@@ -144,7 +144,10 @@ func (s *secretStoreAndroid) RetrieveSecret(m MetaContext, username NormalizedUs
 
 func (s *secretStoreAndroid) ClearSecret(m MetaContext, username NormalizedUsername) (err error) {
 	defer m.CTraceTimed("secret_store_external ClearSecret", func() error { return err })()
-
+	if username.IsNil() {
+		m.CDebugf("NOOPing secretStoreAndroid#ClearSecret for empty username")
+		return nil
+	}
 	ks, err := getGlobalExternalKeyStore(m)
 	if err != nil {
 		return err

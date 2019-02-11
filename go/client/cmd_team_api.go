@@ -12,7 +12,7 @@ type CmdTeamAPI struct {
 }
 
 func newCmdTeamAPI(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
-	return newCmdAPI(cl, NewCmdTeamAPIRunner(g), "JSON api", teamAPIDoc)
+	return newCmdAPI(cl, NewCmdTeamAPIRunner(g), "JSON API", teamAPIDoc)
 }
 
 func NewCmdTeamAPIRunner(g *libkb.GlobalContext) *CmdTeamAPI {

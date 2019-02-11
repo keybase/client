@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../constants/types/wallets'
+import * as Flow from '../../util/flow'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {capitalize} from 'lodash-es'
@@ -11,6 +12,7 @@ import {formatTimeForStellarDetail, formatTimeForStellarTooltip} from '../../uti
 export type NotLoadingProps = {|
   amountUser: string,
   amountXLM: string,
+  approxWorth: string,
   counterparty: string,
   // counterpartyMeta is used only when counterpartyType === 'keybaseUser'.
   counterpartyMeta: ?string,
@@ -41,6 +43,9 @@ export type NotLoadingProps = {|
   yourRole: Types.Role,
   // sending wallet to wallet we show the actual wallet and not your username
   yourAccountName: string,
+  // issuer, for non-xlm assets
+  issuerDescription: string,
+  issuerAccountID: ?Types.AccountID,
 |}
 export type Props =
   | NotLoadingProps
@@ -116,10 +121,7 @@ const Counterparty = (props: CounterpartyProps) => {
     case 'otherAccount':
       return <PartyAccount accountID={props.accountID} accountName={props.counterparty} />
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(props.counterpartyType);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.counterpartyType)
       break
   }
   return null
@@ -168,34 +170,36 @@ const colorForStatus = (status: Types.StatusSimplified) => {
     case 'completed':
       return Styles.globalColors.green
     case 'pending':
-    case 'cancelable':
+    case 'claimable':
       return Styles.globalColors.purple2
     case 'error':
     case 'canceled':
       return Styles.globalColors.red
     default:
-      return Styles.globalColors.black
+      return Styles.globalColors.black_75
   }
 }
 
 const descriptionForStatus = (status: Types.StatusSimplified, yourRole: Types.Role) => {
-  if (status !== 'completed') {
-    return capitalize(status)
-  }
-
-  switch (yourRole) {
-    case 'senderOnly':
-      return 'Sent'
-    case 'receiverOnly':
-      return 'Received'
-    case 'senderAndReceiver':
-      return 'Sent'
+  switch (status) {
+    case 'claimable':
+      return 'Cancelable'
+    case 'completed':
+      switch (yourRole) {
+        case 'senderOnly':
+          return 'Sent'
+        case 'receiverOnly':
+          return 'Received'
+        case 'senderAndReceiver':
+          return 'Sent'
+        default:
+          Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(yourRole)
+          throw new Error(`Unexpected role ${yourRole}`)
+      }
+    case 'error':
+      return 'Failed'
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove: (type: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove(yourRole);
-      */
-      throw new Error(`Unexpected role ${yourRole}`)
+      return capitalize(status)
   }
 }
 
@@ -231,18 +235,15 @@ const propsToParties = (props: NotLoadingProps) => {
 
   switch (props.yourRole) {
     case 'senderOnly':
-      return {sender: you, receiver: counterparty}
+      return {receiver: counterparty, sender: you}
     case 'receiverOnly':
-      return {sender: counterparty, receiver: you}
+      return {receiver: you, sender: counterparty}
     case 'senderAndReceiver':
       // Even if we sent money from an account to itself, show the
       // account details as the recipient.
-      return {sender: you, receiver: counterparty}
+      return {receiver: counterparty, sender: you}
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove: (type: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove(props.yourRole);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.yourRole)
       throw new Error(`Unexpected role ${props.yourRole}`)
   }
 }
@@ -274,8 +275,10 @@ const TransactionDetails = (props: NotLoadingProps) => {
   const {sender, receiver} = propsToParties(props)
   return (
     <Kb.ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContainer}>
+      <Kb.Divider />
       <Kb.Box2 direction="vertical" gap="small" fullWidth={true} style={styles.container}>
         <Transaction
+          approxWorth={props.approxWorth}
           amountUser={props.amountUser}
           amountXLM={props.amountXLM}
           counterparty={props.counterparty}
@@ -292,6 +295,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
           timestamp={props.timestamp}
           unread={false}
           yourRole={props.yourRole}
+          issuerDescription={props.issuerDescription}
         />
       </Kb.Box2>
       <Kb.Divider />
@@ -311,12 +315,24 @@ const TransactionDetails = (props: NotLoadingProps) => {
           {receiver}
         </Kb.Box2>
 
+        {props.issuerAccountID && (
+          <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
+            <Kb.Text type="BodySmallSemibold">Asset issuer:</Kb.Text>
+            <Kb.Text selectable={true} style={styles.transactionID} type="BodySemibold">
+              {props.issuerDescription}
+            </Kb.Text>
+            <Kb.Text selectable={true} style={styles.transactionID} type="Body">
+              {props.issuerAccountID}
+            </Kb.Text>
+          </Kb.Box2>
+        )}
+
         <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
           <Kb.Text type="BodySmallSemibold">Status:</Kb.Text>
           <Kb.WithTooltip
             containerStyle={styles.statusBox}
             text={
-              props.status === 'cancelable'
+              props.status === 'claimable'
                 ? `${
                     props.counterparty
                   } hasn't generated a Stellar account yet. This payment will automatically complete when they create one.`
@@ -328,12 +344,13 @@ const TransactionDetails = (props: NotLoadingProps) => {
             <Kb.Icon
               color={colorForStatus(props.status)}
               fontSize={16}
+              style={Kb.iconCastPlatformStyles(styles.statusIcon)}
               type={
                 ['error', 'canceled'].includes(props.status)
-                  ? 'iconfont-close'
+                  ? 'iconfont-remove'
                   : props.status === 'completed'
-                    ? 'iconfont-success'
-                    : 'iconfont-clock'
+                  ? 'iconfont-success'
+                  : 'iconfont-clock'
               }
             />
             <Kb.Text
@@ -353,6 +370,11 @@ const TransactionDetails = (props: NotLoadingProps) => {
               timestamp={props.timestamp}
             />
           )}
+          {props.status === 'error' && (
+            <Kb.Text type="BodySmallError" selectable={true}>
+              {props.statusDetail}
+            </Kb.Text>
+          )}
         </Kb.Box2>
 
         <Kb.Box2 direction="vertical" gap="xxtiny" fullWidth={true}>
@@ -364,7 +386,11 @@ const TransactionDetails = (props: NotLoadingProps) => {
             props.yourRole === 'receiverOnly' &&
             props.counterpartyType === 'stellarPublicKey' && (
               <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.warningBannerContainer}>
-                <Kb.Text type="BodySemibold" backgroundMode="Information">
+                <Kb.Text
+                  type="BodySmallSemibold"
+                  backgroundMode="Information"
+                  style={styles.warningBannerText}
+                >
                   Watch out for phishing attacks and dangerous websites.
                 </Kb.Text>
               </Kb.Box2>
@@ -403,6 +429,18 @@ class LoadTransactionDetails extends React.Component<Props> {
   componentDidMount() {
     this.props.onLoadPaymentDetail()
   }
+  componentDidUpdate(prevProps: Props) {
+    // An erased transaction ID likely means the payment was updated,
+    // which means details need to be retrieved again
+    if (
+      (!this.props.transactionID || !this.props.senderAccountID) &&
+      prevProps.transactionID &&
+      prevProps.senderAccountID &&
+      !this.props.loading
+    ) {
+      this.props.onLoadPaymentDetail()
+    }
+  }
   render() {
     if (this.props.loading) {
       return (
@@ -426,9 +464,9 @@ const styles = Styles.styleSheetCreate({
   buttonBox: Styles.platformStyles({
     common: {
       justifyContent: 'center',
+      minHeight: 0,
       paddingLeft: Styles.globalMargins.small,
       paddingRight: Styles.globalMargins.small,
-      minHeight: 0,
     },
     isElectron: {
       marginTop: 'auto',
@@ -469,14 +507,18 @@ const styles = Styles.styleSheetCreate({
     alignItems: 'center',
     alignSelf: 'flex-start',
   },
+  statusIcon: {
+    position: 'relative',
+    top: 1,
+  },
   statusText: {
     marginLeft: Styles.globalMargins.xtiny,
   },
   stellarPublicKey: Styles.platformStyles({
     common: {
+      flex: 1,
       justifyContent: 'center',
       marginLeft: Styles.globalMargins.tiny,
-      flex: 1,
     },
     isElectron: {wordBreak: 'break-all'},
   }),
@@ -488,7 +530,10 @@ const styles = Styles.styleSheetCreate({
   transactionID: Styles.platformStyles({isElectron: {wordBreak: 'break-all'}}),
   warningBannerContainer: {
     backgroundColor: Styles.backgroundModeToColor.Information,
-    borderRadius: 4,
+    marginTop: Styles.globalMargins.xsmall,
     padding: Styles.globalMargins.xsmall,
+  },
+  warningBannerText: {
+    color: Styles.globalColors.brown_75,
   },
 })

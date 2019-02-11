@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
-import {Box, ProgressIndicator, ScrollView} from '../../common-adapters'
-import {globalMargins, globalStyles, isMobile} from '../../styles'
+import * as Styles from '../../styles'
+import * as Kb from '../../common-adapters'
 import Header from './header'
 import Banner from './banner'
 import BetaNote from './beta-note'
@@ -13,16 +13,22 @@ import type {Props as BetaNoteProps} from './beta-note'
 import type {Props as TeamListProps} from './team-list'
 
 // TODO: Don't make all these props just so we can pass it down. Make these their own connected components
-type Props = HeaderProps & BetaNoteProps & TeamListProps & BannerProps & {sawChatBanner: boolean}
+type Props = {|
+  ...$Exact<HeaderProps>,
+  ...$Exact<BetaNoteProps>,
+  ...$Exact<TeamListProps>,
+  ...$Exact<BannerProps>,
+  ...{|sawChatBanner: boolean, title: string, onBack: () => void|},
+|}
 
 const Teams = (props: Props) => (
-  <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', height: '100%'}}>
+  <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, alignItems: 'center', height: '100%'}}>
     <Header loaded={props.loaded} onCreateTeam={props.onCreateTeam} onJoinTeam={props.onJoinTeam} />
-    <Box style={{flex: 1, position: 'relative', width: '100%'}}>
-      <ScrollView
-        style={{...globalStyles.fillAbsolute}}
+    <Kb.Box style={{flex: 1, position: 'relative', width: '100%'}}>
+      <Kb.ScrollView
+        style={{...Styles.globalStyles.fillAbsolute}}
         contentContainerStyle={{
-          ...globalStyles.flexBoxColumn,
+          ...Styles.globalStyles.flexBoxColumn,
           alignItems: 'center',
         }}
       >
@@ -42,19 +48,19 @@ const Teams = (props: Props) => (
         />
         <BetaNote onReadMore={props.onReadMore} />
         {/* Put progress indicator in the footer on mobile because it won't fit in the header on small screens */}
-        {isMobile && (
-          <ProgressIndicator
+        {Styles.isMobile && (
+          <Kb.ProgressIndicator
             style={{
               alignSelf: 'center',
-              marginBottom: globalMargins.small,
+              marginBottom: Styles.globalMargins.small,
               opacity: props.loaded ? 0 : 1,
               width: 20,
             }}
           />
         )}
-      </ScrollView>
-    </Box>
-  </Box>
+      </Kb.ScrollView>
+    </Kb.Box>
+  </Kb.Box>
 )
 
 export default Teams

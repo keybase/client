@@ -31,10 +31,9 @@ class TeamsDivider extends React.PureComponent<Props> {
               <Kb.Text type="BodySmallSemibold" style={styles.buttonText}>
                 {this.props.hiddenCount > 0 ? `+${this.props.hiddenCount} more` : 'Show less'}
               </Kb.Text>
-              {this.props.hiddenCount > 0 &&
-                this.props.badgeCount > 0 && (
-                  <Kb.Badge badgeStyle={styles.badge} badgeNumber={this.props.badgeCount} />
-                )}
+              {this.props.hiddenCount > 0 && this.props.badgeCount > 0 && (
+                <Kb.Badge badgeStyle={styles.badge} badgeNumber={this.props.badgeCount} />
+              )}
             </Kb.Box2>
           </Kb.ClickableBox>
         )}
@@ -53,7 +52,7 @@ const styles = Styles.styleSheetCreate({
     marginLeft: Styles.globalMargins.xtiny,
     marginRight: 0,
   },
-  buttonText: {color: Styles.globalColors.black_60},
+  buttonText: {color: Styles.globalColors.black_50},
   containerButton: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.flexBoxColumn,

@@ -48,8 +48,8 @@ class Input extends React.PureComponent<Props, State> {
     }
 
     this.transformText(() => ({
+      selection: {end: 0, start: 0},
       text: '',
-      selection: {start: 0, end: 0},
     }))
   }
 
@@ -64,10 +64,10 @@ class Input extends React.PureComponent<Props, State> {
   selection = (): Selection => {
     const n = this._input
     if (!n) {
-      return {start: 0, end: 0}
+      return {end: 0, start: 0}
     }
     const {selectionStart, selectionEnd} = n
-    return {start: selectionStart, end: selectionEnd}
+    return {end: selectionEnd, start: selectionStart}
   }
 
   _onChangeTextDone = value => {
@@ -148,11 +148,11 @@ class Input extends React.PureComponent<Props, State> {
     const n = this._input
     if (n) {
       const textInfo: TextInfo = {
-        text: n.value,
         selection: {
-          start: n.selectionStart,
           end: n.selectionEnd,
+          start: n.selectionStart,
         },
+        text: n.value,
       }
       const newTextInfo = fn(textInfo)
       checkTextInfo(newTextInfo)
@@ -195,10 +195,10 @@ class Input extends React.PureComponent<Props, State> {
           this._transformText(({text, selection}) => {
             const newText = text.slice(0, selection.start) + '\n' + text.slice(selection.end)
             const pos = selection.start + 1
-            const newSelection = {start: pos, end: pos}
+            const newSelection = {end: pos, start: pos}
             return {
-              text: newText,
               selection: newSelection,
+              text: newText,
             }
           })
         }
@@ -273,42 +273,42 @@ class Input extends React.PureComponent<Props, State> {
     const commonInputStyle = {
       ...globalStyles.fontSemibold,
       backgroundColor: globalColors.transparent,
+      border: 'none',
       color: globalColors.black_75,
       flex: 1,
-      border: 'none',
       outlineWidth: 0,
       ...(this.props.small
         ? {
-            textAlign: 'left',
             fontSize: _bodyTextStyle.fontSize,
             fontWeight: _bodyTextStyle.fontWeight,
             lineHeight: _bodyTextStyle.lineHeight,
+            textAlign: 'left',
           }
         : {
-            textAlign: 'center',
+            borderBottom: `1px solid ${underlineColor}`,
             fontSize: _headerTextStyle.fontSize,
             fontWeight: _headerTextStyle.fontWeight,
             lineHeight: _headerTextStyle.lineHeight,
             minWidth: 333,
-            borderBottom: `1px solid ${underlineColor}`,
+            textAlign: 'center',
           }),
     }
 
     const inputStyle = {
       ...commonInputStyle,
-      maxWidth: 460,
       height: this.props.small ? 18 : 28,
+      maxWidth: 460,
     }
 
     const textareaStyle = {
       ...commonInputStyle,
       height: 'initial',
-      width: '100%',
-      resize: 'none',
-      wrap: 'off',
-      paddingTop: 0,
-      paddingBottom: 0,
       minHeight: this._rowsToHeight(this.props.rowsMin || defaultRowsToShow),
+      paddingBottom: 0,
+      paddingTop: 0,
+      resize: 'none',
+      width: '100%',
+      wrap: 'off',
       ...(this.props.rowsMax ? {maxHeight: this._rowsToHeight(this.props.rowsMax)} : {overflowY: 'hidden'}),
     }
 
@@ -324,13 +324,13 @@ class Input extends React.PureComponent<Props, State> {
       autoFocus: this.props.autoFocus,
       className: this.props.className,
       onBlur: this._onBlur,
-      onClick: this.props.onClick,
       onChange: this._onChange,
+      onClick: this.props.onClick,
+      onCompositionEnd: this._onCompositionEnd,
+      onCompositionStart: this._onCompositionStart,
       onFocus: this._onFocus,
       onKeyDown: this._onKeyDown,
       onKeyUp: this._onKeyUp,
-      onCompositionStart: this._onCompositionStart,
-      onCompositionEnd: this._onCompositionEnd,
       placeholder: this.props.hintText,
       readOnly: this.props.hasOwnProperty('editable') && !this.props.editable ? 'readonly' : undefined,
       ref: this._setInputRef,
@@ -356,10 +356,10 @@ class Input extends React.PureComponent<Props, State> {
     const smallLabelStyle = collapseStyles([
       globalStyles.fontSemibold,
       {
+        color: globalColors.blue,
         fontSize: _bodySmallTextStyle.fontSize,
         lineHeight: `${_lineHeight}px`,
         marginRight: 8,
-        color: globalColors.blue,
       },
       this.props.smallLabelStyle,
     ])
@@ -369,26 +369,26 @@ class Input extends React.PureComponent<Props, State> {
     return (
       <Box style={collapseStyles([containerStyle, this.props.style])}>
         <style>{inputRealCSS}</style>
-        {!this.props.small &&
-          !this.props.hideLabel && (
-            <Text type="BodySmallSemibold" style={_floatingStyle}>
-              {floatingHintText}
-            </Text>
-          )}
-        {!!this.props.small &&
-          !!this.props.smallLabel &&
-          !this.props.hideLabel && (
-            <Text type="BodySmall" style={smallLabelStyle}>
-              {this.props.smallLabel}
-            </Text>
-          )}
+        {!this.props.small && !this.props.hideLabel && (
+          <Text center={true} type="BodySmallSemibold" style={_floatingStyle}>
+            {floatingHintText}
+          </Text>
+        )}
+        {!!this.props.small && !!this.props.smallLabel && !this.props.hideLabel && (
+          <Text type="BodySmall" style={smallLabelStyle}>
+            {this.props.smallLabel}
+          </Text>
+        )}
         {this.props.multiline ? <textarea {...multilineProps} /> : <input {...singlelineProps} />}
-        {!!this.props.errorText &&
-          !this.props.small && (
-            <Text type="BodySmallError" style={collapseStyles([_errorStyle, this.props.errorStyle])}>
-              {this.props.errorText}
-            </Text>
-          )}
+        {!!this.props.errorText && !this.props.small && (
+          <Text
+            center={true}
+            type="BodySmallError"
+            style={collapseStyles([_errorStyle, this.props.errorStyle])}
+          >
+            {this.props.errorText}
+          </Text>
+        )}
       </Box>
     )
   }
@@ -400,17 +400,15 @@ const _bodyTextStyle = getTextStyle('Body')
 const _bodySmallTextStyle = getTextStyle('BodySmall')
 
 const _errorStyle = {
-  textAlign: 'center',
-  width: '100%',
   marginTop: globalMargins.xtiny,
+  width: '100%',
 }
 
 const _floatingStyle = platformStyles({
   isElectron: {
-    textAlign: 'center',
-    minHeight: _bodySmallTextStyle.lineHeight,
     color: globalColors.blue,
     display: 'block',
+    minHeight: _bodySmallTextStyle.lineHeight,
   },
 })
 

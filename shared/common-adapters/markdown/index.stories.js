@@ -1,47 +1,108 @@
 // @flow
-import * as I from 'immutable'
 import * as React from 'react'
+import * as ChatConstants from '../../constants/chat2'
 import * as Sb from '../../stories/storybook'
+import HiddenString from '../../util/hidden-string'
 import * as Kb from '../index'
+import {escapePath} from '../../constants/fs'
+import {stringToPath} from '../../constants/types/fs'
 import Markdown, {type MarkdownMeta} from '.'
 import {simpleMarkdownParser} from './shared'
-import OriginalParser from '../../markdown/parser'
 
 const cases = {
+  'Blank lines': `
+
+        hello
+
+
+        world
+
+
+      `,
+  'Code block': `\`\`\`this is a code block\`\`\`
+\`\`\`
+this is a code block that starts with a newline\`\`\`
+\`\`\`
+this is a code block that starts with a newline and ends with a newline
+\`\`\`
+\`\`\`
+
+this is a code block with two newline above\`\`\`
+`,
+  'Escaped chars': '\\*foo\\* I should see asterisks',
+  'Messed up':
+    'I think we should try to use `if else` statements ```if (var == "foo")\n  echo "foo";\nelse echo "bar";`` I think I *missed something**',
+  'NOJIMACode block': `\`\`\`
+
+this is a code block with two newline above\`\`\``,
+  Quotes: `> this is quoted
+> this is _italics_ inside of a quote. This is *bold* inside of a quote.
+> outside code: \`This is an inline block of code in a quote\` outside again
+> \`\`\`
+multi
+line
+code in quote
+\`\`\`
+`,
+  'Quotes 2': `> this is quoted
+> this is _italics_ inside of a quote. This is *bold* inside of a quote.
+> outside code: \`This is an inline block of code in a quote\` outside again
+
+
+
+
+something unrelated
+
+> Separate paragraph
+`,
+  'Quotes 3': `> _foo_ and *bar*! \`\`\`
+a = 1
+\`\`\`
+`,
+  'Quotes 4': `> one _line_ *quote*`,
+  'Quotes 5': `> text here and a \`\`\`code blcok\`\`\``,
+  'Quotes 6': `> \`\`\`code block\`\`\``,
+  'Quotes super nested': `> > > > > > > > > foo bar`,
+  accidentalBoldLists: `
+  List of this:
+   * a
+   * b
+   * c
+  `,
+  bigemoji: ':thumbsup::100:',
+  boldweirdness: `How are you *today*?`,
+  breakTextsOnSpaces: `Text words should break on spaces so that google.com can be parsed by the link parser.`,
   debugging: `\` \` hi \` \``,
   inlineCodeWeirdness: `\` \` hi \` \``,
   inlineCodeWeirdness2: `\` \` hi \n\` \``,
-  breakTextsOnSpaces: `Text words should break on spaces so that google.com can be parsed by the link parser.`,
-  underscoreweirdness: `under_score the first, \`under_score the second\``,
-  boldweirdness: `How are you *today*?`,
-  transparentEmojis: ` 😀 😁 😍 ☝️ `,
-  transparentEmojis2: `these should be solid 😀 😁 😍 ☝️ `,
-  transparentEmojis3: `😶`,
-  mailto: `email bob@keybase.io`,
-  nonemoji: `:party-parrot:`,
-  quoteInParagraph: `Do you remember when you said:
-> Where do I make the left turn?`,
-  paragraphs: `this is a sentence.
-this is the next line
-and another with two below
-
-this is the one below.`,
-  normal: `I think we should try to use \`if else\` statements \`\`\`
-if (var == "foo")
-  echo "foo";
-else echo "bar";\`\`\`
-     How about *bold* and _italic?_ nice. :smile:
-a whole bunch of native emojis 😀 😁 😍 ☝️ ☎️
-a whole bunch of string emojis :thumbsup: :cry: :fireworks:
-Now youre thinking with ~portals~ crypto.
-how about ~_*bold and italic and strike through?*_~ - now - _*some bold* and just italic_ bold.*with*.punctuation!`,
-  'special chars in code block': `I think we should try to use \`if else\` statements \`\`\`if (var == "foo")
-  echo "foo";
-else echo "bar";
-  // this should be *asterisk* \`\`\``,
-  'Messed up':
-    'I think we should try to use `if else` statements ```if (var == "foo")\n  echo "foo";\nelse echo "bar";`` I think I *missed something**',
-  'Escaped chars': '\\*foo\\* I should see asterisks',
+  kbfsPaths: `
+      /keybase ha
+      /keybase/哟
+      before/keybase
+      之前/keybase
+      /keybase/private /keybase
+      /keybase/public
+      /keybase/team
+      /keybase/private/
+      /keybase/team/keybase
+      /keybase/team/keybase/blahblah
+      ${escapePath(stringToPath('/keybase/team/keybase/blah blah blah'))}
+      ${escapePath(stringToPath('/keybase/team/keybase/blah\\blah\\blah'))}
+      /keybase/team/keybase/blahblah/
+      /keybase/private/songgao/🍻
+      /keybase/private/songgao/🍻/🍹.png/
+      /keybase/private/songgao/囧/yo
+      /keybase/private/__songgao__@twitter,strib@github,jzila@reddit,jakob.weisbl.at@dns/file
+      /keybase/private/songgao,strib#jzila,jakob223/file
+      /keybase/private/songgao,strib#jzila/file
+      /keybase/private/song-gao,strib#jzila/file
+      /keybase/team/keybase,blah
+      /keybase/team/keybase.blah
+      /keybaseprivate
+      /keybaseprivate/team
+      /keybase/teamaa/keybase
+      /foo
+      /keybase`,
   links: `
 Ignore:
   a...b,
@@ -53,6 +114,11 @@ Include:
   https://maps.google.com?q=Goddess%20and%20the%20Baker,%20Legacy%20Tower,%20S%20Wabash%20Ave,%20Chicago,%20IL%2060603&ftid=0x880e2ca4623987cb:0x8b9a49f6050a873a&hl=en-US&gl=us
   http://abc.io
   http://cbs.io/
+  Http://cbs.io/
+  HTTP://cbs.io/
+  Https://cbs.io/
+  HTTPs://cbs.io/
+  httpS://cbs.io/
   *http://cnn.io*
   *http://fox.io/~test*
   _http://dog.io_
@@ -74,136 +140,91 @@ Include:
   http://keybase.io/blah/../up-one/index.html
   keybase.io/)(,)?=56,78,910@123
   abc subdomain.domain.com
+  https://www.google.com/maps/place/85+Broad+St,+New+York,+NY+10004/@40.7040702,-74.0133343,17z/data=!3m1!4b1!4m5!3m4!1s0x89c25a141703be89:0x74c637bf3f5d8f7d!8m2!3d40.7040662!4d-74.0111456
+Internationalized Domain Names:
+  the 'a' in http://ebаy.com isn't an ascii 'a'
+  https://www.google.com/search?q=ebаy the params should be allowed
 These should have the trailing punctuation outside the link:
   amazon.co.uk.
   keybase.io,
   keybase.io.
+  http://keybase.io/mikem,
+  http://keybase.io/mikem;
+  http://keybase.io/mikem:
+  http://keybase.io/mikem!
   keybase.io?
   *http://keybase.io/*.
   *http://keybase.io/~_*
+Paranthesis stuff:
+  https://en.wikipedia.org/wiki/J/Z_(New_York_City_Subway_service)
+  (https://keybase.io/)
 `,
-  Quotes: `> this is quoted
-> this is _italics_ inside of a quote. This is *bold* inside of a quote.
-> outside code: \`This is an inline block of code in a quote\` outside again
-> \`\`\`
-multi
-line
-code in quote
-\`\`\`
-`,
-  'Quotes 2': `> this is quoted
-> this is _italics_ inside of a quote. This is *bold* inside of a quote.
-> outside code: \`This is an inline block of code in a quote\` outside again
+  mailto: `email bob@keybase.io`,
+  nonemoji: `:party-parrot:`,
+  normal: `I think we should try to use \`if else\` statements \`\`\`
+if (var == "foo")
+  echo "foo";
+else echo "bar";\`\`\`
+     How about *bold* and _italic?_ nice. :smile:
+a whole bunch of native emojis 😀 😁 😍 ☝️ ☎️
+a whole bunch of string emojis :thumbsup: :cry: :fireworks:
+Now youre thinking with ~portals~ crypto.
+how about ~_*bold and italic and strike through?*_~ - now - _*some bold* and just italic_ bold.*with*.punctuation!`,
+  paragraphs: `this is a sentence.
+this is the next line
+and another with two below
 
-
-
-
-something unrelated
-
-> Separate paragraph
-`,
-  'Quotes super nested': `> > > > > > > > > foo bar`,
-  'Quotes 3': `> _foo_ and *bar*! \`\`\`
-a = 1
-\`\`\`
-`,
-  'Quotes 4': `> one _line_ *quote*`,
-  'Quotes 5': `> text here and a \`\`\`code blcok\`\`\``,
-  'Quotes 6': `> \`\`\`code block\`\`\``,
-  'NOJIMACode block': `\`\`\`
-
-this is a code block with two newline above\`\`\``,
-  'Code block': `\`\`\`this is a code block\`\`\`
-\`\`\`
-this is a code block that starts with a newline\`\`\`
-\`\`\`
-this is a code block that starts with a newline and ends with a newline
-\`\`\`
-\`\`\`
-
-this is a code block with two newline above\`\`\`
-`,
-  'Blank lines': `
-
-        hello
-
-
-        world
-
-
-      `,
-  bigemoji: ':thumbsup::100:',
+this is the one below.`,
+  quoteInParagraph: `Do you remember when you said:
+> Where do I make the left turn?`,
+  'special chars in code block': `I think we should try to use \`if else\` statements \`\`\`if (var == "foo")
+  echo "foo";
+else echo "bar";
+  // this should be *asterisk* \`\`\``,
+  transparentEmojis: ` 😀 😁 😍 ☝️ `,
+  transparentEmojis2: `these should be solid 😀 😁 😍 ☝️ `,
+  transparentEmojis3: `😶`,
+  underscoreweirdness: `under_score the first, \`under_score the second\``, // <--- end of string
 }
 
 const mockMeta = {
-  mentionsChannelName: I.Map({
-    // $ForceType
-    general: '0000bbbbbbbbbbbbbbaaaaaaaaaaaaadddddddddccccccc0000000ffffffeeee',
-  }),
-  mentionsChannel: 'all',
-  mentionsAt: I.Set(['following', 'notFollowing', 'myUsername', 'noTheme']),
+  message: ChatConstants.makeMessageText(),
 }
 
 const mocksWithMeta = {
-  'Channel Name Mention': {
-    text: 'Hey! I *just* posted a video of my sick jump on #general',
+  'Channel Mention': {
     meta: mockMeta,
+    text: `Hey @channel, theres *FREE* pizza in the kitchen!`,
+  },
+  'Channel Name Mention': {
+    meta: mockMeta,
+    text: 'Hey! I *just* posted a video of my sick jump on #general',
+  },
+  'Inline send': {
+    meta: {
+      message: ChatConstants.makeMessageText({
+        decoratedText: new HiddenString(
+          `$>kb\${"typ":0,"payment":{"username":"chrisnojima","paymentText":"+0.001XLM@chrisnojima","result":{"resultTyp":0,"sent":"63f55e57bf53402e54b587cd035f96fb7136d0c98b46d6926e41360000000000"}}}$<kb$`
+        ),
+      }),
+    },
+    text: `$>kb\${"typ":0,"payment":{"username":"chrisnojima","paymentText":"+0.001XLM@chrisnojima","result":{"resultTyp":0,"sent":"63f55e57bf53402e54b587cd035f96fb7136d0c98b46d6926e41360000000000"}}}$<kb$`,
   },
   'User mention - Following': {
+    meta: mockMeta,
     text: 'Hey @following, are you still there?',
-    meta: mockMeta,
-  },
-  'User mention - Not Following': {
-    text: 'Hey @notFollowing, are you still there?',
-    meta: mockMeta,
-  },
-  'User mention - You': {
-    text: 'Hey @myUsername, are you still there?',
-    meta: mockMeta,
   },
   'User mention - No Theme': {
+    meta: mockMeta,
     text: 'Hey @noTheme, are you still there?',
-    meta: mockMeta,
   },
-  'User mention - Edge cases': {
-    text: `hi @you, I hope you're doing well.
-
-this is @valid_
-
-this is @_not
-
-this isn't@either
-
-@this_is though
-
-and @this!
-
-this is the smallest username @aa and @a_ this is too small @a 
-
-this is a @long_username
-
-this is too long: @01234567890abcdef`,
-    meta: {
-      ...mockMeta,
-      // This is here to test that the regex is properly not picking up some of these
-      mentionsAt: I.Set([
-        'valid_',
-        '_not',
-        'either',
-        'this_is',
-        'this',
-        'aa',
-        'a_',
-        'a',
-        'long_username',
-        '01234567890abcdef',
-        'you',
-      ]),
-    },
-  },
-  'Channel Mention': {
-    text: `Hey @channel, theres *FREE* pizza in the kitchen!`,
+  'User mention - Not Following': {
     meta: mockMeta,
+    text: 'Hey @notFollowing, are you still there?',
+  },
+  'User mention - You': {
+    meta: mockMeta,
+    text: 'Hey @myUsername, are you still there?',
   },
 }
 
@@ -242,26 +263,30 @@ const randomGenerated = {
   'Case 6': generateCase('case 6'),
 }
 
-const provider = Sb.createPropProviderWithCommon({})
+export const provider = Sb.createPropProviderWithCommon({
+  PaymentPopup: p => ({}),
+  PaymentStatus: p => ({
+    allowFontScaling: true,
+    allowPopup: false,
+    errorDetail: null,
+    isSendError: false,
+    message: p.message,
+    paymentID: '123',
+    status: 'completed',
+    text: 'tada',
+  }),
+})
 
-class ShowAST extends React.Component<
-  {text: string, simple: boolean, meta: ?MarkdownMeta},
-  {visible: boolean}
-> {
+class ShowAST extends React.Component<{text: string, meta: ?MarkdownMeta}, {visible: boolean}> {
   state = {visible: false}
   render = () => {
     let parsed
     try {
-      parsed = this.props.simple
-        ? simpleMarkdownParser((this.props.text || '').trim() + '\n', {
-            inline: false,
-            disableAutoBlockNewlines: true,
-            markdownMeta: this.props.meta,
-          })
-        : OriginalParser.parse(this.props.text, {
-            channelNameToConvID: (channel: string) => null,
-            isValidMention: (mention: string) => false,
-          })
+      parsed = simpleMarkdownParser((this.props.text || '').trim() + '\n', {
+        disableAutoBlockNewlines: true,
+        inline: false,
+        markdownMeta: this.props.meta,
+      })
     } catch (error) {
       parsed = {error}
     }
@@ -283,10 +308,10 @@ class ShowAST extends React.Component<
                   k === 'type'
                     ? v
                     : typeof v === 'string'
-                      ? v.substr(0, 8) + (v.length > 8 ? '...' : '')
-                      : Array.isArray(v)
-                        ? v.map(o => ({type: o.type, content: o.content}))
-                        : v,
+                    ? v.substr(0, 8) + (v.length > 8 ? '...' : '')
+                    : Array.isArray(v)
+                    ? v.map(o => ({content: o.content, type: o.type}))
+                    : v,
                 2
               ) +
               '\n```'}
@@ -297,10 +322,7 @@ class ShowAST extends React.Component<
   }
 }
 
-class ShowPreview extends React.Component<
-  {text: string, simple: boolean, meta: ?MarkdownMeta},
-  {visible: boolean}
-> {
+class ShowPreview extends React.Component<{text: string, meta: ?MarkdownMeta}, {visible: boolean}> {
   state = {visible: false}
   render = () => {
     return (
@@ -311,7 +333,7 @@ class ShowPreview extends React.Component<
           type="Primary"
         />
         {this.state.visible && (
-          <Markdown simple={this.props.simple} preview={true} meta={this.props.meta}>
+          <Markdown preview={true} meta={this.props.meta}>
             {this.props.text}
           </Markdown>
         )}
@@ -323,18 +345,14 @@ class ShowPreview extends React.Component<
 // Adds the perf decorator and disables showing previews and ast
 const PERF_MODE = false
 
-const MarkdownWithAst = ({children, simple, meta}: {children: any, simple: boolean, meta?: ?MarkdownMeta}) =>
+const MarkdownWithAst = ({children, meta}: {children: any, meta?: ?MarkdownMeta}) =>
   PERF_MODE ? (
-    <Markdown simple={simple} meta={meta}>
-      {children}
-    </Markdown>
+    <Markdown meta={meta}>{children}</Markdown>
   ) : (
     <Kb.Box2 direction="vertical">
-      <Markdown simple={simple} meta={meta}>
-        {children}
-      </Markdown>
-      <ShowAST text={children} simple={simple} meta={meta} />
-      <ShowPreview text={children} simple={simple} meta={meta} />
+      <Markdown meta={meta}>{children}</Markdown>
+      <ShowAST text={children} meta={meta} />
+      <ShowPreview text={children} meta={meta} />
     </Kb.Box2>
   )
 
@@ -348,61 +366,26 @@ const load = () => {
   }
 
   Object.keys(cases).forEach(k => {
-    s = s.add(k + '[comparison]', () => (
-      <Kb.Box2 direction="horizontal">
-        <Markdown style={{flex: 1}} simple={true}>
-          {cases[k]}
-        </Markdown>
-        <Markdown style={{flex: 1}} simple={false}>
-          {cases[k]}
-        </Markdown>
-      </Kb.Box2>
-    ))
-    s = s.add(k + '[s]', () => <MarkdownWithAst simple={true}>{cases[k]}</MarkdownWithAst>)
-    s = s.add(k + '[o]', () => <MarkdownWithAst simple={false}>{cases[k]}</MarkdownWithAst>)
+    s = s.add(k, () => <MarkdownWithAst>{cases[k]}</MarkdownWithAst>)
   })
 
   Object.keys(mocksWithMeta).forEach(k => {
-    s = s.add(k + '[comparison]', () => (
-      <Kb.Box2 direction="horizontal">
-        <Markdown style={{flex: 1}} simple={true} meta={mocksWithMeta[k].meta}>
-          {mocksWithMeta[k].text}
-        </Markdown>
-        <Markdown style={{flex: 1}} simple={false} meta={mocksWithMeta[k].meta}>
-          {mocksWithMeta[k].text}
-        </Markdown>
-      </Kb.Box2>
-    ))
-    s = s.add(k + '[s]', () => (
-      <MarkdownWithAst simple={true} meta={mocksWithMeta[k].meta}>
-        {mocksWithMeta[k].text}
-      </MarkdownWithAst>
-    ))
-    s = s.add(k + '[o]', () => (
-      <MarkdownWithAst simple={false} meta={mocksWithMeta[k].meta}>
-        {mocksWithMeta[k].text}
-      </MarkdownWithAst>
+    s = s.add(k, () => (
+      <MarkdownWithAst meta={mocksWithMeta[k].meta}>{mocksWithMeta[k].text}</MarkdownWithAst>
     ))
   })
 
   Object.keys(randomGenerated).forEach(k => {
     s = s.add(k + '[comparison]', () => (
       <Kb.Box2 direction="horizontal">
-        <Markdown style={{flex: 1}} simple={true}>
-          {randomGenerated[k]}
-        </Markdown>
-        <Kb.Box style={{backgroundColor: 'black', width: 1}} />
-        <Markdown style={{flex: 1}} simple={false}>
-          {randomGenerated[k]}
-        </Markdown>
+        <Markdown style={{flex: 1}}>{randomGenerated[k]}</Markdown>
         <Kb.Box style={{backgroundColor: 'black', width: 1}} />
         <Kb.Text style={{flex: 1}} type="Body">
           {JSON.stringify(randomGenerated[k])}
         </Kb.Text>
       </Kb.Box2>
     ))
-    s = s.add(k + '[s]', () => <MarkdownWithAst simple={true}>{randomGenerated[k]}</MarkdownWithAst>)
-    s = s.add(k + '[o]', () => <Markdown simple={false}>{randomGenerated[k]}</Markdown>)
+    s = s.add(k, () => <MarkdownWithAst>{randomGenerated[k]}</MarkdownWithAst>)
   })
 }
 

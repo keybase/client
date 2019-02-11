@@ -15,10 +15,10 @@ class SystemText extends React.PureComponent<Props> {
     const {author, timestamp, text} = this.props.message
     return (
       <UserNotice style={{marginTop: globalMargins.small}} username={author} bgColor={globalColors.blue4}>
-        <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
+        <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_50}}>
           {formatTimeForMessages(timestamp)}
         </Text>
-        <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_40}}>
+        <Text type="BodySmallSemibold" backgroundMode="Announcements" style={{color: globalColors.black_50}}>
           {text.stringValue()}
         </Text>
       </UserNotice>

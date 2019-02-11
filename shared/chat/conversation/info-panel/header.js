@@ -1,38 +1,20 @@
 // @flow
 import * as React from 'react'
-import {
-  Box,
-  Box2,
-  ClickableBox,
-  Icon,
-  Markdown,
-  ConnectedNameWithIcon,
-  Text,
-  iconCastPlatformStyles,
-  type OverlayParentProps,
-  OverlayParentHOC,
-} from '../../../common-adapters'
+import * as Kb from '../../../common-adapters'
+import * as Styles from '../../../styles'
 import InfoPanelMenu from './menu/container'
-import {
-  glamorous,
-  globalMargins,
-  globalStyles,
-  isMobile,
-  platformStyles,
-  styleSheetCreate,
-} from '../../../styles'
 
 type SmallProps = {
   teamname: string,
   participantCount: number,
   isSmallTeam: boolean,
-} & OverlayParentProps
+} & Kb.OverlayParentProps
 
-const gearIconSize = isMobile ? 24 : 16
+const gearIconSize = Styles.isMobile ? 24 : 16
 
 const _SmallTeamHeader = (props: SmallProps) => {
   return (
-    <Box style={styles.smallContainer}>
+    <Kb.Box style={styles.smallContainer}>
       <InfoPanelMenu
         attachTo={props.getAttachmentRef}
         onHidden={props.toggleShowingMenu}
@@ -40,7 +22,7 @@ const _SmallTeamHeader = (props: SmallProps) => {
         teamname={props.teamname}
         visible={props.showingMenu}
       />
-      <ConnectedNameWithIcon
+      <Kb.ConnectedNameWithIcon
         containerStyle={styles.flexOne}
         horizontal={true}
         teamname={props.teamname}
@@ -48,17 +30,17 @@ const _SmallTeamHeader = (props: SmallProps) => {
         title={props.teamname}
         metaOne={props.participantCount.toString() + ' member' + (props.participantCount !== 1 ? 's' : '')}
       />
-      <Icon
+      <Kb.Icon
         type="iconfont-gear"
         onClick={props.toggleShowingMenu}
         ref={props.setAttachmentRef}
-        style={iconCastPlatformStyles(styles.gear)}
+        style={Kb.iconCastPlatformStyles(styles.gear)}
         fontSize={gearIconSize}
       />
-    </Box>
+    </Kb.Box>
   )
 }
-const SmallTeamHeader = OverlayParentHOC(_SmallTeamHeader)
+const SmallTeamHeader = Kb.OverlayParentHOC(_SmallTeamHeader)
 
 // TODO probably factor this out into a connected component
 type BigProps = {|
@@ -69,60 +51,62 @@ type BigProps = {|
   onEditChannel: () => void,
 |}
 
-const EditBox = isMobile
-  ? ClickableBox
-  : glamorous(ClickableBox)({
-      opacity: 0,
+type BigTeamHeaderProps = BigProps
+
+const EditBox = Styles.isMobile
+  ? Kb.ClickableBox
+  : Styles.styled(Kb.ClickableBox)({
       '.header-row:hover &': {
         opacity: 1,
       },
+      opacity: 0,
     })
 
-const BigTeamHeader = (props: BigProps) => {
+const BigTeamHeader = (props: BigTeamHeaderProps) => {
   return (
-    <Box2 direction={'vertical'} fullWidth={true} centerChildren={true} className="header-row">
-      <Box style={styles.channelnameContainer}>
-        <Text type="BodyBig">#{props.channelname}</Text>
+    <Kb.Box2 direction={'vertical'} fullWidth={true} centerChildren={true} className="header-row">
+      <Kb.Box style={styles.channelnameContainer}>
+        <Kb.Text type="BodyBig">#{props.channelname}</Kb.Text>
         {props.canEditChannel && (
           <EditBox style={styles.editBox} onClick={props.onEditChannel}>
-            <Icon style={iconCastPlatformStyles(styles.editIcon)} type="iconfont-edit" />
-            <Text type="BodySmallPrimaryLink" className="hover-underline">
+            <Kb.Icon style={Kb.iconCastPlatformStyles(styles.editIcon)} type="iconfont-edit" />
+            <Kb.Text type="BodySmallPrimaryLink" className="hover-underline">
               Edit
-            </Text>
+            </Kb.Text>
           </EditBox>
         )}
-      </Box>
-      {!!props.description && <Markdown style={styles.description}>{props.description}</Markdown>}
-    </Box2>
+      </Kb.Box>
+      {!!props.description && <Kb.Markdown style={styles.description}>{props.description}</Kb.Markdown>}
+    </Kb.Box2>
   )
 }
 
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   channelnameContainer: {
     alignSelf: 'center',
-    marginTop: globalMargins.medium,
     marginBottom: 2,
+    marginTop: Styles.globalMargins.medium,
     position: 'relative',
   },
   description: {
-    paddingLeft: globalMargins.small,
-    paddingRight: globalMargins.small,
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
     textAlign: 'center',
   },
   editBox: {
-    ...globalStyles.flexBoxRow,
+    ...Styles.globalStyles.flexBoxRow,
     position: 'absolute',
     right: -50,
-    top: isMobile ? 2 : 1,
+    top: Styles.isMobile ? 2 : 1,
   },
-  editIcon: {marginRight: globalMargins.xtiny},
+  editIcon: {marginRight: Styles.globalMargins.xtiny},
   flexOne: {flex: 1},
-  gear: platformStyles({
+  gear: Styles.platformStyles({
     common: {
-      paddingRight: 16,
-      paddingLeft: 16,
-      width: gearIconSize,
       height: gearIconSize,
+      paddingLeft: 16,
+      paddingRight: 16,
+      width: gearIconSize,
     },
     isMobile: {
       marginRight: 16,
@@ -130,9 +114,9 @@ const styles = styleSheetCreate({
     },
   }),
   smallContainer: {
-    ...globalStyles.flexBoxRow,
+    ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
-    marginLeft: globalMargins.small,
+    marginLeft: Styles.globalMargins.small,
   },
 })
 

@@ -1,48 +1,55 @@
 // @flow
+import * as Styles from '../styles'
 import type {ServiceIdWithContact} from '../constants/types/team-building'
 import type {IconType} from '../common-adapters/icon.constants'
 
-// TODO
-// use 16px version
-// use 14px version
-
-const serviceIdToLogo16 = (service: ServiceIdWithContact, isActive: boolean): IconType => {
-  // Round about so that flow is happy
-  const map = isActive
-    ? {
-        contact: 'icon-search-twitter-active-32',
-        facebook: 'icon-search-facebook-active-32',
-        github: 'icon-search-github-active-32',
-        hackernews: 'icon-search-hacker-news-active-32',
-        keybase: 'icon-search-keybase-active-32',
-        pgp: 'icon-pgp-key-32',
-        reddit: 'icon-search-reddit-active-32',
-        twitter: 'icon-search-twitter-active-32',
-      }
-    : {
-        contact: 'icon-search-twitter-inactive-32',
-        facebook: 'icon-search-facebook-inactive-32',
-        github: 'icon-search-github-inactive-32',
-        hackernews: 'icon-search-hacker-news-inactive-32',
-        keybase: 'icon-search-keybase-inactive-32',
-        pgp: 'icon-pgp-key-32',
-        reddit: 'icon-search-reddit-inactive-32',
-        twitter: 'icon-search-twitter-inactive-32',
-      }
-
-  return map[service]
+const services = {
+  contact: {
+    color: '#000',
+    icon: 'iconfont-identity-twitter',
+    label: 'Your contacts', // TODO: rethink this for the empty state when we're actually using it
+  },
+  facebook: {
+    color: '#3B5998',
+    icon: 'iconfont-identity-facebook',
+    label: 'Facebook',
+  },
+  github: {
+    color: '#333',
+    icon: 'iconfont-identity-github',
+    label: 'GitHub',
+  },
+  hackernews: {
+    color: '#FF6600',
+    icon: 'iconfont-identity-hn',
+    label: 'Hacker News',
+  },
+  keybase: {
+    color: '#4C8EFF',
+    icon: 'iconfont-keybase',
+    label: 'Keybase',
+  },
+  pgp: {
+    color: '#000',
+    icon: 'iconfont-identity-pgp',
+    label: 'PGP',
+  },
+  reddit: {
+    color: '#ff4500',
+    icon: 'iconfont-identity-reddit',
+    label: 'Reddit',
+  },
+  twitter: {
+    color: '#1DA1F2',
+    icon: 'iconfont-identity-twitter',
+    label: 'Twitter',
+  },
 }
 
-const serviceIdToLogo14 = (service: ServiceIdWithContact): IconType =>
-  ({
-    contact: 'icon-twitter-logo-32',
-    facebook: 'icon-facebook-logo-32',
-    github: 'icon-github-logo-32',
-    hackernews: 'icon-hacker-news-logo-32',
-    keybase: 'icon-keybase-logo-32',
-    pgp: 'icon-pgp-key-32',
-    reddit: 'icon-reddit-logo-32',
-    twitter: 'icon-twitter-logo-32',
-  }[service])
+const serviceIdToAccentColor = (service: ServiceIdWithContact): string => services[service].color
+const serviceIdToIconFont = (service: ServiceIdWithContact): IconType => services[service].icon
+const serviceIdToLabel = (service: ServiceIdWithContact): string => services[service].label
 
-export {serviceIdToLogo16, serviceIdToLogo14}
+const inactiveServiceAccentColor = Styles.globalColors.black_50
+
+export {serviceIdToIconFont, serviceIdToAccentColor, inactiveServiceAccentColor, serviceIdToLabel}

@@ -28,18 +28,7 @@ class SearchResultsList extends Component<Props> {
 
   _list = null
   _setRef = r => (this._list = r)
-
-  componentDidUpdate(prevProps: Props) {
-    if (this.props.selectedId !== prevProps.selectedId) {
-      const list = this._list
-      if (list && this.props.selectedId) {
-        const idx = this.props.items.indexOf(this.props.selectedId)
-        if (idx !== -1) {
-          list.scrollAround(idx)
-        }
-      }
-    }
-  }
+  _itemSizeGetter = () => 48
 
   render() {
     const {showSearchSuggestions, style, items} = this.props
@@ -49,10 +38,10 @@ class SearchResultsList extends Component<Props> {
       return <EmptyResults style={style} />
     }
     return (
-      <Box style={{width: '100%', height: 240, ...style}}>
+      <Box style={{height: 240, width: '100%', ...style}}>
         {showSearchSuggestions && (
           <Box style={{padding: globalMargins.tiny}}>
-            <Text type="BodySmallSemibold" style={{color: globalColors.black_40}}>
+            <Text type="BodySmallSemibold" style={{color: globalColors.black_50}}>
               Recommendations
             </Text>
           </Box>
@@ -63,7 +52,8 @@ class SearchResultsList extends Component<Props> {
           itemRenderer={this._itemRenderer}
           ref={this._setRef}
           length={items.length}
-          type="uniform"
+          itemSizeGetter={this._itemSizeGetter}
+          type="variable"
         />
       </Box>
     )

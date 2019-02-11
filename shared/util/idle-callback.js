@@ -23,8 +23,8 @@ const useFallback = typeof window === 'undefined' || !window.requestIdleCallback
 const requestIdleCallback = forceImmediateLogging
   ? immediateCallback
   : useFallback
-    ? timeoutFallback
-    : window.requestIdleCallback.bind(window)
+  ? timeoutFallback
+  : window.requestIdleCallback.bind(window)
 
 const onIdlePromise = (timeout: number = 100): Promise<TimeoutInfo> =>
   new Promise(resolve => requestIdleCallback(resolve, {timeout}))

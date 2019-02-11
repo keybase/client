@@ -2,12 +2,21 @@
 import * as React from 'react'
 import PopupDialog from './popup-dialog'
 
-export default function PopupDialogHoc<P>(
-  ChildComponent: React.ComponentType<P>
-): React.ComponentType<P & {onClosePopup: () => void}> {
-  return ({onClosePopup, ...restProps}: P & {onClosePopup: () => void}) => (
-    <PopupDialog onClose={onClosePopup} styleClose={{display: 'none'}}>
-      <ChildComponent {...restProps} />
-    </PopupDialog>
-  )
+type HocExtractProps = {
+  onClosePopup: () => void,
 }
+
+function popupDialogHoc<Config: {} & HocExtractProps>(
+  Component: React.AbstractComponent<$Diff<Config, HocExtractProps>>
+): React.AbstractComponent<Config & HocExtractProps> {
+  return function WrappedPopupDialog(props: Config) {
+    const {onClosePopup, ...rest} = props
+    return (
+      <PopupDialog onClose={onClosePopup} styleClose={{display: 'none'}}>
+        <Component {...rest} />
+      </PopupDialog>
+    )
+  }
+}
+
+export default popupDialogHoc

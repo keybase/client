@@ -20,6 +20,7 @@ type State = {
 }
 
 const sizeToTeamBorderRadius = {
+  '12': 2,
   '128': 12,
   '16': 4,
   '32': 5,
@@ -116,14 +117,13 @@ class AvatarRender extends React.PureComponent<Props, State> {
     return (
       <ClickableBox onClick={this.props.onClick} feedback={false} style={containerStyle}>
         <Box style={containerStyle}>
-          {!this.props.skipBackground &&
-            (!this.props.skipBackgroundAfterLoaded || !this.state.loaded) && (
-              <Background
-                loaded={this.state.loaded}
-                loadingColor={this.props.loadingColor}
-                borderRadius={borderRadius}
-              />
-            )}
+          {!this.props.skipBackground && (!this.props.skipBackgroundAfterLoaded || !this.state.loaded) && (
+            <Background
+              loaded={this.state.loaded}
+              loadingColor={this.props.loadingColor}
+              borderRadius={borderRadius}
+            />
+          )}
           {!!this.props.url && (
             <UserImage
               opacity={this.props.opacity}
@@ -166,7 +166,7 @@ class AvatarRender extends React.PureComponent<Props, State> {
   }
 }
 
-const sizes = [128, 96, 64, 48, 32, 16]
+const sizes = [128, 96, 64, 48, 32, 16, 12]
 
 const iconStyles = sizes.reduce((map, size) => {
   map[`icon:${size}`] = {height: size, width: size}
@@ -180,6 +180,7 @@ const boxStyles = sizes.reduce((map, size) => {
 
 const imageStyles = sizes.reduce((map, size) => {
   map[`image:${size}`] = {
+    backgroundColor: globalColors.fastBlank,
     bottom: 0,
     height: size,
     left: 0,

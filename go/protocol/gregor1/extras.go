@@ -435,8 +435,16 @@ func ToDurationMsec(d time.Duration) DurationMsec {
 	return DurationMsec(d / time.Millisecond)
 }
 
+func (d DurationMsec) ToDuration() time.Duration {
+	return time.Duration(d) * time.Millisecond
+}
+
 func ToDurationSec(d time.Duration) DurationSec {
 	return DurationSec(d / time.Second)
+}
+
+func (d DurationSec) ToDuration() time.Duration {
+	return time.Duration(d) * time.Second
 }
 
 // DeviceID returns the deviceID in a SyncArc, or interface nil

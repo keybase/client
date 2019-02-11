@@ -12,35 +12,25 @@ type OwnProps = {|
   onLoadingStateChange?: () => void,
 |}
 
-const mapStateToProps = (state, {path}: OwnProps) => {
-  const pathItem = state.fs.pathItems.get(path, Constants.unknownPathItem)
-  const _username = state.config.username || undefined
-  return {
-    _username,
-    _path: path,
-    fileUIEnabled: state.fs.fuseStatus ? state.fs.fuseStatus.kextStarted : false,
-    pathItem,
-  }
-}
+const mapStateToProps = (state, {path}: OwnProps) => ({
+  fileUIEnabled: Constants.kbfsEnabled(state),
+  pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
+})
 
 const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
-  download: () => dispatch(FsGen.createDownload(Constants.makeDownloadPayload(path))),
-  saveMedia: () => dispatch(FsGen.createSaveMedia(Constants.makeDownloadPayload(path))),
-  shareNative: () => dispatch(FsGen.createShareNative(Constants.makeDownloadPayload(path))),
+  download: () => dispatch(FsGen.createDownload({key: Constants.makeDownloadKey(path), path})),
   showInSystemFileManager: () => dispatch(FsGen.createOpenPathInSystemFileManager({path})),
 })
 
-const mergeProps = (stateProps, dispatchProps) => {
-  const {fileUIEnabled, _path, pathItem, _username} = stateProps
-  const {download, saveMedia, shareNative, showInSystemFileManager} = dispatchProps
-  const itemStyles = Constants.getItemStyles(Types.getPathElements(_path), pathItem.type, _username)
+const mergeProps = (stateProps, dispatchProps, {path, routePath}) => {
+  const {fileUIEnabled, pathItem} = stateProps
+  const {download, showInSystemFileManager} = dispatchProps
   return {
-    fileUIEnabled,
-    itemStyles,
-    pathItem,
     download,
-    saveMedia,
-    shareNative,
+    fileUIEnabled,
+    path,
+    pathItem,
+    routePath,
     showInSystemFileManager,
   }
 }

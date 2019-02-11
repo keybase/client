@@ -7,10 +7,12 @@ export type Props = {
   children: React.Node,
   badgeNumbers: {[key: TabConstants.Tab]: number},
   isModal: boolean,
+  logoutInProgress: boolean,
   selectedTab: Tab,
   onTabChange: (tab: Tab) => void,
   onLogout: () => void,
   badgeNotifications?: boolean,
+  hasRandomPW?: boolean,
 }
 
 export default class Render extends React.Component<Props> {}

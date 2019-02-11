@@ -82,10 +82,57 @@ type memberOutBody struct {
 	} `json:"reset_user"`
 }
 
+type homeTodoMap map[keybase1.HomeScreenTodoType]int
+type homeItemMap map[keybase1.HomeScreenItemType]homeTodoMap
+
 type homeStateBody struct {
-	Version        int           `json:"version"`
-	BadgeCount     int           `json:"badge_count"`
-	LastViewedTime keybase1.Time `json:"last_viewed_time"`
+	Version              int           `json:"version"`
+	BadgeCountMap        homeItemMap   `json:"badge_count_map"`
+	LastViewedTime       keybase1.Time `json:"last_viewed_time"`
+	AnnouncementsVersion int           `json:"announcements_version"`
+}
+
+// countKnownBadges looks at the map sent down by gregor and considers only those
+// types that are known to the client. The rest, it assumes it cannot display,
+// and doesn't count those badges toward the badge count. Note that the shape
+// of this map is two-deep.
+//
+//   { 1 : { 2 : 3, 4 : 5 }, 3 : { 10001 : 1 } }
+//
+// Implies that are 3 badges on TODO type PROOF, 5 badges on TODO type FOLLOW,
+// and 1 badges in ANNOUNCEMENTs.
+//
+func countKnownBadges(m homeItemMap) int {
+	var ret int
+	for itemType, todoMap := range m {
+		if _, found := keybase1.HomeScreenItemTypeRevMap[itemType]; !found {
+			continue
+		}
+		for todoType, v := range todoMap {
+			_, found := keybase1.HomeScreenTodoTypeRevMap[todoType]
+			if (itemType == keybase1.HomeScreenItemType_TODO && found) ||
+				(itemType == keybase1.HomeScreenItemType_ANNOUNCEMENT && todoType >= keybase1.HomeScreenTodoType_ANNONCEMENT_PLACEHOLDER) {
+				ret += v
+			}
+		}
+	}
+	return ret
+}
+
+func homeStateLessThan(a *homeStateBody, b homeStateBody) bool {
+	if a == nil {
+		return true
+	}
+	if a.Version < b.Version {
+		return true
+	}
+	if a.Version == b.Version && a.LastViewedTime < b.LastViewedTime {
+		return true
+	}
+	if a.AnnouncementsVersion < b.AnnouncementsVersion {
+		return true
+	}
+	return false
 }
 
 // UpdateWithGregor updates the badge state from a gregor state.
@@ -128,9 +175,9 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 				continue
 			}
 			sentUp := false
-			if hsb == nil || hsb.Version < tmp.Version || (hsb.Version == tmp.Version && hsb.LastViewedTime < tmp.LastViewedTime) {
+			if homeStateLessThan(hsb, tmp) {
 				hsb = &tmp
-				b.state.HomeTodoItems = hsb.BadgeCount
+				b.state.HomeTodoItems = countKnownBadges(hsb.BadgeCountMap)
 				sentUp = true
 			}
 			b.log.Debug("incoming home.state (sentUp=%v): %+v", sentUp, tmp)
@@ -319,20 +366,6 @@ func (b *BadgeState) updateWithChat(ctx context.Context, update chat1.UnreadUpda
 			BadgeCounts:    update.UnreadNotifyingMessages,
 		}
 	}
-}
-
-func (b *BadgeState) FindResetMemberBadges(teamName string) (badges []keybase1.TeamMemberOutReset) {
-	b.Lock()
-	defer b.Unlock()
-
-	for _, badge := range b.state.TeamsWithResetUsers {
-		if badge.Teamname != teamName {
-			continue
-		}
-		badges = append(badges, badge)
-	}
-
-	return badges
 }
 
 // SetWalletAccountUnreadCount sets the unread count for a wallet account.

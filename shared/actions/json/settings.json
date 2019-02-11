@@ -35,7 +35,7 @@
     },
     "loadSettings": {},
     "loadedSettings": {
-      "emailState": "Types.EmailState"
+      "emails": "?Array<RPCTypes.Email>"
     },
     "loadLockdownMode": {},
     "loadedLockdownMode": {
@@ -106,6 +106,10 @@
     "unfurlSettingsError": {
       "_description": "An error occurred on the unfurl settings screen",
       "error": "string"
+    },
+    "loadHasRandomPw": {},
+    "loadedHasRandomPw": {
+      "randomPW": "boolean"
     }
   }
 }

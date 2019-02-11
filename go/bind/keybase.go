@@ -24,6 +24,11 @@ import (
 	"strings"
 
 	"github.com/keybase/client/go/externals"
+	"github.com/keybase/client/go/kbfs/env"
+	"github.com/keybase/client/go/kbfs/fsrpc"
+	"github.com/keybase/client/go/kbfs/libgit"
+	"github.com/keybase/client/go/kbfs/libkbfs"
+	"github.com/keybase/client/go/kbfs/simplefs"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -32,11 +37,6 @@ import (
 	"github.com/keybase/client/go/service"
 	"github.com/keybase/client/go/uidmap"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"github.com/keybase/kbfs/env"
-	"github.com/keybase/kbfs/fsrpc"
-	"github.com/keybase/kbfs/libgit"
-	"github.com/keybase/kbfs/libkbfs"
-	"github.com/keybase/kbfs/simplefs"
 	context "golang.org/x/net/context"
 )
 
@@ -120,7 +120,7 @@ func setInited() {
 }
 
 // InitOnce runs the Keybase services (only runs one time)
-func InitOnce(homeDir string, mobileSharedHome string, logFile string, runModeStr string,
+func InitOnce(homeDir, mobileSharedHome, logFile, runModeStr string,
 	accessGroupOverride bool, dnsNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper) {
 	startOnce.Do(func() {
 		if err := Init(homeDir, mobileSharedHome, logFile, runModeStr, accessGroupOverride, dnsNSFetcher, nvh); err != nil {
@@ -130,7 +130,7 @@ func InitOnce(homeDir string, mobileSharedHome string, logFile string, runModeSt
 }
 
 // Init runs the Keybase services
-func Init(homeDir string, mobileSharedHome string, logFile string, runModeStr string,
+func Init(homeDir, mobileSharedHome, logFile, runModeStr string,
 	accessGroupOverride bool, externalDNSNSFetcher ExternalDNSNSFetcher, nvh NativeVideoHelper) (err error) {
 	defer func() {
 		err = flattenError(err)
@@ -140,8 +140,11 @@ func Init(homeDir string, mobileSharedHome string, logFile string, runModeStr st
 	}()
 
 	fmt.Printf("Go: Initializing: home: %s mobileSharedHome: %s\n", homeDir, mobileSharedHome)
+	var ekLogFile string
 	if logFile != "" {
 		fmt.Printf("Go: Using log: %s\n", logFile)
+		ekLogFile = logFile + ".ek"
+		fmt.Printf("Go: Using eklog: %s\n", ekLogFile)
 	}
 
 	// Reduce OS threads on mobile so we don't have too much contention with JS thread
@@ -177,6 +180,7 @@ func Init(homeDir string, mobileSharedHome string, logFile string, runModeStr st
 		HomeDir:                        homeDir,
 		MobileSharedHomeDir:            mobileSharedHome,
 		LogFile:                        logFile,
+		EKLogFile:                      ekLogFile,
 		RunMode:                        runMode,
 		Debug:                          true,
 		LocalRPCDebug:                  "",
@@ -205,9 +209,9 @@ func Init(homeDir string, mobileSharedHome string, logFile string, runModeStr st
 	kbChatCtx = svc.ChatContextified.ChatG()
 	kbChatCtx.NativeVideoHelper = newVideoHelper(nvh)
 
-	serviceLog := config.GetLogFile()
 	logs := libkb.Logs{
-		Service: serviceLog,
+		Service: config.GetLogFile(),
+		EK:      config.GetEKLogFile(),
 	}
 
 	logSendContext = libkb.LogSendContext{
@@ -216,8 +220,7 @@ func Init(homeDir string, mobileSharedHome string, logFile string, runModeStr st
 	}
 
 	// open the connection
-	err = Reset()
-	if err != nil {
+	if err = Reset(); err != nil {
 		return err
 	}
 
@@ -231,7 +234,7 @@ func Init(homeDir string, mobileSharedHome string, logFile string, runModeStr st
 		kbfsParams.Debug = true                         // false
 		kbfsParams.Mode = libkbfs.InitConstrainedString // libkbfs.InitMinimalString
 		kbfsConfig, _ = libkbfs.Init(
-			context.Background(), kbfsCtx, kbfsParams, serviceCn{}, func() {},
+			context.Background(), kbfsCtx, kbfsParams, serviceCn{}, func() error { return nil },
 			kbCtx.Log)
 	}()
 

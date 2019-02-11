@@ -3,7 +3,7 @@ package ephemeral
 import (
 	"context"
 	"fmt"
-	"path/filepath"
+	"log"
 	"sort"
 	"strconv"
 	"strings"
@@ -12,11 +12,15 @@ import (
 
 	"github.com/keybase/client/go/erasablekv"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
-const deviceEKSubDir = "device-eks"
-const deviceEKPrefix = "deviceEphemeralKey"
+const (
+	deviceEKSubDir = "device-eks"
+	deviceEKPrefix = "deviceEphemeralKey"
+	deviceEKSuffix = ".ek"
+)
 
 type deviceEKCacheItem struct {
 	DeviceEK keybase1.DeviceEk
@@ -32,6 +36,35 @@ type DeviceEKStorage struct {
 	storage erasablekv.ErasableKVStore
 	cache   deviceEKCache
 	indexed bool
+	logger  *log.Logger
+}
+
+func getLogger(g *libkb.GlobalContext) *log.Logger {
+	filename := g.Env.GetEKLogFile()
+
+	lfc := &logger.LogFileConfig{
+		Path:               filename,
+		MaxAge:             30 * 24 * time.Hour, // 30 days
+		MaxKeepFiles:       3,
+		SkipRedirectStdErr: true,
+	}
+	switch g.GetAppType() {
+	case libkb.MobileAppType:
+		lfc.MaxSize = 1 * 1024 * 1024 // 1mb
+	default:
+		lfc.MaxSize = 128 * 1024 * 1024 // 128mb
+	}
+	lfw := logger.NewLogFileWriter(*lfc)
+	if err := lfw.Open(time.Now()); err != nil {
+		g.Log.CDebugf(context.TODO(), "Unable to getLogger %v", err)
+		return nil
+	}
+	l := log.New(lfw, getLogPrefix(g), log.LstdFlags|log.Lshortfile)
+	return l
+}
+
+func getLogPrefix(g *libkb.GlobalContext) string {
+	return fmt.Sprintf("[username=%v] ", g.Env.GetUsername())
 }
 
 func NewDeviceEKStorage(g *libkb.GlobalContext) *DeviceEKStorage {
@@ -39,7 +72,28 @@ func NewDeviceEKStorage(g *libkb.GlobalContext) *DeviceEKStorage {
 		Contextified: libkb.NewContextified(g),
 		storage:      erasablekv.NewFileErasableKVStore(g, deviceEKSubDir),
 		cache:        make(deviceEKCache),
+		logger:       getLogger(g),
 	}
+}
+
+func (s *DeviceEKStorage) SetLogPrefix() {
+	s.logger.SetPrefix(getLogPrefix(s.G()))
+}
+
+// Log sensitive deletion actions to a separate log file so we don't lose the
+// logs during normal rotation.
+func (s *DeviceEKStorage) ekLogf(ctx context.Context, format string, args ...interface{}) {
+	s.G().Log.CDebugf(ctx, format, args...)
+	if s.logger != nil {
+		s.logger.Printf(format, args...)
+	}
+}
+
+func (s *DeviceEKStorage) ekLogCTraceTimed(ctx context.Context, msg string, f func() error) func() {
+	if s.logger != nil {
+		s.logger.Print(msg)
+	}
+	return s.G().CTraceTimed(ctx, msg, f)
 }
 
 func (s *DeviceEKStorage) keyPrefixFromUsername(username libkb.NormalizedUsername) string {
@@ -59,47 +113,59 @@ func (s *DeviceEKStorage) key(ctx context.Context, generation keybase1.EkGenerat
 	if err != nil {
 		return key, err
 	}
-	return fmt.Sprintf("%s%d.ek", prefix, generation), nil
+	return fmt.Sprintf("%s%d%s", prefix, generation, deviceEKSuffix), nil
 }
 
-func (s *DeviceEKStorage) keyToEldestSeqno(key string) (eldestSeqno keybase1.Seqno, err error) {
+// keyToEldestSeqno parses out the `eldestSeqno` from a key of the form
+// deviceEKPrefix-username-eldestSeqno-generation.ek. If we have a key for a
+// eldestSeqno that is not our current, we purge it since we don't want the
+// ephemeral key to stick around if we've reset. If we are unable to parse out
+// the value, the key is not valid, or not for the logged in user we return -1
+func (s *DeviceEKStorage) keyToEldestSeqno(key string) keybase1.Seqno {
 	if !strings.HasPrefix(key, deviceEKPrefix) {
-		return -1, nil
+		return -1
 	}
 	parts := strings.Split(key, "-")
-
-	// keyform: deviceEKPrefix-username-eldestSeqNo-generation.ek
 	if len(parts) != 4 {
-		return eldestSeqno, fmt.Errorf("Invalid key format for deviceEK: %v", key)
+		return -1
 	}
 	// Make sure this key is for our current user and not a different one.
 	if parts[1] != s.G().Env.GetUsername().String() {
-		return -1, nil
+		return -1
 	}
 	e, err := strconv.ParseUint(parts[2], 10, 64)
 	if err != nil {
-		return eldestSeqno, err
+		return -1
 	}
-	return keybase1.Seqno(e), nil
+	return keybase1.Seqno(e)
 }
 
-func (s *DeviceEKStorage) keyToGeneration(ctx context.Context, key string) (generation keybase1.EkGeneration, err error) {
+// keyToEldestSeqno parses out the `generation` from a key of the form
+// deviceEKPrefix-username-eldestSeqno-generation.ek. Unparseable keys return a
+// generation of -1 and should be ignored.
+func (s *DeviceEKStorage) keyToGeneration(ctx context.Context, key string) keybase1.EkGeneration {
 	prefix, err := s.keyPrefix(ctx)
 	if err != nil {
-		return generation, err
+		s.G().Log.CDebugf(ctx, "keyToGeneration: unable to get keyPrefix: %v", err)
+		return -1
 	}
-	if !strings.HasPrefix(key, prefix) {
-		return -1, nil
+	if !strings.HasPrefix(key, prefix) || !strings.HasSuffix(key, deviceEKSuffix) {
+		s.G().Log.CDebugf(ctx, "keyToGeneration: key missing prefix: %v or suffix: %s", prefix, deviceEKSuffix)
+		return -1
 	}
-	key = strings.TrimSuffix(key, filepath.Ext(key))
+
+	key = strings.TrimSuffix(key, deviceEKSuffix)
 	parts := strings.Split(key, prefix)
-	// We can expect two elements in `parts` here since we check
-	// strings.HasPrefix above.
+	if len(parts) != 2 {
+		s.G().Log.CDebugf(ctx, "keyToGeneration: unexpected parts: %v, prefix: %v", parts)
+		return -1
+	}
 	g, err := strconv.ParseUint(parts[1], 10, 64)
 	if err != nil {
-		return generation, err
+		s.G().Log.CDebugf(ctx, "keyToGeneration: unable to parseUint: %v", err)
+		return -1
 	}
-	return keybase1.EkGeneration(g), nil
+	return keybase1.EkGeneration(g)
 }
 
 func (s *DeviceEKStorage) Put(ctx context.Context, generation keybase1.EkGeneration, deviceEK keybase1.DeviceEk) (err error) {
@@ -107,6 +173,11 @@ func (s *DeviceEKStorage) Put(ctx context.Context, generation keybase1.EkGenerat
 
 	s.Lock()
 	defer s.Unlock()
+
+	// sanity check that we got the right generation
+	if deviceEK.Metadata.Generation != generation {
+		return newEKCorruptedErr(ctx, s.G(), DeviceEKStr, generation, deviceEK.Metadata.Generation)
+	}
 
 	key, err := s.key(ctx, generation)
 	if err != nil {
@@ -172,12 +243,16 @@ func (s *DeviceEKStorage) get(ctx context.Context, generation keybase1.EkGenerat
 	if err = s.storage.Get(ctx, key, &deviceEK); err != nil {
 		switch err.(type) {
 		case erasablekv.UnboxError:
-			s.G().Log.CDebugf(ctx, "DeviceEKStorage#get: corrupted generation: %s -> %s: %v", key, generation, err)
+			s.ekLogf(ctx, "DeviceEKStorage#get: corrupted generation: %v -> %v: %v", key, generation, err)
 			if ierr := s.storage.Erase(ctx, key); ierr != nil {
-				s.G().Log.CDebugf(ctx, "DeviceEKStorage#get: unable to delete corrupted generation: %v", ierr)
+				s.ekLogf(ctx, "DeviceEKStorage#get: unable to delete corrupted generation: %v", ierr)
 			}
 		}
 		return deviceEK, err
+	}
+	// sanity check that we got the right generation
+	if deviceEK.Metadata.Generation != generation {
+		return deviceEK, newEKCorruptedErr(ctx, s.G(), DeviceEKStr, generation, deviceEK.Metadata.Generation)
 	}
 	return deviceEK, nil
 }
@@ -189,7 +264,7 @@ func (s *DeviceEKStorage) Delete(ctx context.Context, generation keybase1.EkGene
 }
 
 func (s *DeviceEKStorage) delete(ctx context.Context, generation keybase1.EkGeneration) (err error) {
-	defer s.G().CTraceTimed(ctx, fmt.Sprintf("DeviceEKStorage#delete: generation:%v", generation), func() error { return err })()
+	defer s.ekLogCTraceTimed(ctx, fmt.Sprintf("DeviceEKStorage#delete: generation:%v", generation), func() error { return err })()
 
 	// clear the cache
 	cache, err := s.getCache(ctx)
@@ -208,20 +283,15 @@ func (s *DeviceEKStorage) delete(ctx context.Context, generation keybase1.EkGene
 }
 
 func (s *DeviceEKStorage) getCache(ctx context.Context) (cache deviceEKCache, err error) {
-	defer s.G().CTraceTimed(ctx, "DeviceEKStorage#getCache", func() error { return err })()
-
 	if !s.indexed {
-		keys, err := s.storage.AllKeys(ctx)
+		keys, err := s.storage.AllKeys(ctx, deviceEKSuffix)
 		if err != nil {
 			return nil, err
 		}
 		for _, key := range keys {
-			generation, err := s.keyToGeneration(ctx, key)
-			if err != nil {
-				return nil, err
-			}
+			generation := s.keyToGeneration(ctx, key)
 			if generation < 0 {
-				s.G().Log.CDebugf(ctx, "DeviceEKStorage#getCache: invalid generation: %s -> %s", key, generation)
+				s.G().Log.CDebugf(ctx, "DeviceEKStorage#getCache: unable to get generation from key: %s", key)
 				continue
 			}
 			deviceEK, err := s.get(ctx, generation)
@@ -315,7 +385,7 @@ func (s *DeviceEKStorage) ListAllForUser(ctx context.Context) (all []string, err
 
 func (s *DeviceEKStorage) listAllForUser(ctx context.Context, username libkb.NormalizedUsername) (all []string, err error) {
 	// key in the sense of a key-value pair, not a crypto key!
-	keys, err := s.storage.AllKeys(ctx)
+	keys, err := s.storage.AllKeys(ctx, deviceEKSuffix)
 	if err != nil {
 		return nil, err
 	}
@@ -372,10 +442,9 @@ func (s *DeviceEKStorage) DeleteExpired(ctx context.Context, merkleRoot libkb.Me
 
 	keyMap := make(keyExpiryMap)
 	// We delete expired and invalid cache entries but only return the expired.
-	toDelete := []keybase1.EkGeneration{}
 	for generation, cacheItem := range cache {
 		if cacheItem.Err != nil {
-			toDelete = append(toDelete, generation)
+			continue
 		} else {
 			deviceEK := cacheItem.DeviceEK
 			var ctime keybase1.Time
@@ -395,14 +464,6 @@ func (s *DeviceEKStorage) DeleteExpired(ctx context.Context, merkleRoot libkb.Me
 	epick := libkb.FirstErrorPicker{}
 	for _, generation := range expired {
 		epick.Push(s.delete(ctx, generation))
-	}
-
-	// Delete any invalid cache entries we were harboring but don't return the
-	// error to the caller.
-	for _, generation := range toDelete {
-		if err := s.delete(ctx, generation); err != nil {
-			s.G().Log.CDebugf(ctx, "unable to delete generation (with cache err) %v: %v", generation, err)
-		}
 	}
 
 	epick.Push(s.deletedWrongEldestSeqno(ctx))
@@ -466,7 +527,7 @@ func (s *DeviceEKStorage) getExpiredGenerations(ctx context.Context, keyMap keyE
 
 		expiryOffset := expiryOffset1 + expiryOffset2
 		if now.Sub(keyCtime) >= (libkb.MinEphemeralKeyLifetime + expiryOffset) {
-			s.G().Log.CDebugf(ctx, "getExpiredGenerations: expired generation:%v, now: %v, keyCtime:%v, expiryOffset:%v, keyMap: %v, i:%v",
+			s.ekLogf(ctx, "getExpiredGenerations: expired generation:%v, now: %v, keyCtime:%v, expiryOffset:%v, keyMap: %v, i:%v",
 				generation, now, keyCtime, expiryOffset, keyMap, i)
 			expired = append(expired, generation)
 		}
@@ -475,9 +536,7 @@ func (s *DeviceEKStorage) getExpiredGenerations(ctx context.Context, keyMap keyE
 }
 
 func (s *DeviceEKStorage) deletedWrongEldestSeqno(ctx context.Context) (err error) {
-	defer s.G().CTraceTimed(ctx, "DeviceEKStorage#deletedWrongEldestSeqno", func() error { return err })()
-
-	keys, err := s.storage.AllKeys(ctx)
+	keys, err := s.storage.AllKeys(ctx, deviceEKSuffix)
 	if err != nil {
 		return err
 	}
@@ -487,12 +546,12 @@ func (s *DeviceEKStorage) deletedWrongEldestSeqno(ctx context.Context) (err erro
 	}
 	epick := libkb.FirstErrorPicker{}
 	for _, key := range keys {
-		eldestSeqno, err := s.keyToEldestSeqno(key)
-		if err != nil || eldestSeqno < 0 {
-			s.G().Log.CDebugf(ctx, "deletedWrongEldestSeqno: skipping delete, invalid keyToEldestSeqno: %s -> %s, error: %s", key, eldestSeqno, err)
+		eldestSeqno := s.keyToEldestSeqno(key)
+		if eldestSeqno < 0 {
 			continue
 		}
 		if eldestSeqno != uv.EldestSeqno {
+			s.ekLogf(ctx, "DeviceEKStorage#deletedWrongEldestSeqno: key: %v, uv: %v", key, uv)
 			epick.Push(s.storage.Erase(ctx, key))
 		}
 	}
@@ -500,7 +559,7 @@ func (s *DeviceEKStorage) deletedWrongEldestSeqno(ctx context.Context) (err erro
 }
 
 func (s *DeviceEKStorage) ForceDeleteAll(ctx context.Context, username libkb.NormalizedUsername) (err error) {
-	defer s.G().CTraceTimed(ctx, "DeviceEKStorage#ForceDeleteAll", func() error { return err })()
+	defer s.ekLogCTraceTimed(ctx, "DeviceEKStorage#ForceDeleteAll", func() error { return err })()
 
 	s.Lock()
 	defer s.Unlock()
@@ -512,6 +571,7 @@ func (s *DeviceEKStorage) ForceDeleteAll(ctx context.Context, username libkb.Nor
 	}
 	epick := libkb.FirstErrorPicker{}
 	for _, key := range keys {
+		s.ekLogf(ctx, "DeviceEKStorage#ForceDeleteAll: key: %v", key)
 		epick.Push(s.storage.Erase(ctx, key))
 	}
 

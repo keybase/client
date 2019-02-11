@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as SearchConstants from '../../../constants/search'
+import * as Flow from '../../../util/flow'
 import * as Types from '../../../constants/types/chat2'
 import * as Constants from '../../../constants/chat2'
 import * as ProfileGen from '../../../actions/profile-gen'
@@ -15,13 +16,15 @@ import Waiting from './waiting'
 type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
   isPending: boolean,
-  listScrollDownCounter: number,
+  scrollListDownCounter: number,
+  scrollListUpCounter: number,
   onFocusInput: () => void,
 |}
 
 type Props = {
   conversationIDKey: Types.ConversationIDKey,
-  listScrollDownCounter: number,
+  scrollListDownCounter: number,
+  scrollListUpCounter: number,
   onFocusInput: () => void,
   onShowTracker: (user: string) => void,
   type: 'search' | 'normal' | 'start' | 'waiting',
@@ -41,7 +44,8 @@ class ListArea extends React.PureComponent<Props> {
       case 'normal':
         return (
           <Normal
-            listScrollDownCounter={this.props.listScrollDownCounter}
+            scrollListDownCounter={this.props.scrollListDownCounter}
+            scrollListUpCounter={this.props.scrollListUpCounter}
             onFocusInput={this.props.onFocusInput}
             conversationIDKey={this.props.conversationIDKey}
           />
@@ -51,10 +55,7 @@ class ListArea extends React.PureComponent<Props> {
       case 'waiting':
         return <Waiting />
       default:
-        /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (type: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(this.props.type);
-      */
+        Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(this.props.type)
         return null
     }
   }
@@ -77,7 +78,10 @@ const mapStateToProps = (state, {conversationIDKey, isPending}) => {
       switch (conversationIDKey) {
         case Constants.pendingConversationIDKey: // fallthrough
         case Constants.noConversationIDKey:
-          if (state.chat2.pendingMode === 'searchingForUsers' && !inputResults.size) {
+          if (state.chat2.pendingMode === 'newTeamBuilding') {
+            type = 'waiting'
+            break
+          } else if (state.chat2.pendingMode === 'searchingForUsers' && !inputResults.size) {
             // No search results + no users in input; show spinner
             type = 'waiting'
             break
@@ -115,9 +119,10 @@ const mapDispatchToProps = dispatch => ({
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
   return {
     conversationIDKey: stateProps.conversationIDKey,
-    listScrollDownCounter: ownProps.listScrollDownCounter,
     onFocusInput: ownProps.onFocusInput,
     onShowTracker: dispatchProps.onShowTracker,
+    scrollListDownCounter: ownProps.scrollListDownCounter,
+    scrollListUpCounter: ownProps.scrollListUpCounter,
     type: stateProps.type,
   }
 }

@@ -96,6 +96,9 @@ func (p CommandLine) GetPvlKitFilename() string {
 func (p CommandLine) GetParamProofKitFilename() string {
 	return p.GetGString("paramproof-kit")
 }
+func (p CommandLine) GetProveBypass() (bool, bool) {
+	return p.GetBool("prove-bypass", true)
+}
 func (p CommandLine) GetDebug() (bool, bool) {
 	// --no-debug suppresses --debug. Note that although we don't define a
 	// separate GetNoDebug() accessor, fork_server.go still looks for
@@ -123,7 +126,15 @@ func (p CommandLine) GetProxy() string {
 func (p CommandLine) GetLogFile() string {
 	return p.GetGString("log-file")
 }
-
+func (p CommandLine) GetEKLogFile() string {
+	return p.GetGString("ek-log-file")
+}
+func (p CommandLine) GetUseDefaultLogFile() (bool, bool) {
+	return p.GetBool("use-default-log-file", true)
+}
+func (p CommandLine) GetUseRootConfigFile() (bool, bool) {
+	return p.GetBool("use-root-config-file", true)
+}
 func (p CommandLine) GetLogPrefix() string {
 	return p.GetGString("log-prefix")
 }
@@ -363,12 +374,36 @@ func (p CommandLine) GetMountDir() string {
 	return p.GetGString("mountdir")
 }
 
+func (p CommandLine) GetMountDirDefault() string {
+	return p.GetGString("mountdirdefault")
+}
+
 func (p CommandLine) GetRememberPassphrase() (bool, bool) {
 	return p.GetBool("remember-passphrase", true)
 }
 
 func (p CommandLine) GetAttachmentDisableMulti() (bool, bool) {
 	return p.GetBool("attachment-disable-multi", true)
+}
+
+func (p CommandLine) GetDisableTeamAuditor() (bool, bool) {
+	return p.GetBool("disable-team-auditor", true)
+}
+
+func (p CommandLine) GetDisableMerkleAuditor() (bool, bool) {
+	return p.GetBool("disable-merkle-auditor", true)
+}
+
+func (p CommandLine) GetDisableSearchIndexer() (bool, bool) {
+	return p.GetBool("disable-search-indexer", true)
+}
+
+func (p CommandLine) GetDisableBgConvLoader() (bool, bool) {
+	return p.GetBool("disable-bg-conv-loader", true)
+}
+
+func (p CommandLine) GetEnableBotLiteMode() (bool, bool) {
+	return p.GetBool("enable-bot-lite-mode", true)
 }
 
 func (p CommandLine) GetAttachmentHTTPStartPort() (int, bool) {
@@ -470,6 +505,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 			Name:  "config-file, c",
 			Usage: "Specify an (alternate) master config file.",
 		},
+		cli.BoolFlag{
+			Name:  "use-root-config-file",
+			Usage: "Use the default root config on Linux only.",
+		},
 		cli.StringFlag{
 			Name:  "db",
 			Usage: "Specify an alternate local DB location.",
@@ -509,6 +548,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.StringFlag{
 			Name:  "log-file",
 			Usage: "Specify a log file for the keybase service.",
+		},
+		cli.StringFlag{
+			Name:  "ek-log-file",
+			Usage: "Specify a log file for the keybase ephemeral key log.",
 		},
 		cli.StringFlag{
 			Name:  "log-format",
@@ -565,6 +608,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.StringFlag{
 			Name:  "paramproof-kit",
 			Usage: "Specify an alternate local parameterized proof kit file location.",
+		},
+		cli.BoolFlag{
+			Name:  "prove-bypass",
+			Usage: "Prove even disabled proof services",
 		},
 		cli.BoolFlag{
 			Name:  "remember-passphrase",
@@ -630,6 +677,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 			Name:  "upgrade-per-user-key",
 			Usage: "Create new per-user-keys. Experimental, will break sigchain!",
 		},
+		cli.BoolFlag{
+			Name:  "use-default-log-file",
+			Usage: "Log to the default log file in $XDG_CACHE_HOME, or ~/.cache if unset.",
+		},
 		cli.IntFlag{
 			Name:  "user-cache-size",
 			Usage: "Number of User entries to cache.",
@@ -637,6 +688,26 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.StringFlag{
 			Name:  "vdebug",
 			Usage: "Verbose debugging; takes a comma-joined list of levels and tags",
+		},
+		cli.BoolFlag{
+			Name:  "disable-team-auditor",
+			Usage: "Disable auditing of teams",
+		},
+		cli.BoolFlag{
+			Name:  "disable-merkle-auditor",
+			Usage: "Disable background probabilistic merkle audit",
+		},
+		cli.BoolFlag{
+			Name:  "disable-search-indexer",
+			Usage: "Disable chat search background indexer",
+		},
+		cli.BoolFlag{
+			Name:  "disable-bg-conv-loader",
+			Usage: "Disable background conversation loading",
+		},
+		cli.BoolFlag{
+			Name:  "enable-bot-lite-mode",
+			Usage: "Enable bot lite mode. Disables non-critical background services for bot performance.",
 		},
 	}
 	if extraFlags != nil {

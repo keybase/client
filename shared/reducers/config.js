@@ -4,14 +4,44 @@ import * as I from 'immutable'
 import * as Types from '../constants/types/config'
 import * as Constants from '../constants/config'
 import * as ChatConstants from '../constants/chat2'
+import * as Tracker2Gen from '../actions/tracker2-gen'
+import * as DevicesGen from '../actions/devices-gen'
 import * as ConfigGen from '../actions/config-gen'
 import * as Stats from '../engine/stats'
 import {isEOFError, isErrorTransient} from '../util/errors'
+import * as Flow from '../util/flow'
 
 const initialState = Constants.makeState()
 
-export default function(state: Types.State = initialState, action: ConfigGen.Actions): Types.State {
+type Actions = ConfigGen.Actions | DevicesGen.RevokedPayload | Tracker2Gen.UpdatedDetailsPayload
+
+export default function(state: Types.State = initialState, action: Actions): Types.State {
   switch (action.type) {
+    case DevicesGen.revoked:
+      return state.merge({
+        configuredAccounts: state.configuredAccounts,
+        defaultUsername: action.payload.wasCurrentDevice // if revoking self find another name if it exists
+          ? state.configuredAccounts.find(n => n !== state.defaultUsername) || ''
+          : state.defaultUsername,
+      })
+    case Tracker2Gen.updatedDetails: {
+      let followers = state.followers
+      let following = state.following
+      const {username} = action.payload
+
+      if (action.payload.followThem) {
+        following = following.add(username)
+      } else {
+        following = following.delete(username)
+      }
+
+      if (action.payload.followsYou) {
+        followers = followers.add(username)
+      } else {
+        followers = followers.delete(username)
+      }
+      return state.merge({followers, following})
+    }
     case ConfigGen.resetStore:
       return initialState.merge({
         appFocused: state.appFocused,
@@ -133,9 +163,8 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
       return state.merge({loggedIn: false})
     case ConfigGen.updateFollowing: {
       const {isTracking, username} = action.payload
-      return state.updateIn(
-        ['following'],
-        following => (isTracking ? following.add(username) : following.delete(username))
+      return state.updateIn(['following'], following =>
+        isTracking ? following.add(username) : following.delete(username)
       )
     }
     case ConfigGen.globalError: {
@@ -175,12 +204,21 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
     case ConfigGen.updateMenubarWindowID:
       return state.merge({menubarWindowID: action.payload.id})
     case ConfigGen.setAccounts:
+      // already have one?
+      let defaultUsername = state.defaultUsername
+      if (action.payload.usernames.indexOf(defaultUsername) === -1) {
+        defaultUsername = action.payload.defaultUsername
+      }
+
       return state.merge({
         configuredAccounts: I.List(action.payload.usernames),
-        defaultUsername: state.defaultUsername || action.payload.defaultUsername, // keep it if we have one
+        defaultUsername,
       })
     case ConfigGen.setDeletedSelf:
       return state.merge({justDeletedSelf: action.payload.deletedUsername})
+    case ConfigGen.swapRouter: {
+      return state.set('useNewRouter', action.payload.useNewRouter)
+    }
     case ConfigGen.daemonHandshakeDone:
       return state.merge({daemonHandshakeState: 'done'})
     case ConfigGen.updateNow:
@@ -207,14 +245,11 @@ export default function(state: Types.State = initialState, action: ConfigGen.Act
     case ConfigGen.setupEngineListeners:
     case ConfigGen.installerRan:
     case ConfigGen.copyToClipboard:
-    case ConfigGen._avatarQueue:
     case ConfigGen.checkForUpdate:
+    case ConfigGen.filePickerError:
       return state
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(action);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

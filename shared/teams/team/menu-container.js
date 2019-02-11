@@ -2,7 +2,7 @@
 import * as React from 'react'
 import * as Constants from '../../constants/teams'
 import {connect} from '../../util/container'
-import {navigateTo} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {type MenuItem} from '../../common-adapters/floating-menu/menu-layout'
 import {FloatingMenu} from '../../common-adapters'
 import {teamsTab} from '../../constants/tabs'
@@ -28,15 +28,25 @@ const mapStateToProps = (state, {teamname}: OwnProps) => {
 const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
   onCreateSubteam: () =>
     dispatch(
-      navigateTo(
-        [{props: {makeSubteam: true, name: teamname}, selected: 'showNewTeamDialog'}],
-        [teamsTab, 'team']
-      )
+      RouteTreeGen.createNavigateTo({
+        parentPath: [teamsTab, 'team'],
+        path: [{props: {makeSubteam: true, name: teamname}, selected: 'showNewTeamDialog'}],
+      })
     ),
   onLeaveTeam: () =>
-    dispatch(navigateTo([{props: {teamname}, selected: 'reallyLeaveTeam'}], [teamsTab, 'team'])),
+    dispatch(
+      RouteTreeGen.createNavigateTo({
+        parentPath: [teamsTab, 'team'],
+        path: [{props: {teamname}, selected: 'reallyLeaveTeam'}],
+      })
+    ),
   onManageChat: () =>
-    dispatch(navigateTo([{props: {teamname}, selected: 'manageChannels'}], [teamsTab, 'team'])),
+    dispatch(
+      RouteTreeGen.createNavigateTo({
+        parentPath: [teamsTab, 'team'],
+        path: [{props: {teamname}, selected: 'manageChannels'}],
+      })
+    ),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
@@ -44,12 +54,12 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   if (stateProps.canManageChat) {
     items.push({
       onClick: dispatchProps.onManageChat,
-      title: stateProps.isBigTeam ? 'Manage chat channels' : 'Make chat channels...',
       subTitle: stateProps.isBigTeam ? undefined : 'Turns this into a big team',
+      title: stateProps.isBigTeam ? 'Manage chat channels' : 'Make chat channels...',
     })
   }
   if (stateProps.canLeaveTeam) {
-    items.push({onClick: dispatchProps.onLeaveTeam, title: 'Leave team', danger: true})
+    items.push({danger: true, onClick: dispatchProps.onLeaveTeam, title: 'Leave team'})
   }
   if (stateProps.canCreateSubteam) {
     items.push({onClick: dispatchProps.onCreateSubteam, title: 'Create subteam'})

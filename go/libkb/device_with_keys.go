@@ -12,13 +12,22 @@ type DeviceWithKeys struct {
 	encryptionKey GenericKey
 	deviceID      keybase1.DeviceID
 	deviceName    string
+	deviceCtime   keybase1.Time
 }
 
-func NewDeviceWithKeys(s GenericKey, e GenericKey, d keybase1.DeviceID, n string) *DeviceWithKeys {
-	return &DeviceWithKeys{s, e, d, n}
+func NewDeviceWithKeys(signingKey, encryptionKey GenericKey, deviceID keybase1.DeviceID, deviceName string) *DeviceWithKeys {
+	return &DeviceWithKeys{
+		signingKey:    signingKey,
+		encryptionKey: encryptionKey,
+		deviceID:      deviceID,
+		deviceName:    deviceName,
+	}
 }
-func NewDeviceWithKeysOnly(e GenericKey, s GenericKey) *DeviceWithKeys {
-	return &DeviceWithKeys{e, s, keybase1.DeviceID(""), ""}
+func NewDeviceWithKeysOnly(signingKey, encryptionKey GenericKey) *DeviceWithKeys {
+	return &DeviceWithKeys{
+		signingKey:    signingKey,
+		encryptionKey: encryptionKey,
+	}
 }
 func (d DeviceWithKeys) EncryptionKey() GenericKey {
 	return d.encryptionKey
@@ -31,6 +40,9 @@ func (d DeviceWithKeys) DeviceID() keybase1.DeviceID {
 }
 func (d DeviceWithKeys) DeviceName() string {
 	return d.deviceName
+}
+func (d DeviceWithKeys) DeviceCtime() keybase1.Time {
+	return d.deviceCtime
 }
 func (d *DeviceWithKeys) SetDeviceInfo(i keybase1.DeviceID, n string) {
 	d.deviceID = i
@@ -82,10 +94,11 @@ func (s *SelfDestructingDeviceWithKeys) DeviceWithKeys() *DeviceWithKeys {
 }
 
 type ownerDeviceReply struct {
-	Status     AppStatus         `json:"status"`
-	UID        keybase1.UID      `json:"uid"`
-	DeviceID   keybase1.DeviceID `json:"device_id"`
-	DeviceName string            `json:"device_name"`
+	Status      AppStatus         `json:"status"`
+	UID         keybase1.UID      `json:"uid"`
+	DeviceID    keybase1.DeviceID `json:"device_id"`
+	DeviceName  string            `json:"device_name"`
+	DeviceCtime keybase1.Time     `json:"device_ctime"`
 }
 
 func (o *ownerDeviceReply) GetAppStatus() *AppStatus {
@@ -100,12 +113,12 @@ func (d *DeviceWithKeys) Populate(m MetaContext) (uid keybase1.UID, err error) {
 		NetContext:  m.Ctx(),
 	}
 	var res ownerDeviceReply
-	err = m.G().API.GetDecode(arg, &res)
-	if err != nil {
+	if err = m.G().API.GetDecode(arg, &res); err != nil {
 		return uid, err
 	}
 	d.deviceID = res.DeviceID
 	d.deviceName = res.DeviceName
+	d.deviceCtime = res.DeviceCtime
 	return res.UID, nil
 }
 

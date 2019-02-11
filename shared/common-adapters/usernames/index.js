@@ -19,6 +19,7 @@ export type BaseUsernamesProps = {|
   backgroundMode?: Background,
   colorBroken?: boolean,
   colorFollowing?: boolean,
+  notFollowingColorOverride?: string,
   colorYou?: boolean | string,
   commaColor?: string,
   containerStyle?: Styles.StylesCrossPlatform,
@@ -57,7 +58,11 @@ function UsernameText(props: Props) {
       {props.users.map((u, i) => {
         let userStyle = {
           ...(props.colorFollowing && !u.you
-            ? {color: u.following ? Styles.globalColors.green : Styles.globalColors.blue}
+            ? {
+                color: u.following
+                  ? Styles.globalColors.green
+                  : props.notFollowingColorOverride || Styles.globalColors.blue,
+              }
             : null),
           ...(props.colorBroken && u.broken && !u.you
             ? {color: props.redColor || Styles.globalColors.red}
@@ -75,13 +80,11 @@ function UsernameText(props: Props) {
         const _onUsernameClicked = props.onUsernameClicked
         return (
           <Text type={props.type} key={u.username}>
-            {i !== 0 &&
-              i === props.users.length - 1 &&
-              props.showAnd && (
-                <Text type={props.type} backgroundMode={props.backgroundMode} style={derivedJoinerStyle}>
-                  {'and '}
-                </Text>
-              )}
+            {i !== 0 && i === props.users.length - 1 && props.showAnd && (
+              <Text type={props.type} backgroundMode={props.backgroundMode} style={derivedJoinerStyle}>
+                {'and '}
+              </Text>
+            )}
             <Text
               type={props.type}
               backgroundMode={props.backgroundMode}
@@ -92,12 +95,11 @@ function UsernameText(props: Props) {
               {u.username}
             </Text>
             {/* Injecting the commas here so we never wrap and have newlines starting with a , */}
-            {i !== props.users.length - 1 &&
-              (!props.inlineGrammar || props.users.length > 2) && (
-                <Text type={props.type} backgroundMode={props.backgroundMode} style={derivedJoinerStyle}>
-                  ,
-                </Text>
-              )}
+            {i !== props.users.length - 1 && (!props.inlineGrammar || props.users.length > 2) && (
+              <Text type={props.type} backgroundMode={props.backgroundMode} style={derivedJoinerStyle}>
+                ,
+              </Text>
+            )}
             {i !== props.users.length - 1 && ' '}
           </Text>
         )
@@ -194,17 +196,17 @@ class PlaintextUsernames extends React.Component<PlaintextProps> {
 }
 
 const styles = Styles.styleSheetCreate({
-  joinerStyle: Styles.platformStyles({
-    isElectron: {
-      textDecoration: 'none',
-    },
-  }),
   inlineStyle: Styles.platformStyles({
     isElectron: {
       display: 'inline',
       overflow: 'hidden',
       textOverflow: 'ellipsis',
       whiteSpace: 'nowrap',
+    },
+  }),
+  joinerStyle: Styles.platformStyles({
+    isElectron: {
+      textDecoration: 'none',
     },
   }),
   nonInlineStyle: Styles.platformStyles({

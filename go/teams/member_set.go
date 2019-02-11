@@ -290,6 +290,10 @@ func (m *memberSet) HasRemoval() bool {
 	return len(m.None) > 0
 }
 
+func (m *memberSet) HasAdditions() bool {
+	return (len(m.Owners) + len(m.Admins) + len(m.Writers) + len(m.Readers)) > 0
+}
+
 func (m *memberSet) empty() bool {
 	return len(m.Owners) == 0 && len(m.Admins) == 0 && len(m.Writers) == 0 && len(m.Readers) == 0 && len(m.None) == 0
 }

@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as Flow from '../../util/flow'
 import * as Types from '../../constants/types/wallets'
 import {capitalize} from 'lodash-es'
 import {
@@ -38,10 +39,7 @@ const CounterpartyIcon = (props: CounterpartyIconProps) => {
     case 'otherAccount':
       return <Icon type="icon-wallet-to-wallet-48" style={{height: size, width: size}} />
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(props.counterpartyType);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.counterpartyType)
       return null
   }
 }
@@ -78,16 +76,14 @@ export const CounterpartyText = (props: CounterpartyTextProps) => {
     case 'otherAccount':
       return <Text type={props.textTypeSemiboldItalic}>{props.counterparty}</Text>
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(props.counterpartyType);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.counterpartyType)
       break
   }
   return null
 }
 
 type DetailProps = {|
+  approxWorth: string,
   detailView: boolean,
   large: boolean,
   pending: boolean,
@@ -99,6 +95,8 @@ type DetailProps = {|
   isXLM: boolean,
   onShowProfile: string => void,
   selectableText: boolean,
+  status: string,
+  issuerDescription: string,
 |}
 
 const Detail = (props: DetailProps) => {
@@ -108,18 +106,39 @@ const Detail = (props: DetailProps) => {
   // u2026 is an ellipsis
   const textSentenceEnd = props.detailView && props.pending ? '\u2026' : '.'
 
-  const amount = props.isXLM ? (
-    <Text selectable={props.selectableText} type={textTypeExtrabold}>
-      {props.amountUser}
-    </Text>
-  ) : (
-    <React.Fragment>
-      Lumens worth{' '}
-      <Text selectable={true} type={textTypeExtrabold}>
-        {props.amountUser}
-      </Text>
-    </React.Fragment>
-  )
+  let amount
+  if (props.issuerDescription) {
+    // non-native asset
+    amount = (
+      <React.Fragment>
+        <Text selectable={props.selectableText} type={textTypeExtrabold}>
+          {props.amountUser}
+        </Text>{' '}
+        <Text selectable={props.selectableText} type={textTypeSemibold}>
+          ({props.issuerDescription})
+        </Text>
+      </React.Fragment>
+    )
+  } else if (props.isXLM) {
+    // purely, strictly lumens
+    amount = (
+      <React.Fragment>
+        <Text selectable={props.selectableText} type={textTypeExtrabold}>
+          {props.amountUser}
+        </Text>
+      </React.Fragment>
+    )
+  } else {
+    // lumens sent with outside currency exchange rate
+    amount = (
+      <React.Fragment>
+        Lumens worth{' '}
+        <Text selectable={true} type={textTypeExtrabold}>
+          {props.amountUser}
+        </Text>
+      </React.Fragment>
+    )
+  }
 
   const counterparty = () => (
     <CounterpartyText
@@ -130,8 +149,16 @@ const Detail = (props: DetailProps) => {
       textTypeSemiboldItalic={textTypeSemiboldItalic}
     />
   )
+  const approxWorth = props.approxWorth ? (
+    <Text type={textTypeSemibold}>
+      {' '}
+      (approximately <Text type={textTypeExtrabold}>{props.approxWorth}</Text>)
+    </Text>
+  ) : (
+    ''
+  )
 
-  const textStyle = props.canceled ? styles.lineThrough : null
+  const textStyle = props.canceled || props.status === 'error' ? styles.lineThrough : null
 
   switch (props.yourRole) {
     case 'senderOnly':
@@ -140,6 +167,7 @@ const Detail = (props: DetailProps) => {
         return (
           <Text type={textTypeSemibold} style={textStyle}>
             {verbPhrase} {amount} from this account to {counterparty()}
+            {approxWorth}
             {textSentenceEnd}
           </Text>
         )
@@ -148,6 +176,7 @@ const Detail = (props: DetailProps) => {
         return (
           <Text type={textTypeSemibold} style={textStyle}>
             {verbPhrase} {amount} to {counterparty()}
+            {approxWorth}
             {textSentenceEnd}
           </Text>
         )
@@ -157,7 +186,7 @@ const Detail = (props: DetailProps) => {
         const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
         return (
           <Text type={textTypeSemibold} style={textStyle}>
-            {verbPhrase} {amount} from {counterparty()} to this account
+            {verbPhrase} {amount} from {counterparty()} to this account{approxWorth}
             {textSentenceEnd}
           </Text>
         )
@@ -166,6 +195,7 @@ const Detail = (props: DetailProps) => {
         return (
           <Text type={textTypeSemibold} style={textStyle}>
             {counterparty()} {verbPhrase} {amount}
+            {approxWorth}
             {textSentenceEnd}
           </Text>
         )
@@ -174,15 +204,12 @@ const Detail = (props: DetailProps) => {
       const verbPhrase = props.pending ? 'Transferring' : 'You transferred'
       return (
         <Text type={textTypeSemibold} style={textStyle}>
-          {verbPhrase} {amount} from this account to itself
+          {verbPhrase} {amount} from this account to itself{approxWorth}
           {textSentenceEnd}
         </Text>
       )
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove: (type: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllCasesAbove(props.yourRole);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.yourRole)
       throw new Error(`Unexpected role ${props.yourRole}`)
   }
 }
@@ -198,16 +225,13 @@ type AmountXLMProps = {|
 const roleToColor = (role: Types.Role): string => {
   switch (role) {
     case 'senderOnly':
-      return globalColors.red
+      return globalColors.black_75
     case 'receiverOnly':
       return globalColors.green
     case 'senderAndReceiver':
-      return globalColors.black
+      return globalColors.black_75
     default:
-      /*::
-    declare var ifFlowErrorsHereItsCauseYouDidntHandleAllRolesAbove: (type: empty) => any
-    ifFlowErrorsHereItsCauseYouDidntHandleAllRolesAbove(role);
-  */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(role)
       throw new Error(`Unexpected role ${role}`)
   }
 }
@@ -221,10 +245,7 @@ const getAmount = (role: Types.Role, amountXLM: string): string => {
     case 'senderAndReceiver':
       return '0 XLM'
     default:
-      /*::
-    declare var ifFlowErrorsHereItsCauseYouDidntHandleAllRolesAbove: (type: empty) => any
-    ifFlowErrorsHereItsCauseYouDidntHandleAllRolesAbove(role);
-  */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(role)
       throw new Error(`Unexpected role ${role}`)
   }
 }
@@ -264,6 +285,7 @@ export const TimestampPending = () => (
 )
 
 type TimestampLineProps = {|
+  detailView: ?boolean,
   error: string,
   status: Types.StatusSimplified,
   timestamp: ?Date,
@@ -271,29 +293,44 @@ type TimestampLineProps = {|
 |}
 
 const TimestampLine = (props: TimestampLineProps) => {
-  if (props.error) {
-    return <TimestampError error={props.error} status={props.status} />
-  }
   const timestamp = props.timestamp
   if (!timestamp) {
     return <TimestampPending />
   }
-  const human = formatTimeForMessages(timestamp)
+  const human = formatTimeForMessages(timestamp.getTime())
   const tooltip = formatTimeForStellarTooltip(timestamp)
   let status = capitalize(props.status)
-  // 'cancelable' -> show 'pending' and completed -> show nothing
+  // 'claimable' -> show 'pending' and completed -> show nothing
   switch (status) {
     case 'Completed':
       status = null
       break
-    case 'Cancelable':
+    case 'Claimable':
       status = 'Pending'
+      break
+    case 'Error':
+      status = 'Failed'
       break
   }
   return (
     <Text selectable={props.selectableText} title={tooltip} type="BodySmall">
       {human}
-      {status ? ` • ${status}` : null}
+      {status ? ` • ` : null}
+      {!!status && (
+        <Text selectable={props.selectableText} type={status === 'Failed' ? 'BodySmallError' : 'BodySmall'}>
+          {status}
+        </Text>
+      )}
+      {status === 'Failed' && !props.detailView && (
+        <>
+          {' '}
+          (
+          <Text selectable={props.selectableText} type="BodySmallSecondaryLink">
+            see more
+          </Text>
+          )
+        </>
+      )}
     </Text>
   )
 }
@@ -303,6 +340,7 @@ type ReadState = 'read' | 'unread' | 'oldestUnread'
 export type Props = {|
   amountUser: string, // empty if sent with no display currency
   amountXLM: string,
+  approxWorth: string,
   counterparty: string,
   counterpartyType: Types.CounterpartyType,
   detailView?: boolean,
@@ -312,7 +350,7 @@ export type Props = {|
   onCancelPayment: ?() => void,
   onCancelPaymentWaitingKey: string,
   // onShowProfile is used only when counterpartyType === 'keybaseUser'.
-  onSelectTransaction?: () => void,
+  onSelectTransaction?: ?() => void,
   onShowProfile: string => void,
   readState: ReadState,
   selectableText: boolean,
@@ -322,6 +360,7 @@ export type Props = {|
   timestamp: Date | null,
   unread: boolean,
   yourRole: Types.Role,
+  issuerDescription: string,
 |}
 
 export const Transaction = (props: Props) => {
@@ -341,13 +380,10 @@ export const Transaction = (props: Props) => {
       showMemo = !!props.memo
       break
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (counterpartyType: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(props.counterpartyType);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(props.counterpartyType)
       throw new Error(`Unexpected counterpartyType ${props.counterpartyType}`)
   }
-  const pending = !props.timestamp || ['pending', 'cancelable'].includes(props.status)
+  const pending = !props.timestamp || ['pending', 'claimable'].includes(props.status)
   const backgroundColor = props.unread && !props.detailView ? globalColors.blue4 : globalColors.white
   return (
     <Box2 direction="vertical" fullWidth={true} style={{backgroundColor}}>
@@ -361,12 +397,14 @@ export const Transaction = (props: Props) => {
           />
           <Box2 direction="vertical" fullHeight={true} style={styles.rightContainer}>
             <TimestampLine
+              detailView={props.detailView}
               error={props.status === 'error' ? props.statusDetail : ''}
               selectableText={props.selectableText}
               status={props.status}
               timestamp={props.timestamp}
             />
             <Detail
+              approxWorth={props.approxWorth}
               detailView={!!props.detailView}
               large={large}
               pending={pending}
@@ -378,11 +416,13 @@ export const Transaction = (props: Props) => {
               isXLM={!props.amountUser}
               onShowProfile={props.onShowProfile}
               selectableText={props.selectableText}
+              status={props.status}
+              issuerDescription={props.issuerDescription}
             />
             {showMemo && <MarkdownMemo style={styles.marginTopXTiny} memo={props.memo} />}
             <Box2 direction="horizontal" fullWidth={true} style={styles.marginTopXTiny}>
               {props.onCancelPayment && (
-                <Box2 direction="vertical" gap="tiny">
+                <Box2 direction="vertical" gap="tiny" style={styles.flexOne}>
                   <Text type="BodySmall">
                     {props.counterparty} can claim this when they set up their wallet.
                   </Text>
@@ -399,14 +439,16 @@ export const Transaction = (props: Props) => {
                   />
                 </Box2>
               )}
-              <Box2 direction="horizontal" style={{flex: 1}} />
-              <AmountXLM
-                selectableText={props.selectableText}
-                canceled={props.status === 'canceled'}
-                pending={pending}
-                yourRole={props.yourRole}
-                amountXLM={props.amountXLM}
-              />
+              <Box2 direction="horizontal" style={styles.marginLeftAuto} />
+              {props.status !== 'error' && (
+                <AmountXLM
+                  selectableText={props.selectableText}
+                  canceled={props.status === 'canceled'}
+                  pending={pending}
+                  yourRole={props.yourRole}
+                  amountXLM={props.amountXLM}
+                />
+              )}
             </Box2>
           </Box2>
         </Box2>
@@ -426,9 +468,11 @@ const styles = styleSheetCreate({
     padding: globalMargins.tiny,
     paddingRight: globalMargins.small,
   },
+  flexOne: {flex: 1},
   lineThrough: {
     textDecorationLine: 'line-through',
   },
+  marginLeftAuto: {marginLeft: 'auto'},
   marginTopXTiny: {
     marginTop: globalMargins.xtiny,
   },

@@ -21,10 +21,10 @@ const AccessDenied = ({openAppSettings}) => (
   <Box
     style={{
       ...globalStyles.flexBoxColumn,
-      padding: globalMargins.small,
       alignItems: 'center',
-      justifyContent: 'center',
       flex: 1,
+      justifyContent: 'center',
+      padding: globalMargins.small,
     }}
   >
     <Icon
@@ -36,10 +36,10 @@ const AccessDenied = ({openAppSettings}) => (
       fontSize={globalMargins.xlarge}
     />
     <Box>
-      <Text type="Body" style={{marginBottom: globalMargins.small, textAlign: 'center'}}>
+      <Text center={true} type="Body" style={{marginBottom: globalMargins.small}}>
         We don't have permission to access your contacts!
       </Text>
-      <Text type="Body" style={{marginBottom: globalMargins.small, textAlign: 'center'}}>
+      <Text center={true} type="Body" style={{marginBottom: globalMargins.small}}>
         To fix this, please open Settings > Keybase and check off 'Allow Keybase to access Contacts'.
       </Text>
       <ButtonBar>
@@ -61,14 +61,14 @@ const contactRow = (i: number, props: ContactRowProps) => {
         ...globalStyles.flexBoxRow,
         alignItems: 'center',
         height: 56,
-        width: '100%',
         padding: globalMargins.small,
+        width: '100%',
       }}
     >
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flex: 1}}>
           {!!hasThumbnail && (
-            <NativeImage style={{width: 48, height: 48, borderRadius: 24, marginRight: 16}} source={source} />
+            <NativeImage style={{borderRadius: 24, height: 48, marginRight: 16, width: 48}} source={source} />
           )}
           {!hasThumbnail && <Avatar size={48} style={{marginRight: 16}} />}
           <Box>
@@ -87,7 +87,7 @@ const contactRow = (i: number, props: ContactRowProps) => {
             waiting={props.loading}
             small={true}
             onClick={props.onClick}
-            style={{width: 100, paddingLeft: globalMargins.small, paddingRight: globalMargins.small}}
+            style={{paddingLeft: globalMargins.small, paddingRight: globalMargins.small, width: 100}}
           />
         </Box>
       </Box>
@@ -142,7 +142,7 @@ class InviteByEmailMobile extends React.Component<MobileProps, State> {
               }}
               fullWidth={true}
             >
-              <Text type="BodySemibold" backgroundMode="HighRisk" style={{textAlign: 'center'}}>
+              <Text center={true} type="BodySemibold" backgroundMode="HighRisk">
                 {this.props.errorMessage}
               </Text>
             </Box2>
@@ -150,8 +150,8 @@ class InviteByEmailMobile extends React.Component<MobileProps, State> {
           <Box
             style={{
               ...globalStyles.flexBoxRow,
-              borderBottomWidth: hairlineWidth,
               borderBottomColor: globalColors.black_10,
+              borderBottomWidth: hairlineWidth,
             }}
           >
             <Input
@@ -164,9 +164,9 @@ class InviteByEmailMobile extends React.Component<MobileProps, State> {
               style={{width: '100%'}}
               errorStyle={{minHeight: 14}}
               inputStyle={{
-                textAlign: 'left',
-                margin: globalMargins.small,
                 fontSize: 16,
+                margin: globalMargins.small,
+                textAlign: 'left',
               }}
             />
           </Box>
@@ -179,14 +179,14 @@ class InviteByEmailMobile extends React.Component<MobileProps, State> {
             style={{
               ...globalStyles.flexBoxColumn,
               alignItems: 'center',
-              justifyContent: 'center',
-              padding: globalMargins.small,
-              borderBottomWidth: hairlineWidth,
               borderBottomColor: globalColors.black_10,
+              borderBottomWidth: hairlineWidth,
+              justifyContent: 'center',
               marginBottom: globalMargins.xtiny,
+              padding: globalMargins.small,
             }}
           >
-            <Text type="BodySmall" style={{textAlign: 'center'}}>
+            <Text center={true} type="BodySmall" >
               Users will be invited to {this.props.name} as
               <Text type="BodySmallPrimaryLink">{' ' + this.props.role + 's'}</Text>.
             </Text>

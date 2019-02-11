@@ -6,8 +6,11 @@ import (
 	"net"
 
 	"github.com/keybase/client/go/chat/types"
+	"github.com/keybase/client/go/ephemeral"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"golang.org/x/net/context"
 )
@@ -23,7 +26,12 @@ func NewPermanentUnboxingError(inner error) types.UnboxingError {
 type PermanentUnboxingError struct{ inner error }
 
 func (e PermanentUnboxingError) Error() string {
-	return fmt.Sprintf("Unable to decrypt chat message: %s", e.inner.Error())
+	switch err := e.inner.(type) {
+	case EphemeralUnboxingError:
+		return err.Error()
+	default:
+		return fmt.Sprintf("Unable to decrypt chat message: %s", err.Error())
+	}
 }
 
 func (e PermanentUnboxingError) IsPermanent() bool { return true }
@@ -79,6 +87,20 @@ func (e PermanentUnboxingError) InternalError() string {
 	}
 }
 
+func (e PermanentUnboxingError) ToStatus() (status keybase1.Status) {
+	if ee, ok := e.inner.(libkb.ExportableError); ok {
+		status = ee.ToStatus()
+		status.Desc = e.Error()
+	} else {
+		status = keybase1.Status{
+			Name: "GENERIC",
+			Code: libkb.SCGeneric,
+			Desc: e.Error(),
+		}
+	}
+	return status
+}
+
 //=============================================================================
 
 func NewTransientUnboxingError(inner error) types.UnboxingError {
@@ -120,6 +142,20 @@ func (e TransientUnboxingError) InternalError() string {
 	}
 }
 
+func (e TransientUnboxingError) ToStatus() (status keybase1.Status) {
+	if ee, ok := e.inner.(libkb.ExportableError); ok {
+		status = ee.ToStatus()
+		status.Desc = e.Error()
+	} else {
+		status = keybase1.Status{
+			Name: "GENERIC",
+			Code: libkb.SCGeneric,
+			Desc: e.Error(),
+		}
+	}
+	return status
+}
+
 //=============================================================================
 
 type EphemeralAlreadyExpiredError struct{ inner error }
@@ -138,14 +174,14 @@ func (e EphemeralAlreadyExpiredError) InternalError() string {
 
 //=============================================================================
 
-type EphemeralUnboxingError struct{ inner error }
+type EphemeralUnboxingError struct{ inner ephemeral.EphemeralKeyError }
 
-func NewEphemeralUnboxingError(inner error) EphemeralUnboxingError {
+func NewEphemeralUnboxingError(inner ephemeral.EphemeralKeyError) EphemeralUnboxingError {
 	return EphemeralUnboxingError{inner}
 }
 
 func (e EphemeralUnboxingError) Error() string {
-	return "Device is missing required ephemeral keys"
+	return e.inner.HumanError()
 }
 
 func (e EphemeralUnboxingError) InternalError() string {
@@ -417,17 +453,23 @@ func (e UnknownTLFNameError) Error() string {
 //=============================================================================
 
 type AttachmentUploadError struct {
-	Msg string
+	Msg  string
+	Perm bool
 }
 
-func NewAttachmentUploadError(msg string) AttachmentUploadError {
+func NewAttachmentUploadError(msg string, perm bool) AttachmentUploadError {
 	return AttachmentUploadError{
-		Msg: msg,
+		Msg:  msg,
+		Perm: perm,
 	}
 }
 
 func (e AttachmentUploadError) Error() string {
 	return fmt.Sprintf("attachment failed to upload; %s", e.Msg)
+}
+
+func (e AttachmentUploadError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
+	return chat1.OutboxErrorType_MISC, e.Perm
 }
 
 //=============================================================================
@@ -489,14 +531,28 @@ func IsOfflineError(err error) OfflineErrorKind {
 	switch err {
 	case context.DeadlineExceeded:
 		fallthrough
-	case context.Canceled:
-		fallthrough
 	case ErrChatServerTimeout:
 		return OfflineErrorKindOfflineReconnect
 	case ErrDuplicateConnection:
 		return OfflineErrorKindOfflineBasic
 	}
 	return OfflineErrorKindOnline
+}
+
+func IsRekeyError(err error) (typ chat1.ConversationErrorType, ok bool) {
+	switch err := err.(type) {
+	case types.UnboxingError:
+		return IsRekeyError(err.Inner())
+	case libkb.NeedSelfRekeyError:
+		return chat1.ConversationErrorType_SELFREKEYNEEDED, true
+	case libkb.NeedOtherRekeyError:
+		return chat1.ConversationErrorType_OTHERREKEYNEEDED, true
+	default:
+		if teams.IsTeamReadError(err) {
+			return chat1.ConversationErrorType_OTHERREKEYNEEDED, true
+		}
+	}
+	return chat1.ConversationErrorType_NONE, false
 }
 
 //=============================================================================

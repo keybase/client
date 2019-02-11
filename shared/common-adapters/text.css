@@ -6,7 +6,7 @@
   color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: OpenSans;
+  font-family: Keybase;
   font-weight: 700;
 }
 
@@ -16,331 +16,341 @@
   color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: OpenSans;
+  font-family: Keybase;
   font-weight: 800;
 }
 
 .text_Header {
-  font-size: 16px;
-  line-height: 20px;
+  font-size: 18px;
+  line-height: 22px;
   color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
+  font-family: Keybase;
+  font-weight: 700;
 }
 
 .text_HeaderItalic {
-  font-size: 16px;
-  line-height: 20px;
+  font-size: 18px;
+  line-height: 22px;
   color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
+  font-family: Keybase;
+  font-weight: 700;
   font-style: italic;
 }
 
 .text_HeaderExtrabold {
-  font-size: 16px;
-  line-height: 20px;
+  font-size: 18px;
+  line-height: 22px;
   color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: OpenSans;
+  font-family: Keybase;
   font-weight: 800;
 }
 
 .text_HeaderLink {
-  font-size: 16px;
-  line-height: 20px;
+  font-size: 18px;
+  line-height: 22px;
   color: rgb(76, 142, 255);
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: OpenSans;
-  font-weight: 600;
+  font-family: Keybase;
+  font-weight: 700;
 }
 
 .text_BodyBig {
-  font-size: 14px;
-  line-height: 18px;
+  font-size: 15px;
+  line-height: 19px;
   color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: OpenSans;
+  font-family: Keybase;
   font-weight: 600;
 }
 
 .text_BodyBigExtrabold {
-  font-size: 14px;
-  line-height: 18px;
+  font-size: 15px;
+  line-height: 19px;
   color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: OpenSans;
+  font-family: Keybase;
   font-weight: 800;
 }
 
 .text_BodyBigLink {
-  font-size: 14px;
-  line-height: 18px;
+  font-size: 15px;
+  line-height: 19px;
   color: rgb(76, 142, 255);
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: OpenSans;
+  font-family: Keybase;
   font-weight: 600;
 }
 
 .text_Body {
-  font-size: 13px;
-  line-height: 17px;
+  font-size: 14px;
+  line-height: 18px;
   color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: OpenSans;
+  font-family: Keybase;
   font-weight: 400;
 }
 
 .text_BodyItalic {
-  font-size: 13px;
-  line-height: 17px;
+  font-size: 14px;
+  line-height: 18px;
   color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: OpenSans;
+  font-family: Keybase;
   font-weight: 400;
   font-style: italic;
 }
 
 .text_BodySemibold {
-  font-size: 13px;
-  line-height: 17px;
+  font-size: 14px;
+  line-height: 18px;
   color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: OpenSans;
+  font-family: Keybase;
   font-weight: 600;
 }
 
 .text_BodySemiboldItalic {
-  font-size: 13px;
+  font-size: 14px;
   font-style: italic;
-  line-height: 17px;
+  line-height: 18px;
   color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: OpenSans;
+  font-family: Keybase;
   font-weight: 600;
 }
 
 .text_BodySemiboldLink {
-  font-size: 13px;
-  line-height: 17px;
+  font-size: 14px;
+  line-height: 18px;
   color: rgb(76, 142, 255);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: OpenSans;
+  font-family: Keybase;
   font-weight: 600;
 }
 
 .text_BodyExtrabold {
-  font-size: 13px;
-  line-height: 17px;
+  font-size: 14px;
+  line-height: 18px;
   color: rgba(0, 0, 0, 0.75);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: OpenSans;
+  font-family: Keybase;
   font-weight: 800;
 }
 
 .text_BodyPrimaryLink {
-  font-size: 13px;
-  line-height: 17px;
+  font-size: 14px;
+  line-height: 18px;
   color: rgb(76, 142, 255);
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: OpenSans;
+  font-family: Keybase;
   font-weight: 400;
 }
 
 .text_BodySecondaryLink {
-  font-size: 13px;
-  line-height: 17px;
-  color: rgba(0, 0, 0, 0.6);
+  font-size: 14px;
+  line-height: 18px;
+  color: rgba(0, 0, 0, 0.5);
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: OpenSans;
+  font-family: Keybase;
   font-weight: 400;
 }
 
 .text_BodySmall {
-  font-size: 12px;
+  font-size: 13px;
   line-height: 16px;
-  color: rgba(0, 0, 0, 0.4);
+  color: rgba(0, 0, 0, 0.5);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: OpenSans;
+  font-family: Keybase;
   font-weight: 400;
 }
 
-.text_BodySmallItalic {
-  font-size: 12px;
+.text_BodySmallBold {
+  font-size: 13px;
   line-height: 16px;
-  color: rgba(0, 0, 0, 0.4);
+  color: rgba(0, 0, 0, 0.5);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: OpenSans;
+  font-family: Keybase;
+  font-weight: 700;
+}
+
+.text_BodySmallItalic {
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.5);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-family: Keybase;
   font-weight: 400;
   font-style: italic;
 }
 
 .text_BodySmallPrimaryLink {
-  font-size: 12px;
-  line-height: 16px;
+  font-size: 13px;
+  line-height: 17px;
   color: #4c8eff;
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: OpenSans;
+  font-family: Keybase;
   font-weight: 400;
 }
 
 .text_BodySmallExtrabold {
-  font-size: 12px;
-  line-height: 16px;
-  color: rgba(0, 0, 0, 0.4);
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.5);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: OpenSans;
+  font-family: Keybase;
   font-weight: 800;
 }
 
 .text_BodySmallSemiboldItalic {
-  font-size: 12px;
+  font-size: 13px;
   font-style: italic;
-  line-height: 16px;
-  color: rgba(0, 0, 0, 0.4);
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.5);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: OpenSans;
+  font-family: Keybase;
   font-weight: 600;
 }
 
 .text_BodySmallSemiboldPrimaryLink {
-  font-size: 12px;
-  line-height: 16px;
+  font-size: 13px;
+  line-height: 17px;
   color: rgb(76, 142, 255);
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: OpenSans;
+  font-family: Keybase;
   font-weight: 600;
 }
 
 .text_BodySmallSemiboldSecondaryLink {
-  font-size: 12px;
-  line-height: 16px;
+  font-size: 13px;
+  line-height: 17px;
   color: rgb(0, 0, 0, 0.6);
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: OpenSans;
+  font-family: Keybase;
   font-weight: 600;
 }
 
 .text_BodySmallSecondaryLink {
-  font-size: 12px;
-  line-height: 16px;
-  color: rgba(0, 0, 0, 0.6);
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.5);
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: OpenSans;
+  font-family: Keybase;
   font-weight: 400;
 }
 
 .text_BodySmallExtraboldSecondaryLink {
-  font-size: 12px;
-  line-height: 16px;
-  color: rgba(0, 0, 0, 0.6);
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.5);
   cursor: pointer;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: OpenSans;
+  font-family: Keybase;
   font-weight: 800;
 }
 
 .text_BodySmallError {
-  font-size: 12px;
-  line-height: 16px;
+  font-size: 13px;
+  line-height: 17px;
   color: rgb(255, 77, 97);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: OpenSans;
+  font-family: Keybase;
   font-weight: 400;
 }
 
 .text_BodySmallSuccess {
-  font-size: 12px;
-  line-height: 16px;
+  font-size: 13px;
+  line-height: 17px;
   color: rgb(55, 189, 153);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: OpenSans;
+  font-family: Keybase;
   font-weight: 400;
 }
 
 .text_BodySmallWallet {
-  font-size: 12px;
-  line-height: 16px;
+  font-size: 13px;
+  line-height: 17px;
   color: rgb(132, 92, 219);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: OpenSans;
+  font-family: Keybase;
   font-weight: 400;
 }
 
 .text_BodyTiny {
-  font-size: 11px;
-  line-height: 15px;
-  color: rgba(0, 0, 0, 0.4);
+  font-size: 12px;
+  line-height: 16px;
+  color: rgba(0, 0, 0, 0.5);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: OpenSans;
+  font-family: Keybase;
   font-weight: 400;
 }
 
 .text_BodyTinyBold {
-  font-size: 11px;
-  line-height: 15px;
-  color: rgba(0, 0, 0, 0.4);
+  font-size: 12px;
+  line-height: 16px;
+  color: rgba(0, 0, 0, 0.5);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: OpenSans;
+  font-family: Keybase;
   font-weight: 700;
 }
 
 .text_BodyTinySemibold {
-  font-size: 11px;
-  line-height: 15px;
-  color: rgba(0, 0, 0, 0.4);
+  font-size: 12px;
+  line-height: 16px;
+  color: rgba(0, 0, 0, 0.5);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: OpenSans;
+  font-family: Keybase;
   font-weight: 600;
 }
 
 .text_BodySmallSemibold {
-  font-size: 12px;
-  line-height: 16px;
-  color: rgba(0, 0, 0, 0.4);
+  font-size: 13px;
+  line-height: 17px;
+  color: rgba(0, 0, 0, 0.5);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
-  font-family: OpenSans;
+  font-family: Keybase;
   font-weight: 600;
 }
 
@@ -384,4 +394,9 @@
   height: 17px;
   padding: 2px;
   word-wrap: break-word;
+}
+
+.text_center {
+  display: inline-block;
+  text-align: center;
 }

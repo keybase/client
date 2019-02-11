@@ -18,12 +18,11 @@ class BackButton extends Component<Props> {
     return (
       <div style={collapseStyles([styles.container, this.props.style])} onClick={e => this.onClick(e)}>
         <Icon type="iconfont-arrow-left" style={styles.icon} color={this.props.iconColor} />
-        {this.props.title !== null &&
-          !this.props.hideBackLabel && (
-            <Text type="BodyPrimaryLink" style={this.props.textStyle} onClick={e => this.onClick(e)}>
-              {this.props.title || 'Back'}
-            </Text>
-          )}
+        {this.props.title !== null && !this.props.hideBackLabel && (
+          <Text type="BodyPrimaryLink" style={this.props.textStyle} onClick={e => this.onClick(e)}>
+            {this.props.title || 'Back'}
+          </Text>
+        )}
       </div>
     )
   }

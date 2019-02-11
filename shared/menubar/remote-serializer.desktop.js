@@ -36,6 +36,7 @@ export const serialize: any = {
             [toSend.conversation.conversationIDKey]: conversationSerialize(toSend),
           }
     }, {}),
+  daemonHandshakeState: v => v,
   endEstimate: v => v,
   externalRemoteWindow: v => v,
   fileName: v => v,
@@ -45,9 +46,14 @@ export const serialize: any = {
       : v._tlfUpdates.map(t => GetRowsFromTlfUpdate(t, v._uploads)).toArray(),
   files: v => v,
   loggedIn: v => v,
-  totalSyncingBytes: v => v,
   outOfDate: v => v,
-  userInfo: v => v,
+  totalSyncingBytes: v => v,
+  // Just send broken over, if its the same send null
+  userInfo: (v, o) => {
+    const toSend = v.filter(u => u.broken)
+    const old = o && o.filter(u => u.broken)
+    return toSend.equals(old) ? undefined : toSend
+  },
   username: v => v,
   windowComponent: v => v,
   windowOpts: v => v,
@@ -82,6 +88,9 @@ export const deserialize = (state: any = initialState, props: any) => {
     ...props.conversationMap,
   }
 
+  // if we send null keep the old value
+  const userInfo = props.userInfo || state.userInfo
+
   const newState = {
     ...state,
     ...props,
@@ -90,6 +99,7 @@ export const deserialize = (state: any = initialState, props: any) => {
     conversationMap,
     conversations: (props.conversationIDs || state.conversationIDs).map(id => conversationMap[id]),
     fileRows: props.fileRows || state.fileRows,
+    userInfo,
   }
   return Avatar.deserialize(newState, props)
 }

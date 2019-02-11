@@ -28,6 +28,14 @@
       "request": [],
       "response": null
     },
+    "registerIdentify3UI": {
+      "request": [],
+      "response": null
+    },
+    "registerChatUI": {
+      "request": [],
+      "response": null
+    },
     "registerGregorFirehose": {
       "request": [],
       "response": null

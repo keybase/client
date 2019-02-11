@@ -1,7 +1,7 @@
 // @flow
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import * as Constants from '../../../../constants/chat2'
-import * as TrackerGen from '../../../../actions/profile-gen'
+import * as ProfileGen from '../../../../actions/profile-gen'
 import * as Types from '../../../../constants/types/chat2'
 import ResetUser from '.'
 import {compose, connect} from '../../../../util/container'
@@ -23,7 +23,7 @@ const mapDispatchToProps = dispatch => ({
     dispatch(Chat2Gen.createResetChatWithoutThem({conversationIDKey})),
   _letThemIn: (username: string, conversationIDKey: Types.ConversationIDKey) =>
     dispatch(Chat2Gen.createResetLetThemIn({conversationIDKey, username})),
-  _viewProfile: (username: string) => dispatch(TrackerGen.createShowUserProfile({username})),
+  _viewProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({

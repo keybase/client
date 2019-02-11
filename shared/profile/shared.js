@@ -4,7 +4,7 @@ import {globalColors} from '../styles'
 import {proveMessage} from '../util/platforms'
 import {PlatformsExpanded} from '../constants/types/more'
 
-import type {MissingProof} from '../common-adapters/user-proofs'
+import type {MissingProof} from './user-proofs'
 import type {Proof} from '../constants/types/tracker'
 import type {PlatformsExpandedType} from '../constants/types/more'
 import type {Folder} from '../constants/types/folders'
@@ -35,16 +35,16 @@ export function missingProofs(
 
   // $FlowIssue thinks its just a string
   const missingRegular = difference(availableProofTypes, userProofTypes).map((type: PlatformsExpanded) => ({
-    type,
     message: proveMessage(type),
     onClick,
+    type,
   }))
 
   // always ensure you can add a web site
   return missingRegular.concat({
-    type: 'dnsOrGenericWebSite',
     message: proveMessage('dnsOrGenericWebSite'),
     onClick,
+    type: 'dnsOrGenericWebSite',
   })
 }
 

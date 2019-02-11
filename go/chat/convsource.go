@@ -74,28 +74,16 @@ func (s *baseConversationSource) DeleteAssets(ctx context.Context, uid gregor1.U
 }
 
 func (s *baseConversationSource) addPendingPreviews(ctx context.Context, thread *chat1.ThreadView) {
-	pp := attachments.NewPendingPreviews(s.G())
 	for index, m := range thread.Messages {
 		if !m.IsOutbox() {
 			continue
 		}
 		obr := m.Outbox()
-		pre, err := pp.Get(ctx, obr.OutboxID)
-		if err != nil {
+		if err := attachments.AddPendingPreview(ctx, s.G(), &obr); err != nil {
 			s.Debug(ctx, "addPendingPreviews: failed to get pending preview: outboxID: %s err: %s",
 				obr.OutboxID, err)
 			continue
 		}
-		mpr, err := pre.Export(func() *chat1.PreviewLocation {
-			loc := chat1.NewPreviewLocationWithUrl(s.G().AttachmentURLSrv.GetPendingPreviewURL(ctx,
-				obr.OutboxID))
-			return &loc
-		})
-		if err != nil {
-			s.Debug(ctx, "addPendingPreviews: failed to export: %s", err)
-			continue
-		}
-		obr.Preview = &mpr
 		thread.Messages[index] = chat1.NewMessageUnboxedWithOutbox(obr)
 	}
 }
@@ -195,6 +183,25 @@ func (s *baseConversationSource) patchPaginationLast(ctx context.Context, conv t
 	}
 }
 
+func (s *baseConversationSource) MarkAsRead(ctx context.Context, convID chat1.ConversationID,
+	uid gregor1.UID, msgID chat1.MessageID) (err error) {
+	defer s.Trace(ctx, func() error { return err }, "MarkAsRead(%s,%d)", convID, msgID)()
+	// Check local copy to see if we have this convo, and have fully read it. If so, we skip the remote call
+	readRes, err := storage.NewInbox(s.G()).GetConversation(ctx, uid, convID)
+	if err == nil && readRes.GetConvID().Eq(convID) &&
+		readRes.Conv.ReaderInfo.ReadMsgid == readRes.Conv.ReaderInfo.MaxMsgid {
+		s.Debug(ctx, "MarkAsRead: conversation fully read: %s, not sending remote call", convID)
+		return nil
+	}
+	if _, err = s.ri().MarkAsRead(ctx, chat1.MarkAsReadArg{
+		ConversationID: convID,
+		MsgID:          msgID,
+	}); err != nil {
+		return err
+	}
+	return nil
+}
+
 type RemoteConversationSource struct {
 	globals.Contextified
 	*baseConversationSource
@@ -245,7 +252,7 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	// Get conversation metadata
-	conv, err := GetUnverifiedConv(ctx, s.G(), uid, convID, true)
+	conv, err := GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		return chat1.ThreadView{}, err
 	}
@@ -262,13 +269,13 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 		return chat1.ThreadView{}, err
 	}
 
-	thread, err := s.boxer.UnboxThread(ctx, boxed.Thread, conv)
+	thread, err := s.boxer.UnboxThread(ctx, boxed.Thread, conv.Conv)
 	if err != nil {
 		return chat1.ThreadView{}, err
 	}
 
 	// Post process thread before returning
-	if err = s.postProcessThread(ctx, uid, conv, &thread, query, nil, true, false); err != nil {
+	if err = s.postProcessThread(ctx, uid, conv.Conv, &thread, query, nil, true, false); err != nil {
 		return chat1.ThreadView{}, err
 	}
 
@@ -315,6 +322,18 @@ func (s *RemoteConversationSource) GetMessagesWithRemotes(ctx context.Context,
 		return nil, OfflineError{}
 	}
 	return s.boxer.UnboxMessages(ctx, msgs, conv)
+}
+
+func (s *RemoteConversationSource) GetUnreadline(ctx context.Context,
+	convID chat1.ConversationID, uid gregor1.UID, readMsgID chat1.MessageID) (*chat1.MessageID, error) {
+	res, err := s.ri().GetUnreadlineRemote(ctx, chat1.GetUnreadlineRemoteArg{
+		ConvID:    convID,
+		ReadMsgID: readMsgID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return res.UnreadlineID, nil
 }
 
 func (s *RemoteConversationSource) Expunge(ctx context.Context,
@@ -562,7 +581,7 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 	defer s.lockTab.Release(ctx, uid, convID)
 
 	// Grab conversation information before pushing
-	conv, err := GetUnverifiedConv(ctx, s.G(), uid, convID, true)
+	conv, err := GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		return decmsg, continuousUpdate, err
 	}
@@ -572,7 +591,7 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 		return decmsg, continuousUpdate, err
 	}
 
-	decmsg, err = s.boxer.UnboxMessage(ctx, msg, conv)
+	decmsg, err = s.boxer.UnboxMessage(ctx, msg, conv.Conv, nil)
 	if err != nil {
 		return decmsg, continuousUpdate, err
 	}
@@ -726,9 +745,10 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	defer s.lockTab.Release(ctx, uid, convID)
 
 	// Get conversation metadata
-	conv, err := GetUnverifiedConv(ctx, s.G(), uid, convID, true)
+	rconv, err := GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 	var unboxConv types.UnboxConversationInfo
 	if err == nil {
+		conv := rconv.Conv
 		unboxConv = conv
 		// Try locally first
 		var holesFilled int
@@ -761,11 +781,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 				// requested.
 				if query != nil && query.MarkAsRead && len(thread.Messages) > 0 {
 					readMsgID := thread.Messages[0].GetMessageID()
-					_, err := s.ri().MarkAsRead(ctx, chat1.MarkAsReadArg{
-						ConversationID: convID,
-						MsgID:          readMsgID,
-					})
-					if err != nil {
+					if err = s.MarkAsRead(ctx, convID, uid, readMsgID); err != nil {
 						return chat1.ThreadView{}, err
 					}
 					if _, err = s.G().InboxSource.ReadMessage(ctx, uid, 0, convID, readMsgID); err != nil {
@@ -1057,7 +1073,7 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 				return nil, OfflineError{}
 			}
 
-			unboxed, err := s.boxer.UnboxMessage(ctx, msg, conv)
+			unboxed, err := s.boxer.UnboxMessage(ctx, msg, conv, nil)
 			if err != nil {
 				return res, err
 			}
@@ -1082,12 +1098,32 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 	return res, nil
 }
 
+func (s *HybridConversationSource) GetUnreadline(ctx context.Context,
+	convID chat1.ConversationID, uid gregor1.UID, readMsgID chat1.MessageID) (unreadlineID *chat1.MessageID, err error) {
+	defer s.Trace(ctx, func() error { return err }, fmt.Sprintf("GetUnreadline: convID: %v, readMsgID: %v", convID, readMsgID))()
+	unreadlineID, err = storage.New(s.G(), s).FetchUnreadlineID(ctx, convID, uid, readMsgID)
+	if err != nil {
+		return nil, err
+	}
+	if unreadlineID == nil {
+		res, err := s.ri().GetUnreadlineRemote(ctx, chat1.GetUnreadlineRemoteArg{
+			ConvID:    convID,
+			ReadMsgID: readMsgID,
+		})
+		if err != nil {
+			return nil, err
+		}
+		unreadlineID = res.UnreadlineID
+	}
+	return unreadlineID, nil
+}
+
 func (s *HybridConversationSource) notifyExpunge(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, mergeRes storage.MergeResult) {
 	if mergeRes.Expunged != nil {
 		var inboxItem *chat1.InboxUIItem
 		topicType := chat1.TopicType_NONE
-		conv, err := GetVerifiedConv(ctx, s.G(), uid, convID, true /* useLocalData */)
+		conv, err := GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 		if err != nil {
 			s.Debug(ctx, "notifyExpunge: failed to get conversations: %s", err)
 		} else {
@@ -1105,43 +1141,22 @@ func (s *HybridConversationSource) notifyExpunge(ctx context.Context, uid gregor
 
 func (s *HybridConversationSource) notifyUnfurls(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, msgs []chat1.MessageUnboxed) {
-	updatedMsgs := make(map[chat1.MessageID]bool)
-	// Gather up all the messages affected by these unfurls with the purpose of
-	// computing the new unfurls for each one. Once we have them all, we send that to the UI
-	// so it can replace whatever it has in the store.
-	for _, msg := range msgs {
-		if !msg.IsValid() || msg.Valid().ClientHeader.Conv.TopicType != chat1.TopicType_CHAT {
-			continue
-		}
-		body := msg.Valid().MessageBody
-		if typ, err := body.MessageType(); err != nil || typ != chat1.MessageType_UNFURL {
-			continue
-		}
-		updatedMsgs[body.Unfurl().MessageID] = true
-	}
-	if len(updatedMsgs) == 0 {
+	if len(msgs) == 0 {
 		s.Debug(ctx, "notifyUnfurls: nothing to do")
 		return
 	}
-	s.Debug(ctx, "notifyUnfurls: fetching %d messages", len(updatedMsgs))
-	var msgIDs []chat1.MessageID
-	for msgID := range updatedMsgs {
-		msgIDs = append(msgIDs, msgID)
-	}
-	conv, err := GetUnverifiedConv(ctx, s.G(), uid, convID, true)
+	s.Debug(ctx, "notifyUnfurls: notifying %d messages", len(msgs))
+	conv, err := GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		s.Debug(ctx, "notifyUnfurls: failed to get conv: %s", err)
 		return
 	}
-	unfurledMsgs, err := s.GetMessages(ctx, conv, uid, msgIDs, nil)
+	unfurledMsgs, err := s.TransformSupersedes(ctx, conv.Conv, uid, msgs)
 	if err != nil {
-		s.Debug(ctx, "notifyUnfurls: fails to get messages to notify: %s", err)
-		return
-	}
-	if unfurledMsgs, err = s.TransformSupersedes(ctx, conv, uid, unfurledMsgs); err != nil {
 		s.Debug(ctx, "notifyUnfurls: failed to transform supersedes: %s", err)
 		return
 	}
+	s.Debug(ctx, "notifyUnfurls: %d messages after transform", len(unfurledMsgs))
 	notif := chat1.MessagesUpdated{
 		ConvID: convID,
 	}
@@ -1158,7 +1173,7 @@ func (s *HybridConversationSource) notifyReactionUpdates(ctx context.Context, ui
 	convID chat1.ConversationID, msgs []chat1.MessageUnboxed) {
 	s.Debug(ctx, "notifyReactionUpdates: %d msgs to update", len(msgs))
 	if len(msgs) > 0 {
-		conv, err := GetVerifiedConv(ctx, s.G(), uid, convID, true /* useLocalData */)
+		conv, err := GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 		if err != nil {
 			s.Debug(ctx, "notifyReactionUpdates: failed to get conversations: %s", err)
 			return
@@ -1208,7 +1223,7 @@ func (s *HybridConversationSource) notifyEphemeralPurge(ctx context.Context, uid
 		s.G().ActivityNotifier.ThreadsStale(ctx, uid, []chat1.ConversationStaleUpdate{
 			chat1.ConversationStaleUpdate{
 				ConvID:     convID,
-				UpdateType: chat1.StaleUpdateType_NEWACTIVITY,
+				UpdateType: chat1.StaleUpdateType_CONVUPDATE,
 			},
 		})
 	}
@@ -1246,7 +1261,7 @@ func (s *HybridConversationSource) mergeMaybeNotify(ctx context.Context,
 	s.notifyExpunge(ctx, uid, convID, mergeRes)
 	s.notifyEphemeralPurge(ctx, uid, convID, mergeRes.Exploded)
 	s.notifyReactionUpdates(ctx, uid, convID, mergeRes.ReactionTargets)
-	s.notifyUnfurls(ctx, uid, convID, msgs)
+	s.notifyUnfurls(ctx, uid, convID, mergeRes.UnfurlTargets)
 	return nil
 }
 

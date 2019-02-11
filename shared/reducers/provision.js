@@ -4,6 +4,7 @@ import * as Constants from '../constants/provision'
 import * as Types from '../constants/types/provision'
 import * as ProvisionGen from '../actions/provision-gen'
 import HiddenString from '../util/hidden-string'
+import * as Flow from '../util/flow'
 
 const initialState = Constants.makeState()
 
@@ -98,10 +99,7 @@ export default function(state: Types.State = initialState, action: ProvisionGen.
     case ProvisionGen.submitGPGMethod:
       return state
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(action);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

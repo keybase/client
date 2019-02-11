@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/emails"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
@@ -88,7 +89,7 @@ func proveRooter(t *testing.T, g *libkb.GlobalContext, fu *kbtest.FakeUser) {
 
 func addAndVerifyPhone(t *testing.T, g *libkb.GlobalContext, phoneNumber keybase1.PhoneNumber) {
 	mctx := libkb.NewMetaContextTODO(g)
-	require.NoError(t, phonenumbers.AddPhoneNumber(mctx, phoneNumber))
+	require.NoError(t, phonenumbers.AddPhoneNumber(mctx, phoneNumber, keybase1.IdentityVisibility_PRIVATE))
 
 	code, err := kbtest.GetPhoneVerificationCode(libkb.NewMetaContextTODO(g), phoneNumber)
 	require.NoError(t, err)
@@ -181,6 +182,7 @@ func runChatSBSScenario(t *testing.T, testCase sbsTestCase) {
 			}
 			select {
 			case rres := <-listener1.joinedConv:
+				require.NotNil(t, rres)
 				require.Equal(t, ncres.Conv.GetConvID().String(), rres.ConvID)
 				require.Equal(t, 2, len(rres.Participants))
 			case <-time.After(20 * time.Second):
@@ -243,8 +245,6 @@ func TestChatSrvRooter(t *testing.T) {
 }
 
 func TestChatSrvPhone(t *testing.T) {
-	t.Skip("skipped because no RPC to set to discoverable yet CORE-9526")
-
 	var phone string
 	runChatSBSScenario(t, sbsTestCase{
 		getChatAssertion: func(user *kbtest.FakeUser) string {
@@ -252,20 +252,22 @@ func TestChatSrvPhone(t *testing.T) {
 			return fmt.Sprintf("%s@phone", phone)
 		},
 		sbsVerify: func(user *kbtest.FakeUser, g *libkb.GlobalContext) {
-			addAndVerifyPhone(t, g, keybase1.PhoneNumber("+"+phone))
+			phoneNumber := keybase1.PhoneNumber("+" + phone)
+			addAndVerifyPhone(t, g, phoneNumber)
+			phonenumbers.SetVisibilityPhoneNumber(libkb.NewMetaContextTODO(g), phoneNumber, keybase1.IdentityVisibility_PUBLIC)
 		},
 	})
 }
 
 func TestChatSrvEmail(t *testing.T) {
-	t.Skip("skipped because no RPC to set to discoverable yet CORE-9526")
-
 	runChatSBSScenario(t, sbsTestCase{
 		getChatAssertion: func(user *kbtest.FakeUser) string {
 			return fmt.Sprintf("[%s]@email", user.Email)
 		},
 		sbsVerify: func(user *kbtest.FakeUser, g *libkb.GlobalContext) {
-			kbtest.VerifyEmailAuto(libkb.NewMetaContextTODO(g), user.Email)
+			email := keybase1.EmailAddress(user.Email)
+			kbtest.VerifyEmailAuto(libkb.NewMetaContextTODO(g), email)
+			emails.SetVisibilityEmail(libkb.NewMetaContextTODO(g), email, keybase1.IdentityVisibility_PUBLIC)
 		},
 	})
 }

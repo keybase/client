@@ -3,15 +3,18 @@
 import * as I from 'immutable'
 import * as RPCChatTypes from '../types/rpc-chat-gen'
 import * as RPCTypes from '../types/rpc-gen'
+import * as WalletConstants from '../wallets'
 import * as Types from '../types/chat2'
 import * as TeamConstants from '../teams'
 import type {_ConversationMeta} from '../types/chat2/meta'
 import type {TypedState} from '../reducer'
 import {formatTimeForConversationList} from '../../util/timestamp'
 import {globalColors} from '../../styles'
-import {isIOS, isAndroid} from '../platform'
+import {isMobile} from '../platform'
 import {toByteArray} from 'base64-js'
+import flags from '../../util/feature-flags'
 import {noConversationIDKey, isValidConversationIDKey} from '../types/chat2/common'
+import {getFullname} from '../users'
 
 const conversationMemberStatusToMembershipType = (m: RPCChatTypes.ConversationMemberStatus) => {
   switch (m) {
@@ -45,37 +48,40 @@ export const unverifiedInboxUIItemToConversationMeta = (
   // We only treat implicit adhoc teams as having resetParticipants
   const resetParticipants = I.Set(
     i.localMetadata &&
-    (i.membersType === RPCChatTypes.commonConversationMembersType.impteamnative ||
-      i.membersType === RPCChatTypes.commonConversationMembersType.impteamupgrade) &&
-    i.localMetadata.resetParticipants
+      (i.membersType === RPCChatTypes.commonConversationMembersType.impteamnative ||
+        i.membersType === RPCChatTypes.commonConversationMembersType.impteamupgrade) &&
+      i.localMetadata.resetParticipants
       ? i.localMetadata.resetParticipants
       : []
   )
 
   const participants = I.List(i.localMetadata ? i.localMetadata.writerNames || [] : (i.name || '').split(','))
-  const channelname =
-    i.membersType === RPCChatTypes.commonConversationMembersType.team && i.localMetadata
-      ? i.localMetadata.channelName
-      : ''
+  const isTeam = i.membersType === RPCChatTypes.commonConversationMembersType.team
+  const channelname = isTeam && i.localMetadata ? i.localMetadata.channelName : ''
 
   const supersededBy = conversationMetadataToMetaSupersedeInfo(i.supersededBy)
   const supersedes = conversationMetadataToMetaSupersedeInfo(i.supersedes)
-  const teamname = i.membersType === RPCChatTypes.commonConversationMembersType.team ? i.name : ''
+  const teamname = isTeam ? i.name : ''
+  const {retentionPolicy, teamRetentionPolicy} = UIItemToRetentionPolicies(i, isTeam)
 
   return makeConversationMeta({
     channelname,
+    commands: i.commands,
     conversationIDKey: Types.stringToConversationIDKey(i.convID),
     inboxVersion: i.version,
     isMuted: i.status === RPCChatTypes.commonConversationStatus.muted,
+    maxMsgID: i.maxMsgID,
+    maxVisibleMsgID: i.maxVisibleMsgID,
     membershipType: conversationMemberStatusToMembershipType(i.memberStatus),
     participants,
-    maxMsgID: i.maxMsgID,
     readMsgID: i.readMsgID,
     resetParticipants,
+    retentionPolicy,
     snippet: i.localMetadata ? i.localMetadata.snippet : '',
     snippetDecoration: i.localMetadata ? i.localMetadata.snippetDecoration : '',
     supersededBy: supersededBy ? Types.stringToConversationIDKey(supersededBy) : noConversationIDKey,
     supersedes: supersedes ? Types.stringToConversationIDKey(supersedes) : noConversationIDKey,
+    teamRetentionPolicy,
     teamType: getTeamType(i),
     teamname,
     timestamp: i.time,
@@ -103,37 +109,36 @@ const getTeamType = ({teamType, membersType}) => {
   }
 }
 
+export const getEffectiveRetentionPolicy = (meta: Types.ConversationMeta) => {
+  return meta.retentionPolicy.type === 'inherit' ? meta.teamRetentionPolicy : meta.retentionPolicy
+}
+
 // Upgrade a meta, try and keep existing values if possible to reduce render thrashing in components
 // Enforce the verions only increase and we only go from untrusted to trusted, etc
 export const updateMeta = (
-  old: Types.ConversationMeta,
-  meta: Types.ConversationMeta
+  oldMeta: Types.ConversationMeta,
+  newMeta: Types.ConversationMeta
 ): Types.ConversationMeta => {
-  // Older/same version and same state?
-  if (meta.trustedState === old.trustedState) {
-    if (meta.inboxVersion === old.inboxVersion) {
-      return old.merge({
-        snippet: meta.snippet,
-        snippetDecoration: meta.snippetDecoration,
+  if (newMeta.inboxVersion < oldMeta.inboxVersion) {
+    // new is older, keep old
+    return oldMeta
+  } else if (oldMeta.inboxVersion === newMeta.inboxVersion) {
+    // same version, only take data if untrusted -> trusted
+    if (newMeta.trustedState === 'trusted' && oldMeta.trustedState !== 'trusted') {
+      // prettier-ignore
+      return newMeta.withMutations(nm => {
+        // keep immutable stuff to reduce render thrashing
+        I.is(oldMeta.participants, nm.participants) && nm.set('participants', oldMeta.participants)
+        I.is(oldMeta.rekeyers, nm.rekeyers) && nm.set('rekeyers', oldMeta.rekeyers)
+        I.is(oldMeta.resetParticipants, nm.resetParticipants) && nm.set('resetParticipants', oldMeta.resetParticipants)
+        I.is(oldMeta.retentionPolicy, nm.retentionPolicy) && nm.set('retentionPolicy', oldMeta.retentionPolicy)
+        I.is(oldMeta.teamRetentionPolicy, nm.teamRetentionPolicy) && nm.set('teamRetentionPolicy', oldMeta.teamRetentionPolicy)
       })
-    } else if (meta.inboxVersion < old.inboxVersion) {
-      return old
     }
+    return oldMeta
   }
-
-  const participants = old.participants.equals(meta.participants) ? old.participants : meta.participants
-  const rekeyers = old.rekeyers.equals(meta.rekeyers) ? old.rekeyers : meta.rekeyers
-  const resetParticipants = old.resetParticipants.equals(meta.resetParticipants)
-    ? old.resetParticipants
-    : meta.resetParticipants
-
-  return meta.withMutations(m => {
-    m.set('channelname', meta.channelname || old.channelname)
-    m.set('participants', participants)
-    m.set('rekeyers', rekeyers)
-    m.set('resetParticipants', resetParticipants)
-    m.set('teamname', meta.teamname || old.teamname)
-  })
+  // higher inbox version, use new
+  return newMeta
 }
 
 const parseNotificationSettings = (notifications: ?RPCChatTypes.ConversationNotificationInfo) => {
@@ -184,6 +189,25 @@ export const updateMetaWithNotificationSettings = (
   }): Types.ConversationMeta)
 }
 
+const UIItemToRetentionPolicies = (i, isTeam) => {
+  // default inherit for teams, retain for ad-hoc
+  // TODO remove these hard-coded defaults if core starts sending the defaults instead of nil to represent 'unset'
+  let retentionPolicy = isTeam
+    ? TeamConstants.makeRetentionPolicy({type: 'inherit'})
+    : TeamConstants.makeRetentionPolicy()
+  if (i.convRetention) {
+    // it has been set for this conversation
+    retentionPolicy = TeamConstants.serviceRetentionPolicyToRetentionPolicy(i.convRetention)
+  }
+
+  // default for team-wide policy is 'retain'
+  let teamRetentionPolicy = TeamConstants.makeRetentionPolicy()
+  if (i.teamRetention) {
+    teamRetentionPolicy = TeamConstants.serviceRetentionPolicyToRetentionPolicy(i.teamRetention)
+  }
+  return {retentionPolicy, teamRetentionPolicy}
+}
+
 export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allowEmpty?: boolean) => {
   // Private chats only
   if (i.visibility !== RPCTypes.commonTLFVisibility.private) {
@@ -202,7 +226,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
   const resetParticipants = I.Set(
     (i.membersType === RPCChatTypes.commonConversationMembersType.impteamnative ||
       i.membersType === RPCChatTypes.commonConversationMembersType.impteamupgrade) &&
-    i.resetParticipants
+      i.resetParticipants
       ? i.resetParticipants
       : []
   )
@@ -217,21 +241,7 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
     notificationsMobile,
   } = parseNotificationSettings(i.notifications)
 
-  // default inherit for teams, retain for ad-hoc
-  // TODO remove these hard-coded defaults if core starts sending the defaults instead of nil to represent 'unset'
-  let retentionPolicy = isTeam
-    ? TeamConstants.makeRetentionPolicy({type: 'inherit'})
-    : TeamConstants.makeRetentionPolicy()
-  if (i.convRetention) {
-    // it has been set for this conversation
-    retentionPolicy = TeamConstants.serviceRetentionPolicyToRetentionPolicy(i.convRetention)
-  }
-
-  // default for team-wide policy is 'retain'
-  let teamRetentionPolicy = TeamConstants.makeRetentionPolicy()
-  if (i.teamRetention) {
-    teamRetentionPolicy = TeamConstants.serviceRetentionPolicyToRetentionPolicy(i.teamRetention)
-  }
+  const {retentionPolicy, teamRetentionPolicy} = UIItemToRetentionPolicies(i, isTeam)
 
   const minWriterRoleEnum =
     i.convSettings && i.convSettings.minWriterRoleInfo && i.convSettings.minWriterRoleInfo.role
@@ -243,17 +253,19 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
 
   return makeConversationMeta({
     channelname: (isTeam && i.channel) || '',
+    commands: i.commands,
     conversationIDKey: Types.stringToConversationIDKey(i.convID),
     description: i.headline,
     inboxVersion: i.version,
     isMuted: i.status === RPCChatTypes.commonConversationStatus.muted,
+    maxMsgID: i.maxMsgID,
+    maxVisibleMsgID: i.maxVisibleMsgID,
     membershipType: conversationMemberStatusToMembershipType(i.memberStatus),
     minWriterRole,
     notificationsDesktop,
     notificationsGlobalIgnoreMentions,
     notificationsMobile,
     participants: I.List(i.participants || []),
-    maxMsgID: i.maxMsgID,
     readMsgID: i.readMsgID,
     resetParticipants,
     retentionPolicy,
@@ -273,10 +285,13 @@ export const inboxUIItemToConversationMeta = (i: RPCChatTypes.InboxUIItem, allow
 
 export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record({
   channelname: '',
+  commands: {},
   conversationIDKey: noConversationIDKey,
   description: '',
   inboxVersion: -1,
   isMuted: false,
+  maxMsgID: -1,
+  maxVisibleMsgID: -1,
   membershipType: 'active',
   minWriterRole: 'reader',
   notificationsDesktop: 'never',
@@ -284,7 +299,6 @@ export const makeConversationMeta: I.RecordFactory<_ConversationMeta> = I.Record
   notificationsMobile: 'never',
   offline: false,
   participants: I.List(),
-  maxMsgID: -1,
   readMsgID: -1,
   rekeyers: I.Set(),
   resetParticipants: I.Set(),
@@ -306,7 +320,48 @@ const emptyMeta = makeConversationMeta()
 export const getMeta = (state: TypedState, id: Types.ConversationIDKey) =>
   state.chat2.metaMap.get(id, emptyMeta)
 
-const bgPlatform = isIOS ? globalColors.white : isAndroid ? globalColors.transparent : globalColors.blueGrey
+export const getParticipantSuggestions = (state: TypedState, id: Types.ConversationIDKey) => {
+  const {participants, teamType} = getMeta(state, id)
+  let suggestions = participants.map(username => ({fullName: getFullname(state, username) || '', username}))
+  if (teamType !== 'adhoc') {
+    const fullName = teamType === 'small' ? 'Everyone in this team' : 'Everyone in this channel'
+    suggestions = suggestions.push({fullName, username: 'channel'}, {fullName, username: 'here'})
+  }
+  return suggestions
+}
+
+export const getChannelSuggestions = (state: TypedState, teamname: string) =>
+  teamname
+    ? state.chat2.metaMap
+        .filter(v => v.teamname === teamname)
+        .map(v => v.channelname)
+        .toList()
+    : I.List()
+
+export const getCommands = (state: TypedState, id: Types.ConversationIDKey) => {
+  const {commands} = getMeta(state, id)
+  if (commands.typ === RPCChatTypes.commandsConversationCommandGroupsTyp.builtin && commands.builtin) {
+    return state.chat2.staticConfig ? state.chat2.staticConfig.builtinCommands[commands.builtin] : []
+  } else {
+    return []
+  }
+}
+
+const bgPlatform = isMobile ? globalColors.fastBlank : globalColors.blueGrey
+// show wallets icon for one-on-one conversations
+export const shouldShowWalletsIcon = (state: TypedState, id: Types.ConversationIDKey) => {
+  const meta = getMeta(state, id)
+  const accountID = WalletConstants.getDefaultAccountID(state)
+  const sendDisabled = !isMobile && accountID && !!state.wallets.mobileOnlyMap.get(accountID)
+
+  return (
+    flags.walletsEnabled &&
+    !sendDisabled &&
+    meta.teamType === 'adhoc' &&
+    meta.participants.filter(u => u !== state.config.username).size === 1
+  )
+}
+
 export const getRowStyles = (meta: Types.ConversationMeta, isSelected: boolean, hasUnread: boolean) => {
   const isError = meta.trustedState === 'error'
   const backgroundColor = isSelected ? globalColors.blue : bgPlatform
@@ -314,10 +369,10 @@ export const getRowStyles = (meta: Types.ConversationMeta, isSelected: boolean, 
   const subColor = isError
     ? globalColors.red
     : isSelected
-      ? globalColors.white
-      : hasUnread
-        ? globalColors.black_75
-        : globalColors.black_40
+    ? globalColors.white
+    : hasUnread
+    ? globalColors.black_75
+    : globalColors.black_50
   const usernameColor = isSelected ? globalColors.white : globalColors.black_75
   const iconHoverColor = isSelected ? globalColors.white_75 : globalColors.black_75
 

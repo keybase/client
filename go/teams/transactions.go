@@ -681,9 +681,10 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 
 	var sections []SCTeamSection
 	memSet := newMemberSet()
+	var sectionsWithBoxSummaries []int
 
 	// Transform payloads to SCTeamSections.
-	for _, p := range tx.payloads {
+	for i, p := range tx.payloads {
 		section := SCTeamSection{
 			ID:       SCTeamID(team.ID),
 			Admin:    admin,
@@ -710,6 +711,11 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 
 			section.CompletedInvites = payload.CompletedInvites
 			sections = append(sections, section)
+
+			// If there are addditions, then there will be a new key involved.
+			// If there are deletions, then we'll be rotating. So either way,
+			// this section needs a box summary.
+			sectionsWithBoxSummaries = append(sectionsWithBoxSummaries, i)
 		case txPayloadTagInviteKeybase, txPayloadTagInviteSocial:
 			entropy, err := makeSCTeamEntropy()
 			if err != nil {
@@ -755,6 +761,14 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 	secretBoxes, implicitAdminBoxes, perTeamKeySection, teamEKPayload, err := team.recipientBoxes(mctx.Ctx(), memSet, skipKeyRotation)
 	if err != nil {
 		return err
+	}
+
+	// For all sections that we previously did add/remove members for, let's
+	for _, s := range sectionsWithBoxSummaries {
+		err = addSummaryHash(&sections[s], secretBoxes)
+		if err != nil {
+			return err
+		}
 	}
 
 	if perTeamKeySection != nil {
@@ -836,7 +850,7 @@ func (tx *AddMemberTx) Post(mctx libkb.MetaContext) (err error) {
 		return err
 	}
 
-	team.notify(mctx.Ctx(), keybase1.TeamChangeSet{MembershipChanged: true})
+	team.notify(mctx.Ctx(), keybase1.TeamChangeSet{MembershipChanged: true}, nextSeqno-1)
 
 	team.storeTeamEKPayload(mctx.Ctx(), teamEKPayload)
 	return nil

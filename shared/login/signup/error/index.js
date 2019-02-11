@@ -11,7 +11,7 @@ type Props = {|
 
 const Error = (props: Props) => (
   <Wrapper onBack={props.onBack}>
-    <Text type="Header" style={{maxWidth: 460, textAlign: 'center', width: '80%'}}>
+    <Text center={true} type="Header" style={{maxWidth: 460, width: '80%'}}>
       Ah Shoot! Something went wrong, wanna try again?
     </Text>
     <Text type="BodySmallError">{props.error}</Text>

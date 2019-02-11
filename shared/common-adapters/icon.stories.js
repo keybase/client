@@ -4,7 +4,7 @@ import * as Sb from '../stories/storybook'
 import Box from './box'
 import Icon, {type IconType} from './icon'
 import Text from './text'
-import {globalStyles, globalColors, isMobile} from '../styles'
+import * as Styles from '../styles'
 import {iconMeta} from './icon.constants'
 
 const commonProps = {
@@ -12,16 +12,14 @@ const commonProps = {
   onClick: Sb.action('onClick'),
   onMouseEnter: Sb.action('onMouseEnter'),
   onMouseLeave: Sb.action('onMouseLeave'),
-  style: {
-    borderColor: globalColors.black_10,
-    borderWidth: 1,
-    margin: 5,
-    ...(isMobile
-      ? {}
-      : {
-          borderStyle: 'solid',
-        }),
-  },
+  style: Styles.platformStyles({
+    common: {
+      borderColor: Styles.globalColors.black_10,
+      borderWidth: 1,
+      margin: 5,
+    },
+    isElectron: {borderStyle: 'solid', display: 'inline-block'},
+  }),
 }
 
 const load = () => {
@@ -43,16 +41,25 @@ const load = () => {
     .addDecorator(Sb.scrollViewDecorator)
     .add('Icon', () => (
       <Box>
+        <Text type="Body">FontSize</Text>
+        <Text type="Body">Big</Text>
+        <Icon key="big" type="iconfont-add" {...commonProps} sizeType="Big" />
+        <Text type="Body">Default</Text>
+        <Icon key="default" type="iconfont-add" {...commonProps} sizeType="Default" />
+        <Text type="Body">Small</Text>
+        <Icon key="small" type="iconfont-add" {...commonProps} sizeType="Small" />
+        <Text type="Body">Tiny</Text>
+        <Icon key="tiny" type="iconfont-add" {...commonProps} sizeType="Tiny" />
         <Text type="Body">Red on hover</Text>
         <Icon
           key="hoverColor"
           type="iconfont-add"
           {...commonProps}
           onClick={() => commonProps.onClick('iconfont-add')}
-          hoverColor={globalColors.red}
+          hoverColor={Styles.globalColors.red}
         />
         <Text type="Body">Red due to inherit </Text>
-        <Box style={isMobile ? {} : {color: 'red'}}>
+        <Box style={Styles.isMobile ? {} : {color: 'red'}}>
           <Icon
             key="inherit"
             type="iconfont-add"
@@ -62,12 +69,13 @@ const load = () => {
           />
         </Box>
         {Object.keys(sizes).map(size => (
-          <Box key={size}>
+          <Box key={size} style={{flexShrink: 0}}>
             <Text type="Body">{size}</Text>
             <Box
               style={{
-                ...globalStyles.flexBoxRow,
+                ...Styles.globalStyles.flexBoxRow,
                 alignItems: 'flex-start',
+                flexShrink: 0,
                 flexWrap: 'wrap',
                 justifyContent: 'flex-start',
               }}

@@ -1,6 +1,5 @@
 // @flow
 import * as React from 'react'
-import * as ReactDOM from 'react-dom'
 import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 import {resolveRootAsURL} from '../../../../../desktop/app/resolve-root.desktop'
@@ -23,7 +22,8 @@ type State = {
   children: ?React.Node,
   height: number,
 }
-class ExplodingHeightRetainer extends React.Component<Props, State> {
+class ExplodingHeightRetainer extends React.PureComponent<Props, State> {
+  _boxRef = React.createRef()
   state = {animating: false, children: copyChildren(this.props.children), height: 17}
   timerID: SharedTimerID
 
@@ -54,12 +54,11 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
       return
     }
 
-    if (__STORYSHOT__) {
-      // Storyshots with react 16.5 can't find the domNode and fails
-      return
-    }
+    this.setHeight()
+  }
 
-    const node = ReactDOM.findDOMNode(this)
+  setHeight() {
+    const node = this._boxRef.current
     if (node instanceof window.HTMLElement) {
       const height = node.clientHeight
       if (height && height !== this.state.height) {
@@ -77,6 +76,7 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
     return (
       <Kb.Box
         style={Styles.collapseStyles([
+          styles.container,
           this.props.style,
           // paddingRight is to compensate for the message menu
           // to make sure we don't rewrap text when showing the animation
@@ -87,6 +87,7 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
             position: 'relative',
           },
         ])}
+        forwardedRef={this._boxRef}
       >
         {this.state.children}
         <Ashes
@@ -100,7 +101,7 @@ class ExplodingHeightRetainer extends React.Component<Props, State> {
   }
 }
 
-const AshBox = Styles.glamorous.div({
+const AshBox = Styles.styled.div({
   '&.full-width': {
     overflow: 'visible',
     transition: `width ${animationDuration}ms linear`,
@@ -208,12 +209,14 @@ class Flame extends React.Component<{}, {color: string, timer: number, width: nu
 }
 
 const styles = Styles.styleSheetCreate({
+  container: {...Styles.globalStyles.flexBoxColumn, flex: 1},
   exploded: Styles.platformStyles({
     isElectron: {
       backgroundColor: Styles.globalColors.white,
       bottom: 0,
       color: Styles.globalColors.black_20_on_white,
       padding: 2,
+      paddingLeft: Styles.globalMargins.tiny,
       paddingTop: 0,
       position: 'absolute',
       right: 0,

@@ -40,7 +40,6 @@ const mapStateToProps = state => {
     platform: profile.platform,
     title: 'Add Proof',
     username: profile.username,
-    waiting: profile.waiting,
   }
 }
 

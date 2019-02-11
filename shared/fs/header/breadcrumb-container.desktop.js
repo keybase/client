@@ -1,10 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import * as Types from '../../constants/types/fs'
-import * as Constants from '../../constants/fs'
 import {namedConnect} from '../../util/container'
-import {fsTab} from '../../constants/tabs'
-import {navigateTo} from '../../actions/route-tree'
 import * as FsGen from '../../actions/fs-gen'
 import Breadcrumb, {type Props as BreadcrumbProps} from './breadcrumb.desktop'
 
@@ -28,18 +25,17 @@ export const makeBreadcrumbProps = (
     ({previousPath, items}: BreadcrumbAccumulator, elem, i, elems) => {
       const itemPath = Types.pathConcat(previousPath, elem)
       return {
-        previousPath: itemPath,
         items: items.concat({
-          isTeamTlf: i === 2 && elems[i - 1] === 'team',
           isLastItem: i === elems.length - 1,
+          isTeamTlf: i === 2 && elems[i - 1] === 'team',
           name: elem,
-          path: itemPath,
-          iconSpec: Constants.getItemStyles(elems.slice(0, i + 1), 'folder', _username).iconSpec,
           onClick: () => _navigateToPath(itemPath),
+          path: itemPath,
         }),
+        previousPath: itemPath,
       }
     },
-    ({previousPath: Types.stringToPath('/'), items: []}: BreadcrumbAccumulator)
+    ({items: [], previousPath: Types.stringToPath('/')}: BreadcrumbAccumulator)
   )
 
   return items.length > 3
@@ -61,8 +57,8 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = (dispatch, {inDestinationPicker, routePath}: OwnProps) => ({
   _navigateToPath: inDestinationPicker
-    ? (path: Types.Path) => dispatch(FsGen.createMoveOrCopyOpen({routePath, currentIndex: 0, path}))
-    : (path: Types.Path) => dispatch(navigateTo([fsTab, {props: {path}, selected: 'folder'}])),
+    ? (path: Types.Path) => dispatch(FsGen.createMoveOrCopyOpen({currentIndex: 0, path, routePath}))
+    : (path: Types.Path) => dispatch(FsGen.createOpenPathItem({path, routePath})),
 })
 
 const mergeProps = ({_username}, {_navigateToPath}, {path}: OwnProps) =>

@@ -1,5 +1,5 @@
 // @flow
-import * as Route from '../../../../actions/route-tree'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import {teamsTab} from '../../../../constants/tabs'
 import {namedConnect} from '../../../../util/container'
 import BuildTeam from '.'
@@ -12,7 +12,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
   // Route to the teams tab and open the NewTeamDialog component
-  _onBuildTeam: () => dispatch(Route.navigateTo([teamsTab])),
+  _onBuildTeam: () => dispatch(RouteTreeGen.createNavigateTo({path: [teamsTab]})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({

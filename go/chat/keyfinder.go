@@ -8,6 +8,7 @@ import (
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
@@ -15,14 +16,15 @@ import (
 // KeyFinder remembers results from previous calls to CryptKeys().
 type KeyFinder interface {
 	FindForEncryption(ctx context.Context, tlfName string, teamID chat1.TLFID,
-		membersType chat1.ConversationMembersType, public bool) (types.CryptKey, *types.NameInfo, error)
+		membersType chat1.ConversationMembersType, public bool) (types.CryptKey, types.NameInfo, error)
 	FindForDecryption(ctx context.Context, tlfName string, teamID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool, keyGeneration int,
 		kbfsEncrypted bool) (types.CryptKey, error)
 	EphemeralKeyForEncryption(ctx context.Context, tlfName string, teamID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool) (keybase1.TeamEk, error)
 	EphemeralKeyForDecryption(ctx context.Context, tlfName string, teamID chat1.TLFID,
-		membersType chat1.ConversationMembersType, public bool, generation keybase1.EkGeneration) (keybase1.TeamEk, error)
+		membersType chat1.ConversationMembersType, public bool,
+		generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error)
 	ShouldPairwiseMAC(ctx context.Context, tlfName string, teamID chat1.TLFID,
 		membersType chat1.ConversationMembersType, public bool) (bool, []keybase1.KID, error)
 	Reset()
@@ -30,7 +32,7 @@ type KeyFinder interface {
 
 type encItem struct {
 	key types.CryptKey
-	ni  *types.NameInfo
+	ni  types.NameInfo
 }
 
 type KeyFinderImpl struct {
@@ -121,7 +123,7 @@ func (k *KeyFinderImpl) writeDecKey(key string, v types.CryptKey) {
 // FindForEncryption finds keys up-to-date enough for encrypting.
 // Ignores tlfName or teamID based on membersType.
 func (k *KeyFinderImpl) FindForEncryption(ctx context.Context, tlfName string, tlfID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool) (res types.CryptKey, ni *types.NameInfo, err error) {
+	membersType chat1.ConversationMembersType, public bool) (res types.CryptKey, ni types.NameInfo, err error) {
 
 	ckey := k.encCacheKey(tlfName, tlfID, membersType, public)
 	existing, ok := k.lookupEncKey(ckey)
@@ -166,8 +168,10 @@ func (k *KeyFinderImpl) EphemeralKeyForEncryption(ctx context.Context, tlfName s
 }
 
 func (k *KeyFinderImpl) EphemeralKeyForDecryption(ctx context.Context, tlfName string, tlfID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool, generation keybase1.EkGeneration) (keybase1.TeamEk, error) {
-	return k.createNameInfoSource(ctx, membersType).EphemeralDecryptionKey(ctx, tlfName, tlfID, membersType, public, generation)
+	membersType chat1.ConversationMembersType, public bool,
+	generation keybase1.EkGeneration, contentCtime *gregor1.Time) (keybase1.TeamEk, error) {
+	return k.createNameInfoSource(ctx, membersType).EphemeralDecryptionKey(
+		ctx, tlfName, tlfID, membersType, public, generation, contentCtime)
 }
 
 func (k *KeyFinderImpl) ShouldPairwiseMAC(ctx context.Context, tlfName string, tlfID chat1.TLFID,

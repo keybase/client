@@ -21,7 +21,7 @@ func newCmdWalletGetStarted(cl *libcmdline.CommandLine, g *libkb.GlobalContext) 
 	}
 	return cli.Command{
 		Name:         "get-started",
-		Usage:        "Learn about and get started with Stellar",
+		Usage:        "Setup your Stellar wallet",
 		ArgumentHelp: "[i agree]",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(cmd, "get-started", c)

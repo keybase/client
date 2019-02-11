@@ -212,7 +212,7 @@ func (h *IdentifyHandler) resolveIdentifyImplicitTeamHelper(ctx context.Context,
 	if arg.Create {
 		team, _, impName, err = teams.LookupOrCreateImplicitTeam(ctx, h.G(), lookupNameStr, arg.IsPublic)
 	} else {
-		team, _, impName, err = teams.LookupImplicitTeam(ctx, h.G(), lookupNameStr, arg.IsPublic)
+		team, _, impName, err = teams.LookupImplicitTeam(ctx, h.G(), lookupNameStr, arg.IsPublic, teams.ImplicitTeamOptions{})
 	}
 	if err != nil {
 		return res, err
@@ -381,6 +381,12 @@ func (u *RemoteIdentifyUI) DisplayCryptocurrency(c keybase1.Cryptocurrency) erro
 	ctx, cancel := u.newContext()
 	defer cancel()
 	return u.uicli.DisplayCryptocurrency(ctx, keybase1.DisplayCryptocurrencyArg{SessionID: u.sessionID, C: c})
+}
+
+func (u *RemoteIdentifyUI) DisplayStellarAccount(a keybase1.StellarAccount) error {
+	ctx, cancel := u.newContext()
+	defer cancel()
+	return u.uicli.DisplayStellarAccount(ctx, keybase1.DisplayStellarAccountArg{SessionID: u.sessionID, A: a})
 }
 
 func (u *RemoteIdentifyUI) DisplayKey(key keybase1.IdentifyKey) error {

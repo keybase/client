@@ -18,6 +18,7 @@ import (
 
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc/resinit"
+	"golang.org/x/net/http2"
 
 	"h12.me/socks"
 )
@@ -208,6 +209,7 @@ func NewClient(e *Env, config *ClientConfig, needCookie bool) *Client {
 		ret.cli.Jar = jar
 	}
 
+	http2.ConfigureTransport(&xprt)
 	ret.cli.Transport = &xprt
 	return ret
 }

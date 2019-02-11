@@ -29,20 +29,18 @@ class TopMessage extends React.PureComponent<Props> {
   render() {
     return (
       <Box>
-        {this.props.loadMoreType === 'noMoreToLoad' &&
-          this.props.showRetentionNotice && (
-            <RetentionNotice conversationIDKey={this.props.conversationIDKey} measure={this.props.measure} />
-          )}
+        {this.props.loadMoreType === 'noMoreToLoad' && this.props.showRetentionNotice && (
+          <RetentionNotice conversationIDKey={this.props.conversationIDKey} measure={this.props.measure} />
+        )}
         <Box style={spacerStyle} />
         {this.props.hasOlderResetConversation && (
           <ProfileResetNotice conversationIDKey={this.props.conversationIDKey} />
         )}
-        {this.props.loadMoreType === 'noMoreToLoad' &&
-          !this.props.showRetentionNotice && (
-            <Box style={secureStyle}>
-              <Icon type={isMobile ? 'icon-secure-static-266' : 'icon-secure-266'} />
-            </Box>
-          )}
+        {this.props.loadMoreType === 'noMoreToLoad' && !this.props.showRetentionNotice && (
+          <Box style={secureStyle}>
+            <Icon type={isMobile ? 'icon-secure-static-266' : 'icon-secure-266'} />
+          </Box>
+        )}
         {this.props.showTeamOffer && (
           <Box style={moreStyle}>
             <CreateTeamNotice />

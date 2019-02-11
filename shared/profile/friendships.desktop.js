@@ -1,4 +1,5 @@
 // @flow
+// TODO deprecate
 import React, {Component, PureComponent} from 'react'
 import ReactList from 'react-list'
 import TabBar, {TabBarItem} from '../common-adapters/tab-bar'
@@ -49,7 +50,12 @@ class UserEntry extends PureComponent<UserEntryProps> {
     return (
       <Box style={userEntryContainerStyle} onClick={this._onClick}>
         <Avatar style={userEntryAvatarStyle} size={64} username={username} showFollowingStatus={true} />
-        <Text type="BodySemibold" className="hover-underline" style={userEntryUsernameStyle(following)}>
+        <Text
+          center={true}
+          type="BodySemibold"
+          className="hover-underline"
+          style={userEntryUsernameStyle(following)}
+        >
           {username}
         </Text>
         <Text type="BodySmall" style={userEntryFullnameStyle}>
@@ -64,11 +70,11 @@ const userEntryContainerStyle = {
   ...desktopStyles.clickable,
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
-  justifyContent: 'flex-start',
-  width: 112,
-  height: 123,
-  padding: globalMargins.xtiny,
   display: 'inline-flex',
+  height: 123,
+  justifyContent: 'flex-start',
+  padding: globalMargins.xtiny,
+  width: 112,
 }
 
 const userEntryAvatarStyle = {
@@ -77,11 +83,10 @@ const userEntryAvatarStyle = {
 
 const userEntryUsernameStyle = following => ({
   color: following ? globalColors.green : globalColors.blue,
-  textAlign: 'center',
 })
 
 const userEntryFullnameStyle = {
-  color: globalColors.black_40,
+  color: globalColors.black_50,
   textAlign: 'center',
 }
 
@@ -114,12 +119,11 @@ class FriendshipsRender extends Component<Props> {
           }}
         >
           <Box style={{marginTop: globalMargins.small}}>
-            {followers === 0 &&
-              isYou && (
-                <Box style={friendshipEmptyStyle}>
-                  <Text type="BodySmall">You have no followers.</Text>
-                </Box>
-              )}
+            {followers === 0 && isYou && (
+              <Box style={friendshipEmptyStyle}>
+                <Text type="BodySmall">You have no followers.</Text>
+              </Box>
+            )}
             <ReactList
               useTranslate3d={true}
               itemRenderer={(index, key) => this._itemRenderer(true, index)}
@@ -136,12 +140,11 @@ class FriendshipsRender extends Component<Props> {
           }}
         >
           <Box style={{marginTop: globalMargins.small}}>
-            {following === 0 &&
-              isYou && (
-                <Box style={friendshipEmptyStyle}>
-                  <Text type="BodySmall">You are not following anyone.</Text>
-                </Box>
-              )}
+            {following === 0 && isYou && (
+              <Box style={friendshipEmptyStyle}>
+                <Text type="BodySmall">You are not following anyone.</Text>
+              </Box>
+            )}
             <ReactList
               useTranslate3d={true}
               itemRenderer={(index, key) => this._itemRenderer(false, index)}

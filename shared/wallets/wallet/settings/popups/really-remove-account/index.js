@@ -65,6 +65,8 @@ class ReallyRemoveAccountPopup extends React.Component<Props, State> {
             disabled={this.props.loading}
           />,
         ]}
+        safeAreaViewBottomStyle={styles.background}
+        safeAreaViewTopStyle={styles.background}
       >
         <Kb.Box2 centerChildren={true} direction="vertical" style={styles.flexOne} fullWidth={true}>
           <Kb.Icon
@@ -72,15 +74,20 @@ class ReallyRemoveAccountPopup extends React.Component<Props, State> {
             style={Kb.iconCastPlatformStyles(styles.icon)}
           />
           <Kb.Box2 direction="vertical">
-            <Kb.Text style={styles.warningText} type="Header">
+            <Kb.Text center={true} style={styles.warningText} type="Header">
               One last thing! Make sure you keep a copy of your secret key before removing{' '}
             </Kb.Text>
-            <Kb.Text type="HeaderItalic" style={Styles.collapseStyles([styles.warningText, styles.mainText])}>
+            <Kb.Text
+              center={true}
+              type="HeaderItalic"
+              style={Styles.collapseStyles([styles.warningText, styles.mainText])}
+            >
               {this.props.name}.
             </Kb.Text>
           </Kb.Box2>
-          <Kb.Text type="BodySmall" style={styles.warningText}>
-            Paste it in a 100% safe place.
+          <Kb.Text center={true} type="BodySmall" style={styles.warningText}>
+            If you save this secret key, you can use it in other wallets outside Keybase, or even import it
+            back into Keybase later.
           </Kb.Text>
 
           <Kb.Toast
@@ -89,11 +96,12 @@ class ReallyRemoveAccountPopup extends React.Component<Props, State> {
             position={'top center'}
           >
             {Styles.isMobile && <Kb.Icon type="iconfont-clipboard" color="white" fontSize={22} />}
-            <Kb.Text type="BodySmall" style={styles.toastText}>
+            <Kb.Text center={true} type="BodySmall" style={styles.toastText}>
               Copied to clipboard
             </Kb.Text>
           </Kb.Toast>
         </Kb.Box2>
+        <Kb.SafeAreaView />
       </WalletPopup>
     )
   }
@@ -101,38 +109,21 @@ class ReallyRemoveAccountPopup extends React.Component<Props, State> {
 
 const styles = Styles.styleSheetCreate({
   background: Styles.platformStyles({
-    common: {
-      backgroundColor: Styles.globalColors.yellow,
-    },
+    common: {backgroundColor: Styles.globalColors.yellow},
   }),
   flexOne: {flex: 1},
-  header: {
-    borderBottomWidth: 0,
-  },
+  header: {borderBottomWidth: 0},
   icon: Styles.platformStyles({
-    common: {
-      marginBottom: Styles.globalMargins.large,
-    },
-    isElectron: {
-      marginTop: Styles.globalMargins.medium,
-    },
-    isMobile: {
-      marginTop: Styles.globalMargins.xlarge,
-    },
+    common: {marginBottom: Styles.globalMargins.large},
+    isElectron: {marginTop: Styles.globalMargins.medium},
+    isMobile: {marginTop: Styles.globalMargins.xlarge},
   }),
   mainText: Styles.platformStyles({
-    common: {
-      paddingBottom: Styles.globalMargins.small,
-    },
-    isElectron: {
-      wordBreak: 'break-all',
-    },
+    common: {paddingBottom: Styles.globalMargins.small},
+    isElectron: {wordBreak: 'break-all'},
   }),
   toastText: Styles.platformStyles({
-    common: {
-      color: Styles.globalColors.white,
-      textAlign: 'center',
-    },
+    common: {color: Styles.globalColors.white},
     isMobile: {
       paddingLeft: 10,
       paddingRight: 10,
@@ -140,10 +131,7 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   warningText: Styles.platformStyles({
-    common: {
-      color: Styles.globalColors.brown_60,
-      textAlign: 'center',
-    },
+    common: {color: Styles.globalColors.brown_75},
     isMobile: {
       paddingLeft: Styles.globalMargins.medium,
       paddingRight: Styles.globalMargins.medium,

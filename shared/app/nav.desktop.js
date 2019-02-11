@@ -8,7 +8,7 @@ import TabBar from './tab-bar/container'
 import {isDarwin} from '../constants/platform'
 import {Box, ErrorBoundary} from '../common-adapters'
 import * as Tabs from '../constants/tabs'
-import {switchTo} from '../actions/route-tree'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import {connect, type RouteProps} from '../util/container'
 import {globalStyles} from '../styles'
 import RpcStats from './rpc-stats'
@@ -54,7 +54,15 @@ class Nav extends React.Component<Props> {
           <ErrorBoundary>
             <div id="popupContainer" />
           </ErrorBoundary>
-          {![Tabs.chatTab, Tabs.loginTab].includes(routeSelected) && <Offline />}
+          {![
+            Tabs.chatTab,
+            Tabs.loginTab,
+            Tabs.peopleTab,
+            Tabs.walletsTab,
+            Tabs.gitTab,
+            Tabs.devicesTab,
+            Tabs.teamsTab,
+          ].includes(routeSelected) && <Offline />}
           <GlobalError />
         </Box>
         <RpcStats />
@@ -76,7 +84,7 @@ const mapDispatchToProps = dispatch => ({
   _onHotkey: (cmd: string) => {
     const tab = hotkeyTabMap[cmd.replace(/(command|ctrl)\+/, '')]
     if (tab) {
-      dispatch(switchTo([tab]))
+      dispatch(RouteTreeGen.createSwitchTo({path: [tab]}))
     }
   },
 })

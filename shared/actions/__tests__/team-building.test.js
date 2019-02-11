@@ -6,7 +6,7 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import teamBuildingSaga from '../chat2/team-building'
 import * as Testing from '../../util/testing'
 
-jest.mock('../../engine')
+jest.mock('../../engine/require')
 
 // We want to be logged in usually
 const blankStore = Testing.getInitialStore()
@@ -68,10 +68,10 @@ const parsedSearchResults = {
           id: 'marcopolo',
           prettyName: 'Marco Munizaga',
           serviceMap: {
-            twitter: 'open_sourcery',
             facebook: 'mmunizaga1337',
             github: 'marcopolo',
             keybase: 'marcopolo',
+            twitter: 'open_sourcery',
           },
         },
         {

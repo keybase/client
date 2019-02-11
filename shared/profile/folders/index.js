@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
+import flags from '../../util/feature-flags'
 
 export type TlfProps = {
   openInFilesTab: () => void,
@@ -47,31 +48,38 @@ class Folders extends React.PureComponent<Props, State> {
         {(this.state.expanded ? this.props.tlfs : this.props.tlfs.slice(0, numFoldersShown)).map(tlf => (
           <Tlf {...tlf} key={tlf.text} />
         ))}
-        {!this.state.expanded &&
-          this.props.tlfs.length > numFoldersShown && (
-            <Kb.ClickableBox key="more" onClick={this.expand} style={styles.itemContainer}>
-              <Kb.Icon type="iconfont-ellipsis" />
-              <Kb.Text type="BodySmall" style={styles.itemText}>
-                + {this.props.tlfs.length - numFoldersShown} more
-              </Kb.Text>
-            </Kb.ClickableBox>
-          )}
+        {!this.state.expanded && this.props.tlfs.length > numFoldersShown && (
+          <Kb.ClickableBox key="more" onClick={this.expand} style={styles.itemContainer}>
+            <Kb.Icon type="iconfont-ellipsis" />
+            <Kb.Text type="BodySmall" style={styles.itemText}>
+              + {this.props.tlfs.length - numFoldersShown} more
+            </Kb.Text>
+          </Kb.ClickableBox>
+        )}
       </React.Fragment>
     )
   }
 }
 
 const styles = Styles.styleSheetCreate({
-  itemContainer: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'flex-start',
-    paddingTop: 8,
-    paddingBottom: 8,
-  },
+  itemContainer: flags.identify3
+    ? {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'flex-start',
+        paddingBottom: 4,
+        paddingLeft: 8,
+        paddingTop: 4,
+      }
+    : {
+        ...Styles.globalStyles.flexBoxRow,
+        alignItems: 'flex-start',
+        paddingBottom: 8,
+        paddingTop: 8,
+      },
   itemText: Styles.platformStyles({
     common: {
+      color: Styles.globalColors.black_50,
       marginLeft: Styles.globalMargins.tiny,
-      color: Styles.globalColors.black_60,
       overflow: 'hidden',
     },
     isElectron: {

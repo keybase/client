@@ -1,39 +1,22 @@
 // @flow
 /* eslint-env browser */
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker'
-import React, {Component} from 'react'
-import {
-  Animation,
-  Box,
-  Box2,
-  Icon,
-  Input,
-  Text,
-  iconCastPlatformStyles,
-  OverlayParentHOC,
-  type OverlayParentProps,
-} from '../../../../common-adapters'
-import {
-  collapseStyles,
-  globalMargins,
-  globalStyles,
-  globalColors,
-  platformStyles,
-  styleSheetCreate,
-} from '../../../../styles'
+import React, {PureComponent} from 'react'
+import * as Kb from '../../../../common-adapters'
+import * as Styles from '../../../../styles'
 import {isIOS, isLargeScreen} from '../../../../constants/platform'
-import ConnectedMentionHud from '../user-mention-hud/mention-hud-container'
-import ConnectedChannelMentionHud from '../channel-mention-hud/mention-hud-container'
 import {
   NativeKeyboard,
   NativeTouchableWithoutFeedback,
 } from '../../../../common-adapters/native-wrappers.native'
 import SetExplodingMessagePicker from '../../messages/set-explode-popup/container'
 import {ExplodingMeta} from './shared'
-import type {PlatformInputProps} from './types'
-import flags from '../../../../util/feature-flags'
+import Typing from './typing/container'
 import FilePickerPopup from '../filepicker-popup'
 import WalletsIcon from './wallets-icon/container'
+import type {PlatformInputPropsInternal} from './platform-input'
+import AddSuggestors, {standardTransformer} from '../suggestors'
+import {metaData} from '../../../../common-adapters/text.meta.native'
 
 type menuType = 'exploding' | 'filepickerpopup'
 
@@ -41,20 +24,22 @@ type State = {
   hasText: boolean,
 }
 
-class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, State> {
-  _input: ?Input
+class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
+  _input: null | Kb.PlainInput
+  _lastText: ?string
   _whichMenu: menuType
 
-  constructor(props: PlatformInputProps & OverlayParentProps) {
+  constructor(props: PlatformInputPropsInternal) {
     super(props)
     this.state = {
       hasText: false,
     }
   }
 
-  _inputSetRef = (ref: ?Input) => {
+  _inputSetRef = (ref: null | Kb.PlainInput) => {
     this._input = ref
     this.props.inputSetRef(ref)
+    this.props.inputRef.current = ref
   }
 
   _openFilePicker = () => {
@@ -83,10 +68,10 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
         break
     }
     const permissionDenied = {
-      title: 'Permissions needed',
-      text: permDeniedText,
-      reTryTitle: 'allow in settings',
       okTitle: 'deny',
+      reTryTitle: 'allow in settings',
+      text: permDeniedText,
+      title: 'Permissions needed',
     }
     const handleSelection = response => {
       if (response.didCancel || !this.props.conversationIDKey) {
@@ -104,20 +89,21 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
 
     switch (location) {
       case 'camera':
-        launchCamera({mediaType, title, takePhotoButtonTitle, permissionDenied}, handleSelection)
+        launchCamera({mediaType, permissionDenied, takePhotoButtonTitle, title}, handleSelection)
         break
       case 'library':
-        launchImageLibrary({mediaType, title, takePhotoButtonTitle, permissionDenied}, handleSelection)
+        launchImageLibrary({mediaType, permissionDenied, takePhotoButtonTitle, title}, handleSelection)
         break
     }
   }
 
   _getText = () => {
-    return this._input ? this._input.getValue() : ''
+    return this._lastText || ''
   }
 
   _onChangeText = (text: string) => {
     this.setState({hasText: !!text})
+    this._lastText = text
     this.props.onChangeText(text)
   }
 
@@ -132,42 +118,38 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
     // Hide the keyboard on mobile when showing the menu.
     NativeKeyboard.dismiss()
     this._whichMenu = menu
-    this.props.onSeenExplodingMessages()
     this.props.toggleShowingMenu()
+  }
+
+  _onLayout = ({
+    nativeEvent: {
+      layout: {x, y, width, height},
+    },
+  }) => this.props.setHeight(height)
+
+  _insertMentionMarker = () => {
+    if (this._input) {
+      const input = this._input
+      input.focus()
+      input.transformText(
+        ({selection: {end, start}, text}) => standardTransformer('@', {position: {end, start}, text}, true),
+        true
+      )
+    }
   }
 
   render = () => {
     let hintText = 'Write a message'
-    if (this.props.isExploding) {
-      hintText = isLargeScreen ? 'Write an exploding message' : 'Exploding message'
+    if (this.props.isExploding && isLargeScreen) {
+      hintText = this.props.showWalletsIcon ? 'Exploding message' : 'Write an exploding message'
+    } else if (this.props.isExploding && !isLargeScreen) {
+      hintText = this.props.showWalletsIcon ? 'Exploding' : 'Exploding message'
     } else if (this.props.isEditing) {
       hintText = 'Edit your message'
     }
 
     return (
-      <Box>
-        {this.props.mentionPopupOpen && (
-          <MentionHud
-            conversationIDKey={this.props.conversationIDKey}
-            selectDownCounter={this.props.downArrowCounter}
-            selectUpCounter={this.props.upArrowCounter}
-            pickSelectedUserCounter={this.props.pickSelectedCounter}
-            onPickUser={this.props.insertMention}
-            onSelectUser={this.props.insertMention}
-            filter={this.props.mentionFilter}
-          />
-        )}
-        {this.props.channelMentionPopupOpen && (
-          <ChannelMentionHud
-            conversationIDKey={this.props.conversationIDKey}
-            selectDownCounter={this.props.downArrowCounter}
-            selectUpCounter={this.props.upArrowCounter}
-            pickSelectedChannelCounter={this.props.pickSelectedCounter}
-            onPickChannel={this.props.insertChannelMention}
-            onSelectChannel={this.props.insertChannelMention}
-            filter={this.props.channelMentionFilter}
-          />
-        )}
+      <Kb.Box onLayout={this._onLayout}>
         {this.props.showingMenu && this._whichMenu === 'filepickerpopup' ? (
           <FilePickerPopup
             attachTo={this.props.getAttachmentRef}
@@ -183,144 +165,122 @@ class PlatformInput extends Component<PlatformInputProps & OverlayParentProps, S
             visible={this.props.showingMenu}
           />
         )}
-        <Box style={styles.container}>
+        <Typing conversationIDKey={this.props.conversationIDKey} />
+        <Kb.Box style={styles.container}>
           {this.props.isEditing && (
-            <Box style={styles.editingTabStyle}>
-              <Text type="BodySmall">Edit:</Text>
-              <Text type="BodySmallPrimaryLink" onClick={this.props.onCancelEditing}>
+            <Kb.Box style={styles.editingTabStyle}>
+              <Kb.Text type="BodySmall">Edit:</Kb.Text>
+              <Kb.Text type="BodySmallPrimaryLink" onClick={this.props.onCancelEditing}>
                 Cancel
-              </Text>
-            </Box>
+              </Kb.Text>
+            </Kb.Box>
           )}
-          <Input
+          <Kb.PlainInput
             autoCorrect={true}
             autoCapitalize="sentences"
-            autoFocus={false}
-            hideUnderline={true}
-            hintText={hintText}
+            placeholder={hintText}
             multiline={true}
             onBlur={this.props.onBlur}
             onFocus={this.props.onFocus}
             // TODO: Call onCancelQuoting on text change or selection
             // change to match desktop.
             onChangeText={this._onChangeText}
+            onSelectionChange={this.props.onSelectionChange}
             ref={this._inputSetRef}
-            small={true}
             style={styles.input}
-            uncontrolled={true}
             rowsMax={3}
             rowsMin={1}
           />
-
-          {this.props.typing.size > 0 && <Animation animationType="typing" containerStyle={styles.typing} />}
           <Action
             hasText={this.state.hasText}
             onSubmit={this._onSubmit}
             isEditing={this.props.isEditing}
             openExplodingPicker={() => this._toggleShowingMenu('exploding')}
             openFilePicker={this._openFilePicker}
-            insertMentionMarker={this.props.insertMentionMarker}
+            insertMentionMarker={this._insertMentionMarker}
             isExploding={this.props.isExploding}
-            isExplodingNew={this.props.isExplodingNew}
+            showWalletsIcon={this.props.showWalletsIcon}
             explodingModeSeconds={this.props.explodingModeSeconds}
           />
-        </Box>
-      </Box>
+        </Kb.Box>
+      </Kb.Box>
     )
   }
 }
-
-const MentionHud = props => (
-  <Box style={styles.accessoryContainer}>
-    <Box style={styles.accessory}>
-      <ConnectedMentionHud style={styles.mentionHud} {...props} conversationIDKey={props.conversationIDKey} />
-    </Box>
-  </Box>
-)
-
-const ChannelMentionHud = props => (
-  <Box style={styles.accessoryContainer}>
-    <Box style={styles.accessory}>
-      <ConnectedChannelMentionHud style={styles.mentionHud} {...props} />
-    </Box>
-  </Box>
-)
+const PlatformInput = AddSuggestors(_PlatformInput)
 
 const Action = ({
+  explodingModeSeconds,
   hasText,
-  onSubmit,
+  insertMentionMarker,
   isEditing,
+  isExploding,
+  onSubmit,
   openExplodingPicker,
   openFilePicker,
-  insertMentionMarker,
-  isExploding,
-  isExplodingNew,
-  explodingModeSeconds,
+  showWalletsIcon,
 }) =>
   hasText ? (
-    <Box2 direction="horizontal" gap="small" style={styles.actionText}>
-      {flags.explodingMessagesEnabled &&
-        isExploding &&
-        !isEditing && (
-          <ExplodingIcon
-            explodingModeSeconds={explodingModeSeconds}
-            isExploding={isExploding}
-            isExplodingNew={isExplodingNew}
-            openExplodingPicker={openExplodingPicker}
-          />
-        )}
-      <Text type="BodyBigLink" onClick={onSubmit}>
+    <Kb.Box2 direction="horizontal" gap="small" style={styles.actionText}>
+      {isExploding && !isEditing && (
+        <ExplodingIcon
+          explodingModeSeconds={explodingModeSeconds}
+          isExploding={isExploding}
+          openExplodingPicker={openExplodingPicker}
+        />
+      )}
+      <Kb.Text type="BodyBigLink" onClick={onSubmit}>
         {isEditing ? 'Save' : 'Send'}
-      </Text>
-    </Box2>
+      </Kb.Text>
+    </Kb.Box2>
   ) : (
-    <Box2 direction="horizontal" style={styles.actionIconsContainer}>
-      {flags.explodingMessagesEnabled && (
-        <>
-          <ExplodingIcon
-            explodingModeSeconds={explodingModeSeconds}
-            isExploding={isExploding}
-            isExplodingNew={isExplodingNew}
-            openExplodingPicker={openExplodingPicker}
-          />
-          {smallGap}
-        </>
+    <Kb.Box2 direction="horizontal" style={styles.actionIconsContainer}>
+      <>
+        <ExplodingIcon
+          explodingModeSeconds={explodingModeSeconds}
+          isExploding={isExploding}
+          openExplodingPicker={openExplodingPicker}
+        />
+        {smallGap}
+      </>
+      {showWalletsIcon && (
+        <WalletsIcon
+          size={22}
+          style={Styles.collapseStyles([styles.actionButton, styles.marginRightSmall])}
+        />
       )}
-      {flags.walletsEnabled && (
-        <WalletsIcon size={22} style={collapseStyles([styles.actionButton, styles.marginRightSmall])} />
-      )}
-      <Icon
+      <Kb.Icon
         onClick={insertMentionMarker}
         type="iconfont-mention"
-        style={iconCastPlatformStyles(styles.actionButton)}
+        style={Kb.iconCastPlatformStyles(styles.actionButton)}
         fontSize={22}
       />
       {smallGap}
-      <Icon
+      <Kb.Icon
         onClick={openFilePicker}
         type="iconfont-camera"
-        style={iconCastPlatformStyles(styles.actionButton)}
+        style={Kb.iconCastPlatformStyles(styles.actionButton)}
         fontSize={22}
       />
-    </Box2>
+    </Kb.Box2>
   )
 
-const ExplodingIcon = ({explodingModeSeconds, isExploding, isExplodingNew, openExplodingPicker}) => (
+const ExplodingIcon = ({explodingModeSeconds, isExploding, openExplodingPicker}) => (
   <NativeTouchableWithoutFeedback onPress={openExplodingPicker}>
-    <Box style={explodingIconContainer}>
-      <Icon
-        color={isExploding ? globalColors.black_75 : null}
-        style={iconCastPlatformStyles(styles.actionButton)}
-        type="iconfont-bomb"
+    <Kb.Box style={explodingIconContainer}>
+      <Kb.Icon
+        color={isExploding ? Styles.globalColors.black_75 : null}
+        style={Kb.iconCastPlatformStyles(styles.actionButton)}
+        type="iconfont-timer"
         fontSize={22}
       />
-      <ExplodingMeta explodingModeSeconds={explodingModeSeconds} isNew={isExplodingNew} />
-    </Box>
+      <ExplodingMeta explodingModeSeconds={explodingModeSeconds} />
+    </Kb.Box>
   </NativeTouchableWithoutFeedback>
 )
 
 const containerPadding = 8
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   accessory: {
     bottom: 1,
     display: 'flex',
@@ -336,35 +296,37 @@ const styles = styleSheetCreate({
     alignSelf: isIOS ? 'flex-end' : 'center',
   },
   actionIconsContainer: {
-    paddingRight: globalMargins.small - containerPadding,
+    paddingRight: Styles.globalMargins.small - containerPadding,
   },
   actionText: {
     alignSelf: 'flex-end',
-    paddingBottom: globalMargins.xsmall,
-    paddingRight: globalMargins.tiny,
+    paddingBottom: Styles.globalMargins.xsmall,
+    paddingRight: Styles.globalMargins.tiny,
   },
   container: {
-    ...globalStyles.flexBoxRow,
+    ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
-    backgroundColor: globalColors.fastBlank,
-    borderTopColor: globalColors.black_10,
+    backgroundColor: Styles.globalColors.fastBlank,
+    borderTopColor: Styles.globalColors.black_10,
     borderTopWidth: 1,
     flexShrink: 0,
     minHeight: 48,
     paddingRight: containerPadding,
   },
   editingTabStyle: {
-    ...globalStyles.flexBoxColumn,
+    ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'flex-start',
-    backgroundColor: globalColors.yellow3,
+    backgroundColor: Styles.globalColors.yellow3,
     flexShrink: 0,
     height: '100%',
     minWidth: 32,
-    padding: globalMargins.xtiny,
+    padding: Styles.globalMargins.xtiny,
   },
   input: {
-    marginLeft: globalMargins.tiny,
-    marginRight: globalMargins.tiny,
+    flex: 1,
+    fontSize: metaData['BodyBig'].fontSize,
+    marginLeft: Styles.globalMargins.tiny,
+    marginRight: Styles.globalMargins.tiny,
     ...(isIOS
       ? {}
       : {
@@ -373,43 +335,29 @@ const styles = styleSheetCreate({
         }),
   },
   marginRightSmall: {
-    marginRight: globalMargins.small,
+    marginRight: Styles.globalMargins.small,
   },
   mentionHud: {
-    borderColor: globalColors.black_20,
+    borderColor: Styles.globalColors.black_20,
     borderTopWidth: 1,
     flex: 1,
     height: 160,
     width: '100%',
   },
   smallGap: {
-    height: globalMargins.small,
-    width: globalMargins.small,
-  },
-  typing: {
-    ...globalStyles.flexBoxRow,
-    alignItems: 'center',
-    alignSelf: 'center',
-    borderRadius: 10,
-    height: 20,
-    justifyContent: 'center',
-    marginRight: globalMargins.tiny,
-    paddingLeft: globalMargins.tiny,
-    paddingRight: globalMargins.tiny,
-  },
-  typingIcon: {
-    width: 20,
+    height: Styles.globalMargins.small,
+    width: Styles.globalMargins.small,
   },
 })
 
-// Use manual gap when Box2 is inserting too many (for children that deliberately render nothing)
-const smallGap = <Box style={styles.smallGap} />
+// Use manual gap when Kb.Box2 is inserting too many (for children that deliberately render nothing)
+const smallGap = <Kb.Box style={styles.smallGap} />
 
-const explodingIconContainer = platformStyles({
+const explodingIconContainer = Styles.platformStyles({
   common: {
-    ...globalStyles.flexBoxRow,
+    ...Styles.globalStyles.flexBoxRow,
     marginRight: -3,
   },
 })
 
-export default OverlayParentHOC(PlatformInput)
+export default Kb.OverlayParentHOC(PlatformInput)

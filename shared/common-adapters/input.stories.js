@@ -37,11 +37,11 @@ class TestInput extends React.Component<TestInputProps> {
         const newText = text.slice(0, selection.start) + textToInsert + text.slice(selection.end)
         const pos = selection.start + textToInsert.length
         return {
-          text: newText,
           selection: {
-            start: pos,
             end: pos,
+            start: pos,
           },
+          text: newText,
         }
       })
     }
@@ -68,7 +68,7 @@ class TestInput extends React.Component<TestInputProps> {
           uncontrolled={true}
           ref={this._setInput}
         />
-        <Button type="Primary" label="Insert &quot;foo&quot; (enter)" onClick={this._replaceFoo} />
+        <Button type="Primary" label='Insert "foo" (enter)' onClick={this._replaceFoo} />
       </Box>
     )
   }

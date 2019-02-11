@@ -146,6 +146,28 @@
     },
     {
       "type": "record",
+      "name": "PrefetchProgress",
+      "fields": [
+        {
+          "type": "Time",
+          "name": "start"
+        },
+        {
+          "type": "Time",
+          "name": "endEstimate"
+        },
+        {
+          "type": "int64",
+          "name": "bytesTotal"
+        },
+        {
+          "type": "int64",
+          "name": "bytesFetched"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "Dirent",
       "fields": [
         {
@@ -175,6 +197,10 @@
         {
           "type": "PrefetchStatus",
           "name": "prefetchStatus"
+        },
+        {
+          "type": "PrefetchProgress",
+          "name": "prefetchProgress"
         }
       ]
     },
@@ -330,6 +356,10 @@
         {
           "type": "Path",
           "name": "path"
+        },
+        {
+          "type": "boolean",
+          "name": "recursive"
         }
       ]
     },
@@ -641,6 +671,14 @@
         {
           "type": "int64",
           "name": "localDiskBytesTotal"
+        },
+        {
+          "type": "PrefetchStatus",
+          "name": "prefetchStatus"
+        },
+        {
+          "type": "PrefetchProgress",
+          "name": "prefetchProgress"
         }
       ]
     },
@@ -899,6 +937,10 @@
         {
           "name": "path",
           "type": "Path"
+        },
+        {
+          "name": "recursive",
+          "type": "boolean"
         }
       ],
       "response": null,

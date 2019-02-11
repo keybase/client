@@ -11,6 +11,7 @@ export type _OutOfDate = {
   updating: boolean,
 }
 export type OutOfDate = I.RecordOf<_OutOfDate>
+export type DaemonHandshakeState = 'starting' | 'waitingForWaiters' | 'done'
 
 export type _State = {
   appFocused: boolean,
@@ -18,7 +19,7 @@ export type _State = {
   avatars: I.Map<string, I.Map<number, string>>,
   configuredAccounts: I.List<string>,
   daemonError: ?Error,
-  daemonHandshakeState: 'starting' | 'waitingForWaiters' | 'done',
+  daemonHandshakeState: DaemonHandshakeState,
   daemonHandshakeFailedReason: string,
   daemonHandshakeRetriesLeft: number,
   daemonHandshakeWaiters: I.Map<string, number>,
@@ -48,6 +49,7 @@ export type _State = {
   startupLink: string,
   startupTab: ?Tab,
   uid: string,
+  useNewRouter: boolean,
   userActive: boolean,
   username: string,
 }

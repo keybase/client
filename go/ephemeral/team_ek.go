@@ -33,7 +33,8 @@ func (s *TeamEKSeed) DeriveDHKey() *libkb.NaclDHKeyPair {
 	return deriveDHKey(keybase1.Bytes32(*s), libkb.DeriveReasonTeamEKEncryption)
 }
 
-func postNewTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, sig string, boxes *[]keybase1.TeamEkBoxMetadata) (err error) {
+func postNewTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID,
+	sig string, boxes *[]keybase1.TeamEkBoxMetadata) (err error) {
 	defer g.CTraceTimed(ctx, "postNewTeamEK", func() error { return err })()
 
 	boxesJSON, err := json.Marshal(*boxes)
@@ -45,16 +46,20 @@ func postNewTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 		SessionType: libkb.APISessionTypeREQUIRED,
 		NetContext:  ctx,
 		Args: libkb.HTTPArgs{
-			"team_id": libkb.S{Val: string(teamID)},
-			"sig":     libkb.S{Val: sig},
-			"boxes":   libkb.S{Val: string(boxesJSON)},
+			"team_id":           libkb.S{Val: string(teamID)},
+			"sig":               libkb.S{Val: sig},
+			"boxes":             libkb.S{Val: string(boxesJSON)},
+			"creator_device_id": libkb.S{Val: string(g.Env.GetDeviceID())},
 		},
 	}
 	_, err = g.GetAPI().Post(apiArg)
 	return err
 }
 
-func prepareNewTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, signingKey libkb.NaclSigningKeyPair, membersMetadata map[keybase1.UID]keybase1.UserEkMetadata, merkleRoot libkb.MerkleRoot) (sig string, boxes *[]keybase1.TeamEkBoxMetadata, metadata keybase1.TeamEkMetadata, myBox *keybase1.TeamEkBoxed, err error) {
+func prepareNewTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID,
+	signingKey libkb.NaclSigningKeyPair, membersMetadata map[keybase1.UID]keybase1.UserEkMetadata,
+	merkleRoot libkb.MerkleRoot) (sig string, boxes *[]keybase1.TeamEkBoxMetadata,
+	metadata keybase1.TeamEkMetadata, myBox *keybase1.TeamEkBoxed, err error) {
 	defer g.CTraceTimed(ctx, "prepareNewTeamEK", func() error { return err })()
 
 	seed, err := newTeamEphemeralSeed()
@@ -114,7 +119,8 @@ func prepareNewTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID keybas
 	return sig, boxes, metadata, myTeamEKBoxed, nil
 }
 
-func publishNewTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, merkleRoot libkb.MerkleRoot) (metadata keybase1.TeamEkMetadata, err error) {
+func publishNewTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID,
+	merkleRoot libkb.MerkleRoot) (metadata keybase1.TeamEkMetadata, err error) {
 	defer g.CTraceTimed(ctx, "publishNewTeamEK", func() error { return err })()
 
 	team, err := teams.Load(ctx, g, keybase1.LoadTeamArg{
@@ -142,8 +148,7 @@ func publishNewTeamEK(ctx context.Context, g *libkb.GlobalContext, teamID keybas
 		return metadata, err
 	}
 
-	err = postNewTeamEK(ctx, g, teamID, sig, boxes)
-	if err != nil {
+	if err = postNewTeamEK(ctx, g, teamID, sig, boxes); err != nil {
 		return metadata, err
 	}
 
@@ -191,7 +196,8 @@ func teamEKRetryWrapper(ctx context.Context, g *libkb.GlobalContext, retryFn fun
 	return nil
 }
 
-func ForcePublishNewTeamEKForTesting(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, merkleRoot libkb.MerkleRoot) (metadata keybase1.TeamEkMetadata, err error) {
+func ForcePublishNewTeamEKForTesting(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID,
+	merkleRoot libkb.MerkleRoot) (metadata keybase1.TeamEkMetadata, err error) {
 	defer g.CTraceTimed(ctx, "ForcePublishNewTeamEKForTesting", func() error { return err })()
 	err = teamEKRetryWrapper(ctx, g, func() error {
 		metadata, err = publishNewTeamEK(ctx, g, teamID, merkleRoot)
@@ -200,7 +206,9 @@ func ForcePublishNewTeamEKForTesting(ctx context.Context, g *libkb.GlobalContext
 	return metadata, err
 }
 
-func boxTeamEKForUsers(ctx context.Context, g *libkb.GlobalContext, usersMetadata map[keybase1.UID]keybase1.UserEkMetadata, teamEK keybase1.TeamEk) (teamBoxes *[]keybase1.TeamEkBoxMetadata, myTeamEKBoxed *keybase1.TeamEkBoxed, err error) {
+func boxTeamEKForUsers(ctx context.Context, g *libkb.GlobalContext, usersMetadata map[keybase1.UID]keybase1.UserEkMetadata,
+	teamEK keybase1.TeamEk) (teamBoxes *[]keybase1.TeamEkBoxMetadata,
+	myTeamEKBoxed *keybase1.TeamEkBoxed, err error) {
 	defer g.CTraceTimed(ctx, "boxTeamEKForUsers", func() error { return err })()
 
 	myUID := g.Env.GetUID()
@@ -242,7 +250,8 @@ type teamEKStatementResponse struct {
 // one, this function will also return nil and log a warning. This is a
 // transitional thing, and eventually when all "reasonably up to date" clients
 // in the wild have EK support, we will make that case an error.
-func fetchTeamEKStatement(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID) (statement *keybase1.TeamEkStatement, latestGeneration keybase1.EkGeneration, wrongKID bool, err error) {
+func fetchTeamEKStatement(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID) (
+	statement *keybase1.TeamEkStatement, latestGeneration keybase1.EkGeneration, wrongKID bool, err error) {
 	defer g.CTraceTimed(ctx, "fetchTeamEKStatement", func() error { return err })()
 
 	apiArg := libkb.APIArg{
@@ -304,7 +313,8 @@ func extractTeamEKStatementFromSig(sig string) (signerKey *kbcrypto.NaclSigningK
 // `wrongKID` flag. As a transitional measure while we wait for all clients in
 // the wild to have EK support, callers will treat that case as "there is no
 // key" and convert the error to a warning.
-func verifySigWithLatestPTK(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID, sig string) (statement *keybase1.TeamEkStatement, latestGeneration keybase1.EkGeneration, wrongKID bool, err error) {
+func verifySigWithLatestPTK(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID,
+	sig string) (statement *keybase1.TeamEkStatement, latestGeneration keybase1.EkGeneration, wrongKID bool, err error) {
 	defer g.CTraceTimed(ctx, "verifySigWithLatestPTK", func() error { return err })()
 
 	// Parse the statement before we verify the signing key. Even if the
@@ -361,7 +371,8 @@ type teamMemberEKStatementResponse struct {
 // Returns nil if all team members have never published a teamEK. Verifies that
 // the map of users the server returns are indeed valid team members of the
 // team and all signatures verify correctly for the users.
-func fetchTeamMemberStatements(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamID) (statementMap map[keybase1.UID]*keybase1.UserEkStatement, err error) {
+func fetchTeamMemberStatements(ctx context.Context, g *libkb.GlobalContext,
+	teamID keybase1.TeamID) (statementMap map[keybase1.UID]*keybase1.UserEkStatement, err error) {
 	defer g.CTraceTimed(ctx, "fetchTeamMemberStatements", func() error { return err })()
 
 	apiArg := libkb.APIArg{

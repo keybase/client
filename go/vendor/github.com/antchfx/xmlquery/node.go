@@ -77,7 +77,7 @@ func outputXML(buf *bytes.Buffer, n *Node) {
 	} else {
 		if n.Prefix == "" {
 			buf.WriteString("<" + n.Data)
-		} else {
+		}else{
 			buf.WriteString("<" + n.Prefix + ":" + n.Data)
 		}
 	}
@@ -100,7 +100,7 @@ func outputXML(buf *bytes.Buffer, n *Node) {
 	if n.Type != DeclarationNode {
 		if n.Prefix == "" {
 			buf.WriteString(fmt.Sprintf("</%s>", n.Data))
-		} else {
+		}else{
 			buf.WriteString(fmt.Sprintf("</%s:%s>", n.Prefix, n.Data))
 		}
 	}

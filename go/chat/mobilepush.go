@@ -54,7 +54,7 @@ func NewMobilePush(g *globals.Context) *MobilePush {
 }
 
 func (h *MobilePush) AckNotificationSuccess(ctx context.Context, pushIDs []string) {
-	defer h.Trace(ctx, func() error { return nil }, "AckNotificationSuccess")()
+	defer h.Trace(ctx, func() error { return nil }, "AckNotificationSuccess: pushID: %v", pushIDs)()
 	conn, token, err := utils.GetGregorConn(ctx, h.G(), h.DebugLabeler,
 		func(nist *libkb.NIST) rpc.ConnectionHandler {
 			return &remoteNotificationSuccessHandler{}
@@ -79,19 +79,26 @@ func (h *MobilePush) formatTextPush(ctx context.Context, uid gregor1.UID, convID
 	membersType chat1.ConversationMembersType, msg chat1.MessageUnboxed) (res string, err error) {
 	switch membersType {
 	case chat1.ConversationMembersType_TEAM:
+		var channelName string
 		// Try to get the channel name
-		ib, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil,
+		ib, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
+			types.InboxSourceDataSourceAll, nil,
 			&chat1.GetInboxLocalQuery{
 				ConvIDs: []chat1.ConversationID{convID},
 			}, nil)
 		if err != nil || len(ib.Convs) == 0 {
+			h.Debug(ctx, "FormatPushText: failed to unbox conv: %v", convID)
+		} else {
+			channelName = ib.Convs[0].Info.TopicName
+		}
+		if channelName == "" {
 			// Don't give up here, just display the team name only
-			h.Debug(ctx, "FormatPushText: failed to unbox convo, using team only")
+			h.Debug(ctx, "FormatPushText: failed to get topicName")
 			return fmt.Sprintf("%s (%s): %s", msg.Valid().SenderUsername,
 				msg.Valid().ClientHeader.TlfName, msg.Valid().MessageBody.Text().Body), nil
 		}
 		return fmt.Sprintf("%s (%s#%s): %s", msg.Valid().SenderUsername,
-			msg.Valid().ClientHeader.TlfName, utils.GetTopicName(ib.Convs[0]),
+			msg.Valid().ClientHeader.TlfName, channelName,
 			msg.Valid().MessageBody.Text().Body), nil
 	default:
 		return fmt.Sprintf("%s: %s", msg.Valid().SenderUsername, msg.Valid().MessageBody.Text().Body), nil
@@ -107,7 +114,8 @@ func (h *MobilePush) formatReactionPush(ctx context.Context, uid gregor1.UID, co
 	switch membersType {
 	case chat1.ConversationMembersType_TEAM:
 		// Try to get the channel name
-		ib, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil,
+		ib, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
+			types.InboxSourceDataSourceAll, nil,
 			&chat1.GetInboxLocalQuery{
 				ConvIDs: []chat1.ConversationID{convID},
 			}, nil)
@@ -117,7 +125,7 @@ func (h *MobilePush) formatReactionPush(ctx context.Context, uid gregor1.UID, co
 				msg.Valid().SenderUsername, reaction), nil
 		}
 		return emoji.Sprintf("(%s#%s): %s reacted to your message with %v", msg.Valid().ClientHeader.TlfName,
-			utils.GetTopicName(ib.Convs[0]), msg.Valid().SenderUsername, reaction), nil
+			ib.Convs[0].Info.TopicName, msg.Valid().SenderUsername, reaction), nil
 	default:
 		return emoji.Sprintf("%s reacted to your message with %v", msg.Valid().SenderUsername,
 			reaction), nil
@@ -126,7 +134,7 @@ func (h *MobilePush) formatReactionPush(ctx context.Context, uid gregor1.UID, co
 
 func (h *MobilePush) FormatPushText(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	membersType chat1.ConversationMembersType, msg chat1.MessageUnboxed) (res string, err error) {
-	defer h.Trace(ctx, func() error { return err }, "FormatPushText")()
+	defer h.Trace(ctx, func() error { return err }, "FormatPushText: convID: %v", convID)()
 	if !msg.IsValid() {
 		h.Debug(ctx, "FormatPushText: message is not valid")
 		return res, errors.New("invalid message")
@@ -144,7 +152,7 @@ func (h *MobilePush) FormatPushText(ctx context.Context, uid gregor1.UID, convID
 
 func (h *MobilePush) UnboxPushNotification(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, membersType chat1.ConversationMembersType, payload string) (res chat1.MessageUnboxed, err error) {
-	defer h.Trace(ctx, func() error { return err }, "UnboxPushNotification")()
+	defer h.Trace(ctx, func() error { return err }, "UnboxPushNotification: convID: %v", convID)()
 	// Parse the message payload
 	bMsg, err := base64.StdEncoding.DecodeString(payload)
 	if err != nil {
@@ -164,7 +172,7 @@ func (h *MobilePush) UnboxPushNotification(ctx context.Context, uid gregor1.UID,
 		vis = keybase1.TLFVisibility_PUBLIC
 	}
 	unboxInfo := newBasicUnboxConversationInfo(convID, membersType, nil, vis)
-	msgUnboxed, err := NewBoxer(h.G()).UnboxMessage(ctx, msgBoxed, unboxInfo)
+	msgUnboxed, err := NewBoxer(h.G()).UnboxMessage(ctx, msgBoxed, unboxInfo, nil)
 	if err != nil {
 		h.Debug(ctx, "UnboxPushNotification: unbox failed, bailing: %s", err)
 		return res, err
@@ -183,7 +191,6 @@ func (h *MobilePush) UnboxPushNotification(ctx context.Context, uid gregor1.UID,
 			}
 		} else {
 			h.Debug(ctx, "UnboxPushNotification: message from the past, skipping insert: msgID: %d maxMsgID: %d", msgUnboxed.GetMessageID(), maxMsgID)
-
 		}
 	} else {
 		h.Debug(ctx, "UnboxPushNotification: failed to fetch max msg ID: %s", err)

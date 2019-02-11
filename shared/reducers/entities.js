@@ -2,6 +2,7 @@
 import * as Types from '../constants/types/entities'
 import * as Constants from '../constants/entities'
 import * as EntitiesGen from '../actions/entities-gen'
+import * as Flow from '../util/flow'
 
 const initialState = Constants.makeState()
 
@@ -29,10 +30,7 @@ export default function(state: Types.State = initialState, action: EntitiesGen.A
       return state.updateIn(keyPath, set => set.subtract(entities))
     }
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(action);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

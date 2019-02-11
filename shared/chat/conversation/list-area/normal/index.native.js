@@ -3,7 +3,9 @@ import * as React from 'react'
 import Message from '../../messages'
 import SpecialTopMessage from '../../messages/special-top-message'
 import SpecialBottomMessage from '../../messages/special-bottom-message'
+import {mobileTypingContainerHeight} from '../../input-area/normal/typing'
 import {Box, NativeVirtualizedList, ErrorBoundary} from '../../../../common-adapters/mobile.native'
+import * as Styles from '../../../../styles'
 import type {Props} from './index.types'
 
 class ConversationList extends React.PureComponent<Props> {
@@ -19,6 +21,7 @@ class ConversationList extends React.PureComponent<Props> {
 
       return (
         <Message
+          key={ordinal}
           ordinal={ordinal}
           previous={prevOrdinal}
           measure={null}
@@ -66,16 +69,23 @@ class ConversationList extends React.PureComponent<Props> {
     }
   }
 
+  // not highly documented. keeps new content from shifting around the list if you're scrolled up
+  _maintainVisibleContentPosition = {
+    minIndexForVisible: 0,
+  }
+
   render() {
     return (
       <ErrorBoundary>
-        <Box style={containerStyle}>
+        <Box style={styles.container}>
           <NativeVirtualizedList
+            contentContainerStyle={styles.contentContainer}
             data={this.props.messageOrdinals}
             inverted={true}
             getItem={this._getItem}
             getItemCount={this._getItemCount}
             renderItem={this._renderItem}
+            maintainVisibleContentPosition={this._maintainVisibleContentPosition}
             onViewableItemsChanged={this._onViewableItemsChanged}
             keyboardShouldPersistTaps="handled"
             keyExtractor={this._keyExtractor}
@@ -89,8 +99,13 @@ class ConversationList extends React.PureComponent<Props> {
   }
 }
 
-const containerStyle = {
-  flex: 1,
-}
+const styles = Styles.styleSheetCreate({
+  container: {
+    flex: 1,
+  },
+  contentContainer: {
+    bottom: -mobileTypingContainerHeight,
+  },
+})
 
 export default ConversationList

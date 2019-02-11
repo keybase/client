@@ -16,12 +16,6 @@ type MoreProps = {
   proofActionText?: ?string,
 }
 
-const styleCentered = {
-  style: {
-    textAlign: 'center',
-  },
-}
-
 export function propsForPlatform(props: Props): MoreProps {
   const base = {
     platformSubtitle: subtitle(props.platform),
@@ -32,59 +26,59 @@ export function propsForPlatform(props: Props): MoreProps {
       return {
         ...base,
         descriptionView: (
-          <Text type="BodySemibold" {...styleCentered}>
+          <Text center={true} type="BodySemibold">
             Please tweet the text below{' '}
             <Text type="BodySemiboldItalic" style={{...globalStyles.italic}}>
               exactly as it appears.
             </Text>
           </Text>
         ),
+        noteText: null,
+        onCompleteText: 'OK tweeted! Check for it!',
         proofActionText: 'Tweet it now',
         proofText: props.proofText,
-        onCompleteText: 'OK tweeted! Check for it!',
-        noteText: null,
       }
     case 'reddit':
       return {
         ...base,
         descriptionView: (
-          <Text type="BodySemibold" {...styleCentered}>
+          <Text center={true} type="BodySemibold">
             Click the link below and post the form in the subreddit{' '}
             <Text type="BodySemiboldItalic">KeybaseProofs</Text>.
           </Text>
         ),
         noteText: "Make sure you're signed in to Reddit, and don't edit the text or title before submitting.",
-        proofText: null,
-        proofActionText: 'Reddit form',
         onCompleteText: 'OK posted! Check for it!',
+        proofActionText: 'Reddit form',
+        proofText: null,
       }
     case 'facebook':
       return {
         ...base,
         descriptionView: <FacebookDescription />,
-        proofText: null,
-        proofActionText: 'Continue with Facebook',
         onCompleteText: 'OK posted! Check for it!',
+        proofActionText: 'Continue with Facebook',
+        proofText: null,
       }
     case 'github':
       return {
         ...base,
         descriptionView: (
-          <Text type="BodySemibold" {...styleCentered}>
+          <Text center={true} type="BodySemibold">
             Login to GitHub and paste the text below into a <Text type="BodySemiboldItalic">public</Text> gist
             called <Text type="BodySemiboldItalic">keybase.md.</Text>
           </Text>
         ),
+        noteText: null,
+        onCompleteText: 'OK posted! Check for it!',
         proofActionText: 'Create gist now',
         proofText: props.proofText,
-        onCompleteText: 'OK posted! Check for it!',
-        noteText: null,
       }
     case 'hackernews':
       return {
         ...base,
         descriptionView: (
-          <Text type="BodySemibold" {...styleCentered}>
+          <Text center={true} type="BodySemibold">
             Please add the below text{' '}
             <Text type="BodySemibold" style={{...globalStyles.italic}}>
               exactly as it appears
@@ -92,24 +86,24 @@ export function propsForPlatform(props: Props): MoreProps {
             to your profile.
           </Text>
         ),
+        noteText: null,
+        onCompleteText: 'OK posted! Check for it!',
         proofActionText: 'Go to Hacker News',
         proofText: props.proofText,
-        onCompleteText: 'OK posted! Check for it!',
-        noteText: null,
       }
     case 'dns':
       return {
         ...base,
         descriptionView: (
-          <Text type="BodySemibold" {...styleCentered}>
+          <Text center={true} type="BodySemibold">
             Enter the following as a TXT entry in your DNS zone,{' '}
             <Text type="BodySemibold">exactly as it appears</Text>. If you need a "name" for your entry, give
             it "@".
           </Text>
         ),
+        noteText: null,
         onCompleteText: 'OK posted! Check for it!',
         proofText: props.proofText,
-        noteText: null,
       }
     case 'http':
     case 'https':
@@ -119,24 +113,24 @@ export function propsForPlatform(props: Props): MoreProps {
 
       return {
         ...base,
-        proofText: props.proofText,
         descriptionView: (
           <Box style={globalStyles.flexBoxColumn}>
-            <Text type="BodySemibold" {...styleCentered}>
+            <Text center={true} type="BodySemibold">
               Please serve the text below <Text type="BodySemiboldItalic">exactly as it appears</Text> at one
               of these URL's.
             </Text>
             <Text
               type="BodyPrimaryLink"
+              center={true}
               onClick={() => openUrl(urlRoot)}
-              style={{color: globalColors.blue, textAlign: 'center', marginTop: globalMargins.tiny}}
+              style={{color: globalColors.blue, marginTop: globalMargins.tiny}}
             >
               {urlRoot}
             </Text>
             <Text
               type="BodyPrimaryLink"
-              onClick={() => openUrl(urlWellKnown)}
-              style={{color: globalColors.blue, textAlign: 'center'}}
+              center={true} onClick={() => openUrl(urlWellKnown)}
+              style={{color: globalColors.blue}}
             >
               {urlWellKnown}
             </Text>
@@ -145,6 +139,7 @@ export function propsForPlatform(props: Props): MoreProps {
         noteText:
           'Note: If someone already verified this domain, just append to the existing keybase.txt file.',
         onCompleteText: 'OK posted! Check for it!',
+        proofText: props.proofText,
       }
     default:
       return {}

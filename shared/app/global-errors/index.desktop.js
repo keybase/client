@@ -74,14 +74,17 @@ class GlobalError extends Component<Props, State> {
 
   componentDidUpdate(prevProps: Props) {
     if (prevProps.error !== this.props.error) {
-      this.props.setTimeout(() => {
-        if (this._mounted) {
-          this.setState({
-            cachedDetails: this._detailsForError(this.props.error),
-            cachedSummary: this._summaryForError(this.props.error),
-          })
-        }
-      }, this.props.error ? 0 : 7000) // if it's set, do it immediately, if it's cleared set it in a bit
+      this.props.setTimeout(
+        () => {
+          if (this._mounted) {
+            this.setState({
+              cachedDetails: this._detailsForError(this.props.error),
+              cachedSummary: this._summaryForError(this.props.error),
+            })
+          }
+        },
+        this.props.error ? 0 : 7000
+      ) // if it's set, do it immediately, if it's cleared set it in a bit
       this._resetError(!!this.props.error)
     }
   }
@@ -106,7 +109,7 @@ class GlobalError extends Component<Props, State> {
     return (
       <Box style={containerOverlayStyle}>
         <Box style={overlayRowStyle}>
-          <Text type="BodySmallSemibold" style={{color: globalColors.white, textAlign: 'center'}}>
+          <Text center={true} type="BodySmallSemibold" style={{color: globalColors.white}}>
             {message}
           </Text>
         </Box>
@@ -126,7 +129,7 @@ class GlobalError extends Component<Props, State> {
     return (
       <Box style={{...containerStyle, ...containerErrorStyle, maxHeight}} onClick={this._onExpandClick}>
         <Box style={{...summaryRowStyle, ...summaryRowErrorStyle}}>
-          <Text type="BodyBig" style={{color: globalColors.white, textAlign: 'center', flex: 1}}>
+          <Text center={true} type="BodyBig" style={{color: globalColors.white, flex: 1}}>
             {summary}
           </Text>
           {summary && (
@@ -139,7 +142,7 @@ class GlobalError extends Component<Props, State> {
             />
           )}
         </Box>
-        <Text type="BodyBig" selectable={true} style={detailStyle}>
+        <Text center={true} type="BodyBig" selectable={true} style={detailStyle}>
           {details}
         </Text>
       </Box>
@@ -188,7 +191,6 @@ const detailStyle = {
   padding: 8,
   paddingLeft: globalMargins.xlarge,
   paddingRight: globalMargins.xlarge,
-  textAlign: 'center',
 }
 
 const containerOverlayStyle = {

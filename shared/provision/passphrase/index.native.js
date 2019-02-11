@@ -18,21 +18,21 @@ class Passphrase extends Component<Props> {
         onBack={this.props.onBack}
       >
         <UserCard style={stylesCard} username={this.props.username}>
-          <Text type="Header" style={{color: globalColors.orange, ...usernameStyle}}>
+          <Text center={true} type="Header" style={{color: globalColors.orange}}>
             {this.props.username}
           </Text>
           <FormWithCheckbox
             inputProps={{
               autoFocus: true,
-              type: showTyping ? 'passwordVisible' : 'password',
-              floatingHintTextOverride: 'Passphrase',
-              onEnterKeyDown: this.props.onSubmit,
-              onChangeText: t => this.props.onChange(t),
-              value: this.props.passphrase,
-              uncontrolled: true,
               errorText: this.props.error,
+              hintText: 'Passphrase',
+              onChangeText: t => this.props.onChange(t),
+              onEnterKeyDown: this.props.onSubmit,
+              type: showTyping ? 'passwordVisible' : 'password',
+              uncontrolled: true,
+              value: this.props.passphrase,
             }}
-            checkboxesProps={[{label: 'Show typing', checked: !!showTyping, onCheck: toggleShowTyping}]}
+            checkboxesProps={[{checked: !!showTyping, label: 'Show typing', onCheck: toggleShowTyping}]}
           />
 
           <Button
@@ -41,9 +41,14 @@ class Passphrase extends Component<Props> {
             label="Continue"
             type="Primary"
             onClick={this.props.onSubmit}
-            enabled={this.props.passphrase && this.props.passphrase.length}
+            disabled={!(this.props.passphrase && this.props.passphrase.length)}
           />
-          <Text style={stylesForgot} type="BodySmallSecondaryLink" onClick={this.props.onForgotPassphrase}>
+          <Text
+            center={true}
+            style={stylesForgot}
+            type="BodySmallSecondaryLink"
+            onClick={this.props.onForgotPassphrase}
+          >
             Forgot passphrase?
           </Text>
         </UserCard>
@@ -56,15 +61,11 @@ const stylesContainer = {
   flex: 1,
 }
 const stylesForgot = {
-  marginTop: globalMargins.medium,
   flex: 1,
-  textAlign: 'center',
+  marginTop: globalMargins.medium,
 }
 const stylesCard = {
   alignItems: 'stretch',
-}
-const usernameStyle = {
-  textAlign: 'center',
 }
 
 export default Passphrase

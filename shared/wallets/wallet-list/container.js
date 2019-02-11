@@ -1,54 +1,47 @@
 // @flow
-import * as React from 'react'
 import {WalletList, type Props} from '.'
-import * as WalletsGen from '../../actions/wallets-gen'
-import * as RouteTree from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as Styles from '../../styles'
 import openURL from '../../util/open-url'
-import {connect, isMobile} from '../../util/container'
-import {getAccountIDs} from '../../constants/wallets'
-import Onboarding from '../onboarding/container'
+import {connect} from '../../util/container'
+import {getAccountIDs, loadAccountsWaitingKey} from '../../constants/wallets'
+import {anyWaiting} from '../../constants/waiting'
 
 type OwnProps = {style: Styles.StylesCrossPlatform}
 
 const mapStateToProps = state => ({
-  acceptedDisclaimer: state.wallets.acceptedDisclaimer,
   accounts: getAccountIDs(state),
+  loading: anyWaiting(state, loadAccountsWaitingKey),
 })
 
 const mapDispatchToProps = dispatch => ({
   onAddNew: () => {
     dispatch(
-      RouteTree.navigateAppend([
-        {props: {showOnCreation: true, backButton: isMobile}, selected: 'createNewAccount'},
-      ])
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {backButton: false, showOnCreation: true}, selected: 'createNewAccount'}],
+      })
     )
   },
-  onBack: isMobile ? () => dispatch(RouteTree.navigateUp()) : null,
   onLinkExisting: () => {
-    dispatch(RouteTree.navigateAppend([{props: {showOnCreation: true}, selected: 'linkExisting'}]))
+    dispatch(
+      RouteTreeGen.createNavigateAppend({path: [{props: {showOnCreation: true}, selected: 'linkExisting'}]})
+    )
   },
   onWhatIsStellar: () => openURL('https://keybase.io/what-is-stellar'),
-  refresh: () => dispatch(WalletsGen.createLoadAccounts()),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps): Props => ({
-  acceptedDisclaimer: stateProps.acceptedDisclaimer,
   accountIDs: stateProps.accounts.toArray(),
+  loading: stateProps.loading,
   onAddNew: dispatchProps.onAddNew,
   onLinkExisting: dispatchProps.onLinkExisting,
   onWhatIsStellar: dispatchProps.onWhatIsStellar,
-  onBack: dispatchProps.onBack,
-  refresh: dispatchProps.refresh,
   style: ownProps.style,
   title: 'Wallets',
 })
-
-const WalletListOrOnboarding = (props: Props) =>
-  props.acceptedDisclaimer ? <WalletList {...props} /> : <Onboarding />
 
 export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps
-)(WalletListOrOnboarding)
+)(WalletList)

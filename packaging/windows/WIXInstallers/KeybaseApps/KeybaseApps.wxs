@@ -96,7 +96,7 @@
         <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
           <RegistryValue Name="KbfsDokanExe" Value="1" KeyPath="yes" Type="integer" />
         </RegistryKey>
-        <File Id='KbfsDokanExe' DiskId='1' Source="$(env.GOPATH)\src\github.com\keybase\kbfs\kbfsdokan\kbfsdokan.exe" />
+        <File Id='KbfsDokanExe' DiskId='1' Source="$(env.GOPATH)\src\github.com\keybase\client\go\kbfs\kbfsdokan\kbfsdokan.exe" />
       </Component>
 			
       <Component Id="GitHelperExe" Guid="{d8938a5b-c45f-4942-b552-a357a5563329}">
@@ -105,7 +105,7 @@
         <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
           <RegistryValue Name="GitHelperExe" Value="1" KeyPath="yes" Type="integer" />
         </RegistryKey>
-        <File Id='GitHelperExe' DiskId='1' Source="$(env.GOPATH)\src\github.com\keybase\kbfs\kbfsgit\git-remote-keybase\git-remote-keybase.exe" />
+        <File Id='GitHelperExe' DiskId='1' Source="$(env.GOPATH)\src\github.com\keybase\client\go\kbfs\kbfsgit\git-remote-keybase\git-remote-keybase.exe" />
         <Environment Id="PATH" Name="PATH" Value="[INSTALLFOLDER]" Permanent="no" Part="last" Action="set" System="no" />
       </Component>
       
@@ -177,7 +177,7 @@
         <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
           <RegistryValue Name="DokanInstaller" Value="1" KeyPath="yes" Type="integer" />
         </RegistryKey>
-        <File Id="DokanSetup_redist.exe" Source="Redist\dokan-dev\1.2.0.1000\DokanSetup_redist.exe" Checksum="yes"/>
+        <File Id="DokanSetup_redist.exe" Source="Redist\dokan-dev\1.2.1.2000\DokanSetup_redist.exe" Checksum="yes"/>
       </Component>
     </ComponentGroup>
   </Fragment>

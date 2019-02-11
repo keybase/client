@@ -2,45 +2,44 @@
 import AssetInput from '.'
 import * as WalletsGen from '../../../actions/wallets-gen'
 import {namedConnect} from '../../../util/container'
-import * as Route from '../../../actions/route-tree'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Constants from '../../../constants/wallets'
-import {anyWaiting} from '../../../constants/waiting'
 
 type OwnProps = {||}
 
 const mapStateToProps = state => {
-  const accountID = state.wallets.selectedAccount
-  const currency = state.wallets.building.currency
-  const currencyWaiting = anyWaiting(state, Constants.getDisplayCurrencyWaitingKey(accountID))
-  const displayUnit = currencyWaiting ? '' : Constants.getCurrencyAndSymbol(state, currency)
+  const {amount, currency} = state.wallets.building
   return {
-    accountID,
     bottomLabel: '', // TODO
-    displayUnit,
+    currencyLoading: currency === '',
+    displayUnit: currency,
     // TODO differentiate between an asset (7 digits) and a display currency (2 digits) below
-    inputPlaceholder: currency && currency !== 'XLM' ? '0.00' : '0.0000000',
-    numDecimalsAllowed: currency && currency !== 'XLM' ? 2 : 7,
+    inputPlaceholder: currency !== 'XLM' ? '0.00' : '0.0000000',
+    numDecimalsAllowed: currency !== 'XLM' ? 2 : 7,
     topLabel: '', // TODO
-    value: state.wallets.building.amount,
+    value: amount,
   }
 }
 
 const mapDispatchToProps = dispatch => ({
+  onChangeAmount: (amount: string) => dispatch(WalletsGen.createSetBuildingAmount({amount})),
   onChangeDisplayUnit: () => {
     dispatch(
-      Route.navigateAppend([
-        {
-          props: {},
-          selected: Constants.chooseAssetFormRouteKey,
-        },
-      ])
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {},
+            selected: Constants.chooseAssetFormRouteKey,
+          },
+        ],
+      })
     )
   },
-  onChangeAmount: (amount: string) => dispatch(WalletsGen.createSetBuildingAmount({amount})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({
   bottomLabel: stateProps.bottomLabel,
+  currencyLoading: stateProps.currencyLoading,
   displayUnit: stateProps.displayUnit,
   inputPlaceholder: stateProps.inputPlaceholder,
   numDecimalsAllowed: stateProps.numDecimalsAllowed,

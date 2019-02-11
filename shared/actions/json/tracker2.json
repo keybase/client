@@ -1,0 +1,60 @@
+{
+  "prelude": ["import * as Types from '../constants/types/tracker2'"],
+  "actions": {
+    "load": {
+      "assertion": "string",
+      "forceDisplay?": "boolean",
+      "fromDaemon?": "boolean",
+      "guiID": "string",
+      "ignoreCache?": "boolean",
+      "reason": "string",
+      "inTracker": "boolean"
+    },
+    "updatedDetails": {
+      "guiID": "string",
+      "bio": "string",
+      "followThem": "boolean",
+      "followersCount": "number",
+      "followingCount": "number",
+      "followsYou": "boolean",
+      "fullname": "string",
+      "location": "string",
+      "username": "string",
+      "teamShowcase": "Array<Types._TeamShowcase>"
+    },
+    "updateResult": {
+      "guiID": "string",
+      "result": "Types.DetailsState",
+      "reason": "?string"
+    },
+    "closeTracker": {
+      "guiID": "string"
+    },
+    "updateAssertion": {
+      "guiID": "string",
+      "type": "string",
+      "value": "string",
+      "sigID": "string",
+      "siteURL": "string",
+      "siteIcon": "string",
+      "proofURL": "string",
+      "state": "Types.AssertionState",
+      "metas": "Array<Types._AssertionMeta>",
+      "color": "Types.AssertionColor"
+    },
+    "changeFollow": {
+      "guiID": "string",
+      "follow": "boolean"
+    },
+    "ignore": {
+      "guiID": "string"
+    },
+    "updateFollowers": {
+      "username": "string",
+      "following": "Array<{following: boolean, followsYou: boolean, fullname: string, username: string}>",
+      "followers": "Array<{following: boolean, followsYou: boolean, fullname: string, username: string}>"
+    },
+    "getProofSuggestions": {},
+    "proofSuggestionsUpdated": {"suggestions": "$ReadOnlyArray<Types.Assertion>"}
+  }
+}

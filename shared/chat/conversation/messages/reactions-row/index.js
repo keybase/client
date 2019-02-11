@@ -4,22 +4,31 @@ import * as Types from '../../../../constants/types/chat2'
 import {Box, Box2} from '../../../../common-adapters'
 import ReactButton from '../react-button/container'
 import ReactionTooltip from '../reaction-tooltip/container'
-import {collapseStyles, globalMargins, isMobile, platformStyles, styleSheetCreate} from '../../../../styles'
+import EmojiRow from '../react-button/emoji-row/container'
+import {
+  borderRadius,
+  classNames,
+  globalColors,
+  globalMargins,
+  isMobile,
+  platformStyles,
+  styleSheetCreate,
+} from '../../../../styles'
 
 export type Props = {|
+  btnClassName?: string, // class to apply to all reacji buttons
+  newBtnClassName?: string, // class to apply to emoji row
   conversationIDKey: Types.ConversationIDKey,
   emojis: Array<string>,
   ordinal: Types.Ordinal,
 |}
 type State = {
   activeEmoji: string,
-  showAddReaction: boolean,
   showMobileTooltip: boolean,
 }
 class ReactionsRow extends React.Component<Props, State> {
   state = {
     activeEmoji: '',
-    showAddReaction: false,
     showMobileTooltip: false,
   }
   _attachmentRefs: {[emojiName: string]: ?React.Component<any>} = {}
@@ -31,22 +40,16 @@ class ReactionsRow extends React.Component<Props, State> {
   _setActiveEmoji = (emojiName: string) =>
     this.setState(s => (s.activeEmoji === emojiName ? null : {activeEmoji: emojiName}))
 
-  _setHoveringRow = (hovering: boolean) =>
-    this.setState(s => (s.showAddReaction === hovering ? null : {showAddReaction: hovering}))
-
   _setShowMobileTooltip = (showMobileTooltip: boolean) =>
     this.setState(s => (s.showMobileTooltip === showMobileTooltip ? null : {showMobileTooltip}))
 
+  _newAttachmentRef: any = null
+  _getNewAttachmentRef = () => this._newAttachmentRef
+  _setNewAttachmentRef = r => (this._newAttachmentRef = r)
+
   render() {
     return this.props.emojis.length === 0 ? null : (
-      <Box2
-        onMouseOver={() => this._setHoveringRow(true)}
-        onMouseLeave={() => this._setHoveringRow(false)}
-        direction="horizontal"
-        gap="xtiny"
-        fullWidth={true}
-        style={styles.container}
-      >
+      <Box2 direction="horizontal" gap="xtiny" fullWidth={true} style={styles.container}>
         {this.props.emojis.map(emoji => (
           <Box
             onMouseOver={() => this._setHoveringButton(true, emoji)}
@@ -55,6 +58,7 @@ class ReactionsRow extends React.Component<Props, State> {
           >
             <ReactButton
               ref={ref => (this._attachmentRefs[emoji] = ref)}
+              className={this.props.btnClassName}
               conversationIDKey={this.props.conversationIDKey}
               emoji={emoji}
               onLongPress={() => this._setShowMobileTooltip(true)}
@@ -71,17 +75,24 @@ class ReactionsRow extends React.Component<Props, State> {
             />
           </Box>
         ))}
-        <ReactButton
-          conversationIDKey={this.props.conversationIDKey}
-          onLongPress={() => this._setShowMobileTooltip(true)}
-          ordinal={this.props.ordinal}
-          showBorder={true}
-          style={collapseStyles([
-            styles.button,
-            // Important to the animation for this to be `visibility: hidden`
-            !this.state.showAddReaction && !isMobile && styles.visibilityHidden,
-          ])}
-        />
+        {isMobile ? (
+          <ReactButton
+            conversationIDKey={this.props.conversationIDKey}
+            ref={this._setNewAttachmentRef}
+            getAttachmentRef={this._getNewAttachmentRef}
+            onLongPress={() => this._setShowMobileTooltip(true)}
+            ordinal={this.props.ordinal}
+            showBorder={true}
+            style={styles.button}
+          />
+        ) : (
+          <EmojiRow
+            className={classNames([this.props.btnClassName, this.props.newBtnClassName])}
+            conversationIDKey={this.props.conversationIDKey}
+            ordinal={this.props.ordinal}
+            style={styles.emojiRow}
+          />
+        )}
         <ReactionTooltip
           conversationIDKey={this.props.conversationIDKey}
           onHidden={() => this._setShowMobileTooltip(false)}
@@ -98,9 +109,16 @@ const styles = styleSheetCreate({
   container: {
     alignItems: 'flex-start',
     flexWrap: 'wrap',
-    // refer to `WrapperAuthor` styles
-    marginLeft: 32 + globalMargins.tiny + (isMobile ? globalMargins.tiny : globalMargins.small),
     paddingRight: 66,
+    paddingTop: globalMargins.tiny,
+  },
+  emojiRow: {
+    backgroundColor: globalColors.white,
+    borderColor: globalColors.black_10,
+    borderRadius,
+    borderStyle: 'solid',
+    borderWidth: 1,
+    marginBottom: globalMargins.tiny,
   },
   visibilityHidden: platformStyles({isElectron: {visibility: 'hidden'}}),
 })

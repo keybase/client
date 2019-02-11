@@ -81,12 +81,13 @@
     ATMENTION_1
   }
 
-  // Global notification settings (on by default)
+  // Global notification settings
   enum GlobalAppNotificationSetting {
     NEWMESSAGES_0,
     PLAINTEXTMOBILE_1,
     PLAINTEXTDESKTOP_2,
-    DEFAULTSOUNDMOBILE_3
+    DEFAULTSOUNDMOBILE_3,
+    DISABLETYPING_4
   }
   record GlobalAppNotificationSettings {
     map<GlobalAppNotificationSetting, bool> settings;
@@ -141,11 +142,12 @@
   }
 
   enum ConversationMemberStatus {
-    ACTIVE_0,  // in the channel
-    REMOVED_1, // removed from channel forcibly
-    LEFT_2,    // voluntarily left conversation
-    PREVIEW_3, // use is previewing the channel from an @mention
-    RESET_4    // status of having an account reset in an impteam
+    ACTIVE_0,      // in the channel
+    REMOVED_1,     // removed from channel forcibly
+    LEFT_2,        // voluntarily left conversation
+    PREVIEW_3,     // use is previewing the channel from an @mention
+    RESET_4,       // status of having an account reset in an impteam
+    NEVER_JOINED_5 // member of the team but never joined the conv
   }
 
   record Pagination {
@@ -173,7 +175,7 @@
 
     // If left empty, default is to show unfiled and favorite
     array<ConversationStatus> status;
-    // If left empty, default is to return active and preview status
+    // If left empty, default is to return active, preview, and reset status
     array<ConversationMemberStatus> memberStatus;
     // If left empty, default is active
     array<ConversationExistence> existences;
@@ -188,6 +190,7 @@
     boolean readOnly;
     boolean computeActiveList;
     boolean summarizeMaxMsgs; // if true, resulting conversation will only have summaries of max msgs
+    boolean skipBgLoads; // optionally skip queuing the conversation in the background loader.
   }
 
   record ConversationIDTriple {
@@ -560,11 +563,17 @@
     ConversationIndexMetadata metadata;
   }
 
+  record ChatSearchMatch {
+    int startIndex;
+    int endIndex;
+    string match;
+  }
+
   record ChatSearchHit {
     array<UIMessage> beforeMessages;
     UIMessage hitMessage;
     array<UIMessage> afterMessages;
-    array<string>  matches;
+    array<ChatSearchMatch>  matches;
   }
 
   record ChatSearchInboxHit {

@@ -17,7 +17,7 @@ export default (props: Props) => (
       Consider following...
     </Text>
     <ScrollView
-      {...(isMobile ? {horizontal: true, alwaysBounceHorizontal: false} : {})} // Causes error on desktop
+      {...(isMobile ? {alwaysBounceHorizontal: false, horizontal: true} : {})} // Causes error on desktop
       contentContainerStyle={styles.scrollViewContainer}
     >
       {props.suggestions.map(suggestion => (
@@ -68,8 +68,15 @@ const styles = styleSheetCreate({
     height: 106,
     width: 112,
   },
-  text: {
-    marginBottom: globalMargins.tiny,
-    marginLeft: globalMargins.tiny,
-  },
+  text: platformStyles({
+    common: {
+      marginBottom: globalMargins.tiny,
+    },
+    isElectron: {
+      marginLeft: globalMargins.small,
+    },
+    isMobile: {
+      marginLeft: globalMargins.tiny,
+    },
+  }),
 })

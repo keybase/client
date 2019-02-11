@@ -80,16 +80,15 @@ export default class ActionRender extends PureComponent<Props> {
   renderNormal() {
     return (
       <div style={styleContainer}>
-        {!this.props.currentlyFollowing &&
-          this.props.myUsername !== this.props.username && (
-            <Button
-              waiting={this.props.waiting}
-              style={{...styleActionButton, marginRight: globalMargins.tiny}}
-              type="PrimaryGreen"
-              label="Follow"
-              onClick={() => this.props.onFollow()}
-            />
-          )}
+        {!this.props.currentlyFollowing && this.props.myUsername !== this.props.username && (
+          <Button
+            waiting={this.props.waiting}
+            style={{...styleActionButton, marginRight: globalMargins.tiny}}
+            type="PrimaryGreen"
+            label="Follow"
+            onClick={() => this.props.onFollow()}
+          />
+        )}
         {(this.props.currentlyFollowing || this.props.myUsername === this.props.username) && (
           <Button
             style={{...styleActionButton, marginRight: globalMargins.tiny}}
@@ -137,22 +136,22 @@ export function calcFooterHeight(loggedIn: boolean): number {
 }
 
 const styleContainer = {
-  ...globalStyles.flexBoxRow,
+  ...desktopStyles.boxShadow,
   ...desktopStyles.noSelect,
-  backgroundColor: globalColors.white_90,
-  width: '100%',
-  height: calcFooterHeight(true),
-  boxShadow: '0px 0px 3px rgba(0, 0, 0, 0.15)',
+  ...globalStyles.flexBoxRow,
   alignItems: 'center',
+  backgroundColor: globalColors.white_90,
+  height: calcFooterHeight(true),
   justifyContent: 'center',
   padding: globalMargins.small,
   position: 'relative',
+  width: '100%',
   zIndex: 1,
 }
 
 const styleActionButton = {
-  width: 102,
   minWidth: 102,
+  width: 102,
 }
 
 const styleChatButton = {
@@ -160,14 +159,14 @@ const styleChatButton = {
 }
 
 const styleLoggedOutContainer = {
+  ...desktopStyles.boxShadow,
   ...globalStyles.flexBoxColumn,
-  backgroundColor: globalColors.white,
-  width: '100%',
-  height: calcFooterHeight(false),
-  boxShadow: '0px 0px 3px rgba(0, 0, 0, 0.15)',
   alignItems: 'center',
+  backgroundColor: globalColors.white,
+  height: calcFooterHeight(false),
   justifyContent: 'space-between',
   padding: globalMargins.small,
   position: 'relative',
+  width: '100%',
   zIndex: 1,
 }

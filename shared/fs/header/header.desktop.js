@@ -2,54 +2,57 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/fs'
-import {Box, Icon, Text, WithTooltip} from '../../common-adapters'
+import * as Kb from '../../common-adapters'
 import AddNew from './add-new-container'
 import ConnectedFilesBanner from '../banner/fileui-banner/container'
 import Breadcrumb from './breadcrumb-container.desktop'
 import {type FolderHeaderProps} from './header'
-import {PathItemAction, OpenInSystemFileManager} from '../common'
+import {OpenInSystemFileManager, PathItemAction, SendInAppAction} from '../common'
 
 const FolderHeader = ({path, onChat, routePath}: FolderHeaderProps) => (
-  <Box style={styles.headerContainer}>
-    <Box style={styles.folderHeader}>
+  <Kb.Box style={styles.headerContainer}>
+    <Kb.Box style={styles.folderHeader}>
       {Types.pathToString(path) === '/keybase' ? (
-        <Box style={styles.folderHeaderContainer}>
-          <Box style={styles.folderHeaderRoot}>
-            <Text type="BodyBig">Keybase Files</Text>
-          </Box>
-          <Box style={styles.folderHeaderEnd}>
-            <WithTooltip text="Show in Finder">
+        <Kb.Box style={styles.folderHeaderContainer}>
+          <Kb.Box style={styles.folderHeaderRoot}>
+            <Kb.Text type="BodyBig">Keybase Files</Kb.Text>
+          </Kb.Box>
+          <Kb.Box style={styles.folderHeaderEnd}>
+            <Kb.WithTooltip text="Show in Finder">
               <OpenInSystemFileManager path={path} />
-            </WithTooltip>
-          </Box>
-        </Box>
+            </Kb.WithTooltip>
+          </Kb.Box>
+        </Kb.Box>
       ) : (
-        <Box style={styles.folderHeaderContainer}>
+        <Kb.Box style={styles.folderHeaderContainer}>
           <Breadcrumb path={path} routePath={routePath} />
-          <Box style={styles.folderHeaderEnd}>
+          <Kb.Box style={styles.folderHeaderEnd}>
             <AddNew path={path} style={styles.addNew} />
-            <WithTooltip text="Show in Finder">
+            <Kb.WithTooltip text="Show in Finder">
               <OpenInSystemFileManager path={path} />
-            </WithTooltip>
+            </Kb.WithTooltip>
             {onChat && (
-              <Box style={styles.headerIcon}>
-                <Icon
-                  type="iconfont-chat"
-                  color={Styles.globalColors.black_40}
-                  fontSize={16}
-                  onClick={onChat}
-                />
-              </Box>
+              <Kb.Icon
+                type="iconfont-chat"
+                color={Styles.globalColors.black_50}
+                fontSize={16}
+                onClick={onChat}
+                style={styles.headerIcon}
+              />
             )}
-            <Box style={styles.headerIcon}>
-              <PathItemAction path={path} actionIconClassName="fs-path-item-hover-icon" />
-            </Box>
-          </Box>
-        </Box>
+            <SendInAppAction path={path} sendIconClassName="" />
+            <PathItemAction
+              path={path}
+              clickable={{actionIconClassName: '', type: 'icon'}}
+              routePath={routePath}
+              initView="root"
+            />
+          </Kb.Box>
+        </Kb.Box>
       )}
-    </Box>
+    </Kb.Box>
     <ConnectedFilesBanner path={path} />
-  </Box>
+  </Kb.Box>
 )
 
 const styleCommonRow = {
@@ -58,43 +61,43 @@ const styleCommonRow = {
 }
 
 const styles = Styles.styleSheetCreate({
-  headerContainer: {
-    ...Styles.globalStyles.flexBoxColumn,
-    width: '100%',
+  addNew: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small - 4,
+    paddingTop: Styles.globalMargins.tiny,
   },
   folderHeader: {
     minHeight: 48,
   },
-  folderHeaderRoot: {
+  folderHeaderContainer: {
     ...styleCommonRow,
-    justifyContent: 'center',
-    width: '100%',
+    alignItems: 'center',
     height: 48,
+    position: 'relative',
+    width: '100%',
   },
   folderHeaderEnd: {
     ...styleCommonRow,
     alignItems: 'center',
+    flexShrink: 0,
     paddingLeft: 16,
     paddingRight: 16,
-    flexShrink: 0,
   },
-  folderHeaderContainer: {
+  folderHeaderRoot: {
     ...styleCommonRow,
-    width: '100%',
     height: 48,
-    alignItems: 'center',
-    position: 'relative',
+    justifyContent: 'center',
+    width: '100%',
+  },
+  headerContainer: {
+    ...Styles.globalStyles.flexBoxColumn,
+    width: '100%',
   },
   headerIcon: {
-    marginLeft: Styles.globalMargins.tiny,
-  },
-  addNew: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    paddingTop: Styles.globalMargins.tiny,
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingRight: Styles.globalMargins.small - 4,
-    paddingLeft: Styles.globalMargins.small,
+    padding: Styles.globalMargins.tiny,
   },
 })
 

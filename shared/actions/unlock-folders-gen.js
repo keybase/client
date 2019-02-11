@@ -1,6 +1,6 @@
 // @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define */
+/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
 
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -27,11 +27,7 @@ type _CheckPaperKeyPayload = $ReadOnly<{|paperKey: string|}>
 type _CloseDonePayload = void
 type _ClosePopupPayload = void
 type _FinishPayload = void
-type _NewRekeyPopupPayload = $ReadOnly<{|
-  sessionID: number,
-  devices: Array<RPCTypes.Device>,
-  problemSet: RPCTypes.ProblemSet,
-|}>
+type _NewRekeyPopupPayload = $ReadOnly<{|sessionID: number, devices: Array<RPCTypes.Device>, problemSet: RPCTypes.ProblemSet|}>
 type _OnBackFromPaperKeyPayload = void
 type _OpenPopupPayload = void
 type _ToPaperKeyInputPayload = void
@@ -51,17 +47,17 @@ export const createToPaperKeyInput = (payload: _ToPaperKeyInputPayload) => ({pay
 export const createWaiting = (payload: _WaitingPayload) => ({payload, type: waiting})
 
 // Action Payloads
-export type CheckPaperKeyDonePayload = $Call<typeof createCheckPaperKeyDone, _CheckPaperKeyDonePayload>
-export type CheckPaperKeyDonePayloadError = $Call<typeof createCheckPaperKeyDoneError, _CheckPaperKeyDonePayloadError>
-export type CheckPaperKeyPayload = $Call<typeof createCheckPaperKey, _CheckPaperKeyPayload>
-export type CloseDonePayload = $Call<typeof createCloseDone, _CloseDonePayload>
-export type ClosePopupPayload = $Call<typeof createClosePopup, _ClosePopupPayload>
-export type FinishPayload = $Call<typeof createFinish, _FinishPayload>
-export type NewRekeyPopupPayload = $Call<typeof createNewRekeyPopup, _NewRekeyPopupPayload>
-export type OnBackFromPaperKeyPayload = $Call<typeof createOnBackFromPaperKey, _OnBackFromPaperKeyPayload>
-export type OpenPopupPayload = $Call<typeof createOpenPopup, _OpenPopupPayload>
-export type ToPaperKeyInputPayload = $Call<typeof createToPaperKeyInput, _ToPaperKeyInputPayload>
-export type WaitingPayload = $Call<typeof createWaiting, _WaitingPayload>
+export type CheckPaperKeyDonePayload = {|+payload: _CheckPaperKeyDonePayload, +type: 'unlock-folders:checkPaperKeyDone'|}
+export type CheckPaperKeyDonePayloadError = {|+error: true, +payload: _CheckPaperKeyDonePayloadError, +type: 'unlock-folders:checkPaperKeyDone'|}
+export type CheckPaperKeyPayload = {|+payload: _CheckPaperKeyPayload, +type: 'unlock-folders:checkPaperKey'|}
+export type CloseDonePayload = {|+payload: _CloseDonePayload, +type: 'unlock-folders:closeDone'|}
+export type ClosePopupPayload = {|+payload: _ClosePopupPayload, +type: 'unlock-folders:closePopup'|}
+export type FinishPayload = {|+payload: _FinishPayload, +type: 'unlock-folders:finish'|}
+export type NewRekeyPopupPayload = {|+payload: _NewRekeyPopupPayload, +type: 'unlock-folders:newRekeyPopup'|}
+export type OnBackFromPaperKeyPayload = {|+payload: _OnBackFromPaperKeyPayload, +type: 'unlock-folders:onBackFromPaperKey'|}
+export type OpenPopupPayload = {|+payload: _OpenPopupPayload, +type: 'unlock-folders:openPopup'|}
+export type ToPaperKeyInputPayload = {|+payload: _ToPaperKeyInputPayload, +type: 'unlock-folders:toPaperKeyInput'|}
+export type WaitingPayload = {|+payload: _WaitingPayload, +type: 'unlock-folders:waiting'|}
 
 // All Actions
 // prettier-ignore
@@ -77,4 +73,4 @@ export type Actions =
   | OpenPopupPayload
   | ToPaperKeyInputPayload
   | WaitingPayload
-  | {type: 'common:resetStore', payload: void}
+  | {type: 'common:resetStore', payload: null}

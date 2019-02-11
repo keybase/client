@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/client/go/gregor"
 	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -75,6 +76,14 @@ func NewProofError(s keybase1.ProofStatus, d string, a ...interface{}) *ProofErr
 		return &ProofErrorImpl{s, d}
 	}
 	return &ProofErrorImpl{s, fmt.Sprintf(d, a...)}
+}
+
+func NewInvalidPVLSelectorError(selector keybase1.SelectorEntry) error {
+	return NewProofError(
+		keybase1.ProofStatus_INVALID_PVL,
+		"JSON selector entry must be a string, int, or 'all' %v",
+		selector,
+	)
 }
 
 func (e *ProofErrorImpl) Error() string {
@@ -167,6 +176,22 @@ func (e AssertionParseError) Error() string {
 
 func NewAssertionParseError(s string, a ...interface{}) AssertionParseError {
 	return AssertionParseError{
+		err: fmt.Sprintf(s, a...),
+	}
+}
+
+//=============================================================================
+
+type AssertionCheckError struct {
+	err string
+}
+
+func (e AssertionCheckError) Error() string {
+	return e.err
+}
+
+func NewAssertionCheckError(s string, a ...interface{}) AssertionCheckError {
+	return AssertionCheckError{
 		err: fmt.Sprintf(s, a...),
 	}
 }
@@ -283,6 +308,10 @@ func (e NotFoundError) Error() string {
 func IsNotFoundError(err error) bool {
 	_, ok := err.(NotFoundError)
 	return ok
+}
+
+func NewNotFoundError(s string) error {
+	return NotFoundError{s}
 }
 
 //=============================================================================
@@ -471,6 +500,11 @@ func (a AppStatusError) Error() string {
 	}
 
 	return fmt.Sprintf("%s%s (error %d)", a.Desc, fields, a.Code)
+}
+
+func (a AppStatusError) WithDesc(desc string) AppStatusError {
+	a.Desc = desc
+	return a
 }
 
 func IsAppStatusErrorCode(err error, code keybase1.StatusCode) bool {
@@ -920,7 +954,10 @@ type ServiceDoesNotSupportNewProofsError struct {
 }
 
 func (e ServiceDoesNotSupportNewProofsError) Error() string {
-	return fmt.Sprintf("New %q proofs are no longer supported", e.Service)
+	if len(e.Service) == 0 {
+		return fmt.Sprintf("New proofs of that type are not supported")
+	}
+	return fmt.Sprintf("New %s proofs are not supported", e.Service)
 }
 
 //=============================================================================
@@ -1209,6 +1246,20 @@ type MerkleClientError struct {
 	t merkleClientErrorType
 }
 
+func NewClientMerkleSkipHashMismatchError(m string) MerkleClientError {
+	return MerkleClientError{
+		t: merkleErrorSkipHashMismatch,
+		m: m,
+	}
+}
+
+func NewClientMerkleSkipMissingError(m string) MerkleClientError {
+	return MerkleClientError{
+		t: merkleErrorSkipMissing,
+		m: m,
+	}
+}
+
 func (m MerkleClientError) Error() string {
 	return fmt.Sprintf("Error checking merkle tree: %s", m.m)
 }
@@ -1219,6 +1270,10 @@ func (m MerkleClientError) IsNotFound() bool {
 
 func (m MerkleClientError) IsOldTree() bool {
 	return m.t == merkleErrorOldTree
+}
+
+func (m MerkleClientError) IsSkipHashMismatch() bool {
+	return m.t == merkleErrorSkipHashMismatch
 }
 
 type MerklePathNotFoundError struct {
@@ -1337,11 +1392,11 @@ func NewUntrackError(d string, a ...interface{}) UntrackError {
 //=============================================================================
 
 type APINetError struct {
-	err error
+	Err error
 }
 
 func (e APINetError) Error() string {
-	return fmt.Sprintf("API network error: %s", e.err)
+	return fmt.Sprintf("API network error: %s", e.Err)
 }
 
 //=============================================================================
@@ -2035,7 +2090,17 @@ func (e ChatClientError) IsImmediateFail() (chat1.OutboxErrorType, bool) {
 type ChatStalePreviousStateError struct{}
 
 func (e ChatStalePreviousStateError) Error() string {
-	return "stale previous state error"
+	return "Unable to change chat channels"
+}
+
+//=============================================================================
+
+type ChatEphemeralRetentionPolicyViolatedError struct {
+	MaxAge gregor1.DurationSec
+}
+
+func (e ChatEphemeralRetentionPolicyViolatedError) Error() string {
+	return fmt.Sprintf("messages in this conversation are required to be exploding with a maximum lifetime of %v", e.MaxAge.ToDuration())
 }
 
 //=============================================================================

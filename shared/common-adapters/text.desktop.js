@@ -4,16 +4,15 @@ import * as React from 'react'
 // TODO remove this from this component, hook it in externally so we don't have these types of dependencies in storybook
 import openURL from '../util/open-url'
 import {defaultColor, fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.desktop'
-import {findDOMNode} from 'react-dom'
 import shallowEqual from 'shallowequal'
 
 import type {Props, TextType, Background} from './text'
 
 class Text extends React.Component<Props> {
-  _span: any
+  _spanRef = React.createRef()
 
   highlightText() {
-    const el = findDOMNode(this._span)
+    const el = this._spanRef.current
     const range = document.createRange()
     // $FlowIssue
     range.selectNodeContents(el)
@@ -21,10 +20,6 @@ class Text extends React.Component<Props> {
     const sel = window.getSelection()
     sel.removeAllRanges()
     sel.addRange(range)
-  }
-
-  _setRef = (ref: any) => {
-    this._span = ref
   }
 
   shouldComponentUpdate(nextProps: Props): boolean {
@@ -45,6 +40,7 @@ class Text extends React.Component<Props> {
       underline: props.underline,
       // eslint-disable-next-line sort-keys
       'hover-underline': meta.isLink && (!props.backgroundMode || props.backgroundMode === 'Normal'),
+      text_center: props.center,
     })
   }
 
@@ -75,7 +71,7 @@ class Text extends React.Component<Props> {
     return (
       <span
         title={this.props.title}
-        ref={this.props.allowHighlightText ? this._setRef : undefined}
+        ref={this.props.allowHighlightText ? this._spanRef : undefined}
         className={this._className(this.props)}
         onClick={this.props.onClick || (this.props.onClickURL && this._urlClick)}
         style={style}
@@ -138,8 +134,8 @@ function externalGetStyle(
   const clickableStyle = clickable ? Styles.desktopStyles.clickable : null
   const selectableStyle = selectable
     ? {
-        userSelect: 'text',
         cursor: 'text',
+        userSelect: 'text',
       }
     : null
   const textDecoration = meta.isLink && backgroundMode !== 'Normal' ? {textDecoration: 'underline'} : null

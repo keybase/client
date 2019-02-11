@@ -62,6 +62,7 @@ export default compose(
     'LifecycleNotifications'
   ),
   withStateHandlers(
+    // $FlowIssue don't use recompose
     props => ({
       channelWide: props._storeChannelWide,
       desktop: props._storeDesktop,
@@ -70,6 +71,12 @@ export default compose(
       saving: false,
     }),
     {
+      syncLocalToStore: (state, props) => (channelWide, desktop, mobile, muted) => ({
+        channelWide,
+        desktop,
+        mobile,
+        muted,
+      }),
       toggleChannelWide: (state, props) => () => {
         props._updateNotifications(state.desktop, state.mobile, !state.channelWide)
         return {channelWide: !state.channelWide}
@@ -80,25 +87,20 @@ export default compose(
       },
       updateDesktop: (state, props) => (desktop: Types.NotificationsType) => {
         if (desktop === state.desktop) {
-          return
+          return undefined
         }
         props._updateNotifications(desktop, state.mobile, state.channelWide)
         return {desktop}
       },
       updateMobile: (state, props) => (mobile: Types.NotificationsType) => {
         if (mobile === state.mobile) {
-          return
+          return undefined
         }
         props._updateNotifications(state.desktop, mobile, state.channelWide)
         return {mobile}
       },
-      updateSaving: ({saving: oldSaving}) => (saving: boolean) => (oldSaving === saving ? null : {saving}),
-      syncLocalToStore: (state, props) => (channelWide, desktop, mobile, muted) => ({
-        channelWide,
-        desktop,
-        mobile,
-        muted,
-      }),
+      updateSaving: ({saving: oldSaving}) => (saving: boolean) =>
+        oldSaving === saving ? undefined : {saving},
     }
   ),
   lifecycle({

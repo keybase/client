@@ -3,6 +3,8 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 
+// TODO: This is now desktop-only, so remove references to isMobile.
+
 type Props = {|
   contents: string,
   isSelected: boolean,
@@ -71,7 +73,7 @@ const styles = Styles.styleSheetCreate({
 
 const HoverBox = Styles.isMobile
   ? Kb.Box2
-  : Styles.glamorous(Kb.Box2)({
+  : Styles.styled(Kb.Box2)({
       ':hover': {backgroundColor: Styles.globalColors.blueGrey2},
     })
 

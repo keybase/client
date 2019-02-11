@@ -4,11 +4,12 @@ import * as ConfigGen from '../../../../../actions/config-gen'
 import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as Constants from '../../../../../constants/chat2'
 import * as Types from '../../../../../constants/types/chat2'
-import * as Route from '../../../../../actions/route-tree'
+import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import * as Container from '../../../../../util/container'
 import {createShowUserProfile} from '../../../../../actions/profile-gen'
 import {getCanPerform} from '../../../../../constants/teams'
-import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
+import type {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
+import type {StylesCrossPlatform} from '../../../../../styles/css'
 import Text from '.'
 
 type OwnProps = {
@@ -16,6 +17,7 @@ type OwnProps = {
   message: Types.MessageText,
   onHidden: () => void,
   position: Position,
+  style?: StylesCrossPlatform,
   visible: boolean,
 }
 
@@ -27,8 +29,8 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   const _canAdminDelete = yourOperations && yourOperations.deleteOtherMessages
   const _participantsCount = meta.participants.count()
   return {
-    _canDeleteHistory,
     _canAdminDelete,
+    _canDeleteHistory,
     _participantsCount,
     _you: state.config.username,
   }
@@ -37,12 +39,14 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
 const mapDispatchToProps = dispatch => ({
   _onAddReaction: (message: Types.Message) => {
     dispatch(
-      Route.navigateAppend([
-        {
-          props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
-          selected: 'chooseEmoji',
-        },
-      ])
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
+            selected: 'chooseEmoji',
+          },
+        ],
+      })
     )
   },
   _onCopy: (message: Types.Message) => {
@@ -60,9 +64,9 @@ const mapDispatchToProps = dispatch => ({
   _onDeleteMessageHistory: (message: Types.Message) => {
     dispatch(Chat2Gen.createNavigateToThread())
     dispatch(
-      Route.navigateAppend([
-        {props: {conversationIDKey: message.conversationIDKey}, selected: 'deleteHistoryWarning'},
-      ])
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {conversationIDKey: message.conversationIDKey}, selected: 'deleteHistoryWarning'}],
+      })
     )
   },
   _onEdit: (message: Types.Message) => {
@@ -107,6 +111,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     deviceName: message.deviceName,
     deviceRevokedAt: message.deviceRevokedAt,
     deviceType: message.deviceType,
+    isDeleteable,
     onAddReaction: Container.isMobile ? () => dispatchProps._onAddReaction(message) : null,
     onCopy: () => dispatchProps._onCopy(message),
     onDelete: isDeleteable ? () => dispatchProps._onDelete(message) : null,
@@ -123,10 +128,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onViewProfile: message.author && !yourMessage ? () => dispatchProps._onViewProfile(message.author) : null,
     position: ownProps.position,
     showDivider: !message.deviceRevokedAt,
+    style: ownProps.style,
     timestamp: message.timestamp,
     visible: ownProps.visible,
     yourMessage,
-    isDeleteable,
   }
 }
 

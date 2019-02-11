@@ -52,7 +52,7 @@ class UsernameOrEmail extends Component<Props, State> {
             type="Primary"
             style={{alignSelf: 'center'}}
             onClick={() => this.onSubmit()}
-            enabled={this.state.usernameOrEmail}
+            disabled={!this.state.usernameOrEmail}
             waitingKey={Constants.waitingKey}
           />
         </UserCard>
@@ -62,8 +62,8 @@ class UsernameOrEmail extends Component<Props, State> {
 }
 
 const stylesContainer = {
-  flex: 1,
   alignItems: 'center',
+  flex: 1,
   justifyContent: 'center',
 }
 const stylesInput = {

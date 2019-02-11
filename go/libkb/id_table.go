@@ -537,7 +537,7 @@ func (l *TrackChainLink) GetTrackedUID() (keybase1.UID, error) {
 func (l *TrackChainLink) GetTrackedUsername() (NormalizedUsername, error) {
 	tmp, err := l.UnmarshalPayloadJSON().AtPath("body.track.basics.username").GetString()
 	if err != nil {
-		return NormalizedUsername(""), nil
+		return NormalizedUsername(""), fmt.Errorf("no tracked username: %v", err)
 	}
 	return NewNormalizedUsername(tmp), err
 }
@@ -977,6 +977,14 @@ func (s *WalletStellarChainLink) VerifyReverseSig(_ ComputedKeyFamily) (err erro
 	return VerifyReverseSig(s.G(), key, "body.wallet_key.reverse_sig", s.UnmarshalPayloadJSON(), s.reverseSig)
 }
 
+func (s *WalletStellarChainLink) Display(ui IdentifyUI) error {
+	return ui.DisplayStellarAccount(keybase1.StellarAccount{
+		AccountID:         s.address,
+		FederationAddress: fmt.Sprintf("%s*keybase.io", s.GetUsername()),
+		SigID:             s.GetSigID(),
+	})
+}
+
 //
 //=========================================================================
 // UntrackChainLink
@@ -1354,9 +1362,7 @@ func isProofTypeDefunct(g *GlobalContext, typ keybase1.ProofType) bool {
 	case keybase1.ProofType_COINBASE:
 		return true
 	case keybase1.ProofType_GENERIC_SOCIAL:
-		// TODO Remove with CORE-8969
-		shouldRun := g.Env.GetFeatureFlags().Admin() || g.Env.GetRunMode() == DevelRunMode || g.Env.RunningInCI()
-		return !shouldRun
+		return !g.ShouldUseParameterizedProofs()
 	default:
 		return false
 	}
@@ -1451,6 +1457,15 @@ func (idt *IdentityTable) AllActiveCryptocurrency() []CryptocurrencyChainLink {
 	return ret
 }
 
+func (idt *IdentityTable) HasActiveCryptocurrencyFamily(family CryptocurrencyFamily) bool {
+	for _, link := range idt.AllActiveCryptocurrency() {
+		if link.typ.ToCryptocurrencyFamily() == family {
+			return true
+		}
+	}
+	return false
+}
+
 func (idt *IdentityTable) GetRevokedCryptocurrencyForTesting() []CryptocurrencyChainLink {
 	ret := []CryptocurrencyChainLink{}
 	for _, link := range idt.cryptocurrency {
@@ -1503,6 +1518,12 @@ func (idt *IdentityTable) Identify(m MetaContext, is IdentifyState, forceRemoteC
 	allAcc := idt.AllActiveCryptocurrency()
 	for _, acc := range allAcc {
 		if err := acc.Display(ui); err != nil {
+			return err
+		}
+	}
+
+	if stellar := idt.stellar; stellar != nil {
+		if err := stellar.Display(ui); err != nil {
 			return err
 		}
 	}

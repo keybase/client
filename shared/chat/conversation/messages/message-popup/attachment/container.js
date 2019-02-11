@@ -4,11 +4,12 @@ import * as Chat2Gen from '../../../../../actions/chat2-gen'
 import * as FsGen from '../../../../../actions/fs-gen'
 import * as Constants from '../../../../../constants/chat2'
 import * as Types from '../../../../../constants/types/chat2'
-import * as Route from '../../../../../actions/route-tree'
+import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import {getCanPerform} from '../../../../../constants/teams'
 import {connect} from '../../../../../util/container'
 import {isMobile, isIOS} from '../../../../../constants/platform'
-import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
+import type {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
+import type {StylesCrossPlatform} from '../../../../../styles/css'
 import Attachment from '.'
 
 type OwnProps = {
@@ -16,6 +17,7 @@ type OwnProps = {
   message: Types.MessageAttachment,
   onHidden: () => void,
   position: Position,
+  style?: StylesCrossPlatform,
   visible: boolean,
 }
 
@@ -26,8 +28,8 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   const _canDeleteHistory = yourOperations && yourOperations.deleteChatHistory
   const _canAdminDelete = yourOperations && yourOperations.deleteOtherMessages
   return {
-    _canDeleteHistory,
     _canAdminDelete,
+    _canDeleteHistory,
     _you: state.config.username,
     pending: !!message.transferState,
   }
@@ -36,12 +38,14 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
 const mapDispatchToProps = dispatch => ({
   _onAddReaction: (message: Types.Message) => {
     dispatch(
-      Route.navigateAppend([
-        {
-          props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
-          selected: 'chooseEmoji',
-        },
-      ])
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
+            selected: 'chooseEmoji',
+          },
+        ],
+      })
     )
   },
   _onDelete: (message: Types.Message) => {
@@ -79,7 +83,7 @@ const mapDispatchToProps = dispatch => ({
   },
   _onShowInFinder: (message: Types.MessageAttachment) => {
     message.downloadPath &&
-      dispatch(FsGen.createOpenLocalPathInSystemFileManager({path: message.downloadPath}))
+      dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: message.downloadPath}))
   },
 })
 
@@ -93,21 +97,22 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     deviceName: message.deviceName,
     deviceRevokedAt: message.deviceRevokedAt,
     deviceType: message.deviceType,
+    isDeleteable,
     onAddReaction: isMobile ? () => dispatchProps._onAddReaction(message) : null,
     onDelete: isDeleteable ? () => dispatchProps._onDelete(message) : null,
     onDownload: !isMobile && !message.downloadPath ? () => dispatchProps._onDownload(message) : null,
-    onHidden: () => ownProps.onHidden(),
     // We only show the share/save options for video if we have the file stored locally from a download
+    onHidden: () => ownProps.onHidden(),
     onSaveAttachment:
       isMobile && message.attachmentType === 'image' ? () => dispatchProps._onSaveAttachment(message) : null,
     onShareAttachment: isIOS ? () => dispatchProps._onShareAttachment(message) : null,
     onShowInFinder: !isMobile && message.downloadPath ? () => dispatchProps._onShowInFinder(message) : null,
     pending: stateProps.pending,
     position: ownProps.position,
+    style: ownProps.style,
     timestamp: message.timestamp,
     visible: ownProps.visible,
     yourMessage,
-    isDeleteable,
   }
 }
 

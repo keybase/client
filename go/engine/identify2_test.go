@@ -78,17 +78,20 @@ func newIdentify2WithUIDTester(g *libkb.GlobalContext) *Identify2WithUIDTester {
 	}
 }
 
-func (i *Identify2WithUIDTester) ListProofCheckers() []string               { return nil }
-func (i *Identify2WithUIDTester) ListServicesThatAcceptNewProofs() []string { return nil }
-func (i *Identify2WithUIDTester) AllStringKeys() []string                   { return nil }
+func (i *Identify2WithUIDTester) ListProofCheckers() []string { return nil }
+func (i *Identify2WithUIDTester) ListServicesThatAcceptNewProofs(libkb.MetaContext) []string {
+	return nil
+}
+func (i *Identify2WithUIDTester) ListDisplayConfigs() []keybase1.ServiceDisplayConfig { return nil }
+func (i *Identify2WithUIDTester) SuggestionFoldPriority() int                         { return 0 }
+func (i *Identify2WithUIDTester) Key() string                                         { return i.GetTypeName() }
 func (i *Identify2WithUIDTester) CheckProofText(text string, id keybase1.SigID, sig string) error {
 	return nil
 }
-func (i *Identify2WithUIDTester) GetDisplayPriority(s string) int { return 0 }
-func (i *Identify2WithUIDTester) DisplayName(n string) string     { return n }
-func (i *Identify2WithUIDTester) GetPrompt() string               { return "" }
-func (i *Identify2WithUIDTester) GetProofType() string            { return "" }
-func (i *Identify2WithUIDTester) GetTypeName() string             { return "" }
+func (i *Identify2WithUIDTester) DisplayName() string  { return "Identify2WithUIDTester" }
+func (i *Identify2WithUIDTester) GetPrompt() string    { return "" }
+func (i *Identify2WithUIDTester) GetProofType() string { return "" }
+func (i *Identify2WithUIDTester) GetTypeName() string  { return "" }
 func (i *Identify2WithUIDTester) NormalizeRemoteName(_ libkb.MetaContext, name string) (string, error) {
 	return name, nil
 }
@@ -103,6 +106,7 @@ func (i *Identify2WithUIDTester) MakeProofChecker(_ libkb.RemoteProofChainLink) 
 	return i
 }
 func (i *Identify2WithUIDTester) GetServiceType(n string) libkb.ServiceType { return i }
+func (i *Identify2WithUIDTester) PickerSubtext() string                     { return "" }
 
 func (i *Identify2WithUIDTester) CheckStatus(m libkb.MetaContext, h libkb.SigHint,
 	pcm libkb.ProofCheckerMode, _ keybase1.MerkleStoreEntry) (*libkb.SigHint, libkb.ProofError) {
@@ -127,6 +131,9 @@ func (i *Identify2WithUIDTester) FinishWebProofCheck(keybase1.RemoteProof, keyba
 	return nil
 }
 func (i *Identify2WithUIDTester) DisplayCryptocurrency(keybase1.Cryptocurrency) error {
+	return nil
+}
+func (i *Identify2WithUIDTester) DisplayStellarAccount(keybase1.StellarAccount) error {
 	return nil
 }
 func (i *Identify2WithUIDTester) DisplayKey(keybase1.IdentifyKey) error {
@@ -546,11 +553,18 @@ func TestIdentify2WithUIDWithBrokenTrackFromChatGUI(t *testing.T) {
 		t.Fatalf("bad cache stats: %+v, %+v", tester.fastStats, tester.slowStats)
 	}
 
+	// The fast cached should have been primed with the slow cache, so we expected
+	// a fast cache hit
+	runChatGUI()
+	if !tester.fastStats.eq(2, 1, 2, 0, 1) || !tester.slowStats.eq(1, 0, 2, 0, 1) {
+		t.Fatalf("bad cache stats: %+v, %+v", tester.fastStats, tester.slowStats)
+	}
+
 	tester.incNow(time.Second + libkb.Identify2CacheBrokenTimeout)
 	runChatGUI()
 
 	// After the broken timeout passes, we should get timeouts on both caches
-	if !tester.fastStats.eq(1, 2, 2, 0, 1) || !tester.slowStats.eq(1, 1, 2, 0, 1) {
+	if !tester.fastStats.eq(2, 2, 2, 0, 1) || !tester.slowStats.eq(1, 1, 2, 0, 1) {
 		t.Fatalf("bad cache stats: %+v, %+v", tester.fastStats, tester.slowStats)
 	}
 }
@@ -1194,8 +1208,6 @@ func TestTrackThenRevokeThenIdentifyWithDifferentChatModes(t *testing.T) {
 
 	err = runIdentify(keybase1.TLFIdentifyBehavior_CHAT_GUI)
 	require.NoError(t, err)
-	err = runIdentify(keybase1.TLFIdentifyBehavior_CHAT_GUI_STRICT)
-	require.Error(t, err)
 }
 
 var aliceUID = keybase1.UID("295a7eea607af32040647123732bc819")

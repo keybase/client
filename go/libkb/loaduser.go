@@ -9,6 +9,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/jsonhelpers"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
 )
@@ -467,18 +468,36 @@ func LoadUserEmails(g *GlobalContext) (emails []keybase1.Email, err error) {
 	if err != nil {
 		return
 	}
-	var email string
-	var isVerified int
-	primary := res.Body.AtKey("them").AtKey("emails").AtKey("primary")
-	email, err = primary.AtKey("email").GetString()
+
+	emailPayloads, err := jsonhelpers.JSONGetChildren(res.Body.AtKey("them").AtKey("emails").AtKey("emails"))
 	if err != nil {
-		return
+		return nil, err
 	}
-	isVerified, err = primary.AtKey("is_verified").GetInt()
-	if err != nil {
-		return
+	for _, emailPayload := range emailPayloads {
+		email, err := emailPayload.AtKey("email").GetString()
+		if err != nil {
+			return nil, err
+		}
+		isPrimary, err := emailPayload.AtKey("is_primary").GetInt()
+		if err != nil {
+			return nil, err
+		}
+		isVerified, err := emailPayload.AtKey("is_verified").GetInt()
+		if err != nil {
+			return nil, err
+		}
+		visibilityCode, err := emailPayload.AtKey("visibility").GetInt()
+		if err != nil {
+			return nil, err
+		}
+		emails = append(emails, keybase1.Email{
+			Email:      keybase1.EmailAddress(email),
+			IsVerified: isVerified == 1,
+			IsPrimary:  isPrimary == 1,
+			Visibility: keybase1.IdentityVisibility(visibilityCode),
+		})
 	}
-	emails = []keybase1.Email{keybase1.Email{Email: email, IsVerified: isVerified == 1}}
+
 	return
 }
 

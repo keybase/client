@@ -2,24 +2,15 @@
 import {Component} from 'react'
 import type {Tab} from '../../constants/types/settings'
 import * as TabConstants from '../../constants/tabs'
-import {type Color} from '../../styles'
-
-export type SettingsItemProps = {
-  badgeNumber?: number,
-  icon?: any,
-  largerBadgeMinWidthFix?: boolean,
-  onClick: () => void,
-  text: string,
-  textColor?: Color,
-  selected?: boolean,
-}
 
 export type Props = {
+  logoutInProgress: boolean,
   selectedTab: Tab,
   onTabChange: (tab: Tab) => void,
   onLogout: () => void,
   badgeNotifications?: boolean,
   badgeNumbers: {[key: TabConstants.Tab]: number},
+  hasRandomPW: ?boolean,
 }
 
 export default class SettingsNav extends Component<Props> {}

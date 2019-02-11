@@ -4,30 +4,26 @@
     "import * as More from '../constants/types/more'"
   ],
   "actions": {
-    "addProof": {
-      "platform": "More.PlatformsExpandedType"
-    },
+    "addProof": {"platform": "More.PlatformsExpandedType"},
     "backToProfile": {},
     "cancelAddProof": {},
     "cancelPgpGen": {},
     "checkProof": {},
+    "recheckProof": {"sigID": "string"},
     "cleanupUsername": {},
-    "dropPgp": {
-      "kid": "RPCTypes.KID"
-    },
+    "dropPgp": {"kid": "RPCTypes.KID"},
     "uploadAvatar": {
       "filename": "string",
       "crop?": "RPCTypes.ImageCropRect"
     },
+    "editAvatar": {},
     "editProfile": {
       "bio": "string",
       "fullname": "string",
       "location": "string"
     },
     "revokeFinish": {
-      "canError": {
-        "error": "string"
-      }
+      "canError": {"error": "string"}
     },
     "finishRevoking": {},
     "finishedWithKeyGen": {
@@ -38,58 +34,32 @@
       "username": "string",
       "openWebsite?": "?boolean"
     },
-    "onClickFollowers": {
-      "username": "string",
-      "openWebsite?": "?boolean"
-    },
-    "onClickFollowing": {
-      "username": "string",
-      "openWebsite?": "?boolean"
-    },
     "outputInstructionsActionLink": {},
-    "showUserProfile": {
-      "username": "string"
-    },
+    "showUserProfile": {"username": "string"},
     "submitZcashAddress": {},
     "submitBTCAddress": {},
-    "submitRevokeProof": {
-      "proofId": "string"
-    },
+    "submitRevokeProof": {"proofId": "string"},
     "submitUsername": {},
     "updateErrorText": {
-      "errorText?": "?string",
-      "errorCode?": "?number"
+      "errorText": "string",
+      "errorCode": "?number"
     },
     "updatePgpInfo": {
-      "info": "$Shape<Types.PgpInfo>",
-      "canError": {
-        "error": "Types.PgpInfoError"
-      }
+      "_description": "Update any fields",
+      "pgpEmail1?": "string",
+      "pgpEmail2?": "string",
+      "pgpEmail3?": "string",
+      "pgpErrorText?": "string",
+      "pgpFullName?": "string"
     },
-    "updatePgpPublicKey": {
-      "publicKey": "string"
-    },
-    "updatePlatform": {
-      "platform": "More.PlatformsExpandedType"
-    },
+    "updatePgpPublicKey": {"publicKey": "string"},
+    "updatePlatform": {"platform": "More.PlatformsExpandedType"},
     "updateProofStatus": {
       "found": "boolean",
       "status": "RPCTypes.ProofStatus"
     },
-    "updateProofText": {
-      "proof": "string"
-    },
-    "updateSigID": {
-      "sigID": "?RPCTypes.SigID"
-    },
-    "updateUsername": {
-      "username": "string"
-    },
-    "waiting": {
-      "waiting": "boolean"
-    },
-    "revokeWaiting": {
-      "waiting": "boolean"
-    }
+    "updateProofText": {"proof": "string"},
+    "updateSigID": {"sigID": "?RPCTypes.SigID"},
+    "updateUsername": {"username": "string"}
   }
 }

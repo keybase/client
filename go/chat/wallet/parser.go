@@ -1,8 +1,11 @@
 package wallet
 
 import (
+	"fmt"
 	"regexp"
 	"strings"
+
+	"github.com/keybase/client/go/chat/utils"
 )
 
 var txPattern = regexp.MustCompile(
@@ -25,19 +28,31 @@ type ChatTxCandidate struct {
 	Amount       string
 	CurrencyCode string
 	Username     *string
+	Full         string
+	Position     []int
 }
 
-func findChatTxCandidates(xs string) []ChatTxCandidate {
-	// A string that does not appear in the candidate regex so we don't get false positives from concatenations.
-	replacer := "$"
-	replaced := replaceQuotedSubstrings(xs, replacer)
+func FindChatTxCandidates(xs string) []ChatTxCandidate {
+	// A string that does not appear in the candidate regex so we don't get
+	// false positives from concatenations.
+	replaced := utils.ReplaceQuotedSubstrings(xs, false)
 
-	rawMatches := txPattern.FindAllStringSubmatch(replaced, maxTxsPerMessage)
-	matches := make([]ChatTxCandidate, 0, len(rawMatches))
-	for _, rawMatch := range rawMatches {
-		amount := rawMatch[1]
-		currencyCode := rawMatch[2]
-		username := rawMatch[3]
+	allRawIndices := txPattern.FindAllStringSubmatchIndex(replaced, maxTxsPerMessage)
+	matches := make([]ChatTxCandidate, 0, len(allRawIndices))
+	for _, rawIndices := range allRawIndices {
+		amount := xs[rawIndices[2]:rawIndices[3]]
+		if amount == "0" {
+			continue
+		}
+		currencyCode := strings.ToUpper(xs[rawIndices[4]:rawIndices[5]])
+		var username, atSign string
+		endIndex := rawIndices[5]
+		if rawIndices[6] >= 0 {
+			username = xs[rawIndices[6]:rawIndices[7]]
+			atSign = "@"
+			endIndex = rawIndices[7]
+		}
+		full := fmt.Sprintf("+%s%s%s%s", amount, currencyCode, atSign, username)
 		if len(amount) <= maxAmountLength && len(username) <= maxUsernameLength {
 			var txUsername *string
 			if username == "" {
@@ -45,26 +60,14 @@ func findChatTxCandidates(xs string) []ChatTxCandidate {
 			} else {
 				txUsername = &username
 			}
-			matches = append(matches, ChatTxCandidate{Amount: amount, CurrencyCode: currencyCode, Username: txUsername})
+			matches = append(matches, ChatTxCandidate{
+				Full:         full,
+				Amount:       amount,
+				CurrencyCode: currencyCode,
+				Username:     txUsername,
+				Position:     []int{rawIndices[0], endIndex},
+			})
 		}
 	}
 	return matches
-}
-
-var startQuote = ">"
-var newline = []rune("\n")
-
-func replaceQuotedSubstrings(xs string, replacer string) string {
-	xs = regexp.MustCompile("(?s)```.*?```").ReplaceAllString(xs, replacer)
-	xs = regexp.MustCompile("(?s)`.*?`").ReplaceAllString(xs, replacer)
-
-	// Remove all quoted lines. Because we removed all codeblocks
-	// before, we only need to consider single lines.
-	var ret []string
-	for _, line := range strings.Split(xs, string(newline)) {
-		if !strings.HasPrefix(strings.TrimLeft(line, " "), startQuote) {
-			ret = append(ret, line)
-		}
-	}
-	return strings.Join(ret, string(newline))
 }

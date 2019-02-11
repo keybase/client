@@ -2,14 +2,12 @@
 import React, {Component} from 'react'
 import openURL from '../util/open-url'
 import {defaultColor, fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.native'
-import {glamorous} from '../styles'
+import * as Styled from '../styles'
 import shallowEqual from 'shallowequal'
-import {Alert, StyleSheet} from 'react-native'
-import {NativeClipboard} from './native-wrappers.native'
-
+import {NativeClipboard, NativeText, NativeStyleSheet, NativeAlert} from './native-wrappers.native'
 import type {Props, TextType, Background} from './text'
 
-const StyledText = glamorous.text({}, props => props.style)
+const StyledText = Styled.styled(NativeText)({}, props => props.style)
 
 const backgroundModes = [
   'Normal',
@@ -21,19 +19,24 @@ const backgroundModes = [
   'Terminal',
 ]
 
-const styleMap = Object.keys(metaData).reduce((map, type: TextType) => {
-  const meta = metaData[type]
-  backgroundModes.forEach(mode => {
-    map[`${type}:${mode}`] = {
-      ...fontSizeToSizeStyle(meta.fontSize),
-      color: meta.colorForBackgroundMode[mode] || defaultColor(mode),
-      ...meta.styleOverride,
-    }
-  })
-  return map
-}, {})
+const styleMap = Object.keys(metaData).reduce(
+  (map, type: TextType) => {
+    const meta = metaData[type]
+    backgroundModes.forEach(mode => {
+      map[`${type}:${mode}`] = {
+        ...fontSizeToSizeStyle(meta.fontSize),
+        color: meta.colorForBackgroundMode[mode] || defaultColor(mode),
+        ...meta.styleOverride,
+      }
+    })
+    return map
+  },
+  {
+    center: {textAlign: 'center'},
+  }
+)
 
-const styles = StyleSheet.create(styleMap)
+const styles = NativeStyleSheet.create(styleMap)
 
 // Init common styles for perf
 
@@ -65,7 +68,7 @@ class Text extends Component<Props> {
   _urlChooseOption = () => {
     const url = this.props.onLongPressURL
     if (!url) return
-    Alert.alert('', url, [
+    NativeAlert.alert('', url, [
       {style: 'cancel', text: 'Cancel'},
       {onPress: () => openURL(url), text: 'Open Link'},
       {onPress: () => this._urlCopy(url), text: 'Copy Link'},
@@ -89,14 +92,23 @@ class Text extends Component<Props> {
     const dynamicStyle = {
       ...(this.props.backgroundMode === 'Normal'
         ? {}
-        : _getStyle(this.props.type, this.props.backgroundMode, this.props.lineClamp, !!this.props.onClick)),
+        : _getStyle(
+            this.props.type,
+            this.props.backgroundMode,
+            this.props.lineClamp,
+            !!this.props.onClick,
+            !!this.props.underline
+          )),
     }
 
     let style
     if (!Object.keys(dynamicStyle).length) {
-      style = this.props.style ? [baseStyle, this.props.style] : baseStyle
+      style =
+        this.props.style || this.props.center
+          ? [baseStyle, this.props.center && styles.center, this.props.style]
+          : baseStyle
     } else {
-      style = [baseStyle, dynamicStyle, this.props.style]
+      style = [baseStyle, dynamicStyle, this.props.center && styles.center, this.props.style]
     }
 
     const onPress =
@@ -132,9 +144,12 @@ function _getStyle(
   type: TextType,
   backgroundMode?: Background = 'Normal',
   lineClampNum?: ?number,
-  clickable?: ?boolean
+  clickable?: ?boolean,
+  forceUnderline: boolean
 ) {
-  if (backgroundMode === 'Normal') return null
+  if (backgroundMode === 'Normal') {
+    return forceUnderline ? {textDecorationLine: 'underline'} : {}
+  }
   const meta = metaData[type]
   const colorStyle = {color: meta.colorForBackgroundMode[backgroundMode] || defaultColor(backgroundMode)}
   const textDecoration = meta.isLink ? {textDecorationLine: 'underline'} : {}

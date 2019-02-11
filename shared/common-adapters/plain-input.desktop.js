@@ -1,7 +1,7 @@
 // @flow
 import * as React from 'react'
 import {getStyle as getTextStyle} from './text.desktop'
-import {collapseStyles, globalColors, styleSheetCreate, platformStyles} from '../styles'
+import {collapseStyles, globalColors, styled, styleSheetCreate, platformStyles} from '../styles'
 import {pick} from 'lodash-es'
 import logger from '../logger'
 
@@ -27,6 +27,13 @@ class PlainInput extends React.PureComponent<InternalProps> {
   _controlled = () => typeof this.props.value === 'string'
 
   _onChange = ({target: {value = ''}}) => {
+    if (this.props.maxBytes) {
+      const {maxBytes} = this.props
+      if (Buffer.byteLength(value) > maxBytes) {
+        return
+      }
+    }
+
     this.props.onChangeText && this.props.onChangeText(value)
     this._autoResize()
   }
@@ -45,28 +52,8 @@ class PlainInput extends React.PureComponent<InternalProps> {
     if (!n) {
       return
     }
-
-    // Smart auto resize algorithm from `Input`, use it by default here
-    const rect = n.getBoundingClientRect()
-    const value = n.value
-    // width changed so throw out our data
-    if (rect.width !== this._smartAutoresize.width) {
-      this._smartAutoresize.width = rect.width
-      this._smartAutoresize.pivotLength = -1
-    }
-
-    // See if we've gone up in size, if so keep track of the input at that point
-    if (n.scrollHeight > rect.height) {
-      this._smartAutoresize.pivotLength = value.length
-      n.style.height = `${n.scrollHeight}px`
-    } else {
-      // see if we went back down in height
-      if (this._smartAutoresize.pivotLength !== -1 && value.length <= this._smartAutoresize.pivotLength) {
-        this._smartAutoresize.pivotLength = value.length
-        n.style.height = '1px'
-        n.style.height = `${n.scrollHeight}px`
-      }
-    }
+    n.style.height = '1px'
+    n.style.height = `${n.scrollHeight}px`
   }
 
   focus = () => {
@@ -76,6 +63,8 @@ class PlainInput extends React.PureComponent<InternalProps> {
   blur = () => {
     this._input && this._input.blur()
   }
+
+  isFocused = () => !!this._input && document.activeElement === this._input
 
   transformText = (fn: TextInfo => TextInfo, reflectChange?: boolean) => {
     if (this._controlled()) {
@@ -87,11 +76,11 @@ class PlainInput extends React.PureComponent<InternalProps> {
     const n = this._input
     if (n) {
       const textInfo: TextInfo = {
-        text: n.value,
         selection: {
-          start: n.selectionStart,
           end: n.selectionEnd,
+          start: n.selectionStart,
         },
+        text: n.value,
       }
       const newTextInfo = fn(textInfo)
       checkTextInfo(newTextInfo)
@@ -110,7 +99,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
   getSelection = () => {
     const n = this._input
     if (n) {
-      return {start: n.selectionStart, end: n.selectionEnd}
+      return {end: n.selectionEnd, start: n.selectionStart}
     }
     return null
   }
@@ -174,6 +163,7 @@ class PlainInput extends React.PureComponent<InternalProps> {
       onKeyDown: this._onKeyDown,
       onKeyUp: this._onKeyUp,
       placeholder: this.props.placeholder,
+      placeholderColor: this.props.placeholderColor,
       ref: this._setInputRef,
     }
     if (this.props.disabled) {
@@ -224,19 +214,76 @@ class PlainInput extends React.PureComponent<InternalProps> {
     return this.props.multiline ? this._getMultilineProps() : this._getSinglelineProps()
   }
 
+  componentDidMount = () => {
+    this.props.globalCaptureKeypress && this._registerBodyEvents(true)
+  }
+
+  componentDidUpdate = (prevProps: InternalProps) => {
+    if (this.props.globalCaptureKeypress !== prevProps.globalCaptureKeypress) {
+      this._registerBodyEvents(!!this.props.globalCaptureKeypress)
+    }
+  }
+
+  componentWillUnmount = () => {
+    this._registerBodyEvents(false)
+  }
+
+  _registerBodyEvents = (add: boolean) => {
+    const body = document.body
+    if (!body) {
+      return
+    }
+    if (add) {
+      body.addEventListener('keydown', this._globalKeyDownHandler)
+      body.addEventListener('keypress', this._globalKeyDownHandler)
+    } else {
+      body.removeEventListener('keydown', this._globalKeyDownHandler)
+      body.removeEventListener('keypress', this._globalKeyDownHandler)
+    }
+  }
+
+  _globalKeyDownHandler = (ev: KeyboardEvent) => {
+    const target = ev.target
+    if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
+      return
+    }
+
+    const isPasteKey = ev.key === 'v' && (ev.ctrlKey || ev.metaKey)
+    const isValidSpecialKey = [
+      'Backspace',
+      'Delete',
+      'ArrowLeft',
+      'ArrowRight',
+      'ArrowUp',
+      'ArrowDown',
+      'Enter',
+    ].includes(ev.key)
+    if (ev.type === 'keypress' || isPasteKey || isValidSpecialKey) {
+      this.focus()
+    }
+  }
+
   render = () => {
     const inputProps = this._getInputProps()
-    const css = `::-webkit-input-placeholder { color: ${this.props.placeholderColor ||
-      globalColors.black_40}; }
-                 ::-webkit-outer-spin-button, ::-webkit-inner-spin-button {-webkit-appearance: none; margin: 0;}`
     return (
       <React.Fragment>
-        <style>{css}</style>
-        {this.props.multiline ? <textarea {...inputProps} /> : <input {...inputProps} />}
+        {this.props.multiline ? <StyledTextArea {...inputProps} /> : <StyledInput {...inputProps} />}
       </React.Fragment>
     )
   }
 }
+
+const StyledTextArea = styled.textarea(props => ({
+  '&::-webkit-inner-spin-button': {'-webkit-appearance': 'none', margin: 0},
+  '&::-webkit-input-placeholder': {color: props.placeholderColor || globalColors.black_50},
+  '&::-webkit-outer-spin-button': {'-webkit-appearance': 'none', margin: 0},
+}))
+
+const StyledInput = styled.input(props => ({
+  '&::-webkit-inner-spin-button': {'-webkit-appearance': 'none', margin: 0},
+  '&::-webkit-input-placeholder': {color: props.placeholderColor || globalColors.black_50},
+  '&::-webkit-outer-spin-button': {'-webkit-appearance': 'none', margin: 0},
+}))
 
 const styles = styleSheetCreate({
   flexable: {

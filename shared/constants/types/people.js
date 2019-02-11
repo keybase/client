@@ -38,8 +38,21 @@ export type _FollowedNotificationItem = {
 }
 export type FollowedNotificationItem = I.RecordOf<_FollowedNotificationItem>
 
-export type _PeopleScreenItem = _Todo | _FollowedNotificationItem
-export type PeopleScreenItem = Todo | FollowedNotificationItem
+export type _Announcement = {
+  appLink: ?RPCTypes.AppLinkType,
+  badged: boolean,
+  confirmLabel: ?string,
+  dismissable: boolean,
+  id: RPCTypes.HomeScreenAnnouncementID,
+  iconUrl: ?string,
+  text: string,
+  type: 'announcement',
+  url: ?string,
+}
+
+export type Announcement = I.RecordOf<_Announcement>
+
+export type PeopleScreenItem = Todo | FollowedNotificationItem | Announcement
 
 export type _FollowSuggestion = {
   username: string,

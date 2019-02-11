@@ -24,18 +24,20 @@ export type Props = {
   onChat: () => void,
   onEditDescription: () => void,
   onEditIcon: (image?: Response) => void,
+  onFilePickerError: (error: Error) => void,
 } & Kb.OverlayParentProps
 
 const _TeamHeader = (props: Props) => (
   <Kb.Box style={styles.container}>
     {props.canJoinTeam && (
       <Kb.Box key="add yourself" style={styles.addYourselfBanner}>
-        <Kb.Text type="BodySemibold" style={styles.addYourselfBannerText}>
+        <Kb.Text center={true} type="BodySemibold" style={styles.addYourselfBannerText}>
           You are not a member of this team.
         </Kb.Text>
         <Kb.Text
           backgroundMode="Information"
           type="BodySemiboldLink"
+          center={true}
           style={styles.addYourselfBannerText}
           onClick={props.onAddSelf}
           underline={true}
@@ -49,6 +51,7 @@ const _TeamHeader = (props: Props) => (
       <NameWithIconWrapper
         canEditDescription={props.canEditDescription}
         onEditIcon={props.onEditIcon}
+        onFilePickerError={props.onFilePickerError}
         teamname={props.teamname}
         metaOne={
           <Kb.Box style={Styles.globalStyles.flexBoxRow}>
@@ -64,6 +67,7 @@ const _TeamHeader = (props: Props) => (
       {/* Description */}
       {props.canEditDescription || props.description ? (
         <Kb.Text
+          center={true}
           className={Styles.classNames({'hover-underline': props.description})}
           style={Styles.collapseStyles([
             styles.description,
@@ -155,10 +159,7 @@ const styles = Styles.styleSheetCreate({
     paddingRight: Styles.globalMargins.medium,
     paddingTop: Styles.globalMargins.tiny,
   },
-  addYourselfBannerText: {
-    color: Styles.globalColors.white,
-    textAlign: 'center',
-  },
+  addYourselfBannerText: {color: Styles.globalColors.white},
   buttonBar: Styles.platformStyles({
     isMobile: {
       marginBottom: -8,
@@ -183,7 +184,6 @@ const styles = Styles.styleSheetCreate({
   description: {
     maxWidth: 560,
     paddingTop: Styles.globalMargins.tiny,
-    textAlign: 'center',
   },
   meta: {
     alignSelf: 'center',

@@ -106,8 +106,8 @@ const _sectionHeaderStyle = {
   ...globalStyles.flexBoxRow,
   alignItems: 'center',
   height: isMobile ? 32 : 24,
-  paddingLeft: globalMargins.tiny,
   marginTop: globalMargins.small,
+  paddingLeft: globalMargins.tiny,
   width: '100%',
 }
 

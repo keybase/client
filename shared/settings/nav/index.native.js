@@ -58,15 +58,6 @@ function SettingsNav(props: Props) {
                   }
                 : {}),
             },
-            {
-              ...(__DEV__
-                ? {
-                    icon: 'iconfont-nav-settings',
-                    onClick: () => props.onTabChange(Constants.devMenuTab),
-                    text: 'Dev menu',
-                  }
-                : {}),
-            },
           ],
           title: '',
         },
@@ -83,7 +74,8 @@ function SettingsNav(props: Props) {
             },
             {
               onClick: () => props.onTabChange(Constants.passphraseTab),
-              text: 'Change passphrase',
+              text: props.hasRandomPW ? 'Set a passphrase' : 'Change passphrase',
+              textColor: props.hasRandomPW ? globalColors.red : undefined,
             },
             {
               ...(isAndroid
@@ -101,7 +93,12 @@ function SettingsNav(props: Props) {
             {onClick: () => props.onTabChange(Constants.aboutTab), text: 'About'},
             {onClick: () => props.onTabChange(Constants.feedbackTab), text: 'Feedback'},
             {onClick: () => props.onTabChange(Constants.advancedTab), text: 'Advanced'},
-            {onClick: props.onLogout, text: 'Sign out', textColor: globalColors.red},
+            {
+              inProgress: props.logoutInProgress,
+              onClick: props.onLogout,
+              text: 'Sign out',
+              textColor: globalColors.red,
+            },
           ],
           title: 'More',
         },
@@ -113,7 +110,7 @@ function SettingsNav(props: Props) {
 const styles = styleSheetCreate({
   sectionTitle: {
     backgroundColor: globalColors.blue5,
-    color: globalColors.black_40,
+    color: globalColors.black_50,
     paddingBottom: 7,
     paddingLeft: globalMargins.small,
     paddingRight: globalMargins.small,

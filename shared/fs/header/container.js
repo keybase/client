@@ -3,7 +3,7 @@ import * as I from 'immutable'
 import * as Types from '../../constants/types/fs'
 import * as Chat2Gen from '../../actions/chat2-gen'
 import * as Util from '../../util/kbfs'
-import {putActionIfOnPath, navigateUp} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {namedConnect} from '../../util/container'
 import FolderHeader from './header'
 
@@ -13,7 +13,6 @@ type OwnProps = {|
 |}
 
 const mapDispatchToProps = (dispatch, {path, routePath}: OwnProps) => ({
-  onBack: () => dispatch(putActionIfOnPath(routePath, navigateUp())),
   _onChat: () =>
     dispatch(
       Chat2Gen.createPreviewConversation({
@@ -23,16 +22,23 @@ const mapDispatchToProps = (dispatch, {path, routePath}: OwnProps) => ({
         ...Util.tlfToParticipantsOrTeamname(Types.pathToString(path)),
       })
     ),
+  onBack: () =>
+    dispatch(
+      RouteTreeGen.createPutActionIfOnPath({
+        expectedPath: routePath,
+        otherAction: RouteTreeGen.createNavigateUp(),
+      })
+    ),
 })
 
 const mergeProps = (_, {onBack, _onChat}, {path, routePath}: OwnProps) => {
   const elems = Types.getPathElements(path)
   return {
-    path,
-    title: elems.length > 1 ? elems[elems.length - 1] : 'Keybase Files',
     onBack,
     onChat: elems.length > 2 ? _onChat : undefined,
+    path,
     routePath,
+    title: elems.length > 1 ? elems[elems.length - 1] : 'Keybase Files',
   }
 }
 

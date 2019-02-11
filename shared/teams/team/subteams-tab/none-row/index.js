@@ -13,7 +13,7 @@ const None = () => (
       width: '100%',
     }}
   >
-    <Box style={{...globalStyles.flexBoxRow, flexGrow: 1, justifyContent: 'center', alignItems: 'center'}}>
+    <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', flexGrow: 1, justifyContent: 'center'}}>
       <Text type="BodySmall">This team has no subteams.</Text>
     </Box>
   </Box>

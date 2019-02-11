@@ -1,6 +1,6 @@
 // @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define */
+/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
 
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -12,7 +12,6 @@ import {RPCError} from '../util/errors'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of config but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'config:'
-export const _avatarQueue = 'config:_avatarQueue'
 export const bootstrapStatusLoaded = 'config:bootstrapStatusLoaded'
 export const changedActive = 'config:changedActive'
 export const changedFocus = 'config:changedFocus'
@@ -23,6 +22,7 @@ export const daemonHandshake = 'config:daemonHandshake'
 export const daemonHandshakeDone = 'config:daemonHandshakeDone'
 export const daemonHandshakeWait = 'config:daemonHandshakeWait'
 export const dumpLogs = 'config:dumpLogs'
+export const filePickerError = 'config:filePickerError'
 export const globalError = 'config:globalError'
 export const installerRan = 'config:installerRan'
 export const link = 'config:link'
@@ -46,40 +46,24 @@ export const setStartupDetails = 'config:setStartupDetails'
 export const setupEngineListeners = 'config:setupEngineListeners'
 export const showMain = 'config:showMain'
 export const startHandshake = 'config:startHandshake'
+export const swapRouter = 'config:swapRouter'
 export const updateFollowing = 'config:updateFollowing'
 export const updateInfo = 'config:updateInfo'
 export const updateMenubarWindowID = 'config:updateMenubarWindowID'
 export const updateNow = 'config:updateNow'
 
 // Payload Types
-type _BootstrapStatusLoadedPayload = $ReadOnly<{|
-  deviceID: string,
-  deviceName: string,
-  followers: Array<string>,
-  following: Array<string>,
-  loggedIn: boolean,
-  registered: boolean,
-  uid: string,
-  username: string,
-|}>
+type _BootstrapStatusLoadedPayload = $ReadOnly<{|deviceID: string, deviceName: string, followers: Array<string>, following: Array<string>, loggedIn: boolean, registered: boolean, uid: string, username: string|}>
 type _ChangedActivePayload = $ReadOnly<{|userActive: boolean|}>
 type _ChangedFocusPayload = $ReadOnly<{|appFocused: boolean|}>
 type _CheckForUpdatePayload = void
 type _CopyToClipboardPayload = $ReadOnly<{|text: string|}>
 type _DaemonErrorPayload = $ReadOnly<{|daemonError: ?Error|}>
 type _DaemonHandshakeDonePayload = void
-type _DaemonHandshakePayload = $ReadOnly<{|
-  firstTimeConnecting: boolean,
-  version: number,
-|}>
-type _DaemonHandshakeWaitPayload = $ReadOnly<{|
-  name: string,
-  version: number,
-  increment: boolean,
-  failedReason?: ?string,
-  failedFatal?: true,
-|}>
+type _DaemonHandshakePayload = $ReadOnly<{|firstTimeConnecting: boolean, version: number|}>
+type _DaemonHandshakeWaitPayload = $ReadOnly<{|name: string, version: number, increment: boolean, failedReason?: ?string, failedFatal?: true|}>
 type _DumpLogsPayload = $ReadOnly<{|reason: 'quitting through menu'|}>
+type _FilePickerErrorPayload = $ReadOnly<{|error: Error|}>
 type _GlobalErrorPayload = $ReadOnly<{|globalError: null | Error | RPCError|}>
 type _InstallerRanPayload = void
 type _LinkPayload = $ReadOnly<{|link: string|}>
@@ -89,53 +73,35 @@ type _LoadedAvatarsPayload = $ReadOnly<{|avatars: I.Map<string, I.Map<number, st
 type _LoggedInPayload = $ReadOnly<{|causedByStartup: boolean|}>
 type _LoggedOutPayload = void
 type _LogoutHandshakePayload = $ReadOnly<{|version: number|}>
-type _LogoutHandshakeWaitPayload = $ReadOnly<{|
-  name: string,
-  version: number,
-  increment: boolean,
-|}>
+type _LogoutHandshakeWaitPayload = $ReadOnly<{|name: string, version: number, increment: boolean|}>
 type _LogoutPayload = void
 type _MobileAppStatePayload = $ReadOnly<{|nextAppState: 'active' | 'background' | 'inactive'|}>
 type _OpenAppSettingsPayload = void
 type _PushLoadedPayload = $ReadOnly<{|pushLoaded: boolean|}>
 type _RestartHandshakePayload = void
-type _SetAccountsPayload = $ReadOnly<{|
-  defaultUsername: string,
-  usernames: Array<string>,
-|}>
+type _SetAccountsPayload = $ReadOnly<{|defaultUsername: string, usernames: Array<string>|}>
 type _SetDeletedSelfPayload = $ReadOnly<{|deletedUsername: string|}>
-type _SetNotifySoundPayload = $ReadOnly<{|
-  sound: boolean,
-  writeFile: boolean,
-|}>
-type _SetOpenAtLoginPayload = $ReadOnly<{|
-  open: boolean,
-  writeFile: boolean,
-|}>
-type _SetStartupDetailsPayload = $ReadOnly<{|
-  startupWasFromPush: boolean,
-  startupConversation: ?ChatTypes.ConversationIDKey,
-  startupLink: string,
-  startupTab: ?Tabs.Tab,
-  startupFollowUser: string,
-|}>
+type _SetNotifySoundPayload = $ReadOnly<{|sound: boolean, writeFile: boolean|}>
+type _SetOpenAtLoginPayload = $ReadOnly<{|open: boolean, writeFile: boolean|}>
+type _SetStartupDetailsPayload = $ReadOnly<{|startupWasFromPush: boolean, startupConversation: ?ChatTypes.ConversationIDKey, startupLink: string, startupTab: ?Tabs.Tab, startupFollowUser: string|}>
 type _SetupEngineListenersPayload = void
 type _ShowMainPayload = void
 type _StartHandshakePayload = void
-type _UpdateFollowingPayload = $ReadOnly<{|
-  username: string,
-  isTracking: boolean,
-|}>
-type _UpdateInfoPayload = $ReadOnly<{|
-  isOutOfDate: boolean,
-  critical: boolean,
-  message?: string,
-|}>
+type _SwapRouterPayload = $ReadOnly<{|useNewRouter: boolean|}>
+type _UpdateFollowingPayload = $ReadOnly<{|username: string, isTracking: boolean|}>
+type _UpdateInfoPayload = $ReadOnly<{|isOutOfDate: boolean, critical: boolean, message?: string|}>
 type _UpdateMenubarWindowIDPayload = $ReadOnly<{|id: number|}>
 type _UpdateNowPayload = void
-type __avatarQueuePayload = void
 
 // Action Creators
+/**
+ * Sent whenever the mobile file picker encounters an error.
+ */
+export const createFilePickerError = (payload: _FilePickerErrorPayload) => ({payload, type: filePickerError})
+/**
+ * TODO  deprecate when sagas should start creating their incoming handlers / onConnect handlers
+ */
+export const createSetupEngineListeners = (payload: _SetupEngineListenersPayload) => ({payload, type: setupEngineListeners})
 /**
  * desktop only: the installer ran and we can start up
  */
@@ -176,10 +142,6 @@ export const createDaemonHandshakeWait = (payload: _DaemonHandshakeWaitPayload) 
  * subsystems that need to do things during logout need to call this to register that we should wait.
  */
 export const createLogoutHandshakeWait = (payload: _LogoutHandshakeWaitPayload) => ({payload, type: logoutHandshakeWait})
-/**
- * when sagas should start creating their incoming handlers / onConnect handlers
- */
-export const createSetupEngineListeners = (payload: _SetupEngineListenersPayload) => ({payload, type: setupEngineListeners})
 export const createBootstrapStatusLoaded = (payload: _BootstrapStatusLoadedPayload) => ({payload, type: bootstrapStatusLoaded})
 export const createChangedActive = (payload: _ChangedActivePayload) => ({payload, type: changedActive})
 export const createChangedFocus = (payload: _ChangedFocusPayload) => ({payload, type: changedFocus})
@@ -202,51 +164,52 @@ export const createSetNotifySound = (payload: _SetNotifySoundPayload) => ({paylo
 export const createSetOpenAtLogin = (payload: _SetOpenAtLoginPayload) => ({payload, type: setOpenAtLogin})
 export const createSetStartupDetails = (payload: _SetStartupDetailsPayload) => ({payload, type: setStartupDetails})
 export const createShowMain = (payload: _ShowMainPayload) => ({payload, type: showMain})
+export const createSwapRouter = (payload: _SwapRouterPayload) => ({payload, type: swapRouter})
 export const createUpdateFollowing = (payload: _UpdateFollowingPayload) => ({payload, type: updateFollowing})
 export const createUpdateInfo = (payload: _UpdateInfoPayload) => ({payload, type: updateInfo})
 export const createUpdateMenubarWindowID = (payload: _UpdateMenubarWindowIDPayload) => ({payload, type: updateMenubarWindowID})
 export const createUpdateNow = (payload: _UpdateNowPayload) => ({payload, type: updateNow})
-export const create_avatarQueue = (payload: __avatarQueuePayload) => ({payload, type: _avatarQueue})
 
 // Action Payloads
-export type BootstrapStatusLoadedPayload = $Call<typeof createBootstrapStatusLoaded, _BootstrapStatusLoadedPayload>
-export type ChangedActivePayload = $Call<typeof createChangedActive, _ChangedActivePayload>
-export type ChangedFocusPayload = $Call<typeof createChangedFocus, _ChangedFocusPayload>
-export type CheckForUpdatePayload = $Call<typeof createCheckForUpdate, _CheckForUpdatePayload>
-export type CopyToClipboardPayload = $Call<typeof createCopyToClipboard, _CopyToClipboardPayload>
-export type DaemonErrorPayload = $Call<typeof createDaemonError, _DaemonErrorPayload>
-export type DaemonHandshakeDonePayload = $Call<typeof createDaemonHandshakeDone, _DaemonHandshakeDonePayload>
-export type DaemonHandshakePayload = $Call<typeof createDaemonHandshake, _DaemonHandshakePayload>
-export type DaemonHandshakeWaitPayload = $Call<typeof createDaemonHandshakeWait, _DaemonHandshakeWaitPayload>
-export type DumpLogsPayload = $Call<typeof createDumpLogs, _DumpLogsPayload>
-export type GlobalErrorPayload = $Call<typeof createGlobalError, _GlobalErrorPayload>
-export type InstallerRanPayload = $Call<typeof createInstallerRan, _InstallerRanPayload>
-export type LinkPayload = $Call<typeof createLink, _LinkPayload>
-export type LoadAvatarsPayload = $Call<typeof createLoadAvatars, _LoadAvatarsPayload>
-export type LoadTeamAvatarsPayload = $Call<typeof createLoadTeamAvatars, _LoadTeamAvatarsPayload>
-export type LoadedAvatarsPayload = $Call<typeof createLoadedAvatars, _LoadedAvatarsPayload>
-export type LoggedInPayload = $Call<typeof createLoggedIn, _LoggedInPayload>
-export type LoggedOutPayload = $Call<typeof createLoggedOut, _LoggedOutPayload>
-export type LogoutHandshakePayload = $Call<typeof createLogoutHandshake, _LogoutHandshakePayload>
-export type LogoutHandshakeWaitPayload = $Call<typeof createLogoutHandshakeWait, _LogoutHandshakeWaitPayload>
-export type LogoutPayload = $Call<typeof createLogout, _LogoutPayload>
-export type MobileAppStatePayload = $Call<typeof createMobileAppState, _MobileAppStatePayload>
-export type OpenAppSettingsPayload = $Call<typeof createOpenAppSettings, _OpenAppSettingsPayload>
-export type PushLoadedPayload = $Call<typeof createPushLoaded, _PushLoadedPayload>
-export type RestartHandshakePayload = $Call<typeof createRestartHandshake, _RestartHandshakePayload>
-export type SetAccountsPayload = $Call<typeof createSetAccounts, _SetAccountsPayload>
-export type SetDeletedSelfPayload = $Call<typeof createSetDeletedSelf, _SetDeletedSelfPayload>
-export type SetNotifySoundPayload = $Call<typeof createSetNotifySound, _SetNotifySoundPayload>
-export type SetOpenAtLoginPayload = $Call<typeof createSetOpenAtLogin, _SetOpenAtLoginPayload>
-export type SetStartupDetailsPayload = $Call<typeof createSetStartupDetails, _SetStartupDetailsPayload>
-export type SetupEngineListenersPayload = $Call<typeof createSetupEngineListeners, _SetupEngineListenersPayload>
-export type ShowMainPayload = $Call<typeof createShowMain, _ShowMainPayload>
-export type StartHandshakePayload = $Call<typeof createStartHandshake, _StartHandshakePayload>
-export type UpdateFollowingPayload = $Call<typeof createUpdateFollowing, _UpdateFollowingPayload>
-export type UpdateInfoPayload = $Call<typeof createUpdateInfo, _UpdateInfoPayload>
-export type UpdateMenubarWindowIDPayload = $Call<typeof createUpdateMenubarWindowID, _UpdateMenubarWindowIDPayload>
-export type UpdateNowPayload = $Call<typeof createUpdateNow, _UpdateNowPayload>
-export type _avatarQueuePayload = $Call<typeof create_avatarQueue, __avatarQueuePayload>
+export type BootstrapStatusLoadedPayload = {|+payload: _BootstrapStatusLoadedPayload, +type: 'config:bootstrapStatusLoaded'|}
+export type ChangedActivePayload = {|+payload: _ChangedActivePayload, +type: 'config:changedActive'|}
+export type ChangedFocusPayload = {|+payload: _ChangedFocusPayload, +type: 'config:changedFocus'|}
+export type CheckForUpdatePayload = {|+payload: _CheckForUpdatePayload, +type: 'config:checkForUpdate'|}
+export type CopyToClipboardPayload = {|+payload: _CopyToClipboardPayload, +type: 'config:copyToClipboard'|}
+export type DaemonErrorPayload = {|+payload: _DaemonErrorPayload, +type: 'config:daemonError'|}
+export type DaemonHandshakeDonePayload = {|+payload: _DaemonHandshakeDonePayload, +type: 'config:daemonHandshakeDone'|}
+export type DaemonHandshakePayload = {|+payload: _DaemonHandshakePayload, +type: 'config:daemonHandshake'|}
+export type DaemonHandshakeWaitPayload = {|+payload: _DaemonHandshakeWaitPayload, +type: 'config:daemonHandshakeWait'|}
+export type DumpLogsPayload = {|+payload: _DumpLogsPayload, +type: 'config:dumpLogs'|}
+export type FilePickerErrorPayload = {|+payload: _FilePickerErrorPayload, +type: 'config:filePickerError'|}
+export type GlobalErrorPayload = {|+payload: _GlobalErrorPayload, +type: 'config:globalError'|}
+export type InstallerRanPayload = {|+payload: _InstallerRanPayload, +type: 'config:installerRan'|}
+export type LinkPayload = {|+payload: _LinkPayload, +type: 'config:link'|}
+export type LoadAvatarsPayload = {|+payload: _LoadAvatarsPayload, +type: 'config:loadAvatars'|}
+export type LoadTeamAvatarsPayload = {|+payload: _LoadTeamAvatarsPayload, +type: 'config:loadTeamAvatars'|}
+export type LoadedAvatarsPayload = {|+payload: _LoadedAvatarsPayload, +type: 'config:loadedAvatars'|}
+export type LoggedInPayload = {|+payload: _LoggedInPayload, +type: 'config:loggedIn'|}
+export type LoggedOutPayload = {|+payload: _LoggedOutPayload, +type: 'config:loggedOut'|}
+export type LogoutHandshakePayload = {|+payload: _LogoutHandshakePayload, +type: 'config:logoutHandshake'|}
+export type LogoutHandshakeWaitPayload = {|+payload: _LogoutHandshakeWaitPayload, +type: 'config:logoutHandshakeWait'|}
+export type LogoutPayload = {|+payload: _LogoutPayload, +type: 'config:logout'|}
+export type MobileAppStatePayload = {|+payload: _MobileAppStatePayload, +type: 'config:mobileAppState'|}
+export type OpenAppSettingsPayload = {|+payload: _OpenAppSettingsPayload, +type: 'config:openAppSettings'|}
+export type PushLoadedPayload = {|+payload: _PushLoadedPayload, +type: 'config:pushLoaded'|}
+export type RestartHandshakePayload = {|+payload: _RestartHandshakePayload, +type: 'config:restartHandshake'|}
+export type SetAccountsPayload = {|+payload: _SetAccountsPayload, +type: 'config:setAccounts'|}
+export type SetDeletedSelfPayload = {|+payload: _SetDeletedSelfPayload, +type: 'config:setDeletedSelf'|}
+export type SetNotifySoundPayload = {|+payload: _SetNotifySoundPayload, +type: 'config:setNotifySound'|}
+export type SetOpenAtLoginPayload = {|+payload: _SetOpenAtLoginPayload, +type: 'config:setOpenAtLogin'|}
+export type SetStartupDetailsPayload = {|+payload: _SetStartupDetailsPayload, +type: 'config:setStartupDetails'|}
+export type SetupEngineListenersPayload = {|+payload: _SetupEngineListenersPayload, +type: 'config:setupEngineListeners'|}
+export type ShowMainPayload = {|+payload: _ShowMainPayload, +type: 'config:showMain'|}
+export type StartHandshakePayload = {|+payload: _StartHandshakePayload, +type: 'config:startHandshake'|}
+export type SwapRouterPayload = {|+payload: _SwapRouterPayload, +type: 'config:swapRouter'|}
+export type UpdateFollowingPayload = {|+payload: _UpdateFollowingPayload, +type: 'config:updateFollowing'|}
+export type UpdateInfoPayload = {|+payload: _UpdateInfoPayload, +type: 'config:updateInfo'|}
+export type UpdateMenubarWindowIDPayload = {|+payload: _UpdateMenubarWindowIDPayload, +type: 'config:updateMenubarWindowID'|}
+export type UpdateNowPayload = {|+payload: _UpdateNowPayload, +type: 'config:updateNow'|}
 
 // All Actions
 // prettier-ignore
@@ -261,6 +224,7 @@ export type Actions =
   | DaemonHandshakePayload
   | DaemonHandshakeWaitPayload
   | DumpLogsPayload
+  | FilePickerErrorPayload
   | GlobalErrorPayload
   | InstallerRanPayload
   | LinkPayload
@@ -284,9 +248,9 @@ export type Actions =
   | SetupEngineListenersPayload
   | ShowMainPayload
   | StartHandshakePayload
+  | SwapRouterPayload
   | UpdateFollowingPayload
   | UpdateInfoPayload
   | UpdateMenubarWindowIDPayload
   | UpdateNowPayload
-  | _avatarQueuePayload
-  | {type: 'common:resetStore', payload: void}
+  | {type: 'common:resetStore', payload: null}

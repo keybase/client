@@ -3,6 +3,7 @@ import logger from '../logger'
 import * as SettingsGen from '../actions/settings-gen'
 import * as Types from '../constants/types/settings'
 import * as Constants from '../constants/settings'
+import * as Flow from '../util/flow'
 
 function reducer(state: Types.State = Constants.initialState, action: SettingsGen.Actions): Types.State {
   switch (action.type) {
@@ -113,11 +114,11 @@ function reducer(state: Types.State = Constants.initialState, action: SettingsGe
         },
       }
     case SettingsGen.loadedSettings: {
-      const {emailState} = action.payload
       return {
         ...state,
         email: {
-          ...emailState,
+          ...state.email,
+          emails: action.payload.emails || [],
         },
       }
     }
@@ -210,9 +211,9 @@ function reducer(state: Types.State = Constants.initialState, action: SettingsGe
         chat: {
           ...state.chat,
           unfurl: {
+            unfurlError: undefined,
             unfurlMode: mode,
             unfurlWhitelist: whitelist,
-            unfurlError: undefined,
           },
         },
       }
@@ -225,6 +226,15 @@ function reducer(state: Types.State = Constants.initialState, action: SettingsGe
             ...state.chat.unfurl,
             unfurlError: action.payload.error,
           },
+        },
+      }
+    case SettingsGen.loadedHasRandomPw:
+      const {randomPW} = action.payload
+      return {
+        ...state,
+        passphrase: {
+          ...state.passphrase,
+          randomPW,
         },
       }
     // Saga only actions
@@ -246,12 +256,10 @@ function reducer(state: Types.State = Constants.initialState, action: SettingsGe
     case SettingsGen.trace:
     case SettingsGen.processorProfile:
     case SettingsGen.unfurlSettingsRefresh:
+    case SettingsGen.loadHasRandomPw:
       return state
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(action);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

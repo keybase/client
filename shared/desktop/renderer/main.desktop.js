@@ -16,12 +16,10 @@ import {makeEngine, getEngine} from '../../engine'
 import loginRouteTree from '../../app/routes-login'
 import {disable as disableDragDrop} from '../../util/drag-drop'
 import {throttle, merge} from 'lodash-es'
-import {refreshRouteDef, setInitialRouteDef} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {setupContextMenu} from '../app/menu-helper.desktop'
 import flags from '../../util/feature-flags'
-import InputMonitor from './input-monitor.desktop'
 import {dumpLogs} from '../../actions/platform-specific/index.desktop'
-import {skipAppFocusActions} from '../../local-debug.desktop'
 import {initDesktopStyles} from '../../styles/index.desktop'
 
 // Top level HMR accept
@@ -45,7 +43,7 @@ function setupStore() {
     }
   }
 
-  return {store, runSagas}
+  return {runSagas, store}
 }
 
 function setupApp(store, runSagas) {
@@ -91,28 +89,6 @@ function setupApp(store, runSagas) {
   })
   SafeElectron.getIpcRenderer().send('install-check')
 
-  var inputMonitor = new InputMonitor(function(isActive) {
-    store.dispatch(ConfigGen.createChangedActive({userActive: isActive}))
-    SafeElectron.getIpcRenderer().send('setAppState', {isUserActive: isActive})
-  })
-  inputMonitor.startActiveTimer()
-
-  window.addEventListener('focus', () => {
-    inputMonitor.goActive()
-    if (skipAppFocusActions) {
-      console.log('Skipping app focus actions!')
-    } else {
-      store.dispatch(ConfigGen.createChangedFocus({appFocused: true}))
-    }
-  })
-  window.addEventListener('blur', () => {
-    if (skipAppFocusActions) {
-      console.log('Skipping app focus actions!')
-    } else {
-      store.dispatch(ConfigGen.createChangedFocus({appFocused: false}))
-    }
-  })
-
   const subsetsRemotesCareAbout = store => {
     return {
       tracker: store.tracker,
@@ -151,13 +127,13 @@ function setupApp(store, runSagas) {
 const FontLoader = () => (
   <div style={{height: 0, overflow: 'hidden', width: 0}}>
     <p style={{fontFamily: 'kb'}}>kb</p>
-    <p style={{fontFamily: 'Source Code Pro', fontWeight: 400}}>source code pro 400</p>
+    <p style={{fontFamily: 'Source Code Pro', fontWeight: 500}}>source code pro 500</p>
     <p style={{fontFamily: 'Source Code Pro', fontWeight: 600}}>source code pro 600</p>
-    <p style={{fontFamily: 'OpenSans', fontWeight: 400}}>open sans 400</p>
-    <p style={{fontFamily: 'OpenSans', fontStyle: 'italic', fontWeight: 400}}>open sans 400 i</p>
-    <p style={{fontFamily: 'OpenSans', fontWeight: 600}}>open sans 600</p>
-    <p style={{fontFamily: 'OpenSans', fontStyle: 'italic', fontWeight: 600}}>open sans 600 i</p>
-    <p style={{fontFamily: 'OpenSans', fontWeight: 700}}>open sans 700</p>
+    <p style={{fontFamily: 'Keybase', fontWeight: 400}}>keybase 400</p>
+    <p style={{fontFamily: 'Keybase', fontStyle: 'italic', fontWeight: 400}}>keybase 400 i</p>
+    <p style={{fontFamily: 'Keybase', fontWeight: 600}}>keybase 600</p>
+    <p style={{fontFamily: 'Keybase', fontStyle: 'italic', fontWeight: 600}}>keybase 600 i</p>
+    <p style={{fontFamily: 'Keybase', fontWeight: 700}}>keybase 700</p>
   </div>
 )
 
@@ -179,7 +155,7 @@ function render(store, MainComponent) {
 }
 
 function setupRoutes(store) {
-  store.dispatch(setInitialRouteDef(loginRouteTree))
+  store.dispatch(RouteTreeGen.createSetInitialRouteDef({routeDef: loginRouteTree}))
 }
 
 function setupHMR(store) {
@@ -191,7 +167,7 @@ function setupHMR(store) {
   const refreshRoutes = () => {
     const appRouteTree = require('../../app/routes-app').default
     const loginRouteTree = require('../../app/routes-login').default
-    store.dispatch(refreshRouteDef(loginRouteTree, appRouteTree))
+    store.dispatch(RouteTreeGen.createRefreshRouteDef({appRouteTree, loginRouteTree}))
     try {
       const NewMain = require('../../app/main.desktop').default
       render(store, NewMain)

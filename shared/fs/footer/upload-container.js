@@ -32,7 +32,7 @@ const getDebugToggleShow = dispatch => {
   }
 }
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   debugToggleShow: getDebugToggleShow(dispatch),
 })
 
@@ -64,9 +64,9 @@ export const uploadsToUploadCountdownHOCProps = (
     // We just use syncingPaths rather than merging with writingToJournal here
     // since journal status comes a bit slower, and merging the two causes
     // flakes on our perception of overall upload status.
-    files: filePaths.size,
-    fileName: filePaths.size === 1 ? Types.getPathName(filePaths.first() || Types.stringToPath('')) : null,
     endEstimate: enableDebugUploadBanner ? uploads.endEstimate + 32000 : uploads.endEstimate,
+    fileName: filePaths.size === 1 ? Types.getPathName(filePaths.first() || Types.stringToPath('')) : null,
+    files: filePaths.size,
     totalSyncingBytes: uploads.totalSyncingBytes,
   }
 }
@@ -75,15 +75,11 @@ const mergeProps = ({_edits, _pathItems, _uploads}, {debugToggleShow}) =>
   ({
     ...uploadsToUploadCountdownHOCProps(_edits, _pathItems, _uploads),
     debugToggleShow,
+    // $FlowIssue
   }: UploadCountdownHOCProps)
 
 export default compose(
   // $FlowIssue @jzila
-  namedConnect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps,
-'ConnectedUpload'
-  ),
+  namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedUpload'),
   UploadCountdownHOC
 )(Upload)

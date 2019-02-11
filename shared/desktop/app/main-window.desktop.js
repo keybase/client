@@ -65,8 +65,10 @@ export default function() {
   // app.getLoginItemSettings().restoreState is Mac only, so consider it always on in Windows
   const isRestore =
     !!process.env['KEYBASE_RESTORE_UI'] || app.getLoginItemSettings().restoreState || isWindows
-  const hideWindowOnStart = process.env['KEYBASE_START_UI'] === 'hideWindow'
+  const hideWindowOnStart = process.env['KEYBASE_AUTOSTART'] === '1'
   const openHidden = app.getLoginItemSettings().wasOpenedAsHidden
+  logger.info('KEYBASE_AUTOSTART =', process.env['KEYBASE_AUTOSTART'])
+  logger.info('KEYBASE_START_UI =', process.env['KEYBASE_START_UI'])
   logger.info('Opened at login:', openedAtLogin)
   logger.info('Is restore:', isRestore)
   logger.info('Open hidden:', openHidden)
@@ -82,10 +84,10 @@ export default function() {
     // DPI scaling issues
     // https://github.com/electron/electron/issues/10862
     mainWindow.window.setBounds({
+      height: appState.state.height,
+      width: appState.state.width,
       x: appState.state.x,
       y: appState.state.y,
-      width: appState.state.width,
-      height: appState.state.height,
     })
   }
 

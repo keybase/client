@@ -2,6 +2,8 @@
 // In order for the inbox rows to be calculated quickly we use fixed sizes for each type so
 // in order for the list and the rows to ensure they're the same size we keep the sizes here
 import {isMobile} from '../../../styles'
+import {rowHeight as selectableSmallTeammRowHeight} from '../../selectable-small-team'
+import {rowHeight as selectableBigTeamChannelRowHeight} from '../../selectable-big-team-channel'
 
 export const smallRowHeight = isMobile ? 64 : 56
 export const bigRowHeight = isMobile ? 40 : 24
@@ -25,9 +27,9 @@ export const getRowHeight = (type: string, filtered: boolean, showingDividerButt
   if (filtered) {
     switch (type) {
       case 'big':
-        return smallRowHeight
+        return selectableBigTeamChannelRowHeight
       case 'small':
-        return smallRowHeight
+        return selectableSmallTeammRowHeight
     }
   } else {
     switch (type) {

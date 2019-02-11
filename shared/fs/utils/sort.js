@@ -1,5 +1,6 @@
 // @flow
 import * as Types from '../../constants/types/fs'
+import * as Flow from '../../util/flow'
 import {memoize} from 'lodash-es'
 
 export type SortableTlfTypeRowItem = Types.TlfTypeRowItem & {
@@ -49,14 +50,6 @@ const getCommonComparer = memoize(
       return 1
     }
 
-    // If different type, folder goes first.
-    if (a.type === 'folder' && b.type !== 'folder') {
-      return -1
-    }
-    if (a.type !== 'folder' && b.type === 'folder') {
-      return 1
-    }
-
     if (a.rowType === 'tlf' && b.rowType === 'tlf') {
       // Both are TLFs.
 
@@ -90,12 +83,23 @@ const getCommonComparer = memoize(
 const getComparerBySortBy = (sortBy: Types.SortBy): PathItemComparer => {
   switch (sortBy) {
     case 'name':
-      return (a: SortableRowItem, b: SortableRowItem): number => a.name.localeCompare(b.name)
+      return (a: SortableRowItem, b: SortableRowItem): number => {
+        // If different type, folder goes first.
+        if (a.type === 'folder' && b.type !== 'folder') {
+          return -1
+        }
+        if (a.type !== 'folder' && b.type === 'folder') {
+          return 1
+        }
+
+        return a.name.localeCompare(b.name)
+      }
     case 'time':
       // asc === recent first, i.e. larger first
       return (a: SortableRowItem, b: SortableRowItem): number =>
         getLastModifiedTimeStamp(b) - getLastModifiedTimeStamp(a)
     default:
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(sortBy)
       throw new Error('invalid SortBy: ' + sortBy)
   }
 }

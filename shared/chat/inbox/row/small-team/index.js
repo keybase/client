@@ -4,11 +4,11 @@ import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
 import {SimpleTopLine} from './top-line'
 import {BottomLine} from './bottom-line'
-import {Avatars, TeamAvatar} from '../avatars'
+import {Avatars, TeamAvatar} from '../../../avatars'
 import * as RowSizes from '../sizes'
 
 export type Props = {
-  backgroundColor: string,
+  backgroundColor: ?string,
   channelname?: string,
   hasBadge: boolean,
   hasResetUsers: boolean,
@@ -18,6 +18,7 @@ export type Props = {
   isFinalized: boolean,
   isMuted: boolean,
   isSelected: boolean,
+  isTypingSnippet: boolean,
   onSelectConversation: () => void,
   participantNeedToRekey: boolean,
   participants: Array<string>,
@@ -39,7 +40,7 @@ type State = {
 
 const SmallTeamBox = Styles.isMobile
   ? Kb.ClickableBox
-  : Styles.glamorous(Kb.Box)({
+  : Styles.styled(Kb.Box)({
       '& .small-team-gear': {display: 'none'},
       ':hover .small-team-gear': {display: 'unset'},
       ':hover .small-team-timestamp': {display: 'none'},
@@ -60,8 +61,8 @@ class SmallTeam extends React.PureComponent<Props, State> {
     this.props.isSelected
       ? this.props.backgroundColor
       : this.state.isHovered
-        ? Styles.globalColors.blueGrey2
-        : this.props.backgroundColor
+      ? Styles.globalColors.blueGrey2
+      : this.props.backgroundColor
 
   render() {
     const props = this.props
@@ -137,6 +138,7 @@ class SmallTeam extends React.PureComponent<Props, State> {
                 youNeedToRekey={props.youNeedToRekey}
                 isSelected={props.isSelected}
                 isDecryptingSnippet={props.isDecryptingSnippet}
+                isTypingSnippet={props.isTypingSnippet}
               />
             </Kb.Box>
           </Kb.Box>

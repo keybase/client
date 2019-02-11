@@ -26,7 +26,6 @@ import flags from '../util/feature-flags'
 import {appRouteTreeTitle} from './route-constants'
 
 const appRouteTree = makeRouteDefNode({
-  tags: makeLeafTags({title: appRouteTreeTitle}),
   children: {
     [chatTab]: chatRoutes,
     [gitTab]: gitRoutes,
@@ -44,6 +43,7 @@ const appRouteTree = makeRouteDefNode({
   },
   containerComponent: Nav,
   defaultSelected: peopleTab,
+  tags: makeLeafTags({title: appRouteTreeTitle}),
 })
 
 export default appRouteTree

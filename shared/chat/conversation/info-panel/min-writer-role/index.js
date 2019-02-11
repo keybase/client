@@ -55,11 +55,6 @@ class MinWriterRole extends React.Component<Props, State> {
       >
         <Kb.Box2 direction="horizontal" fullWidth={true} gap="xtiny">
           <Kb.Text type="BodySmallSemibold">Minimum role to post</Kb.Text>
-          <Kb.Icon
-            type="iconfont-compose"
-            color={Style.globalColors.black_20}
-            fontSize={Style.isMobile ? 22 : 16}
-          />
         </Kb.Box2>
         {this.props.canSetMinWriterRole ? (
           <Dropdown minWriterRole={this.state.selected} items={items} saving={this.state.saving} />
@@ -152,9 +147,9 @@ const styles = Style.styleSheetCreate({
   saveIndicator: Style.platformStyles({
     common: {
       ...Style.globalStyles.flexBoxRow,
+      alignItems: 'center',
       height: 17,
       justifyContent: 'center',
-      alignItems: 'center',
       marginTop: Style.globalMargins.tiny,
     },
     isMobile: {

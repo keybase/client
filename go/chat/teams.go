@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 	context "golang.org/x/net/context"
@@ -53,12 +54,12 @@ func shouldFallbackToSlowLoadAfterFTLError(m libkb.MetaContext, err error) bool 
 	return false
 }
 
-func encryptionKeyViaFTL(m libkb.MetaContext, name string, tlfID chat1.TLFID) (res types.CryptKey, ni *types.NameInfo, err error) {
+func encryptionKeyViaFTL(m libkb.MetaContext, name string, tlfID chat1.TLFID) (res types.CryptKey, ni types.NameInfo, err error) {
 	ftlRes, err := getKeyViaFTL(m, name, tlfID, 0)
 	if err != nil {
-		return nil, nil, err
+		return res, ni, err
 	}
-	ni = &types.NameInfo{
+	ni = types.NameInfo{
 		ID:            tlfID,
 		CanonicalName: ftlRes.Name.String(),
 	}
@@ -183,20 +184,20 @@ func (t *TeamLoader) validKBFSTLFID(tlfID chat1.TLFID, team *teams.Team) bool {
 
 func (t *TeamLoader) validateImpTeamname(ctx context.Context, tlfName string, public bool,
 	team *teams.Team) error {
-	impTeamName, err := team.ImplicitTeamDisplayNameString(ctx)
+	impTeamName, err := team.ImplicitTeamDisplayNameNoConflicts(ctx)
 	if err != nil {
 		return err
 	}
-	if impTeamName != tlfName {
+	if impTeamName.String() != tlfName {
 		// Try resolving given name, maybe there has been a resolution
 		resName, err := teams.ResolveImplicitTeamDisplayName(ctx, t.G(), tlfName, public)
 		if err != nil {
 			return err
 		}
-		if impTeamName != resName.String() {
+		if impTeamName.String() != resName.String() {
 			return ImpteamBadteamError{
-				Msg: fmt.Sprintf("mismatch TLF name to implicit team name: %s != %s", impTeamName,
-					tlfName),
+				Msg: fmt.Sprintf("mismatch TLF name to implicit team name: %s != %s (resname:%s)",
+					impTeamName, tlfName, resName),
 			}
 		}
 	}
@@ -293,59 +294,42 @@ func NewTeamsNameInfoSource(g *globals.Context) *TeamsNameInfoSource {
 	}
 }
 
-func (t *TeamsNameInfoSource) LookupIDUntrusted(ctx context.Context, name string, public bool) (res *types.NameInfoUntrusted, err error) {
-	teamName, err := keybase1.TeamNameFromString(name)
-	if err != nil {
-		return res, err
-	}
-	kid, err := t.G().GetTeamLoader().ResolveNameToIDUntrusted(ctx, teamName, public, true)
-	if err != nil {
-		return res, err
-	}
-	return &types.NameInfoUntrusted{
-		ID:            chat1.TLFID(kid.ToBytes()),
-		CanonicalName: teamName.String(),
-	}, nil
-}
-
-func (t *TeamsNameInfoSource) LookupID(ctx context.Context, name string, public bool) (res *types.NameInfo, err error) {
+func (t *TeamsNameInfoSource) LookupID(ctx context.Context, name string, public bool) (res types.NameInfo, err error) {
 	defer t.Trace(ctx, func() error { return err }, fmt.Sprintf("LookupID(%s)", name))()
 
 	teamName, err := keybase1.TeamNameFromString(name)
 	if err != nil {
-		return nil, err
+		return res, err
 	}
 	id, err := teams.ResolveNameToIDForceRefresh(ctx, t.G().ExternalG(), teamName)
 	if err != nil {
-		return nil, err
+		return res, err
 	}
 	tlfID, err := chat1.TeamIDToTLFID(id)
 	if err != nil {
-		return nil, err
+		return res, err
 	}
-	return &types.NameInfo{
+	return types.NameInfo{
 		ID:            tlfID,
 		CanonicalName: teamName.String(),
 	}, nil
 }
 
-func (t *TeamsNameInfoSource) LookupName(ctx context.Context, tlfID chat1.TLFID, public bool) (res *types.NameInfo, err error) {
+func (t *TeamsNameInfoSource) LookupName(ctx context.Context, tlfID chat1.TLFID, public bool) (res types.NameInfo, err error) {
 	defer t.Trace(ctx, func() error { return err }, fmt.Sprintf("LookupName(%s)", tlfID))()
 	teamID, err := keybase1.TeamIDFromString(tlfID.String())
 	if err != nil {
-		return nil, err
+		return res, err
 	}
-
 	m := libkb.NewMetaContext(ctx, t.G().ExternalG())
 	loadRes, err := m.G().GetFastTeamLoader().Load(m, keybase1.FastTeamLoadArg{
 		ID:     teamID,
 		Public: teamID.IsPublic(),
 	})
 	if err != nil {
-		return nil, err
+		return res, err
 	}
-
-	return &types.NameInfo{
+	return types.NameInfo{
 		ID:            tlfID,
 		CanonicalName: loadRes.Name.String(),
 	}, nil
@@ -357,7 +341,7 @@ func (t *TeamsNameInfoSource) AllCryptKeys(ctx context.Context, name string, pub
 }
 
 func (t *TeamsNameInfoSource) EncryptionKey(ctx context.Context, name string, teamID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool) (res types.CryptKey, ni *types.NameInfo, err error) {
+	membersType chat1.ConversationMembersType, public bool) (res types.CryptKey, ni types.NameInfo, err error) {
 	defer t.Trace(ctx, func() error { return err },
 		fmt.Sprintf("EncryptionKeys(%s,%s,%v)", name, teamID, public))()
 
@@ -386,7 +370,7 @@ func (t *TeamsNameInfoSource) EncryptionKey(ctx context.Context, name string, te
 	if err != nil {
 		return res, ni, err
 	}
-	return res, &types.NameInfo{
+	return res, types.NameInfo{
 		ID:            tlfID,
 		CanonicalName: team.Name().String(),
 	}, nil
@@ -433,7 +417,8 @@ func (t *TeamsNameInfoSource) EphemeralEncryptionKey(ctx context.Context, tlfNam
 }
 
 func (t *TeamsNameInfoSource) EphemeralDecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool, generation keybase1.EkGeneration) (teamEK keybase1.TeamEk, err error) {
+	membersType chat1.ConversationMembersType, public bool,
+	generation keybase1.EkGeneration, contentCtime *gregor1.Time) (teamEK keybase1.TeamEk, err error) {
 	if public {
 		return teamEK, NewPublicTeamEphemeralKeyError()
 	}
@@ -442,7 +427,7 @@ func (t *TeamsNameInfoSource) EphemeralDecryptionKey(ctx context.Context, tlfNam
 	if err != nil {
 		return teamEK, err
 	}
-	return t.G().GetEKLib().GetTeamEK(ctx, teamID, generation)
+	return t.G().GetEKLib().GetTeamEK(ctx, teamID, generation, contentCtime)
 }
 
 func (t *TeamsNameInfoSource) ShouldPairwiseMAC(ctx context.Context, tlfName string, tlfID chat1.TLFID,
@@ -551,23 +536,28 @@ func (t *ImplicitTeamsNameInfoSource) identify(ctx context.Context, tlfID chat1.
 	if !ok {
 		return res, errors.New("invalid context with no chat metadata")
 	}
-	res, err = t.Identify(ctx, names, true,
-		func() keybase1.TLFID {
-			return keybase1.TLFID(tlfID.String())
-		},
-		func() keybase1.CanonicalTlfName {
-			return keybase1.CanonicalTlfName(impTeamName.String())
-		})
-	if err != nil {
-		return res, err
+	cb := make(chan struct{})
+	go func(ctx context.Context) {
+		res, err = t.Identify(ctx, names, true,
+			func() keybase1.TLFID {
+				return keybase1.TLFID(tlfID.String())
+			},
+			func() keybase1.CanonicalTlfName {
+				return keybase1.CanonicalTlfName(impTeamName.String())
+			})
+		close(cb)
+	}(BackgroundContext(ctx, t.G()))
+	switch identBehavior {
+	case keybase1.TLFIdentifyBehavior_CHAT_GUI:
+		// For GUI mode, let's just let this identify roll in the background. We will be sending up
+		// tracker breaks to the UI out of band with whatever chat operation has invoked us here.
+		return nil, nil
+	default:
+		<-cb
+		if err != nil {
+			return res, err
+		}
 	}
-
-	// GUI Strict mode errors are swallowed earlier, return an error now (key is that it is
-	// after send to IdentifyNotifier)
-	if identBehavior == keybase1.TLFIdentifyBehavior_CHAT_GUI_STRICT && len(res) > 0 {
-		return res, libkb.NewIdentifySummaryError(res[0])
-	}
-
 	return res, nil
 }
 
@@ -583,36 +573,15 @@ func (t *ImplicitTeamsNameInfoSource) transformTeamDoesNotExist(ctx context.Cont
 	}
 }
 
-func (t *ImplicitTeamsNameInfoSource) LookupIDUntrusted(ctx context.Context, name string, public bool) (res *types.NameInfoUntrusted, err error) {
-	defer func() { err = t.transformTeamDoesNotExist(ctx, err, name) }()
-	impTeamName, err := teams.ResolveImplicitTeamDisplayName(ctx, t.G().ExternalG(), name, public)
-	if err != nil {
-		return res, err
-	}
-	kid, err := teams.LookupImplicitTeamIDUntrusted(ctx, t.G().ExternalG(), name, public)
-	if err != nil {
-		return res, err
-	}
-	tlfID := chat1.TLFID(kid.ToBytes())
-	if t.lookupUpgraded {
-		if tlfID, err = tlfIDToTeamID.LookupTLFID(ctx, kid, t.G().GetAPI()); err != nil {
-			return res, err
-		}
-	}
-	return &types.NameInfoUntrusted{
-		ID:            tlfID,
-		CanonicalName: impTeamName.String(),
-	}, nil
-}
-
-func (t *ImplicitTeamsNameInfoSource) LookupID(ctx context.Context, name string, public bool) (res *types.NameInfo, err error) {
+func (t *ImplicitTeamsNameInfoSource) LookupID(ctx context.Context, name string, public bool) (res types.NameInfo, err error) {
+	defer t.Trace(ctx, func() error { return err }, fmt.Sprintf("LookupID(%s)", name))()
 	// check if name is prefixed
 	if strings.HasPrefix(name, keybase1.ImplicitTeamPrefix) {
 		return t.lookupInternalName(ctx, name, public)
 	}
-	res = types.NewNameInfo()
 
-	team, _, impTeamName, err := teams.LookupImplicitTeam(ctx, t.G().ExternalG(), name, public)
+	// This is on the critical path of sends, so don't force a repoll.
+	team, _, impTeamName, err := teams.LookupImplicitTeam(ctx, t.G().ExternalG(), name, public, teams.ImplicitTeamOptions{NoForceRepoll: true})
 	if err != nil {
 		return res, t.transformTeamDoesNotExist(ctx, err, name)
 	}
@@ -637,42 +606,34 @@ func (t *ImplicitTeamsNameInfoSource) LookupID(ctx context.Context, name string,
 			return res, err
 		}
 	}
-	res = &types.NameInfo{
+	res = types.NameInfo{
 		ID:            tlfID,
 		CanonicalName: impTeamName.String(),
-	}
-	if res.IdentifyFailures, err = t.identify(ctx, tlfID, impTeamName); err != nil {
-		return res, err
 	}
 	return res, nil
 }
 
-func (t *ImplicitTeamsNameInfoSource) LookupName(ctx context.Context, tlfID chat1.TLFID, public bool) (res *types.NameInfo, err error) {
+func (t *ImplicitTeamsNameInfoSource) LookupName(ctx context.Context, tlfID chat1.TLFID, public bool) (res types.NameInfo, err error) {
 	defer t.Trace(ctx, func() error { return err }, fmt.Sprintf("LookupName(%s)", tlfID))()
 	teamID, err := keybase1.TeamIDFromString(tlfID.String())
 	if err != nil {
-		return nil, err
+		return res, err
 	}
 	team, err := teams.Load(ctx, t.G().ExternalG(), keybase1.LoadTeamArg{
-		ID:          teamID,
-		Public:      public,
-		ForceRepoll: true,
+		ID:     teamID,
+		Public: public,
 	})
 	if err != nil {
-		return nil, err
+		return res, err
 	}
-	impTeamName, err := team.ImplicitTeamDisplayName(ctx)
+	impTeamName, err := team.ImplicitTeamDisplayNameNoConflicts(ctx)
 	if err != nil {
-		return nil, err
+		return res, err
 	}
-	idFailures, err := t.identify(ctx, tlfID, impTeamName)
-	if err != nil {
-		return nil, err
-	}
-	return &types.NameInfo{
-		ID:               tlfID,
-		CanonicalName:    impTeamName.String(),
-		IdentifyFailures: idFailures,
+	t.Debug(ctx, "LookupName: got name: %s", impTeamName.String())
+	return types.NameInfo{
+		ID:            tlfID,
+		CanonicalName: impTeamName.String(),
 	}, nil
 }
 
@@ -682,28 +643,26 @@ func (t *ImplicitTeamsNameInfoSource) AllCryptKeys(ctx context.Context, name str
 }
 
 func (t *ImplicitTeamsNameInfoSource) EncryptionKey(ctx context.Context, name string, teamID chat1.TLFID,
-	membersType chat1.ConversationMembersType, public bool) (res types.CryptKey, ni *types.NameInfo, err error) {
+	membersType chat1.ConversationMembersType, public bool) (res types.CryptKey, ni types.NameInfo, err error) {
 	defer t.Trace(ctx, func() error { return err },
 		fmt.Sprintf("EncryptionKey(%s,%s,%v)", name, teamID, public))()
 	team, err := t.loader.loadTeam(ctx, teamID, name, membersType, public, nil)
 	if err != nil {
 		return res, ni, err
 	}
-	impTeamName, err := team.ImplicitTeamDisplayName(ctx)
+	impTeamName, err := team.ImplicitTeamDisplayNameNoConflicts(ctx)
 	if err != nil {
 		return res, ni, err
 	}
-	idFailures, err := t.identify(ctx, teamID, impTeamName)
-	if err != nil {
+	if _, err := t.identify(ctx, teamID, impTeamName); err != nil {
 		return res, ni, err
 	}
 	if res, err = getTeamCryptKey(ctx, team, team.Generation(), public, false); err != nil {
 		return res, ni, err
 	}
-	return res, &types.NameInfo{
-		ID:               teamID,
-		CanonicalName:    impTeamName.String(),
-		IdentifyFailures: idFailures,
+	return res, types.NameInfo{
+		ID:            teamID,
+		CanonicalName: impTeamName.String(),
 	}, nil
 }
 
@@ -717,7 +676,7 @@ func (t *ImplicitTeamsNameInfoSource) DecryptionKey(ctx context.Context, name st
 	if err != nil {
 		return res, err
 	}
-	impTeamName, err := team.ImplicitTeamDisplayName(ctx)
+	impTeamName, err := team.ImplicitTeamDisplayNameNoConflicts(ctx)
 	if err != nil {
 		return res, err
 	}
@@ -737,7 +696,7 @@ func (t *ImplicitTeamsNameInfoSource) ephemeralLoadAndIdentify(ctx context.Conte
 	if err != nil {
 		return teamID, err
 	}
-	impTeamName, err := team.ImplicitTeamDisplayName(ctx)
+	impTeamName, err := team.ImplicitTeamDisplayNameNoConflicts(ctx)
 	if err != nil {
 		return teamID, err
 	}
@@ -758,12 +717,12 @@ func (t *ImplicitTeamsNameInfoSource) EphemeralEncryptionKey(ctx context.Context
 
 func (t *ImplicitTeamsNameInfoSource) EphemeralDecryptionKey(ctx context.Context, tlfName string, tlfID chat1.TLFID,
 	membersType chat1.ConversationMembersType, public bool,
-	generation keybase1.EkGeneration) (teamEK keybase1.TeamEk, err error) {
+	generation keybase1.EkGeneration, contentCtime *gregor1.Time) (teamEK keybase1.TeamEk, err error) {
 	teamID, err := t.ephemeralLoadAndIdentify(ctx, tlfName, tlfID, membersType, public)
 	if err != nil {
 		return teamEK, err
 	}
-	return t.G().GetEKLib().GetTeamEK(ctx, teamID, generation)
+	return t.G().GetEKLib().GetTeamEK(ctx, teamID, generation, contentCtime)
 }
 
 func (t *ImplicitTeamsNameInfoSource) ShouldPairwiseMAC(ctx context.Context, tlfName string, tlfID chat1.TLFID,
@@ -771,8 +730,7 @@ func (t *ImplicitTeamsNameInfoSource) ShouldPairwiseMAC(ctx context.Context, tlf
 	return shouldPairwiseMAC(ctx, t.G(), t.loader, tlfName, tlfID, membersType, public)
 }
 
-func (t *ImplicitTeamsNameInfoSource) lookupInternalName(ctx context.Context, name string, public bool) (res *types.NameInfo, err error) {
-	res = types.NewNameInfo()
+func (t *ImplicitTeamsNameInfoSource) lookupInternalName(ctx context.Context, name string, public bool) (res types.NameInfo, err error) {
 	team, err := teams.Load(ctx, t.G().ExternalG(), keybase1.LoadTeamArg{
 		Name:   name,
 		Public: public,

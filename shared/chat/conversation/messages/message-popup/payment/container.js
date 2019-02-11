@@ -9,22 +9,25 @@ import * as WalletGen from '../../../../../actions/wallets-gen'
 import * as RouteTreeGen from '../../../../../actions/route-tree-gen'
 import {formatTimeForMessages} from '../../../../../util/timestamp'
 import PaymentPopup from '.'
-import type {Position} from '../../../../../common-adapters/relative-popup-hoc'
+import type {Position} from '../../../../../common-adapters/relative-popup-hoc.types'
+import type {StylesCrossPlatform} from '../../../../../styles/css'
 
 // This file has two connectors and a wrapper. One connector is for sendPayment
 // and the other for requestPayment. The wrapper decides which to use.
 
 type OwnProps = {|
   attachTo: () => ?React.Component<any>,
-  message: Types.MessageRequestPayment | Types.MessageSendPayment,
+  message: Types.MessageRequestPayment | Types.MessageSendPayment | Types.MessageText,
+  paymentID?: WalletTypes.PaymentID,
   onHidden: () => void,
   position: Position,
+  style?: StylesCrossPlatform,
   visible: boolean,
 |}
 
 type SendOwnProps = {|
   ...OwnProps,
-  message: Types.MessageSendPayment,
+  message: Types.MessageSendPayment | Types.MessageText,
 |}
 
 type RequestOwnProps = {
@@ -34,6 +37,7 @@ type RequestOwnProps = {
 
 const commonLoadingProps = {
   amountNominal: '',
+  approxWorth: '',
   balanceChange: '',
   balanceChangeColor: '',
   bottomLine: '',
@@ -45,16 +49,25 @@ const commonLoadingProps = {
   onSeeDetails: null,
   sender: '',
   senderDeviceName: '',
+  status: '',
   timestamp: '',
   topLine: '',
   txVerb: 'sent',
 }
 
 // MessageSendPayment ===================================
-const sendMapStateToProps = (state, ownProps: SendOwnProps) => ({
-  paymentInfo: Constants.getPaymentMessageInfo(state, ownProps.message),
-  _you: state.config.username,
-})
+const sendMapStateToProps = (state, ownProps: SendOwnProps) => {
+  let paymentInfo = ownProps.paymentID
+    ? state.chat2.getIn(['paymentStatusMap', ownProps.paymentID], null)
+    : null
+  if (!paymentInfo && ownProps.message.type === 'sendPayment') {
+    paymentInfo = Constants.getPaymentMessageInfo(state, ownProps.message)
+  }
+  return {
+    _you: state.config.username,
+    paymentInfo,
+  }
+}
 
 const sendMapDispatchToProps = dispatch => ({
   onCancel: (paymentID: WalletTypes.PaymentID) => dispatch(WalletGen.createCancelPayment({paymentID})),
@@ -65,21 +78,30 @@ const sendMapDispatchToProps = dispatch => ({
         : RouteTreeGen.createSwitchTo({path: WalletConstants.rootWalletPath})
     ),
   onSeeDetails: (accountID: WalletTypes.AccountID, paymentID: WalletTypes.PaymentID) => {
-    dispatch(WalletGen.createSelectAccount({accountID}))
+    dispatch(WalletGen.createSelectAccount({accountID, reason: 'from-chat'}))
     dispatch(
       RouteTreeGen.createNavigateTo({
         path: [
-          ...WalletConstants.rootWalletPath,
-          'wallet',
-          {selected: 'transactionDetails', props: {accountID, paymentID}},
+          ...WalletConstants.walletPath,
+          {props: {accountID, paymentID}, selected: 'transactionDetails'},
         ],
       })
     )
   },
 })
 
+const getTopLineUser = (paymentInfo, sender, you) => {
+  if (paymentInfo.fromUsername === you) {
+    return 'you sent'
+  } else if (paymentInfo.toUsername === you) {
+    return 'you received'
+  } else {
+    return sender + ' sent'
+  }
+}
+
 const sendMergeProps = (stateProps, dispatchProps, ownProps: SendOwnProps) => {
-  if (ownProps.message.type !== 'sendPayment') {
+  if (ownProps.message.type !== 'sendPayment' && ownProps.message.type !== 'text') {
     throw new Error(`SendPaymentPopup: impossible case encountered: ${ownProps.message.type}`)
   }
   const {paymentInfo} = stateProps
@@ -93,31 +115,42 @@ const sendMergeProps = (stateProps, dispatchProps, ownProps: SendOwnProps) => {
     }
   }
   const {_you: you} = stateProps
-  const youAreSender = you === ownProps.message.author
+  const youAreSender = you === paymentInfo.fromUsername
+  const youAreReceiver = you === paymentInfo.toUsername
   return {
     amountNominal: paymentInfo.worth || paymentInfo.amountDescription,
+    approxWorth: paymentInfo.worthAtSendTime,
     attachTo: ownProps.attachTo,
     balanceChange: `${WalletConstants.balanceChangeSign(paymentInfo.delta, paymentInfo.amountDescription)}`,
     balanceChangeColor: WalletConstants.balanceChangeColor(paymentInfo.delta, paymentInfo.status),
     bottomLine: '', // TODO on asset support in payment
     cancelButtonLabel: 'Cancel',
+    errorDetails:
+      paymentInfo.status === 'error' ||
+      paymentInfo.status === 'canceled' ||
+      paymentInfo.status === 'claimable'
+        ? paymentInfo.statusDetail
+        : undefined,
     icon: paymentInfo.delta === 'increase' ? 'receiving' : 'sending',
     loading: false,
-    onCancel:
-      paymentInfo.status === 'cancelable' && youAreSender
-        ? () => dispatchProps.onCancel(paymentInfo.paymentID)
-        : null,
-    onClaimLumens: paymentInfo.status === 'cancelable' && !youAreSender ? dispatchProps.onClaimLumens : null,
+    onCancel: paymentInfo.showCancel ? () => dispatchProps.onCancel(paymentInfo.paymentID) : null,
+    onClaimLumens: paymentInfo.status === 'claimable' && !youAreSender ? dispatchProps.onClaimLumens : null,
     onHidden: ownProps.onHidden,
     onSeeDetails:
-      paymentInfo.status === 'completed'
+      (paymentInfo.status === 'completed' ||
+        paymentInfo.status === 'error' ||
+        paymentInfo.status === 'claimable' ||
+        paymentInfo.status === 'canceled') &&
+      (youAreSender || youAreReceiver)
         ? () => dispatchProps.onSeeDetails(paymentInfo.accountID, paymentInfo.paymentID)
         : null,
     position: ownProps.position,
     sender: ownProps.message.author,
     senderDeviceName: ownProps.message.deviceName,
+    status: '',
+    style: ownProps.style,
     timestamp: formatTimeForMessages(ownProps.message.timestamp),
-    topLine: `${ownProps.message.author === you ? 'you sent' : 'you received'}${
+    topLine: `${getTopLineUser(paymentInfo, ownProps.message.author, you)}${
       paymentInfo.worth ? ' Lumens worth' : ''
     }`,
     txVerb: 'sent',
@@ -125,7 +158,7 @@ const sendMergeProps = (stateProps, dispatchProps, ownProps: SendOwnProps) => {
   }
 }
 
-const SendPaymentPopup = Container.connect<SendOwnProps, _, _, _, _>(
+export const SendPaymentPopup = Container.connect<SendOwnProps, _, _, _, _>(
   sendMapStateToProps,
   sendMapDispatchToProps,
   sendMergeProps
@@ -133,8 +166,8 @@ const SendPaymentPopup = Container.connect<SendOwnProps, _, _, _, _>(
 
 // MessageRequestPayment ================================
 const requestMapStateToProps = (state, ownProps: RequestOwnProps) => ({
-  requestInfo: Constants.getRequestMessageInfo(state, ownProps.message),
   _you: state.config.username,
+  requestInfo: Constants.getRequestMessageInfo(state, ownProps.message),
 })
 
 const requestMapDispatchToProps = (dispatch, ownProps: RequestOwnProps) => ({
@@ -178,8 +211,16 @@ const requestMergeProps = (stateProps, dispatchProps, ownProps: RequestOwnProps)
     requestInfo.asset === 'currency' ? ' Lumens worth' : ''
   }`
 
+  let status = ''
+  if (requestInfo.canceled) {
+    status = 'canceled'
+  } else if (requestInfo.done) {
+    status = 'completed'
+  }
+
   return {
     amountNominal: requestInfo.amountDescription,
+    approxWorth: '',
     attachTo: ownProps.attachTo,
     balanceChange: '',
     balanceChangeColor: '',
@@ -187,13 +228,18 @@ const requestMergeProps = (stateProps, dispatchProps, ownProps: RequestOwnProps)
     cancelButtonLabel: 'Cancel request',
     icon: 'receiving',
     loading: false,
-    onCancel: ownProps.message.author === you ? dispatchProps.onCancel : null,
+    onCancel:
+      ownProps.message.author === you && !(requestInfo.done || requestInfo.canceled)
+        ? dispatchProps.onCancel
+        : null,
     onClaimLumens: null,
     onHidden: ownProps.onHidden,
     onSeeDetails: null,
     position: ownProps.position,
     sender: ownProps.message.author,
     senderDeviceName: ownProps.message.deviceName,
+    status,
+    style: ownProps.style,
     timestamp: formatTimeForMessages(ownProps.message.timestamp),
     topLine,
     txVerb: 'requested',
@@ -209,16 +255,13 @@ const RequestPaymentPopup = Container.connect<RequestOwnProps, _, _, _, _>(
 
 // Wrapper ==============================================
 const PaymentPopupChooser = (props: OwnProps) => {
-  switch (props.message.type) {
-    case 'sendPayment':
-      // $FlowIssue doesn't understand message is the right type
-      return <SendPaymentPopup {...props} />
-    case 'requestPayment':
-      // $FlowIssue doesn't understand message is the right type
-      return <RequestPaymentPopup {...props} />
-    default:
-      throw new Error(`PaymentPopup: impossible case encountered: ${props.message.type}`)
+  const {message, ...rest} = props
+  if (message.type === 'sendPayment') {
+    return <SendPaymentPopup {...rest} message={message} />
+  } else if (message.type === 'requestPayment') {
+    return <RequestPaymentPopup {...rest} message={message} />
   }
+  throw new Error(`PaymentPopup: impossible case encountered: ${message.type}`)
 }
 
 export default PaymentPopupChooser

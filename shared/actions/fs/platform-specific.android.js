@@ -1,8 +1,8 @@
 // @flow
 import logger from '../../logger'
 import * as Saga from '../../util/saga'
+import * as Flow from '../../util/flow'
 import * as FsGen from '../fs-gen'
-import {type TypedState} from '../../util/container'
 import RNFetchBlob from 'rn-fetch-blob'
 import {copy, unlink} from '../../util/file'
 import {PermissionsAndroid} from 'react-native'
@@ -13,8 +13,8 @@ function copyToDownloadDir(path: string, mimeType: string) {
   const fileName = path.substring(path.lastIndexOf('/') + 1)
   const downloadPath = `${RNFetchBlob.fs.dirs.DownloadDir}/${fileName}`
   return PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE, {
-    title: 'Keybase Storage Permission',
     message: 'Keybase needs access to your storage so we can download a file to it',
+    title: 'Keybase Storage Permission',
   })
     .then(permissionStatus => {
       if (permissionStatus !== 'granted') {
@@ -25,11 +25,11 @@ function copyToDownloadDir(path: string, mimeType: string) {
     .then(() => unlink(path))
     .then(() =>
       RNFetchBlob.android.addCompleteDownload({
-        title: fileName,
         description: `Keybase downloaded ${fileName}`,
         mime: mimeType,
         path: downloadPath,
         showNotification: true,
+        title: fileName,
       })
     )
     .catch(err => {
@@ -39,42 +39,35 @@ function copyToDownloadDir(path: string, mimeType: string) {
     })
 }
 
-const downloadSuccessToAction = (state: TypedState, action: FsGen.DownloadSuccessPayload) => {
+function* downloadSuccessToAction(state, action) {
   const {key, mimeType} = action.payload
   const download = state.fs.downloads.get(key)
   if (!download) {
     logger.warn('missing download key', key)
-    return null
+    return
   }
   const {intent, localPath} = download.meta
   switch (intent) {
     case 'camera-roll':
-      return Saga.sequentially([
-        Saga.call(saveAttachmentDialog, localPath),
-        Saga.put(FsGen.createDismissDownload({key})),
-      ])
+      yield Saga.callUntyped(saveAttachmentDialog, localPath)
+      yield Saga.put(FsGen.createDismissDownload({key}))
+      break
     case 'share':
-      return Saga.sequentially([
-        Saga.call(showShareActionSheetFromURL, {url: localPath, mimeType}),
-        Saga.put(FsGen.createDismissDownload({key})),
-      ])
+      yield Saga.callUntyped(showShareActionSheetFromURL, {mimeType, url: localPath})
+      yield Saga.put(FsGen.createDismissDownload({key}))
+      break
     case 'none':
-      return Saga.sequentially([
-        Saga.call(copyToDownloadDir, localPath, mimeType),
-        // TODO: dismiss download when we get rid of download cards on mobile
-      ])
+      yield Saga.callUntyped(copyToDownloadDir, localPath, mimeType)
+      // TODO: dismiss download when we get rid of download cards on mobile
+      break
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(intent);
-      */
-      return null
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(intent)
   }
 }
 
 function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.actionToPromise(FsGen.pickAndUpload, pickAndUploadToPromise)
-  yield Saga.actionToAction(FsGen.downloadSuccess, downloadSuccessToAction)
+  yield* Saga.chainAction<FsGen.PickAndUploadPayload>(FsGen.pickAndUpload, pickAndUploadToPromise)
+  yield* Saga.chainGenerator<FsGen.DownloadSuccessPayload>(FsGen.downloadSuccess, downloadSuccessToAction)
 }
 
 export default platformSpecificSaga

@@ -72,13 +72,15 @@ type fstatus struct {
 		Running bool
 		Pid     string
 		Log     string
+		EKLog   string
 	}
 	KBFS struct {
-		Version string
-		Running bool
-		Pid     string
-		Log     string
-		Mount   string
+		Version          string
+		InstalledVersion string
+		Running          bool
+		Pid              string
+		Log              string
+		Mount            string
 	}
 	Desktop struct {
 		Version string
@@ -101,6 +103,8 @@ type fstatus struct {
 	PlatformInfo         keybase1.PlatformInfo
 	OSVersion            string
 	DeviceEKNames        []string
+	LocalDbStats         []string
+	LocalChatDbStats     []string
 }
 
 func (c *CmdStatus) Run() error {
@@ -163,6 +167,7 @@ func (c *CmdStatus) load() (*fstatus, error) {
 	} else {
 		status.Service.Running = true
 		status.Service.Log = filepath.Join(extStatus.LogDir, libkb.ServiceLogFileName)
+		status.Service.EKLog = filepath.Join(extStatus.LogDir, libkb.EKLogFileName)
 	}
 
 	status.PassphraseStreamCached = extStatus.PassphraseStreamCached
@@ -174,6 +179,10 @@ func (c *CmdStatus) load() (*fstatus, error) {
 	status.StoredSecret = extStatus.StoredSecret
 	status.SecretPromptSkip = extStatus.SecretPromptSkip
 
+	kbfsInstalledVersion, err := install.KBFSBundleVersion(c.G(), "")
+	if err == nil {
+		status.KBFS.InstalledVersion = kbfsInstalledVersion
+	}
 	if kbfs := getFirstClient(extStatus.Clients, keybase1.ClientType_KBFS); kbfs != nil {
 		status.KBFS.Version = kbfs.Version
 		status.KBFS.Running = true
@@ -187,10 +196,7 @@ func (c *CmdStatus) load() (*fstatus, error) {
 		}
 		status.KBFS.Mount = mountDir
 	} else {
-		kbfsVersion, err := install.KBFSBundleVersion(c.G(), "")
-		if err == nil {
-			status.KBFS.Version = kbfsVersion
-		}
+		status.KBFS.Version = kbfsInstalledVersion
 	}
 
 	if desktop := getFirstClient(extStatus.Clients, keybase1.ClientType_GUI_MAIN); desktop != nil {
@@ -210,6 +216,8 @@ func (c *CmdStatus) load() (*fstatus, error) {
 	status.Clients = extStatus.Clients
 	status.PlatformInfo = extStatus.PlatformInfo
 	status.DeviceEKNames = extStatus.DeviceEkNames
+	status.LocalDbStats = extStatus.LocalDbStats
+	status.LocalChatDbStats = extStatus.LocalChatDbStats
 
 	// set anything os-specific:
 	if err := c.osSpecific(&status); err != nil {
@@ -280,12 +288,14 @@ func (c *CmdStatus) outputTerminal(status *fstatus) error {
 	dui.Printf("\nKBFS:\n")
 	dui.Printf("    status:    %s\n", BoolString(status.KBFS.Running, "running", "not running"))
 	dui.Printf("    version:   %s\n", status.KBFS.Version)
+	dui.Printf("    installed: %s\n", status.KBFS.InstalledVersion)
 	dui.Printf("    log:       %s\n", status.KBFS.Log)
 	dui.Printf("    mount:     %s\n", status.KBFS.Mount)
 	dui.Printf("\nService:\n")
 	dui.Printf("    status:    %s\n", BoolString(status.Service.Running, "running", "not running"))
 	dui.Printf("    version:   %s\n", status.Service.Version)
 	dui.Printf("    log:       %s\n", status.Service.Log)
+	dui.Printf("    eklog:     %s\n", status.Service.EKLog)
 	dui.Printf("\nUpdater:\n")
 	dui.Printf("    log:       %s\n", status.Updater.Log)
 	dui.Printf("\nPlatform Information:\n")
@@ -305,6 +315,8 @@ func (c *CmdStatus) outputTerminal(status *fstatus) error {
 	dui.Printf("Other users:   %s\n", strings.Join(status.ProvisionedUsernames, ", "))
 	dui.Printf("Known DeviceEKs:\n")
 	dui.Printf("    %s \n", strings.Join(status.DeviceEKNames, "\n    "))
+	dui.Printf("LocalDbStats:\n%s \n", strings.Join(status.LocalDbStats, "\n"))
+	dui.Printf("LocalChatDbStats:\n%s \n", strings.Join(status.LocalChatDbStats, "\n"))
 
 	c.outputClients(dui, status.Clients)
 	return nil

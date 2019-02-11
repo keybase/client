@@ -13,7 +13,8 @@ const errorHeader = (errorText: string) => {
   return (
     <Kb.Box style={{..._boxStyle, backgroundColor: globalColors.red}}>
       <Kb.Text
-        style={{margin: globalMargins.tiny, textAlign: 'center', width: '100%'}}
+        center={true}
+        style={{margin: globalMargins.tiny, width: '100%'}}
         type="BodySemibold"
         backgroundMode={'HighRisk'}
       >
@@ -106,13 +107,13 @@ const _backStyle = {
 
 const _styleCover = {
   alignItems: 'center',
-  backgroundColor: globalColors.black_60,
+  backgroundColor: globalColors.black_50,
   justifyContent: 'center',
 }
 
 const _styleContainer = {
-  width: 620,
   height: 520,
+  width: 620,
 }
 
 export default CreateChannel

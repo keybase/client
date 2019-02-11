@@ -31,6 +31,7 @@ type Logs struct {
 	Desktop    string
 	Kbfs       string
 	Service    string
+	EK         string
 	Updater    string
 	Start      string
 	Install    string
@@ -76,7 +77,7 @@ func addGzippedFile(mpart *multipart.Writer, param, filename, data string) error
 	return gz.Close()
 }
 
-func (l *LogSendContext) post(status, feedback, kbfsLog, svcLog, desktopLog, updaterLog, startLog, installLog, systemLog, gitLog, watchdogLog string, traceBundle, cpuProfileBundle []byte, uid keybase1.UID, installID InstallID) (string, error) {
+func (l *LogSendContext) post(status, feedback, kbfsLog, svcLog, ekLog, desktopLog, updaterLog, startLog, installLog, systemLog, gitLog, watchdogLog string, traceBundle, cpuProfileBundle []byte, uid keybase1.UID, installID InstallID) (string, error) {
 	l.G().Log.Debug("sending status + logs to keybase")
 
 	var body bytes.Buffer
@@ -101,6 +102,9 @@ func (l *LogSendContext) post(status, feedback, kbfsLog, svcLog, desktopLog, upd
 		return "", err
 	}
 	if err := addGzippedFile(mpart, "keybase_log_gz", "keybase_log.gz", svcLog); err != nil {
+		return "", err
+	}
+	if err := addGzippedFile(mpart, "ek_log_gz", "ek_log.gz", ekLog); err != nil {
 		return "", err
 	}
 	if err := addGzippedFile(mpart, "updater_log_gz", "updater_log.gz", updaterLog); err != nil {
@@ -311,6 +315,9 @@ func tailSystemdJournal(log logger.Logger, userUnits []string, numBytes int) (re
 	// We intentionally avoid the --user flag to journalctl. That would make us
 	// skip over the system journal, but in e.g. Ubuntu 16.04, that's where
 	// user units write their logs.
+	// Unfortunately, this causes permission errors in some operating systems
+	// like Debian Stretch, but it is not fatal. as we ignore errors in this
+	// function.
 	args := []string{
 		"--lines=" + strconv.Itoa(guessedLines),
 	}
@@ -481,6 +488,7 @@ func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, num
 	logs := l.Logs
 	var kbfsLog string
 	var svcLog string
+	var ekLog string
 	var desktopLog string
 	var updaterLog string
 	var startLog string
@@ -493,6 +501,7 @@ func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, num
 
 	if sendLogs {
 		svcLog = tail(l.G().Log, "service", logs.Service, numBytes)
+		ekLog = tail(l.G().Log, "ek", logs.EK, numBytes)
 		kbfsLog = tail(l.G().Log, "kbfs", logs.Kbfs, numBytes)
 		desktopLog = tail(l.G().Log, "desktop", logs.Desktop, numBytes)
 		updaterLog = tail(l.G().Log, "updater", logs.Updater, numBytes)
@@ -501,7 +510,7 @@ func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, num
 		// However we do use it for startup logs, since that's the only place
 		// to get them in systemd mode.
 		if l.G().Env.WantsSystemd() {
-			startLog = tailSystemdJournal(l.G().Log, []string{"keybase.service", "kbfs.service", "keybase.gui.service"}, numBytes)
+			startLog = tailSystemdJournal(l.G().Log, []string{"keybase.service", "keybase.ek", "kbfs.service", "keybase.gui.service", "keybase-redirector.service"}, numBytes)
 		} else {
 			startLog = tail(l.G().Log, "start", logs.Start, numBytes)
 		}
@@ -522,6 +531,7 @@ func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, num
 	} else {
 		kbfsLog = ""
 		svcLog = ""
+		ekLog = ""
 		desktopLog = ""
 		updaterLog = ""
 		startLog = ""
@@ -531,7 +541,7 @@ func (l *LogSendContext) LogSend(statusJSON, feedback string, sendLogs bool, num
 		watchdogLog = ""
 	}
 
-	return l.post(statusJSON, feedback, kbfsLog, svcLog, desktopLog, updaterLog, startLog, installLog, systemLog, gitLog, watchdogLog, traceBundle, cpuProfileBundle, uid, installID)
+	return l.post(statusJSON, feedback, kbfsLog, svcLog, ekLog, desktopLog, updaterLog, startLog, installLog, systemLog, gitLog, watchdogLog, traceBundle, cpuProfileBundle, uid, installID)
 }
 
 // mergeExtendedStatus adds the extended status to the given status json blob.

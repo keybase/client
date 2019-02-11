@@ -17,17 +17,17 @@ class UpdateEmail extends Component<Props, State> {
   constructor(props: Props) {
     super(props)
     this.state = {
-      originalEmail: props.email || '',
-      email: props.email || '',
       edited: false,
+      email: props.email || '',
+      originalEmail: props.email || '',
     }
   }
 
   handleEmailChange(email: string) {
     const edited = email !== this.state.originalEmail
     this.setState({
-      email,
       edited,
+      email,
     })
   }
 
@@ -53,7 +53,7 @@ class UpdateEmail extends Component<Props, State> {
 
         {!!this.props.onResendConfirmationCode && (
           <Text
-            style={{marginTop: globalMargins.large, textAlign: 'center'}}
+            center={true} style={{marginTop: globalMargins.large}}
             onClick={this.props.onResendConfirmationCode}
             link={true}
             type="BodyPrimaryLink"

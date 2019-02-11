@@ -3,9 +3,10 @@ import * as React from 'react'
 import {intersperseFn} from '../util/arrays'
 import type {Box2Props} from './box'
 
-class Box extends React.Component<any> {
+class Box extends React.PureComponent<any> {
   render() {
-    return <div {...this.props} />
+    const {forwardedRef, ...rest} = this.props
+    return <div {...rest} ref={this.props.forwardedRef} />
   }
 }
 
@@ -24,36 +25,44 @@ const injectGaps = (component, _children, gap, gapStart, gapEnd) => {
   return children
 }
 
+const box2 = (props: Box2Props) => {
+  let horizontal = props.direction === 'horizontal' || props.direction === 'horizontalReverse'
+
+  const className = [
+    `box2_${props.direction}`,
+    props.fullHeight && 'box2_fullHeight',
+    props.fullWidth && 'box2_fullWidth',
+    !props.fullHeight && !props.fullWidth && 'box2_centered',
+    props.centerChildren && 'box2_centeredChildren',
+    props.alignSelf && `box2_alignSelf_${props.alignSelf}`,
+    props.alignItems && `box2_alignItems_${props.alignItems}`,
+    props.noShrink && 'box2_no_shrink',
+    props.className,
+  ]
+    .filter(Boolean)
+    .join(' ')
+
+  let style = props.style
+  // uncomment this to get debugging colors
+  // style = {
+  // ...style,
+  // backgroundColor: `rgb(${Math.random() * 255},${Math.random() * 255},${Math.random() * 255})`,
+  // }
+  return (
+    <div
+      onMouseLeave={props.onMouseLeave}
+      onMouseOver={props.onMouseOver}
+      className={className}
+      style={style}
+    >
+      {injectGaps(horizontal ? hBoxGap : vBoxGap, props.children, props.gap, props.gapStart, props.gapEnd)}
+    </div>
+  )
+}
+
 class Box2 extends React.Component<Box2Props> {
   render() {
-    let horizontal = this.props.direction === 'horizontal' || this.props.direction === 'horizontalReverse'
-
-    const className = [
-      `box2_${this.props.direction}`,
-      this.props.fullHeight && 'box2_fullHeight',
-      this.props.fullWidth && 'box2_fullWidth',
-      !this.props.fullHeight && !this.props.fullWidth && 'box2_centered',
-      this.props.centerChildren && 'box2_centeredChildren',
-      this.props.className,
-    ]
-      .filter(Boolean)
-      .join(' ')
-    return (
-      <div
-        onMouseLeave={this.props.onMouseLeave}
-        onMouseOver={this.props.onMouseOver}
-        className={className}
-        style={this.props.style}
-      >
-        {injectGaps(
-          horizontal ? hBoxGap : vBoxGap,
-          this.props.children,
-          this.props.gap,
-          this.props.gapStart,
-          this.props.gapEnd
-        )}
-      </div>
-    )
+    return box2(this.props)
   }
 }
 

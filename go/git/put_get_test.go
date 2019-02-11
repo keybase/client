@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/keybase/client/go/kbfs"
+	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -231,7 +231,7 @@ func testPutAndGetImplicitTeam(t *testing.T, public bool) {
 
 	t.Logf("second repo")
 	repoName2 := keybase1.GitRepoName(fmt.Sprintf("two person %s repo", publicnessStr))
-	normalizedTLFName, err := kbfs.NormalizeNamesInTLF(tc.G, []string{u1.Username, u2.Username}, nil, "")
+	normalizedTLFName, err := tlf.NormalizeNamesInTLF(tc.G, []string{u1.Username, u2.Username}, nil, "")
 	require.NoError(t, err)
 	testFolder2 := keybase1.Folder{
 		Name:       normalizedTLFName,

@@ -10,13 +10,13 @@ type Props = {
   toggle: () => void,
 }
 
-const DividerBox = Styles.glamorous(Kb.Box)({
+const DividerBox = Styles.styled(Kb.Box)({
   ...Styles.globalStyles.flexBoxRow,
   ...(Styles.isMobile
     ? {backgroundColor: Styles.globalColors.fastBlank}
     : {
         ':hover': {
-          color: Styles.globalColors.black_40,
+          color: Styles.globalColors.black_50,
         },
         color: Styles.globalColors.black_20,
       }),

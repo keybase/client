@@ -40,6 +40,16 @@ func (d *DelegateUICtlHandler) RegisterIdentifyUI(_ context.Context) error {
 	return nil
 }
 
+func (d *DelegateUICtlHandler) RegisterIdentify3UI(_ context.Context) error {
+	d.G().UIRouter.SetUI(d.id, libkb.Identify3UIKind)
+	return nil
+}
+
+func (d *DelegateUICtlHandler) RegisterChatUI(_ context.Context) error {
+	d.G().UIRouter.SetUI(d.id, libkb.ChatUIKind)
+	return nil
+}
+
 func (d *DelegateUICtlHandler) RegisterSecretUI(_ context.Context) error {
 	d.G().UIRouter.SetUI(d.id, libkb.SecretUIKind)
 	return nil

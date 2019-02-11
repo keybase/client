@@ -1,6 +1,6 @@
 // @flow strict
 // the _on_white are precomputed colors so we can do less blending on mobile
-import {isAndroid} from '../constants/platform'
+import {isIOS} from '../constants/platform'
 
 const colors = {
   beige: '#FAF2ED',
@@ -11,10 +11,10 @@ const colors = {
   black_10_on_white: 'rgb(229,229,229)',
   black_20: 'rgba(0, 0, 0, 0.20)',
   black_20_on_white: 'rgb(204,204,204)',
-  black_40: 'rgba(0, 0, 0, 0.40)',
-  black_40_on_white: 'rgb(153,153,153)',
+  black_35: 'rgba(0, 0, 0, 0.35)',
+  black_50: 'rgba(0, 0, 0, 0.50)',
+  black_50_on_white: 'rgb(127,127,127)',
   black_60: 'rgba(0, 0, 0, 0.60)',
-  black_60_on_white: 'rgb(102,102,102)',
   black_75: 'rgba(0, 0, 0, 0.75)',
   black_75_on_white: 'rgb(64,64,64)',
   blue: '#4C8EFF',
@@ -34,8 +34,8 @@ const colors = {
   blue_30_on_white: 'rgb(192,226,255)',
   blue_60: 'rgba(51, 160, 255, 0.6)',
   blue_60_on_white: 'rgb(133,198,255)',
-  brown_60: 'rgba(71, 31, 17, 0.6)',
-  brown_60_on_white: 'rgb(145,121,112)',
+  brown_75: 'rgba(71, 31, 17, 0.75)',
+  brown_75_on_white: 'rgb(117,87,78)',
   darkBlue: '#2645A3',
   darkBlue2: '#3663EA',
   darkBlue3: '#182D6E',
@@ -43,7 +43,7 @@ const colors = {
   darkBlue3_75_on_white: 'rgb(82,98,147)',
   darkBlue4: '#1036AC',
   // on iOS overdraw is eliminiated if we use white, on Android it's eliminated if it's transparent /shrug
-  fastBlank: isAndroid ? undefined : '#ffffff',
+  fastBlank: isIOS ? '#ffffff' : undefined,
   green: '#37BD99',
   green3: '#E8FAF6',
   grey: '#cccccc',
@@ -53,9 +53,11 @@ const colors = {
   purple: '#704eba',
   purple2: '#845cdb',
   purple2_01: 'rgba(132, 92, 219, 0.01)',
+  purple2_10: 'rgba(132, 92, 219, 0.1)',
   purple2_40: 'rgba(132, 92, 219, 0.4)',
   purple3: '#9f7bec',
   red: '#ff4d61',
+  red_10: 'rgba(255,0,0,0.1)',
   red_20: 'rgba(255,0,0,0.2)',
   red_75: 'rgba(255,0,0,0.75)',
   red_75_on_white: 'rgb(255,64,64)',

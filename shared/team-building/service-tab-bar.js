@@ -2,15 +2,13 @@
 import React from 'react'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
-import {serviceIdToLogo16} from './shared'
+import {serviceIdToIconFont, serviceIdToAccentColor, inactiveServiceAccentColor} from './shared'
 import * as Constants from '../constants/team-building'
 import type {ServiceIdWithContact} from '../constants/types/team-building'
 
 // TODO
-// * Add styles for mobile
 // * Add contact icon
 // * Add tooltip
-// * Add highlighted underline
 
 type Props = {
   selectedService: ServiceIdWithContact,
@@ -27,14 +25,15 @@ type IconProps = {
   isActive: boolean,
 }
 
-const ServiceIcon = (props: IconProps) => (
-  <Kb.ClickableBox onClick={props.onClick}>
+const ServiceIconDesktop = (props: IconProps) => (
+  <Kb.ClickableBox onClick={props.onClick} style={styles.clickableServiceIcon}>
     <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.serviceIconContainer}>
       <Kb.Icon
-        type={serviceIdToLogo16(props.service, props.isActive)}
+        fontSize={18}
+        type={serviceIdToIconFont(props.service)}
         style={Styles.collapseStyles([
           styles.serviceIcon,
-          props.isActive ? styles.activeIcon : styles.inactiveIcon,
+          {color: props.isActive ? serviceIdToAccentColor(props.service) : inactiveServiceAccentColor},
         ])}
       />
       {!!props.showCount &&
@@ -46,15 +45,62 @@ const ServiceIcon = (props: IconProps) => (
           <Kb.Icon
             type="icon-progress-grey-animated"
             color={Styles.globalColors.grey}
-            style={{height: 10, width: 10}}
+            style={styles.pendingIcon}
           />
         ))}
     </Kb.Box2>
+    <Kb.Box2
+      direction="horizontal"
+      fullWidth={true}
+      style={Styles.collapseStyles([
+        props.isActive ? styles.activeTabBar : styles.inactiveTabBar,
+        props.isActive && {backgroundColor: serviceIdToAccentColor(props.service)},
+      ])}
+    />
   </Kb.ClickableBox>
 )
 
+const ServiceIconMobile = (props: IconProps) => (
+  <Kb.ClickableBox onClick={props.onClick} style={styles.clickableServiceIcon}>
+    <Kb.Box2 direction="vertical" centerChildren={true} style={styles.serviceIconContainer}>
+      {!!props.showCount && !Number.isInteger(props.count) ? (
+        <Kb.Icon
+          type="icon-progress-grey-animated"
+          color={Styles.globalColors.grey}
+          style={styles.pendingIcon}
+        />
+      ) : (
+        <Kb.Icon
+          fontSize={22}
+          type={serviceIdToIconFont(props.service)}
+          style={Styles.collapseStyles([
+            styles.serviceIcon,
+            {color: props.isActive ? serviceIdToAccentColor(props.service) : inactiveServiceAccentColor},
+          ])}
+        />
+      )}
+
+      {!!props.showCount && Number.isInteger(props.count) && (
+        <Kb.Text type="BodyTinySemibold" style={styles.resultCount}>
+          {props.count && props.count === 11 ? '10+' : props.count}
+        </Kb.Text>
+      )}
+    </Kb.Box2>
+    <Kb.Box2
+      direction="horizontal"
+      fullWidth={true}
+      style={Styles.collapseStyles([
+        props.isActive ? styles.activeTabBar : styles.inactiveTabBar,
+        props.isActive && {backgroundColor: serviceIdToAccentColor(props.service)},
+      ])}
+    />
+  </Kb.ClickableBox>
+)
+
+const ServiceIcon = Styles.isMobile ? ServiceIconMobile : ServiceIconDesktop
+
 const ServiceTabBar = (props: Props) => (
-  <Kb.Box2 direction="horizontal">
+  <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.tabBarContainer}>
     {Constants.services.map(service => (
       <ServiceIcon
         key={service}
@@ -69,28 +115,44 @@ const ServiceTabBar = (props: Props) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  container: Styles.platformStyles({
-    isElectron: {
-      height: 40,
-      marginLeft: Styles.globalMargins.small,
-      marginTop: Styles.globalMargins.large, // small
-      width: 370,
-    },
-    common: {
-      ...Styles.globalStyles.rounded,
-      borderColor: Styles.globalColors.black_20,
-      borderWidth: 1,
-      borderStyle: 'solid',
-    },
+  activeTabBar: {
+    backgroundColor: Styles.globalColors.blue,
+    height: 2,
+  },
+  clickableServiceIcon: {
+    flex: 1,
+  },
+  inactiveTabBar: {
+    backgroundColor: Styles.globalColors.black_10,
+    height: 1,
+  },
+  pendingIcon: Styles.platformStyles({
+    isElectron: {height: 10, width: 10},
+    isMobile: {height: 18, width: 18},
   }),
-  serviceIconContainer: {
-    marginLeft: Styles.globalMargins.xtiny,
+  resultCount: {},
+  serviceIcon: {
     marginRight: Styles.globalMargins.xtiny,
   },
-  serviceIcon: {},
-  activeIcon: {},
-  inactiveIcon: {},
-  resultCount: {},
+  serviceIconContainer: {
+    flex: 1,
+    marginLeft: Styles.globalMargins.xtiny,
+    marginRight: Styles.globalMargins.xtiny,
+    minWidth: 40,
+    paddingBottom: Styles.globalMargins.tiny,
+    paddingTop: Styles.globalMargins.tiny,
+  },
+  tabBarContainer: Styles.platformStyles({
+    common: {
+      marginTop: Styles.globalMargins.xtiny,
+    },
+    isElectron: {
+      minHeight: 30,
+    },
+    isMobile: {
+      height: 58,
+    },
+  }),
 })
 
 export default ServiceTabBar

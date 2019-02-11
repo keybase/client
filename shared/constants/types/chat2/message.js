@@ -88,6 +88,7 @@ export type MessageDeleted = I.RecordOf<_MessageDeleted>
 export type _MessageText = {
   author: string,
   conversationIDKey: Common.ConversationIDKey,
+  decoratedText: ?HiddenString,
   deviceName: string,
   deviceRevokedAt: ?number,
   deviceType: DeviceType,
@@ -99,6 +100,8 @@ export type _MessageText = {
   explodingUnreadable: boolean, // if we can't read this message bc we have no keys
   hasBeenEdited: boolean,
   id: MessageID,
+  inlinePaymentIDs: ?I.List<WalletTypes.PaymentID>,
+  inlinePaymentSuccessful: boolean,
   reactions: Reactions,
   submitState: null | 'deleting' | 'editing' | 'pending' | 'failed',
   mentionsAt: MentionsAt,
@@ -146,6 +149,7 @@ export type _MessageAttachment = {
   hasBeenEdited: boolean,
   id: MessageID, // that of first attachment message, not second attachment-uploaded message
   inlineVideoPlayable: boolean,
+  isCollapsed: boolean,
   ordinal: Ordinal,
   outboxID: ?OutboxID,
   previewHeight: number,
@@ -166,8 +170,11 @@ export type _ChatRequestInfo = {
   amount: string,
   amountDescription: string,
   asset: WalletTypes.Asset,
+  canceled: boolean,
   currencyCode: string, // set if asset === 'currency'
+  done: boolean,
   type: 'requestInfo',
+  worthAtRequestTime: string,
 }
 export type ChatRequestInfo = I.RecordOf<_ChatRequestInfo>
 
@@ -194,13 +201,19 @@ export type _ChatPaymentInfo = {
   accountID: WalletTypes.AccountID,
   amountDescription: string,
   delta: 'none' | 'increase' | 'decrease',
+  fromUsername: string,
   note: HiddenString,
   paymentID: WalletTypes.PaymentID,
   status: WalletTypes.StatusSimplified,
   statusDescription: string,
+  statusDetail: string,
+  showCancel: boolean,
+  toUsername: string,
   type: 'paymentInfo',
   worth: string,
+  worthAtSendTime: string,
 }
+
 export type ChatPaymentInfo = I.RecordOf<_ChatPaymentInfo>
 
 export type _MessageSendPayment = {

@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"sort"
@@ -21,7 +22,6 @@ import (
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
-	"github.com/keybase/client/go/kbfs"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -182,9 +182,9 @@ func ReorderParticipants(mctx libkb.MetaContext, g libkb.UIDMapperContext, umapp
 
 // Drive splitAndNormalizeTLFName with one attempt to follow TlfNameNotCanonical.
 func splitAndNormalizeTLFNameCanonicalize(g *libkb.GlobalContext, name string, public bool) (writerNames, readerNames []string, extensionSuffix string, err error) {
-	writerNames, readerNames, extensionSuffix, err = kbfs.SplitAndNormalizeTLFName(g, name, public)
-	if retryErr, retry := err.(kbfs.TlfNameNotCanonical); retry {
-		return kbfs.SplitAndNormalizeTLFName(g, retryErr.NameToTry, public)
+	writerNames, readerNames, extensionSuffix, err = SplitAndNormalizeTLFName(g, name, public)
+	if retryErr, retry := err.(TlfNameNotCanonical); retry {
+		return SplitAndNormalizeTLFName(g, retryErr.NameToTry, public)
 	}
 	return writerNames, readerNames, extensionSuffix, err
 }
@@ -370,6 +370,14 @@ func IsVisibleChatMessageType(messageType chat1.MessageType) bool {
 		if messageType == mt {
 			return true
 		}
+	}
+	return false
+}
+
+func IsCollapsibleMessageType(messageType chat1.MessageType) bool {
+	switch messageType {
+	case chat1.MessageType_UNFURL, chat1.MessageType_ATTACHMENT:
+		return true
 	}
 	return false
 }
@@ -563,7 +571,7 @@ func ParseChannelNameMentions(ctx context.Context, body string, uid gregor1.UID,
 		validChans[cr.TopicName] = cr
 	}
 	for _, name := range names {
-		if cr, ok := validChans[name]; ok {
+		if cr, ok := validChans[name.name]; ok {
 			res = append(res, cr)
 		}
 	}
@@ -572,18 +580,56 @@ func ParseChannelNameMentions(ctx context.Context, body string, uid gregor1.UID,
 
 var atMentionRegExp = regexp.MustCompile(`\B@([a-z0-9][a-z0-9_]+)`)
 
-func parseRegexpNames(ctx context.Context, body string, re *regexp.Regexp) (res []string) {
-	matches := re.FindAllStringSubmatch(body, -1)
-	for _, m := range matches {
-		if len(m) >= 2 {
-			res = append(res, m[1])
+type nameMatch struct {
+	name     string
+	position []int
+}
+
+func (m nameMatch) Len() int {
+	return m.position[1] - m.position[0]
+}
+
+func parseRegexpNames(ctx context.Context, body string, re *regexp.Regexp) (res []nameMatch) {
+	body = ReplaceQuotedSubstrings(body, true)
+	allIndexMatches := re.FindAllStringSubmatchIndex(body, -1)
+	for _, indexMatch := range allIndexMatches {
+		if len(indexMatch) >= 4 {
+			hit := body[indexMatch[2]:indexMatch[3]]
+			res = append(res, nameMatch{
+				name:     hit,
+				position: indexMatch[2:4],
+			})
 		}
 	}
 	return res
 }
 
+func GetTextAtMentionedUIDs(ctx context.Context, msg chat1.MessageText, upak libkb.UPAKLoader,
+	debug *DebugLabeler) (atRes []gregor1.UID, chanRes chat1.ChannelMention) {
+	atRes, chanRes = ParseAtMentionedUIDs(ctx, msg.Body, upak, debug)
+	atRes = append(atRes, GetPaymentAtMentions(ctx, upak, msg.Payments, debug)...)
+	return atRes, chanRes
+}
+
+func GetPaymentAtMentions(ctx context.Context, upak libkb.UPAKLoader, payments []chat1.TextPayment,
+	l *DebugLabeler) (atMentions []gregor1.UID) {
+	for _, p := range payments {
+		uid, err := upak.LookupUID(ctx, libkb.NewNormalizedUsername(p.Username))
+		if err != nil {
+			l.Debug(ctx, "GetPaymentAtMentions: error loading uid: username: %s err: %s", p.Username, err)
+			continue
+		}
+		atMentions = append(atMentions, uid.ToBytes())
+	}
+	return atMentions
+}
+
 func ParseAtMentionsNames(ctx context.Context, body string) (res []string) {
-	return parseRegexpNames(ctx, body, atMentionRegExp)
+	matches := parseRegexpNames(ctx, body, atMentionRegExp)
+	for _, m := range matches {
+		res = append(res, m.name)
+	}
+	return res
 }
 
 func ParseAtMentionedUIDs(ctx context.Context, body string, upak libkb.UPAKLoader, debug *DebugLabeler) (atRes []gregor1.UID, chanRes chat1.ChannelMention) {
@@ -614,30 +660,6 @@ func ParseAtMentionedUIDs(ctx context.Context, body string, upak libkb.UPAKLoade
 		atRes = append(atRes, kuid.ToBytes())
 	}
 	return atRes, chanRes
-}
-
-func ParseAndDecorateAtMentionedUIDs(ctx context.Context, body string, upak libkb.UPAKLoader, debug *DebugLabeler) (newBody string, atRes []gregor1.UID, chanRes chat1.ChannelMention) {
-	atRes, chanRes = ParseAtMentionedUIDs(ctx, body, upak, debug)
-	newBody = atMentionRegExp.ReplaceAllStringFunc(body, func(m string) string {
-		replace := false
-		switch m {
-		case "@channel", "@here", "@everyone":
-			replace = true
-		default:
-			toks := strings.Split(m, "@")
-			if len(toks) == 2 {
-				_, err := upak.LookupUID(ctx, libkb.NewNormalizedUsername(toks[1]))
-				if err == nil {
-					replace = true
-				}
-			}
-		}
-		if replace {
-			return fmt.Sprintf("`%s`", m)
-		}
-		return m
-	})
-	return newBody, atRes, chanRes
 }
 
 type SystemMessageUIDSource interface {
@@ -764,7 +786,11 @@ func GetConvMtime(conv chat1.Conversation) gregor1.Time {
 	return summaries[len(summaries)-1].Ctime
 }
 
-func PickLatestMessageSummary(conv chat1.Conversation, typs []chat1.MessageType) (res chat1.MessageSummary, err error) {
+type MessageSummaryContainer interface {
+	GetMaxMessage(typ chat1.MessageType) (chat1.MessageSummary, error)
+}
+
+func PickLatestMessageSummary(conv MessageSummaryContainer, typs []chat1.MessageType) (res chat1.MessageSummary, err error) {
 	// nil means all
 	if typs == nil {
 		for typ := range chat1.MessageTypeRevMap {
@@ -783,36 +809,22 @@ func PickLatestMessageSummary(conv chat1.Conversation, typs []chat1.MessageType)
 	return res, nil
 }
 
-// PickLatestMessageUnboxed gets the latest message with one `typs`.
-// This method can return deleted messages which have a blank body.
-func PickLatestMessageUnboxed(conv chat1.ConversationLocal, typs []chat1.MessageType) (res chat1.MessageUnboxed, err error) {
-	var msgs []chat1.MessageUnboxed
-	for _, typ := range typs {
-		msg, err := conv.GetMaxMessage(typ)
-		if err == nil && msg.IsValid() {
-			msgs = append(msgs, msg)
-		}
-	}
-	if len(msgs) == 0 {
-		return res, errors.New("no message found")
-	}
-	sort.Sort(ByMsgUnboxedCtime(msgs))
-	return msgs[len(msgs)-1], nil
-}
-
 func GetConvMtimeLocal(conv chat1.ConversationLocal) gregor1.Time {
-	msg, err := PickLatestMessageUnboxed(conv, chat1.VisibleChatMessageTypes())
+	msg, err := PickLatestMessageSummary(conv, chat1.VisibleChatMessageTypes())
 	if err != nil {
 		return conv.ReaderInfo.Mtime
 	}
-	return msg.Valid().ServerHeader.Ctime
+	return msg.Ctime
 }
 
 func GetConvSnippet(conv chat1.ConversationLocal, currentUsername string) (snippet, decoration string) {
-	msg, err := PickLatestMessageUnboxed(conv,
-		append(chat1.VisibleChatMessageTypes(), chat1.MessageType_DELETEHISTORY))
+	if conv.Info.SnippetMsg == nil {
+		return "", ""
+	}
+	msg := *conv.Info.SnippetMsg
+
 	// If a DELETEHISTORY is the latest message, there is no snippet
-	if err != nil || msg.GetMessageType() == chat1.MessageType_DELETEHISTORY {
+	if msg.GetMessageType() == chat1.MessageType_DELETEHISTORY {
 		return "", ""
 	}
 	return GetMsgSnippet(msg, conv, currentUsername)
@@ -876,6 +888,9 @@ func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, curre
 	if !msg.IsValid() {
 		return "", ""
 	}
+	defer func() {
+		snippet = EscapeShrugs(context.TODO(), snippet)
+	}()
 
 	mvalid := msg.Valid()
 	senderPrefix := getSenderPrefix(mvalid, conv, currentUsername)
@@ -922,13 +937,20 @@ func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, curre
 }
 
 // We don't want to display the contents of an exploding message in notifications
-func GetDesktopNotificationSnippet(conv *chat1.ConversationLocal, currentUsername string) string {
+func GetDesktopNotificationSnippet(conv *chat1.ConversationLocal, currentUsername string,
+	fromMsg *chat1.MessageUnboxed) string {
 	if conv == nil {
 		return ""
 	}
-	msg, err := PickLatestMessageUnboxed(*conv,
-		append(chat1.VisibleChatMessageTypes(), chat1.MessageType_REACTION))
-	if err != nil || !msg.IsValid() {
+	var msg chat1.MessageUnboxed
+	if fromMsg != nil {
+		msg = *fromMsg
+	} else if conv.Info.SnippetMsg != nil {
+		msg = *conv.Info.SnippetMsg
+	} else {
+		return ""
+	}
+	if !msg.IsValid() {
 		return ""
 	}
 	mvalid := msg.Valid()
@@ -964,7 +986,7 @@ func GetDesktopNotificationSnippet(conv *chat1.ConversationLocal, currentUsernam
 	}
 }
 
-func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.UnverifiedInboxUIItem) {
+func PresentRemoteConversation(ctx context.Context, g *globals.Context, rc types.RemoteConversation) (res chat1.UnverifiedInboxUIItem) {
 	var tlfName string
 	rawConv := rc.Conv
 	latest, err := PickLatestMessageSummary(rawConv, nil)
@@ -975,6 +997,7 @@ func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.Unverifie
 	}
 	res.ConvID = rawConv.GetConvID().String()
 	res.TopicType = rawConv.GetTopicType()
+	res.IsPublic = rawConv.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC
 	res.Name = tlfName
 	res.Status = rawConv.Metadata.Status
 	res.Time = GetConvMtime(rawConv)
@@ -984,11 +1007,14 @@ func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.Unverifie
 	res.MemberStatus = rawConv.ReaderInfo.Status
 	res.TeamType = rawConv.Metadata.TeamType
 	res.Version = rawConv.Metadata.Version
-	res.ReadMsgID = rawConv.ReaderInfo.ReadMsgid
 	res.MaxMsgID = rawConv.ReaderInfo.MaxMsgid
+	res.MaxVisibleMsgID = rawConv.MaxVisibleMsgID()
+	res.ReadMsgID = rawConv.ReaderInfo.ReadMsgid
 	res.Supersedes = rawConv.Metadata.Supersedes
 	res.SupersededBy = rawConv.Metadata.SupersededBy
 	res.FinalizeInfo = rawConv.Metadata.FinalizeInfo
+	res.Commands =
+		chat1.NewConversationCommandGroupsWithBuiltin(g.CommandsSource.GetBuiltinCommandType(ctx, rc))
 	if rc.LocalMetadata != nil {
 		res.LocalMetadata = &chat1.UnverifiedInboxUIItemMetadata{
 			ChannelName:       rc.LocalMetadata.TopicName,
@@ -1000,20 +1026,22 @@ func PresentRemoteConversation(rc types.RemoteConversation) (res chat1.Unverifie
 		}
 		res.Name = rc.LocalMetadata.Name
 	}
+	res.ConvRetention = rawConv.ConvRetention
+	res.TeamRetention = rawConv.TeamRetention
 	return res
 }
 
-func PresentRemoteConversations(rcs []types.RemoteConversation) (res []chat1.UnverifiedInboxUIItem) {
+func PresentRemoteConversations(ctx context.Context, g *globals.Context, rcs []types.RemoteConversation) (res []chat1.UnverifiedInboxUIItem) {
 	for _, rc := range rcs {
-		res = append(res, PresentRemoteConversation(rc))
+		res = append(res, PresentRemoteConversation(ctx, g, rc))
 	}
 	return res
 }
 
-func PresentConversationErrorLocal(rawConv chat1.ConversationErrorLocal) (res chat1.InboxUIItemError) {
+func PresentConversationErrorLocal(ctx context.Context, g *globals.Context, rawConv chat1.ConversationErrorLocal) (res chat1.InboxUIItemError) {
 	res.Message = rawConv.Message
 	res.RekeyInfo = rawConv.RekeyInfo
-	res.RemoteConv = PresentRemoteConversation(types.RemoteConversation{
+	res.RemoteConv = PresentRemoteConversation(ctx, g, types.RemoteConversation{
 		Conv: rawConv.RemoteConv,
 	})
 	res.Typ = rawConv.Typ
@@ -1032,10 +1060,11 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal, currentUsername s
 	}
 	res.ConvID = rawConv.GetConvID().String()
 	res.TopicType = rawConv.GetTopicType()
+	res.IsPublic = rawConv.Info.Visibility == keybase1.TLFVisibility_PUBLIC
 	res.Name = rawConv.Info.TlfName
 	res.Snippet, res.SnippetDecoration = GetConvSnippet(rawConv, currentUsername)
-	res.Channel = GetTopicName(rawConv)
-	res.Headline = GetHeadline(rawConv)
+	res.Channel = rawConv.Info.TopicName
+	res.Headline = rawConv.Info.Headline
 	res.Participants = writerNames
 	res.FullNames = fullNames
 	res.ResetParticipants = rawConv.Info.ResetNames
@@ -1053,10 +1082,12 @@ func PresentConversationLocal(rawConv chat1.ConversationLocal, currentUsername s
 	res.TeamType = rawConv.Info.TeamType
 	res.Version = rawConv.Info.Version
 	res.MaxMsgID = rawConv.ReaderInfo.MaxMsgid
+	res.MaxVisibleMsgID = rawConv.MaxVisibleMsgID()
 	res.ReadMsgID = rawConv.ReaderInfo.ReadMsgid
 	res.ConvRetention = rawConv.ConvRetention
 	res.TeamRetention = rawConv.TeamRetention
 	res.ConvSettings = rawConv.ConvSettings
+	res.Commands = rawConv.Commands
 	return res
 }
 
@@ -1190,18 +1221,42 @@ func presentAttachmentAssetInfo(ctx context.Context, g *globals.Context, msg cha
 }
 
 func presentPaymentInfo(ctx context.Context, g *globals.Context, msgID chat1.MessageID,
-	convID chat1.ConversationID, msg chat1.MessageUnboxedValid) *chat1.UIPaymentInfo {
+	convID chat1.ConversationID, msg chat1.MessageUnboxedValid) []chat1.UIPaymentInfo {
 
 	typ, err := msg.MessageBody.MessageType()
 	if err != nil {
 		return nil
 	}
+
+	var infos []chat1.UIPaymentInfo
+
 	switch typ {
 	case chat1.MessageType_SENDPAYMENT:
 		body := msg.MessageBody.Sendpayment()
-		return g.StellarLoader.LoadPayment(ctx, convID, msgID, msg.SenderUsername, body.PaymentID)
+		info := g.StellarLoader.LoadPayment(ctx, convID, msgID, msg.SenderUsername, body.PaymentID)
+		if info != nil {
+			infos = []chat1.UIPaymentInfo{*info}
+		}
+	case chat1.MessageType_TEXT:
+		body := msg.MessageBody.Text()
+		// load any payments that were in the body of the text message
+		for _, payment := range body.Payments {
+			rtyp, err := payment.Result.ResultTyp()
+			if err != nil {
+				continue
+			}
+			switch rtyp {
+			case chat1.TextPaymentResultTyp_SENT:
+				paymentID := payment.Result.Sent()
+				info := g.StellarLoader.LoadPayment(ctx, convID, msgID, msg.SenderUsername, paymentID)
+				if info != nil {
+					infos = append(infos, *info)
+				}
+			}
+		}
 	}
-	return nil
+
+	return infos
 }
 
 func presentRequestInfo(ctx context.Context, g *globals.Context, msgID chat1.MessageID,
@@ -1227,12 +1282,15 @@ func PresentUnfurl(ctx context.Context, g *globals.Context, convID chat1.Convers
 	return &ud
 }
 
-func PresentUnfurls(ctx context.Context, g *globals.Context, convID chat1.ConversationID,
-	unfurls map[chat1.MessageID]chat1.UnfurlResult) (res []chat1.UIMessageUnfurlInfo) {
+func PresentUnfurls(ctx context.Context, g *globals.Context, uid gregor1.UID,
+	convID chat1.ConversationID, unfurls map[chat1.MessageID]chat1.UnfurlResult) (res []chat1.UIMessageUnfurlInfo) {
+	collapses := NewCollapses(g)
 	for unfurlMessageID, u := range unfurls {
 		ud := PresentUnfurl(ctx, g, convID, u.Unfurl)
 		if ud != nil {
 			res = append(res, chat1.UIMessageUnfurlInfo{
+				IsCollapsed: collapses.IsCollapsed(ctx, uid, convID, unfurlMessageID,
+					chat1.MessageType_UNFURL),
 				Unfurl:          *ud,
 				UnfurlMessageID: unfurlMessageID,
 				Url:             u.Url,
@@ -1242,9 +1300,29 @@ func PresentUnfurls(ctx context.Context, g *globals.Context, convID chat1.Conver
 	return res
 }
 
+func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, msg chat1.MessageUnboxedValid) *string {
+	msgBody := msg.MessageBody
+	typ, err := msgBody.MessageType()
+	if err != nil || typ != chat1.MessageType_TEXT {
+		return nil
+	}
+	body := msgBody.Text().Body
+	payments := msgBody.Text().Payments
+
+	// escape before applying xforms
+	body = EscapeForDecorate(ctx, body)
+	body = EscapeShrugs(ctx, body)
+
+	// Payment decorations
+	body = g.StellarSender.DecorateWithPayments(ctx, body, payments)
+	// Mentions
+	body = DecorateWithMentions(ctx, body, msg.AtMentionUsernames, msg.ChannelMention,
+		msg.ChannelNameMentions)
+	return &body
+}
+
 func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1.MessageUnboxed,
 	uid gregor1.UID, convID chat1.ConversationID) (res chat1.UIMessage) {
-
 	miscErr := func(err error) chat1.UIMessage {
 		return chat1.NewUIMessageWithError(chat1.MessageUnboxedError{
 			ErrType:   chat1.MessageUnboxedErrorType_MISC,
@@ -1253,6 +1331,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 		})
 	}
 
+	collapses := NewCollapses(g)
 	state, err := rawMsg.State()
 	if err != nil {
 		return miscErr(err)
@@ -1282,10 +1361,13 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Ctime:                 valid.ServerHeader.Ctime,
 			OutboxID:              strOutboxID,
 			MessageBody:           valid.MessageBody,
+			DecoratedTextBody:     PresentDecoratedTextBody(ctx, g, valid),
 			SenderUsername:        valid.SenderUsername,
 			SenderDeviceName:      valid.SenderDeviceName,
 			SenderDeviceType:      valid.SenderDeviceType,
 			SenderDeviceRevokedAt: valid.SenderDeviceRevokedAt,
+			SenderUID:             valid.ClientHeader.Sender,
+			SenderDeviceID:        valid.ClientHeader.SenderDevice,
 			Superseded:            valid.ServerHeader.SupersededBy != 0,
 			AtMentions:            valid.AtMentionUsernames,
 			ChannelMention:        valid.ChannelMention,
@@ -1297,17 +1379,22 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Etime:                 valid.Etime(),
 			Reactions:             valid.Reactions,
 			HasPairwiseMacs:       valid.HasPairwiseMacs(),
-			PaymentInfo:           presentPaymentInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
+			PaymentInfos:          presentPaymentInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
 			RequestInfo:           presentRequestInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
-			Unfurls:               PresentUnfurls(ctx, g, convID, valid.Unfurls),
+			Unfurls:               PresentUnfurls(ctx, g, uid, convID, valid.Unfurls),
+			IsCollapsed: collapses.IsCollapsed(ctx, uid, convID, rawMsg.GetMessageID(),
+				rawMsg.GetMessageType()),
 		})
 	case chat1.MessageUnboxedState_OUTBOX:
 		var body, title, filename string
+		var decoratedBody *string
 		var preview *chat1.MakePreviewRes
 		typ := rawMsg.Outbox().Msg.ClientHeader.MessageType
 		switch typ {
 		case chat1.MessageType_TEXT:
 			body = rawMsg.Outbox().Msg.MessageBody.Text().Body
+			decoratedBody = new(string)
+			*decoratedBody = EscapeShrugs(ctx, body)
 		case chat1.MessageType_EDIT:
 			body = rawMsg.Outbox().Msg.MessageBody.Edit().Body
 		case chat1.MessageType_ATTACHMENT:
@@ -1320,15 +1407,17 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			}
 		}
 		res = chat1.NewUIMessageWithOutbox(chat1.UIMessageOutbox{
-			State:       rawMsg.Outbox().State,
-			OutboxID:    rawMsg.Outbox().OutboxID.String(),
-			MessageType: typ,
-			Body:        body,
-			Ctime:       rawMsg.Outbox().Ctime,
-			Ordinal:     computeOutboxOrdinal(rawMsg.Outbox()),
-			Preview:     preview,
-			Title:       title,
-			Filename:    filename,
+			State:             rawMsg.Outbox().State,
+			OutboxID:          rawMsg.Outbox().OutboxID.String(),
+			MessageType:       typ,
+			Body:              body,
+			DecoratedTextBody: decoratedBody,
+			Ctime:             rawMsg.Outbox().Ctime,
+			Ordinal:           computeOutboxOrdinal(rawMsg.Outbox()),
+			Preview:           preview,
+			Title:             title,
+			Filename:          filename,
+			IsEphemeral:       rawMsg.Outbox().Msg.IsEphemeral(),
 		})
 	case chat1.MessageUnboxedState_ERROR:
 		res = chat1.NewUIMessageWithError(rawMsg.Error())
@@ -1395,7 +1484,7 @@ type ConvLocalByTopicName []chat1.ConversationLocal
 func (c ConvLocalByTopicName) Len() int      { return len(c) }
 func (c ConvLocalByTopicName) Swap(i, j int) { c[i], c[j] = c[j], c[i] }
 func (c ConvLocalByTopicName) Less(i, j int) bool {
-	return GetTopicName(c[i]) < GetTopicName(c[j])
+	return c[i].Info.TopicName < c[j].Info.TopicName
 }
 
 type ByConvID []chat1.ConversationID
@@ -1436,28 +1525,6 @@ func (m ByMsgID) Len() int           { return len(m) }
 func (m ByMsgID) Swap(i, j int)      { m[i], m[j] = m[j], m[i] }
 func (m ByMsgID) Less(i, j int) bool { return m[i] > m[j] }
 
-func GetTopicName(conv chat1.ConversationLocal) string {
-	maxTopicMsg, err := conv.GetMaxMessage(chat1.MessageType_METADATA)
-	if err != nil {
-		return ""
-	}
-	if !maxTopicMsg.IsValidFull() {
-		return ""
-	}
-	return maxTopicMsg.Valid().MessageBody.Metadata().ConversationTitle
-}
-
-func GetHeadline(conv chat1.ConversationLocal) string {
-	maxTopicMsg, err := conv.GetMaxMessage(chat1.MessageType_HEADLINE)
-	if err != nil {
-		return ""
-	}
-	if !maxTopicMsg.IsValidFull() {
-		return ""
-	}
-	return maxTopicMsg.Valid().MessageBody.Headline().Headline
-}
-
 func NotificationInfoSet(settings *chat1.ConversationNotificationInfo,
 	apptype keybase1.DeviceType,
 	kind chat1.NotificationKind, enabled bool) {
@@ -1480,11 +1547,15 @@ func DecodeBase64(enc []byte) ([]byte, error) {
 	return b[:n], err
 }
 
+func RemoteConv(conv chat1.Conversation) types.RemoteConversation {
+	return types.RemoteConversation{
+		Conv: conv,
+	}
+}
+
 func RemoteConvs(convs []chat1.Conversation) (res []types.RemoteConversation) {
 	for _, conv := range convs {
-		res = append(res, types.RemoteConversation{
-			Conv: conv,
-		})
+		res = append(res, RemoteConv(conv))
 	}
 	return res
 }
@@ -1661,6 +1732,13 @@ func SetUnfurl(mvalid *chat1.MessageUnboxedValid, unfurlMessageID chat1.MessageI
 	mvalid.Unfurls[unfurlMessageID] = unfurl
 }
 
+func RemoveUnfurl(mvalid *chat1.MessageUnboxedValid, unfurlMessageID chat1.MessageID) {
+	if mvalid.Unfurls == nil {
+		return
+	}
+	delete(mvalid.Unfurls, unfurlMessageID)
+}
+
 // SuspendComponent will suspend a Suspendable type until the return function
 // is called. This allows a succinct call like defer SuspendComponent(ctx, g,
 // g.ConvLoader)() in RPC handlers wishing to lock out the conv loader.
@@ -1678,4 +1756,177 @@ func IsPermanentErr(err error) bool {
 		return uberr.IsPermanent()
 	}
 	return err != nil
+}
+
+func EphemeralLifetimeFromConv(ctx context.Context, g *globals.Context, conv chat1.Conversation) (res *gregor1.DurationSec, err error) {
+	// Check to see if the conversation has an exploding policy
+	var retentionRes *gregor1.DurationSec
+	var gregorRes *gregor1.DurationSec
+	var rentTyp chat1.RetentionPolicyType
+	var convSet bool
+	if conv.ConvRetention != nil {
+		if rentTyp, err = conv.ConvRetention.Typ(); err != nil {
+			return res, err
+		}
+		if rentTyp == chat1.RetentionPolicyType_EPHEMERAL {
+			e := conv.ConvRetention.Ephemeral()
+			retentionRes = &e.Age
+		}
+		convSet = rentTyp != chat1.RetentionPolicyType_INHERIT
+	}
+	if !convSet && conv.TeamRetention != nil {
+		if rentTyp, err = conv.TeamRetention.Typ(); err != nil {
+			return res, err
+		}
+		if rentTyp == chat1.RetentionPolicyType_EPHEMERAL {
+			e := conv.TeamRetention.Ephemeral()
+			retentionRes = &e.Age
+		}
+	}
+
+	// See if there is anything in Gregor
+	st, err := g.GregorState.State(ctx)
+	if err != nil {
+		return res, err
+	}
+	// Note: this value is present on the JS frontend as well
+	key := fmt.Sprintf("exploding:%s", conv.GetConvID())
+	cat, err := gregor1.ObjFactory{}.MakeCategory(key)
+	if err != nil {
+		return res, err
+	}
+	items, err := st.ItemsWithCategoryPrefix(cat)
+	if err != nil {
+		return res, err
+	}
+	if len(items) > 0 {
+		it := items[0]
+		body := string(it.Body().Bytes())
+		sec, err := strconv.ParseInt(body, 0, 0)
+		if err != nil {
+			return res, nil
+		}
+		gsec := gregor1.DurationSec(sec)
+		gregorRes = &gsec
+	}
+	if retentionRes != nil && gregorRes != nil {
+		if *gregorRes < *retentionRes {
+			return gregorRes, nil
+		}
+		return retentionRes, nil
+	} else if retentionRes != nil {
+		return retentionRes, nil
+	} else if gregorRes != nil {
+		return gregorRes, nil
+	} else {
+		return nil, nil
+	}
+}
+
+var decorateBegin = "$>kb$"
+var decorateEnd = "$<kb$"
+var decorateEscapeRe = regexp.MustCompile(`\\*\$\>kb\$`)
+
+func EscapeForDecorate(ctx context.Context, body string) string {
+	// escape any natural occurences of begin so we don't bust markdown parser
+	return decorateEscapeRe.ReplaceAllStringFunc(body, func(s string) string {
+		if len(s)%2 != 0 {
+			return `\` + s
+		}
+		return s
+	})
+}
+
+func DecorateBody(ctx context.Context, body string, offset, length int, decoration interface{}) (res string, added int) {
+	out, err := json.Marshal(decoration)
+	if err != nil {
+		return res, 0
+	}
+	//b64out := string(out)
+	b64out := base64.StdEncoding.EncodeToString(out)
+	strDecoration := fmt.Sprintf("%s%s%s", decorateBegin, b64out, decorateEnd)
+	added = len(strDecoration) - length
+	res = fmt.Sprintf("%s%s%s", body[:offset], strDecoration, body[offset+length:])
+	return res, added
+}
+
+func DecorateWithMentions(ctx context.Context, body string, atMentions []string,
+	chanMention chat1.ChannelMention, channelNameMentions []chat1.ChannelNameMention) string {
+	var added int
+	offset := 0
+	if len(atMentions) > 0 || chanMention != chat1.ChannelMention_NONE {
+		inputBody := body
+		atMatches := parseRegexpNames(ctx, inputBody, atMentionRegExp)
+		atMap := make(map[string]bool)
+		for _, at := range atMentions {
+			atMap[at] = true
+		}
+		for _, m := range atMatches {
+			switch m.name {
+			case "here", "channel", "everyone":
+				if chanMention == chat1.ChannelMention_NONE {
+					continue
+				}
+			default:
+				if !atMap[m.name] {
+					continue
+				}
+			}
+			body, added = DecorateBody(ctx, body, m.position[0]+offset-1, m.Len()+1,
+				chat1.NewUITextDecorationWithAtmention(m.name))
+			offset += added
+		}
+	}
+	if len(channelNameMentions) > 0 {
+		inputBody := body
+		chanMap := make(map[string]chat1.ConversationID)
+		chanMatches := parseRegexpNames(ctx, inputBody, chanNameMentionRegExp)
+		for _, c := range channelNameMentions {
+			chanMap[c.TopicName] = c.ConvID
+		}
+		offset = 0
+		for _, c := range chanMatches {
+			convID, ok := chanMap[c.name]
+			if !ok {
+				continue
+			}
+			body, added = DecorateBody(ctx, body, c.position[0]+offset-1, c.Len()+1,
+				chat1.NewUITextDecorationWithChannelnamemention(chat1.UIChannelNameMention{
+					Name:   c.name,
+					ConvID: convID.String(),
+				}))
+			offset += added
+		}
+	}
+	return body
+}
+
+func EscapeShrugs(ctx context.Context, body string) string {
+	return strings.Replace(body, `¯\_(ツ)_/¯`, `¯\\\_(ツ)_/¯`, -1)
+}
+
+var startQuote = ">"
+var newline = []rune("\n")
+
+var blockQuoteRegex = regexp.MustCompile("((?s)```.*?```)")
+var quoteRegex = regexp.MustCompile("((?s)`.*?`)")
+
+func ReplaceQuotedSubstrings(xs string, skipAngleQuotes bool) string {
+	replacer := func(s string) string {
+		return strings.Repeat("$", len(s))
+	}
+	xs = blockQuoteRegex.ReplaceAllStringFunc(xs, replacer)
+	xs = quoteRegex.ReplaceAllStringFunc(xs, replacer)
+
+	// Remove all quoted lines. Because we removed all codeblocks
+	// before, we only need to consider single lines.
+	var ret []string
+	for _, line := range strings.Split(xs, string(newline)) {
+		if skipAngleQuotes || !strings.HasPrefix(strings.TrimLeft(line, " "), startQuote) {
+			ret = append(ret, line)
+		} else {
+			ret = append(ret, replacer(line))
+		}
+	}
+	return strings.Join(ret, string(newline))
 }

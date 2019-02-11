@@ -70,6 +70,8 @@ protocol config {
     PlatformInfo platformInfo;
     DeviceID defaultDeviceID;               /* this contains the device ID for defaultUsername
                                                in the config file. */
+    array<string> localDbStats;
+    array<string> localChatDbStats;
   }
 
   ExtendedStatus getExtendedStatus(int sessionID);

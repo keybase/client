@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"github.com/keybase/client/go/chat/s3"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -21,32 +22,27 @@ const (
 	ActionTeamType                   = "teamType"
 	ActionExpunge                    = "expunge"
 
-	PushActivity         = "chat.activity"
-	PushTyping           = "chat.typing"
-	PushMembershipUpdate = "chat.membershipUpdate"
-	PushTLFFinalize      = "chat.tlffinalize"
-	PushTLFResolve       = "chat.tlfresolve"
-	PushTeamChannels     = "chat.teamchannels"
-	PushKBFSUpgrade      = "chat.kbfsupgrade"
-	PushConvRetention    = "chat.convretention"
-	PushTeamRetention    = "chat.teamretention"
-	PushConvSettings     = "chat.convsettings"
-	PushSubteamRename    = "chat.subteamrename"
+	PushActivity            = "chat.activity"
+	PushTyping              = "chat.typing"
+	PushMembershipUpdate    = "chat.membershipUpdate"
+	PushTLFFinalize         = "chat.tlffinalize"
+	PushTLFResolve          = "chat.tlfresolve"
+	PushTeamChannels        = "chat.teamchannels"
+	PushKBFSUpgrade         = "chat.kbfsupgrade"
+	PushConvRetention       = "chat.convretention"
+	PushTeamRetention       = "chat.teamretention"
+	PushConvSettings        = "chat.convsettings"
+	PushSubteamRename       = "chat.subteamrename"
+	PushConversationsUpdate = "chat.conversationsupdate"
 )
 
 func NewAllCryptKeys() AllCryptKeys {
 	return make(AllCryptKeys)
 }
 
-type NameInfoUntrusted struct {
+type NameInfo struct {
 	ID            chat1.TLFID
 	CanonicalName string
-}
-
-type NameInfo struct {
-	ID               chat1.TLFID
-	CanonicalName    string
-	IdentifyFailures []keybase1.TLFIdentifyFailure
 }
 
 func NewNameInfo() *NameInfo {
@@ -68,6 +64,14 @@ func (m MembershipUpdateRes) AllOtherUsers() (res []gregor1.UID) {
 	}
 	return res
 }
+
+type InboxSourceDataSourceTyp int
+
+const (
+	InboxSourceDataSourceAll InboxSourceDataSourceTyp = iota
+	InboxSourceDataSourceRemoteOnly
+	InboxSourceDataSourceLocalOnly
+)
 
 type RemoteConversationMetadata struct {
 	Name              string   `codec:"n"`
@@ -94,6 +98,21 @@ func (rc RemoteConversation) GetConvID() chat1.ConversationID {
 
 func (rc RemoteConversation) GetVersion() chat1.ConversationVers {
 	return rc.Conv.Metadata.Version
+}
+
+func (rc RemoteConversation) GetMembersType() chat1.ConversationMembersType {
+	return rc.Conv.GetMembersType()
+}
+
+func (rc RemoteConversation) GetTeamType() chat1.TeamType {
+	return rc.Conv.GetTeamType()
+}
+
+func (rc RemoteConversation) GetTopicName() string {
+	if rc.LocalMetadata != nil {
+		return rc.LocalMetadata.TopicName
+	}
+	return ""
 }
 
 func (rc RemoteConversation) GetName() string {
@@ -186,6 +205,38 @@ type AttachmentUploadResult struct {
 	Object   chat1.Asset
 	Preview  *chat1.Asset
 	Metadata []byte
+}
+
+type BoxerEncryptionInfo struct {
+	Key                   CryptKey
+	SigningKeyPair        libkb.NaclSigningKeyPair
+	EphemeralSeed         *keybase1.TeamEk
+	PairwiseMACRecipients []keybase1.KID
+	Version               chat1.MessageBoxedVersion
+}
+
+type SenderPrepareResult struct {
+	Boxed               chat1.MessageBoxed
+	EncryptionInfo      BoxerEncryptionInfo
+	PendingAssetDeletes []chat1.Asset
+	AtMentions          []gregor1.UID
+	ChannelMention      chat1.ChannelMention
+	TopicNameState      *chat1.TopicNameState
+}
+
+type ParsedStellarPayment struct {
+	Username libkb.NormalizedUsername
+	Full     string
+	Amount   string
+	Currency string
+}
+
+func (p ParsedStellarPayment) ToMini() libkb.MiniChatPayment {
+	return libkb.MiniChatPayment{
+		Username: p.Username,
+		Amount:   p.Amount,
+		Currency: p.Currency,
+	}
 }
 
 type DummyAttachmentFetcher struct{}
@@ -294,6 +345,9 @@ type DummyUnfurler struct{}
 func (d DummyUnfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msg chat1.MessageUnboxed) {
 }
+func (d DummyUnfurler) Prefetch(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, msgText string) int {
+	return 0
+}
 func (d DummyUnfurler) Status(ctx context.Context, outboxID chat1.OutboxID) (UnfurlerTaskStatus, *chat1.UnfurlResult, error) {
 	return UnfurlerTaskStatusFailed, nil, nil
 }
@@ -312,10 +366,35 @@ func (d DummyUnfurler) WhitelistRemove(ctx context.Context, uid gregor1.UID, dom
 	return nil
 }
 
+func (d DummyUnfurler) WhitelistAddExemption(ctx context.Context, uid gregor1.UID,
+	exemption WhitelistExemption) {
+}
+
 func (d DummyUnfurler) SetMode(ctx context.Context, uid gregor1.UID, mode chat1.UnfurlMode) error {
 	return nil
 }
 
 func (d DummyUnfurler) SetSettings(ctx context.Context, uid gregor1.UID, settings chat1.UnfurlSettings) error {
 	return nil
+}
+
+type DummyStellarSender struct{}
+
+func (d DummyStellarSender) ParsePayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	body string) []ParsedStellarPayment {
+	return nil
+}
+
+func (d DummyStellarSender) DescribePayments(ctx context.Context, uid gregor1.UID,
+	convID chat1.ConversationID, payments []ParsedStellarPayment) (res chat1.UIChatPaymentSummary, toSend []ParsedStellarPayment, err error) {
+	return res, toSend, nil
+}
+
+func (d DummyStellarSender) SendPayments(ctx context.Context, convID chat1.ConversationID, payments []ParsedStellarPayment) ([]chat1.TextPayment, error) {
+	return nil, nil
+}
+
+func (d DummyStellarSender) DecorateWithPayments(ctx context.Context, body string,
+	payments []chat1.TextPayment) string {
+	return body
 }

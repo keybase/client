@@ -23,6 +23,8 @@ type WalletPopupProps = {|
   backButtonType: 'back' | 'cancel' | 'close', // 'back' -> '<' ; 'cancel' -> 'Cancel' ; 'close' -> 'Close'
   headerStyle?: Styles.StylesCrossPlatform,
   headerTitle?: string,
+  safeAreaViewBottomStyle?: Styles.StylesCrossPlatform,
+  safeAreaViewTopStyle?: Styles.StylesCrossPlatform,
 |}
 
 const backButtonTypeToFcnHandle = {
@@ -40,7 +42,7 @@ const WalletPopup = (props: WalletPopupProps) => (
     >
       <Kb.Box2
         direction="vertical"
-        fullHeight={true}
+        fullHeight={!Styles.isMobile}
         fullWidth={true}
         centerChildren={true}
         style={Styles.collapseStyles([
@@ -50,40 +52,35 @@ const WalletPopup = (props: WalletPopupProps) => (
         ])}
       >
         {props.children}
-        {props.bottomButtons &&
-          props.bottomButtons.length > 0 && (
-            <Kb.Box2 direction="vertical" style={styles.buttonBarContainer} fullWidth={true}>
-              <Kb.ButtonBar
-                direction={props.buttonBarDirection || (Styles.isMobile ? 'column' : 'row')}
-                fullWidth={Styles.isMobile}
-                style={Styles.collapseStyles([styles.buttonBar, props.buttonBarStyle])}
-              >
-                {props.bottomButtons}
-              </Kb.ButtonBar>
-            </Kb.Box2>
-          )}
+        {props.bottomButtons && props.bottomButtons.length > 0 && (
+          <Kb.Box2 direction="vertical" style={styles.buttonBarContainer} fullWidth={true}>
+            <Kb.ButtonBar
+              direction={props.buttonBarDirection || (Styles.isMobile ? 'column' : 'row')}
+              fullWidth={Styles.isMobile}
+              style={Styles.collapseStyles([styles.buttonBar, props.buttonBarStyle])}
+            >
+              {props.bottomButtons}
+            </Kb.ButtonBar>
+          </Kb.Box2>
+        )}
       </Kb.Box2>
     </Kb.ScrollView>
   </Kb.Box2>
 )
 
 const styles = Styles.styleSheetCreate({
-  outerContainer: Styles.platformStyles({
+  buttonBar: Styles.platformStyles({
     isElectron: {
-      height: 525,
-      width: 360,
-      borderRadius: 4,
+      minHeight: 0,
     },
+  }),
+  buttonBarContainer: Styles.platformStyles({
+    isElectron: {flex: 1, justifyContent: 'flex-end'},
     isMobile: {
-      width: '100%',
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
     },
   }),
-  header: Styles.platformStyles({
-    isElectron: {
-      borderRadius: 4,
-    },
-  }),
-  popup: Styles.platformStyles({isElectron: {height: '525px', overflow: 'hidden'}}),
   container: Styles.platformStyles({
     common: {
       flexGrow: 1,
@@ -98,18 +95,22 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {},
   }),
-  buttonBarContainer: Styles.platformStyles({
-    isElectron: {flex: 1, justifyContent: 'flex-end'},
-    isMobile: {
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-    },
-  }),
-  buttonBar: Styles.platformStyles({
+  header: Styles.platformStyles({
     isElectron: {
-      minHeight: 0,
+      borderRadius: 4,
     },
   }),
+  outerContainer: Styles.platformStyles({
+    isElectron: {
+      borderRadius: 4,
+      height: 525,
+      width: 360,
+    },
+    isMobile: {
+      width: '100%',
+    },
+  }),
+  popup: Styles.platformStyles({isElectron: {height: '525px', overflow: 'hidden'}}),
   scrollView: {
     ...Styles.globalStyles.flexBoxColumn,
     flexGrow: 1,
@@ -126,6 +127,8 @@ export default compose(
     customComponent: props.headerTitle && (
       <AccountPageHeader accountName={props.accountName} title={props.headerTitle} />
     ),
+    customSafeAreaBottomStyle: props.safeAreaViewBottomStyle,
+    customSafeAreaTopStyle: props.safeAreaViewTopStyle,
     style: (styles.popup: any), // cast to any for flow complaining about every possible style
   })),
   Kb.HeaderOrPopupWithHeader

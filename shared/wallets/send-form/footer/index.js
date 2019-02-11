@@ -26,18 +26,18 @@ const Footer = (props: Props) => (
       {(!!props.worthDescription || props.calculating) && (
         <Kb.Box2 direction="horizontal">
           {props.worthDescription ? (
-            <Kb.Text style={styles.worthDescription} type="BodySmall">
+            <Kb.Text center={true} type="BodySmall">
               This is <Kb.Text type="BodySmallExtrabold">{props.worthDescription}</Kb.Text>.
             </Kb.Text>
           ) : (
-            <Kb.Text style={styles.worthDescription} type="BodySmall">
+            <Kb.Text center={true} type="BodySmall">
               Calculating...
             </Kb.Text>
           )}
           {/* <Kb.Icon
             type="iconfont-question-mark"
             color={Styles.globalColors.black_20}
-            hoverColor={Styles.globalColors.black_40}
+            hoverColor={Styles.globalColors.black_50}
             fontSize={12}
             style={Kb.iconCastPlatformStyles(styles.questionIcon)}
             onClick={() => {
@@ -60,6 +60,7 @@ const Footer = (props: Props) => (
                 type="iconfont-stellar-request"
                 style={Kb.iconCastPlatformStyles(styles.icon)}
                 color={Styles.globalColors.white}
+                fontSize={Styles.isMobile ? 22 : 16}
               />
             }
           />
@@ -78,6 +79,7 @@ const Footer = (props: Props) => (
                 type="iconfont-stellar-send"
                 style={Kb.iconCastPlatformStyles(styles.icon)}
                 color={Styles.globalColors.white}
+                fontSize={Styles.isMobile ? 22 : 16}
               />
             }
           />
@@ -88,25 +90,6 @@ const Footer = (props: Props) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  button: {
-    flex: 1,
-  },
-  container: Styles.platformStyles({
-    common: {
-      flexShrink: 0,
-      justifyContent: 'flex-end',
-    },
-  }),
-  buttonBox: Styles.platformStyles({
-    common: {
-      justifyContent: 'center',
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-      minHeight: 0,
-    },
-    isElectron: {},
-  }),
-  icon: {marginRight: Styles.globalMargins.tiny},
   background: Styles.platformStyles({
     common: {
       backgroundColor: Styles.globalColors.blue5,
@@ -116,11 +99,27 @@ const styles = Styles.styleSheetCreate({
       borderBottomRightRadius: 4,
     },
   }),
+  button: {
+    flex: 1,
+  },
+  buttonBox: Styles.platformStyles({
+    common: {
+      justifyContent: 'center',
+      minHeight: 0,
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
+    },
+    isElectron: {},
+  }),
+  container: Styles.platformStyles({
+    common: {
+      flexShrink: 0,
+      justifyContent: 'flex-end',
+    },
+  }),
+  icon: {marginRight: Styles.globalMargins.tiny},
   questionIcon: {
     marginLeft: 1,
-  },
-  worthDescription: {
-    textAlign: 'center',
   },
 })
 

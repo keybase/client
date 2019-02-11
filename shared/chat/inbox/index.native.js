@@ -25,7 +25,7 @@ const NoChats = () => (
     }}
   >
     <Kb.Icon type="icon-fancy-chat-103-x-75" style={{marginBottom: Styles.globalMargins.medium}} />
-    <Kb.Text type="BodySmallSemibold" backgroundMode="Terminal" style={{color: Styles.globalColors.black_40}}>
+    <Kb.Text type="BodySmallSemibold" backgroundMode="Terminal" style={{color: Styles.globalColors.black_50}}>
       All conversations are end-to-end encrypted.
     </Kb.Text>
   </Kb.Box>
@@ -174,6 +174,7 @@ class Inbox extends React.PureComponent<Props, State> {
     return {index, length, offset}
   }
 
+  _onEnsureSelection = () => this.props.onEnsureSelection()
   _onSelectUp = () => this.props.onSelectUp()
   _onSelectDown = () => this.props.onSelectDown()
 
@@ -189,13 +190,15 @@ class Inbox extends React.PureComponent<Props, State> {
 
     const noChats = !this.props.neverLoaded && !this.props.rows.length && !this.props.filter && <NoChats />
     const owl = !this.props.rows.length && !!this.props.filter && <Owl />
-    const floatingDivider = this.state.showFloating &&
-      this.props.allowShowFloatingButton && <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
+    const floatingDivider = this.state.showFloating && this.props.allowShowFloatingButton && (
+      <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
+    )
     const HeadComponent = (
       <ChatInboxHeader
         filterFocusCount={this.props.filterFocusCount}
         focusFilter={this.props.focusFilter}
         onNewChat={this.props.onNewChat}
+        onEnsureSelection={this._onEnsureSelection}
         onSelectUp={this._onSelectUp}
         onSelectDown={this._onSelectDown}
       />

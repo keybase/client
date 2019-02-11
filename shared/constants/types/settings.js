@@ -67,10 +67,11 @@ export type PassphraseState = {
   newPassphraseConfirmError: ?HiddenString,
   hasPGPKeyOnServer: ?boolean,
   rememberPassphrase: boolean,
+  randomPW: ?boolean,
 }
 
 export type EmailState = {
-  emails: Array<Email>,
+  emails: ?Array<Email>,
   newEmail: string,
   error: ?Error,
 }

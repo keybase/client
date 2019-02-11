@@ -59,13 +59,30 @@ PODS:
 DEPENDENCIES:
   - GBCli
   - KBKit (from `KBKit`)
-  - MPMessagePack
+  - MPMessagePack (from `MPMessagePack`)
   - ObjectiveSugar
   - Slash
+
+SPEC REPOS:
+  https://github.com/cocoapods/specs.git:
+    - AFNetworking
+    - CocoaLumberjack
+    - GBCli
+    - GHKeychain
+    - GHKit
+    - GHODictionary
+    - Mantle
+    - MDPSplitView
+    - ObjectiveSugar
+    - Slash
+    - Tikppa
+    - YOLayout
 
 EXTERNAL SOURCES:
   KBKit:
     :path: KBKit
+  MPMessagePack:
+    :path: MPMessagePack
 
 SPEC CHECKSUMS:
   AFNetworking: cb8d14a848e831097108418f5d49217339d4eb60
@@ -74,15 +91,15 @@ SPEC CHECKSUMS:
   GHKeychain: 008cdb8bbab5b0dc1da3d0f06a67ce5203231e44
   GHKit: 2a20b51df9ce8f4355b2af2821805d369d610546
   GHODictionary: 225e042596a4b3d5b66b2b24250086b2f95514af
-  KBKit: 9f139696e2cd916f05ee603e33aabfd558ac8ccd
+  KBKit: e84eb021c4db47806e8e0a9379aa150f9bf2f9ac
   Mantle: 2fa750afa478cd625a94230fbf1c13462f29395b
   MDPSplitView: 127b4b371e813ec29333e515fb1c057126a75671
-  MPMessagePack: ee6b55fbec4e01a77e2bf631441d01f0b87b3cf5
+  MPMessagePack: d03da25d2fe631a111c1a28b6ba80582312706fc
   ObjectiveSugar: a6a25f23d657c19df0a0b972466d5b5ca9f5295c
   Slash: 7184f2a98e13ad62303037db3a706c88e98b197e
   Tikppa: 77ac88aa89814a5ae9d18a773b4436ebef2235b7
   YOLayout: 6728d890bab9b9e4962efd554cba16d677b30b0f
 
-PODFILE CHECKSUM: 59c5ae4d8c17768463e4c0d142147ea41c2d887d
+PODFILE CHECKSUM: 8fe857c66d9734d19aa442ba588e66c6cc83dc52
 
-COCOAPODS: 1.3.1
+COCOAPODS: 1.5.3

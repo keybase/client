@@ -1,6 +1,6 @@
 // @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define */
+/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
 
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -15,22 +15,10 @@ export const replaceEntity = 'entities:replaceEntity'
 export const subtractEntity = 'entities:subtractEntity'
 
 // Payload Types
-type _DeleteEntityPayload = $ReadOnly<{|
-  keyPath: Array<string>,
-  ids: I.List<string>,
-|}>
-type _MergeEntityPayload = $ReadOnly<{|
-  keyPath: Array<string>,
-  entities: I.Map<any, any> | I.List<any>,
-|}>
-type _ReplaceEntityPayload = $ReadOnly<{|
-  keyPath: Array<string>,
-  entities: I.Map<any, any> | I.List<any>,
-|}>
-type _SubtractEntityPayload = $ReadOnly<{|
-  keyPath: Array<string>,
-  entities: I.List<any>,
-|}>
+type _DeleteEntityPayload = $ReadOnly<{|keyPath: Array<string>, ids: I.List<string>|}>
+type _MergeEntityPayload = $ReadOnly<{|keyPath: Array<string>, entities: I.Map<any, any> | I.List<any>|}>
+type _ReplaceEntityPayload = $ReadOnly<{|keyPath: Array<string>, entities: I.Map<any, any> | I.List<any>|}>
+type _SubtractEntityPayload = $ReadOnly<{|keyPath: Array<string>, entities: I.List<any>|}>
 
 // Action Creators
 export const createDeleteEntity = (payload: _DeleteEntityPayload) => ({payload, type: deleteEntity})
@@ -39,10 +27,10 @@ export const createReplaceEntity = (payload: _ReplaceEntityPayload) => ({payload
 export const createSubtractEntity = (payload: _SubtractEntityPayload) => ({payload, type: subtractEntity})
 
 // Action Payloads
-export type DeleteEntityPayload = $Call<typeof createDeleteEntity, _DeleteEntityPayload>
-export type MergeEntityPayload = $Call<typeof createMergeEntity, _MergeEntityPayload>
-export type ReplaceEntityPayload = $Call<typeof createReplaceEntity, _ReplaceEntityPayload>
-export type SubtractEntityPayload = $Call<typeof createSubtractEntity, _SubtractEntityPayload>
+export type DeleteEntityPayload = {|+payload: _DeleteEntityPayload, +type: 'entities:deleteEntity'|}
+export type MergeEntityPayload = {|+payload: _MergeEntityPayload, +type: 'entities:mergeEntity'|}
+export type ReplaceEntityPayload = {|+payload: _ReplaceEntityPayload, +type: 'entities:replaceEntity'|}
+export type SubtractEntityPayload = {|+payload: _SubtractEntityPayload, +type: 'entities:subtractEntity'|}
 
 // All Actions
 // prettier-ignore
@@ -51,4 +39,4 @@ export type Actions =
   | MergeEntityPayload
   | ReplaceEntityPayload
   | SubtractEntityPayload
-  | {type: 'common:resetStore', payload: void}
+  | {type: 'common:resetStore', payload: null}

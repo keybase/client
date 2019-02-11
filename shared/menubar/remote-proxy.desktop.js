@@ -3,11 +3,10 @@
 import * as React from 'react'
 import SyncAvatarProps from '../desktop/remote/sync-avatar-props.desktop'
 import SyncProps from '../desktop/remote/sync-props.desktop'
-import {NullComponent, connect, renderNothing} from '../util/container'
+import {NullComponent, namedConnect} from '../util/container'
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {conversationsToSend} from '../chat/inbox/container/remote'
 import {serialize} from './remote-serializer.desktop'
-import {memoize1} from '../util/memoize'
 import {uploadsToUploadCountdownHOCProps} from '../fs/footer/upload-container'
 
 const windowOpts = {}
@@ -42,14 +41,12 @@ const mapStateToProps = state => ({
   _tlfUpdates: state.fs.tlfUpdates,
   _uploads: state.fs.uploads,
   conversationsToSend: conversationsToSend(state),
+  daemonHandshakeState: state.config.daemonHandshakeState,
   loggedIn: state.config.loggedIn,
   outOfDate: state.config.outOfDate,
   userInfo: state.users.infoMap,
   username: state.config.username,
 })
-
-// TODO we should just send a Set like structure over, for now just extract trackerState
-const getBrokenSubset = memoize1(userInfo => userInfo.filter(u => u.broken).toJS())
 
 let _lastUsername
 let _lastClearCacheTrigger = 0
@@ -64,6 +61,7 @@ const mergeProps = stateProps => {
     clearCacheTrigger: _lastClearCacheTrigger,
     conversationIDs: stateProps.conversationsToSend,
     conversationMap: stateProps.conversationsToSend,
+    daemonHandshakeState: stateProps.daemonHandshakeState,
     externalRemoteWindow: stateProps._externalRemoteWindowID
       ? SafeElectron.getRemote().BrowserWindow.fromId(stateProps._externalRemoteWindowID)
       : null,
@@ -71,7 +69,7 @@ const mergeProps = stateProps => {
     following: stateProps._following,
     loggedIn: stateProps.loggedIn,
     outOfDate: stateProps.outOfDate,
-    userInfo: getBrokenSubset(stateProps.userInfo),
+    userInfo: stateProps.userInfo,
     username: stateProps.username,
     windowComponent: 'menubar',
     windowOpts,
@@ -83,12 +81,13 @@ const mergeProps = stateProps => {
 
 const RenderExternalWindowBranch = (ComposedComponent: React.ComponentType<any>) =>
   class extends React.PureComponent<{externalRemoteWindow: ?Object}> {
-    render = () => (this.props.externalRemoteWindow ? <ComposedComponent {...this.props} /> : renderNothing)
+    render = () => (this.props.externalRemoteWindow ? <ComposedComponent {...this.props} /> : null)
   }
 
 // Actions are handled by remote-container
-export default connect<Props | {}, _, _, _, _>(
+export default namedConnect<Props | {}, _, _, _, _>(
   mapStateToProps,
   () => ({}),
-  mergeProps
+  mergeProps,
+  'MenubarRemoteProxy'
 )(RenderExternalWindowBranch(RemoteMenubarWindow(SyncAvatarProps(SyncProps(serialize)(NullComponent)))))

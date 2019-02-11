@@ -156,12 +156,13 @@
       "fields": [
         {
           "type": "string",
-          "name": "url"
+          "name": "svgBlack",
+          "jsonkey": "svg_black"
         },
         {
           "type": "string",
-          "name": "faIcon",
-          "jsonkey": "fa_icon"
+          "name": "svgFull",
+          "jsonkey": "svg_full"
         }
       ]
     },
@@ -225,6 +226,14 @@
           },
           "name": "checkPath",
           "jsonkey": "check_path"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SelectorEntry"
+          },
+          "name": "avatarPath",
+          "jsonkey": "avatar_path"
         }
       ]
     },
@@ -232,6 +241,11 @@
       "type": "record",
       "name": "ServiceDisplayConfig",
       "fields": [
+        {
+          "type": "boolean",
+          "name": "creationDisabled",
+          "jsonkey": "creation_disabled"
+        },
         {
           "type": "int",
           "name": "priority"

@@ -75,7 +75,7 @@ class Checkbox extends Component<Props, State> {
           </NativeAnimated.View>
           {!!this.props.labelComponent && <Box style={styleLabel}>{this.props.labelComponent}</Box>}
           {!this.props.labelComponent && (
-            <Text type="Body" style={styleText}>
+            <Text type="Body" style={collapseStyles([styleText, this.props.disabled && {opacity: 0.3}])}>
               {this.props.label}
             </Text>
           )}
@@ -93,26 +93,26 @@ const styleContainer = {
 }
 
 const styleOuter = {
-  height: 28,
-  width: 48,
-  borderWidth: 1,
   borderColor: globalColors.blue,
   borderRadius: 55,
+  borderWidth: 1,
+  height: 28,
   padding: 2,
+  width: 48,
 }
 
 const styleInner = {
-  height: 22,
-  width: 22,
   backgroundColor: globalColors.white,
-  borderWidth: 1,
   borderColor: globalColors.blue,
   borderRadius: 16,
+  borderWidth: 1,
+  height: 22,
+  width: 22,
 }
 
 const styleLabel = {
-  marginLeft: globalMargins.tiny,
   flexShrink: 1,
+  marginLeft: globalMargins.tiny,
 }
 
 const styleText = {

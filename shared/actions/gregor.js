@@ -5,11 +5,14 @@ import * as GregorGen from './gregor-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import engine from '../engine'
-import type {TypedState} from '../constants/reducer'
 
 const setupEngineListeners = () => {
   // we get this with sessionID == 0 if we call openDialog
   engine().setIncomingCallMap({
+    'keybase.1.gregorUI.pushOutOfBandMessages': ({oobm}) => {
+      const filteredOOBM = (oobm || []).filter(Boolean)
+      return filteredOOBM.length ? Saga.put(GregorGen.createPushOOBM({messages: filteredOOBM})) : null
+    },
     'keybase.1.gregorUI.pushState': ({reason, state}) => {
       const items = state.items || []
 
@@ -23,13 +26,9 @@ const setupEngineListeners = () => {
       }
       return Saga.put(GregorGen.createPushState({reason, state: goodState}))
     },
-    'keybase.1.gregorUI.pushOutOfBandMessages': ({oobm}) => {
-      const filteredOOBM = (oobm || []).filter(Boolean)
-      return filteredOOBM.length ? Saga.put(GregorGen.createPushOOBM({messages: filteredOOBM})) : null
-    },
     'keybase.1.reachability.reachabilityChanged': ({reachability}) =>
-      Saga.call(function*() {
-        const state: TypedState = yield Saga.select()
+      Saga.callUntyped(function*() {
+        const state = yield* Saga.selectState()
         if (state.config.loggedIn) {
           // Gregor reachability is only valid if we're logged in
           yield Saga.put(GregorGen.createUpdateReachable({reachable: reachability.reachable}))
@@ -67,7 +66,7 @@ const checkReachability = () =>
     GregorGen.createUpdateReachable({reachable: reachability.reachable})
   )
 
-const updateCategory = (_: any, action: GregorGen.UpdateCategoryPayload) =>
+const updateCategory = (_, action) =>
   RPCTypes.gregorUpdateCategoryRpcPromise({
     body: action.payload.body,
     category: action.payload.category,
@@ -77,10 +76,13 @@ const updateCategory = (_: any, action: GregorGen.UpdateCategoryPayload) =>
     .catch(() => {})
 
 function* gregorSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.actionToPromise(GregorGen.updateCategory, updateCategory)
-  yield Saga.actionToPromise(GregorGen.startReachability, startReachability)
-  yield Saga.actionToPromise(GregorGen.checkReachability, checkReachability)
-  yield Saga.actionToAction(ConfigGen.setupEngineListeners, setupEngineListeners)
+  yield* Saga.chainAction<GregorGen.UpdateCategoryPayload>(GregorGen.updateCategory, updateCategory)
+  yield* Saga.chainAction<GregorGen.StartReachabilityPayload>(GregorGen.startReachability, startReachability)
+  yield* Saga.chainAction<GregorGen.CheckReachabilityPayload>(GregorGen.checkReachability, checkReachability)
+  yield* Saga.chainAction<ConfigGen.SetupEngineListenersPayload>(
+    ConfigGen.setupEngineListeners,
+    setupEngineListeners
+  )
 }
 
 export default gregorSaga

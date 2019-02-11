@@ -5,7 +5,7 @@ import * as Types from '../../constants/types/wallets'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as WalletsGen from '../../actions/wallets-gen'
 import Transaction from '.'
-import {navigateAppend} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 
 export type OwnProps = {
   accountID: Types.AccountID,
@@ -15,25 +15,22 @@ export type OwnProps = {
 const mapStateToProps = (state, ownProps: OwnProps) => ({
   _oldestUnread: Constants.getOldestUnread(state, ownProps.accountID),
   _transaction: Constants.getPayment(state, ownProps.accountID, ownProps.paymentID),
-  _you: state.config.username,
   _unread: Constants.isPaymentUnread(state, ownProps.accountID, ownProps.paymentID),
+  _you: state.config.username,
 })
 
 const mapDispatchToProps = dispatch => ({
-  _onCancelPayment: (paymentID: Types.PaymentID) =>
-    dispatch(WalletsGen.createCancelPayment({paymentID, showAccount: true})),
-  _onSelectTransaction: (
-    paymentID: Types.PaymentID,
-    accountID: Types.AccountID,
-    status: Types.StatusSimplified
-  ) =>
+  _onCancelPayment: (paymentID: Types.PaymentID) => dispatch(WalletsGen.createCancelPayment({paymentID})),
+  _onSelectTransaction: (paymentID: Types.PaymentID, accountID: Types.AccountID) =>
     dispatch(
-      navigateAppend([
-        {
-          props: {accountID, paymentID, status},
-          selected: 'transactionDetails',
-        },
-      ])
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {accountID, paymentID},
+            selected: 'transactionDetails',
+          },
+        ],
+      })
     ),
   onShowProfile: (username: string) => dispatch(ProfileGen.createShowUserProfile({username})),
 })
@@ -50,18 +47,21 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     readState = 'read'
   }
 
+  const isRelayRecipient = tx.statusSimplified === 'claimable' && yourRole === 'receiverOnly'
+
   return {
-    yourRole,
-    counterparty,
-    counterpartyType,
     amountUser: tx.worth,
     amountXLM: tx.amountDescription,
+    approxWorth: tx.worthAtSendTime,
+    counterparty,
+    counterpartyType,
+    issuerDescription: tx.issuerDescription,
     memo,
-    onCancelPayment:
-      tx.statusSimplified === 'cancelable' ? () => dispatchProps._onCancelPayment(tx.id) : null,
+    onCancelPayment: tx.showCancel && !isRelayRecipient ? () => dispatchProps._onCancelPayment(tx.id) : null,
     onCancelPaymentWaitingKey: Constants.cancelPaymentWaitingKey(tx.id),
-    onSelectTransaction: () =>
-      dispatchProps._onSelectTransaction(ownProps.paymentID, ownProps.accountID, tx.statusSimplified),
+    onSelectTransaction: isRelayRecipient
+      ? null
+      : () => dispatchProps._onSelectTransaction(ownProps.paymentID, ownProps.accountID),
     onShowProfile: dispatchProps.onShowProfile,
     readState,
     selectableText: false,
@@ -69,6 +69,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     statusDetail: tx.statusDetail,
     timestamp: tx.time ? new Date(tx.time) : null,
     unread: stateProps._unread,
+    yourRole,
   }
 }
 

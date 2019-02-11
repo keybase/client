@@ -13,15 +13,15 @@ const mapDispatchToProps = (dispatch, {navigateUp, navigateAppend}) => ({
     dispatch(
       navigateAppend([
         {
+          props: {source: {uri: 'https://keybase.io/_/webview/privacypolicy'}, title: 'Privacy Policy'},
           selected: 'privacyPolicy',
-          props: {title: 'Privacy Policy', source: {uri: 'https://keybase.io/_/webview/privacypolicy'}},
         },
       ])
     ),
   onShowTerms: () =>
     dispatch(
       navigateAppend([
-        {selected: 'terms', props: {title: 'Terms', source: {uri: 'https://keybase.io/_/webview/terms'}}},
+        {props: {source: {uri: 'https://keybase.io/_/webview/terms'}, title: 'Terms'}, selected: 'terms'},
       ])
     ),
   title: 'About',

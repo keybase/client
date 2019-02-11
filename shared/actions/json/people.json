@@ -12,6 +12,9 @@
       "lastViewed": "Date",
       "version": "number"
     },
+    "dismissAnnouncement": {
+      id: "RPCTypes.HomeScreenAnnouncementID",
+    },
     "markViewed": {},
     "skipTodo": {
       "type": "Types.TodoType"

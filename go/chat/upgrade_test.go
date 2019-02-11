@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -40,7 +41,7 @@ func TestChatKBFSUpgradeMixed(t *testing.T) {
 	tlfID := cres.NameIDBreaks.TlfID
 	t.Logf("TLFID: %s", tlfID)
 	require.Equal(t, info.Triple.Tlfid, chat1.TLFID(tlfID.ToBytes()))
-	conv, err := GetUnverifiedConv(context.TODO(), tc.Context(), uid, info.Id, true)
+	conv, err := GetUnverifiedConv(context.TODO(), tc.Context(), uid, info.Id, types.InboxSourceDataSourceAll)
 	require.NoError(t, err)
 
 	header := chat1.MessageClientHeader{
@@ -52,9 +53,9 @@ func TestChatKBFSUpgradeMixed(t *testing.T) {
 
 	boxer := NewBoxer(tc.Context())
 	sender := NewBlockingSender(tc.Context(), boxer, func() chat1.RemoteInterface { return ri })
-	kbfsBoxed, _, _, _, _, err := sender.Prepare(ctx, kbfsPlain, chat1.ConversationMembersType_KBFS, &conv)
+	prepareRes, err := sender.Prepare(ctx, kbfsPlain, chat1.ConversationMembersType_KBFS, &conv.Conv)
 	require.NoError(t, err)
-	require.NotNil(t, kbfsBoxed)
+	kbfsBoxed := prepareRes.Boxed
 	kbfsBoxed.ServerHeader = &chat1.MessageServerHeader{
 		Ctime:     gregor1.ToTime(time.Now()),
 		MessageID: 2,
@@ -63,7 +64,7 @@ func TestChatKBFSUpgradeMixed(t *testing.T) {
 	require.NoError(t, teams.UpgradeTLFIDToImpteam(ctx, tc.G, u.Username, tlfID, false,
 		keybase1.TeamApplication_CHAT, cres.CryptKeys))
 
-	conv.Metadata.MembersType = chat1.ConversationMembersType_IMPTEAMUPGRADE
+	conv.Conv.Metadata.MembersType = chat1.ConversationMembersType_IMPTEAMUPGRADE
 	ctx = CtxAddTestingNameInfoSource(ctx, nil)
 	header = chat1.MessageClientHeader{
 		TlfPublic:   false,
@@ -71,17 +72,17 @@ func TestChatKBFSUpgradeMixed(t *testing.T) {
 		MessageType: chat1.MessageType_TEXT,
 	}
 	teamPlain := textMsgWithHeader(t, "team", header)
-	teamBoxed, _, _, _, _, err := sender.Prepare(ctx, teamPlain,
-		chat1.ConversationMembersType_IMPTEAMUPGRADE, &conv)
+	prepareRes, err = sender.Prepare(ctx, teamPlain,
+		chat1.ConversationMembersType_IMPTEAMUPGRADE, &conv.Conv)
 	require.NoError(t, err)
-	require.NotNil(t, teamBoxed)
+	teamBoxed := prepareRes.Boxed
 	teamBoxed.ServerHeader = &chat1.MessageServerHeader{
 		Ctime:     gregor1.ToTime(time.Now()),
 		MessageID: 3,
 	}
 
 	checkUnbox := func() {
-		unboxed, err := boxer.UnboxMessages(ctx, []chat1.MessageBoxed{*teamBoxed, *kbfsBoxed}, conv)
+		unboxed, err := boxer.UnboxMessages(ctx, []chat1.MessageBoxed{teamBoxed, kbfsBoxed}, conv.Conv)
 		require.NoError(t, err)
 		require.Len(t, unboxed, 2)
 		for _, u := range unboxed {

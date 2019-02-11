@@ -4,7 +4,7 @@ import * as Styles from '../../../styles'
 import * as SmallTeam from '../row/small-team'
 import * as ChatTypes from '../../../constants/types/chat2'
 import type {TypedState} from '../../../constants/reducer'
-import {memoize3} from '../../../util/memoize'
+import {memoize} from '../../../util/memoize'
 
 export const maxShownConversations = 3
 
@@ -17,7 +17,7 @@ export type RemoteConvMeta = $Diff<
 >
 
 // To cache the list
-const valuesCached = memoize3(
+const valuesCached = memoize(
   (
     badgeMap,
     unreadMap,
@@ -30,19 +30,18 @@ const valuesCached = memoize3(
     metaMap
       .filter((_, id) => Constants.isValidConversationIDKey(id))
       .map(v => ({
+        conversation: v,
         hasBadge: badgeMap.get(v.conversationIDKey, 0) > 0,
         hasUnread: unreadMap.get(v.conversationIDKey, 0) > 0,
-        conversation: v,
       }))
-      .sort(
-        (a, b) =>
-          a.hasBadge
-            ? b.hasBadge
-              ? b.conversation.timestamp - a.conversation.timestamp
-              : -1
-            : b.hasBadge
-              ? 1
-              : b.conversation.timestamp - a.conversation.timestamp
+      .sort((a, b) =>
+        a.hasBadge
+          ? b.hasBadge
+            ? b.conversation.timestamp - a.conversation.timestamp
+            : -1
+          : b.hasBadge
+          ? 1
+          : b.conversation.timestamp - a.conversation.timestamp
       )
       .take(maxShownConversations)
       .valueSeq()
@@ -94,17 +93,18 @@ export const serialize = ({
     hasResetUsers: !!conversation.resetParticipants && conversation.resetParticipants.size > 0,
     hasUnread,
     iconHoverColor: styles.iconHoverColor,
+    isDecryptingSnippet: false,
     isFinalized: !!conversation.wasFinalizedBy,
     isInWidget: true,
     isMuted: conversation.isMuted,
-    isSelected: false,
     // excluding onSelectConversation
+    isSelected: false,
+    isTypingSnippet: false,
     participantNeedToRekey,
     participants: conversation.teamname
       ? []
       : Constants.getRowParticipants(conversation, _username).toArray(),
     showBold: styles.showBold,
-    isDecryptingSnippet: false,
     snippet: conversation.snippet,
     snippetDecoration: conversation.snippetDecoration,
     subColor: styles.subColor,

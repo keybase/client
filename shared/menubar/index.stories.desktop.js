@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Storybook from '../stories/storybook'
 import * as Kb from '../common-adapters'
 import * as ConfigConstants from '../constants/config'
+import * as Types from '../constants/types/fs'
 import Menubar from './index.desktop'
 import OutOfDate from './out-of-date'
 import {FileUpdate} from './files.desktop'
@@ -21,29 +22,30 @@ const props = {
     followers: {},
     following: {},
   },
+  conversations: [
+    // TODO: fill in a few.
+  ],
+  daemonHandshakeState: 'done',
+  fileName: null,
+  files: 0,
   folderProps: null,
   logIn: Storybook.action('logIn'),
   loggedIn: true,
-  updateNow: Storybook.action('updateNow'),
   onFolderClick: Storybook.action('onFolderClick'),
   onRekey: Storybook.action('onRekey'),
+  onSelectConversation: () => {},
   openApp: Storybook.action('openApp'),
-  showInFinder: Storybook.action('showInFinder'),
   quit: Storybook.action('quit'),
   refresh: Storybook.action('refresh'),
   showBug: Storybook.action('showBug'),
   showHelp: Storybook.action('showHelp'),
+  showInFinder: Storybook.action('showInFinder'),
   showUser: Storybook.action('showUser'),
+  totalSyncingBytes: 0,
+  updateNow: Storybook.action('updateNow'),
   username: 'nathunsmitty',
   windowComponent: 'menubar',
   windowParam: '',
-  onSelectConversation: () => {},
-  conversations: [
-    // TODO: fill in a few.
-  ],
-  files: 0,
-  fileName: null,
-  totalSyncingBytes: 0,
 }
 
 const providers = Storybook.createPropProviderWithCommon({
@@ -61,6 +63,8 @@ const load = () => {
   Storybook.storiesOf('Menubar', module)
     .addDecorator(providers)
     .add('Normal', () => <Menubar {...props} />)
+    .add('Starting up', () => <Menubar {...props} daemonHandshakeState={'starting'} />)
+    .add('Waiting on bootstrap', () => <Menubar {...props} daemonHandshakeState={'waitingForWaiters'} />)
     .add('Not logged in', () => <Menubar {...props} loggedIn={false} />)
     .add('With a file notification', () => (
       <Menubar
@@ -108,10 +112,34 @@ const load = () => {
     .add('Uploading', () => <Menubar {...props} files={1} totalSyncingBytes={1} />)
     .add('FileUpdate', () => (
       <Kb.Box2 direction="vertical">
-        <FileUpdate name="foo" tlfType="private" onClick={Storybook.action('onClick')} uploading={false} />
-        <FileUpdate name="bar" tlfType="private" onClick={Storybook.action('onClick')} uploading={true} />
-        <FileUpdate name="cow" tlfType="private" onClick={Storybook.action('onClick')} uploading={true} />
-        <FileUpdate name="poo" tlfType="private" onClick={Storybook.action('onClick')} uploading={false} />
+        <FileUpdate
+          path={Types.stringToPath('/keybase/team/kbkbfstest/foo')}
+          name="foo"
+          tlfType="private"
+          onClick={Storybook.action('onClick')}
+          uploading={false}
+        />
+        <FileUpdate
+          path={Types.stringToPath('/keybase/team/kbkbfstest/bar')}
+          name="bar"
+          tlfType="private"
+          onClick={Storybook.action('onClick')}
+          uploading={true}
+        />
+        <FileUpdate
+          path={Types.stringToPath('/keybase/team/kbkbfstest/cow')}
+          name="cow"
+          tlfType="private"
+          onClick={Storybook.action('onClick')}
+          uploading={true}
+        />
+        <FileUpdate
+          path={Types.stringToPath('/keybase/team/kbkbfstest/poo')}
+          name="poo"
+          tlfType="private"
+          onClick={Storybook.action('onClick')}
+          uploading={false}
+        />
       </Kb.Box2>
     ))
 }

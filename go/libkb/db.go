@@ -94,6 +94,7 @@ func (j *JSONLocalDb) Open() error           { return j.engine.Open() }
 func (j *JSONLocalDb) ForceOpen() error      { return j.engine.ForceOpen() }
 func (j *JSONLocalDb) Close() error          { return j.engine.Close() }
 func (j *JSONLocalDb) Nuke() (string, error) { return j.engine.Nuke() }
+func (j *JSONLocalDb) Stats() string         { return j.engine.Stats() }
 
 func (j *JSONLocalDb) PutRaw(id DbKey, b []byte) error       { return j.engine.Put(id, nil, b) }
 func (j *JSONLocalDb) GetRaw(id DbKey) ([]byte, bool, error) { return j.engine.Get(id) }
@@ -176,11 +177,14 @@ const (
 	DBTeamChain         = 0x10
 	DBUserPlusAllKeysV1 = 0x19
 
+	DBChatCollapses            = 0xbf
+	DBMerkleAudit              = 0xca
 	DBUnfurler                 = 0xcb
 	DBStellarDisclaimer        = 0xcc
 	DBFTLStorage               = 0xcd
 	DBTeamAuditor              = 0xce
 	DBAttachmentUploader       = 0xcf
+	DBHasRandomPW              = 0xd0
 	DBDiskLRUEntries           = 0xda
 	DBDiskLRUIndex             = 0xdb
 	DBImplicitTeamConflictInfo = 0xdc
