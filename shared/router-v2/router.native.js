@@ -15,12 +15,14 @@ import GlobalError from '../app/global-errors/container'
 import TabBar from './tab-bar/container'
 import {createAppContainer} from '@react-navigation/native'
 import {createSwitchNavigator} from '@react-navigation/core'
-import StackHeader from 'react-navigation-stack/src/views/Header/Header'
+// import StackHeader from 'react-navigation-stack/src/views/Header/Header'
 import {createStackNavigator} from 'react-navigation-stack'
 import {modalRoutes, routes, nameToTab, loggedOutRoutes} from './routes'
 import {LeftAction} from '../common-adapters/header-hoc'
 import * as Shared from './router.shared'
 import {useScreens} from 'react-native-screens'
+import * as Shim from './shim.native'
+
 // turn on screens
 useScreens()
 
@@ -53,7 +55,7 @@ const defaultNavigationOptions = {
   ),
 }
 const headerMode = 'float'
-const MainStackNavigator = createStackNavigator(routes, {
+const MainStackNavigator = createStackNavigator(Shim.shim(routes), {
   defaultNavigationOptions: p => ({
     ...defaultNavigationOptions,
   }),
@@ -65,7 +67,7 @@ const MainStackNavigator = createStackNavigator(routes, {
 const LoggedInStackNavigator = createStackNavigator(
   {
     Main: {screen: MainStackNavigator},
-    ...modalRoutes,
+    ...Shim.shim(modalRoutes),
   },
   {
     headerMode: 'none',
@@ -74,7 +76,7 @@ const LoggedInStackNavigator = createStackNavigator(
 )
 
 const LoggedOutStackNavigator = createStackNavigator(
-  {...loggedOutRoutes},
+  {...Shim.shim(loggedOutRoutes)},
   {
     defaultNavigationOptions: p => ({
       ...defaultNavigationOptions,

@@ -22,6 +22,7 @@ import {
 import {modalRoutes, routes, nameToTab, loggedOutRoutes} from './routes'
 import * as Shared from './router.shared'
 import Header from './header/index.desktop'
+import * as Shim from './shim.desktop'
 
 /**
  * How this works:
@@ -100,14 +101,18 @@ class ModalView extends React.PureComponent<any> {
   }
 }
 
-const MainNavigator = createNavigator(AppView, StackRouter(routes, {initialRouteName: 'tabs:peopleTab'}), {})
+const MainNavigator = createNavigator(
+  AppView,
+  StackRouter(Shim.shim(routes), {initialRouteName: 'tabs:peopleTab'}),
+  {}
+)
 
 const LoggedInStackNavigator = createNavigator(
   ModalView,
   StackRouter(
     {
       Main: {screen: MainNavigator},
-      ...modalRoutes,
+      ...Shim.shim(modalRoutes),
     },
     {}
   ),
@@ -116,7 +121,7 @@ const LoggedInStackNavigator = createNavigator(
 
 const LoggedOutStackNavigator = createNavigator(
   AppView,
-  StackRouter({...loggedOutRoutes}, {initialRouteName: 'login'}),
+  StackRouter({...Shim.shim(loggedOutRoutes)}, {initialRouteName: 'login'}),
   {}
 )
 
