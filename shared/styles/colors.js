@@ -15,6 +15,7 @@ const colors = {
   black_50: 'rgba(0, 0, 0, 0.50)',
   black_50_on_white: 'rgb(127,127,127)',
   black_60: 'rgba(0, 0, 0, 0.60)',
+  black_60_on_white: 'rgb(96,96,96)',
   black_75: 'rgba(0, 0, 0, 0.75)',
   black_75_on_white: 'rgb(64,64,64)',
   blue: '#4C8EFF',
