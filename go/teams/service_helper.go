@@ -30,28 +30,6 @@ func LoadTeamPlusApplicationKeys(ctx context.Context, g *libkb.GlobalContext, id
 	return team.ExportToTeamPlusApplicationKeys(ctx, keybase1.Time(0), application, includeKBFSKeys)
 }
 
-func membersUIDsToUsernames(ctx context.Context, g *libkb.GlobalContext, m keybase1.TeamMembers) (keybase1.TeamMembersDetails, error) {
-	var ret keybase1.TeamMembersDetails
-	var err error
-	ret.Owners, err = userVersionsToDetails(ctx, g, m.Owners)
-	if err != nil {
-		return ret, err
-	}
-	ret.Admins, err = userVersionsToDetails(ctx, g, m.Admins)
-	if err != nil {
-		return ret, err
-	}
-	ret.Writers, err = userVersionsToDetails(ctx, g, m.Writers)
-	if err != nil {
-		return ret, err
-	}
-	ret.Readers, err = userVersionsToDetails(ctx, g, m.Readers)
-	if err != nil {
-		return ret, err
-	}
-	return ret, nil
-}
-
 // Details returns TeamDetails for team name. Keybase-type invites are
 // returned as members. It always repolls to ensure latest version of
 // a team, but member infos (username, full name, if they reset or not)
@@ -82,6 +60,8 @@ func Details(ctx context.Context, g *libkb.GlobalContext, name string) (res keyb
 	}
 	res.AnnotatedActiveInvites = annotatedInvites
 
+	membersHideInactiveDuplicates(ctx, g, &res.Members)
+
 	res.Settings.Open = t.IsOpen()
 	res.Settings.JoinAs = t.chain().inner.OpenTeamJoinAs
 	return res, nil
@@ -109,6 +89,63 @@ func members(ctx context.Context, g *libkb.GlobalContext, t *Team) (keybase1.Tea
 		return keybase1.TeamMembersDetails{}, err
 	}
 	return membersUIDsToUsernames(ctx, g, members)
+}
+
+// If a UID appears multiple times with different TeamMemberStatus, only show the 'ACTIVE' version.
+// This can happen when an owner resets and is re-added as an admin by an admin.
+// Mutates `members`
+func membersHideInactiveDuplicates(ctx context.Context, g *libkb.GlobalContext, members *keybase1.TeamMembersDetails) {
+	// If a UID appears multiple times with different TeamMemberStatus, only show the 'ACTIVE' version.
+	// This can happen when an owner resets and is re-added as an admin by an admin.
+	seenActive := make(map[string] /*uid->*/ bool)
+	lists := []*[]keybase1.TeamMemberDetails{
+		&members.Owners,
+		&members.Admins,
+		&members.Writers,
+		&members.Readers,
+	}
+	// Scan for active rows
+	for _, rows := range lists {
+		for _, row := range *rows {
+			if row.Status == keybase1.TeamMemberStatus_ACTIVE {
+				seenActive[row.Uv.Uid.String()] = true
+			}
+		}
+	}
+	// Filter out superseded inactive rows
+	for _, rows := range lists {
+		filtered := []keybase1.TeamMemberDetails{}
+		for _, row := range *rows {
+			if row.Status == keybase1.TeamMemberStatus_ACTIVE || !seenActive[row.Uv.Uid.String()] {
+				filtered = append(filtered, row)
+			} else {
+				g.Log.CDebugf(ctx, "membersHideInactiveDuplicates filtered out row: %v %v", row.Uv, row.Status)
+			}
+		}
+		*rows = filtered
+	}
+}
+
+func membersUIDsToUsernames(ctx context.Context, g *libkb.GlobalContext, m keybase1.TeamMembers) (keybase1.TeamMembersDetails, error) {
+	var ret keybase1.TeamMembersDetails
+	var err error
+	ret.Owners, err = userVersionsToDetails(ctx, g, m.Owners)
+	if err != nil {
+		return ret, err
+	}
+	ret.Admins, err = userVersionsToDetails(ctx, g, m.Admins)
+	if err != nil {
+		return ret, err
+	}
+	ret.Writers, err = userVersionsToDetails(ctx, g, m.Writers)
+	if err != nil {
+		return ret, err
+	}
+	ret.Readers, err = userVersionsToDetails(ctx, g, m.Readers)
+	if err != nil {
+		return ret, err
+	}
+	return ret, nil
 }
 
 func userVersionsToDetails(ctx context.Context, g *libkb.GlobalContext, uvs []keybase1.UserVersion) (ret []keybase1.TeamMemberDetails, err error) {
