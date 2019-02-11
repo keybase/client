@@ -28,6 +28,7 @@ class Inbox extends React.PureComponent<Props, State> {
 
   _mounted: boolean = false
   _list: ?VariableSizeList<any>
+  _clearedFilterCount: number = 0
 
   componentDidUpdate(prevProps: Props) {
     let listRowsResized = false
@@ -108,6 +109,13 @@ class Inbox extends React.PureComponent<Props, State> {
 
   _onItemsRendered = debounce(({visibleStartIndex, visibleStopIndex}) => {
     if (this.props.filter.length) {
+      return
+    }
+    if (this.props.clearedFilterCount > this._clearedFilterCount) {
+      // just cleared out filter
+      // re-rendering normal inbox for the first time
+      // no new / potentially out of date rows here
+      this._clearedFilterCount = this.props.clearedFilterCount
       return
     }
     const toUnbox = this.props.rows.slice(visibleStartIndex, visibleStopIndex + 1).reduce((arr, r) => {
