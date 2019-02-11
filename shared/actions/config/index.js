@@ -252,7 +252,7 @@ const startLogoutHandshake = state =>
 // stuff to trigger this due to a timeout if there's no listeners or something
 function* maybeDoneWithLogoutHandshake(state) {
   if (state.config.logoutHandshakeWaiters.size <= 0) {
-    yield* Saga.callPromise(RPCTypes.loginLogoutRpcPromise, {force: false})
+    yield* Saga.callPromise(RPCTypes.loginLogoutRpcPromise)
   }
 }
 

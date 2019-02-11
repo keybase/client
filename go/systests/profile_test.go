@@ -123,7 +123,7 @@ func checkIcon(t testing.TB, icon keybase1.SizedImage) {
 	if icon.Width < 2 {
 		t.Fatalf("unreasonable icon size")
 	}
-	if kbtest.SkipIconRemoteTest {
+	if kbtest.SkipIconRemoteTest() {
 		t.Logf("Skipping icon remote test")
 		require.True(t, len(icon.Path) > 8)
 	} else {

@@ -182,4 +182,10 @@ protocol user {
   NextMerkleRootRes findNextMerkleRootAfterReset(UID uid, Seqno resetSeqno, ResetMerkleRoot prev);
 
   boolean loadHasRandomPw(int sessionID, boolean forceRepoll);
+
+  record CanLogoutRes {
+    boolean canLogout;
+    string reason;
+  }
+  CanLogoutRes canLogout(int sessionID);
 }

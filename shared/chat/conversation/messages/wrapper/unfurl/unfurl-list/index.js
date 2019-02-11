@@ -9,7 +9,9 @@ import UnfurlGiphy from '../giphy/container'
 export type UnfurlListItem = {
   unfurl: RPCChatTypes.UnfurlDisplay,
   url: string,
+  isCollapsed: boolean,
   onClose?: () => void,
+  onCollapse: () => void,
 }
 
 export type ListProps = {
@@ -18,7 +20,9 @@ export type ListProps = {
 
 export type UnfurlProps = {
   unfurl: RPCChatTypes.UnfurlDisplay,
+  isCollapsed: boolean,
   onClose?: () => void,
+  onCollapse: () => void,
 }
 
 class Unfurl extends React.PureComponent<UnfurlProps> {
@@ -26,11 +30,21 @@ class Unfurl extends React.PureComponent<UnfurlProps> {
     switch (this.props.unfurl.unfurlType) {
       case RPCChatTypes.unfurlUnfurlType.generic:
         return this.props.unfurl.generic ? (
-          <UnfurlGeneric unfurl={this.props.unfurl.generic} onClose={this.props.onClose} />
+          <UnfurlGeneric
+            unfurl={this.props.unfurl.generic}
+            isCollapsed={this.props.isCollapsed}
+            onClose={this.props.onClose}
+            onCollapse={this.props.onCollapse}
+          />
         ) : null
       case RPCChatTypes.unfurlUnfurlType.giphy:
         return this.props.unfurl.giphy ? (
-          <UnfurlGiphy unfurl={this.props.unfurl.giphy} onClose={this.props.onClose} />
+          <UnfurlGiphy
+            unfurl={this.props.unfurl.giphy}
+            isCollapsed={this.props.isCollapsed}
+            onClose={this.props.onClose}
+            onCollapse={this.props.onCollapse}
+          />
         ) : null
       default:
         return null
@@ -43,7 +57,13 @@ class UnfurlList extends React.PureComponent<ListProps> {
     return (
       <Box2 direction="vertical" gap="tiny" style={styles.container}>
         {this.props.unfurls.map(u => (
-          <Unfurl key={u.url} unfurl={u.unfurl} onClose={u.onClose} />
+          <Unfurl
+            isCollapsed={u.isCollapsed}
+            key={u.url}
+            unfurl={u.unfurl}
+            onClose={u.onClose}
+            onCollapse={u.onCollapse}
+          />
         ))}
       </Box2>
     )

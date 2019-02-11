@@ -900,8 +900,12 @@ func (cache *DiskBlockCacheLocal) getRandomBlockID(numElements,
 		return kbfsblock.ID{}, nil
 	}
 	// Generate a random block ID to start the range.
-	pivot := (1.0 - (float64(numElements) / float64(totalElements)))
-	return kbfsblock.MakeRandomIDInRange(0, pivot, cache.config.IsTestMode())
+	pivot := 1.0 - (float64(numElements) / float64(totalElements))
+	if cache.config.IsTestMode() {
+		return kbfsblock.MakeRandomIDInRange(0, pivot,
+			kbfsblock.UseMathRandForTest)
+	}
+	return kbfsblock.MakeRandomIDInRange(0, pivot, kbfsblock.UseRealRandomness)
 }
 
 // evictSomeBlocks tries to evict `numBlocks` blocks from the cache. If

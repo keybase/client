@@ -1042,6 +1042,7 @@ const rootReducer = (
     case Chat2Gen.unfurlResolvePrompt:
     case Chat2Gen.unfurlRemove:
     case Chat2Gen.confirmScreenResponse:
+    case Chat2Gen.toggleMessageCollapse:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

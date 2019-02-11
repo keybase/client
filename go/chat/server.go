@@ -2096,21 +2096,97 @@ func (h *Server) AddTeamMemberAfterReset(ctx context.Context,
 }
 
 func (h *Server) SetConvRetentionLocal(ctx context.Context, arg chat1.SetConvRetentionLocalArg) (err error) {
-	defer h.Trace(ctx, func() error { return err }, "SetConvRetention(%v, %v)", arg.ConvID, arg.Policy.Summary())()
-	_, err = h.remoteClient().SetConvRetention(ctx, chat1.SetConvRetentionArg{
+	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "SetConvRetentionLocal(%v, %v)", arg.ConvID, arg.Policy.Summary())()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return err
+	}
+	policy := arg.Policy
+	if _, err = h.remoteClient().SetConvRetention(ctx, chat1.SetConvRetentionArg{
 		ConvID: arg.ConvID,
-		Policy: arg.Policy,
+		Policy: policy,
+	}); err != nil {
+		return err
+	}
+
+	// Post a SYSTEM message to conversation about the change. If we're
+	// inheriting the team policy, fetch that for the message.
+	isInherit := false
+	typ, err := policy.Typ()
+	if err != nil {
+		return err
+	}
+	switch typ {
+	case chat1.RetentionPolicyType_INHERIT:
+		isInherit = true
+	}
+
+	rc, err := GetUnverifiedConv(ctx, h.G(), uid, arg.ConvID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		return err
+	}
+	conv := rc.Conv
+	if isInherit {
+		teamRetention := conv.TeamRetention
+		if teamRetention == nil {
+			policy = chat1.RetentionPolicy{}
+		} else {
+			policy = *teamRetention
+		}
+	}
+	membersType := conv.Metadata.MembersType
+	info, err := CreateNameInfoSource(ctx, h.G(), membersType).LookupName(
+		ctx, conv.Metadata.IdTriple.Tlfid, conv.Metadata.Visibility == keybase1.TLFVisibility_PUBLIC)
+	if err != nil {
+		return err
+	}
+	username := h.G().Env.GetUsername()
+	subBody := chat1.NewMessageSystemWithChangeretention(chat1.MessageSystemChangeRetention{
+		User:        username.String(),
+		IsTeam:      false,
+		IsInherit:   isInherit,
+		MembersType: membersType,
+		Policy:      policy,
 	})
-	return err
+	body := chat1.NewMessageBodyWithSystem(subBody)
+	return h.G().ChatHelper.SendMsgByID(ctx, arg.ConvID, info.CanonicalName, body, chat1.MessageType_SYSTEM)
 }
 
 func (h *Server) SetTeamRetentionLocal(ctx context.Context, arg chat1.SetTeamRetentionLocalArg) (err error) {
-	defer h.Trace(ctx, func() error { return err }, "SetTeamRetention(%v, %v)", arg.TeamID, arg.Policy.Summary())()
-	_, err = h.remoteClient().SetTeamRetention(ctx, chat1.SetTeamRetentionArg{
+	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "SetTeamRetentionLocal(%v, %v)", arg.TeamID, arg.Policy.Summary())()
+	if _, err = utils.AssertLoggedInUID(ctx, h.G()); err != nil {
+		return err
+	}
+	if _, err = h.remoteClient().SetTeamRetention(ctx, chat1.SetTeamRetentionArg{
 		TeamID: arg.TeamID,
 		Policy: arg.Policy,
+	}); err != nil {
+		return err
+	}
+
+	// Post a SYSTEM message to the #general channel about the change.
+	tlfID, err := chat1.MakeTLFID(arg.TeamID.String())
+	if err != nil {
+		return err
+	}
+	username := h.G().Env.GetUsername()
+	subBody := chat1.NewMessageSystemWithChangeretention(chat1.MessageSystemChangeRetention{
+		User:        username.String(),
+		IsTeam:      true,
+		IsInherit:   false,
+		MembersType: chat1.ConversationMembersType_TEAM,
+		Policy:      arg.Policy,
 	})
-	return err
+	body := chat1.NewMessageBodyWithSystem(subBody)
+	info, err := CreateNameInfoSource(ctx, h.G(), chat1.ConversationMembersType_TEAM).LookupName(ctx, tlfID, false)
+	if err != nil {
+		return err
+	}
+	return h.G().ChatHelper.SendMsgByName(ctx, info.CanonicalName, &globals.DefaultTeamTopic,
+		chat1.ConversationMembersType_TEAM, keybase1.TLFIdentifyBehavior_CHAT_CLI, body,
+		chat1.MessageType_SYSTEM)
 }
 
 func (h *Server) GetTeamRetentionLocal(ctx context.Context, teamID keybase1.TeamID) (res *chat1.RetentionPolicy, err error) {
@@ -2420,4 +2496,51 @@ func (h *Server) SaveUnfurlSettings(ctx context.Context, arg chat1.SaveUnfurlSet
 		Mode:      arg.Mode,
 		Whitelist: wm,
 	})
+}
+
+func (h *Server) ToggleMessageCollapse(ctx context.Context, arg chat1.ToggleMessageCollapseArg) (err error) {
+	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err }, "ToggleMessageCollapse convID=%s msgID=%d collapsed=%v",
+		arg.ConvID, arg.MsgID, arg.Collapse)()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return err
+	}
+	if err := utils.NewCollapses(h.G()).ToggleSingle(ctx, uid, arg.ConvID, arg.MsgID, arg.Collapse); err != nil {
+		return err
+	}
+	msg, err := GetMessage(ctx, h.G(), uid, arg.ConvID, arg.MsgID, true, nil)
+	if err != nil {
+		h.Debug(ctx, "ToggleMessageCollapse: failed to get message: %s", err)
+		return nil
+	}
+	if !msg.IsValid() {
+		h.Debug(ctx, "ToggleMessageCollapse: invalid message")
+		return nil
+	}
+	if msg.Valid().MessageBody.IsType(chat1.MessageType_UNFURL) {
+		unfurledMsg, err := GetMessage(ctx, h.G(), uid, arg.ConvID,
+			msg.Valid().MessageBody.Unfurl().MessageID, true, nil)
+		if err != nil {
+			h.Debug(ctx, "ToggleMessageCollapse: failed to get unfurl base message: %s", err)
+			return nil
+		}
+		// give a notification about the unfurled message
+		notif := chat1.MessagesUpdated{
+			ConvID:  arg.ConvID,
+			Updates: []chat1.UIMessage{utils.PresentMessageUnboxed(ctx, h.G(), unfurledMsg, uid, arg.ConvID)},
+		}
+		act := chat1.NewChatActivityWithMessagesUpdated(notif)
+		h.G().ActivityNotifier.Activity(ctx, uid, chat1.TopicType_CHAT,
+			&act, chat1.ChatActivitySource_LOCAL)
+	} else if msg.Valid().MessageBody.IsType(chat1.MessageType_ATTACHMENT) {
+		notif := chat1.MessagesUpdated{
+			ConvID:  arg.ConvID,
+			Updates: []chat1.UIMessage{utils.PresentMessageUnboxed(ctx, h.G(), msg, uid, arg.ConvID)},
+		}
+		act := chat1.NewChatActivityWithMessagesUpdated(notif)
+		h.G().ActivityNotifier.Activity(ctx, uid, chat1.TopicType_CHAT,
+			&act, chat1.ChatActivitySource_LOCAL)
+	}
+	return nil
 }

@@ -16,6 +16,7 @@ export type SettingsProps = {|
   currencyWaiting: boolean,
   currency: Types.Currency,
   currencies: I.List<Types.Currency>,
+  canSubmitTx: boolean,
   onBack: () => void,
   onDelete: () => void,
   onSetDefault: () => void,
@@ -177,12 +178,19 @@ class AccountSettings extends React.Component<SettingsProps> {
                   {props.inflationDestination}
                 </Kb.Text>
               )}
-              <Kb.Button
-                type="Secondary"
-                label={props.inflationDestination ? 'Change' : 'Set up'}
-                onClick={props.onSetupInflation}
-                style={styles.setupInflation}
-              />
+              {!!props.canSubmitTx && (
+                <Kb.Button
+                  type="Secondary"
+                  label={props.inflationDestination ? 'Change' : 'Set up'}
+                  onClick={props.onSetupInflation}
+                  style={styles.setupInflation}
+                />
+              )}
+              {!props.canSubmitTx && (
+                <Kb.Text type="BodySmall">
+                  Your account needs more funds to set an inflation destination.
+                </Kb.Text>
+              )}
             </Kb.Box2>
             <Kb.Box2
               direction="vertical"

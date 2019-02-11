@@ -533,6 +533,12 @@
       "_description": "Set the message ordinal a thread should be centered on when loaded",
       "conversationIDKey": "Types.ConversationIDKey",
       "ordinal": "?Types.Ordinal"
+    },
+    "toggleMessageCollapse": {
+      "_description": "Set the collapse status of a message",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "Types.MessageID",
+      "collapse": "boolean"
     }
   }
 }

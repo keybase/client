@@ -119,6 +119,7 @@ export type {
   MessageSetChannelname,
   MessageSetDescription,
   MessageSystemAddedToTeam,
+  MessageSystemChangeRetention,
   MessageSystemGitPush,
   MessageSystemInviteAccepted,
   MessageSystemJoined,
