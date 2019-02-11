@@ -412,8 +412,20 @@ func reAddMemberAfterResetInner(ctx context.Context, g *libkb.GlobalContext, tea
 
 		hasPUK := len(upak.Current.PerUserKeys) > 0
 
+		loggedInRole, err := t.myRole(ctx)
+		if err != nil {
+			return err
+		}
+
+		targetRole := existingRole
+		if existingRole.IsOrAbove(loggedInRole) {
+			// If an admin is trying to re-add an owner, re-add them as an admin.
+			// An admin cannot grant owner privileges, so this is the best we can do.
+			targetRole = loggedInRole
+		}
+
 		tx := CreateAddMemberTx(t)
-		if err := tx.ReAddMemberToImplicitTeam(uv, hasPUK, existingRole); err != nil {
+		if err := tx.ReAddMemberToImplicitTeam(uv, hasPUK, targetRole); err != nil {
 			return err
 		}
 
