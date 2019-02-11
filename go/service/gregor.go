@@ -809,11 +809,11 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 		return fmt.Errorf("error running state sync: %s", err)
 	}
 
-	// Update bading from gregor.
+	// Update badging from gregor.
 	if g.badger != nil {
 		state, err := gcli.StateMachineState(ctx, nil, false)
 		if err != nil {
-			g.chatLog.Debug(ctx, "unable to get state: %v", err)
+			g.chatLog.Debug(ctx, "unable to get gregor state for badging: %v", err)
 			g.badger.PushState(ctx, gregor1.State{})
 		} else {
 			g.badger.PushState(ctx, state)
