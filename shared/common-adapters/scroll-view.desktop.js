@@ -21,8 +21,6 @@ const ScrollView = (props: Props) => {
   )
 }
 
-// not using a stylesheet because StylesCrossPlatform
-// doesn't include overflowX and overflowY
 const styles = Styles.styleSheetCreate({
   overflowAuto: {
     overflow: 'auto',
