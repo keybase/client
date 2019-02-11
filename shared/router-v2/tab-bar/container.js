@@ -1,12 +1,13 @@
 // @flow
-import {connect} from '../../util/container'
-import TabBar from '.'
-import type {Tab} from '../../constants/tabs'
+import * as Tabs from '../../constants/tabs'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import TabBar from '.'
+import {connect} from '../../util/container'
+import {memoize} from '../../util/memoize'
 
 type OwnProps = {|
-  selectedTab: Tab,
+  selectedTab: Tabs.Tab,
 |}
 
 const mapStateToProps = state => ({
@@ -22,13 +23,13 @@ const mapDispatchToProps = dispatch => ({
   },
 })
 
+const getBadges = memoize(b => b.toObject())
+
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  badgeNumbers: stateProps._badgeNumbers.toObject(),
-  isNew: {
-    // [walletsTab]: stateProps.isWalletsNew,
-  },
+  badgeNumbers: getBadges(stateProps._badgeNumbers),
+  isWalletsNew: stateProps.isWalletsNew,
   onProfileClick: () => dispatchProps._onProfileClick(stateProps.username),
-  onTabClick: (tab: Tab) => dispatchProps._onTabClick(tab),
+  onTabClick: (tab: Tabs.Tab) => dispatchProps._onTabClick(tab),
   selectedTab: ownProps.selectedTab,
   username: stateProps.username,
 })

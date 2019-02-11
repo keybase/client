@@ -4,6 +4,7 @@ import * as Kb from '../../common-adapters'
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Tabs from '../../constants/tabs'
+import type Props from '.'
 
 const icons = {
   [Tabs.chatTab]: 'iconfont-nav-chat',
@@ -15,9 +16,8 @@ const icons = {
 
 const tabs = [Tabs.peopleTab, Tabs.chatTab, Tabs.teamsTab, Tabs.settingsTab]
 
-type Props = any
 // Immediately draw selected and don't wait for the store
-type State = {justSelected: ?string}
+type State = {|justSelected: ?string|}
 class TabBar extends React.PureComponent<Props, State> {
   state = {justSelected: null}
   _onTabClick = justSelected => {
@@ -39,14 +39,16 @@ class TabBar extends React.PureComponent<Props, State> {
       !!p.username && (
         <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
           {tabs.map(t => (
-            <Kb.Icon
-              key={t}
-              type={icons[t]}
-              onClick={() => this._onTabClick(t)}
-              fontSize={32}
-              style={t === selectedTab ? styles.tabSelected : styles.tab}
-              color={t === selectedTab ? Styles.globalColors.white : Styles.globalColors.darkBlue4}
-            />
+            <Kb.Box2 key={t} direction="vertical" style={styles.iconContainer}>
+              <Kb.Icon
+                type={icons[t]}
+                onClick={() => this._onTabClick(t)}
+                fontSize={32}
+                style={styles.tab}
+                color={t === selectedTab ? Styles.globalColors.white : Styles.globalColors.darkBlue4}
+              />
+              {!!p.badgeNumbers[t] && <Kb.Badge badgeNumber={p.badgeNumbers[t]} badgeStyle={styles.badge} />}
+            </Kb.Box2>
           ))}
         </Kb.Box2>
       )
@@ -54,8 +56,12 @@ class TabBar extends React.PureComponent<Props, State> {
   }
 }
 
-const tab = {}
 const styles = Styles.styleSheetCreate({
+  badge: {
+    position: 'absolute',
+    right: 8,
+    top: 3,
+  },
   container: {
     alignItems: 'center',
     // TEMP to really know you're on this branch
@@ -64,11 +70,20 @@ const styles = Styles.styleSheetCreate({
     height: Styles.isAndroid ? 56 : 48,
     justifyContent: 'space-around',
   },
-  tab: {
-    ...tab,
+  iconContainer: {
+    position: 'relative',
   },
-  tabSelected: {
-    ...tab,
+  // When we have new tabs
+  meta: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+  },
+  tab: {
+    paddingBottom: 6,
+    paddingLeft: 16,
+    paddingRight: 16,
+    paddingTop: 6,
   },
 })
 
