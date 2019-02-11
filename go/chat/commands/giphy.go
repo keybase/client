@@ -6,10 +6,21 @@ import (
 
 	"github.com/keybase/client/go/chat/giphy"
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 )
+
+type giphySearcher interface {
+	Search(mctx libkb.MetaContext, query *string, urlsrv types.AttachmentURLSrv) ([]chat1.GiphySearchResult, error)
+}
+
+type defaultGiphySearcher struct{}
+
+func (d defaultGiphySearcher) Search(mctx libkb.MetaContext, query *string, urlsrv types.AttachmentURLSrv) ([]chat1.GiphySearchResult, error) {
+	return giphy.Search(mctx, query, urlsrv)
+}
 
 type Giphy struct {
 	sync.Mutex
@@ -17,12 +28,14 @@ type Giphy struct {
 	shownResults      map[string]bool
 	currentOpCancelFn context.CancelFunc
 	currentOpDoneCb   chan struct{}
+	searcher          giphySearcher
 }
 
 func NewGiphy(g *globals.Context) *Giphy {
 	return &Giphy{
 		baseCommand:  newBaseCommand(g, "giphy", "[search terms]", "Search Giphy for GIFs"),
 		shownResults: make(map[string]bool),
+		searcher:     defaultGiphySearcher{},
 	}
 }
 
@@ -43,7 +56,7 @@ func (s *Giphy) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Conve
 	if !s.Match(ctx, text) {
 		return ErrInvalidCommand
 	}
-	results, err := giphy.Search(libkb.NewMetaContext(ctx, s.G().ExternalG()), s.getQuery(text),
+	results, err := s.searcher.Search(libkb.NewMetaContext(ctx, s.G().ExternalG()), s.getQuery(text),
 		s.G().AttachmentURLSrv)
 	if err != nil {
 		s.Debug(ctx, "Execute: failed to get Giphy results: %s", err)
@@ -86,13 +99,14 @@ func (s *Giphy) Preview(ctx context.Context, uid gregor1.UID, convID chat1.Conve
 	}
 	select {
 	case <-s.currentOpDoneCb:
+		s.Debug(ctx, "Preview: waiting for previous run to terminate")
 	default:
 	}
+	s.Debug(ctx, "Preview: cleared for takeoff")
 	ctx, s.currentOpCancelFn = context.WithCancel(ctx)
 	s.currentOpDoneCb = make(chan struct{})
-	defer close(s.currentOpDoneCb)
-	defer func() { s.currentOpCancelFn = nil }()
 	s.Unlock()
+	defer close(s.currentOpDoneCb)
 
 	if !s.Match(ctx, text) || text == "/giphy" {
 		shown := s.shownResults[convID.String()]
@@ -103,7 +117,7 @@ func (s *Giphy) Preview(ctx context.Context, uid gregor1.UID, convID chat1.Conve
 		}
 		return
 	}
-	results, err := giphy.Search(libkb.NewMetaContext(ctx, s.G().ExternalG()), s.getQuery(text),
+	results, err := s.searcher.Search(libkb.NewMetaContext(ctx, s.G().ExternalG()), s.getQuery(text),
 		s.G().AttachmentURLSrv)
 	if err != nil {
 		s.Debug(ctx, "Preview: failed to get Giphy results: %s", err)
