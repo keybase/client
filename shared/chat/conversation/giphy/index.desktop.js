@@ -13,7 +13,7 @@ const poweredByImg = 'powered-by-giphy.png'
 
 const GiphySearch = (props: Props) => {
   return (
-    <Kb.Box direction="vertical" style={styles.outerContainer}>
+    <Kb.Box style={styles.outerContainer}>
       <Kb.ScrollView style={styles.scrollContainer}>
         <Kb.Box2 direction="horizontal" style={styles.instructionsContainer} fullWidth={true} gap="tiny">
           <Kb.Text style={styles.instructions} type="BodySmall">
