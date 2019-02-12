@@ -174,6 +174,28 @@ func testList(
 		expectedEntries...)
 }
 
+func TestStatNonExistent(t *testing.T) {
+	ctx := context.Background()
+	config := libkbfs.MakeTestConfigOrBust(t, "dog", "cat")
+	sfs := newSimpleFS(env.EmptyAppStateUpdater{}, config)
+
+	t.Logf("/private/dog,cat should be writable for dog")
+	p := keybase1.NewPathWithKbfs("/private/dog,cat")
+	de, err := sfs.SimpleFSStat(ctx, keybase1.SimpleFSStatArg{
+		Path: p,
+	})
+	require.NoError(t, err)
+	require.True(t, de.Writable)
+
+	t.Logf("/private/cat#dog should not be writable for dog")
+	p = keybase1.NewPathWithKbfs("/private/cat#dog")
+	de, err = sfs.SimpleFSStat(ctx, keybase1.SimpleFSStatArg{
+		Path: p,
+	})
+	require.NoError(t, err)
+	require.False(t, de.Writable)
+}
+
 func TestList(t *testing.T) {
 	ctx := context.Background()
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
