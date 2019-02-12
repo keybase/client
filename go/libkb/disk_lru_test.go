@@ -1,17 +1,16 @@
-package lru
+package libkb
 
 import (
 	"testing"
 	"time"
 
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
 
 func TestDiskLRUBasic(t *testing.T) {
-	tc := libkb.SetupTest(t, "TestDiskLRU", 1)
+	tc := SetupTest(t, "TestDiskLRU", 1)
 	defer tc.Cleanup()
 
 	ctx := context.TODO()
@@ -45,7 +44,7 @@ func TestDiskLRUBasic(t *testing.T) {
 }
 
 func TestDiskLRUVersion(t *testing.T) {
-	tc := libkb.SetupTest(t, "TestDiskLRU", 1)
+	tc := SetupTest(t, "TestDiskLRU", 1)
 	defer tc.Cleanup()
 
 	ctx := context.TODO()
@@ -66,7 +65,7 @@ func TestDiskLRUVersion(t *testing.T) {
 }
 
 func TestDiskLRUEvict(t *testing.T) {
-	tc := libkb.SetupTest(t, "TestDiskLRU", 1)
+	tc := SetupTest(t, "TestDiskLRU", 1)
 	defer tc.Cleanup()
 
 	ctx := context.TODO()
@@ -107,7 +106,7 @@ func TestDiskLRUEvict(t *testing.T) {
 }
 
 func TestDiskLRUFlush(t *testing.T) {
-	tc := libkb.SetupTest(t, "TestDiskLRU", 1)
+	tc := SetupTest(t, "TestDiskLRU", 1)
 	defer tc.Cleanup()
 
 	ctx := context.TODO()

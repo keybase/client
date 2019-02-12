@@ -5,12 +5,11 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/lru"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
 type URLCachingSource struct {
-	diskLRU        *lru.DiskLRU
+	diskLRU        *libkb.DiskLRU
 	staleThreshold time.Duration
 	simpleSource   *SimpleSource
 
@@ -22,7 +21,7 @@ var _ Source = (*URLCachingSource)(nil)
 
 func NewURLCachingSource(staleThreshold time.Duration, size int) *URLCachingSource {
 	return &URLCachingSource{
-		diskLRU:        lru.NewDiskLRU("avatarurls", 1, size),
+		diskLRU:        libkb.NewDiskLRU("avatarurls", 1, size),
 		staleThreshold: staleThreshold,
 		simpleSource:   NewSimpleSource(),
 	}
@@ -44,7 +43,7 @@ func (c *URLCachingSource) avatarKey(name string, format keybase1.AvatarFormat) 
 	return fmt.Sprintf("%s:%s", name, format.String())
 }
 
-func (c *URLCachingSource) isStale(m libkb.MetaContext, item lru.DiskLRUEntry) bool {
+func (c *URLCachingSource) isStale(m libkb.MetaContext, item libkb.DiskLRUEntry) bool {
 	return m.G().GetClock().Now().Sub(item.Ctime) > c.staleThreshold
 }
 

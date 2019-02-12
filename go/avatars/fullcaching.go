@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/lru"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
 
@@ -59,7 +58,7 @@ type populateArg struct {
 }
 
 type FullCachingSource struct {
-	diskLRU        *lru.DiskLRU
+	diskLRU        *libkb.DiskLRU
 	staleThreshold time.Duration
 	simpleSource   Source
 
@@ -76,7 +75,7 @@ var _ Source = (*FullCachingSource)(nil)
 
 func NewFullCachingSource(staleThreshold time.Duration, size int) *FullCachingSource {
 	return &FullCachingSource{
-		diskLRU:        lru.NewDiskLRU("avatars", 1, size),
+		diskLRU:        libkb.NewDiskLRU("avatars", 1, size),
 		staleThreshold: staleThreshold,
 		simpleSource:   NewSimpleSource(),
 	}
@@ -103,7 +102,7 @@ func (c *FullCachingSource) avatarKey(name string, format keybase1.AvatarFormat)
 	return fmt.Sprintf("%s:%s", name, format.String())
 }
 
-func (c *FullCachingSource) isStale(m libkb.MetaContext, item lru.DiskLRUEntry) bool {
+func (c *FullCachingSource) isStale(m libkb.MetaContext, item libkb.DiskLRUEntry) bool {
 	return m.G().GetClock().Now().Sub(item.Ctime) > c.staleThreshold
 }
 
@@ -218,7 +217,7 @@ func (c *FullCachingSource) commitAvatarToDisk(m libkb.MetaContext, data io.Read
 	return path, nil
 }
 
-func (c *FullCachingSource) removeFile(m libkb.MetaContext, ent *lru.DiskLRUEntry) {
+func (c *FullCachingSource) removeFile(m libkb.MetaContext, ent *libkb.DiskLRUEntry) {
 	if ent != nil {
 		file := ent.Value.(string)
 		if err := os.Remove(file); err != nil {

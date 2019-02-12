@@ -20,7 +20,6 @@ import (
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/kbhttp"
 	"github.com/keybase/client/go/libkb"
-	disklru "github.com/keybase/client/go/lru"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -482,7 +481,7 @@ type CachingAttachmentFetcher struct {
 	utils.DebugLabeler
 
 	store   attachments.Store
-	diskLRU *disklru.DiskLRU
+	diskLRU *libkb.DiskLRU
 
 	// testing
 	tempDir string
@@ -495,7 +494,7 @@ func NewCachingAttachmentFetcher(g *globals.Context, store attachments.Store, si
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "CachingAttachmentFetcher", false),
 		store:        store,
-		diskLRU:      disklru.NewDiskLRU("attachments", 1, size),
+		diskLRU:      libkb.NewDiskLRU("attachments", 1, size),
 	}
 }
 

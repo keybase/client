@@ -1,4 +1,4 @@
-package lru
+package libkb
 
 import (
 	"container/list"
@@ -7,7 +7,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keybase/client/go/libkb"
 	context "golang.org/x/net/context"
 )
 
@@ -147,25 +146,25 @@ func NewDiskLRU(name string, version int, maxSize int) *DiskLRU {
 	}
 }
 
-func (d *DiskLRU) debug(ctx context.Context, lctx libkb.LRUContext, msg string, args ...interface{}) {
+func (d *DiskLRU) debug(ctx context.Context, lctx LRUContext, msg string, args ...interface{}) {
 	lctx.GetLog().CDebugf(ctx, fmt.Sprintf("DiskLRU: %s(%d): ", d.name, d.version)+msg, args...)
 }
 
-func (d *DiskLRU) indexKey() libkb.DbKey {
-	return libkb.DbKey{
-		Typ: libkb.DBDiskLRUIndex,
+func (d *DiskLRU) indexKey() DbKey {
+	return DbKey{
+		Typ: DBDiskLRUIndex,
 		Key: fmt.Sprintf("%s:%d", d.name, d.version),
 	}
 }
 
-func (d *DiskLRU) entryKey(key string) libkb.DbKey {
-	return libkb.DbKey{
-		Typ: libkb.DBDiskLRUEntries,
+func (d *DiskLRU) entryKey(key string) DbKey {
+	return DbKey{
+		Typ: DBDiskLRUEntries,
 		Key: fmt.Sprintf("%s:%d:%s", d.name, d.version, key),
 	}
 }
 
-func (d *DiskLRU) readIndex(ctx context.Context, lctx libkb.LRUContext) (res *diskLRUIndex, err error) {
+func (d *DiskLRU) readIndex(ctx context.Context, lctx LRUContext) (res *diskLRUIndex, err error) {
 	// Check memory and stash if we read with no error
 	if d.index != nil {
 		return d.index, nil
@@ -190,7 +189,7 @@ func (d *DiskLRU) readIndex(ctx context.Context, lctx libkb.LRUContext) (res *di
 	return res, nil
 }
 
-func (d *DiskLRU) writeIndex(ctx context.Context, lctx libkb.LRUContext, index *diskLRUIndex,
+func (d *DiskLRU) writeIndex(ctx context.Context, lctx LRUContext, index *diskLRUIndex,
 	forceFlush bool) error {
 	if forceFlush || lctx.GetClock().Now().Sub(d.lastFlush) > d.flushDuration {
 		marshalIndex := index.Marshal()
@@ -206,7 +205,7 @@ func (d *DiskLRU) writeIndex(ctx context.Context, lctx libkb.LRUContext, index *
 	return nil
 }
 
-func (d *DiskLRU) readEntry(ctx context.Context, lctx libkb.LRUContext, key string) (found bool, res DiskLRUEntry, err error) {
+func (d *DiskLRU) readEntry(ctx context.Context, lctx LRUContext, key string) (found bool, res DiskLRUEntry, err error) {
 	found, err = lctx.GetKVStore().GetInto(&res, d.entryKey(key))
 	if err != nil {
 		return false, res, err
@@ -217,7 +216,7 @@ func (d *DiskLRU) readEntry(ctx context.Context, lctx libkb.LRUContext, key stri
 	return true, res, nil
 }
 
-func (d *DiskLRU) accessEntry(ctx context.Context, lctx libkb.LRUContext, index *diskLRUIndex,
+func (d *DiskLRU) accessEntry(ctx context.Context, lctx LRUContext, index *diskLRUIndex,
 	entry *DiskLRUEntry) error {
 	// Promote the key in the index
 	index.Put(entry.Key)
@@ -226,7 +225,7 @@ func (d *DiskLRU) accessEntry(ctx context.Context, lctx libkb.LRUContext, index 
 	return lctx.GetKVStore().PutObj(d.entryKey(entry.Key), nil, entry)
 }
 
-func (d *DiskLRU) Get(ctx context.Context, lctx libkb.LRUContext, key string) (found bool, res DiskLRUEntry, err error) {
+func (d *DiskLRU) Get(ctx context.Context, lctx LRUContext, key string) (found bool, res DiskLRUEntry, err error) {
 	d.Lock()
 	defer d.Unlock()
 
@@ -265,12 +264,12 @@ func (d *DiskLRU) Get(ctx context.Context, lctx libkb.LRUContext, key string) (f
 	return true, res, nil
 }
 
-func (d *DiskLRU) removeEntry(ctx context.Context, lctx libkb.LRUContext, index *diskLRUIndex, key string) error {
+func (d *DiskLRU) removeEntry(ctx context.Context, lctx LRUContext, index *diskLRUIndex, key string) error {
 	index.Remove(key)
 	return lctx.GetKVStore().Delete(d.entryKey(key))
 }
 
-func (d *DiskLRU) addEntry(ctx context.Context, lctx libkb.LRUContext, index *diskLRUIndex, key string,
+func (d *DiskLRU) addEntry(ctx context.Context, lctx LRUContext, index *diskLRUIndex, key string,
 	value interface{}) (evicted *DiskLRUEntry, err error) {
 
 	// Add the new item
@@ -311,7 +310,7 @@ func (d *DiskLRU) addEntry(ctx context.Context, lctx libkb.LRUContext, index *di
 	return evicted, nil
 }
 
-func (d *DiskLRU) Put(ctx context.Context, lctx libkb.LRUContext, key string, value interface{}) (evicted *DiskLRUEntry, err error) {
+func (d *DiskLRU) Put(ctx context.Context, lctx LRUContext, key string, value interface{}) (evicted *DiskLRUEntry, err error) {
 	d.Lock()
 	defer d.Unlock()
 
@@ -337,7 +336,7 @@ func (d *DiskLRU) Put(ctx context.Context, lctx libkb.LRUContext, key string, va
 	return d.addEntry(ctx, lctx, index, key, value)
 }
 
-func (d *DiskLRU) Remove(ctx context.Context, lctx libkb.LRUContext, key string) (err error) {
+func (d *DiskLRU) Remove(ctx context.Context, lctx LRUContext, key string) (err error) {
 	d.Lock()
 	defer d.Unlock()
 	var index *diskLRUIndex
@@ -355,27 +354,27 @@ func (d *DiskLRU) Remove(ctx context.Context, lctx libkb.LRUContext, key string)
 	return d.removeEntry(ctx, lctx, index, key)
 }
 
-func (d *DiskLRU) ClearMemory(ctx context.Context, lctx libkb.LRUContext) {
+func (d *DiskLRU) ClearMemory(ctx context.Context, lctx LRUContext) {
 	d.Lock()
 	defer d.Unlock()
 	d.flush(ctx, lctx)
 	d.index = nil
 }
 
-func (d *DiskLRU) flush(ctx context.Context, lctx libkb.LRUContext) error {
+func (d *DiskLRU) flush(ctx context.Context, lctx LRUContext) error {
 	if d.index != nil {
 		return d.writeIndex(ctx, lctx, d.index, true)
 	}
 	return nil
 }
 
-func (d *DiskLRU) Flush(ctx context.Context, lctx libkb.LRUContext) error {
+func (d *DiskLRU) Flush(ctx context.Context, lctx LRUContext) error {
 	d.Lock()
 	defer d.Unlock()
 	return d.flush(ctx, lctx)
 }
 
-func (d *DiskLRU) Size(ctx context.Context, lctx libkb.LRUContext) (int, error) {
+func (d *DiskLRU) Size(ctx context.Context, lctx LRUContext) (int, error) {
 	d.Lock()
 	defer d.Unlock()
 	index, err := d.readIndex(ctx, lctx)
