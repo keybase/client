@@ -5,6 +5,10 @@ import {memoize} from '../../../util/memoize'
 import type {RowItem} from '../index.types'
 
 const score = (lcFilter: string, lcYou: string, names: Array<string>, insertMatcher: RegExp): number => {
+  // special case, no filter
+  if (!lcFilter) {
+    return 1
+  }
   // special case, looking for yourself
   if (names.length === 1 && names[0] === lcYou) {
     return lcYou.indexOf(lcFilter) !== -1 ? 100000 : 0
@@ -101,10 +105,10 @@ const makeBigItem = (meta, filter, insertMatcher) => {
 }
 
 // Ignore headers, score based on matches of participants, ignore total non matches
-const getFilteredRowsAndMetadata = memoize<Types.MetaMap, string, string, void, _>(
-  (metaMap: Types.MetaMap, filter: string, username: string) => {
+const getFilteredRowsAndMetadata = memoize<Types.MetaMap, Types.ConversationCountMap, string, string, _>(
+  (metaMap: Types.MetaMap, unread: Types.ConversationCountMap, filter: string, username: string) => {
     const metas = metaMap.valueSeq().toArray()
-    const lcFilter = filter.toLowerCase()
+    let lcFilter = filter.toLowerCase()
     const lcYou = username.toLowerCase()
     const insertMatcher = new RegExp(
       `${filter
@@ -114,7 +118,12 @@ const getFilteredRowsAndMetadata = memoize<Types.MetaMap, string, string, void, 
         .join('')}`,
       'i'
     )
-    const rows: Array<RowItem> = metas
+    let metasFiltered = metas
+    if (lcFilter.startsWith('@unread')) {
+      metasFiltered = metas.filter(m => unread.get(m.conversationIDKey, 0) > 0)
+      lcFilter = lcFilter.substring('@unread'.length).trim()
+    }
+    const rows: Array<RowItem> = metasFiltered
       .map(meta =>
         meta.teamType !== 'big'
           ? makeSmallItem(meta, lcFilter, lcYou, insertMatcher)
