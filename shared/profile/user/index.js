@@ -184,8 +184,10 @@ class FriendRow extends React.Component<FriendRowProps> {
 }
 
 type BioTeamProofsProps = {|
+  assertionKeys: ?Array<string>,
   backgroundColorType: BackgroundColorType,
   onEditAvatar: ?() => void,
+  suggestionKeys: ?Array<string>,
   username: string,
 |}
 class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
@@ -278,8 +280,10 @@ class User extends React.Component<Props, State> {
     data: ['bioTeamProofs'],
     renderItem: () => (
       <BioTeamProofs
+        assertionKeys={this.props.assertionKeys}
         backgroundColorType={this.props.backgroundColorType}
         username={this.props.username}
+        suggestionKeys={this.props.suggestionKeys}
         onEditAvatar={this.props.onEditAvatar}
       />
     ),
