@@ -13,6 +13,7 @@ import (
 	kbfsmd "github.com/keybase/client/go/kbfs/kbfsmd"
 	tlf "github.com/keybase/client/go/kbfs/tlf"
 	kbun "github.com/keybase/client/go/kbun"
+	libkb "github.com/keybase/client/go/libkb"
 	logger "github.com/keybase/client/go/logger"
 	chat1 "github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -95,6 +96,20 @@ func (m *MocklogMaker) MakeLogger(module string) logger.Logger {
 func (mr *MocklogMakerMockRecorder) MakeLogger(module interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeLogger", reflect.TypeOf((*MocklogMaker)(nil).MakeLogger), module)
+}
+
+// MakeVLogger mocks base method
+func (m *MocklogMaker) MakeVLogger(module string) *libkb.VDebugLog {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MakeVLogger", module)
+	ret0, _ := ret[0].(*libkb.VDebugLog)
+	return ret0
+}
+
+// MakeVLogger indicates an expected call of MakeVLogger
+func (mr *MocklogMakerMockRecorder) MakeVLogger(module interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeVLogger", reflect.TypeOf((*MocklogMaker)(nil).MakeVLogger), module)
 }
 
 // MockblockCacher is a mock of blockCacher interface
@@ -9021,6 +9036,20 @@ func (m *MockConfig) MakeLogger(module string) logger.Logger {
 func (mr *MockConfigMockRecorder) MakeLogger(module interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeLogger", reflect.TypeOf((*MockConfig)(nil).MakeLogger), module)
+}
+
+// MakeVLogger mocks base method
+func (m *MockConfig) MakeVLogger(module string) *libkb.VDebugLog {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MakeVLogger", module)
+	ret0, _ := ret[0].(*libkb.VDebugLog)
+	return ret0
+}
+
+// MakeVLogger indicates an expected call of MakeVLogger
+func (mr *MockConfigMockRecorder) MakeVLogger(module interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeVLogger", reflect.TypeOf((*MockConfig)(nil).MakeVLogger), module)
 }
 
 // BlockCache mocks base method
