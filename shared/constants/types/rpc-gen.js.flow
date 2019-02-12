@@ -185,7 +185,7 @@ export type MessageTypes = {|
     outParam: SimpleFSListResult,
   |},
   'keybase.1.SimpleFS.simpleFSRemove': {|
-    inParam: $ReadOnly<{|opID: OpID, path: Path|}>,
+    inParam: $ReadOnly<{|opID: OpID, path: Path, recursive: Boolean|}>,
     outParam: void,
   |},
   'keybase.1.SimpleFS.simpleFSStat': {|
@@ -2000,6 +2000,7 @@ export type DeviceType =
   | 0 // DESKTOP_0
   | 1 // MOBILE_1
 
+export type DirSizeInfo = $ReadOnly<{name: String, humanSize: String}>
 export type Dirent = $ReadOnly<{time: Time, size: Int, name: String, direntType: DirentType, lastWriterUnverified: User, writable: Boolean, prefetchStatus: PrefetchStatus, prefetchProgress: PrefetchProgress}>
 export type DirentType =
   | 0 // FILE_0
@@ -2031,7 +2032,7 @@ export type ExitCode =
   | 2 // NOTOK_2
   | 4 // RESTART_4
 
-export type ExtendedStatus = $ReadOnly<{standalone: Boolean, passphraseStreamCached: Boolean, tsecCached: Boolean, deviceSigKeyCached: Boolean, deviceEncKeyCached: Boolean, paperSigKeyCached: Boolean, paperEncKeyCached: Boolean, storedSecret: Boolean, secretPromptSkip: Boolean, rememberPassphrase: Boolean, device?: ?Device, deviceErr?: ?LoadDeviceErr, logDir: String, session?: ?SessionStatus, defaultUsername: String, provisionedUsernames?: ?Array<String>, Clients?: ?Array<ClientDetails>, deviceEkNames?: ?Array<String>, platformInfo: PlatformInfo, defaultDeviceID: DeviceID, localDbStats?: ?Array<String>, localChatDbStats?: ?Array<String>}>
+export type ExtendedStatus = $ReadOnly<{standalone: Boolean, passphraseStreamCached: Boolean, tsecCached: Boolean, deviceSigKeyCached: Boolean, deviceEncKeyCached: Boolean, paperSigKeyCached: Boolean, paperEncKeyCached: Boolean, storedSecret: Boolean, secretPromptSkip: Boolean, rememberPassphrase: Boolean, device?: ?Device, deviceErr?: ?LoadDeviceErr, logDir: String, session?: ?SessionStatus, defaultUsername: String, provisionedUsernames?: ?Array<String>, Clients?: ?Array<ClientDetails>, deviceEkNames?: ?Array<String>, platformInfo: PlatformInfo, defaultDeviceID: DeviceID, localDbStats?: ?Array<String>, localChatDbStats?: ?Array<String>, cacheDirSizeInfo?: ?Array<DirSizeInfo>}>
 export type ExternalServiceConfig = $ReadOnly<{schemaVersion: Int, display?: ?ServiceDisplayConfig, config?: ?ParamProofServiceConfig}>
 export type FSEditListRequest = $ReadOnly<{folder: Folder, requestID: Int}>
 export type FSErrorType =
@@ -2553,7 +2554,7 @@ export type RekeyEventType =
 export type RekeyRequest = $ReadOnly<{folderID: String, revision: Long}>
 export type RemoteProof = $ReadOnly<{proofType: ProofType, key: String, value: String, displayMarkup: String, sigID: SigID, mTime: Time}>
 export type RemoteTrack = $ReadOnly<{username: String, uid: UID, linkID: LinkID}>
-export type RemoveArgs = $ReadOnly<{opID: OpID, path: Path}>
+export type RemoveArgs = $ReadOnly<{opID: OpID, path: Path, recursive: Boolean}>
 export type RepoID = String
 export type ResetLink = $ReadOnly<{ctime: UnixTime, merkleRoot: ResetMerkleRoot, prev: ResetPrev, resetSeqno: Seqno, type: ResetType, uid: UID}>
 export type ResetMerkleRoot = $ReadOnly<{hashMeta: HashMeta, seqno: Seqno}>

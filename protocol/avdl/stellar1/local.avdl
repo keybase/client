@@ -15,6 +15,8 @@ protocol local {
     CurrencyLocal currencyLocal;// user configurable, defaults to USD and related details
     AccountMode accountMode;    // mobile only vs all devices
     boolean accountModeEditable;// is this device able to change it
+    boolean isFunded;           // does the account have minimum amount of XLM to exist on the network
+    boolean canSubmitTx;        // does the account have enough XLM to submit a transaction (enough for the fee)
   }
   array<WalletAccountLocal> getWalletAccountsLocal(int sessionID);
   WalletAccountLocal getWalletAccountLocal(int sessionID, AccountID accountID);

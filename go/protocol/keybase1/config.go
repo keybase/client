@@ -106,6 +106,18 @@ func (o LoadDeviceErr) DeepCopy() LoadDeviceErr {
 	}
 }
 
+type DirSizeInfo struct {
+	Name      string `codec:"name" json:"name"`
+	HumanSize string `codec:"humanSize" json:"humanSize"`
+}
+
+func (o DirSizeInfo) DeepCopy() DirSizeInfo {
+	return DirSizeInfo{
+		Name:      o.Name,
+		HumanSize: o.HumanSize,
+	}
+}
+
 type ExtendedStatus struct {
 	Standalone             bool            `codec:"standalone" json:"standalone"`
 	PassphraseStreamCached bool            `codec:"passphraseStreamCached" json:"passphraseStreamCached"`
@@ -129,6 +141,7 @@ type ExtendedStatus struct {
 	DefaultDeviceID        DeviceID        `codec:"defaultDeviceID" json:"defaultDeviceID"`
 	LocalDbStats           []string        `codec:"localDbStats" json:"localDbStats"`
 	LocalChatDbStats       []string        `codec:"localChatDbStats" json:"localChatDbStats"`
+	CacheDirSizeInfo       []DirSizeInfo   `codec:"cacheDirSizeInfo" json:"cacheDirSizeInfo"`
 }
 
 func (o ExtendedStatus) DeepCopy() ExtendedStatus {
@@ -223,6 +236,17 @@ func (o ExtendedStatus) DeepCopy() ExtendedStatus {
 			}
 			return ret
 		})(o.LocalChatDbStats),
+		CacheDirSizeInfo: (func(x []DirSizeInfo) []DirSizeInfo {
+			if x == nil {
+				return nil
+			}
+			ret := make([]DirSizeInfo, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.CacheDirSizeInfo),
 	}
 }
 

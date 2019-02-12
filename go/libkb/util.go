@@ -28,6 +28,7 @@ import (
 	"time"
 	"unicode"
 
+	humanize "github.com/dustin/go-humanize"
 	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/profiling"
@@ -980,4 +981,50 @@ func RuntimeGroup() keybase1.RuntimeGroup {
 	default:
 		return keybase1.RuntimeGroup_UNKNOWN
 	}
+}
+
+// DirSize walks the file tree the size of the given directory
+func DirSize(dirPath string) (size uint64, err error) {
+	err = filepath.Walk(dirPath, func(_ string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() {
+			size += uint64(info.Size())
+		}
+		return nil
+	})
+	return size, err
+}
+
+func CacheSizeInfo(g *GlobalContext) (info []keybase1.DirSizeInfo, err error) {
+	cacheDir := g.GetCacheDir()
+	files, err := ioutil.ReadDir(cacheDir)
+	if err != nil {
+		return nil, err
+	}
+
+	var totalSize uint64
+	for _, file := range files {
+		if !file.IsDir() {
+			totalSize += uint64(file.Size())
+			continue
+		}
+		dirPath := filepath.Join(cacheDir, file.Name())
+		size, err := DirSize(dirPath)
+		if err != nil {
+			return nil, err
+		}
+		totalSize += size
+		info = append(info, keybase1.DirSizeInfo{
+			Name:      dirPath,
+			HumanSize: humanize.Bytes(size),
+		})
+	}
+	info = append(info, keybase1.DirSizeInfo{
+		Name:      cacheDir,
+		HumanSize: humanize.Bytes(totalSize),
+	})
+	return info, nil
+
 }
