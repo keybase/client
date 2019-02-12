@@ -35,6 +35,9 @@ const mapDispatchToProps = (dispatch, {focusFilter}) => ({
           : Chat2Gen.createSetPendingMode({pendingMode: 'searchingForUsers'})
       )
     } else {
+      if (cmd.endsWith('+r')) {
+        dispatch(Chat2Gen.createSetInboxFilter({filter: '@unread '}))
+      }
       focusFilter()
     }
   },
@@ -47,7 +50,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   _onHotkey: dispatchProps._onHotkey,
   filter: stateProps.filter,
   filterFocusCount: ownProps.filterFocusCount,
-  hotkeys: isDarwin ? ['command+n', 'command+k'] : ['ctrl+n', 'ctrl+k'],
+  hotkeys: isDarwin ? ['command+n', 'command+k', 'command+r'] : ['ctrl+n', 'ctrl+k', 'ctrl+r'],
   isLoading: stateProps.isLoading,
   onBlur: dispatchProps.onBlur,
   onEnsureSelection: ownProps.onEnsureSelection,
