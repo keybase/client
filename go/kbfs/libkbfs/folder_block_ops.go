@@ -58,14 +58,14 @@ const (
 
 type mdToCleanIfUnused struct {
 	md  ReadOnlyRootMetadata
-	bps blockPutState
+	bps blockPutStateCopiable
 }
 
 type syncInfo struct {
 	oldInfo         BlockInfo
 	op              *syncOp
 	unrefs          []BlockInfo
-	bps             blockPutState
+	bps             blockPutStateCopiable
 	refBytes        uint64
 	unrefBytes      uint64
 	toCleanIfUnused []mdToCleanIfUnused
@@ -1952,9 +1952,9 @@ func (fbo *folderBlockOps) writeDataLocked(
 	file path, data []byte, off int64) (
 	latestWrite WriteRange, dirtyPtrs []BlockPointer,
 	newlyDirtiedChildBytes int64, err error) {
-	if jServer, err := GetJournalServer(fbo.config); err == nil {
-		jServer.dirtyOpStart(fbo.id())
-		defer jServer.dirtyOpEnd(fbo.id())
+	if jManager, err := GetJournalManager(fbo.config); err == nil {
+		jManager.dirtyOpStart(fbo.id())
+		defer jManager.dirtyOpEnd(fbo.id())
 	}
 
 	fbo.blockLock.AssertLocked(lState)
@@ -2174,9 +2174,9 @@ func (fbo *folderBlockOps) truncateExtendLocked(
 func (fbo *folderBlockOps) truncateLocked(
 	ctx context.Context, lState *lockState, kmd KeyMetadataWithRootDirEntry,
 	file path, size uint64) (*WriteRange, []BlockPointer, int64, error) {
-	if jServer, err := GetJournalServer(fbo.config); err == nil {
-		jServer.dirtyOpStart(fbo.id())
-		defer jServer.dirtyOpEnd(fbo.id())
+	if jManager, err := GetJournalManager(fbo.config); err == nil {
+		jManager.dirtyOpStart(fbo.id())
+		defer jManager.dirtyOpEnd(fbo.id())
 	}
 
 	fblock, err := fbo.writeGetFileLocked(ctx, lState, kmd, file)
@@ -2555,7 +2555,7 @@ type fileSyncState struct {
 // entry, dirtyDe will be nil.
 func (fbo *folderBlockOps) startSyncWrite(ctx context.Context,
 	lState *lockState, md *RootMetadata, file path) (
-	fblock *FileBlock, bps blockPutState, syncState fileSyncState,
+	fblock *FileBlock, bps blockPutStateCopiable, syncState fileSyncState,
 	dirtyDe *DirEntry, err error) {
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
@@ -2769,10 +2769,10 @@ func (fbo *folderBlockOps) mergeDirtyEntryWithLBC(
 //  })
 func (fbo *folderBlockOps) StartSync(ctx context.Context,
 	lState *lockState, md *RootMetadata, file path) (
-	fblock *FileBlock, bps blockPutState, dirtyDe *DirEntry,
+	fblock *FileBlock, bps blockPutStateCopiable, dirtyDe *DirEntry,
 	syncState fileSyncState, err error) {
-	if jServer, err := GetJournalServer(fbo.config); err == nil {
-		jServer.dirtyOpStart(fbo.id())
+	if jManager, err := GetJournalManager(fbo.config); err == nil {
+		jManager.dirtyOpStart(fbo.id())
 	}
 
 	fblock, bps, syncState, dirtyDe, err = fbo.startSyncWrite(
@@ -2792,8 +2792,8 @@ func (fbo *folderBlockOps) CleanupSyncState(
 	ctx context.Context, lState *lockState, md ReadOnlyRootMetadata,
 	file path, blocksToRemove []BlockPointer,
 	result fileSyncState, err error) {
-	if jServer, err := GetJournalServer(fbo.config); err == nil {
-		defer jServer.dirtyOpEnd(fbo.id())
+	if jManager, err := GetJournalManager(fbo.config); err == nil {
+		defer jManager.dirtyOpEnd(fbo.id())
 	}
 
 	if err == nil {

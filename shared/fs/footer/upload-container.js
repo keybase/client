@@ -24,8 +24,9 @@ const getDebugToggleShow = dispatch => {
   return () => {
     dispatch(
       FsGen.createJournalUpdate({
+        endEstimate: showing ? null : Date.now() + 1000 * 60 * 60,
         syncingPaths: showing ? [] : [Types.stringToPath('/keybase')],
-        totalSyncingBytes: 0, // not needed to trigger upload banner
+        totalSyncingBytes: showing ? 0 : 1,
       })
     )
     showing = !showing

@@ -1,6 +1,8 @@
 package identify3
 
 import (
+	"io/ioutil"
+	"net/http"
 	"sync"
 	"testing"
 
@@ -245,7 +247,6 @@ func TestFollowUnfollowTracy(t *testing.T) {
 }
 
 func runID3(t *testing.T, mctx libkb.MetaContext, user string, follow bool) id3results {
-
 	guiid, err := libkb.NewIdentify3GUIID()
 	require.NoError(t, err)
 	resultCh := make(chan keybase1.Identify3ResultType)
@@ -261,7 +262,14 @@ func runID3(t *testing.T, mctx libkb.MetaContext, user string, follow bool) id3r
 		Follow: follow,
 	})
 	require.NoError(t, err)
-	return fakeUI3.results()
+	res := fakeUI3.results()
+	for _, row := range res.rows {
+		checkIcon(t, row.Key, row.SiteIcon)
+		if row.Priority == 0 || row.Priority == 9999999 {
+			t.Fatalf("unexpected priority %v %v", row.Key, row.Priority)
+		}
+	}
+	return res
 }
 
 func TestFollowResetFollow(t *testing.T) {
@@ -286,4 +294,31 @@ func TestFollowResetFollow(t *testing.T) {
 	require.True(t, res.userWasReset)
 	res = runID3(t, mctx, alice.Username, true)
 	require.False(t, res.userWasReset)
+}
+
+func checkIcon(t testing.TB, service string, icon []keybase1.SizedImage) {
+	if service == "theqrl.org" {
+		// Skip checking for logos for this one.
+		return
+	}
+	require.Len(t, icon, 2, "%v", service)
+	for _, icon := range icon {
+		if icon.Width < 2 {
+			t.Fatalf("unreasonable icon size")
+		}
+		if kbtest.SkipIconRemoteTest() {
+			t.Logf("Skipping icon remote test")
+			require.True(t, len(icon.Path) > 8)
+		} else {
+			resp, err := http.Get(icon.Path)
+			require.NoError(t, err, "%v", service)
+			require.Equal(t, 200, resp.StatusCode, "icon file should be reachable")
+			require.NoError(t, err)
+			body, err := ioutil.ReadAll(resp.Body)
+			require.NoError(t, err)
+			if len(body) < 150 {
+				t.Fatalf("unreasonable icon payload size")
+			}
+		}
+	}
 }

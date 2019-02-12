@@ -952,6 +952,9 @@ func PromptWithChecker(pd libkb.PromptDescriptor, ui libkb.TerminalUI, prompt st
 		}
 		p = p + ": "
 		res, err = prompter(p)
+		if err == nil && checker.Transform != nil {
+			res = checker.Transform(res)
+		}
 		if err != nil || checker.F(res) {
 			break
 		}

@@ -301,20 +301,6 @@
     },
     {
       "type": "record",
-      "name": "SizedImage",
-      "fields": [
-        {
-          "type": "string",
-          "name": "path"
-        },
-        {
-          "type": "int",
-          "name": "width"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "NextMerkleRootRes",
       "fields": [
         {
@@ -323,6 +309,20 @@
             "MerkleRootV2"
           ],
           "name": "res"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "CanLogoutRes",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "canLogout"
+        },
+        {
+          "type": "string",
+          "name": "reason"
         }
       ]
     }
@@ -715,6 +715,15 @@
         }
       ],
       "response": "boolean"
+    },
+    "canLogout": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "CanLogoutRes"
     }
   },
   "namespace": "keybase.1"

@@ -6,7 +6,7 @@ import * as shared from './user-proofs.shared'
 import openUrl from '../util/open-url'
 import type {Props, MissingProof} from './user-proofs'
 import type {Proof} from '../constants/types/tracker'
-import {Box, Icon, Text, Meta} from '../common-adapters'
+import {Box, Icon, Text, Meta, Placeholder} from '../common-adapters'
 import {defaultColor} from '../common-adapters/icon.shared'
 import {
   globalStyles,
@@ -161,22 +161,14 @@ class ProofRow extends React.PureComponent<ProofRowProps, ProofRowState> {
   }
 }
 
-function LoadingProofRow({textBlockWidth}: {textBlockWidth: number}) {
+function LoadingProofRow() {
   return (
     <Box style={styleRow}>
       <Box style={styleProofNameSection}>
         <Box style={styleProofNameLabelContainer}>
-          <Box
-            style={{backgroundColor: globalColors.lightGrey, height: 13, marginTop: 2, width: textBlockWidth}}
-          />
+          <Placeholder width={160} style={stylePlaceholder} />
         </Box>
       </Box>
-      <Icon
-        style={styleStatusIcon}
-        color={globalStyles.loadingTextStyle.backgroundColor}
-        fontSize={20}
-        type={'iconfont-proof-placeholder'}
-      />
     </Box>
   )
 }
@@ -325,6 +317,10 @@ const styleStatusIcon = collapseStyles([
     width: 20,
   },
 ])
+
+const stylePlaceholder = {
+  marginTop: globalMargins.xtiny,
+}
 
 const styleProofNameSection = {
   ...globalStyles.flexBoxRow,

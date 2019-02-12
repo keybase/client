@@ -573,14 +573,18 @@ func (r *BackendMock) trace(err *error, name string, format string, args ...inte
 	}
 }
 
-func (r *BackendMock) addPayment(payment stellar1.PaymentDetails) {
+func (r *BackendMock) addPayment(accountID stellar1.AccountID, payment stellar1.PaymentDetails) {
 	defer r.trace(nil, "BackendMock.addPayment", "")()
 	r.txLog.Add(payment)
+
+	r.seqnos[accountID]++
 }
 
-func (r *BackendMock) addClaim(kbTxID stellar1.KeybaseTransactionID, summary stellar1.ClaimSummary) {
+func (r *BackendMock) addClaim(accountID stellar1.AccountID, kbTxID stellar1.KeybaseTransactionID, summary stellar1.ClaimSummary) {
 	defer r.trace(nil, "BackendMock.addClaim", "")()
 	r.txLog.AddClaim(kbTxID, summary)
+
+	r.seqnos[accountID]++
 }
 
 func (r *BackendMock) AccountSeqno(ctx context.Context, accountID stellar1.AccountID) (res uint64, err error) {
@@ -591,7 +595,7 @@ func (r *BackendMock) AccountSeqno(ctx context.Context, accountID stellar1.Accou
 	if !ok {
 		r.seqnos[accountID] = uint64(time.Now().UnixNano())
 	}
-	r.seqnos[accountID]++
+
 	return r.seqnos[accountID], nil
 }
 
@@ -695,7 +699,7 @@ func (r *BackendMock) SubmitPayment(ctx context.Context, tc *TestContext, post s
 
 	memo, memoType := extractMemo(unpackedTx.Tx)
 
-	r.addPayment(stellar1.PaymentDetails{
+	r.addPayment(extract.From, stellar1.PaymentDetails{
 		Summary:       summary,
 		Memo:          memo,
 		MemoType:      memoType,
@@ -773,7 +777,7 @@ func (r *BackendMock) SubmitRelayPayment(ctx context.Context, tc *TestContext, p
 		BoxB64:          post.BoxB64,
 		TeamID:          post.TeamID,
 	})
-	r.addPayment(stellar1.PaymentDetails{Summary: summary})
+	r.addPayment(extract.From, stellar1.PaymentDetails{Summary: summary})
 
 	return stellar1.PaymentResult{
 		StellarID: stellar1.TransactionID(txIDPrecalc),
@@ -813,7 +817,7 @@ func (r *BackendMock) SubmitRelayClaim(ctx context.Context, tc *TestContext, pos
 	if err != nil {
 		return stellar1.RelayClaimResult{}, fmt.Errorf("could not get self UV: %v", err)
 	}
-	r.addClaim(post.KeybaseID, stellar1.ClaimSummary{
+	r.addClaim(extract.From, post.KeybaseID, stellar1.ClaimSummary{
 		TxID:      stellar1.TransactionID(txIDPrecalc),
 		TxStatus:  stellar1.TransactionStatus_SUCCESS,
 		Dir:       post.Dir,
@@ -913,18 +917,9 @@ func (r *BackendMock) Details(ctx context.Context, tc *TestContext, accountID st
 		return res, err
 	}
 
-	a, ok := r.accounts[accountID]
-	if !ok {
-		// If an account does not exist on the network, return empty details (WAT)
-		res.AccountID = accountID
-		return res, nil
-	}
-	var balances []stellar1.Balance
-	if a.balance.Amount != "" {
-		balances = []stellar1.Balance{a.balance}
-	}
-
-	// fetch the currency display preference for this account
+	// Fetch the currency display preference for this account first,
+	// users are allowed to have currency preferences even for accounts
+	// that do not exist on the network yet.
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/accountcurrency",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -939,6 +934,25 @@ func (r *BackendMock) Details(ctx context.Context, tc *TestContext, accountID st
 		return res, err
 	}
 
+	displayCurrency := apiRes.CurrencyDisplayPreference
+
+	a, ok := r.accounts[accountID]
+	if !ok {
+		// If an account does not exist on the network, return something reasonable.
+		return stellar1.AccountDetails{
+			AccountID:       accountID,
+			Seqno:           "0",
+			Balances:        nil,
+			SubentryCount:   0,
+			Available:       "0",
+			DisplayCurrency: displayCurrency,
+		}, nil
+	}
+	var balances []stellar1.Balance
+	if a.balance.Amount != "" {
+		balances = []stellar1.Balance{a.balance}
+	}
+
 	var inflationDest *stellar1.AccountID
 	if a.inflationDest != "" {
 		inflationDest = &a.inflationDest
@@ -950,7 +964,7 @@ func (r *BackendMock) Details(ctx context.Context, tc *TestContext, accountID st
 		Balances:             balances,
 		SubentryCount:        a.subentries,
 		Available:            a.availableBalance(),
-		DisplayCurrency:      apiRes.CurrencyDisplayPreference,
+		DisplayCurrency:      displayCurrency,
 		InflationDestination: inflationDest,
 	}, nil
 }
@@ -977,13 +991,12 @@ func (r *BackendMock) addAccountRandom(funded bool) stellar1.AccountID {
 		T:         r.T,
 		accountID: stellar1.AccountID(full.Address()),
 		secretKey: stellar1.SecretKey(full.Seed()),
-	}
-	if amount != "" {
-		a.balance = stellar1.Balance{
+		balance: stellar1.Balance{
 			Asset:  stellar1.Asset{Type: "native"},
 			Amount: amount,
-		}
+		},
 	}
+
 	require.Nil(r.T, r.accounts[a.accountID], "attempt to re-add account %v", a.accountID)
 	r.accounts[a.accountID] = a
 	r.seqnos[a.accountID] = uint64(time.Now().UnixNano())

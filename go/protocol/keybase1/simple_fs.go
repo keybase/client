@@ -673,14 +673,16 @@ func (o ListToDepthArgs) DeepCopy() ListToDepthArgs {
 }
 
 type RemoveArgs struct {
-	OpID OpID `codec:"opID" json:"opID"`
-	Path Path `codec:"path" json:"path"`
+	OpID      OpID `codec:"opID" json:"opID"`
+	Path      Path `codec:"path" json:"path"`
+	Recursive bool `codec:"recursive" json:"recursive"`
 }
 
 func (o RemoveArgs) DeepCopy() RemoveArgs {
 	return RemoveArgs{
-		OpID: o.OpID.DeepCopy(),
-		Path: o.Path.DeepCopy(),
+		OpID:      o.OpID.DeepCopy(),
+		Path:      o.Path.DeepCopy(),
+		Recursive: o.Recursive,
 	}
 }
 
@@ -1279,8 +1281,9 @@ type SimpleFSWriteArg struct {
 }
 
 type SimpleFSRemoveArg struct {
-	OpID OpID `codec:"opID" json:"opID"`
-	Path Path `codec:"path" json:"path"`
+	OpID      OpID `codec:"opID" json:"opID"`
+	Path      Path `codec:"path" json:"path"`
+	Recursive bool `codec:"recursive" json:"recursive"`
 }
 
 type SimpleFSStatArg struct {

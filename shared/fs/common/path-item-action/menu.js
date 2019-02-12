@@ -160,6 +160,7 @@ export default (props: Props) => {
   props.shouldHideMenu && props.floatingMenuProps.hideOnce()
   return (
     <Kb.FloatingMenu
+      closeText="Cancel"
       closeOnSelect={false}
       containerStyle={props.floatingMenuProps.containerStyle}
       attachTo={props.floatingMenuProps.attachTo}

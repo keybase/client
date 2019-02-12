@@ -17,7 +17,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
-	kbgitkbfs "github.com/keybase/client/go/kbfs/protocol/kbgitkbfs1"
+	kbgitkbfs "github.com/keybase/client/go/protocol/kbgitkbfs1"
 	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
 	"github.com/keybase/client/go/libkb"
@@ -1033,7 +1033,13 @@ func (bra BlockRequestAction) String() string {
 // Combine returns a new action by taking `other` into account.
 func (bra BlockRequestAction) Combine(
 	other BlockRequestAction) BlockRequestAction {
-	return bra | other
+	combined := bra | other
+	// If the actions don't agree on stop-if-full, we should remove it
+	// from the combined result.
+	if bra.StopIfFull() != other.StopIfFull() {
+		combined = combined &^ blockRequestStopIfFull
+	}
+	return combined
 }
 
 func (bra BlockRequestAction) prefetch() bool {

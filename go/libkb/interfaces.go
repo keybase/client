@@ -328,6 +328,7 @@ type IdentifyUI interface {
 
 type Checker struct {
 	F             func(string) bool
+	Transform     func(string) string
 	Hint          string
 	PreserveSpace bool
 }
@@ -890,8 +891,9 @@ type ChatHelper interface {
 	SendMsgByNameNonblock(ctx context.Context, name string, topicName *string,
 		membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, body chat1.MessageBody,
 		msgType chat1.MessageType) error
-	FindConversations(ctx context.Context, useLocalData bool, name string, topicName *string,
-		topicType chat1.TopicType, membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility) ([]chat1.ConversationLocal, error)
+	FindConversations(ctx context.Context, name string,
+		topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
+		vis keybase1.TLFVisibility) ([]chat1.ConversationLocal, error)
 	FindConversationsByID(ctx context.Context, convIDs []chat1.ConversationID) ([]chat1.ConversationLocal, error)
 	JoinConversationByID(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) error
 	JoinConversationByName(ctx context.Context, uid gregor1.UID, tlfName, topicName string,

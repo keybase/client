@@ -12,6 +12,7 @@ import Still from './still-container'
 import Editing from './editing-container'
 import Uploading from './uploading-container'
 import SortBar from '../sortbar/container'
+import LoadFilesWhenNeeded from './load-files-when-needed'
 import {rowHeight} from './common'
 import {isMobile} from '../../constants/platform'
 
@@ -96,27 +97,41 @@ class Rows extends React.PureComponent<Props> {
     }
   }
   render() {
-    return this.props.items && this.props.items.length ? (
+    const content =
+      this.props.items && this.props.items.length ? (
+        <>
+          {// Only show sortbar if we are in the folder view.
+          typeof this.props.destinationPickerIndex !== 'number' && <SortBar path={this.props.path} />}
+          <Kb.List
+            fixedHeight={rowHeight}
+            items={
+              // If we are in the destination picker, inject two empty rows so when
+              // user scrolls to the bottom nothing is blocked by the
+              // semi-transparent footer.
+              !isMobile && typeof this.props.destinationPickerIndex === 'number'
+                ? [
+                    ...this.props.items,
+                    {key: 'empty:0', rowType: 'empty'},
+                    {key: 'empty:1', rowType: 'empty'},
+                  ]
+                : this.props.items
+            }
+            renderItem={this._rowRenderer}
+          />
+        </>
+      ) : (
+        <Kb.Box2 direction="vertical" style={styles.emptyContainer} centerChildren={true}>
+          <Kb.Text type="BodySmall">This folder is empty.</Kb.Text>
+        </Kb.Box2>
+      )
+    return (
       <>
-        {// Only show sortbar if we are in the folder view.
-        typeof this.props.destinationPickerIndex !== 'number' && <SortBar path={this.props.path} />}
-        <Kb.List
-          fixedHeight={rowHeight}
-          items={
-            // If we are in the destination picker, inject two empty rows so when
-            // user scrolls to the bottom nothing is blocked by the
-            // semi-transparent footer.
-            !isMobile && typeof this.props.destinationPickerIndex === 'number'
-              ? [...this.props.items, {key: 'empty:0', rowType: 'empty'}, {key: 'empty:1', rowType: 'empty'}]
-              : this.props.items
-          }
-          renderItem={this._rowRenderer}
+        <LoadFilesWhenNeeded
+          path={this.props.path}
+          destinationPickerIndex={this.props.destinationPickerIndex}
         />
+        {content}
       </>
-    ) : (
-      <Kb.Box2 direction="vertical" style={styles.emptyContainer} centerChildren={true}>
-        <Kb.Text type="BodySmall">This is an empty folder.</Kb.Text>
-      </Kb.Box2>
     )
   }
 }

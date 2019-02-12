@@ -119,7 +119,7 @@ function startPack() {
     }
 
     copySyncFolder('./dist', 'build/desktop/sourcemaps', ['.map'])
-    copySyncFolder('./dist', 'build/desktop/dist', ['.js', '.ttf', '.png', '.html'])
+    copySyncFolder('./dist', 'build/desktop/dist', ['.js', '.ttf', '.otf', '.png', '.html'])
     fs.removeSync(desktopPath('build/desktop/dist/fonts'))
 
     del(desktopPath('release'))

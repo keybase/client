@@ -164,8 +164,8 @@ const _makeError: I.RecordFactory<Types._FsError> = I.Record({
 export const makeError = (record?: {
   time?: number,
   error: any,
-  erroredAction: any,
-  retriableAction?: any,
+  erroredAction: FsGen.Actions,
+  retriableAction?: FsGen.Actions,
 }): I.RecordOf<Types._FsError> => {
   let {time, error, erroredAction, retriableAction} = record || {}
   return _makeError({
@@ -802,6 +802,22 @@ export const parsePath = (path: Types.Path): Types.ParsedPath => {
       }
     default:
       return parsedPathRoot
+  }
+}
+
+export const canSendLinkToChat = (parsedPath: Types.ParsedPath) => {
+  switch (parsedPath.kind) {
+    case 'root':
+    case 'tlf-list':
+      return false
+    case 'group-tlf':
+    case 'team-tlf':
+    case 'in-group-tlf':
+    case 'in-team-tlf':
+      return parsedPath.tlfType !== 'public'
+    default:
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(parsedPath)
+      return false
   }
 }
 

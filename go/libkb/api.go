@@ -607,13 +607,12 @@ func (a *InternalAPIEngine) fixHeaders(m MetaContext, arg APIArg, req *http.Requ
 
 	if nist != nil {
 		req.Header.Set("X-Keybase-Session", nist.Token().String())
-
 	} else if arg.SessionType != APISessionTypeNONE {
 		m.CDebugf("fixHeaders: falling back to legacy session management")
 		tok, csrf, err := a.sessionArgs(m, arg)
 		if err != nil {
 			if arg.SessionType == APISessionTypeREQUIRED {
-				m.CWarningf("fixHeaders: session required, but error getting sessionArgs: %s", err)
+				m.CDebugf("fixHeaders: session required, but error getting sessionArgs: %s", err)
 				return err
 			}
 			m.CDebugf("fixHeaders: session optional, error getting sessionArgs: %s", err)

@@ -26,6 +26,9 @@ function formatMessage(platform: PlatformsExpandedType) {
     case 'hackernews':
       body = 'Hacker News identity'
       break
+    case 'pgp':
+      body = 'PGP key'
+      break
     default:
       body = `${capitalize(platform)} identity`
   }

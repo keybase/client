@@ -2,23 +2,8 @@
 /* eslint-env browser */
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker'
 import React, {PureComponent} from 'react'
-import {
-  Box,
-  Box2,
-  Icon,
-  PlainInput,
-  Text,
-  iconCastPlatformStyles,
-  OverlayParentHOC,
-} from '../../../../common-adapters'
-import {
-  collapseStyles,
-  globalMargins,
-  globalStyles,
-  globalColors,
-  platformStyles,
-  styleSheetCreate,
-} from '../../../../styles'
+import * as Kb from '../../../../common-adapters'
+import * as Styles from '../../../../styles'
 import {isIOS, isLargeScreen} from '../../../../constants/platform'
 import {
   NativeKeyboard,
@@ -31,6 +16,7 @@ import FilePickerPopup from '../filepicker-popup'
 import WalletsIcon from './wallets-icon/container'
 import type {PlatformInputPropsInternal} from './platform-input'
 import AddSuggestors, {standardTransformer} from '../suggestors'
+import {metaData} from '../../../../common-adapters/text.meta.native'
 
 type menuType = 'exploding' | 'filepickerpopup'
 
@@ -39,7 +25,7 @@ type State = {
 }
 
 class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
-  _input: null | PlainInput
+  _input: null | Kb.PlainInput
   _lastText: ?string
   _whichMenu: menuType
 
@@ -50,7 +36,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
     }
   }
 
-  _inputSetRef = (ref: null | PlainInput) => {
+  _inputSetRef = (ref: null | Kb.PlainInput) => {
     this._input = ref
     this.props.inputSetRef(ref)
     this.props.inputRef.current = ref
@@ -163,7 +149,7 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
     }
 
     return (
-      <Box onLayout={this._onLayout}>
+      <Kb.Box onLayout={this._onLayout}>
         {this.props.showingMenu && this._whichMenu === 'filepickerpopup' ? (
           <FilePickerPopup
             attachTo={this.props.getAttachmentRef}
@@ -180,16 +166,16 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
           />
         )}
         <Typing conversationIDKey={this.props.conversationIDKey} />
-        <Box style={styles.container}>
+        <Kb.Box style={styles.container}>
           {this.props.isEditing && (
-            <Box style={styles.editingTabStyle}>
-              <Text type="BodySmall">Edit:</Text>
-              <Text type="BodySmallPrimaryLink" onClick={this.props.onCancelEditing}>
+            <Kb.Box style={styles.editingTabStyle}>
+              <Kb.Text type="BodySmall">Edit:</Kb.Text>
+              <Kb.Text type="BodySmallPrimaryLink" onClick={this.props.onCancelEditing}>
                 Cancel
-              </Text>
-            </Box>
+              </Kb.Text>
+            </Kb.Box>
           )}
-          <PlainInput
+          <Kb.PlainInput
             autoCorrect={true}
             autoCapitalize="sentences"
             placeholder={hintText}
@@ -216,8 +202,8 @@ class _PlatformInput extends PureComponent<PlatformInputPropsInternal, State> {
             showWalletsIcon={this.props.showWalletsIcon}
             explodingModeSeconds={this.props.explodingModeSeconds}
           />
-        </Box>
-      </Box>
+        </Kb.Box>
+      </Kb.Box>
     )
   }
 }
@@ -235,7 +221,7 @@ const Action = ({
   showWalletsIcon,
 }) =>
   hasText ? (
-    <Box2 direction="horizontal" gap="small" style={styles.actionText}>
+    <Kb.Box2 direction="horizontal" gap="small" style={styles.actionText}>
       {isExploding && !isEditing && (
         <ExplodingIcon
           explodingModeSeconds={explodingModeSeconds}
@@ -243,12 +229,12 @@ const Action = ({
           openExplodingPicker={openExplodingPicker}
         />
       )}
-      <Text type="BodyBigLink" onClick={onSubmit}>
+      <Kb.Text type="BodyBigLink" onClick={onSubmit}>
         {isEditing ? 'Save' : 'Send'}
-      </Text>
-    </Box2>
+      </Kb.Text>
+    </Kb.Box2>
   ) : (
-    <Box2 direction="horizontal" style={styles.actionIconsContainer}>
+    <Kb.Box2 direction="horizontal" style={styles.actionIconsContainer}>
       <>
         <ExplodingIcon
           explodingModeSeconds={explodingModeSeconds}
@@ -258,40 +244,43 @@ const Action = ({
         {smallGap}
       </>
       {showWalletsIcon && (
-        <WalletsIcon size={22} style={collapseStyles([styles.actionButton, styles.marginRightSmall])} />
+        <WalletsIcon
+          size={22}
+          style={Styles.collapseStyles([styles.actionButton, styles.marginRightSmall])}
+        />
       )}
-      <Icon
+      <Kb.Icon
         onClick={insertMentionMarker}
         type="iconfont-mention"
-        style={iconCastPlatformStyles(styles.actionButton)}
+        style={Kb.iconCastPlatformStyles(styles.actionButton)}
         fontSize={22}
       />
       {smallGap}
-      <Icon
+      <Kb.Icon
         onClick={openFilePicker}
         type="iconfont-camera"
-        style={iconCastPlatformStyles(styles.actionButton)}
+        style={Kb.iconCastPlatformStyles(styles.actionButton)}
         fontSize={22}
       />
-    </Box2>
+    </Kb.Box2>
   )
 
 const ExplodingIcon = ({explodingModeSeconds, isExploding, openExplodingPicker}) => (
   <NativeTouchableWithoutFeedback onPress={openExplodingPicker}>
-    <Box style={explodingIconContainer}>
-      <Icon
-        color={isExploding ? globalColors.black_75 : null}
-        style={iconCastPlatformStyles(styles.actionButton)}
+    <Kb.Box style={explodingIconContainer}>
+      <Kb.Icon
+        color={isExploding ? Styles.globalColors.black_75 : null}
+        style={Kb.iconCastPlatformStyles(styles.actionButton)}
         type="iconfont-timer"
         fontSize={22}
       />
       <ExplodingMeta explodingModeSeconds={explodingModeSeconds} />
-    </Box>
+    </Kb.Box>
   </NativeTouchableWithoutFeedback>
 )
 
 const containerPadding = 8
-const styles = styleSheetCreate({
+const styles = Styles.styleSheetCreate({
   accessory: {
     bottom: 1,
     display: 'flex',
@@ -307,36 +296,37 @@ const styles = styleSheetCreate({
     alignSelf: isIOS ? 'flex-end' : 'center',
   },
   actionIconsContainer: {
-    paddingRight: globalMargins.small - containerPadding,
+    paddingRight: Styles.globalMargins.small - containerPadding,
   },
   actionText: {
     alignSelf: 'flex-end',
-    paddingBottom: globalMargins.xsmall,
-    paddingRight: globalMargins.tiny,
+    paddingBottom: Styles.globalMargins.xsmall,
+    paddingRight: Styles.globalMargins.tiny,
   },
   container: {
-    ...globalStyles.flexBoxRow,
+    ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
-    backgroundColor: globalColors.fastBlank,
-    borderTopColor: globalColors.black_10,
+    backgroundColor: Styles.globalColors.fastBlank,
+    borderTopColor: Styles.globalColors.black_10,
     borderTopWidth: 1,
     flexShrink: 0,
     minHeight: 48,
     paddingRight: containerPadding,
   },
   editingTabStyle: {
-    ...globalStyles.flexBoxColumn,
+    ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'flex-start',
-    backgroundColor: globalColors.yellow3,
+    backgroundColor: Styles.globalColors.yellow3,
     flexShrink: 0,
     height: '100%',
     minWidth: 32,
-    padding: globalMargins.xtiny,
+    padding: Styles.globalMargins.xtiny,
   },
   input: {
     flex: 1,
-    marginLeft: globalMargins.tiny,
-    marginRight: globalMargins.tiny,
+    fontSize: metaData['BodyBig'].fontSize,
+    marginLeft: Styles.globalMargins.tiny,
+    marginRight: Styles.globalMargins.tiny,
     ...(isIOS
       ? {}
       : {
@@ -345,29 +335,29 @@ const styles = styleSheetCreate({
         }),
   },
   marginRightSmall: {
-    marginRight: globalMargins.small,
+    marginRight: Styles.globalMargins.small,
   },
   mentionHud: {
-    borderColor: globalColors.black_20,
+    borderColor: Styles.globalColors.black_20,
     borderTopWidth: 1,
     flex: 1,
     height: 160,
     width: '100%',
   },
   smallGap: {
-    height: globalMargins.small,
-    width: globalMargins.small,
+    height: Styles.globalMargins.small,
+    width: Styles.globalMargins.small,
   },
 })
 
-// Use manual gap when Box2 is inserting too many (for children that deliberately render nothing)
-const smallGap = <Box style={styles.smallGap} />
+// Use manual gap when Kb.Box2 is inserting too many (for children that deliberately render nothing)
+const smallGap = <Kb.Box style={styles.smallGap} />
 
-const explodingIconContainer = platformStyles({
+const explodingIconContainer = Styles.platformStyles({
   common: {
-    ...globalStyles.flexBoxRow,
+    ...Styles.globalStyles.flexBoxRow,
     marginRight: -3,
   },
 })
 
-export default OverlayParentHOC(PlatformInput)
+export default Kb.OverlayParentHOC(PlatformInput)

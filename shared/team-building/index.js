@@ -7,6 +7,7 @@ import GoButton from './go-button'
 import ServiceTabBar from './service-tab-bar'
 import UserResult from './user-result'
 import flags from '../util/feature-flags'
+import {serviceIdToAccentColor, serviceIdToIconFont, serviceIdToLabel} from './shared'
 import type {ServiceIdWithContact, FollowingState} from '../constants/types/team-building'
 
 type SearchResult = {
@@ -50,6 +51,7 @@ class TeamBuilding extends React.PureComponent<Props, void> {
   render = () => {
     const props = this.props
     const showRecPending = !props.searchString && !(props.recommendations && props.recommendations.length)
+    const showLoading = !!props.searchString && !(props.searchResults && props.searchResults.length)
     const showRecs = props.showRecs
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
@@ -81,13 +83,38 @@ class TeamBuilding extends React.PureComponent<Props, void> {
           serviceResultCount={props.serviceResultCount}
           showServiceResultCount={props.showServiceResultCount}
         />
-        {showRecPending ? (
+        {showRecPending || showLoading ? (
           <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" style={styles.loadingContainer}>
             <Kb.Icon
               style={Kb.iconCastPlatformStyles(styles.loadingIcon)}
               type="icon-progress-grey-animated"
             />
             <Kb.Text type="BodySmallSemibold">Loading</Kb.Text>
+          </Kb.Box2>
+        ) : !showRecs && !props.showServiceResultCount && !!props.selectedService ? (
+          <Kb.Box2
+            alignSelf="center"
+            centerChildren={true}
+            direction="vertical"
+            fullHeight={true}
+            fullWidth={true}
+            gap="tiny"
+            style={styles.emptyContainer}
+          >
+            <Kb.Icon
+              fontSize={64}
+              type={serviceIdToIconFont(props.selectedService)}
+              style={Styles.collapseStyles([
+                !!props.selectedService && {color: serviceIdToAccentColor(props.selectedService)},
+              ])}
+            />
+            <Kb.Text center={true} type="BodyBig">
+              Enter a {serviceIdToLabel(props.selectedService)} username above.
+            </Kb.Text>
+            <Kb.Text center={true} type="BodySmall">
+              Start a Keybase chat with anyone on {serviceIdToLabel(props.selectedService)}, even if they
+              don’t have a Keybase account.
+            </Kb.Text>
           </Kb.Box2>
         ) : (
           <Kb.List
@@ -129,6 +156,19 @@ const styles = Styles.styleSheetCreate({
       paddingRight: Styles.globalMargins.small,
       paddingTop: Styles.globalMargins.small,
       width: 470,
+    },
+  }),
+  emptyContainer: Styles.platformStyles({
+    common: {
+      flex: 1,
+    },
+    isElectron: {
+      maxWidth: 290,
+      paddingBottom: 40,
+    },
+    isMobile: {
+      maxWidth: '80%',
+      paddingBottom: 150,
     },
   }),
   list: Styles.platformStyles({

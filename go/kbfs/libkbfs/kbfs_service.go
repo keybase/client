@@ -6,7 +6,7 @@ import (
 	"net"
 	"sync"
 
-	kbgitkbfs "github.com/keybase/client/go/kbfs/protocol/kbgitkbfs1"
+	kbgitkbfs "github.com/keybase/client/go/protocol/kbgitkbfs1"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"

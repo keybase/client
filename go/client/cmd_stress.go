@@ -279,7 +279,7 @@ func (c *CmdStress) logout() {
 		c.G().Log.Warning("GetLoginClient error: %s", err)
 		return
 	}
-	err = cli.Logout(context.TODO(), keybase1.LogoutArg{})
+	err = cli.Logout(context.TODO(), 0)
 	if err != nil {
 		c.G().Log.Warning("Logout error: %s", err)
 		return

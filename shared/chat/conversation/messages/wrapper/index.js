@@ -6,6 +6,7 @@ import * as Styles from '../../../../styles'
 import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
 import SystemAddedToTeam from '../system-added-to-team/container'
+import SystemChangeRetention from '../system-change-retention/container'
 import SystemGitPush from '../system-git-push/container'
 import SystemInviteAccepted from '../system-invite-accepted/container'
 import SystemJoined from '../system-joined/container'
@@ -17,7 +18,7 @@ import SetChannelname from '../set-channelname/container'
 import TextMessage from '../text/container'
 import AttachmentMessage from '../attachment/container'
 import PaymentMessage from '../account-payment/container'
-import Placeholder from '../placeholder/container'
+import MessagePlaceholder from '../placeholder/container'
 import ExplodingHeightRetainer from './exploding-height-retainer'
 import ExplodingMeta from './exploding-meta/container'
 import LongPressable from './long-pressable'
@@ -102,7 +103,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               colorBroken={true}
               colorFollowing={true}
               colorYou={true}
-              type="BodySmallSemibold"
+              type="BodySmallBold"
               usernames={[this.props.showUsername]}
               onUsernameClicked={this._onAuthorClick}
             />
@@ -330,7 +331,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         child = <PaymentMessage key="sendPayment" message={message} />
         break
       case 'placeholder':
-        child = <Placeholder key="placeholder" message={message} />
+        child = <MessagePlaceholder key="placeholder" message={message} />
         break
       case 'systemInviteAccepted':
         child = <SystemInviteAccepted key="systemInviteAccepted" message={message} />
@@ -343,6 +344,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         break
       case 'systemAddedToTeam':
         child = <SystemAddedToTeam key="systemAddedToTeam" message={message} />
+        break
+      case 'systemChangeRetention':
+        child = <SystemChangeRetention key="systemChangeRetention" message={message} />
         break
       case 'systemJoined':
         child = <SystemJoined key="systemJoined" message={message} />
@@ -546,8 +550,10 @@ const styles = Styles.styleSheetCreate({
       borderBottomRightRadius: Styles.borderRadius,
       borderLeft: `1px solid ${Styles.globalColors.black_10}`,
       borderRight: `1px solid ${Styles.globalColors.black_10}`,
-      bottom: -24,
+      bottom: -Styles.globalMargins.mediumLarge,
+      height: Styles.globalMargins.mediumLarge,
       paddingBottom: Styles.globalMargins.tiny,
+      paddingTop: Styles.globalMargins.xtiny,
       position: 'absolute',
       right: 96,
       zIndex: 2,
@@ -560,9 +566,9 @@ const styles = Styles.styleSheetCreate({
       borderBottomRightRadius: 0,
       borderTopLeftRadius: Styles.borderRadius,
       borderTopRightRadius: Styles.borderRadius,
-      paddingBottom: 0,
+      paddingBottom: Styles.globalMargins.xtiny,
       paddingTop: Styles.globalMargins.tiny,
-      top: -23,
+      top: -Styles.globalMargins.mediumLarge + 1, // compensation for the orange line
     },
   }),
   fail: {color: Styles.globalColors.red},
@@ -602,10 +608,8 @@ const styles = Styles.styleSheetCreate({
     isMobile: {right: 0},
   }),
   timestamp: Styles.platformStyles({
-    isMobile: {
-      position: 'relative',
-      top: 2,
-    },
+    isElectron: {lineHeight: 18},
+    isMobile: {lineHeight: 20},
   }),
 })
 

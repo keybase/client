@@ -433,6 +433,10 @@ type txPending struct {
 	ctime time.Time
 }
 
+type inuseSeqno struct {
+	ctime time.Time
+}
+
 // AccountState holds the current data for a stellar account.
 type AccountState struct {
 	// these are only set when AccountState created, they never change
@@ -453,6 +457,7 @@ type AccountState struct {
 	rtime        time.Time // time of last refresh
 	done         bool
 	pendingTxs   map[stellar1.TransactionID]txPending
+	inuseSeqnos  map[uint64]inuseSeqno
 }
 
 func newAccountState(accountID stellar1.AccountID, r remote.Remoter, reqsCh chan stellar1.AccountID) *AccountState {
@@ -462,6 +467,7 @@ func newAccountState(accountID stellar1.AccountID, r remote.Remoter, reqsCh chan
 		refreshGroup: &singleflight.Group{},
 		refreshReqs:  reqsCh,
 		pendingTxs:   make(map[stellar1.TransactionID]txPending),
+		inuseSeqnos:  make(map[uint64]inuseSeqno),
 	}
 }
 
@@ -583,14 +589,23 @@ func (a *AccountState) ForceSeqnoRefresh(mctx libkb.MetaContext) error {
 		}
 	}
 
-	if len(a.pendingTxs) == 0 {
-		// if no pending tx, then network should be correct
+	// delete any stale inuse seqnos (in case missed notification somehow)
+	for k, v := range a.inuseSeqnos {
+		age := time.Since(v.ctime)
+		if age > 30*time.Second {
+			mctx.CDebugf("ForceSeqnoRefresh removing inuse seqno %d due to old age (%s)", k, age)
+			delete(a.inuseSeqnos, k)
+		}
+	}
+
+	if len(a.pendingTxs) == 0 && len(a.inuseSeqnos) == 0 {
+		// if no pending tx or inuse seqnos, then network should be correct
 		mctx.CDebugf("ForceSeqnoRefresh corrected seqno for %s: %d => %d", a.accountID, a.seqno, seqno)
 		a.seqno = seqno
 		return nil
 	}
 
-	mctx.CDebugf("ForceSeqnoRefresh did not update AccountState for %s due to pending tx (existing: %d, remote: %d, pending tx: %d)", a.accountID, a.seqno, seqno, len(a.pendingTxs))
+	mctx.CDebugf("ForceSeqnoRefresh did not update AccountState for %s due to pending tx/seqnos (existing: %d, remote: %d, pending txs: %d, inuse seqnos: %d)", a.accountID, a.seqno, seqno, len(a.pendingTxs), len(a.inuseSeqnos))
 
 	return nil
 }
@@ -609,6 +624,13 @@ func (a *AccountState) AccountSeqnoAndBump(ctx context.Context) (uint64, error) 
 	a.Lock()
 	defer a.Unlock()
 	result := a.seqno
+
+	// need to keep track that we are going to use this seqno
+	// in a tx.  This record keeping avoids a race where
+	// multiple seqno providers rushing to use seqnos before
+	// AddPendingTx is called.
+	a.inuseSeqnos[result] = inuseSeqno{ctime: time.Now()}
+
 	a.seqno++
 	return result, nil
 }
@@ -619,6 +641,9 @@ func (a *AccountState) AccountSeqnoAndBump(ctx context.Context) (uint64, error) 
 func (a *AccountState) AddPendingTx(ctx context.Context, txID stellar1.TransactionID, seqno uint64) error {
 	a.Lock()
 	defer a.Unlock()
+
+	// remove the inuse seqno since the pendingTx will track it now
+	delete(a.inuseSeqnos, seqno)
 
 	a.pendingTxs[txID] = txPending{seqno: seqno, ctime: time.Now()}
 

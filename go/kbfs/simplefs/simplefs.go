@@ -6,7 +6,6 @@ package simplefs
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -26,6 +25,7 @@ import (
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/pkg/errors"
 	"golang.org/x/sync/errgroup"
 	billy "gopkg.in/src-d/go-billy.v4"
 	"gopkg.in/src-d/go-billy.v4/osfs"
@@ -657,7 +657,7 @@ func (k *SimpleFS) SimpleFSList(ctx context.Context, arg keybase1.SimpleFSListAr
 				res, err = k.favoriteList(ctx, arg.Path, tlf.SingleTeam)
 			default:
 				fs, finalElem, err := k.getFSIfExists(ctx, arg.Path)
-				switch err.(type) {
+				switch errors.Cause(err).(type) {
 				case nil:
 				case libfs.TlfDoesNotExist:
 					// TLF doesn't exist yet; just return an empty result.
@@ -735,7 +735,7 @@ func (k *SimpleFS) listRecursiveToDepth(opID keybase1.OpID,
 		var paths []pathStackElem
 
 		fs, finalElem, err := k.getFSIfExists(ctx, path)
-		switch err.(type) {
+		switch errors.Cause(err).(type) {
 		case nil:
 		case libfs.TlfDoesNotExist:
 			// TLF doesn't exist yet; just return an empty result.
@@ -1061,15 +1061,47 @@ func pathAppend(p keybase1.Path, leaf string) keybase1.Path {
 	return p
 }
 
-// SimpleFSCopyRecursive - Begin recursive copy of directory
-func (k *SimpleFS) SimpleFSCopyRecursive(ctx context.Context,
-	arg keybase1.SimpleFSCopyRecursiveArg) error {
-	return k.startAsync(ctx, arg.OpID, keybase1.AsyncOps_COPY,
-		keybase1.NewOpDescriptionWithCopy(
-			keybase1.CopyArgs{OpID: arg.OpID, Src: arg.Src, Dest: arg.Dest}),
-		func(ctx context.Context) (err error) {
-			// Get the full byte/file count.
-			srcFS, finalSrcElem, err := k.getFSIfExists(ctx, arg.Src)
+func (k *SimpleFS) doCopyRecursive(
+	ctx context.Context, opID keybase1.OpID, src, dest keybase1.Path) error {
+	// Get the full byte/file count.
+	srcFS, finalSrcElem, err := k.getFSIfExists(ctx, src)
+	if err != nil {
+		return err
+	}
+	srcFI, err := srcFS.Stat(finalSrcElem)
+	if err != nil {
+		return err
+	}
+	if srcFI.IsDir() {
+		chrootFS, err := srcFS.Chroot(srcFI.Name())
+		if err != nil {
+			return err
+		}
+		bytes, files, err := recursiveByteAndFileCount(chrootFS)
+		if err != nil {
+			return err
+		}
+		// Add one to files to account for the src dir itself.
+		k.setProgressTotals(opID, bytes, files+1)
+	} else {
+		// No need for recursive.
+		return k.doCopy(ctx, opID, src, dest)
+	}
+
+	var paths = []pathPair{{src: src, dest: dest}}
+	for len(paths) > 0 {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
+
+		// wrap in a function for defers.
+		err = func() error {
+			path := paths[len(paths)-1]
+			paths = paths[:len(paths)-1]
+
+			srcFS, finalSrcElem, err := k.getFSIfExists(ctx, path.src)
 			if err != nil {
 				return err
 			}
@@ -1077,76 +1109,98 @@ func (k *SimpleFS) SimpleFSCopyRecursive(ctx context.Context,
 			if err != nil {
 				return err
 			}
+			err = k.doCopyFromSource(
+				ctx, opID, srcFS, srcFI, path.dest)
+			if err != nil {
+				return err
+			}
+
+			// TODO symlinks
 			if srcFI.IsDir() {
-				chrootFS, err := srcFS.Chroot(srcFI.Name())
+				fis, err := srcFS.ReadDir(srcFI.Name())
 				if err != nil {
 					return err
 				}
-				bytes, files, err := recursiveByteAndFileCount(chrootFS)
-				if err != nil {
-					return err
+				for _, fi := range fis {
+					paths = append(paths, pathPair{
+						src:  pathAppend(path.src, fi.Name()),
+						dest: pathAppend(path.dest, fi.Name()),
+					})
 				}
-				// Add one to files to account for the src dir itself.
-				k.setProgressTotals(arg.OpID, bytes, files+1)
-			} else {
-				// No need for recursive.
-				return k.doCopy(ctx, arg.OpID, arg.Src, arg.Dest)
 			}
+			return nil
+		}()
+	}
+	return err
+}
 
-			var paths = []pathPair{{src: arg.Src, dest: arg.Dest}}
-			for len(paths) > 0 {
-				select {
-				case <-ctx.Done():
-					return ctx.Err()
-				default:
-				}
-
-				// wrap in a function for defers.
-				err = func() error {
-					path := paths[len(paths)-1]
-					paths = paths[:len(paths)-1]
-
-					srcFS, finalSrcElem, err := k.getFSIfExists(ctx, path.src)
-					if err != nil {
-						return err
-					}
-					srcFI, err := srcFS.Stat(finalSrcElem)
-					if err != nil {
-						return err
-					}
-					err = k.doCopyFromSource(
-						ctx, arg.OpID, srcFS, srcFI, path.dest)
-					if err != nil {
-						return err
-					}
-
-					// TODO symlinks
-					if srcFI.IsDir() {
-						fis, err := srcFS.ReadDir(srcFI.Name())
-						if err != nil {
-							return err
-						}
-						for _, fi := range fis {
-							paths = append(paths, pathPair{
-								src:  pathAppend(path.src, fi.Name()),
-								dest: pathAppend(path.dest, fi.Name()),
-							})
-						}
-					}
-					return nil
-				}()
-			}
-
-			return err
+// SimpleFSCopyRecursive - Begin recursive copy of directory
+func (k *SimpleFS) SimpleFSCopyRecursive(ctx context.Context,
+	arg keybase1.SimpleFSCopyRecursiveArg) error {
+	return k.startAsync(ctx, arg.OpID, keybase1.AsyncOps_COPY,
+		keybase1.NewOpDescriptionWithCopy(
+			keybase1.CopyArgs{OpID: arg.OpID, Src: arg.Src, Dest: arg.Dest}),
+		func(ctx context.Context) (err error) {
+			return k.doCopyRecursive(ctx, arg.OpID, arg.Src, arg.Dest)
 		})
 }
 
-func (k *SimpleFS) doRemove(ctx context.Context, path keybase1.Path) error {
+func (k *SimpleFS) doRemove(
+	ctx context.Context, path keybase1.Path, recursive bool) error {
 	fs, finalElem, err := k.getFS(ctx, path)
 	if err != nil {
 		return err
 	}
-	return fs.Remove(finalElem)
+	if !recursive {
+		return fs.Remove(finalElem)
+	}
+	fi, err := fs.Stat(finalElem)
+	if err != nil {
+		return err
+	}
+	return libfs.RecursiveDelete(ctx, fs, fi)
+}
+
+func (k *SimpleFS) pathsForSameTlfMove(
+	ctx context.Context, src, dst keybase1.Path) (
+	sameTlf bool, srcPath, dstPath string, tlfHandle *libkbfs.TlfHandle,
+	err error) {
+	srcType, err := src.PathType()
+	if err != nil {
+		return false, "", "", nil, err
+	}
+	if srcType != keybase1.PathType_KBFS {
+		return false, "", "", nil, nil
+	}
+	dstType, err := dst.PathType()
+	if err != nil {
+		return false, "", "", nil, err
+	}
+	if dstType != keybase1.PathType_KBFS {
+		return false, "", "", nil, nil
+	}
+
+	// They are both KBFS paths -- are they in the same TLF?
+	srcTlfType, srcTlfName, srcMid, srcFinal, err := remoteTlfAndPath(src)
+	if err != nil {
+		return false, "", "", nil, err
+	}
+	dstTlfType, dstTlfName, dstMid, dstFinal, err := remoteTlfAndPath(dst)
+	if err != nil {
+		return false, "", "", nil, err
+	}
+	if srcTlfType != dstTlfType || srcTlfName != dstTlfName {
+		return false, "", "", nil, nil
+	}
+
+	tlfHandle, err = libkbfs.GetHandleFromFolderNameAndType(
+		ctx, k.config.KBPKI(), k.config.MDOps(), srcTlfName, srcTlfType)
+	if err != nil {
+		return false, "", "", nil, err
+	}
+
+	return true, stdpath.Join(srcMid, srcFinal), stdpath.Join(dstMid, dstFinal),
+		tlfHandle, nil
 }
 
 // SimpleFSMove - Begin move of file or directory, from/to KBFS only
@@ -1157,14 +1211,29 @@ func (k *SimpleFS) SimpleFSMove(ctx context.Context, arg keybase1.SimpleFSMoveAr
 				OpID: arg.OpID, Src: arg.Src, Dest: arg.Dest,
 			}),
 		func(ctx context.Context) (err error) {
-			// TODO: Make this a proper rename within a single TLF.
-			// (See `SimpleFSRename` below.)  Also even copy+deletes
-			// should be resursive I think.
-			err = k.doCopy(ctx, arg.OpID, arg.Src, arg.Dest)
+			sameTlf, srcPath, dstPath, tlfHandle, err := k.pathsForSameTlfMove(
+				ctx, arg.Src, arg.Dest)
 			if err != nil {
 				return err
 			}
-			return k.doRemove(ctx, arg.Src)
+			if sameTlf {
+				k.log.CDebugf(ctx, "Renaming within same TLF: %s",
+					tlfHandle.GetCanonicalPath())
+				fs, err := libfs.NewFS(
+					ctx, k.config, tlfHandle, libkbfs.MasterBranch, "", "",
+					keybase1.MDPriorityNormal)
+				if err != nil {
+					return err
+				}
+
+				return fs.Rename(srcPath, dstPath)
+			}
+
+			err = k.doCopyRecursive(ctx, arg.OpID, arg.Src, arg.Dest)
+			if err != nil {
+				return err
+			}
+			return k.doRemove(ctx, arg.Src, true)
 		})
 }
 
@@ -1458,10 +1527,10 @@ func (k *SimpleFS) SimpleFSRemove(ctx context.Context,
 	return k.startAsync(ctx, arg.OpID, keybase1.AsyncOps_REMOVE,
 		keybase1.NewOpDescriptionWithRemove(
 			keybase1.RemoveArgs{
-				OpID: arg.OpID, Path: arg.Path,
+				OpID: arg.OpID, Path: arg.Path, Recursive: arg.Recursive,
 			}),
 		func(ctx context.Context) (err error) {
-			return k.doRemove(ctx, arg.Path)
+			return k.doRemove(ctx, arg.Path, arg.Recursive)
 		})
 }
 
@@ -1480,9 +1549,22 @@ func (k *SimpleFS) SimpleFSStat(ctx context.Context, arg keybase1.SimpleFSStatAr
 	defer func() { k.doneSyncOp(ctx, err) }()
 
 	fs, finalElem, err := k.getFSIfExists(ctx, arg.Path)
-	if err != nil {
+	switch errors.Cause(err).(type) {
+	case nil:
+	case libfs.TlfDoesNotExist:
+		if finalElem != "" && finalElem != "." {
+			return keybase1.Dirent{}, err
+		}
+
+		// TLF doesn't exist yet; just return an empty result.
+		return keybase1.Dirent{
+			DirentType: keybase1.DirentType_DIR,
+			Writable:   false,
+		}, nil
+	default:
 		return keybase1.Dirent{}, err
 	}
+
 	// Use LStat so we don't follow symlinks.
 	fi, err := fs.Lstat(finalElem)
 	if err != nil {
@@ -1890,12 +1972,12 @@ func (k *SimpleFS) SimpleFSSyncStatus(ctx context.Context, filter keybase1.ListF
 	ctx, cancel := context.WithTimeout(
 		k.makeContext(ctx), simpleFSFastActionTimeout)
 	defer cancel()
-	jServer, jErr := libkbfs.GetJournalServer(k.config)
+	jManager, jErr := libkbfs.GetJournalManager(k.config)
 	if jErr != nil {
 		k.log.CDebugf(ctx, "Journal not enabled; sending empty response")
 		return keybase1.FSSyncStatus{}, nil
 	}
-	status, tlfIDs := jServer.Status(ctx)
+	status, tlfIDs := jManager.Status(ctx)
 	err := libkbfs.FillInJournalStatusUnflushedPaths(
 		ctx, k.config, &status, tlfIDs)
 	if err != nil {

@@ -33,7 +33,9 @@ func NewSource(g *globals.Context) *Source {
 }
 
 const (
-	cmdHeadline int = iota
+	cmdCollapse int = iota
+	cmdExpand
+	cmdHeadline
 	cmdHide
 	cmdJoin
 	cmdLeave
@@ -46,6 +48,8 @@ const (
 
 func (s *Source) allCommands() (res map[int]types.ConversationCommand) {
 	res = make(map[int]types.ConversationCommand)
+	res[cmdCollapse] = NewCollapse(s.G())
+	res[cmdExpand] = NewExpand(s.G())
 	res[cmdHeadline] = NewHeadline(s.G())
 	res[cmdHide] = NewHide(s.G())
 	res[cmdJoin] = NewJoin(s.G())
@@ -61,6 +65,8 @@ func (s *Source) allCommands() (res map[int]types.ConversationCommand) {
 func (s *Source) makeBuiltins() {
 	cmds := s.allCommands()
 	common := []types.ConversationCommand{
+		cmds[cmdCollapse],
+		cmds[cmdExpand],
 		cmds[cmdHide],
 		cmds[cmdMe],
 		cmds[cmdMsg],
@@ -82,6 +88,11 @@ func (s *Source) makeBuiltins() {
 	s.builtins[chat1.ConversationBuiltinCommandTyp_SMALLTEAM] = append([]types.ConversationCommand{
 		cmds[cmdJoin],
 	}, common...)
+	for _, cmds := range s.builtins {
+		sort.Slice(cmds, func(i, j int) bool {
+			return cmds[i].Name() < cmds[j].Name()
+		})
+	}
 }
 
 func (s *Source) GetBuiltins(ctx context.Context) (res []chat1.BuiltinCommandGroup) {
@@ -133,9 +144,10 @@ func (s *Source) AttemptBuiltinCommand(ctx context.Context, uid gregor1.UID, con
 	if !strings.HasPrefix(text, "/") {
 		return false, nil
 	}
-	ib, err := s.G().InboxSource.ReadUnverified(ctx, uid, true, &chat1.GetInboxQuery{
-		ConvID: &convID,
-	}, nil)
+	ib, err := s.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll,
+		&chat1.GetInboxQuery{
+			ConvID: &convID,
+		}, nil)
 	if err != nil {
 		return false, err
 	}

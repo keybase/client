@@ -7,12 +7,17 @@ import * as Flow from '../../util/flow'
 
 type Props = {|
   color: Types.AssertionColor,
+  isSuggestion: boolean,
+  isYours: boolean,
   metas: $ReadOnlyArray<Types._AssertionMeta>,
   onCopyAddress: () => void,
   onRequestLumens: () => void,
+  onRecheck: ?() => void,
+  onRevoke: ?() => void,
   onSendLumens: () => void,
   onShowProof: () => void,
   onShowSite: () => void,
+  onCreateProof: ?() => void,
   onWhatIsStellar: () => void,
   proofURL: string,
   siteIcon: string, // TODO handle actual urls, for now just use iconfont
@@ -34,6 +39,8 @@ const stateToIcon = state => {
       return 'iconfont-proof-good'
     case 'revoked':
       return 'iconfont-proof-broken'
+    case 'suggestion':
+      return 'iconfont-proof-placeholder'
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(state)
       throw new Error('Impossible')
@@ -52,6 +59,8 @@ const stateToColor = state => {
       return Styles.globalColors.blue2
     case 'revoked':
       return Styles.globalColors.red
+    case 'suggestion':
+      return Styles.globalColors.grey
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(state)
       throw new Error('Impossible')
@@ -79,10 +88,10 @@ const assertionColorToColor = (c: Types.AssertionColor) => {
   }
 }
 
-// TODO get read icon from core
+// TODO get real icon from core
 const siteIcon = icon => {
   switch (icon) {
-    case 'bitcoin':
+    case 'btc':
       return 'iconfont-identity-bitcoin'
     case 'facebook':
       return 'iconfont-identity-facebook'
@@ -162,27 +171,30 @@ const StellarValue = Kb.OverlayParentHOC(_StellarValue)
 
 const Value = p => {
   let content = null
-  if (p.type === 'stellar') {
+  if (p.type === 'stellar' && !p.isSuggestion) {
     content = <StellarValue {...p} />
   } else {
     let str = p.value
     let style = styles.username
 
-    switch (p.type) {
-      case 'pgp': {
-        const last = p.value.substr(p.value.length - 16).toUpperCase()
-        str = `${last.substr(0, 4)} ${last.substr(4, 4)} ${last.substr(8, 4)} ${last.substr(12, 4)}`
-        break
+    if (!p.isSuggestion) {
+      switch (p.type) {
+        case 'pgp': {
+          const last = p.value.substr(p.value.length - 16).toUpperCase()
+          str = `${last.substr(0, 4)} ${last.substr(4, 4)} ${last.substr(8, 4)} ${last.substr(12, 4)}`
+          break
+        }
+        case 'btc': // fallthrough
+        case 'zcash':
+          style = styles.crypto
+          break
       }
-      case 'bitcoin':
-        style = styles.bitcoin
-        break
     }
 
     content = (
       <Kb.Text
         type="BodyPrimaryLink"
-        onClick={p.onShowSite}
+        onClick={p.onCreateProof || p.onShowSite}
         style={Styles.collapseStyles([style, {color: assertionColorToColor(p.color)}])}
       >
         {str}
@@ -193,42 +205,170 @@ const Value = p => {
   return content
 }
 
-const Assertion = (p: Props) => {
-  return (
-    <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
-      <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true} gapStart={true} gapEnd={true}>
-        <Kb.Icon type={siteIcon(p.type)} onClick={p.onShowSite} color={Styles.globalColors.black_75} />
-        <Kb.Text type="Body" style={styles.textContainer}>
-          <Value {...p} />
-          <Kb.Text type="Body" style={styles.site}>
-            @{p.type}
-          </Kb.Text>
-        </Kb.Text>
-        <Kb.Icon
-          boxStyle={styles.stateIcon}
-          type={stateToIcon(p.state)}
-          fontSize={20}
-          onClick={p.onShowProof}
-          hoverColor={stateToColor(p.state)}
-          color={assertionColorToColor(p.color)}
-        />
-      </Kb.Box2>
-      {!!p.metas.length && (
-        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.metaContainer}>
-          {p.metas.map(m => (
-            <Kb.Meta key={m.label} backgroundColor={assertionColorToColor(m.color)} title={m.label} />
-          ))}
+const getMenu = p => {
+  if (!p.isYours || p.isSuggestion || p.type === 'stellar') {
+    return {}
+  }
+
+  const onRevoke = {
+    danger: true,
+    onClick: p.onRevoke,
+    title: p.type === 'pgp' ? 'Drop' : 'Revoke',
+  }
+
+  if (p.metas.find(m => m.label === 'unreachable')) {
+    return {
+      header: {
+        title: 'header',
+        view: (
+          <Kb.PopupHeaderText color={Styles.globalColors.white} backgroundColor={Styles.globalColors.red}>
+            Your proof could not be found, and Keybase has stopped checking. How would you like to proceed?
+          </Kb.PopupHeaderText>
+        ),
+      },
+      items: [
+        {onClick: p.onShowProof, title: 'View proof'},
+        {onClick: p.onRecheck, title: 'I fixed it - recheck'},
+        onRevoke,
+      ],
+    }
+  }
+
+  if (p.metas.find(m => m.label === 'pending')) {
+    let pendingMessage
+    switch (p.type) {
+      case 'hackernews':
+        pendingMessage =
+          'Your proof is pending. Hacker News caches its bios, so it might take a few hours before your proof gets verified.'
+        break
+      case 'dns':
+        pendingMessage = 'Your proof is pending. DNS proofs can take a few hours to recognize.'
+        break
+    }
+    return {
+      header: {
+        title: 'header',
+        view: pendingMessage ? (
+          <Kb.PopupHeaderText color={Styles.globalColors.white} backgroundColor={Styles.globalColors.blue}>
+            {pendingMessage}
+          </Kb.PopupHeaderText>
+        ) : null,
+      },
+      items: [onRevoke],
+    }
+  }
+
+  return {
+    header: {
+      title: 'header',
+      view: (
+        <Kb.Box2 direction="vertical" centerChildren={true} style={styles.menuHeader} fullWidth={true}>
+          <Kb.Icon
+            fontSize={Styles.isMobile ? 64 : 48}
+            type={siteIcon(p.type)}
+            onClick={p.onShowSite}
+            color={Styles.globalColors.black_75}
+          />
         </Kb.Box2>
-      )}
-    </Kb.Box2>
-  )
+      ),
+    },
+    items: [{onClick: p.onShowProof, title: `View ${p.type === 'btc' ? 'signature' : 'proof'}`}, onRevoke],
+  }
+}
+
+type State = {|showingMenu: boolean|}
+class Assertion extends React.PureComponent<Props, State> {
+  state = {showingMenu: false}
+  _toggleMenu = () => this.setState(s => ({showingMenu: !s.showingMenu}))
+  _hideMenu = () => this.setState({showingMenu: false})
+  _ref = React.createRef()
+  _getRef = () => this._ref.current
+  render() {
+    const p = this.props
+    const {header, items} = getMenu(p)
+
+    return (
+      <Kb.Box2
+        className="hover-container"
+        ref={this._ref}
+        direction="vertical"
+        style={styles.container}
+        fullWidth={true}
+      >
+        <Kb.Box2
+          alignItems="center"
+          direction="horizontal"
+          gap="tiny"
+          fullWidth={true}
+          gapStart={true}
+          gapEnd={true}
+        >
+          <Kb.Icon
+            type={siteIcon(p.type)}
+            onClick={p.onCreateProof || p.onShowSite}
+            color={p.isSuggestion ? Styles.globalColors.black_50 : Styles.globalColors.black_75}
+          />
+          <Kb.Text type="Body" style={styles.textContainer}>
+            <Value {...p} />
+            {!p.isSuggestion && (
+              <Kb.Text type="Body" style={styles.site}>
+                @{p.type}
+              </Kb.Text>
+            )}
+          </Kb.Text>
+          <Kb.Icon
+            boxStyle={styles.stateIcon}
+            type={stateToIcon(p.state)}
+            fontSize={20}
+            onClick={p.onShowProof}
+            hoverColor={stateToColor(p.state)}
+            color={p.isSuggestion ? Styles.globalColors.black_20 : assertionColorToColor(p.color)}
+          />
+          {items ? (
+            <>
+              <Kb.Icon className="hover-visible" type="iconfont-caret-down" onClick={this._toggleMenu} />
+              <Kb.FloatingMenu
+                closeOnSelect={true}
+                visible={this.state.showingMenu}
+                onHidden={this._hideMenu}
+                attachTo={this._getRef}
+                position="bottom right"
+                containerStyle={styles.floatingMenu}
+                header={header}
+                items={items}
+              />
+            </>
+          ) : (
+            <Kb.Box2 direction="vertical" />
+          )}
+        </Kb.Box2>
+        {!!p.metas.length && (
+          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.metaContainer}>
+            {p.metas.map(m => (
+              <Kb.Meta key={m.label} backgroundColor={assertionColorToColor(m.color)} title={m.label} />
+            ))}
+          </Kb.Box2>
+        )}
+      </Kb.Box2>
+    )
+  }
 }
 
 const styles = Styles.styleSheetCreate({
-  bitcoin: Styles.platformStyles({
+  container: {flexShrink: 0, paddingBottom: 4, paddingTop: 4},
+  crypto: Styles.platformStyles({
     isElectron: {display: 'inline-block', fontSize: 11, wordBreak: 'break-all'},
   }),
-  container: {flexShrink: 0, paddingBottom: 4, paddingTop: 4},
+  floatingMenu: {
+    maxWidth: 240,
+    minWidth: 196,
+  },
+  menuHeader: {
+    borderBottomColor: Styles.globalColors.black_10,
+    borderBottomWidth: 1,
+    borderStyle: 'solid',
+    padding: Styles.globalMargins.small,
+  },
   metaContainer: {flexShrink: 0, paddingLeft: 20 + Styles.globalMargins.tiny * 2 - 4}, // icon spacing plus meta has 2 padding for some reason
   site: {color: Styles.globalColors.black_20},
   stateIcon: {height: 17},

@@ -16,6 +16,7 @@ export type SettingsProps = {|
   currencyWaiting: boolean,
   currency: Types.Currency,
   currencies: I.List<Types.Currency>,
+  canSubmitTx: boolean,
   onBack: () => void,
   onDelete: () => void,
   onSetDefault: () => void,
@@ -27,6 +28,7 @@ export type SettingsProps = {|
   saveCurrencyWaiting: boolean,
   mobileOnlyMode: boolean,
   mobileOnlyWaiting: boolean,
+  mobileOnlyEditable: boolean,
 |}
 
 const HoverText = Styles.isMobile
@@ -130,7 +132,7 @@ class AccountSettings extends React.Component<SettingsProps> {
               <Kb.Box>
                 <Kb.Checkbox
                   checked={props.mobileOnlyMode}
-                  disabled={!Styles.isMobile || props.mobileOnlyWaiting}
+                  disabled={!props.mobileOnlyEditable || props.mobileOnlyWaiting}
                   label="Mobile only"
                   onCheck={props.onMobileOnlyModeChange}
                 />
@@ -147,10 +149,12 @@ class AccountSettings extends React.Component<SettingsProps> {
                   </Kb.Box2>
                 )}
               </Kb.Box>
-              {!Styles.isMobile && (
-                <Kb.Text type="BodySmall">This setting can only be changed from a mobile device.</Kb.Text>
+              {!props.mobileOnlyEditable && (
+                <Kb.Text type="BodySmall">
+                  This setting can only be changed from a mobile device over 7 days old.
+                </Kb.Text>
               )}
-              {Styles.isMobile && (
+              {props.mobileOnlyEditable && (
                 <Kb.Text type="BodySmall">
                   Prevents sending from this account, when on a desktop or laptop.
                 </Kb.Text>
@@ -174,12 +178,19 @@ class AccountSettings extends React.Component<SettingsProps> {
                   {props.inflationDestination}
                 </Kb.Text>
               )}
-              <Kb.Button
-                type="Secondary"
-                label={props.inflationDestination ? 'Change' : 'Set up'}
-                onClick={props.onSetupInflation}
-                style={styles.setupInflation}
-              />
+              {!!props.canSubmitTx && (
+                <Kb.Button
+                  type="Secondary"
+                  label={props.inflationDestination ? 'Change' : 'Set up'}
+                  onClick={props.onSetupInflation}
+                  style={styles.setupInflation}
+                />
+              )}
+              {!props.canSubmitTx && (
+                <Kb.Text type="BodySmall">
+                  Your account needs more funds to set an inflation destination.
+                </Kb.Text>
+              )}
             </Kb.Box2>
             <Kb.Box2
               direction="vertical"

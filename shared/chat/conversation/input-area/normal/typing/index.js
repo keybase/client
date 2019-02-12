@@ -5,7 +5,7 @@ import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 
 const Names = ({names}: {names: I.Set<string>}) => {
-  const textType = Styles.isMobile ? 'BodyTinySemibold' : 'BodySmallSemibold'
+  const textType = 'BodyTinySemibold'
   let ret
   switch (names.size) {
     case 0:
@@ -73,12 +73,13 @@ export const Typing = (props: Props) => (
     <Kb.Box style={styles.typingIconContainer}>
       <Kb.Animation animationType="typing" containerStyle={styles.isTypingAnimation} />
     </Kb.Box>
-    <Kb.Text lineClamp={1} type={Styles.isMobile ? 'BodyTiny' : 'BodySmall'} style={styles.isTypingText}>
+    <Kb.Text lineClamp={1} type="BodyTiny" style={styles.isTypingText}>
       <Names names={props.names} />
     </Kb.Text>
   </Kb.Box>
 )
 
+export const mobileTypingContainerHeight = 18
 const styles = Styles.styleSheetCreate({
   isTypingAnimation: Styles.platformStyles({
     isElectron: {
@@ -98,10 +99,12 @@ const styles = Styles.styleSheetCreate({
     isMobile: {
       ...Styles.globalStyles.flexBoxRow,
       alignItems: 'flex-end',
-      bottom: 2,
-      height: 16,
-      left: 3,
-      position: 'relative',
+      backgroundColor: Styles.globalColors.white,
+      height: mobileTypingContainerHeight,
+      left: Styles.globalMargins.xtiny,
+      position: 'absolute',
+      top: -mobileTypingContainerHeight / 2 - 2,
+      zIndex: 999,
     },
   }),
   isTypingContainerVisible: {
@@ -110,9 +113,13 @@ const styles = Styles.styleSheetCreate({
   isTypingText: Styles.platformStyles({
     isElectron: {
       flexGrow: 1,
-      marginBottom: Styles.globalMargins.xtiny,
-      marginLeft: 56,
+      left: 56,
+      marginTop: 2,
+      position: 'absolute',
       textAlign: 'left',
+    },
+    isMobile: {
+      marginRight: Styles.globalMargins.tiny,
     },
   }),
   typingIcon: Styles.platformStyles({
@@ -131,7 +138,8 @@ const styles = Styles.styleSheetCreate({
   typingIconContainer: Styles.platformStyles({
     isMobile: {
       alignItems: 'center',
-      width: 45,
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
     },
   }),
 })

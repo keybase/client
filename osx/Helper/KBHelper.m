@@ -176,6 +176,9 @@
   if (!p.absolutePath) {
     return NO;
   }
+  if ([KBFSUtils checkIfPathIsFishy:path]) {
+    return NO;
+  }
   NSArray *a = [p componentsSeparatedByString:@"/"];
   if (a.count != 3) {
     return NO;
@@ -373,6 +376,11 @@
   NSString *linkDir = @"/usr/local/bin";
   NSString *linkPath = [NSString stringWithFormat:@"%@/%@", linkDir, name];
 
+  if ([KBFSUtils checkIfPathIsFishy:path]) {
+    completion(KBMakeError(MPXPCErrorCodeInvalidRequest, @"Fishy path rejected"), nil);
+    return;
+  }
+
   // Check if link dir exists and resolves correctly
   if ([NSFileManager.defaultManager fileExistsAtPath:linkDir]) {
     NSString *resolved = [self resolveLinkPath:linkPath];
@@ -385,7 +393,6 @@
     NSString *neededPrefix = @"/Applications/Keybase.app";
 
     if ([KBFSUtils checkAbsolutePath:path hasAbsolutePrefix:neededPrefix]) {
-
       KBLog(@"Allowing creation of symlink %@ -> %@ since it's in %@", linkPath, path, neededPrefix);
 
       // Fix the link

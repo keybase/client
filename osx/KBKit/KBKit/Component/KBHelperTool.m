@@ -83,16 +83,20 @@
 
   NSString *alertText = @"Keybase is about to upgrade the Keybase file system, allowing end-to-end encrypted files from right inside your Finder.";
   NSString *infoText = @"";
-  if ([bundleVersion isOrderedSame:[KBSemVersion version:@"1.0.31"]]) {
+
+  BOOL multiUser = [bundleVersion isOrderedSame:[KBSemVersion version:@"1.0.31"]];
+  BOOL activeDirectory = [bundleVersion isOrderedSame:[KBSemVersion version:@"1.0.35"]];
+
+  if (multiUser) {
     alertText = @"New Keybase feature: multiple users in macOS";
     // Use a division slash instead of a regular / to avoid weird line breaks.
     infoText = @"Previously, only one user of this computer could find their Keybase files at \u2215keybase. With this update, \u2215keybase will now support multiple users on the same computer by linking to user-specific Keybase directories in \u2215Volumes.\n\nYou may need to enter your password for this update.";
-  } else if ([bundleVersion isOrderedSame:[KBSemVersion version:@"1.0.32"]] || [bundleVersion isOrderedSame:[KBSemVersion version:@"1.0.33"]] || [bundleVersion isOrderedSame:[KBSemVersion version:@"1.0.34"]]) {
-    alertText = @"Keybase helper update";
-    infoText = @"This Keybase release contains security updates to the helper tool.\n\nYou may need to enter your password for this update.";
-  } else if ([bundleVersion isOrderedSame:[KBSemVersion version:@"1.0.35"]]) {
+  } else if (activeDirectory) {
     alertText = @"Keybase helper update";
     infoText = @"This Keybase release fixes a regression in macOS installs that use Active Directory for user management.\n\nYou may need to enter your password for this update.";
+  } else {
+    alertText = @"Keybase helper update";
+    infoText = @"This Keybase release contains bugfixes and security updates to the Keybase installer helper tool.\n\nYou may need to enter your password for this update.";
   }
   NSAlert *alert = [[NSAlert alloc] init];
   [alert setMessageText:alertText];

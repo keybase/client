@@ -17,7 +17,7 @@ export type Props = {|
   closeText?: ?string, // mobile only; default to "Close"
   containerStyle?: StylesCrossPlatform,
   items: Array<MenuItem | 'Divider' | null>,
-  header?: MenuItem,
+  header?: ?MenuItem,
   onHidden: () => void,
   visible: boolean,
   attachTo?: () => ?React.Component<any>,

@@ -25,7 +25,8 @@ type mockInboxSource struct {
 
 func (m *mockInboxSource) Read(ctx context.Context, uid gregor1.UID,
 	localizeTyp types.ConversationLocalizerTyp,
-	useLocalData bool, maxLocalize *int, query *chat1.GetInboxLocalQuery, p *chat1.Pagination) (types.Inbox, chan types.AsyncInboxResult, error) {
+	dataSource types.InboxSourceDataSourceTyp, maxLocalize *int, query *chat1.GetInboxLocalQuery,
+	p *chat1.Pagination) (types.Inbox, chan types.AsyncInboxResult, error) {
 	parts := m.partsFn()
 	var convParts []chat1.ConversationLocalParticipant
 	for _, p := range parts {
