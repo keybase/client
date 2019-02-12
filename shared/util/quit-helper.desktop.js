@@ -2,6 +2,7 @@
 import * as SafeElectron from '../util/safe-electron.desktop'
 import {quit} from '../desktop/app/ctl.desktop'
 import {hideDockIcon} from '../desktop/app/dock-icon.desktop'
+import {isWindows} from '../constants/platform'
 
 export type Context = 'uiWindow' | 'mainThread' | 'quitButton' | 'beforeQuit'
 export type Action = 'closePopups' | 'quitMainWindow' | 'quitApp'
@@ -10,7 +11,7 @@ export type Action = 'closePopups' | 'quitMainWindow' | 'quitApp'
 function quitOnContext(context: Context): Array<Action> {
   switch (context) {
     case 'uiWindow':
-      return ['closePopups', 'quitMainWindow']
+      return isWindows ? ['quitApp'] : ['closePopups', 'quitMainWindow']
     case 'mainThread':
     case 'beforeQuit':
     case 'quitButton':
