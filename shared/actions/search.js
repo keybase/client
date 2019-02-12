@@ -136,7 +136,6 @@ function _parseRawResultToRow(result: RawResult, service: Types.Service) {
 function _parseSuggestion(username: string, fullname: string) {
   return {
     id: _rawResultToId('keybase', username),
-    // TODO get this from the service
     leftFullname: fullname,
     leftIcon: serviceIdToLogo24('keybase'),
     leftService: Constants.serviceIdToService('keybase'),
