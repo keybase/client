@@ -26,11 +26,13 @@ const OverlayParentHOC = <T: OverlayParentProps>(
     setAttachmentRef = isMobile
       ? () => {}
       : (attachmentRef: ?React.Component<any>) => {
+          console.warn('in setattachment ref', attachmentRef)
           this._ref = attachmentRef
         }
     getAttachmentRef = () => this._ref
 
     render() {
+      console.warn('rendering overlay hoc', this._ref)
       return (
         <ComposedComponent
           {...this.props}

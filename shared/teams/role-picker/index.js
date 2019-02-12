@@ -1,17 +1,6 @@
 // @flow
 import React from 'react'
-import {
-  Avatar,
-  Box,
-  ClickableBox,
-  Button,
-  ButtonBar,
-  HeaderOrPopup,
-  Text,
-  Icon,
-  ScrollView,
-  Checkbox,
-} from '../../common-adapters/index'
+import * as Kb from '../../common-adapters'
 import {typeToLabel, isAdmin, isOwner} from '../../constants/teams'
 import {type TeamRoleType} from '../../constants/types/teams'
 import {globalColors, globalMargins, globalStyles, isMobile, styleSheetCreate} from '../../styles'
@@ -47,7 +36,7 @@ const makeRoleOption = (
   pluralizeRoleName?: boolean = false,
   disabled?: boolean = false
 ) => (
-  <ClickableBox
+  <Kb.ClickableBox
     hoverColor={globalColors.black_05}
     style={{
       ...globalStyles.flexBoxRow,
@@ -61,11 +50,11 @@ const makeRoleOption = (
     }}
     onClick={() => setSelected(role)}
   >
-    <Icon type="iconfont-check" style={{alignSelf: 'center'}} color={globalColors.white} />
-    <Box style={{...globalStyles.flexBoxColumn, paddingLeft: globalMargins.small}}>
-      <Box style={globalStyles.flexBoxRow}>
+    <Kb.Icon type="iconfont-check" style={{alignSelf: 'center'}} color={globalColors.white} />
+    <Kb.Box style={{...globalStyles.flexBoxColumn, paddingLeft: globalMargins.small}}>
+      <Kb.Box style={globalStyles.flexBoxRow}>
         {!!roleIconMap[role] && (
-          <Icon
+          <Kb.Icon
             type={roleIconMap[role]}
             style={{
               marginRight: globalMargins.xtiny,
@@ -74,15 +63,21 @@ const makeRoleOption = (
             fontSize={16}
           />
         )}
-        <Text style={{color: selected === role ? globalColors.white : globalColors.black_75}} type="BodyBig">
+        <Kb.Text
+          style={{color: selected === role ? globalColors.white : globalColors.black_75}}
+          type="BodyBig"
+        >
           {pluralizeRoleName ? pluralize(typeToLabel[role]) : typeToLabel[role]}
-        </Text>
-      </Box>
-      <Text style={{color: selected === role ? globalColors.white : globalColors.black_50}} type="BodySmall">
+        </Kb.Text>
+      </Kb.Box>
+      <Kb.Text
+        style={{color: selected === role ? globalColors.white : globalColors.black_50}}
+        type="BodySmall"
+      >
         {role && roleDescMap[role]}
-      </Text>
-    </Box>
-  </ClickableBox>
+      </Kb.Text>
+    </Kb.Box>
+  </Kb.ClickableBox>
 )
 
 // 1. Display roles for user to pick from
@@ -102,36 +97,40 @@ export const RoleOptions = ({
   setConfirm,
   showSendNotification,
 }: RolePickerProps) => (
-  <Box style={styles.container}>
-    <Box style={styles.headerBox}>
-      <Text style={styles.headerTitle} type="BodySmallSemibold">
+  <Kb.Box style={styles.container}>
+    <Kb.Box style={styles.headerBox}>
+      <Kb.Text style={styles.headerTitle} type="BodySmallSemibold">
         {headerTitle || (username ? `Select a role for ${username}:` : 'Select a role:')}
-      </Text>
-    </Box>
+      </Kb.Text>
+    </Kb.Box>
     {allowOwner && makeRoleOption('owner', selectedRole, setSelectedRole, pluralizeRoleName)}
     {allowAdmin && makeRoleOption('admin', selectedRole, setSelectedRole, pluralizeRoleName)}
     {makeRoleOption('writer', selectedRole, setSelectedRole, pluralizeRoleName)}
     {makeRoleOption('reader', selectedRole, setSelectedRole, pluralizeRoleName)}
     {showSendNotification && (
-      <Box style={{marginBottom: globalMargins.tiny, marginTop: globalMargins.small}}>
-        <Checkbox label="Send chat notification" onCheck={setSendNotification} checked={sendNotification} />
-      </Box>
+      <Kb.Box style={{marginBottom: globalMargins.tiny, marginTop: globalMargins.small}}>
+        <Kb.Checkbox
+          label="Send chat notification"
+          onCheck={setSendNotification}
+          checked={sendNotification}
+        />
+      </Kb.Box>
     )}
-    <Box style={{marginBottom: globalMargins.small, marginTop: globalMargins.tiny}}>
-      <Button
+    <Kb.Box style={{marginBottom: globalMargins.small, marginTop: globalMargins.tiny}}>
+      <Kb.Button
         label={addButtonLabel || (controlled ? 'Select' : 'Continue')}
         type="Primary"
         onClick={() => setConfirm(true)}
         disabled={!selectedRole}
       />
-    </Box>
-  </Box>
+    </Kb.Box>
+  </Kb.Box>
 )
 
 // 2. Confirm screen with role permission details
 // Permission renderer
 const PermissionRow = (props: {can: boolean, permission: string}) => (
-  <Box
+  <Kb.Box
     style={{
       ...globalStyles.flexBoxRow,
       alignItems: 'center',
@@ -139,15 +138,15 @@ const PermissionRow = (props: {can: boolean, permission: string}) => (
       padding: globalMargins.tiny,
     }}
   >
-    <Icon
+    <Kb.Icon
       type={props.can ? 'iconfont-check' : 'iconfont-close'}
       style={{alignSelf: 'center'}}
       color={props.can ? globalColors.green : globalColors.red}
     />
-    <Text type="Body" style={{marginLeft: globalMargins.tiny}}>
+    <Kb.Text type="Body" style={{marginLeft: globalMargins.tiny}}>
       {props.permission}
-    </Text>
-  </Box>
+    </Kb.Text>
+  </Kb.Box>
 )
 
 export const RoleConfirm = ({
@@ -177,9 +176,9 @@ export const RoleConfirm = ({
   const avatarSize = isMobile ? 64 : 48
 
   return (
-    <Box style={styles.confirmBox}>
-      <Box style={styles.avatarBox}>
-        <Avatar
+    <Kb.Box style={styles.confirmBox}>
+      <Kb.Box style={styles.avatarBox}>
+        <Kb.Avatar
           style={{
             alignSelf: 'center',
             marginRight: globalMargins.tiny,
@@ -187,36 +186,36 @@ export const RoleConfirm = ({
           username={username}
           size={avatarSize}
         />
-        <Avatar
+        <Kb.Avatar
           style={{alignSelf: 'center', marginLeft: globalMargins.tiny}}
           isTeam={true}
           teamname={teamname}
           size={avatarSize}
         />
-      </Box>
-      <Box style={styles.promptBox}>
-        <Text type="BodyBig">{prompt}</Text>
-      </Box>
-      <Box style={{...globalStyles.flexBoxRow, margin: globalMargins.tiny}}>
-        <Text type="BodySemibold">{introText}</Text>
-      </Box>
-      <Box style={{...globalStyles.flexBoxColumn, width: 280}}>{cans}</Box>
+      </Kb.Box>
+      <Kb.Box style={styles.promptBox}>
+        <Kb.Text type="BodyBig">{prompt}</Kb.Text>
+      </Kb.Box>
+      <Kb.Box style={{...globalStyles.flexBoxRow, margin: globalMargins.tiny}}>
+        <Kb.Text type="BodySemibold">{introText}</Kb.Text>
+      </Kb.Box>
+      <Kb.Box style={{...globalStyles.flexBoxColumn, width: 280}}>{cans}</Kb.Box>
       {cannots.length > 0 && (
-        <Box style={{...globalStyles.flexBoxRow, margin: globalMargins.tiny}}>
-          <Text type="BodySemibold">They won't be able to:</Text>
-        </Box>
+        <Kb.Box style={{...globalStyles.flexBoxRow, margin: globalMargins.tiny}}>
+          <Kb.Text type="BodySemibold">They won't be able to:</Kb.Text>
+        </Kb.Box>
       )}
-      {cannots.length > 0 && <Box style={{...globalStyles.flexBoxColumn, width: 280}}>{cannots}</Box>}
-      <ButtonBar>
-        <Button type="Secondary" label="Back" onClick={() => setConfirm(false)} />
-        <Button
+      {cannots.length > 0 && <Kb.Box style={{...globalStyles.flexBoxColumn, width: 280}}>{cannots}</Kb.Box>}
+      <Kb.ButtonBar>
+        <Kb.Button type="Secondary" label="Back" onClick={() => setConfirm(false)} />
+        <Kb.Button
           label="Confirm"
           type="Primary"
           onClick={() => onComplete(selectedRole, sendNotification)}
           disabled={!selectedRole}
         />
-      </ButtonBar>
-    </Box>
+      </Kb.ButtonBar>
+    </Kb.Box>
   )
 }
 
@@ -257,8 +256,13 @@ const styles = styleSheetCreate({
 
 // Conglomerate role displays
 // $FlowIssue
-export const RolePicker = (props: RolePickerProps) => (
-  <ScrollView>{props.confirm ? <RoleConfirm {...props} /> : <RoleOptions {...props} />}</ScrollView>
-)
+export const RolePicker = (props: RolePickerProps) =>
+  props.confirm
+    ? Kb.HeaderOrPopup(
+        <Kb.ScrollView>
+          <RoleConfirm {...props} />
+        </Kb.ScrollView>
+      )
+    : Kb.OverlayParentHOC(<Kb.FloatingMenu {...props} />)
 
-export default HeaderOrPopup(RolePicker)
+export default RolePicker

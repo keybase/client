@@ -5,10 +5,10 @@ import * as I from 'immutable'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import {connect, type RouteProps} from '../../../util/container'
 import {compose} from 'recompose'
-import {HeaderHoc} from '../../../common-adapters'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import {TeamMember} from '.'
 import {getCanPerform, getTeamMembers, teamWaitingKey} from '../../../constants/teams'
+import * as Kb from '../../../common-adapters'
 import {anyWaiting} from '../../../constants/waiting'
 import * as RPCTypes from '../../../constants/types/rpc-gen'
 
@@ -43,7 +43,7 @@ const mapStateToProps = (state, {routeProps}): StateProps => {
 
 type DispatchProps = {|
   onOpenProfile: () => void,
-  _onEditMembership: (name: string, username: string) => void,
+  _onEditMembership: (name: string, username: string, ref: any) => void,
   _onRemoveMember: (name: string, username: string) => void,
   _onLeaveTeam: (teamname: string) => void,
   _onChat: (string, ?string) => void,
@@ -55,11 +55,11 @@ const mapDispatchToProps = (dispatch, {routeProps, navigateAppend, navigateUp}):
   _onChat: username => {
     username && dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'memberView'}))
   },
-  _onEditMembership: (name: string, username: string) =>
+  _onEditMembership: (name: string, username: string, ref: any) =>
     dispatch(
       navigateAppend([
         {
-          props: {teamname: name, username},
+          props: {ref, teamname: name, username},
           selected: 'rolePicker',
         },
       ])
@@ -68,17 +68,13 @@ const mapDispatchToProps = (dispatch, {routeProps, navigateAppend, navigateUp}):
     dispatch(navigateAppend([{props: {teamname}, selected: 'reallyLeaveTeam'}]))
   },
   _onRemoveMember: (teamname: string, username: string) => {
-    dispatch(
-      navigateAppend(
-        [{props: {teamname, username}, selected: 'reallyRemoveMember'}]
-    )
-    )
+    dispatch(navigateAppend([{props: {teamname, username}, selected: 'reallyRemoveMember'}]))
   },
   onBack: () => dispatch(navigateUp()),
   onOpenProfile: () => dispatch(createShowUserProfile({username: routeProps.get('username')})),
 })
 
-const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
+const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps) => {
   // Gather contextual team membership info
   const yourInfo = stateProps._you && stateProps._memberInfo.get(stateProps._you)
   const userInfo = stateProps._memberInfo.get(stateProps._username)
@@ -99,7 +95,9 @@ const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps) => {
     ...dispatchProps,
     admin,
     onChat: () => dispatchProps._onChat(stateProps._username),
-    onEditMembership: () => dispatchProps._onEditMembership(stateProps.teamname, stateProps._username),
+    onEditMembership: (ref: any) => {
+      return dispatchProps._onEditMembership(stateProps.teamname, stateProps._username, ref)
+    },
     onRemoveMember: () => {
       if (stateProps._username === stateProps._you) {
         dispatchProps._onLeaveTeam(stateProps.teamname)
@@ -120,5 +118,6 @@ export default compose(
     mapDispatchToProps,
     mergeProps
   ),
-  HeaderHoc
+  Kb.OverlayParentHOC,
+  Kb.HeaderHoc
 )(TeamMember)

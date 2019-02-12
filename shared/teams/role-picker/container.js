@@ -58,6 +58,7 @@ const mapDispatchToProps = (dispatch, {navigateUp}): DispatchProps => ({
 })
 
 const mergeProps = (stateProps: StateProps, dispatchProps: DispatchProps, ownProps) => {
+  console.warn('in rolepicker mergeProps')
   const user = stateProps._memberInfo.get(stateProps.username)
   const onComplete = (role: Types.TeamRoleType, sendNotification?: boolean) => {
     if (user) {
