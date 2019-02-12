@@ -4341,6 +4341,7 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 	var u1 kbname.NormalizedUsername = "u1"
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
 	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
+	config.vdebugSetting = "vlog2"
 
 	name := "u1"
 	h, err := ParseTlfHandle(
@@ -4560,6 +4561,7 @@ func TestKBFSOpsRecentHistorySync(t *testing.T) {
 	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
 	// kbfsOpsConcurInit turns off notifications, so turn them back on.
 	config.mode = modeTest{NewInitModeFromType(InitDefault)}
+	config.vdebugSetting = "vlog2"
 
 	name := "u1"
 	h, err := ParseTlfHandle(
