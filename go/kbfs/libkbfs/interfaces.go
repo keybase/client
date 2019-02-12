@@ -2766,3 +2766,13 @@ type blockPutStateCopiable interface {
 		ctx context.Context, blacklist map[BlockPointer]bool) (
 		blockPutStateCopiable, error)
 }
+
+type fileBlockMap interface {
+	putTopBlock(
+		ctx context.Context, parentPtr BlockPointer, childName string,
+		topBlock *FileBlock) error
+	getTopBlock(
+		ctx context.Context, parentPtr BlockPointer, childName string) (
+		*FileBlock, error)
+	getFilenames(ctx context.Context, parentPtr BlockPointer) ([]string, error)
+}
