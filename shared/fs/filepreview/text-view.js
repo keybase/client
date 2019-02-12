@@ -1,14 +1,17 @@
 // @flow
 import * as React from 'react'
 import * as Styles from '../../styles'
-import {type TextViewProps} from './text-view'
 import {WebView} from '../../common-adapters'
-import type {WebViewInjections} from '../../common-adapters'
 
-const TextView = (props: TextViewProps) => (
+type Props = {
+  url: string,
+  onLoadingStateChange: (isLoading: boolean) => void,
+}
+
+export default (props: Props) => (
   <WebView
     url={props.url}
-    style={Styles.globalStyles.flexGrow}
+    style={Styles.isMobile ? null : Styles.globalStyles.flexGrow}
     injections={injections}
     onLoadingStateChange={props.onLoadingStateChange}
   />
@@ -17,9 +20,26 @@ const TextView = (props: TextViewProps) => (
 // We need to do the spacing in the guest content of the webView rather than
 // the component's styles, to make it feel like the whole "view" is
 // scrollable".  The <body> element has the actual content, while <html>
-// provides the top and bottom margin that blends with the left and right space
-// provided by <FilePreview/>
-const webviewCSS = `
+// provides the top and bottom margin that blends with the rest of the app.
+const webviewCSS = Styles.isMobile
+  ? `
+html{
+  background-color: ${Styles.globalColors.blue5};
+  padding-top: ${Styles.globalMargins.mediumLarge};
+  padding-bottom: ${Styles.globalMargins.mediumLarge}; 
+  margin: 0;
+}
+body{
+  background-color: ${Styles.globalColors.white};
+  padding: ${Styles.globalMargins.medium};
+  margin: 0;
+  color: ${Styles.globalColors.black};
+  font-size: 15;
+  line-height: 1.6;
+  font-family: ${Styles.globalStyles.fontTerminal.fontFamily}
+}
+`
+  : `
 html{
   background-color: ${Styles.globalColors.blue5};
   padding-top: ${Styles.globalMargins.medium}; 
@@ -37,8 +57,6 @@ body{
 }
 `
 
-const injections: WebViewInjections = {
+const injections = {
   css: webviewCSS,
 }
-
-export default TextView
