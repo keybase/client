@@ -3618,7 +3618,6 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	// sync.  If a block is indirect, we need to put it and add new
 	// references for all indirect pointers inside it.  If it is not
 	// an indirect block, just add a new reference to the block.
-	newFileBlocks := newFileBlockMapMemory()
 	dbc, cleanupFn, err := cr.makeDiskBlockCache(ctx)
 	if err != nil {
 		return
@@ -3628,6 +3627,8 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	}
 	dirtyBcache := newDirtyBlockCacheDisk(
 		cr.config, dbc, mergedChains.mostRecentChainMDInfo, cr.fbo.branch())
+	newFileBlocks := newFileBlockMapDisk(
+		dirtyBcache, mergedChains.mostRecentChainMDInfo)
 
 	err = cr.doActions(ctx, lState, unmergedChains, mergedChains,
 		unmergedPaths, mergedPaths, actionMap, lbc, newFileBlocks, dirtyBcache)
