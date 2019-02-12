@@ -46,6 +46,11 @@ func getDisposition(defaultInlineValue bool, mimeType string) string {
 	return "attachment"
 }
 
+// We need the charset so GUI can display UTF-8 characters properly. Ideally
+// we'd guess content encoding based on content, but there might not be an easy
+// way to do that as even Go's DetectContentType just uses utf-8 by default.
+const textPlainUtf8 = "text/plain; charset=utf-8"
+
 func (w *contentTypeOverridingResponseWriter) calculateOverride(
 	mimeType string) (newMimeType, disposition string) {
 	// Send text/plain for all HTML and JS files to avoid them being executed
@@ -58,7 +63,7 @@ func (w *contentTypeOverridingResponseWriter) calculateOverride(
 	// If application/javascript somehow gets here it would be handled safely
 	// by the default handler below.
 	case strings.HasPrefix(ty, "text/"):
-		return "text/plain", "inline"
+		return textPlainUtf8, "inline"
 	// Pass multimedia types through, and pdf too.
 	// Some types get special handling here and are not shown inline (e.g. SVG).
 	case strings.HasPrefix(ty, "audio/") ||
@@ -69,7 +74,7 @@ func (w *contentTypeOverridingResponseWriter) calculateOverride(
 	// Otherwise default to text + attachment.
 	// This is safe for all files.
 	default:
-		return "text/plain", "attachment"
+		return textPlainUtf8, "attachment"
 	}
 }
 
@@ -98,30 +103,30 @@ func (w *contentTypeOverridingResponseWriter) Write(data []byte) (int, error) {
 }
 
 var additionalMimeTypes = map[string]string{
-	".go":    "text/plain",
-	".py":    "text/plain",
-	".zsh":   "text/plain",
-	".fish":  "text/plain",
-	".cs":    "text/plain",
-	".rb":    "text/plain",
-	".m":     "text/plain",
-	".mm":    "text/plain",
-	".swift": "text/plain",
-	".flow":  "text/plain",
-	".php":   "text/plain",
-	".pl":    "text/plain",
-	".pm":    "text/plain",
-	".sh":    "text/plain",
-	".js":    "text/plain",
-	".json":  "text/plain",
-	".sql":   "text/plain",
-	".rs":    "text/plain",
-	".xml":   "text/plain",
-	".tex":   "text/plain",
-	".pub":   "text/plain",
-	".atom":  "text/plain",
-	".xhtml": "text/plain",
-	".rss":   "text/plain",
-	".tcl":   "text/plain",
-	".tk":    "text/plain",
+	".go":    textPlainUtf8,
+	".py":    textPlainUtf8,
+	".zsh":   textPlainUtf8,
+	".fish":  textPlainUtf8,
+	".cs":    textPlainUtf8,
+	".rb":    textPlainUtf8,
+	".m":     textPlainUtf8,
+	".mm":    textPlainUtf8,
+	".swift": textPlainUtf8,
+	".flow":  textPlainUtf8,
+	".php":   textPlainUtf8,
+	".pl":    textPlainUtf8,
+	".pm":    textPlainUtf8,
+	".sh":    textPlainUtf8,
+	".js":    textPlainUtf8,
+	".json":  textPlainUtf8,
+	".sql":   textPlainUtf8,
+	".rs":    textPlainUtf8,
+	".xml":   textPlainUtf8,
+	".tex":   textPlainUtf8,
+	".pub":   textPlainUtf8,
+	".atom":  textPlainUtf8,
+	".xhtml": textPlainUtf8,
+	".rss":   textPlainUtf8,
+	".tcl":   textPlainUtf8,
+	".tk":    textPlainUtf8,
 }
