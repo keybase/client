@@ -19,6 +19,7 @@ const cases = [
     in: RPCChatTypes.commonMessageType.system,
     out: [
       'systemAddedToTeam',
+      'systemChangeRetention',
       'systemGitPush',
       'systemInviteAccepted',
       'systemSimpleToComplex',

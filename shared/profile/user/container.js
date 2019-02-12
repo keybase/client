@@ -6,19 +6,19 @@ import * as RouteTreeGen from '../../actions/route-tree-gen'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as Tracker2Gen from '../../actions/tracker2-gen'
 import * as SearchGen from '../../actions/search-gen'
-import * as Styles from '../../styles'
 import Profile2 from '.'
+import {memoize} from '../../util/memoize'
 import type {RouteProps} from '../../route-tree/render-route'
 import type {Response} from 'react-native-image-picker'
 
 type OwnProps = RouteProps<{username: string}, {}>
 const emptySet = I.OrderedSet()
 
-const headerBackgroundColor = (state, followThem) => {
+const headerBackgroundColorType = (state, followThem) => {
   if (['broken', 'error'].includes(state)) {
-    return Styles.globalColors.red
+    return 'red'
   } else {
-    return followThem ? Styles.globalColors.green : Styles.globalColors.blue
+    return followThem ? 'green' : 'blue'
   }
 }
 
@@ -32,7 +32,7 @@ const mapStateToProps = (state, ownProps) => {
     _assertions: d.assertions,
     _suggestionKeys: _userIsYou ? state.tracker2.proofSuggestions : null,
     _userIsYou,
-    backgroundColor: headerBackgroundColor(d.state, followThem),
+    backgroundColorType: headerBackgroundColorType(d.state, followThem),
     followThem,
     followers: state.tracker2.usernameToDetails.getIn([username, 'followers']) || emptySet,
     following: state.tracker2.usernameToDetails.getIn([username, 'following']) || emptySet,
@@ -64,12 +64,16 @@ const mapDispatchToProps = (dispatch, ownProps) => ({
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'search'}]}))
   },
 })
+
+const followToArray = memoize((followers, following) => ({
+  followers: followers.toArray(),
+  following: following.toArray(),
+}))
+
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   assertionKeys: stateProps._assertions ? stateProps._assertions.keySeq().toArray() : null,
-  backgroundColor: stateProps.backgroundColor,
+  backgroundColorType: stateProps.backgroundColorType,
   followThem: stateProps.followThem,
-  followers: stateProps.followers.toArray(),
-  following: stateProps.following.toArray(),
   onBack: dispatchProps.onBack,
   onEditAvatar: stateProps._userIsYou ? dispatchProps._onEditAvatar : null,
   onReload: () => dispatchProps._onReload(stateProps.username, stateProps._userIsYou),
@@ -79,6 +83,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
     ? stateProps._suggestionKeys.map(s => s.assertionKey).toArray()
     : null,
   username: stateProps.username,
+  ...followToArray(stateProps.followers, stateProps.following),
 })
 
 export default Container.namedConnect<OwnProps, _, _, _, _>(

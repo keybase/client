@@ -341,7 +341,7 @@ func extensionRegisterFailure(ctx context.Context, gc *globals.Context, err erro
 
 func ExtensionDetectMIMEType(filename string) (res string, err error) {
 	defer kbCtx.Trace("ExtensionDetectMIMEType", func() error { return err })()
-	src, err := attachments.NewFileReadResetter(filename)
+	src, err := attachments.NewFileReadCloseResetter(filename)
 	if err != nil {
 		return res, err
 	}

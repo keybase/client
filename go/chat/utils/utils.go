@@ -374,6 +374,14 @@ func IsVisibleChatMessageType(messageType chat1.MessageType) bool {
 	return false
 }
 
+func IsCollapsibleMessageType(messageType chat1.MessageType) bool {
+	switch messageType {
+	case chat1.MessageType_UNFURL, chat1.MessageType_ATTACHMENT:
+		return true
+	}
+	return false
+}
+
 func IsNotifiableChatMessageType(messageType chat1.MessageType, atMentions []gregor1.UID,
 	chanMention chat1.ChannelMention) bool {
 	if IsVisibleChatMessageType(messageType) {
@@ -1274,12 +1282,15 @@ func PresentUnfurl(ctx context.Context, g *globals.Context, convID chat1.Convers
 	return &ud
 }
 
-func PresentUnfurls(ctx context.Context, g *globals.Context, convID chat1.ConversationID,
-	unfurls map[chat1.MessageID]chat1.UnfurlResult) (res []chat1.UIMessageUnfurlInfo) {
+func PresentUnfurls(ctx context.Context, g *globals.Context, uid gregor1.UID,
+	convID chat1.ConversationID, unfurls map[chat1.MessageID]chat1.UnfurlResult) (res []chat1.UIMessageUnfurlInfo) {
+	collapses := NewCollapses(g)
 	for unfurlMessageID, u := range unfurls {
 		ud := PresentUnfurl(ctx, g, convID, u.Unfurl)
 		if ud != nil {
 			res = append(res, chat1.UIMessageUnfurlInfo{
+				IsCollapsed: collapses.IsCollapsed(ctx, uid, convID, unfurlMessageID,
+					chat1.MessageType_UNFURL),
 				Unfurl:          *ud,
 				UnfurlMessageID: unfurlMessageID,
 				Url:             u.Url,
@@ -1312,7 +1323,6 @@ func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, msg chat1
 
 func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1.MessageUnboxed,
 	uid gregor1.UID, convID chat1.ConversationID) (res chat1.UIMessage) {
-
 	miscErr := func(err error) chat1.UIMessage {
 		return chat1.NewUIMessageWithError(chat1.MessageUnboxedError{
 			ErrType:   chat1.MessageUnboxedErrorType_MISC,
@@ -1321,6 +1331,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 		})
 	}
 
+	collapses := NewCollapses(g)
 	state, err := rawMsg.State()
 	if err != nil {
 		return miscErr(err)
@@ -1370,7 +1381,9 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			HasPairwiseMacs:       valid.HasPairwiseMacs(),
 			PaymentInfos:          presentPaymentInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
 			RequestInfo:           presentRequestInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
-			Unfurls:               PresentUnfurls(ctx, g, convID, valid.Unfurls),
+			Unfurls:               PresentUnfurls(ctx, g, uid, convID, valid.Unfurls),
+			IsCollapsed: collapses.IsCollapsed(ctx, uid, convID, rawMsg.GetMessageID(),
+				rawMsg.GetMessageType()),
 		})
 	case chat1.MessageUnboxedState_OUTBOX:
 		var body, title, filename string

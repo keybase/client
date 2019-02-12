@@ -328,6 +328,7 @@ type IdentifyUI interface {
 
 type Checker struct {
 	F             func(string) bool
+	Transform     func(string) string
 	Hint          string
 	PreserveSpace bool
 }

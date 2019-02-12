@@ -6,6 +6,7 @@ import * as Types from '../../../constants/types/chat2'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Inbox from '..'
+import {isMobile} from '../../../constants/platform'
 import {namedConnect} from '../../../util/container'
 import type {Props as _Props, RowItemSmall, RowItemBig} from '../index.types'
 import normalRowData from './normal'
@@ -77,6 +78,10 @@ const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
 
 // This merge props is not spreading on purpose so we never have any random props that might mutate and force a re-render
 const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  const selectedIndex = stateProps.rows.findIndex(
+    // $ForceType
+    r => r.conversationIDKey === stateProps._selectedConversationIDKey
+  )
   return {
     _canRefreshOnMount: stateProps._canRefreshOnMount,
     _refreshInbox: dispatchProps._refreshInbox,
@@ -99,6 +104,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onSelectUp: () => dispatchProps._onSelectNext(stateProps.rows, stateProps._selectedConversationIDKey, -1),
     onUntrustedInboxVisible: dispatchProps.onUntrustedInboxVisible,
     rows: stateProps.rows,
+    selectedIndex: isMobile ? 0 : selectedIndex, // unused on mobile so don't cause updates
     smallTeamsExpanded: stateProps.smallTeamsExpanded,
     toggleSmallTeamsExpanded: dispatchProps.toggleSmallTeamsExpanded,
   }

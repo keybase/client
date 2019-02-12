@@ -133,6 +133,9 @@ func GetExtendedStatus(m MetaContext) (res keybase1.ExtendedStatus, err error) {
 
 	res.LocalDbStats = strings.Split(g.LocalDb.Stats(), "\n")
 	res.LocalChatDbStats = strings.Split(g.LocalChatDb.Stats(), "\n")
+	if cacheSizeInfo, err := CacheSizeInfo(g); err == nil {
+		res.CacheDirSizeInfo = cacheSizeInfo
+	}
 
 	return res, nil
 }

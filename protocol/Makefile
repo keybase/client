@@ -17,6 +17,8 @@ config:
 # as long as they have messages in them. BUT you can override this
 # check via -f. So the two files specified here via -f don't have
 # messages but should be made into .json's...
+# We don't need kbgitkbfs1 in JSON so we aren't including them in the commands
+# here.
 build-stamp: avdl/keybase1/*.avdl avdl/gregor1/*.avdl avdl/chat1/*.avdl avdl/stellar1/*.avdl $(AVDL2JSON) | config
 	@mkdir -p json/keybase1
 	@mkdir -p json/gregor1
@@ -33,10 +35,12 @@ go-build-stamp: avdl/keybase1/*.avdl avdl/gregor1/*.avdl avdl/chat1/*.avdl avdl/
 	@mkdir -p ../go/protocol/gregor1
 	@mkdir -p ../go/protocol/chat1
 	@mkdir -p ../go/protocol/stellar1
+	@mkdir -p ../go/protocol/kbgitkbfs1
 	$(AVDLC) -b -l go -o ../go/protocol/keybase1 avdl/keybase1/*.avdl
 	$(AVDLC) -b -l go -o ../go/protocol/gregor1 avdl/gregor1/*.avdl
 	$(AVDLC) -b -l go -o ../go/protocol/chat1 avdl/chat1/*.avdl
 	$(AVDLC) -b -l go -o ../go/protocol/stellar1 avdl/stellar1/*.avdl
+	$(AVDLC) -b -l go -o ../go/protocol/kbgitkbfs1 avdl/kbgitkbfs1/*.avdl
 	(cd ../go/protocol && go fmt ./...)
 	date > $@
 
@@ -52,6 +56,7 @@ clean:
 	$(AVDLC) -c -b -l go -o ../go/protocol/gregor1 avdl/gregor1/*.avdl
 	$(AVDLC) -c -b -l go -o ../go/protocol/chat1 avdl/chat1/*.avdl
 	$(AVDLC) -c -b -l go -o ../go/protocol/stellar1 avdl/stellar1/*.avdl
+	$(AVDLC) -c -b -l go -o ../go/protocol/kbgitkbfs1 avdl/kbgitkbfs1/*.avdl
 
 fmt:
 	@./fmt.sh

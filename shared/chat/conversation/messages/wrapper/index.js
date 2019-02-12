@@ -6,6 +6,7 @@ import * as Styles from '../../../../styles'
 import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
 import SystemAddedToTeam from '../system-added-to-team/container'
+import SystemChangeRetention from '../system-change-retention/container'
 import SystemGitPush from '../system-git-push/container'
 import SystemInviteAccepted from '../system-invite-accepted/container'
 import SystemJoined from '../system-joined/container'
@@ -17,7 +18,7 @@ import SetChannelname from '../set-channelname/container'
 import TextMessage from '../text/container'
 import AttachmentMessage from '../attachment/container'
 import PaymentMessage from '../account-payment/container'
-import Placeholder from '../placeholder/container'
+import MessagePlaceholder from '../placeholder/container'
 import ExplodingHeightRetainer from './exploding-height-retainer'
 import ExplodingMeta from './exploding-meta/container'
 import LongPressable from './long-pressable'
@@ -330,7 +331,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         child = <PaymentMessage key="sendPayment" message={message} />
         break
       case 'placeholder':
-        child = <Placeholder key="placeholder" message={message} />
+        child = <MessagePlaceholder key="placeholder" message={message} />
         break
       case 'systemInviteAccepted':
         child = <SystemInviteAccepted key="systemInviteAccepted" message={message} />
@@ -343,6 +344,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         break
       case 'systemAddedToTeam':
         child = <SystemAddedToTeam key="systemAddedToTeam" message={message} />
+        break
+      case 'systemChangeRetention':
+        child = <SystemChangeRetention key="systemChangeRetention" message={message} />
         break
       case 'systemJoined':
         child = <SystemJoined key="systemJoined" message={message} />

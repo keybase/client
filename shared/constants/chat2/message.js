@@ -95,6 +95,7 @@ export const serviceMessageTypeToMessageTypes = (t: RPCChatTypes.MessageType): A
     case RPCChatTypes.commonMessageType.system:
       return [
         'systemAddedToTeam',
+        'systemChangeRetention',
         'systemGitPush',
         'systemInviteAccepted',
         'systemSimpleToComplex',
@@ -125,6 +126,7 @@ export const allMessageTypes: I.Set<Types.MessageType> = I.Set([
   'setChannelname',
   'setDescription',
   'systemAddedToTeam',
+  'systemChangeRetention',
   'systemGitPush',
   'systemInviteAccepted',
   'systemJoined',
@@ -202,6 +204,7 @@ export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachm
   fileURL: '',
   fileURLCached: false,
   inlineVideoPlayable: false,
+  isCollapsed: false,
   previewHeight: 0,
   previewTransferState: null,
   previewURL: '',
@@ -336,6 +339,21 @@ const makeMessageSetChannelname: I.RecordFactory<MessageTypes._MessageSetChannel
   type: 'setChannelname',
 })
 
+const makeMessageSystemChangeRetention: I.RecordFactory<MessageTypes._MessageSystemChangeRetention> = I.Record(
+  {
+    ...makeMessageMinimum,
+    canChange: false,
+    isInherit: false,
+    isTeam: false,
+    membersType: 0,
+    policy: RPCChatTypes.RetentionPolicy,
+    reactions: I.Map(),
+    type: 'systemChangeRetention',
+    user: '',
+    you: '',
+  }
+)
+
 export const makeReaction: I.RecordFactory<MessageTypes._Reaction> = I.Record({
   timestamp: 0,
   username: '',
@@ -468,7 +486,6 @@ const uiMessageToSystemMessage = (minimum, body, reactions): ?Types.Message => {
         team,
       })
     }
-
     case RPCChatTypes.localMessageSystemType.inviteaddedtoteam: {
       const inviteaddedtoteam = body.inviteaddedtoteam || {}
       const invitee = inviteaddedtoteam.invitee || 'someone'
@@ -551,13 +568,20 @@ const uiMessageToSystemMessage = (minimum, body, reactions): ?Types.Message => {
       })
     }
     case RPCChatTypes.localMessageSystemType.changeretention: {
-      const {user = '???'} = body.changeretention || {}
-      return makeMessageSystemText({
-        reactions,
-        text: new HiddenString(`${user} changed the retention policy`),
+      if (!body.changeretention) {
+        return null
+      }
+      return makeMessageSystemChangeRetention({
         ...minimum,
+        isInherit: body.changeretention.isInherit,
+        isTeam: body.changeretention.isTeam,
+        membersType: body.changeretention.membersType,
+        policy: body.changeretention.policy,
+        reactions,
+        user: body.changeretention.user,
       })
     }
+
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(body.systemType)
       return null
@@ -741,6 +765,7 @@ const validUIMessagetoMessage = (
         fileURL,
         fileURLCached,
         inlineVideoPlayable,
+        isCollapsed: m.isCollapsed,
         previewHeight: pre.height,
         previewURL,
         previewWidth: pre.width,
@@ -873,6 +898,7 @@ const outboxUIMessagetoMessage = (
         deviceName: state.config.deviceName || '',
         deviceType: isMobile ? 'mobile' : 'desktop',
         errorReason,
+        exploding: o.isEphemeral,
         ordinal: Types.numberToOrdinal(o.ordinal),
         outboxID: Types.stringToOutboxID(o.outboxID),
         submitState: 'pending',
@@ -1016,6 +1042,7 @@ export const makePendingAttachmentMessage = (
     errorReason: errorReason,
     fileName: fileName,
     id: Types.numberToMessageID(0),
+    isCollapsed: false,
     ordinal: ordinal,
     outboxID: outboxID,
     previewHeight: previewSpec.height,

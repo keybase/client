@@ -393,10 +393,17 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 	if err != nil {
 		return res, err
 	}
-	src, err := NewFileReadResetter(filename)
+	src, err := NewReadCloseResetter(bgctx, u.G().GlobalContext, filename)
 	if err != nil {
 		return res, err
 	}
+
+	deferToBackgroundRoutine := false
+	defer func() {
+		if !deferToBackgroundRoutine {
+			src.Close()
+		}
+	}()
 
 	progress := func(bytesComplete, bytesTotal int64) {
 		u.G().ActivityNotifier.AttachmentUploadProgress(ctx, uid, convID, outboxID, bytesComplete, bytesTotal)
@@ -538,7 +545,10 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 			return err
 		})
 	}
+
+	deferToBackgroundRoutine = true
 	go func() {
+		defer src.Close()
 		var errStr string
 		status := types.AttachmentUploaderTaskStatusSuccess
 		if err := g.Wait(); err != nil {

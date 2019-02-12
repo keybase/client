@@ -525,6 +525,7 @@ type UIMessageUnfurlInfo struct {
 	UnfurlMessageID MessageID     `codec:"unfurlMessageID" json:"unfurlMessageID"`
 	Url             string        `codec:"url" json:"url"`
 	Unfurl          UnfurlDisplay `codec:"unfurl" json:"unfurl"`
+	IsCollapsed     bool          `codec:"isCollapsed" json:"isCollapsed"`
 }
 
 func (o UIMessageUnfurlInfo) DeepCopy() UIMessageUnfurlInfo {
@@ -532,6 +533,7 @@ func (o UIMessageUnfurlInfo) DeepCopy() UIMessageUnfurlInfo {
 		UnfurlMessageID: o.UnfurlMessageID.DeepCopy(),
 		Url:             o.Url,
 		Unfurl:          o.Unfurl.DeepCopy(),
+		IsCollapsed:     o.IsCollapsed,
 	}
 }
 
@@ -561,6 +563,7 @@ type UIMessageValid struct {
 	PaymentInfos          []UIPaymentInfo        `codec:"paymentInfos" json:"paymentInfos"`
 	RequestInfo           *UIRequestInfo         `codec:"requestInfo,omitempty" json:"requestInfo,omitempty"`
 	Unfurls               []UIMessageUnfurlInfo  `codec:"unfurls" json:"unfurls"`
+	IsCollapsed           bool                   `codec:"isCollapsed" json:"isCollapsed"`
 }
 
 func (o UIMessageValid) DeepCopy() UIMessageValid {
@@ -666,6 +669,7 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 			}
 			return ret
 		})(o.Unfurls),
+		IsCollapsed: o.IsCollapsed,
 	}
 }
 

@@ -6,6 +6,7 @@ import DevicesReal from './container'
 import devicePage from './device-page/index.stories'
 import deviceRevoke from './device-revoke/index.stories'
 import paperKey from './paper-key/index.stories'
+import addDevice from './add-device/index.stories'
 
 const idToType = i => {
   switch (i) {
@@ -66,17 +67,12 @@ const provider = Sb.createPropProviderWithCommon({
   Devices: p => ({
     _stateOverride: p._stateOverride,
     hasNewlyRevoked: p.revoked.some(i => i.key === '7'),
-    hideMenu: Sb.action('hideMenu'),
     items: p.active,
     loadDevices: Sb.action('loaddevices'),
-    menuItems: [
-      {onClick: Sb.action('onAdd phone'), title: 'New phone'},
-      {onClick: Sb.action('onAdd computer'), title: 'New computer'},
-      {onClick: Sb.action('onAdd paper key'), title: 'New paper key'},
-    ],
+    onAddDevice: Sb.action('onAddDevice'),
+    onBack: Sb.action('onBack'),
     revokedItems: p.revoked,
-    showMenu: Sb.action('showMenu'),
-    showingMenu: false,
+    title: 'Devices',
     waiting: !!p.waiting,
   }),
 })
@@ -85,6 +81,7 @@ const load = () => {
   devicePage()
   deviceRevoke()
   paperKey()
+  addDevice()
   Sb.storiesOf('Devices/List', module)
     .addDecorator(provider)
     .add('Current computer', () => <Devices active={activeDevices(false)} revoked={revokedDevices(false)} />)
