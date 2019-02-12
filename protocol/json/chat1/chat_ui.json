@@ -868,6 +868,13 @@
         {
           "type": [
             null,
+            "MessageID"
+          ],
+          "name": "unreadLine"
+        },
+        {
+          "type": [
+            null,
             "UIPagination"
           ],
           "name": "pagination"

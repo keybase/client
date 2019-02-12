@@ -551,13 +551,15 @@ protocol local {
 
   record ThreadView {
     array<MessageUnboxed> messages;
+    union { null, MessageID } unreadLine;
     union { null, Pagination } pagination;
   }
 
   enum MessageIDControlMode {
     OLDERMESSAGES_0,
     NEWERMESSAGES_1,
-    CENTERED_2
+    CENTERED_2,
+    UNREADLINE_3
   }
 
   record MessageIDControl {

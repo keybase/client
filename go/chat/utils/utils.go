@@ -1101,6 +1101,7 @@ func PresentConversationLocals(convs []chat1.ConversationLocal, currentUsername 
 func PresentThreadView(ctx context.Context, g *globals.Context, uid gregor1.UID, tv chat1.ThreadView,
 	convID chat1.ConversationID) (res chat1.UIMessages) {
 	res.Pagination = PresentPagination(tv.Pagination)
+	res.UnreadLine = tv.UnreadLine
 	for _, msg := range tv.Messages {
 		res.Messages = append(res.Messages, PresentMessageUnboxed(ctx, g, msg, uid, convID))
 	}
@@ -1607,6 +1608,14 @@ func MessageIDControlToPagination(ctx context.Context, logger DebugLabeler, cont
 			res.Next, err = pag.MakeIndex(pm)
 		case chat1.MessageIDControlMode_NEWERMESSAGES:
 			res.Previous, err = pag.MakeIndex(pm)
+		case chat1.MessageIDControlMode_UNREADLINE:
+			if conv == nil {
+				// just bail out of here with no conversation
+				logger.Debug(ctx, "MessageIDControlToPagination: unreadline mode with no conv, bailing")
+				return nil
+			}
+			pm.msgID = conv.Conv.ReaderInfo.ReadMsgid
+			fallthrough
 		case chat1.MessageIDControlMode_CENTERED:
 			// Heuristic that we might want to revisit, get older messages from a little ahead of where
 			// we want to center on

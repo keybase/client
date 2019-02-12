@@ -1682,6 +1682,13 @@
         {
           "type": [
             null,
+            "MessageID"
+          ],
+          "name": "unreadLine"
+        },
+        {
+          "type": [
+            null,
             "Pagination"
           ],
           "name": "pagination"
@@ -1694,7 +1701,8 @@
       "symbols": [
         "OLDERMESSAGES_0",
         "NEWERMESSAGES_1",
-        "CENTERED_2"
+        "CENTERED_2",
+        "UNREADLINE_3"
       ]
     },
     {

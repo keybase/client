@@ -28,6 +28,8 @@ const ordinalsInAWaypoint = 10
 // pixels away from top/bottom to load/be locked
 const listEdgeSlop = 10
 
+const scrollOrdinalKey = 'scroll-ordinal-key'
+
 type State = {
   isLockedToBottom: boolean,
 }
@@ -69,8 +71,24 @@ class Thread extends React.PureComponent<Props, State> {
     }
   }
 
+  _shouldScrollToCenter = () => {
+    return this.props.centeredOrdinal && this.props.centeredOrdinal != this.props.messageOrdinals.last()
+  }
+
+  _scrollToCentered = () => {
+    const list = this._listRef.current
+    if (list) {
+      const scrollWaypoint = list.querySelectorAll(`[data-key=${scrollOrdinalKey}]`)
+      if (scrollWaypoint.length > 0) {
+        scrollWaypoint[0].scrollIntoView({behavior: 'smooth', block: 'center', inline: 'nearest'})
+      }
+    }
+  }
+
   componentDidMount() {
-    if (this.state.isLockedToBottom) {
+    if (this._shouldScrollToCenter()) {
+      this._scrollToCentered()
+    } else if (this.state.isLockedToBottom) {
       setImmediate(() => this._scrollToBottom())
     }
   }
@@ -96,13 +114,15 @@ class Thread extends React.PureComponent<Props, State> {
     // conversation changed
     if (this.props.conversationIDKey !== prevProps.conversationIDKey) {
       this._cleanupDebounced()
-      if (this.props.centeredOrdinal) {
-        this._scrollToOrdinal(this.props.centeredOrdinal)
-      } else {
-        this._scrollHeight = 0
-        this.setState(p => (p.isLockedToBottom ? null : {isLockedToBottom: true}))
-        this._scrollToBottom()
-      }
+      this._scrollHeight = 0
+      this.setState(p => (p.isLockedToBottom ? null : {isLockedToBottom: true}))
+      this._scrollToBottom()
+    }
+
+    if (this._shouldScrollToCenter()) {
+      this._cleanupDebounced()
+      this._scrollToCentered()
+      this._scrollHeight = null
       return
     }
 
@@ -135,37 +155,21 @@ class Thread extends React.PureComponent<Props, State> {
       // onResize will be called normally but its pretty slow so you'll see a flash, instead of emulate it happening immediately
       this._scrollHeight = snapshot
       this._onResize({scroll: {height: list.scrollHeight}})
-    } else if (this.state.isLockedToBottom && this.props.conversationIDKey === prevProps.conversationIDKey) {
+    } else if (
+      this.state.isLockedToBottom &&
+      this.props.conversationIDKey === prevProps.conversationIDKey &&
+      !this._shouldScrollToCenter()
+    ) {
       // maintain scroll to bottom?
       this._scrollToBottom()
     } else if (this.props.messageOrdinals.size !== prevProps.messageOrdinals.size) {
       // someone else sent something? then ignore next resize resize
       this._scrollHeight = null
     }
-
-    if (this.props.editingOrdinal && this.props.editingOrdinal !== prevProps.editingOrdinal) {
-      this._scrollToOrdinal(this.props.editingOrdinal)
-    }
   }
 
   componentWillUnmount() {
     this._cleanupDebounced()
-  }
-
-  _scrollToOrdinal = ordinal => {
-    const list = this._listRef.current
-    const idx = this.props.messageOrdinals.indexOf(ordinal)
-    if (list && idx !== -1) {
-      const waypoints = list.querySelectorAll('[data-key]')
-      // find an id that should be our parent
-      const toFind = Types.ordinalToNumber(ordinal)
-      const found = Array.from(waypoints)
-        .reverse()
-        .find(w => parseInt(w.dataset.key, 10) < toFind)
-      if (found) {
-        found.scrollIntoViewIfNeeded({behavior: 'smooth', block: 'center'})
-      }
-    }
   }
 
   _cleanupDebounced = () => {
@@ -271,7 +275,9 @@ class Thread extends React.PureComponent<Props, State> {
     let ordinals = []
     let previous = null
     let lastBucket = null
+    let baseIndex = 0
     this.props.messageOrdinals.forEach((ordinal, idx) => {
+      const isCenteredOrdinal = ordinal === this.props.centeredOrdinal
       // We want to keep the mapping of ordinal to bucket fixed always
       const bucket = Math.floor(Types.ordinalToNumber(ordinal) / ordinalsInAWaypoint)
       if (lastBucket === null) {
@@ -279,15 +285,15 @@ class Thread extends React.PureComponent<Props, State> {
       }
       const needNextWaypoint = bucket !== lastBucket
       const isLastItem = idx === numOrdinals - 1
-      if (needNextWaypoint || isLastItem) {
-        if (isLastItem) {
+      if (needNextWaypoint || isLastItem || isCenteredOrdinal) {
+        if (isLastItem && !isCenteredOrdinal) {
           ordinals.push(ordinal)
         }
         if (ordinals.length) {
           // don't allow buckets to be too big
           const chunks = chunk(ordinals, 10)
           chunks.forEach((toAdd, idx) => {
-            const key = `${lastBucket || ''}:${idx}`
+            const key = `${lastBucket || ''}:${idx + baseIndex}`
             items.push(
               <OrdinalWaypoint
                 key={key}
@@ -304,7 +310,23 @@ class Thread extends React.PureComponent<Props, State> {
           lastBucket = bucket
         }
       }
-      ordinals.push(ordinal)
+      // If this is the centered ordinal, it goes into its own waypoint so we can easily scroll to it
+      if (isCenteredOrdinal) {
+        items.push(
+          <OrdinalWaypoint
+            key={scrollOrdinalKey}
+            id={scrollOrdinalKey}
+            rowRenderer={this._rowRenderer}
+            ordinals={[ordinal]}
+            previous={previous}
+          />
+        )
+        previous = ordinal
+        lastBucket = 0
+        baseIndex++
+      } else {
+        ordinals.push(ordinal)
+      }
     })
 
     items.push(<BottomItem key="bottomItem" conversationIDKey={this.props.conversationIDKey} />)
@@ -330,9 +352,6 @@ class Thread extends React.PureComponent<Props, State> {
 
   render() {
     const items = this._makeItems()
-    if (this._listRef && this._listRef.current) {
-      console.log(this._listRef.current.scrollTop)
-    }
     return (
       <ErrorBoundary>
         <div style={containerStyle} onClick={this._handleListClick} onCopyCapture={this._onCopyCapture}>

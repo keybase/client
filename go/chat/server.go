@@ -560,6 +560,7 @@ func (h *Server) mergeLocalRemoteThread(ctx context.Context, remoteThread, local
 			for _, m := range localThread.Messages {
 				lm[m.GetMessageID()] = m
 			}
+			res.UnreadLine = remoteThread.UnreadLine
 			res.Pagination = remoteThread.Pagination
 			for _, m := range remoteThread.Messages {
 				if shouldAppend(m, lm) {
@@ -661,7 +662,8 @@ func (h *Server) GetUnreadline(ctx context.Context, arg chat1.GetUnreadlineArg) 
 		return res, err
 	}
 
-	res.UnreadlineID, err = h.G().ConvSource.GetUnreadline(ctx, arg.ConvID, uid, arg.ReadMsgID)
+	res.UnreadlineID, err = h.G().ConvSource.GetUnreadline(ctx, arg.ConvID, uid, arg.ReadMsgID,
+		types.UnreadLineModeAll)
 	if err != nil {
 		h.Debug(ctx, "GetUnreadline: unable to run UnreadMsgID: %v", err)
 		return res, err
@@ -737,13 +739,23 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 	}
 	arg.Query.EnableDeletePlaceholders = true
 
+	// Get the conversation from local storage
+	var conv *types.RemoteConversation
+	uconv, err := GetUnverifiedConv(ctx, h.G(), uid, arg.ConversationID,
+		types.InboxSourceDataSourceLocalOnly)
+	if err != nil {
+		h.Debug(ctx, "GetThreadNonblock: failed to get conversation: %s", err)
+	} else {
+		conv = &uconv
+	}
+
 	// Parse out options
-	if arg.Query != nil && arg.Query.MessageIDControl != nil {
+	if arg.Query != nil && arg.Query.MessageIDControl != nil && conv != nil {
 		// Pager control into pagination if given
 		h.Debug(ctx, "GetThreadNonblock: using message ID control for pagination: %v",
 			*arg.Query.MessageIDControl)
-		pagination = h.messageIDControlToPagination(ctx, uid, arg.ConversationID,
-			*arg.Query.MessageIDControl)
+		pagination = utils.MessageIDControlToPagination(ctx, h.DebugLabeler, arg.Query.MessageIDControl,
+			conv)
 	} else {
 		// Apply any pager mode transformations
 		pagination = h.applyPagerModeIncoming(ctx, arg.ConversationID, pagination, arg.Pgmode)
@@ -784,6 +796,16 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 				h.Debug(ctx, "GetThreadNonblock: error running PullLocalOnly (sending miss): %s",
 					err.Error())
 			} else {
+				// get unread line in local only mode
+				if conv != nil {
+					unreadLine, err := h.G().ConvSource.GetUnreadline(ctx, arg.ConversationID, uid,
+						conv.Conv.ReaderInfo.ReadMsgid, types.UnreadLineModeLocal)
+					if err != nil {
+						h.Debug(ctx, "GetThreadNonblock: failed to get unread line (local): %s", err)
+					} else {
+						localThread.UnreadLine = unreadLine
+					}
+				}
 				resThread = &localThread
 			}
 		case <-ctx.Done():
@@ -840,6 +862,16 @@ func (h *Server) GetThreadNonblock(ctx context.Context, arg chat1.GetThreadNonbl
 		if fullErr != nil {
 			h.Debug(ctx, "GetThreadNonblock: error running Pull, returning error: %s", fullErr.Error())
 			return
+		}
+		// grab unread line
+		if conv != nil {
+			unreadLine, err := h.G().ConvSource.GetUnreadline(ctx, arg.ConversationID, uid,
+				conv.Conv.ReaderInfo.ReadMsgid, types.UnreadLineModeAll)
+			if err != nil {
+				h.Debug(ctx, "GetThreadNonblock: failed to get unread line (remote): %s", err)
+			} else {
+				remoteThread.UnreadLine = unreadLine
+			}
 		}
 
 		// Acquire lock and send up actual response

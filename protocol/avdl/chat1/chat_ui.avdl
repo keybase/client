@@ -218,6 +218,7 @@ protocol chatUi {
 
   record UIMessages {
     array<UIMessage> messages;
+    union { null, MessageID } unreadLine;
     union { null, UIPagination } pagination;
   }
 

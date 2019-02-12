@@ -22,7 +22,6 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
     const m = Constants.getMessage(state, conversationIDKey, lastOrdinal)
     lastMessageIsOurs = m && m.author === state.config.username
   }
-  console.log('CENTERED: ' + centeredOrdinal)
   return {
     centeredOrdinal,
     conversationIDKey,

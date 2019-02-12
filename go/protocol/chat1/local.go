@@ -3045,6 +3045,7 @@ func (o NonblockFetchRes) DeepCopy() NonblockFetchRes {
 
 type ThreadView struct {
 	Messages   []MessageUnboxed `codec:"messages" json:"messages"`
+	UnreadLine *MessageID       `codec:"unreadLine,omitempty" json:"unreadLine,omitempty"`
 	Pagination *Pagination      `codec:"pagination,omitempty" json:"pagination,omitempty"`
 }
 
@@ -3061,6 +3062,13 @@ func (o ThreadView) DeepCopy() ThreadView {
 			}
 			return ret
 		})(o.Messages),
+		UnreadLine: (func(x *MessageID) *MessageID {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.UnreadLine),
 		Pagination: (func(x *Pagination) *Pagination {
 			if x == nil {
 				return nil
@@ -3077,6 +3085,7 @@ const (
 	MessageIDControlMode_OLDERMESSAGES MessageIDControlMode = 0
 	MessageIDControlMode_NEWERMESSAGES MessageIDControlMode = 1
 	MessageIDControlMode_CENTERED      MessageIDControlMode = 2
+	MessageIDControlMode_UNREADLINE    MessageIDControlMode = 3
 )
 
 func (o MessageIDControlMode) DeepCopy() MessageIDControlMode { return o }
@@ -3085,12 +3094,14 @@ var MessageIDControlModeMap = map[string]MessageIDControlMode{
 	"OLDERMESSAGES": 0,
 	"NEWERMESSAGES": 1,
 	"CENTERED":      2,
+	"UNREADLINE":    3,
 }
 
 var MessageIDControlModeRevMap = map[MessageIDControlMode]string{
 	0: "OLDERMESSAGES",
 	1: "NEWERMESSAGES",
 	2: "CENTERED",
+	3: "UNREADLINE",
 }
 
 func (e MessageIDControlMode) String() string {
