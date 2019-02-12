@@ -99,7 +99,7 @@ type fstatus struct {
 
 	DefaultUsername      string
 	ProvisionedUsernames []string
-	Clients              []keybase1.ClientDetails
+	Clients              []keybase1.ClientStatus
 	PlatformInfo         keybase1.PlatformInfo
 	OSVersion            string
 	DeviceEKNames        []string
@@ -118,10 +118,10 @@ func (c *CmdStatus) Run() error {
 	return c.output(status)
 }
 
-func getFirstClient(v []keybase1.ClientDetails, typ keybase1.ClientType) *keybase1.ClientDetails {
+func getFirstClient(v []keybase1.ClientStatus, typ keybase1.ClientType) *keybase1.ClientDetails {
 	for _, cli := range v {
-		if cli.ClientType == typ {
-			return &cli
+		if cli.Details.ClientType == typ {
+			return &cli.Details
 		}
 	}
 	return nil
@@ -330,22 +330,22 @@ func (c *CmdStatus) outputTerminal(status *fstatus) error {
 	return nil
 }
 
-func (c *CmdStatus) outputClients(dui libkb.DumbOutputUI, clients []keybase1.ClientDetails) {
+func (c *CmdStatus) outputClients(dui libkb.DumbOutputUI, clients []keybase1.ClientStatus) {
 	var prev keybase1.ClientType
 	for _, cli := range clients {
-		if cli.ClientType != prev {
-			dui.Printf("\n%s:\n", cli.ClientType)
-			prev = cli.ClientType
+		if cli.Details.ClientType != prev {
+			dui.Printf("\n%s:\n", cli.Details.ClientType)
+			prev = cli.Details.ClientType
 		}
 		var vstr string
-		if len(cli.Version) > 0 {
-			vstr = ", version: " + cli.Version
+		if len(cli.Details.Version) > 0 {
+			vstr = ", version: " + cli.Details.Version
 		}
 		var dstr string
-		if len(cli.Desc) > 0 {
-			dstr = ", description: " + cli.Desc
+		if len(cli.Details.Desc) > 0 {
+			dstr = ", description: " + cli.Details.Desc
 		}
-		dui.Printf("    %s [pid: %d%s%s]\n", strings.Join(cli.Argv, " "), cli.Pid, vstr, dstr)
+		dui.Printf("    %s [pid: %d%s%s]\n", strings.Join(cli.Details.Argv, " "), cli.Details.Pid, vstr, dstr)
 	}
 }
 
