@@ -9,7 +9,7 @@ import type {Props} from './index.types'
 
 const gridHeight = 100
 const gridWidthMax = 150
-const poweredByImg = 'powered-by-giphy.png'
+const poweredByImg = resolveImageAsURL('', 'powered-by-giphy.png')
 
 const GiphySearch = (props: Props) => {
   return (
@@ -41,7 +41,7 @@ const GiphySearch = (props: Props) => {
           })}
         </Kb.Box2>
       </Kb.ScrollView>
-      <Kb.Image src={resolveImageAsURL('', poweredByImg)} style={styles.poweredBy} />
+      <Kb.Image src={poweredByImg} style={styles.poweredBy} />
     </Kb.Box>
   )
 }

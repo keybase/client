@@ -15,7 +15,7 @@ export class Video extends React.Component<Props, State> {
       this.props.onClick()
       return
     }
-    if (!(this._videoRef && this._videoRef.current)) {
+    if (!this._videoRef.current) {
       return
     }
     if (!this.state.playingVideo) {
