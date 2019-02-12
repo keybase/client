@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
+	"golang.org/x/net/context"
 )
 
 // Prove is an engine used for proving ownership of remote accounts,
@@ -320,8 +322,11 @@ func (p *Prove) promptPostedLoop(m libkb.MetaContext) (err error) {
 	return err
 }
 
-// Poll forever until the proof succeeds.
+// Poll until the proof succeeds, limited to an hour.
 func (p *Prove) verifyLoop(m libkb.MetaContext) (err error) {
+	timeout := time.Hour
+	m, cancel := m.WithTimeout(timeout)
+	defer cancel()
 	uierr := m.UIs().ProveUI.Checking(m.Ctx(), keybase1.CheckingArg{
 		Name: p.serviceType.DisplayName(),
 	})
@@ -340,6 +345,9 @@ func (p *Prove) verifyLoop(m libkb.MetaContext) (err error) {
 		wakeAt := m.G().Clock().Now().Add(2 * time.Second)
 		err = libkb.SleepUntilWithContext(m.Ctx(), m.G().Clock(), wakeAt)
 		if err != nil {
+			if err == context.DeadlineExceeded {
+				return fmt.Errorf("Timed out looking a proof after %v", timeout)
+			}
 			return err
 		}
 	}
