@@ -78,13 +78,13 @@ func newGameMessageEncoded(t *testing.T, md GameMetadata, b GameMessageBody) Gam
 }
 
 type testBundle struct {
-	me        UserDevice
-	dh        *testDealersHelper
-	dealer    *Dealer
-	channelID chat1.ConversationID
-	start     Start
-	leader    *playerControl
-	followers []*playerControl
+	me             UserDevice
+	dh             *testDealersHelper
+	dealer         *Dealer
+	conversationID chat1.ConversationID
+	start          Start
+	leader         *playerControl
+	followers      []*playerControl
 }
 
 func (b *testBundle) run(ctx context.Context) {
@@ -102,14 +102,14 @@ func setupTestBundleWithParams(ctx context.Context, t *testing.T, params FlipPar
 		SlackMsec:            1 * 1000,
 		Params:               params,
 	}
-	channelID := chat1.ConversationID(randBytes(6))
+	conversationID := genConversationID()
 
 	return &testBundle{
-		me:        me,
-		dh:        dh,
-		dealer:    dealer,
-		channelID: channelID,
-		start:     start,
+		me:             me,
+		dh:             dh,
+		dealer:         dealer,
+		conversationID: conversationID,
+		start:          start,
 	}
 }
 
@@ -202,7 +202,7 @@ func testLeader(t *testing.T, nFollowers int) {
 	b := setupTestBundle(ctx, t)
 	b.run(ctx)
 	defer b.stop()
-	leader, err := b.dealer.startFlip(ctx, b.start, b.channelID)
+	leader, err := b.dealer.startFlip(ctx, b.start, b.conversationID)
 	require.NoError(t, err)
 	b.leader = leader
 	b.assertOutgoingChatSent(t, MessageType_START)
@@ -245,7 +245,7 @@ func testLeaderFollowerPair(t *testing.T, testController testController) {
 	b := setupTestBundleWithParams(ctx, t, NewFlipParametersWithBig(mb))
 	b.run(ctx)
 	defer b.stop()
-	err := b.dealer.StartFlip(ctx, b.start, b.channelID)
+	err := b.dealer.StartFlip(ctx, b.start, b.conversationID)
 	require.NoError(t, err)
 
 	// The follower's state machine
@@ -302,7 +302,7 @@ func testLeaderFollowerPair(t *testing.T, testController testController) {
 	}
 
 	chatMsg := b.assertOutgoingChatSent(t, MessageType_START)
-	err = c.dealer.InjectIncomingChat(ctx, chatMsg.Sender, b.channelID, chatMsg.GameID, chatMsg.Body)
+	err = c.dealer.InjectIncomingChat(ctx, chatMsg.Sender, b.conversationID, chatMsg.GameID, chatMsg.Body)
 	require.NoError(t, err)
 
 	cB := b.assertOutgoingChatSent(t, MessageType_COMMITMENT)
@@ -310,9 +310,9 @@ func testLeaderFollowerPair(t *testing.T, testController testController) {
 	verifyMyCommitment(b)
 	verifyMyCommitment(c)
 
-	err = c.dealer.InjectIncomingChat(ctx, cB.Sender, b.channelID, cB.GameID, cB.Body)
+	err = c.dealer.InjectIncomingChat(ctx, cB.Sender, b.conversationID, cB.GameID, cB.Body)
 	require.NoError(t, err)
-	err = b.dealer.InjectIncomingChat(ctx, cC.Sender, b.channelID, cC.GameID, cC.Body)
+	err = b.dealer.InjectIncomingChat(ctx, cC.Sender, b.conversationID, cC.GameID, cC.Body)
 	require.NoError(t, err)
 	verifyTheirCommitment(b, c)
 	verifyTheirCommitment(c, b)
@@ -326,7 +326,7 @@ func testLeaderFollowerPair(t *testing.T, testController testController) {
 
 	b.dh.clock.Advance(time.Duration(6001) * time.Millisecond)
 	chatMsg = b.assertOutgoingChatSent(t, MessageType_COMMITMENT_COMPLETE)
-	err = c.dealer.InjectIncomingChat(ctx, chatMsg.Sender, b.channelID, chatMsg.GameID, chatMsg.Body)
+	err = c.dealer.InjectIncomingChat(ctx, chatMsg.Sender, b.conversationID, chatMsg.GameID, chatMsg.Body)
 	require.NoError(t, err)
 	verifyCommitmentComplete()
 
@@ -336,10 +336,10 @@ func testLeaderFollowerPair(t *testing.T, testController testController) {
 	verifyMyReveal(b)
 	verifyMyReveal(c)
 
-	err = c.dealer.InjectIncomingChat(ctx, rB.Sender, b.channelID, rB.GameID, rB.Body)
+	err = c.dealer.InjectIncomingChat(ctx, rB.Sender, b.conversationID, rB.GameID, rB.Body)
 	require.NoError(t, err)
 
-	err = b.dealer.InjectIncomingChat(ctx, rC.Sender, b.channelID, rC.GameID, rC.Body)
+	err = b.dealer.InjectIncomingChat(ctx, rC.Sender, b.conversationID, rC.GameID, rC.Body)
 	require.NoError(t, err)
 
 	verifyTheirReveal(b, c)

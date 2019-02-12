@@ -221,7 +221,7 @@ func testHappyChat(t *testing.T, n int) {
 	ctx := context.Background()
 	go srv.run(ctx)
 	defer srv.stop()
-	conversationID := chat1.ConversationID(randBytes(6))
+	conversationID := genConversationID()
 	clients := srv.makeAndRunClients(ctx, conversationID, n)
 	defer srv.stopClients()
 
@@ -261,7 +261,7 @@ func testAbsentees(t *testing.T, nTotal int, nAbsentees int) {
 	ctx := context.Background()
 	go srv.run(ctx)
 	defer srv.stop()
-	conversationID := chat1.ConversationID(randBytes(6))
+	conversationID := genConversationID()
 	clients := srv.makeAndRunClients(ctx, conversationID, nTotal)
 	defer srv.stopClients()
 
@@ -288,7 +288,7 @@ func testCorruptions(t *testing.T, nTotal int, nCorruptions int) {
 	ctx := context.Background()
 	go srv.run(ctx)
 	defer srv.stop()
-	conversationID := chat1.ConversationID(randBytes(6))
+	conversationID := genConversationID()
 	clients := srv.makeAndRunClients(ctx, conversationID, nTotal)
 	defer srv.stopClients()
 
@@ -337,7 +337,7 @@ func testBadLeader(t *testing.T, nTotal int) {
 	ctx := context.Background()
 	go srv.run(ctx)
 	defer srv.stop()
-	conversationID := chat1.ConversationID(randBytes(6))
+	conversationID := genConversationID()
 	clients := srv.makeAndRunClients(ctx, conversationID, nTotal)
 	defer srv.stopClients()
 
@@ -356,7 +356,7 @@ func TestRepeatedGame(t *testing.T) {
 	ctx := context.Background()
 	go srv.run(ctx)
 	defer srv.stop()
-	conversationID := chat1.ConversationID(randBytes(6))
+	conversationID := genConversationID()
 	clients := srv.makeAndRunClients(ctx, conversationID, 5)
 	defer srv.stopClients()
 
@@ -384,13 +384,17 @@ func TestRepeatedGame(t *testing.T) {
 	forAllClients(clients[1:], func(c *chatClient) { c.consumeError(t, GameReplayError{}) })
 }
 
+func genConversationID() chat1.ConversationID {
+	return chat1.ConversationID(randBytes(12))
+}
+
 func testLeaderClockSkew(t *testing.T, skew time.Duration) {
 
 	srv := newChatServer()
 	ctx := context.Background()
 	go srv.run(ctx)
 	defer srv.stop()
-	conversationID := chat1.ConversationID(randBytes(6))
+	conversationID := genConversationID()
 	n := 6
 	clients := srv.makeAndRunClients(ctx, conversationID, n)
 	defer srv.stopClients()
