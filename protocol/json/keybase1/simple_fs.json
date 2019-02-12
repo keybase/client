@@ -356,6 +356,10 @@
         {
           "type": "Path",
           "name": "path"
+        },
+        {
+          "type": "boolean",
+          "name": "recursive"
         }
       ]
     },
@@ -933,6 +937,10 @@
         {
           "name": "path",
           "type": "Path"
+        },
+        {
+          "name": "recursive",
+          "type": "boolean"
         }
       ],
       "response": null,

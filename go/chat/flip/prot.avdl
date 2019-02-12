@@ -1,0 +1,101 @@
+
+@namespace("flip")
+
+protocol flip {
+
+  // Time in milliseconds since the epoch
+  @typedef("long")
+  record Time {}
+
+  @typedef("bytes")
+  record GameID {}
+
+  @typedef("bytes")
+  record UID {}
+
+  @typedef("bytes")
+  record ConversationID {}
+
+  @typedef("bytes")
+  record DeviceID {}
+
+  record Start {
+    Time startTime;
+    // How long the commitment window lasts
+    long commitmentWindowMsec;
+    // How long the reveal window lasts
+    long revealWindowMsec;
+    // How much slack to give before warning
+    long slackMsec;
+    FlipParameters params;
+  }
+
+  record UserDevice {
+    DeviceID d;
+    UID u;
+  }
+
+  record GameMetadata {
+    UserDevice initiator;
+    ConversationID conversationID;
+    GameID gameID;
+  }
+
+  record CommitmentComplete {
+    array<UserDevice> players;
+  }
+
+  enum FlipType {
+    BOOL_1,
+    INT_2,
+    BIG_3,
+    SHUFFLE_4
+  }
+
+  variant FlipParameters switch (FlipType t) {
+    case BOOL: void;
+    case INT: long;
+    case BIG: bytes;
+    case SHUFFLE: long;
+  }
+
+  enum MessageType {
+    START_1,
+    COMMITMENT_2,
+    COMMITMENT_COMPLETE_3,
+    REVEAL_4,
+    END_5
+  }
+
+  enum Stage {
+    ROUND1_1,
+    ROUND2_2,
+    ROUND_CLEANUP_3
+  }
+
+  fixed Secret(32);
+  fixed Commitment(32);
+
+  variant GameMessageBody switch (MessageType t) {
+    case START: Start;
+    case COMMITMENT: Commitment;
+    case COMMITMENT_COMPLETE: CommitmentComplete;
+    case REVEAL: Secret;
+    case END: void;
+  }
+
+  enum Version {
+     V1_1
+  }
+
+  variant GameMessage switch (Version v) {
+    case V1: GameMessageV1;
+    default: void;
+  }
+
+  record GameMessageV1 {
+    GameMetadata md;
+    GameMessageBody body;
+  }
+
+}

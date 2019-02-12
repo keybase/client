@@ -134,6 +134,20 @@
     },
     {
       "type": "record",
+      "name": "DirSizeInfo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "string",
+          "name": "humanSize"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "ExtendedStatus",
       "fields": [
         {
@@ -248,6 +262,13 @@
             "items": "string"
           },
           "name": "localChatDbStats"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "DirSizeInfo"
+          },
+          "name": "cacheDirSizeInfo"
         }
       ]
     },

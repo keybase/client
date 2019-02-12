@@ -2,6 +2,7 @@
 // Look at this doc: https://goo.gl/7B6p4H
 import * as LoginGen from './login-gen'
 import * as ConfigGen from './config-gen'
+import * as ProvisionGen from './provision-gen'
 import * as Constants from '../constants/login'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -44,8 +45,17 @@ const getPassphraseHandler = passphrase => (params, response) => {
   }
 }
 
+const moveToProvisioning = (usernameOrEmail: string) => (params, response) => {
+  cancelOnCallback(params, response)
+  return Saga.put(
+    ProvisionGen.createSubmitUsernameOrEmail({
+      usernameOrEmail,
+    })
+  )
+}
+
 // Actually do a user/pass login. Don't get sucked into a provisioning flow
-function* login(_, action) {
+function* login(state, action) {
   try {
     yield* Saga.callRPCs(
       RPCTypes.loginLoginRpcSaga({
@@ -53,7 +63,7 @@ function* login(_, action) {
           'keybase.1.gpgUi.selectKey': cancelOnCallback,
           'keybase.1.loginUi.getEmailOrUsername': cancelOnCallback,
           'keybase.1.provisionUi.DisplayAndPromptSecret': cancelOnCallback,
-          'keybase.1.provisionUi.PromptNewDeviceName': cancelOnCallback,
+          'keybase.1.provisionUi.PromptNewDeviceName': moveToProvisioning(action.payload.usernameOrEmail),
           'keybase.1.provisionUi.chooseDevice': cancelOnCallback,
           'keybase.1.provisionUi.chooseGPGMethod': cancelOnCallback,
           'keybase.1.secretUi.getPassphrase': getPassphraseHandler(action.payload.passphrase.stringValue()),

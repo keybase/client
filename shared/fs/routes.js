@@ -17,6 +17,7 @@ const routeTree = () => {
     },
     component: DestinationPicker,
     tags: makeLeafTags({
+      fullscreen: isMobile,
       layerOnTop: !isMobile,
       renderTopmostOnly: !isMobile,
       title: 'Move or Copy',
@@ -31,6 +32,7 @@ const routeTree = () => {
     sendLinkToChat: {
       component: SendLinkToChat,
       tags: makeLeafTags({
+        fullscreen: isMobile,
         layerOnTop: !isMobile,
         renderTopmostOnly: !isMobile,
         title: 'Send link to chat',

@@ -147,7 +147,8 @@ func TestChatSubteamRename(t *testing.T) {
 
 		pollIB := func() *types.Inbox {
 			ib, _, err := tc.ChatG.InboxSource.Read(context.TODO(), users[0].User.GetUID().ToBytes(),
-				types.ConversationLocalizerBlocking, true, nil, &chat1.GetInboxLocalQuery{
+				types.ConversationLocalizerBlocking, types.InboxSourceDataSourceAll, nil,
+				&chat1.GetInboxLocalQuery{
 					ConvIDs: u1ExpectedUpdates,
 				}, nil)
 			require.NoError(t, err)

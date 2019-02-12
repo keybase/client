@@ -166,8 +166,10 @@ export const accountResultToAccount = (w: RPCTypes.WalletAccountLocal) =>
   makeAccount({
     accountID: Types.stringToAccountID(w.accountID),
     balanceDescription: w.balanceDescription,
+    canSubmitTx: w.canSubmitTx,
     displayCurrency: currencyResultToCurrency(w.currencyLocal),
     isDefault: w.isDefault,
+    mobileOnlyEditable: w.accountModeEditable,
     name: w.name,
   })
 
@@ -266,8 +268,10 @@ export const unknownCurrency = makeCurrency()
 export const makeAccount: I.RecordFactory<Types._Account> = I.Record({
   accountID: Types.noAccountID,
   balanceDescription: '',
+  canSubmitTx: false,
   displayCurrency: unknownCurrency,
   isDefault: false,
+  mobileOnlyEditable: false,
   name: '',
 })
 export const unknownAccount = makeAccount()

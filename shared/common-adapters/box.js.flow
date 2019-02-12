@@ -5,7 +5,7 @@ export type Props = any
 
 export type Box2Props = {|
   alignItems?: 'center' | 'flex-start' | 'flex-end',
-  alignSelf?: null | 'flex-start' | 'flex-end',
+  alignSelf?: null | 'center' | 'flex-start' | 'flex-end',
   children?: React.Node,
   centerChildren?: boolean,
   className?: ?string,

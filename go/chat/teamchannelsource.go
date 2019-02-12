@@ -28,7 +28,7 @@ func NewTeamChannelSource(g *globals.Context) *TeamChannelSource {
 
 func (c *TeamChannelSource) getTLFConversations(ctx context.Context, uid gregor1.UID,
 	teamID chat1.TLFID, topicType chat1.TopicType) ([]types.RemoteConversation, error) {
-	inbox, err := c.G().InboxSource.ReadUnverified(ctx, uid, true, /* useLocalData */
+	inbox, err := c.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll,
 		&chat1.GetInboxQuery{
 			TlfID:            &teamID,
 			TopicType:        &topicType,

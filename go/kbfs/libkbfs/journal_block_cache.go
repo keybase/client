@@ -7,7 +7,7 @@ package libkbfs
 import "github.com/keybase/client/go/kbfs/tlf"
 
 type journalBlockCache struct {
-	jServer *JournalServer
+	jManager *JournalManager
 	BlockCache
 }
 
@@ -16,7 +16,7 @@ var _ BlockCache = journalBlockCache{}
 // CheckForKnownPtr implements BlockCache.
 func (j journalBlockCache) CheckForKnownPtr(
 	tlfID tlf.ID, block *FileBlock) (BlockPointer, error) {
-	_, ok := j.jServer.getTLFJournal(tlfID, nil)
+	_, ok := j.jManager.getTLFJournal(tlfID, nil)
 	if !ok {
 		return j.BlockCache.CheckForKnownPtr(tlfID, block)
 	}

@@ -15,7 +15,7 @@ import Errs from './errs'
 import {type OwnProps as PathItemIconOwnProps} from './path-item-icon-container'
 import {type OwnProps as PathItemInfoOwnProps} from './path-item-info-container'
 
-const pathItemActionRootHeaderProps = (props: any) => ({
+const PathItemActionMenuHeaderProps = (props: any) => ({
   childrenFiles: 0,
   childrenFolders: 0,
   loadFolderList: Sb.action('loadFolderList'),
@@ -27,6 +27,7 @@ const pathItemActionRootHeaderProps = (props: any) => ({
 
 const pathItemActionProps = (props: any) => ({
   ...props,
+  init: Sb.action('init'),
   onHidden: Sb.action('onHidden'),
 })
 
@@ -35,7 +36,7 @@ const pathItemActionChooseViewProps = (props: any) => ({
   view: 'root',
 })
 
-const pathItemActionRootProps = (props: any) => ({
+const PathItemActionMenuProps = (props: any) => ({
   ...props,
   copyPath: Sb.action('copyPath'),
   deleteFileOrFolder: Sb.action('deleteFileOrFolder'),
@@ -57,8 +58,8 @@ export const commonProvider = {
   }),
   PathItemAction: pathItemActionProps,
   PathItemActionChooseView: pathItemActionChooseViewProps,
-  PathItemActionRoot: pathItemActionRootProps,
-  PathItemActionRootHeader: pathItemActionRootHeaderProps,
+  PathItemActionMenu: PathItemActionMenuProps,
+  PathItemActionMenuHeader: PathItemActionMenuHeaderProps,
   PathItemIcon: (ownProps: PathItemIconOwnProps) => ({
     ...ownProps,
     type: Types.getPathElements(ownProps.path).length > 3 ? 'file' : 'folder',
@@ -78,6 +79,12 @@ export const commonProvider = {
 
 export const provider = Sb.createPropProviderWithCommon(commonProvider)
 
+const pathItemActionCommonProps = {
+  clickable: {type: 'icon'},
+  init: Sb.action('init'),
+  onHidden: Sb.action('onHidden'),
+}
+
 const load = () => {
   Sb.storiesOf('Files', module)
     .addDecorator(provider)
@@ -90,22 +97,22 @@ const load = () => {
       >
         <PathItemAction
           path={Types.stringToPath('/keybase/private/meatball/folder/treat')}
-          onHidden={Sb.action('onHidden')}
           routePath={I.List()}
+          {...pathItemActionCommonProps}
         />
         <PathItemAction
           path={Types.stringToPath(
             '/keybase/private/meatball/treat treat treat treat treat treat treat treat treat treat treat treat treat treat treat treat'
           )}
-          onHidden={Sb.action('onHidden')}
           routePath={I.List()}
+          {...pathItemActionCommonProps}
         />
         <PathItemAction
           path={Types.stringToPath(
             '/keybaes/private/meatball/foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar'
           )}
-          onHidden={Sb.action('onHidden')}
           routePath={I.List()}
+          {...pathItemActionCommonProps}
         />
       </Kb.Box2>
     ))

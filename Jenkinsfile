@@ -286,6 +286,7 @@ helpers.rootLinuxNode(env, {
       if (env.BRANCH_NAME == "master" && cause != "upstream") {
         docker.withRegistry("https://docker.io", "docker-hub-creds") {
           clientImage.push()
+          sh "docker push keybaseprivate/kbfsfuse"
         }
       } else {
         println "Not pushing docker"

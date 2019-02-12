@@ -4,12 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/protocol/stellar1"
 	"github.com/keybase/client/go/stellar/relays"
 	"github.com/keybase/client/go/stellar/remote"
+	"github.com/keybase/stellarnet"
 )
 
 // TransformPaymentSummaryGeneric converts a stellar1.PaymentSummary (p) into a
@@ -440,7 +442,8 @@ func RemotePendingToLocal(mctx libkb.MetaContext, remoter remote.Remoter, accoun
 	return payments, nil
 }
 
-func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stellar1.AccountID, details stellar1.AccountDetails, isPrimary bool, accountName string, accountMode stellar1.AccountMode) (stellar1.WalletAccountLocal, error) {
+func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stellar1.AccountID, details stellar1.AccountDetails,
+	isPrimary bool, accountName string, accountMode stellar1.AccountMode) (stellar1.WalletAccountLocal, error) {
 
 	var empty stellar1.WalletAccountLocal
 	balance, err := balanceList(details.Balances).balanceDescription(mctx)
@@ -448,13 +451,40 @@ func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stella
 		return empty, err
 	}
 
+	activeDeviceType, err := mctx.G().ActiveDevice.DeviceType(mctx)
+	if err != nil {
+		return empty, err
+	}
+	isMobile := activeDeviceType == libkb.DeviceTypeMobile
+	ctime, err := mctx.G().ActiveDevice.Ctime(mctx)
+	if err != nil {
+		return empty, err
+	}
+	deviceProvisionedAt := time.Unix(int64(ctime)/1000, 0)
+	deviceAge := mctx.G().Clock().Since(deviceProvisionedAt)
+
+	// Is there enough to make any transaction?
+	availableInt, err := stellarnet.ParseStellarAmount(details.Available)
+	if err != nil {
+		return empty, err
+	}
+	canSubmitTx := availableInt > 100 // base fee is 100
+	// TODO: this is something that stellard can just tell us.
+	isFunded, err := hasPositiveLumenBalance(details.Balances)
+	if err != nil {
+		return empty, err
+	}
+
 	acct := stellar1.WalletAccountLocal{
-		AccountID:          accountID,
-		IsDefault:          isPrimary,
-		Name:               accountName,
-		BalanceDescription: balance,
-		Seqno:              details.Seqno,
-		AccountMode:        accountMode,
+		AccountID:           accountID,
+		IsDefault:           isPrimary,
+		Name:                accountName,
+		BalanceDescription:  balance,
+		Seqno:               details.Seqno,
+		AccountMode:         accountMode,
+		AccountModeEditable: isMobile && deviceAge > 7*24*time.Hour,
+		IsFunded:            isFunded,
+		CanSubmitTx:         canSubmitTx,
 	}
 
 	conf, err := mctx.G().GetStellar().GetServerDefinitions(mctx.Ctx())
