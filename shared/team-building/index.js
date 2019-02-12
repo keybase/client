@@ -50,7 +50,7 @@ class TeamBuilding extends React.PureComponent<Props, void> {
 
   render = () => {
     const props = this.props
-    const showRecPending = !props.searchString && !(props.recommendations && props.recommendations.length)
+    const showRecPending = !props.searchString && !props.recommendations
     const showLoading = !!props.searchString && !props.searchResults
     const showRecs = props.showRecs
     return (
