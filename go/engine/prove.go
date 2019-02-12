@@ -433,12 +433,14 @@ func (p *Prove) Run(m libkb.MetaContext) (err error) {
 		return nil
 	}
 
-	stage("PromptPostedLoop")
+	stage("CheckStart")
 	if p.serviceParameters == nil {
+		stage("PromptPostedLoop")
 		if err = p.promptPostedLoop(m); err != nil {
 			return err
 		}
 	} else {
+		stage("VerifyLoop")
 		if err = p.verifyLoop(m); err != nil {
 			return err
 		}
