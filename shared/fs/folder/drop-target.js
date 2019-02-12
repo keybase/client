@@ -9,8 +9,8 @@ type State = {|
 |}
 
 type Props = {
-  children?: React.Node,
-  onAttach: Array<string> => void,
+  children: React.Node,
+  onAttach: ?(Array<string> => void),
 }
 
 const DropOverlay = ({onDragLeave, onDrop}) => (
@@ -23,16 +23,17 @@ class DropTarget extends React.PureComponent<Props, State> {
   state = {showDropOverlay: false}
 
   _onDrop = e => {
-    if (!this._validDrag(e)) {
+    if (!this._validDrag(e) || !this.props.onAttach) {
       return
     }
+    // Note that fileList is a FileList object - not an Array.
     const fileList = e.dataTransfer.files
     const paths = fileList.length ? Array.prototype.map.call(fileList, f => f.path) : []
     this.props.onAttach(paths)
     this.setState({showDropOverlay: false})
   }
 
-  _validDrag = e => Array.prototype.map.call(e.dataTransfer.types, t => t).includes('Files')
+  _validDrag = e => e.dataTransfer.types.includes('Files')
 
   _onDragOver = e => {
     if (this._validDrag(e)) {
@@ -49,8 +50,10 @@ class DropTarget extends React.PureComponent<Props, State> {
 
   render() {
     const {children, onAttach} = this.props
+    if (isMobile || !onAttach)
+      return children
     return (
-      <Box style={styles.containerStyle} onDragOver={onAttach ? this._onDragOver : null}>
+      <Box style={styles.containerStyle} onDragOver={this._onDragOver}>
         {children}
         {this.state.showDropOverlay && <DropOverlay onDragLeave={this._onDragLeave} onDrop={this._onDrop} />}
       </Box>

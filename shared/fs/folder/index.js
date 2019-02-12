@@ -15,7 +15,7 @@ import DropTarget from './drop-target'
 type FolderProps = {
   isUserReset: boolean,
   sortSetting: Types.SortSetting,
-  onAttach?: ?(destination: Types.Path, paths: Array<string>) => void,
+  onAttach?: ?(paths: Array<string>) => void,
   path: Types.Path,
   resetParticipants: Array<string>,
   routePath: I.List<string>,
@@ -23,14 +23,11 @@ type FolderProps = {
 
 class Files extends React.PureComponent<FolderProps> {
   renderContent() {
-    const onDrop = (dropPaths : Array<string>) => (
-      this.props.onAttach
-        ? this.props.onAttach(this.props.path, dropPaths) : undefined
+    return (
+      <DropTarget onAttach={this.props.onAttach}>
+        <Rows path={this.props.path} routePath={this.props.routePath} sortSetting={this.props.sortSetting} />
+      </DropTarget>
     )
-    const inner = <Rows path={this.props.path} routePath={this.props.routePath} sortSetting={this.props.sortSetting} />
-    return (!isMobile && this.props.onAttach) ? (
-      <DropTarget onAttach={onDrop}>{inner}</DropTarget>
-    ) : inner
   }
   render() {
     const content = this.props.isUserReset ? (

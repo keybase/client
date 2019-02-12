@@ -14,9 +14,9 @@ const mapStateToProps = (state, {path}) => ({
   sortSetting: state.fs.pathUserSettings.get(path, Constants.makePathUserSetting()).get('sort'),
 })
 
-const mapDispatchToProps = dispatch => ({
-  onAttach: (parentPath: Types.Path, paths: Array<string>) => {
-    paths.forEach(localPath => dispatch(FsGen.createUpload({localPath, parentPath})))
+const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
+  onAttach: (paths: Array<string>) => {
+    paths.forEach(localPath => dispatch(FsGen.createUpload({localPath, parentPath: path})))
   },
 })
 
