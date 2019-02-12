@@ -11310,3 +11310,70 @@ func (mr *MockblockPutStateCopiableMockRecorder) deepCopyWithBlacklist(ctx, blac
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "deepCopyWithBlacklist", reflect.TypeOf((*MockblockPutStateCopiable)(nil).deepCopyWithBlacklist), ctx, blacklist)
 }
+
+// MockfileBlockMap is a mock of fileBlockMap interface
+type MockfileBlockMap struct {
+	ctrl     *gomock.Controller
+	recorder *MockfileBlockMapMockRecorder
+}
+
+// MockfileBlockMapMockRecorder is the mock recorder for MockfileBlockMap
+type MockfileBlockMapMockRecorder struct {
+	mock *MockfileBlockMap
+}
+
+// NewMockfileBlockMap creates a new mock instance
+func NewMockfileBlockMap(ctrl *gomock.Controller) *MockfileBlockMap {
+	mock := &MockfileBlockMap{ctrl: ctrl}
+	mock.recorder = &MockfileBlockMapMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockfileBlockMap) EXPECT() *MockfileBlockMapMockRecorder {
+	return m.recorder
+}
+
+// putTopBlock mocks base method
+func (m *MockfileBlockMap) putTopBlock(ctx context.Context, parentPtr BlockPointer, childName string, topBlock *FileBlock) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "putTopBlock", ctx, parentPtr, childName, topBlock)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// putTopBlock indicates an expected call of putTopBlock
+func (mr *MockfileBlockMapMockRecorder) putTopBlock(ctx, parentPtr, childName, topBlock interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "putTopBlock", reflect.TypeOf((*MockfileBlockMap)(nil).putTopBlock), ctx, parentPtr, childName, topBlock)
+}
+
+// getTopBlock mocks base method
+func (m *MockfileBlockMap) getTopBlock(ctx context.Context, parentPtr BlockPointer, childName string) (*FileBlock, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "getTopBlock", ctx, parentPtr, childName)
+	ret0, _ := ret[0].(*FileBlock)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// getTopBlock indicates an expected call of getTopBlock
+func (mr *MockfileBlockMapMockRecorder) getTopBlock(ctx, parentPtr, childName interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "getTopBlock", reflect.TypeOf((*MockfileBlockMap)(nil).getTopBlock), ctx, parentPtr, childName)
+}
+
+// getFilenames mocks base method
+func (m *MockfileBlockMap) getFilenames(ctx context.Context, parentPtr BlockPointer) ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "getFilenames", ctx, parentPtr)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// getFilenames indicates an expected call of getFilenames
+func (mr *MockfileBlockMapMockRecorder) getFilenames(ctx, parentPtr interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "getFilenames", reflect.TypeOf((*MockfileBlockMap)(nil).getFilenames), ctx, parentPtr)
+}

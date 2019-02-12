@@ -2252,10 +2252,6 @@ func (cr *ConflictResolver) computeActions(ctx context.Context,
 	return actionMap, append(newUnmergedPaths, moreNewUnmergedPaths...), nil
 }
 
-// fileBlockMap maps latest merged block pointer to a map of final
-// merged name -> file block.
-type fileBlockMap map[BlockPointer]map[string]*FileBlock
-
 func (cr *ConflictResolver) makeFileBlockDeepCopy(ctx context.Context,
 	lState *lockState, chains *crChains, mergedMostRecent BlockPointer,
 	parentPath path, name string, ptr BlockPointer, blocks fileBlockMap,
@@ -2302,15 +2298,15 @@ func (cr *ConflictResolver) makeFileBlockDeepCopy(ctx context.Context,
 		}
 	}
 
-	if _, ok := blocks[mergedMostRecent]; !ok {
-		blocks[mergedMostRecent] = make(map[string]*FileBlock)
+	err = blocks.putTopBlock(ctx, mergedMostRecent, name, fblock)
+	if err != nil {
+		return BlockPointer{}, err
 	}
 
 	for _, childPtr := range allChildPtrs {
 		chains.createdOriginals[childPtr] = true
 	}
 
-	blocks[mergedMostRecent][name] = fblock
 	return newPtr, nil
 }
 
@@ -3537,7 +3533,7 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 		// nothing to do
 		cr.log.CDebugf(ctx, "No updates to resolve, so finishing")
 		lbc := make(localBcache)
-		newFileBlocks := make(fileBlockMap)
+		newFileBlocks := newFileBlockMapMemory()
 		bps := newBlockPutStateMemory(0)
 		err = cr.completeResolution(ctx, lState, unmergedChains,
 			mergedChains, unmergedPaths, mergedPaths,
@@ -3622,7 +3618,6 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	// sync.  If a block is indirect, we need to put it and add new
 	// references for all indirect pointers inside it.  If it is not
 	// an indirect block, just add a new reference to the block.
-	newFileBlocks := make(fileBlockMap)
 	dbc, cleanupFn, err := cr.makeDiskBlockCache(ctx)
 	if err != nil {
 		return
@@ -3632,6 +3627,8 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	}
 	dirtyBcache := newDirtyBlockCacheDisk(
 		cr.config, dbc, mergedChains.mostRecentChainMDInfo, cr.fbo.branch())
+	newFileBlocks := newFileBlockMapDisk(
+		dirtyBcache, mergedChains.mostRecentChainMDInfo)
 
 	err = cr.doActions(ctx, lState, unmergedChains, mergedChains,
 		unmergedPaths, mergedPaths, actionMap, lbc, newFileBlocks, dirtyBcache)

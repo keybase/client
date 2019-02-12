@@ -4,13 +4,13 @@ import * as Types from '../../../constants/types/chat2'
 import {memoize} from '../../../util/memoize'
 import type {RowItem} from '../index.types'
 
-const score = (lcFilter: string, lcYou: string, names: Array<string>): number => {
+const score = (lcFilter: string, lcYou: string, names: Array<string>, insertMatcher: RegExp): number => {
   // special case, looking for yourself
   if (names.length === 1 && names[0] === lcYou) {
     return lcYou.indexOf(lcFilter) !== -1 ? 100000 : 0
   }
 
-  const namesMinusYou = names.filter(n => n !== lcYou)
+  const namesMinusYou = lcYou ? names.filter(n => n !== lcYou) : names
   // special case, comma search
   const filters = lcFilter.split(',').filter(Boolean)
   let filter
@@ -39,14 +39,21 @@ const score = (lcFilter: string, lcYou: string, names: Array<string>): number =>
         } else if (idx !== -1) {
           data.foundSub += 1
           return data
-        } else {
-          return data
         }
+        return data
       }
     },
     {foundExact: 0, foundPrefix: 0, foundSub: 0}
   )
-  let rawScore = (foundExact ? 1000 : 0) + (foundPrefix ? 100 : 0) + (foundSub ? 10 : 0)
+
+  const searchStr = namesMinusYou.join('')
+  const insertionMatch = searchStr.match(insertMatcher)
+  // insertionDistance = searchStr.length - filter.length
+  // 1 / (insertionDistance + 1) * 20
+  // 20 <= insertionScore < 0
+  const insertionScore = insertionMatch ? (1 / (searchStr.length - filter.length + 1)) * 20 : 0
+
+  let rawScore = (foundExact ? 1000 : 0) + (foundPrefix ? 100 : 0) + insertionScore + (foundSub ? 10 : 0)
 
   // Special case an exact match that is the only name, otherwise
   // e.g. "chris,chrisnojima" gets a higher score than "chris", when
@@ -55,14 +62,19 @@ const score = (lcFilter: string, lcYou: string, names: Array<string>): number =>
     rawScore += 10000
   }
 
+  if (rawScore && rawScore === insertionScore) {
+    // insertionScore already penalizes long names, don't do it again below
+    return rawScore
+  }
+
   // We subtract inputLength to give a bonus to shorter groups, but we never want that to make a matching score go to zero
-  const inputLength = namesMinusYou.join('').length
+  const inputLength = searchStr.length
 
   return rawScore > 0 ? Math.max(1, rawScore - inputLength) : 0
 }
 
-const makeSmallItem = (meta, filter, you) => {
-  const s = score(filter, you, meta.teamname ? [meta.teamname] : meta.participants.toArray())
+const makeSmallItem = (meta, filter, you, insertMatcher) => {
+  const s = score(filter, you, meta.teamname ? [meta.teamname] : meta.participants.toArray(), insertMatcher)
   return s > 0
     ? {
         data: {conversationIDKey: meta.conversationIDKey, type: 'small'},
@@ -72,8 +84,8 @@ const makeSmallItem = (meta, filter, you) => {
     : null
 }
 
-const makeBigItem = (meta, filter) => {
-  const s = score(filter, '', [meta.teamname, meta.channelname].filter(Boolean))
+const makeBigItem = (meta, filter, insertMatcher) => {
+  const s = score(filter, '', [meta.teamname, meta.channelname].filter(Boolean), insertMatcher)
   return s > 0
     ? {
         data: {
@@ -94,15 +106,22 @@ const getFilteredRowsAndMetadata = memoize<Types.MetaMap, string, string, void, 
     const metas = metaMap.valueSeq().toArray()
     const lcFilter = filter.toLowerCase()
     const lcYou = username.toLowerCase()
+    const insertMatcher = new RegExp(
+      `${filter
+        .replace(/ |#/g, '')
+        .split('')
+        .map(c => `${c}.*?`)
+        .join('')}`,
+      'i'
+    )
     const rows: Array<RowItem> = metas
       .map(meta =>
-        meta.teamType !== 'big' ? makeSmallItem(meta, lcFilter, lcYou) : makeBigItem(meta, lcFilter)
+        meta.teamType !== 'big'
+          ? makeSmallItem(meta, lcFilter, lcYou, insertMatcher)
+          : makeBigItem(meta, lcFilter, insertMatcher)
       )
       .filter(Boolean)
       .sort((a, b) => {
-        if (a.data.type !== b.data.type) {
-          return a.data.type === 'small' ? -1 : 1
-        }
         return a.score === b.score ? b.timestamp - a.timestamp : b.score - a.score
       })
       .map(({data}) => (data: RowItem))

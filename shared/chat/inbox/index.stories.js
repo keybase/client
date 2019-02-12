@@ -351,6 +351,7 @@ const propsInboxCommon = {
   onSelectDown: Sb.action('onSelectDown'),
   onEnsureSelection: Sb.action('onEnsureSelection'),
   rows: [],
+  selectedIndex: -1,
   smallTeamsExpanded: false,
   toggleSmallTeamsExpanded: Sb.action('toggleSmallTeamsExpanded'),
 }
