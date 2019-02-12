@@ -5,6 +5,7 @@ protocol flip {
   import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
   import idl "github.com/keybase/client/go/protocol/chat1" as chat1;
 
+  // Time in milliseconds since the epoch
   @typedef("long")
   record Time {}
 
