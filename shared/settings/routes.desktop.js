@@ -105,3 +105,4 @@ export const newRoutes = {
   removeDevice: {getScreen: () => require('../devices/device-revoke/container').default},
   'tabs:settingsTab': {getScreen: () => require('./').default},
 }
+export const newModalRoutes = { }

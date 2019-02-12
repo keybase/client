@@ -534,6 +534,7 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "messageID": "Types.MessageID",
       "collapse": "boolean"
-    }
+    },
+    "toggleInfoPanel": { }
   }
 }

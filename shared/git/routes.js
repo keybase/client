@@ -31,3 +31,4 @@ export const newRoutes = {
   'settingsTabs:gitTab': {getScreen: () => require('./container').default},
   'tabs:gitTab': {getScreen: () => require('./container').default},
 }
+export const newModalRoutes = {}

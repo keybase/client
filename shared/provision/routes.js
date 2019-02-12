@@ -41,3 +41,4 @@ export const newRoutes = {
   setPublicName: {getScreen: () => SetPublicName},
   usernameOrEmail: {getScreen: () => UsernameOrEmail},
 }
+export const newModalRoutes = { }

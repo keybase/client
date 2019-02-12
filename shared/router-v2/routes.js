@@ -1,18 +1,14 @@
 // @flow
-// This pulls existing routes and converts them into new style routes. This is a temporary
-// bridging effort. After we switch over we could simplify this and just have all the routes here and just build static lists with require()/dynamic import
-//
-// import * as I from 'immutable'
-import {newRoutes as deviceNewRoutes} from '../devices/routes'
 import {newRoutes as chatNewRoutes, newModalRoutes as chatNewModalRoutes} from '../chat/routes'
-import {newRoutes as peopleNewRoutes} from '../people/routes'
-import {newRoutes as fsNewRoutes} from '../fs/routes'
-import {newRoutes as settingsNewRoutes} from '../settings/routes'
-import {newRoutes as teamsNewRoutes} from '../teams/routes'
-import {newRoutes as walletsNewRoutes} from '../wallets/routes'
+import {newRoutes as deviceNewRoutes, newModalRoutes as deviceNewModalRoutes} from '../devices/routes'
+import {newRoutes as fsNewRoutes, newModalRoutes as fsNewModalRoutes} from '../fs/routes'
+import {newRoutes as gitNewRoutes, newModalRoutes as gitNewModalRoutes} from '../git/routes'
 import {newRoutes as _loggedOutRoutes} from '../login/routes'
-import {newRoutes as gitNewRoutes} from '../git/routes'
+import {newRoutes as peopleNewRoutes, newModalRoutes as peopleNewModalRoutes} from '../people/routes'
 import {newRoutes as profileNewRoutes, newModalRoutes as profileNewModalRoutes} from '../profile/routes'
+import {newRoutes as settingsNewRoutes, newModalRoutes as settingsNewModalRoutes} from '../settings/routes'
+import {newRoutes as teamsNewRoutes, newModalRoutes as teamsNewModalRoutes} from '../teams/routes'
+import {newRoutes as walletsNewRoutes, newModalRoutes as walletsNewModalRoutes} from '../wallets/routes'
 import * as Tabs from '../constants/tabs'
 
 export const nameToTab = {}
@@ -41,8 +37,14 @@ _newRoutes.forEach(({route, tab}) => {
 })
 
 export const modalRoutes = {
-  ...profileNewModalRoutes,
   ...chatNewModalRoutes,
+  ...deviceNewModalRoutes,
+  ...fsNewModalRoutes,
+  ...gitNewModalRoutes,
+  ...profileNewModalRoutes,
+  ...settingsNewModalRoutes,
+  ...teamsNewModalRoutes,
+  ...walletsNewModalRoutes,
 }
 
 export const loggedOutRoutes = _loggedOutRoutes

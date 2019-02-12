@@ -152,3 +152,4 @@ export const newRoutes = {
   'tabs:teamsTab': {getScreen: () => require('./container').default},
   team: {getScreen: () => require('./team/container').default},
 }
+export const newModalRoutes = { }

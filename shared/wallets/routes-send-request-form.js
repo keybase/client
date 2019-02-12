@@ -67,7 +67,7 @@ const routeTree = () => {
 
 export default routeTree
 
-export const newRoutes = {
+export const newModalRoutes = {
   [Constants.chooseAssetFormRouteKey]: {
     getScreen: () => require('./send-form/choose-asset/container').default,
   },

@@ -76,11 +76,12 @@ const routeTree = () => {
 export default routeTree
 
 export const newRoutes = {
-  'tabs:fsTab': {getScreen: () => require('./container').default},
-  'settingsTabs:fsTab': {getScreen: () => require('./container').default},
   barePreview: {getScreen: () => require('./filepreview').BarePreview},
   destinationPicker: {getScreen: () => require('./destination-picker/container').default},
   oops: {getScreen: () => require('./oops/container').default},
   securityPrefs: {getScreen: () => require('./common/security-prefs-container').default},
   sendLinkToChat: {getScreen: () => require('./send-link-to-chat/container').default},
+  'settingsTabs:fsTab': {getScreen: () => require('./container').default},
+  'tabs:fsTab': {getScreen: () => require('./container').default},
 }
+export const newModalRoutes = { }

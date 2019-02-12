@@ -116,10 +116,6 @@ const routeTree = () => {
 export default routeTree
 
 export const newRoutes = {
-  'tabs:walletsTab': {
-    getScreen: () =>
-      isMobile ? require('./wallet/container').default : require('./wallets-and-details/container').default,
-  },
   createNewAccount: {getScreen: () => require('./create-account/container').default},
   exportSecretKey: {getScreen: () => require('./export-secret-key/container').default},
   linkExisting: {getScreen: () => require('./link-existing/container').default},
@@ -130,6 +126,13 @@ export const newRoutes = {
   setDefaultAccount: {getScreen: () => require('./wallet/settings/popups').SetDefaultAccountPopup},
   setInflation: {getScreen: () => require('./wallet/settings/popups').InflationDestination},
   settings: {getScreen: () => require('./wallet/settings/container').default},
+  'tabs:walletsTab': {
+    getScreen: () =>
+      isMobile ? require('./wallet/container').default : require('./wallets-and-details/container').default,
+  },
   transactionDetails: {getScreen: () => require('./transaction-details/container').default},
-  ...require('./routes-send-request-form').newRoutes,
+}
+
+export const newModalRoutes = {
+  ...require('./routes-send-request-form').newModalRoutes,
 }

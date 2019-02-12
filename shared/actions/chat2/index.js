@@ -22,6 +22,7 @@ import * as WalletTypes from '../../constants/types/wallets'
 import * as Tabs from '../../constants/tabs'
 import * as UsersGen from '../users-gen'
 import * as WaitingGen from '../waiting-gen'
+import * as Router2Constants from '../../constants/router2'
 import chatTeamBuildingSaga from './team-building'
 import {hasCanPerform, retentionPolicyToServiceRetentionPolicy, teamRoleByEnum} from '../../constants/teams'
 import logger from '../../logger'
@@ -2539,6 +2540,27 @@ const unfurlResolvePrompt = (state, action) => {
   })
 }
 
+const toggleInfoPanel = (state, action) => {
+  if (flags.useNewRouter) {
+    const visible = Router2Constants.getVisiblePath()
+    if (visible[visible.length - 1]?.routeName === 'chatInfoPanel') {
+      return RouteTreeGen.createNavigateUp()
+    } else {
+      return RouteTreeGen.createNavigateAppend({
+        path: [{props: {conversationIDKey: state.chat2.selectedConversation}, selected: 'chatInfoPanel'}],
+      })
+    }
+  } else {
+    if (Constants.isInfoPanelOpen(state)) {
+      return RouteTreeGen.createNavigateTo({parentPath: [Tabs.chatTab], path: ['chatConversation']})
+    } else {
+      return RouteTreeGen.createNavigateAppend({
+        path: [{props: {conversationIDKey: state.chat2.selectedConversation}, selected: 'chatInfoPanel'}],
+      })
+    }
+  }
+}
+
 const openChatFromWidget = (state, {payload: {conversationIDKey}}) => [
   ConfigGen.createShowMain(),
   RouteTreeGen.createSwitchTo({path: [Tabs.chatTab]}),
@@ -2861,6 +2883,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     changePendingMode
   )
   yield* Saga.chainAction<Chat2Gen.OpenChatFromWidgetPayload>(Chat2Gen.openChatFromWidget, openChatFromWidget)
+  yield* Saga.chainAction<Chat2Gen.ToggleInfoPanelPayload>(Chat2Gen.toggleInfoPanel, toggleInfoPanel)
 
   // Exploding things
   yield* Saga.chainGenerator<Chat2Gen.SetConvExplodingModePayload>(

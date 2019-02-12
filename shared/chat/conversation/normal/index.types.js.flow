@@ -4,7 +4,6 @@ export type Props = {
   isPending: boolean,
   conversationIDKey: Types.ConversationIDKey,
   focusInputCounter: number,
-  infoPanelOpen: boolean,
   isSearching: boolean,
   scrollListDownCounter: number,
   scrollListUpCounter: number,

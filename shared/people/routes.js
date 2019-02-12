@@ -17,4 +17,5 @@ export const newRoutes = {
   },
 }
 
+export const newModalRoutes = { }
 export default peopleRoute

@@ -65,3 +65,4 @@ export const newRoutes = {
   ...require('../provision/routes').newRoutes,
   ...require('./signup/routes').newRoutes,
 }
+export const newModalRoutes = { }

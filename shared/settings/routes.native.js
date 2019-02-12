@@ -99,3 +99,4 @@ export const newRoutes = {
   'tabs:settingsTab': {getScreen: () => require('./').default},
   terms: {getScreen: () => require('./web-links.native').default},
 }
+export const newModalRoutes = { }
