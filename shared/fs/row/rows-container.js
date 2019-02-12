@@ -1,6 +1,6 @@
 // @flow
 import * as I from 'immutable'
-import {compose, namedConnect} from '../../util/container'
+import {namedConnect} from '../../util/container'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import {
@@ -10,15 +10,14 @@ import {
   type SortableUploadingRowItem,
   type SortableRowItem,
 } from '../utils/sort'
-import FilesLoadingHoc from './files-loading-hoc'
 import Rows from './rows'
 
-type OwnProps = {
+type OwnProps = {|
   path: Types.Path, // path to the parent folder containering the rows
   sortSetting: Types.SortSetting,
   routePath: I.List<string>,
   destinationPickerIndex?: number,
-}
+|}
 
 const getEditingRows = (
   edits: I.Map<Types.EditID, Types.Edit>,
@@ -187,7 +186,9 @@ const mergeProps = (s, d, o: OwnProps) => ({
   routePath: o.routePath,
 })
 
-export default compose(
-  FilesLoadingHoc,
-  namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'ConnectedRows')
+export default namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'ConnectedRows'
 )(Rows)

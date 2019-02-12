@@ -105,6 +105,7 @@ type fstatus struct {
 	DeviceEKNames        []string
 	LocalDbStats         []string
 	LocalChatDbStats     []string
+	CacheDirSizeInfo     []keybase1.DirSizeInfo
 }
 
 func (c *CmdStatus) Run() error {
@@ -218,6 +219,7 @@ func (c *CmdStatus) load() (*fstatus, error) {
 	status.DeviceEKNames = extStatus.DeviceEkNames
 	status.LocalDbStats = extStatus.LocalDbStats
 	status.LocalChatDbStats = extStatus.LocalChatDbStats
+	status.CacheDirSizeInfo = extStatus.CacheDirSizeInfo
 
 	// set anything os-specific:
 	if err := c.osSpecific(&status); err != nil {
@@ -317,6 +319,10 @@ func (c *CmdStatus) outputTerminal(status *fstatus) error {
 	dui.Printf("    %s \n", strings.Join(status.DeviceEKNames, "\n    "))
 	dui.Printf("LocalDbStats:\n%s \n", strings.Join(status.LocalDbStats, "\n"))
 	dui.Printf("LocalChatDbStats:\n%s \n", strings.Join(status.LocalChatDbStats, "\n"))
+	dui.Printf("CacheDirSizeInfo:\n")
+	for _, dirInfo := range status.CacheDirSizeInfo {
+		dui.Printf("%s: %s\n", dirInfo.Name, dirInfo.HumanSize)
+	}
 
 	c.outputClients(dui, status.Clients)
 	return nil

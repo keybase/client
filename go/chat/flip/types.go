@@ -57,7 +57,21 @@ func (s Start) RevealWindowWithSlack() time.Duration {
 	return Time(s.CommitmentWindowMsec + s.RevealWindowMsec + 2*s.SlackMsec).Duration()
 }
 
-func (c ConversationID) check() bool { return c != nil }
-func (u UID) check() bool            { return u != nil }
-func (d DeviceID) check() bool       { return d != nil }
-func (g GameID) check() bool         { return g != nil }
+func isZero(v []byte) bool {
+	for _, b := range v {
+		if b != 0 {
+			return false
+		}
+	}
+	return true
+}
+
+func (c ConversationID) IsZero() bool { return isZero(c[:]) }
+func (u UID) IsZero() bool            { return isZero(u[:]) }
+func (d DeviceID) IsZero() bool       { return isZero(d[:]) }
+func (g GameID) IsZero() bool         { return isZero(g[:]) }
+
+func (c ConversationID) check() bool { return c != nil && !c.IsZero() }
+func (u UID) check() bool            { return u != nil && !u.IsZero() }
+func (d DeviceID) check() bool       { return d != nil && !d.IsZero() }
+func (g GameID) check() bool         { return g != nil && !g.IsZero() }

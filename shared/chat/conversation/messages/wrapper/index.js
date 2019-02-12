@@ -6,6 +6,7 @@ import * as Styles from '../../../../styles'
 import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
 import SystemAddedToTeam from '../system-added-to-team/container'
+import SystemChangeRetention from '../system-change-retention/container'
 import SystemGitPush from '../system-git-push/container'
 import SystemInviteAccepted from '../system-invite-accepted/container'
 import SystemJoined from '../system-joined/container'
@@ -343,6 +344,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         break
       case 'systemAddedToTeam':
         child = <SystemAddedToTeam key="systemAddedToTeam" message={message} />
+        break
+      case 'systemChangeRetention':
+        child = <SystemChangeRetention key="systemChangeRetention" message={message} />
         break
       case 'systemJoined':
         child = <SystemJoined key="systemJoined" message={message} />

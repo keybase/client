@@ -60,3 +60,12 @@ export const platformStyles = (options: {|
   ...(isAndroid && options.isAndroid ? options.isAndroid : {}),
   ...(isElectron && options.isElectron ? unifyStyles(options.isElectron) : {}),
 })
+
+/* eslint-disable sort-keys */
+export const padding = (top: number, right?: number, bottom?: number, left?: number) => ({
+  paddingTop: top,
+  paddingRight: right || top,
+  paddingBottom: bottom || top,
+  paddingLeft: left || right || top,
+})
+/* eslint-enable sort-keys */

@@ -232,7 +232,7 @@ func (s *SignupEngine) registerDevice(m libkb.MetaContext, deviceName string) er
 	s.lks = libkb.NewLKSec(s.ppStream, s.uid)
 	args := &DeviceWrapArgs{
 		Me:         s.me,
-		DeviceName: deviceName,
+		DeviceName: libkb.CheckDeviceName.Transform(deviceName),
 		Lks:        s.lks,
 		IsEldest:   true,
 	}

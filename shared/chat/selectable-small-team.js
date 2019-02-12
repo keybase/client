@@ -35,6 +35,7 @@ class SelectableSmallTeam extends React.PureComponent<Props, State> {
     return (
       <Kb.ClickableBox onClick={props.onSelectConversation} style={styles.container}>
         <Kb.Box2
+          alignItems="center"
           direction="horizontal"
           fullWidth={true}
           fullHeight={true}

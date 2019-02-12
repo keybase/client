@@ -45,8 +45,8 @@ func (t *testDealersHelper) Me() UserDevice {
 	return t.me
 }
 
-func (t *testDealersHelper) SendChat(ctx context.Context, conversationID ConversationID, msg GameMessageEncoded) error {
-	t.ch <- GameMessageWrappedEncoded{Body: msg, Sender: t.me}
+func (t *testDealersHelper) SendChat(ctx context.Context, conversationID ConversationID, gameID GameID, msg GameMessageEncoded) error {
+	t.ch <- GameMessageWrappedEncoded{Body: msg, GameID: gameID, Sender: t.me}
 	return nil
 }
 
@@ -135,14 +135,14 @@ func (b *testBundle) runFollowersReveal(ctx context.Context, t *testing.T) {
 func (b *testBundle) sendReveal(ctx context.Context, t *testing.T, p *playerControl) {
 	msg, err := NewGameMessageBodyWithReveal(p.secret).Encode(p.md)
 	require.NoError(t, err)
-	b.dealer.InjectIncomingChat(ctx, p.me, p.md.ConversationID, msg)
+	b.dealer.InjectIncomingChat(ctx, p.me, p.md.ConversationID, p.md.GameID, msg)
 	b.receiveRevealFrom(t, p)
 }
 
 func (b *testBundle) sendCommitment(ctx context.Context, t *testing.T, p *playerControl) {
 	msg, err := NewGameMessageBodyWithCommitment(p.commitment).Encode(p.md)
 	require.NoError(t, err)
-	b.dealer.InjectIncomingChat(ctx, p.me, p.md.ConversationID, msg)
+	b.dealer.InjectIncomingChat(ctx, p.me, p.md.ConversationID, p.md.GameID, msg)
 	b.receiveCommitmentFrom(t, p)
 }
 
@@ -299,7 +299,7 @@ func testLeaderFollowerPair(t *testing.T, testController testController) {
 	}
 
 	chatMsg := b.assertOutgoingChatSent(t, MessageType_START)
-	err = c.dealer.InjectIncomingChat(ctx, chatMsg.Sender, b.channelID, chatMsg.Body)
+	err = c.dealer.InjectIncomingChat(ctx, chatMsg.Sender, b.channelID, chatMsg.GameID, chatMsg.Body)
 	require.NoError(t, err)
 
 	cB := b.assertOutgoingChatSent(t, MessageType_COMMITMENT)
@@ -307,9 +307,9 @@ func testLeaderFollowerPair(t *testing.T, testController testController) {
 	verifyMyCommitment(b)
 	verifyMyCommitment(c)
 
-	err = c.dealer.InjectIncomingChat(ctx, cB.Sender, b.channelID, cB.Body)
+	err = c.dealer.InjectIncomingChat(ctx, cB.Sender, b.channelID, cB.GameID, cB.Body)
 	require.NoError(t, err)
-	err = b.dealer.InjectIncomingChat(ctx, cC.Sender, b.channelID, cC.Body)
+	err = b.dealer.InjectIncomingChat(ctx, cC.Sender, b.channelID, cC.GameID, cC.Body)
 	require.NoError(t, err)
 	verifyTheirCommitment(b, c)
 	verifyTheirCommitment(c, b)
@@ -323,7 +323,7 @@ func testLeaderFollowerPair(t *testing.T, testController testController) {
 
 	b.dh.clock.Advance(time.Duration(6001) * time.Millisecond)
 	chatMsg = b.assertOutgoingChatSent(t, MessageType_COMMITMENT_COMPLETE)
-	err = c.dealer.InjectIncomingChat(ctx, chatMsg.Sender, b.channelID, chatMsg.Body)
+	err = c.dealer.InjectIncomingChat(ctx, chatMsg.Sender, b.channelID, chatMsg.GameID, chatMsg.Body)
 	require.NoError(t, err)
 	verifyCommitmentComplete()
 
@@ -333,10 +333,10 @@ func testLeaderFollowerPair(t *testing.T, testController testController) {
 	verifyMyReveal(b)
 	verifyMyReveal(c)
 
-	err = c.dealer.InjectIncomingChat(ctx, rB.Sender, b.channelID, rB.Body)
+	err = c.dealer.InjectIncomingChat(ctx, rB.Sender, b.channelID, rB.GameID, rB.Body)
 	require.NoError(t, err)
 
-	err = b.dealer.InjectIncomingChat(ctx, rC.Sender, b.channelID, rC.Body)
+	err = b.dealer.InjectIncomingChat(ctx, rC.Sender, b.channelID, rC.GameID, rC.Body)
 	require.NoError(t, err)
 
 	verifyTheirReveal(b, c)

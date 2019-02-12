@@ -48,6 +48,10 @@ class Inbox extends React.PureComponent<Props, State> {
     if (listRowsResized) {
       this._list && this._list.resetAfterIndex(0)
     }
+
+    if (this.props.selectedIndex !== prevProps.selectedIndex && this.props.selectedIndex >= 0 && this._list) {
+      this._list.scrollToItem(this.props.selectedIndex)
+    }
   }
 
   componentDidMount() {

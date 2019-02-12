@@ -120,6 +120,9 @@ func (e *GameMessageWrappedEncoded) Decode() (*GameMessageWrapped, error) {
 		return nil, err
 	}
 	ret := GameMessageWrapped{Sender: e.Sender, Msg: *v1}
+	if !e.GameID.Eq(ret.Msg.Md.GameID) {
+		return nil, BadGameIDError{G: ret.Msg.Md, I: e.GameID}
+	}
 	return &ret, nil
 }
 
@@ -610,7 +613,7 @@ func (d *Dealer) handleMessage(ctx context.Context, msg *GameMessageWrapped) err
 	if err != nil {
 		return err
 	}
-	err = d.dh.SendChat(ctx, msg.Msg.Md.ConversationID, emsg)
+	err = d.dh.SendChat(ctx, msg.Msg.Md.ConversationID, msg.Msg.Md.GameID, emsg)
 	if err != nil {
 		return err
 	}
