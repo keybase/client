@@ -70,7 +70,7 @@ const getRawLayout = (path: Types.Path, pathItem: Types.PathItem): Layout => {
         showInSystemFileManager: !isMobile,
         // share menu items
         // eslint-disable-next-line sort-keys
-        sendAttachmentToChat: flags.sendAttachmentToChat && isMobile, // desktop uses separate button
+        sendAttachmentToChat: flags.sendAttachmentToChat && isMobile && pathItem.type === 'file', // desktop uses separate button
         sendLinkToChat: isMobile && Constants.canSendLinkToChat(parsedPath), // desktop uses separate button
         sendToOtherApp: pathItem.type === 'file' && isMobile,
       }
