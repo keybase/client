@@ -93,8 +93,9 @@ class Inbox extends React.PureComponent<Props, State> {
     const conversationIDKey: Types.ConversationIDKey = row.conversationIDKey
     const teamname = row.teamname
 
+    // pointer events on so you can click even right after a scroll
     return (
-      <div style={divStyle}>
+      <div style={{...divStyle, pointerEvents: 'auto'}}>
         {makeRow({
           channelname: (row.type === 'big' && row.channelname) || '',
           conversationIDKey,
