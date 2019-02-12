@@ -784,6 +784,7 @@ const setupEngineListeners = () => {
 }
 
 const maybeClearErrors = state => {
+  // TODO this model of doing things in relation to the nav is going to go away
   const routePath = getPath(state.routeTree.routeState)
   const selectedTab = routePath.first()
   if (selectedTab === Tabs.walletsTab) {
