@@ -4,7 +4,7 @@ import * as SettingsGen from '../../actions/settings-gen'
 import {connect, compose} from '../../util/container'
 import Bootstrapable from '../../util/bootstrapable'
 import Landing from '.'
-import {navigateAppend} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 
 type OwnProps = {||}
 
@@ -12,10 +12,17 @@ const mapStateToProps = state => {
   const {emails} = state.settings.email
   const {rememberPassphrase} = state.settings.passphrase
   let accountProps
-  if (emails.length > 0) {
+  if (emails) {
+    let emailProps = {}
+    if (emails.length) {
+      emailProps = {
+        email: emails[0].email,
+        isVerified: emails[0].isVerified,
+      }
+    }
     accountProps = {
-      email: emails[0].email,
-      isVerified: emails[0].isVerified,
+      ...emailProps,
+      hasRandomPW: state.settings.passphrase.randomPW,
       onChangeEmail: () => logger.debug('todo'),
       onChangePassphrase: () => logger.debug('todo'),
       rememberPassphrase,
@@ -60,12 +67,14 @@ const mapDispatchToProps = (dispatch: (a: any) => void) => ({
   onBootstrap: () => {
     dispatch(SettingsGen.createLoadSettings())
     dispatch(SettingsGen.createLoadRememberPassphrase())
+    dispatch(SettingsGen.createLoadHasRandomPw())
   },
-  onChangePassphrase: () => dispatch(navigateAppend(['changePassphrase'])),
+  onChangeEmail: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['changeEmail']})),
+  onChangePassphrase: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['changePassphrase']})),
   onChangeRememberPassphrase: (checked: boolean) =>
     dispatch(SettingsGen.createOnChangeRememberPassphrase({remember: checked})),
-  onChangeEmail: () => dispatch(navigateAppend(['changeEmail'])),
-  onInfo: selectedLevel => dispatch(navigateAppend([{selected: 'changePlan', props: {selectedLevel}}])),
+  onInfo: selectedLevel =>
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {selectedLevel}, selected: 'changePlan'}]})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => {

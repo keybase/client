@@ -34,7 +34,16 @@ const UserButton = ({isPublic, onClick}: {isPublic: boolean, onClick: () => void
   </Box>
 )
 
-const UserInput = ({isPublic, onSubmit, onCancel, onUpdateText, username, text}) => {
+type UserInputProps = {
+  isPublic: boolean,
+  onSubmit: () => void,
+  onCancel: () => void,
+  onUpdateText: () => void,
+  username: ?string,
+  text: string,
+}
+
+const UserInput = ({isPublic, onSubmit, onCancel, onUpdateText, username, text}: UserInputProps) => {
   return (
     <Box
       style={{
@@ -45,7 +54,7 @@ const UserInput = ({isPublic, onSubmit, onCancel, onUpdateText, username, text})
       <Input
         small={true}
         smallLabel={isPublic || !username ? '' : `${username},`}
-        smallLabelStyle={{marginRight: 0, color: globalColors.darkBlue}}
+        smallLabelStyle={{color: globalColors.darkBlue, marginRight: 0}}
         hideUnderline={true}
         autoFocus={true}
         hintText={isPublic ? 'user or user1,user2,user3' : 'user1,user2,user3,...'}
@@ -116,23 +125,23 @@ class UserAdd extends Component<Props, State> {
 
 const stylesButtonContainer = {
   ...globalStyles.flexBoxColumn,
-  justifyContent: 'center',
-  paddingLeft: 4,
-  paddingRight: 4,
   alignItems: 'center',
   flex: 1,
   height: 40,
+  justifyContent: 'center',
+  paddingLeft: 4,
+  paddingRight: 4,
 }
 
 const stylesInputContainer = {
   ...globalStyles.flexBoxRow,
-  justifyContent: 'flex-start',
-  paddingLeft: 6,
-  paddingRight: 10,
   alignItems: 'center',
   flex: 1,
   height: 40,
+  justifyContent: 'flex-start',
   overflow: 'hidden',
+  paddingLeft: 6,
+  paddingRight: 10,
 }
 
 export default UserAdd

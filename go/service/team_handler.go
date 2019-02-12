@@ -109,7 +109,7 @@ func (r *teamHandler) rotateTeam(ctx context.Context, cli gregor1.IncomingInterf
 		}
 
 		r.G().Log.CDebugf(ctx, "dismissing team.clkr item since rotate succeeded")
-		r.G().GregorDismisser.DismissItem(ctx, cli, item.Metadata().MsgID())
+		r.G().GregorState.DismissItem(ctx, cli, item.Metadata().MsgID())
 	}()
 
 	return nil
@@ -150,59 +150,8 @@ func (r *teamHandler) abandonTeam(ctx context.Context, cli gregor1.IncomingInter
 	r.G().NotifyRouter.HandleTeamAbandoned(ctx, msg.TeamID)
 
 	r.G().Log.CDebugf(ctx, "teamHandler.abandonTeam: locally dismissing %s", nm)
-	if err := r.G().GregorDismisser.LocalDismissItem(ctx, item.Metadata().MsgID()); err != nil {
+	if err := r.G().GregorState.LocalDismissItem(ctx, item.Metadata().MsgID()); err != nil {
 		r.G().Log.CDebugf(ctx, "teamHandler.abandonTeam: failed to locally dismiss msg %v", item.Metadata().MsgID())
-	}
-
-	return nil
-}
-
-func (r *teamHandler) findAndDismissResetBadges(ctx context.Context, cli gregor1.IncomingInterface, teamName string) error {
-	badges := r.badger.State().FindResetMemberBadges(teamName)
-	if len(badges) == 0 {
-		return nil
-	}
-	r.G().Log.CDebugf(ctx, "Checking reset badges: got total %d badges for team %q",
-		len(badges), teamName)
-
-	team, err := teams.GetMaybeAdminByStringName(ctx, r.G(), teamName, false /* public */)
-	if err != nil {
-		return err
-	}
-
-	for _, badge := range badges {
-		var dismiss bool
-		teamUV, notFoundErr := team.UserVersionByUID(ctx, badge.Uid)
-		if notFoundErr == nil {
-			arg := libkb.NewLoadUserArg(r.G()).WithUID(badge.Uid).WithNetContext(ctx).WithForcePoll(true).WithPublicKeyOptional()
-			upak, _, err := r.G().GetUPAKLoader().LoadV2(arg)
-			if err != nil {
-				r.G().Log.CDebugf(ctx, "Failed to load UPAK for: %s during badge dismissal: %s",
-					badge.Uid, err)
-				continue
-			}
-			if upak.Current.EldestSeqno == teamUV.EldestSeqno {
-				// We have the latest version of the user in the team.
-				r.G().Log.CDebugf(ctx, "Dismissing badge for %s - team has latest user version", badge.Uid)
-				dismiss = true
-			} else {
-				r.G().Log.CDebugf(ctx, "User %s is still reset: current seq: %d team seq: ",
-					badge.Uid, upak.Current.EldestSeqno, teamUV.EldestSeqno)
-			}
-		} else {
-			// User has been removed from the team.
-			r.G().Log.CDebugf(ctx, "Dismissing badge for %s - member was removed", badge.Uid)
-			dismiss = true
-		}
-
-		if dismiss {
-			err := r.G().GregorDismisser.DismissItem(ctx, cli, badge.Id)
-			if err == nil {
-				r.G().Log.CDebugf(ctx, "dismissed badge %s for %s!", badge.Id, badge.Uid)
-			} else {
-				r.G().Log.CDebugf(ctx, "failed to dismiss TeamMemberOutFromReset badge: %s", err)
-			}
-		}
 	}
 
 	return nil
@@ -228,26 +177,9 @@ func (r *teamHandler) changeTeam(ctx context.Context, cli gregor1.IncomingInterf
 
 	// Locally dismiss this now that we have processed it so we can
 	// avoid replaying it over and over.
-	if err := r.G().GregorDismisser.LocalDismissItem(ctx, item.Metadata().MsgID()); err != nil {
+	if err := r.G().GregorState.LocalDismissItem(ctx, item.Metadata().MsgID()); err != nil {
 		r.G().Log.CDebugf(ctx, "failed to local dismiss team change: %s", err)
 	}
-
-	// Check the badge state to see if any team reset badges need dismissal.
-	go func() {
-		r.teamHandlerBackgroundJob.Lock()
-		defer r.teamHandlerBackgroundJob.Unlock()
-
-		for _, row := range rows {
-			if !row.RemovedResetUsers {
-				continue
-			}
-
-			if err := r.findAndDismissResetBadges(ctx, cli, row.Name); err != nil {
-				r.G().Log.CDebugf(ctx, "Error during dismissing badges for team %q: %s", row.Name, err)
-			}
-		}
-	}()
-
 	return nil
 }
 
@@ -264,7 +196,7 @@ func (r *teamHandler) deleteTeam(ctx context.Context, cli gregor1.IncomingInterf
 		return err
 	}
 
-	return r.G().GregorDismisser.DismissItem(ctx, cli, item.Metadata().MsgID())
+	return r.G().GregorState.DismissItem(ctx, cli, item.Metadata().MsgID())
 }
 
 func (r *teamHandler) exitTeam(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
@@ -279,7 +211,7 @@ func (r *teamHandler) exitTeam(ctx context.Context, cli gregor1.IncomingInterfac
 	}
 
 	r.G().Log.Debug("dismissing team.exit: %v", item.Metadata().MsgID().String())
-	return r.G().GregorDismisser.DismissItem(ctx, cli, item.Metadata().MsgID())
+	return r.G().GregorState.DismissItem(ctx, cli, item.Metadata().MsgID())
 }
 
 func (r *teamHandler) newlyAddedToTeam(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
@@ -296,7 +228,7 @@ func (r *teamHandler) newlyAddedToTeam(ctx context.Context, cli gregor1.Incoming
 	}
 
 	r.G().Log.CDebugf(ctx, "teamHandler.newlyAddedToTeam: locally dismissing %s", nm)
-	if err := r.G().GregorDismisser.LocalDismissItem(ctx, item.Metadata().MsgID()); err != nil {
+	if err := r.G().GregorState.LocalDismissItem(ctx, item.Metadata().MsgID()); err != nil {
 		r.G().Log.CDebugf(ctx, "teamHandler.newlyAddedToTeam: failed to locally dismiss msg %v", item.Metadata().MsgID())
 	}
 
@@ -317,7 +249,7 @@ func (r *teamHandler) sharingBeforeSignup(ctx context.Context, cli gregor1.Incom
 	}
 
 	r.G().Log.Debug("dismissing team.sbs item since it succeeded")
-	return r.G().GregorDismisser.DismissItem(ctx, cli, item.Metadata().MsgID())
+	return r.G().GregorState.DismissItem(ctx, cli, item.Metadata().MsgID())
 }
 
 func (r *teamHandler) openTeamAccessRequest(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
@@ -334,7 +266,7 @@ func (r *teamHandler) openTeamAccessRequest(ctx context.Context, cli gregor1.Inc
 	}
 
 	r.G().Log.CDebugf(ctx, "dismissing team.openreq item since it succeeded")
-	return r.G().GregorDismisser.DismissItem(ctx, cli, item.Metadata().MsgID())
+	return r.G().GregorState.DismissItem(ctx, cli, item.Metadata().MsgID())
 }
 
 func (r *teamHandler) seitanCompletion(ctx context.Context, cli gregor1.IncomingInterface, item gregor.Item) error {
@@ -351,7 +283,7 @@ func (r *teamHandler) seitanCompletion(ctx context.Context, cli gregor1.Incoming
 	}
 
 	r.G().Log.CDebugf(ctx, "dismissing team.seitan item since it succeeded")
-	return r.G().GregorDismisser.DismissItem(ctx, cli, item.Metadata().MsgID())
+	return r.G().GregorState.DismissItem(ctx, cli, item.Metadata().MsgID())
 }
 
 func (r *teamHandler) Dismiss(ctx context.Context, cli gregor1.IncomingInterface, category string, item gregor.Item) (bool, error) {

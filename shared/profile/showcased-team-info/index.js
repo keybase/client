@@ -1,4 +1,5 @@
 // @flow
+// TODO deprecate
 import * as React from 'react'
 import {Avatar, Box, Button, Meta, Text, Usernames, FloatingMenu} from '../../common-adapters'
 import {globalColors, globalMargins, globalStyles, isMobile, platformStyles} from '../../styles'
@@ -42,8 +43,8 @@ const TeamInfo = (props: Props) => (
     <Box
       style={{
         height: isMobile ? 64 : 48,
-        marginTop: isMobile ? globalMargins.tiny : globalMargins.small,
         marginBottom: globalMargins.xtiny,
+        marginTop: isMobile ? globalMargins.tiny : globalMargins.small,
       }}
     >
       <Avatar teamname={props.teamname} size={isMobile ? 64 : 48} />
@@ -57,12 +58,12 @@ const TeamInfo = (props: Props) => (
 
     <Text type="BodySmall">{props.memberCount + ' member' + (props.memberCount !== 1 ? 's' : '')}</Text>
 
-    <Text type={'Body'} style={styleDescription}>
+    <Text center={true} type="Body" style={styleDescription}>
       {props.description}
     </Text>
 
     {!!props.teamJoinError && (
-      <Text type="BodySmall" style={styleDescription}>
+      <Text center={true} type="BodySmall" style={styleDescription}>
         Error: {props.teamJoinError}
       </Text>
     )}
@@ -78,8 +79,8 @@ const TeamInfo = (props: Props) => (
                 ? 'Joined'
                 : 'Request sent'
               : props.openTeam
-                ? 'Join team'
-                : 'Request to join'
+              ? 'Join team'
+              : 'Request to join'
           }
           small={!isMobile}
           style={{marginTop: globalMargins.tiny}}
@@ -89,20 +90,18 @@ const TeamInfo = (props: Props) => (
                 ? 'PrimaryGreen'
                 : 'Secondary'
               : props.openTeam
-                ? 'PrimaryGreen'
-                : 'Primary'
+              ? 'PrimaryGreen'
+              : 'Primary'
           }
         />
       </Box>
     )}
 
-    {!props.youAreInTeam &&
-      props.youHaveRequestedAccess &&
-      props.openTeam && (
-        <Box style={styleDescription}>
-          <Text type="BodySmall">As soon as an admin comes online, this team will unlock for you.</Text>
-        </Box>
-      )}
+    {!props.youAreInTeam && props.youHaveRequestedAccess && props.openTeam && (
+      <Box center={true} style={styleDescription}>
+        <Text type="BodySmall">As soon as an admin comes online, this team will unlock for you.</Text>
+      </Box>
+    )}
 
     {!!props.publicAdmins.length && (
       <Box style={styleWrap}>
@@ -122,8 +121,8 @@ const TeamInfo = (props: Props) => (
               {idx < props.publicAdmins.length - 1
                 ? ', '
                 : props.publicAdminsOthers === 0
-                  ? '.'
-                  : `, + ${props.publicAdminsOthers} others.`}
+                ? '.'
+                : `, + ${props.publicAdminsOthers} others.`}
             </Text>
           </Box>
         ))}
@@ -138,7 +137,6 @@ const styleDescription = {
   marginLeft: globalMargins.small,
   marginRight: globalMargins.small,
   marginTop: globalMargins.tiny,
-  textAlign: 'center',
 }
 
 const styleDivider = {
@@ -161,14 +159,14 @@ const styleMeta = {
 const styleWrap = {
   ...globalStyles.flexBoxRow,
   alignItems: 'flex-start',
-  justifyContent: 'flex-start',
   alignSelf: 'center',
-  textAlign: 'center',
   flexWrap: 'wrap',
+  justifyContent: 'flex-start',
   marginBottom: isMobile ? 0 : globalMargins.small,
   marginLeft: globalMargins.small,
   marginRight: globalMargins.small,
   marginTop: globalMargins.tiny,
+  textAlign: 'center',
 }
 
 const TeamInfoWrapper = (props: Props) => {

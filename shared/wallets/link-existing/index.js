@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import * as Flow from '../../util/flow'
 import EnterKey from './enter-key'
 import {EnterName, WalletPopup} from '../common'
 import type {ValidationState} from '../../constants/types/wallets'
@@ -126,15 +127,13 @@ class LinkWallet extends React.Component<LinkWalletProps, LinkWalletState> {
         )
         break
       default:
-        /*::
-        declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (view: empty) => any
-        ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(this.state.view);
-        */
+        Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(this.state.view)
         throw new Error('LinkExistingWallet: Unexpected value for `view` encountered: ' + this.state.view)
     }
     return (
       <WalletPopup
         bottomButtons={this._getBottomButtons()}
+        onCancel={this.props.onCancel}
         onExit={this.state.view === 'name' ? () => this._onViewChange('key') : this.props.onCancel}
         backButtonType={this.state.view === 'name' ? 'back' : 'cancel'}
         headerTitle={isLargeScreen ? 'Link an existing account' : 'Link account'}
@@ -166,7 +165,7 @@ type WrapperState = {|
 |}
 
 class Wrapper extends React.Component<WrapperProps, WrapperState> {
-  state = {secretKey: '', name: ''}
+  state = {name: '', secretKey: ''}
   _onKeyChange = (secretKey: string) => this.setState({secretKey})
   _onNameChange = (name: string) => this.setState({name})
   _onDone = () => this.props.onDone(this.state.secretKey, this.state.name)

@@ -1,20 +1,19 @@
 // @flow
 import * as I from 'immutable'
+import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import * as Types from '../../../../constants/types/chat2'
-import {Input as TextInput} from '../../../../common-adapters'
+import {PlainInput} from '../../../../common-adapters'
 
-// There are three components in this directory:
+// There are two components in this directory:
 //
 //   Input, with props InputProps, which wraps
-//     MentionInput, with props MentionInputProps, which wraps
-//       PlatformInput, with props PlatformInputProps.
+//     PlatformInput, with props PlatformInputProps.
 
 type CommonProps = {|
   conversationIDKey: Types.ConversationIDKey,
   isEditExploded: boolean,
   isEditing: boolean,
   isExploding: boolean,
-  isExplodingNew: boolean,
   explodingModeSeconds: number,
   focusInputCounter: number,
   clearInboxFilter: () => void,
@@ -22,52 +21,36 @@ type CommonProps = {|
   onEditLastMessage: () => void,
   onCancelEditing: () => void,
   onFilePickerError: (error: Error) => void,
-  onSeenExplodingMessages: () => void,
+  onRequestScrollDown: () => void,
+  onRequestScrollUp: () => void,
   onSubmit: (text: string) => void,
-  typing: I.Set<string>,
-|}
+  showWalletsIcon: boolean, // used on mobile to determine placeholder
 
-type InputProps = {|
-  ...CommonProps,
   editText: string,
   quoteCounter: number,
   quoteText: string,
 
   getUnsentText: () => string,
   setUnsentText: (text: string) => void,
-  sendTyping: (typing: boolean) => void,
+  sendTyping: (text: string) => void,
+
+  unsentTextRefresh: boolean,
 |}
 
-type MentionInputProps = {|
-  ...InputProps,
-  inputSetRef: (r: ?TextInput) => void,
+type InputProps = {|
+  ...CommonProps,
+  isActiveForFocus: boolean,
+  suggestUsers: I.List<{username: string, fullName: string}>,
+  suggestChannels: I.List<string>,
+  suggestCommands: Array<RPCChatTypes.ConversationCommand>,
+|}
+
+type PlatformInputProps = {|
+  ...CommonProps,
+  inputSetRef: (r: null | PlainInput) => void,
   onChangeText: (newText: string) => void,
+  onKeyDown: (evt: SyntheticKeyboardEvent<>, isComposingIME: boolean) => void,
+  setHeight: (inputHeight: number) => void, // used on mobile to position suggestion HUD
 |}
 
-type MentionProps = {|
-  insertMention: (u: string, options?: {notUser: boolean}) => void,
-  insertChannelMention: (c: string, options?: {notChannel: boolean}) => void,
-
-  // on desktop:
-  onKeyDown?: (e: SyntheticKeyboardEvent<>) => void,
-  switchMention?: (u: string) => void,
-  switchChannelMention?: (c: string) => void,
-  upArrowCounter?: number,
-  downArrowCounter?: number,
-  // on mobile:
-  onBlur?: () => void,
-  onFocus?: () => void,
-  insertMentionMarker?: () => void,
-
-  pickSelectedCounter: number,
-  channelMentionFilter: string,
-  channelMentionPopupOpen: boolean,
-  setChannelMentionPopupOpen: (setOpen: boolean) => void,
-  mentionFilter: string,
-  mentionPopupOpen: boolean,
-  setMentionPopupOpen: (setOpen: boolean) => void,
-|}
-
-type PlatformInputProps = {...MentionInputProps, ...MentionProps}
-
-export type {InputProps, MentionInputProps, PlatformInputProps}
+export type {InputProps, PlatformInputProps}

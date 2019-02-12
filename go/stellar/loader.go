@@ -3,6 +3,7 @@ package stellar
 import (
 	"fmt"
 	"sync"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -17,6 +18,12 @@ type chatMsg struct {
 	sender libkb.NormalizedUsername
 }
 
+type PaymentStatusUpdate struct {
+	AccountID stellar1.AccountID
+	TxID      stellar1.TransactionID
+	Status    stellar1.PaymentStatus
+}
+
 type Loader struct {
 	libkb.Contextified
 
@@ -27,6 +34,8 @@ type Loader struct {
 	requests  map[stellar1.KeybaseRequestID]*stellar1.RequestDetailsLocal
 	rmessages map[stellar1.KeybaseRequestID]chatMsg
 	rqueue    chan stellar1.KeybaseRequestID
+
+	listeners map[string]chan PaymentStatusUpdate
 
 	shutdownOnce sync.Once
 	done         bool
@@ -42,10 +51,11 @@ func NewLoader(g *libkb.GlobalContext) *Loader {
 		Contextified: libkb.NewContextified(g),
 		payments:     make(map[stellar1.PaymentID]*stellar1.PaymentLocal),
 		pmessages:    make(map[stellar1.PaymentID]chatMsg),
-		pqueue:       make(chan stellar1.PaymentID, 50),
+		pqueue:       make(chan stellar1.PaymentID, 100),
 		requests:     make(map[stellar1.KeybaseRequestID]*stellar1.RequestDetailsLocal),
 		rmessages:    make(map[stellar1.KeybaseRequestID]chatMsg),
-		rqueue:       make(chan stellar1.KeybaseRequestID, 50),
+		rqueue:       make(chan stellar1.KeybaseRequestID, 100),
+		listeners:    make(map[string]chan PaymentStatusUpdate),
 	}
 
 	go p.runPayments()
@@ -85,6 +95,11 @@ func (p *Loader) LoadPayment(ctx context.Context, convID chat1.ConversationID, m
 		return nil
 	}
 
+	if len(paymentID) == 0 {
+		m.CDebugf("LoadPayment called with empty paymentID for %s/%s", convID, msgID)
+		return nil
+	}
+
 	msg, ok := p.pmessages[paymentID]
 	// store the msg info if necessary
 	if !ok {
@@ -101,17 +116,17 @@ func (p *Loader) LoadPayment(ctx context.Context, convID chat1.ConversationID, m
 	payment, ok := p.payments[paymentID]
 	if ok {
 		info := p.uiPaymentInfo(m, payment, msg)
+		p.G().NotifyRouter.HandleChatPaymentInfo(m.Ctx(), p.G().ActiveDevice.UID(), convID, msgID, *info)
 		if info.Status != stellar1.PaymentStatus_COMPLETED {
 			// to be safe, schedule a reload of the payment in case it has
 			// changed since stored
-			p.pqueue <- paymentID
+			p.enqueuePayment(paymentID)
 		}
-
 		return info
 	}
 
 	// not found, need to load payment in background
-	p.pqueue <- paymentID
+	p.enqueuePayment(paymentID)
 
 	return nil
 }
@@ -128,8 +143,6 @@ func (p *Loader) LoadRequest(ctx context.Context, convID chat1.ConversationID, m
 		m.CDebugf("loader shutdown, not loading request %s", requestID)
 		return nil
 	}
-
-	m.CDebugf("*************** loading %s", requestID)
 
 	msg, ok := p.rmessages[requestID]
 	// store the msg info if necessary
@@ -151,7 +164,7 @@ func (p *Loader) LoadRequest(ctx context.Context, convID chat1.ConversationID, m
 	}
 
 	// always load request in background (even if found) to make sure stored value is up-to-date.
-	p.rqueue <- requestID
+	p.enqueueRequest(requestID)
 
 	return info
 }
@@ -163,7 +176,7 @@ func (p *Loader) UpdatePayment(ctx context.Context, paymentID stellar1.PaymentID
 		return
 	}
 
-	p.pqueue <- paymentID
+	p.enqueuePayment(paymentID)
 }
 
 // UpdateRequest schedules a load for requestID. Gregor status notification handlers
@@ -173,7 +186,29 @@ func (p *Loader) UpdateRequest(ctx context.Context, requestID stellar1.KeybaseRe
 		return
 	}
 
-	p.rqueue <- requestID
+	p.enqueueRequest(requestID)
+}
+
+// GetListener returns a channel and an ID for a payment status listener.  The ID
+// can be used to remove the listener from the loader.
+func (p *Loader) GetListener() (id string, ch chan PaymentStatusUpdate, err error) {
+	ch = make(chan PaymentStatusUpdate, 100)
+	id, err = libkb.RandString("", 8)
+	if err != nil {
+		return id, ch, err
+	}
+	p.Lock()
+	p.listeners[id] = ch
+	p.Unlock()
+
+	return id, ch, nil
+}
+
+// RemoveListener removes a listener from the loader when it is no longer needed.
+func (p *Loader) RemoveListener(id string) {
+	p.Lock()
+	delete(p.listeners, id)
+	p.Unlock()
 }
 
 func (p *Loader) Shutdown() error {
@@ -201,19 +236,23 @@ func (p *Loader) runRequests() {
 }
 
 func (p *Loader) loadPayment(id stellar1.PaymentID) {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	mctx := libkb.NewMetaContext(ctx, p.G())
+	defer mctx.CTraceTimed(fmt.Sprintf("loadPayment(%s)", id), func() error { return nil })()
+
 	s := getGlobal(p.G())
 	details, err := s.remoter.PaymentDetails(ctx, stellar1.TransactionIDFromPaymentID(id).String())
 	if err != nil {
-		p.G().GetLog().CDebugf(ctx, "error getting payment details for %s: %s", id, err)
+		mctx.CDebugf("error getting payment details for %s: %s", id, err)
 		return
 	}
 
-	m := libkb.NewMetaContext(ctx, p.G())
-	oc := NewOwnAccountLookupCache(ctx, m.G())
-	summary, err := TransformPaymentSummaryGeneric(m, details.Summary, oc)
+	oc := NewOwnAccountLookupCache(mctx)
+	summary, err := TransformPaymentSummaryGeneric(mctx, details.Summary, oc)
 	if err != nil {
-		p.G().GetLog().CDebugf(ctx, "error transforming details for %s: %s", id, err)
+		mctx.CDebugf("error transforming details for %s: %s", id, err)
 		return
 	}
 
@@ -221,12 +260,16 @@ func (p *Loader) loadPayment(id stellar1.PaymentID) {
 	p.payments[id] = summary
 	p.Unlock()
 
-	p.sendPaymentNotification(m, id, summary)
+	p.sendPaymentNotification(mctx, id, summary)
 }
 
 func (p *Loader) loadRequest(id stellar1.KeybaseRequestID) {
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
 	m := libkb.NewMetaContext(ctx, p.G())
+	defer m.CTraceTimed(fmt.Sprintf("loadRequest(%s)", id), func() error { return nil })()
+
 	s := getGlobal(p.G())
 	details, err := s.remoter.RequestDetails(ctx, id)
 	if err != nil {
@@ -260,11 +303,16 @@ func (p *Loader) uiPaymentInfo(m libkb.MetaContext, summary *stellar1.PaymentLoc
 		AccountID:         &summary.FromAccountID,
 		AmountDescription: summary.AmountDescription,
 		Worth:             summary.Worth,
+		WorthAtSendTime:   summary.WorthAtSendTime,
 		Delta:             summary.Delta,
 		Note:              summary.Note,
 		PaymentID:         summary.Id,
 		Status:            summary.StatusSimplified,
 		StatusDescription: summary.StatusDescription,
+		StatusDetail:      summary.StatusDetail,
+		ShowCancel:        summary.ShowCancel,
+		FromUsername:      summary.FromUsername,
+		ToUsername:        summary.ToUsername,
 	}
 
 	info.Delta = stellar1.BalanceDelta_NONE
@@ -275,10 +323,14 @@ func (p *Loader) uiPaymentInfo(m libkb.MetaContext, summary *stellar1.PaymentLoc
 		info.Delta = stellar1.BalanceDelta_NONE
 	} else {
 		info.Delta = stellar1.BalanceDelta_INCREASE
-		if msg.sender.Eq(p.G().ActiveDevice.Username(m)) {
-			info.Delta = stellar1.BalanceDelta_DECREASE
-		} else {
-			info.AccountID = summary.ToAccountID
+		if msg.sender != "" {
+			// this is related to a chat message
+			if msg.sender.Eq(p.G().ActiveDevice.Username(m)) {
+				info.Delta = stellar1.BalanceDelta_DECREASE
+			} else {
+				// switch the account ID to the recipient
+				info.AccountID = summary.ToAccountID
+			}
 		}
 	}
 
@@ -291,23 +343,37 @@ func (p *Loader) sendPaymentNotification(m libkb.MetaContext, id stellar1.Paymen
 	p.Unlock()
 
 	if !ok {
-		m.CDebugf("not sending payment chat notification for %s (no associated convID, msgID)", id)
-		return
+		// this is ok: frontend only needs the payment ID
+		m.CDebugf("sending chat notification for payment %s using empty msg info", id)
+		msg = chatMsg{}
+	} else {
+		m.CDebugf("sending chat notification for payment %s to %s, %s", id, msg.convID, msg.msgID)
 	}
 
-	m.CDebugf("sending chat notification for payment %s to %s, %s", id, msg.convID, msg.msgID)
 	uid := p.G().ActiveDevice.UID()
 	info := p.uiPaymentInfo(m, summary, msg)
+
+	if info.AccountID != nil && summary.StatusSimplified != stellar1.PaymentStatus_PENDING {
+		// let WalletState know
+		p.G().GetStellar().RemovePendingTx(m, *info.AccountID, stellar1.TransactionIDFromPaymentID(id))
+		p.Lock()
+		for _, ch := range p.listeners {
+			ch <- PaymentStatusUpdate{AccountID: *info.AccountID, TxID: stellar1.TransactionIDFromPaymentID(id), Status: summary.StatusSimplified}
+		}
+		p.Unlock()
+	}
+
 	p.G().NotifyRouter.HandleChatPaymentInfo(m.Ctx(), uid, msg.convID, msg.msgID, *info)
 }
 
 func (p *Loader) uiRequestInfo(m libkb.MetaContext, details *stellar1.RequestDetailsLocal, msg chatMsg) *chat1.UIRequestInfo {
 	info := chat1.UIRequestInfo{
-		Amount:            details.Amount,
-		AmountDescription: details.AmountDescription,
-		Asset:             details.Asset,
-		Currency:          details.Currency,
-		Status:            details.Status,
+		Amount:             details.Amount,
+		AmountDescription:  details.AmountDescription,
+		Asset:              details.Asset,
+		Currency:           details.Currency,
+		Status:             details.Status,
+		WorthAtRequestTime: details.WorthAtRequestTime,
 	}
 
 	return &info
@@ -327,4 +393,20 @@ func (p *Loader) sendRequestNotification(m libkb.MetaContext, id stellar1.Keybas
 	uid := p.G().ActiveDevice.UID()
 	info := p.uiRequestInfo(m, details, msg)
 	p.G().NotifyRouter.HandleChatRequestInfo(m.Ctx(), uid, msg.convID, msg.msgID, *info)
+}
+
+func (p *Loader) enqueuePayment(paymentID stellar1.PaymentID) {
+	select {
+	case p.pqueue <- paymentID:
+	default:
+		p.G().Log.Debug("stellar.Loader payment queue full")
+	}
+}
+
+func (p *Loader) enqueueRequest(requestID stellar1.KeybaseRequestID) {
+	select {
+	case p.rqueue <- requestID:
+	default:
+		p.G().Log.Debug("stellar.Loader request queue full")
+	}
 }

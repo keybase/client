@@ -2,21 +2,16 @@
 import * as React from 'react'
 import {
   Avatar,
-  Badge,
   Box2,
-  ClickableBox,
+  HeaderHocHeader,
   Icon,
   iconCastPlatformStyles,
   Text,
   ConnectedUsernames,
 } from '../../../../common-adapters'
-import {collapseStyles, globalStyles, globalColors, globalMargins, styleSheetCreate} from '../../../../styles'
+import {collapseStyles, globalColors, globalMargins, isMobile, styleSheetCreate} from '../../../../styles'
 import type {Props} from './index.types'
 
-// width of containers for back button and info button.
-// must be increased if something else will go in those,
-// remember to check that nothing overflows on android!
-const marginWidth = 60
 const shhIconColor = globalColors.black_20
 const shhIconFontSize = 24
 
@@ -26,26 +21,18 @@ const Wrapper = (props: {
   onBack: () => void,
   onToggleInfoPanel: () => void,
 }) => (
-  <Box2 direction="horizontal" style={styles.container}>
-    <ClickableBox onClick={props.onBack} style={styles.leftMargin}>
-      <Icon
-        type="iconfont-arrow-left"
-        fontSize={24}
-        color={globalColors.black_40}
-        style={iconCastPlatformStyles(styles.arrow)}
-      />
-      {!!props.badgeNumber && <Badge badgeNumber={props.badgeNumber} />}
-    </ClickableBox>
-    <Box2
-      direction="vertical"
-      style={collapseStyles([styles.contentContainer, !!props.badgeNumber && styles.extraCenterPadding])}
-    >
-      {props.children}
-    </Box2>
-    <ClickableBox onClick={props.onToggleInfoPanel} style={styles.rightMargin}>
-      <Icon type="iconfont-info" fontSize={24} />
-    </ClickableBox>
-  </Box2>
+  <HeaderHocHeader
+    badgeNumber={props.badgeNumber}
+    onLeftAction={props.onBack}
+    rightActions={[
+      {
+        icon: 'iconfont-info',
+        label: 'Info',
+        onPress: props.onToggleInfoPanel,
+      },
+    ]}
+    titleComponent={props.children}
+  />
 )
 
 const ShhIcon = props => (
@@ -61,12 +48,20 @@ const ShhIcon = props => (
 const ChannelHeader = (props: Props) => (
   <Wrapper {...props}>
     <Box2 direction="horizontal" style={styles.channelHeaderContainer}>
-      <Avatar teamname={props.teamName} size={16} />
+      <Avatar teamname={props.teamName} size={props.smallTeam ? 16 : 12} />
       <Text
-        type={props.smallTeam ? 'BodyBig' : 'BodySmallSemibold'}
+        type={
+          isMobile
+            ? props.smallTeam
+              ? 'BodyBig'
+              : 'BodyTinySemibold'
+            : props.smallTeam
+            ? 'BodyBig'
+            : 'BodySemibold'
+        }
         lineClamp={1}
         ellipsizeMode="middle"
-        style={{color: props.smallTeam ? globalColors.black_75 : globalColors.black_40}}
+        style={collapseStyles([styles.channelName, !props.smallTeam && styles.channelNameLight])}
       >
         &nbsp;
         {props.teamName}
@@ -90,7 +85,7 @@ const UsernameHeader = (props: Props) => (
       <ConnectedUsernames
         colorFollowing={true}
         inline={false}
-        commaColor={globalColors.black_40}
+        commaColor={globalColors.black_50}
         type="BodyBig"
         usernames={props.participants}
         containerStyle={styles.center}
@@ -102,44 +97,17 @@ const UsernameHeader = (props: Props) => (
   </Wrapper>
 )
 
-const marginStyle = {
-  ...globalStyles.flexBoxRow,
-  alignItems: 'center',
-  width: marginWidth,
-}
-
 const styles = styleSheetCreate({
-  arrow: {marginTop: 3, marginRight: -3},
   center: {
     justifyContent: 'center',
     textAlign: 'center',
   },
   channelHeaderContainer: {alignItems: 'center', alignSelf: 'center'},
-  channelName: {color: globalColors.black_75},
-  container: {
-    alignItems: 'stretch',
-    backgroundColor: globalColors.fastBlank,
-    borderBottomColor: globalColors.black_10,
-    borderBottomWidth: 1,
-    minHeight: 44,
+  channelName: {
+    color: globalColors.black_75,
   },
-  contentContainer: {
-    alignItems: 'center',
-    flex: 1,
-    justifyContent: 'center',
-    paddingBottom: globalMargins.tiny,
-    paddingTop: globalMargins.tiny,
-  },
-  extraCenterPadding: {paddingLeft: globalMargins.tiny, paddingRight: globalMargins.tiny},
-  leftMargin: {
-    ...marginStyle,
-    justifyContent: 'flex-start',
-    paddingLeft: globalMargins.small,
-  },
-  rightMargin: {
-    ...marginStyle,
-    justifyContent: 'flex-end',
-    paddingRight: globalMargins.small,
+  channelNameLight: {
+    color: globalColors.black_50,
   },
   shhIcon: {marginLeft: globalMargins.xtiny},
   usernameHeaderContainer: {alignItems: 'center', justifyContent: 'center'},

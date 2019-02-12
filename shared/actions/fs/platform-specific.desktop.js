@@ -11,12 +11,12 @@ import * as SafeElectron from '../../util/safe-electron.desktop'
 import * as Tabs from '../../constants/tabs'
 import fs from 'fs'
 import type {TypedState} from '../../constants/reducer'
-import {fileUIName, isLinux, isWindows} from '../../constants/platform'
+import {fileUIName, isWindows} from '../../constants/platform'
 import logger from '../../logger'
 import {spawn, execFileSync, exec} from 'child_process'
 import path from 'path'
 import {makeRetriableErrorHandler, makeUnretriableErrorHandler} from './shared'
-import {navigateTo, switchTo} from '../route-tree'
+import * as RouteTreeGen from '../route-tree-gen'
 
 type pathType = 'file' | 'directory'
 
@@ -86,25 +86,21 @@ function getPathType(openPath: string): Promise<pathType> {
 // folder. This function does not check if the file exists, or try to convert
 // KBFS paths. Caller should take care of those.
 const _openPathInSystemFileManagerPromise = (openPath: string, isFolder: boolean) =>
-  new Promise(
-    (resolve, reject) =>
-      isFolder
-        ? isWindows
-          ? SafeElectron.getShell().openItem(openPath)
-            ? resolve()
-            : reject(new Error('unable to open item'))
-          : openInDefaultDirectory(openPath).then(resolve, reject)
-        : SafeElectron.getShell().showItemInFolder(openPath)
+  new Promise((resolve, reject) =>
+    isFolder
+      ? isWindows
+        ? SafeElectron.getShell().openItem(openPath)
           ? resolve()
-          : reject(new Error('unable to open item in folder'))
+          : reject(new Error('unable to open item'))
+        : openInDefaultDirectory(openPath).then(resolve, reject)
+      : SafeElectron.getShell().showItemInFolder(openPath)
+      ? resolve()
+      : reject(new Error('unable to open item in folder'))
   )
 
-const openLocalPathInSystemFileManager = (
-  state: TypedState,
-  action: FsGen.OpenLocalPathInSystemFileManagerPayload
-) =>
-  getPathType(action.payload.path)
-    .then(pathType => _openPathInSystemFileManagerPromise(action.payload.path, pathType === 'directory'))
+const openLocalPathInSystemFileManager = (state, action) =>
+  getPathType(action.payload.localPath)
+    .then(pathType => _openPathInSystemFileManagerPromise(action.payload.localPath, pathType === 'directory'))
     .catch(makeUnretriableErrorHandler(action))
 
 const _rebaseKbfsPathToMountLocation = (kbfsPath: Types.Path, mountLocation: string) =>
@@ -115,8 +111,8 @@ const _rebaseKbfsPathToMountLocation = (kbfsPath: Types.Path, mountLocation: str
       .join(path.sep)
   )
 
-const openPathInSystemFileManager = (state: TypedState, action: FsGen.OpenPathInSystemFileManagerPayload) =>
-  isLinux || (state.fs.fuseStatus && state.fs.fuseStatus.kextStarted)
+const openPathInSystemFileManager = (state, action) =>
+  Constants.kbfsEnabled(state)
     ? RPCTypes.kbfsMountGetCurrentMountDirRpcPromise()
         .then(mountLocation =>
           _openPathInSystemFileManagerPromise(
@@ -157,32 +153,34 @@ const installKBFS = () =>
     .then(() => waitForMount(0))
     .then(() => FsGen.createSetFlags({kbfsInstalling: false, showBanner: true}))
 
-function fuseStatusResultSaga({payload: {prevStatus, status}}: FsGen.FuseStatusResultPayload) {
+const fuseStatusResultSaga = (_, {payload: {prevStatus, status}}) => {
   // If our kextStarted status changed, finish KBFS install
   if (status.kextStarted && prevStatus && !prevStatus.kextStarted) {
-    return Saga.put(FsGen.createInstallKBFS())
+    return FsGen.createInstallKBFS()
   }
 }
 
-function* fuseStatusSaga(): Saga.SagaGenerator<any, any> {
-  const state: TypedState = yield Saga.select()
+function* fuseStatusSaga(state) {
   const prevStatus = state.fs.fuseStatus
 
-  let status = yield Saga.call(RPCTypes.installFuseStatusRpcPromise, {bundleVersion: ''})
+  let status = yield* Saga.callPromise(RPCTypes.installFuseStatusRpcPromise, {bundleVersion: ''})
   if (isWindows && status.installStatus !== RPCTypes.installInstallStatus.installed) {
     // Check if another Dokan we didn't install mounted the filesystem
-    const kbfsMount = yield Saga.call(RPCTypes.kbfsMountGetCurrentMountDirRpcPromise)
+    const kbfsMount = yield* Saga.callPromise(RPCTypes.kbfsMountGetCurrentMountDirRpcPromise)
     if (kbfsMount && fs.existsSync(kbfsMount)) {
-      status.installStatus = RPCTypes.installInstallStatus.installed
-      status.installAction = RPCTypes.installInstallAction.none
-      status.kextStarted = true
+      status = {
+        ...status,
+        installAction: RPCTypes.installInstallAction.none,
+        installStatus: RPCTypes.installInstallStatus.installed,
+        kextStarted: true,
+      }
     }
   }
   yield Saga.put(FsGen.createFuseStatusResult({prevStatus, status}))
 }
 
-function* installFuseSaga(): Saga.SagaGenerator<any, any> {
-  const result: RPCTypes.InstallResult = yield Saga.call(RPCTypes.installInstallFuseRpcPromise)
+function* installFuseSaga() {
+  const result: RPCTypes.InstallResult = yield* Saga.callPromise(RPCTypes.installInstallFuseRpcPromise)
   const fuseResults =
     result && result.componentResults ? result.componentResults.filter(c => c.name === 'fuse') : []
   const kextPermissionError =
@@ -200,50 +198,48 @@ function* installFuseSaga(): Saga.SagaGenerator<any, any> {
   // TODO: do something like uninstallConfirmSaga here
 }
 
-const uninstallKBFSConfirm = (action: FsGen.UninstallKBFSConfirmPayload) =>
-  new Promise((resolve, reject) =>
-    SafeElectron.getDialog().showMessageBox(
-      null,
-      {
-        buttons: ['Remove & Restart', 'Cancel'],
-        detail: `Are you sure you want to remove Keybase from ${fileUIName} and restart the app?`,
-        message: `Remove Keybase from ${fileUIName}`,
-        type: 'question',
-      },
-      resp => resolve(resp)
-    )
-  )
-
-const uninstallKBFSConfirmSuccess = resp =>
-  resp
-    ? undefined
-    : Saga.sequentially([
-        Saga.call(RPCTypes.installUninstallKBFSRpcPromise),
-        Saga.call(() => {
-          // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
-          SafeElectron.getApp().relaunch()
-          SafeElectron.getApp().exit(0)
-        }),
-      ])
-
-const openSecurityPreferences = () =>
-  Saga.call(
+function* uninstallKBFSConfirm(_, action: FsGen.UninstallKBFSConfirmPayload) {
+  const resp = yield Saga.callUntyped(
     () =>
-      new Promise((resolve, reject) => {
-        SafeElectron.getShell().openExternal(
-          'x-apple.systempreferences:com.apple.preference.security?General',
-          {activate: true},
-          err => {
-            if (err) {
-              reject(err)
-              return
-            }
-            logger.info('Opened Security Preferences')
-            resolve()
-          }
+      new Promise((resolve, reject) =>
+        SafeElectron.getDialog().showMessageBox(
+          null,
+          {
+            buttons: ['Remove & Restart', 'Cancel'],
+            detail: `Are you sure you want to remove Keybase from ${fileUIName} and restart the app?`,
+            message: `Remove Keybase from ${fileUIName}`,
+            type: 'question',
+          },
+          resp => resolve(resp)
         )
-      })
+      )
   )
+
+  if (resp !== 0) {
+    // resp is the index of the button that's clicked
+    return
+  }
+
+  yield Saga.callUntyped(RPCTypes.installUninstallKBFSRpcPromise)
+  yield Saga.callUntyped(() => {
+    // Restart since we had to uninstall KBFS and it's needed by the service (for chat)
+    SafeElectron.getApp().relaunch()
+    SafeElectron.getApp().exit(0)
+  })
+}
+
+const openSecurityPreferences = () => {
+  SafeElectron.getShell().openExternal(
+    'x-apple.systempreferences:com.apple.preference.security?General',
+    {activate: true},
+    err => {
+      if (err) {
+        return
+      }
+      logger.info('Opened Security Preferences')
+    }
+  )
+}
 
 // Invoking the cached installer package has to happen from the topmost process
 // or it won't be visible to the user. The service also does this to support command line
@@ -278,10 +274,10 @@ function installCachedDokan() {
 }
 
 function installDokanSaga() {
-  return Saga.call(installCachedDokan)
+  installCachedDokan()
 }
 
-const uninstallDokanPromise = (state: TypedState) => {
+const uninstallDokanPromise = state => {
   const uninstallString = Constants.kbfsUninstallString(state)
   if (!uninstallString) {
     return
@@ -302,105 +298,90 @@ const openAndUploadToPromise = (state: TypedState, action: FsGen.OpenAndUploadPa
     SafeElectron.getDialog().showOpenDialog(
       SafeElectron.getCurrentWindowFromRemote(),
       {
-        title: 'Select a file or folder to upload',
         properties: [
           'multiSelections',
           ...(['file', 'both'].includes(action.payload.type) ? ['openFile'] : []),
           ...(['directory', 'both'].includes(action.payload.type) ? ['openDirectory'] : []),
         ],
+        title: 'Select a file or folder to upload',
       },
       filePaths => resolve(filePaths || [])
     )
   )
 
-const openAndUpload = (state: TypedState, action: FsGen.OpenAndUploadPayload) =>
-  Saga.call(function*() {
-    const localPaths = yield Saga.call(openAndUploadToPromise, state, action)
-    yield Saga.all(
-      localPaths.map(localPath =>
-        Saga.put(FsGen.createUpload({localPath, parentPath: action.payload.parentPath}))
+const openAndUpload = (state, action) =>
+  openAndUploadToPromise(state, action).then(localPaths =>
+    localPaths.map(localPath => FsGen.createUpload({localPath, parentPath: action.payload.parentPath}))
+  )
+
+const loadUserFileEdits = (state, action) =>
+  RPCTypes.SimpleFSSimpleFSUserEditHistoryRpcPromise().then(writerEdits => {
+    const tlfUpdates = Constants.userTlfHistoryRPCToState(writerEdits || [])
+    const updateSet = tlfUpdates
+      .reduce(
+        (acc: I.Set<Types.Path>, u) =>
+          Types.getPathElements(u.path).reduce((acc, e, i, a) => {
+            if (i < 2) return acc
+            const path = Types.getPathFromElements(a.slice(0, i + 1))
+            return acc.add(path)
+          }, acc),
+        I.Set()
       )
-    )
+      .toArray()
+    // TODO (songgao): make a new action that accepts an array of updates,
+    // so that we only need to trigger one update through store/rpc/widget
+    // for all these each time.
+    return [
+      ...updateSet.map(path =>
+        FsGen.createFilePreviewLoad({
+          identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
+          path,
+        })
+      ),
+      FsGen.createUserFileEditsLoaded({tlfUpdates}),
+    ]
   })
 
-const loadUserFileEdits = (state: TypedState, action) =>
-  Saga.call(function*() {
-    try {
-      const writerEdits = yield Saga.call(RPCTypes.SimpleFSSimpleFSUserEditHistoryRpcPromise)
-      const tlfUpdates = Constants.userTlfHistoryRPCToState(writerEdits || [])
-      const updateSet = tlfUpdates
-        .reduce(
-          (acc: I.Set<Types.Path>, u) =>
-            Types.getPathElements(u.path).reduce((acc, e, i, a) => {
-              if (i < 2) return acc
-              const path = Types.getPathFromElements(a.slice(0, i + 1))
-              return acc.add(path)
-            }, acc),
-          I.Set()
-        )
-        .toArray()
-      yield Saga.sequentially([
-        // TODO (songgao): make a new action that accepts an array of updates,
-        // so that we only need to trigger one update through store/rpc/widget
-        // for all these each time.
-        ...updateSet.map(path =>
-          Saga.put(
-            FsGen.createFilePreviewLoad({
-              path,
-              identifyBehavior: RPCTypes.tlfKeysTLFIdentifyBehavior.chatGui,
-            })
-          )
-        ),
-        Saga.put(FsGen.createUserFileEditsLoaded({tlfUpdates})),
-      ])
-    } catch (ex) {
-      yield makeRetriableErrorHandler(action)
-    }
-  })
-
-const openFilesFromWidget = (state: TypedState, {payload: {path, type}}: FsGen.OpenFilesFromWidgetPayload) =>
-  Saga.sequentially([
-    Saga.put(ConfigGen.createShowMain()),
-    ...(path
-      ? [
-          Saga.put(
-            navigateTo([
-              Tabs.fsTab,
-              {
-                props: {path: Types.getPathParent(path)},
-                selected: 'folder',
-              },
-              {
-                props: {path},
-                selected: type === 'folder' ? 'folder' : 'preview',
-              },
-            ])
-          ),
-        ]
-      : [Saga.put(switchTo([Tabs.fsTab]))]),
-  ])
+const openFilesFromWidget = (state, {payload: {path, type}}) => [
+  ConfigGen.createShowMain(),
+  ...(path ? [FsGen.createOpenPathInFilesTab({path})] : [RouteTreeGen.createSwitchTo({path: [Tabs.fsTab]})]),
+]
 
 function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
-  yield Saga.actionToPromise(FsGen.openLocalPathInSystemFileManager, openLocalPathInSystemFileManager)
-  yield Saga.actionToPromise(FsGen.openPathInSystemFileManager, openPathInSystemFileManager)
-  yield Saga.safeTakeEvery([ConfigGen.setupEngineListeners, FsGen.fuseStatus], fuseStatusSaga)
-  yield Saga.safeTakeEveryPure(FsGen.fuseStatusResult, fuseStatusResultSaga)
-  yield Saga.actionToPromise(FsGen.installKBFS, installKBFS)
-  yield Saga.actionToAction(FsGen.openAndUpload, openAndUpload)
-  yield Saga.actionToAction(FsGen.userFileEditsLoad, loadUserFileEdits)
-  yield Saga.actionToAction(FsGen.openFilesFromWidget, openFilesFromWidget)
+  yield* Saga.chainAction<FsGen.OpenLocalPathInSystemFileManagerPayload>(
+    FsGen.openLocalPathInSystemFileManager,
+    openLocalPathInSystemFileManager
+  )
+  yield* Saga.chainAction<FsGen.OpenPathInSystemFileManagerPayload>(
+    FsGen.openPathInSystemFileManager,
+    openPathInSystemFileManager
+  )
+  yield* Saga.chainGenerator<ConfigGen.SetupEngineListenersPayload | FsGen.FuseStatusPayload>(
+    [ConfigGen.setupEngineListeners, FsGen.fuseStatus],
+    fuseStatusSaga
+  )
+  yield* Saga.chainAction<FsGen.FuseStatusResultPayload>(FsGen.fuseStatusResult, fuseStatusResultSaga)
+  yield* Saga.chainAction<FsGen.InstallKBFSPayload>(FsGen.installKBFS, installKBFS)
+  yield* Saga.chainAction<FsGen.OpenAndUploadPayload>(FsGen.openAndUpload, openAndUpload)
+  yield* Saga.chainAction<FsGen.UserFileEditsLoadPayload>(FsGen.userFileEditsLoad, loadUserFileEdits)
+  yield* Saga.chainAction<FsGen.OpenFilesFromWidgetPayload>(FsGen.openFilesFromWidget, openFilesFromWidget)
   if (isWindows) {
-    yield Saga.safeTakeEveryPure(FsGen.installFuse, installDokanSaga)
-    yield Saga.actionToPromise(FsGen.uninstallKBFSConfirm, uninstallDokanPromise)
-  } else {
-    yield Saga.safeTakeEvery(FsGen.installFuse, installFuseSaga)
-    yield Saga.safeTakeEveryPure(
+    yield* Saga.chainAction<FsGen.InstallFusePayload>(FsGen.installFuse, installDokanSaga)
+    yield* Saga.chainAction<FsGen.UninstallKBFSConfirmPayload>(
       FsGen.uninstallKBFSConfirm,
-      uninstallKBFSConfirm,
-      uninstallKBFSConfirmSuccess
+      uninstallDokanPromise
+    )
+  } else {
+    yield* Saga.chainGenerator<FsGen.InstallFusePayload>(FsGen.installFuse, installFuseSaga)
+    yield* Saga.chainGenerator<FsGen.UninstallKBFSConfirmPayload>(
+      FsGen.uninstallKBFSConfirm,
+      uninstallKBFSConfirm
     )
   }
-  yield Saga.safeTakeEveryPure(FsGen.openSecurityPreferences, openSecurityPreferences)
+  yield* Saga.chainAction<FsGen.OpenSecurityPreferencesPayload>(
+    FsGen.openSecurityPreferences,
+    openSecurityPreferences
+  )
 }
 
 export default platformSpecificSaga

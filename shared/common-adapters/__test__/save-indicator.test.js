@@ -4,12 +4,12 @@ import {type _Props, type State, computeNextState} from '../save-indicator'
 
 describe('computeNextState', () => {
   it('steady to saving', () => {
-    const props: _Props = {saving: false, minSavingTimeMs: 2000, savedTimeoutMs: 3000}
+    const props: _Props = {minSavingTimeMs: 2000, savedTimeoutMs: 3000, saving: false}
     const state: State = {
-      saving: false,
+      lastJustSaved: new Date(0),
       lastSave: new Date(0),
       saveState: 'steady',
-      lastJustSaved: new Date(0),
+      saving: false,
     }
     const now = new Date(10000)
 
@@ -21,7 +21,7 @@ describe('computeNextState', () => {
     {
       const nextState = computeNextState(
         {...props, saving: true},
-        {...state, saving: true, lastSave: new Date(5000)},
+        {...state, lastSave: new Date(5000), saving: true},
         now
       )
       expect(nextState).toEqual('saving')
@@ -29,12 +29,12 @@ describe('computeNextState', () => {
   })
 
   it('saving to savingHysteresis', () => {
-    const props: _Props = {saving: true, minSavingTimeMs: 2000, savedTimeoutMs: 3000}
+    const props: _Props = {minSavingTimeMs: 2000, savedTimeoutMs: 3000, saving: true}
     const state: State = {
-      saving: true,
+      lastJustSaved: new Date(0),
       lastSave: new Date(5000),
       saveState: 'saving',
-      lastJustSaved: new Date(0),
+      saving: true,
     }
     const now = new Date(10000)
 
@@ -50,12 +50,12 @@ describe('computeNextState', () => {
   })
 
   it('savingHysteresis to saving or justSaved', () => {
-    const props: _Props = {saving: false, minSavingTimeMs: 2000, savedTimeoutMs: 3000}
+    const props: _Props = {minSavingTimeMs: 2000, savedTimeoutMs: 3000, saving: false}
     const state: State = {
-      saving: false,
+      lastJustSaved: new Date(0),
       lastSave: new Date(5000),
       saveState: 'savingHysteresis',
-      lastJustSaved: new Date(0),
+      saving: false,
     }
     const now = new Date(6999)
 
@@ -76,12 +76,12 @@ describe('computeNextState', () => {
   })
 
   it('justSaved to saving or steady', () => {
-    const props: _Props = {saving: false, minSavingTimeMs: 2000, savedTimeoutMs: 3000}
+    const props: _Props = {minSavingTimeMs: 2000, savedTimeoutMs: 3000, saving: false}
     const state: State = {
-      saving: false,
+      lastJustSaved: new Date(6000),
       lastSave: new Date(5000),
       saveState: 'justSaved',
-      lastJustSaved: new Date(6000),
+      saving: false,
     }
     const now = new Date(8999)
 

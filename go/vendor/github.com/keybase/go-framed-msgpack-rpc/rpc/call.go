@@ -15,6 +15,7 @@ type call struct {
 	seqid          SeqNumber
 	arg            interface{}
 	res            interface{}
+	ctype          CompressionType
 	errorUnwrapper ErrorUnwrapper
 }
 
@@ -32,7 +33,8 @@ func newCallContainer() *callContainer {
 	}
 }
 
-func (cc *callContainer) NewCall(ctx context.Context, m string, arg interface{}, res interface{}, u ErrorUnwrapper) *call {
+func (cc *callContainer) NewCall(ctx context.Context, m string, arg interface{}, res interface{},
+	ctype CompressionType, u ErrorUnwrapper) *call {
 	// Buffer one response to take into account that a call stops
 	// waiting for its result when its canceled. (See
 	// https://github.com/keybase/go-framed-msgpack-rpc/issues/62
@@ -43,6 +45,7 @@ func (cc *callContainer) NewCall(ctx context.Context, m string, arg interface{},
 		method:         m,
 		arg:            arg,
 		res:            res,
+		ctype:          ctype,
 		errorUnwrapper: u,
 		seqid:          cc.nextSeqid(),
 	}

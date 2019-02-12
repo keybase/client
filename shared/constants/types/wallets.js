@@ -4,7 +4,7 @@ import HiddenString from '../../util/hidden-string'
 import * as StellarRPCTypes from './rpc-stellar-gen'
 
 // When accepting the Stellar disclaimer, next path after acceptance
-export type NextScreenAfterAcceptance = 'linkExisting' | 'openWallet'
+export type NextScreenAfterAcceptance = '' | 'linkExisting' | 'openWallet'
 
 // Possible roles given an account and a
 // transaction. senderAndReceiver means a transaction sending money
@@ -46,13 +46,6 @@ export const paymentIDToRPCPaymentID = (id: PaymentID): StellarRPCTypes.PaymentI
 export const paymentIDToString = (id: PaymentID): string => id
 export const paymentIDIsEqual = (p1: PaymentID, p2: PaymentID) => p1 === p2
 
-export type _Account = {
-  accountID: AccountID,
-  balanceDescription: string,
-  isDefault: boolean,
-  name: string,
-}
-
 export type _Assets = {
   assetCode: string,
   balanceAvailableToSend: string,
@@ -78,6 +71,7 @@ export type _LocalCurrency = {
 
 export type _Building = {
   amount: string,
+  bid: string,
   currency: string,
   from: AccountID,
   isRequest: boolean,
@@ -89,11 +83,13 @@ export type _Building = {
 }
 
 export type _BuiltPayment = {
+  amountAvailable: string,
   amountErrMsg: string,
-  banners: ?Array<StellarRPCTypes.SendBannerLocal>,
+  builtBanners: ?Array<StellarRPCTypes.SendBannerLocal>,
   from: AccountID,
   publicMemoErrMsg: HiddenString,
-  readyToSend: boolean,
+  readyToReview: boolean,
+  readyToSend: string,
   secretNoteErrMsg: HiddenString,
   toErrMsg: string,
   worthAmount: string,
@@ -102,12 +98,13 @@ export type _BuiltPayment = {
   worthInfo: string,
   displayAmountXLM: string,
   displayAmountFiat: string,
+  reviewBanners: ?Array<StellarRPCTypes.SendBannerLocal>,
   sendingIntentionXLM: boolean,
 }
 
 export type _BuiltRequest = {
   amountErrMsg: string,
-  banners?: ?Array<StellarRPCTypes.SendBannerLocal>,
+  builtBanners?: ?Array<StellarRPCTypes.SendBannerLocal>,
   readyToRequest: boolean,
   secretNoteErrMsg: HiddenString,
   toErrMsg: string,
@@ -121,7 +118,7 @@ export type _BuiltRequest = {
 export type StatusSimplified =
   | 'none'
   | 'pending'
-  | 'cancelable'
+  | 'claimable'
   | 'canceled'
   | 'completed'
   | 'error'
@@ -147,12 +144,16 @@ export type _PaymentCommon = {|
   statusSimplified: StatusSimplified,
   statusDescription: string,
   statusDetail: string,
+  showCancel: boolean,
   target: string,
   targetAccountID: ?string,
   targetType: string,
   time: ?number,
   worth: string,
-  worthCurrency: string,
+  worthAtSendTime: string, // for "(APPROXIMATELY $X.XX)" strings
+  // issuer, for non-xlm assets
+  issuerDescription: string,
+  issuerAccountID: ?AccountID,
 |}
 
 export type _PaymentResult = {|
@@ -168,6 +169,7 @@ export type _PaymentResult = {|
 
 export type _PaymentDetail = {|
   ..._PaymentCommon,
+  externalTxURL: string,
   publicMemo: HiddenString,
   publicMemoType: string,
   txID: string,
@@ -186,29 +188,16 @@ export type AssetDescription = I.RecordOf<_AssetDescription>
 
 export type Asset = 'native' | 'currency' | AssetDescription
 
-export type _Request = {
-  amount: string, // The number alone
-  amountDescription: string, // The amount the request was made in (XLM, asset, or equivalent fiat) (i.e. '<number> <code>')
-  asset: Asset,
-  completed: boolean,
-  completedTransactionID: ?StellarRPCTypes.KeybaseTransactionID,
-  currencyCode: string, // set if asset === 'currency'
-  id: StellarRPCTypes.KeybaseRequestID,
-  requestee: string, // username or assertion
-  requesteeType: string,
-  sender: string,
-  status: 'ok' | 'canceled',
-}
-
-export type Account = I.RecordOf<_Account>
-
 export type Assets = I.RecordOf<_Assets>
 
 export type BannerBackground = 'Announcements' | 'HighRisk' | 'Information'
 
 export type Banner = {|
+  action?: () => void,
   bannerBackground: BannerBackground,
   bannerText: string,
+  reviewProofs?: boolean,
+  sendFailed?: boolean,
 |}
 
 export type Building = I.RecordOf<_Building>
@@ -222,25 +211,53 @@ export type PaymentDetail = I.RecordOf<_PaymentDetail>
 export type Payment = I.RecordOf<_Payment>
 
 export type Currency = I.RecordOf<_LocalCurrency>
-export type Request = I.RecordOf<_Request>
+
+export type _Account = {
+  accountID: AccountID,
+  balanceDescription: string,
+  displayCurrency: Currency,
+  isDefault: boolean,
+  name: string,
+  mobileOnlyEditable: boolean,
+  canSubmitTx: boolean,
+}
+export type Account = I.RecordOf<_Account>
+
+export type _InflationDestination = {
+  name: string,
+  recommended: boolean,
+  address: AccountID,
+  link: string,
+}
+export type InflationDestination = I.RecordOf<_InflationDestination>
+
+export type _AccountInflationDestination = {
+  accountID: AccountID,
+  name: string, // if known
+}
+export type AccountInflationDestination = I.RecordOf<_AccountInflationDestination>
 
 export type ValidationState = 'none' | 'waiting' | 'error' | 'valid'
 
 export type _State = {
   acceptedDisclaimer: boolean,
+  acceptingDisclaimerDelay: boolean,
   accountMap: I.OrderedMap<AccountID, Account>,
   accountName: string,
   accountNameError: string,
   accountNameValidationState: ValidationState,
   assetsMap: I.Map<AccountID, I.List<Assets>>,
+  buildCounter: number, // increments when we call buildPayment / buildRequest
   building: Building,
   builtPayment: BuiltPayment,
   builtRequest: BuiltRequest,
   createNewAccountError: string,
   currencies: I.List<Currency>,
-  currencyMap: I.Map<AccountID, Currency>,
   exportedSecretKey: HiddenString,
   exportedSecretKeyAccountID: AccountID,
+  inflationDestinations: I.List<InflationDestination>,
+  inflationDestinationMap: I.Map<AccountID, AccountInflationDestination>,
+  inflationDestinationError: string,
   lastSentXLM: boolean,
   linkExistingAccountError: string,
   newPayments: I.Map<AccountID, I.Set<PaymentID>>,
@@ -248,7 +265,8 @@ export type _State = {
   paymentCursorMap: I.Map<AccountID, ?StellarRPCTypes.PageCursor>,
   paymentLoadingMoreMap: I.Map<AccountID, boolean>,
   paymentOldestUnreadMap: I.Map<AccountID, PaymentID>,
-  requests: I.Map<StellarRPCTypes.KeybaseRequestID, Request>,
+  reviewCounter: number, // increments when we call reviewPayment
+  reviewLastSeqno: ?number, // last UIPaymentReviewed.seqno received from the active review
   secretKey: HiddenString,
   secretKeyError: string,
   secretKeyMap: I.Map<AccountID, HiddenString>,
@@ -256,6 +274,7 @@ export type _State = {
   selectedAccount: AccountID,
   sentPaymentError: string,
   unreadPaymentsMap: I.Map<string, number>,
+  mobileOnlyMap: I.Map<AccountID, boolean>,
 }
 
 export type State = I.RecordOf<_State>

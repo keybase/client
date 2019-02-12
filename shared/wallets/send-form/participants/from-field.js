@@ -52,14 +52,14 @@ class FromField extends React.Component<FromFieldProps, FromFieldState> {
 }
 
 const styles = Styles.styleSheetCreate({
-  dropdownSelectedBox: Styles.platformStyles({
-    isMobile: {minHeight: 32},
-  }),
   dropdown: Styles.platformStyles({
     isMobile: {height: 32},
   }),
   dropdownContainer: Styles.platformStyles({
     isMobile: {flexGrow: 1},
+  }),
+  dropdownSelectedBox: Styles.platformStyles({
+    isMobile: {minHeight: 32},
   }),
   row: Styles.platformStyles({
     isMobile: {

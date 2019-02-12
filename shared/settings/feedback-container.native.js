@@ -27,9 +27,11 @@ type State = {
 }
 
 type Props = PropsWithTimer<{
-  status: Object,
-  heading: ?string,
   chat: Object,
+  heading: ?string,
+  onBack: () => void,
+  status: Object,
+  title: string,
 }>
 
 class FeedbackContainer extends React.Component<Props, State> {
@@ -85,10 +87,10 @@ class FeedbackContainer extends React.Component<Props, State> {
           logger.info('logSendId is', logSendId)
           if (this.mounted) {
             this.setState({
-              sentFeedback: true,
               feedback: null,
-              sending: false,
               sendError: null,
+              sending: false,
+              sentFeedback: true,
             })
           }
         })
@@ -96,9 +98,9 @@ class FeedbackContainer extends React.Component<Props, State> {
           logger.warn('err in sending logs', err)
           if (this.mounted) {
             this.setState({
-              sentFeedback: false,
-              sending: false,
               sendError: err,
+              sending: false,
+              sentFeedback: false,
             })
           }
         })
@@ -202,9 +204,8 @@ export default compose(
   connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d})
+    (s, d, o) => ({...s, ...d})
   ),
   HeaderHoc,
-  // $FlowIssue
   HOCTimers
 )(FeedbackContainer)

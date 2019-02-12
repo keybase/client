@@ -88,6 +88,11 @@ func (idx *Indexer) Start(ctx context.Context, uid gregor1.UID) {
 	idx.Lock()
 	defer idx.Unlock()
 
+	if idx.G().GetEnv().GetDisableSearchIndexer() {
+		idx.Debug(ctx, "Search indexer disabled, aborting Start")
+		return
+	}
+
 	if idx.started {
 		return
 	}
@@ -156,26 +161,30 @@ func (idx *Indexer) consumeResultsForTest(convID chat1.ConversationID, err error
 
 func (idx *Indexer) Add(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 	msgs []chat1.MessageUnboxed) (err error) {
+	if idx.G().GetEnv().GetDisableSearchIndexer() {
+		return nil
+	}
 	if !idx.validBatch(msgs) {
 		return nil
 	}
 	defer idx.Trace(ctx, func() error { return err },
 		fmt.Sprintf("Indexer.Add convID: %v, msgs: %d", convID.String(), len(msgs)))()
 	defer idx.consumeResultsForTest(convID, err)
-	err = idx.store.add(ctx, convID, uid, msgs)
-	return err
+	return idx.store.add(ctx, convID, uid, msgs)
 }
 
 func (idx *Indexer) Remove(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 	msgs []chat1.MessageUnboxed) (err error) {
+	if idx.G().GetEnv().GetDisableSearchIndexer() {
+		return nil
+	}
 	if !idx.validBatch(msgs) {
 		return nil
 	}
 	defer idx.Trace(ctx, func() error { return err },
 		fmt.Sprintf("Indexer.Remove convID: %v, msgs: %d", convID.String(), len(msgs)))()
 	defer idx.consumeResultsForTest(convID, err)
-	err = idx.store.remove(ctx, convID, uid, msgs)
-	return err
+	return idx.store.remove(ctx, convID, uid, msgs)
 }
 
 // searchConv finds all messages that match the given set of tokens and opts,
@@ -248,9 +257,13 @@ func (idx *Indexer) getMsgsAndIDSet(ctx context.Context, uid gregor1.UID, convID
 	}
 	msgIDSlice := msgIDsFromSet(idSetWithContext)
 	reason := chat1.GetThreadReason_INDEXED_SEARCH
-	msgs, err := idx.G().ChatHelper.GetMessages(ctx, uid, convID, msgIDSlice, true /* resolveSupersedes*/, &reason)
+	msgs, err := idx.G().ChatHelper.GetMessages(ctx, uid, convID, msgIDSlice,
+		true /* resolveSupersedes*/, &reason)
 	if err != nil {
-		return nil, nil, err
+		if utils.IsPermanentErr(err) {
+			return nil, nil, err
+		}
+		return nil, nil, nil
 	}
 	res := []chat1.MessageUnboxed{}
 	for _, msg := range msgs {
@@ -363,7 +376,10 @@ func (idx *Indexer) reindexConv(ctx context.Context, conv chat1.Conversation, ui
 		postHook := func(ctx context.Context) error {
 			msgs, err := idx.G().ConvSource.GetMessages(ctx, conv, uid, missingIDs, &reason)
 			if err != nil {
-				return err
+				if utils.IsPermanentErr(err) {
+					return err
+				}
+				return nil
 			}
 			return idx.Add(ctx, convID, uid, msgs)
 		}
@@ -397,7 +413,10 @@ func (idx *Indexer) reindexConv(ctx context.Context, conv chat1.Conversation, ui
 			if opts.forceReindex { // block on gathering results
 				tv, err := idx.G().ConvSource.Pull(ctx, convID, uid, reason, query, pagination)
 				if err != nil {
-					return 0, nil, err
+					if utils.IsPermanentErr(err) {
+						return 0, nil, err
+					}
+					continue
 				}
 				if err := idx.Add(ctx, convID, uid, tv.Messages); err != nil {
 					return 0, nil, err
@@ -444,12 +463,18 @@ func (idx *Indexer) allConvs(ctx context.Context, uid gregor1.UID) (map[string]t
 			chat1.ConversationStatus_FAVORITE,
 			chat1.ConversationStatus_MUTED,
 		},
+		MemberStatus: []chat1.ConversationMemberStatus{
+			chat1.ConversationMemberStatus_ACTIVE,
+			chat1.ConversationMemberStatus_PREVIEW,
+		},
+		SkipBgLoads: true,
 	}
 	username := idx.G().Env.GetUsername().String()
 	// convID -> remoteConv
 	convMap := map[string]types.RemoteConversation{}
 	for !pagination.Last {
-		inbox, err := idx.G().InboxSource.ReadUnverified(ctx, uid, true /* useLocalData*/, inboxQuery, pagination)
+		inbox, err := idx.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll,
+			inboxQuery, pagination)
 		if err != nil {
 			return nil, err
 		}
@@ -479,6 +504,9 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, o
 			close(indexUICh)
 		}
 	}()
+	if idx.G().GetEnv().GetDisableSearchIndexer() {
+		idx.Debug(ctx, "Search indexer is disabled, results will be inaccurate.")
+	}
 
 	// NOTE opts.MaxMessages is only used by the regexp searcher for search
 	// boosting
@@ -571,7 +599,9 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, o
 			numBoostConvs++
 			hits, err := idx.G().RegexpSearcher.Search(ctx, uid, convID, queryRe, nil /* uiCh */, opts)
 			if err != nil {
-				return nil, err
+				if utils.IsPermanentErr(err) {
+					return nil, err
+				}
 			} else if len(hits) > 0 {
 				convHits = &chat1.ChatSearchInboxHit{
 					ConvID:   convID,
@@ -649,7 +679,7 @@ func (idx *Indexer) SelectiveSync(ctx context.Context, uid gregor1.UID, forceRei
 	})
 
 	maxJobs := idx.maxSyncConvs
-	var totalCompletedJobs int
+	var totalCompletedJobs, fullyIndexedConvs int
 	for _, idxInfo := range convIdxs {
 		conv := convMap[idxInfo.convID.String()].Conv
 		completedJobs, _, err := idx.reindexConv(ctx, conv, uid, idxInfo.idx, reindexOpts{
@@ -660,6 +690,9 @@ func (idx *Indexer) SelectiveSync(ctx context.Context, uid gregor1.UID, forceRei
 		if err != nil {
 			idx.Debug(ctx, "Unable to reindex conv: %v, %v", idxInfo.convID, err)
 			continue
+		} else if completedJobs == 0 {
+			fullyIndexedConvs++
+			continue
 		}
 		totalCompletedJobs += completedJobs
 		idx.Debug(ctx, "SelectiveSync: Indexed %d/%d jobs", totalCompletedJobs, maxJobs)
@@ -667,6 +700,8 @@ func (idx *Indexer) SelectiveSync(ctx context.Context, uid gregor1.UID, forceRei
 			break
 		}
 	}
+	idx.Debug(ctx, "SelectiveSync: Complete, %d/%d convs fully indexed",
+		fullyIndexedConvs, len(convIdxs))
 }
 
 // IndexInbox is only exposed in devel for debugging/profiling the indexing

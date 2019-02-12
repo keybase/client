@@ -6,6 +6,7 @@ import {globalColors} from '../../../../styles'
 import Payment from '.'
 
 const common = {
+  approxWorth: '',
   cancelButtonInfo: '',
   cancelButtonLabel: '',
   canceled: false,
@@ -14,6 +15,7 @@ const common = {
   onClaim: action('onClaim'),
   onSend: action('onSend'),
   sendButtonLabel: '',
+  showCoinsIcon: false,
 }
 
 const sentProps = {
@@ -21,11 +23,26 @@ const sentProps = {
   action: 'sent Lumens worth',
   amount: '$35',
   balanceChange: '-90.5700999 XLM',
-  balanceChangeColor: globalColors.red,
-  icon: 'iconfont-stellar-send',
+  balanceChangeColor: globalColors.black_75,
+  icon: null,
   loading: false,
   memo: ':beer:',
   pending: false,
+  showCoinsIcon: true,
+}
+
+const sentXLMProps = {
+  ...common,
+  action: 'sent',
+  amount: '1 XLM',
+  approxWorth: '$901.23 USD',
+  balanceChange: '+1 XLM',
+  balanceChangeColor: globalColors.green,
+  icon: null,
+  loading: false,
+  memo: 'here you go',
+  pending: false,
+  showCoinsIcon: true,
 }
 
 const sentNoMemoProps = {
@@ -47,7 +64,7 @@ const sendingProps = {
 
 const claimableProps = {
   ...sendingProps,
-  claimButtonLabel: 'Claim lumens worth $35',
+  claimButtonLabel: 'Claim lumens worth',
 }
 
 const cancelableProps = {
@@ -78,7 +95,7 @@ const theyRequestProps = {
   amount: '$107',
   memo: 'things',
   onSend: action('onSend'),
-  sendButtonLabel: 'Send Lumens worth $107',
+  sendButtonLabel: 'Send Lumens worth',
 }
 
 const sentAssetProps = {
@@ -86,11 +103,12 @@ const sentAssetProps = {
   action: 'sent',
   amount: '1 BTC/Abc.def',
   balanceChange: '-1 BTC',
-  balanceChangeColor: globalColors.red,
-  icon: 'iconfont-stellar-send',
+  balanceChangeColor: globalColors.black_75,
+  icon: null,
   loading: false,
   memo: '₿',
   pending: false,
+  showCoinsIcon: true,
 }
 
 const loadingProps = {
@@ -99,7 +117,7 @@ const loadingProps = {
   amount: '',
   balanceChange: '',
   balanceChangeColor: '',
-  icon: 'iconfont-stellar-send',
+  icon: null,
   loading: true,
   memo: '',
   pending: false,
@@ -109,6 +127,7 @@ const load = () => {
   storiesOf('Chat/Conversation/Account payments', module)
     .addDecorator(story => <Box style={{maxWidth: 420}}>{story()}</Box>)
     .add('Sent', () => <Payment {...sentProps} />)
+    .add('Sent XLM', () => <Payment {...sentXLMProps} />)
     .add('Sent (no memo)', () => <Payment {...sentNoMemoProps} />)
     .add('Sending', () => <Payment {...sendingProps} />)
     .add(`Relay from sender's perspective`, () => <Payment {...cancelableProps} />)

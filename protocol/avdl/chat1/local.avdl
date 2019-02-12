@@ -7,11 +7,29 @@ protocol local {
   import idl "common.avdl";
   import idl "chat_ui.avdl";
   import idl "unfurl.avdl";
+  import idl "commands.avdl";
 
   @typedef("string") record VersionKind {}
 
+  enum TextPaymentResultTyp {
+    SENT_0,
+    ERROR_1
+  }
+
+  variant TextPaymentResult switch (TextPaymentResultTyp resultTyp) {
+  case ERROR: string;
+  case SENT: stellar1.PaymentID;
+  }
+
+  record TextPayment {
+    string username;
+    string paymentText;
+    TextPaymentResult result;
+  }
+
   record MessageText {
     string body;
+    array<TextPayment> payments;
   }
 
   record MessageConversationMetadata {
@@ -37,7 +55,8 @@ protocol local {
     COMPLEXTEAM_2,
     CREATETEAM_3,
     GITPUSH_4,
-    CHANGEAVATAR_5
+    CHANGEAVATAR_5,
+    CHANGERETENTION_6
   }
 
   record MessageSystemAddedToTeam {
@@ -82,6 +101,14 @@ protocol local {
     string user;
   }
 
+  record MessageSystemChangeRetention {
+    boolean isTeam;
+    boolean isInherit;
+    ConversationMembersType membersType;
+    RetentionPolicy policy;
+    string user;
+  }
+
   variant MessageSystem switch (MessageSystemType systemType) {
     case ADDEDTOTEAM: MessageSystemAddedToTeam;
     case INVITEADDEDTOTEAM: MessageSystemInviteAddedToTeam;
@@ -89,6 +116,7 @@ protocol local {
     case CREATETEAM: MessageSystemCreateTeam;
     case GITPUSH: MessageSystemGitPush;
     case CHANGEAVATAR: MessageSystemChangeAvatar;
+    case CHANGERETENTION: MessageSystemChangeRetention;
   }
 
   record MessageDeleteHistory {
@@ -428,6 +456,8 @@ protocol local {
 
     string tlfName;
     string topicName;
+    string headline;
+    union { null, MessageUnboxed } snippetMsg;
     keybase1.TLFVisibility visibility;
     ConversationStatus status;
     ConversationMembersType membersType;
@@ -496,7 +526,7 @@ protocol local {
     array<ConversationMetadata> supersedes;
     array<ConversationMetadata> supersededBy;
 
-    array<MessageUnboxed> maxMessages; // the latest message for each message type
+    array<MessageSummary> maxMessages; // the latest message for each message type
 
     // Whether this conversation has no content-ful messages.
     boolean isEmpty;
@@ -509,6 +539,8 @@ protocol local {
     union { null, RetentionPolicy } convRetention;
     union { null, RetentionPolicy } teamRetention;
     union { null, ConversationSettingsLocal } convSettings;
+
+    ConversationCommandGroups commands;
   }
 
   record NonblockFetchRes {
@@ -561,8 +593,19 @@ protocol local {
   }
   NonblockFetchRes getThreadNonblock(int sessionID, ConversationID conversationID, GetThreadNonblockCbMode cbMode, GetThreadReason reason, GetThreadNonblockPgMode pgmode, union { null, GetThreadQuery} query, union { null, UIPagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
 
-  record GetInboxLocalRes {
-    array<Conversation> conversationsUnverified;
+
+  record UnreadlineRes {
+    boolean offline;
+    array<RateLimit> rateLimits;
+    array<keybase1.TLFIdentifyFailure> identifyFailures;
+    union { null, MessageID } unreadlineID;
+  }
+  UnreadlineRes getUnreadline(int sessionID, ConversationID convID,
+    MessageID readMsgID, keybase1.TLFIdentifyBehavior identifyBehavior);
+
+
+  record GetInboxUILocalRes {
+    array<UnverifiedInboxUIItem> conversationsRemote;
     union { null, Pagination } pagination;
 
     boolean offline;
@@ -573,9 +616,11 @@ protocol local {
     // GetInboxAndUnboxLocal should be used if identify failures are needed.
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
+  GetInboxUILocalRes getInboxUILocal(union { null, GetInboxLocalQuery} query, union { null, Pagination } pagination, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   record NameQuery {
     string name;
+    union { null, TLFID } tlfID; // pass this if we already know the TLFID
     ConversationMembersType membersType;
   }
 
@@ -596,6 +641,8 @@ protocol local {
 
     // If left empty, default is to show all.
     array<ConversationStatus> status;
+    // If left empty, default is to return active, preview, and reset status
+    array<ConversationMemberStatus> memberStatus;
 
     boolean unreadOnly;
     boolean readOnly;
@@ -628,14 +675,14 @@ protocol local {
   }
 
   OutboxID generateOutboxID();
-  PostLocalNonblockRes postLocalNonblock(ConversationID conversationID, MessagePlaintext msg, MessageID clientPrev, union { null, OutboxID } outboxID, keybase1.TLFIdentifyBehavior identifyBehavior);
+  PostLocalNonblockRes postLocalNonblock(int sessionID, ConversationID conversationID, MessagePlaintext msg, MessageID clientPrev, union { null, OutboxID } outboxID, keybase1.TLFIdentifyBehavior identifyBehavior);
   record PostLocalNonblockRes {
     array<RateLimit> rateLimits;
     OutboxID outboxID;
     array<keybase1.TLFIdentifyFailure> identifyFailures;
   }
 
-  PostLocalNonblockRes postTextNonblock(ConversationID conversationID, string tlfName, boolean tlfPublic, string body, MessageID clientPrev, union { null, OutboxID } outboxID, keybase1.TLFIdentifyBehavior identifyBehavior, union {null, gregor1.DurationSec} ephemeralLifetime);
+  PostLocalNonblockRes postTextNonblock(int sessionID, ConversationID conversationID, string tlfName, boolean tlfPublic, string body, MessageID clientPrev, union { null, OutboxID } outboxID, keybase1.TLFIdentifyBehavior identifyBehavior, union {null, gregor1.DurationSec} ephemeralLifetime);
   PostLocalNonblockRes postDeleteNonblock(ConversationID conversationID, string tlfName, boolean tlfPublic, MessageID supersedes,MessageID clientPrev, union { null, OutboxID } outboxID,  keybase1.TLFIdentifyBehavior identifyBehavior);
 
   record EditTarget {
@@ -744,8 +791,7 @@ protocol local {
 
   // Post an attachment from file source to conversationID.
   PostLocalRes postFileAttachmentLocal(int sessionID, PostFileAttachmentArg arg);
-  PostLocalNonblockRes postFileAttachmentMessageLocalNonblock(int sessionID, ConversationID convID, string tlfName, keybase1.TLFVisibility visibility, union { null, OutboxID } outboxID, MessageID clientPrev, string filename, string title, bytes metadata, union {null, gregor1.DurationSec} ephemeralLifetime, keybase1.TLFIdentifyBehavior identifyBehavior);
-  void postFileAttachmentUploadLocalNonblock(int sessionID, ConversationID convID, OutboxID outboxID, string filename, string title, bytes metadata, union {null, MakePreviewRes } callerPreview, keybase1.TLFIdentifyBehavior identifyBehavior);
+  PostLocalNonblockRes postFileAttachmentLocalNonblock(int sessionID, PostFileAttachmentArg arg, MessageID clientPrev);
 
   record GetNextAttachmentMessageLocalRes  {
     union { null, UIMessage } message;
@@ -821,7 +867,7 @@ protocol local {
   FindConversationsLocalRes findConversationsLocal(string tlfName, ConversationMembersType membersType, keybase1.TLFVisibility visibility, TopicType topicType, string topicName, union { null, boolean } oneChatPerTLF, keybase1.TLFIdentifyBehavior identifyBehavior);
 
   // Typing API
-  void updateTyping(ConversationID conversationID, boolean typing);
+  void updateTyping(ConversationID conversationID, string text);
 
   // Channel management
   record JoinLeaveConversationLocalRes {
@@ -906,8 +952,13 @@ protocol local {
 
   // Static data that changes only as often as the code.
   StaticConfig getStaticConfig();
+  record BuiltinCommandGroup {
+    ConversationBuiltinCommandTyp typ;
+    array<ConversationCommand> commands;
+  }
   record StaticConfig {
     array<MessageType> deletableByDeleteHistory;
+    array<BuiltinCommandGroup> builtinCommands;
   }
 
   // Respond to an unfurl prompt
@@ -915,13 +966,19 @@ protocol local {
     ALWAYS_0,
     NEVER_1,
     ACCEPT_2,
-    NOTNOW_3
+    NOTNOW_3,
+    ONETIME_4
   }
   variant UnfurlPromptResult switch (UnfurlPromptAction actionType) {
     case ALWAYS: void;
     case NEVER: void;
     case NOTNOW: void;
     case ACCEPT: string;
+    case ONETIME: string;
   }
   void resolveUnfurlPrompt(ConversationID convID, MessageID msgID, UnfurlPromptResult result, keybase1.TLFIdentifyBehavior identifyBehavior);
+  UnfurlSettingsDisplay getUnfurlSettings();
+  void saveUnfurlSettings(UnfurlMode mode, array<string> whitelist);
+
+  void toggleMessageCollapse(ConversationID convID, MessageID msgID, boolean collapse);
 }

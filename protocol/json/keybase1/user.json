@@ -131,15 +131,29 @@
     },
     {
       "type": "record",
+      "name": "EmailAddress",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
       "name": "Email",
       "fields": [
         {
-          "type": "string",
+          "type": "EmailAddress",
           "name": "email"
         },
         {
           "type": "boolean",
           "name": "isVerified"
+        },
+        {
+          "type": "boolean",
+          "name": "isPrimary"
+        },
+        {
+          "type": "IdentityVisibility",
+          "name": "visibility"
         }
       ]
     },
@@ -223,6 +237,70 @@
     },
     {
       "type": "record",
+      "name": "ProofSuggestionsRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "ProofSuggestion"
+          },
+          "name": "suggestions"
+        },
+        {
+          "type": "boolean",
+          "name": "showMore"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ProofSuggestion",
+      "fields": [
+        {
+          "type": "string",
+          "name": "key"
+        },
+        {
+          "type": "boolean",
+          "name": "belowFold"
+        },
+        {
+          "type": "string",
+          "name": "profileText"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SizedImage"
+          },
+          "name": "profileIcon"
+        },
+        {
+          "type": "string",
+          "name": "pickerText"
+        },
+        {
+          "type": "string",
+          "name": "pickerSubtext"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SizedImage"
+          },
+          "name": "pickerIcon"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Identify3RowMeta"
+          },
+          "name": "metas"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "NextMerkleRootRes",
       "fields": [
         {
@@ -231,6 +309,20 @@
             "MerkleRootV2"
           ],
           "name": "res"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "CanLogoutRes",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "canLogout"
+        },
+        {
+          "type": "string",
+          "name": "reason"
         }
       ]
     }
@@ -562,6 +654,15 @@
       ],
       "response": null
     },
+    "proofSuggestions": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "ProofSuggestionsRes"
+    },
     "findNextMerkleRootAfterRevoke": {
       "request": [
         {
@@ -601,6 +702,28 @@
       ],
       "response": "NextMerkleRootRes",
       "doc": "FindNextMerkleRootAfterReset finds the first Merkle root that contains the UID reset\n   at resetSeqno. You should pass it prev, which was the last known Merkle root at the time of\n   the reset. Usually, we'll just turn up the next Merkle root, but not always."
+    },
+    "loadHasRandomPw": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "forceRepoll",
+          "type": "boolean"
+        }
+      ],
+      "response": "boolean"
+    },
+    "canLogout": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "CanLogoutRes"
     }
   },
   "namespace": "keybase.1"

@@ -2,6 +2,7 @@
 // @flow strict
 import * as I from 'immutable'
 import * as Common from './common'
+import * as RPCChatTypes from '../rpc-chat-gen'
 import type {RetentionPolicy} from '../retention-policy'
 
 type TeamRoleType = 'reader' | 'writer' | 'admin' | 'owner'
@@ -14,6 +15,7 @@ export type NotificationsType = 'onAnyActivity' | 'onWhenAtMentioned' | 'never'
 export type _ConversationMeta = {
   channelname: string,
   conversationIDKey: Common.ConversationIDKey, // should be the key for this meta EXCEPT for pendingConversationIDKey, in that case its the resolved conversation we're previewing
+  commands: RPCChatTypes.ConversationCommandGroups,
   description: string,
   inboxVersion: number,
   isMuted: boolean,
@@ -26,6 +28,7 @@ export type _ConversationMeta = {
   offline: boolean,
   participants: I.List<string>, // was OrderedSet but is quite slow
   maxMsgID: number,
+  maxVisibleMsgID: number,
   readMsgID: number,
   rekeyers: I.Set<string>,
   resetParticipants: I.Set<string>,

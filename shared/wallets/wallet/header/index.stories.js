@@ -8,12 +8,14 @@ import Header from '.'
 const defaultWalletMock = {
   isDefaultWallet: true,
   keybaseUser: 'cecileb',
+  sendDisabled: false,
   walletName: "cecileb's account",
 }
 
 const secondWalletMock = {
   isDefaultWallet: false,
   keybaseUser: 'cecileb',
+  sendDisabled: false,
   walletName: 'Second account',
 }
 
@@ -29,6 +31,7 @@ const common = {
   onSendToStellarAddress: Sb.action('onSendToStellarAddress'),
   onSettings: Sb.action('onSettings'),
   onShowSecretKey: Sb.action('onShowSecretKey'),
+  unreadPayments: false,
 }
 
 export const Container = (storyFn: any) => (

@@ -3,7 +3,17 @@ import logger from '../logger'
 import * as I from 'immutable'
 import * as Types from './types/team-building'
 
-const allServices: Array<Types.ServiceIdWithContact> = Object.keys(Types._services)
+const allServices: Array<Types.ServiceIdWithContact> = [
+  'keybase',
+  'contact',
+  'twitter',
+  'facebook',
+  'github',
+  'reddit',
+  'hackernews',
+  'pgp',
+]
+
 // We don't search pgp explicitly, and contact isn't implemented yet
 const services: Array<Types.ServiceIdWithContact> = allServices.filter(s => s !== 'contact' && s !== 'pgp')
 
@@ -28,13 +38,14 @@ function followStateHelperWithId(
 }
 
 const makeSubState = (): $Exact<Types.TeamBuildingSubState> => ({
-  teamBuildingTeamSoFar: I.Set(),
-  teamBuildingSearchResults: I.Map(),
-  teamBuildingServiceResultCount: I.Map(),
   teamBuildingFinishedTeam: I.Set(),
-  teamBuildingSearchQuery: '',
-  teamBuildingSelectedService: 'keybase',
   teamBuildingSearchLimit: 11,
+  teamBuildingSearchQuery: '',
+  teamBuildingSearchResults: I.Map(),
+  teamBuildingSelectedService: 'keybase',
+  teamBuildingServiceResultCount: I.Map(),
+  teamBuildingTeamSoFar: I.Set(),
+  teamBuildingUserRecs: [],
 })
 
 const parseRawResultToUser = (
@@ -53,9 +64,9 @@ const parseRawResultToUser = (
 
   if (service === 'keybase' && result.keybase) {
     return {
-      serviceMap,
       id: result.keybase.username,
       prettyName: result.keybase.full_name || result.keybase.username,
+      serviceMap,
     }
   } else if (result.service) {
     if (result.service.service_name !== service) {
@@ -70,19 +81,16 @@ const parseRawResultToUser = (
 
     const kbPrettyName = result.keybase && (result.keybase.full_name || result.keybase.username)
 
-    const prettyName =
-      result.service.full_name ||
-      kbPrettyName ||
-      `${result.service.username} on ${result.service.service_name}`
+    const prettyName = result.service.full_name || kbPrettyName || ``
 
     const id = result.keybase
       ? result.keybase.username
       : `${result.service.username}@${result.service.service_name}`
 
     return {
-      serviceMap,
       id,
       prettyName,
+      serviceMap,
     }
   } else {
     return null

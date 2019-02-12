@@ -5,12 +5,6 @@ protocol bundle {
 
   @typedef("uint64") @lint("ignore") record BundleRevision {}
 
-  enum AccountMode {
-    NONE_0,
-    USER_1,  // Each of the user's devices has access to the keys
-    MOBILE_2 // Only the user's mobile devices have access to the keys
-  }
-
   // The same format as in chat1.EncryptedData (and KBFS, Git)
   record EncryptedBundle {
     // v=1 Used an incorrect context string. No longer supported. (CORE-8135)
@@ -40,7 +34,7 @@ protocol bundle {
   }
 
   variant BundleSecretVersioned switch (BundleVersion version) {
-    case V1 : BundleSecretV1;
+    case V1 : BundleSecretUnsupported;
     case V2 : BundleSecretV2;
     case V3 : BundleSecretUnsupported;
     case V4 : BundleSecretUnsupported;
@@ -56,35 +50,6 @@ protocol bundle {
   // by BundleSecret's version field.
 
   // --------------------------------------------------------------------------
-  // V1 
-  // --------------------------------------------------------------------------
-
-  record BundleVisibleV1 {
-    BundleRevision revision;
-    Hash prev; // SHA256 of previous msgpack(EncryptedBundle)
-    array<BundleVisibleEntryV1> accounts;
-  }
-
-  record BundleSecretV1 {
-    Hash visibleHash; // SHA256 of msgpack(BundleVisibleV1)
-    array<BundleSecretEntryV1> accounts;
-  }
-
-  // V1 Server-visible attributes of an account.
-  record BundleVisibleEntryV1 {
-    AccountID accountID;
-    AccountMode mode;
-    boolean isPrimary;        // whether this is the primary account (public)
-  }
-
-  // V1 Secret attributes of an account.
-  record BundleSecretEntryV1 {
-    AccountID accountID;
-    array<SecretKey> signers;
-    string name;
-  }
-
-  // --------------------------------------------------------------------------
   // V2
   // --------------------------------------------------------------------------
 
@@ -93,7 +58,7 @@ protocol bundle {
     Hash prev; // SHA256 of previous msgpack(EncryptedBundle)
     array<BundleVisibleEntryV2> accounts;
   }
-  
+
   record BundleSecretV2 {
     Hash visibleHash; // SHA256 of msgpack(BundleVisibleV2)
     array<BundleSecretEntryV2> accounts;
@@ -107,7 +72,7 @@ protocol bundle {
     BundleRevision acctBundleRevision; // revision of AccountBundleSecret
     Hash encAcctBundleHash;   // SHA256 of msgpack(EncryptedAccountBundle) for this account
   }
-  
+
   // V2 Secret attributes of an account.
   record BundleSecretEntryV2 {
     AccountID accountID; // this is here to check that the bundle isn't corrupt
@@ -115,7 +80,7 @@ protocol bundle {
   }
 
   // --------------------------------------------------------------------------
-  // Unsupported 
+  // Unsupported
   // --------------------------------------------------------------------------
 
   record BundleSecretUnsupported {}
@@ -165,11 +130,13 @@ protocol bundle {
   }
 
   record AccountBundleSecretUnsupported {}
- 
+
   // ==========================================================================
   // Unversioned structs for local use only.
   // ==========================================================================
 
+  // Bundle does not necessarily contain account secrets
+  // for all accounts.
   record Bundle {
     BundleRevision revision;
     Hash prev;
@@ -179,35 +146,13 @@ protocol bundle {
     // AccountID and name should be unique.
     // At most one account should be primary.
     array<BundleEntry> accounts;
-  }
-
-  // Combined account entry for local use only.
-  record BundleEntry {
-    AccountID accountID;
-    AccountMode mode;
-    boolean isPrimary; // whether this is the primary account
-    array<SecretKey> signers;
-    string name;
-  }
-
-  // BundleRestricted does not necessarily contain account secrets
-  // for all accounts.
-  record BundleRestricted {
-    BundleRevision revision;
-    Hash prev;
-    // SHA256 of this msgpack(EncryptedBundle)
-    // Not serialized. Only set if this bundle was decrypted.
-    Hash ownHash;
-    // AccountID and name should be unique.
-    // At most one account should be primary.
-    array<BundleEntryRestricted> accounts;
 
     // bundles containing secret keys
     map<AccountID, AccountBundle> accountBundles;
   }
-  
+
   // Combined account entry for local use only.
-  record BundleEntryRestricted {
+  record BundleEntry {
     AccountID accountID;
     AccountMode mode;
     boolean isPrimary; // whether this is the primary account
@@ -218,7 +163,6 @@ protocol bundle {
 
   // Unversioned struct for local use only.
   record AccountBundle {
-    BundleRevision revision;
     Hash prev;
     // SHA256 of this msgpack(EncryptedAccountBundle)
     // Not serialized. Only set if this bundle was decrypted.

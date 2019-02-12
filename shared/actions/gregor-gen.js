@@ -1,6 +1,6 @@
 // @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define */
+/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
 
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -20,16 +20,9 @@ export const updateReachable = 'gregor:updateReachable'
 // Payload Types
 type _CheckReachabilityPayload = void
 type _PushOOBMPayload = $ReadOnly<{|messages: Array<RPCTypesGregor.OutOfBandMessage>|}>
-type _PushStatePayload = $ReadOnly<{|
-  state: Array<{md: RPCTypesGregor.Metadata, item: RPCTypesGregor.Item}>,
-  reason: RPCTypes.PushReason,
-|}>
+type _PushStatePayload = $ReadOnly<{|state: Array<{md: RPCTypesGregor.Metadata, item: RPCTypesGregor.Item}>, reason: RPCTypes.PushReason|}>
 type _StartReachabilityPayload = void
-type _UpdateCategoryPayload = $ReadOnly<{|
-  category: string,
-  body: string,
-  dtime?: {offset: number, time: number},
-|}>
+type _UpdateCategoryPayload = $ReadOnly<{|category: string, body: string, dtime?: {offset: number, time: number}|}>
 type _UpdateReachablePayload = $ReadOnly<{|reachable: RPCTypes.Reachable|}>
 
 // Action Creators
@@ -41,12 +34,12 @@ export const createUpdateCategory = (payload: _UpdateCategoryPayload) => ({paylo
 export const createUpdateReachable = (payload: _UpdateReachablePayload) => ({payload, type: updateReachable})
 
 // Action Payloads
-export type CheckReachabilityPayload = $Call<typeof createCheckReachability, _CheckReachabilityPayload>
-export type PushOOBMPayload = $Call<typeof createPushOOBM, _PushOOBMPayload>
-export type PushStatePayload = $Call<typeof createPushState, _PushStatePayload>
-export type StartReachabilityPayload = $Call<typeof createStartReachability, _StartReachabilityPayload>
-export type UpdateCategoryPayload = $Call<typeof createUpdateCategory, _UpdateCategoryPayload>
-export type UpdateReachablePayload = $Call<typeof createUpdateReachable, _UpdateReachablePayload>
+export type CheckReachabilityPayload = {|+payload: _CheckReachabilityPayload, +type: 'gregor:checkReachability'|}
+export type PushOOBMPayload = {|+payload: _PushOOBMPayload, +type: 'gregor:pushOOBM'|}
+export type PushStatePayload = {|+payload: _PushStatePayload, +type: 'gregor:pushState'|}
+export type StartReachabilityPayload = {|+payload: _StartReachabilityPayload, +type: 'gregor:startReachability'|}
+export type UpdateCategoryPayload = {|+payload: _UpdateCategoryPayload, +type: 'gregor:updateCategory'|}
+export type UpdateReachablePayload = {|+payload: _UpdateReachablePayload, +type: 'gregor:updateReachable'|}
 
 // All Actions
 // prettier-ignore
@@ -57,4 +50,4 @@ export type Actions =
   | StartReachabilityPayload
   | UpdateCategoryPayload
   | UpdateReachablePayload
-  | {type: 'common:resetStore', payload: void}
+  | {type: 'common:resetStore', payload: null}

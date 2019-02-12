@@ -1,6 +1,6 @@
 // @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define */
+/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
 
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -14,18 +14,22 @@ export const resetStore = 'common:resetStore' // not a part of wallets but is ha
 export const typePrefix = 'wallets:'
 export const abandonPayment = 'wallets:abandonPayment'
 export const acceptDisclaimer = 'wallets:acceptDisclaimer'
+export const accountUpdateReceived = 'wallets:accountUpdateReceived'
 export const accountsReceived = 'wallets:accountsReceived'
 export const addNewPayment = 'wallets:addNewPayment'
 export const assetsReceived = 'wallets:assetsReceived'
 export const badgesUpdated = 'wallets:badgesUpdated'
 export const buildPayment = 'wallets:buildPayment'
+export const buildingPaymentIDReceived = 'wallets:buildingPaymentIDReceived'
 export const builtPaymentReceived = 'wallets:builtPaymentReceived'
 export const builtRequestReceived = 'wallets:builtRequestReceived'
 export const cancelPayment = 'wallets:cancelPayment'
 export const cancelRequest = 'wallets:cancelRequest'
 export const changeAccountName = 'wallets:changeAccountName'
 export const changeDisplayCurrency = 'wallets:changeDisplayCurrency'
+export const changeMobileOnlyMode = 'wallets:changeMobileOnlyMode'
 export const changedAccountName = 'wallets:changedAccountName'
+export const checkDisclaimer = 'wallets:checkDisclaimer'
 export const clearBuilding = 'wallets:clearBuilding'
 export const clearBuiltPayment = 'wallets:clearBuiltPayment'
 export const clearBuiltRequest = 'wallets:clearBuiltRequest'
@@ -38,28 +42,35 @@ export const deletedAccount = 'wallets:deletedAccount'
 export const didSetAccountAsDefault = 'wallets:didSetAccountAsDefault'
 export const displayCurrenciesReceived = 'wallets:displayCurrenciesReceived'
 export const displayCurrencyReceived = 'wallets:displayCurrencyReceived'
+export const exitFailedPayment = 'wallets:exitFailedPayment'
 export const exportSecretKey = 'wallets:exportSecretKey'
+export const inflationDestinationReceived = 'wallets:inflationDestinationReceived'
 export const linkExistingAccount = 'wallets:linkExistingAccount'
 export const linkedExistingAccount = 'wallets:linkedExistingAccount'
 export const loadAccounts = 'wallets:loadAccounts'
 export const loadAssets = 'wallets:loadAssets'
 export const loadDisplayCurrencies = 'wallets:loadDisplayCurrencies'
 export const loadDisplayCurrency = 'wallets:loadDisplayCurrency'
+export const loadInflationDestination = 'wallets:loadInflationDestination'
+export const loadMobileOnlyMode = 'wallets:loadMobileOnlyMode'
 export const loadMorePayments = 'wallets:loadMorePayments'
 export const loadPaymentDetail = 'wallets:loadPaymentDetail'
 export const loadPayments = 'wallets:loadPayments'
-export const loadRequestDetail = 'wallets:loadRequestDetail'
 export const loadSendAssetChoices = 'wallets:loadSendAssetChoices'
 export const loadWalletDisclaimer = 'wallets:loadWalletDisclaimer'
+export const loadedMobileOnlyMode = 'wallets:loadedMobileOnlyMode'
 export const markAsRead = 'wallets:markAsRead'
 export const openSendRequestForm = 'wallets:openSendRequestForm'
 export const paymentDetailReceived = 'wallets:paymentDetailReceived'
 export const paymentsReceived = 'wallets:paymentsReceived'
-export const refreshPayments = 'wallets:refreshPayments'
+export const pendingPaymentsReceived = 'wallets:pendingPaymentsReceived'
+export const recentPaymentsReceived = 'wallets:recentPaymentsReceived'
 export const rejectDisclaimer = 'wallets:rejectDisclaimer'
-export const requestDetailReceived = 'wallets:requestDetailReceived'
 export const requestPayment = 'wallets:requestPayment'
 export const requestedPayment = 'wallets:requestedPayment'
+export const resetAcceptingDisclaimer = 'wallets:resetAcceptingDisclaimer'
+export const reviewPayment = 'wallets:reviewPayment'
+export const reviewedPaymentReceived = 'wallets:reviewedPaymentReceived'
 export const secretKeyReceived = 'wallets:secretKeyReceived'
 export const secretKeySeen = 'wallets:secretKeySeen'
 export const selectAccount = 'wallets:selectAccount'
@@ -76,8 +87,9 @@ export const setBuildingPublicMemo = 'wallets:setBuildingPublicMemo'
 export const setBuildingRecipientType = 'wallets:setBuildingRecipientType'
 export const setBuildingSecretNote = 'wallets:setBuildingSecretNote'
 export const setBuildingTo = 'wallets:setBuildingTo'
+export const setInflationDestination = 'wallets:setInflationDestination'
 export const setLastSentXLM = 'wallets:setLastSentXLM'
-export const setReadyToSend = 'wallets:setReadyToSend'
+export const setReadyToReview = 'wallets:setReadyToReview'
 export const validateAccountName = 'wallets:validateAccountName'
 export const validateSecretKey = 'wallets:validateSecretKey'
 export const validatedAccountName = 'wallets:validatedAccountName'
@@ -86,165 +98,75 @@ export const walletDisclaimerReceived = 'wallets:walletDisclaimerReceived'
 
 // Payload Types
 type _AbandonPaymentPayload = void
-type _AcceptDisclaimerPayload = $ReadOnly<{|nextScreen: Types.NextScreenAfterAcceptance|}>
+type _AcceptDisclaimerPayload = void
+type _AccountUpdateReceivedPayload = $ReadOnly<{|account: Types.Account|}>
 type _AccountsReceivedPayload = $ReadOnly<{|accounts: Array<Types.Account>|}>
-type _AddNewPaymentPayload = $ReadOnly<{|
-  accountID: Types.AccountID,
-  paymentID: Types.PaymentID,
-|}>
-type _AssetsReceivedPayload = $ReadOnly<{|
-  accountID: Types.AccountID,
-  assets: Array<Types.Assets>,
-|}>
+type _AddNewPaymentPayload = $ReadOnly<{|accountID: Types.AccountID, paymentID: Types.PaymentID|}>
+type _AssetsReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, assets: Array<Types.Assets>|}>
 type _BadgesUpdatedPayload = $ReadOnly<{|accounts: Array<RPCTypes.WalletAccountInfo>|}>
 type _BuildPaymentPayload = void
-type _BuiltPaymentReceivedPayload = $ReadOnly<{|
-  build: Types.BuiltPayment,
-  forBuilding: Types.Building,
-|}>
-type _BuiltRequestReceivedPayload = $ReadOnly<{|
-  build: Types.BuiltRequest,
-  forBuilding: Types.Building,
-|}>
-type _CancelPaymentPayload = $ReadOnly<{|
-  showAccount?: boolean,
-  paymentID: Types.PaymentID,
-|}>
-type _CancelRequestPayload = $ReadOnly<{|
-  conversationIDKey?: ChatTypes.ConversationIDKey,
-  ordinal?: ChatTypes.Ordinal,
-  requestID: StellarRPCTypes.KeybaseRequestID,
-|}>
-type _ChangeAccountNamePayload = $ReadOnly<{|
-  accountID: Types.AccountID,
-  name: string,
-|}>
-type _ChangeDisplayCurrencyPayload = $ReadOnly<{|
-  accountID: Types.AccountID,
-  code: Types.CurrencyCode,
-|}>
+type _BuildingPaymentIDReceivedPayload = $ReadOnly<{|bid: string|}>
+type _BuiltPaymentReceivedPayload = $ReadOnly<{|build: Types.BuiltPayment, forBuildCounter: number|}>
+type _BuiltRequestReceivedPayload = $ReadOnly<{|build: Types.BuiltRequest, forBuildCounter: number|}>
+type _CancelPaymentPayload = $ReadOnly<{|showAccount?: boolean, paymentID: Types.PaymentID|}>
+type _CancelRequestPayload = $ReadOnly<{|conversationIDKey?: ChatTypes.ConversationIDKey, ordinal?: ChatTypes.Ordinal, requestID: StellarRPCTypes.KeybaseRequestID|}>
+type _ChangeAccountNamePayload = $ReadOnly<{|accountID: Types.AccountID, name: string|}>
+type _ChangeDisplayCurrencyPayload = $ReadOnly<{|accountID: Types.AccountID, code: Types.CurrencyCode|}>
+type _ChangeMobileOnlyModePayload = $ReadOnly<{|accountID: Types.AccountID, enabled: boolean|}>
 type _ChangedAccountNamePayload = $ReadOnly<{|accountID: Types.AccountID|}>
-type _ChangedAccountNamePayloadError = $ReadOnly<{|
-  name: string,
-  error: string,
-|}>
+type _ChangedAccountNamePayloadError = $ReadOnly<{|name: string, error: string|}>
+type _CheckDisclaimerPayload = $ReadOnly<{|nextScreen: Types.NextScreenAfterAcceptance|}>
 type _ClearBuildingPayload = void
 type _ClearBuiltPaymentPayload = void
 type _ClearBuiltRequestPayload = void
 type _ClearErrorsPayload = void
 type _ClearNewPaymentsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
-type _CreateNewAccountPayload = $ReadOnly<{|
-  name: string,
-  showOnCreation?: boolean,
-  setBuildingTo?: boolean,
-|}>
-type _CreatedNewAccountPayload = $ReadOnly<{|
-  accountID: Types.AccountID,
-  showOnCreation?: boolean,
-  setBuildingTo?: boolean,
-|}>
-type _CreatedNewAccountPayloadError = $ReadOnly<{|
-  name: string,
-  error: string,
-|}>
+type _CreateNewAccountPayload = $ReadOnly<{|name: string, showOnCreation?: boolean, setBuildingTo?: boolean|}>
+type _CreatedNewAccountPayload = $ReadOnly<{|accountID: Types.AccountID, showOnCreation?: boolean, setBuildingTo?: boolean|}>
+type _CreatedNewAccountPayloadError = $ReadOnly<{|name: string, error: string|}>
 type _DeleteAccountPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _DeletedAccountPayload = void
 type _DidSetAccountAsDefaultPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _DisplayCurrenciesReceivedPayload = $ReadOnly<{|currencies: Array<Types.Currency>|}>
-type _DisplayCurrencyReceivedPayload = $ReadOnly<{|
-  accountID: ?Types.AccountID,
-  currency: Types.Currency,
-  setBuildingCurrency?: boolean,
-|}>
+type _DisplayCurrencyReceivedPayload = $ReadOnly<{|accountID: ?Types.AccountID, currency: Types.Currency, setBuildingCurrency?: boolean|}>
+type _ExitFailedPaymentPayload = void
 type _ExportSecretKeyPayload = $ReadOnly<{|accountID: Types.AccountID|}>
-type _LinkExistingAccountPayload = $ReadOnly<{|
-  name: string,
-  secretKey: HiddenString,
-  showOnCreation?: boolean,
-  setBuildingTo?: boolean,
-|}>
-type _LinkedExistingAccountPayload = $ReadOnly<{|
-  accountID: Types.AccountID,
-  showOnCreation?: boolean,
-  setBuildingTo?: boolean,
-|}>
-type _LinkedExistingAccountPayloadError = $ReadOnly<{|
-  name: string,
-  secretKey: HiddenString,
-  error: string,
-|}>
-type _LoadAccountsPayload = void
+type _InflationDestinationReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, selected: Types.AccountInflationDestination, options?: Array<Types.InflationDestination>|}>
+type _InflationDestinationReceivedPayloadError = $ReadOnly<{|error: string|}>
+type _LinkExistingAccountPayload = $ReadOnly<{|name: string, secretKey: HiddenString, showOnCreation?: boolean, setBuildingTo?: boolean|}>
+type _LinkedExistingAccountPayload = $ReadOnly<{|accountID: Types.AccountID, showOnCreation?: boolean, setBuildingTo?: boolean|}>
+type _LinkedExistingAccountPayloadError = $ReadOnly<{|name: string, secretKey: HiddenString, error: string|}>
+type _LoadAccountsPayload = $ReadOnly<{|reason: 'initial-load' | 'open-send-req-form'|}>
 type _LoadAssetsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LoadDisplayCurrenciesPayload = void
-type _LoadDisplayCurrencyPayload = $ReadOnly<{|
-  accountID: ?Types.AccountID,
-  setBuildingCurrency?: boolean,
-|}>
+type _LoadDisplayCurrencyPayload = $ReadOnly<{|accountID: ?Types.AccountID, setBuildingCurrency?: boolean|}>
+type _LoadInflationDestinationPayload = $ReadOnly<{|accountID: Types.AccountID|}>
+type _LoadMobileOnlyModePayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _LoadMorePaymentsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
-type _LoadPaymentDetailPayload = $ReadOnly<{|
-  accountID: Types.AccountID,
-  paymentID: Types.PaymentID,
-|}>
+type _LoadPaymentDetailPayload = $ReadOnly<{|accountID: Types.AccountID, paymentID: Types.PaymentID|}>
 type _LoadPaymentsPayload = $ReadOnly<{|accountID: Types.AccountID|}>
-type _LoadRequestDetailPayload = $ReadOnly<{|requestID: StellarRPCTypes.KeybaseRequestID|}>
-type _LoadSendAssetChoicesPayload = $ReadOnly<{|
-  from: Types.AccountID,
-  to: string,
-|}>
+type _LoadSendAssetChoicesPayload = $ReadOnly<{|from: Types.AccountID, to: string|}>
 type _LoadWalletDisclaimerPayload = void
-type _MarkAsReadPayload = $ReadOnly<{|
-  accountID: Types.AccountID,
-  mostRecentID: Types.PaymentID,
-|}>
-type _OpenSendRequestFormPayload = $ReadOnly<{|
-  amount?: string,
-  currency?: string,
-  from?: Types.AccountID,
-  isRequest?: boolean,
-  publicMemo?: HiddenString,
-  recipientType?: Types.CounterpartyType,
-  secretNote?: HiddenString,
-  to?: string,
-|}>
-type _PaymentDetailReceivedPayload = $ReadOnly<{|
-  accountID: Types.AccountID,
-  payment: Types.PaymentDetail,
-|}>
-type _PaymentsReceivedPayload = $ReadOnly<{|
-  accountID: Types.AccountID,
-  paymentCursor: ?StellarRPCTypes.PageCursor,
-  oldestUnread: Types.PaymentID,
-  payments: Array<Types.PaymentResult>,
-  pending: Array<Types.PaymentResult>,
-|}>
-type _RefreshPaymentsPayload = $ReadOnly<{|
-  accountID: Types.AccountID,
-  paymentID: Types.PaymentID,
-|}>
+type _LoadedMobileOnlyModePayload = $ReadOnly<{|accountID: Types.AccountID, enabled: boolean|}>
+type _MarkAsReadPayload = $ReadOnly<{|accountID: Types.AccountID, mostRecentID: Types.PaymentID|}>
+type _OpenSendRequestFormPayload = $ReadOnly<{|amount?: string, currency?: string, from?: Types.AccountID, isRequest?: boolean, publicMemo?: HiddenString, recipientType?: Types.CounterpartyType, secretNote?: HiddenString, to?: string|}>
+type _PaymentDetailReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, payment: Types.PaymentDetail|}>
+type _PaymentsReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, paymentCursor: ?StellarRPCTypes.PageCursor, oldestUnread: Types.PaymentID, payments: Array<Types.PaymentResult>, pending: Array<Types.PaymentResult>|}>
+type _PendingPaymentsReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, pending: Array<Types.PaymentResult>|}>
+type _RecentPaymentsReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, paymentCursor: ?StellarRPCTypes.PageCursor, oldestUnread: Types.PaymentID, payments: Array<Types.PaymentResult>|}>
 type _RejectDisclaimerPayload = void
-type _RequestDetailReceivedPayload = $ReadOnly<{|request: StellarRPCTypes.RequestDetailsLocal|}>
 type _RequestPaymentPayload = void
-type _RequestedPaymentPayload = $ReadOnly<{|
-  kbRqID: HiddenString,
-  lastSentXLM: boolean,
-  requestee: string,
-|}>
-type _SecretKeyReceivedPayload = $ReadOnly<{|
-  accountID: Types.AccountID,
-  secretKey: HiddenString,
-|}>
+type _RequestedPaymentPayload = $ReadOnly<{|kbRqID: HiddenString, lastSentXLM: boolean, requestee: string|}>
+type _ResetAcceptingDisclaimerPayload = void
+type _ReviewPaymentPayload = void
+type _ReviewedPaymentReceivedPayload = $ReadOnly<{|bid: string, reviewID: number, seqno: number, nextButton: string, banners?: ?Array<StellarRPCTypes.SendBannerLocal>|}>
+type _SecretKeyReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, secretKey: HiddenString|}>
 type _SecretKeySeenPayload = $ReadOnly<{|accountID: Types.AccountID|}>
-type _SelectAccountPayload = $ReadOnly<{|
-  accountID: Types.AccountID,
-  show?: boolean,
-|}>
+type _SelectAccountPayload = $ReadOnly<{|accountID: Types.AccountID, reason: 'user-selected' | 'auto-selected' | 'from-chat', show?: boolean|}>
 type _SendAssetChoicesReceivedPayload = $ReadOnly<{|sendAssetChoices: Array<StellarRPCTypes.SendAssetChoiceLocal>|}>
 type _SendPaymentPayload = void
 type _SentPaymentErrorPayload = $ReadOnly<{|error: string|}>
-type _SentPaymentPayload = $ReadOnly<{|
-  kbTxID: HiddenString,
-  lastSentXLM: boolean,
-|}>
+type _SentPaymentPayload = $ReadOnly<{|kbTxID: HiddenString, lastSentXLM: boolean|}>
 type _SetAccountAsDefaultPayload = $ReadOnly<{|accountID: Types.AccountID|}>
 type _SetBuildingAmountPayload = $ReadOnly<{|amount: string|}>
 type _SetBuildingCurrencyPayload = $ReadOnly<{|currency: string|}>
@@ -254,23 +176,15 @@ type _SetBuildingPublicMemoPayload = $ReadOnly<{|publicMemo: HiddenString|}>
 type _SetBuildingRecipientTypePayload = $ReadOnly<{|recipientType: Types.CounterpartyType|}>
 type _SetBuildingSecretNotePayload = $ReadOnly<{|secretNote: HiddenString|}>
 type _SetBuildingToPayload = $ReadOnly<{|to: string|}>
-type _SetLastSentXLMPayload = $ReadOnly<{|
-  lastSentXLM: boolean,
-  writeFile: boolean,
-|}>
-type _SetReadyToSendPayload = $ReadOnly<{|readyToSend: boolean|}>
+type _SetInflationDestinationPayload = $ReadOnly<{|accountID: Types.AccountID, destination: Types.AccountID, name: string|}>
+type _SetLastSentXLMPayload = $ReadOnly<{|lastSentXLM: boolean, writeFile: boolean|}>
+type _SetReadyToReviewPayload = $ReadOnly<{|readyToReview: boolean|}>
 type _ValidateAccountNamePayload = $ReadOnly<{|name: string|}>
 type _ValidateSecretKeyPayload = $ReadOnly<{|secretKey: HiddenString|}>
 type _ValidatedAccountNamePayload = $ReadOnly<{|name: string|}>
-type _ValidatedAccountNamePayloadError = $ReadOnly<{|
-  name: string,
-  error: string,
-|}>
+type _ValidatedAccountNamePayloadError = $ReadOnly<{|name: string, error: string|}>
 type _ValidatedSecretKeyPayload = $ReadOnly<{|secretKey: HiddenString|}>
-type _ValidatedSecretKeyPayloadError = $ReadOnly<{|
-  secretKey: HiddenString,
-  error: string,
-|}>
+type _ValidatedSecretKeyPayloadError = $ReadOnly<{|secretKey: HiddenString, error: string|}>
 type _WalletDisclaimerReceivedPayload = $ReadOnly<{|accepted: boolean|}>
 
 // Action Creators
@@ -296,6 +210,10 @@ export const createAcceptDisclaimer = (payload: _AcceptDisclaimerPayload) => ({p
  */
 export const createCreateNewAccount = (payload: _CreateNewAccountPayload) => ({payload, type: createNewAccount})
 /**
+ * Ask the service for current mobile only mode for Stellar account.
+ */
+export const createLoadMobileOnlyMode = (payload: _LoadMobileOnlyModePayload) => ({payload, type: loadMobileOnlyMode})
+/**
  * Ask the service to validate an account name.
  */
 export const createValidateAccountName = (payload: _ValidateAccountNamePayload) => ({payload, type: validateAccountName})
@@ -304,7 +222,7 @@ export const createValidateAccountName = (payload: _ValidateAccountNamePayload) 
  */
 export const createValidateSecretKey = (payload: _ValidateSecretKeyPayload) => ({payload, type: validateSecretKey})
 /**
- * Cancel a payment. Valid for payments of status 'cancelable'. If showAccount is true, nav to the currently selected account when done.
+ * Cancel a payment. Valid for payments of status 'claimable'. If showAccount is true, nav to the currently selected account when done.
  */
 export const createCancelPayment = (payload: _CancelPaymentPayload) => ({payload, type: cancelPayment})
 /**
@@ -315,6 +233,10 @@ export const createCancelRequest = (payload: _CancelRequestPayload) => ({payload
  * Change display currency for an account
  */
 export const createChangeDisplayCurrency = (payload: _ChangeDisplayCurrencyPayload) => ({payload, type: changeDisplayCurrency})
+/**
+ * Change mobile only mode for Stellar account.
+ */
+export const createChangeMobileOnlyMode = (payload: _ChangeMobileOnlyModePayload) => ({payload, type: changeMobileOnlyMode})
 /**
  * Change the default account
  */
@@ -348,9 +270,17 @@ export const createSecretKeySeen = (payload: _SecretKeySeenPayload) => ({payload
  */
 export const createClearNewPayments = (payload: _ClearNewPaymentsPayload) => ({payload, type: clearNewPayments})
 /**
+ * Close the send form and show the user their transactions so they can review.
+ */
+export const createExitFailedPayment = (payload: _ExitFailedPaymentPayload) => ({payload, type: exitFailedPayment})
+/**
  * Delete an account
  */
 export const createDeleteAccount = (payload: _DeleteAccountPayload) => ({payload, type: deleteAccount})
+/**
+ * Discover whether the user has accepted the Stellar disclaimer
+ */
+export const createCheckDisclaimer = (payload: _CheckDisclaimerPayload) => ({payload, type: checkDisclaimer})
 /**
  * Export a Stellar account's secret key
  */
@@ -360,9 +290,10 @@ export const createExportSecretKey = (payload: _ExportSecretKeyPayload) => ({pay
  */
 export const createSentPaymentError = (payload: _SentPaymentErrorPayload) => ({payload, type: sentPaymentError})
 /**
- * In response to a notification, resync payment info
+ * Got inflation destination
  */
-export const createRefreshPayments = (payload: _RefreshPaymentsPayload) => ({payload, type: refreshPayments})
+export const createInflationDestinationReceived = (payload: _InflationDestinationReceivedPayload) => ({payload, type: inflationDestinationReceived})
+export const createInflationDestinationReceivedError = (payload: _InflationDestinationReceivedPayloadError) => ({error: true, payload, type: inflationDestinationReceived})
 /**
  * Initialize and navigate to the send or request form. See docs for `setBuilding*` for param semantics.
  */
@@ -371,10 +302,6 @@ export const createOpenSendRequestForm = (payload: _OpenSendRequestFormPayload) 
  * Link an existing Stellar account with this Keybase user.
  */
 export const createLinkExistingAccount = (payload: _LinkExistingAccountPayload) => ({payload, type: linkExistingAccount})
-/**
- * Load a request's details
- */
-export const createLoadRequestDetail = (payload: _LoadRequestDetailPayload) => ({payload, type: loadRequestDetail})
 /**
  * Load display currency for an account
  */
@@ -404,13 +331,29 @@ export const createAddNewPayment = (payload: _AddNewPaymentPayload) => ({payload
  */
 export const createMarkAsRead = (payload: _MarkAsReadPayload) => ({payload, type: markAsRead})
 /**
+ * Move to the confirm screen on a built payment.
+ */
+export const createReviewPayment = (payload: _ReviewPaymentPayload) => ({payload, type: reviewPayment})
+/**
  * Perform sending a payment
  */
 export const createSendPayment = (payload: _SendPaymentPayload) => ({payload, type: sendPayment})
 /**
+ * Received a fresh first page of recent payments
+ */
+export const createRecentPaymentsReceived = (payload: _RecentPaymentsReceivedPayload) => ({payload, type: recentPaymentsReceived})
+/**
+ * Received a new set of pending payments; replace existing ones with these
+ */
+export const createPendingPaymentsReceived = (payload: _PendingPaymentsReceivedPayload) => ({payload, type: pendingPaymentsReceived})
+/**
  * Received wallet disclaimer
  */
 export const createWalletDisclaimerReceived = (payload: _WalletDisclaimerReceivedPayload) => ({payload, type: walletDisclaimerReceived})
+/**
+ * Refresh inflation destination and options
+ */
+export const createLoadInflationDestination = (payload: _LoadInflationDestinationPayload) => ({payload, type: loadInflationDestination})
 /**
  * Refresh our list of accounts
  */
@@ -431,6 +374,10 @@ export const createRejectDisclaimer = (payload: _RejectDisclaimerPayload) => ({p
  * Request payment
  */
 export const createRequestPayment = (payload: _RequestPaymentPayload) => ({payload, type: requestPayment})
+/**
+ * Reset to the pre-accepting-disclaimer state.
+ */
+export const createResetAcceptingDisclaimer = (payload: _ResetAcceptingDisclaimerPayload) => ({payload, type: resetAcceptingDisclaimer})
 /**
  * Scrolled down the list of payments for a given account
  */
@@ -476,21 +423,21 @@ export const createSetBuildingSecretNote = (payload: _SetBuildingSecretNotePaylo
  */
 export const createSetBuildingTo = (payload: _SetBuildingToPayload) => ({payload, type: setBuildingTo})
 /**
+ * Set our inflation destination
+ */
+export const createSetInflationDestination = (payload: _SetInflationDestinationPayload) => ({payload, type: setInflationDestination})
+/**
  * Set whether last currency used to send was XLM
  */
 export const createSetLastSentXLM = (payload: _SetLastSentXLMPayload) => ({payload, type: setLastSentXLM})
 /**
- * Set whether the payment is ready to send
+ * Set whether the payment is ready to review
  */
-export const createSetReadyToSend = (payload: _SetReadyToSendPayload) => ({payload, type: setReadyToSend})
+export const createSetReadyToReview = (payload: _SetReadyToReviewPayload) => ({payload, type: setReadyToReview})
 /**
  * Signal that a payment being built is abandoned and reset the form fields to their initial states.
  */
 export const createAbandonPayment = (payload: _AbandonPaymentPayload) => ({payload, type: abandonPayment})
-/**
- * Store a request's details
- */
-export const createRequestDetailReceived = (payload: _RequestDetailReceivedPayload) => ({payload, type: requestDetailReceived})
 /**
  * Successfully request payment
  */
@@ -499,6 +446,10 @@ export const createRequestedPayment = (payload: _RequestedPaymentPayload) => ({p
  * Successfully sent a payment
  */
 export const createSentPayment = (payload: _SentPaymentPayload) => ({payload, type: sentPayment})
+/**
+ * The service has responded with mobile only mode for Stellar account.
+ */
+export const createLoadedMobileOnlyMode = (payload: _LoadedMobileOnlyModePayload) => ({payload, type: loadedMobileOnlyMode})
 /**
  * The service responded with an error or that the account name is valid.
  */
@@ -552,9 +503,17 @@ export const createBuiltPaymentReceived = (payload: _BuiltPaymentReceivedPayload
  */
 export const createBuiltRequestReceived = (payload: _BuiltRequestReceivedPayload) => ({payload, type: builtRequestReceived})
 /**
+ * Update our store with an ID for a new building payment
+ */
+export const createBuildingPaymentIDReceived = (payload: _BuildingPaymentIDReceivedPayload) => ({payload, type: buildingPaymentIDReceived})
+/**
  * Update our store with an exported secret key
  */
 export const createSecretKeyReceived = (payload: _SecretKeyReceivedPayload) => ({payload, type: secretKeyReceived})
+/**
+ * Update our store with the results of reviewing a built payment
+ */
+export const createReviewedPaymentReceived = (payload: _ReviewedPaymentReceivedPayload) => ({payload, type: reviewedPaymentReceived})
 /**
  * Update valid display currencies to choose from
  */
@@ -563,103 +522,124 @@ export const createDisplayCurrenciesReceived = (payload: _DisplayCurrenciesRecei
  * Update valid send assets to choose from
  */
 export const createSendAssetChoicesReceived = (payload: _SendAssetChoicesReceivedPayload) => ({payload, type: sendAssetChoicesReceived})
+/**
+ * We received an updated account record
+ */
+export const createAccountUpdateReceived = (payload: _AccountUpdateReceivedPayload) => ({payload, type: accountUpdateReceived})
 
 // Action Payloads
-export type AbandonPaymentPayload = $Call<typeof createAbandonPayment, _AbandonPaymentPayload>
-export type AcceptDisclaimerPayload = $Call<typeof createAcceptDisclaimer, _AcceptDisclaimerPayload>
-export type AccountsReceivedPayload = $Call<typeof createAccountsReceived, _AccountsReceivedPayload>
-export type AddNewPaymentPayload = $Call<typeof createAddNewPayment, _AddNewPaymentPayload>
-export type AssetsReceivedPayload = $Call<typeof createAssetsReceived, _AssetsReceivedPayload>
-export type BadgesUpdatedPayload = $Call<typeof createBadgesUpdated, _BadgesUpdatedPayload>
-export type BuildPaymentPayload = $Call<typeof createBuildPayment, _BuildPaymentPayload>
-export type BuiltPaymentReceivedPayload = $Call<typeof createBuiltPaymentReceived, _BuiltPaymentReceivedPayload>
-export type BuiltRequestReceivedPayload = $Call<typeof createBuiltRequestReceived, _BuiltRequestReceivedPayload>
-export type CancelPaymentPayload = $Call<typeof createCancelPayment, _CancelPaymentPayload>
-export type CancelRequestPayload = $Call<typeof createCancelRequest, _CancelRequestPayload>
-export type ChangeAccountNamePayload = $Call<typeof createChangeAccountName, _ChangeAccountNamePayload>
-export type ChangeDisplayCurrencyPayload = $Call<typeof createChangeDisplayCurrency, _ChangeDisplayCurrencyPayload>
-export type ChangedAccountNamePayload = $Call<typeof createChangedAccountName, _ChangedAccountNamePayload>
-export type ChangedAccountNamePayloadError = $Call<typeof createChangedAccountNameError, _ChangedAccountNamePayloadError>
-export type ClearBuildingPayload = $Call<typeof createClearBuilding, _ClearBuildingPayload>
-export type ClearBuiltPaymentPayload = $Call<typeof createClearBuiltPayment, _ClearBuiltPaymentPayload>
-export type ClearBuiltRequestPayload = $Call<typeof createClearBuiltRequest, _ClearBuiltRequestPayload>
-export type ClearErrorsPayload = $Call<typeof createClearErrors, _ClearErrorsPayload>
-export type ClearNewPaymentsPayload = $Call<typeof createClearNewPayments, _ClearNewPaymentsPayload>
-export type CreateNewAccountPayload = $Call<typeof createCreateNewAccount, _CreateNewAccountPayload>
-export type CreatedNewAccountPayload = $Call<typeof createCreatedNewAccount, _CreatedNewAccountPayload>
-export type CreatedNewAccountPayloadError = $Call<typeof createCreatedNewAccountError, _CreatedNewAccountPayloadError>
-export type DeleteAccountPayload = $Call<typeof createDeleteAccount, _DeleteAccountPayload>
-export type DeletedAccountPayload = $Call<typeof createDeletedAccount, _DeletedAccountPayload>
-export type DidSetAccountAsDefaultPayload = $Call<typeof createDidSetAccountAsDefault, _DidSetAccountAsDefaultPayload>
-export type DisplayCurrenciesReceivedPayload = $Call<typeof createDisplayCurrenciesReceived, _DisplayCurrenciesReceivedPayload>
-export type DisplayCurrencyReceivedPayload = $Call<typeof createDisplayCurrencyReceived, _DisplayCurrencyReceivedPayload>
-export type ExportSecretKeyPayload = $Call<typeof createExportSecretKey, _ExportSecretKeyPayload>
-export type LinkExistingAccountPayload = $Call<typeof createLinkExistingAccount, _LinkExistingAccountPayload>
-export type LinkedExistingAccountPayload = $Call<typeof createLinkedExistingAccount, _LinkedExistingAccountPayload>
-export type LinkedExistingAccountPayloadError = $Call<typeof createLinkedExistingAccountError, _LinkedExistingAccountPayloadError>
-export type LoadAccountsPayload = $Call<typeof createLoadAccounts, _LoadAccountsPayload>
-export type LoadAssetsPayload = $Call<typeof createLoadAssets, _LoadAssetsPayload>
-export type LoadDisplayCurrenciesPayload = $Call<typeof createLoadDisplayCurrencies, _LoadDisplayCurrenciesPayload>
-export type LoadDisplayCurrencyPayload = $Call<typeof createLoadDisplayCurrency, _LoadDisplayCurrencyPayload>
-export type LoadMorePaymentsPayload = $Call<typeof createLoadMorePayments, _LoadMorePaymentsPayload>
-export type LoadPaymentDetailPayload = $Call<typeof createLoadPaymentDetail, _LoadPaymentDetailPayload>
-export type LoadPaymentsPayload = $Call<typeof createLoadPayments, _LoadPaymentsPayload>
-export type LoadRequestDetailPayload = $Call<typeof createLoadRequestDetail, _LoadRequestDetailPayload>
-export type LoadSendAssetChoicesPayload = $Call<typeof createLoadSendAssetChoices, _LoadSendAssetChoicesPayload>
-export type LoadWalletDisclaimerPayload = $Call<typeof createLoadWalletDisclaimer, _LoadWalletDisclaimerPayload>
-export type MarkAsReadPayload = $Call<typeof createMarkAsRead, _MarkAsReadPayload>
-export type OpenSendRequestFormPayload = $Call<typeof createOpenSendRequestForm, _OpenSendRequestFormPayload>
-export type PaymentDetailReceivedPayload = $Call<typeof createPaymentDetailReceived, _PaymentDetailReceivedPayload>
-export type PaymentsReceivedPayload = $Call<typeof createPaymentsReceived, _PaymentsReceivedPayload>
-export type RefreshPaymentsPayload = $Call<typeof createRefreshPayments, _RefreshPaymentsPayload>
-export type RejectDisclaimerPayload = $Call<typeof createRejectDisclaimer, _RejectDisclaimerPayload>
-export type RequestDetailReceivedPayload = $Call<typeof createRequestDetailReceived, _RequestDetailReceivedPayload>
-export type RequestPaymentPayload = $Call<typeof createRequestPayment, _RequestPaymentPayload>
-export type RequestedPaymentPayload = $Call<typeof createRequestedPayment, _RequestedPaymentPayload>
-export type SecretKeyReceivedPayload = $Call<typeof createSecretKeyReceived, _SecretKeyReceivedPayload>
-export type SecretKeySeenPayload = $Call<typeof createSecretKeySeen, _SecretKeySeenPayload>
-export type SelectAccountPayload = $Call<typeof createSelectAccount, _SelectAccountPayload>
-export type SendAssetChoicesReceivedPayload = $Call<typeof createSendAssetChoicesReceived, _SendAssetChoicesReceivedPayload>
-export type SendPaymentPayload = $Call<typeof createSendPayment, _SendPaymentPayload>
-export type SentPaymentErrorPayload = $Call<typeof createSentPaymentError, _SentPaymentErrorPayload>
-export type SentPaymentPayload = $Call<typeof createSentPayment, _SentPaymentPayload>
-export type SetAccountAsDefaultPayload = $Call<typeof createSetAccountAsDefault, _SetAccountAsDefaultPayload>
-export type SetBuildingAmountPayload = $Call<typeof createSetBuildingAmount, _SetBuildingAmountPayload>
-export type SetBuildingCurrencyPayload = $Call<typeof createSetBuildingCurrency, _SetBuildingCurrencyPayload>
-export type SetBuildingFromPayload = $Call<typeof createSetBuildingFrom, _SetBuildingFromPayload>
-export type SetBuildingIsRequestPayload = $Call<typeof createSetBuildingIsRequest, _SetBuildingIsRequestPayload>
-export type SetBuildingPublicMemoPayload = $Call<typeof createSetBuildingPublicMemo, _SetBuildingPublicMemoPayload>
-export type SetBuildingRecipientTypePayload = $Call<typeof createSetBuildingRecipientType, _SetBuildingRecipientTypePayload>
-export type SetBuildingSecretNotePayload = $Call<typeof createSetBuildingSecretNote, _SetBuildingSecretNotePayload>
-export type SetBuildingToPayload = $Call<typeof createSetBuildingTo, _SetBuildingToPayload>
-export type SetLastSentXLMPayload = $Call<typeof createSetLastSentXLM, _SetLastSentXLMPayload>
-export type SetReadyToSendPayload = $Call<typeof createSetReadyToSend, _SetReadyToSendPayload>
-export type ValidateAccountNamePayload = $Call<typeof createValidateAccountName, _ValidateAccountNamePayload>
-export type ValidateSecretKeyPayload = $Call<typeof createValidateSecretKey, _ValidateSecretKeyPayload>
-export type ValidatedAccountNamePayload = $Call<typeof createValidatedAccountName, _ValidatedAccountNamePayload>
-export type ValidatedAccountNamePayloadError = $Call<typeof createValidatedAccountNameError, _ValidatedAccountNamePayloadError>
-export type ValidatedSecretKeyPayload = $Call<typeof createValidatedSecretKey, _ValidatedSecretKeyPayload>
-export type ValidatedSecretKeyPayloadError = $Call<typeof createValidatedSecretKeyError, _ValidatedSecretKeyPayloadError>
-export type WalletDisclaimerReceivedPayload = $Call<typeof createWalletDisclaimerReceived, _WalletDisclaimerReceivedPayload>
+export type AbandonPaymentPayload = {|+payload: _AbandonPaymentPayload, +type: 'wallets:abandonPayment'|}
+export type AcceptDisclaimerPayload = {|+payload: _AcceptDisclaimerPayload, +type: 'wallets:acceptDisclaimer'|}
+export type AccountUpdateReceivedPayload = {|+payload: _AccountUpdateReceivedPayload, +type: 'wallets:accountUpdateReceived'|}
+export type AccountsReceivedPayload = {|+payload: _AccountsReceivedPayload, +type: 'wallets:accountsReceived'|}
+export type AddNewPaymentPayload = {|+payload: _AddNewPaymentPayload, +type: 'wallets:addNewPayment'|}
+export type AssetsReceivedPayload = {|+payload: _AssetsReceivedPayload, +type: 'wallets:assetsReceived'|}
+export type BadgesUpdatedPayload = {|+payload: _BadgesUpdatedPayload, +type: 'wallets:badgesUpdated'|}
+export type BuildPaymentPayload = {|+payload: _BuildPaymentPayload, +type: 'wallets:buildPayment'|}
+export type BuildingPaymentIDReceivedPayload = {|+payload: _BuildingPaymentIDReceivedPayload, +type: 'wallets:buildingPaymentIDReceived'|}
+export type BuiltPaymentReceivedPayload = {|+payload: _BuiltPaymentReceivedPayload, +type: 'wallets:builtPaymentReceived'|}
+export type BuiltRequestReceivedPayload = {|+payload: _BuiltRequestReceivedPayload, +type: 'wallets:builtRequestReceived'|}
+export type CancelPaymentPayload = {|+payload: _CancelPaymentPayload, +type: 'wallets:cancelPayment'|}
+export type CancelRequestPayload = {|+payload: _CancelRequestPayload, +type: 'wallets:cancelRequest'|}
+export type ChangeAccountNamePayload = {|+payload: _ChangeAccountNamePayload, +type: 'wallets:changeAccountName'|}
+export type ChangeDisplayCurrencyPayload = {|+payload: _ChangeDisplayCurrencyPayload, +type: 'wallets:changeDisplayCurrency'|}
+export type ChangeMobileOnlyModePayload = {|+payload: _ChangeMobileOnlyModePayload, +type: 'wallets:changeMobileOnlyMode'|}
+export type ChangedAccountNamePayload = {|+payload: _ChangedAccountNamePayload, +type: 'wallets:changedAccountName'|}
+export type ChangedAccountNamePayloadError = {|+error: true, +payload: _ChangedAccountNamePayloadError, +type: 'wallets:changedAccountName'|}
+export type CheckDisclaimerPayload = {|+payload: _CheckDisclaimerPayload, +type: 'wallets:checkDisclaimer'|}
+export type ClearBuildingPayload = {|+payload: _ClearBuildingPayload, +type: 'wallets:clearBuilding'|}
+export type ClearBuiltPaymentPayload = {|+payload: _ClearBuiltPaymentPayload, +type: 'wallets:clearBuiltPayment'|}
+export type ClearBuiltRequestPayload = {|+payload: _ClearBuiltRequestPayload, +type: 'wallets:clearBuiltRequest'|}
+export type ClearErrorsPayload = {|+payload: _ClearErrorsPayload, +type: 'wallets:clearErrors'|}
+export type ClearNewPaymentsPayload = {|+payload: _ClearNewPaymentsPayload, +type: 'wallets:clearNewPayments'|}
+export type CreateNewAccountPayload = {|+payload: _CreateNewAccountPayload, +type: 'wallets:createNewAccount'|}
+export type CreatedNewAccountPayload = {|+payload: _CreatedNewAccountPayload, +type: 'wallets:createdNewAccount'|}
+export type CreatedNewAccountPayloadError = {|+error: true, +payload: _CreatedNewAccountPayloadError, +type: 'wallets:createdNewAccount'|}
+export type DeleteAccountPayload = {|+payload: _DeleteAccountPayload, +type: 'wallets:deleteAccount'|}
+export type DeletedAccountPayload = {|+payload: _DeletedAccountPayload, +type: 'wallets:deletedAccount'|}
+export type DidSetAccountAsDefaultPayload = {|+payload: _DidSetAccountAsDefaultPayload, +type: 'wallets:didSetAccountAsDefault'|}
+export type DisplayCurrenciesReceivedPayload = {|+payload: _DisplayCurrenciesReceivedPayload, +type: 'wallets:displayCurrenciesReceived'|}
+export type DisplayCurrencyReceivedPayload = {|+payload: _DisplayCurrencyReceivedPayload, +type: 'wallets:displayCurrencyReceived'|}
+export type ExitFailedPaymentPayload = {|+payload: _ExitFailedPaymentPayload, +type: 'wallets:exitFailedPayment'|}
+export type ExportSecretKeyPayload = {|+payload: _ExportSecretKeyPayload, +type: 'wallets:exportSecretKey'|}
+export type InflationDestinationReceivedPayload = {|+payload: _InflationDestinationReceivedPayload, +type: 'wallets:inflationDestinationReceived'|}
+export type InflationDestinationReceivedPayloadError = {|+error: true, +payload: _InflationDestinationReceivedPayloadError, +type: 'wallets:inflationDestinationReceived'|}
+export type LinkExistingAccountPayload = {|+payload: _LinkExistingAccountPayload, +type: 'wallets:linkExistingAccount'|}
+export type LinkedExistingAccountPayload = {|+payload: _LinkedExistingAccountPayload, +type: 'wallets:linkedExistingAccount'|}
+export type LinkedExistingAccountPayloadError = {|+error: true, +payload: _LinkedExistingAccountPayloadError, +type: 'wallets:linkedExistingAccount'|}
+export type LoadAccountsPayload = {|+payload: _LoadAccountsPayload, +type: 'wallets:loadAccounts'|}
+export type LoadAssetsPayload = {|+payload: _LoadAssetsPayload, +type: 'wallets:loadAssets'|}
+export type LoadDisplayCurrenciesPayload = {|+payload: _LoadDisplayCurrenciesPayload, +type: 'wallets:loadDisplayCurrencies'|}
+export type LoadDisplayCurrencyPayload = {|+payload: _LoadDisplayCurrencyPayload, +type: 'wallets:loadDisplayCurrency'|}
+export type LoadInflationDestinationPayload = {|+payload: _LoadInflationDestinationPayload, +type: 'wallets:loadInflationDestination'|}
+export type LoadMobileOnlyModePayload = {|+payload: _LoadMobileOnlyModePayload, +type: 'wallets:loadMobileOnlyMode'|}
+export type LoadMorePaymentsPayload = {|+payload: _LoadMorePaymentsPayload, +type: 'wallets:loadMorePayments'|}
+export type LoadPaymentDetailPayload = {|+payload: _LoadPaymentDetailPayload, +type: 'wallets:loadPaymentDetail'|}
+export type LoadPaymentsPayload = {|+payload: _LoadPaymentsPayload, +type: 'wallets:loadPayments'|}
+export type LoadSendAssetChoicesPayload = {|+payload: _LoadSendAssetChoicesPayload, +type: 'wallets:loadSendAssetChoices'|}
+export type LoadWalletDisclaimerPayload = {|+payload: _LoadWalletDisclaimerPayload, +type: 'wallets:loadWalletDisclaimer'|}
+export type LoadedMobileOnlyModePayload = {|+payload: _LoadedMobileOnlyModePayload, +type: 'wallets:loadedMobileOnlyMode'|}
+export type MarkAsReadPayload = {|+payload: _MarkAsReadPayload, +type: 'wallets:markAsRead'|}
+export type OpenSendRequestFormPayload = {|+payload: _OpenSendRequestFormPayload, +type: 'wallets:openSendRequestForm'|}
+export type PaymentDetailReceivedPayload = {|+payload: _PaymentDetailReceivedPayload, +type: 'wallets:paymentDetailReceived'|}
+export type PaymentsReceivedPayload = {|+payload: _PaymentsReceivedPayload, +type: 'wallets:paymentsReceived'|}
+export type PendingPaymentsReceivedPayload = {|+payload: _PendingPaymentsReceivedPayload, +type: 'wallets:pendingPaymentsReceived'|}
+export type RecentPaymentsReceivedPayload = {|+payload: _RecentPaymentsReceivedPayload, +type: 'wallets:recentPaymentsReceived'|}
+export type RejectDisclaimerPayload = {|+payload: _RejectDisclaimerPayload, +type: 'wallets:rejectDisclaimer'|}
+export type RequestPaymentPayload = {|+payload: _RequestPaymentPayload, +type: 'wallets:requestPayment'|}
+export type RequestedPaymentPayload = {|+payload: _RequestedPaymentPayload, +type: 'wallets:requestedPayment'|}
+export type ResetAcceptingDisclaimerPayload = {|+payload: _ResetAcceptingDisclaimerPayload, +type: 'wallets:resetAcceptingDisclaimer'|}
+export type ReviewPaymentPayload = {|+payload: _ReviewPaymentPayload, +type: 'wallets:reviewPayment'|}
+export type ReviewedPaymentReceivedPayload = {|+payload: _ReviewedPaymentReceivedPayload, +type: 'wallets:reviewedPaymentReceived'|}
+export type SecretKeyReceivedPayload = {|+payload: _SecretKeyReceivedPayload, +type: 'wallets:secretKeyReceived'|}
+export type SecretKeySeenPayload = {|+payload: _SecretKeySeenPayload, +type: 'wallets:secretKeySeen'|}
+export type SelectAccountPayload = {|+payload: _SelectAccountPayload, +type: 'wallets:selectAccount'|}
+export type SendAssetChoicesReceivedPayload = {|+payload: _SendAssetChoicesReceivedPayload, +type: 'wallets:sendAssetChoicesReceived'|}
+export type SendPaymentPayload = {|+payload: _SendPaymentPayload, +type: 'wallets:sendPayment'|}
+export type SentPaymentErrorPayload = {|+payload: _SentPaymentErrorPayload, +type: 'wallets:sentPaymentError'|}
+export type SentPaymentPayload = {|+payload: _SentPaymentPayload, +type: 'wallets:sentPayment'|}
+export type SetAccountAsDefaultPayload = {|+payload: _SetAccountAsDefaultPayload, +type: 'wallets:setAccountAsDefault'|}
+export type SetBuildingAmountPayload = {|+payload: _SetBuildingAmountPayload, +type: 'wallets:setBuildingAmount'|}
+export type SetBuildingCurrencyPayload = {|+payload: _SetBuildingCurrencyPayload, +type: 'wallets:setBuildingCurrency'|}
+export type SetBuildingFromPayload = {|+payload: _SetBuildingFromPayload, +type: 'wallets:setBuildingFrom'|}
+export type SetBuildingIsRequestPayload = {|+payload: _SetBuildingIsRequestPayload, +type: 'wallets:setBuildingIsRequest'|}
+export type SetBuildingPublicMemoPayload = {|+payload: _SetBuildingPublicMemoPayload, +type: 'wallets:setBuildingPublicMemo'|}
+export type SetBuildingRecipientTypePayload = {|+payload: _SetBuildingRecipientTypePayload, +type: 'wallets:setBuildingRecipientType'|}
+export type SetBuildingSecretNotePayload = {|+payload: _SetBuildingSecretNotePayload, +type: 'wallets:setBuildingSecretNote'|}
+export type SetBuildingToPayload = {|+payload: _SetBuildingToPayload, +type: 'wallets:setBuildingTo'|}
+export type SetInflationDestinationPayload = {|+payload: _SetInflationDestinationPayload, +type: 'wallets:setInflationDestination'|}
+export type SetLastSentXLMPayload = {|+payload: _SetLastSentXLMPayload, +type: 'wallets:setLastSentXLM'|}
+export type SetReadyToReviewPayload = {|+payload: _SetReadyToReviewPayload, +type: 'wallets:setReadyToReview'|}
+export type ValidateAccountNamePayload = {|+payload: _ValidateAccountNamePayload, +type: 'wallets:validateAccountName'|}
+export type ValidateSecretKeyPayload = {|+payload: _ValidateSecretKeyPayload, +type: 'wallets:validateSecretKey'|}
+export type ValidatedAccountNamePayload = {|+payload: _ValidatedAccountNamePayload, +type: 'wallets:validatedAccountName'|}
+export type ValidatedAccountNamePayloadError = {|+error: true, +payload: _ValidatedAccountNamePayloadError, +type: 'wallets:validatedAccountName'|}
+export type ValidatedSecretKeyPayload = {|+payload: _ValidatedSecretKeyPayload, +type: 'wallets:validatedSecretKey'|}
+export type ValidatedSecretKeyPayloadError = {|+error: true, +payload: _ValidatedSecretKeyPayloadError, +type: 'wallets:validatedSecretKey'|}
+export type WalletDisclaimerReceivedPayload = {|+payload: _WalletDisclaimerReceivedPayload, +type: 'wallets:walletDisclaimerReceived'|}
 
 // All Actions
 // prettier-ignore
 export type Actions =
   | AbandonPaymentPayload
   | AcceptDisclaimerPayload
+  | AccountUpdateReceivedPayload
   | AccountsReceivedPayload
   | AddNewPaymentPayload
   | AssetsReceivedPayload
   | BadgesUpdatedPayload
   | BuildPaymentPayload
+  | BuildingPaymentIDReceivedPayload
   | BuiltPaymentReceivedPayload
   | BuiltRequestReceivedPayload
   | CancelPaymentPayload
   | CancelRequestPayload
   | ChangeAccountNamePayload
   | ChangeDisplayCurrencyPayload
+  | ChangeMobileOnlyModePayload
   | ChangedAccountNamePayload
   | ChangedAccountNamePayloadError
+  | CheckDisclaimerPayload
   | ClearBuildingPayload
   | ClearBuiltPaymentPayload
   | ClearBuiltRequestPayload
@@ -673,7 +653,10 @@ export type Actions =
   | DidSetAccountAsDefaultPayload
   | DisplayCurrenciesReceivedPayload
   | DisplayCurrencyReceivedPayload
+  | ExitFailedPaymentPayload
   | ExportSecretKeyPayload
+  | InflationDestinationReceivedPayload
+  | InflationDestinationReceivedPayloadError
   | LinkExistingAccountPayload
   | LinkedExistingAccountPayload
   | LinkedExistingAccountPayloadError
@@ -681,21 +664,26 @@ export type Actions =
   | LoadAssetsPayload
   | LoadDisplayCurrenciesPayload
   | LoadDisplayCurrencyPayload
+  | LoadInflationDestinationPayload
+  | LoadMobileOnlyModePayload
   | LoadMorePaymentsPayload
   | LoadPaymentDetailPayload
   | LoadPaymentsPayload
-  | LoadRequestDetailPayload
   | LoadSendAssetChoicesPayload
   | LoadWalletDisclaimerPayload
+  | LoadedMobileOnlyModePayload
   | MarkAsReadPayload
   | OpenSendRequestFormPayload
   | PaymentDetailReceivedPayload
   | PaymentsReceivedPayload
-  | RefreshPaymentsPayload
+  | PendingPaymentsReceivedPayload
+  | RecentPaymentsReceivedPayload
   | RejectDisclaimerPayload
-  | RequestDetailReceivedPayload
   | RequestPaymentPayload
   | RequestedPaymentPayload
+  | ResetAcceptingDisclaimerPayload
+  | ReviewPaymentPayload
+  | ReviewedPaymentReceivedPayload
   | SecretKeyReceivedPayload
   | SecretKeySeenPayload
   | SelectAccountPayload
@@ -712,8 +700,9 @@ export type Actions =
   | SetBuildingRecipientTypePayload
   | SetBuildingSecretNotePayload
   | SetBuildingToPayload
+  | SetInflationDestinationPayload
   | SetLastSentXLMPayload
-  | SetReadyToSendPayload
+  | SetReadyToReviewPayload
   | ValidateAccountNamePayload
   | ValidateSecretKeyPayload
   | ValidatedAccountNamePayload
@@ -721,4 +710,4 @@ export type Actions =
   | ValidatedSecretKeyPayload
   | ValidatedSecretKeyPayloadError
   | WalletDisclaimerReceivedPayload
-  | {type: 'common:resetStore', payload: void}
+  | {type: 'common:resetStore', payload: null}

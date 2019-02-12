@@ -4,29 +4,25 @@ import * as Sb from '../../stories/storybook'
 import {Box, Box2, Text} from '../../common-adapters'
 import Downloads from './downloads'
 import Download from './download'
-import Errs from './errs'
 import Upload from './upload'
 
 export const footerProvider = {
-  ConnectedErrs: () => ({
-    errs: [],
+  ConnectedDownload: ({downloadKey}: {downloadKey: string}) => ({
+    cancel: Sb.action('cancel'),
+    completePortion: downloadKey.split('').reduce((num, char) => (num + char.charCodeAt(0)) % 100, 0) / 100,
+    dismiss: Sb.action('dismiss'),
+    filename: downloadKey,
+    isDone: false,
+    open: Sb.action('open'),
+    progressText: '42 s',
   }),
   ConnectedDownloads: () => ({
     downloadKeys: ['file 1', 'blah 2', 'yo 3'],
-    thereAreMore: true,
     openDownloadFolder: Sb.action('openDownloadFolder'),
+    thereAreMore: true,
   }),
   ConnectedUpload: () => ({
     files: 0,
-  }),
-  ConnectedDownload: ({downloadKey}: {downloadKey: string}) => ({
-    filename: downloadKey,
-    completePortion: downloadKey.split('').reduce((num, char) => (num + char.charCodeAt(0)) % 100, 0) / 100,
-    progressText: '42 s',
-    isDone: false,
-    open: Sb.action('open'),
-    dismiss: Sb.action('dismiss'),
-    cancel: Sb.action('cancel'),
   }),
 }
 
@@ -109,44 +105,14 @@ const load = () =>
         <Box style={{height: 8}} />
       </Box>
     ))
-    .add('Errs', () => (
-      <Errs
-        errs={[
-          {
-            key: '1',
-            time: 1534362428795,
-            error: 'long error detail blah blah SimpleFS.SimpleFSCopyRecursive has blown up',
-            msg: 'Error when downloading file blah 1.jpg',
-            dismiss: Sb.action('dismiss'),
-          },
-          {
-            key: '2',
-            time: 1534362428795,
-            error: 'long error detail blah blah SimpleFS.SimpleFSCopyRecursive has blown up',
-            msg: 'Error when downloading file blah 2.jpg',
-            retry: Sb.action('retry'),
-            dismiss: Sb.action('dismiss'),
-          },
-          {
-            key: '3',
-            time: 1534362428795,
-            error: 'long error detail blah blah SimpleFS.SimpleFSCopyRecursive has blown up',
-            msg: 'Error when downloading file blah 99.jpg',
-            retry: Sb.action('retry'),
-            dismiss: Sb.action('dismiss'),
-          },
-        ]}
-        more={2}
-      />
-    ))
     .add('UploadBanner', () => (
       <Upload fileName={null} files={42} totalSyncingBytes={100} timeLeft="23 min" showing={true} />
     ))
 
 const downloadCommonActions = {
-  open: Sb.action('open'),
-  dismiss: Sb.action('dismiss'),
   cancel: Sb.action('cancel'),
+  dismiss: Sb.action('dismiss'),
+  open: Sb.action('open'),
 }
 
 export default load

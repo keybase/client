@@ -3,6 +3,8 @@ import * as React from 'react'
 import type {IconType} from './icon.constants'
 import {type StylesCrossPlatform, type StylesCrossPlatformWithSomeDisallowed, type Color} from '../styles'
 
+export type SizeType = 'Big' | 'Default' | 'Small' | 'Tiny'
+
 // These must be passed as props
 type DisallowedStyles = {
   color?: empty,
@@ -22,11 +24,15 @@ export type Props = {
   inheritColor?: boolean,
   underlayColor?: string,
   className?: string,
+  // Temporary hack that let's you override the color directly in the style instead of using css class names
+  colorOverride?: Color,
   color?: Color,
   hoverColor?: string,
   fontSize?: number,
   // TODO cleanup how this container stuff works, this is to allow you to style the box that sometimes exists
   boxStyle?: StylesCrossPlatform,
+  // only applies to icon fonts
+  sizeType?: SizeType,
 }
 
 declare export default class Icon extends React.Component<Props> {}

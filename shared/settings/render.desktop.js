@@ -13,9 +13,11 @@ function SettingsRender(props: Props) {
         {!props.isModal && (
           <SettingsNav
             badgeNumbers={props.badgeNumbers}
+            logoutInProgress={props.logoutInProgress}
             selectedTab={props.selectedTab}
             onTabChange={props.onTabChange}
             onLogout={props.onLogout}
+            hasRandomPW={props.hasRandomPW}
           />
         )}
         <Box style={{...globalStyles.flexBoxRow, flex: 1, overflow: 'auto'}}>{props.children}</Box>

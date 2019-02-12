@@ -6,14 +6,14 @@ import Banner from '.'
 
 const examples = [
   {
-    text: 'Because it’s russel’s first transaction, you must send at least 2 XLM.',
     background: 'Announcements',
+    text: 'Because it’s russel’s first transaction, you must send at least 2 XLM.',
   },
   {
-    text: 'russel has a maximum allowed balance of this asset. You may send a maximum of 880.2387456.',
     background: 'Announcements',
+    text: 'russel has a maximum allowed balance of this asset. You may send a maximum of 880.2387456.',
   },
-  {text: 'Connection error. You are offline.', background: 'HighRisk'},
+  {background: 'HighRisk', text: 'Connection error. You are offline.'},
 ]
 
 const load = () => {

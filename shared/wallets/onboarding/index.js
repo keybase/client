@@ -5,7 +5,10 @@ import Disclaimer from './disclaimer'
 import Intro from './intro'
 
 type OnboardingProps = {|
-  onAcceptDisclaimer: (nextScreen: Types.NextScreenAfterAcceptance) => void,
+  acceptDisclaimerError: string,
+  acceptingDisclaimerDelay: boolean,
+  onAcceptDisclaimer: () => void,
+  onCheckDisclaimer: (nextScreen: Types.NextScreenAfterAcceptance) => void,
   onClose: () => void,
 |}
 
@@ -24,10 +27,11 @@ class Onboarding extends React.Component<OnboardingProps, OnboardingState> {
     } else {
       return (
         <Disclaimer
-          onAcceptDisclaimer={() => {
-            if (this.state.nextScreen) {
-              this.props.onAcceptDisclaimer(this.state.nextScreen)
-            }
+          acceptDisclaimerError={this.props.acceptDisclaimerError}
+          acceptingDisclaimerDelay={this.props.acceptingDisclaimerDelay}
+          onAcceptDisclaimer={this.props.onAcceptDisclaimer}
+          onCheckDisclaimer={() => {
+            this.props.onCheckDisclaimer(this.state.nextScreen)
           }}
           onNotNow={this.props.onClose}
         />

@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
 	"golang.org/x/net/context"
 )
 
@@ -66,8 +67,9 @@ func (c *CmdListPhoneNumbers) Run() error {
 	}
 
 	for _, p := range resp {
-		ui.Printf("%s (verified: %t, added on: %s)\n", p.PhoneNumber,
-			p.Verified, p.Ctime.Time().Format("2006-01-02"))
+		visibilityName := keybase1.IdentityVisibilityRevMap[p.Visibility]
+		ui.Printf("%s (visibility: %s, verified: %t, added on: %s)\n", p.PhoneNumber,
+			visibilityName, p.Verified, p.Ctime.Time().Format("2006-01-02"))
 	}
 	return nil
 }

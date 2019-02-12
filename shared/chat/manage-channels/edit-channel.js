@@ -58,11 +58,10 @@ const EditChannelBare = (props: Props & TextState) => (
 
       {props.deleteRenameDisabled && (
         <Text
-          type="BodySmall"
+          center={true} type="BodySmall"
           style={{
-            position: 'absolute',
-            textAlign: 'center',
             left: 0,
+            position: 'absolute',
             right: 0,
             top: 60,
           }}
@@ -81,14 +80,13 @@ const EditChannelBare = (props: Props & TextState) => (
       />
     </Box>
     <Box style={_bottomRowStyle}>
-      {!isMobile &&
-        props.showDelete && (
-          <DeleteChannel
-            channelName={props.channelName}
-            onConfirmedDelete={props.onConfirmedDelete}
-            disabled={props.deleteRenameDisabled}
-          />
-        )}
+      {!isMobile && props.showDelete && (
+        <DeleteChannel
+          channelName={props.channelName}
+          onConfirmedDelete={props.onConfirmedDelete}
+          disabled={props.deleteRenameDisabled}
+        />
+      )}
       <ButtonBar>
         <Button type="Secondary" label="Cancel" onClick={props.onCancel} />
         <Button
@@ -100,15 +98,13 @@ const EditChannelBare = (props: Props & TextState) => (
         />
       </ButtonBar>
     </Box>
-    {isMobile &&
-      props.showDelete &&
-      !props.deleteRenameDisabled && (
-        <DeleteChannel
-          channelName={props.channelName}
-          onConfirmedDelete={props.onConfirmedDelete}
-          disabled={false}
-        />
-      )}
+    {isMobile && props.showDelete && !props.deleteRenameDisabled && (
+      <DeleteChannel
+        channelName={props.channelName}
+        onConfirmedDelete={props.onConfirmedDelete}
+        disabled={false}
+      />
+    )}
   </Box>
 )
 
@@ -145,18 +141,18 @@ const EditChannel: React.ComponentType<Props> = compose(
 const _boxStyle = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
+  paddingBottom: globalMargins.medium,
   paddingLeft: globalMargins.large,
   paddingRight: globalMargins.large,
   paddingTop: globalMargins.medium,
-  paddingBottom: globalMargins.medium,
   ...(isMobile ? {flex: 1} : {}),
 }
 
 const _bottomRowStyle = {
   ...globalStyles.flexBoxRow,
-  flex: 1,
-  alignSelf: 'stretch',
   alignItems: 'flex-end',
+  alignSelf: 'stretch',
+  flex: 1,
   justifyContent: 'center',
   position: 'relative',
   ...(isMobile ? {} : {minWidth: '500px'}),

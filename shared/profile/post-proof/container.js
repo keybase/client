@@ -27,7 +27,6 @@ const mapStateToProps = (state, {onAllowProofCheck}) => {
 
   return {
     errorMessage: profile.errorText,
-    isOnCompleteWaiting: profile.waiting,
     onCancelText: 'Cancel',
     platform,
     platformUserName: profile.username,
@@ -36,14 +35,13 @@ const mapStateToProps = (state, {onAllowProofCheck}) => {
 }
 
 const mapDispatchToProps = dispatch => ({
+  copyToClipboard: text => dispatch(ConfigGen.createCopyToClipboard({text})),
   onCancel: () => dispatch(ProfileGen.createCancelAddProof()),
   onComplete: () => dispatch(ProfileGen.createCheckProof()),
   proofAction: () => dispatch(ProfileGen.createOutputInstructionsActionLink()),
-  copyToClipboard: text => dispatch(ConfigGen.createCopyToClipboard({text})),
 })
 
-export default compose(
-  // FlowIssue on 86
+export default (compose(
   withStateHandlers(({allowProofCheck: boolean}) => ({allowProofCheck: true}), {
     onAllowProofCheck: () => (allowProofCheck: boolean) => ({allowProofCheck}),
   }),
@@ -60,4 +58,4 @@ export default compose(
       }
     },
   })
-)(PostProof)
+): any)(PostProof)

@@ -3,6 +3,7 @@ import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/wallets'
+import AccountReloader from '../common/account-reloader'
 import Header from './header/container'
 import Asset from '../asset/container'
 import Transaction from '../transaction/container'
@@ -12,11 +13,12 @@ const stripePatternName = Styles.isMobile
   : 'pattern-stripes-blue-5-black-5-desktop.png'
 const stripePatternSize = Styles.isMobile ? 18 : 9
 
-type Props = {
+export type Props = {
+  acceptedDisclaimer: boolean,
   accountID: Types.AccountID,
   loadingMore: boolean,
   navigateAppend: (...Array<any>) => any,
-  navigateUp: () => any,
+  onBack: () => void,
   onLoadMore: () => void,
   onMarkAsRead: () => void,
   sections: any[],
@@ -31,20 +33,27 @@ const HistoryPlaceholder = () => (
 )
 
 class Wallet extends React.Component<Props> {
-  componentDidUpdate = (prevProps: Props) => {
+  componentDidUpdate(prevProps: Props) {
     if (prevProps.accountID !== this.props.accountID) {
       prevProps.onMarkAsRead()
     }
   }
 
-  componentWillUnmount = () => {
+  componentWillUnmount() {
     this.props.onMarkAsRead()
   }
 
   _renderItem = ({item, index, section}) => {
     const children = []
     if (item === 'notLoadedYet') {
-      children.push(<Kb.ProgressIndicator key="spinner" style={styles.spinner} type="Small" />)
+      children.push(
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.loadingBox} gap="tiny" gapStart={true}>
+          <Kb.ProgressIndicator key="spinner" style={styles.spinner} type="Small" />
+          <Kb.Text type="BodySmall">
+            {section.title === 'Your assets' ? 'Loading assets...' : 'Loading payments...'}
+          </Kb.Text>
+        </Kb.Box2>
+      )
     } else if (item === 'noPayments') {
       children.push(<HistoryPlaceholder key="placeholder" />)
     } else if (section.title === 'Your assets') {
@@ -97,11 +106,12 @@ class Wallet extends React.Component<Props> {
   render() {
     return (
       <Kb.Box2 direction="vertical" style={{flexGrow: 1}} fullHeight={true}>
-        <Header navigateAppend={this.props.navigateAppend} navigateUp={this.props.navigateUp} />
+        <Header navigateAppend={this.props.navigateAppend} onBack={this.props.onBack} />
         <Kb.SectionList
           sections={this.props.sections}
           renderItem={this._renderItem}
           renderSectionHeader={this._renderSectionHeader}
+          stickySectionHeadersEnabled={false}
           keyExtractor={this._keyExtractor}
           onEndReached={this._onEndReached}
         />
@@ -116,7 +126,11 @@ const styles = Styles.styleSheetCreate({
     marginTop: 36,
   },
   historyPlaceholderText: {
-    color: Styles.globalColors.black_40,
+    color: Styles.globalColors.black_50,
+  },
+  loadingBox: {
+    alignItems: 'center',
+    justifyContent: 'flex-start',
   },
   loadingMore: {
     bottom: 10,
@@ -128,7 +142,10 @@ const styles = Styles.styleSheetCreate({
   sectionHeader: {
     ...Styles.globalStyles.flexBoxColumn,
     backgroundColor: Styles.globalColors.blue5,
-    padding: Styles.globalMargins.xtiny,
+    paddingBottom: Styles.globalMargins.xtiny,
+    paddingLeft: Styles.globalMargins.tiny,
+    paddingRight: Styles.globalMargins.xtiny,
+    paddingTop: Styles.globalMargins.xtiny,
     width: '100%',
   },
   spinner: {
@@ -138,4 +155,11 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-export default Wallet
+// If we're on mobile, this is the entry point, so we need to wrap
+// with AccountReloader.
+const MaybeReloaderWallet = (props: Props) => {
+  const wallet = <Wallet {...props} />
+  return Styles.isMobile ? <AccountReloader onBack={props.onBack}>{wallet}</AccountReloader> : wallet
+}
+
+export default MaybeReloaderWallet

@@ -1,8 +1,9 @@
 // @flow
 import React, {Component} from 'react'
-import {Box, Box2, Icon, InfoNote, Text, Button, Input, PlatformIcon} from '../../common-adapters'
+import {Box, Box2, Icon, InfoNote, Text, WaitingButton, Input, PlatformIcon} from '../../common-adapters'
 import {globalStyles, globalColors, globalMargins, desktopStyles, collapseStyles} from '../../styles'
 import {platformText} from './shared'
+import {waitingKey} from '../../constants/profile'
 import type {PlatformsExpandedType} from '../../constants/types/more'
 import type {Props} from '.'
 import openURL from '../../util/open-url'
@@ -23,7 +24,7 @@ function UsernameTips({platform}: {platform: PlatformsExpandedType}) {
     return (
       <InfoNote containerStyle={styleInfoNote}>
         <Box2 direction="vertical" style={{textAlign: 'center'}}>
-          <Text type="BodySmall" style={{textAlign: 'center'}}>
+          <Text center={true} type="BodySmall">
             You can find your Facebook username at
           </Text>
           <Box2 direction="horizontal">
@@ -74,7 +75,12 @@ class PrivateEnterUsernameRender extends Component<Props, State> {
   }
 
   render() {
-    const {headerText, floatingLabelText, hintText} = platformText[this.props.platform]
+    const pt = platformText[this.props.platform]
+    if (!pt) {
+      // TODO support generic proofs
+      throw new Error(`Proofs for platform ${this.props.platform} are unsupported.`)
+    }
+    const {headerText, floatingLabelText, hintText} = pt
 
     return (
       <Box style={styleContainer}>
@@ -101,13 +107,16 @@ class PrivateEnterUsernameRender extends Component<Props, State> {
         />
         <UsernameTips platform={this.props.platform} />
         <Box style={{...globalStyles.flexBoxRow, marginTop: 32}}>
-          <Button
+          <WaitingButton
+            waitingKey={waitingKey}
+            onlyDisable={true}
             type="Secondary"
             onClick={this.props.onCancel}
             label="Cancel"
             style={{marginRight: globalMargins.tiny}}
           />
-          <Button
+          <WaitingButton
+            waitingKey={waitingKey}
             type="Primary"
             disabled={!this.props.canContinue}
             onClick={() => this.handleContinue()}
@@ -123,15 +132,15 @@ class PrivateEnterUsernameRender extends Component<Props, State> {
 
 const styleErrorBanner = {
   ...globalStyles.flexBoxColumn,
-  justifyContent: 'center',
-  position: 'absolute',
   alignItems: 'center',
-  top: 0,
-  left: 0,
-  right: 0,
-  zIndex: 1,
-  minHeight: globalMargins.large,
   backgroundColor: globalColors.red,
+  justifyContent: 'center',
+  left: 0,
+  minHeight: globalMargins.large,
+  position: 'absolute',
+  right: 0,
+  top: 0,
+  zIndex: 1,
 }
 
 const styleErrorBannerText = {
@@ -140,10 +149,10 @@ const styleErrorBannerText = {
 
 const styleContainer = {
   ...globalStyles.flexBoxColumn,
-  position: 'relative',
-  flex: 1,
   alignItems: 'center',
+  flex: 1,
   justifyContent: 'center',
+  position: 'relative',
 }
 
 const styleClose = collapseStyles([
@@ -157,8 +166,8 @@ const styleClose = collapseStyles([
 
 const styleInput = {
   alignSelf: 'center',
-  marginTop: globalMargins.small,
   marginBottom: 0,
+  marginTop: globalMargins.small,
   width: 460,
 }
 
@@ -167,13 +176,13 @@ const styleYellowBanner = {
   alignItems: 'center',
   backgroundColor: globalColors.yellow,
   borderRadius: 3,
-  marginTop: globalMargins.small,
   marginBottom: -globalMargins.tiny,
+  marginTop: globalMargins.small,
   minWidth: 460,
-  paddingTop: globalMargins.xsmall,
   paddingBottom: globalMargins.xsmall,
   paddingLeft: globalMargins.small,
   paddingRight: globalMargins.small,
+  paddingTop: globalMargins.xsmall,
 }
 
 const styleInfoNote = {

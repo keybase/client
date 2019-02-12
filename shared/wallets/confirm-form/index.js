@@ -20,11 +20,13 @@ type ConfirmSendProps = {|
   sendingIntentionXLM: boolean,
   displayAmountXLM: string,
   displayAmountFiat: string,
+  readyToSend: string,
 |}
 
 const ConfirmSend = (props: ConfirmSendProps) => (
   <Kb.MaybePopup onClose={props.onClose}>
-    <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
+    <Kb.SafeAreaViewTop style={styles.backgroundColorPurple} />
+    <Kb.Box2 direction="vertical" fullHeight={!Styles.isMobile} fullWidth={true} style={styles.container}>
       <Header
         onBack={props.onBack}
         sendingIntentionXLM={props.sendingIntentionXLM}
@@ -32,9 +34,16 @@ const ConfirmSend = (props: ConfirmSendProps) => (
         displayAmountFiat={props.displayAmountFiat}
       />
       {(props.banners || []).map(banner => (
-        <Banner key={banner.bannerText} background={banner.bannerBackground} text={banner.bannerText} />
+        <Banner
+          background={banner.bannerBackground}
+          key={banner.bannerText}
+          onAction={banner.action}
+          reviewProofs={banner.reviewProofs}
+          sendFailed={banner.sendFailed}
+          text={banner.bannerText}
+        />
       ))}
-      <Kb.ScrollView style={styles.scrollView}>
+      <Kb.ScrollView style={styles.scrollView} alwaysBounceVertical={false}>
         <Participants />
         {(!!props.encryptedNote || !!props.publicMemo) && (
           <NoteAndMemo encryptedNote={props.encryptedNote} publicMemo={props.publicMemo} />
@@ -49,64 +58,77 @@ const ConfirmSend = (props: ConfirmSendProps) => (
         gapEnd={true}
         style={styles.buttonContainer}
       >
-        <Kb.WaitingButton
-          type="PrimaryGreen"
-          disabled={props.sendFailed}
-          onClick={props.onSendClick}
-          waitingKey={props.waitingKey}
-          fullWidth={true}
-          style={styles.button}
-          children={
-            <React.Fragment>
-              <Kb.Icon
-                type="iconfont-stellar-send"
-                style={Kb.iconCastPlatformStyles(styles.buttonIcon)}
-                color={Styles.globalColors.white}
-              />
-              <Kb.Text type="BodyBig" style={styles.buttonText}>
-                Send{' '}
-                <Kb.Text type="BodyBigExtrabold" style={styles.buttonText}>
-                  {props.displayAmountXLM}
+        {props.readyToSend === 'spinning' ? (
+          <Kb.Button type="PrimaryGreen" fullWidth={true} style={styles.button} waiting={true} />
+        ) : (
+          <Kb.WaitingButton
+            type="PrimaryGreen"
+            disabled={props.sendFailed || props.readyToSend === 'disabled'}
+            onClick={props.onSendClick}
+            waitingKey={props.waitingKey}
+            fullWidth={true}
+            style={styles.button}
+            children={
+              <React.Fragment>
+                <Kb.Icon
+                  type="iconfont-stellar-send"
+                  style={Kb.iconCastPlatformStyles(styles.buttonIcon)}
+                  color={Styles.globalColors.white}
+                />
+                <Kb.Text type="BodyBig" style={styles.buttonText}>
+                  Send{' '}
+                  <Kb.Text type="BodyBigExtrabold" style={styles.buttonText}>
+                    {props.displayAmountXLM}
+                  </Kb.Text>
                 </Kb.Text>
-              </Kb.Text>
-            </React.Fragment>
-          }
-        />
+              </React.Fragment>
+            }
+          />
+        )}
       </Kb.Box2>
     </Kb.Box2>
+    <Kb.SafeAreaView />
   </Kb.MaybePopup>
 )
 
 const styles = Styles.styleSheetCreate({
-  buttonText: {color: Styles.globalColors.white},
-  buttonIcon: {
-    marginRight: Styles.globalMargins.xtiny,
+  backgroundColorPurple: {backgroundColor: Styles.globalColors.purple},
+  button: {
+    marginBottom: Styles.globalMargins.small,
+    marginTop: Styles.globalMargins.small,
   },
   buttonContainer: Styles.platformStyles({
     common: {
-      flexShrink: 0,
       alignSelf: 'flex-end',
+      flexShrink: 0,
     },
     isElectron: {
+      borderTopColor: Styles.globalColors.black_10,
       borderTopStyle: 'solid',
       borderTopWidth: 1,
-      borderTopColor: Styles.globalColors.black_10,
     },
   }),
-  button: {
-    marginTop: Styles.globalMargins.small,
-    marginBottom: Styles.globalMargins.small,
+  buttonIcon: {
+    marginRight: Styles.globalMargins.xtiny,
   },
+  buttonText: {color: Styles.globalColors.white},
   container: Styles.platformStyles({
     isElectron: {
       height: 525,
       width: 360,
     },
+    isMobile: {
+      backgroundColor: Styles.globalColors.white,
+      flexGrow: 1,
+      flexShrink: 1,
+      maxHeight: '100%',
+      width: '100%',
+    },
   }),
   scrollView: {
+    flexBasis: 'auto',
     flexGrow: 0,
     flexShrink: 1,
-    flexBasis: 'auto',
   },
 })
 

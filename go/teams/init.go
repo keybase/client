@@ -9,4 +9,5 @@ func ServiceInit(g *libkb.GlobalContext) {
 	NewFastTeamLoaderAndInstall(g)
 	NewAuditorAndInstall(g)
 	NewImplicitTeamConflictInfoCacheAndInstall(g)
+	NewImplicitTeamCacheAndInstall(g)
 }

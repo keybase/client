@@ -59,7 +59,7 @@ class PlainInput extends Component<InternalProps, State> {
     this._input && this._input.setNativeProps(nativeProps)
   }
 
-  transformText = (fn: TextInfo => TextInfo) => {
+  transformText = (fn: TextInfo => TextInfo, reflectChange: boolean) => {
     if (this._controlled()) {
       const errMsg =
         'Attempted to use transformText on controlled input component. Use props.value and setSelection instead.'
@@ -67,17 +67,20 @@ class PlainInput extends Component<InternalProps, State> {
       throw new Error(errMsg)
     }
     const currentTextInfo = {
+      selection: this._lastNativeSelection || {end: 0, start: 0},
       text: this._lastNativeText || '',
-      selection: this._lastNativeSelection || {start: 0, end: 0},
     }
     const newTextInfo = fn(currentTextInfo)
     checkTextInfo(newTextInfo)
     this.setNativeProps({text: newTextInfo.text})
     this._lastNativeText = newTextInfo.text
     this._setSelection(newTextInfo.selection)
+    if (reflectChange) {
+      this._onChangeText(newTextInfo.text)
+    }
   }
 
-  getSelection = () => this._lastNativeSelection || {start: 0, end: 0}
+  getSelection = () => this._lastNativeSelection || {end: 0, start: 0}
 
   setSelection = (s: Selection) => {
     if (!this._controlled()) {
@@ -96,13 +99,19 @@ class PlainInput extends Component<InternalProps, State> {
       const text = this._lastNativeText || '' // TODO write a good internal getValue fcn for this
       end = Math.max(0, Math.min(end, text.length))
       start = Math.min(start, end)
-      const newSelection = {start, end}
+      const newSelection = {end, start}
       this.setNativeProps({selection: newSelection})
       this._lastNativeSelection = selection
     }, 0)
   }
 
   _onChangeText = (t: string) => {
+    if (this.props.maxBytes) {
+      const {maxBytes} = this.props
+      if (Buffer.byteLength(t) > maxBytes) {
+        return
+      }
+    }
     this._lastNativeText = t
     this.props.onChangeText && this.props.onChangeText(t)
   }
@@ -113,7 +122,8 @@ class PlainInput extends Component<InternalProps, State> {
     // https://github.com/facebook/react-native/issues/18579 .
     const start = Math.min(_start, _end)
     const end = Math.max(_start, _end)
-    this._lastNativeSelection = {start, end}
+    this._lastNativeSelection = {end, start}
+    this.props.onSelectionChange && this.props.onSelectionChange(this._lastNativeSelection)
   }
 
   _onContentSizeChange = (event: ContentSizeChangeEvent) => {
@@ -151,6 +161,8 @@ class PlainInput extends Component<InternalProps, State> {
     this._input && this._input.blur()
   }
 
+  isFocused = () => !!this._input && this._input.isFocused()
+
   _onFocus = () => {
     this.setState({focused: true})
     this.props.onFocus && this.props.onFocus()
@@ -181,7 +193,7 @@ class PlainInput extends Component<InternalProps, State> {
 
   _getSinglelineStyle = () => {
     const lineHeight = this._lineHeight()
-    return collapseStyles([styles.singleline, {minHeight: lineHeight, maxHeight: lineHeight}])
+    return collapseStyles([styles.singleline, {maxHeight: lineHeight, minHeight: lineHeight}])
   }
 
   _getStyle = () => {
@@ -205,10 +217,11 @@ class PlainInput extends Component<InternalProps, State> {
       onChangeText: this._onChangeText,
       onEndEditing: this.props.onEndEditing,
       onFocus: this._onFocus,
+      onKeyPress: this.props.onKeyPress,
       onSelectionChange: this._onSelectionChange,
       onSubmitEditing: this.props.onEnterKeyDown,
       placeholder: this.props.placeholder,
-      placeholderTextColor: this.props.placeholderColor || globalColors.black_40,
+      placeholderTextColor: this.props.placeholderColor || globalColors.black_50,
       ref: this._setInputRef,
       returnKeyType: this.props.returnKeyType,
       secureTextEntry: this.props.type === 'password',
@@ -236,7 +249,7 @@ class PlainInput extends Component<InternalProps, State> {
 }
 
 const styles = styleSheetCreate({
-  common: {backgroundColor: globalColors.fastBlank, flexGrow: 1, borderWidth: 0},
+  common: {backgroundColor: globalColors.fastBlank, borderWidth: 0, flexGrow: 1},
   multiline: {
     height: undefined,
     // TODO: Maybe remove these paddings?

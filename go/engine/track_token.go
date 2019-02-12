@@ -25,6 +25,7 @@ type TrackTokenArg struct {
 	Token   keybase1.TrackToken
 	Me      *libkb.User
 	Options keybase1.TrackOptions
+	Outcome *libkb.IdentifyOutcome
 }
 
 // NewTrackToken creates a TrackToken engine.
@@ -66,7 +67,7 @@ func (e *TrackToken) SubConsumers() []libkb.UIConsumer {
 func (e *TrackToken) Run(m libkb.MetaContext) (err error) {
 	defer m.CTrace("TrackToken#Run", func() error { return err })()
 
-	if len(e.arg.Token) == 0 {
+	if len(e.arg.Token) == 0 && e.arg.Outcome == nil {
 		err = fmt.Errorf("missing TrackToken argument")
 		return err
 	}
@@ -75,10 +76,13 @@ func (e *TrackToken) Run(m libkb.MetaContext) (err error) {
 		return err
 	}
 
-	var outcome *libkb.IdentifyOutcome
-	outcome, err = m.G().TrackCache().Get(e.arg.Token)
-	if err != nil {
-		return err
+	// We can either pass this in directly, or look it up via TrackToken
+	outcome := e.arg.Outcome
+	if outcome == nil {
+		outcome, err = m.G().TrackCache().Get(e.arg.Token)
+		if err != nil {
+			return err
+		}
 	}
 
 	if outcome.TrackStatus() == keybase1.TrackStatus_UPDATE_OK && !e.arg.Options.ForceRetrack {
@@ -143,7 +147,8 @@ func (e *TrackToken) Run(m libkb.MetaContext) (err error) {
 
 		// Dismiss any associated gregor item.
 		if outcome.ResponsibleGregorItem != nil {
-			err = m.G().GregorDismisser.DismissItem(m.Ctx(), nil, outcome.ResponsibleGregorItem.Metadata().MsgID())
+			err = m.G().GregorState.DismissItem(m.Ctx(), nil,
+				outcome.ResponsibleGregorItem.Metadata().MsgID())
 		}
 	}
 
@@ -266,6 +271,7 @@ func (e *TrackToken) storeRemoteTrack(m libkb.MetaContext, pubKID keybase1.KID) 
 	}
 
 	me.SigChainBump(linkID, sigID, false)
+	m.G().IdentifyDispatch.NotifyTrackingSuccess(m, e.them.GetUID())
 
 	return err
 }

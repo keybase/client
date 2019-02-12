@@ -1,7 +1,7 @@
 // @flow
 import * as Avatar from '../desktop/remote/sync-avatar-props.desktop'
 
-export const serialize = {
+export const serialize: any = {
   ...Avatar.serialize,
   actionBarReady: v => v,
   changed: v => v,
@@ -33,6 +33,7 @@ export const serialize = {
   sessionID: v => v,
   shouldFollow: v => v,
   showTeam: v => v,
+  stellarFederationAddress: v => v,
   teamJoinError: v => v,
   teamJoinSuccess: v => v,
   teamname: v => v,

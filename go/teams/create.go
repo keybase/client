@@ -180,6 +180,11 @@ func makeSigAndPostRootTeam(ctx context.Context, g *libkb.GlobalContext, me libk
 		return err
 	}
 
+	err = addSummaryHash(&teamSection, secretboxes)
+	if err != nil {
+		return err
+	}
+
 	// At this point the team section has every field filled out except the
 	// reverse sig. Now we'll wrap it into a full sig, marshal it to JSON, and
 	// sign it, *twice*. The first time with the per-team signing key, to
@@ -533,6 +538,11 @@ func generateHeadSigForSubteamChain(ctx context.Context, g *libkb.GlobalContext,
 	teamSection, err := makeSubteamTeamSection(subteamName, subteamID, parentTeam, members, perTeamSigningKey.GetKID(), perTeamEncryptionKey.GetKID(), admin)
 	if err != nil {
 		return
+	}
+
+	err = addSummaryHash(&teamSection, boxes)
+	if err != nil {
+		return nil, nil, err
 	}
 
 	subteamHeadSigBodyBeforeReverse, err := SubteamHeadSig(g, me, signingKey, teamSection)

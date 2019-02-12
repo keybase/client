@@ -4,6 +4,8 @@
 package service
 
 import (
+	"fmt"
+
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -66,6 +68,8 @@ func (ph *ProveHandler) getProveUI(sessionID int) libkb.ProveUI {
 
 // Prove handles the `keybase.1.startProof` RPC.
 func (ph *ProveHandler) StartProof(ctx context.Context, arg keybase1.StartProofArg) (res keybase1.StartProofResult, err error) {
+	ctx = libkb.WithLogTag(ctx, "PV")
+	defer ph.G().CTraceTimed(ctx, fmt.Sprintf("StartProof: Service: %v, Username: %v", arg.Service, arg.Username), func() error { return err })()
 	eng := engine.NewProve(ph.G(), &arg)
 	uis := libkb.UIs{
 		ProveUI:   ph.getProveUI(arg.SessionID),
@@ -83,6 +87,8 @@ func (ph *ProveHandler) StartProof(ctx context.Context, arg keybase1.StartProofA
 
 // Prove handles the `keybase.1.checkProof` RPC.
 func (ph *ProveHandler) CheckProof(ctx context.Context, arg keybase1.CheckProofArg) (res keybase1.CheckProofStatus, err error) {
+	ctx = libkb.WithLogTag(ctx, "PV")
+	defer ph.G().CTraceTimed(ctx, fmt.Sprintf("CheckProof: SigID: %v", arg.SigID), func() error { return err })()
 	eng := engine.NewProveCheck(ph.G(), arg.SigID)
 	m := libkb.NewMetaContext(ctx, ph.G())
 	if err = engine.RunEngine2(m, eng); err != nil {
@@ -99,5 +105,8 @@ func (ph *ProveHandler) CheckProof(ctx context.Context, arg keybase1.CheckProofA
 
 // Prove handles the `keybase.1.listProofServices` RPC.
 func (ph *ProveHandler) ListProofServices(ctx context.Context) (res []string, err error) {
-	return ph.G().GetProofServices().ListServicesThatAcceptNewProofs(), nil
+	ctx = libkb.WithLogTag(ctx, "PV")
+	defer ph.G().CTraceTimed(ctx, fmt.Sprintf("ListProofServices"), func() error { return err })()
+	mctx := libkb.NewMetaContext(ctx, ph.G())
+	return ph.G().GetProofServices().ListServicesThatAcceptNewProofs(mctx), nil
 }

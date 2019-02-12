@@ -1,12 +1,11 @@
 // @flow
-import * as I from 'immutable'
 import * as Chat2Gen from '../../../actions/chat2-gen'
 import * as Constants from '../../../constants/chat2'
 import * as React from 'react'
-import * as Route from '../../../actions/route-tree'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Types from '../../../constants/types/chat2'
 import {InfoPanel} from '.'
-import {connect, isMobile} from '../../../util/container'
+import {connect, isMobile, type RouteProps} from '../../../util/container'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import {getCanPerform} from '../../../constants/teams'
 import {Box} from '../../../common-adapters'
@@ -35,13 +34,13 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   }
 
   return {
-    _participants: meta.participants,
     _infoMap: state.users.infoMap,
+    _participants: meta.participants,
     admin,
+    canDeleteHistory,
     canEditChannel,
     canSetMinWriterRole,
     canSetRetention,
-    canDeleteHistory,
     channelname: meta.channelname,
     description: meta.description,
     isPreview: meta.membershipType === 'youArePreviewing',
@@ -53,34 +52,46 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
 
 const mapDispatchToProps = (dispatch, {conversationIDKey, onBack}: OwnProps) => ({
   _navToRootChat: () => dispatch(Chat2Gen.createNavigateToInbox({findNewConversation: false})),
-  onLeaveConversation: () => dispatch(Chat2Gen.createLeaveConversation({conversationIDKey})),
-  onJoinChannel: () => dispatch(Chat2Gen.createJoinConversation({conversationIDKey})),
+  _onEditChannel: (teamname: string) =>
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {conversationIDKey, teamname}, selected: 'editChannel'}],
+      })
+    ),
   _onShowClearConversationDialog: () => {
     dispatch(Chat2Gen.createNavigateToThread())
-    dispatch(Route.navigateAppend([{props: {conversationIDKey}, selected: 'deleteHistoryWarning'}]))
+    dispatch(
+      RouteTreeGen.createNavigateAppend({
+        path: [{props: {conversationIDKey}, selected: 'deleteHistoryWarning'}],
+      })
+    )
   },
+  onJoinChannel: () => dispatch(Chat2Gen.createJoinConversation({conversationIDKey})),
+  onLeaveConversation: () => dispatch(Chat2Gen.createLeaveConversation({conversationIDKey})),
   onShowBlockConversationDialog: () => {
     dispatch(
-      Route.navigateAppend([
-        {
-          props: {conversationIDKey},
-          selected: 'showBlockConversationDialog',
-        },
-      ])
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {conversationIDKey},
+            selected: 'showBlockConversationDialog',
+          },
+        ],
+      })
     )
   },
   onShowNewTeamDialog: () => {
     dispatch(
-      Route.navigateAppend([
-        {
-          props: {conversationIDKey},
-          selected: 'showNewTeamDialog',
-        },
-      ])
+      RouteTreeGen.createNavigateAppend({
+        path: [
+          {
+            props: {conversationIDKey},
+            selected: 'showNewTeamDialog',
+          },
+        ],
+      })
     )
   },
-  _onEditChannel: (teamname: string) =>
-    dispatch(Route.navigateAppend([{selected: 'editChannel', props: {conversationIDKey, teamname}}])),
   onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
 })
 
@@ -119,10 +130,7 @@ const ConnectedInfoPanel = connect<OwnProps, _, _, _, _>(
   mergeProps
 )(InfoPanel)
 
-type SelectorOwnProps = {|
-  routeProps: I.RecordOf<{conversationIDKey: Types.ConversationIDKey}>,
-  navigateUp: typeof Route.navigateUp,
-|}
+type SelectorOwnProps = RouteProps<{conversationIDKey: Types.ConversationIDKey}, {}>
 
 const mapStateToSelectorProps = (state, ownProps: SelectorOwnProps) => {
   const conversationIDKey: Types.ConversationIDKey = ownProps.routeProps.get('conversationIDKey')
@@ -164,15 +172,15 @@ class InfoPanelSelector extends React.PureComponent<Props> {
   }
 }
 
-const clickCatcherStyle = {position: 'absolute', top: 38, right: 0, bottom: 0, left: 80}
+const clickCatcherStyle = {bottom: 0, left: 80, position: 'absolute', right: 0, top: 38}
 const panelContainerStyle = {
+  bottom: 0,
+  display: 'flex',
+  flexDirection: 'column',
   position: 'absolute',
   right: 0,
   top: 0,
-  bottom: 0,
   width: 320,
-  display: 'flex',
-  flexDirection: 'column',
 }
 
 export default connect<SelectorOwnProps, _, _, _, _>(

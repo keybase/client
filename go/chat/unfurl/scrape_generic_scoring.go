@@ -1,6 +1,7 @@
 package unfurl
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -27,6 +28,7 @@ const (
 	setImageURL
 	setPublishTime
 	setDescription
+	setVideo
 )
 
 func getOpenGraphScore(domain string, e *colly.HTMLElement) int {
@@ -74,6 +76,10 @@ func getAppleTouchFaviconScore(domain string, e *colly.HTMLElement) int {
 	return (getDefaultScore(domain, e) + 1) * getFaviconMultiplier(e)
 }
 
+func getAppleTouchFaviconScoreFromPath() int {
+	return defaultScore * 384
+}
+
 // Metadata to describe how to extra and score content and which field this
 // attribute describes
 type attrRanker struct {
@@ -92,6 +98,32 @@ func getContentAttr(e *colly.HTMLElement) []string {
 
 func getHrefAndContentAttr(e *colly.HTMLElement) []string {
 	return append(getHrefAttr(e), getContentAttr(e)...)
+}
+
+func getOpenGraphVideo(e *colly.HTMLElement) []string {
+	url := e.Attr("content")
+	if len(url) == 0 {
+		return nil
+	}
+	mimeType := "video/mp4"
+	var height, width *int
+	heightStr, _ :=
+		e.DOM.SiblingsFiltered("meta[content][property=\"og:video:height\"]").Eq(0).Attr("content")
+	if h, err := strconv.Atoi(heightStr); err == nil && h > 0 {
+		height = &h
+	}
+	widthStr, _ := e.DOM.SiblingsFiltered("meta[content][property=\"og:video:width\"]").Eq(0).Attr("content")
+	if w, err := strconv.Atoi(widthStr); err == nil && w > 0 {
+		width = &w
+	}
+	typeStr, ok := e.DOM.SiblingsFiltered("meta[content][property=\"og:video:type\"]").Eq(0).Attr("content")
+	if ok {
+		mimeType = typeStr
+	}
+	if height == nil || width == nil {
+		return nil
+	}
+	return []string{fmt.Sprintf("%s %d %d %s", url, *height, *width, mimeType)}
 }
 
 // Map of supported attributes/tags
@@ -161,6 +193,13 @@ var attrRankMap = map[string]attrRanker{
 		setter:  setImageURL,
 	},
 
+	// video
+	"og:video": attrRanker{
+		content: getOpenGraphVideo,
+		score:   getOpenGraphScore,
+		setter:  setVideo,
+	},
+
 	// publishTime
 	"lastmod": attrRanker{
 		content: getContentAttr,
@@ -225,6 +264,7 @@ type scoredGenericRaw struct {
 	siteNameScore    int
 	faviconURLScore  int
 	imageURLScore    int
+	videoScore       int
 	publishTimeScore int
 	descriptionScore int
 }
@@ -261,6 +301,21 @@ func (g *scoredGenericRaw) setImageURL(imageURL *string, score int) {
 	if score > g.imageURLScore || g.ImageUrl == nil {
 		g.ImageUrl = imageURL
 		g.imageURLScore = score
+	}
+}
+
+func (g *scoredGenericRaw) setVideo(videoDesc string, score int) {
+	if score > g.videoScore || g.Video == nil {
+		parts := strings.Split(videoDesc, " ")
+		height, _ := strconv.Atoi(parts[1])
+		width, _ := strconv.Atoi(parts[2])
+		g.Video = &chat1.UnfurlVideo{
+			Url:      parts[0],
+			MimeType: parts[3],
+			Height:   height,
+			Width:    width,
+		}
+		g.videoScore = score
 	}
 }
 

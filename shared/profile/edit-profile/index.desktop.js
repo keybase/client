@@ -1,8 +1,10 @@
 // @flow
+// // TODO deprecate
 import * as React from 'react'
 import {globalStyles} from '../../styles'
-import {StandardScreen, Box, Button, Input, ButtonBar} from '../../common-adapters'
+import {StandardScreen, Box, WaitingButton, Input, ButtonBar} from '../../common-adapters'
 import type {Props} from '.'
+import {waitingKey} from '../../constants/tracker2'
 
 const EditProfileRender = (props: Props) => (
   <StandardScreen onBack={props.onBack}>
@@ -32,8 +34,20 @@ const EditProfileRender = (props: Props) => (
         onChangeText={location => props.onLocationChange(location)}
       />
       <ButtonBar>
-        <Button type="Secondary" onClick={props.onCancel} label="Cancel" />
-        <Button type="Primary" disabled={props.bioLengthLeft <= 0} onClick={props.onSubmit} label="Save" />
+        <WaitingButton
+          onlyDisable={true}
+          waitingKey={waitingKey}
+          type="Secondary"
+          onClick={props.onCancel}
+          label="Cancel"
+        />
+        <WaitingButton
+          waitingKey={waitingKey}
+          type="Primary"
+          disabled={props.bioLengthLeft < 0}
+          onClick={props.onSubmit}
+          label="Save"
+        />
       </ButtonBar>
     </Box>
   </StandardScreen>

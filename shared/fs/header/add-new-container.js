@@ -11,11 +11,11 @@ const mapStateToProps = (state, {path}) => ({
 })
 
 const mapDispatchToProps = (dispatch, {path: parentPath, routePath}) => ({
-  newFolderRow: () => dispatch(FsGen.createNewFolderRow({parentPath})),
   _openAndUpload: (type: Types.OpenDialogType) => () =>
     dispatch(FsGen.createOpenAndUpload({parentPath, type})),
   _pickAndUpload: (type: Types.MobilePickType) => () =>
     dispatch(FsGen.createPickAndUpload({parentPath, type})),
+  newFolderRow: () => dispatch(FsGen.createNewFolderRow({parentPath})),
 })
 
 const mergeProps = ({_pathItem}, {newFolderRow, _openAndUpload, _pickAndUpload}, {path, style}) => {
@@ -33,11 +33,11 @@ const mergeProps = ({_pathItem}, {newFolderRow, _openAndUpload, _pickAndUpload},
                   pickAndUploadVideo: _pickAndUpload('video'),
                 }
             : isDarwin
-              ? {openAndUploadBoth: _openAndUpload('both')}
-              : {
-                  openAndUploadFile: _openAndUpload('file'),
-                  openAndUploadDir: _openAndUpload('directory'),
-                }),
+            ? {openAndUploadBoth: _openAndUpload('both')}
+            : {
+                openAndUploadDir: _openAndUpload('directory'),
+                openAndUploadFile: _openAndUpload('file'),
+              }),
           newFolderRow,
         }
       : {}),

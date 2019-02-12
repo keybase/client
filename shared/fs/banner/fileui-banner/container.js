@@ -14,27 +14,28 @@ const mapStateToProps = state => {
   const kbfsEnabled = Constants.kbfsEnabled(state)
   const kbfsOutdated = Constants.kbfsOutdated(state)
   return {
+    dokanUninstallString: Constants.kbfsUninstallString(state),
+    inProgress: state.fs.flags.fuseInstalling || state.fs.flags.kbfsInstalling || state.fs.flags.kbfsOpening,
     kbfsEnabled,
     kbfsOutdated,
     showBanner: !kbfsEnabled && state.fs.flags.showBanner,
-    inProgress: state.fs.flags.fuseInstalling || state.fs.flags.kbfsInstalling || state.fs.flags.kbfsOpening,
     showSecurityPrefs: !kbfsEnabled && state.fs.flags.kextPermissionError,
-    dokanUninstallString: Constants.kbfsUninstallString(state),
   }
 }
 
 const mapDispatchToProps = (dispatch, {path}: OwnProps) => {
   return {
+    _openInSystemFileManager: path && (() => dispatch(FsGen.createOpenPathInSystemFileManager({path}))),
     getFuseStatus: () => dispatch(FsGen.createFuseStatus()),
     onDismiss: () => dispatch(FsGen.createSetFlags({showBanner: false})),
     onInstall: () => dispatch(FsGen.createInstallFuse()),
     onUninstall: () => dispatch(FsGen.createUninstallKBFSConfirm()),
-    _openInSystemFileManager: path && (() => dispatch(FsGen.createOpenPathInSystemFileManager({path}))),
   }
 }
 
 const mergeProps = (stateProps, dispatchProps, {path}: OwnProps) => ({
   ...stateProps,
+  dokanUninstall: stateProps.dokanUninstallString ? dispatchProps.onUninstall : undefined,
   getFuseStatus: dispatchProps.getFuseStatus,
   onDismiss: dispatchProps.onDismiss,
   onInstall: dispatchProps.onInstall,
@@ -42,13 +43,12 @@ const mergeProps = (stateProps, dispatchProps, {path}: OwnProps) => ({
   openInSystemFileManager:
     stateProps.kbfsEnabled && path ? () => dispatchProps._openInSystemFileManager : undefined,
   path,
-  dokanUninstall: stateProps.dokanUninstallString ? dispatchProps.onUninstall : undefined,
 })
 
 const ConnectedBanner = isMobile
   ? () => null
   : compose(
-      namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'FilesBanner'),
+      namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'FilesBanner'),
       lifecycle({
         componentDidMount() {
           this.props.getFuseStatus()

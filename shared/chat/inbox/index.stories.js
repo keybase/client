@@ -37,7 +37,7 @@ const commonSmallTeam = {
   conversationIDKey: '',
   hasResetUsers: false,
   hasUnread: false,
-  iconHoverColor: globalColors.black_60,
+  iconHoverColor: globalColors.black_50,
   isLocked: false,
   isMuted: false,
   isSelected: false,
@@ -49,7 +49,7 @@ const commonSmallTeam = {
   showBold: false,
   snippet: 'snippet',
   snippetDecoration: '',
-  subColor: globalColors.black_40,
+  subColor: globalColors.black_50,
   teamname: '',
   timestamp: '1:23 pm',
   unreadCount: 0,
@@ -153,8 +153,8 @@ const mapPropProviderProps = {
     hasBadge: false,
     showBold: false,
     snippet: 'what does the scouter say about his power level?',
-    subColor: globalColors.black_40,
-    usernameColor: globalColors.black_40,
+    subColor: globalColors.black_50,
+    usernameColor: globalColors.black_50,
   },
   smallTeamG: {
     ...commonSmallTeam,
@@ -327,6 +327,7 @@ const getPropProviderProps = own => {
     const props = mapPropProviderProps[own.conversationIDKey]
     return {
       ...props,
+      conversationIDKey: own.conversationIDKey,
       key: props.conversationIDKey,
     }
   }
@@ -348,7 +349,9 @@ const propsInboxCommon = {
   onUntrustedInboxVisible: Sb.action('onUntrustedInboxVisible'),
   onSelectUp: Sb.action('onSelectUp'),
   onSelectDown: Sb.action('onSelectDown'),
+  onEnsureSelection: Sb.action('onEnsureSelection'),
   rows: [],
+  selectedIndex: -1,
   smallTeamsExpanded: false,
   toggleSmallTeamsExpanded: Sb.action('toggleSmallTeamsExpanded'),
 }
@@ -518,6 +521,8 @@ const provider = Sb.createPropProviderWithCommon({
   BigTeamChannel: getPropProviderProps,
   FilterSmallTeam: getPropProviderProps,
   FilterBigTeamChannel: getPropProviderProps,
+  SelectableSmallTeam: getPropProviderProps,
+  SelectableBigTeamChannel: getPropProviderProps,
 })
 
 class Wrapper extends React.Component<any, any> {

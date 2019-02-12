@@ -2,7 +2,7 @@
 import * as I from 'immutable'
 import * as Types from '../../../../constants/types/chat2'
 import * as Constants from '../../../../constants/chat2'
-import * as RouteTree from '../../../../actions/route-tree'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import {ChannelHeader, UsernameHeader} from '.'
 import {branch, compose, renderComponent, connect} from '../../../../util/container'
@@ -28,10 +28,10 @@ const mapStateToProps = (state, {infoPanelOpen, conversationIDKey, isPending}) =
   return {
     _badgeMap: state.chat2.badgeMap,
     _conversationIDKey: conversationIDKey,
-    isPending,
     _participants,
     channelName: meta.channelname,
     infoPanelOpen,
+    isPending,
     muted: meta.isMuted,
     smallTeam: meta.teamType !== 'big',
     teamName: meta.teamname,
@@ -41,10 +41,10 @@ const mapStateToProps = (state, {infoPanelOpen, conversationIDKey, isPending}) =
 const mapDispatchToProps = (dispatch, {onToggleInfoPanel, conversationIDKey}) => ({
   _onCancel: () => dispatch(Chat2Gen.createSetPendingMode({pendingMode: 'none'})),
   _onOpenFolder: () => dispatch(Chat2Gen.createOpenFolder({conversationIDKey})),
-  onBack: () => dispatch(RouteTree.navigateUp()),
+  _onUnMuteConversation: () => dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: false})),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onShowProfile: (username: string) => dispatch(createShowUserProfile({username})),
   onToggleInfoPanel,
-  _onUnMuteConversation: () => dispatch(Chat2Gen.createMuteConversation({conversationIDKey, muted: false})),
 })
 
 const mergeProps = (stateProps, dispatchProps) => ({

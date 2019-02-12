@@ -35,13 +35,14 @@ const Render = (props: Props) => {
           </Text>
         )}
         <Text
+          center={true}
           type="Body"
-          style={{marginTop: globalMargins.small, marginBottom: globalMargins.tiny, textAlign: 'center'}}
+          style={{marginBottom: globalMargins.tiny, marginTop: globalMargins.small}}
         >
           {message}
         </Text>
         {!!messageSubtitle && (
-          <Text type="BodySmall" style={{textAlign: 'center'}}>
+          <Text center={true} type="BodySmall">
             {messageSubtitle}
           </Text>
         )}
@@ -61,10 +62,10 @@ const Wrapped = (props: Props) => {
     <Box
       style={{
         ...globalStyles.flexBoxColumn,
-        justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: titleColor,
         height: globalMargins.large,
+        justifyContent: 'center',
       }}
     >
       <Text backgroundMode="Terminal" type="BodySemibold">

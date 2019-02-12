@@ -194,15 +194,7 @@ func handleChangeSingle(ctx context.Context, g *libkb.GlobalContext, row keybase
 
 	defer m.CTrace(fmt.Sprintf("team.handleChangeSingle(%+v, %+v)", row, change), func() error { return err })()
 
-	if err = g.GetTeamLoader().HintLatestSeqno(ctx, row.Id, row.LatestSeqno); err != nil {
-		m.CWarningf("error in HintLatestSeqno: %v", err)
-		return nil
-	}
-
-	if err = g.GetFastTeamLoader().HintLatestSeqno(m, row.Id, row.LatestSeqno); err != nil {
-		m.CWarningf("error in FastTeamLoader#HintLatestSeqno: %v", err)
-		err = nil // non-fatal
-	}
+	HintLatestSeqno(m, row.Id, row.LatestSeqno)
 
 	// If we're handling a rename we should also purge the resolver cache and
 	// the KBFS favorites cache
@@ -644,7 +636,7 @@ func handleSeitanSingleV2(key keybase1.SeitanPubKey, invite keybase1.TeamInvite,
 
 	var sig SeitanSig
 	decodedSig, err := base64.StdEncoding.DecodeString(string(seitan.Akey)) // For V2 the server responds with sig in the akey field
-	if len(sig) != len(decodedSig) {
+	if err != nil || len(sig) != len(decodedSig) {
 		return errors.New("Signature length verification failed (seitan)")
 	}
 	copy(sig[:], decodedSig[:])

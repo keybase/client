@@ -69,16 +69,16 @@ xCode has trouble signing with Developer IDs properly so we need to re-sign.
 NOTE: If codesigning fails (ambiguous certificate) you need to manually delete
 the (old) March 12th version of the certificate from your Keychain.
 
-Re-signing using identitiy:
+Re-signing using identity:
 
 $code_sign_identity
 
 "
 
 helper="$app_name.app/Contents/Library/LaunchServices/keybase.Helper"
-codesign --verbose --force --preserve-metadata=identifier,entitlements --timestamp=none --sign "$code_sign_identity" "$helper"
+codesign --verbose -o library --force --preserve-metadata=identifier,entitlements --timestamp=none --sign "$code_sign_identity" "$helper"
 
-codesign --verbose --force --deep --timestamp=none --sign "$code_sign_identity" $app_name.app
+codesign --verbose -o library --force  --deep --timestamp=none --sign  "$code_sign_identity"  $app_name.app
 echo " "
 
 echo "Checking app..."

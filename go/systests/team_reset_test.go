@@ -37,7 +37,7 @@ func pollForMembershipUpdate(team smuTeam, ann *smuUser, bob *smuUser, cam *smuU
 		case ann.username:
 			require.True(ann.ctx.t, member.Status.IsActive())
 		default:
-			ann.ctx.t.Fatalf("unknown admin: %s", member.Username)
+			require.Fail(ann.ctx.t, "unknown admin: %s", member.Username)
 		}
 	}
 	for _, member := range details.Members.Writers {
@@ -47,7 +47,7 @@ func pollForMembershipUpdate(team smuTeam, ann *smuUser, bob *smuUser, cam *smuU
 		case cam.username:
 			require.True(ann.ctx.t, member.Status.IsActive())
 		default:
-			ann.ctx.t.Fatalf("unknown writer: %s (%+v)", member.Username, details)
+			require.Fail(ann.ctx.t, "unknown writer: %s (%+v)", member.Username, details)
 		}
 	}
 	ann.ctx.log.Debug("team details checked out: %+v", details)
@@ -723,16 +723,10 @@ func testTeamResetBadgesAndDismiss(t *testing.T, readd bool) {
 	badgeState := tt.users[0].waitForBadgeStateWithReset(1)
 
 	// users[0] should be badged since users[1] reset
-	if len(badgeState.TeamsWithResetUsers) == 0 {
-		t.Fatal("TeamsWithResetUsers is empty after reset")
-	}
+	require.True(t, len(badgeState.TeamsWithResetUsers) > 0)
 	out := badgeState.TeamsWithResetUsers[0]
-	if out.Teamname != teamName.String() {
-		t.Errorf("badged team name: %s, expected %s", out.Teamname, teamName)
-	}
-	if out.Username != tt.users[1].username {
-		t.Errorf("badged user: %s, expected %s", out.Username, tt.users[1].username)
-	}
+	require.Equal(t, out.Teamname, teamName.String())
+	require.Equal(t, out.Username, tt.users[1].username)
 
 	// users[1] logs in after reset
 	tt.users[1].loginAfterReset()
@@ -751,9 +745,7 @@ func testTeamResetBadgesAndDismiss(t *testing.T, readd bool) {
 	badgeState = tt.users[0].waitForBadgeStateWithReset(0)
 
 	// badge state should be cleared
-	if len(badgeState.TeamsWithResetUsers) != 0 {
-		t.Errorf("badge state for TeamsWithResetUsers not empty: %d", len(badgeState.TeamsWithResetUsers))
-	}
+	require.Zero(t, len(badgeState.TeamsWithResetUsers))
 }
 
 // TestTeamResetBadges checks that badges show up for admins

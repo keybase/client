@@ -354,7 +354,7 @@ func (a AssertionWeb) CheckAndNormalize(_ AssertionContext) (AssertionURL, error
 func (a AssertionKeybase) CheckAndNormalize(_ AssertionContext) (AssertionURL, error) {
 	a.Value = strings.ToLower(a.Value)
 	if !CheckUsername.F(a.Value) {
-		return nil, fmt.Errorf("bad keybase username '%s': %s", a.Value, CheckUsername.Hint)
+		return nil, NewAssertionCheckError("bad keybase username '%s': %s", a.Value, CheckUsername.Hint)
 	}
 	return a, nil
 }
@@ -362,7 +362,7 @@ func (a AssertionKeybase) CheckAndNormalize(_ AssertionContext) (AssertionURL, e
 func (a AssertionFingerprint) CheckAndNormalize(_ AssertionContext) (AssertionURL, error) {
 	a.Value = strings.ToLower(a.Value)
 	if _, err := hex.DecodeString(a.Value); err != nil {
-		return nil, fmt.Errorf("bad hex string: '%s'", a.Value)
+		return nil, NewAssertionCheckError("bad hex string: '%s'", a.Value)
 	}
 	return a, nil
 }
@@ -370,13 +370,13 @@ func (a AssertionFingerprint) CheckAndNormalize(_ AssertionContext) (AssertionUR
 func (b *AssertionURLBase) checkAndNormalizeHost() error {
 
 	if len(b.Value) == 0 {
-		return fmt.Errorf("Bad assertion, no value given (key=%s)", b.Key)
+		return NewAssertionCheckError("Bad assertion, no value given (key=%s)", b.Key)
 	}
 
 	b.Value = strings.ToLower(b.Value)
 
 	if !IsValidHostname(b.Value) {
-		return fmt.Errorf("Invalid hostname: %s", b.Value)
+		return NewAssertionCheckError("Invalid hostname: %s", b.Value)
 	}
 
 	return nil
@@ -583,14 +583,14 @@ func (a AssertionSocial) CheckAndNormalize(ctx AssertionContext) (AssertionURL, 
 
 func (a AssertionPhoneNumber) CheckAndNormalize(ctx AssertionContext) (AssertionURL, error) {
 	if !IsPossiblePhoneNumber(a.Value) {
-		return nil, fmt.Errorf("Invalid phone number: %s", a.Value)
+		return nil, NewAssertionCheckError("Invalid phone number: %s", a.Value)
 	}
 	return a, nil
 }
 
 func (a AssertionEmail) CheckAndNormalize(ctx AssertionContext) (AssertionURL, error) {
 	if strings.Count(a.Value, "@") != 1 {
-		return nil, fmt.Errorf("Invalid email address: %s", a.Value)
+		return nil, NewAssertionCheckError("Invalid email address: %s", a.Value)
 	}
 	return a, nil
 }

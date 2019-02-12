@@ -6,16 +6,6 @@ import * as ChatTypes from '../constants/types/chat2'
 import * as SmallTeam from '../chat/inbox/row/small-team'
 import * as RemoteContainer from '../chat/inbox/container/remote'
 
-const ChatViewAll = ({onViewAll}: {onViewAll: () => void}) => (
-  <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true}>
-    <Kb.ClickableBox onClick={onViewAll} className="toggleButtonClass" style={styles.toggleButton}>
-      <Kb.Text type="BodySmallSemibold" style={styles.buttonText}>
-        View all
-      </Kb.Text>
-    </Kb.ClickableBox>
-  </Kb.Box2>
-)
-
 type ConvRow = {|
   ...$Exact<RemoteContainer.RemoteConvMeta>,
   conversationIDKey: ChatTypes.ConversationIDKey,
@@ -32,12 +22,16 @@ export const ChatPreview = ({onViewAll, onSelectConversation, convRows}: ChatPre
     {convRows.map(r => {
       return <SmallTeam.SmallTeam key={r.conversationIDKey} {...r} />
     })}
-    <ChatViewAll onViewAll={onViewAll} />
+    <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.buttonContainer}>
+      <Kb.Button label="View all" onClick={onViewAll} small={true} type="Secondary" />
+    </Kb.Box2>
   </Kb.Box2>
 )
 
 const styles = Styles.styleSheetCreate({
-  buttonText: {color: Styles.globalColors.black_60},
+  buttonContainer: {
+    marginTop: Styles.globalMargins.tiny,
+  },
   chatContainer: {
     backgroundColor: Styles.globalColors.white,
     color: Styles.globalColors.black,

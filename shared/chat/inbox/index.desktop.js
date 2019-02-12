@@ -48,6 +48,10 @@ class Inbox extends React.PureComponent<Props, State> {
     if (listRowsResized) {
       this._list && this._list.resetAfterIndex(0)
     }
+
+    if (this.props.selectedIndex !== prevProps.selectedIndex && this.props.selectedIndex >= 0 && this._list) {
+      this._list.scrollToItem(this.props.selectedIndex)
+    }
   }
 
   componentDidMount() {
@@ -133,13 +137,15 @@ class Inbox extends React.PureComponent<Props, State> {
     this.props.onNewChat()
   }
 
+  _onEnsureSelection = () => this.props.onEnsureSelection()
   _onSelectUp = () => this.props.onSelectUp()
   _onSelectDown = () => this.props.onSelectDown()
 
   render() {
     const owl = !this.props.rows.length && !!this.props.filter && <Owl />
-    const floatingDivider = this.state.showFloating &&
-      this.props.allowShowFloatingButton && <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
+    const floatingDivider = this.state.showFloating && this.props.allowShowFloatingButton && (
+      <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
+    )
     return (
       <ErrorBoundary>
         <div style={_containerStyle}>
@@ -147,6 +153,7 @@ class Inbox extends React.PureComponent<Props, State> {
             filterFocusCount={this.props.filterFocusCount}
             focusFilter={this.props.focusFilter}
             onNewChat={this._prepareNewChat}
+            onEnsureSelection={this._onEnsureSelection}
             onSelectUp={this._onSelectUp}
             onSelectDown={this._onSelectDown}
           />

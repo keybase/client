@@ -1,5 +1,6 @@
 // @flow
 import * as TeamsGen from '../../../../actions/teams-gen'
+import * as Flow from '../../../../util/flow'
 import {createSetConvRetentionPolicy} from '../../../../actions/chat2-gen'
 import {namedConnect, compose, lifecycle, withStateHandlers, withHandlers} from '../../../../util/container'
 import {
@@ -10,8 +11,8 @@ import {
 } from '../../../../constants/teams'
 import {getConversationRetentionPolicy} from '../../../../constants/chat2/meta'
 import type {RetentionPolicy} from '../../../../constants/types/retention-policy'
-import {navigateTo, pathSelector} from '../../../../actions/route-tree'
-import {type Path} from '../../../../route-tree'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import {getPath, type Path} from '../../../../route-tree'
 import type {ConversationIDKey} from '../../../../constants/types/chat2'
 import type {StylesCrossPlatform} from '../../../../styles'
 import RetentionPicker, {type RetentionEntityType} from './'
@@ -96,10 +97,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
       }
       throw new Error('RetentionPicker needs a teamname to set big team retention policies')
     default:
-    /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(entityType);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(entityType)
     // Issue with flow here: https://github.com/facebook/flow/issues/6068
     // throw new Error(`RetentionPicker: impossible entityType encountered: ${entityType}`)
   }
@@ -108,7 +106,9 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     throw new Error(`RetentionPicker: impossible entityType encountered: ${entityType}`)
   }
 
-  const _path = pathSelector(state)
+  const policyIsExploding =
+    policy.type === 'explode' || (policy.type === 'inherit' && teamPolicy && teamPolicy.type === 'explode')
+  const _path = getPath(state.routeTree.routeState)
   return {
     _path,
     _permissionsLoaded,
@@ -116,6 +116,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     entityType, // used only to display policy to non-admins
     loading,
     policy,
+    policyIsExploding,
     showInheritOption,
     showOverrideNotice,
     teamPolicy,
@@ -126,19 +127,24 @@ const mapDispatchToProps = (
   dispatch,
   {conversationIDKey, entityType, teamname, onSelect, type}: OwnProps
 ) => ({
-  _loadTeamPolicy: () => teamname && dispatch(TeamsGen.createGetTeamRetentionPolicy({teamname})),
   _loadTeamOperations: () => teamname && dispatch(TeamsGen.createGetTeamOperations({teamname})),
-  _onShowWarning: (days: number, onConfirm: () => void, onCancel: () => void, parentPath: Path) => {
+  _loadTeamPolicy: () => teamname && dispatch(TeamsGen.createGetTeamRetentionPolicy({teamname})),
+  _onShowWarning: (
+    policy: RetentionPolicy,
+    onConfirm: () => void,
+    onCancel: () => void,
+    parentPath: Path
+  ) => {
     dispatch(
-      navigateTo(
-        [
+      RouteTreeGen.createNavigateTo({
+        parentPath,
+        path: [
           {
+            props: {entityType, onCancel, onConfirm, policy},
             selected: 'retentionWarning',
-            props: {days, onCancel, onConfirm, entityType},
           },
         ],
-        parentPath
-      )
+      })
     )
   },
   saveRetentionPolicy: (policy: RetentionPolicy) => {
@@ -147,7 +153,7 @@ const mapDispatchToProps = (
       teamname && dispatch(TeamsGen.createSaveTeamRetentionPolicy({policy, teamname}))
     } else if (['adhoc', 'channel'].includes(entityType)) {
       // we couldn't get here without throwing an error for !conversationIDKey
-      conversationIDKey && dispatch(createSetConvRetentionPolicy({policy, conversationIDKey}))
+      conversationIDKey && dispatch(createSetConvRetentionPolicy({conversationIDKey, policy}))
     } else {
       throw new Error(`RetentionPicker: impossible entityType encountered: ${entityType}`)
     }
@@ -155,7 +161,12 @@ const mapDispatchToProps = (
 })
 
 export default compose(
-namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, (s, d, o) => ({...o, ...s, ...d}), 'RetentionPicker'),
+  namedConnect<OwnProps, _, _, _, _>(
+    mapStateToProps,
+    mapDispatchToProps,
+    (s, d, o) => ({...o, ...s, ...d}),
+    'RetentionPicker'
+  ),
   withStateHandlers({_parentPath: null}, {_setParentPath: () => _parentPath => ({_parentPath})}),
   lifecycle({
     componentDidMount() {
@@ -165,7 +176,7 @@ namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, (s, d, o
     },
   }),
   withHandlers({
-    onShowWarning: ({_parentPath, _onShowWarning}) => (days, onConfirm, onCancel) =>
-      _onShowWarning(days, onConfirm, onCancel, _parentPath),
+    onShowWarning: ({_parentPath, _onShowWarning}) => (policy, onConfirm, onCancel) =>
+      _onShowWarning(policy, onConfirm, onCancel, _parentPath),
   })
 )(RetentionPicker)

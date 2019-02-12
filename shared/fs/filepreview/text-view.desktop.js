@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
+import * as Styles from '../../styles'
 import {type TextViewProps} from './text-view'
 import {WebView} from '../../common-adapters'
 import type {WebViewInjections} from '../../common-adapters'
@@ -8,7 +8,7 @@ import type {WebViewInjections} from '../../common-adapters'
 const TextView = (props: TextViewProps) => (
   <WebView
     url={props.url}
-    style={globalStyles.flexGrow}
+    style={Styles.globalStyles.flexGrow}
     injections={injections}
     onLoadingStateChange={props.onLoadingStateChange}
   />
@@ -21,18 +21,19 @@ const TextView = (props: TextViewProps) => (
 // provided by <FilePreview/>
 const webviewCSS = `
 html{
-  background-color: ${globalColors.blue5};
-  padding-top: ${globalMargins.medium}; 
-  padding-bottom: ${globalMargins.medium}; 
+  background-color: ${Styles.globalColors.blue5};
+  padding-top: ${Styles.globalMargins.medium}; 
+  padding-bottom: ${Styles.globalMargins.medium}; 
   margin: 0;
 }
 body{
-  background-color: ${globalColors.white};
-  padding: ${globalMargins.xlarge};
+  background-color: ${Styles.globalColors.white};
+  padding: ${Styles.globalMargins.xlarge};
   margin: 0;
-  color: ${globalColors.black_60};
+  color: ${Styles.globalColors.black};
   line-height: 1.38;
-  font-size: 13;
+  font-size: 14;
+  font-family: ${Styles.globalStyles.fontTerminal.fontFamily}
 }
 `
 

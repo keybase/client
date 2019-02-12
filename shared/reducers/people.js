@@ -2,6 +2,7 @@
 import * as Types from '../constants/types/people'
 import * as Constants from '../constants/people'
 import * as PeopleGen from '../actions/people-gen'
+import * as Flow from '../util/flow'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -20,12 +21,10 @@ export default function(state: Types.State = initialState, action: PeopleGen.Act
     case PeopleGen.getPeopleData:
     case PeopleGen.markViewed:
     case PeopleGen.skipTodo:
+    case PeopleGen.dismissAnnouncement:
       return state
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(action);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

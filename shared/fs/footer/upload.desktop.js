@@ -50,8 +50,8 @@ const Upload = ({showing, files, fileName, totalSyncingBytes, timeLeft, debugTog
                 ? `Encrypting and uploading ${fileName}...`
                 : `Encrypting and uploading ${files} files...`
               : totalSyncingBytes
-                ? 'Encrypting and uploading...'
-                : 'Done!'}
+              ? 'Encrypting and uploading...'
+              : 'Done!'}
           </Text>
           {!!(timeLeft && timeLeft.length) && (
             <Text key="left" type="BodySmall" style={stylesText}>{`${timeLeft} left`}</Text>
@@ -67,10 +67,10 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       color: Styles.globalColors.white,
       maxWidth: '60%',
-      whiteSpace: 'nowrap',
       overflow: 'hidden',
       textAlign: 'center',
       textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
     },
   }),
 })
@@ -81,11 +81,11 @@ const stylesText = {
 
 const stylesBox = {
   ...Styles.globalStyles.flexBoxColumn,
-  position: 'relative',
   alignItems: 'center',
+  height,
   justifyContent: 'center',
   maxHeight: height,
-  height,
+  position: 'relative',
 }
 
 export default Upload

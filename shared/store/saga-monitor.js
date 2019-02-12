@@ -116,8 +116,8 @@ const globalScope =
   typeof window.document === 'undefined' && navigator.product === 'ReactNative'
     ? global
     : IS_BROWSER
-      ? window
-      : null
+    ? window
+    : null
 // `VERBOSE` can be made a setting configured from the outside.
 const VERBOSE = true
 

@@ -9,10 +9,10 @@ const mapStateToProps = state => ({
   _downloads: state.fs.downloads,
 })
 
-const mapDispatchToProps = (dispatch) => ({
+const mapDispatchToProps = dispatch => ({
   openDownloadFolder: isMobile
     ? undefined
-    : () => dispatch(FsGen.createOpenLocalPathInSystemFileManager({path: downloadFolder})),
+    : () => dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: downloadFolder})),
 })
 
 const maxNumCards = isMobile ? 1 : 3
@@ -23,14 +23,14 @@ const mergeProps = ({_downloads}, {openDownloadFolder}) => {
     .map(([key, download]) => key)
   return ({
     downloadKeys: downloadKeys.slice(0, maxNumCards),
-    thereAreMore: downloadKeys.length > maxNumCards,
     openDownloadFolder,
+    thereAreMore: downloadKeys.length > maxNumCards,
   }: DownloadsProps)
 }
 
-export default namedConnect(
-    mapStateToProps,
-    mapDispatchToProps,
-    mergeProps,
-'ConnectedDownloads'
+export default namedConnect<{||}, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'ConnectedDownloads'
 )(Downloads)

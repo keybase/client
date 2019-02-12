@@ -1,0 +1,481 @@
+{
+    "prelude": [
+        "import * as chat1Types from '../constants/types/rpc-chat-gen'",
+        "import * as keybase1Types from '../constants/types/rpc-gen'",
+        "import * as gregor1Types from '../constants/types/rpc-gregor-gen'",
+        "import * as stellar1Types from '../constants/types/rpc-stellar-gen'"
+    ],
+    "actions": {
+        "chat1ChatUiChatAttachmentDownloadStart": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatAttachmentDownloadStart'>, 'inParam'>>"
+        },
+        "chat1ChatUiChatAttachmentDownloadProgress": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatAttachmentDownloadProgress'>, 'inParam'>>"
+        },
+        "chat1ChatUiChatAttachmentDownloadDone": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatAttachmentDownloadDone'>, 'inParam'>>"
+        },
+        "chat1ChatUiChatInboxUnverified": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatInboxUnverified'>, 'inParam'>>"
+        },
+        "chat1ChatUiChatInboxConversation": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatInboxConversation'>, 'inParam'>>"
+        },
+        "chat1ChatUiChatInboxFailed": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatInboxFailed'>, 'inParam'>>"
+        },
+        "chat1ChatUiChatThreadCached": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatThreadCached'>, 'inParam'>>"
+        },
+        "chat1ChatUiChatThreadFull": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatThreadFull'>, 'inParam'>>"
+        },
+        "chat1ChatUiChatSearchHit": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchHit'>, 'inParam'>>"
+        },
+        "chat1ChatUiChatSearchDone": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchDone'>, 'inParam'>>"
+        },
+        "chat1ChatUiChatSearchInboxHit": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchInboxHit'>, 'inParam'>>"
+        },
+        "chat1ChatUiChatSearchInboxDone": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchInboxDone'>, 'inParam'>>"
+        },
+        "chat1ChatUiChatSearchIndexStatus": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatSearchIndexStatus'>, 'inParam'>>"
+        },
+        "chat1ChatUiChatConfirmChannelDelete": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatConfirmChannelDelete'>, 'inParam'>>"
+        },
+        "chat1ChatUiChatStellarShowConfirm": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarShowConfirm'>, 'inParam'>>"
+        },
+        "chat1ChatUiChatStellarDataConfirm": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarDataConfirm'>, 'inParam'>>"
+        },
+        "chat1ChatUiChatStellarDataError": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarDataError'>, 'inParam'>>"
+        },
+        "chat1ChatUiChatStellarDone": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarDone'>, 'inParam'>>"
+        },
+        "chat1ChatUiChatShowManageChannels": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatShowManageChannels'>, 'inParam'>>"
+        },
+        "chat1NotifyChatNewChatActivity": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.NewChatActivity'>, 'inParam'>>"
+        },
+        "chat1NotifyChatChatIdentifyUpdate": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatIdentifyUpdate'>, 'inParam'>>"
+        },
+        "chat1NotifyChatChatTLFFinalize": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatTLFFinalize'>, 'inParam'>>"
+        },
+        "chat1NotifyChatChatTLFResolve": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatTLFResolve'>, 'inParam'>>"
+        },
+        "chat1NotifyChatChatInboxStale": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatInboxStale'>, 'inParam'>>"
+        },
+        "chat1NotifyChatChatThreadsStale": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatThreadsStale'>, 'inParam'>>"
+        },
+        "chat1NotifyChatChatTypingUpdate": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatTypingUpdate'>, 'inParam'>>"
+        },
+        "chat1NotifyChatChatJoinedConversation": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatJoinedConversation'>, 'inParam'>>"
+        },
+        "chat1NotifyChatChatLeftConversation": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatLeftConversation'>, 'inParam'>>"
+        },
+        "chat1NotifyChatChatResetConversation": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatResetConversation'>, 'inParam'>>"
+        },
+        "chat1NotifyChatChatInboxSyncStarted": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatInboxSyncStarted'>, 'inParam'>>"
+        },
+        "chat1NotifyChatChatInboxSynced": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatInboxSynced'>, 'inParam'>>"
+        },
+        "chat1NotifyChatChatSetConvRetention": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatSetConvRetention'>, 'inParam'>>"
+        },
+        "chat1NotifyChatChatSetTeamRetention": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatSetTeamRetention'>, 'inParam'>>"
+        },
+        "chat1NotifyChatChatSetConvSettings": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatSetConvSettings'>, 'inParam'>>"
+        },
+        "chat1NotifyChatChatSubteamRename": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatSubteamRename'>, 'inParam'>>"
+        },
+        "chat1NotifyChatChatKBFSToImpteamUpgrade": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatKBFSToImpteamUpgrade'>, 'inParam'>>"
+        },
+        "chat1NotifyChatChatAttachmentUploadStart": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatAttachmentUploadStart'>, 'inParam'>>"
+        },
+        "chat1NotifyChatChatAttachmentUploadProgress": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatAttachmentUploadProgress'>, 'inParam'>>"
+        },
+        "chat1NotifyChatChatPaymentInfo": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatPaymentInfo'>, 'inParam'>>"
+        },
+        "chat1NotifyChatChatRequestInfo": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatRequestInfo'>, 'inParam'>>"
+        },
+        "chat1NotifyChatChatPromptUnfurl": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.ChatPromptUnfurl'>, 'inParam'>>"
+        },
+        "keybase1GpgUiWantToAddGPGKey": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.gpgUi.wantToAddGPGKey'>, 'inParam'>>"
+        },
+        "keybase1GpgUiConfirmDuplicateKeyChosen": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.gpgUi.confirmDuplicateKeyChosen'>, 'inParam'>>"
+        },
+        "keybase1GpgUiConfirmImportSecretToExistingKey": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.gpgUi.confirmImportSecretToExistingKey'>, 'inParam'>>"
+        },
+        "keybase1GpgUiSelectKeyAndPushOption": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.gpgUi.selectKeyAndPushOption'>, 'inParam'>>"
+        },
+        "keybase1GpgUiSelectKey": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.gpgUi.selectKey'>, 'inParam'>>"
+        },
+        "keybase1GpgUiSign": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.gpgUi.sign'>, 'inParam'>>"
+        },
+        "keybase1GpgUiGetTTY": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.gpgUi.getTTY'>, 'inParam'>>"
+        },
+        "keybase1GregorUIPushState": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.gregorUI.pushState'>, 'inParam'>>"
+        },
+        "keybase1GregorUIPushOutOfBandMessages": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.gregorUI.pushOutOfBandMessages'>, 'inParam'>>"
+        },
+        "keybase1HomeUIHomeUIRefresh": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.homeUI.homeUIRefresh'>, 'inParam'>>"
+        },
+        "keybase1Identify3UiIdentify3ShowTracker": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3ShowTracker'>, 'inParam'>>"
+        },
+        "keybase1Identify3UiIdentify3UpdateRow": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3UpdateRow'>, 'inParam'>>"
+        },
+        "keybase1Identify3UiIdentify3UserReset": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3UserReset'>, 'inParam'>>"
+        },
+        "keybase1Identify3UiIdentify3UpdateUserCard": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3UpdateUserCard'>, 'inParam'>>"
+        },
+        "keybase1Identify3UiIdentify3TrackerTimedOut": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3TrackerTimedOut'>, 'inParam'>>"
+        },
+        "keybase1Identify3UiIdentify3Result": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identify3Ui.identify3Result'>, 'inParam'>>"
+        },
+        "keybase1IdentifyUiDisplayTLFCreateWithInvite": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayTLFCreateWithInvite'>, 'inParam'>>"
+        },
+        "keybase1IdentifyUiDelegateIdentifyUI": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.delegateIdentifyUI'>, 'inParam'>>"
+        },
+        "keybase1IdentifyUiStart": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.start'>, 'inParam'>>"
+        },
+        "keybase1IdentifyUiDisplayKey": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayKey'>, 'inParam'>>"
+        },
+        "keybase1IdentifyUiReportLastTrack": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.reportLastTrack'>, 'inParam'>>"
+        },
+        "keybase1IdentifyUiLaunchNetworkChecks": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.launchNetworkChecks'>, 'inParam'>>"
+        },
+        "keybase1IdentifyUiDisplayTrackStatement": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayTrackStatement'>, 'inParam'>>"
+        },
+        "keybase1IdentifyUiFinishWebProofCheck": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.finishWebProofCheck'>, 'inParam'>>"
+        },
+        "keybase1IdentifyUiFinishSocialProofCheck": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.finishSocialProofCheck'>, 'inParam'>>"
+        },
+        "keybase1IdentifyUiDisplayCryptocurrency": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayCryptocurrency'>, 'inParam'>>"
+        },
+        "keybase1IdentifyUiDisplayStellarAccount": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayStellarAccount'>, 'inParam'>>"
+        },
+        "keybase1IdentifyUiReportTrackToken": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.reportTrackToken'>, 'inParam'>>"
+        },
+        "keybase1IdentifyUiDisplayUserCard": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.displayUserCard'>, 'inParam'>>"
+        },
+        "keybase1IdentifyUiConfirm": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.confirm'>, 'inParam'>>"
+        },
+        "keybase1IdentifyUiCancel": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.cancel'>, 'inParam'>>"
+        },
+        "keybase1IdentifyUiFinish": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.finish'>, 'inParam'>>"
+        },
+        "keybase1IdentifyUiDismiss": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.identifyUi.dismiss'>, 'inParam'>>"
+        },
+        "keybase1LogUiLog": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.logUi.log'>, 'inParam'>>"
+        },
+        "keybase1LoginUiGetEmailOrUsername": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.getEmailOrUsername'>, 'inParam'>>"
+        },
+        "keybase1LoginUiPromptRevokePaperKeys": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.promptRevokePaperKeys'>, 'inParam'>>"
+        },
+        "keybase1LoginUiDisplayPaperKeyPhrase": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.displayPaperKeyPhrase'>, 'inParam'>>"
+        },
+        "keybase1LoginUiDisplayPrimaryPaperKey": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.displayPrimaryPaperKey'>, 'inParam'>>"
+        },
+        "keybase1LogsendPrepareLogsend": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.logsend.prepareLogsend'>, 'inParam'>>"
+        },
+        "keybase1NotifyAppExit": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyApp.exit'>, 'inParam'>>"
+        },
+        "keybase1NotifyBadgesBadgeState": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyBadges.badgeState'>, 'inParam'>>"
+        },
+        "keybase1NotifyCanUserPerformCanUserPerformChanged": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyCanUserPerform.canUserPerformChanged'>, 'inParam'>>"
+        },
+        "keybase1NotifyDeviceCloneDeviceCloneCountChanged": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyDeviceClone.deviceCloneCountChanged'>, 'inParam'>>"
+        },
+        "keybase1NotifyEphemeralNewTeamEk": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyEphemeral.newTeamEk'>, 'inParam'>>"
+        },
+        "keybase1NotifyFavoritesFavoritesChanged": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFavorites.favoritesChanged'>, 'inParam'>>"
+        },
+        "keybase1NotifyFSFSActivity": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSActivity'>, 'inParam'>>"
+        },
+        "keybase1NotifyFSFSPathUpdated": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSPathUpdated'>, 'inParam'>>"
+        },
+        "keybase1NotifyFSFSSyncActivity": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSSyncActivity'>, 'inParam'>>"
+        },
+        "keybase1NotifyFSFSEditListResponse": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSEditListResponse'>, 'inParam'>>"
+        },
+        "keybase1NotifyFSFSSyncStatusResponse": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyFS.FSSyncStatusResponse'>, 'inParam'>>"
+        },
+        "keybase1NotifyKeyfamilyKeyfamilyChanged": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyKeyfamily.keyfamilyChanged'>, 'inParam'>>"
+        },
+        "keybase1NotifyPaperKeyPaperKeyCached": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyPaperKey.paperKeyCached'>, 'inParam'>>"
+        },
+        "keybase1NotifyPGPPgpKeyInSecretStoreFile": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile'>, 'inParam'>>"
+        },
+        "keybase1NotifyPhoneNumberPhoneNumberAdded": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyPhoneNumber.phoneNumberAdded'>, 'inParam'>>"
+        },
+        "keybase1NotifyPhoneNumberPhoneNumberVerified": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyPhoneNumber.phoneNumberVerified'>, 'inParam'>>"
+        },
+        "keybase1NotifyPhoneNumberPhoneNumberSuperseded": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyPhoneNumber.phoneNumberSuperseded'>, 'inParam'>>"
+        },
+        "keybase1NotifyServiceShutdown": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyService.shutdown'>, 'inParam'>>"
+        },
+        "keybase1NotifySessionLoggedOut": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifySession.loggedOut'>, 'inParam'>>"
+        },
+        "keybase1NotifySessionLoggedIn": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifySession.loggedIn'>, 'inParam'>>"
+        },
+        "keybase1NotifySessionClientOutOfDate": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifySession.clientOutOfDate'>, 'inParam'>>"
+        },
+        "keybase1NotifyTeamTeamChangedByID": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.teamChangedByID'>, 'inParam'>>"
+        },
+        "keybase1NotifyTeamTeamChangedByName": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.teamChangedByName'>, 'inParam'>>"
+        },
+        "keybase1NotifyTeamTeamDeleted": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.teamDeleted'>, 'inParam'>>"
+        },
+        "keybase1NotifyTeamTeamAbandoned": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.teamAbandoned'>, 'inParam'>>"
+        },
+        "keybase1NotifyTeamTeamExit": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.teamExit'>, 'inParam'>>"
+        },
+        "keybase1NotifyTeamNewlyAddedToTeam": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.newlyAddedToTeam'>, 'inParam'>>"
+        },
+        "keybase1NotifyTeamAvatarUpdated": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyTeam.avatarUpdated'>, 'inParam'>>"
+        },
+        "keybase1NotifyTrackingTrackingChanged": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyTracking.trackingChanged'>, 'inParam'>>"
+        },
+        "keybase1NotifyUnverifiedTeamListTeamListUnverifiedChanged": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyUnverifiedTeamList.teamListUnverifiedChanged'>, 'inParam'>>"
+        },
+        "keybase1NotifyUsersUserChanged": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyUsers.userChanged'>, 'inParam'>>"
+        },
+        "keybase1NotifyUsersPasswordChanged": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyUsers.passwordChanged'>, 'inParam'>>"
+        },
+        "keybase1PgpUiOutputSignatureSuccess": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.pgpUi.outputSignatureSuccess'>, 'inParam'>>"
+        },
+        "keybase1PgpUiOutputSignatureSuccessNonKeybase": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.pgpUi.outputSignatureSuccessNonKeybase'>, 'inParam'>>"
+        },
+        "keybase1PgpUiKeyGenerated": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.pgpUi.keyGenerated'>, 'inParam'>>"
+        },
+        "keybase1PgpUiShouldPushPrivate": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.pgpUi.shouldPushPrivate'>, 'inParam'>>"
+        },
+        "keybase1PgpUiFinished": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.pgpUi.finished'>, 'inParam'>>"
+        },
+        "keybase1ProveUiPromptOverwrite": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.promptOverwrite'>, 'inParam'>>"
+        },
+        "keybase1ProveUiPromptUsername": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.promptUsername'>, 'inParam'>>"
+        },
+        "keybase1ProveUiOutputPrechecks": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.outputPrechecks'>, 'inParam'>>"
+        },
+        "keybase1ProveUiPreProofWarning": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.preProofWarning'>, 'inParam'>>"
+        },
+        "keybase1ProveUiOutputInstructions": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.outputInstructions'>, 'inParam'>>"
+        },
+        "keybase1ProveUiOkToCheck": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.okToCheck'>, 'inParam'>>"
+        },
+        "keybase1ProveUiDisplayRecheckWarning": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.proveUi.displayRecheckWarning'>, 'inParam'>>"
+        },
+        "keybase1ProvisionUiChooseProvisioningMethod": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.provisionUi.chooseProvisioningMethod'>, 'inParam'>>"
+        },
+        "keybase1ProvisionUiChooseGPGMethod": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.provisionUi.chooseGPGMethod'>, 'inParam'>>"
+        },
+        "keybase1ProvisionUiSwitchToGPGSignOK": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.provisionUi.switchToGPGSignOK'>, 'inParam'>>"
+        },
+        "keybase1ProvisionUiChooseDevice": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.provisionUi.chooseDevice'>, 'inParam'>>"
+        },
+        "keybase1ProvisionUiChooseDeviceType": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.provisionUi.chooseDeviceType'>, 'inParam'>>"
+        },
+        "keybase1ProvisionUiDisplayAndPromptSecret": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.provisionUi.DisplayAndPromptSecret'>, 'inParam'>>"
+        },
+        "keybase1ProvisionUiDisplaySecretExchanged": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.provisionUi.DisplaySecretExchanged'>, 'inParam'>>"
+        },
+        "keybase1ProvisionUiPromptNewDeviceName": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.provisionUi.PromptNewDeviceName'>, 'inParam'>>"
+        },
+        "keybase1ProvisionUiProvisioneeSuccess": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.provisionUi.ProvisioneeSuccess'>, 'inParam'>>"
+        },
+        "keybase1ProvisionUiProvisionerSuccess": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.provisionUi.ProvisionerSuccess'>, 'inParam'>>"
+        },
+        "keybase1ReachabilityReachabilityChanged": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.reachability.reachabilityChanged'>, 'inParam'>>"
+        },
+        "keybase1RekeyUIDelegateRekeyUI": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.rekeyUI.delegateRekeyUI'>, 'inParam'>>"
+        },
+        "keybase1RekeyUIRefresh": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.rekeyUI.refresh'>, 'inParam'>>"
+        },
+        "keybase1RekeyUIRekeySendEvent": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.rekeyUI.rekeySendEvent'>, 'inParam'>>"
+        },
+        "keybase1SaltpackUiSaltpackPromptForDecrypt": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.saltpackUi.saltpackPromptForDecrypt'>, 'inParam'>>"
+        },
+        "keybase1SaltpackUiSaltpackVerifySuccess": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.saltpackUi.saltpackVerifySuccess'>, 'inParam'>>"
+        },
+        "keybase1SaltpackUiSaltpackVerifyBadSender": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.saltpackUi.saltpackVerifyBadSender'>, 'inParam'>>"
+        },
+        "keybase1SecretUiGetPassphrase": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.secretUi.getPassphrase'>, 'inParam'>>"
+        },
+        "keybase1StreamUiClose": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.streamUi.close'>, 'inParam'>>"
+        },
+        "keybase1StreamUiRead": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.streamUi.read'>, 'inParam'>>"
+        },
+        "keybase1StreamUiReset": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.streamUi.reset'>, 'inParam'>>"
+        },
+        "keybase1StreamUiWrite": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.streamUi.write'>, 'inParam'>>"
+        },
+        "keybase1TeamsUiConfirmRootTeamDelete": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.teamsUi.confirmRootTeamDelete'>, 'inParam'>>"
+        },
+        "keybase1TeamsUiConfirmSubteamDelete": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.teamsUi.confirmSubteamDelete'>, 'inParam'>>"
+        },
+        "keybase1UiPromptYesNo": {
+            "params": "$Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.ui.promptYesNo'>, 'inParam'>>"
+        },
+        "stellar1NotifyPaymentNotification": {
+            "params": "$Exact<$PropertyType<$PropertyType<stellar1Types.MessageTypes, 'stellar.1.notify.paymentNotification'>, 'inParam'>>"
+        },
+        "stellar1NotifyPaymentStatusNotification": {
+            "params": "$Exact<$PropertyType<$PropertyType<stellar1Types.MessageTypes, 'stellar.1.notify.paymentStatusNotification'>, 'inParam'>>"
+        },
+        "stellar1NotifyRequestStatusNotification": {
+            "params": "$Exact<$PropertyType<$PropertyType<stellar1Types.MessageTypes, 'stellar.1.notify.requestStatusNotification'>, 'inParam'>>"
+        },
+        "stellar1NotifyAccountDetailsUpdate": {
+            "params": "$Exact<$PropertyType<$PropertyType<stellar1Types.MessageTypes, 'stellar.1.notify.accountDetailsUpdate'>, 'inParam'>>"
+        },
+        "stellar1NotifyAccountsUpdate": {
+            "params": "$Exact<$PropertyType<$PropertyType<stellar1Types.MessageTypes, 'stellar.1.notify.accountsUpdate'>, 'inParam'>>"
+        },
+        "stellar1NotifyPendingPaymentsUpdate": {
+            "params": "$Exact<$PropertyType<$PropertyType<stellar1Types.MessageTypes, 'stellar.1.notify.pendingPaymentsUpdate'>, 'inParam'>>"
+        },
+        "stellar1NotifyRecentPaymentsUpdate": {
+            "params": "$Exact<$PropertyType<$PropertyType<stellar1Types.MessageTypes, 'stellar.1.notify.recentPaymentsUpdate'>, 'inParam'>>"
+        },
+        "stellar1UiPaymentReviewed": {
+            "params": "$Exact<$PropertyType<$PropertyType<stellar1Types.MessageTypes, 'stellar.1.ui.paymentReviewed'>, 'inParam'>>"
+        }
+    }
+}

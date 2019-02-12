@@ -101,6 +101,9 @@ func (m MetaContext) CErrorf(f string, args ...interface{}) {
 func (m MetaContext) CInfof(f string, args ...interface{}) {
 	m.g.Log.CloneWithAddedDepth(1).CInfof(m.ctx, f, args...)
 }
+func (m MetaContext) CExitTraceOK(msg string, f func() bool) func() {
+	return func() { m.CDebugf("| %s -> %v", msg, f()) }
+}
 
 func (m MetaContext) ActiveDevice() *ActiveDevice {
 	if m.activeDevice != nil {
@@ -485,14 +488,15 @@ func (m MetaContext) SwitchUserLoggedOut() (err error) {
 // switch the global logged in user. It does not, however, change the
 // `current_user` in the config file, or edit the global config file in any
 // way.
-func (m MetaContext) SetActiveDevice(uv keybase1.UserVersion, deviceID keybase1.DeviceID, sigKey, encKey GenericKey, deviceName string) error {
+func (m MetaContext) SetActiveDevice(uv keybase1.UserVersion, deviceID keybase1.DeviceID,
+	sigKey, encKey GenericKey, deviceName string) error {
 	g := m.G()
 	g.switchUserMu.Lock()
 	defer g.switchUserMu.Unlock()
 	if !g.Env.GetUID().Equal(uv.Uid) {
 		return NewUIDMismatchError("UID switched out from underneath provisioning process")
 	}
-	return g.ActiveDevice.Set(m, uv, deviceID, sigKey, encKey, deviceName)
+	return g.ActiveDevice.Set(m, uv, deviceID, sigKey, encKey, deviceName, 0)
 }
 
 func (m MetaContext) SetSigningKey(uv keybase1.UserVersion, deviceID keybase1.DeviceID, sigKey GenericKey, deviceName string) error {

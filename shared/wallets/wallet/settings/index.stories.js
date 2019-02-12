@@ -9,69 +9,84 @@ import * as I from 'immutable'
 
 const testCurrencies = I.List([
   {
-    description: 'USD ($)',
     code: 'USD',
-    symbol: '$',
+    description: 'USD ($)',
     name: 'US Dollar',
-  },
-  {
-    description: 'XLM',
-    code: 'XLLM',
-    symbol: 'XLM',
-    name: 'Lumens',
-  },
-  {
-    description: 'CAD ($)',
-    code: 'CAD',
     symbol: '$',
+  },
+  {
+    code: 'XLLM',
+    description: 'XLM',
+    name: 'Lumens',
+    symbol: 'XLM',
+  },
+  {
+    code: 'CAD',
+    description: 'CAD ($)',
     name: 'Canadian Dollar',
+    symbol: '$',
   },
   {
-    description: 'EUR (€)',
     code: 'EUR',
-    symbol: '€',
+    description: 'EUR (€)',
     name: 'Euro',
+    symbol: '€',
   },
   {
-    description: 'GBP (£)',
     code: 'GPB',
-    symbol: '£',
+    description: 'GBP (£)',
     name: 'British Pount',
+    symbol: '£',
   },
-]).map(c => Constants.currenciesResultToCurrencies(c))
+]).map(c => Constants.currencyResultToCurrency(c))
 
 const sharedSettingsProps = {
   accountID: Types.noAccountID,
-  user: 'testuser',
-  currencyWaiting: false,
+  canSubmitTx: true,
   currencies: testCurrencies,
-  onDelete: Sb.action('onDelete'),
-  onSetDefault: Sb.action('setDefault'),
-  onEditName: Sb.action('onEditName'),
-  onCurrencyChange: Sb.action('onCurrencyChange'),
+  currencyWaiting: false,
+  inflationDestination: '',
+  mobileOnlyEditable: false,
+  mobileOnlyMode: false,
+  mobileOnlyWaiting: false,
   onBack: Sb.action('onBack'),
+  onCurrencyChange: Sb.action('onCurrencyChange'),
+  onDelete: Sb.action('onDelete'),
+  onEditName: Sb.action('onEditName'),
+  onMobileOnlyModeChange: Sb.action('onMobileOnlyModeChange'),
+  onSetDefault: Sb.action('setDefault'),
+  onSetupInflation: Sb.action('onSetupInflation'),
   refresh: () => {},
   saveCurrencyWaiting: false,
+  user: 'testuser',
 }
 
 const defaultSettingsProps = {
   ...sharedSettingsProps,
-  name: 'awesome account',
-  isDefault: true,
   currency: testCurrencies.get(1),
+  isDefault: true,
+  name: 'awesome account',
 }
 
 const secondarySettingsProps = {
   ...sharedSettingsProps,
-  name: 'some other account',
-  isDefault: false,
   currency: testCurrencies.get(0),
+  isDefault: false,
+  mobileOnlyMode: true,
+  name: 'some other account',
 }
 
 const load = () => {
   Sb.storiesOf('Wallets/Wallet/Settings', module)
     .add('Default', () => <Settings {...defaultSettingsProps} />)
+    .add('Default with inflation dest', () => (
+      <Settings {...defaultSettingsProps} inflationDestination="Stellar Development Foundation" />
+    ))
+    .add("Not funded account (can't make tx)", () => (
+      <Settings {...defaultSettingsProps} canSubmitTx={false} />
+    ))
     .add('Secondary', () => <Settings {...secondarySettingsProps} />)
+    .add('MobileOnlyEditable', () => <Settings {...secondarySettingsProps} mobileOnlyEditable={true} />)
   popups()
 }
 

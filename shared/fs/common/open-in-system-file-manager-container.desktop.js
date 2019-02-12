@@ -10,11 +10,11 @@ const mapStateToProps = (state, {path}: OwnProps) => ({
 })
 
 const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
-  openInSystemFileManager: () => dispatch(FsGen.createOpenPathInSystemFileManager({path})),
   installFuse: () => dispatch(FsGen.createInstallFuse()),
+  openInSystemFileManager: () => dispatch(FsGen.createOpenPathInSystemFileManager({path})),
 })
 
-export default namedConnect(
+export default namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   (s, d, o) => ({...o, ...s, ...d}),

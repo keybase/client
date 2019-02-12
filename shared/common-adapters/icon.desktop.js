@@ -38,7 +38,7 @@ class Icon extends Component<Props, void> {
       color =
         this.props.color ||
         color ||
-        (this.props.opacity ? Styles.globalColors.lightGrey : Styles.globalColors.black_40)
+        (this.props.opacity ? Styles.globalColors.lightGrey : Styles.globalColors.black_50)
       hoverColor =
         this.props.hoverColor ||
         hoverColor ||
@@ -46,7 +46,15 @@ class Icon extends Component<Props, void> {
     }
 
     const isFontIcon = iconMeta[iconType].isFont
-    let fontSizeHint = this.props.fontSize ? {fontSize: this.props.fontSize} : Shared.fontSize(iconType)
+    let fontSizeHint
+    // explicit
+    if (this.props.fontSize) {
+      fontSizeHint = {fontSize: this.props.fontSize}
+    } else if (this.props.sizeType) {
+      fontSizeHint = {fontSize: Shared.typeToFontSize(this.props.sizeType)}
+    } else {
+      fontSizeHint = Shared.fontSize(iconType)
+    }
     // in style sheet, so don't apply
     if (fontSizeHint && fontSizeHint.fontSize === 16) {
       fontSizeHint = null
@@ -63,7 +71,8 @@ class Icon extends Component<Props, void> {
     let iconElement
 
     if (isFontIcon) {
-      iconElement = String.fromCharCode(iconMeta[iconType].charCode || 0)
+      // handled by a class below
+      iconElement = null
     } else {
       const imgStyle = Styles.collapseStyles([
         Styles.desktopStyles.noSelect,
@@ -109,6 +118,7 @@ class Icon extends Component<Props, void> {
         fontSizeHint,
         onClick && Styles.desktopStyles.clickable,
         inheritStyle,
+        this.props.colorOverride && {color: this.props.colorOverride},
         this.props.style,
       ])
 
@@ -117,7 +127,13 @@ class Icon extends Component<Props, void> {
           <span
             alt={this.props.hint}
             style={style}
-            className={Styles.classNames('icon', colorStyleName, hoverStyleName, this.props.className)}
+            className={Styles.classNames(
+              'icon',
+              colorStyleName,
+              hoverStyleName,
+              `icon-gen-${iconType}`,
+              this.props.className
+            )}
             onMouseEnter={this.props.onMouseEnter}
             onMouseLeave={this.props.onMouseLeave}
             onClick={onClick}

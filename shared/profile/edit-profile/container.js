@@ -1,10 +1,11 @@
 // @flow
+// // TODO deprecate
 import * as React from 'react'
 import Render from '.'
 import {connect} from '../../util/container'
 import {createEditProfile} from '../../actions/profile-gen'
 import {maxProfileBioChars} from '../../constants/profile'
-import {navigateUp} from '../../actions/route-tree'
+import * as RouteTreeGen from '../../actions/route-tree-gen'
 import {HeaderOnMobile} from '../../common-adapters'
 import {isMobile} from '../../constants/platform'
 
@@ -24,9 +25,9 @@ const mapStateToProps = state => {
 }
 
 const mapDispatchToProps = dispatch => ({
-  onBack: () => dispatch(navigateUp()),
   _onSubmit: (bio: string, fullname: string, location: string) =>
     dispatch(createEditProfile({bio, fullname, location})),
+  onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
 const Component = HeaderOnMobile(Render)
@@ -57,7 +58,7 @@ class Wrapper extends React.Component<Props, State> {
   onSubmit = () => this.props._onSubmit(this.state.bio, this.state.fullname, this.state.location)
 
   render() {
-    const bioLengthLeft = this.props.bio ? maxProfileBioChars - this.props.bio.length : maxProfileBioChars
+    const bioLengthLeft = this.state.bio ? maxProfileBioChars - this.state.bio.length : maxProfileBioChars
     const extra = isMobile ? {} : {onCancel: this.props.onBack}
 
     return (

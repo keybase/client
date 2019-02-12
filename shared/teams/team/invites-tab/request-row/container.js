@@ -2,7 +2,7 @@
 import * as TeamsGen from '../../../../actions/teams-gen'
 import * as Chat2Gen from '../../../../actions/chat2-gen'
 import {TeamRequestRow} from '.'
-import {navigateAppend} from '../../../../actions/route-tree'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
 import {createShowUserProfile} from '../../../../actions/profile-gen'
 import {connect} from '../../../../util/container'
 
@@ -16,12 +16,12 @@ const mapStateToProps = state => ({})
 const mapDispatchToProps = dispatch => ({
   _onAccept: (name: string, username: string) =>
     dispatch(
-      navigateAppend([
+      RouteTreeGen.createNavigateAppend({path: [
         {
           props: {teamname: name, username},
           selected: 'rolePicker',
         },
-      ])
+      ]})
     ),
   _onChat: username => {
     username && dispatch(Chat2Gen.createPreviewConversation({participants: [username], reason: 'teamInvite'}))

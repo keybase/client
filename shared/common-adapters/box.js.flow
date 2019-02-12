@@ -4,12 +4,15 @@ import {type StylesCrossPlatform, globalMargins} from '../styles'
 export type Props = any
 
 export type Box2Props = {|
+  alignItems?: 'center' | 'flex-start' | 'flex-end',
+  alignSelf?: null | 'center' | 'flex-start' | 'flex-end',
   children?: React.Node,
   centerChildren?: boolean,
   className?: ?string,
   direction: 'horizontal' | 'vertical' | 'horizontalReverse' | 'verticalReverse',
   fullHeight?: boolean,
   fullWidth?: boolean,
+  noShrink?: boolean,
   onLayout?: (evt: {nativeEvent: {layout: {x: number, y: number, width: number, height: number}}}) => void, // mobile only
   onMouseLeave?: (SyntheticEvent<Element>) => void, // desktop only
   onMouseOver?: (SyntheticEvent<Element>) => void, // desktop only

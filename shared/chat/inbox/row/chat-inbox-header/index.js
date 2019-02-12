@@ -10,6 +10,7 @@ type Props = {
   showNewChat: boolean,
   onSelectUp: () => void,
   onSelectDown: () => void,
+  onEnsureSelection: () => void,
 }
 
 const ChatInboxHeader = (props: Props) =>
@@ -22,6 +23,7 @@ const ChatInboxHeader = (props: Props) =>
       filterFocusCount={props.filterFocusCount}
       onSelectUp={props.onSelectUp}
       onSelectDown={props.onSelectDown}
+      onEnsureSelection={props.onEnsureSelection}
     />
   )
 

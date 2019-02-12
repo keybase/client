@@ -21,6 +21,9 @@ type LogInterface interface {
 	ClientCall(SeqNumber, string, interface{})
 	ServerCall(SeqNumber, string, error, interface{})
 	ServerReply(SeqNumber, string, error, interface{})
+	ClientCallCompressed(SeqNumber, string, interface{}, CompressionType)
+	ServerCallCompressed(SeqNumber, string, error, interface{}, CompressionType)
+	ServerReplyCompressed(SeqNumber, string, error, interface{}, CompressionType)
 	ClientNotify(string, interface{})
 	ServerNotifyCall(string, error, interface{})
 	ServerNotifyComplete(string, error)
@@ -195,62 +198,85 @@ func (s SimpleLog) FrameRead(bytes []byte) {
 // Call
 func (s SimpleLog) ClientCall(q SeqNumber, meth string, arg interface{}) {
 	if s.Opts.ClientTrace() {
-		s.trace("call", "arg", s.Opts.ShowArg(), q, meth, nil, arg)
+		s.trace("call", "arg", s.Opts.ShowArg(), q, meth, nil, arg, nil)
 	}
 }
 func (s SimpleLog) ServerCall(q SeqNumber, meth string, err error, arg interface{}) {
 	if s.Opts.ServerTrace() {
-		s.trace("serve", "arg", s.Opts.ShowArg(), q, meth, err, arg)
+		s.trace("serve", "arg", s.Opts.ShowArg(), q, meth, err, arg, nil)
 	}
 }
 func (s SimpleLog) ServerReply(q SeqNumber, meth string, err error, res interface{}) {
 	if s.Opts.ServerTrace() {
-		s.trace("reply", "res", s.Opts.ShowResult(), q, meth, err, res)
+		s.trace("reply", "res", s.Opts.ShowResult(), q, meth, err, res, nil)
+	}
+}
+
+// CallCompressed
+func (s SimpleLog) ClientCallCompressed(q SeqNumber, meth string, arg interface{}, ctype CompressionType) {
+	if s.Opts.ClientTrace() {
+		s.trace("call-compressed", "arg", s.Opts.ShowArg(), q, meth, nil, arg, &ctype)
+	}
+}
+func (s SimpleLog) ServerCallCompressed(q SeqNumber, meth string, err error, arg interface{}, ctype CompressionType) {
+	if s.Opts.ServerTrace() {
+		s.trace("serve-compressed", "arg", s.Opts.ShowArg(), q, meth, err, arg, &ctype)
+	}
+}
+func (s SimpleLog) ServerReplyCompressed(q SeqNumber, meth string, err error, res interface{}, ctype CompressionType) {
+	if s.Opts.ServerTrace() {
+		s.trace("reply-compressed", "res", s.Opts.ShowResult(), q, meth, err, res, &ctype)
 	}
 }
 
 // Notify
 func (s SimpleLog) ClientNotify(meth string, arg interface{}) {
 	if s.Opts.ClientTrace() {
-		s.trace("notify", "arg", s.Opts.ShowArg(), 0, meth, nil, arg)
+		s.trace("notify", "arg", s.Opts.ShowArg(), 0, meth, nil, arg, nil)
 	}
 }
 func (s SimpleLog) ServerNotifyCall(meth string, err error, arg interface{}) {
 	if s.Opts.ServerTrace() {
-		s.trace("serve-notify", "arg", s.Opts.ShowArg(), 0, meth, err, arg)
+		s.trace("serve-notify", "arg", s.Opts.ShowArg(), 0, meth, err, arg, nil)
 	}
 }
 func (s SimpleLog) ServerNotifyComplete(meth string, err error) {
 	if s.Opts.ServerTrace() {
-		s.trace("complete", "", false, 0, meth, err, nil)
+		s.trace("complete", "", false, 0, meth, err, nil, nil)
 	}
 }
 
 // Cancel
 func (s SimpleLog) ClientCancel(q SeqNumber, meth string, err error) {
 	if s.Opts.ClientTrace() {
-		s.trace("cancel", "", false, q, meth, err, nil)
+		s.trace("cancel", "", false, q, meth, err, nil, nil)
 	}
 }
 func (s SimpleLog) ServerCancelCall(q SeqNumber, meth string) {
 	if s.Opts.ServerTrace() {
-		s.trace("serve-cancel", "", false, q, meth, nil, nil)
+		s.trace("serve-cancel", "", false, q, meth, nil, nil, nil)
 	}
 }
 
 func (s SimpleLog) ClientReply(q SeqNumber, meth string, err error, res interface{}) {
 	if s.Opts.ClientTrace() {
-		s.trace("reply", "res", s.Opts.ShowResult(), q, meth, err, res)
+		s.trace("reply", "res", s.Opts.ShowResult(), q, meth, err, res, nil)
 	}
 }
 
-func (s SimpleLog) trace(which string, objname string, verbose bool, q SeqNumber, meth string, err error, obj interface{}) {
+func (s SimpleLog) trace(which string, objname string, verbose bool, q SeqNumber,
+	meth string, err error, obj interface{}, ctype *CompressionType) {
 	args := []interface{}{which, q}
 	fmts := "%s(%d):"
 	if len(meth) > 0 {
 		fmts += " method=%s;"
 		args = append(args, meth)
 	}
+	if ctype != nil {
+		fmts += " ctype=%s;"
+		args = append(args, ctype)
+	}
+
 	fmts += " err=%s;"
 	var es string
 	if err == nil {

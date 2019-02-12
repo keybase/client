@@ -6,8 +6,11 @@ import * as WaitingConstants from './waiting'
 
 const initialState: Types.State = {
   allowDeleteAccount: false,
+  chat: {
+    unfurl: {},
+  },
   email: {
-    emails: [],
+    emails: null,
     error: null,
     newEmail: '',
   },
@@ -16,6 +19,7 @@ const initialState: Types.State = {
     error: null,
     pendingInvites: [],
   },
+  lockdownModeEnabled: null,
   notifications: {
     allowEdit: false,
     groups: {
@@ -25,7 +29,6 @@ const initialState: Types.State = {
       },
     },
   },
-  lockdownModeEnabled: null,
   passphrase: {
     error: null,
     hasPGPKeyOnServer: null,
@@ -33,6 +36,7 @@ const initialState: Types.State = {
     newPassphraseConfirm: new HiddenString(''),
     newPassphraseConfirmError: null,
     newPassphraseError: null,
+    randomPW: null,
     rememberPassphrase: true,
   },
   waitingForResponse: false,
@@ -49,6 +53,7 @@ const processorProfileInProgress = (state: TypedState) =>
 
 export const aboutTab = 'settingsTabs:aboutTab'
 export const advancedTab = 'settingsTabs:advancedTab'
+export const chatTab = 'settingsTabs:chatTab'
 export const deleteMeTab = 'settingsTabs:deleteMeTab'
 export const devMenuTab = 'settingsTabs:devMenuTab'
 export const devicesTab = 'settingsTabs:devicesTab'
@@ -60,11 +65,16 @@ export const invitationsTab = 'settingsTabs:invitationsTab'
 export const landingTab = 'settingsTabs:landingTab'
 export const notificationsTab = 'settingsTabs:notificationsTab'
 export const passphraseTab = 'settingsTabs:passphrase'
+export const refreshNotificationsWaitingKey = 'settingsTabs:refreshNotifications'
 export const screenprotectorTab = 'settingsTabs:screenprotector'
 export const updatePaymentTab = 'settingsTabs:updatePaymentTab'
 export const securityGroup = 'security'
 export const walletsTab = 'settingsTabs:walletsTab'
-export const waitingKey = 'settings:settingsPage'
+
+export const chatUnfurlWaitingKey = 'settings:chatUnfurlWaitingKey'
+export const setLockdownModeWaitingKey = 'settings:setLockdownMode'
+export const loadLockdownModeWaitingKey = 'settings:loadLockdownMode'
+export const dontUseWaitingKey = 'settings:settingsPage'
 export {
   initialState,
   traceInProgressKey,

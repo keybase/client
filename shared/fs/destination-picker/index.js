@@ -14,10 +14,9 @@ import Breadcrumb from '../header/breadcrumb-container.desktop.js'
 
 type Props = {
   index: number,
-  path: Types.Path,
+  parentPath: Types.Path,
   routePath: I.List<string>,
   targetName: string,
-  targetIconSpec: Types.PathItemIconSpec,
   onCancel: (() => void) | null,
   onCopyHere?: ?() => void,
   onMoveHere?: ?() => void,
@@ -40,7 +39,7 @@ const DesktopHeaders = (props: Props) => (
       <Kb.Text type="Header" style={{flexShrink: 0}}>
         Move or Copy “
       </Kb.Text>
-      <FsCommon.PathItemIcon size={16} spec={props.targetIconSpec} />
+      <FsCommon.PathItemIcon size={16} path={Types.pathConcat(props.parentPath, props.targetName)} />
       <Kb.Text type="Header" lineClamp={1}>
         {props.targetName}
       </Kb.Text>
@@ -49,13 +48,12 @@ const DesktopHeaders = (props: Props) => (
       </Kb.Text>
     </Kb.Box2>
     <Kb.Box2 direction="horizontal" fullWidth={true} centerChildren={true} style={styles.anotherHeader}>
-      <Breadcrumb path={props.path} inDestinationPicker={true} routePath={props.routePath} />
+      <Breadcrumb path={props.parentPath} inDestinationPicker={true} routePath={props.routePath} />
       {!!props.onNewFolder && <NewFolder onNewFolder={props.onNewFolder} />}
     </Kb.Box2>
   </>
 )
 
-// $FlowIssue
 const DestinationPicker = (props: Props) => (
   <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} fullHeight={true}>
     {!isMobile && <DesktopHeaders {...props} />}
@@ -64,7 +62,7 @@ const DestinationPicker = (props: Props) => (
       <Kb.ClickableBox key="up" style={styles.actionRowContainer} onClick={props.onBackUp}>
         <Kb.Icon
           type="iconfont-folder-up"
-          color={Styles.globalColors.black_40}
+          color={Styles.globalColors.black_50}
           fontSize={32}
           style={RowCommon.rowStyles.pathItemIcon}
         />
@@ -97,7 +95,7 @@ const DestinationPicker = (props: Props) => (
     )}
     <Kb.Box2 key="rows" direction="vertical" fullHeight={true} style={styles.rowsContainer}>
       <Rows
-        path={props.path}
+        path={props.parentPath}
         sortSetting={Constants.defaultSortSetting}
         destinationPickerIndex={props.index}
         routePath={props.routePath}
@@ -115,9 +113,7 @@ const DestinationPicker = (props: Props) => (
 )
 
 export default (isMobile
-  ? withProps(props => ({
-      onCancel: null, // unset this to avoid onCancel button from HeaderHoc
-      headerStyle: {paddingRight: 0},
+  ? withProps<_, any>(props => ({
       customComponent: (
         <Kb.Box2 direction="horizontal" fullWidth={true}>
           <Kb.ClickableBox style={styles.mobileHeaderButton} onClick={props.onCancel}>
@@ -125,61 +121,51 @@ export default (isMobile
           </Kb.ClickableBox>
           <Kb.Box2 direction="vertical" centerChildren={true} style={styles.mobileHeaderContent}>
             <Kb.Box2 direction="horizontal" centerChildren={true} gap="xtiny">
-              <FsCommon.PathItemIcon size={12} spec={props.targetIconSpec} />
+              <FsCommon.PathItemIcon size={12} path={Types.pathConcat(props.parentPath, props.targetName)} />
               <Kb.Text type="BodySmallSemibold" lineClamp={1}>
                 {props.targetName}
               </Kb.Text>
             </Kb.Box2>
             <Kb.Text type="Header" lineClamp={1}>
-              {Types.getPathName(props.path)}
+              {Types.getPathName(props.parentPath)}
             </Kb.Text>
           </Kb.Box2>
         </Kb.Box2>
       ),
+      headerStyle: {paddingRight: 0},
+      onCancel: null, // unset this to avoid onCancel button from HeaderHoc
     }))(Kb.HeaderHoc(DestinationPicker))
   : Kb.HeaderOrPopup(DestinationPicker))
 
 const styles = Styles.styleSheetCreate({
-  container: Styles.platformStyles({
-    isElectron: {
-      width: 560,
-      height: 480,
-    },
-  }),
-  desktopHeader: {
-    marginTop: Styles.globalMargins.medium,
-    marginBottom: 10,
-    paddingLeft: Styles.globalMargins.medium,
-    paddingRight: Styles.globalMargins.medium,
+  actionRowContainer: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    backgroundColor: Styles.globalColors.blue5,
+    flexShrink: 1,
+    height: RowCommon.rowHeight,
+    paddingLeft: Styles.globalMargins.small,
+    paddingRight: Styles.globalMargins.small,
+  },
+  actionText: {
+    color: Styles.globalColors.blue,
   },
   anotherHeader: {
     height: 48,
     justifyContent: 'space-between',
     paddingRight: Styles.globalMargins.tiny,
   },
-  newFolderBox: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    padding: Styles.globalMargins.tiny,
-  },
-  newFolderText: {
-    marginLeft: Styles.globalMargins.tiny,
-    color: Styles.globalColors.blue,
-  },
-  actionRowContainer: {
-    ...Styles.globalStyles.flexBoxRow,
-    alignItems: 'center',
-    flexShrink: 1,
-    height: RowCommon.rowHeight,
-    paddingRight: Styles.globalMargins.small,
-    paddingLeft: Styles.globalMargins.small,
-    backgroundColor: Styles.globalColors.blue5,
-  },
-  actionText: {
-    color: Styles.globalColors.blue,
-  },
-  rowsContainer: {
-    flex: 1,
+  container: Styles.platformStyles({
+    isElectron: {
+      height: 480,
+      width: 560,
+    },
+  }),
+  desktopHeader: {
+    marginBottom: 10,
+    marginTop: Styles.globalMargins.medium,
+    paddingLeft: Styles.globalMargins.medium,
+    paddingRight: Styles.globalMargins.medium,
   },
   footer: Styles.platformStyles({
     common: {
@@ -187,8 +173,8 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: {
       backgroundColor: Styles.globalColors.white_90,
-      position: 'absolute',
       bottom: 0,
+      position: 'absolute',
     },
   }),
   mobileHeaderButton: {
@@ -198,7 +184,19 @@ const styles = Styles.styleSheetCreate({
     paddingTop: 8,
   },
   mobileHeaderContent: {
+    flex: 1,
     marginRight: 90, // width of the "Cancel" button
+  },
+  newFolderBox: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+    padding: Styles.globalMargins.tiny,
+  },
+  newFolderText: {
+    color: Styles.globalColors.blue,
+    marginLeft: Styles.globalMargins.tiny,
+  },
+  rowsContainer: {
     flex: 1,
   },
 })

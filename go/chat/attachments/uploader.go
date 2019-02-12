@@ -393,27 +393,39 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 	if err != nil {
 		return res, err
 	}
-	src, err := NewFileReadResetter(filename)
+	src, err := NewReadCloseResetter(bgctx, u.G().GlobalContext, filename)
 	if err != nil {
 		return res, err
 	}
+
+	deferToBackgroundRoutine := false
+	defer func() {
+		if !deferToBackgroundRoutine {
+			src.Close()
+		}
+	}()
 
 	progress := func(bytesComplete, bytesTotal int64) {
 		u.G().ActivityNotifier.AttachmentUploadProgress(ctx, uid, convID, outboxID, bytesComplete, bytesTotal)
 	}
 
 	// preprocess asset (get content type, create preview if possible)
+	var pre Preprocess
 	var ures types.AttachmentUploadResult
 	ures.Metadata = metadata
-	pre, err := PreprocessAsset(ctx, u.DebugLabeler, src, filename, u.G().NativeVideoHelper, callerPreview)
-	if err != nil {
-		return res, err
-	}
-	if pre.Preview != nil {
-		u.Debug(ctx, "upload: created preview in preprocess")
-		// Store the preview in pending storage
-		if err := NewPendingPreviews(u.G()).Put(ctx, outboxID, pre); err != nil {
+	pp := NewPendingPreviews(u.G())
+	if pre, err = pp.Get(ctx, outboxID); err != nil {
+		u.Debug(ctx, "upload: no pending preview, generating one: %s", err)
+		if pre, err = PreprocessAsset(ctx, u.DebugLabeler, src, filename, u.G().NativeVideoHelper,
+			callerPreview); err != nil {
 			return res, err
+		}
+		if pre.Preview != nil {
+			u.Debug(ctx, "upload: created preview in preprocess")
+			// Store the preview in pending storage
+			if err = pp.Put(ctx, outboxID, pre); err != nil {
+				return res, err
+			}
 		}
 	}
 
@@ -533,7 +545,10 @@ func (u *Uploader) upload(ctx context.Context, uid gregor1.UID, convID chat1.Con
 			return err
 		})
 	}
+
+	deferToBackgroundRoutine = true
 	go func() {
+		defer src.Close()
 		var errStr string
 		status := types.AttachmentUploaderTaskStatusSuccess
 		if err := g.Wait(); err != nil {

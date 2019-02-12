@@ -2,15 +2,15 @@
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
 import * as Styles from '../../styles'
+import * as Kb from '../../common-adapters'
 import {rowStyles} from './common'
-import {Icon, ClickableBox, Input, Box, Button, Text} from '../../common-adapters'
-import {PathItemIcon} from '../common'
+import PathItemIcon from '../common/path-item-icon'
 
 type EditingProps = {
   name: string,
+  projectedPath: Types.Path,
   hint: string,
   status: Types.EditStatusType,
-  itemStyles: Types.ItemStyles,
   isCreate: boolean,
   onSubmit: () => void,
   onUpdate: (name: string) => void,
@@ -18,21 +18,23 @@ type EditingProps = {
 }
 
 const HoverClickableBox = Styles.isMobile
-  ? ClickableBox
-  : Styles.glamorous(ClickableBox)({
-      '& .fs-path-item-editing-trash-icon': {
-        color: Styles.globalColors.black_40,
-      },
-      '& .fs-path-item-editing-trash-icon:hover': {
-        color: Styles.globalColors.black_60,
-      },
+  ? Kb.ClickableBox
+  : Styles.styled(Kb.ClickableBox)({
+      '& .fs-path-item-editing-trash-icon': {color: Styles.globalColors.black_50},
+      '& .fs-path-item-editing-trash-icon:hover': {color: Styles.globalColors.black_50},
     })
 
 const Editing = (props: EditingProps) => (
-  <Box style={rowStyles.rowBox}>
-    <PathItemIcon spec={props.itemStyles.iconSpec} style={rowStyles.pathItemIcon} />
-    <Box key="main" style={rowStyles.itemBox}>
-      <Input
+  <Kb.Box style={rowStyles.rowBox}>
+    <PathItemIcon
+      path={props.projectedPath}
+      size={32}
+      type="folder"
+      username=""
+      style={rowStyles.pathItemIcon}
+    />
+    <Kb.Box key="main" style={rowStyles.itemBox}>
+      <Kb.Input
         hideUnderline={true}
         small={true}
         value={props.name}
@@ -43,10 +45,10 @@ const Editing = (props: EditingProps) => (
         autoFocus={true}
         selectTextOnFocus={true}
       />
-    </Box>
-    <Box key="right" style={rowStyles.rightBox}>
-      {props.status === 'failed' && <Text type="BodySmallError">Failed</Text>}
-      <Button
+    </Kb.Box>
+    <Kb.Box key="right" style={rowStyles.rightBox}>
+      {props.status === 'failed' && <Kb.Text type="BodySmallError">Failed</Kb.Text>}
+      <Kb.Button
         key="create"
         style={stylesButton}
         type="Primary"
@@ -56,10 +58,10 @@ const Editing = (props: EditingProps) => (
         onClick={props.status === 'saving' ? undefined : props.onSubmit}
       />
       <HoverClickableBox style={stylesCancelBox} onClick={props.onCancel}>
-        <Icon type="iconfont-trash" className="fs-path-item-editing-trash-icon" style={stylesIconCancel} />
+        <Kb.Icon type="iconfont-trash" className="fs-path-item-editing-trash-icon" style={stylesIconCancel} />
       </HoverClickableBox>
-    </Box>
-  </Box>
+    </Kb.Box>
+  </Kb.Box>
 )
 
 const stylesCancelBox = {
@@ -82,13 +84,9 @@ const stylesText = Styles.platformStyles({
     ...Styles.globalStyles.fontSemibold,
     maxWidth: '100%',
   },
-  isMobile: {
-    marginTop: 22,
-  },
+  isMobile: {marginTop: 22},
 })
 
-const stylesButton = {
-  marginLeft: Styles.globalMargins.tiny,
-}
+const stylesButton = {marginLeft: Styles.globalMargins.tiny}
 
 export default Editing

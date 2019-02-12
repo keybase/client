@@ -10,6 +10,7 @@ export type Props = {
   code: string, // The same as `name` except for XLM
   equivAvailableToSend: string, // non-empty only if native currency e.g. '$123.45 USD'
   equivBalance: string, // non-empty only if native currency
+  expanded?: boolean, // for testing
   issuerName: string, // verified issuer domain name, 'Stellar network' or 'Unknown'
   issuerAccountID: string, // issuing public key
   name: string, // Asset code or 'Lumens'
@@ -22,7 +23,7 @@ type State = {
 }
 
 export default class Asset extends React.Component<Props, State> {
-  state = {expanded: false}
+  state = {expanded: !!this.props.expanded}
 
   _toggleExpanded = () => {
     this.setState(prevProps => ({
@@ -94,7 +95,7 @@ const BalanceSummary = (props: BalanceSummaryProps) => (
         Total
       </Kb.Text>
       <Kb.Text type="BodyExtrabold" selectable={true}>
-        {props.total}
+        {props.total} XLM
       </Kb.Text>
     </Kb.Box2>
     {props.reserves.map(reserve => (
@@ -118,7 +119,7 @@ const BalanceSummary = (props: BalanceSummaryProps) => (
           )}
         </Kb.Box2>
         <Kb.Text type="Body" lineClamp={1} selectable={true}>
-          -{reserve.amount}
+          -{reserve.amount} XLM
         </Kb.Text>
       </Kb.Box2>
     ))}
@@ -129,7 +130,7 @@ const BalanceSummary = (props: BalanceSummaryProps) => (
       </Kb.Text>
       <Kb.Box2 direction="vertical" style={styles.balanceContainer}>
         <Kb.Text type="Body" selectable={true} style={{fontWeight: '800'}}>
-          {props.availableToSend}
+          {props.availableToSend} XLM
         </Kb.Text>
         <Kb.Text type="BodySmall" selectable={true}>
           {props.equivAvailableToSend}
@@ -178,7 +179,7 @@ const styles = Styles.styleSheetCreate({
     paddingRight: Styles.globalMargins.small,
   },
   headerContainer: {
-    height: 48,
+    height: Styles.isMobile ? 56 : 48,
     padding: Styles.globalMargins.tiny,
     paddingRight: Styles.globalMargins.small,
   },
@@ -186,6 +187,7 @@ const styles = Styles.styleSheetCreate({
     flex: 1,
   },
   leftColText: {
+    alignItems: 'center',
     flex: 1,
   },
   questionMark: Styles.platformStyles({

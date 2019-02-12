@@ -9,6 +9,8 @@ import {RPCError} from '../util/errors'
 import {measureStart, measureStop} from '../util/user-timings'
 import {getEngine} from './require'
 
+type WaitingKey = string | Array<string>
+
 // A session is a series of calls back and forth tied together with a single sessionID
 class Session {
   // Our id
@@ -18,7 +20,7 @@ class Session {
   // Map of methods => callbacks
   _customResponseIncomingCallMap: CustomResponseIncomingCallMap | {}
   // Let the outside know we're waiting
-  _waitingKey: string
+  _waitingKey: WaitingKey
   // Tell engine we're done
   _endHandler: ?EndHandlerType
   // Sequence IDs we've seen. Value is true if we've responded (often we get cancel after we've replied)
@@ -44,7 +46,7 @@ class Session {
     sessionID: SessionID,
     incomingCallMap: ?IncomingCallMapType,
     customResponseIncomingCallMap: ?CustomResponseIncomingCallMap,
-    waitingKey?: string,
+    waitingKey?: WaitingKey,
     invoke: invokeType,
     endHandler: EndHandlerType,
     cancelHandler?: ?CancelHandlerType,
@@ -73,7 +75,7 @@ class Session {
   // Make a waiting handler for the request. We add additional data before calling the parent waitingHandler
   // and do internal bookkeeping if the request is done
   _makeWaitingHandler(isOutgoing: boolean, method: MethodKey, seqid: ?number) {
-    return (waiting: boolean) => {
+    return (waiting: boolean, err: any) => {
       rpcLog({
         extra: {
           id: this.getId(),
@@ -86,7 +88,7 @@ class Session {
         type: 'engineInternal',
       })
       if (this._waitingKey) {
-        getEngine().dispatchWaitingAction(this._waitingKey, waiting)
+        getEngine().dispatchWaitingAction(this._waitingKey, waiting, err)
       }
 
       // Request is finished, do cleanup

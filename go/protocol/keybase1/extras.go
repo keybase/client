@@ -414,6 +414,8 @@ func (l LinkID) IsNil() bool {
 	return len(l) == 0
 }
 
+func NilTeamID() TeamID { return TeamID("") }
+
 func (s Seqno) Eq(s2 Seqno) bool {
 	return s == s2
 }
@@ -1222,13 +1224,22 @@ func (t TLFID) ToBytes() []byte {
 	return b
 }
 
+func (b TLFIdentifyBehavior) UnblockThenForceIDTable() bool {
+	switch b {
+	case TLFIdentifyBehavior_GUI_PROFILE:
+		return true
+	default:
+		return false
+	}
+}
+
 func (b TLFIdentifyBehavior) AlwaysRunIdentify() bool {
 	switch b {
 	case TLFIdentifyBehavior_CHAT_CLI,
 		TLFIdentifyBehavior_CHAT_GUI,
-		TLFIdentifyBehavior_CHAT_GUI_STRICT,
 		TLFIdentifyBehavior_SALTPACK,
-		TLFIdentifyBehavior_KBFS_CHAT:
+		TLFIdentifyBehavior_KBFS_CHAT,
+		TLFIdentifyBehavior_GUI_PROFILE:
 		return true
 	default:
 		return false
@@ -1238,7 +1249,6 @@ func (b TLFIdentifyBehavior) AlwaysRunIdentify() bool {
 func (b TLFIdentifyBehavior) CanUseUntrackedFastPath() bool {
 	switch b {
 	case TLFIdentifyBehavior_CHAT_GUI,
-		TLFIdentifyBehavior_CHAT_GUI_STRICT,
 		TLFIdentifyBehavior_SALTPACK,
 		TLFIdentifyBehavior_RESOLVE_AND_CHECK:
 		return true
@@ -1252,7 +1262,7 @@ func (b TLFIdentifyBehavior) CanUseUntrackedFastPath() bool {
 func (b TLFIdentifyBehavior) WarningInsteadOfErrorOnBrokenTracks() bool {
 	switch b {
 	case TLFIdentifyBehavior_CHAT_GUI:
-		// The chat GUI (in non-strict mode) is specifically exempted from broken
+		// The chat GUI is specifically exempted from broken
 		// track errors, because people need to be able to use it to ask each other
 		// about the fact that proofs are broken.
 		return true
@@ -1295,7 +1305,6 @@ func (b TLFIdentifyBehavior) AllowDeletedUsers() bool {
 func (b TLFIdentifyBehavior) ShouldSuppressTrackerPopups() bool {
 	switch b {
 	case TLFIdentifyBehavior_CHAT_GUI,
-		TLFIdentifyBehavior_CHAT_GUI_STRICT,
 		TLFIdentifyBehavior_CHAT_CLI,
 		TLFIdentifyBehavior_KBFS_REKEY,
 		TLFIdentifyBehavior_KBFS_QR,
@@ -2110,6 +2119,10 @@ func (t TeamName) RootAncestorName() TeamName {
 	}
 }
 
+func (t TeamName) RootID() TeamID {
+	return t.RootAncestorName().ToTeamID(false)
+}
+
 func (t TeamName) Parent() (TeamName, error) {
 	if len(t.Parts) == 0 {
 		return t, fmt.Errorf("empty team name")
@@ -2398,8 +2411,8 @@ func (n ImplicitTeamDisplayName) String() string {
 	return name
 }
 
-func (c ImplicitTeamConflictInfo) IsConflict() bool {
-	return c.Generation > ConflictGeneration(0)
+func (c *ImplicitTeamConflictInfo) IsConflict() bool {
+	return c != nil && c.Generation > ConflictGeneration(0)
 }
 
 const (

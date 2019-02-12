@@ -43,7 +43,19 @@ type SendNotifier func(SeqNumber)
 // the result field will be populated (if applicable). It returns an Error
 // on error, where the error might have been unwrapped from Msgpack via the
 // UnwrapErrorFunc in this client.
-func (c *Client) Call(ctx context.Context, method string, arg interface{}, res interface{}) (err error) {
+func (c *Client) Call(ctx context.Context, method string, arg interface{}, res interface{}) error {
+	return c.call(ctx, method, arg, res, CompressionNone)
+}
+
+// CallCompressed acts as Call but allows the response to be compressed with
+// the given CompressionType.
+func (c *Client) CallCompressed(ctx context.Context, method string,
+	arg interface{}, res interface{}, ctype CompressionType) error {
+	return c.call(ctx, method, arg, res, ctype)
+}
+
+func (c *Client) call(ctx context.Context, method string,
+	arg interface{}, res interface{}, ctype CompressionType) error {
 	if ctx == nil {
 		return errors.New("No Context provided for this call")
 	}
@@ -66,7 +78,7 @@ func (c *Client) Call(ctx context.Context, method string, arg interface{}, res i
 	if err != nil {
 		return err
 	}
-	return d.Call(ctx, method, arg, res, c.errorUnwrapper, c.sendNotifier)
+	return d.Call(ctx, method, arg, res, ctype, c.errorUnwrapper, c.sendNotifier)
 }
 
 // Notify notifies the server, with the given method and argument. It does not
@@ -88,5 +100,7 @@ func (c *Client) Notify(ctx context.Context, method string, arg interface{}) (er
 // from AVDL files.
 type GenericClient interface {
 	Call(ctx context.Context, method string, arg interface{}, res interface{}) error
+	CallCompressed(ctx context.Context, method string,
+		arg interface{}, res interface{}, cType CompressionType) error
 	Notify(ctx context.Context, method string, arg interface{}) error
 }

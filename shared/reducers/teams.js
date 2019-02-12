@@ -3,6 +3,7 @@ import * as TeamsGen from '../actions/teams-gen'
 import * as Constants from '../constants/teams'
 import * as I from 'immutable'
 import * as Types from '../constants/types/teams'
+import * as Flow from '../util/flow'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -14,8 +15,6 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
       return state.merge({channelCreationError: action.payload.error})
     case TeamsGen.setTeamCreationError:
       return state.merge({teamCreationError: action.payload.error})
-    case TeamsGen.setTeamCreationPending:
-      return state.merge({teamCreationPending: action.payload.pending})
     case TeamsGen.setAddUserToTeamsResults:
       return state.merge({addUserToTeamsResults: action.payload.results})
     case TeamsGen.setTeamInviteError:
@@ -53,12 +52,10 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
       return state.setIn(['teamNameToPublicitySettings', action.payload.teamname], action.payload.publicity)
     case TeamsGen.setTeamChannelInfo:
       const {conversationIDKey, channelInfo} = action.payload
-      return state.updateIn(
-        ['teamNameToChannelInfos', action.payload.teamname],
-        channelInfos =>
-          channelInfos
-            ? channelInfos.set(conversationIDKey, channelInfo)
-            : I.Map([[conversationIDKey, channelInfo]])
+      return state.updateIn(['teamNameToChannelInfos', action.payload.teamname], channelInfos =>
+        channelInfos
+          ? channelInfos.set(conversationIDKey, channelInfo)
+          : I.Map([[conversationIDKey, channelInfo]])
       )
     case TeamsGen.setTeamChannels:
       return state.setIn(['teamNameToChannelInfos', action.payload.teamname], action.payload.channelInfos)
@@ -69,26 +66,26 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
           message: action.payload.message,
         }),
       })
-    case TeamsGen.setLoaded:
-      return state.merge({loaded: action.payload.loaded})
     case TeamsGen.setTeamInfo:
       return state.merge({
-        teamnames: action.payload.teamnames,
-        teammembercounts: action.payload.teammembercounts,
-        teamNameToIsOpen: action.payload.teamNameToIsOpen,
-        teamNameToRole: action.payload.teamNameToRole,
         teamNameToAllowPromote: action.payload.teamNameToAllowPromote,
-        teamNameToIsShowcasing: action.payload.teamNameToIsShowcasing,
         teamNameToID: action.payload.teamNameToID,
+        teamNameToIsOpen: action.payload.teamNameToIsOpen,
+        teamNameToIsShowcasing: action.payload.teamNameToIsShowcasing,
+        teamNameToRole: action.payload.teamNameToRole,
+        teammembercounts: action.payload.teammembercounts,
+        teamnames: action.payload.teamnames,
       })
     case TeamsGen.setTeamAccessRequestsPending:
       return state.merge({teamAccessRequestsPending: action.payload.accessRequestsPending})
     case TeamsGen.setNewTeamInfo:
       return state.merge({
-        newTeams: action.payload.newTeams,
         newTeamRequests: action.payload.newTeamRequests,
+        newTeams: action.payload.newTeams,
         teamNameToResetUsers: action.payload.teamNameToResetUsers,
       })
+    case TeamsGen.setTeamProfileAddList:
+      return state.merge({teamProfileAddList: action.payload.teamlist})
     case TeamsGen.setTeamSawChatBanner:
       return state.merge({sawChatBanner: true})
     case TeamsGen.setTeamSawSubteamsBanner:
@@ -143,6 +140,7 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
     case TeamsGen.getDetails:
     case TeamsGen.getDetailsForAllTeams:
     case TeamsGen.getTeamOperations:
+    case TeamsGen.getTeamProfileAddList:
     case TeamsGen.getTeamPublicity:
     case TeamsGen.getTeamRetentionPolicy:
     case TeamsGen.getTeams:
@@ -162,10 +160,7 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
     case TeamsGen.updateTopic:
       return state
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(action);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

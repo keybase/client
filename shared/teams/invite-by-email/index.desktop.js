@@ -47,7 +47,7 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
   }
 
   _setMalformedEmails = (malformedEmails: I.Set<string>) => {
-    this.setState({malformedEmails, invitees: malformedEmails.join('\n')})
+    this.setState({invitees: malformedEmails.join('\n'), malformedEmails})
   }
 
   _setRole = (role: TeamRoleType) => this.setState({role})
@@ -133,9 +133,9 @@ class InviteByEmailDesktop extends React.Component<Props, State> {
 }
 
 const styleInside = {
-  padding: Styles.globalMargins.tiny,
-  marginTop: 0,
   marginBottom: 0,
+  marginTop: 0,
+  padding: Styles.globalMargins.tiny,
 }
 
 const styleInput = {
@@ -151,11 +151,11 @@ const _styleCover = {
 }
 
 const _styleContainer = {
+  ...Styles.desktopStyles.boxShadow,
   ...Styles.globalStyles.flexBoxColumn,
   alignSelf: 'center',
   backgroundColor: Styles.globalColors.white,
   borderRadius: 5,
-  boxShadow: `0 2px 5px 0 ${Styles.globalColors.black_20}`,
 }
 
 export {InviteByEmailDesktop}

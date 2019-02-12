@@ -1,4 +1,5 @@
 // @flow
+// TODO deprecate
 import * as React from 'react'
 import ShowcasedTeamInfo from './index'
 import * as TeamsGen from '../../actions/teams-gen'
@@ -36,12 +37,12 @@ const mapStateToProps = (state, {team}: OwnProps) => {
   return {
     description,
     following,
-    teamJoinError: state.teams.teamJoinError,
-    teamJoinSuccess: state.teams.teamJoinSuccess,
     memberCount,
     openTeam,
     publicAdmins,
     publicAdminsOthers,
+    teamJoinError: state.teams.teamJoinError,
+    teamJoinSuccess: state.teams.teamJoinSuccess,
     teamname,
     youAreInTeam,
     youHaveRequestedAccess,

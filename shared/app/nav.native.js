@@ -2,6 +2,7 @@
 import * as I from 'immutable'
 import * as Kb from '../common-adapters/mobile.native'
 import * as Styles from '../styles'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import CardStackTransitioner from 'react-navigation/src/views/CardStack/CardStackTransitioner'
 import GlobalError from './global-errors/container'
 import Offline from '../offline/container'
@@ -11,13 +12,13 @@ import TabBar from './tab-bar/container'
 import type {Props, OwnProps} from './nav.types'
 import {NavigationActions, type NavigationAction} from 'react-navigation'
 import {addSizeListener} from '../styles/status-bar'
-import {chatTab, loginTab} from '../constants/tabs'
+import * as Tabs from '../constants/tabs'
 import {connect} from '../util/container'
 import {isIOS, isIPhoneX} from '../constants/platform'
 import {makeLeafTags} from '../route-tree'
-import {navigateUp} from '../actions/route-tree'
 import {tabBarHeight} from './tab-bar/index.native'
 import {type RouteRenderStack, type RenderRouteResult} from '../route-tree/render-route'
+import {GatewayDest} from 'react-gateway'
 
 type CardStackShimProps = {
   mode: 'modal' | 'card',
@@ -69,21 +70,22 @@ class CardStackShim extends Component<CardStackShimProps> {
     const stack = this.props.stack
 
     const navigation = {
+      dispatch: this._dispatchShim,
+      goBack: nop,
+      navigate: nop,
+      setParams: nop,
       state: {
         index: stack.size - 1,
         routes: stack
           .map((route, index) => {
             const routeName = route.path.join('/')
             // The bottom/back item of the stack is our top (active) screen
-            const shouldRender = !this.props.hidden && (index === stack.size - 1 || index === stack.size - 2)
-            return {key: routeName, routeName, params: {route, shouldRender}}
+            const shouldRender =
+              !this.props.hidden && (index === stack.size - 1 || (isIOS && index === stack.size - 2))
+            return {key: routeName, params: {route, shouldRender}, routeName}
           })
           .toArray(),
       },
-      dispatch: this._dispatchShim,
-      navigate: nop,
-      goBack: nop,
-      setParams: nop,
     }
 
     return (
@@ -193,8 +195,16 @@ class MainNavStack extends Component<any, {verticalOffset: number}> {
     const content = (
       <Kb.NativeView style={styles.content}>
         {stacks}
-        {![chatTab].includes(props.routeSelected) ? <Offline key="offline" /> : null}
-        <GlobalError key="globalError" />
+        {![
+          Tabs.chatTab,
+          Tabs.peopleTab,
+          Tabs.settingsTab,
+          Tabs.gitTab,
+          Tabs.devicesTab,
+          Tabs.teamsTab,
+        ].includes(props.routeSelected) ? (
+          <Offline key="offline" />
+        ) : null}
         {!props.hideNav && (
           <Kb.NativeSafeAreaView style={props.keyboardShowing ? styles.noTabSafeArea : styles.tabSafeArea}>
             <AnimatedTabBar show={!props.keyboardShowing}>
@@ -217,11 +227,18 @@ class MainNavStack extends Component<any, {verticalOffset: number}> {
           keyboardVerticalOffset={keyboardVerticalOffset}
         >
           {content}
+          <GatewayDest
+            name="keyboard-avoiding-root"
+            component={ViewForGatewayDest}
+            pointerEvents="box-none"
+            style={styles.gatewayDest}
+          />
         </Kb.NativeKeyboardAvoidingView>
       </Kb.NativeView>
     )
   }
 }
+const ViewForGatewayDest = <T>(props: T) => <Kb.NativeView {...props} />
 
 type AnimatedTabBarProps = {
   show: boolean,
@@ -322,7 +339,6 @@ class Nav extends Component<Props, {keyboardShowing: boolean}> {
     const fullscreenPred = r => r.tags && r.tags.fullscreen
     const mainScreens = baseScreens.takeUntil(fullscreenPred)
     const fullScreens: any = baseScreens.skipUntil(fullscreenPred).unshift({
-      path: ['main'],
       component: () => (
         <MainNavStack
           {...this.props}
@@ -331,6 +347,7 @@ class Nav extends Component<Props, {keyboardShowing: boolean}> {
           routeStack={mainScreens}
         />
       ),
+      path: ['main'],
       tags: makeLeafTags({root: true}), // special case to avoid padding else we'll double pad
     })
 
@@ -344,23 +361,23 @@ class Nav extends Component<Props, {keyboardShowing: boolean}> {
       />
     )
     const layerScreens = this.props.routeStack.filter(r => r.tags && r.tags.layerOnTop)
-    const layers = layerScreens.map(
-      (r, idx) =>
-        r.tags.hideStatusBar ? (
-          <React.Fragment key={String(idx)}>
-            <Kb.NativeStatusBar hidden={!isIPhoneX} translucent={true} />
-            {!r.tags.underNotch && <Kb.SafeAreaViewTop />}
-            {r.leafComponent({shouldRender: true})}
-          </React.Fragment>
-        ) : (
-          r.leafComponent({shouldRender: true})
-        )
+    const layers = layerScreens.map((r, idx) =>
+      r.tags.hideStatusBar ? (
+        <React.Fragment key={String(idx)}>
+          <Kb.NativeStatusBar hidden={!isIPhoneX} translucent={true} />
+          {!r.tags.underNotch && <Kb.SafeAreaViewTop />}
+          {r.leafComponent({shouldRender: true})}
+        </React.Fragment>
+      ) : (
+        r.leafComponent({shouldRender: true})
+      )
     )
 
     return (
       <>
         {shim}
         {layers}
+        <GlobalError key="globalError" />
         <RpcStats />
       </>
     )
@@ -369,11 +386,11 @@ class Nav extends Component<Props, {keyboardShowing: boolean}> {
 
 const mapStateToProps = (state, ownProps: OwnProps) => ({
   _me: state.config.username,
-  hideNav: ownProps.routeSelected === loginTab,
+  hideNav: ownProps.routeSelected === Tabs.loginTab,
 })
 
 const mapDispatchToProps = dispatch => ({
-  navigateUp: () => dispatch(navigateUp()),
+  navigateUp: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
@@ -387,6 +404,7 @@ const styles = Styles.styleSheetCreate({
   card: {backgroundColor: Styles.globalColors.fastBlank},
   container: {flexGrow: 1, position: 'relative'},
   content: {...Styles.globalStyles.flexGrow},
+  gatewayDest: {height: '100%', position: 'absolute', top: 0, width: '100%'},
   hiddenTransitioner: {
     height: '100%',
     left: -9999,
@@ -397,11 +415,11 @@ const styles = Styles.styleSheetCreate({
     ...Styles.globalStyles.fillAbsolute,
     backgroundColor: Styles.globalColors.fastBlank,
   },
+  noTabSafeArea: {backgroundColor: Styles.globalColors.white, flexGrow: 0},
   routeOuter: {height: '100%', position: 'relative'},
   tabBar: {overflow: 'hidden'},
   tabBarHeightBar: {height: tabBarHeight},
   tabBarHeightZero: {height: 0},
-  noTabSafeArea: {backgroundColor: Styles.globalColors.white, flexGrow: 0},
   tabSafeArea: {backgroundColor: Styles.globalColors.darkBlue2, flexGrow: 0},
 })
 

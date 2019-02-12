@@ -28,7 +28,7 @@ const reservedPayloadKeys = ['_description']
 function compile(ns: ActionNS, {prelude, actions}: FileDesc): string {
   return `// @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define */
+/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
 
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -49,7 +49,7 @@ ${compileActions(ns, actions, compileActionCreator)}
 ${compileActions(ns, actions, compileActionPayloads)}
 
 // All Actions
-${compileAllActionsType(ns, actions)}  | {type: 'common:resetStore', payload: void}
+${compileAllActionsType(ns, actions)}  | {type: 'common:resetStore', payload: null}
   `
 }
 
@@ -94,13 +94,13 @@ function printPayload(p: Object) {
 
 function compileActionPayloads(ns: ActionNS, actionName: ActionName, desc: ActionDesc) {
   return (
-    `export type ${capitalize(actionName)}Payload = $Call<typeof create${capitalize(
+    `export type ${capitalize(actionName)}Payload = {|+payload: _${capitalize(
       actionName
-    )}, _${capitalize(actionName)}Payload>` +
+    )}Payload, +type: "${ns}:${actionName}"|}` +
     (desc.canError
-      ? `\n export type ${capitalize(actionName)}PayloadError = $Call<typeof create${capitalize(
+      ? `\n export type ${capitalize(actionName)}PayloadError = {|+error: true, +payload: _${capitalize(
           actionName
-        )}Error, _${capitalize(actionName)}PayloadError>`
+        )}PayloadError, +type: "${ns}:${actionName}"|}`
       : '')
   )
 }
@@ -155,17 +155,19 @@ function main() {
   const root = path.join(__dirname, '../../actions/json')
   const files = fs.readdirSync(root)
   const created = []
-  files.filter(file => path.extname(file) === '.json').forEach(file => {
-    const ns = path.basename(file, '.json')
-    created.push(ns)
-    console.log(`Generating ${ns}`)
-    const desc = json5.parse(fs.readFileSync(path.join(root, file)))
-    const outPath = path.join(root, '..', ns + '-gen.js')
-    // $FlowIssue
-    const generated = prettier.format(compile(ns, desc), prettier.resolveConfig.sync(outPath))
-    console.log(generated)
-    fs.writeFileSync(outPath, generated)
-  })
+  files
+    .filter(file => path.extname(file) === '.json')
+    .forEach(file => {
+      const ns = path.basename(file, '.json')
+      created.push(ns)
+      console.log(`Generating ${ns}`)
+      const desc = json5.parse(fs.readFileSync(path.join(root, file)))
+      const outPath = path.join(root, '..', ns + '-gen.js')
+      // $FlowIssue
+      const generated = prettier.format(compile(ns, desc), prettier.resolveConfig.sync(outPath))
+      console.log(generated)
+      fs.writeFileSync(outPath, generated)
+    })
 
   console.log(`Generating typed-actions-gen`)
   const outPath = path.join(root, '..', 'typed-actions-gen.js')

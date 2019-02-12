@@ -283,7 +283,7 @@ func (p *Prove) promptPostedLoop(m libkb.MetaContext) (err error) {
 		var status keybase1.ProofStatus
 		var warn *libkb.Markup
 		retry, err = m.UIs().ProveUI.OkToCheck(m.Ctx(), keybase1.OkToCheckArg{
-			Name:    p.st.DisplayName(p.remoteNameNormalized),
+			Name:    p.st.DisplayName(),
 			Attempt: i,
 		})
 		if !retry || err != nil {
@@ -324,7 +324,7 @@ func (p *Prove) getServiceType(m libkb.MetaContext) (err error) {
 	if p.st == nil {
 		return libkb.BadServiceError{Service: p.arg.Service}
 	}
-	if !p.st.CanMakeNewProofs() {
+	if !p.st.CanMakeNewProofs(m) {
 		return libkb.ServiceDoesNotSupportNewProofsError{Service: p.arg.Service}
 	}
 	return nil

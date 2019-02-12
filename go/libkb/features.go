@@ -64,8 +64,8 @@ type FeatureFlagSet struct {
 }
 
 const (
-	FeatureFTL                = Feature("ftl")
-	FeatureStellarAcctBundles = Feature("stellar_acct_bundles")
+	FeatureFTL     = Feature("ftl")
+	FeatureIMPTOFU = Feature("imptofu")
 )
 
 // NewFeatureFlagSet makes a new set of feature flags.
@@ -104,6 +104,13 @@ func (r *rawFeatures) GetAppStatus() *AppStatus {
 func (f *featureSlot) readFrom(m MetaContext, r rawFeatureSlot) {
 	f.on = r.Value
 	f.cacheUntil = m.G().Clock().Now().Add(time.Duration(r.CacheSec) * time.Second)
+}
+
+func (s *FeatureFlagSet) InvalidateCache(m MetaContext, f Feature) {
+	featureSlot := s.getOrMakeSlot(f)
+	featureSlot.Lock()
+	defer featureSlot.Unlock()
+	featureSlot.cacheUntil = m.G().Clock().Now().Add(time.Duration(-1) * time.Second)
 }
 
 // EnabledWithError returns if the given feature is enabled, it will return true if it's

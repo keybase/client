@@ -1,9 +1,9 @@
 // @flow
-import * as shared from './shared'
-import CopyableText from '../../common-adapters/copyable-text'
+import * as Shared from './shared'
+import * as Constants from '../../constants/profile'
 import * as React from 'react'
-import {Button, PlatformIcon, StandardScreen, Text} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins} from '../../styles'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 import type {Props} from '.'
 
 const PostProof = (props: Props) => {
@@ -16,7 +16,6 @@ const PostProof = (props: Props) => {
     onAllowProofCheck,
     onCancel,
     onComplete,
-    isOnCompleteWaiting,
     errorMessage,
   } = props
   const {
@@ -26,118 +25,103 @@ const PostProof = (props: Props) => {
     proofText,
     platformSubtitle,
     proofActionText,
-  } = shared.propsForPlatform(props)
+  } = Shared.propsForPlatform(props)
 
   const notification = !errorMessage
     ? {}
     : {
         notification: {
-          type: 'error',
           message: errorMessage,
+          type: 'error',
         },
       }
 
   return (
-    <StandardScreen {...notification} onCancel={onCancel}>
-      <PlatformIcon
+    <Kb.StandardScreen {...notification} onCancel={onCancel}>
+      <Kb.PlatformIcon
         style={stylePlatformIcon}
         platform={platform}
         overlay="icon-proof-unfinished"
-        overlayColor={globalColors.grey}
+        overlayColor={Styles.globalColors.grey}
         size={48}
       />
-      <Text
+      <Kb.Text
+        center={true}
         style={{
           ...stylePlatformUsername,
-          ...(stylePlatformSubtitle ? {} : {marginBottom: globalMargins.tiny}),
+          ...(stylePlatformSubtitle ? {} : {marginBottom: Styles.globalMargins.tiny}),
         }}
         type="Header"
       >
         {platformUserName}
-      </Text>
+      </Kb.Text>
       {!!platformSubtitle && (
-        <Text style={stylePlatformSubtitle} type="Body">
+        <Kb.Text center={true} style={stylePlatformSubtitle} type="Body">
           {platformSubtitle}
-        </Text>
+        </Kb.Text>
       )}
       {descriptionView ||
         (descriptionText && (
-          <Text style={styleDescriptionText} type="Body">
+          <Kb.Text center={true} style={styleDescriptionText} type="Body">
             {descriptionText}
-          </Text>
+          </Kb.Text>
         ))}
       {!!proofText && (
-        <CopyableText style={styleProofContainer} value={proofText} textStyle={styleProofText} />
+        <Kb.CopyableText style={styleProofContainer} value={proofText} textStyle={styleProofText} />
       )}
       {!!noteText && (
-        <Text style={styleNoteText} type="BodySmall">
+        <Kb.Text center={true} style={styleNoteText} type="BodySmall">
           {noteText}
-        </Text>
+        </Kb.Text>
       )}
-      {!!proofAction &&
-        !allowProofCheck && (
-          <Button
-            style={styleContinueButton}
-            fullWidth={true}
-            type="Primary"
-            onClick={() => {
-              onAllowProofCheck(true)
-              proofAction()
-            }}
-            label={proofActionText || ''}
-          />
-        )}
+      {!!proofAction && !allowProofCheck && (
+        <Kb.Button
+          style={styleContinueButton}
+          fullWidth={true}
+          type="Primary"
+          onClick={() => {
+            onAllowProofCheck(true)
+            proofAction()
+          }}
+          label={proofActionText || ''}
+        />
+      )}
       {allowProofCheck && (
-        <Button
+        <Kb.WaitingButton
           style={styleContinueButton}
           fullWidth={true}
           type="Primary"
           onClick={() => onComplete()}
           label={onCompleteText || ''}
-          waiting={isOnCompleteWaiting}
+          waitingKey={Constants.waitingKey}
         />
       )}
-    </StandardScreen>
+    </Kb.StandardScreen>
   )
 }
 
-const stylePlatformIcon = {
-  alignSelf: 'center',
-}
+const stylePlatformIcon = {alignSelf: 'center'}
 
-const stylePlatformUsername = {
-  color: globalColors.blue,
-  textAlign: 'center',
-}
+const stylePlatformUsername = {color: Styles.globalColors.blue}
 
 const stylePlatformSubtitle = {
-  color: globalColors.black_20,
-  marginBottom: globalMargins.small,
-  textAlign: 'center',
+  color: Styles.globalColors.black_20,
+  marginBottom: Styles.globalMargins.small,
 }
 
-const styleDescriptionText = {
-  textAlign: 'center',
-  marginTop: globalMargins.tiny,
-}
-
-const styleProofContainer = {
-  marginTop: globalMargins.tiny,
-}
+const styleDescriptionText = {marginTop: Styles.globalMargins.tiny}
+const styleProofContainer = {marginTop: Styles.globalMargins.tiny}
 
 const styleProofText = {
   maxHeight: 7 /* # lines */ * 20 /* line height */ + 2 * 10 /* padding */,
 }
 
-const styleNoteText = {
-  marginTop: globalMargins.tiny,
-  textAlign: 'center',
-}
+const styleNoteText = {marginTop: Styles.globalMargins.tiny}
 
 const styleContinueButton = {
-  ...globalStyles.flexBoxRow,
-  marginTop: globalMargins.small,
-  marginBottom: globalMargins.small,
+  ...Styles.globalStyles.flexBoxRow,
+  marginBottom: Styles.globalMargins.small,
+  marginTop: Styles.globalMargins.small,
 }
 
 export default PostProof

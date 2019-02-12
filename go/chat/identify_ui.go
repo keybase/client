@@ -15,6 +15,7 @@ func (c chatNullIdentifyUI) Confirm(*keybase1.IdentifyOutcome) (keybase1.Confirm
 	return keybase1.ConfirmResult{}, nil
 }
 func (c chatNullIdentifyUI) DisplayCryptocurrency(keybase1.Cryptocurrency) error          { return nil }
+func (c chatNullIdentifyUI) DisplayStellarAccount(keybase1.StellarAccount) error          { return nil }
 func (c chatNullIdentifyUI) DisplayKey(keybase1.IdentifyKey) error                        { return nil }
 func (c chatNullIdentifyUI) ReportLastTrack(*keybase1.TrackSummary) error                 { return nil }
 func (c chatNullIdentifyUI) LaunchNetworkChecks(*keybase1.Identity, *keybase1.User) error { return nil }

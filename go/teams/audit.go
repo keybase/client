@@ -1,16 +1,18 @@
 package teams
 
 import (
+	"context"
 	"crypto/rand"
 	"fmt"
-	lru "github.com/hashicorp/golang-lru"
-	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/pipeliner"
 	"math/big"
 	"sort"
 	"sync"
 	"time"
+
+	lru "github.com/hashicorp/golang-lru"
+	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/pipeliner"
 )
 
 // AuditCurrentVersion is the version that works with this code. Older stored
@@ -61,6 +63,15 @@ func getAuditParams(m libkb.MetaContext) libkb.TeamAuditParams {
 	return desktopParams
 }
 
+type dummyAuditor struct{}
+
+func (d dummyAuditor) AuditTeam(m libkb.MetaContext, id keybase1.TeamID, isPublic bool,
+	headMerkleSeqno keybase1.Seqno, chain map[keybase1.Seqno]keybase1.LinkID, maxSeqno keybase1.Seqno) error {
+	return nil
+}
+
+func (d dummyAuditor) OnLogout(m libkb.MetaContext) {}
+
 type Auditor struct {
 
 	// single-flight lock on TeamID
@@ -81,10 +92,13 @@ func NewAuditor(g *libkb.GlobalContext) *Auditor {
 
 // NewAuditorAndInstall makes a new Auditor and dangles it
 // off of the given GlobalContext.
-func NewAuditorAndInstall(g *libkb.GlobalContext) *Auditor {
-	a := NewAuditor(g)
-	g.SetTeamAuditor(a)
-	return a
+func NewAuditorAndInstall(g *libkb.GlobalContext) {
+	if g.GetEnv().GetDisableTeamAuditor() {
+		g.Log.CDebugf(context.TODO(), "Using dummy auditor, audit disabled")
+		g.SetTeamAuditor(dummyAuditor{})
+	} else {
+		g.SetTeamAuditor(NewAuditor(g))
+	}
 }
 
 // AuditTeam runs an audit on the links of the given team chain (or team chain suffix).

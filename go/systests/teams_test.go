@@ -143,7 +143,7 @@ func installInsecureTriplesec(g *libkb.GlobalContext) {
 		isProduction := func() bool {
 			return g.Env.GetRunMode() == libkb.ProductionRunMode
 		}
-		return insecureTriplesec.NewCipher(passphrase, salt, warner, isProduction)
+		return insecureTriplesec.NewCipher(passphrase, salt, libkb.ClientTriplesecVersion, warner, isProduction)
 	}
 }
 
@@ -204,6 +204,7 @@ func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool) *userPlusD
 	require.NoError(tt.t, err)
 
 	u.teamsClient = keybase1.TeamsClient{Cli: cli}
+	u.userClient = keybase1.UserClient{Cli: cli}
 	u.stellarClient = newStellarRetryClient(cli)
 
 	g.ConfigureConfig()
@@ -227,6 +228,12 @@ func (tt *teamTester) addUserHelper(pre string, puk bool, paper bool) *userPlusD
 func (tt *teamTester) cleanup() {
 	for _, u := range tt.users {
 		u.device.tctx.Cleanup()
+		if u.device.service != nil {
+			u.tc.T.Logf("in teamTester cleanup, stopping test user's service")
+			u.device.service.Stop(0)
+			u.device.stop()
+			u.tc.T.Logf("in teamTester cleanup, stopped test user's service")
+		}
 	}
 }
 
@@ -240,6 +247,7 @@ type userPlusDevice struct {
 	tc                       *libkb.TestContext
 	deviceClient             keybase1.DeviceClient
 	teamsClient              keybase1.TeamsClient
+	userClient               keybase1.UserClient
 	stellarClient            stellar1.LocalInterface
 	notifications            *teamNotifyHandler
 	suppressTeamChatAnnounce bool

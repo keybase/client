@@ -48,7 +48,7 @@ func GetSecret(m MetaContext, ui SecretUI, title, prompt, retryMsg string, allow
 	return res, nil
 }
 
-func GetPaperKeyPassphrase(m MetaContext, ui SecretUI, username string, lastErr error) (string, error) {
+func GetPaperKeyPassphrase(m MetaContext, ui SecretUI, username string, lastErr error, expectedPrefix *string) (string, error) {
 	arg := DefaultPassphraseArg(m)
 	arg.WindowTitle = "Paper Key"
 	arg.Type = keybase1.PassphraseType_PAPER_KEY
@@ -62,7 +62,7 @@ func GetPaperKeyPassphrase(m MetaContext, ui SecretUI, username string, lastErr 
 	if lastErr != nil {
 		arg.RetryLabel = lastErr.Error()
 	}
-	res, err := GetPassphraseUntilCheck(m, arg, newUIPrompter(ui), &PaperChecker{})
+	res, err := GetPassphraseUntilCheck(m, arg, newUIPrompter(ui), &PaperChecker{expectedPrefix})
 	if err != nil {
 		return "", err
 	}
@@ -131,6 +131,14 @@ func GetPassphraseUntilCheck(m MetaContext, arg keybase1.GUIEntryArg, prompter P
 		if checker == nil {
 			return res, nil
 		}
+
+		s := res.Passphrase
+		t, err := checker.Automutate(m, s)
+		if err != nil {
+			return keybase1.GetPassphraseRes{}, err
+		}
+		res = keybase1.GetPassphraseRes{Passphrase: t, StoreSecret: res.StoreSecret}
+
 		err = checker.Check(m, res.Passphrase)
 		if err == nil {
 			return res, nil
@@ -171,12 +179,17 @@ func DefaultPassphrasePromptArg(m MetaContext, username string) keybase1.GUIEntr
 // hint otherwise.
 type PassphraseChecker interface {
 	Check(MetaContext, string) error
+	Automutate(MetaContext, string) (string, error)
 }
 
 // CheckerWrapper wraps a Checker type to make it conform to the
 // PassphraseChecker interface.
 type CheckerWrapper struct {
 	checker Checker
+}
+
+func (w *CheckerWrapper) Automutate(m MetaContext, s string) (string, error) {
+	return s, nil
 }
 
 // Check s using checker, respond with checker.Hint if check
@@ -189,7 +202,20 @@ func (w *CheckerWrapper) Check(m MetaContext, s string) error {
 }
 
 // PaperChecker implements PassphraseChecker for paper keys.
-type PaperChecker struct{}
+type PaperChecker struct {
+	expectedPrefix *string
+}
+
+func (p *PaperChecker) Automutate(m MetaContext, s string) (string, error) {
+	phrase := NewPaperKeyPhrase(s)
+	if phrase.NumWords() == PaperKeyNoPrefixLen {
+		if p.expectedPrefix == nil {
+			return "", errors.New("No prefix given but expectedPrefix is nil; must give the entire paper key.")
+		}
+		return fmt.Sprintf("%s %s", *p.expectedPrefix, s), nil
+	}
+	return s, nil
+}
 
 // Check a paper key format.  Will return a detailed error message
 // specific to the problems found in s.

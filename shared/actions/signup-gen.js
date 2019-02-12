@@ -1,6 +1,6 @@
 // @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define */
+/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
 
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -27,52 +27,21 @@ export const signedup = 'signup:signedup'
 // Payload Types
 type _CheckDevicenamePayload = $ReadOnly<{|devicename: string|}>
 type _CheckInviteCodePayload = $ReadOnly<{|inviteCode: string|}>
-type _CheckPassphrasePayload = $ReadOnly<{|
-  pass1: HiddenString,
-  pass2: HiddenString,
-|}>
-type _CheckUsernameEmailPayload = $ReadOnly<{|
-  username: string,
-  email: string,
-|}>
+type _CheckPassphrasePayload = $ReadOnly<{|pass1: HiddenString, pass2: HiddenString|}>
+type _CheckUsernameEmailPayload = $ReadOnly<{|username: string, email: string|}>
 type _CheckedDevicenamePayload = $ReadOnly<{|devicename: string|}>
-type _CheckedDevicenamePayloadError = $ReadOnly<{|
-  devicename: string,
-  error: string,
-|}>
+type _CheckedDevicenamePayloadError = $ReadOnly<{|devicename: string, error: string|}>
 type _CheckedInviteCodePayload = $ReadOnly<{|inviteCode: string|}>
-type _CheckedInviteCodePayloadError = $ReadOnly<{|
-  inviteCode: string,
-  error: string,
-|}>
-type _CheckedUsernameEmailPayload = $ReadOnly<{|
-  username: string,
-  email: string,
-|}>
-type _CheckedUsernameEmailPayloadError = $ReadOnly<{|
-  emailError: string,
-  usernameError: string,
-  email: string,
-  username: string,
-|}>
+type _CheckedInviteCodePayloadError = $ReadOnly<{|inviteCode: string, error: string|}>
+type _CheckedUsernameEmailPayload = $ReadOnly<{|username: string, email: string|}>
+type _CheckedUsernameEmailPayloadError = $ReadOnly<{|emailError: string, usernameError: string, email: string, username: string|}>
 type _GoBackAndClearErrorsPayload = void
 type _RequestAutoInvitePayload = void
-type _RequestInvitePayload = $ReadOnly<{|
-  email: string,
-  name: string,
-|}>
+type _RequestInvitePayload = $ReadOnly<{|email: string, name: string|}>
 type _RequestedAutoInvitePayload = $ReadOnly<{|inviteCode: string|}>
 type _RequestedAutoInvitePayloadError = void
-type _RequestedInvitePayload = $ReadOnly<{|
-  email: string,
-  name: string,
-|}>
-type _RequestedInvitePayloadError = $ReadOnly<{|
-  emailError: string,
-  nameError: string,
-  email: string,
-  name: string,
-|}>
+type _RequestedInvitePayload = $ReadOnly<{|email: string, name: string|}>
+type _RequestedInvitePayloadError = $ReadOnly<{|emailError: string, nameError: string, email: string, name: string|}>
 type _RestartSignupPayload = void
 type _SignedupPayload = void
 type _SignedupPayloadError = $ReadOnly<{|error: HiddenString|}>
@@ -100,26 +69,26 @@ export const createSignedup = (payload: _SignedupPayload) => ({payload, type: si
 export const createSignedupError = (payload: _SignedupPayloadError) => ({error: true, payload, type: signedup})
 
 // Action Payloads
-export type CheckDevicenamePayload = $Call<typeof createCheckDevicename, _CheckDevicenamePayload>
-export type CheckInviteCodePayload = $Call<typeof createCheckInviteCode, _CheckInviteCodePayload>
-export type CheckPassphrasePayload = $Call<typeof createCheckPassphrase, _CheckPassphrasePayload>
-export type CheckUsernameEmailPayload = $Call<typeof createCheckUsernameEmail, _CheckUsernameEmailPayload>
-export type CheckedDevicenamePayload = $Call<typeof createCheckedDevicename, _CheckedDevicenamePayload>
-export type CheckedDevicenamePayloadError = $Call<typeof createCheckedDevicenameError, _CheckedDevicenamePayloadError>
-export type CheckedInviteCodePayload = $Call<typeof createCheckedInviteCode, _CheckedInviteCodePayload>
-export type CheckedInviteCodePayloadError = $Call<typeof createCheckedInviteCodeError, _CheckedInviteCodePayloadError>
-export type CheckedUsernameEmailPayload = $Call<typeof createCheckedUsernameEmail, _CheckedUsernameEmailPayload>
-export type CheckedUsernameEmailPayloadError = $Call<typeof createCheckedUsernameEmailError, _CheckedUsernameEmailPayloadError>
-export type GoBackAndClearErrorsPayload = $Call<typeof createGoBackAndClearErrors, _GoBackAndClearErrorsPayload>
-export type RequestAutoInvitePayload = $Call<typeof createRequestAutoInvite, _RequestAutoInvitePayload>
-export type RequestInvitePayload = $Call<typeof createRequestInvite, _RequestInvitePayload>
-export type RequestedAutoInvitePayload = $Call<typeof createRequestedAutoInvite, _RequestedAutoInvitePayload>
-export type RequestedAutoInvitePayloadError = $Call<typeof createRequestedAutoInviteError, _RequestedAutoInvitePayloadError>
-export type RequestedInvitePayload = $Call<typeof createRequestedInvite, _RequestedInvitePayload>
-export type RequestedInvitePayloadError = $Call<typeof createRequestedInviteError, _RequestedInvitePayloadError>
-export type RestartSignupPayload = $Call<typeof createRestartSignup, _RestartSignupPayload>
-export type SignedupPayload = $Call<typeof createSignedup, _SignedupPayload>
-export type SignedupPayloadError = $Call<typeof createSignedupError, _SignedupPayloadError>
+export type CheckDevicenamePayload = {|+payload: _CheckDevicenamePayload, +type: 'signup:checkDevicename'|}
+export type CheckInviteCodePayload = {|+payload: _CheckInviteCodePayload, +type: 'signup:checkInviteCode'|}
+export type CheckPassphrasePayload = {|+payload: _CheckPassphrasePayload, +type: 'signup:checkPassphrase'|}
+export type CheckUsernameEmailPayload = {|+payload: _CheckUsernameEmailPayload, +type: 'signup:checkUsernameEmail'|}
+export type CheckedDevicenamePayload = {|+payload: _CheckedDevicenamePayload, +type: 'signup:checkedDevicename'|}
+export type CheckedDevicenamePayloadError = {|+error: true, +payload: _CheckedDevicenamePayloadError, +type: 'signup:checkedDevicename'|}
+export type CheckedInviteCodePayload = {|+payload: _CheckedInviteCodePayload, +type: 'signup:checkedInviteCode'|}
+export type CheckedInviteCodePayloadError = {|+error: true, +payload: _CheckedInviteCodePayloadError, +type: 'signup:checkedInviteCode'|}
+export type CheckedUsernameEmailPayload = {|+payload: _CheckedUsernameEmailPayload, +type: 'signup:checkedUsernameEmail'|}
+export type CheckedUsernameEmailPayloadError = {|+error: true, +payload: _CheckedUsernameEmailPayloadError, +type: 'signup:checkedUsernameEmail'|}
+export type GoBackAndClearErrorsPayload = {|+payload: _GoBackAndClearErrorsPayload, +type: 'signup:goBackAndClearErrors'|}
+export type RequestAutoInvitePayload = {|+payload: _RequestAutoInvitePayload, +type: 'signup:requestAutoInvite'|}
+export type RequestInvitePayload = {|+payload: _RequestInvitePayload, +type: 'signup:requestInvite'|}
+export type RequestedAutoInvitePayload = {|+payload: _RequestedAutoInvitePayload, +type: 'signup:requestedAutoInvite'|}
+export type RequestedAutoInvitePayloadError = {|+error: true, +payload: _RequestedAutoInvitePayloadError, +type: 'signup:requestedAutoInvite'|}
+export type RequestedInvitePayload = {|+payload: _RequestedInvitePayload, +type: 'signup:requestedInvite'|}
+export type RequestedInvitePayloadError = {|+error: true, +payload: _RequestedInvitePayloadError, +type: 'signup:requestedInvite'|}
+export type RestartSignupPayload = {|+payload: _RestartSignupPayload, +type: 'signup:restartSignup'|}
+export type SignedupPayload = {|+payload: _SignedupPayload, +type: 'signup:signedup'|}
+export type SignedupPayloadError = {|+error: true, +payload: _SignedupPayloadError, +type: 'signup:signedup'|}
 
 // All Actions
 // prettier-ignore
@@ -144,4 +113,4 @@ export type Actions =
   | RestartSignupPayload
   | SignedupPayload
   | SignedupPayloadError
-  | {type: 'common:resetStore', payload: void}
+  | {type: 'common:resetStore', payload: null}

@@ -322,7 +322,7 @@ func buildGregorItem(category, deviceID, msgID string) gregor.Item {
 
 func TestDismissDeviceChangeNotifications(t *testing.T) {
 	c := context.TODO()
-	dismisser := &libkb.FakeGregorDismisser{}
+	dismisser := &libkb.FakeGregorState{}
 	exceptedDeviceID := "active-device-id"
 	state := &FakeGregorState{
 		items: []gregor.Item{
@@ -698,7 +698,7 @@ func TestResolveIdentifyImplicitTeamWithConflict(t *testing.T) {
 	require.Nil(t, res.TrackBreaks, "track breaks")
 
 	t.Logf("find out the conflict suffix")
-	iTeamxx, _, _, conflicts, err := teams.LookupImplicitTeamAndConflicts(context.TODO(), g, iTeamNameCreate1, false /*isPublic*/)
+	iTeamxx, _, _, conflicts, err := teams.LookupImplicitTeamAndConflicts(context.TODO(), g, iTeamNameCreate1, false /*isPublic*/, teams.ImplicitTeamOptions{})
 	require.NoError(t, err)
 	require.Equal(t, iTeamxx.ID, iTeam1.ID)
 	require.Len(t, conflicts, 1)
@@ -941,6 +941,9 @@ func (p *simpleIdentifyUI) FinishSocialProofCheck(_ context.Context, arg keybase
 }
 func (p *simpleIdentifyUI) DisplayCryptocurrency(context.Context, keybase1.DisplayCryptocurrencyArg) error {
 	return simpleIdentifyUIError("DisplayCryptocurrency")
+}
+func (p *simpleIdentifyUI) DisplayStellarAccount(context.Context, keybase1.DisplayStellarAccountArg) error {
+	return simpleIdentifyUIError("DisplayStellarAccount")
 }
 func (p *simpleIdentifyUI) DisplayUserCard(context.Context, keybase1.DisplayUserCardArg) error {
 	return nil

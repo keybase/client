@@ -11,6 +11,7 @@ import * as DevGen from '../actions/dev-gen'
 import * as ConfigGen from '../actions/config-gen'
 import {isMobile} from '../constants/platform'
 import * as LocalConsole from '../util/local-console'
+import type {TypedState, TypedDispatch, TypedActions} from '../util/container'
 
 let theStore: Store<any, any, any>
 
@@ -107,7 +108,11 @@ if (__DEV__ && typeof window !== 'undefined') {
 }
 
 export default function configureStore() {
-  const store = createStore(rootReducer, undefined, applyMiddleware(...middlewares))
+  const store = createStore<TypedState, TypedActions, TypedDispatch>(
+    rootReducer,
+    undefined,
+    applyMiddleware(...middlewares)
+  )
   theStore = store
 
   if (module.hot && !isMobile) {

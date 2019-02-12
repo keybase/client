@@ -3,8 +3,8 @@ import logger from '../logger'
 import * as I from 'immutable'
 import * as FsGen from '../actions/fs-gen'
 import * as Constants from '../constants/fs'
+import * as Flow from '../util/flow'
 import * as Types from '../constants/types/fs'
-import {isMobile} from '../constants/platform'
 
 const initialState = Constants.makeState()
 
@@ -76,10 +76,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       )
     }
     case FsGen.loadingPath:
-      return state.updateIn(
-        ['loadingPaths', action.payload.path],
-        set =>
-          action.payload.done ? set && set.delete(action.payload.id) : (set || I.Set()).add(action.payload.id)
+      return state.updateIn(['loadingPaths', action.payload.path], set =>
+        action.payload.done ? set && set.delete(action.payload.id) : (set || I.Set()).add(action.payload.id)
       )
     case FsGen.favoritesLoaded:
       return state.set(
@@ -102,9 +100,9 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           meta: Constants.makeDownloadMeta({
             entryType,
             intent,
-            path,
             localPath,
             opID,
+            path,
           }),
           state: Constants.makeDownloadState({
             completePortion: 0,
@@ -118,11 +116,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       const {key, completePortion, endEstimate} = action.payload
       return state.update('downloads', d =>
         d.update(key, k =>
-          k.update(
-            'state',
-            original =>
-              original && original.merge({completePortion, endEstimate})
-          )
+          k.update('state', original => original && original.merge({completePortion, endEstimate}))
         )
       )
     }
@@ -135,6 +129,12 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.dismissDownload: {
       return state.removeIn(['downloads', action.payload.key])
     }
+    case FsGen.cancelDownload:
+      return state.update('downloads', downloads =>
+        downloads.update(action.payload.key, download =>
+          download.update('state', state => state.set('canceled', true))
+        )
+      )
     case FsGen.uploadStarted:
       return state.updateIn(['uploads', 'writingToJournal'], writingToJournal =>
         writingToJournal.add(action.payload.path)
@@ -185,17 +185,15 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       })
     case FsGen.mimeTypeLoaded:
       return state.update('pathItems', pis =>
-        pis.update(
-          action.payload.path,
-          pathItem =>
-            pathItem
-              ? pathItem.type === 'file'
-                ? pathItem.set('mimeType', action.payload.mimeType)
-                : pathItem
-              : Constants.makeFile({
-                  mimeType: action.payload.mimeType,
-                  name: Types.getPathName(action.payload.path),
-                })
+        pis.update(action.payload.path, pathItem =>
+          pathItem
+            ? pathItem.type === 'file'
+              ? pathItem.set('mimeType', action.payload.mimeType)
+              : pathItem
+            : Constants.makeFile({
+                mimeType: action.payload.mimeType,
+                name: Types.getPathName(action.payload.path),
+              })
         )
       )
     case FsGen.newFolderRow:
@@ -228,8 +226,8 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
           [
             Constants.makeEditID(),
             Constants.makeNewFolder({
-              name: newFolderName,
               hint: newFolderName,
+              name: newFolderName,
               parentPath,
             }),
           ],
@@ -249,6 +247,17 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.removeIn(['edits', action.payload.editID])
     case FsGen.fsError:
       const {erroredAction, error} = action.payload.error
+      if (
+        erroredAction.type === FsGen.saveMedia ||
+        erroredAction.type === FsGen.shareNative ||
+        erroredAction.type === FsGen.download
+      ) {
+        const download = state.downloads.get(erroredAction.payload.key)
+        if (!download || download.state.canceled) {
+          // Ignore errors for canceled downloads.
+          return state
+        }
+      }
       logger.error('error (fs)', erroredAction.type, error)
       const nextState: Types.State = state.setIn(['errors', Constants.makeUUID()], action.payload.error)
 
@@ -266,14 +275,13 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
             ],
             error
           )
+        case FsGen.saveMedia:
+        case FsGen.shareNative:
         case FsGen.download:
-          if (erroredAction.payload.intent !== 'none') {
-            return nextState
-          }
           // $FlowFixMe
           return nextState.updateIn(
             ['downloads', erroredAction.payload.key, 'state'],
-            original => original && original.set('isDone', true).set('error', error)
+            original => original && original.set('error', error)
           )
         default:
           return nextState
@@ -284,22 +292,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.removeIn(['errors', action.payload.key])
     case FsGen.showMoveOrCopy:
       return state.update('moveOrCopy', mc =>
-        mc.set(
-          'destinationParentPath',
-          isMobile
-            ? I.List(
-                Types.getPathElements(action.payload.initialDestinationParentPath).reduce(
-                  (list, elem) => [
-                    ...list,
-                    list.length
-                      ? Types.pathConcat(list[list.length - 1], elem)
-                      : Types.stringToPath(`/${elem}`),
-                  ],
-                  []
-                )
-              )
-            : I.List([action.payload.initialDestinationParentPath])
-        )
+        mc.set('destinationParentPath', I.List([action.payload.initialDestinationParentPath]))
       )
     case FsGen.setMoveOrCopySource:
       return state.update('moveOrCopy', mc => mc.set('sourceItemPath', action.payload.path))
@@ -307,10 +300,25 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.update('moveOrCopy', mc =>
         mc.update('destinationParentPath', list => list.set(action.payload.index, action.payload.path))
       )
+    case FsGen.showSendLinkToChat:
+      return state.set('sendLinkToChat', Constants.makeSendLinkToChat({path: action.payload.path}))
+    case FsGen.setSendLinkToChatConvID:
+      // $FlowIssue
+      return state.setIn(['sendLinkToChat', 'convID'], action.payload.convID)
+    case FsGen.setSendLinkToChatChannels:
+      // $FlowIssue
+      return state.setIn(['sendLinkToChat', 'channels'], action.payload.channels)
+    case FsGen.setPathItemActionMenuView:
+      return state.update('pathItemActionMenu', pathItemActionMenu =>
+        pathItemActionMenu.set('previousView', pathItemActionMenu.view).set('view', action.payload.view)
+      )
+    case FsGen.setPathItemActionMenuDownloadKey:
+      return state.update('pathItemActionMenu', pathItemActionMenu =>
+        pathItemActionMenu.set('downloadKey', action.payload.key)
+      )
     case FsGen.folderListLoad:
     case FsGen.placeholderAction:
     case FsGen.filePreviewLoad:
-    case FsGen.cancelDownload:
     case FsGen.download:
     case FsGen.favoritesLoad:
     case FsGen.fuseStatus:
@@ -337,13 +345,12 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.move:
     case FsGen.copy:
     case FsGen.moveOrCopyOpen:
-    case FsGen.cancelMoveOrCopy:
+    case FsGen.closeMoveOrCopy:
+    case FsGen.clearRefreshTag:
+    case FsGen.loadPathMetadata:
       return state
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(action);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

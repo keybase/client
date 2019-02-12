@@ -1870,6 +1870,11 @@
           "jsonkey": "is_implicit_team"
         },
         {
+          "type": "string",
+          "name": "impTeamDisplayName",
+          "jsonkey": "implicit_team_display_name"
+        },
+        {
           "type": "boolean",
           "name": "isOpenTeam",
           "jsonkey": "is_open_team"
@@ -2000,6 +2005,33 @@
         {
           "type": "boolean",
           "name": "admin"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SubteamListEntry",
+      "fields": [
+        {
+          "type": "TeamName",
+          "name": "name"
+        },
+        {
+          "type": "int",
+          "name": "memberCount"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SubteamListResult",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "SubteamListEntry"
+          },
+          "name": "entries"
         }
       ]
     },
@@ -2781,6 +2813,19 @@
         }
       ],
       "response": "TeamTreeResult"
+    },
+    "teamGetSubteams": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "name",
+          "type": "TeamName"
+        }
+      ],
+      "response": "SubteamListResult"
     },
     "teamDelete": {
       "request": [

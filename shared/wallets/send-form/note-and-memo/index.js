@@ -56,7 +56,10 @@ class SecretNote extends React.Component<SecretNoteProps, SecretNoteState> {
       }
       const secretNote =
         this.state.secretNote.slice(0, selection.start) + emoji + this.state.secretNote.slice(selection.end)
-      const newSelection = {start: selection.start + emoji.length, end: selection.start + emoji.length}
+      if (Buffer.byteLength(secretNote) > secretNoteMaxLength) {
+        return
+      }
+      const newSelection = {end: selection.start + emoji.length, start: selection.start + emoji.length}
       this.props.onChangeSecretNote(secretNote)
       this.setState({secretNote}, () => {
         const noteInput = this._note.current
@@ -98,30 +101,29 @@ class SecretNote extends React.Component<SecretNoteProps, SecretNoteState> {
               ref={!Styles.isMobile ? this._note : undefined}
               onChangeText={this._onChangeSecretNote}
               value={this.state.secretNote}
-              maxLength={secretNoteMaxLength}
+              maxBytes={secretNoteMaxLength}
             />
-            {this.state.emojiPickerOpen &&
-              !Styles.isMobile && (
-                <Kb.Overlay
-                  attachTo={() => this._emojiIcon.current}
-                  position="bottom right"
-                  onHidden={() => this.setState({emojiPickerOpen: false})}
-                >
-                  <Picker
-                    autoFocus={true}
-                    emoji="star-struck"
-                    title="reacjibase"
-                    onClick={this._emojiPickerOnClick}
-                    backgroundImageFn={backgroundImageFn}
-                  />
-                </Kb.Overlay>
-              )}
+            {this.state.emojiPickerOpen && !Styles.isMobile && (
+              <Kb.Overlay
+                attachTo={() => this._emojiIcon.current}
+                position="bottom right"
+                onHidden={() => this.setState({emojiPickerOpen: false})}
+              >
+                <Picker
+                  autoFocus={true}
+                  emoji="star-struck"
+                  title="reacjibase"
+                  onClick={this._emojiPickerOnClick}
+                  backgroundImageFn={backgroundImageFn}
+                />
+              </Kb.Overlay>
+            )}
           </Kb.Box2>
           <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.alignItemsCenter}>
             <Kb.Box2 direction="horizontal" style={styles.flexOne}>
               {!!this.state.secretNote && (
                 <Kb.Text type="BodySmall">
-                  {secretNoteMaxLength - this.state.secretNote.length} characters left
+                  {secretNoteMaxLength - Buffer.byteLength(this.state.secretNote)} characters left
                 </Kb.Text>
               )}
             </Kb.Box2>
@@ -168,11 +170,11 @@ class PublicMemo extends React.Component<PublicMemoProps, PublicMemoState> {
             rowsMax={6}
             onChangeText={this._onChangePublicMemo}
             value={this.state.publicMemo}
-            maxLength={publicMemoMaxLength}
+            maxBytes={publicMemoMaxLength}
           />
           {!!this.state.publicMemo && (
             <Kb.Text type="BodySmall">
-              {publicMemoMaxLength - this.state.publicMemo.length} characters left
+              {publicMemoMaxLength - Buffer.byteLength(this.state.publicMemo)} characters left
             </Kb.Text>
           )}
           {!!this.props.publicMemoError && (
@@ -196,9 +198,9 @@ const styles = Styles.styleSheetCreate({
     alignItems: 'center',
   },
   container: {
+    marginTop: Styles.globalMargins.tiny,
     paddingLeft: Styles.globalMargins.small,
     paddingRight: Styles.globalMargins.small,
-    marginTop: Styles.globalMargins.tiny,
   },
   divider: {
     marginTop: Styles.globalMargins.tiny,
@@ -208,6 +210,7 @@ const styles = Styles.styleSheetCreate({
   },
   emojiIcon: {
     alignSelf: 'flex-end',
+    marginTop: 1, // otherwise top is cut off w/ long note
   },
   flexOne: {
     flex: 1,

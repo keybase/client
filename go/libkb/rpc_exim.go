@@ -304,6 +304,12 @@ func ImportStatusAsError(g *GlobalContext, s *keybase1.Status) error {
 		return IdentifyDidNotCompleteError{}
 	case SCSibkeyAlreadyExists:
 		return SibkeyAlreadyExistsError{}
+	case SCSigCreationDisallowed:
+		service := ""
+		if len(s.Fields) > 0 && s.Fields[0].Key == "remote_service" {
+			service = s.Fields[0].Value
+		}
+		return ServiceDoesNotSupportNewProofsError{Service: service}
 	case SCNoUI:
 		return NoUIError{Which: s.Desc}
 	case SCNoUIDelegation:
@@ -1709,6 +1715,14 @@ func (e SibkeyAlreadyExistsError) ToStatus() keybase1.Status {
 	}
 }
 
+func (e ServiceDoesNotSupportNewProofsError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCSigCreationDisallowed,
+		Name: "SC_SIG_CREATION_DISALLOWED",
+		Desc: e.Error(),
+	}
+}
+
 func (e UIDelegationUnavailableError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCNoUIDelegation,
@@ -1971,6 +1985,14 @@ func (e ChatStalePreviousStateError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCChatStalePreviousState,
 		Name: "SC_CHAT_STALE_PREVIOUS_STATE",
+		Desc: e.Error(),
+	}
+}
+
+func (e ChatEphemeralRetentionPolicyViolatedError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCChatEphemeralRetentionPolicyViolatedError,
+		Name: "SC_CHAT_EPHEMERAL_RETENTION_POLICY_VIOLATED",
 		Desc: e.Error(),
 	}
 }

@@ -2,7 +2,9 @@
 import * as React from 'react'
 import Header from './header.desktop'
 import Action, {calcFooterHeight} from './action.desktop'
-import {Avatar, Box, Meta, Text, UserBio, UserProofs} from '../common-adapters'
+import {Avatar, Box, Meta, Text} from '../common-adapters'
+import UserProofs from '../profile/user-proofs'
+import UserBio from '../profile/user-bio'
 import {globalColors, globalMargins, globalStyles} from '../styles'
 import {ModalPositionRelative} from '../common-adapters/relative-popup-hoc.desktop'
 import TeamInfo from '../profile/showcased-team-info'
@@ -73,8 +75,6 @@ export default class TrackerRender extends React.PureComponent<Props> {
             currentlyFollowing={this.props.currentlyFollowing}
             trackerState={this.props.trackerState}
             onClickAvatar={this.props.onClickAvatar}
-            onClickFollowers={this.props.onClickFollowers}
-            onClickFollowing={this.props.onClickFollowing}
           />
           {!!this.props.userInfo &&
             !!this.props.userInfo.showcasedTeams &&
@@ -82,10 +82,10 @@ export default class TrackerRender extends React.PureComponent<Props> {
               <Box
                 style={{
                   ...globalStyles.flexBoxColumn,
-                  paddingLeft: globalMargins.medium,
-                  paddingBottom: globalMargins.tiny,
-                  paddingTop: globalMargins.tiny,
                   backgroundColor: globalColors.white,
+                  paddingBottom: globalMargins.tiny,
+                  paddingLeft: globalMargins.medium,
+                  paddingTop: globalMargins.tiny,
                 }}
               >
                 {this.props.userInfo.showcasedTeams.map(team => (
@@ -147,8 +147,8 @@ export default class TrackerRender extends React.PureComponent<Props> {
                       style={{
                         ...globalStyles.flexBoxRow,
                         alignItems: 'center',
-                        justifyContent: 'center',
                         alignSelf: 'center',
+                        justifyContent: 'center',
                         paddingLeft: globalMargins.tiny,
                       }}
                     >
@@ -182,24 +182,23 @@ export default class TrackerRender extends React.PureComponent<Props> {
           />
         </div>
         <div style={styleFooter}>
-          {!this.props.loading &&
-            this.props.actionBarReady && (
-              <Action
-                loggedIn={this.props.loggedIn}
-                waiting={this.props.waiting}
-                state={this.props.trackerState}
-                currentlyFollowing={this.props.currentlyFollowing}
-                username={this.props.username}
-                myUsername={this.props.myUsername}
-                lastAction={this.props.lastAction}
-                onChat={this.props.onChat}
-                onClose={this.props.onClose}
-                onIgnore={this.props.onIgnore}
-                onFollow={this.props.onFollow}
-                onRefollow={this.props.onRefollow}
-                onUnfollow={this.props.onUnfollow}
-              />
-            )}
+          {!this.props.loading && this.props.actionBarReady && (
+            <Action
+              loggedIn={this.props.loggedIn}
+              waiting={this.props.waiting}
+              state={this.props.trackerState}
+              currentlyFollowing={this.props.currentlyFollowing}
+              username={this.props.username}
+              myUsername={this.props.myUsername}
+              lastAction={this.props.lastAction}
+              onChat={this.props.onChat}
+              onClose={this.props.onClose}
+              onIgnore={this.props.onIgnore}
+              onFollow={this.props.onFollow}
+              onRefollow={this.props.onRefollow}
+              onUnfollow={this.props.onUnfollow}
+            />
+          )}
         </div>
       </div>
     )
@@ -208,23 +207,23 @@ export default class TrackerRender extends React.PureComponent<Props> {
 
 const styleContainer = {
   ...globalStyles.flexBoxColumn,
-  width: 320,
   height: 470,
   position: 'relative',
+  width: 320,
 }
 
 const styleContent = {
-  overflowY: 'auto',
   overflowX: 'hidden',
+  overflowY: 'auto',
   // This value is added to the footer height to set the actual paddingBottom
   paddingBottom: 12,
   zIndex: 1,
 }
 
 const styleFooter = {
-  position: 'absolute',
   bottom: 0,
   left: 0,
+  position: 'absolute',
   right: 0,
 }
 

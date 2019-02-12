@@ -1,5 +1,4 @@
 // @flow
-import channelMentionHud from './conversation/input-area/channel-mention-hud/index.stories'
 import createChannel from './create-channel/index.stories'
 import inbox from './inbox/index.stories.js'
 import infoPanel from './conversation/info-panel/index.stories'
@@ -7,18 +6,22 @@ import infoPanelNotifications from './conversation/info-panel/notifications/inde
 import inputArea from './conversation/input-area/normal/index.stories'
 import manageChannels from './manage-channels/index.stories'
 import messagePopup from './conversation/messages/message-popup/index.stories'
-import sendAnimation from './conversation/messages/wrapper/chat-send.stories'
 import setExplodingMessage from './conversation/messages/set-explode-popup/index.stories'
-import userMentionHud from './conversation/input-area/user-mention-hud/index.stories'
+import suggestors from './conversation/input-area/suggestors/index.stories'
 import messages from './conversation/messages/index.stories'
 import startConversation from './conversation/list-area/start-conversation/index.stories'
 import thread from './conversation/list-area/normal/index.stories'
+import typing from './conversation/input-area/normal/typing/index.stories'
 import headerArea from './conversation/header-area/normal/index.stories'
+import confirmPayment from './payments/confirm/index.stories'
+import paymentStatus from './payments/status/index.stories'
+import conversationList from './conversation-list/index.stories'
+import explodingMessageExplainer from './conversation/messages/exploding-explainer-dialog/index.stories'
 
 const load = () => {
   ;[
-    channelMentionHud,
     createChannel,
+    explodingMessageExplainer,
     inbox,
     infoPanel,
     infoPanelNotifications,
@@ -26,12 +29,15 @@ const load = () => {
     manageChannels,
     messagePopup,
     messages,
-    sendAnimation,
     setExplodingMessage,
-    userMentionHud,
+    suggestors,
     startConversation,
     thread,
+    typing,
     headerArea,
+    confirmPayment,
+    paymentStatus,
+    conversationList,
   ].forEach(load => load())
 }
 

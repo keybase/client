@@ -6,10 +6,6 @@ import * as Kb from '../common-adapters'
 import * as Styles from '../styles'
 import type {ServiceIdWithContact} from '../constants/types/team-building'
 
-// TODO
-// * Add styles for mobile
-// * handle backspace remove user
-
 type Props = {
   onChangeText: (newText: string) => void,
   onEnterKeyDown: () => void,
@@ -21,17 +17,32 @@ type Props = {
   searchString: string,
 }
 
-const TeamBox = (props: Props) => (
-  <Kb.Box2 direction="horizontal" style={styles.container}>
-    {props.teamSoFar.map(u => (
+const formatNameForUserBubble = (username: string, service: ServiceIdWithContact, prettyName: ?string) => {
+  const technicalName = service === 'keybase' ? username : `${username} on ${service}`
+  return `${technicalName} ${prettyName ? `(${prettyName})` : ''}`
+}
+
+class UserBubbleCollection extends React.PureComponent<{
+  teamSoFar: $PropertyType<Props, 'teamSoFar'>,
+  onRemove: $PropertyType<Props, 'onRemove'>,
+}> {
+  render() {
+    return this.props.teamSoFar.map(u => (
       <UserBubble
         key={u.userId}
-        onRemove={() => props.onRemove(u.userId)}
+        onRemove={() => this.props.onRemove(u.userId)}
         username={u.username}
         service={u.service}
-        prettyName={u.prettyName}
+        prettyName={formatNameForUserBubble(u.username, u.service, u.prettyName)}
       />
-    ))}
+    ))
+  }
+}
+
+const TeamBox = (props: Props) => (
+  <Kb.Box2 direction="horizontal" style={styles.container}>
+    {Styles.isMobile && <Kb.Icon fontSize={22} type={'iconfont-search'} style={styles.searchIcon} />}
+    <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
     <Input
       onChangeText={props.onChangeText}
       onEnterKeyDown={props.onEnterKeyDown}
@@ -45,17 +56,30 @@ const TeamBox = (props: Props) => (
 
 const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
-    isElectron: {
-      height: 40,
-    },
     common: {
+      flex: 1,
+      flexWrap: 'wrap',
+    },
+    isElectron: {
       ...Styles.globalStyles.rounded,
       borderColor: Styles.globalColors.black_20,
-      borderWidth: 1,
       borderStyle: 'solid',
-      flex: 1,
+      borderWidth: 1,
+      maxHeight: 170,
+      minHeight: 40,
+      overflowY: 'scroll',
+    },
+    isMobile: {
+      borderBottomColor: Styles.globalColors.black_10,
+      borderBottomWidth: 1,
+      borderStyle: 'solid',
+      minHeight: 45,
     },
   }),
+  searchIcon: {
+    alignSelf: 'center',
+    marginLeft: 10,
+  },
 })
 
 export default TeamBox

@@ -16,7 +16,7 @@ export type Props = {
 }
 
 type DefaultProps = {
-  retryLabel: ?string,
+  retryLabel: string,
   submitLabel: string,
 }
 
@@ -70,10 +70,10 @@ class Pinentry extends Component<Props, State> {
       },
       [RPCTypes.passphraseCommonPassphraseType.paperKey]: {
         floatingHintTextOverride: 'Paperkey',
-        multiline: true,
-        rowsMax: 2,
         hintText:
           'elephont sturm cectus opp blezzard tofi pando agg whi pany yaga jocket daubt ruril globil cose',
+        multiline: true,
+        rowsMax: 2,
       },
     }[this.props.type]
 
@@ -93,7 +93,7 @@ class Pinentry extends Component<Props, State> {
       >
         <Header icon={true} title="" onClose={this.props.onCancel} />
         <Box style={{...globalStyles.flexBoxColumn, paddingLeft: 30, paddingRight: 30}}>
-          <Text type="Body" style={{textAlign: 'center'}}>
+          <Text type="Body" center={true}>
             {this.props.prompt}
           </Text>
           {isPaperKey && <Icon type="icon-paper-key-48" style={{alignSelf: 'center'}} />}
@@ -136,14 +136,14 @@ class Pinentry extends Component<Props, State> {
 }
 
 Pinentry.defaultProps = {
-  retryLabel: null,
+  retryLabel: '',
   submitLabel: 'Continue',
 }
 
 const checkboxStyle = {
-  zIndex: 9999,
   color: globalColors.black,
   marginLeft: 10,
+  zIndex: 9999,
 }
 
 export default Pinentry

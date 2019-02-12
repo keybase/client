@@ -3,6 +3,7 @@ package unfurl
 import (
 	"context"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
@@ -88,6 +89,7 @@ func TestUnfurler(t *testing.T) {
 	unfurler.unfurlCh = make(chan *chat1.Unfurl, 1)
 	uid := gregor1.UID([]byte{0, 1})
 	convID := chat1.ConversationID([]byte{0, 2})
+	msgBody := fmt.Sprintf("check out this link! http://%s/?name=%s ", addr, "wsj0.html")
 	fromMsg := chat1.NewMessageUnboxedWithValid(chat1.MessageUnboxedValid{
 		ClientHeader: chat1.MessageClientHeaderVerified{
 			TlfName:     "mike",
@@ -97,9 +99,13 @@ func TestUnfurler(t *testing.T) {
 			MessageID: 4,
 		},
 		MessageBody: chat1.NewMessageBodyWithText(chat1.MessageText{
-			Body: fmt.Sprintf("http://%s/?name=%s", addr, "wsj0"),
+			Body: msgBody,
 		}),
 	})
+
+	// No prefetch unless we're in the whitelist
+	numPrefetched := unfurler.Prefetch(context.TODO(), uid, convID, msgBody)
+	require.Equal(t, 0, numPrefetched)
 
 	unfurler.UnfurlAndSend(context.TODO(), uid, convID, fromMsg)
 	select {
@@ -114,6 +120,10 @@ func TestUnfurler(t *testing.T) {
 		require.Fail(t, "no notifications")
 	}
 	require.NoError(t, settings.WhitelistAdd(context.TODO(), uid, "0.1"))
+
+	// ensure we try to prefetch once per url in the msgText once we're whitelisted
+	numPrefetched = unfurler.Prefetch(context.TODO(), uid, convID, strings.Repeat(msgBody, 5))
+	require.Equal(t, 1, numPrefetched)
 
 	for i := 0; i < 5; i++ {
 		unfurler.UnfurlAndSend(context.TODO(), uid, convID, fromMsg)

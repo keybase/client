@@ -26,6 +26,23 @@ import (
 
 const inboxVersion = 22
 
+var defaultMemberStatusFilter = []chat1.ConversationMemberStatus{
+	chat1.ConversationMemberStatus_ACTIVE,
+	chat1.ConversationMemberStatus_PREVIEW,
+	chat1.ConversationMemberStatus_RESET,
+}
+
+var defaultExistences = []chat1.ConversationExistence{
+	chat1.ConversationExistence_ACTIVE,
+}
+
+type InboxFlushMode int
+
+const (
+	InboxFlushModeActive InboxFlushMode = iota
+	InboxFlushModeDelegate
+)
+
 type queryHash []byte
 
 func (q queryHash) Empty() bool {
@@ -78,21 +95,38 @@ type Inbox struct {
 	globals.Contextified
 	*baseBox
 	utils.DebugLabeler
+
+	flushMode InboxFlushMode
 }
 
 var addHookOnce sync.Once
 
-func NewInbox(g *globals.Context) *Inbox {
+func FlushMode(mode InboxFlushMode) func(*Inbox) {
+	return func(i *Inbox) {
+		i.SetFlushMode(mode)
+	}
+}
+
+func NewInbox(g *globals.Context, config ...func(*Inbox)) *Inbox {
 	// add a logout hook to clear the in-memory inbox cache, but only add it once:
 	addHookOnce.Do(func() {
 		g.ExternalG().AddLogoutHook(inboxMemCache)
 	})
 
-	return &Inbox{
+	i := &Inbox{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Inbox", false),
 		baseBox:      newBaseBox(g),
+		flushMode:    InboxFlushModeActive,
 	}
+	for _, c := range config {
+		c(i)
+	}
+	return i
+}
+
+func (i *Inbox) SetFlushMode(mode InboxFlushMode) {
+	i.flushMode = mode
 }
 
 func (i *Inbox) dbKey(uid gregor1.UID) libkb.DbKey {
@@ -102,14 +136,14 @@ func (i *Inbox) dbKey(uid gregor1.UID) libkb.DbKey {
 	}
 }
 
-func (i *Inbox) readDiskInbox(ctx context.Context, uid gregor1.UID) (inboxDiskData, Error) {
+func (i *Inbox) readDiskInbox(ctx context.Context, uid gregor1.UID, useInMemory bool) (inboxDiskData, Error) {
 	var ibox inboxDiskData
 	// Check context for an aborted request
 	if err := isAbortedRequest(ctx); err != nil {
 		return ibox, err
 	}
 	// Check in memory cache first
-	if memibox := inboxMemCache.Get(uid); memibox != nil {
+	if memibox := inboxMemCache.Get(uid); useInMemory && memibox != nil {
 		i.Debug(ctx, "hit in memory cache")
 		ibox = *memibox
 	} else {
@@ -121,7 +155,9 @@ func (i *Inbox) readDiskInbox(ctx context.Context, uid gregor1.UID) (inboxDiskDa
 		if !found {
 			return ibox, MissError{}
 		}
-		inboxMemCache.Put(uid, &ibox)
+		if useInMemory {
+			inboxMemCache.Put(uid, &ibox)
+		}
 	}
 	// Check on disk server version against known server version
 	if _, err := i.G().ServerCacheVersions.MatchInbox(ctx, ibox.ServerVersion); err != nil {
@@ -197,24 +233,46 @@ func (i *Inbox) writeMobileSharedInbox(ctx context.Context, ibox inboxDiskData, 
 	}
 }
 
-func (i *Inbox) writeDiskInbox(ctx context.Context, uid gregor1.UID, ibox inboxDiskData) Error {
+func (i *Inbox) flushLocked(ctx context.Context, uid gregor1.UID) Error {
+	ibox := inboxMemCache.Get(uid)
+	if ibox == nil {
+		i.Debug(ctx, "Flush: no inbox in memory, not doing anything")
+		return nil
+	}
+	i.Debug(ctx, "Flush: version: %d disk version: %d server version: %d convs: %d",
+		ibox.InboxVersion, ibox.Version, ibox.ServerVersion, len(ibox.Conversations))
+	if ierr := i.writeDiskBox(ctx, i.dbKey(uid), ibox); ierr != nil {
+		return NewInternalError(ctx, i.DebugLabeler, "failed to write inbox: uid: %s err: %s", uid, ierr)
+	}
+	i.writeMobileSharedInbox(ctx, *ibox, uid)
+	return nil
+}
 
+func (i *Inbox) Flush(ctx context.Context, uid gregor1.UID) (err Error) {
+	locks.Inbox.Lock()
+	defer locks.Inbox.Unlock()
+	defer i.Trace(ctx, func() error { return err }, fmt.Sprintf("Flush(%s)", uid))()
+	return i.flushLocked(ctx, uid)
+}
+
+func (i *Inbox) writeDiskInbox(ctx context.Context, uid gregor1.UID, ibox inboxDiskData) Error {
 	// Get latest server version
 	vers, err := i.G().ServerCacheVersions.Fetch(ctx)
 	if err != nil {
 		return NewInternalError(ctx, i.DebugLabeler, "failed to fetch server versions: %s", err.Error())
 	}
-
 	ibox.ServerVersion = vers.InboxVers
 	ibox.Version = inboxVersion
 	ibox.Conversations = i.summarizeConvs(ibox.Conversations)
-	i.Debug(ctx, "writeDiskInbox: version: %d disk version: %d server version: %d convs: %d",
-		ibox.InboxVersion, ibox.Version, ibox.ServerVersion, len(ibox.Conversations))
+	i.Debug(ctx, "writeDiskInbox: uid: %s version: %d disk version: %d server version: %d convs: %d",
+		uid, ibox.InboxVersion, ibox.Version, ibox.ServerVersion, len(ibox.Conversations))
 	inboxMemCache.Put(uid, &ibox)
-	if ierr := i.writeDiskBox(ctx, i.dbKey(uid), ibox); ierr != nil {
-		return NewInternalError(ctx, i.DebugLabeler, "failed to write inbox: uid: %s err: %s", uid, ierr)
+	switch i.flushMode {
+	case InboxFlushModeActive:
+		return i.flushLocked(ctx, uid)
+	case InboxFlushModeDelegate:
+		return nil
 	}
-	i.writeMobileSharedInbox(ctx, ibox, uid)
 	return nil
 }
 
@@ -300,10 +358,10 @@ func (i *Inbox) hashQuery(ctx context.Context, query *chat1.GetInboxQuery) (quer
 func (i *Inbox) MergeLocalMetadata(ctx context.Context, uid gregor1.UID, convs []chat1.ConversationLocal) (err Error) {
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
-	defer i.Trace(ctx, func() error { return err }, "MergeLocalMetadata")()
+	defer i.Trace(ctx, func() error { return err }, fmt.Sprintf("MergeLocalMetadata: num convs: %d", len(convs)))()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 
-	ibox, err := i.readDiskInbox(ctx, uid)
+	ibox, err := i.readDiskInbox(ctx, uid, true)
 	if err != nil {
 		if _, ok := err.(MissError); !ok {
 			return err
@@ -323,12 +381,12 @@ func (i *Inbox) MergeLocalMetadata(ctx context.Context, uid gregor1.UID, convs [
 			if convLocal.Error != nil {
 				continue
 			}
-			topicName := utils.GetTopicName(convLocal)
+			topicName := convLocal.Info.TopicName
 			snippet, snippetDecoration := utils.GetConvSnippet(convLocal, i.G().GetEnv().GetUsername().String())
 			rcm := &types.RemoteConversationMetadata{
 				Name:              convLocal.Info.TlfName,
 				TopicName:         topicName,
-				Headline:          utils.GetHeadline(convLocal),
+				Headline:          convLocal.Info.Headline,
 				Snippet:           snippet,
 				SnippetDecoration: snippetDecoration,
 			}
@@ -373,7 +431,7 @@ func (i *Inbox) Merge(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers
 	copy(convs, convsIn)
 
 	// Read inbox off disk to determine if we can merge, or need to full replace
-	ibox, err := i.readDiskInbox(ctx, uid)
+	ibox, err := i.readDiskInbox(ctx, uid, true)
 	if err != nil {
 		if _, ok := err.(MissError); !ok {
 			return err
@@ -426,12 +484,11 @@ func (i *Inbox) supersedersNotEmpty(ctx context.Context, superseders []chat1.Con
 	return false
 }
 
-func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, rcs []types.RemoteConversation) []types.RemoteConversation {
+func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, rcs []types.RemoteConversation) (res []types.RemoteConversation) {
 	if query == nil {
 		query = &chat1.GetInboxQuery{}
 	}
-	var res []types.RemoteConversation
-	filtered := 0
+
 	var queryConvIDMap map[string]bool
 	if query.ConvID != nil {
 		query.ConvIDs = append(query.ConvIDs, *query.ConvID)
@@ -442,83 +499,82 @@ func (i *Inbox) applyQuery(ctx context.Context, query *chat1.GetInboxQuery, rcs 
 			queryConvIDMap[c.String()] = true
 		}
 	}
+
+	memberStatus := query.MemberStatus
+	if len(memberStatus) == 0 {
+		memberStatus = defaultMemberStatusFilter
+	}
+	queryMemberStatusMap := map[chat1.ConversationMemberStatus]bool{}
+	for _, memberStatus := range memberStatus {
+		queryMemberStatusMap[memberStatus] = true
+	}
+
+	queryStatusMap := map[chat1.ConversationStatus]bool{}
+	for _, status := range query.Status {
+		queryStatusMap[status] = true
+	}
+
+	existences := query.Existences
+	if len(existences) == 0 {
+		existences = defaultExistences
+	}
+	existenceMap := map[chat1.ConversationExistence]bool{}
+	for _, status := range existences {
+		existenceMap[status] = true
+	}
+
 	for _, rc := range rcs {
-		ok := true
 		conv := rc.Conv
-
 		// Existence check
-		if conv.Metadata.Existence != chat1.ConversationExistence_ACTIVE {
-			ok = false
+		if _, ok := existenceMap[conv.Metadata.Existence]; !ok && len(existenceMap) > 0 {
+			continue
 		}
-
 		// Member status check
-		switch conv.ReaderInfo.Status {
-		case chat1.ConversationMemberStatus_ACTIVE, chat1.ConversationMemberStatus_PREVIEW,
-			chat1.ConversationMemberStatus_RESET:
-			// only let these states through
-		default:
-			ok = false
+		if _, ok := queryMemberStatusMap[conv.ReaderInfo.Status]; !ok && len(memberStatus) > 0 {
+			continue
 		}
-
+		// Status check
+		if _, ok := queryStatusMap[conv.Metadata.Status]; !ok && len(query.Status) > 0 {
+			continue
+		}
 		// Basic checks
 		if queryConvIDMap != nil && !queryConvIDMap[conv.GetConvID().String()] {
-			filtered++
 			continue
 		}
 		if query.After != nil && !conv.ReaderInfo.Mtime.After(*query.After) {
-			ok = false
+			continue
 		}
 		if query.Before != nil && !conv.ReaderInfo.Mtime.Before(*query.Before) {
-			ok = false
+			continue
 		}
 		if query.TopicType != nil && *query.TopicType != conv.Metadata.IdTriple.TopicType {
-			ok = false
+			continue
 		}
 		if query.TlfVisibility != nil && *query.TlfVisibility != keybase1.TLFVisibility_ANY &&
 			*query.TlfVisibility != conv.Metadata.Visibility {
-			ok = false
+			continue
 		}
-		if query.UnreadOnly && conv.ReaderInfo.ReadMsgid >= conv.ReaderInfo.MaxMsgid {
-			ok = false
+		if query.UnreadOnly && !conv.IsUnread() {
+			continue
 		}
-		if query.ReadOnly && conv.ReaderInfo.ReadMsgid < conv.ReaderInfo.MaxMsgid {
-			ok = false
+		if query.ReadOnly && conv.IsUnread() {
+			continue
 		}
 		if query.TlfID != nil && !query.TlfID.Eq(conv.Metadata.IdTriple.Tlfid) {
-			ok = false
+			continue
 		}
-
-		// Check to see if the conv status is in the query list
-		if len(query.Status) > 0 {
-			found := false
-			for _, s := range query.Status {
-				if s == conv.Metadata.Status {
-					found = true
-					break
-				}
-			}
-			if !found {
-				ok = false
-			}
-		}
-
 		// If we are finalized and are superseded, then don't return this
 		if query.OneChatTypePerTLF == nil ||
 			(query.OneChatTypePerTLF != nil && *query.OneChatTypePerTLF) {
 			if conv.Metadata.FinalizeInfo != nil && len(conv.Metadata.SupersededBy) > 0 && len(query.ConvIDs) == 0 {
 				if i.supersedersNotEmpty(ctx, conv.Metadata.SupersededBy, rcs) {
-					ok = false
+					continue
 				}
 			}
 		}
-
-		if ok {
-			res = append(res, rc)
-		} else {
-			filtered++
-		}
+		res = append(res, rc)
 	}
-
+	filtered := len(rcs) - len(res)
 	i.Debug(ctx, "applyQuery: res size: %d filtered: %d", len(res), filtered)
 	return res
 }
@@ -616,8 +672,12 @@ func (i *Inbox) queryExists(ctx context.Context, ibox inboxDiskData, query *chat
 	// If the query is specifying a list of conversation IDs, just check to see if we have *all*
 	// of them on the disk
 	if query != nil && (len(query.ConvIDs) > 0 || query.ConvID != nil) {
-		i.Debug(ctx, "Read: queryExists: convIDs query, checking list: len: %d", len(query.ConvIDs))
-		return i.queryConvIDsExist(ctx, ibox, query.ConvIDs)
+		convIDs := query.ConvIDs
+		if query.ConvID != nil {
+			convIDs = append(convIDs, *query.ConvID)
+		}
+		i.Debug(ctx, "Read: queryExists: convIDs query, checking list: len: %d", len(convIDs))
+		return i.queryConvIDsExist(ctx, ibox, convIDs)
 	}
 
 	hquery, err := i.hashQuery(ctx, query)
@@ -636,13 +696,13 @@ func (i *Inbox) queryExists(ctx context.Context, ibox inboxDiskData, query *chat
 	return false
 }
 
-func (i *Inbox) ReadAll(ctx context.Context, uid gregor1.UID) (vers chat1.InboxVers, res []types.RemoteConversation, err Error) {
+func (i *Inbox) ReadAll(ctx context.Context, uid gregor1.UID, useInMemory bool) (vers chat1.InboxVers, res []types.RemoteConversation, err Error) {
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
 	defer i.Trace(ctx, func() error { return err }, "ReadAll")()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 
-	ibox, err := i.readDiskInbox(ctx, uid)
+	ibox, err := i.readDiskInbox(ctx, uid, useInMemory)
 	if err != nil {
 		if _, ok := err.(MissError); ok {
 			i.Debug(ctx, "Read: miss: no inbox found")
@@ -673,7 +733,7 @@ func (i *Inbox) Read(ctx context.Context, uid gregor1.UID, query *chat1.GetInbox
 	defer i.Trace(ctx, func() error { return err }, fmt.Sprintf("Read(%s)", uid))()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 
-	ibox, err := i.readDiskInbox(ctx, uid)
+	ibox, err := i.readDiskInbox(ctx, uid, true)
 	if err != nil {
 		if _, ok := err.(MissError); ok {
 			i.Debug(ctx, "Read: miss: no inbox found")
@@ -722,6 +782,12 @@ func (i *Inbox) Clear(ctx context.Context, uid gregor1.UID) (err Error) {
 	return nil
 }
 
+func (i *Inbox) ClearInMemory(ctx context.Context, uid gregor1.UID) (err Error) {
+	defer i.Trace(ctx, func() error { return err }, "ClearInMemory")()
+	inboxMemCache.Clear(uid)
+	return nil
+}
+
 func (i *Inbox) handleVersion(ctx context.Context, ourvers chat1.InboxVers, updatevers chat1.InboxVers) (chat1.InboxVers, bool, Error) {
 	// Our version is at least as new as this update, let's not continue
 	if updatevers == 0 {
@@ -753,7 +819,7 @@ func (i *Inbox) NewConversation(ctx context.Context, uid gregor1.UID, vers chat1
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 
 	i.Debug(ctx, "NewConversation: vers: %d convID: %s", vers, conv.GetConvID())
-	ibox, err := i.readDiskInbox(ctx, uid)
+	ibox, err := i.readDiskInbox(ctx, uid, true)
 	if err != nil {
 		if _, ok := err.(MissError); ok {
 			return nil
@@ -862,7 +928,7 @@ func (i *Inbox) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.Inbo
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 
 	i.Debug(ctx, "NewMessage: vers: %d convID: %s", vers, convID)
-	ibox, err := i.readDiskInbox(ctx, uid)
+	ibox, err := i.readDiskInbox(ctx, uid, true)
 	if err != nil {
 		if _, ok := err.(MissError); ok {
 			return nil
@@ -957,7 +1023,7 @@ func (i *Inbox) ReadMessage(ctx context.Context, uid gregor1.UID, vers chat1.Inb
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 
 	i.Debug(ctx, "ReadMessage: vers: %d convID: %s", vers, convID)
-	ibox, err := i.readDiskInbox(ctx, uid)
+	ibox, err := i.readDiskInbox(ctx, uid, true)
 	if err != nil {
 		if _, ok := err.(MissError); ok {
 			return nil
@@ -1000,7 +1066,7 @@ func (i *Inbox) SetStatus(ctx context.Context, uid gregor1.UID, vers chat1.Inbox
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 
 	i.Debug(ctx, "SetStatus: vers: %d convID: %s", vers, convID)
-	ibox, err := i.readDiskInbox(ctx, uid)
+	ibox, err := i.readDiskInbox(ctx, uid, true)
 	if err != nil {
 		if _, ok := err.(MissError); !ok {
 			return nil
@@ -1038,7 +1104,7 @@ func (i *Inbox) SetAppNotificationSettings(ctx context.Context, uid gregor1.UID,
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 
 	i.Debug(ctx, "SetAppNotificationSettings: vers: %d convID: %s", vers, convID)
-	ibox, err := i.readDiskInbox(ctx, uid)
+	ibox, err := i.readDiskInbox(ctx, uid, true)
 	if err != nil {
 		if _, ok := err.(MissError); !ok {
 			return nil
@@ -1081,7 +1147,7 @@ func (i *Inbox) Expunge(ctx context.Context, uid gregor1.UID, vers chat1.InboxVe
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 
 	i.Debug(ctx, "Expunge: vers: %d convID: %s", vers, convID)
-	ibox, err := i.readDiskInbox(ctx, uid)
+	ibox, err := i.readDiskInbox(ctx, uid, true)
 	if err != nil {
 		if _, ok := err.(MissError); !ok {
 			return nil
@@ -1126,7 +1192,7 @@ func (i *Inbox) SubteamRename(ctx context.Context, uid gregor1.UID, vers chat1.I
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 
 	i.Debug(ctx, "SubteamRename: vers: %d convIDs: %d", vers, len(convIDs))
-	ibox, err := i.readDiskInbox(ctx, uid)
+	ibox, err := i.readDiskInbox(ctx, uid, true)
 	if err != nil {
 		if _, ok := err.(MissError); !ok {
 			return nil
@@ -1162,7 +1228,7 @@ func (i *Inbox) SetConvRetention(ctx context.Context, uid gregor1.UID, vers chat
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 
 	i.Debug(ctx, "SetConvRetention: vers: %d convID: %s", vers, convID)
-	ibox, err := i.readDiskInbox(ctx, uid)
+	ibox, err := i.readDiskInbox(ctx, uid, true)
 	if err != nil {
 		if _, ok := err.(MissError); !ok {
 			return nil
@@ -1198,7 +1264,7 @@ func (i *Inbox) SetTeamRetention(ctx context.Context, uid gregor1.UID, vers chat
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 
 	i.Debug(ctx, "SetTeamRetention: vers: %d teamID: %s", vers, teamID)
-	ibox, err := i.readDiskInbox(ctx, uid)
+	ibox, err := i.readDiskInbox(ctx, uid, true)
 	if err != nil {
 		if _, ok := err.(MissError); !ok {
 			return res, nil
@@ -1236,7 +1302,7 @@ func (i *Inbox) SetConvSettings(ctx context.Context, uid gregor1.UID, vers chat1
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 
 	i.Debug(ctx, "SetConvSettings: vers: %d convID: %s", vers, convID)
-	ibox, err := i.readDiskInbox(ctx, uid)
+	ibox, err := i.readDiskInbox(ctx, uid, true)
 	if err != nil {
 		if _, ok := err.(MissError); !ok {
 			return nil
@@ -1271,7 +1337,7 @@ func (i *Inbox) UpgradeKBFSToImpteam(ctx context.Context, uid gregor1.UID, vers 
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 
 	i.Debug(ctx, "UpgradeKBFSToImpteam: vers: %d convID: %s", vers, convID)
-	ibox, err := i.readDiskInbox(ctx, uid)
+	ibox, err := i.readDiskInbox(ctx, uid, true)
 	if err != nil {
 		if _, ok := err.(MissError); !ok {
 			return nil
@@ -1305,7 +1371,7 @@ func (i *Inbox) TeamTypeChanged(ctx context.Context, uid gregor1.UID, vers chat1
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 
 	i.Debug(ctx, "TeamTypeChanged: vers: %d convID: %s typ: %v", vers, convID, teamType)
-	ibox, err := i.readDiskInbox(ctx, uid)
+	ibox, err := i.readDiskInbox(ctx, uid, true)
 	if err != nil {
 		if _, ok := err.(MissError); !ok {
 			return nil
@@ -1341,7 +1407,7 @@ func (i *Inbox) TlfFinalize(ctx context.Context, uid gregor1.UID, vers chat1.Inb
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 
 	i.Debug(ctx, "TlfFinalize: vers: %d convIDs: %v finalizeInfo: %v", vers, convIDs, finalizeInfo)
-	ibox, err := i.readDiskInbox(ctx, uid)
+	ibox, err := i.readDiskInbox(ctx, uid, true)
 	if err != nil {
 		if _, ok := err.(MissError); ok {
 			return nil
@@ -1378,7 +1444,7 @@ func (i *Inbox) Version(ctx context.Context, uid gregor1.UID) (vers chat1.InboxV
 	defer i.Trace(ctx, func() error { return err }, "Version")()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 
-	ibox, err := i.readDiskInbox(ctx, uid)
+	ibox, err := i.readDiskInbox(ctx, uid, true)
 	if err != nil {
 		return 0, err
 	}
@@ -1393,7 +1459,7 @@ func (i *Inbox) ServerVersion(ctx context.Context, uid gregor1.UID) (vers int, e
 	defer i.Trace(ctx, func() error { return err }, "ServerVersion")()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 
-	ibox, err := i.readDiskInbox(ctx, uid)
+	ibox, err := i.readDiskInbox(ctx, uid, true)
 	if err != nil {
 		return 0, err
 	}
@@ -1433,7 +1499,7 @@ func (i *Inbox) Sync(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	defer i.Trace(ctx, func() error { return err }, "Sync")()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 
-	ibox, err := i.readDiskInbox(ctx, uid)
+	ibox, err := i.readDiskInbox(ctx, uid, true)
 	if err != nil {
 		// Return MissError, since it should be unexpected if are calling this
 		return res, err
@@ -1504,8 +1570,9 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 	defer i.Trace(ctx, func() error { return err }, "MembershipUpdate")()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 
-	i.Debug(ctx, "MembershipUpdate: updating userJoined: %d userRemoved: %d othersJoined: %d othersRemoved: %d", len(userJoined), len(userRemoved), len(othersJoined), len(othersRemoved))
-	ibox, err := i.readDiskInbox(ctx, uid)
+	i.Debug(ctx, "MembershipUpdate: updating userJoined: %d userRemoved: %d othersJoined: %d othersRemoved: %d",
+		len(userJoined), len(userRemoved), len(othersJoined), len(othersRemoved))
+	ibox, err := i.readDiskInbox(ctx, uid, true)
 	if err != nil {
 		if _, ok := err.(MissError); ok {
 			return nil
@@ -1602,6 +1669,44 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 		if cp, ok := convMap[or.ConvID.String()]; ok {
 			cp.Conv.Metadata.ResetList = append(cp.Conv.Metadata.ResetList, or.Uid)
 			cp.Conv.Metadata.Version = vers.ToConvVers()
+		}
+	}
+
+	ibox.InboxVersion = vers
+	return i.writeDiskInbox(ctx, uid, ibox)
+}
+
+func (i *Inbox) ConversationsUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+	convUpdates []chat1.ConversationUpdate) (err Error) {
+	locks.Inbox.Lock()
+	defer locks.Inbox.Unlock()
+	defer i.Trace(ctx, func() error { return err }, "ConversationsUpdate")()
+	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
+
+	i.Debug(ctx, "ConversationsUpdate: updating %d convs", len(convUpdates))
+	ibox, err := i.readDiskInbox(ctx, uid, true)
+	if err != nil {
+		if _, ok := err.(MissError); ok {
+			return nil
+		}
+		return err
+	}
+	// Check inbox versions, make sure it makes sense (clear otherwise)
+	var cont bool
+	if vers, cont, err = i.handleVersion(ctx, ibox.InboxVersion, vers); !cont {
+		return err
+	}
+
+	// Process our own changes
+	updateMap := make(map[string]chat1.ConversationUpdate)
+	for _, u := range convUpdates {
+		updateMap[u.ConvID.String()] = u
+	}
+
+	for idx, conv := range ibox.Conversations {
+		if update, ok := updateMap[conv.GetConvID().String()]; ok {
+			i.Debug(ctx, "ConversationsUpdate: changed conv: %v", update)
+			ibox.Conversations[idx].Conv.Metadata.Existence = update.Existence
 		}
 	}
 

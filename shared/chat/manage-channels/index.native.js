@@ -41,7 +41,7 @@ const Row = (
       onCheck={props.onToggle}
     />
     <Box
-      style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative', paddingLeft: globalMargins.tiny}}
+      style={{...globalStyles.flexBoxColumn, flex: 1, paddingLeft: globalMargins.tiny, position: 'relative'}}
     >
       <Text
         type="BodySemiboldLink"
@@ -55,17 +55,16 @@ const Row = (
         {props.description}
       </Text>
     </Box>
-    {props.showEdit &&
-      props.canEditChannels && (
-        <Edit
-          style={{
-            ...globalStyles.flexBoxRow,
-            justifyContent: 'flex-end',
-            alignItems: 'center',
-          }}
-          onClick={props.onEdit}
-        />
-      )}
+    {props.showEdit && props.canEditChannels && (
+      <Edit
+        style={{
+          ...globalStyles.flexBoxRow,
+          alignItems: 'center',
+          justifyContent: 'flex-end',
+        }}
+        onClick={props.onEdit}
+      />
+    )}
   </Box>
 )
 

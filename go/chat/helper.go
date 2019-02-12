@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
@@ -36,19 +37,18 @@ func NewHelper(g *globals.Context, ri func() chat1.RemoteInterface) *Helper {
 }
 
 func (h *Helper) SendTextByID(ctx context.Context, convID chat1.ConversationID,
-	trip chat1.ConversationIDTriple, tlfName string, text string) error {
-	return h.SendMsgByID(ctx, convID, trip, tlfName, chat1.NewMessageBodyWithText(chat1.MessageText{
+	tlfName string, text string) error {
+	return h.SendMsgByID(ctx, convID, tlfName, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: text,
 	}), chat1.MessageType_TEXT)
 }
 
-func (h *Helper) SendMsgByID(ctx context.Context, convID chat1.ConversationID,
-	trip chat1.ConversationIDTriple, tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error {
+func (h *Helper) SendMsgByID(ctx context.Context, convID chat1.ConversationID, tlfName string,
+	body chat1.MessageBody, msgType chat1.MessageType) error {
 	boxer := NewBoxer(h.G())
 	sender := NewBlockingSender(h.G(), boxer, h.ri)
 	msg := chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
-			Conv:        trip,
 			TlfName:     tlfName,
 			MessageType: msgType,
 		},
@@ -59,20 +59,19 @@ func (h *Helper) SendMsgByID(ctx context.Context, convID chat1.ConversationID,
 }
 
 func (h *Helper) SendTextByIDNonblock(ctx context.Context, convID chat1.ConversationID,
-	trip chat1.ConversationIDTriple, tlfName string, text string) error {
-	return h.SendMsgByIDNonblock(ctx, convID, trip, tlfName, chat1.NewMessageBodyWithText(chat1.MessageText{
+	tlfName string, text string) error {
+	return h.SendMsgByIDNonblock(ctx, convID, tlfName, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: text,
 	}), chat1.MessageType_TEXT)
 }
 
 func (h *Helper) SendMsgByIDNonblock(ctx context.Context, convID chat1.ConversationID,
-	trip chat1.ConversationIDTriple, tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error {
+	tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error {
 	boxer := NewBoxer(h.G())
 	baseSender := NewBlockingSender(h.G(), boxer, h.ri)
 	sender := NewNonblockingSender(h.G(), baseSender)
 	msg := chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
-			Conv:        trip,
 			TlfName:     tlfName,
 			MessageType: msgType,
 		},
@@ -118,7 +117,8 @@ func (h *Helper) SendMsgByNameNonblock(ctx context.Context, name string, topicNa
 	return helper.SendBody(ctx, body, msgType)
 }
 
-func (h *Helper) FindConversations(ctx context.Context, useLocalData bool, name string, topicName *string,
+func (h *Helper) FindConversations(ctx context.Context,
+	name string, topicName *string,
 	topicType chat1.TopicType, membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility) ([]chat1.ConversationLocal, error) {
 	kuid, err := CurrentUID(h.G())
 	if err != nil {
@@ -131,8 +131,8 @@ func (h *Helper) FindConversations(ctx context.Context, useLocalData bool, name 
 	if topicName != nil {
 		tname = *topicName
 	}
-	convs, err := FindConversations(ctx, h.G(), h.DebugLabeler, useLocalData, h.ri, uid, name, topicType,
-		membersType, vis, tname, &oneChat)
+	convs, err := FindConversations(ctx, h.G(), h.DebugLabeler, types.InboxSourceDataSourceAll, h.ri, uid,
+		name, topicType, membersType, vis, tname, &oneChat)
 	return convs, err
 }
 
@@ -145,7 +145,8 @@ func (h *Helper) FindConversationsByID(ctx context.Context, convIDs []chat1.Conv
 	query := &chat1.GetInboxLocalQuery{
 		ConvIDs: convIDs,
 	}
-	inbox, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil, query,
+	inbox, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
+		types.InboxSourceDataSourceAll, nil, query,
 		nil)
 	if err != nil {
 		return nil, err
@@ -167,24 +168,20 @@ func (h *Helper) GetChannelTopicName(ctx context.Context, teamID keybase1.TeamID
 	if err != nil {
 		return topicName, err
 	}
-
-	// First try the inbox
 	query := &chat1.GetInboxLocalQuery{
-		ConvIDs:   []chat1.ConversationID{convID},
-		TopicType: &topicType,
+		ConvIDs: []chat1.ConversationID{convID},
 	}
-	inbox, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil, query,
-		nil)
+	inbox, _, err := h.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
+		types.InboxSourceDataSourceAll, nil, query, nil)
 	if err != nil {
 		return topicName, err
 	}
 	h.Debug(ctx, "found inbox convs: %v", len(inbox.Convs))
 	for _, conv := range inbox.Convs {
 		if conv.GetConvID().Eq(convID) && conv.GetMembersType() == chat1.ConversationMembersType_TEAM {
-			return utils.GetTopicName(conv), nil
+			return conv.Info.TopicName, nil
 		}
 	}
-
 	// Fallback to TeamChannelSource
 	h.Debug(ctx, "using TeamChannelSource")
 	topicName, err = h.G().TeamChannelSource.GetChannelTopicName(ctx, uid, tlfID, topicType, convID)
@@ -224,22 +221,34 @@ func (h *Helper) GetMessages(ctx context.Context, uid gregor1.UID, convID chat1.
 	return GetMessages(ctx, h.G(), uid, convID, msgIDs, resolveSupersedes, reason)
 }
 
+func GetMessage(ctx context.Context, g *globals.Context, uid gregor1.UID, convID chat1.ConversationID,
+	msgID chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason) (chat1.MessageUnboxed, error) {
+	msgs, err := GetMessages(ctx, g, uid, convID, []chat1.MessageID{msgID}, resolveSupersedes, reason)
+	if err != nil {
+		return chat1.MessageUnboxed{}, err
+	}
+	if len(msgs) != 1 {
+		return chat1.MessageUnboxed{}, errors.New("message not found")
+	}
+	return msgs[0], nil
+}
+
 func GetMessages(ctx context.Context, g *globals.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msgIDs []chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason) ([]chat1.MessageUnboxed, error) {
-	conv, err := GetUnverifiedConv(ctx, g, uid, convID, true /* useLocalData */)
+	conv, err := GetUnverifiedConv(ctx, g, uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		return nil, err
 	}
 
 	// use ConvSource to get the messages, to try the cache first
-	messages, err := g.ConvSource.GetMessages(ctx, conv, uid, msgIDs, reason)
+	messages, err := g.ConvSource.GetMessages(ctx, conv.Conv, uid, msgIDs, reason)
 	if err != nil {
 		return nil, err
 	}
 
 	// unless arg says not to, transform the superseded messages
 	if resolveSupersedes {
-		messages, err = g.ConvSource.TransformSupersedes(ctx, conv, uid, messages)
+		messages, err = g.ConvSource.TransformSupersedes(ctx, conv.Conv, uid, messages)
 		if err != nil {
 			return nil, err
 		}
@@ -357,7 +366,7 @@ func (r *recentConversationParticipants) getActiveScore(ctx context.Context, con
 }
 
 func (r *recentConversationParticipants) get(ctx context.Context, myUID gregor1.UID) (res []gregor1.UID, err error) {
-	_, convs, err := storage.NewInbox(r.G()).ReadAll(ctx, myUID)
+	_, convs, err := storage.NewInbox(r.G()).ReadAll(ctx, myUID, true)
 	if err != nil {
 		if _, ok := err.(storage.MissError); ok {
 			r.Debug(ctx, "get: no inbox, returning blank results")
@@ -397,28 +406,28 @@ var errGetUnverifiedConvNotFound = errors.New("GetUnverifiedConv: conversation n
 var errGetVerifiedConvNotFound = errors.New("GetVerifiedConv: conversation not found")
 
 func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
-	convID chat1.ConversationID, useLocalData bool) (chat1.Conversation, error) {
+	convID chat1.ConversationID, dataSource types.InboxSourceDataSourceTyp) (res types.RemoteConversation, err error) {
 
-	inbox, err := g.InboxSource.ReadUnverified(ctx, uid, useLocalData, &chat1.GetInboxQuery{
+	inbox, err := g.InboxSource.ReadUnverified(ctx, uid, dataSource, &chat1.GetInboxQuery{
 		ConvIDs: []chat1.ConversationID{convID},
 	}, nil)
 	if err != nil {
-		return chat1.Conversation{}, fmt.Errorf("GetUnverifiedConv: %s", err.Error())
+		return res, fmt.Errorf("GetUnverifiedConv: %s", err.Error())
 	}
 	if len(inbox.ConvsUnverified) == 0 {
-		return chat1.Conversation{}, errGetUnverifiedConvNotFound
+		return res, errGetUnverifiedConvNotFound
 	}
 	if !inbox.ConvsUnverified[0].GetConvID().Eq(convID) {
-		return chat1.Conversation{}, fmt.Errorf("GetUnverifiedConv: convID mismatch: %s != %s",
+		return res, fmt.Errorf("GetUnverifiedConv: convID mismatch: %s != %s",
 			inbox.ConvsUnverified[0].GetConvID(), convID)
 	}
-	return inbox.ConvsUnverified[0].Conv, nil
+	return inbox.ConvsUnverified[0], nil
 }
 
 func GetVerifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
-	convID chat1.ConversationID, useLocalData bool) (res chat1.ConversationLocal, err error) {
+	convID chat1.ConversationID, dataSource types.InboxSourceDataSourceTyp) (res chat1.ConversationLocal, err error) {
 
-	inbox, _, err := g.InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, useLocalData, nil,
+	inbox, _, err := g.InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, dataSource, nil,
 		&chat1.GetInboxLocalQuery{
 			ConvIDs: []chat1.ConversationID{convID},
 		}, nil)
@@ -460,13 +469,7 @@ func GetTopicNameState(ctx context.Context, g *globals.Context, debugger utils.D
 	for _, conv := range convs {
 		msg, err := conv.GetMaxMessage(chat1.MessageType_METADATA)
 		if err != nil {
-			debugger.Debug(ctx, "GetTopicNameState: skipping convID: %s, no metadata message",
-				conv.GetConvID())
-			continue
-		}
-		if !msg.IsValid() {
-			debugger.Debug(ctx, "GetTopicNameState: skipping convID: %s, invalid metadata message: %v",
-				conv.GetConvID(), msg.DebugString())
+			debugger.Debug(ctx, "GetTopicNameState: unable to get maxmessage: convID: %v, %v", conv.GetConvID(), err)
 			continue
 		}
 		pairs.Pairs = append(pairs.Pairs, chat1.ConversationIDMessageIDPair{
@@ -476,7 +479,7 @@ func GetTopicNameState(ctx context.Context, g *globals.Context, debugger utils.D
 	}
 
 	if res, err = utils.CreateTopicNameState(pairs); err != nil {
-		debugger.Debug(ctx, "GetTopicNameState: failed to create topic name state: %s", err.Error())
+		debugger.Debug(ctx, "GetTopicNameState: failed to create topic name state: %v", err)
 		return res, err
 	}
 
@@ -484,8 +487,8 @@ func GetTopicNameState(ctx context.Context, g *globals.Context, debugger utils.D
 }
 
 func FindConversations(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
-	useLocalData bool, ri func() chat1.RemoteInterface, uid gregor1.UID, tlfName string,
-	topicType chat1.TopicType,
+	dataSource types.InboxSourceDataSourceTyp, ri func() chat1.RemoteInterface, uid gregor1.UID,
+	tlfName string, topicType chat1.TopicType,
 	membersTypeIn chat1.ConversationMembersType, vis keybase1.TLFVisibility, topicName string,
 	oneChatPerTLF *bool) (res []chat1.ConversationLocal, err error) {
 
@@ -502,6 +505,16 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 			topicName = globals.DefaultTeamTopic
 		}
 
+		// Attempt to resolve any sbs convs incase the team already exists.
+		var nameInfo *types.NameInfo
+		if strings.Contains(tlfName, "@") || strings.Contains(tlfName, ":") {
+			// Fetch the TLF ID from specified name
+			if info, err := CreateNameInfoSource(ctx, g, membersType).LookupID(ctx, tlfName, vis == keybase1.TLFVisibility_PUBLIC); err == nil {
+				nameInfo = &info
+				tlfName = nameInfo.CanonicalName
+			}
+		}
+
 		query := &chat1.GetInboxLocalQuery{
 			Name: &chat1.NameQuery{
 				Name:        tlfName,
@@ -513,11 +526,19 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 			OneChatTypePerTLF: oneChatPerTLF,
 		}
 
-		inbox, _, err := g.InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, useLocalData, nil,
+		inbox, _, err := g.InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, dataSource, nil,
 			query, nil)
 		if err != nil {
+			acceptableErr := false
+			// if we fail to load the team for some kind of rekey reason, treat as a complete miss
+			if _, ok := IsRekeyError(err); ok {
+				acceptableErr = true
+			}
 			// don't error out if the TLF name is just unknown, treat it as a complete miss
-			if _, ok := err.(UnknownTLFNameError); !ok {
+			if _, ok := err.(UnknownTLFNameError); ok {
+				acceptableErr = true
+			}
+			if !acceptableErr {
 				return res, err
 			}
 			inbox.Convs = nil
@@ -535,10 +556,13 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 			// are not any public team chats.
 
 			// Fetch the TLF ID from specified name
-			nameInfo, err := CreateNameInfoSource(ctx, g, membersType).LookupID(ctx, tlfName, false)
-			if err != nil {
-				debugger.Debug(ctx, "FindConversations: failed to get TLFID from name: %s", err.Error())
-				return res, err
+			if nameInfo == nil {
+				info, err := CreateNameInfoSource(ctx, g, membersType).LookupID(ctx, tlfName, false)
+				if err != nil {
+					debugger.Debug(ctx, "FindConversations: failed to get TLFID from name: %s", err.Error())
+					return res, err
+				}
+				nameInfo = &info
 			}
 			tlfConvs, err := g.TeamChannelSource.GetChannelsFull(ctx, uid, nameInfo.ID, topicType)
 			if err != nil {
@@ -547,7 +571,7 @@ func FindConversations(ctx context.Context, g *globals.Context, debugger utils.D
 			}
 
 			for _, tlfConv := range tlfConvs {
-				if utils.GetTopicName(tlfConv) == topicName {
+				if tlfConv.Info.TopicName == topicName {
 					res = append(res, tlfConv)
 				}
 			}
@@ -681,7 +705,8 @@ func postJoinLeave(ctx context.Context, g *globals.Context, ri func() chat1.Remo
 	query := chat1.GetInboxLocalQuery{
 		ConvIDs: []chat1.ConversationID{convID},
 	}
-	ib, _, err := g.InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil, &query, nil)
+	ib, _, err := g.InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
+		types.InboxSourceDataSourceAll, nil, &query, nil)
 	if err != nil {
 		return fmt.Errorf("inbox read error: %s", err)
 	}
@@ -715,6 +740,11 @@ func postJoinLeave(ctx context.Context, g *globals.Context, ri func() chat1.Remo
 	return err
 }
 
+func (h *Helper) JoinConversationByID(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (err error) {
+	defer h.Trace(ctx, func() error { return err }, "ChatHelper.JoinConversationByID")()
+	return JoinConversation(ctx, h.G(), h.DebugLabeler, h.ri, uid, convID)
+}
+
 func JoinConversation(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
 	ri func() chat1.RemoteInterface, uid gregor1.UID, convID chat1.ConversationID) (err error) {
 	if err := g.ConvSource.AcquireConversationLock(ctx, uid, convID); err != nil {
@@ -722,17 +752,15 @@ func JoinConversation(ctx context.Context, g *globals.Context, debugger utils.De
 	}
 	defer g.ConvSource.ReleaseConversationLock(ctx, uid, convID)
 
-	alreadyIn, err := g.InboxSource.IsMember(ctx, uid, convID)
-	if err != nil {
-		debugger.Debug(ctx, "JoinConversation: IsMember err: %s", err.Error())
-		// Assume we're not in.
-		alreadyIn = false
+	if alreadyIn, err := g.InboxSource.IsMember(ctx, uid, convID); err != nil {
+		// charge forward anyway
+		debugger.Debug(ctx, "JoinConversation: IsMember err: %v", err)
+	} else if alreadyIn {
+		return nil
 	}
 
-	// Send the join command even if we're in.
-	_, err = ri().JoinConversation(ctx, convID)
-	if err != nil {
-		debugger.Debug(ctx, "JoinConversation: failed to join conversation: %s", err.Error())
+	if _, err = ri().JoinConversation(ctx, convID); err != nil {
+		debugger.Debug(ctx, "JoinConversation: failed to join conversation: %v", err)
 		return err
 	}
 
@@ -742,20 +770,59 @@ func JoinConversation(ctx context.Context, g *globals.Context, debugger utils.De
 			ConvID: convID,
 		},
 	}, nil, nil, nil); err != nil {
-		debugger.Debug(ctx, "JoinConversation: failed to apply membership update: %s", err.Error())
+		debugger.Debug(ctx, "JoinConversation: failed to apply membership update: %v", err)
 	}
-
-	if !alreadyIn {
-		// Send a message to the channel after joining.
-		joinMessageBody := chat1.NewMessageBodyWithJoin(chat1.MessageJoin{})
-		debugger.Debug(ctx, "JoinConversation: sending join message to: %s", convID)
-		err := postJoinLeave(ctx, g, ri, uid, convID, joinMessageBody)
-		if err != nil {
-			debugger.Debug(ctx, "JoinConversation: posting join-conv message failed: %v", err)
-			// ignore the error
-		}
+	// Send a message to the channel after joining.
+	joinMessageBody := chat1.NewMessageBodyWithJoin(chat1.MessageJoin{})
+	debugger.Debug(ctx, "JoinConversation: sending join message to: %s", convID)
+	if err := postJoinLeave(ctx, g, ri, uid, convID, joinMessageBody); err != nil {
+		debugger.Debug(ctx, "JoinConversation: posting join-conv message failed: %v", err)
+		// ignore the error
 	}
 	return nil
+}
+
+func (h *Helper) JoinConversationByName(ctx context.Context, uid gregor1.UID, tlfName, topicName string,
+	topicType chat1.TopicType, vis keybase1.TLFVisibility) (err error) {
+	defer h.Trace(ctx, func() error { return err }, "ChatHelper.JoinConversationByName")()
+	return JoinConversationByName(ctx, h.G(), h.DebugLabeler, h.ri, uid, tlfName, topicName, topicType, vis)
+}
+
+func JoinConversationByName(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
+	ri func() chat1.RemoteInterface, uid gregor1.UID, tlfName, topicName string, topicType chat1.TopicType,
+	vis keybase1.TLFVisibility) (err error) {
+	// Fetch the TLF ID from specified name
+	nameInfo, err := CreateNameInfoSource(ctx, g, chat1.ConversationMembersType_TEAM).LookupID(ctx,
+		tlfName, vis == keybase1.TLFVisibility_PUBLIC)
+	if err != nil {
+		debugger.Debug(ctx, "JoinConversationByName: failed to get TLFID from name: %s", err.Error())
+		return err
+	}
+
+	// List all the conversations on the team
+	convs, err := g.TeamChannelSource.GetChannelsFull(ctx, uid, nameInfo.ID, topicType)
+	if err != nil {
+		return err
+	}
+	var convID chat1.ConversationID
+	for _, conv := range convs {
+		convTopicName := conv.Info.TopicName
+		if convTopicName != "" && convTopicName == topicName {
+			convID = conv.GetConvID()
+		}
+	}
+	if convID.IsNil() {
+		return fmt.Errorf("no topic name %s exists on specified team", topicName)
+	}
+	if err = JoinConversation(ctx, g, debugger, ri, uid, convID); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (h *Helper) LeaveConversation(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (err error) {
+	defer h.Trace(ctx, func() error { return err }, "ChatHelper.LeaveConversation")()
+	return LeaveConversation(ctx, h.G(), h.DebugLabeler, h.ri, uid, convID)
 }
 
 func LeaveConversation(ctx context.Context, g *globals.Context, debugger utils.DebugLabeler,
@@ -799,8 +866,7 @@ func PreviewConversation(ctx context.Context, g *globals.Context, debugger utils
 		return nil
 	}
 
-	_, err = ri().PreviewConversation(ctx, convID)
-	if err != nil {
+	if _, err = ri().PreviewConversation(ctx, convID); err != nil {
 		debugger.Debug(ctx, "PreviewConversation: failed to preview conversation: %s", err.Error())
 		return err
 	}
@@ -810,6 +876,7 @@ func PreviewConversation(ctx context.Context, g *globals.Context, debugger utils
 func NewConversation(ctx context.Context, g *globals.Context, uid gregor1.UID, tlfName string,
 	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
 	vis keybase1.TLFVisibility, ri func() chat1.RemoteInterface) (chat1.ConversationLocal, error) {
+	defer utils.SuspendComponent(ctx, g, g.ConvLoader)()
 	helper := newNewConversationHelper(g, uid, tlfName, topicName, topicType, membersType, vis, ri)
 	return helper.create(ctx)
 }
@@ -843,16 +910,49 @@ func newNewConversationHelper(g *globals.Context, uid gregor1.UID, tlfName strin
 	}
 }
 
-func (n *newConversationHelper) findConversations(ctx context.Context,
-	membersType chat1.ConversationMembersType, topicName string, useLocalData bool) ([]chat1.ConversationLocal, error) {
-	onechatpertlf := true
-	return FindConversations(ctx, n.G(), n.DebugLabeler, useLocalData, n.ri, n.uid, n.tlfName, n.topicType,
-		membersType, n.vis, topicName, &onechatpertlf)
+func (n *newConversationHelper) findExisting(ctx context.Context, tlfID chat1.TLFID, topicName string,
+	dataSource types.InboxSourceDataSourceTyp) (res []chat1.ConversationLocal, err error) {
+	ib, _, err := n.G().InboxSource.Read(ctx, n.uid, types.ConversationLocalizerBlocking,
+		dataSource, nil, &chat1.GetInboxLocalQuery{
+			Name: &chat1.NameQuery{
+				Name:        n.tlfName,
+				TlfID:       &tlfID,
+				MembersType: n.membersType,
+			},
+			TlfVisibility: &n.vis,
+			TopicName:     &topicName,
+			TopicType:     &n.topicType,
+		}, nil)
+	if err != nil {
+		return res, err
+	}
+	return ib.Convs, nil
 }
 
-func (n *newConversationHelper) findExisting(ctx context.Context, topicName string, useLocalData bool) (res []chat1.ConversationLocal, err error) {
-	// proceed to findConversations for requested member type
-	return n.findConversations(ctx, n.membersType, topicName, useLocalData)
+func (n *newConversationHelper) getNameInfo(ctx context.Context) (res types.NameInfo, err error) {
+	isPublic := n.vis == keybase1.TLFVisibility_PUBLIC
+	switch n.membersType {
+	case chat1.ConversationMembersType_KBFS, chat1.ConversationMembersType_TEAM,
+		chat1.ConversationMembersType_IMPTEAMUPGRADE:
+		return CreateNameInfoSource(ctx, n.G(), n.membersType).LookupID(ctx, n.tlfName, isPublic)
+	case chat1.ConversationMembersType_IMPTEAMNATIVE:
+		// NameInfoSource interface doesn't allow us to quickly lookup and create at the same time,
+		// so let's just do this manually here. Note: this will allow a user to dup impteamupgrade
+		// convs with unresolved assertions in them, the server can catch any normal convs being duped.
+		if override := GetOverrideNameInfoSource(ctx); override != nil {
+			return override.LookupID(ctx, n.tlfName, isPublic)
+		}
+		team, _, impTeamName, err := teams.LookupOrCreateImplicitTeam(ctx, n.G().ExternalG(), n.tlfName,
+			isPublic)
+		if err != nil {
+			return res, err
+		}
+		return types.NameInfo{
+			ID:            chat1.TLFID(team.ID.ToBytes()),
+			CanonicalName: impTeamName.String(),
+		}, nil
+	}
+	return res, errors.New("unknown members type")
 }
 
 func (n *newConversationHelper) create(ctx context.Context) (res chat1.ConversationLocal, reserr error) {
@@ -870,6 +970,11 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 	if n.topicName != nil {
 		findConvsTopicName = *n.topicName
 	}
+	info, err := n.getNameInfo(ctx)
+	if err != nil {
+		return res, err
+	}
+	n.tlfName = info.CanonicalName
 
 	// Find any existing conversations that match this argument specifically. We need to do this check
 	// here in the client since we can't see the topic name on the server.
@@ -878,9 +983,11 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 	// there is a ton of logic in there to try and present a nice looking menu to help out the
 	// user and such. For the most part, the CLI just uses FindConversationsLocal though, so it
 	// should hopefully just result in a bunch of cache hits on the second invocation.
-
-	convs, err := n.findExisting(ctx, findConvsTopicName, true)
-
+	convs, err := n.findExisting(ctx, info.ID, findConvsTopicName, types.InboxSourceDataSourceAll)
+	if err != nil {
+		n.Debug(ctx, "error running findExisting: %s", err)
+		convs = nil
+	}
 	// If we find one conversation, then just return it as if we created it.
 	if len(convs) == 1 {
 		n.Debug(ctx, "found previous conversation that matches, returning")
@@ -899,36 +1006,16 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 	}
 
 	n.Debug(ctx, "no matching previous conversation, proceeding to create new conv")
-
-	isPublic := n.vis == keybase1.TLFVisibility_PUBLIC
-	nis := CreateNameInfoSource(ctx, n.G(), n.membersType)
-	info, err := nis.LookupID(ctx, n.tlfName, isPublic)
-	if err != nil {
-		if n.membersType != chat1.ConversationMembersType_IMPTEAMNATIVE {
-			return res, err
-		}
-		if _, ok := err.(UnknownTLFNameError); !ok {
-			return res, err
-		}
-
-		// couldn't find implicit team, so make one
-		n.Debug(ctx, "making new implicit team %q", n.tlfName)
-		_, _, _, err = teams.LookupOrCreateImplicitTeam(ctx, n.G().ExternalG(), n.tlfName, isPublic)
-		if err != nil {
-			return res, err
-		}
-		info, err = nis.LookupID(ctx, n.tlfName, isPublic)
-		if err != nil {
-			return res, err
-		}
-	}
-
 	triple := chat1.ConversationIDTriple{
 		Tlfid:     info.ID,
 		TopicType: n.topicType,
 		TopicID:   make(chat1.TopicID, 16),
 	}
 
+	// If we get a ChatStalePreviousStateError we blow away in the box cache
+	// once to allow the retry to get fresh data.
+	clearedCache := false
+	isPublic := n.vis == keybase1.TLFVisibility_PUBLIC
 	for i := 0; i < 5; i++ {
 		triple.TopicID, err = utils.NewChatTopicID()
 		if err != nil {
@@ -945,7 +1032,8 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 			case DuplicateTopicNameError:
 				n.Debug(ctx, "duplicate topic name encountered, attempting to findExisting again")
 				var findErr error
-				convs, findErr = n.findExisting(ctx, findConvsTopicName, false)
+				convs, findErr = n.findExisting(ctx, info.ID, findConvsTopicName,
+					types.InboxSourceDataSourceRemoteOnly)
 				if len(convs) == 1 {
 					n.Debug(ctx, "found previous conversation that matches, returning")
 					return convs[0], findErr
@@ -968,6 +1056,11 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 			switch cerr := reserr.(type) {
 			case libkb.ChatStalePreviousStateError:
 				n.Debug(ctx, "stale topic name state, trying again")
+				if !clearedCache {
+					n.Debug(ctx, "Send: clearing inbox cache to retry stale previous state")
+					n.G().InboxSource.Clear(ctx, n.uid)
+					clearedCache = true
+				}
 				continue
 			case libkb.ChatConvExistsError:
 				// This triple already exists.
@@ -986,6 +1079,22 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 				// The triple did not exist, but a collision occurred on convID. Retry with a different topic ID.
 				n.Debug(ctx, "collision: %v", reserr)
 				continue
+			case libkb.ChatClientError:
+				// just make sure we can't find anything with FindConversations if we get this back
+				topicName := ""
+				if n.topicName != nil {
+					topicName = *n.topicName
+				}
+				fcRes, err := FindConversations(ctx, n.G(), n.DebugLabeler, types.InboxSourceDataSourceAll,
+					n.ri, n.uid, n.tlfName, n.topicType, n.membersType, n.vis, topicName, nil)
+				if err != nil {
+					n.Debug(ctx, "failed trying FindConversations after client error: %s", err)
+					return res, reserr
+				} else if len(fcRes) > 0 {
+					convID = fcRes[0].GetConvID()
+				} else {
+					return res, reserr
+				}
 			default:
 				return res, fmt.Errorf("error creating conversation: %s", reserr)
 			}
@@ -994,7 +1103,8 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 		n.Debug(ctx, "established conv: %v", convID)
 
 		// create succeeded; grabbing the conversation and returning
-		ib, _, err := n.G().InboxSource.Read(ctx, n.uid, types.ConversationLocalizerBlocking, false, nil,
+		ib, _, err := n.G().InboxSource.Read(ctx, n.uid, types.ConversationLocalizerBlocking,
+			types.InboxSourceDataSourceRemoteOnly, nil,
 			&chat1.GetInboxLocalQuery{
 				ConvIDs: []chat1.ConversationID{convID},
 			}, nil)
@@ -1016,9 +1126,6 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 			return res, err
 		}
 
-		// Clear team channel source
-		n.G().TeamChannelSource.ChannelsChanged(ctx, updateConv.Conv.Metadata.IdTriple.Tlfid)
-
 		if res.Error != nil {
 			return res, errors.New(res.Error.Message)
 		}
@@ -1029,8 +1136,7 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 			// don't send join messages to #general
 			if findConvsTopicName != globals.DefaultTeamTopic {
 				joinMessageBody := chat1.NewMessageBodyWithJoin(chat1.MessageJoin{})
-				err := postJoinLeave(ctx, n.G(), n.ri, n.uid, convID, joinMessageBody)
-				if err != nil {
+				if err := postJoinLeave(ctx, n.G(), n.ri, n.uid, convID, joinMessageBody); err != nil {
 					n.Debug(ctx, "posting join-conv message failed: %v", err)
 					// ignore the error
 				}
@@ -1093,14 +1199,13 @@ func (n *newConversationHelper) makeFirstMessage(ctx context.Context, triple cha
 	}
 
 	sender := NewBlockingSender(n.G(), NewBoxer(n.G()), n.ri)
-	mbox, _, _, _, topicNameState, err := sender.Prepare(ctx, msg, membersType, nil)
-	return mbox, topicNameState, err
+	prepareRes, err := sender.Prepare(ctx, msg, membersType, nil)
+	return &prepareRes.Boxed, prepareRes.TopicNameState, err
 }
 
 func CreateNameInfoSource(ctx context.Context, g *globals.Context, membersType chat1.ConversationMembersType) types.NameInfoSource {
-	if override := ctx.Value(nameInfoOverrideKey); override != nil {
-		g.GetLog().CDebugf(ctx, "createNameInfoSource: using override: %T", override)
-		return override.(types.NameInfoSource)
+	if override := GetOverrideNameInfoSource(ctx); override != nil {
+		return override
 	}
 	switch membersType {
 	case chat1.ConversationMembersType_KBFS:
@@ -1114,4 +1219,11 @@ func CreateNameInfoSource(ctx context.Context, g *globals.Context, membersType c
 	}
 	g.GetLog().CDebugf(ctx, "createNameInfoSource: unknown members type, using KBFS: %v", membersType)
 	return NewKBFSNameInfoSource(g)
+}
+
+func GetOverrideNameInfoSource(ctx context.Context) types.NameInfoSource {
+	if override := ctx.Value(nameInfoOverrideKey); override != nil {
+		return override.(types.NameInfoSource)
+	}
+	return nil
 }

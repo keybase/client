@@ -15,7 +15,6 @@ import {
 import {createShowUserProfile} from '../actions/profile-gen'
 import {createGetProfile} from '../actions/tracker-gen'
 import * as ConfigGen from '../actions/config-gen'
-import flags from '../util/feature-flags'
 
 export type AvatarSize = 128 | 96 | 64 | 48 | 32 | 16
 type URLType = any
@@ -31,7 +30,7 @@ export type OwnProps = {|
   isTeam?: boolean,
   loadingColor?: string,
   onClick?: (e?: SyntheticEvent<Element>) => void,
-  onEditAvatarClick?: (e?: SyntheticEvent<Element>) => void,
+  onEditAvatarClick?: ?(e?: SyntheticEvent<Element>) => void,
   opacity?: number,
   size: AvatarSize,
   skipBackground?: boolean,
@@ -57,7 +56,7 @@ type Props = {|
   loadingColor?: string,
   name: string,
   onClick?: (e?: SyntheticEvent<Element>) => void,
-  onEditAvatarClick?: (e?: SyntheticEvent<Element>) => void,
+  onEditAvatarClick?: ?(e?: SyntheticEvent<Element>) => void,
   opacity?: number,
   size: AvatarSize,
   skipBackground?: boolean,
@@ -179,10 +178,7 @@ const mapDispatchToProps = (dispatch, ownProps) => {
       isMobile || desktopDest === 'profile'
         ? dispatch(createShowUserProfile({username}))
         : dispatch(createGetProfile({forceDisplay: true, ignoreCache: true, username})),
-    onClick:
-      flags.avatarUploadsEnabled && ownProps.onEditAvatarClick
-        ? ownProps.onEditAvatarClick
-        : ownProps.onClick,
+    onClick: ownProps.onEditAvatarClick ? ownProps.onEditAvatarClick : ownProps.onClick,
   }
 }
 
@@ -259,7 +255,7 @@ class AvatarConnector extends React.PureComponent<Props> {
         skipBackground={this.props.skipBackground}
         borderColor={this.props.borderColor}
         children={this.props.children}
-        editable={flags.avatarUploadsEnabled && this.props.editable}
+        editable={this.props.editable}
         followIconSize={this.props.followIconSize}
         followIconStyle={this.props.followIconStyle}
         followIconType={this.props.followIconType}
@@ -276,7 +272,9 @@ class AvatarConnector extends React.PureComponent<Props> {
   }
 }
 
-const Avatar = namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'Avatar')(AvatarConnector)
+const Avatar = namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'Avatar')(
+  AvatarConnector
+)
 
 const mockOwnToViewProps = (
   ownProps: OwnProps,

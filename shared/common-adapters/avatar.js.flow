@@ -3,7 +3,7 @@
 import * as React from 'react'
 import type {StylesCrossPlatform, StylesCrossPlatformWithSomeDisallowed} from '../styles'
 
-export type AvatarSize = 128 | 96 | 64 | 48 | 32 | 16
+export type AvatarSize = 128 | 96 | 64 | 48 | 32 | 16 | 12
 
 type DisallowedStyles = {
   borderStyle?: empty,
@@ -17,7 +17,7 @@ export type Props = {
   isTeam?: boolean,
   loadingColor?: string,
   onClick?: (e?: SyntheticEvent<Element>) => void,
-  onEditAvatarClick?: (e?: SyntheticEvent<Element>) => void,
+  onEditAvatarClick?: ?(e?: SyntheticEvent<Element>) => void,
   opacity?: number,
   size: AvatarSize,
   skipBackground?: boolean,

@@ -5,7 +5,7 @@ import ClickableBox from './clickable-box'
 import Overlay from './overlay'
 import ScrollView from './scroll-view'
 import OverlayParentHOC, {type OverlayParentProps} from './overlay/parent-hoc'
-import type {Position} from './relative-popup-hoc'
+import type {Position} from './relative-popup-hoc.types'
 import Icon from './icon'
 import * as Styles from '../styles'
 
@@ -13,11 +13,12 @@ type DropdownButtonProps = {
   disabled?: boolean,
   selected?: React.Node,
   selectedBoxStyle?: Styles.StylesCrossPlatform,
+  style?: Styles.StylesCrossPlatform,
   setAttachmentRef?: $PropertyType<OverlayParentProps, 'setAttachmentRef'>,
   toggleOpen: () => void,
 }
 export const DropdownButton = (props: DropdownButtonProps) => (
-  <ClickableBox onClick={!props.disabled ? props.toggleOpen : null}>
+  <ClickableBox onClick={!props.disabled ? props.toggleOpen : null} style={props.style}>
     <ButtonBox disabled={props.disabled} ref={props.setAttachmentRef}>
       <Box style={Styles.collapseStyles([styles.selectedBox, props.selectedBoxStyle])}>{props.selected}</Box>
       <Icon
@@ -30,10 +31,10 @@ export const DropdownButton = (props: DropdownButtonProps) => (
   </ClickableBox>
 )
 
-type Props = {
-  onChanged: (selected: React.Node) => void,
-  selected?: React.Node,
-  items: Array<React.Node>,
+type Props<N: React.Node> = {
+  onChanged: (selected: N) => void,
+  selected?: N,
+  items: Array<N>,
   style?: Styles.StylesCrossPlatform,
   selectedBoxStyle?: Styles.StylesCrossPlatform,
   position?: Position,
@@ -43,7 +44,7 @@ type State = {
   expanded: boolean,
 }
 
-class Dropdown extends React.Component<Props & OverlayParentProps, State> {
+class Dropdown<N: React.Node> extends React.Component<Props<N> & OverlayParentProps, State> {
   state = {expanded: false}
 
   static defaultProps = {
@@ -56,8 +57,7 @@ class Dropdown extends React.Component<Props & OverlayParentProps, State> {
     }))
   }
 
-  _onSelect = (n: React.Node) => {
-    this.props.onChanged && this.props.onChanged(n)
+  _onSelect = () => {
     this.setState({expanded: false})
   }
 
@@ -80,7 +80,16 @@ class Dropdown extends React.Component<Props & OverlayParentProps, State> {
         >
           <ScrollView style={styles.scrollView}>
             {this.props.items.map((i, idx) => (
-              <ClickableBox key={idx} onClick={() => this._onSelect(i)} style={styles.itemClickBox}>
+              <ClickableBox
+                key={idx}
+                onClick={() => {
+                  // Bug in flow that doesn't let us just call this function
+                  // this._onSelect(i)
+                  this.props.onChanged && this.props.onChanged(i)
+                  this._onSelect()
+                }}
+                style={styles.itemClickBox}
+              >
                 <ItemBox>{i}</ItemBox>
               </ClickableBox>
             ))}
@@ -94,17 +103,30 @@ class Dropdown extends React.Component<Props & OverlayParentProps, State> {
 const styles = Styles.styleSheetCreate({
   itemClickBox: Styles.platformStyles({
     common: {
-      width: '100%',
       flexShrink: 0,
+      width: '100%',
     },
     isMobile: {
       minHeight: 40,
     },
   }),
+  overlay: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxColumn,
+      backgroundColor: Styles.globalColors.white,
+      marginTop: Styles.globalMargins.xtiny,
+    },
+    isElectron: {
+      border: `1px solid ${Styles.globalColors.blue}`,
+      borderRadius: 4,
+      maxHeight: 300,
+      width: 270,
+    },
+  }),
   scrollView: Styles.platformStyles({
     common: {
-      width: '100%',
       height: '100%',
+      width: '100%',
     },
     isMobile: {
       backgroundColor: Styles.globalColors.white,
@@ -112,29 +134,16 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   selectedBox: Styles.platformStyles({
-    isMobile: {minHeight: 48},
-    isElectron: {minHeight: 32},
     common: {
       ...Styles.globalStyles.flexBoxCenter,
       width: '100%',
     },
-  }),
-  overlay: Styles.platformStyles({
-    isElectron: {
-      border: `1px solid ${Styles.globalColors.blue}`,
-      borderRadius: 4,
-      maxHeight: 300,
-      width: 270,
-    },
-    common: {
-      ...Styles.globalStyles.flexBoxColumn,
-      backgroundColor: Styles.globalColors.white,
-      marginTop: Styles.globalMargins.xtiny,
-    },
+    isElectron: {minHeight: 32},
+    isMobile: {minHeight: 48},
   }),
 })
 
-const ItemBox = Styles.glamorous(Box)({
+const ItemBox = Styles.styled(Box)({
   ...Styles.globalStyles.flexBoxRow,
   ...(Styles.isMobile
     ? {}
@@ -150,7 +159,7 @@ const ItemBox = Styles.glamorous(Box)({
   width: '100%',
 })
 
-const ButtonBox = Styles.glamorous(Box)(props => ({
+const ButtonBox = Styles.styled(Box)(props => ({
   ...Styles.globalStyles.flexBoxRow,
   ...(!props.disabled && !Styles.isMobile
     ? {
@@ -164,7 +173,7 @@ const ButtonBox = Styles.glamorous(Box)(props => ({
   borderRadius: Styles.borderRadius,
   borderStyle: 'solid',
   borderWidth: 1,
-  color: Styles.globalColors.black_40,
+  color: Styles.globalColors.black_50,
   paddingRight: Styles.isMobile ? Styles.globalMargins.large : Styles.globalMargins.small,
   width: '100%',
 }))

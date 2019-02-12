@@ -12,6 +12,7 @@ export const isDarwin = platform === 'darwin'
 export const isWindows = platform === 'win32'
 export const isLinux = platform === 'linux'
 export const isAndroidNewerThanN = false
+export const shortcutSymbol = isDarwin ? '⌘' : 'Ctrl-'
 
 // For storyshots, we only want to test macOS
 export const fileUIName = isDarwin || __STORYBOOK__ ? 'Finder' : isWindows ? 'Explorer' : 'File Explorer'

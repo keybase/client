@@ -34,7 +34,7 @@ class Passphrase extends Component<Props> {
             label="Continue"
             type="Primary"
             onClick={() => this.props.onSubmit()}
-            enabled={this.props.passphrase && this.props.passphrase.length}
+            disabled={!(this.props.passphrase && this.props.passphrase.length)}
           />
           <Text style={stylesForgot} type="BodySmallSecondaryLink" onClick={this.props.onForgotPassphrase}>
             Forgot passphrase?
@@ -46,14 +46,14 @@ class Passphrase extends Component<Props> {
 }
 
 const stylesContainer = {
-  flex: 1,
   alignItems: 'center',
+  flex: 1,
   justifyContent: 'center',
   marginTop: 40,
 }
 const stylesInput = {
-  marginTop: 40,
   marginBottom: 48,
+  marginTop: 40,
 }
 const stylesForgot = {
   marginTop: 20,

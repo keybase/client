@@ -69,7 +69,7 @@ func (s *IdentifyState) computeRevokedProofs(rhook func(TrackIDComponent, TrackD
 
 		// A proof that was previously tracked as GOOD
 		// is missing, so it has been REVOKED.
-		s.res.RevokedDetails = append(s.res.RevokedDetails, ExportTrackIDComponentToRevokedProof(e))
+		revokedDetail := ExportTrackIDComponentToRevokedProof(e)
 		var td TrackDiff
 		if s.tmpTrack == nil {
 			td = &TrackDiffRevoked{e}
@@ -83,6 +83,7 @@ func (s *IdentifyState) computeRevokedProofs(rhook func(TrackIDComponent, TrackD
 			} else {
 				// proof wasn't in snooze, so revoked proof already snoozed.
 				td = &TrackDiffSnoozedRevoked{e}
+				revokedDetail.Snoozed = true
 			}
 		}
 		if td != nil {
@@ -91,6 +92,7 @@ func (s *IdentifyState) computeRevokedProofs(rhook func(TrackIDComponent, TrackD
 				rhook(e, td)
 			}
 		}
+		s.res.RevokedDetails = append(s.res.RevokedDetails, revokedDetail)
 	}
 }
 
@@ -129,6 +131,22 @@ func (s *IdentifyState) Precompute(dhook func(keybase1.IdentifyKey) error, rhook
 	s.computeRevokedProofs(rhook)
 }
 
+func (s *IdentifyState) getLastDelegationSig(kid keybase1.KID) (ret keybase1.SigID) {
+	ckf := s.u.GetComputedKeyFamily()
+	if ckf == nil {
+		return ret
+	}
+	cki := ckf.getCkiUnchecked(kid)
+	if cki == nil {
+		return ret
+	}
+	dels := cki.DelegationsList
+	if len(dels) == 0 {
+		return ret
+	}
+	return dels[len(dels)-1].SigID
+}
+
 func (s *IdentifyState) computeKeyDiffs(dhook func(keybase1.IdentifyKey) error) {
 	mapify := func(v []keybase1.KID) map[keybase1.KID]bool {
 		ret := make(map[keybase1.KID]bool)
@@ -146,6 +164,11 @@ func (s *IdentifyState) computeKeyDiffs(dhook func(keybase1.IdentifyKey) error) 
 		if fp, ok := s.u.GetKeyFamily().kid2pgp[kid]; ok {
 			k.PGPFingerprint = fp[:]
 		}
+
+		// Get the last signature chronologically that delegated to
+		// this key.
+		k.SigID = s.getLastDelegationSig(kid)
+
 		// Anything other than a no difference here should be displayed to
 		// the user.
 		if diff != nil {

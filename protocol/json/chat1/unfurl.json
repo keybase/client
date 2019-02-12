@@ -12,7 +12,30 @@
       "name": "UnfurlType",
       "symbols": [
         "GENERIC_0",
-        "YOUTUBE_1"
+        "YOUTUBE_1",
+        "GIPHY_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnfurlVideo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "url"
+        },
+        {
+          "type": "string",
+          "name": "mimeType"
+        },
+        {
+          "type": "int",
+          "name": "height"
+        },
+        {
+          "type": "int",
+          "name": "width"
+        }
       ]
     },
     {
@@ -48,6 +71,13 @@
         {
           "type": [
             null,
+            "UnfurlVideo"
+          ],
+          "name": "video"
+        },
+        {
+          "type": [
+            null,
             "int"
           ],
           "name": "publishTime"
@@ -65,6 +95,30 @@
       "type": "record",
       "name": "UnfurlYoutubeRaw",
       "fields": []
+    },
+    {
+      "type": "record",
+      "name": "UnfurlGiphyRaw",
+      "fields": [
+        {
+          "type": "string",
+          "name": "imageUrl"
+        },
+        {
+          "type": [
+            null,
+            "UnfurlVideo"
+          ],
+          "name": "video"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "faviconUrl"
+        }
+      ]
     },
     {
       "type": "variant",
@@ -87,6 +141,13 @@
             "def": false
           },
           "body": "UnfurlYoutubeRaw"
+        },
+        {
+          "label": {
+            "name": "GIPHY",
+            "def": false
+          },
+          "body": "UnfurlGiphyRaw"
         }
       ]
     },
@@ -142,6 +203,33 @@
       "fields": []
     },
     {
+      "type": "record",
+      "name": "UnfurlGiphy",
+      "fields": [
+        {
+          "type": [
+            null,
+            "Asset"
+          ],
+          "name": "favicon"
+        },
+        {
+          "type": [
+            null,
+            "Asset"
+          ],
+          "name": "image"
+        },
+        {
+          "type": [
+            null,
+            "Asset"
+          ],
+          "name": "video"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "Unfurl",
       "switch": {
@@ -162,6 +250,13 @@
             "def": false
           },
           "body": "UnfurlYoutube"
+        },
+        {
+          "label": {
+            "name": "GIPHY",
+            "def": false
+          },
+          "body": "UnfurlGiphy"
         }
       ]
     },
@@ -194,6 +289,10 @@
         {
           "type": "int",
           "name": "width"
+        },
+        {
+          "type": "boolean",
+          "name": "isVideo"
         }
       ]
     },
@@ -225,7 +324,7 @@
             null,
             "UnfurlImageDisplay"
           ],
-          "name": "image"
+          "name": "media"
         },
         {
           "type": [
@@ -249,6 +348,33 @@
       "fields": []
     },
     {
+      "type": "record",
+      "name": "UnfurlGiphyDisplay",
+      "fields": [
+        {
+          "type": [
+            null,
+            "UnfurlImageDisplay"
+          ],
+          "name": "favicon"
+        },
+        {
+          "type": [
+            null,
+            "UnfurlImageDisplay"
+          ],
+          "name": "image"
+        },
+        {
+          "type": [
+            null,
+            "UnfurlImageDisplay"
+          ],
+          "name": "video"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "UnfurlDisplay",
       "switch": {
@@ -269,6 +395,13 @@
             "def": false
           },
           "body": "UnfurlYoutubeDisplay"
+        },
+        {
+          "label": {
+            "name": "GIPHY",
+            "def": false
+          },
+          "body": "UnfurlGiphyDisplay"
         }
       ]
     },
@@ -294,6 +427,23 @@
             "type": "map",
             "values": "boolean",
             "keys": "string"
+          },
+          "name": "whitelist"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UnfurlSettingsDisplay",
+      "fields": [
+        {
+          "type": "UnfurlMode",
+          "name": "mode"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
           },
           "name": "whitelist"
         }

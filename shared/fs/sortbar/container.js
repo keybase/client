@@ -11,8 +11,8 @@ type OwnProps = {
 }
 
 const mapStateToProps = (state, {path}: OwnProps) => ({
-  sortSetting: state.fs.pathUserSettings.get(path, Constants.makePathUserSetting()).get('sort'),
   _loadingPaths: state.fs.loadingPaths,
+  sortSetting: state.fs.pathUserSettings.get(path, Constants.makePathUserSetting()).get('sort'),
 })
 
 const mapDispatchToProps = (dispatch, {path}) => ({
@@ -24,9 +24,11 @@ const mapDispatchToProps = (dispatch, {path}) => ({
 const emptySet = I.Set()
 
 const mergeProps = ({sortSetting, _loadingPaths}, {sortSettingToAction}, {path}: OwnProps) => ({
-  sortSetting,
   folderIsPending: _loadingPaths.get(path, emptySet).size > 0,
+  sortSetting,
   sortSettingToAction,
 })
 
-export default namedConnect(mapStateToProps, mapDispatchToProps, mergeProps, 'SortBar')(SortBar)
+export default namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'SortBar')(
+  SortBar
+)

@@ -110,3 +110,24 @@
   flex-shrink: 0;
   width: 64px;
 }
+.box2_alignSelf_center {
+  align-self: center;
+}
+.box2_alignSelf_flex-start {
+  align-self: flex-start;
+}
+.box2_alignSelf_flex-end {
+  align-self: flex-end;
+}
+.box2_no_shrink {
+  flex-shrink: 0;
+}
+.box2_alignItems_center {
+  align-items: center;
+}
+.box2_alignItems_flex-start {
+  align-items: flex-start;
+}
+.box2_alignItems_flex-end {
+  align-items: flex-end;
+}

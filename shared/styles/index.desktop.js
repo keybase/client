@@ -4,6 +4,7 @@ import {resolveImageAsURL} from '../desktop/app/resolve-root.desktop'
 import path from 'path'
 import {type CollapsibleStyle} from './index.types'
 import * as Shared from './shared'
+import {isEmpty} from 'lodash-es'
 
 const fontCommon = {
   WebkitFontSmoothing: 'antialiased',
@@ -13,27 +14,28 @@ const fontCommon = {
 const font = {
   fontBold: {
     ...fontCommon,
-    fontFamily: 'OpenSans',
+    fontFamily: 'Keybase',
     fontWeight: 700,
   },
   fontExtrabold: {
     ...fontCommon,
-    fontFamily: 'OpenSans',
+    fontFamily: 'Keybase',
     fontWeight: 800,
   },
   fontRegular: {
     ...fontCommon,
-    fontFamily: 'OpenSans',
-    fontWeight: 400,
+    fontFamily: 'Keybase',
+    fontWeight: 500,
   },
   fontSemibold: {
     ...fontCommon,
-    fontFamily: 'OpenSans',
+    fontFamily: 'Keybase',
     fontWeight: 600,
   },
   fontTerminal: {
     ...fontCommon,
     fontFamily: 'Source Code Pro',
+    fontWeight: 500,
   },
   fontTerminalSemibold: {
     ...fontCommon,
@@ -62,6 +64,7 @@ export const globalStyles = {
 
 export const mobileStyles = {}
 export const desktopStyles = {
+  boxShadow: {boxShadow: `0 2px 5px 0 ${globalColors.black_20}`},
   clickable: {cursor: 'pointer'},
   editable: {cursor: 'text'},
   fadeOpacity: {transition: 'opacity .25s ease-in-out'},
@@ -139,17 +142,18 @@ export const collapseStyles = (styles: $ReadOnlyArray<CollapsibleStyle>): Object
   if (valid.length === 1) {
     const s = valid[0]
     if (typeof s === 'object') {
-      // $ForceType
       return s
     }
   }
 
   const flattenedStyles = styles.reduce((a, e) => a.concat(e), [])
-  return flattenedStyles.reduce((o, e) => (e ? {...o, ...e} : o), {})
+  const style = flattenedStyles.reduce((o, e) => (e ? {...o, ...e} : o), {})
+  return isEmpty(style) ? undefined : style
 }
 export {isMobile, fileUIName, isIPhoneX, isIOS, isAndroid} from '../constants/platform'
 export {globalMargins, backgroundModeToColor, platformStyles} from './shared'
-export {default as glamorous} from 'glamorous'
+export {css as styledCss, keyframes as styledKeyframes} from '@emotion/core'
+export {default as styled} from '@emotion/styled'
 export {default as globalColors} from './colors'
 export const statusBarHeight = 0
 export const borderRadius = 4

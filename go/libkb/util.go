@@ -23,10 +23,12 @@ import (
 	"regexp"
 	"runtime"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 	"unicode"
 
+	humanize "github.com/dustin/go-humanize"
 	"github.com/keybase/client/go/kbcrypto"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/profiling"
@@ -912,4 +914,117 @@ func DecodeHexFixed(dst, src []byte) error {
 
 func IsIOS() bool {
 	return isIOS
+}
+
+// AcquireWithContext attempts to acquire a lock with a context.
+// Returns nil if the lock was acquired.
+// Returns an error if it was not. The error is from ctx.Err().
+func AcquireWithContext(ctx context.Context, lock sync.Locker) (err error) {
+	if err = ctx.Err(); err != nil {
+		return err
+	}
+	acquiredCh := make(chan struct{})
+	shouldReleaseCh := make(chan bool, 1)
+	go func() {
+		lock.Lock()
+		close(acquiredCh)
+		shouldRelease := <-shouldReleaseCh
+		if shouldRelease {
+			lock.Unlock()
+		}
+	}()
+	select {
+	case <-acquiredCh:
+		err = nil
+	case <-ctx.Done():
+		err = ctx.Err()
+	}
+	shouldReleaseCh <- err != nil
+	return err
+}
+
+// AcquireWithTimeout attempts to acquire a lock with a timeout.
+// Convenience wrapper around AcquireWithContext.
+// Returns nil if the lock was acquired.
+// Returns context.DeadlineExceeded if it was not.
+func AcquireWithTimeout(lock sync.Locker, timeout time.Duration) (err error) {
+	ctx2, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	return AcquireWithContext(ctx2, lock)
+}
+
+// AcquireWithContextAndTimeout attempts to acquire a lock with a context and a timeout.
+// Convenience wrapper around AcquireWithContext.
+// Returns nil if the lock was acquired.
+// Returns context.DeadlineExceeded or the error from ctx.Err() if it was not.
+func AcquireWithContextAndTimeout(ctx context.Context, lock sync.Locker, timeout time.Duration) (err error) {
+	ctx2, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+	return AcquireWithContext(ctx2, lock)
+}
+
+func Once(f func()) func() {
+	var once sync.Once
+	return func() {
+		once.Do(f)
+	}
+}
+
+func RuntimeGroup() keybase1.RuntimeGroup {
+	switch runtime.GOOS {
+	case "linux", "dragonfly", "freebsd", "netbsd", "openbsd":
+		return keybase1.RuntimeGroup_LINUXLIKE
+	case "darwin":
+		return keybase1.RuntimeGroup_DARWINLIKE
+	case "windows":
+		return keybase1.RuntimeGroup_WINDOWSLIKE
+	default:
+		return keybase1.RuntimeGroup_UNKNOWN
+	}
+}
+
+// DirSize walks the file tree the size of the given directory
+func DirSize(dirPath string) (size uint64, err error) {
+	err = filepath.Walk(dirPath, func(_ string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() {
+			size += uint64(info.Size())
+		}
+		return nil
+	})
+	return size, err
+}
+
+func CacheSizeInfo(g *GlobalContext) (info []keybase1.DirSizeInfo, err error) {
+	cacheDir := g.GetCacheDir()
+	files, err := ioutil.ReadDir(cacheDir)
+	if err != nil {
+		return nil, err
+	}
+
+	var totalSize uint64
+	for _, file := range files {
+		if !file.IsDir() {
+			totalSize += uint64(file.Size())
+			continue
+		}
+		dirPath := filepath.Join(cacheDir, file.Name())
+		size, err := DirSize(dirPath)
+		if err != nil {
+			return nil, err
+		}
+		totalSize += size
+		info = append(info, keybase1.DirSizeInfo{
+			Name:      dirPath,
+			HumanSize: humanize.Bytes(size),
+		})
+	}
+	info = append(info, keybase1.DirSizeInfo{
+		Name:      cacheDir,
+		HumanSize: humanize.Bytes(totalSize),
+	})
+	return info, nil
+
 }

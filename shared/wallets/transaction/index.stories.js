@@ -26,28 +26,28 @@ const addConfigs = (stories, namePrefix, storyFn) => {
   const roles = [{yourRole: 'senderOnly'}, {yourRole: 'senderAndReceiver'}, {yourRole: 'receiverOnly'}]
   const statuses = [
     {
+      onCancelPayment: null,
       status: 'completed',
       statusDetail: '',
-      onCancelPayment: null,
     },
     {
+      onCancelPayment: null,
       status: 'error',
       statusDetail: 'Horizon error',
-      onCancelPayment: null,
     },
     {
-      status: 'error',
-      statusDetail: 'Horizon error',
       onCancelPayment: Sb.action('onCancelPayment'),
+      status: 'error',
+      statusDetail: 'Horizon error',
     },
   ]
   const memosAndTimes = [
     // No memo.
-    {memo: '', timestamp: yesterday, amountUser: '$12.50', amountXLM: '53.1688643 XLM'},
-    {memo: shortMemo, timestamp: yesterday, amountUser: '$12.50', amountXLM: '53.1688643 XLM'},
-    {memo: longMemo, timestamp: lastWeek, amountUser: '$15.65', amountXLM: '42.535091 XLM'},
+    {amountUser: '$12.50', amountXLM: '53.1688643 XLM', memo: '', timestamp: yesterday},
+    {amountUser: '$12.50', amountXLM: '53.1688643 XLM', memo: shortMemo, timestamp: yesterday},
+    {amountUser: '$15.65', amountXLM: '42.535091 XLM', memo: longMemo, timestamp: lastWeek},
     // No display currency.
-    {memo: singleEmojiMemo, timestamp: beforeLastWeek, amountUser: '', amountXLM: '19.4567588 XLM'},
+    {amountUser: '', amountXLM: '19.4567588 XLM', memo: singleEmojiMemo, timestamp: beforeLastWeek},
   ]
   const readStates = [{readState: 'read'}, {readState: 'unread'}, {readState: 'oldestUnread'}]
 
@@ -63,11 +63,13 @@ const addConfigs = (stories, namePrefix, storyFn) => {
             }
             components.push(
               storyFn({
-                key: components.length,
+                approxWorth: '',
+                issuerDescription: '',
                 ...r,
                 ...st,
                 ...mt,
                 ...rs,
+                key: components.length,
                 onCancelPaymentWaitingKey: '',
                 onSelectTransaction: Sb.action('onSelectTransaction'),
                 onShowProfile: Sb.action('onShowProfile'),
@@ -114,6 +116,16 @@ const load = () => {
   ))
   addConfigs(stories, 'Account', config => (
     <Transaction {...config} counterparty="Second account" counterpartyType="otherAccount" />
+  ))
+  addConfigs(stories, 'Non-native asset', config => (
+    <Transaction
+      {...config}
+      counterparty="G43289XXXXX34OPL"
+      counterpartyType="stellarPublicKey"
+      issuerDescription="example.com"
+      amountXLM="53.1688643 HUGS"
+      amountUser=""
+    />
   ))
 }
 

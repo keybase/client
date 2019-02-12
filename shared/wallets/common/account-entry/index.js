@@ -33,15 +33,18 @@ const AccountEntry = (props: AccountEntryProps) => (
       />
     )}
     <Kb.Box2 direction="vertical" style={styles.rightColumn}>
-      <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.user}>
-        {props.keybaseUser &&
-          props.isDefault && (
-            <Kb.Avatar
-              size={16}
-              style={Kb.avatarCastPlatformStyles(styles.avatar)}
-              username={props.keybaseUser}
-            />
-          )}
+      <Kb.Box2
+        direction="horizontal"
+        fullWidth={true}
+        style={Styles.collapseStyles([styles.user, props.center && styles.userCenter])}
+      >
+        {props.keybaseUser && props.isDefault && (
+          <Kb.Avatar
+            size={16}
+            style={Kb.avatarCastPlatformStyles(styles.avatar)}
+            username={props.keybaseUser}
+          />
+        )}
         <Kb.Text type="BodySemibold" style={styles.title}>
           {props.name}
         </Kb.Text>
@@ -49,7 +52,7 @@ const AccountEntry = (props: AccountEntryProps) => (
       <Kb.Text
         type="BodySmall"
         selectable={true}
-        style={Styles.collapseStyles([styles.amount, props.center ? {textAlign: 'center'} : {}])}
+        style={Styles.collapseStyles([styles.amount, props.center && styles.amountCenter])}
       >
         {props.contents}
       </Kb.Text>
@@ -70,14 +73,17 @@ const rightColumnStyle = Styles.platformStyles({
 })
 
 const styles = Styles.styleSheetCreate({
+  amount: {
+    ...rightColumnStyle,
+    color: Styles.globalColors.black_50,
+  },
+  amountCenter: {
+    textAlign: 'center',
+  },
+  avatar: {marginRight: Styles.globalMargins.xtiny},
   containerBox: {
     overflow: 'hidden',
   },
-  amount: {
-    ...rightColumnStyle,
-    color: Styles.globalColors.black_40,
-  },
-  avatar: {marginRight: Styles.globalMargins.xtiny},
   icon: {
     alignSelf: 'center',
     height: 32,
@@ -89,6 +95,9 @@ const styles = Styles.styleSheetCreate({
   },
   user: {
     alignItems: 'center',
+  },
+  userCenter: {
+    justifyContent: 'center',
   },
 })
 

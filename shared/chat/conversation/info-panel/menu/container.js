@@ -1,10 +1,10 @@
 // @flow
 import * as Constants from '../../../../constants/teams'
 import * as React from 'react'
-import {createGetTeamOperations, createAddTeamWithChosenChannels} from '../../../../actions/teams-gen'
+import * as RouteTreeGen from '../../../../actions/route-tree-gen'
+import * as TeamsGen from '../../../../actions/teams-gen'
 import {namedConnect} from '../../../../util/container'
 import {InfoPanelMenu} from '.'
-import {navigateAppend, navigateTo, switchTo} from '../../../../actions/route-tree'
 import {teamsTab} from '../../../../constants/tabs'
 
 export type OwnProps = {
@@ -34,9 +34,9 @@ const mapStateToProps = (state, {teamname, isSmallTeam, visible}: OwnProps) => {
   // skip a bunch of stuff for menus that aren't visible
   if (!visible) {
     return {
-      hasCanPerform: false,
       badgeSubscribe: false,
       canAddPeople: false,
+      hasCanPerform: false,
       isSmallTeam: false,
       manageChannelsSubtitle: '',
       manageChannelsTitle: '',
@@ -52,13 +52,13 @@ const mapStateToProps = (state, {teamname, isSmallTeam, visible}: OwnProps) => {
   const manageChannelsTitle = isSmallTeam
     ? 'Create chat channels...'
     : moreThanOneSubscribedChannel(state.chat2.metaMap, teamname)
-      ? 'Manage chat channels'
-      : 'Subscribe to channels...'
+    ? 'Manage chat channels'
+    : 'Subscribe to channels...'
   const manageChannelsSubtitle = isSmallTeam ? 'Turns this into a big team' : ''
   return {
-    hasCanPerform,
     badgeSubscribe,
     canAddPeople: yourOperations.manageMembers,
+    hasCanPerform,
     isSmallTeam,
     manageChannelsSubtitle,
     manageChannelsTitle,
@@ -68,35 +68,37 @@ const mapStateToProps = (state, {teamname, isSmallTeam, visible}: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => ({
-  loadOperations: () => dispatch(createGetTeamOperations({teamname})),
+  loadOperations: () => dispatch(TeamsGen.createGetTeamOperations({teamname})),
   onAddPeople: () => {
     dispatch(
-      navigateTo(
-        [{selected: 'team', props: {teamname}}, {selected: 'addPeople', props: {teamname}}],
-        [teamsTab]
-      )
+      RouteTreeGen.createNavigateTo({
+        parentPath: [teamsTab],
+        path: [{props: {teamname}, selected: 'team'}, {props: {teamname}, selected: 'addPeople'}],
+      })
     )
-    dispatch(switchTo([teamsTab]))
+    dispatch(RouteTreeGen.createSwitchTo({path: [teamsTab]}))
   },
   onInvite: () => {
     dispatch(
-      navigateTo(
-        [{selected: 'team', props: {teamname}}, {selected: 'inviteByEmail', props: {teamname}}],
-        [teamsTab]
-      )
+      RouteTreeGen.createNavigateTo({
+        parentPath: [teamsTab],
+        path: [{props: {teamname}, selected: 'team'}, {props: {teamname}, selected: 'inviteByEmail'}],
+      })
     )
-    dispatch(switchTo([teamsTab]))
+    dispatch(RouteTreeGen.createSwitchTo({path: [teamsTab]}))
   },
   onLeaveTeam: () => {
-    dispatch(navigateAppend([{selected: 'reallyLeaveTeam', props: {teamname}}]))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'reallyLeaveTeam'}]}))
   },
   onManageChannels: () => {
-    dispatch(navigateAppend([{selected: 'manageChannels', props: {teamname}}]))
-    dispatch(createAddTeamWithChosenChannels({teamname}))
+    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'manageChannels'}]}))
+    dispatch(TeamsGen.createAddTeamWithChosenChannels({teamname}))
   },
   onViewTeam: () => {
-    dispatch(navigateTo([{selected: 'team', props: {teamname}}], [teamsTab]))
-    dispatch(switchTo([teamsTab]))
+    dispatch(
+      RouteTreeGen.createNavigateTo({parentPath: [teamsTab], path: [{props: {teamname}, selected: 'team'}]})
+    )
+    dispatch(RouteTreeGen.createSwitchTo({path: [teamsTab]}))
   },
 })
 

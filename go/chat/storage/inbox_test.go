@@ -53,7 +53,7 @@ func makeConvo(mtime gregor1.Time, rmsg chat1.MessageID, mmsg chat1.MessageID) t
 				MaxMsgid:  mmsg,
 			},
 			// Make it look like there's a visible message in here too
-			MaxMsgSummaries: []chat1.MessageSummary{{MessageType: chat1.MessageType_TEXT}},
+			MaxMsgSummaries: []chat1.MessageSummary{{MessageType: chat1.MessageType_TEXT, MsgID: 1}},
 		},
 	}
 	return c
@@ -164,8 +164,7 @@ func TestInboxQueries(t *testing.T) {
 
 	// Make three unread convos
 	makeUnread := func(ri *chat1.ConversationReaderInfo) {
-		ri.MaxMsgid = 5
-		ri.ReadMsgid = 3
+		ri.ReadMsgid = 0
 	}
 	makeUnread(convs[5].Conv.ReaderInfo)
 	makeUnread(convs[13].Conv.ReaderInfo)
@@ -759,7 +758,7 @@ func TestInboxServerVersion(t *testing.T) {
 	require.IsType(t, MissError{}, err)
 
 	require.NoError(t, inbox.Merge(context.TODO(), uid, 1, utils.PluckConvs(convs), nil, nil))
-	idata, err := inbox.readDiskInbox(context.TODO(), uid)
+	idata, err := inbox.readDiskInbox(context.TODO(), uid, true)
 	require.NoError(t, err)
 	require.Equal(t, 5, idata.ServerVersion)
 }
@@ -807,7 +806,7 @@ func TestMobileSharedInbox(t *testing.T) {
 		convs = append(convs, conv)
 	}
 	require.NoError(t, inbox.Merge(context.TODO(), uid, 1, utils.PluckConvs(convs), nil, nil))
-	diskIbox, err := inbox.readDiskInbox(context.TODO(), uid)
+	diskIbox, err := inbox.readDiskInbox(context.TODO(), uid, true)
 	require.NoError(t, err)
 	diskIbox.Conversations[4].LocalMetadata = &types.RemoteConversationMetadata{
 		TopicName: "mike",
@@ -848,7 +847,7 @@ func TestInboxMembershipDupUpdate(t *testing.T) {
 	require.NoError(t, inbox.MembershipUpdate(context.TODO(), uid, 2, []chat1.Conversation{conv.Conv},
 		nil, otherJoinedConvs, nil, nil, nil))
 
-	_, res, err := inbox.ReadAll(context.TODO(), uid)
+	_, res, err := inbox.ReadAll(context.TODO(), uid, true)
 	require.NoError(t, err)
 	require.Equal(t, 1, len(res))
 	require.Equal(t, 2, len(res[0].Conv.Metadata.AllList))
@@ -917,7 +916,7 @@ func TestInboxMembershipUpdate(t *testing.T) {
 		userRemovedConvs, otherJoinedConvs, otherRemovedConvs,
 		userResetConvs, otherResetConvs))
 
-	vers, res, err := inbox.ReadAll(context.TODO(), uid)
+	vers, res, err := inbox.ReadAll(context.TODO(), uid, true)
 	require.NoError(t, err)
 	require.Equal(t, chat1.InboxVers(2), vers)
 	for _, c := range res {

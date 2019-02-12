@@ -119,18 +119,6 @@ func (i *Wrapper) GetDataVoid(dp *interface{}, ep *error) {
 
 }
 
-func UnmarshalAndGetData(unsafeRaw []byte) (dat interface{}, err error) {
-	wrapper, err := Unmarshal(unsafeRaw)
-	if err != nil {
-		return dat, err
-	}
-	iface, err := wrapper.GetData()
-	if err != nil {
-		return dat, err
-	}
-	return iface, nil
-}
-
 func (i *Wrapper) Error() (e error) {
 	if i.err != nil {
 		e = *i.err

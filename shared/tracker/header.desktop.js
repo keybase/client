@@ -45,7 +45,7 @@ export default class HeaderRender extends PureComponent<Props, State> {
       ? globalColors.yellow
       : trackerStateColors.header.background
     const headerTextColor = isWarningAboutTrackerShowingUpLater
-      ? globalColors.brown_60
+      ? globalColors.brown_75
       : trackerStateColors.header.text
 
     return (
@@ -102,10 +102,10 @@ const styleClose = collapseStyles([
   desktopStyles.clickable,
   desktopStyles.windowDraggingClickable,
   {
-    zIndex: 2,
     position: 'absolute',
-    top: 7,
     right: 9,
+    top: 7,
+    zIndex: 2,
   },
 ])
 

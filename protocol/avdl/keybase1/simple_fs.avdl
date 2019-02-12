@@ -76,7 +76,14 @@ protocol SimpleFS {
     IN_PROGRESS_1,
     COMPLETE_2
   }
-  
+
+  record PrefetchProgress {
+    Time start;
+    Time endEstimate;
+    int64 bytesTotal;
+    int64 bytesFetched;
+  }
+
   record Dirent {
     Time time;
     int size;   // size of file or count of dir entries (TBD - may be expensive/unnecessary)
@@ -88,6 +95,7 @@ protocol SimpleFS {
     User lastWriterUnverified;
     boolean writable;
     PrefetchStatus prefetchStatus;
+    PrefetchProgress prefetchProgress;
   }
 
   record DirentWithRevision {
@@ -159,6 +167,7 @@ protocol SimpleFS {
   record RemoveArgs {
     OpID opID;
     Path path;
+    boolean recursive;
   }
 
   record ReadArgs {
@@ -307,7 +316,7 @@ protocol SimpleFS {
   /**
    Remove file or directory from filesystem
    */
-  void simpleFSRemove(OpID opID, Path path);
+  void simpleFSRemove(OpID opID, Path path, boolean recursive);
 
   /**
    Get info about file
@@ -428,20 +437,22 @@ protocol SimpleFS {
 
   enum FolderSyncMode {
     DISABLED_0,
-    ENABLED_1
-    // TODO(KBFS-3522): add partial mode.
+    ENABLED_1,
+    PARTIAL_2
   }
 
   record FolderSyncConfig {
     FolderSyncMode mode;
-    // TODO(KBFS-3522): add specific paths to sync in partial mode.
+    // paths is only used when the mode is PARTIAL
+    array<string> paths;
   }
 
   record FolderSyncStatus {
     // Bytes available and total on the partition hosting the sync cache.
     int64 localDiskBytesAvailable;
     int64 localDiskBytesTotal;
-    // TODO: fill in prefetch status, percentage synced, etc.
+    PrefetchStatus prefetchStatus;
+    PrefetchProgress prefetchProgress;
   }
 
   record FolderSyncConfigAndStatus {

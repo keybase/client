@@ -13,8 +13,8 @@ const native = {
   code: 'XLM',
   equivAvailableToSend: '$53.41 USD',
   equivBalance: '$54.14 USD',
-  issuerName: 'Stellar network',
   issuerAccountID: '',
+  issuerName: 'Stellar network',
   name: 'Lumens',
   openStellarURL,
   reserves: [
@@ -29,8 +29,8 @@ const keyz = {
   code: 'KEYZ',
   equivAvailableToSend: '',
   equivBalance: '',
-  issuerName: 'keybase.io',
   issuerAccountID: 'GAXLYHWCWQK273FMHITINCMVTHHRBBNG7A5XWGDYRDDWCR3RSCGLIDWQ',
+  issuerName: 'keybase.io',
   name: 'KEYZ',
   openStellarURL,
   reserves: [],
@@ -42,8 +42,8 @@ const btc = {
   code: 'BTC',
   equivAvailableToSend: '',
   equivBalance: '',
-  issuerName: 'FarcicalBTCAnchor.eg',
   issuerAccountID: 'GAT7ABIQKJ6BBBH7ASKMAV5FMND3YDQLKPFJUCHR7Y5PNRTA7VLA55IW',
+  issuerName: 'FarcicalBTCAnchor.eg',
   name: 'BTC',
   openStellarURL,
   reserves: [],
@@ -55,8 +55,8 @@ const btexcadv = {
   code: 'BTEXCADV',
   equivAvailableToSend: '',
   equivBalance: '',
-  issuerName: 'Unknown',
   issuerAccountID: 'GCN5SJA4CFUC7AVZGEPVVSXDEIBZYA77MAAEIA5ZXZKL5CVTJH6TUL6A',
+  issuerName: 'Unknown',
   name: 'BTEXCADV',
   openStellarURL,
   reserves: [],
@@ -67,8 +67,8 @@ const load = () => {
     .addDecorator(story => <Box style={{maxWidth: 520}}>{story()}</Box>)
     .add('Native currency', () => <Asset {...native} />)
     .add('Non-native currency', () => <Asset {...keyz} />)
-    .add('Native expanded', () => <Asset {...native} />)
-    .add('Non-native expanded', () => <Asset {...keyz} />)
+    .add('Native expanded', () => <Asset {...native} expanded={true} />)
+    .add('Non-native expanded', () => <Asset {...keyz} expanded={true} />)
     .add('List', () => (
       <React.Fragment>
         <Asset {...native} />

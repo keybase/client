@@ -1,8 +1,9 @@
 // @flow
+import * as React from 'react'
 import * as I from 'immutable'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import {compose, namedConnect} from '../../util/container'
+import {namedConnect} from '../../util/container'
 import OpenHOC from '../common/open-hoc'
 import Still from './still'
 
@@ -12,30 +13,25 @@ type OwnProps = $Diff<Types.StillRowItem, {rowType: 'still'}> & {
 }
 
 const mapStateToProps = (state, {path}: OwnProps) => ({
-  _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
-  _username: state.config.username,
   _downloads: state.fs.downloads,
+  _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
 })
 
 const mergeProps = (stateProps, dispatchProps, {name, path, routePath, destinationPickerIndex}: OwnProps) => {
-  const {_downloads, _pathItem, _username} = stateProps
-  const {type, lastModifiedTimestamp, lastWriter} = _pathItem
+  const {_downloads, _pathItem} = stateProps
   const download = _downloads.find(t => t.meta.path === path && !t.state.isDone)
   return {
     destinationPickerIndex,
     intentIfDownloading: download && download.meta.intent,
     isEmpty: _pathItem.type === 'folder' && _pathItem.progress === 'loaded' && _pathItem.children.isEmpty(),
-    itemStyles: Constants.getItemStyles(Types.getPathElements(path), type, _username),
-    lastModifiedTimestamp,
-    lastWriter: lastWriter.username,
     name,
     path,
     routePath,
-    type,
+    type: _pathItem.type,
   }
 }
 
-export default compose(
-  namedConnect(mapStateToProps, () => ({}), mergeProps, 'ConnectedStillRow'),
-  OpenHOC
-)(Still)
+export default ((ComposedComponent: React.ComponentType<any>) =>
+  namedConnect<OwnProps, _, _, _, _>(mapStateToProps, () => ({}), mergeProps, 'ConnectedStillRow')(
+    OpenHOC(ComposedComponent)
+  ))(Still)

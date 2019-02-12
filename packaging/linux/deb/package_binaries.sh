@@ -32,7 +32,9 @@ elif [ "$mode" = "prerelease" ] ; then
   repo_url="http://prerelease.keybase.io/deb"
   # "psmisc" provides "killall", which is used in run_keybase and
   # post_install.sh.
-  dependencies="Depends: libappindicator1, fuse, libgconf-2-4, psmisc"
+  # lsof used in post_install.sh
+  # systemd-container provides machinectl, which is used in post_install.sh
+  dependencies="Depends: libappindicator1, fuse, libgconf-2-4, psmisc, lsof, procps"
 elif [ "$mode" = "staging" ] ; then
   # Note: This doesn't exist yet. But we need to be distinct from the
   # production URL, because we're moving to a model where we build a clean repo
@@ -52,6 +54,11 @@ build_one_architecture() {
   # Copy the entire filesystem layout, binaries and all, into the debian build
   # folder. TODO: Something less wasteful of disk space?
   cp -r "$build_root"/binaries/"$debian_arch"/* "$dest/build"
+
+  # Copy changelog directly in, since this is a binary package.
+  doc_dir="$dest/build/usr/share/doc/keybase"
+  mkdir -p "$doc_dir"
+  gzip -cn "$here/changelog" > "$doc_dir/changelog.Debian.gz"
 
   # Installed-Size is a required field in the control file. Without it Ubuntu
   # users will see warnings.

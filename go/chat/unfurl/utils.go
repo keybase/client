@@ -19,6 +19,16 @@ func GetDefaultFaviconURL(uri string) (string, error) {
 	return parsed.String(), nil
 }
 
+func GetDefaultAppleTouchURL(uri string) (string, error) {
+	parsed, err := url.Parse(uri)
+	if err != nil {
+		return "", err
+	}
+	parsed.Path = "apple-touch-icon.png"
+	parsed.RawQuery = ""
+	return parsed.String(), nil
+}
+
 func GetHostname(uri string) (string, error) {
 	parsed, err := url.Parse(uri)
 	if err != nil {
@@ -43,8 +53,8 @@ func IsDomain(domain, target string) bool {
 }
 
 func ClassifyDomain(domain string) chat1.UnfurlType {
-	if IsDomain(domain, "youtube") {
-		return chat1.UnfurlType_YOUTUBE
+	if IsDomain(domain, "giphy") || domain == "gph.is" {
+		return chat1.UnfurlType_GIPHY
 	}
 	return chat1.UnfurlType_GENERIC
 }

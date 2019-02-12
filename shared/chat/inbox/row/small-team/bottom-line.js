@@ -1,6 +1,5 @@
 // @flow
 import React, {PureComponent} from 'react'
-import flags from '../../../../util/feature-flags'
 import {Text, Markdown, Box, Box2, Meta, Icon} from '../../../../common-adapters'
 import {
   globalStyles,
@@ -24,6 +23,7 @@ type Props = {
   hasResetUsers: boolean,
   isSelected: boolean,
   isDecryptingSnippet: boolean,
+  isTypingSnippet: boolean,
 }
 
 class BottomLine extends PureComponent<Props> {
@@ -50,7 +50,7 @@ class BottomLine extends PureComponent<Props> {
     } else if (this.props.participantNeedToRekey) {
       content = (
         <Text type="BodySmall" backgroundMode="Terminal" style={{color: this.props.subColor}}>
-          Waiting for participants to rekey
+          Waiting for participants to rekey...
         </Text>
       )
     } else if (this.props.isDecryptingSnippet) {
@@ -62,6 +62,7 @@ class BottomLine extends PureComponent<Props> {
           color: this.props.subColor,
           ...(this.props.showBold ? globalStyles.fontBold : {}),
         },
+        this.props.isTypingSnippet ? styles.typingSnippet : null,
       ])
 
       let snippetDecoration
@@ -72,35 +73,30 @@ class BottomLine extends PureComponent<Props> {
       switch (this.props.snippetDecoration) {
         case '\u{1F4A5}': // Explosion (Collision) emoji (💥)
           snippetDecoration = (
-            <Icon
-              type="iconfont-boom"
-              fontSize={isMobile ? 40 : 28}
-              style={platformStyles({
-                common: {
-                  color: this.props.isSelected ? globalColors.white : globalColors.black_20,
-                },
-                isMobile: {
-                  marginTop: -8,
-                },
-              })}
-            />
+            <Text
+              type="BodySmall"
+              style={{color: this.props.isSelected ? globalColors.white : globalColors.black_50}}
+            >
+              Message exploded.
+            </Text>
           )
           exploded = true
           break
         case '\u{1F4A3}': // Bomb emoji (💣)
           snippetDecoration = (
             <Icon
-              color={globalColors.black_75}
-              type="iconfont-bomb"
+              color={this.props.isSelected ? globalColors.white : globalColors.black_50}
+              type="iconfont-timer"
               fontSize={isMobile ? 16 : 12}
               style={{alignSelf: 'flex-start'}}
             />
           )
           break
         default:
-          snippetDecoration = this.props.snippetDecoration ? (
-            <Text type="BodySmall">{this.props.snippetDecoration}</Text>
-          ) : null
+          snippetDecoration =
+            !!this.props.snippetDecoration && !this.props.isTypingSnippet ? (
+              <Text type="BodySmall">{this.props.snippetDecoration}</Text>
+            ) : null
       }
       content = (
         <Box2 direction="horizontal" gap="xtiny" style={styles.contentBox}>
@@ -109,18 +105,16 @@ class BottomLine extends PureComponent<Props> {
               {snippetDecoration}
             </Box2>
           )}
-          {!exploded &&
-            !!this.props.snippet && (
-              <Markdown preview={true} style={style}>
-                {this.props.snippet}
-              </Markdown>
-            )}
+          {!exploded && !!this.props.snippet && (
+            <Markdown preview={true} style={style}>
+              {this.props.snippet}
+            </Markdown>
+          )}
         </Box2>
       )
     } else {
       return null
     }
-
     return (
       <Box
         style={collapseStyles([
@@ -141,10 +135,44 @@ class BottomLine extends PureComponent<Props> {
     )
   }
 }
-
 const styles = styleSheetCreate({
-  outerBox: {
-    ...globalStyles.flexBoxRow,
+  alertMeta: platformStyles({
+    common: {
+      alignSelf: 'center',
+      marginRight: 6,
+    },
+    isMobile: {
+      marginTop: 2,
+    },
+  }),
+  bottomLine: platformStyles({
+    isAndroid: {
+      lineHeight: undefined,
+    },
+    isElectron: {
+      color: globalColors.black_50,
+      display: 'block',
+      minHeight: 16,
+      overflow: 'hidden',
+      paddingRight: 10,
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
+      width: '100%',
+    },
+    isMobile: {
+      backgroundColor: globalColors.fastBlank,
+      color: globalColors.black_50,
+      flex: 1,
+      fontSize: 15,
+      lineHeight: 19,
+      paddingRight: 40,
+      paddingTop: 2, // so the tops of emoji aren't chopped off
+    },
+  }),
+  contentBox: {
+    ...globalStyles.fillAbsolute,
+    alignItems: 'center',
+    width: '100%',
   },
   innerBox: {
     ...globalStyles.flexBoxRow,
@@ -152,6 +180,9 @@ const styles = styleSheetCreate({
     flexGrow: 1,
     height: isMobile ? 21 : 17,
     position: 'relative',
+  },
+  outerBox: {
+    ...globalStyles.flexBoxRow,
   },
   rekeyNeededContainer: {
     alignSelf: 'center',
@@ -173,6 +204,7 @@ const styles = styleSheetCreate({
       lineHeight: 14,
     },
   }),
+  typingSnippet: {},
   youAreResetText: platformStyles({
     isElectron: {
       fontSize: 12,
@@ -181,44 +213,6 @@ const styles = styleSheetCreate({
     isMobile: {
       fontSize: 14,
       lineHeight: 19,
-    },
-  }),
-  bottomLine: platformStyles({
-    isAndroid: {
-      lineHeight: undefined,
-    },
-    isElectron: {
-      paddingRight: flags.useSimpleMarkdown ? 10 : 30,
-      color: globalColors.black_40,
-      display: 'block',
-      fontSize: 12,
-      lineHeight: 15,
-      minHeight: 16,
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap',
-      width: '100%',
-    },
-    isMobile: {
-      paddingRight: flags.useSimpleMarkdown ? 40 : 30,
-      backgroundColor: globalColors.fastBlank,
-      color: globalColors.black_40,
-      flex: 1,
-      fontSize: 14,
-    },
-  }),
-  contentBox: {
-    ...globalStyles.fillAbsolute,
-    alignItems: 'center',
-    width: '100%',
-  },
-  alertMeta: platformStyles({
-    common: {
-      alignSelf: 'center',
-      marginRight: 6,
-    },
-    isMobile: {
-      marginTop: 2,
     },
   }),
 })

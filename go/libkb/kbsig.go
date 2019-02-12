@@ -15,7 +15,6 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	stellar1 "github.com/keybase/client/go/protocol/stellar1"
 	jsonw "github.com/keybase/go-jsonw"
-	triplesec "github.com/keybase/go-triplesec"
 )
 
 func clientInfo(m MetaContext) *jsonw.Wrapper {
@@ -682,7 +681,7 @@ func (u *User) UpdatePassphraseProof(m MetaContext, key GenericKey, pwh string, 
 	pp := jsonw.NewDictionary()
 	pp.SetKey("hash", jsonw.NewString(pwh))
 	pp.SetKey("pdpka5_kid", jsonw.NewString(pdpka5kid))
-	pp.SetKey("version", jsonw.NewInt(int(triplesec.Version)))
+	pp.SetKey("version", jsonw.NewInt(int(ClientTriplesecVersion)))
 	pp.SetKey("passphrase_generation", jsonw.NewInt(int(ppGen)))
 	body.SetKey("update_passphrase_hash", pp)
 	return ret, nil
@@ -861,9 +860,9 @@ func StellarProof(m MetaContext, me *User, walletAddress stellar1.AccountID,
 // Modifies the User `me` with a sigchain bump and key delegation.
 // Returns a JSONPayload ready for use in "sigs" in sig/multi.
 func StellarProofReverseSigned(m MetaContext, me *User, walletAddress stellar1.AccountID,
-	stellarSigner stellar1.SecretKey, signer GenericKey) (JSONPayload, error) {
+	stellarSigner stellar1.SecretKey, deviceSigner GenericKey) (JSONPayload, error) {
 	// Make reverse sig
-	jwRev, err := StellarProof(m, me, walletAddress, signer)
+	jwRev, err := StellarProof(m, me, walletAddress, deviceSigner)
 	if err != nil {
 		return nil, err
 	}
@@ -885,7 +884,7 @@ func StellarProofReverseSigned(m MetaContext, me *User, walletAddress stellar1.A
 	}
 	sig, sigID, linkID, err := MakeSig(
 		m,
-		signer,
+		deviceSigner,
 		LinkTypeWalletStellar,
 		innerJSON,
 		SigHasRevokes(false),
@@ -905,7 +904,7 @@ func StellarProofReverseSigned(m MetaContext, me *User, walletAddress stellar1.A
 	res := make(JSONPayload)
 	res["sig"] = sig
 	res["sig_inner"] = string(innerJSON)
-	res["signing_kid"] = signer.GetKID().String()
+	res["signing_kid"] = deviceSigner.GetKID().String()
 	res["public_key"] = stellarSignerKey.GetKID().String()
 	res["type"] = LinkTypeWalletStellar
 	return res, nil

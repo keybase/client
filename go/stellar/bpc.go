@@ -28,10 +28,6 @@ type BuildPaymentCache interface {
 	GetOutsideCurrencyPreference(libkb.MetaContext, stellar1.AccountID) (stellar1.OutsideCurrencyCode, error)
 }
 
-func GetBuildPaymentCache(mctx libkb.MetaContext) BuildPaymentCache {
-	return getGlobal(mctx.G()).getBuildPaymentCache()
-}
-
 // Each instance is tied to a UV login. Must be discarded when switching users.
 // Threadsafe.
 // CORE-8119: Make all of these methods hit caches when called repeatedly.
@@ -56,11 +52,11 @@ func newBuildPaymentCache(remoter remote.Remoter) *buildPaymentCache {
 
 func (c *buildPaymentCache) OwnsAccount(mctx libkb.MetaContext,
 	accountID stellar1.AccountID) (bool, bool, error) {
-	return OwnAccount(mctx.Ctx(), mctx.G(), accountID)
+	return OwnAccount(mctx, accountID)
 }
 
 func (c *buildPaymentCache) PrimaryAccount(mctx libkb.MetaContext) (stellar1.AccountID, error) {
-	return GetOwnPrimaryAccountID(mctx.Ctx(), mctx.G())
+	return GetOwnPrimaryAccountID(mctx)
 }
 
 func (c *buildPaymentCache) AccountSeqno(mctx libkb.MetaContext,
@@ -126,6 +122,6 @@ func (c *buildPaymentCache) AvailableXLMToSend(mctx libkb.MetaContext,
 
 func (c *buildPaymentCache) GetOutsideCurrencyPreference(mctx libkb.MetaContext,
 	accountID stellar1.AccountID) (stellar1.OutsideCurrencyCode, error) {
-	cr, err := GetCurrencySetting(mctx, c.remoter, accountID)
+	cr, err := GetCurrencySetting(mctx, accountID)
 	return cr.Code, err
 }

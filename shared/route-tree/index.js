@@ -56,12 +56,12 @@ type _RouteDefNode = {
 export type RouteDefNode = I.RecordOf<_RouteDefNode>
 
 const _makeRouteDefNode: I.RecordFactory<_RouteDefNode> = I.Record({
-  defaultSelected: null,
+  children: I.Map(),
   component: null,
   containerComponent: null,
-  tags: makeLeafTags(),
+  defaultSelected: null,
   initialState: I.Map(),
-  children: I.Map(),
+  tags: makeLeafTags(),
 })
 
 class MakeRouteDefNodeClass extends _makeRouteDefNode {
@@ -69,24 +69,23 @@ class MakeRouteDefNodeClass extends _makeRouteDefNode {
   constructor({defaultSelected, component, containerComponent, tags, initialState, children}) {
     // $FlowIssue
     super({
-      defaultSelected: defaultSelected || null,
-      component,
-      containerComponent,
-      tags,
-      initialState: I.Map(initialState),
-      props: I.Map(),
-      state: I.Map(),
       children:
         typeof children === 'function'
           ? children
           : I.Seq(children)
-              .map(
-                params =>
-                  params instanceof MakeRouteDefNodeClass || typeof params === 'function'
-                    ? params
-                    : makeRouteDefNode(params)
+              .map(params =>
+                params instanceof MakeRouteDefNodeClass || typeof params === 'function'
+                  ? params
+                  : makeRouteDefNode(params)
               )
               .toMap(),
+      component,
+      containerComponent,
+      defaultSelected: defaultSelected || null,
+      initialState: I.Map(initialState),
+      props: I.Map(),
+      state: I.Map(),
+      tags,
     })
   }
 
@@ -135,10 +134,10 @@ const _makeRouteStateNode: I.RecordFactory<
     ) => ?I.RecordOf<RouteStateNode>,
   }
 > = I.Record({
-  selected: null,
-  props: I.Map(),
-  state: I.Map(),
   children: I.Map(),
+  props: I.Map(),
+  selected: null,
+  state: I.Map(),
 })
 
 class MakeRouteStateNode extends _makeRouteStateNode {
@@ -231,13 +230,13 @@ export function routeSetProps(
 ): RouteStateNode {
   const pathSeq = I.Seq(pathProps).map(item => {
     if (typeof item === 'string') {
-      return {type: 'navigate', next: item}
+      return {next: item, type: 'navigate'}
     } else {
-      return {type: 'navigate', next: item.selected, props: item.props}
+      return {next: item.selected, props: item.props, type: 'navigate'}
     }
   })
   const parentPathSeq = I.Seq(parentPath || []).map(item => {
-    return {type: 'traverse', next: item}
+    return {next: item, type: 'traverse'}
   })
   // $FlowIssue
   return _routeSet(routeDef, routeState, parentPathSeq.concat(pathSeq))
@@ -249,7 +248,7 @@ export function routeNavigate(
   pathProps: PathParam<any>,
   parentPath: ?Path
 ): RouteStateNode {
-  return routeSetProps(routeDef, routeState, I.List(pathProps).push({selected: null, props: {}}), parentPath)
+  return routeSetProps(routeDef, routeState, I.List(pathProps).push({props: {}, selected: null}), parentPath)
 }
 
 export function routeSetState(
@@ -365,22 +364,24 @@ export function getPathState(routeState: ?RouteStateNode, parentPath?: Path): ?I
 // under the given parentPath
 export function getPathProps(
   routeState: ?RouteStateNode,
-  parentPath: Path
+  parentPath?: Path
 ): I.List<{node: ?string, props: I.Map<string, any>}> {
   const path = []
   let curState = routeState
 
-  for (const next of parentPath) {
-    // $FlowIssue
-    curState = curState && curState.getChild(next)
-    if (!curState) {
+  if (parentPath) {
+    for (const next of parentPath) {
       // $FlowIssue
-      return I.List(path)
+      curState = curState && curState.getChild(next)
+      if (!curState) {
+        // $FlowIssue
+        return I.List(path)
+      }
+      path.push({
+        node: next,
+        props: curState.props,
+      })
     }
-    path.push({
-      node: next,
-      props: curState.props,
-    })
   }
 
   while (curState && curState.selected !== null) {

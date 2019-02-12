@@ -40,7 +40,8 @@ protocol common {
 
   enum RequestStatus {
     OK_0,
-    CANCELED_1
+    CANCELED_1,
+    DONE_2
   }
 
   enum PaymentStrategy {
@@ -55,6 +56,7 @@ protocol common {
   }
 
   record PaymentResult {
+    AccountID senderAccountID;
     KeybaseTransactionID keybaseID;
     // Direct: tx ID of the payment tx
     // Relay : tx ID of the funding payment tx
@@ -135,5 +137,11 @@ protocol common {
     string horizonCursor;
     string directCursor;
     string relayCursor;
+  }
+
+  enum AccountMode {
+    NONE_0,
+    USER_1,  // Each of the user's devices has access to the keys
+    MOBILE_2 // Only the user's mobile devices have access to the keys
   }
 }

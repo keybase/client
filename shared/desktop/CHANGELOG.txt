@@ -1,12 +1,13 @@
-New features:
-• See recent file activity in the widget
-• Enabled zooming to change app font size
-• Get notified when devices get added or revoked
-• Better pasting images from clipboard
-• Better looking image attachments
-Fixes:
-• Fix launching on startup on OSX
-• Fix pasting attachments on new conversations
-• Fix missing timestamps
-• Better performance in chat
-• Inbox wouldn't load after sign in/out sometimes
+• New reaction bar. Quickly add reactions by hovering over any message.
+• A new clearer and faster way to start a new conversation
+• New slash commands. Hit / to see a list of useful shortcuts
+• Set short term retention policies on teams and direct messages
+• Better 'who is typing' indicator
+
+Bugfixes:
+• Menubar widget more accurately shows logging in state
+• Fixed 'empty amount' errors
+• Fix for attachment saving failing
+• Images in chat url previews are clickable now
+• Better waiting indicators in the teams tab
+• Startup screen could be stretched on some screens

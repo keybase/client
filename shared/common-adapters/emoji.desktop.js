@@ -15,7 +15,7 @@ const EmojiWrapper = (props: Props) => {
   const {emojiName, size} = props
   return (
     <Emoji emoji={emojiName} size={size} backgroundImageFn={backgroundImageFn} tooltip={true}>
-      <Emoji emoji={emojiName} size={0} native={true} />
+      {!props.disableSelecting && <Emoji emoji={emojiName} size={0} native={true} />}
     </Emoji>
   )
 }

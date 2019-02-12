@@ -17,7 +17,7 @@ export default (props: Props) => (
       Consider following...
     </Text>
     <ScrollView
-      {...(isMobile ? {horizontal: true, alwaysBounceHorizontal: false} : {})} // Causes error on desktop
+      {...(isMobile ? {alwaysBounceHorizontal: false, horizontal: true} : {})} // Causes error on desktop
       contentContainerStyle={styles.scrollViewContainer}
     >
       {props.suggestions.map(suggestion => (
@@ -51,25 +51,30 @@ const styles = styleSheetCreate({
       ...globalStyles.flexBoxRow,
       borderBottomWidth: 1,
       borderColor: globalColors.black_10,
+      paddingBottom: globalMargins.small,
     },
     isElectron: {
       borderBottomStyle: 'solid',
       flexWrap: 'wrap',
-      height: 106,
+      height: 112,
       overflow: 'hidden',
       width: '100%',
-    },
-    isMobile: {
-      paddingBottom: globalMargins.tiny,
     },
   }),
   suggestionContainer: {
     flexShrink: 0,
-    height: 106,
+    height: 112,
     width: 112,
   },
-  text: {
-    marginBottom: globalMargins.tiny,
-    marginLeft: globalMargins.tiny,
-  },
+  text: platformStyles({
+    common: {
+      marginBottom: globalMargins.tiny,
+    },
+    isElectron: {
+      marginLeft: globalMargins.small,
+    },
+    isMobile: {
+      marginLeft: globalMargins.tiny,
+    },
+  }),
 })

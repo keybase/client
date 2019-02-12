@@ -8,7 +8,7 @@ declare export var transition: (...properties: Array<string>) => Object
 // Flow gets very confused if I mark these as CSS._StylesCrossPlatform. This fixes the common pattern of using
 // spread like {...globalStyles.fontBold, width: 123} etc but it breaks using them directly like
 // style={globalStyles.fontBold}. It does work if you do style={{...globalStyles.fontBold}} though
-type _fakeFontDefSeeCommentsOnThisStyle = {|fontFamily: 'OpenSans', fontWeight: '700', fontStyle: 'normal'|}
+type _fakeFontDefSeeCommentsOnThisStyle = {|fontFamily: 'Keybase', fontWeight: '700', fontStyle: 'normal'|}
 declare export var globalStyles: {
   fillAbsolute: {|bottom: 0, left: 0, position: 'absolute', right: 0, top: 0|},
   flexBoxCenter: {|alignItems: 'center', justifyContent: 'center'|},
@@ -17,7 +17,7 @@ declare export var globalStyles: {
   flexBoxRow: {|flexDirection: 'row'|},
   flexBoxRowReverse: {|flexDirection: 'row-reverse'|},
   flexGrow: {|flexGrow: 1|},
-  fontBold: {|fontFamily: 'OpenSans', fontWeight: '700', fontStyle: 'normal'|},
+  fontBold: {|fontFamily: 'Keybase', fontWeight: '700', fontStyle: 'normal'|},
   fontExtrabold: _fakeFontDefSeeCommentsOnThisStyle,
   fontRegular: _fakeFontDefSeeCommentsOnThisStyle,
   fontSemibold: _fakeFontDefSeeCommentsOnThisStyle,
@@ -29,6 +29,7 @@ declare export var globalStyles: {
   rounded: {|borderRadius: 3|},
 }
 declare export var desktopStyles: {
+  boxShadow?: CSS._StylesDesktop,
   clickable?: CSS._StylesDesktop,
   editable?: CSS._StylesDesktop,
   fadeOpacity?: CSS._StylesDesktop,
@@ -62,9 +63,10 @@ declare export var windowStyle: {
   height: number,
 }
 
-declare export function glamorous(
-  Component: any // React.ComponentType<P>
-): (...styles: Array<any>) => any // React.Component<P>
+declare export function styled<T>(Component: T): (...styles: Array<any>) => T
+
+declare export var styledCss: any // TODO better type
+declare export var styledKeyframes: any // TODO better type
 
 declare export var isAndroid: boolean
 declare export var isIOS: boolean

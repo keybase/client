@@ -1,7 +1,9 @@
 // @flow
+// // TODO deprecate
 import * as React from 'react'
 import * as Kb from '../../common-adapters/mobile.native'
 import * as Styles from '../../styles'
+import {waitingKey} from '../../constants/tracker2'
 
 import type {Props} from '.'
 
@@ -28,17 +30,18 @@ const EditProfileRender = (props: Props) => (
       autoCorrect={true}
       label="Location"
       value={props.location}
-      onEnterKeyDown={props.onSubmit}
+      onEnterKeyDown={props.bioLengthLeft >= 0 ? props.onSubmit : null}
       onChangeText={location => props.onLocationChange(location)}
     />
     {props.bioLengthLeft <= 5 && (
-      <Kb.Text style={styles.errorText} type="BodySmallError">
+      <Kb.Text center={true} type="BodySmallError">
         {props.bioLengthLeft} characters left.
       </Kb.Text>
     )}
     <Kb.ButtonBar fullWidth={true}>
-      <Kb.Button
-        disabled={props.bioLengthLeft <= 0}
+      <Kb.WaitingButton
+        waitingKey={waitingKey}
+        disabled={props.bioLengthLeft < 0}
         style={styles.button}
         type="Primary"
         onClick={props.onSubmit}
@@ -49,12 +52,7 @@ const EditProfileRender = (props: Props) => (
 )
 
 const styles = Styles.styleSheetCreate({
-  button: {
-    marginTop: Styles.globalMargins.medium,
-  },
-  errorText: {
-    textAlign: 'center',
-  },
+  button: {marginTop: Styles.globalMargins.medium},
 })
 
 export default EditProfileRender

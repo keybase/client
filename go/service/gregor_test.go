@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/gregor"
 	grclient "github.com/keybase/client/go/gregor/client"
 	"github.com/keybase/client/go/gregor/storage"
+	grutils "github.com/keybase/client/go/gregor/utils"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -666,8 +667,9 @@ func TestGregorBadgesIBM(t *testing.T) {
 	ri := func() chat1.RemoteInterface {
 		return dummyRemoteClient{RemoteClient: chat1.RemoteClient{Cli: h.cli}}
 	}
-	require.NoError(t, h.badger.Resync(context.TODO(), ri, h.gregorCli, nil))
+	badgerResync(context.TODO(), t, h.badger, ri, h.gregorCli)
 
+	listener.getBadgeState(t) // skip one since resync sends 2
 	bs := listener.getBadgeState(t)
 	require.Equal(t, 1, bs.NewTlfs, "one new tlf")
 
@@ -680,7 +682,7 @@ func TestGregorBadgesIBM(t *testing.T) {
 	require.NoError(t, err)
 	t.Logf("client sync complete")
 
-	require.NoError(t, h.badger.Resync(context.TODO(), ri, h.gregorCli, nil))
+	badgerResync(context.TODO(), t, h.badger, ri, h.gregorCli)
 
 	bs = listener.getBadgeState(t)
 	require.Equal(t, 1, bs.NewTlfs, "no more badges")
@@ -718,8 +720,9 @@ func TestGregorTeamBadges(t *testing.T) {
 	ri := func() chat1.RemoteInterface {
 		return dummyRemoteClient{RemoteClient: chat1.RemoteClient{Cli: h.cli}}
 	}
-	require.NoError(t, h.badger.Resync(context.TODO(), ri, h.gregorCli, nil))
+	badgerResync(context.TODO(), t, h.badger, ri, h.gregorCli)
 
+	listener.getBadgeState(t) // skip one since resync sends 2
 	bs := listener.getBadgeState(t)
 	require.Equal(t, 1, len(bs.NewTeamNames), "one new team name")
 	require.Equal(t, "teamname", bs.NewTeamNames[0])
@@ -865,7 +868,7 @@ func TestBroadcastRepeat(t *testing.T) {
 
 	tc.G.SetService()
 
-	_, err := kbtest.CreateAndSignupFakeUser("gregr", tc.G)
+	u, err := kbtest.CreateAndSignupFakeUser("gregr", tc.G)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -875,7 +878,7 @@ func TestBroadcastRepeat(t *testing.T) {
 	h.Init()
 	h.testingEvents = newTestingEvents()
 
-	m, err := h.templateMessage()
+	m, err := grutils.TemplateMessage(u.GetUID().ToBytes())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -884,7 +887,7 @@ func TestBroadcastRepeat(t *testing.T) {
 		Body_:     gregor1.Body([]byte("mike")),
 	}
 
-	m2, err := h.templateMessage()
+	m2, err := grutils.TemplateMessage(u.GetUID().ToBytes())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -893,9 +896,9 @@ func TestBroadcastRepeat(t *testing.T) {
 		Body_:     gregor1.Body([]byte("mike!!")),
 	}
 
-	broadcastMessageTesting(t, h, *m)
-	broadcastMessageTesting(t, h, *m2)
-	err = broadcastMessageTesting(t, h, *m)
+	broadcastMessageTesting(t, h, m)
+	broadcastMessageTesting(t, h, m2)
+	err = broadcastMessageTesting(t, h, m)
 	require.Error(t, err)
 	require.Equal(t, "ignored repeat message", err.Error())
 }
@@ -1038,4 +1041,19 @@ func TestOfflineConsume(t *testing.T) {
 	require.Equal(t, msg.ToInBandMessage().Metadata().MsgID().String(),
 		items[0].Metadata().MsgID().String())
 
+}
+
+func badgerResync(ctx context.Context, t testing.TB, b *badges.Badger, chatRemote func() chat1.RemoteInterface,
+	gcli *grclient.Client) {
+	iboxVersion, err := b.GetInboxVersionForTest(ctx)
+	require.NoError(t, err)
+	b.G().Log.Debug("Badger: Resync(): using inbox version: %v", iboxVersion)
+	update, err := chatRemote().GetUnreadUpdateFull(ctx, iboxVersion)
+	require.NoError(t, err)
+
+	state, err := gcli.StateMachineState(ctx, nil, false)
+	require.NoError(t, err)
+
+	b.PushChatFullUpdate(ctx, update)
+	b.PushState(ctx, state)
 }

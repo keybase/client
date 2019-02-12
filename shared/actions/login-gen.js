@@ -1,6 +1,6 @@
 // @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define */
+/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
 
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -19,10 +19,7 @@ export const loginError = 'login:loginError'
 type _LaunchAccountResetWebPagePayload = void
 type _LaunchForgotPasswordWebPagePayload = void
 type _LoginErrorPayload = $ReadOnly<{|error: ?HiddenString|}>
-type _LoginPayload = $ReadOnly<{|
-  usernameOrEmail: string,
-  passphrase: HiddenString,
-|}>
+type _LoginPayload = $ReadOnly<{|usernameOrEmail: string, passphrase: HiddenString|}>
 
 // Action Creators
 export const createLaunchAccountResetWebPage = (payload: _LaunchAccountResetWebPagePayload) => ({payload, type: launchAccountResetWebPage})
@@ -31,10 +28,10 @@ export const createLogin = (payload: _LoginPayload) => ({payload, type: login})
 export const createLoginError = (payload: _LoginErrorPayload) => ({payload, type: loginError})
 
 // Action Payloads
-export type LaunchAccountResetWebPagePayload = $Call<typeof createLaunchAccountResetWebPage, _LaunchAccountResetWebPagePayload>
-export type LaunchForgotPasswordWebPagePayload = $Call<typeof createLaunchForgotPasswordWebPage, _LaunchForgotPasswordWebPagePayload>
-export type LoginErrorPayload = $Call<typeof createLoginError, _LoginErrorPayload>
-export type LoginPayload = $Call<typeof createLogin, _LoginPayload>
+export type LaunchAccountResetWebPagePayload = {|+payload: _LaunchAccountResetWebPagePayload, +type: 'login:launchAccountResetWebPage'|}
+export type LaunchForgotPasswordWebPagePayload = {|+payload: _LaunchForgotPasswordWebPagePayload, +type: 'login:launchForgotPasswordWebPage'|}
+export type LoginErrorPayload = {|+payload: _LoginErrorPayload, +type: 'login:loginError'|}
+export type LoginPayload = {|+payload: _LoginPayload, +type: 'login:login'|}
 
 // All Actions
 // prettier-ignore
@@ -43,4 +40,4 @@ export type Actions =
   | LaunchForgotPasswordWebPagePayload
   | LoginErrorPayload
   | LoginPayload
-  | {type: 'common:resetStore', payload: void}
+  | {type: 'common:resetStore', payload: null}

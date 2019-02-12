@@ -31,6 +31,7 @@ const Provider = {
     lastEditUser: 'a',
     lastEditUserFollowing: false,
     name: props.id,
+    onBrowseGitRepo: Sb.action('onBrowseGitRepo'),
     onClickDevice: Sb.action('onClickDevice'),
     onCopy: Sb.action('onCopy'),
     onShowDelete: Sb.action('onShowDelete'),

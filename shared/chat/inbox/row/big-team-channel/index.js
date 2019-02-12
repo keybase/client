@@ -50,12 +50,12 @@ class BigTeamChannel extends PureComponent<Props, State> {
                 this.props.isError
                   ? styles.textError
                   : this.props.isSelected
-                    ? this.props.hasUnread
-                      ? styles.textSelectedBold
-                      : styles.textSelected
-                    : this.props.hasUnread
-                      ? styles.textPlainBold
-                      : styles.textPlain,
+                  ? this.props.hasUnread
+                    ? styles.textSelectedBold
+                    : styles.textSelected
+                  : this.props.hasUnread
+                  ? styles.textPlainBold
+                  : styles.textPlain,
               ])}
             >
               #{this.props.channelname}
@@ -79,10 +79,10 @@ const MutedIcon = ({isHovered, isSelected}) => (
           ? 'icon-shh-active-24'
           : 'icon-shh-24'
         : isSelected
-          ? 'icon-shh-active-16'
-          : isHovered
-            ? 'icon-shh-hover-16'
-            : 'icon-shh-16'
+        ? 'icon-shh-active-16'
+        : isHovered
+        ? 'icon-shh-hover-16'
+        : 'icon-shh-16'
     }
     style={mutedStyle}
   />
@@ -139,8 +139,11 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.red,
   },
   textPlain: Styles.platformStyles({
-    common: {color: Styles.globalColors.black_75_on_white},
-    isMobile: {backgroundColor: Styles.globalColors.fastBlank},
+    isElectron: {color: Styles.globalColors.black_63},
+    isMobile: {
+      backgroundColor: Styles.globalColors.fastBlank,
+      color: Styles.globalColors.black_63_on_white,
+    },
   }),
   textPlainBold: Styles.platformStyles({
     common: {

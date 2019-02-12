@@ -1,6 +1,6 @@
 // @flow
 // NOTE: This file is GENERATED from json files in actions/json. Run 'yarn build-actions' to regenerate
-/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define */
+/* eslint-disable no-unused-vars,prettier/prettier,no-use-before-define,import/no-duplicates */
 
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -23,38 +23,16 @@ export const switchRouteDef = 'route-tree:switchRouteDef'
 export const switchTo = 'route-tree:switchTo'
 
 // Payload Types
-type _NavigateAppendPayload = $ReadOnly<{|
-  path: RCConstants.PropsPath<any>,
-  parentPath?: ?RCConstants.Path,
-|}>
-type _NavigateToPayload = $ReadOnly<{|
-  path: RCConstants.PropsPath<any>,
-  parentPath?: ?RCConstants.Path,
-|}>
+type _NavigateAppendPayload = $ReadOnly<{|path: RCConstants.PropsPath<any>, parentPath?: ?RCConstants.Path|}>
+type _NavigateToPayload = $ReadOnly<{|path: RCConstants.PropsPath<any>, parentPath?: ?RCConstants.Path|}>
 type _NavigateUpPayload = void
-type _PutActionIfOnPathPayload = $ReadOnly<{|
-  expectedPath: RCConstants.Path,
-  otherAction: any,
-  parentPath?: ?RCConstants.Path,
-|}>
-type _RefreshRouteDefPayload = $ReadOnly<{|
-  loginRouteTree: RCConstants.RouteDefParams,
-  appRouteTree: RCConstants.RouteDefParams,
-|}>
+type _PutActionIfOnPathPayload = $ReadOnly<{|expectedPath: RCConstants.Path, otherAction: any, parentPath?: ?RCConstants.Path|}>
+type _RefreshRouteDefPayload = $ReadOnly<{|loginRouteTree: RCConstants.RouteDefParams, appRouteTree: RCConstants.RouteDefParams|}>
 type _ResetRoutePayload = $ReadOnly<{|path: RCConstants.Path|}>
 type _SetInitialRouteDefPayload = $ReadOnly<{|routeDef: RCConstants.RouteDefParams|}>
-type _SetRouteStatePayload = $ReadOnly<{|
-  path: RCConstants.Path,
-  partialState: {} | ((oldState: I.Map<string, any>) => I.Map<string, any>),
-|}>
-type _SwitchRouteDefPayload = $ReadOnly<{|
-  routeDef: RCConstants.RouteDefParams,
-  path?: ?RCConstants.Path,
-|}>
-type _SwitchToPayload = $ReadOnly<{|
-  path: RCConstants.Path,
-  parentPath?: ?RCConstants.Path,
-|}>
+type _SetRouteStatePayload = $ReadOnly<{|path: RCConstants.Path, partialState: {} | ((oldState: I.Map<string, any>) => I.Map<string, any>)|}>
+type _SwitchRouteDefPayload = $ReadOnly<{|routeDef: RCConstants.RouteDefParams, path?: ?RCConstants.Path|}>
+type _SwitchToPayload = $ReadOnly<{|path: RCConstants.Path, parentPath?: ?RCConstants.Path|}>
 
 // Action Creators
 /**
@@ -72,16 +50,16 @@ export const createSwitchRouteDef = (payload: _SwitchRouteDefPayload) => ({paylo
 export const createSwitchTo = (payload: _SwitchToPayload) => ({payload, type: switchTo})
 
 // Action Payloads
-export type NavigateAppendPayload = $Call<typeof createNavigateAppend, _NavigateAppendPayload>
-export type NavigateToPayload = $Call<typeof createNavigateTo, _NavigateToPayload>
-export type NavigateUpPayload = $Call<typeof createNavigateUp, _NavigateUpPayload>
-export type PutActionIfOnPathPayload = $Call<typeof createPutActionIfOnPath, _PutActionIfOnPathPayload>
-export type RefreshRouteDefPayload = $Call<typeof createRefreshRouteDef, _RefreshRouteDefPayload>
-export type ResetRoutePayload = $Call<typeof createResetRoute, _ResetRoutePayload>
-export type SetInitialRouteDefPayload = $Call<typeof createSetInitialRouteDef, _SetInitialRouteDefPayload>
-export type SetRouteStatePayload = $Call<typeof createSetRouteState, _SetRouteStatePayload>
-export type SwitchRouteDefPayload = $Call<typeof createSwitchRouteDef, _SwitchRouteDefPayload>
-export type SwitchToPayload = $Call<typeof createSwitchTo, _SwitchToPayload>
+export type NavigateAppendPayload = {|+payload: _NavigateAppendPayload, +type: 'route-tree:navigateAppend'|}
+export type NavigateToPayload = {|+payload: _NavigateToPayload, +type: 'route-tree:navigateTo'|}
+export type NavigateUpPayload = {|+payload: _NavigateUpPayload, +type: 'route-tree:navigateUp'|}
+export type PutActionIfOnPathPayload = {|+payload: _PutActionIfOnPathPayload, +type: 'route-tree:putActionIfOnPath'|}
+export type RefreshRouteDefPayload = {|+payload: _RefreshRouteDefPayload, +type: 'route-tree:refreshRouteDef'|}
+export type ResetRoutePayload = {|+payload: _ResetRoutePayload, +type: 'route-tree:resetRoute'|}
+export type SetInitialRouteDefPayload = {|+payload: _SetInitialRouteDefPayload, +type: 'route-tree:setInitialRouteDef'|}
+export type SetRouteStatePayload = {|+payload: _SetRouteStatePayload, +type: 'route-tree:setRouteState'|}
+export type SwitchRouteDefPayload = {|+payload: _SwitchRouteDefPayload, +type: 'route-tree:switchRouteDef'|}
+export type SwitchToPayload = {|+payload: _SwitchToPayload, +type: 'route-tree:switchTo'|}
 
 // All Actions
 // prettier-ignore
@@ -96,4 +74,4 @@ export type Actions =
   | SetRouteStatePayload
   | SwitchRouteDefPayload
   | SwitchToPayload
-  | {type: 'common:resetStore', payload: void}
+  | {type: 'common:resetStore', payload: null}

@@ -1,8 +1,8 @@
-@import "~emoji-mart/css/emoji-mart.css";
-@import "../../common-adapters/avatar.css";
-@import "../../common-adapters/box.css";
-@import "../../common-adapters/icon.css";
-@import "../../common-adapters/text.css";
+@import '~emoji-mart/css/emoji-mart.css';
+@import '../../common-adapters/avatar.css';
+@import '../../common-adapters/box.css';
+@import '../../common-adapters/icon.css';
+@import '../../common-adapters/text.css';
 
 /* Reset */
 /* http://meyerweb.com/eric/tools/css/reset/
@@ -10,49 +10,130 @@
    License: none (public domain)
 */
 
-html, body, div, span, applet, object, iframe,
-h1, h2, h3, h4, h5, h6, p, blockquote, pre,
-a, abbr, acronym, address, big, cite, code,
-del, dfn, em, img, ins, kbd, q, s, samp,
-small, strike, strong, sub, sup, tt, var,
-b, u, i, center,
-dl, dt, dd, ol, ul, li,
-fieldset, form, label, legend,
-table, caption, tbody, tfoot, thead, tr, th, td,
-article, aside, canvas, details, embed,
-figure, figcaption, footer, header, hgroup,
-menu, nav, output, ruby, section, summary,
-time, mark, audio, video {
-	margin: 0;
-	padding: 0;
-	border: 0;
-	font-size: 100%;
-	font: inherit;
-	vertical-align: baseline;
+html,
+body,
+div,
+span,
+applet,
+object,
+iframe,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote,
+pre,
+a,
+abbr,
+acronym,
+address,
+big,
+cite,
+code,
+del,
+dfn,
+em,
+img,
+ins,
+kbd,
+q,
+s,
+samp,
+small,
+strike,
+strong,
+sub,
+sup,
+tt,
+var,
+b,
+u,
+i,
+center,
+dl,
+dt,
+dd,
+ol,
+ul,
+li,
+fieldset,
+form,
+label,
+legend,
+table,
+caption,
+tbody,
+tfoot,
+thead,
+tr,
+th,
+td,
+article,
+aside,
+canvas,
+details,
+embed,
+figure,
+figcaption,
+footer,
+header,
+hgroup,
+menu,
+nav,
+output,
+ruby,
+section,
+summary,
+time,
+mark,
+audio,
+video {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 100%;
+  font: inherit;
+  vertical-align: baseline;
 }
 /* HTML5 display-role reset for older browsers */
-article, aside, details, figcaption, figure,
-footer, header, hgroup, menu, nav, section {
-	display: block;
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+menu,
+nav,
+section {
+  display: block;
 }
 body {
-	background-color: white;
-	line-height: 1;
+  background-color: white;
+  line-height: 1;
 }
-ol, ul {
-	list-style: none;
+ol,
+ul {
+  list-style: none;
 }
-blockquote, q {
-	quotes: none;
+blockquote,
+q {
+  quotes: none;
 }
-blockquote:before, blockquote:after,
-q:before, q:after {
-	content: '';
-	content: none;
+blockquote:before,
+blockquote:after,
+q:before,
+q:after {
+  content: '';
+  content: none;
 }
 table {
-	border-collapse: collapse;
-	border-spacing: 0;
+  border-collapse: collapse;
+  border-spacing: 0;
 }
 
 /* End reset */
@@ -67,79 +148,81 @@ table {
 
 /* Source Code Pro */
 @font-face {
-    font-family: 'Source Code Pro';
-    font-weight: 400;
-    src: url('../../fonts/SourceCodePro.ttf') format('truetype');
+  font-family: 'Source Code Pro';
+  font-weight: 500;
+  src: url('../../fonts/SourceCodePro-Medium.ttf') format('truetype');
 }
 
 @font-face {
-    font-family: 'Source Code Pro';
-    font-weight: 600;
-    src: url('../../fonts/SourceCodePro-Semi_bold.ttf') format('truetype');
+  font-family: 'Source Code Pro';
+  font-weight: 600;
+  src: url('../../fonts/SourceCodePro-Semibold.ttf') format('truetype');
 }
 /* End Source Code Pro */
 
-/* OpenSans */
+/* Keybase */
 @font-face {
-    font-family: 'OpenSans';
-    font-weight: 400;
-    src: url('../../fonts/OpenSans.ttf') format('truetype');
+  font-family: 'Keybase';
+  font-weight: 500;
+  src: url('../../fonts/keybase-medium.otf') format('opentype');
 }
 
 @font-face {
-    font-family: 'OpenSans';
-    font-weight: 400;
-    font-style: italic;
-    src: url('../../fonts/OpenSans_italic.ttf') format('truetype');
+  font-family: 'Keybase';
+  font-weight: 500;
+  font-style: italic;
+  src: url('../../fonts/keybase-medium-italic.otf') format('opentype');
 }
 
 @font-face {
-    font-family: 'OpenSans';
-    font-weight: 600;
-    src: url('../../fonts/OpenSans-Semi_bold.ttf') format('truetype');
+  font-family: 'Keybase';
+  font-weight: 600;
+  src: url('../../fonts/keybase-semibold.otf') format('opentype');
 }
 
 @font-face {
-    font-family: 'OpenSans';
-    font-weight: 600;
-    font-style: italic;
-    src: url('../../fonts/OpenSans-Semi_bold_italic.ttf') format('truetype');
+  font-family: 'Keybase';
+  font-weight: 600;
+  font-style: italic;
+  src: url('../../fonts/keybase-semibold-italic.otf') format('opentype');
 }
 
 @font-face {
-    font-family: 'OpenSans';
-    font-weight: 800;
-    src: url('../../fonts/OpenSans-ExtraBold.ttf') format('truetype');
+  font-family: 'Keybase';
+  font-weight: 700;
+  src: url('../../fonts/keybase-bold.otf') format('opentype');
 }
 
 @font-face {
-    font-family: 'OpenSans';
-    font-weight: 700;
-    src: url('../../fonts/OpenSans_bold.ttf') format('truetype');
+  font-family: 'Keybase';
+  font-weight: 800;
+  src: url('../../fonts/keybase-extrabold.otf') format('opentype');
 }
-/* End OpenSans */
+/* End Keybase */
 
 html {
-    box-sizing: border-box;
-    cursor: default;
-    user-select: none;
+  box-sizing: border-box;
+  cursor: default;
+  user-select: none;
 }
 
-*, *:before, *:after {
-    box-sizing: inherit;
+*,
+*:before,
+*:after {
+  box-sizing: inherit;
 }
 
 body {
-    overflow: hidden;
+  overflow: hidden;
 }
 
 #root {
-    position: absolute;
-    display: flex;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    right: 0;
+  position: absolute;
+  display: flex;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
 }
 
 #modal-root {
@@ -147,44 +230,59 @@ body {
 }
 
 .hover-underline {
-    text-decoration: none;
+  text-decoration: none;
 }
 
 .hover-underline:hover {
-    text-decoration: underline;
+  text-decoration: underline;
 }
 
-.hover-underline-container:hover .underline{
-    text-decoration: underline;
+.hover-underline-container:hover .underline {
+  text-decoration: underline;
+}
+
+.hover-opacity {
+  opacity: 0.8;
+}
+.hover-opacity:hover {
+  opacity: 1;
+}
+
+.hover-container .hover-visible {
+  display: none;
+}
+
+.hover-container:hover .hover-visible {
+  display: flex;
 }
 
 .underline {
-	text-decoration: underline;
+  text-decoration: underline;
 }
 
 .hide-scrollbar::-webkit-scrollbar {
-    display: none;
-    width: 0;
+  display: none;
+  width: 0;
 }
 
 .fade-anim-enter {
-    opacity: 0;
+  opacity: 0;
 }
 
 .fade-anim-enter.fade-anim-enter-active {
-    opacity: 1;
-    transition: opacity 250ms ease-in-out;
+  opacity: 1;
+  transition: opacity 250ms ease-in-out;
 }
 
 .fade-anim-exit {
-    opacity: 1;
+  opacity: 1;
 }
 
 .fade-anim-exit.fade-anim-exit-active {
-    opacity: 0;
-    transition: opacity 250ms ease-in-out;
+  opacity: 0;
+  transition: opacity 250ms ease-in-out;
 }
 
 .emoji-mart-emoji {
-    vertical-align: middle;
+  vertical-align: middle;
 }

@@ -12,12 +12,13 @@ pkgbase = keybase-bin
 	depends = gconf
 	depends = libxss
 	depends = gtk2
+	depends = lsof
 	conflicts = keybase
 	conflicts = keybase-release
 	conflicts = keybase-git
-	source_i686 = https://s3.amazonaws.com/prerelease.keybase.io/linux_binaries/deb/keybase_@@DEBVER@@_i386.deb
+	source_i686 = https://prerelease.keybase.io/linux_binaries/deb/keybase_@@DEBVER@@_i386.deb
 	sha256sums_i686 = @@SUM_i686@@
-	source_x86_64 = https://s3.amazonaws.com/prerelease.keybase.io/linux_binaries/deb/keybase_@@DEBVER@@_amd64.deb
+	source_x86_64 = https://prerelease.keybase.io/linux_binaries/deb/keybase_@@DEBVER@@_amd64.deb
 	sha256sums_x86_64 = @@SUM_x86_64@@
 
 pkgname = keybase-bin

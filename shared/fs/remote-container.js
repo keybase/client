@@ -1,7 +1,7 @@
 // @flow
 import * as Types from '../constants/types/fs'
 
-type RemoteTlfUpdates = {
+export type RemoteTlfUpdates = {
   timestamp: number,
   tlf: Types.Path,
   updates: Array<{path: Types.Path, uploading: boolean}>,

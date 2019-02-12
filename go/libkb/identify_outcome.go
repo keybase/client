@@ -65,8 +65,7 @@ func (i *IdentifyOutcome) TrackSet() *TrackSet {
 }
 
 func (i *IdentifyOutcome) ProofChecksSorted() []*LinkCheckResult {
-	// TODO Remove with CORE-8969
-	useDisplayPriority := i.G().Env.GetRunMode() == DevelRunMode || i.G().Env.RunningInCI()
+	useDisplayPriority := i.G().ShouldUseParameterizedProofs()
 	if useDisplayPriority {
 		return i.proofChecksSortedByDisplayPriority()
 	}
@@ -74,7 +73,7 @@ func (i *IdentifyOutcome) ProofChecksSorted() []*LinkCheckResult {
 
 }
 
-// TODO Remove with CORE-8969
+// TODO Remove with CORE-9923
 func (i *IdentifyOutcome) proofChecksSortedByProofType() []*LinkCheckResult {
 	// Treat DNS and Web as the same type, and sort them together
 	// in the same bucket.
@@ -107,10 +106,22 @@ func (i *IdentifyOutcome) proofChecksSortedByDisplayPriority() []*LinkCheckResul
 	pc := make([]*LinkCheckResult, len(i.ProofChecks))
 	copy(pc, i.ProofChecks)
 	proofServices := i.G().GetProofServices()
+	serviceTypes := map[string]int{}
+	for _, lcr := range pc {
+		key := lcr.link.DisplayPriorityKey()
+		if _, ok := serviceTypes[key]; !ok {
+			st := proofServices.GetServiceType(key)
+			displayPriority := 0
+			if st != nil {
+				displayPriority = st.DisplayPriority()
+			}
+			serviceTypes[key] = displayPriority
+		}
+	}
 	sort.Slice(pc, func(a, b int) bool {
 		keyA := pc[a].link.DisplayPriorityKey()
 		keyB := pc[b].link.DisplayPriorityKey()
-		return proofServices.GetDisplayPriority(keyA) > proofServices.GetDisplayPriority(keyB)
+		return serviceTypes[keyA] > serviceTypes[keyB]
 	})
 	return pc
 }

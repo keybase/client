@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-crypto/openpgp/armor"
+	"github.com/stretchr/testify/require"
 )
 
 // TestPGPSavePublicPush runs the PGPSave engine, pushing the
@@ -103,6 +104,26 @@ func TestPGPImportPublicKey(t *testing.T) {
 		t.Error(err)
 		t.Errorf("error returned for import of public key: %T, expected libkb.NoSecretKeyError", err)
 	}
+}
+
+func TestPGPImportNotLoggedIn(t *testing.T) {
+	tc := SetupEngineTest(t, "pgpnotloggedin")
+	defer tc.Cleanup()
+
+	u := CreateAndSignupFakeUser(tc, "login")
+	secui := &libkb.TestSecretUI{Passphrase: u.Passphrase}
+	uis := libkb.UIs{LogUI: tc.G.UI.GetLogUI(), SecretUI: secui}
+
+	_, _, key := armorKey(t, tc, u.Email)
+	eng, err := NewPGPKeyImportEngineFromBytes(tc.G, []byte(key), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	m := NewMetaContextForTest(tc).WithUIs(uis)
+	Logout(tc)
+	err = RunEngine2(m, eng)
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "Login required")
 }
 
 func TestIssue454(t *testing.T) {

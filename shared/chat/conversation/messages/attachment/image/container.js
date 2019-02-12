@@ -15,23 +15,29 @@ type OwnProps = {
 const mapStateToProps = state => ({})
 
 const mapDispatchToProps = dispatch => ({
-  _onClick: (message: Types.MessageAttachment) => {
+  _onClick: (message: Types.MessageAttachment) =>
     dispatch(
       Chat2Gen.createAttachmentPreviewSelect({
         message,
       })
-    )
-  },
-  _onDoubleClick: (message: Types.MessageAttachment) => {
+    ),
+  _onCollapse: (message: Types.MessageAttachment) =>
+    dispatch(
+      Chat2Gen.createToggleMessageCollapse({
+        collapse: !message.isCollapsed,
+        conversationIDKey: message.conversationIDKey,
+        messageID: message.id,
+      })
+    ),
+  _onDoubleClick: (message: Types.MessageAttachment) =>
     dispatch(
       Chat2Gen.createAttachmentPreviewSelect({
         message,
       })
-    )
-  },
+    ),
   _onShowInFinder: (message: Types.MessageAttachment) => {
     message.downloadPath &&
-      dispatch(FsGen.createOpenLocalPathInSystemFileManager({path: message.downloadPath}))
+      dispatch(FsGen.createOpenLocalPathInSystemFileManager({localPath: message.downloadPath}))
   },
 })
 
@@ -43,19 +49,19 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     ? message.downloadPath
       ? globalColors.green
       : message.transferState === 'downloading'
-        ? globalColors.blue
-        : ''
+      ? globalColors.blue
+      : ''
     : ''
   const progressLabel =
     message.transferState === 'downloading'
       ? 'Downloading'
       : message.transferState === 'uploading'
-        ? 'Uploading'
-        : message.transferState === 'mobileSaving'
-          ? 'Saving...'
-          : message.transferState === 'remoteUploading'
-            ? 'waiting...'
-            : ''
+      ? 'Uploading'
+      : message.transferState === 'mobileSaving'
+      ? 'Saving...'
+      : message.transferState === 'remoteUploading'
+      ? 'waiting...'
+      : ''
   const buttonType = message.showPlayButton ? 'play' : null
   const hasProgress =
     !!message.transferState &&
@@ -64,9 +70,15 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
 
   return {
     arrowColor,
+    fileName: message.fileName,
+    fullPath: message.fileURL,
+    hasProgress,
     height: message.previewHeight,
+    inlineVideoPlayable: message.inlineVideoPlayable,
+    isCollapsed: message.isCollapsed,
     message,
     onClick: () => dispatchProps._onClick(message),
+    onCollapse: () => dispatchProps._onCollapse(message),
     onDoubleClick: () => dispatchProps._onDoubleClick(message),
     onShowInFinder:
       !isMobile && message.downloadPath
@@ -77,16 +89,13 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
           }
         : null,
     path: message.previewURL,
-    fullPath: message.fileURL,
     progress: message.transferProgress,
     progressLabel,
     showButton: buttonType,
-    videoDuration: message.videoDuration || '',
-    inlineVideoPlayable: message.inlineVideoPlayable,
     title: message.title,
     toggleMessageMenu: ownProps.toggleMessageMenu,
+    videoDuration: message.videoDuration || '',
     width: Math.min(message.previewWidth, imgMaxWidth()),
-    hasProgress,
   }
 }
 

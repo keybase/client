@@ -23,7 +23,7 @@ function parsePublicAdmins(publicAdmins: Array<string>, you: ?string): SortedAdm
   return {publicAdmins, publicAdminsOthers}
 }
 
-// Parses retention polcies into a string suitable for display at the top of a conversation
+// Parses retention policies into a string suitable for display at the top of a conversation
 function makeRetentionNotice(
   policy: RetentionPolicy,
   teamPolicy: RetentionPolicy,
@@ -40,14 +40,21 @@ function makeRetentionNotice(
   }
   let explanation = ''
   switch (policy.type) {
-    case 'expire':
-      explanation = `are destroyed after ${policy.days} day${policy.days !== 1 ? 's' : ''}.`
+    case 'expire': {
+      explanation = `are destroyed after ${policy.title}.`
       break
-    case 'inherit':
-      // teamPolicy can't be retain
-      explanation = `are destroyed after ${teamPolicy.days} day${teamPolicy.days !== 1 ? 's' : ''}`
+    }
+    case 'inherit': {
+      explanation = `${teamPolicy.type === 'explode' ? 'will explode' : 'are destroyed'} after ${
+        teamPolicy.title
+      }`
       explanation += teamType === 'small' ? '.' : ', the team default.'
       break
+    }
+    case 'explode': {
+      explanation = `will explode after ${policy.title}.`
+      break
+    }
   }
   return `Messages in this ${convType} ${explanation}`
 }

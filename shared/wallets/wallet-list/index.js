@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import * as Flow from '../../util/flow'
 import {type AccountID} from '../../constants/types/wallets'
 import WalletRow from './wallet-row/container'
 
@@ -10,7 +11,7 @@ type AddProps = {
   onLinkExisting: () => void,
 }
 
-const rowHeight = Styles.isMobile ? 56 : 48
+const rowHeight = 48
 
 const _AddWallet = (props: AddProps & Kb.OverlayParentProps) => {
   const menuItems = [
@@ -63,23 +64,18 @@ const WhatIsStellar = (props: {onWhatIsStellar: () => void}) => (
 )
 
 type Props = {
-  acceptedDisclaimer?: boolean,
   accountIDs: Array<AccountID>,
   style?: Styles.StylesCrossPlatform,
+  loading: boolean,
   onAddNew: () => void,
   onLinkExisting: () => void,
   onWhatIsStellar: () => void,
-  refresh: () => void,
   title: string,
 }
 
 type Row = {type: 'wallet', accountID: AccountID} | {type: 'add wallet'}
 
-class _WalletList extends React.Component<Props> {
-  componentDidMount() {
-    this.props.refresh()
-  }
-
+class WalletList extends React.Component<Props> {
   _renderRow = (i: number, row: Row): React.Node => {
     switch (row.type) {
       case 'wallet':
@@ -93,24 +89,20 @@ class _WalletList extends React.Component<Props> {
           />
         )
       default:
-        /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove: (a: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllTypesAbove(row.type);
-      */
+        Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(row.type)
         throw new Error(`Impossible case encountered: ${row.type}`)
     }
   }
 
-  render = () => {
-    if (this.props.accountIDs.length === 0) {
-      // loading
+  render() {
+    if (this.props.loading) {
       return (
         <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
           <Kb.ProgressIndicator style={styles.progressIndicator} />
         </Kb.Box2>
       )
     }
-    const rows = this.props.accountIDs.map(accountID => ({type: 'wallet', accountID, key: accountID}))
+    const rows = this.props.accountIDs.map(accountID => ({accountID, key: accountID, type: 'wallet'}))
     const addWallet = 'add wallet'
     rows.push({key: addWallet, type: addWallet})
 
@@ -125,10 +117,8 @@ class _WalletList extends React.Component<Props> {
   }
 }
 
-const WalletList = Kb.HeaderOnMobile(_WalletList)
-
 const styles = Styles.styleSheetCreate({
-  addContainerBox: {height: rowHeight, alignItems: 'center'},
+  addContainerBox: {alignItems: 'center', height: rowHeight},
   icon: {
     height: Styles.globalMargins.mediumLarge,
     marginLeft: Styles.globalMargins.tiny,

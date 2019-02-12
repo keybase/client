@@ -4,18 +4,18 @@ import {makeRetentionPolicy} from '../../../../constants/teams'
 import {Box} from '../../../../common-adapters'
 import {action, storiesOf} from '../../../../stories/storybook'
 import {globalStyles} from '../../../../styles'
-import RetentionPicker from './'
+import RetentionPicker from '.'
 
 const policyRetain = makeRetentionPolicy({type: 'retain'})
 const policyInherit = makeRetentionPolicy({type: 'inherit'})
-const policy30Days = makeRetentionPolicy({type: 'expire', days: 30})
-const policy7Days = makeRetentionPolicy({type: 'expire', days: 7})
+const policy30Days = makeRetentionPolicy({seconds: 30 * 3600 * 24, type: 'expire'})
+const policy7Days = makeRetentionPolicy({seconds: 7 * 3600 * 24, type: 'expire'})
+const policy7DaysExploding = makeRetentionPolicy({seconds: 7 * 3600 * 24, type: 'explode'})
 
 const actions = {
-  saveRetentionPolicy: action('saveRetentionPolicy'),
   onSelect: action('onSelectPolicy'),
-  onShowDropdown: action('onShowDropdown'),
   onShowWarning: action('onShowWarning'),
+  saveRetentionPolicy: action('saveRetentionPolicy'),
 }
 
 const commonProps = {
@@ -33,6 +33,7 @@ const load = () => {
         entityType="channel"
         canSetPolicy={true}
         policy={policy30Days}
+        policyIsExploding={false}
         teamPolicy={policyRetain}
         showInheritOption={true}
         showOverrideNotice={false}
@@ -46,6 +47,7 @@ const load = () => {
         entityType="big team"
         canSetPolicy={true}
         policy={policy30Days}
+        policyIsExploding={false}
         showInheritOption={false}
         showOverrideNotice={true}
         type="simple"
@@ -58,6 +60,7 @@ const load = () => {
         entityType="small team"
         canSetPolicy={true}
         policy={policyRetain}
+        policyIsExploding={false}
         showInheritOption={false}
         showOverrideNotice={false}
         type="simple"
@@ -70,6 +73,7 @@ const load = () => {
         entityType="adhoc"
         canSetPolicy={true}
         policy={policy30Days}
+        policyIsExploding={false}
         showInheritOption={false}
         showOverrideNotice={false}
         type="simple"
@@ -82,6 +86,7 @@ const load = () => {
         entityType="channel"
         canSetPolicy={true}
         policy={policyInherit}
+        policyIsExploding={false}
         teamPolicy={policy30Days}
         showInheritOption={true}
         showOverrideNotice={false}
@@ -95,6 +100,7 @@ const load = () => {
         entityType="channel"
         canSetPolicy={true}
         policy={policyInherit}
+        policyIsExploding={false}
         teamPolicy={policy30Days}
         showInheritOption={true}
         showOverrideNotice={false}
@@ -108,6 +114,7 @@ const load = () => {
         entityType="big team"
         canSetPolicy={false}
         policy={policy30Days}
+        policyIsExploding={false}
         showInheritOption={false}
         showOverrideNotice={true}
         type="simple"
@@ -120,6 +127,7 @@ const load = () => {
         entityType="channel"
         canSetPolicy={false}
         policy={policy30Days}
+        policyIsExploding={false}
         teamPolicy={policyRetain}
         showInheritOption={true}
         showOverrideNotice={false}
@@ -133,6 +141,7 @@ const load = () => {
         entityType="channel"
         canSetPolicy={false}
         policy={policyInherit}
+        policyIsExploding={false}
         teamPolicy={policy7Days}
         showInheritOption={true}
         showOverrideNotice={false}
@@ -146,6 +155,20 @@ const load = () => {
         entityType="small team"
         canSetPolicy={false}
         policy={policy7Days}
+        policyIsExploding={false}
+        showInheritOption={false}
+        showOverrideNotice={false}
+        type="simple"
+        {...commonProps}
+        {...actions}
+      />
+    ))
+    .add('Exploding small team', () => (
+      <RetentionPicker
+        entityType="small team"
+        canSetPolicy={true}
+        policy={policy7DaysExploding}
+        policyIsExploding={true}
         showInheritOption={false}
         showOverrideNotice={false}
         type="simple"

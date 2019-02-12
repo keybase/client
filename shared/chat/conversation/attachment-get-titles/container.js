@@ -5,7 +5,7 @@ import * as Types from '../../../constants/types/chat2'
 import * as FsTypes from '../../../constants/types/fs'
 import GetTitles from './'
 import {connect} from '../../../util/container'
-import {navigateUp} from '../../../actions/route-tree'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import {type RouteProps} from '../../../route-tree/render-route'
 import type {PathToInfo} from '.'
 
@@ -23,8 +23,8 @@ const mapDispatchToProps = dispatch => ({
   _onSubmit: (conversationIDKey: Types.ConversationIDKey, pathToInfo: PathToInfo) => {
     const paths = Object.keys(pathToInfo)
     const pathAndOutboxIDs = paths.map(p => ({
-      path: p,
       outboxID: pathToInfo[p].outboxID,
+      path: p,
     }))
     const titles = paths.map(p => pathToInfo[p].title)
     dispatch(
@@ -34,21 +34,21 @@ const mapDispatchToProps = dispatch => ({
         titles,
       })
     )
-    dispatch(navigateUp())
+    dispatch(RouteTreeGen.createNavigateUp())
   },
-  onClose: () => dispatch(navigateUp()),
+  onCancel: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  onClose: dispatchProps.onClose,
+  onCancel: dispatchProps.onCancel,
   onSubmit: (pathToInfo: PathToInfo) => dispatchProps._onSubmit(stateProps._conversationIDKey, pathToInfo),
   pathToInfo: stateProps.pathAndOutboxIDs.reduce((map, {path, outboxID}) => {
     const filename = FsTypes.getLocalPathName(path)
     map[path] = {
       filename,
+      outboxID: outboxID,
       title: '',
       type: Constants.pathToAttachmentType(path),
-      outboxID: outboxID,
     }
     return map
   }, {}),

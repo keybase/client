@@ -20,7 +20,8 @@ const OverlayParentHOC = <T: OverlayParentProps>(
   class OverlayParent extends React.Component<$Diff<T, OverlayParentProps>, OverlayParentState> {
     state = {showingMenu: false}
     _ref: ?React.Component<any> = null
-    setShowingMenu = (showingMenu: boolean) => this.setState({showingMenu})
+    setShowingMenu = (showingMenu: boolean) =>
+      this.setState(oldState => (oldState.showingMenu === showingMenu ? null : {showingMenu}))
     toggleShowingMenu = () => this.setState(oldState => ({showingMenu: !oldState.showingMenu}))
     setAttachmentRef = isMobile
       ? () => {}

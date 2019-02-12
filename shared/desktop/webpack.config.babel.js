@@ -29,7 +29,7 @@ const config = (_, {mode}) => {
         cacheDirectory: true,
         ignore: [/\.(native|ios|android)\.js$/],
         plugins: [...(isHot && !nodeThread ? ['react-hot-loader/babel'] : [])],
-        presets: [['@babel/preset-env', {debug: false, modules: false, targets: {electron: '3.0.7'}}]],
+        presets: [['@babel/preset-env', {debug: false, modules: false, targets: {electron: '4.0.1'}}]],
       },
     }
 
@@ -51,7 +51,7 @@ const config = (_, {mode}) => {
         use: [babelRule],
       },
       {
-        test: [/emoji-datasource.*\.(gif|png)$/, /\.ttf$/],
+        test: [/emoji-datasource.*\.(gif|png)$/, /\.ttf$/, /\.otf$/],
         use: [fileLoaderRule],
       },
       {
@@ -147,10 +147,10 @@ const config = (_, {mode}) => {
                   sourceMap: true,
                   terserOptions: {
                     compress: {
-                      ecma: 5,
-                      warnings: false,
                       comparisons: false,
+                      ecma: 5,
                       inline: 2,
+                      warnings: false,
                     },
                     output: {
                       comments: false,
@@ -189,10 +189,11 @@ const config = (_, {mode}) => {
       ...names.map(
         name =>
           new HtmlWebpackPlugin({
+            // chunks: [name],
             filename: makeHtmlName(name),
-            name,
             inject: false,
             isDev,
+            name,
             template,
           })
       ),
@@ -204,15 +205,16 @@ const config = (_, {mode}) => {
   }
 
   // multiple entries so we can chunk shared parts
-  const entries = ['main', 'tracker', 'menubar', 'pinentry', 'unlock-folders']
+  // TODO remove tracker when entirely released
+  const entries = ['main', 'tracker', 'menubar', 'pinentry', 'unlock-folders', 'tracker2']
   const viewConfig = merge(commonConfig, {
     entry: entries.reduce((map, name) => {
       map[name] = `./${entryOverride[name] || name}/main.desktop.js`
       return map
     }, {}),
-    optimization: {splitChunks: {chunks: 'all'}},
     module: {rules: makeRules(false)},
     name: 'Keybase',
+    optimization: {splitChunks: {chunks: 'all'}},
     plugins: makeViewPlugins(entries),
     target: 'electron-renderer',
   })

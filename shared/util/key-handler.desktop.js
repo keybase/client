@@ -1,26 +1,37 @@
 // @flow
-
 // HOC for a hotkey handler. Pass in hotkeys
-import {lifecycle} from 'recompose'
+import * as React from 'react'
 import Mousetrap from 'mousetrap'
 
-export type Props = {
+type HocExtractProps = {
   hotkeys: Array<string> | string,
   onHotkey: (key: string) => void,
 }
 
-export default lifecycle({
-  componentDidMount() {
-    Mousetrap.bind(
-      this.props.hotkeys,
-      (e, key) => {
-        e.stopPropagation()
-        this.props.onHotkey(key)
-      },
-      'keydown'
-    )
-  },
-  componentWillUnmount() {
-    Mousetrap.unbind(this.props.hotkeys)
-  },
-})
+function keyHandlerHOC<Config: {} & HocExtractProps>(
+  Component: React.AbstractComponent<$Diff<Config, HocExtractProps>>
+): React.AbstractComponent<Config & HocExtractProps> {
+  return class KeyHandler extends React.Component<Config> {
+    componentDidMount() {
+      Mousetrap.bind(
+        this.props.hotkeys,
+        (e, key) => {
+          e.stopPropagation()
+          key && this.props.onHotkey(key)
+        },
+        'keydown'
+      )
+    }
+
+    componentWillUnmount() {
+      Mousetrap.unbind(this.props.hotkeys)
+    }
+
+    render() {
+      const {hotkeys, onHotkey, ...rest} = this.props
+      return <Component {...rest} />
+    }
+  }
+}
+
+export default keyHandlerHOC

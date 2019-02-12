@@ -72,6 +72,7 @@ type CmdSignup struct {
 	defaultEmail      string
 	defaultUsername   string
 	defaultPassphrase string
+	randomPassphrase  bool
 	defaultDevice     string
 	doPrompt          bool
 	skipMail          bool
@@ -96,9 +97,8 @@ func (s *CmdSignup) SetTestWithPaper(b bool) {
 	s.genPaper = b
 }
 
-func (s *CmdSignup) ParseArgv(ctx *cli.Context) error {
+func (s *CmdSignup) ParseArgv(ctx *cli.Context) (err error) {
 	nargs := len(ctx.Args())
-	var err error
 
 	s.code = ctx.String("invite-code")
 	if s.code == "" {
@@ -128,6 +128,10 @@ func (s *CmdSignup) ParseArgv(ctx *cli.Context) error {
 		s.genPaper = true
 		s.doPrompt = false
 		s.storeSecret = true
+		s.randomPassphrase = ctx.Bool("no-passphrase")
+		if s.randomPassphrase && s.defaultPassphrase != "" {
+			return fmt.Errorf("cannot pass both --no-passphrase and --passphrase")
+		}
 	} else {
 		s.doPrompt = true
 	}
@@ -147,11 +151,10 @@ Welcome to keybase.io!
    - your profile on keybase is https://keybase.io/%s
    - type 'keybase help' for more instructions
 
-Keybase is in alpha and we'll be rolling out new features soon. Report bugs
-to us at https://github.com/keybase/keybase-issues
+Found a bug? Please report it with %skeybase log send%s
 
 Enjoy!
-`, username, username)
+`, username, username, "`", "`")
 	return s.G().UI.GetTerminalUI().Output(msg)
 }
 
@@ -253,12 +256,16 @@ func (s *CmdSignup) trySignup() (err error) {
 }
 
 func (s *CmdSignup) runEngine() (retry bool, err error) {
+	if s.randomPassphrase && s.passphrase != "" {
+		return false, fmt.Errorf("Requested random passphrase but passphrase was provided")
+	}
 
 	rarg := keybase1.SignupArg{
 		Username:    s.fields.username.GetValue(),
 		Email:       s.fields.email.GetValue(),
 		InviteCode:  s.fields.code.GetValue(),
 		Passphrase:  s.passphrase,
+		RandomPw:    s.randomPassphrase,
 		StoreSecret: true,
 		DeviceName:  s.fields.deviceName.GetValue(),
 		DeviceType:  keybase1.DeviceType_DESKTOP,

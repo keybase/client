@@ -66,8 +66,8 @@ const Files = isMobile
 const mainContentStyle = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
-  paddingTop: globalMargins.medium,
   paddingLeft: globalMargins.tiny,
+  paddingTop: globalMargins.medium,
 }
 
 const contentHeaderStyle = {

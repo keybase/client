@@ -1,75 +1,93 @@
 // @flow
 import * as React from 'react'
-import {Box, Text} from '../../common-adapters'
-import {globalColors, globalStyles, globalMargins} from '../../styles'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
 import {isMobile} from '../../constants/platform'
 import {formatTimeForPeopleItem} from '../../util/timestamp'
 
 export type Props = {
   badged: boolean,
-  icon: React.Node,
+  icon?: React.Node,
   children: React.Node,
   when?: Date,
   contentStyle?: any,
+  format?: 'single' | 'multi',
 }
 
 export default (props: Props) => (
-  <Box
+  <Kb.Box
     style={{
       ...containerStyle,
-      backgroundColor: props.badged ? globalColors.blue4 : globalColors.white,
-      borderBottomColor: props.badged ? globalColors.white : globalColors.black_10,
+      backgroundColor: props.badged ? Styles.globalColors.blue4 : Styles.globalColors.white,
+      borderBottomColor: props.badged ? Styles.globalColors.white : Styles.globalColors.black_10,
     }}
   >
-    <Box style={iconContainerStyle}>{props.icon}</Box>
-    <Box
+    {!!props.icon && <Kb.Box style={iconContainerStyle}>{props.icon}</Kb.Box>}
+
+    <Kb.Box2
+      direction="vertical"
+      gap="xtiny"
       style={{
         ...childrenContainerStyle,
         ...props.contentStyle,
       }}
     >
       {props.children}
-    </Box>
-    <Box style={timestampContainerStyle}>
-      {!!props.when && <Text type="BodySmall">{formatTimeForPeopleItem(props.when.getTime())}</Text>}
-      {props.badged && <Box style={badgeStyle} />}
-    </Box>
-  </Box>
+    </Kb.Box2>
+    <Kb.Box
+      style={Styles.collapseStyles([
+        timestampContainerStyle,
+        props.format === 'multi' ? timestampContainerStyleMulti : timestampContainerStyleSingle,
+      ])}
+    >
+      {!!props.when && <Kb.Text type="BodyTiny">{formatTimeForPeopleItem(props.when.getTime())}</Kb.Text>}
+      {props.badged && <Kb.Box style={badgeStyle} />}
+    </Kb.Box>
+  </Kb.Box>
 )
 
 const containerStyle = {
-  ...globalStyles.flexBoxRow,
-  paddingTop: globalMargins.tiny,
-  paddingLeft: 12,
-  paddingBottom: globalMargins.tiny,
-  position: 'relative',
+  ...Styles.globalStyles.flexBoxRow,
   borderBottomWidth: 1,
+  paddingBottom: Styles.globalMargins.xsmall,
+  paddingTop: Styles.globalMargins.xsmall,
+  position: 'relative',
   ...(isMobile ? null : {borderStyle: 'solid'}),
 }
 
-const iconContainerStyle = {marginRight: 20, width: isMobile ? 48 : 32}
+const iconContainerStyle = {
+  marginLeft: Styles.globalMargins.small,
+  marginRight: Styles.globalMargins.xsmall,
+  width: isMobile ? 48 : 32,
+}
 
 const childrenContainerStyle = {
-  ...globalStyles.flexBoxColumn,
-  paddingRight: isMobile ? 100 : 80,
-  width: 'auto',
   overflow: 'hidden',
   position: 'relative',
+  width: 'auto',
 }
 
 const timestampContainerStyle = {
-  ...globalStyles.flexBoxRow,
+  ...Styles.globalStyles.flexBoxRow,
   alignItems: 'center',
+  alignSelf: 'flex-start',
   position: 'absolute',
-  right: 8,
-  top: 12,
+  right: Styles.globalMargins.small,
+}
+
+const timestampContainerStyleMulti = {
+  alignSelf: 'flex-start',
+  top: Styles.globalMargins.small,
+}
+
+const timestampContainerStyleSingle = {
+  alignSelf: 'center',
 }
 
 const badgeStyle = {
-  backgroundColor: globalColors.orange,
+  backgroundColor: Styles.globalColors.orange,
   borderRadius: 6,
   height: 8,
-  marginLeft: globalMargins.xtiny,
-  marginTop: isMobile ? 3 : 1,
+  marginLeft: Styles.globalMargins.xtiny,
   width: 8,
 }

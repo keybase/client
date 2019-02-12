@@ -76,7 +76,7 @@ func (h *TrackHandler) DismissWithToken(ctx context.Context, arg keybase1.Dismis
 		return nil
 	}
 
-	return h.G().GregorDismisser.DismissItem(ctx, nil, outcome.ResponsibleGregorItem.Metadata().MsgID())
+	return h.G().GregorState.DismissItem(ctx, nil, outcome.ResponsibleGregorItem.Metadata().MsgID())
 }
 
 // Untrack creates an UntrackEngine and runs it.

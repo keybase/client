@@ -4,11 +4,16 @@ import * as Styles from '../../../styles'
 import {TouchableOpacity, SafeAreaView} from 'react-native'
 import Box from '../../box'
 import Text from '../../text'
+import Meta from '../../meta'
+import Divider from '../../divider'
+import ScrollView from '../../scroll-view'
+import {isLargeScreen} from '../../../constants/platform'
 import type {MenuItem, MenuLayoutProps} from '.'
 
 type MenuRowProps = {
   ...MenuItem,
   isHeader?: boolean,
+  newTag?: ?boolean,
   index: number,
   numItems: number,
   onHidden?: ?() => void,
@@ -24,9 +29,14 @@ const MenuRow = (props: MenuRowProps) => (
     style={styles.row}
   >
     {props.view || (
-      <Text type={'BodyBig'} style={styleRowText(props)}>
-        {props.title}
-      </Text>
+      <>
+        <Text center={true} type="BodyBig" style={styleRowText(props)}>
+          {props.title}
+        </Text>
+        {props.newTag && (
+          <Meta title="New" size="Small" backgroundColor={Styles.globalColors.blue} style={styles.badge} />
+        )}
+      </>
     )}
   </TouchableOpacity>
 )
@@ -45,7 +55,17 @@ class MenuLayout extends React.Component<MenuLayoutProps> {
         <Box style={Styles.collapseStyles([styles.menuBox, this.props.style])}>
           {/* Display header if there is one */}
           {this.props.header && this.props.header.view}
-          <Box style={styles.menuGroup}>
+          <ScrollView
+            alwaysBounceVertical={false}
+            style={Styles.collapseStyles([
+              styles.flexGrow,
+              // if we set it to numItems * 56 exactly, the scrollview
+              // shrinks by 2px for some reason, which undermines alwaysBounceVertical={false}
+              // Add 2px to compensate
+              {height: Math.min(menuItemsNoDividers.length * 56 + 2, isLargeScreen ? 500 : 350)},
+            ])}
+            contentContainerStyle={styles.menuGroup}
+          >
             {menuItemsNoDividers.map((mi, idx) => (
               <MenuRow
                 key={mi.title}
@@ -55,10 +75,11 @@ class MenuLayout extends React.Component<MenuLayoutProps> {
                 onHidden={this.props.closeOnClick ? this.props.onHidden : undefined}
               />
             ))}
-          </Box>
-          <Box style={styles.closeGroup}>
+          </ScrollView>
+          <Divider style={styles.divider} />
+          <Box style={styles.menuGroup}>
             <MenuRow
-              title="Close"
+              title={this.props.closeText || 'Close'}
               index={0}
               numItems={1}
               onClick={this.props.onHidden} // pass in nothing to onHidden so it doesn't trigger it twice
@@ -74,37 +95,43 @@ class MenuLayout extends React.Component<MenuLayoutProps> {
 const styleRowText = (props: {isHeader?: boolean, danger?: boolean, disabled?: boolean}) => {
   const dangerColor = props.danger ? Styles.globalColors.red : Styles.globalColors.blue
   const color = props.isHeader ? Styles.globalColors.white : dangerColor
-  return {color, ...(props.disabled ? {opacity: 0.6} : {}), textAlign: 'center'}
+  return {color, ...(props.disabled ? {opacity: 0.6} : {})}
 }
 
 const styles = Styles.styleSheetCreate({
+  badge: {
+    alignSelf: 'center',
+    marginLeft: Styles.globalMargins.tiny,
+  },
+  divider: {
+    marginBottom: Styles.globalMargins.tiny,
+    marginTop: Styles.globalMargins.tiny,
+  },
+  flexGrow: {
+    flexGrow: 1,
+  },
   menuBox: {
     ...Styles.globalStyles.flexBoxColumn,
-    justifyContent: 'flex-end',
     alignItems: 'stretch',
     backgroundColor: Styles.globalColors.white,
+    justifyContent: 'flex-end',
+    paddingBottom: Styles.globalMargins.tiny,
   },
   menuGroup: {
     ...Styles.globalStyles.flexBoxColumn,
-    justifyContent: 'flex-end',
     alignItems: 'stretch',
-  },
-  closeGroup: {
-    ...Styles.globalStyles.flexBoxColumn,
     justifyContent: 'flex-end',
-    alignItems: 'stretch',
-    borderColor: Styles.globalColors.black_10,
-    borderTopWidth: 1,
   },
   row: {
-    ...Styles.globalStyles.flexBoxColumn,
+    ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
-    height: 56,
+    backgroundColor: Styles.globalColors.white,
     justifyContent: 'center',
+    minHeight: 56,
+    paddingBottom: Styles.globalMargins.tiny,
     paddingLeft: Styles.globalMargins.medium,
     paddingRight: Styles.globalMargins.medium,
-    backgroundColor: Styles.globalColors.white,
-    borderColor: Styles.globalColors.black_10,
+    paddingTop: Styles.globalMargins.tiny,
   },
   safeArea: {
     backgroundColor: Styles.globalColors.white,

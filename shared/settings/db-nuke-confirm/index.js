@@ -14,12 +14,12 @@ function DBNukeConfirm(props: Props) {
       style={{
         ...globalStyles.flexBoxColumn,
         alignItems: 'center',
-        justifyContent: 'center',
         flex: 1,
+        justifyContent: 'center',
         padding: globalMargins.medium,
       }}
     >
-      <Text type="Header" style={{marginTop: globalMargins.medium, width: 320, textAlign: 'center'}}>
+      <Text center={true} type="Header" style={{marginTop: globalMargins.medium, width: 320}}>
         Are you sure you want to blast away your local database?
       </Text>
       <ButtonBar>

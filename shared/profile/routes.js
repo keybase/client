@@ -1,119 +1,108 @@
 // @flow
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
-import pgpRoutes from './pgp/routes'
-import Profile from './container'
-import AddToTeam from './add-to-team/container'
-import EditProfile from './edit-profile/container'
-import EditAvatar from './edit-avatar/container'
-import EditAvatarPlaceholder from './edit-avatar-placeholder/container'
-import ProveEnterUsername from './prove-enter-username/container'
-import ProveWebsiteChoice from './prove-website-choice/container'
-import RevokeContainer from './revoke/container'
-import PostProof from './post-proof/container'
-import ConfirmOrPending from './confirm-or-pending/container'
-import SearchPopup from './search/container'
 import {isMobile} from '../constants/platform'
-import NonUserProfile from './non-user-profile/container'
-import ShowcaseTeamOffer from './showcase-team-offer/container'
-import ControlledRolePicker from '../teams/role-picker/controlled-container'
-import * as WalletConstants from '../constants/wallets'
-import SendForm from '../wallets/send-form/container'
-import ConfirmForm from '../wallets/confirm-form/container'
-import ChooseAsset from '../wallets/send-form/choose-asset/container'
-import QRScan from '../wallets/qr-scan/container'
+import flags from '../util/feature-flags'
 
-const proveEnterUsername = makeRouteDefNode({
-  component: ProveEnterUsername,
-  children: {
-    postProof: {
-      component: PostProof,
-      children: {
-        confirmOrPending: {
-          component: ConfirmOrPending,
-        },
-      },
-    },
-    confirmOrPending: {
-      component: ConfirmOrPending,
-    },
-  },
-})
+const profileRoute = () => {
+  const pgpRoutes = require('./pgp/routes').default
+  const Profile = flags.identify3 ? require('./user/container').default : require('./container').default
+  const AddToTeam = require('./add-to-team/container').default
+  // TODO deprecate
+  const EditProfile = require('./edit-profile/container').default
+  const EditProfile2 = require('./edit-profile2/container').default
+  const EditAvatar = require('./edit-avatar/container').default
+  const EditAvatarPlaceholder = require('./edit-avatar-placeholder/container').default
+  const ProveEnterUsername = require('./prove-enter-username/container').default
+  const ProveWebsiteChoice = require('./prove-website-choice/container').default
+  const RevokeContainer = require('./revoke/container').default
+  const PostProof = require('./post-proof/container').default
+  const ConfirmOrPending = require('./confirm-or-pending/container').default
+  const SearchPopup = require('./search/container').default
+  const NonUserProfile = require('./non-user-profile/container').default
+  const ShowcaseTeamOffer = require('./showcase-team-offer/container').default
+  const ControlledRolePicker = require('../teams/role-picker/controlled-container').default
+  const WalletConstants = require('../constants/wallets')
 
-const profileRoute = makeRouteDefNode({
-  component: Profile,
-  initialState: {currentFriendshipsTab: 'Followers'},
-  tags: makeLeafTags({underNotch: true, title: 'Profile'}),
-  children: {
-    profile: () => profileRoute,
-    addToTeam: {
-      children: {
-        controlledRolePicker: {
-          children: {},
-          component: ControlledRolePicker,
-          tags: makeLeafTags({layerOnTop: !isMobile}),
-        },
+  const SendRequestFormRoutes = require('../wallets/routes-send-request-form').default()
+
+  const proveEnterUsername = makeRouteDefNode({
+    children: {
+      confirmOrPending: {
+        component: ConfirmOrPending,
       },
-      component: AddToTeam,
-      tags: makeLeafTags({layerOnTop: !isMobile}),
-    },
-    editProfile: {
-      component: EditProfile,
-    },
-    editAvatar: {
-      component: EditAvatar,
-      tags: makeLeafTags({layerOnTop: !isMobile}),
-    },
-    editAvatarPlaceholder: {
-      component: EditAvatarPlaceholder,
-    },
-    nonUserProfile: {
-      component: NonUserProfile,
-      children: {
-        profile: () => profileRoute,
+      postProof: {
+        children: {
+          confirmOrPending: {
+            component: ConfirmOrPending,
+          },
+        },
+        component: PostProof,
       },
     },
-    proveEnterUsername,
-    proveWebsiteChoice: {
-      component: ProveWebsiteChoice,
-      children: {
-        proveEnterUsername,
+    component: ProveEnterUsername,
+  })
+
+  return makeRouteDefNode({
+    children: {
+      addToTeam: {
+        children: {
+          controlledRolePicker: {
+            children: {},
+            component: ControlledRolePicker,
+            tags: makeLeafTags({layerOnTop: !isMobile}),
+          },
+        },
+        component: AddToTeam,
+        tags: makeLeafTags({layerOnTop: !isMobile}),
       },
-    },
-    revoke: {
-      component: RevokeContainer,
-    },
-    pgp: pgpRoutes,
-    search: {
-      children: {},
-      component: SearchPopup,
-      tags: makeLeafTags({layerOnTop: !isMobile}),
-    },
-    showcaseTeamOffer: {
-      children: {},
-      component: ShowcaseTeamOffer,
-      tags: makeLeafTags({layerOnTop: !isMobile}),
-    },
-    [WalletConstants.sendReceiveFormRouteKey]: {
-      children: {
-        [WalletConstants.confirmFormRouteKey]: {
-          children: {},
-          component: ConfirmForm,
-          tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true, hideStatusBar: true}),
-        },
-        [WalletConstants.chooseAssetFormRouteKey]: {
-          children: {},
-          component: ChooseAsset,
-          tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true, hideStatusBar: true}),
-        },
-        qrScan: {
-          component: QRScan,
-          tags: makeLeafTags({layerOnTop: true, hideStatusBar: true}),
-        },
+      editAvatar: {
+        component: EditAvatar,
+        tags: makeLeafTags({layerOnTop: !isMobile}),
       },
-      component: SendForm,
-      tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true, hideStatusBar: true}),
+      editAvatarPlaceholder: {
+        component: EditAvatarPlaceholder,
+      },
+      editProfile: {
+        component: EditProfile,
+      },
+      editProfile2: {
+        component: EditProfile2,
+        tags: makeLeafTags({layerOnTop: !isMobile, renderTopmostOnly: true}),
+      },
+      nonUserProfile: {
+        children: {
+          profile: profileRoute,
+        },
+        component: NonUserProfile,
+      },
+      pgp: pgpRoutes,
+      profile: profileRoute,
+      proveEnterUsername,
+      proveWebsiteChoice: {
+        children: {
+          proveEnterUsername,
+        },
+        component: ProveWebsiteChoice,
+      },
+      revoke: {
+        component: RevokeContainer,
+      },
+      search: {
+        children: {},
+        component: SearchPopup,
+        tags: makeLeafTags({layerOnTop: !isMobile}),
+      },
+      showcaseTeamOffer: {
+        children: {},
+        component: ShowcaseTeamOffer,
+        tags: makeLeafTags({layerOnTop: !isMobile}),
+      },
+      [WalletConstants.sendRequestFormRouteKey]: SendRequestFormRoutes,
     },
-  },
-})
+    component: Profile,
+    initialState: {currentFriendshipsTab: 'Followers'},
+    tags: makeLeafTags({title: 'Profile', underNotch: true}),
+  })
+}
 
 export default profileRoute

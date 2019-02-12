@@ -2,28 +2,19 @@
 import React from 'react'
 import PeopleItem from '../item'
 import * as Types from '../../constants/types/people'
-import {
-  Avatar,
-  Box,
-  ClickableBox,
-  ConnectedUsernames,
-  Icon,
-  Meta,
-  ScrollView,
-  Text,
-} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
+import {Avatar, ClickableBox, ConnectedUsernames, ScrollView, Text, WithTooltip} from '../../common-adapters'
+import {globalStyles, globalMargins, platformStyles} from '../../styles'
 import {isMobile} from '../../constants/platform'
 
 const connectedUsernamesProps = {
-  onUsernameClicked: 'profile',
-  inline: true,
   colorFollowing: true,
-  type: 'BodySemibold',
-  underline: true,
+  inline: true,
   joinerStyle: {
     fontWeight: 'normal',
   },
+  onUsernameClicked: 'profile',
+  type: 'BodySemibold',
+  underline: true,
 }
 
 export type NewFollow = Types.FollowedNotification
@@ -52,8 +43,9 @@ export const FollowNotification = (props: Props) => {
         }
         when={props.notificationTime}
         contentStyle={{justifyContent: 'center'}}
+        format="single"
       >
-        <Text type="Body" style={{marginTop: 2}}>
+        <Text type="Body">
           <ConnectedUsernames
             {...connectedUsernamesProps}
             usernames={[username]}
@@ -72,29 +64,8 @@ export const MultiFollowNotification = (props: Props) => {
   }
   const usernames = props.newFollows.map(f => f.username)
   return (
-    <PeopleItem
-      badged={props.badged}
-      icon={
-        <Box style={multiIconContainerStyle}>
-          <Icon type={isMobile ? 'icon-followers-new-48' : 'icon-followers-new-32'} />
-          <Box style={multiMetaContainerStyle}>
-            <Meta
-              title={`+${props.newFollows.length + (props.numAdditional || 0)}`}
-              backgroundColor={globalColors.blue}
-              style={multiMetaStyle}
-            />
-          </Box>
-        </Box>
-      }
-      when={props.notificationTime}
-    >
-      <Text
-        type="Body"
-        style={platformStyles({
-          common: {marginTop: 2, marginBottom: globalMargins.xtiny},
-          isElectron: {display: 'inline'},
-        })}
-      >
+    <PeopleItem format="multi" badged={props.badged} when={props.notificationTime}>
+      <Text type="Body" style={multiTextStyle}>
         <ConnectedUsernames
           containerStyle={platformStyles({isElectron: {whiteSpace: 'wrap'}})}
           inlineGrammar={true}
@@ -107,47 +78,39 @@ export const MultiFollowNotification = (props: Props) => {
         following you.
       </Text>
       <ScrollView
-        {...(isMobile ? {horizontal: true, alwaysBounceHorizontal: false} : {})} // Causes error on desktop
+        {...(isMobile ? {alwaysBounceHorizontal: false, horizontal: true} : {})} // Causes error on desktop
         contentContainerStyle={scrollViewContainerStyle}
       >
         {usernames.map(username => (
-          <Avatar
-            onClick={() => props.onClickUser(username)}
-            username={username}
-            size={32}
-            key={username}
-            style={{marginRight: globalMargins.xtiny}}
-          />
+          <WithTooltip key={username} text={username}>
+            <Avatar
+              onClick={() => props.onClickUser(username)}
+              username={username}
+              size={32}
+              style={{marginRight: globalMargins.xtiny}}
+            />
+          </WithTooltip>
         ))}
       </ScrollView>
     </PeopleItem>
   )
 }
 
-const multiIconContainerStyle = {
-  ...globalStyles.flexBoxColumn,
-  width: isMobile ? 48 : 32,
-  height: isMobile ? 48 : 32,
-  position: 'relative',
-}
-
-const multiMetaContainerStyle = {
-  ...globalStyles.flexBoxColumn,
-  position: 'absolute',
-  right: 0,
-  left: 0,
-  top: isMobile ? 30 : 20,
-}
-
-const multiMetaStyle = {
-  alignSelf: 'center',
-  minWidth: isMobile ? 24 : 16,
-  ...(isMobile ? undefined : {textAlign: 'center'}),
-}
+const multiTextStyle = platformStyles({
+  common: {
+    marginLeft: globalMargins.small,
+    marginRight: globalMargins.xlarge,
+    marginTop: 2,
+  },
+  isElectron: {display: 'inline'},
+})
 
 const scrollViewContainerStyle = {
   ...globalStyles.flexBoxRow,
+  paddingBottom: globalMargins.tiny,
+  paddingLeft: globalMargins.small,
+  paddingRight: globalMargins.small,
   ...(isMobile
     ? null
-    : {...globalStyles.flexBoxRow, width: '100%', height: 32, flexWrap: 'wrap', overflow: 'hidden'}),
+    : {...globalStyles.flexBoxRow, flexWrap: 'wrap', height: 32, overflow: 'hidden', width: '100%'}),
 }

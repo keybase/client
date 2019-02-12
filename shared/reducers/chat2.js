@@ -1,6 +1,7 @@
 // @flow
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as TeamBuildingGen from '../actions/team-building-gen'
+import * as EngineGen from '../actions/engine-gen-gen'
 import * as Constants from '../constants/chat2'
 import * as I from 'immutable'
 import * as RPCChatTypes from '../constants/types/rpc-chat-gen'
@@ -12,6 +13,9 @@ import logger from '../logger'
 import HiddenString from '../util/hidden-string'
 import {partition} from 'lodash-es'
 import {actionHasError} from '../util/container'
+import * as Flow from '../util/flow'
+
+type EngineActions = EngineGen.Chat1NotifyChatChatTypingUpdatePayload
 
 const initialState: Types.State = Constants.makeState()
 
@@ -40,16 +44,14 @@ const messageIDToOrdinal = (messageMap, pendingOutboxToOrdinal, conversationIDKe
 const metaMapReducer = (metaMap, action) => {
   switch (action.type) {
     case Chat2Gen.setConversationOffline:
-      return metaMap.update(
-        action.payload.conversationIDKey,
-        meta => (meta ? meta.set('offline', action.payload.offline) : meta)
+      return metaMap.update(action.payload.conversationIDKey, meta =>
+        meta ? meta.set('offline', action.payload.offline) : meta
       )
     case Chat2Gen.metaDelete:
       return metaMap.delete(action.payload.conversationIDKey)
     case Chat2Gen.notificationSettingsUpdated:
-      return metaMap.update(
-        action.payload.conversationIDKey,
-        meta => (meta ? Constants.updateMetaWithNotificationSettings(meta, action.payload.settings) : meta)
+      return metaMap.update(action.payload.conversationIDKey, meta =>
+        meta ? Constants.updateMetaWithNotificationSettings(meta, action.payload.settings) : meta
       )
     case Chat2Gen.metaRequestingTrusted:
       return metaMap.withMutations(map =>
@@ -91,16 +93,14 @@ const metaMapReducer = (metaMap, action) => {
             return metaMap.set(conversationIDKey, newMeta)
           }
           default:
-            return metaMap.update(
-              action.payload.conversationIDKey,
-              old =>
-                old
-                  ? old.withMutations(m => {
-                      m.set('trustedState', 'error')
-                      m.set('snippet', error.message)
-                      m.set('snippetDecoration', '')
-                    })
-                  : old
+            return metaMap.update(action.payload.conversationIDKey, old =>
+              old
+                ? old.withMutations(m => {
+                    m.set('trustedState', 'error')
+                    m.set('snippet', error.message)
+                    m.set('snippetDecoration', '')
+                  })
+                : old
             )
         }
       } else {
@@ -127,17 +127,22 @@ const metaMapReducer = (metaMap, action) => {
       })
     case Chat2Gen.updateConvRetentionPolicy:
       const {conv} = action.payload
-      const newMeta = Constants.inboxUIItemToConversationMeta(conv)
+      const newMeta = Constants.inboxUIItemToConversationMeta(conv, true)
       if (!newMeta) {
         logger.warn('Invalid inboxUIItem received in conv retention policy update')
         return metaMap
       }
-      return metaMap.set(newMeta.conversationIDKey, newMeta)
+      if (metaMap.has(newMeta.conversationIDKey)) {
+        // only insert if the convo is already in the inbox
+        return metaMap.set(newMeta.conversationIDKey, newMeta)
+      }
+      return metaMap
     case Chat2Gen.updateTeamRetentionPolicy:
       const {convs} = action.payload
       const newMetas = convs.reduce((updated, conv) => {
-        const newMeta = Constants.inboxUIItemToConversationMeta(conv)
-        if (newMeta) {
+        const newMeta = Constants.inboxUIItemToConversationMeta(conv, true)
+        if (newMeta && metaMap.has(newMeta.conversationIDKey)) {
+          // only insert if the convo is already in the inbox
           updated[Types.conversationIDKeyToString(newMeta.conversationIDKey)] = newMeta
         }
         return updated
@@ -166,12 +171,10 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
         : messageMap
     case Chat2Gen.messageEdit: // fallthrough
     case Chat2Gen.messageDelete:
-      return messageMap.updateIn(
-        [action.payload.conversationIDKey, action.payload.ordinal],
-        message =>
-          message && message.type === 'text'
-            ? message.set('submitState', action.type === Chat2Gen.messageDelete ? 'deleting' : 'editing')
-            : message
+      return messageMap.updateIn([action.payload.conversationIDKey, action.payload.ordinal], message =>
+        message && message.type === 'text'
+          ? message.set('submitState', action.type === Chat2Gen.messageDelete ? 'deleting' : 'editing')
+          : message
       )
     case Chat2Gen.messageAttachmentUploaded: {
       const {conversationIDKey, message, placeholderID} = action.payload
@@ -179,9 +182,8 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
       if (!ordinal) {
         return messageMap
       }
-      return messageMap.updateIn(
-        [conversationIDKey, ordinal],
-        old => (old ? Constants.upgradeMessage(old, message) : message)
+      return messageMap.updateIn([conversationIDKey, ordinal], old =>
+        old ? Constants.upgradeMessage(old, message) : message
       )
     }
     case Chat2Gen.messageWasEdited: {
@@ -199,26 +201,23 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
         return messageMap
       }
 
-      return messageMap.updateIn(
-        [conversationIDKey, ordinal],
-        message =>
-          !message || message.type !== 'text'
-            ? message
-            : message.withMutations(m => {
-                m.set('text', text)
-                m.set('hasBeenEdited', true)
-                m.set('submitState', null)
-                m.set('mentionsAt', mentionsAt)
-                m.set('mentionsChannel', mentionsChannel)
-                m.set('mentionsChannelName', mentionsChannelName)
-              })
+      return messageMap.updateIn([conversationIDKey, ordinal], message =>
+        !message || message.type !== 'text'
+          ? message
+          : message.withMutations(m => {
+              m.set('text', text)
+              m.set('hasBeenEdited', true)
+              m.set('submitState', null)
+              m.set('mentionsAt', mentionsAt)
+              m.set('mentionsChannel', mentionsChannel)
+              m.set('mentionsChannelName', mentionsChannelName)
+            })
       )
     }
     case Chat2Gen.pendingMessageWasEdited: {
       const {conversationIDKey, ordinal, text} = action.payload
-      return messageMap.updateIn(
-        [conversationIDKey, ordinal],
-        message => (!message || message.type !== 'text' ? message : message.set('text', text))
+      return messageMap.updateIn([conversationIDKey, ordinal], message =>
+        !message || message.type !== 'text' ? message : message.set('text', text)
       )
     }
     case Chat2Gen.attachmentUploading:
@@ -296,27 +295,6 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
           : messageMap.clear()
       }
       return messageMap
-    case Chat2Gen.unfurlTogglePrompt:
-      const unfurlOrdinal = messageIDToOrdinal(
-        messageMap,
-        pendingOutboxToOrdinal,
-        action.payload.conversationIDKey,
-        action.payload.messageID
-      )
-      if (!unfurlOrdinal) {
-        return messageMap
-      }
-      return messageMap.updateIn([action.payload.conversationIDKey, unfurlOrdinal], message => {
-        if (!message || message.type !== 'text') {
-          return message
-        }
-        return message.set(
-          'unfurlPrompts',
-          action.payload.show
-            ? message.unfurlPrompts.add(action.payload.domain)
-            : message.unfurlPrompts.delete(action.payload.domain)
-        )
-      })
     case Chat2Gen.updateMessages:
       const updateOrdinals = action.payload.messages.reduce((l, msg) => {
         const ordinal = messageIDToOrdinal(
@@ -329,7 +307,7 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
           return l
         }
         // $FlowIssue it's not really possible to do anything to a message in general
-        return l.concat({ordinal, msg: msg.message.set('ordinal', ordinal)})
+        return l.concat({msg: msg.message.set('ordinal', ordinal), ordinal})
       }, [])
       return messageMap.updateIn([action.payload.conversationIDKey], messages => {
         if (!messages) {
@@ -395,40 +373,71 @@ const badgeKey = String(isMobile ? RPCTypes.commonDeviceType.mobile : RPCTypes.c
 
 const rootReducer = (
   state: Types.State = initialState,
-  action: Chat2Gen.Actions | TeamBuildingGen.Actions
+  action: Chat2Gen.Actions | TeamBuildingGen.Actions | EngineActions
 ): Types.State => {
   switch (action.type) {
     case Chat2Gen.resetStore:
       return initialState
     case Chat2Gen.toggleSmallTeamsExpanded:
       return state.set('smallTeamsExpanded', !state.smallTeamsExpanded)
+    case Chat2Gen.changeFocus:
+      return state.set('focus', action.payload.nextFocus)
     case Chat2Gen.selectConversation:
       // ignore non-changing
       if (state.selectedConversation === action.payload.conversationIDKey) {
         return state
       }
       return state.withMutations(s => {
-        if (action.payload.conversationIDKey) {
-          const {readMsgID, maxMsgID} = state.metaMap.get(
-            action.payload.conversationIDKey,
+        const conversationIDKey = action.payload.conversationIDKey
+        if (conversationIDKey) {
+          const {readMsgID, maxVisibleMsgID} = state.metaMap.get(
+            conversationIDKey,
             Constants.makeConversationMeta()
           )
           logger.info(
-            `rootReducer: selectConversation: setting orange line: convID: ${
-              action.payload.conversationIDKey
-            } max: ${maxMsgID} read: ${readMsgID}`
+            `rootReducer: selectConversation: setting orange line: convID: ${conversationIDKey} maxVisible: ${maxVisibleMsgID} read: ${readMsgID}`
           )
-          if (maxMsgID > readMsgID) {
-            // Store the message ID that will display the orange line above it, which is the message after the last read message (hence the +1)
-            s.setIn(['orangeLineMap', action.payload.conversationIDKey], readMsgID + 1)
+          if (maxVisibleMsgID > readMsgID) {
+            // Store the message ID that will display the orange line above it,
+            // which is the first message after the last read message. We can't
+            // just increment `readMsgID` since that msgID might be a
+            // non-visible (edit, delete, reaction...) message so we scan the
+            // ordinals for the appropriate value.
+            const messageMap = state.messageMap.get(conversationIDKey, I.Map())
+            const ordinals = state.messageOrdinals.get(conversationIDKey, I.OrderedSet())
+            const ord = ordinals.find(o => {
+              const message = messageMap.get(o)
+              return message && message.id >= readMsgID + 1
+            })
+            const message = messageMap.get(ord)
+            if (message && message.id) {
+              s.setIn(['orangeLineMap', conversationIDKey], message.id)
+            } else {
+              s.deleteIn(['orangeLineMap', conversationIDKey])
+            }
           } else {
-            // If there aren't any new messages, we don't want to display an orange line so remove its entry from orangeLineMap
-            s.deleteIn(['orangeLineMap', action.payload.conversationIDKey])
+            // If there aren't any new messages, we don't want to display an
+            // orange line so remove its entry from orangeLineMap
+            s.deleteIn(['orangeLineMap', conversationIDKey])
           }
         }
-
-        s.set('selectedConversation', action.payload.conversationIDKey)
+        s.set('selectedConversation', conversationIDKey)
       })
+    case Chat2Gen.updateUnreadline:
+      if (action.payload.messageID > 0) {
+        return state.setIn(['orangeLineMap', action.payload.conversationIDKey], action.payload.messageID)
+      } else {
+        return state.deleteIn(['orangeLineMap', action.payload.conversationIDKey])
+      }
+    case Chat2Gen.unfurlTogglePrompt:
+      const {show, domain} = action.payload
+      return state.updateIn(
+        ['unfurlPromptMap', action.payload.conversationIDKey, action.payload.messageID],
+        I.Set(),
+        prompts => {
+          return show ? prompts.add(domain) : prompts.delete(domain)
+        }
+      )
     case Chat2Gen.setInboxFilter:
       return state.set('inboxFilter', action.payload.filter)
     case Chat2Gen.setPendingMode:
@@ -447,6 +456,12 @@ const rootReducer = (
           s.deleteIn(['messageMap', Constants.pendingConversationIDKey])
         }
       })
+    case Chat2Gen.setPaymentConfirmInfo:
+      return action.error
+        ? state.set('paymentConfirmInfo', {error: action.payload.error})
+        : state.set('paymentConfirmInfo', {summary: action.payload.summary})
+    case Chat2Gen.clearPaymentConfirmInfo:
+      return state.set('paymentConfirmInfo', null)
     case Chat2Gen.setPendingStatus:
       return state.set('pendingStatus', action.payload.pendingStatus)
     case Chat2Gen.createConversation:
@@ -475,8 +490,12 @@ const rootReducer = (
         ])
       )
       return state.withMutations(s => {
-        s.set('badgeMap', badgeMap)
-        s.set('unreadMap', unreadMap)
+        if (!s.badgeMap.equals(badgeMap)) {
+          s.set('badgeMap', badgeMap)
+        }
+        if (!s.unreadMap.equals(unreadMap)) {
+          s.set('unreadMap', unreadMap)
+        }
       })
     }
     case Chat2Gen.messageSetEditing:
@@ -563,7 +582,7 @@ const rootReducer = (
       // Update any pending messages
       const pendingOutboxToOrdinal = oldPendingOutboxToOrdinal.withMutations(
         (map: I.Map<Types.ConversationIDKey, I.Map<Types.OutboxID, Types.Ordinal>>) => {
-          if (context.type === 'sent' || context.type === 'threadLoad') {
+          if (context.type === 'sent' || context.type === 'threadLoad' || context.type === 'incoming') {
             messages.forEach(message => {
               const m = canSendType(message)
               if (m && !m.id && m.outboxID) {
@@ -733,8 +752,15 @@ const rootReducer = (
         })
       )
     }
-    case Chat2Gen.updateTypers: {
-      return state.set('typingMap', action.payload.conversationToTypers)
+    case EngineGen.chat1NotifyChatChatTypingUpdate: {
+      const {typingUpdates} = action.payload.params
+      const typingMap = I.Map(
+        (typingUpdates || []).reduce((arr, u) => {
+          arr.push([Types.conversationIDToKey(u.convID), I.Set((u.typers || []).map(t => t.username))])
+          return arr
+        }, [])
+      )
+      return state.merge({typingMap})
     }
     case Chat2Gen.toggleLocalReaction: {
       const {conversationIDKey, emoji, targetOrdinal, username} = action.payload
@@ -857,9 +883,8 @@ const rootReducer = (
         )
 
         s.update('messageOrdinals', messageOrdinals =>
-          messageOrdinals.update(
-            conversationIDKey,
-            ordinals => (ordinals ? ordinals.subtract(allOrdinals) : ordinals)
+          messageOrdinals.update(conversationIDKey, ordinals =>
+            ordinals ? ordinals.subtract(allOrdinals) : ordinals
           )
         )
       })
@@ -885,8 +910,10 @@ const rootReducer = (
         return state.update('explodingModeLocks', el => el.delete(conversationIDKey))
       }
       return alreadyLocked ? state : state.setIn(['explodingModeLocks', conversationIDKey], mode)
-    case Chat2Gen.setExplodingMessagesNew:
-      return state.set('isExplodingNew', action.payload.new)
+    case Chat2Gen.setUnsentText:
+      return state.update('unsentTextMap', old =>
+        old.setIn([action.payload.conversationIDKey], action.payload.text)
+      )
     case Chat2Gen.staticConfigLoaded:
       return state.set('staticConfig', action.payload.staticConfig)
     case Chat2Gen.metasReceived: {
@@ -899,7 +926,10 @@ const rootReducer = (
     }
     case Chat2Gen.paymentInfoReceived: {
       const {conversationIDKey, messageID, paymentInfo} = action.payload
-      return state.update('accountsInfoMap', old => old.setIn([conversationIDKey, messageID], paymentInfo))
+      let nextState = state.update('accountsInfoMap', old =>
+        old.setIn([conversationIDKey, messageID], paymentInfo)
+      )
+      return nextState.update('paymentStatusMap', old => old.setIn([paymentInfo.paymentID], paymentInfo))
     }
     case Chat2Gen.requestInfoReceived: {
       const {conversationIDKey, messageID, requestInfo} = action.payload
@@ -951,7 +981,6 @@ const rootReducer = (
     case Chat2Gen.updateTeamRetentionPolicy:
     case Chat2Gen.messagesExploded:
     case Chat2Gen.saveMinWriterRole:
-    case Chat2Gen.unfurlTogglePrompt:
     case Chat2Gen.updateMessages:
       return state.withMutations(s => {
         s.set('metaMap', metaMapReducer(state.metaMap, action))
@@ -965,6 +994,8 @@ const rootReducer = (
     case TeamBuildingGen.searchResultsLoaded:
     case TeamBuildingGen.finishedTeamBuilding:
     case TeamBuildingGen.search:
+    case TeamBuildingGen.fetchedUserRecs:
+    case TeamBuildingGen.fetchUserRecs:
       return teamBuildingReducer(state, action)
 
     // Saga only actions
@@ -998,19 +1029,17 @@ const rootReducer = (
     case Chat2Gen.blockConversation:
     case Chat2Gen.previewConversation:
     case Chat2Gen.setConvExplodingMode:
-    case Chat2Gen.handleSeeingExplodingMessages:
     case Chat2Gen.toggleMessageReaction:
-    case Chat2Gen.filePickerError:
     case Chat2Gen.setMinWriterRole:
     case Chat2Gen.openChatFromWidget:
     case Chat2Gen.prepareFulfillRequestForm:
     case Chat2Gen.unfurlResolvePrompt:
+    case Chat2Gen.unfurlRemove:
+    case Chat2Gen.confirmScreenResponse:
+    case Chat2Gen.toggleMessageCollapse:
       return state
     default:
-      /*::
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (action: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(action);
-      */
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
       return state
   }
 }

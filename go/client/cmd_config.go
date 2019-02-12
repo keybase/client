@@ -6,20 +6,26 @@ package client
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"strconv"
+	"strings"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	jsonw "github.com/keybase/go-jsonw"
 	"golang.org/x/net/context"
 )
 
 type CmdConfigGet struct {
 	libkb.Contextified
-	Path   string
-	Direct bool
-	Bare   bool
+	Path          string
+	Direct        bool
+	Bare          bool
+	AssertTrue    bool
+	AssertFalse   bool
+	AssertOkOnNil bool
 }
 
 type CmdConfigSet struct {
@@ -40,6 +46,25 @@ func (v *CmdConfigGet) ParseArgv(ctx *cli.Context) error {
 	if ctx.Bool("bare") {
 		v.Bare = true
 	}
+	if ctx.Bool("assert-true") {
+		v.AssertTrue = true
+	}
+	if ctx.Bool("assert-false") {
+		v.AssertFalse = true
+	}
+	if v.AssertTrue && v.AssertFalse {
+		return fmt.Errorf("Cannot assert both true and false.")
+	}
+	if ctx.Bool("assert-ok-on-nil") {
+		v.AssertOkOnNil = true
+	}
+	if v.AssertOkOnNil && !(v.AssertTrue || v.AssertFalse) {
+		return fmt.Errorf("Must --assert-true or --assert-false to --assert-ok-on-nil.")
+	}
+	if (v.AssertTrue || v.AssertFalse) && !v.Direct {
+		return fmt.Errorf("Cannot --assert-true or --assert-false unless in --direct mode.")
+	}
+
 	if len(ctx.Args()) == 1 {
 		v.Path = ctx.Args()[0]
 	} else if len(ctx.Args()) > 1 {
@@ -139,6 +164,18 @@ func (v *CmdConfigGet) runDirect(dui libkb.DumbOutputUI) error {
 	config := v.G().Env.GetConfig()
 	i, err := config.GetInterfaceAtPath(v.Path)
 	if err != nil {
+		if v.AssertOkOnNil {
+			_, isJSONError := err.(*jsonw.Error)
+			isJSONNoSuchKeyError := isJSONError && strings.Contains(err.Error(), "no such key")
+			// Don't print a warning if the error is that the directory/file
+			// doesn't exist or the key is not in the file. Otherwise, e.g., if
+			// the permissions are incorrect or the config file contains
+			// malformed JSON, print a warning but still don't return an error.
+			if !(os.IsNotExist(err) || isJSONNoSuchKeyError) {
+				v.G().Log.Warning(fmt.Sprintf("Unexpected error while reading config %s; ignoring.", err))
+			}
+			return nil
+		}
 		return err
 	}
 	if i == nil {
@@ -155,6 +192,12 @@ func (v *CmdConfigGet) runDirect(dui libkb.DumbOutputUI) error {
 			}
 		case bool:
 			dui.Printf("%t\n", val)
+			if v.AssertTrue && !val {
+				return fmt.Errorf("Assertion failed.")
+			}
+			if v.AssertFalse && val {
+				return fmt.Errorf("Assertion failed.")
+			}
 		case float64:
 			dui.Printf("%d\n", int(val))
 		default:
@@ -164,6 +207,12 @@ func (v *CmdConfigGet) runDirect(dui libkb.DumbOutputUI) error {
 				return err
 			}
 			dui.Printf("%s\n", string(b))
+		}
+
+		if v.AssertTrue || v.AssertFalse {
+			if _, ok := i.(bool); !ok {
+				return fmt.Errorf("Not a boolean.")
+			}
 		}
 	}
 	return nil
@@ -254,10 +303,26 @@ func NewCmdConfigGet(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 				Name:  "b, bare",
 				Usage: "Print string values without enclosing, JSON-style quotes",
 			},
+			cli.BoolFlag{
+				Name:  "assert-true",
+				Usage: "Returns 0 exit code iff the value is a true boolean",
+			},
+			cli.BoolFlag{
+				Name:  "assert-false",
+				Usage: "Returns 0 exit code iff the value is a false boolean",
+			},
+			cli.BoolFlag{
+				Name:  "assert-ok-on-nil",
+				Usage: "Return 0 exit code if the value does not exist or the config file does not exist",
+			},
 		},
 		ArgumentHelp: "<key>",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdConfigGetRunner(g), "get", c)
+			if c.Bool("direct") {
+				cl.SetForkCmd(libcmdline.NoFork)
+				cl.SetLogForward(libcmdline.LogForwardNone)
+			}
 		},
 	}
 }

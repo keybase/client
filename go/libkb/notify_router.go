@@ -82,11 +82,16 @@ type NotifyListener interface {
 	WalletPaymentNotification(accountID stellar1.AccountID, paymentID stellar1.PaymentID)
 	WalletPaymentStatusNotification(accountID stellar1.AccountID, paymentID stellar1.PaymentID)
 	WalletRequestStatusNotification(reqID stellar1.KeybaseRequestID)
+	WalletAccountDetailsUpdate(accountID stellar1.AccountID, account stellar1.WalletAccountLocal)
+	WalletAccountsUpdate(accounts []stellar1.WalletAccountLocal)
+	WalletPendingPaymentsUpdate(accountID stellar1.AccountID, pending []stellar1.PaymentOrErrorLocal)
+	WalletRecentPaymentsUpdate(accountID stellar1.AccountID, firstPage stellar1.PaymentsPageLocal)
 	TeamListUnverifiedChanged(teamName string)
 	CanUserPerformChanged(teamName string)
 	PhoneNumberAdded(phoneNumber keybase1.PhoneNumber)
 	PhoneNumberVerified(phoneNumber keybase1.PhoneNumber)
 	PhoneNumberSuperseded(phoneNumber keybase1.PhoneNumber)
+	PasswordChanged()
 }
 
 type NoopNotifyListener struct{}
@@ -172,11 +177,19 @@ func (n *NoopNotifyListener) WalletPaymentNotification(accountID stellar1.Accoun
 func (n *NoopNotifyListener) WalletPaymentStatusNotification(accountID stellar1.AccountID, paymentID stellar1.PaymentID) {
 }
 func (n *NoopNotifyListener) WalletRequestStatusNotification(reqID stellar1.KeybaseRequestID) {}
-func (n *NoopNotifyListener) TeamListUnverifiedChanged(teamName string)                       {}
-func (n *NoopNotifyListener) CanUserPerformChanged(teamName string)                           {}
-func (n *NoopNotifyListener) PhoneNumberAdded(phoneNumber keybase1.PhoneNumber)               {}
-func (n *NoopNotifyListener) PhoneNumberVerified(phoneNumber keybase1.PhoneNumber)            {}
-func (n *NoopNotifyListener) PhoneNumberSuperseded(phoneNumber keybase1.PhoneNumber)          {}
+func (n *NoopNotifyListener) WalletAccountDetailsUpdate(accountID stellar1.AccountID, account stellar1.WalletAccountLocal) {
+}
+func (n *NoopNotifyListener) WalletAccountsUpdate(accounts []stellar1.WalletAccountLocal) {}
+func (n *NoopNotifyListener) WalletPendingPaymentsUpdate(accountID stellar1.AccountID, pending []stellar1.PaymentOrErrorLocal) {
+}
+func (n *NoopNotifyListener) WalletRecentPaymentsUpdate(accountID stellar1.AccountID, firstPage stellar1.PaymentsPageLocal) {
+}
+func (n *NoopNotifyListener) TeamListUnverifiedChanged(teamName string)              {}
+func (n *NoopNotifyListener) CanUserPerformChanged(teamName string)                  {}
+func (n *NoopNotifyListener) PhoneNumberAdded(phoneNumber keybase1.PhoneNumber)      {}
+func (n *NoopNotifyListener) PhoneNumberVerified(phoneNumber keybase1.PhoneNumber)   {}
+func (n *NoopNotifyListener) PhoneNumberSuperseded(phoneNumber keybase1.PhoneNumber) {}
+func (n *NoopNotifyListener) PasswordChanged()                                       {}
 
 // NotifyRouter routes notifications to the various active RPC
 // connections. It's careful only to route to those who are interested
@@ -475,7 +488,7 @@ func (n *NotifyRouter) HandleFSEditListResponse(ctx context.Context, arg keybase
 				// A send of a `FSEditListResponse` RPC with the notification
 				(keybase1.NotifyFSClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).FSEditListResponse(ctx, keybase1.FSEditListResponseArg{
+				}).FSEditListResponse(context.Background(), keybase1.FSEditListResponseArg{
 					Edits:     arg.Edits,
 					RequestID: arg.RequestID,
 				})
@@ -509,7 +522,7 @@ func (n *NotifyRouter) HandleFSEditListRequest(ctx context.Context, arg keybase1
 				// A send of a `FSEditListRequest` RPC with the notification
 				(keybase1.NotifyFSRequestClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).FSEditListRequest(ctx, arg)
+				}).FSEditListRequest(context.Background(), arg)
 				wg.Done()
 			}()
 		}
@@ -537,7 +550,7 @@ func (n *NotifyRouter) HandleFSSyncStatus(ctx context.Context, arg keybase1.FSSy
 				// A send of a `FSSyncStatusResponse` RPC with the notification
 				(keybase1.NotifyFSClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).FSSyncStatusResponse(ctx, keybase1.FSSyncStatusResponseArg{Status: arg.Status, RequestID: arg.RequestID})
+				}).FSSyncStatusResponse(context.Background(), keybase1.FSSyncStatusResponseArg{Status: arg.Status, RequestID: arg.RequestID})
 			}()
 		}
 		return true
@@ -561,7 +574,7 @@ func (n *NotifyRouter) HandleFSSyncEvent(ctx context.Context, arg keybase1.FSPat
 				// A send of a `FSSyncActivity` RPC with the notification
 				(keybase1.NotifyFSClient{
 					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
-				}).FSSyncActivity(ctx, arg)
+				}).FSSyncActivity(context.Background(), arg)
 			}()
 		}
 		return true
@@ -650,7 +663,7 @@ func (n *NotifyRouter) HandleNewChatActivity(ctx context.Context, uid keybase1.U
 		return
 	}
 	var wg sync.WaitGroup
-	n.G().Log.CDebugf(ctx, "+ Sending NewChatActivity notification")
+	n.G().Log.CDebugf(ctx, "+ Sending NewChatActivity %v notification", source)
 	// For all connections we currently have open...
 	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
 		// If the connection wants the `Chat` notification type
@@ -1255,6 +1268,111 @@ func (n *NotifyRouter) HandleWalletRequestStatusNotification(ctx context.Context
 	n.G().Log.CDebugf(ctx, "- Sent wallet RequestStatusNotification")
 }
 
+func (n *NotifyRouter) HandleWalletAccountDetailsUpdate(ctx context.Context, accountID stellar1.AccountID, account stellar1.WalletAccountLocal) {
+	if n == nil {
+		return
+	}
+	n.G().Log.CDebugf(ctx, "+ Sending wallet AccountDetailsUpdate")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `Wallet` notification type
+		if n.getNotificationChannels(id).Wallet {
+			// In the background do...
+			go func() {
+				arg := stellar1.AccountDetailsUpdateArg{
+					AccountID: accountID,
+					Account:   account,
+				}
+				(stellar1.NotifyClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).AccountDetailsUpdate(context.Background(), arg)
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.WalletAccountDetailsUpdate(accountID, account)
+	}
+	n.G().Log.CDebugf(ctx, "- Sent wallet AccountDetailsUpdate")
+}
+
+func (n *NotifyRouter) HandleWalletAccountsUpdate(ctx context.Context, accounts []stellar1.WalletAccountLocal) {
+	if n == nil {
+		return
+	}
+	n.G().Log.CDebugf(ctx, "+ Sending wallet AccountsUpdate")
+
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `Wallet` notification type
+		if n.getNotificationChannels(id).Wallet {
+			// In the background do...
+			go func() {
+				(stellar1.NotifyClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).AccountsUpdate(context.Background(), accounts)
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.WalletAccountsUpdate(accounts)
+	}
+	n.G().Log.CDebugf(ctx, "- Sent wallet AccountsUpdate")
+}
+
+func (n *NotifyRouter) HandleWalletPendingPaymentsUpdate(ctx context.Context, accountID stellar1.AccountID, pending []stellar1.PaymentOrErrorLocal) {
+	if n == nil {
+		return
+	}
+	n.G().Log.CDebugf(ctx, "+ Sending wallet PendingPaymentsUpdate")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `Wallet` notification type
+		if n.getNotificationChannels(id).Wallet {
+			// In the background do...
+			go func() {
+				arg := stellar1.PendingPaymentsUpdateArg{
+					AccountID: accountID,
+					Pending:   pending,
+				}
+				(stellar1.NotifyClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).PendingPaymentsUpdate(context.Background(), arg)
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.WalletPendingPaymentsUpdate(accountID, pending)
+	}
+	n.G().Log.CDebugf(ctx, "- Sent wallet PendingPaymentsUpdate")
+}
+
+func (n *NotifyRouter) HandleWalletRecentPaymentsUpdate(ctx context.Context, accountID stellar1.AccountID, firstPage stellar1.PaymentsPageLocal) {
+	if n == nil {
+		return
+	}
+	n.G().Log.CDebugf(ctx, "+ Sending wallet RecentPaymentsUpdate")
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `Wallet` notification type
+		if n.getNotificationChannels(id).Wallet {
+			// In the background do...
+			go func() {
+				arg := stellar1.RecentPaymentsUpdateArg{
+					AccountID: accountID,
+					FirstPage: firstPage,
+				}
+				(stellar1.NotifyClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).RecentPaymentsUpdate(context.Background(), arg)
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.WalletRecentPaymentsUpdate(accountID, firstPage)
+	}
+	n.G().Log.CDebugf(ctx, "- Sent wallet RecentPaymentsUpdate")
+}
+
 // HandlePaperKeyCached is called whenever a paper key is cached
 // in response to a rekey harassment.
 func (n *NotifyRouter) HandlePaperKeyCached(uid keybase1.UID, encKID keybase1.KID, sigKID keybase1.KID) {
@@ -1827,4 +1945,23 @@ func (n *NotifyRouter) HandleChatRequestInfo(ctx context.Context, uid keybase1.U
 		n.listener.ChatRequestInfo(uid, convID, msgID, info)
 	}
 	n.G().Log.CDebugf(ctx, "- Sent ChatRequestInfo notification")
+}
+
+func (n *NotifyRouter) HandlePasswordChanged(ctx context.Context) {
+	if n == nil {
+		return
+	}
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		if n.getNotificationChannels(id).Users {
+			go func() {
+				(keybase1.NotifyUsersClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).PasswordChanged(context.Background())
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.PasswordChanged()
+	}
 }

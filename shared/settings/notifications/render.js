@@ -122,7 +122,7 @@ const Notifications = (props: Props) =>
               style={{marginRight: 0, marginTop: globalMargins.tiny}}
               onCheck={props.onToggleSound}
               checked={!!props.sound}
-              label="Desktop Chat Notification Sound"
+              label="Desktop chat notification sound"
             />
           </Box>
         </Box>

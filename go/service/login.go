@@ -28,6 +28,22 @@ func (h *LoginHandler) GetConfiguredAccounts(context context.Context, sessionID 
 	return h.G().GetConfiguredAccounts(context)
 }
 
+type canLogoutRet struct {
+	libkb.AppStatusEmbed
+	CanLogout bool   `json:"can_logout"`
+	Reason    string `json:"reason,omitempty"`
+}
+
+// canLogout asks API server whether we should allow logging out or not.
+func canLogout(mctx libkb.MetaContext) (res canLogoutRet, err error) {
+	err = mctx.G().API.GetDecode(libkb.APIArg{
+		Endpoint:    "user/can_logout",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		MetaContext: mctx,
+	}, &res)
+	return res, err
+}
+
 func (h *LoginHandler) Logout(ctx context.Context, sessionID int) (err error) {
 	defer h.G().CTraceTimed(ctx, "Logout [service RPC]", func() error { return err })()
 	return h.G().Logout(ctx)

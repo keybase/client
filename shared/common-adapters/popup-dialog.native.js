@@ -22,18 +22,18 @@ const coverStyle = {
   ...globalStyles.flexBoxCenter,
   ...globalStyles.fillAbsolute,
   backgroundColor: globalColors.black_75,
+  paddingBottom: globalMargins.small,
   paddingLeft: globalMargins.large,
   paddingRight: globalMargins.large,
   paddingTop: globalMargins.small,
-  paddingBottom: globalMargins.small,
 }
 
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
-  position: 'relative',
-  flexGrow: 1,
   backgroundColor: globalColors.white,
   borderRadius: 4,
+  flexGrow: 1,
+  position: 'relative',
 }
 
 export default PopupDialog

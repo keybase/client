@@ -8,8 +8,9 @@ import {connect, compose, lifecycle, withStateHandlers} from '../../../../util/c
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
-  listScrollDownCounter: number,
   onFocusInput: () => void,
+  scrollListDownCounter: number,
+  scrollListUpCounter: number,
 }
 
 const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
@@ -30,22 +31,23 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
 }
 
 const mapDispatchToProps = (dispatch, {conversationIDKey}: OwnProps) => ({
-  copyToClipboard: text => dispatch(ConfigGen.createCopyToClipboard({text})),
   _loadMoreMessages: () => dispatch(Chat2Gen.createLoadOlderMessagesDueToScroll({conversationIDKey})),
   _markInitiallyLoadedThreadAsRead: () =>
     dispatch(Chat2Gen.createMarkInitiallyLoadedThreadAsRead({conversationIDKey})),
+  copyToClipboard: text => dispatch(ConfigGen.createCopyToClipboard({text})),
 })
 
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
-  copyToClipboard: dispatchProps.copyToClipboard,
   _loadMoreMessages: dispatchProps._loadMoreMessages,
   conversationIDKey: stateProps.conversationIDKey,
+  copyToClipboard: dispatchProps.copyToClipboard,
   editingOrdinal: stateProps.editingOrdinal,
   lastMessageIsOurs: stateProps.lastMessageIsOurs,
-  listScrollDownCounter: ownProps.listScrollDownCounter,
   markInitiallyLoadedThreadAsRead: dispatchProps._markInitiallyLoadedThreadAsRead,
   messageOrdinals: stateProps.messageOrdinals.toList(),
   onFocusInput: ownProps.onFocusInput,
+  scrollListDownCounter: ownProps.scrollListDownCounter,
+  scrollListUpCounter: ownProps.scrollListUpCounter,
 })
 
 // We load the first thread automatically so in order to mark it read
@@ -59,6 +61,7 @@ export default compose(
     mergeProps
   ),
   withStateHandlers(
+    // $FlowIssue don't use recompose
     {
       _conversationIDKey: Constants.noConversationIDKey,
       _lastLoadMoreOrdinalTime: Date.now(),

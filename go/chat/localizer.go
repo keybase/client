@@ -17,7 +17,6 @@ import (
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
-	"github.com/keybase/client/go/teams"
 	"github.com/keybase/client/go/uidmap"
 	"golang.org/x/sync/errgroup"
 )
@@ -267,11 +266,12 @@ type localizerPipeline struct {
 
 	offline bool
 
-	started   bool
-	stopCh    chan struct{}
-	cancelChs map[string]chan struct{}
-	suspendWg sync.WaitGroup
-	jobQueue  chan *localizerPipelineJob
+	started        bool
+	stopCh         chan struct{}
+	cancelChs      map[string]chan struct{}
+	suspendCount   int
+	suspendWaiters []chan struct{}
+	jobQueue       chan *localizerPipelineJob
 
 	// testing
 	useGateCh   bool
@@ -350,7 +350,7 @@ func (s *localizerPipeline) suspend(ctx context.Context) bool {
 	if !s.started {
 		return false
 	}
-	s.suspendWg.Add(1)
+	s.suspendCount++
 	if len(s.cancelChs) == 0 {
 		return false
 	}
@@ -382,8 +382,30 @@ func (s *localizerPipeline) resume(ctx context.Context) bool {
 	defer s.Trace(ctx, func() error { return nil }, "resume")()
 	s.Lock()
 	defer s.Unlock()
-	s.suspendWg.Done()
+	if s.suspendCount == 0 {
+		s.Debug(ctx, "resume: spurious resume call without suspend")
+		return false
+	}
+	s.suspendCount--
+	if s.suspendCount == 0 {
+		for _, cb := range s.suspendWaiters {
+			close(cb)
+		}
+		s.suspendWaiters = nil
+	}
 	return false
+}
+
+func (s *localizerPipeline) registerWaiter() chan struct{} {
+	s.Lock()
+	defer s.Unlock()
+	cb := make(chan struct{})
+	if s.suspendCount == 0 {
+		close(cb)
+		return cb
+	}
+	s.suspendWaiters = append(s.suspendWaiters, cb)
+	return cb
 }
 
 func (s *localizerPipeline) localizeJobPulled(job *localizerPipelineJob, stopCh chan struct{}) {
@@ -397,7 +419,7 @@ func (s *localizerPipeline) localizeJobPulled(job *localizerPipelineJob, stopCh 
 	} else {
 		s.Debug(job.ctx, "localizeJobPulled: waiting for resume")
 		go func() {
-			s.suspendWg.Wait()
+			<-s.registerWaiter()
 			close(waitCh)
 		}()
 	}
@@ -532,7 +554,7 @@ func (s *localizerPipeline) localizeConversations(localizeJob *localizerPipeline
 }
 
 func (s *localizerPipeline) isErrPermanent(err error) bool {
-	if uberr, ok := err.(UnboxingError); ok {
+	if uberr, ok := err.(types.UnboxingError); ok {
 		return uberr.IsPermanent()
 	}
 	return false
@@ -624,7 +646,7 @@ func (s *localizerPipeline) getResetUserNames(ctx context.Context, uidMapper lib
 
 func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor1.UID,
 	conversationRemote chat1.Conversation) (conversationLocal chat1.ConversationLocal) {
-
+	var err error
 	// Pick a source of usernames based on offline status, if we are offline then just use a
 	// type that just returns errors all the time (this will just use TLF name as the ordering)
 	var umapper libkb.UIDMapper
@@ -686,20 +708,41 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 			errMsg, conversationRemote, unverifiedTLFName, chat1.ConversationErrorType_TRANSIENT, nil)
 		return conversationLocal
 	}
+	conversationLocal.MaxMessages = conversationRemote.MaxMsgSummaries
 
 	conversationLocal.IsEmpty = utils.IsConvEmpty(conversationRemote)
 	errTyp := chat1.ConversationErrorType_PERMANENT
+	var maxMsgs []chat1.MessageUnboxed
 	if len(conversationRemote.MaxMsgs) == 0 {
 		// Fetch max messages unboxed, using either a custom function or through
 		// the conversation source configured in the global context
-		var err error
+		var summaries []chat1.MessageSummary
+		snippetSummary, err := utils.PickLatestMessageSummary(conversationRemote,
+			append(chat1.VisibleChatMessageTypes(), chat1.MessageType_DELETEHISTORY))
+		if err == nil {
+			summaries = append(summaries, snippetSummary)
+		}
+		topicNameSummary, err := conversationRemote.GetMaxMessage(chat1.MessageType_METADATA)
+		if err == nil {
+			summaries = append(summaries, topicNameSummary)
+		}
+		headlineSummary, err := conversationRemote.GetMaxMessage(chat1.MessageType_HEADLINE)
+		if err == nil {
+			summaries = append(summaries, headlineSummary)
+		}
+		if len(summaries) == 0 {
+			tlfSummary, err := conversationRemote.GetMaxMessage(chat1.MessageType_TLFNAME)
+			if err == nil {
+				summaries = append(summaries, tlfSummary)
+			}
+		}
 		var msgs []chat1.MessageUnboxed
 		if s.offline {
 			msgs, errTyp, err = s.getMessagesOffline(ctx, conversationRemote.GetConvID(),
-				uid, conversationRemote.MaxMsgSummaries, conversationRemote.Metadata.FinalizeInfo)
+				uid, summaries, conversationRemote.Metadata.FinalizeInfo)
 		} else {
 			msgs, err = s.G().ConvSource.GetMessages(ctx, conversationRemote,
-				uid, utils.PluckMessageIDs(conversationRemote.MaxMsgSummaries), nil)
+				uid, utils.PluckMessageIDs(summaries), nil)
 			if !s.isErrPermanent(err) {
 				errTyp = chat1.ConversationErrorType_TRANSIENT
 			}
@@ -714,7 +757,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 				err.Error(), conversationRemote, unverifiedTLFName, errTyp, nil)
 			return conversationLocal
 		}
-		conversationLocal.MaxMessages = msgs
+		maxMsgs = msgs
 	} else {
 		// Use the attached MaxMsgs
 		msgs, err := s.G().ConvSource.GetMessagesWithRemotes(ctx,
@@ -732,13 +775,19 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 				err.Error(), conversationRemote, unverifiedTLFName, errTyp, nil)
 			return conversationLocal
 		}
-		conversationLocal.MaxMessages = msgs
+		maxMsgs = msgs
 	}
 
 	var maxValidID chat1.MessageID
-	var newMaxMsgs []chat1.MessageUnboxed
-	superXform := newBasicSupersedesTransform(s.G(), basicSupersedesTransformOpts{})
-	for _, mm := range conversationLocal.MaxMessages {
+	s.Debug(ctx, "localizing %d max msgs", len(maxMsgs))
+	for _, mm := range maxMsgs {
+		if mm.IsValid() && (mm.IsVisible() || mm.GetMessageType() == chat1.MessageType_DELETEHISTORY) {
+			if conversationLocal.Info.SnippetMsg == nil ||
+				conversationLocal.Info.SnippetMsg.GetMessageID() < mm.GetMessageID() {
+				conversationLocal.Info.SnippetMsg = new(chat1.MessageUnboxed)
+				*conversationLocal.Info.SnippetMsg = mm
+			}
+		}
 		if mm.IsValid() {
 			body := mm.Valid().MessageBody
 			typ, err := body.MessageType()
@@ -747,37 +796,31 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 					conversationRemote.Metadata.ConversationID, mm.GetMessageID())
 				continue
 			}
-			if typ == chat1.MessageType_METADATA {
+			switch typ {
+			case chat1.MessageType_METADATA:
 				conversationLocal.Info.TopicName = body.Metadata().ConversationTitle
+			case chat1.MessageType_HEADLINE:
+				conversationLocal.Info.Headline = body.Headline().Headline
 			}
-
 			if mm.GetMessageID() >= maxValidID {
+				conversationLocal.Info.Triple = mm.Valid().ClientHeader.Conv
 				conversationLocal.Info.TlfName = mm.Valid().ClientHeader.TlfName
 				maxValidID = mm.GetMessageID()
 			}
-
-			conversationLocal.Info.Triple = mm.Valid().ClientHeader.Conv
-
-			// Resolve edits/deletes
-			var newMsg []chat1.MessageUnboxed
-			if newMsg, err = superXform.Run(ctx, conversationRemote, uid, []chat1.MessageUnboxed{mm}); err != nil {
-				s.Debug(ctx, "failed to transform message: id: %d err: %s", mm.GetMessageID(),
-					err.Error())
-			} else {
-				if len(newMsg) > 0 {
-					newMaxMsgs = append(newMaxMsgs, newMsg[0])
-				} else {
-					newMaxMsgs = append(newMaxMsgs, mm)
-				}
-			}
 		}
 	}
-	conversationLocal.MaxMessages = newMaxMsgs
-	if len(conversationLocal.Info.TlfName) == 0 {
-		errMsg := "no valid message in the conversation"
-		conversationLocal.Error = chat1.NewConversationErrorLocal(
-			errMsg, conversationRemote, unverifiedTLFName, chat1.ConversationErrorType_TRANSIENT, nil)
-		return conversationLocal
+	// Resolve edits/deletes on snippet message
+	if conversationLocal.Info.SnippetMsg != nil {
+		superXform := newBasicSupersedesTransform(s.G(), basicSupersedesTransformOpts{})
+		if newMsg, err := superXform.Run(ctx, conversationRemote, uid,
+			[]chat1.MessageUnboxed{*conversationLocal.Info.SnippetMsg}); err != nil {
+			s.Debug(ctx, "failed to transform message: id: %d err: %s",
+				conversationLocal.Info.SnippetMsg.GetMessageID(), err)
+		} else {
+			if len(newMsg) > 0 {
+				conversationLocal.Info.SnippetMsg = &newMsg[0]
+			}
+		}
 	}
 
 	// Verify ConversationID is derivable from ConversationIDTriple
@@ -798,7 +841,7 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 	}
 
 	infoSource := CreateNameInfoSource(ctx, s.G(), conversationLocal.GetMembersType())
-	var info *types.NameInfo
+	var info types.NameInfo
 	var ierr error
 	switch conversationRemote.GetMembersType() {
 	case chat1.ConversationMembersType_TEAM, chat1.ConversationMembersType_IMPTEAMNATIVE:
@@ -846,7 +889,6 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		conversationLocal.Info.ResetNames = s.getResetUserNames(ctx, umapper, conversationRemote)
 		fallthrough
 	case chat1.ConversationMembersType_KBFS:
-		var err error
 		conversationLocal.Info.Participants, err = utils.ReorderParticipants(
 			s.G().MetaContext(ctx),
 			s.G(),
@@ -866,6 +908,11 @@ func (s *localizerPipeline) localizeConversation(ctx context.Context, uid gregor
 		return conversationLocal
 	}
 
+	// Get conversation commands
+	conversationLocal.Commands, err = s.G().CommandsSource.ListCommands(ctx, uid, conversationLocal)
+	if err != nil {
+		s.Debug(ctx, "localizeConversation: failed to list commands: %s", err)
+	}
 	return conversationLocal
 }
 
@@ -896,35 +943,14 @@ func (s *localizerPipeline) checkRekeyError(ctx context.Context, fromErr error, 
 func (s *localizerPipeline) checkRekeyErrorInner(ctx context.Context, fromErr error, conversationRemote chat1.Conversation, unverifiedTLFName string) (*chat1.ConversationErrorLocal, error) {
 	convErrTyp := chat1.ConversationErrorType_TRANSIENT
 	var rekeyInfo *chat1.ConversationErrorRekey
+	var ok bool
 
-	switch fromErr := fromErr.(type) {
-	case UnboxingError:
-		switch conversationRemote.GetMembersType() {
-		case chat1.ConversationMembersType_KBFS:
-			switch fromErr := fromErr.Inner().(type) {
-			case libkb.NeedSelfRekeyError:
-				convErrTyp = chat1.ConversationErrorType_SELFREKEYNEEDED
-				rekeyInfo = &chat1.ConversationErrorRekey{
-					TlfName: fromErr.Tlf,
-				}
-			case libkb.NeedOtherRekeyError:
-				convErrTyp = chat1.ConversationErrorType_OTHERREKEYNEEDED
-				rekeyInfo = &chat1.ConversationErrorRekey{
-					TlfName: fromErr.Tlf,
-				}
-			}
-		default:
-			if teams.IsTeamReadError(fromErr.Inner()) {
-				convErrTyp = chat1.ConversationErrorType_OTHERREKEYNEEDED
-				rekeyInfo = &chat1.ConversationErrorRekey{
-					TlfName: unverifiedTLFName,
-				}
-			}
-		}
-	}
-	if rekeyInfo == nil {
-		// Not a rekey error.
+	// check for rekey error type
+	if convErrTyp, ok = IsRekeyError(fromErr); !ok {
 		return nil, nil
+	}
+	rekeyInfo = &chat1.ConversationErrorRekey{
+		TlfName: unverifiedTLFName,
 	}
 
 	if len(conversationRemote.MaxMsgSummaries) == 0 {

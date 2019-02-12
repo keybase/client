@@ -49,12 +49,15 @@ class GlobalError extends React.Component<Props, State> {
 
   componentDidUpdate(prevProps: Props) {
     if (prevProps.error !== this.props.error) {
-      this.props.setTimeout(() => {
-        this.setState({
-          cachedDetails: this._detailsForError(this.props.error),
-          cachedSummary: this._summaryForError(this.props.error),
-        })
-      }, this.props.error ? 0 : 7000) // if it's set, do it immediately, if it's cleared set it in a bit
+      this.props.setTimeout(
+        () => {
+          this.setState({
+            cachedDetails: this._detailsForError(this.props.error),
+            cachedSummary: this._summaryForError(this.props.error),
+          })
+        },
+        this.props.error ? 0 : 7000
+      ) // if it's set, do it immediately, if it's cleared set it in a bit
       this._resetError(!!this.props.error)
     }
   }
@@ -77,8 +80,14 @@ class GlobalError extends React.Component<Props, State> {
     const details = this.state.cachedDetails
 
     return (
-      <Kb.Box2 direction="vertical" style={styles.container}>
-        <Kb.SafeAreaViewTop style={{flexGrow: 0, backgroundColor: Styles.globalColors.transparent}} />
+      <Kb.Box2
+        direction="vertical"
+        style={Styles.collapseStyles([
+          styles.container,
+          this.state.size === 'Big' && Styles.globalStyles.fillAbsolute,
+        ])}
+      >
+        <Kb.SafeAreaViewTop style={{backgroundColor: Styles.globalColors.transparent, flexGrow: 0}} />
         <Kb.Box style={Styles.globalStyles.flexBoxColumn}>
           <Kb.Box
             style={{
@@ -88,14 +97,14 @@ class GlobalError extends React.Component<Props, State> {
             }}
           >
             <Kb.Text
+              center={true}
               type="BodySmallSemibold"
-              style={{color: Styles.globalColors.white, flex: 1, textAlign: 'center'}}
+              style={{color: Styles.globalColors.white, flex: 1}}
               onClick={this._onExpandClick}
             >
-              <Kb.Icon
-                type={this.state.size === 'Big' ? 'iconfont-caret-down' : 'iconfont-caret-right'}
-                color={Styles.globalColors.white_75}
-              />
+              {this.state.size !== 'Big' && (
+                <Kb.Icon type="iconfont-caret-right" color={Styles.globalColors.white_75} />
+              )}
               {'  '}
               An error occurred.
             </Kb.Text>

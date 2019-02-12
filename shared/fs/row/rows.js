@@ -1,6 +1,7 @@
 // @flow
 import * as I from 'immutable'
 import * as React from 'react'
+import * as Flow from '../../util/flow'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as Types from '../../constants/types/fs'
@@ -10,13 +11,15 @@ import Tlf from './tlf-container'
 import Still from './still-container'
 import Editing from './editing-container'
 import Uploading from './uploading-container'
+import SortBar from '../sortbar/container'
 import {rowHeight} from './common'
 import {isMobile} from '../../constants/platform'
 
 type Props = {
-  items: Array<Types.RowItem>,
-  routePath: I.List<string>,
   destinationPickerIndex?: number,
+  items: Array<Types.RowItemWithKey>,
+  path: Types.Path,
+  routePath: I.List<string>,
 }
 
 export const WrapRow = ({children}: {children: React.Node}) => (
@@ -33,13 +36,13 @@ class Rows extends React.PureComponent<Props> {
     switch (item.rowType) {
       case 'placeholder':
         return (
-          <WrapRow key={`placeholder:${item.name}`}>
+          <WrapRow>
             <Placeholder type={item.type} />
           </WrapRow>
         )
       case 'tlf-type':
         return (
-          <WrapRow key={`still:${item.name}`}>
+          <WrapRow>
             <TlfType
               name={item.name}
               destinationPickerIndex={this.props.destinationPickerIndex}
@@ -49,7 +52,7 @@ class Rows extends React.PureComponent<Props> {
         )
       case 'tlf':
         return (
-          <WrapRow key={`still:${item.name}`}>
+          <WrapRow>
             <Tlf
               name={item.name}
               tlfType={item.tlfType}
@@ -60,7 +63,7 @@ class Rows extends React.PureComponent<Props> {
         )
       case 'still':
         return (
-          <WrapRow key={`still:${item.name}`}>
+          <WrapRow>
             <Still
               name={item.name}
               path={item.path}
@@ -71,26 +74,22 @@ class Rows extends React.PureComponent<Props> {
         )
       case 'uploading':
         return (
-          <WrapRow key={`uploading:${item.name}`}>
+          <WrapRow>
             <Uploading name={item.name} path={item.path} />
           </WrapRow>
         )
       case 'editing':
         return (
-          <WrapRow key={`editing:${Types.editIDToString(item.editID)}`}>
+          <WrapRow>
             <Editing editID={item.editID} routePath={this.props.routePath} />
           </WrapRow>
         )
       case 'empty':
-        return <EmptyRow key={`empty:${item.name}`} />
+        return <EmptyRow />
       default:
-        /*::
-      let rowType = item.rowType
-      declare var ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove: (rowType: empty) => any
-      ifFlowErrorsHereItsCauseYouDidntHandleAllActionTypesAbove(rowType);
-      */
+        Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(item.rowType)
         return (
-          <WrapRow key="">
+          <WrapRow>
             <Kb.Text type="BodySmallError">This should not happen.</Kb.Text>
           </WrapRow>
         )
@@ -98,35 +97,42 @@ class Rows extends React.PureComponent<Props> {
   }
   render() {
     return this.props.items && this.props.items.length ? (
-      <Kb.List
-        fixedHeight={rowHeight}
-        items={
-          // If we are in the destination picker, inject two empty rows so when
-          // user scrolls to the bottom nothing is blocked by the
-          // semi-transparent footer.
-          !isMobile && this.props.destinationPickerIndex
-            ? [...this.props.items, {rowType: 'empty', name: '/empty0'}, {rowType: 'empty', name: '/empty1'}]
-            : this.props.items
-        }
-        renderItem={this._rowRenderer}
-      />
+      <>
+        {// Only show sortbar if we are in the folder view.
+        typeof this.props.destinationPickerIndex !== 'number' && <SortBar path={this.props.path} />}
+        <Kb.List
+          fixedHeight={rowHeight}
+          items={
+            // If we are in the destination picker, inject two empty rows so when
+            // user scrolls to the bottom nothing is blocked by the
+            // semi-transparent footer.
+            !isMobile && typeof this.props.destinationPickerIndex === 'number'
+              ? [...this.props.items, {key: 'empty:0', rowType: 'empty'}, {key: 'empty:1', rowType: 'empty'}]
+              : this.props.items
+          }
+          renderItem={this._rowRenderer}
+        />
+      </>
     ) : (
-      <Kb.Box2 direction="vertical" fullHeight={true} centerChildren={true}>
-        <Kb.Text type="BodySmall">This is an empty folder.</Kb.Text>
+      <Kb.Box2 direction="vertical" style={styles.emptyContainer} centerChildren={true}>
+        <Kb.Text type="BodySmall">This folder is empty.</Kb.Text>
       </Kb.Box2>
     )
   }
 }
 
 const styles = Styles.styleSheetCreate({
+  divider: {
+    backgroundColor: Styles.globalColors.black_05,
+    marginLeft: 48,
+  },
+  emptyContainer: {
+    ...Styles.globalStyles.flexGrow,
+  },
   rowContainer: {
     ...Styles.globalStyles.flexBoxColumn,
-    height: rowHeight,
     flexShrink: 0,
-  },
-  divider: {
-    marginLeft: 48,
-    backgroundColor: Styles.globalColors.black_05,
+    height: rowHeight,
   },
 })
 

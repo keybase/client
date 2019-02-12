@@ -1,14 +1,13 @@
 // @flow
 import * as React from 'react'
 import Text from './text'
-import glamorous from 'glamorous'
 import type {Props} from './radio-button'
-import {globalStyles, globalColors, transition, desktopStyles} from '../styles'
+import {globalStyles, globalColors, transition, desktopStyles, styled} from '../styles'
 
 export const RADIOBUTTON_SIZE = 14
 export const RADIOBUTTON_MARGIN = 8
 
-const StyledRadio = glamorous(glamorous.Div)(
+const StyledRadio = styled.div(
   {
     ...transition('background'),
     borderRadius: '100%',
@@ -20,7 +19,7 @@ const StyledRadio = glamorous(glamorous.Div)(
   ({disabled, selected}) => ({
     '&:hover': {border: (selected || !disabled) && `solid 1px ${globalColors.blue}`},
     backgroundColor: selected ? globalColors.blue : 'inherit',
-    border: `solid 1px ${globalColors.black_10}`,
+    border: `solid 1px ${globalColors.black_20}`,
     opacity: disabled ? 0.4 : 1,
   })
 )

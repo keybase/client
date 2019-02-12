@@ -1,8 +1,9 @@
 // @flow
+import * as React from 'react'
 import * as I from 'immutable'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
-import {compose, namedConnect} from '../../util/container'
+import {namedConnect} from '../../util/container'
 import OpenHOC from '../common/open-hoc'
 import TlfType from './tlf-type'
 
@@ -21,19 +22,13 @@ const mergeProps = (stateProps, dispatchProps, {name, routePath, destinationPick
   return {
     badgeCount,
     destinationPickerIndex,
-    itemStyles: Constants.getItemStyles(Types.getPathElements(path), 'folder', undefined),
     name,
     path,
     routePath,
   }
 }
 
-export default compose(
-  namedConnect(
-    mapStateToProps,
-    () => ({}),
-    mergeProps,
-  'ConnectedTlfTypeRow'
-  ),
-  OpenHOC
-)(TlfType)
+export default ((ComposedComponent: React.ComponentType<any>) =>
+  namedConnect<OwnProps, _, _, _, _>(mapStateToProps, () => ({}), mergeProps, 'ConnectedTlfTypeRow')(
+    OpenHOC(ComposedComponent)
+  ))(TlfType)
