@@ -121,7 +121,6 @@ class Thread extends React.PureComponent<Props, State> {
 
     if (this._shouldScrollToCenter()) {
       this._cleanupDebounced()
-      this._scrollToBottom()
       this._scrollToCentered()
       this._scrollHeight = null
       return
