@@ -1,6 +1,6 @@
 // @flow
 import {connect, compose, type RouteProps} from '../../util/container'
-import {HeaderHoc} from '../../common-adapters'
+import * as Kb from '../../common-adapters'
 import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
 import * as Chat2Gen from '../../actions/chat2-gen'
@@ -10,6 +10,7 @@ import {getFullname} from '../../constants/users'
 import openURL from '../../util/open-url'
 import TransactionDetails from '.'
 import {anyWaiting} from '../../constants/waiting'
+import flags from '../../util/feature-flags'
 
 type OwnProps = RouteProps<{accountID: Types.AccountID, paymentID: Types.PaymentID}, {}>
 
@@ -88,6 +89,8 @@ const mergeProps = (stateProps, dispatchProps) => {
     senderAccountID: Types.stringToAccountID(tx.sourceAccountID),
     status: tx.statusSimplified,
     statusDetail: tx.statusDetail,
+    styleClipContainer,
+    styleContainer,
     timestamp: tx.time ? new Date(tx.time) : null,
     title: 'Transaction details',
     transactionID: tx.txID,
@@ -95,11 +98,27 @@ const mergeProps = (stateProps, dispatchProps) => {
   }
 }
 
+const styleContainer = flags.useNewRouter
+  ? {
+      alignSelf: 'center',
+      height: undefined,
+      maxHeight: 700,
+      maxWidth: 700,
+    }
+  : undefined
+// not working awesome, we can fix later
+const styleClipContainer = flags.useNewRouter
+  ? {
+      maxHeight: 700,
+      maxWidth: 700,
+    }
+  : undefined
+
 export default compose(
   connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
     mergeProps
   ),
-  HeaderHoc
+  flags.useNewRouter ? Kb.MaybePopupHoc(true) : Kb.HeaderHoc
 )(TransactionDetails)

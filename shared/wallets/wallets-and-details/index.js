@@ -3,10 +3,12 @@ import * as React from 'react'
 import {Box2} from '../../common-adapters'
 import AccountReloader from '../common/account-reloader'
 import WalletList from '../wallet-list/container'
+import Wallet from '../wallet/container'
 import {globalColors, styleSheetCreate} from '../../styles'
 
 type Props = {|
-  children: React.Node,
+  navigateAppend: any => void,
+  navigateUp: () => void,
 |}
 
 const Wallets = (props: Props) => (
@@ -15,7 +17,7 @@ const Wallets = (props: Props) => (
       <Box2 direction="vertical" fullHeight={true} style={styles.walletListContainer}>
         <WalletList style={{height: '100%'}} />
       </Box2>
-      {props.children}
+      <Wallet navigateUp={props.navigateUp} navigateAppend={props.navigateAppend} />
     </Box2>
   </AccountReloader>
 )

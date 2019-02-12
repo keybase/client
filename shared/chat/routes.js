@@ -138,15 +138,6 @@ const routeTree = () => {
 }
 
 export const newRoutes = {
-  chatAttachmentFullscreen: {
-    getScreen: () => require('./conversation/attachment-fullscreen/container').default,
-  },
-  chatAttachmentGetTitles: {
-    getScreen: () => require('./conversation/attachment-get-titles/container').default,
-  },
-  chatAttachmentVideoFullscreen: {
-    getScreen: () => require('./conversation/attachment-video-fullscreen/container').default,
-  },
   chatChooseEmoji: {
     getScreen: () => require('./conversation/messages/react-button/emoji-picker/container').default,
   },
@@ -163,9 +154,6 @@ export const newRoutes = {
   // chatRetentionWarning: {
   // getScreen: () => require('../teams/team/settings-tab/retention/warning/container').default,
   // },
-  chatShowBlockConversationDialog: {
-    getScreen: () => require('./conversation/block-conversation-warning/container').default,
-  },
   chatShowNewTeamDialog: {getScreen: () => require('./new-team-dialog-container').default},
   'tabs:chatTab': {
     getScreen: () =>
@@ -174,7 +162,19 @@ export const newRoutes = {
 }
 
 export const newModalRoutes = {
+  chatAttachmentFullscreen: {
+    getScreen: () => require('./conversation/attachment-fullscreen/container').default,
+  },
+  chatAttachmentGetTitles: {
+    getScreen: () => require('./conversation/attachment-get-titles/container').default,
+  },
+  chatAttachmentVideoFullscreen: {
+    getScreen: () => require('./conversation/attachment-video-fullscreen/container').default,
+  },
   chatInfoPanel: {getScreen: () => require('./conversation/info-panel/container').default},
+  chatShowBlockConversationDialog: {
+    getScreen: () => require('./conversation/block-conversation-warning/container').default,
+  },
 }
 
 export default routeTree

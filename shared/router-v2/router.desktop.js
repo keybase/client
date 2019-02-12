@@ -66,6 +66,11 @@ class AppView extends React.PureComponent<any> {
     )
   }
 }
+const MainNavigator = createNavigator(
+  AppView,
+  StackRouter(Shim.shim(routes), {initialRouteName: 'tabs:peopleTab'}),
+  {}
+)
 
 class ModalView extends React.PureComponent<any> {
   render() {
@@ -80,32 +85,29 @@ class ModalView extends React.PureComponent<any> {
     const appNav = this.props.navigation.getChildNavigation(appKey)
     const appDescriptor = this.props.descriptors[appKey]
 
-    // <MainNavigator navigation={appNav} />
-    // <AppView navigation={appNav} descriptors={this.props.descriptors} />
+    // TODO we might want all the click handling / grey background stuff handled by the routing
     return (
       <>
         <SceneView
+          key="AppLayer"
           navigation={appNav}
           component={appDescriptor.getComponent()}
           screenProps={this.props.screenProps}
         />
         {index > 0 && (
-          <SceneView
-            navigation={childNav}
-            component={descriptor.getComponent()}
-            screenProps={this.props.screenProps}
-          />
+          <Kb.Box2 direction="vertical" style={styles.modalContainer}>
+            <SceneView
+              key="ModalLayer"
+              navigation={childNav}
+              component={descriptor.getComponent()}
+              screenProps={this.props.screenProps}
+            />
+          </Kb.Box2>
         )}
       </>
     )
   }
 }
-
-const MainNavigator = createNavigator(
-  AppView,
-  StackRouter(Shim.shim(routes), {initialRouteName: 'tabs:peopleTab'}),
-  {}
-)
 
 const LoggedInStackNavigator = createNavigator(
   ModalView,
@@ -207,7 +209,9 @@ const styles = Styles.styleSheetCreate({
     flexGrow: 1,
     position: 'relative',
   },
-  modalContainer: {},
+  modalContainer: {
+    ...Styles.globalStyles.fillAbsolute,
+  },
 })
 
 export default ElectronApp

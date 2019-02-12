@@ -96,26 +96,23 @@ const routeTree = () => {
   // navigate by tapping on the wallet name which brings up a
   // switcher. On desktop, we use a wallet list component and we don't
   // have a wallet switcher tied to the name.
-  return isMobile
-    ? makeRouteDefNode({
-        children: walletChildren,
-        component: Wallet,
-      })
-    : makeRouteDefNode({
-        children: {
-          wallet: {
-            children: walletChildren,
-            component: Wallet,
-          },
-        },
-        containerComponent: WalletsAndDetails,
-        defaultSelected: 'wallet',
-      })
+  return makeRouteDefNode({
+    children: walletChildren,
+    component: isMobile ? Wallet : WalletsAndDetails,
+  })
 }
 
 export default routeTree
 
 export const newRoutes = {
+  'tabs:walletsTab': {
+    getScreen: () =>
+      isMobile ? require('./wallet/container').default : require('./wallets-and-details/container').default,
+  },
+}
+
+export const newModalRoutes = {
+  ...require('./routes-send-request-form').newModalRoutes,
   createNewAccount: {getScreen: () => require('./create-account/container').default},
   exportSecretKey: {getScreen: () => require('./export-secret-key/container').default},
   linkExisting: {getScreen: () => require('./link-existing/container').default},
@@ -126,13 +123,5 @@ export const newRoutes = {
   setDefaultAccount: {getScreen: () => require('./wallet/settings/popups').SetDefaultAccountPopup},
   setInflation: {getScreen: () => require('./wallet/settings/popups').InflationDestination},
   settings: {getScreen: () => require('./wallet/settings/container').default},
-  'tabs:walletsTab': {
-    getScreen: () =>
-      isMobile ? require('./wallet/container').default : require('./wallets-and-details/container').default,
-  },
   transactionDetails: {getScreen: () => require('./transaction-details/container').default},
-}
-
-export const newModalRoutes = {
-  ...require('./routes-send-request-form').newModalRoutes,
 }

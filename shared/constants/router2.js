@@ -20,9 +20,9 @@ const findVisibleRoute = (arr, s) => {
 }
 
 // Public API
-export const getVisiblePath = () => {
+export const getVisiblePath = (_fromNavOnly?: any) => {
   if (!_navigator) return []
-  const TEMP = findVisibleRoute([], _navigator.getNavState())
+  const TEMP = findVisibleRoute([], _fromNavOnly || _navigator.getNavState())
   // console.log('aaaa rout epath', TEMP)
   return TEMP
 }

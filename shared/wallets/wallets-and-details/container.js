@@ -1,12 +1,10 @@
 // @flow
 import * as React from 'react'
-import Wallets from './index'
+import WalletsAndDetails from '.'
 import Onboarding from '../onboarding/container'
-import {connect} from '../../util/container'
+import {connect, type RouteProps} from '../../util/container'
 
-type OwnProps = {
-  children: React.Node,
-}
+type OwnProps = RouteProps<{}, {}>
 
 const mapStateToProps = state => ({
   acceptedDisclaimer: state.wallets.acceptedDisclaimer,
@@ -16,11 +14,16 @@ const mapDispatchToProps = dispatch => ({})
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   acceptedDisclaimer: stateProps.acceptedDisclaimer,
-  children: ownProps.children,
+  navigateAppend: ownProps.navigateAppend,
+  navigateUp: ownProps.navigateUp,
 })
 
 const WalletsOrOnboarding = props =>
-  props.acceptedDisclaimer ? <Wallets children={props.children} /> : <Onboarding />
+  props.acceptedDisclaimer ? (
+    <WalletsAndDetails navigateUp={props.navigateUp} navigateAppend={props.navigateAppend} />
+  ) : (
+    <Onboarding />
+  )
 
 export default connect<OwnProps, _, _, _, _>(
   mapStateToProps,

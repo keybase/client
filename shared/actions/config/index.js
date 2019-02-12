@@ -468,6 +468,7 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
       | RouteTreeGen.NavigateUpPayload
       | RouteTreeGen.SwitchToPayload
       | RouteTreeGen.SwitchRouteDefPayload
+      | RouteTreeGen.ClearModalsPayload
     >(
       [
         RouteTreeGen.navigateAppend,
@@ -475,6 +476,7 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
         RouteTreeGen.navigateUp,
         RouteTreeGen.switchTo,
         RouteTreeGen.switchRouteDef,
+        RouteTreeGen.clearModals,
       ],
       newNavigation
     )

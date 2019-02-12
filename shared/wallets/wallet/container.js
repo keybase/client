@@ -1,6 +1,6 @@
 // @flow
 import * as React from 'react'
-import {connect, isMobile, type RouteProps} from '../../util/container'
+import {connect, isMobile} from '../../util/container'
 import * as WalletsGen from '../../actions/wallets-gen'
 import * as Constants from '../../constants/wallets'
 import * as Types from '../../constants/types/wallets'
@@ -9,7 +9,10 @@ import {partition} from 'lodash-es'
 
 import Wallet, {type Props} from '.'
 
-type OwnProps = RouteProps<{}, {}>
+type OwnProps = {|
+  navigateAppend: any => void,
+  navigateUp: () => void,
+|}
 
 const mapStateToProps = state => {
   const accountID = Constants.getSelectedAccount(state)
@@ -26,11 +29,10 @@ const mapDispatchToProps = (dispatch, {navigateAppend, navigateUp}) => ({
   _onLoadMore: accountID => dispatch(WalletsGen.createLoadMorePayments({accountID})),
   _onMarkAsRead: (accountID, mostRecentID) =>
     dispatch(WalletsGen.createMarkAsRead({accountID, mostRecentID})),
-  navigateAppend,
   onBack: () => dispatch(navigateUp()),
 })
 
-const mergeProps = (stateProps, dispatchProps) => {
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
   const sections = []
   // layout is
   // 1. header (TODO: not included in list yet)
@@ -73,7 +75,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     acceptedDisclaimer: stateProps.acceptedDisclaimer,
     accountID: stateProps.accountID,
     loadingMore: stateProps.loadingMore,
-    navigateAppend: dispatchProps.navigateAppend,
+    navigateAppend: ownProps.navigateAppend,
     onBack: dispatchProps.onBack,
     onLoadMore: () => dispatchProps._onLoadMore(stateProps.accountID),
     onMarkAsRead: () => {

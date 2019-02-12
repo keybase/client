@@ -10,6 +10,7 @@ import * as ConfigGen from './config-gen'
 import * as NotificationsGen from './notifications-gen'
 import * as RouteTreeGen from './route-tree-gen'
 import * as Flow from '../util/flow'
+import * as Router2Constants from '../constants/router2'
 import HiddenString from '../util/hidden-string'
 import logger from '../logger'
 import {getPath} from '../route-tree'
@@ -703,20 +704,35 @@ const cancelRequest = (state, action) =>
   )
 
 const maybeNavigateAwayFromSendForm = state => {
-  const routeState = state.routeTree.routeState
-  const path = getPath(routeState)
-  const lastNode = path.last()
-  if (Constants.sendRequestFormRoutes.includes(lastNode)) {
-    if (path.first() === Tabs.walletsTab) {
-      // User is on send form in wallets tab, navigate back to root of tab
-      return RouteTreeGen.createNavigateTo({
-        path: [{props: {}, selected: Tabs.walletsTab}, {props: {}, selected: null}],
-      })
+  if (flags.useNewRouter) {
+    const path = Router2Constants.getVisiblePath()
+    const actions = []
+    // pop off any routes that are part of the popup
+    path.reverse().some(p => {
+      if (Constants.sendRequestFormRoutes.includes(p.routeName)) {
+        actions.push(RouteTreeGen.createNavigateUp())
+        return false
+      }
+      // we're done
+      return true
+    })
+    return actions
+  } else {
+    const routeState = state.routeTree.routeState
+    const path = getPath(routeState)
+    const lastNode = path.last()
+    if (Constants.sendRequestFormRoutes.includes(lastNode)) {
+      if (path.first() === Tabs.walletsTab) {
+        // User is on send form in wallets tab, navigate back to root of tab
+        return RouteTreeGen.createNavigateTo({
+          path: [{props: {}, selected: Tabs.walletsTab}, {props: {}, selected: null}],
+        })
+      }
+      // User is somewhere else, send them to most recent parent that isn't a form route
+      const firstFormIndex = path.findIndex(node => Constants.sendRequestFormRoutes.includes(node))
+      const pathAboveForm = path.slice(0, firstFormIndex)
+      return RouteTreeGen.createNavigateTo({path: pathAboveForm})
     }
-    // User is somewhere else, send them to most recent parent that isn't a form route
-    const firstFormIndex = path.findIndex(node => Constants.sendRequestFormRoutes.includes(node))
-    const pathAboveForm = path.slice(0, firstFormIndex)
-    return RouteTreeGen.createNavigateTo({path: pathAboveForm})
   }
 }
 
@@ -784,11 +800,15 @@ const setupEngineListeners = () => {
 }
 
 const maybeClearErrors = state => {
-  // TODO this model of doing things in relation to the nav is going to go away
-  const routePath = getPath(state.routeTree.routeState)
-  const selectedTab = routePath.first()
-  if (selectedTab === Tabs.walletsTab) {
+  if (flags.useNewRouter) {
+    // maybe just clear always?
     return WalletsGen.createClearErrors()
+  } else {
+    const routePath = getPath(state.routeTree.routeState)
+    const selectedTab = routePath.first()
+    if (selectedTab === Tabs.walletsTab) {
+      return WalletsGen.createClearErrors()
+    }
   }
 }
 

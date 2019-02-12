@@ -105,7 +105,6 @@ const LoggedOutStackNavigator = createStackNavigator(
   }
 )
 
-console.log('aaaa INIT again')
 const RootStackNavigator = createSwitchNavigator(
   {
     loggedIn: LoggedInStackNavigator,

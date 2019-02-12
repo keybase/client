@@ -2,15 +2,9 @@
 import {StackActions, NavigationActions} from '@react-navigation/core'
 import shallowEqual from 'shallowequal'
 import * as RouteTreeGen from '../actions/route-tree-gen'
+import * as Constants from '../constants/router2'
+import {modalRoutes} from './routes'
 
-const findVisibleRoute = s => {
-  if (!s) return null
-  if (!s.routes) return s
-  const route = s.routes[s.index]
-  if (!route) return null
-  if (route.routes) return findVisibleRoute(route)
-  return route
-}
 export const oldActionToNewActions = (action: any, navigation: any) => {
   switch (action.type) {
     case RouteTreeGen.navigateTo: // fallthrough
@@ -39,7 +33,8 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
         return
       }
       // don't allow pushing a dupe
-      const visible = findVisibleRoute(navigation.state)
+      const path = Constants.getVisiblePath(navigation.state)
+      const visible = path[path.lenght - 1]
       if (visible) {
         if (routeName === visible.routeName && shallowEqual(visible.params, params)) {
           console.log('Skipping append dupe')
@@ -62,6 +57,17 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
 
       return appendAction ? [...switchStack, ...appendAction] : switchStack
     }
+    case RouteTreeGen.clearModals:
+      const path = Constants.getVisiblePath(navigation.state)
+      const actions = []
+      path.reverse().some(p => {
+        if (modalRoutes[p.routeName]) {
+          actions.push(StackActions.pop())
+          return false
+        }
+        return true
+      })
+      return actions
     case RouteTreeGen.navigateUp:
       return [StackActions.pop()]
   }
