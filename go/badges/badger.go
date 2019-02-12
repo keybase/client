@@ -115,7 +115,7 @@ func (b *Badger) SetWalletAccountUnreadCount(ctx context.Context, accountID stel
 	if !changed {
 		return
 	}
-	b.G().Log.CDebugf(ctx, "Badger sending for SetWalletAccountUnreadCount: %s/%d", accountID, unreadCount, changed)
+	b.G().Log.CDebugf(ctx, "Badger sending for SetWalletAccountUnreadCount: %s/%d", accountID, unreadCount)
 	if err := b.Send(ctx); err != nil {
 		b.G().Log.CDebugf(ctx, "Badger send (SetWalletAccountUnreadCount) failed: %s", err)
 	}
