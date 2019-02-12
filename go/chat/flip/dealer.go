@@ -9,7 +9,6 @@ import (
 	"time"
 
 	chat1 "github.com/keybase/client/go/protocol/chat1"
-	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 )
 
 type GameMessageWrapped struct {
@@ -719,7 +718,7 @@ func (d *Dealer) sendOutgoingChat(ctx context.Context, md GameMetadata, me *play
 
 func newStart(now time.Time) Start {
 	return Start{
-		StartTime:            gregor1.ToTime(now),
+		StartTime:            ToTime(now),
 		CommitmentWindowMsec: 3 * 1000,
 		RevealWindowMsec:     30 * 1000,
 		SlackMsec:            1 * 1000,

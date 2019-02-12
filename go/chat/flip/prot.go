@@ -10,6 +10,12 @@ import (
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
+type Time int64
+
+func (o Time) DeepCopy() Time {
+	return o
+}
+
 type GameID []byte
 
 func (o GameID) DeepCopy() GameID {
@@ -22,7 +28,7 @@ func (o GameID) DeepCopy() GameID {
 }
 
 type Start struct {
-	StartTime            gregor1.Time   `codec:"startTime" json:"startTime"`
+	StartTime            Time           `codec:"startTime" json:"startTime"`
 	CommitmentWindowMsec int64          `codec:"commitmentWindowMsec" json:"commitmentWindowMsec"`
 	RevealWindowMsec     int64          `codec:"revealWindowMsec" json:"revealWindowMsec"`
 	SlackMsec            int64          `codec:"slackMsec" json:"slackMsec"`

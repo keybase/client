@@ -6,13 +6,29 @@ import (
 	"encoding/hex"
 	"fmt"
 	"time"
-
-	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 )
 
 func (g GameID) String() string           { return hex.EncodeToString(g) }
 func (g GameID) Eq(h GameID) bool         { return hmac.Equal(g[:], h[:]) }
 func (u UserDevice) Eq(v UserDevice) bool { return u.U.Eq(v.U) && u.D.Eq(v.D) }
+
+func (t Time) Time() time.Time {
+	if t == 0 {
+		return time.Time{}
+	}
+	return time.Unix(0, int64(t)*1000000)
+}
+
+func (t Time) Duration() time.Duration {
+	return time.Duration(t) * time.Millisecond
+}
+
+func ToTime(t time.Time) Time {
+	if t.IsZero() {
+		return 0
+	}
+	return Time(t.UnixNano() / 1000000)
+}
 
 func GenerateGameID() GameID {
 	l := 12
@@ -28,11 +44,11 @@ func GenerateGameID() GameID {
 }
 
 func (s Start) CommitmentWindowWithSlack() time.Duration {
-	return gregor1.DurationMsec(s.CommitmentWindowMsec + s.SlackMsec).ToDuration()
+	return Time(s.CommitmentWindowMsec + s.SlackMsec).Duration()
 }
 
 func (s Start) RevealWindowWithSlack() time.Duration {
-	return gregor1.DurationMsec(s.CommitmentWindowMsec + s.RevealWindowMsec + 2*s.SlackMsec).ToDuration()
+	return Time(s.CommitmentWindowMsec + s.RevealWindowMsec + 2*s.SlackMsec).Duration()
 }
 
 func isZero(v []byte) bool {

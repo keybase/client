@@ -9,7 +9,6 @@ import (
 	"time"
 
 	chat1 "github.com/keybase/client/go/protocol/chat1"
-	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	clockwork "github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 )
@@ -97,7 +96,7 @@ func setupTestBundleWithParams(ctx context.Context, t *testing.T, params FlipPar
 	dh := newTestDealersHelper(me)
 	dealer := NewDealer(dh)
 	start := Start{
-		StartTime:            gregor1.ToTime(dh.clock.Now()),
+		StartTime:            ToTime(dh.clock.Now()),
 		CommitmentWindowMsec: 5 * 1000,
 		RevealWindowMsec:     5 * 1000,
 		SlackMsec:            1 * 1000,

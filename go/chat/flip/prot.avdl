@@ -5,11 +5,14 @@ protocol flip {
   import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
   import idl "github.com/keybase/client/go/protocol/chat1" as chat1;
 
+  @typedef("long")
+  record Time {}
+
   @typedef("bytes")
   record GameID {}
 
   record Start {
-    gregor1.Time startTime;
+    Time startTime;
     // How long the commitment window lasts
     long commitmentWindowMsec;
     // How long the reveal window lasts

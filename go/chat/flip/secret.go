@@ -50,7 +50,7 @@ type CommitmentPayload struct {
 	D       gregor1.DeviceID     `codec:"d" json:"d"`
 	C       chat1.ConversationID `codec:"c" json:"c"`
 	G       GameID               `codec:"i" json:"i"`
-	S       gregor1.Time         `codec:"s" json:"s"`
+	S       Time                 `codec:"s" json:"s"`
 }
 
 func (s Secret) computeCommitment(cp CommitmentPayload) (Commitment, error) {
