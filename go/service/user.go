@@ -282,16 +282,35 @@ func (h *UserHandler) InterestingPeople(ctx context.Context, maxUsers int) (res 
 		h.G().Log.Debug("InterestingPeople: failed to get list: %s", err.Error())
 		return nil, err
 	}
-	for _, u := range uids {
-		name, err := h.loadUsername(ctx, u)
+
+	if len(uids) == 0 {
+		h.G().Log.Debug("InterestingPeople: there are no interesting people for current user")
+		return []keybase1.InterestingPerson{}, nil
+	}
+
+	const fullnameFreshness = 10 * time.Minute
+	const networkTimeBudget = 0
+	packages, err := h.G().UIDMapper.MapUIDsToUsernamePackages(ctx, h.G(), uids,
+		fullnameFreshness, networkTimeBudget, true /* forceNetworkForFullNames */)
+	if err != nil {
+		h.G().Log.Debug("InterestingPeople: failed in UIDMapper: %s", err.Error())
+		return nil, err
+	}
+
+	for i, u := range uids {
 		if err != nil {
 			h.G().Log.Debug("InterestingPeople: failed to get username for: %s msg: %s", u, err.Error())
 			continue
 		}
-		res = append(res, keybase1.InterestingPerson{
+		ret := keybase1.InterestingPerson{
 			Uid:      u,
-			Username: name,
-		})
+			Username: "FIX ME TEST, " + packages[i].NormalizedUsername.String(),
+		}
+		if fn := packages[i].FullName; fn != nil {
+			ret.Fullname = fn.FullName.String()
+		}
+		res = append(res, ret)
+
 	}
 	return res, nil
 }
