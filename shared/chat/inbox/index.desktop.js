@@ -58,6 +58,10 @@ class Inbox extends React.PureComponent<Props, State> {
     ) {
       this._list.scrollToItem(this.props.selectedIndex)
     }
+
+    if (this.props.filterHasFocus && !prevProps.filterHasFocus && this._list) {
+      this._list.scrollTo(0)
+    }
   }
 
   componentDidMount() {

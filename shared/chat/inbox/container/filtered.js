@@ -4,10 +4,16 @@ import * as Types from '../../../constants/types/chat2'
 import {memoize} from '../../../util/memoize'
 import type {RowItem} from '../index.types'
 
-const score = (lcFilter: string, lcYou: string, names: Array<string>, insertMatcher: RegExp): number => {
+const score = (
+  lcFilter: string,
+  lcYou: string,
+  hasUnread: boolean,
+  names: Array<string>,
+  insertMatcher: RegExp
+): number => {
   // special case, no filter
   if (!lcFilter) {
-    return 1
+    return hasUnread ? 2 : 1
   }
   // special case, looking for yourself
   if (names.length === 1 && names[0] === lcYou) {
@@ -77,8 +83,14 @@ const score = (lcFilter: string, lcYou: string, names: Array<string>, insertMatc
   return rawScore > 0 ? Math.max(1, rawScore - inputLength) : 0
 }
 
-const makeSmallItem = (meta, filter, you, insertMatcher) => {
-  const s = score(filter, you, meta.teamname ? [meta.teamname] : meta.participants.toArray(), insertMatcher)
+const makeSmallItem = (meta, filter, hasUnread, you, insertMatcher) => {
+  const s = score(
+    filter,
+    you,
+    hasUnread,
+    meta.teamname ? [meta.teamname] : meta.participants.toArray(),
+    insertMatcher
+  )
   return s > 0
     ? {
         data: {conversationIDKey: meta.conversationIDKey, type: 'small'},
@@ -88,8 +100,8 @@ const makeSmallItem = (meta, filter, you, insertMatcher) => {
     : null
 }
 
-const makeBigItem = (meta, filter, insertMatcher) => {
-  const s = score(filter, '', [meta.teamname, meta.channelname].filter(Boolean), insertMatcher)
+const makeBigItem = (meta, filter, hasUnread, insertMatcher) => {
+  const s = score(filter, '', hasUnread, [meta.teamname, meta.channelname].filter(Boolean), insertMatcher)
   return s > 0
     ? {
         data: {
@@ -99,7 +111,7 @@ const makeBigItem = (meta, filter, insertMatcher) => {
           type: 'big',
         },
         score: s,
-        timestamp: 0,
+        timestamp: meta.timestamp,
       }
     : null
 }
@@ -121,8 +133,8 @@ const getFilteredRowsAndMetadata = memoize<Types.MetaMap, Types.ConversationCoun
     const rows: Array<RowItem> = metas
       .map(meta =>
         meta.teamType !== 'big'
-          ? makeSmallItem(meta, lcFilter, lcYou, insertMatcher)
-          : makeBigItem(meta, lcFilter, insertMatcher)
+          ? makeSmallItem(meta, lcFilter, unread.get(meta.conversationIDKey, 0) > 0, lcYou, insertMatcher)
+          : makeBigItem(meta, lcFilter, unread.get(meta.conversationIDKey, 0) > 0, insertMatcher)
       )
       .filter(Boolean)
       .sort((a, b) => {
