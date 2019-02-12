@@ -325,9 +325,13 @@ const addToTeam = (_, action) => {
 
 const reAddToTeam = (state, action) => {
   const {teamname, username} = action.payload
+  const id = state.teams.teamNameToID.get(teamname, '')
+  if (!id) {
+    throw new Error(`team ID not on file for team '${teamname}'`)
+  }
   return RPCTypes.teamsTeamReAddMemberAfterResetRpcPromise(
     {
-      id: state.teams.teamNameToID.get(teamname, ''),
+      id,
       username,
     },
     [Constants.teamWaitingKey(teamname), Constants.addMemberWaitingKey(teamname, username)]
