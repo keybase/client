@@ -2,7 +2,6 @@
 import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
-import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
 import * as Kbfs from '../common'
 import FolderHeader from '../header/container'
@@ -32,8 +31,8 @@ class Files extends React.PureComponent<FolderProps> {
       <Rows path={this.props.path} routePath={this.props.routePath} sortSetting={this.props.sortSetting} />
     )
     return (
-      <Kb.Box2 direction="vertical" fullHeight={true} style={styles.container}>
-        <Kb.Box2 direction="vertical" fullHeight={true}>
+      <Kb.BoxGrow>
+        <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
           <FolderHeader path={this.props.path} routePath={this.props.routePath} />
           <Kbfs.Errs />
           <Kb.Divider />
@@ -47,18 +46,9 @@ class Files extends React.PureComponent<FolderProps> {
           )}
           <Footer />
         </Kb.Box2>
-      </Kb.Box2>
+      </Kb.BoxGrow>
     )
   }
 }
-
-const styles = Styles.styleSheetCreate({
-  container: {
-    position: 'relative',
-  },
-  resetContainer: {
-    marginTop: 2 * Styles.globalMargins.xlarge,
-  },
-})
 
 export default Files

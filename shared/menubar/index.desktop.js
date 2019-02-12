@@ -317,12 +317,14 @@ class MenubarRender extends React.Component<Props, State> {
           <ChatContainer convLimit={3} />
           <FilesPreview />
         </Kb.ScrollView>
-        <UploadWithCountdown
-          endEstimate={this.props.endEstimate}
-          files={this.props.files}
-          fileName={this.props.fileName}
-          totalSyncingBytes={this.props.totalSyncingBytes}
-        />
+        <Kb.Box style={styles.footer}>
+          <UploadWithCountdown
+            endEstimate={this.props.endEstimate}
+            files={this.props.files}
+            fileName={this.props.fileName}
+            totalSyncingBytes={this.props.totalSyncingBytes}
+          />
+        </Kb.Box>
       </Kb.Box>
     )
   }
@@ -394,6 +396,7 @@ const styles = Styles.styleSheetCreate({
     top: -6,
     width: 0,
   },
+  footer: {width: 360},
   headerBadgesContainer: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
