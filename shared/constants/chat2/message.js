@@ -865,6 +865,7 @@ const outboxUIMessagetoMessage = (
         deviceName: state.config.deviceName || '',
         deviceType: isMobile ? 'mobile' : 'desktop',
         errorReason,
+        exploding: o.isEphemeral,
         ordinal: Types.numberToOrdinal(o.ordinal),
         outboxID: Types.stringToOutboxID(o.outboxID),
         submitState: 'pending',
