@@ -283,43 +283,6 @@ func (h *UserHandler) InterestingPeople(ctx context.Context, maxUsers int) (res 
 		return nil, err
 	}
 
-	// List of test uids for localhost test
-
-	// remove me
-
-	uids = []keybase1.UID{
-		"a042efb5322212beaf7121e3eff0c119",
-		"924a9514b0730fe12f15dd2e4a110e19",
-		"06308a58f6f4aace340614cb4ac82d19",
-		"1e265ee073746a6320d4a104da6f0219",
-		"1fbdfca5bae16589be0501c322fcdc19",
-		"237742fe16c15d4a7c58371810b8d119",
-		"4a0dcae3e99f29b53e87a6ff8e2d0719",
-		"65712122ad2d188f754183f8cf3bfd19",
-		"6bad2cabe59a8c4749ee73d2338dcc19",
-		"6e0435d5a8a5befe10a138c6d549ee19",
-		"934dc10daa788dfce9043ad222c97c19",
-		"9ba90c5133d484d344b60b6efbbe3719",
-		"ade6c51d4734aa5a6cda789927cb4819",
-		"b1bbdab06f5c0efce42f3e8591042f19",
-		"b1e9f2ff4dc6a0e726b120f48835b119",
-		"b427b1e4a53df4c5b4adb22e8ca45919",
-		"b704a7212bc0900394ef4adbe1ef5019",
-		"cfd6d64fe99a048e27e31b73350e1f19",
-		"db54a1fedd2ac8770be1b43353df4d19",
-		"f0260392b1b6d93e2d6408ac246ee719",
-		"f3783e5275e9d3d64f290deef6326e19",
-		"f39526a5aa3ecc7de36a2c372f8b3519",
-		"f45aa074b2a88d3dbf3236826892be19",
-		"f6b0e03cff3e8548d4b7e7bdbcf19c19",
-		"00426f2ad390b16a58f29606944e0319",
-		"031219912f767ae63cc4008e97dcb919",
-		"07b6219502cc285be2017ab2d3480a19",
-		"0b62a17c242cd3e19a708c2306ed1119",
-		"1b41e5f0e2420f3c9f088ed235a8be19",
-		"1b8e063d6fcd08c25fc0da360f420119",
-	}
-
 	if len(uids) == 0 {
 		h.G().Log.Debug("InterestingPeople: there are no interesting people for current user")
 		return []keybase1.InterestingPerson{}, nil
