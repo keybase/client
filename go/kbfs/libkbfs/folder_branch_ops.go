@@ -518,6 +518,10 @@ func (fbo *folderBranchOps) Shutdown(ctx context.Context) error {
 		}
 	}
 
+	if err := fbo.fbm.waitForArchives(ctx); err != nil {
+		return err
+	}
+
 	close(fbo.shutdownChan)
 	fbo.cr.Shutdown()
 	fbo.fbm.shutdown()
