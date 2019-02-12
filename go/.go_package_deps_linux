@@ -1959,7 +1959,6 @@
       "github.com/keybase/client/go/uidmap" : 1
    },
    "github.com/keybase/client/go/lru" : {
-      "github.com/keybase/client/go/avatars" : 1,
       "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/ephemeral" : 1,
