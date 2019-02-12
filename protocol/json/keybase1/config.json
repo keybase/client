@@ -97,6 +97,14 @@
         {
           "type": "string",
           "name": "version"
+        },
+        {
+          "type": "int",
+          "name": "connectionID"
+        },
+        {
+          "type": "NotificationChannels",
+          "name": "notificationChannels"
         }
       ]
     },
@@ -273,13 +281,6 @@
             "items": "DirSizeInfo"
           },
           "name": "cacheDirSizeInfo"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "notifyCtl.NotificationChannels"
-          },
-          "name": "notifyRouterSubscriptions"
         },
         {
           "type": {

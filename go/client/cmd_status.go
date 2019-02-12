@@ -106,6 +106,7 @@ type fstatus struct {
 	LocalDbStats         []string
 	LocalChatDbStats     []string
 	CacheDirSizeInfo     []keybase1.DirSizeInfo
+	UIRouterMapping      map[string]int
 }
 
 func (c *CmdStatus) Run() error {
@@ -220,6 +221,7 @@ func (c *CmdStatus) load() (*fstatus, error) {
 	status.LocalDbStats = extStatus.LocalDbStats
 	status.LocalChatDbStats = extStatus.LocalChatDbStats
 	status.CacheDirSizeInfo = extStatus.CacheDirSizeInfo
+	status.UIRouterMapping = extStatus.UiRouterMapping
 
 	// set anything os-specific:
 	if err := c.osSpecific(&status); err != nil {

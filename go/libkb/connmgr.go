@@ -96,6 +96,7 @@ func (c *ConnectionManager) Label(id ConnectionID, d keybase1.ClientDetails) err
 
 	var err error
 	if conn := c.lookup[id]; conn != nil {
+		d.ConnectionID = int(id)
 		conn.details = &d
 	} else {
 		err = NotFoundError{Msg: fmt.Sprintf("connection %d not found", id)}

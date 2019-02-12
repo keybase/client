@@ -477,6 +477,7 @@ type UIRouter interface {
 	GetIdentify3UI(MetaContext) (keybase1.Identify3UiInterface, error)
 	GetChatUI() (ChatUI, error)
 
+	DumpUIs() map[UIKind]ConnectionID
 	Shutdown()
 }
 
