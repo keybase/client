@@ -1626,7 +1626,7 @@ func MessageIDControlToPagination(ctx context.Context, logger DebugLabeler, cont
 					conv.Conv.MaxVisibleMsgID(), pm.msgID)
 				maxForward = int(conv.Conv.ReaderInfo.MaxMsgid - pm.msgID)
 			}
-			desired := int(pm.msgID) + control.Num*4/5
+			desired := int(pm.msgID) + control.Num/2
 			logger.Debug(ctx, "MessageIDControlToPagination: max forward: %d desired: %d", maxForward,
 				desired)
 			if desired > maxForward {
