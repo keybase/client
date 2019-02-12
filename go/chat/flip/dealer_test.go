@@ -4,11 +4,14 @@ import (
 	"context"
 	"crypto/rand"
 	"fmt"
-	clockwork "github.com/keybase/clockwork"
-	"github.com/stretchr/testify/require"
 	"math/big"
 	"testing"
 	"time"
+
+	chat1 "github.com/keybase/client/go/protocol/chat1"
+	gregor1 "github.com/keybase/client/go/protocol/gregor1"
+	clockwork "github.com/keybase/clockwork"
+	"github.com/stretchr/testify/require"
 )
 
 type testDealersHelper struct {
@@ -45,7 +48,8 @@ func (t *testDealersHelper) Me() UserDevice {
 	return t.me
 }
 
-func (t *testDealersHelper) SendChat(ctx context.Context, conversationID ConversationID, gameID GameID, msg GameMessageEncoded) error {
+func (t *testDealersHelper) SendChat(ctx context.Context, conversationID chat1.ConversationID, gameID GameID,
+	msg GameMessageEncoded) error {
 	t.ch <- GameMessageWrappedEncoded{Body: msg, GameID: gameID, Sender: t.me}
 	return nil
 }
@@ -78,7 +82,7 @@ type testBundle struct {
 	me        UserDevice
 	dh        *testDealersHelper
 	dealer    *Dealer
-	channelID ConversationID
+	channelID chat1.ConversationID
 	start     Start
 	leader    *playerControl
 	followers []*playerControl
@@ -93,13 +97,13 @@ func setupTestBundleWithParams(ctx context.Context, t *testing.T, params FlipPar
 	dh := newTestDealersHelper(me)
 	dealer := NewDealer(dh)
 	start := Start{
-		StartTime:            ToTime(dh.clock.Now()),
+		StartTime:            gregor1.ToTime(dh.clock.Now()),
 		CommitmentWindowMsec: 5 * 1000,
 		RevealWindowMsec:     5 * 1000,
 		SlackMsec:            1 * 1000,
 		Params:               params,
 	}
-	channelID := ConversationID(randBytes(6))
+	channelID := chat1.ConversationID(randBytes(6))
 
 	return &testBundle{
 		me:        me,

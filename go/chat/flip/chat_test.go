@@ -3,11 +3,13 @@ package flip
 import (
 	"context"
 	"fmt"
-	clockwork "github.com/keybase/clockwork"
-	"github.com/stretchr/testify/require"
 	"math/big"
 	"testing"
 	"time"
+
+	chat1 "github.com/keybase/client/go/protocol/chat1"
+	clockwork "github.com/keybase/clockwork"
+	"github.com/stretchr/testify/require"
 )
 
 type chatServer struct {
@@ -51,7 +53,8 @@ func (c *chatClient) Me() UserDevice {
 	return c.me
 }
 
-func (c *chatClient) SendChat(ctx context.Context, conversationID ConversationID, gameID GameID, msg GameMessageEncoded) error {
+func (c *chatClient) SendChat(ctx context.Context, conversationID chat1.ConversationID, gameID GameID,
+	msg GameMessageEncoded) error {
 	c.server.inputCh <- GameMessageWrappedEncoded{Body: msg, GameID: gameID, Sender: c.me}
 	return nil
 }
@@ -98,7 +101,7 @@ func (s *chatServer) newClient() *chatClient {
 	return ret
 }
 
-func (c *chatClient) run(ctx context.Context, ch ConversationID) {
+func (c *chatClient) run(ctx context.Context, ch chat1.ConversationID) {
 	go c.dealer.Run(ctx)
 	for {
 		select {
@@ -110,7 +113,7 @@ func (c *chatClient) run(ctx context.Context, ch ConversationID) {
 	}
 }
 
-func (s *chatServer) makeAndRunClients(ctx context.Context, ch ConversationID, nClients int) []*chatClient {
+func (s *chatServer) makeAndRunClients(ctx context.Context, ch chat1.ConversationID, nClients int) []*chatClient {
 	for i := 0; i < nClients; i++ {
 		cli := s.newClient()
 		go cli.run(ctx, ch)
@@ -218,7 +221,7 @@ func testHappyChat(t *testing.T, n int) {
 	ctx := context.Background()
 	go srv.run(ctx)
 	defer srv.stop()
-	conversationID := ConversationID(randBytes(6))
+	conversationID := chat1.ConversationID(randBytes(6))
 	clients := srv.makeAndRunClients(ctx, conversationID, n)
 	defer srv.stopClients()
 
@@ -258,7 +261,7 @@ func testAbsentees(t *testing.T, nTotal int, nAbsentees int) {
 	ctx := context.Background()
 	go srv.run(ctx)
 	defer srv.stop()
-	conversationID := ConversationID(randBytes(6))
+	conversationID := chat1.ConversationID(randBytes(6))
 	clients := srv.makeAndRunClients(ctx, conversationID, nTotal)
 	defer srv.stopClients()
 
@@ -285,7 +288,7 @@ func testCorruptions(t *testing.T, nTotal int, nCorruptions int) {
 	ctx := context.Background()
 	go srv.run(ctx)
 	defer srv.stop()
-	conversationID := ConversationID(randBytes(6))
+	conversationID := chat1.ConversationID(randBytes(6))
 	clients := srv.makeAndRunClients(ctx, conversationID, nTotal)
 	defer srv.stopClients()
 
@@ -334,7 +337,7 @@ func testBadLeader(t *testing.T, nTotal int) {
 	ctx := context.Background()
 	go srv.run(ctx)
 	defer srv.stop()
-	conversationID := ConversationID(randBytes(6))
+	conversationID := chat1.ConversationID(randBytes(6))
 	clients := srv.makeAndRunClients(ctx, conversationID, nTotal)
 	defer srv.stopClients()
 
@@ -353,7 +356,7 @@ func TestRepeatedGame(t *testing.T) {
 	ctx := context.Background()
 	go srv.run(ctx)
 	defer srv.stop()
-	conversationID := ConversationID(randBytes(6))
+	conversationID := chat1.ConversationID(randBytes(6))
 	clients := srv.makeAndRunClients(ctx, conversationID, 5)
 	defer srv.stopClients()
 
@@ -387,7 +390,7 @@ func testLeaderClockSkew(t *testing.T, skew time.Duration) {
 	ctx := context.Background()
 	go srv.run(ctx)
 	defer srv.stop()
-	conversationID := ConversationID(randBytes(6))
+	conversationID := chat1.ConversationID(randBytes(6))
 	n := 6
 	clients := srv.makeAndRunClients(ctx, conversationID, n)
 	defer srv.stopClients()
