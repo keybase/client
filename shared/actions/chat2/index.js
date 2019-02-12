@@ -1895,13 +1895,11 @@ const markThreadAsRead = (state, action) => {
     return
   }
 
-  if (action.type === Chat2Gen.changeFocus && action.payload.nextFocus !== null) {
-    logger.info('marking read bail on focusing inbox filter')
-    return
-  }
-
-  if (state.chat2.inboxFilter.toLowerCase().startsWith('@unread')) {
-    logger.info('marking read bail on filtering for unread convos')
+  if (
+    state.chat2.focus === 'filter' ||
+    (action.type === Chat2Gen.changeFocus && action.payload.nextFocus !== null)
+  ) {
+    logger.info('marking read bail on inbox filter focused')
     return
   }
 

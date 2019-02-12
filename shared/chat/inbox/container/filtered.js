@@ -108,13 +108,8 @@ const makeBigItem = (meta, filter, insertMatcher) => {
 const getFilteredRowsAndMetadata = memoize<Types.MetaMap, Types.ConversationCountMap, string, string, _>(
   (metaMap: Types.MetaMap, unread: Types.ConversationCountMap, filter: string, username: string) => {
     const metas = metaMap.valueSeq().toArray()
-    let lcFilter = filter.toLowerCase()
+    const lcFilter = filter.toLowerCase()
     const lcYou = username.toLowerCase()
-    let metasFiltered = metas
-    if (lcFilter.startsWith('@unread')) {
-      metasFiltered = metas.filter(m => unread.get(m.conversationIDKey, 0) > 0)
-      lcFilter = lcFilter.substring('@unread'.length).trim()
-    }
     const insertMatcher = new RegExp(
       `${lcFilter
         .replace(/ |#/g, '')
@@ -123,7 +118,7 @@ const getFilteredRowsAndMetadata = memoize<Types.MetaMap, Types.ConversationCoun
         .join('')}`,
       'i'
     )
-    const rows: Array<RowItem> = metasFiltered
+    const rows: Array<RowItem> = metas
       .map(meta =>
         meta.teamType !== 'big'
           ? makeSmallItem(meta, lcFilter, lcYou, insertMatcher)

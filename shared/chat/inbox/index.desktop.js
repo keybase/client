@@ -37,7 +37,7 @@ class Inbox extends React.PureComponent<Props, State> {
     }
 
     // filter / not filter
-    if (!!prevProps.filter !== !!this.props.filter) {
+    if (prevProps.filterHasFocus !== this.props.filterHasFocus) {
       listRowsResized = true
     }
 
@@ -69,7 +69,7 @@ class Inbox extends React.PureComponent<Props, State> {
   }
 
   _itemSizeGetter = index => {
-    if (this.props.filter.length) {
+    if (this.props.filterHasFocus) {
       return 56
     }
     const row = this.props.rows[index]
@@ -77,7 +77,7 @@ class Inbox extends React.PureComponent<Props, State> {
       return 0
     }
 
-    return getRowHeight(row.type, !!this.props.filter.length, row.showButton)
+    return getRowHeight(row.type, this.props.filterHasFocus, row.showButton)
   }
 
   _itemRenderer = (index, style) => {
@@ -107,7 +107,7 @@ class Inbox extends React.PureComponent<Props, State> {
         {makeRow({
           channelname: (row.type === 'big' && row.channelname) || '',
           conversationIDKey,
-          filtered: !!this.props.filter,
+          filtered: this.props.filterHasFocus,
           teamname,
           type: row.type,
         })}
@@ -116,7 +116,7 @@ class Inbox extends React.PureComponent<Props, State> {
   }
 
   _onItemsRendered = debounce(({visibleStartIndex, visibleStopIndex}) => {
-    if (this.props.filter.length) {
+    if (this.props.filterHasFocus) {
       return
     }
     if (this.props.clearedFilterCount > this._clearedFilterCount) {
@@ -158,7 +158,7 @@ class Inbox extends React.PureComponent<Props, State> {
   _onSelectDown = () => this.props.onSelectDown()
 
   render() {
-    const owl = !this.props.rows.length && !!this.props.filter && <Owl />
+    const owl = !this.props.rows.length && this.props.filterHasFocus && <Owl />
     const floatingDivider = this.state.showFloating && this.props.allowShowFloatingButton && (
       <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
     )

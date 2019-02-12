@@ -26,7 +26,7 @@ const mapStateToProps = state => {
   const filter = state.chat2.inboxFilter
   const filterHasFocus = state.chat2.focus === 'filter'
   const username = state.config.username
-  const {allowShowFloatingButton, rows, smallTeamsExpanded} = filter
+  const {allowShowFloatingButton, rows, smallTeamsExpanded} = filterHasFocus
     ? filteredRowData(metaMap, unreadMap, filter, username)
     : normalRowData(metaMap, state.chat2.smallTeamsExpanded)
   const neverLoaded = !state.chat2.inboxHasLoaded
