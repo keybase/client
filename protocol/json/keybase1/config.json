@@ -279,14 +279,14 @@
             "type": "array",
             "items": "notifyCtl.NotificationChannels"
           },
-          "name": "notifyMappings"
+          "name": "notifyRouterSubscriptions"
         },
         {
           "type": {
             "type": "map",
             "values": "int"
           },
-          "name": "uiRouterConnections"
+          "name": "uiRouterMapping"
         }
       ]
     },

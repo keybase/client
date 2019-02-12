@@ -79,8 +79,8 @@ protocol config {
     array<string> localDbStats;
     array<string> localChatDbStats;
     array<DirSizeInfo> cacheDirSizeInfo;
-    array<notifyCtl.NotificationChannels> notifyMappings;
-    map<int> uiRouterConnections;
+    array<notifyCtl.NotificationChannels> notifyRouterSubscriptions;
+    map<int> uiRouterMapping;
   }
 
   ExtendedStatus getExtendedStatus(int sessionID);
