@@ -789,6 +789,43 @@ func TestLoaderCORE_6230_2(t *testing.T) {
 	require.NoError(t, err, "load team")
 }
 
+func TestLoaderCORE_10160(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+	aliceG := tcs[0].G
+	bobG := tcs[1].G
+	bob := fus[1]
+	ctx := context.TODO()
+
+	t.Logf("alice creates root")
+	rootName, _ := createTeam2(*tcs[0])
+
+	t.Logf("alice creates root.bbb")
+	middleTeamName, _ := createSubteam(tcs[0], rootName, "bbb")
+
+	t.Logf("alice adds bob as an admin to root.bbb")
+	_, err := AddMember(ctx, aliceG, middleTeamName.String(), bob.Username, keybase1.TeamRole_ADMIN)
+	require.NoError(t, err, "add bob as an admin to the middle team")
+
+	t.Logf("bob creates root.bbb.ccc")
+	subTeamName, _ := createSubteam(tcs[1], middleTeamName, "ccc")
+
+	t.Logf("bob blows away his cache")
+	teamLoader := bobG.GetTeamLoader()
+	teamLoader.ClearMem()
+	bobG.FlushCaches()
+	bobG.LocalDb.Nuke()
+
+	t.Logf("bob tries to load the sub-sub team")
+	// he is an implicit admin of this team, but crucially
+	// not also a member of the root team at all
+	_, err = Load(ctx, bobG, keybase1.LoadTeamArg{
+		Name:        subTeamName.String(),
+		ForceRepoll: true,
+	})
+	require.NoError(t, err, "can load this team")
+}
+
 // Test that a link can be inflated even if the person who signed the (valid) link has since
 // lost permission to do so.
 func TestInflateAfterPermissionsChange(t *testing.T) {
