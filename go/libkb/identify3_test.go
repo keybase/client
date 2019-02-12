@@ -28,7 +28,7 @@ func (i *id3FakeUIRouter) GetChatUI() (ChatUI, error)                           
 func (i *id3FakeUIRouter) GetIdentify3UIAdapter(MetaContext) (IdentifyUI, error) {
 	return nil, nil
 }
-func (i *id3FakeUIRouter) DumpUIs() map[libkb.UIKind]libkb.ConnectionID {
+func (i *id3FakeUIRouter) DumpUIs() map[UIKind]ConnectionID {
 	return nil
 }
 func (i *id3FakeUIRouter) Shutdown() {}

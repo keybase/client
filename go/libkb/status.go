@@ -140,11 +140,13 @@ func GetExtendedStatus(m MetaContext) (res keybase1.ExtendedStatus, err error) {
 		res.CacheDirSizeInfo = cacheSizeInfo
 	}
 
-	uiMapping := map[string]int{}
-	for k, v := range g.UIRouter.DumpUIs() {
-		uiMapping[k.String()] = int(v)
+	if g.UIRouter != nil {
+		uiMapping := map[string]int{}
+		for k, v := range g.UIRouter.DumpUIs() {
+			uiMapping[k.String()] = int(v)
+		}
+		res.UiRouterMapping = uiMapping
 	}
-	res.UiRouterMapping = uiMapping
 
 	return res, nil
 }
