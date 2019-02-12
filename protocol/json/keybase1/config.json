@@ -4,6 +4,10 @@
     {
       "path": "common.avdl",
       "type": "idl"
+    },
+    {
+      "path": "notify_ctl.avdl",
+      "type": "idl"
     }
   ],
   "types": [
@@ -269,6 +273,20 @@
             "items": "DirSizeInfo"
           },
           "name": "cacheDirSizeInfo"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "notifyCtl.NotificationChannels"
+          },
+          "name": "notifyMappings"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "int"
+          },
+          "name": "uiRouterConnections"
         }
       ]
     },

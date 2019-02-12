@@ -119,29 +119,31 @@ func (o DirSizeInfo) DeepCopy() DirSizeInfo {
 }
 
 type ExtendedStatus struct {
-	Standalone             bool            `codec:"standalone" json:"standalone"`
-	PassphraseStreamCached bool            `codec:"passphraseStreamCached" json:"passphraseStreamCached"`
-	TsecCached             bool            `codec:"tsecCached" json:"tsecCached"`
-	DeviceSigKeyCached     bool            `codec:"deviceSigKeyCached" json:"deviceSigKeyCached"`
-	DeviceEncKeyCached     bool            `codec:"deviceEncKeyCached" json:"deviceEncKeyCached"`
-	PaperSigKeyCached      bool            `codec:"paperSigKeyCached" json:"paperSigKeyCached"`
-	PaperEncKeyCached      bool            `codec:"paperEncKeyCached" json:"paperEncKeyCached"`
-	StoredSecret           bool            `codec:"storedSecret" json:"storedSecret"`
-	SecretPromptSkip       bool            `codec:"secretPromptSkip" json:"secretPromptSkip"`
-	RememberPassphrase     bool            `codec:"rememberPassphrase" json:"rememberPassphrase"`
-	Device                 *Device         `codec:"device,omitempty" json:"device,omitempty"`
-	DeviceErr              *LoadDeviceErr  `codec:"deviceErr,omitempty" json:"deviceErr,omitempty"`
-	LogDir                 string          `codec:"logDir" json:"logDir"`
-	Session                *SessionStatus  `codec:"session,omitempty" json:"session,omitempty"`
-	DefaultUsername        string          `codec:"defaultUsername" json:"defaultUsername"`
-	ProvisionedUsernames   []string        `codec:"provisionedUsernames" json:"provisionedUsernames"`
-	Clients                []ClientDetails `codec:"Clients" json:"Clients"`
-	DeviceEkNames          []string        `codec:"deviceEkNames" json:"deviceEkNames"`
-	PlatformInfo           PlatformInfo    `codec:"platformInfo" json:"platformInfo"`
-	DefaultDeviceID        DeviceID        `codec:"defaultDeviceID" json:"defaultDeviceID"`
-	LocalDbStats           []string        `codec:"localDbStats" json:"localDbStats"`
-	LocalChatDbStats       []string        `codec:"localChatDbStats" json:"localChatDbStats"`
-	CacheDirSizeInfo       []DirSizeInfo   `codec:"cacheDirSizeInfo" json:"cacheDirSizeInfo"`
+	Standalone             bool                             `codec:"standalone" json:"standalone"`
+	PassphraseStreamCached bool                             `codec:"passphraseStreamCached" json:"passphraseStreamCached"`
+	TsecCached             bool                             `codec:"tsecCached" json:"tsecCached"`
+	DeviceSigKeyCached     bool                             `codec:"deviceSigKeyCached" json:"deviceSigKeyCached"`
+	DeviceEncKeyCached     bool                             `codec:"deviceEncKeyCached" json:"deviceEncKeyCached"`
+	PaperSigKeyCached      bool                             `codec:"paperSigKeyCached" json:"paperSigKeyCached"`
+	PaperEncKeyCached      bool                             `codec:"paperEncKeyCached" json:"paperEncKeyCached"`
+	StoredSecret           bool                             `codec:"storedSecret" json:"storedSecret"`
+	SecretPromptSkip       bool                             `codec:"secretPromptSkip" json:"secretPromptSkip"`
+	RememberPassphrase     bool                             `codec:"rememberPassphrase" json:"rememberPassphrase"`
+	Device                 *Device                          `codec:"device,omitempty" json:"device,omitempty"`
+	DeviceErr              *LoadDeviceErr                   `codec:"deviceErr,omitempty" json:"deviceErr,omitempty"`
+	LogDir                 string                           `codec:"logDir" json:"logDir"`
+	Session                *SessionStatus                   `codec:"session,omitempty" json:"session,omitempty"`
+	DefaultUsername        string                           `codec:"defaultUsername" json:"defaultUsername"`
+	ProvisionedUsernames   []string                         `codec:"provisionedUsernames" json:"provisionedUsernames"`
+	Clients                []ClientDetails                  `codec:"Clients" json:"Clients"`
+	DeviceEkNames          []string                         `codec:"deviceEkNames" json:"deviceEkNames"`
+	PlatformInfo           PlatformInfo                     `codec:"platformInfo" json:"platformInfo"`
+	DefaultDeviceID        DeviceID                         `codec:"defaultDeviceID" json:"defaultDeviceID"`
+	LocalDbStats           []string                         `codec:"localDbStats" json:"localDbStats"`
+	LocalChatDbStats       []string                         `codec:"localChatDbStats" json:"localChatDbStats"`
+	CacheDirSizeInfo       []DirSizeInfo                    `codec:"cacheDirSizeInfo" json:"cacheDirSizeInfo"`
+	NotifyMappings         []notifyCtl.NotificationChannels `codec:"notifyMappings" json:"notifyMappings"`
+	UiRouterConnections    map[string]int                   `codec:"uiRouterConnections" json:"uiRouterConnections"`
 }
 
 func (o ExtendedStatus) DeepCopy() ExtendedStatus {
@@ -247,6 +249,29 @@ func (o ExtendedStatus) DeepCopy() ExtendedStatus {
 			}
 			return ret
 		})(o.CacheDirSizeInfo),
+		NotifyMappings: (func(x []notifyCtl.NotificationChannels) []notifyCtl.NotificationChannels {
+			if x == nil {
+				return nil
+			}
+			ret := make([]notifyCtl.NotificationChannels, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.NotifyMappings),
+		UiRouterConnections: (func(x map[string]int) map[string]int {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]int, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.UiRouterConnections),
 	}
 }
 

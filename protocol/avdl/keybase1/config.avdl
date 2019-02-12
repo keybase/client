@@ -3,6 +3,7 @@
 protocol config {
 
   import idl "common.avdl";
+  import idl "notify_ctl.avdl";
 
   record GetCurrentStatusRes {
     boolean configured;
@@ -52,7 +53,6 @@ protocol config {
     string humanSize;
   }
 
-
   record ExtendedStatus {
     boolean standalone;
     boolean passphraseStreamCached;
@@ -79,6 +79,8 @@ protocol config {
     array<string> localDbStats;
     array<string> localChatDbStats;
     array<DirSizeInfo> cacheDirSizeInfo;
+    array<notifyCtl.NotificationChannels> notifyMappings;
+    map<int> uiRouterConnections;
   }
 
   ExtendedStatus getExtendedStatus(int sessionID);
