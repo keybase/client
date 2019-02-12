@@ -28,7 +28,6 @@ class Inbox extends React.PureComponent<Props, State> {
 
   _mounted: boolean = false
   _list: ?VariableSizeList<any>
-  _lastVisibleIndices = {visibleStartIndex: 0, visibleStopIndex: 0}
 
   componentDidUpdate(prevProps: Props) {
     let listRowsResized = false
@@ -111,7 +110,6 @@ class Inbox extends React.PureComponent<Props, State> {
     if (this.props.filter.length) {
       return
     }
-    this._lastVisibleIndices = {visibleStartIndex, visibleStopIndex}
     const toUnbox = this.props.rows.slice(visibleStartIndex, visibleStopIndex + 1).reduce((arr, r) => {
       if (r.type === 'small' && r.conversationIDKey) {
         arr.push(r.conversationIDKey)
