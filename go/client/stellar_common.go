@@ -81,12 +81,18 @@ func printPayment(g *libkb.GlobalContext, p stellar1.PaymentCLILocal, verbose bo
 		if len(p.NoteErr) > 0 {
 			lineUnescaped("Note Error: %v", ColorString(g, "red", p.NoteErr))
 		}
+		if len(p.PublicNote) > 0 {
+			lineUnescaped("Public Note: %v", ColorString(g, "yellow", printPaymentFilterNote(p.PublicNote)))
+		}
 	} else {
 		if len(p.Note) > 0 {
 			lineUnescaped("Note: %v", ColorString(g, "yellow", printPaymentFilterNote(terminalescaper.Clean(p.Note))))
 		}
 		if len(p.NoteErr) > 0 {
 			lineUnescaped("Note Error: %v", ColorString(g, "red", terminalescaper.Clean(p.NoteErr)))
+		}
+		if len(p.PublicNote) > 0 {
+			lineUnescaped("Public Note: %v", ColorString(g, "yellow", printPaymentFilterNote(terminalescaper.Clean(p.PublicNote))))
 		}
 	}
 	if verbose {

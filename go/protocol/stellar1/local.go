@@ -727,6 +727,8 @@ type PaymentCLILocal struct {
 	ToAssertion     *string       `codec:"toAssertion,omitempty" json:"toAssertion,omitempty"`
 	Note            string        `codec:"note" json:"note"`
 	NoteErr         string        `codec:"noteErr" json:"noteErr"`
+	PublicNote      string        `codec:"publicNote" json:"publicNote"`
+	PublicNoteType  string        `codec:"publicNoteType" json:"publicNoteType"`
 	Unread          bool          `codec:"unread" json:"unread"`
 }
 
@@ -781,9 +783,11 @@ func (o PaymentCLILocal) DeepCopy() PaymentCLILocal {
 			tmp := (*x)
 			return &tmp
 		})(o.ToAssertion),
-		Note:    o.Note,
-		NoteErr: o.NoteErr,
-		Unread:  o.Unread,
+		Note:           o.Note,
+		NoteErr:        o.NoteErr,
+		PublicNote:     o.PublicNote,
+		PublicNoteType: o.PublicNoteType,
+		Unread:         o.Unread,
 	}
 }
 

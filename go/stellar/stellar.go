@@ -1248,7 +1248,13 @@ func PaymentDetailCLILocal(ctx context.Context, g *libkb.GlobalContext, remoter 
 		return res, err
 	}
 	mctx := libkb.NewMetaContext(ctx, g)
-	return localizePayment(mctx, payment.Summary)
+	res, err = localizePayment(mctx, payment.Summary)
+	if err != nil {
+		return res, err
+	}
+	res.PublicNote = payment.Memo
+	res.PublicNoteType = payment.MemoType
+	return res, err
 }
 
 func localizePayment(mctx libkb.MetaContext, p stellar1.PaymentSummary) (res stellar1.PaymentCLILocal, err error) {
