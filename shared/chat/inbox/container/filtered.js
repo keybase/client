@@ -108,6 +108,7 @@ const getFilteredRowsAndMetadata = memoize<Types.MetaMap, string, string, void, 
     const lcYou = username.toLowerCase()
     const insertMatcher = new RegExp(
       `${filter
+        .replace(/ |#/g, '')
         .split('')
         .map(c => `${c}.*?`)
         .join('')}`,
