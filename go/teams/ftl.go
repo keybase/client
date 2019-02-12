@@ -83,6 +83,7 @@ func FTL(m libkb.MetaContext, arg keybase1.FastTeamLoadArg) (res keybase1.FastTe
 func (f *FastTeamChainLoader) Load(m libkb.MetaContext, arg keybase1.FastTeamLoadArg) (res keybase1.FastTeamLoadRes, err error) {
 	m = ftlLogTag(m)
 	defer m.TraceTimed(fmt.Sprintf("FastTeamChainLoader#Load(%+v)", arg), func() error { return err })()
+	originalArg := arg.DeepCopy()
 
 	err = f.featureFlagGate.ErrorIfFlagged(m)
 	if err != nil {
@@ -90,19 +91,27 @@ func (f *FastTeamChainLoader) Load(m libkb.MetaContext, arg keybase1.FastTeamLoa
 	}
 
 	res, err = f.loadOneAttempt(m, arg)
-	if err != nil || arg.AssertTeamName == nil || arg.AssertTeamName.Eq(res.Name) {
-		return res, err
-	}
-
-	m.Debug("Did not get expected subteam name; will reattempt with forceRefresh (%s != %s)", arg.AssertTeamName.String(), res.Name.String())
-	arg.ForceRefresh = true
-	res, err = f.loadOneAttempt(m, arg)
 	if err != nil {
 		return res, err
 	}
-	if !arg.AssertTeamName.Eq(res.Name) {
-		return res, NewBadNameError(fmt.Sprintf("After force-refresh, still bad team name: wanted %s, but got %s", arg.AssertTeamName.String(), res.Name.String()))
+
+	if arg.AssertTeamName != nil && !arg.AssertTeamName.Eq(res.Name) {
+		m.Debug("Did not get expected subteam name; will reattempt with forceRefresh (%s != %s)", arg.AssertTeamName.String(), res.Name.String())
+		arg.ForceRefresh = true
+		res, err = f.loadOneAttempt(m, arg)
+		if err != nil {
+			return res, err
+		}
+		if !arg.AssertTeamName.Eq(res.Name) {
+			return res, NewBadNameError(fmt.Sprintf("After force-refresh, still bad team name: wanted %s, but got %s", arg.AssertTeamName.String(), res.Name.String()))
+		}
 	}
+
+	newM, shouldReload := VerifyBoxAudit(m, res.Name.ToTeamID(arg.Public))
+	if shouldReload {
+		return f.Load(newM, originalArg)
+	}
+
 	return res, nil
 }
 

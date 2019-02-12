@@ -2675,3 +2675,16 @@ func (d FastTeamData) IsPublic() bool {
 func (f FullName) String() string {
 	return string(f)
 }
+
+func (h BoxSummaryHash) String() string {
+	return string(h)
+}
+
+func (r BoxAuditAttemptResult) IsOK() bool {
+	switch r {
+	case BoxAuditAttemptResult_OK_VERIFIED, BoxAuditAttemptResult_OK_NOT_ATTEMPTED_ROLE, BoxAuditAttemptResult_OK_NOT_ATTEMPTED_OPENTEAM, BoxAuditAttemptResult_OK_NOT_ATTEMPTED_SUBTEAM:
+		return true
+	default:
+		return false
+	}
+}

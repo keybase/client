@@ -393,6 +393,10 @@ func (p CommandLine) GetDisableTeamAuditor() (bool, bool) {
 	return p.GetBool("disable-team-auditor", true)
 }
 
+func (p CommandLine) GetDisableTeamBoxAuditor() (bool, bool) {
+	return p.GetBool("disable-team-box-auditor", true)
+}
+
 func (p CommandLine) GetDisableMerkleAuditor() (bool, bool) {
 	return p.GetBool("disable-merkle-auditor", true)
 }
@@ -707,6 +711,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.BoolFlag{
 			Name:  "disable-team-auditor",
 			Usage: "Disable auditing of teams",
+		},
+		cli.BoolFlag{
+			Name:  "disable-team-box-auditor",
+			Usage: "Disable box auditing of teams",
 		},
 		cli.BoolFlag{
 			Name:  "disable-merkle-auditor",

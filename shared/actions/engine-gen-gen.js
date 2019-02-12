@@ -100,6 +100,7 @@ export const keybase1LoginUiGetEmailOrUsername = 'engine-gen:keybase1LoginUiGetE
 export const keybase1LoginUiPromptRevokePaperKeys = 'engine-gen:keybase1LoginUiPromptRevokePaperKeys'
 export const keybase1LogsendPrepareLogsend = 'engine-gen:keybase1LogsendPrepareLogsend'
 export const keybase1NotifyAppExit = 'engine-gen:keybase1NotifyAppExit'
+export const keybase1NotifyAuditBoxAuditError = 'engine-gen:keybase1NotifyAuditBoxAuditError'
 export const keybase1NotifyAuditRootAuditError = 'engine-gen:keybase1NotifyAuditRootAuditError'
 export const keybase1NotifyBadgesBadgeState = 'engine-gen:keybase1NotifyBadgesBadgeState'
 export const keybase1NotifyCanUserPerformCanUserPerformChanged = 'engine-gen:keybase1NotifyCanUserPerformCanUserPerformChanged'
@@ -271,6 +272,7 @@ type _Keybase1LoginUiGetEmailOrUsernamePayload = $ReadOnly<{|params: $Exact<$Pro
 type _Keybase1LoginUiPromptRevokePaperKeysPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.promptRevokePaperKeys'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.promptRevokePaperKeys'>, 'outParam'>) => void}|}>
 type _Keybase1LogsendPrepareLogsendPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.logsend.prepareLogsend'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.logsend.prepareLogsend'>, 'outParam'>) => void}|}>
 type _Keybase1NotifyAppExitPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyApp.exit'>, 'inParam'>> & {|sessionID: number|}, response: {error: keybase1Types.IncomingErrorCallback, result: ($PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyApp.exit'>, 'outParam'>) => void}|}>
+type _Keybase1NotifyAuditBoxAuditErrorPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyAudit.boxAuditError'>, 'inParam'>> & {|sessionID: number|}|}>
 type _Keybase1NotifyAuditRootAuditErrorPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyAudit.rootAuditError'>, 'inParam'>> & {|sessionID: number|}|}>
 type _Keybase1NotifyBadgesBadgeStatePayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyBadges.badgeState'>, 'inParam'>> & {|sessionID: number|}|}>
 type _Keybase1NotifyCanUserPerformCanUserPerformChangedPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyCanUserPerform.canUserPerformChanged'>, 'inParam'>> & {|sessionID: number|}|}>
@@ -442,6 +444,7 @@ export const createKeybase1LoginUiGetEmailOrUsername = (payload: _Keybase1LoginU
 export const createKeybase1LoginUiPromptRevokePaperKeys = (payload: _Keybase1LoginUiPromptRevokePaperKeysPayload) => ({payload, type: keybase1LoginUiPromptRevokePaperKeys})
 export const createKeybase1LogsendPrepareLogsend = (payload: _Keybase1LogsendPrepareLogsendPayload) => ({payload, type: keybase1LogsendPrepareLogsend})
 export const createKeybase1NotifyAppExit = (payload: _Keybase1NotifyAppExitPayload) => ({payload, type: keybase1NotifyAppExit})
+export const createKeybase1NotifyAuditBoxAuditError = (payload: _Keybase1NotifyAuditBoxAuditErrorPayload) => ({payload, type: keybase1NotifyAuditBoxAuditError})
 export const createKeybase1NotifyAuditRootAuditError = (payload: _Keybase1NotifyAuditRootAuditErrorPayload) => ({payload, type: keybase1NotifyAuditRootAuditError})
 export const createKeybase1NotifyBadgesBadgeState = (payload: _Keybase1NotifyBadgesBadgeStatePayload) => ({payload, type: keybase1NotifyBadgesBadgeState})
 export const createKeybase1NotifyCanUserPerformCanUserPerformChanged = (payload: _Keybase1NotifyCanUserPerformCanUserPerformChangedPayload) => ({payload, type: keybase1NotifyCanUserPerformCanUserPerformChanged})
@@ -613,6 +616,7 @@ export type Keybase1LoginUiGetEmailOrUsernamePayload = {|+payload: _Keybase1Logi
 export type Keybase1LoginUiPromptRevokePaperKeysPayload = {|+payload: _Keybase1LoginUiPromptRevokePaperKeysPayload, +type: 'engine-gen:keybase1LoginUiPromptRevokePaperKeys'|}
 export type Keybase1LogsendPrepareLogsendPayload = {|+payload: _Keybase1LogsendPrepareLogsendPayload, +type: 'engine-gen:keybase1LogsendPrepareLogsend'|}
 export type Keybase1NotifyAppExitPayload = {|+payload: _Keybase1NotifyAppExitPayload, +type: 'engine-gen:keybase1NotifyAppExit'|}
+export type Keybase1NotifyAuditBoxAuditErrorPayload = {|+payload: _Keybase1NotifyAuditBoxAuditErrorPayload, +type: 'engine-gen:keybase1NotifyAuditBoxAuditError'|}
 export type Keybase1NotifyAuditRootAuditErrorPayload = {|+payload: _Keybase1NotifyAuditRootAuditErrorPayload, +type: 'engine-gen:keybase1NotifyAuditRootAuditError'|}
 export type Keybase1NotifyBadgesBadgeStatePayload = {|+payload: _Keybase1NotifyBadgesBadgeStatePayload, +type: 'engine-gen:keybase1NotifyBadgesBadgeState'|}
 export type Keybase1NotifyCanUserPerformCanUserPerformChangedPayload = {|+payload: _Keybase1NotifyCanUserPerformCanUserPerformChangedPayload, +type: 'engine-gen:keybase1NotifyCanUserPerformCanUserPerformChanged'|}
@@ -786,6 +790,7 @@ export type Actions =
   | Keybase1LoginUiPromptRevokePaperKeysPayload
   | Keybase1LogsendPrepareLogsendPayload
   | Keybase1NotifyAppExitPayload
+  | Keybase1NotifyAuditBoxAuditErrorPayload
   | Keybase1NotifyAuditRootAuditErrorPayload
   | Keybase1NotifyBadgesBadgeStatePayload
   | Keybase1NotifyCanUserPerformCanUserPerformChangedPayload

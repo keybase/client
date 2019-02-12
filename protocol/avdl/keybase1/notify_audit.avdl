@@ -4,4 +4,7 @@ protocol NotifyAudit {
 
   @notify("")
   void rootAuditError(string message);
+
+  @notify("")
+  void boxAuditError(string message);
 }

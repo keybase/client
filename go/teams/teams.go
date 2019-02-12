@@ -903,6 +903,10 @@ func (t *Team) GetActiveAndObsoleteInvites() (ret map[keybase1.TeamInviteID]keyb
 	return ret
 }
 
+func (t *Team) GetBoxSummaryHashes() map[keybase1.PerTeamKeyGeneration][]keybase1.BoxSummaryHash {
+	return t.chain().inner.BoxSummaryHashes
+}
+
 // If uv.Uid is set, then username is ignored.
 // Otherwise resolvedUsername and uv are ignored.
 func (t *Team) InviteMember(ctx context.Context, username string, role keybase1.TeamRole, resolvedUsername libkb.NormalizedUsername, uv keybase1.UserVersion) (keybase1.TeamAddMemberResult, error) {

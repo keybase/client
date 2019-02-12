@@ -1099,8 +1099,25 @@
             "MerkleRootV2"
           ],
           "name": "headMerkle"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": {
+              "type": "array",
+              "items": "BoxSummaryHash"
+            },
+            "keys": "PerTeamKeyGeneration"
+          },
+          "name": "boxSummaryHashes"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "BoxSummaryHash",
+      "fields": [],
+      "typedef": "string"
     },
     {
       "type": "record",

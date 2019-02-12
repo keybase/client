@@ -474,7 +474,15 @@ protocol teams {
     // of TeamSigChainState. Thus, if you need it, you should check if it's there,
     // and if not, fetch the chainlink from the server and check against linksIDs[1].
     union { null, MerkleRootV2 } headMerkle;
+
+    // Each generation has n batches of per team key additions: one for the
+    // initial rotation of team member boxes and more for each link adding a
+    // member.
+    map<PerTeamKeyGeneration, array<BoxSummaryHash>> boxSummaryHashes;
   }
+
+  @typedef("string")
+  record BoxSummaryHash {}
 
   // The team got this name at this point in time.
   record TeamNameLogPoint {
