@@ -32,6 +32,7 @@ const mapStateToProps = state => {
 
   return {
     _canRefreshOnMount,
+    _hasLoadedTrusted: state.chat2.trustedInboxHasLoaded,
     _selectedConversationIDKey: Constants.getSelectedConversation(state),
     allowShowFloatingButton,
     filter,
@@ -42,6 +43,8 @@ const mapStateToProps = state => {
 }
 
 const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
+  _onInitialLoad: (conversationIDKeys: Array<Types.ConversationIDKey>) =>
+    dispatch(Chat2Gen.createMetaNeedsUpdating({conversationIDKeys, reason: 'initialTrustedLoad'})),
   _onSelect: (conversationIDKey: Types.ConversationIDKey) =>
     dispatch(Chat2Gen.createSelectConversation({conversationIDKey, reason: 'inboxFilterChanged'})),
   _onSelectNext: (rows, selectedConversationIDKey, direction) => {
@@ -84,6 +87,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
   )
   return {
     _canRefreshOnMount: stateProps._canRefreshOnMount,
+    _hasLoadedTrusted: stateProps._hasLoadedTrusted,
+    _onInitialLoad: dispatchProps._onInitialLoad,
     _refreshInbox: dispatchProps._refreshInbox,
     allowShowFloatingButton: stateProps.allowShowFloatingButton,
     filter: stateProps.filter,
@@ -113,6 +118,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 type Props = $Diff<
   {|
     ..._Props,
+    _hasLoadedTrusted: boolean,
+    _onInitialLoad: (Array<Types.ConversationIDKey>) => void,
     _refreshInbox: () => void,
     _canRefreshOnMount: boolean,
   |},
@@ -143,16 +150,7 @@ class InboxWrapper extends React.PureComponent<Props, State> {
     if (this.props._canRefreshOnMount) {
       this.props._refreshInbox()
     }
-  }
-
-  componentDidUpdate(prevProps) {
-    const loadedForTheFirstTime =
-      !prevProps.filter && prevProps.rows.length === 0 && this.props.rows.length > 0
-    // See if the first 6 are small, this implies it's expanded
-    const smallRowsPlusOne = prevProps.rows.slice(0, 6).filter(r => r.type === 'small')
-    // !prevProps.filter because that's a false positive
-    const expandedForTheFirstTime = !prevProps.filter && smallRowsPlusOne.length > 5
-    if (loadedForTheFirstTime || expandedForTheFirstTime) {
+    if (!this.props._hasLoadedTrusted && this.props.rows.length) {
       const toUnbox = this.props.rows.slice(0, 20).reduce((arr, row) => {
         if (row.type === 'small' || row.type === 'big') {
           arr.push(row.conversationIDKey)
@@ -160,10 +158,12 @@ class InboxWrapper extends React.PureComponent<Props, State> {
         return arr
       }, [])
       if (toUnbox.length) {
-        this.props.onUntrustedInboxVisible(toUnbox)
+        this.props._onInitialLoad(toUnbox)
       }
     }
+  }
 
+  componentDidUpdate(prevProps) {
     // check if we cleared filter to tell inbox to skip unboxing
     if (prevProps.filter.length && !this.props.filter.length) {
       this.setState(s => ({
@@ -173,7 +173,7 @@ class InboxWrapper extends React.PureComponent<Props, State> {
   }
 
   render() {
-    const {_refreshInbox, _canRefreshOnMount, ...rest} = this.props
+    const {_hasLoadedTrusted, _refreshInbox, _onInitialLoad, _canRefreshOnMount, ...rest} = this.props
     return (
       <Inbox
         {...rest}

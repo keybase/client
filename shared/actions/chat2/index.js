@@ -88,7 +88,13 @@ function* inboxRefresh(state, action) {
       .filter(Boolean)
     // Check if some of our existing stored metas might no longer be valid
     return Saga.put(
-      Chat2Gen.createMetasReceived({clearExistingMessages, clearExistingMetas, fromInboxRefresh: true, metas})
+      Chat2Gen.createMetasReceived({
+        clearExistingMessages,
+        clearExistingMetas,
+        fromInboxRefresh: true,
+        initialTrustedLoad: reason === 'initialTrustedLoad',
+        metas,
+      })
     )
   }
 
