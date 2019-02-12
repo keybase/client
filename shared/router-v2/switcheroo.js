@@ -1,6 +1,6 @@
 // @flow
 // Switches between the route-tree router and the new router
-import React, {PureComponent} from 'react'
+import * as React from 'react'
 import RenderRoute from '../route-tree/render-route'
 import Router from './router'
 import {connect} from '../util/container'
@@ -12,7 +12,6 @@ type OwnProps = {|
   oldRouteDef: RouteDefNode,
   oldRouteState: RouteStateNode,
   oldSetRouteState: (path: Path, partialState: {}) => void,
-  newRoutePath: any, // TODO add a real type to this
 |}
 
 type Props = {|
@@ -20,11 +19,10 @@ type Props = {|
   oldRouteDef: RouteDefNode,
   oldRouteState: RouteStateNode,
   oldSetRouteState: (path: Path, partialState: {}) => void,
-  newRoutePath: any, // TODO add a real type to this
   updateNavigator: any => void,
 |}
 
-class RouterSwitcheroo extends PureComponent<Props> {
+class RouterSwitcheroo extends React.PureComponent<Props> {
   render() {
     if (this.props.useNewRouter) {
       return <Router ref={r => this.props.updateNavigator(r)} />

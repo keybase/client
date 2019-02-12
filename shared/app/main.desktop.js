@@ -1,7 +1,7 @@
 // @flow
 import {hot} from 'react-hot-loader/root'
 import * as RouteTreeGen from '../actions/route-tree-gen'
-import React, {Component} from 'react'
+import * as React from 'react'
 import RouterSwitcheroo from '../router-v2/switcheroo'
 import {connect} from '../util/container'
 import * as SafeElectron from '../util/safe-electron.desktop'
@@ -27,7 +27,7 @@ type Props = {
 }
 
 // TODO move all this badge handling to menubar side
-class Main extends Component<Props> {
+class Main extends React.PureComponent<Props> {
   _updateBadges = () => {
     SafeElectron.getIpcRenderer().send('showTray', this.props.widgetBadge, this.props.desktopAppBadgeCount)
     // Windows just lets us set (or unset, with null) a single 16x16 icon
@@ -58,7 +58,6 @@ class Main extends Component<Props> {
     return (
       <RouterSwitcheroo
         useNewRouter={this.props.useNewRouter}
-        newRoutePath={[]}
         oldRouteDef={this.props.routeDef}
         oldRouteState={this.props.routeState}
         oldSetRouteState={this.props.setRouteState}
