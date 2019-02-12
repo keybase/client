@@ -214,9 +214,9 @@ type TeamHeaderRow =
   | JoinChannelRow
   | LeaveChannelRow
   | MinWriterRoleRow
+  | AddPeopleRow
 
 type Row =
-  | AddPeopleRow
   | ParticipantRow
   | SpacerRow
   | DividerRow
@@ -447,11 +447,16 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
         teamname,
         type: 'small team header',
       }
+      let addPeopleRows = []
+      if (props.admin && props.teamname && !props.isPreview) {
+        addPeopleRows = [{key: 'add people', teamname: props.teamname, type: 'add people'}]
+      }
       if (props.smallTeam) {
         // Small team.
         headerRows = [
           {height: globalMargins.small, key: nextKey(), type: 'spacer'},
           smallTeamHeaderRow,
+          ...addPeopleRows,
           {
             key: nextKey(),
             marginBottom: 20,
@@ -553,6 +558,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
               type: 'divider',
             },
             smallTeamHeaderRow,
+            ...addPeopleRows,
             {
               key: nextKey(),
               marginTop: globalMargins.tiny,
@@ -584,6 +590,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
               type: 'divider',
             },
             smallTeamHeaderRow,
+            ...addPeopleRows,
             {
               key: nextKey(),
               marginTop: globalMargins.tiny,
@@ -643,9 +650,6 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
         }
       }
       rows = headerRows.concat(participants)
-      if (props.admin && props.teamname && !props.isPreview) {
-        rows = rows.concat({key: 'add people', teamname: props.teamname, type: 'add people'})
-      }
     } else {
       // Conversation.
       rows = participants.concat([
