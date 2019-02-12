@@ -645,15 +645,10 @@
       "github.com/keybase/client/go/uidmap" : 1
    },
    "github.com/keybase/client/go/gregor/client" : {
-      "github.com/keybase/client/go/badges" : 1,
-      "github.com/keybase/client/go/chat" : 1,
       "github.com/keybase/client/go/client" : 1,
       "github.com/keybase/client/go/gregor/client" : 1,
       "github.com/keybase/client/go/keybase" : 1,
       "github.com/keybase/client/go/service" : 1,
-      "github.com/keybase/client/go/stellar" : 1,
-      "github.com/keybase/client/go/stellar/stellargregor" : 1,
-      "github.com/keybase/client/go/stellar/stellarsvc" : 1,
       "github.com/keybase/client/go/systests" : 1
    },
    "github.com/keybase/client/go/gregor/storage" : {
