@@ -5,14 +5,10 @@ package flip
 
 import (
 	"errors"
+	chat1 "github.com/keybase/client/go/protocol/chat1"
+	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
-
-type Time int64
-
-func (o Time) DeepCopy() Time {
-	return o
-}
 
 type GameID []byte
 
@@ -25,41 +21,8 @@ func (o GameID) DeepCopy() GameID {
 	})(o)
 }
 
-type UID []byte
-
-func (o UID) DeepCopy() UID {
-	return (func(x []byte) []byte {
-		if x == nil {
-			return nil
-		}
-		return append([]byte{}, x...)
-	})(o)
-}
-
-type ConversationID []byte
-
-func (o ConversationID) DeepCopy() ConversationID {
-	return (func(x []byte) []byte {
-		if x == nil {
-			return nil
-		}
-		return append([]byte{}, x...)
-	})(o)
-}
-
-type DeviceID []byte
-
-func (o DeviceID) DeepCopy() DeviceID {
-	return (func(x []byte) []byte {
-		if x == nil {
-			return nil
-		}
-		return append([]byte{}, x...)
-	})(o)
-}
-
 type Start struct {
-	StartTime            Time           `codec:"startTime" json:"startTime"`
+	StartTime            gregor1.Time   `codec:"startTime" json:"startTime"`
 	CommitmentWindowMsec int64          `codec:"commitmentWindowMsec" json:"commitmentWindowMsec"`
 	RevealWindowMsec     int64          `codec:"revealWindowMsec" json:"revealWindowMsec"`
 	SlackMsec            int64          `codec:"slackMsec" json:"slackMsec"`
@@ -77,8 +40,8 @@ func (o Start) DeepCopy() Start {
 }
 
 type UserDevice struct {
-	D DeviceID `codec:"d" json:"d"`
-	U UID      `codec:"u" json:"u"`
+	D gregor1.DeviceID `codec:"d" json:"d"`
+	U gregor1.UID      `codec:"u" json:"u"`
 }
 
 func (o UserDevice) DeepCopy() UserDevice {
@@ -89,9 +52,9 @@ func (o UserDevice) DeepCopy() UserDevice {
 }
 
 type GameMetadata struct {
-	Initiator      UserDevice     `codec:"initiator" json:"initiator"`
-	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
-	GameID         GameID         `codec:"gameID" json:"gameID"`
+	Initiator      UserDevice           `codec:"initiator" json:"initiator"`
+	ConversationID chat1.ConversationID `codec:"conversationID" json:"conversationID"`
+	GameID         GameID               `codec:"gameID" json:"gameID"`
 }
 
 func (o GameMetadata) DeepCopy() GameMetadata {

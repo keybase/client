@@ -2,11 +2,13 @@ package flip
 
 import (
 	"context"
-	clockwork "github.com/keybase/clockwork"
 	"io"
 	"math/big"
 	"sync"
 	"time"
+
+	chat1 "github.com/keybase/client/go/protocol/chat1"
+	clockwork "github.com/keybase/clockwork"
 )
 
 // GameMessageEncoded is a game message that is shipped over the chat channel. Inside, it's a base64-encoded
@@ -53,7 +55,7 @@ type DealersHelper interface {
 	Clock() clockwork.Clock
 	ServerTime(context.Context) (time.Time, error)
 	ReadHistory(ctx context.Context, since time.Time) ([]GameMessageWrappedEncoded, error)
-	SendChat(ctx context.Context, ch ConversationID, gameID GameID, msg GameMessageEncoded) error
+	SendChat(ctx context.Context, ch chat1.ConversationID, gameID GameID, msg GameMessageEncoded) error
 	Me() UserDevice
 }
 
@@ -105,21 +107,23 @@ func (d *Dealer) Stop() {
 
 // StartFlip starts a new flip. Pass it some start parameters as well as a chat conversationID that it
 // will take place in.
-func (d *Dealer) StartFlip(ctx context.Context, start Start, conversationID ConversationID) (err error) {
+func (d *Dealer) StartFlip(ctx context.Context, start Start, conversationID chat1.ConversationID) (err error) {
 	_, err = d.startFlip(ctx, start, conversationID)
 	return err
 }
 
-// StartFlipWithGame starts a new flip. Pass it some start parameters as well as a chat conversationID that it
+// StartFlipWithGameID starts a new flip. Pass it some start parameters as well as a chat conversationID that it
 // will take place in. Also takes a GameID
-func (d *Dealer) StartFlipWithGameID(ctx context.Context, start Start, conversationID ConversationID, gameID GameID) (err error) {
+func (d *Dealer) StartFlipWithGameID(ctx context.Context, start Start, conversationID chat1.ConversationID,
+	gameID GameID) (err error) {
 	_, err = d.startFlipWithGameID(ctx, start, conversationID, gameID)
 	return err
 }
 
 // InjectIncomingChat should be called whenever a new flip game comes in that's relevant for flips. Call this with
 // the sender's information, the channel informatino, and the body data that came in.
-func (d *Dealer) InjectIncomingChat(ctx context.Context, sender UserDevice, conversationID ConversationID, gameID GameID, body GameMessageEncoded) error {
+func (d *Dealer) InjectIncomingChat(ctx context.Context, sender UserDevice,
+	conversationID chat1.ConversationID, gameID GameID, body GameMessageEncoded) error {
 	gmwe := GameMessageWrappedEncoded{
 		Sender: sender,
 		GameID: gameID,

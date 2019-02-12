@@ -7,6 +7,9 @@ import (
 	"math/big"
 	"strings"
 	"time"
+
+	chat1 "github.com/keybase/client/go/protocol/chat1"
+	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 )
 
 type GameMessageWrapped struct {
@@ -30,7 +33,7 @@ func (g GameMetadata) String() string {
 }
 
 func (g GameMetadata) check() bool {
-	return g.Initiator.check() && g.ConversationID.check() && g.GameID.check()
+	return g.Initiator.check() && !g.ConversationID.IsNil() && g.GameID.check()
 }
 
 func (m GameMessageWrapped) GameMetadata() GameMetadata {
@@ -46,7 +49,7 @@ func (u UserDevice) ToKey() UserDeviceKey {
 }
 
 func (u UserDevice) check() bool {
-	return u.U.check() && u.D.check()
+	return u.U.Bytes() != nil && u.D.Bytes() != nil
 }
 
 func (g GameID) ToKey() GameIDKey {
@@ -666,11 +669,12 @@ func (p *playerControl) GameMetadata() GameMetadata {
 	return p.md
 }
 
-func (d *Dealer) startFlip(ctx context.Context, start Start, conversationID ConversationID) (pc *playerControl, err error) {
+func (d *Dealer) startFlip(ctx context.Context, start Start, conversationID chat1.ConversationID) (pc *playerControl, err error) {
 	return d.startFlipWithGameID(ctx, start, conversationID, GenerateGameID())
 }
 
-func (d *Dealer) startFlipWithGameID(ctx context.Context, start Start, conversationID ConversationID, gameID GameID) (pc *playerControl, err error) {
+func (d *Dealer) startFlipWithGameID(ctx context.Context, start Start, conversationID chat1.ConversationID,
+	gameID GameID) (pc *playerControl, err error) {
 	md := GameMetadata{
 		Initiator:      d.dh.Me(),
 		ConversationID: conversationID,
@@ -715,7 +719,7 @@ func (d *Dealer) sendOutgoingChat(ctx context.Context, md GameMetadata, me *play
 
 func newStart(now time.Time) Start {
 	return Start{
-		StartTime:            ToTime(now),
+		StartTime:            gregor1.ToTime(now),
 		CommitmentWindowMsec: 3 * 1000,
 		RevealWindowMsec:     30 * 1000,
 		SlackMsec:            1 * 1000,

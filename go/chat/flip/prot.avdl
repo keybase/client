@@ -2,25 +2,14 @@
 @namespace("flip")
 
 protocol flip {
-
-  // Time in milliseconds since the epoch
-  @typedef("long")
-  record Time {}
+  import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
+  import idl "github.com/keybase/client/go/protocol/chat1" as chat1;
 
   @typedef("bytes")
   record GameID {}
 
-  @typedef("bytes")
-  record UID {}
-
-  @typedef("bytes")
-  record ConversationID {}
-
-  @typedef("bytes")
-  record DeviceID {}
-
   record Start {
-    Time startTime;
+    gregor1.Time startTime;
     // How long the commitment window lasts
     long commitmentWindowMsec;
     // How long the reveal window lasts
@@ -31,13 +20,13 @@ protocol flip {
   }
 
   record UserDevice {
-    DeviceID d;
-    UID u;
+    gregor1.DeviceID d;
+    gregor1.UID u;
   }
 
   record GameMetadata {
     UserDevice initiator;
-    ConversationID conversationID;
+    chat1.ConversationID conversationID;
     GameID gameID;
   }
 

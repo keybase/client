@@ -6,35 +6,13 @@ import (
 	"encoding/hex"
 	"fmt"
 	"time"
+
+	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 )
 
-func (g GameID) String() string                   { return hex.EncodeToString(g) }
-func (u UID) String() string                      { return hex.EncodeToString(u) }
-func (d DeviceID) String() string                 { return hex.EncodeToString(d) }
-func (c ConversationID) String() string           { return hex.EncodeToString(c) }
-func (g GameID) Eq(h GameID) bool                 { return hmac.Equal(g[:], h[:]) }
-func (u UID) Eq(v UID) bool                       { return hmac.Equal(u[:], v[:]) }
-func (d DeviceID) Eq(e DeviceID) bool             { return hmac.Equal(d[:], e[:]) }
-func (u UserDevice) Eq(v UserDevice) bool         { return u.U.Eq(v.U) && u.D.Eq(v.D) }
-func (c ConversationID) Eq(d ConversationID) bool { return hmac.Equal(c[:], d[:]) }
-
-func (t Time) Time() time.Time {
-	if t == 0 {
-		return time.Time{}
-	}
-	return time.Unix(0, int64(t)*1000000)
-}
-
-func (t Time) Duration() time.Duration {
-	return time.Duration(t) * time.Millisecond
-}
-
-func ToTime(t time.Time) Time {
-	if t.IsZero() {
-		return 0
-	}
-	return Time(t.UnixNano() / 1000000)
-}
+func (g GameID) String() string           { return hex.EncodeToString(g) }
+func (g GameID) Eq(h GameID) bool         { return hmac.Equal(g[:], h[:]) }
+func (u UserDevice) Eq(v UserDevice) bool { return u.U.Eq(v.U) && u.D.Eq(v.D) }
 
 func GenerateGameID() GameID {
 	l := 12
@@ -50,11 +28,11 @@ func GenerateGameID() GameID {
 }
 
 func (s Start) CommitmentWindowWithSlack() time.Duration {
-	return Time(s.CommitmentWindowMsec + s.SlackMsec).Duration()
+	return gregor1.DurationMsec(s.CommitmentWindowMsec + s.SlackMsec).ToDuration()
 }
 
 func (s Start) RevealWindowWithSlack() time.Duration {
-	return Time(s.CommitmentWindowMsec + s.RevealWindowMsec + 2*s.SlackMsec).Duration()
+	return gregor1.DurationMsec(s.CommitmentWindowMsec + s.RevealWindowMsec + 2*s.SlackMsec).ToDuration()
 }
 
 func isZero(v []byte) bool {
@@ -66,12 +44,5 @@ func isZero(v []byte) bool {
 	return true
 }
 
-func (c ConversationID) IsZero() bool { return isZero(c[:]) }
-func (u UID) IsZero() bool            { return isZero(u[:]) }
-func (d DeviceID) IsZero() bool       { return isZero(d[:]) }
-func (g GameID) IsZero() bool         { return isZero(g[:]) }
-
-func (c ConversationID) check() bool { return c != nil && !c.IsZero() }
-func (u UID) check() bool            { return u != nil && !u.IsZero() }
-func (d DeviceID) check() bool       { return d != nil && !d.IsZero() }
-func (g GameID) check() bool         { return g != nil && !g.IsZero() }
+func (g GameID) IsZero() bool { return isZero(g[:]) }
+func (g GameID) check() bool  { return g != nil && !g.IsZero() }

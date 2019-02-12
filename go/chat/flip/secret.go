@@ -5,6 +5,9 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"fmt"
+
+	chat1 "github.com/keybase/client/go/protocol/chat1"
+	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 )
 
 func (s *Secret) XOR(t Secret) *Secret {
@@ -41,13 +44,13 @@ func (s Secret) Eq(t Secret) bool {
 }
 
 type CommitmentPayload struct {
-	_struct bool           `codec:",toarray"`
-	V       Version        `codec:"v" json:"v"`
-	U       UID            `codec:"u" json:"u"`
-	D       DeviceID       `codec:"d" json:"d"`
-	C       ConversationID `codec:"c" json:"c"`
-	G       GameID         `codec:"i" json:"i"`
-	S       Time           `codec:"s" json:"s"`
+	_struct bool                 `codec:",toarray"`
+	V       Version              `codec:"v" json:"v"`
+	U       gregor1.UID          `codec:"u" json:"u"`
+	D       gregor1.DeviceID     `codec:"d" json:"d"`
+	C       chat1.ConversationID `codec:"c" json:"c"`
+	G       GameID               `codec:"i" json:"i"`
+	S       gregor1.Time         `codec:"s" json:"s"`
 }
 
 func (s Secret) computeCommitment(cp CommitmentPayload) (Commitment, error) {

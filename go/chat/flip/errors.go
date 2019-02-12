@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+
+	chat1 "github.com/keybase/client/go/protocol/chat1"
 )
 
 type Error struct {
@@ -202,7 +204,7 @@ func (g GameShutdownError) Error() string {
 
 type BadChannelError struct {
 	G GameMetadata
-	C ConversationID
+	C chat1.ConversationID
 }
 
 func (b BadChannelError) Error() string {
