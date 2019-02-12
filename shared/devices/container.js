@@ -18,7 +18,8 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
   loadDevices: () => dispatch(DevicesGen.createLoad()),
-  onAddDevice: () => dispatch(navigateAppend(['addDevice'])),
+  onAddDevice: (highlight?: Array<'computer' | 'phone' | 'paper key'>) =>
+    dispatch(navigateAppend([{props: {highlight}, selected: 'addDevice'}])),
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
@@ -44,6 +45,8 @@ function mergeProps(stateProps, dispatchProps, ownProps: OwnProps) {
   const [revoked, normal] = splitAndSortDevices(stateProps._deviceMap)
   const revokedItems = revoked.map(deviceToItem)
   const newlyRevokedIds = I.Set(revokedItems.map(d => d.key)).intersect(stateProps._newlyChangedItemIds)
+  const showPaperKeyNudge =
+    !stateProps._deviceMap.isEmpty() && !stateProps._deviceMap.some(v => v.type === 'backup')
   return {
     _stateOverride: null,
     hasNewlyRevoked: newlyRevokedIds.size > 0,
@@ -52,6 +55,7 @@ function mergeProps(stateProps, dispatchProps, ownProps: OwnProps) {
     onAddDevice: dispatchProps.onAddDevice,
     onBack: dispatchProps.onBack,
     revokedItems: revokedItems,
+    showPaperKeyNudge,
     title: 'Devices',
     waiting: stateProps.waiting,
   }
@@ -75,6 +79,7 @@ class ReloadableDevices extends React.PureComponent<React.ElementConfig<typeof D
           loadDevices={this.props.loadDevices}
           onBack={this.props.onBack}
           revokedItems={this.props.revokedItems}
+          showPaperKeyNudge={this.props.showPaperKeyNudge}
           title={this.props.title}
           waiting={this.props.waiting}
         />
