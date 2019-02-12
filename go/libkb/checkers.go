@@ -14,7 +14,7 @@ import (
 
 var emailRE = regexp.MustCompile(`^\S+@\S+\.\S+$`)
 
-var deviceRE = regexp.MustCompile(`^[a-zA-Z0-9][ _'a-zA-Z0-9+-]*$`)
+var deviceRE = regexp.MustCompile(`^[a-zA-Z0-9][ _'a-zA-Z0-9+-—–‘’]*$`)
 var badDeviceRE = regexp.MustCompile(`  |[ '+_-]$|['+_-][ ]?['+_-]`)
 
 var CheckEmail = Checker{
@@ -65,6 +65,13 @@ var CheckInviteCode = Checker{
 var CheckDeviceName = Checker{
 	F: func(s string) bool {
 		return len(s) >= 3 && len(s) <= 64 && deviceRE.MatchString(s) && !badDeviceRE.MatchString(s)
+	},
+	Transform: func(s string) string {
+		s = strings.Replace(s, "—", "-", -1) // em dash
+		s = strings.Replace(s, "–", "-", -1) // en dash
+		s = strings.Replace(s, "‘", "'", -1) // curly quote #1
+		s = strings.Replace(s, "’", "'", -1) // curly quote #2
+		return s
 	},
 	Hint: "between 3 and 64 characters long; use a-Z, 0-9, space, plus, underscore, dash and apostrophe",
 }

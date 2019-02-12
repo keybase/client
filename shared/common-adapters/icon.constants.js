@@ -81,6 +81,11 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-computer-64.png'),
   },
+  'icon-computer-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-96.png'),
+  },
   'icon-computer-dark-blue-32': {
     extension: 'png',
     isFont: false,
@@ -1136,6 +1141,11 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-paper-key-64.png'),
   },
+  'icon-paper-key-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-paper-key-96.png'),
+  },
   'icon-paper-key-corner': {
     extension: 'png',
     isFont: false,
@@ -1215,6 +1225,11 @@ const iconMeta_ = {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-phone-64.png'),
+  },
+  'icon-phone-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-96.png'),
   },
   'icon-phone-dark-blue-32': {
     extension: 'png',

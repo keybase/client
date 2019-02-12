@@ -58,7 +58,7 @@ in the Dockerfile in this directory. Whenenever you make changes that
 affect the docker image, you also need to bump its version number in
 docker_build.sh. Look for the line that looks like this:
 
-    image=keybase_packaging_v17
+    image=keybase_packaging_{**SEE NUMBER IN client/packaging/linux/docker_build.sh**}
 
 Increment that number, so that everyone who's running these builds
 automatically rebuilds the docker image with your change.
