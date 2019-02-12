@@ -18,6 +18,7 @@ type GameMessageEncoded string
 // of `GameMessageWrappedEncoded` for previous game chats that are being replayed.
 type GameMessageWrappedEncoded struct {
 	Sender UserDevice
+	GameID GameID             // the game ID of this game, also specified (encoded) in GameMessageEncoded
 	Body   GameMessageEncoded // base64-encoded GameMessaageBody that comes in over chat
 }
 
@@ -52,7 +53,7 @@ type DealersHelper interface {
 	Clock() clockwork.Clock
 	ServerTime(context.Context) (time.Time, error)
 	ReadHistory(ctx context.Context, since time.Time) ([]GameMessageWrappedEncoded, error)
-	SendChat(ctx context.Context, ch ConversationID, msg GameMessageEncoded) error
+	SendChat(ctx context.Context, ch ConversationID, gameID GameID, msg GameMessageEncoded) error
 	Me() UserDevice
 }
 
@@ -109,11 +110,19 @@ func (d *Dealer) StartFlip(ctx context.Context, start Start, conversationID Conv
 	return err
 }
 
+// StartFlipWithGame starts a new flip. Pass it some start parameters as well as a chat conversationID that it
+// will take place in. Also takes a GameID
+func (d *Dealer) StartFlipWithGameID(ctx context.Context, start Start, conversationID ConversationID, gameID GameID) (err error) {
+	_, err = d.startFlipWithGameID(ctx, start, conversationID, gameID)
+	return err
+}
+
 // InjectIncomingChat should be called whenever a new flip game comes in that's relevant for flips. Call this with
 // the sender's information, the channel informatino, and the body data that came in.
-func (d *Dealer) InjectIncomingChat(ctx context.Context, sender UserDevice, conversationID ConversationID, body GameMessageEncoded) error {
+func (d *Dealer) InjectIncomingChat(ctx context.Context, sender UserDevice, conversationID ConversationID, gameID GameID, body GameMessageEncoded) error {
 	gmwe := GameMessageWrappedEncoded{
 		Sender: sender,
+		GameID: gameID,
 		Body:   body,
 	}
 	msg, err := gmwe.Decode()
@@ -125,6 +134,9 @@ func (d *Dealer) InjectIncomingChat(ctx context.Context, sender UserDevice, conv
 	}
 	if !msg.isForwardable() {
 		return UnforwardableMessageError{G: msg.Msg.Md}
+	}
+	if !msg.Msg.Md.GameID.Eq(gameID) {
+		return BadGameIDError{G: msg.Msg.Md, I: gameID}
 	}
 	d.chatInputCh <- msg
 	return nil

@@ -47,6 +47,12 @@ protocol config {
     string desc;
   }
 
+  record DirSizeInfo {
+    string name;
+    string humanSize;
+  }
+
+
   record ExtendedStatus {
     boolean standalone;
     boolean passphraseStreamCached;
@@ -72,6 +78,7 @@ protocol config {
                                                in the config file. */
     array<string> localDbStats;
     array<string> localChatDbStats;
+    array<DirSizeInfo> cacheDirSizeInfo;
   }
 
   ExtendedStatus getExtendedStatus(int sessionID);
