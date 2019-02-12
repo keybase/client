@@ -905,6 +905,14 @@
           "name": "noteErr"
         },
         {
+          "type": "string",
+          "name": "publicNote"
+        },
+        {
+          "type": "string",
+          "name": "publicNoteType"
+        },
+        {
           "type": "boolean",
           "name": "unread"
         }

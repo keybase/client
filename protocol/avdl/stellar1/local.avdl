@@ -553,6 +553,8 @@ protocol local {
     union { null, string } toAssertion;
     string note;
     string noteErr;
+    string publicNote;
+    string publicNoteType;
     boolean unread;
   }
   array<PaymentOrErrorCLILocal> recentPaymentsCLILocal(union { null, AccountID } accountID);
