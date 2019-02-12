@@ -9,16 +9,25 @@ import Footer from '../footer/footer'
 import {isMobile} from '../../constants/platform'
 import ConnectedResetBanner from '../banner/reset-banner/container'
 import Rows from '../row/rows-container'
+import DropTarget from './drop-target'
 
 type FolderProps = {
   isUserReset: boolean,
   sortSetting: Types.SortSetting,
+  onAttach?: ?(paths: Array<string>) => void,
   path: Types.Path,
   resetParticipants: Array<string>,
   routePath: I.List<string>,
 }
 
 class Files extends React.PureComponent<FolderProps> {
+  renderContent() {
+    return (
+      <DropTarget onAttach={this.props.onAttach}>
+        <Rows path={this.props.path} routePath={this.props.routePath} sortSetting={this.props.sortSetting} />
+      </DropTarget>
+    )
+  }
   render() {
     const content = this.props.isUserReset ? (
       <Kb.Box2 direction="vertical" fullHeight={true}>
@@ -27,9 +36,7 @@ class Files extends React.PureComponent<FolderProps> {
           <Kb.Icon type="icon-access-denied-266" />
         </Kb.Box2>
       </Kb.Box2>
-    ) : (
-      <Rows path={this.props.path} routePath={this.props.routePath} sortSetting={this.props.sortSetting} />
-    )
+    ) : this.renderContent()
     return (
       <Kb.BoxGrow>
         <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
