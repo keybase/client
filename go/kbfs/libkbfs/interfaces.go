@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -29,6 +30,7 @@ type dataVersioner interface {
 
 type logMaker interface {
 	MakeLogger(module string) logger.Logger
+	MakeVLogger(module string) *libkb.VDebugLog
 }
 
 type blockCacher interface {
