@@ -51,8 +51,8 @@ func (c *chatClient) Me() UserDevice {
 	return c.me
 }
 
-func (c *chatClient) SendChat(ctx context.Context, conversationID ConversationID, msg GameMessageEncoded) error {
-	c.server.inputCh <- GameMessageWrappedEncoded{Body: msg, Sender: c.me}
+func (c *chatClient) SendChat(ctx context.Context, conversationID ConversationID, gameID GameID, msg GameMessageEncoded) error {
+	c.server.inputCh <- GameMessageWrappedEncoded{Body: msg, GameID: gameID, Sender: c.me}
 	return nil
 }
 
@@ -105,7 +105,7 @@ func (c *chatClient) run(ctx context.Context, ch ConversationID) {
 		case <-c.shutdownCh:
 			return
 		case msg := <-c.ch:
-			c.dealer.InjectIncomingChat(ctx, msg.Sender, ch, msg.Body)
+			c.dealer.InjectIncomingChat(ctx, msg.Sender, ch, msg.GameID, msg.Body)
 		}
 	}
 }
@@ -370,7 +370,7 @@ func TestRepeatedGame(t *testing.T) {
 	gme, err := gm.Encode()
 	require.NoError(t, err)
 	history := []GameMessageWrappedEncoded{
-		GameMessageWrappedEncoded{Body: gme},
+		GameMessageWrappedEncoded{Body: gme, GameID: gameID},
 	}
 	forAllClients(clients[1:], func(c *chatClient) { c.history = history })
 
