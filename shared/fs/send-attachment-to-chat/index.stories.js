@@ -22,7 +22,7 @@ export const provider = Sb.createPropProviderWithCommon({
 
 const common = {
   onCancel: Sb.action('onCancel'),
-  send: Sb.action('send'),
+  onSend: Sb.action('onSend'),
 }
 
 const load = () =>

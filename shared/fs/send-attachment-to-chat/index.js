@@ -11,7 +11,7 @@ import ChooseConversation from '../../chat/conversation-list/choose-conversation
 type Props = {|
   onCancel: () => void,
   path: Types.Path,
-  send?: ?() => void,
+  onSend?: ?() => void,
 |}
 
 const MobileWithHeader = Kb.HeaderHoc(
@@ -30,7 +30,7 @@ const MobileHeader = (props: Props) => (
         {Types.getPathName(props.path)}
       </Kb.Text>
     </Kb.Box2>
-    <Kb.Text type="BodyBigLink" style={mobileStyles.button} onClick={props.send}>
+    <Kb.Text type="BodyBigLink" style={mobileStyles.button} onClick={props.onSend}>
       Send
     </Kb.Text>
   </Kb.Box2>
@@ -72,7 +72,7 @@ const DesktopSendAttachmentToChat = (props: Props) => (
       gap="tiny"
     >
       <Kb.Button type="Secondary" label="Cancel" onClick={props.onCancel} />
-      <Kb.Button type="Primary" label="Send in conversation" />
+      <Kb.Button type="Primary" label="Send in conversation" onClick={props.onSend} />
     </Kb.Box2>
   </Kb.Box2>
 )
