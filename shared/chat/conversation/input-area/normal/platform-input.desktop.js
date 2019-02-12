@@ -281,7 +281,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
             <Typing conversationIDKey={this.props.conversationIDKey} />
             <Kb.Text
               lineClamp={1}
-              type="BodySmall"
+              type="BodyTiny"
               style={styles.footer}
               onClick={this._inputFocus}
               selectable={true}
@@ -396,6 +396,7 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.black_20,
     marginBottom: Styles.globalMargins.xtiny,
     marginRight: Styles.globalMargins.medium + 2,
+    marginTop: 2,
     textAlign: 'right',
   },
   footerContainer: {

@@ -2,17 +2,8 @@
 import React from 'react'
 import PeopleItem from '../item'
 import * as Types from '../../constants/types/people'
-import {
-  Avatar,
-  Box,
-  ClickableBox,
-  ConnectedUsernames,
-  Icon,
-  Meta,
-  ScrollView,
-  Text,
-} from '../../common-adapters'
-import {globalStyles, globalColors, globalMargins, platformStyles} from '../../styles'
+import {Avatar, ClickableBox, ConnectedUsernames, ScrollView, Text} from '../../common-adapters'
+import {globalStyles, globalMargins, platformStyles} from '../../styles'
 import {isMobile} from '../../constants/platform'
 
 const connectedUsernamesProps = {
@@ -52,6 +43,7 @@ export const FollowNotification = (props: Props) => {
         }
         when={props.notificationTime}
         contentStyle={{justifyContent: 'center'}}
+        format="single"
       >
         <Text type="Body">
           <ConnectedUsernames
@@ -72,29 +64,8 @@ export const MultiFollowNotification = (props: Props) => {
   }
   const usernames = props.newFollows.map(f => f.username)
   return (
-    <PeopleItem
-      badged={props.badged}
-      icon={
-        <Box style={multiIconContainerStyle}>
-          <Icon type={isMobile ? 'icon-followers-new-48' : 'icon-followers-new-32'} />
-          <Box style={multiMetaContainerStyle}>
-            <Meta
-              title={`+${props.newFollows.length + (props.numAdditional || 0)}`}
-              backgroundColor={globalColors.blue}
-              style={multiMetaStyle}
-            />
-          </Box>
-        </Box>
-      }
-      when={props.notificationTime}
-    >
-      <Text
-        type="Body"
-        style={platformStyles({
-          common: {marginTop: 2},
-          isElectron: {display: 'inline'},
-        })}
-      >
+    <PeopleItem format="multi" badged={props.badged} when={props.notificationTime}>
+      <Text type="Body" style={multiTextStyle}>
         <ConnectedUsernames
           containerStyle={platformStyles({isElectron: {whiteSpace: 'wrap'}})}
           inlineGrammar={true}
@@ -124,29 +95,20 @@ export const MultiFollowNotification = (props: Props) => {
   )
 }
 
-const multiIconContainerStyle = {
-  ...globalStyles.flexBoxColumn,
-  height: isMobile ? 48 : 32,
-  position: 'relative',
-  width: isMobile ? 48 : 32,
-}
-
-const multiMetaContainerStyle = {
-  ...globalStyles.flexBoxColumn,
-  left: 0,
-  position: 'absolute',
-  right: 0,
-  top: isMobile ? 30 : 20,
-}
-
-const multiMetaStyle = {
-  alignSelf: 'center',
-  minWidth: isMobile ? 24 : 16,
-  ...(isMobile ? undefined : {textAlign: 'center'}),
-}
+const multiTextStyle = platformStyles({
+  common: {
+    marginLeft: globalMargins.small,
+    marginRight: globalMargins.xlarge,
+    marginTop: 2,
+  },
+  isElectron: {display: 'inline'},
+})
 
 const scrollViewContainerStyle = {
   ...globalStyles.flexBoxRow,
+  paddingBottom: globalMargins.tiny,
+  paddingLeft: globalMargins.small,
+  paddingRight: globalMargins.small,
   ...(isMobile
     ? null
     : {...globalStyles.flexBoxRow, flexWrap: 'wrap', height: 32, overflow: 'hidden', width: '100%'}),

@@ -236,3 +236,12 @@ func (b BadFlipTypeError) Error() string {
 }
 
 var ErrBadData = errors.New("rejecting bad data, likely due to a nil field")
+
+type BadGameIDError struct {
+	G GameMetadata
+	I GameID
+}
+
+func (b BadGameIDError) Error() string {
+	return fmt.Sprintf("Bad game ID (%s) on incoming message for %s", b.I, b.G)
+}
