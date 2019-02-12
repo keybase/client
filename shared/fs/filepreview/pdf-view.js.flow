@@ -1,8 +1,0 @@
-// @flow
-import * as React from 'react'
-
-export type PdfViewProps = {
-  url: string,
-}
-
-declare export default React.ComponentType<PdfViewProps>
