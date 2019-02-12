@@ -111,7 +111,11 @@ func (b *Badger) GetInboxVersionForTest(ctx context.Context) (chat1.InboxVers, e
 }
 
 func (b *Badger) SetWalletAccountUnreadCount(ctx context.Context, accountID stellar1.AccountID, unreadCount int) {
-	b.badgeState.SetWalletAccountUnreadCount(accountID, unreadCount)
+	changed := b.badgeState.SetWalletAccountUnreadCount(accountID, unreadCount)
+	if !changed {
+		return
+	}
+	b.G().Log.CDebugf(ctx, "Badger sending for SetWalletAccountUnreadCount: %s/%d", accountID, unreadCount, changed)
 	if err := b.Send(ctx); err != nil {
 		b.G().Log.CDebugf(ctx, "Badger send (SetWalletAccountUnreadCount) failed: %s", err)
 	}
