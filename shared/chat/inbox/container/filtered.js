@@ -7,13 +7,19 @@ import type {RowItem} from '../index.types'
 const score = (
   lcFilter: string,
   lcYou: string,
+  hasBadge: boolean,
   hasUnread: boolean,
   names: Array<string>,
   insertMatcher: RegExp
 ): number => {
   // special case, no filter
   if (!lcFilter) {
-    return hasUnread ? 2 : 1
+    if (hasBadge) {
+      return 3
+    } else if (hasUnread) {
+      return 2
+    }
+    return 1
   }
   // special case, looking for yourself
   if (names.length === 1 && names[0] === lcYou) {
@@ -83,10 +89,11 @@ const score = (
   return rawScore > 0 ? Math.max(1, rawScore - inputLength) : 0
 }
 
-const makeSmallItem = (meta, filter, hasUnread, you, insertMatcher) => {
+const makeSmallItem = (meta, filter, hasBadge, hasUnread, you, insertMatcher) => {
   const s = score(
     filter,
     you,
+    hasBadge,
     hasUnread,
     meta.teamname ? [meta.teamname] : meta.participants.toArray(),
     insertMatcher
@@ -100,8 +107,15 @@ const makeSmallItem = (meta, filter, hasUnread, you, insertMatcher) => {
     : null
 }
 
-const makeBigItem = (meta, filter, hasUnread, insertMatcher) => {
-  const s = score(filter, '', hasUnread, [meta.teamname, meta.channelname].filter(Boolean), insertMatcher)
+const makeBigItem = (meta, filter, hasBadge, hasUnread, insertMatcher) => {
+  const s = score(
+    filter,
+    '',
+    hasBadge,
+    hasUnread,
+    [meta.teamname, meta.channelname].filter(Boolean),
+    insertMatcher
+  )
   return s > 0
     ? {
         data: {
@@ -125,7 +139,7 @@ type GetFilteredParams = {
 }
 // Ignore headers, score based on matches of participants, ignore total non matches
 const getFilteredRowsAndMetadata = memoizeShallow<GetFilteredParams, _>(p => {
-  const {filter, metaMap, unread, username} = p
+  const {badged, filter, metaMap, unread, username} = p
   const metas = metaMap.valueSeq().toArray()
   const lcFilter = filter.toLowerCase()
   const lcYou = username.toLowerCase()
@@ -140,8 +154,21 @@ const getFilteredRowsAndMetadata = memoizeShallow<GetFilteredParams, _>(p => {
   const rows: Array<RowItem> = metas
     .map(meta =>
       meta.teamType !== 'big'
-        ? makeSmallItem(meta, lcFilter, unread.get(meta.conversationIDKey, 0) > 0, lcYou, insertMatcher)
-        : makeBigItem(meta, lcFilter, unread.get(meta.conversationIDKey, 0) > 0, insertMatcher)
+        ? makeSmallItem(
+            meta,
+            lcFilter,
+            badged.get(meta.conversationIDKey, 0) > 0,
+            unread.get(meta.conversationIDKey, 0) > 0,
+            lcYou,
+            insertMatcher
+          )
+        : makeBigItem(
+            meta,
+            lcFilter,
+            badged.get(meta.conversationIDKey, 0) > 0,
+            unread.get(meta.conversationIDKey, 0) > 0,
+            insertMatcher
+          )
     )
     .filter(Boolean)
     .sort((a, b) => {
