@@ -255,22 +255,6 @@ const resetGlobalStore = () => ({payload: null, type: 'common:resetStore'})
 // Figure out whether we can log out using CanLogout, if so,
 // startLogoutHandshake, else do what's needed - right now only
 // redirect to set passphrase screen.
-// function* startLogoutHandshakeIfAllowed(state) {
-//   const canLogoutRes = yield* Saga.callPromise(RPCTypes.userCanLogoutRpcPromise)
-//   console.log('canLogout returned:',canLogoutRes)
-//   if (canLogoutRes.canLogout) {
-//     return startLogoutHandshake(state)
-//   } else {
-//     console.log("going to set passphrase here")
-//     return isMobile
-//       ? RouteTreeGen.createNavigateTo({ path : [Tabs.settingsTab, SettingsConstants.passphraseTab]})
-//       : [
-//         RouteTreeGen.createNavigateTo({ path : [Tabs.settingsTab] }),
-//         RouteTreeGen.createNavigateAppend({path: [{ selected: 'changePassphrase', props: { heading : canLogoutRes.reason }}]}),
-//       ]
-//   }
-// }
-
 function* startLogoutHandshakeIfAllowed(state) {
   const canLogoutRes = yield* Saga.callPromise(RPCTypes.userCanLogoutRpcPromise)
   console.log('canLogout returned:', canLogoutRes)
