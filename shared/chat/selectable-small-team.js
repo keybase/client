@@ -8,6 +8,7 @@ import {isMobile} from '../constants/platform'
 
 type Props = {|
   backgroundColor: ?string,
+  hasBadge: boolean,
   isMuted: boolean,
   isSelected: boolean,
   onSelectConversation: () => void,
@@ -66,6 +67,7 @@ class SelectableSmallTeam extends React.PureComponent<Props, State> {
           )}
           <Kb.Box style={styles.conversationRow}>
             <FilteredTopLine
+              hasBadge={props.hasBadge}
               participants={props.teamname ? [props.teamname] : props.participants}
               showBold={props.showBold}
               usernameColor={props.usernameColor}

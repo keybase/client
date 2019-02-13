@@ -18,6 +18,7 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
     _hasUnread: Constants.getHasUnread(state, conversationIDKey),
     _meta: Constants.getMeta(state, conversationIDKey),
     _username: state.config.username,
+    hasBadge: Constants.getHasBadge(state, conversationIDKey),
   }
 }
 
@@ -52,6 +53,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
 
   return {
     backgroundColor: styles.backgroundColor,
+    hasBadge: stateProps.hasBadge,
     isLocked,
     isMuted: stateProps._meta.isMuted,
     isSelected: ownProps.isSelected,
