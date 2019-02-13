@@ -139,7 +139,7 @@ class FriendshipTabs extends React.Component<FriendshipTabsProps> {
           following === this.props.selectedFollowing ? styles.followTabTextSelected : styles.followTabText
         }
       >
-        {following ? `FOLLOWING (${this.props.numFollowing})` : `FOLLOWERS (${this.props.numFollowers})`}
+        {following ? `Following (${this.props.numFollowing})` : `Followers (${this.props.numFollowers})`}
       </Kb.Text>
     </Kb.ClickableBox>
   )
@@ -386,7 +386,7 @@ const styles = Styles.styleSheetCreate({
       paddingTop: Styles.globalMargins.medium,
     },
     isMobile: {
-      height: Styles.globalMargins.large,
+      height: Styles.globalMargins.medium,
       width: '50%',
     },
   }),
