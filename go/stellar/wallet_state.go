@@ -645,7 +645,8 @@ func (a *AccountState) ForceSeqnoRefresh(mctx libkb.MetaContext) error {
 
 	// delete any stale inuse seqnos (in case missed notification somehow)
 	for k, v := range a.inuseSeqnos {
-		if seqno >= k {
+		if seqno > k {
+			mctx.CDebugf("ForceSeqnoRefresh removing inuse seqno %d due to network seqno > to it (%s)", k, seqno)
 			delete(a.inuseSeqnos, k)
 		}
 		age := time.Since(v.ctime)
