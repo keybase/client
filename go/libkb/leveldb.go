@@ -6,6 +6,7 @@ package libkb
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 
@@ -13,6 +14,7 @@ import (
 	errors "github.com/syndtr/goleveldb/leveldb/errors"
 	"github.com/syndtr/goleveldb/leveldb/filter"
 	"github.com/syndtr/goleveldb/leveldb/opt"
+	"golang.org/x/net/context"
 )
 
 // table names
@@ -28,58 +30,81 @@ type levelDBOps interface {
 	Write(b *leveldb.Batch, wo *opt.WriteOptions) error
 }
 
-func levelDbPut(ops levelDBOps, id DbKey, aliases []DbKey, value []byte) (err error) {
+func levelDbPut(ops levelDBOps, cleaner *levelDbCleaner, id DbKey, aliases []DbKey, value []byte) (err error) {
 	defer convertNoSpaceError(err)
 
 	idb := id.ToBytes(levelDbTableKv)
-	if len(aliases) == 0 {
+	if aliases == nil {
 		// if no aliases, just do a put
-		return ops.Put(idb, value, nil)
+		if err := ops.Put(idb, value, nil); err != nil {
+			return err
+		}
+		cleaner.markRecentlyUsed(context.TODO(), idb)
+		return nil
 	}
 
 	batch := new(leveldb.Batch)
 	batch.Put(idb, value)
-	if aliases != nil {
-		for _, alias := range aliases {
-			batch.Put(alias.ToBytes(levelDbTableLo), idb)
-		}
+	keys := [][]byte{}
+	keys = append(keys, idb)
+	for _, alias := range aliases {
+		aliasKey := alias.ToBytes(levelDbTableLo)
+		batch.Put(aliasKey, idb)
+		keys = append(keys, aliasKey)
 	}
 
-	return ops.Write(batch, nil)
+	if err := ops.Write(batch, nil); err != nil {
+		return err
+	}
+	for _, key := range keys {
+		cleaner.markRecentlyUsed(context.TODO(), key)
+	}
+	return nil
 }
 
-func levelDbGetWhich(ops levelDBOps, id DbKey, which string) (val []byte, found bool, err error) {
-	val, err = ops.Get(id.ToBytes(which), nil)
+func levelDbGetWhich(ops levelDBOps, cleaner *levelDbCleaner, id DbKey, which string) (val []byte, found bool, err error) {
+	key := id.ToBytes(which)
+	val, err = ops.Get(key, nil)
 	found = false
 	if err == nil {
 		found = true
 	} else if err == leveldb.ErrNotFound {
 		err = nil
 	}
+
+	if found && err == nil {
+		cleaner.markRecentlyUsed(context.TODO(), key)
+	}
 	return val, found, err
 }
 
-func levelDbGet(ops levelDBOps, id DbKey) (val []byte, found bool, err error) {
-	return levelDbGetWhich(ops, id, levelDbTableKv)
+func levelDbGet(ops levelDBOps, cleaner *levelDbCleaner, id DbKey) ([]byte, bool, error) {
+	return levelDbGetWhich(ops, cleaner, id, levelDbTableKv)
 }
 
-func levelDbLookup(ops levelDBOps, id DbKey) (val []byte, found bool, err error) {
-	val, found, err = levelDbGetWhich(ops, id, levelDbTableLo)
+func levelDbLookup(ops levelDBOps, cleaner *levelDbCleaner, id DbKey) (val []byte, found bool, err error) {
+	val, found, err = levelDbGetWhich(ops, cleaner, id, levelDbTableLo)
 	if found {
 		if tab, id2, err2 := DbKeyParse(string(val)); err2 != nil {
 			err = err2
 		} else if tab != levelDbTableKv {
 			err = fmt.Errorf("bad alias; expected 'kv' but got '%s'", tab)
 		} else {
-			val, found, err = levelDbGetWhich(ops, id2, levelDbTableKv)
+			val, found, err = levelDbGetWhich(ops, cleaner, id2, levelDbTableKv)
 		}
 	}
 	return val, found, err
 }
 
-func levelDbDelete(ops levelDBOps, id DbKey) (err error) {
+func levelDbDelete(ops levelDBOps, cleaner *levelDbCleaner, id DbKey) (err error) {
 	defer convertNoSpaceError(err)
-	return ops.Delete(id.ToBytes(levelDbTableKv), nil)
+	key := id.ToBytes(levelDbTableKv)
+	if err := ops.Delete(key, nil); err != nil {
+		return err
+	}
+
+	cleaner.removeRecentlyUsed(context.TODO(), key)
+	return nil
 }
 
 type LevelDb struct {
@@ -91,16 +116,19 @@ type LevelDb struct {
 	sync.RWMutex
 	db           *leveldb.DB
 	dbOpenerOnce *sync.Once
+	cleaner      *levelDbCleaner
 
 	filename string
 	Contextified
 }
 
 func NewLevelDb(g *GlobalContext, filename func() string) *LevelDb {
+	path := filename()
 	return &LevelDb{
 		Contextified: NewContextified(g),
-		filename:     filename(),
+		filename:     path,
 		dbOpenerOnce: new(sync.Once),
+		cleaner:      newLevelDbCleaner(g, filepath.Base(path)),
 	}
 }
 
@@ -145,6 +173,9 @@ func (l *LevelDb) doWhileOpenAndNukeIfCorrupted(action func() error) (err error)
 				}
 			}
 			l.G().Log.Debug("- LevelDb.open -> %s", ErrToOk(err))
+			if l.db != nil {
+				l.cleaner.setDb(l.db)
+			}
 		})
 
 		if err != nil {
@@ -258,14 +289,12 @@ func (l *LevelDb) Nuke() (fn string, err error) {
 	defer l.G().Trace("LevelDb::Nuke", func() error { return err })()
 
 	// even if we can't close the db try to nuke the files directly
-	err = l.closeLocked()
-	if err != nil {
+	if err = l.closeLocked(); err != nil {
 		l.G().Log.Debug("Error closing leveldb %v, attempting nuke anyway", err)
 	}
 
 	fn = l.GetFilename()
-	err = os.RemoveAll(fn)
-	if err != nil {
+	if err = os.RemoveAll(fn); err != nil {
 		return fn, err
 	}
 	// reset dbOpenerOnce since this is not a explicit close and there might be
@@ -288,34 +317,30 @@ func (l *LevelDb) nukeIfCorrupt(err error) bool {
 
 func (l *LevelDb) Put(id DbKey, aliases []DbKey, value []byte) error {
 	return l.doWhileOpenAndNukeIfCorrupted(func() error {
-		return levelDbPut(l.db, id, aliases, value)
+		return levelDbPut(l.db, l.cleaner, id, aliases, value)
 	})
 }
 
 func (l *LevelDb) Get(id DbKey) (val []byte, found bool, err error) {
 	err = l.doWhileOpenAndNukeIfCorrupted(func() error {
-		val, found, err = levelDbGet(l.db, id)
+		val, found, err = levelDbGet(l.db, l.cleaner, id)
 		return err
 	})
-
 	return val, found, err
 }
 
 func (l *LevelDb) Lookup(id DbKey) (val []byte, found bool, err error) {
 	err = l.doWhileOpenAndNukeIfCorrupted(func() error {
-		val, found, err = levelDbLookup(l.db, id)
+		val, found, err = levelDbLookup(l.db, l.cleaner, id)
 		return err
 	})
-
 	return val, found, err
 }
 
 func (l *LevelDb) Delete(id DbKey) error {
-	err := l.doWhileOpenAndNukeIfCorrupted(func() error {
-		return levelDbDelete(l.db, id)
+	return l.doWhileOpenAndNukeIfCorrupted(func() error {
+		return levelDbDelete(l.db, l.cleaner, id)
 	})
-
-	return err
 }
 
 func (l *LevelDb) OpenTransaction() (LocalDbTransaction, error) {
@@ -326,27 +351,29 @@ func (l *LevelDb) OpenTransaction() (LocalDbTransaction, error) {
 	if ltr.tr, err = l.db.OpenTransaction(); err != nil {
 		return LevelDbTransaction{}, err
 	}
+	ltr.cleaner = l.cleaner
 	return ltr, nil
 }
 
 type LevelDbTransaction struct {
-	tr *leveldb.Transaction
+	tr      *leveldb.Transaction
+	cleaner *levelDbCleaner
 }
 
 func (l LevelDbTransaction) Put(id DbKey, aliases []DbKey, value []byte) error {
-	return levelDbPut(l.tr, id, aliases, value)
+	return levelDbPut(l.tr, l.cleaner, id, aliases, value)
 }
 
 func (l LevelDbTransaction) Get(id DbKey) (val []byte, found bool, err error) {
-	return levelDbGet(l.tr, id)
+	return levelDbGet(l.tr, l.cleaner, id)
 }
 
 func (l LevelDbTransaction) Lookup(id DbKey) (val []byte, found bool, err error) {
-	return levelDbLookup(l.tr, id)
+	return levelDbLookup(l.tr, l.cleaner, id)
 }
 
 func (l LevelDbTransaction) Delete(id DbKey) error {
-	return levelDbDelete(l.tr, id)
+	return levelDbDelete(l.tr, l.cleaner, id)
 }
 
 func (l LevelDbTransaction) Commit() (err error) {

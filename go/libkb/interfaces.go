@@ -124,13 +124,6 @@ type CommandLine interface {
 type Server interface {
 }
 
-type ObjType byte
-
-type DbKey struct {
-	Typ ObjType
-	Key string
-}
-
 type LocalDbOps interface {
 	Put(id DbKey, aliases []DbKey, value []byte) error
 	Delete(id DbKey) error

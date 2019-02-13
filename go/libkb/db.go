@@ -14,6 +14,13 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
+type ObjType byte
+
+type DbKey struct {
+	Typ ObjType
+	Key string
+}
+
 func (k DbKey) ToString(table string) string {
 	return fmt.Sprintf("%s:%02x:%s", table, k.Typ, k.Key)
 }
