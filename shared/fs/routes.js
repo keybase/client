@@ -81,7 +81,6 @@ export const newRoutes = {
   oops: {getScreen: () => require('./oops/container').default},
   securityPrefs: {getScreen: () => require('./common/security-prefs-container').default},
   sendLinkToChat: {getScreen: () => require('./send-link-to-chat/container').default},
-  'settingsTabs:fsTab': {getScreen: () => require('./container').default},
   'tabs:fsTab': {getScreen: () => require('./container').default},
 }
 export const newModalRoutes = { }

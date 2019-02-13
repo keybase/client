@@ -1,6 +1,11 @@
 // @flow
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 import * as Constants from '../constants/settings'
+import * as I from 'immutable'
+import * as Kb from '../common-adapters'
+import * as React from 'react'
+import {createNavigator, StackRouter, SceneView} from '@react-navigation/core'
+import * as Shim from '../router-v2/shim.desktop'
 
 const routeTree = () => {
   const Settings = require('./').default
@@ -90,7 +95,8 @@ const routeTree = () => {
 
 export default routeTree
 
-export const newRoutes = {
+const settingsRoutes = {
+  [Constants.fsTab]: {getScreen: () => require('./files/container').default},
   [Constants.advancedTab]: {getScreen: () => require('./advanced/container').default},
   [Constants.chatTab]: {getScreen: () => require('./chat/container').default},
   [Constants.deleteMeTab]: {getScreen: () => require('./delete/container').default},
@@ -103,6 +109,43 @@ export const newRoutes = {
   deleteConfirm: {getScreen: () => require('./delete-confirm/container').default},
   inviteSent: {getScreen: () => require('./invite-generated/container').default},
   removeDevice: {getScreen: () => require('../devices/device-revoke/container').default},
-  'tabs:settingsTab': {getScreen: () => require('./').default},
 }
-export const newModalRoutes = { }
+
+class SettingsSubNav extends React.PureComponent<any> {
+  render() {
+    const navigation = this.props.navigation
+    const index = navigation.state.index
+    const activeKey = navigation.state.routes[index].key
+    const descriptor = this.props.descriptors[activeKey]
+    const childNav = descriptor.navigation
+
+    const Settings = require('./').default
+    return (
+      <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
+        <Settings
+          routeLeafTags={mockRouteLeafTag}
+          routeSelected={descriptor.state.routeName}
+          routePath={mockRoutePath}
+        >
+          <SceneView
+            navigation={childNav}
+            component={descriptor.getComponent()}
+            screenProps={this.props.screenProps}
+          />
+        </Settings>
+      </Kb.Box2>
+    )
+  }
+}
+const mockRouteLeafTag = {isModal: false}
+const mockRoutePath = I.List()
+const MainNavigator = createNavigator(
+  SettingsSubNav,
+  StackRouter(Shim.shim(settingsRoutes), {initialRouteName: Constants.landingTab}),
+  {}
+)
+
+export const newRoutes = {
+  'tabs:settingsTab': {getScreen: () => MainNavigator, upgraded: true},
+}
+export const newModalRoutes = {}
