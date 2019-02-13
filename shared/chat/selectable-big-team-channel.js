@@ -67,6 +67,7 @@ class SelectableBigTeamChannel extends PureComponent<Props, State> {
               </Kb.Box2>
             </Kb.Box2>
           </Kb.Box2>
+          {this.props.hasBadge ? <Kb.Box style={styles.unreadDotStyle} /> : null}
         </Kb.Box2>
       </Kb.ClickableBox>
     )
@@ -96,6 +97,14 @@ const styles = Styles.styleSheetCreate({
     isElectron: {display: 'inline'},
   }),
   textInnerContainer: {...Styles.globalStyles.fillAbsolute},
+  unreadDotStyle: {
+    backgroundColor: Styles.globalColors.orange,
+    borderRadius: 6,
+    flexShrink: 0,
+    height: 8,
+    marginRight: Styles.globalMargins.tiny,
+    width: 8,
+  },
 })
 
 export default SelectableBigTeamChannel
