@@ -451,7 +451,15 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
         },
       ]
       if (props.admin && props.teamname && !props.isPreview) {
-        subHeaderRows.push({key: 'add people', teamname: props.teamname, type: 'add people'})
+        subHeaderRows.push(
+          {
+            key: nextKey(),
+            marginBottom: 8,
+            marginTop: 8,
+            type: 'divider',
+          },
+          {key: 'add people', teamname: props.teamname, type: 'add people'}
+        )
       }
       if (props.smallTeam) {
         // Small team.
