@@ -289,7 +289,7 @@ func (h *UserHandler) InterestingPeople(ctx context.Context, maxUsers int) (res 
 	}
 
 	const fullnameFreshness = 10 * time.Minute
-	const networkTimeBudget = 0
+	const networkTimeBudget = 5 * time.Second
 	packages, err := h.G().UIDMapper.MapUIDsToUsernamePackages(ctx, h.G(), uids,
 		fullnameFreshness, networkTimeBudget, true /* forceNetworkForFullNames */)
 	if err != nil {
