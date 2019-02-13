@@ -49,6 +49,7 @@ const styles = Styles.styleSheetCreate({
   unreadDotStyle: {
     backgroundColor: Styles.globalColors.orange,
     borderRadius: 6,
+    flexShrink: 0,
     height: 8,
     marginLeft: 4,
     width: 8,

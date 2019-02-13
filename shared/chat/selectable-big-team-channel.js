@@ -6,6 +6,7 @@ import {TeamAvatar} from './avatars'
 import {isMobile} from '../constants/platform'
 
 type Props = {|
+  hasBadge: boolean,
   isSelected: boolean,
   teamname: string,
   channelname: string,
@@ -25,6 +26,10 @@ class SelectableBigTeamChannel extends PureComponent<Props, State> {
   _onMouseOver = () => this.setState({isHovered: true})
 
   render() {
+    const textStyle = Styles.collapseStyles([
+      styles.text,
+      this.props.isSelected && {color: Styles.globalColors.white},
+    ])
     return (
       <Kb.ClickableBox onClick={this.props.onSelectConversation}>
         <Kb.Box2
@@ -46,32 +51,21 @@ class SelectableBigTeamChannel extends PureComponent<Props, State> {
             isSelected={false}
             isHovered={this.state.isHovered}
           />
-          <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.textContainer}>
-            <Kb.Text
-              type="BodySemibold"
-              style={Styles.collapseStyles([
-                styles.teamname,
-                {color: this.props.isSelected ? Styles.globalColors.white : Styles.globalColors.black_75},
-              ])}
-              title={this.props.teamname}
-              lineClamp={isMobile ? 1 : undefined}
-              ellipsizeMode="tail"
-            >
-              {this.props.teamname}
-            </Kb.Text>
-            <Kb.Text
-              type="Body"
-              style={Styles.collapseStyles([
-                styles.channelname,
-                {color: this.props.isSelected ? Styles.globalColors.white : Styles.globalColors.black_75},
-              ])}
-              title={`#${this.props.channelname}`}
-              lineClamp={isMobile ? 1 : undefined}
-              ellipsizeMode="tail"
-            >
-              &nbsp;#
-              {this.props.channelname}
-            </Kb.Text>
+          <Kb.Box2 direction="horizontal" fullHeight={true} style={styles.flexOne}>
+            <Kb.Box2 direction="horizontal" fullHeight={true} style={styles.teamnameContainer}>
+              <Kb.Box2 direction="horizontal" alignItems="center" style={styles.textInnerContainer}>
+                <Kb.Text type="BodySemibold" title={this.props.teamname} lineClamp={1} style={textStyle}>
+                  {this.props.teamname}
+                </Kb.Text>
+              </Kb.Box2>
+            </Kb.Box2>
+            <Kb.Box2 direction="horizontal" fullHeight={true} style={styles.channelnameContainer}>
+              <Kb.Box2 direction="horizontal" alignItems="center" style={styles.textInnerContainer}>
+                <Kb.Text type="Body" title={`#${this.props.channelname}`} lineClamp={1} style={textStyle}>
+                  #{this.props.channelname}
+                </Kb.Text>
+              </Kb.Box2>
+            </Kb.Box2>
           </Kb.Box2>
         </Kb.Box2>
       </Kb.ClickableBox>
@@ -81,37 +75,27 @@ class SelectableBigTeamChannel extends PureComponent<Props, State> {
 
 export const rowHeight = isMobile ? 64 : 56
 
+const textOuterContainer = {
+  position: 'relative',
+}
 const styles = Styles.styleSheetCreate({
-  channelname: Styles.platformStyles({
-    common: {
-      flexShrink: 0,
-      maxWidth: '70%',
-    },
-    isElectron: {
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap',
-    },
-  }),
+  channelnameContainer: {
+    ...textOuterContainer,
+    flex: 1.3, // let channelname expand a bit more
+  },
   filteredRow: {
     height: rowHeight,
   },
-  teamname: Styles.platformStyles({
-    common: {
-      color: Styles.globalColors.black_75,
-      flexShrink: 1,
-    },
-    isElectron: {
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap',
-    },
-  }),
-  textContainer: {
-    flexShrink: 1,
-    overflow: 'hidden',
-    paddingRight: Styles.globalMargins.tiny,
+  flexOne: {flex: 1},
+  teamnameContainer: {
+    ...textOuterContainer,
+    flex: 1,
   },
+  text: Styles.platformStyles({
+    common: {paddingRight: Styles.globalMargins.tiny},
+    isElectron: {display: 'inline'},
+  }),
+  textInnerContainer: {...Styles.globalStyles.fillAbsolute},
 })
 
 export default SelectableBigTeamChannel
