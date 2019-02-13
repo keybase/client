@@ -54,7 +54,7 @@ type DealersHelper interface {
 	CLogf(ctx context.Context, fmt string, args ...interface{})
 	Clock() clockwork.Clock
 	ServerTime(context.Context) (time.Time, error)
-	ReadHistory(ctx context.Context, since time.Time) ([]GameMessageWrappedEncoded, error)
+	ReadHistory(ctx context.Context, conversationID chat1.ConversationID, since time.Time) ([]GameID, error)
 	SendChat(ctx context.Context, ch chat1.ConversationID, gameID GameID, msg GameMessageEncoded) error
 	Me() UserDevice
 }
@@ -62,11 +62,12 @@ type DealersHelper interface {
 // NewDealer makes a new Dealer with a given DealersHelper
 func NewDealer(dh DealersHelper) *Dealer {
 	return &Dealer{
-		dh:           dh,
-		games:        make(map[GameKey](chan<- *GameMessageWrapped)),
-		shutdownCh:   make(chan struct{}),
-		chatInputCh:  make(chan *GameMessageWrapped),
-		gameUpdateCh: make(chan GameStateUpdateMessage, 500),
+		dh:            dh,
+		games:         make(map[GameKey](chan<- *GameMessageWrapped)),
+		shutdownCh:    make(chan struct{}),
+		chatInputCh:   make(chan *GameMessageWrapped),
+		gameUpdateCh:  make(chan GameStateUpdateMessage, 500),
+		previousGames: make(map[GameIDKey]bool),
 	}
 }
 

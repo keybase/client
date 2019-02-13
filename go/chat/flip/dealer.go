@@ -520,24 +520,15 @@ func (d *Dealer) computeClockSkew(ctx context.Context, md GameMetadata, leaderTi
 	return totalSkew, nil
 }
 
-func (d *Dealer) primeHistory(ctx context.Context) (err error) {
-	if d.previousGames != nil {
-		return nil
-	}
+func (d *Dealer) primeHistory(ctx context.Context, conversationID chat1.ConversationID) (err error) {
 
-	tmp := make(map[GameIDKey]bool)
-	prevs, err := d.dh.ReadHistory(ctx, d.dh.Clock().Now().Add(time.Duration(-2)*MaxClockSkew))
+	gameIDs, err := d.dh.ReadHistory(ctx, conversationID, d.dh.Clock().Now().Add(time.Duration(-2)*MaxClockSkew))
 	if err != nil {
 		return err
 	}
-	for _, m := range prevs {
-		gmw, err := m.Decode()
-		if err != nil {
-			return err
-		}
-		tmp[gmw.Msg.Md.GameID.ToKey()] = true
+	for _, g := range gameIDs {
+		d.previousGames[g.ToKey()] = true
 	}
-	d.previousGames = tmp
 	return nil
 }
 
@@ -557,7 +548,7 @@ func (d *Dealer) handleMessageStart(ctx context.Context, msg *GameMessageWrapped
 		return err
 	}
 
-	err = d.primeHistory(ctx)
+	err = d.primeHistory(ctx, md.ConversationID)
 	if err != nil {
 		return err
 	}

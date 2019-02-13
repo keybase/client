@@ -26,7 +26,7 @@ type chatClient struct {
 	ch         chan GameMessageWrappedEncoded
 	server     *chatServer
 	dealer     *Dealer
-	history    []GameMessageWrappedEncoded
+	history    []GameID
 	clock      clockwork.FakeClock
 }
 
@@ -45,7 +45,7 @@ func (c *chatClient) CLogf(ctx context.Context, fmtString string, args ...interf
 	fmt.Printf(fmtString+"\n", args...)
 }
 
-func (c *chatClient) ReadHistory(ctx context.Context, since time.Time) ([]GameMessageWrappedEncoded, error) {
+func (c *chatClient) ReadHistory(ctx context.Context, ci chat1.ConversationID, since time.Time) ([]GameID, error) {
 	return c.history, nil
 }
 
@@ -361,24 +361,11 @@ func TestRepeatedGame(t *testing.T) {
 	defer srv.stopClients()
 
 	gameID := GenerateGameID()
-	var reveal Reveal
-	gm := GameMessageV1{
-		Md: GameMetadata{
-			Initiator:      newTestUser(),
-			ConversationID: conversationID,
-			GameID:         gameID,
-		},
-		Body: NewGameMessageBodyWithReveal(reveal),
-	}
-	gme, err := gm.Encode()
-	require.NoError(t, err)
-	history := []GameMessageWrappedEncoded{
-		GameMessageWrappedEncoded{Body: gme, GameID: gameID},
-	}
+	history := []GameID{gameID}
 	forAllClients(clients[1:], func(c *chatClient) { c.history = history })
 
 	start := NewStartWithBigInt(srv.clock.Now(), pi())
-	_, err = clients[0].dealer.startFlipWithGameID(ctx, start, conversationID, gameID)
+	_, err := clients[0].dealer.startFlipWithGameID(ctx, start, conversationID, gameID)
 	require.NoError(t, err)
 	clients[0].consumeCommitment(t)
 	forAllClients(clients[1:], func(c *chatClient) { c.consumeError(t, GameReplayError{}) })

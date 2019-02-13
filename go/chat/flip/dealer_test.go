@@ -39,7 +39,7 @@ func (t *testDealersHelper) CLogf(ctx context.Context, fmtString string, args ..
 	fmt.Printf(fmtString+"\n", args...)
 }
 
-func (t *testDealersHelper) ReadHistory(ctx context.Context, since time.Time) ([]GameMessageWrappedEncoded, error) {
+func (t *testDealersHelper) ReadHistory(ctx context.Context, ci chat1.ConversationID, since time.Time) ([]GameID, error) {
 	return nil, nil
 }
 
