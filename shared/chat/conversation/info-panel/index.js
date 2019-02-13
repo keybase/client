@@ -440,23 +440,23 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
     const {teamname, channelname} = props
     if (teamname && channelname) {
       let headerRows: Array<TeamHeaderRow>
-      const smallTeamHeaderRow = {
-        isSmallTeam: props.smallTeam,
-        key: 'small team header',
-        participantCount,
-        teamname,
-        type: 'small team header',
-      }
-      let addPeopleRows = []
+      const subHeaderRows = [
+        {
+          isSmallTeam: props.smallTeam,
+          key: 'small team header',
+          participantCount,
+          teamname,
+          type: 'small team header',
+        },
+      ]
       if (props.admin && props.teamname && !props.isPreview) {
-        addPeopleRows = [{key: 'add people', teamname: props.teamname, type: 'add people'}]
+        subHeaderRows.push({key: 'add people', teamname: props.teamname, type: 'add people'})
       }
       if (props.smallTeam) {
         // Small team.
         headerRows = [
           {height: globalMargins.small, key: nextKey(), type: 'spacer'},
-          smallTeamHeaderRow,
-          ...addPeopleRows,
+          ...subHeaderRows,
           {
             key: nextKey(),
             marginBottom: 20,
@@ -557,8 +557,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
               marginBottom: globalMargins.tiny,
               type: 'divider',
             },
-            smallTeamHeaderRow,
-            ...addPeopleRows,
+            ...subHeaderRows,
             {
               key: nextKey(),
               marginTop: globalMargins.tiny,
@@ -589,8 +588,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
               marginBottom: globalMargins.tiny,
               type: 'divider',
             },
-            smallTeamHeaderRow,
-            ...addPeopleRows,
+            ...subHeaderRows,
             {
               key: nextKey(),
               marginTop: globalMargins.tiny,
