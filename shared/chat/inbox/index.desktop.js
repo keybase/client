@@ -1,10 +1,10 @@
 // @flow
 import * as Types from '../../constants/types/chat2'
 import * as React from 'react'
+import * as Styles from '../../styles'
 import AutoSizer from 'react-virtualized-auto-sizer'
 import {VariableSizeList} from 'react-window'
 import {ErrorBoundary} from '../../common-adapters'
-import {globalStyles, globalColors} from '../../styles'
 import {makeRow} from './row'
 import BuildTeam from './row/build-team/container'
 import ChatInboxHeader from './row/chat-inbox-header/container'
@@ -76,7 +76,9 @@ class Inbox extends React.PureComponent<Props, State> {
 
   _itemRenderer = (index, style) => {
     const row = this.props.rows[index]
-    const divStyle = virtualListMarks ? {...style, backgroundColor: 'purple', overflow: 'hidden'} : style
+    const divStyle = virtualListMarks
+      ? Styles.collapseStyles([style, {backgroundColor: 'purple', overflow: 'hidden'}])
+      : style
     if (row.type === 'divider') {
       return (
         <div style={divStyle}>
@@ -95,7 +97,7 @@ class Inbox extends React.PureComponent<Props, State> {
 
     // pointer events on so you can click even right after a scroll
     return (
-      <div style={{...divStyle, pointerEvents: 'auto'}}>
+      <div style={Styles.collapseStyles([divStyle, {pointerEvents: 'auto'}])}>
         {makeRow({
           channelname: (row.type === 'big' && row.channelname) || '',
           conversationIDKey,
@@ -149,7 +151,7 @@ class Inbox extends React.PureComponent<Props, State> {
     )
     return (
       <ErrorBoundary>
-        <div style={_containerStyle}>
+        <div style={styles.container}>
           <ChatInboxHeader
             filterFocusCount={this.props.filterFocusCount}
             focusFilter={this.props.focusFilter}
@@ -159,7 +161,7 @@ class Inbox extends React.PureComponent<Props, State> {
             onSelectDown={this._onSelectDown}
           />
           <NewConversation />
-          <div style={_listStyle}>
+          <div style={styles.list}>
             <AutoSizer>
               {({height, width}) => (
                 <VariableSizeList
@@ -184,17 +186,20 @@ class Inbox extends React.PureComponent<Props, State> {
   }
 }
 
-const _containerStyle = {
-  ...globalStyles.flexBoxColumn,
-  backgroundColor: globalColors.blueGrey,
-  contain: 'strict',
-  height: '100%',
-  maxWidth: inboxWidth,
-  minWidth: inboxWidth,
-  position: 'relative',
-}
-
-const _listStyle = {flex: 1}
+const styles = Styles.styleSheetCreate({
+  container: Styles.platformStyles({
+    isElectron: {
+      ...Styles.globalStyles.flexBoxColumn,
+      backgroundColor: Styles.globalColors.blueGrey,
+      contain: 'strict',
+      height: '100%',
+      maxWidth: inboxWidth,
+      minWidth: inboxWidth,
+      position: 'relative',
+    },
+  }),
+  list: {flex: 1},
+})
 
 export default Inbox
 export type {RowItem, RowItemSmall, RowItemBig, RouteState}
