@@ -21,6 +21,10 @@ type hostMessageInfo struct {
 	OutboxID chat1.OutboxID
 }
 
+type gameIDHistoryInfo struct {
+	GameID GameID
+}
+
 type Manager struct {
 	globals.Contextified
 	utils.DebugLabeler
@@ -41,7 +45,11 @@ func NewManager(g *globals.Context) *Manager {
 }
 
 func (m *Manager) gameTopicNameFromGameID(gameID GameID) string {
-	return fmt.Sprintf("__keybase_coinflip_%s_game", gameID)
+	return fmt.Sprintf("__keybase_coinflip_game_%s", gameID)
+}
+
+func (m *Manager) gameIDHistoryTopicName(tlfName string, topicName string) string {
+	return fmt.Sprintf("__keybase_coinflip_history_%s_%s", tlfName, topicName)
 }
 
 func (m *Manager) startFromText(text string) Start {
@@ -69,6 +77,24 @@ func (m *Manager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID cha
 			GameID: &strGameID,
 		}), chat1.MessageType_TEXT)
 	if err != nil {
+		return err
+	}
+
+	// Write down the game ID in the history conv
+	historyTopicName := m.gameIDHistoryTopicName(tlfName, hostConv.GetTopicName())
+	historyBody, err := json.Marshal(gameIDHistoryInfo{
+		GameID: gameID,
+	})
+	if err != nil {
+		return err
+	}
+	historyConv, err := m.G().ChatHelper.NewConversation(ctx, uid, tlfName, &historyTopicName,
+		chat1.TopicType_DEV, hostConv.GetMembersType(), keybase1.TLFVisibility_PRIVATE)
+	if err != nil {
+		return err
+	}
+	if _, err := m.G().ChatHelper.SendTextByIDNonblock(ctx, historyConv.GetConvID(), tlfName,
+		string(historyBody)); err != nil {
 		return err
 	}
 
