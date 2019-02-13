@@ -247,3 +247,29 @@ type BadGameIDError struct {
 func (b BadGameIDError) Error() string {
 	return fmt.Sprintf("Bad game ID (%s) on incoming message for %s", b.I, b.G)
 }
+
+type CommitmentMismatchError struct {
+	G GameMetadata
+	U UserDevice
+}
+
+func (c CommitmentMismatchError) Error() string {
+	return fmt.Sprintf("Commitment wasn't correct for user %s in game %s", c.U, c.G)
+}
+
+type CommitmentCompleteSortError struct {
+	G GameMetadata
+}
+
+func (c CommitmentCompleteSortError) Error() string {
+	return fmt.Sprintf("Commitment list wasn't sorted properly; the leader is cheating!")
+}
+
+type BadCommitmentCompleteHashError struct {
+	G GameMetadata
+	U UserDevice
+}
+
+func (b BadCommitmentCompleteHashError) Error() string {
+	return fmt.Sprintf("Commitment complete hash error for game %s by user %s", b.G, b.U)
+}

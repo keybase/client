@@ -72,16 +72,16 @@ func (o GameMetadata) DeepCopy() GameMetadata {
 }
 
 type CommitmentComplete struct {
-	Players []UserDevice `codec:"players" json:"players"`
+	Players []UserDeviceCommitment `codec:"players" json:"players"`
 }
 
 func (o CommitmentComplete) DeepCopy() CommitmentComplete {
 	return CommitmentComplete{
-		Players: (func(x []UserDevice) []UserDevice {
+		Players: (func(x []UserDeviceCommitment) []UserDeviceCommitment {
 			if x == nil {
 				return nil
 			}
-			ret := make([]UserDevice, len(x))
+			ret := make([]UserDeviceCommitment, len(x))
 			for i, v := range x {
 				vCopy := v.DeepCopy()
 				ret[i] = vCopy
@@ -320,12 +320,44 @@ func (o Commitment) DeepCopy() Commitment {
 	return ret
 }
 
+type UserDeviceCommitment struct {
+	Ud UserDevice `codec:"ud" json:"ud"`
+	C  Commitment `codec:"c" json:"c"`
+}
+
+func (o UserDeviceCommitment) DeepCopy() UserDeviceCommitment {
+	return UserDeviceCommitment{
+		Ud: o.Ud.DeepCopy(),
+		C:  o.C.DeepCopy(),
+	}
+}
+
+type Hash [32]byte
+
+func (o Hash) DeepCopy() Hash {
+	var ret Hash
+	copy(ret[:], o[:])
+	return ret
+}
+
+type Reveal struct {
+	Secret Secret `codec:"secret" json:"secret"`
+	Cch    Hash   `codec:"cch" json:"cch"`
+}
+
+func (o Reveal) DeepCopy() Reveal {
+	return Reveal{
+		Secret: o.Secret.DeepCopy(),
+		Cch:    o.Cch.DeepCopy(),
+	}
+}
+
 type GameMessageBody struct {
 	T__                  MessageType         `codec:"t" json:"t"`
 	Start__              *Start              `codec:"start,omitempty" json:"start,omitempty"`
 	Commitment__         *Commitment         `codec:"commitment,omitempty" json:"commitment,omitempty"`
 	CommitmentComplete__ *CommitmentComplete `codec:"commitmentComplete,omitempty" json:"commitmentComplete,omitempty"`
-	Reveal__             *Secret             `codec:"reveal,omitempty" json:"reveal,omitempty"`
+	Reveal__             *Reveal             `codec:"reveal,omitempty" json:"reveal,omitempty"`
 }
 
 func (o *GameMessageBody) T() (ret MessageType, err error) {
@@ -384,7 +416,7 @@ func (o GameMessageBody) CommitmentComplete() (res CommitmentComplete) {
 	return *o.CommitmentComplete__
 }
 
-func (o GameMessageBody) Reveal() (res Secret) {
+func (o GameMessageBody) Reveal() (res Reveal) {
 	if o.T__ != MessageType_REVEAL {
 		panic("wrong case accessed")
 	}
@@ -415,7 +447,7 @@ func NewGameMessageBodyWithCommitmentComplete(v CommitmentComplete) GameMessageB
 	}
 }
 
-func NewGameMessageBodyWithReveal(v Secret) GameMessageBody {
+func NewGameMessageBodyWithReveal(v Reveal) GameMessageBody {
 	return GameMessageBody{
 		T__:      MessageType_REVEAL,
 		Reveal__: &v,
@@ -452,7 +484,7 @@ func (o GameMessageBody) DeepCopy() GameMessageBody {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.CommitmentComplete__),
-		Reveal__: (func(x *Secret) *Secret {
+		Reveal__: (func(x *Reveal) *Reveal {
 			if x == nil {
 				return nil
 			}

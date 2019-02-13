@@ -315,7 +315,7 @@ func testCorruptions(t *testing.T, nTotal int, nCorruptions int) {
 			return m
 		}
 		reveal := body.Reveal()
-		corruptBytes(reveal[:])
+		corruptBytes(reveal.Secret[:])
 		w.Msg.Body = NewGameMessageBodyWithReveal(reveal)
 		enc, err := w.Encode()
 		require.NoError(t, err)
@@ -361,7 +361,7 @@ func TestRepeatedGame(t *testing.T) {
 	defer srv.stopClients()
 
 	gameID := GenerateGameID()
-	var reveal Secret
+	var reveal Reveal
 	gm := GameMessageV1{
 		Md: GameMetadata{
 			Initiator:      newTestUser(),

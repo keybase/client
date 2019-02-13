@@ -129,14 +129,19 @@ func (b *testBundle) runFollowersCommit(ctx context.Context, t *testing.T) {
 	}
 }
 
-func (b *testBundle) runFollowersReveal(ctx context.Context, t *testing.T) {
+func (b *testBundle) runFollowersReveal(ctx context.Context, t *testing.T, players []UserDeviceCommitment) {
+	var reveal Reveal
+	cch, err := hashUserDeviceCommitments(players)
+	require.NoError(t, err)
+	reveal.Cch = cch
 	for _, f := range b.followers {
-		b.sendReveal(ctx, t, f)
+		b.sendReveal(ctx, t, f, reveal)
 	}
 }
 
-func (b *testBundle) sendReveal(ctx context.Context, t *testing.T, p *playerControl) {
-	msg, err := NewGameMessageBodyWithReveal(p.secret).Encode(p.md)
+func (b *testBundle) sendReveal(ctx context.Context, t *testing.T, p *playerControl, reveal Reveal) {
+	reveal.Secret = p.secret
+	msg, err := NewGameMessageBodyWithReveal(reveal).Encode(p.md)
 	require.NoError(t, err)
 	b.dealer.InjectIncomingChat(ctx, p.me, p.md.ConversationID, p.md.GameID, msg)
 	b.receiveRevealFrom(t, p)
@@ -217,7 +222,7 @@ func testLeader(t *testing.T, nFollowers int) {
 	b.assertOutgoingChatSent(t, MessageType_COMMITMENT_COMPLETE)
 	b.assertOutgoingChatSent(t, MessageType_REVEAL)
 	b.receiveRevealFrom(t, leader)
-	b.runFollowersReveal(ctx, t)
+	b.runFollowersReveal(ctx, t, msg.CommitmentComplete.Players)
 	msg = <-b.dealer.UpdateCh()
 	require.NotNil(t, msg.Result)
 	require.NotNil(t, msg.Result.Bool)
@@ -268,10 +273,10 @@ func testLeaderFollowerPair(t *testing.T, testController testController) {
 	verifyCommitmentComplete := func() {
 		msg := <-b.dealer.UpdateCh()
 		require.NotNil(t, msg.CommitmentComplete)
-		checkPlayers := func(v []UserDevice) {
+		checkPlayers := func(v []UserDeviceCommitment) {
 			require.Equal(t, 2, len(v))
 			find := func(p UserDevice) {
-				require.True(t, v[0].Eq(p) || v[1].Eq(p))
+				require.True(t, v[0].Ud.Eq(p) || v[1].Ud.Eq(p))
 			}
 			find(b.dh.Me())
 			find(c.dh.Me())

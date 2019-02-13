@@ -1,6 +1,7 @@
 package flip
 
 import (
+	"bytes"
 	"crypto/hmac"
 	"crypto/rand"
 	"encoding/hex"
@@ -11,6 +12,7 @@ import (
 func (g GameID) String() string           { return hex.EncodeToString(g) }
 func (g GameID) Eq(h GameID) bool         { return hmac.Equal(g[:], h[:]) }
 func (u UserDevice) Eq(v UserDevice) bool { return u.U.Eq(v.U) && u.D.Eq(v.D) }
+func (h Hash) Eq(i Hash) bool             { return hmac.Equal(h[:], i[:]) }
 
 func (t Time) Time() time.Time {
 	if t == 0 {
@@ -62,3 +64,9 @@ func isZero(v []byte) bool {
 
 func (g GameID) IsZero() bool { return isZero(g[:]) }
 func (g GameID) check() bool  { return g != nil && !g.IsZero() }
+
+func (u UserDevice) LessThan(v UserDevice) bool {
+	cu := bytes.Compare([]byte(u.U), []byte(v.U))
+	du := bytes.Compare([]byte(u.D), []byte(v.D))
+	return cu < 0 || (cu == 0 && du < 0)
+}

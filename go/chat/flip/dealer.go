@@ -63,21 +63,22 @@ type Result struct {
 }
 
 type Game struct {
-	md              GameMetadata
-	clockSkew       time.Duration
-	start           time.Time
-	isLeader        bool
-	params          Start
-	key             GameKey
-	msgCh           <-chan *GameMessageWrapped
-	stage           Stage
-	stageForTimeout Stage
-	dh              DealersHelper
-	players         map[UserDeviceKey]*GamePlayerState
-	gameUpdateCh    chan GameStateUpdateMessage
-	nPlayers        int
-	dealer          *Dealer
-	me              *playerControl
+	md                     GameMetadata
+	clockSkew              time.Duration
+	start                  time.Time
+	isLeader               bool
+	params                 Start
+	key                    GameKey
+	msgCh                  <-chan *GameMessageWrapped
+	stage                  Stage
+	stageForTimeout        Stage
+	dh                     DealersHelper
+	players                map[UserDeviceKey]*GamePlayerState
+	gameUpdateCh           chan GameStateUpdateMessage
+	nPlayers               int
+	dealer                 *Dealer
+	me                     *playerControl
+	commitmentCompleteHash Hash
 }
 
 type GamePlayerState struct {
@@ -329,15 +330,34 @@ func (g *Game) handleMessage(ctx context.Context, msg *GameMessageWrapped) error
 		}
 		now := g.dh.Clock().Now()
 		cc := msg.Msg.Body.CommitmentComplete()
+
+		if !checkUserDeviceCommitments(cc.Players) {
+			return CommitmentCompleteSortError{G: g.md}
+		}
+
 		for _, u := range cc.Players {
-			key := u.ToKey()
+			key := u.Ud.ToKey()
 			ps := g.players[key]
 			if ps == nil {
-				return UnregisteredUserError{G: g.md, U: u}
+				return UnregisteredUserError{G: g.md, U: u.Ud}
+			}
+			if !u.C.Eq(ps.commitment) {
+				return CommitmentMismatchError{G: g.md, U: u.Ud}
 			}
 			ps.included = true
 			g.nPlayers++
 		}
+
+		cch, err := hashUserDeviceCommitments(cc.Players)
+		if err != nil {
+			return err
+		}
+
+		reveal := Reveal{
+			Secret: g.me.secret,
+			Cch:    cch,
+		}
+		g.commitmentCompleteHash = cch
 
 		// for now, just warn if users who made it in on time weren't included.
 		for _, ps := range g.players {
@@ -353,7 +373,7 @@ func (g *Game) handleMessage(ctx context.Context, msg *GameMessageWrapped) error
 		}
 
 		if g.me != nil {
-			g.sendOutgoingChat(ctx, NewGameMessageBodyWithReveal(g.me.secret))
+			g.sendOutgoingChat(ctx, NewGameMessageBodyWithReveal(reveal))
 		}
 
 	case MessageType_REVEAL:
@@ -369,7 +389,11 @@ func (g *Game) handleMessage(ctx context.Context, msg *GameMessageWrapped) error
 			g.dh.CLogf(ctx, "Skipping unincluded sender: %s", key)
 			return nil
 		}
-		err := g.setSecret(ctx, ps, msg.Msg.Body.Reveal())
+		reveal := msg.Msg.Body.Reveal()
+		if !g.commitmentCompleteHash.Eq(reveal.Cch) {
+			return BadCommitmentCompleteHashError{G: g.GameMetadata(), U: msg.Sender}
+		}
+		err := g.setSecret(ctx, ps, reveal.Secret)
 		if err != nil {
 			return err
 		}
@@ -390,10 +414,18 @@ func (g *Game) handleMessage(ctx context.Context, msg *GameMessageWrapped) error
 	return nil
 }
 
-func (g *Game) completeCommitments(ctx context.Context) error {
-	var cc CommitmentComplete
+func (g *Game) userDeviceCommitmentList() []UserDeviceCommitment {
+	var ret []UserDeviceCommitment
 	for _, p := range g.players {
-		cc.Players = append(cc.Players, p.ud)
+		ret = append(ret, UserDeviceCommitment{Ud: p.ud, C: p.commitment})
+	}
+	sortUserDeviceCommitments(ret)
+	return ret
+}
+
+func (g *Game) completeCommitments(ctx context.Context) error {
+	cc := CommitmentComplete{
+		Players: g.userDeviceCommitmentList(),
 	}
 	body := NewGameMessageBodyWithCommitmentComplete(cc)
 	g.stageForTimeout = Stage_ROUND2
