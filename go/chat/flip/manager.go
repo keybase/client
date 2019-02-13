@@ -1,4 +1,4 @@
-package chat
+package flip
 
 import (
 	"context"
@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/keybase/client/go/chat/flip"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
@@ -26,7 +25,7 @@ type Manager struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	dealer *flip.Dealer
+	dealer *Dealer
 	clock  clockwork.Clock
 }
 
@@ -36,23 +35,29 @@ func NewManager(g *globals.Context) *Manager {
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Flip.Manager", false),
 		clock:        clockwork.NewRealClock(),
 	}
-	dealer := flip.NewDealer(m)
+	dealer := NewDealer(m)
 	m.dealer = dealer
 	return m
 }
 
-func (m *Manager) gameTopicNameFromGameID(gameID flip.GameID) string {
+func (m *Manager) gameTopicNameFromGameID(gameID GameID) string {
 	return fmt.Sprintf("__keybase_coinflip_%s_game", gameID)
 }
 
+func (m *Manager) startFromText(text string) Start {
+	// TODO fix m
+	return NewStartWithBool(m.clock.Now())
+}
+
 func (m *Manager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID,
-	tlfName, text string, start flip.Start) (err error) {
+	tlfName, text string) (err error) {
 	defer m.Trace(ctx, func() error { return err }, "StartFlip: convID: %s", hostConvID)()
-	gameID := flip.GenerateGameID()
+	gameID := GenerateGameID()
 	strGameID := gameID.String()
 
 	// Get host conv using local storage, just bail out if we don't have it
-	hostConv, err := GetUnverifiedConv(ctx, m.G(), uid, hostConvID, types.InboxSourceDataSourceLocalOnly)
+	hostConv, err := utils.GetUnverifiedConv(ctx, m.G(), uid, hostConvID,
+		types.InboxSourceDataSourceLocalOnly)
 	if err != nil {
 		return err
 	}
@@ -87,12 +92,12 @@ func (m *Manager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID cha
 	}
 
 	// Start the game
-	return m.dealer.StartFlipWithGameID(ctx, start, conv.GetConvID(), gameID)
+	return m.dealer.StartFlipWithGameID(ctx, m.startFromText(text), conv.GetConvID(), gameID)
 }
 
 // CLogf implements the flip.DealersHelper interface
 func (m *Manager) CLogf(ctx context.Context, fmt string, args ...interface{}) {
-	m.Debug(ctx, fmt, args)
+	m.Debug(ctx, fmt, args...)
 }
 
 // Clock implements the flip.DealersHelper interface
@@ -107,18 +112,18 @@ func (m *Manager) ServerTime(ctx context.Context) (time.Time, error) {
 }
 
 // ReadHistory implements the flip.DealersHelper interface
-func (m *Manager) ReadHistory(ctx context.Context, since time.Time) ([]flip.GameMessageWrappedEncoded, error) {
+func (m *Manager) ReadHistory(ctx context.Context, since time.Time) ([]GameMessageWrappedEncoded, error) {
 	return nil, errors.New("not implemented")
 }
 
 // SendChat implements the flip.DealersHelper interface
-func (m *Manager) SendChat(ctx context.Context, convID chat1.ConversationID, gameID flip.GameID,
-	msg flip.GameMessageEncoded) error {
+func (m *Manager) SendChat(ctx context.Context, convID chat1.ConversationID, gameID GameID,
+	msg GameMessageEncoded) error {
 	uid, err := utils.AssertLoggedInUID(ctx, m.G())
 	if err != nil {
 		return err
 	}
-	conv, err := GetVerifiedConv(ctx, m.G(), uid, convID, types.InboxSourceDataSourceLocalOnly)
+	conv, err := utils.GetVerifiedConv(ctx, m.G(), uid, convID, types.InboxSourceDataSourceLocalOnly)
 	if err != nil {
 		return err
 	}
@@ -126,14 +131,14 @@ func (m *Manager) SendChat(ctx context.Context, convID chat1.ConversationID, gam
 	return err
 }
 
-func (m *Manager) Me() flip.UserDevice {
+func (m *Manager) Me() UserDevice {
 	ad := m.G().ActiveDevice
 	did := ad.DeviceID()
 	hdid := make([]byte, libkb.DeviceIDLen)
 	if err := did.ToBytes(hdid); err != nil {
-		return flip.UserDevice{}
+		return UserDevice{}
 	}
-	return flip.UserDevice{
+	return UserDevice{
 		U: gregor1.UID(ad.UID().ToBytes()),
 		D: gregor1.DeviceID(hdid),
 	}
