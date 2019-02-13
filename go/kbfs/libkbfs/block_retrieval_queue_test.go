@@ -32,7 +32,7 @@ func newTestBlockRetrievalConfig(t *testing.T, bg blockGetter,
 	dbc DiskBlockCache) *testBlockRetrievalConfig {
 	return &testBlockRetrievalConfig{
 		newTestCodecGetter(),
-		newTestLogMaker(t),
+		newTestLogMakerWithVDebug(t, "vlog2"),
 		NewBlockCacheStandard(10, getDefaultCleanBlockCacheCapacity(NewInitModeFromType(InitDefault))),
 		bg,
 		newTestDiskBlockCacheGetter(t, dbc),

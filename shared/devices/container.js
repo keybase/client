@@ -2,13 +2,13 @@
 import * as React from 'react'
 import Devices from '.'
 import * as DevicesGen from '../actions/devices-gen'
-import * as ProvisionGen from '../actions/provision-gen'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Constants from '../constants/devices'
 import * as I from 'immutable'
 import * as Kb from '../common-adapters'
 import {compose, isMobile, namedConnect, safeSubmitPerMount} from '../util/container'
 import {partition} from 'lodash-es'
+import type {RouteProps} from '../route-tree/render-route'
 
 const mapStateToProps = state => ({
   _deviceMap: state.devices.deviceMap,
@@ -16,11 +16,10 @@ const mapStateToProps = state => ({
   waiting: Constants.isWaiting(state),
 })
 
-const mapDispatchToProps = dispatch => ({
-  addNewComputer: () => dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'desktop'})),
-  addNewPaperKey: () => dispatch(DevicesGen.createShowPaperKeyPage()),
-  addNewPhone: () => dispatch(ProvisionGen.createAddNewDevice({otherDeviceType: 'mobile'})),
+const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
   loadDevices: () => dispatch(DevicesGen.createLoad()),
+  onAddDevice: (highlight?: Array<'computer' | 'phone' | 'paper key'>) =>
+    dispatch(navigateAppend([{props: {highlight}, selected: 'deviceAdd'}])),
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
@@ -40,22 +39,23 @@ const splitAndSortDevices = deviceMap =>
     d => d.revokedAt
   )
 
-type OwnProps = void
+type OwnProps = RouteProps<{}, {}>
 
 function mergeProps(stateProps, dispatchProps, ownProps: OwnProps) {
   const [revoked, normal] = splitAndSortDevices(stateProps._deviceMap)
   const revokedItems = revoked.map(deviceToItem)
   const newlyRevokedIds = I.Set(revokedItems.map(d => d.key)).intersect(stateProps._newlyChangedItemIds)
+  const showPaperKeyNudge =
+    !stateProps._deviceMap.isEmpty() && !stateProps._deviceMap.some(v => v.type === 'backup')
   return {
     _stateOverride: null,
-    addNewComputer: dispatchProps.addNewComputer,
-    addNewPaperKey: dispatchProps.addNewPaperKey,
-    addNewPhone: dispatchProps.addNewPhone,
     hasNewlyRevoked: newlyRevokedIds.size > 0,
     items: normal.map(deviceToItem),
     loadDevices: dispatchProps.loadDevices,
+    onAddDevice: dispatchProps.onAddDevice,
     onBack: dispatchProps.onBack,
     revokedItems: revokedItems,
+    showPaperKeyNudge,
     title: 'Devices',
     waiting: stateProps.waiting,
   }
@@ -73,14 +73,13 @@ class ReloadableDevices extends React.PureComponent<React.ElementConfig<typeof D
       >
         <Devices
           _stateOverride={this.props._stateOverride}
-          addNewComputer={this.props.addNewComputer}
-          addNewPaperKey={this.props.addNewPaperKey}
-          addNewPhone={this.props.addNewPhone}
+          onAddDevice={this.props.onAddDevice}
           hasNewlyRevoked={this.props.hasNewlyRevoked}
           items={this.props.items}
           loadDevices={this.props.loadDevices}
           onBack={this.props.onBack}
           revokedItems={this.props.revokedItems}
+          showPaperKeyNudge={this.props.showPaperKeyNudge}
           title={this.props.title}
           waiting={this.props.waiting}
         />
@@ -95,7 +94,7 @@ const Connected = compose(
 )(ReloadableDevices)
 
 Connected.navigationOptions = {
-  skipOffline: true
+  skipOffline: true,
 }
 
 export default Connected

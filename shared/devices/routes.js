@@ -1,5 +1,6 @@
 // @flow
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
+import {isMobile} from '../constants/platform'
 
 const routeTree = () => {
   const CodePage = require('../provision/code-page/container').default
@@ -8,8 +9,13 @@ const routeTree = () => {
   const ErrorPage = require('../provision/error/container').default
   const PaperKey = require('./paper-key/container').default
   const RevokeDevice = require('./device-revoke/container').default
+  const AddDevice = require('./add-device/container').default
   return makeRouteDefNode({
     children: {
+      deviceAdd: {
+        component: AddDevice,
+        tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile}),
+      },
       deviceCodePage: {
         component: CodePage,
         tags: makeLeafTags({fullscreen: true, hideStatusBar: true}),
@@ -36,13 +42,14 @@ const routeTree = () => {
 }
 
 export const newRoutes = {
+  deviceAdd: {getScreen: () => require('./add-device/container').default},
   deviceCodePage: {getScreen: () => require('../provision/code-page/container').default},
   deviceError: {getScreen: () => require('../provision/error/container').default},
   devicePage: {getScreen: () => require('./device-page/container').default},
   devicePaperKey: {getScreen: () => require('./paper-key/container').default},
   deviceRevoke: {getScreen: () => require('./device-revoke/container').default},
-  'tabs:devicesTab': {getScreen: () => require('./container').default},
   'settingsTabs:devicesTab': {getScreen: () => require('./container').default},
+  'tabs:devicesTab': {getScreen: () => require('./container').default},
 }
 
 export default routeTree

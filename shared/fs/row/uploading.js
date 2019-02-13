@@ -10,15 +10,12 @@ import {PathItemIcon} from '../common'
 type UploadingProps = {
   path: Types.Path,
   type: Types.PathType,
-  error: boolean,
+  errorRetry?: ?() => void,
   writingToJournal: boolean,
   syncing: boolean,
 }
 
-const getStatusText = ({error, writingToJournal, syncing}: UploadingProps): string => {
-  if (error) {
-    return 'Upload error'
-  }
+const getStatusText = ({writingToJournal, syncing}: UploadingProps): string => {
   if (writingToJournal && syncing) {
     return 'Encrypting & Uploading'
   }
@@ -42,12 +39,24 @@ const Uploading = (props: UploadingProps) => (
       >
         {Types.getPathName(props.path)}
       </Kb.Text>
-      <Kb.Meta
-        title={getStatusText(props)}
-        backgroundColor={props.error ? Styles.globalColors.red : Styles.globalColors.blue}
-      />
+      {props.errorRetry ? (
+        <Kb.Text type="BodySmall" style={styles.textFailed}>
+          Upload has failed.{' '}
+          <Kb.Text type="BodySmall" onClick={props.errorRetry} underline={true} style={styles.textFailed}>
+            Retry
+          </Kb.Text>
+        </Kb.Text>
+      ) : (
+        <Kb.Meta title={getStatusText(props)} backgroundColor={Styles.globalColors.blue} />
+      )}
     </Kb.Box>
   </Kb.Box>
 )
+
+const styles = Styles.styleSheetCreate({
+  textFailed: {
+    color: Styles.globalColors.red,
+  },
+})
 
 export default Uploading

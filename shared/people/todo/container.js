@@ -121,9 +121,13 @@ const PaperKeyConnector = connect<TodoOwnProps, _, _, _, _>(
     onConfirm: () => {
       if (!isMobile) {
         dispatch(RouteTreeGen.createSwitchTo({path: [Tabs.devicesTab]}))
+        dispatch(RouteTreeGen.createNavigateAppend({parentPath: [Tabs.devicesTab], path: ['deviceAdd']}))
       } else {
         dispatch(
-          RouteTreeGen.createNavigateTo({parentPath: [Tabs.settingsTab], path: [SettingsTabs.devicesTab]})
+          RouteTreeGen.createNavigateTo({
+            parentPath: [Tabs.settingsTab],
+            path: [SettingsTabs.devicesTab, 'addDevice'],
+          })
         )
         dispatch(RouteTreeGen.createSwitchTo({path: [Tabs.settingsTab]}))
       }
