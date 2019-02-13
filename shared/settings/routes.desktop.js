@@ -5,7 +5,7 @@ import * as I from 'immutable'
 import * as Kb from '../common-adapters'
 import * as React from 'react'
 import {createNavigator, StackRouter, SceneView} from '@react-navigation/core'
-import * as Shim from '../router-v2/shim.desktop'
+import * as Shim from '../router-v2/shim'
 
 const routeTree = () => {
   const Settings = require('./').default
@@ -95,7 +95,7 @@ const routeTree = () => {
 
 export default routeTree
 
-const settingsRoutes = {
+const settingsSubRoutes = {
   [Constants.fsTab]: {getScreen: () => require('./files/container').default},
   [Constants.advancedTab]: {getScreen: () => require('./advanced/container').default},
   [Constants.chatTab]: {getScreen: () => require('./chat/container').default},
@@ -122,6 +122,7 @@ class SettingsSubNav extends React.PureComponent<any> {
     const Settings = require('./').default
     return (
       <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={true}>
+        {/* $FlowIssue */}
         <Settings
           routeLeafTags={mockRouteLeafTag}
           routeSelected={descriptor.state.routeName}
@@ -139,13 +140,13 @@ class SettingsSubNav extends React.PureComponent<any> {
 }
 const mockRouteLeafTag = {isModal: false}
 const mockRoutePath = I.List()
-const MainNavigator = createNavigator(
+const SettingsSubNavigator = createNavigator(
   SettingsSubNav,
-  StackRouter(Shim.shim(settingsRoutes), {initialRouteName: Constants.landingTab}),
+  StackRouter(Shim.shim(settingsSubRoutes), {initialRouteName: Constants.landingTab}),
   {}
 )
 
 export const newRoutes = {
-  'tabs:settingsTab': {getScreen: () => MainNavigator, upgraded: true},
+  'tabs:settingsTab': {getScreen: () => SettingsSubNavigator, upgraded: true},
 }
 export const newModalRoutes = {}

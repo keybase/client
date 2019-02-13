@@ -135,63 +135,123 @@ const RootStackNavigator = createSwitchNavigator(
   {initialRouteName: 'loggedOut'}
 )
 
-const createElectronApp = App => {
-  const initAction = NavigationActions.init()
-
-  // Based on https://github.com/react-navigation/react-navigation-web/blob/master/src/createBrowserApp.js
-  class ElectronApp extends React.Component<any, any> {
-    _nav: any // always use this value and not whats in state since thats async
+const createElectronApp = Component => {
+  // Based on https://github.com/react-navigation/react-navigation-native/blob/master/src/createAppContainer.js
+  class ElectronApp extends React.PureComponent<any, any> {
+    _navState: any = null // always use this value and not whats in state since thats async
     _actionEventSubscribers = new Set()
     _navigation: any
+    _initialAction = null
 
     constructor(props: any) {
       super(props)
-      this._nav = App.router.getStateForAction(initAction)
-      this.state = {nav: this._nav}
+      this._initialAction = NavigationActions.init()
+      this.state = {nav: Component.router.getStateForAction(this._initialAction)}
+    }
+
+    componentDidUpdate() {
+      // Clear cached _navState every tick
+      if (this._navState === this.state.nav) {
+        this._navState = null
+      }
     }
 
     componentDidMount() {
-      this._actionEventSubscribers.forEach(subscriber =>
-        subscriber({action: initAction, lastState: null, state: this.state.nav, type: 'action'})
-      )
+      let action = this._initialAction
+      let startupState = this.state.nav
+      if (!startupState) {
+        startupState = Component.router.getStateForAction(action)
+      }
+      const dispatchActions = () =>
+        this._actionEventSubscribers.forEach(subscriber =>
+          subscriber({
+            action,
+            lastState: null,
+            state: this.state.nav,
+            type: 'action',
+          })
+        )
+
+      if (startupState === this.state.nav) {
+        dispatchActions()
+        return
+      }
+
+      // eslint-disable-next-line react/no-did-mount-set-state
+      this.setState({nav: startupState}, () => {
+        dispatchActions()
+      })
     }
+
+    dispatch = (action: any) => {
+      // navState will have the most up-to-date value, because setState sometimes behaves asyncronously
+      this._navState = this._navState || this.state.nav
+      const lastNavState = this._navState
+      const reducedState = Component.router.getStateForAction(action, lastNavState)
+      const navState = reducedState === null ? lastNavState : reducedState
+
+      const dispatchActionEvents = () => {
+        this._actionEventSubscribers.forEach(subscriber =>
+          subscriber({
+            action,
+            lastState: lastNavState,
+            state: navState,
+            type: 'action',
+          })
+        )
+      }
+
+      if (reducedState === null) {
+        // The router will return null when action has been handled and the state hasn't changed.
+        // dispatch returns true when something has been handled.
+        dispatchActionEvents()
+        return true
+      }
+
+      if (navState !== lastNavState) {
+        // Cache updates to state.nav during the tick to ensure that subsequent calls will not discard this change
+        this._navState = navState
+        this.setState({nav: navState}, () => {
+          dispatchActionEvents()
+        })
+        return true
+      }
+
+      dispatchActionEvents()
+      return false
+    }
+
+    _getScreenProps = () => this.props.screenProps
+
     render() {
-      if (!this._navigation || this._navigation.state !== this.state.nav) {
+      let navigation = this.props.navigation
+      const navState = this.state.nav
+      if (!navState) {
+        return null
+      }
+      if (!this._navigation || this._navigation.state !== navState) {
         this._navigation = getNavigation(
-          App.router,
-          this.state.nav,
+          Component.router,
+          navState,
           this.dispatch,
           this._actionEventSubscribers,
-          () => this.props.screenProps,
+          this._getScreenProps,
           () => this._navigation
         )
       }
+      navigation = this._navigation
       return (
-        <NavigationProvider value={this._navigation}>
-          <App navigation={this._navigation} />
+        <NavigationProvider value={navigation}>
+          <Component {...this.props} navigation={navigation} />
         </NavigationProvider>
       )
     }
-    getNavState = () => this._nav
+
+    getNavState = () => this._navState || this.state.nav
+
     dispatchOldAction = (old: any) => {
       const actions = Shared.oldActionToNewActions(old, this._navigation) || []
       actions.forEach(a => this.dispatch(a))
-    }
-    dispatch = (action: any) => {
-      const lastState = this._nav
-      const newState = App.router.getStateForAction(action, lastState)
-      this._nav = newState
-      const dispatchEvents = () =>
-        this._actionEventSubscribers.forEach(subscriber =>
-          subscriber({action, lastState, state: newState, type: 'action'})
-        )
-      if (newState && newState !== lastState) {
-        this.setState({nav: newState}, dispatchEvents)
-        return true
-      } else {
-        dispatchEvents()
-      }
-      return false
     }
   }
   return ElectronApp
