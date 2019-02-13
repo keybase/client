@@ -2,7 +2,7 @@
 import React from 'react'
 import PeopleItem from '../item'
 import * as Types from '../../constants/types/people'
-import {Avatar, ClickableBox, ConnectedUsernames, ScrollView, Text} from '../../common-adapters'
+import {Avatar, ClickableBox, ConnectedUsernames, ScrollView, Text, WithTooltip} from '../../common-adapters'
 import {globalStyles, globalMargins, platformStyles} from '../../styles'
 import {isMobile} from '../../constants/platform'
 
@@ -82,13 +82,14 @@ export const MultiFollowNotification = (props: Props) => {
         contentContainerStyle={scrollViewContainerStyle}
       >
         {usernames.map(username => (
-          <Avatar
-            onClick={() => props.onClickUser(username)}
-            username={username}
-            size={32}
-            key={username}
-            style={{marginRight: globalMargins.xtiny}}
-          />
+          <WithTooltip key={username} text={username}>
+            <Avatar
+              onClick={() => props.onClickUser(username)}
+              username={username}
+              size={32}
+              style={{marginRight: globalMargins.xtiny}}
+            />
+          </WithTooltip>
         ))}
       </ScrollView>
     </PeopleItem>

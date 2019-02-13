@@ -518,6 +518,10 @@ func (fbo *folderBranchOps) Shutdown(ctx context.Context) error {
 		}
 	}
 
+	if err := fbo.fbm.waitForArchives(ctx); err != nil {
+		return err
+	}
+
 	close(fbo.shutdownChan)
 	fbo.cr.Shutdown()
 	fbo.fbm.shutdown()
@@ -5267,7 +5271,7 @@ func (fbo *folderBranchOps) syncAllLocked(
 	fbo.log.LazyTrace(ctx, "Processing %d op(s)", len(fbo.dirOps))
 
 	newBlocks := make(map[BlockPointer]bool)
-	fileBlocks := make(fileBlockMap)
+	fileBlocks := newFileBlockMapMemory()
 	parentsToAddChainsFor := make(map[BlockPointer]bool)
 	for _, dop := range fbo.dirOps {
 		// Copy the op before modifying it, in case there's an error
@@ -5429,10 +5433,10 @@ func (fbo *folderBranchOps) syncAllLocked(
 		}
 		resolvedPaths[file.tailPointer()] = file
 		parent := file.parentPath().tailPointer()
-		if _, ok := fileBlocks[parent]; !ok {
-			fileBlocks[parent] = make(map[string]*FileBlock)
+		err = fileBlocks.putTopBlock(ctx, parent, file.tailName(), fblock)
+		if err != nil {
+			return err
 		}
-		fileBlocks[parent][file.tailName()] = fblock
 
 		// Collect its `afterUpdateFn` along with all the others, so
 		// they all get invoked under the same lock, to avoid any

@@ -37,9 +37,7 @@ const (
 func Params(kbCtx libkbfs.Context,
 	storageRoot string, paramsBase *libkbfs.InitParams) (
 	params libkbfs.InitParams, tempDir string, err error) {
-	// TODO(KBFS-2443): Also remove all kbfsgit directories older than
-	// an hour.
-	tempDir, err = ioutil.TempDir(storageRoot, "kbfsgit")
+	tempDir, err = ioutil.TempDir(storageRoot, libkbfs.GitStorageRootPrefix)
 	if err != nil {
 		return libkbfs.InitParams{}, "", err
 	}

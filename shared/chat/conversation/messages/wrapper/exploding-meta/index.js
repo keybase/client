@@ -33,14 +33,14 @@ class ExplodingMeta extends React.Component<Props, State> {
   sharedTimerID: SharedTimerID
 
   componentDidMount() {
-    if (this.state.mode === 'none' && (Date.now() >= this.props.explodesAt || this.props.exploded)) {
-      this._setHidden()
-      return
-    }
-    this._setCountdown()
+    this._hideOrStart()
   }
 
   componentDidUpdate(prevProps: Props, prevState: State) {
+    if (!this.props.pending && prevProps.pending) {
+      this._hideOrStart()
+    }
+
     if (this.props.exploded && !prevProps.exploded) {
       this.setState({mode: 'boom'})
       SharedTimer.removeObserver(this.props.messageKey, this.sharedTimerID)
@@ -51,12 +51,28 @@ class ExplodingMeta extends React.Component<Props, State> {
     }
   }
 
+  _hideOrStart = () => {
+    if (
+      this.state.mode === 'none' &&
+      !this.props.pending &&
+      (Date.now() >= this.props.explodesAt || this.props.exploded)
+    ) {
+      this._setHidden()
+      return
+    }
+    !this.props.pending && this._setCountdown()
+  }
+
   componentWillUnmount() {
     removeTicker(this.tickerID)
     SharedTimer.removeObserver(this.props.messageKey, this.sharedTimerID)
   }
 
   _updateLoop = () => {
+    if (this.props.pending) {
+      return
+    }
+
     const difference = this.props.explodesAt - Date.now()
     if (difference <= 0 || this.props.exploded) {
       this.setState({mode: 'boom'})
@@ -139,6 +155,12 @@ class ExplodingMeta extends React.Component<Props, State> {
           </Kb.Box2>
         )
     }
+
+    if (this.props.pending) {
+      // We already have a send indicator for this
+      children = null
+    }
+
     return (
       <Kb.ClickableBox
         onClick={this.props.onClick}

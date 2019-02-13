@@ -61,7 +61,8 @@ const updateUserCard = (state, action) => {
   const {guiID, card} = action.payload.params
   const username = Constants.guiIDToUsername(state.tracker2, guiID)
   if (!username) {
-    throw new Error('update user card w/ no username? ' + guiID)
+    // an unknown or stale guiid, just ignore
+    return
   }
 
   return Tracker2Gen.createUpdatedDetails({
