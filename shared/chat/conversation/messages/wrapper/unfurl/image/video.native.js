@@ -14,6 +14,10 @@ export class Video extends React.Component<Props, State> {
   state = {playingVideo: this.props.autoPlay}
 
   _onClick = () => {
+    if (this.props.onClick) {
+      this.props.onClick()
+      return
+    }
     if (!(this._webviewRef && this._webviewRef.current)) {
       return
     }

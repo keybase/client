@@ -5006,6 +5006,11 @@ type FindConversationsLocalArg struct {
 
 type UpdateTypingArg struct {
 	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
+	Typing         bool           `codec:"typing" json:"typing"`
+}
+
+type UpdateUnsentTextArg struct {
+	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
 	Text           string         `codec:"text" json:"text"`
 }
 
@@ -5175,6 +5180,7 @@ type LocalInterface interface {
 	MarkAsReadLocal(context.Context, MarkAsReadLocalArg) (MarkAsReadLocalRes, error)
 	FindConversationsLocal(context.Context, FindConversationsLocalArg) (FindConversationsLocalRes, error)
 	UpdateTyping(context.Context, UpdateTypingArg) error
+	UpdateUnsentText(context.Context, UpdateUnsentTextArg) error
 	JoinConversationLocal(context.Context, JoinConversationLocalArg) (JoinLeaveConversationLocalRes, error)
 	JoinConversationByIDLocal(context.Context, ConversationID) (JoinLeaveConversationLocalRes, error)
 	PreviewConversationByIDLocal(context.Context, ConversationID) (JoinLeaveConversationLocalRes, error)
@@ -5800,6 +5806,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"updateUnsentText": {
+				MakeArg: func() interface{} {
+					var ret [1]UpdateUnsentTextArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]UpdateUnsentTextArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]UpdateUnsentTextArg)(nil), args)
+						return
+					}
+					err = i.UpdateUnsentText(ctx, typedArgs[0])
+					return
+				},
+			},
 			"joinConversationLocal": {
 				MakeArg: func() interface{} {
 					var ret [1]JoinConversationLocalArg
@@ -6353,6 +6374,11 @@ func (c LocalClient) FindConversationsLocal(ctx context.Context, __arg FindConve
 
 func (c LocalClient) UpdateTyping(ctx context.Context, __arg UpdateTypingArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.updateTyping", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) UpdateUnsentText(ctx context.Context, __arg UpdateUnsentTextArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.updateUnsentText", []interface{}{__arg}, nil)
 	return
 }
 

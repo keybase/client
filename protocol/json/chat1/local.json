@@ -3843,6 +3843,19 @@
           "type": "ConversationID"
         },
         {
+          "name": "typing",
+          "type": "boolean"
+        }
+      ],
+      "response": null
+    },
+    "updateUnsentText": {
+      "request": [
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
           "name": "text",
           "type": "string"
         }

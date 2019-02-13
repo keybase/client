@@ -17,10 +17,13 @@ const mapStateToProps = (state, {conversationIDKey, isPending}) => {
   const showLoader = WaitingConstants.anyWaiting(state, Constants.waitingKeyThreadLoad(conversationIDKey))
   const meta = Constants.getMeta(state, conversationIDKey)
   const isSearching = state.chat2.pendingMode === 'searchingForUsers' && isPending
+  const giphyResults = state.chat2.giphyResultMap.get(conversationIDKey, [])
+  const showGiphySearch = giphyResults.length > 0
   return {
     conversationIDKey,
     isPending,
     isSearching,
+    showGiphySearch,
     showLoader,
     threadLoadedOffline: meta.offline,
   }
@@ -57,6 +60,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     onPaste: (data: Buffer) => dispatchProps._onPaste(stateProps.conversationIDKey, data),
     onShowTracker: dispatchProps.onShowTracker,
     onToggleInfoPanel: dispatchProps.onToggleInfoPanel,
+    showGiphySearch: stateProps.showGiphySearch,
     showLoader: stateProps.showLoader,
     threadLoadedOffline: stateProps.threadLoadedOffline,
   }
