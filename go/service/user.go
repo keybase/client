@@ -230,15 +230,6 @@ func (h *UserHandler) ProfileEdit(nctx context.Context, arg keybase1.ProfileEdit
 	return engine.RunEngine2(m, eng)
 }
 
-func (h *UserHandler) loadUsername(ctx context.Context, uid keybase1.UID) (string, error) {
-	arg := libkb.NewLoadUserByUIDArg(ctx, h.G(), uid).WithPublicKeyOptional().WithStaleOK(true).WithCachedOnly()
-	upak, _, err := h.G().GetUPAKLoader().Load(arg)
-	if err != nil {
-		return "", err
-	}
-	return upak.GetName(), nil
-}
-
 func (h *UserHandler) InterestingPeople(ctx context.Context, maxUsers int) (res []keybase1.InterestingPerson, err error) {
 
 	// Chat source
