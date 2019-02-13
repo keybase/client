@@ -10,8 +10,10 @@ const full = {
   imageHeight: 471,
   imageURL: require('../../../../../../images/mock/wsj_image.jpg'),
   imageWidth: 900,
+  isCollapsed: false,
   isVideo: false,
   onClose: Sb.action('onClose'),
+  onCollapse: Sb.action('onCollapsed'),
 }
 
 const noClose = {

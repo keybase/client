@@ -20,6 +20,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
@@ -111,6 +112,7 @@ type ConfigLocal struct {
 	kbCtx              Context
 	rootNodeWrappers   []func(Node) Node
 	tlfClearCancels    map[tlf.ID]context.CancelFunc
+	vdebugSetting      string
 
 	maxNameBytes           uint32
 	rekeyQueue             RekeyQueue
@@ -1082,11 +1084,20 @@ func (c *ConfigLocal) ResetCaches() {
 	}
 }
 
-// MakeLogger implements the Config interface for ConfigLocal.
+// MakeLogger implements the logMaker interface for ConfigLocal.
 func (c *ConfigLocal) MakeLogger(module string) logger.Logger {
 	// No need to lock since c.loggerFn is initialized once at
 	// construction. Also resetCachesWithoutShutdown would deadlock.
 	return c.loggerFn(module)
+}
+
+// MakeVLogger implements the logMaker interface for ConfigLocal.
+func (c *ConfigLocal) MakeVLogger(module string) *libkb.VDebugLog {
+	// No need to lock since c.loggerFn is initialized once at
+	// construction. Also resetCachesWithoutShutdown would deadlock.
+	vlog := libkb.NewVDebugLog(c.loggerFn(module))
+	vlog.Configure(c.vdebugSetting)
+	return vlog
 }
 
 // MetricsRegistry implements the Config interface for ConfigLocal.

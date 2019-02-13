@@ -429,36 +429,7 @@ type messageView struct {
 }
 
 func formatSystemMessage(body chat1.MessageSystem) string {
-	typ, err := body.SystemType()
-	if err != nil {
-		return "<unknown system message>"
-	}
-	switch typ {
-	case chat1.MessageSystemType_ADDEDTOTEAM:
-		return fmt.Sprintf("[Added @%s to the team]", body.Addedtoteam().Addee)
-	case chat1.MessageSystemType_INVITEADDEDTOTEAM:
-		return fmt.Sprintf("[Added %s to the team (invited by @%s)]",
-			body.Inviteaddedtoteam().Invitee, body.Inviteaddedtoteam().Inviter)
-	case chat1.MessageSystemType_COMPLEXTEAM:
-		return fmt.Sprintf("[Created a new channel in %s]", body.Complexteam().Team)
-	case chat1.MessageSystemType_CREATETEAM:
-		return fmt.Sprintf("[%s created the team %s]", body.Createteam().Creator, body.Createteam().Team)
-	case chat1.MessageSystemType_GITPUSH:
-		switch body.Gitpush().PushType {
-		case keybase1.GitPushType_CREATEREPO:
-			return fmt.Sprintf("[git %s created the repo %s]", body.Gitpush().Pusher, body.Gitpush().RepoName)
-		case keybase1.GitPushType_RENAMEREPO:
-			return fmt.Sprintf("[git %s changed the name of the repo %s to %s]", body.Gitpush().Pusher, body.Gitpush().PreviousRepoName, body.Gitpush().RepoName)
-		default:
-			total := keybase1.TotalNumberOfCommits(body.Gitpush().Refs)
-			names := keybase1.RefNames(body.Gitpush().Refs)
-			return fmt.Sprintf("[git (%s) %s pushed %d commits to %s]", body.Gitpush().RepoName,
-				body.Gitpush().Pusher, total, names)
-		}
-	case chat1.MessageSystemType_CHANGEAVATAR:
-		return fmt.Sprintf("[%s changed team avatar]", body.Changeavatar().User)
-	}
-	return "<unknown system message>"
+	return body.String()
 }
 
 func formatSendPaymentMessage(g *libkb.GlobalContext, body chat1.MessageSendPayment) string {

@@ -85,6 +85,7 @@ func TestServerDefault(t *testing.T) {
 		"http://%s/files/private/alice,bob/test.txt?token=%s", addr, token))
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, resp.StatusCode)
+	require.Contains(t, resp.Header.Get("Content-Type"), "charset=")
 
 	resp, err = http.Get(fmt.Sprintf(
 		"http://%s/files/blah/alice,bob/non-existent?token=%s", addr, token))

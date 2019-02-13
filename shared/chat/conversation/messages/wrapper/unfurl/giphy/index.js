@@ -8,9 +8,11 @@ export type Props = {
   imageHeight: number,
   imageWidth: number,
   imageURL: string,
+  isCollapsed: boolean,
   isVideo: boolean,
   faviconURL?: string,
   onClose?: () => void,
+  onCollapse: () => void,
 }
 
 class UnfurlGiphy extends React.Component<Props> {
@@ -23,6 +25,12 @@ class UnfurlGiphy extends React.Component<Props> {
             <Kb.Box2 direction="horizontal" gap="tiny">
               {!!this.props.faviconURL && <Kb.Image src={this.props.faviconURL} style={styles.favicon} />}
               <Kb.Text type="BodySmall">Giphy</Kb.Text>
+              <Kb.Icon
+                boxStyle={styles.collapseBox}
+                style={styles.collapse}
+                onClick={this.props.onCollapse}
+                type={this.props.isCollapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'}
+              />
             </Kb.Box2>
             {!!this.props.onClose && (
               <Kb.Icon
@@ -33,13 +41,15 @@ class UnfurlGiphy extends React.Component<Props> {
               />
             )}
           </Kb.Box2>
-          <UnfurlImage
-            url={this.props.imageURL}
-            height={this.props.imageHeight}
-            width={this.props.imageWidth}
-            isVideo={this.props.isVideo}
-            autoplayVideo={true}
-          />
+          {!this.props.isCollapsed && (
+            <UnfurlImage
+              url={this.props.imageURL}
+              height={this.props.imageHeight}
+              width={this.props.imageWidth}
+              isVideo={this.props.isVideo}
+              autoplayVideo={true}
+            />
+          )}
         </Kb.Box2>
       </Kb.Box2>
     )
@@ -47,6 +57,15 @@ class UnfurlGiphy extends React.Component<Props> {
 }
 
 const styles = Styles.styleSheetCreate({
+  collapse: Styles.platformStyles({
+    isMobile: {
+      alignSelf: 'center',
+    },
+  }),
+  collapseBox: {
+    ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
+  },
   container: Styles.platformStyles({
     common: {
       alignSelf: 'flex-start',

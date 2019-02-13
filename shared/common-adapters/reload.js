@@ -8,6 +8,7 @@ import HeaderHoc from './header-hoc'
 import ScrollView from './scroll-view'
 import Text from './text'
 import Button from './button'
+import Icon from './icon'
 import {namedConnect} from '../util/container'
 
 type ReloadProps = {|
@@ -22,12 +23,10 @@ class Reload extends React.PureComponent<ReloadProps, {expanded: boolean}> {
   _toggle = () => this.setState(p => ({expanded: !p.expanded}))
   render() {
     return (
-      <Box2 direction="vertical" centerChildren={true} style={styles.reload} gap="tiny">
+      <Box2 direction="vertical" centerChildren={true} style={styles.reload} gap="small">
+        <Icon type="icon-skull-64" />
         <Text center={true} type="Header">
-          Oops... We're having a hard time loading this page. Try again?
-        </Text>
-        <Text type="Body" onClick={this._toggle}>
-          {this.state.expanded ? "I'm not exactly sure why I did that" : "I'm curious..."}
+          We're having a hard time loading this page.
         </Text>
         {this.state.expanded && (
           <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollInside}>
@@ -36,7 +35,11 @@ class Reload extends React.PureComponent<ReloadProps, {expanded: boolean}> {
             </Text>
           </ScrollView>
         )}
-        <Button type="Primary" label="🙏 Retry" onClick={this.props.onReload} />
+        <Text type="BodySecondaryLink" onClick={this._toggle}>
+          {this.state.expanded ? 'Hide details' : 'Show details'}
+        </Text>
+
+        <Button type="Primary" label="Retry" onClick={this.props.onReload} />
       </Box2>
     )
   }

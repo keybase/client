@@ -42,6 +42,7 @@ const testCurrencies = I.List([
 
 const sharedSettingsProps = {
   accountID: Types.noAccountID,
+  canSubmitTx: true,
   currencies: testCurrencies,
   currencyWaiting: false,
   inflationDestination: '',
@@ -80,6 +81,9 @@ const load = () => {
     .add('Default', () => <Settings {...defaultSettingsProps} />)
     .add('Default with inflation dest', () => (
       <Settings {...defaultSettingsProps} inflationDestination="Stellar Development Foundation" />
+    ))
+    .add("Not funded account (can't make tx)", () => (
+      <Settings {...defaultSettingsProps} canSubmitTx={false} />
     ))
     .add('Secondary', () => <Settings {...secondarySettingsProps} />)
     .add('MobileOnlyEditable', () => <Settings {...secondarySettingsProps} mobileOnlyEditable={true} />)

@@ -164,8 +164,8 @@ const _makeError: I.RecordFactory<Types._FsError> = I.Record({
 export const makeError = (record?: {
   time?: number,
   error: any,
-  erroredAction: any,
-  retriableAction?: any,
+  erroredAction: FsGen.Actions,
+  retriableAction?: FsGen.Actions,
 }): I.RecordOf<Types._FsError> => {
   let {time, error, erroredAction, retriableAction} = record || {}
   return _makeError({

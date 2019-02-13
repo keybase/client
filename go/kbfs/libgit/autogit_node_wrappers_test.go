@@ -226,7 +226,7 @@ func TestAutogitRepoNodeReadonly(t *testing.T) {
 	require.NoError(t, err)
 	for _, fi := range fis {
 		if fi.Name() != "pack" {
-			err = recursiveDelete(ctx, objFS.(*libfs.FS), fi)
+			err = libfs.RecursiveDelete(ctx, objFS.(*libfs.FS), fi)
 			require.NoError(t, err)
 		}
 	}

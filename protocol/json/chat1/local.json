@@ -163,7 +163,8 @@
         "COMPLEXTEAM_2",
         "CREATETEAM_3",
         "GITPUSH_4",
-        "CHANGEAVATAR_5"
+        "CHANGEAVATAR_5",
+        "CHANGERETENTION_6"
       ]
     },
     {
@@ -314,6 +315,32 @@
       ]
     },
     {
+      "type": "record",
+      "name": "MessageSystemChangeRetention",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "isTeam"
+        },
+        {
+          "type": "boolean",
+          "name": "isInherit"
+        },
+        {
+          "type": "ConversationMembersType",
+          "name": "membersType"
+        },
+        {
+          "type": "RetentionPolicy",
+          "name": "policy"
+        },
+        {
+          "type": "string",
+          "name": "user"
+        }
+      ]
+    },
+    {
       "type": "variant",
       "name": "MessageSystem",
       "switch": {
@@ -362,6 +389,13 @@
             "def": false
           },
           "body": "MessageSystemChangeAvatar"
+        },
+        {
+          "label": {
+            "name": "CHANGERETENTION",
+            "def": false
+          },
+          "body": "MessageSystemChangeRetention"
         }
       ]
     },
@@ -4143,6 +4177,23 @@
             "type": "array",
             "items": "string"
           }
+        }
+      ],
+      "response": null
+    },
+    "toggleMessageCollapse": {
+      "request": [
+        {
+          "name": "convID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "msgID",
+          "type": "MessageID"
+        },
+        {
+          "name": "collapse",
+          "type": "boolean"
         }
       ],
       "response": null

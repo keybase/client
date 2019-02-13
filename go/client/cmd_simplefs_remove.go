@@ -17,7 +17,8 @@ import (
 // CmdSimpleFSRemove is the 'fs rm' command.
 type CmdSimpleFSRemove struct {
 	libkb.Contextified
-	paths []keybase1.Path
+	paths   []keybase1.Path
+	recurse bool
 }
 
 // NewCmdSimpleFSRemove creates a new cli.Command.
@@ -29,6 +30,12 @@ func NewCmdSimpleFSRemove(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSimpleFSRemove{Contextified: libkb.NewContextified(g)}, "rm", c)
 			cl.SetNoStandalone()
+		},
+		Flags: []cli.Flag{
+			cli.BoolFlag{
+				Name:  "r, recursive",
+				Usage: "Recursively delete everything in a directory",
+			},
 		},
 	}
 }
@@ -55,8 +62,9 @@ func (c *CmdSimpleFSRemove) Run() error {
 		defer cli.SimpleFSClose(ctx, opid)
 		c.G().Log.Debug("SimpleFSRemove %s", path.Kbfs())
 		err = cli.SimpleFSRemove(ctx, keybase1.SimpleFSRemoveArg{
-			OpID: opid,
-			Path: path,
+			OpID:      opid,
+			Path:      path,
+			Recursive: c.recurse,
 		})
 		if err != nil {
 			break
@@ -71,6 +79,8 @@ func (c *CmdSimpleFSRemove) Run() error {
 
 // ParseArgv gets the required path argument for this command.
 func (c *CmdSimpleFSRemove) ParseArgv(ctx *cli.Context) error {
+	c.recurse = ctx.Bool("recursive")
+
 	nargs := len(ctx.Args())
 	var err error
 

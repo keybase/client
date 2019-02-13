@@ -221,6 +221,18 @@ func (h *Helper) GetMessages(ctx context.Context, uid gregor1.UID, convID chat1.
 	return GetMessages(ctx, h.G(), uid, convID, msgIDs, resolveSupersedes, reason)
 }
 
+func GetMessage(ctx context.Context, g *globals.Context, uid gregor1.UID, convID chat1.ConversationID,
+	msgID chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason) (chat1.MessageUnboxed, error) {
+	msgs, err := GetMessages(ctx, g, uid, convID, []chat1.MessageID{msgID}, resolveSupersedes, reason)
+	if err != nil {
+		return chat1.MessageUnboxed{}, err
+	}
+	if len(msgs) != 1 {
+		return chat1.MessageUnboxed{}, errors.New("message not found")
+	}
+	return msgs[0], nil
+}
+
 func GetMessages(ctx context.Context, g *globals.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msgIDs []chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason) ([]chat1.MessageUnboxed, error) {
 	conv, err := GetUnverifiedConv(ctx, g, uid, convID, types.InboxSourceDataSourceAll)
@@ -1124,8 +1136,7 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 			// don't send join messages to #general
 			if findConvsTopicName != globals.DefaultTeamTopic {
 				joinMessageBody := chat1.NewMessageBodyWithJoin(chat1.MessageJoin{})
-				err := postJoinLeave(ctx, n.G(), n.ri, n.uid, convID, joinMessageBody)
-				if err != nil {
+				if err := postJoinLeave(ctx, n.G(), n.ri, n.uid, convID, joinMessageBody); err != nil {
 					n.Debug(ctx, "posting join-conv message failed: %v", err)
 					// ignore the error
 				}

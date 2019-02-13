@@ -163,6 +163,8 @@ const styles = styleSheetCreate({
       backgroundColor: globalColors.fastBlank,
       color: globalColors.black_50,
       flex: 1,
+      fontSize: 15,
+      lineHeight: 19,
       paddingRight: 40,
       paddingTop: 2, // so the tops of emoji aren't chopped off
     },

@@ -16,7 +16,7 @@ const font = isIOS
       italic: {fontStyle: 'italic'},
     }
   : {
-      // The fontFamily names must match the font file's name exactly on Android.
+      // The fontFamily name must match the font file's name exactly on Android.
       fontBold: {fontFamily: 'keybase-bold', fontWeight: 'normal'},
       fontExtrabold: {fontFamily: 'keybase-extrabold', fontWeight: 'normal'},
       fontRegular: {fontFamily: 'keybase-medium', fontWeight: 'normal'},
@@ -61,7 +61,7 @@ export const backgroundURL = (...path: Array<string>) => ({})
 export const styledKeyframes = () => null
 
 export {isMobile, fileUIName, isIPhoneX, isIOS, isAndroid} from '../constants/platform'
-export {globalMargins, backgroundModeToColor, platformStyles} from './shared'
+export {globalMargins, backgroundModeToColor, platformStyles, padding} from './shared'
 export {default as glamorous} from '@emotion/native'
 export {default as styled, css as styledCss} from '@emotion/native'
 export {default as globalColors} from './colors'

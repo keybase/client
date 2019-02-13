@@ -110,6 +110,9 @@
   flex-shrink: 0;
   width: 64px;
 }
+.box2_alignSelf_center {
+  align-self: center;
+}
 .box2_alignSelf_flex-start {
   align-self: flex-start;
 }

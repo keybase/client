@@ -5,6 +5,7 @@ package client
 
 import (
 	"fmt"
+	"strings"
 
 	"golang.org/x/net/context"
 
@@ -29,7 +30,7 @@ func (c *CmdSigsRevoke) ParseArgv(ctx *cli.Context) error {
 		if len(arg) < keybase1.SigIDQueryMin {
 			return fmt.Errorf("sig id %q is too short; must be at least 16 characters long", arg)
 		}
-		c.queries = append(c.queries, arg)
+		c.queries = append(c.queries, strings.TrimSuffix(arg, "..."))
 	}
 
 	return nil
