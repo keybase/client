@@ -1,6 +1,6 @@
 // @flow
 import React, {PureComponent} from 'react'
-import {PlaintextUsernames, Box} from '../common-adapters'
+import {PlaintextUsernames, Box, Box2} from '../common-adapters'
 import * as Styles from '../styles'
 
 type Props = {
@@ -15,16 +15,19 @@ class FilteredTopLine extends PureComponent<Props> {
     const {hasBadge, participants, showBold, usernameColor} = this.props
     const boldOverride = showBold ? Styles.globalStyles.fontBold : null
     return (
-      <Box style={styles.container}>
-        <Box style={styles.innerContainer}>
-          <PlaintextUsernames
-            type="BodySemibold"
-            containerStyle={Styles.collapseStyles([boldOverride, {color: usernameColor}, styles.usernames])}
-            users={participants.map(p => ({username: p}))}
-            title={participants.join(', ')}
-          />
+      <Box2 alignItems="center" direction="horizontal" gap="tiny" fullHeight={true} fullWidth={true}>
+        <Box style={styles.container}>
+          <Box style={styles.innerContainer}>
+            <PlaintextUsernames
+              type="BodySemibold"
+              containerStyle={Styles.collapseStyles([boldOverride, {color: usernameColor}])}
+              users={participants.map(p => ({username: p}))}
+              title={participants.join(', ')}
+            />
+          </Box>
         </Box>
-      </Box>
+        {hasBadge ? <Box key="unreadDot" style={styles.unreadDotStyle} /> : null}
+      </Box2>
     )
   }
 }
@@ -34,6 +37,7 @@ const styles = Styles.styleSheetCreate({
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
     flex: 1,
+    height: '100%',
     justifyContent: 'flex-start',
     position: 'relative',
   },
@@ -42,7 +46,13 @@ const styles = Styles.styleSheetCreate({
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
   },
-  usernames: {paddingRight: 7},
+  unreadDotStyle: {
+    backgroundColor: Styles.globalColors.orange,
+    borderRadius: 6,
+    height: 8,
+    marginLeft: 4,
+    width: 8,
+  },
 })
 
 export {FilteredTopLine}
