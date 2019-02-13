@@ -5,6 +5,7 @@ import {Button, Checkbox, Input, StandardScreen, Text} from '../../common-adapte
 
 type Props = {
   error?: ?Error,
+  heading: string,
   newPassphraseError: ?string,
   newPassphraseConfirmError: ?string,
   hasPGPKeyOnServer: boolean,
@@ -12,6 +13,7 @@ type Props = {
   onSave: (passphrase: string, passphraseConfirm: string) => void,
   waitingForResponse: boolean,
   onUpdatePGPSettings: () => void,
+  heading: string,
 }
 
 type State = {
@@ -26,6 +28,7 @@ class UpdatePassphrase extends Component<Props, State> {
 
   constructor(props: Props) {
     super(props)
+    console.log('props', props)
     this.state = {
       canSave: false,
       passphrase: '',
@@ -66,6 +69,7 @@ class UpdatePassphrase extends Component<Props, State> {
       : null
     return (
       <StandardScreen onBack={this.props.onBack} notification={notification} style={{alignItems: 'center'}}>
+        {!!this.props.heading && <Text type="BodySmall">{this.props.heading}</Text>}
         <Input
           hintText="New passphrase"
           type={inputType}

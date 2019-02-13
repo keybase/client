@@ -10,6 +10,7 @@ import * as ProfileGen from '../profile-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/config'
 import * as ChatConstants from '../../constants/chat2'
+import * as SettingsConstants from '../../constants/settings'
 import * as Saga from '../../util/saga'
 import * as PlatformSpecific from '../platform-specific'
 import * as RouteTreeGen from '../route-tree-gen'
@@ -19,6 +20,7 @@ import appRouteTree from '../../app/routes-app'
 import loginRouteTree from '../../app/routes-login'
 import avatarSaga from './avatar'
 import {getEngine} from '../../engine'
+import {isMobile} from '../../constants/platform'
 import {type TypedState} from '../../constants/reducer'
 import {updateServerConfigLastLoggedIn} from '../../app/server-config'
 
@@ -253,13 +255,41 @@ const resetGlobalStore = () => ({payload: null, type: 'common:resetStore'})
 // Figure out whether we can log out using CanLogout, if so,
 // startLogoutHandshake, else do what's needed - right now only
 // redirect to set passphrase screen.
+// function* startLogoutHandshakeIfAllowed(state) {
+//   const canLogoutRes = yield* Saga.callPromise(RPCTypes.userCanLogoutRpcPromise)
+//   console.log('canLogout returned:',canLogoutRes)
+//   if (canLogoutRes.canLogout) {
+//     return startLogoutHandshake(state)
+//   } else {
+//     console.log("going to set passphrase here")
+//     return isMobile
+//       ? RouteTreeGen.createNavigateTo({ path : [Tabs.settingsTab, SettingsConstants.passphraseTab]})
+//       : [
+//         RouteTreeGen.createNavigateTo({ path : [Tabs.settingsTab] }),
+//         RouteTreeGen.createNavigateAppend({path: [{ selected: 'changePassphrase', props: { heading : canLogoutRes.reason }}]}),
+//       ]
+//   }
+// }
+
 function* startLogoutHandshakeIfAllowed(state) {
-  const canLogout = yield RPCTypes.userCanLogoutRpcPromise()
-  console.log('canLogout returned:',canLogout)
-  if (canLogout.canLogout) {
-    return startLogoutHandshake(state)
+  const canLogoutRes = yield* Saga.callPromise(RPCTypes.userCanLogoutRpcPromise)
+  console.log('canLogout returned:', canLogoutRes)
+  if (canLogoutRes.canLogout) {
+    yield Saga.put(startLogoutHandshake(state))
   } else {
-    console.log("Would go to set passphrase here")
+    console.log('going to set passphrase here')
+    if (isMobile) {
+      yield Saga.put(
+        RouteTreeGen.createNavigateTo({path: [Tabs.settingsTab, SettingsConstants.passphraseTab]})
+      )
+    } else {
+      yield Saga.put(RouteTreeGen.createNavigateTo({path: [Tabs.settingsTab]}))
+      yield Saga.put(
+        RouteTreeGen.createNavigateAppend({
+          path: [{props: {heading: canLogoutRes.reason}, selected: 'changePassphrase'}],
+        })
+      )
+    }
   }
 }
 
@@ -435,7 +465,7 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   )
 
   // Like handshake but in reverse, ask sagas to do stuff before we tell the server to log us out
-  yield* Saga.chainAction<ConfigGen.LogoutPayload>(ConfigGen.logout, startLogoutHandshakeIfAllowed)
+  yield* Saga.chainGenerator<ConfigGen.LogoutPayload>(ConfigGen.logout, startLogoutHandshakeIfAllowed)
   // Give time for all waiters to register and allow the case where there are no waiters
   yield* Saga.chainGenerator<ConfigGen.LogoutHandshakePayload>(ConfigGen.logoutHandshake, allowLogoutWaiters)
   yield* Saga.chainGenerator<ConfigGen.LogoutHandshakeWaitPayload>(
