@@ -25,6 +25,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   editingMap: I.Map(),
   explodingModeLocks: I.Map(),
   explodingModes: I.Map(),
+  filterSelectedConversation: noConversationIDKey,
   focus: null,
   giphyResultMap: I.Map(),
   inboxFilter: '',
