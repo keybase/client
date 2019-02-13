@@ -1,12 +1,63 @@
 // @flow
 import * as React from 'react'
-import {Box2, Button, OverlayParentHOC, type OverlayParentProps} from '../../../common-adapters'
-import AddPeopleHow from '../../../teams/team/header/add-people-how/container'
+import {Box2, Button, FloatingMenu, OverlayParentHOC, type OverlayParentProps} from '../../../common-adapters'
+import {connect} from '../../../util/container'
+import * as RouteTreeGen from '../../../actions/route-tree-gen'
+import {teamsTab} from '../../../constants/tabs'
+
+type Props = {
+  attachTo: () => ?React.Component<any>,
+  visible: boolean,
+  onAddPeople: () => void,
+  onHidden: () => void,
+}
+
+const AddPeopleHow = (props: Props) => {
+  const items = [{onClick: props.onAddPeople, title: 'To team'}, {disabled: true, title: 'To channel'}]
+
+  return (
+    <FloatingMenu
+      attachTo={props.attachTo}
+      visible={props.visible}
+      items={items}
+      onHidden={props.onHidden}
+      position="bottom left"
+      closeOnSelect={true}
+    />
+  )
+}
+
+type OwnProps = {
+  attachTo: () => ?React.Component<any>,
+  onHidden: () => void,
+  teamname: string,
+  visible: boolean,
+}
+
+const mapDispatchToProps = (dispatch, {teamname}: OwnProps) => {
+  return {
+    onAddPeople: () => {
+      dispatch(
+        RouteTreeGen.createNavigateTo({
+          parentPath: [teamsTab],
+          path: [{props: {teamname}, selected: 'team'}, {props: {teamname}, selected: 'addPeople'}],
+        })
+      )
+      dispatch(RouteTreeGen.createSwitchTo({path: [teamsTab]}))
+    },
+  }
+}
+
+const ConnectedAddPeopleHow = connect<OwnProps, _, _, _, _>(
+  () => ({}),
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d})
+)(AddPeopleHow)
 
 const _AddPeople = (props: {teamname: string} & OverlayParentProps) => {
   return (
     <Box2 direction="horizontal" centerChildren={true}>
-      <AddPeopleHow
+      <ConnectedAddPeopleHow
         attachTo={props.getAttachmentRef}
         visible={props.showingMenu}
         teamname={props.teamname}
