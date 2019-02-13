@@ -74,9 +74,11 @@ func newLevelDbCleaner(g *GlobalContext, dbName string) *levelDbCleaner {
 	}
 	return &levelDbCleaner{
 		Contextified: NewContextified(g),
-		dbName:       dbName,
-		config:       config,
-		cache:        cache,
+		// Start the run shortly after starting but not immediately
+		lastRun: g.GetClock().Now().Add(-(config.CleanInterval - config.CleanInterval/10)),
+		dbName:  dbName,
+		config:  config,
+		cache:   cache,
 	}
 }
 
@@ -120,15 +122,15 @@ func (c *levelDbCleaner) getLastKey(ctx context.Context) []byte {
 func (c *levelDbCleaner) clean(ctx context.Context) (err error) {
 	c.Lock()
 	defer c.Unlock()
-	if !c.forceClean && c.G().GetClock().Now().Sub(c.lastRun) > c.config.CleanInterval {
+	if !c.forceClean && c.G().GetClock().Now().Sub(c.lastRun) < c.config.CleanInterval {
 		return nil
 	}
-	defer c.G().CTraceTimed(ctx, fmt.Sprintf("levelDbCleaner(%s) clean", c.dbName), func() error { return err })()
 	defer func() {
-		if err != nil {
+		if err == nil {
 			c.lastRun = c.G().GetClock().Now()
 		}
 	}()
+	defer c.G().CTraceTimed(ctx, fmt.Sprintf("levelDbCleaner(%s) clean", c.dbName), func() error { return err })()
 
 	if c.db == nil {
 		return nil
@@ -139,7 +141,8 @@ func (c *levelDbCleaner) clean(ctx context.Context) (err error) {
 		return err
 	}
 
-	c.log(ctx, "size: %v, maxSize: %v", humanize.Bytes(dbSize), humanize.Bytes(c.config.MaxSize))
+	c.log(ctx, "size: %v, maxSize: %v, skipRun: %v",
+		humanize.Bytes(dbSize), humanize.Bytes(c.config.MaxSize), dbSize < c.config.MaxSize)
 	// check db size, abort if small enough
 	if !c.forceClean && dbSize < c.config.MaxSize {
 		return nil
@@ -193,16 +196,20 @@ func (c *levelDbCleaner) cleanBatch(ctx context.Context, startKey []byte) (nextK
 	return nextKey, err
 }
 
+func (c *levelDbCleaner) attemptClean(ctx context.Context) {
+	go func() {
+		if err := c.clean(ctx); err != nil {
+			c.log(ctx, "unable to clean: %v", err)
+		}
+	}()
+}
+
 func (c *levelDbCleaner) markRecentlyUsed(ctx context.Context, key []byte) {
 	c.cache.Add(c.cacheKey(key), true)
-	if err := c.clean(ctx); err != nil {
-		c.log(ctx, "unable to clean: %v", err)
-	}
+	c.attemptClean(ctx)
 }
 
 func (c *levelDbCleaner) removeRecentlyUsed(ctx context.Context, key []byte) {
 	c.cache.Remove(c.cacheKey(key))
-	if err := c.clean(ctx); err != nil {
-		c.log(ctx, "unable to clean: %v", err)
-	}
+	c.attemptClean(ctx)
 }
