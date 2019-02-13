@@ -428,6 +428,10 @@ type ConversationCommandsSource interface {
 		tlfName string, body chat1.MessageBody) (bool, error)
 }
 
+type CoinFlipManager interface {
+	StartFlip(ctx context.Context, tlfName string, membersType chat1.ConversationMembersType) (chat1.ConversationID, error)
+}
+
 type InternalError interface {
 	// verbose error info for debugging but not user display
 	InternalError() string
