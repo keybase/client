@@ -26,7 +26,7 @@ class FilteredTopLine extends PureComponent<Props> {
             />
           </Box>
         </Box>
-        {hasBadge ? <Box key="unreadDot" style={styles.unreadDotStyle} /> : null}
+        {hasBadge ? <Box style={styles.unreadDotStyle} /> : null}
       </Box2>
     )
   }
