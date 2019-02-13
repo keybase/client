@@ -112,7 +112,7 @@ func (m *Manager) ServerTime(ctx context.Context) (time.Time, error) {
 }
 
 // ReadHistory implements the flip.DealersHelper interface
-func (m *Manager) ReadHistory(ctx context.Context, since time.Time) ([]GameMessageWrappedEncoded, error) {
+func (m *Manager) ReadHistory(ctx context.Context, conversationID chat1.ConversationID, since time.Time) ([]GameID, error) {
 	return nil, errors.New("not implemented")
 }
 
