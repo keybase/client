@@ -6,9 +6,10 @@ export default function load() {
   handler.attachToInput()
   handler.switchLanguage(navigator.language || 'en-US')
 
-  const contextMenuBuilder = new ContextMenuBuilder(handler)
+  const contextMenuBuilder = new ContextMenuBuilder(handler, null, true)
   // eslint-disable-next-line no-new
   new ContextMenuListener(info => {
+    console.log('SPOONER', info)
     contextMenuBuilder.showPopupMenu(info)
   })
 }
