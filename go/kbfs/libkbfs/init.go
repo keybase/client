@@ -879,7 +879,7 @@ func doInit(
 		params.BGFlushDirOpBatchSize)
 	config.SetBGFlushDirOpBatchSize(params.BGFlushDirOpBatchSize)
 
-	if mode != InitSingleOp {
+	if config.Mode().OldStorageRootCleaningEnabled() {
 		go cleanOldTempStorageRoots(config)
 	}
 
