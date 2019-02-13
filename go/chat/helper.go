@@ -36,6 +36,12 @@ func NewHelper(g *globals.Context, ri func() chat1.RemoteInterface) *Helper {
 	}
 }
 
+func (h *Helper) NewConversation(ctx context.Context, uid gregor1.UID, tlfName string,
+	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
+	vis keybase1.TLFVisibility) (chat1.ConversationLocal, error) {
+	return NewConversation(ctx, h.G(), uid, tlfName, topicName, topicType, membersType, vis, h.ri)
+}
+
 func (h *Helper) SendTextByID(ctx context.Context, convID chat1.ConversationID,
 	tlfName string, text string) error {
 	return h.SendMsgByID(ctx, convID, tlfName, chat1.NewMessageBodyWithText(chat1.MessageText{
@@ -59,14 +65,14 @@ func (h *Helper) SendMsgByID(ctx context.Context, convID chat1.ConversationID, t
 }
 
 func (h *Helper) SendTextByIDNonblock(ctx context.Context, convID chat1.ConversationID,
-	tlfName string, text string) error {
+	tlfName string, text string) (chat1.OutboxID, error) {
 	return h.SendMsgByIDNonblock(ctx, convID, tlfName, chat1.NewMessageBodyWithText(chat1.MessageText{
 		Body: text,
 	}), chat1.MessageType_TEXT)
 }
 
 func (h *Helper) SendMsgByIDNonblock(ctx context.Context, convID chat1.ConversationID,
-	tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error {
+	tlfName string, body chat1.MessageBody, msgType chat1.MessageType) (chat1.OutboxID, error) {
 	boxer := NewBoxer(h.G())
 	baseSender := NewBlockingSender(h.G(), boxer, h.ri)
 	sender := NewNonblockingSender(h.G(), baseSender)
@@ -77,8 +83,8 @@ func (h *Helper) SendMsgByIDNonblock(ctx context.Context, convID chat1.Conversat
 		},
 		MessageBody: body,
 	}
-	_, _, err := sender.Send(ctx, convID, msg, 0, nil)
-	return err
+	outboxID, _, err := sender.Send(ctx, convID, msg, 0, nil)
+	return outboxID, err
 }
 
 func (h *Helper) SendTextByName(ctx context.Context, name string, topicName *string,
@@ -86,7 +92,8 @@ func (h *Helper) SendTextByName(ctx context.Context, name string, topicName *str
 	boxer := NewBoxer(h.G())
 	sender := NewBlockingSender(h.G(), boxer, h.ri)
 	helper := newSendHelper(h.G(), name, topicName, membersType, ident, sender, h.ri)
-	return helper.SendText(ctx, text)
+	_, _, err := helper.SendText(ctx, text)
+	return err
 }
 
 func (h *Helper) SendMsgByName(ctx context.Context, name string, topicName *string,
@@ -95,26 +102,29 @@ func (h *Helper) SendMsgByName(ctx context.Context, name string, topicName *stri
 	boxer := NewBoxer(h.G())
 	sender := NewBlockingSender(h.G(), boxer, h.ri)
 	helper := newSendHelper(h.G(), name, topicName, membersType, ident, sender, h.ri)
-	return helper.SendBody(ctx, body, msgType)
+	_, _, err := helper.SendBody(ctx, body, msgType)
+	return err
 }
 
 func (h *Helper) SendTextByNameNonblock(ctx context.Context, name string, topicName *string,
-	membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, text string) error {
+	membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, text string) (chat1.OutboxID, error) {
 	boxer := NewBoxer(h.G())
 	baseSender := NewBlockingSender(h.G(), boxer, h.ri)
 	sender := NewNonblockingSender(h.G(), baseSender)
 	helper := newSendHelper(h.G(), name, topicName, membersType, ident, sender, h.ri)
-	return helper.SendText(ctx, text)
+	outboxID, _, err := helper.SendText(ctx, text)
+	return outboxID, err
 }
 
 func (h *Helper) SendMsgByNameNonblock(ctx context.Context, name string, topicName *string,
 	membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, body chat1.MessageBody,
-	msgType chat1.MessageType) error {
+	msgType chat1.MessageType) (chat1.OutboxID, error) {
 	boxer := NewBoxer(h.G())
 	baseSender := NewBlockingSender(h.G(), boxer, h.ri)
 	sender := NewNonblockingSender(h.G(), baseSender)
 	helper := newSendHelper(h.G(), name, topicName, membersType, ident, sender, h.ri)
-	return helper.SendBody(ctx, body, msgType)
+	outboxID, _, err := helper.SendBody(ctx, body, msgType)
+	return outboxID, err
 }
 
 func (h *Helper) FindConversations(ctx context.Context,
@@ -287,15 +297,15 @@ func newSendHelper(g *globals.Context, name string, topicName *string,
 	}
 }
 
-func (s *sendHelper) SendText(ctx context.Context, text string) error {
+func (s *sendHelper) SendText(ctx context.Context, text string) (chat1.OutboxID, *chat1.MessageBoxed, error) {
 	body := chat1.NewMessageBodyWithText(chat1.MessageText{Body: text})
 	return s.SendBody(ctx, body, chat1.MessageType_TEXT)
 }
 
-func (s *sendHelper) SendBody(ctx context.Context, body chat1.MessageBody, mtype chat1.MessageType) error {
+func (s *sendHelper) SendBody(ctx context.Context, body chat1.MessageBody, mtype chat1.MessageType) (chat1.OutboxID, *chat1.MessageBoxed, error) {
 	ctx = Context(ctx, s.G(), s.ident, nil, NewCachingIdentifyNotifier(s.G()))
 	if err := s.conversation(ctx); err != nil {
-		return err
+		return chat1.OutboxID{}, nil, err
 	}
 	return s.deliver(ctx, body, mtype)
 }
@@ -317,7 +327,7 @@ func (s *sendHelper) conversation(ctx context.Context) error {
 	return nil
 }
 
-func (s *sendHelper) deliver(ctx context.Context, body chat1.MessageBody, mtype chat1.MessageType) error {
+func (s *sendHelper) deliver(ctx context.Context, body chat1.MessageBody, mtype chat1.MessageType) (chat1.OutboxID, *chat1.MessageBoxed, error) {
 	msg := chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:        s.triple,
@@ -326,8 +336,7 @@ func (s *sendHelper) deliver(ctx context.Context, body chat1.MessageBody, mtype 
 		},
 		MessageBody: body,
 	}
-	_, _, err := s.sender.Send(ctx, s.convID, msg, 0, nil)
-	return err
+	return s.sender.Send(ctx, s.convID, msg, 0, nil)
 }
 
 func (s *sendHelper) remoteInterface() chat1.RemoteInterface {
@@ -1152,7 +1161,7 @@ func (n *newConversationHelper) create(ctx context.Context) (res chat1.Conversat
 				Team: n.tlfName,
 			})
 			body := chat1.NewMessageBodyWithSystem(subBody)
-			if err := n.G().ChatHelper.SendMsgByNameNonblock(ctx, n.tlfName, &globals.DefaultTeamTopic,
+			if _, err := n.G().ChatHelper.SendMsgByNameNonblock(ctx, n.tlfName, &globals.DefaultTeamTopic,
 				chat1.ConversationMembersType_TEAM, keybase1.TLFIdentifyBehavior_CHAT_GUI,
 				body, chat1.MessageType_SYSTEM); err != nil {
 				n.Debug(ctx, "failed to send complex team intro message: %s", err)

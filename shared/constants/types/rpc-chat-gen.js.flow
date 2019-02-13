@@ -985,7 +985,7 @@ export type MessageSystemType =
   | 5 // CHANGEAVATAR_5
   | 6 // CHANGERETENTION_6
 
-export type MessageText = $ReadOnly<{body: String, payments?: ?Array<TextPayment>}>
+export type MessageText = $ReadOnly<{body: String, payments?: ?Array<TextPayment>, gameID?: ?String}>
 export type MessageType =
   | 0 // NONE_0
   | 1 // TEXT_1

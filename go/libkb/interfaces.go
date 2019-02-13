@@ -875,24 +875,27 @@ type UIDMapper interface {
 }
 
 type ChatHelper interface {
+	NewConversation(ctx context.Context, uid gregor1.UID, tlfName string,
+		topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
+		vis keybase1.TLFVisibility) (chat1.ConversationLocal, error)
 	SendTextByID(ctx context.Context, convID chat1.ConversationID,
 		tlfName string, text string) error
 	SendMsgByID(ctx context.Context, convID chat1.ConversationID,
 		tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error
 	SendTextByIDNonblock(ctx context.Context, convID chat1.ConversationID,
-		tlfName string, text string) error
+		tlfName string, text string) (chat1.OutboxID, error)
 	SendMsgByIDNonblock(ctx context.Context, convID chat1.ConversationID,
-		tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error
+		tlfName string, body chat1.MessageBody, msgType chat1.MessageType) (chat1.OutboxID, error)
 	SendTextByName(ctx context.Context, name string, topicName *string,
 		membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, text string) error
 	SendMsgByName(ctx context.Context, name string, topicName *string,
 		membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, body chat1.MessageBody,
 		msgType chat1.MessageType) error
 	SendTextByNameNonblock(ctx context.Context, name string, topicName *string,
-		membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, text string) error
+		membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, text string) (chat1.OutboxID, error)
 	SendMsgByNameNonblock(ctx context.Context, name string, topicName *string,
 		membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, body chat1.MessageBody,
-		msgType chat1.MessageType) error
+		msgType chat1.MessageType) (chat1.OutboxID, error)
 	FindConversations(ctx context.Context, name string,
 		topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
 		vis keybase1.TLFVisibility) ([]chat1.ConversationLocal, error)

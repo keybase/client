@@ -32,5 +32,6 @@ func (s *Me) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Conversa
 	if len(msg) == 0 {
 		return nil
 	}
-	return s.G().ChatHelper.SendTextByIDNonblock(ctx, convID, tlfName, fmt.Sprintf("_%s_", msg))
+	_, err = s.G().ChatHelper.SendTextByIDNonblock(ctx, convID, tlfName, fmt.Sprintf("_%s_", msg))
+	return err
 }

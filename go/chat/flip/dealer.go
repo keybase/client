@@ -93,6 +93,10 @@ func (g *Game) GameMetadata() GameMetadata {
 	return g.md
 }
 
+func (e GameMessageEncoded) String() string {
+	return string(e)
+}
+
 func (e GameMessageEncoded) Decode() (*GameMessageV1, error) {
 	raw, err := base64.StdEncoding.DecodeString(string(e))
 	if err != nil {

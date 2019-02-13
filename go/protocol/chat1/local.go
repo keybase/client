@@ -137,6 +137,7 @@ func (o TextPayment) DeepCopy() TextPayment {
 type MessageText struct {
 	Body     string        `codec:"body" json:"body"`
 	Payments []TextPayment `codec:"payments" json:"payments"`
+	GameID   *string       `codec:"gameID,omitempty" json:"gameID,omitempty"`
 }
 
 func (o MessageText) DeepCopy() MessageText {
@@ -153,6 +154,13 @@ func (o MessageText) DeepCopy() MessageText {
 			}
 			return ret
 		})(o.Payments),
+		GameID: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.GameID),
 	}
 }
 

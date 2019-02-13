@@ -1,0 +1,140 @@
+package chat
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"time"
+
+	"github.com/keybase/client/go/chat/flip"
+	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/types"
+	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/client/go/protocol/keybase1"
+	"github.com/keybase/clockwork"
+)
+
+type hostMessageInfo struct {
+	OutboxID chat1.OutboxID
+}
+
+type Manager struct {
+	globals.Contextified
+	utils.DebugLabeler
+
+	dealer *flip.Dealer
+	clock  clockwork.Clock
+}
+
+func NewManager(g *globals.Context) *Manager {
+	m := &Manager{
+		Contextified: globals.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Flip.Manager", false),
+		clock:        clockwork.NewRealClock(),
+	}
+	dealer := flip.NewDealer(m)
+	m.dealer = dealer
+	return m
+}
+
+func (m *Manager) gameTopicNameFromGameID(gameID flip.GameID) string {
+	return fmt.Sprintf("__keybase_coinflip_%s_game", gameID)
+}
+
+func (m *Manager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID,
+	tlfName, text string, start flip.Start) (err error) {
+	defer m.Trace(ctx, func() error { return err }, "StartFlip: convID: %s", hostConvID)()
+	gameID := flip.GenerateGameID()
+	strGameID := gameID.String()
+
+	// Get host conv using local storage, just bail out if we don't have it
+	hostConv, err := GetUnverifiedConv(ctx, m.G(), uid, hostConvID, types.InboxSourceDataSourceLocalOnly)
+	if err != nil {
+		return err
+	}
+
+	// First generate the message representing the flip into the host conversation
+	outboxID, err := m.G().ChatHelper.SendMsgByIDNonblock(ctx, hostConvID, tlfName,
+		chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body:   text,
+			GameID: &strGameID,
+		}), chat1.MessageType_TEXT)
+	if err != nil {
+		return err
+	}
+
+	// Generate dev channel for game messages
+	topicName := m.gameTopicNameFromGameID(gameID)
+	conv, err := m.G().ChatHelper.NewConversation(ctx, uid, tlfName, &topicName, chat1.TopicType_DEV,
+		hostConv.GetMembersType(), keybase1.TLFVisibility_PRIVATE)
+	if err != nil {
+		return err
+	}
+
+	// Record outboxID of the host message into the game thread as the first message
+	infoBody, err := json.Marshal(hostMessageInfo{
+		OutboxID: outboxID,
+	})
+	if err != nil {
+		return err
+	}
+	if _, err := m.G().ChatHelper.SendTextByIDNonblock(ctx, conv.GetConvID(), tlfName, string(infoBody)); err != nil {
+		return err
+	}
+
+	// Start the game
+	return m.dealer.StartFlipWithGameID(ctx, start, conv.GetConvID(), gameID)
+}
+
+// CLogf implements the flip.DealersHelper interface
+func (m *Manager) CLogf(ctx context.Context, fmt string, args ...interface{}) {
+	m.Debug(ctx, fmt, args)
+}
+
+// Clock implements the flip.DealersHelper interface
+func (m *Manager) Clock() clockwork.Clock {
+	return m.clock
+}
+
+// ServerTime implements the flip.DealersHelper interface
+func (m *Manager) ServerTime(ctx context.Context) (time.Time, error) {
+	// TODO: implement this for real
+	return m.clock.Now(), nil
+}
+
+// ReadHistory implements the flip.DealersHelper interface
+func (m *Manager) ReadHistory(ctx context.Context, since time.Time) ([]flip.GameMessageWrappedEncoded, error) {
+	return nil, errors.New("not implemented")
+}
+
+// SendChat implements the flip.DealersHelper interface
+func (m *Manager) SendChat(ctx context.Context, convID chat1.ConversationID, gameID flip.GameID,
+	msg flip.GameMessageEncoded) error {
+	uid, err := utils.AssertLoggedInUID(ctx, m.G())
+	if err != nil {
+		return err
+	}
+	conv, err := GetVerifiedConv(ctx, m.G(), uid, convID, types.InboxSourceDataSourceLocalOnly)
+	if err != nil {
+		return err
+	}
+	_, err = m.G().ChatHelper.SendTextByIDNonblock(ctx, convID, conv.Info.TlfName, msg.String())
+	return err
+}
+
+func (m *Manager) Me() flip.UserDevice {
+	ad := m.G().ActiveDevice
+	did := ad.DeviceID()
+	hdid := make([]byte, libkb.DeviceIDLen)
+	if err := did.ToBytes(hdid); err != nil {
+		return flip.UserDevice{}
+	}
+	return flip.UserDevice{
+		U: gregor1.UID(ad.UID().ToBytes()),
+		D: gregor1.DeviceID(hdid),
+	}
+}

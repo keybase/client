@@ -32,5 +32,6 @@ func (s *Shrug) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Conve
 	if len(msg) > 0 {
 		res = msg + " " + res
 	}
-	return s.G().ChatHelper.SendTextByIDNonblock(ctx, convID, tlfName, res)
+	_, err = s.G().ChatHelper.SendTextByIDNonblock(ctx, convID, tlfName, res)
+	return err
 }

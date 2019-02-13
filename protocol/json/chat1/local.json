@@ -104,6 +104,13 @@
             "items": "TextPayment"
           },
           "name": "payments"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "gameID"
         }
       ]
     },

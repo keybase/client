@@ -1851,7 +1851,10 @@ func chatSendPaymentMessageTo(m libkb.MetaContext, to string, txID stellar1.Tran
 	body := chat1.NewMessageBodyWithSendpayment(msg)
 
 	// identify already performed, so skip here
-	return m.G().ChatHelper.SendMsgByNameNonblock(m.Ctx(), name, nil, chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFIdentifyBehavior_CHAT_SKIP, body, chat1.MessageType_SENDPAYMENT)
+	_, err := m.G().ChatHelper.SendMsgByNameNonblock(m.Ctx(), name, nil,
+		chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFIdentifyBehavior_CHAT_SKIP, body,
+		chat1.MessageType_SENDPAYMENT)
+	return err
 }
 
 type MakeRequestArg struct {
