@@ -44,6 +44,19 @@ const (
 	InitMemoryLimitedString = "memoryLimited"
 )
 
+// CtxInitTagKey is the type used for unique context tags for KBFS init.
+type CtxInitTagKey int
+
+const (
+	// CtxInitKey is the type of the tag for unique operation IDs
+	// for KBFS init.
+	CtxInitKey CtxInitTagKey = iota
+)
+
+// CtxInitID is the display name for the unique operation
+// init ID tag.
+const CtxInitID = "KBFSINIT"
+
 // AdditionalProtocolCreator creates an additional protocol.
 type AdditionalProtocolCreator func(Context, Config) (rpc.Protocol, error)
 
@@ -602,6 +615,8 @@ func doInit(
 	ctx context.Context, kbCtx Context, params InitParams,
 	keybaseServiceCn KeybaseServiceCn, log logger.Logger,
 	logPrefix string) (Config, error) {
+	ctx = CtxWithRandomIDReplayable(ctx, CtxInitKey, CtxInitID, log)
+
 	mode := InitDefault
 	switch params.Mode {
 	case InitDefaultString:
@@ -639,6 +654,7 @@ func doInit(
 			}
 			return lg
 		}, params.StorageRoot, params.DiskCacheMode, kbCtx)
+	config.vdebugSetting = kbCtx.GetVDebugSetting()
 
 	if params.CleanBlockCacheCapacity > 0 {
 		log.CDebugf(
@@ -862,6 +878,10 @@ func doInit(
 	log.CDebugf(ctx, "Enabling a dir op batch size of %d",
 		params.BGFlushDirOpBatchSize)
 	config.SetBGFlushDirOpBatchSize(params.BGFlushDirOpBatchSize)
+
+	if config.Mode().OldStorageRootCleaningEnabled() {
+		go cleanOldTempStorageRoots(config)
+	}
 
 	return config, nil
 }

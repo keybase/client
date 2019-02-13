@@ -65,6 +65,13 @@ declare export var windowStyle: {
 
 declare export function styled<T>(Component: T): (...styles: Array<any>) => T
 
+declare export function padding(
+  top: number,
+  right?: number,
+  bottom?: number,
+  left?: number
+): {|paddingTop: number, paddingRight: number, paddingBottom: number, paddingLeft: number|}
+
 declare export var styledCss: any // TODO better type
 declare export var styledKeyframes: any // TODO better type
 

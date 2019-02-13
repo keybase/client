@@ -14,6 +14,7 @@ import (
 	"github.com/eapache/channels"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
@@ -111,6 +112,7 @@ type blockPtrLookup struct {
 type blockRetrievalQueue struct {
 	config blockRetrievalConfig
 	log    logger.Logger
+	vlog   *libkb.VDebugLog
 	// protects ptrs, insertionCount, and the heap
 	mtx sync.RWMutex
 	// queued or in progress retrievals
@@ -158,6 +160,7 @@ func newBlockRetrievalQueue(
 	q := &blockRetrievalQueue{
 		config:           config,
 		log:              config.MakeLogger(""),
+		vlog:             config.MakeVLogger(""),
 		ptrs:             make(map[blockPtrLookup]*blockRetrieval),
 		heap:             &blockRetrievalHeap{},
 		workerCh:         NewInfiniteChannelWrapper(),
@@ -324,10 +327,10 @@ func (brq *blockRetrievalQueue) PutInCaches(ctx context.Context,
 	case NoSuchBlockError:
 		// TODO: Add the block to the DBC. This is complicated because we
 		// need the serverHalf.
-		brq.log.CDebugf(ctx, "Block %s missing for disk block "+
-			"cache metadata update", ptr.ID)
+		brq.vlog.CLogf(ctx, libkb.VLog1,
+			"Block %s missing for disk block cache metadata update", ptr.ID)
 	default:
-		brq.log.CDebugf(ctx, "Error updating metadata: %+v", err)
+		brq.vlog.CLogf(ctx, libkb.VLog1, "Error updating metadata: %+v", err)
 	}
 	// All disk cache errors are fatal
 	return err
@@ -384,10 +387,8 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 func (brq *blockRetrievalQueue) request(ctx context.Context,
 	priority int, kmd KeyMetadata, ptr BlockPointer, block Block,
 	lifetime BlockCacheLifetime, action BlockRequestAction) <-chan error {
-	if action != BlockRequestSolo {
-		brq.log.CDebugf(ctx, "Request of %v, action=%s, priority=%d",
-			ptr, action, priority)
-	}
+	brq.vlog.CLogf(ctx, libkb.VLog1,
+		"Request of %v, action=%s, priority=%d", ptr, action, priority)
 
 	// Only continue if we haven't been shut down
 	ch := make(chan error, 1)
@@ -412,7 +413,8 @@ func (brq *blockRetrievalQueue) request(ctx context.Context,
 	prefetchStatus, err := brq.checkCaches(ctx, kmd, ptr, block, action)
 	if err == nil {
 		if action != BlockRequestSolo {
-			brq.log.CDebugf(ctx, "Found %v in caches: %s", ptr, prefetchStatus)
+			brq.vlog.CLogf(
+				ctx, libkb.VLog1, "Found %v in caches: %s", ptr, prefetchStatus)
 		}
 		if action.PrefetchTracked() {
 			brq.Prefetcher().ProcessBlockForPrefetch(ctx, ptr, block, kmd,
@@ -469,7 +471,14 @@ func (brq *blockRetrievalQueue) request(ctx context.Context,
 		}
 		break
 	}
-	brq.log.CDebugf(ctx, "Scheduling request of %v", ptr)
+	if br.index == -1 {
+		// Log newly-scheduled requests via the normal logger, so we
+		// can understand why the bserver fetches certain blocks, and
+		// be able to time the request from start to finish.
+		brq.log.CDebugf(ctx,
+			"Scheduling request of %v, action=%s, priority=%d",
+			ptr, action, priority)
+	}
 	br.reqMtx.Lock()
 	defer br.reqMtx.Unlock()
 	br.requests = append(br.requests, &blockRetrievalRequest{
@@ -503,9 +512,10 @@ func (brq *blockRetrievalQueue) request(ctx context.Context,
 		}
 	}
 	// Update the action if needed.
-	brq.log.CDebugf(ctx, "Combining actions %d and %d", action, br.action)
+	brq.vlog.CLogf(
+		ctx, libkb.VLog1, "Combining actions %d and %d", action, br.action)
 	br.action = action.Combine(br.action)
-	brq.log.CDebugf(ctx, "Got action %d", br.action)
+	brq.vlog.CLogf(ctx, libkb.VLog2, "Got action %d", br.action)
 	return ch
 }
 
