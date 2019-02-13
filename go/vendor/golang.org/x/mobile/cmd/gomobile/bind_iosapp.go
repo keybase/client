@@ -53,7 +53,7 @@ func goIOSBind(gobind string, pkgs []*build.Package, archs []string) error {
 	for i, pkg := range pkgs {
 		fileBases[i] = bindPrefix + strings.Title(pkg.Name)
 	}
-	fileBases[len(fileBases)-1] = "universe"
+	fileBases[len(fileBases)-1] = "Universe"
 
 	cmd = exec.Command("xcrun", "lipo", "-create")
 

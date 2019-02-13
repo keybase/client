@@ -321,7 +321,7 @@ func (c *CmdStatus) outputTerminal(status *fstatus) error {
 	dui.Printf("LocalChatDbStats:\n%s \n", strings.Join(status.LocalChatDbStats, "\n"))
 	dui.Printf("CacheDirSizeInfo:\n")
 	for _, dirInfo := range status.CacheDirSizeInfo {
-		dui.Printf("%s: %s\n", dirInfo.Name, dirInfo.HumanSize)
+		dui.Printf("%s: %s, (%d files)\n", dirInfo.Name, dirInfo.HumanSize, dirInfo.NumFiles)
 	}
 
 	c.outputClients(dui, status.Clients)
