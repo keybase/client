@@ -278,23 +278,20 @@ func (e MessageType) String() string {
 type Stage int
 
 const (
-	Stage_ROUND1        Stage = 1
-	Stage_ROUND2        Stage = 2
-	Stage_ROUND_CLEANUP Stage = 3
+	Stage_ROUND1 Stage = 1
+	Stage_ROUND2 Stage = 2
 )
 
 func (o Stage) DeepCopy() Stage { return o }
 
 var StageMap = map[string]Stage{
-	"ROUND1":        1,
-	"ROUND2":        2,
-	"ROUND_CLEANUP": 3,
+	"ROUND1": 1,
+	"ROUND2": 2,
 }
 
 var StageRevMap = map[Stage]string{
 	1: "ROUND1",
 	2: "ROUND2",
-	3: "ROUND_CLEANUP",
 }
 
 func (e Stage) String() string {

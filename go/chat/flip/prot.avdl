@@ -62,8 +62,7 @@ protocol flip {
 
   enum Stage {
     ROUND1_1,
-    ROUND2_2,
-    ROUND_CLEANUP_3
+    ROUND2_2
   }
 
   fixed Secret(32);
