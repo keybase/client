@@ -62,6 +62,7 @@ export type _State = {
   focus: Focus,
   inboxFilter: string, // filters 'jump to chat'
   inboxHasLoaded: boolean, // if we've ever loaded
+  trustedInboxHasLoaded: boolean, // if we've done initial trusted inbox load
   smallTeamsExpanded: boolean, // if we're showing all small teams
   isWalletsNew: boolean, // controls new-ness of wallets in chat UI
   messageMap: I.Map<Common.ConversationIDKey, I.Map<Message.Ordinal, Message.Message>>, // messages in a thread

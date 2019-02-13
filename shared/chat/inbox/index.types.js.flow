@@ -34,6 +34,7 @@ export type RouteState = I.RecordOf<{
 export type Props = {|
   allowShowFloatingButton: boolean,
   children?: React$Element<any>,
+  clearedFilterCount: number,
   focusFilter: () => void, // withStateHandler function
   filter: string,
   filterFocusCount: number,

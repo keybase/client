@@ -340,6 +340,7 @@ const getPropProviderProps = own => {
  */
 const propsInboxCommon = {
   allowShowFloatingButton: false,
+  clearedFilterCount: 0,
   focusFilter: () => {},
   filter: '',
   filterFocusCount: 0,
