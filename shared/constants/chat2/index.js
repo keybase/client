@@ -26,6 +26,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   explodingModeLocks: I.Map(),
   explodingModes: I.Map(),
   focus: null,
+  giphyResultMap: I.Map(),
   inboxFilter: '',
   inboxHasLoaded: false,
   isWalletsNew: true,

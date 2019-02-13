@@ -438,6 +438,8 @@ const rootReducer = (
           return show ? prompts.add(domain) : prompts.delete(domain)
         }
       )
+    case Chat2Gen.giphyGotSearchResult:
+      return state.setIn(['giphyResultMap', action.payload.conversationIDKey], action.payload.results)
     case Chat2Gen.setInboxFilter:
       return state.set('inboxFilter', action.payload.filter)
     case Chat2Gen.setPendingMode:
@@ -910,6 +912,10 @@ const rootReducer = (
         return state.update('explodingModeLocks', el => el.delete(conversationIDKey))
       }
       return alreadyLocked ? state : state.setIn(['explodingModeLocks', conversationIDKey], mode)
+    case Chat2Gen.giphySend:
+      return state.update('unsentTextMap', old =>
+        old.setIn([action.payload.conversationIDKey], new HiddenString(''))
+      )
     case Chat2Gen.setUnsentText:
       return state.update('unsentTextMap', old =>
         old.setIn([action.payload.conversationIDKey], action.payload.text)
@@ -1035,6 +1041,7 @@ const rootReducer = (
     case Chat2Gen.prepareFulfillRequestForm:
     case Chat2Gen.unfurlResolvePrompt:
     case Chat2Gen.unfurlRemove:
+    case Chat2Gen.unsentTextChanged:
     case Chat2Gen.confirmScreenResponse:
     case Chat2Gen.toggleMessageCollapse:
       return state

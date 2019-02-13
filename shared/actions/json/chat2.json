@@ -364,7 +364,7 @@
     // Tell server we're typing
     "sendTyping": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "text": "HiddenString"
+      "typing": "boolean"
     },
     // On startup we're automatically loading a thread sometimes. When we first view it we should
     // go through our marking as read logic
@@ -500,10 +500,25 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "messageID": "Types.MessageID"
     },
+    "unsentTextChanged": {
+      "_description": "Unsent text changed",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "text": "HiddenString"
+    },
     "updateMessages": {
       "_description": "Update messages that we might have in the store",
       "conversationIDKey": "Types.ConversationIDKey",
       "messages": "Array<{messageID: Types.MessageID, message: Types.Message}>"
+    },
+    "giphySend": {
+      "_description": "send a message from Giphy search",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "url": "HiddenString"
+    },
+    "giphyGotSearchResult": {
+      "_description": "Giphy search results obtained",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "results": "Array<RPCChatTypes.GiphySearchResult>"
     },
     "clearPaymentConfirmInfo": {
       "_description": "Clear data for payment confirm modal"
@@ -522,7 +537,7 @@
     "setUnsentText": {
       "_description": "Set unsent text for a conversation",
       "conversationIDKey": "Types.ConversationIDKey",
-      "text": "HiddenString"
+      "text": "?HiddenString"
     },
     "updateUnreadline": {
       "_description": "Update the unreadline line position for a conversation",

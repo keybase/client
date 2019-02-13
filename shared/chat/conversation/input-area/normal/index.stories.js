@@ -125,6 +125,7 @@ const InputContainer = (props: Props) => {
       {fullName: 'Mike Maxim', username: 'mikem'},
       {fullName: 'Alex Gessner', username: 'xgess'},
     ]),
+    unsentTextChanged: Sb.action('unsentTextChanged'),
     unsentTextRefresh: false,
   }
 

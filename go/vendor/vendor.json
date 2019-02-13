@@ -347,46 +347,16 @@
 			"revisionTime": "2018-09-11T21:33:45Z"
 		},
 		{
-			"checksumSHA1": "iJXVRc8EW6FxS82J0150lUT1qkM=",
-			"path": "github.com/gocolly/colly",
-			"revision": "8be5ab8a22a43ed412d474d7c4ce2cd9fdba1277",
-			"revisionTime": "2018-10-28T04:47:46Z"
-		},
-		{
-			"checksumSHA1": "Eqc0nhw10nHYDNqFUoR8GSpQv7c=",
-			"path": "github.com/gocolly/colly/cmd/colly",
-			"revision": "8be5ab8a22a43ed412d474d7c4ce2cd9fdba1277",
-			"revisionTime": "2018-10-28T04:47:46Z"
-		},
-		{
 			"checksumSHA1": "3rTP4rq+lgaSQuUUH/MfcVaFYEI=",
 			"path": "github.com/gocolly/colly/debug",
-			"revision": "8be5ab8a22a43ed412d474d7c4ce2cd9fdba1277",
-			"revisionTime": "2018-10-28T04:47:46Z"
-		},
-		{
-			"checksumSHA1": "qB4eM4wIl6yfJb8xBKE7ujgHtc8=",
-			"path": "github.com/gocolly/colly/extensions",
-			"revision": "8be5ab8a22a43ed412d474d7c4ce2cd9fdba1277",
-			"revisionTime": "2018-10-28T04:47:46Z"
-		},
-		{
-			"checksumSHA1": "Rqgw/igi0MW/pW3/EAzAbhCKjwo=",
-			"path": "github.com/gocolly/colly/proxy",
-			"revision": "8be5ab8a22a43ed412d474d7c4ce2cd9fdba1277",
-			"revisionTime": "2018-10-28T04:47:46Z"
-		},
-		{
-			"checksumSHA1": "2uW12yoehgYyud0zu5pDgr5b5bk=",
-			"path": "github.com/gocolly/colly/queue",
-			"revision": "8be5ab8a22a43ed412d474d7c4ce2cd9fdba1277",
-			"revisionTime": "2018-10-28T04:47:46Z"
+			"revision": "b3032e87d3efbd3c00423aeb84f1fb7772c7d8a6",
+			"revisionTime": "2019-02-04T14:09:05Z"
 		},
 		{
 			"checksumSHA1": "Yr0WHKEt2ZtOZQt1G9PZABc8vDg=",
 			"path": "github.com/gocolly/colly/storage",
-			"revision": "8be5ab8a22a43ed412d474d7c4ce2cd9fdba1277",
-			"revisionTime": "2018-10-28T04:47:46Z"
+			"revision": "b3032e87d3efbd3c00423aeb84f1fb7772c7d8a6",
+			"revisionTime": "2019-02-04T14:09:05Z"
 		},
 		{
 			"checksumSHA1": "nbCxiVT48CWEg6l8L4SEJ5VfN9c=",
@@ -531,6 +501,12 @@
 			"path": "github.com/keybase/clockwork",
 			"revision": "976f45f4a979cd2fd048a639630ba20d8378c9d8",
 			"revisionTime": "2016-12-09T16:02:51-05:00"
+		},
+		{
+			"checksumSHA1": "qNbpTjCsRF1JrIzqdZ+GG7KqcRQ=",
+			"path": "github.com/keybase/colly",
+			"revision": "9a56fbe6c0e6633629b1483a3a215b5c38ac1b5f",
+			"revisionTime": "2019-02-07T01:05:05Z"
 		},
 		{
 			"checksumSHA1": "AzpolYksuMdnqRhFpzPm1bEztJ0=",

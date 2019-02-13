@@ -310,6 +310,10 @@ func (c *ChatCLIUI) ChatStellarDone(ctx context.Context, arg chat1.ChatStellarDo
 	return nil
 }
 
+func (c *ChatCLIUI) ChatGiphySearchResults(ctx context.Context, arg chat1.ChatGiphySearchResultsArg) error {
+	return nil
+}
+
 func (c *ChatCLIUI) ChatShowManageChannels(ctx context.Context, arg chat1.ChatShowManageChannelsArg) error {
 	return nil
 }

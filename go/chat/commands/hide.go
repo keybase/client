@@ -33,7 +33,7 @@ func (h *Hide) Execute(ctx context.Context, uid gregor1.UID, inConvID chat1.Conv
 	if len(toks) == 1 {
 		convID = inConvID
 	} else if len(toks) == 2 {
-		conv, err := h.getConvByName(ctx, uid, toks[1])
+		conv, err := getConvByName(ctx, h.G(), uid, toks[1])
 		if err != nil {
 			return err
 		}

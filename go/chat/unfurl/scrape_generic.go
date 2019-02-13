@@ -9,9 +9,8 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/attachments"
-
-	"github.com/gocolly/colly"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/colly"
 )
 
 func fullURL(hostname, path string) string {

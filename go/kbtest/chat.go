@@ -969,6 +969,7 @@ type ChatUI struct {
 	StellarDataError   chan string
 	StellarDone        chan struct{}
 	ShowManageChannels chan string
+	GiphyResults       chan []chat1.GiphySearchResult
 }
 
 func NewChatUI() *ChatUI {
@@ -984,6 +985,7 @@ func NewChatUI() *ChatUI {
 		StellarDataError:   make(chan string, 10),
 		StellarDone:        make(chan struct{}, 10),
 		ShowManageChannels: make(chan string, 10),
+		GiphyResults:       make(chan []chat1.GiphySearchResult, 10),
 	}
 }
 
@@ -1110,6 +1112,12 @@ func (c *ChatUI) ChatStellarDone(ctx context.Context, canceled bool) error {
 
 func (c *ChatUI) ChatShowManageChannels(ctx context.Context, teamname string) error {
 	c.ShowManageChannels <- teamname
+	return nil
+}
+
+func (c *ChatUI) ChatGiphySearchResults(ctx context.Context, convID chat1.ConversationID,
+	results []chat1.GiphySearchResult) error {
+	c.GiphyResults <- results
 	return nil
 }
 
