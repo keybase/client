@@ -97,7 +97,7 @@ func members(ctx context.Context, g *libkb.GlobalContext, t *Team) (keybase1.Tea
 func membersHideInactiveDuplicates(ctx context.Context, g *libkb.GlobalContext, members *keybase1.TeamMembersDetails) {
 	// If a UID appears multiple times with different TeamMemberStatus, only show the 'ACTIVE' version.
 	// This can happen when an owner resets and is re-added as an admin by an admin.
-	seenActive := make(map[string] /*uid->*/ bool)
+	seenActive := make(map[keybase1.UID]bool)
 	lists := []*[]keybase1.TeamMemberDetails{
 		&members.Owners,
 		&members.Admins,
@@ -108,7 +108,7 @@ func membersHideInactiveDuplicates(ctx context.Context, g *libkb.GlobalContext, 
 	for _, rows := range lists {
 		for _, row := range *rows {
 			if row.Status == keybase1.TeamMemberStatus_ACTIVE {
-				seenActive[row.Uv.Uid.String()] = true
+				seenActive[row.Uv.Uid] = true
 			}
 		}
 	}
@@ -116,7 +116,7 @@ func membersHideInactiveDuplicates(ctx context.Context, g *libkb.GlobalContext, 
 	for _, rows := range lists {
 		filtered := []keybase1.TeamMemberDetails{}
 		for _, row := range *rows {
-			if row.Status == keybase1.TeamMemberStatus_ACTIVE || !seenActive[row.Uv.Uid.String()] {
+			if row.Status == keybase1.TeamMemberStatus_ACTIVE || !seenActive[row.Uv.Uid] {
 				filtered = append(filtered, row)
 			} else {
 				g.Log.CDebugf(ctx, "membersHideInactiveDuplicates filtered out row: %v %v", row.Uv, row.Status)
