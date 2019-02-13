@@ -1930,3 +1930,45 @@ func ReplaceQuotedSubstrings(xs string, skipAngleQuotes bool) string {
 	}
 	return strings.Join(ret, string(newline))
 }
+
+var ErrGetUnverifiedConvNotFound = errors.New("GetUnverifiedConv: conversation not found")
+var ErrGetVerifiedConvNotFound = errors.New("GetVerifiedConv: conversation not found")
+
+func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
+	convID chat1.ConversationID, dataSource types.InboxSourceDataSourceTyp) (res types.RemoteConversation, err error) {
+
+	inbox, err := g.InboxSource.ReadUnverified(ctx, uid, dataSource, &chat1.GetInboxQuery{
+		ConvIDs: []chat1.ConversationID{convID},
+	}, nil)
+	if err != nil {
+		return res, fmt.Errorf("GetUnverifiedConv: %s", err.Error())
+	}
+	if len(inbox.ConvsUnverified) == 0 {
+		return res, ErrGetUnverifiedConvNotFound
+	}
+	if !inbox.ConvsUnverified[0].GetConvID().Eq(convID) {
+		return res, fmt.Errorf("GetUnverifiedConv: convID mismatch: %s != %s",
+			inbox.ConvsUnverified[0].GetConvID(), convID)
+	}
+	return inbox.ConvsUnverified[0], nil
+}
+
+func GetVerifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
+	convID chat1.ConversationID, dataSource types.InboxSourceDataSourceTyp) (res chat1.ConversationLocal, err error) {
+
+	inbox, _, err := g.InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, dataSource, nil,
+		&chat1.GetInboxLocalQuery{
+			ConvIDs: []chat1.ConversationID{convID},
+		}, nil)
+	if err != nil {
+		return res, fmt.Errorf("GetVerifiedConv: %s", err.Error())
+	}
+	if len(inbox.Convs) == 0 {
+		return res, ErrGetVerifiedConvNotFound
+	}
+	if !inbox.Convs[0].GetConvID().Eq(convID) {
+		return res, fmt.Errorf("GetVerifiedConv: convID mismatch: %s != %s",
+			inbox.Convs[0].GetConvID(), convID)
+	}
+	return inbox.Convs[0], nil
+}

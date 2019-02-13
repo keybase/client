@@ -245,7 +245,7 @@ func GetMessage(ctx context.Context, g *globals.Context, uid gregor1.UID, convID
 
 func GetMessages(ctx context.Context, g *globals.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msgIDs []chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason) ([]chat1.MessageUnboxed, error) {
-	conv, err := GetUnverifiedConv(ctx, g, uid, convID, types.InboxSourceDataSourceAll)
+	conv, err := utils.GetUnverifiedConv(ctx, g, uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		return nil, err
 	}
@@ -409,48 +409,6 @@ func (r *recentConversationParticipants) get(ctx context.Context, myUID gregor1.
 func RecentConversationParticipants(ctx context.Context, g *globals.Context, myUID gregor1.UID) ([]gregor1.UID, error) {
 	ctx = Context(ctx, g, keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, NewCachingIdentifyNotifier(g))
 	return newRecentConversationParticipants(g).get(ctx, myUID)
-}
-
-var errGetUnverifiedConvNotFound = errors.New("GetUnverifiedConv: conversation not found")
-var errGetVerifiedConvNotFound = errors.New("GetVerifiedConv: conversation not found")
-
-func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
-	convID chat1.ConversationID, dataSource types.InboxSourceDataSourceTyp) (res types.RemoteConversation, err error) {
-
-	inbox, err := g.InboxSource.ReadUnverified(ctx, uid, dataSource, &chat1.GetInboxQuery{
-		ConvIDs: []chat1.ConversationID{convID},
-	}, nil)
-	if err != nil {
-		return res, fmt.Errorf("GetUnverifiedConv: %s", err.Error())
-	}
-	if len(inbox.ConvsUnverified) == 0 {
-		return res, errGetUnverifiedConvNotFound
-	}
-	if !inbox.ConvsUnverified[0].GetConvID().Eq(convID) {
-		return res, fmt.Errorf("GetUnverifiedConv: convID mismatch: %s != %s",
-			inbox.ConvsUnverified[0].GetConvID(), convID)
-	}
-	return inbox.ConvsUnverified[0], nil
-}
-
-func GetVerifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
-	convID chat1.ConversationID, dataSource types.InboxSourceDataSourceTyp) (res chat1.ConversationLocal, err error) {
-
-	inbox, _, err := g.InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, dataSource, nil,
-		&chat1.GetInboxLocalQuery{
-			ConvIDs: []chat1.ConversationID{convID},
-		}, nil)
-	if err != nil {
-		return res, fmt.Errorf("GetVerifiedConv: %s", err.Error())
-	}
-	if len(inbox.Convs) == 0 {
-		return res, errGetVerifiedConvNotFound
-	}
-	if !inbox.Convs[0].GetConvID().Eq(convID) {
-		return res, fmt.Errorf("GetVerifiedConv: convID mismatch: %s != %s",
-			inbox.Convs[0].GetConvID(), convID)
-	}
-	return inbox.Convs[0], nil
 }
 
 func PresentConversationLocalWithFetchRetry(ctx context.Context, g *globals.Context,
