@@ -11,7 +11,7 @@ export type Action = 'closePopups' | 'quitMainWindow' | 'quitApp'
 function quitOnContext(context: Context): Array<Action> {
   switch (context) {
     case 'uiWindow':
-      return isWindows ? ['quitApp'] : ['closePopups', 'quitMainWindow']
+      return ['closePopups', 'quitMainWindow']
     case 'mainThread':
     case 'beforeQuit':
     case 'quitButton':
@@ -31,7 +31,7 @@ function _executeActions(actions: Array<Action>) {
   actions.forEach(a => {
     switch (a) {
       case 'quitMainWindow':
-        hideDockIcon()
+        isWindows ? quit(true) : hideDockIcon()
         break
       case 'closePopups':
         SafeElectron.getApp().emit('close-windows')
