@@ -8885,6 +8885,20 @@ func (mr *MockInitModeMockRecorder) MaxCleanBlockCacheCapacity() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MaxCleanBlockCacheCapacity", reflect.TypeOf((*MockInitMode)(nil).MaxCleanBlockCacheCapacity))
 }
 
+// OldStorageRootCleaningEnabled mocks base method
+func (m *MockInitMode) OldStorageRootCleaningEnabled() bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "OldStorageRootCleaningEnabled")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// OldStorageRootCleaningEnabled indicates an expected call of OldStorageRootCleaningEnabled
+func (mr *MockInitModeMockRecorder) OldStorageRootCleaningEnabled() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OldStorageRootCleaningEnabled", reflect.TypeOf((*MockInitMode)(nil).OldStorageRootCleaningEnabled))
+}
+
 // MockinitModeGetter is a mock of initModeGetter interface
 type MockinitModeGetter struct {
 	ctrl     *gomock.Controller

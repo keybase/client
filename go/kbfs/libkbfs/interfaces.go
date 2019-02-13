@@ -2331,6 +2331,9 @@ type InitMode interface {
 	// MaxCleanBlockCacheCapacity is the maximum number of bytes to be taken up
 	// by the clean block cache.
 	MaxCleanBlockCacheCapacity() uint64
+	// OldStorageRootCleaningEnabled indicates whether we should clean
+	// old temporary storage root directories.
+	OldStorageRootCleaningEnabled() bool
 }
 
 type initModeGetter interface {
