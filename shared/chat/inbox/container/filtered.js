@@ -1,7 +1,7 @@
 // @flow
 // The filtered inbox rows. No dividers or headers, just smallbig row items
 import * as Types from '../../../constants/types/chat2'
-import {memoize} from '../../../util/memoize'
+import {memoizeShallow} from '../../../util/memoize'
 import type {RowItem} from '../index.types'
 
 const score = (
@@ -116,39 +116,45 @@ const makeBigItem = (meta, filter, hasUnread, insertMatcher) => {
     : null
 }
 
+type GetFilteredParams = {
+  metaMap: Types.MetaMap,
+  badged: Types.ConversationCountMap,
+  unread: Types.ConversationCountMap,
+  filter: string,
+  username: string,
+}
 // Ignore headers, score based on matches of participants, ignore total non matches
-const getFilteredRowsAndMetadata = memoize<Types.MetaMap, Types.ConversationCountMap, string, string, _>(
-  (metaMap: Types.MetaMap, unread: Types.ConversationCountMap, filter: string, username: string) => {
-    const metas = metaMap.valueSeq().toArray()
-    const lcFilter = filter.toLowerCase()
-    const lcYou = username.toLowerCase()
-    const insertMatcher = new RegExp(
-      `${lcFilter
-        .replace(/ |#/g, '')
-        .split('')
-        .map(c => `${c}.*?`)
-        .join('')}`,
-      'i'
+const getFilteredRowsAndMetadata = memoizeShallow<GetFilteredParams, _>(p => {
+  const {filter, metaMap, unread, username} = p
+  const metas = metaMap.valueSeq().toArray()
+  const lcFilter = filter.toLowerCase()
+  const lcYou = username.toLowerCase()
+  const insertMatcher = new RegExp(
+    `${lcFilter
+      .replace(/ |#/g, '')
+      .split('')
+      .map(c => `${c}.*?`)
+      .join('')}`,
+    'i'
+  )
+  const rows: Array<RowItem> = metas
+    .map(meta =>
+      meta.teamType !== 'big'
+        ? makeSmallItem(meta, lcFilter, unread.get(meta.conversationIDKey, 0) > 0, lcYou, insertMatcher)
+        : makeBigItem(meta, lcFilter, unread.get(meta.conversationIDKey, 0) > 0, insertMatcher)
     )
-    const rows: Array<RowItem> = metas
-      .map(meta =>
-        meta.teamType !== 'big'
-          ? makeSmallItem(meta, lcFilter, unread.get(meta.conversationIDKey, 0) > 0, lcYou, insertMatcher)
-          : makeBigItem(meta, lcFilter, unread.get(meta.conversationIDKey, 0) > 0, insertMatcher)
-      )
-      .filter(Boolean)
-      .sort((a, b) => {
-        return a.score === b.score ? b.timestamp - a.timestamp : b.score - a.score
-      })
-      .map(({data}) => (data: RowItem))
+    .filter(Boolean)
+    .sort((a, b) => {
+      return a.score === b.score ? b.timestamp - a.timestamp : b.score - a.score
+    })
+    .map(({data}) => (data: RowItem))
 
-    return {
-      allowShowFloatingButton: false,
-      rows,
-      smallTeamsExpanded: true,
-    }
+  return {
+    allowShowFloatingButton: false,
+    rows,
+    smallTeamsExpanded: true,
   }
-)
+})
 
 export default getFilteredRowsAndMetadata
 
