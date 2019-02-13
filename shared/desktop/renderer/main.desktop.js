@@ -21,6 +21,7 @@ import {setupContextMenu} from '../app/menu-helper.desktop'
 import flags from '../../util/feature-flags'
 import {dumpLogs} from '../../actions/platform-specific/index.desktop'
 import {initDesktopStyles} from '../../styles/index.desktop'
+import loadSpellchecker from '../app/spellcheck.desktop'
 
 // Top level HMR accept
 if (module.hot) {
@@ -47,6 +48,7 @@ function setupStore() {
 }
 
 function setupApp(store, runSagas) {
+  loadSpellchecker()
   disableDragDrop()
   const eng = makeEngine(store.dispatch, store.getState)
   runSagas?.()
