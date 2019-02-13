@@ -36,7 +36,9 @@ body{
   color: ${Styles.globalColors.black};
   font-size: 15;
   line-height: 1.6;
-  font-family: ${Styles.globalStyles.fontTerminal.fontFamily}
+}
+pre{
+  font-family: "${Styles.globalStyles.fontTerminal.fontFamily}", monospace;
 }
 `
   : `
@@ -53,7 +55,9 @@ body{
   color: ${Styles.globalColors.black};
   line-height: 1.38;
   font-size: 14;
-  font-family: ${Styles.globalStyles.fontTerminal.fontFamily}
+}
+pre{
+  font-family: "${Styles.globalStyles.fontTerminal.fontFamily}", monospace;
 }
 `
 
