@@ -12,7 +12,12 @@ type OwnProps = {|
 
 const mapStateToProps = (state, {conversationIDKey}) => {
   const {channelname, teamname} = Constants.getMeta(state, conversationIDKey)
-  return {channelname, hasBadge: Constants.getHasBadge(state, conversationIDKey), teamname}
+  return {
+    channelname,
+    hasBadge: Constants.getHasBadge(state, conversationIDKey),
+    hasUnread: Constants.getHasUnread(state, conversationIDKey),
+    teamname,
+  }
 }
 
 const mapDispatchToProps = () => ({})
@@ -20,6 +25,7 @@ const mapDispatchToProps = () => ({})
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   channelname: stateProps.channelname,
   hasBadge: stateProps.hasBadge,
+  hasUnread: stateProps.hasUnread,
   isSelected: ownProps.isSelected,
   onSelectConversation: ownProps.onSelectConversation,
   teamname: stateProps.teamname,

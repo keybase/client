@@ -7,6 +7,7 @@ import {isMobile} from '../constants/platform'
 
 type Props = {|
   hasBadge: boolean,
+  hasUnread: boolean,
   isSelected: boolean,
   teamname: string,
   channelname: string,
@@ -29,6 +30,7 @@ class SelectableBigTeamChannel extends PureComponent<Props, State> {
     const textStyle = Styles.collapseStyles([
       styles.text,
       this.props.isSelected && {color: Styles.globalColors.white},
+      this.props.hasUnread && Styles.globalStyles.fontBold,
     ])
     return (
       <Kb.ClickableBox onClick={this.props.onSelectConversation}>
