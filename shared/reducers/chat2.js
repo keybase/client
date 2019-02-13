@@ -912,10 +912,13 @@ const rootReducer = (
         return state.update('explodingModeLocks', el => el.delete(conversationIDKey))
       }
       return alreadyLocked ? state : state.setIn(['explodingModeLocks', conversationIDKey], mode)
-    case Chat2Gen.giphySend:
-      return state.update('unsentTextMap', old =>
+    case Chat2Gen.giphySend: {
+      let nextState = state
+      nextState = nextState.setIn(['giphyResultMap', action.payload.conversationIDKey], [])
+      return nextState.update('unsentTextMap', old =>
         old.setIn([action.payload.conversationIDKey], new HiddenString(''))
       )
+    }
     case Chat2Gen.setUnsentText:
       return state.update('unsentTextMap', old =>
         old.setIn([action.payload.conversationIDKey], action.payload.text)
