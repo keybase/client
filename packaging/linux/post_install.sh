@@ -90,6 +90,12 @@ safe_restart_systemd_services() {
         # and the mountdir is configured (so, it is not a fresh install).
         user="$(ps -o user= -p "$pid")"
 
+        # If the process terminated since the loop started somehow, skip
+        # restarting
+        if [ -z "$user" ]; then
+            continue
+        fi
+
         restart_instructions="Restart Keybase manually by running 'run_keybase' as $user."
         abort_instructions="Aborting Keybase autorestart for $user. $restart_instructions"
 
