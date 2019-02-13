@@ -78,7 +78,7 @@ protocol flip {
 
   record Reveal {
     Secret secret;
-    Hash cch; // Hash of comimtment complete (sent in prior round).
+    Hash cch; // Hash of commitment complete (sent in prior round).
   }
 
   variant GameMessageBody switch (MessageType t) {
