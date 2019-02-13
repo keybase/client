@@ -250,6 +250,19 @@ const switchRouteDef = (state, action) => {
 
 const resetGlobalStore = () => ({payload: null, type: 'common:resetStore'})
 
+// Figure out whether we can log out using CanLogout, if so,
+// startLogoutHandshake, else do what's needed - right now only
+// redirect to set passphrase screen.
+function* startLogoutHandshakeIfAllowed(state) {
+  const canLogout = yield RPCTypes.userCanLogoutRpcPromise()
+  console.log('canLogout returned:',canLogout)
+  if (canLogout.canLogout) {
+    return startLogoutHandshake(state)
+  } else {
+    console.log("Would go to set passphrase here")
+  }
+}
+
 const startLogoutHandshake = state =>
   ConfigGen.createLogoutHandshake({version: state.config.logoutHandshakeVersion + 1})
 
@@ -422,7 +435,7 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   )
 
   // Like handshake but in reverse, ask sagas to do stuff before we tell the server to log us out
-  yield* Saga.chainAction<ConfigGen.LogoutPayload>(ConfigGen.logout, startLogoutHandshake)
+  yield* Saga.chainAction<ConfigGen.LogoutPayload>(ConfigGen.logout, startLogoutHandshakeIfAllowed)
   // Give time for all waiters to register and allow the case where there are no waiters
   yield* Saga.chainGenerator<ConfigGen.LogoutHandshakePayload>(ConfigGen.logoutHandshake, allowLogoutWaiters)
   yield* Saga.chainGenerator<ConfigGen.LogoutHandshakeWaitPayload>(

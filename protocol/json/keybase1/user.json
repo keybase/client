@@ -327,6 +327,10 @@
         {
           "type": "string",
           "name": "reason"
+        },
+        {
+          "type": "boolean",
+          "name": "setPassphrase"
         }
       ]
     }
