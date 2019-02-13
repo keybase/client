@@ -13,7 +13,6 @@ type Props = {
   onSave: (passphrase: string, passphraseConfirm: string) => void,
   waitingForResponse: boolean,
   onUpdatePGPSettings: () => void,
-  heading: string,
 }
 
 type State = {
@@ -28,7 +27,6 @@ class UpdatePassphrase extends Component<Props, State> {
 
   constructor(props: Props) {
     super(props)
-    console.log('props', props)
     this.state = {
       canSave: false,
       passphrase: '',
