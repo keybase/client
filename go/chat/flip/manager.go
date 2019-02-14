@@ -139,13 +139,17 @@ func (m *Manager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID cha
 // MaybeInjectFlipMessage implements the types.CoinFlipManager interface
 func (m *Manager) MaybeInjectFlipMessage(ctx context.Context, msg chat1.MessageUnboxed,
 	conv chat1.ConversationLocal) {
+	// earliest of outs if this isn't a dev convo, an error, or the outbox ID message
 	if conv.GetTopicType() != chat1.TopicType_DEV || !msg.IsValid() || msg.GetMessageID() == 2 {
-		// earliest of outs if this isn't a dev convo, an error, or the outbox ID message
 		return
 	}
+	// Ignore anything from the current device
 	sender := UserDevice{
 		U: msg.Valid().ClientHeader.Sender,
 		D: msg.Valid().ClientHeader.SenderDevice,
+	}
+	if sender.Eq(m.Me()) {
+		return
 	}
 	defer m.Trace(ctx, func() error { return nil }, "MaybeInjectFlipMessage: convID: %s",
 		conv.GetConvID())()
