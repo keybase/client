@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as Constants from '../../constants/tracker'
 import * as Types from '../../constants/types/tracker2'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
@@ -272,7 +273,7 @@ const getMenu = p => {
         </Kb.Box2>
       ),
     },
-    items: [{onClick: p.onShowProof, title: `View ${p.type === 'btc' ? 'signature' : 'proof'}`}, onRevoke],
+    items: [{onClick: p.onShowProof, title: `View ${Constants.proofToProofTypeDesc(p)}`}, onRevoke],
   }
 }
 

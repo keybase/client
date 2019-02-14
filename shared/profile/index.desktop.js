@@ -262,7 +262,7 @@ class ProfileRender extends React.PureComponent<Props, State> {
         items: [
           {
             onClick: () => this.props.onViewProof(proof),
-            title: `View ${proof.type === 'btc' ? 'signature' : 'proof'}`,
+            title: `View ${Constants.proofToProofTypeDesc(proof)}`,
           },
           {
             danger: true,
