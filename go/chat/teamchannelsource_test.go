@@ -28,9 +28,9 @@ func TestTeamChannelSource(t *testing.T) {
 		ctx1 := ctc.as(t, users[0]).startCtx
 		//ctx2 := ctc.as(t, users[1]).startCtx
 		listener1 := newServerChatListener()
-		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener1)
+		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener1)
 		listener2 := newServerChatListener()
-		ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener2)
+		ctc.as(t, users[1]).h.G().NotifyRouter.AddListener(listener2)
 		ui := kbtest.NewChatUI()
 		ctc.as(t, users[0]).h.mockChatUI = ui
 		ctc.as(t, users[1]).h.mockChatUI = ui
