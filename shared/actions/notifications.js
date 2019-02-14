@@ -1,6 +1,7 @@
 // @flow
 import * as Constants from '../constants/notifications'
 import * as ConfigGen from './config-gen'
+import * as EngineGen from './engine-gen-gen'
 import * as NotificationsGen from './notifications-gen'
 import * as FsGen from './fs-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -46,12 +47,6 @@ const setupEngineListeners = () => {
   })
 
   getEngine().setIncomingCallMap({
-    'keybase.1.NotifyAudit.rootAuditError': ({message}) =>
-      Saga.put(
-        ConfigGen.createGlobalError({
-          globalError: new Error(`Keybase is buggy, please report this: ${message}`),
-        })
-      ),
     'keybase.1.NotifyBadges.badgeState': ({badgeState}) =>
       Saga.put(NotificationsGen.createReceivedBadgeState({badgeState})),
   })
@@ -65,10 +60,19 @@ const receivedBadgeState = (state, action) => {
   ]
 }
 
+const receivedRootAuditError = (state, action) =>
+  ConfigGen.createGlobalError({
+    globalError: new Error(`Keybase is buggy, please report this: ${action.payload.params.message}`),
+  })
+
 function* notificationsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<NotificationsGen.ReceivedBadgeStatePayload>(
     NotificationsGen.receivedBadgeState,
     receivedBadgeState
+  )
+  yield* Saga.chainAction<EngineGen.Keybase1NotifyAuditRootAuditErrorPayload>(
+    EngineGen.keybase1NotifyAuditRootAuditError,
+    receivedRootAuditError
   )
   yield* Saga.chainAction<ConfigGen.SetupEngineListenersPayload>(
     ConfigGen.setupEngineListeners,
