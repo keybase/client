@@ -130,7 +130,7 @@
     "base64-js": "1.3.0",
     "buffer": "5.2.1",
     "classnames": "2.2.6",
-    "electron-spellchecker": "git://github.com/keybase/electron-spellchecker#spooner/use-node-spellchecker",
+    "electron-spellchecker": "git://github.com/keybase/electron-spellchecker#keybase-fixes-off-1-1-2",
     "emoji-datasource": "4.1.0",
     "emoji-datasource-apple": "4.1.0",
     "emoji-mart": "2.9.2",
