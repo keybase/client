@@ -15,13 +15,12 @@ import (
 // msgpack object (generated via AVDL->go compiler), but it's safe to think of it just as an opaque string.
 type GameMessageEncoded string
 
-// GameMessageWrappedEncoded contains a sender and a Body. When dealer starts up, it will ask for the
-// chat client to play back recent chats about games, via the ReadHistory interface. That will return a bunch
-// of `GameMessageWrappedEncoded` for previous game chats that are being replayed.
+// GameMessageWrappedEncoded contains a sender, a gameID and a Body. The GameID should never be reused.
 type GameMessageWrappedEncoded struct {
-	Sender UserDevice
-	GameID GameID             // the game ID of this game, also specified (encoded) in GameMessageEncoded
-	Body   GameMessageEncoded // base64-encoded GameMessaageBody that comes in over chat
+	Sender              UserDevice
+	GameID              GameID             // the game ID of this game, also specified (encoded) in GameMessageEncoded
+	Body                GameMessageEncoded // base64-encoded GameMessaageBody that comes in over chat
+	FirstInConversation bool               // on if this is the first message in the conversation
 }
 
 // GameStateUpdateMessage is sent from the game dealer out to the calling chat client, to update him
@@ -54,7 +53,6 @@ type DealersHelper interface {
 	CLogf(ctx context.Context, fmt string, args ...interface{})
 	Clock() clockwork.Clock
 	ServerTime(context.Context) (time.Time, error)
-	ReadHistory(ctx context.Context, conversationID chat1.ConversationID, since time.Time) ([]GameID, error)
 	SendChat(ctx context.Context, ch chat1.ConversationID, gameID GameID, msg GameMessageEncoded) error
 	Me() UserDevice
 }
@@ -123,12 +121,17 @@ func (d *Dealer) StartFlipWithGameID(ctx context.Context, start Start, conversat
 
 // InjectIncomingChat should be called whenever a new flip game comes in that's relevant for flips.
 // Call this with the sender's information, the channel information, and the body data that came in.
+// The last bool is true only if this is the first message in the channel. The current model is that only
+// one "game" is allowed for each chat channel. So any prior messages in the channel mean it might be replay.
+// This is significantly less general than an earlier model, which is why we introduced the concept of
+// a gameID, so it might be changed in the future.
 func (d *Dealer) InjectIncomingChat(ctx context.Context, sender UserDevice,
-	conversationID chat1.ConversationID, gameID GameID, body GameMessageEncoded) error {
+	conversationID chat1.ConversationID, gameID GameID, body GameMessageEncoded, firstInConversation bool) error {
 	gmwe := GameMessageWrappedEncoded{
-		Sender: sender,
-		GameID: gameID,
-		Body:   body,
+		Sender:              sender,
+		GameID:              gameID,
+		Body:                body,
+		FirstInConversation: firstInConversation,
 	}
 	msg, err := gmwe.Decode()
 	if err != nil {

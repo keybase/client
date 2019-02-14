@@ -13,10 +13,11 @@ import (
 )
 
 type GameMessageWrapped struct {
-	Sender  UserDevice
-	Msg     GameMessageV1
-	Me      *playerControl
-	Forward bool
+	Sender              UserDevice
+	Msg                 GameMessageV1
+	Me                  *playerControl
+	Forward             bool
+	FirstInConversation bool
 }
 
 func (m GameMessageWrapped) isForwardable() bool {
@@ -132,7 +133,7 @@ func (e *GameMessageWrappedEncoded) Decode() (*GameMessageWrapped, error) {
 	if err != nil {
 		return nil, err
 	}
-	ret := GameMessageWrapped{Sender: e.Sender, Msg: *v1}
+	ret := GameMessageWrapped{Sender: e.Sender, Msg: *v1, FirstInConversation: e.FirstInConversation}
 	if !e.GameID.Eq(ret.Msg.Md.GameID) {
 		return nil, BadGameIDError{G: ret.Msg.Md, I: e.GameID}
 	}
@@ -535,18 +536,6 @@ func computeClockSkew(md GameMetadata, serverTime time.Time, leaderTime time.Tim
 	return totalSkew, nil
 }
 
-func (d *Dealer) primeHistory(ctx context.Context, conversationID chat1.ConversationID) (err error) {
-
-	gameIDs, err := d.dh.ReadHistory(ctx, conversationID, d.dh.Clock().Now().Add(time.Duration(-2)*MaxClockSkew))
-	if err != nil {
-		return err
-	}
-	for _, g := range gameIDs {
-		d.previousGames[g.ToKey()] = true
-	}
-	return nil
-}
-
 func (d *Dealer) handleMessageStart(ctx context.Context, msg *GameMessageWrapped, start Start) error {
 	d.Lock()
 	defer d.Unlock()
@@ -563,12 +552,7 @@ func (d *Dealer) handleMessageStart(ctx context.Context, msg *GameMessageWrapped
 		return err
 	}
 
-	err = d.primeHistory(ctx, md.ConversationID)
-	if err != nil {
-		return err
-	}
-
-	if d.previousGames[md.GameID.ToKey()] {
+	if !msg.FirstInConversation {
 		return GameReplayError{md.GameID}
 	}
 
@@ -726,7 +710,7 @@ func (d *Dealer) startFlipWithGameID(ctx context.Context, start Start, conversat
 	if err != nil {
 		return nil, err
 	}
-	err = d.sendOutgoingChat(ctx, md, pc, NewGameMessageBodyWithStart(start))
+	err = d.sendOutgoingChatWithFirst(ctx, md, pc, NewGameMessageBodyWithStart(start), true)
 	if err != nil {
 		return nil, err
 	}
@@ -742,11 +726,16 @@ func (d *Dealer) sendCommitment(ctx context.Context, md GameMetadata, pc *player
 }
 
 func (d *Dealer) sendOutgoingChat(ctx context.Context, md GameMetadata, me *playerControl, body GameMessageBody) error {
+	return d.sendOutgoingChatWithFirst(ctx, md, me, body, false)
+}
+
+func (d Dealer) sendOutgoingChatWithFirst(ctx context.Context, md GameMetadata, me *playerControl, body GameMessageBody, firstInConversation bool) error {
 
 	gmw := GameMessageWrapped{
-		Sender:  d.dh.Me(),
-		Me:      me,
-		Forward: true,
+		Sender:              d.dh.Me(),
+		Me:                  me,
+		Forward:             true,
+		FirstInConversation: firstInConversation,
 		Msg: GameMessageV1{
 			Md:   md,
 			Body: body,
