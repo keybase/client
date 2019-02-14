@@ -15,6 +15,8 @@ export default class extends React.PureComponent<Props, State> {
     videoWidth: 0,
   }
 
+  _mounted = false
+
   _parseMessage = nativeEvent => {
     if (!nativeEvent || !nativeEvent.data) {
       return {}
@@ -29,6 +31,7 @@ export default class extends React.PureComponent<Props, State> {
   _onMessage = ({nativeEvent}) => {
     const {endFullscreen, size} = this._parseMessage(nativeEvent)
     size &&
+      this._mounted &&
       this.setState({
         loadedVideoSize: true,
         videoHeight: size.height,
@@ -41,6 +44,14 @@ export default class extends React.PureComponent<Props, State> {
       containerHeight: nativeEvent.layout.height,
       containerWidth: nativeEvent.layout.width,
     })
+
+  componentDidMount() {
+    this._mounted = true
+  }
+
+  componentWillUnmount() {
+    this._mounted = false
+  }
 
   render() {
     const {height, width} = getVideoSize(this.state)
