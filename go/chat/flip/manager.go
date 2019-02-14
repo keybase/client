@@ -143,6 +143,10 @@ func (m *Manager) MaybeInjectFlipMessage(ctx context.Context, msg chat1.MessageU
 		// earliest of outs if this isn't a dev convo, an error, or the outbox ID message
 		return
 	}
+	sender := UserDevice{
+		U: msg.Valid().ClientHeader.Sender,
+		D: msg.Valid().ClientHeader.SenderDevice,
+	}
 	defer m.Trace(ctx, func() error { return nil }, "MaybeInjectFlipMessage: convID: %s",
 		conv.GetConvID())()
 	body := msg.Valid().MessageBody
@@ -153,10 +157,6 @@ func (m *Manager) MaybeInjectFlipMessage(ctx context.Context, msg chat1.MessageU
 	gameID, ok := m.isGameIDTopicName(conv.GetTopicName())
 	if !ok {
 		return
-	}
-	sender := UserDevice{
-		U: msg.Valid().ClientHeader.Sender,
-		D: msg.Valid().ClientHeader.SenderDevice,
 	}
 	if err := m.dealer.InjectIncomingChat(ctx, sender, conv.GetConvID(), gameID,
 		MakeGameMessageEncoded(body.Text().Body)); err != nil {
