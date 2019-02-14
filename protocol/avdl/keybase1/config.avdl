@@ -3,6 +3,7 @@
 protocol config {
 
   import idl "common.avdl";
+  import idl "notify_ctl.avdl";
 
   record GetCurrentStatusRes {
     boolean configured;
@@ -35,6 +36,12 @@ protocol config {
     string version;
   }
 
+  record ClientStatus {
+    ClientDetails details;
+    int connectionID;
+    NotificationChannels notificationChannels;
+  }
+
   record PlatformInfo {
     string os;
     string osVersion;
@@ -52,7 +59,6 @@ protocol config {
     string name;
     string humanSize;
   }
-
 
   record ExtendedStatus {
     boolean standalone;
@@ -72,7 +78,7 @@ protocol config {
     string defaultUsername;
     array<string> provisionedUsernames;
     @lint("ignore")
-    array<ClientDetails> Clients;
+    array<ClientStatus> Clients;
     array<string> deviceEkNames;
     PlatformInfo platformInfo;
     DeviceID defaultDeviceID;               /* this contains the device ID for defaultUsername
@@ -80,6 +86,7 @@ protocol config {
     array<string> localDbStats;
     array<string> localChatDbStats;
     array<DirSizeInfo> cacheDirSizeInfo;
+    map<int> uiRouterMapping;
   }
 
   ExtendedStatus getExtendedStatus(int sessionID);

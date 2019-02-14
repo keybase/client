@@ -1966,6 +1966,7 @@ export type ChooseType =
 
 export type CiphertextBundle = $ReadOnly<{kid: KID, ciphertext: EncryptedBytes32, nonce: BoxNonce, publicKey: BoxPublicKey}>
 export type ClientDetails = $ReadOnly<{pid: Int, clientType: ClientType, argv?: ?Array<String>, desc: String, version: String}>
+export type ClientStatus = $ReadOnly<{details: ClientDetails, connectionID: Int, notificationChannels: NotificationChannels}>
 export type ClientType =
   | 0 // NONE_0
   | 1 // CLI_1
@@ -2032,7 +2033,7 @@ export type ExitCode =
   | 2 // NOTOK_2
   | 4 // RESTART_4
 
-export type ExtendedStatus = $ReadOnly<{standalone: Boolean, passphraseStreamCached: Boolean, tsecCached: Boolean, deviceSigKeyCached: Boolean, deviceEncKeyCached: Boolean, paperSigKeyCached: Boolean, paperEncKeyCached: Boolean, storedSecret: Boolean, secretPromptSkip: Boolean, rememberPassphrase: Boolean, device?: ?Device, deviceErr?: ?LoadDeviceErr, logDir: String, session?: ?SessionStatus, defaultUsername: String, provisionedUsernames?: ?Array<String>, Clients?: ?Array<ClientDetails>, deviceEkNames?: ?Array<String>, platformInfo: PlatformInfo, defaultDeviceID: DeviceID, localDbStats?: ?Array<String>, localChatDbStats?: ?Array<String>, cacheDirSizeInfo?: ?Array<DirSizeInfo>}>
+export type ExtendedStatus = $ReadOnly<{standalone: Boolean, passphraseStreamCached: Boolean, tsecCached: Boolean, deviceSigKeyCached: Boolean, deviceEncKeyCached: Boolean, paperSigKeyCached: Boolean, paperEncKeyCached: Boolean, storedSecret: Boolean, secretPromptSkip: Boolean, rememberPassphrase: Boolean, device?: ?Device, deviceErr?: ?LoadDeviceErr, logDir: String, session?: ?SessionStatus, defaultUsername: String, provisionedUsernames?: ?Array<String>, Clients?: ?Array<ClientStatus>, deviceEkNames?: ?Array<String>, platformInfo: PlatformInfo, defaultDeviceID: DeviceID, localDbStats?: ?Array<String>, localChatDbStats?: ?Array<String>, cacheDirSizeInfo?: ?Array<DirSizeInfo>, uiRouterMapping: {[key: string]: Int}}>
 export type ExternalServiceConfig = $ReadOnly<{schemaVersion: Int, display?: ?ServiceDisplayConfig, config?: ?ParamProofServiceConfig}>
 export type FSEditListRequest = $ReadOnly<{folder: Folder, requestID: Int}>
 export type FSErrorType =
