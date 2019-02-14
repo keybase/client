@@ -191,17 +191,20 @@ func (tx *AddMemberTx) createInvite(typ string, name keybase1.TeamInviteName, ro
 }
 
 // sweepCryptoMembers will queue "removes" for all cryptomembers with given UID.
-// Except admins won't attempt to remove owners.
-func (tx *AddMemberTx) sweepCryptoMembers(ctx context.Context, uid keybase1.UID) {
+// exceptAdminsRemovingOwners - But don't try to remove owners if we are admin.
+func (tx *AddMemberTx) sweepCryptoMembers(ctx context.Context, uid keybase1.UID,
+	exceptAdminsRemovingOwners bool) {
 	team := tx.team
 	for chainUv := range team.chain().inner.UserLog {
 		if chainUv.Uid.Equal(uid) && team.chain().getUserRole(chainUv) != keybase1.TeamRole_NONE {
-			myRole, err := tx.team.myRole(ctx)
-			if err == nil && myRole == keybase1.TeamRole_ADMIN {
-				theirRole, err := tx.team.MemberRole(ctx, chainUv)
-				if err == nil && theirRole == keybase1.TeamRole_OWNER {
-					// Skip if we're an admin and their an owner.
-					continue
+			if exceptAdminsRemovingOwners {
+				myRole, err := tx.team.myRole(ctx)
+				if err == nil && myRole == keybase1.TeamRole_ADMIN {
+					theirRole, err := tx.team.MemberRole(ctx, chainUv)
+					if err == nil && theirRole == keybase1.TeamRole_OWNER {
+						// Skip if we're an admin and their an owner.
+						continue
+					}
 				}
 			}
 			tx.removeMember(chainUv)
@@ -321,7 +324,12 @@ func (tx *AddMemberTx) addMemberByUPKV2(ctx context.Context, user keybase1.UserP
 	// No going back after this point!
 
 	tx.sweepKeybaseInvites(uv.Uid)
-	tx.sweepCryptoMembers(ctx, uv.Uid)
+
+	// If we're an admin re-adding an owner who does not yet have a PUK
+	// then don't try to remove their pre-reset cryptomember entry.
+	exceptAdminsRemovingOwners := !hasPUK
+	tx.team.G().Log.CDebugf(ctx, "xxx exceptAdminsRemovingOwners: %v", exceptAdminsRemovingOwners)
+	tx.sweepCryptoMembers(ctx, uv.Uid, exceptAdminsRemovingOwners)
 
 	if !hasPUK {
 		tx.createKeybaseInvite(uv, role)
@@ -576,7 +584,7 @@ func (tx *AddMemberTx) ReAddMemberToImplicitTeam(ctx context.Context, uv keybase
 
 	if hasPUK {
 		tx.addMember(uv, role)
-		tx.sweepCryptoMembers(ctx, uv.Uid)
+		tx.sweepCryptoMembers(ctx, uv.Uid, false)
 		if err := tx.completeAllKeybaseInvitesForUID(uv); err != nil {
 			return err
 		}
