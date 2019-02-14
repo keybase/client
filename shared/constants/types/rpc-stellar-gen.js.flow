@@ -73,7 +73,7 @@ export type MessageTypes = {|
     outParam: InflationDestinationResultLocal,
   |},
   'stellar.1.local.getPaymentDetailsLocal': {|
-    inParam: $ReadOnly<{|accountID?: ?AccountID, id: PaymentID|}>,
+    inParam: $ReadOnly<{|accountID: AccountID, id: PaymentID|}>,
     outParam: PaymentDetailsLocal,
   |},
   'stellar.1.local.getPaymentsLocal': {|

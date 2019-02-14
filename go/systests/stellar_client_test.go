@@ -78,6 +78,16 @@ func (s *stellarRetryClient) GetPaymentDetailsLocal(ctx context.Context, arg ste
 	return res, err
 }
 
+func (s *stellarRetryClient) GetGenericPaymentDetailsLocal(ctx context.Context, arg stellar1.GetGenericPaymentDetailsLocalArg) (res stellar1.PaymentDetailsLocal, err error) {
+	for i := 0; i < retryCount; i++ {
+		res, err = s.cli.GetGenericPaymentDetailsLocal(ctx, arg)
+		if err == nil {
+			break
+		}
+	}
+	return res, err
+}
+
 func (s *stellarRetryClient) GetDisplayCurrenciesLocal(ctx context.Context, sid int) (res []stellar1.CurrencyLocal, err error) {
 	for i := 0; i < retryCount; i++ {
 		res, err = s.cli.GetDisplayCurrenciesLocal(ctx, sid)
