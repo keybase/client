@@ -469,8 +469,13 @@ func reAddMemberAfterResetInner(ctx context.Context, g *libkb.GlobalContext, tea
 			targetRole = loggedInRole
 		}
 
+		if !t.IsImplicit() {
+			_, err = AddMemberByID(ctx, g, t.ID, username, targetRole)
+			return err
+		}
+
 		tx := CreateAddMemberTx(t)
-		if err := tx.ReAddMemberToImplicitTeam(uv, hasPUK, targetRole); err != nil {
+		if err := tx.ReAddMemberToImplicitTeam(ctx, uv, hasPUK, targetRole); err != nil {
 			return err
 		}
 
