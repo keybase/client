@@ -18,10 +18,12 @@ import {createSwitchNavigator, StackActions, NavigationActions} from '@react-nav
 import {createStackNavigator} from 'react-navigation-stack'
 import {modalRoutes, routes, nameToTab, loggedOutRoutes} from './routes'
 import {LeftAction} from '../common-adapters/header-hoc'
+import {isValidInitialTabString} from '../constants/tabs'
 import * as Constants from '../constants/router2'
 import * as Shared from './router.shared'
 import {useScreens} from 'react-native-screens'
 import * as Shim from './shim.native'
+import {debounce} from 'lodash-es'
 
 // turn on screens
 useScreens()
@@ -126,7 +128,12 @@ class RNApp extends React.PureComponent<any, any> {
 
     const actions = Shared.oldActionToNewActions(old, nav._navigation) || []
     actions.forEach(a => nav.dispatch(a))
+    this._persistRoute()
   }
+
+  _persistRoute = debounce(() => {
+    this.props.persistRoute(Constants.getVisiblePath())
+  }, 1) // TEMTP 3000)
 
   _handleAndroidBack = () => {
     const path = Constants.getVisiblePath()

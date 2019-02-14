@@ -25,7 +25,7 @@ type Props = {|
 class RouterSwitcheroo extends React.PureComponent<Props> {
   render() {
     if (this.props.useNewRouter) {
-      return <Router ref={r => this.props.updateNavigator(r)} />
+      return <Router ref={r => this.props.updateNavigator(r)} persistRoute={this.props.persistRoute} />
     }
 
     return (
@@ -39,6 +39,7 @@ class RouterSwitcheroo extends React.PureComponent<Props> {
 }
 
 const mapDispatchToProps = dispatch => ({
+  persistRoute: path => dispatch(ConfigGen.createPersistRoute({path})),
   updateNavigator: navigator => dispatch(ConfigGen.createSetNavigator({navigator})),
 })
 

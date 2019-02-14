@@ -9,6 +9,7 @@ import * as Flow from '../../util/flow'
 import * as Tabs from '../../constants/tabs'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Saga from '../../util/saga'
+import flags from '../../util/feature-flags'
 // this CANNOT be an import *, totally screws up the packager
 import {
   Alert,
@@ -180,7 +181,46 @@ function* clearRouteState() {
   )
 }
 
+let _lastPersist = ''
+function* persistRoute(state, action) {
+  if (!flags.useNewRouter) {
+    return
+  }
+
+  const path = action.payload.path
+  const top = path[path.length - 1]
+  if (!top) return
+  let param = {}
+  let routeName = ''
+  // top level tab?
+  if (Tabs.isValidInitialTabString(top.routeName)) {
+    routeName = top.routeName
+    if (routeName === _lastPersist) {
+      // skip rewriting this
+      return
+    }
+  } else if (top.routeName === 'chatConversation') {
+    routeName = top.routeName
+    param = {selectedConversationIDKey: state.chat2.selectedConversation}
+  } else {
+    return // don't write, keep the last
+  }
+
+  const s = JSON.stringify({param, routeName})
+  _lastPersist = routeName
+  console.log('aaaa writing persist route ', s)
+  yield Saga.spawn(() =>
+    RPCTypes.configSetValueRpcPromise({
+      path: 'ui.routeState2',
+      value: {isNull: false, s},
+    }).catch(() => {})
+  )
+}
+
 function* persistRouteState(state) {
+  if (flags.useNewRouter) {
+    return
+  }
   // Put a delay in case we go to a route and crash immediately
   yield Saga.callUntyped(Saga.delay, 3000)
   const routePath = getPath(state.routeTree.routeState)
@@ -318,12 +358,16 @@ const editAvatar = () =>
   })
 
 function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
+  if (flags.useNewRouter) {
+    yield* Saga.chainGenerator<ConfigGen.PersistRoutePayload>(ConfigGen.persistRoute, persistRoute)
+  } else {
+    yield* Saga.chainGenerator<RouteTreeGen.SwitchToPayload | Chat2Gen.SelectConversationPayload>(
+      [RouteTreeGen.switchTo, Chat2Gen.selectConversation],
+      persistRouteState
+    )
+  }
   yield* Saga.chainAction<ConfigGen.MobileAppStatePayload>(ConfigGen.mobileAppState, updateChangedFocus)
   yield* Saga.chainGenerator<ConfigGen.LoggedOutPayload>(ConfigGen.loggedOut, clearRouteState)
-  yield* Saga.chainGenerator<RouteTreeGen.SwitchToPayload | Chat2Gen.SelectConversationPayload>(
-    [RouteTreeGen.switchTo, Chat2Gen.selectConversation],
-    persistRouteState
-  )
   yield* Saga.chainAction<ConfigGen.OpenAppSettingsPayload>(ConfigGen.openAppSettings, openAppSettings)
   yield* Saga.chainGenerator<ConfigGen.SetupEngineListenersPayload>(
     ConfigGen.setupEngineListeners,

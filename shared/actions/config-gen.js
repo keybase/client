@@ -36,6 +36,7 @@ export const logoutHandshake = 'config:logoutHandshake'
 export const logoutHandshakeWait = 'config:logoutHandshakeWait'
 export const mobileAppState = 'config:mobileAppState'
 export const openAppSettings = 'config:openAppSettings'
+export const persistRoute = 'config:persistRoute'
 export const pushLoaded = 'config:pushLoaded'
 export const restartHandshake = 'config:restartHandshake'
 export const setAccounts = 'config:setAccounts'
@@ -78,6 +79,7 @@ type _LogoutHandshakeWaitPayload = $ReadOnly<{|name: string, version: number, in
 type _LogoutPayload = void
 type _MobileAppStatePayload = $ReadOnly<{|nextAppState: 'active' | 'background' | 'inactive'|}>
 type _OpenAppSettingsPayload = void
+type _PersistRoutePayload = $ReadOnly<{|path: Array<any>|}>
 type _PushLoadedPayload = $ReadOnly<{|pushLoaded: boolean|}>
 type _RestartHandshakePayload = void
 type _SetAccountsPayload = $ReadOnly<{|defaultUsername: string, usernames: Array<string>|}>
@@ -159,6 +161,7 @@ export const createLoadedAvatars = (payload: _LoadedAvatarsPayload) => ({payload
 export const createLoggedIn = (payload: _LoggedInPayload) => ({payload, type: loggedIn})
 export const createLoggedOut = (payload: _LoggedOutPayload) => ({payload, type: loggedOut})
 export const createMobileAppState = (payload: _MobileAppStatePayload) => ({payload, type: mobileAppState})
+export const createPersistRoute = (payload: _PersistRoutePayload) => ({payload, type: persistRoute})
 export const createPushLoaded = (payload: _PushLoadedPayload) => ({payload, type: pushLoaded})
 export const createSetAccounts = (payload: _SetAccountsPayload) => ({payload, type: setAccounts})
 export const createSetDeletedSelf = (payload: _SetDeletedSelfPayload) => ({payload, type: setDeletedSelf})
@@ -198,6 +201,7 @@ export type LogoutHandshakeWaitPayload = {|+payload: _LogoutHandshakeWaitPayload
 export type LogoutPayload = {|+payload: _LogoutPayload, +type: 'config:logout'|}
 export type MobileAppStatePayload = {|+payload: _MobileAppStatePayload, +type: 'config:mobileAppState'|}
 export type OpenAppSettingsPayload = {|+payload: _OpenAppSettingsPayload, +type: 'config:openAppSettings'|}
+export type PersistRoutePayload = {|+payload: _PersistRoutePayload, +type: 'config:persistRoute'|}
 export type PushLoadedPayload = {|+payload: _PushLoadedPayload, +type: 'config:pushLoaded'|}
 export type RestartHandshakePayload = {|+payload: _RestartHandshakePayload, +type: 'config:restartHandshake'|}
 export type SetAccountsPayload = {|+payload: _SetAccountsPayload, +type: 'config:setAccounts'|}
@@ -242,6 +246,7 @@ export type Actions =
   | LogoutPayload
   | MobileAppStatePayload
   | OpenAppSettingsPayload
+  | PersistRoutePayload
   | PushLoadedPayload
   | RestartHandshakePayload
   | SetAccountsPayload

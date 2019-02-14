@@ -247,6 +247,7 @@ export default function(state: Types.State = initialState, action: Actions): Typ
     case ConfigGen.copyToClipboard:
     case ConfigGen.checkForUpdate:
     case ConfigGen.filePickerError:
+    case ConfigGen.persistRoute:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
