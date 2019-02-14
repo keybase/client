@@ -18,7 +18,8 @@ import (
 )
 
 type hostMessageInfo struct {
-	OutboxID chat1.OutboxID
+	ConvID chat1.ConversationID
+	MsgID  chat1.MessageID
 }
 
 type gameIDHistoryInfo struct {
@@ -42,6 +43,21 @@ func NewManager(g *globals.Context) *Manager {
 	dealer := NewDealer(m)
 	m.dealer = dealer
 	return m
+}
+
+func (m *Manager) Start(ctx context.Context, uid gregor1.UID) {
+	defer m.Trace(ctx, func() error { return nil }, "Start")()
+	go func() {
+		m.dealer.Run(context.Background())
+	}()
+}
+
+func (m *Manager) Stop(ctx context.Context) (ch chan struct{}) {
+	defer m.Trace(ctx, func() error { return nil }, "Stop")()
+	m.dealer.Stop()
+	ch = make(chan struct{})
+	close(ch)
+	return ch
 }
 
 const gameIDTopicNamePrefix = "__keybase_coinflip_game_"
@@ -197,6 +213,8 @@ func (m *Manager) ReadHistory(ctx context.Context, convID chat1.ConversationID, 
 		return res, err
 	}
 	topicName := m.gameIDHistoryTopicName(gameConv.GetConvID())
+	m.Debug(ctx, "ReadHistory: finding conversation: tlfName: %s topicName: %s", gameConv.Info.TlfName,
+		topicName)
 	histConvs, err := m.G().ChatHelper.FindConversations(ctx, gameConv.Info.TlfName, &topicName,
 		chat1.TopicType_DEV, gameConv.GetMembersType(), gameConv.Info.Visibility)
 	if err != nil {
