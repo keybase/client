@@ -520,8 +520,9 @@ func (e *loginProvision) deviceName(m libkb.MetaContext) (string, error) {
 		}
 		devname = libkb.CheckDeviceName.Transform(devname)
 		duplicate := false
+		normalizedDevName := libkb.CheckDeviceName.Normalize(devname)
 		for _, name := range names {
-			if devname == name {
+			if normalizedDevName == libkb.CheckDeviceName.Normalize(name) {
 				duplicate = true
 				break
 			}
@@ -529,7 +530,7 @@ func (e *loginProvision) deviceName(m libkb.MetaContext) (string, error) {
 
 		if duplicate {
 			m.CDebugf("Device name reused: %q", devname)
-			arg.ErrorMessage = fmt.Sprintf("Device name %q already used", devname)
+			arg.ErrorMessage = fmt.Sprintf("The device name %q is already taken. You can't reuse device names, even revoked ones, for security reasons. Otherwise, someone who stole one of your devices could cause a lot of confusion.", devname)
 			continue
 		}
 
