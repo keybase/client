@@ -51,7 +51,7 @@ class Inbox extends React.PureComponent<Props, State> {
     }
 
     if (
-      this.props.filterHasFocus &&
+      this.props.filter &&
       this.props.selectedIndex !== prevProps.selectedIndex &&
       this.props.selectedIndex >= 0 &&
       this._list
