@@ -568,15 +568,9 @@ func TestMemberDetailsResetAndDeletedUser(t *testing.T) {
 	details, err = Details(context.TODO(), tc.G, name)
 	require.NoError(t, err)
 
-	require.Len(t, details.Members.Admins, 2)
-	for _, admin := range details.Members.Admins {
-		switch admin.Username {
-		case otherA.Username: // only reset
-			require.Equal(t, admin.Status, keybase1.TeamMemberStatus_RESET)
-		case otherB.Username: // deleted
-			require.Equal(t, admin.Status, keybase1.TeamMemberStatus_DELETED)
-		}
-	}
+	require.Len(t, details.Members.Admins, 1)
+	require.Equal(t, otherA.Username, details.Members.Admins[0].Username)
+	require.Equal(t, keybase1.TeamMemberStatus_RESET, details.Members.Admins[0].Status)
 }
 
 func TestMemberAddEmail(t *testing.T) {

@@ -2004,7 +2004,7 @@ export type DeviceType =
   | 0 // DESKTOP_0
   | 1 // MOBILE_1
 
-export type DirSizeInfo = $ReadOnly<{name: String, humanSize: String}>
+export type DirSizeInfo = $ReadOnly<{numFiles: Int, name: String, humanSize: String}>
 export type Dirent = $ReadOnly<{time: Time, size: Int, name: String, direntType: DirentType, lastWriterUnverified: User, writable: Boolean, prefetchStatus: PrefetchStatus, prefetchProgress: PrefetchProgress}>
 export type DirentType =
   | 0 // FILE_0

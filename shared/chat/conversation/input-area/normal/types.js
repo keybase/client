@@ -32,7 +32,8 @@ type CommonProps = {|
 
   getUnsentText: () => string,
   setUnsentText: (text: string) => void,
-  sendTyping: (text: string) => void,
+  sendTyping: (typing: boolean) => void,
+  unsentTextChanged: (text: string) => void,
 
   unsentTextRefresh: boolean,
 |}

@@ -410,6 +410,8 @@ type ChatUI interface {
 	ChatStellarDataConfirm(context.Context, chat1.UIChatPaymentSummary) (bool, error)
 	ChatStellarDataError(context.Context, string) (bool, error)
 	ChatStellarDone(context.Context, bool) error
+	ChatGiphySearchResults(ctx context.Context, convID chat1.ConversationID,
+		results []chat1.GiphySearchResult) error
 	ChatShowManageChannels(context.Context, string) error
 }
 

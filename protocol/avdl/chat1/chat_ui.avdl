@@ -271,5 +271,14 @@ protocol chatUi {
   boolean chatStellarDataError(int sessionID, string message);
   void chatStellarDone(int sessionID, boolean canceled);
 
+ record GiphySearchResult {
+    string targetUrl;
+    string previewUrl;
+    int previewWidth;
+    int previewHeight;
+    boolean previewIsVideo;
+  }
+  void chatGiphySearchResults(int sessionID, string convID, array<GiphySearchResult> results);
+
   void chatShowManageChannels(int sessionID, string teamname);
 }
