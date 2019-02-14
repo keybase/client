@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -27,6 +28,7 @@ import java.io.IOException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.util.ArrayList;
 
 import io.keybase.ossifrage.modules.NativeLogger;
 import io.keybase.ossifrage.util.ContactsPermissionsWrapper;
@@ -59,6 +61,44 @@ public class MainActivity extends ReactFragmentActivity {
         }
     }
 
+    private void handleNotificationIntent(Intent intent) {
+        Bundle bundle = intent.getExtras();
+        if (bundle == null || !bundle.containsKey("notification")) return;
+
+        ReactInstanceManager instanceManager = getReactInstanceManager();
+        if (instanceManager != null) {
+            ReactContext currentContext = instanceManager.getCurrentReactContext();
+            if (currentContext != null) {
+                DeviceEventManagerModule.RCTDeviceEventEmitter emitter = currentContext
+                        .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class);
+                if (emitter != null) {
+                    emitter.emit("androidIntentNotification", "");
+                }
+            }
+        }
+    }
+
+    private void handleSendIntentStream(Intent intent) {
+        Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
+        if (uri == null) return;
+
+        // Do something with the intent stream.
+    }
+
+    private void handleSendIntentMultipleStreams(Intent intent) {
+        ArrayList<Uri> uri = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
+        if (uri == null) return;
+
+        // Do something with the intent streams.
+    }
+
+    private void handleSendIntentText(Intent intent) {
+        String sharedText = intent.getStringExtra(Intent.EXTRA_TEXT);
+        if (sharedText == null) return;
+
+        // Do something with the intent data.
+    }
+
     @Override
     @TargetApi(Build.VERSION_CODES.KITKAT)
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,23 +114,6 @@ public class MainActivity extends ReactFragmentActivity {
 
         super.onCreate(savedInstanceState);
 
-        Intent intent = getIntent();
-        if (intent != null) {
-            Bundle bundle = intent.getExtras();
-            if (bundle != null && bundle.containsKey("notification")) {
-                ReactInstanceManager instanceManager = getReactInstanceManager();
-                if (instanceManager != null) {
-                    ReactContext currentContext = instanceManager.getCurrentReactContext();
-                    if (currentContext != null) {
-                        DeviceEventManagerModule.RCTDeviceEventEmitter emitter = currentContext
-                                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class);
-                        if (emitter != null) {
-                            emitter.emit("androidIntentNotification", "");
-                        }
-                    }
-                }
-            }
-        }
 
         // Hide splash screen background after 300ms.
         // This prevents the image from being visible behind the app, such as during a
@@ -101,6 +124,15 @@ public class MainActivity extends ReactFragmentActivity {
                 mainWindow.setBackgroundDrawableResource(R.color.white);
             }
         }, 300);
+
+        // Handle intents
+        Intent intent = getIntent();
+        if (intent == null) return;
+
+        this.handleNotificationIntent(intent);
+        this.handleSendIntentText(intent);
+        this.handleSendIntentStream(intent);
+        this.handleSendIntentMultipleStreams(intent);
     }
 
     @Override
