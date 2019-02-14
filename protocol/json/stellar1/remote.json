@@ -766,6 +766,10 @@
         {
           "name": "skipPending",
           "type": "boolean"
+        },
+        {
+          "name": "includeMulti",
+          "type": "boolean"
         }
       ],
       "response": "PaymentsPage"

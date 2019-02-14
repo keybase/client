@@ -689,11 +689,12 @@ type DetailsArg struct {
 }
 
 type RecentPaymentsArg struct {
-	Caller      keybase1.UserVersion `codec:"caller" json:"caller"`
-	AccountID   AccountID            `codec:"accountID" json:"accountID"`
-	Cursor      *PageCursor          `codec:"cursor,omitempty" json:"cursor,omitempty"`
-	Limit       int                  `codec:"limit" json:"limit"`
-	SkipPending bool                 `codec:"skipPending" json:"skipPending"`
+	Caller       keybase1.UserVersion `codec:"caller" json:"caller"`
+	AccountID    AccountID            `codec:"accountID" json:"accountID"`
+	Cursor       *PageCursor          `codec:"cursor,omitempty" json:"cursor,omitempty"`
+	Limit        int                  `codec:"limit" json:"limit"`
+	SkipPending  bool                 `codec:"skipPending" json:"skipPending"`
+	IncludeMulti bool                 `codec:"includeMulti" json:"includeMulti"`
 }
 
 type PendingPaymentsArg struct {

@@ -349,7 +349,7 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 	}
 
 	oc := stellar.NewOwnAccountLookupCache(mctx)
-	details, err := s.remoter.PaymentDetails(ctx, stellar1.TransactionIDFromPaymentID(arg.Id).String())
+	details, err := s.remoter.PaymentDetails(ctx, arg.AccountID, stellar1.TransactionIDFromPaymentID(arg.Id).String())
 	if err != nil {
 		return payment, err
 	}
@@ -404,7 +404,7 @@ func (s *Server) GetGenericPaymentDetailsLocal(ctx context.Context, arg stellar1
 	}
 
 	oc := stellar.NewOwnAccountLookupCache(mctx)
-	details, err := s.remoter.PaymentDetails(ctx, stellar1.TransactionIDFromPaymentID(arg.Id).String())
+	details, err := s.remoter.PaymentDetailsGeneric(ctx, stellar1.TransactionIDFromPaymentID(arg.Id).String())
 	if err != nil {
 		return payment, err
 	}
@@ -459,7 +459,7 @@ func (s *Server) CancelPaymentLocal(ctx context.Context, arg stellar1.CancelPaym
 		return res, err
 	}
 
-	details, err := s.remoter.PaymentDetails(mctx.Ctx(), stellar1.TransactionIDFromPaymentID(arg.PaymentID).String())
+	details, err := s.remoter.PaymentDetailsGeneric(mctx.Ctx(), stellar1.TransactionIDFromPaymentID(arg.PaymentID).String())
 	if err != nil {
 		return res, err
 	}

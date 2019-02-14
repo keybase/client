@@ -538,7 +538,25 @@ type paymentDetailResult struct {
 	Result stellar1.PaymentDetails `json:"res"`
 }
 
-func PaymentDetails(ctx context.Context, g *libkb.GlobalContext, txID string) (res stellar1.PaymentDetails, err error) {
+func PaymentDetails(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID, txID string) (res stellar1.PaymentDetails, err error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/paymentdetail",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"account_id": libkb.S{Val: string(accountID)},
+			"txID":       libkb.S{Val: txID},
+		},
+		NetContext:      ctx,
+		RetryCount:      3,
+		RetryMultiplier: 1.5,
+		InitialTimeout:  10 * time.Second,
+	}
+	var apiRes paymentDetailResult
+	err = g.API.GetDecode(apiArg, &apiRes)
+	return apiRes.Result, err
+}
+
+func PaymentDetailsGeneric(ctx context.Context, g *libkb.GlobalContext, txID string) (res stellar1.PaymentDetails, err error) {
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/paymentdetail",
 		SessionType: libkb.APISessionTypeREQUIRED,
