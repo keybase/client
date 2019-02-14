@@ -23,7 +23,7 @@ class FollowButton extends Component<Props, State> {
     if (following) {
       return (
         <WaitingButton
-          type={'PrimaryGreenActive'}
+          type="PrimaryGreenActive"
           label={this.state.mouseOver ? 'Unfollow' : 'Following'}
           onClick={onUnfollow}
           onMouseEnter={Styles.isMobile ? null : () => this.setState({mouseOver: true})}
