@@ -113,10 +113,10 @@ func envInit() (err error) {
 			fallthrough
 		case "arm64":
 			clang, cflags, err = envClang("iphoneos")
-			cflags += " -miphoneos-version-min=6.1"
+			cflags += " -miphoneos-version-min=" + buildIOSVersion
 		case "386", "amd64":
 			clang, cflags, err = envClang("iphonesimulator")
-			cflags += " -mios-simulator-version-min=6.1"
+			cflags += " -mios-simulator-version-min=" + buildIOSVersion
 		default:
 			panic(fmt.Errorf("unknown GOARCH: %q", arch))
 		}
@@ -127,8 +127,9 @@ func envInit() (err error) {
 			"GOOS=darwin",
 			"GOARCH="+arch,
 			"CC="+clang,
-			"CXX="+clang,
+			"CXX="+clang+"++",
 			"CGO_CFLAGS="+cflags+" -arch "+archClang(arch),
+			"CGO_CXXFLAGS="+cflags+" -arch "+archClang(arch),
 			"CGO_LDFLAGS="+cflags+" -arch "+archClang(arch),
 			"CGO_ENABLED=1",
 		)
@@ -271,7 +272,7 @@ var ndk = ndkConfig{
 	"arm": {
 		arch:       "arm",
 		abi:        "armeabi-v7a",
-		platform:   "android-15",
+		platform:   "android-16",
 		gcc:        "arm-linux-androideabi-4.9",
 		toolPrefix: "arm-linux-androideabi",
 	},
@@ -286,7 +287,7 @@ var ndk = ndkConfig{
 	"386": {
 		arch:       "x86",
 		abi:        "x86",
-		platform:   "android-15",
+		platform:   "android-16",
 		gcc:        "x86-4.9",
 		toolPrefix: "i686-linux-android",
 	},

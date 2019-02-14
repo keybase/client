@@ -107,12 +107,14 @@ func (o LoadDeviceErr) DeepCopy() LoadDeviceErr {
 }
 
 type DirSizeInfo struct {
+	NumFiles  int    `codec:"numFiles" json:"numFiles"`
 	Name      string `codec:"name" json:"name"`
 	HumanSize string `codec:"humanSize" json:"humanSize"`
 }
 
 func (o DirSizeInfo) DeepCopy() DirSizeInfo {
 	return DirSizeInfo{
+		NumFiles:  o.NumFiles,
 		Name:      o.Name,
 		HumanSize: o.HumanSize,
 	}
