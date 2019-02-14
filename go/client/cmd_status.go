@@ -355,12 +355,6 @@ func (c *CmdStatus) outputClients(dui libkb.DumbOutputUI, clients []keybase1.Cli
 		if len(cli.Details.Desc) > 0 {
 			dstr = ", description: " + cli.Details.Desc
 		}
-		if uis, ok := mappedUIs[cli.ConnectionID]; ok {
-			dstr += ", uis: " + strings.Join(uis, ",")
-		}
-		if chans := formatNotificationChannels(cli.NotificationChannels); len(chans) != 0 {
-			dstr += ", notifications: " + chans
-		}
 
 		dui.Printf(
 			"    %s [cid: %d, pid: %d%s%s]\n",
@@ -370,6 +364,12 @@ func (c *CmdStatus) outputClients(dui libkb.DumbOutputUI, clients []keybase1.Cli
 			vstr,
 			dstr,
 		)
+		if uis, ok := mappedUIs[cli.ConnectionID]; ok {
+			dui.Printf("    Handled UIs: %s\n", strings.Join(uis, ", "))
+		}
+		if chans := formatNotificationChannels(cli.NotificationChannels); len(chans) != 0 {
+			dui.Printf("    Notification subscriptions: %s\n", chans)
+		}
 	}
 }
 
@@ -384,7 +384,7 @@ func formatNotificationChannels(channels keybase1.NotificationChannels) string {
 		}
 	}
 
-	return strings.Join(items, ",")
+	return strings.Join(items, ", ")
 }
 
 func (c *CmdStatus) client() {
