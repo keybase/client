@@ -23,7 +23,7 @@ const selectorDelegatorFactory = (dispatch, options) => {
       }
       if (typeof mapper === 'function') {
         // replaces what is usually the output of mergeProps
-        return mapper(ownProps)
+        return mapper(ownProps, state)
       }
       // allow just a static value
       if (typeof mapper === 'object') {
@@ -47,5 +47,6 @@ const selectorDelegatorFactory = (dispatch, options) => {
 // for details on the function chain.
 const connect = (_, __, ___) => redux.connectAdvanced(selectorDelegatorFactory)
 const Provider = redux.Provider
+const connectAdvanced = redux.connectAdvanced
 
-export {connect, Provider}
+export {connect, connectAdvanced, Provider}
