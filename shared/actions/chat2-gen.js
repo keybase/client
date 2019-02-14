@@ -28,7 +28,6 @@ export const attachmentsUpload = 'chat2:attachmentsUpload'
 export const badgesUpdated = 'chat2:badgesUpdated'
 export const blockConversation = 'chat2:blockConversation'
 export const changeFocus = 'chat2:changeFocus'
-export const changeInboxMode = 'chat2:changeInboxMode'
 export const clearPaymentConfirmInfo = 'chat2:clearPaymentConfirmInfo'
 export const confirmScreenResponse = 'chat2:confirmScreenResponse'
 export const createConversation = 'chat2:createConversation'
@@ -128,7 +127,6 @@ type _AttachmentsUploadPayload = $ReadOnly<{|conversationIDKey: Types.Conversati
 type _BadgesUpdatedPayload = $ReadOnly<{|conversations: Array<RPCTypes.BadgeConversationInfo>|}>
 type _BlockConversationPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, reportUser: boolean|}>
 type _ChangeFocusPayload = $ReadOnly<{|nextFocus: Types.Focus|}>
-type _ChangeInboxModePayload = $ReadOnly<{|nextMode: Types.InboxMode|}>
 type _ClearPaymentConfirmInfoPayload = void
 type _ConfirmScreenResponsePayload = $ReadOnly<{|accept: boolean|}>
 type _CreateConversationPayload = $ReadOnly<{|participants: Array<string>|}>
@@ -299,10 +297,6 @@ export const createSetConvRetentionPolicy = (payload: _SetConvRetentionPolicyPay
  */
 export const createStaticConfigLoaded = (payload: _StaticConfigLoadedPayload) => ({payload, type: staticConfigLoaded})
 /**
- * Switch between normal and filtered inbox
- */
-export const createChangeInboxMode = (payload: _ChangeInboxModePayload) => ({payload, type: changeInboxMode})
-/**
  * Tell the service to toggle a reaction on a message.
  */
 export const createToggleMessageReaction = (payload: _ToggleMessageReactionPayload) => ({payload, type: toggleMessageReaction})
@@ -438,7 +432,6 @@ export type AttachmentsUploadPayload = {|+payload: _AttachmentsUploadPayload, +t
 export type BadgesUpdatedPayload = {|+payload: _BadgesUpdatedPayload, +type: 'chat2:badgesUpdated'|}
 export type BlockConversationPayload = {|+payload: _BlockConversationPayload, +type: 'chat2:blockConversation'|}
 export type ChangeFocusPayload = {|+payload: _ChangeFocusPayload, +type: 'chat2:changeFocus'|}
-export type ChangeInboxModePayload = {|+payload: _ChangeInboxModePayload, +type: 'chat2:changeInboxMode'|}
 export type ClearPaymentConfirmInfoPayload = {|+payload: _ClearPaymentConfirmInfoPayload, +type: 'chat2:clearPaymentConfirmInfo'|}
 export type ConfirmScreenResponsePayload = {|+payload: _ConfirmScreenResponsePayload, +type: 'chat2:confirmScreenResponse'|}
 export type CreateConversationPayload = {|+payload: _CreateConversationPayload, +type: 'chat2:createConversation'|}
@@ -541,7 +534,6 @@ export type Actions =
   | BadgesUpdatedPayload
   | BlockConversationPayload
   | ChangeFocusPayload
-  | ChangeInboxModePayload
   | ClearPaymentConfirmInfoPayload
   | ConfirmScreenResponsePayload
   | CreateConversationPayload

@@ -51,8 +51,6 @@ export type ConversationCountMap = I.Map<Common.ConversationIDKey, number>
 // This is very simple for now, but we can make
 // it fancier by using a stack and more types
 export type Focus = 'filter' | null
-// What kind of inbox are we looking at
-export type InboxMode = 'filter' | 'normal'
 
 export type _State = {
   accountsInfoMap: I.Map<
@@ -64,7 +62,6 @@ export type _State = {
   focus: Focus,
   inboxFilter: string, // filters 'jump to chat'
   inboxHasLoaded: boolean, // if we've ever loaded
-  inboxMode: InboxMode,
   trustedInboxHasLoaded: boolean, // if we've done initial trusted inbox load
   smallTeamsExpanded: boolean, // if we're showing all small teams
   isWalletsNew: boolean, // controls new-ness of wallets in chat UI
@@ -77,7 +74,6 @@ export type _State = {
   explodingModes: I.Map<Common.ConversationIDKey, number>, // seconds to exploding message expiration
   quote: ?QuoteInfo, // last quoted message
   selectedConversation: Common.ConversationIDKey, // the selected conversation, if any
-  filterSelectedConversation: Common.ConversationIDKey, // drives which inbox row appears selected while we're filtering
   staticConfig: ?StaticConfig, // static config stuff from the service. only needs to be loaded once. if null, it hasn't been loaded
   typingMap: I.Map<Common.ConversationIDKey, I.Set<string>>, // who's typing currently
   unreadMap: ConversationCountMap, // how many unread messages there are

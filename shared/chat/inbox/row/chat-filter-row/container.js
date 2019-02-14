@@ -20,7 +20,6 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   const filter = state.chat2.inboxFilter
   return {
     filter,
-    inFilterMode: state.chat2.inboxMode === 'filter',
     isLoading: Constants.anyChatWaitingKeys(state),
   }
 }
@@ -49,7 +48,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   filter: stateProps.filter,
   filterFocusCount: ownProps.filterFocusCount,
   hotkeys: isDarwin ? ['command+n', 'command+k'] : ['ctrl+n', 'ctrl+k'],
-  inFilterMode: stateProps.inFilterMode,
   isLoading: stateProps.isLoading,
   onBlur: dispatchProps.onBlur,
   onEnsureSelection: ownProps.onEnsureSelection,
