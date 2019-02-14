@@ -273,7 +273,7 @@ const getMenu = p => {
         </Kb.Box2>
       ),
     },
-    items: [{onClick: p.onShowProof, title: `View ${Constants.proofToProofTypeDesc(p)}`}, onRevoke],
+    items: [{onClick: p.onShowProof, title: `View ${Constants.proofTypeToDesc(p.type)}`}, onRevoke],
   }
 }
 

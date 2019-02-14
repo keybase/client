@@ -262,7 +262,7 @@ class ProfileRender extends React.PureComponent<Props, State> {
         items: [
           {
             onClick: () => this.props.onViewProof(proof),
-            title: `View ${Constants.proofToProofTypeDesc(proof)}`,
+            title: `View ${Constants.proofTypeToDesc(proof.type)}`,
           },
           {
             danger: true,

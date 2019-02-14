@@ -238,7 +238,7 @@ class Profile extends Component<Props, State> {
       items: [
         {
           onClick: () => this.props.onViewProof(proof),
-          title: `View ${Constants.proofToProofTypeDesc(proof)}`,
+          title: `View ${Constants.proofTypeToDesc(proof.type)}`,
         },
         {danger: true, onClick: () => this.props.onRevokeProof(proof), title: 'Revoke'},
       ],
