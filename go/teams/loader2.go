@@ -349,6 +349,17 @@ func (l *TeamLoader) walkUpToAdmin(
 		}
 		load2Res, err := l.load2(ctx, arg)
 		if err != nil {
+			if aerr, ok := err.(libkb.AppStatusError); ok {
+				switch keybase1.StatusCode(aerr.Code) {
+				case keybase1.StatusCode_SCTeamReadError:
+					// in the event that the server thinks you aren't in the team, try bumping
+					// the readSubteamID up a level. see TestLoaderCORE_10160.
+					if readSubteamID != team.Chain.Id { // prevent an infinite loop
+						readSubteamID = team.Chain.Id
+						continue
+					}
+				}
+			}
 			return nil, err
 		}
 		team = &load2Res.team

@@ -789,6 +789,39 @@ func TestLoaderCORE_6230_2(t *testing.T) {
 	require.NoError(t, err, "load team")
 }
 
+func TestDeeplyNestedAdmin(t *testing.T) {
+	fus, tcs, cleanup := setupNTests(t, 2)
+	defer cleanup()
+	aliceG := tcs[0].G
+	bobG := tcs[1].G
+	bob := fus[1]
+	ctx := context.TODO()
+
+	t.Logf("alice creates aaa")
+	aaaName, _ := createTeam2(*tcs[0])
+
+	t.Logf("alice creates aaa.bbb.ccc.ddd.eee and adds Bob to it")
+	bbbName, _ := createSubteam(tcs[0], aaaName, "bbb")
+	cccName, _ := createSubteam(tcs[0], bbbName, "ccc")
+	dddName, _ := createSubteam(tcs[0], cccName, "ddd")
+	eeeName, _ := createSubteam(tcs[0], dddName, "eee")
+	_, err := AddMember(ctx, aliceG, eeeName.String(), bob.Username, keybase1.TeamRole_READER)
+	require.NoError(t, err, "add bob to the last team")
+
+	t.Logf("Bob blows away his cache")
+	teamLoader := bobG.GetTeamLoader()
+	teamLoader.ClearMem()
+	bobG.FlushCaches()
+	bobG.LocalDb.Nuke()
+
+	t.Logf("Bob tries to load the team he is in")
+	_, err = Load(ctx, bobG, keybase1.LoadTeamArg{
+		Name:        eeeName.String(),
+		ForceRepoll: true,
+	})
+	require.NoError(t, err, "can load this team")
+}
+
 func TestLoaderCORE_10160(t *testing.T) {
 	fus, tcs, cleanup := setupNTests(t, 2)
 	defer cleanup()
