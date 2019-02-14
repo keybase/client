@@ -152,7 +152,7 @@ const getFilteredRowsAndMetadata = memoizeShallow<GetFilteredParams, _>(p => {
       .join('')}`,
     'i'
   )
-  const rows: Array<RowItem> = metas
+  const rows: Array<RowItem> = metas.map
     .map(meta => {
       if (!Constants.isValidConversationIDKey(meta.conversationIDKey)) {
         return null
