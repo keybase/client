@@ -17,6 +17,19 @@ export default class extends React.PureComponent<Props, State> {
 
   _mounted = false
 
+  _onContainerResize = ({bounds}) =>
+    this.setState({containerHeight: bounds.height, containerWidth: bounds.width})
+
+  _videoRef: {current: HTMLVideoElement | null} = React.createRef()
+  _videoRefAction = (action: HTMLVideoElement => any) => {
+    if (!this._videoRef.current) {
+      // This can happen in story tests.
+      logger.warn('_videoRef is falsey')
+      return
+    }
+    action(this._videoRef.current)
+  }
+
   _onVideoLoadedmetadata = ({target}) => {
     this._mounted &&
       this.setState({
@@ -28,29 +41,18 @@ export default class extends React.PureComponent<Props, State> {
       })
   }
 
-  _onContainerResize = ({bounds}) =>
-    this.setState({containerHeight: bounds.height, containerWidth: bounds.width})
-
-  _videoRef: {current: HTMLVideoElement | null} = React.createRef()
+  _onVideoClick = () => this._videoRefAction(current => (current.paused ? current.play() : current.pause()))
 
   componentDidMount() {
     this._mounted = true
-    if (!this._videoRef.current) {
-      // This can happen in story tests.
-      logger.warn('_videoRef is falsey')
-      return
-    }
-    this._videoRef.current.addEventListener('loadedmetadata', this._onVideoLoadedmetadata)
+    this._videoRefAction(current => current.addEventListener('loadedmetadata', this._onVideoLoadedmetadata))
   }
 
   componentWillUnmount() {
     this._mounted = false
-    if (!this._videoRef.current) {
-      // This can happen in story tests.
-      logger.warn('_videoRef is falsey')
-      return
-    }
-    this._videoRef.current.removeEventListener('loadedmetadata', this._onVideoLoadedmetadata)
+    this._videoRefAction(current =>
+      current.removeEventListener('loadedmetadata', this._onVideoLoadedmetadata)
+    )
   }
 
   render() {
@@ -60,6 +62,7 @@ export default class extends React.PureComponent<Props, State> {
           <div ref={measureRef} style={Styles.collapseStyles([styles.container, this.props.style])}>
             <video
               controlsList="nodownload nofullscreen"
+              onClick={this._onVideoClick}
               ref={this._videoRef}
               controls={!this.props.hideControls}
               src={this.props.url}
