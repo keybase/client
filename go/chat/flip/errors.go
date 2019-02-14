@@ -273,3 +273,24 @@ type BadCommitmentCompleteHashError struct {
 func (b BadCommitmentCompleteHashError) Error() string {
 	return fmt.Sprintf("Commitment complete hash error for game %s by user %s", b.G, b.U)
 }
+
+type RevealTooLateError struct {
+	G GameMetadata
+	U UserDevice
+}
+
+func (b RevealTooLateError) Error() string {
+	return fmt.Sprintf("Reveal from %s for get %s arrived too late", b.G, b.U)
+}
+
+type ReplayError struct {
+	s string
+}
+
+func NewReplayError(s string) ReplayError {
+	return ReplayError{s: s}
+}
+
+func (r ReplayError) Error() string {
+	return fmt.Sprintf("")
+}
