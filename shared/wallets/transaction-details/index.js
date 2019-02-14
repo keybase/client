@@ -443,7 +443,6 @@ class LoadTransactionDetails extends React.Component<Props> {
   }
   render() {
     if (this.props.loading) {
-      return null
       return (
         <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} centerChildren={true}>
           <Kb.ProgressIndicator style={styles.progressIndicator} />

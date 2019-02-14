@@ -206,7 +206,7 @@ function* requestPayment(state) {
   )
   const navAction = maybeNavigateAwayFromSendForm(state)
   yield Saga.sequentially([
-    ...(navAction ? [Saga.put(navAction)] : []),
+    ...(navAction ? navAction.map(n => Saga.put(n)) : []),
     Saga.put(
       WalletsGen.createRequestedPayment({
         kbRqID: new HiddenString(kbRqID),
@@ -724,14 +724,16 @@ const maybeNavigateAwayFromSendForm = state => {
     if (Constants.sendRequestFormRoutes.includes(lastNode)) {
       if (path.first() === Tabs.walletsTab) {
         // User is on send form in wallets tab, navigate back to root of tab
-        return RouteTreeGen.createNavigateTo({
-          path: [{props: {}, selected: Tabs.walletsTab}, {props: {}, selected: null}],
-        })
+        return [
+          RouteTreeGen.createNavigateTo({
+            path: [{props: {}, selected: Tabs.walletsTab}, {props: {}, selected: null}],
+          }),
+        ]
       }
       // User is somewhere else, send them to most recent parent that isn't a form route
       const firstFormIndex = path.findIndex(node => Constants.sendRequestFormRoutes.includes(node))
       const pathAboveForm = path.slice(0, firstFormIndex)
-      return RouteTreeGen.createNavigateTo({path: pathAboveForm})
+      return [RouteTreeGen.createNavigateTo({path: pathAboveForm})]
     }
   }
 }

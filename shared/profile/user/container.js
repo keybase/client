@@ -109,6 +109,7 @@ const connected = Container.namedConnect<OwnProps, _, _, _, _>(
   'Profile2'
 )(Profile2)
 
+// $FlowIssue lets fix this
 connected.navigationOptions = {
   header: undefined,
   headerTitle: hp => <ConnectedHeader />,

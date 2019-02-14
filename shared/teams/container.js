@@ -119,6 +119,7 @@ const Connected = compose(
   })
 )(Reloadable)
 
+// $FlowIssue lets fix this
 Connected.navigationOptions = {
   header: undefined,
   title: 'Teams',

@@ -93,8 +93,4 @@ const Connected = compose(
   safeSubmitPerMount(['onBack'])
 )(ReloadableDevices)
 
-Connected.navigationOptions = {
-  skipOffline: true,
-}
-
 export default Connected

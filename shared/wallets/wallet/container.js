@@ -10,8 +10,8 @@ import {partition} from 'lodash-es'
 import Wallet, {type Props} from '.'
 
 type OwnProps = {|
-  navigateAppend: any => void,
-  navigateUp: () => void,
+  navigateAppend: any => any,
+  navigateUp: () => any,
 |}
 
 const mapStateToProps = state => {

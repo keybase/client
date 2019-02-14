@@ -139,6 +139,10 @@ class RNApp extends React.PureComponent<any, any> {
   }, 3000)
 
   _handleAndroidBack = () => {
+    const nav = this._nav
+    if (!nav) {
+      return
+    }
     const path = Constants.getVisiblePath()
 
     // We determine if we're at the root if we're at the root of our navigation hierarchy, which is slightly different if you're logged in or out
@@ -153,7 +157,7 @@ class RNApp extends React.PureComponent<any, any> {
         return false
       }
     }
-    this._nav.dispatch(StackActions.pop())
+    nav.dispatch(StackActions.pop())
     return true
   }
 
@@ -169,7 +173,7 @@ class RNApp extends React.PureComponent<any, any> {
     Kb.NativeBackHandler.removeEventListener('hardwareBackPress', this._handleAndroidBack)
   }
 
-  getNavState = () => this._nav.state?.nav
+  getNavState = () => this._nav?.state?.nav
 
   render() {
     console.log('aaaa', this.props)

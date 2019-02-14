@@ -203,6 +203,4 @@ const InfoConnected = connect<SelectorOwnProps, _, _, _, _>(
   mergeSelectorProps
 )(InfoPanelSelector)
 
-InfoConnected.navigationOptions = {}
-
 export default InfoConnected

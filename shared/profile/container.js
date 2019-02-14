@@ -231,6 +231,7 @@ const ConnectedHeader = connect<OwnProps, _, _, _, _>(
   }
 )(PeoplePageSearchBar)
 
+// $FlowIssue lets fix this
 connected.navigationOptions = {
   header: undefined,
   headerTitle: hp => <ConnectedHeader />,

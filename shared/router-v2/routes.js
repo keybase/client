@@ -41,6 +41,7 @@ export const modalRoutes = {
   ...deviceNewModalRoutes,
   ...fsNewModalRoutes,
   ...gitNewModalRoutes,
+  ...peopleNewModalRoutes,
   ...profileNewModalRoutes,
   ...settingsNewModalRoutes,
   ...teamsNewModalRoutes,
@@ -48,8 +49,3 @@ export const modalRoutes = {
 }
 
 export const loggedOutRoutes = _loggedOutRoutes
-// TEMP
-console.log('aaa all routes', routes)
-console.log('aaa all loggedout routes', loggedOutRoutes)
-console.log('aaa all modal routes', modalRoutes)
-console.log('aaa routes to tab', nameToTab)

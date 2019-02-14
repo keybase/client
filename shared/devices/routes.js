@@ -52,4 +52,6 @@ export const newRoutes = {
   'tabs:devicesTab': {getScreen: () => require('./container').default},
 }
 
+export const newModalRoutes = {}
+
 export default routeTree

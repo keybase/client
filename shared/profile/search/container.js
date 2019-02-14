@@ -22,6 +22,4 @@ const connected = connect<OwnProps, _, _, _, _>(
   (s, d, o) => ({...o, ...s, ...d})
 )(Search)
 
-connected.navigationOptions = {}
-
 export default connected

@@ -46,7 +46,6 @@ class Main extends React.Component<Props> {
       <React.Fragment>
         <RouterSwitcheroo
           useNewRouter={this.props.useNewRouter}
-          newRoutePath={[]}
           oldRouteDef={this.props.routeDef}
           oldRouteState={this.props.routeState}
           oldSetRouteState={this.props.setRouteState}

@@ -36,7 +36,6 @@ import * as Shim from './shim.desktop'
  * When there are no modals AppView is rendered
  * Floating is rendered to a portal on top
  */
-// TODO modals
 // <Kb.ErrorBoundary>
 // {!options.skipOffline && <Offline />}
 // <GlobalError />

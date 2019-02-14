@@ -109,6 +109,7 @@ const connected = connect<OwnProps, _, _, _, _>(
   mergeProps
 )(LoadOnMount)
 
+// $FlowIssue lets fix this
 connected.navigationOptions = {
   header: undefined,
   headerTitle: hp => <ConnectedHeader />,

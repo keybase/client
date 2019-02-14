@@ -41,7 +41,8 @@ export type LeftActionProps = {
   customCancelText?: string,
   hasTextTitle?: boolean,
   hideBackLabel?: boolean,
-  leftAction: 'back' | 'cancel',
+  leftAction?: 'back' | 'cancel' | null,
   leftActionText?: string,
+  theme?: 'light' | 'dark', // defaults to 'light'
   onLeftAction: ?() => void,
 }

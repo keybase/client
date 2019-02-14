@@ -5,7 +5,7 @@ import BackButton from '../back-button'
 import Box from '../box'
 import Icon from '../icon'
 import * as Styles from '../../styles'
-import type {Props} from './types'
+import type {Props, LeftActionProps} from './types'
 import flags from '../../util/feature-flags'
 
 export const HeaderHocHeader = ({
@@ -42,7 +42,7 @@ export const HeaderHocHeader = ({
       </Box>
     )}
     {titleComponent}
-    {(rightActions || []).map(a => a.custom)}
+    {(rightActions || []).map(a => (a ? a.custom : null))}
   </Box>
 )
 
@@ -57,7 +57,7 @@ export const LeftAction = ({
   leftActionText,
   onLeftAction,
   theme,
-}): React.Node => (
+}: LeftActionProps): React.Node => (
   <Box style={Styles.collapseStyles([styles.leftAction, hasTextTitle && styles.grow])}>
     {onLeftAction &&
       (leftAction === 'cancel' ? (

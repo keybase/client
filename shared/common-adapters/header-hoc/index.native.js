@@ -7,7 +7,7 @@ import FloatingMenu from '../floating-menu'
 import Icon from '../icon'
 import SafeAreaView, {SafeAreaViewTop} from '../safe-area-view'
 import * as Styles from '../../styles'
-import type {Action, Props} from './types'
+import type {Action, Props, LeftActionProps} from './types'
 import flags from '../../util/feature-flags'
 
 const MAX_RIGHT_ACTIONS = 3
@@ -120,7 +120,7 @@ export const LeftAction = ({
   leftActionText,
   onLeftAction,
   theme,
-}): React.Node => (
+}: LeftActionProps): React.Node => (
   <Box style={Styles.collapseStyles([styles.leftAction, hasTextTitle && styles.grow])}>
     {onLeftAction &&
       (leftAction === 'cancel' ? (
