@@ -14,7 +14,6 @@ export const badgeApp = 'notifications:badgeApp'
 export const listenForKBFSNotifications = 'notifications:listenForKBFSNotifications'
 export const listenForNotifications = 'notifications:listenForNotifications'
 export const receivedBadgeState = 'notifications:receivedBadgeState'
-export const receivedRootAuditError = 'notifications:receivedRootAuditError'
 export const setBadgeCounts = 'notifications:setBadgeCounts'
 
 // Payload Types
@@ -22,7 +21,6 @@ type _BadgeAppPayload = $ReadOnly<{|key: Types.NotificationKeys, on: boolean, co
 type _ListenForKBFSNotificationsPayload = void
 type _ListenForNotificationsPayload = void
 type _ReceivedBadgeStatePayload = $ReadOnly<{|badgeState: RPCTypes.BadgeState|}>
-type _ReceivedRootAuditErrorPayload = $ReadOnly<{|message: string|}>
 type _SetBadgeCountsPayload = $ReadOnly<{|counts: I.Map<Tabs.Tab, number>|}>
 
 // Action Creators
@@ -30,7 +28,6 @@ export const createBadgeApp = (payload: _BadgeAppPayload) => ({payload, type: ba
 export const createListenForKBFSNotifications = (payload: _ListenForKBFSNotificationsPayload) => ({payload, type: listenForKBFSNotifications})
 export const createListenForNotifications = (payload: _ListenForNotificationsPayload) => ({payload, type: listenForNotifications})
 export const createReceivedBadgeState = (payload: _ReceivedBadgeStatePayload) => ({payload, type: receivedBadgeState})
-export const createReceivedRootAuditError = (payload: _ReceivedRootAuditErrorPayload) => ({payload, type: receivedRootAuditError})
 export const createSetBadgeCounts = (payload: _SetBadgeCountsPayload) => ({payload, type: setBadgeCounts})
 
 // Action Payloads
@@ -38,7 +35,6 @@ export type BadgeAppPayload = {|+payload: _BadgeAppPayload, +type: 'notification
 export type ListenForKBFSNotificationsPayload = {|+payload: _ListenForKBFSNotificationsPayload, +type: 'notifications:listenForKBFSNotifications'|}
 export type ListenForNotificationsPayload = {|+payload: _ListenForNotificationsPayload, +type: 'notifications:listenForNotifications'|}
 export type ReceivedBadgeStatePayload = {|+payload: _ReceivedBadgeStatePayload, +type: 'notifications:receivedBadgeState'|}
-export type ReceivedRootAuditErrorPayload = {|+payload: _ReceivedRootAuditErrorPayload, +type: 'notifications:receivedRootAuditError'|}
 export type SetBadgeCountsPayload = {|+payload: _SetBadgeCountsPayload, +type: 'notifications:setBadgeCounts'|}
 
 // All Actions
@@ -48,6 +44,5 @@ export type Actions =
   | ListenForKBFSNotificationsPayload
   | ListenForNotificationsPayload
   | ReceivedBadgeStatePayload
-  | ReceivedRootAuditErrorPayload
   | SetBadgeCountsPayload
   | {type: 'common:resetStore', payload: null}

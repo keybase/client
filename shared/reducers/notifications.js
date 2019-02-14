@@ -55,7 +55,6 @@ export default function(state: Types.State = initialState, action: Notifications
     case NotificationsGen.listenForKBFSNotifications:
     case NotificationsGen.listenForNotifications:
     case NotificationsGen.receivedBadgeState:
-    case NotificationsGen.receivedRootAuditError:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
