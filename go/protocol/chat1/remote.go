@@ -808,6 +808,24 @@ func (o SweepRes) DeepCopy() SweepRes {
 	}
 }
 
+type ServerNowRes struct {
+	RateLimit *RateLimit   `codec:"rateLimit,omitempty" json:"rateLimit,omitempty"`
+	Now       gregor1.Time `codec:"now" json:"now"`
+}
+
+func (o ServerNowRes) DeepCopy() ServerNowRes {
+	return ServerNowRes{
+		RateLimit: (func(x *RateLimit) *RateLimit {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.RateLimit),
+		Now: o.Now.DeepCopy(),
+	}
+}
+
 type GetInboxRemoteArg struct {
 	Vers       InboxVers      `codec:"vers" json:"vers"`
 	Query      *GetInboxQuery `codec:"query,omitempty" json:"query,omitempty"`
@@ -1014,6 +1032,9 @@ type BroadcastGregorMessageToConvArg struct {
 	Msg    gregor1.Message `codec:"msg" json:"msg"`
 }
 
+type ServerNowArg struct {
+}
+
 type RemoteInterface interface {
 	GetInboxRemote(context.Context, GetInboxRemoteArg) (GetInboxRemoteRes, error)
 	GetThreadRemote(context.Context, GetThreadRemoteArg) (GetThreadRemoteRes, error)
@@ -1053,6 +1074,7 @@ type RemoteInterface interface {
 	RegisterSharePost(context.Context, RegisterSharePostArg) error
 	FailSharePost(context.Context, FailSharePostArg) error
 	BroadcastGregorMessageToConv(context.Context, BroadcastGregorMessageToConvArg) error
+	ServerNow(context.Context) (ServerNowRes, error)
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
@@ -1624,6 +1646,16 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 					return
 				},
 			},
+			"serverNow": {
+				MakeArg: func() interface{} {
+					var ret [1]ServerNowArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.ServerNow(ctx)
+					return
+				},
+			},
 		},
 	}
 }
@@ -1831,5 +1863,10 @@ func (c RemoteClient) FailSharePost(ctx context.Context, __arg FailSharePostArg)
 
 func (c RemoteClient) BroadcastGregorMessageToConv(ctx context.Context, __arg BroadcastGregorMessageToConvArg) (err error) {
 	err = c.Cli.CallCompressed(ctx, "chat.1.remote.broadcastGregorMessageToConv", []interface{}{__arg}, nil, rpc.CompressionGzip)
+	return
+}
+
+func (c RemoteClient) ServerNow(ctx context.Context) (res ServerNowRes, err error) {
+	err = c.Cli.CallCompressed(ctx, "chat.1.remote.serverNow", []interface{}{ServerNowArg{}}, &res, rpc.CompressionGzip)
 	return
 }
