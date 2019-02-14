@@ -102,7 +102,7 @@ func (m *Manager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID cha
 	}
 
 	// First generate the message representing the flip into the host conversation
-	outboxID, err := m.G().ChatHelper.SendMsgByIDNonblock(ctx, hostConvID, tlfName,
+	_, err = m.G().ChatHelper.SendMsgByIDNonblock(ctx, hostConvID, tlfName,
 		chat1.NewMessageBodyWithText(chat1.MessageText{
 			Body:   text,
 			GameID: &strGameID,
@@ -139,7 +139,7 @@ func (m *Manager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID cha
 
 	// Record outboxID of the host message into the game thread as the first message
 	infoBody, err := json.Marshal(hostMessageInfo{
-		OutboxID: outboxID,
+		ConvID: hostConvID,
 	})
 	if err != nil {
 		return err
