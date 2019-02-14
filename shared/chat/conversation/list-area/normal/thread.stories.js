@@ -17,22 +17,6 @@ import HiddenString from '../../../../util/hidden-string'
 import {connectAdvanced} from 'react-redux'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 
-// set this to true to play with messages coming in on a timer
-const injectMessages = false && !__STORYSHOT__
-// set this to true to play with loading more working
-const enableLoadMore = false && !__STORYSHOT__
-const ordinalAscending = true
-
-let index = 1
-const makeMoreOrdinals = (num = __STORYSHOT__ ? 10 : 100) => {
-  const end = index + num
-  const ordinals = []
-  for (; index < end; ++index) {
-    ordinals.push(Types.numberToOrdinal(ordinalAscending ? index : 9000 - index))
-  }
-  return ordinals
-}
-const messageOrdinals = I.List(makeMoreOrdinals())
 const conversationIDKey = Types.stringToConversationIDKey('a')
 
 const props = {
@@ -94,8 +78,6 @@ const makeTimestampGen = (days: number = 7, threshold: number = 10) => {
 }
 
 const generateTimestamp = makeTimestampGen()
-
-let metaContext = {}
 
 const ordinalToMessage = (o, state) => {
   const m = state.ordinalToMessage[o]
@@ -220,10 +202,6 @@ class _Controller extends React.Component<{state: any, dispatch: any}, State> {
     this.props.dispatch({type: 'replace', keyPath: ['ordinalToMessageUpdate'], payload: {}})
   }
 
-  componentWillUnmount() {
-    metaContext = {}
-  }
-
   _ordinal = 0
 
   _createMessage = (opts: any) => {
@@ -250,7 +228,7 @@ class _Controller extends React.Component<{state: any, dispatch: any}, State> {
       exploding: !!opts.explodeDelay,
       explodingTime: opts.explodeDelay ? Date.now() + opts.explodeDelay : undefined,
       timestamp: ts,
-      ordinal: o,
+      ordinal: Types.numberToOrdinal(o),
       text: new HiddenString(String(o) + extra),
       unfurls: opts.unfurls ? this._unfurlHelper(o, false) : undefined,
     })
@@ -264,7 +242,7 @@ class _Controller extends React.Component<{state: any, dispatch: any}, State> {
       .reduce(
         (acc, m) => ({
           ...acc,
-          [m.ordinal]: m,
+          [Types.ordinalToNumber(m.ordinal)]: m,
         }),
         {}
       )
@@ -295,6 +273,7 @@ class _Controller extends React.Component<{state: any, dispatch: any}, State> {
     if (seed % 2 === 0) {
       return I.Map({
         wsj: {
+          isCollapsed: false,
           unfurl: {
             generic: {
               description:
@@ -305,25 +284,24 @@ class _Controller extends React.Component<{state: any, dispatch: any}, State> {
                 url: require('../../../../images/mock/wsj.jpg'),
                 width: 20,
               },
-              image: {
-                height: 400,
-                url: require('../../../../images/mock/wsj_image.jpg'),
-                width: 900,
-              },
+              image: {height: 400, url: require('../../../../images/mock/wsj_image.jpg'), width: 900},
               onClose: Sb.action('onClose'),
               publishTime: 1542241021655,
               siteName: 'WSJ',
+              isCollapsed: false,
               title: 'U.S. Stocks Jump as Tough Month Sets to Wrap',
               url: 'https://www.wsj.com/articles/global-stocks-rally-to-end-a-tough-month-1540976261',
             },
             unfurlType: RPCChatTypes.unfurlUnfurlType.generic,
           },
+          unfurlMessageID: 0,
           url: 'https://www.wsj.com/articles/global-stocks-rally-to-end-a-tough-month-1540976261',
         },
       })
     } else {
       return I.Map({
         wsj: {
+          isCollapsed: false,
           unfurl: {
             generic: {
               description:
@@ -339,9 +317,9 @@ class _Controller extends React.Component<{state: any, dispatch: any}, State> {
                     url: require('../../../../images/mock/github.jpg'),
                     height: 80,
                     width: 80,
+                    isVideo: false,
                   }
                 : undefined,
-              isCollapsed: false,
               onClose: Sb.action('onClose'),
               onCollapse: Sb.action('onCollapse'),
               showImageOnSide: true,
@@ -351,6 +329,7 @@ class _Controller extends React.Component<{state: any, dispatch: any}, State> {
             },
             unfurlType: RPCChatTypes.unfurlUnfurlType.generic,
           },
+          unfurlMessageID: 0,
           url: 'https://www.wsj.com/articles/global-stocks-rally-to-end-a-tough-month-1540976261',
         },
       })
