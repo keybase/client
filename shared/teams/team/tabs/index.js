@@ -145,7 +145,7 @@ const styles = styleSheetCreate({
   },
   iconSelected: {
     alignSelf: 'center',
-    color: globalColors.black_75,
+    color: globalColors.black,
   },
   progressIndicator: {
     height: 17,
@@ -167,7 +167,7 @@ const styles = styleSheetCreate({
     ...globalStyles.flexBoxRow,
     justifyContent: 'center',
   },
-  tabTextSelected: {color: globalColors.black_75},
+  tabTextSelected: {color: globalColors.black},
 })
 
 export default TeamTabs

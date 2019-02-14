@@ -142,7 +142,7 @@ const styles = Styles.styleSheetCreate({
     alignSelf: 'center',
     marginTop: 4,
   },
-  subDesc: {color: Styles.globalColors.black_75},
+  subDesc: {color: Styles.globalColors.black},
   timelineLabel: {alignItems: 'flex-start'},
   timelineLineBottom: {
     backgroundColor: Styles.globalColors.lightGrey2,

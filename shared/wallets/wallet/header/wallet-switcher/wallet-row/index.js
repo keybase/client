@@ -42,7 +42,7 @@ const styles = Styles.styleSheetCreate({
   },
   titleSelected: {
     ...Styles.globalStyles.fontSemibold,
-    color: Styles.globalColors.black_75,
+    color: Styles.globalColors.black,
   },
 })
 

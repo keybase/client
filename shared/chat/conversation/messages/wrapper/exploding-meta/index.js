@@ -109,7 +109,7 @@ class ExplodingMeta extends React.Component<Props, State> {
     const backgroundColor =
       this.props.explodesAt - Date.now() < oneMinuteInMs
         ? Styles.globalColors.red
-        : Styles.globalColors.black_75
+        : Styles.globalColors.black
     let children
     switch (this.state.mode) {
       case 'countdown':
@@ -138,7 +138,7 @@ class ExplodingMeta extends React.Component<Props, State> {
             <Kb.Icon
               type="iconfont-timer"
               fontSize={stopWatchIconSize}
-              color={Styles.globalColors.black_75}
+              color={Styles.globalColors.black}
             />
           </Kb.Box2>
         )
@@ -150,7 +150,7 @@ class ExplodingMeta extends React.Component<Props, State> {
               type="iconfont-boom"
               style={Kb.iconCastPlatformStyles(styles.boomIcon)}
               fontSize={Styles.isMobile ? 44 : 35}
-              color={Styles.globalColors.black_75}
+              color={Styles.globalColors.black}
             />
           </Kb.Box2>
         )

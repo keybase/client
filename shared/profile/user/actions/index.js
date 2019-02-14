@@ -120,7 +120,7 @@ const DropdownButton = Kb.OverlayParentHOC(p => {
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="xsmall">
         <Kb.Button onClick={null} type="Secondary" style={styles.dropdownButton}>
           <Kb.Icon
-            color={Styles.globalColors.black_75}
+            color={Styles.globalColors.black}
             fontSize={Styles.isMobile ? 21 : 16}
             type="iconfont-ellipsis"
           />

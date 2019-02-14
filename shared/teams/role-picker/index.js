@@ -74,7 +74,7 @@ const makeRoleOption = (
             fontSize={16}
           />
         )}
-        <Text style={{color: selected === role ? globalColors.white : globalColors.black_75}} type="BodyBig">
+        <Text style={{color: selected === role ? globalColors.white : globalColors.black}} type="BodyBig">
           {pluralizeRoleName ? pluralize(typeToLabel[role]) : typeToLabel[role]}
         </Text>
       </Box>

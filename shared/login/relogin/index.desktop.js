@@ -23,7 +23,7 @@ const UserRow = ({user}) => (
   <ItemBox>
     <Kb.Text
       type="Header"
-      style={{color: user === other ? Styles.globalColors.black_75 : Styles.globalColors.orange}}
+      style={{color: user === other ? Styles.globalColors.black : Styles.globalColors.orange}}
     >
       {user}
     </Kb.Text>

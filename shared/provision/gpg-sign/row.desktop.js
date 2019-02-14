@@ -35,7 +35,7 @@ const Row = ({onClick, icon, title, subTitle, children, style}: Props) => {
           className="register-icon"
           type={icon}
           style={stylesIcon}
-          color={globalColors.black_75}
+          color={globalColors.black}
           fontSize={35}
         />
       </div>

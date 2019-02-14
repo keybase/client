@@ -200,7 +200,7 @@ const containerStyles = styleSheetCreate({
 })
 
 const labelStyles = styleSheetCreate({
-  CustomLabel: {color: globalColors.black_75, textAlign: 'center'},
+  CustomLabel: {color: globalColors.black, textAlign: 'center'},
   DangerLabel: commonLabel,
   PrimaryColoredBackgroundLabelBlack: {...commonLabel, color: globalColors.black},
   PrimaryColoredBackgroundLabelBlue: {...commonLabel, color: globalColors.blue},
@@ -211,7 +211,7 @@ const labelStyles = styleSheetCreate({
   PrimaryLabel: commonLabel,
   PrimaryPrivateLabel: commonLabel,
   SecondaryColoredBackgroundLabel: {...commonLabel, color: globalColors.white},
-  SecondaryLabel: {...commonLabel, color: globalColors.black_75},
+  SecondaryLabel: {...commonLabel, color: globalColors.black},
   SecondaryLabelOnTerminal: {...commonLabel, color: globalColors.white},
   WalletLabel: commonLabel,
 })

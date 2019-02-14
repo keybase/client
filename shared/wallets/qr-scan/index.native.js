@@ -53,7 +53,7 @@ const styles = Styles.styleSheetCreate({
   },
   cameraContainer: {
     alignSelf: 'center',
-    backgroundColor: Styles.globalColors.black_75,
+    backgroundColor: Styles.globalColors.black,
     borderColor: Styles.globalColors.purple3,
     borderRadius: Styles.borderRadius,
     borderStyle: 'solid',

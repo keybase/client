@@ -225,11 +225,11 @@ type AmountXLMProps = {|
 const roleToColor = (role: Types.Role): string => {
   switch (role) {
     case 'senderOnly':
-      return globalColors.black_75
+      return globalColors.black
     case 'receiverOnly':
       return globalColors.green
     case 'senderAndReceiver':
-      return globalColors.black_75
+      return globalColors.black
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(role)
       throw new Error(`Unexpected role ${role}`)

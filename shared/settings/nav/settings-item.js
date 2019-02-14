@@ -80,13 +80,13 @@ const styles = Style.styleSheetCreate({
       color: Style.globalColors.black_50,
     },
     isMobile: {
-      color: Style.globalColors.black_75,
+      color: Style.globalColors.black,
     },
   }),
   progress: {
     marginLeft: 6,
   },
   selectedText: {
-    color: Style.globalColors.black_75,
+    color: Style.globalColors.black,
   },
 })
