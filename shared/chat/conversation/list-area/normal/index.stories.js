@@ -14,6 +14,7 @@ import {type _Props as ExplodingMetaViewProps} from '../../messages/wrapper/expl
 import Thread from '.'
 import * as Message from '../../../../constants/chat2/message'
 import HiddenString from '../../../../util/hidden-string'
+import controllerLoad from './thread.stories'
 
 // set this to true to play with messages coming in on a timer
 const injectMessages = false && !__STORYSHOT__
@@ -259,6 +260,7 @@ const load = () => {
         If you load Normal directly on start the fonts wont be loaded so it'll measure wrong
       </Text>
     ))
+  controllerLoad()
 }
 
 export default load
