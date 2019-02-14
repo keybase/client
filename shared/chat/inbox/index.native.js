@@ -60,7 +60,7 @@ class Inbox extends React.PureComponent<Props, State> {
       element = makeRow({
         channelname: row.channelname,
         conversationIDKey: row.conversationIDKey,
-        filtered: this.props.filterHasFocus,
+        filtered: !!this.props.filter,
         teamname: row.teamname,
         type: row.type,
       })
@@ -143,7 +143,7 @@ class Inbox extends React.PureComponent<Props, State> {
   }
 
   _getItemLayout = (data, index) => {
-    if (this.props.filterHasFocus) {
+    if (this.props.filter) {
       return {index, length: RowSizes.smallRowHeight, offset: RowSizes.smallRowHeight * (index - 1)}
     }
 
@@ -188,10 +188,8 @@ class Inbox extends React.PureComponent<Props, State> {
       return false
     })
 
-    const noChats = !this.props.neverLoaded && !this.props.rows.length && !this.props.filterHasFocus && (
-      <NoChats />
-    )
-    const owl = !this.props.rows.length && this.props.filterHasFocus && <Owl />
+    const noChats = !this.props.neverLoaded && !this.props.rows.length && !this.props.filter && <NoChats />
+    const owl = !this.props.rows.length && !!this.props.filter && <Owl />
     const floatingDivider = this.state.showFloating && this.props.allowShowFloatingButton && (
       <BigTeamsDivider toggle={this.props.toggleSmallTeamsExpanded} />
     )

@@ -37,8 +37,9 @@ class Inbox extends React.PureComponent<Props, State> {
     }
 
     // filter / not filter
-    if (prevProps.filterHasFocus !== this.props.filterHasFocus) {
+    if (!!prevProps.filter !== !!this.props.filter) {
       listRowsResized = true
+      this._list && this._list.scrollTo(0)
     }
 
     // list changed
@@ -58,10 +59,6 @@ class Inbox extends React.PureComponent<Props, State> {
     ) {
       this._list.scrollToItem(this.props.selectedIndex)
     }
-
-    if (this.props.filterHasFocus && !prevProps.filterHasFocus && this._list) {
-      this._list.scrollTo(0)
-    }
   }
 
   componentDidMount() {
@@ -73,7 +70,7 @@ class Inbox extends React.PureComponent<Props, State> {
   }
 
   _itemSizeGetter = index => {
-    if (this.props.filterHasFocus) {
+    if (this.props.filter) {
       return 56
     }
     const row = this.props.rows[index]
@@ -81,7 +78,7 @@ class Inbox extends React.PureComponent<Props, State> {
       return 0
     }
 
-    return getRowHeight(row.type, this.props.filterHasFocus, row.showButton)
+    return getRowHeight(row.type, !!this.props.filter, row.showButton)
   }
 
   _itemRenderer = (index, style) => {
@@ -111,7 +108,7 @@ class Inbox extends React.PureComponent<Props, State> {
         {makeRow({
           channelname: (row.type === 'big' && row.channelname) || '',
           conversationIDKey,
-          filtered: this.props.filterHasFocus,
+          filtered: !!this.props.filter,
           teamname,
           type: row.type,
         })}
@@ -120,7 +117,7 @@ class Inbox extends React.PureComponent<Props, State> {
   }
 
   _onItemsRendered = debounce(({visibleStartIndex, visibleStopIndex}) => {
-    if (this.props.filterHasFocus) {
+    if (this.props.filter) {
       return
     }
     if (this.props.clearedFilterCount > this._clearedFilterCount) {

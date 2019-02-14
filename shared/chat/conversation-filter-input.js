@@ -35,6 +35,10 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
 
   _startEditing = () => {
     this.setState({isEditing: true})
+    if (!this.props.filter) {
+      // 8203 = zero-width space
+      this.props.onSetFilter(String.fromCharCode(8203))
+    }
     this.props.onFocus()
   }
 

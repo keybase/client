@@ -142,7 +142,10 @@ type GetFilteredParams = {
 const getFilteredRowsAndMetadata = memoizeShallow<GetFilteredParams, _>(p => {
   const {badged, filter, metaMap, unread, username} = p
   const metas = metaMap.valueSeq().toArray()
-  const lcFilter = filter.toLowerCase()
+  const lcFilter = filter
+    .toLowerCase()
+    .trim()
+    .replace(String.fromCharCode(8203), '') // ZWSP -> nothing
   const lcYou = username.toLowerCase()
   const insertMatcher = new RegExp(
     `${lcFilter
@@ -152,7 +155,7 @@ const getFilteredRowsAndMetadata = memoizeShallow<GetFilteredParams, _>(p => {
       .join('')}`,
     'i'
   )
-  const rows: Array<RowItem> = metas.map
+  const rows: Array<RowItem> = metas
     .map(meta => {
       if (!Constants.isValidConversationIDKey(meta.conversationIDKey)) {
         return null
