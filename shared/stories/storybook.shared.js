@@ -34,6 +34,30 @@ const styleDestBox = Styles.platformStyles({
 // touch events and they will be passed down to the child (popup)
 const DestBox = props => <Kb.Box pointerEvents="box-none" style={styleDestBox} {...props} />
 
+// Simple reducer that can handle merge & replace on POJO
+const simpleReducer = (state, action) => {
+  if (action.type === 'merge' || action.type === 'replace') {
+    let nextState = {...state}
+    let inner = nextState
+    action.keyPath.forEach((p, idx) => {
+      if (action.type === 'merge' && (typeof inner[p] !== 'object' || inner.constructor !== Object)) {
+        throw new Error('Can only merge objects')
+      }
+      if (idx === action.keyPath.length - 1) {
+        if (action.type === 'merge') {
+          inner[p] = {...inner[p], ...action.payload}
+        } else if (action.type === 'replace') {
+          inner[p] = {...action.payload}
+        }
+      } else {
+        inner = nextState[p]
+      }
+    })
+    return nextState
+  }
+  return state
+}
+
 /**
  * Creates a provider using a faux store of closures that compute derived viewProps
  * @param {SelectorMap} map an object of the form {DisplayName: Function(ownProps)} with
@@ -58,7 +82,7 @@ const createPropProvider = (...maps: SelectorMap[]) => {
   return (story: () => React.Node) => (
     <Provider
       key={`provider:${uniqueProviderKey++}`}
-      store={createStore(state => state, merged)}
+      store={createStore(simpleReducer, merged)}
       merged={merged}
     >
       <GatewayProvider>
