@@ -10,6 +10,7 @@ import * as ConfigGen from '../actions/config-gen'
 import * as Stats from '../engine/stats'
 import {isEOFError, isErrorTransient} from '../util/errors'
 import * as Flow from '../util/flow'
+import {isMobile} from '../constants/platform'
 
 const initialState = Constants.makeState()
 
@@ -220,7 +221,10 @@ export default function(state: Types.State = initialState, action: Actions): Typ
       return state.set('useNewRouter', action.payload.useNewRouter)
     }
     case ConfigGen.daemonHandshakeDone:
-      return state.merge({daemonHandshakeState: 'done'})
+      return state.merge({
+        daemonHandshakeState: 'done',
+        startupDetailsLoaded: isMobile ? state.startupDetailsLoaded : true,
+      })
     case ConfigGen.updateNow:
       return state.update('outOfDate', outOfDate => outOfDate && outOfDate.set('updating', true))
     case ConfigGen.updateInfo:

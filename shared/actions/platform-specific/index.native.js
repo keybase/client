@@ -263,7 +263,7 @@ function* loadStartupDetails() {
   let startupTab = null
 
   const routeStateTask = yield Saga._fork(() =>
-    RPCTypes.configGetValueRpcPromise({path: 'ui.routeState'})
+    RPCTypes.configGetValueRpcPromise({path: flags.useNewRouter ? 'ui.routeState2' : 'ui.routeState'})
       .then(v => v.s || '')
       .catch(e => {})
   )
@@ -286,10 +286,18 @@ function* loadStartupDetails() {
   // Third priority, saved from last session
   if (!startupWasFromPush && !startupLink && routeState) {
     try {
-      const item = JSON.parse(routeState)
-      if (item) {
-        startupConversation = item.selectedConversationIDKey
-        startupTab = item.tab
+      if (flags.useNewRouter) {
+        const item = JSON.parse(routeState)
+        if (item) {
+          startupConversation = item.param?.selectedConversationIDKey
+          startupTab = item.routeName
+        }
+      } else {
+        const state = JSON.parse(routeState)
+        if (state) {
+          startupTab = state.routeName
+          startupConversation = state.selectedConversationIDKey
+        }
       }
 
       // immediately clear route state in case this is a bad route
