@@ -89,6 +89,23 @@ const (
 // something else comes up, we'll want to make this more configurable.
 var UserAgent = runtime.GOOS + ":" + "Keybase CLI (" + runtime.Version() + "):" + Version
 
+// Returns a simplified UserAgent that's used as the kb_ua GET param.
+func ProofUserAgent() string {
+	var os string
+	if runtime.GOOS == "darwin" {
+		// Either ios or mac
+		if isIOS {
+			os = "ios"
+		} else {
+			os = "mac"
+		}
+	} else {
+		os = runtime.GOOS
+	}
+
+	return os + ":" + Version
+}
+
 const (
 	PermFile          os.FileMode = 0600
 	PermDir           os.FileMode = 0700
