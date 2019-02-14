@@ -1,9 +1,10 @@
 // @flow
 import * as React from 'react'
+import Measure from 'react-measure'
 import type {Props, State} from './video'
-import Box from './box'
 import * as Styles from '../styles'
 import {getVideoSize} from './video.shared'
+import logger from '../logger'
 
 export default class extends React.PureComponent<Props, State> {
   state = {
@@ -14,81 +15,68 @@ export default class extends React.PureComponent<Props, State> {
     videoWidth: 0,
   }
 
-  _setVideoSize = ({target}) => {
-    this.setState({
-      loadedVideoSize: true,
-      // $FlowIssue
-      videoHeight: target.videoHeight,
-      // $FlowIssue
-      videoWidth: target.videoWidth,
-    })
-  }
-  _removeVideoListener = () => {}
-  _videoRef = ref => {
-    if (!ref) {
-      return
-    }
-    ref.addEventListener('loadedmetadata', this._setVideoSize)
-    this._removeVideoListener = () => ref.removeEventListener('loadedmetadata', this._setVideoSize)
+  _mounted = false
+
+  _onVideoLoadedmetadata = ({target}) => {
+    this._mounted &&
+      this.setState({
+        loadedVideoSize: true,
+        // $FlowIssue doesn't know videoHeight
+        videoHeight: target.videoHeight,
+        // $FlowIssue doesn't know videoWidth
+        videoWidth: target.videoWidth,
+      })
   }
 
-  _updateContainerSize = () =>
-    this._containerRef &&
-    this.setState({
-      containerHeight: this._containerRef.getBoundingClientRect().height,
-      containerWidth: this._containerRef.getBoundingClientRect().width,
-    })
-  _containerRef: any = null
-  _setContainerRef = ref => {
-    this._containerRef = ref
-    this._updateContainerSize()
-  }
+  _onContainerResize = ({bounds}) =>
+    this.setState({containerHeight: bounds.height, containerWidth: bounds.width})
 
-  _resizeInFly = false
-  _onResize = () => {
-    if (this._resizeInFly) {
-      return
-    }
-    this._resizeInFly = true
-    setTimeout(() => {
-      this._resizeInFly = false
-      this._updateContainerSize()
-    }, 200)
-  }
+  _videoRef: {current: HTMLVideoElement | null} = React.createRef()
 
   componentDidMount() {
-    window.addEventListener('resize', this._onResize)
+    this._mounted = true
+    if (!this._videoRef.current) {
+      // This can happen in story tests.
+      logger.warn('_videoRef is falsey')
+      return
+    }
+    this._videoRef.current.addEventListener('loadedmetadata', this._onVideoLoadedmetadata)
   }
 
   componentWillUnmount() {
-    window.removeEventListener('resize', this._onResize)
-    this._removeVideoListener()
+    this._mounted = false
+    if (!this._videoRef.current) {
+      // This can happen in story tests.
+      logger.warn('_videoRef is falsey')
+      return
+    }
+    this._videoRef.current.removeEventListener('loadedmetadata', this._onVideoLoadedmetadata)
   }
 
   render() {
     return (
-      <Box
-        forwardedRef={this._setContainerRef}
-        style={Styles.collapseStyles([styles.container, this.props.style])}
-      >
-        <video
-          controlsList="nodownload nofullscreen"
-          ref={this._videoRef}
-          controls={!this.props.hideControls}
-          src={this.props.url}
-          style={Styles.collapseStyles([styles.container, getVideoSize(this.state)])}
-          muted={true}
-          autoPlay={true}
-          preload="metadata"
-        />
-      </Box>
+      <Measure bounds={true} onResize={this._onContainerResize}>
+        {({measureRef}) => (
+          <div ref={measureRef} style={Styles.collapseStyles([styles.container, this.props.style])}>
+            <video
+              controlsList="nodownload nofullscreen"
+              ref={this._videoRef}
+              controls={!this.props.hideControls}
+              src={this.props.url}
+              style={Styles.collapseStyles([styles.container, getVideoSize(this.state)])}
+              muted={true}
+              autoPlay={true}
+              preload="metadata"
+            />
+          </div>
+        )}
+      </Measure>
     )
   }
 }
 
 const styles = Styles.styleSheetCreate({
   container: {
-    // can't use Box2 as it doesn't have forwardedRef
     ...Styles.globalStyles.flexBoxColumn,
     ...Styles.globalStyles.flexBoxCenter,
     height: '100%',
