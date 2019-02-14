@@ -270,7 +270,7 @@ func (m *Manager) MaybeInjectFlipMessage(ctx context.Context, msg chat1.MessageU
 		return
 	}
 	if err := m.dealer.InjectIncomingChat(ctx, sender, conv.GetConvID(), gameID,
-		MakeGameMessageEncoded(body.Text().Body)); err != nil {
+		MakeGameMessageEncoded(body.Text().Body), msg.GetMessageID() == 3); err != nil {
 		m.Debug(ctx, "MaybeInjectFlipMessage: failed to inject: %s", err)
 	}
 }
@@ -290,60 +290,6 @@ func (m *Manager) ServerTime(ctx context.Context) (res time.Time, err error) {
 	defer m.Trace(ctx, func() error { return err }, "ServerTime")()
 	// TODO: implement this for real
 	return m.clock.Now(), nil
-}
-
-// ReadHistory implements the flip.DealersHelper interface
-func (m *Manager) ReadHistory(ctx context.Context, convID chat1.ConversationID, since time.Time) (res []GameID, err error) {
-	defer m.Trace(ctx, func() error { return err }, "ReadHistory: convID: %s", convID)()
-	uid, err := utils.AssertLoggedInUID(ctx, m.G())
-	if err != nil {
-		return res, err
-	}
-	hostInfo, err := m.getHostMessageInfo(ctx, uid, convID)
-	if err != nil {
-		return res, err
-	}
-	gameConv, err := utils.GetVerifiedConv(ctx, m.G(), uid, convID, types.InboxSourceDataSourceAll)
-	if err != nil {
-		return res, err
-	}
-	topicName := m.gameIDHistoryTopicName(hostInfo.ConvID)
-	m.Debug(ctx, "ReadHistory: finding conversation: tlfName: %s topicName: %s", gameConv.Info.TlfName,
-		topicName)
-	histConvs, err := m.G().ChatHelper.FindConversations(ctx, gameConv.Info.TlfName, &topicName,
-		chat1.TopicType_DEV, gameConv.GetMembersType(), keybase1.TLFVisibility_PRIVATE)
-	if err != nil {
-		return res, err
-	}
-	if len(histConvs) != 1 {
-		return res, fmt.Errorf("wrong number of conversations for history: %d", len(histConvs))
-	}
-	histConv := histConvs[0]
-
-	after := gregor1.ToTime(since)
-	tv, err := m.G().ConvSource.Pull(ctx, histConv.GetConvID(), uid, chat1.GetThreadReason_COINFLIP,
-		&chat1.GetThreadQuery{
-			After: &after,
-		}, nil)
-	if err != nil {
-		return res, err
-	}
-	for _, msg := range tv.Messages {
-		if !msg.IsValid() {
-			continue
-		}
-		body := msg.Valid().MessageBody
-		if !body.IsType(chat1.MessageType_TEXT) {
-			continue
-		}
-		var info gameIDHistoryInfo
-		if err := json.Unmarshal([]byte(body.Text().Body), &info); err != nil {
-			m.Debug(ctx, "ReadHistory: failed to unmarshal message: id: %d err: %s", msg.GetMessageID(), err)
-			continue
-		}
-		res = append(res, info.GameID)
-	}
-	return res, nil
 }
 
 // SendChat implements the flip.DealersHelper interface
