@@ -67,6 +67,7 @@ func (e *EKLib) backgroundKeygen() {
 	lastRun := time.Now()
 
 	runIfNeeded := func(force bool) {
+		ctx := libkb.WithLogTag(ctx, "EKBKG")
 		now := libkb.ForceWallClock(time.Now())
 		shouldRun := now.Sub(lastRun) >= keygenInterval
 		e.G().Log.CDebugf(ctx, "backgroundKeygen: runIfNeeded: lastRun: %v, now: %v, shouldRun: %v, force: %v",

@@ -64,18 +64,17 @@ type Props = {|
 |}
 
 export const Typing = (props: Props) => (
-  <Kb.Box
-    style={Styles.collapseStyles([
-      styles.isTypingContainer,
-      props.names.size > 0 && styles.isTypingContainerVisible,
-    ])}
-  >
-    <Kb.Box style={styles.typingIconContainer}>
-      <Kb.Animation animationType="typing" containerStyle={styles.isTypingAnimation} />
-    </Kb.Box>
-    <Kb.Text lineClamp={1} type="BodyTiny" style={styles.isTypingText}>
-      <Names names={props.names} />
-    </Kb.Text>
+  <Kb.Box style={styles.isTypingContainer}>
+    {props.names.size > 0 && (
+      <Kb.Box style={styles.typingIconContainer}>
+        <Kb.Animation animationType="typing" containerStyle={styles.isTypingAnimation} />
+      </Kb.Box>
+    )}
+    {props.names.size > 0 && (
+      <Kb.Text lineClamp={1} type="BodyTiny" style={styles.isTypingText}>
+        <Names names={props.names} />
+      </Kb.Text>
+    )}
   </Kb.Box>
 )
 
@@ -94,7 +93,7 @@ const styles = Styles.styleSheetCreate({
   isTypingContainer: Styles.platformStyles({
     common: {
       flexGrow: 1,
-      opacity: 0,
+      opacity: 1,
     },
     isMobile: {
       ...Styles.globalStyles.flexBoxRow,
@@ -107,9 +106,6 @@ const styles = Styles.styleSheetCreate({
       zIndex: 999,
     },
   }),
-  isTypingContainerVisible: {
-    opacity: 1,
-  },
   isTypingText: Styles.platformStyles({
     isElectron: {
       flexGrow: 1,

@@ -72,6 +72,18 @@ func (u *UIRouter) getUI(k libkb.UIKind) (rpc.Transporter, libkb.ConnectionID) {
 	return ret, cid
 }
 
+func (u *UIRouter) DumpUIs() map[libkb.UIKind]libkb.ConnectionID {
+	u.Lock()
+	defer u.Unlock()
+
+	// Copy the map
+	res := map[libkb.UIKind]libkb.ConnectionID{}
+	for k, v := range u.uis {
+		res[k] = v
+	}
+	return res
+}
+
 func (u *UIRouter) GetIdentifyUI() (libkb.IdentifyUI, error) {
 	x, _ := u.getUI(libkb.IdentifyUIKind)
 	if x == nil {

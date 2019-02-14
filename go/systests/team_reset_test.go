@@ -106,10 +106,10 @@ func TestTeamDelete(t *testing.T) {
 	bob.setUIDMapperNoCachingMode(true)
 	cam.setUIDMapperNoCachingMode(true)
 
-	bob.assertMemberInactive(team, ann)
+	bob.assertMemberMissing(team, ann)
 	bob.assertMemberActive(team, cam)
 
-	cam.assertMemberInactive(team, ann)
+	cam.assertMemberMissing(team, ann)
 	cam.assertMemberActive(team, bob)
 }
 

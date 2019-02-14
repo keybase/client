@@ -1,9 +1,0 @@
-// @flow
-import * as React from 'react'
-
-export type AVViewProps = {
-  url: string,
-  onLoadingStateChange?: (isLoading: boolean) => void,
-}
-
-declare export default React.ComponentType<AVViewProps>

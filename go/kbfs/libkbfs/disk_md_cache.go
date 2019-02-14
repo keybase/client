@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	"github.com/pkg/errors"
 	ldberrors "github.com/syndtr/goleveldb/leveldb/errors"
+	"github.com/syndtr/goleveldb/leveldb/filter"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/storage"
 )
@@ -131,6 +132,7 @@ func newDiskMDCacheLocalFromStorage(
 	}()
 	mdDbOptions := *leveldbOptions
 	mdDbOptions.CompactionTableSize = defaultMDCacheTableSize
+	mdDbOptions.Filter = filter.NewBloomFilter(16)
 	headsDb, err := openLevelDBWithOptions(headsStorage, &mdDbOptions)
 	if err != nil {
 		return nil, err

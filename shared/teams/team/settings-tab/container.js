@@ -79,9 +79,9 @@ const mergeProps = (stateProps, dispatchProps) => {
     savePublicity: (
       settings: Types.PublicitySettings,
       showRetentionWarning: boolean,
-      policy: RetentionPolicy
+      policy: ?RetentionPolicy
     ) => {
-      if (stateProps.yourOperations.setRetentionPolicy) {
+      if (policy && stateProps.yourOperations.setRetentionPolicy) {
         showRetentionWarning &&
           dispatchProps._showRetentionWarning(
             policy,

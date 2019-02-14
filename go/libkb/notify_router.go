@@ -229,6 +229,12 @@ func (n *NotifyRouter) getNotificationChannels(id ConnectionID) keybase1.Notific
 	return n.state[id]
 }
 
+// GetChannels retrieves which notification channels a connection is interested it
+// given its ID.
+func (n *NotifyRouter) GetChannels(i ConnectionID) keybase1.NotificationChannels {
+	return n.getNotificationChannels(i)
+}
+
 // AddConnection should be called every time there's a new RPC connection
 // established for this server.  The caller should pass in the Transporter
 // and also the channel that will get messages when the channel closes.

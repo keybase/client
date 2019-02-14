@@ -21,6 +21,10 @@ func (f *fakeUIRouter) GetChatUI() (libkb.ChatUI, error) {
 	return f.ui, nil
 }
 
+func (f *fakeUIRouter) DumpUIs() map[libkb.UIKind]libkb.ConnectionID {
+	return nil
+}
+
 func (f *fakeUIRouter) Shutdown() {}
 
 func TestChatCommands(t *testing.T) {
