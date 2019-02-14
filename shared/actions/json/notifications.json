@@ -12,6 +12,9 @@
     "receivedBadgeState": {
       "badgeState": "RPCTypes.BadgeState"
     },
+    "receivedRootAuditError": {
+      "message": "string"
+    },
     "setBadgeCounts": {
       "counts": "I.Map<Tabs.Tab, number>"
     },
