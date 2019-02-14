@@ -50,6 +50,17 @@ const ButtonText = (props: {text: string, amount: string}) => (
 )
 
 const AccountPayment = (props: Props) => {
+  const balanceChange = (
+    <Box2 direction="horizontal" style={styles.amountContainer} gap={isMobile ? 'tiny' : 'small'}>
+      {!!props.balanceChange && (
+        <Text type="BodyExtrabold" selectable={true} style={{color: props.balanceChangeColor}}>
+          {props.balanceChange}
+        </Text>
+      )}
+      {props.showCoinsIcon && <Icon type="icon-stellar-coins-stacked-16" />}
+    </Box2>
+  )
+  const balanceChangeSeparateRow = isMobile && !!props.memo
   const contents = props.loading ? (
     <Box2 direction="horizontal" gap="tiny" fullWidth={true} style={styles.alignItemsCenter}>
       <ProgressIndicator style={styles.progressIndicator} />
@@ -90,16 +101,10 @@ const AccountPayment = (props: Props) => {
           </Text>
         </Box2>
         {props.canceled && <Text type="BodySmall">CANCELED</Text>}
-        <Box2 direction="horizontal" style={styles.amountContainer} gap={isMobile ? 'tiny' : 'small'}>
-          {!!props.balanceChange && (
-            <Text type="BodyExtrabold" selectable={true} style={{color: props.balanceChangeColor}}>
-              {props.balanceChange}
-            </Text>
-          )}
-          {props.showCoinsIcon && <Icon type="icon-stellar-coins-stacked-16" />}
-        </Box2>
+        {!balanceChangeSeparateRow && balanceChange}
       </Box2>
       <MarkdownMemo memo={props.memo} />
+      {balanceChangeSeparateRow && balanceChange}
       {!!props.sendButtonLabel && (
         <Button type="Wallet" onClick={props.onSend} small={true} style={styles.button}>
           <ButtonText text={props.sendButtonLabel} amount={props.amount} />
