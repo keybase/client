@@ -11,6 +11,7 @@ import {virtualListMarks} from '../../local-debug'
 import {debounce} from 'lodash-es'
 import {Owl} from './owl'
 import * as RowSizes from './row/sizes'
+import {NavigationEvents} from '@react-navigation/core'
 
 import type {Props, RowItem, RowItemSmall} from './index.types'
 
@@ -177,6 +178,7 @@ class Inbox extends React.PureComponent<Props, State> {
   _onEnsureSelection = () => this.props.onEnsureSelection()
   _onSelectUp = () => this.props.onSelectUp()
   _onSelectDown = () => this.props.onSelectDown()
+  _onDidFocus = () => this.props.onDeselectConversation()
 
   render() {
     this._dividerShowButton = false
@@ -205,6 +207,7 @@ class Inbox extends React.PureComponent<Props, State> {
     )
     return (
       <Kb.ErrorBoundary>
+        <NavigationEvents onDidFocus={this._onDidFocus} />
         <Kb.Box style={boxStyle}>
           <Kb.NativeFlatList
             ListHeaderComponent={HeadComponent}

@@ -110,6 +110,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onSelectDown: () =>
       dispatchProps._onSelectNext(stateProps.rows, stateProps._selectedConversationIDKey, 1),
     onSelectUp: () => dispatchProps._onSelectNext(stateProps.rows, stateProps._selectedConversationIDKey, -1),
+    onDeselectConversation:  () => dispatchProps._onSelect(Constants.noConversationIDKey),
     onUntrustedInboxVisible: dispatchProps.onUntrustedInboxVisible,
     rows: stateProps.rows,
     selectedIndex: isMobile ? 0 : selectedIndex, // unused on mobile so don't cause updates

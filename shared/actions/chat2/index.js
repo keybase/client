@@ -2003,6 +2003,9 @@ const mobileNavigateOnSelect = (state, action) => {
 }
 
 const mobileChangeSelection = state => {
+  if (flags.useNewRouter) {
+    return
+  }
   const routePath = getPath(state.routeTree.routeState)
   const inboxSelected = routePath.size === 1 && routePath.get(0) === Tabs.chatTab
   if (inboxSelected) {
