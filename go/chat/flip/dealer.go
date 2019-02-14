@@ -734,13 +734,15 @@ func (d Dealer) sendOutgoingChatWithFirst(ctx context.Context, md GameMetadata, 
 	gmw := GameMessageWrapped{
 		Sender:              d.dh.Me(),
 		Me:                  me,
-		Forward:             true,
 		FirstInConversation: firstInConversation,
 		Msg: GameMessageV1{
 			Md:   md,
 			Body: body,
 		},
 	}
+
+	// Only mark the forward bit to be true on messages that we can forward.
+	gmw.Forward = gmw.isForwardable()
 
 	// Reinject the message into the state machine.
 	d.chatInputCh <- &gmw
