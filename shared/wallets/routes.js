@@ -149,15 +149,19 @@ class WalletsSubNav extends React.PureComponent<any> {
 }
 // const mockRouteLeafTag = {isModal: false}
 // const mockRoutePath = I.List()
-const WalletsSubNavigator = createNavigator(
-  WalletsSubNav,
-  StackRouter(Shim.shim(walletsSubRoutes), {initialRouteName: 'wallet'}),
-  {}
-)
 
 export const newRoutes = {
   'tabs:walletsTab': {
-    getScreen: () => (isMobile ? require('./wallet/container').default : WalletsSubNavigator),
+    getScreen: () => {
+      if (isMobile) {
+        return require('./wallet/container').default
+      } else
+        return createNavigator(
+          WalletsSubNav,
+          StackRouter(Shim.shim(walletsSubRoutes), {initialRouteName: 'wallet'}),
+          {}
+        )
+    },
     upgraded: true,
   },
   ...(isMobile

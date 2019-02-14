@@ -316,7 +316,7 @@ export function checkRouteState(
 
 export function getPath(routeState: ?RouteStateNode, parentPath?: Path): I.List<string> {
   if (flags.useNewRouter) {
-    console.error('OLD NAV something using getPath')
+    console.warn('OLD NAV something using getPath')
   }
   const path = []
   let curState = routeState
@@ -344,7 +344,7 @@ export function getPath(routeState: ?RouteStateNode, parentPath?: Path): I.List<
 
 export function getPathState(routeState: ?RouteStateNode, parentPath?: Path): ?I.Map<string, any> {
   if (flags.useNewRouter) {
-    console.error('OLD NAV something using getPathState')
+    console.warn('OLD NAV something using getPathState')
   }
   const path = []
   let curState = routeState
@@ -374,7 +374,7 @@ export function getPathProps(
   parentPath?: Path
 ): I.List<{node: ?string, props: I.Map<string, any>}> {
   if (flags.useNewRouter) {
-    console.error('OLD NAV something using getPathProps')
+    console.warn('OLD NAV something using getPathProps')
   }
   const path = []
   let curState = routeState
