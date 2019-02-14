@@ -25,7 +25,7 @@ const mapStateToProps = state => {
   const unreadMap = state.chat2.unreadMap
   const badged = state.chat2.badgeMap
   const filter = state.chat2.inboxFilter
-  const filterHasFocus = state.chat2.focus === 'filter'
+  const filterHasFocus = state.chat2.inboxMode === 'filter'
   const username = state.config.username
   const {allowShowFloatingButton, rows, smallTeamsExpanded} = filterHasFocus
     ? filteredRowData({badged, filter, metaMap, unread: unreadMap, username})

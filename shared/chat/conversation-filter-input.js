@@ -7,6 +7,7 @@ import * as Platforms from '../constants/platform'
 export type Props = {|
   filter: string,
   filterFocusCount: number,
+  inFilterMode: boolean,
   isLoading: boolean,
   onBlur: () => void,
   onEnsureSelection: () => void,
@@ -70,7 +71,7 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
   }
 
   componentDidUpdate(prevProps: Props, prevState: State) {
-    if (this.state.isEditing !== prevState.isEditing && this.state.isEditing) {
+    if (this.props.inFilterMode !== prevProps.inFilterMode && this.props.inFilterMode) {
       this._input && this._input.focus()
     }
     if (this.props.filterFocusCount !== prevProps.filterFocusCount) {
@@ -82,7 +83,7 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
 
   render() {
     let children
-    if (this.state.isEditing || this.props.filter) {
+    if (this.props.inFilterMode || this.props.filter) {
       children = (
         <Kb.Box style={styles.inputContainer}>
           <Kb.Icon

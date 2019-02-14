@@ -51,6 +51,8 @@ export type ConversationCountMap = I.Map<Common.ConversationIDKey, number>
 // This is very simple for now, but we can make
 // it fancier by using a stack and more types
 export type Focus = 'filter' | null
+// What kind of inbox are we looking at
+export type InboxMode = 'filter' | 'normal'
 
 export type _State = {
   accountsInfoMap: I.Map<
@@ -62,6 +64,7 @@ export type _State = {
   focus: Focus,
   inboxFilter: string, // filters 'jump to chat'
   inboxHasLoaded: boolean, // if we've ever loaded
+  inboxMode: InboxMode,
   trustedInboxHasLoaded: boolean, // if we've done initial trusted inbox load
   smallTeamsExpanded: boolean, // if we're showing all small teams
   isWalletsNew: boolean, // controls new-ness of wallets in chat UI

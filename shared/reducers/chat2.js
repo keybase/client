@@ -380,8 +380,33 @@ const rootReducer = (
       return initialState
     case Chat2Gen.toggleSmallTeamsExpanded:
       return state.set('smallTeamsExpanded', !state.smallTeamsExpanded)
+    case Chat2Gen.changeInboxMode:
+      return state.withMutations(s => {
+        s.set('inboxMode', action.payload.nextMode)
+        if (action.payload.nextMode !== 'filter') {
+          s.set('filterSelectedConversation', Constants.noConversationIDKey)
+        }
+      })
     case Chat2Gen.changeFocus:
-      return state.set('focus', action.payload.nextFocus)
+      return state
+        .withMutations(s => {
+          // Quit inbox filtering if:
+          // 1. Filter input is losing focus
+          // 2. Inbox filter is empty
+          // 3. !isMobile (to allow browsing convos in recent conv order)
+          const quitInboxFilter = !action.payload.nextFocus && !isMobile && !s.inboxFilter
+          const showInboxFilter = action.payload.nextFocus === 'filter'
+          s.set('focus', action.payload.nextFocus)
+          if (quitInboxFilter) {
+            s.set('inboxMode', 'normal')
+            s.set('filterSelectedConversation', Constants.noConversationIDKey)
+          } else if (showInboxFilter) {
+            s.set('inboxMode', 'filter')
+            s.set('filterSelectedConversation', Constants.noConversationIDKey)
+          }
+        })
+        .set('focus', action.payload.nextFocus)
+        .set('filterSelectedConversation', Constants.noConversationIDKey)
     case Chat2Gen.selectConversation:
       // ignore non-changing
       if (state.selectedConversation === action.payload.conversationIDKey) {

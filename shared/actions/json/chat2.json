@@ -74,6 +74,10 @@
       "_description": "Where we want our focus for keypresses",
       "nextFocus": "Types.Focus"
     },
+    "changeInboxMode": {
+      "_description": "Switch between normal and filtered inbox",
+      "nextMode": "Types.InboxMode"
+    },
     // Update our badges in the nav
     "badgesUpdated": {
       "conversations": "Array<RPCTypes.BadgeConversationInfo>"

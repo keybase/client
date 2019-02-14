@@ -1895,11 +1895,8 @@ const markThreadAsRead = (state, action) => {
     return
   }
 
-  if (
-    state.chat2.focus === 'filter' ||
-    (action.type === Chat2Gen.changeFocus && action.payload.nextFocus !== null)
-  ) {
-    logger.info('marking read bail on inbox filter focused')
+  if (state.chat2.inboxMode === 'filter') {
+    logger.info('marking read bail on inbox in filter mode')
     return
   }
 
@@ -2841,7 +2838,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     | Chat2Gen.UpdateUnreadlinePayload
     | Chat2Gen.MarkInitiallyLoadedThreadAsReadPayload
     | Chat2Gen.UpdateReactionsPayload
-    | Chat2Gen.ChangeFocusPayload
+    | Chat2Gen.ChangeInboxModePayload
     | ConfigGen.ChangedFocusPayload
     | ConfigGen.ChangedActivePayload
     | RouteTreeGen.Actions
@@ -2851,7 +2848,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
       Chat2Gen.updateUnreadline,
       Chat2Gen.markInitiallyLoadedThreadAsRead,
       Chat2Gen.updateReactions,
-      Chat2Gen.changeFocus,
+      Chat2Gen.changeInboxMode,
       ConfigGen.changedFocus,
       ConfigGen.changedActive,
       a => typeof a.type === 'string' && a.type.startsWith(RouteTreeGen.typePrefix),

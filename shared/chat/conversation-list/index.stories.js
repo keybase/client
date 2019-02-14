@@ -101,6 +101,7 @@ const getRows = (numShown, upstreamOnSelect) => {
 const filter = {
   filter: '',
   filterFocusCount: 0,
+  inFilterMode: false,
   isLoading: false,
   onBlur: Sb.action('onBlur'),
   onEnsureSelection: Sb.action('onEnsureSelection'),

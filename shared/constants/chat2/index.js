@@ -30,6 +30,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   giphyResultMap: I.Map(),
   inboxFilter: '',
   inboxHasLoaded: false,
+  inboxMode: 'normal',
   isWalletsNew: true,
   messageMap: I.Map(),
   messageOrdinals: I.Map(),
