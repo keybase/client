@@ -137,10 +137,6 @@ func (m *Manager) gameTopicNameFromGameID(gameID GameID) string {
 	return fmt.Sprintf("%s%s", gameIDTopicNamePrefix, gameID)
 }
 
-func (m *Manager) gameIDHistoryTopicName(convID chat1.ConversationID) string {
-	return fmt.Sprintf("__keybase_coinflip_history_%s", convID)
-}
-
 func (m *Manager) startFromText(text string) Start {
 	// TODO fix m
 	return NewStartWithBool(m.clock.Now())
@@ -201,23 +197,6 @@ func (m *Manager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID cha
 		return sendRes.Err
 	}
 	m.G().NotifyRouter.RemoveListener(nid)
-
-	// Write down the game ID in the history conv
-	historyTopicName := m.gameIDHistoryTopicName(hostConv.GetConvID())
-	historyBody, err := json.Marshal(gameIDHistoryInfo{
-		GameID: gameID,
-	})
-	if err != nil {
-		return err
-	}
-	historyConv, err := m.G().ChatHelper.NewConversation(ctx, uid, tlfName, &historyTopicName,
-		chat1.TopicType_DEV, hostConv.GetMembersType(), keybase1.TLFVisibility_PRIVATE)
-	if err != nil {
-		return err
-	}
-	if err := m.G().ChatHelper.SendTextByID(ctx, historyConv.GetConvID(), tlfName, string(historyBody)); err != nil {
-		return err
-	}
 
 	// Generate dev channel for game messages
 	topicName := m.gameTopicNameFromGameID(gameID)
