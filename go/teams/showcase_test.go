@@ -21,7 +21,7 @@ func TestShowcaseTeam(t *testing.T) {
 
 	notifications := kbtest.NewTeamNotifyListener()
 	tc.G.SetService()
-	tc.G.NotifyRouter.SetListener(notifications)
+	tc.G.NotifyRouter.AddListener(notifications)
 
 	name := createTeam(tc)
 	t.Logf("Created team %q", name)
@@ -80,7 +80,7 @@ func TestShowcaseMember(t *testing.T) {
 
 	notifications := kbtest.NewTeamNotifyListener()
 	tc.G.SetService()
-	tc.G.NotifyRouter.SetListener(notifications)
+	tc.G.NotifyRouter.AddListener(notifications)
 
 	name := createTeam(tc)
 	t.Logf("Created team %q", name)
@@ -127,7 +127,7 @@ func TestShowcasePermissions(t *testing.T) {
 
 	notifications := kbtest.NewTeamNotifyListener()
 	tc.G.SetService()
-	tc.G.NotifyRouter.SetListener(notifications)
+	tc.G.NotifyRouter.AddListener(notifications)
 
 	_, err = kbtest.CreateAndSignupFakeUser("team", tc.G)
 	require.NoError(t, err)
