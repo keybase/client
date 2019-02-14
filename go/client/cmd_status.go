@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"strings"
 
 	"golang.org/x/net/context"
@@ -326,11 +327,20 @@ func (c *CmdStatus) outputTerminal(status *fstatus) error {
 		dui.Printf("%s: %s\n", dirInfo.Name, dirInfo.HumanSize)
 	}
 
-	c.outputClients(dui, status.Clients)
+	c.outputClients(dui, status.Clients, status.UIRouterMapping)
 	return nil
 }
 
-func (c *CmdStatus) outputClients(dui libkb.DumbOutputUI, clients []keybase1.ClientStatus) {
+func (c *CmdStatus) outputClients(dui libkb.DumbOutputUI, clients []keybase1.ClientStatus, mappings map[string]int) {
+	// Transform the mappings map from name -> connid to connid -> []name to make the data more compact
+	mappedUIs := map[int][]string{}
+	for key, value := range mappings {
+		if _, ok := mappedUIs[value]; !ok {
+			mappedUIs[value] = []string{}
+		}
+		mappedUIs[value] = append(mappedUIs[value], key)
+	}
+
 	var prev keybase1.ClientType
 	for _, cli := range clients {
 		if cli.Details.ClientType != prev {
@@ -345,8 +355,36 @@ func (c *CmdStatus) outputClients(dui libkb.DumbOutputUI, clients []keybase1.Cli
 		if len(cli.Details.Desc) > 0 {
 			dstr = ", description: " + cli.Details.Desc
 		}
-		dui.Printf("    %s [pid: %d%s%s]\n", strings.Join(cli.Details.Argv, " "), cli.Details.Pid, vstr, dstr)
+		if uis, ok := mappedUIs[cli.ConnectionID]; ok {
+			dstr += ", uis: " + strings.Join(uis, ",")
+		}
+		if chans := formatNotificationChannels(cli.NotificationChannels); len(chans) != 0 {
+			dstr += ", notifications: " + chans
+		}
+
+		dui.Printf(
+			"    %s [cid: %d, pid: %d%s%s]\n",
+			strings.Join(cli.Details.Argv, " "),
+			cli.ConnectionID,
+			cli.Details.Pid,
+			vstr,
+			dstr,
+		)
 	}
+}
+
+func formatNotificationChannels(channels keybase1.NotificationChannels) string {
+	value := reflect.ValueOf(channels)
+	typ := value.Type()
+
+	items := []string{}
+	for i := 0; i < value.NumField(); i++ {
+		if casted, ok := value.Field(i).Interface().(bool); ok && casted {
+			items = append(items, typ.Field(i).Name)
+		}
+	}
+
+	return strings.Join(items, ",")
 }
 
 func (c *CmdStatus) client() {
