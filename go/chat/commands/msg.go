@@ -35,6 +35,6 @@ func (d *Msg) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Convers
 		return err
 	}
 	text = strings.Join(toks[2:], " ")
-	_, err = d.G().ChatHelper.SendTextByIDNonblock(ctx, conv.GetConvID(), conv.Info.TlfName, text)
+	_, err = d.G().ChatHelper.SendTextByIDNonblock(ctx, conv.GetConvID(), conv.Info.TlfName, text, nil)
 	return err
 }

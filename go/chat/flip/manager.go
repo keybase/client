@@ -3,11 +3,13 @@ package flip
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/libkb"
@@ -16,6 +18,63 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/clockwork"
 )
+
+type sentMessageResult struct {
+	MsgID chat1.MessageID
+	Err   error
+}
+
+type sentMessageListener struct {
+	globals.Contextified
+	libkb.NoopNotifyListener
+	utils.DebugLabeler
+
+	outboxID chat1.OutboxID
+	listenCh chan sentMessageResult
+}
+
+func newSentMessageListener(g *globals.Context, outboxID chat1.OutboxID) *sentMessageListener {
+	return &sentMessageListener{
+		Contextified: globals.NewContextified(g),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "sentMessageListener", false),
+		outboxID:     outboxID,
+		listenCh:     make(chan sentMessageResult, 1),
+	}
+}
+
+func (n *sentMessageListener) NewChatActivity(uid keybase1.UID, activity chat1.ChatActivity,
+	source chat1.ChatActivitySource) {
+	if source != chat1.ChatActivitySource_LOCAL {
+		return
+	}
+	ctx := context.Background()
+	st, err := activity.ActivityType()
+	if err != nil {
+		n.Debug(ctx, "NewChatActivity: failed to get type: %s", err)
+		return
+	}
+	switch st {
+	case chat1.ChatActivityType_INCOMING_MESSAGE:
+		msg := activity.IncomingMessage().Message
+		if msg.IsOutbox() {
+			return
+		}
+		if n.outboxID.Eq(msg.GetOutboxID()) {
+			n.listenCh <- sentMessageResult{
+				MsgID: msg.GetMessageID(),
+			}
+		}
+	case chat1.ChatActivityType_FAILED_MESSAGE:
+		for _, obr := range activity.FailedMessage().OutboxRecords {
+			if obr.OutboxID.Eq(&n.outboxID) {
+				n.listenCh <- sentMessageResult{
+					Err: errors.New("failed to send message"),
+				}
+				break
+			}
+		}
+	}
+}
 
 type hostMessageInfo struct {
 	ConvID chat1.ConversationID
@@ -87,12 +146,33 @@ func (m *Manager) startFromText(text string) Start {
 	return NewStartWithBool(m.clock.Now())
 }
 
+func (m *Manager) getHostMessageInfo(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (res hostMessageInfo, err error) {
+	m.Debug(ctx, "getHostMessageInfo: getting host message info for: %s", convID)
+	reason := chat1.GetThreadReason_COINFLIP
+	msg, err := m.G().ChatHelper.GetMessage(ctx, uid, convID, 2, false, &reason)
+	if err != nil {
+		return res, err
+	}
+	if !msg.IsValid() {
+		return res, errors.New("host message invalid")
+	}
+	if !msg.Valid().MessageBody.IsType(chat1.MessageType_TEXT) {
+		return res, fmt.Errorf("invalid host message type: %v", msg.GetMessageType())
+	}
+	body := msg.Valid().MessageBody.Text().Body
+	if err := json.Unmarshal([]byte(body), &res); err != nil {
+		return res, err
+	}
+	return res, nil
+}
+
 // StartFlip implements the types.CoinFlipManager interface
 func (m *Manager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID,
 	tlfName, text string) (err error) {
 	defer m.Trace(ctx, func() error { return err }, "StartFlip: convID: %s", hostConvID)()
 	gameID := GenerateGameID()
 	strGameID := gameID.String()
+	m.Debug(ctx, "StartFlip: using gameID: %s", gameID)
 
 	// Get host conv using local storage, just bail out if we don't have it
 	hostConv, err := utils.GetUnverifiedConv(ctx, m.G(), uid, hostConvID,
@@ -101,15 +181,26 @@ func (m *Manager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID cha
 		return err
 	}
 
-	// First generate the message representing the flip into the host conversation
-	_, err = m.G().ChatHelper.SendMsgByIDNonblock(ctx, hostConvID, tlfName,
-		chat1.NewMessageBodyWithText(chat1.MessageText{
-			Body:   text,
-			GameID: &strGameID,
-		}), chat1.MessageType_TEXT)
+	// First generate the message representing the flip into the host conversation. We also wait for it
+	// to actually get sent before doing anything flip related.
+	outboxID, err := storage.NewOutboxID()
 	if err != nil {
 		return err
 	}
+	listener := newSentMessageListener(m.G(), outboxID)
+	nid := m.G().NotifyRouter.AddListener(listener)
+	if _, err = m.G().ChatHelper.SendMsgByIDNonblock(ctx, hostConvID, tlfName,
+		chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body:   text,
+			GameID: &strGameID,
+		}), chat1.MessageType_TEXT, &outboxID); err != nil {
+		return err
+	}
+	sendRes := <-listener.listenCh
+	if sendRes.Err != nil {
+		return sendRes.Err
+	}
+	m.G().NotifyRouter.RemoveListener(nid)
 
 	// Write down the game ID in the history conv
 	historyTopicName := m.gameIDHistoryTopicName(hostConv.GetConvID())
@@ -124,8 +215,7 @@ func (m *Manager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID cha
 	if err != nil {
 		return err
 	}
-	if _, err := m.G().ChatHelper.SendTextByIDNonblock(ctx, historyConv.GetConvID(), tlfName,
-		string(historyBody)); err != nil {
+	if err := m.G().ChatHelper.SendTextByID(ctx, historyConv.GetConvID(), tlfName, string(historyBody)); err != nil {
 		return err
 	}
 
@@ -140,11 +230,12 @@ func (m *Manager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID cha
 	// Record outboxID of the host message into the game thread as the first message
 	infoBody, err := json.Marshal(hostMessageInfo{
 		ConvID: hostConvID,
+		MsgID:  sendRes.MsgID,
 	})
 	if err != nil {
 		return err
 	}
-	if _, err := m.G().ChatHelper.SendTextByIDNonblock(ctx, conv.GetConvID(), tlfName, string(infoBody)); err != nil {
+	if err := m.G().ChatHelper.SendTextByID(ctx, conv.GetConvID(), tlfName, string(infoBody)); err != nil {
 		return err
 	}
 
@@ -208,15 +299,19 @@ func (m *Manager) ReadHistory(ctx context.Context, convID chat1.ConversationID, 
 	if err != nil {
 		return res, err
 	}
+	hostInfo, err := m.getHostMessageInfo(ctx, uid, convID)
+	if err != nil {
+		return res, err
+	}
 	gameConv, err := utils.GetVerifiedConv(ctx, m.G(), uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		return res, err
 	}
-	topicName := m.gameIDHistoryTopicName(gameConv.GetConvID())
+	topicName := m.gameIDHistoryTopicName(hostInfo.ConvID)
 	m.Debug(ctx, "ReadHistory: finding conversation: tlfName: %s topicName: %s", gameConv.Info.TlfName,
 		topicName)
 	histConvs, err := m.G().ChatHelper.FindConversations(ctx, gameConv.Info.TlfName, &topicName,
-		chat1.TopicType_DEV, gameConv.GetMembersType(), gameConv.Info.Visibility)
+		chat1.TopicType_DEV, gameConv.GetMembersType(), keybase1.TLFVisibility_PRIVATE)
 	if err != nil {
 		return res, err
 	}
@@ -263,7 +358,7 @@ func (m *Manager) SendChat(ctx context.Context, convID chat1.ConversationID, gam
 	if err != nil {
 		return err
 	}
-	_, err = m.G().ChatHelper.SendTextByIDNonblock(ctx, convID, conv.Info.TlfName, msg.String())
+	_, err = m.G().ChatHelper.SendTextByIDNonblock(ctx, convID, conv.Info.TlfName, msg.String(), nil)
 	return err
 }
 

@@ -1873,7 +1873,7 @@ func chatSendPaymentMessageTo(m libkb.MetaContext, to string, txID stellar1.Tran
 	// identify already performed, so skip here
 	_, err := m.G().ChatHelper.SendMsgByNameNonblock(m.Ctx(), name, nil,
 		chat1.ConversationMembersType_IMPTEAMNATIVE, keybase1.TLFIdentifyBehavior_CHAT_SKIP, body,
-		chat1.MessageType_SENDPAYMENT)
+		chat1.MessageType_SENDPAYMENT, nil)
 	return err
 }
 

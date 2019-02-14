@@ -114,6 +114,6 @@ func sendChat(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.TeamI
 	g.Log.CDebugf(ctx, "sending git push system chat message to %s/%s", arg.Folder.Name, *settings.ChannelName)
 	_, err = g.ChatHelper.SendMsgByNameNonblock(ctx, arg.Folder.Name, settings.ChannelName,
 		chat1.ConversationMembersType_TEAM, keybase1.TLFIdentifyBehavior_CHAT_CLI, body,
-		chat1.MessageType_SYSTEM)
+		chat1.MessageType_SYSTEM, nil)
 	return err
 }
