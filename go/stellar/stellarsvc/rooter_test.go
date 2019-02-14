@@ -105,6 +105,11 @@ func (p *ProveUIMock) OkToCheck(_ context.Context, arg keybase1.OkToCheckArg) (b
 	return false, fmt.Errorf("Check should have worked the first time!")
 }
 
+func (p *ProveUIMock) Checking(_ context.Context, arg keybase1.CheckingArg) error {
+	p.checked = true
+	return nil
+}
+
 func (p *ProveUIMock) DisplayRecheckWarning(_ context.Context, arg keybase1.DisplayRecheckWarningArg) error {
 	p.recheck = true
 	return nil

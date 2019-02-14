@@ -34,6 +34,46 @@ func (e PromptOverwriteType) String() string {
 	return ""
 }
 
+type ProveParameters struct {
+	LogoFull    []SizedImage `codec:"logoFull" json:"logoFull"`
+	LogoBlack   []SizedImage `codec:"logoBlack" json:"logoBlack"`
+	Title       string       `codec:"title" json:"title"`
+	Subtext     string       `codec:"subtext" json:"subtext"`
+	Suffix      string       `codec:"suffix" json:"suffix"`
+	ButtonLabel string       `codec:"buttonLabel" json:"buttonLabel"`
+}
+
+func (o ProveParameters) DeepCopy() ProveParameters {
+	return ProveParameters{
+		LogoFull: (func(x []SizedImage) []SizedImage {
+			if x == nil {
+				return nil
+			}
+			ret := make([]SizedImage, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.LogoFull),
+		LogoBlack: (func(x []SizedImage) []SizedImage {
+			if x == nil {
+				return nil
+			}
+			ret := make([]SizedImage, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.LogoBlack),
+		Title:       o.Title,
+		Subtext:     o.Subtext,
+		Suffix:      o.Suffix,
+		ButtonLabel: o.ButtonLabel,
+	}
+}
+
 type PromptOverwriteArg struct {
 	SessionID int                 `codec:"sessionID" json:"sessionID"`
 	Account   string              `codec:"account" json:"account"`
@@ -41,9 +81,10 @@ type PromptOverwriteArg struct {
 }
 
 type PromptUsernameArg struct {
-	SessionID int     `codec:"sessionID" json:"sessionID"`
-	Prompt    string  `codec:"prompt" json:"prompt"`
-	PrevError *Status `codec:"prevError,omitempty" json:"prevError,omitempty"`
+	SessionID  int              `codec:"sessionID" json:"sessionID"`
+	Prompt     string           `codec:"prompt" json:"prompt"`
+	PrevError  *Status          `codec:"prevError,omitempty" json:"prevError,omitempty"`
+	Parameters *ProveParameters `codec:"parameters,omitempty" json:"parameters,omitempty"`
 }
 
 type OutputPrechecksArg struct {
@@ -57,15 +98,21 @@ type PreProofWarningArg struct {
 }
 
 type OutputInstructionsArg struct {
-	SessionID    int    `codec:"sessionID" json:"sessionID"`
-	Instructions Text   `codec:"instructions" json:"instructions"`
-	Proof        string `codec:"proof" json:"proof"`
+	SessionID    int              `codec:"sessionID" json:"sessionID"`
+	Instructions Text             `codec:"instructions" json:"instructions"`
+	Proof        string           `codec:"proof" json:"proof"`
+	Parameters   *ProveParameters `codec:"parameters,omitempty" json:"parameters,omitempty"`
 }
 
 type OkToCheckArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Name      string `codec:"name" json:"name"`
 	Attempt   int    `codec:"attempt" json:"attempt"`
+}
+
+type CheckingArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Name      string `codec:"name" json:"name"`
 }
 
 type DisplayRecheckWarningArg struct {
@@ -80,6 +127,7 @@ type ProveUiInterface interface {
 	PreProofWarning(context.Context, PreProofWarningArg) (bool, error)
 	OutputInstructions(context.Context, OutputInstructionsArg) error
 	OkToCheck(context.Context, OkToCheckArg) (bool, error)
+	Checking(context.Context, CheckingArg) error
 	DisplayRecheckWarning(context.Context, DisplayRecheckWarningArg) error
 }
 
@@ -177,6 +225,21 @@ func ProveUiProtocol(i ProveUiInterface) rpc.Protocol {
 					return
 				},
 			},
+			"checking": {
+				MakeArg: func() interface{} {
+					var ret [1]CheckingArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]CheckingArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]CheckingArg)(nil), args)
+						return
+					}
+					err = i.Checking(ctx, typedArgs[0])
+					return
+				},
+			},
 			"displayRecheckWarning": {
 				MakeArg: func() interface{} {
 					var ret [1]DisplayRecheckWarningArg
@@ -227,6 +290,11 @@ func (c ProveUiClient) OutputInstructions(ctx context.Context, __arg OutputInstr
 
 func (c ProveUiClient) OkToCheck(ctx context.Context, __arg OkToCheckArg) (res bool, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.proveUi.okToCheck", []interface{}{__arg}, &res)
+	return
+}
+
+func (c ProveUiClient) Checking(ctx context.Context, __arg CheckingArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.proveUi.checking", []interface{}{__arg}, nil)
 	return
 }
 

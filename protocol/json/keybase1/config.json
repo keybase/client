@@ -4,6 +4,10 @@
     {
       "path": "common.avdl",
       "type": "idl"
+    },
+    {
+      "path": "notify_ctl.avdl",
+      "type": "idl"
     }
   ],
   "types": [
@@ -93,6 +97,24 @@
         {
           "type": "string",
           "name": "version"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ClientStatus",
+      "fields": [
+        {
+          "type": "ClientDetails",
+          "name": "details"
+        },
+        {
+          "type": "int",
+          "name": "connectionID"
+        },
+        {
+          "type": "NotificationChannels",
+          "name": "notificationChannels"
         }
       ]
     },
@@ -233,7 +255,7 @@
         {
           "type": {
             "type": "array",
-            "items": "ClientDetails"
+            "items": "ClientStatus"
           },
           "name": "Clients",
           "lint": "ignore"
@@ -273,6 +295,13 @@
             "items": "DirSizeInfo"
           },
           "name": "cacheDirSizeInfo"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "int"
+          },
+          "name": "uiRouterMapping"
         }
       ]
     },

@@ -16,6 +16,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
@@ -69,9 +70,9 @@ var PrereleaseBuild string
 // VersionString returns semantic version string
 func VersionString() string {
 	if PrereleaseBuild != "" {
-		return fmt.Sprintf("%s-%s", Version, PrereleaseBuild)
+		return fmt.Sprintf("%s-%s", libkb.Version, PrereleaseBuild)
 	}
-	return Version
+	return libkb.Version
 }
 
 // CtxBackgroundSyncKeyType is the type for a context background sync key.

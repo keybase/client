@@ -16,6 +16,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/syndtr/goleveldb/leveldb"
 	ldberrors "github.com/syndtr/goleveldb/leveldb/errors"
+	"github.com/syndtr/goleveldb/leveldb/filter"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/storage"
 )
@@ -119,7 +120,9 @@ func openLevelDBWithOptions(stor storage.Storage, options *opt.Options) (
 // openLevelDB opens or recovers a leveldb.DB with a passed-in storage.Storage
 // as its underlying storage layer.
 func openLevelDB(stor storage.Storage) (*LevelDb, error) {
-	return openLevelDBWithOptions(stor, leveldbOptions)
+	options := *leveldbOptions
+	options.Filter = filter.NewBloomFilter(16)
+	return openLevelDBWithOptions(stor, &options)
 }
 
 func versionPathFromVersion(dirPath string, version uint64) string {
