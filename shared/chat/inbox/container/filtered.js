@@ -1,6 +1,7 @@
 // @flow
 // The filtered inbox rows. No dividers or headers, just smallbig row items
 import * as Types from '../../../constants/types/chat2'
+import * as Constants from '../../../constants/chat2'
 import {memoizeShallow} from '../../../util/memoize'
 import type {RowItem} from '../index.types'
 
@@ -152,8 +153,11 @@ const getFilteredRowsAndMetadata = memoizeShallow<GetFilteredParams, _>(p => {
     'i'
   )
   const rows: Array<RowItem> = metas
-    .map(meta =>
-      meta.teamType !== 'big'
+    .map(meta => {
+      if (!Constants.isValidConversationIDKey(meta.conversationIDKey)) {
+        return null
+      }
+      return meta.teamType !== 'big'
         ? makeSmallItem(
             meta,
             lcFilter,
@@ -169,7 +173,7 @@ const getFilteredRowsAndMetadata = memoizeShallow<GetFilteredParams, _>(p => {
             unread.get(meta.conversationIDKey, 0) > 0,
             insertMatcher
           )
-    )
+    })
     .filter(Boolean)
     .sort((a, b) => {
       return a.score === b.score ? b.timestamp - a.timestamp : b.score - a.score
