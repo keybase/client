@@ -275,6 +275,13 @@ func (t *DebuggingHandler) Script(ctx context.Context, arg keybase1.ScriptArg) (
 			}},
 		})
 		return "", err
+	case "re-add":
+		teamID, err := keybase1.TeamIDFromString("fa6da9bceb6df00c5c6afd724a889d24")
+		if err != nil {
+			return "", err
+		}
+		err = teams.ReAddMemberAfterReset(ctx, m.G(), teamID, "ireset1")
+		return "", err
 	case "":
 		return "", fmt.Errorf("empty script name")
 	default:
