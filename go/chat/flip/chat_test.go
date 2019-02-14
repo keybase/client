@@ -13,11 +13,13 @@ import (
 )
 
 type chatServer struct {
-	shutdownCh  chan struct{}
-	inputCh     chan GameMessageWrappedEncoded
-	chatClients []*chatClient
-	clock       clockwork.FakeClock
-	corruptor   func(GameMessageWrappedEncoded) GameMessageWrappedEncoded
+	shutdownCh       chan struct{}
+	inputCh          chan GameMessageWrappedEncoded
+	chatClients      []*chatClient
+	clock            clockwork.FakeClock
+	clockForArchiver clockwork.FakeClock
+	corruptor        func(GameMessageWrappedEncoded) GameMessageWrappedEncoded
+	gameHistories    map[GameIDKey]GameHistory
 }
 
 type chatClient struct {
@@ -59,6 +61,16 @@ func (c *chatClient) SendChat(ctx context.Context, conversationID chat1.Conversa
 	return nil
 }
 
+func (s *chatServer) archive(msg GameMessageWrappedEncoded) {
+	v := s.gameHistories[msg.GameID.ToKey()]
+	cl := s.clock
+	if s.clockForArchiver != nil {
+		cl = s.clockForArchiver
+	}
+	v = append(v, GameMessageReplayed{GameMessageWrappedEncoded: msg, Time: cl.Now()})
+	s.gameHistories[msg.GameID.ToKey()] = v
+}
+
 func (s *chatServer) run(ctx context.Context) {
 	for {
 		select {
@@ -68,6 +80,7 @@ func (s *chatServer) run(ctx context.Context) {
 			if s.corruptor != nil {
 				msg = s.corruptor(msg)
 			}
+			s.archive(msg)
 			for _, cli := range s.chatClients {
 				if !cli.me.Eq(msg.Sender) {
 					cli.ch <- msg
@@ -83,9 +96,10 @@ func (s *chatServer) stop() {
 
 func newChatServer() *chatServer {
 	return &chatServer{
-		clock:      clockwork.NewFakeClock(),
-		shutdownCh: make(chan struct{}),
-		inputCh:    make(chan GameMessageWrappedEncoded, 1000),
+		clock:         clockwork.NewFakeClock(),
+		shutdownCh:    make(chan struct{}),
+		inputCh:       make(chan GameMessageWrappedEncoded, 1000),
+		gameHistories: make(map[GameIDKey]GameHistory),
 	}
 }
 
@@ -222,11 +236,12 @@ func testHappyChat(t *testing.T, n int) {
 	go srv.run(ctx)
 	defer srv.stop()
 	conversationID := genConversationID()
+	gameID := GenerateGameID()
 	clients := srv.makeAndRunClients(ctx, conversationID, n)
 	defer srv.stopClients()
 
 	start := NewStartWithBigInt(srv.clock.Now(), pi())
-	err := clients[0].dealer.StartFlip(ctx, start, conversationID)
+	err := clients[0].dealer.StartFlipWithGameID(ctx, start, conversationID, gameID)
 	require.NoError(t, err)
 	forAllClients(clients, func(c *chatClient) { nTimes(n, func() { c.consumeCommitment(t) }) })
 	srv.clock.Advance(time.Duration(4001) * time.Millisecond)
@@ -234,6 +249,10 @@ func testHappyChat(t *testing.T, n int) {
 	forAllClients(clients, func(c *chatClient) { nTimes(n, func() { c.consumeReveal(t) }) })
 	var b *big.Int
 	forAllClients(clients, func(c *chatClient) { c.consumeResult(t, &b) })
+
+	res, err := Replay(ctx, srv.gameHistories[gameID.ToKey()])
+	require.NoError(t, err)
+	require.Equal(t, 0, b.Cmp(res.Result.Big))
 }
 
 func TestSadChatOneAbsentee(t *testing.T) {
@@ -265,8 +284,9 @@ func testAbsentees(t *testing.T, nTotal int, nAbsentees int) {
 	clients := srv.makeAndRunClients(ctx, conversationID, nTotal)
 	defer srv.stopClients()
 
+	gameID := GenerateGameID()
 	start := NewStartWithBigInt(srv.clock.Now(), pi())
-	err := clients[0].dealer.StartFlip(ctx, start, conversationID)
+	err := clients[0].dealer.StartFlipWithGameID(ctx, start, conversationID, gameID)
 	require.NoError(t, err)
 	present := nTotal - nAbsentees
 	forAllClients(clients, func(c *chatClient) { nTimes(nTotal, func() { c.consumeCommitment(t) }) })
@@ -277,6 +297,13 @@ func testAbsentees(t *testing.T, nTotal int, nAbsentees int) {
 	forAllClients(clients, func(c *chatClient) { nTimes(present, func() { c.consumeReveal(t) }) })
 	srv.clock.Advance(time.Duration(31001) * time.Millisecond)
 	forAllClients(clients, func(c *chatClient) { c.consumeAbsteneesError(t, nAbsentees) })
+
+	_, err = Replay(ctx, srv.gameHistories[gameID.ToKey()])
+	require.Error(t, err)
+	require.IsType(t, AbsenteesError{}, err)
+	ae, ok := err.(AbsenteesError)
+	require.True(t, ok)
+	require.Equal(t, nAbsentees, len(ae.Absentees))
 }
 
 func corruptBytes(b []byte) {
@@ -324,12 +351,17 @@ func testCorruptions(t *testing.T, nTotal int, nCorruptions int) {
 	}
 
 	start := NewStartWithBigInt(srv.clock.Now(), pi())
-	err := clients[0].dealer.StartFlip(ctx, start, conversationID)
+	gameID := GenerateGameID()
+	err := clients[0].dealer.StartFlipWithGameID(ctx, start, conversationID, gameID)
 	require.NoError(t, err)
 	forAllClients(clients, func(c *chatClient) { nTimes(nTotal, func() { c.consumeCommitment(t) }) })
 	srv.clock.Advance(time.Duration(4001) * time.Millisecond)
 	forAllClients(clients, func(c *chatClient) { c.consumeCommitmentComplete(t, nTotal) })
 	forAllClients(clients[0:good], func(c *chatClient) { c.consumeRevealsAndError(t, good) })
+
+	_, err = Replay(ctx, srv.gameHistories[gameID.ToKey()])
+	require.Error(t, err)
+	require.IsType(t, BadRevealError{}, err)
 }
 
 func testBadLeader(t *testing.T, nTotal int) {
@@ -389,10 +421,17 @@ func testLeaderClockSkew(t *testing.T, skew time.Duration) {
 	srv.clock = clockwork.NewFakeClockAt(time.Now())
 	now := srv.clock.Now()
 	start := NewStartWithBigInt(now, pi())
-	forAllClients(clients[1:], func(c *chatClient) { c.clock = clockwork.NewFakeClockAt(now.Add(skew)) })
-	err := clients[0].dealer.StartFlip(ctx, start, conversationID)
+	correctClock := clockwork.NewFakeClockAt(now.Add(skew))
+	srv.clockForArchiver = correctClock
+	forAllClients(clients[1:], func(c *chatClient) { c.clock = correctClock })
+	gameID := GenerateGameID()
+	err := clients[0].dealer.StartFlipWithGameID(ctx, start, conversationID, gameID)
 	require.NoError(t, err)
 	forAllClients(clients[1:], func(c *chatClient) { c.consumeError(t, BadLeaderClockError{}) })
+
+	_, err = Replay(ctx, srv.gameHistories[gameID.ToKey()])
+	require.Error(t, err)
+	require.IsType(t, BadLeaderClockError{}, err)
 }
 
 func TestLeaderClockSkewFast(t *testing.T) {
