@@ -23,6 +23,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
 	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/syndtr/goleveldb/leveldb/filter"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/storage"
 	"github.com/syndtr/goleveldb/leveldb/util"
@@ -199,6 +200,7 @@ func newDiskBlockCacheLocalFromStorage(
 	blockDbOptions := *leveldbOptions
 	blockDbOptions.CompactionTableSize = defaultBlockCacheTableSize
 	blockDbOptions.BlockSize = defaultBlockCacheBlockSize
+	blockDbOptions.Filter = filter.NewBloomFilter(16)
 	blockDb, err := openLevelDBWithOptions(blockStorage, &blockDbOptions)
 	if err != nil {
 		return nil, err

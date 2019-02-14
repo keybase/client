@@ -43,7 +43,7 @@ func TestGregorHandler(t *testing.T) {
 	tc.G.SetService()
 
 	listener := newNlistener(t)
-	tc.G.NotifyRouter.SetListener(listener)
+	tc.G.NotifyRouter.AddListener(listener)
 
 	user, err := kbtest.CreateAndSignupFakeUser("gregr", tc.G)
 	require.NoError(t, err)
@@ -642,7 +642,7 @@ func TestGregorBadgesIBM(t *testing.T) {
 	defer tc.Cleanup()
 	tc.G.SetService()
 	listener := newNlistener(t)
-	tc.G.NotifyRouter.SetListener(listener)
+	tc.G.NotifyRouter.AddListener(listener)
 
 	// Set up client and server
 	h, server, uid := setupSyncTests(t, tc)
@@ -693,7 +693,7 @@ func TestGregorTeamBadges(t *testing.T) {
 	defer tc.Cleanup()
 	tc.G.SetService()
 	listener := newNlistener(t)
-	tc.G.NotifyRouter.SetListener(listener)
+	tc.G.NotifyRouter.AddListener(listener)
 
 	// Set up client and server
 	h, server, uid := setupSyncTests(t, tc)
@@ -741,7 +741,7 @@ func TestGregorBadgesOOBM(t *testing.T) {
 	defer tc.Cleanup()
 	tc.G.SetService()
 	listener := newNlistener(t)
-	tc.G.NotifyRouter.SetListener(listener)
+	tc.G.NotifyRouter.AddListener(listener)
 
 	// Set up client and server
 	h, _, _ := setupSyncTests(t, tc)

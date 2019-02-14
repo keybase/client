@@ -42,9 +42,9 @@ func TestChatSearchConvRegexp(t *testing.T) {
 		tc1.h.mockChatUI = chatUI
 
 		listener1 := newServerChatListener()
-		tc1.h.G().NotifyRouter.SetListener(listener1)
+		tc1.h.G().NotifyRouter.AddListener(listener1)
 		listener2 := newServerChatListener()
-		tc2.h.G().NotifyRouter.SetListener(listener2)
+		tc2.h.G().NotifyRouter.AddListener(listener2)
 
 		sendMessage := func(msgBody chat1.MessageBody, user *kbtest.FakeUser) chat1.MessageID {
 			msgID := mustPostLocalForTest(t, ctc, user, conv, msgBody)
@@ -387,9 +387,9 @@ func TestChatSearchInbox(t *testing.T) {
 		tc1.h.mockChatUI = chatUI
 
 		listener1 := newServerChatListener()
-		tc1.h.G().NotifyRouter.SetListener(listener1)
+		tc1.h.G().NotifyRouter.AddListener(listener1)
 		listener2 := newServerChatListener()
-		tc2.h.G().NotifyRouter.SetListener(listener2)
+		tc2.h.G().NotifyRouter.AddListener(listener2)
 
 		// Create our own Indexer instances so we have access to non-interface methods
 		indexer1 := search.NewIndexer(g1)

@@ -22,7 +22,7 @@ func TestAttachmentGalleryNextMessage(t *testing.T) {
 	gallery := attachments.NewGallery(tc.Context())
 	uid := gregor1.UID(users[0].GetUID().ToBytes())
 	listener := newServerChatListener()
-	ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener)
+	ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener)
 	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 		chat1.ConversationMembersType_IMPTEAMNATIVE)
 	ctx := ctc.as(t, users[0]).startCtx

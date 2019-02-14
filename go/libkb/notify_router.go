@@ -242,6 +242,12 @@ func (n *NotifyRouter) getNotificationChannels(id ConnectionID) keybase1.Notific
 	return n.state[id]
 }
 
+// GetChannels retrieves which notification channels a connection is interested it
+// given its ID.
+func (n *NotifyRouter) GetChannels(i ConnectionID) keybase1.NotificationChannels {
+	return n.getNotificationChannels(i)
+}
+
 func (n *NotifyRouter) runListeners(f func(listener NotifyListener)) {
 	var listeners []NotifyListener
 	n.Lock()

@@ -710,16 +710,16 @@ func doInit(
 		return nil, fmt.Errorf("problem creating service: %s", err)
 	}
 
+	// Initialize KBPKI client (needed for KBFSOps, MD Server, and Chat).
+	k := NewKBPKIClient(config, kbfsLog)
+	config.SetKBPKI(k)
+
 	// Initialize Chat client (for file edit notifications).
 	chat, err := keybaseServiceCn.NewChat(config, params, kbCtx, kbfsLog)
 	if err != nil {
 		return nil, fmt.Errorf("problem creating chat: %s", err)
 	}
 	config.SetChat(chat)
-
-	// Initialize KBPKI client (needed for KBFSOps and MD Server).
-	k := NewKBPKIClient(config, kbfsLog)
-	config.SetKBPKI(k)
 
 	kbfsOps := NewKBFSOpsStandard(kbCtx, config)
 	config.SetKBFSOps(kbfsOps)
