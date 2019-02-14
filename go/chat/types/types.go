@@ -285,6 +285,10 @@ func (d DummyAttachmentHTTPSrv) GetAttachmentFetcher() AttachmentFetcher {
 	return DummyAttachmentFetcher{}
 }
 
+func (d DummyAttachmentHTTPSrv) GetGiphyURL(ctx context.Context, giphyURL string) string {
+	return ""
+}
+
 type DummyStellarLoader struct{}
 
 func (d DummyStellarLoader) LoadPayment(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, paymentID stellar1.PaymentID) *chat1.UIPaymentInfo {

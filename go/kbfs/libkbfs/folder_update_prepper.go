@@ -433,15 +433,11 @@ func (fup *folderUpdatePrepper) prepTree(ctx context.Context, lState *lockState,
 					"syncing path %v", node.ptr, node.mergedPath.path)
 			}
 
-			fileBlocks, ok := newFileBlocks[node.parent.ptr]
-			if !ok {
-				return fmt.Errorf("No file blocks found for parent %v",
-					node.parent.ptr)
-			}
-			fblock, ok = fileBlocks[node.mergedPath.tailName()]
-			if !ok {
-				return fmt.Errorf("No file block found name %s under "+
-					"parent %v", node.mergedPath.tailName(), node.parent.ptr)
+			var err error
+			fblock, err = newFileBlocks.getTopBlock(
+				ctx, node.parent.ptr, node.mergedPath.tailName())
+			if err != nil {
+				return err
 			}
 			block = fblock
 			entryType = File // TODO: FIXME for Ex and Sym
@@ -917,13 +913,13 @@ func (fup *folderUpdatePrepper) updateResolutionUsageAndPointersLockedCache(
 func (fup *folderUpdatePrepper) setChildrenNodes(
 	ctx context.Context, lState *lockState, kmd KeyMetadata, p path,
 	indexInPath int, lbc localBcache, nextNode *pathTreeNode, currPath path,
-	blocks map[string]*FileBlock) {
+	names []string) {
 	dd, cleanupFn := fup.blocks.newDirDataWithLBC(
 		lState, currPath, keybase1.UserOrTeamID(""), kmd, lbc)
 	defer cleanupFn()
 
 	pnode := p.path[indexInPath]
-	for name := range blocks {
+	for _, name := range names {
 		if _, ok := nextNode.children[name]; ok {
 			continue
 		}
@@ -1003,8 +999,12 @@ func (fup *folderUpdatePrepper) makeSyncTree(
 			// make nodes for them as well.  (Because of
 			// collapseActions, these files won't have their own
 			// mergedPath.)
-			blocks, ok := newFileBlocks[pnode.BlockPointer]
-			if !ok {
+			names, err := newFileBlocks.getFilenames(ctx, pnode.BlockPointer)
+			if err != nil {
+				fup.log.CDebugf(ctx, "Error getting file names: %+v", err)
+				continue
+			}
+			if len(names) == 0 {
 				continue
 			}
 
@@ -1018,7 +1018,7 @@ func (fup *folderUpdatePrepper) makeSyncTree(
 				path:         p.path[:i+1],
 			}
 			fup.setChildrenNodes(
-				ctx, lState, kmd, p, i, lbc, nextNode, currPath, blocks)
+				ctx, lState, kmd, p, i, lbc, nextNode, currPath, names)
 		}
 	}
 	return root

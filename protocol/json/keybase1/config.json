@@ -137,6 +137,10 @@
       "name": "DirSizeInfo",
       "fields": [
         {
+          "type": "int",
+          "name": "numFiles"
+        },
+        {
           "type": "string",
           "name": "name"
         },

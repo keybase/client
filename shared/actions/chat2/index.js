@@ -88,7 +88,13 @@ function* inboxRefresh(state, action) {
       .filter(Boolean)
     // Check if some of our existing stored metas might no longer be valid
     return Saga.put(
-      Chat2Gen.createMetasReceived({clearExistingMessages, clearExistingMetas, fromInboxRefresh: true, metas})
+      Chat2Gen.createMetasReceived({
+        clearExistingMessages,
+        clearExistingMetas,
+        fromInboxRefresh: true,
+        initialTrustedLoad: reason === 'initialTrustedLoad',
+        metas,
+      })
     )
   }
 
@@ -1833,10 +1839,10 @@ function* attachmentsUpload(state, action) {
 
 // Tell service we're typing
 const sendTyping = (_, action) => {
-  const {conversationIDKey, text} = action.payload
+  const {conversationIDKey, typing} = action.payload
   return RPCChatTypes.localUpdateTypingRpcPromise({
     conversationID: Types.keyToConversationID(conversationIDKey),
-    text: text.stringValue(),
+    typing,
   })
 }
 
@@ -2539,6 +2545,27 @@ const unfurlResolvePrompt = (state, action) => {
   })
 }
 
+const unsentTextChanged = (state, action) => {
+  const {conversationIDKey, text} = action.payload
+  return RPCChatTypes.localUpdateUnsentTextRpcPromise({
+    conversationID: Types.keyToConversationID(conversationIDKey),
+    text: text.stringValue(),
+  })
+}
+
+const onGiphyResults = (state, action) => {
+  const {convID, results} = action.payload.params
+  return Chat2Gen.createGiphyGotSearchResult({
+    conversationIDKey: Types.stringToConversationIDKey(convID),
+    results: results || [],
+  })
+}
+
+const giphySend = (state, action) => {
+  const {conversationIDKey, url} = action.payload
+  return Chat2Gen.createMessageSend({conversationIDKey, text: url})
+}
+
 const openChatFromWidget = (state, {payload: {conversationIDKey}}) => [
   ConfigGen.createShowMain(),
   RouteTreeGen.createSwitchTo({path: [Tabs.chatTab]}),
@@ -2743,7 +2770,10 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   )
   yield* Saga.chainAction<Chat2Gen.SelectConversationPayload>(Chat2Gen.selectConversation, loadCanUserPerform)
 
-  // Unfurl
+  // Giphy
+  yield* Saga.chainAction<Chat2Gen.UnsentTextChangedPayload>(Chat2Gen.unsentTextChanged, unsentTextChanged)
+  yield* Saga.chainAction<Chat2Gen.GiphySendPayload>(Chat2Gen.giphySend, giphySend)
+
   yield* Saga.chainAction<Chat2Gen.UnfurlResolvePromptPayload>(
     Chat2Gen.unfurlResolvePrompt,
     unfurlResolvePrompt
@@ -2946,6 +2976,10 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<EngineGen.Chat1NotifyChatNewChatActivityPayload>(
     EngineGen.chat1NotifyChatNewChatActivity,
     onNewChatActivity
+  )
+  yield* Saga.chainAction<EngineGen.Chat1ChatUiChatGiphySearchResultsPayload>(
+    EngineGen.chat1ChatUiChatGiphySearchResults,
+    onGiphyResults
   )
   yield* Saga.chainAction<EngineGen.Chat1ChatUiChatShowManageChannelsPayload>(
     EngineGen.chat1ChatUiChatShowManageChannels,

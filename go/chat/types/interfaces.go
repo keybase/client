@@ -330,6 +330,7 @@ type AttachmentURLSrv interface {
 		preview bool) string
 	GetPendingPreviewURL(ctx context.Context, outboxID chat1.OutboxID) string
 	GetUnfurlAssetURL(ctx context.Context, convID chat1.ConversationID, asset chat1.Asset) string
+	GetGiphyURL(ctx context.Context, giphyURL string) string
 	GetAttachmentFetcher() AttachmentFetcher
 }
 
@@ -406,8 +407,8 @@ type Unfurler interface {
 
 type ConversationCommand interface {
 	Match(ctx context.Context, text string) bool
-	Execute(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, tlfName string, text string) error
-	Preview(ctx context.Context, text string) error
+	Execute(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, tlfName, text string) error
+	Preview(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, text string)
 	Name() string
 	Usage() string
 	Description() string
@@ -426,6 +427,7 @@ type ConversationCommandsSource interface {
 	GetBuiltinCommandType(ctx context.Context, c ConversationCommandsSpec) chat1.ConversationBuiltinCommandTyp
 	AttemptBuiltinCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		tlfName string, body chat1.MessageBody) (bool, error)
+	PreviewBuiltinCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, text string)
 }
 
 type InternalError interface {

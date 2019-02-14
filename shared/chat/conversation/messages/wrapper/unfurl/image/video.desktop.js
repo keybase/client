@@ -8,20 +8,20 @@ type State = {
   playingVideo: boolean,
 }
 export class Video extends React.Component<Props, State> {
-  videoRef: any
+  _videoRef = React.createRef()
   state = {playingVideo: this.props.autoPlay}
-  constructor(props: Props) {
-    super(props)
-    this.videoRef = React.createRef()
-  }
   _onClick = () => {
-    if (!(this.videoRef && this.videoRef.current)) {
+    if (this.props.onClick) {
+      this.props.onClick()
+      return
+    }
+    if (!this._videoRef.current) {
       return
     }
     if (!this.state.playingVideo) {
-      this.videoRef.current.play()
+      this._videoRef.current.play()
     } else {
-      this.videoRef.current.pause()
+      this._videoRef.current.pause()
     }
     this.setState({playingVideo: !this.state.playingVideo})
   }
@@ -42,7 +42,7 @@ export class Video extends React.Component<Props, State> {
           )}
         </Kb.Box>
         <video
-          ref={this.videoRef}
+          ref={this._videoRef}
           onClick={this._onClick}
           autoPlay={this.props.autoPlay}
           muted={true}

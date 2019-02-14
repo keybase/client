@@ -44,7 +44,7 @@ const TabText = ({selected, text}: {selected: boolean, text: string}) => (
 const TeamTabs = (props: TeamTabsProps) => {
   const tabs = [
     <Box key="members" style={styles.tabTextContainer}>
-      <TabText selected={props.selectedTab === 'members'} text={`MEMBERS (${props.memberCount})`} />
+      <TabText selected={props.selectedTab === 'members'} text={`Members (${props.memberCount})`} />
       {!!props.resetUserCount && <Badge badgeNumber={props.resetUserCount} badgeStyle={styles.badge} />}
     </Box>,
   ]
@@ -63,7 +63,7 @@ const TeamTabs = (props: TeamTabsProps) => {
       <Box key="invites" style={styles.tabTextContainer}>
         <TabText
           selected={props.selectedTab === 'invites'}
-          text={`INVITES (${props.numInvites + props.numRequests})`}
+          text={`Invites (${props.numInvites + props.numRequests})`}
         />
         {!!requestsBadge && <Badge badgeNumber={requestsBadge} badgeStyle={styles.badge} />}
       </Box>
@@ -75,7 +75,7 @@ const TeamTabs = (props: TeamTabsProps) => {
       <TabText
         key="subteams"
         selected={props.selectedTab === 'subteams'}
-        text={`SUBTEAMS (${props.numSubteams})`}
+        text={`Subteams (${props.numSubteams})`}
       />
     )
   }
@@ -88,7 +88,7 @@ const TeamTabs = (props: TeamTabsProps) => {
         style={iconCastPlatformStyles(props.selectedTab === 'settings' ? styles.iconSelected : styles.icon)}
       />
     ) : (
-      <TabText key="settings" selected={props.selectedTab === 'settings'} text={'SETTINGS'} />
+      <TabText key="settings" selected={props.selectedTab === 'settings'} text={'Settings'} />
     )
   )
 

@@ -1,11 +1,11 @@
 // @flow
 import * as React from 'react'
 import * as Styles from '../../styles'
-import {Button, Box, Text} from '../../common-adapters'
+import * as Kb from '../../common-adapters'
 import {CSSTransition} from 'react-transition-group'
 import {type UploadProps} from './upload'
 
-const patternImage = 'upload-pattern-2-600.png'
+const patternImage = 'upload-pattern-2-80.png'
 
 const height = 40
 
@@ -14,11 +14,11 @@ const easing = 'cubic-bezier(.13,.72,.31,.95)'
 const realCSS = `
 @keyframes slideUp {
   from { background-position-y: 0; }
-  to {background-position-y: 100%; }
+  to {background-position-y: 200%; }
 }
 .upload-animation-loop {
-  animation: slideUp 4s linear infinite normal;
-  background-repeat: repeat-x;
+  animation: slideUp 2s linear infinite normal;
+  background-repeat: repeat;
   background-image: ${Styles.backgroundURL(patternImage)};
 }
 .upload-animation-enter {
@@ -40,11 +40,17 @@ const realCSS = `
 const Upload = ({showing, files, fileName, totalSyncingBytes, timeLeft, debugToggleShow}: UploadProps) => {
   return (
     <React.Fragment>
-      {!!debugToggleShow && <Button type="Primary" onClick={debugToggleShow} label="Toggle" />}
+      {!!debugToggleShow && <Kb.Button type="Primary" onClick={debugToggleShow} label="Toggle" />}
       <CSSTransition in={showing} classNames="upload-animation" timeout={300} unmountOnExit={true}>
-        <Box className="upload-animation-loop" style={stylesBox}>
+        <Kb.Box2
+          direction="vertical"
+          fullWidth={true}
+          centerChildren={true}
+          className="upload-animation-loop"
+          style={styles.stylesBox}
+        >
           <style>{realCSS}</style>
-          <Text key="files" type="BodySemibold" style={styles.textOverflow}>
+          <Kb.Text key="files" type="BodySemibold" style={styles.textOverflow}>
             {files
               ? fileName
                 ? `Encrypting and uploading ${fileName}...`
@@ -52,21 +58,31 @@ const Upload = ({showing, files, fileName, totalSyncingBytes, timeLeft, debugTog
               : totalSyncingBytes
               ? 'Encrypting and uploading...'
               : 'Done!'}
-          </Text>
+          </Kb.Text>
           {!!(timeLeft && timeLeft.length) && (
-            <Text key="left" type="BodySmall" style={stylesText}>{`${timeLeft} left`}</Text>
+            <Kb.Text key="left" type="BodySmall" style={styles.stylesText}>{`${timeLeft} left`}</Kb.Text>
           )}
-        </Box>
+        </Kb.Box2>
       </CSSTransition>
     </React.Fragment>
   )
 }
 
 const styles = Styles.styleSheetCreate({
+  stylesBox: {
+    flexShrink: 0, // need this to be whole in menubar
+    height,
+    maxHeight: height,
+    paddingLeft: Styles.globalMargins.medium,
+    paddingRight: Styles.globalMargins.medium,
+  },
+  stylesText: {
+    color: Styles.globalColors.white,
+  },
   textOverflow: Styles.platformStyles({
     isElectron: {
       color: Styles.globalColors.white,
-      maxWidth: '60%',
+      maxWidth: '100%',
       overflow: 'hidden',
       textAlign: 'center',
       textOverflow: 'ellipsis',
@@ -74,18 +90,5 @@ const styles = Styles.styleSheetCreate({
     },
   }),
 })
-
-const stylesText = {
-  color: Styles.globalColors.white,
-}
-
-const stylesBox = {
-  ...Styles.globalStyles.flexBoxColumn,
-  alignItems: 'center',
-  height,
-  justifyContent: 'center',
-  maxHeight: height,
-  position: 'relative',
-}
 
 export default Upload

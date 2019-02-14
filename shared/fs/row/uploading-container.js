@@ -12,24 +12,36 @@ const mapStateToProps = (state, {path}: OwnProps) => ({
   _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
   _uploads: state.fs.uploads,
 })
+const mapDispatchToProps = dispatch => ({_retry: dispatch})
 
-const mergeProps = ({_pathItem, _uploads}, dispatchProps, {path}: OwnProps) => {
-  const error = _uploads.errors.has(path)
-  const writingToJournal = _uploads.writingToJournal.has(path)
-  const syncing = _uploads.syncingPaths.has(path)
+const getErrorRetry = (stateProps, dispatchProps, ownProps) => {
+  const fsError = stateProps._uploads.errors.get(ownProps.path)
+  if (!fsError) {
+    return null
+  }
+  const {retriableAction} = fsError
+  if (!retriableAction) {
+    return null
+  }
+  return () => dispatchProps._retry(retriableAction)
+}
+
+const mergeProps = (stateProps, dispatchProps, ownProps) => {
+  const writingToJournal = stateProps._uploads.writingToJournal.has(ownProps.path)
+  const syncing = stateProps._uploads.syncingPaths.has(ownProps.path)
 
   return {
-    error,
-    path,
+    errorRetry: getErrorRetry(stateProps, dispatchProps, ownProps),
+    path: ownProps.path,
     syncing,
-    type: _pathItem.type,
+    type: stateProps._pathItem.type,
     writingToJournal,
   }
 }
 
 export default namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
-  () => ({}),
+  mapDispatchToProps,
   mergeProps,
   'ConnectedUploadingRow'
 )(Uploading)

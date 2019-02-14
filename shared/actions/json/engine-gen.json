@@ -60,6 +60,9 @@
         "chat1ChatUiChatStellarDone": {
             "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatStellarDone'>, 'inParam'>>"
         },
+        "chat1ChatUiChatGiphySearchResults": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatGiphySearchResults'>, 'inParam'>>"
+        },
         "chat1ChatUiChatShowManageChannels": {
             "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatShowManageChannels'>, 'inParam'>>"
         },
