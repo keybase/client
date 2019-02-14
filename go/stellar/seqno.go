@@ -16,12 +16,20 @@ type SeqnoProvider struct {
 	refresh     sync.Once
 }
 
-// NewSeqnoProvider creates a SeqnoProvider.
-func NewSeqnoProvider(mctx libkb.MetaContext, walletState *WalletState) *SeqnoProvider {
+// NewSeqnoProvider creates a SeqnoProvider.  It also returns an `unlock` function
+// that must be called after the operation(s) that used this seqno provider have
+// been submitted.
+//
+// The idea here is to fix a race where multiple calls to send payments will
+// make a SeqnoProvider and while they will consume seqnos in order, they are
+// not guaranteed to be submitted in order.  In particular, the `dust storm`
+// function in the bot has a tendency to expose the race.
+func NewSeqnoProvider(mctx libkb.MetaContext, walletState *WalletState) (seqnoProvider *SeqnoProvider, unlock func()) {
+	walletState.SeqnoLock()
 	return &SeqnoProvider{
 		mctx:        mctx,
 		walletState: walletState,
-	}
+	}, walletState.SeqnoUnlock
 }
 
 // SequenceForAccount implements build.SequenceProvider.

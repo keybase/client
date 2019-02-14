@@ -303,3 +303,18 @@ func (t *GenericSocialProofServiceType) MakeProofChecker(l libkb.RemoteProofChai
 }
 
 func (t *GenericSocialProofServiceType) IsDevelOnly() bool { return false }
+
+func (t *GenericSocialProofServiceType) ProveParameters(mctx libkb.MetaContext) keybase1.ProveParameters {
+	subtext := t.config.Description
+	if len(subtext) == 0 {
+		subtext = t.DisplayName()
+	}
+	return keybase1.ProveParameters{
+		LogoFull:    MakeIcons(mctx, t.config.Domain, "logo_full", 64),
+		LogoBlack:   MakeIcons(mctx, t.config.Domain, "logo_black", 16),
+		Title:       t.config.Domain,
+		Subtext:     subtext,
+		Suffix:      fmt.Sprintf("@%v", t.config.Domain),
+		ButtonLabel: fmt.Sprintf("Authorize on %v", t.config.Domain),
+	}
+}

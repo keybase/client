@@ -45,7 +45,7 @@ const makeSubState = (): $Exact<Types.TeamBuildingSubState> => ({
   teamBuildingSelectedService: 'keybase',
   teamBuildingServiceResultCount: I.Map(),
   teamBuildingTeamSoFar: I.Set(),
-  teamBuildingUserRecs: [],
+  teamBuildingUserRecs: null,
 })
 
 const parseRawResultToUser = (

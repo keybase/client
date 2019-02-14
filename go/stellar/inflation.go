@@ -35,7 +35,8 @@ func SetInflationDestinationLocal(mctx libkb.MetaContext, arg stellar1.SetInflat
 		return fmt.Errorf("Malformed destination account ID: %s", err)
 	}
 
-	sp := NewSeqnoProvider(mctx, walletState)
+	sp, unlock := NewSeqnoProvider(mctx, walletState)
+	defer unlock()
 
 	tb, err := getTimeboundsForSending(mctx, walletState)
 	if err != nil {

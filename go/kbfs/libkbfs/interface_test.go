@@ -9,6 +9,7 @@ import (
 
 	"github.com/keybase/client/go/kbfs/kbfscodec"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 )
@@ -26,15 +27,27 @@ func (cg testCodecGetter) Codec() kbfscodec.Codec {
 }
 
 type testLogMaker struct {
-	log logger.Logger
+	log           logger.Logger
+	vdebugSetting string
+}
+
+func newTestLogMakerWithVDebug(
+	t *testing.T, vdebugSetting string) testLogMaker {
+	return testLogMaker{logger.NewTestLogger(t), vdebugSetting}
 }
 
 func newTestLogMaker(t *testing.T) testLogMaker {
-	return testLogMaker{logger.NewTestLogger(t)}
+	return newTestLogMakerWithVDebug(t, "")
 }
 
 func (lm testLogMaker) MakeLogger(_ string) logger.Logger {
 	return lm.log
+}
+
+func (lm testLogMaker) MakeVLogger(_ string) *libkb.VDebugLog {
+	vlog := libkb.NewVDebugLog(lm.log)
+	vlog.Configure(lm.vdebugSetting)
+	return vlog
 }
 
 type testClockGetter struct {

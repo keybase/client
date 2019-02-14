@@ -354,6 +354,7 @@ type ProveUI interface {
 	PreProofWarning(context.Context, keybase1.PreProofWarningArg) (bool, error)
 	OutputInstructions(context.Context, keybase1.OutputInstructionsArg) error
 	OkToCheck(context.Context, keybase1.OkToCheckArg) (bool, error)
+	Checking(context.Context, keybase1.CheckingArg) error
 	DisplayRecheckWarning(context.Context, keybase1.DisplayRecheckWarningArg) error
 }
 
@@ -409,6 +410,8 @@ type ChatUI interface {
 	ChatStellarDataConfirm(context.Context, chat1.UIChatPaymentSummary) (bool, error)
 	ChatStellarDataError(context.Context, string) (bool, error)
 	ChatStellarDone(context.Context, bool) error
+	ChatGiphySearchResults(ctx context.Context, convID chat1.ConversationID,
+		results []chat1.GiphySearchResult) error
 	ChatShowManageChannels(context.Context, string) error
 }
 
@@ -478,6 +481,7 @@ type UIRouter interface {
 	GetIdentify3UI(MetaContext) (keybase1.Identify3UiInterface, error)
 	GetChatUI() (ChatUI, error)
 
+	DumpUIs() map[UIKind]ConnectionID
 	Shutdown()
 }
 

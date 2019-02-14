@@ -10,7 +10,7 @@ type State = {|
 
 type Props = {
   children: React.Node,
-  onAttach: ?(Array<string> => void),
+  onAttach: ?(Array<string>) => void,
 }
 
 const DropOverlay = ({onDragLeave, onDrop}) => (
@@ -50,8 +50,7 @@ class DropTarget extends React.PureComponent<Props, State> {
 
   render() {
     const {children, onAttach} = this.props
-    if (isMobile || !onAttach)
-      return children
+    if (isMobile || !onAttach) return children
     return (
       <Box style={styles.containerStyle} onDragOver={this._onDragOver}>
         {children}
@@ -81,4 +80,4 @@ const styles = Styles.styleSheetCreate({
   },
 })
 
-export default (isMobile ? Box : DropTarget)
+export default (isMobile ? ({children}: Props) => children : DropTarget)

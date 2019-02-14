@@ -54,6 +54,7 @@ type Context interface {
 	NewRPCLogFactory() rpc.LogFactory
 	GetKBFSSocket(clearError bool) (net.Conn, rpc.Transporter, bool, error)
 	BindToKBFSSocket() (net.Listener, error)
+	GetVDebugSetting() string
 }
 
 // KBFSContext is an implementation for libkbfs.Context
@@ -262,4 +263,9 @@ func (c *KBFSContext) BindToKBFSSocket() (net.Listener, error) {
 		return nil, err
 	}
 	return c.kbfsSocket.BindToSocket()
+}
+
+// GetVDebugLog returns the verbose debug logger.
+func (c *KBFSContext) GetVDebugSetting() string {
+	return c.g.Env.GetVDebugSetting()
 }

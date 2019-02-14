@@ -25,7 +25,7 @@ func (h *Collapse) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Co
 	if !h.Match(ctx, text) {
 		return ErrInvalidCommand
 	}
-	conv, err := h.getRemoteConvByID(ctx, uid, convID)
+	conv, err := getConvByID(ctx, h.G(), uid, convID)
 	if err != nil {
 		return err
 	}

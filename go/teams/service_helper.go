@@ -60,6 +60,7 @@ func Details(ctx context.Context, g *libkb.GlobalContext, name string) (res keyb
 	}
 	res.AnnotatedActiveInvites = annotatedInvites
 
+	membersHideDeletedUsers(ctx, g, &res.Members)
 	membersHideInactiveDuplicates(ctx, g, &res.Members)
 
 	res.Settings.Open = t.IsOpen()
@@ -89,6 +90,26 @@ func members(ctx context.Context, g *libkb.GlobalContext, t *Team) (keybase1.Tea
 		return keybase1.TeamMembersDetails{}, err
 	}
 	return membersUIDsToUsernames(ctx, g, members)
+}
+
+func membersHideDeletedUsers(ctx context.Context, g *libkb.GlobalContext, members *keybase1.TeamMembersDetails) {
+	lists := []*[]keybase1.TeamMemberDetails{
+		&members.Owners,
+		&members.Admins,
+		&members.Writers,
+		&members.Readers,
+	}
+	for _, rows := range lists {
+		filtered := []keybase1.TeamMemberDetails{}
+		for _, row := range *rows {
+			if row.Status != keybase1.TeamMemberStatus_DELETED {
+				filtered = append(filtered, row)
+			} else {
+				g.Log.CDebugf(ctx, "membersHideDeletedUsers filtered out row: %v %v", row.Uv, row.Status)
+			}
+		}
+		*rows = filtered
+	}
 }
 
 // If a UID appears multiple times with different TeamMemberStatus, only show the 'ACTIVE' version.

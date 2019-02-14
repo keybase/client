@@ -687,6 +687,12 @@ func (u *smuUser) assertMemberInactive(team smuTeam, user *smuUser) {
 	require.False(u.ctx.t, active, "user %s is active (expected inactive)", user.username)
 }
 
+func (u *smuUser) assertMemberMissing(team smuTeam, user *smuUser) {
+	_, err := u.teamMemberDetails(team, user)
+	require.Error(user.ctx.t, err, "member should not be found")
+	require.Equal(user.ctx.t, libkb.NotFoundError{}, err, "member should not be found")
+}
+
 func (u *smuUser) uid() keybase1.UID {
 	return u.primaryDevice().tctx.G.Env.GetUID()
 }

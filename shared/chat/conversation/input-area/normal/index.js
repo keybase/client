@@ -8,11 +8,12 @@ import {emojiIndex} from 'emoji-mart'
 import PlatformInput from './platform-input'
 import {standardTransformer} from '../suggestors'
 import {type InputProps} from './types'
-import {throttle} from 'lodash-es'
+import {debounce, throttle} from 'lodash-es'
 import {memoize} from '../../../../util/memoize'
 
 // Standalone throttled function to ensure we never accidentally recreate it and break the throttling
 const throttled = throttle((f, param) => f(param), 2000)
+const debounced = debounce((f, param) => f(param), 500)
 
 const searchUsers = memoize((users, filter) => {
   if (!filter) {
@@ -135,7 +136,8 @@ class Input extends React.Component<InputProps, InputState> {
   _onChangeText = (text: string) => {
     this.props.setUnsentText(text)
     this._lastText = text
-    throttled(this.props.sendTyping, text)
+    throttled(this.props.sendTyping, !!text)
+    debounced(this.props.unsentTextChanged, text)
   }
 
   _onKeyDown = (e: SyntheticKeyboardEvent<>, isComposingIME: boolean) => {
@@ -161,7 +163,7 @@ class Input extends React.Component<InputProps, InputState> {
     if (!skipUnsentSaving) {
       this.props.setUnsentText(text)
     }
-    throttled(this.props.sendTyping, text)
+    throttled(this.props.sendTyping, !!text)
   }
 
   _setHeight = (inputHeight: number) =>

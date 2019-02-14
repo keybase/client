@@ -170,7 +170,7 @@ func CleanOldDeletedReposTimeLimited(
 	case context.DeadlineExceeded, context.Canceled:
 		return nil
 	default:
-		if _, ok := err.(libkbfs.OfflineUnsyncedError); ok {
+		if _, ok := errors.Cause(err).(libkbfs.OfflineUnsyncedError); ok {
 			return nil
 		}
 		return err

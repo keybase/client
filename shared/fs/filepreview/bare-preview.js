@@ -2,32 +2,12 @@
 import * as I from 'immutable'
 import * as React from 'react'
 import * as Types from '../../constants/types/fs'
-import * as Constants from '../../constants/fs'
 import * as Styles from '../../styles'
-import {Box, ClickableBox, Text, ProgressIndicator} from '../../common-adapters'
-import * as RouteTreeGen from '../../actions/route-tree-gen'
-import {connect} from '../../util/container'
-import {type BarePreviewProps} from './bare-preview'
+import * as Kb from '../../common-adapters'
 import View from './view-container'
 import {PathItemAction} from '../common'
 
-const mapDispatchToProps = (dispatch, {routePath}) => ({
-  onBack: () =>
-    dispatch(
-      RouteTreeGen.createPutActionIfOnPath({
-        expectedPath: routePath,
-        otherAction: RouteTreeGen.createNavigateUp(),
-      })
-    ),
-})
-
-const mergeProps = (stateProps, {onBack}, {routeProps, routePath}) => ({
-  onBack,
-  path: routeProps.get('path', Constants.defaultPath),
-  routePath,
-})
-
-type ConnectedBarePreviewProps = {
+type Props = {
   onBack: () => void,
   path: Types.Path,
   routePath: I.List<string>,
@@ -37,7 +17,7 @@ type State = {
   loading: boolean,
 }
 
-class BarePreview extends React.PureComponent<ConnectedBarePreviewProps, State> {
+export default class extends React.PureComponent<Props, State> {
   state = {
     loading: false,
   }
@@ -45,31 +25,31 @@ class BarePreview extends React.PureComponent<ConnectedBarePreviewProps, State> 
 
   render() {
     return (
-      <Box style={styles.container}>
-        <Box style={styles.header}>
-          <ClickableBox onClick={this.props.onBack} style={styles.closeBox}>
-            <Text type="Body" style={styles.text}>
+      <Kb.Box style={styles.container}>
+        <Kb.Box style={styles.header}>
+          <Kb.ClickableBox onClick={this.props.onBack} style={styles.closeBox}>
+            <Kb.Text type="Body" style={styles.text}>
               Close
-            </Text>
-          </ClickableBox>
-        </Box>
-        <Box style={styles.contentContainer}>
+            </Kb.Text>
+          </Kb.ClickableBox>
+        </Kb.Box>
+        <Kb.Box style={styles.contentContainer}>
           <View
             path={this.props.path}
             routePath={this.props.routePath}
             onLoadingStateChange={this._onLoadingStateChange}
           />
-        </Box>
-        <Box style={styles.footer}>
+        </Kb.Box>
+        <Kb.Box style={styles.footer}>
           <PathItemAction
             path={this.props.path}
             clickable={{actionIconWhite: true, type: 'icon'}}
             routePath={this.props.routePath}
             initView="root"
           />
-        </Box>
-        {this.state.loading && <ProgressIndicator style={styles.loading} white={true} />}
-      </Box>
+        </Kb.Box>
+        {this.state.loading && <Kb.ProgressIndicator style={styles.loading} white={true} />}
+      </Kb.Box>
     )
   }
 }
@@ -117,9 +97,3 @@ const styles = Styles.styleSheetCreate({
     lineHeight: 48,
   },
 })
-
-export default connect<BarePreviewProps, _, _, _, _>(
-  () => ({}),
-  mapDispatchToProps,
-  mergeProps
-)(BarePreview)
