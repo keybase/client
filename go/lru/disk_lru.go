@@ -138,7 +138,7 @@ type DiskLRU struct {
 	flushCh chan struct{}
 }
 
-func NewDiskLRU(name string, version int, maxSize int) *DiskLRU {
+func NewDiskLRU(name string, version, maxSize int) *DiskLRU {
 	return &DiskLRU{
 		name:          name,
 		version:       version,
@@ -353,6 +353,34 @@ func (d *DiskLRU) Remove(ctx context.Context, lctx libkb.LRUContext, key string)
 		return err
 	}
 	return d.removeEntry(ctx, lctx, index, key)
+}
+
+func (d *DiskLRU) AllValues(ctx context.Context, lctx libkb.LRUContext) (entries []DiskLRUEntry, err error) {
+	d.Lock()
+	defer d.Unlock()
+	var index *diskLRUIndex
+	defer func() {
+		// Commit the index
+		if err == nil && index != nil && index.IsDirty() {
+			d.writeIndex(ctx, lctx, index, false)
+		}
+	}()
+
+	// Grab entry index
+	index, err = d.readIndex(ctx, lctx)
+	if err != nil {
+		return nil, err
+	}
+	for key := range index.entryKeyMap {
+		if found, res, err := d.readEntry(ctx, lctx, key); err != nil {
+			return nil, err
+		} else if !found {
+			index.Remove(key)
+		} else {
+			entries = append(entries, res)
+		}
+	}
+	return entries, nil
 }
 
 func (d *DiskLRU) ClearMemory(ctx context.Context, lctx libkb.LRUContext) {
