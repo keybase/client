@@ -279,10 +279,8 @@ func (h *UserHandler) InterestingPeople(ctx context.Context, maxUsers int) (res 
 		return []keybase1.InterestingPerson{}, nil
 	}
 
-	const fullnameFreshness = 10 * time.Minute
-	const networkTimeBudget = 5 * time.Second
-	packages, err := h.G().UIDMapper.MapUIDsToUsernamePackages(ctx, h.G(), uids,
-		fullnameFreshness, networkTimeBudget, true /* forceNetworkForFullNames */)
+	const fullnameFreshness = 0 // never stale
+	packages, err := h.G().UIDMapper.MapUIDsToUsernamePackagesOffline(ctx, h.G(), uids, fullnameFreshness)
 	if err != nil {
 		h.G().Log.Debug("InterestingPeople: failed in UIDMapper: %s, but continuing", err.Error())
 	}
@@ -293,7 +291,7 @@ func (h *UserHandler) InterestingPeople(ctx context.Context, maxUsers int) (res 
 			continue
 		}
 		if packages[i].NormalizedUsername.IsNil() {
-			// If we errored in UIDMapper, some data might be missing.
+			// We asked UIDMapper for cached data only, this username was missing.
 			continue
 		}
 		ret := keybase1.InterestingPerson{
@@ -304,7 +302,6 @@ func (h *UserHandler) InterestingPeople(ctx context.Context, maxUsers int) (res 
 			ret.Fullname = fn.FullName.String()
 		}
 		res = append(res, ret)
-
 	}
 	return res, nil
 }
