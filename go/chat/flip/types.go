@@ -9,6 +9,7 @@ import (
 	"time"
 )
 
+func MakeGameID(s string) (GameID, error) { return hex.DecodeString(s) }
 func (g GameID) String() string           { return hex.EncodeToString(g) }
 func (g GameID) Eq(h GameID) bool         { return hmac.Equal(g[:], h[:]) }
 func (u UserDevice) Eq(v UserDevice) bool { return u.U.Eq(v.U) && u.D.Eq(v.D) }

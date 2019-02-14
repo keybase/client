@@ -3,8 +3,8 @@ package flip
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/keybase/client/go/chat/globals"
@@ -44,12 +44,26 @@ func NewManager(g *globals.Context) *Manager {
 	return m
 }
 
-func (m *Manager) gameTopicNameFromGameID(gameID GameID) string {
-	return fmt.Sprintf("__keybase_coinflip_game_%s", gameID)
+const gameIDTopicNamePrefix = "__keybase_coinflip_game_"
+
+func (m *Manager) isGameIDTopicName(topicName string) (res GameID, ok bool) {
+	if strings.HasPrefix(topicName, gameIDTopicNamePrefix) {
+		strGameID := strings.Split(topicName, gameIDTopicNamePrefix)[1]
+		gameID, err := MakeGameID(strGameID)
+		if err != nil {
+			return res, false
+		}
+		return gameID, true
+	}
+	return res, false
 }
 
-func (m *Manager) gameIDHistoryTopicName(tlfName string, topicName string) string {
-	return fmt.Sprintf("__keybase_coinflip_history_%s_%s", tlfName, topicName)
+func (m *Manager) gameTopicNameFromGameID(gameID GameID) string {
+	return fmt.Sprintf("%s%s", gameIDTopicNamePrefix, gameID)
+}
+
+func (m *Manager) gameIDHistoryTopicName(convID chat1.ConversationID) string {
+	return fmt.Sprintf("__keybase_coinflip_history_%s", convID)
 }
 
 func (m *Manager) startFromText(text string) Start {
@@ -57,6 +71,7 @@ func (m *Manager) startFromText(text string) Start {
 	return NewStartWithBool(m.clock.Now())
 }
 
+// StartFlip implements the types.CoinFlipManager interface
 func (m *Manager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID,
 	tlfName, text string) (err error) {
 	defer m.Trace(ctx, func() error { return err }, "StartFlip: convID: %s", hostConvID)()
@@ -81,7 +96,7 @@ func (m *Manager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID cha
 	}
 
 	// Write down the game ID in the history conv
-	historyTopicName := m.gameIDHistoryTopicName(tlfName, hostConv.GetTopicName())
+	historyTopicName := m.gameIDHistoryTopicName(hostConv.GetConvID())
 	historyBody, err := json.Marshal(gameIDHistoryInfo{
 		GameID: gameID,
 	})
@@ -121,6 +136,34 @@ func (m *Manager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID cha
 	return m.dealer.StartFlipWithGameID(ctx, m.startFromText(text), conv.GetConvID(), gameID)
 }
 
+// MaybeInjectFlipMessage implements the types.CoinFlipManager interface
+func (m *Manager) MaybeInjectFlipMessage(ctx context.Context, msg chat1.MessageUnboxed,
+	conv chat1.ConversationLocal) {
+	if conv.GetTopicType() != chat1.TopicType_DEV || !msg.IsValid() || msg.GetMessageID() == 2 {
+		// earliest of outs if this isn't a dev convo, an error, or the outbox ID message
+		return
+	}
+	defer m.Trace(ctx, func() error { return nil }, "MaybeInjectFlipMessage: convID: %s",
+		conv.GetConvID())()
+	body := msg.Valid().MessageBody
+	if !body.IsType(chat1.MessageType_TEXT) {
+		return
+	}
+	// check topic name
+	gameID, ok := m.isGameIDTopicName(conv.GetTopicName())
+	if !ok {
+		return
+	}
+	sender := UserDevice{
+		U: msg.Valid().ClientHeader.Sender,
+		D: msg.Valid().ClientHeader.SenderDevice,
+	}
+	if err := m.dealer.InjectIncomingChat(ctx, sender, conv.GetConvID(), gameID,
+		MakeGameMessageEncoded(body.Text().Body)); err != nil {
+		m.Debug(ctx, "MaybeInjectFlipMessage: failed to inject: %s", err)
+	}
+}
+
 // CLogf implements the flip.DealersHelper interface
 func (m *Manager) CLogf(ctx context.Context, fmt string, args ...interface{}) {
 	m.Debug(ctx, fmt, args...)
@@ -132,24 +175,69 @@ func (m *Manager) Clock() clockwork.Clock {
 }
 
 // ServerTime implements the flip.DealersHelper interface
-func (m *Manager) ServerTime(ctx context.Context) (time.Time, error) {
+func (m *Manager) ServerTime(ctx context.Context) (res time.Time, err error) {
+	defer m.Trace(ctx, func() error { return err }, "ServerTime")()
 	// TODO: implement this for real
 	return m.clock.Now(), nil
 }
 
 // ReadHistory implements the flip.DealersHelper interface
-func (m *Manager) ReadHistory(ctx context.Context, conversationID chat1.ConversationID, since time.Time) ([]GameID, error) {
-	return nil, errors.New("not implemented")
+func (m *Manager) ReadHistory(ctx context.Context, convID chat1.ConversationID, since time.Time) (res []GameID, err error) {
+	defer m.Trace(ctx, func() error { return err }, "ReadHistory: convID: %s", convID)()
+	uid, err := utils.AssertLoggedInUID(ctx, m.G())
+	if err != nil {
+		return res, err
+	}
+	gameConv, err := utils.GetVerifiedConv(ctx, m.G(), uid, convID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		return res, err
+	}
+	topicName := m.gameIDHistoryTopicName(gameConv.GetConvID())
+	histConvs, err := m.G().ChatHelper.FindConversations(ctx, gameConv.Info.TlfName, &topicName,
+		chat1.TopicType_DEV, gameConv.GetMembersType(), gameConv.Info.Visibility)
+	if err != nil {
+		return res, err
+	}
+	if len(histConvs) != 1 {
+		return res, fmt.Errorf("wrong number of conversations for history: %d", len(histConvs))
+	}
+	histConv := histConvs[0]
+
+	after := gregor1.ToTime(since)
+	tv, err := m.G().ConvSource.Pull(ctx, histConv.GetConvID(), uid, chat1.GetThreadReason_COINFLIP,
+		&chat1.GetThreadQuery{
+			After: &after,
+		}, nil)
+	if err != nil {
+		return res, err
+	}
+	for _, msg := range tv.Messages {
+		if !msg.IsValid() {
+			continue
+		}
+		body := msg.Valid().MessageBody
+		if !body.IsType(chat1.MessageType_TEXT) {
+			continue
+		}
+		var info gameIDHistoryInfo
+		if err := json.Unmarshal([]byte(body.Text().Body), &info); err != nil {
+			m.Debug(ctx, "ReadHistory: failed to unmarshal message: id: %d err: %s", msg.GetMessageID(), err)
+			continue
+		}
+		res = append(res, info.GameID)
+	}
+	return res, nil
 }
 
 // SendChat implements the flip.DealersHelper interface
 func (m *Manager) SendChat(ctx context.Context, convID chat1.ConversationID, gameID GameID,
-	msg GameMessageEncoded) error {
+	msg GameMessageEncoded) (err error) {
+	defer m.Trace(ctx, func() error { return err }, "SendChat: convID: %s", convID)()
 	uid, err := utils.AssertLoggedInUID(ctx, m.G())
 	if err != nil {
 		return err
 	}
-	conv, err := utils.GetVerifiedConv(ctx, m.G(), uid, convID, types.InboxSourceDataSourceLocalOnly)
+	conv, err := utils.GetVerifiedConv(ctx, m.G(), uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		return err
 	}

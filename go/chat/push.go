@@ -522,6 +522,10 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				nm.Message, nm.MaxMsgs); err != nil {
 				g.Debug(ctx, "chat activity: unable to update inbox: %v", err)
 			}
+			if conv != nil {
+				// Check to see if this is a coin flip message
+				g.G().CoinFlipManager.MaybeInjectFlipMessage(ctx, decmsg, *conv)
+			}
 
 			// If we have no error on this message, then notify the frontend
 			if pushErr == nil {

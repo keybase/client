@@ -85,6 +85,7 @@ export const commonGetThreadReason = {
   searcher: 6,
   indexedSearch: 7,
   kbfsfileactivity: 8,
+  coinflip: 9,
 }
 
 export const commonGlobalAppNotificationSetting = {

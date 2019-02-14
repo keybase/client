@@ -431,8 +431,8 @@ type ConversationCommandsSource interface {
 }
 
 type CoinFlipManager interface {
-	StartFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID,
-		tlfName, text string) error
+	StartFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID, tlfName, text string) error
+	MaybeInjectFlipMessage(ctx context.Context, msg chat1.MessageUnboxed, conv chat1.ConversationLocal)
 }
 
 type InternalError interface {

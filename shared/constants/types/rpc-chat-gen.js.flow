@@ -461,6 +461,7 @@ export const commonGetThreadReason = {
   searcher: 6,
   indexedSearch: 7,
   kbfsfileactivity: 8,
+  coinflip: 9,
 }
 
 export const commonGlobalAppNotificationSetting = {
@@ -889,6 +890,7 @@ export type GetThreadReason =
   | 6 // SEARCHER_6
   | 7 // INDEXED_SEARCH_7
   | 8 // KBFSFILEACTIVITY_8
+  | 9 // COINFLIP_9
 
 export type GetThreadRemoteRes = $ReadOnly<{thread: ThreadViewBoxed, membersType: ConversationMembersType, visibility: Keybase1.TLFVisibility, rateLimit?: ?RateLimit}>
 export type GetUnreadlineRemoteRes = $ReadOnly<{unreadlineID?: ?MessageID, rateLimit?: ?RateLimit}>

@@ -93,6 +93,10 @@ func (g *Game) GameMetadata() GameMetadata {
 	return g.md
 }
 
+func MakeGameMessageEncoded(s string) GameMessageEncoded {
+	return GameMessageEncoded(s)
+}
+
 func (e GameMessageEncoded) String() string {
 	return string(e)
 }
