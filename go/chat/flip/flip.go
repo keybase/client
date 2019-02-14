@@ -121,6 +121,10 @@ func (d *Dealer) StartFlipWithGameID(ctx context.Context, start Start, conversat
 
 // InjectIncomingChat should be called whenever a new flip game comes in that's relevant for flips.
 // Call this with the sender's information, the channel information, and the body data that came in.
+// The last bool is true only if this is the first message in the channel. The current model is that only
+// one "game" is allowed for each chat channel. So any prior messages in the channel mean it might be replay.
+// This is significantly less general than an earlier model, which is why we introduced the concept of
+// a gameID, so it might be changed in the future.
 func (d *Dealer) InjectIncomingChat(ctx context.Context, sender UserDevice,
 	conversationID chat1.ConversationID, gameID GameID, body GameMessageEncoded, firstInConversation bool) error {
 	gmwe := GameMessageWrappedEncoded{
