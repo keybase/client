@@ -12,7 +12,6 @@ type State = {
 
 const ItemBox = Styles.styled(Kb.Box)({
   ...Styles.globalStyles.flexBoxCenter,
-  borderBottom: `1px solid ${Styles.globalColors.lightGrey2}`,
   minHeight: 40,
   width: '100%',
 })
