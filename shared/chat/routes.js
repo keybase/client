@@ -149,11 +149,6 @@ export const newRoutes = {
   chatManageChannels: {getScreen: () => require('./manage-channels/container').default},
   chatNewChat: {getScreen: () => require('../team-building/container').default},
   chatPaymentsConfirm: {getScreen: () => require('./payments/confirm/container').default},
-  // these should be in teams
-  // chatReallyLeaveTeam: {getScreen: () => require('../teams/really-leave-team/container-chat').default},
-  // chatRetentionWarning: {
-  // getScreen: () => require('../teams/team/settings-tab/retention/warning/container').default,
-  // },
   chatShowNewTeamDialog: {getScreen: () => require('./new-team-dialog-container').default},
   'tabs:chatTab': {
     getScreen: () =>

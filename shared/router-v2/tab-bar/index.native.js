@@ -59,7 +59,7 @@ class TabBar extends React.PureComponent<Props, State> {
   }
 }
 
-// TEMP to really know you're on this branch
+// TEMP to really know you're on this branch. Leave until we flip the feature flag
 const backgroundColor = 'pink' // Styles.globalColors.darkBlue2,
 
 const styles = Styles.styleSheetCreate({

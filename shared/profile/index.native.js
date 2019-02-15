@@ -770,13 +770,11 @@ export default Profile
 
 // leaving this here as this whole file is going away
 export const Header = (props: Props) => {
-  // const trackerStateColors = stateColors(props.currentlyFollowing, props.trackerState)
   return (
     <Kb.HeaderHocHeader
       borderless={true}
       onLeftAction={props.onBack}
       headerStyle={{
-        // backgroundColor: trackerStateColors.header.background,
         paddingLeft: 40,
         paddingTop: 0,
       }}

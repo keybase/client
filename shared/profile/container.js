@@ -218,7 +218,6 @@ const connected = connect<OwnProps, _, _, _, _>(
   mergeProps
 )(ProfileContainer)
 
-// TODO reduce props passed down
 const ConnectedHeader = connect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,

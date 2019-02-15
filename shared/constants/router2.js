@@ -1,14 +1,13 @@
 // @flow
 let _navigator = null
-/*
- * only used by config
- */
+// Private API only used by config sagas
 export const _setNavigator = (navigator: any) => {
   _navigator = navigator
 }
 export const _getNavigator = () => {
   return _navigator
 }
+// Private API only used by config sagas
 
 const findVisibleRoute = (arr, s) => {
   if (!s) return arr
@@ -22,7 +21,5 @@ const findVisibleRoute = (arr, s) => {
 // Public API
 export const getVisiblePath = (_fromNavOnly?: any) => {
   if (!_navigator) return []
-  const TEMP = findVisibleRoute([], _fromNavOnly || _navigator.getNavState())
-  // console.log('aaaa rout epath', TEMP)
-  return TEMP
+  return findVisibleRoute([], _fromNavOnly || _navigator.getNavState())
 }

@@ -208,7 +208,6 @@ function* persistRoute(state, action) {
 
   const s = JSON.stringify({param, routeName})
   _lastPersist = routeName
-  console.log('aaaa writing persist route ', s)
   yield Saga.spawn(() =>
     RPCTypes.configSetValueRpcPromise({
       path: 'ui.routeState2',
