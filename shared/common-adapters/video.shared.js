@@ -1,5 +1,8 @@
 // @flow
+import * as React from 'react'
 import {type State} from './video'
+import {Box2} from './box'
+import Text from './text'
 
 type Size = {
   height: number,
@@ -30,3 +33,22 @@ export const getVideoSize = (state: State): Size => {
     width: containerWidth,
   }
 }
+
+const allowedHosts = ['127.0.0.1', 'localhost']
+
+const urlIsOK = url =>
+  !url.includes('"') && (__STORYBOOK__ || __STORYSHOT__ || allowedHosts.includes(new URL(url).host))
+
+type CheckURLProps = {
+  url: string,
+  children: React.Node,
+}
+
+export const CheckURL = (props: CheckURLProps) =>
+  urlIsOK(props.url) ? (
+    props.children
+  ) : (
+    <Box2 direction="horizontal" fullWidth={true} fullHeight={true} centerChildren={true}>
+      <Text type="BodySmall">Invalid URL: {props.url}</Text>
+    </Box2>
+  )
