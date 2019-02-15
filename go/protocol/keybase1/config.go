@@ -449,7 +449,6 @@ func (o UpdateInfo) DeepCopy() UpdateInfo {
 type BootstrapStatus struct {
 	Registered bool     `codec:"registered" json:"registered"`
 	LoggedIn   bool     `codec:"loggedIn" json:"loggedIn"`
-	Cached     bool     `codec:"cached" json:"cached"`
 	Uid        UID      `codec:"uid" json:"uid"`
 	Username   string   `codec:"username" json:"username"`
 	DeviceID   DeviceID `codec:"deviceID" json:"deviceID"`
@@ -462,7 +461,6 @@ func (o BootstrapStatus) DeepCopy() BootstrapStatus {
 	return BootstrapStatus{
 		Registered: o.Registered,
 		LoggedIn:   o.LoggedIn,
-		Cached:     o.Cached,
 		Uid:        o.Uid.DeepCopy(),
 		Username:   o.Username,
 		DeviceID:   o.DeviceID.DeepCopy(),

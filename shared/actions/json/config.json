@@ -64,7 +64,6 @@
     "loadedAvatars": {"avatars": "I.Map<string, I.Map<number, string>>"},
     "loadTeamAvatars": {"teamnames": "Array<string>"},
     "bootstrapStatusLoaded": {
-      "cached": "boolean",
       "deviceID": "string",
       "deviceName": "string",
       "followers": "Array<string>",
@@ -74,7 +73,6 @@
       "uid": "string",
       "username": "string"
     },
-    "bootstrapRefresh": {"_description": "refresh stale bootstrap info"},
     "daemonError": {"daemonError": "?Error"},
     "setAccounts": {
       "defaultUsername": "string",
