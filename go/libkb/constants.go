@@ -4,6 +4,7 @@
 package libkb
 
 import (
+	"fmt"
 	"os"
 	"runtime"
 	"time"
@@ -103,7 +104,7 @@ func ProofUserAgent() string {
 		os = runtime.GOOS
 	}
 
-	return os + ":" + Version
+	return fmt.Sprintf("%s:%s", os, Version)
 }
 
 const (
