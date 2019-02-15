@@ -59,5 +59,5 @@ export class ImageRender extends React.Component<Props> {
 
 export function imgMaxWidth() {
   const {width: maxWidth} = Kb.NativeDimensions.get('window')
-  return Math.min(320, maxWidth - 60)
+  return Math.min(320, maxWidth - 68)
 }
