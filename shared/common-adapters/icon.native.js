@@ -87,6 +87,9 @@ const Image = Styles.styled(NativeImage)(
 )
 
 class Icon extends React.PureComponent<Props> {
+  static defaultProps = {
+    sizeType: 'Default',
+  }
   render() {
     const props = this.props
     // Only apply props.style to icon if there is no onClick
@@ -115,10 +118,8 @@ class Icon extends React.PureComponent<Props> {
       let fontSize
       if (this.props.fontSize) {
         fontSize = this.props.fontSize
-      } else if (this.props.sizeType) {
-        fontSize = Shared.typeToFontSize(this.props.sizeType)
       } else {
-        fontSize = 22
+        fontSize = Shared.typeToFontSize(this.props.sizeType)
       }
 
       icon = (

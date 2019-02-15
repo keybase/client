@@ -12,6 +12,9 @@ import type {Props, IconType} from './icon'
 const invertedColors = invert(Styles.globalColors)
 
 class Icon extends Component<Props, void> {
+  static defaultProps = {
+    sizeType: 'Default',
+  }
   shouldComponentUpdate(nextProps: Props, nextState: any): boolean {
     return !shallowEqual(this.props, nextProps, (obj, oth, key) => {
       if (key === 'style') {
@@ -52,8 +55,6 @@ class Icon extends Component<Props, void> {
       fontSizeHint = {fontSize: this.props.fontSize}
     } else if (this.props.sizeType) {
       fontSizeHint = {fontSize: Shared.typeToFontSize(this.props.sizeType)}
-    } else {
-      fontSizeHint = Shared.fontSize(iconType)
     }
     // in style sheet, so don't apply
     if (fontSizeHint && fontSizeHint.fontSize === 16) {
