@@ -941,6 +941,10 @@ func (m *ChatRemoteMock) FailSharePost(ctx context.Context, _ chat1.FailSharePos
 	return errors.New("FailSharePost not mocked")
 }
 
+func (m *ChatRemoteMock) ServerNow(ctx context.Context) (res chat1.ServerNowRes, err error) {
+	return res, errors.New("ServerNow not mocked")
+}
+
 type NonblockInboxResult struct {
 	ConvID   chat1.ConversationID
 	Err      error
