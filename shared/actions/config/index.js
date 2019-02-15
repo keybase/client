@@ -61,9 +61,10 @@ function* loadDaemonBootstrapStatus(state, action) {
     return
   }
 
-  function* makeCall() {
+  function* makeCall(actionType) {
     const s = yield* Saga.callPromise(RPCTypes.configGetBootstrapStatusRpcPromise)
     const loadedAction = ConfigGen.createBootstrapStatusLoaded({
+      cached: s.cached,
       deviceID: s.deviceID,
       deviceName: s.deviceName,
       followers: s.followers ?? [],
@@ -75,6 +76,11 @@ function* loadDaemonBootstrapStatus(state, action) {
     })
     logger.info(`[Bootstrap] loggedIn: ${loadedAction.payload.loggedIn ? 1 : 0}`)
     yield Saga.put(loadedAction)
+
+    // Make one more try at getting fresh bootstrap
+    if (loadedAction.payload.cached && actionType != ConfigGen.bootstrapRefresh) {
+      yield Saga.put(ConfigGen.createBootstrapRefresh())
+    }
 
     // if we're logged in act like getAccounts is done already
     if (action.type === ConfigGen.daemonHandshake && loadedAction.payload.loggedIn) {
@@ -100,7 +106,7 @@ function* loadDaemonBootstrapStatus(state, action) {
           version: action.payload.version,
         })
       )
-      yield* makeCall()
+      yield* makeCall(action.type)
       yield Saga.put(
         ConfigGen.createDaemonHandshakeWait({
           increment: false,
@@ -109,9 +115,12 @@ function* loadDaemonBootstrapStatus(state, action) {
         })
       )
       break
+    case ConfigGen.bootstrapRefresh:
+      yield Saga.delay(10000)
+      // fallthrough
     case ConfigGen.loggedIn: // fallthrough
     case ConfigGen.loggedOut:
-      yield* makeCall()
+      yield* makeCall(action.type)
       break
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
@@ -415,6 +424,12 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
     ConfigGen.daemonHandshakeDone,
     emitInitialLoggedIn
   )
+
+  // If you start logged in we don't get the incoming call from the daemon so we generate our own here
+  yield* Saga.chainAction<ConfigGen.BootstrapRefreshPayload>(
+    ConfigGen.bootstrapRefresh,
+    loadDaemonBootstrapStatus
+  )  
 
   // Like handshake but in reverse, ask sagas to do stuff before we tell the server to log us out
   yield* Saga.chainAction<ConfigGen.LogoutPayload>(ConfigGen.logout, startLogoutHandshake)

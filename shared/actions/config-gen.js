@@ -12,6 +12,7 @@ import {RPCError} from '../util/errors'
 // Constants
 export const resetStore = 'common:resetStore' // not a part of config but is handled by every reducer. NEVER dispatch this
 export const typePrefix = 'config:'
+export const bootstrapRefresh = 'config:bootstrapRefresh'
 export const bootstrapStatusLoaded = 'config:bootstrapStatusLoaded'
 export const changedActive = 'config:changedActive'
 export const changedFocus = 'config:changedFocus'
@@ -53,7 +54,8 @@ export const updateMenubarWindowID = 'config:updateMenubarWindowID'
 export const updateNow = 'config:updateNow'
 
 // Payload Types
-type _BootstrapStatusLoadedPayload = $ReadOnly<{|deviceID: string, deviceName: string, followers: Array<string>, following: Array<string>, loggedIn: boolean, registered: boolean, uid: string, username: string|}>
+type _BootstrapRefreshPayload = void
+type _BootstrapStatusLoadedPayload = $ReadOnly<{|cached: boolean, deviceID: string, deviceName: string, followers: Array<string>, following: Array<string>, loggedIn: boolean, registered: boolean, uid: string, username: string|}>
 type _ChangedActivePayload = $ReadOnly<{|userActive: boolean|}>
 type _ChangedFocusPayload = $ReadOnly<{|appFocused: boolean|}>
 type _CheckForUpdatePayload = void
@@ -123,6 +125,10 @@ export const createOpenAppSettings = (payload: _OpenAppSettingsPayload) => ({pay
  */
 export const createDaemonHandshakeDone = (payload: _DaemonHandshakeDonePayload) => ({payload, type: daemonHandshakeDone})
 /**
+ * refresh stale bootstrap info
+ */
+export const createBootstrapRefresh = (payload: _BootstrapRefreshPayload) => ({payload, type: bootstrapRefresh})
+/**
  * someone wants to log out
  */
 export const createLogout = (payload: _LogoutPayload) => ({payload, type: logout})
@@ -171,6 +177,7 @@ export const createUpdateMenubarWindowID = (payload: _UpdateMenubarWindowIDPaylo
 export const createUpdateNow = (payload: _UpdateNowPayload) => ({payload, type: updateNow})
 
 // Action Payloads
+export type BootstrapRefreshPayload = {|+payload: _BootstrapRefreshPayload, +type: 'config:bootstrapRefresh'|}
 export type BootstrapStatusLoadedPayload = {|+payload: _BootstrapStatusLoadedPayload, +type: 'config:bootstrapStatusLoaded'|}
 export type ChangedActivePayload = {|+payload: _ChangedActivePayload, +type: 'config:changedActive'|}
 export type ChangedFocusPayload = {|+payload: _ChangedFocusPayload, +type: 'config:changedFocus'|}
@@ -214,6 +221,7 @@ export type UpdateNowPayload = {|+payload: _UpdateNowPayload, +type: 'config:upd
 // All Actions
 // prettier-ignore
 export type Actions =
+  | BootstrapRefreshPayload
   | BootstrapStatusLoadedPayload
   | ChangedActivePayload
   | ChangedFocusPayload

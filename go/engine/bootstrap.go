@@ -87,6 +87,7 @@ func (e *Bootstrap) Run(m libkb.MetaContext) error {
 			m.CWarningf("error running Tracker2Syncer (cached): %s", err)
 			return nil
 		}
+		e.status.Cached = true
 	}
 	e.usums = ts.Result()
 

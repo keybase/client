@@ -180,6 +180,7 @@ protocol config {
   record BootstrapStatus {
     boolean registered;     // true if signed up at some point
     boolean loggedIn;     // true if currently logged in
+    boolean cached;       // if this came from the cache
     UID uid;        // current logged in user's UID
     string username;      // current logged in user's username
     DeviceID deviceID;      // current logged in user's device ID

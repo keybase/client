@@ -466,6 +466,10 @@
           "name": "loggedIn"
         },
         {
+          "type": "boolean",
+          "name": "cached"
+        },
+        {
           "type": "UID",
           "name": "uid"
         },
