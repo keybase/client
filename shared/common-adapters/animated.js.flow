@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import * as Styles from '../styles'
+import type {_StylesCrossPlatform} from '../styles/css'
 
 type Config = {|
   clamp?: boolean,
@@ -15,7 +16,7 @@ type Config = {|
 |}
 
 export type Props = {|
-  children: any => React.Node,
+  children: _StylesCrossPlatform => React.Node,
   config?: Config | Function,
   delay?: number | Function,
   from: Styles.StylesCrossPlatform,
