@@ -360,6 +360,10 @@ type folderBranchOps struct {
 	cancelEditsLock sync.Mutex
 	// Cancels the goroutine currently waiting on edits
 	cancelEdits context.CancelFunc
+	// This channel gets created when chat monitoring starts, and
+	// closed when it ends, so we can avoid sending messages to the
+	// monitorer when they won't be read.
+	editMonitoringInProgress chan struct{}
 
 	branchChanges      kbfssync.RepeatedWaitGroup
 	mdFlushes          kbfssync.RepeatedWaitGroup
@@ -464,7 +468,7 @@ func newFolderBranchOps(
 		syncNeededChan:            make(chan struct{}, 1),
 		editHistory:               kbfsedits.NewTlfHistory(),
 		editChannels:              make(chan editChannelActivity, 100),
-		refreshEditHistoryChannel: make(chan struct{}),
+		refreshEditHistoryChannel: make(chan struct{}, 1),
 	}
 	fbo.prepper = folderUpdatePrepper{
 		config:       config,
@@ -772,7 +776,9 @@ func (fbo *folderBranchOps) startMonitorChat(tlfName tlf.CanonicalName) {
 	}
 
 	fbo.launchEditMonitor.Do(func() {
-		// The first event should initialize all the data.
+		// The first event should initialize all the data.  No need to
+		// check the monitoring channel here; we already know
+		// monitoring hasn't been started yet.
 		fbo.editActivity.Add(1)
 		fbo.editChannels <- editChannelActivity{nil, "", ""}
 		go fbo.monitorEditsChat(tlfName)
@@ -8359,14 +8365,33 @@ func (fbo *folderBranchOps) InvalidateNodeAndChildren(
 	return nil
 }
 
+func (fbo *folderBranchOps) getEditMonitoringChannel() <-chan struct{} {
+	fbo.cancelEditsLock.Lock()
+	defer fbo.cancelEditsLock.Unlock()
+	return fbo.editMonitoringInProgress
+}
+
 // NewNotificationChannel implements the KBFSOps interface for
 // folderBranchOps.
 func (fbo *folderBranchOps) NewNotificationChannel(
 	ctx context.Context, handle *TlfHandle, convID chat1.ConversationID,
 	channelName string) {
+	monitoringCh := fbo.getEditMonitoringChannel()
+	if monitoringCh == nil {
+		fbo.log.CDebugf(ctx,
+			"Ignoring new notification channel while edits are unmonitored")
+		return
+	}
+
 	fbo.log.CDebugf(ctx, "New notification channel: %s %s", convID, channelName)
 	fbo.editActivity.Add(1)
-	fbo.editChannels <- editChannelActivity{convID, channelName, ""}
+	select {
+	case fbo.editChannels <- editChannelActivity{convID, channelName, ""}:
+	case <-monitoringCh:
+		fbo.editActivity.Done()
+		fbo.log.CDebugf(ctx, "Edit monitoring stopped while trying to "+
+			"send new notification channel")
+	}
 }
 
 // PushConnectionStatusChange pushes human readable connection status changes.
@@ -8377,17 +8402,39 @@ func (fbo *folderBranchOps) PushConnectionStatusChange(service string, newStatus
 		return
 	}
 
-	if newStatus == nil {
-		fbo.log.CDebugf(nil, "Asking for an edit re-init after reconnection")
-		fbo.editActivity.Add(1)
-		fbo.editChannels <- editChannelActivity{nil, "", ""}
+	if newStatus != nil {
+		return
+	}
+
+	monitoringCh := fbo.getEditMonitoringChannel()
+	if monitoringCh == nil {
+		return
+	}
+
+	fbo.log.CDebugf(nil, "Asking for an edit re-init after reconnection")
+	fbo.editActivity.Add(1)
+	select {
+	case fbo.editChannels <- editChannelActivity{nil, "", ""}:
+	case <-monitoringCh:
+		fbo.editActivity.Done()
+		fbo.log.CDebugf(nil, "Edit monitoring stopped while trying to "+
+			"ask for a re-init")
 	}
 }
 
 func (fbo *folderBranchOps) receiveNewEditChat(
 	convID chat1.ConversationID, message string) {
+	monitoringCh := fbo.getEditMonitoringChannel()
+	if monitoringCh == nil {
+		return
+	}
+
 	fbo.editActivity.Add(1)
-	fbo.editChannels <- editChannelActivity{convID, "", message}
+	select {
+	case fbo.editChannels <- editChannelActivity{convID, "", message}:
+	case <-monitoringCh:
+		fbo.editActivity.Done()
+	}
 }
 
 func (fbo *folderBranchOps) initEditChatChannels(
@@ -8545,9 +8592,18 @@ func (fbo *folderBranchOps) monitorEditsChat(tlfName tlf.CanonicalName) {
 	defer cancelFunc()
 	fbo.log.CDebugf(ctx, "Starting kbfs-edits chat monitoring")
 
+	monitoringCh := make(chan struct{})
 	fbo.cancelEditsLock.Lock()
 	fbo.cancelEdits = cancelFunc
+	fbo.editMonitoringInProgress = monitoringCh
 	fbo.cancelEditsLock.Unlock()
+
+	defer func() {
+		fbo.cancelEditsLock.Lock()
+		fbo.editMonitoringInProgress = nil
+		close(monitoringCh)
+		fbo.cancelEditsLock.Unlock()
+	}()
 
 	idToName := make(map[string]string)
 	nameToID := make(map[string]chat1.ConversationID)
@@ -8570,6 +8626,7 @@ func (fbo *folderBranchOps) monitorEditsChat(tlfName tlf.CanonicalName) {
 				return
 			}
 		case <-ctx.Done():
+			fbo.log.CDebugf(ctx, "Chat monitoring was canceled")
 			return
 		}
 	}
