@@ -61,7 +61,7 @@ function* loadDaemonBootstrapStatus(state, action) {
     return
   }
 
-  function* makeCall(firstTimeConnecting) {
+  function* makeCall(actionType) {
     const s = yield* Saga.callPromise(RPCTypes.configGetBootstrapStatusRpcPromise)
     const loadedAction = ConfigGen.createBootstrapStatusLoaded({
       cached: s.cached,
@@ -78,7 +78,7 @@ function* loadDaemonBootstrapStatus(state, action) {
     yield Saga.put(loadedAction)
 
     // Make one more try at getting fresh bootstrap
-    if (loadedAction.payload.cached && firstTimeConnecting) {
+    if (loadedAction.payload.cached && actionType != ConfigGen.bootstrapRefresh) {
       yield Saga.put(ConfigGen.createBootstrapRefresh())
     }
 
@@ -106,7 +106,7 @@ function* loadDaemonBootstrapStatus(state, action) {
           version: action.payload.version,
         })
       )
-      yield* makeCall(action.payload.firstTimeConnecting)
+      yield* makeCall(action.type)
       yield Saga.put(
         ConfigGen.createDaemonHandshakeWait({
           increment: false,
@@ -120,7 +120,7 @@ function* loadDaemonBootstrapStatus(state, action) {
       // fallthrough
     case ConfigGen.loggedIn: // fallthrough
     case ConfigGen.loggedOut:
-      yield* makeCall(false)
+      yield* makeCall(action.type)
       break
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)
