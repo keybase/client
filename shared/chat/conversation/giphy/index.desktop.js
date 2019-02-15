@@ -76,10 +76,8 @@ const styles = Styles.styleSheetCreate({
   },
   poweredBy: {
     bottom: 0,
-    height: 25,
     position: 'absolute',
     right: 0,
-    width: 'auto',
   },
   scrollContainer: Styles.platformStyles({
     isElectron: {
