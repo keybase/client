@@ -707,6 +707,11 @@ func (f failingRemote) FailSharePost(ctx context.Context, _ chat1.FailSharePostA
 	return nil
 }
 
+func (f failingRemote) ServerNow(ctx context.Context) (res chat1.ServerNowRes, err error) {
+	require.Fail(f.t, "ServerNow")
+	return res, nil
+}
+
 func (f failingRemote) BroadcastGregorMessageToConv(ctx context.Context,
 	arg chat1.BroadcastGregorMessageToConvArg) error {
 	require.Fail(f.t, "BroadcastGregorMessageToConv")

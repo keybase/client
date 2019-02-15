@@ -609,6 +609,23 @@
           "name": "expunge"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "ServerNowRes",
+      "fields": [
+        {
+          "type": [
+            null,
+            "RateLimit"
+          ],
+          "name": "rateLimit"
+        },
+        {
+          "type": "gregor1.Time",
+          "name": "now"
+        }
+      ]
     }
   ],
   "messages": {
@@ -1212,6 +1229,10 @@
         }
       ],
       "response": null
+    },
+    "serverNow": {
+      "request": [],
+      "response": "ServerNowRes"
     }
   },
   "namespace": "chat.1",
