@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import BetaNote from './beta-note'
 import Header from './header'
-import TeamList from './team-list'
+import TeamList from '.'
 import {Box} from '../../common-adapters'
 
 const teamnames = ['stripe', 'stripe.usa', 'techtonica']
