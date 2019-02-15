@@ -34,6 +34,12 @@
         <intent-filter>
           <action android:name="android.intent.action.SEND" />
           <category android:name="android.intent.category.DEFAULT" />
+          <data android:mimeType="text/*" />
+        </intent-filter>
+        <!--
+        <intent-filter>
+          <action android:name="android.intent.action.SEND" />
+          <category android:name="android.intent.category.DEFAULT" />
           <data android:mimeType="image/*" />
         </intent-filter>
         <intent-filter>
@@ -52,15 +58,11 @@
           <data android:mimeType="application/*" />
         </intent-filter>
         <intent-filter>
-          <action android:name="android.intent.action.SEND" />
-          <category android:name="android.intent.category.DEFAULT" />
-          <data android:mimeType="text/*" />
-        </intent-filter>
-        <intent-filter>
           <action android:name="android.intent.action.SEND_MULTIPLE" />
           <category android:name="android.intent.category.DEFAULT" />
           <data android:mimeType="image/*" />
         </intent-filter>
+        -->
       </activity>
       <activity android:name="com.facebook.react.devsupport.DevSettingsActivity" />
 
