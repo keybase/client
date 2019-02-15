@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as Constants from '../../constants/tracker'
 import * as Types from '../../constants/types/tracker2'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
@@ -267,12 +268,12 @@ const getMenu = p => {
             fontSize={Styles.isMobile ? 64 : 48}
             type={siteIcon(p.type)}
             onClick={p.onShowSite}
-            color={Styles.globalColors.black_75}
+            color={Styles.globalColors.black}
           />
         </Kb.Box2>
       ),
     },
-    items: [{onClick: p.onShowProof, title: `View ${p.type === 'btc' ? 'signature' : 'proof'}`}, onRevoke],
+    items: [{onClick: p.onShowProof, title: `View ${Constants.proofTypeToDesc(p.type)}`}, onRevoke],
   }
 }
 
@@ -306,7 +307,7 @@ class Assertion extends React.PureComponent<Props, State> {
           <Kb.Icon
             type={siteIcon(p.type)}
             onClick={p.onCreateProof || p.onShowSite}
-            color={p.isSuggestion ? Styles.globalColors.black_50 : Styles.globalColors.black_75}
+            color={p.isSuggestion ? Styles.globalColors.black_50 : Styles.globalColors.black}
           />
           <Kb.Text type="Body" style={styles.textContainer}>
             <Value {...p} />

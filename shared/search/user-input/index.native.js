@@ -265,7 +265,7 @@ const _pillTextStyle = platformStyles({
 const _inputStyle = platformStyles({
   isMobile: {
     ...getTextStyle('BodySemibold'),
-    color: globalColors.black_75,
+    color: globalColors.black,
     fontWeight: '600',
     height: 23,
     lineHeight: 21,

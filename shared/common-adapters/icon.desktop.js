@@ -42,7 +42,7 @@ class Icon extends Component<Props, void> {
       hoverColor =
         this.props.hoverColor ||
         hoverColor ||
-        (this.props.opacity ? Styles.globalColors.black : Styles.globalColors.black_75)
+        (this.props.opacity ? Styles.globalColors.black : Styles.globalColors.black)
     }
 
     const isFontIcon = iconMeta[iconType].isFont

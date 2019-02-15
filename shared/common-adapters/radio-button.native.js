@@ -47,7 +47,7 @@ const RadioButton = ({disabled, label, onSelect, selected, style}: Props) => (
       <RadioInnerCircle selected={selected} />
     </RadioOuterCircle>
 
-    <Text type="Body" style={{color: Styles.globalColors.black_75}}>
+    <Text type="Body" style={{color: Styles.globalColors.black}}>
       {label}
     </Text>
   </ClickableBox>

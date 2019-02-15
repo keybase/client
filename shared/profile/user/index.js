@@ -426,7 +426,7 @@ const styles = Styles.styleSheetCreate({
     borderBottomColor: Styles.globalColors.blue,
   },
   followTabText: {color: Styles.globalColors.black_60},
-  followTabTextSelected: {color: Styles.globalColors.black_75},
+  followTabTextSelected: {color: Styles.globalColors.black},
   friendRow: Styles.platformStyles({
     common: {
       marginTop: Styles.globalMargins.tiny,
@@ -490,7 +490,7 @@ const styles = Styles.styleSheetCreate({
     common: {backgroundColor: Styles.globalColors.white, paddingBottom: Styles.globalMargins.xtiny},
     isMobile: {minHeight: '100%'},
   }),
-  teamLink: {color: Styles.globalColors.black_75},
+  teamLink: {color: Styles.globalColors.black},
   teamShowcase: {alignItems: 'center'},
   teamShowcases: {
     flexShrink: 0,

@@ -82,7 +82,7 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
         <Icon style={styles.headerIcon} type={headerIconType} />
         <Box2 direction="vertical" style={styles.messageInfoContainer}>
           <Box2 direction="vertical">
-            <Text type="BodySmall" style={{color: Styles.globalColors.black_75}}>
+            <Text type="BodySmall" style={{color: Styles.globalColors.black}}>
               EXPLODING MESSAGE
             </Text>
           </Box2>
@@ -131,7 +131,7 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
               backgroundColor:
                 this.state.secondsLeft < oneMinuteInS
                   ? Styles.globalColors.red
-                  : Styles.globalColors.black_75,
+                  : Styles.globalColors.black,
             },
           ])}
         >

@@ -117,7 +117,7 @@ const styleLabel = {
 
 const styleText = {
   ...styleLabel,
-  color: globalColors.black_75,
+  color: globalColors.black,
   marginTop: globalMargins.xtiny,
 }
 

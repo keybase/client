@@ -47,7 +47,7 @@ export type Props = {|
   onSelectDown: () => void,
   onUntrustedInboxVisible: (conversationIDKeys: Array<ConversationIDKey>) => void,
   rows: Array<RowItem>,
-  selectedIndex: number,
+  selectedConversationIDKey: ConversationIDKey,
   smallTeamsExpanded: boolean,
   toggleSmallTeamsExpanded: () => void,
 |}
