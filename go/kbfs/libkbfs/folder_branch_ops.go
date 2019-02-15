@@ -357,7 +357,7 @@ type folderBranchOps struct {
 	editChannels              chan editChannelActivity
 	refreshEditHistoryChannel chan struct{}
 
-	cancelEditsLock sync.Mutex
+	editsLock sync.Mutex
 	// Cancels the goroutine currently waiting on edits
 	cancelEdits context.CancelFunc
 	// This channel gets created when chat monitoring starts, and
@@ -7946,8 +7946,8 @@ func (fbo *folderBranchOps) ClearPrivateFolderMD(ctx context.Context) {
 		// Cancel the edits goroutine and forget the old history, evem
 		// for public folders, since some of the state in the history
 		// is dependent on your login state.
-		fbo.cancelEditsLock.Lock()
-		defer fbo.cancelEditsLock.Unlock()
+		fbo.editsLock.Lock()
+		defer fbo.editsLock.Unlock()
 		if fbo.cancelEdits != nil {
 			fbo.cancelEdits()
 			fbo.cancelEdits = nil
@@ -8366,8 +8366,8 @@ func (fbo *folderBranchOps) InvalidateNodeAndChildren(
 }
 
 func (fbo *folderBranchOps) getEditMonitoringChannel() <-chan struct{} {
-	fbo.cancelEditsLock.Lock()
-	defer fbo.cancelEditsLock.Unlock()
+	fbo.editsLock.Lock()
+	defer fbo.editsLock.Unlock()
 	return fbo.editMonitoringInProgress
 }
 
@@ -8593,16 +8593,16 @@ func (fbo *folderBranchOps) monitorEditsChat(tlfName tlf.CanonicalName) {
 	fbo.log.CDebugf(ctx, "Starting kbfs-edits chat monitoring")
 
 	monitoringCh := make(chan struct{})
-	fbo.cancelEditsLock.Lock()
+	fbo.editsLock.Lock()
 	fbo.cancelEdits = cancelFunc
 	fbo.editMonitoringInProgress = monitoringCh
-	fbo.cancelEditsLock.Unlock()
+	fbo.editsLock.Unlock()
 
 	defer func() {
-		fbo.cancelEditsLock.Lock()
+		fbo.editsLock.Lock()
 		fbo.editMonitoringInProgress = nil
+		fbo.editsLock.Unlock()
 		close(monitoringCh)
-		fbo.cancelEditsLock.Unlock()
 	}()
 
 	idToName := make(map[string]string)
