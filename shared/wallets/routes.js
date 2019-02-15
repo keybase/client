@@ -100,10 +100,21 @@ const routeTree = () => {
   // navigate by tapping on the wallet name which brings up a
   // switcher. On desktop, we use a wallet list component and we don't
   // have a wallet switcher tied to the name.
-  return makeRouteDefNode({
-    children: walletChildren,
-    component: isMobile ? Wallet : WalletsAndDetails,
-  })
+  return isMobile
+    ? makeRouteDefNode({
+        children: walletChildren,
+        component: Wallet,
+      })
+    : makeRouteDefNode({
+        children: {
+          wallet: {
+            children: walletChildren,
+            component: Wallet,
+          },
+        },
+        containerComponent: WalletsAndDetails,
+        defaultSelected: 'wallet',
+      })
 }
 
 export default routeTree
@@ -148,8 +159,6 @@ class WalletsSubNav extends React.PureComponent<any> {
     )
   }
 }
-// const mockRouteLeafTag = {isModal: false}
-// const mockRoutePath = I.List()
 
 export const newRoutes = {
   'tabs:walletsTab': {
