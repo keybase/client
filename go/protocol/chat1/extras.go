@@ -1244,8 +1244,12 @@ func (c Conversation) MaxVisibleMsgID() MessageID {
 }
 
 func (c Conversation) IsUnread() bool {
+	return c.IsUnreadFromMsgID(c.ReaderInfo.ReadMsgid)
+}
+
+func (c Conversation) IsUnreadFromMsgID(readMsgID MessageID) bool {
 	maxMsgID := c.MaxVisibleMsgID()
-	return maxMsgID > 0 && maxMsgID > c.ReaderInfo.ReadMsgid
+	return maxMsgID > 0 && maxMsgID > readMsgID
 }
 
 func (c Conversation) HasMemberStatus(status ConversationMemberStatus) bool {
