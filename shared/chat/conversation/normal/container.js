@@ -86,11 +86,23 @@ export default compose(
     mergeProps
   ),
   withStateHandlers(
-    {focusInputCounter: 0, scrollListDownCounter: 0, scrollListUpCounter: 0},
+    {
+      focusInputCounter: 0,
+      scrollListBottomCounter: 0,
+      scrollListDownCounter: 0,
+      scrollListTopCounter: 0,
+      scrollListUpCounter: 0,
+    },
     {
       onFocusInput: ({focusInputCounter}) => () => ({focusInputCounter: focusInputCounter + 1}),
+      onRequestScrollBottom: ({scrollListBottomCounter}) => () => ({
+        scrollListBottomCounter: scrollListBottomCounter + 1,
+      }),
       onRequestScrollDown: ({scrollListDownCounter}) => () => ({
         scrollListDownCounter: scrollListDownCounter + 1,
+      }),
+      onRequestScrollTop: ({scrollListTopCounter}) => () => ({
+        scrollListTopCounter: scrollListTopCounter + 1,
       }),
       onRequestScrollUp: ({scrollListUpCounter}) => () => ({scrollListUpCounter: scrollListUpCounter + 1}),
     }

@@ -48,7 +48,9 @@ const props = {
   lastLoadMoreOrdinal: null,
   lastMessageIsOurs: false,
   onFocusInput: Sb.action('onFocusInput'),
+  scrollListBottomCounter: 0,
   scrollListDownCounter: 0,
+  scrollListTopCounter: 0,
   scrollListUpCounter: 0,
 }
 
