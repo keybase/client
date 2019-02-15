@@ -1293,7 +1293,7 @@ func TestCRDoActionsSimple(t *testing.T) {
 	}
 
 	lbc := make(localBcache)
-	newFileBlocks := make(fileBlockMap)
+	newFileBlocks := newFileBlockMapMemory()
 	dirtyBcache := simpleDirtyBlockCacheStandard()
 	err = cr2.doActions(ctx, lState, unmergedChains, mergedChains,
 		unmergedPaths, mergedPaths, actionMap, lbc, newFileBlocks, dirtyBcache)
@@ -1315,7 +1315,7 @@ func TestCRDoActionsSimple(t *testing.T) {
 			t.Errorf("Couldn't find entry in merged children: %s", file)
 		}
 	}
-	if len(newFileBlocks) != 0 {
+	if len(newFileBlocks.blocks) != 0 {
 		t.Errorf("Unexpected new file blocks!")
 	}
 }
@@ -1416,7 +1416,7 @@ func TestCRDoActionsWriteConflict(t *testing.T) {
 	}
 
 	lbc := make(localBcache)
-	newFileBlocks := make(fileBlockMap)
+	newFileBlocks := newFileBlockMapMemory()
 	dirtyBcache := simpleDirtyBlockCacheStandard()
 	err = cr2.doActions(ctx, lState, unmergedChains, mergedChains,
 		unmergedPaths, mergedPaths, actionMap, lbc, newFileBlocks, dirtyBcache)
@@ -1428,10 +1428,10 @@ func TestCRDoActionsWriteConflict(t *testing.T) {
 	mergedRootPath := cr1.fbo.nodeCache.PathFromNode(dir1)
 	cre := WriterDeviceDateConflictRenamer{}
 	mergedName := cre.ConflictRenameHelper(now, "u2", "dev1", "file")
-	if len(newFileBlocks) != 1 {
+	if len(newFileBlocks.blocks) != 1 {
 		t.Errorf("Unexpected new file blocks!")
 	}
-	if blocks, ok := newFileBlocks[mergedRootPath.tailPointer()]; !ok {
+	if blocks, ok := newFileBlocks.blocks[mergedRootPath.tailPointer()]; !ok {
 		t.Errorf("No blocks for dir merged ptr: %v",
 			mergedRootPath.tailPointer())
 	} else if len(blocks) != 1 {

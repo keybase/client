@@ -50,7 +50,7 @@ function SettingsNav(props: Props) {
       <SettingsItem text="Sign out" selected={false} onClick={props.onLogout} />
       {__DEV__ && (
         <SettingsItem
-          text="😎 &nbsp; Dev Menu"
+          text="😎 &nbsp; Dev menu"
           selected={props.selectedTab === Constants.devMenuTab}
           onClick={() => props.onTabChange(Constants.devMenuTab)}
         />

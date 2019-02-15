@@ -350,9 +350,9 @@ func TestSyncerNeverJoined(t *testing.T) {
 		syncer2.isConnected = true
 
 		listener1 := newServerChatListener()
-		g1.NotifyRouter.SetListener(listener1)
+		g1.NotifyRouter.AddListener(listener1)
 		listener2 := newServerChatListener()
-		g2.NotifyRouter.SetListener(listener2)
+		g2.NotifyRouter.AddListener(listener2)
 		t.Logf("u0: %s, u1: %s", users[0].GetUID(), users[1].GetUID())
 
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt,

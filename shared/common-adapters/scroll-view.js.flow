@@ -8,6 +8,9 @@ export type Props = {|
   style?: StylesCrossPlatform,
   onScroll?: ?Function,
 
+  // desktop only
+  hideVerticalScroll?: boolean,
+
   // mobile only
   bounces?: boolean,
   centerContent?: boolean,

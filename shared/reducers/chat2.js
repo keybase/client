@@ -912,6 +912,13 @@ const rootReducer = (
         return state.update('explodingModeLocks', el => el.delete(conversationIDKey))
       }
       return alreadyLocked ? state : state.setIn(['explodingModeLocks', conversationIDKey], mode)
+    case Chat2Gen.giphySend: {
+      let nextState = state
+      nextState = nextState.setIn(['giphyResultMap', action.payload.conversationIDKey], [])
+      return nextState.update('unsentTextMap', old =>
+        old.setIn([action.payload.conversationIDKey], new HiddenString(''))
+      )
+    }
     case Chat2Gen.setUnsentText:
       return state.update('unsentTextMap', old =>
         old.setIn([action.payload.conversationIDKey], action.payload.text)
@@ -919,7 +926,8 @@ const rootReducer = (
     case Chat2Gen.staticConfigLoaded:
       return state.set('staticConfig', action.payload.staticConfig)
     case Chat2Gen.metasReceived: {
-      const nextState = action.payload.fromInboxRefresh ? state.set('inboxHasLoaded', true) : state
+      let nextState = action.payload.fromInboxRefresh ? state.set('inboxHasLoaded', true) : state
+      nextState = action.payload.initialTrustedLoad ? state.set('trustedInboxHasLoaded', true) : state
       return nextState.withMutations(s => {
         s.set('metaMap', metaMapReducer(state.metaMap, action))
         s.set('messageMap', messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal))
@@ -1037,7 +1045,6 @@ const rootReducer = (
     case Chat2Gen.prepareFulfillRequestForm:
     case Chat2Gen.unfurlResolvePrompt:
     case Chat2Gen.unfurlRemove:
-    case Chat2Gen.giphySend:
     case Chat2Gen.unsentTextChanged:
     case Chat2Gen.confirmScreenResponse:
     case Chat2Gen.toggleMessageCollapse:

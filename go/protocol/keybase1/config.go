@@ -78,6 +78,20 @@ func (o ClientDetails) DeepCopy() ClientDetails {
 	}
 }
 
+type ClientStatus struct {
+	Details              ClientDetails        `codec:"details" json:"details"`
+	ConnectionID         int                  `codec:"connectionID" json:"connectionID"`
+	NotificationChannels NotificationChannels `codec:"notificationChannels" json:"notificationChannels"`
+}
+
+func (o ClientStatus) DeepCopy() ClientStatus {
+	return ClientStatus{
+		Details:              o.Details.DeepCopy(),
+		ConnectionID:         o.ConnectionID,
+		NotificationChannels: o.NotificationChannels.DeepCopy(),
+	}
+}
+
 type PlatformInfo struct {
 	Os        string `codec:"os" json:"os"`
 	OsVersion string `codec:"osVersion" json:"osVersion"`
@@ -106,29 +120,45 @@ func (o LoadDeviceErr) DeepCopy() LoadDeviceErr {
 	}
 }
 
+type DirSizeInfo struct {
+	NumFiles  int    `codec:"numFiles" json:"numFiles"`
+	Name      string `codec:"name" json:"name"`
+	HumanSize string `codec:"humanSize" json:"humanSize"`
+}
+
+func (o DirSizeInfo) DeepCopy() DirSizeInfo {
+	return DirSizeInfo{
+		NumFiles:  o.NumFiles,
+		Name:      o.Name,
+		HumanSize: o.HumanSize,
+	}
+}
+
 type ExtendedStatus struct {
-	Standalone             bool            `codec:"standalone" json:"standalone"`
-	PassphraseStreamCached bool            `codec:"passphraseStreamCached" json:"passphraseStreamCached"`
-	TsecCached             bool            `codec:"tsecCached" json:"tsecCached"`
-	DeviceSigKeyCached     bool            `codec:"deviceSigKeyCached" json:"deviceSigKeyCached"`
-	DeviceEncKeyCached     bool            `codec:"deviceEncKeyCached" json:"deviceEncKeyCached"`
-	PaperSigKeyCached      bool            `codec:"paperSigKeyCached" json:"paperSigKeyCached"`
-	PaperEncKeyCached      bool            `codec:"paperEncKeyCached" json:"paperEncKeyCached"`
-	StoredSecret           bool            `codec:"storedSecret" json:"storedSecret"`
-	SecretPromptSkip       bool            `codec:"secretPromptSkip" json:"secretPromptSkip"`
-	RememberPassphrase     bool            `codec:"rememberPassphrase" json:"rememberPassphrase"`
-	Device                 *Device         `codec:"device,omitempty" json:"device,omitempty"`
-	DeviceErr              *LoadDeviceErr  `codec:"deviceErr,omitempty" json:"deviceErr,omitempty"`
-	LogDir                 string          `codec:"logDir" json:"logDir"`
-	Session                *SessionStatus  `codec:"session,omitempty" json:"session,omitempty"`
-	DefaultUsername        string          `codec:"defaultUsername" json:"defaultUsername"`
-	ProvisionedUsernames   []string        `codec:"provisionedUsernames" json:"provisionedUsernames"`
-	Clients                []ClientDetails `codec:"Clients" json:"Clients"`
-	DeviceEkNames          []string        `codec:"deviceEkNames" json:"deviceEkNames"`
-	PlatformInfo           PlatformInfo    `codec:"platformInfo" json:"platformInfo"`
-	DefaultDeviceID        DeviceID        `codec:"defaultDeviceID" json:"defaultDeviceID"`
-	LocalDbStats           []string        `codec:"localDbStats" json:"localDbStats"`
-	LocalChatDbStats       []string        `codec:"localChatDbStats" json:"localChatDbStats"`
+	Standalone             bool           `codec:"standalone" json:"standalone"`
+	PassphraseStreamCached bool           `codec:"passphraseStreamCached" json:"passphraseStreamCached"`
+	TsecCached             bool           `codec:"tsecCached" json:"tsecCached"`
+	DeviceSigKeyCached     bool           `codec:"deviceSigKeyCached" json:"deviceSigKeyCached"`
+	DeviceEncKeyCached     bool           `codec:"deviceEncKeyCached" json:"deviceEncKeyCached"`
+	PaperSigKeyCached      bool           `codec:"paperSigKeyCached" json:"paperSigKeyCached"`
+	PaperEncKeyCached      bool           `codec:"paperEncKeyCached" json:"paperEncKeyCached"`
+	StoredSecret           bool           `codec:"storedSecret" json:"storedSecret"`
+	SecretPromptSkip       bool           `codec:"secretPromptSkip" json:"secretPromptSkip"`
+	RememberPassphrase     bool           `codec:"rememberPassphrase" json:"rememberPassphrase"`
+	Device                 *Device        `codec:"device,omitempty" json:"device,omitempty"`
+	DeviceErr              *LoadDeviceErr `codec:"deviceErr,omitempty" json:"deviceErr,omitempty"`
+	LogDir                 string         `codec:"logDir" json:"logDir"`
+	Session                *SessionStatus `codec:"session,omitempty" json:"session,omitempty"`
+	DefaultUsername        string         `codec:"defaultUsername" json:"defaultUsername"`
+	ProvisionedUsernames   []string       `codec:"provisionedUsernames" json:"provisionedUsernames"`
+	Clients                []ClientStatus `codec:"Clients" json:"Clients"`
+	DeviceEkNames          []string       `codec:"deviceEkNames" json:"deviceEkNames"`
+	PlatformInfo           PlatformInfo   `codec:"platformInfo" json:"platformInfo"`
+	DefaultDeviceID        DeviceID       `codec:"defaultDeviceID" json:"defaultDeviceID"`
+	LocalDbStats           []string       `codec:"localDbStats" json:"localDbStats"`
+	LocalChatDbStats       []string       `codec:"localChatDbStats" json:"localChatDbStats"`
+	CacheDirSizeInfo       []DirSizeInfo  `codec:"cacheDirSizeInfo" json:"cacheDirSizeInfo"`
+	UiRouterMapping        map[string]int `codec:"uiRouterMapping" json:"uiRouterMapping"`
 }
 
 func (o ExtendedStatus) DeepCopy() ExtendedStatus {
@@ -177,11 +207,11 @@ func (o ExtendedStatus) DeepCopy() ExtendedStatus {
 			}
 			return ret
 		})(o.ProvisionedUsernames),
-		Clients: (func(x []ClientDetails) []ClientDetails {
+		Clients: (func(x []ClientStatus) []ClientStatus {
 			if x == nil {
 				return nil
 			}
-			ret := make([]ClientDetails, len(x))
+			ret := make([]ClientStatus, len(x))
 			for i, v := range x {
 				vCopy := v.DeepCopy()
 				ret[i] = vCopy
@@ -223,6 +253,29 @@ func (o ExtendedStatus) DeepCopy() ExtendedStatus {
 			}
 			return ret
 		})(o.LocalChatDbStats),
+		CacheDirSizeInfo: (func(x []DirSizeInfo) []DirSizeInfo {
+			if x == nil {
+				return nil
+			}
+			ret := make([]DirSizeInfo, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.CacheDirSizeInfo),
+		UiRouterMapping: (func(x map[string]int) map[string]int {
+			if x == nil {
+				return nil
+			}
+			ret := make(map[string]int, len(x))
+			for k, v := range x {
+				kCopy := k
+				vCopy := v
+				ret[kCopy] = vCopy
+			}
+			return ret
+		})(o.UiRouterMapping),
 	}
 }
 

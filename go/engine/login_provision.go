@@ -518,6 +518,7 @@ func (e *loginProvision) deviceName(m libkb.MetaContext) (string, error) {
 			arg.ErrorMessage = "Invalid device name. Device names should be " + libkb.CheckDeviceName.Hint
 			continue
 		}
+		devname = libkb.CheckDeviceName.Transform(devname)
 		duplicate := false
 		for _, name := range names {
 			if devname == name {

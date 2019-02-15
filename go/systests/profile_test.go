@@ -89,8 +89,8 @@ func TestProofSuggestions(t *testing.T) {
 		}, {
 			Key:           "theqrl.org",
 			BelowFold:     true,
-			ProfileText:   "Prove your Quantum Resistant Ledger",
-			PickerText:    "Quantum Resistant Ledger",
+			ProfileText:   "Prove your theqrl.org",
+			PickerText:    "theqrl.org",
 			PickerSubtext: "theqrl.org",
 		}}}
 	require.Equal(t, expected.ShowMore, res.ShowMore)

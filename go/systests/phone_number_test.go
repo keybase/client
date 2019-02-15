@@ -155,7 +155,7 @@ func setupUserWithMockListener(user *userPlusDevice) *mockListener {
 		supersededPhones: []keybase1.PhoneNumber(nil),
 	}
 	user.tc.G.SetService()
-	user.tc.G.NotifyRouter.SetListener(userListener)
+	user.tc.G.NotifyRouter.AddListener(userListener)
 	return userListener
 }
 

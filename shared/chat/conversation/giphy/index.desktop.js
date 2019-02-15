@@ -57,7 +57,7 @@ class GiphySearch extends React.Component<Props, State> {
             </Kb.Box2>
           )}
         </div>
-        <Kb.Image src={resolveImageAsURL('', poweredByImg)} style={styles.poweredBy} />
+        <Kb.Image src={poweredByImg} style={styles.poweredBy} />
       </Kb.Box>
     )
   }
@@ -67,6 +67,7 @@ const styles = Styles.styleSheetCreate({
   container: {
     flexWrap: 'wrap',
     justifyContent: 'flex-start',
+    minHeight: 200,
   },
   image: {
     borderRadius: 0,
@@ -88,13 +89,15 @@ const styles = Styles.styleSheetCreate({
     justifyContent: 'center',
   },
   outerContainer: {
+    marginLeft: 15,
+    marginRight: 15,
     position: 'relative',
   },
   poweredBy: {
     bottom: 0,
     height: 25,
     position: 'absolute',
-    right: 15,
+    right: 0,
     width: 'auto',
   },
   scrollContainer: Styles.platformStyles({

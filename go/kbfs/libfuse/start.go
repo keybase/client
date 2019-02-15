@@ -122,7 +122,7 @@ func Start(options StartOptions, kbCtx libkbfs.Context) *libfs.Error {
 		if err != nil {
 			return libfs.InitError(err.Error())
 		}
-		info := libkb.NewServiceInfo(libkbfs.Version, libkbfs.PrereleaseBuild, options.Label, os.Getpid())
+		info := libkb.NewServiceInfo(libkb.Version, libkbfs.PrereleaseBuild, options.Label, os.Getpid())
 		err = info.WriteFile(path.Join(options.RuntimeDir, "kbfs.info"), log)
 		if err != nil {
 			return libfs.InitError(err.Error())

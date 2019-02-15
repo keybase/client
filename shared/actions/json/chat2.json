@@ -118,7 +118,8 @@
       "clearExistingMetas?": "boolean", // If true, clear out the existing metaMap before inserting
       "clearExistingMessages?": "boolean", // If true, clear out any message data we already have.
       "fromExpunge?": "boolean", // If true, use meta updating logic for retention policy deletes
-      "fromInboxRefresh?": "boolean" // If true from an inbox refresh
+      "fromInboxRefresh?": "boolean", // If true from an inbox refresh
+      "initialTrustedLoad?": "boolean" // If true this is the first trusted inbox load
     },
     // Got some inbox errors
     "metaReceivedError": {

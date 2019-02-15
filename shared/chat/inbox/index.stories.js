@@ -340,9 +340,11 @@ const getPropProviderProps = own => {
  */
 const propsInboxCommon = {
   allowShowFloatingButton: false,
+  clearedFilterCount: 0,
   focusFilter: () => {},
   filter: '',
   filterFocusCount: 0,
+  filterHasFocus: false,
   neverLoaded: false,
   nowOverride: 0, // just for dumb rendering
   onNewChat: Sb.action('onNewChat'),
@@ -351,6 +353,7 @@ const propsInboxCommon = {
   onSelectDown: Sb.action('onSelectDown'),
   onEnsureSelection: Sb.action('onEnsureSelection'),
   rows: [],
+  selectedIndex: -1,
   smallTeamsExpanded: false,
   toggleSmallTeamsExpanded: Sb.action('toggleSmallTeamsExpanded'),
 }

@@ -5,7 +5,7 @@ import {Button, Text, Box} from '../../common-adapters'
 import {type UploadProps} from './upload'
 import {NativeAnimated, NativeEasing} from '../../common-adapters/native-wrappers.native'
 
-const patternRequire = require('../../images/upload-pattern-2-600.png')
+const patternRequire = require('../../images/upload-pattern-2-80.png')
 
 type UploadState = {
   backgroundTop: NativeAnimated.AnimatedValue,
@@ -86,6 +86,15 @@ class Upload extends React.PureComponent<UploadProps, UploadState> {
 
   componentDidMount() {
     this._mounted = true
+    if (this.props.showing) {
+      // Need this to make sure we are showing the animation if upload started
+      // before we are mounted. This could happen when we already have the bar
+      // present, and user goes into next level folder which isn't mounted. So
+      // that component will never get a componentDidUpdate where prevProps is
+      // not showing but current is, thus never calls _enter(). So just call it
+      // here to make sure we do show the bar.
+      this._enter()
+    }
   }
 
   componentDidUpdate(prevProps: UploadProps) {
@@ -113,6 +122,7 @@ class Upload extends React.PureComponent<UploadProps, UploadState> {
           <NativeAnimated.View style={{position: 'relative', top: this.state.uploadTop}}>
             <Box style={stylesBackgroundBox}>
               <NativeAnimated.Image
+                resizeMode="repeat"
                 source={patternRequire}
                 style={{...stylesBackgroundImage, marginTop: this.state.backgroundTop}}
               />

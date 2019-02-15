@@ -15,13 +15,6 @@ import UploadingRow from './uploading'
 import {commonProvider} from '../common/index.stories'
 
 export const rowsProvider = {
-  ConnectedFilesLoadingHoc: (o: any) => ({
-    ...o,
-    loadFavorites: Sb.action('loadFavorites'),
-    loadFolderList: Sb.action('loadFolderList'),
-    path: '',
-    syncingPaths: Sb.action('syncingPaths'),
-  }),
   ConnectedOpenHOC: (ownProps: any) => ({
     ...ownProps,
     onOpen: Sb.action('onOpen'),
@@ -65,6 +58,11 @@ export const rowsProvider = {
       type: 'folder',
     }
   },
+  LoadFilesWhenNeeded: ({path}: any) => ({
+    loadFavorites: Sb.action('loadFavorites'),
+    loadFolderList: Sb.action('loadFolderList'),
+    path,
+  }),
   SortBar: ({path}: {path: Types.Path}) => ({
     folderIsPending: true,
     sortSetting: {
@@ -139,7 +137,6 @@ const load = () =>
             name="foo"
             writingToJournal={true}
             syncing={false}
-            error={false}
           />
         </WrapRow>
         <WrapRow key="7">
@@ -149,7 +146,6 @@ const load = () =>
             name="foo"
             writingToJournal={true}
             syncing={false}
-            error={false}
           />
         </WrapRow>
         <WrapRow key="8">
@@ -159,7 +155,6 @@ const load = () =>
             name="foo"
             writingToJournal={true}
             syncing={true}
-            error={false}
           />
         </WrapRow>
         <WrapRow key="9">
@@ -169,7 +164,6 @@ const load = () =>
             name="foo"
             writingToJournal={false}
             syncing={true}
-            error={false}
           />
         </WrapRow>
         <WrapRow key="10">
@@ -179,7 +173,6 @@ const load = () =>
             name="foo"
             writingToJournal={false}
             syncing={false}
-            error={false}
           />
         </WrapRow>
         <WrapRow key="11">
@@ -189,7 +182,7 @@ const load = () =>
             name="foo"
             writingToJournal={false}
             syncing={false}
-            error={true}
+            errorRetry={Sb.action('errorRetry')}
           />
         </WrapRow>
         <WrapRow key="download-normal">

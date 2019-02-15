@@ -89,7 +89,13 @@ function* inboxRefresh(state, action) {
       .filter(Boolean)
     // Check if some of our existing stored metas might no longer be valid
     return Saga.put(
-      Chat2Gen.createMetasReceived({clearExistingMessages, clearExistingMetas, fromInboxRefresh: true, metas})
+      Chat2Gen.createMetasReceived({
+        clearExistingMessages,
+        clearExistingMetas,
+        fromInboxRefresh: true,
+        initialTrustedLoad: reason === 'initialTrustedLoad',
+        metas,
+      })
     )
   }
 
@@ -2558,10 +2564,7 @@ const onGiphyResults = (state, action) => {
 
 const giphySend = (state, action) => {
   const {conversationIDKey, url} = action.payload
-  return [
-    Chat2Gen.createSetUnsentText({conversationIDKey, text: new HiddenString('')}),
-    Chat2Gen.createMessageSend({conversationIDKey, text: url}),
-  ]
+  return Chat2Gen.createMessageSend({conversationIDKey, text: url})
 }
 
 const openChatFromWidget = (state, {payload: {conversationIDKey}}) => [

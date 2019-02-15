@@ -1,6 +1,8 @@
-
 @namespace("keybase.1")
 protocol proveUi {
+  // UI for creating new proofs. Started by prove.startProof.
+  // Used by GUI and CLI.
+
   import idl "common.avdl";
 
   enum PromptOverwriteType {
@@ -8,11 +10,49 @@ protocol proveUi {
     SITE_1
   }
 
+  // Only present for parameterized proofs.
+  record ProveParameters {
+    array<SizedImage> logoFull;
+    array<SizedImage> logoBlack;
+    string title;
+    string subtext;
+    string suffix; // Example: "@boardgames.social"
+    string buttonLabel; // Example: "Authorize on boardgames.social"
+  }
+
+  // An existing proof exists that would be overridden.
+  // Returns whether to continue.
   boolean promptOverwrite(int sessionID, string account, PromptOverwriteType typ);
-  string promptUsername(int sessionID, string prompt, union {null, Status } prevError);
+
+  // Prompt for the username or website domain.
+  string promptUsername(int sessionID,
+    string prompt,
+    union {null, Status } prevError,
+    union {null, ProveParameters} parameters);
+
+  // Output from pre-checks before creating sig.
+  // Used to report bad HN karma before flunking the prove.
   void outputPrechecks(int sessionID, Text text);
+
+  // Another warning and prompt.
+  // Auto-accepted by gui.
+  // Used by web proofs.
   boolean preProofWarning(int sessionID, Text text);
-  void outputInstructions(int sessionID, Text instructions, string proof);
+
+  void outputInstructions(int sessionID,
+    Text instructions,
+    string proof,
+    union {null, ProveParameters} parameters);
+
+  // Ask the user whether they have posted the proof.
+  // Returns whether to keep checking.
+  // Not used by parameterized proofs
   boolean okToCheck(int sessionID, string name, int attempt);
+
+  // The proof is being checked in the background.
+  // Used by parameterized proofs only
+  void checking(int sessionID, string name);
+
+  // The proof was still not verifiable.
   void displayRecheckWarning(int sessionID, Text text);
 }

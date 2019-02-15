@@ -58,6 +58,9 @@ func GetExtendedStatus(m MetaContext) (res keybase1.ExtendedStatus, err error) {
 	// Should work in standalone mode too
 	if g.ConnectionManager != nil {
 		res.Clients = g.ConnectionManager.ListAllLabeledConnections()
+		for i, client := range res.Clients {
+			res.Clients[i].NotificationChannels = g.NotifyRouter.GetChannels(ConnectionID(client.ConnectionID))
+		}
 	}
 
 	if err = g.GetFullSelfer().WithSelf(m.Ctx(), func(me *User) error {
@@ -133,6 +136,17 @@ func GetExtendedStatus(m MetaContext) (res keybase1.ExtendedStatus, err error) {
 
 	res.LocalDbStats = strings.Split(g.LocalDb.Stats(), "\n")
 	res.LocalChatDbStats = strings.Split(g.LocalChatDb.Stats(), "\n")
+	if cacheSizeInfo, err := CacheSizeInfo(g); err == nil {
+		res.CacheDirSizeInfo = cacheSizeInfo
+	}
+
+	if g.UIRouter != nil {
+		uiMapping := map[string]int{}
+		for k, v := range g.UIRouter.DumpUIs() {
+			uiMapping[k.String()] = int(v)
+		}
+		res.UiRouterMapping = uiMapping
+	}
 
 	return res, nil
 }

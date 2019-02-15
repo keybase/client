@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"strings"
 
 	"golang.org/x/net/context"
@@ -99,12 +100,14 @@ type fstatus struct {
 
 	DefaultUsername      string
 	ProvisionedUsernames []string
-	Clients              []keybase1.ClientDetails
+	Clients              []keybase1.ClientStatus
 	PlatformInfo         keybase1.PlatformInfo
 	OSVersion            string
 	DeviceEKNames        []string
 	LocalDbStats         []string
 	LocalChatDbStats     []string
+	CacheDirSizeInfo     []keybase1.DirSizeInfo
+	UIRouterMapping      map[string]int
 }
 
 func (c *CmdStatus) Run() error {
@@ -116,10 +119,10 @@ func (c *CmdStatus) Run() error {
 	return c.output(status)
 }
 
-func getFirstClient(v []keybase1.ClientDetails, typ keybase1.ClientType) *keybase1.ClientDetails {
+func getFirstClient(v []keybase1.ClientStatus, typ keybase1.ClientType) *keybase1.ClientDetails {
 	for _, cli := range v {
-		if cli.ClientType == typ {
-			return &cli
+		if cli.Details.ClientType == typ {
+			return &cli.Details
 		}
 	}
 	return nil
@@ -218,6 +221,8 @@ func (c *CmdStatus) load() (*fstatus, error) {
 	status.DeviceEKNames = extStatus.DeviceEkNames
 	status.LocalDbStats = extStatus.LocalDbStats
 	status.LocalChatDbStats = extStatus.LocalChatDbStats
+	status.CacheDirSizeInfo = extStatus.CacheDirSizeInfo
+	status.UIRouterMapping = extStatus.UiRouterMapping
 
 	// set anything os-specific:
 	if err := c.osSpecific(&status); err != nil {
@@ -317,28 +322,69 @@ func (c *CmdStatus) outputTerminal(status *fstatus) error {
 	dui.Printf("    %s \n", strings.Join(status.DeviceEKNames, "\n    "))
 	dui.Printf("LocalDbStats:\n%s \n", strings.Join(status.LocalDbStats, "\n"))
 	dui.Printf("LocalChatDbStats:\n%s \n", strings.Join(status.LocalChatDbStats, "\n"))
+	dui.Printf("CacheDirSizeInfo:\n")
+	for _, dirInfo := range status.CacheDirSizeInfo {
+		dui.Printf("%s: %s, (%d files)\n", dirInfo.Name, dirInfo.HumanSize, dirInfo.NumFiles)
+	}
 
-	c.outputClients(dui, status.Clients)
+	c.outputClients(dui, status.Clients, status.UIRouterMapping)
 	return nil
 }
 
-func (c *CmdStatus) outputClients(dui libkb.DumbOutputUI, clients []keybase1.ClientDetails) {
+func (c *CmdStatus) outputClients(dui libkb.DumbOutputUI, clients []keybase1.ClientStatus, mappings map[string]int) {
+	// Transform the mappings map from name -> connid to connid -> []name to make the data more compact
+	mappedUIs := map[int][]string{}
+	for key, value := range mappings {
+		if _, ok := mappedUIs[value]; !ok {
+			mappedUIs[value] = []string{}
+		}
+		mappedUIs[value] = append(mappedUIs[value], key)
+	}
+
 	var prev keybase1.ClientType
 	for _, cli := range clients {
-		if cli.ClientType != prev {
-			dui.Printf("\n%s:\n", cli.ClientType)
-			prev = cli.ClientType
+		if cli.Details.ClientType != prev {
+			dui.Printf("\n%s:\n", cli.Details.ClientType)
+			prev = cli.Details.ClientType
 		}
 		var vstr string
-		if len(cli.Version) > 0 {
-			vstr = ", version: " + cli.Version
+		if len(cli.Details.Version) > 0 {
+			vstr = ", version: " + cli.Details.Version
 		}
 		var dstr string
-		if len(cli.Desc) > 0 {
-			dstr = ", description: " + cli.Desc
+		if len(cli.Details.Desc) > 0 {
+			dstr = ", description: " + cli.Details.Desc
 		}
-		dui.Printf("    %s [pid: %d%s%s]\n", strings.Join(cli.Argv, " "), cli.Pid, vstr, dstr)
+
+		dui.Printf(
+			"    %s [cid: %d, pid: %d%s%s]\n",
+			strings.Join(cli.Details.Argv, " "),
+			cli.ConnectionID,
+			cli.Details.Pid,
+			vstr,
+			dstr,
+		)
+		if uis, ok := mappedUIs[cli.ConnectionID]; ok {
+			dui.Printf("    Handled UIs: %s\n", strings.Join(uis, ", "))
+		}
+		if chans := formatNotificationChannels(cli.NotificationChannels); len(chans) != 0 {
+			dui.Printf("    Notification subscriptions: %s\n", chans)
+		}
 	}
+}
+
+func formatNotificationChannels(channels keybase1.NotificationChannels) string {
+	value := reflect.ValueOf(channels)
+	typ := value.Type()
+
+	items := []string{}
+	for i := 0; i < value.NumField(); i++ {
+		if casted, ok := value.Field(i).Interface().(bool); ok && casted {
+			items = append(items, typ.Field(i).Name)
+		}
+	}
+
+	return strings.Join(items, ", ")
 }
 
 func (c *CmdStatus) client() {

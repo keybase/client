@@ -372,7 +372,7 @@ func (g *JavaGen) javadoc(doc string) {
 	g.Printf("/**\n * %s */\n", html.EscapeString(doc))
 }
 
-// hasThis returns whether a method has an implicit "this" parameter.
+// hasThis reports whether a method has an implicit "this" parameter.
 func (g *JavaGen) hasThis(sName string, m *types.Func) bool {
 	sig := m.Type().(*types.Signature)
 	params := sig.Params()
@@ -735,14 +735,14 @@ func (g *JavaGen) genJNIFuncSignature(o *types.Func, sName string, jm *java.Func
 	g.Printf("Java_%s_", g.jniPkgName())
 	if sName != "" {
 		if proxy {
-			g.Printf(g.className())
+			g.Printf(java.JNIMangle(g.className()))
 			// 0024 is the mangled form of $, for naming inner classes.
 			g.Printf("_00024proxy%s", sName)
 		} else {
 			g.Printf(java.JNIMangle(g.javaTypeName(sName)))
 		}
 	} else {
-		g.Printf(g.className())
+		g.Printf(java.JNIMangle(g.className()))
 	}
 	g.Printf("_")
 	if jm != nil {
@@ -1091,7 +1091,7 @@ func (g *JavaGen) genJNIVar(o *types.Var) {
 	n := java.JNIMangle(g.javaTypeName(o.Name()))
 	// setter
 	g.Printf("JNIEXPORT void JNICALL\n")
-	g.Printf("Java_%s_%s_set%s(JNIEnv *env, jclass clazz, %s v) {\n", g.jniPkgName(), g.className(), n, g.jniType(o.Type()))
+	g.Printf("Java_%s_%s_set%s(JNIEnv *env, jclass clazz, %s v) {\n", g.jniPkgName(), java.JNIMangle(g.className()), n, g.jniType(o.Type()))
 	g.Indent()
 	g.genJavaToC("v", o.Type(), modeRetained)
 	g.Printf("var_set%s_%s(_v);\n", g.pkgPrefix, o.Name())
@@ -1101,7 +1101,7 @@ func (g *JavaGen) genJNIVar(o *types.Var) {
 
 	// getter
 	g.Printf("JNIEXPORT %s JNICALL\n", g.jniType(o.Type()))
-	g.Printf("Java_%s_%s_get%s(JNIEnv *env, jclass clazz) {\n", g.jniPkgName(), g.className(), n)
+	g.Printf("Java_%s_%s_get%s(JNIEnv *env, jclass clazz) {\n", g.jniPkgName(), java.JNIMangle(g.className()), n)
 	g.Indent()
 	g.Printf("%s r0 = ", g.cgoType(o.Type()))
 	g.Printf("var_get%s_%s();\n", g.pkgPrefix, o.Name())

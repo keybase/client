@@ -328,6 +328,7 @@ type IdentifyUI interface {
 
 type Checker struct {
 	F             func(string) bool
+	Transform     func(string) string
 	Hint          string
 	PreserveSpace bool
 }
@@ -353,6 +354,7 @@ type ProveUI interface {
 	PreProofWarning(context.Context, keybase1.PreProofWarningArg) (bool, error)
 	OutputInstructions(context.Context, keybase1.OutputInstructionsArg) error
 	OkToCheck(context.Context, keybase1.OkToCheckArg) (bool, error)
+	Checking(context.Context, keybase1.CheckingArg) error
 	DisplayRecheckWarning(context.Context, keybase1.DisplayRecheckWarningArg) error
 }
 
@@ -479,6 +481,7 @@ type UIRouter interface {
 	GetIdentify3UI(MetaContext) (keybase1.Identify3UiInterface, error)
 	GetChatUI() (ChatUI, error)
 
+	DumpUIs() map[UIKind]ConnectionID
 	Shutdown()
 }
 

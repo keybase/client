@@ -139,12 +139,12 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.red,
   },
   textPlain: Styles.platformStyles({
-    common: {color: Styles.globalColors.black_75_on_white},
+    isElectron: {color: Styles.globalColors.black_63},
     isMobile: {backgroundColor: Styles.globalColors.fastBlank},
   }),
   textPlainBold: Styles.platformStyles({
     common: {
-      color: Styles.globalColors.black_75_on_white,
+      color: Styles.globalColors.black_85,
       ...Styles.globalStyles.fontBold,
     },
     isMobile: {backgroundColor: Styles.globalColors.fastBlank},

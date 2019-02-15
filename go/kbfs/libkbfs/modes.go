@@ -156,6 +156,10 @@ func (md modeDefault) MaxCleanBlockCacheCapacity() uint64 {
 	return math.MaxUint64
 }
 
+func (md modeDefault) OldStorageRootCleaningEnabled() bool {
+	return true
+}
+
 // Minimal mode:
 
 type modeMinimal struct {
@@ -291,6 +295,10 @@ func (mm modeMinimal) MaxCleanBlockCacheCapacity() uint64 {
 	return math.MaxUint64
 }
 
+func (mm modeMinimal) OldStorageRootCleaningEnabled() bool {
+	return false
+}
+
 // Single op mode:
 
 type modeSingleOp struct {
@@ -356,6 +364,10 @@ func (mso modeSingleOp) ClientType() keybase1.ClientType {
 }
 
 func (mso modeSingleOp) LocalHTTPServerEnabled() bool {
+	return false
+}
+
+func (mso modeSingleOp) OldStorageRootCleaningEnabled() bool {
 	return false
 }
 
