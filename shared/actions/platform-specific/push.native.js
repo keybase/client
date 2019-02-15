@@ -70,6 +70,11 @@ const listenForNativeAndroidIntentNotifications = emitter => {
     emitter(PushGen.createNotification({notification: lastPushForAndroid}))
     lastPushForAndroid = null
   })
+
+  // TODO: move this out of this file.
+  RNEmitter.addListener('onShareText', (evt) => {
+    logger.info('[ShareAndroidIntent]', evt)
+  })
 }
 
 const listenForPushNotificationsFromJS = emitter => {
