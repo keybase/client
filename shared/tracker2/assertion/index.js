@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as Constants from '../../constants/tracker'
 import * as Types from '../../constants/types/tracker2'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
@@ -61,6 +62,22 @@ const stateToColor = state => {
       return Styles.globalColors.red
     case 'suggestion':
       return Styles.globalColors.grey
+    default:
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(state)
+      throw new Error('Impossible')
+  }
+}
+
+const stateToValueTextStyle = state => {
+  switch (state) {
+    case 'revoked':
+      return styles.strikeThrough
+    case 'checking':
+    case 'valid':
+    case 'error':
+    case 'warning':
+    case 'suggestion':
+      return null
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(state)
       throw new Error('Impossible')
@@ -195,7 +212,11 @@ const Value = p => {
       <Kb.Text
         type="BodyPrimaryLink"
         onClick={p.onCreateProof || p.onShowSite}
-        style={Styles.collapseStyles([style, {color: assertionColorToColor(p.color)}])}
+        style={Styles.collapseStyles([
+          style,
+          stateToValueTextStyle(p.state),
+          {color: assertionColorToColor(p.color)},
+        ])}
       >
         {str}
       </Kb.Text>
@@ -267,12 +288,12 @@ const getMenu = p => {
             fontSize={Styles.isMobile ? 64 : 48}
             type={siteIcon(p.type)}
             onClick={p.onShowSite}
-            color={Styles.globalColors.black_75}
+            color={Styles.globalColors.black}
           />
         </Kb.Box2>
       ),
     },
-    items: [{onClick: p.onShowProof, title: `View ${p.type === 'btc' ? 'signature' : 'proof'}`}, onRevoke],
+    items: [{onClick: p.onShowProof, title: `View ${Constants.proofTypeToDesc(p.type)}`}, onRevoke],
   }
 }
 
@@ -306,7 +327,7 @@ class Assertion extends React.PureComponent<Props, State> {
           <Kb.Icon
             type={siteIcon(p.type)}
             onClick={p.onCreateProof || p.onShowSite}
-            color={p.isSuggestion ? Styles.globalColors.black_50 : Styles.globalColors.black_75}
+            color={p.isSuggestion ? Styles.globalColors.black_50 : Styles.globalColors.black}
           />
           <Kb.Text type="Body" style={styles.textContainer}>
             <Value {...p} />
@@ -372,6 +393,7 @@ const styles = Styles.styleSheetCreate({
   metaContainer: {flexShrink: 0, paddingLeft: 20 + Styles.globalMargins.tiny * 2 - 4}, // icon spacing plus meta has 2 padding for some reason
   site: {color: Styles.globalColors.black_20},
   stateIcon: {height: 17},
+  strikeThrough: {textDecorationLine: 'line-through'},
   textContainer: {flexGrow: 1, flexShrink: 1, marginTop: -1},
   tooltip: Styles.platformStyles({isElectron: {display: 'inline-flex'}}),
   username: Styles.platformStyles({

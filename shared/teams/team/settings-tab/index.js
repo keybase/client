@@ -61,7 +61,7 @@ const SetMemberShowcase = (props: SettingProps) => (
         <Box style={{...globalStyles.flexBoxColumn}}>
           <Text
             style={{
-              color: props.yourOperations.setMemberShowcase ? globalColors.black_75 : globalColors.grey,
+              color: props.yourOperations.setMemberShowcase ? globalColors.black : globalColors.grey,
             }}
             type="Body"
           >

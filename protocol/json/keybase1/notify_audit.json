@@ -1,0 +1,18 @@
+{
+  "protocol": "NotifyAudit",
+  "imports": [],
+  "types": [],
+  "messages": {
+    "rootAuditError": {
+      "request": [
+        {
+          "name": "message",
+          "type": "string"
+        }
+      ],
+      "response": null,
+      "notify": ""
+    }
+  },
+  "namespace": "keybase.1"
+}

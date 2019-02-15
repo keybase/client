@@ -206,7 +206,7 @@ class _RetentionPicker extends React.Component<PropsWithOverlay<Props>, State> {
             <Kb.Text type="BodySmall">Participants will see their message explode.</Kb.Text>
             <Kb.Box style={boomIconBoxStyle}>
               <Kb.Icon
-                color={Styles.globalColors.black_75}
+                color={Styles.globalColors.black}
                 fontSize={Styles.isMobile ? 44 : 35}
                 style={Kb.iconCastPlatformStyles(boomIconStyle)}
                 type="iconfont-boom"
@@ -362,7 +362,7 @@ const policyToLabel = (p: RetentionPolicy, parent: ?RetentionPolicy) => {
   return [
     timer ? (
       <Kb.Icon
-        color={Styles.globalColors.black_75}
+        color={Styles.globalColors.black}
         type="iconfont-timer"
         fontSize={Styles.isMobile ? 22 : 16}
         key="timer"

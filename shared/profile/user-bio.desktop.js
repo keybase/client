@@ -239,7 +239,7 @@ const stylesUsername = {
   marginTop: 7,
 }
 const stylesFullname = {
-  color: globalColors.black_75,
+  color: globalColors.black,
 }
 const stylesFollowLabel = platformStyles({
   isElectron: {

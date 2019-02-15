@@ -150,7 +150,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     isRevoked: (message.type === 'text' || message.type === 'attachment') && !!message.deviceRevokedAt,
     measure: ownProps.measure,
     message: message,
-    onAuthorClick: () => dispatchProps._onAuthorClick(message.author),
+    onAuthorClick: () => dispatchProps._onAuthorClick(showUsername),
     onCancel,
     onEdit: resolveByEdit ? () => dispatchProps._onEdit(message.conversationIDKey, message.ordinal) : null,
     onRetry,

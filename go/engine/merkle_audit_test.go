@@ -146,10 +146,9 @@ func TestMerkleAuditRetry(t *testing.T) {
 	require.NotEmpty(t, api.resps)
 	require.Equal(t, "merkle/root", api.args[0].Endpoint)
 
-	// Figure out the latest seqno
-	latestSeqno, err := api.resps[0].Body.AtKey("seqno").GetInt64()
+	// Make sure that the initial root fetch worked
+	_, err = api.resps[0].Body.AtKey("seqno").GetInt64()
 	require.NoError(t, err)
-	_ = latestSeqno
 
 	// Make the mock return an error on API.Get
 	internalTestError := errors.New("Fake internal test error")
@@ -245,6 +244,94 @@ func TestMerkleAuditRetry(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEqual(t, startSeqno, differentSeqno, "result #4 seqno")
 	tc.G.Log.Debug("Fourth iteration succeeded on validating another root, %d.", differentSeqno)
+
+	eng.Shutdown()
+	expectMeta(t, metaCh, "loop-exit")
+	expectMeta(t, metaCh, "")
+}
+
+type merkleAuditErrorListener struct {
+	libkb.NoopNotifyListener
+
+	merkleAuditError chan string
+}
+
+var _ libkb.NotifyListener = (*merkleAuditErrorListener)(nil)
+
+func (m *merkleAuditErrorListener) RootAuditError(msg string) {
+	m.merkleAuditError <- msg
+}
+
+func TestMerkleAuditFail(t *testing.T) {
+	tc := SetupEngineTest(t, "merkleaudit")
+	defer tc.Cleanup()
+
+	api := newRetryMerkleAuditMock(tc)
+	tc.G.API = api
+
+	tc.G.SetService()
+	notifyListener := &merkleAuditErrorListener{
+		merkleAuditError: make(chan string),
+	}
+	tc.G.NotifyRouter.SetListener(notifyListener)
+
+	fakeClock := clockwork.NewFakeClockAt(time.Now())
+	tc.G.SetClock(fakeClock)
+
+	advance := func(d time.Duration) {
+		tc.G.Log.Debug("+ fakeClock#advance(%s) start: %s", d, fakeClock.Now())
+		fakeClock.Advance(d)
+		tc.G.Log.Debug("- fakeClock#adance(%s) end: %s", d, fakeClock.Now())
+	}
+
+	metaCh := make(chan string, 100)
+	roundResCh := make(chan error, 100)
+	arg := &MerkleAuditArgs{
+		testingMetaCh:     metaCh,
+		testingRoundResCh: roundResCh,
+	}
+	eng := NewMerkleAudit(tc.G, arg)
+	eng.task.args.Settings.StartStagger = 0 // Disable stagger for deterministic testing
+	m := NewMetaContextForTest(tc)
+	err := RunEngine2(m, eng)
+	require.NoError(t, err)
+
+	// Run a manual root fetch
+	_, err = tc.G.MerkleClient.FetchRootFromServer(m, time.Hour)
+	require.NoError(t, err)
+
+	require.NotEmpty(t, api.args)
+	require.NotEmpty(t, api.resps)
+	require.Equal(t, "merkle/root", api.args[0].Endpoint)
+
+	// Make sure that the initial root fetch worked
+	x, err := api.resps[0].Body.AtKey("seqno").GetInt64()
+	tc.G.Log.Debug("last seqno %d", x)
+	require.NoError(t, err)
+
+	// Make the mock return an error on API.Get
+	validationError := libkb.NewClientMerkleSkipHashMismatchError("test error")
+	api.getError = validationError
+	api.resetHistory()
+
+	expectMeta(t, metaCh, "loop-start")
+	advance(MerkleAuditSettings.Start + time.Second)
+	expectMeta(t, metaCh, "woke-start")
+
+	// first run should fail and send a notification
+	select {
+	case x := <-notifyListener.merkleAuditError:
+		require.Regexp(t, "Merkle tree audit from [0-9]+ failed: Error checking merkle tree: test error", x, "notification message")
+	case <-time.After(30 * time.Second):
+		require.FailNow(t, "channel timed out")
+	}
+	select {
+	case x := <-roundResCh:
+		require.Equal(t, validationError, x, "round result")
+	case <-time.After(30 * time.Second):
+		require.FailNow(t, "channel timed out")
+	}
+	expectMeta(t, metaCh, "loop-round-complete")
 
 	eng.Shutdown()
 	expectMeta(t, metaCh, "loop-exit")

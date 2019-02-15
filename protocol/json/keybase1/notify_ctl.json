@@ -102,6 +102,10 @@
         {
           "type": "boolean",
           "name": "wallet"
+        },
+        {
+          "type": "boolean",
+          "name": "audit"
         }
       ]
     }

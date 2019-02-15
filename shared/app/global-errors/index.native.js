@@ -143,7 +143,7 @@ class GlobalError extends React.Component<Props, State> {
 
 const styles = Styles.styleSheetCreate({
   container: {
-    backgroundColor: Styles.globalColors.black_75,
+    backgroundColor: Styles.globalColors.black,
     position: 'absolute',
     top: 0,
   },

@@ -78,7 +78,7 @@ const _ShowcasedTeamRow = (
       <Kb.Avatar teamname={props.team.fqName} size={48} />
     </Kb.Box>
     <Kb.Box style={styleShowcasedTeamName}>
-      <Kb.Text style={{color: Styles.globalColors.black_75}} type="BodySemiboldLink">
+      <Kb.Text style={{color: Styles.globalColors.black}} type="BodySemiboldLink">
         {props.team.fqName}
       </Kb.Text>
       {props.team.open && (
@@ -238,7 +238,7 @@ class Profile extends Component<Props, State> {
       items: [
         {
           onClick: () => this.props.onViewProof(proof),
-          title: `View ${proof.type === 'btc' ? 'signature' : 'proof'}`,
+          title: `View ${Constants.proofTypeToDesc(proof.type)}`,
         },
         {danger: true, onClick: () => this.props.onRevokeProof(proof), title: 'Revoke'},
       ],
@@ -479,7 +479,7 @@ class Profile extends Component<Props, State> {
                 style={{
                   color:
                     this.state.currentFriendshipsTab === f
-                      ? Styles.globalColors.black_75
+                      ? Styles.globalColors.black
                       : Styles.globalColors.black_50,
                   padding: 10,
                 }}
@@ -592,7 +592,7 @@ class UserEntry extends React.PureComponent<UserEntryProps> {
           />
           <Kb.Text
             type="BodySemibold"
-center={true}
+            center={true}
             style={
               this.props.following ? styles.userEntryUsernameFollowing : styles.userEntryUsernameNotFollowing
             }
@@ -656,7 +656,7 @@ const styles = Styles.styleSheetCreate({
     padding: 5,
   },
   styleServiceContainer: {
-    color: Styles.globalColors.black_75,
+    color: Styles.globalColors.black,
     fontSize: 20,
   },
   userEntryAvatar: {
@@ -678,8 +678,8 @@ const styles = Styles.styleSheetCreate({
     justifyContent: 'flex-start',
     minHeight: userEntryMinHeight,
   },
-  userEntryUsernameFollowing: { color: Styles.globalColors.green },
-  userEntryUsernameNotFollowing: { color: Styles.globalColors.blue },
+  userEntryUsernameFollowing: {color: Styles.globalColors.green},
+  userEntryUsernameNotFollowing: {color: Styles.globalColors.blue},
 })
 
 const styleProofNotice = {

@@ -39,7 +39,7 @@ const getPopupItems = sortSettingToAction =>
             <Icon
               type={sortSettingIconType}
               style={iconCastPlatformStyles(styles.icon)}
-              color={Styles.isMobile ? Styles.globalColors.blue : Styles.globalColors.black_75}
+              color={Styles.isMobile ? Styles.globalColors.blue : Styles.globalColors.black}
               fontSize={Styles.isMobile ? 17 : 13}
             />
           </Box>

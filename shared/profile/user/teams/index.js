@@ -138,7 +138,7 @@ const styles = Styles.styleSheetCreate({
     maxWidth: 225,
     padding: Styles.globalMargins.small,
   },
-  link: {color: Styles.globalColors.black_75},
+  link: {color: Styles.globalColors.black},
   meta: {alignSelf: 'center'},
   placeholderTeam: {borderRadius: Styles.borderRadius},
   publicAdmins: Styles.platformStyles({

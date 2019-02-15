@@ -218,7 +218,7 @@ export const fsPathToRpcPathString = (p: Types.Path): string =>
 
 export const getPathTextColor = (path: Types.Path) => {
   const elems = Types.getPathElements(path)
-  return elems.length >= 2 && elems[1] === 'public' ? globalColors.yellowGreen2 : globalColors.black_75
+  return elems.length >= 2 && elems[1] === 'public' ? globalColors.yellowGreen2 : globalColors.black
 }
 
 export const pathTypeToTextType = (type: Types.PathType) => (type === 'folder' ? 'BodySemibold' : 'Body')

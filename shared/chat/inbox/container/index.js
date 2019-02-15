@@ -23,7 +23,6 @@ type OwnProps = {|
 const mapStateToProps = state => {
   const metaMap = state.chat2.metaMap
   const filter = state.chat2.inboxFilter
-  const filterHasFocus = state.chat2.focus === 'filter'
   const username = state.config.username
   const {allowShowFloatingButton, rows, smallTeamsExpanded} = filter
     ? filteredRowData(metaMap, filter, username)
@@ -37,7 +36,6 @@ const mapStateToProps = state => {
     _selectedConversationIDKey: Constants.getSelectedConversation(state),
     allowShowFloatingButton,
     filter,
-    filterHasFocus,
     neverLoaded,
     rows,
     smallTeamsExpanded,
@@ -82,41 +80,33 @@ const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
 })
 
 // This merge props is not spreading on purpose so we never have any random props that might mutate and force a re-render
-const mergeProps = (stateProps, dispatchProps, ownProps) => {
-  const selectedIndex = stateProps.rows.findIndex(
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  _canRefreshOnMount: stateProps._canRefreshOnMount,
+  _hasLoadedTrusted: stateProps._hasLoadedTrusted,
+  _onInitialLoad: dispatchProps._onInitialLoad,
+  _refreshInbox: dispatchProps._refreshInbox,
+  allowShowFloatingButton: stateProps.allowShowFloatingButton,
+  filter: stateProps.filter,
+  neverLoaded: stateProps.neverLoaded,
+  onEnsureSelection: () => {
     // $ForceType
-    r => r.conversationIDKey === stateProps._selectedConversationIDKey
-  )
-  return {
-    _canRefreshOnMount: stateProps._canRefreshOnMount,
-    _hasLoadedTrusted: stateProps._hasLoadedTrusted,
-    _onInitialLoad: dispatchProps._onInitialLoad,
-    _refreshInbox: dispatchProps._refreshInbox,
-    allowShowFloatingButton: stateProps.allowShowFloatingButton,
-    filter: stateProps.filter,
-    filterHasFocus: stateProps.filterHasFocus,
-    neverLoaded: stateProps.neverLoaded,
-    onEnsureSelection: () => {
-      // $ForceType
-      if (stateProps.rows.find(r => r.conversationIDKey === stateProps._selectedConversationIDKey)) {
-        return
-      }
-      const first = stateProps.rows[0]
-      if ((first && first.type === 'small') || first.type === 'big') {
-        dispatchProps._onSelect(first.conversationIDKey)
-      }
-    },
-    onNewChat: dispatchProps.onNewChat,
-    onSelectDown: () =>
-      dispatchProps._onSelectNext(stateProps.rows, stateProps._selectedConversationIDKey, 1),
-    onSelectUp: () => dispatchProps._onSelectNext(stateProps.rows, stateProps._selectedConversationIDKey, -1),
-    onUntrustedInboxVisible: dispatchProps.onUntrustedInboxVisible,
-    rows: stateProps.rows,
-    selectedIndex: isMobile ? 0 : selectedIndex, // unused on mobile so don't cause updates
-    smallTeamsExpanded: stateProps.smallTeamsExpanded,
-    toggleSmallTeamsExpanded: dispatchProps.toggleSmallTeamsExpanded,
-  }
-}
+    if (stateProps.rows.find(r => r.conversationIDKey === stateProps._selectedConversationIDKey)) {
+      return
+    }
+    const first = stateProps.rows[0]
+    if ((first && first.type === 'small') || first.type === 'big') {
+      dispatchProps._onSelect(first.conversationIDKey)
+    }
+  },
+  onNewChat: dispatchProps.onNewChat,
+  onSelectDown: () => dispatchProps._onSelectNext(stateProps.rows, stateProps._selectedConversationIDKey, 1),
+  onSelectUp: () => dispatchProps._onSelectNext(stateProps.rows, stateProps._selectedConversationIDKey, -1),
+  onUntrustedInboxVisible: dispatchProps.onUntrustedInboxVisible,
+  rows: stateProps.rows,
+  selectedConversationIDKey: isMobile ? Constants.noConversationIDKey : stateProps._selectedConversationIDKey, // unused on mobile so don't cause updates
+  smallTeamsExpanded: stateProps.smallTeamsExpanded,
+  toggleSmallTeamsExpanded: dispatchProps.toggleSmallTeamsExpanded,
+})
 
 type Props = $Diff<
   {|

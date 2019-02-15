@@ -188,7 +188,7 @@ const _DropdownButton = (props: DropdownProps & Kb.OverlayParentProps) => (
     <Kb.Box2 direction="horizontal" fullWidth={true} gap="xsmall">
       <Kb.Button onClick={null} type="Secondary" style={iconButton}>
         <Kb.Icon
-          color={Styles.globalColors.black_75}
+          color={Styles.globalColors.black}
           fontSize={Styles.isMobile ? 21 : 16}
           style={ellipsisIcon}
           type="iconfont-ellipsis"
@@ -345,7 +345,7 @@ const styles = Styles.styleSheetCreate({
     padding: 5,
   },
   styleServiceContainer: {
-    color: Styles.globalColors.black_75,
+    color: Styles.globalColors.black,
   },
   styleServiceSubscript: {
     color: Styles.globalColors.black_50,
