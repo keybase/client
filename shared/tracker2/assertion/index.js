@@ -267,7 +267,7 @@ const getMenu = p => {
             fontSize={Styles.isMobile ? 64 : 48}
             type={siteIcon(p.type)}
             onClick={p.onShowSite}
-            color={Styles.globalColors.black_75}
+            color={Styles.globalColors.black}
           />
         </Kb.Box2>
       ),
@@ -306,7 +306,7 @@ class Assertion extends React.PureComponent<Props, State> {
           <Kb.Icon
             type={siteIcon(p.type)}
             onClick={p.onCreateProof || p.onShowSite}
-            color={p.isSuggestion ? Styles.globalColors.black_50 : Styles.globalColors.black_75}
+            color={p.isSuggestion ? Styles.globalColors.black_50 : Styles.globalColors.black}
           />
           <Kb.Text type="Body" style={styles.textContainer}>
             <Value {...p} />

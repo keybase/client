@@ -245,7 +245,7 @@ class Input extends Component<Props, State> {
     const commonInputStyle = {
       backgroundColor: globalColors.fastBlank,
       borderWidth: 0,
-      color: globalColors.black_75_on_white,
+      color: globalColors.black_on_white,
       flexGrow: 1,
       lineHeight: lineHeight,
       ...(this.props.small

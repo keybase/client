@@ -53,7 +53,7 @@ const commonSmallTeam = {
   teamname: '',
   timestamp: '1:23 pm',
   unreadCount: 0,
-  usernameColor: globalColors.black_75,
+  usernameColor: globalColors.black,
   youAreReset: false,
   youNeedToRekey: false,
 }
@@ -67,7 +67,7 @@ const commonSmallFilter = {
   participants: ['chris', 'mikem'],
   showBold: false,
   teamname: '',
-  usernameColor: globalColors.black_75,
+  usernameColor: globalColors.black,
 }
 
 const commonBigChannel = {
@@ -106,8 +106,8 @@ const mapPropProviderProps = {
     hasBadge: true,
     showBold: true,
     snippet: 'in the top-drawer i believe',
-    subColor: globalColors.black_75,
-    usernameColor: globalColors.black_75,
+    subColor: globalColors.black,
+    usernameColor: globalColors.black,
   },
   smallTeamC: {
     ...commonSmallTeam,

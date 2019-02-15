@@ -23,7 +23,7 @@ const styleBase = platformStyles({
     alignItems: 'flex-start',
     backgroundColor: globalColors.lightGrey,
     borderRadius: 3,
-    color: globalColors.black_75,
+    color: globalColors.black,
     fontSize: 13,
     padding: 10,
     textAlign: 'left',

@@ -74,7 +74,7 @@ const _ShowcasedTeamRow = (
       <Kb.Avatar teamname={props.team.fqName} size={32} />
     </Kb.Box>
     <Kb.Box style={styleShowcasedTeamName}>
-      <Kb.Text style={{color: Styles.globalColors.black_75}} type="BodySemiboldLink">
+      <Kb.Text style={{color: Styles.globalColors.black}} type="BodySemiboldLink">
         {props.team.fqName}
       </Kb.Text>
       {props.team.open && (
@@ -127,7 +127,7 @@ class _StellarFederatedAddress extends React.PureComponent<
         <Kb.Box style={styles.iconContainer}>
           <Kb.Icon
             style={styles.service}
-            color={Styles.globalColors.black_75}
+            color={Styles.globalColors.black}
             textAlign="center"
             type={'iconfont-identity-stellar'}
           />

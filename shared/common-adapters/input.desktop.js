@@ -274,7 +274,7 @@ class Input extends React.PureComponent<Props, State> {
       ...globalStyles.fontSemibold,
       backgroundColor: globalColors.transparent,
       border: 'none',
-      color: globalColors.black_75,
+      color: globalColors.black,
       flex: 1,
       outlineWidth: 0,
       ...(this.props.small

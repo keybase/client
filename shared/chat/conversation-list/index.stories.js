@@ -17,7 +17,7 @@ const selectableSmalls = {
     participants: ['alice', 'bob'],
     showBold: false,
     teamname: '',
-    usernameColor: Styles.globalColors.black_75,
+    usernameColor: Styles.globalColors.black,
   },
   small2: {
     isLocked: false,
@@ -25,7 +25,7 @@ const selectableSmalls = {
     participants: ['alice', 'bob', 'charlie'],
     showBold: false,
     teamname: '',
-    usernameColor: Styles.globalColors.black_75,
+    usernameColor: Styles.globalColors.black,
   },
   small3: {
     isLocked: false,
@@ -33,7 +33,7 @@ const selectableSmalls = {
     participants: ['alice', 'bob', 'charlie', 'duh', 'eee', 'fff', 'ggg', 'hhh', 'iii', 'jjj'],
     showBold: false,
     teamname: '',
-    usernameColor: Styles.globalColors.black_75,
+    usernameColor: Styles.globalColors.black,
   },
 }
 

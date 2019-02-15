@@ -48,7 +48,7 @@ const styles = Styles.styleSheetCreate({
 
   title: {
     ...rightColumnStyle,
-    color: Styles.globalColors.black_75,
+    color: Styles.globalColors.black,
   },
   titleSelected: {
     ...Styles.globalStyles.fontSemibold,
@@ -90,7 +90,7 @@ const WalletRow = (props: Props) => {
       >
         <Kb.Icon
           type={props.isSelected ? 'icon-wallet-open-32' : 'icon-wallet-32'}
-          color={Styles.globalColors.black_75}
+          color={Styles.globalColors.black}
           style={Kb.iconCastPlatformStyles(styles.icon)}
         />
         <Kb.Box2 direction="vertical" style={styles.rightColumn}>

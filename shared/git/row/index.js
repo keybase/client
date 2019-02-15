@@ -79,7 +79,7 @@ class Row extends React.Component<Props> {
                 username={this.props.teamname ? undefined : this.props.you}
                 style={{marginRight: Styles.globalMargins.tiny}}
               />
-              <Kb.Text type="BodySemibold" style={{color: Styles.globalColors.black_75}}>
+              <Kb.Text type="BodySemibold" style={{color: Styles.globalColors.black}}>
                 {this.props.teamname ? `${this.props.teamname}/${this.props.name}` : this.props.name}
               </Kb.Text>
               {this.props.isNew && (

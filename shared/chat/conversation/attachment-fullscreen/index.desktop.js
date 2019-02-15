@@ -43,7 +43,7 @@ class _Fullscreen extends React.Component<Props & OverlayParentProps, State> {
       <PopupDialog onClose={this.props.onClose} fill={true}>
         <Box style={containerStyle}>
           <Box style={headerFooterStyle}>
-            <Text type="BodySemibold" style={{color: globalColors.black_75, flex: 1}}>
+            <Text type="BodySemibold" style={{color: globalColors.black, flex: 1}}>
               {this.props.title}
             </Text>
             <Icon
