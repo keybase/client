@@ -47,7 +47,6 @@ export type Props = {|
   onUntrustedInboxVisible: (conversationIDKeys: Array<ConversationIDKey>) => void,
   rows: Array<RowItem>,
   selectedConversationIDKey: ConversationIDKey,
-  selectedIndex: number,
   smallTeamsExpanded: boolean,
   toggleSmallTeamsExpanded: () => void,
 |}

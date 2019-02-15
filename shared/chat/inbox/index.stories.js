@@ -353,7 +353,6 @@ const propsInboxCommon = {
   onEnsureSelection: Sb.action('onEnsureSelection'),
   rows: [],
   selectedConversationIDKey: Types.stringToConversationIDKey('fake conversation id key'),
-  selectedIndex: -1,
   smallTeamsExpanded: false,
   toggleSmallTeamsExpanded: Sb.action('toggleSmallTeamsExpanded'),
 }
