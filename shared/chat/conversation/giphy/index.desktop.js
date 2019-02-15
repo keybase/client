@@ -2,14 +2,12 @@
 import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
-import {resolveImageAsURL} from '../../../desktop/app/resolve-root.desktop'
 import UnfurlImage from '../messages/wrapper/unfurl/image'
 import {getMargin, scaledWidth} from './width'
 import type {Props} from './index.types'
 
 const gridHeight = 100
 const gridWidthMax = 150
-const poweredByImg = 'powered-by-giphy.png'
 
 type State = {
   width: ?number,
@@ -57,7 +55,7 @@ class GiphySearch extends React.Component<Props, State> {
             </Kb.Box2>
           )}
         </div>
-        <Kb.Image src={poweredByImg} style={styles.poweredBy} />
+        <Kb.Icon type="icon-powered-by-giphy-120-26" style={styles.poweredBy} />
       </Kb.Box>
     )
   }
@@ -95,10 +93,8 @@ const styles = Styles.styleSheetCreate({
   },
   poweredBy: {
     bottom: 0,
-    height: 25,
     position: 'absolute',
     right: 0,
-    width: 'auto',
   },
   scrollContainer: Styles.platformStyles({
     isElectron: {
