@@ -1316,6 +1316,11 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-play-64.png'),
   },
+  'icon-powered-by-giphy-120-26': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-powered-by-giphy-120-26.png'),
+  },
   'icon-progress-grey-animated': {
     extension: 'gif',
     isFont: false,
