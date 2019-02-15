@@ -304,6 +304,10 @@ class Assertion extends React.PureComponent<Props, State> {
   _hideMenu = () => this.setState({showingMenu: false})
   _ref = React.createRef()
   _getRef = () => this._ref.current
+  _siteIcon = () => {
+    const srcs = this.props.siteIcon.map((si, idx) => `url(${si.path}) ${idx}x`)
+    return <Kb.Image src={`-webkit-image-set(${srcs.join(', ')})`} style={{height: 16, width: 16}} />
+  }
   render() {
     const p = this.props
     const {header, items} = getMenu(p)
@@ -324,11 +328,7 @@ class Assertion extends React.PureComponent<Props, State> {
           gapStart={true}
           gapEnd={true}
         >
-          <Kb.Icon
-            type={siteIcon(p.type)}
-            onClick={p.onCreateProof || p.onShowSite}
-            color={p.isSuggestion ? Styles.globalColors.black_50 : Styles.globalColors.black}
-          />
+          {this._siteIcon()}
           <Kb.Text type="Body" style={styles.textContainer}>
             <Value {...p} />
             {!p.isSuggestion && (
