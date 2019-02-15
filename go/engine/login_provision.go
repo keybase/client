@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"strings"
 
 	"golang.org/x/net/context"
 
@@ -519,18 +520,25 @@ func (e *loginProvision) deviceName(m libkb.MetaContext) (string, error) {
 			continue
 		}
 		devname = libkb.CheckDeviceName.Transform(devname)
-		var dupName string
+		var dupname string
 		normalizedDevName := libkb.CheckDeviceName.Normalize(devname)
 		for _, name := range names {
 			if normalizedDevName == libkb.CheckDeviceName.Normalize(name) {
-				dupName = name
+				dupname = name
 				break
 			}
 		}
 
-		if dupName != "" {
-			m.CDebugf("Device name reused: %q", devname)
-			arg.ErrorMessage = fmt.Sprintf("The device name %q is already taken as %q. You can't reuse device names, even revoked ones, for security reasons. Otherwise, someone who stole one of your devices could cause a lot of confusion.", devname, dupName)
+		if dupname != "" {
+			m.CDebugf("Device name reused: %q == %q", devname, dupname)
+			var dupnameErrMsg string
+			// if we have a collision on the normalized values add some extra
+			// info the error message so the user isn't confused why we
+			// consider the names equal.
+			if strings.ToLower(devname) != strings.ToLower(dupname) {
+				dupnameErrMsg = fmt.Sprintf(" as %q", dupname)
+			}
+			arg.ErrorMessage = fmt.Sprintf("The device name %q is already taken%s. You can't reuse device names, even revoked ones, for security reasons. Otherwise, someone who stole one of your devices could cause a lot of confusion.", devname, dupnameErrMsg)
 			continue
 		}
 
