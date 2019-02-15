@@ -46,8 +46,6 @@ class MainStackNavigator extends React.PureComponent<any> {
 
   render() {
     const routeName = this.props.navigation.state.routes[this.props.navigation.state.index].routeName
-
-    console.log('aaaa', this.props.navigation, routeName)
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
         <MainStackNavigatorPlain navigation={this.props.navigation} />
@@ -148,7 +146,6 @@ class RNApp extends React.PureComponent<any, any> {
   getNavState = () => this._nav?.state?.nav
 
   render() {
-    console.log('aaaa', this.props)
     return <AppContainer ref={nav => (this._nav = nav)} />
   }
 }

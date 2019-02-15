@@ -1,19 +1,12 @@
 // @flow
-// TODO look at whats shared w/ native and move it around
 import * as Kb from '../common-adapters'
-// import * as I from 'immutable'
 import * as Styles from '../styles'
 import * as React from 'react'
-// import GlobalError from '../app/global-errors/container'
-// import Offline from '../offline/container'
 import TabBar from './tab-bar/container'
 import {
   createNavigator,
-  // SwitchRouter,
   StackRouter,
-  // StackActions,
   NavigationActions,
-  // NavigationContext,
   getNavigation,
   NavigationProvider,
   SceneView,
@@ -36,12 +29,9 @@ import * as Shim from './shim.desktop'
  * When there are no modals AppView is rendered
  * Floating is rendered to a portal on top
  */
-// <Kb.ErrorBoundary>
-// {!options.skipOffline && <Offline />}
-// <GlobalError />
 
 // The app with a tab bar on the left and content area on the right
-// A single content view and n modals on top
+// A single content view and n-modals on top
 class AppView extends React.PureComponent<any> {
   render() {
     const navigation = this.props.navigation

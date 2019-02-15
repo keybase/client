@@ -4,6 +4,8 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {LeftAction} from '../../common-adapters/header-hoc'
 
+// A mobile-like header for desktop
+
 // Fix this as we figure out what this needs to be
 type Props = any
 

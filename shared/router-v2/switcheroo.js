@@ -1,5 +1,5 @@
 // @flow
-// Switches between the route-tree router and the new router
+// Switches between the route-tree router and the new router, will go away
 import * as React from 'react'
 import RenderRoute from '../route-tree/render-route'
 import Router from './router'

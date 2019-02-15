@@ -12,6 +12,8 @@ import {newRoutes as teamsNewRoutes, newModalRoutes as teamsNewModalRoutes} from
 import {newRoutes as walletsNewRoutes, newModalRoutes as walletsNewModalRoutes} from '../wallets/routes'
 import * as Tabs from '../constants/tabs'
 
+// We have normal routes, modal routes, and logged out routes
+
 export const nameToTab = {}
 // TODO could make a stronger type
 export const routes: {[key: string]: {getScreen: () => React.ComponentType<any>}} = {}
@@ -30,6 +32,7 @@ const _newRoutes = [
 
 _newRoutes.forEach(({route, tab}) => {
   Object.keys(route).forEach(name => {
+    // Just sanity check dupes
     if (nameToTab[name]) {
       throw new Error('New route with dupe name, disallowed! ' + name)
     }

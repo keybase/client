@@ -5,6 +5,8 @@ import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Constants from '../constants/router2'
 import {modalRoutes} from './routes'
 
+// Helper to convert old route tree actions to new actions. Likely goes away as we make
+// actual routing actions (or make RouteTreeGen append/up the only action)
 export const oldActionToNewActions = (action: any, navigation: any) => {
   switch (action.type) {
     case RouteTreeGen.navigateTo: // fallthrough
@@ -56,7 +58,6 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
 
       // When we restore state we want the following stacks
       // [People, TheLastTabYouWereOn, MaybeAConversationIfTheLastTabYouWereOnIsChat]
-
       const sa = [StackActions.push({params: undefined, routeName: 'tabs:peopleTab'})]
 
       if (action.payload.path) {

@@ -3,6 +3,7 @@ import * as I from 'immutable'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as React from 'react'
 
+// We wrap any non upgraded routes as having all the old style props (which don't really work)
 const shimAsRouteTree = (Original: any) => {
   class ShimmedOldRouteTree extends React.PureComponent<any> {
     static navigationOptions = Original.navigationOptions
