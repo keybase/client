@@ -6,7 +6,7 @@ import HiddenString from '../../util/hidden-string'
 
 type OwnProps = RouteProps<{heading: string}, {}>
 
-const mapStateToProps = (state, {routeProps}: OwnProps) => ({
+const mapStateToProps = (state, {routeProps}) => ({
   error: state.settings.passphrase.error,
   hasPGPKeyOnServer: !!state.settings.passphrase.hasPGPKeyOnServer,
   heading: routeProps.get('heading'),
