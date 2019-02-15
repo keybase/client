@@ -297,7 +297,7 @@ protocol remote {
 
   // Used only for testing.
   record SweepRes {
-  boolean foundTask;
+    boolean foundTask;
     boolean deletedMessages;
     Expunge expunge;
   }
@@ -311,4 +311,10 @@ protocol remote {
 
   // Message an entire conv with an arbitrary Gregor message
   void broadcastGregorMessageToConv(ConversationID convID, gregor1.Message msg);
+
+  record ServerNowRes {
+    union { null, RateLimit } rateLimit;
+    gregor1.Time now;
+  }
+  ServerNowRes serverNow();
 }
