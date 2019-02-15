@@ -4,6 +4,7 @@
 package libkb
 
 import (
+	"fmt"
 	"os"
 	"runtime"
 	"time"
@@ -88,6 +89,23 @@ const (
 // our User-Agent string. (See https://github.com/reddit/reddit/wiki/API.) If
 // something else comes up, we'll want to make this more configurable.
 var UserAgent = runtime.GOOS + ":" + "Keybase CLI (" + runtime.Version() + "):" + Version
+
+// Returns a simplified UserAgent that's used as the kb_ua GET param.
+func ProofUserAgent() string {
+	var os string
+	if runtime.GOOS == "darwin" {
+		// Either ios or mac
+		if isIOS {
+			os = "ios"
+		} else {
+			os = "mac"
+		}
+	} else {
+		os = runtime.GOOS
+	}
+
+	return fmt.Sprintf("%s:%s", os, Version)
+}
 
 const (
 	PermFile          os.FileMode = 0600
