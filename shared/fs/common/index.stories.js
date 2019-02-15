@@ -56,6 +56,11 @@ export const commonProvider = {
   ConnectedErrs: () => ({
     errs: [],
   }),
+  ConnectedOpenInSystemFileManager: () => ({
+    installFuse: Sb.action('installFuse'),
+    kbfsEnabled: false,
+    openInSystemFileManager: Sb.action('openInSystemFileManager'),
+  }),
   PathItemAction: pathItemActionProps,
   PathItemActionChooseView: pathItemActionChooseViewProps,
   PathItemActionMenu: PathItemActionMenuProps,
@@ -141,6 +146,28 @@ const load = () => {
             error: 'long error detail blah blah SimpleFS.SimpleFSCopyRecursive has blown up',
             key: '3',
             msg: 'Error when downloading file blah 99.jpg',
+            onFeedback: Sb.action('onFeedback'),
+            retry: Sb.action('retry'),
+            time: 1534362428795,
+          },
+          {
+            dismiss: Sb.action('dismiss'),
+            error:
+              'error details: foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo',
+            key: '4',
+            msg:
+              'foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo foo',
+            onFeedback: Sb.action('onFeedback'),
+            retry: Sb.action('retry'),
+            time: 1534362428795,
+          },
+          {
+            dismiss: Sb.action('dismiss'),
+            error:
+              'error details: foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar',
+            key: '5',
+            msg:
+              'foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar',
             onFeedback: Sb.action('onFeedback'),
             retry: Sb.action('retry'),
             time: 1534362428795,

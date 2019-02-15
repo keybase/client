@@ -19,11 +19,6 @@ export const rowsProvider = {
     ...ownProps,
     onOpen: Sb.action('onOpen'),
   }),
-  ConnectedOpenInSystemFileManager: () => ({
-    installFuse: Sb.action('installFuse'),
-    kbfsEnabled: false,
-    openInSystemFileManager: Sb.action('openInSystemFileManager'),
-  }),
   ConnectedRows: (o: any) => ({
     destinationPickerIndex: o.destinationPickerIndex,
     ifEmpty: o.ifEmpty,
