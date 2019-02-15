@@ -4,7 +4,7 @@ import type {Props, State} from './video'
 import Box, {Box2} from './box'
 import {WebView, StatusBar} from 'react-native'
 import * as Styles from '../styles'
-import {getVideoSize} from './video.shared'
+import {getVideoSize, CheckURL} from './video.shared'
 
 export default class extends React.PureComponent<Props, State> {
   state = {
@@ -56,30 +56,32 @@ export default class extends React.PureComponent<Props, State> {
   render() {
     const {height, width} = getVideoSize(this.state)
     return (
-      <Box2
-        direction="vertical"
-        fullWidth={true}
-        fullHeight={true}
-        centerChildren={true}
-        onLayout={this._setContainerLayout}
-        style={this.props.style}
-      >
-        <Box style={getVideoSize(this.state)}>
-          <WebView
-            source={{html: getHTML(this.props.url)}}
-            allowsInlineMediaPlayback={true}
-            useWebKit={true}
-            style={{
-              height,
-              maxHeight: height,
-              maxWidth: width,
-              width,
-            }}
-            scrollEnabled={true}
-            onMessage={this._onMessage}
-          />
-        </Box>
-      </Box2>
+      <CheckURL url={this.props.url}>
+        <Box2
+          direction="vertical"
+          fullWidth={true}
+          fullHeight={true}
+          centerChildren={true}
+          onLayout={this._setContainerLayout}
+          style={this.props.style}
+        >
+          <Box style={getVideoSize(this.state)}>
+            <WebView
+              source={{html: getHTML(this.props.url)}}
+              allowsInlineMediaPlayback={true}
+              useWebKit={true}
+              style={{
+                height,
+                maxHeight: height,
+                maxWidth: width,
+                width,
+              }}
+              scrollEnabled={true}
+              onMessage={this._onMessage}
+            />
+          </Box>
+        </Box2>
+      </CheckURL>
     )
   }
 }

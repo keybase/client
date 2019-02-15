@@ -20,6 +20,9 @@ const load = () => {
         </Box>
       </Box2>
     ))
+    .add('Deadman', () => (
+      <Video url={'http://127.0.0.1/this-should-not-show-video-otherwise-"alert("FAIL")'} />
+    ))
 }
 
 const styles = Styles.styleSheetCreate({

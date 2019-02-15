@@ -3,7 +3,7 @@ import * as React from 'react'
 import Measure from 'react-measure'
 import type {Props, State} from './video'
 import * as Styles from '../styles'
-import {getVideoSize} from './video.shared'
+import {getVideoSize, CheckURL} from './video.shared'
 
 export default class extends React.PureComponent<Props, State> {
   state = {
@@ -43,24 +43,26 @@ export default class extends React.PureComponent<Props, State> {
 
   render() {
     return (
-      <Measure bounds={true} onResize={this._onContainerResize}>
-        {({measureRef}) => (
-          <div ref={measureRef} style={Styles.collapseStyles([styles.container, this.props.style])}>
-            <video
-              controlsList="nodownload nofullscreen"
-              onClick={this._onVideoClick}
-              ref={this._videoRef}
-              controls={!this.props.hideControls}
-              src={this.props.url}
-              style={Styles.collapseStyles([styles.container, getVideoSize(this.state)])}
-              muted={true}
-              autoPlay={true}
-              preload="metadata"
-              onLoadedMetadata={this._onVideoLoadedmetadata}
-            />
-          </div>
-        )}
-      </Measure>
+      <CheckURL url={this.props.url}>
+        <Measure bounds={true} onResize={this._onContainerResize}>
+          {({measureRef}) => (
+            <div ref={measureRef} style={Styles.collapseStyles([styles.container, this.props.style])}>
+              <video
+                controlsList="nodownload nofullscreen"
+                onClick={this._onVideoClick}
+                ref={this._videoRef}
+                controls={!this.props.hideControls}
+                src={this.props.url}
+                style={Styles.collapseStyles([styles.container, getVideoSize(this.state)])}
+                muted={true}
+                autoPlay={true}
+                preload="metadata"
+                onLoadedMetadata={this._onVideoLoadedmetadata}
+              />
+            </div>
+          )}
+        </Measure>
+      </CheckURL>
     )
   }
 }
