@@ -6,8 +6,10 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
+	lru "github.com/hashicorp/golang-lru"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
@@ -89,15 +91,23 @@ type Manager struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	dealer *Dealer
-	clock  clockwork.Clock
+	dealer     *Dealer
+	clock      clockwork.Clock
+	shutdownCh chan struct{}
+
+	gamesMu    sync.Mutex
+	games      *lru.Cache
+	dirtyGames map[string]GameID
 }
 
 func NewManager(g *globals.Context) *Manager {
+	games, _ := lru.New(100)
 	m := &Manager{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Flip.Manager", false),
 		clock:        clockwork.NewRealClock(),
+		games:        games,
+		dirtyGames:   make(map[string]GameID),
 	}
 	dealer := NewDealer(m)
 	m.dealer = dealer
@@ -106,17 +116,166 @@ func NewManager(g *globals.Context) *Manager {
 
 func (m *Manager) Start(ctx context.Context, uid gregor1.UID) {
 	defer m.Trace(ctx, func() error { return nil }, "Start")()
+	m.shutdownCh = make(chan struct{})
 	go func() {
 		m.dealer.Run(context.Background())
 	}()
+	go m.updateLoop()
+	go m.notificationLoop()
 }
 
 func (m *Manager) Stop(ctx context.Context) (ch chan struct{}) {
 	defer m.Trace(ctx, func() error { return nil }, "Stop")()
 	m.dealer.Stop()
+	close(m.shutdownCh)
 	ch = make(chan struct{})
 	close(ch)
 	return ch
+}
+
+func (m *Manager) notifyDirtyGames(ctx context.Context) {
+	m.gamesMu.Lock()
+	defer m.gamesMu.Unlock()
+	if len(m.dirtyGames) == 0 {
+		return
+	}
+	defer func() {
+		m.dirtyGames = make(map[string]GameID)
+	}()
+	ui, err := m.G().UIRouter.GetChatUI()
+	if err != nil {
+		m.Debug(ctx, "notifyDirtyGames: no chat UI available for notification")
+		return
+	}
+	var updates []chat1.UICoinFlipStatus
+	for _, dg := range m.dirtyGames {
+		if game, ok := m.games.Get(dg.String()); ok {
+			updates = append(updates, game.(chat1.UICoinFlipStatus))
+		}
+	}
+	if err := ui.ChatCoinFlipStatus(ctx, updates); err != nil {
+		m.Debug(ctx, "notifyDirtyGames: failed to notify status: %s", err)
+	}
+}
+
+func (m *Manager) notificationLoop() {
+	duration := 200 * time.Millisecond
+	next := m.clock.Now().Add(duration)
+	ctx := context.Background()
+	for {
+		select {
+		case <-m.clock.AfterTime(next):
+			m.notifyDirtyGames(ctx)
+			next = m.clock.Now().Add(duration)
+		case <-m.shutdownCh:
+			return
+		}
+	}
+}
+
+func (m *Manager) addParticipant(ctx context.Context, status *chat1.UICoinFlipStatus, update CommitmentUpdate) {
+	username, deviceName, _, err := m.G().GetUPAKLoader().LookupUsernameAndDevice(ctx,
+		keybase1.UID(update.User.U.String()), keybase1.DeviceID(update.User.D.String()))
+	if err != nil {
+		m.Debug(ctx, "addParticipant: failed to get username/device (using IDs): %s", err)
+		username = libkb.NewNormalizedUsername(update.User.U.String())
+		deviceName = update.User.D.String()
+	}
+	status.Participants = append(status.Participants, chat1.UICoinFlipParticipant{
+		Uid:        update.User.U.String(),
+		DeviceID:   update.User.D.String(),
+		Username:   username.String(),
+		DeviceName: deviceName,
+		Commitment: update.Commitment.String(),
+	})
+	status.DisplayText = fmt.Sprintf("Gathered %d commitment(s)", len(status.Participants))
+}
+
+func (m *Manager) addReveal(ctx context.Context, status *chat1.UICoinFlipStatus, update RevealUpdate) {
+	numReveals := 0
+	for index, p := range status.Participants {
+		if p.Reveal != nil {
+			numReveals++
+		}
+		if p.Uid == update.User.U.String() {
+			reveal := update.Reveal.String()
+			status.Participants[index].Reveal = &reveal
+			numReveals++
+		}
+	}
+	status.DisplayText = fmt.Sprintf("%d participants have revealed secrets", numReveals)
+}
+
+func (m *Manager) addResult(ctx context.Context, status *chat1.UICoinFlipStatus, result Result) {
+	if result.Big != nil {
+		status.DisplayText = result.Big.String()
+	} else if result.Bool != nil {
+		if *result.Bool {
+			status.DisplayText = "HEADS"
+		} else {
+			status.DisplayText = "TAILS"
+		}
+	} else if result.Int != nil {
+		status.DisplayText = fmt.Sprintf("%d", *result.Int)
+	} else if result.Shuffle != nil {
+		status.DisplayText = "Shuffle result obtained"
+	}
+}
+
+func (m *Manager) handleUpdate(ctx context.Context, update GameStateUpdateMessage) (err error) {
+	gameID := update.Metadata.GameID
+	defer func() {
+		if err == nil {
+			m.gamesMu.Lock()
+			m.dirtyGames[gameID.String()] = gameID
+			m.gamesMu.Unlock()
+		}
+	}()
+	if update.StartPending != nil {
+		m.games.Add(gameID.String(), chat1.UICoinFlipStatus{
+			GameID:      gameID.String(),
+			Phase:       chat1.UICoinFlipPhase_PENDING,
+			DisplayText: "Initializing flip...",
+		})
+		return nil
+	}
+	rawGame, ok := m.games.Get(gameID.String())
+	if !ok {
+		m.Debug(ctx, "handleUpdate: update received for unknown game, skipping: %s", gameID)
+		return errors.New("unknown game")
+	}
+	status := rawGame.(chat1.UICoinFlipStatus)
+	if update.StartSuccess != nil {
+		status.DisplayText = "Gathering commitments..."
+		status.Phase = chat1.UICoinFlipPhase_COMMITMENT
+	} else if update.Err != nil {
+		status.Phase = chat1.UICoinFlipPhase_ERROR
+		status.DisplayText = "Something went wrong"
+	} else if update.Commitment != nil {
+		status.Phase = chat1.UICoinFlipPhase_COMMITMENT
+		m.addParticipant(ctx, &status, *update.Commitment)
+	} else if update.CommitmentComplete != nil {
+		status.Phase = chat1.UICoinFlipPhase_REVEALS
+		status.DisplayText = "Commitments complete, revealing secrets"
+	} else if update.Reveal != nil {
+		m.addReveal(ctx, &status, *update.Reveal)
+	} else if update.Result != nil {
+		status.Phase = chat1.UICoinFlipPhase_COMPLETE
+		m.addResult(ctx, &status, *update.Result)
+	}
+	m.games.Add(gameID.String(), status)
+	return nil
+}
+
+func (m *Manager) updateLoop() {
+	for {
+		select {
+		case msg := <-m.dealer.UpdateCh():
+			m.handleUpdate(context.Background(), msg)
+		case <-m.shutdownCh:
+			return
+		}
+	}
 }
 
 const gameIDTopicNamePrefix = "__keybase_coinflip_game_"
@@ -138,7 +297,7 @@ func (m *Manager) gameTopicNameFromGameID(gameID GameID) string {
 }
 
 func (m *Manager) startFromText(text string) Start {
-	// TODO fix m
+	// TODO fix me
 	return NewStartWithBool(m.clock.Now())
 }
 
@@ -179,6 +338,12 @@ func (m *Manager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID cha
 
 	// First generate the message representing the flip into the host conversation. We also wait for it
 	// to actually get sent before doing anything flip related.
+	m.handleUpdate(ctx, GameStateUpdateMessage{
+		Metadata: GameMetadata{
+			GameID: gameID,
+		},
+		StartPending: new(bool),
+	})
 	outboxID, err := storage.NewOutboxID()
 	if err != nil {
 		return err
@@ -219,6 +384,12 @@ func (m *Manager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID cha
 	}
 
 	// Start the game
+	m.handleUpdate(ctx, GameStateUpdateMessage{
+		Metadata: GameMetadata{
+			GameID: gameID,
+		},
+		StartSuccess: new(bool),
+	})
 	return m.dealer.StartFlipWithGameID(ctx, m.startFromText(text), conv.GetConvID(), gameID)
 }
 

@@ -118,7 +118,7 @@ func Replay(ctx context.Context, gh GameHistory) (*GameSummary, error) {
 					players[p.ToKey()] = p
 				}
 			case msg.Reveal != nil:
-				delete(players, msg.Reveal.ToKey())
+				delete(players, msg.Reveal.User.ToKey())
 			case msg.Result != nil:
 				ret.Result = *msg.Result
 				found = true

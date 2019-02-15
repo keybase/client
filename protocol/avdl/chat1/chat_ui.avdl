@@ -281,4 +281,27 @@ protocol chatUi {
   void chatGiphySearchResults(int sessionID, string convID, array<GiphySearchResult> results);
 
   void chatShowManageChannels(int sessionID, string teamname);
+
+  enum UICoinFlipPhase {
+    PENDING_0,
+    COMMITMENT_1,
+    REVEALS_2,
+    COMPLETE_3,
+    ERROR_4
+  }
+  record UICoinFlipParticipant {
+    string uid;
+    string deviceID;
+    string username;
+    string deviceName;
+    string commitment;
+    union { null, string } reveal;
+  }
+  record UICoinFlipStatus {
+    string gameID;
+    UICoinFlipPhase phase;
+    string displayText;
+    array<UICoinFlipParticipant> participants;
+  }
+  void chatCoinFlipStatus(int sessionID, array<UICoinFlipStatus> statuses);
 }

@@ -66,6 +66,9 @@
         "chat1ChatUiChatShowManageChannels": {
             "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatShowManageChannels'>, 'inParam'>>"
         },
+        "chat1ChatUiChatCoinFlipStatus": {
+            "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatCoinFlipStatus'>, 'inParam'>>"
+        },
         "chat1NotifyChatNewChatActivity": {
             "params": "$Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.NotifyChat.NewChatActivity'>, 'inParam'>>"
         },

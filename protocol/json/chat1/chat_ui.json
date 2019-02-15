@@ -992,6 +992,75 @@
           "name": "previewIsVideo"
         }
       ]
+    },
+    {
+      "type": "enum",
+      "name": "UICoinFlipPhase",
+      "symbols": [
+        "PENDING_0",
+        "COMMITMENT_1",
+        "REVEALS_2",
+        "COMPLETE_3",
+        "ERROR_4"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UICoinFlipParticipant",
+      "fields": [
+        {
+          "type": "string",
+          "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "deviceID"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "string",
+          "name": "deviceName"
+        },
+        {
+          "type": "string",
+          "name": "commitment"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "reveal"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UICoinFlipStatus",
+      "fields": [
+        {
+          "type": "string",
+          "name": "gameID"
+        },
+        {
+          "type": "UICoinFlipPhase",
+          "name": "phase"
+        },
+        {
+          "type": "string",
+          "name": "displayText"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UICoinFlipParticipant"
+          },
+          "name": "participants"
+        }
+      ]
     }
   ],
   "messages": {
@@ -1260,6 +1329,22 @@
         {
           "name": "teamname",
           "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "chatCoinFlipStatus": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "statuses",
+          "type": {
+            "type": "array",
+            "items": "UICoinFlipStatus"
+          }
         }
       ],
       "response": null

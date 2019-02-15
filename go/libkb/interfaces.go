@@ -413,6 +413,7 @@ type ChatUI interface {
 	ChatGiphySearchResults(ctx context.Context, convID chat1.ConversationID,
 		results []chat1.GiphySearchResult) error
 	ChatShowManageChannels(context.Context, string) error
+	ChatCoinFlipStatus(context.Context, []chat1.UICoinFlipStatus) error
 }
 
 type PromptDefault int

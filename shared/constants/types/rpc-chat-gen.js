@@ -13,6 +13,14 @@ export const chatUiMessageUnboxedState = {
   placeholder: 4,
 }
 
+export const chatUiUICoinFlipPhase = {
+  pending: 0,
+  commitment: 1,
+  reveals: 2,
+  complete: 3,
+  error: 4,
+}
+
 export const chatUiUITextDecorationTyp = {
   payment: 0,
   atmention: 1,

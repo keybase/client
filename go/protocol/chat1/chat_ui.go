@@ -1118,6 +1118,93 @@ func (o GiphySearchResult) DeepCopy() GiphySearchResult {
 	}
 }
 
+type UICoinFlipPhase int
+
+const (
+	UICoinFlipPhase_PENDING    UICoinFlipPhase = 0
+	UICoinFlipPhase_COMMITMENT UICoinFlipPhase = 1
+	UICoinFlipPhase_REVEALS    UICoinFlipPhase = 2
+	UICoinFlipPhase_COMPLETE   UICoinFlipPhase = 3
+	UICoinFlipPhase_ERROR      UICoinFlipPhase = 4
+)
+
+func (o UICoinFlipPhase) DeepCopy() UICoinFlipPhase { return o }
+
+var UICoinFlipPhaseMap = map[string]UICoinFlipPhase{
+	"PENDING":    0,
+	"COMMITMENT": 1,
+	"REVEALS":    2,
+	"COMPLETE":   3,
+	"ERROR":      4,
+}
+
+var UICoinFlipPhaseRevMap = map[UICoinFlipPhase]string{
+	0: "PENDING",
+	1: "COMMITMENT",
+	2: "REVEALS",
+	3: "COMPLETE",
+	4: "ERROR",
+}
+
+func (e UICoinFlipPhase) String() string {
+	if v, ok := UICoinFlipPhaseRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type UICoinFlipParticipant struct {
+	Uid        string  `codec:"uid" json:"uid"`
+	DeviceID   string  `codec:"deviceID" json:"deviceID"`
+	Username   string  `codec:"username" json:"username"`
+	DeviceName string  `codec:"deviceName" json:"deviceName"`
+	Commitment string  `codec:"commitment" json:"commitment"`
+	Reveal     *string `codec:"reveal,omitempty" json:"reveal,omitempty"`
+}
+
+func (o UICoinFlipParticipant) DeepCopy() UICoinFlipParticipant {
+	return UICoinFlipParticipant{
+		Uid:        o.Uid,
+		DeviceID:   o.DeviceID,
+		Username:   o.Username,
+		DeviceName: o.DeviceName,
+		Commitment: o.Commitment,
+		Reveal: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Reveal),
+	}
+}
+
+type UICoinFlipStatus struct {
+	GameID       string                  `codec:"gameID" json:"gameID"`
+	Phase        UICoinFlipPhase         `codec:"phase" json:"phase"`
+	DisplayText  string                  `codec:"displayText" json:"displayText"`
+	Participants []UICoinFlipParticipant `codec:"participants" json:"participants"`
+}
+
+func (o UICoinFlipStatus) DeepCopy() UICoinFlipStatus {
+	return UICoinFlipStatus{
+		GameID:      o.GameID,
+		Phase:       o.Phase.DeepCopy(),
+		DisplayText: o.DisplayText,
+		Participants: (func(x []UICoinFlipParticipant) []UICoinFlipParticipant {
+			if x == nil {
+				return nil
+			}
+			ret := make([]UICoinFlipParticipant, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Participants),
+	}
+}
+
 type ChatAttachmentDownloadStartArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -1218,6 +1305,11 @@ type ChatShowManageChannelsArg struct {
 	Teamname  string `codec:"teamname" json:"teamname"`
 }
 
+type ChatCoinFlipStatusArg struct {
+	SessionID int                `codec:"sessionID" json:"sessionID"`
+	Statuses  []UICoinFlipStatus `codec:"statuses" json:"statuses"`
+}
+
 type ChatUiInterface interface {
 	ChatAttachmentDownloadStart(context.Context, int) error
 	ChatAttachmentDownloadProgress(context.Context, ChatAttachmentDownloadProgressArg) error
@@ -1239,6 +1331,7 @@ type ChatUiInterface interface {
 	ChatStellarDone(context.Context, ChatStellarDoneArg) error
 	ChatGiphySearchResults(context.Context, ChatGiphySearchResultsArg) error
 	ChatShowManageChannels(context.Context, ChatShowManageChannelsArg) error
+	ChatCoinFlipStatus(context.Context, ChatCoinFlipStatusArg) error
 }
 
 func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
@@ -1545,6 +1638,21 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 					return
 				},
 			},
+			"chatCoinFlipStatus": {
+				MakeArg: func() interface{} {
+					var ret [1]ChatCoinFlipStatusArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChatCoinFlipStatusArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChatCoinFlipStatusArg)(nil), args)
+						return
+					}
+					err = i.ChatCoinFlipStatus(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -1653,5 +1761,10 @@ func (c ChatUiClient) ChatGiphySearchResults(ctx context.Context, __arg ChatGiph
 
 func (c ChatUiClient) ChatShowManageChannels(ctx context.Context, __arg ChatShowManageChannelsArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.chatUi.chatShowManageChannels", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ChatUiClient) ChatCoinFlipStatus(ctx context.Context, __arg ChatCoinFlipStatusArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatCoinFlipStatus", []interface{}{__arg}, nil)
 	return
 }

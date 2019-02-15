@@ -326,8 +326,11 @@ func (g *Game) handleMessage(ctx context.Context, msg *GameMessageWrapped, now t
 			commitmentTime: now,
 		}
 		g.gameUpdateCh <- GameStateUpdateMessage{
-			Metadata:   g.GameMetadata(),
-			Commitment: &msg.Sender,
+			Metadata: g.GameMetadata(),
+			Commitment: &CommitmentUpdate{
+				User:       msg.Sender,
+				Commitment: msg.Msg.Body.Commitment(),
+			},
 		}
 
 	case MessageType_COMMITMENT_COMPLETE:
@@ -410,7 +413,10 @@ func (g *Game) handleMessage(ctx context.Context, msg *GameMessageWrapped, now t
 		}
 		g.gameUpdateCh <- GameStateUpdateMessage{
 			Metadata: g.GameMetadata(),
-			Reveal:   &msg.Sender,
+			Reveal: &RevealUpdate{
+				User:   msg.Sender,
+				Reveal: reveal.Secret,
+			},
 		}
 
 		g.nPlayers--

@@ -23,6 +23,16 @@ type GameMessageWrappedEncoded struct {
 	FirstInConversation bool               // on if this is the first message in the conversation
 }
 
+type CommitmentUpdate struct {
+	User       UserDevice
+	Commitment Commitment
+}
+
+type RevealUpdate struct {
+	User   UserDevice
+	Reveal Secret
+}
+
 // GameStateUpdateMessage is sent from the game dealer out to the calling chat client, to update him
 // on changes to game state that happened. All update messages are relative to the given GameMetadata.
 // For each update, only one of Err, Commitment, Reveal, CommitmentComplete or Result will be non-nil.
@@ -30,10 +40,12 @@ type GameStateUpdateMessage struct {
 	Metadata GameMetadata
 	// only one of the following will be non-nil
 	Err                error
-	Commitment         *UserDevice
-	Reveal             *UserDevice
+	Commitment         *CommitmentUpdate
+	Reveal             *RevealUpdate
 	CommitmentComplete *CommitmentComplete
 	Result             *Result
+	StartPending       *bool
+	StartSuccess       *bool
 }
 
 // Dealer is a peristent process that runs in the chat client that deals out a game. It can have multiple

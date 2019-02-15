@@ -14,6 +14,8 @@ func (g GameID) String() string           { return hex.EncodeToString(g) }
 func (g GameID) Eq(h GameID) bool         { return hmac.Equal(g[:], h[:]) }
 func (u UserDevice) Eq(v UserDevice) bool { return u.U.Eq(v.U) && u.D.Eq(v.D) }
 func (h Hash) Eq(i Hash) bool             { return hmac.Equal(h[:], i[:]) }
+func (c Commitment) String() string       { return hex.EncodeToString(c[:]) }
+func (s Secret) String() string           { return hex.EncodeToString(s[:]) }
 
 func (t Time) Time() time.Time {
 	if t == 0 {
