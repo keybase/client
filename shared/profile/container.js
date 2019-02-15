@@ -58,9 +58,9 @@ let _currentFriendshipsTab = 'Followers'
 
 const mapStateToProps = (state, {routeProps, routePath, navigation}: OwnProps) => {
   const myUsername = state.config.username
-  let username = routeProps && routeProps.get('username') ? routeProps.get('username') : myUsername || ''
+  let username = (routeProps && routeProps.get('username') ? routeProps.get('username') : myUsername) || ''
   if (navigation && navigation.getParam('username')) {
-    username = navigation.getParam('username')
+    username = navigation.getParam('username') || ''
   }
   if (username && username !== username.toLowerCase()) {
     throw new Error('Attempted to navigate to mixed case username.')
@@ -234,6 +234,7 @@ const ConnectedHeader = connect<OwnProps, _, _, _, _>(
 // $FlowIssue lets fix this
 connected.navigationOptions = {
   header: undefined,
+  // $FlowIssue lets fix this
   headerTitle: hp => <ConnectedHeader />,
   headerTitleContainerStyle: {
     left: 60,

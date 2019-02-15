@@ -20,6 +20,7 @@ type Props = {|
   oldRouteState: RouteStateNode,
   oldSetRouteState: (path: Path, partialState: {}) => void,
   updateNavigator: any => void,
+  persistRoute: any => void,
 |}
 
 class RouterSwitcheroo extends React.PureComponent<Props> {
@@ -43,7 +44,7 @@ const mapDispatchToProps = dispatch => ({
   updateNavigator: navigator => dispatch(ConfigGen.createSetNavigator({navigator})),
 })
 
-export default connect<OwnProps, _, _, _>(
+export default connect<OwnProps, _, _, _, _>(
   () => ({}),
   mapDispatchToProps,
   (s, d, o) => ({...o, ...s, ...d})

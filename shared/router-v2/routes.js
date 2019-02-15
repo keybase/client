@@ -1,4 +1,5 @@
 // @flow
+import * as React from 'react'
 import {newRoutes as chatNewRoutes, newModalRoutes as chatNewModalRoutes} from '../chat/routes'
 import {newRoutes as deviceNewRoutes, newModalRoutes as deviceNewModalRoutes} from '../devices/routes'
 import {newRoutes as fsNewRoutes, newModalRoutes as fsNewModalRoutes} from '../fs/routes'
@@ -12,7 +13,8 @@ import {newRoutes as walletsNewRoutes, newModalRoutes as walletsNewModalRoutes} 
 import * as Tabs from '../constants/tabs'
 
 export const nameToTab = {}
-export const routes = {}
+// TODO could make a stronger type
+export const routes: {[key: string]: {getScreen: () => React.ComponentType<any>}} = {}
 
 const _newRoutes = [
   {route: deviceNewRoutes, tab: Tabs.devicesTab},
@@ -32,6 +34,7 @@ _newRoutes.forEach(({route, tab}) => {
       throw new Error('New route with dupe name, disallowed! ' + name)
     }
     nameToTab[name] = tab
+    // $FlowIssue
     routes[name] = route[name]
   })
 })

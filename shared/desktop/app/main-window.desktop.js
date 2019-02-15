@@ -52,8 +52,8 @@ export default function() {
     y: appState.state.y,
     ...(flags.useNewRouter
       ? {
-          titleBarStyle: 'customButtonsOnHover',
           frame: false,
+          titleBarStyle: 'customButtonsOnHover',
         }
       : {}),
   })

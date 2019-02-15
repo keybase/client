@@ -103,9 +103,9 @@ const _containerStyle = {
 const _headerStyle = {
   ...Styles.globalStyles.flexBoxRow,
   alignItems: 'center',
+  flexShrink: 0,
   justifyContent: 'flex-start',
   minHeight: flags.useNewRouter ? undefined : 48,
-  flexShrink: 0,
   paddingLeft: Styles.globalMargins.small,
   paddingRight: Styles.globalMargins.small,
   position: 'relative',

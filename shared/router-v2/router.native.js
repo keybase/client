@@ -1,24 +1,14 @@
 // @flow
-//
-// Notes:
-// leaving headerhoc
-// default screens have no header
-// opt into new split header, MUST set header to undefined in their connector navigatinoOptions
-//
-// Offline
-//
-//
 import * as Kb from '../common-adapters/mobile.native'
 import * as Styles from '../styles'
 import * as React from 'react'
 import GlobalError from '../app/global-errors/container'
 import TabBar from './tab-bar/container'
 import {createAppContainer} from '@react-navigation/native'
-import {createSwitchNavigator, StackActions, NavigationActions} from '@react-navigation/core'
+import {createSwitchNavigator, StackActions} from '@react-navigation/core'
 import {createStackNavigator} from 'react-navigation-stack'
 import {modalRoutes, routes, nameToTab, loggedOutRoutes} from './routes'
 import {LeftAction} from '../common-adapters/header-hoc'
-import {isValidInitialTabString} from '../constants/tabs'
 import * as Constants from '../constants/router2'
 import * as Shared from './router.shared'
 import {useScreens} from 'react-native-screens'
@@ -27,24 +17,6 @@ import {debounce} from 'lodash-es'
 
 // turn on screens
 useScreens()
-
-// The nested modal nav can't easily show a header so we just inject it in
-// TODO move this into common
-// import StackHeader from 'react-navigation-stack/src/views/Header/Header'
-// const ModalHeader = p => {
-// // const scene = {index: 0, isActive: true, descriptor: {options: {}}}
-// const scene = {descriptor: {options: {...p.navigationOptions}}, index: 0, isActive: true}
-// const scenes = [scene]
-// // const navigation = {state: {index: 0}}
-// // const getScreenDetails = () => ({
-// // options: {
-// // title: 'Modal',
-// // // headerLeft: <Kb.Button type='title="Cancel" onPress={() => p.navigation.goBack()} />,
-// // },
-// // })
-// // <StackHeader scene={scene} scenes={scenes} navigation={navigation} getScreenDetails={getScreenDetails} />
-// return <StackHeader mode="screen" scene={scene} scenes={scenes} navigation={p.navigation} />
-// }
 
 // Options used by default on all navigators
 const defaultNavigationOptions = {

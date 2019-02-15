@@ -112,6 +112,7 @@ const connected = connect<OwnProps, _, _, _, _>(
 // $FlowIssue lets fix this
 connected.navigationOptions = {
   header: undefined,
+  // $FlowIssue lets fix this
   headerTitle: hp => <ConnectedHeader />,
   headerTitleContainerStyle: {
     left: 40,

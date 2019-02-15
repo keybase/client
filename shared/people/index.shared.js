@@ -54,7 +54,7 @@ export const itemToComponent: (Types.PeopleScreenItem, Props) => React.Node = (i
   return null
 }
 
-export const PeoplePageSearchBar = (props: Props) => (
+export const PeoplePageSearchBar = (props: {onSearch: ?() => void}) => (
   <Kb.ClickableBox onClick={props.onSearch} style={styles.searchContainer}>
     <Kb.Icon
       color={Styles.globalColors.black_50}

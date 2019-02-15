@@ -4,7 +4,7 @@ import * as Types from './types/config'
 import * as ChatConstants from './chat2'
 import flags from '../util/feature-flags'
 import {uniq} from 'lodash-es'
-import {runMode, isMobile} from './platform'
+import {runMode} from './platform'
 
 export const maxHandshakeTries = 3
 export const defaultKBFSPath = runMode === 'prod' ? '/keybase' : `/keybase.${runMode}`

@@ -11,7 +11,8 @@ import {mapStateHelper as memberMapStateHelper, getRows as getMemberRows} from '
 import {mapStateHelper as subteamsMapStateHelper, getRows as getSubteamsRows} from './subteams-tab/helper'
 import type {RouteProps} from '../../route-tree/render-route'
 
-type OwnProps = RouteProps<{teamname: string}, {}> & {selectedTab: ?string, setSelectedTab: string => void}
+// $FlowIssue
+type OwnProps = RouteProps<{teamname: string}, {}> & {selectedTab: string, setSelectedTab: string => void}
 
 // keep track during session
 const lastSelectedTabs = {}
@@ -100,13 +101,11 @@ class Reloadable extends React.PureComponent<{
   }
 }
 
-type State = {|
-  selectedTab: 'members' | 'invites' | 'subteams' | 'settings' | null,
-|}
+type State = {|selectedTab: string|}
 
 // We don't use route state anymore
 class TabsState extends React.PureComponent<React.ElementConfig<typeof Team>, State> {
-  state = {selectedTab: null}
+  state = {selectedTab: 'members'}
   _setSelectedTab = selectedTab => {
     this.setState({selectedTab})
   }

@@ -2,7 +2,6 @@
 // Just for desktop, we show inbox and conversation side by side
 import * as React from 'react'
 import * as Kb from '../common-adapters'
-import * as Styles from '../styles'
 import Inbox from './inbox/container'
 import Conversation from './conversation/container'
 import {type RouteProps} from '../route-tree/render-route'

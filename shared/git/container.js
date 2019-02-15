@@ -59,7 +59,13 @@ let _expandedSet = I.Set()
 class GitReloadable extends React.PureComponent<
   {
     ...{|_loadGit: () => void|},
-    ...React.ElementConfig<typeof Git>,
+    ...$Diff<
+      React.ElementConfig<typeof Git>,
+      {
+        expandedSet: I.Set<string>,
+        onToggleExpand: string => void,
+      }
+    >,
   },
   {expandedSet: I.Set<string>}
 > {

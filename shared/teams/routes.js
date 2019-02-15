@@ -150,8 +150,8 @@ export const newRoutes = {
 
 export const newModalRoutes = {
   addPeople: {getScreen: () => require('./add-people/container').default},
-  retentionWarning: {getScreen: () => require('./team/settings-tab/retention/warning/container').default},
   reallyLeaveTeam: {getScreen: () => require('./really-leave-team/container').default},
   reallyRemoveMember: {getScreen: () => require('./team/really-remove-member/container').default},
+  retentionWarning: {getScreen: () => require('./team/settings-tab/retention/warning/container').default},
   rolePicker: {getScreen: () => require('./role-picker/container').default},
 }

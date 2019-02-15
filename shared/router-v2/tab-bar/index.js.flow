@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Tabs from '../../constants/tabs'
 
 export type Props = {|
-  badgeNumbers: {[key: Tabs.Tab]: number},
+  badgeNumbers: {[key: string]: number},
   isWalletsNew?: boolean,
   onProfileClick: () => void,
   onTabClick: (tab: Tabs.Tab) => void,

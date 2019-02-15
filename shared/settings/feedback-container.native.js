@@ -179,9 +179,10 @@ const extraChatLogs = state => {
 
 // TODO really shouldn't be doing this in connect, should do this with an action
 const mapStateToProps = (state, {routeProps}) => {
+  const heading = routeProps ? routeProps.get('heading') : '' || 'Your feedback is welcomed!'
   return {
     chat: extraChatLogs(state),
-    heading: routeProps?.get('heading') || 'Your feedback is welcomed!',
+    heading,
     status: {
       appVersionCode,
       appVersionName,

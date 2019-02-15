@@ -13,7 +13,7 @@ import type {RouteProps} from '../../route-tree/render-route'
 import type {Response} from 'react-native-image-picker'
 import {PeoplePageSearchBar} from '../../people/index.shared'
 
-type OwnProps = RouteProps<{username: string}, {}> & {navigation: any}
+type OwnProps = RouteProps<{username: string}, {}>
 const emptySet = I.OrderedSet()
 
 const headerBackgroundColorType = (state, followThem) => {

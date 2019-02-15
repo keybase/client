@@ -31,6 +31,7 @@ const tabs = [
   Tabs.settingsTab,
 ]
 
+// $FlowIssue
 const TabBar = KeyHandler(
   (p: Props) =>
     !!p.username && (

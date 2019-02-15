@@ -4,7 +4,10 @@ import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import {LeftAction} from '../../common-adapters/header-hoc'
 
-class Header extends React.PureComponent {
+// Fix this as we figure out what this needs to be
+type Props = any
+
+class Header extends React.PureComponent<Props> {
   render() {
     // TODO add more here as we use more options on the mobile side maybe
     const opt = this.props.options
@@ -34,8 +37,6 @@ class Header extends React.PureComponent {
       const CustomTitle = opt.headerTitle
       title = <CustomTitle>{opt.title}</CustomTitle>
     }
-
-    const rightAction = opt.headerRight
 
     let style = null
     if (opt.headerTransparent) {
