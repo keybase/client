@@ -12,13 +12,21 @@ type Props = {|
   fullname: ?string,
   inTracker: boolean,
   location: ?string,
+  registeredForAirdrop: ?boolean,
 |}
 
 const Bio = (p: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container} centerChildren={true} gap="xtiny">
-    <Kb.Text type="BodyBig" lineClamp={p.inTracker ? 1 : undefined} style={styles.text}>
-      {p.fullname}
-    </Kb.Text>
+    <Kb.Box2 direction="horizontal" style={styles.fullNameContainer} gap="tiny">
+      <Kb.Text centered={true} type="BodyBig" lineClamp={p.inTracker ? 1 : undefined} style={styles.fullName}>
+        {p.fullname}
+      </Kb.Text>
+      {p.registeredForAirdrop && (
+        <Kb.WithTooltip text="Lucky airdropee">
+          <Kb.Icon type="icon-airdrop-star-16" style={styles.star} />
+        </Kb.WithTooltip>
+      )}
+    </Kb.Box2>
     {p.followThem && p.followsYou && <Kb.Text type="BodySmall">YOU FOLLOW EACH OTHER</Kb.Text>}
     {p.followersCount !== null && (
       <Kb.Text type="BodySmall">
@@ -39,12 +47,12 @@ const Bio = (p: Props) => (
       </Kb.Text>
     )}
     {!!p.bio && (
-      <Kb.Text type="Body" lineClamp={p.inTracker ? 2 : undefined} style={styles.text}>
+      <Kb.Text type="Body" centered={true} lineClamp={p.inTracker ? 2 : undefined} style={styles.text}>
         {p.bio}
       </Kb.Text>
     )}
     {!!p.location && (
-      <Kb.Text type="BodySmall" lineClamp={p.inTracker ? 1 : undefined} style={styles.text}>
+      <Kb.Text type="BodySmall" centered={true} lineClamp={p.inTracker ? 1 : undefined} style={styles.text}>
         {p.location}
       </Kb.Text>
     )}
@@ -54,14 +62,21 @@ const Bio = (p: Props) => (
 const styles = Styles.styleSheetCreate({
   bold: {...Styles.globalStyles.fontBold},
   container: {backgroundColor: Styles.globalColors.white, flexShrink: 0},
+  fullName: Styles.platformStyles({
+    isElectron: {wordBreak: 'break-any'},
+  }),
+  fullNameContainer: {
+    paddingLeft: Styles.globalMargins.mediumLarge,
+    paddingRight: Styles.globalMargins.mediumLarge,
+  },
+  star: {alignSelf: 'center'},
   text: Styles.platformStyles({
     common: {
       paddingLeft: Styles.globalMargins.mediumLarge,
       paddingRight: Styles.globalMargins.mediumLarge,
-      textAlign: 'center',
     },
     isElectron: {
-      wordBreak: 'break-all',
+      wordBreak: 'break-word',
     },
   }),
 })

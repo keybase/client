@@ -41,7 +41,6 @@ export type APIFriendshipUserInfo = {
 }
 
 export type UserInfo = {
-  airdrop: boolean,
   fullname: string,
   followersCount: number,
   followingCount: number,
@@ -50,6 +49,7 @@ export type UserInfo = {
   uid: string,
   avatar: ?string,
   location: string,
+  registeredForAirdrop: boolean,
   showcasedTeams: Array<RPCTypes.UserTeamShowcase>,
 }
 

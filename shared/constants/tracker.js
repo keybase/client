@@ -88,7 +88,6 @@ const initialTrackerState = (username: string): Types.TrackerState => ({
   tracking: [],
   type: trackerType,
   userInfo: {
-    airdrop: false,
     avatar: null,
     bio: '',
     followersCount: -1,
@@ -96,6 +95,7 @@ const initialTrackerState = (username: string): Types.TrackerState => ({
     followsYou: false,
     fullname: '', // TODO get this info,
     location: '', // TODO: get this information
+    registeredForAirdrop: false,
     showcasedTeams: [],
     uid: '',
   },

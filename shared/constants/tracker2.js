@@ -20,6 +20,7 @@ export const makeDetails: I.RecordFactory<Types._Details> = I.Record({
   guiID: null,
   location: null,
   reason: '',
+  registeredForAirdrop: false,
   showTracker: false,
   state: 'error',
   teamShowcase: I.List(),

@@ -46,6 +46,7 @@ export type _Details = {
   guiID: string,
   location: ?string,
   reason: string,
+  registeredForAirdrop: ?boolean,
   showTracker: boolean,
   state: DetailsState,
   teamShowcase: ?I.List<TeamShowcase>,

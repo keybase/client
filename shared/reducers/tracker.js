@@ -328,7 +328,6 @@ export default function(
     case TrackerGen.updateUserInfo: {
       const {userCard, username} = action.payload
       const userInfo = {
-        airdrop: flags.airdrop, // TEMP discuss w/ patrick
         avatar: `https://keybase.io/${username}/picture`,
         bio: userCard.bio,
         followersCount: userCard.followers,
@@ -336,6 +335,7 @@ export default function(
         followsYou: userCard.theyFollowYou,
         fullname: userCard.fullName,
         location: userCard.location,
+        registeredForAirdrop: userCard.registeredForAirdrop,
         showcasedTeams: (userCard.teamShowcase || []).sort(sortByTeamName),
         uid: userCard.uid,
       }

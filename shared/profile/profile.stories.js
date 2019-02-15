@@ -33,7 +33,6 @@ const following = [
 
 const mockUserInfo = {
   userInfo: {
-    airdrop: false,
     avatar: 'https://keybase.io/chris/picture',
     bio: 'Co-founder of Keybase, OkCupid, SparkNotes, and some random other junk. I like making things.',
     followersCount: 1871,
@@ -41,6 +40,7 @@ const mockUserInfo = {
     followsYou: true,
     fullname: 'Chris Coyne',
     location: 'NYC & Maine',
+    registeredForAirdrop: false,
     showcasedTeams: [],
     uid: '0',
   },
