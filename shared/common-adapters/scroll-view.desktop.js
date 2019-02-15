@@ -5,13 +5,14 @@ import type {Props} from './scroll-view'
 
 const ScrollView = (props: Props) => {
   const {contentContainerStyle, style, className, ref, hideVerticalScroll, ...rest} = props
-  const className = Styles.classNames(
+  const cn = Styles.classNames(
     {'hide-scrollbar': hideVerticalScroll},
-    {'scroll-container': hideVerticalScroll}
+    {'scroll-container': hideVerticalScroll},
+    className
   )
   const overflowStyle = hideVerticalScroll ? styles.overflowHidden : styles.overflowAuto
   return (
-    <div className={className} style={collapseStyles([styles.overflowAuto, style])} onScroll={props.onScroll}>
+    <div className={cn} style={Styles.collapseStyles([styles.overflowAuto, style])} onScroll={props.onScroll}>
       <div style={contentContainerStyle} {...rest} />
     </div>
   )
