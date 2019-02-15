@@ -228,19 +228,6 @@ describe('device name happy path', () => {
     expect(getRoutePath()).toEqual(I.List([Tabs.loginTab, 'setPublicName']))
   })
 
-  it("don't allow submit dupe", () => {
-    const {response, getState, dispatch} = init
-    const name: string = (existingDevices.first(): any)
-    dispatch(ProvisionGen.createSubmitDeviceName({name}))
-    expect(
-      getState()
-        .provision.error.stringValue()
-        .indexOf('is already taken')
-    ).not.toEqual(-1)
-    expect(response.result).not.toHaveBeenCalled()
-    expect(response.error).not.toHaveBeenCalled()
-  })
-
   it('submit', () => {
     const {response, getState, dispatch} = init
     const name = 'new name'
