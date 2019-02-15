@@ -19,7 +19,6 @@ const mapStateToProps = state => {
     kbfsEnabled,
     kbfsOutdated,
     showBanner: !kbfsEnabled && state.fs.flags.showBanner,
-    showSecurityPrefs: !kbfsEnabled && state.fs.flags.kextPermissionError,
   }
 }
 
@@ -48,7 +47,7 @@ const mergeProps = (stateProps, dispatchProps, {path}: OwnProps) => ({
 const ConnectedBanner = isMobile
   ? () => null
   : compose(
-      namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'FilesBanner'),
+      namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'FileUIBanner'),
       lifecycle({
         componentDidMount() {
           this.props.getFuseStatus()
