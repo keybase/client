@@ -118,8 +118,7 @@ class Icon extends React.PureComponent<Props> {
       } else if (this.props.sizeType) {
         fontSize = Shared.typeToFontSize(this.props.sizeType)
       } else {
-        const temp = Shared.fontSize(iconType)
-        fontSize = temp && temp.fontSize
+        fontSize = 22
       }
 
       icon = (
