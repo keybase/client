@@ -2966,7 +2966,7 @@ export type TeamPlusApplicationKeys = $ReadOnly<{id: TeamID, name: String, impli
 export type TeamProfileAddEntry = $ReadOnly<{teamName: TeamName, open: Boolean, disabledReason: String}>
 export type TeamRefreshers = $ReadOnly<{needKeyGeneration: PerTeamKeyGeneration, needApplicationsAtGenerations: {[key: string]: ?Array<TeamApplication>}, needApplicationsAtGenerationsWithKBFS: {[key: string]: ?Array<TeamApplication>}, wantMembers?: ?Array<UserVersion>, wantMembersRole: TeamRole, needKBFSKeyGeneration: TeamKBFSKeyRefresher}>
 export type TeamRequestAccessResult = $ReadOnly<{open: Boolean}>
-export type TeamResetUser = $ReadOnly<{username: String, uid: UID, eldestSeqno: Seqno}>
+export type TeamResetUser = $ReadOnly<{username: String, uid: UID, eldestSeqno: Seqno, isDelete: Boolean}>
 export type TeamRole =
   | 0 // NONE_0
   | 1 // READER_1

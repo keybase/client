@@ -276,6 +276,11 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 				continue
 			}
 
+			if body.ResetUser.IsDelete {
+				b.log.CDebugf(ctx, "BadgeState ignoring member_out_from_reset for deleted user")
+				continue
+			}
+
 			msgID := item.Metadata().MsgID().(gregor1.MsgID)
 			m := keybase1.TeamMemberOutReset{
 				Teamname: body.TeamName,
