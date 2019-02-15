@@ -19,13 +19,17 @@ export type _AssertionMeta = {|
 |}
 type AssertionMeta = I.RecordOf<_AssertionMeta>
 
+export type SiteIcon = {
+  +path: string, // https://keybase.io/_/icons/twitter.png
+  +width: number,
+}
 export type _Assertion = {
   assertionKey: string, // twitter:bob
   color: AssertionColor,
   metas: $ReadOnlyArray<AssertionMeta>,
   proofURL: string, // http://twitter.com/bob/post/1234
   sigID: string,
-  siteIcon: string, // https://keybase.io/_/icons/twitter.png
+  siteIcon: $ReadOnlyArray<SiteIcon>,
   siteURL: string, // https://twitter.com/bob
   state: AssertionState,
   type: string, // twitter

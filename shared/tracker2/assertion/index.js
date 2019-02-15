@@ -21,7 +21,7 @@ type Props = {|
   onCreateProof: ?() => void,
   onWhatIsStellar: () => void,
   proofURL: string,
-  siteIcon: string, // TODO handle actual urls, for now just use iconfont
+  siteIcon: $ReadOnlyArray<Types.SiteIcon>,
   siteURL: string,
   state: Types.AssertionState,
   type: string,
