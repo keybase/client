@@ -364,13 +364,13 @@ type folderBranchOps struct {
 	// closed when it ends, so we can avoid sending messages to the
 	// monitorer when they won't be read.
 	editMonitoringInProgress chan struct{}
+	launchEditMonitor        sync.Once
 
 	branchChanges      kbfssync.RepeatedWaitGroup
 	mdFlushes          kbfssync.RepeatedWaitGroup
 	forcedFastForwards kbfssync.RepeatedWaitGroup
 	editActivity       kbfssync.RepeatedWaitGroup
 	partialSyncs       kbfssync.RepeatedWaitGroup
-	launchEditMonitor  sync.Once
 
 	muLastGetHead sync.Mutex
 	// We record a timestamp everytime getHead or getTrustedHead is called, and
@@ -774,6 +774,9 @@ func (fbo *folderBranchOps) startMonitorChat(tlfName tlf.CanonicalName) {
 	if fbo.bType != standard || !fbo.config.Mode().TLFEditHistoryEnabled() {
 		return
 	}
+
+	fbo.editsLock.Lock()
+	defer fbo.editsLock.Unlock()
 
 	fbo.launchEditMonitor.Do(func() {
 		// The first event should initialize all the data.  No need to
@@ -7953,6 +7956,7 @@ func (fbo *folderBranchOps) ClearPrivateFolderMD(ctx context.Context) {
 			fbo.cancelEdits = nil
 		}
 		fbo.editHistory = kbfsedits.NewTlfHistory()
+		fbo.launchEditMonitor = sync.Once{}
 		fbo.convLock.Lock()
 		defer fbo.convLock.Unlock()
 		fbo.convID = nil
