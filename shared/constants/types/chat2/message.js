@@ -102,6 +102,7 @@ export type _MessageText = {
   id: MessageID,
   inlinePaymentIDs: ?I.List<WalletTypes.PaymentID>,
   inlinePaymentSuccessful: boolean,
+  gameID: ?string,
   reactions: Reactions,
   submitState: null | 'deleting' | 'editing' | 'pending' | 'failed',
   mentionsAt: MentionsAt,

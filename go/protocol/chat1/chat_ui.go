@@ -564,6 +564,7 @@ type UIMessageValid struct {
 	RequestInfo           *UIRequestInfo         `codec:"requestInfo,omitempty" json:"requestInfo,omitempty"`
 	Unfurls               []UIMessageUnfurlInfo  `codec:"unfurls" json:"unfurls"`
 	IsCollapsed           bool                   `codec:"isCollapsed" json:"isCollapsed"`
+	GameID                *string                `codec:"gameID,omitempty" json:"gameID,omitempty"`
 }
 
 func (o UIMessageValid) DeepCopy() UIMessageValid {
@@ -670,6 +671,13 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 			return ret
 		})(o.Unfurls),
 		IsCollapsed: o.IsCollapsed,
+		GameID: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.GameID),
 	}
 }
 
@@ -682,6 +690,7 @@ type UIMessageOutbox struct {
 	Ctime             gregor1.Time    `codec:"ctime" json:"ctime"`
 	Ordinal           float64         `codec:"ordinal" json:"ordinal"`
 	IsEphemeral       bool            `codec:"isEphemeral" json:"isEphemeral"`
+	GameID            *string         `codec:"gameID,omitempty" json:"gameID,omitempty"`
 	Filename          string          `codec:"filename" json:"filename"`
 	Title             string          `codec:"title" json:"title"`
 	Preview           *MakePreviewRes `codec:"preview,omitempty" json:"preview,omitempty"`
@@ -703,8 +712,15 @@ func (o UIMessageOutbox) DeepCopy() UIMessageOutbox {
 		Ctime:       o.Ctime.DeepCopy(),
 		Ordinal:     o.Ordinal,
 		IsEphemeral: o.IsEphemeral,
-		Filename:    o.Filename,
-		Title:       o.Title,
+		GameID: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.GameID),
+		Filename: o.Filename,
+		Title:    o.Title,
 		Preview: (func(x *MakePreviewRes) *MakePreviewRes {
 			if x == nil {
 				return nil

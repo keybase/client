@@ -1321,6 +1321,26 @@ func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, msg chat1
 	return &body
 }
 
+func presentGameID(ctx context.Context, msg chat1.MessageUnboxed) *string {
+	typ, err := msg.State()
+	if err != nil {
+		return nil
+	}
+	var body chat1.MessageBody
+	switch typ {
+	case chat1.MessageUnboxedState_VALID:
+		body = msg.Valid().MessageBody
+	case chat1.MessageUnboxedState_OUTBOX:
+		body = msg.Outbox().Msg.MessageBody
+	default:
+		return nil
+	}
+	if !body.IsType(chat1.MessageType_TEXT) {
+		return nil
+	}
+	return body.Text().GameID
+}
+
 func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1.MessageUnboxed,
 	uid gregor1.UID, convID chat1.ConversationID) (res chat1.UIMessage) {
 	miscErr := func(err error) chat1.UIMessage {
@@ -1379,6 +1399,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Etime:                 valid.Etime(),
 			Reactions:             valid.Reactions,
 			HasPairwiseMacs:       valid.HasPairwiseMacs(),
+			GameID:                presentGameID(ctx, rawMsg),
 			PaymentInfos:          presentPaymentInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
 			RequestInfo:           presentRequestInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
 			Unfurls:               PresentUnfurls(ctx, g, uid, convID, valid.Unfurls),
@@ -1418,6 +1439,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Title:             title,
 			Filename:          filename,
 			IsEphemeral:       rawMsg.Outbox().Msg.IsEphemeral(),
+			GameID:            presentGameID(ctx, rawMsg),
 		})
 	case chat1.MessageUnboxedState_ERROR:
 		res = chat1.NewUIMessageWithError(rawMsg.Error())

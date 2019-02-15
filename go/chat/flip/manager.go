@@ -94,6 +94,7 @@ type Manager struct {
 	dealer     *Dealer
 	clock      clockwork.Clock
 	shutdownCh chan struct{}
+	forceCh    chan struct{}
 
 	gamesMu    sync.Mutex
 	games      *lru.Cache
@@ -108,6 +109,7 @@ func NewManager(g *globals.Context) *Manager {
 		clock:        clockwork.NewRealClock(),
 		games:        games,
 		dirtyGames:   make(map[string]GameID),
+		forceCh:      make(chan struct{}, 10),
 	}
 	dealer := NewDealer(m)
 	m.dealer = dealer
@@ -167,6 +169,9 @@ func (m *Manager) notificationLoop() {
 		case <-m.clock.AfterTime(next):
 			m.notifyDirtyGames(ctx)
 			next = m.clock.Now().Add(duration)
+		case <-m.forceCh:
+			m.notifyDirtyGames(ctx)
+			next = m.clock.Now().Add(duration)
 		case <-m.shutdownCh:
 			return
 		}
@@ -222,13 +227,16 @@ func (m *Manager) addResult(ctx context.Context, status *chat1.UICoinFlipStatus,
 	}
 }
 
-func (m *Manager) handleUpdate(ctx context.Context, update GameStateUpdateMessage) (err error) {
+func (m *Manager) handleUpdate(ctx context.Context, update GameStateUpdateMessage, force bool) (err error) {
 	gameID := update.Metadata.GameID
 	defer func() {
 		if err == nil {
 			m.gamesMu.Lock()
 			m.dirtyGames[gameID.String()] = gameID
 			m.gamesMu.Unlock()
+			if force {
+				m.forceCh <- struct{}{}
+			}
 		}
 	}()
 	if update.StartPending != nil {
@@ -271,7 +279,7 @@ func (m *Manager) updateLoop() {
 	for {
 		select {
 		case msg := <-m.dealer.UpdateCh():
-			m.handleUpdate(context.Background(), msg)
+			m.handleUpdate(context.Background(), msg, false)
 		case <-m.shutdownCh:
 			return
 		}
@@ -343,7 +351,7 @@ func (m *Manager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID cha
 			GameID: gameID,
 		},
 		StartPending: new(bool),
-	})
+	}, true)
 	outboxID, err := storage.NewOutboxID()
 	if err != nil {
 		return err
@@ -389,7 +397,7 @@ func (m *Manager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID cha
 			GameID: gameID,
 		},
 		StartSuccess: new(bool),
-	})
+	}, true)
 	return m.dealer.StartFlipWithGameID(ctx, m.startFromText(text), conv.GetConvID(), gameID)
 }
 

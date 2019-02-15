@@ -747,6 +747,13 @@
         {
           "type": "boolean",
           "name": "isCollapsed"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "gameID"
         }
       ]
     },
@@ -788,6 +795,13 @@
         {
           "type": "boolean",
           "name": "isEphemeral"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "gameID"
         },
         {
           "type": "string",

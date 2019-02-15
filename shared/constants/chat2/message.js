@@ -181,6 +181,7 @@ export const makeMessageText: I.RecordFactory<MessageTypes._MessageText> = I.Rec
   ...makeMessageCommon,
   ...makeMessageExplodable,
   decoratedText: null,
+  gameID: null,
   inlinePaymentIDs: null,
   inlinePaymentSuccessful: false,
   mentionsAt: I.Set(),
@@ -686,6 +687,7 @@ const validUIMessagetoMessage = (
         ...common,
         ...explodable,
         decoratedText: m.decoratedTextBody ? new HiddenString(m.decoratedTextBody) : null,
+        gameID: m.gameID,
         hasBeenEdited: m.superseded,
         inlinePaymentIDs: payments
           ? I.List(
@@ -899,6 +901,7 @@ const outboxUIMessagetoMessage = (
         deviceType: isMobile ? 'mobile' : 'desktop',
         errorReason,
         exploding: o.isEphemeral,
+        gameID: o.gameID,
         ordinal: Types.numberToOrdinal(o.ordinal),
         outboxID: Types.stringToOutboxID(o.outboxID),
         submitState: 'pending',
