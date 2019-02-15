@@ -23,7 +23,6 @@ type OwnProps = {|
 const mapStateToProps = state => {
   const metaMap = state.chat2.metaMap
   const filter = state.chat2.inboxFilter
-  const filterHasFocus = state.chat2.focus === 'filter'
   const username = state.config.username
   const {allowShowFloatingButton, rows, smallTeamsExpanded} = filter
     ? filteredRowData(metaMap, filter, username)
@@ -37,7 +36,6 @@ const mapStateToProps = state => {
     _selectedConversationIDKey: Constants.getSelectedConversation(state),
     allowShowFloatingButton,
     filter,
-    filterHasFocus,
     neverLoaded,
     rows,
     smallTeamsExpanded,
@@ -94,7 +92,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     _refreshInbox: dispatchProps._refreshInbox,
     allowShowFloatingButton: stateProps.allowShowFloatingButton,
     filter: stateProps.filter,
-    filterHasFocus: stateProps.filterHasFocus,
     neverLoaded: stateProps.neverLoaded,
     onEnsureSelection: () => {
       // $ForceType

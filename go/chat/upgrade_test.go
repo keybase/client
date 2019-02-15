@@ -130,7 +130,7 @@ func TestChatKBFSUpgradeBadteam(t *testing.T) {
 	delete(ctc.userContextCache, users[0].Username)
 	useRemoteMock = false
 	listener0 := newServerChatListener()
-	ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener0)
+	ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
 
 	iteam, _, _, err := teams.LookupOrCreateImplicitTeam(context.TODO(), tc1.Context().ExternalG(),
 		users[0].Username+","+users[1].Username, false)

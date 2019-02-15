@@ -756,8 +756,8 @@ func TestGetPaymentsLocal(t *testing.T) {
 	// set up notification listeners
 	listenerSender := newChatListener()
 	listenerRecip := newChatListener()
-	tcs[0].G.NotifyRouter.SetListener(listenerSender)
-	tcs[1].G.NotifyRouter.SetListener(listenerRecip)
+	tcs[0].G.NotifyRouter.AddListener(listenerSender)
+	tcs[1].G.NotifyRouter.AddListener(listenerRecip)
 
 	sendRes, err := srvSender.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
 		BypassBid:     true,
@@ -2533,8 +2533,8 @@ func TestMakeRequestLocalNotifications(t *testing.T) {
 	// set up notification listeners
 	listenerSender := newChatListener()
 	listenerRecip := newChatListener()
-	tcs[0].G.NotifyRouter.SetListener(listenerSender)
-	tcs[1].G.NotifyRouter.SetListener(listenerRecip)
+	tcs[0].G.NotifyRouter.AddListener(listenerSender)
+	tcs[1].G.NotifyRouter.AddListener(listenerRecip)
 
 	xlm := stellar1.AssetNative()
 	reqID, err := tcs[0].Srv.MakeRequestLocal(context.Background(), stellar1.MakeRequestLocalArg{

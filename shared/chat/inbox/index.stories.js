@@ -344,7 +344,6 @@ const propsInboxCommon = {
   focusFilter: () => {},
   filter: '',
   filterFocusCount: 0,
-  filterHasFocus: false,
   neverLoaded: false,
   nowOverride: 0, // just for dumb rendering
   onDeselectConversation: Sb.action('onDeselectConversation'),

@@ -38,7 +38,6 @@ export type Props = {|
   focusFilter: () => void, // withStateHandler function
   filter: string,
   filterFocusCount: number,
-  filterHasFocus: boolean,
   neverLoaded: boolean,
   nowOverride?: number, // just for dumb rendering
   onDeselectConversation: () => void,
