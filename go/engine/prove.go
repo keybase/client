@@ -237,7 +237,7 @@ func (p *Prove) postProofToServer(m libkb.MetaContext) (err error) {
 func (p *Prove) instructAction(m libkb.MetaContext) (err error) {
 	mkp := p.serviceType.PostInstructions(p.remoteNameNormalized)
 	var txt string
-	if txt, err = p.serviceType.FormatProofText(m, p.postRes, p.me.GetNormalizedName().String(), p.sigID); err != nil {
+	if txt, err = p.serviceType.FormatProofText(m, p.postRes, p.me.GetNormalizedName().String(), p.remoteNameNormalized, p.sigID); err != nil {
 		return err
 	}
 	err = m.UIs().ProveUI.OutputInstructions(m.Ctx(), keybase1.OutputInstructionsArg{
