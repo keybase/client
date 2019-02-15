@@ -4,7 +4,6 @@ import Measure from 'react-measure'
 import type {Props, State} from './video'
 import * as Styles from '../styles'
 import {getVideoSize} from './video.shared'
-import logger from '../logger'
 
 export default class extends React.PureComponent<Props, State> {
   state = {
@@ -18,41 +17,28 @@ export default class extends React.PureComponent<Props, State> {
   _mounted = false
 
   _onContainerResize = ({bounds}) =>
-    this.setState({containerHeight: bounds.height, containerWidth: bounds.width})
+    this._mounted && this.setState({containerHeight: bounds.height, containerWidth: bounds.width})
 
   _videoRef: {current: HTMLVideoElement | null} = React.createRef()
-  _videoRefAction = (action: HTMLVideoElement => any) => {
-    if (!this._videoRef.current) {
-      // This can happen in story tests.
-      logger.warn('_videoRef is falsey')
-      return
-    }
-    action(this._videoRef.current)
-  }
+  _onVideoClick = () =>
+    this._videoRef.current &&
+    (this._videoRef.current.paused ? this._videoRef.current.play() : this._videoRef.current.pause())
 
   _onVideoLoadedmetadata = ({target}) => {
     this._mounted &&
       this.setState({
         loadedVideoSize: true,
-        // $FlowIssue doesn't know videoHeight
         videoHeight: target.videoHeight,
-        // $FlowIssue doesn't know videoWidth
         videoWidth: target.videoWidth,
       })
   }
 
-  _onVideoClick = () => this._videoRefAction(current => (current.paused ? current.play() : current.pause()))
-
   componentDidMount() {
     this._mounted = true
-    this._videoRefAction(current => current.addEventListener('loadedmetadata', this._onVideoLoadedmetadata))
   }
 
   componentWillUnmount() {
     this._mounted = false
-    this._videoRefAction(current =>
-      current.removeEventListener('loadedmetadata', this._onVideoLoadedmetadata)
-    )
   }
 
   render() {
@@ -70,6 +56,7 @@ export default class extends React.PureComponent<Props, State> {
               muted={true}
               autoPlay={true}
               preload="metadata"
+              onLoadedMetadata={this._onVideoLoadedmetadata}
             />
           </div>
         )}
