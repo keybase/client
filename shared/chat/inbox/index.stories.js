@@ -2,7 +2,7 @@
 /* eslint-disable sort-keys */
 import * as React from 'react'
 import * as I from 'immutable'
-import * as Constants from '../../constants/types/chat2'
+import * as Types from '../../constants/types/chat2'
 import * as Sb from '../../stories/storybook'
 
 import {isDarwin} from '../../constants/platform'
@@ -15,14 +15,14 @@ import Inbox from '.'
  */
 const makeRowItemSmall = (conversationIDKey: string = '') => ({
   type: 'small',
-  conversationIDKey: Constants.stringToConversationIDKey(conversationIDKey),
+  conversationIDKey: Types.stringToConversationIDKey(conversationIDKey),
 })
 const makeRowItemBigHeader = (teamname: string = '') => ({type: 'bigHeader', teamname})
 const makeRowItemBigChannel = (conversationIDKey, teamname, channelname) => ({
   type: 'big',
   teamname,
   channelname,
-  conversationIDKey: Constants.stringToConversationIDKey(conversationIDKey),
+  conversationIDKey: Types.stringToConversationIDKey(conversationIDKey),
 })
 const makeRowItemDivider = (showButton: boolean = false) => ({type: 'divider', showButton})
 
@@ -352,7 +352,7 @@ const propsInboxCommon = {
   onSelectDown: Sb.action('onSelectDown'),
   onEnsureSelection: Sb.action('onEnsureSelection'),
   rows: [],
-  selectedIndex: -1,
+  selectedConversationIDKey: Types.stringToConversationIDKey('fake conversation id key'),
   smallTeamsExpanded: false,
   toggleSmallTeamsExpanded: Sb.action('toggleSmallTeamsExpanded'),
 }
