@@ -2068,8 +2068,10 @@ func (n *NotifyRouter) HandleRootAuditError(msg string) {
 		}
 		return true
 	})
-	if n.listener != nil {
-		n.listener.RootAuditError(msg)
-	}
+
+	n.runListeners(func(listener NotifyListener) {
+		listener.RootAuditError(msg)
+	})
+
 	n.G().Log.Debug("- merkle tree audit notification sent")
 }
