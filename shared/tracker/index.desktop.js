@@ -54,8 +54,6 @@ export default class TrackerRender extends React.PureComponent<Props> {
     const ModalPopupComponent = ModalPositionRelative(TeamInfo)
     return (
       <div style={styleContainer}>
-        {/* needed to override a white background set in renderer/style.css */}
-        <style>{`body {background-color: transparent;}`}</style>
         <Header
           reason={this.props.reason}
           onClose={this.props.onClose}
