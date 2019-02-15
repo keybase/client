@@ -231,7 +231,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	g.InboxSource.Start(context.TODO(), uid)
 	g.InboxSource.Connected(context.TODO())
 	g.ServerCacheVersions = storage.NewServerVersions(g)
-	g.NotifyRouter.SetListener(&listener)
+	g.NotifyRouter.AddListener(&listener)
 
 	deliverer := NewDeliverer(g, baseSender)
 	deliverer.SetClock(world.Fc)
@@ -1084,7 +1084,7 @@ func TestPrevPointerAddition(t *testing.T) {
 		// simulate a chat with only long exploded ephemeral messages.
 		if ephemeralLifetime != nil {
 			t.Logf("expiry all ephemeral messages")
-			world.Fc.Advance(time.Second*time.Duration(*ephemeralLifetime) + chat1.ShowExplosionLifetime)
+			world.Fc.Advance(ephemeralLifetime.ToDuration() + chat1.ShowExplosionLifetime)
 			// Mock out pulling messages to return no messages
 			blockingSender.(*BlockingSender).G().ConvSource.(*HybridConversationSource).blackoutPullForTesting = true
 			// Prepare a regular message and make sure it gets prev pointers
@@ -1358,7 +1358,7 @@ func TestPairwiseMACChecker(t *testing.T) {
 		blockingSender1 := NewBlockingSender(g1, boxer1, getRI1)
 		blockingSender2 := NewBlockingSender(g2, boxer2, getRI2)
 		listener1 := newServerChatListener()
-		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener1)
+		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener1)
 
 		text := "hi"
 		msg := textMsgWithSender(t, text, uid1.ToBytes(), chat1.MessageBoxedVersion_V3)

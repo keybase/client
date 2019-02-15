@@ -217,6 +217,7 @@ const (
 	MessageSystemType_CREATETEAM        MessageSystemType = 3
 	MessageSystemType_GITPUSH           MessageSystemType = 4
 	MessageSystemType_CHANGEAVATAR      MessageSystemType = 5
+	MessageSystemType_CHANGERETENTION   MessageSystemType = 6
 )
 
 func (o MessageSystemType) DeepCopy() MessageSystemType { return o }
@@ -228,6 +229,7 @@ var MessageSystemTypeMap = map[string]MessageSystemType{
 	"CREATETEAM":        3,
 	"GITPUSH":           4,
 	"CHANGEAVATAR":      5,
+	"CHANGERETENTION":   6,
 }
 
 var MessageSystemTypeRevMap = map[MessageSystemType]string{
@@ -237,6 +239,7 @@ var MessageSystemTypeRevMap = map[MessageSystemType]string{
 	3: "CREATETEAM",
 	4: "GITPUSH",
 	5: "CHANGEAVATAR",
+	6: "CHANGERETENTION",
 }
 
 func (e MessageSystemType) String() string {
@@ -392,6 +395,24 @@ func (o MessageSystemChangeAvatar) DeepCopy() MessageSystemChangeAvatar {
 	}
 }
 
+type MessageSystemChangeRetention struct {
+	IsTeam      bool                    `codec:"isTeam" json:"isTeam"`
+	IsInherit   bool                    `codec:"isInherit" json:"isInherit"`
+	MembersType ConversationMembersType `codec:"membersType" json:"membersType"`
+	Policy      RetentionPolicy         `codec:"policy" json:"policy"`
+	User        string                  `codec:"user" json:"user"`
+}
+
+func (o MessageSystemChangeRetention) DeepCopy() MessageSystemChangeRetention {
+	return MessageSystemChangeRetention{
+		IsTeam:      o.IsTeam,
+		IsInherit:   o.IsInherit,
+		MembersType: o.MembersType.DeepCopy(),
+		Policy:      o.Policy.DeepCopy(),
+		User:        o.User,
+	}
+}
+
 type MessageSystem struct {
 	SystemType__        MessageSystemType               `codec:"systemType" json:"systemType"`
 	Addedtoteam__       *MessageSystemAddedToTeam       `codec:"addedtoteam,omitempty" json:"addedtoteam,omitempty"`
@@ -400,6 +421,7 @@ type MessageSystem struct {
 	Createteam__        *MessageSystemCreateTeam        `codec:"createteam,omitempty" json:"createteam,omitempty"`
 	Gitpush__           *MessageSystemGitPush           `codec:"gitpush,omitempty" json:"gitpush,omitempty"`
 	Changeavatar__      *MessageSystemChangeAvatar      `codec:"changeavatar,omitempty" json:"changeavatar,omitempty"`
+	Changeretention__   *MessageSystemChangeRetention   `codec:"changeretention,omitempty" json:"changeretention,omitempty"`
 }
 
 func (o *MessageSystem) SystemType() (ret MessageSystemType, err error) {
@@ -432,6 +454,11 @@ func (o *MessageSystem) SystemType() (ret MessageSystemType, err error) {
 	case MessageSystemType_CHANGEAVATAR:
 		if o.Changeavatar__ == nil {
 			err = errors.New("unexpected nil value for Changeavatar__")
+			return ret, err
+		}
+	case MessageSystemType_CHANGERETENTION:
+		if o.Changeretention__ == nil {
+			err = errors.New("unexpected nil value for Changeretention__")
 			return ret, err
 		}
 	}
@@ -498,6 +525,16 @@ func (o MessageSystem) Changeavatar() (res MessageSystemChangeAvatar) {
 	return *o.Changeavatar__
 }
 
+func (o MessageSystem) Changeretention() (res MessageSystemChangeRetention) {
+	if o.SystemType__ != MessageSystemType_CHANGERETENTION {
+		panic("wrong case accessed")
+	}
+	if o.Changeretention__ == nil {
+		return
+	}
+	return *o.Changeretention__
+}
+
 func NewMessageSystemWithAddedtoteam(v MessageSystemAddedToTeam) MessageSystem {
 	return MessageSystem{
 		SystemType__:  MessageSystemType_ADDEDTOTEAM,
@@ -537,6 +574,13 @@ func NewMessageSystemWithChangeavatar(v MessageSystemChangeAvatar) MessageSystem
 	return MessageSystem{
 		SystemType__:   MessageSystemType_CHANGEAVATAR,
 		Changeavatar__: &v,
+	}
+}
+
+func NewMessageSystemWithChangeretention(v MessageSystemChangeRetention) MessageSystem {
+	return MessageSystem{
+		SystemType__:      MessageSystemType_CHANGERETENTION,
+		Changeretention__: &v,
 	}
 }
 
@@ -585,6 +629,13 @@ func (o MessageSystem) DeepCopy() MessageSystem {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Changeavatar__),
+		Changeretention__: (func(x *MessageSystemChangeRetention) *MessageSystemChangeRetention {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Changeretention__),
 	}
 }
 
@@ -4955,6 +5006,11 @@ type FindConversationsLocalArg struct {
 
 type UpdateTypingArg struct {
 	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
+	Typing         bool           `codec:"typing" json:"typing"`
+}
+
+type UpdateUnsentTextArg struct {
+	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
 	Text           string         `codec:"text" json:"text"`
 }
 
@@ -5077,6 +5133,12 @@ type SaveUnfurlSettingsArg struct {
 	Whitelist []string   `codec:"whitelist" json:"whitelist"`
 }
 
+type ToggleMessageCollapseArg struct {
+	ConvID   ConversationID `codec:"convID" json:"convID"`
+	MsgID    MessageID      `codec:"msgID" json:"msgID"`
+	Collapse bool           `codec:"collapse" json:"collapse"`
+}
+
 type LocalInterface interface {
 	GetThreadLocal(context.Context, GetThreadLocalArg) (GetThreadLocalRes, error)
 	GetCachedThread(context.Context, GetCachedThreadArg) (GetThreadLocalRes, error)
@@ -5118,6 +5180,7 @@ type LocalInterface interface {
 	MarkAsReadLocal(context.Context, MarkAsReadLocalArg) (MarkAsReadLocalRes, error)
 	FindConversationsLocal(context.Context, FindConversationsLocalArg) (FindConversationsLocalRes, error)
 	UpdateTyping(context.Context, UpdateTypingArg) error
+	UpdateUnsentText(context.Context, UpdateUnsentTextArg) error
 	JoinConversationLocal(context.Context, JoinConversationLocalArg) (JoinLeaveConversationLocalRes, error)
 	JoinConversationByIDLocal(context.Context, ConversationID) (JoinLeaveConversationLocalRes, error)
 	PreviewConversationByIDLocal(context.Context, ConversationID) (JoinLeaveConversationLocalRes, error)
@@ -5141,6 +5204,7 @@ type LocalInterface interface {
 	ResolveUnfurlPrompt(context.Context, ResolveUnfurlPromptArg) error
 	GetUnfurlSettings(context.Context) (UnfurlSettingsDisplay, error)
 	SaveUnfurlSettings(context.Context, SaveUnfurlSettingsArg) error
+	ToggleMessageCollapse(context.Context, ToggleMessageCollapseArg) error
 }
 
 func LocalProtocol(i LocalInterface) rpc.Protocol {
@@ -5742,6 +5806,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"updateUnsentText": {
+				MakeArg: func() interface{} {
+					var ret [1]UpdateUnsentTextArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]UpdateUnsentTextArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]UpdateUnsentTextArg)(nil), args)
+						return
+					}
+					err = i.UpdateUnsentText(ctx, typedArgs[0])
+					return
+				},
+			},
 			"joinConversationLocal": {
 				MakeArg: func() interface{} {
 					var ret [1]JoinConversationLocalArg
@@ -6072,6 +6151,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"toggleMessageCollapse": {
+				MakeArg: func() interface{} {
+					var ret [1]ToggleMessageCollapseArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ToggleMessageCollapseArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ToggleMessageCollapseArg)(nil), args)
+						return
+					}
+					err = i.ToggleMessageCollapse(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -6283,6 +6377,11 @@ func (c LocalClient) UpdateTyping(ctx context.Context, __arg UpdateTypingArg) (e
 	return
 }
 
+func (c LocalClient) UpdateUnsentText(ctx context.Context, __arg UpdateUnsentTextArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.updateUnsentText", []interface{}{__arg}, nil)
+	return
+}
+
 func (c LocalClient) JoinConversationLocal(ctx context.Context, __arg JoinConversationLocalArg) (res JoinLeaveConversationLocalRes, err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.joinConversationLocal", []interface{}{__arg}, &res)
 	return
@@ -6402,5 +6501,10 @@ func (c LocalClient) GetUnfurlSettings(ctx context.Context) (res UnfurlSettingsD
 
 func (c LocalClient) SaveUnfurlSettings(ctx context.Context, __arg SaveUnfurlSettingsArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.saveUnfurlSettings", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) ToggleMessageCollapse(ctx context.Context, __arg ToggleMessageCollapseArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.toggleMessageCollapse", []interface{}{__arg}, nil)
 	return
 }

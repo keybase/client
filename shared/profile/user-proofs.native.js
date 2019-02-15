@@ -208,7 +208,7 @@ const styleService = {
   padding: iconServicePadding,
 }
 const styleServiceContainer = {
-  color: globalColors.black_75,
+  color: globalColors.black,
   fontSize: 20,
 }
 const styleStatusIconTouchable = {

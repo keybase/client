@@ -19,11 +19,14 @@ const mapStateToProps = (state, {conversationIDKey, isPending}) => {
   const meta = Constants.getMeta(state, conversationIDKey)
   const infoPanelOpen = Constants.isInfoPanelOpen(state)
   const isSearching = state.chat2.pendingMode === 'searchingForUsers' && isPending
+  const giphyResults = state.chat2.giphyResultMap.get(conversationIDKey, [])
+  const showGiphySearch = giphyResults.length > 0
   return {
     conversationIDKey,
     infoPanelOpen,
     isPending,
     isSearching,
+    showGiphySearch,
     showLoader,
     threadLoadedOffline: meta.offline,
   }
@@ -70,6 +73,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     onShowTracker: dispatchProps.onShowTracker,
     onToggleInfoPanel: () =>
       dispatchProps._onToggleInfoPanel(stateProps.infoPanelOpen, stateProps.conversationIDKey),
+    showGiphySearch: stateProps.showGiphySearch,
     showLoader: stateProps.showLoader,
     threadLoadedOffline: stateProps.threadLoadedOffline,
   }
@@ -82,10 +86,13 @@ export default compose(
     mergeProps
   ),
   withStateHandlers(
-    {focusInputCounter: 0, listScrollDownCounter: 0},
+    {focusInputCounter: 0, scrollListDownCounter: 0, scrollListUpCounter: 0},
     {
       onFocusInput: ({focusInputCounter}) => () => ({focusInputCounter: focusInputCounter + 1}),
-      onScrollDown: ({listScrollDownCounter}) => () => ({listScrollDownCounter: listScrollDownCounter + 1}),
+      onRequestScrollDown: ({scrollListDownCounter}) => () => ({
+        scrollListDownCounter: scrollListDownCounter + 1,
+      }),
+      onRequestScrollUp: ({scrollListUpCounter}) => () => ({scrollListUpCounter: scrollListUpCounter + 1}),
     }
   )
 )(Normal)

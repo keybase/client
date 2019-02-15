@@ -4,6 +4,7 @@ import * as RPCTypes from './rpc-gen'
 import * as ChatTypes from './chat2'
 import * as Devices from './devices'
 import * as TeamsTypes from '../../constants/types/teams'
+import * as FsGen from '../../actions/fs-gen'
 import type {IconType} from '../../common-adapters/icon.constants'
 import {type TextType} from '../../common-adapters/text'
 import {isWindows} from '../platform'
@@ -20,8 +21,8 @@ export type ProgressType = 'favorite' | 'pending' | 'loaded'
 export type _FsError = {
   time: number,
   error: string,
-  erroredAction: any, // Actions,
-  retriableAction?: any, // Actions,
+  erroredAction: FsGen.Actions,
+  retriableAction?: ?FsGen.Actions,
 }
 export type FsError = I.RecordOf<_FsError>
 
@@ -208,6 +209,7 @@ export type _DownloadMeta = {
 export type DownloadMeta = I.RecordOf<_DownloadMeta>
 
 export type _DownloadState = {
+  canceled: boolean,
   completePortion: number,
   endEstimate?: number,
   error?: FsError,
@@ -221,6 +223,8 @@ export type _Download = {
   state: DownloadState,
 }
 export type Download = I.RecordOf<_Download>
+
+export type Downloads = I.Map<string, Download>
 
 export type _Uploads = {
   writingToJournal: I.Set<Path>,
@@ -300,13 +304,21 @@ export type _SendLinkToChat = {
 }
 export type SendLinkToChat = I.RecordOf<_SendLinkToChat>
 
+export type PathItemActionMenuView = 'root' | 'share' | 'confirm-save-media' | 'confirm-send-to-other-app'
+export type _PathItemActionMenu = {
+  view: PathItemActionMenuView,
+  previousView: PathItemActionMenuView,
+  downloadKey: ?string,
+}
+export type PathItemActionMenu = I.RecordOf<_PathItemActionMenu>
+
 export type _State = {
   pathItems: PathItems,
   tlfs: Tlfs,
   edits: Edits,
   pathUserSettings: I.Map<Path, PathUserSetting>,
   loadingPaths: I.Map<Path, I.Set<string>>,
-  downloads: I.Map<string, Download>,
+  downloads: Downloads,
   uploads: Uploads,
   fuseStatus: ?RPCTypes.FuseStatus,
   flags: Flags,
@@ -315,6 +327,7 @@ export type _State = {
   tlfUpdates: UserTlfUpdates,
   moveOrCopy: MoveOrCopy,
   sendLinkToChat: SendLinkToChat,
+  pathItemActionMenu: PathItemActionMenu,
 }
 export type State = I.RecordOf<_State>
 

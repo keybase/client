@@ -47,7 +47,7 @@ class Icon extends Component<Props, void> {
       hoverColor =
         this.props.hoverColor ||
         hoverColor ||
-        (this.props.opacity ? Styles.globalColors.black : Styles.globalColors.black_75)
+        (this.props.opacity ? Styles.globalColors.black : Styles.globalColors.black)
     }
 
     const isFontIcon = iconMeta[iconType].isFont
@@ -76,7 +76,8 @@ class Icon extends Component<Props, void> {
     let iconElement
 
     if (isFontIcon) {
-      iconElement = String.fromCharCode(iconMeta[iconType].charCode || 0)
+      // handled by a class below
+      iconElement = null
     } else {
       const imgStyle = Styles.collapseStyles([
         Styles.desktopStyles.noSelect,
@@ -131,7 +132,13 @@ class Icon extends Component<Props, void> {
           <span
             alt={this.props.hint}
             style={style}
-            className={Styles.classNames('icon', colorStyleName, hoverStyleName, this.props.className)}
+            className={Styles.classNames(
+              'icon',
+              colorStyleName,
+              hoverStyleName,
+              `icon-gen-${iconType}`,
+              this.props.className
+            )}
             onMouseEnter={this.props.onMouseEnter}
             onMouseLeave={this.props.onMouseLeave}
             onClick={onClick}

@@ -1,4 +1,5 @@
 // @flow
+import * as I from 'immutable'
 import React from 'react'
 import {isMobile} from '../../constants/platform'
 import * as Sb from '../../stories/storybook'
@@ -14,40 +15,51 @@ import Errs from './errs'
 import {type OwnProps as PathItemIconOwnProps} from './path-item-icon-container'
 import {type OwnProps as PathItemInfoOwnProps} from './path-item-info-container'
 
-const pathItemActionPopupProps = (path: Types.Path) => {
-  const pathElements = Types.getPathElements(path)
-  return {
-    childrenFiles: 0,
-    childrenFolders: 0,
-    copyPath: Sb.action('copyPath'),
-    download: Sb.action('download'),
-    ignoreFolder: Sb.action('ignoreFolder'),
-    lastModifiedTimestamp: 0,
-    lastWriter: 'meatball',
-    name: Types.getPathNameFromElems(pathElements),
-    onHidden: Sb.action('onHidden'),
-    ...(isMobile
-      ? {
-          saveMedia: Sb.action('saveMedia'),
-          shareNative: Sb.action('shareNative'),
-        }
-      : {}),
-    path,
-    pathElements,
-    showInSystemFileManager: Sb.action('showInSystemFileManager'),
-    size: 0,
-    type: 'folder',
-  }
-}
+const PathItemActionMenuHeaderProps = (props: any) => ({
+  childrenFiles: 0,
+  childrenFolders: 0,
+  loadFolderList: Sb.action('loadFolderList'),
+  loadMimeType: Sb.action('loadMimeType'),
+  path: props.path,
+  size: 0,
+  type: 'folder',
+})
+
+const pathItemActionProps = (props: any) => ({
+  ...props,
+  init: Sb.action('init'),
+  onHidden: Sb.action('onHidden'),
+})
+
+const pathItemActionChooseViewProps = (props: any) => ({
+  ...props,
+  view: 'root',
+})
+
+const PathItemActionMenuProps = (props: any) => ({
+  ...props,
+  copyPath: Sb.action('copyPath'),
+  deleteFileOrFolder: Sb.action('deleteFileOrFolder'),
+  download: Sb.action('download'),
+  ignoreFolder: Sb.action('ignoreFolder'),
+  onHidden: Sb.action('onHidden'),
+  ...(isMobile
+    ? {
+        saveMedia: Sb.action('saveMedia'),
+        shareNative: Sb.action('shareNative'),
+      }
+    : {}),
+  showInSystemFileManager: Sb.action('showInSystemFileManager'),
+})
 
 export const commonProvider = {
-  ConnectedDownloadTrackingHoc: () => ({
-    downloading: false,
-  }),
   ConnectedErrs: () => ({
     errs: [],
   }),
-  ConnectedPathItemAction: () => pathItemActionPopupProps(Types.stringToPath('/keybase/private/meatball')),
+  PathItemAction: pathItemActionProps,
+  PathItemActionChooseView: pathItemActionChooseViewProps,
+  PathItemActionMenu: PathItemActionMenuProps,
+  PathItemActionMenuHeader: PathItemActionMenuHeaderProps,
   PathItemIcon: (ownProps: PathItemIconOwnProps) => ({
     ...ownProps,
     type: Types.getPathElements(ownProps.path).length > 3 ? 'file' : 'folder',
@@ -67,9 +79,43 @@ export const commonProvider = {
 
 export const provider = Sb.createPropProviderWithCommon(commonProvider)
 
-const FloatingPathItemAction = Kb.OverlayParentHOC(PathItemAction)
+const pathItemActionCommonProps = {
+  clickable: {type: 'icon'},
+  init: Sb.action('init'),
+  onHidden: Sb.action('onHidden'),
+}
 
 const load = () => {
+  Sb.storiesOf('Files', module)
+    .addDecorator(provider)
+    .add('PathItemAction', () => (
+      <Kb.Box2
+        direction="vertical"
+        gap="medium"
+        gapStart={true}
+        style={{paddingLeft: Styles.globalMargins.medium}}
+      >
+        <PathItemAction
+          path={Types.stringToPath('/keybase/private/meatball/folder/treat')}
+          routePath={I.List()}
+          {...pathItemActionCommonProps}
+        />
+        <PathItemAction
+          path={Types.stringToPath(
+            '/keybase/private/meatball/treat treat treat treat treat treat treat treat treat treat treat treat treat treat treat treat'
+          )}
+          routePath={I.List()}
+          {...pathItemActionCommonProps}
+        />
+        <PathItemAction
+          path={Types.stringToPath(
+            '/keybaes/private/meatball/foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar'
+          )}
+          routePath={I.List()}
+          {...pathItemActionCommonProps}
+        />
+      </Kb.Box2>
+    ))
   Sb.storiesOf('Files', module)
     .addDecorator(provider)
     .add('Errs', () => (
@@ -101,27 +147,6 @@ const load = () => {
           },
         ]}
       />
-    ))
-    .add('PathItemAction', () => (
-      <Kb.Box style={{padding: Styles.globalMargins.small}}>
-        <FloatingPathItemAction
-          {...pathItemActionPopupProps(Types.stringToPath('/keybase/private/meatball/folder/treat'))}
-        />
-        <FloatingPathItemAction
-          {...pathItemActionPopupProps(
-            Types.stringToPath(
-              '/keybase/private/meatball/treat treat treat treat treat treat treat treat treat treat treat treat treat treat treat treat'
-            )
-          )}
-        />
-        <FloatingPathItemAction
-          {...pathItemActionPopupProps(
-            Types.stringToPath(
-              '/keybaes/private/meatball/foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar,foo,bar'
-            )
-          )}
-        />
-      </Kb.Box>
     ))
     .add('Loading', () => <Loading path={Types.stringToPath('/keybase/team/kbkbfstest')} />)
     .add('TlfInfo', () => (

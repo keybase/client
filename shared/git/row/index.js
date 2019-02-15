@@ -2,7 +2,6 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
-import KbfsPathContainer from '../../common-adapters/markdown/kbfs-path-container'
 
 type Props = {
   canDelete: boolean,
@@ -19,6 +18,7 @@ type Props = {
   teamname: ?string,
   url: string,
   isNew: boolean,
+  onBrowseGitRepo: () => void,
   onCopy: () => void,
   onClickDevice: () => void,
   onShowDelete: () => void,
@@ -26,7 +26,6 @@ type Props = {
   onToggleChatEnabled: () => void,
   onToggleExpand: () => void,
   openUserTracker: (username: string) => void,
-  previewLink: string,
   _onOpenChannelSelection: () => void,
 }
 
@@ -80,7 +79,7 @@ class Row extends React.Component<Props> {
                 username={this.props.teamname ? undefined : this.props.you}
                 style={{marginRight: Styles.globalMargins.tiny}}
               />
-              <Kb.Text type="BodySemibold" style={{color: Styles.globalColors.black_75}}>
+              <Kb.Text type="BodySemibold" style={{color: Styles.globalColors.black}}>
                 {this.props.teamname ? `${this.props.teamname}/${this.props.name}` : this.props.name}
               </Kb.Text>
               {this.props.isNew && (
@@ -102,22 +101,7 @@ class Row extends React.Component<Props> {
                 <Kb.Box2 direction="horizontal" style={styles.copyTextContainer}>
                   <Kb.CopyText text={this.props.url} containerStyle={{width: '100%'}} />
                 </Kb.Box2>
-                {!Styles.isMobile && this.props.canDelete && (
-                  <Kb.Button
-                    type="Danger"
-                    small={true}
-                    label="Delete repo"
-                    onClick={this.props.onShowDelete}
-                  />
-                )}
               </Kb.Box>
-              <Kb.Box2 direction="horizontal" fullWidth={true} style={{marginTop: Styles.globalMargins.tiny}}>
-                <Kb.Text type="Body">Preview:</Kb.Text>
-                <KbfsPathContainer
-                  escapedPath={this.props.previewLink}
-                  allowFontScaling={true}
-                />
-              </Kb.Box2>
               <Kb.Box
                 style={{
                   ...Styles.globalStyles.flexBoxRow,
@@ -197,15 +181,28 @@ class Row extends React.Component<Props> {
                   )}
                 </Kb.Box>
               )}
-              {Styles.isMobile && this.props.canDelete && (
+              <Kb.Box2 direction="horizontal" fullWidth={true} style={{marginTop: Styles.globalMargins.tiny}} gap="tiny">
                 <Kb.Button
-                  type="Danger"
-                  small={false}
-                  label="Delete repo"
-                  onClick={this.props.onShowDelete}
-                  style={{alignSelf: 'flex-start', marginTop: Styles.globalMargins.tiny}}
-                />
-              )}
+                  type="Secondary"
+                  small={true}
+                  label="View files"
+                  onClick={this.props.onBrowseGitRepo}
+                >
+                  <Kb.Icon
+                    type="iconfont-nav-files"
+                    fontSize={16}
+                    style={{marginRight: Styles.globalMargins.xtiny}}
+                  />
+                </Kb.Button>
+                {this.props.canDelete && (
+                  <Kb.Button
+                    type="Danger"
+                    small={true}
+                    label="Delete repo"
+                    onClick={this.props.onShowDelete}
+                  />
+                )}
+              </Kb.Box2>
             </Kb.Box>
           )}
         </Kb.Box>

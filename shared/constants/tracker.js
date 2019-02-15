@@ -434,6 +434,16 @@ function deriveTrackerMessage(
 const deriveShouldFollow = ({allOk}: {allOk: boolean}): boolean => allOk
 const dedupeProofs = (proofs: Array<Types.Proof>): Array<Types.Proof> => uniqBy(proofs, 'id')
 
+const proofTypeToDesc = (proofType: string) => {
+  switch (proofType) {
+    case 'btc':
+    case 'zcash':
+      return 'signature'
+    default:
+      return 'proof'
+  }
+}
+
 export {
   bufferToNiceHexString,
   cachedIdentifyGoodUntil,
@@ -458,6 +468,7 @@ export {
   normal,
   overviewStateOfProofs,
   profileFromUI,
+  proofTypeToDesc,
   remoteProofToProof,
   revoked,
   revokedProofToProof,

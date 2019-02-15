@@ -105,7 +105,7 @@ func TestChatSrvUnfurl(t *testing.T) {
 		tc := ctc.world.Tcs[users[0].Username]
 		ri := ctc.as(t, users[0]).ri
 		listener0 := newServerChatListener()
-		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener0)
+		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
 		httpSrv := newDummyHTTPSrv(t)
 		httpAddr := httpSrv.Start()
 		defer httpSrv.Stop()

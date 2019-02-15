@@ -64,6 +64,10 @@ func (u *smuUser) cleanup() {
 	}
 	for _, d := range u.devices {
 		d.tctx.Cleanup()
+		if d.service != nil {
+			d.service.Stop(0)
+			d.stop()
+		}
 	}
 }
 
@@ -667,6 +671,12 @@ func (u *smuUser) assertMemberInactive(team smuTeam, user *smuUser) {
 	active, err := u.isMemberActive(team, user)
 	require.NoError(u.ctx.t, err, "assertMemberInactive error: %s", err)
 	require.False(u.ctx.t, active, "user %s is active (expected inactive)", user.username)
+}
+
+func (u *smuUser) assertMemberMissing(team smuTeam, user *smuUser) {
+	_, err := u.teamMemberDetails(team, user)
+	require.Error(user.ctx.t, err, "member should not be found")
+	require.Equal(user.ctx.t, libkb.NotFoundError{}, err, "member should not be found")
 }
 
 func (u *smuUser) uid() keybase1.UID {

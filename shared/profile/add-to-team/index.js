@@ -34,7 +34,7 @@ const TeamRow = (props: RowProps) => (
       <Box2 direction="vertical">
         <Box2 direction="horizontal" style={{alignSelf: 'flex-start'}}>
           <Text
-            style={{color: props.canAddThem ? globalColors.black_75 : globalColors.black_50}}
+            style={{color: props.canAddThem ? globalColors.black : globalColors.black_50}}
             type="BodySemibold"
           >
             {props.name}

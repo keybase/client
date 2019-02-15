@@ -22,6 +22,7 @@ import (
 	"github.com/keybase/client/go/gregor"
 	grclient "github.com/keybase/client/go/gregor/client"
 	"github.com/keybase/client/go/gregor/storage"
+	grutils "github.com/keybase/client/go/gregor/utils"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -229,7 +230,7 @@ type gregorHandler struct {
 	transportForTesting *connTransport
 }
 
-var _ libkb.GregorDismisser = (*gregorHandler)(nil)
+var _ libkb.GregorState = (*gregorHandler)(nil)
 var _ libkb.GregorListener = (*gregorHandler)(nil)
 
 func newGregorHandler(g *globals.Context) *gregorHandler {
@@ -784,14 +785,19 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 		return fmt.Errorf("error authenticating: %s", err)
 	}
 
-	// Sync badge state in the background
+	// Update badging for chat.
+	// This happens before Syncer.Connected for a reason.
+	// If the new inbox version (e.g. 8) were committed to disk and then the
+	// app lost connection and bailed out of OnConnect before applying the
+	// badging update (7->8) then on reconnect an incomplete chat badge update (8->9)
+	// could be received.
+	// See: https://github.com/keybase/client/pull/12651
 	if g.badger != nil {
-		if err := g.badger.Resync(ctx, g.GetClient, gcli, &syncAllRes.Badge); err != nil {
-			g.chatLog.Debug(ctx, "badger failure: %s", err)
-		}
+		g.badger.PushChatFullUpdate(ctx, syncAllRes.Badge)
 	}
 
 	// Sync chat data using a Syncer object
+	// This commits the new inbox version to persistent storage.
 	if err := g.G().Syncer.Connected(ctx, chatCli, uid, &syncAllRes.Chat); err != nil {
 		return fmt.Errorf("error running chat sync: %s", err)
 	}
@@ -801,6 +807,17 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 		&syncAllRes.Notification); err != nil {
 		g.chatLog.Debug(ctx, "serverSync: failure: %s", err)
 		return fmt.Errorf("error running state sync: %s", err)
+	}
+
+	// Update badging from gregor.
+	if g.badger != nil {
+		state, err := gcli.StateMachineState(ctx, nil, false)
+		if err != nil {
+			g.chatLog.Debug(ctx, "unable to get gregor state for badging: %v", err)
+			g.badger.PushState(ctx, gregor1.State{})
+		} else {
+			g.badger.PushState(ctx, state)
+		}
 	}
 
 	// Call out to reachability module if we have one
@@ -1602,36 +1619,8 @@ func (g *gregorHandler) connectNoTLS() error {
 	return nil
 }
 
-func NewGregorMsgID() (gregor1.MsgID, error) {
-	r, err := libkb.RandBytes(16) // TODO: Create a shared function for this.
-	if err != nil {
-		return nil, err
-	}
-	return gregor1.MsgID(r), nil
-}
-
-func (g *gregorHandler) templateMessage() (*gregor1.Message, error) {
-	uid := g.G().Env.GetUID()
-	if uid.IsNil() {
-		return nil, fmt.Errorf("Can't create new gregor items without a current UID.")
-	}
-	gregorUID := gregor1.UID(uid.ToBytes())
-
-	newMsgID, err := NewGregorMsgID()
-	if err != nil {
-		return nil, err
-	}
-
-	return &gregor1.Message{
-		Ibm_: &gregor1.InBandMessage{
-			StateUpdate_: &gregor1.StateUpdateMessage{
-				Md_: gregor1.Metadata{
-					Uid_:   gregorUID,
-					MsgID_: newMsgID,
-				},
-			},
-		},
-	}, nil
+func (g *gregorHandler) currentUID() gregor1.UID {
+	return gregor1.UID(g.G().ActiveDevice.UID().ToBytes())
 }
 
 // `cli` is the interface used to talk to gregor.
@@ -1646,20 +1635,15 @@ func (g *gregorHandler) DismissItem(ctx context.Context, cli gregor1.IncomingInt
 		func() error { return err },
 	)()
 	defer g.pushState(keybase1.PushReason_NEW_DATA)
-
-	dismissal, err := g.templateMessage()
+	dismissal, err := grutils.FormMessageForDismissItem(ctx, g.currentUID(), id)
 	if err != nil {
 		return err
-	}
-
-	dismissal.Ibm_.StateUpdate_.Dismissal_ = &gregor1.Dismissal{
-		MsgIDs_: []gregor1.MsgID{gregor1.MsgID(id.Bytes())},
 	}
 	gcli, err := g.getGregorCli()
 	if err != nil {
 		return err
 	}
-	return gcli.ConsumeMessage(ctx, *dismissal)
+	return gcli.ConsumeMessage(ctx, dismissal)
 }
 
 func (g *gregorHandler) LocalDismissItem(ctx context.Context, id gregor.MsgID) (err error) {
@@ -1685,7 +1669,7 @@ func (g *gregorHandler) DismissCategory(ctx context.Context, category gregor1.Ca
 	)()
 	defer g.pushState(keybase1.PushReason_NEW_DATA)
 
-	dismissal, err := g.templateMessage()
+	dismissal, err := grutils.TemplateMessage(g.currentUID())
 	if err != nil {
 		return err
 	}
@@ -1700,7 +1684,7 @@ func (g *gregorHandler) DismissCategory(ctx context.Context, category gregor1.Ca
 	if err != nil {
 		return err
 	}
-	return gcli.ConsumeMessage(ctx, *dismissal)
+	return gcli.ConsumeMessage(ctx, dismissal)
 }
 
 func (g *gregorHandler) InjectItem(ctx context.Context, cat string, body []byte, dtime gregor1.TimeOrOffset) (gregor1.MsgID, error) {
@@ -1710,21 +1694,17 @@ func (g *gregorHandler) InjectItem(ctx context.Context, cat string, body []byte,
 	)()
 	defer g.pushState(keybase1.PushReason_NEW_DATA)
 
-	creation, err := g.templateMessage()
+	creation, err := grutils.FormMessageForInjectItem(ctx, g.currentUID(), cat, body, dtime)
 	if err != nil {
 		return nil, err
-	}
-	creation.Ibm_.StateUpdate_.Creation_ = &gregor1.Item{
-		Category_: gregor1.Category(cat),
-		Body_:     gregor1.Body(body),
-		Dtime_:    dtime,
 	}
 
 	gcli, err := g.getGregorCli()
 	if err != nil {
 		return nil, err
 	}
-	return creation.Ibm_.StateUpdate_.Md_.MsgID_, gcli.ConsumeMessage(ctx, *creation)
+	retMsgID := gregor1.MsgID(creation.ToInBandMessage().Metadata().MsgID().Bytes())
+	return retMsgID, gcli.ConsumeMessage(ctx, creation)
 }
 
 func (g *gregorHandler) UpdateItem(ctx context.Context, msgID gregor1.MsgID, cat string, body []byte, dtime gregor1.TimeOrOffset) (gregor1.MsgID, error) {
@@ -1734,7 +1714,7 @@ func (g *gregorHandler) UpdateItem(ctx context.Context, msgID gregor1.MsgID, cat
 	)()
 	defer g.pushState(keybase1.PushReason_NEW_DATA)
 
-	msg, err := g.templateMessage()
+	msg, err := grutils.TemplateMessage(g.currentUID())
 	if err != nil {
 		return nil, err
 	}
@@ -1751,7 +1731,7 @@ func (g *gregorHandler) UpdateItem(ctx context.Context, msgID gregor1.MsgID, cat
 	if err != nil {
 		return nil, err
 	}
-	return msg.Ibm_.StateUpdate_.Md_.MsgID_, gcli.ConsumeMessage(ctx, *msg)
+	return msg.Ibm_.StateUpdate_.Md_.MsgID_, gcli.ConsumeMessage(ctx, msg)
 }
 
 func (g *gregorHandler) UpdateCategory(ctx context.Context, cat string, body []byte,
@@ -1761,7 +1741,7 @@ func (g *gregorHandler) UpdateCategory(ctx context.Context, cat string, body []b
 	)()
 	defer g.pushState(keybase1.PushReason_NEW_DATA)
 
-	msg, err := g.templateMessage()
+	msg, err := grutils.TemplateMessage(g.currentUID())
 	if err != nil {
 		return nil, err
 	}
@@ -1783,7 +1763,7 @@ func (g *gregorHandler) UpdateCategory(ctx context.Context, cat string, body []b
 	if err != nil {
 		return nil, err
 	}
-	return msgID, gcli.ConsumeMessage(ctx, *msg)
+	return msgID, gcli.ConsumeMessage(ctx, msg)
 }
 
 func (g *gregorHandler) InjectOutOfBandMessage(ctx context.Context, system string, body []byte) error {
@@ -1856,6 +1836,15 @@ func (g *gregorHandler) getState(ctx context.Context) (res gregor1.State, err er
 	}
 
 	return res, nil
+}
+
+func (g *gregorHandler) State(ctx context.Context) (res gregor.State, err error) {
+	defer g.G().CTraceTimed(ctx, "gregorHandler#State", func() error { return err })()
+	gcli, err := g.getGregorCli()
+	if err != nil {
+		return res, err
+	}
+	return gcli.StateMachineState(ctx, nil, true)
 }
 
 func (g *gregorRPCHandler) GetState(ctx context.Context) (res gregor1.State, err error) {

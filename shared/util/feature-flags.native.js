@@ -11,7 +11,7 @@ const ff: FeatureFlags = {
   airdrop: true,
   chatIndexProfilingEnabled: false,
   foldersInProfileTab: false,
-  identify3: false,
+  identify3: true,
   moveOrCopy: false,
   newTeamBuildingForChat: true,
   newTeamBuildingForChatAllowMakeTeam: false,

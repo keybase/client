@@ -21,6 +21,51 @@ const coalesceFolderUpdate = (
     ? updated.withMutations(u => u.set('children', original.children).set('progress', 'loaded'))
     : updated
 
+const withFsErrorBar = (state: Types.State, action: FsGen.FsErrorPayload): Types.State => {
+  const fsError = action.payload.error
+  logger.error('error (fs)', fsError.erroredAction.type, fsError.error)
+  return state.update('errors', errors => errors.set(Constants.makeUUID(), fsError))
+}
+
+const reduceFsError = (state: Types.State, action: FsGen.FsErrorPayload): Types.State => {
+  const fsError = action.payload.error
+  const {erroredAction} = fsError
+  switch (erroredAction.type) {
+    case FsGen.commitEdit:
+      return withFsErrorBar(state, action).update('edits', edits =>
+        edits.update(erroredAction.payload.editID, edit => edit.set('status', 'failed'))
+      )
+    case FsGen.upload:
+      // Don't show error bar in this case, as the uploading row already shows
+      // a "retry" button.
+      return state.update('uploads', uploads =>
+        uploads.update('errors', errors =>
+          errors.set(
+            Constants.getUploadedPath(erroredAction.payload.parentPath, erroredAction.payload.localPath),
+
+            fsError
+          )
+        )
+      )
+    case FsGen.saveMedia:
+    case FsGen.shareNative:
+    case FsGen.download:
+      const download = state.downloads.get(erroredAction.payload.key)
+      if (!download || download.state.canceled) {
+        // Ignore errors for canceled downloads.
+        return state
+      }
+      return withFsErrorBar(state, action).update('downloads', downloads =>
+        downloads.update(
+          erroredAction.payload.key,
+          download => download && download.update('state', original => original.set('error', fsError))
+        )
+      )
+    default:
+      return withFsErrorBar(state, action)
+  }
+}
+
 export default function(state: Types.State = initialState, action: FsGen.Actions): Types.State {
   switch (action.type) {
     case FsGen.resetStore:
@@ -129,6 +174,12 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.dismissDownload: {
       return state.removeIn(['downloads', action.payload.key])
     }
+    case FsGen.cancelDownload:
+      return state.update('downloads', downloads =>
+        downloads.update(action.payload.key, download =>
+          download.update('state', state => state.set('canceled', true))
+        )
+      )
     case FsGen.uploadStarted:
       return state.updateIn(['uploads', 'writingToJournal'], writingToJournal =>
         writingToJournal.add(action.payload.path)
@@ -240,36 +291,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       // $FlowFixMe
       return state.removeIn(['edits', action.payload.editID])
     case FsGen.fsError:
-      const {erroredAction, error} = action.payload.error
-      logger.error('error (fs)', erroredAction.type, error)
-      const nextState: Types.State = state.setIn(['errors', Constants.makeUUID()], action.payload.error)
-
-      switch (erroredAction.type) {
-        case FsGen.commitEdit:
-          // $FlowFixMe
-          return nextState.setIn(['edits', erroredAction.payload.editID, 'status'], 'failed')
-        case FsGen.upload:
-          // $FlowFixMe
-          return nextState.setIn(
-            [
-              'uploads',
-              'errors',
-              Constants.getUploadedPath(erroredAction.payload.parentPath, erroredAction.payload.localPath),
-            ],
-            error
-          )
-        case FsGen.download:
-          if (erroredAction.payload.intent !== 'none') {
-            return nextState
-          }
-          // $FlowFixMe
-          return nextState.updateIn(
-            ['downloads', erroredAction.payload.key, 'state'],
-            original => original && original.set('isDone', true).set('error', error)
-          )
-        default:
-          return nextState
-      }
+      return reduceFsError(state, action)
     case FsGen.userFileEditsLoaded:
       return state.set('tlfUpdates', action.payload.tlfUpdates)
     case FsGen.dismissFsError:
@@ -292,10 +314,17 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.setSendLinkToChatChannels:
       // $FlowIssue
       return state.setIn(['sendLinkToChat', 'channels'], action.payload.channels)
+    case FsGen.setPathItemActionMenuView:
+      return state.update('pathItemActionMenu', pathItemActionMenu =>
+        pathItemActionMenu.set('previousView', pathItemActionMenu.view).set('view', action.payload.view)
+      )
+    case FsGen.setPathItemActionMenuDownloadKey:
+      return state.update('pathItemActionMenu', pathItemActionMenu =>
+        pathItemActionMenu.set('downloadKey', action.payload.key)
+      )
     case FsGen.folderListLoad:
     case FsGen.placeholderAction:
     case FsGen.filePreviewLoad:
-    case FsGen.cancelDownload:
     case FsGen.download:
     case FsGen.favoritesLoad:
     case FsGen.fuseStatus:
@@ -322,7 +351,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.move:
     case FsGen.copy:
     case FsGen.moveOrCopyOpen:
-    case FsGen.cancelMoveOrCopy:
+    case FsGen.closeMoveOrCopy:
     case FsGen.clearRefreshTag:
     case FsGen.loadPathMetadata:
       return state

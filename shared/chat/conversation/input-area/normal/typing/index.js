@@ -5,7 +5,7 @@ import * as Kb from '../../../../../common-adapters'
 import * as Styles from '../../../../../styles'
 
 const Names = ({names}: {names: I.Set<string>}) => {
-  const textType = Styles.isMobile ? 'BodyTinySemibold' : 'BodySmallSemibold'
+  const textType = 'BodyTinySemibold'
   let ret
   switch (names.size) {
     case 0:
@@ -64,21 +64,21 @@ type Props = {|
 |}
 
 export const Typing = (props: Props) => (
-  <Kb.Box
-    style={Styles.collapseStyles([
-      styles.isTypingContainer,
-      props.names.size > 0 && styles.isTypingContainerVisible,
-    ])}
-  >
-    <Kb.Box style={styles.typingIconContainer}>
-      <Kb.Animation animationType="typing" containerStyle={styles.isTypingAnimation} />
-    </Kb.Box>
-    <Kb.Text type={Styles.isMobile ? 'BodyTiny' : 'BodySmall'} style={styles.isTypingText}>
-      <Names names={props.names} />
-    </Kb.Text>
+  <Kb.Box style={styles.isTypingContainer}>
+    {props.names.size > 0 && (
+      <Kb.Box style={styles.typingIconContainer}>
+        <Kb.Animation animationType="typing" containerStyle={styles.isTypingAnimation} />
+      </Kb.Box>
+    )}
+    {props.names.size > 0 && (
+      <Kb.Text lineClamp={1} type="BodyTiny" style={styles.isTypingText}>
+        <Names names={props.names} />
+      </Kb.Text>
+    )}
   </Kb.Box>
 )
 
+export const mobileTypingContainerHeight = 18
 const styles = Styles.styleSheetCreate({
   isTypingAnimation: Styles.platformStyles({
     isElectron: {
@@ -92,26 +92,30 @@ const styles = Styles.styleSheetCreate({
   }),
   isTypingContainer: Styles.platformStyles({
     common: {
-      opacity: 0,
+      flexGrow: 1,
+      opacity: 1,
     },
     isMobile: {
       ...Styles.globalStyles.flexBoxRow,
       alignItems: 'flex-end',
-      bottom: 2,
-      height: 16,
-      left: 3,
-      position: 'relative',
+      backgroundColor: Styles.globalColors.white,
+      height: mobileTypingContainerHeight,
+      left: Styles.globalMargins.xtiny,
+      position: 'absolute',
+      top: -mobileTypingContainerHeight / 2 - 2,
+      zIndex: 999,
     },
   }),
-  isTypingContainerVisible: {
-    opacity: 1,
-  },
   isTypingText: Styles.platformStyles({
     isElectron: {
       flexGrow: 1,
-      marginBottom: Styles.globalMargins.xtiny,
-      marginLeft: 56,
+      left: 56,
+      marginTop: 2,
+      position: 'absolute',
       textAlign: 'left',
+    },
+    isMobile: {
+      marginRight: Styles.globalMargins.tiny,
     },
   }),
   typingIcon: Styles.platformStyles({
@@ -130,7 +134,8 @@ const styles = Styles.styleSheetCreate({
   typingIconContainer: Styles.platformStyles({
     isMobile: {
       alignItems: 'center',
-      width: 45,
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
     },
   }),
 })

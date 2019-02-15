@@ -99,7 +99,7 @@ const Actions = (p: Props) => {
   }
 
   return (
-    <Kb.Box2 gap="small" centerChildren={true} direction="horizontal" fullWidth={true}>
+    <Kb.Box2 gap="tiny" centerChildren={true} direction="horizontal" fullWidth={true}>
       {buttons}
     </Kb.Box2>
   )
@@ -118,9 +118,9 @@ const DropdownButton = Kb.OverlayParentHOC(p => {
   return (
     <Kb.ClickableBox onClick={p.toggleShowingMenu} ref={p.setAttachmentRef}>
       <Kb.Box2 direction="horizontal" fullWidth={true} gap="xsmall">
-        <Kb.Button onClick={null} type="Secondary">
+        <Kb.Button onClick={null} type="Secondary" style={styles.dropdownButton}>
           <Kb.Icon
-            color={Styles.globalColors.black_75}
+            color={Styles.globalColors.black}
             fontSize={Styles.isMobile ? 21 : 16}
             type="iconfont-ellipsis"
           />
@@ -140,6 +140,7 @@ const DropdownButton = Kb.OverlayParentHOC(p => {
 
 const styles = Styles.styleSheetCreate({
   chatIcon: {marginRight: Styles.globalMargins.tiny},
+  dropdownButton: {paddingLeft: Styles.globalMargins.small, paddingRight: Styles.globalMargins.small},
 })
 
 export default Actions

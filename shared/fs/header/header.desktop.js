@@ -41,7 +41,12 @@ const FolderHeader = ({path, onChat, routePath}: FolderHeaderProps) => (
               />
             )}
             <SendInAppAction path={path} sendIconClassName="" />
-            <PathItemAction path={path} actionIconClassName="" />
+            <PathItemAction
+              path={path}
+              clickable={{actionIconClassName: '', type: 'icon'}}
+              routePath={routePath}
+              initView="root"
+            />
           </Kb.Box>
         </Kb.Box>
       )}

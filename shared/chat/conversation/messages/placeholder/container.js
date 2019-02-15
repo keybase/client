@@ -1,9 +1,9 @@
 // @flow
 import * as React from 'react'
 import * as Types from '../../../../constants/types/chat2'
-import Placeholder from '.'
+import MessagePlaceholder from '.'
 
 const Wrapper = (props: {message: Types.Message}) => (
-  <Placeholder key={String(props.message.ordinal)} ordinal={props.message.ordinal} />
+  <MessagePlaceholder key={String(props.message.ordinal)} ordinal={props.message.ordinal} />
 )
 export default Wrapper

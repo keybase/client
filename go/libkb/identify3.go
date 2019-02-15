@@ -2,9 +2,10 @@ package libkb
 
 import (
 	"encoding/hex"
-	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"sync"
 	"time"
+
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 )
 
 // Identify3Session corresponds to a single screen showing a user profile.
@@ -216,6 +217,10 @@ func (s *Identify3Session) expire(mctx MetaContext) {
 	cli, err := mctx.G().UIRouter.GetIdentify3UI(mctx)
 	if err != nil {
 		mctx.CWarningf("failed to get an electron UI to expire %s: %s", s.id, err)
+		return
+	}
+	if cli == nil {
+		mctx.CWarningf("failed to get an electron UI to expire %s: got nil", s.id)
 		return
 	}
 	err = cli.Identify3TrackerTimedOut(mctx.Ctx(), s.id)

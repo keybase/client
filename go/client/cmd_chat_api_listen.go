@@ -21,22 +21,16 @@ import (
 type CmdChatAPIListen struct {
 	libkb.Contextified
 
-	// Print exploding messages? false by default. We want API consumer to make
-	// a conscious choice that they want to process exploding messages, which
-	// depending on their use case might require extra care to keep secrecy of
-	// chat participants.
-	showExploding bool
-
 	showLocal       bool
+	hideExploding   bool
 	subscribeDev    bool
 	subscribeWallet bool
 }
 
 func newCmdChatAPIListen(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name: "api-listen",
-		// No "Usage" field makes it hidden in command list.
-		Description: "Listen and print incoming chat actions in JSON format",
+		Name:  "api-listen",
+		Usage: "Listen and print incoming chat actions in JSON format",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdChatAPIListen{
 				Contextified: libkb.NewContextified(g),
@@ -46,12 +40,12 @@ func newCmdChatAPIListen(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 		},
 		Flags: []cli.Flag{
 			cli.BoolFlag{
-				Name:  "exploding",
-				Usage: "Show exploding messages (skipped by default)",
-			},
-			cli.BoolFlag{
 				Name:  "local",
 				Usage: "Show local messages (skipped by default)",
+			},
+			cli.BoolFlag{
+				Name:  "hide-exploding",
+				Usage: "Hide exploding messages",
 			},
 			cli.BoolFlag{
 				Name:  "dev",
@@ -66,7 +60,7 @@ func newCmdChatAPIListen(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli
 }
 
 func (c *CmdChatAPIListen) ParseArgv(ctx *cli.Context) error {
-	c.showExploding = ctx.Bool("exploding")
+	c.hideExploding = ctx.Bool("hide-exploding")
 	c.showLocal = ctx.Bool("local")
 	c.subscribeDev = ctx.Bool("dev")
 	c.subscribeWallet = ctx.Bool("wallet")
@@ -91,7 +85,7 @@ func (c *CmdChatAPIListen) Run() error {
 		return err
 	}
 
-	chatDisplay := newChatNotificationDisplay(c.G(), c.showLocal, c.showExploding)
+	chatDisplay := newChatNotificationDisplay(c.G(), c.showLocal, c.hideExploding)
 	protocols := []rpc.Protocol{
 		chat1.NotifyChatProtocol(chatDisplay),
 	}
@@ -116,8 +110,8 @@ func (c *CmdChatAPIListen) Run() error {
 		return err
 	}
 	errWriter := c.G().UI.GetTerminalUI().ErrorWriter()
-	errWriter.Write([]byte(fmt.Sprintf("Listening for chat notifications. Config: showExploding: %v, showLocal: %v, subscribeDevChannels: %v\n",
-		c.showExploding, c.showLocal, c.subscribeDev)))
+	errWriter.Write([]byte(fmt.Sprintf("Listening for chat notifications. Config: hideExploding: %v, showLocal: %v, subscribeDevChannels: %v\n",
+		c.hideExploding, c.showLocal, c.subscribeDev)))
 	if c.subscribeWallet {
 		errWriter.Write([]byte("Listening for wallet notifications\n"))
 	}

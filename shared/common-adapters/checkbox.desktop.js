@@ -74,7 +74,7 @@ const styleIcon = {
 }
 
 const styleText = {
-  color: globalColors.black_75,
+  color: globalColors.black,
 }
 
 export default Checkbox

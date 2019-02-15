@@ -101,6 +101,11 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-computer-64.png'),
   },
+  'icon-computer-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-computer-96.png'),
+  },
   'icon-computer-dark-blue-32': {
     extension: 'png',
     isFont: false,
@@ -866,6 +871,11 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-keybase-logo-logged-out-80.png'),
   },
+  'icon-keybase-wordmark-128-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-keybase-wordmark-128-48.png'),
+  },
   'icon-loader-connecting-266': {
     extension: 'gif',
     isFont: false,
@@ -920,6 +930,11 @@ const iconMeta_ = {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-message-deletion-64.png'),
+  },
+  'icon-message-exploding-260': {
+    extension: 'gif',
+    isFont: false,
+    require: require('../images/icons/icon-message-exploding-260.gif'),
   },
   'icon-message-retention-32': {
     extension: 'png',
@@ -1196,6 +1211,11 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-paper-key-64.png'),
   },
+  'icon-paper-key-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-paper-key-96.png'),
+  },
   'icon-paper-key-corner': {
     extension: 'png',
     isFont: false,
@@ -1275,6 +1295,11 @@ const iconMeta_ = {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-phone-64.png'),
+  },
+  'icon-phone-96': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-phone-96.png'),
   },
   'icon-phone-dark-blue-32': {
     extension: 'png',
@@ -1360,6 +1385,11 @@ const iconMeta_ = {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-play-64.png'),
+  },
+  'icon-powered-by-giphy-120-26': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-powered-by-giphy-120-26.png'),
   },
   'icon-progress-grey-animated': {
     extension: 'gif',

@@ -23,6 +23,7 @@ import (
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
 	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/syndtr/goleveldb/leveldb/filter"
 	"github.com/syndtr/goleveldb/leveldb/opt"
 	"github.com/syndtr/goleveldb/leveldb/storage"
 	"github.com/syndtr/goleveldb/leveldb/util"
@@ -199,6 +200,7 @@ func newDiskBlockCacheLocalFromStorage(
 	blockDbOptions := *leveldbOptions
 	blockDbOptions.CompactionTableSize = defaultBlockCacheTableSize
 	blockDbOptions.BlockSize = defaultBlockCacheBlockSize
+	blockDbOptions.Filter = filter.NewBloomFilter(16)
 	blockDb, err := openLevelDBWithOptions(blockStorage, &blockDbOptions)
 	if err != nil {
 		return nil, err
@@ -889,7 +891,7 @@ func (cache *DiskBlockCacheLocal) Delete(ctx context.Context,
 // if we need to consider 100 out of 400 blocks, and we assume that the block
 // IDs are uniformly distributed, then our random start point should be in the
 // [0,0.75) interval on the [0,1.0) block ID space.
-func (*DiskBlockCacheLocal) getRandomBlockID(numElements,
+func (cache *DiskBlockCacheLocal) getRandomBlockID(numElements,
 	totalElements int) (kbfsblock.ID, error) {
 	if totalElements == 0 {
 		return kbfsblock.ID{}, errors.New("")
@@ -900,8 +902,12 @@ func (*DiskBlockCacheLocal) getRandomBlockID(numElements,
 		return kbfsblock.ID{}, nil
 	}
 	// Generate a random block ID to start the range.
-	pivot := (1.0 - (float64(numElements) / float64(totalElements)))
-	return kbfsblock.MakeRandomIDInRange(0, pivot)
+	pivot := 1.0 - (float64(numElements) / float64(totalElements))
+	if cache.config.IsTestMode() {
+		return kbfsblock.MakeRandomIDInRange(0, pivot,
+			kbfsblock.UseMathRandForTest)
+	}
+	return kbfsblock.MakeRandomIDInRange(0, pivot, kbfsblock.UseRealRandomness)
 }
 
 // evictSomeBlocks tries to evict `numBlocks` blocks from the cache. If
@@ -1037,7 +1043,8 @@ func (cache *DiskBlockCacheLocal) evictLocked(ctx context.Context,
 			}
 			tlfBytes := tlfID.Bytes()
 
-			blockID, err := cache.getRandomBlockID(numElements, cache.tlfCounts[tlfID])
+			blockID, err := cache.getRandomBlockID(numElements,
+				cache.tlfCounts[tlfID])
 			if err != nil {
 				return 0, 0, err
 			}

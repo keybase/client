@@ -12,10 +12,14 @@ import Friend from './friend/container'
 import Measure from './measure'
 import Teams from './teams/container'
 import Folders from '../folders/container'
+import shallowEqual from 'shallowequal'
+import * as Flow from '../../util/flow'
+
+type BackgroundColorType = 'red' | 'green' | 'blue'
 
 export type Props = {|
   assertionKeys: ?Array<string>,
-  backgroundColor: string,
+  backgroundColorType: BackgroundColorType,
   followThem: boolean,
   followers: Array<string>,
   following: Array<string>,
@@ -24,14 +28,29 @@ export type Props = {|
   onSearch: () => void,
   onEditAvatar: ?() => void,
   state: Types.DetailsState,
+  suggestionKeys: ?Array<string>,
   username: string,
 |}
+
+const colorTypeToStyle = type => {
+  switch (type) {
+    case 'red':
+      return styles.typedBackgroundRed
+    case 'green':
+      return styles.typedBackgroundGreen
+    case 'blue':
+      return styles.typedBackgroundBlue
+    default:
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(type)
+      return styles.typedBackgroundRed
+  }
+}
 
 const Header = p => (
   <Kb.Box2
     direction="horizontal"
     fullWidth={true}
-    style={Styles.collapseStyles([styles.header, {backgroundColor: p.backgroundColor}])}
+    style={Styles.collapseStyles([styles.header, colorTypeToStyle(p.backgroundColorType)])}
   >
     <Kb.BackButton iconColor={Styles.globalColors.white} textStyle={styles.backButton} onClick={p.onBack} />
     <Kb.ClickableBox onClick={p.onSearch} style={styles.searchContainer}>
@@ -78,9 +97,14 @@ const Proofs = p => {
   let assertions
   if (p.assertionKeys) {
     const unsorted = [...p.assertionKeys]
-    assertions = unsorted
-      .sort(Constants.sortAssertionKeys)
-      .map(a => <Assertion key={a} username={p.username} assertionKey={a} />)
+    assertions = [
+      ...unsorted
+        .sort(Constants.sortAssertionKeys)
+        .map(a => <Assertion key={a} username={p.username} assertionKey={a} />),
+      ...(p.suggestionKeys || []).map(s => (
+        <Assertion isSuggestion={true} key={s} username={p.username} assertionKey={s} />
+      )),
+    ]
   } else {
     assertions = null
   }
@@ -92,9 +116,15 @@ const Proofs = p => {
   )
 }
 
-class FriendshipTabs extends React.Component<
-  Props & {onChangeFollowing: boolean => void, selectedFollowing: boolean}
-> {
+type FriendshipTabsProps = {|
+  onChangeFollowing: boolean => void,
+  selectedFollowing: boolean,
+  numFollowers: number,
+  numFollowing: number,
+|}
+class FriendshipTabs extends React.Component<FriendshipTabsProps> {
+  _onClickFollowing = () => this.props.onChangeFollowing(true)
+  _onClickFollowers = () => this.props.onChangeFollowing(false)
   _tab = following => (
     <Kb.ClickableBox
       style={Styles.collapseStyles([
@@ -104,14 +134,12 @@ class FriendshipTabs extends React.Component<
     >
       <Kb.Text
         type="BodySmallSemibold"
-        onClick={() => this.props.onChangeFollowing(following)}
+        onClick={following ? this._onClickFollowing : this._onClickFollowers}
         style={
           following === this.props.selectedFollowing ? styles.followTabTextSelected : styles.followTabText
         }
       >
-        {following
-          ? `Following (${this.props.following.length})`
-          : `Followers (${this.props.followers.length})`}
+        {following ? `Following (${this.props.numFollowing})` : `Followers (${this.props.numFollowers})`}
       </Kb.Text>
     </Kb.ClickableBox>
   )
@@ -133,7 +161,17 @@ const widthToDimentions = width => {
   return {itemWidth, itemsInARow}
 }
 
-class FriendRow extends React.PureComponent<{|usernames: Array<string>, itemWidth: number|}> {
+type FriendRowProps = {|
+  usernames: Array<string>,
+  itemWidth: number,
+|}
+class FriendRow extends React.Component<FriendRowProps> {
+  shouldComponentUpdate(nextProps: FriendRowProps) {
+    return (
+      this.props.itemWidth !== nextProps.itemWidth || !shallowEqual(this.props.usernames, nextProps.usernames)
+    )
+  }
+
   render() {
     return (
       <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.friendRow}>
@@ -145,7 +183,14 @@ class FriendRow extends React.PureComponent<{|usernames: Array<string>, itemWidt
   }
 }
 
-class BioTeamProofs extends React.PureComponent<Props> {
+type BioTeamProofsProps = {|
+  assertionKeys: ?Array<string>,
+  backgroundColorType: BackgroundColorType,
+  onEditAvatar: ?() => void,
+  suggestionKeys: ?Array<string>,
+  username: string,
+|}
+class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
   render() {
     return Styles.isMobile ? (
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.bioAndProofs}>
@@ -154,7 +199,7 @@ class BioTeamProofs extends React.PureComponent<Props> {
           fullWidth={true}
           style={Styles.collapseStyles([
             styles.backgroundColor,
-            {backgroundColor: this.props.backgroundColor},
+            colorTypeToStyle(this.props.backgroundColorType),
           ])}
         />
         <BioLayout {...this.props} />
@@ -169,7 +214,7 @@ class BioTeamProofs extends React.PureComponent<Props> {
           fullWidth={true}
           style={Styles.collapseStyles([
             styles.backgroundColor,
-            {backgroundColor: this.props.backgroundColor},
+            colorTypeToStyle(this.props.backgroundColorType),
           ])}
         />
         <BioLayout {...this.props} />
@@ -211,7 +256,7 @@ class User extends React.Component<Props, State> {
           key="header"
           onBack={this.props.onBack}
           state={this.props.state}
-          backgroundColor={this.props.backgroundColor}
+          backgroundColorType={this.props.backgroundColorType}
           onSearch={this.props.onSearch}
         />
       )
@@ -219,7 +264,8 @@ class User extends React.Component<Props, State> {
     return (
       <FriendshipTabs
         key="tabs"
-        {...this.props}
+        numFollowers={this.props.followers.length}
+        numFollowing={this.props.following.length}
         onChangeFollowing={this._changeFollowing}
         selectedFollowing={this.state.selectedFollowing}
       />
@@ -230,7 +276,18 @@ class User extends React.Component<Props, State> {
     <FriendRow key={'friend' + index} usernames={item} itemWidth={section.itemWidth} />
   )
 
-  _bioTeamProofsSection = {data: ['bioTeamProofs'], renderItem: () => <BioTeamProofs {...this.props} />}
+  _bioTeamProofsSection = {
+    data: ['bioTeamProofs'],
+    renderItem: () => (
+      <BioTeamProofs
+        assertionKeys={this.props.assertionKeys}
+        backgroundColorType={this.props.backgroundColorType}
+        username={this.props.username}
+        suggestionKeys={this.props.suggestionKeys}
+        onEditAvatar={this.props.onEditAvatar}
+      />
+    ),
+  }
 
   _onMeasured = width => this.setState(p => (p.width !== width ? {width} : null))
   _keyExtractor = (item, index) => index
@@ -254,7 +311,9 @@ class User extends React.Component<Props, State> {
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
         <Kb.Box2 direction="vertical" style={styles.innerContainer}>
           <Measure onMeasured={this._onMeasured} />
-          <Kb.SafeAreaViewTop style={{backgroundColor: this.props.backgroundColor, flexGrow: 0}} />
+          <Kb.SafeAreaViewTop
+            style={Styles.collapseStyles([colorTypeToStyle(this.props.backgroundColorType), styles.noGrow])}
+          />
           {!!this.state.width && (
             <Kb.SectionList
               key={this.props.username + this.state.width /* forc render on user change or width change */}
@@ -271,9 +330,9 @@ class User extends React.Component<Props, State> {
               ]}
               style={Styles.collapseStyles([
                 styles.sectionList,
-                {
-                  backgroundColor: Styles.isMobile ? this.props.backgroundColor : Styles.globalColors.white,
-                },
+                Styles.isMobile
+                  ? colorTypeToStyle(this.props.backgroundColorType)
+                  : {backgroundColor: Styles.globalColors.white},
               ])}
               contentContainerStyle={styles.sectionListContentStyle}
             />
@@ -299,7 +358,7 @@ const styles = Styles.styleSheetCreate({
   },
   bio: Styles.platformStyles({
     common: {alignSelf: 'flex-start'},
-    isElectron: {width: 350},
+    isElectron: {marginBottom: Styles.globalMargins.small, width: 350},
     isMobile: {width: '100%'},
   }),
   bioAndProofs: Styles.platformStyles({
@@ -327,7 +386,7 @@ const styles = Styles.styleSheetCreate({
       paddingTop: Styles.globalMargins.medium,
     },
     isMobile: {
-      height: Styles.globalMargins.large,
+      height: Styles.globalMargins.medium,
       width: '50%',
     },
   }),
@@ -350,11 +409,10 @@ const styles = Styles.styleSheetCreate({
     borderBottomColor: Styles.globalColors.blue,
   },
   followTabText: {color: Styles.globalColors.black_60},
-  followTabTextSelected: {color: Styles.globalColors.black_75},
+  followTabTextSelected: {color: Styles.globalColors.black},
   friendRow: Styles.platformStyles({
     common: {
-      marginBottom: Styles.globalMargins.xtiny,
-      marginTop: Styles.globalMargins.xtiny,
+      marginTop: Styles.globalMargins.tiny,
       maxWidth: '100%',
       minWidth: 0,
     },
@@ -374,6 +432,7 @@ const styles = Styles.styleSheetCreate({
   }),
   innerContainer: {...Styles.globalStyles.fillAbsolute},
   invisible: {opacity: 0},
+  noGrow: {flexGrow: 0},
   proofs: Styles.platformStyles({
     isElectron: {
       alignSelf: 'flex-start',
@@ -411,15 +470,18 @@ const styles = Styles.styleSheetCreate({
   searchLabel: {color: Styles.globalColors.white_75},
   sectionList: Styles.platformStyles({common: {width: '100%'}, isElectron: {willChange: 'transform'}}),
   sectionListContentStyle: Styles.platformStyles({
-    common: {backgroundColor: Styles.globalColors.white},
+    common: {backgroundColor: Styles.globalColors.white, paddingBottom: Styles.globalMargins.xtiny},
     isMobile: {minHeight: '100%'},
   }),
-  teamLink: {color: Styles.globalColors.black_75},
+  teamLink: {color: Styles.globalColors.black},
   teamShowcase: {alignItems: 'center'},
   teamShowcases: {
     flexShrink: 0,
     paddingBottom: Styles.globalMargins.small,
   },
+  typedBackgroundBlue: {backgroundColor: Styles.globalColors.blue},
+  typedBackgroundGreen: {backgroundColor: Styles.globalColors.green},
+  typedBackgroundRed: {backgroundColor: Styles.globalColors.red},
 })
 
 export default User

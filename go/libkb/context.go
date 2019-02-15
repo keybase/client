@@ -333,8 +333,7 @@ func (m MetaContext) SwitchUserNewConfig(u keybase1.UID, n NormalizedUsername, s
 
 func (m MetaContext) switchUserNewConfig(u keybase1.UID, n NormalizedUsername, salt []byte, d keybase1.DeviceID, ad *ActiveDevice) error {
 	g := m.G()
-	g.switchUserMu.Lock()
-	defer g.switchUserMu.Unlock()
+	defer g.switchUserMu.Acquire(m, "switchUserNewConfig")()
 	cw := g.Env.GetConfigWriter()
 	if cw == nil {
 		return NoConfigWriterError{}
@@ -360,8 +359,7 @@ func (m MetaContext) SwitchUserNewConfigActiveDevice(uv keybase1.UserVersion, n 
 // etc). It does this in a critical section, holding switchUserMu.
 func (m MetaContext) SwitchUserNukeConfig(n NormalizedUsername) error {
 	g := m.G()
-	g.switchUserMu.Lock()
-	defer g.switchUserMu.Unlock()
+	defer g.switchUserMu.Acquire(m, "SwitchUserNukeConfig")()
 	cw := g.Env.GetConfigWriter()
 	cr := g.Env.GetConfig()
 	if cw == nil {
@@ -396,8 +394,7 @@ func (m MetaContext) SwitchUserToActiveDevice(n NormalizedUsername, ad *ActiveDe
 	if !n.IsValid() {
 		return NewBadUsernameError(n.String())
 	}
-	g.switchUserMu.Lock()
-	defer g.switchUserMu.Unlock()
+	defer g.switchUserMu.Acquire(m, "SwitchUserToActiveDevice %v", n)()
 	cw := g.Env.GetConfigWriter()
 	if cw == nil {
 		return NoConfigWriterError{}
@@ -421,8 +418,7 @@ func (m MetaContext) SwitchUserToActiveDevice(n NormalizedUsername, ad *ActiveDe
 
 func (m MetaContext) SwitchUserDeprovisionNukeConfig(username NormalizedUsername) error {
 	g := m.G()
-	g.switchUserMu.Lock()
-	defer g.switchUserMu.Unlock()
+	defer g.switchUserMu.Acquire(m, "SwitchUserDeprovisionNukeConfig %v", username)()
 
 	cw := g.Env.GetConfigWriter()
 	if cw == nil {
@@ -444,8 +440,7 @@ func (m MetaContext) SwitchUserToActiveOneshotDevice(uv keybase1.UserVersion, nu
 	defer m.CTrace("MetaContext#SwitchUserToActiveOneshotDevice", func() error { return err })()
 
 	g := m.G()
-	g.switchUserMu.Lock()
-	defer g.switchUserMu.Unlock()
+	defer g.switchUserMu.Acquire(m, "SwitchUserToActiveOneshotDevice")()
 	cw := g.Env.GetConfigWriter()
 	if cw == nil {
 		return NoConfigWriterError{}
@@ -468,8 +463,7 @@ func (m MetaContext) SwitchUserToActiveOneshotDevice(uv keybase1.UserVersion, nu
 func (m MetaContext) SwitchUserLoggedOut() (err error) {
 	defer m.CTrace("MetaContext#SwitchUserLoggedOut", func() error { return err })()
 	g := m.G()
-	g.switchUserMu.Lock()
-	defer g.switchUserMu.Unlock()
+	defer g.switchUserMu.Acquire(m, "SwitchUserLoggedOut")()
 	cw := g.Env.GetConfigWriter()
 	if cw == nil {
 		return NoConfigWriterError{}
@@ -491,8 +485,7 @@ func (m MetaContext) SwitchUserLoggedOut() (err error) {
 func (m MetaContext) SetActiveDevice(uv keybase1.UserVersion, deviceID keybase1.DeviceID,
 	sigKey, encKey GenericKey, deviceName string) error {
 	g := m.G()
-	g.switchUserMu.Lock()
-	defer g.switchUserMu.Unlock()
+	defer g.switchUserMu.Acquire(m, "SetActiveDevice")()
 	if !g.Env.GetUID().Equal(uv.Uid) {
 		return NewUIDMismatchError("UID switched out from underneath provisioning process")
 	}
@@ -501,15 +494,13 @@ func (m MetaContext) SetActiveDevice(uv keybase1.UserVersion, deviceID keybase1.
 
 func (m MetaContext) SetSigningKey(uv keybase1.UserVersion, deviceID keybase1.DeviceID, sigKey GenericKey, deviceName string) error {
 	g := m.G()
-	g.switchUserMu.Lock()
-	defer g.switchUserMu.Unlock()
+	defer g.switchUserMu.Acquire(m, "SetSigningKey")()
 	return g.ActiveDevice.setSigningKey(g, uv, deviceID, sigKey, deviceName)
 }
 
 func (m MetaContext) SetEncryptionKey(uv keybase1.UserVersion, deviceID keybase1.DeviceID, encKey GenericKey) error {
 	g := m.G()
-	g.switchUserMu.Lock()
-	defer g.switchUserMu.Unlock()
+	defer g.switchUserMu.Acquire(m, "SetEncryptionKey")()
 	return g.ActiveDevice.setEncryptionKey(uv, deviceID, encKey)
 }
 

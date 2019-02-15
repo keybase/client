@@ -65,6 +65,14 @@ func (m MembershipUpdateRes) AllOtherUsers() (res []gregor1.UID) {
 	return res
 }
 
+type InboxSourceDataSourceTyp int
+
+const (
+	InboxSourceDataSourceAll InboxSourceDataSourceTyp = iota
+	InboxSourceDataSourceRemoteOnly
+	InboxSourceDataSourceLocalOnly
+)
+
 type RemoteConversationMetadata struct {
 	Name              string   `codec:"n"`
 	TopicName         string   `codec:"t"`
@@ -275,6 +283,10 @@ func (d DummyAttachmentHTTPSrv) GetUnfurlAssetURL(ctx context.Context, convID ch
 
 func (d DummyAttachmentHTTPSrv) GetAttachmentFetcher() AttachmentFetcher {
 	return DummyAttachmentFetcher{}
+}
+
+func (d DummyAttachmentHTTPSrv) GetGiphyURL(ctx context.Context, giphyURL string) string {
+	return ""
 }
 
 type DummyStellarLoader struct{}

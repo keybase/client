@@ -12,7 +12,6 @@ type State = {
 
 const ItemBox = Styles.styled(Kb.Box)({
   ...Styles.globalStyles.flexBoxCenter,
-  borderBottom: `1px solid ${Styles.globalColors.lightGrey2}`,
   minHeight: 40,
   width: '100%',
 })
@@ -23,7 +22,7 @@ const UserRow = ({user}) => (
   <ItemBox>
     <Kb.Text
       type="Header"
-      style={{color: user === other ? Styles.globalColors.black_75 : Styles.globalColors.orange}}
+      style={{color: user === other ? Styles.globalColors.black : Styles.globalColors.orange}}
     >
       {user}
     </Kb.Text>

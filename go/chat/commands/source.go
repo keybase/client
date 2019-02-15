@@ -33,7 +33,10 @@ func NewSource(g *globals.Context) *Source {
 }
 
 const (
-	cmdHeadline int = iota
+	cmdCollapse int = iota
+	cmdExpand
+	cmdGiphy
+	cmdHeadline
 	cmdHide
 	cmdJoin
 	cmdLeave
@@ -46,6 +49,9 @@ const (
 
 func (s *Source) allCommands() (res map[int]types.ConversationCommand) {
 	res = make(map[int]types.ConversationCommand)
+	res[cmdCollapse] = NewCollapse(s.G())
+	res[cmdExpand] = NewExpand(s.G())
+	res[cmdGiphy] = NewGiphy(s.G())
 	res[cmdHeadline] = NewHeadline(s.G())
 	res[cmdHide] = NewHide(s.G())
 	res[cmdJoin] = NewJoin(s.G())
@@ -61,12 +67,18 @@ func (s *Source) allCommands() (res map[int]types.ConversationCommand) {
 func (s *Source) makeBuiltins() {
 	cmds := s.allCommands()
 	common := []types.ConversationCommand{
+		cmds[cmdCollapse],
+		cmds[cmdExpand],
 		cmds[cmdHide],
 		cmds[cmdMe],
 		cmds[cmdMsg],
 		cmds[cmdMute],
 		cmds[cmdShrug],
 		cmds[cmdUnhide],
+	}
+	// Giphy only on for admins for now
+	if s.isAdmin() {
+		common = append(common, cmds[cmdGiphy])
 	}
 	s.builtins = make(map[chat1.ConversationBuiltinCommandTyp][]types.ConversationCommand)
 	s.builtins[chat1.ConversationBuiltinCommandTyp_ADHOC] = common
@@ -82,6 +94,11 @@ func (s *Source) makeBuiltins() {
 	s.builtins[chat1.ConversationBuiltinCommandTyp_SMALLTEAM] = append([]types.ConversationCommand{
 		cmds[cmdJoin],
 	}, common...)
+	for _, cmds := range s.builtins {
+		sort.Slice(cmds, func(i, j int) bool {
+			return cmds[i].Name() < cmds[j].Name()
+		})
+	}
 }
 
 func (s *Source) GetBuiltins(ctx context.Context) (res []chat1.BuiltinCommandGroup) {
@@ -133,16 +150,11 @@ func (s *Source) AttemptBuiltinCommand(ctx context.Context, uid gregor1.UID, con
 	if !strings.HasPrefix(text, "/") {
 		return false, nil
 	}
-	ib, err := s.G().InboxSource.ReadUnverified(ctx, uid, true, &chat1.GetInboxQuery{
-		ConvID: &convID,
-	}, nil)
+	conv, err := getConvByID(ctx, s.G(), uid, convID)
 	if err != nil {
 		return false, err
 	}
-	if len(ib.ConvsUnverified) == 0 {
-		return false, errors.New("conv not found")
-	}
-	typ := s.GetBuiltinCommandType(ctx, ib.ConvsUnverified[0])
+	typ := s.GetBuiltinCommandType(ctx, conv)
 	for _, cmd := range s.builtins[typ] {
 		if cmd.Match(ctx, text) {
 			s.Debug(ctx, "AttemptBuiltinCommand: matched command: %s, executing...", cmd.Name())
@@ -150,4 +162,52 @@ func (s *Source) AttemptBuiltinCommand(ctx context.Context, uid gregor1.UID, con
 		}
 	}
 	return false, nil
+}
+
+func (s *Source) PreviewBuiltinCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, text string) {
+	defer s.Trace(ctx, func() error { return nil }, "PreviewBuiltinCommand")()
+	conv, err := getConvByID(ctx, s.G(), uid, convID)
+	if err != nil {
+		return
+	}
+	typ := s.GetBuiltinCommandType(ctx, conv)
+	for _, cmd := range s.builtins[typ] {
+		// Run preview on everything as long as it is a slash command
+		cmd.Preview(ctx, uid, convID, text)
+	}
+}
+
+func (s *Source) isAdmin() bool {
+	username := s.G().GetEnv().GetUsername().String()
+	return admins[username]
+}
+
+var admins = map[string]bool{
+	"mikem":        true,
+	"max":          true,
+	"chris":        true,
+	"chrisnojima":  true,
+	"mlsteele":     true,
+	"xgess":        true,
+	"karenm":       true,
+	"joshblum":     true,
+	"cjb":          true,
+	"jzila":        true,
+	"patrick":      true,
+	"modalduality": true,
+	"strib":        true,
+	"songgao":      true,
+	"ayoubd":       true,
+	"cecileb":      true,
+	"adamjspooner": true,
+	"akalin":       true,
+	"marcopolo":    true,
+	"aimeedavid":   true,
+	"jinyang":      true,
+	"zapu":         true,
+	"jakob223":     true,
+	"taruti":       true,
+	"pzduniak":     true,
+	"zanderz":      true,
+	"giphy_tester": true,
 }

@@ -447,7 +447,7 @@ func (r *runner) printStageStart(ctx context.Context,
 
 // caller should make sure doneCh is closed when journal is all flushed.
 func (r *runner) printJournalStatus(
-	ctx context.Context, jServer *libkbfs.JournalServer, tlfID tlf.ID,
+	ctx context.Context, jManager *libkbfs.JournalManager, tlfID tlf.ID,
 	doneCh <-chan struct{}) {
 	r.printStageEndIfNeeded(ctx)
 	// Note: the "first" status here gets us the number of unflushed
@@ -456,7 +456,7 @@ func (r *runner) printJournalStatus(
 	// throughout the whole operation, which would be more
 	// informative.  It would be better to have that as the
 	// denominator, but there's no easy way to get it right now.
-	firstStatus, err := jServer.JournalStatus(tlfID)
+	firstStatus, err := jManager.JournalStatus(tlfID)
 	if err != nil {
 		r.log.CDebugf(ctx, "Error getting status: %+v", err)
 		return
@@ -489,7 +489,7 @@ func (r *runner) printJournalStatus(
 	for {
 		select {
 		case <-ticker.C:
-			status, err := jServer.JournalStatus(tlfID)
+			status, err := jManager.JournalStatus(tlfID)
 			if err != nil {
 				r.log.CDebugf(ctx, "Error getting status: %+v", err)
 				return
@@ -544,13 +544,13 @@ func (r *runner) waitForJournal(ctx context.Context) error {
 		return err
 	}
 
-	jServer, err := libkbfs.GetJournalServer(r.config)
+	jManager, err := libkbfs.GetJournalManager(r.config)
 	if err != nil {
 		r.log.CDebugf(ctx, "No journal server: %+v", err)
 		return nil
 	}
 
-	_, err = jServer.JournalStatus(rootNode.GetFolderBranch().Tlf)
+	_, err = jManager.JournalStatus(rootNode.GetFolderBranch().Tlf)
 	if err != nil {
 		r.log.CDebugf(ctx, "No journal: %+v", err)
 		return nil
@@ -560,7 +560,7 @@ func (r *runner) waitForJournal(ctx context.Context) error {
 	waitDoneCh := make(chan struct{})
 	go func() {
 		r.printJournalStatus(
-			ctx, jServer, rootNode.GetFolderBranch().Tlf, waitDoneCh)
+			ctx, jManager, rootNode.GetFolderBranch().Tlf, waitDoneCh)
 		close(printDoneCh)
 	}()
 
@@ -568,7 +568,7 @@ func (r *runner) waitForJournal(ctx context.Context) error {
 	// revision, to make sure that no partial states of the bare repo
 	// are seen by other readers of the TLF.  It also waits for any
 	// necessary conflict resolution to complete.
-	err = jServer.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf,
+	err = jManager.FinishSingleOp(ctx, rootNode.GetFolderBranch().Tlf,
 		nil, keybase1.MDPriorityGit)
 	if err != nil {
 		return err
@@ -577,7 +577,7 @@ func (r *runner) waitForJournal(ctx context.Context) error {
 	<-printDoneCh
 
 	// Make sure that everything is truly flushed.
-	status, err := jServer.JournalStatus(rootNode.GetFolderBranch().Tlf)
+	status, err := jManager.JournalStatus(rootNode.GetFolderBranch().Tlf)
 	if err != nil {
 		return err
 	}
@@ -724,13 +724,13 @@ func (r *runner) printJournalStatusUntilFlushed(
 		return
 	}
 
-	jServer, err := libkbfs.GetJournalServer(r.config)
+	jManager, err := libkbfs.GetJournalManager(r.config)
 	if err != nil {
 		r.log.CDebugf(ctx, "No journal server: %+v", err)
 	}
 
 	r.printJournalStatus(
-		ctx, jServer, rootNode.GetFolderBranch().Tlf, doneCh)
+		ctx, jManager, rootNode.GetFolderBranch().Tlf, doneCh)
 }
 
 func (r *runner) processGogitStatus(ctx context.Context,

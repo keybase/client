@@ -161,26 +161,30 @@ func (idx *Indexer) consumeResultsForTest(convID chat1.ConversationID, err error
 
 func (idx *Indexer) Add(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 	msgs []chat1.MessageUnboxed) (err error) {
+	if idx.G().GetEnv().GetDisableSearchIndexer() {
+		return nil
+	}
 	if !idx.validBatch(msgs) {
 		return nil
 	}
 	defer idx.Trace(ctx, func() error { return err },
 		fmt.Sprintf("Indexer.Add convID: %v, msgs: %d", convID.String(), len(msgs)))()
 	defer idx.consumeResultsForTest(convID, err)
-	err = idx.store.add(ctx, convID, uid, msgs)
-	return err
+	return idx.store.add(ctx, convID, uid, msgs)
 }
 
 func (idx *Indexer) Remove(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 	msgs []chat1.MessageUnboxed) (err error) {
+	if idx.G().GetEnv().GetDisableSearchIndexer() {
+		return nil
+	}
 	if !idx.validBatch(msgs) {
 		return nil
 	}
 	defer idx.Trace(ctx, func() error { return err },
 		fmt.Sprintf("Indexer.Remove convID: %v, msgs: %d", convID.String(), len(msgs)))()
 	defer idx.consumeResultsForTest(convID, err)
-	err = idx.store.remove(ctx, convID, uid, msgs)
-	return err
+	return idx.store.remove(ctx, convID, uid, msgs)
 }
 
 // searchConv finds all messages that match the given set of tokens and opts,
@@ -469,7 +473,8 @@ func (idx *Indexer) allConvs(ctx context.Context, uid gregor1.UID) (map[string]t
 	// convID -> remoteConv
 	convMap := map[string]types.RemoteConversation{}
 	for !pagination.Last {
-		inbox, err := idx.G().InboxSource.ReadUnverified(ctx, uid, true /* useLocalData*/, inboxQuery, pagination)
+		inbox, err := idx.G().InboxSource.ReadUnverified(ctx, uid, types.InboxSourceDataSourceAll,
+			inboxQuery, pagination)
 		if err != nil {
 			return nil, err
 		}
@@ -499,6 +504,9 @@ func (idx *Indexer) Search(ctx context.Context, uid gregor1.UID, query string, o
 			close(indexUICh)
 		}
 	}()
+	if idx.G().GetEnv().GetDisableSearchIndexer() {
+		idx.Debug(ctx, "Search indexer is disabled, results will be inaccurate.")
+	}
 
 	// NOTE opts.MaxMessages is only used by the regexp searcher for search
 	// boosting

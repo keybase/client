@@ -181,12 +181,12 @@ const summaryRowStyle = {
 }
 
 const summaryRowErrorStyle = {
-  backgroundColor: globalColors.black_75,
+  backgroundColor: globalColors.black,
   minHeight: GlobalError.maxHeightForSize('Small'),
 }
 
 const detailStyle = {
-  backgroundColor: globalColors.black_75,
+  backgroundColor: globalColors.black,
   color: globalColors.white_75,
   padding: 8,
   paddingLeft: globalMargins.xlarge,

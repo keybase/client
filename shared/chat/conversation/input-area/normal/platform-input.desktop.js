@@ -63,17 +63,34 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
     return this._lastText || ''
   }
 
-  _onKeyDown = (e: SyntheticKeyboardEvent<>, isComposingIME: boolean) => {
+  // Key-handling code shared by both the input key handler
+  // (_onKeyDown) and the global key handler
+  // (_globalKeyDownPressHandler).
+  _commonOnKeyDown = (e: SyntheticKeyboardEvent<> | KeyboardEvent) => {
     const text = this._getText()
     if (e.key === 'ArrowUp' && !this.props.isEditing && !text) {
       e.preventDefault()
       this.props.onEditLastMessage()
+      return true
     } else if (e.key === 'Escape' && this.props.isEditing) {
       this.props.onCancelEditing()
+      return true
     } else if (e.key === 'u' && (e.ctrlKey || e.metaKey)) {
       this._filePickerOpen()
+      return true
+    } else if (e.key === 'PageDown') {
+      this.props.onRequestScrollDown()
+      return true
+    } else if (e.key === 'PageUp') {
+      this.props.onRequestScrollUp()
+      return true
     }
 
+    return false
+  }
+
+  _onKeyDown = (e: SyntheticKeyboardEvent<>, isComposingIME: boolean) => {
+    this._commonOnKeyDown(e)
     this.props.onKeyDown && this.props.onKeyDown(e, isComposingIME)
   }
 
@@ -89,8 +106,11 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
       return
     }
 
+    if (this._commonOnKeyDown(ev)) {
+      return
+    }
+
     const isPasteKey = ev.key === 'v' && (ev.ctrlKey || ev.metaKey)
-    const isUploadKey = ev.key === 'u' && (ev.ctrlKey || ev.metaKey)
     const isValidSpecialKey = [
       'Backspace',
       'Delete',
@@ -100,9 +120,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
       'ArrowDown',
       'Enter',
     ].includes(ev.key)
-    if (isUploadKey) {
-      this._filePickerOpen()
-    } else if (ev.type === 'keypress' || isPasteKey || isValidSpecialKey) {
+    if (ev.type === 'keypress' || isPasteKey || isValidSpecialKey) {
       this._inputFocus()
     }
   }
@@ -175,7 +193,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
                   ? Styles.globalColors.yellow3
                   : Styles.globalColors.white,
                 borderColor: this.props.explodingModeSeconds
-                  ? Styles.globalColors.black_75
+                  ? Styles.globalColors.black
                   : Styles.globalColors.black_20,
               },
             ])}
@@ -188,7 +206,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
                 style={Styles.collapseStyles([
                   styles.explodingIconContainer,
                   !!this.props.explodingModeSeconds && {
-                    backgroundColor: Styles.globalColors.black_75,
+                    backgroundColor: Styles.globalColors.black,
                   },
                 ])}
               >
@@ -248,7 +266,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
             )}
             {this.props.showWalletsIcon && <WalletsIcon size={16} style={styles.walletsIcon} />}
             <Kb.Icon
-              color={this.state.emojiPickerOpen ? Styles.globalColors.black_75 : null}
+              color={this.state.emojiPickerOpen ? Styles.globalColors.black : null}
               onClick={this._emojiPickerToggle}
               style={Kb.iconCastPlatformStyles(styles.icon)}
               type="iconfont-emoji"
@@ -261,7 +279,13 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
           </Kb.Box>
           <Kb.Box style={styles.footerContainer}>
             <Typing conversationIDKey={this.props.conversationIDKey} />
-            <Kb.Text type="BodySmall" style={styles.footer} onClick={this._inputFocus} selectable={true}>
+            <Kb.Text
+              lineClamp={1}
+              type="BodyTiny"
+              style={styles.footer}
+              onClick={this._inputFocus}
+              selectable={true}
+            >
               *bold*, _italics_, `code`, >quote
             </Kb.Text>
           </Kb.Box>
@@ -315,7 +339,7 @@ const styles = Styles.styleSheetCreate({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
       alignSelf: 'stretch',
-      backgroundColor: Styles.globalColors.black_75,
+      backgroundColor: Styles.globalColors.black,
       borderRadius: 2,
       justifyContent: 'center',
       margin: 2,
@@ -372,6 +396,7 @@ const styles = Styles.styleSheetCreate({
     color: Styles.globalColors.black_20,
     marginBottom: Styles.globalMargins.xtiny,
     marginRight: Styles.globalMargins.medium + 2,
+    marginTop: 2,
     textAlign: 'right',
   },
   footerContainer: {
@@ -443,7 +468,7 @@ const styles = Styles.styleSheetCreate({
 
 const HoverBox = Styles.styled(Kb.Box)({
   ':hover .timer, &.expanded .timer': {
-    color: Styles.globalColors.black_75,
+    color: Styles.globalColors.black,
   },
 })
 

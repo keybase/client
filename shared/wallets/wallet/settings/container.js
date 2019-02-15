@@ -12,6 +12,7 @@ const mapStateToProps = (state, {routeProps}) => {
   const accountID = routeProps.get('accountID')
   const account = Constants.getAccount(state, accountID)
   const name = account.name
+  const mobileOnlyEditable = account.mobileOnlyEditable
   const me = state.config.username || ''
   const user = account.isDefault ? me : ''
   const currencies = Constants.getDisplayCurrencies(state)
@@ -24,10 +25,12 @@ const mapStateToProps = (state, {routeProps}) => {
   const saveCurrencyWaiting = anyWaiting(state, Constants.changeDisplayCurrencyWaitingKey)
   const mobileOnlyMode = state.wallets.mobileOnlyMap.get(accountID, false)
   const mobileOnlyWaiting = anyWaiting(state, Constants.setAccountMobileOnlyWaitingKey(accountID))
+  const canSubmitTx = account.canSubmitTx
 
   const inflationDest = Constants.getInflationDestination(state, accountID)
   return {
     accountID,
+    canSubmitTx,
     currencies,
     currency,
     currencyWaiting,
@@ -36,6 +39,7 @@ const mapStateToProps = (state, {routeProps}) => {
         ? ''
         : inflationDest.name || inflationDest.accountID,
     isDefault: account.isDefault,
+    mobileOnlyEditable,
     mobileOnlyMode,
     mobileOnlyWaiting,
     name,

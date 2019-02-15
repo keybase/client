@@ -73,14 +73,21 @@ func NewBrowser(
 		return nil, err
 	}
 
+	const masterBranch = "refs/heads/master"
 	if gitBranchName == "" {
-		gitBranchName = "refs/heads/master"
+		gitBranchName = masterBranch
 	} else if !strings.HasPrefix(string(gitBranchName), "refs/") {
 		gitBranchName = "refs/heads/" + gitBranchName
 	}
 
 	ref, err := repo.Reference(gitBranchName, true)
-	if err != nil {
+	if err == plumbing.ErrReferenceNotFound && gitBranchName == masterBranch {
+		// This branch has no commits, so pretend it's empty.
+		return &Browser{
+			root:        string(gitBranchName),
+			sharedCache: sharedCache,
+		}, nil
+	} else if err != nil {
 		return nil, err
 	}
 
@@ -154,6 +161,10 @@ func (b *Browser) followSymlink(filename string) (string, error) {
 
 // Open implements the billy.Filesystem interface for Browser.
 func (b *Browser) Open(filename string) (f billy.File, err error) {
+	if b.tree == nil {
+		return nil, errors.New("Empty repo")
+	}
+
 	defer translateGitError(&err)
 	for i := 0; i < maxSymlinkLevels; i++ {
 		fi, err := b.Lstat(filename)
@@ -181,6 +192,10 @@ func (b *Browser) Open(filename string) (f billy.File, err error) {
 // OpenFile implements the billy.Filesystem interface for Browser.
 func (b *Browser) OpenFile(filename string, flag int, _ os.FileMode) (
 	f billy.File, err error) {
+	if b.tree == nil {
+		return nil, errors.New("Empty repo")
+	}
+
 	if flag&os.O_CREATE != 0 {
 		return nil, errors.New("browser can't create files")
 	}
@@ -190,6 +205,10 @@ func (b *Browser) OpenFile(filename string, flag int, _ os.FileMode) (
 
 // Lstat implements the billy.Filesystem interface for Browser.
 func (b *Browser) Lstat(filename string) (fi os.FileInfo, err error) {
+	if b.tree == nil {
+		return nil, errors.New("Empty repo")
+	}
+
 	cachePath := path.Join(b.root, filename)
 	if fi, ok := b.sharedCache.getFileInfo(b.commitHash, cachePath); ok {
 		return fi, nil
@@ -246,6 +265,14 @@ func (b *Browser) ReadDir(p string) (fis []os.FileInfo, err error) {
 		p = "."
 	}
 
+	if b.tree == nil {
+		if p == "." {
+			// Branch with no commits.
+			return nil, nil
+		}
+		return nil, errors.New("Empty repo")
+	}
+
 	cachePath := path.Join(b.root, p)
 
 	if fis, ok := b.sharedCache.getChildrenFileInfos(
@@ -296,6 +323,10 @@ func (b *Browser) Readlink(link string) (target string, err error) {
 
 // Chroot implements the billy.Filesystem interface for Browser.
 func (b *Browser) Chroot(p string) (newFS billy.Filesystem, err error) {
+	if b.tree == nil {
+		return nil, errors.New("Empty repo")
+	}
+
 	defer translateGitError(&err)
 	newTree, err := b.tree.Tree(p)
 	if err != nil {

@@ -33,6 +33,8 @@ type WalletState struct {
 	rateGroup      *singleflight.Group
 	shutdownOnce   sync.Once
 	sync.Mutex
+	seqnoMu       sync.Mutex
+	seqnoLockHeld bool
 }
 
 // NewWalletState creates a wallet state with a remoter that will be
@@ -73,6 +75,24 @@ func (w *WalletState) Shutdown() error {
 		mctx.CDebugf("WalletState shut down complete")
 	})
 	return nil
+}
+
+// SeqnoLock acquires a lock on seqno operations.  NewSeqnoProvider calls it.
+// After all operations with a seqno provider are done (i.e. fully submitted
+// to stellard), then the lock should be released with SeqnoUnlock.
+func (w *WalletState) SeqnoLock() {
+	w.seqnoMu.Lock()
+	w.Lock()
+	w.seqnoLockHeld = true
+	w.Unlock()
+}
+
+// SeqnoUnlock releases the lock on seqno operations.
+func (w *WalletState) SeqnoUnlock() {
+	w.Lock()
+	w.seqnoMu.Unlock()
+	w.seqnoLockHeld = false
+	w.Unlock()
 }
 
 // accountState returns the AccountState object for an accountID.
@@ -230,6 +250,12 @@ func (w *WalletState) AccountSeqno(ctx context.Context, accountID stellar1.Accou
 // AccountSeqnoAndBump gets the current seqno for an account and increments
 // the stored value.
 func (w *WalletState) AccountSeqnoAndBump(ctx context.Context, accountID stellar1.AccountID) (uint64, error) {
+	w.Lock()
+	hasSeqnoLock := w.seqnoLockHeld
+	w.Unlock()
+	if !hasSeqnoLock {
+		return 0, errors.New("you must hold SeqnoLock() before AccountSeqnoAndBump")
+	}
 	a, err := w.accountStateRefresh(ctx, accountID, "AccountSeqnoAndBump")
 	if err != nil {
 		return 0, err
@@ -332,8 +358,36 @@ func (w *WalletState) RemovePendingTx(ctx context.Context, accountID stellar1.Ac
 	return a.RemovePendingTx(ctx, txID)
 }
 
+// SubmitPayment is an override of remoter's SubmitPayment.
+func (w *WalletState) SubmitPayment(ctx context.Context, post stellar1.PaymentDirectPost) (stellar1.PaymentResult, error) {
+	w.Lock()
+	hasSeqnoLock := w.seqnoLockHeld
+	w.Unlock()
+	if !hasSeqnoLock {
+		return stellar1.PaymentResult{}, errors.New("you must hold SeqnoLock() before SubmitPayment")
+	}
+	return w.Remoter.SubmitPayment(ctx, post)
+}
+
+// SubmitRelayPayment is an override of remoter's SubmitRelayPayment.
+func (w *WalletState) SubmitRelayPayment(ctx context.Context, post stellar1.PaymentRelayPost) (stellar1.PaymentResult, error) {
+	w.Lock()
+	hasSeqnoLock := w.seqnoLockHeld
+	w.Unlock()
+	if !hasSeqnoLock {
+		return stellar1.PaymentResult{}, errors.New("you must hold SeqnoLock() before SubmitRelayPayment")
+	}
+	return w.Remoter.SubmitRelayPayment(ctx, post)
+}
+
 // SubmitRelayClaim is an override of remoter's SubmitRelayClaim.
 func (w *WalletState) SubmitRelayClaim(ctx context.Context, post stellar1.RelayClaimPost) (stellar1.RelayClaimResult, error) {
+	w.Lock()
+	hasSeqnoLock := w.seqnoLockHeld
+	w.Unlock()
+	if !hasSeqnoLock {
+		return stellar1.RelayClaimResult{}, errors.New("you must hold SeqnoLock() before SubmitRelayClaim")
+	}
 	result, err := w.Remoter.SubmitRelayClaim(ctx, post)
 	if err == nil {
 		mctx := libkb.NewMetaContext(ctx, w.G())
@@ -433,6 +487,10 @@ type txPending struct {
 	ctime time.Time
 }
 
+type inuseSeqno struct {
+	ctime time.Time
+}
+
 // AccountState holds the current data for a stellar account.
 type AccountState struct {
 	// these are only set when AccountState created, they never change
@@ -453,6 +511,7 @@ type AccountState struct {
 	rtime        time.Time // time of last refresh
 	done         bool
 	pendingTxs   map[stellar1.TransactionID]txPending
+	inuseSeqnos  map[uint64]inuseSeqno
 }
 
 func newAccountState(accountID stellar1.AccountID, r remote.Remoter, reqsCh chan stellar1.AccountID) *AccountState {
@@ -462,6 +521,7 @@ func newAccountState(accountID stellar1.AccountID, r remote.Remoter, reqsCh chan
 		refreshGroup: &singleflight.Group{},
 		refreshReqs:  reqsCh,
 		pendingTxs:   make(map[stellar1.TransactionID]txPending),
+		inuseSeqnos:  make(map[uint64]inuseSeqno),
 	}
 }
 
@@ -583,14 +643,27 @@ func (a *AccountState) ForceSeqnoRefresh(mctx libkb.MetaContext) error {
 		}
 	}
 
-	if len(a.pendingTxs) == 0 {
-		// if no pending tx, then network should be correct
+	// delete any stale inuse seqnos (in case missed notification somehow)
+	for k, v := range a.inuseSeqnos {
+		if seqno > k {
+			mctx.CDebugf("ForceSeqnoRefresh removing inuse seqno %d due to network seqno > to it (%s)", k, seqno)
+			delete(a.inuseSeqnos, k)
+		}
+		age := time.Since(v.ctime)
+		if age > 30*time.Second {
+			mctx.CDebugf("ForceSeqnoRefresh removing inuse seqno %d due to old age (%s)", k, age)
+			delete(a.inuseSeqnos, k)
+		}
+	}
+
+	if len(a.pendingTxs) == 0 && len(a.inuseSeqnos) == 0 {
+		// if no pending tx or inuse seqnos, then network should be correct
 		mctx.CDebugf("ForceSeqnoRefresh corrected seqno for %s: %d => %d", a.accountID, a.seqno, seqno)
 		a.seqno = seqno
 		return nil
 	}
 
-	mctx.CDebugf("ForceSeqnoRefresh did not update AccountState for %s due to pending tx (existing: %d, remote: %d, pending tx: %d)", a.accountID, a.seqno, seqno, len(a.pendingTxs))
+	mctx.CDebugf("ForceSeqnoRefresh did not update AccountState for %s due to pending tx/seqnos (existing: %d, remote: %d, pending txs: %d, inuse seqnos: %d)", a.accountID, a.seqno, seqno, len(a.pendingTxs), len(a.inuseSeqnos))
 
 	return nil
 }
@@ -609,6 +682,13 @@ func (a *AccountState) AccountSeqnoAndBump(ctx context.Context) (uint64, error) 
 	a.Lock()
 	defer a.Unlock()
 	result := a.seqno
+
+	// need to keep track that we are going to use this seqno
+	// in a tx.  This record keeping avoids a race where
+	// multiple seqno providers rushing to use seqnos before
+	// AddPendingTx is called.
+	a.inuseSeqnos[result] = inuseSeqno{ctime: time.Now()}
+
 	a.seqno++
 	return result, nil
 }
@@ -619,6 +699,9 @@ func (a *AccountState) AccountSeqnoAndBump(ctx context.Context) (uint64, error) 
 func (a *AccountState) AddPendingTx(ctx context.Context, txID stellar1.TransactionID, seqno uint64) error {
 	a.Lock()
 	defer a.Unlock()
+
+	// remove the inuse seqno since the pendingTx will track it now
+	delete(a.inuseSeqnos, seqno)
 
 	a.pendingTxs[txID] = txPending{seqno: seqno, ctime: time.Now()}
 

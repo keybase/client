@@ -1,5 +1,6 @@
 // @flow
 import {makeRouteDefNode, makeLeafTags} from '../route-tree'
+import {isMobile} from '../constants/platform'
 
 const routeTree = () => {
   const CodePage = require('../provision/code-page/container').default
@@ -8,8 +9,13 @@ const routeTree = () => {
   const ErrorPage = require('../provision/error/container').default
   const PaperKey = require('./paper-key/container').default
   const RevokeDevice = require('./device-revoke/container').default
+  const AddDevice = require('./add-device/container').default
   return makeRouteDefNode({
     children: {
+      addDevice: {
+        component: AddDevice,
+        tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile}),
+      },
       codePage: {
         component: CodePage,
         tags: makeLeafTags({fullscreen: true, hideStatusBar: true}),

@@ -3515,6 +3515,33 @@ func TestBeforeResetDeviceName(t *testing.T) {
 	}
 }
 
+func TestProvisioningWithSmartPunctuationDeviceName(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	fu := NewFakeUserOrBust(tc.T, "login")
+	tc.G.Log.Debug("New test user: %s / %s", fu.Username, fu.Email)
+
+	arg := MakeTestSignupEngineRunArg(fu)
+	desiredName := arg.DeviceName + "'s test's cool-thing-device"
+	arg.DeviceName = arg.DeviceName + "’s test‘s cool—thing–device"
+	SignupFakeUserWithArg(tc, fu, arg)
+	fu.LoginOrBust(tc)
+	if err := fu.LoadUser(tc); err != nil {
+		t.Errorf("unable to load user: %q", err)
+	}
+	deviceNames, err := fu.User.DeviceNames()
+	if err != nil {
+		t.Errorf("unable to list device names: %q", err)
+	}
+	if len(deviceNames) < 1 {
+		t.Error("no devices returned")
+	}
+	if deviceNames[0] != desiredName {
+		t.Errorf("device name 0: %q, should be %q", deviceNames[0], desiredName)
+	}
+}
+
 type testProvisionUI struct {
 	secretCh               chan kex2.Secret
 	method                 keybase1.ProvisionMethod

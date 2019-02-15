@@ -1512,6 +1512,8 @@ type AppConfig struct {
 	PayloadCacheSize               int
 	ProofCacheSize                 int
 	OutboxStorageEngine            string
+	DisableTeamAuditor             bool
+	DisableMerkleAuditor           bool
 }
 
 var _ CommandLine = AppConfig{}
@@ -1626,6 +1628,14 @@ func (c AppConfig) GetProofCacheSize() (int, bool) {
 		return c.ProofCacheSize, true
 	}
 	return 0, false
+}
+
+func (c AppConfig) GetDisableTeamAuditor() (bool, bool) {
+	return c.DisableTeamAuditor, true
+}
+
+func (c AppConfig) GetDisableMerkleAuditor() (bool, bool) {
+	return c.DisableMerkleAuditor, true
 }
 
 func (c AppConfig) GetAttachmentDisableMulti() (bool, bool) {

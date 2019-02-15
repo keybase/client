@@ -14,6 +14,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
 	kbname "github.com/keybase/client/go/kbun"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -29,6 +30,7 @@ type dataVersioner interface {
 
 type logMaker interface {
 	MakeLogger(module string) logger.Logger
+	MakeVLogger(module string) *libkb.VDebugLog
 }
 
 type blockCacher interface {
@@ -41,6 +43,10 @@ type keyGetterGetter interface {
 
 type codecGetter interface {
 	Codec() kbfscodec.Codec
+}
+
+type blockOpsGetter interface {
+	BlockOps() BlockOps
 }
 
 type blockServerGetter interface {
@@ -2325,6 +2331,9 @@ type InitMode interface {
 	// MaxCleanBlockCacheCapacity is the maximum number of bytes to be taken up
 	// by the clean block cache.
 	MaxCleanBlockCacheCapacity() uint64
+	// OldStorageRootCleaningEnabled indicates whether we should clean
+	// old temporary storage root directories.
+	OldStorageRootCleaningEnabled() bool
 }
 
 type initModeGetter interface {
@@ -2350,6 +2359,7 @@ type Config interface {
 	logMaker
 	blockCacher
 	blockServerGetter
+	blockOpsGetter
 	codecGetter
 	cryptoPureGetter
 	keyGetterGetter
@@ -2395,7 +2405,6 @@ type Config interface {
 	SetMDOps(MDOps)
 	KeyOps() KeyOps
 	SetKeyOps(KeyOps)
-	BlockOps() BlockOps
 	SetBlockOps(BlockOps)
 	MDServer() MDServer
 	SetMDServer(MDServer)
@@ -2734,22 +2743,41 @@ type Chat interface {
 	ClearCache()
 }
 
+// blockPutState is an interface for keeping track of readied blocks
+// before putting them to the bserver.
 type blockPutState interface {
 	addNewBlock(
 		ctx context.Context, blockPtr BlockPointer, block Block,
 		readyBlockData ReadyBlockData, syncedCb func() error) error
 	saveOldPtr(ctx context.Context, oldPtr BlockPointer) error
 	oldPtr(ctx context.Context, blockPtr BlockPointer) (BlockPointer, error)
-	mergeOtherBps(ctx context.Context, other blockPutState) error
-	removeOtherBps(ctx context.Context, other blockPutState) error
 	ptrs() []BlockPointer
 	getBlock(ctx context.Context, blockPtr BlockPointer) (Block, error)
 	getReadyBlockData(
 		ctx context.Context, blockPtr BlockPointer) (ReadyBlockData, error)
 	synced(blockPtr BlockPointer) error
 	numBlocks() int
-	deepCopy(ctx context.Context) (blockPutState, error)
+}
+
+// blockPutStateCopiable is a more manipulatable interface around
+// `blockPutState`, allowing copying as well as merging/unmerging.
+type blockPutStateCopiable interface {
+	blockPutState
+
+	mergeOtherBps(ctx context.Context, other blockPutStateCopiable) error
+	removeOtherBps(ctx context.Context, other blockPutStateCopiable) error
+	deepCopy(ctx context.Context) (blockPutStateCopiable, error)
 	deepCopyWithBlacklist(
 		ctx context.Context, blacklist map[BlockPointer]bool) (
-		blockPutState, error)
+		blockPutStateCopiable, error)
+}
+
+type fileBlockMap interface {
+	putTopBlock(
+		ctx context.Context, parentPtr BlockPointer, childName string,
+		topBlock *FileBlock) error
+	getTopBlock(
+		ctx context.Context, parentPtr BlockPointer, childName string) (
+		*FileBlock, error)
+	getFilenames(ctx context.Context, parentPtr BlockPointer) ([]string, error)
 }

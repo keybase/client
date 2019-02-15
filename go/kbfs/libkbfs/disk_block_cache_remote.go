@@ -12,7 +12,7 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
-	kbgitkbfs "github.com/keybase/client/go/kbfs/protocol/kbgitkbfs1"
+	kbgitkbfs "github.com/keybase/client/go/protocol/kbgitkbfs1"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -172,11 +172,12 @@ func (dbcr *DiskBlockCacheRemote) Delete(
 // UpdateMetadata implements the DiskBlockCache interface for
 // DiskBlockCacheRemote.
 func (dbcr *DiskBlockCacheRemote) UpdateMetadata(ctx context.Context,
-	_ tlf.ID, blockID kbfsblock.ID, prefetchStatus PrefetchStatus,
+	tlfID tlf.ID, blockID kbfsblock.ID, prefetchStatus PrefetchStatus,
 	_ DiskBlockCacheType) error {
 	dbcr.statuses.Add(blockID, prefetchStatus)
 	return dbcr.client.UpdateBlockMetadata(ctx,
 		kbgitkbfs.UpdateBlockMetadataArg{
+			TlfID:          tlfID.Bytes(),
 			BlockID:        blockID.Bytes(),
 			PrefetchStatus: prefetchStatus.ToProtocol(),
 		})

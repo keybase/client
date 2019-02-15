@@ -28,8 +28,8 @@ func TestChatSubteamRename(t *testing.T) {
 
 		listener1 := newServerChatListener()
 		listener2 := newServerChatListener()
-		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener1)
-		ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener2)
+		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener1)
+		ctc.as(t, users[1]).h.G().NotifyRouter.AddListener(listener2)
 		ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
 		ctc.world.Tcs[users[1].Username].ChatG.Syncer.(*Syncer).isConnected = true
 
@@ -147,7 +147,8 @@ func TestChatSubteamRename(t *testing.T) {
 
 		pollIB := func() *types.Inbox {
 			ib, _, err := tc.ChatG.InboxSource.Read(context.TODO(), users[0].User.GetUID().ToBytes(),
-				types.ConversationLocalizerBlocking, true, nil, &chat1.GetInboxLocalQuery{
+				types.ConversationLocalizerBlocking, types.InboxSourceDataSourceAll, nil,
+				&chat1.GetInboxLocalQuery{
 					ConvIDs: u1ExpectedUpdates,
 				}, nil)
 			require.NoError(t, err)

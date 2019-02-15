@@ -84,7 +84,8 @@ class Row extends React.Component<Props, LocalState> {
             inTeam={this.props.inTeam}
             onAdd={this.props.onAdd}
             onRemove={this.props.onRemove}
-            highlight={this.props.highlight || this.state.hovering}
+            highlight={this.props.highlight}
+            hover={this.state.hovering}
           />
         </Kb.Box2>
       </Kb.ClickableBox>
@@ -121,14 +122,12 @@ const Username = (props: {
 }) => (
   <Kb.Box2 direction="vertical" style={styles.username}>
     <Kb.Text
-      type={Styles.isMobile ? 'BodySemibold' : 'BodySmallSemibold'}
+      type="BodySemibold"
       style={followingStateToStyle(props.keybaseResult ? props.followingState : 'NoState')}
     >
       {props.username}
     </Kb.Text>
-    {!!props.prettyName && (
-      <Kb.Text type={Styles.isMobile ? 'Body' : 'BodySmall'}>{props.prettyName}</Kb.Text>
-    )}
+    {!!props.prettyName && <Kb.Text type="BodySmall">{props.prettyName}</Kb.Text>}
   </Kb.Box2>
 )
 
@@ -162,7 +161,7 @@ const Services = ({
     return (
       <Kb.Box2 direction="horizontal" style={styles.services}>
         <Kb.Icon type={'icon-keybase-logo-16'} style={Kb.iconCastPlatformStyles(styles.keybaseServiceIcon)} />
-        <Kb.Text type="BodySmallSemibold" style={followingStateToStyle(followingState)}>
+        <Kb.Text type="BodySemibold" style={followingStateToStyle(followingState)}>
           {keybaseUsername}
         </Kb.Text>
       </Kb.Box2>
@@ -174,11 +173,18 @@ const Services = ({
 
 const ActionButton = (props: {
   highlight: boolean,
+  hover: boolean,
   inTeam: boolean,
   onAdd: () => void,
   onRemove: () => void,
 }) => {
-  const Icon = props.inTeam ? ActionButtonUserInTeam : ActionButtonUserNotInTeam
+  let Icon = props.inTeam ? AlreadyAddedIconButton : AddButton
+
+  if (props.highlight) {
+    Icon = props.inTeam ? RemoveButton : AddButtonHover
+  } else if (props.hover) {
+    Icon = props.inTeam ? RemoveButton : AddButton
+  }
 
   return (
     <Kb.ClickableBox onClick={props.inTeam ? props.onRemove : props.onAdd}>
@@ -188,26 +194,19 @@ const ActionButton = (props: {
         centerChildren={true}
         style={Styles.collapseStyles([
           styles.actionButton,
-          props.highlight
-            ? {backgroundColor: props.inTeam ? Styles.globalColors.red : Styles.globalColors.blue}
-            : null,
+          props.inTeam && {backgroundColor: null},
+          props.highlight && {
+            backgroundColor: props.inTeam ? Styles.globalColors.red : Styles.globalColors.blue,
+          },
         ])}
       >
-        {props.highlight ? (
-          props.inTeam ? (
-            <RemoveButton />
-          ) : (
-            <AddButtonHover />
-          )
-        ) : (
-          <Icon containerStyle={styles.actionButtonHoverContainer} />
-        )}
+        <Icon />
       </Kb.Box2>
     </Kb.ClickableBox>
   )
 }
 
-const AddButton = () => <Kb.Icon type="iconfont-new" fontSize={16} color={Styles.globalColors.black_75} />
+const AddButton = () => <Kb.Icon type="iconfont-new" fontSize={16} color={Styles.globalColors.black} />
 
 const AddButtonHover = () => (
   <Kb.Box2 direction="vertical" centerChildren={true} style={styles.addToTeamIcon}>
@@ -222,13 +221,9 @@ const RemoveButton = () => (
 )
 
 const AlreadyAddedIconButton = () => (
-  <Kb.Icon type="iconfont-check" fontSize={16} color={Styles.globalColors.black_75} />
+  <Kb.Icon type="iconfont-check" fontSize={16} color={Styles.globalColors.blue} />
 )
 
-const ActionButtonUserInTeam = Kb.HoverHoc(AlreadyAddedIconButton, RemoveButton)
-const ActionButtonUserNotInTeam = Kb.HoverHoc(AddButton, AddButtonHover)
-
-// TODO fix size for mobile
 const ActionButtonSize = isMobile ? 40 : 32
 const styles = Styles.styleSheetCreate({
   actionButton: Styles.platformStyles({
@@ -256,9 +251,12 @@ const styles = Styles.styleSheetCreate({
     height: ActionButtonSize,
     width: ActionButtonSize,
   },
-  highlighted: {
-    backgroundColor: Styles.globalColors.blue4,
-  },
+  highlighted: Styles.platformStyles({
+    isElectron: {
+      backgroundColor: Styles.globalColors.blue4,
+      borderRadius: Styles.borderRadius,
+    },
+  }),
   keybaseServiceIcon: Styles.platformStyles({
     common: {
       marginRight: Styles.globalMargins.xtiny,
@@ -274,9 +272,6 @@ const styles = Styles.styleSheetCreate({
   },
   rowContainer: Styles.platformStyles({
     common: {
-      borderBottomColor: Styles.globalColors.black_10,
-      borderBottomWidth: 1,
-      borderStyle: 'solid',
       paddingBottom: Styles.globalMargins.tiny,
       paddingTop: Styles.globalMargins.tiny,
     },
@@ -304,7 +299,7 @@ const styles = Styles.styleSheetCreate({
   },
   username: {
     flex: 1,
-    marginLeft: Styles.globalMargins.tiny,
+    marginLeft: Styles.globalMargins.small,
   },
 })
 

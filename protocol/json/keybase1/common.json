@@ -780,6 +780,20 @@
         "PRIVATE_0",
         "PUBLIC_1"
       ]
+    },
+    {
+      "type": "record",
+      "name": "SizedImage",
+      "fields": [
+        {
+          "type": "string",
+          "name": "path"
+        },
+        {
+          "type": "int",
+          "name": "width"
+        }
+      ]
     }
   ],
   "messages": {},

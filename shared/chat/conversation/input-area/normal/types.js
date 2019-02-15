@@ -21,6 +21,8 @@ type CommonProps = {|
   onEditLastMessage: () => void,
   onCancelEditing: () => void,
   onFilePickerError: (error: Error) => void,
+  onRequestScrollDown: () => void,
+  onRequestScrollUp: () => void,
   onSubmit: (text: string) => void,
   showWalletsIcon: boolean, // used on mobile to determine placeholder
 
@@ -30,13 +32,15 @@ type CommonProps = {|
 
   getUnsentText: () => string,
   setUnsentText: (text: string) => void,
-  sendTyping: (text: string) => void,
+  sendTyping: (typing: boolean) => void,
+  unsentTextChanged: (text: string) => void,
 
   unsentTextRefresh: boolean,
 |}
 
 type InputProps = {|
   ...CommonProps,
+  isActiveForFocus: boolean,
   suggestUsers: I.List<{username: string, fullName: string}>,
   suggestChannels: I.List<string>,
   suggestCommands: Array<RPCChatTypes.ConversationCommand>,

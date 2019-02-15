@@ -2,11 +2,15 @@
 // TODO deprecate
 import * as shared from './user-bio.shared'
 import React, {Component} from 'react'
-import {Avatar, Box, Button, Text, Icon} from '../common-adapters'
+import {Avatar, Box, Button, Text, Icon, Placeholder} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins, platformStyles, desktopStyles} from '../styles'
 import {stateColors} from '../util/tracker'
 import type {AvatarSize} from '../common-adapters/avatar'
 import type {Props} from './user-bio'
+
+const placeholderStyle = {
+  marginTop: globalMargins.small,
+}
 
 class BioLoading extends Component<{style?: any, avatarSize: AvatarSize, loading: boolean}, void> {
   render() {
@@ -33,9 +37,9 @@ class BioLoading extends Component<{style?: any, avatarSize: AvatarSize, loading
             />
           </Box>
           <Box style={{...stylesContent, ...desktopStyles.fadeOpacity, opacity: this.props.loading ? 1 : 0}}>
-            <Box style={{backgroundColor: globalColors.lightGrey, height: 13, marginTop: 11, width: 157}} />
-            <Box style={{backgroundColor: globalColors.lightGrey, height: 13, marginTop: 11, width: 87}} />
-            <Box style={{backgroundColor: globalColors.lightGrey, height: 13, marginTop: 11, width: 117}} />
+            <Placeholder style={placeholderStyle} />
+            <Placeholder style={placeholderStyle} />
+            <Placeholder style={placeholderStyle} />
           </Box>
         </Box>
       </Box>
@@ -238,7 +242,7 @@ const stylesUsername = {
   marginTop: 7,
 }
 const stylesFullname = {
-  color: globalColors.black_75,
+  color: globalColors.black,
 }
 const stylesFollowLabel = platformStyles({
   isElectron: {

@@ -216,7 +216,7 @@ const styles = Styles.styleSheetCreate({
     flex: 1,
   },
   input: {
-    color: Styles.globalColors.black_75_on_white,
+    color: Styles.globalColors.black_on_white,
     padding: 0,
   },
 })

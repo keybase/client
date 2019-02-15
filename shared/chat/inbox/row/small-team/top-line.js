@@ -77,7 +77,7 @@ class _SimpleTopLine extends React.Component<Props> {
         </Kb.Box>
         <Kb.Text
           key="timestamp"
-          type="BodySmall"
+          type="BodyTiny"
           className={Styles.classNames({'small-team-timestamp': this.props.showGear})}
           style={Styles.collapseStyles([
             boldStyle,

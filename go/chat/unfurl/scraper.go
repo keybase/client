@@ -3,22 +3,23 @@ package unfurl
 import (
 	"context"
 
-	"github.com/gocolly/colly"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/logger"
-
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/colly"
 )
 
 type Scraper struct {
 	utils.DebugLabeler
-	cache *unfurlCache
+	cache      *unfurlCache
+	giphyProxy bool
 }
 
 func NewScraper(logger logger.Logger) *Scraper {
 	return &Scraper{
 		DebugLabeler: utils.NewDebugLabeler(logger, "Scraper", false),
 		cache:        newUnfurlCache(),
+		giphyProxy:   true,
 	}
 }
 

@@ -21,11 +21,12 @@ const mapDispatchToProps = dispatch => ({
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
 })
 
-const mergeProps = (stateProps, dispatchProps, {path}) => ({
+const mergeProps = (stateProps, dispatchProps, {path, routePath}) => ({
   loadFilePreview: dispatchProps.loadFilePreview,
   name: stateProps._pathItem.name,
   onBack: dispatchProps.onBack,
   path,
+  routePath,
 })
 
 export default compose(

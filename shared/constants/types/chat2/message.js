@@ -149,6 +149,7 @@ export type _MessageAttachment = {
   hasBeenEdited: boolean,
   id: MessageID, // that of first attachment message, not second attachment-uploaded message
   inlineVideoPlayable: boolean,
+  isCollapsed: boolean,
   ordinal: Ordinal,
   outboxID: ?OutboxID,
   previewHeight: number,
@@ -355,6 +356,22 @@ export type _MessageSetChannelname = {
 }
 export type MessageSetChannelname = I.RecordOf<_MessageSetChannelname>
 
+export type _MessageSystemChangeRetention = {
+  author: string,
+  conversationIDKey: Common.ConversationIDKey,
+  id: MessageID,
+  isInherit: boolean,
+  isTeam: boolean,
+  membersType: RPCChatTypes.ConversationMembersType,
+  policy: RPCChatTypes.RetentionPolicy,
+  ordinal: Ordinal,
+  reactions: Reactions,
+  timestamp: number,
+  type: 'systemChangeRetention',
+  user: string,
+}
+export type MessageSystemChangeRetention = I.RecordOf<_MessageSystemChangeRetention>
+
 export type DecoratedMessage = MessageAttachment | MessageText | MessageRequestPayment | MessageSendPayment
 
 // If you add a message type here, you'll probably want to check
@@ -367,6 +384,7 @@ export type Message =
   | MessageSetChannelname
   | MessageSetDescription
   | MessageSystemAddedToTeam
+  | MessageSystemChangeRetention
   | MessageSystemGitPush
   | MessageSystemInviteAccepted
   | MessageSystemJoined
@@ -383,6 +401,7 @@ export type MessageType =
   | 'setChannelname'
   | 'setDescription'
   | 'systemAddedToTeam'
+  | 'systemChangeRetention'
   | 'systemGitPush'
   | 'systemInviteAccepted'
   | 'systemJoined'

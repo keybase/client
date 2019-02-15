@@ -127,17 +127,22 @@ const metaMapReducer = (metaMap, action) => {
       })
     case Chat2Gen.updateConvRetentionPolicy:
       const {conv} = action.payload
-      const newMeta = Constants.inboxUIItemToConversationMeta(conv)
+      const newMeta = Constants.inboxUIItemToConversationMeta(conv, true)
       if (!newMeta) {
         logger.warn('Invalid inboxUIItem received in conv retention policy update')
         return metaMap
       }
-      return metaMap.set(newMeta.conversationIDKey, newMeta)
+      if (metaMap.has(newMeta.conversationIDKey)) {
+        // only insert if the convo is already in the inbox
+        return metaMap.set(newMeta.conversationIDKey, newMeta)
+      }
+      return metaMap
     case Chat2Gen.updateTeamRetentionPolicy:
       const {convs} = action.payload
       const newMetas = convs.reduce((updated, conv) => {
-        const newMeta = Constants.inboxUIItemToConversationMeta(conv)
-        if (newMeta) {
+        const newMeta = Constants.inboxUIItemToConversationMeta(conv, true)
+        if (newMeta && metaMap.has(newMeta.conversationIDKey)) {
+          // only insert if the convo is already in the inbox
           updated[Types.conversationIDKeyToString(newMeta.conversationIDKey)] = newMeta
         }
         return updated
@@ -375,6 +380,8 @@ const rootReducer = (
       return initialState
     case Chat2Gen.toggleSmallTeamsExpanded:
       return state.set('smallTeamsExpanded', !state.smallTeamsExpanded)
+    case Chat2Gen.changeFocus:
+      return state.set('focus', action.payload.nextFocus)
     case Chat2Gen.selectConversation:
       // ignore non-changing
       if (state.selectedConversation === action.payload.conversationIDKey) {
@@ -431,6 +438,8 @@ const rootReducer = (
           return show ? prompts.add(domain) : prompts.delete(domain)
         }
       )
+    case Chat2Gen.giphyGotSearchResult:
+      return state.setIn(['giphyResultMap', action.payload.conversationIDKey], action.payload.results)
     case Chat2Gen.setInboxFilter:
       return state.set('inboxFilter', action.payload.filter)
     case Chat2Gen.setPendingMode:
@@ -903,6 +912,13 @@ const rootReducer = (
         return state.update('explodingModeLocks', el => el.delete(conversationIDKey))
       }
       return alreadyLocked ? state : state.setIn(['explodingModeLocks', conversationIDKey], mode)
+    case Chat2Gen.giphySend: {
+      let nextState = state
+      nextState = nextState.setIn(['giphyResultMap', action.payload.conversationIDKey], [])
+      return nextState.update('unsentTextMap', old =>
+        old.setIn([action.payload.conversationIDKey], new HiddenString(''))
+      )
+    }
     case Chat2Gen.setUnsentText:
       return state.update('unsentTextMap', old =>
         old.setIn([action.payload.conversationIDKey], action.payload.text)
@@ -910,7 +926,8 @@ const rootReducer = (
     case Chat2Gen.staticConfigLoaded:
       return state.set('staticConfig', action.payload.staticConfig)
     case Chat2Gen.metasReceived: {
-      const nextState = action.payload.fromInboxRefresh ? state.set('inboxHasLoaded', true) : state
+      let nextState = action.payload.fromInboxRefresh ? state.set('inboxHasLoaded', true) : state
+      nextState = action.payload.initialTrustedLoad ? state.set('trustedInboxHasLoaded', true) : state
       return nextState.withMutations(s => {
         s.set('metaMap', metaMapReducer(state.metaMap, action))
         s.set('messageMap', messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal))
@@ -1028,7 +1045,9 @@ const rootReducer = (
     case Chat2Gen.prepareFulfillRequestForm:
     case Chat2Gen.unfurlResolvePrompt:
     case Chat2Gen.unfurlRemove:
+    case Chat2Gen.unsentTextChanged:
     case Chat2Gen.confirmScreenResponse:
+    case Chat2Gen.toggleMessageCollapse:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

@@ -61,7 +61,7 @@ const MaybePopupHoc: MaybePopupHocType<any> = (cover: boolean) => Component =>
 
 const _styleCover = {
   alignItems: 'stretch',
-  backgroundColor: globalColors.black_75,
+  backgroundColor: globalColors.black,
   justifyContent: 'stretch',
 }
 

@@ -224,7 +224,7 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 			} else {
 				availableToSendXLM = SubtractFeeSoft(mctx, availableToSendXLM)
 				availableToSendFormatted := availableToSendXLM + " XLM"
-				availableToSendXLMFmt, err := FormatAmount(
+				availableToSendXLMFmt, err := FormatAmount(mctx,
 					availableToSendXLM, false, FmtTruncate)
 				if err == nil {
 					availableToSendFormatted = availableToSendXLMFmt + " XLM"
@@ -761,7 +761,7 @@ func buildPaymentAmountHelper(mctx libkb.MetaContext, bpc BuildPaymentCache, arg
 			return res
 		}
 		res.amountOfAsset = xlmAmount
-		xlmAmountFormatted, err := FormatAmountDescriptionXLM(xlmAmount)
+		xlmAmountFormatted, err := FormatAmountDescriptionXLM(mctx, xlmAmount)
 		if err != nil {
 			log("error formatting converted XLM amount: %v", err)
 			res.amountErrMsg = fmt.Sprintf("Could not convert to XLM")
@@ -849,7 +849,7 @@ func buildPaymentAmountHelper(mctx libkb.MetaContext, bpc BuildPaymentCache, arg
 			res.worthInfo = ""
 		}
 
-		res.displayAmountXLM, err = FormatAmountDescriptionXLM(arg.Amount)
+		res.displayAmountXLM, err = FormatAmountDescriptionXLM(mctx, arg.Amount)
 		if err != nil {
 			log("error formatting xlm %q: %s", arg.Amount, err)
 			res.displayAmountXLM = ""
@@ -880,7 +880,7 @@ func buildPaymentWorthInfo(mctx libkb.MetaContext, rate stellar1.OutsideExchange
 	if err != nil {
 		return "", err
 	}
-	amountXLMFormatted, err := FormatAmountDescriptionXLM(amountXLM)
+	amountXLMFormatted, err := FormatAmountDescriptionXLM(mctx, amountXLM)
 	if err != nil {
 		return "", err
 	}

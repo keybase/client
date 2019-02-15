@@ -545,9 +545,9 @@ func (fbm *folderBlockManager) processBlocksToDelete(ctx context.Context, toDele
 
 	// Make sure all blocks in the journal (if journaling is enabled)
 	// are flushed before attempting to delete any of them.
-	if jServer, err := GetJournalServer(fbm.config); err == nil {
+	if jManager, err := GetJournalManager(fbm.config); err == nil {
 		fbm.log.CDebugf(ctx, "Waiting for journal to flush")
-		if err := jServer.WaitForCompleteFlush(ctx, fbm.id); err != nil {
+		if err := jManager.WaitForCompleteFlush(ctx, fbm.id); err != nil {
 			return err
 		}
 	}
@@ -825,7 +825,7 @@ func (fbm *folderBlockManager) getMostRecentGCRevision(
 			}
 			for j := len(rmd.data.Changes.Ops) - 1; j >= 0; j-- {
 				GCOp, ok := rmd.data.Changes.Ops[j].(*GCOp)
-				if !ok {
+				if !ok || GCOp.LatestRev == kbfsmd.RevisionUninitialized {
 					continue
 				}
 				fbm.log.CDebugf(ctx, "Found last gc op: %s", GCOp)
@@ -1142,6 +1142,11 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 		ctx, lastGCRev, mostRecentRev)
 	if err != nil {
 		return err
+	}
+	if lastRev == kbfsmd.RevisionUninitialized {
+		fbm.log.CDebugf(ctx, "No recent revisions to GC")
+		complete = true
+		return nil
 	}
 	if len(ptrs) == 0 && !shortened {
 		complete = true

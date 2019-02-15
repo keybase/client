@@ -208,6 +208,7 @@ export default class TrackerRender extends React.PureComponent<Props> {
 
 const styleContainer = {
   ...globalStyles.flexBoxColumn,
+  backgroundColor: globalColors.white,
   height: 470,
   position: 'relative',
   width: 320,

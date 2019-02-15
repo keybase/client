@@ -1,6 +1,7 @@
 // @flow
 import * as React from 'react'
 import Banner from '../bottom-banner/container'
+import Giphy from '../giphy/container'
 import HeaderArea from '../header-area/container'
 import InputArea from '../input-area/container'
 import ListArea from '../list-area/container'
@@ -31,7 +32,12 @@ class Conversation extends React.PureComponent<Props> {
     return (
       <Box style={containerStyle}>
         {this.props.isSearching && (
-          <HeaderHocHeader title="New chat" leftAction="cancel" onLeftAction={this.props.onCancelSearch} headerStyle={_headerStyle} />
+          <HeaderHocHeader
+            title="New chat"
+            leftAction="cancel"
+            onLeftAction={this.props.onCancelSearch}
+            headerStyle={_headerStyle}
+          />
         )}
         {this.props.threadLoadedOffline && <Offline />}
         <HeaderArea
@@ -43,15 +49,18 @@ class Conversation extends React.PureComponent<Props> {
         {this.props.showLoader && <LoadingLine />}
         <ListArea
           isPending={this.props.isPending}
-          listScrollDownCounter={this.props.listScrollDownCounter}
+          scrollListDownCounter={this.props.scrollListDownCounter}
+          scrollListUpCounter={this.props.scrollListUpCounter}
           onFocusInput={this.props.onFocusInput}
           conversationIDKey={this.props.conversationIDKey}
         />
+        {this.props.showGiphySearch && <Giphy conversationIDKey={this.props.conversationIDKey} />}
         <Banner conversationIDKey={this.props.conversationIDKey} />
         <InputArea
           isPending={this.props.isPending}
           focusInputCounter={this.props.focusInputCounter}
-          onScrollDown={this.props.onScrollDown}
+          onRequestScrollDown={this.props.onRequestScrollDown}
+          onRequestScrollUp={this.props.onRequestScrollUp}
           conversationIDKey={this.props.conversationIDKey}
         />
       </Box>

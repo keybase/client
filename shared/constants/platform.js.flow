@@ -17,3 +17,4 @@ declare export var version: string
 declare export var logFileName: string
 declare export var pprofDir: string
 declare export var serverConfigFileName: string
+declare export var shortcutSymbol: string

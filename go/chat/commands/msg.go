@@ -30,7 +30,7 @@ func (d *Msg) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Convers
 	if err != nil {
 		return err
 	}
-	conv, err := d.getConvByName(ctx, uid, toks[1])
+	conv, err := getConvByName(ctx, d.G(), uid, toks[1])
 	if err != nil {
 		return err
 	}

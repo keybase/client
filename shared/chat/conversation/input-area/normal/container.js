@@ -11,7 +11,8 @@ import Input, {type Props} from '.'
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
   focusInputCounter: number,
-  onScrollDown: () => void,
+  onRequestScrollDown: () => void,
+  onRequestScrollUp: () => void,
 }
 
 // We used to store this in the route state but that's so complicated. We just want a map of id => text if we haven't sent
@@ -44,6 +45,7 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
     conversationIDKey,
     editText: editInfo ? editInfo.text : '',
     explodingModeSeconds,
+    isActiveForFocus: state.chat2.focus === null,
     isEditExploded: editInfo ? editInfo.exploded : false,
     isExploding,
     quoteCounter: quoteInfo ? quoteInfo.counter : 0,
@@ -53,13 +55,13 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
     suggestCommands: Constants.getCommands(state, conversationIDKey),
     suggestUsers: Constants.getParticipantSuggestions(state, conversationIDKey),
     typing: Constants.getTyping(state, conversationIDKey),
-    unsentText: unsentText ? unsentText.stringValue() : '',
+    unsentText,
   }
 }
 
 const mapDispatchToProps = dispatch => ({
   _clearUnsentText: (conversationIDKey: Types.ConversationIDKey) => {
-    dispatch(Chat2Gen.createSetUnsentText({conversationIDKey, text: new HiddenString('')}))
+    dispatch(Chat2Gen.createSetUnsentText({conversationIDKey, text: null}))
   },
   _onAttach: (conversationIDKey: Types.ConversationIDKey, paths: Array<string>) => {
     const pathAndOutboxIDs = paths.map(p => ({
@@ -92,10 +94,11 @@ const mapDispatchToProps = dispatch => ({
     ),
   _onPostMessage: (conversationIDKey: Types.ConversationIDKey, text: string) =>
     dispatch(Chat2Gen.createMessageSend({conversationIDKey, text: new HiddenString(text)})),
-  _sendTyping: (conversationIDKey: Types.ConversationIDKey, text: string) =>
-    // only valid conversations
+  _sendTyping: (conversationIDKey: Types.ConversationIDKey, typing: boolean) =>
+    conversationIDKey && dispatch(Chat2Gen.createSendTyping({conversationIDKey, typing})),
+  _unsentTextChanged: (conversationIDKey: Types.ConversationIDKey, text: string) =>
     conversationIDKey &&
-    dispatch(Chat2Gen.createSendTyping({conversationIDKey, text: new HiddenString(text)})),
+    dispatch(Chat2Gen.createUnsentTextChanged({conversationIDKey, text: new HiddenString(text)})),
   clearInboxFilter: () => dispatch(Chat2Gen.createSetInboxFilter({filter: ''})),
   onFilePickerError: (error: Error) => dispatch(ConfigGen.createFilePickerError({error})),
   onSetExplodingModeLock: (conversationIDKey: Types.ConversationIDKey, unset: boolean) =>
@@ -109,7 +112,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   explodingModeSeconds: stateProps.explodingModeSeconds,
   focusInputCounter: ownProps.focusInputCounter,
   getUnsentText: () =>
-    stateProps.unsentText.length > 0 ? stateProps.unsentText : getUnsentText(stateProps.conversationIDKey),
+    stateProps.unsentText ? stateProps.unsentText.stringValue() : getUnsentText(stateProps.conversationIDKey),
+  isActiveForFocus: stateProps.isActiveForFocus,
   isEditExploded: stateProps.isEditExploded,
   isEditing: !!stateProps._editOrdinal,
   isExploding: stateProps.isExploding,
@@ -117,6 +121,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
   onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
   onFilePickerError: dispatchProps.onFilePickerError,
+  onRequestScrollDown: ownProps.onRequestScrollDown,
+  onRequestScrollUp: ownProps.onRequestScrollUp,
   onSubmit: (text: string) => {
     if (stateProps._editOrdinal) {
       dispatchProps._onEditMessage(stateProps.conversationIDKey, stateProps._editOrdinal, text)
@@ -126,8 +132,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   },
   quoteCounter: stateProps.quoteCounter,
   quoteText: stateProps.quoteText,
-  sendTyping: (text: string) => {
-    dispatchProps._sendTyping(stateProps.conversationIDKey, text)
+  sendTyping: (typing: boolean) => {
+    dispatchProps._sendTyping(stateProps.conversationIDKey, typing)
   },
   setUnsentText: (text: string) => {
     const unset = text.length <= 0
@@ -136,7 +142,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
       // alternatively, if it's not locked and we want to set it, set it
       dispatchProps.onSetExplodingModeLock(stateProps.conversationIDKey, unset)
     }
-    if (stateProps.unsentText.length > 0) {
+    if (stateProps.unsentText) {
       dispatchProps._clearUnsentText(stateProps.conversationIDKey)
     }
     setUnsentText(stateProps.conversationIDKey, text)
@@ -145,7 +151,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   suggestChannels: stateProps.suggestChannels,
   suggestCommands: stateProps.suggestCommands,
   suggestUsers: stateProps.suggestUsers,
-  unsentTextRefresh: stateProps.unsentText.length > 0,
+  unsentTextChanged: (text: string) => {
+    dispatchProps._unsentTextChanged(stateProps.conversationIDKey, text)
+  },
+  unsentTextRefresh: !!stateProps.unsentText,
 })
 
 export default connect<OwnProps, _, _, _, _>(

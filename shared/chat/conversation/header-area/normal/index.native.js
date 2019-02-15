@@ -53,11 +53,11 @@ const ChannelHeader = (props: Props) => (
         type={
           isMobile
             ? props.smallTeam
-              ? 'BodySemibold'
+              ? 'BodyBig'
               : 'BodyTinySemibold'
             : props.smallTeam
             ? 'BodyBig'
-            : 'BodySmallSemibold'
+            : 'BodySemibold'
         }
         lineClamp={1}
         ellipsizeMode="middle"
@@ -70,7 +70,7 @@ const ChannelHeader = (props: Props) => (
     </Box2>
     {!props.smallTeam && (
       <Box2 direction="horizontal" style={styles.channelHeaderContainer}>
-        <Text type={isMobile ? 'BodySemibold' : 'BodyBig'} style={styles.channelName}>
+        <Text type="BodyBig" style={styles.channelName}>
           #{props.channelName}
         </Text>
         {props.muted && <ShhIcon onClick={props.unMuteConversation} />}
@@ -86,7 +86,7 @@ const UsernameHeader = (props: Props) => (
         colorFollowing={true}
         inline={false}
         commaColor={globalColors.black_50}
-        type={isMobile ? 'BodySemibold' : 'BodyBig'}
+        type="BodyBig"
         usernames={props.participants}
         containerStyle={styles.center}
         onUsernameClicked={props.onShowProfile}
@@ -104,7 +104,7 @@ const styles = styleSheetCreate({
   },
   channelHeaderContainer: {alignItems: 'center', alignSelf: 'center'},
   channelName: {
-    color: globalColors.black_75,
+    color: globalColors.black,
   },
   channelNameLight: {
     color: globalColors.black_50,

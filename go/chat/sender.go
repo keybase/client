@@ -367,12 +367,12 @@ func (s *BlockingSender) getMessage(ctx context.Context, uid gregor1.UID,
 func (s *BlockingSender) getSupersederEphemeralMetadata(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID, msg chat1.MessagePlaintext) (metadata *chat1.MsgEphemeralMetadata, err error) {
 
-	switch msg.ClientHeader.MessageType {
-	case chat1.MessageType_EDIT, chat1.MessageType_ATTACHMENTUPLOADED, chat1.MessageType_REACTION,
-		chat1.MessageType_UNFURL:
-	default:
-		// nothing to do here
+	if chat1.IsEphemeralNonSupersederType(msg.ClientHeader.MessageType) {
+		// Leave whatever was previously set
 		return msg.ClientHeader.EphemeralMetadata, nil
+	} else if !chat1.IsEphemeralSupersederType(msg.ClientHeader.MessageType) {
+		// clear out any defaults, this msg is a non-ephemeral type
+		return nil, nil
 	}
 
 	supersededMsg, err := s.getMessage(ctx, uid, convID, msg.ClientHeader.Supersedes, false /* resolveSupersedes */)
@@ -527,9 +527,26 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 			return res, err
 		}
 
+		// If no ephemeral data set, then let's double check to make sure no exploding policy
+		// or Gregor state should set it
+		if msg.EphemeralMetadata() == nil && chat1.IsEphemeralNonSupersederType(msg.ClientHeader.MessageType) {
+			s.Debug(ctx, "Prepare: attempting to set ephemeral policy from conversation")
+			elf, err := utils.EphemeralLifetimeFromConv(ctx, s.G(), *conv)
+			if err != nil {
+				s.Debug(ctx, "Prepare: failed to get ephemeral lifetime from conv: %s", err)
+				elf = nil
+			}
+			if elf != nil {
+				s.Debug(ctx, "Prepare: setting ephemeral lifetime from conv: %v", *elf)
+				msg.ClientHeader.EphemeralMetadata = &chat1.MsgEphemeralMetadata{
+					Lifetime: *elf,
+				}
+			}
+		}
+
 		metadata, err := s.getSupersederEphemeralMetadata(ctx, uid, convID, msg)
 		if err != nil {
-			s.Debug(ctx, "Prepare: error getting superdeder ephemeral metadata: %s", err)
+			s.Debug(ctx, "Prepare: error getting superseder ephemeral metadata: %s", err)
 			return res, err
 		}
 		msg.ClientHeader.EphemeralMetadata = metadata
@@ -698,7 +715,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	// otherwise we give up and return an error.
 	var conv chat1.Conversation
 	sender := gregor1.UID(s.G().Env.GetUID().ToBytes())
-	conv, err = GetUnverifiedConv(ctx, s.G(), sender, convID, true)
+	rc, err := GetUnverifiedConv(ctx, s.G(), sender, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		if err == errGetUnverifiedConvNotFound {
 			// If we didn't find it, then just attempt to join it and see what happens
@@ -714,17 +731,20 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 				}
 				// Force hit the remote here, so there is no race condition against the local
 				// inbox
-				conv, err = GetUnverifiedConv(ctx, s.G(), sender, convID, false)
+				rc, err = GetUnverifiedConv(ctx, s.G(), sender, convID,
+					types.InboxSourceDataSourceRemoteOnly)
 				if err != nil {
 					s.Debug(ctx, "Send: failed to get conversation again, giving up: %s", err.Error())
 					return nil, nil, err
 				}
+				conv = rc.Conv
 			}
 		} else {
 			s.Debug(ctx, "Send: error getting conversation metadata: %s", err.Error())
 			return nil, nil, err
 		}
 	} else {
+		conv = rc.Conv
 		s.Debug(ctx, "Send: uid: %s in conversation %s with status: %v", sender,
 			conv.GetConvID(), conv.ReaderInfo.Status)
 	}

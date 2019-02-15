@@ -28,7 +28,12 @@ const mapStateToProps = (state, {teamname}: OwnProps) => {
     publicityMember,
     publicityTeam,
     teamname,
-    waitingForSavePublicity: anyWaiting(state, `setPublicity:${teamname}`, `getDetails:${teamname}`),
+    waitingForSavePublicity: anyWaiting(
+      state,
+      `team:${teamname}`,
+      `teamRetention:${teamname}`,
+      `teamSettings:${teamname}`
+    ),
     yourOperations: Constants.getCanPerform(state, teamname),
   }
 }
@@ -74,9 +79,9 @@ const mergeProps = (stateProps, dispatchProps) => {
     savePublicity: (
       settings: Types.PublicitySettings,
       showRetentionWarning: boolean,
-      policy: RetentionPolicy
+      policy: ?RetentionPolicy
     ) => {
-      if (stateProps.yourOperations.setRetentionPolicy) {
+      if (policy && stateProps.yourOperations.setRetentionPolicy) {
         showRetentionWarning &&
           dispatchProps._showRetentionWarning(
             policy,

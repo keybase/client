@@ -32,19 +32,21 @@ export type RouteState = I.RecordOf<{
 }>
 
 export type Props = {|
+  allowShowFloatingButton: boolean,
   children?: React$Element<any>,
+  clearedFilterCount: number,
   focusFilter: () => void, // withStateHandler function
   filter: string,
   filterFocusCount: number,
   neverLoaded: boolean,
   nowOverride?: number, // just for dumb rendering
+  onEnsureSelection: () => void,
   onNewChat: () => void,
-  onUntrustedInboxVisible: (conversationIDKeys: Array<ConversationIDKey>) => void,
-  rows: Array<RowItem>,
-  allowShowFloatingButton: boolean,
-  smallTeamsExpanded: boolean,
-  toggleSmallTeamsExpanded: () => void,
   onSelectUp: () => void,
   onSelectDown: () => void,
-  onEnsureSelection: () => void,
+  onUntrustedInboxVisible: (conversationIDKeys: Array<ConversationIDKey>) => void,
+  rows: Array<RowItem>,
+  selectedConversationIDKey: ConversationIDKey,
+  smallTeamsExpanded: boolean,
+  toggleSmallTeamsExpanded: () => void,
 |}

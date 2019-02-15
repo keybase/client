@@ -113,7 +113,6 @@ section {
   display: block;
 }
 body {
-  background-color: white;
   line-height: 1;
 }
 ol,
@@ -149,56 +148,56 @@ table {
 /* Source Code Pro */
 @font-face {
   font-family: 'Source Code Pro';
-  font-weight: 400;
-  src: url('../../fonts/SourceCodePro.ttf') format('truetype');
+  font-weight: 500;
+  src: url('../../fonts/SourceCodePro-Medium.ttf') format('truetype');
 }
 
 @font-face {
   font-family: 'Source Code Pro';
   font-weight: 600;
-  src: url('../../fonts/SourceCodePro-Semi_bold.ttf') format('truetype');
+  src: url('../../fonts/SourceCodePro-Semibold.ttf') format('truetype');
 }
 /* End Source Code Pro */
 
-/* OpenSans */
+/* Keybase */
 @font-face {
-  font-family: 'OpenSans';
-  font-weight: 400;
-  src: url('../../fonts/OpenSans.ttf') format('truetype');
+  font-family: 'Keybase';
+  font-weight: 500;
+  src: url('../../fonts/keybase-medium.otf') format('opentype');
 }
 
 @font-face {
-  font-family: 'OpenSans';
-  font-weight: 400;
+  font-family: 'Keybase';
+  font-weight: 500;
   font-style: italic;
-  src: url('../../fonts/OpenSans_italic.ttf') format('truetype');
+  src: url('../../fonts/keybase-medium-italic.otf') format('opentype');
 }
 
 @font-face {
-  font-family: 'OpenSans';
+  font-family: 'Keybase';
   font-weight: 600;
-  src: url('../../fonts/OpenSans-Semi_bold.ttf') format('truetype');
+  src: url('../../fonts/keybase-semibold.otf') format('opentype');
 }
 
 @font-face {
-  font-family: 'OpenSans';
+  font-family: 'Keybase';
   font-weight: 600;
   font-style: italic;
-  src: url('../../fonts/OpenSans-Semi_bold_italic.ttf') format('truetype');
+  src: url('../../fonts/keybase-semibold-italic.otf') format('opentype');
 }
 
 @font-face {
-  font-family: 'OpenSans';
-  font-weight: 800;
-  src: url('../../fonts/OpenSans-ExtraBold.ttf') format('truetype');
-}
-
-@font-face {
-  font-family: 'OpenSans';
+  font-family: 'Keybase';
   font-weight: 700;
-  src: url('../../fonts/OpenSans_bold.ttf') format('truetype');
+  src: url('../../fonts/keybase-bold.otf') format('opentype');
 }
-/* End OpenSans */
+
+@font-face {
+  font-family: 'Keybase';
+  font-weight: 800;
+  src: url('../../fonts/keybase-extrabold.otf') format('opentype');
+}
+/* End Keybase */
 
 html {
   box-sizing: border-box;
@@ -246,6 +245,14 @@ body {
 }
 .hover-opacity:hover {
   opacity: 1;
+}
+
+.hover-container .hover-visible {
+  display: none;
+}
+
+.hover-container:hover .hover-visible {
+  display: flex;
 }
 
 .underline {

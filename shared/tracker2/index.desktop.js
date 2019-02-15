@@ -16,6 +16,7 @@ type Props = {|
   followingCount: ?number,
   followsYou: ?boolean,
   guiID: ?string,
+  isYou: boolean,
   location: ?string,
   onFollow: () => void,
   onChat: () => void,
@@ -59,6 +60,10 @@ const getButtons = (props: Props) => {
       <Kb.Icon type="iconfont-chat" color={Styles.globalColors.white} style={styles.chatIcon} />
     </Kb.WaitingButton>
   )
+
+  if (props.isYou) {
+    return [buttonClose, buttonChat]
+  }
 
   switch (props.state) {
     case 'checking':
@@ -106,7 +111,7 @@ const getButtons = (props: Props) => {
 }
 
 const TeamShowcase = ({name}) => (
-  <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" style={styles.teamShowcase}>
+  <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny" alignItems="center">
     <Kb.Avatar size={32} teamname={name} isTeam={true} />
     <Kb.Text type="BodySemibold">{name}</Kb.Text>
   </Kb.Box2>
@@ -142,7 +147,7 @@ const Tracker = (props: Props) => {
       <Kb.Text type="BodySmallSemibold" style={Styles.collapseStyles([styles.reason, {backgroundColor}])}>
         {props.reason}
       </Kb.Text>
-      <Kb.ScrollView style={styles.scrollView}>
+      <Kb.ScrollView style={styles.scrollView} hideVerticalScroll={true}>
         <Kb.Box2 direction="vertical">
           <Kb.Text type="BodySmallSemibold" style={styles.reasonInvisible}>
             {props.reason}
@@ -251,12 +256,14 @@ const styles = Styles.styleSheetCreate({
     ...reason,
     opacity: 0,
   },
-  scrollView: {...Styles.globalStyles.fillAbsolute, paddingBottom: Styles.globalMargins.small},
+  scrollView: {
+    ...Styles.globalStyles.fillAbsolute,
+    paddingBottom: Styles.globalMargins.small,
+  },
   spaceUnderButtons: {
     flexShrink: 0,
     height: barHeight,
   },
-  teamShowcase: {alignItems: 'center'},
   teamShowcases: {
     backgroundColor: Styles.globalColors.white,
     flexShrink: 0,

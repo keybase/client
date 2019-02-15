@@ -6,11 +6,13 @@ package service
 import (
 	"fmt"
 	"sort"
+	"time"
 
 	"github.com/keybase/client/go/avatars"
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/engine"
+	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -368,42 +370,32 @@ type ProofSuggestion struct {
 	Priority int
 }
 
-var dummyIcon []keybase1.SizedImage // TODO CORE-9882: Get some icons
-
 var pgpProofSuggestion = keybase1.ProofSuggestion{
 	Key:           "pgp",
 	ProfileText:   "Add a PGP key",
-	ProfileIcon:   dummyIcon,
 	PickerText:    "PGP key",
 	PickerSubtext: "",
-	PickerIcon:    dummyIcon,
 }
 
 var webProofSuggestion = keybase1.ProofSuggestion{
 	Key:           "web",
 	ProfileText:   "Prove your website",
-	ProfileIcon:   dummyIcon,
 	PickerText:    "Your own website",
 	PickerSubtext: "",
-	PickerIcon:    dummyIcon,
 }
 
 var bitcoinProofSuggestion = keybase1.ProofSuggestion{
-	Key:           "bitcoin",
+	Key:           "btc",
 	ProfileText:   "Set a Bitcoin address",
-	ProfileIcon:   dummyIcon,
 	PickerText:    "Bitcoin address",
 	PickerSubtext: "",
-	PickerIcon:    dummyIcon,
 }
 
 var zcashProofSuggestion = keybase1.ProofSuggestion{
 	Key:           "zcash",
 	ProfileText:   "Set a Zcash address",
-	ProfileIcon:   dummyIcon,
 	PickerText:    "Zcash address",
 	PickerSubtext: "",
-	PickerIcon:    dummyIcon,
 }
 
 func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext) (ret []ProofSuggestion, err error) {
@@ -440,10 +432,8 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext) (ret []Proo
 		suggestions = append(suggestions, ProofSuggestion{ProofSuggestion: keybase1.ProofSuggestion{
 			Key:           service,
 			ProfileText:   fmt.Sprintf("Prove your %v", serviceType.DisplayName()),
-			ProfileIcon:   dummyIcon,
 			PickerText:    serviceType.DisplayName(),
 			PickerSubtext: subtext,
-			PickerIcon:    dummyIcon,
 		}})
 	}
 	hasPGP := len(user.GetActivePGPKeys(true)) > 0
@@ -457,6 +447,15 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext) (ret []Proo
 	}
 	if !user.IDTable().HasActiveCryptocurrencyFamily(libkb.CryptocurrencyFamilyZCash) {
 		suggestions = append(suggestions, ProofSuggestion{ProofSuggestion: zcashProofSuggestion})
+	}
+
+	// Attach icon urls
+	for i := range suggestions {
+		suggestion := &suggestions[i]
+		suggestion.ProfileIcon = externals.MakeIcons(mctx, suggestion.Key, "logo_black", 16)
+		if externals.ServiceHasFullIcon(suggestion.Key) {
+			suggestion.PickerIcon = externals.MakeIcons(mctx, suggestion.Key, "logo_full", 32)
+		}
 	}
 
 	// Alphabetize so that ties later on in SliceStable are deterministic.
@@ -475,6 +474,8 @@ func (h *UserHandler) proofSuggestionsHelper(mctx libkb.MetaContext) (ret []Proo
 		switch displayConfig.Key {
 		case "zcash.t", "zcash.z", "zcash.s":
 			altKey = "zcash"
+		case "bitcoin":
+			altKey = "btc"
 		case "http", "https", "dns":
 			altKey = "web"
 		}
@@ -551,10 +552,10 @@ func (h *UserHandler) LoadHasRandomPw(ctx context.Context, arg keybase1.LoadHasR
 		Key: meUID.String(),
 	}
 
+	var cachedValue, hasCache bool
 	if !arg.ForceRepoll {
-		var cachedValue bool
-		if found, err := m.G().GetKVStore().GetInto(&cachedValue, cacheKey); err == nil {
-			if found && !cachedValue {
+		if hasCache, err = m.G().GetKVStore().GetInto(&cachedValue, cacheKey); err == nil {
+			if hasCache && !cachedValue {
 				m.CDebugf("Returning HasRandomPW=false from KVStore cache")
 				return false, nil
 			}
@@ -565,26 +566,43 @@ func (h *UserHandler) LoadHasRandomPw(ctx context.Context, arg keybase1.LoadHasR
 		}
 	}
 
-	type hasRandomPWRes struct {
+	var initialTimeout time.Duration
+	if !arg.ForceRepoll {
+		// If we are do not need accurate response from the API server, make
+		// the request with a timeout for quicker overall RPC response time
+		// if network is bad/unavailable.
+		initialTimeout = 3 * time.Second
+	}
+
+	var ret struct {
 		libkb.AppStatusEmbed
 		RandomPW bool `json:"random_pw"`
 	}
-
-	var ret hasRandomPWRes
 	err = h.G().API.GetDecode(libkb.APIArg{
-		Endpoint:    "user/has_random_pw",
-		SessionType: libkb.APISessionTypeREQUIRED,
-		NetContext:  ctx,
+		Endpoint:       "user/has_random_pw",
+		SessionType:    libkb.APISessionTypeREQUIRED,
+		NetContext:     ctx,
+		InitialTimeout: initialTimeout,
 	}, &ret)
 	if err != nil {
+		if !arg.ForceRepoll {
+			if hasCache {
+				// We are allowed to return cache if we have any.
+				m.CWarningf("Unable to make a network request to has_random_pw. Returning cached value: %t", cachedValue)
+				return cachedValue, nil
+			}
+
+			m.CWarningf("Unable to make a network request to has_random_pw and there is no cache. Erroring out.")
+		}
 		return res, err
 	}
 
-	if !ret.RandomPW {
-		// Cache that we are not a RandomPW user, so this RPC never has to call
-		// API endpoint again. Once user is not RandomPW, they will never be.
-		// RandomPW state change only goes `true -> false` when a passphrase is
-		// set.
+	if !hasCache || cachedValue != ret.RandomPW {
+		// Cache current state. If we put `randomPW=false` in the cache, we will never
+		// ever have to call to the network from this device, because it's not possible
+		// to become `randomPW=true` again. If we cache `randomPW=true` we are going to
+		// keep asking the network, but we will be resilient to bad network conditions
+		// because we will have this cached state to fall back on.
 		if err := m.G().GetKVStore().PutObj(cacheKey, nil, ret.RandomPW); err == nil {
 			m.CDebugf("Adding HasRandomPW=%t to KVStore", ret.RandomPW)
 		} else {
@@ -593,4 +611,28 @@ func (h *UserHandler) LoadHasRandomPw(ctx context.Context, arg keybase1.LoadHasR
 	}
 
 	return ret.RandomPW, err
+}
+
+func (h *UserHandler) CanLogout(ctx context.Context, sessionID int) (res keybase1.CanLogoutRes, err error) {
+	hasRandomPW, err := h.LoadHasRandomPw(ctx, keybase1.LoadHasRandomPwArg{
+		SessionID:   sessionID,
+		ForceRepoll: false,
+	})
+
+	if err != nil {
+		return keybase1.CanLogoutRes{
+			CanLogout: false,
+			Reason:    fmt.Sprintf("Cannot check user state: %s", err.Error()),
+		}, nil
+	}
+
+	if hasRandomPW {
+		return keybase1.CanLogoutRes{
+			CanLogout: false,
+			Reason:    "You signed up without a password and need to set a password first.",
+		}, nil
+	}
+
+	res.CanLogout = true
+	return res, nil
 }

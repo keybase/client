@@ -183,6 +183,8 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 		PayloadCacheSize:               50,
 		ProofCacheSize:                 50,
 		OutboxStorageEngine:            "files",
+		DisableTeamAuditor:             true,
+		DisableMerkleAuditor:           true,
 	}
 	if err = kbCtx.Configure(config, usage); err != nil {
 		return err
@@ -218,7 +220,7 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 		return err
 	}
 	extensionListener = newExtensionNotifyListener(gc)
-	kbCtx.NotifyRouter.SetListener(extensionListener)
+	kbCtx.NotifyRouter.AddListener(extensionListener)
 	kbChatCtx.InboxSource = chat.NewRemoteInboxSource(gc, func() chat1.RemoteInterface { return extensionRi })
 	kbChatCtx.EphemeralPurger.Start(context.Background(), uid) // need to start this to send
 	kbChatCtx.MessageDeliverer.Start(context.Background(), uid)
@@ -339,7 +341,7 @@ func extensionRegisterFailure(ctx context.Context, gc *globals.Context, err erro
 
 func ExtensionDetectMIMEType(filename string) (res string, err error) {
 	defer kbCtx.Trace("ExtensionDetectMIMEType", func() error { return err })()
-	src, err := attachments.NewFileReadResetter(filename)
+	src, err := attachments.NewFileReadCloseResetter(filename)
 	if err != nil {
 		return res, err
 	}

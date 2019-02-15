@@ -8,11 +8,12 @@ import {emojiIndex} from 'emoji-mart'
 import PlatformInput from './platform-input'
 import {standardTransformer} from '../suggestors'
 import {type InputProps} from './types'
-import {throttle} from 'lodash-es'
+import {debounce, throttle} from 'lodash-es'
 import {memoize} from '../../../../util/memoize'
 
 // Standalone throttled function to ensure we never accidentally recreate it and break the throttling
 const throttled = throttle((f, param) => f(param), 2000)
+const debounced = debounce((f, param) => f(param), 500)
 
 const searchUsers = memoize((users, filter) => {
   if (!filter) {
@@ -57,7 +58,8 @@ const suggestorKeyExtractors = {
   users: ({username, fullName}: {username: string, fullName: string}) => username,
 }
 
-const emojiDatasource = (filter: string) => (filter.length >= 2 ? emojiIndex.search(filter) : [])
+const emojiPrepass = /[a-z0-9]/i
+const emojiDatasource = (filter: string) => (emojiPrepass.test(filter) ? emojiIndex.search(filter) : [])
 const emojiRenderer = (item, selected: boolean) => (
   <Kb.Box2
     direction="horizontal"
@@ -124,7 +126,7 @@ class Input extends React.Component<InputProps, InputState> {
   }
 
   _inputFocus = () => {
-    this._input && this._input.focus()
+    this.props.isActiveForFocus && this._input && this._input.focus()
   }
 
   _onSubmit = (text: string) => {
@@ -135,7 +137,8 @@ class Input extends React.Component<InputProps, InputState> {
   _onChangeText = (text: string) => {
     this.props.setUnsentText(text)
     this._lastText = text
-    throttled(this.props.sendTyping, text)
+    throttled(this.props.sendTyping, !!text)
+    debounced(this.props.unsentTextChanged, text)
   }
 
   _onKeyDown = (e: SyntheticKeyboardEvent<>, isComposingIME: boolean) => {
@@ -161,7 +164,7 @@ class Input extends React.Component<InputProps, InputState> {
     if (!skipUnsentSaving) {
       this.props.setUnsentText(text)
     }
-    throttled(this.props.sendTyping, text)
+    throttled(this.props.sendTyping, !!text)
   }
 
   _setHeight = (inputHeight: number) =>
@@ -177,6 +180,10 @@ class Input extends React.Component<InputProps, InputState> {
 
   componentDidUpdate = (prevProps: InputProps) => {
     if (this.props.focusInputCounter !== prevProps.focusInputCounter) {
+      this._inputFocus()
+    }
+
+    if (this.props.isActiveForFocus !== prevProps.isActiveForFocus) {
       this._inputFocus()
     }
 
@@ -329,7 +336,13 @@ class Input extends React.Component<InputProps, InputState> {
     standardTransformer(`/${command.name}`, tData, preview)
 
   render = () => {
-    const {suggestUsers, suggestChannels, suggestCommands, ...platformInputProps} = this.props
+    const {
+      suggestUsers,
+      suggestChannels,
+      suggestCommands,
+      isActiveForFocus,
+      ...platformInputProps
+    } = this.props
     return (
       <PlatformInput
         {...platformInputProps}

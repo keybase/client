@@ -14,27 +14,28 @@ const fontCommon = {
 const font = {
   fontBold: {
     ...fontCommon,
-    fontFamily: 'OpenSans',
+    fontFamily: 'Keybase',
     fontWeight: 700,
   },
   fontExtrabold: {
     ...fontCommon,
-    fontFamily: 'OpenSans',
+    fontFamily: 'Keybase',
     fontWeight: 800,
   },
   fontRegular: {
     ...fontCommon,
-    fontFamily: 'OpenSans',
-    fontWeight: 400,
+    fontFamily: 'Keybase',
+    fontWeight: 500,
   },
   fontSemibold: {
     ...fontCommon,
-    fontFamily: 'OpenSans',
+    fontFamily: 'Keybase',
     fontWeight: 600,
   },
   fontTerminal: {
     ...fontCommon,
     fontFamily: 'Source Code Pro',
+    fontWeight: 500,
   },
   fontTerminalSemibold: {
     ...fontCommon,
@@ -150,7 +151,7 @@ export const collapseStyles = (styles: $ReadOnlyArray<CollapsibleStyle>): Object
   return isEmpty(style) ? undefined : style
 }
 export {isMobile, fileUIName, isIPhoneX, isIOS, isAndroid} from '../constants/platform'
-export {globalMargins, backgroundModeToColor, platformStyles} from './shared'
+export {globalMargins, backgroundModeToColor, platformStyles, padding} from './shared'
 export {css as styledCss, keyframes as styledKeyframes} from '@emotion/core'
 export {default as styled} from '@emotion/styled'
 export {default as globalColors} from './colors'

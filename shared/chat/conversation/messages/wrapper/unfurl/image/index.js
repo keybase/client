@@ -8,14 +8,15 @@ import {Video} from './video'
 import openURL from '../../../../../../util/open-url'
 
 export type Props = {
+  autoplayVideo: boolean,
   height: number,
+  isVideo: boolean,
+  linkURL?: string,
+  onClick?: () => void,
+  style?: Object,
+  url: string,
   width: number,
   widthPadding?: number,
-  url: string,
-  linkURL?: string,
-  isVideo: boolean,
-  autoplayVideo: boolean,
-  style?: Object,
 }
 
 const clampImageSize = ({width = 0, height = 0}, maxSize) =>
@@ -52,7 +53,14 @@ class UnfurlImage extends React.Component<Props> {
     const dims = this._getDimensions()
     const style = Styles.collapseStyles([dims, styles.image, this.props.style])
     return this.props.isVideo ? (
-      <Video {...dims} autoPlay={this.props.autoplayVideo} style={style} url={this.props.url} />
+      <Video
+        autoPlay={this.props.autoplayVideo}
+        height={dims.height}
+        onClick={this.props.onClick}
+        style={style}
+        url={this.props.url}
+        width={dims.width}
+      />
     ) : (
       <Kb.ClickableBox onClick={this._onClick}>
         <Kb.Image {...dims} src={this.props.url} style={style} />

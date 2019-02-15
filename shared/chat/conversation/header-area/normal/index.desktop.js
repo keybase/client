@@ -29,12 +29,12 @@ const ChannelHeader = (props: Props) => (
     >
       <Text
         type={props.smallTeam ? 'BodyBig' : 'BodySmallSemibold'}
-        style={props.smallTeam ? {color: globalColors.black_75} : {color: globalColors.black_50}}
+        style={props.smallTeam ? {color: globalColors.black} : {color: globalColors.black_50}}
       >
         {props.teamName}
       </Text>
       {!props.smallTeam && (
-        <Text type="BodyBig" style={{color: globalColors.black_75, marginLeft: 2}}>
+        <Text type="BodyBig" style={{color: globalColors.black, marginLeft: 2}}>
           #{props.channelName}
         </Text>
       )}

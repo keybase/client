@@ -70,6 +70,10 @@
       "_description": "Actually start a conversation",
       "participants": "Array<string>"
     },
+    "changeFocus": {
+      "_description": "Where we want our focus for keypresses",
+      "nextFocus": "Types.Focus"
+    },
     // Update our badges in the nav
     "badgesUpdated": {
       "conversations": "Array<RPCTypes.BadgeConversationInfo>"
@@ -114,7 +118,8 @@
       "clearExistingMetas?": "boolean", // If true, clear out the existing metaMap before inserting
       "clearExistingMessages?": "boolean", // If true, clear out any message data we already have.
       "fromExpunge?": "boolean", // If true, use meta updating logic for retention policy deletes
-      "fromInboxRefresh?": "boolean" // If true from an inbox refresh
+      "fromInboxRefresh?": "boolean", // If true from an inbox refresh
+      "initialTrustedLoad?": "boolean" // If true this is the first trusted inbox load
     },
     // Got some inbox errors
     "metaReceivedError": {
@@ -360,7 +365,7 @@
     // Tell server we're typing
     "sendTyping": {
       "conversationIDKey": "Types.ConversationIDKey",
-      "text": "HiddenString"
+      "typing": "boolean"
     },
     // On startup we're automatically loading a thread sometimes. When we first view it we should
     // go through our marking as read logic
@@ -496,10 +501,25 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "messageID": "Types.MessageID"
     },
+    "unsentTextChanged": {
+      "_description": "Unsent text changed",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "text": "HiddenString"
+    },
     "updateMessages": {
       "_description": "Update messages that we might have in the store",
       "conversationIDKey": "Types.ConversationIDKey",
       "messages": "Array<{messageID: Types.MessageID, message: Types.Message}>"
+    },
+    "giphySend": {
+      "_description": "send a message from Giphy search",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "url": "HiddenString"
+    },
+    "giphyGotSearchResult": {
+      "_description": "Giphy search results obtained",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "results": "Array<RPCChatTypes.GiphySearchResult>"
     },
     "clearPaymentConfirmInfo": {
       "_description": "Clear data for payment confirm modal"
@@ -518,12 +538,18 @@
     "setUnsentText": {
       "_description": "Set unsent text for a conversation",
       "conversationIDKey": "Types.ConversationIDKey",
-      "text": "HiddenString"
+      "text": "?HiddenString"
     },
     "updateUnreadline": {
       "_description": "Update the unreadline line position for a conversation",
       "conversationIDKey": "Types.ConversationIDKey",
       "messageID": "Types.MessageID"
+    },
+    "toggleMessageCollapse": {
+      "_description": "Set the collapse status of a message",
+      "conversationIDKey": "Types.ConversationIDKey",
+      "messageID": "Types.MessageID",
+      "collapse": "boolean"
     }
   }
 }

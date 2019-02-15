@@ -43,7 +43,9 @@ class Finished extends React.Component<Props, State> {
             label="Store encrypted private key on Keybase's server"
           />
           <Kb.Text style={styleUploadTextSublabel} type="BodySmall">
-            {'Allows you to download & import your key to other devices.'}
+            {
+              'Allows you to download & import your key to other devices. You might need to enter your Keybase passphrase.'
+            }
           </Kb.Text>
         </Kb.Box>
         <Kb.Button
@@ -75,7 +77,7 @@ const stylePgpKeyString = Styles.platformStyles({
     ...Styles.globalStyles.fontTerminal,
     backgroundColor: Styles.globalColors.lightGrey,
     borderRadius: 3,
-    color: Styles.globalColors.black_75,
+    color: Styles.globalColors.black,
     flex: 1,
     fontSize: 13,
     lineHeight: 17,

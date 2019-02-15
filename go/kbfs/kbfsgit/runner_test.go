@@ -30,6 +30,7 @@ type testErrput struct {
 }
 
 func (te testErrput) Write(buf []byte) (int, error) {
+	te.t.Helper()
 	te.t.Log(string(buf))
 	return 0, nil
 }
@@ -352,6 +353,7 @@ func testRunnerPushFetch(t *testing.T, cloning bool, secondRepoHasBranch bool) {
 }
 
 func TestRunnerPushFetch(t *testing.T) {
+	t.Skip("KBFS-3778: currently flaking")
 	testRunnerPushFetch(t, false, false)
 }
 
@@ -360,6 +362,7 @@ func TestRunnerPushClone(t *testing.T) {
 }
 
 func TestRunnerPushFetchWithBranch(t *testing.T) {
+	t.Skip("KBFS-3589: currently flaking")
 	testRunnerPushFetch(t, false, true)
 }
 
@@ -414,9 +417,9 @@ func TestRunnerExitEarlyOnEOF(t *testing.T) {
 	require.NoError(t, err)
 
 	// Pause journal to force the processing to pause.
-	jServer, err := libkbfs.GetJournalServer(config)
+	jManager, err := libkbfs.GetJournalManager(config)
 	require.NoError(t, err)
-	jServer.PauseBackgroundWork(ctx, rootNode.GetFolderBranch().Tlf)
+	jManager.PauseBackgroundWork(ctx, rootNode.GetFolderBranch().Tlf)
 
 	// Input a full push batch, but let the reader EOF without giving
 	// the final \n.
@@ -1010,12 +1013,12 @@ func TestRunnerWithKBFSReset(t *testing.T) {
 	// Sync data and flush journal.
 	err = rootFS.SyncAll()
 	require.NoError(t, err)
-	jServer, err := libkbfs.GetJournalServer(config)
+	jManager, err := libkbfs.GetJournalManager(config)
 	require.NoError(t, err)
 	rootNode, _, err := config.KBFSOps().GetOrCreateRootNode(
 		ctx, h, libkbfs.MasterBranch)
 	require.NoError(t, err)
-	err = jServer.FinishSingleOp(ctx,
+	err = jManager.FinishSingleOp(ctx,
 		rootNode.GetFolderBranch().Tlf, nil, keybase1.MDPriorityGit)
 	require.NoError(t, err)
 }
@@ -1036,6 +1039,7 @@ func testHandlePushBatch(t *testing.T, ctx context.Context,
 }
 
 func TestRunnerHandlePushBatch(t *testing.T) {
+	t.Skip("KBFS-3836: currently flaking a lot")
 	ctx, config, tempdir := initConfigForRunner(t)
 	defer libkbfs.CheckConfigAndShutdown(ctx, t, config)
 	defer os.RemoveAll(tempdir)

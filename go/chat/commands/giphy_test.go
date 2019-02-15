@@ -1,0 +1,127 @@
+package commands
+
+import (
+	"context"
+	"testing"
+	"time"
+
+	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/types"
+	"github.com/keybase/client/go/externalstest"
+	"github.com/keybase/client/go/kbtest"
+	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/stretchr/testify/require"
+)
+
+type fakeUIRouter struct {
+	libkb.UIRouter
+	ui libkb.ChatUI
+}
+
+func (f *fakeUIRouter) GetChatUI() (libkb.ChatUI, error) {
+	return f.ui, nil
+}
+
+func (f *fakeUIRouter) Shutdown() {}
+
+type testGiphySearcher struct {
+	waitForCancel bool
+	waitingCh     chan struct{}
+}
+
+func newTestGiphySearcher() *testGiphySearcher {
+	return &testGiphySearcher{}
+}
+
+func (d *testGiphySearcher) Search(mctx libkb.MetaContext, query *string, urlsrv types.AttachmentURLSrv) ([]chat1.GiphySearchResult, error) {
+	if d.waitForCancel {
+		if d.waitingCh != nil {
+			close(d.waitingCh)
+			d.waitingCh = nil
+		}
+		<-mctx.Ctx().Done()
+		return nil, mctx.Ctx().Err()
+	}
+	if query != nil && *query == "miketown" {
+		return []chat1.GiphySearchResult{chat1.GiphySearchResult{
+			TargetUrl: "https://www.miketown.com",
+		}}, nil
+	}
+	return []chat1.GiphySearchResult{chat1.GiphySearchResult{
+		TargetUrl: "https://www.notmiketown.com",
+	}}, nil
+}
+
+func TestGiphyPreview(t *testing.T) {
+	tc := externalstest.SetupTest(t, "giphy", 0)
+	g := globals.NewContext(tc.G, &globals.ChatContext{})
+	giphy := NewGiphy(g)
+	searcher := newTestGiphySearcher()
+	giphy.searcher = searcher
+	ctx := context.TODO()
+	uid := gregor1.UID{1, 2, 3, 4}
+	convID := chat1.ConversationID{1, 2, 3, 4}
+	ui := kbtest.NewChatUI()
+	g.UIRouter = &fakeUIRouter{ui: ui}
+	timeout := 2 * time.Second
+
+	giphy.Preview(ctx, uid, convID, "/giphy")
+	select {
+	case <-ui.GiphyResults:
+		require.Fail(t, "no results")
+	default:
+	}
+	giphy.Preview(ctx, uid, convID, "/giphy ")
+	select {
+	case res := <-ui.GiphyResults:
+		require.Equal(t, 1, len(res))
+		require.Equal(t, "https://www.notmiketown.com", res[0].TargetUrl)
+	case <-time.After(timeout):
+		require.Fail(t, "no results")
+	}
+	giphy.Preview(ctx, uid, convID, "")
+	select {
+	case res := <-ui.GiphyResults:
+		require.Zero(t, len(res))
+	case <-time.After(timeout):
+		require.Fail(t, "no results")
+	}
+
+	waitingCh := make(chan struct{})
+	searcher.waitingCh = waitingCh
+	searcher.waitForCancel = true
+	firstDoneCh := make(chan struct{})
+	go func() {
+		giphy.Preview(ctx, uid, convID, "/giphy ")
+		close(firstDoneCh)
+	}()
+	select {
+	case <-waitingCh:
+		searcher.waitForCancel = false
+	case <-time.After(timeout):
+		require.Fail(t, "no waiting ch")
+	}
+	giphy.Preview(ctx, uid, convID, "/giphy miketown")
+	select {
+	case res := <-ui.GiphyResults:
+		require.Equal(t, 1, len(res))
+		require.Equal(t, "https://www.miketown.com", res[0].TargetUrl)
+	case <-time.After(timeout):
+		require.Fail(t, "no results")
+	}
+	select {
+	case <-firstDoneCh:
+	case <-time.After(timeout):
+		require.Fail(t, "no first done")
+	}
+	giphy.Preview(ctx, uid, convID, "")
+	select {
+	case res := <-ui.GiphyResults:
+		require.Zero(t, len(res))
+	case <-time.After(timeout):
+		require.Fail(t, "no results")
+	}
+
+}

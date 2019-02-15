@@ -24,7 +24,7 @@ type OwnProps = {
   onChangeService: (newService: ServiceIdWithContact) => void,
   incHighlightIndex: (maxIndex: number) => void,
   decHighlightIndex: () => void,
-  resetHighlightIndex: () => void,
+  resetHighlightIndex: (resetToHidden?: boolean) => void,
 }
 
 type LocalState = {
@@ -34,14 +34,15 @@ type LocalState = {
 }
 
 const initialState: LocalState = {
-  highlightedIndex: -1,
+  highlightedIndex: 0,
   searchString: '',
   selectedService: 'keybase',
 }
 
 const deriveSearchResults = memoize(
   (searchResults: ?Array<User>, teamSoFar: I.Set<User>, myUsername: string, followingState: I.Set<string>) =>
-    (searchResults || []).map(info => ({
+    searchResults &&
+    searchResults.map(info => ({
       followingState: followStateHelperWithId(myUsername, followingState, info.id),
       inTeam: teamSoFar.some(u => u.id === info.id),
       prettyName: info.prettyName,
@@ -157,7 +158,7 @@ const deriveOnEnterKeyDown = memoizeShallow(
 
 const deriveOnSearchForMore = memoizeShallow(
   ({search, searchResults, searchString, selectedService}) => () => {
-    if (searchResults.length >= 10) {
+    if (searchResults && searchResults.length >= 10) {
       search(searchString, selectedService, searchResults.length + 20)
     }
   }
@@ -173,7 +174,7 @@ const deriveOnAdd = memoize(
     }
     changeText('')
     dispatchOnAdd(user)
-    resetHighlightIndex()
+    resetHighlightIndex(true)
   }
 )
 
@@ -181,10 +182,12 @@ const deriveOnChangeText = memoize(
   (
     onChangeText: (newText: string) => void,
     search: (text: string, service: ServiceIdWithContact) => void,
-    selectedService: ServiceIdWithContact
+    selectedService: ServiceIdWithContact,
+    resetHighlightIndex: Function
   ) => (newText: string) => {
     onChangeText(newText)
     search(newText, selectedService)
+    resetHighlightIndex()
   }
 )
 
@@ -202,13 +205,14 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     recommendations,
   } = stateProps
 
-  const showRecs = !ownProps.searchString && recommendations && ownProps.selectedService === 'keybase'
+  const showRecs = !ownProps.searchString && !!recommendations && ownProps.selectedService === 'keybase'
   const userResultsToShow = showRecs ? recommendations : searchResults
 
   const onChangeText = deriveOnChangeText(
     ownProps.onChangeText,
     dispatchProps._search,
-    ownProps.selectedService
+    ownProps.selectedService,
+    ownProps.resetHighlightIndex
   )
 
   const onSearchForMore = deriveOnSearchForMore({
@@ -256,7 +260,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
     onChangeService: ownProps.onChangeService,
     onChangeText,
     onClosePopup: dispatchProps._onCancelTeamBuilding,
-    onDownArrowKeyDown: deriveOnDownArrowKeyDown(userResultsToShow.length - 1, ownProps.incHighlightIndex),
+    onDownArrowKeyDown: deriveOnDownArrowKeyDown(
+      (userResultsToShow || []).length - 1,
+      ownProps.incHighlightIndex
+    ),
     onEnterKeyDown,
     onFinishTeamBuilding: dispatchProps.onFinishTeamBuilding,
     onMakeItATeam: () => console.log('todo'),
@@ -296,7 +303,8 @@ class StateWrapperForTeamBuilding extends React.Component<{}, LocalState> {
       highlightedIndex: state.highlightedIndex < 1 ? 0 : state.highlightedIndex - 1,
     }))
 
-  resetHighlightIndex = () => this.setState({highlightedIndex: initialState.highlightedIndex})
+  resetHighlightIndex = (resetToHidden?: boolean) =>
+    this.setState({highlightedIndex: resetToHidden ? -1 : initialState.highlightedIndex})
 
   render() {
     return (

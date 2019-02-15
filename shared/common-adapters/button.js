@@ -19,7 +19,6 @@ import {
 export type Props = {|
   children?: React.Node,
   onClick?: null | ((event: SyntheticEvent<>) => void),
-  onPress?: void,
   onMouseEnter?: Function,
   onMouseLeave?: Function,
   label?: string,
@@ -96,7 +95,12 @@ class Button extends React.Component<Props> {
     )
 
     return (
-      <ClickableBox style={containerStyle} onClick={onClick}>
+      <ClickableBox
+        style={containerStyle}
+        onClick={onClick}
+        onMouseEnter={this.props.onMouseEnter}
+        onMouseLeave={this.props.onMouseLeave}
+      >
         <Box
           style={collapseStyles([
             globalStyles.flexBoxRow,
@@ -202,7 +206,7 @@ const containerStyles = styleSheetCreate({
 })
 
 const labelStyles = styleSheetCreate({
-  CustomLabel: {color: globalColors.black_75, textAlign: 'center'},
+  CustomLabel: {color: globalColors.black, textAlign: 'center'},
   DangerLabel: commonLabel,
   PrimaryColoredBackgroundLabelBlack: {...commonLabel, color: globalColors.black},
   PrimaryColoredBackgroundLabelBlue: {...commonLabel, color: globalColors.blue},
@@ -219,7 +223,7 @@ const labelStyles = styleSheetCreate({
   SecondaryColoredBackgroundLabelGreen: {...commonLabel, color: globalColors.white},
   SecondaryColoredBackgroundLabelPurple: {...commonLabel, color: globalColors.white},
   SecondaryColoredBackgroundLabelRed: {...commonLabel, color: globalColors.white},
-  SecondaryLabel: {...commonLabel, color: globalColors.black_75},
+  SecondaryLabel: {...commonLabel, color: globalColors.black},
   SecondaryLabelOnTerminal: {...commonLabel, color: globalColors.white},
   WalletLabel: commonLabel,
 })

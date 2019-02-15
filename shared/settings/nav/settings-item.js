@@ -67,7 +67,6 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: {
       height: 32,
-      textTransform: 'uppercase',
       width: '100%',
     },
     isMobile: {
@@ -81,13 +80,13 @@ const styles = Styles.styleSheetCreate({
       color: Styles.globalColors.black_50,
     },
     isMobile: {
-      color: Styles.globalColors.black_75,
+      color: Styles.globalColors.black,
     },
   }),
   progress: {
     marginLeft: 6,
   },
   selectedText: {
-    color: Styles.globalColors.black_75,
+    color: Styles.globalColors.black,
   },
 })

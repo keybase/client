@@ -407,14 +407,13 @@ func TestTrackProofGubbleFail(t *testing.T) {
 
 	// create a user with a rooter proof
 	proofUser := CreateAndSignupFakeUser(tc, "proof")
-	_, err := proveGubbleSocialFail(tc.G, proofUser, sigVersion)
-	require.Error(t, err)
+	proveGubbleSocialFail(tc, proofUser, sigVersion)
 	Logout(tc)
 
 	// create a user to track the proofUser
 	trackUser := CreateAndSignupFakeUser(tc, "track")
 
-	// proveRooterFail posts a bad sig id, so it won't be found.
+	// proveGubbleSocialFail posts a bad sig id, so it won't be found.
 	// thus the state is ProofState_SIG_HINT_MISSING
 	rbl := sb{
 		social:     true,
@@ -426,7 +425,7 @@ func TestTrackProofGubbleFail(t *testing.T) {
 		TrackStatus:      keybase1.TrackStatus_NEW_ZERO_PROOFS,
 	}
 	// and they have no proofs
-	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome, sigVersion)
+	err := checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome, sigVersion)
 	require.NoError(t, err)
 }
 

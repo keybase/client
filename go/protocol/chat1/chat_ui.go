@@ -525,6 +525,7 @@ type UIMessageUnfurlInfo struct {
 	UnfurlMessageID MessageID     `codec:"unfurlMessageID" json:"unfurlMessageID"`
 	Url             string        `codec:"url" json:"url"`
 	Unfurl          UnfurlDisplay `codec:"unfurl" json:"unfurl"`
+	IsCollapsed     bool          `codec:"isCollapsed" json:"isCollapsed"`
 }
 
 func (o UIMessageUnfurlInfo) DeepCopy() UIMessageUnfurlInfo {
@@ -532,6 +533,7 @@ func (o UIMessageUnfurlInfo) DeepCopy() UIMessageUnfurlInfo {
 		UnfurlMessageID: o.UnfurlMessageID.DeepCopy(),
 		Url:             o.Url,
 		Unfurl:          o.Unfurl.DeepCopy(),
+		IsCollapsed:     o.IsCollapsed,
 	}
 }
 
@@ -561,6 +563,7 @@ type UIMessageValid struct {
 	PaymentInfos          []UIPaymentInfo        `codec:"paymentInfos" json:"paymentInfos"`
 	RequestInfo           *UIRequestInfo         `codec:"requestInfo,omitempty" json:"requestInfo,omitempty"`
 	Unfurls               []UIMessageUnfurlInfo  `codec:"unfurls" json:"unfurls"`
+	IsCollapsed           bool                   `codec:"isCollapsed" json:"isCollapsed"`
 }
 
 func (o UIMessageValid) DeepCopy() UIMessageValid {
@@ -666,6 +669,7 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 			}
 			return ret
 		})(o.Unfurls),
+		IsCollapsed: o.IsCollapsed,
 	}
 }
 
@@ -677,6 +681,7 @@ type UIMessageOutbox struct {
 	DecoratedTextBody *string         `codec:"decoratedTextBody,omitempty" json:"decoratedTextBody,omitempty"`
 	Ctime             gregor1.Time    `codec:"ctime" json:"ctime"`
 	Ordinal           float64         `codec:"ordinal" json:"ordinal"`
+	IsEphemeral       bool            `codec:"isEphemeral" json:"isEphemeral"`
 	Filename          string          `codec:"filename" json:"filename"`
 	Title             string          `codec:"title" json:"title"`
 	Preview           *MakePreviewRes `codec:"preview,omitempty" json:"preview,omitempty"`
@@ -695,10 +700,11 @@ func (o UIMessageOutbox) DeepCopy() UIMessageOutbox {
 			tmp := (*x)
 			return &tmp
 		})(o.DecoratedTextBody),
-		Ctime:    o.Ctime.DeepCopy(),
-		Ordinal:  o.Ordinal,
-		Filename: o.Filename,
-		Title:    o.Title,
+		Ctime:       o.Ctime.DeepCopy(),
+		Ordinal:     o.Ordinal,
+		IsEphemeral: o.IsEphemeral,
+		Filename:    o.Filename,
+		Title:       o.Title,
 		Preview: (func(x *MakePreviewRes) *MakePreviewRes {
 			if x == nil {
 				return nil
@@ -1094,6 +1100,24 @@ func (o UIChatPaymentSummary) DeepCopy() UIChatPaymentSummary {
 	}
 }
 
+type GiphySearchResult struct {
+	TargetUrl      string `codec:"targetUrl" json:"targetUrl"`
+	PreviewUrl     string `codec:"previewUrl" json:"previewUrl"`
+	PreviewWidth   int    `codec:"previewWidth" json:"previewWidth"`
+	PreviewHeight  int    `codec:"previewHeight" json:"previewHeight"`
+	PreviewIsVideo bool   `codec:"previewIsVideo" json:"previewIsVideo"`
+}
+
+func (o GiphySearchResult) DeepCopy() GiphySearchResult {
+	return GiphySearchResult{
+		TargetUrl:      o.TargetUrl,
+		PreviewUrl:     o.PreviewUrl,
+		PreviewWidth:   o.PreviewWidth,
+		PreviewHeight:  o.PreviewHeight,
+		PreviewIsVideo: o.PreviewIsVideo,
+	}
+}
+
 type ChatAttachmentDownloadStartArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -1183,6 +1207,12 @@ type ChatStellarDoneArg struct {
 	Canceled  bool `codec:"canceled" json:"canceled"`
 }
 
+type ChatGiphySearchResultsArg struct {
+	SessionID int                 `codec:"sessionID" json:"sessionID"`
+	ConvID    string              `codec:"convID" json:"convID"`
+	Results   []GiphySearchResult `codec:"results" json:"results"`
+}
+
 type ChatShowManageChannelsArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Teamname  string `codec:"teamname" json:"teamname"`
@@ -1207,6 +1237,7 @@ type ChatUiInterface interface {
 	ChatStellarDataConfirm(context.Context, ChatStellarDataConfirmArg) (bool, error)
 	ChatStellarDataError(context.Context, ChatStellarDataErrorArg) (bool, error)
 	ChatStellarDone(context.Context, ChatStellarDoneArg) error
+	ChatGiphySearchResults(context.Context, ChatGiphySearchResultsArg) error
 	ChatShowManageChannels(context.Context, ChatShowManageChannelsArg) error
 }
 
@@ -1484,6 +1515,21 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 					return
 				},
 			},
+			"chatGiphySearchResults": {
+				MakeArg: func() interface{} {
+					var ret [1]ChatGiphySearchResultsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChatGiphySearchResultsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChatGiphySearchResultsArg)(nil), args)
+						return
+					}
+					err = i.ChatGiphySearchResults(ctx, typedArgs[0])
+					return
+				},
+			},
 			"chatShowManageChannels": {
 				MakeArg: func() interface{} {
 					var ret [1]ChatShowManageChannelsArg
@@ -1597,6 +1643,11 @@ func (c ChatUiClient) ChatStellarDataError(ctx context.Context, __arg ChatStella
 
 func (c ChatUiClient) ChatStellarDone(ctx context.Context, __arg ChatStellarDoneArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.chatUi.chatStellarDone", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ChatUiClient) ChatGiphySearchResults(ctx context.Context, __arg ChatGiphySearchResultsArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatGiphySearchResults", []interface{}{__arg}, nil)
 	return
 }
 

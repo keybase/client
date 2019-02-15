@@ -351,4 +351,10 @@ protocol Common {
       PRIVATE_0,
       PUBLIC_1
   }
+
+  record SizedImage {
+    string path;
+    int width;
+  }
+
 }

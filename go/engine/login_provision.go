@@ -518,17 +518,26 @@ func (e *loginProvision) deviceName(m libkb.MetaContext) (string, error) {
 			arg.ErrorMessage = "Invalid device name. Device names should be " + libkb.CheckDeviceName.Hint
 			continue
 		}
-		duplicate := false
+		devname = libkb.CheckDeviceName.Transform(devname)
+		var dupname string
+		normalizedDevName := libkb.CheckDeviceName.Normalize(devname)
 		for _, name := range names {
-			if devname == name {
-				duplicate = true
+			if normalizedDevName == libkb.CheckDeviceName.Normalize(name) {
+				dupname = name
 				break
 			}
 		}
 
-		if duplicate {
-			m.CDebugf("Device name reused: %q", devname)
-			arg.ErrorMessage = fmt.Sprintf("Device name %q already used", devname)
+		if dupname != "" {
+			m.CDebugf("Device name reused: %q == %q", devname, dupname)
+			var dupnameErrMsg string
+			// if we have a collision on the normalized values add some extra
+			// info the error message so the user isn't confused why we
+			// consider the names equal.
+			if devname != dupname {
+				dupnameErrMsg = fmt.Sprintf(" as %q", dupname)
+			}
+			arg.ErrorMessage = fmt.Sprintf("The device name %q is already taken%s. You can't reuse device names, even revoked ones, for security reasons. Otherwise, someone who stole one of your devices could cause a lot of confusion.", devname, dupnameErrMsg)
 			continue
 		}
 

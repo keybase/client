@@ -108,6 +108,7 @@ export const makeDownloadMeta: I.RecordFactory<Types._DownloadMeta> = I.Record({
 })
 
 export const makeDownloadState: I.RecordFactory<Types._DownloadState> = I.Record({
+  canceled: false,
   completePortion: 0,
   endEstimate: undefined,
   error: undefined,
@@ -163,8 +164,8 @@ const _makeError: I.RecordFactory<Types._FsError> = I.Record({
 export const makeError = (record?: {
   time?: number,
   error: any,
-  erroredAction: any,
-  retriableAction?: any,
+  erroredAction: FsGen.Actions,
+  retriableAction?: FsGen.Actions,
 }): I.RecordOf<Types._FsError> => {
   let {time, error, erroredAction, retriableAction} = record || {}
   return _makeError({
@@ -186,6 +187,12 @@ export const makeSendLinkToChat: I.RecordFactory<Types._SendLinkToChat> = I.Reco
   path: Types.stringToPath('/keybase'),
 })
 
+export const makePathItemActionMenu: I.RecordFactory<Types._PathItemActionMenu> = I.Record({
+  downloadKey: null,
+  previousView: 'root',
+  view: 'root',
+})
+
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   downloads: I.Map(),
   edits: I.Map(),
@@ -195,6 +202,7 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   loadingPaths: I.Map(),
   localHTTPServerInfo: null,
   moveOrCopy: makeMoveOrCopy(),
+  pathItemActionMenu: makePathItemActionMenu(),
   pathItems: I.Map([[Types.stringToPath('/keybase'), makeFolder()]]),
   pathUserSettings: I.Map([[Types.stringToPath('/keybase'), makePathUserSetting()]]),
   sendLinkToChat: makeSendLinkToChat(),
@@ -210,7 +218,7 @@ export const fsPathToRpcPathString = (p: Types.Path): string =>
 
 export const getPathTextColor = (path: Types.Path) => {
   const elems = Types.getPathElements(path)
-  return elems.length >= 2 && elems[1] === 'public' ? globalColors.yellowGreen2 : globalColors.black_75
+  return elems.length >= 2 && elems[1] === 'public' ? globalColors.yellowGreen2 : globalColors.black
 }
 
 export const pathTypeToTextType = (type: Types.PathType) => (type === 'folder' ? 'BodySemibold' : 'Body')
@@ -245,11 +253,7 @@ export const editTypeToPathType = (type: Types.EditType): Types.PathType => {
   }
 }
 
-const makeDownloadKey = (path: Types.Path) => `download:${Types.pathToString(path)}:${makeUUID()}`
-export const makeDownloadPayload = (path: Types.Path): {|path: Types.Path, key: string|} => ({
-  key: makeDownloadKey(path),
-  path,
-})
+export const makeDownloadKey = (path: Types.Path) => `download:${Types.pathToString(path)}:${makeUUID()}`
 export const getDownloadIntentFromAction = (
   action: FsGen.DownloadPayload | FsGen.ShareNativePayload | FsGen.SaveMediaPayload
 ): Types.DownloadIntent =>
@@ -798,6 +802,22 @@ export const parsePath = (path: Types.Path): Types.ParsedPath => {
       }
     default:
       return parsedPathRoot
+  }
+}
+
+export const canSendLinkToChat = (parsedPath: Types.ParsedPath) => {
+  switch (parsedPath.kind) {
+    case 'root':
+    case 'tlf-list':
+      return false
+    case 'group-tlf':
+    case 'team-tlf':
+    case 'in-group-tlf':
+    case 'in-team-tlf':
+      return parsedPath.tlfType !== 'public'
+    default:
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(parsedPath)
+      return false
   }
 }
 

@@ -10,6 +10,9 @@ export type Props = {|
   className?: ?string,
   ref?: ?React.Ref<any>,
 
+  // desktop only
+  hideVerticalScroll?: boolean,
+
   // mobile only
   bounces?: boolean,
   centerContent?: boolean,

@@ -83,7 +83,7 @@ func SetTeamRepoSettings(ctx context.Context, g *libkb.GlobalContext, arg keybas
 		if !arg.Folder.Private {
 			vis = keybase1.TLFVisibility_PUBLIC
 		}
-		convs, err := g.ChatHelper.FindConversations(ctx, true, arg.Folder.Name, arg.ChannelName,
+		convs, err := g.ChatHelper.FindConversations(ctx, arg.Folder.Name, arg.ChannelName,
 			chat1.TopicType_CHAT, chat1.ConversationMembersType_TEAM, vis)
 		if err != nil {
 			return err

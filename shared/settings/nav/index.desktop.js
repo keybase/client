@@ -23,8 +23,8 @@ function SettingsNav(props: Props) {
       />
       <SettingsItem
         text="Files"
-        selected={props.selectedTab === Constants.fsSettingsTab}
-        onClick={() => props.onTabChange(Constants.fsSettingsTab)}
+        selected={props.selectedTab === Constants.fsTab}
+        onClick={() => props.onTabChange(Constants.fsTab)}
       />
       <SettingsItem
         text="Notifications"
@@ -51,7 +51,7 @@ function SettingsNav(props: Props) {
       <SettingsItem text="Sign out" selected={false} onClick={props.onLogout} />
       {__DEV__ && (
         <SettingsItem
-          text="😎 &nbsp; Dev Menu"
+          text="😎 &nbsp; Dev menu"
           selected={props.selectedTab === Constants.devMenuTab}
           onClick={() => props.onTabChange(Constants.devMenuTab)}
         />

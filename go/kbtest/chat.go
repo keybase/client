@@ -941,6 +941,10 @@ func (m *ChatRemoteMock) FailSharePost(ctx context.Context, _ chat1.FailSharePos
 	return errors.New("FailSharePost not mocked")
 }
 
+func (m *ChatRemoteMock) ServerNow(ctx context.Context) (res chat1.ServerNowRes, err error) {
+	return res, errors.New("ServerNow not mocked")
+}
+
 type NonblockInboxResult struct {
 	ConvID   chat1.ConversationID
 	Err      error
@@ -969,6 +973,7 @@ type ChatUI struct {
 	StellarDataError   chan string
 	StellarDone        chan struct{}
 	ShowManageChannels chan string
+	GiphyResults       chan []chat1.GiphySearchResult
 }
 
 func NewChatUI() *ChatUI {
@@ -984,6 +989,7 @@ func NewChatUI() *ChatUI {
 		StellarDataError:   make(chan string, 10),
 		StellarDone:        make(chan struct{}, 10),
 		ShowManageChannels: make(chan string, 10),
+		GiphyResults:       make(chan []chat1.GiphySearchResult, 10),
 	}
 }
 
@@ -1113,6 +1119,12 @@ func (c *ChatUI) ChatShowManageChannels(ctx context.Context, teamname string) er
 	return nil
 }
 
+func (c *ChatUI) ChatGiphySearchResults(ctx context.Context, convID chat1.ConversationID,
+	results []chat1.GiphySearchResult) error {
+	c.GiphyResults <- results
+	return nil
+}
+
 type DummyAssetDeleter struct{}
 
 func NewDummyAssetDeleter() DummyAssetDeleter {
@@ -1223,7 +1235,7 @@ func (m *MockChatHelper) SendMsgByNameNonblock(ctx context.Context, name string,
 	return nil
 }
 
-func (m *MockChatHelper) FindConversations(ctx context.Context, userLocalData bool, name string,
+func (m *MockChatHelper) FindConversations(ctx context.Context, name string,
 	topicName *string, topicType chat1.TopicType,
 	membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility) ([]chat1.ConversationLocal, error) {
 

@@ -108,7 +108,7 @@ const styleUsername = {
 }
 
 const styleFullname = {
-  color: globalColors.black_75,
+  color: globalColors.black,
   marginTop: 2,
 }
 

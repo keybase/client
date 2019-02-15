@@ -288,7 +288,7 @@ class MenubarRender extends React.Component<Props, State> {
           >
             <Kb.Icon
               color={Styles.globalColors.darkBlue4}
-              hoverColor={Styles.globalColors.black_75}
+              hoverColor={Styles.globalColors.black}
               type="iconfont-nav-more"
               ref={this.attachmentRef}
             />
@@ -317,12 +317,14 @@ class MenubarRender extends React.Component<Props, State> {
           <ChatContainer convLimit={3} />
           <FilesPreview />
         </Kb.ScrollView>
-        <UploadWithCountdown
-          endEstimate={this.props.endEstimate}
-          files={this.props.files}
-          fileName={this.props.fileName}
-          totalSyncingBytes={this.props.totalSyncingBytes}
-        />
+        <Kb.Box style={styles.footer}>
+          <UploadWithCountdown
+            endEstimate={this.props.endEstimate}
+            files={this.props.files}
+            fileName={this.props.fileName}
+            totalSyncingBytes={this.props.totalSyncingBytes}
+          />
+        </Kb.Box>
       </Kb.Box>
     )
   }
@@ -394,6 +396,7 @@ const styles = Styles.styleSheetCreate({
     top: -6,
     width: 0,
   },
+  footer: {width: 360},
   headerBadgesContainer: {
     ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
@@ -416,14 +419,6 @@ const styles = Styles.styleSheetCreate({
     minHeight: 40,
     paddingLeft: 8,
     paddingRight: 8,
-  },
-  uploadingContainer: {
-    ...Styles.globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    backgroundColor: Styles.globalColors.white,
-    justifyContent: 'center',
-    minHeight: 32,
-    padding: 8,
   },
   widgetContainer: {
     ...Styles.globalStyles.flexBoxColumn,

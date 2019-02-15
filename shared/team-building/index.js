@@ -7,6 +7,7 @@ import GoButton from './go-button'
 import ServiceTabBar from './service-tab-bar'
 import UserResult from './user-result'
 import flags from '../util/feature-flags'
+import {serviceIdToAccentColor, serviceIdToIconFont, serviceIdToLabel} from './shared'
 import type {ServiceIdWithContact, FollowingState} from '../constants/types/team-building'
 
 type SearchResult = {
@@ -49,7 +50,8 @@ class TeamBuilding extends React.PureComponent<Props, void> {
 
   render = () => {
     const props = this.props
-    const showRecPending = !props.searchString && !(props.recommendations && props.recommendations.length)
+    const showRecPending = !props.searchString && !props.recommendations
+    const showLoading = !!props.searchString && !props.searchResults
     const showRecs = props.showRecs
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
@@ -81,15 +83,39 @@ class TeamBuilding extends React.PureComponent<Props, void> {
           serviceResultCount={props.serviceResultCount}
           showServiceResultCount={props.showServiceResultCount}
         />
-        {showRecs && !showRecPending && (
-          <Kb.Text type={Styles.isMobile ? 'BodySmallSemibold' : 'BodyTinySemibold'} style={styles.recText}>
-            Recommendations
-          </Kb.Text>
-        )}
-        {showRecPending ? (
-          <Kb.Text type={Styles.isMobile ? 'BodySmallSemibold' : 'BodyTinySemibold'} style={styles.recText}>
-            ...
-          </Kb.Text>
+        {showRecPending || showLoading ? (
+          <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny" style={styles.loadingContainer}>
+            <Kb.Icon
+              style={Kb.iconCastPlatformStyles(styles.loadingIcon)}
+              type="icon-progress-grey-animated"
+            />
+            <Kb.Text type="BodySmallSemibold">Loading</Kb.Text>
+          </Kb.Box2>
+        ) : !showRecs && !props.showServiceResultCount && !!props.selectedService ? (
+          <Kb.Box2
+            alignSelf="center"
+            centerChildren={true}
+            direction="vertical"
+            fullHeight={true}
+            fullWidth={true}
+            gap="tiny"
+            style={styles.emptyContainer}
+          >
+            <Kb.Icon
+              fontSize={64}
+              type={serviceIdToIconFont(props.selectedService)}
+              style={Styles.collapseStyles([
+                !!props.selectedService && {color: serviceIdToAccentColor(props.selectedService)},
+              ])}
+            />
+            <Kb.Text center={true} type="BodyBig">
+              Enter a {serviceIdToLabel(props.selectedService)} username above.
+            </Kb.Text>
+            <Kb.Text center={true} type="BodySmall">
+              Start a Keybase chat with anyone on {serviceIdToLabel(props.selectedService)}, even if they
+              don’t have a Keybase account.
+            </Kb.Text>
+          </Kb.Box2>
         ) : (
           <Kb.List
             items={showRecs ? props.recommendations || [] : props.searchResults || []}
@@ -132,6 +158,19 @@ const styles = Styles.styleSheetCreate({
       width: 470,
     },
   }),
+  emptyContainer: Styles.platformStyles({
+    common: {
+      flex: 1,
+    },
+    isElectron: {
+      maxWidth: 290,
+      paddingBottom: 40,
+    },
+    isMobile: {
+      maxWidth: '80%',
+      paddingBottom: 150,
+    },
+  }),
   list: Styles.platformStyles({
     common: {
       paddingBottom: Styles.globalMargins.small,
@@ -140,20 +179,19 @@ const styles = Styles.styleSheetCreate({
       marginTop: Styles.globalMargins.xtiny,
     },
   }),
-  recText: Styles.platformStyles({
-    common: {
-      borderBottomColor: Styles.globalColors.black_10,
-      borderBottomWidth: 1,
-      borderStyle: 'solid',
-      paddingBottom: Styles.globalMargins.xtiny,
-    },
+  loadingContainer: {
+    alignItems: 'center',
+    flex: 1,
+    justifyContent: 'center',
+  },
+  loadingIcon: Styles.platformStyles({
     isElectron: {
-      paddingLeft: Styles.globalMargins.xtiny,
-      paddingTop: Styles.globalMargins.xtiny,
+      height: 32,
+      width: 32,
     },
     isMobile: {
-      paddingLeft: Styles.globalMargins.xsmall,
-      paddingTop: Styles.globalMargins.tiny,
+      height: 48,
+      width: 48,
     },
   }),
 })

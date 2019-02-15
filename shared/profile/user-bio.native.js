@@ -1,7 +1,7 @@
 // @flow
 import * as shared from './user-bio.shared'
 import React, {Component} from 'react'
-import {Box, Avatar, Text, Button, Icon} from '../common-adapters'
+import {Box, Avatar, Text, Button, Icon, Placeholder} from '../common-adapters'
 import type {AvatarSize} from '../common-adapters/avatar'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {stateColors} from '../util/tracker'
@@ -33,33 +33,9 @@ class BioLoading extends Component<{style: any, avatarSize: AvatarSize, loading:
           />
         </Box>
         <Box style={{...stylesContent, opacity: this.props.loading ? 1 : 0}}>
-          <Box
-            style={{
-              ...globalStyles.loadingTextStyle,
-              borderRadius: 2,
-              height: 16,
-              marginTop: globalMargins.small,
-              width: 160,
-            }}
-          />
-          <Box
-            style={{
-              ...globalStyles.loadingTextStyle,
-              borderRadius: 2,
-              height: 16,
-              marginTop: globalMargins.small,
-              width: 160,
-            }}
-          />
-          <Box
-            style={{
-              ...globalStyles.loadingTextStyle,
-              borderRadius: 2,
-              height: 16,
-              marginTop: globalMargins.small,
-              width: 160,
-            }}
-          />
+          <Placeholder style={stylesPlaceholder} />
+          <Placeholder style={stylesPlaceholder} />
+          <Placeholder style={stylesPlaceholder} />
         </Box>
       </Box>
     )
@@ -206,7 +182,7 @@ const stylesContent = {
 const stylesUsername = {
   marginTop: globalMargins.tiny,
 }
-const stylesFullname = {color: globalColors.black_75}
+const stylesFullname = {color: globalColors.black}
 const stylesFollowLabel = {
   color: globalColors.black_50,
   fontSize: 14,
@@ -225,7 +201,8 @@ const stylesFollowingCount = {
   color: globalColors.black_50,
   ...globalStyles.fontBold,
 }
-const stylesBio = {color: globalColors.black_75}
+const stylesBio = {color: globalColors.black}
 const stylesLocation = {marginTop: globalMargins.xtiny}
+const stylesPlaceholder = {marginTop: globalMargins.small}
 
 export default BioRender

@@ -100,6 +100,11 @@ func crMakeFakeRMD(rev kbfsmd.Revision, bid kbfsmd.BranchID) ImmutableRootMetada
 			PrevRoot: kbfsmd.FakeID(byte(rev - 1)),
 		},
 		tlfHandle: &TlfHandle{name: "fake"},
+		data: PrivateMetadata{
+			Changes: BlockChanges{
+				Ops: []op{newGCOp(0)}, // arbitrary op to fool unembed checks
+			},
+		},
 	}, key, kbfsmd.FakeID(byte(rev)), time.Now(), true)
 }
 
@@ -1288,7 +1293,7 @@ func TestCRDoActionsSimple(t *testing.T) {
 	}
 
 	lbc := make(localBcache)
-	newFileBlocks := make(fileBlockMap)
+	newFileBlocks := newFileBlockMapMemory()
 	dirtyBcache := simpleDirtyBlockCacheStandard()
 	err = cr2.doActions(ctx, lState, unmergedChains, mergedChains,
 		unmergedPaths, mergedPaths, actionMap, lbc, newFileBlocks, dirtyBcache)
@@ -1310,7 +1315,7 @@ func TestCRDoActionsSimple(t *testing.T) {
 			t.Errorf("Couldn't find entry in merged children: %s", file)
 		}
 	}
-	if len(newFileBlocks) != 0 {
+	if len(newFileBlocks.blocks) != 0 {
 		t.Errorf("Unexpected new file blocks!")
 	}
 }
@@ -1411,7 +1416,7 @@ func TestCRDoActionsWriteConflict(t *testing.T) {
 	}
 
 	lbc := make(localBcache)
-	newFileBlocks := make(fileBlockMap)
+	newFileBlocks := newFileBlockMapMemory()
 	dirtyBcache := simpleDirtyBlockCacheStandard()
 	err = cr2.doActions(ctx, lState, unmergedChains, mergedChains,
 		unmergedPaths, mergedPaths, actionMap, lbc, newFileBlocks, dirtyBcache)
@@ -1423,20 +1428,16 @@ func TestCRDoActionsWriteConflict(t *testing.T) {
 	mergedRootPath := cr1.fbo.nodeCache.PathFromNode(dir1)
 	cre := WriterDeviceDateConflictRenamer{}
 	mergedName := cre.ConflictRenameHelper(now, "u2", "dev1", "file")
-	if len(newFileBlocks) != 1 {
+	if len(newFileBlocks.blocks) != 1 {
 		t.Errorf("Unexpected new file blocks!")
 	}
-	if blocks, ok := newFileBlocks[mergedRootPath.tailPointer()]; !ok {
+	if blocks, ok := newFileBlocks.blocks[mergedRootPath.tailPointer()]; !ok {
 		t.Errorf("No blocks for dir merged ptr: %v",
 			mergedRootPath.tailPointer())
 	} else if len(blocks) != 1 {
 		t.Errorf("Unexpected number of blocks")
-	} else if fptr, ok := blocks[mergedName]; !ok {
-		t.Errorf("No pointer for name %s", mergedName)
-	} else if block, err := dirtyBcache.Get(ctx, fb.Tlf, fptr, fb.Branch); err != nil {
-		t.Errorf("Couldn't get fblock: %v", err)
-	} else if fblock, ok := block.(*FileBlock); !ok {
-		t.Errorf("No file block for name %s, block %T", mergedName, block)
+	} else if fblock, ok := blocks[mergedName]; !ok {
+		t.Errorf("No block for name %s", mergedName)
 	} else if fblock.IsInd {
 		t.Errorf("Unexpected indirect block")
 	} else if g, e := fblock.Contents, unmergedData; !reflect.DeepEqual(g, e) {

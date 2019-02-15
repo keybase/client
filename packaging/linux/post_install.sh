@@ -13,6 +13,7 @@ set -u
 
 rootmount="/keybase"
 krbin="/usr/bin/keybase-redirector"
+BASH=$(command -v bash)
 
 redirector_enabled() {
   keybase --use-root-config-file config get --direct --assert-false --assert-ok-on-nil disable-root-redirector &> /dev/null
@@ -47,7 +48,7 @@ systemd_exec_as() {
     user_xdg_runtime_dir=""
     # shellcheck disable=SC2016
     # Intentionally do not expand $XDG_RUNTIME_DIR; we want the user's shell to expand it
-    if ! user_xdg_runtime_dir="$(su --login "$user" -c 'echo $XDG_RUNTIME_DIR')" || [ -z "$user_xdg_runtime_dir" ]; then
+    if ! user_xdg_runtime_dir="$(su -s "$BASH" --login "$user" -c 'echo $XDG_RUNTIME_DIR')" || [ -z "$user_xdg_runtime_dir" ]; then
         user_xdg_runtime_dir="/run/user/$(id -u "$user")" || return 1
     fi
 
@@ -56,7 +57,7 @@ systemd_exec_as() {
     # With run_keybase, we pipe environment variables to the user's runtime directory,
     # so Keybase units will get the necessary environment from there, even though this su
     # shell doesn't have, e.g., DISPLAY.
-    su --login "$user" -c "XDG_RUNTIME_DIR=$user_xdg_runtime_dir $* 2> /dev/null"
+    su --login "$user" -s "$BASH" -c "XDG_RUNTIME_DIR=$user_xdg_runtime_dir $* 2> /dev/null"
 }
 
 # Exits with 0 iff the given user is running the service with systemd
@@ -88,6 +89,12 @@ safe_restart_systemd_services() {
         # Since keybase is running, we can assume run_keybase has been run before
         # and the mountdir is configured (so, it is not a fresh install).
         user="$(ps -o user= -p "$pid")"
+
+        # If the process terminated since the loop started somehow, skip
+        # restarting
+        if [ -z "$user" ]; then
+            continue
+        fi
 
         restart_instructions="Restart Keybase manually by running 'run_keybase' as $user."
         abort_instructions="Aborting Keybase autorestart for $user. $restart_instructions"
@@ -181,9 +188,9 @@ elif [ -d "$rootmount" ] ; then
                 # Try our best to get the user's $XDG_CACHE_HOME,
                 # though depending on how it's set, it might not be
                 # available to su.
-                userCacheHome="$(su -c "echo -n \$XDG_CACHE_HOME" - "$newUser")"
+                userCacheHome="$(su -s "$BASH" -c "echo -n \$XDG_CACHE_HOME" - "$newUser")"
                 log="${userCacheHome:-~$newUser/.cache}/keybase/keybase.redirector.log"
-                su -c "nohup \"$krbin\" \"$rootmount\" &>> $log &" "$newUser"
+                su -s "$BASH" -c "nohup \"$krbin\" \"$rootmount\" &>> $log &" "$newUser"
                 echo "Root redirector now running as $newUser."
             else
                 # The redirector is running as root, and either root

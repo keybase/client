@@ -283,7 +283,8 @@ func (g *PushHandler) TlfResolve(ctx context.Context, m gregor.OutOfBandMessage)
 		defer g.Unlock()
 		defer g.orderer.CompleteTurn(ctx, uid, update.InboxVers)
 		// Get and localize the conversation to get the new tlfname.
-		inbox, _, err := g.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, true, nil,
+		inbox, _, err := g.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
+			types.InboxSourceDataSourceAll, nil,
 			&chat1.GetInboxLocalQuery{
 				ConvIDs: []chat1.ConversationID{update.ConvID},
 			}, nil)
@@ -636,7 +637,8 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 
 			// We need to get this conversation and then localize it
 			var inbox types.Inbox
-			if inbox, _, err = g.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, false,
+			if inbox, _, err = g.G().InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking,
+				types.InboxSourceDataSourceRemoteOnly,
 				nil, &chat1.GetInboxLocalQuery{
 					ConvIDs:      []chat1.ConversationID{nm.ConvID},
 					MemberStatus: chat1.AllConversationMemberStatuses(),
@@ -653,12 +655,16 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				g.Debug(ctx, "chat activity: unable to update inbox: %v", err)
 			}
 			conv = &inbox.Convs[0]
-
-			activity = new(chat1.ChatActivity)
-			*activity = chat1.NewChatActivityWithNewConversation(chat1.NewConversationInfo{
-				Conv:   g.presentUIItem(ctx, conv, uid),
-				ConvID: conv.GetConvID(),
-			})
+			switch memberStatus := conv.ReaderInfo.Status; memberStatus {
+			case chat1.ConversationMemberStatus_LEFT, chat1.ConversationMemberStatus_NEVER_JOINED:
+				g.Debug(ctx, "chat activity: newConversation: suppressing ChatActivity, membersStatus: %v", memberStatus)
+			default:
+				activity = new(chat1.ChatActivity)
+				*activity = chat1.NewChatActivityWithNewConversation(chat1.NewConversationInfo{
+					Conv:   g.presentUIItem(ctx, conv, uid),
+					ConvID: conv.GetConvID(),
+				})
+			}
 		case types.ActionTeamType:
 			var nm chat1.TeamTypePayload
 			if err = dec.Decode(&nm); err != nil {

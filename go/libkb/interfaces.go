@@ -147,6 +147,7 @@ type LocalDbTransaction interface {
 type LocalDb interface {
 	LocalDbOps
 	Open() error
+	Stats() string
 	ForceOpen() error
 	Close() error
 	Nuke() (string, error)
@@ -327,6 +328,8 @@ type IdentifyUI interface {
 
 type Checker struct {
 	F             func(string) bool
+	Transform     func(string) string
+	Normalize     func(string) string
 	Hint          string
 	PreserveSpace bool
 }
@@ -352,6 +355,7 @@ type ProveUI interface {
 	PreProofWarning(context.Context, keybase1.PreProofWarningArg) (bool, error)
 	OutputInstructions(context.Context, keybase1.OutputInstructionsArg) error
 	OkToCheck(context.Context, keybase1.OkToCheckArg) (bool, error)
+	Checking(context.Context, keybase1.CheckingArg) error
 	DisplayRecheckWarning(context.Context, keybase1.DisplayRecheckWarningArg) error
 }
 
@@ -407,6 +411,8 @@ type ChatUI interface {
 	ChatStellarDataConfirm(context.Context, chat1.UIChatPaymentSummary) (bool, error)
 	ChatStellarDataError(context.Context, string) (bool, error)
 	ChatStellarDone(context.Context, bool) error
+	ChatGiphySearchResults(ctx context.Context, convID chat1.ConversationID,
+		results []chat1.GiphySearchResult) error
 	ChatShowManageChannels(context.Context, string) error
 }
 
@@ -476,6 +482,7 @@ type UIRouter interface {
 	GetIdentify3UI(MetaContext) (keybase1.Identify3UiInterface, error)
 	GetChatUI() (ChatUI, error)
 
+	DumpUIs() map[UIKind]ConnectionID
 	Shutdown()
 }
 
@@ -496,7 +503,9 @@ type Clock interface {
 	Now() time.Time
 }
 
-type GregorDismisser interface {
+type GregorState interface {
+	State(ctx context.Context) (gregor.State, error)
+	InjectItem(ctx context.Context, cat string, body []byte, dtime gregor1.TimeOrOffset) (gregor1.MsgID, error)
 	DismissItem(ctx context.Context, cli gregor1.IncomingInterface, id gregor.MsgID) error
 	LocalDismissItem(ctx context.Context, id gregor.MsgID) error
 }
@@ -887,8 +896,9 @@ type ChatHelper interface {
 	SendMsgByNameNonblock(ctx context.Context, name string, topicName *string,
 		membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, body chat1.MessageBody,
 		msgType chat1.MessageType) error
-	FindConversations(ctx context.Context, useLocalData bool, name string, topicName *string,
-		topicType chat1.TopicType, membersType chat1.ConversationMembersType, vis keybase1.TLFVisibility) ([]chat1.ConversationLocal, error)
+	FindConversations(ctx context.Context, name string,
+		topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
+		vis keybase1.TLFVisibility) ([]chat1.ConversationLocal, error)
 	FindConversationsByID(ctx context.Context, convIDs []chat1.ConversationID) ([]chat1.ConversationLocal, error)
 	JoinConversationByID(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) error
 	JoinConversationByName(ctx context.Context, uid gregor1.UID, tlfName, topicName string,

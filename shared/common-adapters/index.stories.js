@@ -22,6 +22,7 @@ import markdown from './markdown/index.stories'
 import meta from './meta.stories'
 import nameWithIcon from './name-with-icon/index.stories'
 import newInput from './new-input.stories'
+import placeholder from './placeholder.stories'
 import plainInput from './plain-input.stories'
 import popupDialog from './popup-dialog.stories'
 import radiobutton from './radio-button.stories'
@@ -57,6 +58,7 @@ const load = () => {
     meta,
     nameWithIcon,
     newInput,
+    placeholder,
     plainInput,
     popupDialog,
     radiobutton,

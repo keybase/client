@@ -153,6 +153,7 @@ protocol chatUi {
     MessageID unfurlMessageID;
     string url;
     UnfurlDisplay unfurl;
+    boolean isCollapsed;
   }
 
   record UIMessageValid {
@@ -182,6 +183,7 @@ protocol chatUi {
     array<UIPaymentInfo> paymentInfos;
     union { null, UIRequestInfo } requestInfo;
     array<UIMessageUnfurlInfo> unfurls;
+    boolean isCollapsed;
   }
 
   record UIMessageOutbox {
@@ -192,6 +194,7 @@ protocol chatUi {
     union { null, string } decoratedTextBody;
     gregor1.Time ctime;
     double ordinal;
+    boolean isEphemeral;
 
     // For attachments
     string filename;
@@ -267,6 +270,15 @@ protocol chatUi {
   boolean chatStellarDataConfirm(int sessionID, UIChatPaymentSummary summary);
   boolean chatStellarDataError(int sessionID, string message);
   void chatStellarDone(int sessionID, boolean canceled);
+
+ record GiphySearchResult {
+    string targetUrl;
+    string previewUrl;
+    int previewWidth;
+    int previewHeight;
+    boolean previewIsVideo;
+  }
+  void chatGiphySearchResults(int sessionID, string convID, array<GiphySearchResult> results);
 
   void chatShowManageChannels(int sessionID, string teamname);
 }

@@ -91,6 +91,7 @@ const InputContainer = (props: Props) => {
       Sb.action('getUnsentText')()
       return props.isEditing ? 'some text' : ''
     },
+    isActiveForFocus: true,
     isEditExploded: props.isEditExploded,
     isEditing: props.isEditing,
     isExploding: props.isExploding,
@@ -102,6 +103,8 @@ const InputContainer = (props: Props) => {
     onCancelEditing: Sb.action('onCancelEditing'),
     onEditLastMessage: Sb.action('onEditLastMessage'),
     onFilePickerError: Sb.action('onFilePickerError'),
+    onRequestScrollDown: Sb.action('onRequestScrollDown'),
+    onRequestScrollUp: Sb.action('onRequestScrollUp'),
     onSubmit: (text: string) => {
       Sb.action('onSubmit')(text)
     },
@@ -122,6 +125,7 @@ const InputContainer = (props: Props) => {
       {fullName: 'Mike Maxim', username: 'mikem'},
       {fullName: 'Alex Gessner', username: 'xgess'},
     ]),
+    unsentTextChanged: Sb.action('unsentTextChanged'),
     unsentTextRefresh: false,
   }
 

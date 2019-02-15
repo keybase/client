@@ -3,10 +3,12 @@ import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as FsGen from '../fs-gen'
 import type {TypedActions} from '../typed-actions-gen'
+import * as SettingsConstants from '../../constants/settings'
 import * as Tabs from '../../constants/tabs'
 import * as RouteTreeGen from '../route-tree-gen'
+import {isMobile} from '../../constants/platform'
 
-const fsRootRoute = [Tabs.fsTab]
+export const fsRootRoute = isMobile ? [Tabs.settingsTab, SettingsConstants.fsTab] : [Tabs.fsTab]
 
 const _getRouteChangeActionForPermissionError = (path: Types.Path) =>
   RouteTreeGen.createNavigateTo({

@@ -2,7 +2,7 @@
 /* eslint-disable sort-keys */
 import * as React from 'react'
 import * as I from 'immutable'
-import * as Constants from '../../constants/types/chat2'
+import * as Types from '../../constants/types/chat2'
 import * as Sb from '../../stories/storybook'
 
 import {isDarwin} from '../../constants/platform'
@@ -15,14 +15,14 @@ import Inbox from '.'
  */
 const makeRowItemSmall = (conversationIDKey: string = '') => ({
   type: 'small',
-  conversationIDKey: Constants.stringToConversationIDKey(conversationIDKey),
+  conversationIDKey: Types.stringToConversationIDKey(conversationIDKey),
 })
 const makeRowItemBigHeader = (teamname: string = '') => ({type: 'bigHeader', teamname})
 const makeRowItemBigChannel = (conversationIDKey, teamname, channelname) => ({
   type: 'big',
   teamname,
   channelname,
-  conversationIDKey: Constants.stringToConversationIDKey(conversationIDKey),
+  conversationIDKey: Types.stringToConversationIDKey(conversationIDKey),
 })
 const makeRowItemDivider = (showButton: boolean = false) => ({type: 'divider', showButton})
 
@@ -53,7 +53,7 @@ const commonSmallTeam = {
   teamname: '',
   timestamp: '1:23 pm',
   unreadCount: 0,
-  usernameColor: globalColors.black_75,
+  usernameColor: globalColors.black,
   youAreReset: false,
   youNeedToRekey: false,
 }
@@ -67,7 +67,7 @@ const commonSmallFilter = {
   participants: ['chris', 'mikem'],
   showBold: false,
   teamname: '',
-  usernameColor: globalColors.black_75,
+  usernameColor: globalColors.black,
 }
 
 const commonBigChannel = {
@@ -106,8 +106,8 @@ const mapPropProviderProps = {
     hasBadge: true,
     showBold: true,
     snippet: 'in the top-drawer i believe',
-    subColor: globalColors.black_75,
-    usernameColor: globalColors.black_75,
+    subColor: globalColors.black,
+    usernameColor: globalColors.black,
   },
   smallTeamC: {
     ...commonSmallTeam,
@@ -340,6 +340,7 @@ const getPropProviderProps = own => {
  */
 const propsInboxCommon = {
   allowShowFloatingButton: false,
+  clearedFilterCount: 0,
   focusFilter: () => {},
   filter: '',
   filterFocusCount: 0,
@@ -351,6 +352,7 @@ const propsInboxCommon = {
   onSelectDown: Sb.action('onSelectDown'),
   onEnsureSelection: Sb.action('onEnsureSelection'),
   rows: [],
+  selectedConversationIDKey: Types.stringToConversationIDKey('fake conversation id key'),
   smallTeamsExpanded: false,
   toggleSmallTeamsExpanded: Sb.action('toggleSmallTeamsExpanded'),
 }
