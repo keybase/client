@@ -15,7 +15,6 @@ const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   onLoad: () => dispatch(WalletsGen.createUpdateAirdropState()),
   onSubmit: () => {
     dispatch(WalletsGen.createChangeAirdrop({accept: true}))
-    // dispatch(navigateUp())
   },
 })
 
