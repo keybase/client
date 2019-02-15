@@ -111,9 +111,9 @@ function* loadDaemonBootstrapStatus(state, action) {
       )
       break
     case GregorGen.updateReachable:
-        if (!action.payload.reachable)
-          break;
-        // else fall through
+      if (!action.payload.reachable)
+        break
+      // else fall through
     case ConfigGen.loggedIn: // fallthrough
     case ConfigGen.loggedOut:
       yield* makeCall()
