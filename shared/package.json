@@ -40,6 +40,7 @@
     "rn-gobuild-ios": "./react-native/gobuild.sh ios",
     "rn-gobuild-android": "./react-native/gobuild.sh android",
     "rn-build-android": "./react-native/buildAndroid.sh",
+    "rn-build-clean-android": "rm -rf ./react-native/android/app/build && ./react-native/buildAndroid.sh",
     "rn-push-android": "./react-native/pushAndroid.sh",
     "rn-packager-wipe-cache": "watchman watch-del-all && rm -rf node_modules && yarn && node ./react-native/wipe-cache.js",
     "rn-test-ios": "xcodebuild test -project ./react-native/ios/Keybase.xcodeproj -scheme 'Keybase For Test' -destination 'platform=iOS Simulator,name=iPhone 6s,OS=9.3'",
