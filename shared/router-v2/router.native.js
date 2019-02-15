@@ -151,7 +151,7 @@ class RNApp extends React.PureComponent<any, any> {
 }
 
 const styles = Styles.styleSheetCreate({
-  headerTitle: {color: Styles.globalColors.black_75},
+  headerTitle: {color: Styles.globalColors.black},
   keyboard: {
     flexGrow: 1,
     position: 'relative',
