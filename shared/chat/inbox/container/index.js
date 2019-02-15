@@ -109,6 +109,9 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     onSelectUp: () => dispatchProps._onSelectNext(stateProps.rows, stateProps._selectedConversationIDKey, -1),
     onUntrustedInboxVisible: dispatchProps.onUntrustedInboxVisible,
     rows: stateProps.rows,
+    selectedConversationIDKey: isMobile
+      ? Constants.noConversationIDKey
+      : stateProps._selectedConversationIDKey, // unused on mobile so don't cause updates
     selectedIndex: isMobile ? 0 : selectedIndex, // unused on mobile so don't cause updates
     smallTeamsExpanded: stateProps.smallTeamsExpanded,
     toggleSmallTeamsExpanded: dispatchProps.toggleSmallTeamsExpanded,

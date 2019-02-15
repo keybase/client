@@ -40,6 +40,9 @@ class Inbox extends React.PureComponent<Props, State> {
     if (!!prevProps.filter !== !!this.props.filter) {
       listRowsResized = true
     }
+    if (prevProps.filter !== this.props.filter && this._list) {
+      this._list.scrollTo(0)
+    }
 
     // list changed
     if (this.props.rows.length !== prevProps.rows.length) {
@@ -52,7 +55,7 @@ class Inbox extends React.PureComponent<Props, State> {
 
     if (
       this.props.filter &&
-      this.props.selectedIndex !== prevProps.selectedIndex &&
+      this.props.selectedConversationIDKey !== prevProps.selectedConversationIDKey &&
       this.props.selectedIndex >= 0 &&
       this._list
     ) {
