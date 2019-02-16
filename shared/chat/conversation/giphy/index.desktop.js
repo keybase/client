@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Kb from '../../../common-adapters'
 import * as Styles from '../../../styles'
 import UnfurlImage from '../messages/wrapper/unfurl/image'
-import {getMargin, scaledWidth} from './width'
+import {getMargin, getMargins, scaledWidth} from './width'
 import type {Props} from './index.types'
 
 const gridHeight = 100
@@ -24,6 +24,10 @@ class GiphySearch extends React.Component<Props, State> {
   }
 
   render() {
+    let margins = []
+    if (this.state.width) {
+      margins = getMargins(this.props.previews || [], this.state.width)
+    }
     return (
       <Kb.Box style={styles.outerContainer}>
         <div ref={el => (this.container = el)} style={styles.scrollContainer}>
@@ -34,8 +38,11 @@ class GiphySearch extends React.Component<Props, State> {
           </Kb.Box2>
           {this.state.width && (
             <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.container}>
-              {(this.props.previews || []).map(p => {
-                const margin = getMargin(p.previewWidth, gridWidthMax)
+              {(this.props.previews || []).map((index, p) => {
+                if (index >= this.props.previews.length) {
+                  return null
+                }
+                const margin = margins[index]
                 return (
                   <Kb.Box2 key={p.targetUrl} direction="horizontal" style={styles.imageContainer}>
                     <Kb.Box style={Styles.collapseStyles([{marginLeft: margin, marginRight: margin}])}>
@@ -87,8 +94,6 @@ const styles = Styles.styleSheetCreate({
     justifyContent: 'center',
   },
   outerContainer: {
-    marginLeft: 15,
-    marginRight: 15,
     position: 'relative',
   },
   poweredBy: {
