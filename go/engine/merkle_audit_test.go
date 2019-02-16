@@ -273,7 +273,7 @@ func TestMerkleAuditFail(t *testing.T) {
 	notifyListener := &merkleAuditErrorListener{
 		merkleAuditError: make(chan string),
 	}
-	tc.G.NotifyRouter.SetListener(notifyListener)
+	tc.G.NotifyRouter.AddListener(notifyListener)
 
 	fakeClock := clockwork.NewFakeClockAt(time.Now())
 	tc.G.SetClock(fakeClock)
