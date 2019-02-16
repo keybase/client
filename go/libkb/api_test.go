@@ -41,8 +41,6 @@ func TestProductionCA(t *testing.T) {
 	t.Log("WARNING: setting run mode to production, be careful:")
 	tc.G.Env.Test.UseProductionRunMode = true
 
-	tc.G.Env.DoesntExist()
-
 	if tc.G.Env.GetServerURI() != uriExpected {
 		t.Fatalf("production server uri: %s, expected %s", tc.G.Env.GetServerURI(), uriExpected)
 	}
