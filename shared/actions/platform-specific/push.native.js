@@ -11,6 +11,7 @@ import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as ChatTypes from '../../constants/types/chat2'
 import * as Saga from '../../util/saga'
 import * as WaitingGen from '../waiting-gen'
+import * as RouteTreeGen from '../route-tree-gen'
 import logger from '../../logger'
 import {NativeModules, NativeEventEmitter} from 'react-native'
 import {isIOS} from '../../constants/platform'
@@ -74,7 +75,7 @@ const listenForNativeAndroidIntentNotifications = emitter => {
   // TODO: move this out of this file.
   RNEmitter.addListener('onShareText', (evt) => {
     logger.info('[ShareAndroidIntent]', evt)
-  })
+    emitter(RouteTreeGen.createNavigateTo({path: '/keybase'}))
 }
 
 const listenForPushNotificationsFromJS = emitter => {
