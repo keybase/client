@@ -1,13 +1,11 @@
 // @flow
 import logger from '../../logger'
 import * as Saga from '../../util/saga'
-import * as Flow from '../../util/flow'
 import * as FsGen from '../fs-gen'
 import RNFetchBlob from 'rn-fetch-blob'
 import {copy, unlink} from '../../util/file'
 import {PermissionsAndroid} from 'react-native'
-import {pickAndUploadToPromise} from './common.native'
-import {saveAttachmentDialog, showShareActionSheetFromURL} from '../platform-specific'
+import nativeSaga from './common.native'
 
 function copyToDownloadDir(path: string, mimeType: string) {
   const fileName = path.substring(path.lastIndexOf('/') + 1)
@@ -39,7 +37,7 @@ function copyToDownloadDir(path: string, mimeType: string) {
     })
 }
 
-function* downloadSuccessToAction(state, action) {
+const downloadSuccessAndroid = (state, action) => {
   const {key, mimeType} = action.payload
   const download = state.fs.downloads.get(key)
   if (!download) {
@@ -47,27 +45,13 @@ function* downloadSuccessToAction(state, action) {
     return
   }
   const {intent, localPath} = download.meta
-  switch (intent) {
-    case 'camera-roll':
-      yield Saga.callUntyped(saveAttachmentDialog, localPath)
-      yield Saga.put(FsGen.createDismissDownload({key}))
-      break
-    case 'share':
-      yield Saga.callUntyped(showShareActionSheetFromURL, {mimeType, url: localPath})
-      yield Saga.put(FsGen.createDismissDownload({key}))
-      break
-    case 'none':
-      yield Saga.callUntyped(copyToDownloadDir, localPath, mimeType)
-      // TODO: dismiss download when we get rid of download cards on mobile
-      break
-    default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(intent)
+  if (intent !== 'none') {
+    return
   }
+  return copyToDownloadDir(localPath, mimeType)
 }
 
-function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
-  yield* Saga.chainAction<FsGen.PickAndUploadPayload>(FsGen.pickAndUpload, pickAndUploadToPromise)
-  yield* Saga.chainGenerator<FsGen.DownloadSuccessPayload>(FsGen.downloadSuccess, downloadSuccessToAction)
+export default function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
+  yield Saga.spawn(nativeSaga)
+  yield* Saga.chainAction<FsGen.DownloadSuccessPayload>(FsGen.downloadSuccess, downloadSuccessAndroid)
 }
-
-export default platformSpecificSaga
