@@ -520,7 +520,7 @@ def testGo(prefix, packagesToTest) {
       }
 
       println "Running go vet for ${pkg}"
-      sh "go vet ${pkg}"
+      sh "go vet ${pkg} || (ERR=\$? && echo \"go vet failed with error code \$ERR\" && exit \$ERR)"
 
       if (isUnix()) {
         // Windows `gofmt` pukes on CRLF, so only run on *nix.
