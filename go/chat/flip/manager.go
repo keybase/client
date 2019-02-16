@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math/big"
 	"strings"
 	"sync"
 	"time"
@@ -79,12 +80,10 @@ func (n *sentMessageListener) NewChatActivity(uid keybase1.UID, activity chat1.C
 }
 
 type hostMessageInfo struct {
-	ConvID chat1.ConversationID
-	MsgID  chat1.MessageID
-}
-
-type gameIDHistoryInfo struct {
-	GameID GameID
+	ConvID       chat1.ConversationID
+	MsgID        chat1.MessageID
+	LowerBound   string
+	ShuffleItems []string
 }
 
 type Manager struct {
@@ -93,6 +92,7 @@ type Manager struct {
 
 	dealer     *Dealer
 	clock      clockwork.Clock
+	shutdownMu sync.Mutex
 	shutdownCh chan struct{}
 	forceCh    chan struct{}
 
@@ -118,18 +118,26 @@ func NewManager(g *globals.Context) *Manager {
 
 func (m *Manager) Start(ctx context.Context, uid gregor1.UID) {
 	defer m.Trace(ctx, func() error { return nil }, "Start")()
-	m.shutdownCh = make(chan struct{})
+	m.shutdownMu.Lock()
+	shutdownCh := make(chan struct{})
+	m.shutdownCh = shutdownCh
+	m.shutdownMu.Unlock()
 	go func() {
 		m.dealer.Run(context.Background())
 	}()
-	go m.updateLoop()
-	go m.notificationLoop()
+	go m.updateLoop(shutdownCh)
+	go m.notificationLoop(shutdownCh)
 }
 
 func (m *Manager) Stop(ctx context.Context) (ch chan struct{}) {
 	defer m.Trace(ctx, func() error { return nil }, "Stop")()
 	m.dealer.Stop()
-	close(m.shutdownCh)
+	m.shutdownMu.Lock()
+	if m.shutdownCh != nil {
+		close(m.shutdownCh)
+		m.shutdownCh = nil
+	}
+	m.shutdownMu.Unlock()
 	ch = make(chan struct{})
 	close(ch)
 	return ch
@@ -160,7 +168,7 @@ func (m *Manager) notifyDirtyGames(ctx context.Context) {
 	}
 }
 
-func (m *Manager) notificationLoop() {
+func (m *Manager) notificationLoop(shutdownCh chan struct{}) {
 	duration := 200 * time.Millisecond
 	next := m.clock.Now().Add(duration)
 	ctx := context.Background()
@@ -172,7 +180,7 @@ func (m *Manager) notificationLoop() {
 		case <-m.forceCh:
 			m.notifyDirtyGames(ctx)
 			next = m.clock.Now().Add(duration)
-		case <-m.shutdownCh:
+		case <-shutdownCh:
 			return
 		}
 	}
@@ -202,7 +210,7 @@ func (m *Manager) addReveal(ctx context.Context, status *chat1.UICoinFlipStatus,
 		if p.Reveal != nil {
 			numReveals++
 		}
-		if p.Uid == update.User.U.String() {
+		if p.Uid == update.User.U.String() && p.DeviceID == update.User.D.String() {
 			reveal := update.Reveal.String()
 			status.Participants[index].Reveal = &reveal
 			numReveals++
@@ -211,9 +219,19 @@ func (m *Manager) addReveal(ctx context.Context, status *chat1.UICoinFlipStatus,
 	status.DisplayText = fmt.Sprintf("%d participants have revealed secrets", numReveals)
 }
 
-func (m *Manager) addResult(ctx context.Context, status *chat1.UICoinFlipStatus, result Result) {
-	if result.Big != nil {
-		status.DisplayText = result.Big.String()
+func (m *Manager) addResult(ctx context.Context, status *chat1.UICoinFlipStatus, result Result,
+	convID chat1.ConversationID) {
+	hmi, err := m.getHostMessageInfo(ctx, convID)
+	if err != nil {
+		m.Debug(ctx, "addResult: failed to describe result: %s", err)
+		status.Phase = chat1.UICoinFlipPhase_ERROR
+		status.DisplayText = "Failed to describe result"
+	} else if result.Big != nil {
+		lb := new(big.Int)
+		res := new(big.Int)
+		lb.SetString(hmi.LowerBound, 10)
+		res.Add(lb, result.Big)
+		status.DisplayText = res.String()
 	} else if result.Bool != nil {
 		if *result.Bool {
 			status.DisplayText = "HEADS"
@@ -222,8 +240,17 @@ func (m *Manager) addResult(ctx context.Context, status *chat1.UICoinFlipStatus,
 		}
 	} else if result.Int != nil {
 		status.DisplayText = fmt.Sprintf("%d", *result.Int)
-	} else if result.Shuffle != nil {
-		status.DisplayText = "Shuffle result obtained"
+	} else if len(result.Shuffle) > 0 {
+		if len(hmi.ShuffleItems) != len(result.Shuffle) {
+			status.Phase = chat1.UICoinFlipPhase_ERROR
+			status.DisplayText = "Failed to describe shuffle result"
+			return
+		}
+		items := make([]string, len(hmi.ShuffleItems))
+		for index, r := range result.Shuffle {
+			items[index] = hmi.ShuffleItems[r]
+		}
+		status.DisplayText = strings.Join(items, ",")
 	}
 }
 
@@ -269,18 +296,18 @@ func (m *Manager) handleUpdate(ctx context.Context, update GameStateUpdateMessag
 		m.addReveal(ctx, &status, *update.Reveal)
 	} else if update.Result != nil {
 		status.Phase = chat1.UICoinFlipPhase_COMPLETE
-		m.addResult(ctx, &status, *update.Result)
+		m.addResult(ctx, &status, *update.Result, update.Metadata.ConversationID)
 	}
 	m.games.Add(gameID.String(), status)
 	return nil
 }
 
-func (m *Manager) updateLoop() {
+func (m *Manager) updateLoop(shutdownCh chan struct{}) {
 	for {
 		select {
 		case msg := <-m.dealer.UpdateCh():
 			m.handleUpdate(context.Background(), msg, false)
-		case <-m.shutdownCh:
+		case <-shutdownCh:
 			return
 		}
 	}
@@ -304,13 +331,81 @@ func (m *Manager) gameTopicNameFromGameID(gameID GameID) string {
 	return fmt.Sprintf("%s%s", gameIDTopicNamePrefix, gameID)
 }
 
-func (m *Manager) startFromText(text string) Start {
-	// TODO fix me
-	return NewStartWithBool(m.clock.Now())
+var errFailedToParse = errors.New("failed to parse")
+
+func (m *Manager) parseMultiDie(arg string) (start Start, err error) {
+	if strings.Contains(arg, "-") {
+		return start, errFailedToParse
+	}
+	lb := new(big.Int)
+	if _, err := fmt.Sscan(arg, lb); err != nil {
+		return start, errFailedToParse
+	}
+	return NewStartWithBigInt(m.clock.Now(), lb), nil
 }
 
-func (m *Manager) getHostMessageInfo(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID) (res hostMessageInfo, err error) {
+func (m *Manager) parseShuffle(arg string) (start Start, shuffleItems []string, err error) {
+	if strings.Contains(arg, ",") {
+		shuffleItems = strings.Split(arg, ",")
+		return NewStartWithShuffle(m.clock.Now(), int64(len(shuffleItems))), shuffleItems, nil
+	}
+	return start, shuffleItems, errFailedToParse
+}
+
+func (m *Manager) parseRange(arg string) (start Start, lowerBound string, err error) {
+	if !strings.Contains(arg, "-") {
+		return start, lowerBound, errFailedToParse
+	}
+	toks := strings.Split(arg, "-")
+	if len(toks) != 2 {
+		return start, lowerBound, errFailedToParse
+	}
+	lb := new(big.Int)
+	ub := new(big.Int)
+	if _, err := fmt.Sscan(toks[0], lb); err != nil {
+		return start, lowerBound, errFailedToParse
+	}
+	if _, err := fmt.Sscan(toks[1], ub); err != nil {
+		return start, lowerBound, errFailedToParse
+	}
+	diff := new(big.Int)
+	diff.Sub(ub, lb)
+	if diff.Sign() < 0 {
+		return start, lowerBound, errFailedToParse
+	}
+	return NewStartWithBigInt(m.clock.Now(), diff), lb.String(), nil
+}
+
+func (m *Manager) startFromText(text string) (start Start, lowerBound string, shuffleItems []string) {
+	var err error
+	toks := strings.Split(strings.TrimRight(text, " "), " ")
+	if len(toks) == 1 {
+		return NewStartWithBool(m.clock.Now()), "", nil
+	}
+	// Combine into one argument if there is more than one
+	arg := strings.Replace(strings.Join(toks[1:], ""), " ", "", -1)
+	// Check for /flip 20
+	if start, err = m.parseMultiDie(arg); err == nil {
+		return start, "0", nil
+	}
+	// Check for /flip mikem,karenm,lisam
+	if start, shuffleItems, err = m.parseShuffle(arg); err == nil {
+		return start, "", shuffleItems
+	}
+	// Check for /flip 2-8
+	if start, lowerBound, err = m.parseRange(arg); err == nil {
+		return start, lowerBound, nil
+	}
+	// Just shuffle the one unknown thing
+	return NewStartWithShuffle(m.clock.Now(), 1), "", []string{arg}
+}
+
+func (m *Manager) getHostMessageInfo(ctx context.Context, convID chat1.ConversationID) (res hostMessageInfo, err error) {
 	m.Debug(ctx, "getHostMessageInfo: getting host message info for: %s", convID)
+	uid, err := utils.AssertLoggedInUID(ctx, m.G())
+	if err != nil {
+		return res, err
+	}
 	reason := chat1.GetThreadReason_COINFLIP
 	msg, err := m.G().ChatHelper.GetMessage(ctx, uid, convID, 2, false, &reason)
 	if err != nil {
@@ -379,10 +474,14 @@ func (m *Manager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID cha
 		return err
 	}
 
-	// Record outboxID of the host message into the game thread as the first message
+	// Record metadata of the host message into the game thread as the first message
+	start, lowerBound, shuffleItems := m.startFromText(text)
+	m.Debug(ctx, "start: %v", start)
 	infoBody, err := json.Marshal(hostMessageInfo{
-		ConvID: hostConvID,
-		MsgID:  sendRes.MsgID,
+		ConvID:       hostConvID,
+		MsgID:        sendRes.MsgID,
+		LowerBound:   lowerBound,
+		ShuffleItems: shuffleItems,
 	})
 	if err != nil {
 		return err
@@ -392,13 +491,7 @@ func (m *Manager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID cha
 	}
 
 	// Start the game
-	m.handleUpdate(ctx, GameStateUpdateMessage{
-		Metadata: GameMetadata{
-			GameID: gameID,
-		},
-		StartSuccess: new(bool),
-	}, true)
-	return m.dealer.StartFlipWithGameID(ctx, m.startFromText(text), conv.GetConvID(), gameID)
+	return m.dealer.StartFlipWithGameID(ctx, start, conv.GetConvID(), gameID)
 }
 
 // MaybeInjectFlipMessage implements the types.CoinFlipManager interface

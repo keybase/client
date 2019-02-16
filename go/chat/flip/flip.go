@@ -54,6 +54,7 @@ type Dealer struct {
 	sync.Mutex
 	dh            DealersHelper
 	games         map[GameKey](chan<- *GameMessageWrapped)
+	shutdownMu    sync.Mutex
 	shutdownCh    chan struct{}
 	chatInputCh   chan *GameMessageWrapped
 	gameUpdateCh  chan GameStateUpdateMessage
@@ -74,7 +75,6 @@ func NewDealer(dh DealersHelper) *Dealer {
 	return &Dealer{
 		dh:            dh,
 		games:         make(map[GameKey](chan<- *GameMessageWrapped)),
-		shutdownCh:    make(chan struct{}),
 		chatInputCh:   make(chan *GameMessageWrapped),
 		gameUpdateCh:  make(chan GameStateUpdateMessage, 500),
 		previousGames: make(map[GameIDKey]bool),
@@ -89,6 +89,10 @@ func (d *Dealer) UpdateCh() <-chan GameStateUpdateMessage {
 
 // Run a dealer in a given context. It wil run as long as it isn't shutdown.
 func (d *Dealer) Run(ctx context.Context) error {
+	d.shutdownMu.Lock()
+	shutdownCh := make(chan struct{})
+	d.shutdownCh = shutdownCh
+	d.shutdownMu.Unlock()
 	for {
 		select {
 
@@ -112,7 +116,12 @@ func (d *Dealer) Run(ctx context.Context) error {
 
 // Stop a dealer on process shutdown.
 func (d *Dealer) Stop() {
-	close(d.shutdownCh)
+	d.shutdownMu.Lock()
+	if d.shutdownCh != nil {
+		close(d.shutdownCh)
+		d.shutdownCh = nil
+	}
+	d.shutdownMu.Unlock()
 	d.stopGames()
 }
 

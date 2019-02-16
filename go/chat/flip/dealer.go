@@ -189,7 +189,8 @@ func (d *Dealer) run(ctx context.Context, game *Game) {
 }
 
 func (g *Game) getNextTimer() <-chan time.Time {
-	return g.clock().AfterTime(g.nextDeadline())
+	dl := g.nextDeadline()
+	return g.clock().AfterTime(dl)
 }
 
 func (g *Game) CommitmentEndTime() time.Time {
@@ -632,6 +633,11 @@ func (d *Dealer) handleMessage(ctx context.Context, msg *GameMessageWrapped) err
 			d.gameUpdateCh <- GameStateUpdateMessage{
 				Metadata: msg.Msg.Md,
 				Err:      err,
+			}
+		} else {
+			d.gameUpdateCh <- GameStateUpdateMessage{
+				Metadata:     msg.Msg.Md,
+				StartSuccess: new(bool),
 			}
 		}
 	default:
