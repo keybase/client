@@ -302,7 +302,8 @@ protocol chatUi {
   record UICoinFlipStatus {
     string gameID;
     UICoinFlipPhase phase;
-    string displayText;
+    string progressText;
+    string resultText;
     array<UICoinFlipParticipant> participants;
   }
   void chatCoinFlipStatus(int sessionID, array<UICoinFlipStatus> statuses);

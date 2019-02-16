@@ -1065,7 +1065,11 @@
         },
         {
           "type": "string",
-          "name": "displayText"
+          "name": "progressText"
+        },
+        {
+          "type": "string",
+          "name": "resultText"
         },
         {
           "type": {

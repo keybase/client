@@ -201,7 +201,11 @@ func (m *Manager) addParticipant(ctx context.Context, status *chat1.UICoinFlipSt
 		DeviceName: deviceName,
 		Commitment: update.Commitment.String(),
 	})
-	status.DisplayText = fmt.Sprintf("Gathered %d commitment(s)", len(status.Participants))
+	endingS := ""
+	if len(status.Participants) > 1 {
+		endingS = "s"
+	}
+	status.ProgressText = fmt.Sprintf("Gathered %d commitment%s", len(status.Participants), endingS)
 }
 
 func (m *Manager) addReveal(ctx context.Context, status *chat1.UICoinFlipStatus, update RevealUpdate) {
@@ -216,41 +220,46 @@ func (m *Manager) addReveal(ctx context.Context, status *chat1.UICoinFlipStatus,
 			numReveals++
 		}
 	}
-	status.DisplayText = fmt.Sprintf("%d participants have revealed secrets", numReveals)
+	status.ProgressText = fmt.Sprintf("%d participants have revealed secrets", numReveals)
 }
 
 func (m *Manager) addResult(ctx context.Context, status *chat1.UICoinFlipStatus, result Result,
 	convID chat1.ConversationID) {
+	defer func() {
+		if len(status.ResultText) > 0 {
+			status.ProgressText += " (complete)"
+		}
+	}()
 	hmi, err := m.getHostMessageInfo(ctx, convID)
 	if err != nil {
 		m.Debug(ctx, "addResult: failed to describe result: %s", err)
 		status.Phase = chat1.UICoinFlipPhase_ERROR
-		status.DisplayText = "Failed to describe result"
+		status.ProgressText = "Failed to describe result"
 	} else if result.Big != nil {
 		lb := new(big.Int)
 		res := new(big.Int)
 		lb.SetString(hmi.LowerBound, 10)
 		res.Add(lb, result.Big)
-		status.DisplayText = res.String()
+		status.ResultText = res.String()
 	} else if result.Bool != nil {
 		if *result.Bool {
-			status.DisplayText = "HEADS"
+			status.ResultText = "HEADS"
 		} else {
-			status.DisplayText = "TAILS"
+			status.ResultText = "TAILS"
 		}
 	} else if result.Int != nil {
-		status.DisplayText = fmt.Sprintf("%d", *result.Int)
+		status.ResultText = fmt.Sprintf("%d", *result.Int)
 	} else if len(result.Shuffle) > 0 {
 		if len(hmi.ShuffleItems) != len(result.Shuffle) {
 			status.Phase = chat1.UICoinFlipPhase_ERROR
-			status.DisplayText = "Failed to describe shuffle result"
+			status.ProgressText = "Failed to describe shuffle result"
 			return
 		}
 		items := make([]string, len(hmi.ShuffleItems))
 		for index, r := range result.Shuffle {
 			items[index] = hmi.ShuffleItems[r]
 		}
-		status.DisplayText = strings.Join(items, ",")
+		status.ResultText = strings.Join(items, ",")
 	}
 }
 
@@ -266,11 +275,19 @@ func (m *Manager) handleUpdate(ctx context.Context, update GameStateUpdateMessag
 			}
 		}
 	}()
+
 	if update.StartPending != nil {
 		m.games.Add(gameID.String(), chat1.UICoinFlipStatus{
-			GameID:      gameID.String(),
-			Phase:       chat1.UICoinFlipPhase_PENDING,
-			DisplayText: "Initializing flip...",
+			GameID:       gameID.String(),
+			Phase:        chat1.UICoinFlipPhase_PENDING,
+			ProgressText: "Initializing flip...",
+		})
+		return nil
+	} else if update.StartSuccess != nil {
+		m.games.Add(gameID.String(), chat1.UICoinFlipStatus{
+			GameID:       gameID.String(),
+			Phase:        chat1.UICoinFlipPhase_COMMITMENT,
+			ProgressText: "Gathering commitments...",
 		})
 		return nil
 	}
@@ -280,18 +297,15 @@ func (m *Manager) handleUpdate(ctx context.Context, update GameStateUpdateMessag
 		return errors.New("unknown game")
 	}
 	status := rawGame.(chat1.UICoinFlipStatus)
-	if update.StartSuccess != nil {
-		status.DisplayText = "Gathering commitments..."
-		status.Phase = chat1.UICoinFlipPhase_COMMITMENT
-	} else if update.Err != nil {
+	if update.Err != nil {
 		status.Phase = chat1.UICoinFlipPhase_ERROR
-		status.DisplayText = "Something went wrong"
+		status.ProgressText = fmt.Sprintf("Something went wrong: %s", update.Err)
 	} else if update.Commitment != nil {
 		status.Phase = chat1.UICoinFlipPhase_COMMITMENT
 		m.addParticipant(ctx, &status, *update.Commitment)
 	} else if update.CommitmentComplete != nil {
 		status.Phase = chat1.UICoinFlipPhase_REVEALS
-		status.DisplayText = "Commitments complete, revealing secrets"
+		status.ProgressText = "Commitments complete, revealing secrets..."
 	} else if update.Reveal != nil {
 		m.addReveal(ctx, &status, *update.Reveal)
 	} else if update.Result != nil {

@@ -6,21 +6,31 @@ import * as Sb from '../../../../stories/storybook'
 import CoinFlip from '.'
 
 const gathering = {
-  displayText: 'Gathering commitments...',
-  isResult: false,
+  isError: false,
+  progressText: 'Gathering commitments...',
+  resultText: '',
   showParticipants: false,
 }
 
 const partialGather = {
-  displayText: 'Gathered 2 commitments...',
-  isResult: false,
+  isError: false,
+  progressText: 'Gathered 2 commitments...',
+  resultText: '',
   showParticipants: true,
 }
 
 const result = {
-  displayText: 'HEADS',
-  isResult: true,
+  isError: false,
+  progressText: '2 participants have revealed secrets...',
+  resultText: 'HEADS',
   showParticipants: true,
+}
+
+const error = {
+  isError: true,
+  progressText: 'Something went wrong: Somebody pulled the plug',
+  resultText: '',
+  showParticipants: false,
 }
 
 const load = () => {
@@ -29,6 +39,7 @@ const load = () => {
     .add('Gathering', () => <CoinFlip {...gathering} />)
     .add('Partial Gather', () => <CoinFlip {...partialGather} />)
     .add('Result', () => <CoinFlip {...result} />)
+    .add('Error', () => <CoinFlip {...error} />)
 }
 
 export default load
