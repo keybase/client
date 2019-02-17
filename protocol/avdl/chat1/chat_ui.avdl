@@ -184,7 +184,8 @@ protocol chatUi {
     union { null, UIRequestInfo } requestInfo;
     array<UIMessageUnfurlInfo> unfurls;
     boolean isCollapsed;
-    union { null, string } gameID;
+    union { null, string } flipGameID;
+    union { null, UICoinFlipStatus } flipGameStatus;
   }
 
   record UIMessageOutbox {
@@ -196,7 +197,7 @@ protocol chatUi {
     gregor1.Time ctime;
     double ordinal;
     boolean isEphemeral;
-    union { null, string} gameID;
+    union { null, string} flipGameID;
 
     // For attachments
     string filename;

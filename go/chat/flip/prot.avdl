@@ -9,9 +9,6 @@ protocol flip {
   @typedef("long")
   record Time {}
 
-  @typedef("bytes")
-  record GameID {}
-
   record Start {
     Time startTime;
     // How long the commitment window lasts
@@ -31,7 +28,7 @@ protocol flip {
   record GameMetadata {
     UserDevice initiator;
     chat1.ConversationID conversationID;
-    GameID gameID;
+    chat1.FlipGameID gameID;
   }
 
   record CommitmentComplete {

@@ -34,7 +34,7 @@ func (g GameMetadata) String() string {
 }
 
 func (g GameMetadata) check() bool {
-	return g.Initiator.check() && !g.ConversationID.IsNil() && g.GameID.check()
+	return g.Initiator.check() && !g.ConversationID.IsNil() && g.GameID.Check()
 }
 
 func (m GameMessageWrapped) GameMetadata() GameMetadata {
@@ -53,7 +53,7 @@ func (u UserDevice) check() bool {
 	return u.U.Bytes() != nil && u.D.Bytes() != nil
 }
 
-func (g GameID) ToKey() GameIDKey {
+func GameIDToKey(g chat1.FlipGameID) GameIDKey {
 	return GameIDKey(g.String())
 }
 
@@ -594,7 +594,7 @@ func (d *Dealer) handleMessageStart(ctx context.Context, msg *GameMessageWrapped
 		clogf:           d.dh.CLogf,
 	}
 	d.games[key] = msgCh
-	d.previousGames[md.GameID.ToKey()] = true
+	d.previousGames[GameIDToKey(md.GameID)] = true
 
 	go d.run(ctx, game)
 
@@ -712,7 +712,7 @@ func (d *Dealer) startFlip(ctx context.Context, start Start, conversationID chat
 }
 
 func (d *Dealer) startFlipWithGameID(ctx context.Context, start Start, conversationID chat1.ConversationID,
-	gameID GameID) (pc *playerControl, err error) {
+	gameID chat1.FlipGameID) (pc *playerControl, err error) {
 	md := GameMetadata{
 		Initiator:      d.dh.Me(),
 		ConversationID: conversationID,

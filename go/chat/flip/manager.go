@@ -99,7 +99,7 @@ type Manager struct {
 
 	gamesMu    sync.Mutex
 	games      *lru.Cache
-	dirtyGames map[string]GameID
+	dirtyGames map[string]chat1.FlipGameID
 }
 
 func NewManager(g *globals.Context) *Manager {
@@ -109,7 +109,7 @@ func NewManager(g *globals.Context) *Manager {
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Flip.Manager", false),
 		clock:        clockwork.NewRealClock(),
 		games:        games,
-		dirtyGames:   make(map[string]GameID),
+		dirtyGames:   make(map[string]chat1.FlipGameID),
 		forceCh:      make(chan struct{}, 10),
 	}
 	dealer := NewDealer(m)
@@ -151,7 +151,7 @@ func (m *Manager) notifyDirtyGames(ctx context.Context) {
 		return
 	}
 	defer func() {
-		m.dirtyGames = make(map[string]GameID)
+		m.dirtyGames = make(map[string]chat1.FlipGameID)
 	}()
 	ui, err := m.G().UIRouter.GetChatUI()
 	if err != nil {
@@ -333,10 +333,10 @@ func (m *Manager) updateLoop(shutdownCh chan struct{}) {
 
 const gameIDTopicNamePrefix = "__keybase_coinflip_game_"
 
-func (m *Manager) isGameIDTopicName(topicName string) (res GameID, ok bool) {
+func (m *Manager) isGameIDTopicName(topicName string) (res chat1.FlipGameID, ok bool) {
 	if strings.HasPrefix(topicName, gameIDTopicNamePrefix) {
 		strGameID := strings.Split(topicName, gameIDTopicNamePrefix)[1]
-		gameID, err := MakeGameID(strGameID)
+		gameID, err := chat1.MakeFlipGameID(strGameID)
 		if err != nil {
 			return res, false
 		}
@@ -345,7 +345,7 @@ func (m *Manager) isGameIDTopicName(topicName string) (res GameID, ok bool) {
 	return res, false
 }
 
-func (m *Manager) gameTopicNameFromGameID(gameID GameID) string {
+func (m *Manager) gameTopicNameFromGameID(gameID chat1.FlipGameID) string {
 	return fmt.Sprintf("%s%s", gameIDTopicNamePrefix, gameID)
 }
 
@@ -447,7 +447,6 @@ func (m *Manager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID cha
 	tlfName, text string) (err error) {
 	defer m.Trace(ctx, func() error { return err }, "StartFlip: convID: %s", hostConvID)()
 	gameID := GenerateGameID()
-	strGameID := gameID.String()
 	m.Debug(ctx, "StartFlip: using gameID: %s", gameID)
 
 	// Get host conv using local storage, just bail out if we don't have it
@@ -473,8 +472,8 @@ func (m *Manager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID cha
 	nid := m.G().NotifyRouter.AddListener(listener)
 	if _, err = m.G().ChatHelper.SendMsgByIDNonblock(ctx, hostConvID, tlfName,
 		chat1.NewMessageBodyWithText(chat1.MessageText{
-			Body:   text,
-			GameID: &strGameID,
+			Body:       text,
+			FlipGameID: &gameID,
 		}), chat1.MessageType_TEXT, &outboxID); err != nil {
 		return err
 	}
@@ -562,7 +561,7 @@ func (m *Manager) ServerTime(ctx context.Context) (res time.Time, err error) {
 }
 
 // SendChat implements the flip.DealersHelper interface
-func (m *Manager) SendChat(ctx context.Context, convID chat1.ConversationID, gameID GameID,
+func (m *Manager) SendChat(ctx context.Context, convID chat1.ConversationID, gameID chat1.FlipGameID,
 	msg GameMessageEncoded) (err error) {
 	defer m.Trace(ctx, func() error { return err }, "SendChat: convID: %s", convID)()
 	uid, err := utils.AssertLoggedInUID(ctx, m.G())

@@ -50,7 +50,7 @@ type CommitmentPayload struct {
 	U       gregor1.UID          `codec:"u" json:"u"`
 	D       gregor1.DeviceID     `codec:"d" json:"d"`
 	C       chat1.ConversationID `codec:"c" json:"c"`
-	G       GameID               `codec:"i" json:"i"`
+	G       chat1.FlipGameID     `codec:"i" json:"i"`
 	S       Time                 `codec:"s" json:"s"`
 }
 

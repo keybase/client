@@ -7,11 +7,10 @@ import (
 	"encoding/hex"
 	"fmt"
 	"time"
+
+	chat1 "github.com/keybase/client/go/protocol/chat1"
 )
 
-func MakeGameID(s string) (GameID, error) { return hex.DecodeString(s) }
-func (g GameID) String() string           { return hex.EncodeToString(g) }
-func (g GameID) Eq(h GameID) bool         { return hmac.Equal(g[:], h[:]) }
 func (u UserDevice) Eq(v UserDevice) bool { return u.U.Eq(v.U) && u.D.Eq(v.D) }
 func (h Hash) Eq(i Hash) bool             { return hmac.Equal(h[:], i[:]) }
 func (c Commitment) String() string       { return hex.EncodeToString(c[:]) }
@@ -35,7 +34,7 @@ func ToTime(t time.Time) Time {
 	return Time(t.UnixNano() / 1000000)
 }
 
-func GenerateGameID() GameID {
+func GenerateGameID() chat1.FlipGameID {
 	l := 12
 	ret := make([]byte, l)
 	n, err := rand.Read(ret[:])
@@ -45,7 +44,7 @@ func GenerateGameID() GameID {
 	if err != nil {
 		panic(fmt.Sprintf("error reading randomness: %s", err.Error()))
 	}
-	return GameID(ret)
+	return chat1.FlipGameID(ret)
 }
 
 func (s Start) CommitmentWindowWithSlack() time.Duration {
@@ -55,18 +54,6 @@ func (s Start) CommitmentWindowWithSlack() time.Duration {
 func (s Start) RevealWindowWithSlack() time.Duration {
 	return Time(s.CommitmentWindowMsec + s.RevealWindowMsec + 2*s.SlackMsec).Duration()
 }
-
-func isZero(v []byte) bool {
-	for _, b := range v {
-		if b != 0 {
-			return false
-		}
-	}
-	return true
-}
-
-func (g GameID) IsZero() bool { return isZero(g[:]) }
-func (g GameID) check() bool  { return g != nil && !g.IsZero() }
 
 func (u UserDevice) LessThan(v UserDevice) bool {
 	cu := bytes.Compare([]byte(u.U), []byte(v.U))

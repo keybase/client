@@ -85,6 +85,12 @@
     },
     {
       "type": "record",
+      "name": "FlipGameID",
+      "fields": [],
+      "typedef": "bytes"
+    },
+    {
+      "type": "record",
       "name": "InboxVersInfo",
       "fields": [
         {

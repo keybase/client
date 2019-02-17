@@ -179,7 +179,7 @@ func (b BadLeaderClockError) Error() string {
 }
 
 type GameReplayError struct {
-	G GameID
+	G chat1.FlipGameID
 }
 
 func (g GameReplayError) Error() string {
@@ -241,7 +241,7 @@ var ErrBadData = errors.New("rejecting bad data, likely due to a nil field")
 
 type BadGameIDError struct {
 	G GameMetadata
-	I GameID
+	I chat1.FlipGameID
 }
 
 func (b BadGameIDError) Error() string {

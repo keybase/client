@@ -3,7 +3,7 @@ import CoinFlip from '.'
 import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import {namedConnect} from '../../../../util/container'
 
-type OwnProps = {|gameID: string|}
+type OwnProps = {|flipGameID: string|}
 
 const participantStatuses = [
   RPCChatTypes.chatUiUICoinFlipPhase.commitment,
@@ -11,8 +11,8 @@ const participantStatuses = [
   RPCChatTypes.chatUiUICoinFlipPhase.complete,
 ]
 
-const mapStateToProps = (state, {gameID}: OwnProps) => {
-  const status = state.chat2.getIn(['flipStatusMap', gameID])
+const mapStateToProps = (state, {flipGameID}: OwnProps) => {
+  const status = state.chat2.getIn(['flipStatusMap', flipGameID])
   return !status
     ? {
         isError: false,

@@ -111,6 +111,17 @@ func (o TopicNameState) DeepCopy() TopicNameState {
 	})(o)
 }
 
+type FlipGameID []byte
+
+func (o FlipGameID) DeepCopy() FlipGameID {
+	return (func(x []byte) []byte {
+		if x == nil {
+			return nil
+		}
+		return append([]byte{}, x...)
+	})(o)
+}
+
 type InboxVersInfo struct {
 	Uid  gregor1.UID `codec:"uid" json:"uid"`
 	Vers InboxVers   `codec:"vers" json:"vers"`

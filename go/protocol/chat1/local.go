@@ -135,9 +135,9 @@ func (o TextPayment) DeepCopy() TextPayment {
 }
 
 type MessageText struct {
-	Body     string        `codec:"body" json:"body"`
-	Payments []TextPayment `codec:"payments" json:"payments"`
-	GameID   *string       `codec:"gameID,omitempty" json:"gameID,omitempty"`
+	Body       string        `codec:"body" json:"body"`
+	Payments   []TextPayment `codec:"payments" json:"payments"`
+	FlipGameID *FlipGameID   `codec:"flipGameID,omitempty" json:"flipGameID,omitempty"`
 }
 
 func (o MessageText) DeepCopy() MessageText {
@@ -154,13 +154,13 @@ func (o MessageText) DeepCopy() MessageText {
 			}
 			return ret
 		})(o.Payments),
-		GameID: (func(x *string) *string {
+		FlipGameID: (func(x *FlipGameID) *FlipGameID {
 			if x == nil {
 				return nil
 			}
-			tmp := (*x)
+			tmp := (*x).DeepCopy()
 			return &tmp
-		})(o.GameID),
+		})(o.FlipGameID),
 	}
 }
 

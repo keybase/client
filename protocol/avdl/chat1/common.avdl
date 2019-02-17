@@ -14,6 +14,7 @@
   @typedef("uint64") @lint("ignore") record ConversationVers {}
   @typedef("bytes")  record OutboxID {}
   @typedef("bytes")  record TopicNameState {}
+  @typedef("bytes")  record FlipGameID {}
 
   record InboxVersInfo {
     gregor1.UID uid;

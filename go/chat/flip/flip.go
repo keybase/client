@@ -18,7 +18,7 @@ type GameMessageEncoded string
 // GameMessageWrappedEncoded contains a sender, a gameID and a Body. The GameID should never be reused.
 type GameMessageWrappedEncoded struct {
 	Sender              UserDevice
-	GameID              GameID             // the game ID of this game, also specified (encoded) in GameMessageEncoded
+	GameID              chat1.FlipGameID   // the game ID of this game, also specified (encoded) in GameMessageEncoded
 	Body                GameMessageEncoded // base64-encoded GameMessaageBody that comes in over chat
 	FirstInConversation bool               // on if this is the first message in the conversation
 }
@@ -66,7 +66,7 @@ type DealersHelper interface {
 	CLogf(ctx context.Context, fmt string, args ...interface{})
 	Clock() clockwork.Clock
 	ServerTime(context.Context) (time.Time, error)
-	SendChat(ctx context.Context, ch chat1.ConversationID, gameID GameID, msg GameMessageEncoded) error
+	SendChat(ctx context.Context, ch chat1.ConversationID, gameID chat1.FlipGameID, msg GameMessageEncoded) error
 	Me() UserDevice
 }
 
@@ -135,7 +135,7 @@ func (d *Dealer) StartFlip(ctx context.Context, start Start, conversationID chat
 // StartFlipWithGameID starts a new flip. Pass it some start parameters as well as a chat conversationID
 // that it will take place in. Also takes a GameID
 func (d *Dealer) StartFlipWithGameID(ctx context.Context, start Start, conversationID chat1.ConversationID,
-	gameID GameID) (err error) {
+	gameID chat1.FlipGameID) (err error) {
 	_, err = d.startFlipWithGameID(ctx, start, conversationID, gameID)
 	return err
 }
@@ -147,7 +147,8 @@ func (d *Dealer) StartFlipWithGameID(ctx context.Context, start Start, conversat
 // This is significantly less general than an earlier model, which is why we introduced the concept of
 // a gameID, so it might be changed in the future.
 func (d *Dealer) InjectIncomingChat(ctx context.Context, sender UserDevice,
-	conversationID chat1.ConversationID, gameID GameID, body GameMessageEncoded, firstInConversation bool) error {
+	conversationID chat1.ConversationID, gameID chat1.FlipGameID, body GameMessageEncoded,
+	firstInConversation bool) error {
 	gmwe := GameMessageWrappedEncoded{
 		Sender:              sender,
 		GameID:              gameID,

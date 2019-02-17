@@ -43,8 +43,8 @@ func (t *testDealersHelper) Me() UserDevice {
 	return t.me
 }
 
-func (t *testDealersHelper) SendChat(ctx context.Context, conversationID chat1.ConversationID, gameID GameID,
-	msg GameMessageEncoded) error {
+func (t *testDealersHelper) SendChat(ctx context.Context, conversationID chat1.ConversationID,
+	gameID chat1.FlipGameID, msg GameMessageEncoded) error {
 	t.ch <- GameMessageWrappedEncoded{Body: msg, GameID: gameID, Sender: t.me}
 	return nil
 }

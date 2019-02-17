@@ -16,17 +16,6 @@ func (o Time) DeepCopy() Time {
 	return o
 }
 
-type GameID []byte
-
-func (o GameID) DeepCopy() GameID {
-	return (func(x []byte) []byte {
-		if x == nil {
-			return nil
-		}
-		return append([]byte{}, x...)
-	})(o)
-}
-
 type Start struct {
 	StartTime            Time           `codec:"startTime" json:"startTime"`
 	CommitmentWindowMsec int64          `codec:"commitmentWindowMsec" json:"commitmentWindowMsec"`
@@ -60,7 +49,7 @@ func (o UserDevice) DeepCopy() UserDevice {
 type GameMetadata struct {
 	Initiator      UserDevice           `codec:"initiator" json:"initiator"`
 	ConversationID chat1.ConversationID `codec:"conversationID" json:"conversationID"`
-	GameID         GameID               `codec:"gameID" json:"gameID"`
+	GameID         chat1.FlipGameID     `codec:"gameID" json:"gameID"`
 }
 
 func (o GameMetadata) DeepCopy() GameMetadata {

@@ -1338,7 +1338,11 @@ func presentGameID(ctx context.Context, msg chat1.MessageUnboxed) *string {
 	if !body.IsType(chat1.MessageType_TEXT) {
 		return nil
 	}
-	return body.Text().GameID
+	if body.Text().FlipGameID == nil {
+		return nil
+	}
+	ret := body.Text().FlipGameID.String()
+	return &ret
 }
 
 func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1.MessageUnboxed,
@@ -1399,7 +1403,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Etime:                 valid.Etime(),
 			Reactions:             valid.Reactions,
 			HasPairwiseMacs:       valid.HasPairwiseMacs(),
-			GameID:                presentGameID(ctx, rawMsg),
+			FlipGameID:            presentGameID(ctx, rawMsg),
 			PaymentInfos:          presentPaymentInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
 			RequestInfo:           presentRequestInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
 			Unfurls:               PresentUnfurls(ctx, g, uid, convID, valid.Unfurls),
@@ -1439,7 +1443,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Title:             title,
 			Filename:          filename,
 			IsEphemeral:       rawMsg.Outbox().Msg.IsEphemeral(),
-			GameID:            presentGameID(ctx, rawMsg),
+			FlipGameID:        presentGameID(ctx, rawMsg),
 		})
 	case chat1.MessageUnboxedState_ERROR:
 		res = chat1.NewUIMessageWithError(rawMsg.Error())

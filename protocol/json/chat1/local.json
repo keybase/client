@@ -108,9 +108,9 @@
         {
           "type": [
             null,
-            "string"
+            "FlipGameID"
           ],
-          "name": "gameID"
+          "name": "flipGameID"
         }
       ]
     },

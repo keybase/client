@@ -862,6 +862,7 @@ export type ExpungeInfo = $ReadOnly<{convID: ConversationID, expunge: Expunge, c
 export type ExpungePayload = $ReadOnly<{Action: String, convID: ConversationID, inboxVers: InboxVers, expunge: Expunge, maxMsgs?: ?Array<MessageSummary>, topicType: TopicType, unreadUpdate?: ?UnreadUpdate}>
 export type FailedMessageInfo = $ReadOnly<{outboxRecords?: ?Array<OutboxRecord>, isEphemeralPurge: Boolean}>
 export type FindConversationsLocalRes = $ReadOnly<{conversations?: ?Array<ConversationLocal>, offline: Boolean, rateLimits?: ?Array<RateLimit>, identifyFailures?: ?Array<Keybase1.TLFIdentifyFailure>}>
+export type FlipGameID = Bytes
 export type GenericPayload = $ReadOnly<{Action: String, inboxVers: InboxVers, convID: ConversationID, topicType: TopicType, unreadUpdate?: ?UnreadUpdate}>
 export type GetConversationForCLILocalQuery = $ReadOnly<{markAsRead: Boolean, MessageTypes?: ?Array<MessageType>, Since?: ?String, limit: UnreadFirstNumLimit, conv: ConversationLocal}>
 export type GetConversationForCLILocalRes = $ReadOnly<{conversation: ConversationLocal, messages?: ?Array<MessageUnboxed>, offline: Boolean, rateLimits?: ?Array<RateLimit>}>
@@ -999,7 +1000,7 @@ export type MessageSystemType =
   | 5 // CHANGEAVATAR_5
   | 6 // CHANGERETENTION_6
 
-export type MessageText = $ReadOnly<{body: String, payments?: ?Array<TextPayment>, gameID?: ?String}>
+export type MessageText = $ReadOnly<{body: String, payments?: ?Array<TextPayment>, flipGameID?: ?FlipGameID}>
 export type MessageType =
   | 0 // NONE_0
   | 1 // TEXT_1
@@ -1195,9 +1196,9 @@ export type UICoinFlipPhase =
 
 export type UICoinFlipStatus = $ReadOnly<{gameID: String, phase: UICoinFlipPhase, progressText: String, resultText: String, participants?: ?Array<UICoinFlipParticipant>}>
 export type UIMessage = {state: 1, valid: ?UIMessageValid} | {state: 2, error: ?MessageUnboxedError} | {state: 3, outbox: ?UIMessageOutbox} | {state: 4, placeholder: ?MessageUnboxedPlaceholder}
-export type UIMessageOutbox = $ReadOnly<{state: OutboxState, outboxID: String, messageType: MessageType, body: String, decoratedTextBody?: ?String, ctime: Gregor1.Time, ordinal: Double, isEphemeral: Boolean, gameID?: ?String, filename: String, title: String, preview?: ?MakePreviewRes}>
+export type UIMessageOutbox = $ReadOnly<{state: OutboxState, outboxID: String, messageType: MessageType, body: String, decoratedTextBody?: ?String, ctime: Gregor1.Time, ordinal: Double, isEphemeral: Boolean, flipGameID?: ?String, filename: String, title: String, preview?: ?MakePreviewRes}>
 export type UIMessageUnfurlInfo = $ReadOnly<{unfurlMessageID: MessageID, url: String, unfurl: UnfurlDisplay, isCollapsed: Boolean}>
-export type UIMessageValid = $ReadOnly<{messageID: MessageID, ctime: Gregor1.Time, outboxID?: ?String, messageBody: MessageBody, decoratedTextBody?: ?String, senderUsername: String, senderDeviceName: String, senderDeviceType: String, senderUID: Gregor1.UID, senderDeviceID: Gregor1.DeviceID, superseded: Boolean, assetUrlInfo?: ?UIAssetUrlInfo, senderDeviceRevokedAt?: ?Gregor1.Time, atMentions?: ?Array<String>, channelMention: ChannelMention, channelNameMentions?: ?Array<UIChannelNameMention>, isEphemeral: Boolean, isEphemeralExpired: Boolean, explodedBy?: ?String, etime: Gregor1.Time, reactions: ReactionMap, hasPairwiseMacs: Boolean, paymentInfos?: ?Array<UIPaymentInfo>, requestInfo?: ?UIRequestInfo, unfurls?: ?Array<UIMessageUnfurlInfo>, isCollapsed: Boolean, gameID?: ?String}>
+export type UIMessageValid = $ReadOnly<{messageID: MessageID, ctime: Gregor1.Time, outboxID?: ?String, messageBody: MessageBody, decoratedTextBody?: ?String, senderUsername: String, senderDeviceName: String, senderDeviceType: String, senderUID: Gregor1.UID, senderDeviceID: Gregor1.DeviceID, superseded: Boolean, assetUrlInfo?: ?UIAssetUrlInfo, senderDeviceRevokedAt?: ?Gregor1.Time, atMentions?: ?Array<String>, channelMention: ChannelMention, channelNameMentions?: ?Array<UIChannelNameMention>, isEphemeral: Boolean, isEphemeralExpired: Boolean, explodedBy?: ?String, etime: Gregor1.Time, reactions: ReactionMap, hasPairwiseMacs: Boolean, paymentInfos?: ?Array<UIPaymentInfo>, requestInfo?: ?UIRequestInfo, unfurls?: ?Array<UIMessageUnfurlInfo>, isCollapsed: Boolean, flipGameID?: ?String, flipGameStatus?: ?UICoinFlipStatus}>
 export type UIMessages = $ReadOnly<{messages?: ?Array<UIMessage>, pagination?: ?UIPagination}>
 export type UIPagination = $ReadOnly<{next: String, previous: String, num: Int, last: Boolean}>
 export type UIPaymentInfo = $ReadOnly<{accountID?: ?Stellar1.AccountID, amountDescription: String, worth: String, worthAtSendTime: String, delta: Stellar1.BalanceDelta, note: String, paymentID: Stellar1.PaymentID, status: Stellar1.PaymentStatus, statusDescription: String, statusDetail: String, showCancel: Boolean, fromUsername: String, toUsername: String}>
