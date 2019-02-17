@@ -87,6 +87,12 @@ type hostMessageInfo struct {
 	ShuffleItems []string
 }
 
+type loadGameJob struct {
+	gameID chat1.FlipGameID
+	uid    gregor1.UID
+	convID chat1.ConversationID
+}
+
 type Manager struct {
 	globals.Contextified
 	utils.DebugLabeler
@@ -96,6 +102,7 @@ type Manager struct {
 	shutdownMu sync.Mutex
 	shutdownCh chan struct{}
 	forceCh    chan struct{}
+	loadGameCh chan loadGameJob
 
 	gamesMu    sync.Mutex
 	games      *lru.Cache
@@ -111,6 +118,7 @@ func NewManager(g *globals.Context) *Manager {
 		games:        games,
 		dirtyGames:   make(map[string]chat1.FlipGameID),
 		forceCh:      make(chan struct{}, 10),
+		loadGameCh:   make(chan loadGameJob, 100),
 	}
 	dealer := NewDealer(m)
 	m.dealer = dealer
@@ -128,6 +136,7 @@ func (m *Manager) Start(ctx context.Context, uid gregor1.UID) {
 	}()
 	go m.updateLoop(shutdownCh)
 	go m.notificationLoop(shutdownCh)
+	go m.loadGameLoop(shutdownCh)
 }
 
 func (m *Manager) Stop(ctx context.Context) (ch chan struct{}) {
@@ -274,6 +283,31 @@ func (m *Manager) queueDirtyGameID(gameID chat1.FlipGameID, force bool) {
 	if force {
 		m.forceCh <- struct{}{}
 	}
+}
+
+func (m *Manager) handleSummaryUpdate(ctx context.Context, gameID chat1.FlipGameID, update *GameSummary,
+	convID chat1.ConversationID, force bool) {
+	if update.Err != nil {
+		m.games.Add(gameID.String(), chat1.UICoinFlipStatus{
+			GameID:       gameID.String(),
+			Phase:        chat1.UICoinFlipPhase_ERROR,
+			ProgressText: fmt.Sprintf("Something went wrong: %s", update.Err),
+		})
+		return
+	}
+	status := chat1.UICoinFlipStatus{
+		GameID: gameID.String(),
+		Phase:  chat1.UICoinFlipPhase_COMPLETE,
+	}
+	m.addResult(ctx, &status, update.Result, convID)
+	for _, p := range update.Players {
+		m.addParticipant(ctx, &status, CommitmentUpdate{
+			User: p,
+		})
+	}
+	status.ProgressText = "Complete"
+	m.games.Add(gameID.String(), status)
+	m.queueDirtyGameID(gameID, force)
 }
 
 func (m *Manager) handleUpdate(ctx context.Context, update GameStateUpdateMessage, force bool) (err error) {
@@ -546,14 +580,99 @@ func (m *Manager) MaybeInjectFlipMessage(ctx context.Context, msg chat1.MessageU
 	}
 }
 
-// LoadFlip implements the types.CoinFlipManager interface
-func (m *Manager) LoadFlip(ctx context.Context, uid gregor1.UID, gameID chat1.FlipGameID) {
-	defer m.Trace(ctx, func() error { return nil }, "LoadFlip")()
+func (m *Manager) loadGame(ctx context.Context, job loadGameJob) (err error) {
+	defer m.Trace(ctx, func() error { return err }, "loadGame: convID: %s gameID: %s",
+		job.convID, job.gameID)()
+	// Attempt to find the conversation for the game ID
+	conv, err := utils.GetVerifiedConv(ctx, m.G(), job.uid, job.convID,
+		types.InboxSourceDataSourceAll)
+	if err != nil {
+		m.Debug(ctx, "loadGameLoop: failed to load conv for job: %s", err)
+		return err
+	}
+	topicName := m.gameTopicNameFromGameID(job.gameID)
+	flipConvs, err := m.G().ChatHelper.FindConversations(context.Background(), conv.Info.TlfName,
+		&topicName, chat1.TopicType_DEV, conv.GetMembersType(), keybase1.TLFVisibility_PRIVATE)
+	if err != nil {
+		m.Debug(ctx, "loadGameLoop: failure finding flip conv: %s", err)
+		return err
+	}
+	if len(flipConvs) != 1 {
+		m.Debug(ctx, "loadGameLoop: bad number of convs: num: %d", job.convID, len(flipConvs))
+		return errors.New("no conv found")
+	}
+	flipConv := flipConvs[0]
+	// TODO: fix me, need to potentiallu loop on this for big flips
+	tv, err := m.G().ConvSource.Pull(ctx, flipConv.GetConvID(), job.uid, chat1.GetThreadReason_COINFLIP, nil,
+		nil)
+	if err != nil {
+		m.Debug(ctx, "loadGameLoop: failed to pull thread:  %s", err)
+		return err
+	}
+	if len(tv.Messages) < 3 {
+		m.Debug(ctx, "loadGameLoop: not enough messages to replay")
+		return errors.New("not enough messages")
+	}
+	var history GameHistory
+	for index := len(tv.Messages) - 3; index >= 0; index-- {
+		msg := tv.Messages[index]
+		if !msg.IsValid() {
+			continue
+		}
+		body := msg.Valid().MessageBody
+		if !body.IsType(chat1.MessageType_TEXT) {
+			continue
+		}
+		history = append(history, GameMessageReplayed{
+			GameMessageWrappedEncoded: GameMessageWrappedEncoded{
+				Sender: UserDevice{
+					U: msg.Valid().ClientHeader.Sender,
+					D: msg.Valid().ClientHeader.SenderDevice,
+				},
+				GameID:              job.gameID,
+				Body:                MakeGameMessageEncoded(body.Text().Body),
+				FirstInConversation: msg.GetMessageID() == 3,
+			},
+			Time: msg.Valid().ServerHeader.Ctime.Time(),
+		})
+	}
+	summary, err := Replay(ctx, history)
+	if err != nil {
+		m.Debug(ctx, "loadGameLoop: failed to replay history: %s", err)
+		return err
+	}
+	m.handleSummaryUpdate(ctx, job.gameID, summary, flipConv.GetConvID(), true)
+	return nil
+}
 
+func (m *Manager) loadGameLoop(shutdownCh chan struct{}) {
+	ctx := context.Background()
+	for {
+		select {
+		case job := <-m.loadGameCh:
+			if err := m.loadGame(ctx, job); err != nil {
+				m.Debug(ctx, "loadGameLoop: failed to load game: %s", err)
+			}
+		case <-shutdownCh:
+			return
+		}
+	}
+}
+
+// LoadFlip implements the types.CoinFlipManager interface
+func (m *Manager) LoadFlip(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	gameID chat1.FlipGameID) {
+	defer m.Trace(ctx, func() error { return nil }, "LoadFlip")()
 	_, ok := m.games.Get(gameID.String())
 	if ok {
 		m.queueDirtyGameID(gameID, true)
 		return
+	}
+	// If we miss the in-memory game storage, attempt to replay the game
+	m.loadGameCh <- loadGameJob{
+		gameID: gameID,
+		uid:    uid,
+		convID: convID,
 	}
 }
 
