@@ -634,11 +634,6 @@ func (d *Dealer) handleMessage(ctx context.Context, msg *GameMessageWrapped) err
 				Metadata: msg.Msg.Md,
 				Err:      err,
 			}
-		} else {
-			d.gameUpdateCh <- GameStateUpdateMessage{
-				Metadata:     msg.Msg.Md,
-				StartSuccess: new(bool),
-			}
 		}
 	default:
 		err = d.handleMessageOthers(ctx, msg)

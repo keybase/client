@@ -153,13 +153,13 @@ func (b *testBundle) sendCommitment(ctx context.Context, t *testing.T, p *player
 func (b *testBundle) receiveCommitmentFrom(t *testing.T, p *playerControl) {
 	res := <-b.dealer.UpdateCh()
 	require.NotNil(t, res.Commitment)
-	require.Equal(t, p.me, *res.Commitment)
+	require.Equal(t, p.me, res.Commitment.User)
 }
 
 func (b *testBundle) receiveRevealFrom(t *testing.T, p *playerControl) {
 	res := <-b.dealer.UpdateCh()
 	require.NotNil(t, res.Reveal)
-	require.Equal(t, p.me, *res.Reveal)
+	require.Equal(t, p.me, res.Reveal.User)
 }
 
 func (b *testBundle) makeFollower(t *testing.T) {
@@ -257,13 +257,13 @@ func testLeaderFollowerPair(t *testing.T, testController testController) {
 	verifyMyCommitment := func(who *testBundle) {
 		msg := <-who.dealer.UpdateCh()
 		require.NotNil(t, msg.Commitment)
-		require.Equal(t, *msg.Commitment, who.dh.Me())
+		require.Equal(t, msg.Commitment.User, who.dh.Me())
 	}
 
 	verifyTheirCommitment := func(me *testBundle, them *testBundle) {
 		msg := <-me.dealer.UpdateCh()
 		require.NotNil(t, msg.Commitment)
-		require.Equal(t, *msg.Commitment, them.dh.Me())
+		require.Equal(t, msg.Commitment.User, them.dh.Me())
 	}
 
 	verifyCommitmentComplete := func() {
@@ -286,13 +286,13 @@ func testLeaderFollowerPair(t *testing.T, testController testController) {
 	verifyMyReveal := func(who *testBundle) {
 		msg := <-who.dealer.UpdateCh()
 		require.NotNil(t, msg.Reveal)
-		require.Equal(t, *msg.Reveal, who.dh.Me())
+		require.Equal(t, msg.Reveal.User, who.dh.Me())
 	}
 
 	verifyTheirReveal := func(me *testBundle, them *testBundle) {
 		msg := <-me.dealer.UpdateCh()
 		require.NotNil(t, msg.Reveal)
-		require.Equal(t, *msg.Reveal, them.dh.Me())
+		require.Equal(t, msg.Reveal.User, them.dh.Me())
 	}
 
 	getResult := func(who *testBundle) *big.Int {

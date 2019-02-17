@@ -171,7 +171,7 @@ func (m *FlipManager) notifyDirtyGames() {
 	}()
 	ctx := m.makeBkgContext()
 	ui, err := m.G().UIRouter.GetChatUI()
-	if err != nil {
+	if err != nil || ui == nil {
 		m.Debug(ctx, "notifyDirtyGames: no chat UI available for notification")
 		return
 	}
@@ -326,20 +326,15 @@ func (m *FlipManager) handleUpdate(ctx context.Context, update flip.GameStateUpd
 			m.queueDirtyGameID(gameID, force)
 		}
 	}()
-	if update.StartSuccess != nil {
-		m.games.Add(gameID.String(), chat1.UICoinFlipStatus{
-			GameID:       gameID.String(),
-			Phase:        chat1.UICoinFlipPhase_COMMITMENT,
-			ProgressText: "Gathering commitments...",
-		})
-		return nil
-	}
+	var status chat1.UICoinFlipStatus
 	rawGame, ok := m.games.Get(gameID.String())
-	if !ok {
-		m.Debug(ctx, "handleUpdate: update received for unknown game, skipping: %s", gameID)
-		return errors.New("unknown game")
+	if ok {
+		status = rawGame.(chat1.UICoinFlipStatus)
+	} else {
+		status = chat1.UICoinFlipStatus{
+			GameID: gameID.String(),
+		}
 	}
-	status := rawGame.(chat1.UICoinFlipStatus)
 	if update.Err != nil {
 		status.Phase = chat1.UICoinFlipPhase_ERROR
 		status.ProgressText = fmt.Sprintf("Something went wrong: %s", update.Err)
@@ -354,6 +349,8 @@ func (m *FlipManager) handleUpdate(ctx context.Context, update flip.GameStateUpd
 	} else if update.Result != nil {
 		status.Phase = chat1.UICoinFlipPhase_COMPLETE
 		m.addResult(ctx, &status, *update.Result, update.Metadata.ConversationID)
+	} else {
+		return errors.New("unknown update kind")
 	}
 	m.games.Add(gameID.String(), status)
 	return nil

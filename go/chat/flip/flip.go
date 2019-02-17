@@ -44,7 +44,6 @@ type GameStateUpdateMessage struct {
 	Reveal             *RevealUpdate
 	CommitmentComplete *CommitmentComplete
 	Result             *Result
-	StartSuccess       *bool
 }
 
 // Dealer is a peristent process that runs in the chat client that deals out a game. It can have multiple
