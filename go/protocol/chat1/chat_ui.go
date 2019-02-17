@@ -1137,29 +1137,26 @@ func (o GiphySearchResult) DeepCopy() GiphySearchResult {
 type UICoinFlipPhase int
 
 const (
-	UICoinFlipPhase_PENDING    UICoinFlipPhase = 0
-	UICoinFlipPhase_COMMITMENT UICoinFlipPhase = 1
-	UICoinFlipPhase_REVEALS    UICoinFlipPhase = 2
-	UICoinFlipPhase_COMPLETE   UICoinFlipPhase = 3
-	UICoinFlipPhase_ERROR      UICoinFlipPhase = 4
+	UICoinFlipPhase_COMMITMENT UICoinFlipPhase = 0
+	UICoinFlipPhase_REVEALS    UICoinFlipPhase = 1
+	UICoinFlipPhase_COMPLETE   UICoinFlipPhase = 2
+	UICoinFlipPhase_ERROR      UICoinFlipPhase = 3
 )
 
 func (o UICoinFlipPhase) DeepCopy() UICoinFlipPhase { return o }
 
 var UICoinFlipPhaseMap = map[string]UICoinFlipPhase{
-	"PENDING":    0,
-	"COMMITMENT": 1,
-	"REVEALS":    2,
-	"COMPLETE":   3,
-	"ERROR":      4,
+	"COMMITMENT": 0,
+	"REVEALS":    1,
+	"COMPLETE":   2,
+	"ERROR":      3,
 }
 
 var UICoinFlipPhaseRevMap = map[UICoinFlipPhase]string{
-	0: "PENDING",
-	1: "COMMITMENT",
-	2: "REVEALS",
-	3: "COMPLETE",
-	4: "ERROR",
+	0: "COMMITMENT",
+	1: "REVEALS",
+	2: "COMPLETE",
+	3: "ERROR",
 }
 
 func (e UICoinFlipPhase) String() string {

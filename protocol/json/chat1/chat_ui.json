@@ -1011,11 +1011,10 @@
       "type": "enum",
       "name": "UICoinFlipPhase",
       "symbols": [
-        "PENDING_0",
-        "COMMITMENT_1",
-        "REVEALS_2",
-        "COMPLETE_3",
-        "ERROR_4"
+        "COMMITMENT_0",
+        "REVEALS_1",
+        "COMPLETE_2",
+        "ERROR_3"
       ]
     },
     {

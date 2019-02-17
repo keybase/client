@@ -317,14 +317,7 @@ func (m *Manager) handleUpdate(ctx context.Context, update GameStateUpdateMessag
 			m.queueDirtyGameID(gameID, force)
 		}
 	}()
-	if update.StartPending != nil {
-		m.games.Add(gameID.String(), chat1.UICoinFlipStatus{
-			GameID:       gameID.String(),
-			Phase:        chat1.UICoinFlipPhase_PENDING,
-			ProgressText: "Initializing flip...",
-		})
-		return nil
-	} else if update.StartSuccess != nil {
+	if update.StartSuccess != nil {
 		m.games.Add(gameID.String(), chat1.UICoinFlipStatus{
 			GameID:       gameID.String(),
 			Phase:        chat1.UICoinFlipPhase_COMMITMENT,
@@ -495,12 +488,6 @@ func (m *Manager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID cha
 
 	// First generate the message representing the flip into the host conversation. We also wait for it
 	// to actually get sent before doing anything flip related.
-	m.handleUpdate(ctx, GameStateUpdateMessage{
-		Metadata: GameMetadata{
-			GameID: gameID,
-		},
-		StartPending: new(bool),
-	}, true)
 	outboxID, err := storage.NewOutboxID()
 	if err != nil {
 		return err
@@ -530,7 +517,6 @@ func (m *Manager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID cha
 
 	// Record metadata of the host message into the game thread as the first message
 	start, lowerBound, shuffleItems := m.startFromText(text)
-	m.Debug(ctx, "start: %v", start)
 	infoBody, err := json.Marshal(hostMessageInfo{
 		ConvID:       hostConvID,
 		MsgID:        sendRes.MsgID,

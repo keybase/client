@@ -394,11 +394,10 @@ export const chatUiMessageUnboxedState = {
 }
 
 export const chatUiUICoinFlipPhase = {
-  pending: 0,
-  commitment: 1,
-  reveals: 2,
-  complete: 3,
-  error: 4,
+  commitment: 0,
+  reveals: 1,
+  complete: 2,
+  error: 3,
 }
 
 export const chatUiUITextDecorationTyp = {
@@ -1188,11 +1187,10 @@ export type UIChatPayment = $ReadOnly<{username: String, fullName: String, xlmAm
 export type UIChatPaymentSummary = $ReadOnly<{xlmTotal: String, displayTotal: String, payments?: ?Array<UIChatPayment>}>
 export type UICoinFlipParticipant = $ReadOnly<{uid: String, deviceID: String, username: String, deviceName: String, commitment: String, reveal?: ?String}>
 export type UICoinFlipPhase =
-  | 0 // PENDING_0
-  | 1 // COMMITMENT_1
-  | 2 // REVEALS_2
-  | 3 // COMPLETE_3
-  | 4 // ERROR_4
+  | 0 // COMMITMENT_0
+  | 1 // REVEALS_1
+  | 2 // COMPLETE_2
+  | 3 // ERROR_3
 
 export type UICoinFlipStatus = $ReadOnly<{gameID: String, phase: UICoinFlipPhase, progressText: String, resultText: String, participants?: ?Array<UICoinFlipParticipant>}>
 export type UIMessage = {state: 1, valid: ?UIMessageValid} | {state: 2, error: ?MessageUnboxedError} | {state: 3, outbox: ?UIMessageOutbox} | {state: 4, placeholder: ?MessageUnboxedPlaceholder}

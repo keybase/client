@@ -17,7 +17,7 @@ const mapStateToProps = (state, {flipGameID}: OwnProps) => {
     ? {
         isError: false,
         participants: [],
-        progressText: 'Waiting for flip to start...',
+        progressText: 'Waiting for flip information...',
         resultText: '',
         showParticipants: false,
       }

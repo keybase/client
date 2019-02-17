@@ -285,11 +285,10 @@ protocol chatUi {
   void chatShowManageChannels(int sessionID, string teamname);
 
   enum UICoinFlipPhase {
-    PENDING_0,
-    COMMITMENT_1,
-    REVEALS_2,
-    COMPLETE_3,
-    ERROR_4
+    COMMITMENT_0,
+    REVEALS_1,
+    COMPLETE_2,
+    ERROR_3
   }
   record UICoinFlipParticipant {
     string uid;

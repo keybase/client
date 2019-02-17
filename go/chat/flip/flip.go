@@ -44,7 +44,6 @@ type GameStateUpdateMessage struct {
 	Reveal             *RevealUpdate
 	CommitmentComplete *CommitmentComplete
 	Result             *Result
-	StartPending       *bool
 	StartSuccess       *bool
 }
 
