@@ -690,7 +690,10 @@ func postJoinLeave(ctx context.Context, g *globals.Context, ri func() chat1.Remo
 	}
 
 	conv := ib.Convs[0]
-
+	if conv.GetTopicType() != chat1.TopicType_CHAT {
+		// only post these in chat convs
+		return nil
+	}
 	plaintext := chat1.MessagePlaintext{
 		ClientHeader: chat1.MessageClientHeader{
 			Conv:         conv.Info.Triple,
@@ -747,7 +750,7 @@ func JoinConversation(ctx context.Context, g *globals.Context, debugger utils.De
 	}, nil, nil, nil); err != nil {
 		debugger.Debug(ctx, "JoinConversation: failed to apply membership update: %v", err)
 	}
-	// Send a message to the channel after joining.
+	// Send a message to the channel after joining
 	joinMessageBody := chat1.NewMessageBodyWithJoin(chat1.MessageJoin{})
 	debugger.Debug(ctx, "JoinConversation: sending join message to: %s", convID)
 	if err := postJoinLeave(ctx, g, ri, uid, convID, joinMessageBody); err != nil {

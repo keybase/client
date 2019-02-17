@@ -683,6 +683,7 @@ func (m *FlipManager) Clock() clockwork.Clock {
 
 // ServerTime implements the flip.DealersHelper interface
 func (m *FlipManager) ServerTime(ctx context.Context) (res time.Time, err error) {
+	ctx = Context(ctx, m.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, nil)
 	defer m.Trace(ctx, func() error { return err }, "ServerTime")()
 	sres, err := m.ri().ServerNow(ctx)
 	if err != nil {
@@ -694,6 +695,7 @@ func (m *FlipManager) ServerTime(ctx context.Context) (res time.Time, err error)
 // SendChat implements the flip.DealersHelper interface
 func (m *FlipManager) SendChat(ctx context.Context, convID chat1.ConversationID, gameID chat1.FlipGameID,
 	msg flip.GameMessageEncoded) (err error) {
+	ctx = Context(ctx, m.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, nil)
 	defer m.Trace(ctx, func() error { return err }, "SendChat: convID: %s", convID)()
 	uid, err := utils.AssertLoggedInUID(ctx, m.G())
 	if err != nil {
