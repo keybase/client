@@ -1,4 +1,4 @@
-package flip
+package chat
 
 import (
 	"context"
@@ -12,6 +12,7 @@ import (
 	"time"
 
 	lru "github.com/hashicorp/golang-lru"
+	"github.com/keybase/client/go/chat/flip"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
 	"github.com/keybase/client/go/chat/types"
@@ -51,10 +52,9 @@ func (n *sentMessageListener) NewChatActivity(uid keybase1.UID, activity chat1.C
 	if source != chat1.ChatActivitySource_LOCAL {
 		return
 	}
-	ctx := context.Background()
 	st, err := activity.ActivityType()
 	if err != nil {
-		n.Debug(ctx, "NewChatActivity: failed to get type: %s", err)
+		n.Debug(context.Background(), "NewChatActivity: failed to get type: %s", err)
 		return
 	}
 	switch st {
@@ -93,11 +93,11 @@ type loadGameJob struct {
 	convID chat1.ConversationID
 }
 
-type Manager struct {
+type FlipManager struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	dealer     *Dealer
+	dealer     *flip.Dealer
 	clock      clockwork.Clock
 	shutdownMu sync.Mutex
 	shutdownCh chan struct{}
@@ -109,23 +109,23 @@ type Manager struct {
 	dirtyGames map[string]chat1.FlipGameID
 }
 
-func NewManager(g *globals.Context) *Manager {
+func NewFlipManager(g *globals.Context) *FlipManager {
 	games, _ := lru.New(100)
-	m := &Manager{
+	m := &FlipManager{
 		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "Flip.Manager", false),
+		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "FlipManager", false),
 		clock:        clockwork.NewRealClock(),
 		games:        games,
 		dirtyGames:   make(map[string]chat1.FlipGameID),
 		forceCh:      make(chan struct{}, 10),
 		loadGameCh:   make(chan loadGameJob, 100),
 	}
-	dealer := NewDealer(m)
+	dealer := flip.NewDealer(m)
 	m.dealer = dealer
 	return m
 }
 
-func (m *Manager) Start(ctx context.Context, uid gregor1.UID) {
+func (m *FlipManager) Start(ctx context.Context, uid gregor1.UID) {
 	defer m.Trace(ctx, func() error { return nil }, "Start")()
 	m.shutdownMu.Lock()
 	shutdownCh := make(chan struct{})
@@ -139,7 +139,7 @@ func (m *Manager) Start(ctx context.Context, uid gregor1.UID) {
 	go m.loadGameLoop(shutdownCh)
 }
 
-func (m *Manager) Stop(ctx context.Context) (ch chan struct{}) {
+func (m *FlipManager) Stop(ctx context.Context) (ch chan struct{}) {
 	defer m.Trace(ctx, func() error { return nil }, "Stop")()
 	m.dealer.Stop()
 	m.shutdownMu.Lock()
@@ -153,7 +153,12 @@ func (m *Manager) Stop(ctx context.Context) (ch chan struct{}) {
 	return ch
 }
 
-func (m *Manager) notifyDirtyGames(ctx context.Context) {
+func (m *FlipManager) makeBkgContext() context.Context {
+	ctx := context.Background()
+	return Context(ctx, m.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, nil)
+}
+
+func (m *FlipManager) notifyDirtyGames() {
 	m.gamesMu.Lock()
 	defer m.gamesMu.Unlock()
 	if len(m.dirtyGames) == 0 {
@@ -162,6 +167,7 @@ func (m *Manager) notifyDirtyGames(ctx context.Context) {
 	defer func() {
 		m.dirtyGames = make(map[string]chat1.FlipGameID)
 	}()
+	ctx := m.makeBkgContext()
 	ui, err := m.G().UIRouter.GetChatUI()
 	if err != nil {
 		m.Debug(ctx, "notifyDirtyGames: no chat UI available for notification")
@@ -178,17 +184,16 @@ func (m *Manager) notifyDirtyGames(ctx context.Context) {
 	}
 }
 
-func (m *Manager) notificationLoop(shutdownCh chan struct{}) {
+func (m *FlipManager) notificationLoop(shutdownCh chan struct{}) {
 	duration := 200 * time.Millisecond
 	next := m.clock.Now().Add(duration)
-	ctx := context.Background()
 	for {
 		select {
 		case <-m.clock.AfterTime(next):
-			m.notifyDirtyGames(ctx)
+			m.notifyDirtyGames()
 			next = m.clock.Now().Add(duration)
 		case <-m.forceCh:
-			m.notifyDirtyGames(ctx)
+			m.notifyDirtyGames()
 			next = m.clock.Now().Add(duration)
 		case <-shutdownCh:
 			return
@@ -196,7 +201,8 @@ func (m *Manager) notificationLoop(shutdownCh chan struct{}) {
 	}
 }
 
-func (m *Manager) addParticipant(ctx context.Context, status *chat1.UICoinFlipStatus, update CommitmentUpdate) {
+func (m *FlipManager) addParticipant(ctx context.Context, status *chat1.UICoinFlipStatus,
+	update flip.CommitmentUpdate) {
 	username, deviceName, _, err := m.G().GetUPAKLoader().LookupUsernameAndDevice(ctx,
 		keybase1.UID(update.User.U.String()), keybase1.DeviceID(update.User.D.String()))
 	if err != nil {
@@ -221,7 +227,8 @@ func (m *Manager) addParticipant(ctx context.Context, status *chat1.UICoinFlipSt
 	status.ProgressText = fmt.Sprintf("Gathered %d commitment%s", len(status.Participants), endingS)
 }
 
-func (m *Manager) addReveal(ctx context.Context, status *chat1.UICoinFlipStatus, update RevealUpdate) {
+func (m *FlipManager) addReveal(ctx context.Context, status *chat1.UICoinFlipStatus,
+	update flip.RevealUpdate) {
 	numReveals := 0
 	for index, p := range status.Participants {
 		if p.Reveal != nil {
@@ -236,7 +243,7 @@ func (m *Manager) addReveal(ctx context.Context, status *chat1.UICoinFlipStatus,
 	status.ProgressText = fmt.Sprintf("%d participants have revealed secrets", numReveals)
 }
 
-func (m *Manager) addResult(ctx context.Context, status *chat1.UICoinFlipStatus, result Result,
+func (m *FlipManager) addResult(ctx context.Context, status *chat1.UICoinFlipStatus, result flip.Result,
 	convID chat1.ConversationID) {
 	defer func() {
 		if len(status.ResultText) > 0 {
@@ -276,7 +283,7 @@ func (m *Manager) addResult(ctx context.Context, status *chat1.UICoinFlipStatus,
 	}
 }
 
-func (m *Manager) queueDirtyGameID(gameID chat1.FlipGameID, force bool) {
+func (m *FlipManager) queueDirtyGameID(gameID chat1.FlipGameID, force bool) {
 	m.gamesMu.Lock()
 	m.dirtyGames[gameID.String()] = gameID
 	m.gamesMu.Unlock()
@@ -285,8 +292,8 @@ func (m *Manager) queueDirtyGameID(gameID chat1.FlipGameID, force bool) {
 	}
 }
 
-func (m *Manager) handleSummaryUpdate(ctx context.Context, gameID chat1.FlipGameID, update *GameSummary,
-	convID chat1.ConversationID, force bool) {
+func (m *FlipManager) handleSummaryUpdate(ctx context.Context, gameID chat1.FlipGameID,
+	update *flip.GameSummary, convID chat1.ConversationID, force bool) {
 	if update.Err != nil {
 		m.games.Add(gameID.String(), chat1.UICoinFlipStatus{
 			GameID:       gameID.String(),
@@ -301,7 +308,7 @@ func (m *Manager) handleSummaryUpdate(ctx context.Context, gameID chat1.FlipGame
 	}
 	m.addResult(ctx, &status, update.Result, convID)
 	for _, p := range update.Players {
-		m.addParticipant(ctx, &status, CommitmentUpdate{
+		m.addParticipant(ctx, &status, flip.CommitmentUpdate{
 			User: p,
 		})
 	}
@@ -310,7 +317,7 @@ func (m *Manager) handleSummaryUpdate(ctx context.Context, gameID chat1.FlipGame
 	m.queueDirtyGameID(gameID, force)
 }
 
-func (m *Manager) handleUpdate(ctx context.Context, update GameStateUpdateMessage, force bool) (err error) {
+func (m *FlipManager) handleUpdate(ctx context.Context, update flip.GameStateUpdateMessage, force bool) (err error) {
 	gameID := update.Metadata.GameID
 	defer func() {
 		if err == nil {
@@ -350,11 +357,11 @@ func (m *Manager) handleUpdate(ctx context.Context, update GameStateUpdateMessag
 	return nil
 }
 
-func (m *Manager) updateLoop(shutdownCh chan struct{}) {
+func (m *FlipManager) updateLoop(shutdownCh chan struct{}) {
 	for {
 		select {
 		case msg := <-m.dealer.UpdateCh():
-			m.handleUpdate(context.Background(), msg, false)
+			m.handleUpdate(m.makeBkgContext(), msg, false)
 		case <-shutdownCh:
 			return
 		}
@@ -363,7 +370,7 @@ func (m *Manager) updateLoop(shutdownCh chan struct{}) {
 
 const gameIDTopicNamePrefix = "__keybase_coinflip_game_"
 
-func (m *Manager) isGameIDTopicName(topicName string) (res chat1.FlipGameID, ok bool) {
+func (m *FlipManager) isGameIDTopicName(topicName string) (res chat1.FlipGameID, ok bool) {
 	if strings.HasPrefix(topicName, gameIDTopicNamePrefix) {
 		strGameID := strings.Split(topicName, gameIDTopicNamePrefix)[1]
 		gameID, err := chat1.MakeFlipGameID(strGameID)
@@ -375,13 +382,13 @@ func (m *Manager) isGameIDTopicName(topicName string) (res chat1.FlipGameID, ok 
 	return res, false
 }
 
-func (m *Manager) gameTopicNameFromGameID(gameID chat1.FlipGameID) string {
+func (m *FlipManager) gameTopicNameFromGameID(gameID chat1.FlipGameID) string {
 	return fmt.Sprintf("%s%s", gameIDTopicNamePrefix, gameID)
 }
 
 var errFailedToParse = errors.New("failed to parse")
 
-func (m *Manager) parseMultiDie(arg string) (start Start, err error) {
+func (m *FlipManager) parseMultiDie(arg string) (start flip.Start, err error) {
 	if strings.Contains(arg, "-") {
 		return start, errFailedToParse
 	}
@@ -389,18 +396,18 @@ func (m *Manager) parseMultiDie(arg string) (start Start, err error) {
 	if _, err := fmt.Sscan(arg, lb); err != nil {
 		return start, errFailedToParse
 	}
-	return NewStartWithBigInt(m.clock.Now(), lb), nil
+	return flip.NewStartWithBigInt(m.clock.Now(), lb), nil
 }
 
-func (m *Manager) parseShuffle(arg string) (start Start, shuffleItems []string, err error) {
+func (m *FlipManager) parseShuffle(arg string) (start flip.Start, shuffleItems []string, err error) {
 	if strings.Contains(arg, ",") {
 		shuffleItems = strings.Split(arg, ",")
-		return NewStartWithShuffle(m.clock.Now(), int64(len(shuffleItems))), shuffleItems, nil
+		return flip.NewStartWithShuffle(m.clock.Now(), int64(len(shuffleItems))), shuffleItems, nil
 	}
 	return start, shuffleItems, errFailedToParse
 }
 
-func (m *Manager) parseRange(arg string) (start Start, lowerBound string, err error) {
+func (m *FlipManager) parseRange(arg string) (start flip.Start, lowerBound string, err error) {
 	if !strings.Contains(arg, "-") {
 		return start, lowerBound, errFailedToParse
 	}
@@ -421,14 +428,14 @@ func (m *Manager) parseRange(arg string) (start Start, lowerBound string, err er
 	if diff.Sign() < 0 {
 		return start, lowerBound, errFailedToParse
 	}
-	return NewStartWithBigInt(m.clock.Now(), diff), lb.String(), nil
+	return flip.NewStartWithBigInt(m.clock.Now(), diff), lb.String(), nil
 }
 
-func (m *Manager) startFromText(text string) (start Start, lowerBound string, shuffleItems []string) {
+func (m *FlipManager) startFromText(text string) (start flip.Start, lowerBound string, shuffleItems []string) {
 	var err error
 	toks := strings.Split(strings.TrimRight(text, " "), " ")
 	if len(toks) == 1 {
-		return NewStartWithBool(m.clock.Now()), "", nil
+		return flip.NewStartWithBool(m.clock.Now()), "", nil
 	}
 	// Combine into one argument if there is more than one
 	arg := strings.Join(toks[1:], " ")
@@ -445,10 +452,10 @@ func (m *Manager) startFromText(text string) (start Start, lowerBound string, sh
 		return start, lowerBound, nil
 	}
 	// Just shuffle the one unknown thing
-	return NewStartWithShuffle(m.clock.Now(), 1), "", []string{arg}
+	return flip.NewStartWithShuffle(m.clock.Now(), 1), "", []string{arg}
 }
 
-func (m *Manager) getHostMessageInfo(ctx context.Context, convID chat1.ConversationID) (res hostMessageInfo, err error) {
+func (m *FlipManager) getHostMessageInfo(ctx context.Context, convID chat1.ConversationID) (res hostMessageInfo, err error) {
 	m.Debug(ctx, "getHostMessageInfo: getting host message info for: %s", convID)
 	uid, err := utils.AssertLoggedInUID(ctx, m.G())
 	if err != nil {
@@ -473,10 +480,10 @@ func (m *Manager) getHostMessageInfo(ctx context.Context, convID chat1.Conversat
 }
 
 // StartFlip implements the types.CoinFlipManager interface
-func (m *Manager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID,
+func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID,
 	tlfName, text string) (err error) {
 	defer m.Trace(ctx, func() error { return err }, "StartFlip: convID: %s", hostConvID)()
-	gameID := GenerateGameID()
+	gameID := flip.GenerateGameID()
 	m.Debug(ctx, "StartFlip: using gameID: %s", gameID)
 
 	// Get host conv using local storage, just bail out if we don't have it
@@ -535,14 +542,14 @@ func (m *Manager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID cha
 }
 
 // MaybeInjectFlipMessage implements the types.CoinFlipManager interface
-func (m *Manager) MaybeInjectFlipMessage(ctx context.Context, msg chat1.MessageUnboxed,
+func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, msg chat1.MessageUnboxed,
 	conv chat1.ConversationLocal) {
 	// earliest of outs if this isn't a dev convo, an error, or the outbox ID message
 	if conv.GetTopicType() != chat1.TopicType_DEV || !msg.IsValid() || msg.GetMessageID() == 2 {
 		return
 	}
 	// Ignore anything from the current device
-	sender := UserDevice{
+	sender := flip.UserDevice{
 		U: msg.Valid().ClientHeader.Sender,
 		D: msg.Valid().ClientHeader.SenderDevice,
 	}
@@ -561,12 +568,12 @@ func (m *Manager) MaybeInjectFlipMessage(ctx context.Context, msg chat1.MessageU
 		return
 	}
 	if err := m.dealer.InjectIncomingChat(ctx, sender, conv.GetConvID(), gameID,
-		MakeGameMessageEncoded(body.Text().Body), msg.GetMessageID() == 3); err != nil {
+		flip.MakeGameMessageEncoded(body.Text().Body), msg.GetMessageID() == 3); err != nil {
 		m.Debug(ctx, "MaybeInjectFlipMessage: failed to inject: %s", err)
 	}
 }
 
-func (m *Manager) loadGame(ctx context.Context, job loadGameJob) (err error) {
+func (m *FlipManager) loadGame(ctx context.Context, job loadGameJob) (err error) {
 	defer m.Trace(ctx, func() error { return err }, "loadGame: convID: %s gameID: %s",
 		job.convID, job.gameID)()
 	// Attempt to find the conversation for the game ID
@@ -577,7 +584,7 @@ func (m *Manager) loadGame(ctx context.Context, job loadGameJob) (err error) {
 		return err
 	}
 	topicName := m.gameTopicNameFromGameID(job.gameID)
-	flipConvs, err := m.G().ChatHelper.FindConversations(context.Background(), conv.Info.TlfName,
+	flipConvs, err := m.G().ChatHelper.FindConversations(ctx, conv.Info.TlfName,
 		&topicName, chat1.TopicType_DEV, conv.GetMembersType(), keybase1.TLFVisibility_PRIVATE)
 	if err != nil {
 		m.Debug(ctx, "loadGameLoop: failure finding flip conv: %s", err)
@@ -599,7 +606,7 @@ func (m *Manager) loadGame(ctx context.Context, job loadGameJob) (err error) {
 		m.Debug(ctx, "loadGameLoop: not enough messages to replay")
 		return errors.New("not enough messages")
 	}
-	var history GameHistory
+	var history flip.GameHistory
 	for index := len(tv.Messages) - 3; index >= 0; index-- {
 		msg := tv.Messages[index]
 		if !msg.IsValid() {
@@ -609,20 +616,20 @@ func (m *Manager) loadGame(ctx context.Context, job loadGameJob) (err error) {
 		if !body.IsType(chat1.MessageType_TEXT) {
 			continue
 		}
-		history = append(history, GameMessageReplayed{
-			GameMessageWrappedEncoded: GameMessageWrappedEncoded{
-				Sender: UserDevice{
+		history = append(history, flip.GameMessageReplayed{
+			GameMessageWrappedEncoded: flip.GameMessageWrappedEncoded{
+				Sender: flip.UserDevice{
 					U: msg.Valid().ClientHeader.Sender,
 					D: msg.Valid().ClientHeader.SenderDevice,
 				},
 				GameID:              job.gameID,
-				Body:                MakeGameMessageEncoded(body.Text().Body),
+				Body:                flip.MakeGameMessageEncoded(body.Text().Body),
 				FirstInConversation: msg.GetMessageID() == 3,
 			},
 			Time: msg.Valid().ServerHeader.Ctime.Time(),
 		})
 	}
-	summary, err := Replay(ctx, history)
+	summary, err := flip.Replay(ctx, history)
 	if err != nil {
 		m.Debug(ctx, "loadGameLoop: failed to replay history: %s", err)
 		return err
@@ -631,11 +638,11 @@ func (m *Manager) loadGame(ctx context.Context, job loadGameJob) (err error) {
 	return nil
 }
 
-func (m *Manager) loadGameLoop(shutdownCh chan struct{}) {
-	ctx := context.Background()
+func (m *FlipManager) loadGameLoop(shutdownCh chan struct{}) {
 	for {
 		select {
 		case job := <-m.loadGameCh:
+			ctx := m.makeBkgContext()
 			if err := m.loadGame(ctx, job); err != nil {
 				m.Debug(ctx, "loadGameLoop: failed to load game: %s", err)
 			}
@@ -646,7 +653,7 @@ func (m *Manager) loadGameLoop(shutdownCh chan struct{}) {
 }
 
 // LoadFlip implements the types.CoinFlipManager interface
-func (m *Manager) LoadFlip(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+func (m *FlipManager) LoadFlip(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	gameID chat1.FlipGameID) {
 	defer m.Trace(ctx, func() error { return nil }, "LoadFlip")()
 	_, ok := m.games.Get(gameID.String())
@@ -663,25 +670,25 @@ func (m *Manager) LoadFlip(ctx context.Context, uid gregor1.UID, convID chat1.Co
 }
 
 // CLogf implements the flip.DealersHelper interface
-func (m *Manager) CLogf(ctx context.Context, fmt string, args ...interface{}) {
+func (m *FlipManager) CLogf(ctx context.Context, fmt string, args ...interface{}) {
 	m.Debug(ctx, fmt, args...)
 }
 
 // Clock implements the flip.DealersHelper interface
-func (m *Manager) Clock() clockwork.Clock {
+func (m *FlipManager) Clock() clockwork.Clock {
 	return m.clock
 }
 
 // ServerTime implements the flip.DealersHelper interface
-func (m *Manager) ServerTime(ctx context.Context) (res time.Time, err error) {
+func (m *FlipManager) ServerTime(ctx context.Context) (res time.Time, err error) {
 	defer m.Trace(ctx, func() error { return err }, "ServerTime")()
 	// TODO: implement this for real
 	return m.clock.Now(), nil
 }
 
 // SendChat implements the flip.DealersHelper interface
-func (m *Manager) SendChat(ctx context.Context, convID chat1.ConversationID, gameID chat1.FlipGameID,
-	msg GameMessageEncoded) (err error) {
+func (m *FlipManager) SendChat(ctx context.Context, convID chat1.ConversationID, gameID chat1.FlipGameID,
+	msg flip.GameMessageEncoded) (err error) {
 	defer m.Trace(ctx, func() error { return err }, "SendChat: convID: %s", convID)()
 	uid, err := utils.AssertLoggedInUID(ctx, m.G())
 	if err != nil {
@@ -695,14 +702,14 @@ func (m *Manager) SendChat(ctx context.Context, convID chat1.ConversationID, gam
 	return err
 }
 
-func (m *Manager) Me() UserDevice {
+func (m *FlipManager) Me() flip.UserDevice {
 	ad := m.G().ActiveDevice
 	did := ad.DeviceID()
 	hdid := make([]byte, libkb.DeviceIDLen)
 	if err := did.ToBytes(hdid); err != nil {
-		return UserDevice{}
+		return flip.UserDevice{}
 	}
-	return UserDevice{
+	return flip.UserDevice{
 		U: gregor1.UID(ad.UID().ToBytes()),
 		D: gregor1.DeviceID(hdid),
 	}
