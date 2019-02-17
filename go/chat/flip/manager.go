@@ -431,7 +431,7 @@ func (m *Manager) startFromText(text string) (start Start, lowerBound string, sh
 		return NewStartWithBool(m.clock.Now()), "", nil
 	}
 	// Combine into one argument if there is more than one
-	arg := strings.Replace(strings.Join(toks[1:], ""), " ", "", -1)
+	arg := strings.Join(toks[1:], " ")
 	// Check for /flip 20
 	if start, err = m.parseMultiDie(arg); err == nil {
 		return start, "0", nil
