@@ -13,12 +13,21 @@ const participantStatuses = [
 
 const mapStateToProps = (state, {gameID}: OwnProps) => {
   const status = state.chat2.getIn(['flipStatusMap', gameID])
-  return {
-    isError: status ? status.phase === RPCChatTypes.chatUiUICoinFlipPhase.error : false,
-    progressText: status ? status.progressText : 'Waiting for flip to start...',
-    resultText: status ? status.resultText : '',
-    showParticipants: status ? participantStatuses.indexOf(status.phase) >= 0 : false,
-  }
+  return !status
+    ? {
+        isError: false,
+        participants: [],
+        progressText: 'Waiting for flip to start...',
+        resultText: '',
+        showParticipants: false,
+      }
+    : {
+        isError: status.phase === RPCChatTypes.chatUiUICoinFlipPhase.error,
+        participants: status.participants || [],
+        progressText: status.progressText,
+        resultText: status.resultText,
+        showParticipants: participantStatuses.indexOf(status.phase) >= 0,
+      }
 }
 
 export default namedConnect<OwnProps, _, _, _, _>(

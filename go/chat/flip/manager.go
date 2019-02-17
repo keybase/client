@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -200,6 +201,9 @@ func (m *Manager) addParticipant(ctx context.Context, status *chat1.UICoinFlipSt
 		Username:   username.String(),
 		DeviceName: deviceName,
 		Commitment: update.Commitment.String(),
+	})
+	sort.Slice(status.Participants, func(i, j int) bool {
+		return status.Participants[i].Username < status.Participants[j].Username
 	})
 	endingS := ""
 	if len(status.Participants) > 1 {

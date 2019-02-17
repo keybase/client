@@ -2,41 +2,81 @@
 import * as React from 'react'
 import * as Kb from '../../../../common-adapters'
 import * as Styles from '../../../../styles'
+import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
+import CoinFlipParticipants from './participants'
 
 export type Props = {|
   progressText: string,
   resultText: string,
   isError: boolean,
+  participants: Array<RPCChatTypes.UICoinFlipParticipant>,
   showParticipants: boolean,
 |}
 
-const CoinFlip = (props: Props) => {
-  return (
-    <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} gap="tiny">
-      <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.Text type="BodySmall">Progress</Kb.Text>
-        <Kb.Text
-          type="BodyItalic"
-          style={Styles.collapseStyles([styles.progress, props.isError ? styles.error : null])}
-        >
-          {props.progressText}
-        </Kb.Text>
-      </Kb.Box2>
-      <Kb.Box2 direction="vertical" fullWidth={true}>
-        <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
-          <Kb.Text type="BodySmall">Result</Kb.Text>
-          {props.showParticipants && (
-            <Kb.Text type="BodySmallPrimaryLink" style={styles.participantsLabel}>
-              View Participants
-            </Kb.Text>
-          )}
+type State = {
+  showPopup: boolean,
+}
+
+class CoinFlip extends React.Component<Props, State> {
+  partRef: any
+  state = {showPopup: false}
+  constructor(props: Props) {
+    super(props)
+    this.partRef = React.createRef()
+  }
+  _showPopup = () => {
+    this.setState({showPopup: true})
+  }
+  _hidePopup = () => {
+    this.setState({showPopup: false})
+  }
+  _getAttachmentRef = () => {
+    return this.partRef.current
+  }
+  render() {
+    const popup = (
+      <CoinFlipParticipants
+        attachTo={this._getAttachmentRef}
+        onHidden={this._hidePopup}
+        participants={this.props.participants}
+        visible={this.state.showPopup}
+      />
+    )
+    return (
+      <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} gap="tiny">
+        <Kb.Box2 direction="vertical" fullWidth={true}>
+          <Kb.Text type="BodySmall">Progress</Kb.Text>
+          <Kb.Text
+            type="BodyItalic"
+            style={Styles.collapseStyles([styles.progress, this.props.isError ? styles.error : null])}
+          >
+            {this.props.progressText}
+          </Kb.Text>
         </Kb.Box2>
-        <Kb.Text type="BodySemibold" style={styles.result}>
-          {props.resultText.length > 0 ? props.resultText : '???'}
-        </Kb.Text>
+        <Kb.Box2 direction="vertical" fullWidth={true}>
+          <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
+            <Kb.Text type="BodySmall">Result</Kb.Text>
+            {this.props.showParticipants && (
+              <Kb.Box2 direction="horizontal" onMouseOver={this._showPopup} onMouseLeave={this._hidePopup}>
+                <Kb.Text
+                  ref={this.partRef}
+                  type="BodySmallPrimaryLink"
+                  style={styles.participantsLabel}
+                  onClick={this._showPopup}
+                >
+                  View Participants
+                </Kb.Text>
+                {popup}
+              </Kb.Box2>
+            )}
+          </Kb.Box2>
+          <Kb.Text type="BodySemibold" style={styles.result}>
+            {this.props.resultText.length > 0 ? this.props.resultText : '???'}
+          </Kb.Text>
+        </Kb.Box2>
       </Kb.Box2>
-    </Kb.Box2>
-  )
+    )
+  }
 }
 
 const styles = Styles.styleSheetCreate({
