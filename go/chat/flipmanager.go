@@ -99,6 +99,7 @@ type FlipManager struct {
 
 	dealer     *flip.Dealer
 	clock      clockwork.Clock
+	ri         func() chat1.RemoteInterface
 	shutdownMu sync.Mutex
 	shutdownCh chan struct{}
 	forceCh    chan struct{}
@@ -109,11 +110,12 @@ type FlipManager struct {
 	dirtyGames map[string]chat1.FlipGameID
 }
 
-func NewFlipManager(g *globals.Context) *FlipManager {
+func NewFlipManager(g *globals.Context, ri func() chat1.RemoteInterface) *FlipManager {
 	games, _ := lru.New(100)
 	m := &FlipManager{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "FlipManager", false),
+		ri:           ri,
 		clock:        clockwork.NewRealClock(),
 		games:        games,
 		dirtyGames:   make(map[string]chat1.FlipGameID),
@@ -682,8 +684,11 @@ func (m *FlipManager) Clock() clockwork.Clock {
 // ServerTime implements the flip.DealersHelper interface
 func (m *FlipManager) ServerTime(ctx context.Context) (res time.Time, err error) {
 	defer m.Trace(ctx, func() error { return err }, "ServerTime")()
-	// TODO: implement this for real
-	return m.clock.Now(), nil
+	sres, err := m.ri().ServerNow(ctx)
+	if err != nil {
+		return res, err
+	}
+	return sres.Now.Time(), nil
 }
 
 // SendChat implements the flip.DealersHelper interface
