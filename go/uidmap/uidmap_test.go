@@ -247,4 +247,35 @@ func TestRanOutOfTime(t *testing.T) {
 	require.Equal(t, results[1].FullName.EldestSeqno, keybase1.Seqno(1))
 	require.Equal(t, results[1].FullName.Status, keybase1.StatusCode_SCOk)
 	require.Nil(t, results[2].FullName)
+
+	// We should get same results from offline call
+	uidMap.testBatchIterHook = func() {
+		require.Fail(t, "unexpected network activity during offline uidmap call")
+	}
+
+	resultsCached, err := uidMap.MapUIDsToUsernamePackagesOffline(context.TODO(), tc.G, uids, 0)
+	require.NoError(t, err)
+	require.Equal(t, results, resultsCached)
+}
+
+func TestOfflineUIDMapNoCache(t *testing.T) {
+	tc := libkb.SetupTest(t, "TestOfflineUIDMapNoCache", 1)
+	defer tc.Cleanup()
+
+	uidMap := NewUIDMap(10)
+	uids := []keybase1.UID{mikem, max, tKB}
+
+	uidMap.testBatchIterHook = func() {
+		require.Fail(t, "unexpected network activity during offline uidmap call")
+	}
+
+	resultsCached, err := uidMap.MapUIDsToUsernamePackagesOffline(context.TODO(), tc.G, uids, 0)
+	require.NoError(t, err)
+	require.Len(t, resultsCached, 3)
+	require.EqualValues(t, "mikem", resultsCached[0].NormalizedUsername)
+	require.EqualValues(t, "max", resultsCached[1].NormalizedUsername)
+	require.True(t, resultsCached[2].NormalizedUsername.IsNil())
+	for _, v := range resultsCached {
+		require.Nil(t, v.FullName)
+	}
 }
