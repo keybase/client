@@ -754,13 +754,6 @@
             "string"
           ],
           "name": "flipGameID"
-        },
-        {
-          "type": [
-            null,
-            "UICoinFlipStatus"
-          ],
-          "name": "flipGameStatus"
         }
       ]
     },

@@ -434,6 +434,7 @@ type CoinFlipManager interface {
 	Resumable
 	StartFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID, tlfName, text string) error
 	MaybeInjectFlipMessage(ctx context.Context, msg chat1.MessageUnboxed, conv chat1.ConversationLocal)
+	LoadFlip(ctx context.Context, uid gregor1.UID, gameID chat1.FlipGameID)
 }
 
 type InternalError interface {

@@ -1321,7 +1321,7 @@ func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, msg chat1
 	return &body
 }
 
-func presentGameID(ctx context.Context, msg chat1.MessageUnboxed) *string {
+func presentFlipGameID(ctx context.Context, g *globals.Context, uid gregor1.UID, msg chat1.MessageUnboxed) *string {
 	typ, err := msg.State()
 	if err != nil {
 		return nil
@@ -1341,6 +1341,7 @@ func presentGameID(ctx context.Context, msg chat1.MessageUnboxed) *string {
 	if body.Text().FlipGameID == nil {
 		return nil
 	}
+	g.CoinFlipManager.LoadFlip(ctx, uid, *body.Text().FlipGameID)
 	ret := body.Text().FlipGameID.String()
 	return &ret
 }
@@ -1403,7 +1404,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Etime:                 valid.Etime(),
 			Reactions:             valid.Reactions,
 			HasPairwiseMacs:       valid.HasPairwiseMacs(),
-			FlipGameID:            presentGameID(ctx, rawMsg),
+			FlipGameID:            presentFlipGameID(ctx, g, uid, rawMsg),
 			PaymentInfos:          presentPaymentInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
 			RequestInfo:           presentRequestInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
 			Unfurls:               PresentUnfurls(ctx, g, uid, convID, valid.Unfurls),
@@ -1443,7 +1444,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Title:             title,
 			Filename:          filename,
 			IsEphemeral:       rawMsg.Outbox().Msg.IsEphemeral(),
-			FlipGameID:        presentGameID(ctx, rawMsg),
+			FlipGameID:        presentFlipGameID(ctx, g, uid, rawMsg),
 		})
 	case chat1.MessageUnboxedState_ERROR:
 		res = chat1.NewUIMessageWithError(rawMsg.Error())

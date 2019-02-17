@@ -185,7 +185,6 @@ protocol chatUi {
     array<UIMessageUnfurlInfo> unfurls;
     boolean isCollapsed;
     union { null, string } flipGameID;
-    union { null, UICoinFlipStatus } flipGameStatus;
   }
 
   record UIMessageOutbox {

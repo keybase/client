@@ -267,19 +267,22 @@ func (m *Manager) addResult(ctx context.Context, status *chat1.UICoinFlipStatus,
 	}
 }
 
+func (m *Manager) queueDirtyGameID(gameID chat1.FlipGameID, force bool) {
+	m.gamesMu.Lock()
+	m.dirtyGames[gameID.String()] = gameID
+	m.gamesMu.Unlock()
+	if force {
+		m.forceCh <- struct{}{}
+	}
+}
+
 func (m *Manager) handleUpdate(ctx context.Context, update GameStateUpdateMessage, force bool) (err error) {
 	gameID := update.Metadata.GameID
 	defer func() {
 		if err == nil {
-			m.gamesMu.Lock()
-			m.dirtyGames[gameID.String()] = gameID
-			m.gamesMu.Unlock()
-			if force {
-				m.forceCh <- struct{}{}
-			}
+			m.queueDirtyGameID(gameID, force)
 		}
 	}()
-
 	if update.StartPending != nil {
 		m.games.Add(gameID.String(), chat1.UICoinFlipStatus{
 			GameID:       gameID.String(),
@@ -540,6 +543,17 @@ func (m *Manager) MaybeInjectFlipMessage(ctx context.Context, msg chat1.MessageU
 	if err := m.dealer.InjectIncomingChat(ctx, sender, conv.GetConvID(), gameID,
 		MakeGameMessageEncoded(body.Text().Body), msg.GetMessageID() == 3); err != nil {
 		m.Debug(ctx, "MaybeInjectFlipMessage: failed to inject: %s", err)
+	}
+}
+
+// LoadFlip implements the types.CoinFlipManager interface
+func (m *Manager) LoadFlip(ctx context.Context, uid gregor1.UID, gameID chat1.FlipGameID) {
+	defer m.Trace(ctx, func() error { return nil }, "LoadFlip")()
+
+	_, ok := m.games.Get(gameID.String())
+	if ok {
+		m.queueDirtyGameID(gameID, true)
+		return
 	}
 }
 

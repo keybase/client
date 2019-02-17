@@ -565,7 +565,6 @@ type UIMessageValid struct {
 	Unfurls               []UIMessageUnfurlInfo  `codec:"unfurls" json:"unfurls"`
 	IsCollapsed           bool                   `codec:"isCollapsed" json:"isCollapsed"`
 	FlipGameID            *string                `codec:"flipGameID,omitempty" json:"flipGameID,omitempty"`
-	FlipGameStatus        *UICoinFlipStatus      `codec:"flipGameStatus,omitempty" json:"flipGameStatus,omitempty"`
 }
 
 func (o UIMessageValid) DeepCopy() UIMessageValid {
@@ -679,13 +678,6 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 			tmp := (*x)
 			return &tmp
 		})(o.FlipGameID),
-		FlipGameStatus: (func(x *UICoinFlipStatus) *UICoinFlipStatus {
-			if x == nil {
-				return nil
-			}
-			tmp := (*x).DeepCopy()
-			return &tmp
-		})(o.FlipGameStatus),
 	}
 }
 
