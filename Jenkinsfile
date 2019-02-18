@@ -101,6 +101,9 @@ helpers.rootLinuxNode(env, {
                 sh "make"
               }
               checkDiffs(['./go/', './protocol/'], 'Please run \\"make\\" inside the client/protocol directory.')
+              dir("go") {
+                sh "make gen-deps"
+              }
             }
             parallel (
               test_linux: {
@@ -113,16 +116,6 @@ helpers.rootLinuxNode(env, {
                   fetchChangeTarget()
                 }
                 parallel (
-                  check_deps: {
-                    // Checking deps can happen in parallel
-                    // since we won't be rebuilding anything in Go.
-                    if (hasGoChanges) {
-                      dir('go') {
-                        sh "make gen-deps"
-                        checkDiffs(['./'], 'Please run \\"make gen-deps\\" inside the client/go directory.')
-                      }
-                    }
-                  },
                   test_linux_go: { withEnv([
                     "PATH=${env.PATH}:${env.GOPATH}/bin",
                     "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
