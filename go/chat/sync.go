@@ -299,7 +299,8 @@ func (s *Syncer) notifyIncrementalSync(ctx context.Context, uid gregor1.UID,
 	m := make(map[chat1.TopicType][]chat1.ChatSyncIncrementalConv)
 	for _, c := range allConvs {
 		var md *types.RemoteConversationMetadata
-		rc, err := GetUnverifiedConv(ctx, s.G(), uid, c.GetConvID(), types.InboxSourceDataSourceLocalOnly)
+		rc, err := utils.GetUnverifiedConv(ctx, s.G(), uid, c.GetConvID(),
+			types.InboxSourceDataSourceLocalOnly)
 		if err == nil {
 			md = rc.LocalMetadata
 		}

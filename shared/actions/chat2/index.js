@@ -2566,6 +2566,11 @@ const giphySend = (state, action) => {
   return Chat2Gen.createMessageSend({conversationIDKey, text: url})
 }
 
+const onChatCoinFlipStatus = (status, action) => {
+  const {statuses} = action.payload.params
+  return Chat2Gen.createUpdateCoinFlipStatus({statuses: statuses || []})
+}
+
 const openChatFromWidget = (state, {payload: {conversationIDKey}}) => [
   ConfigGen.createShowMain(),
   RouteTreeGen.createSwitchTo({path: [Tabs.chatTab]}),
@@ -2984,6 +2989,10 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<EngineGen.Chat1ChatUiChatShowManageChannelsPayload>(
     EngineGen.chat1ChatUiChatShowManageChannels,
     onChatShowManageChannels
+  )
+  yield* Saga.chainAction<EngineGen.Chat1ChatUiChatCoinFlipStatusPayload>(
+    EngineGen.chat1ChatUiChatCoinFlipStatus,
+    onChatCoinFlipStatus
   )
 
   yield* Saga.chainAction<ConfigGen.SetupEngineListenersPayload>(

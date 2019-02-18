@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+
+	chat1 "github.com/keybase/client/go/protocol/chat1"
 )
 
 type Error struct {
@@ -177,7 +179,7 @@ func (b BadLeaderClockError) Error() string {
 }
 
 type GameReplayError struct {
-	G GameID
+	G chat1.FlipGameID
 }
 
 func (g GameReplayError) Error() string {
@@ -202,7 +204,7 @@ func (g GameShutdownError) Error() string {
 
 type BadChannelError struct {
 	G GameMetadata
-	C ConversationID
+	C chat1.ConversationID
 }
 
 func (b BadChannelError) Error() string {
@@ -239,9 +241,56 @@ var ErrBadData = errors.New("rejecting bad data, likely due to a nil field")
 
 type BadGameIDError struct {
 	G GameMetadata
-	I GameID
+	I chat1.FlipGameID
 }
 
 func (b BadGameIDError) Error() string {
 	return fmt.Sprintf("Bad game ID (%s) on incoming message for %s", b.I, b.G)
+}
+
+type CommitmentMismatchError struct {
+	G GameMetadata
+	U UserDevice
+}
+
+func (c CommitmentMismatchError) Error() string {
+	return fmt.Sprintf("Commitment wasn't correct for user %s in game %s", c.U, c.G)
+}
+
+type CommitmentCompleteSortError struct {
+	G GameMetadata
+}
+
+func (c CommitmentCompleteSortError) Error() string {
+	return fmt.Sprintf("Commitment list wasn't sorted properly; the leader is cheating!")
+}
+
+type BadCommitmentCompleteHashError struct {
+	G GameMetadata
+	U UserDevice
+}
+
+func (b BadCommitmentCompleteHashError) Error() string {
+	return fmt.Sprintf("Commitment complete hash error for game %s by user %s", b.G, b.U)
+}
+
+type RevealTooLateError struct {
+	G GameMetadata
+	U UserDevice
+}
+
+func (b RevealTooLateError) Error() string {
+	return fmt.Sprintf("Reveal from %s for get %s arrived too late", b.G, b.U)
+}
+
+type ReplayError struct {
+	s string
+}
+
+func NewReplayError(s string) ReplayError {
+	return ReplayError{s: s}
+}
+
+func (r ReplayError) Error() string {
+	return fmt.Sprintf("")
 }

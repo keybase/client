@@ -86,6 +86,7 @@ export type _State = {
   paymentConfirmInfo: ?PaymentConfirmInfo, // chat payment confirm screen data
   paymentStatusMap: I.Map<Wallet.PaymentID, Message.ChatPaymentInfo>,
   unsentTextMap: I.Map<Common.ConversationIDKey, ?HiddenString>,
+  flipStatusMap: I.Map<string, RPCChatTypes.UICoinFlipStatus>,
 } & TeamBuildingTypes.TeamBuildingSubState
 
 export type State = I.RecordOf<_State>

@@ -252,7 +252,7 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	// Get conversation metadata
-	conv, err := GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
+	conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		return chat1.ThreadView{}, err
 	}
@@ -581,7 +581,7 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 	defer s.lockTab.Release(ctx, uid, convID)
 
 	// Grab conversation information before pushing
-	conv, err := GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
+	conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		return decmsg, continuousUpdate, err
 	}
@@ -745,7 +745,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	defer s.lockTab.Release(ctx, uid, convID)
 
 	// Get conversation metadata
-	rconv, err := GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
+	rconv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 	var unboxConv types.UnboxConversationInfo
 	if err == nil {
 		conv := rconv.Conv
@@ -1123,7 +1123,7 @@ func (s *HybridConversationSource) notifyExpunge(ctx context.Context, uid gregor
 	if mergeRes.Expunged != nil {
 		var inboxItem *chat1.InboxUIItem
 		topicType := chat1.TopicType_NONE
-		conv, err := GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
+		conv, err := utils.GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 		if err != nil {
 			s.Debug(ctx, "notifyExpunge: failed to get conversations: %s", err)
 		} else {
@@ -1146,7 +1146,7 @@ func (s *HybridConversationSource) notifyUnfurls(ctx context.Context, uid gregor
 		return
 	}
 	s.Debug(ctx, "notifyUnfurls: notifying %d messages", len(msgs))
-	conv, err := GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
+	conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		s.Debug(ctx, "notifyUnfurls: failed to get conv: %s", err)
 		return
@@ -1173,7 +1173,7 @@ func (s *HybridConversationSource) notifyReactionUpdates(ctx context.Context, ui
 	convID chat1.ConversationID, msgs []chat1.MessageUnboxed) {
 	s.Debug(ctx, "notifyReactionUpdates: %d msgs to update", len(msgs))
 	if len(msgs) > 0 {
-		conv, err := GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
+		conv, err := utils.GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 		if err != nil {
 			s.Debug(ctx, "notifyReactionUpdates: failed to get conversations: %s", err)
 			return
