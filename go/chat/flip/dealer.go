@@ -757,11 +757,15 @@ func (d Dealer) sendOutgoingChatWithFirst(ctx context.Context, md GameMetadata, 
 	return nil
 }
 
+var DefaultCommitmentWindowMsec int64 = 3 * 1000
+var DefaultRevealWindowMsec int64 = 30 * 1000
+var DefaultSlackMsec int64 = 1 * 1000
+
 func newStart(now time.Time) Start {
 	return Start{
 		StartTime:            ToTime(now),
-		CommitmentWindowMsec: 3 * 1000,
-		RevealWindowMsec:     30 * 1000,
-		SlackMsec:            1 * 1000,
+		CommitmentWindowMsec: DefaultCommitmentWindowMsec,
+		RevealWindowMsec:     DefaultRevealWindowMsec,
+		SlackMsec:            DefaultSlackMsec,
 	}
 }

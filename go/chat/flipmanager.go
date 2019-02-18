@@ -404,7 +404,10 @@ func (m *FlipManager) parseMultiDie(arg string) (start flip.Start, err error) {
 
 func (m *FlipManager) parseShuffle(arg string) (start flip.Start, shuffleItems []string, err error) {
 	if strings.Contains(arg, ",") {
-		shuffleItems = strings.Split(arg, ",")
+		var shuffleItems []string
+		for _, tok := range strings.Split(arg, ",") {
+			shuffleItems = append(shuffleItems, strings.Trim(tok, " "))
+		}
 		return flip.NewStartWithShuffle(m.clock.Now(), int64(len(shuffleItems))), shuffleItems, nil
 	}
 	return start, shuffleItems, errFailedToParse
@@ -585,18 +588,18 @@ func (m *FlipManager) loadGame(ctx context.Context, job loadGameJob) (err error)
 	conv, err := utils.GetVerifiedConv(ctx, m.G(), job.uid, job.convID,
 		types.InboxSourceDataSourceAll)
 	if err != nil {
-		m.Debug(ctx, "loadGameLoop: failed to load conv for job: %s", err)
+		m.Debug(ctx, "loadGame: failed to load conv for job: %s", err)
 		return err
 	}
 	topicName := m.gameTopicNameFromGameID(job.gameID)
 	flipConvs, err := m.G().ChatHelper.FindConversations(ctx, conv.Info.TlfName,
 		&topicName, chat1.TopicType_DEV, conv.GetMembersType(), keybase1.TLFVisibility_PRIVATE)
 	if err != nil {
-		m.Debug(ctx, "loadGameLoop: failure finding flip conv: %s", err)
+		m.Debug(ctx, "loadGame: failure finding flip conv: %s", err)
 		return err
 	}
 	if len(flipConvs) != 1 {
-		m.Debug(ctx, "loadGameLoop: bad number of convs: num: %d", job.convID, len(flipConvs))
+		m.Debug(ctx, "loadGame: bad number of convs: num: %d", len(flipConvs))
 		return errors.New("no conv found")
 	}
 	flipConv := flipConvs[0]
@@ -604,17 +607,19 @@ func (m *FlipManager) loadGame(ctx context.Context, job loadGameJob) (err error)
 	tv, err := m.G().ConvSource.Pull(ctx, flipConv.GetConvID(), job.uid, chat1.GetThreadReason_COINFLIP, nil,
 		nil)
 	if err != nil {
-		m.Debug(ctx, "loadGameLoop: failed to pull thread:  %s", err)
+		m.Debug(ctx, "loadGame: failed to pull thread:  %s", err)
 		return err
 	}
 	if len(tv.Messages) < 3 {
-		m.Debug(ctx, "loadGameLoop: not enough messages to replay")
+		m.Debug(ctx, "loadGame: not enough messages to replay")
 		return errors.New("not enough messages")
 	}
 	var history flip.GameHistory
 	for index := len(tv.Messages) - 3; index >= 0; index-- {
 		msg := tv.Messages[index]
+		m.Debug(ctx, "loadGame: processing msgID: %d", msg.GetMessageID())
 		if !msg.IsValid() {
+			m.Debug(ctx, "loadGame: skipping invalid message: %d", msg.GetMessageID())
 			continue
 		}
 		body := msg.Valid().MessageBody
@@ -634,9 +639,10 @@ func (m *FlipManager) loadGame(ctx context.Context, job loadGameJob) (err error)
 			Time: msg.Valid().ServerHeader.Ctime.Time(),
 		})
 	}
+	m.Debug(ctx, "loadGame: playing back %d messages from history", len(history))
 	summary, err := flip.Replay(ctx, history)
 	if err != nil {
-		m.Debug(ctx, "loadGameLoop: failed to replay history: %s", err)
+		m.Debug(ctx, "loadGame: failed to replay history: %s", err)
 		return err
 	}
 	m.handleSummaryUpdate(ctx, job.gameID, summary, flipConv.GetConvID(), true)
@@ -723,4 +729,9 @@ func (m *FlipManager) Me() flip.UserDevice {
 		U: gregor1.UID(ad.UID().ToBytes()),
 		D: gregor1.DeviceID(hdid),
 	}
+}
+
+// clearGameCache should only be used by tests
+func (m *FlipManager) clearGameCache() {
+	m.games.Purge()
 }
