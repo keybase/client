@@ -35,9 +35,6 @@ var DefaultDesktopDbCleanerConfig = DbCleanerConfig{
 	CacheCapacity: 100000,
 }
 
-// special key which marks out place when iterating through the db
-const dbCleanerLastKey = "__lk"
-
 func getDbSize(db *leveldb.DB) (uint64, error) {
 	var stats leveldb.DBStats
 	if err := db.Stats(&stats); err != nil {
@@ -54,6 +51,7 @@ type levelDbCleaner struct {
 	Contextified
 	sync.Mutex
 
+	lastKey []byte
 	lastRun time.Time
 	dbName  string
 	config  DbCleanerConfig
@@ -106,19 +104,6 @@ func (c *levelDbCleaner) clearCache() {
 	c.cache.Purge()
 }
 
-func (c *levelDbCleaner) getLastKey(ctx context.Context) []byte {
-	value, found := c.cache.Get(dbCleanerLastKey)
-	if !found {
-		return nil
-	}
-
-	key, ok := value.([]byte)
-	if !ok {
-		return nil
-	}
-	return key
-}
-
 func (c *levelDbCleaner) clean(ctx context.Context) (err error) {
 	c.Lock()
 	defer c.Unlock()
@@ -148,7 +133,7 @@ func (c *levelDbCleaner) clean(ctx context.Context) (err error) {
 		return nil
 	}
 
-	key := c.getLastKey(ctx)
+	key := c.lastKey
 	for i := 0; i < 100; i++ {
 		key, err = c.cleanBatch(ctx, key)
 		if err != nil {
@@ -166,7 +151,7 @@ func (c *levelDbCleaner) clean(ctx context.Context) (err error) {
 
 		time.Sleep(time.Millisecond * 500)
 	}
-	c.cache.Add(dbCleanerLastKey, key)
+	c.lastKey = key
 	return nil
 }
 
