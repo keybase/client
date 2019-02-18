@@ -11,7 +11,7 @@ import {isAndroid, version, logFileName, pprofDir} from '../constants/platform'
 import {writeLogLinesToFile} from '../util/forward-logs'
 import {Platform, NativeModules} from 'react-native'
 
-type OwnProps = RouteProps<{heading: string}, {}>
+type OwnProps = RouteProps<{}, {}>
 
 const nativeBridge = NativeModules.KeybaseEngine
 const appVersionName = nativeBridge.appVersionName || ''
@@ -28,7 +28,6 @@ type State = {
 
 type Props = PropsWithTimer<{
   chat: Object,
-  heading: ?string,
   onBack: () => void,
   status: Object,
   title: string,
@@ -114,7 +113,6 @@ class FeedbackContainer extends React.Component<Props, State> {
         onSendFeedbackContained={this._onSendFeedback}
         onChangeFeedback={this._onChangeFeedback}
         feedback={this.state.feedback}
-        heading={this.props.heading}
         sending={this.state.sending}
         sendError={this.state.sendError}
         sendLogs={this.state.sendLogs}
@@ -181,7 +179,6 @@ const extraChatLogs = state => {
 const mapStateToProps = (state, {routeProps}) => {
   return {
     chat: extraChatLogs(state),
-    heading: routeProps.get('heading') || 'Your feedback is welcomed!',
     status: {
       appVersionCode,
       appVersionName,
