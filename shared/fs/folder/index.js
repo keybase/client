@@ -10,21 +10,25 @@ import {isMobile} from '../../constants/platform'
 import ConnectedResetBanner from '../banner/reset-banner/container'
 import Rows from '../row/rows-container'
 import DropTarget from './drop-target'
+import {asRows as sortBarAsRows} from '../sortbar/container'
 
-type FolderProps = {
+type FolderProps = {|
   isUserReset: boolean,
-  sortSetting: Types.SortSetting,
   onAttach?: ?(paths: Array<string>) => void,
   path: Types.Path,
   resetParticipants: Array<string>,
   routePath: I.List<string>,
-}
+|}
 
 class Files extends React.PureComponent<FolderProps> {
   renderContent() {
     return (
       <DropTarget onAttach={this.props.onAttach}>
-        <Rows path={this.props.path} routePath={this.props.routePath} sortSetting={this.props.sortSetting} />
+        <Rows
+          path={this.props.path}
+          routePath={this.props.routePath}
+          headerRows={sortBarAsRows(this.props.path)}
+        />
       </DropTarget>
     )
   }

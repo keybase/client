@@ -11,7 +11,6 @@ const mapStateToProps = (state, {path}) => ({
   _pathItems: state.fs.pathItems,
   _tlfs: state.fs.tlfs,
   _username: state.config.username,
-  sortSetting: state.fs.pathUserSettings.get(path, Constants.makePathUserSetting()).get('sort'),
 })
 
 const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
@@ -28,16 +27,15 @@ const mergeProps = (stateProps, dispatchProps, {path, routePath}) => {
     .resetParticipants.map(i => i.username)
     .toArray()
   const isUserReset = !!stateProps._username && resetParticipants.includes(stateProps._username)
-  const {sortSetting} = stateProps
   const writable = stateProps._pathItems.get(path, Constants.unknownPathItem).writable
   const onAttach = writable ? dispatchProps.onAttach : null
-  return {isUserReset, onAttach, path, resetParticipants, routePath, sortSetting}
+  return {isUserReset, onAttach, path, resetParticipants, routePath}
 }
 
-type OwnProps = {
+type OwnProps = {|
   path: Types.Path,
   routePath: I.List<string>,
-}
+|}
 
 // flow can't figure out type when compose is used.
 export default SecurityPrefsPromptingHoc<OwnProps>(

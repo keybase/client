@@ -2,21 +2,23 @@
 import * as I from 'immutable'
 import {namedConnect} from '../../util/container'
 import * as Types from '../../constants/types/fs'
+import * as RowTypes from './types'
 import * as Constants from '../../constants/fs'
+import {isMobile} from '../../constants/platform'
 import {
   sortRowItems,
   type SortableStillRowItem,
   type SortableEditingRowItem,
   type SortableUploadingRowItem,
   type SortableRowItem,
-} from '../utils/sort'
+} from './sort'
 import Rows from './rows'
 
 type OwnProps = {|
   path: Types.Path, // path to the parent folder containering the rows
-  sortSetting: Types.SortSetting,
   routePath: I.List<string>,
   destinationPickerIndex?: number,
+  headerRows?: ?Array<RowTypes.RowItemWithKey>,
 |}
 
 const getEditingRows = (
@@ -89,7 +91,7 @@ const getPlaceholderRows = type => [
   {key: 'placeholder:3', name: '3', rowType: 'placeholder', type},
 ]
 
-const getInTlfItemsFromStateProps = (stateProps, path: Types.Path, sortSetting) => {
+const getInTlfItemsFromStateProps = (stateProps, path: Types.Path) => {
   const _pathItem = stateProps._pathItems.get(path, Constants.unknownPathItem)
   if (_pathItem.type !== 'folder') {
     return getPlaceholderRows('file')
@@ -104,19 +106,19 @@ const getInTlfItemsFromStateProps = (stateProps, path: Types.Path, sortSetting) 
 
   return sortRowItems(
     editingRows.concat(amendStillRows(stillRows, stateProps._uploads)),
-    sortSetting,
+    stateProps._sortSetting,
     undefined
   )
 }
 
-const getRootRows = (stateProps, sortSetting) =>
+const getRootRows = stateProps =>
   sortRowItems(
     [
       {key: 'tlfType:private', name: 'private', rowType: 'tlf-type', type: 'folder'},
       {key: 'tlfType:public', name: 'public', rowType: 'tlf-type', type: 'folder'},
       {key: 'tlfType:team', name: 'team', rowType: 'tlf-type', type: 'folder'},
     ],
-    sortSetting,
+    stateProps._sortSetting,
     undefined
   )
 
@@ -139,7 +141,7 @@ const getTlfRowsFromTlfs = (tlfs: I.Map<string, Types.Tlf>, tlfType: Types.TlfTy
     ([]: Array<SortableRowItem>)
   )
 
-const getTlfItemsFromStateProps = (stateProps, path, sortSetting) => {
+const getTlfItemsFromStateProps = (stateProps, path) => {
   if (stateProps._tlfs.private.count() === 0) {
     // /keybase/private/<me> is always favorited. If it's not there it must be
     // unintialized.
@@ -149,28 +151,29 @@ const getTlfItemsFromStateProps = (stateProps, path, sortSetting) => {
   const {tlfList, tlfType} = Constants.getTlfListAndTypeFromPath(stateProps._tlfs, path)
   return sortRowItems(
     getTlfRowsFromTlfs(tlfList, tlfType),
-    sortSetting,
+    stateProps._sortSetting,
     (Types.pathIsNonTeamTLFList(path) && stateProps._username) || undefined
   )
 }
 
-const getItemsFromStateProps = (stateProps, path, sortSetting) => {
+const getNormalRowItemsFromStateProps = (stateProps, path) => {
   const level = Types.getPathLevel(path)
   switch (level) {
     case 0:
       return [] // should never happen
     case 1:
-      return getRootRows(stateProps, sortSetting)
+      return getRootRows(stateProps)
     case 2:
-      return getTlfItemsFromStateProps(stateProps, path, sortSetting)
+      return getTlfItemsFromStateProps(stateProps, path)
     default:
-      return getInTlfItemsFromStateProps(stateProps, path, sortSetting)
+      return getInTlfItemsFromStateProps(stateProps, path)
   }
 }
 
-const mapStateToProps = state => ({
+const mapStateToProps = (state, {path}) => ({
   _edits: state.fs.edits,
   _pathItems: state.fs.pathItems,
+  _sortSetting: state.fs.pathUserSettings.get(path, Constants.makePathUserSetting()).get('sort'),
   _tlfs: state.fs.tlfs,
   _uploads: state.fs.uploads,
   _username: state.config.username,
@@ -181,7 +184,20 @@ const mapDispatchToProps = dispatch => ({})
 // $FlowIssue
 const mergeProps = (s, d, o: OwnProps) => ({
   destinationPickerIndex: o.destinationPickerIndex,
-  items: getItemsFromStateProps(s, o.path, o.sortSetting),
+  items: [
+    ...(o.headerRows || []),
+    ...getNormalRowItemsFromStateProps(s, o.path),
+    // If we are in the destination picker, inject two empty rows so when
+    // user scrolls to the bottom nothing is blocked by the
+    // semi-transparent footer.
+    //
+    // TODO: add `footerRows` and inject these from destination-picker, so that
+    // Rows componenet don't need to worry about whether it's in
+    // destinationPicker mode or not.
+    ...(!isMobile && typeof o.destinationPickerIndex === 'number'
+      ? [{key: 'empty:0', rowType: 'empty'}, {key: 'empty:1', rowType: 'empty'}]
+      : []),
+  ],
   path: o.path,
   routePath: o.routePath,
 })

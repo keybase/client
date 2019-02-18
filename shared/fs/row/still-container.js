@@ -1,13 +1,13 @@
 // @flow
 import * as React from 'react'
 import * as I from 'immutable'
-import * as Types from '../../constants/types/fs'
+import * as RowTypes from './types'
 import * as Constants from '../../constants/fs'
 import {namedConnect} from '../../util/container'
 import OpenHOC from '../common/open-hoc'
 import Still from './still'
 
-type OwnProps = $Diff<Types.StillRowItem, {rowType: 'still'}> & {
+type OwnProps = $Diff<RowTypes.StillRowItem, {rowType: 'still'}> & {
   routePath: I.List<string>,
   destinationPickerIndex?: number,
 }

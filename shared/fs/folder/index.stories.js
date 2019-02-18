@@ -2,7 +2,6 @@
 import * as I from 'immutable'
 import React from 'react'
 import * as Types from '../../constants/types/fs'
-import * as Constants from '../../constants/fs'
 import * as Sb from '../../stories/storybook'
 import Files from '.'
 import * as Kb from '../../common-adapters'
@@ -26,11 +25,10 @@ export default () => {
     .add('Root', () => (
       <Kb.Box2 direction="horizontal" fullWidth={true} fullHeight={true}>
         <Files
-          path={Types.stringToPath('/keybase')}
+          path={Types.stringToPath('/keybase/private/foo')}
           routePath={I.List([])}
           isUserReset={false}
           resetParticipants={['foo']}
-          sortSetting={Constants.makeSortSetting()}
         />
       </Kb.Box2>
     ))
