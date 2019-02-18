@@ -1,7 +1,6 @@
 package chat
 
 import (
-	"context"
 	"fmt"
 	"strings"
 	"testing"
@@ -151,17 +150,21 @@ func TestFlipManagerStartFlip(t *testing.T) {
 
 			uid := users[0].User.GetUID().ToBytes()
 			ttype := chat1.TopicType_DEV
-			ibox, _, err := ctc.as(t, users[0]).h.G().InboxSource.Read(context.TODO(), uid,
+			ctx := ctc.as(t, users[0]).startCtx
+			ibox, _, err := ctc.as(t, users[0]).h.G().InboxSource.Read(ctx, uid,
 				types.ConversationLocalizerBlocking, types.InboxSourceDataSourceAll, nil,
 				&chat1.GetInboxLocalQuery{
 					TopicType: &ttype,
 				}, nil)
 			require.NoError(t, err)
+			numConvs := 0
 			for _, conv := range ibox.Convs {
 				if strings.HasPrefix(conv.Info.TopicName, gameIDTopicNamePrefix) {
+					numConvs++
 					require.Equal(t, conv.ConvRetention, policy)
 				}
 			}
+			require.Equal(t, 4, numConvs)
 		})
 	})
 }
