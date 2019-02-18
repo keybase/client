@@ -18,12 +18,8 @@ type State = {
 }
 
 class CoinFlip extends React.Component<Props, State> {
-  partRef: any
+  _partRef = React.createRef()
   state = {showPopup: false}
-  constructor(props: Props) {
-    super(props)
-    this.partRef = React.createRef()
-  }
   _showPopup = () => {
     this.setState({showPopup: true})
   }
@@ -31,7 +27,7 @@ class CoinFlip extends React.Component<Props, State> {
     this.setState({showPopup: false})
   }
   _getAttachmentRef = () => {
-    return this.partRef.current
+    return this._partRef.current
   }
   render() {
     const popup = (
@@ -59,7 +55,7 @@ class CoinFlip extends React.Component<Props, State> {
             {this.props.showParticipants && (
               <Kb.Box2 direction="horizontal" onMouseOver={this._showPopup} onMouseLeave={this._hidePopup}>
                 <Kb.Text
-                  ref={this.partRef}
+                  ref={this._partRef}
                   type="BodySmallPrimaryLink"
                   style={styles.participantsLabel}
                   onClick={this._showPopup}

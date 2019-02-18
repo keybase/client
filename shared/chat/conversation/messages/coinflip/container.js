@@ -11,12 +11,14 @@ const participantStatuses = [
   RPCChatTypes.chatUiUICoinFlipPhase.complete,
 ]
 
+const noParticipants = []
+
 const mapStateToProps = (state, {flipGameID}: OwnProps) => {
   const status = state.chat2.getIn(['flipStatusMap', flipGameID])
   return !status
     ? {
         isError: false,
-        participants: [],
+        participants: noParticipants,
         progressText: 'Waiting for flip information...',
         resultText: '',
         showParticipants: false,
