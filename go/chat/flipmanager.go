@@ -383,18 +383,6 @@ func (m *FlipManager) updateLoop(shutdownCh chan struct{}) {
 
 const gameIDTopicNamePrefix = "__keybase_coinflip_game_"
 
-func (m *FlipManager) isGameIDTopicName(topicName string) (res chat1.FlipGameID, ok bool) {
-	if strings.HasPrefix(topicName, gameIDTopicNamePrefix) {
-		strGameID := strings.Split(topicName, gameIDTopicNamePrefix)[1]
-		gameID, err := chat1.MakeFlipGameID(strGameID)
-		if err != nil {
-			return res, false
-		}
-		return gameID, true
-	}
-	return res, false
-}
-
 func (m *FlipManager) gameTopicNameFromGameID(gameID chat1.FlipGameID) string {
 	return fmt.Sprintf("%s%s", gameIDTopicNamePrefix, gameID)
 }
