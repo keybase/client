@@ -736,7 +736,7 @@ func (d *Dealer) sendOutgoingChat(ctx context.Context, md GameMetadata, me *play
 	return d.sendOutgoingChatWithFirst(ctx, md, me, body, false)
 }
 
-func (d Dealer) sendOutgoingChatWithFirst(ctx context.Context, md GameMetadata, me *playerControl, body GameMessageBody, firstInConversation bool) error {
+func (d *Dealer) sendOutgoingChatWithFirst(ctx context.Context, md GameMetadata, me *playerControl, body GameMessageBody, firstInConversation bool) error {
 
 	gmw := GameMessageWrapped{
 		Sender:              d.dh.Me(),
