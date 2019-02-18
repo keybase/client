@@ -160,6 +160,17 @@ func (m *FlipManager) makeBkgContext() context.Context {
 	return Context(ctx, m.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, nil)
 }
 
+func (m *FlipManager) isHostMessageInfoMsgID(msgID chat1.MessageID) bool {
+	// The first message in a flip thread is metadata about the flip, which is message ID 2 since
+	// conversations have an initial message from creation.
+	return chat1.MessageID(2) == msgID
+}
+
+func (m *FlipManager) isStartMsgID(msgID chat1.MessageID) bool {
+	// The first message after the host message is the flip start message, which will have message ID 3
+	return chat1.MessageID(3) == msgID
+}
+
 func (m *FlipManager) notifyDirtyGames() {
 	m.gamesMu.Lock()
 	defer m.gamesMu.Unlock()
@@ -253,25 +264,26 @@ func (m *FlipManager) addResult(ctx context.Context, status *chat1.UICoinFlipSta
 		}
 	}()
 	hmi, err := m.getHostMessageInfo(ctx, convID)
-	if err != nil {
+	switch {
+	case err != nil:
 		m.Debug(ctx, "addResult: failed to describe result: %s", err)
 		status.Phase = chat1.UICoinFlipPhase_ERROR
 		status.ProgressText = "Failed to describe result"
-	} else if result.Big != nil {
+	case result.Big != nil:
 		lb := new(big.Int)
 		res := new(big.Int)
 		lb.SetString(hmi.LowerBound, 10)
 		res.Add(lb, result.Big)
 		status.ResultText = res.String()
-	} else if result.Bool != nil {
+	case result.Bool != nil:
 		if *result.Bool {
 			status.ResultText = "HEADS"
 		} else {
 			status.ResultText = "TAILS"
 		}
-	} else if result.Int != nil {
+	case result.Int != nil:
 		status.ResultText = fmt.Sprintf("%d", *result.Int)
-	} else if len(result.Shuffle) > 0 {
+	case len(result.Shuffle) > 0:
 		if len(hmi.ShuffleItems) != len(result.Shuffle) {
 			status.Phase = chat1.UICoinFlipPhase_ERROR
 			status.ProgressText = "Failed to describe shuffle result"
@@ -335,21 +347,22 @@ func (m *FlipManager) handleUpdate(ctx context.Context, update flip.GameStateUpd
 			GameID: gameID.String(),
 		}
 	}
-	if update.Err != nil {
+	switch {
+	case update.Err != nil:
 		status.Phase = chat1.UICoinFlipPhase_ERROR
 		status.ProgressText = fmt.Sprintf("Something went wrong: %s", update.Err)
-	} else if update.Commitment != nil {
+	case update.Commitment != nil:
 		status.Phase = chat1.UICoinFlipPhase_COMMITMENT
 		m.addParticipant(ctx, &status, *update.Commitment)
-	} else if update.CommitmentComplete != nil {
+	case update.CommitmentComplete != nil:
 		status.Phase = chat1.UICoinFlipPhase_REVEALS
 		status.ProgressText = "Commitments complete, revealing secrets..."
-	} else if update.Reveal != nil {
+	case update.Reveal != nil:
 		m.addReveal(ctx, &status, *update.Reveal)
-	} else if update.Result != nil {
+	case update.Result != nil:
 		status.Phase = chat1.UICoinFlipPhase_COMPLETE
 		m.addResult(ctx, &status, *update.Result, update.Metadata.ConversationID)
-	} else {
+	default:
 		return errors.New("unknown update kind")
 	}
 	m.games.Add(gameID.String(), status)
@@ -553,7 +566,8 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, msg chat1.MessageUnboxed,
 	conv chat1.ConversationLocal) {
 	// earliest of outs if this isn't a dev convo, an error, or the outbox ID message
-	if conv.GetTopicType() != chat1.TopicType_DEV || !msg.IsValid() || msg.GetMessageID() == 2 {
+	if conv.GetTopicType() != chat1.TopicType_DEV || !msg.IsValid() ||
+		m.isHostMessageInfoMsgID(msg.GetMessageID()) {
 		return
 	}
 	// Ignore anything from the current device
@@ -576,7 +590,7 @@ func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, msg chat1.Mess
 		return
 	}
 	if err := m.dealer.InjectIncomingChat(ctx, sender, conv.GetConvID(), gameID,
-		flip.MakeGameMessageEncoded(body.Text().Body), msg.GetMessageID() == 3); err != nil {
+		flip.MakeGameMessageEncoded(body.Text().Body), m.isStartMsgID(msg.GetMessageID())); err != nil {
 		m.Debug(ctx, "MaybeInjectFlipMessage: failed to inject: %s", err)
 	}
 }
@@ -603,7 +617,7 @@ func (m *FlipManager) loadGame(ctx context.Context, job loadGameJob) (err error)
 		return errors.New("no conv found")
 	}
 	flipConv := flipConvs[0]
-	// TODO: fix me, need to potentiallu loop on this for big flips
+	// FIXME, need to potentially loop on this for big flips
 	tv, err := m.G().ConvSource.Pull(ctx, flipConv.GetConvID(), job.uid, chat1.GetThreadReason_COINFLIP, nil,
 		nil)
 	if err != nil {
@@ -633,7 +647,7 @@ func (m *FlipManager) loadGame(ctx context.Context, job loadGameJob) (err error)
 				},
 				GameID:              job.gameID,
 				Body:                flip.MakeGameMessageEncoded(body.Text().Body),
-				FirstInConversation: msg.GetMessageID() == 3,
+				FirstInConversation: m.isStartMsgID(msg.GetMessageID()),
 			},
 			Time: msg.Valid().ServerHeader.Ctime.Time(),
 		})
