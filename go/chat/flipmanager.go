@@ -395,6 +395,10 @@ func (m *FlipManager) parseMultiDie(arg string) (start flip.Start, err error) {
 	if _, err := fmt.Sscan(arg, lb); err != nil {
 		return start, errFailedToParse
 	}
+	// needs to be a positive number > 0
+	if lb.Sign() <= 0 {
+		return start, errFailedToParse
+	}
 	return flip.NewStartWithBigInt(m.clock.Now(), lb), nil
 }
 
@@ -422,9 +426,11 @@ func (m *FlipManager) parseRange(arg string) (start flip.Start, lowerBound strin
 	if _, err := fmt.Sscan(toks[1], ub); err != nil {
 		return start, lowerBound, errFailedToParse
 	}
+	one := new(big.Int).SetInt64(1)
 	diff := new(big.Int)
 	diff.Sub(ub, lb)
-	if diff.Sign() < 0 {
+	diff = diff.Add(diff, one)
+	if diff.Sign() <= 0 {
 		return start, lowerBound, errFailedToParse
 	}
 	return flip.NewStartWithBigInt(m.clock.Now(), diff), lb.String(), nil

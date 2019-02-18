@@ -50,6 +50,9 @@ func (c ChatTestContext) Cleanup() {
 	if c.ChatG.InboxSource != nil {
 		<-c.ChatG.InboxSource.Stop(context.TODO())
 	}
+	if c.ChatG.CoinFlipManager != nil {
+		<-c.ChatG.CoinFlipManager.Stop(context.TODO())
+	}
 	c.TestContext.Cleanup()
 }
 
@@ -974,6 +977,7 @@ type ChatUI struct {
 	StellarDone        chan struct{}
 	ShowManageChannels chan string
 	GiphyResults       chan []chat1.GiphySearchResult
+	CoinFlipUpdates    chan []chat1.UICoinFlipStatus
 }
 
 func NewChatUI() *ChatUI {
@@ -990,6 +994,7 @@ func NewChatUI() *ChatUI {
 		StellarDone:        make(chan struct{}, 10),
 		ShowManageChannels: make(chan string, 10),
 		GiphyResults:       make(chan []chat1.GiphySearchResult, 10),
+		CoinFlipUpdates:    make(chan []chat1.UICoinFlipStatus, 10),
 	}
 }
 
@@ -1125,7 +1130,8 @@ func (c *ChatUI) ChatGiphySearchResults(ctx context.Context, convID chat1.Conver
 	return nil
 }
 
-func (c *ChatUI) ChatCoinFlipStatus(context.Context, []chat1.UICoinFlipStatus) error {
+func (c *ChatUI) ChatCoinFlipStatus(ctx context.Context, updates []chat1.UICoinFlipStatus) error {
+	c.CoinFlipUpdates <- updates
 	return nil
 }
 
