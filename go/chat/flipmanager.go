@@ -83,6 +83,7 @@ func (n *sentMessageListener) NewChatActivity(uid keybase1.UID, activity chat1.C
 type hostMessageInfo struct {
 	ConvID       chat1.ConversationID
 	MsgID        chat1.MessageID
+	GameID       chat1.FlipGameID
 	LowerBound   string
 	ShuffleItems []string
 }
@@ -548,6 +549,7 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 	infoBody, err := json.Marshal(hostMessageInfo{
 		ConvID:       hostConvID,
 		MsgID:        sendRes.MsgID,
+		GameID:       gameID,
 		LowerBound:   lowerBound,
 		ShuffleItems: shuffleItems,
 	})
@@ -564,10 +566,9 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 
 // MaybeInjectFlipMessage implements the types.CoinFlipManager interface
 func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, msg chat1.MessageUnboxed,
-	conv chat1.ConversationLocal) {
+	convID chat1.ConversationID, topicType chat1.TopicType) {
 	// earliest of outs if this isn't a dev convo, an error, or the outbox ID message
-	if conv.GetTopicType() != chat1.TopicType_DEV || !msg.IsValid() ||
-		m.isHostMessageInfoMsgID(msg.GetMessageID()) {
+	if topicType != chat1.TopicType_DEV || !msg.IsValid() || m.isHostMessageInfoMsgID(msg.GetMessageID()) {
 		return
 	}
 	// Ignore anything from the current device
@@ -578,18 +579,17 @@ func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, msg chat1.Mess
 	if sender.Eq(m.Me()) {
 		return
 	}
-	defer m.Trace(ctx, func() error { return nil }, "MaybeInjectFlipMessage: convID: %s",
-		conv.GetConvID())()
+	defer m.Trace(ctx, func() error { return nil }, "MaybeInjectFlipMessage: convID: %s", convID)()
 	body := msg.Valid().MessageBody
 	if !body.IsType(chat1.MessageType_TEXT) {
 		return
 	}
-	// check topic name
-	gameID, ok := m.isGameIDTopicName(conv.GetTopicName())
-	if !ok {
+	hostMsg, err := m.getHostMessageInfo(ctx, convID)
+	if err != nil {
+		m.Debug(ctx, "MaybeInjectFlipMessage: failed to get host message info: %s", err)
 		return
 	}
-	if err := m.dealer.InjectIncomingChat(ctx, sender, conv.GetConvID(), gameID,
+	if err := m.dealer.InjectIncomingChat(ctx, sender, convID, hostMsg.GameID,
 		flip.MakeGameMessageEncoded(body.Text().Body), m.isStartMsgID(msg.GetMessageID())); err != nil {
 		m.Debug(ctx, "MaybeInjectFlipMessage: failed to inject: %s", err)
 	}
