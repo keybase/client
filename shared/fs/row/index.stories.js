@@ -3,6 +3,7 @@ import * as I from 'immutable'
 import React from 'react'
 import * as Sb from '../../stories/storybook'
 import * as Types from '../../constants/types/fs'
+import {isMobile} from '../../constants/platform'
 import {Box} from '../../common-adapters'
 import {WrapRow} from './rows'
 import ConnectedStillRow from './still-container'
@@ -23,6 +24,7 @@ export const rowsProvider = {
     destinationPickerIndex: o.destinationPickerIndex,
     ifEmpty: o.ifEmpty,
     items: [
+      ...o.headerRows,
       {name: 'me', path: Types.stringToPath('/keybase/private/me'), rowType: 'still'},
       {name: 'me,abc', path: Types.stringToPath('/keybase/private/me,empty'), rowType: 'still'},
       {name: 'me,abc,def', path: Types.stringToPath('/keybase/private/me,abc,def'), rowType: 'still'},
@@ -35,6 +37,18 @@ export const rowsProvider = {
       {name: 'me,def,ghi', path: Types.stringToPath('/keybase/private/me,def,ghi'), rowType: 'still'},
       {name: 'me,ghi', path: Types.stringToPath('/keybase/private/me,ghi'), rowType: 'still'},
       {name: 'me,abc,ghi', path: Types.stringToPath('/keybase/private/me,abc,ghi'), rowType: 'still'},
+      {name: '1', path: Types.stringToPath('/keybase/private/1'), rowType: 'still'},
+      {name: '2', path: Types.stringToPath('/keybase/private/2'), rowType: 'still'},
+      {name: '3', path: Types.stringToPath('/keybase/private/3'), rowType: 'still'},
+      {name: '4', path: Types.stringToPath('/keybase/private/4'), rowType: 'still'},
+      {name: '5', path: Types.stringToPath('/keybase/private/5'), rowType: 'still'},
+      {name: '6', path: Types.stringToPath('/keybase/private/6'), rowType: 'still'},
+      {name: '7', path: Types.stringToPath('/keybase/private/7'), rowType: 'still'},
+      {name: '8', path: Types.stringToPath('/keybase/private/8'), rowType: 'still'},
+      {name: '9', path: Types.stringToPath('/keybase/private/9'), rowType: 'still'},
+      ...(!isMobile && typeof o.destinationPickerIndex === 'number'
+        ? [{key: 'empty:0', rowType: 'empty'}, {key: 'empty:1', rowType: 'empty'}]
+        : []),
     ],
     routePath: I.List(),
   }),
