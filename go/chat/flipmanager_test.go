@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"testing"
@@ -8,9 +9,11 @@ import (
 
 	"github.com/keybase/client/go/chat/flip"
 	"github.com/keybase/client/go/chat/globals"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
+	"github.com/keybase/client/go/protocol/gregor1"
 	"github.com/stretchr/testify/require"
 )
 
@@ -32,97 +35,134 @@ func consumeFlipToResult(t *testing.T, ui *kbtest.ChatUI, numUsers int) string {
 
 func TestFlipManagerStartFlip(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
-		ctc := makeChatTestContext(t, "FlipManager", 3)
-		defer ctc.cleanup()
+		runWithEphemeral(t, mt, func(ephemeralLifetime *gregor1.DurationSec) {
+			ctc := makeChatTestContext(t, "FlipManager", 3)
+			defer ctc.cleanup()
 
-		users := ctc.users()
-		ui0 := kbtest.NewChatUI()
-		ui1 := kbtest.NewChatUI()
-		ui2 := kbtest.NewChatUI()
-		numUsers := 3
-		flip.DefaultCommitmentWindowMsec = 500
+			users := ctc.users()
+			ui0 := kbtest.NewChatUI()
+			ui1 := kbtest.NewChatUI()
+			ui2 := kbtest.NewChatUI()
+			numUsers := 3
+			flip.DefaultCommitmentWindowMsec = 500
 
-		ctc.as(t, users[0]).h.mockChatUI = ui0
-		ctc.as(t, users[1]).h.mockChatUI = ui1
-		ctc.as(t, users[2]).h.mockChatUI = ui2
-		ctc.world.Tcs[users[0].Username].G.UIRouter = &fakeUIRouter{ui: ui0}
-		ctc.world.Tcs[users[1].Username].G.UIRouter = &fakeUIRouter{ui: ui1}
-		ctc.world.Tcs[users[2].Username].G.UIRouter = &fakeUIRouter{ui: ui2}
+			listener0 := newServerChatListener()
+			ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
+			ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
 
-		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
-			mt, ctc.as(t, users[1]).user(), ctc.as(t, users[2]).user())
+			listener1 := newServerChatListener()
+			ctc.as(t, users[1]).h.G().NotifyRouter.AddListener(listener1)
+			ctc.world.Tcs[users[1].Username].ChatG.Syncer.(*Syncer).isConnected = true
 
-		// bool
-		mustPostLocalForTest(t, ctc, users[0], conv,
-			chat1.NewMessageBodyWithText(chat1.MessageText{
-				Body: "/flip",
-			}))
-		res0 := consumeFlipToResult(t, ui0, numUsers)
-		require.True(t, res0 == "HEADS" || res0 == "TAILS")
-		res1 := consumeFlipToResult(t, ui1, numUsers)
-		require.Equal(t, res0, res1)
-		res2 := consumeFlipToResult(t, ui2, numUsers)
-		require.Equal(t, res0, res2)
+			listener2 := newServerChatListener()
+			ctc.as(t, users[2]).h.G().NotifyRouter.AddListener(listener2)
+			ctc.world.Tcs[users[2].Username].ChatG.Syncer.(*Syncer).isConnected = true
 
-		// limit
-		mustPostLocalForTest(t, ctc, users[0], conv,
-			chat1.NewMessageBodyWithText(chat1.MessageText{
-				Body: "/flip 10",
-			}))
-		res0 = consumeFlipToResult(t, ui0, numUsers)
-		found := false
-		for i := 0; i < 10; i++ {
-			if res0 == fmt.Sprintf("%d", i) {
-				found = true
-				break
+			ctc.as(t, users[0]).h.mockChatUI = ui0
+			ctc.as(t, users[1]).h.mockChatUI = ui1
+			ctc.as(t, users[2]).h.mockChatUI = ui2
+			ctc.world.Tcs[users[0].Username].G.UIRouter = &fakeUIRouter{ui: ui0}
+			ctc.world.Tcs[users[1].Username].G.UIRouter = &fakeUIRouter{ui: ui1}
+			ctc.world.Tcs[users[2].Username].G.UIRouter = &fakeUIRouter{ui: ui2}
+
+			conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+				mt, ctc.as(t, users[1]).user(), ctc.as(t, users[2]).user())
+			consumeNewConversation(t, listener0, conv.Id)
+			consumeNewConversation(t, listener1, conv.Id)
+			consumeNewConversation(t, listener2, conv.Id)
+			var policy *chat1.RetentionPolicy
+			if ephemeralLifetime != nil {
+				p := chat1.NewRetentionPolicyWithEphemeral(chat1.RpEphemeral{Age: *ephemeralLifetime})
+				policy = &p
+				mustSetConvRetentionLocal(t, ctc, users[0], conv.Id, p)
 			}
-		}
-		require.True(t, found)
-		res1 = consumeFlipToResult(t, ui1, numUsers)
-		require.Equal(t, res0, res1)
-		res2 = consumeFlipToResult(t, ui2, numUsers)
-		require.Equal(t, res0, res2)
 
-		// range
-		mustPostLocalForTest(t, ctc, users[0], conv,
-			chat1.NewMessageBodyWithText(chat1.MessageText{
-				Body: "/flip 10-15",
-			}))
-		res0 = consumeFlipToResult(t, ui0, numUsers)
-		found = false
-		for i := 10; i <= 15; i++ {
-			if res0 == fmt.Sprintf("%d", i) {
-				found = true
-				break
+			// bool
+			mustPostLocalForTest(t, ctc, users[0], conv,
+				chat1.NewMessageBodyWithText(chat1.MessageText{
+					Body: "/flip",
+				}))
+			res0 := consumeFlipToResult(t, ui0, numUsers)
+			require.True(t, res0 == "HEADS" || res0 == "TAILS")
+			res1 := consumeFlipToResult(t, ui1, numUsers)
+			require.Equal(t, res0, res1)
+			res2 := consumeFlipToResult(t, ui2, numUsers)
+			require.Equal(t, res0, res2)
+
+			// limit
+			mustPostLocalForTest(t, ctc, users[0], conv,
+				chat1.NewMessageBodyWithText(chat1.MessageText{
+					Body: "/flip 10",
+				}))
+			res0 = consumeFlipToResult(t, ui0, numUsers)
+			found := false
+			for i := 0; i < 10; i++ {
+				if res0 == fmt.Sprintf("%d", i) {
+					found = true
+					break
+				}
 			}
-		}
-		require.True(t, found)
-		res1 = consumeFlipToResult(t, ui1, numUsers)
-		require.Equal(t, res0, res1)
-		res2 = consumeFlipToResult(t, ui2, numUsers)
-		require.Equal(t, res0, res2)
+			require.True(t, found)
+			res1 = consumeFlipToResult(t, ui1, numUsers)
+			require.Equal(t, res0, res1)
+			res2 = consumeFlipToResult(t, ui2, numUsers)
+			require.Equal(t, res0, res2)
 
-		// shuffle
-		ref := []string{"mike", "karen", "lisa", "sara", "anna"}
-		refMap := make(map[string]bool)
-		for _, r := range ref {
-			refMap[r] = true
-		}
-		mustPostLocalForTest(t, ctc, users[0], conv,
-			chat1.NewMessageBodyWithText(chat1.MessageText{
-				Body: fmt.Sprintf("/flip %s", strings.Join(ref, ",")),
-			}))
-		res0 = consumeFlipToResult(t, ui0, numUsers)
-		toks := strings.Split(res0, ",")
-		for _, t := range toks {
-			delete(refMap, t)
-		}
-		require.Zero(t, len(refMap))
-		require.True(t, found)
-		res1 = consumeFlipToResult(t, ui1, numUsers)
-		require.Equal(t, res0, res1)
-		res2 = consumeFlipToResult(t, ui2, numUsers)
-		require.Equal(t, res0, res2)
+			// range
+			mustPostLocalForTest(t, ctc, users[0], conv,
+				chat1.NewMessageBodyWithText(chat1.MessageText{
+					Body: "/flip 10-15",
+				}))
+			res0 = consumeFlipToResult(t, ui0, numUsers)
+			found = false
+			for i := 10; i <= 15; i++ {
+				if res0 == fmt.Sprintf("%d", i) {
+					found = true
+					break
+				}
+			}
+			require.True(t, found)
+			res1 = consumeFlipToResult(t, ui1, numUsers)
+			require.Equal(t, res0, res1)
+			res2 = consumeFlipToResult(t, ui2, numUsers)
+			require.Equal(t, res0, res2)
+
+			// shuffle
+			ref := []string{"mike", "karen", "lisa", "sara", "anna"}
+			refMap := make(map[string]bool)
+			for _, r := range ref {
+				refMap[r] = true
+			}
+			mustPostLocalForTest(t, ctc, users[0], conv,
+				chat1.NewMessageBodyWithText(chat1.MessageText{
+					Body: fmt.Sprintf("/flip %s", strings.Join(ref, ",")),
+				}))
+			res0 = consumeFlipToResult(t, ui0, numUsers)
+			toks := strings.Split(res0, ",")
+			for _, t := range toks {
+				delete(refMap, t)
+			}
+			require.Zero(t, len(refMap))
+			require.True(t, found)
+			res1 = consumeFlipToResult(t, ui1, numUsers)
+			require.Equal(t, res0, res1)
+			res2 = consumeFlipToResult(t, ui2, numUsers)
+			require.Equal(t, res0, res2)
+
+			uid := users[0].User.GetUID().ToBytes()
+			ttype := chat1.TopicType_DEV
+			ibox, _, err := ctc.as(t, users[0]).h.G().InboxSource.Read(context.TODO(), uid,
+				types.ConversationLocalizerBlocking, types.InboxSourceDataSourceAll, nil,
+				&chat1.GetInboxLocalQuery{
+					TopicType: &ttype,
+				}, nil)
+			require.NoError(t, err)
+			for _, conv := range ibox.Convs {
+				if strings.HasPrefix(conv.Info.TopicName, gameIDTopicNamePrefix) {
+					require.Equal(t, conv.ConvRetention, policy)
+				}
+			}
+		})
 	})
 }
 
