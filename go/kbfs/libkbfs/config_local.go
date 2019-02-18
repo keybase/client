@@ -1711,7 +1711,13 @@ func (c *ConfigLocal) PrefetchStatus(ctx context.Context, tlfID tlf.ID,
 		if !ok {
 			return NoPrefetch
 		}
-		return bops.queue.getPrefetchStatus(ptr.ID)
+		status, err := bops.queue.getPrefetchStatus(ptr.ID)
+		if err != nil {
+			c.MakeLogger("").CDebugf(ctx,
+				"Error getting prefetch status: %+v", err)
+			return NoPrefetch
+		}
+		return status
 	}
 
 	prefetchStatus, err := dbc.GetPrefetchStatus(
