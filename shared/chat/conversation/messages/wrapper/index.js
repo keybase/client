@@ -538,7 +538,6 @@ const styles = Styles.styleSheetCreate({
         Styles.globalMargins.tiny + // left margin
         Styles.globalMargins.mediumLarge, // avatar
       paddingRight: Styles.globalMargins.tiny,
-      paddingTop: 3,
     },
   }),
   edited: {color: Styles.globalColors.black_20},
