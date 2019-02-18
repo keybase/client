@@ -90,7 +90,7 @@ func (r DummyChatUI) ChatShowManageChannels(ctx context.Context, arg chat1.ChatS
 	return nil
 }
 
-func (d DummyChatUI) ChatCoinFlipStatus(ctx context.Context, arg chat1.ChatCoinFlipStatusArg) error {
+func (r DummyChatUI) ChatCoinFlipStatus(ctx context.Context, arg chat1.ChatCoinFlipStatusArg) error {
 	return nil
 }
 
