@@ -101,7 +101,9 @@ helpers.rootLinuxNode(env, {
                 sh "make"
               }
               checkDiffs(['./go/', './protocol/'], 'Please run \\"make\\" inside the client/protocol directory.')
-              sh "make gen-deps"
+              dir("go") {
+                sh "make gen-deps"
+              }
             }
             parallel (
               test_linux: {
