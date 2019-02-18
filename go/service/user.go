@@ -285,17 +285,14 @@ func (h *UserHandler) InterestingPeople(ctx context.Context, maxUsers int) (res 
 		h.G().Log.Debug("InterestingPeople: failed in UIDMapper: %s, but continuing", err.Error())
 	}
 
-	for i, u := range uids {
-		if err != nil {
-			h.G().Log.Debug("InterestingPeople: failed to get username for: %s msg: %s", u, err.Error())
-			continue
-		}
+	for i, uid := range uids {
 		if packages[i].NormalizedUsername.IsNil() {
 			// We asked UIDMapper for cached data only, this username was missing.
+			h.G().Log.Debug("InterestingPeople: failed to get username for: %s", uid)
 			continue
 		}
 		ret := keybase1.InterestingPerson{
-			Uid:      u,
+			Uid:      uid,
 			Username: packages[i].NormalizedUsername.String(),
 		}
 		if fn := packages[i].FullName; fn != nil {
