@@ -617,9 +617,8 @@ func (m *FlipManager) loadGame(ctx context.Context, job loadGameJob) (err error)
 	var history flip.GameHistory
 	for index := len(tv.Messages) - 3; index >= 0; index-- {
 		msg := tv.Messages[index]
-		m.Debug(ctx, "loadGame: processing msgID: %d", msg.GetMessageID())
 		if !msg.IsValid() {
-			m.Debug(ctx, "loadGame: skipping invalid message: %d", msg.GetMessageID())
+			m.Debug(ctx, "loadGame: skipping invalid message: id: %d", msg.GetMessageID())
 			continue
 		}
 		body := msg.Valid().MessageBody

@@ -151,30 +151,36 @@ func TestFlipManagerParseEdges(t *testing.T) {
 
 func TestFlipManagerLoadFlip(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
-		ctc := makeChatTestContext(t, "FlipManager", 1)
+		ctc := makeChatTestContext(t, "FlipManager", 2)
 		defer ctc.cleanup()
 
 		users := ctc.users()
 		ui0 := kbtest.NewChatUI()
+		ui1 := kbtest.NewChatUI()
 		ctc.as(t, users[0]).h.mockChatUI = ui0
+		ctc.as(t, users[1]).h.mockChatUI = ui1
 		ctc.world.Tcs[users[0].Username].G.UIRouter = &fakeUIRouter{ui: ui0}
+		ctc.world.Tcs[users[1].Username].G.UIRouter = &fakeUIRouter{ui: ui1}
 		ctx := ctc.as(t, users[0]).startCtx
 		tc := ctc.world.Tcs[users[0].Username]
 		uid := users[0].User.GetUID().ToBytes()
 		listener := newServerChatListener()
 		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener)
 		flip.DefaultCommitmentWindowMsec = 500
-		timeout := 5 * time.Second
+		timeout := 20 * time.Second
 		ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
 
-		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
+		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt,
+			ctc.as(t, users[1]).user())
 		mustPostLocalForTest(t, ctc, users[0], conv,
 			chat1.NewMessageBodyWithText(chat1.MessageText{
 				Body: "/flip",
 			}))
 		consumeNewMsgRemote(t, listener, chat1.MessageType_TEXT)
-		res := consumeFlipToResult(t, ui0, 1)
+		res := consumeFlipToResult(t, ui0, 2)
 		require.True(t, res == "HEADS" || res == "TAILS")
+		res1 := consumeFlipToResult(t, ui1, 2)
+		require.Equal(t, res, res1)
 
 		hostMsg, err := GetMessage(ctx, tc.Context(), uid, conv.Id, 2, true, nil)
 		require.NoError(t, err)
