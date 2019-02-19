@@ -138,7 +138,7 @@ func TestFlipManagerParseEdges(t *testing.T) {
 		require.Equal(t, lowerBound, lb)
 		require.Equal(t, shuffleItems, si)
 	}
-	testCase("/flip 10", flip.FlipType_BIG, "0", nil)
+	testCase("/flip 10", flip.FlipType_BIG, "1", nil)
 	testCase("/flip 0", flip.FlipType_SHUFFLE, "", []string{"0"})
 	testCase("/flip -1", flip.FlipType_SHUFFLE, "", []string{"-1"})
 	testCase("/flip 1-5", flip.FlipType_BIG, "1", nil)
@@ -147,6 +147,8 @@ func TestFlipManagerParseEdges(t *testing.T) {
 	testCase("/flip mike, karen,     jim", flip.FlipType_SHUFFLE, "", []string{"mike", "karen", "jim"})
 	testCase("/flip mike,    jim bob    j  ,     jim", flip.FlipType_SHUFFLE, "",
 		[]string{"mike", "jim bob    j", "jim"})
+	testCase("/flip 10...20", flip.FlipType_SHUFFLE, "", []string{"10...20"})
+	testCase("/flip 1,0", flip.FlipType_SHUFFLE, "", []string{"1", "0"})
 }
 
 func TestFlipManagerLoadFlip(t *testing.T) {
