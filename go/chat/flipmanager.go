@@ -455,7 +455,7 @@ func (m *FlipManager) startFromText(text string) (start flip.Start, lowerBound s
 	if start, shuffleItems, err = m.parseShuffle(arg); err == nil {
 		return start, "", shuffleItems
 	}
-	// Check for /flip 2-8
+	// Check for /flip 2..8
 	if start, lowerBound, err = m.parseRange(arg); err == nil {
 		return start, lowerBound, nil
 	}
@@ -577,6 +577,11 @@ func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, msg chat1.Mess
 	hostMsg, err := m.getHostMessageInfo(ctx, convID)
 	if err != nil {
 		m.Debug(ctx, "MaybeInjectFlipMessage: failed to get host message info: %s", err)
+		return
+	}
+	if !hostMsg.GameID.Eq(body.Flip().GameID) {
+		m.Debug(ctx, "MaybeInjectFlipMessage: gameID mismatch against host message, ignoring: %s != %s",
+			hostMsg.GameID, body.Flip().GameID)
 		return
 	}
 	if err := m.dealer.InjectIncomingChat(ctx, sender, convID, hostMsg.GameID,

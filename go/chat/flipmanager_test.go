@@ -36,12 +36,13 @@ func TestFlipManagerStartFlip(t *testing.T) {
 		defer ctc.cleanup()
 
 		users := ctc.users()
-		ui0 := kbtest.NewChatUI()
-		ui1 := kbtest.NewChatUI()
-		ui2 := kbtest.NewChatUI()
 		numUsers := 3
 		flip.DefaultCommitmentWindowMsec = 500
 
+		var ui0, ui1, ui2 *kbtest.ChatUI
+		ui0 = kbtest.NewChatUI()
+		ui1 = kbtest.NewChatUI()
+		ui2 = kbtest.NewChatUI()
 		ctc.as(t, users[0]).h.mockChatUI = ui0
 		ctc.as(t, users[1]).h.mockChatUI = ui1
 		ctc.as(t, users[2]).h.mockChatUI = ui2
@@ -58,6 +59,7 @@ func TestFlipManagerStartFlip(t *testing.T) {
 				Body: "/flip",
 			}))
 		res0 := consumeFlipToResult(t, ui0, numUsers)
+		t.Logf("res0 (coin): %s", res0)
 		require.True(t, res0 == "HEADS" || res0 == "TAILS")
 		res1 := consumeFlipToResult(t, ui1, numUsers)
 		require.Equal(t, res0, res1)
@@ -71,6 +73,7 @@ func TestFlipManagerStartFlip(t *testing.T) {
 			}))
 		res0 = consumeFlipToResult(t, ui0, numUsers)
 		found := false
+		t.Logf("res0 (range): %s", res0)
 		for i := 1; i <= 10; i++ {
 			if res0 == fmt.Sprintf("%d", i) {
 				found = true
