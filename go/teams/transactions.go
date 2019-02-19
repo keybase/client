@@ -204,13 +204,11 @@ func (tx *AddMemberTx) sweepCryptoMembers(ctx context.Context, uid keybase1.UID,
 		}
 	}
 	for chainUv := range team.chain().inner.UserLog {
-		if chainUv.Uid.Equal(uid) && team.chain().getUserRole(chainUv) != keybase1.TeamRole_NONE {
-			if exceptAdminsRemovingOwners && myRole == keybase1.TeamRole_ADMIN {
-				theirRole, err := tx.team.MemberRole(ctx, chainUv)
-				if err == nil && theirRole == keybase1.TeamRole_OWNER {
-					// Skip if we're an admin and they're an owner.
-					continue
-				}
+		chainRole := team.chain().getUserRole(chainUv)
+		if chainUv.Uid.Equal(uid) && chainRole != keybase1.TeamRole_NONE {
+			if exceptAdminsRemovingOwners && myRole == keybase1.TeamRole_ADMIN && chainRole == keybase1.TeamRole_OWNER {
+				// Skip if we're an admin and they're an owner.
+				continue
 			}
 			tx.removeMember(chainUv)
 		}
@@ -335,7 +333,6 @@ func (tx *AddMemberTx) addMemberByUPKV2(ctx context.Context, user keybase1.UserP
 	// So, if we're an admin re-adding an owner who does not yet have a PUK
 	// then don't try to remove the owner's pre-reset UV.
 	exceptAdminsRemovingOwners := !hasPUK
-	tx.team.G().Log.CDebugf(ctx, "xxx exceptAdminsRemovingOwners: %v", exceptAdminsRemovingOwners)
 	tx.sweepCryptoMembers(ctx, uv.Uid, exceptAdminsRemovingOwners)
 
 	if !hasPUK {
