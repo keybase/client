@@ -121,7 +121,7 @@ type UnregisteredUserError struct {
 }
 
 func (u UnregisteredUserError) Error() string {
-	return fmt.Sprintf("Initiator announced an unexpected user %s in game %s", u.G, u.U.ToKey())
+	return fmt.Sprintf("Initiator announced an unexpected user %s in game %s", u.U.ToKey(), u.G)
 }
 
 type WrongSenderError struct {
@@ -216,7 +216,7 @@ type UnforwardableMessageError struct {
 }
 
 func (u UnforwardableMessageError) Error() string {
-	return fmt.Sprintf("Refusing to forwarda mesasge that isn't forwardable (%s)", u.G)
+	return fmt.Sprintf("Refusing to forward a mesasge that isn't forwardable (%s)", u.G)
 }
 
 type BadMessageError struct {
