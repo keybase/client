@@ -4,7 +4,6 @@ import * as Constants from '../../constants/settings'
 import {globalStyles, globalColors, globalMargins, platformStyles, styleSheetCreate} from '../../styles'
 import {Box} from '../../common-adapters'
 import SettingsItem from './settings-item'
-import flags from '../../util/feature-flags'
 
 import type {Props} from './index'
 

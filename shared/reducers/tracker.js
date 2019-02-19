@@ -3,7 +3,6 @@ import * as TrackerGen from '../actions/tracker-gen'
 import * as Types from '../constants/types/tracker'
 import * as Constants from '../constants/tracker'
 import * as Flow from '../util/flow'
-import flags from '../util/feature-flags'
 
 const sortByTeamName = (a, b) => a.fqName.localeCompare(b.fqName)
 
