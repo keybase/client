@@ -574,17 +574,7 @@ func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, msg chat1.Mess
 	if !body.IsType(chat1.MessageType_FLIP) {
 		return
 	}
-	hostMsg, err := m.getHostMessageInfo(ctx, convID)
-	if err != nil {
-		m.Debug(ctx, "MaybeInjectFlipMessage: failed to get host message info: %s", err)
-		return
-	}
-	if !hostMsg.GameID.Eq(body.Flip().GameID) {
-		m.Debug(ctx, "MaybeInjectFlipMessage: gameID mismatch against host message, ignoring: %s != %s",
-			hostMsg.GameID, body.Flip().GameID)
-		return
-	}
-	if err := m.dealer.InjectIncomingChat(ctx, sender, convID, hostMsg.GameID,
+	if err := m.dealer.InjectIncomingChat(ctx, sender, convID, body.Flip().GameID,
 		flip.MakeGameMessageEncoded(body.Flip().Text), m.isStartMsgID(msg.GetMessageID())); err != nil {
 		m.Debug(ctx, "MaybeInjectFlipMessage: failed to inject: %s", err)
 	}
