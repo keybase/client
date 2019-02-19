@@ -172,19 +172,7 @@ const loadFollow = (_, action) => {
 const getProofSuggestions = () =>
   RPCTypes.userProofSuggestionsRpcPromise().then(({suggestions, showMore}) =>
     Tracker2Gen.createProofSuggestionsUpdated({
-      suggestions: (suggestions || []).map(s =>
-        Constants.makeAssertion({
-          assertionKey: s.key,
-          color: 'gray',
-          metas: [],
-          proofURL: '',
-          siteIcon: s.profileIcon || [],
-          siteURL: '',
-          state: 'suggestion',
-          type: s.key,
-          value: s.profileText,
-        })
-      ),
+      suggestions: (suggestions || []).map(Constants.rpcSuggestionToAssertion),
     })
   )
 

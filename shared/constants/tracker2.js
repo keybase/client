@@ -125,6 +125,19 @@ export const rpcAssertionToAssertion = (row: RPCTypes.Identify3Row): Types.Asser
     value: row.value,
   })
 
+export const rpcSuggestionToAssertion = (s: RPCTypes.ProofSuggestion): Types.Assertion =>
+  makeAssertion({
+    assertionKey: s.key,
+    color: 'gray',
+    metas: [],
+    proofURL: '',
+    siteIcon: s.profileIcon || [],
+    siteURL: '',
+    state: 'suggestion',
+    type: s.key,
+    value: s.profileText,
+  })
+
 const _scoreAssertionKey = a => {
   switch (a) {
     case 'pgp':

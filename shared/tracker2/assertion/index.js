@@ -338,7 +338,12 @@ class Assertion extends React.PureComponent<Props, State> {
       )
     }
     return (
-      <Kb.ClickableBox onClick={this.props.onCreateProof || this.props.onShowProof}>{child}</Kb.ClickableBox>
+      <Kb.ClickableBox
+        onClick={this.props.onCreateProof || this.props.onShowProof}
+        style={this.props.isSuggestion ? styles.halfOpacity : null}
+      >
+        {child}
+      </Kb.ClickableBox>
     )
   }
   render() {
@@ -417,6 +422,9 @@ const styles = Styles.styleSheetCreate({
     maxWidth: 240,
     minWidth: 196,
   },
+  halfOpacity: Styles.platformStyles({
+    isMobile: {opacity: 0.5}, // desktop is handled by emotion
+  }),
   menuHeader: {
     borderBottomColor: Styles.globalColors.black_10,
     borderBottomWidth: 1,
