@@ -50,14 +50,16 @@ export const TeamRow = React.memo<RowProps>((props: RowProps) => {
       onClick={props.onViewTeam}
       icon={
         <Kb.Box2 direction="vertical" style={styles.avatarContainer}>
-          <Kb.Avatar size={Styles.isMobile ? 48 : 32} teamname={props.name} isTeam={true} />
+          <Kb.Avatar size={48} teamname={props.name} isTeam={true} />
           {!!badgeCount && <Kb.Badge badgeNumber={badgeCount} badgeStyle={styles.badge} />}
         </Kb.Box2>
       }
       body={
-        <Kb.Box2 direction="vertical" fullWidth={true}>
-          <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start">
-            <Kb.Text type="BodySemibold">{props.name}</Kb.Text>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.maxWidth}>
+          <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start" style={styles.maxWidth}>
+            <Kb.Text type="BodySemibold" lineClamp={1}>
+              {props.name}
+            </Kb.Text>
             {props.isOpen && <Kb.Meta title="open" backgroundColor={Styles.globalColors.green} />}
           </Kb.Box2>
           <Kb.Box2 direction="horizontal" gap="tiny" alignSelf="flex-start">
@@ -69,14 +71,12 @@ export const TeamRow = React.memo<RowProps>((props: RowProps) => {
         </Kb.Box2>
       }
       action={
-        <Kb.Box2 direction="horizontal" gap="small" gapEnd={true}>
-          {!Styles.isMobile && props.onOpenFolder && (
-            <Kb.Icon type="iconfont-folder-private" onClick={props.onOpenFolder} />
-          )}
-          {!Styles.isMobile && props.onManageChat && (
-            <Kb.Icon type="iconfont-chat" onClick={props.onManageChat} />
-          )}
-        </Kb.Box2>
+        Styles.isMobile ? null : (
+          <Kb.Box2 direction="horizontal" gap="small" gapEnd={true} gapStart={true}>
+            {props.onOpenFolder && <Kb.Icon type="iconfont-folder-private" onClick={props.onOpenFolder} />}
+            {props.onManageChat && <Kb.Icon type="iconfont-chat" onClick={props.onManageChat} />}
+          </Kb.Box2>
+        )
       }
     />
   )
@@ -149,6 +149,7 @@ const styles = Styles.styleSheetCreate({
     right: -5,
     top: -5,
   },
+  maxWidth: {maxWidth: '100%'},
 })
 
 export default Teams
