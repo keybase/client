@@ -28,10 +28,11 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   const meta = Constants.getMeta(state, ownProps.message.conversationIDKey)
   const _canDeleteHistory =
     meta.teamType === 'adhoc' || TeamConstants.getCanPerform(state, meta.teamname).deleteChatHistory
-  const _canExplodeNow = yourMessage || _canDeleteHistory
+  const _canExplodeNow = (yourMessage || _canDeleteHistory) && ownProps.message.isDeleteable
+  const _canEdit = yourMessage && ownProps.message.isEditable
   return {
     _canDeleteHistory,
-    _canEdit: yourMessage,
+    _canEdit,
     _canExplodeNow,
     author: ownProps.message.author,
     deviceName: ownProps.message.deviceName,

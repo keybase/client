@@ -438,6 +438,13 @@ const rootReducer = (
           return show ? prompts.add(domain) : prompts.delete(domain)
         }
       )
+    case Chat2Gen.updateCoinFlipStatus: {
+      let fm = state.flipStatusMap
+      action.payload.statuses.forEach(s => {
+        fm = fm.set(s.gameID, s)
+      })
+      return state.set('flipStatusMap', fm)
+    }
     case Chat2Gen.giphyGotSearchResult:
       return state.setIn(['giphyResultMap', action.payload.conversationIDKey], action.payload.results)
     case Chat2Gen.setInboxFilter:
@@ -525,7 +532,13 @@ const rootReducer = (
         const ordinals = state.messageOrdinals.get(conversationIDKey, I.OrderedSet())
         const found = ordinals.findLast(o => {
           const message = messageMap.get(o)
-          return message && message.type === 'text' && message.author === editLastUser && !message.exploded
+          return (
+            message &&
+            message.type === 'text' &&
+            message.author === editLastUser &&
+            !message.exploded &&
+            message.isEditable
+          )
         })
         if (found) {
           return editingMap.set(conversationIDKey, found)

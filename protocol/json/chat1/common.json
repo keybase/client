@@ -85,6 +85,12 @@
     },
     {
       "type": "record",
+      "name": "FlipGameID",
+      "fields": [],
+      "typedef": "bytes"
+    },
+    {
+      "type": "record",
       "name": "InboxVersInfo",
       "fields": [
         {
@@ -146,7 +152,8 @@
         "REACTION_13",
         "SENDPAYMENT_14",
         "REQUESTPAYMENT_15",
-        "UNFURL_16"
+        "UNFURL_16",
+        "FLIP_17"
       ],
       "go": "nostring"
     },
@@ -1380,7 +1387,8 @@
         "PREPARE_5",
         "SEARCHER_6",
         "INDEXED_SEARCH_7",
-        "KBFSFILEACTIVITY_8"
+        "KBFSFILEACTIVITY_8",
+        "COINFLIP_9"
       ]
     },
     {

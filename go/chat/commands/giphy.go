@@ -71,7 +71,8 @@ func (s *Giphy) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Conve
 		return nil
 	}
 	res := results[libkb.RandIntn(len(results))]
-	return s.G().ChatHelper.SendTextByIDNonblock(ctx, convID, tlfName, res.TargetUrl)
+	_, err = s.G().ChatHelper.SendTextByIDNonblock(ctx, convID, tlfName, res.TargetUrl, nil)
+	return err
 }
 
 type nullChatUI struct {

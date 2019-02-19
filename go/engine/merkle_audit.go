@@ -242,6 +242,11 @@ func MerkleAuditRound(m libkb.MetaContext) (err error) {
 	// All MerkleClientErrors would suggest that the server is tampering with the roots
 	if _, ok := err.(libkb.MerkleClientError); ok {
 		m.CErrorf("MerkleAudit fatally failed: %s", err)
+		// Send the notification to the client
+		m.G().NotifyRouter.HandleRootAuditError(fmt.Sprintf(
+			"Merkle tree audit from %d failed: %s",
+			startSeqno, err.Error(),
+		))
 	} else {
 		m.CDebugf("MerkleAudit could not complete: %s", err)
 	}

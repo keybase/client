@@ -78,6 +78,8 @@ type ConversationSource interface {
 		query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, error)
 	PullLocalOnly(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 		query *chat1.GetThreadQuery, p *chat1.Pagination, maxPlaceholders int) (chat1.ThreadView, error)
+	PullFull(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, reason chat1.GetThreadReason,
+		query *chat1.GetThreadQuery, maxPages *int) (chat1.ThreadView, error)
 	GetMessages(ctx context.Context, conv UnboxConversationInfo, uid gregor1.UID, msgIDs []chat1.MessageID,
 		reason *chat1.GetThreadReason) ([]chat1.MessageUnboxed, error)
 	GetMessagesWithRemotes(ctx context.Context, conv chat1.Conversation, uid gregor1.UID,
@@ -428,6 +430,14 @@ type ConversationCommandsSource interface {
 	AttemptBuiltinCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		tlfName string, body chat1.MessageBody) (bool, error)
 	PreviewBuiltinCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, text string)
+}
+
+type CoinFlipManager interface {
+	Resumable
+	StartFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID, tlfName, text string) error
+	MaybeInjectFlipMessage(ctx context.Context, msg chat1.MessageUnboxed, convID chat1.ConversationID,
+		topicType chat1.TopicType)
+	LoadFlip(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, gameID chat1.FlipGameID)
 }
 
 type InternalError interface {

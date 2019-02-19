@@ -45,7 +45,7 @@ const mergeProps = (stateProps, dispatchProps) => ({
           dismiss: () => dispatchProps._dismiss(key),
           error,
           key,
-          msg: Constants.erroredActionToMessage(erroredAction),
+          msg: Constants.erroredActionToMessage(erroredAction, error),
           onFeedback: isMobile ? () => dispatchProps._onFeedback(stateProps._loggedIn) : undefined,
           retry: retriableAction
             ? () => {

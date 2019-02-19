@@ -230,15 +230,6 @@ func (h *UserHandler) ProfileEdit(nctx context.Context, arg keybase1.ProfileEdit
 	return engine.RunEngine2(m, eng)
 }
 
-func (h *UserHandler) loadUsername(ctx context.Context, uid keybase1.UID) (string, error) {
-	arg := libkb.NewLoadUserByUIDArg(ctx, h.G(), uid).WithPublicKeyOptional().WithStaleOK(true).WithCachedOnly()
-	upak, _, err := h.G().GetUPAKLoader().Load(arg)
-	if err != nil {
-		return "", err
-	}
-	return upak.GetName(), nil
-}
-
 func (h *UserHandler) InterestingPeople(ctx context.Context, maxUsers int) (res []keybase1.InterestingPerson, err error) {
 
 	// Chat source
@@ -282,16 +273,32 @@ func (h *UserHandler) InterestingPeople(ctx context.Context, maxUsers int) (res 
 		h.G().Log.Debug("InterestingPeople: failed to get list: %s", err.Error())
 		return nil, err
 	}
-	for _, u := range uids {
-		name, err := h.loadUsername(ctx, u)
-		if err != nil {
-			h.G().Log.Debug("InterestingPeople: failed to get username for: %s msg: %s", u, err.Error())
+
+	if len(uids) == 0 {
+		h.G().Log.Debug("InterestingPeople: there are no interesting people for current user")
+		return []keybase1.InterestingPerson{}, nil
+	}
+
+	const fullnameFreshness = 0 // never stale
+	packages, err := h.G().UIDMapper.MapUIDsToUsernamePackagesOffline(ctx, h.G(), uids, fullnameFreshness)
+	if err != nil {
+		h.G().Log.Debug("InterestingPeople: failed in UIDMapper: %s, but continuing", err.Error())
+	}
+
+	for i, uid := range uids {
+		if packages[i].NormalizedUsername.IsNil() {
+			// We asked UIDMapper for cached data only, this username was missing.
+			h.G().Log.Debug("InterestingPeople: failed to get username for: %s", uid)
 			continue
 		}
-		res = append(res, keybase1.InterestingPerson{
-			Uid:      u,
-			Username: name,
-		})
+		ret := keybase1.InterestingPerson{
+			Uid:      uid,
+			Username: packages[i].NormalizedUsername.String(),
+		}
+		if fn := packages[i].FullName; fn != nil {
+			ret.Fullname = fn.FullName.String()
+		}
+		res = append(res, ret)
 	}
 	return res, nil
 }

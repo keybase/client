@@ -85,6 +85,11 @@ helpers.rootLinuxNode(env, {
     def hasJSChanges = helpers.hasChanges('shared', env)
     println "Has go changes: " + hasGoChanges
     println "Has JS changes: " + hasJSChanges
+    if (hasGoChanges) {
+        dir("go") {
+          sh "make gen-deps"
+        }
+    }
 
     stage("Test") {
       helpers.withKbweb() {
@@ -520,7 +525,7 @@ def testGo(prefix, packagesToTest) {
       }
 
       println "Running go vet for ${pkg}"
-      sh "go vet ${pkg}"
+      sh "go vet ${pkg} || (ERR=\$? && echo \"go vet failed with error code \$ERR\" && exit \$ERR)"
 
       if (isUnix()) {
         // Windows `gofmt` pukes on CRLF, so only run on *nix.

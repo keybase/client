@@ -208,6 +208,18 @@ func (o MessageHeadline) DeepCopy() MessageHeadline {
 	}
 }
 
+type MessageFlip struct {
+	Text   string     `codec:"text" json:"text"`
+	GameID FlipGameID `codec:"gameID" json:"gameID"`
+}
+
+func (o MessageFlip) DeepCopy() MessageFlip {
+	return MessageFlip{
+		Text:   o.Text,
+		GameID: o.GameID.DeepCopy(),
+	}
+}
+
 type MessageSystemType int
 
 const (
@@ -796,6 +808,7 @@ type MessageBody struct {
 	Sendpayment__        *MessageSendPayment          `codec:"sendpayment,omitempty" json:"sendpayment,omitempty"`
 	Requestpayment__     *MessageRequestPayment       `codec:"requestpayment,omitempty" json:"requestpayment,omitempty"`
 	Unfurl__             *MessageUnfurl               `codec:"unfurl,omitempty" json:"unfurl,omitempty"`
+	Flip__               *MessageFlip                 `codec:"flip,omitempty" json:"flip,omitempty"`
 }
 
 func (o *MessageBody) MessageType() (ret MessageType, err error) {
@@ -873,6 +886,11 @@ func (o *MessageBody) MessageType() (ret MessageType, err error) {
 	case MessageType_UNFURL:
 		if o.Unfurl__ == nil {
 			err = errors.New("unexpected nil value for Unfurl__")
+			return ret, err
+		}
+	case MessageType_FLIP:
+		if o.Flip__ == nil {
+			err = errors.New("unexpected nil value for Flip__")
 			return ret, err
 		}
 	}
@@ -1029,6 +1047,16 @@ func (o MessageBody) Unfurl() (res MessageUnfurl) {
 	return *o.Unfurl__
 }
 
+func (o MessageBody) Flip() (res MessageFlip) {
+	if o.MessageType__ != MessageType_FLIP {
+		panic("wrong case accessed")
+	}
+	if o.Flip__ == nil {
+		return
+	}
+	return *o.Flip__
+}
+
 func NewMessageBodyWithText(v MessageText) MessageBody {
 	return MessageBody{
 		MessageType__: MessageType_TEXT,
@@ -1131,6 +1159,13 @@ func NewMessageBodyWithUnfurl(v MessageUnfurl) MessageBody {
 	return MessageBody{
 		MessageType__: MessageType_UNFURL,
 		Unfurl__:      &v,
+	}
+}
+
+func NewMessageBodyWithFlip(v MessageFlip) MessageBody {
+	return MessageBody{
+		MessageType__: MessageType_FLIP,
+		Flip__:        &v,
 	}
 }
 
@@ -1242,6 +1277,13 @@ func (o MessageBody) DeepCopy() MessageBody {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Unfurl__),
+		Flip__: (func(x *MessageFlip) *MessageFlip {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Flip__),
 	}
 }
 

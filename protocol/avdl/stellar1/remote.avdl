@@ -248,4 +248,9 @@ protocol remote {
     @jsonkey("timeout")
     int64 timeout; // tx timeout recommended by the server
   }
+
+  record NetworkOptions {
+    uint64 baseFee; 
+  }
+  NetworkOptions networkOptions(keybase1.UserVersion caller);
 }

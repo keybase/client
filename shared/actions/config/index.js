@@ -2,6 +2,7 @@
 import logger from '../../logger'
 import {log} from '../../native/log/logui'
 import * as ConfigGen from '../config-gen'
+import * as GregorGen from '../gregor-gen'
 import * as Flow from '../../util/flow'
 import * as ChatGen from '../chat2-gen'
 import * as DevicesGen from '../devices-gen'
@@ -111,6 +112,10 @@ function* loadDaemonBootstrapStatus(state, action) {
         })
       )
       break
+    case GregorGen.updateReachable:
+      if (!action.payload.reachable)
+        break
+      // else fall through
     case ConfigGen.loggedIn: // fallthrough
     case ConfigGen.loggedOut:
       yield* makeCall()
@@ -421,10 +426,10 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
     ConfigGen.daemonHandshakeWait,
     maybeDoneWithDaemonHandshake
   )
-  // Re-get info about our account if you log in/out/we're done handshaking
+  // Re-get info about our account if you log in/out/we're done handshaking/became reachable
   yield* Saga.chainGenerator<
-    ConfigGen.LoggedInPayload | ConfigGen.LoggedOutPayload | ConfigGen.DaemonHandshakePayload
-  >([ConfigGen.loggedIn, ConfigGen.loggedOut, ConfigGen.daemonHandshake], loadDaemonBootstrapStatus)
+    ConfigGen.LoggedInPayload | ConfigGen.LoggedOutPayload | ConfigGen.DaemonHandshakePayload | GregorGen.UpdateReachablePayload
+  >([ConfigGen.loggedIn, ConfigGen.loggedOut, ConfigGen.daemonHandshake, GregorGen.updateReachable], loadDaemonBootstrapStatus)
   // Load the known accounts if you revoke / handshake / logout
   yield* Saga.chainGenerator<
     DevicesGen.RevokedPayload | ConfigGen.DaemonHandshakePayload | ConfigGen.LoggedOutPayload

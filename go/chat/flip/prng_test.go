@@ -56,3 +56,36 @@ func TestPRNG(t *testing.T) {
 		require.Equal(t, prng.Bool(), b)
 	}
 }
+
+func TestPRNGCornerCases(t *testing.T) {
+	var secret Secret
+	secret[0] = 1
+	prng := NewPRNG(secret)
+
+	// By convention, we're returning 0 for 0 moduli, but it's
+	// a corner case.
+	m := big.NewInt(0)
+	r := prng.Big(m)
+	require.Equal(t, 0, m.Cmp(r))
+
+	// The caase of the 1 modulus is handled normally but let's test
+	// that it works.
+	m = big.NewInt(1)
+	r = prng.Big(m)
+	require.Equal(t, 0, r.Cmp(big.NewInt(0)))
+
+	// We had an earlier bug in our shuffle, a classic off-by-one, in which 0,1
+	// would always be shuffled 1,0. So, if we run 40 times in a row, we better
+	// get some number of (1,0) results that are >0 and <40. This test indeed
+	// failed when I went back and rebroke the shuffle function.
+	flips := 0
+	n := 40
+	for i := 0; i < n; i++ {
+		res := prng.Permutation(2)
+		if res[0] == 1 {
+			flips++
+		}
+	}
+	require.NotEqual(t, 0, flips)
+	require.NotEqual(t, n, flips)
+}
