@@ -89,7 +89,7 @@ func (t *BaseServiceType) PreProofCheck(MetaContext, string) (*Markup, error) { 
 func (t *BaseServiceType) PreProofWarning(remotename string) *Markup          { return nil }
 
 func (t *BaseServiceType) FormatProofText(m MetaContext, ppr *PostProofRes,
-	kbUsername string, sigID keybase1.SigID) (string, error) {
+	kbUsername, remoteUsername string, sigID keybase1.SigID) (string, error) {
 	return ppr.Text, nil
 }
 
