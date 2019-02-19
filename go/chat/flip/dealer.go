@@ -315,8 +315,10 @@ func (g *Game) handleMessage(ctx context.Context, msg *GameMessageWrapped, now t
 
 	case MessageType_COMMITMENT:
 		if g.stage != Stage_ROUND1 {
-			return badStage()
+			g.clogf(ctx, "User %s sent a commitment too late, not included in game %s", msg.Sender, g.md)
+			return nil
 		}
+
 		key := msg.Sender.ToKey()
 		if g.players[key] != nil {
 			return DuplicateRegistrationError{g.md, msg.Sender}
