@@ -390,18 +390,16 @@ func (m *FlipManager) gameTopicNameFromGameID(gameID chat1.FlipGameID) string {
 var errFailedToParse = errors.New("failed to parse")
 
 func (m *FlipManager) parseMultiDie(arg string) (start flip.Start, err error) {
-	if strings.Contains(arg, "-") {
-		return start, errFailedToParse
-	}
 	lb := new(big.Int)
-	if _, err := fmt.Sscan(arg, lb); err != nil {
+	val, ok := lb.SetString(arg, 10)
+	if !ok {
 		return start, errFailedToParse
 	}
 	// needs to be a positive number > 0
-	if lb.Sign() <= 0 {
+	if val.Sign() <= 0 {
 		return start, errFailedToParse
 	}
-	return flip.NewStartWithBigInt(m.clock.Now(), lb), nil
+	return flip.NewStartWithBigInt(m.clock.Now(), val), nil
 }
 
 func (m *FlipManager) parseShuffle(arg string) (start flip.Start, shuffleItems []string, err error) {
@@ -423,12 +421,12 @@ func (m *FlipManager) parseRange(arg string) (start flip.Start, lowerBound strin
 	if len(toks) != 2 {
 		return start, lowerBound, errFailedToParse
 	}
-	lb := new(big.Int)
-	ub := new(big.Int)
-	if _, err := fmt.Sscan(toks[0], lb); err != nil {
+	lb, ok := new(big.Int).SetString(toks[0], 10)
+	if !ok {
 		return start, lowerBound, errFailedToParse
 	}
-	if _, err := fmt.Sscan(toks[1], ub); err != nil {
+	ub, ok := new(big.Int).SetString(toks[1], 10)
+	if !ok {
 		return start, lowerBound, errFailedToParse
 	}
 	one := new(big.Int).SetInt64(1)
