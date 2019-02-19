@@ -254,39 +254,40 @@ const ViewText = (props: Props) => (
   </Kb.Box2>
 )
 
+const textType = Styles.isMobile ? 'BodyBig' : 'Header'
 const Instructions = (p: Props) => (
   <Kb.Box2 direction="vertical">
     {p.currentDeviceAlreadyProvisioned ? (
       <React.Fragment>
-        <Kb.Text center={true} type="BodyBig" style={styles.instructions}>
+        <Kb.Text center={true} type={textType} style={styles.instructions}>
           Ready to provision using
         </Kb.Text>
-        <Kb.Text center={true} type="BodyBig" style={styles.instructionsItalic}>
+        <Kb.Text center={true} type={textType} style={styles.instructionsItalic}>
           {p.currentDeviceName}.
         </Kb.Text>
       </React.Fragment>
     ) : (
       <React.Fragment>
-        <Kb.Text center={true} type="BodyBig" style={styles.instructions}>
+        <Kb.Text center={true} type={textType} style={styles.instructions}>
           On
-          <Kb.Text center={true} type="BodyBig" style={styles.instructionsItalic}>
+          <Kb.Text center={true} type={textType} style={styles.instructionsItalic}>
             {' '}
             {p.otherDeviceName}
           </Kb.Text>
           , go to
         </Kb.Text>
-        <Kb.Text center={true} type="BodyBig" style={styles.instructions}>
+        <Kb.Text center={true} type={textType} style={styles.instructions}>
           Devices
-          <Kb.Text center={true} type="BodyBig" style={styles.instructionsCarets}>
+          <Kb.Text center={true} type={textType} style={styles.instructionsCarets}>
             {` ${String.fromCharCode(iconMeta['iconfont-arrow-right'].charCode || 0)} `}
           </Kb.Text>
-          <Kb.Text center={true} type="BodyBig" style={styles.instructions}>
+          <Kb.Text center={true} type={textType} style={styles.instructions}>
             Add device
           </Kb.Text>
-          <Kb.Text center={true} type="BodyBig" style={styles.instructionsCarets}>
+          <Kb.Text center={true} type={textType} style={styles.instructionsCarets}>
             {` ${String.fromCharCode(iconMeta['iconfont-arrow-right'].charCode || 0)} `}
           </Kb.Text>
-          <Kb.Text center={true} type="BodyBig" style={styles.instructions}>
+          <Kb.Text center={true} type={textType} style={styles.instructions}>
             New {p.currentDeviceType === 'desktop' ? 'computer' : 'phone'}.
           </Kb.Text>
         </Kb.Text>
