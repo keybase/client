@@ -278,7 +278,17 @@ func (h *TeamsHandler) TeamAddMembersMultiRole(ctx context.Context, arg keybase1
 	}
 
 	res, err := teams.AddMembers(ctx, h.G().ExternalG(), arg.Name, arg.Users)
-	if err != nil {
+	switch err := err.(type) {
+	case nil:
+	case teams.AddMembersError:
+		switch err := err.Err.(type) {
+		case libkb.IdentifySummaryError:
+			// Return the IdentifySummaryError, which is exportable.
+			// Frontend presents this error specifically.
+			return err
+		}
+		return err
+	default:
 		return err
 	}
 	if arg.SendChatNotification {
