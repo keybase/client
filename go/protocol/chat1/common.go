@@ -111,6 +111,17 @@ func (o TopicNameState) DeepCopy() TopicNameState {
 	})(o)
 }
 
+type FlipGameID []byte
+
+func (o FlipGameID) DeepCopy() FlipGameID {
+	return (func(x []byte) []byte {
+		if x == nil {
+			return nil
+		}
+		return append([]byte{}, x...)
+	})(o)
+}
+
 type InboxVersInfo struct {
 	Uid  gregor1.UID `codec:"uid" json:"uid"`
 	Vers InboxVers   `codec:"vers" json:"vers"`
@@ -1845,6 +1856,7 @@ const (
 	GetThreadReason_SEARCHER           GetThreadReason = 6
 	GetThreadReason_INDEXED_SEARCH     GetThreadReason = 7
 	GetThreadReason_KBFSFILEACTIVITY   GetThreadReason = 8
+	GetThreadReason_COINFLIP           GetThreadReason = 9
 )
 
 func (o GetThreadReason) DeepCopy() GetThreadReason { return o }
@@ -1859,6 +1871,7 @@ var GetThreadReasonMap = map[string]GetThreadReason{
 	"SEARCHER":           6,
 	"INDEXED_SEARCH":     7,
 	"KBFSFILEACTIVITY":   8,
+	"COINFLIP":           9,
 }
 
 var GetThreadReasonRevMap = map[GetThreadReason]string{
@@ -1871,6 +1884,7 @@ var GetThreadReasonRevMap = map[GetThreadReason]string{
 	6: "SEARCHER",
 	7: "INDEXED_SEARCH",
 	8: "KBFSFILEACTIVITY",
+	9: "COINFLIP",
 }
 
 func (e GetThreadReason) String() string {

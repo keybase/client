@@ -184,6 +184,7 @@ protocol chatUi {
     union { null, UIRequestInfo } requestInfo;
     array<UIMessageUnfurlInfo> unfurls;
     boolean isCollapsed;
+    union { null, string } flipGameID;
   }
 
   record UIMessageOutbox {
@@ -195,6 +196,7 @@ protocol chatUi {
     gregor1.Time ctime;
     double ordinal;
     boolean isEphemeral;
+    union { null, string} flipGameID;
 
     // For attachments
     string filename;
@@ -281,4 +283,27 @@ protocol chatUi {
   void chatGiphySearchResults(int sessionID, string convID, array<GiphySearchResult> results);
 
   void chatShowManageChannels(int sessionID, string teamname);
+
+  enum UICoinFlipPhase {
+    COMMITMENT_0,
+    REVEALS_1,
+    COMPLETE_2,
+    ERROR_3
+  }
+  record UICoinFlipParticipant {
+    string uid;
+    string deviceID;
+    string username;
+    string deviceName;
+    string commitment;
+    union { null, string } reveal;
+  }
+  record UICoinFlipStatus {
+    string gameID;
+    UICoinFlipPhase phase;
+    string progressText;
+    string resultText;
+    array<UICoinFlipParticipant> participants;
+  }
+  void chatCoinFlipStatus(int sessionID, array<UICoinFlipStatus> statuses);
 }

@@ -700,6 +700,16 @@
           "jsonkey": "timeout"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "NetworkOptions",
+      "fields": [
+        {
+          "type": "uint64",
+          "name": "baseFee"
+        }
+      ]
     }
   ],
   "messages": {
@@ -968,6 +978,15 @@
     "ping": {
       "request": [],
       "response": "string"
+    },
+    "networkOptions": {
+      "request": [
+        {
+          "name": "caller",
+          "type": "keybase1.UserVersion"
+        }
+      ],
+      "response": "NetworkOptions"
     }
   },
   "namespace": "stellar.1"

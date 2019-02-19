@@ -14,6 +14,7 @@
   @typedef("uint64") @lint("ignore") record ConversationVers {}
   @typedef("bytes")  record OutboxID {}
   @typedef("bytes")  record TopicNameState {}
+  @typedef("bytes")  record FlipGameID {}
 
   record InboxVersInfo {
     gregor1.UID uid;
@@ -531,7 +532,8 @@
     PREPARE_5,
     SEARCHER_6,
     INDEXED_SEARCH_7,
-    KBFSFILEACTIVITY_8
+    KBFSFILEACTIVITY_8,
+    COINFLIP_9
   }
 
   record SearchOpts {

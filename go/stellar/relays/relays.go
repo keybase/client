@@ -75,6 +75,7 @@ type Input struct {
 	EncryptFor    keybase1.TeamApplicationKey
 	SeqnoProvider build.SequenceProvider
 	Timebounds    *build.Timebounds
+	BaseFee       uint64
 }
 
 type Output struct {
@@ -104,7 +105,7 @@ func Create(in Input) (res Output, err error) {
 		return res, err
 	}
 	sig, err := stellarnet.CreateAccountXLMTransaction(senderSeed, relayAccountID, in.AmountXLM,
-		in.PublicMemo, in.SeqnoProvider, in.Timebounds)
+		in.PublicMemo, in.SeqnoProvider, in.Timebounds, in.BaseFee)
 	if err != nil {
 		return res, err
 	}

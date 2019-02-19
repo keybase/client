@@ -102,6 +102,7 @@ export const unfurlRemove = 'chat2:unfurlRemove'
 export const unfurlResolvePrompt = 'chat2:unfurlResolvePrompt'
 export const unfurlTogglePrompt = 'chat2:unfurlTogglePrompt'
 export const unsentTextChanged = 'chat2:unsentTextChanged'
+export const updateCoinFlipStatus = 'chat2:updateCoinFlipStatus'
 export const updateConvExplodingModes = 'chat2:updateConvExplodingModes'
 export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
 export const updateMessages = 'chat2:updateMessages'
@@ -205,6 +206,7 @@ type _UnfurlRemovePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDK
 type _UnfurlResolvePromptPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID, domain: string, result: RPCChatTypes.UnfurlPromptResult|}>
 type _UnfurlTogglePromptPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID, domain: string, show: boolean|}>
 type _UnsentTextChangedPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, text: HiddenString|}>
+type _UpdateCoinFlipStatusPayload = $ReadOnly<{|statuses: Array<RPCChatTypes.UICoinFlipStatus>|}>
 type _UpdateConvExplodingModesPayload = $ReadOnly<{|modes: Array<{conversationIDKey: Types.ConversationIDKey, seconds: number}>|}>
 type _UpdateConvRetentionPolicyPayload = $ReadOnly<{|conv: RPCChatTypes.InboxUIItem|}>
 type _UpdateMessagesPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messages: Array<{messageID: Types.MessageID, message: Types.Message}>|}>
@@ -320,6 +322,10 @@ export const createUnsentTextChanged = (payload: _UnsentTextChangedPayload) => (
  * Update messages that we might have in the store
  */
 export const createUpdateMessages = (payload: _UpdateMessagesPayload) => ({payload, type: updateMessages})
+/**
+ * Update status of a coin flip game
+ */
+export const createUpdateCoinFlipStatus = (payload: _UpdateCoinFlipStatusPayload) => ({payload, type: updateCoinFlipStatus})
 /**
  * Update the minWriterRole stored with the conversation metadata.
  */
@@ -507,6 +513,7 @@ export type UnfurlRemovePayload = {|+payload: _UnfurlRemovePayload, +type: 'chat
 export type UnfurlResolvePromptPayload = {|+payload: _UnfurlResolvePromptPayload, +type: 'chat2:unfurlResolvePrompt'|}
 export type UnfurlTogglePromptPayload = {|+payload: _UnfurlTogglePromptPayload, +type: 'chat2:unfurlTogglePrompt'|}
 export type UnsentTextChangedPayload = {|+payload: _UnsentTextChangedPayload, +type: 'chat2:unsentTextChanged'|}
+export type UpdateCoinFlipStatusPayload = {|+payload: _UpdateCoinFlipStatusPayload, +type: 'chat2:updateCoinFlipStatus'|}
 export type UpdateConvExplodingModesPayload = {|+payload: _UpdateConvExplodingModesPayload, +type: 'chat2:updateConvExplodingModes'|}
 export type UpdateConvRetentionPolicyPayload = {|+payload: _UpdateConvRetentionPolicyPayload, +type: 'chat2:updateConvRetentionPolicy'|}
 export type UpdateMessagesPayload = {|+payload: _UpdateMessagesPayload, +type: 'chat2:updateMessages'|}
@@ -609,6 +616,7 @@ export type Actions =
   | UnfurlResolvePromptPayload
   | UnfurlTogglePromptPayload
   | UnsentTextChangedPayload
+  | UpdateCoinFlipStatusPayload
   | UpdateConvExplodingModesPayload
   | UpdateConvRetentionPolicyPayload
   | UpdateMessagesPayload

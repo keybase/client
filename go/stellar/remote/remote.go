@@ -902,6 +902,24 @@ func GetInflationDestinations(ctx context.Context, g *libkb.GlobalContext) (ret 
 	return apiRes.Destinations, nil
 }
 
+type networkOptionsRes struct {
+	libkb.AppStatusEmbed
+	Options stellar1.NetworkOptions
+}
+
+func NetworkOptions(ctx context.Context, g *libkb.GlobalContext) (stellar1.NetworkOptions, error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/network_options",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		MetaContext: libkb.NewMetaContext(ctx, g),
+	}
+	var apiRes networkOptionsRes
+	if err := g.API.GetDecode(apiArg, &apiRes); err != nil {
+		return stellar1.NetworkOptions{}, err
+	}
+	return apiRes.Options, nil
+}
+
 type airdropDetails struct {
 	libkb.AppStatusEmbed
 	Details json.RawMessage `json:"details"`

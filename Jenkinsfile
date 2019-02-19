@@ -85,6 +85,11 @@ helpers.rootLinuxNode(env, {
     def hasJSChanges = helpers.hasChanges('shared', env)
     println "Has go changes: " + hasGoChanges
     println "Has JS changes: " + hasJSChanges
+    if (hasGoChanges) {
+        dir("go") {
+          sh "make gen-deps"
+        }
+    }
 
     stage("Test") {
       helpers.withKbweb() {
@@ -113,16 +118,6 @@ helpers.rootLinuxNode(env, {
                   fetchChangeTarget()
                 }
                 parallel (
-                  check_deps: {
-                    // Checking deps can happen in parallel
-                    // since we won't be rebuilding anything in Go.
-                    if (hasGoChanges) {
-                      dir('go') {
-                        sh "make gen-deps"
-                        checkDiffs(['./'], 'Please run \\"make gen-deps\\" inside the client/go directory.')
-                      }
-                    }
-                  },
                   test_linux_go: { withEnv([
                     "PATH=${env.PATH}:${env.GOPATH}/bin",
                     "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
@@ -520,7 +515,7 @@ def testGo(prefix, packagesToTest) {
       }
 
       println "Running go vet for ${pkg}"
-      sh "go vet ${pkg}"
+      sh "go vet ${pkg} || (ERR=\$? && echo \"go vet failed with error code \$ERR\" && exit \$ERR)"
 
       if (isUnix()) {
         // Windows `gofmt` pukes on CRLF, so only run on *nix.

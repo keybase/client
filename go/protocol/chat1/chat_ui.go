@@ -564,6 +564,7 @@ type UIMessageValid struct {
 	RequestInfo           *UIRequestInfo         `codec:"requestInfo,omitempty" json:"requestInfo,omitempty"`
 	Unfurls               []UIMessageUnfurlInfo  `codec:"unfurls" json:"unfurls"`
 	IsCollapsed           bool                   `codec:"isCollapsed" json:"isCollapsed"`
+	FlipGameID            *string                `codec:"flipGameID,omitempty" json:"flipGameID,omitempty"`
 }
 
 func (o UIMessageValid) DeepCopy() UIMessageValid {
@@ -670,6 +671,13 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 			return ret
 		})(o.Unfurls),
 		IsCollapsed: o.IsCollapsed,
+		FlipGameID: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.FlipGameID),
 	}
 }
 
@@ -682,6 +690,7 @@ type UIMessageOutbox struct {
 	Ctime             gregor1.Time    `codec:"ctime" json:"ctime"`
 	Ordinal           float64         `codec:"ordinal" json:"ordinal"`
 	IsEphemeral       bool            `codec:"isEphemeral" json:"isEphemeral"`
+	FlipGameID        *string         `codec:"flipGameID,omitempty" json:"flipGameID,omitempty"`
 	Filename          string          `codec:"filename" json:"filename"`
 	Title             string          `codec:"title" json:"title"`
 	Preview           *MakePreviewRes `codec:"preview,omitempty" json:"preview,omitempty"`
@@ -703,8 +712,15 @@ func (o UIMessageOutbox) DeepCopy() UIMessageOutbox {
 		Ctime:       o.Ctime.DeepCopy(),
 		Ordinal:     o.Ordinal,
 		IsEphemeral: o.IsEphemeral,
-		Filename:    o.Filename,
-		Title:       o.Title,
+		FlipGameID: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.FlipGameID),
+		Filename: o.Filename,
+		Title:    o.Title,
 		Preview: (func(x *MakePreviewRes) *MakePreviewRes {
 			if x == nil {
 				return nil
@@ -1118,6 +1134,92 @@ func (o GiphySearchResult) DeepCopy() GiphySearchResult {
 	}
 }
 
+type UICoinFlipPhase int
+
+const (
+	UICoinFlipPhase_COMMITMENT UICoinFlipPhase = 0
+	UICoinFlipPhase_REVEALS    UICoinFlipPhase = 1
+	UICoinFlipPhase_COMPLETE   UICoinFlipPhase = 2
+	UICoinFlipPhase_ERROR      UICoinFlipPhase = 3
+)
+
+func (o UICoinFlipPhase) DeepCopy() UICoinFlipPhase { return o }
+
+var UICoinFlipPhaseMap = map[string]UICoinFlipPhase{
+	"COMMITMENT": 0,
+	"REVEALS":    1,
+	"COMPLETE":   2,
+	"ERROR":      3,
+}
+
+var UICoinFlipPhaseRevMap = map[UICoinFlipPhase]string{
+	0: "COMMITMENT",
+	1: "REVEALS",
+	2: "COMPLETE",
+	3: "ERROR",
+}
+
+func (e UICoinFlipPhase) String() string {
+	if v, ok := UICoinFlipPhaseRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
+type UICoinFlipParticipant struct {
+	Uid        string  `codec:"uid" json:"uid"`
+	DeviceID   string  `codec:"deviceID" json:"deviceID"`
+	Username   string  `codec:"username" json:"username"`
+	DeviceName string  `codec:"deviceName" json:"deviceName"`
+	Commitment string  `codec:"commitment" json:"commitment"`
+	Reveal     *string `codec:"reveal,omitempty" json:"reveal,omitempty"`
+}
+
+func (o UICoinFlipParticipant) DeepCopy() UICoinFlipParticipant {
+	return UICoinFlipParticipant{
+		Uid:        o.Uid,
+		DeviceID:   o.DeviceID,
+		Username:   o.Username,
+		DeviceName: o.DeviceName,
+		Commitment: o.Commitment,
+		Reveal: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.Reveal),
+	}
+}
+
+type UICoinFlipStatus struct {
+	GameID       string                  `codec:"gameID" json:"gameID"`
+	Phase        UICoinFlipPhase         `codec:"phase" json:"phase"`
+	ProgressText string                  `codec:"progressText" json:"progressText"`
+	ResultText   string                  `codec:"resultText" json:"resultText"`
+	Participants []UICoinFlipParticipant `codec:"participants" json:"participants"`
+}
+
+func (o UICoinFlipStatus) DeepCopy() UICoinFlipStatus {
+	return UICoinFlipStatus{
+		GameID:       o.GameID,
+		Phase:        o.Phase.DeepCopy(),
+		ProgressText: o.ProgressText,
+		ResultText:   o.ResultText,
+		Participants: (func(x []UICoinFlipParticipant) []UICoinFlipParticipant {
+			if x == nil {
+				return nil
+			}
+			ret := make([]UICoinFlipParticipant, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Participants),
+	}
+}
+
 type ChatAttachmentDownloadStartArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -1218,6 +1320,11 @@ type ChatShowManageChannelsArg struct {
 	Teamname  string `codec:"teamname" json:"teamname"`
 }
 
+type ChatCoinFlipStatusArg struct {
+	SessionID int                `codec:"sessionID" json:"sessionID"`
+	Statuses  []UICoinFlipStatus `codec:"statuses" json:"statuses"`
+}
+
 type ChatUiInterface interface {
 	ChatAttachmentDownloadStart(context.Context, int) error
 	ChatAttachmentDownloadProgress(context.Context, ChatAttachmentDownloadProgressArg) error
@@ -1239,6 +1346,7 @@ type ChatUiInterface interface {
 	ChatStellarDone(context.Context, ChatStellarDoneArg) error
 	ChatGiphySearchResults(context.Context, ChatGiphySearchResultsArg) error
 	ChatShowManageChannels(context.Context, ChatShowManageChannelsArg) error
+	ChatCoinFlipStatus(context.Context, ChatCoinFlipStatusArg) error
 }
 
 func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
@@ -1545,6 +1653,21 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 					return
 				},
 			},
+			"chatCoinFlipStatus": {
+				MakeArg: func() interface{} {
+					var ret [1]ChatCoinFlipStatusArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChatCoinFlipStatusArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChatCoinFlipStatusArg)(nil), args)
+						return
+					}
+					err = i.ChatCoinFlipStatus(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -1653,5 +1776,10 @@ func (c ChatUiClient) ChatGiphySearchResults(ctx context.Context, __arg ChatGiph
 
 func (c ChatUiClient) ChatShowManageChannels(ctx context.Context, __arg ChatShowManageChannelsArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.chatUi.chatShowManageChannels", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ChatUiClient) ChatCoinFlipStatus(ctx context.Context, __arg ChatCoinFlipStatusArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatCoinFlipStatus", []interface{}{__arg}, nil)
 	return
 }

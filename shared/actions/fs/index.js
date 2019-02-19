@@ -291,7 +291,7 @@ function* download(state, action) {
     yield Saga.put(FsGen.createDownloadProgress({completePortion: 1, key}))
 
     const mimeType = yield* _loadMimeType(path)
-    yield Saga.put(FsGen.createDownloadSuccess({key, mimeType: mimeType?.mimeType || ''}))
+    yield Saga.put(FsGen.createDownloadSuccess({intent, key, mimeType: mimeType?.mimeType || ''}))
   } catch (error) {
     // This needs to be before the dismiss below, so that if it's a legit
     // error we'd show the red bar.

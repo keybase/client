@@ -522,6 +522,7 @@ func TestRelayTransferInnards(t *testing.T) {
 		Note:          "hey",
 		EncryptFor:    appKey,
 		SeqnoProvider: sp,
+		BaseFee:       100,
 	})
 	require.NoError(t, err)
 	_, err = libkb.ParseStellarAccountID(out.RelayAccountID.String())

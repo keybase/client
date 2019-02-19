@@ -105,9 +105,9 @@ func (c *GenericSocialProofConfig) prefillURLWithValues(kbUsername string, sigID
 	if !strings.Contains(url, sigID.String()) {
 		return "", fmt.Errorf("Invalid PrefillUrl: %s, missing sigHash: %s", url, sigID)
 	}
-	url = strings.Replace(url, kbUaKey, libkb.UserAgent, 1)
-	if !strings.Contains(url, libkb.UserAgent) {
-		return "", fmt.Errorf("Invalid PrefillUrl: %s, missing kbUa: %s", url, libkb.UserAgent)
+	url = strings.Replace(url, kbUaKey, libkb.ProofUserAgent(), 1)
+	if !strings.Contains(url, libkb.ProofUserAgent()) {
+		return "", fmt.Errorf("Invalid PrefillUrl: %s, missing kbUa: %s", url, libkb.ProofUserAgent())
 	}
 	return url, nil
 }
