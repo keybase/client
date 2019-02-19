@@ -86,7 +86,7 @@ func TestFlipManagerStartFlip(t *testing.T) {
 		// range
 		mustPostLocalForTest(t, ctc, users[0], conv,
 			chat1.NewMessageBodyWithText(chat1.MessageText{
-				Body: "/flip 10-15",
+				Body: "/flip 10..15",
 			}))
 		res0 = consumeFlipToResult(t, ui0, numUsers)
 		found = false
@@ -141,9 +141,11 @@ func TestFlipManagerParseEdges(t *testing.T) {
 	testCase("/flip 10", flip.FlipType_BIG, "1", nil)
 	testCase("/flip 0", flip.FlipType_SHUFFLE, "", []string{"0"})
 	testCase("/flip -1", flip.FlipType_SHUFFLE, "", []string{"-1"})
-	testCase("/flip 1-5", flip.FlipType_BIG, "1", nil)
-	testCase("/flip 1-1", flip.FlipType_BIG, "1", nil)
-	testCase("/flip 1-0", flip.FlipType_SHUFFLE, "", []string{"1-0"})
+	testCase("/flip 1..5", flip.FlipType_BIG, "1", nil)
+	testCase("/flip -20..20", flip.FlipType_BIG, "-20", nil)
+	testCase("/flip -20..20,mike", flip.FlipType_SHUFFLE, "", []string{"-20..20", "mike"})
+	testCase("/flip 1..1", flip.FlipType_BIG, "1", nil)
+	testCase("/flip 1..0", flip.FlipType_SHUFFLE, "", []string{"1..0"})
 	testCase("/flip mike, karen,     jim", flip.FlipType_SHUFFLE, "", []string{"mike", "karen", "jim"})
 	testCase("/flip mike,    jim bob    j  ,     jim", flip.FlipType_SHUFFLE, "",
 		[]string{"mike", "jim bob    j", "jim"})

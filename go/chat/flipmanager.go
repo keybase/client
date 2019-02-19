@@ -414,10 +414,10 @@ func (m *FlipManager) parseShuffle(arg string) (start flip.Start, shuffleItems [
 }
 
 func (m *FlipManager) parseRange(arg string) (start flip.Start, lowerBound string, err error) {
-	if !strings.Contains(arg, "-") {
+	if !strings.Contains(arg, "..") || strings.Contains(arg, ",") {
 		return start, lowerBound, errFailedToParse
 	}
-	toks := strings.Split(arg, "-")
+	toks := strings.Split(arg, "..")
 	if len(toks) != 2 {
 		return start, lowerBound, errFailedToParse
 	}
