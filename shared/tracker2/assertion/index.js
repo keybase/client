@@ -305,6 +305,13 @@ const siteIconToSrcSet = siteIcon =>
 const siteIconToNativeSrcSet = siteIcon =>
   siteIcon.map(si => ({height: si.width, uri: si.path, width: si.width}))
 
+const HoverOpacity = Styles.styled(Kb.Box)({
+  '&:hover': {
+    opacity: 1,
+  },
+  opacity: 0.5,
+})
+
 type State = {|showingMenu: boolean|}
 class Assertion extends React.PureComponent<Props, State> {
   state = {showingMenu: false}
@@ -314,18 +321,24 @@ class Assertion extends React.PureComponent<Props, State> {
   _getRef = () => this._ref.current
   _siteIcon = () => {
     // on mobile use `Kb.RequireImage`, desktop a box with background-image
+    let child
     if (Styles.isMobile) {
-      return <Kb.RequireImage src={siteIconToNativeSrcSet(this.props.siteIcon)} style={styles.siteIcon} />
+      child = <Kb.RequireImage src={siteIconToNativeSrcSet(this.props.siteIcon)} style={styles.siteIcon} />
+    } else {
+      const Container = this.props.isSuggestion ? HoverOpacity : Kb.Box
+      child = (
+        <Container
+          style={Styles.collapseStyles([
+            styles.siteIcon,
+            {
+              backgroundImage: siteIconToSrcSet(this.props.siteIcon),
+            },
+          ])}
+        />
+      )
     }
     return (
-      <Kb.Box
-        style={Styles.collapseStyles([
-          styles.siteIcon,
-          {
-            backgroundImage: siteIconToSrcSet(this.props.siteIcon),
-          },
-        ])}
-      />
+      <Kb.ClickableBox onClick={this.props.onCreateProof || this.props.onShowProof}>{child}</Kb.ClickableBox>
     )
   }
   render() {

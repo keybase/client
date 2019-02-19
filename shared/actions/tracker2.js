@@ -187,7 +187,7 @@ const getProofSuggestions = () =>
           color: 'gray',
           metas: [],
           proofURL: '',
-          siteIcon: [],
+          siteIcon: s.profileIcon || [],
           siteURL: '',
           state: 'suggestion',
           type: s.key,
