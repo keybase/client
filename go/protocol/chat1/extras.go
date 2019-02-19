@@ -170,6 +170,14 @@ func VisibleChatMessageTypes() []MessageType {
 	return visibleMessageTypes
 }
 
+var editableMessageTypesByEdit = []MessageType{
+	MessageType_TEXT,
+}
+
+func EditableMessageTypesByEdit() []MessageType {
+	return editableMessageTypesByEdit
+}
+
 func IsEphemeralSupersederType(typ MessageType) bool {
 	switch typ {
 	case MessageType_EDIT,
