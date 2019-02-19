@@ -7956,6 +7956,8 @@ func (fbo *folderBranchOps) ClearPrivateFolderMD(ctx context.Context) {
 			fbo.cancelEdits = nil
 		}
 		fbo.editHistory = kbfsedits.NewTlfHistory()
+		// Allow the edit monitor to be re-launched later whenever the
+		// MD is set again.
 		fbo.launchEditMonitor = sync.Once{}
 		fbo.convLock.Lock()
 		defer fbo.convLock.Unlock()
