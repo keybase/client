@@ -14,9 +14,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func consumeFlipToResult(t *testing.T, ui *kbtest.ChatUI, numUsers int) string {
+func consumeFlipToResult(t *testing.T, ui *kbtest.ChatUI, listener *serverChatListener, numUsers int) string {
 	timeout := 20 * time.Second
 	for {
+		consumeNewMsgRemote(t, listener, chat1.MessageType_FLIP)
 		select {
 		case updates := <-ui.CoinFlipUpdates:
 			require.Equal(t, 1, len(updates))
@@ -49,8 +50,12 @@ func TestFlipManagerStartFlip(t *testing.T) {
 		ctc.world.Tcs[users[0].Username].G.UIRouter = &fakeUIRouter{ui: ui0}
 		ctc.world.Tcs[users[1].Username].G.UIRouter = &fakeUIRouter{ui: ui1}
 		ctc.world.Tcs[users[2].Username].G.UIRouter = &fakeUIRouter{ui: ui2}
-		listener := newServerChatListener()
-		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener)
+		listener0 := newServerChatListener()
+		listener1 := newServerChatListener()
+		listener2 := newServerChatListener()
+		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
+		ctc.as(t, users[1]).h.G().NotifyRouter.AddListener(listener1)
+		ctc.as(t, users[2]).h.G().NotifyRouter.AddListener(listener2)
 
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 			mt, ctc.as(t, users[1]).user(), ctc.as(t, users[2]).user())
@@ -60,13 +65,15 @@ func TestFlipManagerStartFlip(t *testing.T) {
 			chat1.NewMessageBodyWithText(chat1.MessageText{
 				Body: "/flip",
 			}))
-		consumeNewMsgRemote(t, listener, chat1.MessageType_FLIP)
-		res0 := consumeFlipToResult(t, ui0, numUsers)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_FLIP)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_FLIP)
+		consumeNewMsgRemote(t, listener2, chat1.MessageType_FLIP)
+		res0 := consumeFlipToResult(t, ui0, listener0, numUsers)
 		t.Logf("res0 (coin): %s", res0)
 		require.True(t, res0 == "HEADS" || res0 == "TAILS")
-		res1 := consumeFlipToResult(t, ui1, numUsers)
+		res1 := consumeFlipToResult(t, ui1, listener1, numUsers)
 		require.Equal(t, res0, res1)
-		res2 := consumeFlipToResult(t, ui2, numUsers)
+		res2 := consumeFlipToResult(t, ui2, listener2, numUsers)
 		require.Equal(t, res0, res2)
 
 		// limit
@@ -74,8 +81,10 @@ func TestFlipManagerStartFlip(t *testing.T) {
 			chat1.NewMessageBodyWithText(chat1.MessageText{
 				Body: "/flip 10",
 			}))
-		consumeNewMsgRemote(t, listener, chat1.MessageType_FLIP)
-		res0 = consumeFlipToResult(t, ui0, numUsers)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_FLIP)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_FLIP)
+		consumeNewMsgRemote(t, listener2, chat1.MessageType_FLIP)
+		res0 = consumeFlipToResult(t, ui0, listener0, numUsers)
 		found := false
 		t.Logf("res0 (range): %s", res0)
 		for i := 1; i <= 10; i++ {
@@ -85,9 +94,9 @@ func TestFlipManagerStartFlip(t *testing.T) {
 			}
 		}
 		require.True(t, found)
-		res1 = consumeFlipToResult(t, ui1, numUsers)
+		res1 = consumeFlipToResult(t, ui1, listener1, numUsers)
 		require.Equal(t, res0, res1)
-		res2 = consumeFlipToResult(t, ui2, numUsers)
+		res2 = consumeFlipToResult(t, ui2, listener2, numUsers)
 		require.Equal(t, res0, res2)
 
 		// range
@@ -95,8 +104,10 @@ func TestFlipManagerStartFlip(t *testing.T) {
 			chat1.NewMessageBodyWithText(chat1.MessageText{
 				Body: "/flip 10..15",
 			}))
-		consumeNewMsgRemote(t, listener, chat1.MessageType_FLIP)
-		res0 = consumeFlipToResult(t, ui0, numUsers)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_FLIP)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_FLIP)
+		consumeNewMsgRemote(t, listener2, chat1.MessageType_FLIP)
+		res0 = consumeFlipToResult(t, ui0, listener0, numUsers)
 		found = false
 		for i := 10; i <= 15; i++ {
 			if res0 == fmt.Sprintf("%d", i) {
@@ -105,9 +116,9 @@ func TestFlipManagerStartFlip(t *testing.T) {
 			}
 		}
 		require.True(t, found)
-		res1 = consumeFlipToResult(t, ui1, numUsers)
+		res1 = consumeFlipToResult(t, ui1, listener1, numUsers)
 		require.Equal(t, res0, res1)
-		res2 = consumeFlipToResult(t, ui2, numUsers)
+		res2 = consumeFlipToResult(t, ui2, listener2, numUsers)
 		require.Equal(t, res0, res2)
 
 		// shuffle
@@ -120,17 +131,19 @@ func TestFlipManagerStartFlip(t *testing.T) {
 			chat1.NewMessageBodyWithText(chat1.MessageText{
 				Body: fmt.Sprintf("/flip %s", strings.Join(ref, ",")),
 			}))
-		consumeNewMsgRemote(t, listener, chat1.MessageType_FLIP)
-		res0 = consumeFlipToResult(t, ui0, numUsers)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_FLIP)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_FLIP)
+		consumeNewMsgRemote(t, listener2, chat1.MessageType_FLIP)
+		res0 = consumeFlipToResult(t, ui0, listener0, numUsers)
 		toks := strings.Split(res0, ",")
 		for _, t := range toks {
 			delete(refMap, t)
 		}
 		require.Zero(t, len(refMap))
 		require.True(t, found)
-		res1 = consumeFlipToResult(t, ui1, numUsers)
+		res1 = consumeFlipToResult(t, ui1, listener1, numUsers)
 		require.Equal(t, res0, res1)
-		res2 = consumeFlipToResult(t, ui2, numUsers)
+		res2 = consumeFlipToResult(t, ui2, listener2, numUsers)
 		require.Equal(t, res0, res2)
 	})
 }
@@ -177,8 +190,10 @@ func TestFlipManagerLoadFlip(t *testing.T) {
 		ctx := ctc.as(t, users[0]).startCtx
 		tc := ctc.world.Tcs[users[0].Username]
 		uid := users[0].User.GetUID().ToBytes()
-		listener := newServerChatListener()
-		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener)
+		listener0 := newServerChatListener()
+		listener1 := newServerChatListener()
+		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
+		ctc.as(t, users[1]).h.G().NotifyRouter.AddListener(listener1)
 		flip.DefaultCommitmentWindowMsec = 500
 		timeout := 20 * time.Second
 		ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
@@ -189,10 +204,11 @@ func TestFlipManagerLoadFlip(t *testing.T) {
 			chat1.NewMessageBodyWithText(chat1.MessageText{
 				Body: "/flip",
 			}))
-		consumeNewMsgRemote(t, listener, chat1.MessageType_FLIP)
-		res := consumeFlipToResult(t, ui0, 2)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_FLIP)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_FLIP)
+		res := consumeFlipToResult(t, ui0, listener0, 2)
 		require.True(t, res == "HEADS" || res == "TAILS")
-		res1 := consumeFlipToResult(t, ui1, 2)
+		res1 := consumeFlipToResult(t, ui1, listener1, 2)
 		require.Equal(t, res, res1)
 
 		hostMsg, err := GetMessage(ctx, tc.Context(), uid, conv.Id, 2, true, nil)

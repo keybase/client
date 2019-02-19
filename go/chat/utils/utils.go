@@ -1337,6 +1337,9 @@ func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, msg chat1
 
 func presentFlipGameID(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	convID chat1.ConversationID, msg chat1.MessageUnboxed) *string {
+	if msg.GetTopicType() != chat1.TopicType_CHAT {
+		return nil
+	}
 	typ, err := msg.State()
 	if err != nil {
 		return nil
