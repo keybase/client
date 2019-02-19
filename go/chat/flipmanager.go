@@ -83,7 +83,6 @@ func (n *sentMessageListener) NewChatActivity(uid keybase1.UID, activity chat1.C
 type hostMessageInfo struct {
 	ConvID       chat1.ConversationID
 	MsgID        chat1.MessageID
-	GameID       chat1.FlipGameID
 	LowerBound   string
 	ShuffleItems []string
 }
@@ -535,7 +534,6 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 	infoBody, err := json.Marshal(hostMessageInfo{
 		ConvID:       hostConvID,
 		MsgID:        sendRes.MsgID,
-		GameID:       gameID,
 		LowerBound:   lowerBound,
 		ShuffleItems: shuffleItems,
 	})

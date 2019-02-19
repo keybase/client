@@ -49,6 +49,8 @@ func TestFlipManagerStartFlip(t *testing.T) {
 		ctc.world.Tcs[users[0].Username].G.UIRouter = &fakeUIRouter{ui: ui0}
 		ctc.world.Tcs[users[1].Username].G.UIRouter = &fakeUIRouter{ui: ui1}
 		ctc.world.Tcs[users[2].Username].G.UIRouter = &fakeUIRouter{ui: ui2}
+		listener := newServerChatListener()
+		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener)
 
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
 			mt, ctc.as(t, users[1]).user(), ctc.as(t, users[2]).user())
@@ -58,6 +60,7 @@ func TestFlipManagerStartFlip(t *testing.T) {
 			chat1.NewMessageBodyWithText(chat1.MessageText{
 				Body: "/flip",
 			}))
+		consumeNewMsgRemote(t, listener, chat1.MessageType_FLIP)
 		res0 := consumeFlipToResult(t, ui0, numUsers)
 		t.Logf("res0 (coin): %s", res0)
 		require.True(t, res0 == "HEADS" || res0 == "TAILS")
@@ -71,6 +74,7 @@ func TestFlipManagerStartFlip(t *testing.T) {
 			chat1.NewMessageBodyWithText(chat1.MessageText{
 				Body: "/flip 10",
 			}))
+		consumeNewMsgRemote(t, listener, chat1.MessageType_FLIP)
 		res0 = consumeFlipToResult(t, ui0, numUsers)
 		found := false
 		t.Logf("res0 (range): %s", res0)
@@ -91,6 +95,7 @@ func TestFlipManagerStartFlip(t *testing.T) {
 			chat1.NewMessageBodyWithText(chat1.MessageText{
 				Body: "/flip 10..15",
 			}))
+		consumeNewMsgRemote(t, listener, chat1.MessageType_FLIP)
 		res0 = consumeFlipToResult(t, ui0, numUsers)
 		found = false
 		for i := 10; i <= 15; i++ {
@@ -115,6 +120,7 @@ func TestFlipManagerStartFlip(t *testing.T) {
 			chat1.NewMessageBodyWithText(chat1.MessageText{
 				Body: fmt.Sprintf("/flip %s", strings.Join(ref, ",")),
 			}))
+		consumeNewMsgRemote(t, listener, chat1.MessageType_FLIP)
 		res0 = consumeFlipToResult(t, ui0, numUsers)
 		toks := strings.Split(res0, ",")
 		for _, t := range toks {
