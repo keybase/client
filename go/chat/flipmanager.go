@@ -568,8 +568,9 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 
 	// Generate dev channel for game messages
 	topicName := m.gameTopicNameFromGameID(gameID)
-	conv, err := m.G().ChatHelper.NewConversation(ctx, uid, tlfName, &topicName, chat1.TopicType_DEV,
-		hostConv.GetMembersType(), keybase1.TLFVisibility_PRIVATE)
+	conv, err := m.G().ChatHelper.NewConversationWithMemberSourceConv(ctx, uid, tlfName, &topicName,
+		chat1.TopicType_DEV, hostConv.GetMembersType(),
+		keybase1.TLFVisibility_PRIVATE, &hostConvID)
 	if err != nil {
 		return err
 	}

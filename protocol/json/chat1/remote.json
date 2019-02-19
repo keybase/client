@@ -769,6 +769,13 @@
             null,
             "TopicNameState"
           ]
+        },
+        {
+          "name": "memberSourceConv",
+          "type": [
+            null,
+            "ConversationID"
+          ]
         }
       ],
       "response": "NewConversationRemoteRes",
