@@ -149,7 +149,7 @@ const provider = Sb.createPropProviderWithCommon({
     measure: null,
   }),
   TopMessage: p => ({
-    conversationIDKey,
+    conversationIDKey: p.conversationIDKey,
     hasOlderResetConversation: false,
     showRetentionNotice: false,
     loadMoreType: 'moreToLoad',
@@ -190,7 +190,7 @@ const provider = Sb.createPropProviderWithCommon({
     const message = ordinalToMessage(p.ordinal)
     const previous = ordinalToMessage(p.previous)
     return {
-      conversationIDKey: message.conversationIDKey,
+      conversationIDKey: p.conversationIDKey,
       exploded: (message.type === 'attachment' || message.type === 'text') && message.exploded,
       failureDescription: '',
       hasUnfurlPrompts: false,
