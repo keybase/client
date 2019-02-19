@@ -667,6 +667,9 @@ export const kbfsUninstallString = (state: TypedState) => {
   return ''
 }
 
+export const shouldShowFileUIBanner = (state: TypedState) =>
+  !isMobile && !kbfsEnabled(state) && state.fs.flags.showBanner
+
 export const isPendingDownload = (download: Types.Download, path: Types.Path, intent: Types.DownloadIntent) =>
   download.meta.path === path && download.meta.intent === intent && !download.state.isDone
 

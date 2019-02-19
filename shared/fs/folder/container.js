@@ -11,6 +11,7 @@ const mapStateToProps = (state, {path}) => ({
   _pathItems: state.fs.pathItems,
   _tlfs: state.fs.tlfs,
   _username: state.config.username,
+  shouldShowFileUIBanner: Constants.shouldShowFileUIBanner(state),
 })
 
 const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
@@ -29,7 +30,14 @@ const mergeProps = (stateProps, dispatchProps, {path, routePath}) => {
   const isUserReset = !!stateProps._username && resetParticipants.includes(stateProps._username)
   const writable = stateProps._pathItems.get(path, Constants.unknownPathItem).writable
   const onAttach = writable ? dispatchProps.onAttach : null
-  return {isUserReset, onAttach, path, resetParticipants, routePath}
+  return {
+    isUserReset,
+    onAttach,
+    path,
+    resetParticipants,
+    routePath,
+    shouldShowFileUIBanner: stateProps.shouldShowFileUIBanner,
+  }
 }
 
 type OwnProps = {|

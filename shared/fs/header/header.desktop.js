@@ -4,7 +4,6 @@ import * as Styles from '../../styles'
 import * as Types from '../../constants/types/fs'
 import * as Kb from '../../common-adapters'
 import AddNew from './add-new-container'
-import ConnectedFilesBanner from '../banner/fileui-banner/container'
 import Breadcrumb from './breadcrumb-container.desktop'
 import {type FolderHeaderProps} from './header'
 import {OpenInSystemFileManager, PathItemAction, SendInAppAction} from '../common'
@@ -51,7 +50,6 @@ const FolderHeader = ({path, onChat, routePath}: FolderHeaderProps) => (
         </Kb.Box>
       )}
     </Kb.Box>
-    <ConnectedFilesBanner path={path} />
   </Kb.Box>
 )
 
