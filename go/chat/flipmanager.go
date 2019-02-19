@@ -532,6 +532,21 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 		return err
 	}
 
+	// Preserve the ephemeral lifetime from the conv/message to the game
+	// conversation.
+	if elf, err := utils.EphemeralLifetimeFromConv(ctx, m.G(), hostConv.Conv); err != nil {
+		m.Debug(ctx, "StartFlip: failed to get ephemeral lifetime from conv: %s", err)
+		return err
+	} else if elf != nil {
+		m.Debug(ctx, "StartFlip: setting ephemeral retention for conv: %v", *elf)
+		if m.ri().SetConvRetention(ctx, chat1.SetConvRetentionArg{
+			ConvID: conv.GetConvID(),
+			Policy: chat1.NewRetentionPolicyWithEphemeral(chat1.RpEphemeral{Age: *elf}),
+		}); err != nil {
+			return err
+		}
+	}
+
 	// Record metadata of the host message into the game thread as the first message
 	start, lowerBound, shuffleItems := m.startFromText(text)
 	infoBody, err := json.Marshal(hostMessageInfo{
