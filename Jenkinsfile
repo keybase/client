@@ -85,11 +85,6 @@ helpers.rootLinuxNode(env, {
     def hasJSChanges = helpers.hasChanges('shared', env)
     println "Has go changes: " + hasGoChanges
     println "Has JS changes: " + hasJSChanges
-    if (hasGoChanges) {
-        dir("go") {
-          sh "make gen-deps"
-        }
-    }
 
     stage("Test") {
       helpers.withKbweb() {
@@ -329,6 +324,8 @@ def getPackagesToTest() {
 
         // Load list of dependencies and mark all dependent packages to test.
         def goos = sh(returnStdout: true, script: "go env GOOS").trim()
+        // TODO pass `goos` to `make gen-deps`
+        sh "make gen-deps"
         def dependencyFile = sh(returnStdout: true, script: "cat .go_package_deps_${goos}")
         def dependencyMap = new JsonSlurperClassic().parseText(dependencyFile)
         diffPackageList.each { pkg ->
