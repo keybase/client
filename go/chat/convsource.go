@@ -1102,7 +1102,7 @@ func (s *HybridConversationSource) GetUnreadline(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, readMsgID chat1.MessageID) (unreadlineID *chat1.MessageID, err error) {
 	defer s.Trace(ctx, func() error { return err }, fmt.Sprintf("GetUnreadline: convID: %v, readMsgID: %v", convID, readMsgID))()
 
-	conv, err := GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceLocalOnly)
+	conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceLocalOnly)
 	if err != nil {
 		return nil, err
 	}
