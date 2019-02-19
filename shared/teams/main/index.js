@@ -7,16 +7,24 @@ import Banner from './banner'
 import BetaNote from './beta-note'
 import {memoize} from '../../util/memoize'
 
-import type {Props as HeaderProps} from './header'
-import type {Props as BannerProps} from './banner'
-import type {Props as BetaNoteProps} from './beta-note'
-
-// TODO: Don't make all these props just so we can pass it down. Make these their own connected components
 type Props = {|
-  ...$Exact<HeaderProps>,
-  ...$Exact<BetaNoteProps>,
-  ...$Exact<BannerProps>,
-  ...{|sawChatBanner: boolean, title: string, onBack: () => void|},
+  loaded: boolean,
+  newTeams: $ReadOnlyArray<string>,
+  onBack?: () => void,
+  onCreateTeam: () => void,
+  onHideChatBanner: () => void,
+  onJoinTeam: () => void,
+  onManageChat: string => void,
+  onOpenFolder: string => void,
+  onReadMore: () => void,
+  onViewTeam: string => void,
+  sawChatBanner: boolean,
+  teamNameToIsOpen: {[key: string]: boolean},
+  teammembercounts: {[key: string]: number},
+  teamnames: $ReadOnlyArray<string>,
+  teamresetusers: {[key: string]: Array<string>},
+  teamToRequest: {[key: string]: number},
+  title?: string,
 |}
 
 type RowProps = {
@@ -26,17 +34,18 @@ type RowProps = {
   isNew: boolean,
   isOpen: boolean,
   newRequests: number,
-  onOpenFolder: ?() => void,
-  onManageChat: ?() => void,
-  resetUserCount?: number,
+  onOpenFolder: () => void,
+  onManageChat: () => void,
+  resetUserCount: number,
   onViewTeam: () => void,
 }
 
-export const TeamRow = (props: RowProps) => {
+export const TeamRow = React.memo<RowProps>((props: RowProps) => {
   const badgeCount = props.newRequests + props.resetUserCount
 
   return (
     <Kb.ListItem2
+      type="Large"
       firstItem={props.firstItem}
       onClick={props.onViewTeam}
       icon={
@@ -60,7 +69,7 @@ export const TeamRow = (props: RowProps) => {
         </Kb.Box2>
       }
       action={
-        <Kb.Box2 direction="horizontal" gap="small">
+        <Kb.Box2 direction="horizontal" gap="small" gapEnd={true}>
           {!Styles.isMobile && props.onOpenFolder && (
             <Kb.Icon type="iconfont-folder-private" onClick={props.onOpenFolder} />
           )}
@@ -71,7 +80,7 @@ export const TeamRow = (props: RowProps) => {
       }
     />
   )
-}
+})
 
 class Teams extends React.PureComponent<Props> {
   _teamsAndExtras = memoize(teamnames => {
@@ -103,12 +112,15 @@ class Teams extends React.PureComponent<Props> {
             name={name}
             isNew={this.props.newTeams.includes(name)}
             isOpen={this.props.teamNameToIsOpen[name]}
-            newRequests={this.props.newTeamRequests.some(team => team === name)}
+            newRequests={this.props.teamToRequest[name] ?? 0}
             membercount={this.props.teammembercounts[name]}
             onOpenFolder={() => this._onOpenFolder(name)}
             onManageChat={() => this._onManageChat(name)}
             onViewTeam={() => this._onViewTeam(name)}
-            resetUserCount={this.props.teamresetusers[name] ? this.props.teamresetusers[name].size : 0}
+            resetUserCount={
+              // $FlowIssue
+              this.props.teamresetusers[name]?.length ?? 0
+            }
           />
         )
       default:
@@ -124,7 +136,6 @@ class Teams extends React.PureComponent<Props> {
           onCreateTeam={this.props.onCreateTeam}
           onJoinTeam={this.props.onJoinTeam}
         />
-        {!this.props.loaded && <Kb.ProgressIndicator style={styles.progress} />}
         <Kb.List items={this._teamsAndExtras(this.props.teamnames)} renderItem={this._renderItem} />
       </Kb.Box2>
     )
@@ -137,11 +148,6 @@ const styles = Styles.styleSheetCreate({
     position: 'absolute',
     right: -5,
     top: -5,
-  },
-  progress: {
-    alignSelf: 'center',
-    marginBottom: Styles.globalMargins.small,
-    width: 20,
   },
 })
 

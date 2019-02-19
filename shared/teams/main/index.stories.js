@@ -29,8 +29,14 @@ const load = () => {
         <TeamList
           teamnames={teamnames}
           newTeams={[]}
+          loaded={true}
+          onReadMore={Sb.action('onReadMore')}
+          onJoinTeam={Sb.action('onJoinTeam')}
+          onCreateTeam={Sb.action('onCreateTeam')}
+          onHideChatBanner={Sb.action('onHideChatBanner')}
+          sawChatBanner={Sb.action('sawChatBanner')}
           teamNameToIsOpen={teamNameToIsOpen}
-          newTeamRequests={['techtonica']}
+          teamToRequest={{techtonica: 2}}
           teammembercounts={teammembercounts}
           teamresetusers={{}}
           onOpenFolder={Sb.action('onOpenFolder')}
