@@ -67,6 +67,8 @@ protocol remote {
     TimeMs ctime; // time on the network
     string cursorToken;
     boolean unread;
+    boolean isInflation;
+    union { null, string } inflationSource;
   }
 
   record PaymentSummaryDirect {

@@ -219,6 +219,17 @@
         {
           "type": "boolean",
           "name": "unread"
+        },
+        {
+          "type": "boolean",
+          "name": "isInflation"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "inflationSource"
         }
       ]
     },
