@@ -257,7 +257,19 @@ func (e *PaperKeyGen) push(m libkb.MetaContext) (err error) {
 		// stream was nil, so we must have loaded lks from the secret
 		// store.
 		clientHalf, ppgen, err = e.getClientHalfFromSecretStore(m)
-		if err != nil {
+		switch err.(type) {
+		case nil:
+		case libkb.SecretStoreError:
+			// as a last resort try to prompt the user for their passphrase
+			if pps, _, perr := libkb.GetPassphraseStreamViaPrompt(m); pps != nil {
+				clientHalf = pps.LksClientHalf()
+				ppgen = pps.Generation()
+			} else if perr != nil {
+				return perr
+			} else {
+				return err
+			}
+		default:
 			return err
 		}
 	}
