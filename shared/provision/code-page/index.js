@@ -155,6 +155,8 @@ const ErrorBanner = (props: {error: string}) => (
   </Kb.Box2>
 )
 
+const textType = Styles.isMobile ? 'BodyBig' : 'Header'
+
 const SwitchTab = (props: {|...Props, selected: Tab, onSelect: Tab => void|}) => {
   if (props.currentDeviceType === 'desktop' && props.otherDeviceType === 'desktop') {
     return <Kb.Box2 direction="horizontal" />
@@ -183,7 +185,7 @@ const SwitchTab = (props: {|...Props, selected: Tab, onSelect: Tab => void|}) =>
   return (
     <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.switchTabContainer}>
       <Kb.Icon type={icon} color={Styles.globalColors.white} />
-      <Kb.Text type="Header" onClick={() => props.onSelect(tab)} style={styles.switchTab}>
+      <Kb.Text type={textType} onClick={() => props.onSelect(tab)} style={styles.switchTab}>
         {label}
       </Kb.Text>
     </Kb.Box2>
@@ -258,35 +260,35 @@ const Instructions = (p: Props) => (
   <Kb.Box2 direction="vertical">
     {p.currentDeviceAlreadyProvisioned ? (
       <React.Fragment>
-        <Kb.Text center={true} type="Header" style={styles.instructions}>
+        <Kb.Text center={true} type={textType} style={styles.instructions}>
           Ready to provision using
         </Kb.Text>
-        <Kb.Text center={true} type="Header" style={styles.instructionsItalic}>
+        <Kb.Text center={true} type={textType} style={styles.instructionsItalic}>
           {p.currentDeviceName}.
         </Kb.Text>
       </React.Fragment>
     ) : (
       <React.Fragment>
-        <Kb.Text center={true} type="Header" style={styles.instructions}>
+        <Kb.Text center={true} type={textType} style={styles.instructions}>
           On
-          <Kb.Text center={true} type="Header" style={styles.instructionsItalic}>
+          <Kb.Text center={true} type={textType} style={styles.instructionsItalic}>
             {' '}
             {p.otherDeviceName}
           </Kb.Text>
           , go to
         </Kb.Text>
-        <Kb.Text center={true} type="Header" style={styles.instructions}>
+        <Kb.Text center={true} type={textType} style={styles.instructions}>
           Devices
-          <Kb.Text center={true} type="Header" style={styles.instructionsCarets}>
+          <Kb.Text center={true} type={textType} style={styles.instructionsCarets}>
             {` ${String.fromCharCode(iconMeta['iconfont-arrow-right'].charCode || 0)} `}
           </Kb.Text>
-          <Kb.Text center={true} type="Header" style={styles.instructions}>
-            Add new
+          <Kb.Text center={true} type={textType} style={styles.instructions}>
+            Add device
           </Kb.Text>
-          <Kb.Text center={true} type="Header" style={styles.instructionsCarets}>
+          <Kb.Text center={true} type={textType} style={styles.instructionsCarets}>
             {` ${String.fromCharCode(iconMeta['iconfont-arrow-right'].charCode || 0)} `}
           </Kb.Text>
-          <Kb.Text center={true} type="Header" style={styles.instructions}>
+          <Kb.Text center={true} type={textType} style={styles.instructions}>
             New {p.currentDeviceType === 'desktop' ? 'computer' : 'phone'}.
           </Kb.Text>
         </Kb.Text>
