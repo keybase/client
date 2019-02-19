@@ -126,6 +126,7 @@ export const commonMessageType = {
   sendpayment: 14,
   requestpayment: 15,
   unfurl: 16,
+  flip: 17,
 }
 
 export const commonNotificationKind = {

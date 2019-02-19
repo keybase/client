@@ -87,6 +87,8 @@ func checkMessagePlaintextLength(msg chat1.MessagePlaintext) error {
 		return nil
 	case chat1.MessageType_TEXT:
 		return plaintextFieldLengthChecker("message", len(msg.MessageBody.Text().Body), textMsgLength)
+	case chat1.MessageType_FLIP:
+		return plaintextFieldLengthChecker("flip", len(msg.MessageBody.Flip().Text), textMsgLength)
 	case chat1.MessageType_EDIT:
 		return plaintextFieldLengthChecker("message edit", len(msg.MessageBody.Edit().Body),
 			textMsgLength)

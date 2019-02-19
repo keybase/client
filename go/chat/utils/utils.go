@@ -1336,14 +1336,11 @@ func presentFlipGameID(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	default:
 		return nil
 	}
-	if !body.IsType(chat1.MessageType_TEXT) {
+	if !body.IsType(chat1.MessageType_FLIP) {
 		return nil
 	}
-	if body.Text().FlipGameID == nil {
-		return nil
-	}
-	g.CoinFlipManager.LoadFlip(ctx, uid, convID, *body.Text().FlipGameID)
-	ret := body.Text().FlipGameID.String()
+	g.CoinFlipManager.LoadFlip(ctx, uid, convID, body.Flip().GameID)
+	ret := body.Flip().GameID.String()
 	return &ret
 }
 

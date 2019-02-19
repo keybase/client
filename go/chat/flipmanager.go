@@ -510,10 +510,10 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 	listener := newSentMessageListener(m.G(), outboxID)
 	nid := m.G().NotifyRouter.AddListener(listener)
 	if _, err = m.G().ChatHelper.SendMsgByIDNonblock(ctx, hostConvID, tlfName,
-		chat1.NewMessageBodyWithText(chat1.MessageText{
-			Body:       text,
-			FlipGameID: &gameID,
-		}), chat1.MessageType_TEXT, &outboxID); err != nil {
+		chat1.NewMessageBodyWithFlip(chat1.MessageFlip{
+			Text:   text,
+			GameID: gameID,
+		}), chat1.MessageType_FLIP, &outboxID); err != nil {
 		return err
 	}
 	sendRes := <-listener.listenCh

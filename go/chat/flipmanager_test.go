@@ -178,7 +178,7 @@ func TestFlipManagerLoadFlip(t *testing.T) {
 			chat1.NewMessageBodyWithText(chat1.MessageText{
 				Body: "/flip",
 			}))
-		consumeNewMsgRemote(t, listener, chat1.MessageType_TEXT)
+		consumeNewMsgRemote(t, listener, chat1.MessageType_FLIP)
 		res := consumeFlipToResult(t, ui0, 2)
 		require.True(t, res == "HEADS" || res == "TAILS")
 		res1 := consumeFlipToResult(t, ui1, 2)
@@ -188,9 +188,8 @@ func TestFlipManagerLoadFlip(t *testing.T) {
 		require.NoError(t, err)
 		require.True(t, hostMsg.IsValid())
 		body := hostMsg.Valid().MessageBody
-		require.True(t, body.IsType(chat1.MessageType_TEXT))
-		require.NotNil(t, body.Text().FlipGameID)
-		gameID := *body.Text().FlipGameID
+		require.True(t, body.IsType(chat1.MessageType_FLIP))
+		gameID := body.Flip().GameID
 
 		testLoadFlip := func() {
 			tc.Context().CoinFlipManager.LoadFlip(ctx, uid, conv.Id, gameID)
