@@ -53,7 +53,7 @@ class Icon extends Component<Props, void> {
     // explicit
     if (this.props.fontSize) {
       fontSizeHint = {fontSize: this.props.fontSize}
-    } else if (this.props.sizeType) {
+    } else {
       fontSizeHint = {fontSize: Shared.typeToFontSize(this.props.sizeType)}
     }
     // in style sheet, so don't apply
