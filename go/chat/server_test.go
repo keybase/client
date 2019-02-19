@@ -3182,10 +3182,20 @@ func TestChatSrvGetUnreadLine(t *testing.T) {
 		assertUnreadline(ctx2, g2, users[1], 1, msgID2)
 
 		// user2 will have no unread id since the only visible message was now deleted
-		mustDeleteMsg(ctx1, t, ctc, users[0], conv, msgID2)
+		msgID3 := mustDeleteMsg(ctx1, t, ctc, users[0], conv, msgID2)
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_DELETE)
 		consumeNewMsgRemote(t, listener2, chat1.MessageType_DELETE)
 		assertUnreadline(ctx2, g2, users[1], 1, 0)
+
+		// if we are fully read, there is no line and we don't go to the server
+		g1.ConvSource.SetRemoteInterface(func() chat1.RemoteInterface {
+			return chat1.RemoteClient{Cli: errorClient{}}
+		})
+		assertUnreadline(ctx1, g1, users[0], msgID3, 0)
+		g2.ConvSource.SetRemoteInterface(func() chat1.RemoteInterface {
+			return chat1.RemoteClient{Cli: errorClient{}}
+		})
+		assertUnreadline(ctx2, g2, users[1], msgID3, 0)
 	})
 }
 
