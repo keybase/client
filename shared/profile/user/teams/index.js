@@ -153,7 +153,6 @@ const styles = Styles.styleSheetCreate({
     },
     isMobile: {
       paddingLeft: Styles.globalMargins.small,
-      paddingTop: Styles.globalMargins.small,
     },
   }),
   youPublishTeam: {

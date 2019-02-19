@@ -365,13 +365,25 @@ func VisibleChatConversationStatuses() (res []chat1.ConversationStatus) {
 	return
 }
 
-func IsVisibleChatMessageType(messageType chat1.MessageType) bool {
-	for _, mt := range chat1.VisibleChatMessageTypes() {
+func checkMessageTypeQual(messageType chat1.MessageType, l []chat1.MessageType) bool {
+	for _, mt := range l {
 		if messageType == mt {
 			return true
 		}
 	}
 	return false
+}
+
+func IsVisibleChatMessageType(messageType chat1.MessageType) bool {
+	return checkMessageTypeQual(messageType, chat1.VisibleChatMessageTypes())
+}
+
+func IsEditableByEditMessageType(messageType chat1.MessageType) bool {
+	return checkMessageTypeQual(messageType, chat1.EditableMessageTypesByEdit())
+}
+
+func IsDeleteableByDeleteMessageType(messageType chat1.MessageType) bool {
+	return checkMessageTypeQual(messageType, chat1.DeletableMessageTypesByDelete())
 }
 
 func IsCollapsibleMessageType(messageType chat1.MessageType) bool {
@@ -1321,6 +1333,32 @@ func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, msg chat1
 	return &body
 }
 
+func presentFlipGameID(ctx context.Context, g *globals.Context, uid gregor1.UID,
+	convID chat1.ConversationID, msg chat1.MessageUnboxed) *string {
+	typ, err := msg.State()
+	if err != nil {
+		return nil
+	}
+	var body chat1.MessageBody
+	switch typ {
+	case chat1.MessageUnboxedState_VALID:
+		body = msg.Valid().MessageBody
+	case chat1.MessageUnboxedState_OUTBOX:
+		body = msg.Outbox().Msg.MessageBody
+	default:
+		return nil
+	}
+	if !body.IsType(chat1.MessageType_TEXT) {
+		return nil
+	}
+	if body.Text().FlipGameID == nil {
+		return nil
+	}
+	g.CoinFlipManager.LoadFlip(ctx, uid, convID, *body.Text().FlipGameID)
+	ret := body.Text().FlipGameID.String()
+	return &ret
+}
+
 func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1.MessageUnboxed,
 	uid gregor1.UID, convID chat1.ConversationID) (res chat1.UIMessage) {
 	miscErr := func(err error) chat1.UIMessage {
@@ -1379,9 +1417,12 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Etime:                 valid.Etime(),
 			Reactions:             valid.Reactions,
 			HasPairwiseMacs:       valid.HasPairwiseMacs(),
+			FlipGameID:            presentFlipGameID(ctx, g, uid, convID, rawMsg),
 			PaymentInfos:          presentPaymentInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
 			RequestInfo:           presentRequestInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
 			Unfurls:               PresentUnfurls(ctx, g, uid, convID, valid.Unfurls),
+			IsDeleteable:          IsDeleteableByDeleteMessageType(rawMsg.GetMessageType()),
+			IsEditable:            IsEditableByEditMessageType(rawMsg.GetMessageType()),
 			IsCollapsed: collapses.IsCollapsed(ctx, uid, convID, rawMsg.GetMessageID(),
 				rawMsg.GetMessageType()),
 		})
@@ -1418,6 +1459,7 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			Title:             title,
 			Filename:          filename,
 			IsEphemeral:       rawMsg.Outbox().Msg.IsEphemeral(),
+			FlipGameID:        presentFlipGameID(ctx, g, uid, convID, rawMsg),
 		})
 	case chat1.MessageUnboxedState_ERROR:
 		res = chat1.NewUIMessageWithError(rawMsg.Error())
@@ -1929,4 +1971,46 @@ func ReplaceQuotedSubstrings(xs string, skipAngleQuotes bool) string {
 		}
 	}
 	return strings.Join(ret, string(newline))
+}
+
+var ErrGetUnverifiedConvNotFound = errors.New("GetUnverifiedConv: conversation not found")
+var ErrGetVerifiedConvNotFound = errors.New("GetVerifiedConv: conversation not found")
+
+func GetUnverifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
+	convID chat1.ConversationID, dataSource types.InboxSourceDataSourceTyp) (res types.RemoteConversation, err error) {
+
+	inbox, err := g.InboxSource.ReadUnverified(ctx, uid, dataSource, &chat1.GetInboxQuery{
+		ConvIDs: []chat1.ConversationID{convID},
+	}, nil)
+	if err != nil {
+		return res, fmt.Errorf("GetUnverifiedConv: %s", err.Error())
+	}
+	if len(inbox.ConvsUnverified) == 0 {
+		return res, ErrGetUnverifiedConvNotFound
+	}
+	if !inbox.ConvsUnverified[0].GetConvID().Eq(convID) {
+		return res, fmt.Errorf("GetUnverifiedConv: convID mismatch: %s != %s",
+			inbox.ConvsUnverified[0].GetConvID(), convID)
+	}
+	return inbox.ConvsUnverified[0], nil
+}
+
+func GetVerifiedConv(ctx context.Context, g *globals.Context, uid gregor1.UID,
+	convID chat1.ConversationID, dataSource types.InboxSourceDataSourceTyp) (res chat1.ConversationLocal, err error) {
+
+	inbox, _, err := g.InboxSource.Read(ctx, uid, types.ConversationLocalizerBlocking, dataSource, nil,
+		&chat1.GetInboxLocalQuery{
+			ConvIDs: []chat1.ConversationID{convID},
+		}, nil)
+	if err != nil {
+		return res, fmt.Errorf("GetVerifiedConv: %s", err.Error())
+	}
+	if len(inbox.Convs) == 0 {
+		return res, ErrGetVerifiedConvNotFound
+	}
+	if !inbox.Convs[0].GetConvID().Eq(convID) {
+		return res, fmt.Errorf("GetVerifiedConv: convID mismatch: %s != %s",
+			inbox.Convs[0].GetConvID(), convID)
+	}
+	return inbox.Convs[0], nil
 }

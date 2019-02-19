@@ -133,11 +133,10 @@ function _parseRawResultToRow(result: RawResult, service: Types.Service) {
   }
 }
 
-function _parseSuggestion(username: string) {
+function _parseSuggestion(username: string, fullname: string) {
   return {
     id: _rawResultToId('keybase', username),
-    // TODO get this from the service
-    leftFullname: '',
+    leftFullname: fullname,
     leftIcon: serviceIdToLogo24('keybase'),
     leftService: Constants.serviceIdToService('keybase'),
     leftUsername: username,
@@ -261,7 +260,7 @@ const searchSuggestions = (_, {payload: {maxUsers, searchKey}}) =>
   }).then(suggestions => {
     // No search results (e.g. this user doesn't follow/chat anyone)
     const rows = (suggestions || []).map(person =>
-      Constants.makeSearchResult(_parseSuggestion(person.username))
+      Constants.makeSearchResult(_parseSuggestion(person.username, person.fullname))
     )
     const ids = rows.map(r => r.id)
 

@@ -232,6 +232,10 @@
         {
           "type": "string",
           "name": "username"
+        },
+        {
+          "type": "string",
+          "name": "fullname"
         }
       ]
     },

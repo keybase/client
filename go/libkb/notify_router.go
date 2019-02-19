@@ -92,6 +92,7 @@ type NotifyListener interface {
 	PhoneNumberVerified(phoneNumber keybase1.PhoneNumber)
 	PhoneNumberSuperseded(phoneNumber keybase1.PhoneNumber)
 	PasswordChanged()
+	RootAuditError(msg string)
 }
 
 type NoopNotifyListener struct{}
@@ -190,6 +191,7 @@ func (n *NoopNotifyListener) PhoneNumberAdded(phoneNumber keybase1.PhoneNumber) 
 func (n *NoopNotifyListener) PhoneNumberVerified(phoneNumber keybase1.PhoneNumber)   {}
 func (n *NoopNotifyListener) PhoneNumberSuperseded(phoneNumber keybase1.PhoneNumber) {}
 func (n *NoopNotifyListener) PasswordChanged()                                       {}
+func (n *NoopNotifyListener) RootAuditError(msg string)                              {}
 
 type NotifyListenerID string
 
@@ -2043,4 +2045,33 @@ func (n *NotifyRouter) HandlePasswordChanged(ctx context.Context) {
 	n.runListeners(func(listener NotifyListener) {
 		listener.PasswordChanged()
 	})
+}
+
+// RootAuditError is called when the merkle root auditor finds an invalid skip
+// sequence in a random old block.
+func (n *NotifyRouter) HandleRootAuditError(msg string) {
+	if n == nil {
+		return
+	}
+	n.G().Log.Debug("+ Sending merkle tree audit notification")
+	// For all connections we currently have open...
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `Session` notification type
+		if n.getNotificationChannels(id).Audit {
+			// In the background do...
+			go func() {
+				// A send of a `RootAuditError` RPC
+				(keybase1.NotifyAuditClient{
+					Cli: rpc.NewClient(xp, NewContextifiedErrorUnwrapper(n.G()), nil),
+				}).RootAuditError(context.Background(), msg)
+			}()
+		}
+		return true
+	})
+
+	n.runListeners(func(listener NotifyListener) {
+		listener.RootAuditError(msg)
+	})
+
+	n.G().Log.Debug("- merkle tree audit notification sent")
 }

@@ -282,6 +282,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	g.StellarLoader = types.DummyStellarLoader{}
 	g.StellarSender = types.DummyStellarSender{}
 	g.CommandsSource = commands.NewSource(g)
+	g.CoinFlipManager = NewFlipManager(g, getRI)
 
 	return ctx, world, ri, sender, baseSender, &listener
 }

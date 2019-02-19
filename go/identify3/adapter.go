@@ -175,7 +175,7 @@ func (i *UIAdapter) setRowStatus(arg *keybase1.Identify3UpdateRowArg, lcr keybas
 
 	// The proof failed, but we did "ignore" it, so it's OK
 	case lcr.ProofResult.State != keybase1.ProofState_OK && (lcr.RemoteDiff == nil || lcr.RemoteDiff.Type == keybase1.TrackDiffType_NONE):
-		arg.Color = keybase1.Identify3RowColor_ORANGE
+		arg.Color = keybase1.Identify3RowColor_GREEN
 		arg.State = keybase1.Identify3RowState_WARNING
 		arg.Metas = append(arg.Metas, keybase1.Identify3RowMeta{Color: arg.Color, Label: "ignored"})
 
@@ -378,6 +378,7 @@ func (i *UIAdapter) plumbUncheckedProof(row keybase1.IdentifyRow) {
 func (i *UIAdapter) updateRow(arg keybase1.Identify3UpdateRowArg) error {
 	arg.GuiID = i.session.ID()
 	err := i.ui.Identify3UpdateRow(i.M().Ctx(), arg)
+	i.M().CDebugf("update row %+v", arg)
 	if err != nil {
 		i.M().CDebugf("Failed to send update row (%+v): %s", arg, err)
 	}
@@ -477,6 +478,9 @@ func (i *UIAdapter) plumbRevoked(row keybase1.RevokedProof) {
 	arg := i.rowPartial(row.Proof, nil)
 	arg.State = keybase1.Identify3RowState_REVOKED
 	arg.Color = keybase1.Identify3RowColor_RED
+	arg.Metas = append(arg.Metas,
+		keybase1.Identify3RowMeta{Color: arg.Color, Label: "revoked"},
+	)
 	i.updateRow(arg)
 }
 

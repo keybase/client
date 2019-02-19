@@ -438,6 +438,13 @@ const rootReducer = (
           return show ? prompts.add(domain) : prompts.delete(domain)
         }
       )
+    case Chat2Gen.updateCoinFlipStatus: {
+      let fm = state.flipStatusMap
+      action.payload.statuses.forEach(s => {
+        fm = fm.set(s.gameID, s)
+      })
+      return state.set('flipStatusMap', fm)
+    }
     case Chat2Gen.giphyGotSearchResult:
       return state.setIn(['giphyResultMap', action.payload.conversationIDKey], action.payload.results)
     case Chat2Gen.setInboxFilter:

@@ -240,8 +240,8 @@ func TestFollowUnfollowTracy(t *testing.T) {
 			Key:   "https",
 			Value: "keybase.io",
 			State: keybase1.Identify3RowState_WARNING,
-			Color: keybase1.Identify3RowColor_ORANGE,
-			Metas: []keybase1.Identify3RowMeta{keybase1.Identify3RowMeta{Color: keybase1.Identify3RowColor_ORANGE, Label: "ignored"}},
+			Color: keybase1.Identify3RowColor_GREEN,
+			Metas: []keybase1.Identify3RowMeta{keybase1.Identify3RowMeta{Color: keybase1.Identify3RowColor_GREEN, Label: "ignored"}},
 		},
 	})
 }

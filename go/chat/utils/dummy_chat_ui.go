@@ -90,6 +90,10 @@ func (r DummyChatUI) ChatShowManageChannels(ctx context.Context, arg chat1.ChatS
 	return nil
 }
 
+func (r DummyChatUI) ChatCoinFlipStatus(ctx context.Context, arg chat1.ChatCoinFlipStatusArg) error {
+	return nil
+}
+
 type DummyChatNotifications struct{}
 
 func (d DummyChatNotifications) NewChatActivity(ctx context.Context, arg chat1.NewChatActivityArg) error {
