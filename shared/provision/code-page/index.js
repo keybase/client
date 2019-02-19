@@ -155,6 +155,8 @@ const ErrorBanner = (props: {error: string}) => (
   </Kb.Box2>
 )
 
+const textType = Styles.isMobile ? 'BodyBig' : 'Header'
+
 const SwitchTab = (props: {|...Props, selected: Tab, onSelect: Tab => void|}) => {
   if (props.currentDeviceType === 'desktop' && props.otherDeviceType === 'desktop') {
     return <Kb.Box2 direction="horizontal" />
@@ -183,7 +185,7 @@ const SwitchTab = (props: {|...Props, selected: Tab, onSelect: Tab => void|}) =>
   return (
     <Kb.Box2 direction="horizontal" gap="xtiny" style={styles.switchTabContainer}>
       <Kb.Icon type={icon} color={Styles.globalColors.white} />
-      <Kb.Text type="BodyBig" onClick={() => props.onSelect(tab)} style={styles.switchTab}>
+      <Kb.Text type={textType} onClick={() => props.onSelect(tab)} style={styles.switchTab}>
         {label}
       </Kb.Text>
     </Kb.Box2>
@@ -254,7 +256,6 @@ const ViewText = (props: Props) => (
   </Kb.Box2>
 )
 
-const textType = Styles.isMobile ? 'BodyBig' : 'Header'
 const Instructions = (p: Props) => (
   <Kb.Box2 direction="vertical">
     {p.currentDeviceAlreadyProvisioned ? (
