@@ -281,7 +281,7 @@ const Instructions = (p: Props) => (
             {` ${String.fromCharCode(iconMeta['iconfont-arrow-right'].charCode || 0)} `}
           </Kb.Text>
           <Kb.Text center={true} type="BodyBig" style={styles.instructions}>
-            Add new
+            Add device
           </Kb.Text>
           <Kb.Text center={true} type="BodyBig" style={styles.instructionsCarets}>
             {` ${String.fromCharCode(iconMeta['iconfont-arrow-right'].charCode || 0)} `}
