@@ -60,3 +60,4 @@ shared/react-native/android/app/local.properties
 
 browser/node_modules
 browser/js/bundle.js
+go/.go_package_deps*

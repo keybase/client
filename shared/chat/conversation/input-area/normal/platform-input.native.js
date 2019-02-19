@@ -269,7 +269,7 @@ const ExplodingIcon = ({explodingModeSeconds, isExploding, openExplodingPicker})
   <NativeTouchableWithoutFeedback onPress={openExplodingPicker}>
     <Kb.Box style={explodingIconContainer}>
       <Kb.Icon
-        color={isExploding ? Styles.globalColors.black_75 : null}
+        color={isExploding ? Styles.globalColors.black : null}
         style={Kb.iconCastPlatformStyles(styles.actionButton)}
         type="iconfont-timer"
         fontSize={22}

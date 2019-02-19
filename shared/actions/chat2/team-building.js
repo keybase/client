@@ -120,9 +120,9 @@ const fetchUserRecs = state =>
   RPCTypes.userInterestingPeopleRpcPromise({maxUsers: 50})
     .then((suggestions: ?Array<RPCTypes.InterestingPerson>) =>
       (suggestions || []).map(
-        ({username}): TeamBuildingTypes.User => ({
+        ({username, fullname}): TeamBuildingTypes.User => ({
           id: username,
-          prettyName: ``,
+          prettyName: fullname,
           serviceMap: {keybase: username},
         })
       )

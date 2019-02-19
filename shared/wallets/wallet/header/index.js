@@ -181,7 +181,7 @@ class _DropdownButton extends React.PureComponent<DropdownProps & Kb.OverlayPare
             <Kb.Icon
               fontSize={Styles.isMobile ? 22 : 16}
               type="iconfont-ellipsis"
-              color={Styles.globalColors.black_75}
+              color={Styles.globalColors.black}
             />
           </Kb.Button>
         </Kb.Box2>

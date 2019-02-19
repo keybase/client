@@ -231,7 +231,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	g.InboxSource.Start(context.TODO(), uid)
 	g.InboxSource.Connected(context.TODO())
 	g.ServerCacheVersions = storage.NewServerVersions(g)
-	g.NotifyRouter.SetListener(&listener)
+	g.NotifyRouter.AddListener(&listener)
 
 	deliverer := NewDeliverer(g, baseSender)
 	deliverer.SetClock(world.Fc)
@@ -282,6 +282,7 @@ func setupTest(t *testing.T, numUsers int) (context.Context, *kbtest.ChatMockWor
 	g.StellarLoader = types.DummyStellarLoader{}
 	g.StellarSender = types.DummyStellarSender{}
 	g.CommandsSource = commands.NewSource(g)
+	g.CoinFlipManager = NewFlipManager(g, getRI)
 
 	return ctx, world, ri, sender, baseSender, &listener
 }
@@ -1358,7 +1359,7 @@ func TestPairwiseMACChecker(t *testing.T) {
 		blockingSender1 := NewBlockingSender(g1, boxer1, getRI1)
 		blockingSender2 := NewBlockingSender(g2, boxer2, getRI2)
 		listener1 := newServerChatListener()
-		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener1)
+		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener1)
 
 		text := "hi"
 		msg := textMsgWithSender(t, text, uid1.ToBytes(), chat1.MessageBoxedVersion_V3)

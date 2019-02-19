@@ -288,7 +288,7 @@ class MenubarRender extends React.Component<Props, State> {
           >
             <Kb.Icon
               color={Styles.globalColors.darkBlue4}
-              hoverColor={Styles.globalColors.black_75}
+              hoverColor={Styles.globalColors.black}
               type="iconfont-nav-more"
               ref={this.attachmentRef}
             />

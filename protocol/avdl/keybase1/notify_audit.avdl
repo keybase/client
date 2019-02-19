@@ -1,0 +1,7 @@
+
+@namespace("keybase.1")
+protocol NotifyAudit {
+
+  @notify("")
+  void rootAuditError(string message);
+}

@@ -193,7 +193,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
                   ? Styles.globalColors.yellow3
                   : Styles.globalColors.white,
                 borderColor: this.props.explodingModeSeconds
-                  ? Styles.globalColors.black_75
+                  ? Styles.globalColors.black
                   : Styles.globalColors.black_20,
               },
             ])}
@@ -206,7 +206,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
                 style={Styles.collapseStyles([
                   styles.explodingIconContainer,
                   !!this.props.explodingModeSeconds && {
-                    backgroundColor: Styles.globalColors.black_75,
+                    backgroundColor: Styles.globalColors.black,
                   },
                 ])}
               >
@@ -266,7 +266,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
             )}
             {this.props.showWalletsIcon && <WalletsIcon size={16} style={styles.walletsIcon} />}
             <Kb.Icon
-              color={this.state.emojiPickerOpen ? Styles.globalColors.black_75 : null}
+              color={this.state.emojiPickerOpen ? Styles.globalColors.black : null}
               onClick={this._emojiPickerToggle}
               style={Kb.iconCastPlatformStyles(styles.icon)}
               type="iconfont-emoji"
@@ -339,7 +339,7 @@ const styles = Styles.styleSheetCreate({
     common: {
       ...Styles.globalStyles.flexBoxColumn,
       alignSelf: 'stretch',
-      backgroundColor: Styles.globalColors.black_75,
+      backgroundColor: Styles.globalColors.black,
       borderRadius: 2,
       justifyContent: 'center',
       margin: 2,
@@ -468,7 +468,7 @@ const styles = Styles.styleSheetCreate({
 
 const HoverBox = Styles.styled(Kb.Box)({
   ':hover .timer, &.expanded .timer': {
-    color: Styles.globalColors.black_75,
+    color: Styles.globalColors.black,
   },
 })
 

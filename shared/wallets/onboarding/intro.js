@@ -55,7 +55,7 @@ const Intro = (props: IntroProps) => {
         </Kb.Text>
 
         <Kb.Icon
-          color={Styles.globalColors.black_75}
+          color={Styles.globalColors.black}
           style={Kb.iconCastPlatformStyles(styles.illustration)}
           type="icon-illustration-stellar-payments-200-188"
         />

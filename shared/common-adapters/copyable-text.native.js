@@ -70,7 +70,7 @@ const styleBase = {
 
 const styleText = {
   ...globalStyles.fontTerminal,
-  color: globalColors.black_75,
+  color: globalColors.black,
 }
 
 const styleCopyToastContainer = {

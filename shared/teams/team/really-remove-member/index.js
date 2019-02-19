@@ -50,7 +50,7 @@ const ReallyRemoveMember = (props: Props) => (
 
 const _styleCover = {
   alignItems: 'stretch',
-  backgroundColor: globalColors.black_75,
+  backgroundColor: globalColors.black,
   justifyContent: 'stretch',
 }
 

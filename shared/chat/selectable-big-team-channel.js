@@ -51,7 +51,7 @@ class SelectableBigTeamChannel extends PureComponent<Props, State> {
               type="BodySemibold"
               style={Styles.collapseStyles([
                 styles.teamname,
-                {color: this.props.isSelected ? Styles.globalColors.white : Styles.globalColors.black_75},
+                {color: this.props.isSelected ? Styles.globalColors.white : Styles.globalColors.black},
               ])}
               title={this.props.teamname}
               lineClamp={isMobile ? 1 : undefined}
@@ -63,7 +63,7 @@ class SelectableBigTeamChannel extends PureComponent<Props, State> {
               type="Body"
               style={Styles.collapseStyles([
                 styles.channelname,
-                {color: this.props.isSelected ? Styles.globalColors.white : Styles.globalColors.black_75},
+                {color: this.props.isSelected ? Styles.globalColors.white : Styles.globalColors.black},
               ])}
               title={`#${this.props.channelname}`}
               lineClamp={isMobile ? 1 : undefined}
@@ -98,7 +98,7 @@ const styles = Styles.styleSheetCreate({
   },
   teamname: Styles.platformStyles({
     common: {
-      color: Styles.globalColors.black_75,
+      color: Styles.globalColors.black,
       flexShrink: 1,
     },
     isElectron: {

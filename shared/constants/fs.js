@@ -218,7 +218,7 @@ export const fsPathToRpcPathString = (p: Types.Path): string =>
 
 export const getPathTextColor = (path: Types.Path) => {
   const elems = Types.getPathElements(path)
-  return elems.length >= 2 && elems[1] === 'public' ? globalColors.yellowGreen2 : globalColors.black_75
+  return elems.length >= 2 && elems[1] === 'public' ? globalColors.yellowGreen2 : globalColors.black
 }
 
 export const pathTypeToTextType = (type: Types.PathType) => (type === 'folder' ? 'BodySemibold' : 'Body')
@@ -821,7 +821,21 @@ export const canSendLinkToChat = (parsedPath: Types.ParsedPath) => {
   }
 }
 
-export const erroredActionToMessage = (action: FsGen.Actions): string => {
+const humanizeDownloadIntent = (intent: Types.DownloadIntent) => {
+  switch (intent) {
+    case 'camera-roll':
+      return 'save'
+    case 'share':
+      return 'prepare to share'
+    case 'none':
+      return 'download'
+    default:
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(intent)
+      return ''
+  }
+}
+
+export const erroredActionToMessage = (action: FsGen.Actions, error?: any): string => {
   switch (action.type) {
     case FsGen.favoritesLoad:
       return 'Failed to load TLF lists.'
@@ -830,9 +844,11 @@ export const erroredActionToMessage = (action: FsGen.Actions): string => {
     case FsGen.folderListLoad:
       return `Failed to list folder: ${Types.getPathName(action.payload.path)}.`
     case FsGen.download:
-      return `Failed to download for ${getDownloadIntentFromAction(action)}: ${Types.getPathName(
-        action.payload.path
-      )}.`
+      return `Failed to download: ${Types.getPathName(action.payload.path)}.`
+    case FsGen.shareNative:
+      return `Failed to share: ${Types.getPathName(action.payload.path)}.`
+    case FsGen.saveMedia:
+      return `Failed to save: ${Types.getPathName(action.payload.path)}.`
     case FsGen.upload:
       return `Failed to upload: ${Types.getLocalPathName(action.payload.localPath)}.`
     case FsGen.notifySyncActivity:
@@ -857,6 +873,13 @@ export const erroredActionToMessage = (action: FsGen.Actions): string => {
       return `Failed to open path: ${Types.pathToString(action.payload.path)}.`
     case FsGen.openPathInFilesTab:
       return `Failed to open path: ${Types.pathToString(action.payload.path)}.`
+    case FsGen.downloadSuccess:
+      return (
+        `Failed to ${humanizeDownloadIntent(action.payload.intent)}` +
+        (error ? `: ${error.toString()}.` : '.')
+      )
+    case FsGen.pickAndUpload:
+      return 'Failed to upload' + (error ? `: ${error.toString()}.` : '.')
     default:
       return 'An unexplainable error has occurred.'
   }

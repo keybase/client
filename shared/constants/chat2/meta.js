@@ -371,10 +371,10 @@ export const getRowStyles = (meta: Types.ConversationMeta, isSelected: boolean, 
     : isSelected
     ? globalColors.white
     : hasUnread
-    ? globalColors.black_75
+    ? globalColors.black
     : globalColors.black_50
-  const usernameColor = isSelected ? globalColors.white : globalColors.black_75
-  const iconHoverColor = isSelected ? globalColors.white_75 : globalColors.black_75
+  const usernameColor = isSelected ? globalColors.white : globalColors.black
+  const iconHoverColor = isSelected ? globalColors.white_75 : globalColors.black
 
   return {
     backgroundColor,

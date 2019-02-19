@@ -519,6 +519,10 @@ func (r *RemoteClientMock) GetInflationDestinations(ctx context.Context) (ret []
 	return r.Backend.GetInflationDestinations(ctx, r.Tc)
 }
 
+func (r *RemoteClientMock) NetworkOptions(ctx context.Context) (stellar1.NetworkOptions, error) {
+	return stellar1.NetworkOptions{BaseFee: 100}, nil
+}
+
 var _ remote.Remoter = (*RemoteClientMock)(nil)
 
 const (

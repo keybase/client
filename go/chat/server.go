@@ -2120,7 +2120,7 @@ func (h *Server) SetConvRetentionLocal(ctx context.Context, arg chat1.SetConvRet
 		isInherit = true
 	}
 
-	rc, err := GetUnverifiedConv(ctx, h.G(), uid, arg.ConvID, types.InboxSourceDataSourceAll)
+	rc, err := utils.GetUnverifiedConv(ctx, h.G(), uid, arg.ConvID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		return err
 	}
@@ -2405,7 +2405,7 @@ func (h *Server) ResolveUnfurlPrompt(ctx context.Context, arg chat1.ResolveUnfur
 		return err
 	}
 	fetchAndUnfurl := func() error {
-		conv, err := GetUnverifiedConv(ctx, h.G(), uid, arg.ConvID, types.InboxSourceDataSourceAll)
+		conv, err := utils.GetUnverifiedConv(ctx, h.G(), uid, arg.ConvID, types.InboxSourceDataSourceAll)
 		if err != nil {
 			return err
 		}

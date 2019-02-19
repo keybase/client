@@ -77,7 +77,7 @@ const stylePgpKeyString = Styles.platformStyles({
     ...Styles.globalStyles.fontTerminal,
     backgroundColor: Styles.globalColors.lightGrey,
     borderRadius: 3,
-    color: Styles.globalColors.black_75,
+    color: Styles.globalColors.black,
     flex: 1,
     fontSize: 13,
     lineHeight: 17,

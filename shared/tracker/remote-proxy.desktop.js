@@ -16,7 +16,7 @@ import {serialize} from './remote-serializer.desktop'
 type OwnProps = {|name: string|}
 
 const MAX_TRACKERS = 5
-const windowOpts = {height: 470, width: 320}
+const windowOpts = {hasShadow: false, height: 470, transparent: true, width: 320}
 
 const trackerMapStateToProps = (state, {name}) => {
   const _trackerState = state.tracker.userTrackers[name] || state.tracker.nonUserTrackers[name]

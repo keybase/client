@@ -177,7 +177,7 @@ const stylesContent = {
 const stylesUsername = {
   marginTop: globalMargins.tiny,
 }
-const stylesFullname = {color: globalColors.black_75}
+const stylesFullname = {color: globalColors.black}
 const stylesFollowLabel = {
   color: globalColors.black_50,
   fontSize: 14,
@@ -196,7 +196,7 @@ const stylesFollowingCount = {
   color: globalColors.black_50,
   ...globalStyles.fontBold,
 }
-const stylesBio = {color: globalColors.black_75}
+const stylesBio = {color: globalColors.black}
 const stylesLocation = {marginTop: globalMargins.xtiny}
 const stylesPlaceholder = {marginTop: globalMargins.small}
 

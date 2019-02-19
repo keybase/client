@@ -550,6 +550,10 @@
       "conversationIDKey": "Types.ConversationIDKey",
       "messageID": "Types.MessageID",
       "collapse": "boolean"
+    },
+    "updateCoinFlipStatus": {
+      "_description": "Update status of a coin flip game",
+      "statuses": "Array<RPCChatTypes.UICoinFlipStatus>"
     }
   }
 }

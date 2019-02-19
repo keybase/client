@@ -4,6 +4,7 @@
 package libkb
 
 import (
+	"fmt"
 	"os"
 	"runtime"
 	"time"
@@ -89,6 +90,23 @@ const (
 // something else comes up, we'll want to make this more configurable.
 var UserAgent = runtime.GOOS + ":" + "Keybase CLI (" + runtime.Version() + "):" + Version
 
+// Returns a simplified UserAgent that's used as the kb_ua GET param.
+func ProofUserAgent() string {
+	var os string
+	if runtime.GOOS == "darwin" {
+		// Either ios or mac
+		if isIOS {
+			os = "ios"
+		} else {
+			os = "mac"
+		}
+	} else {
+		os = runtime.GOOS
+	}
+
+	return fmt.Sprintf("%s:%s", os, Version)
+}
+
 const (
 	PermFile          os.FileMode = 0600
 	PermDir           os.FileMode = 0700
@@ -164,10 +182,10 @@ var MerkleStagingKIDs = []string{
 
 var CodeSigningProdKIDs = []string{
 	"01209092ae4e790763dc7343851b977930f35b16cf43ab0ad900a2af3d3ad5cea1a10a", // keybot (device)
-	"0120d3458bbecdfc0d0ae39fec05722c6e3e897c169223835977a8aa208dfcd902d30a", // max (device, home)
-	"012065ae849d1949a8b0021b165b0edaf722e2a7a9036e07817e056e2d721bddcc0e0a", // max (paper key)
-	"01203a5a45c545ef4f661b8b7573711aaecee3fd5717053484a3a3e725cd68abaa5a0a", // chris (device, ccpro)
-	"012003d86864fb20e310590042ad3d5492c3f5d06728620175b03c717c211bfaccc20a", // chris (paper key, clay harbor)
+	"012045891a45f03cec001196ad05207f3f80045b2b9f0ca38288a85f8120ac74db960a", // max (tiber - 2019-01)
+	"012065ae849d1949a8b0021b165b0edaf722e2a7a9036e07817e056e2d721bddcc0e0a", // max (cry glass)
+	"01202a70fa31596ae2afabbbea827c7d1efb205c4b02b2b98b8f8c75915be433ccb50a", // mike (demise sort)
+	"012003d86864fb20e310590042ad3d5492c3f5d06728620175b03c717c211bfaccc20a", // chris (clay harbor)
 }
 var CodeSigningTestKIDs = []string{}
 var CodeSigningStagingKIDs = []string{}

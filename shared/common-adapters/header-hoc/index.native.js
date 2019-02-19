@@ -296,7 +296,7 @@ const styles = Styles.styleSheetCreate({
     ...Styles.globalStyles.flexBoxRow,
   },
   title: {
-    color: Styles.globalColors.black_75,
+    color: Styles.globalColors.black,
   },
   titleContainer: Styles.platformStyles({
     common: {
