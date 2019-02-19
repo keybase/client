@@ -81,7 +81,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onShowSite: () => (stateProps.siteURL ? openUrl(stateProps.siteURL) : undefined),
   onWhatIsStellar: () => openUrl('https://keybase.io/what-is-stellar'),
   proofURL: stateProps.proofURL,
-  siteIcon: stateProps.siteIcon,
+  siteIcon: stateProps.siteIcon.slice(),
   siteURL: stateProps.siteURL,
   state: stateProps.state,
   type: stateProps.type,

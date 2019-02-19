@@ -21,7 +21,7 @@ type Props = {|
   onCreateProof: ?() => void,
   onWhatIsStellar: () => void,
   proofURL: string,
-  siteIcon: $ReadOnlyArray<Types.SiteIcon>,
+  siteIcon: Array<Types.SiteIcon>,
   siteURL: string,
   state: Types.AssertionState,
   type: string,
@@ -297,6 +297,14 @@ const getMenu = p => {
   }
 }
 
+const siteIconToSrcSet = siteIcon =>
+  `-webkit-image-set(${siteIcon
+    .sort((a, b) => a.width - b.width)
+    .map((si, idx) => `url(${si.path}) ${idx + 1}x`)
+    .join(', ')})`
+const siteIconToNativeSrcSet = siteIcon =>
+  siteIcon.map(si => ({height: si.width, uri: si.path, width: si.width}))
+
 type State = {|showingMenu: boolean|}
 class Assertion extends React.PureComponent<Props, State> {
   state = {showingMenu: false}
@@ -305,8 +313,20 @@ class Assertion extends React.PureComponent<Props, State> {
   _ref = React.createRef()
   _getRef = () => this._ref.current
   _siteIcon = () => {
-    const srcs = this.props.siteIcon.map((si, idx) => `url(${si.path}) ${idx}x`)
-    return <Kb.Image src={`-webkit-image-set(${srcs.join(', ')})`} style={{height: 16, width: 16}} />
+    // on mobile use `Kb.RequireImage`, desktop a box with background-image
+    if (Styles.isMobile) {
+      return <Kb.RequireImage src={siteIconToNativeSrcSet(this.props.siteIcon)} style={styles.siteIcon} />
+    }
+    return (
+      <Kb.Box
+        style={Styles.collapseStyles([
+          styles.siteIcon,
+          {
+            backgroundImage: siteIconToSrcSet(this.props.siteIcon),
+          },
+        ])}
+      />
+    )
   }
   render() {
     const p = this.props
@@ -392,6 +412,7 @@ const styles = Styles.styleSheetCreate({
   },
   metaContainer: {flexShrink: 0, paddingLeft: 20 + Styles.globalMargins.tiny * 2 - 4}, // icon spacing plus meta has 2 padding for some reason
   site: {color: Styles.globalColors.black_20},
+  siteIcon: {flexShrink: 0, height: 16, width: 16},
   stateIcon: {height: 17},
   strikeThrough: {textDecorationLine: 'line-through'},
   textContainer: {flexGrow: 1, flexShrink: 1, marginTop: -1},
