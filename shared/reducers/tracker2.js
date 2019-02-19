@@ -90,6 +90,7 @@ export default function(state: Types.State = initialState, action: Tracker2Gen.A
               assertionKey,
               color: action.payload.color,
               metas: action.payload.metas.map(Constants.makeMeta),
+              priority: action.payload.priority,
               proofURL: action.payload.proofURL,
               sigID: action.payload.sigID,
               siteIcon: action.payload.siteIcon,

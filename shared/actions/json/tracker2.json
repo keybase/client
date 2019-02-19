@@ -37,6 +37,7 @@
       "sigID": "string",
       "siteURL": "string",
       "siteIcon": "Array<Types.SiteIcon>",
+      "priority": "number",
       "proofURL": "string",
       "state": "Types.AssertionState",
       "metas": "Array<Types._AssertionMeta>",

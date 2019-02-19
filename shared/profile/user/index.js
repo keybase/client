@@ -2,7 +2,6 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Types from '../../constants/types/tracker2'
-import * as Constants from '../../constants/tracker2'
 import * as Styles from '../../styles'
 import {chunk} from 'lodash-es'
 import Bio from '../../tracker2/bio/container'
@@ -18,7 +17,7 @@ import * as Flow from '../../util/flow'
 type BackgroundColorType = 'red' | 'green' | 'blue'
 
 export type Props = {|
-  assertionKeys: ?Array<string>,
+  assertionKeys: ?Array<string>, // in sorted order
   backgroundColorType: BackgroundColorType,
   followThem: boolean,
   followers: Array<string>,
@@ -96,11 +95,8 @@ const BioLayout = p => (
 const Proofs = p => {
   let assertions
   if (p.assertionKeys) {
-    const unsorted = [...p.assertionKeys]
     assertions = [
-      ...unsorted
-        .sort(Constants.sortAssertionKeys)
-        .map(a => <Assertion key={a} username={p.username} assertionKey={a} />),
+      ...p.assertionKeys.map(a => <Assertion key={a} username={p.username} assertionKey={a} />),
       ...(p.suggestionKeys || []).map(s => (
         <Assertion isSuggestion={true} key={s} username={p.username} assertionKey={s} />
       )),

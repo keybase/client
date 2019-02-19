@@ -32,6 +32,7 @@ export const makeAssertion: I.RecordFactory<Types._Assertion> = I.Record({
   assertionKey: '',
   color: 'gray',
   metas: [],
+  priority: -1,
   proofURL: '',
   sigID: '',
   siteIcon: [],

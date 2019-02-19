@@ -27,6 +27,7 @@ export type _Assertion = {
   assertionKey: string, // twitter:bob
   color: AssertionColor,
   metas: $ReadOnlyArray<AssertionMeta>,
+  priority: number, // sort order
   proofURL: string, // http://twitter.com/bob/post/1234
   sigID: string,
   siteIcon: $ReadOnlyArray<SiteIcon>,
