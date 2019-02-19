@@ -294,7 +294,7 @@ func (m *FlipManager) addResult(ctx context.Context, status *chat1.UICoinFlipSta
 		for index, r := range result.Shuffle {
 			items[index] = hmi.ShuffleItems[r]
 		}
-		status.ResultText = strings.Join(items, ",")
+		status.ResultText = strings.TrimRight(strings.Join(items, ", "), " ")
 	}
 }
 
