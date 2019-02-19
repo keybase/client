@@ -71,7 +71,7 @@ func TestFlipManagerStartFlip(t *testing.T) {
 			}))
 		res0 = consumeFlipToResult(t, ui0, numUsers)
 		found := false
-		for i := 0; i < 10; i++ {
+		for i := 1; i <= 10; i++ {
 			if res0 == fmt.Sprintf("%d", i) {
 				found = true
 				break

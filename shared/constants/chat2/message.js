@@ -184,6 +184,7 @@ export const makeMessageText: I.RecordFactory<MessageTypes._MessageText> = I.Rec
   flipGameID: null,
   inlinePaymentIDs: null,
   inlinePaymentSuccessful: false,
+  isDeleteable: true,
   mentionsAt: I.Set(),
   mentionsChannel: 'none',
   mentionsChannelName: I.Map(),
@@ -679,10 +680,22 @@ const validUIMessagetoMessage = (
   }
 
   switch (m.messageBody.messageType) {
+    case RPCChatTypes.commonMessageType.flip:
     case RPCChatTypes.commonMessageType.text:
-      const messageText = m.messageBody.text
-      const rawText: string = messageText?.body ?? ''
-      const payments = messageText?.payments ?? null
+      let rawText
+      let payments
+      switch (m.messageBody.messageType) {
+        case RPCChatTypes.commonMessageType.flip:
+          rawText = m.messageBody.flip?.text ?? ''
+          break
+        case RPCChatTypes.commonMessageType.text:
+          const messageText = m.messageBody.text
+          rawText = messageText?.body ?? ''
+          payments = messageText?.payments ?? null
+          break
+        default:
+          rawText = ''
+      }
       return makeMessageText({
         ...common,
         ...explodable,
@@ -704,6 +717,7 @@ const validUIMessagetoMessage = (
         inlinePaymentSuccessful: m.paymentInfos
           ? m.paymentInfos.some(pi => successfulInlinePaymentStatuses.includes(pi.statusDescription))
           : false,
+        isDeleteable: m.messageBody.messageType === RPCChatTypes.commonMessageType.text,
         mentionsAt: I.Set(m.atMentions || []),
         mentionsChannel: channelMentionToMentionsChannel(m.channelMention),
         mentionsChannelName: I.Map(

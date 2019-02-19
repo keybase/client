@@ -28,9 +28,11 @@ const mapStateToProps = (state, ownProps: OwnProps) => {
   const _canDeleteHistory = yourOperations && yourOperations.deleteChatHistory
   const _canAdminDelete = yourOperations && yourOperations.deleteOtherMessages
   const _participantsCount = meta.participants.count()
+  const _isDeleteable = message.isDeleteable
   return {
     _canAdminDelete,
     _canDeleteHistory,
+    _isDeleteable,
     _participantsCount,
     _you: state.config.username,
   }
@@ -104,7 +106,7 @@ const mapDispatchToProps = dispatch => ({
 const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => {
   const message = ownProps.message
   const yourMessage = message.author === stateProps._you
-  const isDeleteable = yourMessage || stateProps._canAdminDelete
+  const isDeleteable = stateProps._isDeleteable && (yourMessage || stateProps._canAdminDelete)
   return {
     attachTo: ownProps.attachTo,
     author: message.author,

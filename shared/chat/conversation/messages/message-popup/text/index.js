@@ -44,7 +44,7 @@ const TextPopupMenu = (props: Props) => {
           },
         ]
       : []),
-    ...(props.yourMessage || props.onDeleteMessageHistory ? ['Divider'] : []),
+    ...((props.yourMessage && props.isDeleteable) || props.onDeleteMessageHistory ? ['Divider'] : []),
     ...(props.onEdit
       ? [
           {

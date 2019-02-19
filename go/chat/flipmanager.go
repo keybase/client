@@ -477,10 +477,10 @@ func (m *FlipManager) getHostMessageInfo(ctx context.Context, convID chat1.Conve
 	if !msg.IsValid() {
 		return res, errors.New("host message invalid")
 	}
-	if !msg.Valid().MessageBody.IsType(chat1.MessageType_TEXT) {
+	if !msg.Valid().MessageBody.IsType(chat1.MessageType_FLIP) {
 		return res, fmt.Errorf("invalid host message type: %v", msg.GetMessageType())
 	}
-	body := msg.Valid().MessageBody.Text().Body
+	body := msg.Valid().MessageBody.Flip().Text
 	if err := json.Unmarshal([]byte(body), &res); err != nil {
 		return res, err
 	}
@@ -542,7 +542,11 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 	if err != nil {
 		return err
 	}
-	if err := m.G().ChatHelper.SendTextByID(ctx, conv.GetConvID(), tlfName, string(infoBody)); err != nil {
+	if err := m.G().ChatHelper.SendMsgByID(ctx, conv.GetConvID(), tlfName,
+		chat1.NewMessageBodyWithFlip(chat1.MessageFlip{
+			Text:   string(infoBody),
+			GameID: gameID,
+		}), chat1.MessageType_FLIP); err != nil {
 		return err
 	}
 
@@ -567,7 +571,7 @@ func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, msg chat1.Mess
 	}
 	defer m.Trace(ctx, func() error { return nil }, "MaybeInjectFlipMessage: convID: %s", convID)()
 	body := msg.Valid().MessageBody
-	if !body.IsType(chat1.MessageType_TEXT) {
+	if !body.IsType(chat1.MessageType_FLIP) {
 		return
 	}
 	hostMsg, err := m.getHostMessageInfo(ctx, convID)
@@ -576,7 +580,7 @@ func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, msg chat1.Mess
 		return
 	}
 	if err := m.dealer.InjectIncomingChat(ctx, sender, convID, hostMsg.GameID,
-		flip.MakeGameMessageEncoded(body.Text().Body), m.isStartMsgID(msg.GetMessageID())); err != nil {
+		flip.MakeGameMessageEncoded(body.Flip().Text), m.isStartMsgID(msg.GetMessageID())); err != nil {
 		m.Debug(ctx, "MaybeInjectFlipMessage: failed to inject: %s", err)
 	}
 }
@@ -622,7 +626,7 @@ func (m *FlipManager) loadGame(ctx context.Context, job loadGameJob) (err error)
 			continue
 		}
 		body := msg.Valid().MessageBody
-		if !body.IsType(chat1.MessageType_TEXT) {
+		if !body.IsType(chat1.MessageType_FLIP) {
 			continue
 		}
 		history = append(history, flip.GameMessageReplayed{
@@ -632,7 +636,7 @@ func (m *FlipManager) loadGame(ctx context.Context, job loadGameJob) (err error)
 					D: msg.Valid().ClientHeader.SenderDevice,
 				},
 				GameID:              job.gameID,
-				Body:                flip.MakeGameMessageEncoded(body.Text().Body),
+				Body:                flip.MakeGameMessageEncoded(body.Flip().Text),
 				FirstInConversation: m.isStartMsgID(msg.GetMessageID()),
 			},
 			Time: msg.Valid().ServerHeader.Ctime.Time(),
@@ -713,7 +717,11 @@ func (m *FlipManager) SendChat(ctx context.Context, convID chat1.ConversationID,
 	if err != nil {
 		return err
 	}
-	_, err = m.G().ChatHelper.SendTextByIDNonblock(ctx, convID, conv.Info.TlfName, msg.String(), nil)
+	_, err = m.G().ChatHelper.SendMsgByIDNonblock(ctx, convID, conv.Info.TlfName,
+		chat1.NewMessageBodyWithFlip(chat1.MessageFlip{
+			Text:   msg.String(),
+			GameID: gameID,
+		}), chat1.MessageType_FLIP, nil)
 	return err
 }
 
