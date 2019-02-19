@@ -374,6 +374,15 @@ func IsVisibleChatMessageType(messageType chat1.MessageType) bool {
 	return false
 }
 
+func IsEditableByEditMessageType(messageType chat1.MessageType) bool {
+	for _, mt := range chat1.EditableMessageTypesByEdit() {
+		if messageType == mt {
+			return true
+		}
+	}
+	return false
+}
+
 func IsCollapsibleMessageType(messageType chat1.MessageType) bool {
 	switch messageType {
 	case chat1.MessageType_UNFURL, chat1.MessageType_ATTACHMENT:
