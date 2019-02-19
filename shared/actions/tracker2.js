@@ -39,20 +39,11 @@ const setupEngineListeners = () => {
           reason: reason.reason || '',
         })
       ),
-    'keybase.1.identify3Ui.identify3UpdateRow': row =>
+    'keybase.1.identify3Ui.identify3UpdateRow': arg =>
       Saga.put(
         Tracker2Gen.createUpdateAssertion({
-          color: Constants.rpcRowColorToColor(row.color),
-          guiID: row.guiID,
-          metas: (row.metas || []).map(m => ({color: Constants.rpcRowColorToColor(m.color), label: m.label})),
-          priority: row.priority,
-          proofURL: row.proofURL,
-          sigID: row.sigID,
-          siteIcon: row.siteIcon || [],
-          siteURL: row.siteURL,
-          state: Constants.rpcRowStateToAssertionState(row.state),
-          type: row.key,
-          value: row.value,
+          assertion: Constants.rpcAssertionToAssertion(arg.row),
+          guiID: arg.row.guiID,
         })
       ),
   })

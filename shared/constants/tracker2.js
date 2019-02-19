@@ -110,6 +110,21 @@ export const rpcRowStateToAssertionState = (state: RPCTypes.Identify3RowState): 
   }
 }
 
+export const rpcAssertionToAssertion = (row: RPCTypes.Identify3Row): Types.Assertion =>
+  makeAssertion({
+    assertionKey: `${row.key}:${row.value}`,
+    color: rpcRowColorToColor(row.color),
+    metas: (row.metas || []).map(m => ({color: rpcRowColorToColor(m.color), label: m.label})).map(makeMeta),
+    priority: row.priority,
+    proofURL: row.proofURL,
+    sigID: row.sigID,
+    siteIcon: row.siteIcon || [],
+    siteURL: row.siteURL,
+    state: rpcRowStateToAssertionState(row.state),
+    type: row.key,
+    value: row.value,
+  })
+
 const _scoreAssertionKey = a => {
   switch (a) {
     case 'pgp':

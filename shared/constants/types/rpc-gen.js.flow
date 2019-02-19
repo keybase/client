@@ -497,7 +497,7 @@ export type MessageTypes = {|
     outParam: void,
   |},
   'keybase.1.identify3Ui.identify3UpdateRow': {|
-    inParam: $ReadOnly<{|guiID: Identify3GUIID, key: String, value: String, priority: Int, siteURL: String, siteIcon?: ?Array<SizedImage>, proofURL: String, sigID: SigID, state: Identify3RowState, metas?: ?Array<Identify3RowMeta>, color: Identify3RowColor|}>,
+    inParam: $ReadOnly<{|row: Identify3Row|}>,
     outParam: void,
   |},
   'keybase.1.identify3Ui.identify3UpdateUserCard': {|
@@ -2224,6 +2224,7 @@ export type Identify3ResultType =
   | 2 // NEEDS_UPGRADE_2
   | 3 // CANCELED_3
 
+export type Identify3Row = $ReadOnly<{guiID: Identify3GUIID, key: String, value: String, priority: Int, siteURL: String, siteIcon?: ?Array<SizedImage>, proofURL: String, sigID: SigID, state: Identify3RowState, metas?: ?Array<Identify3RowMeta>, color: Identify3RowColor}>
 export type Identify3RowColor =
   | 1 // BLUE_1
   | 2 // RED_2

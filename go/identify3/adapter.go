@@ -133,7 +133,7 @@ func (i *UIAdapter) priority(key string) int {
 }
 
 // return true if we need an upgrade
-func (i *UIAdapter) setRowStatus(arg *keybase1.Identify3UpdateRowArg, lcr keybase1.LinkCheckResult) bool {
+func (i *UIAdapter) setRowStatus(arg *keybase1.Identify3Row, lcr keybase1.LinkCheckResult) bool {
 
 	needUpgrade := false
 	i.M().CDebugf("setRowStatus(lcr: %+v, cached: %+v, diff: %+v, remoteDiff: %+v, hint: %+v)",
@@ -201,8 +201,8 @@ func (i *UIAdapter) setRowStatus(arg *keybase1.Identify3UpdateRowArg, lcr keybas
 	return needUpgrade
 }
 
-func (i *UIAdapter) rowPartial(proof keybase1.RemoteProof, lcr *keybase1.LinkCheckResult) (row keybase1.Identify3UpdateRowArg) {
-	row = keybase1.Identify3UpdateRowArg{
+func (i *UIAdapter) rowPartial(proof keybase1.RemoteProof, lcr *keybase1.LinkCheckResult) (row keybase1.Identify3Row) {
+	row = keybase1.Identify3Row{
 		Key:      proof.Key,
 		Value:    proof.Value,
 		SigID:    proof.SigID,
@@ -316,7 +316,7 @@ func (i *UIAdapter) displayKey(key keybase1.IdentifyKey) {
 		return
 	}
 
-	arg := keybase1.Identify3UpdateRowArg{
+	arg := keybase1.Identify3Row{
 		Key:      "pgp",
 		Value:    hex.EncodeToString(key.PGPFingerprint),
 		SigID:    key.SigID,
@@ -375,7 +375,7 @@ func (i *UIAdapter) plumbUncheckedProof(row keybase1.IdentifyRow) {
 	i.updateRow(arg)
 }
 
-func (i *UIAdapter) updateRow(arg keybase1.Identify3UpdateRowArg) error {
+func (i *UIAdapter) updateRow(arg keybase1.Identify3Row) error {
 	arg.GuiID = i.session.ID()
 	err := i.ui.Identify3UpdateRow(i.M().Ctx(), arg)
 	if err != nil {
@@ -446,7 +446,7 @@ func (i *UIAdapter) plumbCryptocurrency(crypto keybase1.Cryptocurrency) {
 	default:
 		i.M().CDebugf("unrecgonized crypto family: %v, %v", crypto.Type, crypto.Family)
 	}
-	i.updateRow(keybase1.Identify3UpdateRowArg{
+	i.updateRow(keybase1.Identify3Row{
 		Key:      key,
 		Value:    crypto.Address,
 		Priority: i.priority(key),
@@ -460,7 +460,7 @@ func (i *UIAdapter) plumbCryptocurrency(crypto keybase1.Cryptocurrency) {
 }
 
 func (i *UIAdapter) plumbStellarAccount(str keybase1.StellarAccount) {
-	i.updateRow(keybase1.Identify3UpdateRowArg{
+	i.updateRow(keybase1.Identify3Row{
 		Key:      "stellar",
 		Value:    str.FederationAddress,
 		Priority: i.priority("stellar"),

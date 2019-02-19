@@ -31,17 +31,8 @@
       "guiID": "string"
     },
     "updateAssertion": {
-      "guiID": "string",
-      "type": "string",
-      "value": "string",
-      "sigID": "string",
-      "siteURL": "string",
-      "siteIcon": "Array<Types.SiteIcon>",
-      "priority": "number",
-      "proofURL": "string",
-      "state": "Types.AssertionState",
-      "metas": "Array<Types._AssertionMeta>",
-      "color": "Types.AssertionColor"
+      "assertion": "Types.Assertion",
+      "guiID": "string"
     },
     "changeFollow": {
       "guiID": "string",
