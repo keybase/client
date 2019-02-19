@@ -185,6 +185,7 @@ export const makeMessageText: I.RecordFactory<MessageTypes._MessageText> = I.Rec
   inlinePaymentIDs: null,
   inlinePaymentSuccessful: false,
   isDeleteable: true,
+  isEditable: true,
   mentionsAt: I.Set(),
   mentionsChannel: 'none',
   mentionsChannelName: I.Map(),
@@ -717,7 +718,8 @@ const validUIMessagetoMessage = (
         inlinePaymentSuccessful: m.paymentInfos
           ? m.paymentInfos.some(pi => successfulInlinePaymentStatuses.includes(pi.statusDescription))
           : false,
-        isDeleteable: m.messageBody.messageType === RPCChatTypes.commonMessageType.text,
+        isDeleteable: m.isDeleteable,
+        isEditable: m.isEditable,
         mentionsAt: I.Set(m.atMentions || []),
         mentionsChannel: channelMentionToMentionsChannel(m.channelMention),
         mentionsChannelName: I.Map(

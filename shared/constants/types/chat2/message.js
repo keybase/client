@@ -103,6 +103,7 @@ export type _MessageText = {
   inlinePaymentIDs: ?I.List<WalletTypes.PaymentID>,
   inlinePaymentSuccessful: boolean,
   isDeleteable: boolean,
+  isEditable: boolean,
   flipGameID: ?string,
   reactions: Reactions,
   submitState: null | 'deleting' | 'editing' | 'pending' | 'failed',
