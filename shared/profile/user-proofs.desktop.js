@@ -151,6 +151,7 @@ class ProofRow extends React.PureComponent<ProofRowProps, ProofRowState> {
           {hasMenu && (
             <Icon
               type="iconfont-caret-down"
+              sizeType='Tiny'
               style={iconStyle}
               color={(proofStatusIconType && defaultColor(proofStatusIconType)) || ''}
             />
