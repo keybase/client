@@ -195,16 +195,21 @@ func (tx *AddMemberTx) createInvite(typ string, name keybase1.TeamInviteName, ro
 func (tx *AddMemberTx) sweepCryptoMembers(ctx context.Context, uid keybase1.UID,
 	exceptAdminsRemovingOwners bool) {
 	team := tx.team
+	var myRole keybase1.TeamRole
+	if exceptAdminsRemovingOwners {
+		var err error
+		myRole, err = tx.team.myRole(ctx)
+		if err != nil {
+			myRole = keybase1.TeamRole_NONE
+		}
+	}
 	for chainUv := range team.chain().inner.UserLog {
 		if chainUv.Uid.Equal(uid) && team.chain().getUserRole(chainUv) != keybase1.TeamRole_NONE {
-			if exceptAdminsRemovingOwners {
-				myRole, err := tx.team.myRole(ctx)
-				if err == nil && myRole == keybase1.TeamRole_ADMIN {
-					theirRole, err := tx.team.MemberRole(ctx, chainUv)
-					if err == nil && theirRole == keybase1.TeamRole_OWNER {
-						// Skip if we're an admin and their an owner.
-						continue
-					}
+			if exceptAdminsRemovingOwners && myRole == keybase1.TeamRole_ADMIN {
+				theirRole, err := tx.team.MemberRole(ctx, chainUv)
+				if err == nil && theirRole == keybase1.TeamRole_OWNER {
+					// Skip if we're an admin and they're an owner.
+					continue
 				}
 			}
 			tx.removeMember(chainUv)
