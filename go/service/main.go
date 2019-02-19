@@ -403,6 +403,7 @@ func (d *Service) startChatModules() {
 		g.InboxSource.Start(context.Background(), uid)
 		g.Indexer.Start(chat.Context(context.Background(), g,
 			keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, nil), uid)
+		g.CoinFlipManager.Start(context.Background(), uid)
 	}
 	d.purgeOldChatAttachmentData()
 }
@@ -414,6 +415,7 @@ func (d *Service) stopChatModules(m libkb.MetaContext) {
 	<-d.ChatG().EphemeralPurger.Stop(m.Ctx())
 	<-d.ChatG().InboxSource.Stop(m.Ctx())
 	<-d.ChatG().Indexer.Stop(m.Ctx())
+	<-d.ChatG().CoinFlipManager.Stop(m.Ctx())
 }
 
 func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
@@ -468,6 +470,7 @@ func (d *Service) SetupChatModules(ri func() chat1.RemoteInterface) {
 	g.Unfurler = unfurl.NewUnfurler(g, store, s3signer, convStorage, chat.NewNonblockingSender(g, sender),
 		ri)
 	g.CommandsSource = commands.NewSource(g)
+	g.CoinFlipManager = chat.NewFlipManager(g, ri)
 
 	// Set up Offlinables on Syncer
 	chatSyncer.RegisterOfflinable(g.InboxSource)

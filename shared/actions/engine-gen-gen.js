@@ -15,6 +15,7 @@ export const typePrefix = 'engine-gen:'
 export const chat1ChatUiChatAttachmentDownloadDone = 'engine-gen:chat1ChatUiChatAttachmentDownloadDone'
 export const chat1ChatUiChatAttachmentDownloadProgress = 'engine-gen:chat1ChatUiChatAttachmentDownloadProgress'
 export const chat1ChatUiChatAttachmentDownloadStart = 'engine-gen:chat1ChatUiChatAttachmentDownloadStart'
+export const chat1ChatUiChatCoinFlipStatus = 'engine-gen:chat1ChatUiChatCoinFlipStatus'
 export const chat1ChatUiChatConfirmChannelDelete = 'engine-gen:chat1ChatUiChatConfirmChannelDelete'
 export const chat1ChatUiChatGiphySearchResults = 'engine-gen:chat1ChatUiChatGiphySearchResults'
 export const chat1ChatUiChatInboxConversation = 'engine-gen:chat1ChatUiChatInboxConversation'
@@ -94,6 +95,7 @@ export const keybase1LoginUiGetEmailOrUsername = 'engine-gen:keybase1LoginUiGetE
 export const keybase1LoginUiPromptRevokePaperKeys = 'engine-gen:keybase1LoginUiPromptRevokePaperKeys'
 export const keybase1LogsendPrepareLogsend = 'engine-gen:keybase1LogsendPrepareLogsend'
 export const keybase1NotifyAppExit = 'engine-gen:keybase1NotifyAppExit'
+export const keybase1NotifyAuditRootAuditError = 'engine-gen:keybase1NotifyAuditRootAuditError'
 export const keybase1NotifyBadgesBadgeState = 'engine-gen:keybase1NotifyBadgesBadgeState'
 export const keybase1NotifyCanUserPerformCanUserPerformChanged = 'engine-gen:keybase1NotifyCanUserPerformCanUserPerformChanged'
 export const keybase1NotifyDeviceCloneDeviceCloneCountChanged = 'engine-gen:keybase1NotifyDeviceCloneDeviceCloneCountChanged'
@@ -176,6 +178,7 @@ export const stellar1UiPaymentReviewed = 'engine-gen:stellar1UiPaymentReviewed'
 type _Chat1ChatUiChatAttachmentDownloadDonePayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatAttachmentDownloadDone'>, 'inParam'>>|}>
 type _Chat1ChatUiChatAttachmentDownloadProgressPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatAttachmentDownloadProgress'>, 'inParam'>>|}>
 type _Chat1ChatUiChatAttachmentDownloadStartPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatAttachmentDownloadStart'>, 'inParam'>>|}>
+type _Chat1ChatUiChatCoinFlipStatusPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatCoinFlipStatus'>, 'inParam'>>|}>
 type _Chat1ChatUiChatConfirmChannelDeletePayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatConfirmChannelDelete'>, 'inParam'>>|}>
 type _Chat1ChatUiChatGiphySearchResultsPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatGiphySearchResults'>, 'inParam'>>|}>
 type _Chat1ChatUiChatInboxConversationPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<chat1Types.MessageTypes, 'chat.1.chatUi.chatInboxConversation'>, 'inParam'>>|}>
@@ -255,6 +258,7 @@ type _Keybase1LoginUiGetEmailOrUsernamePayload = $ReadOnly<{|params: $Exact<$Pro
 type _Keybase1LoginUiPromptRevokePaperKeysPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.loginUi.promptRevokePaperKeys'>, 'inParam'>>|}>
 type _Keybase1LogsendPrepareLogsendPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.logsend.prepareLogsend'>, 'inParam'>>|}>
 type _Keybase1NotifyAppExitPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyApp.exit'>, 'inParam'>>|}>
+type _Keybase1NotifyAuditRootAuditErrorPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyAudit.rootAuditError'>, 'inParam'>>|}>
 type _Keybase1NotifyBadgesBadgeStatePayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyBadges.badgeState'>, 'inParam'>>|}>
 type _Keybase1NotifyCanUserPerformCanUserPerformChangedPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyCanUserPerform.canUserPerformChanged'>, 'inParam'>>|}>
 type _Keybase1NotifyDeviceCloneDeviceCloneCountChangedPayload = $ReadOnly<{|params: $Exact<$PropertyType<$PropertyType<keybase1Types.MessageTypes, 'keybase.1.NotifyDeviceClone.deviceCloneCountChanged'>, 'inParam'>>|}>
@@ -337,6 +341,7 @@ type _Stellar1UiPaymentReviewedPayload = $ReadOnly<{|params: $Exact<$PropertyTyp
 export const createChat1ChatUiChatAttachmentDownloadDone = (payload: _Chat1ChatUiChatAttachmentDownloadDonePayload) => ({payload, type: chat1ChatUiChatAttachmentDownloadDone})
 export const createChat1ChatUiChatAttachmentDownloadProgress = (payload: _Chat1ChatUiChatAttachmentDownloadProgressPayload) => ({payload, type: chat1ChatUiChatAttachmentDownloadProgress})
 export const createChat1ChatUiChatAttachmentDownloadStart = (payload: _Chat1ChatUiChatAttachmentDownloadStartPayload) => ({payload, type: chat1ChatUiChatAttachmentDownloadStart})
+export const createChat1ChatUiChatCoinFlipStatus = (payload: _Chat1ChatUiChatCoinFlipStatusPayload) => ({payload, type: chat1ChatUiChatCoinFlipStatus})
 export const createChat1ChatUiChatConfirmChannelDelete = (payload: _Chat1ChatUiChatConfirmChannelDeletePayload) => ({payload, type: chat1ChatUiChatConfirmChannelDelete})
 export const createChat1ChatUiChatGiphySearchResults = (payload: _Chat1ChatUiChatGiphySearchResultsPayload) => ({payload, type: chat1ChatUiChatGiphySearchResults})
 export const createChat1ChatUiChatInboxConversation = (payload: _Chat1ChatUiChatInboxConversationPayload) => ({payload, type: chat1ChatUiChatInboxConversation})
@@ -416,6 +421,7 @@ export const createKeybase1LoginUiGetEmailOrUsername = (payload: _Keybase1LoginU
 export const createKeybase1LoginUiPromptRevokePaperKeys = (payload: _Keybase1LoginUiPromptRevokePaperKeysPayload) => ({payload, type: keybase1LoginUiPromptRevokePaperKeys})
 export const createKeybase1LogsendPrepareLogsend = (payload: _Keybase1LogsendPrepareLogsendPayload) => ({payload, type: keybase1LogsendPrepareLogsend})
 export const createKeybase1NotifyAppExit = (payload: _Keybase1NotifyAppExitPayload) => ({payload, type: keybase1NotifyAppExit})
+export const createKeybase1NotifyAuditRootAuditError = (payload: _Keybase1NotifyAuditRootAuditErrorPayload) => ({payload, type: keybase1NotifyAuditRootAuditError})
 export const createKeybase1NotifyBadgesBadgeState = (payload: _Keybase1NotifyBadgesBadgeStatePayload) => ({payload, type: keybase1NotifyBadgesBadgeState})
 export const createKeybase1NotifyCanUserPerformCanUserPerformChanged = (payload: _Keybase1NotifyCanUserPerformCanUserPerformChangedPayload) => ({payload, type: keybase1NotifyCanUserPerformCanUserPerformChanged})
 export const createKeybase1NotifyDeviceCloneDeviceCloneCountChanged = (payload: _Keybase1NotifyDeviceCloneDeviceCloneCountChangedPayload) => ({payload, type: keybase1NotifyDeviceCloneDeviceCloneCountChanged})
@@ -498,6 +504,7 @@ export const createStellar1UiPaymentReviewed = (payload: _Stellar1UiPaymentRevie
 export type Chat1ChatUiChatAttachmentDownloadDonePayload = {|+payload: _Chat1ChatUiChatAttachmentDownloadDonePayload, +type: 'engine-gen:chat1ChatUiChatAttachmentDownloadDone'|}
 export type Chat1ChatUiChatAttachmentDownloadProgressPayload = {|+payload: _Chat1ChatUiChatAttachmentDownloadProgressPayload, +type: 'engine-gen:chat1ChatUiChatAttachmentDownloadProgress'|}
 export type Chat1ChatUiChatAttachmentDownloadStartPayload = {|+payload: _Chat1ChatUiChatAttachmentDownloadStartPayload, +type: 'engine-gen:chat1ChatUiChatAttachmentDownloadStart'|}
+export type Chat1ChatUiChatCoinFlipStatusPayload = {|+payload: _Chat1ChatUiChatCoinFlipStatusPayload, +type: 'engine-gen:chat1ChatUiChatCoinFlipStatus'|}
 export type Chat1ChatUiChatConfirmChannelDeletePayload = {|+payload: _Chat1ChatUiChatConfirmChannelDeletePayload, +type: 'engine-gen:chat1ChatUiChatConfirmChannelDelete'|}
 export type Chat1ChatUiChatGiphySearchResultsPayload = {|+payload: _Chat1ChatUiChatGiphySearchResultsPayload, +type: 'engine-gen:chat1ChatUiChatGiphySearchResults'|}
 export type Chat1ChatUiChatInboxConversationPayload = {|+payload: _Chat1ChatUiChatInboxConversationPayload, +type: 'engine-gen:chat1ChatUiChatInboxConversation'|}
@@ -577,6 +584,7 @@ export type Keybase1LoginUiGetEmailOrUsernamePayload = {|+payload: _Keybase1Logi
 export type Keybase1LoginUiPromptRevokePaperKeysPayload = {|+payload: _Keybase1LoginUiPromptRevokePaperKeysPayload, +type: 'engine-gen:keybase1LoginUiPromptRevokePaperKeys'|}
 export type Keybase1LogsendPrepareLogsendPayload = {|+payload: _Keybase1LogsendPrepareLogsendPayload, +type: 'engine-gen:keybase1LogsendPrepareLogsend'|}
 export type Keybase1NotifyAppExitPayload = {|+payload: _Keybase1NotifyAppExitPayload, +type: 'engine-gen:keybase1NotifyAppExit'|}
+export type Keybase1NotifyAuditRootAuditErrorPayload = {|+payload: _Keybase1NotifyAuditRootAuditErrorPayload, +type: 'engine-gen:keybase1NotifyAuditRootAuditError'|}
 export type Keybase1NotifyBadgesBadgeStatePayload = {|+payload: _Keybase1NotifyBadgesBadgeStatePayload, +type: 'engine-gen:keybase1NotifyBadgesBadgeState'|}
 export type Keybase1NotifyCanUserPerformCanUserPerformChangedPayload = {|+payload: _Keybase1NotifyCanUserPerformCanUserPerformChangedPayload, +type: 'engine-gen:keybase1NotifyCanUserPerformCanUserPerformChanged'|}
 export type Keybase1NotifyDeviceCloneDeviceCloneCountChangedPayload = {|+payload: _Keybase1NotifyDeviceCloneDeviceCloneCountChangedPayload, +type: 'engine-gen:keybase1NotifyDeviceCloneDeviceCloneCountChanged'|}
@@ -661,6 +669,7 @@ export type Actions =
   | Chat1ChatUiChatAttachmentDownloadDonePayload
   | Chat1ChatUiChatAttachmentDownloadProgressPayload
   | Chat1ChatUiChatAttachmentDownloadStartPayload
+  | Chat1ChatUiChatCoinFlipStatusPayload
   | Chat1ChatUiChatConfirmChannelDeletePayload
   | Chat1ChatUiChatGiphySearchResultsPayload
   | Chat1ChatUiChatInboxConversationPayload
@@ -740,6 +749,7 @@ export type Actions =
   | Keybase1LoginUiPromptRevokePaperKeysPayload
   | Keybase1LogsendPrepareLogsendPayload
   | Keybase1NotifyAppExitPayload
+  | Keybase1NotifyAuditRootAuditErrorPayload
   | Keybase1NotifyBadgesBadgeStatePayload
   | Keybase1NotifyCanUserPerformCanUserPerformChangedPayload
   | Keybase1NotifyDeviceCloneDeviceCloneCountChangedPayload

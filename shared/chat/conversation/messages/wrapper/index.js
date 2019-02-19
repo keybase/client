@@ -29,6 +29,7 @@ import ReactionsRow from '../reactions-row/container'
 import SendIndicator from './send-indicator'
 import UnfurlList from './unfurl/unfurl-list/container'
 import UnfurlPromptList from './unfurl/prompt-list/container'
+import CoinFlip from '../coinflip/container'
 import {dismiss as dismissKeyboard} from '../../../../util/keyboard'
 import {formatTimeForChat} from '../../../../util/timestamp'
 
@@ -188,6 +189,10 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         ordinal={this.props.message.ordinal}
       />
     )
+
+  _coinFlip = () =>
+    // $ForceType
+    !!this.props.message.flipGameID && <CoinFlip key="CoinFlip" flipGameID={this.props.message.flipGameID} />
 
   _shouldShowReactionsRow = () =>
     // $ForceType
@@ -479,6 +484,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               this._isFailed(),
               this._unfurlPrompts(),
               this._unfurlList(),
+              this._coinFlip(),
               this._reactionsRow(),
             ]),
             this._sendIndicator(),
@@ -541,7 +547,6 @@ const styles = Styles.styleSheetCreate({
         Styles.globalMargins.tiny + // left margin
         Styles.globalMargins.mediumLarge, // avatar
       paddingRight: Styles.globalMargins.tiny,
-      paddingTop: 3,
     },
   }),
   edited: {color: Styles.globalColors.black_20},

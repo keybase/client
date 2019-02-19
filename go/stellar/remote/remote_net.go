@@ -113,3 +113,7 @@ func (r *RemoteNet) SetInflationDestination(ctx context.Context, signedTx string
 func (r *RemoteNet) GetInflationDestinations(ctx context.Context) (ret []stellar1.PredefinedInflationDestination, err error) {
 	return GetInflationDestinations(ctx, r.G())
 }
+
+func (r *RemoteNet) NetworkOptions(ctx context.Context) (stellar1.NetworkOptions, error) {
+	return NetworkOptions(ctx, r.G())
+}

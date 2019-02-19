@@ -56,3 +56,21 @@ func TestPRNG(t *testing.T) {
 		require.Equal(t, prng.Bool(), b)
 	}
 }
+
+func TestPRNGCornerCases(t *testing.T) {
+	var secret Secret
+	secret[0] = 1
+	prng := NewPRNG(secret)
+
+	// By convention, we're returning 0 for 0 moduli, but it's
+	// a corner case.
+	m := big.NewInt(0)
+	r := prng.Big(m)
+	require.Equal(t, 0, m.Cmp(r))
+
+	// The caase of the 1 modulus is handled normally but let's test
+	// that it works.
+	m = big.NewInt(1)
+	r = prng.Big(m)
+	require.Equal(t, 0, r.Cmp(big.NewInt(0)))
+}

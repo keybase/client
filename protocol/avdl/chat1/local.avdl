@@ -30,6 +30,7 @@ protocol local {
   record MessageText {
     string body;
     array<TextPayment> payments;
+    union { null, FlipGameID } flipGameID; // for flip messages
   }
 
   record MessageConversationMetadata {

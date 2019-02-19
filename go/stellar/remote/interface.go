@@ -31,4 +31,5 @@ type Remoter interface {
 	ServerTimeboundsRecommendation(ctx context.Context) (stellar1.TimeboundsRecommendation, error)
 	SetInflationDestination(ctx context.Context, signedTx string) error
 	GetInflationDestinations(ctx context.Context) (ret []stellar1.PredefinedInflationDestination, err error)
+	NetworkOptions(ctx context.Context) (stellar1.NetworkOptions, error)
 }

@@ -430,6 +430,14 @@ type ConversationCommandsSource interface {
 	PreviewBuiltinCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, text string)
 }
 
+type CoinFlipManager interface {
+	Resumable
+	StartFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID, tlfName, text string) error
+	MaybeInjectFlipMessage(ctx context.Context, msg chat1.MessageUnboxed, convID chat1.ConversationID,
+		topicType chat1.TopicType)
+	LoadFlip(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, gameID chat1.FlipGameID)
+}
+
 type InternalError interface {
 	// verbose error info for debugging but not user display
 	InternalError() string

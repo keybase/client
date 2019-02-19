@@ -12,11 +12,20 @@ import reactionTooltip from './reaction-tooltip/index.stories'
 import text from './text/index.stories'
 import accountPayment from './account-payment/index.stories'
 import UserNotice from './user-notice'
+import coinflip from './coinflip/index.stories'
 
 const load = () => {
-  ;[chooseEmoji, emojiRow, placeholder, reactButton, reactionTooltip, text, accountPayment, wrapper].forEach(
-    load => load()
-  )
+  ;[
+    chooseEmoji,
+    coinflip,
+    emojiRow,
+    placeholder,
+    reactButton,
+    reactionTooltip,
+    text,
+    accountPayment,
+    wrapper,
+  ].forEach(load => load())
   Sb.storiesOf('Chat', module)
     .addDecorator(story => (
       <Box2 direction="vertical" style={{maxWidth: 600}}>

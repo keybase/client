@@ -2666,3 +2666,7 @@ func (d FastTeamData) ID() TeamID {
 func (d FastTeamData) IsPublic() bool {
 	return d.Chain.Public
 }
+
+func (f FullName) String() string {
+	return string(f)
+}
