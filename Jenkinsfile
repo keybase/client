@@ -85,6 +85,11 @@ helpers.rootLinuxNode(env, {
     def hasJSChanges = helpers.hasChanges('shared', env)
     println "Has go changes: " + hasGoChanges
     println "Has JS changes: " + hasJSChanges
+    if (hasGoChanges) {
+        dir("go") {
+          sh "make gen-deps"
+        }
+    }
 
     stage("Test") {
       helpers.withKbweb() {
@@ -101,9 +106,6 @@ helpers.rootLinuxNode(env, {
                 sh "make"
               }
               checkDiffs(['./go/', './protocol/'], 'Please run \\"make\\" inside the client/protocol directory.')
-              dir("go") {
-                sh "make gen-deps"
-              }
             }
             parallel (
               test_linux: {
