@@ -908,6 +908,8 @@ func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, curre
 	switch msg.GetMessageType() {
 	case chat1.MessageType_TEXT:
 		return senderPrefix + msg.Valid().MessageBody.Text().Body, decoration
+	case chat1.MessageType_FLIP:
+		return senderPrefix + msg.Valid().MessageBody.Flip().Text, decoration
 	case chat1.MessageType_ATTACHMENT:
 		obj := msg.Valid().MessageBody.Attachment().Object
 		title := obj.Title
