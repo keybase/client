@@ -126,6 +126,7 @@ protocol user {
   record InterestingPerson {
     UID uid;
     string username;
+    string fullname;
   }
   array<InterestingPerson> interestingPeople(int maxUsers);
 

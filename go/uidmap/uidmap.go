@@ -66,7 +66,7 @@ func (u *UIDMap) Clear() {
 	u.fullNameCache.Purge()
 }
 
-func (u *UIDMap) findUsernamePackageLocally(ctx context.Context, g libkb.UIDMapperContext, uid keybase1.UID, fullNameFreshness time.Duration, forceNetworkForFullNames bool) (ret *libkb.UsernamePackage, stats mapStatus) {
+func (u *UIDMap) findUsernamePackageLocally(ctx context.Context, g libkb.UIDMapperContext, uid keybase1.UID, fullNameFreshness time.Duration) (ret *libkb.UsernamePackage, stats mapStatus) {
 	nun, usernameStatus := u.findUsernameLocally(ctx, g, uid)
 	if usernameStatus == notFound {
 		return nil, notFound
@@ -372,7 +372,7 @@ func (u *UIDMap) MapUIDsToUsernamePackages(ctx context.Context, g libkb.UIDMappe
 
 	var uidsToLookup []keybase1.UID
 	for i, uid := range uids {
-		up, status := u.findUsernamePackageLocally(ctx, g, uid, fullNameFreshness, forceNetworkForFullNames)
+		up, status := u.findUsernamePackageLocally(ctx, g, uid, fullNameFreshness)
 		// If we successfully looked up some of the user, set the return slot here.
 		if up != nil {
 			res[i] = *up
@@ -479,6 +479,29 @@ func (u *UIDMap) ClearUIDAtEldestSeqno(ctx context.Context, g libkb.UIDMapperCon
 	return nil
 }
 
+func (u *UIDMap) MapUIDsToUsernamePackagesOffline(ctx context.Context, g libkb.UIDMapperContext,
+	uids []keybase1.UID, fullNameFreshness time.Duration) (res []libkb.UsernamePackage, err error) {
+	// Like MapUIDsToUsernamePackages, but never makes any network calls,
+	// returns only cached values. UIDs that were not cached at all result in
+	// default UsernamePackage, caller has to check if the result is present
+	// using `res[i].NormalizedUsername.IsNil()`.
+	defer libkb.CTrace(ctx, g.GetLog(), fmt.Sprintf("MapUIDsToUsernamePackagesOffline(%s)", uidsToStringForLog(uids)), func() error { return err })()
+
+	u.Lock()
+	defer u.Unlock()
+
+	res = make([]libkb.UsernamePackage, len(uids), len(uids))
+	for i, uid := range uids {
+		up, _ := u.findUsernamePackageLocally(ctx, g, uid, fullNameFreshness)
+		// If we successfully looked up some of the user, set the return slot here.
+		if up != nil {
+			res[i] = *up
+		}
+	}
+
+	return res, nil
+}
+
 func MapUIDsReturnMap(ctx context.Context, u libkb.UIDMapper, g libkb.UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration, networkTimeBudget time.Duration, forceNetworkForFullNames bool) (res map[keybase1.UID]libkb.UsernamePackage, err error) {
 	var uidList []keybase1.UID
 	uidSet := map[keybase1.UID]bool{}
@@ -525,6 +548,12 @@ func (o *OfflineUIDMap) ClearUIDAtEldestSeqno(ctx context.Context, g libkb.UIDMa
 
 func (o *OfflineUIDMap) InformOfEldestSeqno(ctx context.Context, g libkb.UIDMapperContext, uv keybase1.UserVersion) (bool, error) {
 	return true, nil
+}
+
+func (o *OfflineUIDMap) MapUIDsToUsernamePackagesOffline(ctx context.Context, g libkb.UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration) (res []libkb.UsernamePackage, err error) {
+	// Offline uid map offline call always succeeds but returns nothing.
+	res = make([]libkb.UsernamePackage, len(uids), len(uids))
+	return res, nil
 }
 
 var _ libkb.UIDMapper = (*OfflineUIDMap)(nil)

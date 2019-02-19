@@ -2282,7 +2282,7 @@ export type InstallStatus =
   | 2 // NOT_INSTALLED_2
   | 4 // INSTALLED_4
 
-export type InterestingPerson = $ReadOnly<{uid: UID, username: String}>
+export type InterestingPerson = $ReadOnly<{uid: UID, username: String, fullname: String}>
 export type KBFSArchivedParam = {KBFSArchivedType: 0, revision: ?KBFSRevision} | {KBFSArchivedType: 1, time: ?Time} | {KBFSArchivedType: 2, timeString: ?String} | {KBFSArchivedType: 3, relTimeString: ?String}
 export type KBFSArchivedPath = $ReadOnly<{path: String, archivedParam: KBFSArchivedParam}>
 export type KBFSArchivedType =
