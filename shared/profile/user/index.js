@@ -203,9 +203,11 @@ class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
           ])}
         />
         <BioLayout {...this.props} />
-        <Teams username={this.props.username} />
-        <Proofs {...this.props} />
-        <Folders profileUsername={this.props.username} />
+        <Kb.Box2 direction="vertical" fullWidth={true} style={styles.proofsArea}>
+          <Teams username={this.props.username} />
+          <Proofs {...this.props} />
+          <Folders profileUsername={this.props.username} />
+        </Kb.Box2>
       </Kb.Box2>
     ) : (
       <Kb.Box2 key="bioTeam" direction="horizontal" fullWidth={true} style={styles.bioAndProofs}>
@@ -359,7 +361,7 @@ const styles = Styles.styleSheetCreate({
   bio: Styles.platformStyles({
     common: {alignSelf: 'flex-start'},
     isElectron: {marginBottom: Styles.globalMargins.small, width: 350},
-    isMobile: {width: '100%'},
+    isMobile: {marginBottom: Styles.globalMargins.medium, width: '100%'},
   }),
   bioAndProofs: Styles.platformStyles({
     common: {
@@ -442,6 +444,12 @@ const styles = Styles.styleSheetCreate({
       width: 350,
     },
     isMobile: {width: '100%'},
+  }),
+  proofsArea: Styles.platformStyles({
+    isMobile: {
+      paddingLeft: Styles.globalMargins.medium,
+      paddingRight: Styles.globalMargins.medium,
+    },
   }),
   search: Styles.platformStyles({
     common: {

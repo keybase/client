@@ -217,12 +217,14 @@ func (o UserSummary2Set) DeepCopy() UserSummary2Set {
 type InterestingPerson struct {
 	Uid      UID    `codec:"uid" json:"uid"`
 	Username string `codec:"username" json:"username"`
+	Fullname string `codec:"fullname" json:"fullname"`
 }
 
 func (o InterestingPerson) DeepCopy() InterestingPerson {
 	return InterestingPerson{
 		Uid:      o.Uid.DeepCopy(),
 		Username: o.Username,
+		Fullname: o.Fullname,
 	}
 }
 

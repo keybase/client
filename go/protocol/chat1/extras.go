@@ -171,6 +171,14 @@ func VisibleChatMessageTypes() []MessageType {
 	return visibleMessageTypes
 }
 
+var editableMessageTypesByEdit = []MessageType{
+	MessageType_TEXT,
+}
+
+func EditableMessageTypesByEdit() []MessageType {
+	return editableMessageTypesByEdit
+}
+
 func IsEphemeralSupersederType(typ MessageType) bool {
 	switch typ {
 	case MessageType_EDIT,
@@ -1247,8 +1255,12 @@ func (c Conversation) MaxVisibleMsgID() MessageID {
 }
 
 func (c Conversation) IsUnread() bool {
+	return c.IsUnreadFromMsgID(c.ReaderInfo.ReadMsgid)
+}
+
+func (c Conversation) IsUnreadFromMsgID(readMsgID MessageID) bool {
 	maxMsgID := c.MaxVisibleMsgID()
-	return maxMsgID > 0 && maxMsgID > c.ReaderInfo.ReadMsgid
+	return maxMsgID > 0 && maxMsgID > readMsgID
 }
 
 func (c Conversation) HasMemberStatus(status ConversationMemberStatus) bool {

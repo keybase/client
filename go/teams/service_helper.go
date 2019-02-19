@@ -139,7 +139,7 @@ func userVersionsToDetails(ctx context.Context, g *libkb.GlobalContext, uvs []ke
 		uids[i] = uv.Uid
 	}
 	packages, err := g.UIDMapper.MapUIDsToUsernamePackages(ctx, g, uids,
-		defaultFullnameFreshness, defaultNetworkTimeBudget, true)
+		defaultFullnameFreshness, defaultNetworkTimeBudget, true /* forceNetworkForFullNames */)
 	if err != nil {
 		return nil, err
 	}

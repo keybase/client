@@ -185,6 +185,8 @@ protocol chatUi {
     array<UIMessageUnfurlInfo> unfurls;
     boolean isCollapsed;
     union { null, string } flipGameID;
+    boolean isDeleteable;
+    boolean isEditable;
   }
 
   record UIMessageOutbox {

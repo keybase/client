@@ -1048,8 +1048,7 @@ func (s *Storage) FetchUnreadlineID(ctx context.Context, convID chat1.Conversati
 	}
 
 	// Run seek looking for each message
-	unreadlineID := readMsgID + 1
-	for {
+	for unreadlineID := readMsgID + 1; unreadlineID < readMsgID+1000; unreadlineID++ {
 		msg, err := s.getMessage(ctx, convID, uid, unreadlineID)
 		if err != nil {
 			return nil, s.maybeNukeLocked(ctx, false, err, convID, uid)
@@ -1061,12 +1060,6 @@ func (s *Storage) FetchUnreadlineID(ctx context.Context, convID chat1.Conversati
 		// return the first non-deleted visible message we have
 		if msg.IsValidFull() && utils.IsVisibleChatMessageType(msg.GetMessageType()) {
 			return &unreadlineID, nil
-		}
-
-		unreadlineID++
-		// just get out of here
-		if unreadlineID-readMsgID > 1000 {
-			break
 		}
 	}
 

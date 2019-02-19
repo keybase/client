@@ -522,6 +522,12 @@ func (t TestUIDMapper) SetTestingNoCachingMode(enabled bool) {
 
 }
 
+func (t TestUIDMapper) MapUIDsToUsernamePackagesOffline(ctx context.Context, g UIDMapperContext, uids []keybase1.UID, fullNameFreshness time.Duration) ([]UsernamePackage, error) {
+	// Just call MapUIDsToUsernamePackages. TestUIDMapper does not respect
+	// freshness, network budget, nor forceNetwork arguments.
+	return t.MapUIDsToUsernamePackages(ctx, g, uids, fullNameFreshness, 0, true)
+}
+
 func NewMetaContextForTest(tc TestContext) MetaContext {
 	return NewMetaContextBackground(tc.G).WithLogTag("TST")
 }

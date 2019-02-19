@@ -876,6 +876,12 @@ type UIDMapper interface {
 	// of busting. Will return true if the cached value was up-to-date, and false
 	// otherwise.
 	InformOfEldestSeqno(context.Context, UIDMapperContext, keybase1.UserVersion) (bool, error)
+
+	// MapUIDsToUsernamePackagesOffline maps given set of UIDs to username packages
+	// from the cache only. No network calls will be made. Results might contains
+	// unresolved usernames (caller should check with `IsNil()`).
+	MapUIDsToUsernamePackagesOffline(ctx context.Context, g UIDMapperContext,
+		uids []keybase1.UID, fullNameFreshness time.Duration) ([]UsernamePackage, error)
 }
 
 type ChatHelper interface {

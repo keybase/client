@@ -754,6 +754,14 @@
             "string"
           ],
           "name": "flipGameID"
+        },
+        {
+          "type": "boolean",
+          "name": "isDeleteable"
+        },
+        {
+          "type": "boolean",
+          "name": "isEditable"
         }
       ]
     },

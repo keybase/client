@@ -1101,6 +1101,16 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 func (s *HybridConversationSource) GetUnreadline(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, readMsgID chat1.MessageID) (unreadlineID *chat1.MessageID, err error) {
 	defer s.Trace(ctx, func() error { return err }, fmt.Sprintf("GetUnreadline: convID: %v, readMsgID: %v", convID, readMsgID))()
+
+	conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceLocalOnly)
+	if err != nil {
+		return nil, err
+	}
+	// Don't bother checking anything if we don't have any unread messages.
+	if !conv.Conv.IsUnreadFromMsgID(readMsgID) {
+		return nil, nil
+	}
+
 	unreadlineID, err = storage.New(s.G(), s).FetchUnreadlineID(ctx, convID, uid, readMsgID)
 	if err != nil {
 		return nil, err
