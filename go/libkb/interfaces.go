@@ -885,8 +885,6 @@ type UIDMapper interface {
 }
 
 type ChatHelper interface {
-	PullFull(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, reason chat1.GetThreadReason,
-		query *chat1.GetThreadQuery, maxPages *int) (chat1.ThreadView, error)
 	NewConversation(ctx context.Context, uid gregor1.UID, tlfName string,
 		topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
 		vis keybase1.TLFVisibility) (chat1.ConversationLocal, error)

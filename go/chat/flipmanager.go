@@ -605,7 +605,8 @@ func (m *FlipManager) loadGame(ctx context.Context, job loadGameJob) (err error)
 		return errors.New("no conv found")
 	}
 	flipConv := flipConvs[0]
-	tv, err := m.G().ChatHelper.PullFull(ctx, flipConv.GetConvID(), job.uid, chat1.GetThreadReason_COINFLIP, nil, nil)
+	tv, err := m.G().ConvSource.PullFull(ctx, flipConv.GetConvID(), job.uid,
+		chat1.GetThreadReason_COINFLIP, nil, nil)
 	if err != nil {
 		m.Debug(ctx, "loadGame: failed to pull thread:  %s", err)
 		return err

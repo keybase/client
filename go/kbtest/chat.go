@@ -1299,11 +1299,6 @@ func (m *MockChatHelper) NewConversation(ctx context.Context, uid gregor1.UID, t
 	return chat1.ConversationLocal{}, nil
 }
 
-func (m *MockChatHelper) PullFull(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, reason chat1.GetThreadReason,
-	query *chat1.GetThreadQuery, maxPages *int) (chat1.ThreadView, error) {
-	return chat1.ThreadView{}, nil
-}
-
 func (m *MockChatHelper) JoinConversationByID(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID) error {
 	return nil
