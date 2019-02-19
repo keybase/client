@@ -18,6 +18,7 @@ import {globalStyles} from '../../../../styles'
 import type {Props} from './index.types'
 import shallowEqual from 'shallowequal'
 import {globalMargins} from '../../../../styles/shared'
+import logger from '../../../../logger'
 
 // hot reload isn't supported with debouncing currently so just ignore hot here
 if (module.hot) {
@@ -46,26 +47,74 @@ class Thread extends React.PureComponent<Props, State> {
   // last height we saw from resize
   _scrollHeight: number = 0
 
+  _logIgnoreScroll = (name, fn) => {
+    const oldIgnore = this._ignoreScrollToBottomRefCount
+    fn()
+    logger.debug('SCROLL', name, 'ignoreScroll', oldIgnore, '->', this._ignoreScrollToBottomRefCount)
+  }
+
+  _logScrollTop = (list, name, fn) => {
+    const oldIgnore = this._ignoreScrollToBottomRefCount
+    const oldScrollTop = list.scrollTop
+    fn()
+    logger.debug(
+      'SCROLL',
+      name,
+      'ignoreScroll',
+      oldIgnore,
+      '->',
+      this._ignoreScrollToBottomRefCount,
+      ', scrollTop',
+      oldScrollTop,
+      '->',
+      list.scrollTop
+    )
+  }
+
+  _logAll = (list, name, fn) => {
+    const oldIgnore = this._ignoreScrollToBottomRefCount
+    const oldScrollTop = list.scrollTop
+    fn()
+    logger.debug(
+      'SCROLL',
+      name,
+      'ignoreScroll',
+      oldIgnore,
+      '->',
+      this._ignoreScrollToBottomRefCount,
+      ', scrollTop',
+      oldScrollTop,
+      '->',
+      list.scrollTop
+    )
+  }
+
   _scrollToBottom = () => {
     const list = this._listRef.current
     if (list) {
-      // ignore callbacks due to this change
-      this._ignoreScrollToBottomRefCount++
-      list.scrollTop = list.scrollHeight - list.clientHeight
+      this._logAll(list, '_scrollToBottom', () => {
+        // ignore callbacks due to this change
+        this._ignoreScrollToBottomRefCount++
+        list.scrollTop = list.scrollHeight - list.clientHeight
+      })
     }
   }
 
   _scrollDown = () => {
     const list = this._listRef.current
     if (list) {
-      list.scrollTop += list.clientHeight
+      this._logScrollTop(list, '_scrollDown', () => {
+        list.scrollTop += list.clientHeight
+      })
     }
   }
 
   _scrollUp = () => {
     const list = this._listRef.current
     if (list) {
-      list.scrollTop -= list.clientHeight
+      this._logScrollTop(list, '_scrollUp', () => {
+        list.scrollTop -= list.clientHeight
+      })
     }
   }
 
@@ -169,7 +218,9 @@ class Thread extends React.PureComponent<Props, State> {
   _onScroll = e => {
     this._checkForLoadMoreThrottled()
     if (this._ignoreScrollToBottomRefCount > 0) {
-      this._ignoreScrollToBottomRefCount--
+      this._logIgnoreScroll('_onScroll', () => {
+        this._ignoreScrollToBottomRefCount--
+      })
       return
     }
     this._onScrollThrottled()
@@ -309,12 +360,14 @@ class Thread extends React.PureComponent<Props, State> {
       // if the size changes adjust our scrolltop
       const list = this._listRef.current
       if (list) {
-        this._ignoreScrollToBottomRefCount++
-        if (this.state.isLockedToBottom) {
-          list.scrollTop = list.scrollTop + scroll.height - list.clientHeight
-        } else {
-          list.scrollTop = list.scrollTop + scroll.height - this._scrollHeight
-        }
+        this._logAll(list, '_onResize', () => {
+          this._ignoreScrollToBottomRefCount++
+          if (this.state.isLockedToBottom) {
+            list.scrollTop = list.scrollTop + scroll.height - list.clientHeight
+          } else {
+            list.scrollTop = list.scrollTop + scroll.height - this._scrollHeight
+          }
+        })
       }
     }
     this._scrollHeight = scroll.height
