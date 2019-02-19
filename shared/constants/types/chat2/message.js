@@ -152,7 +152,9 @@ export type _MessageAttachment = {
   hasBeenEdited: boolean,
   id: MessageID, // that of first attachment message, not second attachment-uploaded message
   inlineVideoPlayable: boolean,
+  isEditable: boolean,
   isCollapsed: boolean,
+  isDeleteable: boolean,
   ordinal: Ordinal,
   outboxID: ?OutboxID,
   previewHeight: number,
