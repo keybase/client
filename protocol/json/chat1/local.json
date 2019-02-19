@@ -104,13 +104,6 @@
             "items": "TextPayment"
           },
           "name": "payments"
-        },
-        {
-          "type": [
-            null,
-            "FlipGameID"
-          ],
-          "name": "flipGameID"
         }
       ]
     },
@@ -158,6 +151,20 @@
         {
           "type": "string",
           "name": "headline"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MessageFlip",
+      "fields": [
+        {
+          "type": "string",
+          "name": "text"
+        },
+        {
+          "type": "FlipGameID",
+          "name": "gameID"
         }
       ]
     },
@@ -651,6 +658,13 @@
             "def": false
           },
           "body": "MessageUnfurl"
+        },
+        {
+          "label": {
+            "name": "FLIP",
+            "def": false
+          },
+          "body": "MessageFlip"
         }
       ]
     },

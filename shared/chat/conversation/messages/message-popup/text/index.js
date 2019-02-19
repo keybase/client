@@ -28,6 +28,7 @@ type Props = {
   visible: boolean,
   yourMessage: boolean,
   isDeleteable: boolean,
+  isEditable: boolean,
 }
 
 const TextPopupMenu = (props: Props) => {
@@ -44,8 +45,8 @@ const TextPopupMenu = (props: Props) => {
           },
         ]
       : []),
-    ...(props.yourMessage || props.onDeleteMessageHistory ? ['Divider'] : []),
-    ...(props.onEdit
+    ...((props.yourMessage && props.isDeleteable) || props.onDeleteMessageHistory ? ['Divider'] : []),
+    ...(props.onEdit && props.isEditable
       ? [
           {
             onClick: props.onEdit,
