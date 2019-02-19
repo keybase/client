@@ -4,7 +4,7 @@ import * as React from 'react'
 import * as Sb from '../../../../stories/storybook'
 import I from 'immutable'
 import moment from 'moment'
-import {Box2, Text} from '../../../../common-adapters'
+import {Button, ButtonBar, Box2, Text} from '../../../../common-adapters'
 import * as Types from '../../../../constants/types/chat2'
 import {propProvider as ReactionsRowProvider} from '../../messages/reactions-row/index.stories'
 import {propProvider as ReactButtonProvider} from '../../messages/react-button/index.stories'
@@ -15,8 +15,6 @@ import Thread from '.'
 import * as Message from '../../../../constants/chat2/message'
 import HiddenString from '../../../../util/hidden-string'
 
-// set this to true to play with messages coming in on a timer
-const injectMessages = true && !__STORYSHOT__
 // set this to true to play with loading more working
 const enableLoadMore = true && !__STORYSHOT__
 
@@ -217,19 +215,26 @@ const provider = Sb.createPropProviderWithCommon({
 
 type Props = {}
 type State = {|
+  messageInjectionEnabled: boolean,
   messageOrdinals: I.List<Types.Ordinal>,
 |}
 class ThreadWrapper extends React.Component<Props, State> {
-  intervalID: IntervalID
+  _injectMessagesIntervalID: ?IntervalID
   timeoutID: TimeoutID
   constructor(props) {
     super(props)
     this.state = {
+      messageInjectionEnabled: false,
       messageOrdinals: messageOrdinals,
     }
+  }
 
-    if (injectMessages) {
-      this.intervalID = setInterval(() => {
+  _toggleInjectMessages = () => {
+    if (this._injectMessagesIntervalID) {
+      clearInterval(this._injectMessagesIntervalID)
+      this._injectMessagesIntervalID = null
+    } else {
+      this._injectMessagesIntervalID = setInterval(() => {
         console.log('Appending more mock items +++++')
         this.setState(p => ({
           messageOrdinals: p.messageOrdinals.push(
@@ -238,10 +243,11 @@ class ThreadWrapper extends React.Component<Props, State> {
         }))
       }, 5000)
     }
+    this.setState({messageInjectionEnabled: this._injectMessagesIntervalID !== null})
   }
 
   componentWillUnmount() {
-    clearInterval(this.intervalID)
+    this._injectMessagesIntervalID && clearInterval(this._injectMessagesIntervalID)
     clearTimeout(this.timeoutID)
   }
 
@@ -256,7 +262,22 @@ class ThreadWrapper extends React.Component<Props, State> {
     : Sb.action('onLoadMoreMessages')
 
   render() {
-    return <Thread {...props} {...this.state} loadMoreMessages={this.onLoadMoreMessages} />
+    const injectLabel = this.state.messageInjectionEnabled
+      ? 'Disable message injection'
+      : 'Enable message injection'
+    return (
+      <React.Fragment>
+        <ButtonBar direction="row" align="flex-start">
+          <Button label={injectLabel} type="Primary" onClick={this._toggleInjectMessages} />
+          <Button label="Enable load more" type="Primary" />
+        </ButtonBar>
+        <Thread
+          {...props}
+          messageOrdinals={this.state.messageOrdinals}
+          loadMoreMessages={this.onLoadMoreMessages}
+        />
+      </React.Fragment>
+    )
   }
 }
 
