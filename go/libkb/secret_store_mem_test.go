@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"sort"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestSecretStoreMem(t *testing.T) {
@@ -35,9 +37,8 @@ func TestSecretStoreMem(t *testing.T) {
 		}
 	}
 
-	if _, err := s.RetrieveSecret(m, "nobody"); err != ErrSecretForUserNotFound {
-		t.Fatalf("retrieve err: %s (%T), expected ErrSecretForUserNotFound", err, err)
-	}
+	_, err := s.RetrieveSecret(m, "nobody")
+	require.IsType(t, SecretStoreError{}, err)
 
 	users, err := s.GetUsersWithStoredSecrets(m)
 	if err != nil {
@@ -58,9 +59,8 @@ func TestSecretStoreMem(t *testing.T) {
 		t.Fatal(err)
 	}
 	secret, err := s.RetrieveSecret(m, "alice")
-	if err != ErrSecretForUserNotFound {
-		t.Fatalf("err: %v, expected %v", err, ErrSecretForUserNotFound)
-	}
+	require.IsType(t, SecretStoreError{}, err)
+
 	if !secret.IsNil() {
 		t.Errorf("secret: %+v, expected nil", secret)
 	}

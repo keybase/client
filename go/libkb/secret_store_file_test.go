@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"sort"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func newNilMetaContext() MetaContext {
@@ -52,7 +54,7 @@ func TestSecretStoreFileRetrieveSecret(t *testing.T) {
 	}{
 		"alice":     {"alice", []byte("alicealicealicealicealicealiceal"), nil},
 		"bob":       {"bob", []byte("bobbobbobbobbobbobbobbobbobbobbo"), nil},
-		"not found": {"nobody", nil, ErrSecretForUserNotFound},
+		"not found": {"nobody", nil, NewErrSecretForUserNotFound("nobody")},
 	}
 
 	ss := NewSecretStoreFile(td)
@@ -114,9 +116,7 @@ func TestSecretStoreFileClearSecret(t *testing.T) {
 	}
 
 	secret, err := ss.RetrieveSecret(m, "alice")
-	if err != ErrSecretForUserNotFound {
-		t.Fatalf("err: %v, expected %v", err, ErrSecretForUserNotFound)
-	}
+	require.IsType(t, SecretStoreError{}, err)
 	if !secret.IsNil() {
 		t.Errorf("secret: %+v, expected nil", secret)
 	}
