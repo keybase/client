@@ -70,6 +70,9 @@ func TestFlipManagerStartFlip(t *testing.T) {
 				p := chat1.NewRetentionPolicyWithEphemeral(chat1.RpEphemeral{Age: *ephemeralLifetime})
 				policy = &p
 				mustSetConvRetentionLocal(t, ctc, users[0], conv.Id, p)
+				consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+				consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
+				consumeNewMsgRemote(t, listener2, chat1.MessageType_SYSTEM)
 			}
 
 			// bool
@@ -147,9 +150,10 @@ func TestFlipManagerStartFlip(t *testing.T) {
 			consumeNewMsgRemote(t, listener1, chat1.MessageType_FLIP)
 			consumeNewMsgRemote(t, listener2, chat1.MessageType_FLIP)
 			res0 = consumeFlipToResult(t, ui0, listener0, numUsers)
+			t.Logf("res0 (shuffle): %s", res0)
 			toks := strings.Split(res0, ",")
 			for _, t := range toks {
-				delete(refMap, t)
+				delete(refMap, strings.Trim(t, " "))
 			}
 			require.Zero(t, len(refMap))
 			require.True(t, found)
