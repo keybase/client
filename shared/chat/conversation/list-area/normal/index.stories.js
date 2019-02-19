@@ -19,18 +19,31 @@ import HiddenString from '../../../../util/hidden-string'
 const injectMessages = false && !__STORYSHOT__
 // set this to true to play with loading more working
 const enableLoadMore = false && !__STORYSHOT__
-const ordinalAscending = true
 
-let index = 1
-const makeMoreOrdinals = (num = __STORYSHOT__ ? 10 : 100) => {
-  const end = index + num
-  const ordinals = []
-  for (; index < end; ++index) {
-    ordinals.push(Types.numberToOrdinal(ordinalAscending ? index : 9000 - index))
+let indexStart = 10000
+let indexEnd = 10000
+const makeMoreOrdinals = (prepend: boolean, num = __STORYSHOT__ ? 10 : 100) => {
+  if (prepend) {
+    const start = Math.max(0, indexStart - num)
+    const end = indexStart
+    const ordinals = []
+    for (let i = start; i < end; ++i) {
+      ordinals.push(Types.numberToOrdinal(i))
+    }
+    indexStart = start
+    return ordinals
+  } else {
+    const start = indexEnd
+    const end = indexEnd + num
+    const ordinals = []
+    for (let i = start; i < end; ++i) {
+      ordinals.push(Types.numberToOrdinal(i))
+    }
+    indexEnd = end
+    return ordinals
   }
-  return ordinals
 }
-const messageOrdinals = I.List(makeMoreOrdinals())
+const messageOrdinals = I.List(makeMoreOrdinals(false))
 const conversationIDKey = Types.stringToConversationIDKey('a')
 
 const props = {
@@ -219,7 +232,7 @@ class ThreadWrapper extends React.Component<Props, State> {
       this.intervalID = setInterval(() => {
         console.log('Appending more mock items +++++')
         this.setState(p => ({
-          messageOrdinals: p.messageOrdinals.push(...makeMoreOrdinals(Math.ceil(Math.random() * 5))),
+          messageOrdinals: p.messageOrdinals.push(...makeMoreOrdinals(true, Math.ceil(Math.random() * 5))),
         }))
       }, 5000)
     }
@@ -235,7 +248,7 @@ class ThreadWrapper extends React.Component<Props, State> {
         console.log('got onLoadMore, using mock delay')
         this.timeoutID = setTimeout(() => {
           console.log('++++ Prepending more mock items')
-          this.setState(p => ({messageOrdinals: p.messageOrdinals.unshift(...makeMoreOrdinals())}))
+          this.setState(p => ({messageOrdinals: p.messageOrdinals.unshift(...makeMoreOrdinals(false))}))
         }, 2000)
       }
     : Sb.action('onLoadMoreMessages')
