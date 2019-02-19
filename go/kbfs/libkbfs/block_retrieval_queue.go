@@ -584,6 +584,16 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 		} else {
 			brq.Prefetcher().CancelPrefetch(retrieval.blockPtr)
 		}
+	} else {
+		// Even if the block is not being tracked by the prefetcher,
+		// we still want to put it in the block caches.
+		err = brq.PutInCaches(
+			retrieval.ctx, retrieval.blockPtr, retrieval.kmd.TlfID(), block,
+			retrieval.cacheLifetime, NoPrefetch, retrieval.action.CacheType())
+		if err != nil {
+			brq.log.CDebugf(
+				retrieval.ctx, "Couldn't put block in cache: %+v", err)
+		}
 	}
 
 	for _, r := range retrieval.requests {
