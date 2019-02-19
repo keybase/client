@@ -11,6 +11,7 @@ import ConnectedResetBanner from '../banner/reset-banner/container'
 import Rows from '../row/rows-container'
 import DropTarget from './drop-target'
 import {asRows as sortBarAsRows} from '../sortbar/container'
+import {asRows as fileUIBannerAsRows} from '../banner/fileui-banner/container'
 
 type FolderProps = {|
   isUserReset: boolean,
@@ -18,6 +19,7 @@ type FolderProps = {|
   path: Types.Path,
   resetParticipants: Array<string>,
   routePath: I.List<string>,
+  shouldShowFileUIBanner: boolean,
 |}
 
 class Files extends React.PureComponent<FolderProps> {
@@ -27,7 +29,10 @@ class Files extends React.PureComponent<FolderProps> {
         <Rows
           path={this.props.path}
           routePath={this.props.routePath}
-          headerRows={sortBarAsRows(this.props.path)}
+          headerRows={[
+            ...fileUIBannerAsRows(this.props.path, this.props.shouldShowFileUIBanner),
+            ...sortBarAsRows(this.props.path),
+          ]}
         />
       </DropTarget>
     )

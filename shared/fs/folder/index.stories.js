@@ -29,6 +29,7 @@ export default () => {
           routePath={I.List([])}
           isUserReset={false}
           resetParticipants={['foo']}
+          shouldShowFileUIBanner={true}
         />
       </Kb.Box2>
     ))
