@@ -338,7 +338,7 @@ export const getChannelSuggestions = (state: TypedState, teamname: string) => {
   // partial list of channels that you have joined).
   const convs = state.teams.getIn(['teamNameToChannelInfos', teamname])
   if (convs) {
-    return convs.toIndexedSeq().map(conv => conv.channelname)
+    return convs.toIndexedSeq().toList().map(conv => conv.channelname)
   }
   return state.chat2.metaMap
     .filter(v => v.teamname === teamname)

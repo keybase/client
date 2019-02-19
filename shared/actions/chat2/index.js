@@ -1955,10 +1955,8 @@ function* loadChannelInfos(state, action) {
     return
   }
   if (!TeamsConstants.hasChannelInfos(state, teamname)) {
-    yield Saga.sequentially([
-      Saga.callUntyped(Saga.delay, 4000),
-      Saga.put(TeamsGen.createGetChannels({teamname})),
-    ])
+    yield Saga.callUntyped(Saga.delay, 4000)
+    yield Saga.put(TeamsGen.createGetChannels({teamname}))
   }
 }
 
