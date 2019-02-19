@@ -451,7 +451,7 @@ func (m *FlipManager) startFromText(text string) (start flip.Start, lowerBound s
 	arg := strings.Join(toks[1:], " ")
 	// Check for /flip 20
 	if start, err = m.parseMultiDie(arg); err == nil {
-		return start, "0", nil
+		return start, "1", nil
 	}
 	// Check for /flip mikem,karenm,lisam
 	if start, shuffleItems, err = m.parseShuffle(arg); err == nil {
