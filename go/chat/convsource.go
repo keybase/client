@@ -202,6 +202,27 @@ func (s *baseConversationSource) MarkAsRead(ctx context.Context, convID chat1.Co
 	return nil
 }
 
+func (s *baseConversationSource) PullFull(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, reason chat1.GetThreadReason,
+	query *chat1.GetThreadQuery, maxPages *int) (res chat1.ThreadView, err error) {
+	pagination := &chat1.Pagination{
+		Num: 300,
+	}
+	if maxPages == nil {
+		defaultMaxPages := 10000
+		maxPages = &defaultMaxPages
+	}
+	for i := 0; !pagination.Last && i < *maxPages; i++ {
+		thread, err := s.G().ConvSource.Pull(ctx, convID, uid, reason, query, pagination)
+		if err != nil {
+			return res, err
+		}
+		res.Messages = append(res.Messages, thread.Messages...)
+		pagination.Next = thread.Pagination.Next
+		pagination.Last = thread.Pagination.Last
+	}
+	return res, nil
+}
+
 type RemoteConversationSource struct {
 	globals.Contextified
 	*baseConversationSource
