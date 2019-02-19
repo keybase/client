@@ -15,9 +15,6 @@ import Thread from '.'
 import * as Message from '../../../../constants/chat2/message'
 import HiddenString from '../../../../util/hidden-string'
 
-// set this to true to play with loading more working
-const enableLoadMore = true && !__STORYSHOT__
-
 let indexStart = 10000
 let indexEnd = 10000
 const makeMoreOrdinals = (direction: 'append' | 'prepend', num = __STORYSHOT__ ? 10 : 100) => {
@@ -213,17 +210,21 @@ const provider = Sb.createPropProviderWithCommon({
   },
 })
 
+const loadMore = Sb.action('onLoadMoreMessages')
+
 type Props = {}
 type State = {|
+  loadMoreEnabled: boolean,
   messageInjectionEnabled: boolean,
   messageOrdinals: I.List<Types.Ordinal>,
 |}
 class ThreadWrapper extends React.Component<Props, State> {
   _injectMessagesIntervalID: ?IntervalID
-  timeoutID: TimeoutID
+  _loadMoreTimeoutID: ?TimeoutID
   constructor(props) {
     super(props)
     this.state = {
+      loadMoreEnabled: false,
       messageInjectionEnabled: false,
       messageOrdinals: messageOrdinals,
     }
@@ -246,30 +247,37 @@ class ThreadWrapper extends React.Component<Props, State> {
     this.setState({messageInjectionEnabled: this._injectMessagesIntervalID !== null})
   }
 
-  componentWillUnmount() {
-    this._injectMessagesIntervalID && clearInterval(this._injectMessagesIntervalID)
-    clearTimeout(this.timeoutID)
+  _toggleLoadMore = () => {
+    this.setState(state => ({loadMoreEnabled: !state.loadMoreEnabled}))
   }
 
-  onLoadMoreMessages = enableLoadMore
-    ? () => {
-        console.log('got onLoadMore, using mock delay')
-        this.timeoutID = setTimeout(() => {
-          console.log('++++ Prepending more mock items')
-          this.setState(p => ({messageOrdinals: p.messageOrdinals.unshift(...makeMoreOrdinals('prepend'))}))
-        }, 2000)
-      }
-    : Sb.action('onLoadMoreMessages')
+  componentWillUnmount() {
+    this._injectMessagesIntervalID && clearInterval(this._injectMessagesIntervalID)
+    this._loadMoreTimeoutID && clearTimeout(this._loadMoreTimeoutID)
+  }
+
+  onLoadMoreMessages = () => {
+    if (this.state.loadMoreEnabled) {
+      console.log('got onLoadMore, using mock delay')
+      this._loadMoreTimeoutID = setTimeout(() => {
+        console.log('++++ Prepending more mock items')
+        this.setState(p => ({messageOrdinals: p.messageOrdinals.unshift(...makeMoreOrdinals('prepend'))}))
+      }, 2000)
+    } else {
+      loadMore()
+    }
+  }
 
   render() {
     const injectLabel = this.state.messageInjectionEnabled
       ? 'Disable message injection'
       : 'Enable message injection'
+    const loadMoreLabel = this.state.loadMoreEnabled ? 'Disable load more' : 'Enable load more'
     return (
       <React.Fragment>
         <ButtonBar direction="row" align="flex-start">
           <Button label={injectLabel} type="Primary" onClick={this._toggleInjectMessages} />
-          <Button label="Enable load more" type="Primary" />
+          <Button label={loadMoreLabel} type="Primary" onClick={this._toggleLoadMore} />
         </ButtonBar>
         <Thread
           {...props}
