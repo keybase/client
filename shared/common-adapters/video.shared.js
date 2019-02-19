@@ -37,7 +37,9 @@ export const getVideoSize = (state: State): Size => {
 const allowedHosts = ['127.0.0.1', 'localhost']
 
 const urlIsOK = url =>
-  !url.includes('"') && (__STORYBOOK__ || __STORYSHOT__ || allowedHosts.includes(new URL(url).host))
+  // This should be as limited as possible, to avoid injections.
+  /^[a-zA-Z0-9=.%:?/&]*$/.test(url) &&
+  (__STORYBOOK__ || __STORYSHOT__ || allowedHosts.includes(new URL(url).hostname))
 
 type CheckURLProps = {
   url: string,

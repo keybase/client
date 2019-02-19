@@ -119,8 +119,8 @@ const getHTML = url => `
   </head>
   <body>
     <video id="video" autoplay preload="metadata" src="${
-      // Double quote around ${url} is necessary as encodeURIComponent encodes
-      // double quote but not single quote.
+      // url is already escaped, and sanity-checked by urlIsOK from
+      // video.shared.js.
       url
     }" controls playsinline muted/>
     <script>
