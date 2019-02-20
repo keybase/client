@@ -660,7 +660,7 @@ func (d *Dealer) handleMessage(ctx context.Context, msg *GameMessageWrapped) err
 	if err != nil {
 		return err
 	}
-	if !msg.Forward && msg.isForwardable() {
+	if !(msg.Forward && msg.isForwardable()) {
 		return nil
 	}
 	// Encode and send the message through the external server-routed chat channel
