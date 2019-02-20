@@ -438,6 +438,16 @@ func (m *FlipManager) parseRange(arg string) (start flip.Start, lowerBound strin
 	return flip.NewStartWithBigInt(m.clock.Now(), diff), lb.String(), nil
 }
 
+func (m *FlipManager) parseSpecials(arg string) (start flip.Start, lowerBound string, shuffleItems []string, err error) {
+	switch {
+	case arg == "cards":
+		start, shuffleItems, err = m.parseShuffle("2♠️,3♠️,4♠️,5♠️,6♠️,7♠️,8♠️,9♠️,10♠️,J♠️,Q♠️,K♠️,A♠️,2♣️,3♣️,4♣️,5♣️,6♣️,7♣️,8♣️,9♣️,10♣️,J♣️,Q♣️,K♣️,A♣️,2♦️,3♦️,4♦️,5♦️,6♦️,7♦️,8♦️,9♦️,10♦️,J♦️,Q♦️,K♦️,A♦️,2♥️,3♥️,4♥️,5♥️,6♥️,7♥️,8♥️,9♥️,10♥️,J♥️,Q♥️,K♥️,A♥️")
+		return start, "", shuffleItems, err
+	default:
+		return start, lowerBound, shuffleItems, errFailedToParse
+	}
+}
+
 func (m *FlipManager) startFromText(text string) (start flip.Start, lowerBound string, shuffleItems []string) {
 	var err error
 	toks := strings.Split(strings.TrimRight(text, " "), " ")
@@ -446,6 +456,10 @@ func (m *FlipManager) startFromText(text string) (start flip.Start, lowerBound s
 	}
 	// Combine into one argument if there is more than one
 	arg := strings.Join(toks[1:], " ")
+	// Check for special flips
+	if start, lowerBound, shuffleItems, err = m.parseSpecials(arg); err == nil {
+		return start, lowerBound, shuffleItems
+	}
 	// Check for /flip 20
 	if start, err = m.parseMultiDie(arg); err == nil {
 		return start, "1", nil
