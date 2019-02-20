@@ -974,8 +974,7 @@ const updateAirdropState = () =>
   )
 
 const airdropBannerKey = 'hideAirdropBanner'
-const hideAirdropBanner = () => () =>
-  GregorGen.createUpdateCategory({body: 'true', category: airdropBannerKey})
+const hideAirdropBanner = () => GregorGen.createUpdateCategory({body: 'true', category: airdropBannerKey})
 const gregorPushState = (_, action) =>
   WalletsGen.createUpdateAirdropBannerState({
     show: !action.payload.state.find(i => i.item.category === airdropBannerKey && !!i.item.body.length),
