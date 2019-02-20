@@ -20,14 +20,11 @@ func newNilMetaContext() MetaContext {
 
 func testSSDir(t *testing.T) (string, func()) {
 	td, err := ioutil.TempDir("", "ss")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	create := func(name, secret string) {
-		if err := ioutil.WriteFile(filepath.Join(td, name+".ss"), []byte(secret), PermFile); err != nil {
-			t.Fatal(err)
-		}
+		err := ioutil.WriteFile(filepath.Join(td, name+".ss"), []byte(secret), PermFile)
+		require.NoError(t, err)
 	}
 
 	// create some ss files
@@ -60,14 +57,10 @@ func TestSecretStoreFileRetrieveSecret(t *testing.T) {
 	ss := NewSecretStoreFile(td)
 	m := newNilMetaContext()
 
-	for name, test := range cases {
+	for _, test := range cases {
 		secret, err := ss.RetrieveSecret(m, test.username)
-		if err != test.err {
-			t.Fatalf("%s: err: %v, expected %v", name, err, test.err)
-		}
-		if !bytes.Equal(secret.Bytes(), test.secret) {
-			t.Errorf("%s: secret: %x, expected %x", name, secret.Bytes(), test.secret)
-		}
+		require.Equal(t, test.err, err)
+		require.True(t, bytes.Equal(secret.Bytes(), test.secret))
 	}
 }
 
@@ -86,21 +79,15 @@ func TestSecretStoreFileStoreSecret(t *testing.T) {
 	ss := NewSecretStoreFile(td)
 	m := newNilMetaContext()
 
-	for name, test := range cases {
+	for _, test := range cases {
 		fs, err := newLKSecFullSecretFromBytes(test.secret)
-		if err != nil {
-			t.Fatalf("failed to make new full secret: %s", err)
-		}
-		if err := ss.StoreSecret(m, test.username, fs); err != nil {
-			t.Fatalf("%s: %s", name, err)
-		}
+		require.NoError(t, err)
+		err = ss.StoreSecret(m, test.username, fs)
+		require.NoError(t, err)
+
 		secret, err := ss.RetrieveSecret(m, test.username)
-		if err != nil {
-			t.Fatalf("%s: %s", name, err)
-		}
-		if !bytes.Equal(secret.Bytes(), test.secret) {
-			t.Errorf("%s: secret: %x, expected %x", name, secret, test.secret)
-		}
+		require.NoError(t, err)
+		require.True(t, bytes.Equal(secret.Bytes(), test.secret))
 	}
 }
 
@@ -111,15 +98,12 @@ func TestSecretStoreFileClearSecret(t *testing.T) {
 	ss := NewSecretStoreFile(td)
 	m := newNilMetaContext()
 
-	if err := ss.ClearSecret(m, "alice"); err != nil {
-		t.Fatal(err)
-	}
+	err := ss.ClearSecret(m, "alice")
+	require.NoError(t, err)
 
 	secret, err := ss.RetrieveSecret(m, "alice")
 	require.IsType(t, SecretStoreError{}, err)
-	if !secret.IsNil() {
-		t.Errorf("secret: %+v, expected nil", secret)
-	}
+	require.True(t, secret.IsNil())
 }
 
 func TestSecretStoreFileGetUsersWithStoredSecrets(t *testing.T) {
@@ -130,85 +114,49 @@ func TestSecretStoreFileGetUsersWithStoredSecrets(t *testing.T) {
 	m := newNilMetaContext()
 
 	users, err := ss.GetUsersWithStoredSecrets(m)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(users) != 2 {
-		t.Fatalf("num users: %d, expected 2", len(users))
-	}
+	require.NoError(t, err)
+	require.Len(t, users, 2)
 	sort.Strings(users)
-	if users[0] != "alice" {
-		t.Errorf("user 0: %s, expected alice", users[0])
-	}
-	if users[1] != "bob" {
-		t.Errorf("user 1: %s, expected bob", users[1])
-	}
+	require.Equal(t, users[0], "alice")
+	require.Equal(t, users[1], "bob")
 
 	fs, err := newLKSecFullSecretFromBytes([]byte("xavierxavierxavierxavierxavierxa"))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
-	if err := ss.StoreSecret(m, "xavier", fs); err != nil {
-		t.Fatal(err)
-	}
+	err = ss.StoreSecret(m, "xavier", fs)
+	require.NoError(t, err)
 
 	users, err = ss.GetUsersWithStoredSecrets(m)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(users) != 3 {
-		t.Fatalf("num users: %d, expected 3", len(users))
-	}
-	sort.Strings(users)
-	if users[0] != "alice" {
-		t.Errorf("user 0: %s, expected alice", users[0])
-	}
-	if users[1] != "bob" {
-		t.Errorf("user 1: %s, expected bob", users[1])
-	}
-	if users[2] != "xavier" {
-		t.Errorf("user 2: %s, expected xavier", users[2])
-	}
+	require.NoError(t, err)
+	require.Len(t, users, 3)
 
-	if err := ss.ClearSecret(m, "bob"); err != nil {
-		t.Fatal(err)
-	}
+	sort.Strings(users)
+	require.Equal(t, users[0], "alice")
+	require.Equal(t, users[1], "bob")
+	require.Equal(t, users[2], "xavier")
+
+	err = ss.ClearSecret(m, "bob")
+	require.NoError(t, err)
 
 	users, err = ss.GetUsersWithStoredSecrets(m)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(users) != 2 {
-		t.Fatalf("num users: %d, expected 2", len(users))
-	}
+	require.NoError(t, err)
+	require.Len(t, users, 2)
+
 	sort.Strings(users)
-	if users[0] != "alice" {
-		t.Errorf("user 0: %s, expected alice", users[0])
-	}
-	if users[1] != "xavier" {
-		t.Errorf("user 1: %s, expected xavier", users[1])
-	}
+	require.Equal(t, users[0], "alice")
+	require.Equal(t, users[1], "xavier")
 }
 
 func assertExists(t *testing.T, path string) {
 	exists, err := FileExists(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !exists {
-		t.Errorf("expected %s to exist", path)
-	}
+	require.NoError(t, err)
+	require.True(t, exists)
 }
 
 func assertNotExists(t *testing.T, path string) {
 	exists, err := FileExists(path)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if exists {
-		t.Errorf("expected %s to not exist", path)
-	}
+	require.NoError(t, err)
+	require.False(t, exists)
 }
 
 func TestSecretStoreFileRetrieveUpgrade(t *testing.T) {
@@ -227,21 +175,15 @@ func TestSecretStoreFileRetrieveUpgrade(t *testing.T) {
 
 	// retrieve secret for alice should upgrade from alice.ss to alice.ss2
 	secret, err := ss.RetrieveSecret(m, "alice")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	assertNotExists(t, filepath.Join(td, "alice.ss"))
 	assertExists(t, filepath.Join(td, "alice.ss2"))
 	assertExists(t, filepath.Join(td, "alice.ns2"))
 
 	secretUpgraded, err := ss.RetrieveSecret(m, "alice")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !bytes.Equal(secret.Bytes(), secretUpgraded.Bytes()) {
-		t.Errorf("alice secret changed after upgrade")
-	}
+	require.NoError(t, err)
+	require.True(t, bytes.Equal(secret.Bytes(), secretUpgraded.Bytes()))
 
 	// bob v1 should be untouched
 	assertExists(t, filepath.Join(td, "bob.ss"))
@@ -254,34 +196,25 @@ func TestSecretStoreFileNoise(t *testing.T) {
 	defer tdClean()
 
 	secret, err := RandBytes(32)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
+
 	lksec, err := newLKSecFullSecretFromBytes(secret)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
+
 	ss := NewSecretStoreFile(td)
 	m := newNilMetaContext()
 	ss.StoreSecret(m, "ogden", lksec)
 	noise, err := ioutil.ReadFile(filepath.Join(td, "ogden.ns2"))
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
 	// flip one bit
 	noise[0] ^= 0x01
 
-	if err := ioutil.WriteFile(filepath.Join(td, "ogden.ns2"), noise, PermFile); err != nil {
-		t.Fatal(err)
-	}
+	err = ioutil.WriteFile(filepath.Join(td, "ogden.ns2"), noise, PermFile)
+	require.NoError(t, err)
 
 	corrupt, err := ss.RetrieveSecret(m, "ogden")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
 
-	if bytes.Equal(lksec.Bytes(), corrupt.Bytes()) {
-		t.Fatal("corrupted noise file did not change the secret")
-	}
+	require.False(t, bytes.Equal(lksec.Bytes(), corrupt.Bytes()))
 }
