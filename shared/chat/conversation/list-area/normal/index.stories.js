@@ -30,7 +30,7 @@ const makeMoreOrdinals = (
     for (let i = start; i < end; ++i) {
       newOrdinals.push(Types.numberToOrdinal(i))
     }
-    return ordinals.push(...newOrdinals)
+    return ordinals.unshift(...newOrdinals)
   } else {
     const start = oldEnd
     const end = oldEnd + num
@@ -38,7 +38,7 @@ const makeMoreOrdinals = (
     for (let i = start; i < end; ++i) {
       newOrdinals.push(Types.numberToOrdinal(i))
     }
-    return ordinals.unshift(...newOrdinals)
+    return ordinals.push(...newOrdinals)
   }
 }
 
