@@ -178,7 +178,7 @@ class Thread extends React.PureComponent<Props, State> {
       // maintain scroll to bottom?
       this._scrollToBottom('componentDidUpdate-maintain-scroll')
     } else if (this.props.messageOrdinals.size !== prevProps.messageOrdinals.size) {
-      // someone else sent something? then ignore next resize resize
+      // someone else sent something? then ignore next resize
       this._scrollHeight = 0
     }
 
