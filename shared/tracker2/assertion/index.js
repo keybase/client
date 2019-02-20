@@ -34,10 +34,8 @@ const stateToIcon = state => {
       return 'iconfont-proof-pending'
     case 'valid':
       return 'iconfont-proof-good'
-    case 'error':
-      return 'iconfont-proof-broken'
+    case 'error': // fallthrough
     case 'warning':
-      return 'iconfont-proof-broken'
     case 'revoked':
       return 'iconfont-proof-broken'
     case 'suggestion':
