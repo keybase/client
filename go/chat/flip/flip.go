@@ -59,9 +59,14 @@ type Dealer struct {
 	previousGames map[GameIDKey]bool
 }
 
+// ReplayHelper contains hooks needed to replay a flip.
+type ReplayHelper interface {
+	CLogf(ctx context.Context, fmt string, args ...interface{})
+}
+
 // DealersHelper is an interface that calling chat clients need to implement.
 type DealersHelper interface {
-	CLogf(ctx context.Context, fmt string, args ...interface{})
+	ReplayHelper
 	Clock() clockwork.Clock
 	ServerTime(context.Context) (time.Time, error)
 	SendChat(ctx context.Context, ch chat1.ConversationID, gameID chat1.FlipGameID, msg GameMessageEncoded) error
