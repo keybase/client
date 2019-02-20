@@ -189,7 +189,10 @@ func getHandleFromFolderName(
 	return GetHandleFromFolderNameAndType(ctx, kbpki, idGetter, tlfName, t)
 }
 
-func isWriterFromHandle(
+// IsWriterFromHandle checks whether the given UID is a writer for the
+// given handle.  It understands team-keyed handles as well as
+// classically-keyed handles.
+func IsWriterFromHandle(
 	ctx context.Context, h *TlfHandle, checker kbfsmd.TeamMembershipChecker,
 	uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey) (
 	bool, error) {

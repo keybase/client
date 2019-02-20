@@ -6,9 +6,9 @@ import (
 	"net"
 	"sync"
 
-	kbgitkbfs "github.com/keybase/client/go/protocol/kbgitkbfs1"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
+	kbgitkbfs "github.com/keybase/client/go/protocol/kbgitkbfs1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/systemd"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
