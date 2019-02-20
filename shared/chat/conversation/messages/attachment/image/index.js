@@ -80,6 +80,7 @@ class ImageAttachment extends React.PureComponent<Props, State> {
               boxStyle={styles.collapseBox}
               style={styles.collapse}
               onClick={this.props.onCollapse}
+              sizeType="Tiny"
               type={this.props.isCollapsed ? 'iconfont-caret-right' : 'iconfont-caret-down'}
             />
           </Kb.Box2>

@@ -3,7 +3,15 @@ import * as React from 'react'
 import * as Styles from '../styles'
 import ClickableBox from './clickable-box'
 import {Box2} from './box'
+import BoxGrow from './box-grow'
 import Divider from './divider'
+
+const Kb = {
+  Box2,
+  BoxGrow,
+  ClickableBox,
+  Divider,
+}
 
 // List item following stylesheet specs. TODO deprecate list-item.*.js
 
@@ -25,7 +33,7 @@ const HoverBox = Styles.isMobile
     })
 
 const ListItem = (props: Props) => (
-  <ClickableBox
+  <Kb.ClickableBox
     onClick={props.onClick}
     style={props.type === 'Small' ? styles.clickableBoxSmall : styles.clickableBoxLarge}
   >
@@ -34,33 +42,35 @@ const ListItem = (props: Props) => (
       style={props.type === 'Small' ? styles.rowSmall : styles.rowLarge}
       fullWidth={true}
     >
-      <Box2
+      <Kb.Box2
         direction="vertical"
         style={props.type === 'Small' ? styles.iconSmall : styles.iconLarge}
         centerChildren={true}
       >
         {props.icon}
-      </Box2>
-      <Box2
+      </Kb.Box2>
+      <Kb.Box2
         direction="horizontal"
         style={props.type === 'Small' ? styles.contentContainerSmall : styles.contentContainerLarge}
       >
         {!props.firstItem && <Divider style={styles.divider} />}
-        <Box2
-          direction="horizontal"
-          style={props.type === 'Small' ? styles.bodySmallContainer : styles.bodyLargeContainer}
-        >
-          {props.body}
-        </Box2>
-        <Box2
+        <Kb.BoxGrow>
+          <Kb.Box2
+            direction="horizontal"
+            style={props.type === 'Small' ? styles.bodySmallContainer : styles.bodyLargeContainer}
+          >
+            {props.body}
+          </Kb.Box2>
+        </Kb.BoxGrow>
+        <Kb.Box2
           direction="horizontal"
           style={props.type === 'Small' ? styles.actionSmallContainer : styles.actionLargeContainer}
         >
           {props.action}
-        </Box2>
-      </Box2>
+        </Kb.Box2>
+      </Kb.Box2>
     </HoverBox>
-  </ClickableBox>
+  </Kb.ClickableBox>
 )
 
 const smallHeight = Styles.isMobile ? 48 : 40
@@ -88,14 +98,18 @@ const styles = Styles.styleSheetCreate({
   bodyLargeContainer: {
     alignItems: 'center',
     flexGrow: 1,
+    flexShrink: 1,
     justifyContent: 'flex-start',
+    maxWidth: '100%',
     minHeight: largeHeight,
     position: 'relative',
   },
   bodySmallContainer: {
     alignItems: 'center',
     flexGrow: 1,
+    flexShrink: 1,
     justifyContent: 'flex-start',
+    maxWidth: '100%',
     minHeight: smallHeight,
     position: 'relative',
   },

@@ -153,6 +153,30 @@ func TestBlockRetrievalWorkerBasic(t *testing.T) {
 	require.Equal(t, block1, block)
 }
 
+func TestBlockRetrievalWorkerBasicSoloCached(t *testing.T) {
+	t.Log("Test the worker fetching and caching a solo block.")
+	bg := newFakeBlockGetter(false)
+	q := newBlockRetrievalQueue(
+		0, 1, 0, newTestBlockRetrievalConfig(t, bg, nil))
+	require.NotNil(t, q)
+	defer q.Shutdown()
+
+	ptr1 := makeRandomBlockPointer(t)
+	block1 := makeFakeFileBlock(t, false)
+	_, continueCh1 := bg.setBlockToReturn(ptr1, block1)
+
+	block := &FileBlock{}
+	ch := q.Request(
+		context.Background(), 1, makeKMD(), ptr1, block, TransientEntry,
+		BlockRequestSolo)
+	continueCh1 <- nil
+	err := <-ch
+	require.NoError(t, err)
+
+	_, err = q.config.BlockCache().Get(ptr1)
+	require.NoError(t, err)
+}
+
 func TestBlockRetrievalWorkerMultipleWorkers(t *testing.T) {
 	t.Log("Test the ability of multiple workers to retrieve concurrently.")
 	bg := newFakeBlockGetter(false)

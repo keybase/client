@@ -23,7 +23,7 @@ import * as Tabs from '../../constants/tabs'
 import * as UsersGen from '../users-gen'
 import * as WaitingGen from '../waiting-gen'
 import chatTeamBuildingSaga from './team-building'
-import {hasCanPerform, retentionPolicyToServiceRetentionPolicy, teamRoleByEnum} from '../../constants/teams'
+import * as TeamsConstants from '../../constants/teams'
 import logger from '../../logger'
 import engine from '../../engine'
 import {isMobile} from '../../constants/platform'
@@ -674,7 +674,7 @@ const onChatSetConvSettings = (_, action) => {
     conv.convSettings &&
     conv.convSettings.minWriterRoleInfo &&
     conv.convSettings.minWriterRoleInfo.role
-  const role = newRole && teamRoleByEnum[newRole]
+  const role = newRole && TeamsConstants.teamRoleByEnum[newRole]
   logger.info(`ChatHandler: got new minWriterRole ${role || ''} for convID ${conversationIDKey}`)
   if (role && role !== 'none') {
     return Chat2Gen.createSaveMinWriterRole({conversationIDKey, role})
@@ -1941,8 +1941,22 @@ const loadCanUserPerform = (state, action) => {
   if (!teamname) {
     return
   }
-  if (!hasCanPerform(state, teamname)) {
+  if (!TeamsConstants.hasCanPerform(state, teamname)) {
     return TeamsGen.createGetTeamOperations({teamname})
+  }
+}
+
+// Get the full channel names/descs for a team if we don't already have them.
+function* loadChannelInfos(state, action) {
+  const {conversationIDKey} = action.payload
+  const meta = Constants.getMeta(state, conversationIDKey)
+  const teamname = meta.teamname
+  if (!teamname) {
+    return
+  }
+  if (!TeamsConstants.hasChannelInfos(state, teamname)) {
+    yield Saga.callUntyped(Saga.delay, 4000)
+    yield Saga.put(TeamsGen.createGetChannels({teamname}))
   }
 }
 
@@ -2125,7 +2139,7 @@ const setConvRetentionPolicy = (_, action) => {
   const convID = Types.keyToConversationID(conversationIDKey)
   let servicePolicy: ?RPCChatTypes.RetentionPolicy
   try {
-    servicePolicy = retentionPolicyToServiceRetentionPolicy(policy)
+    servicePolicy = TeamsConstants.retentionPolicyToServiceRetentionPolicy(policy)
     if (servicePolicy) {
       return RPCChatTypes.localSetConvRetentionLocalRpcPromise({
         convID,
@@ -2920,6 +2934,11 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<Chat2Gen.PrepareFulfillRequestFormPayload>(
     Chat2Gen.prepareFulfillRequestForm,
     prepareFulfillRequestForm
+  )
+
+  yield* Saga.chainGenerator<Chat2Gen.SelectConversationPayload>(
+    Chat2Gen.selectConversation,
+    loadChannelInfos
   )
 
   yield* Saga.chainAction<EngineGen.Chat1NotifyChatChatPromptUnfurlPayload>(

@@ -113,7 +113,7 @@ func (t *RedditServiceType) PostInstructions(un string) *libkb.Markup {
 }
 
 func (t *RedditServiceType) FormatProofText(mctx libkb.MetaContext, ppr *libkb.PostProofRes,
-	kbUsername string, sigID keybase1.SigID) (res string, err error) {
+	kbUsername, remoteUsername string, sigID keybase1.SigID) (res string, err error) {
 	var title string
 	if title, err = ppr.Metadata.AtKey("title").GetString(); err != nil {
 		return

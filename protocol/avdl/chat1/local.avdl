@@ -30,7 +30,6 @@ protocol local {
   record MessageText {
     string body;
     array<TextPayment> payments;
-    union { null, FlipGameID } flipGameID; // for flip messages
   }
 
   record MessageConversationMetadata {
@@ -48,6 +47,11 @@ protocol local {
 
   record MessageHeadline {
     string headline;
+  }
+
+  record MessageFlip {
+    string text;
+    FlipGameID gameID;
   }
 
   enum MessageSystemType {
@@ -181,6 +185,7 @@ protocol local {
     case SENDPAYMENT: MessageSendPayment;
     case REQUESTPAYMENT: MessageRequestPayment;
     case UNFURL: MessageUnfurl;
+    case FLIP: MessageFlip;
   }
 
   enum OutboxStateType {

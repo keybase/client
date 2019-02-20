@@ -83,7 +83,6 @@ func (n *sentMessageListener) NewChatActivity(uid keybase1.UID, activity chat1.C
 type hostMessageInfo struct {
 	ConvID       chat1.ConversationID
 	MsgID        chat1.MessageID
-	GameID       chat1.FlipGameID
 	LowerBound   string
 	ShuffleItems []string
 }
@@ -294,7 +293,7 @@ func (m *FlipManager) addResult(ctx context.Context, status *chat1.UICoinFlipSta
 		for index, r := range result.Shuffle {
 			items[index] = hmi.ShuffleItems[r]
 		}
-		status.ResultText = strings.Join(items, ",")
+		status.ResultText = strings.TrimRight(strings.Join(items, ", "), " ")
 	}
 }
 
@@ -390,18 +389,16 @@ func (m *FlipManager) gameTopicNameFromGameID(gameID chat1.FlipGameID) string {
 var errFailedToParse = errors.New("failed to parse")
 
 func (m *FlipManager) parseMultiDie(arg string) (start flip.Start, err error) {
-	if strings.Contains(arg, "-") {
-		return start, errFailedToParse
-	}
 	lb := new(big.Int)
-	if _, err := fmt.Sscan(arg, lb); err != nil {
+	val, ok := lb.SetString(arg, 10)
+	if !ok {
 		return start, errFailedToParse
 	}
 	// needs to be a positive number > 0
-	if lb.Sign() <= 0 {
+	if val.Sign() <= 0 {
 		return start, errFailedToParse
 	}
-	return flip.NewStartWithBigInt(m.clock.Now(), lb), nil
+	return flip.NewStartWithBigInt(m.clock.Now(), val), nil
 }
 
 func (m *FlipManager) parseShuffle(arg string) (start flip.Start, shuffleItems []string, err error) {
@@ -416,19 +413,19 @@ func (m *FlipManager) parseShuffle(arg string) (start flip.Start, shuffleItems [
 }
 
 func (m *FlipManager) parseRange(arg string) (start flip.Start, lowerBound string, err error) {
-	if !strings.Contains(arg, "-") {
+	if !strings.Contains(arg, "..") || strings.Contains(arg, ",") {
 		return start, lowerBound, errFailedToParse
 	}
-	toks := strings.Split(arg, "-")
+	toks := strings.Split(arg, "..")
 	if len(toks) != 2 {
 		return start, lowerBound, errFailedToParse
 	}
-	lb := new(big.Int)
-	ub := new(big.Int)
-	if _, err := fmt.Sscan(toks[0], lb); err != nil {
+	lb, ok := new(big.Int).SetString(toks[0], 10)
+	if !ok {
 		return start, lowerBound, errFailedToParse
 	}
-	if _, err := fmt.Sscan(toks[1], ub); err != nil {
+	ub, ok := new(big.Int).SetString(toks[1], 10)
+	if !ok {
 		return start, lowerBound, errFailedToParse
 	}
 	one := new(big.Int).SetInt64(1)
@@ -451,13 +448,13 @@ func (m *FlipManager) startFromText(text string) (start flip.Start, lowerBound s
 	arg := strings.Join(toks[1:], " ")
 	// Check for /flip 20
 	if start, err = m.parseMultiDie(arg); err == nil {
-		return start, "0", nil
+		return start, "1", nil
 	}
 	// Check for /flip mikem,karenm,lisam
 	if start, shuffleItems, err = m.parseShuffle(arg); err == nil {
 		return start, "", shuffleItems
 	}
-	// Check for /flip 2-8
+	// Check for /flip 2..8
 	if start, lowerBound, err = m.parseRange(arg); err == nil {
 		return start, lowerBound, nil
 	}
@@ -479,10 +476,10 @@ func (m *FlipManager) getHostMessageInfo(ctx context.Context, convID chat1.Conve
 	if !msg.IsValid() {
 		return res, errors.New("host message invalid")
 	}
-	if !msg.Valid().MessageBody.IsType(chat1.MessageType_TEXT) {
+	if !msg.Valid().MessageBody.IsType(chat1.MessageType_FLIP) {
 		return res, fmt.Errorf("invalid host message type: %v", msg.GetMessageType())
 	}
-	body := msg.Valid().MessageBody.Text().Body
+	body := msg.Valid().MessageBody.Flip().Text
 	if err := json.Unmarshal([]byte(body), &res); err != nil {
 		return res, err
 	}
@@ -512,10 +509,10 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 	listener := newSentMessageListener(m.G(), outboxID)
 	nid := m.G().NotifyRouter.AddListener(listener)
 	if _, err = m.G().ChatHelper.SendMsgByIDNonblock(ctx, hostConvID, tlfName,
-		chat1.NewMessageBodyWithText(chat1.MessageText{
-			Body:       text,
-			FlipGameID: &gameID,
-		}), chat1.MessageType_TEXT, &outboxID); err != nil {
+		chat1.NewMessageBodyWithFlip(chat1.MessageFlip{
+			Text:   text,
+			GameID: gameID,
+		}), chat1.MessageType_FLIP, &outboxID); err != nil {
 		return err
 	}
 	sendRes := <-listener.listenCh
@@ -532,19 +529,37 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 		return err
 	}
 
+	// Preserve the ephemeral lifetime from the conv/message to the game
+	// conversation.
+	if elf, err := utils.EphemeralLifetimeFromConv(ctx, m.G(), hostConv.Conv); err != nil {
+		m.Debug(ctx, "StartFlip: failed to get ephemeral lifetime from conv: %s", err)
+		return err
+	} else if elf != nil {
+		m.Debug(ctx, "StartFlip: setting ephemeral retention for conv: %v", *elf)
+		if m.ri().SetConvRetention(ctx, chat1.SetConvRetentionArg{
+			ConvID: conv.GetConvID(),
+			Policy: chat1.NewRetentionPolicyWithEphemeral(chat1.RpEphemeral{Age: *elf}),
+		}); err != nil {
+			return err
+		}
+	}
+
 	// Record metadata of the host message into the game thread as the first message
 	start, lowerBound, shuffleItems := m.startFromText(text)
 	infoBody, err := json.Marshal(hostMessageInfo{
 		ConvID:       hostConvID,
 		MsgID:        sendRes.MsgID,
-		GameID:       gameID,
 		LowerBound:   lowerBound,
 		ShuffleItems: shuffleItems,
 	})
 	if err != nil {
 		return err
 	}
-	if err := m.G().ChatHelper.SendTextByID(ctx, conv.GetConvID(), tlfName, string(infoBody)); err != nil {
+	if err := m.G().ChatHelper.SendMsgByID(ctx, conv.GetConvID(), tlfName,
+		chat1.NewMessageBodyWithFlip(chat1.MessageFlip{
+			Text:   string(infoBody),
+			GameID: gameID,
+		}), chat1.MessageType_FLIP); err != nil {
 		return err
 	}
 
@@ -569,16 +584,11 @@ func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, msg chat1.Mess
 	}
 	defer m.Trace(ctx, func() error { return nil }, "MaybeInjectFlipMessage: convID: %s", convID)()
 	body := msg.Valid().MessageBody
-	if !body.IsType(chat1.MessageType_TEXT) {
+	if !body.IsType(chat1.MessageType_FLIP) {
 		return
 	}
-	hostMsg, err := m.getHostMessageInfo(ctx, convID)
-	if err != nil {
-		m.Debug(ctx, "MaybeInjectFlipMessage: failed to get host message info: %s", err)
-		return
-	}
-	if err := m.dealer.InjectIncomingChat(ctx, sender, convID, hostMsg.GameID,
-		flip.MakeGameMessageEncoded(body.Text().Body), m.isStartMsgID(msg.GetMessageID())); err != nil {
+	if err := m.dealer.InjectIncomingChat(ctx, sender, convID, body.Flip().GameID,
+		flip.MakeGameMessageEncoded(body.Flip().Text), m.isStartMsgID(msg.GetMessageID())); err != nil {
 		m.Debug(ctx, "MaybeInjectFlipMessage: failed to inject: %s", err)
 	}
 }
@@ -605,9 +615,8 @@ func (m *FlipManager) loadGame(ctx context.Context, job loadGameJob) (err error)
 		return errors.New("no conv found")
 	}
 	flipConv := flipConvs[0]
-	// FIXME, need to potentially loop on this for big flips
-	tv, err := m.G().ConvSource.Pull(ctx, flipConv.GetConvID(), job.uid, chat1.GetThreadReason_COINFLIP, nil,
-		nil)
+	tv, err := m.G().ConvSource.PullFull(ctx, flipConv.GetConvID(), job.uid,
+		chat1.GetThreadReason_COINFLIP, nil, nil)
 	if err != nil {
 		m.Debug(ctx, "loadGame: failed to pull thread:  %s", err)
 		return err
@@ -624,7 +633,7 @@ func (m *FlipManager) loadGame(ctx context.Context, job loadGameJob) (err error)
 			continue
 		}
 		body := msg.Valid().MessageBody
-		if !body.IsType(chat1.MessageType_TEXT) {
+		if !body.IsType(chat1.MessageType_FLIP) {
 			continue
 		}
 		history = append(history, flip.GameMessageReplayed{
@@ -634,7 +643,7 @@ func (m *FlipManager) loadGame(ctx context.Context, job loadGameJob) (err error)
 					D: msg.Valid().ClientHeader.SenderDevice,
 				},
 				GameID:              job.gameID,
-				Body:                flip.MakeGameMessageEncoded(body.Text().Body),
+				Body:                flip.MakeGameMessageEncoded(body.Flip().Text),
 				FirstInConversation: m.isStartMsgID(msg.GetMessageID()),
 			},
 			Time: msg.Valid().ServerHeader.Ctime.Time(),
@@ -715,7 +724,11 @@ func (m *FlipManager) SendChat(ctx context.Context, convID chat1.ConversationID,
 	if err != nil {
 		return err
 	}
-	_, err = m.G().ChatHelper.SendTextByIDNonblock(ctx, convID, conv.Info.TlfName, msg.String(), nil)
+	_, err = m.G().ChatHelper.SendMsgByIDNonblock(ctx, convID, conv.Info.TlfName,
+		chat1.NewMessageBodyWithFlip(chat1.MessageFlip{
+			Text:   msg.String(),
+			GameID: gameID,
+		}), chat1.MessageType_FLIP, nil)
 	return err
 }
 

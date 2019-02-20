@@ -126,6 +126,7 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
     case TeamsGen.addPeopleToTeam:
     case TeamsGen.addUserToTeams:
     case TeamsGen.addToTeam:
+    case TeamsGen.reAddToTeam:
     case TeamsGen.badgeAppForTeams:
     case TeamsGen.checkRequestedAccess:
     case TeamsGen.createChannel:
