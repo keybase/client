@@ -21,9 +21,8 @@ const makeMoreOrdinals = (
   direction: 'append' | 'prepend',
   num = __STORYSHOT__ ? 10 : 100
 ): I.List<Types.Ordinal> => {
-  const oldStart = ordinals.size ? Types.ordinalToNumber(ordinals.first()) : firstOrdinal
-  const oldEnd = ordinals.size ? Types.ordinalToNumber(ordinals.last()) : firstOrdinal
   if (direction === 'prepend') {
+    const oldStart = ordinals.size ? Types.ordinalToNumber(ordinals.first()) : firstOrdinal
     const start = Math.max(0, oldStart - num)
     const end = oldStart
     const newOrdinals = []
@@ -32,6 +31,7 @@ const makeMoreOrdinals = (
     }
     return ordinals.unshift(...newOrdinals)
   } else {
+    const oldEnd = ordinals.size ? Types.ordinalToNumber(ordinals.last()) + 1 : firstOrdinal
     const start = oldEnd
     const end = oldEnd + num
     const newOrdinals = []
