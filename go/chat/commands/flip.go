@@ -3,6 +3,7 @@ package commands
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
@@ -12,6 +13,8 @@ import (
 
 type Flip struct {
 	*baseCommand
+	sync.Mutex
+	displayed bool
 }
 
 func NewFlip(g *globals.Context) *Flip {
@@ -30,9 +33,14 @@ func (s *Flip) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Conver
 }
 
 func (s *Flip) Preview(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, text string) {
+	s.Lock()
+	defer s.Unlock()
 	defer s.Trace(ctx, func() error { return nil }, "Preview")()
 	if !s.Match(ctx, text) {
-		s.getChatUI().ChatCommandMarkdown(ctx, convID, "")
+		if s.displayed {
+			s.getChatUI().ChatCommandMarkdown(ctx, convID, "")
+			s.displayed = false
+		}
 		return
 	}
 	cur := s.G().CoinFlipManager.DescribeFlipText(ctx, text)
@@ -43,6 +51,7 @@ func (s *Flip) Preview(ctx context.Context, uid gregor1.UID, convID chat1.Conver
 		usage = fmt.Sprintf(flipDesktopUsage, "```", "```", "```", "```", cur)
 	}
 	s.getChatUI().ChatCommandMarkdown(ctx, convID, usage)
+	s.displayed = true
 }
 
 const flipDesktopUsage = `Example commands: %s
