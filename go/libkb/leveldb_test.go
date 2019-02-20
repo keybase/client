@@ -97,6 +97,7 @@ func TestLevelDb(t *testing.T) {
 		{
 			name: "simple", testBody: func(t *testing.T) {
 				tc := SetupTest(t, "LevelDb-simple", 0)
+				defer tc.Cleanup()
 				db, err := createTempLevelDbForTest(&tc, &td)
 				require.NoError(t, err)
 
@@ -114,6 +115,7 @@ func TestLevelDb(t *testing.T) {
 		{
 			name: "cleaner", testBody: func(t *testing.T) {
 				tc := SetupTest(t, "LevelDb-cleaner", 0)
+				defer tc.Cleanup()
 				db, err := createTempLevelDbForTest(&tc, &td)
 				require.NoError(t, err)
 
@@ -123,23 +125,36 @@ func TestLevelDb(t *testing.T) {
 				err = db.Put(key, nil, v)
 				require.NoError(t, err)
 
+				// this key will not be deleted since it is in the permanent
+				// table.
+				require.True(t, IsPermDbKey(DBDiskLRUEntries))
+				permKey := DbKey{Key: "test-key", Typ: DBDiskLRUEntries}
+				err = db.Put(permKey, nil, v)
+				require.NoError(t, err)
+
 				// cleaner will not clean the key since it was recently used
-				db.cleaner.setForceClean(true)
-				err = db.cleaner.clean(context.TODO())
+				err = db.cleaner.clean(context.TODO(), true /* force */)
 				_, found, err := db.Get(key)
+				require.NoError(t, err)
+				require.True(t, found)
+				_, found, err = db.Get(permKey)
 				require.NoError(t, err)
 				require.True(t, found)
 
 				db.cleaner.clearCache()
-				err = db.cleaner.clean(context.TODO())
+				err = db.cleaner.clean(context.TODO(), true /* force */)
 				_, found, err = db.Get(key)
 				require.NoError(t, err)
 				require.False(t, found)
+				_, found, err = db.Get(permKey)
+				require.NoError(t, err)
+				require.True(t, found)
 			},
 		},
 		{
 			name: "concurrent", testBody: func(t *testing.T) {
 				tc := SetupTest(t, "LevelDb-concurrent", 0)
+				defer tc.Cleanup()
 				db, err := createTempLevelDbForTest(&tc, &td)
 				require.NoError(t, err)
 
@@ -172,6 +187,7 @@ func TestLevelDb(t *testing.T) {
 		{
 			name: "nuke", testBody: func(t *testing.T) {
 				tc := SetupTest(t, "LevelDb-nuke", 0)
+				defer tc.Cleanup()
 				db, err := createTempLevelDbForTest(&tc, &td)
 				require.NoError(t, err)
 
@@ -193,6 +209,7 @@ func TestLevelDb(t *testing.T) {
 		{
 			name: "use-after-close", testBody: func(t *testing.T) {
 				tc := SetupTest(t, "LevelDb-use-after-close", 0)
+				defer tc.Cleanup()
 				db, err := createTempLevelDbForTest(&tc, &td)
 				require.NoError(t, err)
 
@@ -213,6 +230,7 @@ func TestLevelDb(t *testing.T) {
 		{
 			name: "transactions", testBody: func(t *testing.T) {
 				tc := SetupTest(t, "LevelDb-transactions", 0)
+				defer tc.Cleanup()
 				db, err := createTempLevelDbForTest(&tc, &td)
 				require.NoError(t, err)
 
@@ -302,6 +320,7 @@ func TestLevelDb(t *testing.T) {
 		{
 			name: "transaction-discard", testBody: func(t *testing.T) {
 				tc := SetupTest(t, "LevelDb-transaction-discard", 0)
+				defer tc.Cleanup()
 				db, err := createTempLevelDbForTest(&tc, &td)
 				require.NoError(t, err)
 

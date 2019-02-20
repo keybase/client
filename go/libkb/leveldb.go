@@ -21,6 +21,8 @@ import (
 const (
 	levelDbTableLo = "lo"
 	levelDbTableKv = "kv"
+	// keys with this prefix are ignored by the dbcleaner
+	levelDbTablePerm = "pm"
 )
 
 type levelDBOps interface {
@@ -39,7 +41,7 @@ func levelDbPut(ops levelDBOps, cleaner *levelDbCleaner, id DbKey, aliases []DbK
 		if err := ops.Put(idb, value, nil); err != nil {
 			return err
 		}
-		cleaner.markRecentlyUsed(context.TODO(), idb)
+		cleaner.markRecentlyUsed(context.Background(), idb)
 		return nil
 	}
 
@@ -57,7 +59,7 @@ func levelDbPut(ops levelDBOps, cleaner *levelDbCleaner, id DbKey, aliases []DbK
 		return err
 	}
 	for _, key := range keys {
-		cleaner.markRecentlyUsed(context.TODO(), key)
+		cleaner.markRecentlyUsed(context.Background(), key)
 	}
 	return nil
 }
@@ -73,7 +75,7 @@ func levelDbGetWhich(ops levelDBOps, cleaner *levelDbCleaner, id DbKey, which st
 	}
 
 	if found && err == nil {
-		cleaner.markRecentlyUsed(context.TODO(), key)
+		cleaner.markRecentlyUsed(context.Background(), key)
 	}
 	return val, found, err
 }
@@ -87,10 +89,10 @@ func levelDbLookup(ops levelDBOps, cleaner *levelDbCleaner, id DbKey) (val []byt
 	if found {
 		if tab, id2, err2 := DbKeyParse(string(val)); err2 != nil {
 			err = err2
-		} else if tab != levelDbTableKv {
+		} else if tab != levelDbTableKv && tab != levelDbTablePerm {
 			err = fmt.Errorf("bad alias; expected 'kv' but got '%s'", tab)
 		} else {
-			val, found, err = levelDbGetWhich(ops, cleaner, id2, levelDbTableKv)
+			val, found, err = levelDbGetWhich(ops, cleaner, id2, tab)
 		}
 	}
 	return val, found, err
@@ -103,7 +105,7 @@ func levelDbDelete(ops levelDBOps, cleaner *levelDbCleaner, id DbKey) (err error
 		return err
 	}
 
-	cleaner.removeRecentlyUsed(context.TODO(), key)
+	cleaner.removeRecentlyUsed(context.Background(), key)
 	return nil
 }
 
@@ -254,6 +256,8 @@ func (l *LevelDb) closeLocked() error {
 		// In case we just nuked DB and reset the dbOpenerOnce, this makes sure it
 		// doesn't open the DB again.
 		l.dbOpenerOnce.Do(func() {})
+		// stop any active cleaning jobs
+		l.cleaner.Stop()
 	}
 	return err
 }
@@ -278,6 +282,13 @@ func (l *LevelDb) isCorrupt(err error) bool {
 		return true
 	}
 	return false
+}
+
+func (l *LevelDb) Clean(force bool) (err error) {
+	l.Lock()
+	defer l.Unlock()
+	defer l.G().Trace("LevelDb::Clean", func() error { return err })()
+	return l.cleaner.clean(context.Background(), force)
 }
 
 func (l *LevelDb) Nuke() (fn string, err error) {

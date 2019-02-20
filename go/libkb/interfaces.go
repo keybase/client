@@ -144,6 +144,7 @@ type LocalDb interface {
 	ForceOpen() error
 	Close() error
 	Nuke() (string, error)
+	Clean(force bool) error
 	OpenTransaction() (LocalDbTransaction, error)
 }
 
