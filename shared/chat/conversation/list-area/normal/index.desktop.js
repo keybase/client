@@ -367,7 +367,7 @@ class Thread extends React.PureComponent<Props, State> {
         this._logAll(list, '_onResize', () => {
           this._ignoreScrollToBottomRefCount++
           if (this.state.isLockedToBottom) {
-            list.scrollTop = list.scrollTop + scroll.height - list.clientHeight
+            list.scrollTop = scroll.height - list.clientHeight
           } else {
             list.scrollTop = list.scrollTop + scroll.height - this._scrollHeight
           }
