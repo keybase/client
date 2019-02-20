@@ -50,31 +50,37 @@ class Thread extends React.PureComponent<Props, State> {
   _logIgnoreScroll = (name, fn) => {
     const oldIgnore = this._ignoreScrollToBottomRefCount
     fn()
-    logger.debug('SCROLL', name, 'ignoreScroll', oldIgnore, '->', this._ignoreScrollToBottomRefCount)
+    if (this.props.debug) {
+      logger.debug('SCROLL', name, 'ignoreScroll', oldIgnore, '->', this._ignoreScrollToBottomRefCount)
+    }
   }
 
   _logScrollTop = (list, name, fn) => {
     const oldScrollTop = list.scrollTop
     fn()
-    logger.debug('SCROLL', name, 'scrollTop', oldScrollTop, '->', list.scrollTop)
+    if (this.props.debug) {
+      logger.debug('SCROLL', name, 'scrollTop', oldScrollTop, '->', list.scrollTop)
+    }
   }
 
   _logAll = (list, name, fn) => {
     const oldIgnore = this._ignoreScrollToBottomRefCount
     const oldScrollTop = list.scrollTop
     fn()
-    logger.debug(
-      'SCROLL',
-      name,
-      'ignoreScroll',
-      oldIgnore,
-      '->',
-      this._ignoreScrollToBottomRefCount,
-      'scrollTop',
-      oldScrollTop,
-      '->',
-      list.scrollTop
-    )
+    if (this.props.debug) {
+      logger.debug(
+        'SCROLL',
+        name,
+        'ignoreScroll',
+        oldIgnore,
+        '->',
+        this._ignoreScrollToBottomRefCount,
+        'scrollTop',
+        oldScrollTop,
+        '->',
+        list.scrollTop
+      )
+    }
   }
 
   _scrollToBottom = reason => {
