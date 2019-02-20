@@ -6,6 +6,7 @@ import klawSync from 'klaw-sync'
 import minimist from 'minimist'
 import os from 'os'
 import packager from 'electron-packager'
+import rebuild from 'electron-rebuild'
 import path from 'path'
 import webpack from 'webpack'
 
@@ -55,7 +56,8 @@ const packagerOpts: any = {
   electronVersion: 0,
   helperBundleId: 'keybase.ElectronHelper',
   icon: null,
-  ignore: ['.map', '/test($|/)', '/tools($|/)', '/release($|/)', '/node_modules($|/)'],
+  // We probably don't really want to do this.
+  ignore: ['/test($|/)', '/tools($|/)'],
   name: appName,
 }
 
@@ -66,16 +68,20 @@ function main() {
   copySync('Icon.png', 'build/desktop/Icon.png')
   copySync('Icon@2x.png', 'build/desktop/Icon@2x.png')
   copySyncFolder('../images', 'build/images', ['.gif', '.png'])
-  fs.removeSync(desktopPath('build/images/folders'))
   fs.removeSync(desktopPath('build/images/iconfont'))
   fs.removeSync(desktopPath('build/images/mock'))
   fs.removeSync(desktopPath('build/desktop/renderer/fonts'))
 
-  fs.writeJsonSync(desktopPath('build/package.json'), {
-    main: 'desktop/dist/node.bundle.js',
-    name: appName,
-    version: appVersion,
-  })
+  // We probably don't really want to do this.
+  fs.copySync(desktopPath('../node_modules'), desktopPath('build/node_modules'))
+  fs.removeSync(desktopPath('build/images/folders'))
+
+  // We probably don't really want to do this.
+  const pkg = require('../package.json')
+  pkg.main = 'desktop/dist/node.bundle.js'
+  pkg.name = appName
+  pkg.version = appVersion
+  fs.writeJsonSync(desktopPath('build/package.json'), pkg)
 
   const icon = argv.icon
 
@@ -104,7 +110,10 @@ function main() {
 function startPack() {
   console.log('Starting webpack build\nInjecting __VERSION__: ', appVersion)
   process.env.APP_VERSION = appVersion
-  const webpackConfig = require('./webpack.config.babel.js').default(null, {mode: 'production'})
+  const webpackConfig = require('./webpack.config.babel.js').default(null, {
+    externals: [],
+    mode: 'production',
+  })
   webpack(webpackConfig, (err, stats) => {
     if (err) {
       console.error(err)
@@ -159,6 +168,19 @@ function pack(plat, arch: string): Promise<any> {
 
   let opts = {
     ...packagerOpts,
+    afterCopy: [
+      (buildPath, electronVersion, platform, arch, callback) => {
+        console.log('Rebuilding...')
+        rebuild({
+          arch,
+          buildPath,
+          electronVersion,
+          headerURL: require('../package.json').config.electron_mirror,
+        })
+          .then(() => callback())
+          .catch(error => callback(error))
+      },
+    ],
     arch,
     out: packageOutDir,
     platform: plat,
