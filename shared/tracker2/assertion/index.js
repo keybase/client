@@ -37,7 +37,7 @@ const stateToIcon = state => {
     case 'error':
       return 'iconfont-proof-broken'
     case 'warning':
-      return 'iconfont-proof-good'
+      return 'iconfont-proof-broken'
     case 'revoked':
       return 'iconfont-proof-broken'
     case 'suggestion':
