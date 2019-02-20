@@ -187,6 +187,7 @@ func (s *Source) isAdmin() bool {
 var admins = map[string]bool{
 	"mikem":        true,
 	"max":          true,
+	"candrencil64": true,
 	"chris":        true,
 	"chrisnojima":  true,
 	"mlsteele":     true,
