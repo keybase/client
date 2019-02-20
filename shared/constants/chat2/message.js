@@ -113,6 +113,7 @@ export const serviceMessageTypeToMessageTypes = (t: RPCChatTypes.MessageType): A
     case RPCChatTypes.commonMessageType.deletehistory:
     case RPCChatTypes.commonMessageType.reaction:
     case RPCChatTypes.commonMessageType.unfurl:
+    case RPCChatTypes.commonMessageType.flip:
       return []
     default:
       // $FlowIssue need these to be opaque types
