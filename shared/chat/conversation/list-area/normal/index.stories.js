@@ -220,6 +220,7 @@ type State = {|
 class ThreadWrapper extends React.Component<Props, State> {
   _injectMessagesIntervalID: ?IntervalID
   _loadMoreTimeoutID: ?TimeoutID
+  _loadConvoTimeoutID: ?TimeoutID
   constructor(props) {
     super(props)
     this.state = {
@@ -234,7 +235,11 @@ class ThreadWrapper extends React.Component<Props, State> {
     this.setState(p => {
       const s = Types.conversationIDKeyToString(p.conversationIDKey)
       const conversationIDKey = Types.stringToConversationIDKey(s + 'a')
-      return {conversationIDKey}
+      this._loadConvoTimeoutID = setTimeout(() => {
+        console.log('++++ Reloading messages')
+        this.setState({messageOrdinals})
+      }, 2000)
+      return {conversationIDKey, messageOrdinals: I.List()}
     })
   }
 
