@@ -6,6 +6,7 @@ import {
   ClickableBox,
   Button,
   ButtonBar,
+  FloatingMenu,
   HeaderOrPopup,
   Text,
   Icon,
@@ -260,5 +261,18 @@ const styles = styleSheetCreate({
 export const RolePicker = (props: RolePickerProps) => (
   <ScrollView>{props.confirm ? <RoleConfirm {...props} /> : <RoleOptions {...props} />}</ScrollView>
 )
+
+export const DropdownRolePicker = (props: RolePickerProps & {getAttachmentRef: any}) => {
+  if (props.confirm) {
+    return (
+      <ScrollView>
+        <RoleConfirm {...props} />
+      </ScrollView>
+    )
+  }
+  const items = [{title: 'foo'}, {title: 'bar'}]
+  console.warn('getA: ', props.getAttachmentRef)
+  return <FloatingMenu items={items} attachTo={() => props.getAttachmentRef} visible={true} />
+}
 
 export default HeaderOrPopup(RolePicker)

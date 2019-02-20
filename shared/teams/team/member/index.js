@@ -10,6 +10,7 @@ import {
   Icon,
   Usernames,
   ButtonBar,
+  type OverlayParentProps,
 } from '../../../common-adapters'
 import {globalColors, globalStyles, globalMargins, isMobile} from '../../../styles'
 import {roleIconMap} from '../../role-picker/index.meta'
@@ -27,9 +28,10 @@ export type Props = {
   onEditMembership: () => void,
   onRemoveMember: () => void,
   onBack: () => void,
+  setAttachmentRef: () => void,
 }
 
-export const TeamMember = (props: Props) => {
+export const TeamMember = (props: Props & OverlayParentProps) => {
   const {user, you} = props
   return (
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1}}>
@@ -97,7 +99,14 @@ export const TeamMember = (props: Props) => {
             color={globalColors.white}
           />
         </Button>
-        {props.admin && <Button type="Secondary" label="Edit role" onClick={props.onEditMembership} />}
+        {props.admin && (
+          <Button
+            type="Secondary"
+            label="Edit role"
+            onClick={() => props.onEditMembership(props.getAttachmentRef())}
+            ref={props.setAttachmentRef}
+          />
+        )}
         {props.admin && (
           <Button
             type="Danger"

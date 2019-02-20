@@ -16,6 +16,7 @@ const routeTree = () => {
   const CreateChannel = require('../chat/create-channel/container').default
   const ReallyLeaveTeam = require('./really-leave-team/container').default
   const RolePicker = require('./role-picker/container').default
+  const DropdownRolePicker = require('./role-picker/dropdown-container').default
   const ControlledRolePicker = require('./role-picker/controlled-container').default
   const Member = require('./team/member/container').default
   const ReallyRemoveMember = require('./team/really-remove-member/container').default
@@ -53,6 +54,11 @@ const routeTree = () => {
   const controlledRolePicker = {
     children: {},
     component: ControlledRolePicker,
+    tags: makeLeafTags({layerOnTop: !isMobile}),
+  }
+  const dropdownRolePicker = {
+    children: {},
+    component: DropdownRolePicker,
     tags: makeLeafTags({layerOnTop: !isMobile}),
   }
   const reallyRemoveMember = {
@@ -102,9 +108,9 @@ const routeTree = () => {
       },
       member: {
         children: {
+          dropdownRolePicker,
           reallyLeaveTeam,
           reallyRemoveMember,
-          rolePicker,
         },
         component: Member,
       },

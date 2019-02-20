@@ -42,7 +42,7 @@ export default function() {
     minWidth: 400,
     show: false,
     webPreferences: {
-      devTools: showDevTools,
+      devTools: true,
       nodeIntegration: true,
       nodeIntegrationInWorker: false,
     },
