@@ -57,7 +57,7 @@ class AppView extends React.PureComponent<any> {
 }
 const MainNavigator = createNavigator(
   AppView,
-  StackRouter(Shim.shim(routes), {initialRouteName: 'tabs:peopleTab'}),
+  StackRouter(Shim.shim(routes), {initialRouteName: 'tabs.peopleTab'}),
   {}
 )
 

@@ -144,7 +144,7 @@ export const newRoutes = {
   member: {getScreen: () => require('./team/member/container').default},
   showJoinTeamDialog: {getScreen: () => require('./join-team/container').default},
   showNewTeamDialog: {getScreen: () => require('./new-team/container').default},
-  'tabs:teamsTab': {getScreen: () => require('./container').default},
+  'tabs.teamsTab': {getScreen: () => require('./container').default},
   team: {getScreen: () => require('./team/container').default},
 }
 

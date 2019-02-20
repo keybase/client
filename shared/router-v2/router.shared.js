@@ -48,7 +48,7 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
     }
     case RouteTreeGen.switchRouteDef: {
       // used to tell if its the login one or app one. this will all change when we deprecate the old routing
-      const routeName = action.payload.routeDef.defaultSelected === 'tabs:loginTab' ? 'loggedOut' : 'loggedIn'
+      const routeName = action.payload.routeDef.defaultSelected === 'tabs.loginTab' ? 'loggedOut' : 'loggedIn'
       const switchStack = NavigationActions.navigate({params: undefined, routeName})
 
       // You're logged out
@@ -58,7 +58,7 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
 
       // When we restore state we want the following stacks
       // [People, TheLastTabYouWereOn, MaybeAConversationIfTheLastTabYouWereOnIsChat]
-      const sa = [StackActions.push({params: undefined, routeName: 'tabs:peopleTab'})]
+      const sa = [StackActions.push({params: undefined, routeName: 'tabs.peopleTab'})]
 
       if (action.payload.path) {
         const p = action.payload.path.last
@@ -67,9 +67,9 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
 
         // a chat, we want people/inbox/chat
         if (p === 'chatConversation') {
-          sa.push(StackActions.push({params: undefined, routeName: 'tabs:chatTab'}))
+          sa.push(StackActions.push({params: undefined, routeName: 'tabs.chatTab'}))
           sa.push(StackActions.push({params: undefined, routeName: 'chatConversation'}))
-        } else if (p !== 'tabs:peopleTab') {
+        } else if (p !== 'tabs.peopleTab') {
           sa.push(StackActions.push({params: undefined, routeName: p}))
         }
       }

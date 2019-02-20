@@ -11,11 +11,11 @@ const peopleRoute = () => {
 }
 
 export const newRoutes = {
-  'tabs:peopleTab': {
+  'tabs.peopleTab': {
     getScreen: () => require('./container').default,
     upgraded: true,
   },
 }
 
-export const newModalRoutes = { }
+export const newModalRoutes = {}
 export default peopleRoute

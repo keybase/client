@@ -147,6 +147,6 @@ const SettingsSubNavigator = createNavigator(
 )
 
 export const newRoutes = {
-  'tabs:settingsTab': {getScreen: () => SettingsSubNavigator, upgraded: true},
+  'tabs.settingsTab': {getScreen: () => SettingsSubNavigator, upgraded: true},
 }
 export const newModalRoutes = {}
