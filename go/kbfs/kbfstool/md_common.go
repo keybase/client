@@ -241,7 +241,12 @@ func mdGetMergedHeadForWriter(ctx context.Context, config libkbfs.Config,
 	}
 
 	// Make sure we're a writer before doing anything else.
-	if !handle.IsWriter(session.UID) {
+	isWriter, err := libkbfs.IsWriterFromHandle(
+		ctx, handle, config.KBPKI(), session.UID, session.VerifyingKey)
+	if err != nil {
+		return libkbfs.ImmutableRootMetadata{}, err
+	}
+	if !isWriter {
 		return libkbfs.ImmutableRootMetadata{},
 			libkbfs.NewWriteAccessError(
 				handle, session.Name, handle.GetCanonicalPath())

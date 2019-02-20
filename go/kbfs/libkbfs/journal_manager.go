@@ -243,7 +243,7 @@ func (j *JournalManager) getTLFJournal(
 		// every put of a TLF, we will be able to create a journal on
 		// the first write that happens after the user becomes a
 		// writer for the TLF.
-		isWriter, err := isWriterFromHandle(
+		isWriter, err := IsWriterFromHandle(
 			ctx, h, j.config.KBPKI(), j.currentUID, j.currentVerifyingKey)
 		if err != nil {
 			j.log.CWarningf(ctx, "Couldn't find writership for %s: %+v",
