@@ -240,7 +240,7 @@ func TestFlipManagerLoadFlip(t *testing.T) {
 			ctc.as(t, users[1]).user())
 		mustPostLocalForTest(t, ctc, users[0], conv,
 			chat1.NewMessageBodyWithText(chat1.MessageText{
-				Body: "/flip",
+				Body: "/flip ",
 			}))
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_FLIP)
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_FLIP)
