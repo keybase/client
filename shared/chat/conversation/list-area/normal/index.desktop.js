@@ -364,8 +364,13 @@ class Thread extends React.PureComponent<Props, State> {
   render() {
     const items = this._makeItems()
 
+    const debug = this.props.debug ? (
+      <div>Debug info: {this.state.isLockedToBottom ? 'Locked to bottom' : 'Not locked to bottom'}</div>
+    ) : null
+
     return (
       <ErrorBoundary>
+        {debug}
         <div style={containerStyle} onClick={this._handleListClick} onCopyCapture={this._onCopyCapture}>
           <style>{realCSS}</style>
           <div

@@ -296,6 +296,7 @@ class ThreadWrapper extends React.Component<Props, State> {
         <Thread
           {...props}
           conversationIDKey={this.state.conversationIDKey}
+          debug={true}
           messageOrdinals={this.state.messageOrdinals}
           loadMoreMessages={this.onLoadMoreMessages}
         />
