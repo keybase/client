@@ -389,17 +389,14 @@ func (g *Game) handleMessage(ctx context.Context, msg *GameMessageWrapped, now t
 			CommitmentComplete: &cc,
 		}
 
-		if g.me != nil {
-
-			if !iWasIncluded {
-				g.clogf(ctx, "The leader didn't include me (%s) so not sending a reveal (%s)", g.me.me, g.md)
-			} else {
-				reveal := Reveal{
-					Secret: g.me.secret,
-					Cch:    cch,
-				}
-				g.sendOutgoingChat(ctx, NewGameMessageBodyWithReveal(reveal))
+		if iWasIncluded {
+			reveal := Reveal{
+				Secret: g.me.secret,
+				Cch:    cch,
 			}
+			g.sendOutgoingChat(ctx, NewGameMessageBodyWithReveal(reveal))
+		} else if g.me != nil {
+			g.clogf(ctx, "The leader didn't include me (%s) so not sending a reveal (%s)", g.me.me, g.md)
 		}
 
 	case MessageType_REVEAL:
