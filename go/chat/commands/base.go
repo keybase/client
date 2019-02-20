@@ -7,9 +7,14 @@ import (
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/utils"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
 )
+
+type nullChatUI struct {
+	libkb.ChatUI
+}
 
 type baseCommand struct {
 	globals.Contextified
@@ -48,6 +53,14 @@ func (b *baseCommand) commandAndMessage(text string) (cmd string, msg string, er
 		return toks[0], "", nil
 	}
 	return toks[0], strings.Join(toks[1:], " "), nil
+}
+
+func (b *baseCommand) getChatUI() libkb.ChatUI {
+	ui, err := b.G().UIRouter.GetChatUI()
+	if err != nil || ui == nil {
+		return nullChatUI{}
+	}
+	return ui
 }
 
 func (b *baseCommand) Match(ctx context.Context, text string) bool {

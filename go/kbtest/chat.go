@@ -978,6 +978,7 @@ type ChatUI struct {
 	ShowManageChannels chan string
 	GiphyResults       chan []chat1.GiphySearchResult
 	CoinFlipUpdates    chan []chat1.UICoinFlipStatus
+	CommandMarkdown    chan string
 }
 
 func NewChatUI() *ChatUI {
@@ -995,6 +996,7 @@ func NewChatUI() *ChatUI {
 		ShowManageChannels: make(chan string, 10),
 		GiphyResults:       make(chan []chat1.GiphySearchResult, 10),
 		CoinFlipUpdates:    make(chan []chat1.UICoinFlipStatus, 10),
+		CommandMarkdown:    make(chan string, 10),
 	}
 }
 
@@ -1132,6 +1134,11 @@ func (c *ChatUI) ChatGiphySearchResults(ctx context.Context, convID chat1.Conver
 
 func (c *ChatUI) ChatCoinFlipStatus(ctx context.Context, updates []chat1.UICoinFlipStatus) error {
 	c.CoinFlipUpdates <- updates
+	return nil
+}
+
+func (c *ChatUI) ChatCommandMarkdown(ctx context.Context, convID chat1.ConversationID, text string) error {
+	c.CommandMarkdown <- text
 	return nil
 }
 

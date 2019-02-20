@@ -1373,6 +1373,23 @@
         }
       ],
       "response": null
+    },
+    "chatCommandMarkdown": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "convID",
+          "type": "string"
+        },
+        {
+          "name": "text",
+          "type": "string"
+        }
+      ],
+      "response": null
     }
   },
   "namespace": "chat.1"
