@@ -12,6 +12,6 @@ const mapStateToProps = (state, ownProps: OwnProps) => ({
 export default namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
   (d, o) => ({}),
-  (s, d, o) => ({...s}),
+  (s, d, o) => s,
   'CommandMarkdown'
 )(CommandMarkdown)

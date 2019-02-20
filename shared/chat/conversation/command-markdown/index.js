@@ -36,7 +36,7 @@ const styles = Styles.styleSheetCreate({
     isMobile: {
       borderColor: Styles.globalColors.black_10,
       borderStyle: 'solid',
-      borderWidth: 1,
+      borderTopWidth: 3,
       maxHeight: 200,
     },
   }),
