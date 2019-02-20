@@ -272,6 +272,9 @@ class Thread extends React.PureComponent<Props, State> {
     const list = this._listRef.current
     // are we locked on the bottom?
     if (list) {
+      if (this.props.debug) {
+        logger.debug('SCROLL', '_onAfterScroll', 'scrollTop', list.scrollTop)
+      }
       const isLockedToBottom = list.scrollHeight - list.clientHeight - list.scrollTop < listEdgeSlop
       this.setState(p => (p.isLockedToBottom === isLockedToBottom ? null : {isLockedToBottom}))
     }
