@@ -11,7 +11,6 @@ const profileRoute = () => {
   const EditProfile = require('./edit-profile/container').default
   const EditProfile2 = require('./edit-profile2/container').default
   const EditAvatar = require('./edit-avatar/container').default
-  const EditAvatarPlaceholder = require('./edit-avatar-placeholder/container').default
   const ProveEnterUsername = require('./prove-enter-username/container').default
   const ProveWebsiteChoice = require('./prove-website-choice/container').default
   const RevokeContainer = require('./revoke/container').default
@@ -58,9 +57,6 @@ const profileRoute = () => {
       editAvatar: {
         component: EditAvatar,
         tags: makeLeafTags({layerOnTop: !isMobile}),
-      },
-      editAvatarPlaceholder: {
-        component: EditAvatarPlaceholder,
       },
       editProfile: {
         component: EditProfile,
