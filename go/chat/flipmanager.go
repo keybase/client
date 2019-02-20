@@ -308,11 +308,12 @@ func (m *FlipManager) queueDirtyGameID(gameID chat1.FlipGameID, force bool) {
 
 func (m *FlipManager) handleSummaryUpdate(ctx context.Context, gameID chat1.FlipGameID,
 	update *flip.GameSummary, convID chat1.ConversationID, force bool) {
+	defer m.queueDirtyGameID(gameID, force)
 	if update.Err != nil {
 		m.games.Add(gameID.String(), chat1.UICoinFlipStatus{
 			GameID:       gameID.String(),
 			Phase:        chat1.UICoinFlipPhase_ERROR,
-			ProgressText: fmt.Sprintf("Something went wrong: %s", update.Err),
+			ProgressText: fmt.Sprintf("Complete: %s", update.Err),
 		})
 		return
 	}
@@ -328,7 +329,6 @@ func (m *FlipManager) handleSummaryUpdate(ctx context.Context, gameID chat1.Flip
 	}
 	status.ProgressText = "Complete"
 	m.games.Add(gameID.String(), status)
-	m.queueDirtyGameID(gameID, force)
 }
 
 func (m *FlipManager) handleUpdate(ctx context.Context, update flip.GameStateUpdateMessage, force bool) (err error) {
@@ -635,6 +635,11 @@ func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, msg chat1.Mess
 func (m *FlipManager) loadGame(ctx context.Context, job loadGameJob) (err error) {
 	defer m.Trace(ctx, func() error { return err }, "loadGame: convID: %s gameID: %s",
 		job.convID, job.gameID)()
+	// Make sure we aren't current playing this game, and bail out if we are
+	if m.dealer.IsGameActive(ctx, job.convID, job.gameID) {
+		m.Debug(ctx, "loadGame: game is currently active, bailing out")
+		return nil
+	}
 	// Attempt to find the conversation for the game ID
 	conv, err := utils.GetVerifiedConv(ctx, m.G(), job.uid, job.convID,
 		types.InboxSourceDataSourceAll)
