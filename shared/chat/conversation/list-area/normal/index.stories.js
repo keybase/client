@@ -39,10 +39,8 @@ const makeMoreOrdinals = (direction: 'append' | 'prepend', num = __STORYSHOT__ ?
   }
 }
 const messageOrdinals = I.List(makeMoreOrdinals('append'))
-const conversationIDKey = Types.stringToConversationIDKey('a')
 
 const props = {
-  conversationIDKey,
   copyToClipboard: Sb.action('copyToClipboard'),
   editingOrdinal: null,
   lastLoadMoreOrdinal: null,
@@ -214,6 +212,7 @@ const loadMore = Sb.action('onLoadMoreMessages')
 
 type Props = {}
 type State = {|
+  conversationIDKey: Types.ConversationIDKey,
   loadMoreEnabled: boolean,
   messageInjectionEnabled: boolean,
   messageOrdinals: I.List<Types.Ordinal>,
@@ -224,10 +223,19 @@ class ThreadWrapper extends React.Component<Props, State> {
   constructor(props) {
     super(props)
     this.state = {
+      conversationIDKey: Types.stringToConversationIDKey('a'),
       loadMoreEnabled: false,
       messageInjectionEnabled: false,
       messageOrdinals: messageOrdinals,
     }
+  }
+
+  _changeIDKey = () => {
+    this.setState(p => {
+      const s = Types.conversationIDKeyToString(p.conversationIDKey)
+      const conversationIDKey = Types.stringToConversationIDKey(s + 'a')
+      return {conversationIDKey}
+    })
   }
 
   _toggleInjectMessages = () => {
@@ -278,9 +286,11 @@ class ThreadWrapper extends React.Component<Props, State> {
         <ButtonBar direction="row" align="flex-start">
           <Button label={injectLabel} type="Primary" onClick={this._toggleInjectMessages} />
           <Button label={loadMoreLabel} type="Primary" onClick={this._toggleLoadMore} />
+          <Button label="Change conversation ID" type="Primary" onClick={this._changeIDKey} />
         </ButtonBar>
         <Thread
           {...props}
+          conversationIDKey={this.state.conversationIDKey}
           messageOrdinals={this.state.messageOrdinals}
           loadMoreMessages={this.onLoadMoreMessages}
         />
