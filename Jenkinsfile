@@ -85,10 +85,17 @@ helpers.rootLinuxNode(env, {
     def hasJSChanges = helpers.hasChanges('shared', env)
     println "Has go changes: " + hasGoChanges
     println "Has JS changes: " + hasJSChanges
-    if (hasGoChanges) {
-        dir("go") {
-          sh "make gen-deps"
-        }
+    def dependencyFiles = [:]
+
+    if (hasGoChanges && env.CHANGE_TARGET) {
+      dir("go") {
+        sh "make gen-deps"
+        dependencyFiles = [
+          linux: sh(returnStdout: true, script: "cat .go_package_deps_linux"),
+          darwin: sh(returnStdout: true, script: "cat .go_package_deps_darwin"),
+          windows: sh(returnStdout: true, script: "cat .go_package_deps_windows"),
+        ]
+      }
     }
 
     stage("Test") {
@@ -111,23 +118,13 @@ helpers.rootLinuxNode(env, {
               test_linux: {
                 def packagesToTest = [:]
                 if (hasGoChanges) {
-                  packagesToTest = getPackagesToTest()
+                  packagesToTest = getPackagesToTest(dependencyFiles)
                 } else {
                   // Ensure that the change target branch has been fetched,
                   // since Jenkins only does a sparse checkout by default.
                   fetchChangeTarget()
                 }
                 parallel (
-                  check_deps: {
-                    // Checking deps can happen in parallel
-                    // since we won't be rebuilding anything in Go.
-                    if (hasGoChanges) {
-                      dir('go') {
-                        sh "make gen-deps"
-                        checkDiffs(['./'], 'Please run \\"make gen-deps\\" inside the client/go directory.')
-                      }
-                    }
-                  },
                   test_linux_go: { withEnv([
                     "PATH=${env.PATH}:${env.GOPATH}/bin",
                     "KEYBASE_SERVER_URI=http://${kbwebNodePrivateIP}:3000",
@@ -229,7 +226,7 @@ helpers.rootLinuxNode(env, {
                       dir("go/keybase") {
                         bat "go build"
                       }
-                      testGo("test_windows_go_", getPackagesToTest())
+                      testGo("test_windows_go_", getPackagesToTest(dependencyFiles))
                     }
                   )
                 }}
@@ -276,7 +273,7 @@ helpers.rootLinuxNode(env, {
                       dir("go/keybase") {
                         sh "go build --tags=production"
                       }
-                      testGo("test_macos_go_", getPackagesToTest())
+                      testGo("test_macos_go_", getPackagesToTest(dependencyFiles))
                     }
                   }
                 )
@@ -323,7 +320,7 @@ def fetchChangeTarget() {
   }
 }
 
-def getPackagesToTest() {
+def getPackagesToTest(dependencyFiles) {
   def packagesToTest = [:]
   dir('go') {
     if (env.CHANGE_TARGET) {
@@ -339,8 +336,7 @@ def getPackagesToTest() {
 
         // Load list of dependencies and mark all dependent packages to test.
         def goos = sh(returnStdout: true, script: "go env GOOS").trim()
-        def dependencyFile = sh(returnStdout: true, script: "cat .go_package_deps_${goos}")
-        def dependencyMap = new JsonSlurperClassic().parseText(dependencyFile)
+        def dependencyMap = new JsonSlurperClassic().parseText(dependencyFiles[goos])
         diffPackageList.each { pkg ->
           // pkg changed; we need to load it from dependencyMap to see
           // which tests should be run.
