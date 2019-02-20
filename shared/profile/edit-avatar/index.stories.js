@@ -4,8 +4,11 @@ import * as Sb from '../../stories/storybook'
 import EditAvatar from '.'
 
 const props = {
+  error: '',
   onClose: Sb.action('onClose'),
   onSave: Sb.action('onSave'),
+  submitting: false,
+  waitingKey: '',
 }
 
 const load = () => {
