@@ -223,6 +223,18 @@ func (s *baseConversationSource) PullFull(ctx context.Context, convID chat1.Conv
 	return res, nil
 }
 
+func (s *baseConversationSource) getUnreadlineRemote(ctx context.Context, convID chat1.ConversationID,
+	readMsgID chat1.MessageID) (*chat1.MessageID, error) {
+	res, err := s.ri().GetUnreadlineRemote(ctx, chat1.GetUnreadlineRemoteArg{
+		ConvID:    convID,
+		ReadMsgID: readMsgID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return res.UnreadlineID, nil
+}
+
 type RemoteConversationSource struct {
 	globals.Contextified
 	*baseConversationSource
@@ -347,14 +359,7 @@ func (s *RemoteConversationSource) GetMessagesWithRemotes(ctx context.Context,
 
 func (s *RemoteConversationSource) GetUnreadline(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, readMsgID chat1.MessageID) (*chat1.MessageID, error) {
-	res, err := s.ri().GetUnreadlineRemote(ctx, chat1.GetUnreadlineRemoteArg{
-		ConvID:    convID,
-		ReadMsgID: readMsgID,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return res.UnreadlineID, nil
+	return s.getUnreadlineRemote(ctx, convID, readMsgID)
 }
 
 func (s *RemoteConversationSource) Expunge(ctx context.Context,
@@ -1125,6 +1130,9 @@ func (s *HybridConversationSource) GetUnreadline(ctx context.Context,
 
 	conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceLocalOnly)
 	if err != nil {
+		if _, ok := err.(storage.MissError); ok {
+			return s.getUnreadlineRemote(ctx, convID, readMsgID)
+		}
 		return nil, err
 	}
 	// Don't bother checking anything if we don't have any unread messages.
@@ -1137,14 +1145,7 @@ func (s *HybridConversationSource) GetUnreadline(ctx context.Context,
 		return nil, err
 	}
 	if unreadlineID == nil {
-		res, err := s.ri().GetUnreadlineRemote(ctx, chat1.GetUnreadlineRemoteArg{
-			ConvID:    convID,
-			ReadMsgID: readMsgID,
-		})
-		if err != nil {
-			return nil, err
-		}
-		unreadlineID = res.UnreadlineID
+		return s.getUnreadlineRemote(ctx, convID, readMsgID)
 	}
 	return unreadlineID, nil
 }
