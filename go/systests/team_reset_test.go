@@ -606,6 +606,9 @@ func TestTeamReAddAfterResetAdminOwnerPukless(t *testing.T) {
 // pukful - re-add the user after they get a puk
 // adminOwner - an admin is re-adding an owner.
 func testTeamReAddAfterReset(t *testing.T, pukful, adminOwner bool) {
+	if !pukful {
+		t.Skip()
+	}
 	ctx := newSMUContext(t)
 	defer ctx.cleanup()
 
