@@ -362,16 +362,16 @@ class Thread extends React.PureComponent<Props, State> {
   _onResize = ({scroll}) => {
     if (this._scrollHeight) {
       // if the size changes adjust our scrolltop
-      const list = this._listRef.current
-      if (list) {
-        this._logAll(list, '_onResize', () => {
-          this._ignoreScrollToBottomRefCount++
-          if (this.state.isLockedToBottom) {
-            list.scrollTop = scroll.height - list.clientHeight
-          } else {
-            list.scrollTop = list.scrollTop + scroll.height - this._scrollHeight
-          }
-        })
+      if (this.state.isLockedToBottom) {
+        this._scrollToBottom('_onResize')
+      } else {
+        const list = this._listRef.current
+        if (list) {
+          this._logAll(list, '_onResize', () => {
+            this._ignoreScrollToBottomRefCount++
+            list.scrollTop += scroll.height - this._scrollHeight
+          })
+        }
       }
     }
     this._scrollHeight = scroll.height
