@@ -52,6 +52,7 @@ type Dealer struct {
 	sync.Mutex
 	dh            DealersHelper
 	games         map[GameKey](chan<- *GameMessageWrapped)
+	gameIDs       map[GameIDKey]GameMetadata
 	shutdownMu    sync.Mutex
 	shutdownCh    chan struct{}
 	chatInputCh   chan *GameMessageWrapped
@@ -78,6 +79,7 @@ func NewDealer(dh DealersHelper) *Dealer {
 	return &Dealer{
 		dh:            dh,
 		games:         make(map[GameKey](chan<- *GameMessageWrapped)),
+		gameIDs:       make(map[GameIDKey]GameMetadata),
 		chatInputCh:   make(chan *GameMessageWrapped),
 		gameUpdateCh:  make(chan GameStateUpdateMessage, 500),
 		previousGames: make(map[GameIDKey]bool),
@@ -204,4 +206,11 @@ func NewStartWithShuffle(now time.Time, n int64) Start {
 	ret := newStart(now)
 	ret.Params = NewFlipParametersWithShuffle(n)
 	return ret
+}
+
+func (d *Dealer) IsGameActive(ctx context.Context, conversationID chat1.ConversationID, gameID chat1.FlipGameID) bool {
+	d.Lock()
+	defer d.Unlock()
+	md, found := d.gameIDs[GameIDToKey(gameID)]
+	return found && md.ConversationID.Eq(conversationID)
 }

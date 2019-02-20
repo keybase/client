@@ -184,6 +184,7 @@ func (d *Dealer) run(ctx context.Context, game *Game) {
 	if ch := d.games[key]; ch != nil {
 		close(ch)
 		delete(d.games, key)
+		delete(d.gameIDs, GameIDToKey(game.md.GameID))
 	}
 	d.Unlock()
 }
@@ -399,13 +400,16 @@ func (g *Game) handleMessage(ctx context.Context, msg *GameMessageWrapped, now t
 		}
 		key := msg.Sender.ToKey()
 		ps := g.players[key]
+
 		if ps == nil {
-			return UnregisteredUserError{G: g.md, U: msg.Sender}
-		}
-		if !ps.included && g.clogf != nil {
-			g.clogf(ctx, "Skipping unincluded sender: %s", key)
+			g.clogf(ctx, "Skipping unregistered revealer %s for game %s", msg.Sender, g.md)
 			return nil
 		}
+		if !ps.included {
+			g.clogf(ctx, "Skipping unincluded revealer %s for game %s", msg.Sender, g.md)
+			return nil
+		}
+
 		reveal := msg.Msg.Body.Reveal()
 		if !g.commitmentCompleteHash.Eq(reveal.Cch) {
 			return BadCommitmentCompleteHashError{G: g.GameMetadata(), U: msg.Sender}
@@ -550,8 +554,12 @@ func (d *Dealer) handleMessageStart(ctx context.Context, msg *GameMessageWrapped
 	defer d.Unlock()
 	md := msg.GameMetadata()
 	key := md.ToKey()
+	gameIDKey := GameIDToKey(md.GameID)
 	if d.games[key] != nil {
 		return GameAlreadyStartedError{G: md}
+	}
+	if _, found := d.gameIDs[gameIDKey]; found {
+		return GameReplayError{G: md.GameID}
 	}
 	if !msg.Sender.Eq(md.Initiator) {
 		return WrongSenderError{G: md, Expected: msg.Sender, Actual: md.Initiator}
@@ -596,6 +604,7 @@ func (d *Dealer) handleMessageStart(ctx context.Context, msg *GameMessageWrapped
 		clogf:           d.dh.CLogf,
 	}
 	d.games[key] = msgCh
+	d.gameIDs[gameIDKey] = md
 	d.previousGames[GameIDToKey(md.GameID)] = true
 
 	go d.run(ctx, game)
