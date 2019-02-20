@@ -21,13 +21,11 @@ const mapStateToProps = (state, {conversationIDKey, isPending}) => {
   const isSearching = state.chat2.pendingMode === 'searchingForUsers' && isPending
   const giphyResults = state.chat2.giphyResultMap.get(conversationIDKey, [])
   const showGiphySearch = giphyResults.length > 0
-  const showCommandMarkdown = state.chat2.commandMarkdownMap.get(conversationIDKey, '') !== ''
   return {
     conversationIDKey,
     infoPanelOpen,
     isPending,
     isSearching,
-    showCommandMarkdown,
     showGiphySearch,
     showLoader,
     threadLoadedOffline: meta.offline,
@@ -75,7 +73,6 @@ const mergeProps = (stateProps, dispatchProps) => {
     onShowTracker: dispatchProps.onShowTracker,
     onToggleInfoPanel: () =>
       dispatchProps._onToggleInfoPanel(stateProps.infoPanelOpen, stateProps.conversationIDKey),
-    showCommandMarkdown: stateProps.showCommandMarkdown,
     showGiphySearch: stateProps.showGiphySearch,
     showLoader: stateProps.showLoader,
     threadLoadedOffline: stateProps.threadLoadedOffline,

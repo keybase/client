@@ -19,6 +19,9 @@ const CommandMarkdown = (props: Props) => {
 
 const styles = Styles.styleSheetCreate({
   scrollContainer: Styles.platformStyles({
+    common: {
+      backgroundColor: Styles.globalColors.lightGrey,
+    },
     isElectron: {
       ...Styles.desktopStyles.boxShadow,
       borderRadius: Styles.borderRadius,
