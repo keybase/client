@@ -223,6 +223,11 @@ class Thread extends React.PureComponent<Props, State> {
   // While scrolling we disable mouse events to speed things up. We avoid state so we don't re-render while doing this
   _onScrollThrottled = throttle(
     () => {
+      const list = this._listRef.current
+      if (list && this.props.debug) {
+        logger.debug('SCROLL', '_onScrollThrottled', 'scrollTop', list.scrollTop)
+      }
+
       if (!this._isScrolling) {
         this._isScrolling = true
         if (this._pointerWrapperRef.current) {
