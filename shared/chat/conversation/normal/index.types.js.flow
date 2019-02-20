@@ -18,5 +18,6 @@ export type Props = {
   onShowTracker: (username: string) => void,
   onToggleInfoPanel: () => void,
   threadLoadedOffline: boolean,
+  showCommandMarkdown: boolean,
   showGiphySearch: boolean,
 }

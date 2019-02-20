@@ -6,6 +6,7 @@ import HeaderArea from '../header-area/container'
 import InputArea from '../input-area/container'
 import ListArea from '../list-area/container'
 import Giphy from '../giphy/container'
+import CommandMarkdown from '../command-markdown/container'
 import logger from '../../../logger'
 import {Box, Icon, LoadingLine, Text} from '../../../common-adapters'
 import {globalStyles, globalColors, globalMargins} from '../../../styles'
@@ -128,6 +129,9 @@ class Conversation extends React.PureComponent<Props, State> {
           scrollListUpCounter={this.props.scrollListUpCounter}
           conversationIDKey={this.props.conversationIDKey}
         />
+        {this.props.showCommandMarkdown && (
+          <CommandMarkdown conversationIDKey={this.props.conversationIDKey} />
+        )}
         {this.props.showGiphySearch && <Giphy conversationIDKey={this.props.conversationIDKey} />}
         <Banner conversationIDKey={this.props.conversationIDKey} />
         <InputArea

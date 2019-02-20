@@ -1329,6 +1329,12 @@ type ChatCoinFlipStatusArg struct {
 	Statuses  []UICoinFlipStatus `codec:"statuses" json:"statuses"`
 }
 
+type ChatCommandMarkdownArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	ConvID    string `codec:"convID" json:"convID"`
+	Text      string `codec:"text" json:"text"`
+}
+
 type ChatUiInterface interface {
 	ChatAttachmentDownloadStart(context.Context, int) error
 	ChatAttachmentDownloadProgress(context.Context, ChatAttachmentDownloadProgressArg) error
@@ -1351,6 +1357,7 @@ type ChatUiInterface interface {
 	ChatGiphySearchResults(context.Context, ChatGiphySearchResultsArg) error
 	ChatShowManageChannels(context.Context, ChatShowManageChannelsArg) error
 	ChatCoinFlipStatus(context.Context, ChatCoinFlipStatusArg) error
+	ChatCommandMarkdown(context.Context, ChatCommandMarkdownArg) error
 }
 
 func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
@@ -1672,6 +1679,21 @@ func ChatUiProtocol(i ChatUiInterface) rpc.Protocol {
 					return
 				},
 			},
+			"chatCommandMarkdown": {
+				MakeArg: func() interface{} {
+					var ret [1]ChatCommandMarkdownArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]ChatCommandMarkdownArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]ChatCommandMarkdownArg)(nil), args)
+						return
+					}
+					err = i.ChatCommandMarkdown(ctx, typedArgs[0])
+					return
+				},
+			},
 		},
 	}
 }
@@ -1785,5 +1807,10 @@ func (c ChatUiClient) ChatShowManageChannels(ctx context.Context, __arg ChatShow
 
 func (c ChatUiClient) ChatCoinFlipStatus(ctx context.Context, __arg ChatCoinFlipStatusArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.chatUi.chatCoinFlipStatus", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ChatUiClient) ChatCommandMarkdown(ctx context.Context, __arg ChatCommandMarkdownArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.chatUi.chatCommandMarkdown", []interface{}{__arg}, nil)
 	return
 }

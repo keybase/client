@@ -486,6 +486,31 @@ func (m *FlipManager) getHostMessageInfo(ctx context.Context, convID chat1.Conve
 	return res, nil
 }
 
+func (m *FlipManager) DescribeFlipText(ctx context.Context, text string) string {
+	defer m.Trace(ctx, func() error { return nil }, "DescribeFlipText")()
+	start, lowerBound, shuffleItems := m.startFromText(text)
+	typ, err := start.Params.T()
+	if err != nil {
+		m.Debug(ctx, "DescribeFlipText: failed get start typ: %s", err)
+		return ""
+	}
+	switch typ {
+	case flip.FlipType_BIG:
+		if lowerBound == "1" {
+			return fmt.Sprintf("*%s-sided die roll*", new(big.Int).SetBytes(start.Params.Big()))
+		}
+		lb, _ := new(big.Int).SetString(lowerBound, 10)
+		ub := new(big.Int).Sub(new(big.Int).SetBytes(start.Params.Big()), new(big.Int).SetInt64(1))
+		return fmt.Sprintf("*Number in range %s..%s*", lowerBound,
+			new(big.Int).Add(lb, ub))
+	case flip.FlipType_BOOL:
+		return "*HEADS* or *TAILS*"
+	case flip.FlipType_SHUFFLE:
+		return fmt.Sprintf("*Shuffling %s*", strings.TrimRight(strings.Join(shuffleItems, ", "), " "))
+	}
+	return ""
+}
+
 // StartFlip implements the types.CoinFlipManager interface
 func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID,
 	tlfName, text string) (err error) {
