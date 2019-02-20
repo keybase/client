@@ -15,30 +15,32 @@ import Thread from '.'
 import * as Message from '../../../../constants/chat2/message'
 import HiddenString from '../../../../util/hidden-string'
 
-let indexStart = 10000
-let indexEnd = 10000
-const makeMoreOrdinals = (direction: 'append' | 'prepend', num = __STORYSHOT__ ? 10 : 100) => {
+const firstOrdinal = 10000
+const makeMoreOrdinals = (
+  ordinals: I.List<Types.Ordinal>,
+  direction: 'append' | 'prepend',
+  num = __STORYSHOT__ ? 10 : 100
+): I.List<Types.Ordinal> => {
+  const oldStart = ordinals.size ? Types.ordinalToNumber(ordinals.first()) : firstOrdinal
+  const oldEnd = ordinals.size ? Types.ordinalToNumber(ordinals.last()) : firstOrdinal
   if (direction === 'prepend') {
-    const start = Math.max(0, indexStart - num)
-    const end = indexStart
-    const ordinals = []
+    const start = Math.max(0, oldStart - num)
+    const end = oldStart
+    const newOrdinals = []
     for (let i = start; i < end; ++i) {
-      ordinals.push(Types.numberToOrdinal(i))
+      newOrdinals.push(Types.numberToOrdinal(i))
     }
-    indexStart = start
-    return ordinals
+    return ordinals.push(...newOrdinals)
   } else {
-    const start = indexEnd
-    const end = indexEnd + num
-    const ordinals = []
+    const start = oldEnd
+    const end = oldEnd + num
+    const newOrdinals = []
     for (let i = start; i < end; ++i) {
-      ordinals.push(Types.numberToOrdinal(i))
+      newOrdinals.push(Types.numberToOrdinal(i))
     }
-    indexEnd = end
-    return ordinals
+    return ordinals.unshift(...newOrdinals)
   }
 }
-const messageOrdinals = I.List(makeMoreOrdinals('append'))
 
 const props = {
   copyToClipboard: Sb.action('copyToClipboard'),
@@ -227,7 +229,7 @@ class ThreadWrapper extends React.Component<Props, State> {
       conversationIDKey: Types.stringToConversationIDKey('a'),
       loadMoreEnabled: false,
       messageInjectionEnabled: false,
-      messageOrdinals: messageOrdinals,
+      messageOrdinals: makeMoreOrdinals(I.List(), 'append'),
     }
   }
 
@@ -235,6 +237,7 @@ class ThreadWrapper extends React.Component<Props, State> {
     this.setState(p => {
       const s = Types.conversationIDKeyToString(p.conversationIDKey)
       const conversationIDKey = Types.stringToConversationIDKey(s + 'a')
+      const messageOrdinals = p.messageOrdinals
       this._loadConvoTimeoutID = setTimeout(() => {
         console.log('++++ Reloading messages')
         this.setState({messageOrdinals})
@@ -251,9 +254,7 @@ class ThreadWrapper extends React.Component<Props, State> {
       this._injectMessagesIntervalID = setInterval(() => {
         console.log('Appending more mock items +++++')
         this.setState(p => ({
-          messageOrdinals: p.messageOrdinals.push(
-            ...makeMoreOrdinals('append', Math.ceil(Math.random() * 5))
-          ),
+          messageOrdinals: makeMoreOrdinals(p.messageOrdinals, 'append', Math.ceil(Math.random() * 5)),
         }))
       }, 5000)
     }
@@ -274,7 +275,7 @@ class ThreadWrapper extends React.Component<Props, State> {
       console.log('got onLoadMore, using mock delay')
       this._loadMoreTimeoutID = setTimeout(() => {
         console.log('++++ Prepending more mock items')
-        this.setState(p => ({messageOrdinals: p.messageOrdinals.unshift(...makeMoreOrdinals('prepend'))}))
+        this.setState(p => ({messageOrdinals: makeMoreOrdinals(p.messageOrdinals, 'prepend')}))
       }, 2000)
     } else {
       loadMore()
