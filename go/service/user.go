@@ -629,7 +629,7 @@ func (h *UserHandler) CanLogout(ctx context.Context, sessionID int) (res keybase
 	if err != nil {
 		return keybase1.CanLogoutRes{
 			CanLogout: false,
-			Reason:    fmt.Sprintf("Cannot check user state: %s", err.Error()),
+			Reason:    fmt.Sprintf("We couldn't ensure that your account has a passphrase: %s", err.Error()),
 		}, nil
 	}
 
