@@ -54,7 +54,6 @@ const provider = Sb.createPropProviderWithCommon({
     isNew: true,
     onRequest: Sb.action('onRequestLumens'),
     onSend: Sb.action('onSendLumens'),
-    size: ownProps.size,
     style: ownProps.style,
   }),
 })

@@ -263,21 +263,11 @@ class Input extends React.Component<InputProps, InputState> {
       gap="tiny"
     >
       {Constants.isSpecialMention(username) ? (
-        <Kb.Icon
-          type="iconfont-people"
-          style={styles.paddingXTiny}
-          color={Styles.globalColors.blue}
-          fontSize={24}
-        />
+        <Kb.Icon type="iconfont-people" style={styles.peopleIcon} color={Styles.globalColors.blue} />
       ) : (
         <Kb.Avatar username={username} size={32} />
       )}
-      <Kb.ConnectedUsernames
-        type="BodySemibold"
-        colorFollowing={true}
-        usernames={[username]}
-        style={styles.boldStyle}
-      />
+      <Kb.ConnectedUsernames type="BodySemibold" colorFollowing={true} usernames={[username]} />
       <Kb.Text type="BodySmall">{fullName}</Kb.Text>
     </Kb.Box2>
   )
@@ -374,9 +364,11 @@ const styles = Styles.styleSheetCreate({
     isElectron: {height: 40},
     isMobile: {height: 48},
   }),
-  paddingXTiny: {
-    padding: Styles.globalMargins.xtiny,
-  },
+  peopleIcon: Styles.platformStyles({
+    isElectron: {padding: Styles.globalMargins.tiny},
+    isMobile: {padding: Styles.globalMargins.xtiny},
+  }),
+
   suggestionBase: {
     alignItems: 'center',
     paddingBottom: Styles.globalMargins.xtiny,

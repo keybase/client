@@ -35,7 +35,6 @@ const FolderHeader = ({path, onChat, routePath}: FolderHeaderProps) => (
               <Kb.Icon
                 type="iconfont-chat"
                 color={Styles.globalColors.black_50}
-                fontSize={16}
                 onClick={onChat}
                 style={styles.headerIcon}
               />

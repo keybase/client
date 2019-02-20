@@ -125,7 +125,7 @@ class _RetentionPicker extends React.Component<PropsWithOverlay<Props>, State> {
                   gap="tiny"
                   fullWidth={true}
                 >
-                  <Kb.Icon type="iconfont-timer" fontSize={Styles.isMobile ? 22 : 16} />
+                  <Kb.Icon type="iconfont-timer" />
                   <Kb.Text
                     type={Styles.isMobile ? 'BodyBig' : 'Body'}
                     style={Styles.isMobile ? {color: Styles.globalColors.blue} : null}
@@ -199,7 +199,7 @@ class _RetentionPicker extends React.Component<PropsWithOverlay<Props>, State> {
           <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny" fullWidth={true} style={labelStyle}>
             {this._label()}
           </Kb.Box2>
-          <Kb.Icon type="iconfont-caret-down" inheritColor={true} fontSize={7} sizeType='Tiny' />
+          <Kb.Icon type="iconfont-caret-down" inheritColor={true} fontSize={7} sizeType="Tiny" />
         </Kb.ClickableBox>
         {this.props.policyIsExploding && (
           <Kb.Box2 direction="horizontal" alignItems="center" fullWidth={true} gap="xtiny">
@@ -360,14 +360,7 @@ const policyToLabel = (p: RetentionPolicy, parent: ?RetentionPolicy) => {
       }
   }
   return [
-    timer ? (
-      <Kb.Icon
-        color={Styles.globalColors.black}
-        type="iconfont-timer"
-        fontSize={Styles.isMobile ? 22 : 16}
-        key="timer"
-      />
-    ) : null,
+    timer ? <Kb.Icon color={Styles.globalColors.black} type="iconfont-timer" key="timer" /> : null,
     <Kb.Text type="BodySemibold" key="label">
       {text}
     </Kb.Text>,

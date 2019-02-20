@@ -28,7 +28,7 @@ export class _ToastContainer extends React.Component<TProps, TState> {
   render() {
     return (
       <Toast position="top center" attachTo={this.props.getAttachmentRef} visible={this.state.showingToast}>
-        {Styles.isMobile && <Icon type="iconfont-clipboard" color="white" fontSize={22} />}
+        {Styles.isMobile && <Icon type="iconfont-clipboard" color="white" />}
         <Text type={Styles.isMobile ? 'BodySmallSemibold' : 'BodySmall'} style={styles.toastText}>
           Copied to clipboard
         </Text>
@@ -102,11 +102,7 @@ class _CopyText extends React.Component<Props, State> {
           onClick={this.copy}
           labelContainerStyle={styles.buttonLabelContainer}
         >
-          <Icon
-            type="iconfont-clipboard"
-            color={Styles.globalColors.white}
-            fontSize={Styles.isMobile ? 20 : 16}
-          />
+          <Icon type="iconfont-clipboard" color={Styles.globalColors.white} />
         </Button>
       </Box2>
     )
@@ -196,7 +192,7 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   toastText: Styles.platformStyles({
-    common: { color: Styles.globalColors.white },
+    common: {color: Styles.globalColors.white},
     isMobile: {
       paddingLeft: 10,
       paddingRight: 10,

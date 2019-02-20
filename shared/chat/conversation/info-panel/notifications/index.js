@@ -124,7 +124,6 @@ export const Notifications = (props: Props) => (
         style={{
           marginLeft: globalMargins.xtiny,
         }}
-        fontSize={isMobile ? 24 : undefined}
         color={globalColors.black_20}
       />
     </Box>

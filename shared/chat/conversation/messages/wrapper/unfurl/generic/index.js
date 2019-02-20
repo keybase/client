@@ -52,7 +52,7 @@ class UnfurlGeneric extends React.Component<Props> {
                 onClick={this.props.onClose}
                 style={styles.closeBox}
                 className="unfurl-closebox"
-                fontSize={12}
+                sizeType="Small"
               />
             )}
           </Kb.Box2>

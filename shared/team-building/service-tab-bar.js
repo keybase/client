@@ -29,7 +29,6 @@ const ServiceIconDesktop = (props: IconProps) => (
   <Kb.ClickableBox onClick={props.onClick} style={styles.clickableServiceIcon}>
     <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.serviceIconContainer}>
       <Kb.Icon
-        fontSize={18}
         type={serviceIdToIconFont(props.service)}
         style={Styles.collapseStyles([
           styles.serviceIcon,
@@ -71,7 +70,6 @@ const ServiceIconMobile = (props: IconProps) => (
         />
       ) : (
         <Kb.Icon
-          fontSize={22}
           type={serviceIdToIconFont(props.service)}
           style={Styles.collapseStyles([
             styles.serviceIcon,

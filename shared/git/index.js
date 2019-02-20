@@ -56,12 +56,7 @@ class _Git extends React.Component<Props & OverlayParentProps, {}> {
           style={_headerStyle}
           onClick={this.props.toggleShowingMenu}
         >
-          <Icon
-            type="iconfont-new"
-            style={{marginRight: globalMargins.tiny}}
-            color={globalColors.blue}
-            fontSize={isMobile ? 20 : 16}
-          />
+          <Icon type="iconfont-new" style={{marginRight: globalMargins.tiny}} color={globalColors.blue} />
           <Text type="BodyBigLink">New encrypted git repository...</Text>
         </ClickableBox>
         <ScrollView>

@@ -39,7 +39,7 @@ export default class Asset extends React.Component<Props, State> {
             <Kb.Box2 direction="horizontal" gap="tiny" style={styles.labelContainer}>
               <Kb.Icon
                 type={this.state.expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
-                sizeType='Tiny'
+                sizeType="Tiny"
                 style={Kb.iconCastPlatformStyles(styles.caret)}
               />
               <Kb.Box2 direction="vertical">
@@ -111,7 +111,7 @@ const BalanceSummary = (props: BalanceSummaryProps) => (
               multiline={true}
             >
               <Kb.Icon
-                fontSize={Styles.isMobile ? 18 : 12}
+                sizeType="Small"
                 onClick={Styles.isMobile ? props.openStellarURL : null}
                 style={styles.questionMark}
                 type="iconfont-question-mark"

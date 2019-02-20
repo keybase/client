@@ -145,7 +145,7 @@ class InflationDestinationPopup extends React.Component<Props, State> {
                     color={Styles.globalColors.blue}
                     type="iconfont-open-browser"
                     onClick={() => openUrl(o.link)}
-                    fontSize={Styles.isMobile ? 16 : 12}
+                    sizeType="Small"
                   />
                 )}
               </Kb.Box2>

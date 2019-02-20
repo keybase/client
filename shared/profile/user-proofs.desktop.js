@@ -46,7 +46,8 @@ function MissingProofRow({missingProof}: {missingProof: MissingProof}): React.No
       </Box>
       <Icon
         type={'iconfont-proof-placeholder'}
-        style={collapseStyles([styleStatusIcon, {color: globalColors.black_10, fontSize: 20}])}
+        style={collapseStyles([styleStatusIcon, {color: globalColors.black_10}])}
+        sizeType="Big"
       />
     </Box>
   )
@@ -151,7 +152,7 @@ class ProofRow extends React.PureComponent<ProofRowProps, ProofRowState> {
           {hasMenu && (
             <Icon
               type="iconfont-caret-down"
-              sizeType='Tiny'
+              sizeType="Tiny"
               style={iconStyle}
               color={(proofStatusIconType && defaultColor(proofStatusIconType)) || ''}
             />

@@ -7,7 +7,6 @@ export type WalletsIconProps = {|
   isNew: boolean,
   onSend: () => void,
   onRequest: () => void,
-  size: number,
   style?: Styles.StylesCrossPlatform,
 |}
 const WalletsIcon = (props: WalletsIconProps & Kb.OverlayParentProps) => (
@@ -16,7 +15,7 @@ const WalletsIcon = (props: WalletsIconProps & Kb.OverlayParentProps) => (
     direction="horizontal"
     style={Styles.collapseStyles([styles.container, props.style])}
   >
-    <Kb.Icon type="iconfont-dollar-sign" fontSize={props.size} onClick={props.toggleShowingMenu} />
+    <Kb.Icon type="iconfont-dollar-sign" onClick={props.toggleShowingMenu} />
     {props.isNew && <Kb.Box style={styles.newBadge} />}
     <Kb.FloatingMenu
       closeOnSelect={true}

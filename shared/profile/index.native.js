@@ -100,7 +100,6 @@ const _StellarFederatedAddress = (props: StellarFederatedAddressProps & Kb.Overl
         <Kb.Icon
           style={styles.styleService}
           color={styles.styleServiceContainer.color}
-          fontSize={styles.styleServiceContainer.fontSize}
           textAlign="center"
           type={'iconfont-identity-stellar'}
           onClick={props.toggleShowingMenu}
@@ -431,9 +430,9 @@ class Profile extends Component<Props, State> {
             <Kb.ClickableBox onClick={this.props.onSearch} style={styleSearchContainer}>
               <Kb.Icon
                 color={Styles.globalColors.white_75}
-                fontSize={20}
                 style={styleSearch}
                 type="iconfont-search"
+                sizeType="Small"
               />
               <Kb.Text style={styleSearchText} type="BodySemibold">
                 Search people
@@ -657,7 +656,6 @@ const styles = Styles.styleSheetCreate({
   },
   styleServiceContainer: {
     color: Styles.globalColors.black,
-    fontSize: 20,
   },
   userEntryAvatar: {
     marginBottom: Styles.globalMargins.xtiny,

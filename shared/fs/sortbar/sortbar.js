@@ -40,7 +40,7 @@ const getPopupItems = sortSettingToAction =>
               type={sortSettingIconType}
               style={iconCastPlatformStyles(styles.icon)}
               color={Styles.isMobile ? Styles.globalColors.blue : Styles.globalColors.black}
-              fontSize={Styles.isMobile ? 17 : 13}
+              sizeType="Small"
             />
           </Box>
           <Text type={Styles.isMobile ? 'BodyBig' : 'Body'} style={styles.text}>
@@ -62,7 +62,7 @@ const SortBar = (props: SortBarProps & OverlayParentProps) => {
           ref={props.setAttachmentRef}
         >
           <Box>
-            <Icon type={sortSettingIconType} style={iconCastPlatformStyles(styles.icon)} fontSize={11} />
+            <Icon type={sortSettingIconType} style={iconCastPlatformStyles(styles.icon)} sizeType="Small" />
           </Box>
           <Text type="BodySmallSemibold">{sortSettingText}</Text>
         </ClickableBox>
@@ -86,7 +86,7 @@ const SortBar = (props: SortBarProps & OverlayParentProps) => {
 
 const styles = Styles.styleSheetCreate({
   icon: {
-    marginRight: Styles.globalMargins.xtiny,
+    marginRight: Styles.globalMargins.tiny,
   },
   loading: {
     ...Styles.globalStyles.flexBoxRow,

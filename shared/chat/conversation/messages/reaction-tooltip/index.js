@@ -75,7 +75,6 @@ export const ReactionTooltip = (props: Props) => {
               <Kb.Icon
                 type="iconfont-reacji"
                 color={Styles.globalColors.black_50}
-                fontSize={22}
                 style={Kb.iconCastPlatformStyles(styles.addReactionButtonIcon)}
               />
               <Kb.Text type="BodySemibold" style={styles.addReactionButtonText}>

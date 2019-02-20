@@ -63,7 +63,7 @@ const makeRoleOption = (
   >
     <Icon type="iconfont-check" style={{alignSelf: 'center'}} color={globalColors.white} />
     <Box style={{...globalStyles.flexBoxColumn, paddingLeft: globalMargins.small}}>
-      <Box style={globalStyles.flexBoxRow}>
+      <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
         {!!roleIconMap[role] && (
           <Icon
             type={roleIconMap[role]}
@@ -71,7 +71,7 @@ const makeRoleOption = (
               marginRight: globalMargins.xtiny,
             }}
             color={selected === role ? globalColors.white : roleIconColorMap[role]}
-            fontSize={16}
+            sizeType="Small"
           />
         )}
         <Text style={{color: selected === role ? globalColors.white : globalColors.black}} type="BodyBig">

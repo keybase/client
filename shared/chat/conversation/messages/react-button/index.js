@@ -186,7 +186,6 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
             <Icon
               type="iconfont-reacji"
               color={Styles.globalColors.black_50}
-              fontSize={16}
               style={iconCastPlatformStyles(styles.emojiIconWrapper)}
             />
           ) : (
@@ -195,7 +194,6 @@ export class NewReactionButton extends React.Component<NewReactionButtonProps, N
                 key={iconName}
                 type={iconName}
                 color={this.state.hovering ? Styles.globalColors.black_50 : Styles.globalColors.black_50}
-                fontSize={18}
                 style={iconCastPlatformStyles(
                   Styles.collapseStyles([
                     styles.emojiIconWrapper,
@@ -270,7 +268,9 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       position: 'absolute',
     },
-    isMobile: {marginTop: 2},
+    isMobile: {
+      marginTop: 2,
+    },
   }),
   emojiWrapper: Styles.platformStyles({
     isMobile: {marginTop: -2},

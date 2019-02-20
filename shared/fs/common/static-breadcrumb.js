@@ -45,7 +45,7 @@ const StaticBreadcrumb = ({pathElements, showTlfTypeIcon, includeLast}: Props) =
             type="iconfont-arrow-right"
             style={stylesIconArrow}
             color={globalColors.black_20}
-            fontSize={12}
+            sizeType="Small"
           />,
           <CommaSeparatedName key={`name-${idx}`} type="BodySmallSemibold" name={elem} />,
         ]),

@@ -85,12 +85,7 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
     if (this.state.isEditing || this.props.filter) {
       children = (
         <Kb.Box style={styles.inputContainer}>
-          <Kb.Icon
-            type="iconfont-search"
-            style={styles.icon}
-            color={Styles.globalColors.black_50}
-            fontSize={Styles.isMobile ? 20 : 16}
-          />
+          <Kb.Icon type="iconfont-search" style={styles.icon} color={Styles.globalColors.black_50} />
           <Kb.Input
             hideUnderline={true}
             small={true}
@@ -109,12 +104,7 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
     } else {
       children = (
         <Kb.ClickableBox style={styles.filterContainer} onClick={this._startEditing}>
-          <Kb.Icon
-            type="iconfont-search"
-            style={styles.icon}
-            color={Styles.globalColors.black_50}
-            fontSize={Styles.isMobile ? 20 : 16}
-          />
+          <Kb.Icon type="iconfont-search" style={styles.icon} color={Styles.globalColors.black_50} />
           <Kb.Text type="BodySemibold" style={styles.text}>
             Jump to chat
           </Kb.Text>
@@ -163,7 +153,6 @@ class ConversationFilterInput extends React.PureComponent<Props, State> {
               type="iconfont-compose"
               style={propsIconPlatform.style}
               color={propsIconPlatform.color}
-              fontSize={propsIconPlatform.fontSize}
               onClick={this.props.onNewChat}
             />
           </Kb.WithTooltip>
@@ -209,7 +198,7 @@ const styles = Styles.styleSheetCreate({
       position: 'relative',
     },
     isElectron: {
-      top: 2,
+      top: 0,
     },
     isMobile: {
       top: 1,
@@ -236,13 +225,11 @@ const styles = Styles.styleSheetCreate({
 
 const propsIconCompose = {
   color: Styles.globalColors.blue,
-  fontSize: 16,
   style: {},
 }
 
 const propsIconComposeMobile = {
   ...propsIconCompose,
-  fontSize: 20,
   style: {
     padding: Styles.globalMargins.xtiny,
   },

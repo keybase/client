@@ -55,12 +55,7 @@ export const itemToComponent: (Types.PeopleScreenItem, Props) => React.Node = (i
 
 export const PeoplePageSearchBar = (props: Props) => (
   <Kb.ClickableBox onClick={props.onSearch} style={styles.searchContainer}>
-    <Kb.Icon
-      color={Styles.globalColors.black_50}
-      fontSize={Styles.isMobile ? 20 : 16}
-      style={styles.searchIcon}
-      type="iconfont-search"
-    />
+    <Kb.Icon color={Styles.globalColors.black_50} style={styles.searchIcon} type="iconfont-search" />
     <Kb.Text style={styles.searchText} type="BodySemibold">
       Search people
     </Kb.Text>

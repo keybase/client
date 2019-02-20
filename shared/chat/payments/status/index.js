@@ -68,7 +68,7 @@ class PaymentStatus extends React.Component<Props, State> {
         {this.props.text}{' '}
         <Kb.Icon
           type={getIcon(this.props.status)}
-          fontSize={12}
+          sizeType="Small"
           boxStyle={styles.iconBoxStyle}
           style={styles[this.props.status + 'Icon']}
         />{' '}

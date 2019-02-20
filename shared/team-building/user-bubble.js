@@ -33,7 +33,6 @@ const RemoveBubble = ({onRemove, prettyName}: {onRemove: () => void, prettyName:
       <Kb.Icon
         type={'iconfont-close'}
         color={Styles.globalColors.white}
-        fontSize={16}
         style={Kb.iconCastPlatformStyles(styles.removeIcon)}
       />
     </Kb.ClickableBox>

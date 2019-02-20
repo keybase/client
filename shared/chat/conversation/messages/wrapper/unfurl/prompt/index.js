@@ -43,7 +43,7 @@ class UnfurlPrompt extends React.PureComponent<Props> {
           </Kb.Text>
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" style={styles.closeContainer}>
-          <Kb.Icon type="iconfont-close" onClick={this.props.onNotnow} fontSize={16} />
+          <Kb.Icon type="iconfont-close" onClick={this.props.onNotnow} sizeType="Small" />
         </Kb.Box2>
       </Kb.Box2>
     )

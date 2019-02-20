@@ -102,7 +102,6 @@ const Right = ({onShowTracker}) => {
         marginLeft: globalMargins.small,
         marginRight: globalMargins.small,
       }}
-      fontSize={isMobile ? 22 : 16}
     />
   ) : null
 }

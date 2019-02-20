@@ -27,7 +27,9 @@ const Header = (props: Props) => {
   const backButton = props.onBack && <Kb.BackButton onClick={props.onBack} style={styles.backButton} />
   // Only show caret/unread badge when we have a switcher,
   // i.e. when isMobile is true.
-  const caret = Styles.isMobile && <Kb.Icon key="icon" type="iconfont-caret-down" style={styles.caret} sizeType='Tiny' />
+  const caret = Styles.isMobile && (
+    <Kb.Icon key="icon" type="iconfont-caret-down" style={styles.caret} sizeType="Tiny" />
+  )
   const unread = Styles.isMobile && props.unreadPayments && (
     <Kb.Box2 direction="vertical" style={styles.unread} />
   )
@@ -178,11 +180,7 @@ class _DropdownButton extends React.PureComponent<DropdownProps & Kb.OverlayPare
             style={styles.dropdownButton}
             disabled={this.props.disabled}
           >
-            <Kb.Icon
-              fontSize={Styles.isMobile ? 22 : 16}
-              type="iconfont-ellipsis"
-              color={Styles.globalColors.black}
-            />
+            <Kb.Icon type="iconfont-ellipsis" color={Styles.globalColors.black} />
           </Kb.Button>
         </Kb.Box2>
         <Kb.FloatingMenu

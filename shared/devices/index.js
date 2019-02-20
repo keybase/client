@@ -126,8 +126,7 @@ const RevokedHeader = ({children, onToggleExpanded, expanded}) => (
             boxStyle={revokedHeaderStyles.icon}
             type={expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
             color={Styles.globalColors.black_50}
-            sizeType='Tiny'
-            fontSize={10}
+            sizeType="Tiny"
           />
         </Kb.Text>
       </Kb.Box2>

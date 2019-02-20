@@ -20,23 +20,15 @@ type Props = {
   teamname: string,
 }
 
-const fontSize = isMobile ? 20 : 16
-
 const _CustomComponent = (props: Props & OverlayParentProps) => (
   <Box style={styles.container}>
     {isMobile && props.loading && <ProgressIndicator style={styles.progressIndicator} />}
     {props.canChat && (
-      <Icon
-        onClick={props.onChat}
-        fontSize={fontSize}
-        style={iconCastPlatformStyles(styles.icon)}
-        type="iconfont-chat"
-      />
+      <Icon onClick={props.onChat} style={iconCastPlatformStyles(styles.icon)} type="iconfont-chat" />
     )}
     {!isMobile && props.canViewFolder && (
       <Icon
         onClick={props.onOpenFolder}
-        fontSize={fontSize}
         style={iconCastPlatformStyles(styles.icon)}
         type="iconfont-folder-private"
       />
@@ -45,7 +37,6 @@ const _CustomComponent = (props: Props & OverlayParentProps) => (
       ref={props.setAttachmentRef}
       onClick={props.toggleShowingMenu}
       type="iconfont-ellipsis"
-      fontSize={fontSize}
       style={iconCastPlatformStyles(styles.icon)}
     />
     <TeamMenu
@@ -65,7 +56,6 @@ const styles = styleSheetCreate({
     right: 0,
   },
   icon: {
-    marginRight: globalMargins.tiny,
     padding: globalMargins.tiny,
   },
   progressIndicator: {

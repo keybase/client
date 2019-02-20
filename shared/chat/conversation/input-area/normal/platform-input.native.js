@@ -244,23 +244,18 @@ const Action = ({
         {smallGap}
       </>
       {showWalletsIcon && (
-        <WalletsIcon
-          size={22}
-          style={Styles.collapseStyles([styles.actionButton, styles.marginRightSmall])}
-        />
+        <WalletsIcon style={Styles.collapseStyles([styles.actionButton, styles.marginRightSmall])} />
       )}
       <Kb.Icon
         onClick={insertMentionMarker}
         type="iconfont-mention"
         style={Kb.iconCastPlatformStyles(styles.actionButton)}
-        fontSize={22}
       />
       {smallGap}
       <Kb.Icon
         onClick={openFilePicker}
         type="iconfont-camera"
         style={Kb.iconCastPlatformStyles(styles.actionButton)}
-        fontSize={22}
       />
     </Kb.Box2>
   )
@@ -272,7 +267,6 @@ const ExplodingIcon = ({explodingModeSeconds, isExploding, openExplodingPicker})
         color={isExploding ? Styles.globalColors.black : null}
         style={Kb.iconCastPlatformStyles(styles.actionButton)}
         type="iconfont-timer"
-        fontSize={22}
       />
       <ExplodingMeta explodingModeSeconds={explodingModeSeconds} />
     </Kb.Box>
