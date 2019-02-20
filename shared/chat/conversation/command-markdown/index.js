@@ -15,15 +15,20 @@ const styleOverride = {
 
 const CommandMarkdown = (props: Props) => {
   return (
-    <Kb.ScrollView style={styles.scrollContainer}>
-      <Kb.Box2 direction="vertical" style={styles.textContainer}>
-        <Kb.Markdown styleOverride={styleOverride}>{props.text}</Kb.Markdown>
-      </Kb.Box2>
-    </Kb.ScrollView>
+    <Kb.Box style={styles.borderTop}>
+      <Kb.ScrollView style={styles.scrollContainer}>
+        <Kb.Box2 direction="vertical" style={styles.textContainer}>
+          <Kb.Markdown styleOverride={styleOverride}>{props.text}</Kb.Markdown>
+        </Kb.Box2>
+      </Kb.ScrollView>
+    </Kb.Box>
   )
 }
 
 const styles = Styles.styleSheetCreate({
+  borderTop: Styles.platformStyles({
+    isMobile: {borderColor: Styles.globalColors.black_10, borderStyle: 'solid', borderTopWidth: 3},
+  }),
   scrollContainer: Styles.platformStyles({
     isElectron: {
       ...Styles.desktopStyles.boxShadow,
@@ -34,9 +39,6 @@ const styles = Styles.styleSheetCreate({
       maxHeight: 300,
     },
     isMobile: {
-      borderColor: Styles.globalColors.black_10,
-      borderStyle: 'solid',
-      borderTopWidth: 3,
       maxHeight: 200,
     },
   }),
