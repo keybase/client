@@ -57,6 +57,16 @@ const setupEngineListeners = () => {
   })
 }
 
+const refreshChanged = (_, action) =>
+  Tracker2Gen.createLoad({
+    assertion: action.payload.params.username,
+    fromDaemon: false,
+    guiID: Constants.generateGUIID(),
+    ignoreCache: true,
+    inTracker: false,
+    reason: '',
+  })
+
 const updateUserCard = (state, action) => {
   const {guiID, card} = action.payload.params
   const username = Constants.guiIDToUsername(state.tracker2, guiID)
@@ -218,6 +228,11 @@ function* tracker2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<Tracker2Gen.GetProofSuggestionsPayload>(
     Tracker2Gen.getProofSuggestions,
     getProofSuggestions
+  )
+
+  yield* Saga.chainAction<EngineGen.Keybase1NotifyTrackingTrackingChangedPayload>(
+    EngineGen.keybase1NotifyTrackingTrackingChanged,
+    refreshChanged
   )
   // TEMP until actions/tracker is deprecated
   yield* Saga.chainAction<GetProfilePayloadOLD>(getProfileOLD, _getProfileOLD) // TEMP
