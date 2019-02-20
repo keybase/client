@@ -629,14 +629,15 @@ func (h *UserHandler) CanLogout(ctx context.Context, sessionID int) (res keybase
 	if err != nil {
 		return keybase1.CanLogoutRes{
 			CanLogout: false,
-			Reason:    fmt.Sprintf("Cannot check user state: %s", err.Error()),
+			Reason:    fmt.Sprintf("We couldn't ensure that your account has a passphrase: %s", err.Error()),
 		}, nil
 	}
 
 	if hasRandomPW {
 		return keybase1.CanLogoutRes{
-			CanLogout: false,
-			Reason:    "You signed up without a password and need to set a password first.",
+			CanLogout:     false,
+			SetPassphrase: true,
+			Reason:        "You signed up without a password and need to set a password first.",
 		}, nil
 	}
 

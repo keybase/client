@@ -357,16 +357,20 @@ type folderBranchOps struct {
 	editChannels              chan editChannelActivity
 	refreshEditHistoryChannel chan struct{}
 
-	cancelEditsLock sync.Mutex
+	editsLock sync.Mutex
 	// Cancels the goroutine currently waiting on edits
 	cancelEdits context.CancelFunc
+	// This channel gets created when chat monitoring starts, and
+	// closed when it ends, so we can avoid sending messages to the
+	// monitorer when they won't be read.
+	editMonitoringInProgress chan struct{}
+	launchEditMonitor        sync.Once
 
 	branchChanges      kbfssync.RepeatedWaitGroup
 	mdFlushes          kbfssync.RepeatedWaitGroup
 	forcedFastForwards kbfssync.RepeatedWaitGroup
 	editActivity       kbfssync.RepeatedWaitGroup
 	partialSyncs       kbfssync.RepeatedWaitGroup
-	launchEditMonitor  sync.Once
 
 	muLastGetHead sync.Mutex
 	// We record a timestamp everytime getHead or getTrustedHead is called, and
@@ -464,7 +468,7 @@ func newFolderBranchOps(
 		syncNeededChan:            make(chan struct{}, 1),
 		editHistory:               kbfsedits.NewTlfHistory(),
 		editChannels:              make(chan editChannelActivity, 100),
-		refreshEditHistoryChannel: make(chan struct{}),
+		refreshEditHistoryChannel: make(chan struct{}, 1),
 	}
 	fbo.prepper = folderUpdatePrepper{
 		config:       config,
@@ -771,8 +775,13 @@ func (fbo *folderBranchOps) startMonitorChat(tlfName tlf.CanonicalName) {
 		return
 	}
 
+	fbo.editsLock.Lock()
+	defer fbo.editsLock.Unlock()
+
 	fbo.launchEditMonitor.Do(func() {
-		// The first event should initialize all the data.
+		// The first event should initialize all the data.  No need to
+		// check the monitoring channel here; we already know
+		// monitoring hasn't been started yet.
 		fbo.editActivity.Add(1)
 		fbo.editChannels <- editChannelActivity{nil, "", ""}
 		go fbo.monitorEditsChat(tlfName)
@@ -7940,13 +7949,16 @@ func (fbo *folderBranchOps) ClearPrivateFolderMD(ctx context.Context) {
 		// Cancel the edits goroutine and forget the old history, evem
 		// for public folders, since some of the state in the history
 		// is dependent on your login state.
-		fbo.cancelEditsLock.Lock()
-		defer fbo.cancelEditsLock.Unlock()
+		fbo.editsLock.Lock()
+		defer fbo.editsLock.Unlock()
 		if fbo.cancelEdits != nil {
 			fbo.cancelEdits()
 			fbo.cancelEdits = nil
 		}
 		fbo.editHistory = kbfsedits.NewTlfHistory()
+		// Allow the edit monitor to be re-launched later whenever the
+		// MD is set again.
+		fbo.launchEditMonitor = sync.Once{}
 		fbo.convLock.Lock()
 		defer fbo.convLock.Unlock()
 		fbo.convID = nil
@@ -8359,14 +8371,33 @@ func (fbo *folderBranchOps) InvalidateNodeAndChildren(
 	return nil
 }
 
+func (fbo *folderBranchOps) getEditMonitoringChannel() <-chan struct{} {
+	fbo.editsLock.Lock()
+	defer fbo.editsLock.Unlock()
+	return fbo.editMonitoringInProgress
+}
+
 // NewNotificationChannel implements the KBFSOps interface for
 // folderBranchOps.
 func (fbo *folderBranchOps) NewNotificationChannel(
 	ctx context.Context, handle *TlfHandle, convID chat1.ConversationID,
 	channelName string) {
+	monitoringCh := fbo.getEditMonitoringChannel()
+	if monitoringCh == nil {
+		fbo.log.CDebugf(ctx,
+			"Ignoring new notification channel while edits are unmonitored")
+		return
+	}
+
 	fbo.log.CDebugf(ctx, "New notification channel: %s %s", convID, channelName)
 	fbo.editActivity.Add(1)
-	fbo.editChannels <- editChannelActivity{convID, channelName, ""}
+	select {
+	case fbo.editChannels <- editChannelActivity{convID, channelName, ""}:
+	case <-monitoringCh:
+		fbo.editActivity.Done()
+		fbo.log.CDebugf(ctx, "Edit monitoring stopped while trying to "+
+			"send new notification channel")
+	}
 }
 
 // PushConnectionStatusChange pushes human readable connection status changes.
@@ -8377,17 +8408,39 @@ func (fbo *folderBranchOps) PushConnectionStatusChange(service string, newStatus
 		return
 	}
 
-	if newStatus == nil {
-		fbo.log.CDebugf(nil, "Asking for an edit re-init after reconnection")
-		fbo.editActivity.Add(1)
-		fbo.editChannels <- editChannelActivity{nil, "", ""}
+	if newStatus != nil {
+		return
+	}
+
+	monitoringCh := fbo.getEditMonitoringChannel()
+	if monitoringCh == nil {
+		return
+	}
+
+	fbo.log.CDebugf(nil, "Asking for an edit re-init after reconnection")
+	fbo.editActivity.Add(1)
+	select {
+	case fbo.editChannels <- editChannelActivity{nil, "", ""}:
+	case <-monitoringCh:
+		fbo.editActivity.Done()
+		fbo.log.CDebugf(nil, "Edit monitoring stopped while trying to "+
+			"ask for a re-init")
 	}
 }
 
 func (fbo *folderBranchOps) receiveNewEditChat(
 	convID chat1.ConversationID, message string) {
+	monitoringCh := fbo.getEditMonitoringChannel()
+	if monitoringCh == nil {
+		return
+	}
+
 	fbo.editActivity.Add(1)
-	fbo.editChannels <- editChannelActivity{convID, "", message}
+	select {
+	case fbo.editChannels <- editChannelActivity{convID, "", message}:
+	case <-monitoringCh:
+		fbo.editActivity.Done()
+	}
 }
 
 func (fbo *folderBranchOps) initEditChatChannels(
@@ -8545,9 +8598,18 @@ func (fbo *folderBranchOps) monitorEditsChat(tlfName tlf.CanonicalName) {
 	defer cancelFunc()
 	fbo.log.CDebugf(ctx, "Starting kbfs-edits chat monitoring")
 
-	fbo.cancelEditsLock.Lock()
+	monitoringCh := make(chan struct{})
+	fbo.editsLock.Lock()
 	fbo.cancelEdits = cancelFunc
-	fbo.cancelEditsLock.Unlock()
+	fbo.editMonitoringInProgress = monitoringCh
+	fbo.editsLock.Unlock()
+
+	defer func() {
+		fbo.editsLock.Lock()
+		fbo.editMonitoringInProgress = nil
+		fbo.editsLock.Unlock()
+		close(monitoringCh)
+	}()
 
 	idToName := make(map[string]string)
 	nameToID := make(map[string]chat1.ConversationID)
@@ -8570,6 +8632,7 @@ func (fbo *folderBranchOps) monitorEditsChat(tlfName tlf.CanonicalName) {
 				return
 			}
 		case <-ctx.Done():
+			fbo.log.CDebugf(ctx, "Chat monitoring was canceled")
 			return
 		}
 	}

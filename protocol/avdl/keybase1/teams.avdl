@@ -534,6 +534,8 @@ protocol teams {
     UID uid;
     @jsonkey("eldest_seqno")
     Seqno eldestSeqno;
+    @jsonkey("is_delete")
+    boolean isDelete;
   }
 
   // team.member_out_from_reset message body

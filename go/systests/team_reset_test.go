@@ -540,7 +540,8 @@ func TestTeamTryAddDeletedUser(t *testing.T) {
 }
 
 // Add a member after reset in a normal (non-implicit) team
-func TestTeamReAddAfterReset(t *testing.T) {
+// Uses Add not Readd
+func TestTeamAddAfterReset(t *testing.T) {
 	ctx := newSMUContext(t)
 	defer ctx.cleanup()
 
@@ -581,6 +582,86 @@ func TestTeamReAddAfterReset(t *testing.T) {
 	role, err := teams.MemberRole(context.TODO(), G, team.name, bob.username)
 	require.NoError(t, err)
 	require.Equal(t, role, keybase1.TeamRole_READER)
+
+	bob.readChats(team, 1)
+}
+
+func TestTeamReAddAfterReset(t *testing.T) {
+	testTeamReAddAfterReset(t, true, false)
+}
+
+func TestTeamReAddAfterResetPukless(t *testing.T) {
+	testTeamReAddAfterReset(t, false, false)
+}
+
+func TestTeamReAddAfterResetAdminOwner(t *testing.T) {
+	testTeamReAddAfterReset(t, true, true)
+}
+
+func TestTeamReAddAfterResetAdminOwnerPukless(t *testing.T) {
+	testTeamReAddAfterReset(t, false, true)
+}
+
+// Add a member after reset in a normal (non-implicit) team
+// pukful - re-add the user after they get a puk
+// adminOwner - an admin is re-adding an owner.
+func testTeamReAddAfterReset(t *testing.T, pukful, adminOwner bool) {
+	ctx := newSMUContext(t)
+	defer ctx.cleanup()
+
+	ann := ctx.installKeybaseForUser("ann", 10)
+	ann.signup()
+	divDebug(ctx, "Signed up ann (%s)", ann.username)
+	bob := ctx.installKeybaseForUser("bob", 10)
+	bob.signup()
+	divDebug(ctx, "Signed up bob (%s)", bob.username)
+
+	var team smuTeam
+	if adminOwner {
+		// Create a team where ann is an admin and bob is an owner.
+		team = ann.createTeam2(nil, nil, nil, []*smuUser{bob})
+		ann.editMember(&team, ann.username, keybase1.TeamRole_ADMIN)
+	} else {
+		team = ann.createTeam([]*smuUser{bob})
+	}
+	divDebug(ctx, "team created (%s) (%v)", team.name, team.ID)
+
+	ann.sendChat(team, "0")
+	kickTeamRekeyd(ann.getPrimaryGlobalContext(), t)
+	bob.reset()
+	divDebug(ctx, "Reset bob (%s)", bob.username)
+
+	if pukful {
+		bob.loginAfterReset(10)
+		divDebug(ctx, "Bob logged in after reset")
+	}
+
+	ann.pollForMembershipUpdate(team, keybase1.PerTeamKeyGeneration(2), nil)
+
+	cli := ann.getTeamsClient()
+	err := cli.TeamReAddMemberAfterReset(context.TODO(), keybase1.TeamReAddMemberAfterResetArg{
+		Id:       team.ID,
+		Username: bob.username,
+	})
+	require.NoError(t, err)
+
+	if !pukful {
+		bob.loginAfterReset(10)
+		divDebug(ctx, "Bob logged in after reset")
+	}
+
+	expectedRole := keybase1.TeamRole_WRITER
+	if adminOwner {
+		// The reset owner should be re-admitted as an owner since
+		// that's the highest power ann can grant.
+		expectedRole = keybase1.TeamRole_ADMIN
+	}
+
+	G := ann.getPrimaryGlobalContext()
+	teams.NewTeamLoaderAndInstall(G)
+	role, err := teams.MemberRole(context.TODO(), G, team.name, bob.username)
+	require.NoError(t, err)
+	require.Equal(t, expectedRole, role, "expected role")
 
 	bob.readChats(team, 1)
 }

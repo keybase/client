@@ -565,6 +565,8 @@ type UIMessageValid struct {
 	Unfurls               []UIMessageUnfurlInfo  `codec:"unfurls" json:"unfurls"`
 	IsCollapsed           bool                   `codec:"isCollapsed" json:"isCollapsed"`
 	FlipGameID            *string                `codec:"flipGameID,omitempty" json:"flipGameID,omitempty"`
+	IsDeleteable          bool                   `codec:"isDeleteable" json:"isDeleteable"`
+	IsEditable            bool                   `codec:"isEditable" json:"isEditable"`
 }
 
 func (o UIMessageValid) DeepCopy() UIMessageValid {
@@ -678,6 +680,8 @@ func (o UIMessageValid) DeepCopy() UIMessageValid {
 			tmp := (*x)
 			return &tmp
 		})(o.FlipGameID),
+		IsDeleteable: o.IsDeleteable,
+		IsEditable:   o.IsEditable,
 	}
 }
 

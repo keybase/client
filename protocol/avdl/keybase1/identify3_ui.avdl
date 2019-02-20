@@ -52,9 +52,11 @@ protocol identify3Ui {
     @lint("ignore")
     string siteURL;                // https://twitter.com/bob
     array<SizedImage> siteIcon;
+    array<SizedImage> siteIconFull;
     @lint("ignore")
     string proofURL;               // http://twitter.com/bob/post/1234
     SigID sigID;                   // so we can later revoke the sig....
+    Time ctime;                    // sometimes it's zero.
     Identify3RowState state;       // 'checking' | 'valid' | 'error' | 'warning' | 'revoked',
     array<Identify3RowMeta> metas; // things like 'upgraded' | 'new' | 'unreachable' | 'pending' | 'deleted' | 'none' | 'ignored', but can be anything
     Identify3RowColor color;        // 'blue' | 'red' | 'black' | 'green' | 'gray'

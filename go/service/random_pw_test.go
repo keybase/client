@@ -110,7 +110,7 @@ func TestCanLogoutTimeout(t *testing.T) {
 	ret2, err := userHandler.CanLogout(context.Background(), 0)
 	require.NoError(t, err)
 	require.False(t, ret2.CanLogout)
-	require.Contains(t, ret2.Reason, "Cannot check user state")
+	require.Contains(t, ret2.Reason, "We couldn't ensure that your account has a passphrase")
 	require.Equal(t, 1, fakeAPI.callCount)
 
 	// Switch off the timeouting for one call

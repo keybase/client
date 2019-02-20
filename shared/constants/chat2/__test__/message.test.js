@@ -31,6 +31,7 @@ const cases = [
   {in: RPCChatTypes.commonMessageType.unfurl, out: []},
   {in: RPCChatTypes.commonMessageType.sendpayment, out: ['sendPayment']},
   {in: RPCChatTypes.commonMessageType.requestpayment, out: ['requestPayment']},
+  {in: RPCChatTypes.commonMessageType.flip, out: []},
 ]
 
 describe('serviceMessageTypeToMessageTypes', () => {

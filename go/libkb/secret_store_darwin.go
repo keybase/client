@@ -81,7 +81,7 @@ func (k KeychainSecretStore) RetrieveSecret(m MetaContext, accountName Normalize
 	}
 	if encodedSecret == nil {
 		m.CDebugf("KeychainSecretStore.RetrieveSecret(%s) nil encodedSecret", accountName)
-		return LKSecFullSecret{}, SecretStoreError{Msg: "No secret for " + string(accountName)}
+		return LKSecFullSecret{}, NewErrSecretForUserNotFound(accountName)
 	}
 
 	secret, err := base64.StdEncoding.DecodeString(string(encodedSecret))

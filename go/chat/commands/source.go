@@ -72,16 +72,13 @@ func (s *Source) makeBuiltins() {
 		cmds[cmdCollapse],
 		cmds[cmdExpand],
 		cmds[cmdFlip],
+		cmds[cmdGiphy],
 		cmds[cmdHide],
 		cmds[cmdMe],
 		cmds[cmdMsg],
 		cmds[cmdMute],
 		cmds[cmdShrug],
 		cmds[cmdUnhide],
-	}
-	// Giphy only on for admins for now
-	if s.isAdmin() {
-		common = append(common, cmds[cmdGiphy])
 	}
 	s.builtins = make(map[chat1.ConversationBuiltinCommandTyp][]types.ConversationCommand)
 	s.builtins[chat1.ConversationBuiltinCommandTyp_ADHOC] = common

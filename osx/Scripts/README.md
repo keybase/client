@@ -22,14 +22,13 @@ sudo xcode-select -s /Applications/Xcode8.app/Contents/Developer
 ```
 
 Install the developer certificate chain by cloning the
-`keybase://team/keybase.builds/meta` repo, and installing
-`credentials/kbfuse-signing-cert/keybase-cert.p12` (there's a password
-file in the same directory).
+`keybase://team/keybase.keymasters/apple-dev` repo, and installing
+`keybase-cert.p12` (there's a cert.pw file in the same directory).
 
 Open Xcode 8, go to "Xcode -> Preferences...", go to the "Accounts"
 tab, and click the + to "Add Apple ID...". Enter the gmail address
-and Apple password found in the `credentials/apple-dev.txt` file in
-the above-mentioned `meta` repo. After adding the account, you might need to
+and Apple password found in the `apple.txt` file in
+the above-mentioned `apple-dev` repo. After adding the account, you might need to
 click "Download Manual Profiles" (I did, but not sure if it was actually
 helpful), and open the Keybaes project, and let it update signing related
 stuff. For me it showed a green check mark followed by "Signing update

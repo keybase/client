@@ -817,6 +817,14 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 					clearedCache = true
 				}
 				continue
+			case libkb.ChatEphemeralRetentionPolicyViolatedError:
+				s.Debug(ctx, "Send: failed because of invalid ephemeral policy, trying the whole thing again")
+				rc, err := utils.GetUnverifiedConv(ctx, s.G(), sender, convID, types.InboxSourceDataSourceRemoteOnly)
+				if err != nil {
+					return nil, nil, err
+				}
+				conv = rc.Conv
+				continue
 			case libkb.EphemeralPairwiseMACsMissingUIDsError:
 				merr := err.(libkb.EphemeralPairwiseMACsMissingUIDsError)
 				s.Debug(ctx, "Send: failed because of missing KIDs for pairwise MACs, reloading UPAKs for %v and retrying.", merr.UIDs)

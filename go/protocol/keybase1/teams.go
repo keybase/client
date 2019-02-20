@@ -1498,6 +1498,7 @@ type TeamResetUser struct {
 	Username    string `codec:"username" json:"username"`
 	Uid         UID    `codec:"uid" json:"uid"`
 	EldestSeqno Seqno  `codec:"eldestSeqno" json:"eldest_seqno"`
+	IsDelete    bool   `codec:"isDelete" json:"is_delete"`
 }
 
 func (o TeamResetUser) DeepCopy() TeamResetUser {
@@ -1505,6 +1506,7 @@ func (o TeamResetUser) DeepCopy() TeamResetUser {
 		Username:    o.Username,
 		Uid:         o.Uid.DeepCopy(),
 		EldestSeqno: o.EldestSeqno.DeepCopy(),
+		IsDelete:    o.IsDelete,
 	}
 }
 

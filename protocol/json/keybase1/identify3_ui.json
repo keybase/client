@@ -88,6 +88,13 @@
           "name": "siteIcon"
         },
         {
+          "type": {
+            "type": "array",
+            "items": "SizedImage"
+          },
+          "name": "siteIconFull"
+        },
+        {
           "type": "string",
           "name": "proofURL",
           "lint": "ignore"
@@ -95,6 +102,10 @@
         {
           "type": "SigID",
           "name": "sigID"
+        },
+        {
+          "type": "Time",
+          "name": "ctime"
         },
         {
           "type": "Identify3RowState",

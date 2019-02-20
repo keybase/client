@@ -30,28 +30,6 @@ func LoadTeamPlusApplicationKeys(ctx context.Context, g *libkb.GlobalContext, id
 	return team.ExportToTeamPlusApplicationKeys(ctx, keybase1.Time(0), application, includeKBFSKeys)
 }
 
-func membersUIDsToUsernames(ctx context.Context, g *libkb.GlobalContext, m keybase1.TeamMembers) (keybase1.TeamMembersDetails, error) {
-	var ret keybase1.TeamMembersDetails
-	var err error
-	ret.Owners, err = userVersionsToDetails(ctx, g, m.Owners)
-	if err != nil {
-		return ret, err
-	}
-	ret.Admins, err = userVersionsToDetails(ctx, g, m.Admins)
-	if err != nil {
-		return ret, err
-	}
-	ret.Writers, err = userVersionsToDetails(ctx, g, m.Writers)
-	if err != nil {
-		return ret, err
-	}
-	ret.Readers, err = userVersionsToDetails(ctx, g, m.Readers)
-	if err != nil {
-		return ret, err
-	}
-	return ret, nil
-}
-
 // Details returns TeamDetails for team name. Keybase-type invites are
 // returned as members. It always repolls to ensure latest version of
 // a team, but member infos (username, full name, if they reset or not)
@@ -83,6 +61,7 @@ func Details(ctx context.Context, g *libkb.GlobalContext, name string) (res keyb
 	res.AnnotatedActiveInvites = annotatedInvites
 
 	membersHideDeletedUsers(ctx, g, &res.Members)
+	membersHideInactiveDuplicates(ctx, g, &res.Members)
 
 	res.Settings.Open = t.IsOpen()
 	res.Settings.JoinAs = t.chain().inner.OpenTeamJoinAs
@@ -131,6 +110,63 @@ func membersHideDeletedUsers(ctx context.Context, g *libkb.GlobalContext, member
 		}
 		*rows = filtered
 	}
+}
+
+// If a UID appears multiple times with different TeamMemberStatus, only show the 'ACTIVE' version.
+// This can happen when an owner resets and is re-added as an admin by an admin.
+// Mutates `members`
+func membersHideInactiveDuplicates(ctx context.Context, g *libkb.GlobalContext, members *keybase1.TeamMembersDetails) {
+	// If a UID appears multiple times with different TeamMemberStatus, only show the 'ACTIVE' version.
+	// This can happen when an owner resets and is re-added as an admin by an admin.
+	seenActive := make(map[keybase1.UID]bool)
+	lists := []*[]keybase1.TeamMemberDetails{
+		&members.Owners,
+		&members.Admins,
+		&members.Writers,
+		&members.Readers,
+	}
+	// Scan for active rows
+	for _, rows := range lists {
+		for _, row := range *rows {
+			if row.Status == keybase1.TeamMemberStatus_ACTIVE {
+				seenActive[row.Uv.Uid] = true
+			}
+		}
+	}
+	// Filter out superseded inactive rows
+	for _, rows := range lists {
+		filtered := []keybase1.TeamMemberDetails{}
+		for _, row := range *rows {
+			if row.Status == keybase1.TeamMemberStatus_ACTIVE || !seenActive[row.Uv.Uid] {
+				filtered = append(filtered, row)
+			} else {
+				g.Log.CDebugf(ctx, "membersHideInactiveDuplicates filtered out row: %v %v", row.Uv, row.Status)
+			}
+		}
+		*rows = filtered
+	}
+}
+
+func membersUIDsToUsernames(ctx context.Context, g *libkb.GlobalContext, m keybase1.TeamMembers) (keybase1.TeamMembersDetails, error) {
+	var ret keybase1.TeamMembersDetails
+	var err error
+	ret.Owners, err = userVersionsToDetails(ctx, g, m.Owners)
+	if err != nil {
+		return ret, err
+	}
+	ret.Admins, err = userVersionsToDetails(ctx, g, m.Admins)
+	if err != nil {
+		return ret, err
+	}
+	ret.Writers, err = userVersionsToDetails(ctx, g, m.Writers)
+	if err != nil {
+		return ret, err
+	}
+	ret.Readers, err = userVersionsToDetails(ctx, g, m.Readers)
+	if err != nil {
+		return ret, err
+	}
+	return ret, nil
 }
 
 func userVersionsToDetails(ctx context.Context, g *libkb.GlobalContext, uvs []keybase1.UserVersion) (ret []keybase1.TeamMemberDetails, err error) {
@@ -239,6 +275,14 @@ func AddMemberByID(ctx context.Context, g *libkb.GlobalContext, teamID keybase1.
 		t, err := GetForTeamManagementByTeamID(ctx, g, teamID, true /*needAdmin*/)
 		if err != nil {
 			return err
+		}
+
+		loggedInRole, err := t.myRole(ctx)
+		if err != nil {
+			return err
+		}
+		if role == keybase1.TeamRole_OWNER && loggedInRole == keybase1.TeamRole_ADMIN {
+			return fmt.Errorf("Cannot add owner to team as an admin")
 		}
 
 		if inviteRequired && !uv.Uid.Exists() {
@@ -434,8 +478,25 @@ func reAddMemberAfterResetInner(ctx context.Context, g *libkb.GlobalContext, tea
 
 		hasPUK := len(upak.Current.PerUserKeys) > 0
 
+		loggedInRole, err := t.myRole(ctx)
+		if err != nil {
+			return err
+		}
+
+		targetRole := existingRole
+		if existingRole.IsOrAbove(loggedInRole) {
+			// If an admin is trying to re-add an owner, re-add them as an admin.
+			// An admin cannot grant owner privileges, so this is the best we can do.
+			targetRole = loggedInRole
+		}
+
+		if !t.IsImplicit() {
+			_, err = AddMemberByID(ctx, g, t.ID, username, targetRole)
+			return err
+		}
+
 		tx := CreateAddMemberTx(t)
-		if err := tx.ReAddMemberToImplicitTeam(uv, hasPUK, existingRole); err != nil {
+		if err := tx.ReAddMemberToImplicitTeam(ctx, uv, hasPUK, targetRole); err != nil {
 			return err
 		}
 

@@ -287,7 +287,10 @@ class Input extends React.Component<InputProps, InputState> {
 
   _getChannelSuggestions = filter => {
     const fil = filter.toLowerCase()
-    return this.props.suggestChannels.filter(ch => ch.toLowerCase().includes(fil)).toArray()
+    return this.props.suggestChannels
+      .filter(ch => ch.toLowerCase().includes(fil))
+      .sort()
+      .toArray()
   }
 
   _renderChannelSuggestion = (channelname: string, selected) => (

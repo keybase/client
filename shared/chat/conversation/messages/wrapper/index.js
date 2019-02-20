@@ -86,6 +86,9 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
   _orangeLine = () =>
     this.props.orangeLineAbove && <Kb.Box2 key="orangeLine" direction="vertical" style={styles.orangeLine} />
   _onAuthorClick = () => this.props.onAuthorClick()
+  _isExploding = () =>
+    (this.props.message.type === 'text' || this.props.message.type === 'attachment') &&
+    this.props.message.exploding
 
   _authorAndContent = children => {
     let result
@@ -230,6 +233,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         style: Styles.collapseStyles([
           styles.container,
           !this.props.showUsername && styles.containerNoUsername,
+          !this._isExploding() && styles.containerNoExploding, // extra right padding to line up with infopane / input icons
         ]),
       }
       return this.props.decorate
@@ -307,18 +311,15 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
     const showMenuButton = !Styles.isMobile && this.state.showMenuButton
     const message = this.props.message
     let child
-    let exploding = false
     let exploded = false
     let explodedBy = null
     switch (message.type) {
       case 'text':
-        exploding = message.exploding
         exploded = message.exploded
         explodedBy = message.explodedBy
         child = <TextMessage key="text" message={message} />
         break
       case 'attachment':
-        exploding = message.exploding
         exploded = message.exploded
         explodedBy = message.explodedBy
         child = (
@@ -375,6 +376,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
         return null
     }
 
+    const exploding = this._isExploding()
     const maybeExplodedChild = exploding ? (
       <ExplodingHeightRetainer
         explodedBy={explodedBy}
@@ -514,6 +516,7 @@ const styles = Styles.styleSheetCreate({
     isMobile: {marginLeft: Styles.globalMargins.tiny},
   }),
   container: Styles.platformStyles({isMobile: {overflow: 'hidden'}}),
+  containerNoExploding: Styles.platformStyles({isMobile: {paddingRight: Styles.globalMargins.tiny}}),
   containerNoUsername: Styles.platformStyles({
     isMobile: {
       paddingBottom: 3,

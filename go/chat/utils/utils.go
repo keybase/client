@@ -365,13 +365,25 @@ func VisibleChatConversationStatuses() (res []chat1.ConversationStatus) {
 	return
 }
 
-func IsVisibleChatMessageType(messageType chat1.MessageType) bool {
-	for _, mt := range chat1.VisibleChatMessageTypes() {
+func checkMessageTypeQual(messageType chat1.MessageType, l []chat1.MessageType) bool {
+	for _, mt := range l {
 		if messageType == mt {
 			return true
 		}
 	}
 	return false
+}
+
+func IsVisibleChatMessageType(messageType chat1.MessageType) bool {
+	return checkMessageTypeQual(messageType, chat1.VisibleChatMessageTypes())
+}
+
+func IsEditableByEditMessageType(messageType chat1.MessageType) bool {
+	return checkMessageTypeQual(messageType, chat1.EditableMessageTypesByEdit())
+}
+
+func IsDeleteableByDeleteMessageType(messageType chat1.MessageType) bool {
+	return checkMessageTypeQual(messageType, chat1.DeletableMessageTypesByDelete())
 }
 
 func IsCollapsibleMessageType(messageType chat1.MessageType) bool {
@@ -908,6 +920,8 @@ func GetMsgSnippet(msg chat1.MessageUnboxed, conv chat1.ConversationLocal, curre
 	switch msg.GetMessageType() {
 	case chat1.MessageType_TEXT:
 		return senderPrefix + msg.Valid().MessageBody.Text().Body, decoration
+	case chat1.MessageType_FLIP:
+		return senderPrefix + msg.Valid().MessageBody.Flip().Text, decoration
 	case chat1.MessageType_ATTACHMENT:
 		obj := msg.Valid().MessageBody.Attachment().Object
 		title := obj.Title
@@ -1336,14 +1350,14 @@ func presentFlipGameID(ctx context.Context, g *globals.Context, uid gregor1.UID,
 	default:
 		return nil
 	}
-	if !body.IsType(chat1.MessageType_TEXT) {
+	if !body.IsType(chat1.MessageType_FLIP) {
 		return nil
 	}
-	if body.Text().FlipGameID == nil {
-		return nil
+	if msg.GetTopicType() == chat1.TopicType_CHAT {
+		// only queue up a flip load for the flip messages in chat channels
+		g.CoinFlipManager.LoadFlip(ctx, uid, convID, body.Flip().GameID)
 	}
-	g.CoinFlipManager.LoadFlip(ctx, uid, convID, *body.Text().FlipGameID)
-	ret := body.Text().FlipGameID.String()
+	ret := body.Flip().GameID.String()
 	return &ret
 }
 
@@ -1409,6 +1423,8 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			PaymentInfos:          presentPaymentInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
 			RequestInfo:           presentRequestInfo(ctx, g, rawMsg.GetMessageID(), convID, valid),
 			Unfurls:               PresentUnfurls(ctx, g, uid, convID, valid.Unfurls),
+			IsDeleteable:          IsDeleteableByDeleteMessageType(rawMsg.GetMessageType()),
+			IsEditable:            IsEditableByEditMessageType(rawMsg.GetMessageType()),
 			IsCollapsed: collapses.IsCollapsed(ctx, uid, convID, rawMsg.GetMessageID(),
 				rawMsg.GetMessageType()),
 		})

@@ -164,10 +164,19 @@ var visibleMessageTypes = []MessageType{
 	MessageType_SYSTEM,
 	MessageType_SENDPAYMENT,
 	MessageType_REQUESTPAYMENT,
+	MessageType_FLIP,
 }
 
 func VisibleChatMessageTypes() []MessageType {
 	return visibleMessageTypes
+}
+
+var editableMessageTypesByEdit = []MessageType{
+	MessageType_TEXT,
+}
+
+func EditableMessageTypesByEdit() []MessageType {
+	return editableMessageTypesByEdit
 }
 
 func IsEphemeralSupersederType(typ MessageType) bool {
@@ -185,7 +194,8 @@ func IsEphemeralSupersederType(typ MessageType) bool {
 func IsEphemeralNonSupersederType(typ MessageType) bool {
 	switch typ {
 	case MessageType_TEXT,
-		MessageType_ATTACHMENT:
+		MessageType_ATTACHMENT,
+		MessageType_FLIP:
 		return true
 	default:
 		return false

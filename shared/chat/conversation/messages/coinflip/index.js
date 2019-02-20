@@ -66,9 +66,9 @@ class CoinFlip extends React.Component<Props, State> {
               </Kb.Box2>
             )}
           </Kb.Box2>
-          <Kb.Text type="BodySemibold" style={styles.result}>
+          <Kb.Markdown style={styles.result} allowFontScaling={true}>
             {this.props.resultText.length > 0 ? this.props.resultText : '???'}
-          </Kb.Text>
+          </Kb.Markdown>
         </Kb.Box2>
       </Kb.Box2>
     )
@@ -95,11 +95,18 @@ const styles = Styles.styleSheetCreate({
   }),
   progress: Styles.platformStyles({
     isElectron: {
+      cursor: 'text',
+      userSelect: 'text',
       wordBreak: 'break-all',
     },
   }),
   result: Styles.platformStyles({
+    common: {
+      fontWeight: '600',
+    },
     isElectron: {
+      cursor: 'text',
+      userSelect: 'text',
       wordBreak: 'break-all',
     },
   }),

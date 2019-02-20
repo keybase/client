@@ -532,7 +532,13 @@ const rootReducer = (
         const ordinals = state.messageOrdinals.get(conversationIDKey, I.OrderedSet())
         const found = ordinals.findLast(o => {
           const message = messageMap.get(o)
-          return message && message.type === 'text' && message.author === editLastUser && !message.exploded
+          return (
+            message &&
+            message.type === 'text' &&
+            message.author === editLastUser &&
+            !message.exploded &&
+            message.isEditable
+          )
         })
         if (found) {
           return editingMap.set(conversationIDKey, found)

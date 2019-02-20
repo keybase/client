@@ -385,7 +385,12 @@ class Assertion extends React.PureComponent<Props, State> {
           />
           {items ? (
             <>
-              <Kb.Icon className="hover-visible" type="iconfont-caret-down" onClick={this._toggleMenu} />
+              <Kb.Icon
+                className="hover-visible"
+                type="iconfont-caret-down"
+                onClick={this._toggleMenu}
+                sizeType="Tiny"
+              />
               <Kb.FloatingMenu
                 closeOnSelect={true}
                 visible={this.state.showingMenu}
