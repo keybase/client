@@ -45,15 +45,15 @@ class Thread extends React.PureComponent<Props, State> {
   // Not a state so we don't rerender, just mutate the dom
   _isScrolling = false
   // When we're triggering scrolling we don't want our event subscribers to fire so we increment this value
-  _ignoreScrollToBottomRefCount = 0
+  _ignoreScrollRefCount = 0
   // last height we saw from resize
   _scrollHeight: number = 0
 
   _logIgnoreScroll = debug
     ? (name, fn) => {
-        const oldIgnore = this._ignoreScrollToBottomRefCount
+        const oldIgnore = this._ignoreScrollRefCount
         fn()
-        logger.debug('SCROLL', name, 'ignoreScroll', oldIgnore, '->', this._ignoreScrollToBottomRefCount)
+        logger.debug('SCROLL', name, 'ignoreScroll', oldIgnore, '->', this._ignoreScrollRefCount)
       }
     : (name, fn) => fn()
 
@@ -67,7 +67,7 @@ class Thread extends React.PureComponent<Props, State> {
 
   _logAll = debug
     ? (list, name, fn) => {
-        const oldIgnore = this._ignoreScrollToBottomRefCount
+        const oldIgnore = this._ignoreScrollRefCount
         const oldScrollTop = list.scrollTop
         fn()
         logger.debug(
@@ -76,7 +76,7 @@ class Thread extends React.PureComponent<Props, State> {
           'ignoreScroll',
           oldIgnore,
           '->',
-          this._ignoreScrollToBottomRefCount,
+          this._ignoreScrollRefCount,
           'scrollTop',
           oldScrollTop,
           '->',
@@ -90,7 +90,7 @@ class Thread extends React.PureComponent<Props, State> {
     if (list) {
       this._logAll(list, `_scrollToBottom(${reason})`, () => {
         // ignore callbacks due to this change
-        this._ignoreScrollToBottomRefCount++
+        this._ignoreScrollRefCount++
         list.scrollTop = list.scrollHeight - list.clientHeight
       })
     }
@@ -213,9 +213,9 @@ class Thread extends React.PureComponent<Props, State> {
 
   _onScroll = e => {
     this._checkForLoadMoreThrottled()
-    if (this._ignoreScrollToBottomRefCount > 0) {
+    if (this._ignoreScrollRefCount > 0) {
       this._logIgnoreScroll('_onScroll', () => {
-        this._ignoreScrollToBottomRefCount--
+        this._ignoreScrollRefCount--
       })
       return
     }
@@ -368,7 +368,7 @@ class Thread extends React.PureComponent<Props, State> {
         const list = this._listRef.current
         if (list) {
           this._logAll(list, '_onResize', () => {
-            this._ignoreScrollToBottomRefCount++
+            this._ignoreScrollRefCount++
             list.scrollTop += scroll.height - this._scrollHeight
           })
         }
