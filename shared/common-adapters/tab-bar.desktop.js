@@ -157,7 +157,7 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
           className={'nav-item' + (this.props.selected ? ' selected' : '')}
         >
           {this.props.selected && <HighlightLine />}
-          <Icon type={this.props.source.icon} style={this.props.styleIcon} className="img" />
+          <Icon type={this.props.source.icon} style={this.props.styleIcon} className="img" sizeType="Big" />
           {badgeNumber > 0 && (
             <Box style={styleBadgeNav}>
               <Badge

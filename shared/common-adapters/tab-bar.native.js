@@ -73,6 +73,7 @@ const TabBarButton = (props: TabBarButtonProps) => {
           width: props.isNav ? undefined : 32,
           ...props.styleIcon,
         }}
+        sizeType="Big"
       />
       {!!props.label && (
         <Text center={true} type="BodySemibold" style={{...props.styleLabel}}>
