@@ -650,7 +650,7 @@ func (m *FlipManager) loadGame(ctx context.Context, job loadGameJob) (err error)
 		})
 	}
 	m.Debug(ctx, "loadGame: playing back %d messages from history", len(history))
-	summary, err := flip.Replay(ctx, history)
+	summary, err := flip.Replay(ctx, m, history)
 	if err != nil {
 		m.Debug(ctx, "loadGame: failed to replay history: %s", err)
 		return err
