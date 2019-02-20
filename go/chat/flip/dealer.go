@@ -350,6 +350,8 @@ func (g *Game) handleMessage(ctx context.Context, msg *GameMessageWrapped, now t
 			return CommitmentCompleteSortError{G: g.md}
 		}
 
+		iWasIncluded := false
+
 		for _, u := range cc.Players {
 			key := u.Ud.ToKey()
 			ps := g.players[key]
@@ -361,6 +363,10 @@ func (g *Game) handleMessage(ctx context.Context, msg *GameMessageWrapped, now t
 			}
 			ps.included = true
 			g.nPlayers++
+
+			if g.me != nil && g.me.me.Eq(u.Ud) {
+				iWasIncluded = true
+			}
 		}
 
 		cch, err := hashUserDeviceCommitments(cc.Players)
@@ -384,11 +390,16 @@ func (g *Game) handleMessage(ctx context.Context, msg *GameMessageWrapped, now t
 		}
 
 		if g.me != nil {
-			reveal := Reveal{
-				Secret: g.me.secret,
-				Cch:    cch,
+
+			if !iWasIncluded {
+				g.clogf(ctx, "The leader didn't include me (%s) so not sending a reveal (%s)", g.me.me, g.md)
+			} else {
+				reveal := Reveal{
+					Secret: g.me.secret,
+					Cch:    cch,
+				}
+				g.sendOutgoingChat(ctx, NewGameMessageBodyWithReveal(reveal))
 			}
-			g.sendOutgoingChat(ctx, NewGameMessageBodyWithReveal(reveal))
 		}
 
 	case MessageType_REVEAL:
