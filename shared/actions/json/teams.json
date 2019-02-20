@@ -118,6 +118,10 @@
       "role": "Types.TeamRoleType",
       "sendChatNotification": "boolean"
     },
+    "reAddToTeam": {
+      "teamname": "string",
+      "username": "string",
+    },
     "editTeamDescription": {
       "teamname": "string",
       "description": "string"

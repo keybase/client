@@ -323,6 +323,31 @@ const addToTeam = (_, action) => {
     })
 }
 
+const reAddToTeam = (state, action) => {
+  const {teamname, username} = action.payload
+  const id = state.teams.teamNameToID.get(teamname, '')
+  if (!id) {
+    throw new Error(`team ID not on file for team '${teamname}'`)
+  }
+  return RPCTypes.teamsTeamReAddMemberAfterResetRpcPromise(
+    {
+      id,
+      username,
+    },
+    [Constants.teamWaitingKey(teamname), Constants.addMemberWaitingKey(teamname, username)]
+  )
+    .then(() => {})
+    .catch(e => {
+      // identify error
+      if (e.code === RPCTypes.constantsStatusCode.scidentifysummaryerror) {
+        if (isMobile) {
+          // show profile card on mobile
+          return ProfileGen.createShowUserProfile({username})
+        }
+      }
+    })
+}
+
 const editDescription = (_, action) => {
   const {teamname, description} = action.payload
   return RPCTypes.teamsSetTeamShowcaseRpcPromise(
@@ -1459,6 +1484,7 @@ const teamsSaga = function*(): Saga.SagaGenerator<any, any> {
   )
   yield* Saga.chainGenerator<TeamsGen.CreateChannelPayload>(TeamsGen.createChannel, createChannel)
   yield* Saga.chainAction<TeamsGen.AddToTeamPayload>(TeamsGen.addToTeam, addToTeam)
+  yield* Saga.chainAction<TeamsGen.ReAddToTeamPayload>(TeamsGen.reAddToTeam, reAddToTeam)
   yield* Saga.chainAction<TeamsGen.AddPeopleToTeamPayload>(TeamsGen.addPeopleToTeam, addPeopleToTeam)
   yield* Saga.chainGenerator<TeamsGen.AddUserToTeamsPayload>(TeamsGen.addUserToTeams, addUserToTeams)
   yield* Saga.chainGenerator<TeamsGen.InviteToTeamByEmailPayload>(TeamsGen.inviteToTeamByEmail, inviteByEmail)
