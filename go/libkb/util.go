@@ -490,7 +490,14 @@ func TraceTimed(log logger.Logger, msg string, f func() error) func() {
 func CTrace(ctx context.Context, log logger.Logger, msg string, f func() error) func() {
 	log = log.CloneWithAddedDepth(1)
 	log.CDebugf(ctx, "+ %s", msg)
-	return func() { log.CDebugf(ctx, "- %s -> %s", msg, ErrToOk(f())) }
+	return func() {
+		err := f()
+		if err != nil {
+			log.CDebugf(ctx, "- %s -> %v %T", msg, err, err)
+		} else {
+			log.CDebugf(ctx, "- %s -> ok", msg)
+		}
+	}
 }
 
 func CTraceTimed(ctx context.Context, log logger.Logger, msg string, f func() error, cl clockwork.Clock) func() {
