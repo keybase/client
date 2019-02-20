@@ -2,6 +2,7 @@
 import EditAvatar from '.'
 import * as ProfileGen from '../../actions/profile-gen'
 import * as TeamsGen from '../../actions/teams-gen'
+import * as WaitingGen from '../../actions/waiting-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as Constants from '../../constants/profile'
 import {connect} from '../../util/container'
@@ -29,7 +30,10 @@ const mapStateToProps = (state, ownProps) => ({
 })
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
-  onClose: () => dispatch(RouteTreeGen.createNavigateUp()),
+  onClose: () => {
+    dispatch(WaitingGen.createClearWaiting({key: Constants.uploadAvatarWaitingKey}))
+    dispatch(RouteTreeGen.createNavigateUp())
+  },
   onSaveTeamAvatar: (
     filename: string,
     teamname: string,
