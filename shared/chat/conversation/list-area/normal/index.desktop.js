@@ -77,10 +77,10 @@ class Thread extends React.PureComponent<Props, State> {
     )
   }
 
-  _scrollToBottom = () => {
+  _scrollToBottom = reason => {
     const list = this._listRef.current
     if (list) {
-      this._logAll(list, '_scrollToBottom', () => {
+      this._logAll(list, `_scrollToBottom(${reason})`, () => {
         // ignore callbacks due to this change
         this._ignoreScrollToBottomRefCount++
         list.scrollTop = list.scrollHeight - list.clientHeight
@@ -108,7 +108,7 @@ class Thread extends React.PureComponent<Props, State> {
 
   componentDidMount() {
     if (this.state.isLockedToBottom) {
-      setImmediate(() => this._scrollToBottom())
+      setImmediate(() => this._scrollToBottom('componentDidMount'))
     }
   }
 
@@ -135,7 +135,7 @@ class Thread extends React.PureComponent<Props, State> {
       this._cleanupDebounced()
       this._scrollHeight = 0
       this.setState(p => (p.isLockedToBottom ? null : {isLockedToBottom: true}))
-      this._scrollToBottom()
+      this._scrollToBottom('componentDidUpdate-change-convo')
       return
     }
 
@@ -157,7 +157,7 @@ class Thread extends React.PureComponent<Props, State> {
       this.props.lastMessageIsOurs
     ) {
       this.setState(p => (p.isLockedToBottom ? null : {isLockedToBottom: true}))
-      this._scrollToBottom()
+      this._scrollToBottom('componentDidUpdate-sent-something')
       return
     }
 
@@ -170,7 +170,7 @@ class Thread extends React.PureComponent<Props, State> {
       this._onResize({scroll: {height: list.scrollHeight}})
     } else if (this.state.isLockedToBottom && this.props.conversationIDKey === prevProps.conversationIDKey) {
       // maintain scroll to bottom?
-      this._scrollToBottom()
+      this._scrollToBottom('componentDidUpdate-maintain-scroll')
     } else if (this.props.messageOrdinals.size !== prevProps.messageOrdinals.size) {
       // someone else sent something? then ignore next resize resize
       this._scrollHeight = 0
