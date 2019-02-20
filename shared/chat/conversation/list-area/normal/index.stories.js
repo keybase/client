@@ -218,6 +218,8 @@ type State = {|
   loadMoreEnabled: boolean,
   messageInjectionEnabled: boolean,
   messageOrdinals: I.List<Types.Ordinal>,
+  scrollListDownCounter: number,
+  scrollListUpCounter: number,
 |}
 class ThreadWrapper extends React.Component<Props, State> {
   _injectMessagesIntervalID: ?IntervalID
@@ -230,6 +232,8 @@ class ThreadWrapper extends React.Component<Props, State> {
       loadMoreEnabled: false,
       messageInjectionEnabled: false,
       messageOrdinals: makeMoreOrdinals(I.List(), 'append'),
+      scrollListDownCounter: 0,
+      scrollListUpCounter: 0,
     }
   }
 
@@ -265,6 +269,14 @@ class ThreadWrapper extends React.Component<Props, State> {
     this.setState(state => ({loadMoreEnabled: !state.loadMoreEnabled}))
   }
 
+  _scrollDown = () => {
+    this.setState(state => ({scrollListDownCounter: state.scrollListDownCounter + 1}))
+  }
+
+  _scrollUp = () => {
+    this.setState(state => ({scrollListUpCounter: state.scrollListUpCounter + 1}))
+  }
+
   componentWillUnmount() {
     this._injectMessagesIntervalID && clearInterval(this._injectMessagesIntervalID)
     this._loadMoreTimeoutID && clearTimeout(this._loadMoreTimeoutID)
@@ -293,6 +305,8 @@ class ThreadWrapper extends React.Component<Props, State> {
           <Button label={injectLabel} type="Primary" onClick={this._toggleInjectMessages} />
           <Button label={loadMoreLabel} type="Primary" onClick={this._toggleLoadMore} />
           <Button label="Change conversation ID" type="Primary" onClick={this._changeIDKey} />
+          <Button label="Scroll up" type="Primary" onClick={this._scrollUp} />
+          <Button label="Scroll down" type="Primary" onClick={this._scrollDown} />
         </ButtonBar>
         <Thread
           {...props}
@@ -300,6 +314,8 @@ class ThreadWrapper extends React.Component<Props, State> {
           debug={true}
           messageOrdinals={this.state.messageOrdinals}
           loadMoreMessages={this.onLoadMoreMessages}
+          scrollListUpCounter={this.state.scrollListUpCounter}
+          scrollListDownCounter={this.state.scrollListDownCounter}
         />
       </React.Fragment>
     )
