@@ -242,12 +242,15 @@ func testHappyChat(t *testing.T, n int) {
 	clients := srv.makeAndRunClients(ctx, conversationID, n)
 	defer srv.stopClients()
 
+	require.False(t, clients[0].dealer.IsGameActive(ctx, conversationID, gameID))
 	start := NewStartWithBigInt(srv.clock.Now(), pi())
 	err := clients[0].dealer.StartFlipWithGameID(ctx, start, conversationID, gameID)
 	require.NoError(t, err)
 	forAllClients(clients, func(c *chatClient) { nTimes(n, func() { c.consumeCommitment(t) }) })
 	srv.clock.Advance(time.Duration(4001) * time.Millisecond)
 	forAllClients(clients, func(c *chatClient) { c.consumeCommitmentComplete(t, n) })
+	require.True(t, clients[0].dealer.IsGameActive(ctx, conversationID, gameID))
+	require.False(t, clients[0].dealer.IsGameActive(ctx, genConversationID(), gameID))
 	forAllClients(clients, func(c *chatClient) { nTimes(n, func() { c.consumeReveal(t) }) })
 	var b *big.Int
 	forAllClients(clients, func(c *chatClient) { c.consumeResult(t, &b) })
