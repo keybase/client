@@ -9,6 +9,7 @@ import (
 	humanize "github.com/dustin/go-humanize"
 	lru "github.com/hashicorp/golang-lru"
 	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/syndtr/goleveldb/leveldb/opt"
 	"golang.org/x/net/context"
 )
 
@@ -19,18 +20,16 @@ type DbCleanerConfig struct {
 	CacheCapacity int
 }
 
-const gb = 1024 * 1024 * 1024
-
 var DefaultMobileDbCleanerConfig = DbCleanerConfig{
-	MaxSize:       gb,
-	HaltSize:      gb * .75,
+	MaxSize:       opt.GiB,
+	HaltSize:      opt.GiB * .75,
 	CleanInterval: time.Hour,
 	CacheCapacity: 100000,
 }
 
 var DefaultDesktopDbCleanerConfig = DbCleanerConfig{
-	MaxSize:       2 * gb,
-	HaltSize:      1.5 * gb,
+	MaxSize:       2 * opt.GiB,
+	HaltSize:      1.5 * opt.GiB,
 	CleanInterval: time.Hour,
 	CacheCapacity: 100000,
 }
@@ -156,7 +155,12 @@ func (c *levelDbCleaner) clean(ctx context.Context) (err error) {
 }
 
 func (c *levelDbCleaner) cleanBatch(ctx context.Context, startKey []byte) (nextKey []byte, err error) {
-	iter := c.db.NewIterator(nil, nil)
+	// Option suggested in
+	// https://github.com/google/leveldb/blob/master/doc/index.md#cache
+	// """When performing a bulk read, the application may wish to disable
+	// caching so that the data processed by the bulk read does not end up
+	// displacing most of the cached contents."""
+	iter := c.db.NewIterator(nil, &opt.ReadOptions{DontFillCache: true})
 	defer func() {
 		// see if we have reached the end of the db, if so explicitly reset the nextKey value
 		if !iter.Last() || bytes.Equal(nextKey, iter.Key()) {
