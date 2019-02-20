@@ -692,7 +692,9 @@ func (m *FlipManager) loadGame(ctx context.Context, job loadGameJob) (err error)
 	summary, err := flip.Replay(ctx, m, history)
 	if err != nil {
 		m.Debug(ctx, "loadGame: failed to replay history: %s", err)
-		return err
+		summary = flip.GameSummary{
+			Err: fmt.Errorf("Replay failed: %s", err),
+		}
 	}
 	m.handleSummaryUpdate(ctx, job.gameID, summary, flipConv.GetConvID(), true)
 	return nil
