@@ -260,14 +260,17 @@ func (e *PaperKeyGen) push(m libkb.MetaContext) (err error) {
 		switch err.(type) {
 		case nil:
 		case libkb.SecretStoreError:
-			// as a last resort try to prompt the user for their passphrase
-			if pps, _, perr := libkb.GetPassphraseStreamViaPrompt(m); pps != nil {
-				clientHalf = pps.LksClientHalf()
-				ppgen = pps.Generation()
-			} else if perr != nil {
-				return perr
-			} else {
-				return err
+			// as a last resort try to prompt the user for their passphrase if
+			// the SecretUI is present
+			if m.UIs().HasUI(libkb.SecretUIKind) {
+				if pps, _, perr := libkb.GetPassphraseStreamViaPrompt(m); pps != nil {
+					clientHalf = pps.LksClientHalf()
+					ppgen = pps.Generation()
+				} else if perr != nil {
+					return perr
+				} else {
+					return err
+				}
 			}
 		default:
 			return err
