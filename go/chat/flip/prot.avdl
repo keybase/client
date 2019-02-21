@@ -17,6 +17,9 @@ protocol flip {
     long revealWindowMsec;
     // How much slack to give before warning
     long slackMsec;
+    // How long followers should wait for a commitment complete
+    long commitmentCompleteWindowMsec;
+    // Whether a shuffle, coin flip, etc.
     FlipParameters params;
   }
 

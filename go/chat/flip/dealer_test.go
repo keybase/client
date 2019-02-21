@@ -3,7 +3,6 @@ package flip
 import (
 	"context"
 	"crypto/rand"
-	"fmt"
 	"math/big"
 	"testing"
 	"time"
@@ -36,7 +35,7 @@ func (t *testDealersHelper) ServerTime(context.Context) (time.Time, error) {
 }
 
 func (t *testDealersHelper) CLogf(ctx context.Context, fmtString string, args ...interface{}) {
-	fmt.Printf(fmtString+"\n", args...)
+	testPrintf(fmtString+"\n", args...)
 }
 
 func (t *testDealersHelper) Me() UserDevice {

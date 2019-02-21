@@ -178,32 +178,32 @@ func (d *Dealer) InjectIncomingChat(ctx context.Context, sender UserDevice,
 }
 
 // NewStartWithBool makes new start parameters that yield a coinflip game.
-func NewStartWithBool(now time.Time) Start {
-	ret := newStart(now)
+func NewStartWithBool(now time.Time, nPlayers int) Start {
+	ret := newStart(now, nPlayers)
 	ret.Params = NewFlipParametersWithBool()
 	return ret
 }
 
 // NewStartWithInt makes new start parameters that yield a coinflip game that picks an int between
 // 0 and mod.
-func NewStartWithInt(now time.Time, mod int64) Start {
-	ret := newStart(now)
+func NewStartWithInt(now time.Time, mod int64, nPlayers int) Start {
+	ret := newStart(now, nPlayers)
 	ret.Params = NewFlipParametersWithInt(mod)
 	return ret
 }
 
 // NewStartWithBigInt makes new start parameters that yield a coinflip game that picks big int between
 // 0 and mod.
-func NewStartWithBigInt(now time.Time, mod *big.Int) Start {
-	ret := newStart(now)
+func NewStartWithBigInt(now time.Time, mod *big.Int, nPlayers int) Start {
+	ret := newStart(now, nPlayers)
 	ret.Params = NewFlipParametersWithBig(mod.Bytes())
 	return ret
 }
 
 // NewStartWithShuffle makes new start parameters for a coinflip that randomly permutes the numbers
 // between 0 and n, exclusive. This can be used to shuffle an array of names.
-func NewStartWithShuffle(now time.Time, n int64) Start {
-	ret := newStart(now)
+func NewStartWithShuffle(now time.Time, n int64, nPlayers int) Start {
+	ret := newStart(now, nPlayers)
 	ret.Params = NewFlipParametersWithShuffle(n)
 	return ret
 }

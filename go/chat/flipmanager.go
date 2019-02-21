@@ -388,7 +388,7 @@ func (m *FlipManager) gameTopicNameFromGameID(gameID chat1.FlipGameID) string {
 
 var errFailedToParse = errors.New("failed to parse")
 
-func (m *FlipManager) parseMultiDie(arg string) (start flip.Start, err error) {
+func (m *FlipManager) parseMultiDie(arg string, nPlayersApprox int) (start flip.Start, err error) {
 	lb := new(big.Int)
 	val, ok := lb.SetString(arg, 10)
 	if !ok {
@@ -398,21 +398,21 @@ func (m *FlipManager) parseMultiDie(arg string) (start flip.Start, err error) {
 	if val.Sign() <= 0 {
 		return start, errFailedToParse
 	}
-	return flip.NewStartWithBigInt(m.clock.Now(), val), nil
+	return flip.NewStartWithBigInt(m.clock.Now(), val, nPlayersApprox), nil
 }
 
-func (m *FlipManager) parseShuffle(arg string) (start flip.Start, shuffleItems []string, err error) {
+func (m *FlipManager) parseShuffle(arg string, nPlayersApprox int) (start flip.Start, shuffleItems []string, err error) {
 	if strings.Contains(arg, ",") {
 		var shuffleItems []string
 		for _, tok := range strings.Split(arg, ",") {
 			shuffleItems = append(shuffleItems, strings.Trim(tok, " "))
 		}
-		return flip.NewStartWithShuffle(m.clock.Now(), int64(len(shuffleItems))), shuffleItems, nil
+		return flip.NewStartWithShuffle(m.clock.Now(), int64(len(shuffleItems)), nPlayersApprox), shuffleItems, nil
 	}
 	return start, shuffleItems, errFailedToParse
 }
 
-func (m *FlipManager) parseRange(arg string) (start flip.Start, lowerBound string, err error) {
+func (m *FlipManager) parseRange(arg string, nPlayersApprox int) (start flip.Start, lowerBound string, err error) {
 	if !strings.Contains(arg, "..") || strings.Contains(arg, ",") {
 		return start, lowerBound, errFailedToParse
 	}
@@ -435,45 +435,45 @@ func (m *FlipManager) parseRange(arg string) (start flip.Start, lowerBound strin
 	if diff.Sign() <= 0 {
 		return start, lowerBound, errFailedToParse
 	}
-	return flip.NewStartWithBigInt(m.clock.Now(), diff), lb.String(), nil
+	return flip.NewStartWithBigInt(m.clock.Now(), diff, nPlayersApprox), lb.String(), nil
 }
 
-func (m *FlipManager) parseSpecials(arg string) (start flip.Start, lowerBound string, shuffleItems []string, err error) {
+func (m *FlipManager) parseSpecials(arg string, nPlayersApprox int) (start flip.Start, lowerBound string, shuffleItems []string, err error) {
 	switch {
 	case arg == "cards":
-		start, shuffleItems, err = m.parseShuffle("2♠️,3♠️,4♠️,5♠️,6♠️,7♠️,8♠️,9♠️,10♠️,J♠️,Q♠️,K♠️,A♠️,2♣️,3♣️,4♣️,5♣️,6♣️,7♣️,8♣️,9♣️,10♣️,J♣️,Q♣️,K♣️,A♣️,2♦️,3♦️,4♦️,5♦️,6♦️,7♦️,8♦️,9♦️,10♦️,J♦️,Q♦️,K♦️,A♦️,2♥️,3♥️,4♥️,5♥️,6♥️,7♥️,8♥️,9♥️,10♥️,J♥️,Q♥️,K♥️,A♥️")
+		start, shuffleItems, err = m.parseShuffle("2♠️,3♠️,4♠️,5♠️,6♠️,7♠️,8♠️,9♠️,10♠️,J♠️,Q♠️,K♠️,A♠️,2♣️,3♣️,4♣️,5♣️,6♣️,7♣️,8♣️,9♣️,10♣️,J♣️,Q♣️,K♣️,A♣️,2♦️,3♦️,4♦️,5♦️,6♦️,7♦️,8♦️,9♦️,10♦️,J♦️,Q♦️,K♦️,A♦️,2♥️,3♥️,4♥️,5♥️,6♥️,7♥️,8♥️,9♥️,10♥️,J♥️,Q♥️,K♥️,A♥️", nPlayersApprox)
 		return start, "", shuffleItems, err
 	default:
 		return start, lowerBound, shuffleItems, errFailedToParse
 	}
 }
 
-func (m *FlipManager) startFromText(text string) (start flip.Start, lowerBound string, shuffleItems []string) {
+func (m *FlipManager) startFromText(text string, nPlayersApprox int) (start flip.Start, lowerBound string, shuffleItems []string) {
 	var err error
 	toks := strings.Split(strings.TrimRight(text, " "), " ")
 	if len(toks) == 1 {
-		return flip.NewStartWithBool(m.clock.Now()), "", nil
+		return flip.NewStartWithBool(m.clock.Now(), nPlayersApprox), "", nil
 	}
 	// Combine into one argument if there is more than one
 	arg := strings.Join(toks[1:], " ")
 	// Check for special flips
-	if start, lowerBound, shuffleItems, err = m.parseSpecials(arg); err == nil {
+	if start, lowerBound, shuffleItems, err = m.parseSpecials(arg, nPlayersApprox); err == nil {
 		return start, lowerBound, shuffleItems
 	}
 	// Check for /flip 20
-	if start, err = m.parseMultiDie(arg); err == nil {
+	if start, err = m.parseMultiDie(arg, nPlayersApprox); err == nil {
 		return start, "1", nil
 	}
 	// Check for /flip mikem,karenm,lisam
-	if start, shuffleItems, err = m.parseShuffle(arg); err == nil {
+	if start, shuffleItems, err = m.parseShuffle(arg, nPlayersApprox); err == nil {
 		return start, "", shuffleItems
 	}
 	// Check for /flip 2..8
-	if start, lowerBound, err = m.parseRange(arg); err == nil {
+	if start, lowerBound, err = m.parseRange(arg, nPlayersApprox); err == nil {
 		return start, lowerBound, nil
 	}
 	// Just shuffle the one unknown thing
-	return flip.NewStartWithShuffle(m.clock.Now(), 1), "", []string{arg}
+	return flip.NewStartWithShuffle(m.clock.Now(), 1, nPlayersApprox), "", []string{arg}
 }
 
 func (m *FlipManager) getHostMessageInfo(ctx context.Context, convID chat1.ConversationID) (res hostMessageInfo, err error) {
@@ -502,7 +502,7 @@ func (m *FlipManager) getHostMessageInfo(ctx context.Context, convID chat1.Conve
 
 func (m *FlipManager) DescribeFlipText(ctx context.Context, text string) string {
 	defer m.Trace(ctx, func() error { return nil }, "DescribeFlipText")()
-	start, lowerBound, shuffleItems := m.startFromText(text)
+	start, lowerBound, shuffleItems := m.startFromText(text, 0)
 	typ, err := start.Params.T()
 	if err != nil {
 		m.Debug(ctx, "DescribeFlipText: failed get start typ: %s", err)
@@ -568,6 +568,9 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 		return err
 	}
 
+	nPlayersApprox := len(hostConv.Conv.Metadata.AllList)
+	m.Debug(ctx, "StartFlip: generating parameters for %d players", nPlayersApprox)
+
 	// Preserve the ephemeral lifetime from the conv/message to the game
 	// conversation.
 	if elf, err := utils.EphemeralLifetimeFromConv(ctx, m.G(), hostConv.Conv); err != nil {
@@ -584,7 +587,7 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 	}
 
 	// Record metadata of the host message into the game thread as the first message
-	start, lowerBound, shuffleItems := m.startFromText(text)
+	start, lowerBound, shuffleItems := m.startFromText(text, nPlayersApprox)
 	infoBody, err := json.Marshal(hostMessageInfo{
 		ConvID:       hostConvID,
 		MsgID:        sendRes.MsgID,
