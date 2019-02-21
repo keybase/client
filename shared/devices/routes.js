@@ -48,8 +48,8 @@ export const newRoutes = {
   devicePage: {getScreen: () => require('./device-page/container').default},
   devicePaperKey: {getScreen: () => require('./paper-key/container').default},
   deviceRevoke: {getScreen: () => require('./device-revoke/container').default},
-  'settingsTabs:devicesTab': {getScreen: () => require('./container').default},
-  'tabs:devicesTab': {getScreen: () => require('./container').default},
+  'settingsTabs.devicesTab': {getScreen: () => require('./container').default},
+  'tabs.devicesTab': {getScreen: () => require('./container').default},
 }
 
 export const newModalRoutes = {}

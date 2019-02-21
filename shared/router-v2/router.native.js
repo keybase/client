@@ -38,7 +38,7 @@ const MainStackNavigatorPlain = createStackNavigator(Shim.shim(routes), {
     ...defaultNavigationOptions,
   }),
   headerMode,
-  initialRouteName: 'tabs:peopleTab',
+  initialRouteName: 'tabs.peopleTab',
   initialRouteParams: undefined,
 })
 class MainStackNavigator extends React.PureComponent<any> {

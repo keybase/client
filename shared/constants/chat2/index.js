@@ -133,7 +133,7 @@ export const isUserActivelyLookingAtThisThread = (
   if (flags.useNewRouter) {
     const routePath = Router2.getVisiblePath()
     chatThreadSelected =
-      routePath[routePath.length - 1]?.routeName === isMobile ? 'chatConversation' : 'tabs:chatTab'
+      routePath[routePath.length - 1]?.routeName === isMobile ? 'chatConversation' : 'tabs.chatTab'
   } else {
     const routePath = getPath(state.routeTree.routeState)
     if (isMobile) {

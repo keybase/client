@@ -150,7 +150,7 @@ export const newRoutes = {
   chatNewChat: {getScreen: () => require('../team-building/container').default},
   chatPaymentsConfirm: {getScreen: () => require('./payments/confirm/container').default},
   chatShowNewTeamDialog: {getScreen: () => require('./new-team-dialog-container').default},
-  'tabs:chatTab': {
+  'tabs.chatTab': {
     getScreen: () =>
       isMobile ? require('./inbox/container').default : require('./inbox-and-conversation-2.desktop').default,
   },
