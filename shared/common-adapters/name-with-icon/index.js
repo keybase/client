@@ -8,7 +8,7 @@ import Icon, {castPlatformStyles, type IconType} from '../icon'
 import Text, {type TextType} from '../text'
 import ConnectedUsernames from '../usernames/container'
 
-type Size = 'small' | 'default' | 'large'
+type Size = 'smaller' | 'small' | 'default' | 'large'
 
 // Exposed style props for the top-level container and box around metadata arbitrarily
 export type NameWithIconProps = {|
@@ -51,7 +51,7 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
       throw new Error('Can only use username or teamname in NameWithIcon; got both')
     }
 
-    const isAvatar = !!(this.props.username || this.props.teamname)
+    const isAvatar = !!(this.props.username || this.props.teamname) && !this.props.icon
     const commonHeight = Styles.isMobile ? 48 : 32
     const BoxComponent = this.props.onClick ? ClickableBox : Box
     const adapterProps = getAdapterProps(this.props.size || 'default', !!this.props.username)
@@ -227,6 +227,13 @@ const styles = Styles.styleSheetCreate({
 // Get props to pass to subcomponents (Text, Avatar, etc.)
 const getAdapterProps = (size: Size, isUser: boolean) => {
   switch (size) {
+    case 'smaller':
+      return {
+        iconSize: 48,
+        metaMargin: 6,
+        metaOneType: 'BodySmall',
+        titleType: 'BodySemibold',
+      }
     case 'small':
       return {
         iconSize: isUser ? 64 : 48,

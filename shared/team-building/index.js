@@ -3,7 +3,6 @@ import React from 'react'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
 import TeamBox from './team-box'
-import GoButton from './go-button'
 import ServiceTabBar from './service-tab-bar'
 import UserResult from './user-result'
 import flags from '../util/feature-flags'
@@ -55,19 +54,17 @@ class TeamBuilding extends React.PureComponent<Props, void> {
     const showRecs = props.showRecs
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true}>
-        <Kb.Box2 direction="horizontal" fullWidth={true}>
-          <TeamBox
-            onChangeText={props.onChangeText}
-            onDownArrowKeyDown={props.onDownArrowKeyDown}
-            onUpArrowKeyDown={props.onUpArrowKeyDown}
-            onEnterKeyDown={props.onEnterKeyDown}
-            onRemove={props.onRemove}
-            teamSoFar={props.teamSoFar}
-            onBackspace={props.onBackspace}
-            searchString={props.searchString}
-          />
-          {!!props.teamSoFar.length && !Styles.isMobile && <GoButton onClick={props.onFinishTeamBuilding} />}
-        </Kb.Box2>
+        <TeamBox
+          onChangeText={props.onChangeText}
+          onDownArrowKeyDown={props.onDownArrowKeyDown}
+          onUpArrowKeyDown={props.onUpArrowKeyDown}
+          onEnterKeyDown={props.onEnterKeyDown}
+          onFinishTeamBuilding={props.onFinishTeamBuilding}
+          onRemove={props.onRemove}
+          teamSoFar={props.teamSoFar}
+          onBackspace={props.onBackspace}
+          searchString={props.searchString}
+        />
         {!!props.teamSoFar.length && flags.newTeamBuildingForChatAllowMakeTeam && (
           <Kb.Text type="BodySmall">
             Add up to 14 more people. Need more?
@@ -152,9 +149,6 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: {
       height: 434,
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-      paddingTop: Styles.globalMargins.small,
       width: 470,
     },
   }),

@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../common-adapters/index'
 import * as Styles from '../styles'
+import DesktopStyle from '../common-adapters/desktop-style'
 import {serviceIdToIconFont, serviceIdToAccentColor} from './shared'
 import type {ServiceIdWithContact} from '../constants/types/team-building'
 
@@ -14,7 +15,13 @@ export type Props = {
 
 const KeybaseUserBubble = (props: Props) => (
   <Kb.Box2 className="user" direction="horizontal" style={styles.bubble}>
-    <Kb.Avatar size={bubbleSize} username={props.username} />
+    <Kb.ConnectedNameWithIcon
+      colorFollowing={true}
+      horizontal={false}
+      icon={props.service !== 'keybase' ? serviceIdToIconFont(props.service) : undefined}
+      size="smaller"
+      username={props.username}
+    />
   </Kb.Box2>
 )
 
@@ -27,12 +34,29 @@ const GeneralServiceBubble = (props: Props) => (
   />
 )
 
+const DesktopBubble = (props: Props) => {
+  const realCSS = `
+    .hoverContainer { position: relative; }
+    .hoverContainer .hoverComponent { visibility: hidden; position: absolute; top: 0; right: 0; }
+    .hoverContainer:hover .hoverComponent { visibility: visible; }
+    `
+  return (
+    <Kb.Box2 direction="vertical" className="hoverContainer">
+      <DesktopStyle style={realCSS} />
+      <KeybaseUserBubble {...props} />
+      <Kb.Box2 direction="horizontal" className="hoverComponent">
+        <RemoveBubble prettyName={props.prettyName} onRemove={props.onRemove} />
+      </Kb.Box2>
+    </Kb.Box2>
+  )
+}
+
 const RemoveBubble = ({onRemove, prettyName}: {onRemove: () => void, prettyName: string}) => (
   <Kb.WithTooltip text={prettyName} position={'top center'} containerStyle={styles.remove} className="remove">
-    <Kb.ClickableBox onClick={() => onRemove()} style={styles.removeBubbleTextAlignCenter}>
+    <Kb.ClickableBox onClick={() => onRemove()} style={styles.removeBubbleTextAlignRight}>
       <Kb.Icon
         type={'iconfont-close'}
-        color={Styles.globalColors.white}
+        color={Styles.globalColors.black_50_on_white}
         fontSize={16}
         style={Kb.iconCastPlatformStyles(styles.removeIcon)}
       />
@@ -88,23 +112,21 @@ const UserBubble = (props: Props) => {
   const NormalComponent = () =>
     props.service === 'keybase' ? <KeybaseUserBubble {...props} /> : <GeneralServiceBubble {...props} />
   const AlternateComponent = () => <RemoveBubble prettyName={props.prettyName} onRemove={props.onRemove} />
-  const Component = Styles.isMobile
-    ? SwapOnClickHoc(NormalComponent, AlternateComponent)
-    : Kb.HoverHoc(NormalComponent, AlternateComponent)
+  const Component = SwapOnClickHoc(NormalComponent, AlternateComponent)
 
-  return <Component containerStyle={styles.container} />
+  return Styles.isMobile ? <Component containerStyle={styles.container} /> : <DesktopBubble {...props} />
 }
 
 const bubbleSize = 32
+const removeSize = 16
 
 const styles = Styles.styleSheetCreate({
   bubble: Styles.platformStyles({
-    common: {
-      height: bubbleSize,
-      width: bubbleSize,
+    common: {},
+    isElectron: {
+      flexShrink: 1,
     },
   }),
-
   container: Styles.platformStyles({
     common: {
       marginBottom: Styles.globalMargins.xtiny,
@@ -112,7 +134,6 @@ const styles = Styles.styleSheetCreate({
       marginTop: Styles.globalMargins.xtiny,
     },
   }),
-
   generalService: Styles.platformStyles({
     isElectron: {
       lineHeight: '35px',
@@ -121,17 +142,17 @@ const styles = Styles.styleSheetCreate({
 
   remove: Styles.platformStyles({
     common: {
-      backgroundColor: Styles.globalColors.red,
+      backgroundColor: Styles.globalColors.white,
       borderRadius: 100,
-      height: bubbleSize,
-      width: bubbleSize,
+      height: removeSize,
+      width: removeSize,
     },
     isElectron: {
       cursor: 'pointer',
     },
   }),
 
-  removeBubbleTextAlignCenter: Styles.platformStyles({
+  removeBubbleTextAlignRight: Styles.platformStyles({
     isElectron: {
       textAlign: 'center',
     },
@@ -143,10 +164,10 @@ const styles = Styles.styleSheetCreate({
 
   removeIcon: Styles.platformStyles({
     isElectron: {
-      lineHeight: '34px',
+      lineHeight: '16px',
     },
     isMobile: {
-      lineHeight: 34,
+      lineHeight: removeSize,
     },
   }),
 })

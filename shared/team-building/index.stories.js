@@ -243,7 +243,35 @@ const load = () => {
         />
       </OutlineWrapper>
     ))
-
+    .add('Team Building - No search string or results', () => (
+      <OutlineWrapper style={wrapperStyle}>
+        <TeamBuilding
+          searchString=""
+          selectedService="keybase"
+          onChangeService={Sb.action('onChangeService')}
+          onFinishTeamBuilding={Sb.action('onFinishTeamBuilding')}
+          onChangeText={Sb.action('onChangeText')}
+          onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
+          onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
+          onEnterKeyDown={Sb.action('onEnterKeyDown')}
+          onBackspace={Sb.action('onBackspace')}
+          onRemove={Sb.action('onRemove')}
+          onMakeItATeam={Sb.action('onMakeItATeam')}
+          showRecs={false}
+          recommendations={[]}
+          fetchUserRecs={() => {}}
+          onSearchForMore={() => {
+            Sb.action('onSearchForMore')
+          }}
+          teamSoFar={[]}
+          searchResults={[]}
+          serviceResultCount={{}}
+          showServiceResultCount={false}
+          onAdd={Sb.action('onAdd')}
+          highlightedIndex={1}
+        />
+      </OutlineWrapper>
+    ))
     .add('Team Building - One line of users', () => (
       <OutlineWrapper style={wrapperStyle}>
         <TeamBuilding
@@ -466,6 +494,8 @@ const load = () => {
 
     .add('Input', () => (
       <Input
+        hasMembers={false}
+        placeholder="Type in some input inside"
         searchString=""
         onChangeText={Sb.action('onChangeText')}
         onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
@@ -481,6 +511,7 @@ const load = () => {
         onDownArrowKeyDown={Sb.action('onDownArrowKeyDown')}
         onUpArrowKeyDown={Sb.action('onUpArrowKeyDown')}
         onEnterKeyDown={Sb.action('onEnterKeyDown')}
+        onFinishTeamBuilding={Sb.action('onFinishTeamBuilding')}
         onBackspace={Sb.action('onBackspace')}
         onRemove={Sb.action('onRemove')}
         teamSoFar={[

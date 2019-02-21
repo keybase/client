@@ -148,6 +148,8 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: {
       minHeight: 30,
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small,
     },
     isMobile: {
       height: 58,
