@@ -1,8 +1,8 @@
 // @flow
 import * as React from 'react'
-import {Box, ButtonBar, StandardScreen, WaitingButton} from '../../common-adapters'
+import {Banner, Box, ButtonBar, StandardScreen, WaitingButton} from '../../common-adapters'
 import {NativeDimensions, NativeFastImage, ZoomableBox} from '../../common-adapters/mobile.native'
-import {collapseStyles, globalColors, globalMargins, styleSheetCreate} from '../../styles'
+import {collapseStyles, globalColors, globalMargins, padding, styleSheetCreate} from '../../styles'
 import {isIOS} from '../../constants/platform'
 import type {Props} from '.'
 
@@ -74,8 +74,10 @@ class AvatarUpload extends React.Component<Props> {
       <StandardScreen
         onCancel={this.props.onClose}
         scrollEnabled={false}
+        style={styles.standardScreen}
         title={isIOS ? 'Zoom and pan' : 'Upload avatar'}
       >
+        {!!this.props.error && <Banner text={this.props.error} color="red" />}
         <Box style={styles.container}>
           <Box
             style={
@@ -121,7 +123,7 @@ class AvatarUpload extends React.Component<Props> {
               onClick={this._onSave}
               style={styles.button}
               type="Primary"
-              waitingKey={null}
+              waitingKey={this.props.waitingKey}
             />
           </ButtonBar>
         </Box>
@@ -136,9 +138,11 @@ const styles = styleSheetCreate({
     width: '100%',
   },
   container: {
+    ...padding(0, globalMargins.medium),
     marginBottom: globalMargins.small,
     marginTop: globalMargins.small,
   },
+  standardScreen: {...padding(0)},
   zoomContainer: {
     backgroundColor: globalColors.lightGrey2,
     height: AVATAR_SIZE,
