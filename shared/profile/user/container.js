@@ -79,7 +79,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onEditAvatar: stateProps._userIsYou ? dispatchProps._onEditAvatar : null,
   onReload: () => dispatchProps._onReload(stateProps.username, stateProps._userIsYou),
   onSearch: dispatchProps.onSearch,
-  reason: 'Some of HASHDLFHSLFHSDLFHDSHLFS proofs have changed sinc eyou lsat tracked them', // stateProps.reason,
+  reason: stateProps.reason,
   state: stateProps.state,
   suggestionKeys: stateProps._suggestionKeys
     ? stateProps._suggestionKeys.map(s => s.assertionKey).toArray()
