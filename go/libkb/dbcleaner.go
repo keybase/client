@@ -122,7 +122,7 @@ func (c *levelDbCleaner) monitorAppState() {
 				c.log(context.TODO(), "monitorAppState: attempting clean")
 				c.clean(ctx, false)
 			default:
-				c.log(context.TODO(), "monitorAppState: attempting cancel")
+				c.log(context.TODO(), "monitorAppState: attempting cancel, state: %v", state)
 				c.Lock()
 				if c.cancelCh != nil {
 					close(c.cancelCh)
@@ -212,10 +212,10 @@ func (c *levelDbCleaner) clean(ctx context.Context, force bool) (err error) {
 	for i := 0; i < 100; i++ {
 		select {
 		case <-c.cancelCh:
-			c.log(ctx, "aborting clean, canceled")
+			c.log(ctx, "aborting clean, %d runs, canceled", i)
 			break
 		case <-c.stopCh:
-			c.log(ctx, "aborting clean, canceled")
+			c.log(ctx, "aborting clean %d runs, stopped", i)
 			break
 		default:
 		}
@@ -229,7 +229,7 @@ func (c *levelDbCleaner) clean(ctx context.Context, force bool) (err error) {
 
 		if i%10 == 0 {
 			c.log(ctx, "purged %d items, dbSize: %v, lastKey:%s, ran in: %v",
-				totalNumPurged, humanize.Bytes(dbSize), key, c.G().GetClock().Now().Sub(start))
+				numPurged, humanize.Bytes(dbSize), key, c.G().GetClock().Now().Sub(start))
 		}
 		// check if we are within limits
 		dbSize, err = c.getDbSize(ctx)
