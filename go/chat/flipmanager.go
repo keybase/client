@@ -639,6 +639,10 @@ func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, boxedMsg chat1
 	if err != nil {
 		m.Debug(ctx, "MaybeInjectFlipMessage: failed to unbox: %s", err)
 	}
+	if err := storage.New(m.G(), nil).SetMaxMsgID(ctx, convID, uid, msg.GetMessageID()); err != nil {
+		m.Debug(ctx, "MaybeInjectFlipMessage: failed to write max msgid: %s", err)
+		// charge forward from this error
+	}
 	// Ignore anything from the current device
 	sender := flip.UserDevice{
 		U: msg.Valid().ClientHeader.Sender,
