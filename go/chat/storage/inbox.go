@@ -378,7 +378,7 @@ func (i *Inbox) MergeLocalMetadata(ctx context.Context, uid gregor1.UID, convs [
 	for index, rc := range ibox.Conversations {
 		if convLocal, ok := convMap[rc.GetConvID().String()]; ok {
 			// Don't write this out for error convos
-			if convLocal.Error != nil {
+			if convLocal.Error != nil || convLocal.GetTopicType() != chat1.TopicType_CHAT {
 				continue
 			}
 			topicName := convLocal.Info.TopicName

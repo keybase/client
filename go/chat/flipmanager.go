@@ -635,11 +635,6 @@ func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, msg chat1.Mess
 func (m *FlipManager) loadGame(ctx context.Context, job loadGameJob) (err error) {
 	defer m.Trace(ctx, func() error { return err }, "loadGame: convID: %s gameID: %s",
 		job.convID, job.gameID)()
-	// Make sure we aren't current playing this game, and bail out if we are
-	if m.dealer.IsGameActive(ctx, job.convID, job.gameID) {
-		m.Debug(ctx, "loadGame: game is currently active, bailing out")
-		return nil
-	}
 	// Attempt to find the conversation for the game ID
 	conv, err := utils.GetVerifiedConv(ctx, m.G(), job.uid, job.convID,
 		types.InboxSourceDataSourceAll)
@@ -697,6 +692,11 @@ func (m *FlipManager) loadGame(ctx context.Context, job loadGameJob) (err error)
 	summary, err := flip.Replay(ctx, m, history)
 	if err != nil {
 		m.Debug(ctx, "loadGame: failed to replay history: %s", err)
+		// Make sure we aren't current playing this game, and bail out if we are
+		if m.dealer.IsGameActive(ctx, job.convID, job.gameID) {
+			m.Debug(ctx, "loadGame: game is currently active, bailing out")
+			return nil
+		}
 		summary = &flip.GameSummary{
 			Err: fmt.Errorf("Replay failed: %s", err),
 		}
