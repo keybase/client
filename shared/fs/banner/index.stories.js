@@ -29,7 +29,7 @@ export const bannerProvider = {
   ResetBanner: ({path}: {path: Types.Path}) => ({
     ...resetBannerCommon,
     isUserReset: Types.pathToString(path) === '/keybase/private/me,reset',
-    resetParticipants: [],
+    resetParticipants: Types.pathToString(path).includes('reset') ? ['foo'] : [],
   }),
 }
 
@@ -40,11 +40,9 @@ const provider = Sb.createPropProviderWithCommon({
 export default () => {
   Sb.storiesOf('Files/Banners', module)
     .addDecorator(provider)
-    .add('ResetBanner - self', () => (
-      <ResetBanner isUserReset={true} resetParticipants={['reset1']} {...resetBannerCommon} />
-    ))
+    .addDecorator(Sb.scrollViewDecorator)
     .add('ResetBanner - other', () => (
-      <ResetBanner isUserReset={false} resetParticipants={['reset1']} {...resetBannerCommon} />
+      <ResetBanner isUserReset={false} resetParticipants={['reset1', 'reset3']} {...resetBannerCommon} />
     ))
     .add('FileUIBanner - fuse', () => (
       <FileUIBanner

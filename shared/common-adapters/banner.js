@@ -16,6 +16,7 @@ type Props = {
   inline?: boolean,
   onClose?: () => void,
   text: string,
+  style?: ?Styles.StylesCrossPlatform,
 }
 
 const Banner = (props: Props) => (
@@ -26,6 +27,7 @@ const Banner = (props: Props) => (
       styles.container,
       colorToBackgroundColorStyles[props.color],
       props.inline && styles.containerInline,
+      props.style,
     ])}
   >
     <Box2 key="textBox" direction="horizontal" style={styles.textContainer} centerChildren={true}>

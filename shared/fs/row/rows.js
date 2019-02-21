@@ -19,6 +19,7 @@ import {memoize} from '../../util/memoize'
 type Props = {
   destinationPickerIndex?: number,
   items: Array<RowTypes.RowItemWithKey>,
+  isEmpty: boolean,
   path: Types.Path,
   routePath: I.List<string>,
 }
@@ -129,25 +130,28 @@ class Rows extends React.PureComponent<Props> {
   })
 
   render() {
-    const content =
-      this.props.items && this.props.items.length ? (
-        <Kb.BoxGrow>
-          <Kb.List2
-            key={this._getListKey(this.props.items)}
-            items={this.props.items}
-            bounces={true}
-            itemHeight={{
-              getItemLayout: this._getItemLayout,
-              type: 'variable',
-            }}
-            renderItem={this._rowRenderer}
-          />
-        </Kb.BoxGrow>
-      ) : (
+    const content = this.props.isEmpty ? (
+      <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
+        {// The folder is empty so these should all be header rows.
+        this.props.items.map(item => item.rowType === 'header' && item.node)}
         <Kb.Box2 direction="vertical" style={styles.emptyContainer} centerChildren={true}>
           <Kb.Text type="BodySmall">This folder is empty.</Kb.Text>
         </Kb.Box2>
-      )
+      </Kb.Box2>
+    ) : (
+      <Kb.BoxGrow>
+        <Kb.List2
+          key={this._getListKey(this.props.items)}
+          items={this.props.items}
+          bounces={true}
+          itemHeight={{
+            getItemLayout: this._getItemLayout,
+            type: 'variable',
+          }}
+          renderItem={this._rowRenderer}
+        />
+      </Kb.BoxGrow>
+    )
     return (
       <>
         <LoadFilesWhenNeeded

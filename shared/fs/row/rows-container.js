@@ -13,6 +13,7 @@ import {
   type SortableRowItem,
 } from './sort'
 import Rows from './rows'
+import {asRows as sortBarAsRows} from '../sortbar/container'
 
 type OwnProps = {|
   path: Types.Path, // path to the parent folder containering the rows
@@ -181,26 +182,32 @@ const mapStateToProps = (state, {path}) => ({
 
 const mapDispatchToProps = dispatch => ({})
 
-// $FlowIssue
-const mergeProps = (s, d, o: OwnProps) => ({
-  destinationPickerIndex: o.destinationPickerIndex,
-  items: [
-    ...(o.headerRows || []),
-    ...getNormalRowItemsFromStateProps(s, o.path),
-    // If we are in the destination picker, inject two empty rows so when
-    // user scrolls to the bottom nothing is blocked by the
-    // semi-transparent footer.
-    //
-    // TODO: add `footerRows` and inject these from destination-picker, so that
-    // Rows componenet don't need to worry about whether it's in
-    // destinationPicker mode or not.
-    ...(!isMobile && typeof o.destinationPickerIndex === 'number'
-      ? [{key: 'empty:0', rowType: 'empty'}, {key: 'empty:1', rowType: 'empty'}]
-      : []),
-  ],
-  path: o.path,
-  routePath: o.routePath,
-})
+const mergeProps = (s, d, o: OwnProps) => {
+  const normalRowItems = getNormalRowItemsFromStateProps(s, o.path)
+  const isEmpty = !normalRowItems.length
+  return {
+    destinationPickerIndex: o.destinationPickerIndex,
+    isEmpty,
+    // $FlowIssue
+    items: [
+      ...(o.headerRows || []),
+      ...(isEmpty ? [] : sortBarAsRows(o.path)), // don't show sort bar in empty folders
+      ...normalRowItems,
+      // If we are in the destination picker, inject two empty rows so when
+      // user scrolls to the bottom nothing is blocked by the
+      // semi-transparent footer.
+      //
+      // TODO: add `footerRows` and inject these from destination-picker, so that
+      // Rows componenet don't need to worry about whether it's in
+      // destinationPicker mode or not.
+      ...(!isMobile && typeof o.destinationPickerIndex === 'number'
+        ? [{key: 'empty:0', rowType: 'empty'}, {key: 'empty:1', rowType: 'empty'}]
+        : []),
+    ],
+    path: o.path,
+    routePath: o.routePath,
+  }
+}
 
 export default namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
