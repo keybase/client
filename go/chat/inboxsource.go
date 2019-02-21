@@ -429,6 +429,11 @@ func (s *RemoteInboxSource) UpgradeKBFSToImpteam(ctx context.Context, uid gregor
 	return conv, err
 }
 
+func (s *RemoteInboxSource) UpdateInboxVersion(ctx context.Context, uid gregor1.UID,
+	vers chat1.InboxVers) error {
+	return nil
+}
+
 type HybridInboxSource struct {
 	sync.Mutex
 	globals.Contextified
@@ -999,6 +1004,11 @@ func (s *HybridInboxSource) SubteamRename(ctx context.Context, uid gregor1.UID, 
 		return nil, nil
 	}
 	return convs, nil
+}
+
+func (s *HybridInboxSource) UpdateInboxVersion(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers) (err error) {
+	defer s.Trace(ctx, func() error { return err }, "UpdateInboxVersion")()
+	return s.createInbox().UpdateInboxVersion(ctx, uid, vers)
 }
 
 func (s *HybridInboxSource) modConversation(ctx context.Context, debugLabel string, uid gregor1.UID, convID chat1.ConversationID,
