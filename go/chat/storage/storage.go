@@ -376,6 +376,7 @@ type FetchResult struct {
 // Merge requires msgs to be sorted by descending message ID
 func (s *Storage) Merge(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, msgs []chat1.MessageUnboxed) (res MergeResult, err Error) {
+	defer s.Trace(ctx, func() error { return err }, "Merge")()
 	return s.MergeHelper(ctx, convID, uid, msgs, nil)
 }
 
