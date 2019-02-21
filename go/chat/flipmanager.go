@@ -310,10 +310,16 @@ func (m *FlipManager) handleSummaryUpdate(ctx context.Context, gameID chat1.Flip
 	update *flip.GameSummary, convID chat1.ConversationID, force bool) {
 	defer m.queueDirtyGameID(gameID, force)
 	if update.Err != nil {
+		var parts []chat1.UICoinFlipParticipant
+		oldGame, ok := m.games.Get(gameID.String())
+		if ok {
+			parts = oldGame.(chat1.UICoinFlipStatus).Participants
+		}
 		m.games.Add(gameID.String(), chat1.UICoinFlipStatus{
 			GameID:       gameID.String(),
 			Phase:        chat1.UICoinFlipPhase_ERROR,
 			ProgressText: fmt.Sprintf("Complete: %s", update.Err),
+			Participants: parts,
 		})
 		return
 	}
