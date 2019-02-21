@@ -188,7 +188,7 @@ func TestFlipManagerParseEdges(t *testing.T) {
 	g := globals.NewContext(tc.G, &globals.ChatContext{})
 	fm := NewFlipManager(g, nil)
 	testCase := func(text string, ftyp flip.FlipType, lowerBound string, shuffleItems []string) {
-		start, lb, si := fm.startFromText(text)
+		start, lb, si := fm.startFromText(text, 3)
 		ft, err := start.Params.T()
 		require.NoError(t, err)
 		require.Equal(t, ftyp, ft)
