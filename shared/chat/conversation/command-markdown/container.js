@@ -7,6 +7,8 @@ type OwnProps = {|conversationIDKey: Types.ConversationIDKey|}
 
 const mapStateToProps = (state, ownProps: OwnProps) => ({
   text: state.chat2.commandMarkdownMap.get(ownProps.conversationIDKey, ''),
+  title: `*/flip* [options]
+Flip a cryptographic coin`,
 })
 
 export default namedConnect<OwnProps, _, _, _, _>(
