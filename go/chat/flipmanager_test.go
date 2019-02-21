@@ -19,7 +19,6 @@ import (
 func consumeFlipToResult(t *testing.T, ui *kbtest.ChatUI, listener *serverChatListener, numUsers int) string {
 	timeout := 20 * time.Second
 	for {
-		consumeNewMsgRemote(t, listener, chat1.MessageType_FLIP)
 		select {
 		case updates := <-ui.CoinFlipUpdates:
 			require.Equal(t, 1, len(updates))
