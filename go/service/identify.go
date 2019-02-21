@@ -30,12 +30,14 @@ type RemoteIdentifyUI struct {
 type IdentifyHandler struct {
 	*BaseHandler
 	libkb.Contextified
+	service *Service
 }
 
-func NewIdentifyHandler(xp rpc.Transporter, g *libkb.GlobalContext) *IdentifyHandler {
+func NewIdentifyHandler(xp rpc.Transporter, g *libkb.GlobalContext, s *Service) *IdentifyHandler {
 	return &IdentifyHandler{
 		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
+		service : s,
 	}
 }
 
@@ -145,10 +147,18 @@ func (h *IdentifyHandler) identifyLiteUser(netCtx context.Context, arg keybase1.
 	return res, err
 }
 
-func (h *IdentifyHandler) Resolve3(ctx context.Context, arg string) (u keybase1.UserOrTeamLite, err error) {
-	ctx = libkb.WithLogTag(ctx, "RSLV")
-	defer h.G().CTrace(ctx, fmt.Sprintf("IdentifyHandler#Resolve3(%s)", arg), func() error { return err })()
-	return h.resolveUserOrTeam(ctx, arg)
+func (h *IdentifyHandler) Resolve3(ctx context.Context, arg keybase1.Resolve3Arg) (ret keybase1.UserOrTeamLite, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("RSLV")
+	defer mctx.CTrace(fmt.Sprintf("IdentifyHandler#Resolve3(%+v)", arg), func() error { return err })()
+	retp := &ret
+	err = h.service.offlineRPCCache.Serve(mctx, arg.Oa, "identify.resolve3", false, arg, retp, func(mctx libkb.MetaContext) (interface{}, error) {
+		tmp, err := h.resolveUserOrTeam(mctx.Ctx(), arg.Assertion)
+		if err == nil {
+			*retp = tmp
+		}
+		return tmp, err
+	})
+	return ret, err
 }
 
 func (h *IdentifyHandler) resolveUserOrTeam(ctx context.Context, arg string) (u keybase1.UserOrTeamLite, err error) {

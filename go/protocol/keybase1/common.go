@@ -996,6 +996,32 @@ func (o SizedImage) DeepCopy() SizedImage {
 	}
 }
 
+type OfflineAvailability int
+
+const (
+	OfflineAvailability_NONE        OfflineAvailability = 0
+	OfflineAvailability_BEST_EFFORT OfflineAvailability = 1
+)
+
+func (o OfflineAvailability) DeepCopy() OfflineAvailability { return o }
+
+var OfflineAvailabilityMap = map[string]OfflineAvailability{
+	"NONE":        0,
+	"BEST_EFFORT": 1,
+}
+
+var OfflineAvailabilityRevMap = map[OfflineAvailability]string{
+	0: "NONE",
+	1: "BEST_EFFORT",
+}
+
+func (e OfflineAvailability) String() string {
+	if v, ok := OfflineAvailabilityRevMap[e]; ok {
+		return v
+	}
+	return ""
+}
+
 type CommonInterface interface {
 }
 

@@ -794,6 +794,14 @@
           "name": "width"
         }
       ]
+    },
+    {
+      "type": "enum",
+      "name": "OfflineAvailability",
+      "symbols": [
+        "NONE_0",
+        "BEST_EFFORT_1"
+      ]
     }
   ],
   "messages": {},
