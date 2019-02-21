@@ -11,28 +11,28 @@ import {constantsStatusCode} from '../../constants/types/rpc-gen'
 type Props = {
   error: string,
   inlineError: ?RPCError,
-  onSubmit: (usernameOrEmail: string) => void,
   onBack: () => void,
+  onGoToSignup: () => void,
+  onSubmit: (usernameOrEmail: string) => void,
+  setUsernameOrEmail: (text: string) => void,
   submittedUsernameOrEmail: string,
   usernameOrEmail: string,
-  setUsernameOrEmail: (text: string) => void,
 }
 
-const InlineError = (props: {inlineError: RPCError}) => {
-  console.warn('in inlineError', props.inlineError, props.inlineError.desc)
-  return props.inlineError.code === constantsStatusCode.scnotfound ? (
-    <Kb.Box2 direction="horizontal">
-      <Kb.Text type="BodySmallError">
-        The username or email you provided doesn't exist on Keybase. Would you like to
+const InlineError = (props: {inlineError: RPCError, onGoToSignup: () => void}) =>
+  props.inlineError.code === constantsStatusCode.scnotfound ? (
+    <Kb.Text type="BodySmallError">
+      The username or email you provided doesn't exist on Keybase. (Would you like to{' '}
+      <Kb.Text onClick={props.onGoToSignup} style={styles.inlineErrorText} type="BodySmallPrimaryLink">
+        sign up for a new account
       </Kb.Text>
-      <Kb.Text type="BodySmallPrimaryLink">sign up for a new account?</Kb.Text>
-    </Kb.Box2>
+      ?)
+    </Kb.Text>
   ) : (
     <Kb.Text type="BodySmallError" style={{color: Styles.globalColors.red}}>
       {props.inlineError.desc}
     </Kb.Text>
   )
-}
 
 const UsernameOrEmail = (props: Props) => (
   <Container style={styles.container} outerStyle={styles.outerStyle} onBack={() => props.onBack()}>
@@ -42,11 +42,17 @@ const UsernameOrEmail = (props: Props) => (
         style={styles.input}
         hintText="Username or email"
         errorText={props.submittedUsernameOrEmail === props.usernameOrEmail ? props.error : ''}
+        errorTextComponent={
+          props.submittedUsernameOrEmail === props.usernameOrEmail && props.inlineError ? (
+            <InlineError inlineError={props.inlineError} onGoToSignup={props.onGoToSignup} />
+          ) : (
+            undefined
+          )
+        }
         onEnterKeyDown={() => props.onSubmit(props.usernameOrEmail)}
         onChangeText={text => props.setUsernameOrEmail(text)}
         value={props.usernameOrEmail}
       />
-      {props.inlineError && <InlineError inlineError={props.inlineError} />}
       <Kb.WaitingButton
         label="Continue"
         type="Primary"
@@ -78,6 +84,17 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       alignItems: 'center',
       justifyContent: 'center',
+    },
+  }),
+  inlineErrorText: Styles.platformStyles({
+    common: {
+      color: Styles.globalColors.red,
+    },
+    isElectron: {
+      textDecoration: 'underline',
+    },
+    isMobile: {
+      textDecorationLine: 'underline',
     },
   }),
   input: Styles.platformStyles({

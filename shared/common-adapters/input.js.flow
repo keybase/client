@@ -1,5 +1,5 @@
 // @flow
-import {Component} from 'react'
+import * as React from 'react'
 import {type StylesCrossPlatform} from '../styles'
 import {type TextType} from './text'
 
@@ -29,6 +29,7 @@ export type Props = {
   editable?: boolean,
   errorStyle?: StylesCrossPlatform,
   errorText?: ?string,
+  errorTextComponent?: React.Element<any>,
   floatingHintTextOverride?: ?string, // if undefined will use hintText. Use this to override hintText
   hideUnderline?: boolean,
   hintText?: ?string,
@@ -82,7 +83,7 @@ export type TextInfo = {
   selection: Selection,
 }
 
-declare export default class Input extends Component<Props> {
+declare export default class Input extends React.Component<Props> {
   blur: () => void;
   focus: () => void;
   select: () => void;

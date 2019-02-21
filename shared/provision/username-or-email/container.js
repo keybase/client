@@ -1,5 +1,6 @@
 // @flow
 import * as ProvisionGen from '../../actions/provision-gen'
+import * as SignupGen from '../../actions/signup-gen'
 import UsernameOrEmail from '.'
 import {compose, connect, safeSubmit, withStateHandlers} from '../../util/container'
 import {type RouteProps} from '../../route-tree/render-route'
@@ -15,6 +16,7 @@ const mapStateToProps = state => ({
 
 const dispatchToProps = (dispatch, ownProps: OwnProps) => ({
   onBack: () => dispatch(ownProps.navigateUp()),
+  onGoToSignup: () => dispatch(SignupGen.createRequestAutoInvite()),
   onSubmit: (usernameOrEmail: string) =>
     dispatch(ProvisionGen.createSubmitUsernameOrEmail({usernameOrEmail})),
 })
