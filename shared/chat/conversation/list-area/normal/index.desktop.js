@@ -108,7 +108,9 @@ class Thread extends React.PureComponent<Props, State> {
   _scrollDown = () => {
     const list = this._listRef.current
     if (list) {
-      this._logScrollTop(list, '_scrollDown', () => {
+      this._logAll(list, '_scrollDown', () => {
+        // User-driven scroll event, so clear ignore count.
+        this._ignoreScrollRefCount = 0
         list.scrollTop += list.clientHeight
       })
     }
@@ -117,7 +119,9 @@ class Thread extends React.PureComponent<Props, State> {
   _scrollUp = () => {
     const list = this._listRef.current
     if (list) {
-      this._logScrollTop(list, '_scrollUp', () => {
+      this._logAll(list, '_scrollUp', () => {
+        // User-driven scroll event, so clear ignore count.
+        this._ignoreScrollRefCount = 0
         list.scrollTop -= list.clientHeight
       })
     }
