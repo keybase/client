@@ -2,6 +2,7 @@ package systests
 
 import (
 	"testing"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -606,9 +607,6 @@ func TestTeamReAddAfterResetAdminOwnerPukless(t *testing.T) {
 // pukful - re-add the user after they get a puk
 // adminOwner - an admin is re-adding an owner.
 func testTeamReAddAfterReset(t *testing.T, pukful, adminOwner bool) {
-	if !pukful {
-		t.Skip()
-	}
 	ctx := newSMUContext(t)
 	defer ctx.cleanup()
 
@@ -635,6 +633,7 @@ func testTeamReAddAfterReset(t *testing.T, pukful, adminOwner bool) {
 	divDebug(ctx, "Reset bob (%s)", bob.username)
 
 	if pukful {
+		// Bob gets a puk BEFORE being re-added.
 		bob.loginAfterReset(10)
 		divDebug(ctx, "Bob logged in after reset")
 	}
@@ -649,6 +648,7 @@ func testTeamReAddAfterReset(t *testing.T, pukful, adminOwner bool) {
 	require.NoError(t, err)
 
 	if !pukful {
+		// Bob gets a puk AFTER being re-added.
 		bob.loginAfterReset(10)
 		divDebug(ctx, "Bob logged in after reset")
 	}
@@ -660,11 +660,30 @@ func testTeamReAddAfterReset(t *testing.T, pukful, adminOwner bool) {
 		expectedRole = keybase1.TeamRole_ADMIN
 	}
 
-	G := ann.getPrimaryGlobalContext()
-	teams.NewTeamLoaderAndInstall(G)
-	role, err := teams.MemberRole(context.TODO(), G, team.name, bob.username)
-	require.NoError(t, err)
-	require.Equal(t, expectedRole, role, "expected role")
+	pollFn := func(_ int) bool {
+		G := ann.getPrimaryGlobalContext()
+		teams.NewTeamLoaderAndInstall(G)
+		role, err := teams.MemberRole(context.Background(), G, team.name, bob.username)
+		require.NoError(t, err)
+		if role == keybase1.TeamRole_NONE {
+			return false
+		}
+		if role == expectedRole {
+			return true
+		}
+		require.FailNowf(t, "unexpected role", "got %v on the hunt for %v", role, expectedRole)
+		return false
+	}
+
+	if pukful {
+		// Bob should have been synchronously made a cyrptomember by re-add.
+		require.Equal(t, true, pollFn(0))
+	} else {
+		// A background task should upgrade bob from an invite to a cryptomember.
+		pollTime := 10 * time.Second
+		pollFor(t, "bob to be upgraded from invite to cryptomember",
+			pollTime, ann.getPrimaryGlobalContext(), pollFn)
+	}
 
 	bob.readChats(team, 1)
 }
