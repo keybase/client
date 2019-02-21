@@ -47,12 +47,12 @@ func levelDbPut(ops levelDBOps, cleaner *levelDbCleaner, id DbKey, aliases []DbK
 
 	batch := new(leveldb.Batch)
 	batch.Put(idb, value)
-	keys := [][]byte{}
+	keys := make([][]byte, len(aliases))
 	keys = append(keys, idb)
-	for _, alias := range aliases {
+	for i, alias := range aliases {
 		aliasKey := alias.ToBytes(levelDbTableLo)
 		batch.Put(aliasKey, idb)
-		keys = append(keys, aliasKey)
+		keys[i] = aliasKey
 	}
 
 	if err := ops.Write(batch, nil); err != nil {

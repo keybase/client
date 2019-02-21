@@ -47,7 +47,6 @@ func keybaseExit(exitCode int) {
 }
 
 func main() {
-
 	// Preserve non-critical errors that happen very early during
 	// startup, where logging is not set up yet, to be printed later
 	// when logging is functioning.

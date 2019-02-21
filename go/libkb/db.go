@@ -82,8 +82,9 @@ func DbKeyNotificationDismiss(prefix string, username NormalizedUsername) DbKey 
 	}
 }
 
-// PermDbKeys are ignored by the leveldb cleaner and always persisted to disk.
-// Ideally these keys handling some cleanup/size bounding themselves.
+// IsPermDbKey returns true for keys ignored by the leveldb cleaner and always
+// persisted to disk.  Ideally these keys handling some cleanup/size bounding
+// themselves.
 func IsPermDbKey(typ ObjType) bool {
 	switch typ {
 	case DBDiskLRUEntries,

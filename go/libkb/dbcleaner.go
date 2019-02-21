@@ -112,17 +112,17 @@ func (c *levelDbCleaner) Stop() {
 
 func (c *levelDbCleaner) monitorAppState() {
 	ctx := context.Background()
-	c.log(context.TODO(), "monitorAppState")
+	c.log(ctx, "monitorAppState")
 	state := keybase1.AppState_FOREGROUND
 	for {
 		select {
 		case state = <-c.G().AppState.NextUpdate(&state):
 			switch state {
 			case keybase1.AppState_BACKGROUNDACTIVE:
-				c.log(context.TODO(), "monitorAppState: attempting clean")
+				c.log(ctx, "monitorAppState: attempting clean")
 				c.clean(ctx, false)
 			default:
-				c.log(context.TODO(), "monitorAppState: attempting cancel, state: %v", state)
+				c.log(ctx, "monitorAppState: attempting cancel, state: %v", state)
 				c.Lock()
 				if c.cancelCh != nil {
 					close(c.cancelCh)
@@ -291,6 +291,7 @@ func (c *levelDbCleaner) cleanBatch(ctx context.Context, startKey []byte) (int, 
 	if err := iter.Error(); err != nil {
 		return 0, nil, err
 	}
+	// Compact the range we just deleted in so the size changes are reflected
 	err := c.db.CompactRange(util.Range{Start: startKey, Limit: key})
 	return batch.Len(), key, err
 }
