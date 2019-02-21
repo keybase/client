@@ -16,7 +16,7 @@ type Props = {|
 
 const Bio = (p: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container} centerChildren={true} gap="xtiny">
-    <Kb.Text type="BodyBig" lineClamp={p.inTracker ? 1 : undefined} style={styles.text}>
+    <Kb.Text type="BodyBig" lineClamp={p.inTracker ? 1 : undefined} style={styles.text} selectable={true}>
       {p.fullname}
     </Kb.Text>
     {p.followThem && p.followsYou && <Kb.Text type="BodySmall">YOU FOLLOW EACH OTHER</Kb.Text>}
@@ -39,12 +39,12 @@ const Bio = (p: Props) => (
       </Kb.Text>
     )}
     {!!p.bio && (
-      <Kb.Text type="Body" lineClamp={p.inTracker ? 2 : undefined} style={styles.text}>
+      <Kb.Text type="Body" lineClamp={p.inTracker ? 2 : undefined} style={styles.text} selectable={true}>
         {p.bio}
       </Kb.Text>
     )}
     {!!p.location && (
-      <Kb.Text type="BodySmall" lineClamp={p.inTracker ? 1 : undefined} style={styles.text}>
+      <Kb.Text type="BodySmall" lineClamp={p.inTracker ? 1 : undefined} style={styles.text} selectable={true}>
         {p.location}
       </Kb.Text>
     )}
@@ -61,7 +61,7 @@ const styles = Styles.styleSheetCreate({
       textAlign: 'center',
     },
     isElectron: {
-      wordBreak: 'break-all',
+      wordBreak: 'break-word',
     },
   }),
 })

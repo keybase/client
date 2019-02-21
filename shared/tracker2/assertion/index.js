@@ -34,34 +34,12 @@ const stateToIcon = state => {
       return 'iconfont-proof-pending'
     case 'valid':
       return 'iconfont-proof-good'
-    case 'error':
-      return 'iconfont-proof-broken'
+    case 'error': // fallthrough
     case 'warning':
-      return 'iconfont-proof-good'
     case 'revoked':
       return 'iconfont-proof-broken'
     case 'suggestion':
       return 'iconfont-proof-placeholder'
-    default:
-      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(state)
-      throw new Error('Impossible')
-  }
-}
-
-const stateToColor = state => {
-  switch (state) {
-    case 'checking':
-      return Styles.globalColors.black_50
-    case 'valid':
-      return Styles.globalColors.blue2
-    case 'error':
-      return Styles.globalColors.red
-    case 'warning':
-      return Styles.globalColors.blue2
-    case 'revoked':
-      return Styles.globalColors.red
-    case 'suggestion':
-      return Styles.globalColors.grey
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(state)
       throw new Error('Impossible')
@@ -96,10 +74,8 @@ const assertionColorToColor = (c: Types.AssertionColor) => {
       return Styles.globalColors.green
     case 'gray':
       return Styles.globalColors.black_50
-    case 'yellow':
-      return Styles.globalColors.yellow2
+    case 'yellow': // fallthrough
     case 'orange':
-      return Styles.globalColors.orange
     default:
       return Styles.globalColors.red
   }
@@ -342,7 +318,7 @@ class Assertion extends React.PureComponent<Props, State> {
             type={stateToIcon(p.state)}
             fontSize={20}
             onClick={p.onShowProof}
-            hoverColor={stateToColor(p.state)}
+            hoverColor={assertionColorToColor(p.color)}
             color={p.isSuggestion ? Styles.globalColors.black_20 : assertionColorToColor(p.color)}
           />
           {items ? (
