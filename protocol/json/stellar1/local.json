@@ -1245,10 +1245,20 @@
         },
         {
           "name": "accountID",
-          "type": [
-            null,
-            "AccountID"
-          ]
+          "type": "AccountID"
+        },
+        {
+          "name": "id",
+          "type": "PaymentID"
+        }
+      ],
+      "response": "PaymentDetailsLocal"
+    },
+    "getGenericPaymentDetailsLocal": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
         },
         {
           "name": "id",

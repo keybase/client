@@ -337,6 +337,11 @@ func (s *Server) GetPendingPaymentsLocal(ctx context.Context, arg stellar1.GetPe
 func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPaymentDetailsLocalArg) (payment stellar1.PaymentDetailsLocal, err error) {
 	ctx = s.logTag(ctx)
 	defer s.G().CTraceTimed(ctx, "GetPaymentDetailsLocal", func() error { return err })()
+
+	if arg.AccountID.IsNil() {
+		return payment, errors.New("AccountID required for GetPaymentDetailsLocal")
+	}
+
 	mctx := libkb.NewMetaContext(ctx, s.G())
 	err = s.assertLoggedIn(mctx)
 	if err != nil {
@@ -344,19 +349,67 @@ func (s *Server) GetPaymentDetailsLocal(ctx context.Context, arg stellar1.GetPay
 	}
 
 	oc := stellar.NewOwnAccountLookupCache(mctx)
-	details, err := s.remoter.PaymentDetails(ctx, stellar1.TransactionIDFromPaymentID(arg.Id).String())
+	details, err := s.remoter.PaymentDetails(ctx, arg.AccountID, stellar1.TransactionIDFromPaymentID(arg.Id).String())
 	if err != nil {
 		return payment, err
 	}
 
-	var summary *stellar1.PaymentLocal
-
-	// AccountID argument is optional.
-	if arg.AccountID != nil {
-		summary, err = stellar.TransformPaymentSummaryAccount(mctx, details.Summary, oc, *arg.AccountID)
-	} else {
-		summary, err = stellar.TransformPaymentSummaryGeneric(mctx, details.Summary, oc)
+	summary, err := stellar.TransformPaymentSummaryAccount(mctx, details.Summary, oc, arg.AccountID)
+	if err != nil {
+		return payment, err
 	}
+
+	payment = stellar1.PaymentDetailsLocal{
+		Id:                  summary.Id,
+		TxID:                stellar1.TransactionIDFromPaymentID(summary.Id),
+		Time:                summary.Time,
+		StatusSimplified:    summary.StatusSimplified,
+		StatusDescription:   summary.StatusDescription,
+		StatusDetail:        summary.StatusDetail,
+		ShowCancel:          summary.ShowCancel,
+		AmountDescription:   summary.AmountDescription,
+		Delta:               summary.Delta,
+		Worth:               summary.Worth,
+		WorthAtSendTime:     summary.WorthAtSendTime,
+		FromType:            summary.FromType,
+		ToType:              summary.ToType,
+		FromAccountID:       summary.FromAccountID,
+		FromAccountName:     summary.FromAccountName,
+		FromUsername:        summary.FromUsername,
+		ToAccountID:         summary.ToAccountID,
+		ToAccountName:       summary.ToAccountName,
+		ToUsername:          summary.ToUsername,
+		ToAssertion:         summary.ToAssertion,
+		OriginalToAssertion: summary.OriginalToAssertion,
+		Note:                summary.Note,
+		NoteErr:             summary.NoteErr,
+		PublicNote:          details.Memo,
+		PublicNoteType:      details.MemoType,
+		IssuerDescription:   summary.IssuerDescription,
+		IssuerAccountID:     summary.IssuerAccountID,
+		ExternalTxURL:       details.ExternalTxURL,
+	}
+
+	return payment, nil
+}
+
+func (s *Server) GetGenericPaymentDetailsLocal(ctx context.Context, arg stellar1.GetGenericPaymentDetailsLocalArg) (payment stellar1.PaymentDetailsLocal, err error) {
+	ctx = s.logTag(ctx)
+	defer s.G().CTraceTimed(ctx, "GetGenericPaymentDetailsLocal", func() error { return err })()
+
+	mctx := libkb.NewMetaContext(ctx, s.G())
+	err = s.assertLoggedIn(mctx)
+	if err != nil {
+		return payment, err
+	}
+
+	oc := stellar.NewOwnAccountLookupCache(mctx)
+	details, err := s.remoter.PaymentDetailsGeneric(ctx, stellar1.TransactionIDFromPaymentID(arg.Id).String())
+	if err != nil {
+		return payment, err
+	}
+
+	summary, err := stellar.TransformPaymentSummaryGeneric(mctx, details.Summary, oc)
 	if err != nil {
 		return payment, err
 	}
@@ -406,7 +459,7 @@ func (s *Server) CancelPaymentLocal(ctx context.Context, arg stellar1.CancelPaym
 		return res, err
 	}
 
-	details, err := s.remoter.PaymentDetails(mctx.Ctx(), stellar1.TransactionIDFromPaymentID(arg.PaymentID).String())
+	details, err := s.remoter.PaymentDetailsGeneric(mctx.Ctx(), stellar1.TransactionIDFromPaymentID(arg.PaymentID).String())
 	if err != nil {
 		return res, err
 	}

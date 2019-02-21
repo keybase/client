@@ -50,7 +50,7 @@ func (d *walletNotificationDisplay) displayPaymentDetails(ctx context.Context, s
 	accountID stellar1.AccountID, paymentID stellar1.PaymentID) error {
 	notif := newWalletNotification(source)
 	if details, err := d.cli.GetPaymentDetailsLocal(ctx, stellar1.GetPaymentDetailsLocalArg{
-		AccountID: &accountID,
+		AccountID: accountID,
 		Id:        paymentID,
 	}); err != nil {
 		errStr := err.Error()
