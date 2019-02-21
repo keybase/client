@@ -274,9 +274,14 @@ class User extends React.Component<Props, State> {
     )
   }
 
-  _renderOtherUsers = ({item, section, index}) => (
-    <FriendRow key={'friend' + index} usernames={item} itemWidth={section.itemWidth} />
-  )
+  _renderOtherUsers = ({item, section, index}) =>
+    item.type === 'dummy' ? (
+      <Kb.Box2 direction="horizontal" style={styles.textEmpty} centerChildren={true}>
+        <Kb.Text type="BodySmall">{item.text}</Kb.Text>
+      </Kb.Box2>
+    ) : (
+      <FriendRow key={'friend' + index} usernames={item} itemWidth={section.itemWidth} />
+    )
 
   _bioTeamProofsSection = {
     data: ['bioTeamProofs'],
@@ -304,10 +309,17 @@ class User extends React.Component<Props, State> {
   }
 
   render() {
+    console.warn(this.props.following)
     const friends = this.state.selectedFollowing ? this.props.following : this.props.followers
     const {itemsInARow, itemWidth} = widthToDimentions(this.state.width)
     // TODO memoize?
-    const chunks = this.state.width ? chunk(friends, itemsInARow) : []
+    let chunks = this.state.width ? chunk(friends, itemsInARow) : []
+    if (chunks.length === 0) {
+      chunks.push({
+        text: this.state.selectedFollowing ? 'You are not following anyone.' : 'You have no followers.',
+        type: 'dummy',
+      })
+    }
 
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
@@ -486,6 +498,10 @@ const styles = Styles.styleSheetCreate({
   teamShowcases: {
     flexShrink: 0,
     paddingBottom: Styles.globalMargins.small,
+  },
+  textEmpty: {
+    paddingBottom: Styles.globalMargins.small,
+    paddingTop: Styles.globalMargins.small,
   },
   typedBackgroundBlue: {backgroundColor: Styles.globalColors.blue},
   typedBackgroundGreen: {backgroundColor: Styles.globalColors.green},
