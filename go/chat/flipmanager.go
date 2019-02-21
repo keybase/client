@@ -693,7 +693,7 @@ func (m *FlipManager) loadGame(ctx context.Context, job loadGameJob) (err error)
 	if err != nil {
 		m.Debug(ctx, "loadGame: failed to replay history: %s", err)
 		// Make sure we aren't current playing this game, and bail out if we are
-		if m.dealer.IsGameActive(ctx, job.convID, job.gameID) {
+		if m.dealer.IsGameActive(ctx, flipConv.GetConvID(), job.gameID) {
 			m.Debug(ctx, "loadGame: game is currently active, bailing out")
 			return nil
 		}
