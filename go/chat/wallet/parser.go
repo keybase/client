@@ -9,8 +9,10 @@ import (
 )
 
 var txPattern = regexp.MustCompile(
-	// Must explicitly have a + in front
-	`\+` +
+	// Start at the beginng of the line, space, or some hand picked artisanal characters
+	`(?:^|[\s([{:;.,])` +
+		// Have a + in front
+		`\+` +
 		// Stellar decimal amount
 		`(\d+\.?\d*|\d*\.?\d+)` +
 		// Currency code
