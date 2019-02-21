@@ -123,17 +123,17 @@ export const updateMeta = (
     // new is older, keep old
     return oldMeta
   } else if (oldMeta.inboxVersion === newMeta.inboxVersion) {
-    // same version, only take data if untrusted -> trusted
-    if (newMeta.trustedState === 'trusted' && oldMeta.trustedState !== 'trusted') {
+    // same version, take data if new is trusted
+    if (newMeta.trustedState === 'trusted') {
       // prettier-ignore
       return newMeta.withMutations(nm => {
-        // keep immutable stuff to reduce render thrashing
-        I.is(oldMeta.participants, nm.participants) && nm.set('participants', oldMeta.participants)
-        I.is(oldMeta.rekeyers, nm.rekeyers) && nm.set('rekeyers', oldMeta.rekeyers)
-        I.is(oldMeta.resetParticipants, nm.resetParticipants) && nm.set('resetParticipants', oldMeta.resetParticipants)
-        I.is(oldMeta.retentionPolicy, nm.retentionPolicy) && nm.set('retentionPolicy', oldMeta.retentionPolicy)
-        I.is(oldMeta.teamRetentionPolicy, nm.teamRetentionPolicy) && nm.set('teamRetentionPolicy', oldMeta.teamRetentionPolicy)
-      })
+          // keep immutable stuff to reduce render thrashing
+          I.is(oldMeta.participants, nm.participants) && nm.set('participants', oldMeta.participants)
+          I.is(oldMeta.rekeyers, nm.rekeyers) && nm.set('rekeyers', oldMeta.rekeyers)
+          I.is(oldMeta.resetParticipants, nm.resetParticipants) && nm.set('resetParticipants', oldMeta.resetParticipants)
+          I.is(oldMeta.retentionPolicy, nm.retentionPolicy) && nm.set('retentionPolicy', oldMeta.retentionPolicy)
+          I.is(oldMeta.teamRetentionPolicy, nm.teamRetentionPolicy) && nm.set('teamRetentionPolicy', oldMeta.teamRetentionPolicy)
+        })
     }
     return oldMeta
   }
@@ -338,7 +338,10 @@ export const getChannelSuggestions = (state: TypedState, teamname: string) => {
   // partial list of channels that you have joined).
   const convs = state.teams.getIn(['teamNameToChannelInfos', teamname])
   if (convs) {
-    return convs.toIndexedSeq().toList().map(conv => conv.channelname)
+    return convs
+      .toIndexedSeq()
+      .toList()
+      .map(conv => conv.channelname)
   }
   return state.chat2.metaMap
     .filter(v => v.teamname === teamname)
