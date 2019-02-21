@@ -319,6 +319,8 @@ class ThreadWrapper extends React.Component<Props, State> {
           <Button label={injectLabel} type="Primary" onClick={this._toggleInjectMessages} />
           <Button label={loadMoreLabel} type="Primary" onClick={this._toggleLoadMore} />
           <Button label="Change conversation ID" type="Primary" onClick={this._changeIDKey} />
+        </ButtonBar>
+        <ButtonBar direction="row" align="flex-start">
           <Button label="Scroll up" type="Primary" onClick={this._scrollUp} />
           <Button label="Scroll down" type="Primary" onClick={this._scrollDown} />
           <Button label="Scroll to top" type="Primary" onClick={this._scrollToTop} />
