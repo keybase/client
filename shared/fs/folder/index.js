@@ -45,17 +45,10 @@ class Files extends React.PureComponent<FolderProps> {
           <FolderHeader path={this.props.path} routePath={this.props.routePath} />
           <Kbfs.Errs />
           <Kb.Divider />
-          {isMobile ? (
-            <Kb.ScrollView>
-              {this.props.resetParticipants.length > 0 && <ConnectedResetBanner path={this.props.path} />}
-              <Kb.Box>{content}</Kb.Box>
-            </Kb.ScrollView>
-          ) : (
-            <>
-              {this.props.resetParticipants.length > 0 && <ConnectedResetBanner path={this.props.path} />}
-              {content}
-            </>
+          {!isMobile && this.props.resetParticipants.length > 0 && (
+            <ConnectedResetBanner path={this.props.path} />
           )}
+          {content}
           <Footer />
         </Kb.Box2>
       </Kb.BoxGrow>
