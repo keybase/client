@@ -186,7 +186,8 @@ protocol user {
 
   record CanLogoutRes {
     boolean canLogout;
-    string reason;
+    string reason; // CLI prints this string.
+    boolean setPassphrase; // GUI is driven by this boolean.
   }
   CanLogoutRes canLogout(int sessionID);
 }

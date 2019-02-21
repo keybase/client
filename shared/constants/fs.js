@@ -482,6 +482,26 @@ export const viewTypeFromMimeType = (mime: ?Types.Mime): Types.FileViewType => {
 export const isMedia = (pathItem: Types.PathItem): boolean =>
   pathItem.type === 'file' && ['image', 'av'].includes(viewTypeFromMimeType(pathItem.mimeType))
 
+const encodePathForURL = (path: Types.Path) =>
+  encodeURIComponent(Types.pathToString(path).slice(slashKeybaseSlashLength))
+    .replace(
+      // We need to do this because otherwise encodeURIComponent would encode
+      // "/"s.  If we get a relative redirect (e.g. when requested resource is
+      // index.html, we get redirected to "./"), we'd end up redirect to a wrong
+      // resource.
+      /%2F/g,
+      '/'
+    )
+    // Additional characters that encodeURIComponent doesn't escape
+    .replace(
+      /[-_.!~*'()]/g,
+      old =>
+        `%${old
+          .charCodeAt(0)
+          .toString(16)
+          .toUpperCase()}`
+    )
+
 const slashKeybaseSlashLength = '/keybase/'.length
 export const generateFileURL = (
   path: Types.Path,
@@ -491,13 +511,7 @@ export const generateFileURL = (
     return 'about:blank'
   }
   const {address, token} = localHTTPServerInfo || makeLocalHTTPServer() // make flow happy
-  // We need to do this because otherwise encodeURIComponent would encode "/"s.
-  // If we get a relative redirect (e.g. when requested resource is index.html,
-  // we get redirected to "./"), we'd end up redirect to a wrong resource.
-  const encoded = encodeURIComponent(Types.pathToString(path).slice(slashKeybaseSlashLength)).replace(
-    /%2F/g,
-    '/'
-  )
+  const encoded = encodePathForURL(path)
 
   return `http://${address}/files/${encoded}?token=${token}`
 }

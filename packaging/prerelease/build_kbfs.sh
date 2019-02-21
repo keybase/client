@@ -38,7 +38,7 @@ go build -a -tags "$tags" -ldflags "$ldflags" -o "$build_dir/keybase-redirector"
 
 if [ "$PLATFORM" = "darwin" ]; then
   echo "Signing binaries..."
-  code_sign_identity="98767D13871765E702355A74358822D31C0EF51A" # "Developer ID Application: Keybase, Inc. (99229SGT5K)"
+  code_sign_identity="9FC3A5BC09FA2EE307C04060C918486411869B65" # "Developer ID Application: Keybase, Inc. (99229SGT5K)"
   codesign --verbose --force --deep --sign "$code_sign_identity" $build_dir/kbfs
   codesign --verbose --force --deep --sign "$code_sign_identity" $build_dir/git-remote-keybase
   codesign --verbose --force --deep --sign "$code_sign_identity" $build_dir/keybase-redirector

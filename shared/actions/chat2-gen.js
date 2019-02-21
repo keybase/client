@@ -80,6 +80,7 @@ export const resetLetThemIn = 'chat2:resetLetThemIn'
 export const saveMinWriterRole = 'chat2:saveMinWriterRole'
 export const selectConversation = 'chat2:selectConversation'
 export const sendTyping = 'chat2:sendTyping'
+export const setCommandMarkdown = 'chat2:setCommandMarkdown'
 export const setConvExplodingMode = 'chat2:setConvExplodingMode'
 export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
 export const setConversationOffline = 'chat2:setConversationOffline'
@@ -184,6 +185,7 @@ type _SelectConversationPayload = $ReadOnly<{|
   reason: 'clearSelected' | 'desktopNotification' | 'setPendingMode' | 'sendingToPending' | 'createdMessagePrivately' | 'extension' | 'files' | 'findNewestConversation' | 'inboxBig' | 'inboxFilterArrow' | 'inboxFilterChanged' | 'inboxSmall' | 'inboxNewConversation' | 'jumpFromReset' | 'jumpToReset' | 'justCreated' | 'manageView' | 'previewResolved' | 'pendingModeChange' | 'push' | 'savedLastState' | 'startFoundExisting' | 'teamChat',
 |}>
 type _SendTypingPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, typing: boolean|}>
+type _SetCommandMarkdownPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, text: string|}>
 type _SetConvExplodingModePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, seconds: number|}>
 type _SetConvRetentionPolicyPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, policy: RetentionPolicy|}>
 type _SetConversationOfflinePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, offline: boolean|}>
@@ -267,6 +269,10 @@ export const createUnfurlResolvePrompt = (payload: _UnfurlResolvePromptPayload) 
  * Set a lock on the exploding mode for a conversation.
  */
 export const createSetExplodingModeLock = (payload: _SetExplodingModeLockPayload) => ({payload, type: setExplodingModeLock})
+/**
+ * Set command markdown for a conversation
+ */
+export const createSetCommandMarkdown = (payload: _SetCommandMarkdownPayload) => ({payload, type: setCommandMarkdown})
 /**
  * Set that wallets in chat is not new.
  */
@@ -493,6 +499,7 @@ export type ResetLetThemInPayload = {|+payload: _ResetLetThemInPayload, +type: '
 export type SaveMinWriterRolePayload = {|+payload: _SaveMinWriterRolePayload, +type: 'chat2:saveMinWriterRole'|}
 export type SelectConversationPayload = {|+payload: _SelectConversationPayload, +type: 'chat2:selectConversation'|}
 export type SendTypingPayload = {|+payload: _SendTypingPayload, +type: 'chat2:sendTyping'|}
+export type SetCommandMarkdownPayload = {|+payload: _SetCommandMarkdownPayload, +type: 'chat2:setCommandMarkdown'|}
 export type SetConvExplodingModePayload = {|+payload: _SetConvExplodingModePayload, +type: 'chat2:setConvExplodingMode'|}
 export type SetConvRetentionPolicyPayload = {|+payload: _SetConvRetentionPolicyPayload, +type: 'chat2:setConvRetentionPolicy'|}
 export type SetConversationOfflinePayload = {|+payload: _SetConversationOfflinePayload, +type: 'chat2:setConversationOffline'|}
@@ -597,6 +604,7 @@ export type Actions =
   | SaveMinWriterRolePayload
   | SelectConversationPayload
   | SendTypingPayload
+  | SetCommandMarkdownPayload
   | SetConvExplodingModePayload
   | SetConvRetentionPolicyPayload
   | SetConversationOfflinePayload

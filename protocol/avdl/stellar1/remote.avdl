@@ -67,6 +67,8 @@ protocol remote {
     TimeMs ctime; // time on the network
     string cursorToken;
     boolean unread;
+    boolean isInflation;
+    union { null, string } inflationSource;
   }
 
   record PaymentSummaryDirect {
@@ -162,7 +164,10 @@ protocol remote {
     union { null, PageCursor } cursor;
     union { null, TransactionID } oldestUnread;
   }
-  PaymentsPage recentPayments(keybase1.UserVersion caller, AccountID accountID, union { null, PageCursor } cursor, int limit, boolean skipPending);
+
+  // skipPending: don't include pending payments in the result
+  // includeMulti: include payments from multi-operation txs when possible
+  PaymentsPage recentPayments(keybase1.UserVersion caller, AccountID accountID, union { null, PageCursor } cursor, int limit, boolean skipPending, boolean includeMulti);
 
   array<PaymentSummary> pendingPayments(keybase1.UserVersion caller, AccountID accountID, int limit);
 

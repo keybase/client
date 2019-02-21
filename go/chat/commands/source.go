@@ -6,6 +6,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/keybase/client/go/kbconst"
+
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
@@ -71,7 +73,7 @@ func (s *Source) makeBuiltins() {
 	common := []types.ConversationCommand{
 		cmds[cmdCollapse],
 		cmds[cmdExpand],
-		cmds[cmdFlip],
+		cmds[cmdGiphy],
 		cmds[cmdHide],
 		cmds[cmdMe],
 		cmds[cmdMsg],
@@ -79,9 +81,8 @@ func (s *Source) makeBuiltins() {
 		cmds[cmdShrug],
 		cmds[cmdUnhide],
 	}
-	// Giphy only on for admins for now
-	if s.isAdmin() {
-		common = append(common, cmds[cmdGiphy])
+	if s.isAdmin() || s.G().GetEnv().GetRunMode() == kbconst.DevelRunMode {
+		common = append(common, cmds[cmdFlip])
 	}
 	s.builtins = make(map[chat1.ConversationBuiltinCommandTyp][]types.ConversationCommand)
 	s.builtins[chat1.ConversationBuiltinCommandTyp_ADHOC] = common
@@ -188,6 +189,7 @@ func (s *Source) isAdmin() bool {
 var admins = map[string]bool{
 	"mikem":        true,
 	"max":          true,
+	"candrencil64": true,
 	"chris":        true,
 	"chrisnojima":  true,
 	"mlsteele":     true,

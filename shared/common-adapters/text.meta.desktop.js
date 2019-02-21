@@ -17,7 +17,6 @@ function defaultColor(backgroundMode: ?Background) {
 const lineClamp = (lines: number) => ({
   WebkitBoxOrient: 'vertical',
   WebkitLineClamp: lines,
-  display: '-webkit-box',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
 })

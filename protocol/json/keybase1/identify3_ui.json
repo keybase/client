@@ -109,12 +109,23 @@
           }
         },
         {
+          "name": "siteIconFull",
+          "type": {
+            "type": "array",
+            "items": "SizedImage"
+          }
+        },
+        {
           "name": "proofURL",
           "type": "string"
         },
         {
           "name": "sigID",
           "type": "SigID"
+        },
+        {
+          "name": "ctime",
+          "type": "Time"
         },
         {
           "name": "state",

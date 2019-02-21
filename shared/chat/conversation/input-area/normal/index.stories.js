@@ -112,6 +112,7 @@ const InputContainer = (props: Props) => {
     quoteText: '',
     sendTyping: Sb.action('sendTyping'),
     setUnsentText: Sb.action('setUnsentText'),
+    showCommandMarkdown: false,
     showWalletsIcon: !props.isEditing,
     suggestChannels: List(['general', 'random', 'spelunky', 'music', 'vidya-games']),
     suggestCommands: [

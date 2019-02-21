@@ -3,7 +3,7 @@ import * as React from 'react'
 import * as Sb from '../../stories/storybook'
 import BetaNote from './beta-note'
 import Header from './header'
-import TeamList from './team-list'
+import TeamList from '.'
 import {Box} from '../../common-adapters'
 
 const teamnames = ['stripe', 'stripe.usa', 'techtonica']
@@ -29,8 +29,14 @@ const load = () => {
         <TeamList
           teamnames={teamnames}
           newTeams={[]}
+          loaded={true}
+          onReadMore={Sb.action('onReadMore')}
+          onJoinTeam={Sb.action('onJoinTeam')}
+          onCreateTeam={Sb.action('onCreateTeam')}
+          onHideChatBanner={Sb.action('onHideChatBanner')}
+          sawChatBanner={Sb.action('sawChatBanner')}
           teamNameToIsOpen={teamNameToIsOpen}
-          newTeamRequests={['techtonica']}
+          teamToRequest={{techtonica: 2}}
           teammembercounts={teammembercounts}
           teamresetusers={{}}
           onOpenFolder={Sb.action('onOpenFolder')}

@@ -17,20 +17,22 @@ func (o Time) DeepCopy() Time {
 }
 
 type Start struct {
-	StartTime            Time           `codec:"startTime" json:"startTime"`
-	CommitmentWindowMsec int64          `codec:"commitmentWindowMsec" json:"commitmentWindowMsec"`
-	RevealWindowMsec     int64          `codec:"revealWindowMsec" json:"revealWindowMsec"`
-	SlackMsec            int64          `codec:"slackMsec" json:"slackMsec"`
-	Params               FlipParameters `codec:"params" json:"params"`
+	StartTime                    Time           `codec:"startTime" json:"startTime"`
+	CommitmentWindowMsec         int64          `codec:"commitmentWindowMsec" json:"commitmentWindowMsec"`
+	RevealWindowMsec             int64          `codec:"revealWindowMsec" json:"revealWindowMsec"`
+	SlackMsec                    int64          `codec:"slackMsec" json:"slackMsec"`
+	CommitmentCompleteWindowMsec int64          `codec:"commitmentCompleteWindowMsec" json:"commitmentCompleteWindowMsec"`
+	Params                       FlipParameters `codec:"params" json:"params"`
 }
 
 func (o Start) DeepCopy() Start {
 	return Start{
-		StartTime:            o.StartTime.DeepCopy(),
-		CommitmentWindowMsec: o.CommitmentWindowMsec,
-		RevealWindowMsec:     o.RevealWindowMsec,
-		SlackMsec:            o.SlackMsec,
-		Params:               o.Params.DeepCopy(),
+		StartTime:                    o.StartTime.DeepCopy(),
+		CommitmentWindowMsec:         o.CommitmentWindowMsec,
+		RevealWindowMsec:             o.RevealWindowMsec,
+		SlackMsec:                    o.SlackMsec,
+		CommitmentCompleteWindowMsec: o.CommitmentCompleteWindowMsec,
+		Params: o.Params.DeepCopy(),
 	}
 }
 

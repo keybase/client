@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"io"
+	"math"
 	"math/big"
 	"strings"
 	"time"
@@ -184,6 +185,7 @@ func (d *Dealer) run(ctx context.Context, game *Game) {
 	if ch := d.games[key]; ch != nil {
 		close(ch)
 		delete(d.games, key)
+		delete(d.gameIDs, GameIDToKey(game.md.GameID))
 	}
 	d.Unlock()
 }
@@ -196,11 +198,7 @@ func (g *Game) getNextTimer() <-chan time.Time {
 func (g *Game) CommitmentEndTime() time.Time {
 	// If we're the leader, then let's cut off when we say we're going to cut off
 	// If we're not, then let's give extra time (a multiple of 2) to the leader.
-	mul := time.Duration(1)
-	if !g.isLeader {
-		mul = time.Duration(2)
-	}
-	return g.start.Add(mul * g.params.CommitmentWindowWithSlack())
+	return g.start.Add(g.params.CommitmentWindowWithSlack(g.isLeader))
 }
 
 func (g *Game) RevealEndTime() time.Time {
@@ -294,7 +292,7 @@ func (g *Game) doFlip(ctx context.Context, prng *PRNG) error {
 
 func (g *Game) playerCommitedInTime(ps *GamePlayerState, now time.Time) bool {
 	diff := ps.commitmentTime.Sub(g.start)
-	return diff < g.params.CommitmentWindowWithSlack()
+	return diff < g.params.CommitmentWindowWithSlack(true)
 }
 
 func (g *Game) handleMessage(ctx context.Context, msg *GameMessageWrapped, now time.Time) error {
@@ -349,6 +347,8 @@ func (g *Game) handleMessage(ctx context.Context, msg *GameMessageWrapped, now t
 			return CommitmentCompleteSortError{G: g.md}
 		}
 
+		iWasIncluded := false
+
 		for _, u := range cc.Players {
 			key := u.Ud.ToKey()
 			ps := g.players[key]
@@ -360,6 +360,10 @@ func (g *Game) handleMessage(ctx context.Context, msg *GameMessageWrapped, now t
 			}
 			ps.included = true
 			g.nPlayers++
+
+			if g.me != nil && g.me.me.Eq(u.Ud) {
+				iWasIncluded = true
+			}
 		}
 
 		cch, err := hashUserDeviceCommitments(cc.Players)
@@ -382,12 +386,14 @@ func (g *Game) handleMessage(ctx context.Context, msg *GameMessageWrapped, now t
 			CommitmentComplete: &cc,
 		}
 
-		if g.me != nil {
+		if iWasIncluded {
 			reveal := Reveal{
 				Secret: g.me.secret,
 				Cch:    cch,
 			}
 			g.sendOutgoingChat(ctx, NewGameMessageBodyWithReveal(reveal))
+		} else if g.me != nil {
+			g.clogf(ctx, "The leader didn't include me (%s) so not sending a reveal (%s)", g.me.me, g.md)
 		}
 
 	case MessageType_REVEAL:
@@ -399,13 +405,16 @@ func (g *Game) handleMessage(ctx context.Context, msg *GameMessageWrapped, now t
 		}
 		key := msg.Sender.ToKey()
 		ps := g.players[key]
+
 		if ps == nil {
-			return UnregisteredUserError{G: g.md, U: msg.Sender}
-		}
-		if !ps.included && g.clogf != nil {
-			g.clogf(ctx, "Skipping unincluded sender: %s", key)
+			g.clogf(ctx, "Skipping unregistered revealer %s for game %s", msg.Sender, g.md)
 			return nil
 		}
+		if !ps.included {
+			g.clogf(ctx, "Skipping unincluded revealer %s for game %s", msg.Sender, g.md)
+			return nil
+		}
+
 		reveal := msg.Msg.Body.Reveal()
 		if !g.commitmentCompleteHash.Eq(reveal.Cch) {
 			return BadCommitmentCompleteHashError{G: g.GameMetadata(), U: msg.Sender}
@@ -550,8 +559,12 @@ func (d *Dealer) handleMessageStart(ctx context.Context, msg *GameMessageWrapped
 	defer d.Unlock()
 	md := msg.GameMetadata()
 	key := md.ToKey()
+	gameIDKey := GameIDToKey(md.GameID)
 	if d.games[key] != nil {
 		return GameAlreadyStartedError{G: md}
+	}
+	if _, found := d.gameIDs[gameIDKey]; found {
+		return GameReplayError{G: md.GameID}
 	}
 	if !msg.Sender.Eq(md.Initiator) {
 		return WrongSenderError{G: md, Expected: msg.Sender, Actual: md.Initiator}
@@ -596,6 +609,7 @@ func (d *Dealer) handleMessageStart(ctx context.Context, msg *GameMessageWrapped
 		clogf:           d.dh.CLogf,
 	}
 	d.games[key] = msgCh
+	d.gameIDs[gameIDKey] = md
 	d.previousGames[GameIDToKey(md.GameID)] = true
 
 	go d.run(ctx, game)
@@ -624,6 +638,8 @@ func (d *Dealer) handleMessageOthers(c context.Context, msg *GameMessageWrapped)
 
 func (d *Dealer) handleMessage(ctx context.Context, msg *GameMessageWrapped) error {
 
+	d.dh.CLogf(ctx, "flip.Dealer: Incoming: %+v", *msg)
+
 	t, err := msg.Msg.Body.T()
 	if err != nil {
 		return err
@@ -643,7 +659,7 @@ func (d *Dealer) handleMessage(ctx context.Context, msg *GameMessageWrapped) err
 	if err != nil {
 		return err
 	}
-	if !msg.Forward && msg.isForwardable() {
+	if !(msg.Forward && msg.isForwardable()) {
 		return nil
 	}
 	// Encode and send the message through the external server-routed chat channel
@@ -761,13 +777,24 @@ func (d *Dealer) sendOutgoingChatWithFirst(ctx context.Context, md GameMetadata,
 
 var DefaultCommitmentWindowMsec int64 = 3 * 1000
 var DefaultRevealWindowMsec int64 = 30 * 1000
+var DefaultCommitmentCompleteWindowMsec int64 = 15 * 1000
 var DefaultSlackMsec int64 = 1 * 1000
 
-func newStart(now time.Time) Start {
+// For bigger groups, everything is slower, like the time to digest all required messages. So we're
+// going to inflate our timeouts.
+func inflateTimeout(timeout int64, nPlayers int) int64 {
+	if nPlayers <= 5 {
+		return timeout
+	}
+	return int64(math.Ceil(math.Log(float64(nPlayers)) * float64(timeout) / math.Log(5.0)))
+}
+
+func newStart(now time.Time, nPlayers int) Start {
 	return Start{
-		StartTime:            ToTime(now),
-		CommitmentWindowMsec: DefaultCommitmentWindowMsec,
-		RevealWindowMsec:     DefaultRevealWindowMsec,
-		SlackMsec:            DefaultSlackMsec,
+		StartTime:                    ToTime(now),
+		CommitmentWindowMsec:         inflateTimeout(DefaultCommitmentWindowMsec, nPlayers),
+		RevealWindowMsec:             inflateTimeout(DefaultRevealWindowMsec, nPlayers),
+		CommitmentCompleteWindowMsec: inflateTimeout(DefaultCommitmentCompleteWindowMsec, nPlayers),
+		SlackMsec:                    inflateTimeout(DefaultSlackMsec, nPlayers),
 	}
 }

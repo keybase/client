@@ -38,6 +38,7 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
   const explodingModeSeconds = Constants.getConversationExplodingMode(state, conversationIDKey)
   const isExploding = explodingModeSeconds !== 0
   const unsentText = state.chat2.unsentTextMap.get(conversationIDKey)
+  const showCommandMarkdown = state.chat2.commandMarkdownMap.get(conversationIDKey, '') !== ''
   return {
     _editOrdinal: editInfo ? editInfo.ordinal : null,
     _isExplodingModeLocked: Constants.isExplodingModeLocked(state, conversationIDKey),
@@ -50,6 +51,7 @@ const mapStateToProps = (state, {conversationIDKey}: OwnProps) => {
     isExploding,
     quoteCounter: quoteInfo ? quoteInfo.counter : 0,
     quoteText: quoteInfo ? quoteInfo.text : '',
+    showCommandMarkdown,
     showWalletsIcon: Constants.shouldShowWalletsIcon(state, conversationIDKey),
     suggestChannels: Constants.getChannelSuggestions(state, teamname),
     suggestCommands: Constants.getCommands(state, conversationIDKey),
@@ -147,6 +149,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
     }
     setUnsentText(stateProps.conversationIDKey, text)
   },
+  showCommandMarkdown: stateProps.showCommandMarkdown,
   showWalletsIcon: stateProps.showWalletsIcon,
   suggestChannels: stateProps.suggestChannels,
   suggestCommands: stateProps.suggestCommands,

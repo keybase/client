@@ -321,14 +321,16 @@ func (o NextMerkleRootRes) DeepCopy() NextMerkleRootRes {
 }
 
 type CanLogoutRes struct {
-	CanLogout bool   `codec:"canLogout" json:"canLogout"`
-	Reason    string `codec:"reason" json:"reason"`
+	CanLogout     bool   `codec:"canLogout" json:"canLogout"`
+	Reason        string `codec:"reason" json:"reason"`
+	SetPassphrase bool   `codec:"setPassphrase" json:"setPassphrase"`
 }
 
 func (o CanLogoutRes) DeepCopy() CanLogoutRes {
 	return CanLogoutRes{
-		CanLogout: o.CanLogout,
-		Reason:    o.Reason,
+		CanLogout:     o.CanLogout,
+		Reason:        o.Reason,
+		SetPassphrase: o.SetPassphrase,
 	}
 }
 

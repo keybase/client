@@ -75,21 +75,9 @@ func (s *Giphy) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Conve
 	return err
 }
 
-type nullChatUI struct {
-	libkb.ChatUI
-}
-
 func (n nullChatUI) ChatGiphySearchResults(ctx context.Context, convID chat1.ConversationID,
 	results []chat1.GiphySearchResult) error {
 	return nil
-}
-
-func (s *Giphy) getChatUI() libkb.ChatUI {
-	ui, err := s.G().UIRouter.GetChatUI()
-	if err != nil || ui == nil {
-		return nullChatUI{}
-	}
-	return ui
 }
 
 func (s *Giphy) Preview(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, text string) {

@@ -1,4 +1,5 @@
 // @flow
+import commandMarkdown from './conversation/command-markdown/index.stories'
 import confirmPayment from './payments/confirm/index.stories'
 import conversationList from './conversation-list/index.stories'
 import createChannel from './create-channel/index.stories'
@@ -21,6 +22,7 @@ import typing from './conversation/input-area/normal/typing/index.stories'
 
 const load = () => {
   ;[
+    commandMarkdown,
     confirmPayment,
     conversationList,
     createChannel,
