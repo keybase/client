@@ -8482,7 +8482,7 @@ func (fbo *folderBranchOps) getEditMessages(
 			id, err)
 		return nil
 	}
-	err = fbo.editHistory.AddNotifications(channelName, messages)
+	_, err = fbo.editHistory.AddNotifications(channelName, messages)
 	if err != nil {
 		fbo.log.CWarningf(ctx, "Couldn't add messages for conv %s: %+v",
 			id, err)
@@ -8569,7 +8569,7 @@ func (fbo *folderBranchOps) handleEditActivity(
 	}
 	if a.message != "" {
 		fbo.log.CDebugf(ctx, "New edit message for %s", name)
-		err := fbo.editHistory.AddNotifications(name, []string{a.message})
+		_, err := fbo.editHistory.AddNotifications(name, []string{a.message})
 		if err != nil {
 			return nil, nil, nil, err
 		}

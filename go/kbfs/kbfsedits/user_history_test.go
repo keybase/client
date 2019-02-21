@@ -78,15 +78,15 @@ func TestUserHistorySimple(t *testing.T) {
 	}
 	privHomeTime := keybase1.ToTime(now)
 
-	err = privSharedTH.AddNotifications(bobName, privSharedBob)
+	_, err = privSharedTH.AddNotifications(bobName, privSharedBob)
 	require.NoError(t, err)
-	err = privSharedTH.AddNotifications(aliceName, privSharedAlice)
-	require.NoError(t, err)
-
-	err = privHomeTH.AddNotifications(aliceName, privHomeAlice)
+	_, err = privSharedTH.AddNotifications(aliceName, privSharedAlice)
 	require.NoError(t, err)
 
-	err = publicTH.AddNotifications(aliceName, publicAlice)
+	_, err = privHomeTH.AddNotifications(aliceName, privHomeAlice)
+	require.NoError(t, err)
+
+	_, err = publicTH.AddNotifications(aliceName, publicAlice)
 	require.NoError(t, err)
 
 	uh := NewUserHistory(logger.New("UH"))
@@ -141,7 +141,7 @@ func TestUserHistorySimple(t *testing.T) {
 	// Alice writes one more thing to the private shared folder.
 	now = now.Add(1 * time.Minute)
 	_ = privSharedNN.make("7", NotificationCreate, aliceUID, nil, now)
-	err = privSharedTH.AddNotifications(
+	_, err = privSharedTH.AddNotifications(
 		aliceName, []string{privSharedNN.encode(t)})
 	require.NoError(t, err)
 	uh.UpdateHistory(privSharedName, tlf.Private, privSharedTH, aliceName)
