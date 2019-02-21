@@ -43,7 +43,7 @@ func assertNoFlip(t *testing.T, ui *kbtest.ChatUI) {
 func TestFlipManagerStartFlip(t *testing.T) {
 	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
 		runWithEphemeral(t, mt, func(ephemeralLifetime *gregor1.DurationSec) {
-			ctc := makeChatTestContext(t, "FlipManager", 3)
+			ctc := makeChatTestContext(t, "FlipManagerStartFlip", 3)
 			defer ctc.cleanup()
 
 			users := ctc.users()
@@ -82,51 +82,7 @@ func TestFlipManagerStartFlip(t *testing.T) {
 				consumeNewMsgRemote(t, listener2, chat1.MessageType_SYSTEM)
 			}
 
-			// ensure we only include the channel participants in the flip for team
-			// conversations.
 			expectedDevConvs := 0
-			switch mt {
-			case chat1.ConversationMembersType_TEAM:
-				topicName := "channel-1"
-				channel := mustCreateChannelForTest(t, ctc, users[0], chat1.TopicType_CHAT,
-					&topicName, mt, ctc.as(t, users[1]).user(), ctc.as(t, users[2]).user())
-				consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
-				consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
-				consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
-				consumeNewMsgRemote(t, listener2, chat1.MessageType_SYSTEM)
-
-				if policy != nil {
-					mustSetConvRetentionLocal(t, ctc, users[0], channel.Id, *policy)
-					consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
-				}
-
-				mustJoinConversationByID(t, ctc, users[1], channel.Id)
-				consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
-				consumeNewMsgRemote(t, listener1, chat1.MessageType_JOIN)
-				mustJoinConversationByID(t, ctc, users[2], channel.Id)
-				_, err := ctc.as(t, users[2]).chatLocalHandler().LeaveConversationLocal(
-					ctc.as(t, users[0]).startCtx, channel.Id)
-				require.NoError(t, err)
-				consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
-				consumeNewMsgRemote(t, listener1, chat1.MessageType_JOIN)
-				consumeNewMsgRemote(t, listener2, chat1.MessageType_JOIN)
-				consumeNewMsgRemote(t, listener0, chat1.MessageType_LEAVE)
-				consumeNewMsgRemote(t, listener1, chat1.MessageType_LEAVE)
-
-				expectedDevConvs++
-				mustPostLocalForTest(t, ctc, users[0], channel,
-					chat1.NewMessageBodyWithText(chat1.MessageText{
-						Body: "/flip",
-					}))
-				consumeNewMsgRemote(t, listener0, chat1.MessageType_FLIP)
-				consumeNewMsgRemote(t, listener1, chat1.MessageType_FLIP)
-				res0 := consumeFlipToResult(t, ui0, listener0, 2)
-				require.True(t, res0 == "HEADS" || res0 == "TAILS")
-				res1 := consumeFlipToResult(t, ui1, listener1, 2)
-				require.Equal(t, res0, res1)
-				assertNoFlip(t, ui2)
-			}
-
 			// bool
 			expectedDevConvs++
 			mustPostLocalForTest(t, ctc, users[0], conv,
@@ -236,6 +192,78 @@ func TestFlipManagerStartFlip(t *testing.T) {
 			}
 			require.Equal(t, expectedDevConvs, numConvs)
 		})
+	})
+}
+
+func TestFlipManagerChannelFlip(t *testing.T) {
+	// ensure only members of a channel are included in the flip
+	runWithMemberTypes(t, func(mt chat1.ConversationMembersType) {
+		switch mt {
+		case chat1.ConversationMembersType_TEAM:
+		default:
+			return
+		}
+		ctc := makeChatTestContext(t, "FlipManagerChannelFlip", 3)
+		defer ctc.cleanup()
+
+		users := ctc.users()
+		flip.DefaultCommitmentWindowMsec = 500
+
+		var ui0, ui1, ui2 *kbtest.ChatUI
+		ui0 = kbtest.NewChatUI()
+		ui1 = kbtest.NewChatUI()
+		ui2 = kbtest.NewChatUI()
+		ctc.as(t, users[0]).h.mockChatUI = ui0
+		ctc.as(t, users[1]).h.mockChatUI = ui1
+		ctc.as(t, users[2]).h.mockChatUI = ui2
+		ctc.world.Tcs[users[0].Username].G.UIRouter = &fakeUIRouter{ui: ui0}
+		ctc.world.Tcs[users[1].Username].G.UIRouter = &fakeUIRouter{ui: ui1}
+		ctc.world.Tcs[users[2].Username].G.UIRouter = &fakeUIRouter{ui: ui2}
+		listener0 := newServerChatListener()
+		listener1 := newServerChatListener()
+		listener2 := newServerChatListener()
+		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
+		ctc.as(t, users[1]).h.G().NotifyRouter.AddListener(listener1)
+		ctc.as(t, users[2]).h.G().NotifyRouter.AddListener(listener2)
+
+		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+			mt, ctc.as(t, users[1]).user(), ctc.as(t, users[2]).user())
+		consumeNewConversation(t, listener0, conv.Id)
+		consumeNewConversation(t, listener1, conv.Id)
+		consumeNewConversation(t, listener2, conv.Id)
+
+		topicName := "channel-1"
+		channel := mustCreateChannelForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+			&topicName, mt, ctc.as(t, users[1]).user(), ctc.as(t, users[2]).user())
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_SYSTEM)
+		consumeNewMsgRemote(t, listener2, chat1.MessageType_SYSTEM)
+
+		mustJoinConversationByID(t, ctc, users[1], channel.Id)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_JOIN)
+		mustJoinConversationByID(t, ctc, users[2], channel.Id)
+		_, err := ctc.as(t, users[2]).chatLocalHandler().LeaveConversationLocal(
+			ctc.as(t, users[0]).startCtx, channel.Id)
+		require.NoError(t, err)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_JOIN)
+		consumeNewMsgRemote(t, listener2, chat1.MessageType_JOIN)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_LEAVE)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_LEAVE)
+
+		mustPostLocalForTest(t, ctc, users[0], channel,
+			chat1.NewMessageBodyWithText(chat1.MessageText{
+				Body: "/flip",
+			}))
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_FLIP)
+		consumeNewMsgRemote(t, listener1, chat1.MessageType_FLIP)
+		res0 := consumeFlipToResult(t, ui0, listener0, 2)
+		require.True(t, res0 == "HEADS" || res0 == "TAILS")
+		res1 := consumeFlipToResult(t, ui1, listener1, 2)
+		require.Equal(t, res0, res1)
+		assertNoFlip(t, ui2)
 	})
 }
 
