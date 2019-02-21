@@ -4,6 +4,7 @@ import * as Constants from '../constants/tracker2'
 import * as Types from '../constants/types/tracker2'
 import * as Tracker2Gen from '../actions/tracker2-gen'
 import * as Flow from '../util/flow'
+import logger from '../logger'
 
 const initialState: Types.State = Constants.makeState()
 
@@ -13,6 +14,9 @@ export default function(state: Types.State = initialState, action: Tracker2Gen.A
       return initialState
     case Tracker2Gen.load: {
       const guiID = action.payload.guiID
+      if (action.payload.forceDisplay) {
+        logger.info(`Showing tracker for assertion: ${action.payload.assertion}`)
+      }
       return state.merge({
         usernameToDetails: state.usernameToDetails.updateIn(
           [action.payload.assertion],
@@ -71,6 +75,7 @@ export default function(state: Types.State = initialState, action: Tracker2Gen.A
       if (!username) {
         return state
       }
+      logger.info(`Closing tracker for assertion: ${username}`)
       return state.merge({
         usernameToDetails: state.usernameToDetails.updateIn([username], (old = Constants.makeDetails()) =>
           old.merge({showTracker: false})
