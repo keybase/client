@@ -49,41 +49,47 @@ class Thread extends React.PureComponent<Props, State> {
   // last height we saw from resize
   _scrollHeight: number = 0
 
-  _logIgnoreScroll = (name, fn) => {
-    const oldIgnore = this._ignoreScrollToBottomRefCount
-    fn()
-    if (debug) {
-      logger.debug('SCROLL', name, 'ignoreScroll', oldIgnore, '->', this._ignoreScrollToBottomRefCount)
-    }
-  }
+  _logIgnoreScroll = debug
+    ? (name, fn) => {
+        const oldIgnore = this._ignoreScrollToBottomRefCount
+        fn()
+        if (debug) {
+          logger.debug('SCROLL', name, 'ignoreScroll', oldIgnore, '->', this._ignoreScrollToBottomRefCount)
+        }
+      }
+    : (name, fn) => fn()
 
-  _logScrollTop = (list, name, fn) => {
-    const oldScrollTop = list.scrollTop
-    fn()
-    if (debug) {
-      logger.debug('SCROLL', name, 'scrollTop', oldScrollTop, '->', list.scrollTop)
-    }
-  }
+  _logScrollTop = debug
+    ? (list, name, fn) => {
+        const oldScrollTop = list.scrollTop
+        fn()
+        if (debug) {
+          logger.debug('SCROLL', name, 'scrollTop', oldScrollTop, '->', list.scrollTop)
+        }
+      }
+    : (list, name, fn) => fn()
 
-  _logAll = (list, name, fn) => {
-    const oldIgnore = this._ignoreScrollToBottomRefCount
-    const oldScrollTop = list.scrollTop
-    fn()
-    if (debug) {
-      logger.debug(
-        'SCROLL',
-        name,
-        'ignoreScroll',
-        oldIgnore,
-        '->',
-        this._ignoreScrollToBottomRefCount,
-        'scrollTop',
-        oldScrollTop,
-        '->',
-        list.scrollTop
-      )
-    }
-  }
+  _logAll = debug
+    ? (list, name, fn) => {
+        const oldIgnore = this._ignoreScrollToBottomRefCount
+        const oldScrollTop = list.scrollTop
+        fn()
+        if (debug) {
+          logger.debug(
+            'SCROLL',
+            name,
+            'ignoreScroll',
+            oldIgnore,
+            '->',
+            this._ignoreScrollToBottomRefCount,
+            'scrollTop',
+            oldScrollTop,
+            '->',
+            list.scrollTop
+          )
+        }
+      }
+    : (list, name, fn) => fn()
 
   _scrollToBottom = reason => {
     const list = this._listRef.current
