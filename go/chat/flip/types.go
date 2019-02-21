@@ -47,8 +47,12 @@ func GenerateGameID() chat1.FlipGameID {
 	return chat1.FlipGameID(ret)
 }
 
-func (s Start) CommitmentWindowWithSlack() time.Duration {
-	return Time(s.CommitmentWindowMsec + s.SlackMsec).Duration()
+func (s Start) CommitmentWindowWithSlack(isLeader bool) time.Duration {
+	window := s.CommitmentCompleteWindowMsec
+	if isLeader {
+		window = s.CommitmentWindowMsec
+	}
+	return Time(window + s.SlackMsec).Duration()
 }
 
 func (s Start) RevealWindowWithSlack() time.Duration {
