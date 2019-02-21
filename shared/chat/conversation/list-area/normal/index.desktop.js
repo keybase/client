@@ -35,6 +35,8 @@ type State = {
 
 type Snapshot = ?number
 
+const debug = __STORYBOOK__
+
 class Thread extends React.PureComponent<Props, State> {
   state = {isLockedToBottom: true}
   _listRef = React.createRef()
@@ -50,7 +52,7 @@ class Thread extends React.PureComponent<Props, State> {
   _logIgnoreScroll = (name, fn) => {
     const oldIgnore = this._ignoreScrollToBottomRefCount
     fn()
-    if (this.props.debug) {
+    if (debug) {
       logger.debug('SCROLL', name, 'ignoreScroll', oldIgnore, '->', this._ignoreScrollToBottomRefCount)
     }
   }
@@ -58,7 +60,7 @@ class Thread extends React.PureComponent<Props, State> {
   _logScrollTop = (list, name, fn) => {
     const oldScrollTop = list.scrollTop
     fn()
-    if (this.props.debug) {
+    if (debug) {
       logger.debug('SCROLL', name, 'scrollTop', oldScrollTop, '->', list.scrollTop)
     }
   }
@@ -67,7 +69,7 @@ class Thread extends React.PureComponent<Props, State> {
     const oldIgnore = this._ignoreScrollToBottomRefCount
     const oldScrollTop = list.scrollTop
     fn()
-    if (this.props.debug) {
+    if (debug) {
       logger.debug(
         'SCROLL',
         name,
@@ -224,7 +226,7 @@ class Thread extends React.PureComponent<Props, State> {
   _onScrollThrottled = throttle(
     () => {
       const list = this._listRef.current
-      if (list && this.props.debug) {
+      if (list && debug) {
         logger.debug('SCROLL', '_onScrollThrottled', 'scrollTop', list.scrollTop)
       }
 
@@ -272,7 +274,7 @@ class Thread extends React.PureComponent<Props, State> {
     const list = this._listRef.current
     // are we locked on the bottom?
     if (list) {
-      if (this.props.debug) {
+      if (debug) {
         logger.debug('SCROLL', '_onAfterScroll', 'scrollTop', list.scrollTop)
       }
       const isLockedToBottom = list.scrollHeight - list.clientHeight - list.scrollTop < listEdgeSlop
@@ -378,13 +380,13 @@ class Thread extends React.PureComponent<Props, State> {
   render() {
     const items = this._makeItems()
 
-    const debug = this.props.debug ? (
+    const debugInfo = debug ? (
       <div>Debug info: {this.state.isLockedToBottom ? 'Locked to bottom' : 'Not locked to bottom'}</div>
     ) : null
 
     return (
       <ErrorBoundary>
-        {debug}
+        {debugInfo}
         <div style={containerStyle} onClick={this._handleListClick} onCopyCapture={this._onCopyCapture}>
           <style>{realCSS}</style>
           <div

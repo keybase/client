@@ -5,7 +5,6 @@ import * as Types from '../../../../constants/types/chat2'
 export type Props = {|
   copyToClipboard: string => void,
   conversationIDKey: Types.ConversationIDKey,
-  debug?: boolean,
   messageOrdinals: I.List<Types.Ordinal>,
   onFocusInput: () => void,
   loadMoreMessages: (ordinal: ?Types.Ordinal) => void,
