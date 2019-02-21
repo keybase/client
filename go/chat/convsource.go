@@ -986,9 +986,13 @@ func (s *HybridConversationSource) Clear(ctx context.Context, convID chat1.Conve
 func (s *HybridConversationSource) GetMessages(ctx context.Context, conv types.UnboxConversationInfo,
 	uid gregor1.UID, msgIDs []chat1.MessageID, threadReason *chat1.GetThreadReason) (res []chat1.MessageUnboxed, err error) {
 	defer s.Trace(ctx, func() error { return err }, "GetMessages")()
+	convID := conv.GetConvID()
+	if _, err := s.lockTab.Acquire(ctx, uid, convID); err != nil {
+		return nil, err
+	}
+	defer s.lockTab.Release(ctx, uid, convID)
 
 	// Grab local messages
-	convID := conv.GetConvID()
 	msgs, err := s.storage.FetchMessages(ctx, convID, uid, msgIDs)
 	if err != nil {
 		return nil, err
@@ -1007,12 +1011,6 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, conv types.U
 	s.Debug(ctx, "GetMessages: convID: %s uid: %s total msgs: %d remote: %d", convID, uid, len(msgIDs),
 		len(remoteMsgs))
 	if len(remoteMsgs) > 0 {
-		// acquire lock if we need to go get messages from the server
-		if _, err := s.lockTab.Acquire(ctx, uid, convID); err != nil {
-			return nil, err
-		}
-		defer s.lockTab.Release(ctx, uid, convID)
-
 		// Insta fail if we are offline
 		if s.IsOffline(ctx) {
 			return nil, OfflineError{}
