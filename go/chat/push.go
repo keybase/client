@@ -501,6 +501,13 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				g.Debug(ctx, "chat activity: newMessage: outboxID is empty")
 			}
 
+			// Coin flip manager can completely handle the incoming message
+			if g.G().CoinFlipManager.MaybeInjectFlipMessage(ctx, nm.Message, nm.InboxVers, uid, nm.ConvID,
+				nm.TopicType) {
+				g.Debug(ctx, "chat activity: flip message handled, early out")
+				return
+			}
+
 			// Update typing status to stopped
 			g.typingMonitor.Update(ctx, chat1.TyperInfo{
 				Uid:      keybase1.UID(nm.Message.ClientHeader.Sender.String()),
@@ -523,7 +530,6 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				g.Debug(ctx, "chat activity: unable to update inbox: %v", err)
 			}
 			// Check to see if this is a coin flip message
-			g.G().CoinFlipManager.MaybeInjectFlipMessage(ctx, decmsg, nm.ConvID, nm.TopicType)
 
 			// If we have no error on this message, then notify the frontend
 			if pushErr == nil {
