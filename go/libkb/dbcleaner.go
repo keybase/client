@@ -68,6 +68,7 @@ type levelDbCleaner struct {
 	dbName   string
 	config   DbCleanerConfig
 	cache    *lru.Cache
+	isMobile bool
 	db       *leveldb.DB
 	stopCh   chan struct{}
 	cancelCh chan struct{}
@@ -75,13 +76,14 @@ type levelDbCleaner struct {
 
 func newLevelDbCleaner(g *GlobalContext, dbName string) *levelDbCleaner {
 	config := DefaultDesktopDbCleanerConfig
-	if g.IsMobileAppType() {
+	isMobile := g.IsMobileAppType()
+	if isMobile {
 		config = DefaultMobileDbCleanerConfig
 	}
-	return newLevelDbCleanerWithConfig(g, dbName, config)
+	return newLevelDbCleanerWithConfig(g, dbName, config, isMobile)
 }
 
-func newLevelDbCleanerWithConfig(g *GlobalContext, dbName string, config DbCleanerConfig) *levelDbCleaner {
+func newLevelDbCleanerWithConfig(g *GlobalContext, dbName string, config DbCleanerConfig, isMobile bool) *levelDbCleaner {
 	cache, err := lru.New(config.CacheCapacity)
 	if err != nil {
 		panic(err)
@@ -93,10 +95,13 @@ func newLevelDbCleanerWithConfig(g *GlobalContext, dbName string, config DbClean
 		dbName:   dbName,
 		config:   config,
 		cache:    cache,
+		isMobile: isMobile,
 		stopCh:   make(chan struct{}),
 		cancelCh: make(chan struct{}),
 	}
-	go c.monitorAppState()
+	if isMobile {
+		go c.monitorAppState()
+	}
 	return c
 }
 
@@ -163,7 +168,7 @@ func (c *levelDbCleaner) shouldCleanLocked(force bool) bool {
 		return true
 	}
 	validCache := c.cache.Len() >= c.config.MinCacheSize
-	if c.G().IsMobileAppType() {
+	if c.isMobile {
 		return validCache && c.G().AppState.State() == keybase1.AppState_BACKGROUNDACTIVE
 	}
 	return validCache &&
