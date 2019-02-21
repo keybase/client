@@ -35,7 +35,7 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
         return
       }
       // don't allow pushing a dupe
-      const path = Constants.getVisiblePath(navigation.state)
+      const path = Constants._getVisiblePathForNavigator(navigation.state)
       const visible = path[path.length - 1]
       if (visible) {
         if (routeName === visible.routeName && shallowEqual(visible.params, params)) {
@@ -80,7 +80,7 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
         : [switchStack]
     }
     case RouteTreeGen.clearModals:
-      const path = Constants.getVisiblePath(navigation.state)
+      const path = Constants._getVisiblePathForNavigator(navigation.state)
       const actions = []
       path.reverse().some(p => {
         if (modalRoutes[p.routeName]) {

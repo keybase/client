@@ -11,7 +11,6 @@ import {virtualListMarks} from '../../local-debug'
 import {debounce} from 'lodash-es'
 import {Owl} from './owl'
 import * as RowSizes from './row/sizes'
-import {NavigationEvents} from '@react-navigation/core'
 
 import type {Props, RowItem, RowItemSmall} from './index.types'
 
@@ -207,7 +206,7 @@ class Inbox extends React.PureComponent<Props, State> {
     )
     return (
       <Kb.ErrorBoundary>
-        <NavigationEvents onDidFocus={this._onDidFocus} />
+        <Kb.NavigationEvents onDidFocus={this._onDidFocus} />
         <Kb.Box style={boxStyle}>
           <Kb.NativeFlatList
             ListHeaderComponent={HeadComponent}

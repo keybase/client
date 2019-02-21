@@ -1,5 +1,5 @@
 // @flow
-// // TODO deprecate
+// TODO deprecate
 // Just for desktop, we show inbox and conversation side by side
 import * as React from 'react'
 import Inbox from './inbox/container'

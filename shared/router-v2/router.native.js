@@ -132,15 +132,15 @@ class RNApp extends React.PureComponent<any, any> {
   }
 
   componentDidMount() {
-    if (!Styles.isAndroid) {
-      return
+    if (Styles.isAndroid) {
+      Kb.NativeBackHandler.addEventListener('hardwareBackPress', this._handleAndroidBack)
     }
-
-    Kb.NativeBackHandler.addEventListener('hardwareBackPress', this._handleAndroidBack)
   }
 
   componentWillUnmount() {
-    Kb.NativeBackHandler.removeEventListener('hardwareBackPress', this._handleAndroidBack)
+    if (Styles.isAndroid) {
+      Kb.NativeBackHandler.removeEventListener('hardwareBackPress', this._handleAndroidBack)
+    }
   }
 
   getNavState = () => this._nav?.state?.nav

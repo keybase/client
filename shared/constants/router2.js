@@ -18,8 +18,14 @@ const findVisibleRoute = (arr, s) => {
   return [...arr, route]
 }
 
-// Public API
-export const getVisiblePath = (_fromNavOnly?: any) => {
+// Private API used by navigator itself
+export const _getVisiblePathForNavigator = (navState: any) => {
   if (!_navigator) return []
-  return findVisibleRoute([], _fromNavOnly || _navigator.getNavState())
+  return findVisibleRoute([], navState)
+}
+
+// Public API
+export const getVisiblePath = () => {
+  if (!_navigator) return []
+  return findVisibleRoute([], _navigator.getNavState())
 }

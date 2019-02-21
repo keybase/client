@@ -17,21 +17,6 @@ class Header extends React.PureComponent<Props> {
       return null
     }
 
-    // let leftAction = null
-    // if (typeof opt.headerBackTitle === 'string') {
-    // leftAction = (
-    // <Kb.Text type="BodyPrimaryLink" onClick={opt.onPop}>
-    // {opt.headerBackTitle}
-    // </Kb.Text>
-    // )
-    // } else if (typeof opt.headerBackTitle === 'function') {
-    // const CustomBackTitle = opt.headerBackTitle
-    // leftAction = <CustomBackTitle />
-    // } else {
-    // leftAction = (
-    // )
-    // }
-
     let title = null
     if (typeof opt.headerTitle === 'string') {
       title = <Kb.Text type="BodySemibold">{opt.headerTitle}</Kb.Text>
