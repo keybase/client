@@ -121,7 +121,6 @@ func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 	res = make(chan struct{})
 	// Out of order update, we are going to wait a fixed amount of time for the correctly
 	// ordered update
-	deadline := g.clock.Now().Add(time.Second)
 	go func(ctx context.Context) {
 		defer close(res)
 		g.Lock()
@@ -130,19 +129,26 @@ func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 			vers = newVers - 1
 			g.Debug(ctx, "WaitForTurn: failed to get current inbox version: %v. Proceeding with vers %d", err, vers)
 		}
+		dur := time.Duration(newVers-vers) * time.Second
+		deadline := g.clock.Now().Add(dur)
 		waiters := g.addToWaitersLocked(ctx, uid, vers, newVers)
 		g.Unlock()
 		if len(waiters) == 0 {
 			return
 		}
-		g.Debug(ctx, "WaitForTurn: out of order update received, waiting on %d updates: vers: %d newVers: %d", len(waiters), vers, newVers)
+		waitBegin := g.clock.Now()
+		g.Debug(ctx,
+			"WaitForTurn: out of order update received, waiting on %d updates: vers: %d newVers: %d dur: %v",
+			len(waiters), vers, newVers, dur)
 		ctx, cancel := context.WithCancel(ctx)
 		defer cancel()
 		select {
 		case <-g.waitOnWaiters(ctx, newVers, waiters):
-			g.Debug(ctx, "WaitForTurn: cleared by earlier messages: vers: %d", newVers)
+			g.Debug(ctx, "WaitForTurn: cleared by earlier messages: vers: %d wait: %v", newVers,
+				g.clock.Now().Sub(waitBegin))
 		case <-g.clock.AfterTime(deadline):
-			g.Debug(ctx, "WaitForTurn: timeout reached, charging forward: vers: %d", newVers)
+			g.Debug(ctx, "WaitForTurn: timeout reached, charging forward: vers: %d wait: %v", newVers,
+				g.clock.Now().Sub(waitBegin))
 			g.Lock()
 			g.cleanupAfterTimeoutLocked(uid, newVers)
 			g.Unlock()

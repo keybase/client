@@ -984,15 +984,11 @@ func (s *HybridConversationSource) Clear(ctx context.Context, convID chat1.Conve
 }
 
 func (s *HybridConversationSource) GetMessages(ctx context.Context, conv types.UnboxConversationInfo,
-	uid gregor1.UID, msgIDs []chat1.MessageID, threadReason *chat1.GetThreadReason) ([]chat1.MessageUnboxed, error) {
+	uid gregor1.UID, msgIDs []chat1.MessageID, threadReason *chat1.GetThreadReason) (res []chat1.MessageUnboxed, err error) {
+	defer s.Trace(ctx, func() error { return err }, "GetMessages")()
+
+	// Grab local messages
 	convID := conv.GetConvID()
-	if _, err := s.lockTab.Acquire(ctx, uid, convID); err != nil {
-		return nil, err
-	}
-	defer s.lockTab.Release(ctx, uid, convID)
-
-	rmsgsTab := make(map[chat1.MessageID]chat1.MessageUnboxed)
-
 	msgs, err := s.storage.FetchMessages(ctx, convID, uid, msgIDs)
 	if err != nil {
 		return nil, err
@@ -1007,9 +1003,15 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, conv types.U
 	}
 
 	// Grab message from remote
+	rmsgsTab := make(map[chat1.MessageID]chat1.MessageUnboxed)
 	s.Debug(ctx, "GetMessages: convID: %s uid: %s total msgs: %d remote: %d", convID, uid, len(msgIDs),
 		len(remoteMsgs))
 	if len(remoteMsgs) > 0 {
+		// acquire lock if we need to go get messages from the server
+		if _, err := s.lockTab.Acquire(ctx, uid, convID); err != nil {
+			return nil, err
+		}
+		defer s.lockTab.Release(ctx, uid, convID)
 
 		// Insta fail if we are offline
 		if s.IsOffline(ctx) {
@@ -1043,7 +1045,6 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, conv types.U
 	}
 
 	// Form final result
-	var res []chat1.MessageUnboxed
 	for index, msg := range msgs {
 		if msg != nil {
 			res = append(res, *msg)
