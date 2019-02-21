@@ -569,6 +569,7 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 	}
 
 	nPlayersApprox := len(hostConv.Conv.Metadata.AllList)
+	m.Debug(ctx, "StartFlip: generating parameters for %d players", nPlayersApprox)
 
 	// Preserve the ephemeral lifetime from the conv/message to the game
 	// conversation.
