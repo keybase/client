@@ -82,22 +82,11 @@ export default function(state: Types.State = initialState, action: Tracker2Gen.A
       if (!username) {
         return state
       }
-      const assertionKey = `${action.payload.type}:${action.payload.value}`
       return state.merge({
         usernameToDetails: state.usernameToDetails.updateIn([username], (old = Constants.makeDetails()) =>
-          old.updateIn(['assertions', assertionKey], (old = Constants.makeAssertion()) =>
-            old.merge({
-              assertionKey,
-              color: action.payload.color,
-              metas: action.payload.metas.map(Constants.makeMeta),
-              proofURL: action.payload.proofURL,
-              sigID: action.payload.sigID,
-              siteIcon: action.payload.siteIcon,
-              siteURL: action.payload.siteURL,
-              state: action.payload.state,
-              type: action.payload.type,
-              value: action.payload.value,
-            })
+          old.updateIn(
+            ['assertions', action.payload.assertion.assertionKey],
+            (old = Constants.makeAssertion()) => old.merge(action.payload.assertion)
           )
         ),
       })

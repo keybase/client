@@ -39,19 +39,11 @@ const setupEngineListeners = () => {
           reason: reason.reason || '',
         })
       ),
-    'keybase.1.identify3Ui.identify3UpdateRow': row =>
+    'keybase.1.identify3Ui.identify3UpdateRow': arg =>
       Saga.put(
         Tracker2Gen.createUpdateAssertion({
-          color: Constants.rpcRowColorToColor(row.color),
-          guiID: row.guiID,
-          metas: (row.metas || []).map(m => ({color: Constants.rpcRowColorToColor(m.color), label: m.label})),
-          proofURL: row.proofURL,
-          sigID: row.sigID,
-          siteIcon: '', // TODO
-          siteURL: row.siteURL,
-          state: Constants.rpcRowStateToAssertionState(row.state),
-          type: row.key,
-          value: row.value,
+          assertion: Constants.rpcAssertionToAssertion(arg.row),
+          guiID: arg.row.guiID,
         })
       ),
   })
@@ -190,19 +182,7 @@ const loadFollow = (_, action) => {
 const getProofSuggestions = () =>
   RPCTypes.userProofSuggestionsRpcPromise().then(({suggestions, showMore}) =>
     Tracker2Gen.createProofSuggestionsUpdated({
-      suggestions: (suggestions || []).map(s =>
-        Constants.makeAssertion({
-          assertionKey: s.key,
-          color: 'gray',
-          metas: [],
-          proofURL: '',
-          siteIcon: '',
-          siteURL: '',
-          state: 'suggestion',
-          type: s.key,
-          value: s.profileText,
-        })
-      ),
+      suggestions: (suggestions || []).map(Constants.rpcSuggestionToAssertion),
     })
   )
 
