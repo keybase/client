@@ -255,14 +255,16 @@ func (o PaymentSummary) DeepCopy() PaymentSummary {
 }
 
 type PaymentSummaryStellar struct {
-	TxID        TransactionID `codec:"txID" json:"txID"`
-	From        AccountID     `codec:"from" json:"from"`
-	To          AccountID     `codec:"to" json:"to"`
-	Amount      string        `codec:"amount" json:"amount"`
-	Asset       Asset         `codec:"asset" json:"asset"`
-	Ctime       TimeMs        `codec:"ctime" json:"ctime"`
-	CursorToken string        `codec:"cursorToken" json:"cursorToken"`
-	Unread      bool          `codec:"unread" json:"unread"`
+	TxID            TransactionID `codec:"txID" json:"txID"`
+	From            AccountID     `codec:"from" json:"from"`
+	To              AccountID     `codec:"to" json:"to"`
+	Amount          string        `codec:"amount" json:"amount"`
+	Asset           Asset         `codec:"asset" json:"asset"`
+	Ctime           TimeMs        `codec:"ctime" json:"ctime"`
+	CursorToken     string        `codec:"cursorToken" json:"cursorToken"`
+	Unread          bool          `codec:"unread" json:"unread"`
+	IsInflation     bool          `codec:"isInflation" json:"isInflation"`
+	InflationSource *string       `codec:"inflationSource,omitempty" json:"inflationSource,omitempty"`
 }
 
 func (o PaymentSummaryStellar) DeepCopy() PaymentSummaryStellar {
@@ -275,6 +277,14 @@ func (o PaymentSummaryStellar) DeepCopy() PaymentSummaryStellar {
 		Ctime:       o.Ctime.DeepCopy(),
 		CursorToken: o.CursorToken,
 		Unread:      o.Unread,
+		IsInflation: o.IsInflation,
+		InflationSource: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.InflationSource),
 	}
 }
 
@@ -689,11 +699,12 @@ type DetailsArg struct {
 }
 
 type RecentPaymentsArg struct {
-	Caller      keybase1.UserVersion `codec:"caller" json:"caller"`
-	AccountID   AccountID            `codec:"accountID" json:"accountID"`
-	Cursor      *PageCursor          `codec:"cursor,omitempty" json:"cursor,omitempty"`
-	Limit       int                  `codec:"limit" json:"limit"`
-	SkipPending bool                 `codec:"skipPending" json:"skipPending"`
+	Caller       keybase1.UserVersion `codec:"caller" json:"caller"`
+	AccountID    AccountID            `codec:"accountID" json:"accountID"`
+	Cursor       *PageCursor          `codec:"cursor,omitempty" json:"cursor,omitempty"`
+	Limit        int                  `codec:"limit" json:"limit"`
+	SkipPending  bool                 `codec:"skipPending" json:"skipPending"`
+	IncludeMulti bool                 `codec:"includeMulti" json:"includeMulti"`
 }
 
 type PendingPaymentsArg struct {

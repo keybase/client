@@ -1133,7 +1133,7 @@ func Claim(mctx libkb.MetaContext, walletState *WalletState,
 	autoClaimToken *string) (res stellar1.RelayClaimResult, err error) {
 	defer mctx.CTraceTimed("Stellar.Claim", func() error { return err })()
 	mctx.CDebugf("Stellar.Claim(txID:%v, into:%v, dir:%v, autoClaimToken:%v)", txID, into, dir, autoClaimToken)
-	details, err := walletState.PaymentDetails(mctx.Ctx(), txID)
+	details, err := walletState.PaymentDetailsGeneric(mctx.Ctx(), txID)
 	if err != nil {
 		return res, err
 	}
@@ -1273,7 +1273,7 @@ func RecentPaymentsCLILocal(mctx libkb.MetaContext, remoter remote.Remoter, acco
 
 func PaymentDetailCLILocal(ctx context.Context, g *libkb.GlobalContext, remoter remote.Remoter, txID string) (res stellar1.PaymentCLILocal, err error) {
 	defer g.CTraceTimed(ctx, "Stellar.PaymentDetailCLILocal", func() error { return err })()
-	payment, err := remoter.PaymentDetails(ctx, txID)
+	payment, err := remoter.PaymentDetailsGeneric(ctx, txID)
 	if err != nil {
 		return res, err
 	}

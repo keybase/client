@@ -243,7 +243,7 @@ func (p *Loader) loadPayment(id stellar1.PaymentID) {
 	defer mctx.CTraceTimed(fmt.Sprintf("loadPayment(%s)", id), func() error { return nil })()
 
 	s := getGlobal(p.G())
-	details, err := s.remoter.PaymentDetails(ctx, stellar1.TransactionIDFromPaymentID(id).String())
+	details, err := s.remoter.PaymentDetailsGeneric(ctx, stellar1.TransactionIDFromPaymentID(id).String())
 	if err != nil {
 		mctx.CDebugf("error getting payment details for %s: %s", id, err)
 		return
