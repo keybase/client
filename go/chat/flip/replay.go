@@ -89,6 +89,14 @@ func extractUserDevices(v []UserDeviceCommitment) []UserDevice {
 }
 
 func Replay(ctx context.Context, rh ReplayHelper, gh GameHistory) (*GameSummary, error) {
+	ret, err := replay(ctx, rh, gh)
+	if err != nil {
+		rh.CLogf(ctx, "Replay failure (%s); game dump: %+v", err, gh)
+	}
+	return ret, err
+}
+
+func replay(ctx context.Context, rh ReplayHelper, gh GameHistory) (*GameSummary, error) {
 
 	var game *Game
 	var err error
