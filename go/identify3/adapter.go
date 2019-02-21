@@ -206,6 +206,7 @@ func (i *UIAdapter) rowPartial(proof keybase1.RemoteProof, lcr *keybase1.LinkChe
 		Key:      proof.Key,
 		Value:    proof.Value,
 		SigID:    proof.SigID,
+		Ctime:    proof.MTime, // It's what we've got.
 		Priority: i.priority(proof.Key),
 	}
 
@@ -262,6 +263,7 @@ func (i *UIAdapter) rowPartial(proof keybase1.RemoteProof, lcr *keybase1.LinkChe
 		row.SiteURL = humanURLOrSigchainURL
 	}
 	row.SiteIcon = externals.MakeIcons(i.M(), iconKey, "logo_black", 16)
+	row.SiteIconFull = externals.MakeIcons(i.M(), iconKey, "logo_full", 64)
 	return row
 }
 
@@ -320,11 +322,13 @@ func (i *UIAdapter) displayKey(key keybase1.IdentifyKey) {
 		Key:      "pgp",
 		Value:    hex.EncodeToString(key.PGPFingerprint),
 		SigID:    key.SigID,
+		Ctime:    0,
 		Priority: i.priority("pgp"),
 		SiteURL:  i.makeKeybaseProfileURL(),
 		// key.SigID is blank if the PGP key was there pre-sigchain
-		ProofURL: i.makeSigchainViewURL(key.SigID),
-		SiteIcon: externals.MakeIcons(i.M(), "pgp", "logo_black", 16),
+		ProofURL:     i.makeSigchainViewURL(key.SigID),
+		SiteIcon:     externals.MakeIcons(i.M(), "pgp", "logo_black", 16),
+		SiteIconFull: externals.MakeIcons(i.M(), "pgp", "logo_full", 64),
 	}
 
 	switch {
@@ -448,29 +452,33 @@ func (i *UIAdapter) plumbCryptocurrency(crypto keybase1.Cryptocurrency) {
 		i.M().CDebugf("unrecgonized crypto family: %v, %v", crypto.Type, crypto.Family)
 	}
 	i.updateRow(keybase1.Identify3UpdateRowArg{
-		Key:      key,
-		Value:    crypto.Address,
-		Priority: i.priority(key),
-		State:    keybase1.Identify3RowState_VALID,
-		Color:    keybase1.Identify3RowColor_GREEN,
-		SigID:    crypto.SigID,
-		SiteURL:  i.makeSigchainViewURL(crypto.SigID),
-		SiteIcon: externals.MakeIcons(i.M(), key, "logo_black", 16),
-		ProofURL: i.makeSigchainViewURL(crypto.SigID),
+		Key:          key,
+		Value:        crypto.Address,
+		Priority:     i.priority(key),
+		State:        keybase1.Identify3RowState_VALID,
+		Color:        keybase1.Identify3RowColor_GREEN,
+		SigID:        crypto.SigID,
+		Ctime:        0,
+		SiteURL:      i.makeSigchainViewURL(crypto.SigID),
+		SiteIcon:     externals.MakeIcons(i.M(), key, "logo_black", 16),
+		SiteIconFull: externals.MakeIcons(i.M(), key, "logo_full", 64),
+		ProofURL:     i.makeSigchainViewURL(crypto.SigID),
 	})
 }
 
 func (i *UIAdapter) plumbStellarAccount(str keybase1.StellarAccount) {
 	i.updateRow(keybase1.Identify3UpdateRowArg{
-		Key:      "stellar",
-		Value:    str.FederationAddress,
-		Priority: i.priority("stellar"),
-		State:    keybase1.Identify3RowState_VALID,
-		Color:    keybase1.Identify3RowColor_GREEN,
-		SigID:    str.SigID,
-		SiteURL:  i.makeSigchainViewURL(str.SigID),
-		SiteIcon: externals.MakeIcons(i.M(), "stellar", "logo_black", 16),
-		ProofURL: i.makeSigchainViewURL(str.SigID),
+		Key:          "stellar",
+		Value:        str.FederationAddress,
+		Priority:     i.priority("stellar"),
+		State:        keybase1.Identify3RowState_VALID,
+		Color:        keybase1.Identify3RowColor_GREEN,
+		SigID:        str.SigID,
+		Ctime:        0,
+		SiteURL:      i.makeSigchainViewURL(str.SigID),
+		SiteIcon:     externals.MakeIcons(i.M(), "stellar", "logo_black", 16),
+		SiteIconFull: externals.MakeIcons(i.M(), "stellar", "logo_full", 64),
+		ProofURL:     i.makeSigchainViewURL(str.SigID),
 	})
 }
 

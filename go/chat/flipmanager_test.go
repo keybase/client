@@ -188,13 +188,15 @@ func TestFlipManagerParseEdges(t *testing.T) {
 	g := globals.NewContext(tc.G, &globals.ChatContext{})
 	fm := NewFlipManager(g, nil)
 	testCase := func(text string, ftyp flip.FlipType, lowerBound string, shuffleItems []string) {
-		start, lb, si := fm.startFromText(text)
+		start, lb, si := fm.startFromText(text, 3)
 		ft, err := start.Params.T()
 		require.NoError(t, err)
 		require.Equal(t, ftyp, ft)
 		require.Equal(t, lowerBound, lb)
 		require.Equal(t, shuffleItems, si)
 	}
+	deck := "2♠️,3♠️,4♠️,5♠️,6♠️,7♠️,8♠️,9♠️,10♠️,J♠️,Q♠️,K♠️,A♠️,2♣️,3♣️,4♣️,5♣️,6♣️,7♣️,8♣️,9♣️,10♣️,J♣️,Q♣️,K♣️,A♣️,2♦️,3♦️,4♦️,5♦️,6♦️,7♦️,8♦️,9♦️,10♦️,J♦️,Q♦️,K♦️,A♦️,2♥️,3♥️,4♥️,5♥️,6♥️,7♥️,8♥️,9♥️,10♥️,J♥️,Q♥️,K♥️,A♥️"
+	cards := strings.Split(deck, ",")
 	testCase("/flip 10", flip.FlipType_BIG, "1", nil)
 	testCase("/flip 0", flip.FlipType_SHUFFLE, "", []string{"0"})
 	testCase("/flip -1", flip.FlipType_SHUFFLE, "", []string{"-1"})
@@ -208,6 +210,7 @@ func TestFlipManagerParseEdges(t *testing.T) {
 		[]string{"mike", "jim bob    j", "jim"})
 	testCase("/flip 10...20", flip.FlipType_SHUFFLE, "", []string{"10...20"})
 	testCase("/flip 1,0", flip.FlipType_SHUFFLE, "", []string{"1", "0"})
+	testCase("/flip cards", flip.FlipType_SHUFFLE, "", cards)
 }
 
 func TestFlipManagerLoadFlip(t *testing.T) {
@@ -237,7 +240,7 @@ func TestFlipManagerLoadFlip(t *testing.T) {
 			ctc.as(t, users[1]).user())
 		mustPostLocalForTest(t, ctc, users[0], conv,
 			chat1.NewMessageBodyWithText(chat1.MessageText{
-				Body: "/flip",
+				Body: "/flip ",
 			}))
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_FLIP)
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_FLIP)

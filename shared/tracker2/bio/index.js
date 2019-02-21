@@ -18,7 +18,13 @@ type Props = {|
 const Bio = (p: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container} centerChildren={true} gap="xtiny">
     <Kb.Box2 direction="horizontal" style={styles.fullNameContainer} gap="tiny">
-      <Kb.Text centered={true} type="BodyBig" lineClamp={p.inTracker ? 1 : undefined} style={styles.fullName}>
+      <Kb.Text
+        center={true}
+        type="BodyBig"
+        lineClamp={p.inTracker ? 1 : undefined}
+        style={styles.text}
+        selectable={true}
+      >
         {p.fullname}
       </Kb.Text>
       {p.registeredForAirdrop && (
@@ -47,12 +53,24 @@ const Bio = (p: Props) => (
       </Kb.Text>
     )}
     {!!p.bio && (
-      <Kb.Text type="Body" centered={true} lineClamp={p.inTracker ? 2 : undefined} style={styles.text}>
-        {p.bio}
+      <Kb.Text
+        type="Body"
+        center={true}
+        lineClamp={p.inTracker ? 2 : undefined}
+        style={styles.text}
+        selectable={true}
+      >
+        >{p.bio}
       </Kb.Text>
     )}
     {!!p.location && (
-      <Kb.Text type="BodySmall" centered={true} lineClamp={p.inTracker ? 1 : undefined} style={styles.text}>
+      <Kb.Text
+        type="BodySmall"
+        center={true}
+        lineClamp={p.inTracker ? 1 : undefined}
+        style={styles.text}
+        selectable={true}
+      >
         {p.location}
       </Kb.Text>
     )}

@@ -445,6 +445,12 @@ const rootReducer = (
       })
       return state.set('flipStatusMap', fm)
     }
+    case Chat2Gen.messageSend:
+      return state.setIn(['commandMarkdownMap', action.payload.conversationIDKey], '')
+    case Chat2Gen.setCommandMarkdown: {
+      const {conversationIDKey, text} = action.payload
+      return state.setIn(['commandMarkdownMap', conversationIDKey], text)
+    }
     case Chat2Gen.giphyGotSearchResult:
       return state.setIn(['giphyResultMap', action.payload.conversationIDKey], action.payload.results)
     case Chat2Gen.setInboxFilter:
@@ -1034,7 +1040,6 @@ const rootReducer = (
     case Chat2Gen.markInitiallyLoadedThreadAsRead:
     case Chat2Gen.messageDeleteHistory:
     case Chat2Gen.messageReplyPrivately:
-    case Chat2Gen.messageSend:
     case Chat2Gen.metaHandleQueue:
     case Chat2Gen.metaNeedsUpdating:
     case Chat2Gen.metaRequestTrusted:

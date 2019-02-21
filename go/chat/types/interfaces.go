@@ -438,6 +438,7 @@ type CoinFlipManager interface {
 	MaybeInjectFlipMessage(ctx context.Context, msg chat1.MessageUnboxed, convID chat1.ConversationID,
 		topicType chat1.TopicType)
 	LoadFlip(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, gameID chat1.FlipGameID)
+	DescribeFlipText(ctx context.Context, text string) string
 }
 
 type InternalError interface {

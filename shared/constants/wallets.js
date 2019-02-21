@@ -26,6 +26,7 @@ export const sendRequestFormRouteKey = 'sendReceiveForm'
 export const chooseAssetFormRouteKey = 'chooseAssetForm'
 export const confirmFormRouteKey = 'confirmForm'
 export const sendRequestFormRoutes = [sendRequestFormRouteKey, confirmFormRouteKey]
+export const airdropBannerKey = 'stellarHideAirdropBanner'
 
 export const makeAirdropQualification: I.RecordFactory<Types._AirdropQualification> = I.Record({
   subTitle: '',

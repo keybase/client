@@ -148,13 +148,30 @@ class Qualified extends React.PureComponent<Props, State> {
   }
 
   render() {
-    const p = this.props
     const rows = this.props.rows
     const loadingRows = !!rows.length && this.state.rowIdxLoaded < rows.length - 1
-    const loading = p.state === 'loading' || !!loadingRows
+    const loading = this.props.state === 'loading' || !!loadingRows
 
-    if (Styles.isMobile && p.state === 'accepted') {
+    if (Styles.isMobile && this.props.state === 'accepted') {
       return null
+    }
+
+    let starIcon
+    let description
+
+    if (loading) {
+      starIcon = 'icon-fancy-airdrop-star-faded-loading-120'
+      description = 'Analyzing your account...'
+    } else {
+      starIcon =
+        this.props.state === 'qualified'
+          ? 'icon-fancy-airdrop-star-shining-happy-120'
+          : 'icon-fancy-airdrop-star-faded-sad-120'
+
+      description =
+        this.props.state === 'qualified'
+          ? 'You are qualified to join!'
+          : 'Sorry, you are not qualified to join.'
     }
 
     return (
@@ -162,21 +179,12 @@ class Qualified extends React.PureComponent<Props, State> {
         style={styles.scrollView}
         className={Styles.classNames({
           'fade-anim-enter': true,
-          'fade-anim-enter-active': p.state !== 'accepted',
+          'fade-anim-enter-active': this.props.state !== 'accepted',
         })}
       >
         <Kb.Box2 noShrink={true} direction="vertical" fullWidth={true} gap="tiny" style={styles.content}>
           <>
-            <Kb.Icon
-              type={
-                loading
-                  ? 'icon-fancy-airdrop-star-faded-loading-120'
-                  : p.state === 'qualified'
-                  ? 'icon-fancy-airdrop-star-shining-happy-120'
-                  : 'icon-fancy-airdrop-star-faded-sad-120'
-              }
-              style={styles.star}
-            />
+            <Kb.Icon type={starIcon} style={styles.star} />
           </>
           <Kb.Box2 direction="vertical" style={styles.titleBox}>
             <Kb.Text
@@ -184,11 +192,7 @@ class Qualified extends React.PureComponent<Props, State> {
               type={loading ? 'BodySmallSemibold' : 'Header'}
               style={loading ? styles.loadingText : styles.headerText}
             >
-              {loading
-                ? 'Analyzing your account...'
-                : p.state === 'qualified'
-                ? 'You are qualified to join!'
-                : 'Sorry, you are not qualified to join.'}
+              {description}
             </Kb.Text>
           </Kb.Box2>
           <Kb.Box2
@@ -203,9 +207,9 @@ class Qualified extends React.PureComponent<Props, State> {
             ))}
           </Kb.Box2>
           <Kb.Box2 direction="vertical" style={styles.grow} />
-          {p.state === 'qualified' && (
+          {this.props.state === 'qualified' && (
             <Kb.WaitingButton
-              onClick={p.onSubmit}
+              onClick={this.props.onSubmit}
               fullWidth={true}
               type="PrimaryGreen"
               label="Become a lucky airdropee"
@@ -215,7 +219,7 @@ class Qualified extends React.PureComponent<Props, State> {
             />
           )}
           <Kb.Button
-            onClick={p.onCancel}
+            onClick={this.props.onCancel}
             fullWidth={true}
             type="Wallet"
             label="Close"

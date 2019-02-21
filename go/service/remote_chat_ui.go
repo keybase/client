@@ -123,3 +123,11 @@ func (r *RemoteChatUI) ChatCoinFlipStatus(ctx context.Context, statuses []chat1.
 		Statuses:  statuses,
 	})
 }
+
+func (r *RemoteChatUI) ChatCommandMarkdown(ctx context.Context, convID chat1.ConversationID, text string) error {
+	return r.cli.ChatCommandMarkdown(ctx, chat1.ChatCommandMarkdownArg{
+		SessionID: r.sessionID,
+		ConvID:    convID.String(),
+		Text:      text,
+	})
+}

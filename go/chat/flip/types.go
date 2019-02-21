@@ -6,6 +6,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"math/big"
 	"time"
 
 	chat1 "github.com/keybase/client/go/protocol/chat1"
@@ -47,8 +48,12 @@ func GenerateGameID() chat1.FlipGameID {
 	return chat1.FlipGameID(ret)
 }
 
-func (s Start) CommitmentWindowWithSlack() time.Duration {
-	return Time(s.CommitmentWindowMsec + s.SlackMsec).Duration()
+func (s Start) CommitmentWindowWithSlack(isLeader bool) time.Duration {
+	window := s.CommitmentCompleteWindowMsec
+	if isLeader {
+		window = s.CommitmentWindowMsec
+	}
+	return Time(window + s.SlackMsec).Duration()
 }
 
 func (s Start) RevealWindowWithSlack() time.Duration {
@@ -59,4 +64,50 @@ func (u UserDevice) LessThan(v UserDevice) bool {
 	cu := bytes.Compare([]byte(u.U), []byte(v.U))
 	du := bytes.Compare([]byte(u.D), []byte(v.D))
 	return cu < 0 || (cu == 0 && du < 0)
+}
+
+func (h Hash) String() string {
+	return hex.EncodeToString(h[:])
+}
+
+func (m GameMessageBody) String() string {
+	t, err := m.T()
+	if err != nil {
+		return fmt.Sprintf("union error: %s", err.Error())
+	}
+	switch t {
+	case MessageType_START:
+		return fmt.Sprintf("START: %+v", m.Start())
+	case MessageType_COMMITMENT:
+		return fmt.Sprintf("COMMITMENT: %+v", m.Commitment())
+	case MessageType_COMMITMENT_COMPLETE:
+		return fmt.Sprintf("COMMITMENT COMPLETE: %+v", m.CommitmentComplete())
+	case MessageType_REVEAL:
+		return fmt.Sprintf("REVEAL: %+v", m.Reveal())
+	case MessageType_END:
+		return "END"
+	default:
+		return fmt.Sprintf("Unknown: %d", t)
+	}
+}
+
+func (p FlipParameters) String() string {
+	t, err := p.T()
+	if err != nil {
+		return fmt.Sprintf("union error: %s", err.Error())
+	}
+	switch t {
+	case FlipType_BOOL:
+		return "bool"
+	case FlipType_INT:
+		return fmt.Sprintf("int(%d)", p.Int())
+	case FlipType_BIG:
+		var n big.Int
+		n.SetBytes(p.Big())
+		return fmt.Sprintf("big(%s)", n.String())
+	case FlipType_SHUFFLE:
+		return fmt.Sprintf("shuffle(%d)", p.Shuffle())
+	default:
+		return fmt.Sprintf("Unknown: %d", t)
+	}
 }

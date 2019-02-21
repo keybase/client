@@ -973,11 +973,11 @@ const updateAirdropState = () =>
     }
   )
 
-const airdropBannerKey = 'hideAirdropBanner'
-const hideAirdropBanner = () => GregorGen.createUpdateCategory({body: 'true', category: airdropBannerKey})
+const hideAirdropBanner = () =>
+  GregorGen.createUpdateCategory({body: 'true', category: Constants.airdropBannerKey})
 const gregorPushState = (_, action) =>
   WalletsGen.createUpdateAirdropBannerState({
-    show: !action.payload.state.find(i => i.item.category === airdropBannerKey && !!i.item.body.length),
+    show: !action.payload.state.find(i => i.item.category === Constants.airdropBannerKey),
   })
 
 function* walletsSaga(): Saga.SagaGenerator<any, any> {

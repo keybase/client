@@ -562,7 +562,7 @@ func testRelaySBS(t *testing.T, yank bool) {
 	})
 	require.NoError(t, err)
 
-	details, err := tcs[0].Backend.PaymentDetails(context.Background(), tcs[0], sendRes.KbTxID.String())
+	details, err := tcs[0].Backend.PaymentDetailsGeneric(context.Background(), tcs[0], sendRes.KbTxID.String())
 	require.NoError(t, err)
 
 	claimant := 0
@@ -721,7 +721,7 @@ func testRelayReset(t *testing.T, yank bool) {
 	})
 	require.NoError(t, err)
 
-	details, err := tcs[0].Backend.PaymentDetails(context.Background(), tcs[0], sendRes.KbTxID.String())
+	details, err := tcs[0].Backend.PaymentDetailsGeneric(context.Background(), tcs[0], sendRes.KbTxID.String())
 	require.NoError(t, err)
 
 	typ, err := details.Summary.Typ()

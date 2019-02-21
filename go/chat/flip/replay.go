@@ -19,7 +19,7 @@ type GameSummary struct {
 	Result  Result
 }
 
-func (g GameHistory) start() (game *Game, rest GameHistory, err error) {
+func (g GameHistory) start(rh ReplayHelper) (game *Game, rest GameHistory, err error) {
 	if len(g) == 0 {
 		return nil, nil, NewReplayError("cannot reply 0-length game")
 	}
@@ -57,6 +57,7 @@ func (g GameHistory) start() (game *Game, rest GameHistory, err error) {
 		gameUpdateCh: make(chan GameStateUpdateMessage),
 		players:      make(map[UserDeviceKey]*GamePlayerState),
 		stage:        Stage_ROUND1,
+		clogf:        rh.CLogf,
 	}
 
 	return game, rest, nil
@@ -87,11 +88,11 @@ func extractUserDevices(v []UserDeviceCommitment) []UserDevice {
 	return ret
 }
 
-func Replay(ctx context.Context, gh GameHistory) (*GameSummary, error) {
+func Replay(ctx context.Context, rh ReplayHelper, gh GameHistory) (*GameSummary, error) {
 
 	var game *Game
 	var err error
-	game, gh, err = gh.start()
+	game, gh, err = gh.start(rh)
 	if err != nil {
 		return nil, err
 	}

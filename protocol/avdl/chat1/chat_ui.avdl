@@ -308,4 +308,6 @@ protocol chatUi {
     array<UICoinFlipParticipant> participants;
   }
   void chatCoinFlipStatus(int sessionID, array<UICoinFlipStatus> statuses);
+
+  void chatCommandMarkdown(int sessionID, string convID, string text);
 }

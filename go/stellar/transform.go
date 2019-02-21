@@ -468,7 +468,8 @@ func AccountDetailsToWalletAccountLocal(mctx libkb.MetaContext, accountID stella
 	if err != nil {
 		return empty, err
 	}
-	canSubmitTx := availableInt > 100 // base fee is 100
+	baseFee := getGlobal(mctx.G()).BaseFee(mctx)
+	canSubmitTx := availableInt > int64(baseFee)
 	// TODO: this is something that stellard can just tell us.
 	isFunded, err := hasPositiveLumenBalance(details.Balances)
 	if err != nil {

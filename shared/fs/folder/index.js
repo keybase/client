@@ -36,20 +36,25 @@ class Files extends React.PureComponent<FolderProps> {
           <Kb.Icon type="icon-access-denied-266" />
         </Kb.Box2>
       </Kb.Box2>
-    ) : this.renderContent()
+    ) : (
+      this.renderContent()
+    )
     return (
       <Kb.BoxGrow>
         <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true}>
           <FolderHeader path={this.props.path} routePath={this.props.routePath} />
           <Kbfs.Errs />
           <Kb.Divider />
-          {isMobile && this.props.resetParticipants.length > 0 ? (
+          {isMobile ? (
             <Kb.ScrollView>
-              <ConnectedResetBanner path={this.props.path} />
+              {this.props.resetParticipants.length > 0 && <ConnectedResetBanner path={this.props.path} />}
               <Kb.Box>{content}</Kb.Box>
             </Kb.ScrollView>
           ) : (
-            content
+            <>
+              {this.props.resetParticipants.length > 0 && <ConnectedResetBanner path={this.props.path} />}
+              {content}
+            </>
           )}
           <Footer />
         </Kb.Box2>

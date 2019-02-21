@@ -27,7 +27,6 @@ type Props = {
   showSuccessBanner: boolean,
   sendLogs: boolean,
   feedback: ?string,
-  heading: ?string,
   sending: boolean,
   sendError: ?Error,
   onChangeSendLogs: (nextValue: boolean) => void,
@@ -60,29 +59,29 @@ class Feedback extends Component<Props> {
       sendLogs,
       onChangeSendLogs,
       feedback,
-      heading,
       onChangeFeedback,
       sending,
       sendError,
     } = this.props
     return (
       <NativeScrollView style={{...globalStyles.flexBoxColumn, flexGrow: 1}} ref={this._setScrollRef}>
-        <Box
-          style={{
-            alignItems: 'center',
-            ...globalStyles.flexBoxRow,
-            backgroundColor: globalColors.green,
-            flex: 0,
-            minHeight: 40,
-            opacity: showSuccessBanner ? 1 : 0,
-            paddingBottom: globalMargins.tiny,
-            paddingTop: globalMargins.tiny,
-          }}
-        >
-          <Text center={true} type="BodySmallSemibold" backgroundMode="Success" style={{flex: 1}}>
-            Thanks! Your feedback was sent.
-          </Text>
-        </Box>
+        {showSuccessBanner && (
+          <Box
+            style={{
+              alignItems: 'center',
+              ...globalStyles.flexBoxRow,
+              backgroundColor: globalColors.green,
+              flex: 0,
+              minHeight: 40,
+              paddingBottom: globalMargins.tiny,
+              paddingTop: globalMargins.tiny,
+            }}
+          >
+            <Text center={true} type="BodySmallSemibold" backgroundMode="Success" style={{flex: 1}}>
+              Thanks! Your feedback was sent.
+            </Text>
+          </Box>
+        )}
         <Box
           style={{
             ...globalStyles.flexBoxColumn,
@@ -91,18 +90,13 @@ class Feedback extends Component<Props> {
             justifyContent: 'flex-start',
             marginLeft: globalMargins.small,
             marginRight: globalMargins.small,
-            padding: globalMargins.tiny,
           }}
         >
-          <Text center={true} type="HeaderBig">
-            {heading}
-          </Text>
           <Box
             style={{
               flex: 1,
               ...globalStyles.flexBoxRow,
-              paddingBottom: globalMargins.small,
-              paddingTop: globalMargins.medium,
+              paddingTop: globalMargins.small,
             }}
           >
             <Input
@@ -120,7 +114,7 @@ class Feedback extends Component<Props> {
               onChangeText={onChangeFeedback}
             />
           </Box>
-          <Box style={{...globalStyles.flexBoxRow, marginTop: globalMargins.small}}>
+          <Box style={{...globalStyles.flexBoxRow}}>
             <Checkbox
               label=""
               style={{alignItems: 'flex-start', marginRight: globalMargins.tiny}}
@@ -135,7 +129,7 @@ class Feedback extends Component<Props> {
               </Text>
             </Box>
           </Box>
-          <ButtonBar>
+          <ButtonBar style={{paddingTop: globalMargins.small}}>
             <Button fullWidth={true} label="Send" onClick={this._onSubmit} type="Primary" waiting={sending} />
           </ButtonBar>
           {sendError && (

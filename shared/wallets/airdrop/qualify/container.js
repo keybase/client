@@ -13,9 +13,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = (dispatch, {navigateUp}) => ({
   onCancel: () => dispatch(navigateUp()),
   onLoad: () => dispatch(WalletsGen.createUpdateAirdropState()),
-  onSubmit: () => {
-    dispatch(WalletsGen.createChangeAirdrop({accept: true}))
-  },
+  onSubmit: () => dispatch(WalletsGen.createChangeAirdrop({accept: true})),
 })
 
 const injectSmile = rows =>
