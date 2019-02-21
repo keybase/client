@@ -8,6 +8,7 @@ import {connect, compose, lifecycle, withStateHandlers} from '../../../../util/c
 
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
+  debug?: boolean,
   onFocusInput: () => void,
   scrollListDownCounter: number,
   scrollListUpCounter: number,

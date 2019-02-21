@@ -18,6 +18,7 @@ import {globalStyles} from '../../../../styles'
 import type {Props} from './index.types'
 import shallowEqual from 'shallowequal'
 import {globalMargins} from '../../../../styles/shared'
+import logger from '../../../../logger'
 
 // hot reload isn't supported with debouncing currently so just ignore hot here
 if (module.hot) {
@@ -34,6 +35,8 @@ type State = {
 
 type Snapshot = ?number
 
+const debug = __STORYBOOK__
+
 class Thread extends React.PureComponent<Props, State> {
   state = {isLockedToBottom: true}
   _listRef = React.createRef()
@@ -44,34 +47,76 @@ class Thread extends React.PureComponent<Props, State> {
   // When we're triggering scrolling we don't want our event subscribers to fire so we increment this value
   _ignoreScrollToBottomRefCount = 0
   // last height we saw from resize
-  _scrollHeight = 0
+  _scrollHeight: number = 0
 
-  _scrollToBottom = () => {
+  _logIgnoreScroll = debug
+    ? (name, fn) => {
+        const oldIgnore = this._ignoreScrollToBottomRefCount
+        fn()
+        logger.debug('SCROLL', name, 'ignoreScroll', oldIgnore, '->', this._ignoreScrollToBottomRefCount)
+      }
+    : (name, fn) => fn()
+
+  _logScrollTop = debug
+    ? (list, name, fn) => {
+        const oldScrollTop = list.scrollTop
+        fn()
+        logger.debug('SCROLL', name, 'scrollTop', oldScrollTop, '->', list.scrollTop)
+      }
+    : (list, name, fn) => fn()
+
+  _logAll = debug
+    ? (list, name, fn) => {
+        const oldIgnore = this._ignoreScrollToBottomRefCount
+        const oldScrollTop = list.scrollTop
+        fn()
+        logger.debug(
+          'SCROLL',
+          name,
+          'ignoreScroll',
+          oldIgnore,
+          '->',
+          this._ignoreScrollToBottomRefCount,
+          'scrollTop',
+          oldScrollTop,
+          '->',
+          list.scrollTop
+        )
+      }
+    : (list, name, fn) => fn()
+
+  _scrollToBottom = reason => {
     const list = this._listRef.current
     if (list) {
-      // ignore callbacks due to this change
-      this._ignoreScrollToBottomRefCount++
-      list.scrollTop = list.scrollHeight - list.clientHeight
+      this._logAll(list, `_scrollToBottom(${reason})`, () => {
+        // ignore callbacks due to this change
+        this._ignoreScrollToBottomRefCount++
+        list.scrollTop = list.scrollHeight - list.clientHeight
+      })
     }
   }
 
   _scrollDown = () => {
     const list = this._listRef.current
     if (list) {
-      list.scrollTop += list.clientHeight
+      this._logScrollTop(list, '_scrollDown', () => {
+        list.scrollTop += list.clientHeight
+      })
     }
   }
 
   _scrollUp = () => {
     const list = this._listRef.current
     if (list) {
-      list.scrollTop -= list.clientHeight
+      this._logScrollTop(list, '_scrollUp', () => {
+        list.scrollTop -= list.clientHeight
+      })
     }
   }
 
   componentDidMount() {
     if (this.state.isLockedToBottom) {
-      setImmediate(() => this._scrollToBottom())
+      setImmediate(() => this._scrollToBottom('componentDidMount'))
     }
   }
 
@@ -98,7 +143,7 @@ class Thread extends React.PureComponent<Props, State> {
       this._cleanupDebounced()
       this._scrollHeight = 0
       this.setState(p => (p.isLockedToBottom ? null : {isLockedToBottom: true}))
-      this._scrollToBottom()
+      this._scrollToBottom('componentDidUpdate-change-convo')
       return
     }
 
@@ -120,7 +165,7 @@ class Thread extends React.PureComponent<Props, State> {
       this.props.lastMessageIsOurs
     ) {
       this.setState(p => (p.isLockedToBottom ? null : {isLockedToBottom: true}))
-      this._scrollToBottom()
+      this._scrollToBottom('componentDidUpdate-sent-something')
       return
     }
 
@@ -133,10 +178,10 @@ class Thread extends React.PureComponent<Props, State> {
       this._onResize({scroll: {height: list.scrollHeight}})
     } else if (this.state.isLockedToBottom && this.props.conversationIDKey === prevProps.conversationIDKey) {
       // maintain scroll to bottom?
-      this._scrollToBottom()
+      this._scrollToBottom('componentDidUpdate-maintain-scroll')
     } else if (this.props.messageOrdinals.size !== prevProps.messageOrdinals.size) {
-      // someone else sent something? then ignore next resize resize
-      this._scrollHeight = null
+      // someone else sent something? then ignore next resize
+      this._scrollHeight = 0
     }
 
     if (list && this.props.editingOrdinal && this.props.editingOrdinal !== prevProps.editingOrdinal) {
@@ -169,7 +214,9 @@ class Thread extends React.PureComponent<Props, State> {
   _onScroll = e => {
     this._checkForLoadMoreThrottled()
     if (this._ignoreScrollToBottomRefCount > 0) {
-      this._ignoreScrollToBottomRefCount--
+      this._logIgnoreScroll('_onScroll', () => {
+        this._ignoreScrollToBottomRefCount--
+      })
       return
     }
     this._onScrollThrottled()
@@ -178,6 +225,11 @@ class Thread extends React.PureComponent<Props, State> {
   // While scrolling we disable mouse events to speed things up. We avoid state so we don't re-render while doing this
   _onScrollThrottled = throttle(
     () => {
+      const list = this._listRef.current
+      if (list && debug) {
+        logger.debug('SCROLL', '_onScrollThrottled', 'scrollTop', list.scrollTop)
+      }
+
       if (!this._isScrolling) {
         this._isScrolling = true
         if (this._pointerWrapperRef.current) {
@@ -222,6 +274,9 @@ class Thread extends React.PureComponent<Props, State> {
     const list = this._listRef.current
     // are we locked on the bottom?
     if (list) {
+      if (debug) {
+        logger.debug('SCROLL', '_onAfterScroll', 'scrollTop', list.scrollTop)
+      }
       const isLockedToBottom = list.scrollHeight - list.clientHeight - list.scrollTop < listEdgeSlop
       this.setState(p => (p.isLockedToBottom === isLockedToBottom ? null : {isLockedToBottom}))
     }
@@ -309,12 +364,14 @@ class Thread extends React.PureComponent<Props, State> {
       // if the size changes adjust our scrolltop
       const list = this._listRef.current
       if (list) {
-        this._ignoreScrollToBottomRefCount++
-        if (this.state.isLockedToBottom) {
-          list.scrollTop = list.scrollTop + scroll.height - list.clientHeight
-        } else {
-          list.scrollTop = list.scrollTop + scroll.height - this._scrollHeight
-        }
+        this._logAll(list, '_onResize', () => {
+          this._ignoreScrollToBottomRefCount++
+          if (this.state.isLockedToBottom) {
+            list.scrollTop = list.scrollTop + scroll.height - list.clientHeight
+          } else {
+            list.scrollTop = list.scrollTop + scroll.height - this._scrollHeight
+          }
+        })
       }
     }
     this._scrollHeight = scroll.height
@@ -323,8 +380,13 @@ class Thread extends React.PureComponent<Props, State> {
   render() {
     const items = this._makeItems()
 
+    const debugInfo = debug ? (
+      <div>Debug info: {this.state.isLockedToBottom ? 'Locked to bottom' : 'Not locked to bottom'}</div>
+    ) : null
+
     return (
       <ErrorBoundary>
+        {debugInfo}
         <div style={containerStyle} onClick={this._handleListClick} onCopyCapture={this._onCopyCapture}>
           <style>{realCSS}</style>
           <div
