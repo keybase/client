@@ -517,6 +517,11 @@ func (s *Stellar) RemovePendingTx(mctx libkb.MetaContext, accountID stellar1.Acc
 	return s.walletState.RemovePendingTx(mctx.Ctx(), accountID, txID)
 }
 
+// BaseFee returns the server-suggested base fee per operation.
+func (s *Stellar) BaseFee(mctx libkb.MetaContext) uint64 {
+	return s.walletState.BaseFee(mctx)
+}
+
 // getFederationClient is a helper function used during
 // initialization.
 func getFederationClient(g *libkb.GlobalContext) federation.ClientInterface {

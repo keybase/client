@@ -903,7 +903,7 @@ func (md *RootMetadata) IsWriter(
 	uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey) (
 	bool, error) {
 	h := md.GetTlfHandle()
-	return isWriterFromHandle(ctx, h, checker, uid, verifyingKey)
+	return IsWriterFromHandle(ctx, h, checker, uid, verifyingKey)
 }
 
 // IsReader checks that the given user is a valid reader of the TLF

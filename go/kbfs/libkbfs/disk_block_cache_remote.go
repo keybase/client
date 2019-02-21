@@ -12,9 +12,9 @@ import (
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
-	kbgitkbfs "github.com/keybase/client/go/protocol/kbgitkbfs1"
 	"github.com/keybase/client/go/kbfs/tlf"
 	"github.com/keybase/client/go/libkb"
+	kbgitkbfs "github.com/keybase/client/go/protocol/kbgitkbfs1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 

@@ -222,7 +222,8 @@ func BuildPaymentLocal(mctx libkb.MetaContext, arg stellar1.BuildPaymentLocalArg
 			if err != nil {
 				log("error getting available balance: %v", err)
 			} else {
-				availableToSendXLM = SubtractFeeSoft(mctx, availableToSendXLM)
+				baseFee := getGlobal(mctx.G()).BaseFee(mctx)
+				availableToSendXLM = SubtractFeeSoft(mctx, availableToSendXLM, baseFee)
 				availableToSendFormatted := availableToSendXLM + " XLM"
 				availableToSendXLMFmt, err := FormatAmount(mctx,
 					availableToSendXLM, false, FmtTruncate)
@@ -888,16 +889,16 @@ func buildPaymentWorthInfo(mctx libkb.MetaContext, rate stellar1.OutsideExchange
 	return worthInfo, nil
 }
 
-// Subtract a 100 stroop fee from the available balance.
+// Subtract baseFee from the available balance.
 // This shows the real available balance assuming an intent to send a 1 op tx.
 // Does not error out, just shows the inaccurate answer.
-func SubtractFeeSoft(mctx libkb.MetaContext, availableStr string) string {
+func SubtractFeeSoft(mctx libkb.MetaContext, availableStr string, baseFee uint64) string {
 	available, err := stellarnet.ParseStellarAmount(availableStr)
 	if err != nil {
 		mctx.CDebugf("error parsing available balance: %v", err)
 		return availableStr
 	}
-	available -= 100
+	available -= int64(baseFee)
 	if available < 0 {
 		available = 0
 	}

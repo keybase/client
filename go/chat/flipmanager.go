@@ -308,11 +308,18 @@ func (m *FlipManager) queueDirtyGameID(gameID chat1.FlipGameID, force bool) {
 
 func (m *FlipManager) handleSummaryUpdate(ctx context.Context, gameID chat1.FlipGameID,
 	update *flip.GameSummary, convID chat1.ConversationID, force bool) {
+	defer m.queueDirtyGameID(gameID, force)
 	if update.Err != nil {
+		var parts []chat1.UICoinFlipParticipant
+		oldGame, ok := m.games.Get(gameID.String())
+		if ok {
+			parts = oldGame.(chat1.UICoinFlipStatus).Participants
+		}
 		m.games.Add(gameID.String(), chat1.UICoinFlipStatus{
 			GameID:       gameID.String(),
 			Phase:        chat1.UICoinFlipPhase_ERROR,
-			ProgressText: fmt.Sprintf("Something went wrong: %s", update.Err),
+			ProgressText: fmt.Sprintf("Complete: %s", update.Err),
+			Participants: parts,
 		})
 		return
 	}
@@ -328,7 +335,6 @@ func (m *FlipManager) handleSummaryUpdate(ctx context.Context, gameID chat1.Flip
 	}
 	status.ProgressText = "Complete"
 	m.games.Add(gameID.String(), status)
-	m.queueDirtyGameID(gameID, force)
 }
 
 func (m *FlipManager) handleUpdate(ctx context.Context, update flip.GameStateUpdateMessage, force bool) (err error) {
@@ -695,7 +701,14 @@ func (m *FlipManager) loadGame(ctx context.Context, job loadGameJob) (err error)
 	summary, err := flip.Replay(ctx, m, history)
 	if err != nil {
 		m.Debug(ctx, "loadGame: failed to replay history: %s", err)
-		return err
+		// Make sure we aren't current playing this game, and bail out if we are
+		if m.dealer.IsGameActive(ctx, flipConv.GetConvID(), job.gameID) {
+			m.Debug(ctx, "loadGame: game is currently active, bailing out")
+			return nil
+		}
+		summary = &flip.GameSummary{
+			Err: fmt.Errorf("Replay failed: %s", err),
+		}
 	}
 	m.handleSummaryUpdate(ctx, job.gameID, summary, flipConv.GetConvID(), true)
 	return nil
