@@ -15,7 +15,7 @@ func NewSecretStoreMem() *SecretStoreMem {
 func (s *SecretStoreMem) RetrieveSecret(m MetaContext, username NormalizedUsername) (LKSecFullSecret, error) {
 	secret, ok := s.secrets[username]
 	if !ok {
-		return LKSecFullSecret{}, ErrSecretForUserNotFound
+		return LKSecFullSecret{}, NewErrSecretForUserNotFound(username)
 	}
 	return secret, nil
 }

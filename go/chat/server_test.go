@@ -401,6 +401,8 @@ func (c *chatTestContext) as(t *testing.T, user *kbtest.FakeUser) *chatTestUserC
 	g.Unfurler = types.DummyUnfurler{}
 	g.StellarLoader = types.DummyStellarLoader{}
 	g.StellarSender = types.DummyStellarSender{}
+	g.CoinFlipManager = NewFlipManager(g, func() chat1.RemoteInterface { return ri })
+	g.CoinFlipManager.Start(context.TODO(), uid)
 
 	tc.G.ChatHelper = NewHelper(g, func() chat1.RemoteInterface { return ri })
 
@@ -692,7 +694,7 @@ func TestChatSrvNewConversationLocal(t *testing.T) {
 		tc := ctc.world.Tcs[users[0].Username]
 		ctx := ctc.as(t, users[0]).startCtx
 		uid := users[0].User.GetUID().ToBytes()
-		conv, err := GetUnverifiedConv(ctx, tc.Context(), uid, created.Id,
+		conv, err := utils.GetUnverifiedConv(ctx, tc.Context(), uid, created.Id,
 			types.InboxSourceDataSourceRemoteOnly)
 		require.NoError(t, err)
 		require.NotZero(t, len(conv.Conv.MaxMsgSummaries))
@@ -821,7 +823,7 @@ func TestChatSrvGetInboxAndUnboxLocal(t *testing.T) {
 		tc := ctc.world.Tcs[users[0].Username]
 		uid := users[0].User.GetUID().ToBytes()
 
-		conv, err := GetUnverifiedConv(ctx, tc.Context(), uid, created.Id,
+		conv, err := utils.GetUnverifiedConv(ctx, tc.Context(), uid, created.Id,
 			types.InboxSourceDataSourceRemoteOnly)
 		require.NoError(t, err)
 		if conversations[0].Info.TlfName != conv.Conv.MaxMsgSummaries[0].TlfName {
@@ -1119,7 +1121,7 @@ func TestChatSrvGetInboxAndUnboxLocalTlfName(t *testing.T) {
 		require.Equal(t, 1, len(conversations))
 		tc := ctc.world.Tcs[users[0].Username]
 		uid := users[0].User.GetUID().ToBytes()
-		conv, err := GetUnverifiedConv(ctx, tc.Context(), uid, created.Id,
+		conv, err := utils.GetUnverifiedConv(ctx, tc.Context(), uid, created.Id,
 			types.InboxSourceDataSourceRemoteOnly)
 		require.NoError(t, err)
 		require.Equal(t, conversations[0].Info.TlfName, conv.Conv.MaxMsgSummaries[0].TlfName)
@@ -3180,10 +3182,20 @@ func TestChatSrvGetUnreadLine(t *testing.T) {
 		assertUnreadline(ctx2, g2, users[1], 1, msgID2)
 
 		// user2 will have no unread id since the only visible message was now deleted
-		mustDeleteMsg(ctx1, t, ctc, users[0], conv, msgID2)
+		msgID3 := mustDeleteMsg(ctx1, t, ctc, users[0], conv, msgID2)
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_DELETE)
 		consumeNewMsgRemote(t, listener2, chat1.MessageType_DELETE)
 		assertUnreadline(ctx2, g2, users[1], 1, 0)
+
+		// if we are fully read, there is no line and we don't go to the server
+		g1.ConvSource.SetRemoteInterface(func() chat1.RemoteInterface {
+			return chat1.RemoteClient{Cli: errorClient{}}
+		})
+		assertUnreadline(ctx1, g1, users[0], msgID3, 0)
+		g2.ConvSource.SetRemoteInterface(func() chat1.RemoteInterface {
+			return chat1.RemoteClient{Cli: errorClient{}}
+		})
+		assertUnreadline(ctx2, g2, users[1], msgID3, 0)
 	})
 }
 
@@ -4421,9 +4433,7 @@ func TestChatSrvRetentionSweepConv(t *testing.T) {
 				badLifetime := *ephemeralLifetime + 1
 				_, err := postLocalEphemeralForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}), &badLifetime)
 				require.Error(t, err)
-				aerr, ok := err.(libkb.AppStatusError)
-				require.True(t, ok)
-				require.EqualValues(t, keybase1.StatusCode_SCChatEphemeralRetentionPolicyViolatedError, aerr.Code)
+				require.IsType(t, libkb.ChatEphemeralRetentionPolicyViolatedError{}, err)
 
 				mustPostLocalEphemeralForTest(t, ctc, users[0], conv,
 					chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}), ephemeralLifetime)
@@ -4539,9 +4549,7 @@ func TestChatSrvRetentionSweepTeam(t *testing.T) {
 					badLifetime := *ephemeralLifetime + 1
 					_, err := postLocalEphemeralForTest(t, ctc, users[0], conv, chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}), &badLifetime)
 					require.Error(t, err)
-					aerr, ok := err.(libkb.AppStatusError)
-					require.True(t, ok)
-					require.EqualValues(t, keybase1.StatusCode_SCChatEphemeralRetentionPolicyViolatedError, aerr.Code)
+					require.IsType(t, libkb.ChatEphemeralRetentionPolicyViolatedError{}, err)
 
 					mustPostLocalEphemeralForTest(t, ctc, users[0], conv,
 						chat1.NewMessageBodyWithText(chat1.MessageText{Body: "hello!"}), ephemeralLifetime)
@@ -4786,7 +4794,7 @@ func TestChatSrvSetConvMinWriterRole(t *testing.T) {
 				}
 			}
 
-			conv, err := GetUnverifiedConv(ctx, ctc.world.Tcs[user.Username].Context(),
+			conv, err := utils.GetUnverifiedConv(ctx, ctc.world.Tcs[user.Username].Context(),
 				gregor1.UID(user.GetUID().ToBytes()), convID, types.InboxSourceDataSourceRemoteOnly)
 			require.NoError(t, err)
 			if role == nil {
@@ -4998,7 +5006,8 @@ func TestChatSrvTopicNameState(t *testing.T) {
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_JOIN)
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_SYSTEM)
 
-		convRemote, err := GetUnverifiedConv(ctx, tc.Context(), uid, conv.Id, types.InboxSourceDataSourceAll)
+		convRemote, err := utils.GetUnverifiedConv(ctx, tc.Context(), uid, conv.Id,
+			types.InboxSourceDataSourceAll)
 		require.NoError(t, err)
 
 		// Creating a conversation with same topic name just returns the matching one
@@ -5097,7 +5106,8 @@ func TestChatSrvUnboxMobilePushNotification(t *testing.T) {
 		tc := ctc.world.Tcs[users[0].Username]
 		uid := users[0].User.GetUID().ToBytes()
 		conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT, mt)
-		convRemote, err := GetUnverifiedConv(ctx, tc.Context(), uid, conv.Id, types.InboxSourceDataSourceAll)
+		convRemote, err := utils.GetUnverifiedConv(ctx, tc.Context(), uid, conv.Id,
+			types.InboxSourceDataSourceAll)
 		require.NoError(t, err)
 		plarg := chat1.PostLocalArg{
 			ConversationID: conv.Id,
@@ -5204,7 +5214,7 @@ func TestChatSrvImplicitConversation(t *testing.T) {
 		consumeIdentify(ctx, listener0) //encrypt for first message
 
 		uid := users[0].User.GetUID().ToBytes()
-		conv, err := GetUnverifiedConv(ctx, tc.Context(), uid, ncres.Conv.Info.Id,
+		conv, err := utils.GetUnverifiedConv(ctx, tc.Context(), uid, ncres.Conv.Info.Id,
 			types.InboxSourceDataSourceRemoteOnly)
 		require.NoError(t, err)
 		require.NotEmpty(t, conv.Conv.MaxMsgSummaries, "created conversation does not have a message")
@@ -5338,7 +5348,7 @@ func TestChatSrvTeamTypeChanged(t *testing.T) {
 		}
 
 		// Check remote notifications
-		uconv, err := GetUnverifiedConv(ctx, ctc.as(t, users[0]).h.G(), users[0].GetUID().ToBytes(),
+		uconv, err := utils.GetUnverifiedConv(ctx, ctc.as(t, users[0]).h.G(), users[0].GetUID().ToBytes(),
 			conv.Id, types.InboxSourceDataSourceRemoteOnly)
 		require.NoError(t, err)
 		require.NotNil(t, uconv.Conv.Notifications)

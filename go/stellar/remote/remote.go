@@ -488,9 +488,10 @@ func RecentPayments(ctx context.Context, g *libkb.GlobalContext,
 		Endpoint:    "stellar/recentpayments",
 		SessionType: libkb.APISessionTypeREQUIRED,
 		Args: libkb.HTTPArgs{
-			"account_id":   libkb.S{Val: accountID.String()},
-			"limit":        libkb.I{Val: limit},
-			"skip_pending": libkb.B{Val: skipPending},
+			"account_id":    libkb.S{Val: accountID.String()},
+			"limit":         libkb.I{Val: limit},
+			"skip_pending":  libkb.B{Val: skipPending},
+			"include_multi": libkb.B{Val: true},
 		},
 		NetContext:      ctx,
 		RetryCount:      3,
@@ -538,7 +539,25 @@ type paymentDetailResult struct {
 	Result stellar1.PaymentDetails `json:"res"`
 }
 
-func PaymentDetails(ctx context.Context, g *libkb.GlobalContext, txID string) (res stellar1.PaymentDetails, err error) {
+func PaymentDetails(ctx context.Context, g *libkb.GlobalContext, accountID stellar1.AccountID, txID string) (res stellar1.PaymentDetails, err error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/paymentdetail",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		Args: libkb.HTTPArgs{
+			"account_id": libkb.S{Val: string(accountID)},
+			"txID":       libkb.S{Val: txID},
+		},
+		NetContext:      ctx,
+		RetryCount:      3,
+		RetryMultiplier: 1.5,
+		InitialTimeout:  10 * time.Second,
+	}
+	var apiRes paymentDetailResult
+	err = g.API.GetDecode(apiArg, &apiRes)
+	return apiRes.Result, err
+}
+
+func PaymentDetailsGeneric(ctx context.Context, g *libkb.GlobalContext, txID string) (res stellar1.PaymentDetails, err error) {
 	apiArg := libkb.APIArg{
 		Endpoint:    "stellar/paymentdetail",
 		SessionType: libkb.APISessionTypeREQUIRED,
@@ -900,6 +919,24 @@ func GetInflationDestinations(ctx context.Context, g *libkb.GlobalContext) (ret 
 		return ret, err
 	}
 	return apiRes.Destinations, nil
+}
+
+type networkOptionsRes struct {
+	libkb.AppStatusEmbed
+	Options stellar1.NetworkOptions
+}
+
+func NetworkOptions(ctx context.Context, g *libkb.GlobalContext) (stellar1.NetworkOptions, error) {
+	apiArg := libkb.APIArg{
+		Endpoint:    "stellar/network_options",
+		SessionType: libkb.APISessionTypeREQUIRED,
+		MetaContext: libkb.NewMetaContext(ctx, g),
+	}
+	var apiRes networkOptionsRes
+	if err := g.API.GetDecode(apiArg, &apiRes); err != nil {
+		return stellar1.NetworkOptions{}, err
+	}
+	return apiRes.Options, nil
 }
 
 type airdropDetails struct {

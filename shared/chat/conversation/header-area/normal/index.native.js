@@ -104,7 +104,7 @@ const styles = styleSheetCreate({
   },
   channelHeaderContainer: {alignItems: 'center', alignSelf: 'center'},
   channelName: {
-    color: globalColors.black_75,
+    color: globalColors.black,
   },
   channelNameLight: {
     color: globalColors.black_50,

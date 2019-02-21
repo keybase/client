@@ -13,6 +13,13 @@ export const chatUiMessageUnboxedState = {
   placeholder: 4,
 }
 
+export const chatUiUICoinFlipPhase = {
+  commitment: 0,
+  reveals: 1,
+  complete: 2,
+  error: 3,
+}
+
 export const chatUiUITextDecorationTyp = {
   payment: 0,
   atmention: 1,
@@ -85,6 +92,7 @@ export const commonGetThreadReason = {
   searcher: 6,
   indexedSearch: 7,
   kbfsfileactivity: 8,
+  coinflip: 9,
 }
 
 export const commonGlobalAppNotificationSetting = {
@@ -118,6 +126,7 @@ export const commonMessageType = {
   sendpayment: 14,
   requestpayment: 15,
   unfurl: 16,
+  flip: 17,
 }
 
 export const commonNotificationKind = {

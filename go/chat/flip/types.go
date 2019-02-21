@@ -1,22 +1,21 @@
 package flip
 
 import (
+	"bytes"
 	"crypto/hmac"
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"math/big"
 	"time"
+
+	chat1 "github.com/keybase/client/go/protocol/chat1"
 )
 
-func (g GameID) String() string                   { return hex.EncodeToString(g) }
-func (u UID) String() string                      { return hex.EncodeToString(u) }
-func (d DeviceID) String() string                 { return hex.EncodeToString(d) }
-func (c ConversationID) String() string           { return hex.EncodeToString(c) }
-func (g GameID) Eq(h GameID) bool                 { return hmac.Equal(g[:], h[:]) }
-func (u UID) Eq(v UID) bool                       { return hmac.Equal(u[:], v[:]) }
-func (d DeviceID) Eq(e DeviceID) bool             { return hmac.Equal(d[:], e[:]) }
-func (u UserDevice) Eq(v UserDevice) bool         { return u.U.Eq(v.U) && u.D.Eq(v.D) }
-func (c ConversationID) Eq(d ConversationID) bool { return hmac.Equal(c[:], d[:]) }
+func (u UserDevice) Eq(v UserDevice) bool { return u.U.Eq(v.U) && u.D.Eq(v.D) }
+func (h Hash) Eq(i Hash) bool             { return hmac.Equal(h[:], i[:]) }
+func (c Commitment) String() string       { return hex.EncodeToString(c[:]) }
+func (s Secret) String() string           { return hex.EncodeToString(s[:]) }
 
 func (t Time) Time() time.Time {
 	if t == 0 {
@@ -36,7 +35,7 @@ func ToTime(t time.Time) Time {
 	return Time(t.UnixNano() / 1000000)
 }
 
-func GenerateGameID() GameID {
+func GenerateGameID() chat1.FlipGameID {
 	l := 12
 	ret := make([]byte, l)
 	n, err := rand.Read(ret[:])
@@ -46,32 +45,69 @@ func GenerateGameID() GameID {
 	if err != nil {
 		panic(fmt.Sprintf("error reading randomness: %s", err.Error()))
 	}
-	return GameID(ret)
+	return chat1.FlipGameID(ret)
 }
 
-func (s Start) CommitmentWindowWithSlack() time.Duration {
-	return Time(s.CommitmentWindowMsec + s.SlackMsec).Duration()
+func (s Start) CommitmentWindowWithSlack(isLeader bool) time.Duration {
+	window := s.CommitmentCompleteWindowMsec
+	if isLeader {
+		window = s.CommitmentWindowMsec
+	}
+	return Time(window + s.SlackMsec).Duration()
 }
 
 func (s Start) RevealWindowWithSlack() time.Duration {
 	return Time(s.CommitmentWindowMsec + s.RevealWindowMsec + 2*s.SlackMsec).Duration()
 }
 
-func isZero(v []byte) bool {
-	for _, b := range v {
-		if b != 0 {
-			return false
-		}
-	}
-	return true
+func (u UserDevice) LessThan(v UserDevice) bool {
+	cu := bytes.Compare([]byte(u.U), []byte(v.U))
+	du := bytes.Compare([]byte(u.D), []byte(v.D))
+	return cu < 0 || (cu == 0 && du < 0)
 }
 
-func (c ConversationID) IsZero() bool { return isZero(c[:]) }
-func (u UID) IsZero() bool            { return isZero(u[:]) }
-func (d DeviceID) IsZero() bool       { return isZero(d[:]) }
-func (g GameID) IsZero() bool         { return isZero(g[:]) }
+func (h Hash) String() string {
+	return hex.EncodeToString(h[:])
+}
 
-func (c ConversationID) check() bool { return c != nil && !c.IsZero() }
-func (u UID) check() bool            { return u != nil && !u.IsZero() }
-func (d DeviceID) check() bool       { return d != nil && !d.IsZero() }
-func (g GameID) check() bool         { return g != nil && !g.IsZero() }
+func (m GameMessageBody) String() string {
+	t, err := m.T()
+	if err != nil {
+		return fmt.Sprintf("union error: %s", err.Error())
+	}
+	switch t {
+	case MessageType_START:
+		return fmt.Sprintf("START: %+v", m.Start())
+	case MessageType_COMMITMENT:
+		return fmt.Sprintf("COMMITMENT: %+v", m.Commitment())
+	case MessageType_COMMITMENT_COMPLETE:
+		return fmt.Sprintf("COMMITMENT COMPLETE: %+v", m.CommitmentComplete())
+	case MessageType_REVEAL:
+		return fmt.Sprintf("REVEAL: %+v", m.Reveal())
+	case MessageType_END:
+		return "END"
+	default:
+		return fmt.Sprintf("Unknown: %d", t)
+	}
+}
+
+func (p FlipParameters) String() string {
+	t, err := p.T()
+	if err != nil {
+		return fmt.Sprintf("union error: %s", err.Error())
+	}
+	switch t {
+	case FlipType_BOOL:
+		return "bool"
+	case FlipType_INT:
+		return fmt.Sprintf("int(%d)", p.Int())
+	case FlipType_BIG:
+		var n big.Int
+		n.SetBytes(p.Big())
+		return fmt.Sprintf("big(%s)", n.String())
+	case FlipType_SHUFFLE:
+		return fmt.Sprintf("shuffle(%d)", p.Shuffle())
+	default:
+		return fmt.Sprintf("Unknown: %d", t)
+	}
+}

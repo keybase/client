@@ -2,6 +2,7 @@ package chat1
 
 import (
 	"bytes"
+	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
 	"flag"
@@ -163,10 +164,19 @@ var visibleMessageTypes = []MessageType{
 	MessageType_SYSTEM,
 	MessageType_SENDPAYMENT,
 	MessageType_REQUESTPAYMENT,
+	MessageType_FLIP,
 }
 
 func VisibleChatMessageTypes() []MessageType {
 	return visibleMessageTypes
+}
+
+var editableMessageTypesByEdit = []MessageType{
+	MessageType_TEXT,
+}
+
+func EditableMessageTypesByEdit() []MessageType {
+	return editableMessageTypesByEdit
 }
 
 func IsEphemeralSupersederType(typ MessageType) bool {
@@ -184,7 +194,8 @@ func IsEphemeralSupersederType(typ MessageType) bool {
 func IsEphemeralNonSupersederType(typ MessageType) bool {
 	switch typ {
 	case MessageType_TEXT,
-		MessageType_ATTACHMENT:
+		MessageType_ATTACHMENT,
+		MessageType_FLIP:
 		return true
 	default:
 		return false
@@ -1244,8 +1255,12 @@ func (c Conversation) MaxVisibleMsgID() MessageID {
 }
 
 func (c Conversation) IsUnread() bool {
+	return c.IsUnreadFromMsgID(c.ReaderInfo.ReadMsgid)
+}
+
+func (c Conversation) IsUnreadFromMsgID(readMsgID MessageID) bool {
 	maxMsgID := c.MaxVisibleMsgID()
-	return maxMsgID > 0 && maxMsgID > c.ReaderInfo.ReadMsgid
+	return maxMsgID > 0 && maxMsgID > readMsgID
 }
 
 func (c Conversation) HasMemberStatus(status ConversationMemberStatus) bool {
@@ -2248,3 +2263,18 @@ func (m MessageSystemChangeRetention) String() string {
 	summary := m.Policy.HumanSummary()
 	return fmt.Sprintf(format, m.User, appliesTo, inheritDescription, summary)
 }
+
+func isZero(v []byte) bool {
+	for _, b := range v {
+		if b != 0 {
+			return false
+		}
+	}
+	return true
+}
+
+func MakeFlipGameID(s string) (FlipGameID, error) { return hex.DecodeString(s) }
+func (g FlipGameID) String() string               { return hex.EncodeToString(g) }
+func (g FlipGameID) Eq(h FlipGameID) bool         { return hmac.Equal(g[:], h[:]) }
+func (g FlipGameID) IsZero() bool                 { return isZero(g[:]) }
+func (g FlipGameID) Check() bool                  { return g != nil && !g.IsZero() }

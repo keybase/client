@@ -240,8 +240,8 @@ func TestFollowUnfollowTracy(t *testing.T) {
 			Key:   "https",
 			Value: "keybase.io",
 			State: keybase1.Identify3RowState_WARNING,
-			Color: keybase1.Identify3RowColor_ORANGE,
-			Metas: []keybase1.Identify3RowMeta{keybase1.Identify3RowMeta{Color: keybase1.Identify3RowColor_ORANGE, Label: "ignored"}},
+			Color: keybase1.Identify3RowColor_GREEN,
+			Metas: []keybase1.Identify3RowMeta{keybase1.Identify3RowMeta{Color: keybase1.Identify3RowColor_GREEN, Label: "ignored"}},
 		},
 	})
 }
@@ -265,6 +265,7 @@ func runID3(t *testing.T, mctx libkb.MetaContext, user string, follow bool) id3r
 	res := fakeUI3.results()
 	for _, row := range res.rows {
 		checkIcon(t, row.Key, row.SiteIcon)
+		checkIcon(t, row.Key, row.SiteIconFull)
 		if row.Priority == 0 || row.Priority == 9999999 {
 			t.Fatalf("unexpected priority %v %v", row.Key, row.Priority)
 		}

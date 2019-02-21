@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"reflect"
 	"sync"
+	"time"
 
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
@@ -38,6 +39,7 @@ type FolderBranchStatus struct {
 	GitUsageBytes       int64
 	GitArchiveBytes     int64
 	GitLimitBytes       int64
+	LocalTimestamp      time.Time
 
 	// DirtyPaths are files that have been written, but not flushed.
 	// They do not represent unstaged changes in your local instance.
@@ -229,6 +231,7 @@ func (fbsk *folderBranchStatusKeeper) getStatusWithoutJournaling(
 			fbsk.md.Data().Dir.BlockPointer)
 		fbs.PrefetchStatus = prefetchStatus.String()
 		fbs.RootBlockID = fbsk.md.Data().Dir.BlockPointer.ID.String()
+		fbs.LocalTimestamp = fbsk.md.localTimestamp
 
 		if fbsk.quotaUsage == nil {
 			loggerSuffix := fmt.Sprintf("status-%s", fbsk.md.TlfID())

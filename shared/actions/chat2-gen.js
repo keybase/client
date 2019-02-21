@@ -80,6 +80,7 @@ export const resetLetThemIn = 'chat2:resetLetThemIn'
 export const saveMinWriterRole = 'chat2:saveMinWriterRole'
 export const selectConversation = 'chat2:selectConversation'
 export const sendTyping = 'chat2:sendTyping'
+export const setCommandMarkdown = 'chat2:setCommandMarkdown'
 export const setConvExplodingMode = 'chat2:setConvExplodingMode'
 export const setConvRetentionPolicy = 'chat2:setConvRetentionPolicy'
 export const setConversationOffline = 'chat2:setConversationOffline'
@@ -102,6 +103,7 @@ export const unfurlRemove = 'chat2:unfurlRemove'
 export const unfurlResolvePrompt = 'chat2:unfurlResolvePrompt'
 export const unfurlTogglePrompt = 'chat2:unfurlTogglePrompt'
 export const unsentTextChanged = 'chat2:unsentTextChanged'
+export const updateCoinFlipStatus = 'chat2:updateCoinFlipStatus'
 export const updateConvExplodingModes = 'chat2:updateConvExplodingModes'
 export const updateConvRetentionPolicy = 'chat2:updateConvRetentionPolicy'
 export const updateMessages = 'chat2:updateMessages'
@@ -182,6 +184,7 @@ type _SelectConversationPayload = $ReadOnly<{|
   reason: 'clearSelected' | 'desktopNotification' | 'setPendingMode' | 'sendingToPending' | 'createdMessagePrivately' | 'extension' | 'files' | 'findNewestConversation' | 'inboxBig' | 'inboxFilterArrow' | 'inboxFilterChanged' | 'inboxSmall' | 'inboxNewConversation' | 'jumpFromReset' | 'jumpToReset' | 'justCreated' | 'manageView' | 'previewResolved' | 'pendingModeChange' | 'push' | 'savedLastState' | 'startFoundExisting' | 'teamChat',
 |}>
 type _SendTypingPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, typing: boolean|}>
+type _SetCommandMarkdownPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, text: string|}>
 type _SetConvExplodingModePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, seconds: number|}>
 type _SetConvRetentionPolicyPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, policy: RetentionPolicy|}>
 type _SetConversationOfflinePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, offline: boolean|}>
@@ -205,6 +208,7 @@ type _UnfurlRemovePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDK
 type _UnfurlResolvePromptPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID, domain: string, result: RPCChatTypes.UnfurlPromptResult|}>
 type _UnfurlTogglePromptPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID, domain: string, show: boolean|}>
 type _UnsentTextChangedPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, text: HiddenString|}>
+type _UpdateCoinFlipStatusPayload = $ReadOnly<{|statuses: Array<RPCChatTypes.UICoinFlipStatus>|}>
 type _UpdateConvExplodingModesPayload = $ReadOnly<{|modes: Array<{conversationIDKey: Types.ConversationIDKey, seconds: number}>|}>
 type _UpdateConvRetentionPolicyPayload = $ReadOnly<{|conv: RPCChatTypes.InboxUIItem|}>
 type _UpdateMessagesPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messages: Array<{messageID: Types.MessageID, message: Types.Message}>|}>
@@ -264,6 +268,10 @@ export const createUnfurlResolvePrompt = (payload: _UnfurlResolvePromptPayload) 
  */
 export const createSetExplodingModeLock = (payload: _SetExplodingModeLockPayload) => ({payload, type: setExplodingModeLock})
 /**
+ * Set command markdown for a conversation
+ */
+export const createSetCommandMarkdown = (payload: _SetCommandMarkdownPayload) => ({payload, type: setCommandMarkdown})
+/**
  * Set that wallets in chat is not new.
  */
 export const createSetWalletsOld = (payload: _SetWalletsOldPayload) => ({payload, type: setWalletsOld})
@@ -320,6 +328,10 @@ export const createUnsentTextChanged = (payload: _UnsentTextChangedPayload) => (
  * Update messages that we might have in the store
  */
 export const createUpdateMessages = (payload: _UpdateMessagesPayload) => ({payload, type: updateMessages})
+/**
+ * Update status of a coin flip game
+ */
+export const createUpdateCoinFlipStatus = (payload: _UpdateCoinFlipStatusPayload) => ({payload, type: updateCoinFlipStatus})
 /**
  * Update the minWriterRole stored with the conversation metadata.
  */
@@ -484,6 +496,7 @@ export type ResetLetThemInPayload = {|+payload: _ResetLetThemInPayload, +type: '
 export type SaveMinWriterRolePayload = {|+payload: _SaveMinWriterRolePayload, +type: 'chat2:saveMinWriterRole'|}
 export type SelectConversationPayload = {|+payload: _SelectConversationPayload, +type: 'chat2:selectConversation'|}
 export type SendTypingPayload = {|+payload: _SendTypingPayload, +type: 'chat2:sendTyping'|}
+export type SetCommandMarkdownPayload = {|+payload: _SetCommandMarkdownPayload, +type: 'chat2:setCommandMarkdown'|}
 export type SetConvExplodingModePayload = {|+payload: _SetConvExplodingModePayload, +type: 'chat2:setConvExplodingMode'|}
 export type SetConvRetentionPolicyPayload = {|+payload: _SetConvRetentionPolicyPayload, +type: 'chat2:setConvRetentionPolicy'|}
 export type SetConversationOfflinePayload = {|+payload: _SetConversationOfflinePayload, +type: 'chat2:setConversationOffline'|}
@@ -507,6 +520,7 @@ export type UnfurlRemovePayload = {|+payload: _UnfurlRemovePayload, +type: 'chat
 export type UnfurlResolvePromptPayload = {|+payload: _UnfurlResolvePromptPayload, +type: 'chat2:unfurlResolvePrompt'|}
 export type UnfurlTogglePromptPayload = {|+payload: _UnfurlTogglePromptPayload, +type: 'chat2:unfurlTogglePrompt'|}
 export type UnsentTextChangedPayload = {|+payload: _UnsentTextChangedPayload, +type: 'chat2:unsentTextChanged'|}
+export type UpdateCoinFlipStatusPayload = {|+payload: _UpdateCoinFlipStatusPayload, +type: 'chat2:updateCoinFlipStatus'|}
 export type UpdateConvExplodingModesPayload = {|+payload: _UpdateConvExplodingModesPayload, +type: 'chat2:updateConvExplodingModes'|}
 export type UpdateConvRetentionPolicyPayload = {|+payload: _UpdateConvRetentionPolicyPayload, +type: 'chat2:updateConvRetentionPolicy'|}
 export type UpdateMessagesPayload = {|+payload: _UpdateMessagesPayload, +type: 'chat2:updateMessages'|}
@@ -586,6 +600,7 @@ export type Actions =
   | SaveMinWriterRolePayload
   | SelectConversationPayload
   | SendTypingPayload
+  | SetCommandMarkdownPayload
   | SetConvExplodingModePayload
   | SetConvRetentionPolicyPayload
   | SetConversationOfflinePayload
@@ -609,6 +624,7 @@ export type Actions =
   | UnfurlResolvePromptPayload
   | UnfurlTogglePromptPayload
   | UnsentTextChangedPayload
+  | UpdateCoinFlipStatusPayload
   | UpdateConvExplodingModesPayload
   | UpdateConvRetentionPolicyPayload
   | UpdateMessagesPayload

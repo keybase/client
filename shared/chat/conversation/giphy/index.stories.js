@@ -94,7 +94,7 @@ const props = {
 }
 
 const load = () => {
-  Sb.storiesOf('Chat/Giphy', module)
+  Sb.storiesOf('Chat/Conversation/Giphy', module)
     .addDecorator(story => <Kb.Box style={{maxWidth: 500, padding: 5}}>{story()}</Kb.Box>)
     .add('Display', () => <GiphySearch {...props} />)
 }

@@ -64,6 +64,11 @@ func (p *PRNG) Read(out []byte) int {
 func (p *PRNG) Big(modulus *big.Int) *big.Int {
 
 	sign := modulus.Sign()
+	// For moduli of 0, the sign will be 0. Just return it, since there's
+	// nothing we can really do.
+	if sign == 0 {
+		return modulus
+	}
 	var n big.Int
 	n.Abs(modulus)
 	bits := n.BitLen()
@@ -109,13 +114,18 @@ func (p *PRNG) Bool() bool {
 	return ret
 }
 
+// Permutation runs the Fisher-Yates shuffle on the sequence [0,n).
+// See: https://en.wikipedia.org/wiki/Fisher–Yates_shuffle
+// Be careful for off-by-one errors in this implementation, as we have
+// already witnessed one. We bounty bugs like these, so let us know!
 func (p *PRNG) Permutation(n int) []int {
 	ret := make([]int, n)
 	for i := 0; i < n; i++ {
 		ret[i] = i
 	}
 	for i := n - 1; i >= 1; i-- {
-		j := p.Int(int64(i))
+		modulus := i + 1
+		j := p.Int(int64(modulus))
 		ret[j], ret[i] = ret[i], ret[j]
 	}
 	return ret

@@ -146,7 +146,7 @@ const styleInput = {
 
 const _styleCover = {
   alignItems: 'center',
-  backgroundColor: Styles.globalColors.black_75,
+  backgroundColor: Styles.globalColors.black,
   justifyContent: 'center',
 }
 

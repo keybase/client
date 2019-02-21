@@ -133,7 +133,7 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   popupCover: {
-    backgroundColor: Styles.globalColors.black_75,
+    backgroundColor: Styles.globalColors.black,
   },
 })
 

@@ -255,14 +255,16 @@ func (o PaymentSummary) DeepCopy() PaymentSummary {
 }
 
 type PaymentSummaryStellar struct {
-	TxID        TransactionID `codec:"txID" json:"txID"`
-	From        AccountID     `codec:"from" json:"from"`
-	To          AccountID     `codec:"to" json:"to"`
-	Amount      string        `codec:"amount" json:"amount"`
-	Asset       Asset         `codec:"asset" json:"asset"`
-	Ctime       TimeMs        `codec:"ctime" json:"ctime"`
-	CursorToken string        `codec:"cursorToken" json:"cursorToken"`
-	Unread      bool          `codec:"unread" json:"unread"`
+	TxID            TransactionID `codec:"txID" json:"txID"`
+	From            AccountID     `codec:"from" json:"from"`
+	To              AccountID     `codec:"to" json:"to"`
+	Amount          string        `codec:"amount" json:"amount"`
+	Asset           Asset         `codec:"asset" json:"asset"`
+	Ctime           TimeMs        `codec:"ctime" json:"ctime"`
+	CursorToken     string        `codec:"cursorToken" json:"cursorToken"`
+	Unread          bool          `codec:"unread" json:"unread"`
+	IsInflation     bool          `codec:"isInflation" json:"isInflation"`
+	InflationSource *string       `codec:"inflationSource,omitempty" json:"inflationSource,omitempty"`
 }
 
 func (o PaymentSummaryStellar) DeepCopy() PaymentSummaryStellar {
@@ -275,6 +277,14 @@ func (o PaymentSummaryStellar) DeepCopy() PaymentSummaryStellar {
 		Ctime:       o.Ctime.DeepCopy(),
 		CursorToken: o.CursorToken,
 		Unread:      o.Unread,
+		IsInflation: o.IsInflation,
+		InflationSource: (func(x *string) *string {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x)
+			return &tmp
+		})(o.InflationSource),
 	}
 }
 
@@ -668,6 +678,16 @@ func (o TimeboundsRecommendation) DeepCopy() TimeboundsRecommendation {
 	}
 }
 
+type NetworkOptions struct {
+	BaseFee uint64 `codec:"baseFee" json:"baseFee"`
+}
+
+func (o NetworkOptions) DeepCopy() NetworkOptions {
+	return NetworkOptions{
+		BaseFee: o.BaseFee,
+	}
+}
+
 type BalancesArg struct {
 	Caller    keybase1.UserVersion `codec:"caller" json:"caller"`
 	AccountID AccountID            `codec:"accountID" json:"accountID"`
@@ -679,11 +699,12 @@ type DetailsArg struct {
 }
 
 type RecentPaymentsArg struct {
-	Caller      keybase1.UserVersion `codec:"caller" json:"caller"`
-	AccountID   AccountID            `codec:"accountID" json:"accountID"`
-	Cursor      *PageCursor          `codec:"cursor,omitempty" json:"cursor,omitempty"`
-	Limit       int                  `codec:"limit" json:"limit"`
-	SkipPending bool                 `codec:"skipPending" json:"skipPending"`
+	Caller       keybase1.UserVersion `codec:"caller" json:"caller"`
+	AccountID    AccountID            `codec:"accountID" json:"accountID"`
+	Cursor       *PageCursor          `codec:"cursor,omitempty" json:"cursor,omitempty"`
+	Limit        int                  `codec:"limit" json:"limit"`
+	SkipPending  bool                 `codec:"skipPending" json:"skipPending"`
+	IncludeMulti bool                 `codec:"includeMulti" json:"includeMulti"`
 }
 
 type PendingPaymentsArg struct {
@@ -765,6 +786,10 @@ type SetInflationDestinationArg struct {
 type PingArg struct {
 }
 
+type NetworkOptionsArg struct {
+	Caller keybase1.UserVersion `codec:"caller" json:"caller"`
+}
+
 type RemoteInterface interface {
 	Balances(context.Context, BalancesArg) ([]Balance, error)
 	Details(context.Context, DetailsArg) (AccountDetails, error)
@@ -785,6 +810,7 @@ type RemoteInterface interface {
 	CancelRequest(context.Context, CancelRequestArg) error
 	SetInflationDestination(context.Context, SetInflationDestinationArg) error
 	Ping(context.Context) (string, error)
+	NetworkOptions(context.Context, keybase1.UserVersion) (NetworkOptions, error)
 }
 
 func RemoteProtocol(i RemoteInterface) rpc.Protocol {
@@ -1071,6 +1097,21 @@ func RemoteProtocol(i RemoteInterface) rpc.Protocol {
 					return
 				},
 			},
+			"networkOptions": {
+				MakeArg: func() interface{} {
+					var ret [1]NetworkOptionsArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]NetworkOptionsArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]NetworkOptionsArg)(nil), args)
+						return
+					}
+					ret, err = i.NetworkOptions(ctx, typedArgs[0].Caller)
+					return
+				},
+			},
 		},
 	}
 }
@@ -1173,5 +1214,11 @@ func (c RemoteClient) SetInflationDestination(ctx context.Context, __arg SetInfl
 
 func (c RemoteClient) Ping(ctx context.Context) (res string, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.remote.ping", []interface{}{PingArg{}}, &res)
+	return
+}
+
+func (c RemoteClient) NetworkOptions(ctx context.Context, caller keybase1.UserVersion) (res NetworkOptions, err error) {
+	__arg := NetworkOptionsArg{Caller: caller}
+	err = c.Cli.Call(ctx, "stellar.1.remote.networkOptions", []interface{}{__arg}, &res)
 	return
 }

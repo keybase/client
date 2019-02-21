@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as Constants from '../../constants/tracker'
 import * as Types from '../../constants/types/tracker2'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
@@ -33,10 +34,8 @@ const stateToIcon = state => {
       return 'iconfont-proof-pending'
     case 'valid':
       return 'iconfont-proof-good'
-    case 'error':
-      return 'iconfont-proof-broken'
+    case 'error': // fallthrough
     case 'warning':
-      return 'iconfont-proof-good'
     case 'revoked':
       return 'iconfont-proof-broken'
     case 'suggestion':
@@ -47,20 +46,16 @@ const stateToIcon = state => {
   }
 }
 
-const stateToColor = state => {
+const stateToValueTextStyle = state => {
   switch (state) {
-    case 'checking':
-      return Styles.globalColors.black_50
-    case 'valid':
-      return Styles.globalColors.blue2
-    case 'error':
-      return Styles.globalColors.red
-    case 'warning':
-      return Styles.globalColors.blue2
     case 'revoked':
-      return Styles.globalColors.red
+      return styles.strikeThrough
+    case 'checking':
+    case 'valid':
+    case 'error':
+    case 'warning':
     case 'suggestion':
-      return Styles.globalColors.grey
+      return null
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(state)
       throw new Error('Impossible')
@@ -79,10 +74,8 @@ const assertionColorToColor = (c: Types.AssertionColor) => {
       return Styles.globalColors.green
     case 'gray':
       return Styles.globalColors.black_50
-    case 'yellow':
-      return Styles.globalColors.yellow2
+    case 'yellow': // fallthrough
     case 'orange':
-      return Styles.globalColors.orange
     default:
       return Styles.globalColors.red
   }
@@ -195,7 +188,11 @@ const Value = p => {
       <Kb.Text
         type="BodyPrimaryLink"
         onClick={p.onCreateProof || p.onShowSite}
-        style={Styles.collapseStyles([style, {color: assertionColorToColor(p.color)}])}
+        style={Styles.collapseStyles([
+          style,
+          stateToValueTextStyle(p.state),
+          {color: assertionColorToColor(p.color)},
+        ])}
       >
         {str}
       </Kb.Text>
@@ -267,12 +264,12 @@ const getMenu = p => {
             fontSize={Styles.isMobile ? 64 : 48}
             type={siteIcon(p.type)}
             onClick={p.onShowSite}
-            color={Styles.globalColors.black_75}
+            color={Styles.globalColors.black}
           />
         </Kb.Box2>
       ),
     },
-    items: [{onClick: p.onShowProof, title: `View ${p.type === 'btc' ? 'signature' : 'proof'}`}, onRevoke],
+    items: [{onClick: p.onShowProof, title: `View ${Constants.proofTypeToDesc(p.type)}`}, onRevoke],
   }
 }
 
@@ -306,7 +303,7 @@ class Assertion extends React.PureComponent<Props, State> {
           <Kb.Icon
             type={siteIcon(p.type)}
             onClick={p.onCreateProof || p.onShowSite}
-            color={p.isSuggestion ? Styles.globalColors.black_50 : Styles.globalColors.black_75}
+            color={p.isSuggestion ? Styles.globalColors.black_50 : Styles.globalColors.black}
           />
           <Kb.Text type="Body" style={styles.textContainer}>
             <Value {...p} />
@@ -321,12 +318,17 @@ class Assertion extends React.PureComponent<Props, State> {
             type={stateToIcon(p.state)}
             fontSize={20}
             onClick={p.onShowProof}
-            hoverColor={stateToColor(p.state)}
+            hoverColor={assertionColorToColor(p.color)}
             color={p.isSuggestion ? Styles.globalColors.black_20 : assertionColorToColor(p.color)}
           />
           {items ? (
             <>
-              <Kb.Icon className="hover-visible" type="iconfont-caret-down" onClick={this._toggleMenu} />
+              <Kb.Icon
+                className="hover-visible"
+                type="iconfont-caret-down"
+                onClick={this._toggleMenu}
+                sizeType="Tiny"
+              />
               <Kb.FloatingMenu
                 closeOnSelect={true}
                 visible={this.state.showingMenu}
@@ -372,6 +374,7 @@ const styles = Styles.styleSheetCreate({
   metaContainer: {flexShrink: 0, paddingLeft: 20 + Styles.globalMargins.tiny * 2 - 4}, // icon spacing plus meta has 2 padding for some reason
   site: {color: Styles.globalColors.black_20},
   stateIcon: {height: 17},
+  strikeThrough: {textDecorationLine: 'line-through'},
   textContainer: {flexGrow: 1, flexShrink: 1, marginTop: -1},
   tooltip: Styles.platformStyles({isElectron: {display: 'inline-flex'}}),
   username: Styles.platformStyles({

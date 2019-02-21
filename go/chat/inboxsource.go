@@ -810,7 +810,8 @@ func (s *HybridInboxSource) TeamTypeChanged(ctx context.Context, uid gregor1.UID
 	defer s.Trace(ctx, func() error { return err }, "TeamTypeChanged")()
 
 	// Read the remote conversation so we can get the notification settings changes
-	remoteConv, err := GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceRemoteOnly)
+	remoteConv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID,
+		types.InboxSourceDataSourceRemoteOnly)
 	if err != nil {
 		s.Debug(ctx, "TeamTypeChanged: failed to read team type conv: %s", err.Error())
 		return nil, err

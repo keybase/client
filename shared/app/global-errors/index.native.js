@@ -103,7 +103,7 @@ class GlobalError extends React.Component<Props, State> {
               onClick={this._onExpandClick}
             >
               {this.state.size !== 'Big' && (
-                <Kb.Icon type="iconfont-caret-right" color={Styles.globalColors.white_75} />
+                <Kb.Icon type="iconfont-caret-right" color={Styles.globalColors.white_75} sizeType="Tiny" />
               )}
               {'  '}
               An error occurred.
@@ -143,7 +143,7 @@ class GlobalError extends React.Component<Props, State> {
 
 const styles = Styles.styleSheetCreate({
   container: {
-    backgroundColor: Styles.globalColors.black_75,
+    backgroundColor: Styles.globalColors.black,
     position: 'absolute',
     top: 0,
   },

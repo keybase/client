@@ -33,6 +33,7 @@ import sectionList from './section-list.stories'
 import standardScreen from './standard-screen.stories'
 import text from './text.stories'
 import tooltip from './tooltip.stories'
+import video from './video.stories'
 
 const load = () => {
   ;[
@@ -70,6 +71,7 @@ const load = () => {
     standardScreen,
     text,
     tooltip,
+    video,
   ].forEach(load => load())
 }
 

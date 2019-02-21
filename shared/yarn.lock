@@ -7316,12 +7316,12 @@ hoist-non-react-statics@^2.2.0, hoist-non-react-statics@^2.3.1, hoist-non-react-
   resolved "https://registry.yarnpkg.com/hoist-non-react-statics/-/hoist-non-react-statics-2.5.5.tgz#c5903cf409c0dfd908f388e619d86b9c1174cb47"
   integrity sha512-rqcy4pJo55FTTLWt+bU8ukscqHeE/e9KWvsOW2b/a3afxQZhwkQdT1rPPCJ0rYXdj4vNcasY8zHTH+jF/qStxw==
 
-hoist-non-react-statics@^3.2.1:
-  version "3.2.1"
-  resolved "https://registry.yarnpkg.com/hoist-non-react-statics/-/hoist-non-react-statics-3.2.1.tgz#c09c0555c84b38a7ede6912b61efddafd6e75e1e"
-  integrity sha512-TFsu3TV3YLY+zFTZDrN8L2DTFanObwmBLpWvJs1qfUuEQ5bTAdFcwfx2T/bsCXfM9QHSLvjfP+nihEl0yvozxw==
+hoist-non-react-statics@^3.1.0:
+  version "3.3.0"
+  resolved "https://registry.yarnpkg.com/hoist-non-react-statics/-/hoist-non-react-statics-3.3.0.tgz#b09178f0122184fb95acf525daaecb4d8f45958b"
+  integrity sha512-0XsbTXxgiaCDYDIWFcwkmerZPSwywfUqYmwT4jzewKTQSWoE6FCMoUVOeBJWK3E/CrWbxRG3m5GzY4lnIwGRBA==
   dependencies:
-    react-is "^16.3.2"
+    react-is "^16.7.0"
 
 home-or-tmp@^3.0.0:
   version "3.0.0"
@@ -11551,7 +11551,12 @@ react-inspector@^2.3.0:
     is-dom "^1.0.9"
     prop-types "^15.6.1"
 
-react-is@^16.3.2, react-is@^16.6.3:
+react-is@^16.6.0, react-is@^16.7.0:
+  version "16.8.2"
+  resolved "https://registry.yarnpkg.com/react-is/-/react-is-16.8.2.tgz#09891d324cad1cb0c1f2d91f70a71a4bee34df0f"
+  integrity sha512-D+NxhSR2HUCjYky1q1DwpNUD44cDpUXzSmmFyC3ug1bClcU/iDNy0YNn1iwme28fn+NFhpA13IndOd42CrFb+Q==
+
+react-is@^16.6.3:
   version "16.6.3"
   resolved "https://registry.yarnpkg.com/react-is/-/react-is-16.6.3.tgz#d2d7462fcfcbe6ec0da56ad69047e47e56e7eac0"
   integrity sha512-u7FDWtthB4rWibG/+mFbVd5FvdI20yde86qKGx4lVUTWmPlSWQ4QxbBIrrs+HnXGbxOUlUzTAP/VDmvCwaP2yA==
@@ -11742,17 +11747,18 @@ react-proxy@^1.1.7:
     lodash "^4.6.1"
     react-deep-force-update "^1.0.0"
 
-react-redux@6.0.0:
-  version "6.0.0"
-  resolved "https://registry.yarnpkg.com/react-redux/-/react-redux-6.0.0.tgz#09e86eeed5febb98e9442458ad2970c8f1a173ef"
-  integrity sha512-EmbC3uLl60pw2VqSSkj6HpZ6jTk12RMrwXMBdYtM6niq0MdEaRq9KYCwpJflkOZj349BLGQm1MI/JO1W96kLWQ==
+react-redux@5.1.1:
+  version "5.1.1"
+  resolved "https://registry.yarnpkg.com/react-redux/-/react-redux-5.1.1.tgz#88e368682c7fa80e34e055cd7ac56f5936b0f52f"
+  integrity sha512-LE7Ned+cv5qe7tMV5BPYkGQ5Lpg8gzgItK07c67yHvJ8t0iaD9kPFPAli/mYkiyJYrs2pJgExR2ZgsGqlrOApg==
   dependencies:
-    "@babel/runtime" "^7.2.0"
-    hoist-non-react-statics "^3.2.1"
+    "@babel/runtime" "^7.1.2"
+    hoist-non-react-statics "^3.1.0"
     invariant "^2.2.4"
-    loose-envify "^1.4.0"
-    prop-types "^15.6.2"
-    react-is "^16.6.3"
+    loose-envify "^1.1.0"
+    prop-types "^15.6.1"
+    react-is "^16.6.0"
+    react-lifecycles-compat "^3.0.0"
 
 react-split-pane@^0.1.84:
   version "0.1.85"

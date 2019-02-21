@@ -69,7 +69,7 @@ function UsernameText(props: Props) {
             : null),
           ...(props.inline && !Styles.isMobile ? {display: 'inline'} : null),
           ...(props.colorYou && u.you
-            ? {color: typeof props.colorYou === 'string' ? props.colorYou : Styles.globalColors.black_75}
+            ? {color: typeof props.colorYou === 'string' ? props.colorYou : Styles.globalColors.black}
             : null),
         }
         userStyle = Styles.collapseStyles([props.style, userStyle])

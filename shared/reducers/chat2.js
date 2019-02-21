@@ -438,6 +438,19 @@ const rootReducer = (
           return show ? prompts.add(domain) : prompts.delete(domain)
         }
       )
+    case Chat2Gen.updateCoinFlipStatus: {
+      let fm = state.flipStatusMap
+      action.payload.statuses.forEach(s => {
+        fm = fm.set(s.gameID, s)
+      })
+      return state.set('flipStatusMap', fm)
+    }
+    case Chat2Gen.messageSend:
+      return state.setIn(['commandMarkdownMap', action.payload.conversationIDKey], '')
+    case Chat2Gen.setCommandMarkdown: {
+      const {conversationIDKey, text} = action.payload
+      return state.setIn(['commandMarkdownMap', conversationIDKey], text)
+    }
     case Chat2Gen.giphyGotSearchResult:
       return state.setIn(['giphyResultMap', action.payload.conversationIDKey], action.payload.results)
     case Chat2Gen.setInboxFilter:
@@ -525,7 +538,13 @@ const rootReducer = (
         const ordinals = state.messageOrdinals.get(conversationIDKey, I.OrderedSet())
         const found = ordinals.findLast(o => {
           const message = messageMap.get(o)
-          return message && message.type === 'text' && message.author === editLastUser && !message.exploded
+          return (
+            message &&
+            message.type === 'text' &&
+            message.author === editLastUser &&
+            !message.exploded &&
+            message.isEditable
+          )
         })
         if (found) {
           return editingMap.set(conversationIDKey, found)
@@ -1021,7 +1040,6 @@ const rootReducer = (
     case Chat2Gen.markInitiallyLoadedThreadAsRead:
     case Chat2Gen.messageDeleteHistory:
     case Chat2Gen.messageReplyPrivately:
-    case Chat2Gen.messageSend:
     case Chat2Gen.metaHandleQueue:
     case Chat2Gen.metaNeedsUpdating:
     case Chat2Gen.metaRequestTrusted:

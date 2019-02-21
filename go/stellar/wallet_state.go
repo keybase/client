@@ -35,6 +35,7 @@ type WalletState struct {
 	sync.Mutex
 	seqnoMu       sync.Mutex
 	seqnoLockHeld bool
+	options       *Options
 }
 
 // NewWalletState creates a wallet state with a remoter that will be
@@ -48,6 +49,7 @@ func NewWalletState(g *libkb.GlobalContext, r remote.Remoter) *WalletState {
 		refreshGroup: &singleflight.Group{},
 		refreshReqs:  make(chan stellar1.AccountID, 100),
 		rateGroup:    &singleflight.Group{},
+		options:      NewOptions(),
 	}
 
 	g.PushShutdownHook(ws.Shutdown)
@@ -93,6 +95,11 @@ func (w *WalletState) SeqnoUnlock() {
 	w.seqnoMu.Unlock()
 	w.seqnoLockHeld = false
 	w.Unlock()
+}
+
+// BaseFee returns stellard's current suggestion for the base operation fee.
+func (w *WalletState) BaseFee(mctx libkb.MetaContext) uint64 {
+	return w.options.BaseFee(mctx, w)
 }
 
 // accountState returns the AccountState object for an accountID.

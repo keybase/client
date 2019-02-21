@@ -136,17 +136,19 @@ type Identify3ShowTrackerArg struct {
 }
 
 type Identify3UpdateRowArg struct {
-	GuiID    Identify3GUIID     `codec:"guiID" json:"guiID"`
-	Key      string             `codec:"key" json:"key"`
-	Value    string             `codec:"value" json:"value"`
-	Priority int                `codec:"priority" json:"priority"`
-	SiteURL  string             `codec:"siteURL" json:"siteURL"`
-	SiteIcon []SizedImage       `codec:"siteIcon" json:"siteIcon"`
-	ProofURL string             `codec:"proofURL" json:"proofURL"`
-	SigID    SigID              `codec:"sigID" json:"sigID"`
-	State    Identify3RowState  `codec:"state" json:"state"`
-	Metas    []Identify3RowMeta `codec:"metas" json:"metas"`
-	Color    Identify3RowColor  `codec:"color" json:"color"`
+	GuiID        Identify3GUIID     `codec:"guiID" json:"guiID"`
+	Key          string             `codec:"key" json:"key"`
+	Value        string             `codec:"value" json:"value"`
+	Priority     int                `codec:"priority" json:"priority"`
+	SiteURL      string             `codec:"siteURL" json:"siteURL"`
+	SiteIcon     []SizedImage       `codec:"siteIcon" json:"siteIcon"`
+	SiteIconFull []SizedImage       `codec:"siteIconFull" json:"siteIconFull"`
+	ProofURL     string             `codec:"proofURL" json:"proofURL"`
+	SigID        SigID              `codec:"sigID" json:"sigID"`
+	Ctime        Time               `codec:"ctime" json:"ctime"`
+	State        Identify3RowState  `codec:"state" json:"state"`
+	Metas        []Identify3RowMeta `codec:"metas" json:"metas"`
+	Color        Identify3RowColor  `codec:"color" json:"color"`
 }
 
 type Identify3UserResetArg struct {

@@ -190,12 +190,26 @@ func (tx *AddMemberTx) createInvite(typ string, name keybase1.TeamInviteName, ro
 	}
 }
 
-// sweepCryptoMembers will queue "removes" for all cryptomembers with given
-// UID.
-func (tx *AddMemberTx) sweepCryptoMembers(uid keybase1.UID) {
+// sweepCryptoMembers will queue "removes" for all cryptomembers with given UID.
+// exceptAdminsRemovingOwners - But don't try to remove owners if we are admin.
+func (tx *AddMemberTx) sweepCryptoMembers(ctx context.Context, uid keybase1.UID,
+	exceptAdminsRemovingOwners bool) {
 	team := tx.team
+	var myRole keybase1.TeamRole
+	if exceptAdminsRemovingOwners {
+		var err error
+		myRole, err = tx.team.myRole(ctx)
+		if err != nil {
+			myRole = keybase1.TeamRole_NONE
+		}
+	}
 	for chainUv := range team.chain().inner.UserLog {
-		if chainUv.Uid.Equal(uid) && team.chain().getUserRole(chainUv) != keybase1.TeamRole_NONE {
+		chainRole := team.chain().getUserRole(chainUv)
+		if chainUv.Uid.Equal(uid) && chainRole != keybase1.TeamRole_NONE {
+			if exceptAdminsRemovingOwners && myRole == keybase1.TeamRole_ADMIN && chainRole == keybase1.TeamRole_OWNER {
+				// Skip if we're an admin and they're an owner.
+				continue
+			}
 			tx.removeMember(chainUv)
 		}
 	}
@@ -313,7 +327,13 @@ func (tx *AddMemberTx) addMemberByUPKV2(ctx context.Context, user keybase1.UserP
 	// No going back after this point!
 
 	tx.sweepKeybaseInvites(uv.Uid)
-	tx.sweepCryptoMembers(uv.Uid)
+
+	// An admin is only allowed to remove an owner UV when, in the same link, replacing them with
+	// a 'newer' UV with a greater eldest seqno.
+	// So, if we're an admin re-adding an owner who does not yet have a PUK
+	// then don't try to remove the owner's pre-reset UV.
+	exceptAdminsRemovingOwners := !hasPUK
+	tx.sweepCryptoMembers(ctx, uv.Uid, exceptAdminsRemovingOwners)
 
 	if !hasPUK {
 		tx.createKeybaseInvite(uv, role)
@@ -558,14 +578,17 @@ func (tx *AddMemberTx) CompleteSocialInvitesFor(ctx context.Context, uv keybase1
 	return nil
 }
 
-func (tx *AddMemberTx) ReAddMemberToImplicitTeam(uv keybase1.UserVersion, hasPUK bool, role keybase1.TeamRole) error {
+func (tx *AddMemberTx) ReAddMemberToImplicitTeam(ctx context.Context, uv keybase1.UserVersion, hasPUK bool, role keybase1.TeamRole) error {
+	if !tx.team.IsImplicit() {
+		return fmt.Errorf("ReAddMemberToImplicitTeam only works on implicit teams")
+	}
 	if err := assertValidNewTeamMemberRole(role); err != nil {
 		return err
 	}
 
 	if hasPUK {
 		tx.addMember(uv, role)
-		tx.sweepCryptoMembers(uv.Uid)
+		tx.sweepCryptoMembers(ctx, uv.Uid, false)
 		if err := tx.completeAllKeybaseInvitesForUID(uv); err != nil {
 			return err
 		}

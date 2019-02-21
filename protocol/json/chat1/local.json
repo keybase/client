@@ -155,6 +155,20 @@
       ]
     },
     {
+      "type": "record",
+      "name": "MessageFlip",
+      "fields": [
+        {
+          "type": "string",
+          "name": "text"
+        },
+        {
+          "type": "FlipGameID",
+          "name": "gameID"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "MessageSystemType",
       "symbols": [
@@ -644,6 +658,13 @@
             "def": false
           },
           "body": "MessageUnfurl"
+        },
+        {
+          "label": {
+            "name": "FLIP",
+            "def": false
+          },
+          "body": "MessageFlip"
         }
       ]
     },

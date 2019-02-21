@@ -10,6 +10,7 @@ import {standardTransformer} from '../suggestors'
 import {type InputProps} from './types'
 import {debounce, throttle} from 'lodash-es'
 import {memoize} from '../../../../util/memoize'
+import CommandMarkdown from '../../command-markdown/container'
 
 // Standalone throttled function to ensure we never accidentally recreate it and break the throttling
 const throttled = throttle((f, param) => f(param), 2000)
@@ -58,7 +59,8 @@ const suggestorKeyExtractors = {
   users: ({username, fullName}: {username: string, fullName: string}) => username,
 }
 
-const emojiDatasource = (filter: string) => (filter.length >= 2 ? emojiIndex.search(filter) : [])
+const emojiPrepass = /[a-z0-9]/i
+const emojiDatasource = (filter: string) => (emojiPrepass.test(filter) ? emojiIndex.search(filter) : [])
 const emojiRenderer = (item, selected: boolean) => (
   <Kb.Box2
     direction="horizontal"
@@ -234,6 +236,9 @@ class Input extends React.Component<InputProps, InputState> {
   _getUserSuggestions = filter => searchUsers(this.props.suggestUsers, filter)
 
   _getCommandSuggestions = filter => {
+    if (this.props.showCommandMarkdown) {
+      return []
+    }
     const sel = this._input && this._input.getSelection()
     if (sel && this._lastText) {
       // a little messy. Check if the message starts with '/' and that the cursor is
@@ -286,7 +291,10 @@ class Input extends React.Component<InputProps, InputState> {
 
   _getChannelSuggestions = filter => {
     const fil = filter.toLowerCase()
-    return this.props.suggestChannels.filter(ch => ch.toLowerCase().includes(fil)).toArray()
+    return this.props.suggestChannels
+      .filter(ch => ch.toLowerCase().includes(fil))
+      .sort()
+      .toArray()
   }
 
   _renderChannelSuggestion = (channelname: string, selected) => (
@@ -343,24 +351,29 @@ class Input extends React.Component<InputProps, InputState> {
       ...platformInputProps
     } = this.props
     return (
-      <PlatformInput
-        {...platformInputProps}
-        dataSources={this._suggestorDatasource}
-        renderers={this._suggestorRenderer}
-        suggestorToMarker={suggestorToMarker}
-        suggestionListStyle={Styles.collapseStyles([
-          styles.suggestionList,
-          !!this.state.inputHeight && {marginBottom: this.state.inputHeight},
-        ])}
-        suggestionOverlayStyle={styles.suggestionOverlay}
-        keyExtractors={suggestorKeyExtractors}
-        transformers={this._suggestorTransformer}
-        onKeyDown={this._onKeyDown}
-        onSubmit={this._onSubmit}
-        setHeight={this._setHeight}
-        inputSetRef={this._inputSetRef}
-        onChangeText={this._onChangeText}
-      />
+      <Kb.Box2 direction="vertical" fullWidth={true}>
+        {this.props.showCommandMarkdown && (
+          <CommandMarkdown conversationIDKey={this.props.conversationIDKey} />
+        )}
+        <PlatformInput
+          {...platformInputProps}
+          dataSources={this._suggestorDatasource}
+          renderers={this._suggestorRenderer}
+          suggestorToMarker={suggestorToMarker}
+          suggestionListStyle={Styles.collapseStyles([
+            styles.suggestionList,
+            !!this.state.inputHeight && {marginBottom: this.state.inputHeight},
+          ])}
+          suggestionOverlayStyle={styles.suggestionOverlay}
+          keyExtractors={suggestorKeyExtractors}
+          transformers={this._suggestorTransformer}
+          onKeyDown={this._onKeyDown}
+          onSubmit={this._onSubmit}
+          setHeight={this._setHeight}
+          inputSetRef={this._inputSetRef}
+          onChangeText={this._onChangeText}
+        />
+      </Kb.Box2>
     )
   }
 }

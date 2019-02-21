@@ -62,8 +62,12 @@ func (r *RemoteNet) PendingPayments(ctx context.Context, accountID stellar1.Acco
 	return PendingPayments(ctx, r.G(), accountID, limit)
 }
 
-func (r *RemoteNet) PaymentDetails(ctx context.Context, txID string) (res stellar1.PaymentDetails, err error) {
-	return PaymentDetails(ctx, r.G(), txID)
+func (r *RemoteNet) PaymentDetails(ctx context.Context, accountID stellar1.AccountID, txID string) (res stellar1.PaymentDetails, err error) {
+	return PaymentDetails(ctx, r.G(), accountID, txID)
+}
+
+func (r *RemoteNet) PaymentDetailsGeneric(ctx context.Context, txID string) (res stellar1.PaymentDetails, err error) {
+	return PaymentDetailsGeneric(ctx, r.G(), txID)
 }
 
 func (r *RemoteNet) GetAccountDisplayCurrency(ctx context.Context, accountID stellar1.AccountID) (string, error) {
@@ -112,4 +116,8 @@ func (r *RemoteNet) SetInflationDestination(ctx context.Context, signedTx string
 
 func (r *RemoteNet) GetInflationDestinations(ctx context.Context) (ret []stellar1.PredefinedInflationDestination, err error) {
 	return GetInflationDestinations(ctx, r.G())
+}
+
+func (r *RemoteNet) NetworkOptions(ctx context.Context) (stellar1.NetworkOptions, error) {
+	return NetworkOptions(ctx, r.G())
 }

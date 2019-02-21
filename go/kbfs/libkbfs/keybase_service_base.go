@@ -437,6 +437,13 @@ func (k *KeybaseServiceBase) ClientOutOfDate(ctx context.Context,
 	return nil
 }
 
+// RootAuditError implements keybase1.NotifyAuditInterface.
+func (k *KeybaseServiceBase) RootAuditError(ctx context.Context,
+	arg keybase1.RootAuditErrorArg) error {
+	k.log.CDebugf(ctx, "Merkle tree audit error: %v", arg.Message)
+	return nil
+}
+
 // ConvertIdentifyError converts a errors during identify into KBFS errors
 func ConvertIdentifyError(assertion string, err error) error {
 	switch err.(type) {

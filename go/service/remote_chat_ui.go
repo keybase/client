@@ -116,3 +116,18 @@ func (r *RemoteChatUI) ChatShowManageChannels(ctx context.Context, teamname stri
 		Teamname:  teamname,
 	})
 }
+
+func (r *RemoteChatUI) ChatCoinFlipStatus(ctx context.Context, statuses []chat1.UICoinFlipStatus) error {
+	return r.cli.ChatCoinFlipStatus(ctx, chat1.ChatCoinFlipStatusArg{
+		SessionID: r.sessionID,
+		Statuses:  statuses,
+	})
+}
+
+func (r *RemoteChatUI) ChatCommandMarkdown(ctx context.Context, convID chat1.ConversationID, text string) error {
+	return r.cli.ChatCommandMarkdown(ctx, chat1.ChatCommandMarkdownArg{
+		SessionID: r.sessionID,
+		ConvID:    convID.String(),
+		Text:      text,
+	})
+}

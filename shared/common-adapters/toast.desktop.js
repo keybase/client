@@ -25,7 +25,7 @@ export default (props: Props) => (
 const styles = Styles.styleSheetCreate({
   container: {
     alignItems: 'center',
-    backgroundColor: Styles.globalColors.black_75,
+    backgroundColor: Styles.globalColors.black,
     borderRadius: Styles.borderRadius,
     borderWidth: 0,
     display: 'flex',

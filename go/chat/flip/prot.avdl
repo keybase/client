@@ -2,22 +2,12 @@
 @namespace("flip")
 
 protocol flip {
+  import idl "github.com/keybase/client/go/protocol/gregor1" as gregor1;
+  import idl "github.com/keybase/client/go/protocol/chat1" as chat1;
 
   // Time in milliseconds since the epoch
   @typedef("long")
   record Time {}
-
-  @typedef("bytes")
-  record GameID {}
-
-  @typedef("bytes")
-  record UID {}
-
-  @typedef("bytes")
-  record ConversationID {}
-
-  @typedef("bytes")
-  record DeviceID {}
 
   record Start {
     Time startTime;
@@ -27,22 +17,25 @@ protocol flip {
     long revealWindowMsec;
     // How much slack to give before warning
     long slackMsec;
+    // How long followers should wait for a commitment complete
+    long commitmentCompleteWindowMsec;
+    // Whether a shuffle, coin flip, etc.
     FlipParameters params;
   }
 
   record UserDevice {
-    DeviceID d;
-    UID u;
+    gregor1.DeviceID d;
+    gregor1.UID u;
   }
 
   record GameMetadata {
     UserDevice initiator;
-    ConversationID conversationID;
-    GameID gameID;
+    chat1.ConversationID conversationID;
+    chat1.FlipGameID gameID;
   }
 
   record CommitmentComplete {
-    array<UserDevice> players;
+    array<UserDeviceCommitment> players;
   }
 
   enum FlipType {
@@ -69,18 +62,29 @@ protocol flip {
 
   enum Stage {
     ROUND1_1,
-    ROUND2_2,
-    ROUND_CLEANUP_3
+    ROUND2_2
   }
 
   fixed Secret(32);
   fixed Commitment(32);
 
+  record UserDeviceCommitment {
+    UserDevice ud;
+    Commitment c;
+  }
+
+  fixed Hash(32);
+
+  record Reveal {
+    Secret secret;
+    Hash cch; // Hash of commitment complete (sent in prior round).
+  }
+
   variant GameMessageBody switch (MessageType t) {
     case START: Start;
     case COMMITMENT: Commitment;
     case COMMITMENT_COMPLETE: CommitmentComplete;
-    case REVEAL: Secret;
+    case REVEAL: Reveal;
     case END: void;
   }
 

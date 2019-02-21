@@ -70,7 +70,7 @@ class Row extends React.Component<Props> {
               <Kb.Icon
                 type={this.props.expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
                 style={_iconCaretStyle}
-                fontSize={Styles.isMobile ? 12 : 8}
+                sizeType="Tiny"
               />
               <Kb.Avatar
                 size={Styles.isMobile ? 48 : 32}
@@ -79,7 +79,7 @@ class Row extends React.Component<Props> {
                 username={this.props.teamname ? undefined : this.props.you}
                 style={{marginRight: Styles.globalMargins.tiny}}
               />
-              <Kb.Text type="BodySemibold" style={{color: Styles.globalColors.black_75}}>
+              <Kb.Text type="BodySemibold" style={{color: Styles.globalColors.black}}>
                 {this.props.teamname ? `${this.props.teamname}/${this.props.name}` : this.props.name}
               </Kb.Text>
               {this.props.isNew && (
@@ -181,7 +181,12 @@ class Row extends React.Component<Props> {
                   )}
                 </Kb.Box>
               )}
-              <Kb.Box2 direction="horizontal" fullWidth={true} style={{marginTop: Styles.globalMargins.tiny}} gap="tiny">
+              <Kb.Box2
+                direction="horizontal"
+                fullWidth={true}
+                style={{marginTop: Styles.globalMargins.tiny}}
+                gap="tiny"
+              >
                 <Kb.Button
                   type="Secondary"
                   small={true}

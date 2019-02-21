@@ -17,7 +17,6 @@ function defaultColor(backgroundMode: ?Background) {
 const lineClamp = (lines: number) => ({
   WebkitBoxOrient: 'vertical',
   WebkitLineClamp: lines,
-  display: '-webkit-box',
   overflow: 'hidden',
   textOverflow: 'ellipsis',
 })
@@ -40,7 +39,7 @@ function fontSizeToSizeStyle(fontSize: number): ?Object {
 }
 
 const _blackNormalWhiteTerminal = {
-  Normal: globalColors.black_75,
+  Normal: globalColors.black,
   Terminal: globalColors.white,
 }
 

@@ -23,7 +23,7 @@ class SimpleTabBarButton extends React.Component<ItemProps> {
       <Box style={{...stylesTab, ...this.props.style}}>
         <Text
           type="BodySmallSemibold"
-          style={{...stylesLabel, color: this.props.selected ? globalColors.black_75 : globalColors.black_50}}
+          style={{...stylesLabel, color: this.props.selected ? globalColors.black : globalColors.black_50}}
         >
           {!!this.props.label && this.props.label.toUpperCase()}
         </Text>
@@ -73,6 +73,7 @@ const TabBarButton = (props: TabBarButtonProps) => {
           width: props.isNav ? undefined : 32,
           ...props.styleIcon,
         }}
+        sizeType="Big"
       />
       {!!props.label && (
         <Text center={true} type="BodySemibold" style={{...props.styleLabel}}>

@@ -1228,6 +1228,11 @@
           "type": "Seqno",
           "name": "eldestSeqno",
           "jsonkey": "eldest_seqno"
+        },
+        {
+          "type": "boolean",
+          "name": "isDelete",
+          "jsonkey": "is_delete"
         }
       ]
     },

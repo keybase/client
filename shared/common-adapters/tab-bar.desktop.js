@@ -46,7 +46,7 @@ class SimpleTabBarButton extends React.Component<ItemProps> {
           type="BodySmallSemibold"
           style={Styles.platformStyles({
             common: {
-              color: this.props.selected ? Styles.globalColors.black_75 : Styles.globalColors.black_50,
+              color: this.props.selected ? Styles.globalColors.black : Styles.globalColors.black_50,
             },
             isElectron: {
               ...Styles.desktopStyles.clickable,
@@ -157,7 +157,7 @@ class TabBarButton extends React.Component<TabBarButtonProps> {
           className={'nav-item' + (this.props.selected ? ' selected' : '')}
         >
           {this.props.selected && <HighlightLine />}
-          <Icon type={this.props.source.icon} style={this.props.styleIcon} className="img" />
+          <Icon type={this.props.source.icon} style={this.props.styleIcon} className="img" sizeType="Big" />
           {badgeNumber > 0 && (
             <Box style={styleBadgeNav}>
               <Badge

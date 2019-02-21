@@ -68,7 +68,7 @@
     return;
   }
   CFErrorRef err;
-  if (SecStaticCodeCheckValidityWithErrors((SecCodeRef)staticCodeRef, kSecCSDefaultFlags, requirementRef, &err) != errSecSuccess) {
+  if (SecStaticCodeCheckValidityWithErrors((SecCodeRef)staticCodeRef, (kSecCSDefaultFlags | kSecCSStrictValidate | kSecCSCheckNestedCode | kSecCSCheckAllArchitectures | kSecCSEnforceRevocationChecks), requirementRef, &err) != errSecSuccess) {
     completion(KBMakeError(-1, @"Failed to validate bundle signature: Check"));
     return;
   }

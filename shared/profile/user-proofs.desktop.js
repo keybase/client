@@ -103,7 +103,7 @@ class ProofRow extends React.PureComponent<ProofRowProps, ProofRowState> {
         <Box style={iconContainer}>
           <Icon
             style={styleService}
-            color={globalColors.black_75}
+            color={globalColors.black}
             textAlign="center"
             type={shared.iconNameForProof(proof)}
             hint={proof.type}
@@ -151,6 +151,7 @@ class ProofRow extends React.PureComponent<ProofRowProps, ProofRowState> {
           {hasMenu && (
             <Icon
               type="iconfont-caret-down"
+              sizeType='Tiny'
               style={iconStyle}
               color={(proofStatusIconType && defaultColor(proofStatusIconType)) || ''}
             />
