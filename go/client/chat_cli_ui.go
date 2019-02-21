@@ -321,3 +321,7 @@ func (c *ChatCLIUI) ChatShowManageChannels(ctx context.Context, arg chat1.ChatSh
 func (c *ChatCLIUI) ChatCoinFlipStatus(ctx context.Context, arg chat1.ChatCoinFlipStatusArg) error {
 	return nil
 }
+
+func (c *ChatCLIUI) ChatCommandMarkdown(ctx context.Context, arg chat1.ChatCommandMarkdownArg) error {
+	return nil
+}

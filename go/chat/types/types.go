@@ -402,3 +402,22 @@ func (d DummyStellarSender) DecorateWithPayments(ctx context.Context, body strin
 	payments []chat1.TextPayment) string {
 	return body
 }
+
+type DummyCoinFlipManager struct{}
+
+func (d DummyCoinFlipManager) Start(ctx context.Context, uid gregor1.UID) {}
+func (d DummyCoinFlipManager) Stop(ctx context.Context) chan struct{} {
+	return nil
+}
+func (d DummyCoinFlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID, tlfName, text string) error {
+	return nil
+}
+func (d DummyCoinFlipManager) MaybeInjectFlipMessage(ctx context.Context, msg chat1.MessageUnboxed,
+	convID chat1.ConversationID, topicType chat1.TopicType) {
+}
+
+func (d DummyCoinFlipManager) LoadFlip(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	gameID chat1.FlipGameID) {
+}
+
+func (d DummyCoinFlipManager) DescribeFlipText(ctx context.Context, text string) string { return "" }

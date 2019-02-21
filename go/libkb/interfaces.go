@@ -415,6 +415,7 @@ type ChatUI interface {
 		results []chat1.GiphySearchResult) error
 	ChatShowManageChannels(context.Context, string) error
 	ChatCoinFlipStatus(context.Context, []chat1.UICoinFlipStatus) error
+	ChatCommandMarkdown(context.Context, chat1.ConversationID, string) error
 }
 
 type PromptDefault int

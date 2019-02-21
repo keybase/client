@@ -116,6 +116,7 @@ func (l *LevelDb) Opts() *opt.Options {
 	return &opt.Options{
 		OpenFilesCacheCapacity: l.G().Env.GetLevelDBNumFiles(),
 		Filter:                 filter.NewBloomFilter(10),
+		CompactionTableSize:    10 * opt.MiB,
 	}
 }
 
@@ -166,7 +167,7 @@ func (l *LevelDb) doWhileOpenAndNukeIfCorrupted(action func() error) (err error)
 
 	// Notably missing here is the error handling for when DB open fails but on
 	// an error other than "db is corrupted". We simply return the error here
-	// without resetting `dbOpenerOcce` (i.e. next call into LevelDb would result
+	// without resetting `dbOpenerOnce` (i.e. next call into LevelDb would result
 	// in a LevelDBOpenClosedError), because if DB open fails, retrying it
 	// wouldn't help. We should find the root cause and deal with it.
 	// MM: 10/12/2017: I am changing the above policy. I am not so sure retrying it won't help,
@@ -241,7 +242,10 @@ func (l *LevelDb) isCorrupt(err error) bool {
 	if strings.Contains(err.Error(), "corrupt") {
 		return true
 	}
-
+	// if our db is in a bad state with too many open files also nuke
+	if strings.Contains(strings.ToLower(err.Error()), "too many open files") {
+		return true
+	}
 	return false
 }
 
@@ -249,13 +253,14 @@ func (l *LevelDb) Nuke() (fn string, err error) {
 	l.Lock()
 	// We need to do deferred Unlock here in Nuke rather than delegating to
 	// l.Close() because we'll be re-opening the database later, and it's
-	// necesary to block other doWhileOpenAndNukeIfCorrupted() calls.
+	// necessary to block other doWhileOpenAndNukeIfCorrupted() calls.
 	defer l.Unlock()
 	defer l.G().Trace("LevelDb::Nuke", func() error { return err })()
 
+	// even if we can't close the db try to nuke the files directly
 	err = l.closeLocked()
 	if err != nil {
-		return "", err
+		l.G().Log.Debug("Error closing leveldb %v, attempting nuke anyway", err)
 	}
 
 	fn = l.GetFilename()

@@ -2585,6 +2585,14 @@ const onChatCoinFlipStatus = (status, action) => {
   return Chat2Gen.createUpdateCoinFlipStatus({statuses: statuses || []})
 }
 
+const onChatCommandMarkdown = (status, action) => {
+  const {convID, text} = action.payload.params
+  return Chat2Gen.createSetCommandMarkdown({
+    conversationIDKey: Types.stringToConversationIDKey(convID),
+    text,
+  })
+}
+
 const openChatFromWidget = (state, {payload: {conversationIDKey}}) => [
   ConfigGen.createShowMain(),
   RouteTreeGen.createSwitchTo({path: [Tabs.chatTab]}),
@@ -3012,6 +3020,10 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<EngineGen.Chat1ChatUiChatCoinFlipStatusPayload>(
     EngineGen.chat1ChatUiChatCoinFlipStatus,
     onChatCoinFlipStatus
+  )
+  yield* Saga.chainAction<EngineGen.Chat1ChatUiChatCommandMarkdownPayload>(
+    EngineGen.chat1ChatUiChatCommandMarkdown,
+    onChatCommandMarkdown
   )
 
   yield* Saga.chainAction<ConfigGen.SetupEngineListenersPayload>(
