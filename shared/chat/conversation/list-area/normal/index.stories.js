@@ -220,7 +220,9 @@ type State = {|
   loadMoreEnabled: boolean,
   messageInjectionEnabled: boolean,
   messageOrdinals: I.List<Types.Ordinal>,
+  scrollListBottomCounter: number,
   scrollListDownCounter: number,
+  scrollListTopCounter: number,
   scrollListUpCounter: number,
 |}
 class ThreadWrapper extends React.Component<Props, State> {
@@ -234,7 +236,9 @@ class ThreadWrapper extends React.Component<Props, State> {
       loadMoreEnabled: false,
       messageInjectionEnabled: false,
       messageOrdinals: makeMoreOrdinals(I.List(), 'append'),
+      scrollListBottomCounter: 0,
       scrollListDownCounter: 0,
+      scrollListTopCounter: 0,
       scrollListUpCounter: 0,
     }
   }
@@ -271,12 +275,20 @@ class ThreadWrapper extends React.Component<Props, State> {
     this.setState(state => ({loadMoreEnabled: !state.loadMoreEnabled}))
   }
 
+  _scrollToBottom = () => {
+    this.setState(state => ({scrollListBottomCounter: state.scrollListBottomCounter + 1}))
+  }
+
   _scrollDown = () => {
     this.setState(state => ({scrollListDownCounter: state.scrollListDownCounter + 1}))
   }
 
   _scrollUp = () => {
     this.setState(state => ({scrollListUpCounter: state.scrollListUpCounter + 1}))
+  }
+
+  _scrollToTop = () => {
+    this.setState(state => ({scrollListTopCounter: state.scrollListTopCounter + 1}))
   }
 
   componentWillUnmount() {
@@ -309,14 +321,18 @@ class ThreadWrapper extends React.Component<Props, State> {
           <Button label="Change conversation ID" type="Primary" onClick={this._changeIDKey} />
           <Button label="Scroll up" type="Primary" onClick={this._scrollUp} />
           <Button label="Scroll down" type="Primary" onClick={this._scrollDown} />
+          <Button label="Scroll to top" type="Primary" onClick={this._scrollToTop} />
+          <Button label="Scroll to bottom" type="Primary" onClick={this._scrollToBottom} />
         </ButtonBar>
         <Thread
           {...props}
           conversationIDKey={this.state.conversationIDKey}
           messageOrdinals={this.state.messageOrdinals}
           loadMoreMessages={this.onLoadMoreMessages}
-          scrollListUpCounter={this.state.scrollListUpCounter}
+          scrollListBottomCounter={this.state.scrollListBottomCounter}
           scrollListDownCounter={this.state.scrollListDownCounter}
+          scrollListUpCounter={this.state.scrollListUpCounter}
+          scrollListTopCounter={this.state.scrollListTopCounter}
         />
       </React.Fragment>
     )
