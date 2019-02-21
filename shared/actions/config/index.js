@@ -50,8 +50,6 @@ const setupEngineListeners = () => {
           yield Saga.put(ConfigGen.createLoggedOut())
         }
       }),
-    'keybase.1.NotifyTracking.trackingChanged': ({isTracking, username}) =>
-      Saga.put(ConfigGen.createUpdateFollowing({isTracking, username})),
     'keybase.1.logUi.log': param => {
       log(param)
     },
@@ -113,9 +111,8 @@ function* loadDaemonBootstrapStatus(state, action) {
       )
       break
     case GregorGen.updateReachable:
-      if (!action.payload.reachable)
-        break
-      // else fall through
+      if (!action.payload.reachable) break
+    // else fall through
     case ConfigGen.loggedIn: // fallthrough
     case ConfigGen.loggedOut:
       yield* makeCall()
@@ -425,8 +422,14 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
   )
   // Re-get info about our account if you log in/out/we're done handshaking/became reachable
   yield* Saga.chainGenerator<
-    ConfigGen.LoggedInPayload | ConfigGen.LoggedOutPayload | ConfigGen.DaemonHandshakePayload | GregorGen.UpdateReachablePayload
-  >([ConfigGen.loggedIn, ConfigGen.loggedOut, ConfigGen.daemonHandshake, GregorGen.updateReachable], loadDaemonBootstrapStatus)
+    | ConfigGen.LoggedInPayload
+    | ConfigGen.LoggedOutPayload
+    | ConfigGen.DaemonHandshakePayload
+    | GregorGen.UpdateReachablePayload
+  >(
+    [ConfigGen.loggedIn, ConfigGen.loggedOut, ConfigGen.daemonHandshake, GregorGen.updateReachable],
+    loadDaemonBootstrapStatus
+  )
   // Load the known accounts if you revoke / handshake / logout
   yield* Saga.chainGenerator<
     DevicesGen.RevokedPayload | ConfigGen.DaemonHandshakePayload | ConfigGen.LoggedOutPayload
