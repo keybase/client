@@ -27,6 +27,7 @@ export type Props = {|
   onReload: () => void,
   onSearch: () => void,
   onEditAvatar: ?() => void,
+  reason: string,
   state: Types.DetailsState,
   suggestionKeys: ?Array<string>,
   username: string,
@@ -189,19 +190,30 @@ type BioTeamProofsProps = {|
   onEditAvatar: ?() => void,
   suggestionKeys: ?Array<string>,
   username: string,
+  reason: string,
 |}
 class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
   render() {
     return Styles.isMobile ? (
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.bioAndProofs}>
-        <Kb.Box2
-          direction="vertical"
-          fullWidth={true}
-          style={Styles.collapseStyles([
-            styles.backgroundColor,
-            colorTypeToStyle(this.props.backgroundColorType),
-          ])}
-        />
+        <Kb.Text
+          type="BodySmallSemibold"
+          backgroundMode="Terminal"
+          center={true}
+          style={Styles.collapseStyles([styles.reason, colorTypeToStyle(this.props.backgroundColorType)])}
+        >
+          {this.props.reason}
+        </Kb.Text>
+        <Kb.Box2 direction="vertical" fullWidth={true} style={{position: 'relative'}}>
+          <Kb.Box2
+            direction="vertical"
+            fullWidth={true}
+            style={Styles.collapseStyles([
+              styles.backgroundColor,
+              colorTypeToStyle(this.props.backgroundColorType),
+            ])}
+          />
+        </Kb.Box2>
         <BioLayout {...this.props} />
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.proofsArea}>
           <Teams username={this.props.username} />
@@ -221,6 +233,9 @@ class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
         />
         <BioLayout {...this.props} />
         <Kb.Box2 direction="vertical" style={styles.proofs}>
+          <Kb.Text type="BodySmallSemibold" backgroundMode="Terminal" center={true} style={styles.reason}>
+            {this.props.reason}
+          </Kb.Text>
           <Teams username={this.props.username} />
           <Proofs {...this.props} />
           <Folders profileUsername={this.props.username} />
@@ -285,6 +300,7 @@ class User extends React.Component<Props, State> {
         assertionKeys={this.props.assertionKeys}
         backgroundColorType={this.props.backgroundColorType}
         username={this.props.username}
+        reason={this.props.reason}
         suggestionKeys={this.props.suggestionKeys}
         onEditAvatar={this.props.onEditAvatar}
       />
@@ -439,8 +455,6 @@ const styles = Styles.styleSheetCreate({
     isElectron: {
       alignSelf: 'flex-start',
       flexShrink: 0,
-      marginTop: avatarSize / 2,
-      paddingTop: Styles.globalMargins.small,
       width: 350,
     },
     isMobile: {width: '100%'},
@@ -449,6 +463,15 @@ const styles = Styles.styleSheetCreate({
     isMobile: {
       paddingLeft: Styles.globalMargins.medium,
       paddingRight: Styles.globalMargins.medium,
+    },
+  }),
+  reason: Styles.platformStyles({
+    isElectron: {
+      height: avatarSize / 2 + Styles.globalMargins.small,
+      zIndex: 1, // unclear why this layer is created
+    },
+    isMobile: {
+      padding: Styles.globalMargins.tiny,
     },
   }),
   search: Styles.platformStyles({
