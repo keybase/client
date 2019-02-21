@@ -21,7 +21,7 @@ type Props = {|
   onCreateProof: ?() => void,
   onWhatIsStellar: () => void,
   proofURL: string,
-  siteIcon: Array<Types.SiteIcon>,
+  siteIcon: $ReadOnlyArray<Types.SiteIcon>,
   siteURL: string,
   state: Types.AssertionState,
   type: string,
@@ -275,6 +275,7 @@ const getMenu = p => {
 
 const siteIconToSrcSet = siteIcon =>
   `-webkit-image-set(${siteIcon
+    .slice()
     .sort((a, b) => a.width - b.width)
     .map((si, idx) => `url(${si.path}) ${idx + 1}x`)
     .join(', ')})`
