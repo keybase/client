@@ -12,7 +12,7 @@ const CommandMarkdown = (props: Props) => {
   return (
     <Kb.Box style={styles.container}>
       {!!props.title && (
-        <Kb.Box2 direction="horizontal" style={styles.title}>
+        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.title}>
           <Kb.Markdown>{props.title}</Kb.Markdown>
         </Kb.Box2>
       )}
