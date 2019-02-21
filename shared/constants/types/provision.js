@@ -23,6 +23,7 @@ export type _State = {
   error: HiddenString,
   // if the entire process is dead, we store the whole error so we can render a lot of details about it
   finalError: ?RPCError,
+  inlineError: ?RPCError,
   usernameOrEmail: string,
   deviceName: string,
   devices: I.List<Device>,

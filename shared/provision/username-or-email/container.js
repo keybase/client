@@ -1,13 +1,14 @@
 // @flow
 import * as ProvisionGen from '../../actions/provision-gen'
 import UsernameOrEmail from '.'
-import {compose, connect, safeSubmit} from '../../util/container'
+import {compose, connect, safeSubmit, withStateHandlers} from '../../util/container'
 import {type RouteProps} from '../../route-tree/render-route'
 
 type OwnProps = RouteProps<{}, {}>
 
 const mapStateToProps = state => ({
   error: state.provision.error.stringValue(),
+  inlineError: state.provision.inlineError,
   // So we can clear the error if the name is changed
   submittedUsernameOrEmail: state.provision.usernameOrEmail,
 })
@@ -24,5 +25,11 @@ export default compose(
     dispatchToProps,
     (s, d, o) => ({...o, ...s, ...d})
   ),
-  safeSubmit(['onBack', 'onSubmit'], ['error'])
+  withStateHandlers(
+    {usernameOrEmail: ''},
+    {
+      setUsernameOrEmail: () => usernameOrEmail => ({usernameOrEmail}),
+    }
+  ),
+  safeSubmit(['onBack', 'onSubmit'], ['error', 'inlineError'])
 )(UsernameOrEmail)
