@@ -670,6 +670,17 @@ export const kbfsUninstallString = (state: TypedState) => {
 export const shouldShowFileUIBanner = (state: TypedState) =>
   !isMobile && !kbfsEnabled(state) && state.fs.flags.showBanner
 
+export const resetBannerType = (state: TypedState, path: Types.Path): Types.ResetBannerType => {
+  const resetParticipants = getTlfFromPath(state.fs.tlfs, path).resetParticipants
+  if (resetParticipants.size === 0) {
+    return 'none'
+  }
+  if (resetParticipants.findIndex(i => i.username === state.config.username) >= 0) {
+    return 'self'
+  }
+  return resetParticipants.size
+}
+
 export const isPendingDownload = (download: Types.Download, path: Types.Path, intent: Types.DownloadIntent) =>
   download.meta.path === path && download.meta.intent === intent && !download.state.isDone
 
