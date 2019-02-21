@@ -130,6 +130,9 @@ func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 			g.Debug(ctx, "WaitForTurn: failed to get current inbox version: %v. Proceeding with vers %d", err, vers)
 		}
 		dur := time.Duration(newVers-vers) * time.Second
+		if dur < time.Second {
+			dur = time.Second
+		}
 		deadline := g.clock.Now().Add(dur)
 		waiters := g.addToWaitersLocked(ctx, uid, vers, newVers)
 		g.Unlock()
