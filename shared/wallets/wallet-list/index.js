@@ -5,6 +5,7 @@ import * as Styles from '../../styles'
 import * as Flow from '../../util/flow'
 import {type AccountID} from '../../constants/types/wallets'
 import WalletRow from './wallet-row/container'
+import flags from '../../util/feature-flags'
 
 type AddProps = {
   onAddNew: () => void,
@@ -136,8 +137,10 @@ class WalletList extends React.Component<Props> {
 
     const addWallet = 'add wallet'
     rows.push({key: addWallet, type: addWallet})
-    const joinAirdrop = 'join airdrop'
-    rows.push({key: joinAirdrop, type: joinAirdrop})
+    if (flags.airdrop) {
+      const joinAirdrop = 'join airdrop'
+      rows.push({key: joinAirdrop, type: joinAirdrop})
+    }
 
     return (
       <>

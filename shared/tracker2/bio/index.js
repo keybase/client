@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
+import flags from '../../util/feature-flags'
 
 type Props = {|
   bio: ?string,
@@ -18,16 +19,10 @@ type Props = {|
 const Bio = (p: Props) => (
   <Kb.Box2 direction="vertical" fullWidth={true} style={styles.container} centerChildren={true} gap="xtiny">
     <Kb.Box2 direction="horizontal" style={styles.fullNameContainer} gap="tiny">
-      <Kb.Text
-        center={true}
-        type="BodyBig"
-        lineClamp={p.inTracker ? 1 : undefined}
-        style={styles.text}
-        selectable={true}
-      >
+      <Kb.Text type="BodyBig" lineClamp={p.inTracker ? 1 : undefined} selectable={true}>
         {p.fullname}
       </Kb.Text>
-      {p.registeredForAirdrop && (
+      {flags.airdrop && p.registeredForAirdrop && (
         <Kb.WithTooltip text="Lucky airdropee">
           <Kb.Icon type="icon-airdrop-star-16" style={styles.star} />
         </Kb.WithTooltip>
