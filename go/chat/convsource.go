@@ -1129,11 +1129,9 @@ func (s *HybridConversationSource) GetUnreadline(ctx context.Context,
 	defer s.Trace(ctx, func() error { return err }, fmt.Sprintf("GetUnreadline: convID: %v, readMsgID: %v", convID, readMsgID))()
 
 	conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceLocalOnly)
-	if err != nil {
-		if _, ok := err.(storage.MissError); ok {
-			return s.getUnreadlineRemote(ctx, convID, readMsgID)
-		}
-		return nil, err
+	if err != nil { // short circuit to the server
+		s.Debug(ctx, "unable to GetUnverifiedConv: %v", err)
+		return s.getUnreadlineRemote(ctx, convID, readMsgID)
 	}
 	// Don't bother checking anything if we don't have any unread messages.
 	if !conv.Conv.IsUnreadFromMsgID(readMsgID) {
