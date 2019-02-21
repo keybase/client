@@ -534,9 +534,8 @@ type CachingAttachmentFetcher struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	store          attachments.Store
-	diskLRU        *disklru.DiskLRU
-	diskLRUCleaner *disklru.DiskLRUCleaner
+	store   attachments.Store
+	diskLRU *disklru.DiskLRU
 
 	// testing
 	tempDir string
@@ -545,17 +544,12 @@ type CachingAttachmentFetcher struct {
 var _ types.AttachmentFetcher = (*CachingAttachmentFetcher)(nil)
 
 func NewCachingAttachmentFetcher(g *globals.Context, store attachments.Store, size int) *CachingAttachmentFetcher {
-	c := &CachingAttachmentFetcher{
+	return &CachingAttachmentFetcher{
 		Contextified: globals.NewContextified(g),
 		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "CachingAttachmentFetcher", false),
 		store:        store,
 		diskLRU:      disklru.NewDiskLRU("attachments", 1, size),
 	}
-
-	mctx := libkb.NewMetaContextBackground(g.ExternalG())
-	c.diskLRUCleaner = disklru.NewDiskLRUCleaner(c.getCacheDir(), c.diskLRU)
-	go c.diskLRUCleaner.Start(mctx)
-	return c
 }
 
 func (c *CachingAttachmentFetcher) getCacheDir() string {
@@ -746,9 +740,9 @@ func (c *CachingAttachmentFetcher) DeleteAssets(ctx context.Context,
 }
 
 func (c *CachingAttachmentFetcher) OnCacheCleared(mctx libkb.MetaContext) {
-	if c.diskLRUCleaner != nil {
-		if err := c.diskLRUCleaner.Clean(mctx); err != nil {
-			c.Debug(mctx.Ctx(), "unable to run cleaner: %v", err)
+	if c.diskLRU != nil {
+		if err := c.diskLRU.Clean(mctx.Ctx(), mctx.G(), c.getCacheDir()); err != nil {
+			c.Debug(mctx.Ctx(), "unable to run clean: %v", err)
 		}
 	}
 }

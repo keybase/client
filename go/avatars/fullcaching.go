@@ -60,7 +60,6 @@ type populateArg struct {
 
 type FullCachingSource struct {
 	diskLRU        *lru.DiskLRU
-	diskLRUCleaner *lru.DiskLRUCleaner
 	staleThreshold time.Duration
 	simpleSource   Source
 
@@ -89,8 +88,6 @@ func (c *FullCachingSource) StartBackgroundTasks(m libkb.MetaContext) {
 	for i := 0; i < 10; i++ {
 		go c.populateCacheWorker(m)
 	}
-	c.diskLRUCleaner = lru.NewDiskLRUCleaner(c.getCacheDir(m), c.diskLRU)
-	go c.diskLRUCleaner.Start(m)
 }
 
 func (c *FullCachingSource) StopBackgroundTasks(m libkb.MetaContext) {
@@ -382,9 +379,9 @@ func (c *FullCachingSource) ClearCacheForName(m libkb.MetaContext, name string, 
 }
 
 func (c *FullCachingSource) OnCacheCleared(m libkb.MetaContext) {
-	if c.diskLRUCleaner != nil {
-		if err := c.diskLRUCleaner.Clean(m); err != nil {
-			c.debug(m, "unable to run cleaner: %v", err)
+	if c.diskLRU != nil {
+		if err := c.diskLRU.Clean(m.Ctx(), m.G(), c.getCacheDir(m)); err != nil {
+			c.debug(m, "unable to run clean: %v", err)
 		}
 	}
 }
