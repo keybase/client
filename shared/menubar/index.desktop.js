@@ -87,6 +87,7 @@ class MenubarRender extends React.Component<Props, State> {
             color={menuColor}
             hoverColor={menuColor}
             type="iconfont-nav-more"
+            sizeType="Big"
             onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
             ref={this.attachmentRef}
           />
@@ -145,6 +146,7 @@ class MenubarRender extends React.Component<Props, State> {
             color={menuColor}
             hoverColor={menuColor}
             type="iconfont-nav-more"
+            sizeType="Big"
             onClick={() => this.setState(prevState => ({showingMenu: !prevState.showingMenu}))}
             ref={this.attachmentRef}
           />
@@ -189,9 +191,9 @@ class MenubarRender extends React.Component<Props, State> {
 
   _menuView(title: string, iconType: Kb.IconType, count: number) {
     return (
-      <Kb.Box2 direction="horizontal" style={{width: '100%'}}>
+      <Kb.Box2 direction="horizontal" fullWidth={true} alignItems="center">
         <Kb.Box style={{marginRight: Styles.globalMargins.xsmall, position: 'relative'}}>
-          <Kb.Icon type={iconType} color={Styles.globalColors.black_20} fontSize={20} />
+          <Kb.Icon type={iconType} color={Styles.globalColors.black_20} />
           {!!count && <Kb.Badge badgeNumber={count} badgeStyle={{left: 14, position: 'absolute', top: -2}} />}
         </Kb.Box>
         <Kb.Text className="title" type="Body" style={Styles.collapseStyles([{color: undefined}])}>
@@ -290,6 +292,7 @@ class MenubarRender extends React.Component<Props, State> {
               color={Styles.globalColors.darkBlue4}
               hoverColor={Styles.globalColors.black}
               type="iconfont-nav-more"
+              sizeType="Big"
               ref={this.attachmentRef}
             />
             {!!badgeCountInMenu && (
@@ -370,7 +373,7 @@ const BadgeIcon = ({
         color={Styles.globalColors.darkBlue4}
         hoverColor={Styles.globalColors.white}
         onClick={() => openApp(tab)}
-        fontSize={22}
+        sizeType="Big"
         type={iconType}
       />
       {!!count && <Kb.Badge badgeNumber={count} badgeStyle={{position: 'absolute', right: -8, top: -6}} />}
