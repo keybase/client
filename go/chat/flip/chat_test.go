@@ -46,8 +46,14 @@ func (c *chatClient) ServerTime(context.Context) (time.Time, error) {
 	return c.Clock().Now(), nil
 }
 
+func testPrintf(fmtString string, args ...interface{}) {
+	if testing.Verbose() {
+		fmt.Printf(fmtString, args...)
+	}
+}
+
 func (c *chatClient) CLogf(ctx context.Context, fmtString string, args ...interface{}) {
-	fmt.Printf(fmtString+"\n", args...)
+	testPrintf(fmtString+"\n", args...)
 }
 
 func (c *chatClient) Me() UserDevice {
@@ -193,9 +199,9 @@ func (c *chatClient) consumeRevealsAndError(t *testing.T, nReveals int) {
 	revealsReceived := 0
 	errorsReceived := 0
 	for errorsReceived == 0 {
-		fmt.Printf("[%s] waiting for msg....\n", c.me)
+		testPrintf("[%s] waiting for msg....\n", c.me)
 		msg := <-c.dealer.UpdateCh()
-		fmt.Printf("[%s] msg gotten: %+v\n", c.me, msg)
+		testPrintf("[%s] msg gotten: %+v\n", c.me, msg)
 		switch {
 		case msg.Reveal != nil:
 			revealsReceived++
@@ -211,7 +217,7 @@ func (c *chatClient) consumeRevealsAndError(t *testing.T, nReveals int) {
 
 func (c *chatClient) consumeTimeoutError(t *testing.T) {
 	msg := <-c.dealer.UpdateCh()
-	fmt.Printf("ERR %+v\n", msg)
+	testPrintf("ERR %+v\n", msg)
 }
 
 func (c *chatClient) stop() {

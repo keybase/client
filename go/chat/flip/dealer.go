@@ -638,6 +638,8 @@ func (d *Dealer) handleMessageOthers(c context.Context, msg *GameMessageWrapped)
 
 func (d *Dealer) handleMessage(ctx context.Context, msg *GameMessageWrapped) error {
 
+	d.dh.CLogf(ctx, "flip.Dealer: Incoming: %+v", *msg)
+
 	t, err := msg.Msg.Body.T()
 	if err != nil {
 		return err
