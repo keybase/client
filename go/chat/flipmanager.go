@@ -84,7 +84,8 @@ func (n *sentMessageListener) NewChatActivity(uid keybase1.UID, activity chat1.C
 type flipTextMetadata struct {
 	LowerBound    string
 	ShuffleItems  []string
-	HandCardCount int
+	DeckShuffle   bool
+	HandCardCount uint
 	HandTargets   []string
 }
 
@@ -263,6 +264,28 @@ func (m *FlipManager) addReveal(ctx context.Context, status *chat1.UICoinFlipSta
 	status.ProgressText = fmt.Sprintf("%d participants have revealed secrets", numReveals)
 }
 
+func (m *FlipManager) addCardHandResult(ctx context.Context, status *chat1.UICoinFlipStatus,
+	result flip.Result, hmi hostMessageInfo) {
+	deckIndex := 0
+	numCards := len(result.Shuffle)
+	var rows []string
+	handSize := int(hmi.HandCardCount)
+	for targetIndex, target := range hmi.HandTargets {
+		if numCards-handSize < deckIndex {
+			rows = append(rows, fmt.Sprintf("%d. %s: 🤨", targetIndex+1, target))
+			continue
+		}
+		var hand []string
+		for di := deckIndex; di < deckIndex+handSize; di++ {
+			hand = append(hand, hmi.ShuffleItems[result.Shuffle[di]])
+		}
+		rows = append(rows, fmt.Sprintf("%d. %s: %s", targetIndex+1, target,
+			strings.TrimRight(strings.Join(hand, ", "), " ")))
+		deckIndex += handSize
+	}
+	status.ResultText = strings.Join(rows, "\n")
+}
+
 func (m *FlipManager) addResult(ctx context.Context, status *chat1.UICoinFlipStatus, result flip.Result,
 	convID chat1.ConversationID) {
 	defer func() {
@@ -291,6 +314,10 @@ func (m *FlipManager) addResult(ctx context.Context, status *chat1.UICoinFlipSta
 	case result.Int != nil:
 		status.ResultText = fmt.Sprintf("%d", *result.Int)
 	case len(result.Shuffle) > 0:
+		if hmi.HandCardCount > 0 {
+			m.addCardHandResult(ctx, status, result, hmi)
+			return
+		}
 		if len(hmi.ShuffleItems) != len(result.Shuffle) {
 			status.Phase = chat1.UICoinFlipPhase_ERROR
 			status.ProgressText = "Failed to describe shuffle result"
@@ -460,6 +487,7 @@ func (m *FlipManager) parseSpecials(arg string, nPlayersApprox int) (start flip.
 	switch {
 	case strings.HasPrefix(arg, "cards"):
 		deckShuffle, deckShuffleMetadata, _ := m.parseShuffle("2♠️,3♠️,4♠️,5♠️,6♠️,7♠️,8♠️,9♠️,10♠️,J♠️,Q♠️,K♠️,A♠️,2♣️,3♣️,4♣️,5♣️,6♣️,7♣️,8♣️,9♣️,10♣️,J♣️,Q♣️,K♣️,A♣️,2♦️,3♦️,4♦️,5♦️,6♦️,7♦️,8♦️,9♦️,10♦️,J♦️,Q♦️,K♦️,A♦️,2♥️,3♥️,4♥️,5♥️,6♥️,7♥️,8♥️,9♥️,10♥️,J♥️,Q♥️,K♥️,A♥️", nPlayersApprox)
+		deckShuffleMetadata.DeckShuffle = true
 		if arg == "cards" {
 			return deckShuffle, deckShuffleMetadata, nil
 		}
@@ -467,7 +495,15 @@ func (m *FlipManager) parseSpecials(arg string, nPlayersApprox int) (start flip.
 		if len(toks) < 3 {
 			return deckShuffle, deckShuffleMetadata, nil
 		}
-		strconv.ParseUint(toks[1], 0, 0)
+		handCount, err := strconv.ParseUint(toks[1], 0, 0)
+		if err != nil {
+			return deckShuffle, deckShuffleMetadata, nil
+		}
+		return deckShuffle, flipTextMetadata{
+			ShuffleItems:  deckShuffleMetadata.ShuffleItems,
+			HandCardCount: uint(handCount),
+			HandTargets:   toks[2:],
+		}, nil
 	}
 	return start, metadata, errFailedToParse
 }
@@ -548,6 +584,11 @@ func (m *FlipManager) DescribeFlipText(ctx context.Context, text string) string 
 	case flip.FlipType_BOOL:
 		return "*HEADS* or *TAILS*"
 	case flip.FlipType_SHUFFLE:
+		if metadata.DeckShuffle {
+			return "*Shuffling a deck of cards*"
+		} else if metadata.HandCardCount > 0 {
+			return fmt.Sprintf("*Dealing hands of %d cards*", metadata.HandCardCount)
+		}
 		return fmt.Sprintf("*Shuffling %s*",
 			strings.TrimRight(strings.Join(metadata.ShuffleItems, ", "), " "))
 	}

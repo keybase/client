@@ -271,30 +271,48 @@ func TestFlipManagerParseEdges(t *testing.T) {
 	tc := externalstest.SetupTest(t, "flip", 0)
 	g := globals.NewContext(tc.G, &globals.ChatContext{})
 	fm := NewFlipManager(g, nil)
-	testCase := func(text string, ftyp flip.FlipType, lowerBound string, shuffleItems []string) {
-		start, lb, si := fm.startFromText(text, 3)
+	testCase := func(text string, ftyp flip.FlipType, refMetadata flipTextMetadata) {
+		start, metadata := fm.startFromText(text, 3)
 		ft, err := start.Params.T()
 		require.NoError(t, err)
 		require.Equal(t, ftyp, ft)
-		require.Equal(t, lowerBound, lb)
-		require.Equal(t, shuffleItems, si)
+		require.Equal(t, refMetadata, metadata)
 	}
 	deck := "2♠️,3♠️,4♠️,5♠️,6♠️,7♠️,8♠️,9♠️,10♠️,J♠️,Q♠️,K♠️,A♠️,2♣️,3♣️,4♣️,5♣️,6♣️,7♣️,8♣️,9♣️,10♣️,J♣️,Q♣️,K♣️,A♣️,2♦️,3♦️,4♦️,5♦️,6♦️,7♦️,8♦️,9♦️,10♦️,J♦️,Q♦️,K♦️,A♦️,2♥️,3♥️,4♥️,5♥️,6♥️,7♥️,8♥️,9♥️,10♥️,J♥️,Q♥️,K♥️,A♥️"
 	cards := strings.Split(deck, ",")
-	testCase("/flip 10", flip.FlipType_BIG, "1", nil)
-	testCase("/flip 0", flip.FlipType_SHUFFLE, "", []string{"0"})
-	testCase("/flip -1", flip.FlipType_SHUFFLE, "", []string{"-1"})
-	testCase("/flip 1..5", flip.FlipType_BIG, "1", nil)
-	testCase("/flip -20..20", flip.FlipType_BIG, "-20", nil)
-	testCase("/flip -20..20,mike", flip.FlipType_SHUFFLE, "", []string{"-20..20", "mike"})
-	testCase("/flip 1..1", flip.FlipType_BIG, "1", nil)
-	testCase("/flip 1..0", flip.FlipType_SHUFFLE, "", []string{"1..0"})
-	testCase("/flip mike, karen,     jim", flip.FlipType_SHUFFLE, "", []string{"mike", "karen", "jim"})
-	testCase("/flip mike,    jim bob    j  ,     jim", flip.FlipType_SHUFFLE, "",
-		[]string{"mike", "jim bob    j", "jim"})
-	testCase("/flip 10...20", flip.FlipType_SHUFFLE, "", []string{"10...20"})
-	testCase("/flip 1,0", flip.FlipType_SHUFFLE, "", []string{"1", "0"})
-	testCase("/flip cards", flip.FlipType_SHUFFLE, "", cards)
+	testCase("/flip 10", flip.FlipType_BIG, flipTextMetadata{LowerBound: "1"})
+	testCase("/flip 0", flip.FlipType_SHUFFLE, flipTextMetadata{ShuffleItems: []string{"0"}})
+	testCase("/flip -1", flip.FlipType_SHUFFLE, flipTextMetadata{ShuffleItems: []string{"-1"}})
+	testCase("/flip 1..5", flip.FlipType_BIG, flipTextMetadata{LowerBound: "1"})
+	testCase("/flip -20..20", flip.FlipType_BIG, flipTextMetadata{LowerBound: "-20"})
+	testCase("/flip -20..20,mike", flip.FlipType_SHUFFLE,
+		flipTextMetadata{ShuffleItems: []string{"-20..20", "mike"}})
+	testCase("/flip 1..1", flip.FlipType_BIG, flipTextMetadata{LowerBound: "1"})
+	testCase("/flip 1..0", flip.FlipType_SHUFFLE, flipTextMetadata{ShuffleItems: []string{"1..0"}})
+	testCase("/flip mike, karen,     jim", flip.FlipType_SHUFFLE,
+		flipTextMetadata{ShuffleItems: []string{"mike", "karen", "jim"}})
+	testCase("/flip mike,    jim bob    j  ,     jim", flip.FlipType_SHUFFLE,
+		flipTextMetadata{ShuffleItems: []string{"mike", "jim bob    j", "jim"}})
+	testCase("/flip 10...20", flip.FlipType_SHUFFLE, flipTextMetadata{ShuffleItems: []string{"10...20"}})
+	testCase("/flip 1,0", flip.FlipType_SHUFFLE, flipTextMetadata{ShuffleItems: []string{"1", "0"}})
+	testCase("/flip cards", flip.FlipType_SHUFFLE, flipTextMetadata{
+		ShuffleItems: cards,
+		DeckShuffle:  true,
+	})
+	testCase("/flip cards 5 mikem joshblum chris", flip.FlipType_SHUFFLE, flipTextMetadata{
+		ShuffleItems:  cards,
+		DeckShuffle:   false,
+		HandCardCount: 5,
+		HandTargets:   []string{"mikem", "joshblum", "chris"},
+	})
+	testCase("/flip cards 5", flip.FlipType_SHUFFLE, flipTextMetadata{
+		ShuffleItems: cards,
+		DeckShuffle:  true,
+	})
+	testCase("/flip cards -5 chris mike", flip.FlipType_SHUFFLE, flipTextMetadata{
+		ShuffleItems: cards,
+		DeckShuffle:  true,
+	})
 }
 
 func TestFlipManagerLoadFlip(t *testing.T) {
