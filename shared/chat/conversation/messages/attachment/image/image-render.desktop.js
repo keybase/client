@@ -5,37 +5,25 @@ import {collapseStyles} from '../../../../../styles'
 
 export class ImageRender extends React.Component<Props> {
   videoRef: any
-  playingVideo: boolean
 
   constructor(props: Props) {
     super(props)
     this.videoRef = React.createRef()
-    this.playingVideo = false
+  }
+
+  pauseVideo = () => {
+    if (!(this.videoRef && this.videoRef.current)) {
+      return
+    }
+    this.videoRef.current.pause()
   }
 
   onVideoClick = () => {
     if (!(this.videoRef && this.videoRef.current)) {
       return
     }
-    if (!this.playingVideo) {
-      this.videoRef.current.play()
-    } else {
-      this.videoRef.current.pause()
-      this.videoRef.current.removeAttribute('controls')
-    }
-    this.playingVideo = !this.playingVideo
-  }
-
-  onVideoMouseEnter = () => {
-    if (this.playingVideo && this.videoRef && this.videoRef.current) {
-      this.videoRef.current.setAttribute('controls', 'controls')
-    }
-  }
-
-  onVideoMouseLeave = () => {
-    if (this.playingVideo && this.videoRef && this.videoRef.current) {
-      this.videoRef.current.removeAttribute('controls')
-    }
+    this.videoRef.current.play()
+    this.videoRef.current.setAttribute('controls', 'controls')
   }
 
   render() {
@@ -50,7 +38,6 @@ export class ImageRender extends React.Component<Props> {
         style={collapseStyles([this.props.style, !this.props.loaded && {display: 'none'}])}
       >
         <source src={this.props.videoSrc} />
-        <style>{hidePlayButton}</style>
       </video>
     ) : (
       <img
@@ -66,9 +53,3 @@ export class ImageRender extends React.Component<Props> {
 export function imgMaxWidth() {
   return 320
 }
-
-const hidePlayButton = `
-video::-webkit-media-controls-play-button {
-  display: none;
-}
-`
