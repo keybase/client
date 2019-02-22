@@ -1805,7 +1805,7 @@ func RetryOnSigOldSeqnoError(ctx context.Context, g *libkb.GlobalContext, post f
 }
 
 func isSigOldSeqnoError(err error) bool {
-	return libkb.IsAppStatusErrorCode(err, keybase1.StatusCode_SCSigOldSeqno)
+	return libkb.IsAppStatusCode(err, keybase1.StatusCode_SCSigOldSeqno)
 }
 
 func (t *Team) marshal(incoming interface{}) ([]byte, error) {
