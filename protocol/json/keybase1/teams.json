@@ -2996,7 +2996,7 @@
         }
       ],
       "response": "TeamPlusApplicationKeys",
-      "doc": "* loadTeamPlusApplicationKeys loads team information for applications like KBFS and Chat.\n   * If refreshers are non-empty, then force a refresh of the cache if the requirements\n   * of the refreshers aren't met."
+      "doc": "* loadTeamPlusApplicationKeys loads team information for applications like KBFS and Chat.\n   * If refreshers are non-empty, then force a refresh of the cache if the requirements\n   * of the refreshers aren't met. If OfflineAvailability is set to BEST_EFFORT, and the\n   * client is currently offline (or thinks it's offline), then the refreshers are overridden\n   * and ignored, and stale data might still be returned."
     },
     "getTeamRootID": {
       "request": [
