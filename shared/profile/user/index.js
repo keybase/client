@@ -416,6 +416,7 @@ const styles = Styles.styleSheetCreate({
       minWidth: 120,
     },
     isMobile: {
+      borderRadius: 0,
       height: 48,
       width: '50%',
     },
