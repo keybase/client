@@ -479,6 +479,10 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
       shouldUpdate = true
     }
 
+    if (this.state.height !== nextState.height) {
+      shouldUpdate = true
+    }
+
     return shouldUpdate
   }
 
