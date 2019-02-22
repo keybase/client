@@ -901,7 +901,7 @@ func (k *KeybaseServiceBase) GetTeamSettings(
 	ctx context.Context, teamID keybase1.TeamID) (
 	keybase1.KBFSTeamSettings, error) {
 	// TODO: get invalidations from the server and cache the settings?
-	return k.kbfsClient.GetKBFSTeamSettings(ctx, teamID)
+	return k.kbfsClient.GetKBFSTeamSettings(ctx, keybase1.GetKBFSTeamSettingsArg{TeamID: teamID})
 }
 
 func (k *KeybaseServiceBase) getCurrentMerkleRoot(ctx context.Context) (
