@@ -431,9 +431,6 @@ func (d *DiskLRU) Clean(ctx context.Context, lctx libkb.LRUContext, cacheDir str
 		cacheRevMap[path] = entry.Key
 	}
 
-	if err := os.MkdirAll(cacheDir, os.ModePerm); err != nil {
-		return err
-	}
 	files, err := filepath.Glob(filepath.Join(cacheDir, "*"))
 	if err != nil {
 		return err
