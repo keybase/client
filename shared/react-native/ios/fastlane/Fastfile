@@ -31,11 +31,11 @@ platform :ios do
     })
 
     sigh(
-        app_identifier: "keybase.ios"
+        app_identifier: "keybase.ios",
         output_path: "~/.sigh"
         )
     sigh(
-        app_identifier: "keybase.ios.KeybaseShare"
+        app_identifier: "keybase.ios.KeybaseShare",
         output_path: "~/.sigh"
     )
     gym(scheme: "Keybase") # Build your app - more options available
