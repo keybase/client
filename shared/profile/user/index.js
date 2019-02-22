@@ -412,10 +412,8 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: {
       borderBottomStyle: 'solid',
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-      paddingTop: Styles.globalMargins.medium,
+      height: 40,
+      minWidth: 120,
     },
     isMobile: {
       height: Styles.globalMargins.medium,
