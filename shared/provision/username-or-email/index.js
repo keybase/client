@@ -21,13 +21,14 @@ type Props = {
 
 const InlineError = (props: {inlineError: RPCError, onGoToSignup: () => void}) =>
   props.inlineError.code === constantsStatusCode.scnotfound ? (
-    <Kb.Text type="BodySmallError">
-      The username or email you provided doesn't exist on Keybase. (Would you like to{' '}
-      <Kb.Text onClick={props.onGoToSignup} style={styles.inlineErrorText} type="BodySmallPrimaryLink">
-        sign up for a new account
+    <Kb.Box2 direction="vertical" centerChildren={true}>
+      <Kb.Text type="BodySmallError" style={styles.error}>
+        This username or email doesn't exist.
       </Kb.Text>
-      ?)
-    </Kb.Text>
+      <Kb.Text onClick={props.onGoToSignup} style={styles.errorLink} type="BodySmallPrimaryLink">
+        Sign up for a new account?
+      </Kb.Text>
+    </Kb.Box2>
   ) : (
     <Kb.Text type="BodySmallError" style={{color: Styles.globalColors.red}}>
       {props.inlineError.desc}
@@ -56,6 +57,7 @@ const UsernameOrEmail = (props: Props) => (
       <Kb.WaitingButton
         label="Continue"
         type="Primary"
+        fullWidth={true}
         style={styles.button}
         onClick={() => props.onSubmit(props.usernameOrEmail)}
         disabled={!props.usernameOrEmail}
@@ -69,6 +71,7 @@ const styles = Styles.styleSheetCreate({
   button: Styles.platformStyles({
     common: {
       alignSelf: 'center',
+      width: '100%',
     },
     isElectron: {
       marginTop: Styles.globalMargins.medium,
@@ -86,7 +89,8 @@ const styles = Styles.styleSheetCreate({
       justifyContent: 'center',
     },
   }),
-  inlineErrorText: Styles.platformStyles({
+  error: {paddingTop: Styles.globalMargins.tiny, textAlign: 'center'},
+  errorLink: Styles.platformStyles({
     common: {
       color: Styles.globalColors.red,
     },
