@@ -127,6 +127,7 @@ class FriendshipTabs extends React.Component<FriendshipTabsProps> {
   _onClickFollowers = () => this.props.onChangeFollowing(false)
   _tab = following => (
     <Kb.ClickableBox
+      onClick={following ? this._onClickFollowing : this._onClickFollowers}
       style={Styles.collapseStyles([
         styles.followTab,
         following === this.props.selectedFollowing && styles.followTabSelected,
@@ -134,7 +135,6 @@ class FriendshipTabs extends React.Component<FriendshipTabsProps> {
     >
       <Kb.Text
         type="BodySmallSemibold"
-        onClick={following ? this._onClickFollowing : this._onClickFollowers}
         style={
           following === this.props.selectedFollowing ? styles.followTabTextSelected : styles.followTabText
         }
@@ -412,13 +412,12 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: {
       borderBottomStyle: 'solid',
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-      paddingTop: Styles.globalMargins.medium,
+      height: 40,
+      minWidth: 120,
     },
     isMobile: {
-      height: Styles.globalMargins.medium,
+      borderRadius: 0,
+      height: 48,
       width: '50%',
     },
   }),
@@ -428,6 +427,7 @@ const styles = Styles.styleSheetCreate({
       backgroundColor: Styles.globalColors.white,
       borderBottomColor: Styles.globalColors.black_10,
       borderBottomWidth: 1,
+      marginTop: Styles.globalMargins.small,
     },
     isElectron: {
       alignSelf: 'stretch',
