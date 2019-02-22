@@ -86,14 +86,16 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
       )
     }
     const usernameOrTitle = this.props.username ? (
+      // $FlowIssue username is tested before we make an array out of it
       <ConnectedUsernames
         onUsernameClicked={
           this.props.clickType === 'tracker' || this.props.clickType === 'profile' ? undefined : 'profile'
         }
         type={this.props.horizontal ? 'BodySemibold' : adapterProps.titleType}
-        containerStyle={
-          this.props.horizontal ? undefined : Styles.isMobile ? undefined : styles.vUsernameContainerStyle
-        }
+        containerStyle={Styles.collapseStyles([
+          this.props.horizontal ? undefined : Styles.isMobile ? undefined : styles.vUsernameContainerStyle,
+          this.props.size === 'smaller' ? styles.smallerWidthTextContainer : {},
+        ])}
         inline={!this.props.horizontal}
         underline={this.props.underline}
         usernames={[this.props.username]}
@@ -101,7 +103,7 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
         colorFollowing={this.props.colorFollowing}
         colorYou={this.props.notFollowingColorOverride}
         notFollowingColorOverride={this.props.notFollowingColorOverride}
-        style={styles.fullWidthText}
+        style={this.props.size === 'smaller' ? styles.smallerWidthText : styles.fullWidthText}
       />
     ) : (
       <Text
@@ -154,9 +156,12 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
               ? Styles.collapseStyles([Styles.globalStyles.flexBoxColumn, this.props.metaStyle])
               : Styles.collapseStyles([
                   styles.metaStyle,
-                  styles.fullWidthTextContainer,
+                  this.props.size === 'smaller'
+                    ? styles.smallerWidthTextContainer
+                    : styles.fullWidthTextContainer,
                   {marginTop: adapterProps.metaMargin},
                   this.props.metaStyle,
+                  this.props.size === 'smaller' ? styles.smallerWidthTextContainer : {},
                 ])
           }
         >
@@ -213,6 +218,20 @@ const styles = Styles.styleSheetCreate({
     maxWidth: '100%',
     width: '100%',
   },
+  smallerWidthText: Styles.platformStyles({
+    isElectron: {
+      display: 'unset',
+      maxWidth: '48px',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
+      width: '48px',
+      wordBreak: 'break-all',
+    },
+  }),
+  smallerWidthTextContainer: Styles.platformStyles({
+    isElectron: {display: 'unset', maxWidth: '48px', textAlign: 'center', width: '48px'},
+  }),
   vContainerStyle: {
     ...Styles.globalStyles.flexBoxColumn,
     alignItems: 'center',

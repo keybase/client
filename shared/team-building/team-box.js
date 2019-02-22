@@ -63,14 +63,10 @@ const TeamBox = (props: Props) => (
       </Kb.Box2>
       {!!props.teamSoFar.length && !Styles.isMobile && <GoButton onClick={props.onFinishTeamBuilding} />}
     </Kb.Box2>
-    <Kb.Box2
-      alignItems="flex-start"
-      direction="horizontal"
-      fullHeight={false}
-      fullWidth={true}
-      style={styles.bubbles}
-    >
-      <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
+    <Kb.Box2 direction="horizontal" fullHeight={false} fullWidth={true} style={styles.bubbles}>
+      <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={false} style={styles.floatingBubbles}>
+        <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
+      </Kb.Box2>
     </Kb.Box2>
   </Kb.Box2>
 )
@@ -78,6 +74,7 @@ const TeamBox = (props: Props) => (
 const styles = Styles.styleSheetCreate({
   bubbles: Styles.platformStyles({
     isElectron: {
+      overflow: 'hidden',
       paddingBottom: Styles.globalMargins.xsmall,
       paddingTop: Styles.globalMargins.xsmall,
     },
@@ -91,6 +88,11 @@ const styles = Styles.styleSheetCreate({
       paddingLeft: Styles.globalMargins.small,
       paddingRight: Styles.globalMargins.small,
       paddingTop: Styles.globalMargins.small,
+    },
+  }),
+  floatingBubbles: Styles.platformStyles({
+    isElectron: {
+      justifyContent: 'flex-end',
     },
   }),
   search: Styles.platformStyles({
