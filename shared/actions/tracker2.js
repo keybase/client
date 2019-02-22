@@ -39,23 +39,25 @@ const setupEngineListeners = () => {
           reason: reason.reason || '',
         })
       ),
-    'keybase.1.identify3Ui.identify3UpdateRow': row =>
+    'keybase.1.identify3Ui.identify3UpdateRow': arg =>
       Saga.put(
         Tracker2Gen.createUpdateAssertion({
-          color: Constants.rpcRowColorToColor(row.color),
-          guiID: row.guiID,
-          metas: (row.metas || []).map(m => ({color: Constants.rpcRowColorToColor(m.color), label: m.label})),
-          proofURL: row.proofURL,
-          sigID: row.sigID,
-          siteIcon: '', // TODO
-          siteURL: row.siteURL,
-          state: Constants.rpcRowStateToAssertionState(row.state),
-          type: row.key,
-          value: row.value,
+          assertion: Constants.rpcAssertionToAssertion(arg.row),
+          guiID: arg.row.guiID,
         })
       ),
   })
 }
+
+const refreshChanged = (_, action) =>
+  Tracker2Gen.createLoad({
+    assertion: action.payload.params.username,
+    fromDaemon: false,
+    guiID: Constants.generateGUIID(),
+    ignoreCache: true,
+    inTracker: false,
+    reason: '',
+  })
 
 const updateUserCard = (state, action) => {
   const {guiID, card} = action.payload.params
@@ -181,19 +183,7 @@ const loadFollow = (_, action) => {
 const getProofSuggestions = () =>
   RPCTypes.userProofSuggestionsRpcPromise().then(({suggestions, showMore}) =>
     Tracker2Gen.createProofSuggestionsUpdated({
-      suggestions: (suggestions || []).map(s =>
-        Constants.makeAssertion({
-          assertionKey: s.key,
-          color: 'gray',
-          metas: [],
-          proofURL: '',
-          siteIcon: '',
-          siteURL: '',
-          state: 'suggestion',
-          type: s.key,
-          value: s.profileText,
-        })
-      ),
+      suggestions: (suggestions || []).map(Constants.rpcSuggestionToAssertion),
     })
   )
 
@@ -219,6 +209,11 @@ function* tracker2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<Tracker2Gen.GetProofSuggestionsPayload>(
     Tracker2Gen.getProofSuggestions,
     getProofSuggestions
+  )
+
+  yield* Saga.chainAction<EngineGen.Keybase1NotifyTrackingTrackingChangedPayload>(
+    EngineGen.keybase1NotifyTrackingTrackingChanged,
+    refreshChanged
   )
   // TEMP until actions/tracker is deprecated
   yield* Saga.chainAction<GetProfilePayloadOLD>(getProfileOLD, _getProfileOLD) // TEMP

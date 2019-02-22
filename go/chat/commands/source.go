@@ -195,6 +195,7 @@ var admins = map[string]bool{
 	"mlsteele":     true,
 	"xgess":        true,
 	"karenm":       true,
+	"kb_monbot":    true,
 	"joshblum":     true,
 	"cjb":          true,
 	"jzila":        true,

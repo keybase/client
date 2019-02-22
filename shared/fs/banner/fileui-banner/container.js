@@ -1,8 +1,10 @@
 // @flow
-import Banner from './index'
+import * as React from 'react'
+import Banner, {height} from './index'
 import * as FsGen from '../../../actions/fs-gen'
 import * as Types from '../../../constants/types/fs'
 import * as Constants from '../../../constants/fs'
+import * as RowTypes from '../../row/types'
 import {namedConnect, compose, lifecycle} from '../../../util/container'
 import {isMobile} from '../../../constants/platform'
 
@@ -10,28 +12,20 @@ type OwnProps = {
   path?: Types.Path,
 }
 
-const mapStateToProps = state => {
-  const kbfsEnabled = Constants.kbfsEnabled(state)
-  const kbfsOutdated = Constants.kbfsOutdated(state)
-  return {
-    dokanUninstallString: Constants.kbfsUninstallString(state),
-    inProgress: state.fs.flags.fuseInstalling || state.fs.flags.kbfsInstalling || state.fs.flags.kbfsOpening,
-    kbfsEnabled,
-    kbfsOutdated,
-    showBanner: !kbfsEnabled && state.fs.flags.showBanner,
-    showSecurityPrefs: !kbfsEnabled && state.fs.flags.kextPermissionError,
-  }
-}
+const mapStateToProps = state => ({
+  dokanUninstallString: Constants.kbfsUninstallString(state),
+  inProgress: state.fs.flags.fuseInstalling || state.fs.flags.kbfsInstalling || state.fs.flags.kbfsOpening,
+  kbfsEnabled: Constants.kbfsEnabled(state),
+  kbfsOutdated: Constants.kbfsOutdated(state),
+})
 
-const mapDispatchToProps = (dispatch, {path}: OwnProps) => {
-  return {
-    _openInSystemFileManager: path && (() => dispatch(FsGen.createOpenPathInSystemFileManager({path}))),
-    getFuseStatus: () => dispatch(FsGen.createFuseStatus()),
-    onDismiss: () => dispatch(FsGen.createSetFlags({showBanner: false})),
-    onInstall: () => dispatch(FsGen.createInstallFuse()),
-    onUninstall: () => dispatch(FsGen.createUninstallKBFSConfirm()),
-  }
-}
+const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
+  _openInSystemFileManager: path && (() => dispatch(FsGen.createOpenPathInSystemFileManager({path}))),
+  getFuseStatus: () => dispatch(FsGen.createFuseStatus()),
+  onDismiss: () => dispatch(FsGen.createSetFlags({showBanner: false})),
+  onInstall: () => dispatch(FsGen.createInstallFuse()),
+  onUninstall: () => dispatch(FsGen.createUninstallKBFSConfirm()),
+})
 
 const mergeProps = (stateProps, dispatchProps, {path}: OwnProps) => ({
   ...stateProps,
@@ -48,7 +42,7 @@ const mergeProps = (stateProps, dispatchProps, {path}: OwnProps) => ({
 const ConnectedBanner = isMobile
   ? () => null
   : compose(
-      namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'FilesBanner'),
+      namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'FileUIBanner'),
       lifecycle({
         componentDidMount() {
           this.props.getFuseStatus()
@@ -57,3 +51,15 @@ const ConnectedBanner = isMobile
     )(Banner)
 
 export default ConnectedBanner
+
+export const asRows = (path: Types.Path, shouldShowFileUIBanner: boolean): Array<RowTypes.RowItemWithKey> =>
+  shouldShowFileUIBanner
+    ? [
+        {
+          height,
+          key: 'file-ui-banner',
+          node: <ConnectedBanner path={path} />,
+          rowType: 'header',
+        },
+      ]
+    : []

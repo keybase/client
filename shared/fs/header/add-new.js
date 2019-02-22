@@ -1,14 +1,6 @@
 // @flow
 import * as React from 'react'
-import {
-  isMobile,
-  styleSheetCreate,
-  collapseStyles,
-  globalStyles,
-  globalColors,
-  globalMargins,
-  platformStyles,
-} from '../../styles'
+import * as Styles from '../../styles'
 import {
   Box,
   ClickableBox,
@@ -21,8 +13,6 @@ import {
 import StaticBreadcrumb from '../common/static-breadcrumb'
 
 type AddNewProps = {
-  style?: Object,
-  showText: boolean,
   pathElements: Array<string>,
 
   openAndUploadBoth?: () => void,
@@ -76,7 +66,7 @@ const propsToMenuItems = (props: AddNewProps) => {
   props.pickAndUploadPhoto && props.pickAndUploadVideo && items.push('Divider')
   items.push({icon: 'iconfont-folder-new', onClick: props.newFolderRow, title: 'Create new folder'})
 
-  return isMobile
+  return Styles.isMobile
     ? items.map(item =>
         item === 'Divider'
           ? 'Divider'
@@ -92,9 +82,9 @@ const propsToMenuItems = (props: AddNewProps) => {
               onClick: item.onClick,
               title: item.title,
               view: (
-                <Box style={styles.stylesBox}>
-                  <Icon type={item.icon} color={globalColors.blue} />
-                  <Text type="Body" style={styles.stylesText}>
+                <Box style={styles.box}>
+                  <Icon type={item.icon} color={Styles.globalColors.blue} />
+                  <Text type="Body" style={styles.text}>
                     {item.title}
                   </Text>
                 </Box>
@@ -106,15 +96,11 @@ const propsToMenuItems = (props: AddNewProps) => {
 const AddNew = (props: AddNewProps & OverlayParentProps) => {
   return (
     !!props.newFolderRow && (
-      <Box>
-        <ClickableBox style={props.style} onClick={props.toggleShowingMenu} ref={props.setAttachmentRef}>
-          <Icon
-            type="iconfont-new"
-            color={globalColors.blue}
-            style={collapseStyles([styles.stylesIconNew])}
-          />
-          {!isMobile && (
-            <Text type="BodyBigLink" style={styles.stylesText}>
+      <>
+        <ClickableBox style={styles.addNew} onClick={props.toggleShowingMenu} ref={props.setAttachmentRef}>
+          <Icon type="iconfont-new" color={Styles.globalColors.blue} style={styles.iconNew} />
+          {!Styles.isMobile && (
+            <Text type="BodyBigLink" style={styles.text}>
               New ...
             </Text>
           )}
@@ -124,11 +110,11 @@ const AddNew = (props: AddNewProps & OverlayParentProps) => {
           visible={props.showingMenu}
           onHidden={props.toggleShowingMenu}
           header={
-            isMobile
+            Styles.isMobile
               ? {
                   title: 'header',
                   view: (
-                    <Box style={styles.stylesPadBreadcrumbHeader}>
+                    <Box style={styles.padBreadcrumbHeader}>
                       <StaticBreadcrumb
                         pathElements={props.pathElements}
                         showTlfTypeIcon={true}
@@ -143,23 +129,38 @@ const AddNew = (props: AddNewProps & OverlayParentProps) => {
           position="bottom center"
           closeOnSelect={true}
         />
-      </Box>
+      </>
     )
   )
 }
 
-const styles = styleSheetCreate({
-  stylesBox: {
-    ...globalStyles.flexBoxRow,
+export default OverlayParentHOC(AddNew)
+
+const styles = Styles.styleSheetCreate({
+  addNew: Styles.platformStyles({
+    isElectron: {
+      ...Styles.globalStyles.flexBoxRow,
+      alignItems: 'center',
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingLeft: Styles.globalMargins.small,
+      paddingRight: Styles.globalMargins.small - 4,
+      paddingTop: Styles.globalMargins.tiny,
+    },
+  }),
+  box: {
+    ...Styles.globalStyles.flexBoxRow,
     alignItems: 'center',
   },
-  stylesIconNew: platformStyles({
+  iconNew: Styles.platformStyles({
     isMobile: {fontSize: 22},
   }),
-  stylesPadBreadcrumbHeader: {paddingBottom: globalMargins.medium, paddingTop: globalMargins.medium},
-  stylesText: platformStyles({
+  padBreadcrumbHeader: {
+    paddingBottom: Styles.globalMargins.medium,
+    paddingTop: Styles.globalMargins.medium,
+  },
+  text: Styles.platformStyles({
     common: {
-      marginLeft: globalMargins.tiny,
+      marginLeft: Styles.globalMargins.tiny,
     },
     isElectron: {
       // Disable text-decoration: underline on hover for BodyBigLink
@@ -167,5 +168,3 @@ const styles = styleSheetCreate({
     },
   }),
 })
-
-export default OverlayParentHOC(AddNew)

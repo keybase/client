@@ -37,6 +37,7 @@ const mapStateToProps = (state, ownProps) => {
     followers: state.tracker2.usernameToDetails.getIn([username, 'followers']) || emptySet,
     following: state.tracker2.usernameToDetails.getIn([username, 'following']) || emptySet,
     guiID: d.guiID,
+    reason: d.reason,
     state: d.state,
     username,
   }
@@ -71,13 +72,19 @@ const followToArray = memoize((followers, following) => ({
 }))
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  assertionKeys: stateProps._assertions ? stateProps._assertions.keySeq().toArray() : null,
+  assertionKeys: stateProps._assertions
+    ? stateProps._assertions
+        .sort((a, b) => a.priority - b.priority)
+        .keySeq()
+        .toArray()
+    : null,
   backgroundColorType: stateProps.backgroundColorType,
   followThem: stateProps.followThem,
   onBack: dispatchProps.onBack,
   onEditAvatar: stateProps._userIsYou ? dispatchProps._onEditAvatar : null,
   onReload: () => dispatchProps._onReload(stateProps.username, stateProps._userIsYou),
   onSearch: dispatchProps.onSearch,
+  reason: stateProps.reason,
   state: stateProps.state,
   suggestionKeys: stateProps._suggestionKeys
     ? stateProps._suggestionKeys.map(s => s.assertionKey).toArray()

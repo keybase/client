@@ -18,8 +18,8 @@ import (
 
 func consumeFlipToResult(t *testing.T, ui *kbtest.ChatUI, listener *serverChatListener, numUsers int) string {
 	timeout := 20 * time.Second
+	consumeNewMsgRemote(t, listener, chat1.MessageType_FLIP) // host msg
 	for {
-		consumeNewMsgRemote(t, listener, chat1.MessageType_FLIP)
 		select {
 		case updates := <-ui.CoinFlipUpdates:
 			require.Equal(t, 1, len(updates))
@@ -240,7 +240,7 @@ func TestFlipManagerLoadFlip(t *testing.T) {
 			ctc.as(t, users[1]).user())
 		mustPostLocalForTest(t, ctc, users[0], conv,
 			chat1.NewMessageBodyWithText(chat1.MessageText{
-				Body: "/flip ",
+				Body: "/flip",
 			}))
 		consumeNewMsgRemote(t, listener0, chat1.MessageType_FLIP)
 		consumeNewMsgRemote(t, listener1, chat1.MessageType_FLIP)

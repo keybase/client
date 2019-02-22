@@ -3383,6 +3383,11 @@ func (fbo *folderBlockOps) UpdatePointers(kmd KeyMetadata, lState *lockState,
 		}
 	}
 
+	// Cancel any prefetches for all unreferenced block pointers.
+	for _, unref := range op.Unrefs() {
+		fbo.config.BlockOps().Prefetcher().CancelPrefetch(unref)
+	}
+
 	if afterUpdateFn == nil {
 		return affectedNodeIDs, nil
 	}

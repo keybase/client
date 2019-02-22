@@ -308,11 +308,18 @@ func (m *FlipManager) queueDirtyGameID(gameID chat1.FlipGameID, force bool) {
 
 func (m *FlipManager) handleSummaryUpdate(ctx context.Context, gameID chat1.FlipGameID,
 	update *flip.GameSummary, convID chat1.ConversationID, force bool) {
+	defer m.queueDirtyGameID(gameID, force)
 	if update.Err != nil {
+		var parts []chat1.UICoinFlipParticipant
+		oldGame, ok := m.games.Get(gameID.String())
+		if ok {
+			parts = oldGame.(chat1.UICoinFlipStatus).Participants
+		}
 		m.games.Add(gameID.String(), chat1.UICoinFlipStatus{
 			GameID:       gameID.String(),
 			Phase:        chat1.UICoinFlipPhase_ERROR,
-			ProgressText: fmt.Sprintf("Something went wrong: %s", update.Err),
+			ProgressText: fmt.Sprintf("Complete: %s", update.Err),
+			Participants: parts,
 		})
 		return
 	}
@@ -328,7 +335,6 @@ func (m *FlipManager) handleSummaryUpdate(ctx context.Context, gameID chat1.Flip
 	}
 	status.ProgressText = "Complete"
 	m.games.Add(gameID.String(), status)
-	m.queueDirtyGameID(gameID, force)
 }
 
 func (m *FlipManager) handleUpdate(ctx context.Context, update flip.GameStateUpdateMessage, force bool) (err error) {
@@ -610,11 +616,32 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 }
 
 // MaybeInjectFlipMessage implements the types.CoinFlipManager interface
-func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, msg chat1.MessageUnboxed,
-	convID chat1.ConversationID, topicType chat1.TopicType) {
+func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, boxedMsg chat1.MessageBoxed,
+	inboxVers chat1.InboxVers, uid gregor1.UID, convID chat1.ConversationID, topicType chat1.TopicType) bool {
 	// earliest of outs if this isn't a dev convo, an error, or the outbox ID message
-	if topicType != chat1.TopicType_DEV || !msg.IsValid() || m.isHostMessageInfoMsgID(msg.GetMessageID()) {
-		return
+	if topicType != chat1.TopicType_DEV || boxedMsg.GetMessageType() != chat1.MessageType_FLIP ||
+		m.isHostMessageInfoMsgID(boxedMsg.GetMessageID()) {
+		return false
+	}
+	defer m.Trace(ctx, func() error { return nil }, "MaybeInjectFlipMessage: convID: %s", convID)()
+	// Update inbox for this guy
+	if err := m.G().InboxSource.UpdateInboxVersion(ctx, uid, inboxVers); err != nil {
+		m.Debug(ctx, "MaybeInjectFlipMessage: failed to update inbox version: %s", err)
+		// charge forward here, we will figure it out
+	}
+	// Unbox the message
+	conv, err := utils.GetUnverifiedConv(ctx, m.G(), uid, convID, types.InboxSourceDataSourceAll)
+	if err != nil {
+		m.Debug(ctx, "MaybeInjectFlipMessage: failed to get conversation for unbox: %s", err)
+		return true
+	}
+	msg, err := NewBoxer(m.G()).UnboxMessage(ctx, boxedMsg, conv.Conv, nil)
+	if err != nil {
+		m.Debug(ctx, "MaybeInjectFlipMessage: failed to unbox: %s", err)
+	}
+	if err := storage.New(m.G(), nil).SetMaxMsgID(ctx, convID, uid, msg.GetMessageID()); err != nil {
+		m.Debug(ctx, "MaybeInjectFlipMessage: failed to write max msgid: %s", err)
+		// charge forward from this error
 	}
 	// Ignore anything from the current device
 	sender := flip.UserDevice{
@@ -622,17 +649,18 @@ func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, msg chat1.Mess
 		D: msg.Valid().ClientHeader.SenderDevice,
 	}
 	if sender.Eq(m.Me()) {
-		return
+		return true
 	}
-	defer m.Trace(ctx, func() error { return nil }, "MaybeInjectFlipMessage: convID: %s", convID)()
 	body := msg.Valid().MessageBody
 	if !body.IsType(chat1.MessageType_FLIP) {
-		return
+		m.Debug(ctx, "MaybeInjectFlipMessage: bogus flip message with a non-flip body")
+		return true
 	}
 	if err := m.dealer.InjectIncomingChat(ctx, sender, convID, body.Flip().GameID,
 		flip.MakeGameMessageEncoded(body.Flip().Text), m.isStartMsgID(msg.GetMessageID())); err != nil {
 		m.Debug(ctx, "MaybeInjectFlipMessage: failed to inject: %s", err)
 	}
+	return true
 }
 
 func (m *FlipManager) loadGame(ctx context.Context, job loadGameJob) (err error) {
@@ -695,7 +723,14 @@ func (m *FlipManager) loadGame(ctx context.Context, job loadGameJob) (err error)
 	summary, err := flip.Replay(ctx, m, history)
 	if err != nil {
 		m.Debug(ctx, "loadGame: failed to replay history: %s", err)
-		return err
+		// Make sure we aren't current playing this game, and bail out if we are
+		if m.dealer.IsGameActive(ctx, flipConv.GetConvID(), job.gameID) {
+			m.Debug(ctx, "loadGame: game is currently active, bailing out")
+			return nil
+		}
+		summary = &flip.GameSummary{
+			Err: fmt.Errorf("Replay failed: %s", err),
+		}
 	}
 	m.handleSummaryUpdate(ctx, job.gameID, summary, flipConv.GetConvID(), true)
 	return nil

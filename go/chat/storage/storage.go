@@ -342,12 +342,20 @@ func (s *Storage) maybeNukeLocked(ctx context.Context, force bool, err Error, co
 	return err
 }
 
-func (s *Storage) GetMaxMsgID(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (chat1.MessageID, error) {
+func (s *Storage) SetMaxMsgID(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
+	msgID chat1.MessageID) (err Error) {
+	defer s.Trace(ctx, func() error { return err }, "SetMaxMsgID")()
+	locks.Storage.Lock()
+	defer locks.Storage.Unlock()
+	return s.idtracker.bumpMaxMessageID(ctx, convID, uid, msgID)
+}
+
+func (s *Storage) GetMaxMsgID(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID) (maxMsgID chat1.MessageID, err Error) {
+	defer s.Trace(ctx, func() error { return err }, "GetMaxMsgID")()
 	locks.Storage.Lock()
 	defer locks.Storage.Unlock()
 
-	maxMsgID, err := s.idtracker.getMaxMessageID(ctx, convID, uid)
-	if err != nil {
+	if maxMsgID, err = s.idtracker.getMaxMessageID(ctx, convID, uid); err != nil {
 		return maxMsgID, s.maybeNukeLocked(ctx, false, err, convID, uid)
 	}
 	return maxMsgID, nil
