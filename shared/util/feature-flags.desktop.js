@@ -28,6 +28,7 @@ const inAdmin: {[key: $Keys<FeatureFlags>]: boolean} = {
   chatIndexProfilingEnabled: true,
   identify3: true,
   moveOrCopy: true,
+  outOfDateBanner: true,
 }
 
 // load overrides
