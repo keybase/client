@@ -1712,6 +1712,10 @@ func AddUserToTLFName(g *globals.Context, tlfName string, vis keybase1.TLFVisibi
 			return username
 		}
 
+		// KBFS creates TLFs with suffixes (e.g., folder names that
+		// conflict after an assertion has been resolved) and readers,
+		// so we need to handle those types of TLF names here so that
+		// edit history works correctly.
 		split1 := strings.SplitN(tlfName, " ", 2) // split off suffix
 		split2 := strings.Split(split1[0], "#")   // split off readers
 		// Add the name to the writers list (assume the current user
