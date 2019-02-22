@@ -32,11 +32,11 @@ platform :ios do
 
     sigh(
         app_identifier: "keybase.ios",
-        output_path: "~/.sigh"
+        output_path: "~"
         )
     sigh(
         app_identifier: "keybase.ios.KeybaseShare",
-        output_path: "~/.sigh"
+        output_path: "~/"
     )
     gym(scheme: "Keybase") # Build your app - more options available
     pilot(
