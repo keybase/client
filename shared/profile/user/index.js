@@ -416,7 +416,7 @@ const styles = Styles.styleSheetCreate({
       minWidth: 120,
     },
     isMobile: {
-      height: Styles.globalMargins.medium,
+      height: 48,
       width: '50%',
     },
   }),
