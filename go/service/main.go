@@ -316,37 +316,13 @@ func (d *Service) Run() (err error) {
 
 func (d *Service) SetupCriticalSubServices() error {
 	epick := libkb.FirstErrorPicker{}
-	epick.Push(d.setupTeams())
-	epick.Push(d.setupStellar())
-	epick.Push(d.setupPVL())
-	epick.Push(d.setupParamProofStore())
-	epick.Push(d.setupEphemeralKeys())
-	return epick.Error()
-}
-
-func (d *Service) setupEphemeralKeys() error {
-	ephemeral.ServiceInit(d.G())
-	return nil
-}
-
-func (d *Service) setupTeams() error {
 	teams.ServiceInit(d.G())
-	return nil
-}
-
-func (d *Service) setupStellar() error {
 	stellar.ServiceInit(d.G(), d.walletState, d.badger)
-	return nil
-}
-
-func (d *Service) setupPVL() error {
 	pvl.NewPvlSourceAndInstall(d.G())
-	return nil
-}
-
-func (d *Service) setupParamProofStore() error {
 	externals.NewParamProofStoreAndInstall(d.G())
-	return nil
+	ephemeral.ServiceInit(d.G())
+	avatars.ServiceInit(d.G(), d.avatarLoader)
+	return epick.Error()
 }
 
 func (d *Service) RunBackgroundOperations(uir *UIRouter) {
@@ -375,11 +351,12 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 }
 
 func (d *Service) purgeOldChatAttachmentData() {
-	purge := func(glob string) {
-		files, err := filepath.Glob(filepath.Join(d.G().GetCacheDir(), glob))
+	purge := func(dir, glob string) {
+		files, err := filepath.Glob(filepath.Join(dir, glob))
 		if err != nil {
 			d.G().Log.Debug("purgeOldChatAttachmentData: failed to get %s files: %s", glob, err)
 		} else {
+			d.G().Log.Debug("purgeOldChatAttachmentData: %d files to delete for %s", len(files), glob)
 			for _, f := range files {
 				if err := os.Remove(f); err != nil {
 					d.G().Log.Debug("purgeOldChatAttachmentData: failed to remove: name: %s err: %s", f, err)
@@ -387,8 +364,14 @@ func (d *Service) purgeOldChatAttachmentData() {
 			}
 		}
 	}
-	purge("kbchat*")
-	purge("prev*")
+	cacheDir := d.G().GetCacheDir()
+	oldCacheDir := filepath.Dir(cacheDir)
+	for _, dir := range []string{cacheDir, oldCacheDir} {
+		purge(dir, "kbchat*")
+		purge(dir, "avatar*")
+		purge(dir, "prev*")
+		purge(dir, "rncontacts*")
+	}
 }
 
 func (d *Service) startChatModules() {
@@ -1303,5 +1286,9 @@ func (d *Service) StartStandaloneChat(g *libkb.GlobalContext) error {
 
 // Called by CtlHandler after DbNuke finishes and succeeds.
 func (d *Service) onDbNuke(ctx context.Context) {
-	d.avatarLoader.OnCacheCleared(libkb.NewMetaContext(ctx, d.G()))
+	mctx := libkb.NewMetaContext(ctx, d.G())
+	d.avatarLoader.OnCacheCleared(mctx)
+	if srv := d.ChatG().AttachmentURLSrv; srv != nil {
+		srv.OnCacheCleared(mctx)
+	}
 }

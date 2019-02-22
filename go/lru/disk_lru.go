@@ -4,6 +4,8 @@ import (
 	"container/list"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"sync"
 	"time"
 
@@ -138,7 +140,7 @@ type DiskLRU struct {
 	flushCh chan struct{}
 }
 
-func NewDiskLRU(name string, version int, maxSize int) *DiskLRU {
+func NewDiskLRU(name string, version, maxSize int) *DiskLRU {
 	return &DiskLRU{
 		name:          name,
 		version:       version,
@@ -383,4 +385,65 @@ func (d *DiskLRU) Size(ctx context.Context, lctx libkb.LRUContext) (int, error) 
 		return 0, err
 	}
 	return index.Size(), nil
+}
+
+func (d *DiskLRU) allValuesLocked(ctx context.Context, lctx libkb.LRUContext) (entries []DiskLRUEntry, err error) {
+	var index *diskLRUIndex
+	defer func() {
+		// Commit the index
+		if err == nil && index != nil && index.IsDirty() {
+			d.writeIndex(ctx, lctx, index, false)
+		}
+	}()
+
+	// Grab entry index
+	index, err = d.readIndex(ctx, lctx)
+	if err != nil {
+		return nil, err
+	}
+	for key := range index.entryKeyMap {
+		if found, res, err := d.readEntry(ctx, lctx, key); err != nil {
+			return nil, err
+		} else if !found {
+			index.Remove(key)
+		} else {
+			entries = append(entries, res)
+		}
+	}
+	return entries, nil
+}
+
+func (d *DiskLRU) Clean(ctx context.Context, lctx libkb.LRUContext, cacheDir string) (err error) {
+	d.Lock()
+	defer d.Unlock()
+
+	// reverse map of filepaths to lru keys
+	cacheRevMap := map[string]string{}
+	allVals, err := d.allValuesLocked(ctx, lctx)
+	if err != nil {
+		return err
+	}
+	for _, entry := range allVals {
+		path, ok := entry.Value.(string)
+		if !ok {
+			continue
+		}
+		cacheRevMap[path] = entry.Key
+	}
+
+	files, err := filepath.Glob(filepath.Join(cacheDir, "*"))
+	if err != nil {
+		return err
+	}
+
+	d.debug(ctx, lctx, "Clean: found %d files to delete in %s, %d in cache",
+		len(files), cacheDir, len(cacheRevMap))
+	for _, v := range files {
+		if _, ok := cacheRevMap[v]; !ok {
+			if err := os.Remove(v); err != nil {
+				d.debug(ctx, lctx, "Clean: failed to delete file %q: %s", v, err)
+			}
+		}
+	}
+	return nil
 }
