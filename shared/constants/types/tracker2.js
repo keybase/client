@@ -31,8 +31,10 @@ export type _Assertion = {
   proofURL: string, // http://twitter.com/bob/post/1234
   sigID: string,
   siteIcon: $ReadOnlyArray<SiteIcon>,
+  siteIconFull: $ReadOnlyArray<SiteIcon>, // full color icon
   siteURL: string, // https://twitter.com/bob
   state: AssertionState,
+  timestamp: number, // can be 0
   type: string, // twitter
   value: string, // bob
 }

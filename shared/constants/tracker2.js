@@ -36,8 +36,10 @@ export const makeAssertion: I.RecordFactory<Types._Assertion> = I.Record({
   proofURL: '',
   sigID: '',
   siteIcon: [],
+  siteIconFull: [],
   siteURL: '',
   state: 'error',
+  timestamp: 0,
   type: '',
   value: '',
 })
@@ -119,8 +121,10 @@ export const rpcAssertionToAssertion = (row: RPCTypes.Identify3Row): Types.Asser
     proofURL: row.proofURL,
     sigID: row.sigID,
     siteIcon: row.siteIcon || [],
+    siteIconFull: row.siteIconFull || [],
     siteURL: row.siteURL,
     state: rpcRowStateToAssertionState(row.state),
+    timestamp: row.ctime,
     type: row.key,
     value: row.value,
   })
