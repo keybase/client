@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/externals"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/offline"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -37,7 +38,7 @@ func NewIdentifyHandler(xp rpc.Transporter, g *libkb.GlobalContext, s *Service) 
 	return &IdentifyHandler{
 		BaseHandler:  NewBaseHandler(g, xp),
 		Contextified: libkb.NewContextified(g),
-		service : s,
+		service:      s,
 	}
 }
 
@@ -151,7 +152,7 @@ func (h *IdentifyHandler) Resolve3(ctx context.Context, arg keybase1.Resolve3Arg
 	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("RSLV")
 	defer mctx.CTrace(fmt.Sprintf("IdentifyHandler#Resolve3(%+v)", arg), func() error { return err })()
 	retp := &ret
-	err = h.service.offlineRPCCache.Serve(mctx, arg.Oa, "identify.resolve3", false, arg, retp, func(mctx libkb.MetaContext) (interface{}, error) {
+	err = h.service.offlineRPCCache.Serve(mctx, arg.Oa, offline.Version(1), "identify.resolve3", false, arg, retp, func(mctx libkb.MetaContext) (interface{}, error) {
 		tmp, err := h.resolveUserOrTeam(mctx.Ctx(), arg.Assertion)
 		if err == nil {
 			*retp = tmp

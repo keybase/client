@@ -57,8 +57,15 @@ func dbKey(rpcName string, arg interface{}) (libkb.DbKey, error) {
 
 }
 
-func (c *RPCCache) get(m libkb.MetaContext, rpcName string, encrypted bool, arg interface{}, res interface{}) (found bool, err error) {
-	defer m.CTraceString(fmt.Sprintf("RPCCache#get(%s, %v, %+v)", rpcName, encrypted, arg), func() string { return fmt.Sprintf("(%v,%v)", found, err) })()
+type Version int
+
+type Value struct {
+	Version Version
+	Data    []byte
+}
+
+func (c *RPCCache) get(mctx libkb.MetaContext, version Version, rpcName string, encrypted bool, arg interface{}, res interface{}) (found bool, err error) {
+	defer mctx.CTraceString(fmt.Sprintf("RPCCache#get(%d, %s, %v, %+v)", version, rpcName, encrypted, arg), func() string { return fmt.Sprintf("(%v,%v)", found, err) })()
 	c.Lock()
 	defer c.Unlock()
 
@@ -67,19 +74,31 @@ func (c *RPCCache) get(m libkb.MetaContext, rpcName string, encrypted bool, arg 
 		return false, err
 	}
 
+	var value Value
 	if encrypted {
-		found, err = c.edb.Get(m.Ctx(), dbk, res)
+		found, err = c.edb.Get(mctx.Ctx(), dbk, &value)
 	} else {
-		found, err = m.G().LocalDb.GetIntoMsgpack(res, dbk)
+		found, err = mctx.G().LocalDb.GetIntoMsgpack(&value, dbk)
 	}
+
+	if err != nil || !found {
+		return found, err
+	}
+
+	if value.Version != version {
+		mctx.CDebugf("Found the wrong version (%d != %d) so returning 'not found", value.Version, version)
+		return false, nil
+	}
+
+	err = libkb.MsgpackDecode(res, value.Data)
 	if err != nil {
 		return false, err
 	}
-	return found, err
+	return true, nil
 }
 
-func (c *RPCCache) put(m libkb.MetaContext, rpcName string, encrypted bool, arg interface{}, res interface{}) (err error) {
-	defer m.CTrace(fmt.Sprintf("RPCCache#put(%s, %v, %+v)", rpcName, encrypted, arg), func() error { return err })()
+func (c *RPCCache) put(mctx libkb.MetaContext, version Version, rpcName string, encrypted bool, arg interface{}, res interface{}) (err error) {
+	defer mctx.CTrace(fmt.Sprintf("RPCCache#put(%d, %s, %v, %+v)", version, rpcName, encrypted, arg), func() error { return err })()
 	c.Lock()
 	defer c.Unlock()
 
@@ -88,25 +107,39 @@ func (c *RPCCache) put(m libkb.MetaContext, rpcName string, encrypted bool, arg 
 		return err
 	}
 
+	value := Value{Version: version}
+	value.Data, err = libkb.MsgpackEncode(res)
+	if err != nil {
+		return err
+	}
+
 	if encrypted {
-		err = c.edb.Put(m.Ctx(), dbk, res)
+		err = c.edb.Put(mctx.Ctx(), dbk, value)
 	} else {
-		err = m.G().LocalDb.PutObjMsgpack(dbk, nil, res)
+		err = mctx.G().LocalDb.PutObjMsgpack(dbk, nil, value)
 	}
 	return err
 }
 
-func (c *RPCCache) Serve(m libkb.MetaContext, oa keybase1.OfflineAvailability, rpcName string, encrypted bool, arg interface{}, res interface{},
-	handler func(m libkb.MetaContext) (interface{}, error)) (err error) {
+// Serve an RPC out of the offline cache. The machinery only kicks into gear if the `oa` OfflineAvailability mode is set
+// to BEST_EFFORT. If not, then just use the function `handler` which does the main work of handling the RPC. Note that
+// `handler` already has the argument "baked up", and also, is responsibly for setting a result of the right type in the
+// caller's stack frame. `handler` also returns the return value for the RPC as an inteface, so it can be inserted into
+// the offline cache in the success case. We also pass this function a `version`, which will tell the cache-access
+// machinery to fail if the wrong version of the data is cached. Next, we pass the `rpcName`, the argument, and the pointer
+// to which the result is stored if we hit the cache. This flow is unfortunately complicated, but the issue is that
+// we're trying to maintain runtime type checking, and it's hard to do without generics.
+func (c *RPCCache) Serve(mctx libkb.MetaContext, oa keybase1.OfflineAvailability, version Version, rpcName string, encrypted bool, arg interface{}, res interface{},
+	handler func(mctx libkb.MetaContext) (interface{}, error)) (err error) {
 
-	if oa == keybase1.OfflineAvailability_NONE {
-		_, err := handler(m)
+	if oa != keybase1.OfflineAvailability_BEST_EFFORT {
+		_, err := handler(mctx)
 		return err
 	}
-	m = m.WithLogTag("OFLN")
-	defer m.CTrace(fmt.Sprintf("RPCCache#Serve(%s, %v, %+v)", rpcName, encrypted, arg), func() error { return err })()
-	if m.G().ConnectivityMonitor.IsConnected(m.Ctx()) == libkb.ConnectivityMonitorNo {
-		found, err := c.get(m, rpcName, encrypted, arg, res)
+	mctx = mctx.WithLogTag("OFLN")
+	defer mctx.CTrace(fmt.Sprintf("RPCCache#Serve(%d, %s, %v, %+v)", version, rpcName, encrypted, arg), func() error { return err })()
+	if mctx.G().ConnectivityMonitor.IsConnected(mctx.Ctx()) == libkb.ConnectivityMonitorNo {
+		found, err := c.get(mctx, version, rpcName, encrypted, arg, res)
 		if err != nil {
 			return err
 		}
@@ -115,13 +148,13 @@ func (c *RPCCache) Serve(m libkb.MetaContext, oa keybase1.OfflineAvailability, r
 		}
 		return nil
 	}
-	res, err = handler(m)
+	res, err = handler(mctx)
 	if err != nil {
 		return err
 	}
-	tmp := c.put(m, rpcName, encrypted, arg, res)
+	tmp := c.put(mctx, version, rpcName, encrypted, arg, res)
 	if tmp != nil {
-		m.CWarningf("Error putting RPC to offline storage: %s", tmp.Error())
+		mctx.CWarningf("Error putting RPC to offline storage: %s", tmp.Error())
 	}
 	return nil
 }
