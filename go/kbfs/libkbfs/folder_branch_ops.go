@@ -1007,7 +1007,7 @@ func (fbo *folderBranchOps) kickOffPartialSync(
 		defer fbo.headLock.Unlock(lState)
 		if rmd.Revision() != fbo.latestMergedRevision {
 			fbo.log.CDebugf(
-				partialSyncCtx, "Latest merged changed is now %d, not %d; "+
+				partialSyncCtx, "Latest merged revision is now %d, not %d; "+
 					"aborting partial sync", fbo.latestMergedRevision,
 				rmd.Revision())
 			return nil
@@ -1041,10 +1041,6 @@ func (fbo *folderBranchOps) makeRecentFilesSyncConfig(
 	keybase1.FolderSyncConfig, error) {
 	syncConfig := keybase1.FolderSyncConfig{
 		Mode: keybase1.FolderSyncMode_DISABLED,
-	}
-	err := fbo.editActivity.Wait(ctx)
-	if err != nil {
-		return keybase1.FolderSyncConfig{}, err
 	}
 	h := rmd.GetTlfHandle()
 	history := fbo.config.UserHistory().GetTlfHistory(
@@ -1087,9 +1083,15 @@ func (fbo *folderBranchOps) kickOffPartialSyncIfNeeded(
 		if !fbo.config.Mode().TLFEditHistoryEnabled() {
 			return
 		}
-		syncConfig, err = fbo.makeRecentFilesSyncConfig(ctx, rmd)
+		err := fbo.editActivity.Wait(ctx)
 		if err != nil {
 			fbo.log.CDebugf(ctx, "Error waiting for edit activity: %+v", err)
+			return
+		}
+		syncConfig, err = fbo.makeRecentFilesSyncConfig(ctx, rmd)
+		if err != nil {
+			fbo.log.CDebugf(ctx,
+				"Error making recent files sync config: %+v", err)
 			return
 		}
 	}
@@ -8537,6 +8539,35 @@ func (fbo *folderBranchOps) recomputeEditHistory(
 		tlfName, fbo.id().Type(), fbo.editHistory, string(session.Name))
 }
 
+func (fbo *folderBranchOps) kickOffEditActivityPartialSync(
+	ctx context.Context, lState *lockState, rmd ImmutableRootMetadata) (
+	err error) {
+	defer func() {
+		if err != nil {
+			fbo.deferLog.CDebugf(ctx, "Couldn't kick off partial sync "+
+				"for edit activity: %+v", err)
+		}
+	}()
+
+	syncConfig, err := fbo.getProtocolSyncConfigUnlocked(ctx, lState, rmd)
+	if err != nil {
+		return err
+	}
+	if syncConfig.Mode != keybase1.FolderSyncMode_DISABLED {
+		return nil
+	}
+
+	fbo.log.CDebugf(ctx, "Kicking off partial sync for revision %d "+
+		"due to new edit message", rmd.Revision())
+
+	syncConfig, err = fbo.makeRecentFilesSyncConfig(ctx, rmd)
+	if err != nil {
+		return err
+	}
+	fbo.kickOffPartialSync(ctx, lState, syncConfig, rmd)
+	return nil
+}
+
 func (fbo *folderBranchOps) handleEditActivity(
 	ctx context.Context,
 	a editChannelActivity,
@@ -8547,8 +8578,13 @@ func (fbo *folderBranchOps) handleEditActivity(
 	idToNameRet map[string]string,
 	nameToIDRet map[string]chat1.ConversationID,
 	nameToNextPageRet map[string][]byte, err error) {
+	var rmd ImmutableRootMetadata
+	lState := makeFBOLockState()
 	defer func() {
 		fbo.recomputeEditHistory(ctx, tlfName, nameToIDRet, nameToNextPageRet)
+		if rmd != (ImmutableRootMetadata{}) {
+			_ = fbo.kickOffEditActivityPartialSync(ctx, lState, rmd)
+		}
 		fbo.editActivity.Done()
 	}()
 
@@ -8569,9 +8605,24 @@ func (fbo *folderBranchOps) handleEditActivity(
 	}
 	if a.message != "" {
 		fbo.log.CDebugf(ctx, "New edit message for %s", name)
-		_, err := fbo.editHistory.AddNotifications(name, []string{a.message})
+		maxRev, err := fbo.editHistory.AddNotifications(
+			name, []string{a.message})
 		if err != nil {
 			return nil, nil, nil, err
+		}
+		// If the new edits reference the latest merged revision, then
+		// the MD has already kicked off a partial sync.  Since this
+		// edit might trigger a different partial sync, we should
+		// start another one as well by setting `rmd` and letting the
+		// `defer` above kick one off.
+		latestMergedRev := fbo.getLatestMergedRevision(lState)
+		if maxRev == latestMergedRev {
+			rmd, err = getSingleMD(
+				ctx, fbo.config, fbo.id(), kbfsmd.NullBranchID, maxRev,
+				kbfsmd.Merged, nil)
+			if err != nil {
+				return nil, nil, nil, err
+			}
 		}
 	} else {
 		fbo.log.CDebugf(ctx, "New edit channel for %s", name)
