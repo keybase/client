@@ -46,7 +46,6 @@ const ToKeybaseUser = (props: ToKeybaseUserProps) => {
             <Kb.Icon
               type="iconfont-remove"
               boxStyle={Kb.iconCastPlatformStyles(styles.keybaseUserRemoveButton)}
-              fontSize={16}
               color={Styles.globalColors.black_20}
               onClick={props.onRemoveProfile}
             />
@@ -143,7 +142,6 @@ class ToStellarPublicKey extends React.Component<ToStellarPublicKeyProps, ToStel
             <Kb.Icon
               color={Styles.globalColors.black_50}
               type="iconfont-qr-code"
-              fontSize={24}
               onClick={this.props.onScanQRCode}
               style={Kb.iconCastPlatformStyles(styles.qrCode)}
             />
@@ -298,7 +296,7 @@ const styles = Styles.styleSheetCreate({
   }),
   keybaseUserRemoveButton: {
     flex: 1,
-    marginRight: Styles.globalMargins.tiny,
+    marginRight: Styles.globalMargins.medium,
     textAlign: 'right', // consistent with UserInput
   },
   placeholderContainer: Styles.platformStyles({

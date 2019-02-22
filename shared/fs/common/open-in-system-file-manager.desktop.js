@@ -46,7 +46,6 @@ const FinderPopup = OverlayParentHOC((props: FinderPopupProps & OverlayParentPro
       <Icon
         type="iconfont-finder"
         style={iconCastPlatformStyles(styles.pathItemActionIcon)}
-        fontSize={16}
         className="fs-path-item-hover-icon"
       />
     </ClickableBox>

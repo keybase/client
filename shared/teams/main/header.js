@@ -19,7 +19,7 @@ const headerButtonBoxStyle = {
 
 const HeaderButton = (props: HeaderButtonProps) => (
   <ClickableBox onClick={props.onClick} style={headerButtonBoxStyle}>
-    <Icon type={props.iconType} color={globalColors.blue} fontSize={isMobile ? 20 : 16} />
+    <Icon type={props.iconType} color={globalColors.blue} />
     <Text type="BodyBigLink" style={{margin: globalMargins.tiny}}>
       {props.label}
     </Text>

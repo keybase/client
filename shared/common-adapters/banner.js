@@ -58,12 +58,12 @@ const Banner = (props: Props) => (
     {!!props.onClose && (
       <Box2 key="iconBox" direction="vertical" style={styles.iconContainer} centerChildren={true}>
         <Icon
-          fontSize={Styles.isMobile ? undefined : Styles.globalMargins.xsmall}
           type="iconfont-close"
           style={iconCastPlatformStyles(styles.icon)}
           color={Styles.globalColors.white_90}
           hoverColor={Styles.globalColors.white}
           onClick={props.onClose}
+          sizeType="Small"
         />
       </Box2>
     )}

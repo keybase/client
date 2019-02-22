@@ -56,7 +56,7 @@ export const TeamMemberRow = (props: Props) => {
           marginRight: globalMargins.xtiny,
         }}
         color={roleIconColorMap[props.roleType]}
-        fontSize={isMobile ? 16 : 12}
+        sizeType="Small"
       />
     )
   }
@@ -163,7 +163,6 @@ export const TeamMemberRow = (props: Props) => {
             <Icon
               onClick={props.onChat}
               style={isMobile ? stylesChatButtonMobile(active) : stylesChatButtonDesktop}
-              fontSize={isMobile ? 20 : 16}
               type="iconfont-chat"
             />
           )}

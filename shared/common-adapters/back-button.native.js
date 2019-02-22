@@ -23,7 +23,6 @@ export default class BackButton extends Component<Props> {
         <Box style={Styles.collapseStyles([styles.container, this.props.style])}>
           <Icon
             type="iconfont-arrow-left"
-            fontSize={iconFontSize}
             color={this.props.iconColor}
             style={iconCastPlatformStyles(styles.arrow)}
           />
@@ -45,5 +44,3 @@ const styles = Styles.styleSheetCreate({
     paddingRight: Styles.globalMargins.small,
   },
 })
-
-const iconFontSize = 24

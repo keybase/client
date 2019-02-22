@@ -394,12 +394,7 @@ class ProfileRender extends React.PureComponent<Props, State> {
             }
             style={{...styleSearchContainer, opacity: this.state.searchHovered ? 0.8 : 1}}
           >
-            <Kb.Icon
-              fontSize={Styles.isMobile ? 20 : 16}
-              style={styles.searchIcon}
-              type="iconfont-search"
-              color={Styles.globalColors.white_75}
-            />
+            <Kb.Icon style={styles.searchIcon} type="iconfont-search" color={Styles.globalColors.white_75} />
             <Kb.Text style={styles.searchText} type="BodySemibold">
               Search people
             </Kb.Text>

@@ -78,7 +78,7 @@ const AccountPayment = (props: Props) => {
         ])}
       >
         <Box2 direction="horizontal" gap="xtiny" gapEnd={true} style={styles.alignItemsCenter}>
-          {!!props.icon && <Icon type={props.icon} color={globalColors.purple2} fontSize={12} />}
+          {!!props.icon && <Icon type={props.icon} color={globalColors.purple2} sizeType="Small" />}
           <Text
             type="BodySmall"
             style={collapseStyles([styles.purple, props.canceled && styles.lineThrough])}
@@ -100,7 +100,11 @@ const AccountPayment = (props: Props) => {
             {props.pending ? '...' : '.'}
           </Text>
         </Box2>
-        {props.canceled && <Text type="BodySmall">CANCELED</Text>}
+        {props.canceled && (
+          <Text type="BodyTiny" style={styles.canceled}>
+            CANCELED
+          </Text>
+        )}
         {!balanceChangeSeparateRow && balanceChange}
       </Box2>
       <MarkdownMemo memo={props.memo} />
@@ -151,6 +155,9 @@ const styles = styleSheetCreate({
   },
   buttonText: {
     color: globalColors.white,
+  },
+  canceled: {
+    color: globalColors.black_20,
   },
   flexWrap: {
     flexWrap: 'wrap',

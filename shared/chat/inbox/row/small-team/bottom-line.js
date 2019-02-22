@@ -87,7 +87,7 @@ class BottomLine extends PureComponent<Props> {
             <Icon
               color={this.props.isSelected ? globalColors.white : globalColors.black_50}
               type="iconfont-timer"
-              fontSize={isMobile ? 16 : 12}
+              sizeType="Small"
               style={{alignSelf: 'flex-start'}}
             />
           )

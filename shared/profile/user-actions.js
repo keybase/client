@@ -227,7 +227,6 @@ export const makeStellarAddressMenuItems = (props: StellarFederatedAddressProps)
                   <Kb.Icon
                     style={styles.styleService}
                     color={styles.styleServiceContainer.color}
-                    fontSize={20}
                     textAlign="center"
                     type={'iconfont-identity-stellar'}
                   />

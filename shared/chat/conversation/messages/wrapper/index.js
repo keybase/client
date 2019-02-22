@@ -405,7 +405,7 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
               <Kb.Icon
                 type="iconfont-exclamation"
                 color={Styles.globalColors.blue}
-                fontSize={14}
+                sizeType="Small"
                 style={styles.marginLeftTiny}
               />
             )}
@@ -434,7 +434,6 @@ class _WrapperMessage extends React.Component<Props & Kb.OverlayParentProps, Sta
                       type="iconfont-ellipsis"
                       onClick={this.props.toggleShowingMenu}
                       style={styles.ellipsis}
-                      fontSize={14}
                     />
                   )}
                 </Kb.Box>

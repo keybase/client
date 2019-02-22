@@ -8,7 +8,6 @@ import logger from '../../../../../logger'
 import WalletsIconRender from '.'
 
 type OwnProps = {|
-  size: number,
   style?: Styles.StylesCrossPlatform,
 |}
 
@@ -43,7 +42,6 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     isNew: stateProps.isNew,
     onRequest: () => dispatchProps._onClick(to, stateProps.isNew, true),
     onSend: () => dispatchProps._onClick(to, stateProps.isNew, false),
-    size: ownProps.size,
     style: ownProps.style,
   }
 }

@@ -108,12 +108,7 @@ class GlobalError extends React.Component<Props, State> {
               {'  '}
               An error occurred.
             </Kb.Text>
-            <Kb.Icon
-              type="iconfont-close"
-              onClick={onDismiss}
-              color={Styles.globalColors.white_75}
-              fontSize={21}
-            />
+            <Kb.Icon type="iconfont-close" onClick={onDismiss} color={Styles.globalColors.white_75} />
           </Kb.Box>
           <Kb.Box style={summaryRowStyle}>
             <Kb.Button

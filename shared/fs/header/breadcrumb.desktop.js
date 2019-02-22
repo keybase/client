@@ -16,7 +16,11 @@ const Breadcrumb = ({dropdownItems, shownItems}: Props) => (
     {!!dropdownItems && (
       <Kb.Box style={styles.folderBreadcrumb}>
         <BreadcrumbPopup items={dropdownItems} />
-        <Kb.Icon type="iconfont-arrow-right" style={Kb.iconCastPlatformStyles(styles.icon)} fontSize={11} />
+        <Kb.Icon
+          type="iconfont-arrow-right"
+          style={Kb.iconCastPlatformStyles(styles.icon)}
+          sizeType="Small"
+        />
       </Kb.Box>
     )}
     {shownItems.map((item, idxItem) => (
@@ -43,7 +47,11 @@ const Breadcrumb = ({dropdownItems, shownItems}: Props) => (
           </Kb.Box>
         )}
         {!item.isLastItem && (
-          <Kb.Icon type="iconfont-arrow-right" style={Kb.iconCastPlatformStyles(styles.icon)} fontSize={11} />
+          <Kb.Icon
+            type="iconfont-arrow-right"
+            style={Kb.iconCastPlatformStyles(styles.icon)}
+            sizeType="Small"
+          />
         )}
       </React.Fragment>
     ))}

@@ -10,8 +10,6 @@ type SmallProps = {
   isSmallTeam: boolean,
 } & Kb.OverlayParentProps
 
-const gearIconSize = Styles.isMobile ? 24 : 16
-
 const _SmallTeamHeader = (props: SmallProps) => {
   return (
     <Kb.Box style={styles.smallContainer}>
@@ -35,7 +33,6 @@ const _SmallTeamHeader = (props: SmallProps) => {
         onClick={props.toggleShowingMenu}
         ref={props.setAttachmentRef}
         style={Kb.iconCastPlatformStyles(styles.gear)}
-        fontSize={gearIconSize}
       />
     </Kb.Box>
   )
@@ -69,7 +66,11 @@ const BigTeamHeader = (props: BigTeamHeaderProps) => {
         <Kb.Text type="BodyBig">#{props.channelname}</Kb.Text>
         {props.canEditChannel && (
           <EditBox style={styles.editBox} onClick={props.onEditChannel}>
-            <Kb.Icon style={Kb.iconCastPlatformStyles(styles.editIcon)} type="iconfont-edit" />
+            <Kb.Icon
+              style={Kb.iconCastPlatformStyles(styles.editIcon)}
+              type="iconfont-edit"
+              sizeType="Small"
+            />
             <Kb.Text type="BodySmallPrimaryLink" className="hover-underline">
               Edit
             </Kb.Text>
@@ -95,6 +96,7 @@ const styles = Styles.styleSheetCreate({
   },
   editBox: {
     ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
     position: 'absolute',
     right: -50,
     top: Styles.isMobile ? 2 : 1,
@@ -103,14 +105,12 @@ const styles = Styles.styleSheetCreate({
   flexOne: {flex: 1},
   gear: Styles.platformStyles({
     common: {
-      height: gearIconSize,
       paddingLeft: 16,
       paddingRight: 16,
-      width: gearIconSize,
     },
     isMobile: {
-      marginRight: 16,
-      width: gearIconSize + 32,
+      marginRight: 0,
+      width: 56,
     },
   }),
   smallContainer: {

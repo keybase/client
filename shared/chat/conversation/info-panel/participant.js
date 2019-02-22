@@ -77,7 +77,7 @@ const _AddPeople = (props: {teamname: string} & OverlayParentProps) => {
           }}
         >
           <Box style={{height: isMobile ? 48 : 32, width: isMobile ? 48 : 32, ...globalStyles.flexBoxCenter}}>
-            <Icon type="iconfont-new" fontSize={isMobile ? 24 : 16} color={globalColors.blue} />
+            <Icon type="iconfont-new" color={globalColors.blue} />
           </Box>
           <Text
             type="BodyPrimaryLink"

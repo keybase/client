@@ -38,7 +38,7 @@ const BigTeamsDivider = ({toggle, badgeCount}: Props) => (
       <BigTeamsLabel isFiltered={false} />
       {badgeCount > 0 && <Kb.Badge badgeStyle={styles.badge} badgeNumber={badgeCount} />}
       <Kb.Box style={styles.icon}>
-        <Kb.Icon type="iconfont-arrow-up" inheritColor={true} fontSize={Styles.isMobile ? 20 : 16} />
+        <Kb.Icon type="iconfont-arrow-up" inheritColor={true} />
       </Kb.Box>
     </DividerBox>
   </Kb.ClickableBox>

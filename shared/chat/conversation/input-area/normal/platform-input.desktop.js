@@ -264,7 +264,7 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
             {this.state.emojiPickerOpen && (
               <EmojiPicker emojiPickerToggle={this._emojiPickerToggle} onClick={this._pickerOnClick} />
             )}
-            {this.props.showWalletsIcon && <WalletsIcon size={16} style={styles.walletsIcon} />}
+            {this.props.showWalletsIcon && <WalletsIcon style={styles.walletsIcon} />}
             <Kb.Icon
               color={this.state.emojiPickerOpen ? Styles.globalColors.black : null}
               onClick={this._emojiPickerToggle}

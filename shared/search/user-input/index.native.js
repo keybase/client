@@ -231,7 +231,6 @@ class UserInput extends Component<Props, State> {
                 style={{
                   height: 22,
                 }}
-                fontSize={22}
                 color={globalColors.blue}
               />
             )}

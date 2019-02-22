@@ -171,7 +171,7 @@ const RightActionsOverflow = ({
   rightActions &&
   rightActions.length > MAX_RIGHT_ACTIONS && (
     <>
-      <Icon fontSize={22} onClick={showFloatingMenu} style={styles.action} type="iconfont-ellipsis" />
+      <Icon onClick={showFloatingMenu} style={styles.action} type="iconfont-ellipsis" />
       <FloatingMenu
         visible={floatingMenuVisible}
         items={rightActions.slice(MAX_RIGHT_ACTIONS - 1).map((action, item) => ({
@@ -194,7 +194,6 @@ const renderAction = (action: Action, index: number): React.Node =>
     <Icon
       color={action.iconColor || undefined}
       key={action.label || index}
-      fontSize={22}
       onClick={action.onPress}
       style={styles.action}
       type={action.icon}
