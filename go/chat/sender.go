@@ -590,32 +590,24 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	// find @ mentions
 	var atMentions []gregor1.UID
 	chanMention := chat1.ChannelMention_NONE
+	if err = checkHeaderBodyTypeMatch(); err != nil {
+		return res, err
+	}
 	switch plaintext.ClientHeader.MessageType {
 	case chat1.MessageType_TEXT:
-		if err = checkHeaderBodyTypeMatch(); err != nil {
-			return res, err
-		}
 		atMentions, chanMention = utils.GetTextAtMentionedUIDs(ctx,
 			plaintext.MessageBody.Text(), s.G().GetUPAKLoader(), &s.DebugLabeler)
-	case chat1.MessageType_EDIT:
-		if err = checkHeaderBodyTypeMatch(); err != nil {
-			return res, err
+	case chat1.MessageType_FLIP:
+		if msg.ClientHeader.Conv.TopicType == chat1.TopicType_CHAT {
+			atMentions, chanMention = utils.ParseAtMentionedUIDs(ctx,
+				plaintext.MessageBody.Flip().Text, s.G().GetUPAKLoader(), &s.DebugLabeler)
 		}
+	case chat1.MessageType_EDIT:
 		atMentions, chanMention = utils.ParseAtMentionedUIDs(ctx,
 			plaintext.MessageBody.Edit().Body, s.G().GetUPAKLoader(), &s.DebugLabeler)
 	case chat1.MessageType_SYSTEM:
-		if err = checkHeaderBodyTypeMatch(); err != nil {
-			return res, err
-		}
 		atMentions, chanMention = utils.SystemMessageMentions(ctx, plaintext.MessageBody.System(),
 			s.G().GetUPAKLoader())
-	}
-
-	if len(atMentions) > 0 {
-		s.Debug(ctx, "atMentions: %v", atMentions)
-	}
-	if chanMention != chat1.ChannelMention_NONE {
-		s.Debug(ctx, "channel mention: %v", chanMention)
 	}
 
 	// If we are sending a message, and we think the conversation is a KBFS conversation, then set a label
