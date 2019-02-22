@@ -5,6 +5,7 @@ import * as Types from '../../constants/types/tracker2'
 import * as Kb from '../../common-adapters'
 import * as Styles from '../../styles'
 import * as Flow from '../../util/flow'
+import {formatTimeForAssertionPopup} from '../../util/timestamp'
 
 type Props = {|
   color: Types.AssertionColor,
@@ -255,8 +256,22 @@ class Assertion extends React.PureComponent<Props, State> {
       header: {
         title: 'header',
         view: (
-          <Kb.Box2 direction="vertical" centerChildren={true} style={styles.menuHeader} fullWidth={true}>
+          <Kb.Box2
+            direction="vertical"
+            gap="tiny"
+            centerChildren={true}
+            style={styles.menuHeader}
+            fullWidth={true}
+          >
             {this._siteIcon(true)}
+            {!!this.props.timestamp && (
+              <>
+                <Kb.Text type="BodySmall">Posted on</Kb.Text>
+                <Kb.Text center={true} type="BodySmall">
+                  {formatTimeForAssertionPopup(this.props.timestamp)}
+                </Kb.Text>
+              </>
+            )}
           </Kb.Box2>
         ),
       },

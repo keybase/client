@@ -120,7 +120,12 @@ export function formatTimeForStellarTooltip(timestamp: Date) {
 
 export function formatTimeForRevoked(time: number): string {
   const m = moment(time)
-  return m.format('ddd MMM DD') // Wed Jan 5 2016
+  return m.format('ddd MMM DD') // Wed Jan 05
+}
+
+export function formatTimeForAssertionPopup(time: number): string {
+  const m = moment(time)
+  return m.format('ddd MMM D, YYYY')
 }
 
 export function daysToLabel(days: number): string {
