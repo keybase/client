@@ -14,6 +14,7 @@ const PaymentsConfirmLoading = (props: LoadingProps) => (
 )
 
 type ErrorProps = {|
+  error: string,
   onCancel: () => void,
 |}
 
@@ -27,10 +28,7 @@ const _PaymentsConfirmError = (props: ErrorProps) => (
       style={styles.fullErrorContainer}
     >
       <Kb.Text type="BodyExtrabold" style={styles.errorText}>
-        Error loading payment info
-      </Kb.Text>
-      <Kb.Text type="BodyExtrabold" style={styles.errorText}>
-        Please try again
+        {props.error}
       </Kb.Text>
     </Kb.Box2>
   </Kb.Box2>
@@ -79,7 +77,7 @@ const PaymentsConfirm = (props: Props) => (
     {props.loading ? (
       <PaymentsConfirmLoading />
     ) : props.error ? (
-      <PaymentsConfirmError onCancel={props.onCancel} />
+      <PaymentsConfirmError error={props.error} onCancel={props.onCancel} />
     ) : (
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.totalContainer}>
