@@ -1317,11 +1317,20 @@ func PresentUnfurls(ctx context.Context, g *globals.Context, uid gregor1.UID,
 func PresentDecoratedTextBody(ctx context.Context, g *globals.Context, msg chat1.MessageUnboxedValid) *string {
 	msgBody := msg.MessageBody
 	typ, err := msgBody.MessageType()
-	if err != nil || typ != chat1.MessageType_TEXT {
+	if err != nil {
 		return nil
 	}
-	body := msgBody.Text().Body
-	payments := msgBody.Text().Payments
+	var body string
+	var payments []chat1.TextPayment
+	switch typ {
+	case chat1.MessageType_TEXT:
+		body = msgBody.Text().Body
+		payments = msgBody.Text().Payments
+	case chat1.MessageType_FLIP:
+		body = msgBody.Flip().Text
+	default:
+		return nil
+	}
 
 	// escape before applying xforms
 	body = EscapeForDecorate(ctx, body)
