@@ -302,7 +302,7 @@ class EditAvatar extends React.Component<_Props, State> {
         >
           {this.props.createdTeam && (
             <Kb.Box style={styles.createdBanner}>
-              <Kb.Text type="BodySmallSemibold" backgroundMode="Announcements">
+              <Kb.Text type="BodySmallSemibold" negative={true}>
                 Hoorah! Your team {this.props.teamname} was created.
               </Kb.Text>
             </Kb.Box>

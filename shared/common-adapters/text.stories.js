@@ -15,12 +15,6 @@ const displayBlock = {
     },
   }),
 }
-const foregroundMode = {
-  backgroundMode: 'Normal',
-}
-const backgroundMode = {
-  backgroundMode: 'Terminal',
-}
 const hidden = {
   style: {opacity: 0},
 }
@@ -106,7 +100,7 @@ const mapText = (secondary: boolean) => {
           key={key}
           {...{
             ...displayBlock,
-            ...(secondary ? backgroundMode : foregroundMode),
+            ...(secondary ? {negative: true} : null),
             ...(secondary && types.normalOnly ? hidden : null),
           }}
         >
@@ -129,7 +123,7 @@ const load = () => {
     .add('Text', () => (
       <Box style={outerStyle}>
         <Container backgroundColor={globalColors.white}>{mapText(false)}</Container>
-        <Container backgroundColor={globalColors.darkBlue3}>
+        <Container backgroundColor={globalColors.blue}>
           <SecondaryColorBox />
           {mapText(true)}
         </Container>

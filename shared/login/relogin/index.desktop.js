@@ -98,7 +98,6 @@ class Login extends React.Component<Props, State> {
             onClick={() => this.props.onSubmit()}
           />
           <Kb.Text
-            link={true}
             type="BodySmallSecondaryLink"
             onClick={this.props.onForgotPassphrase}
             style={{marginTop: 24}}

@@ -29,9 +29,7 @@ const BannerBox = (props: {children: React.Node, color: string}) => (
   <Box style={{...commonBannerStyle, backgroundColor: props.color}}>{props.children}</Box>
 )
 
-const BannerText = props => (
-  <Text center={true} type="BodySmallSemibold" backgroundMode="Announcements" {...props} />
-)
+const BannerText = props => <Text center={true} type="BodySmallSemibold" negative={true} {...props} />
 
 function brokenSeparator(idx, item, arr) {
   if (idx === arr.length) {

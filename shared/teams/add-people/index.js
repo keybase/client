@@ -60,7 +60,7 @@ const AddPeople = (props: Props) => (
                 center={true}
                 style={{margin: Styles.globalMargins.tiny, width: '100%'}}
                 type="BodySemibold"
-                backgroundMode="HighRisk"
+                negative={true}
               >
                 {line}
               </Kb.Text>

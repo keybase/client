@@ -142,7 +142,7 @@ class InviteByEmailMobile extends React.Component<MobileProps, State> {
               }}
               fullWidth={true}
             >
-              <Text center={true} type="BodySemibold" backgroundMode="HighRisk">
+              <Text center={true} type="BodySemibold" negative={true}>
                 {this.props.errorMessage}
               </Text>
             </Box2>
@@ -186,7 +186,7 @@ class InviteByEmailMobile extends React.Component<MobileProps, State> {
               padding: globalMargins.small,
             }}
           >
-            <Text center={true} type="BodySmall" >
+            <Text center={true} type="BodySmall">
               Users will be invited to {this.props.name} as
               <Text type="BodySmallPrimaryLink">{' ' + this.props.role + 's'}</Text>.
             </Text>

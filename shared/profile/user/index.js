@@ -194,7 +194,7 @@ class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.bioAndProofs}>
         <Kb.Text
           type="BodySmallSemibold"
-          backgroundMode="Terminal"
+          negative={true}
           center={true}
           style={Styles.collapseStyles([styles.reason, colorTypeToStyle(this.props.backgroundColorType)])}
         >
@@ -229,7 +229,7 @@ class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
         />
         <BioLayout {...this.props} />
         <Kb.Box2 direction="vertical" style={styles.proofs}>
-          <Kb.Text type="BodySmallSemibold" backgroundMode="Terminal" center={true} style={styles.reason}>
+          <Kb.Text type="BodySmallSemibold" negative={true} center={true} style={styles.reason}>
             {this.props.reason}
           </Kb.Text>
           <Teams username={this.props.username} />
