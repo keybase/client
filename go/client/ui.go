@@ -5,7 +5,6 @@ package client
 
 import (
 	"bufio"
-	"encoding/json"
 	"fmt"
 	"io"
 	"os"
@@ -40,8 +39,6 @@ type UI struct {
 	// multiple goroutines
 	ttyMutex sync.Mutex
 	tty      *string
-
-	json bool
 }
 
 // The UI class also fulfills the TerminalUI interface from libkb
@@ -52,27 +49,6 @@ type BaseIdentifyUI struct {
 	parent          *UI
 	displayedProofs bool
 	username        string
-
-	jsonState identifyJSON
-}
-
-type identifyJSON struct {
-	Username         string                    `json:"username"`
-	LastTrack        *identifyJSONLastTrack    `json:"lastTrack"`
-	Cryptocurrencies []keybase1.Cryptocurrency `json:"cryptocurrencies"`
-	Stellar          *keybase1.StellarAccount  `json:"stellar"`
-	IdentifyKey      *keybase1.IdentifyKey     `json:"identifyKey"`
-	Proofs           []identifyJSONProofPair   `json:"proofs"`
-}
-
-type identifyJSONLastTrack struct {
-	Remote bool      `json:"remote"`
-	Time   time.Time `json:"time"`
-}
-
-type identifyJSONProofPair struct {
-	Proof  keybase1.RemoteProof     `json:"proof"`
-	Result keybase1.LinkCheckResult `json:"result"`
 }
 
 func (ui *BaseIdentifyUI) DisplayUserCard(keybase1.UserCard) error {
@@ -84,11 +60,6 @@ type IdentifyUI struct {
 }
 
 func (ui *BaseIdentifyUI) Start(username string, reason keybase1.IdentifyReason, forceDisplay bool) error {
-	if ui.parent.json {
-		ui.jsonState.Username = username
-		return nil
-	}
-
 	msg := "Identifying "
 	switch reason.Type {
 	case keybase1.IdentifyReasonType_TRACK:
@@ -114,16 +85,6 @@ func (ui *BaseIdentifyUI) Cancel() error {
 }
 
 func (ui *BaseIdentifyUI) Finish() error {
-	if ui.parent.json {
-		b, err := json.MarshalIndent(ui.jsonState, "", "    ")
-		if err != nil {
-			return err
-		}
-		dui := ui.parent.GetDumbOutputUI()
-		_, err = dui.Printf(string(b) + "\n")
-		return err
-	}
-
 	if !ui.displayedProofs {
 		ui.ReportHook(ColorString(ui.G(), "bold", ui.username) + " hasn't proven their identity yet.")
 	}
@@ -444,14 +405,6 @@ func (w LinkCheckResultWrapper) GetCachedMsg() string {
 }
 
 func (ui *BaseIdentifyUI) FinishSocialProofCheck(p keybase1.RemoteProof, l keybase1.LinkCheckResult) error {
-	if ui.parent.json {
-		ui.jsonState.Proofs = append(ui.jsonState.Proofs, identifyJSONProofPair{
-			Proof:  p,
-			Result: l,
-		})
-		return nil
-	}
-
 	var msg, lcrs string
 
 	s := RemoteProofWrapper{p}
@@ -514,14 +467,6 @@ func (ui *BaseIdentifyUI) TrackDiffUpgradedToString(t libkb.TrackDiffUpgraded) s
 }
 
 func (ui *BaseIdentifyUI) FinishWebProofCheck(p keybase1.RemoteProof, l keybase1.LinkCheckResult) error {
-	if ui.parent.json {
-		ui.jsonState.Proofs = append(ui.jsonState.Proofs, identifyJSONProofPair{
-			Proof:  p,
-			Result: l,
-		})
-		return nil
-	}
-
 	var msg, lcrs string
 
 	s := RemoteProofWrapper{p}
@@ -576,33 +521,18 @@ func (ui *BaseIdentifyUI) FinishWebProofCheck(p keybase1.RemoteProof, l keybase1
 }
 
 func (ui *BaseIdentifyUI) DisplayCryptocurrency(l keybase1.Cryptocurrency) error {
-	if ui.parent.json {
-		ui.jsonState.Cryptocurrencies = append(ui.jsonState.Cryptocurrencies, l)
-		return nil
-	}
-
 	msg := fmt.Sprintf("%s  %s %s", BTC, l.Family, ColorString(ui.G(), "green", l.Address))
 	ui.ReportHook(msg)
 	return nil
 }
 
 func (ui *BaseIdentifyUI) DisplayStellarAccount(l keybase1.StellarAccount) error {
-	if ui.parent.json {
-		ui.jsonState.Stellar = &l
-		return nil
-	}
-
 	msg := fmt.Sprintf("%s  Stellar %s (%s)", XLM, ColorString(ui.G(), "green", l.AccountID), l.FederationAddress)
 	ui.ReportHook(msg)
 	return nil
 }
 
 func (ui *BaseIdentifyUI) DisplayKey(key keybase1.IdentifyKey) error {
-	if ui.parent.json {
-		ui.jsonState.IdentifyKey = &key
-		return nil
-	}
-
 	var fpq string
 	if fp := libkb.ImportPGPFingerprintSlice(key.PGPFingerprint); fp != nil {
 		fpq = fp.ToQuads()
@@ -628,14 +558,6 @@ func (ui *BaseIdentifyUI) DisplayKey(key keybase1.IdentifyKey) error {
 
 func (ui *BaseIdentifyUI) ReportLastTrack(tl *keybase1.TrackSummary) error {
 	if t := libkb.ImportTrackSummary(tl); t != nil {
-		if ui.parent.json {
-			ui.jsonState.LastTrack = &identifyJSONLastTrack{
-				Remote: t.IsRemote(),
-				Time:   t.GetCTime(),
-			}
-			return nil
-		}
-
 		locally := ""
 		if !t.IsRemote() {
 			locally += "locally "

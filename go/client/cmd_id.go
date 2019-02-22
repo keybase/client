@@ -4,7 +4,9 @@
 package client
 
 import (
+	"encoding/json"
 	"fmt"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -59,8 +61,10 @@ func (v *CmdID) Run() error {
 	var cli keybase1.IdentifyClient
 	protocols := []rpc.Protocol{}
 
-	if ui, ok := v.G().UI.(*UI); v.json && ok {
-		ui.json = true
+	if v.json {
+		v.G().UI = idCmdJSONUIWrapper{
+			UI: v.G().UI,
+		}
 	}
 
 	// always register this, even if ui is delegated, so that
@@ -85,6 +89,124 @@ Or log in once on this device and run "keybase id" again.
 		return nil
 	}
 	return err
+}
+
+type idCmdJSONUIWrapper struct {
+	libkb.UI
+}
+
+func (i idCmdJSONUIWrapper) GetIdentifyUI() libkb.IdentifyUI {
+	return &idCmdIdentifyUI{
+		parent: i.UI,
+	}
+}
+
+type idCmdIdentifyUI struct {
+	parent           libkb.UI
+	Username         string                     `json:"username"`
+	LastTrack        *idCmdIdentifyUILastTrack  `json:"lastTrack"`
+	Cryptocurrencies []keybase1.Cryptocurrency  `json:"cryptocurrencies"`
+	Stellar          *keybase1.StellarAccount   `json:"stellar"`
+	IdentifyKey      *keybase1.IdentifyKey      `json:"identifyKey"`
+	Proofs           []idCmdIdentifyUIProofPair `json:"proofs"`
+}
+
+type idCmdIdentifyUILastTrack struct {
+	Remote bool      `json:"remote"`
+	Time   time.Time `json:"time"`
+}
+
+type idCmdIdentifyUIProofPair struct {
+	Proof  keybase1.RemoteProof     `json:"proof"`
+	Result keybase1.LinkCheckResult `json:"result"`
+}
+
+func (ui *idCmdIdentifyUI) DisplayUserCard(keybase1.UserCard) error {
+	return nil
+}
+
+func (ui *idCmdIdentifyUI) Start(username string, _ keybase1.IdentifyReason, _ bool) error {
+	ui.Username = username
+	return nil
+}
+
+func (ui *idCmdIdentifyUI) DisplayTrackStatement(stmt string) error {
+	return nil
+}
+
+func (ui *idCmdIdentifyUI) ReportTrackToken(_ keybase1.TrackToken) error {
+	return nil
+}
+
+func (ui *idCmdIdentifyUI) Cancel() error {
+	return nil
+}
+
+func (ui *idCmdIdentifyUI) Finish() error {
+	b, err := json.MarshalIndent(ui, "", "    ")
+	if err != nil {
+		return err
+	}
+	dui := ui.parent.GetDumbOutputUI()
+	_, err = dui.Printf(string(b) + "\n")
+	return err
+}
+
+func (ui *idCmdIdentifyUI) Dismiss(_ string, _ keybase1.DismissReason) error {
+	return nil
+}
+
+func (ui *idCmdIdentifyUI) Confirm(o *keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error) {
+	return keybase1.ConfirmResult{IdentityConfirmed: false, RemoteConfirmed: false}, nil
+}
+
+func (ui *idCmdIdentifyUI) LaunchNetworkChecks(_ *keybase1.Identity, _ *keybase1.User) error {
+	return nil
+}
+
+func (ui *idCmdIdentifyUI) DisplayTLFCreateWithInvite(_ keybase1.DisplayTLFCreateWithInviteArg) error {
+	return nil
+}
+
+func (ui *idCmdIdentifyUI) FinishSocialProofCheck(p keybase1.RemoteProof, l keybase1.LinkCheckResult) error {
+	ui.Proofs = append(ui.Proofs, idCmdIdentifyUIProofPair{
+		Proof:  p,
+		Result: l,
+	})
+	return nil
+}
+
+func (ui *idCmdIdentifyUI) FinishWebProofCheck(p keybase1.RemoteProof, l keybase1.LinkCheckResult) error {
+	ui.Proofs = append(ui.Proofs, idCmdIdentifyUIProofPair{
+		Proof:  p,
+		Result: l,
+	})
+	return nil
+}
+
+func (ui *idCmdIdentifyUI) DisplayCryptocurrency(l keybase1.Cryptocurrency) error {
+	ui.Cryptocurrencies = append(ui.Cryptocurrencies, l)
+	return nil
+}
+
+func (ui *idCmdIdentifyUI) DisplayStellarAccount(l keybase1.StellarAccount) error {
+	ui.Stellar = &l
+	return nil
+}
+
+func (ui *idCmdIdentifyUI) DisplayKey(key keybase1.IdentifyKey) error {
+	ui.IdentifyKey = &key
+	return nil
+}
+
+func (ui *idCmdIdentifyUI) ReportLastTrack(tl *keybase1.TrackSummary) error {
+	if t := libkb.ImportTrackSummary(tl); t != nil {
+		ui.LastTrack = &idCmdIdentifyUILastTrack{
+			Remote: t.IsRemote(),
+			Time:   t.GetCTime(),
+		}
+	}
+	return nil
 }
 
 func NewCmdID(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
