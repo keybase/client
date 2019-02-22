@@ -24,6 +24,7 @@ const (
 	StatusCode_SCExists                                    StatusCode = 230
 	StatusCode_SCCanceled                                  StatusCode = 237
 	StatusCode_SCInputCanceled                             StatusCode = 239
+	StatusCode_SCOffline                                   StatusCode = 267
 	StatusCode_SCReloginRequired                           StatusCode = 274
 	StatusCode_SCResolutionFailed                          StatusCode = 275
 	StatusCode_SCProfileNotPublic                          StatusCode = 276
@@ -229,6 +230,7 @@ var StatusCodeMap = map[string]StatusCode{
 	"SCExists":                                    230,
 	"SCCanceled":                                  237,
 	"SCInputCanceled":                             239,
+	"SCOffline":                                   267,
 	"SCReloginRequired":                           274,
 	"SCResolutionFailed":                          275,
 	"SCProfileNotPublic":                          276,
@@ -432,6 +434,7 @@ var StatusCodeRevMap = map[StatusCode]string{
 	230:  "SCExists",
 	237:  "SCCanceled",
 	239:  "SCInputCanceled",
+	267:  "SCOffline",
 	274:  "SCReloginRequired",
 	275:  "SCResolutionFailed",
 	276:  "SCProfileNotPublic",

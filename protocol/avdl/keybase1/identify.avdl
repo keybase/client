@@ -9,7 +9,7 @@ protocol identify {
     Resolve an assertion to a (UID,username) or (TeamID,teamname). On failure, returns an error.
    */
   @lint("ignore")
-  UserOrTeamLite Resolve3(string assertion);
+  UserOrTeamLite Resolve3(string assertion, OfflineAvailability oa);
 
   record IdentifyProofBreak {
     RemoteProof remoteProof;
