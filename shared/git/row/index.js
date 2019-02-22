@@ -193,7 +193,7 @@ class Row extends React.Component<Props> {
                   label="View files"
                   onClick={this.props.onBrowseGitRepo}
                 >
-                  <Kb.Icon type="iconfont-nav-files" s={true} style={{marginRight: Styles.globalMargins.xtiny}} />
+                  <Kb.Icon type="iconfont-nav-files" style={{marginRight: Styles.globalMargins.xtiny}} />
                 </Kb.Button>
                 {this.props.canDelete && (
                   <Kb.Button

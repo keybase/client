@@ -96,6 +96,7 @@ const styles = Styles.styleSheetCreate({
   },
   editBox: {
     ...Styles.globalStyles.flexBoxRow,
+    alignItems: 'center',
     position: 'absolute',
     right: -50,
     top: Styles.isMobile ? 2 : 1,

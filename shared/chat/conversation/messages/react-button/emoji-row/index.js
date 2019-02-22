@@ -33,7 +33,7 @@ class HoverEmoji extends React.Component<
         {this.props.isReacjiIcon ? (
           <Kb.Icon
             color={Styles.globalColors.black_50}
-            fontSize={Styles.isMobile ? 22 : this.state.hovering ? 20 : 16}
+            fontSize={this.state.hovering ? 20 : 16}
             style={Kb.iconCastPlatformStyles(styles.reacjiIcon)}
             type="iconfont-reacji"
           />
