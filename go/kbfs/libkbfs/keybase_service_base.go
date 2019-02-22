@@ -458,7 +458,7 @@ func ConvertIdentifyError(assertion string, err error) error {
 // Resolve implements the KeybaseService interface for KeybaseServiceBase.
 func (k *KeybaseServiceBase) Resolve(ctx context.Context, assertion string) (
 	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
-	res, err := k.identifyClient.Resolve3(ctx, assertion)
+	res, err := k.identifyClient.Resolve3(ctx, keybase1.Resolve3Arg{Assertion: assertion})
 	if err != nil {
 		return kbname.NormalizedUsername(""), keybase1.UserOrTeamID(""),
 			ConvertIdentifyError(assertion, err)
