@@ -41,6 +41,9 @@ class ImageAttachment extends React.PureComponent<Props, State> {
   _setVideoLoaded = () => this.setState({loadingVideo: 'loaded'})
 
   _onClick = () => {
+    if (!Styles.isMobile && this.state.playingVideo) {
+      return
+    }
     if (this.props.inlineVideoPlayable && this.imageRef) {
       this.imageRef.onVideoClick()
       this.setState(p => ({
@@ -53,21 +56,9 @@ class ImageAttachment extends React.PureComponent<Props, State> {
   }
   _onDoubleClick = () => {
     if (this.props.inlineVideoPlayable && this.imageRef) {
-      if (this.state.playingVideo) {
-        this._onClick()
-      }
+      this.imageRef.pauseVideo()
     }
     this.props.onDoubleClick()
-  }
-  _onMouseEnter = () => {
-    if (this.props.inlineVideoPlayable && this.imageRef) {
-      this.imageRef.onVideoMouseEnter()
-    }
-  }
-  _onMouseLeave = () => {
-    if (this.props.inlineVideoPlayable && this.imageRef) {
-      this.imageRef.onVideoMouseLeave()
-    }
   }
 
   render() {
@@ -91,8 +82,6 @@ class ImageAttachment extends React.PureComponent<Props, State> {
             onClick={this._onClick}
             onDoubleClick={this._onDoubleClick}
             onLongPress={this.props.toggleMessageMenu}
-            onMouseEnter={this._onMouseEnter}
-            onMouseLeave={this._onMouseLeave}
           >
             <Kb.Box
               style={Kb.iconCastPlatformStyles(
