@@ -72,8 +72,8 @@ func TestStellarDecorate(t *testing.T) {
 			result: "   ```   `+124.005XLM@max```  my life to yours, my breath become yours  ```   `$>kb$eyJ0eXAiOjAsInBheW1lbnQiOnsidXNlcm5hbWUiOiJtaWtlbSIsInBheW1lbnRUZXh0IjoiKzEyNC4wMDVYTE1AbWlrZW0iLCJyZXN1bHQiOnsicmVzdWx0VHlwIjowLCJzZW50Ijoic3RlbGxhcmlkIn19fQ==$<kb$``    ",
 		},
 	}
-	for _, c := range cases {
+	for i, c := range cases {
 		res := DecorateWithPayments(context.TODO(), c.body, c.payments)
-		require.Equal(t, c.result, res)
+		require.Equal(t, c.result, res, "unit %v", i)
 	}
 }
