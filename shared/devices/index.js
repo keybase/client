@@ -89,7 +89,7 @@ const styles = Styles.styleSheetCreate({
 
 const DeviceHeader = ({onAddNew, waiting}) => (
   <Kb.ClickableBox onClick={onAddNew} style={headerStyles.container}>
-    <Kb.Button type="Primary" label="Add device">
+    <Kb.Button type="Primary" label="Add a device or paper key">
       <Kb.Icon
         type="iconfont-new"
         color={Styles.globalColors.white}
@@ -126,7 +126,7 @@ const RevokedHeader = ({children, onToggleExpanded, expanded}) => (
             boxStyle={revokedHeaderStyles.icon}
             type={expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
             color={Styles.globalColors.black_50}
-            sizeType='Tiny'
+            sizeType="Tiny"
             fontSize={10}
           />
         </Kb.Text>

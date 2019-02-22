@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math/big"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -80,11 +81,18 @@ func (n *sentMessageListener) NewChatActivity(uid keybase1.UID, activity chat1.C
 	}
 }
 
+type flipTextMetadata struct {
+	LowerBound    string
+	ShuffleItems  []string
+	DeckShuffle   bool
+	HandCardCount uint
+	HandTargets   []string
+}
+
 type hostMessageInfo struct {
-	ConvID       chat1.ConversationID
-	MsgID        chat1.MessageID
-	LowerBound   string
-	ShuffleItems []string
+	flipTextMetadata
+	ConvID chat1.ConversationID
+	MsgID  chat1.MessageID
 }
 
 type loadGameJob struct {
@@ -256,6 +264,28 @@ func (m *FlipManager) addReveal(ctx context.Context, status *chat1.UICoinFlipSta
 	status.ProgressText = fmt.Sprintf("%d participants have revealed secrets", numReveals)
 }
 
+func (m *FlipManager) addCardHandResult(ctx context.Context, status *chat1.UICoinFlipStatus,
+	result flip.Result, hmi hostMessageInfo) {
+	deckIndex := 0
+	numCards := len(result.Shuffle)
+	var rows []string
+	handSize := int(hmi.HandCardCount)
+	for targetIndex, target := range hmi.HandTargets {
+		if numCards-handSize < deckIndex {
+			rows = append(rows, fmt.Sprintf("%d. %s: 🤨", targetIndex+1, target))
+			continue
+		}
+		var hand []string
+		for di := deckIndex; di < deckIndex+handSize; di++ {
+			hand = append(hand, hmi.ShuffleItems[result.Shuffle[di]])
+		}
+		rows = append(rows, fmt.Sprintf("%d. %s: %s", targetIndex+1, target,
+			strings.TrimRight(strings.Join(hand, ", "), " ")))
+		deckIndex += handSize
+	}
+	status.ResultText = strings.Join(rows, "\n")
+}
+
 func (m *FlipManager) addResult(ctx context.Context, status *chat1.UICoinFlipStatus, result flip.Result,
 	convID chat1.ConversationID) {
 	defer func() {
@@ -272,7 +302,7 @@ func (m *FlipManager) addResult(ctx context.Context, status *chat1.UICoinFlipSta
 	case result.Big != nil:
 		lb := new(big.Int)
 		res := new(big.Int)
-		lb.SetString(hmi.LowerBound, 10)
+		lb.SetString(hmi.LowerBound, 0)
 		res.Add(lb, result.Big)
 		status.ResultText = res.String()
 	case result.Bool != nil:
@@ -284,6 +314,10 @@ func (m *FlipManager) addResult(ctx context.Context, status *chat1.UICoinFlipSta
 	case result.Int != nil:
 		status.ResultText = fmt.Sprintf("%d", *result.Int)
 	case len(result.Shuffle) > 0:
+		if hmi.HandCardCount > 0 {
+			m.addCardHandResult(ctx, status, result, hmi)
+			return
+		}
 		if len(hmi.ShuffleItems) != len(result.Shuffle) {
 			status.Phase = chat1.UICoinFlipPhase_ERROR
 			status.ProgressText = "Failed to describe shuffle result"
@@ -396,7 +430,7 @@ var errFailedToParse = errors.New("failed to parse")
 
 func (m *FlipManager) parseMultiDie(arg string, nPlayersApprox int) (start flip.Start, err error) {
 	lb := new(big.Int)
-	val, ok := lb.SetString(arg, 10)
+	val, ok := lb.SetString(arg, 0)
 	if !ok {
 		return start, errFailedToParse
 	}
@@ -407,79 +441,103 @@ func (m *FlipManager) parseMultiDie(arg string, nPlayersApprox int) (start flip.
 	return flip.NewStartWithBigInt(m.clock.Now(), val, nPlayersApprox), nil
 }
 
-func (m *FlipManager) parseShuffle(arg string, nPlayersApprox int) (start flip.Start, shuffleItems []string, err error) {
+func (m *FlipManager) parseShuffle(arg string, nPlayersApprox int) (start flip.Start, metadata flipTextMetadata, err error) {
 	if strings.Contains(arg, ",") {
 		var shuffleItems []string
 		for _, tok := range strings.Split(arg, ",") {
 			shuffleItems = append(shuffleItems, strings.Trim(tok, " "))
 		}
-		return flip.NewStartWithShuffle(m.clock.Now(), int64(len(shuffleItems)), nPlayersApprox), shuffleItems, nil
+		return flip.NewStartWithShuffle(m.clock.Now(), int64(len(shuffleItems)), nPlayersApprox),
+			flipTextMetadata{
+				ShuffleItems: shuffleItems,
+			}, nil
 	}
-	return start, shuffleItems, errFailedToParse
+	return start, metadata, errFailedToParse
 }
 
-func (m *FlipManager) parseRange(arg string, nPlayersApprox int) (start flip.Start, lowerBound string, err error) {
+func (m *FlipManager) parseRange(arg string, nPlayersApprox int) (start flip.Start, metadata flipTextMetadata, err error) {
 	if !strings.Contains(arg, "..") || strings.Contains(arg, ",") {
-		return start, lowerBound, errFailedToParse
+		return start, metadata, errFailedToParse
 	}
 	toks := strings.Split(arg, "..")
 	if len(toks) != 2 {
-		return start, lowerBound, errFailedToParse
+		return start, metadata, errFailedToParse
 	}
-	lb, ok := new(big.Int).SetString(toks[0], 10)
+	lb, ok := new(big.Int).SetString(toks[0], 0)
 	if !ok {
-		return start, lowerBound, errFailedToParse
+		return start, metadata, errFailedToParse
 	}
-	ub, ok := new(big.Int).SetString(toks[1], 10)
+	ub, ok := new(big.Int).SetString(toks[1], 0)
 	if !ok {
-		return start, lowerBound, errFailedToParse
+		return start, metadata, errFailedToParse
 	}
 	one := new(big.Int).SetInt64(1)
 	diff := new(big.Int)
 	diff.Sub(ub, lb)
 	diff = diff.Add(diff, one)
 	if diff.Sign() <= 0 {
-		return start, lowerBound, errFailedToParse
+		return start, metadata, errFailedToParse
 	}
-	return flip.NewStartWithBigInt(m.clock.Now(), diff, nPlayersApprox), lb.String(), nil
+	return flip.NewStartWithBigInt(m.clock.Now(), diff, nPlayersApprox), flipTextMetadata{
+		LowerBound: lb.String(),
+	}, nil
 }
 
-func (m *FlipManager) parseSpecials(arg string, nPlayersApprox int) (start flip.Start, lowerBound string, shuffleItems []string, err error) {
+func (m *FlipManager) parseSpecials(arg string, nPlayersApprox int) (start flip.Start, metadata flipTextMetadata, err error) {
 	switch {
-	case arg == "cards":
-		start, shuffleItems, err = m.parseShuffle("2♠️,3♠️,4♠️,5♠️,6♠️,7♠️,8♠️,9♠️,10♠️,J♠️,Q♠️,K♠️,A♠️,2♣️,3♣️,4♣️,5♣️,6♣️,7♣️,8♣️,9♣️,10♣️,J♣️,Q♣️,K♣️,A♣️,2♦️,3♦️,4♦️,5♦️,6♦️,7♦️,8♦️,9♦️,10♦️,J♦️,Q♦️,K♦️,A♦️,2♥️,3♥️,4♥️,5♥️,6♥️,7♥️,8♥️,9♥️,10♥️,J♥️,Q♥️,K♥️,A♥️", nPlayersApprox)
-		return start, "", shuffleItems, err
-	default:
-		return start, lowerBound, shuffleItems, errFailedToParse
+	case strings.HasPrefix(arg, "cards"):
+		deckShuffle, deckShuffleMetadata, _ := m.parseShuffle("2♠️,3♠️,4♠️,5♠️,6♠️,7♠️,8♠️,9♠️,10♠️,J♠️,Q♠️,K♠️,A♠️,2♣️,3♣️,4♣️,5♣️,6♣️,7♣️,8♣️,9♣️,10♣️,J♣️,Q♣️,K♣️,A♣️,2♦️,3♦️,4♦️,5♦️,6♦️,7♦️,8♦️,9♦️,10♦️,J♦️,Q♦️,K♦️,A♦️,2♥️,3♥️,4♥️,5♥️,6♥️,7♥️,8♥️,9♥️,10♥️,J♥️,Q♥️,K♥️,A♥️", nPlayersApprox)
+		deckShuffleMetadata.DeckShuffle = true
+		if arg == "cards" {
+			return deckShuffle, deckShuffleMetadata, nil
+		}
+		toks := strings.Split(arg, " ")
+		if len(toks) < 3 {
+			return deckShuffle, deckShuffleMetadata, nil
+		}
+		handCount, err := strconv.ParseUint(toks[1], 0, 0)
+		if err != nil {
+			return deckShuffle, deckShuffleMetadata, nil
+		}
+		return deckShuffle, flipTextMetadata{
+			ShuffleItems:  deckShuffleMetadata.ShuffleItems,
+			HandCardCount: uint(handCount),
+			HandTargets:   toks[2:],
+		}, nil
 	}
+	return start, metadata, errFailedToParse
 }
 
-func (m *FlipManager) startFromText(text string, nPlayersApprox int) (start flip.Start, lowerBound string, shuffleItems []string) {
+func (m *FlipManager) startFromText(text string, nPlayersApprox int) (start flip.Start, metadata flipTextMetadata) {
 	var err error
 	toks := strings.Split(strings.TrimRight(text, " "), " ")
 	if len(toks) == 1 {
-		return flip.NewStartWithBool(m.clock.Now(), nPlayersApprox), "", nil
+		return flip.NewStartWithBool(m.clock.Now(), nPlayersApprox), flipTextMetadata{}
 	}
 	// Combine into one argument if there is more than one
 	arg := strings.Join(toks[1:], " ")
 	// Check for special flips
-	if start, lowerBound, shuffleItems, err = m.parseSpecials(arg, nPlayersApprox); err == nil {
-		return start, lowerBound, shuffleItems
+	if start, metadata, err = m.parseSpecials(arg, nPlayersApprox); err == nil {
+		return start, metadata
 	}
 	// Check for /flip 20
 	if start, err = m.parseMultiDie(arg, nPlayersApprox); err == nil {
-		return start, "1", nil
+		return start, flipTextMetadata{
+			LowerBound: "1",
+		}
 	}
 	// Check for /flip mikem,karenm,lisam
-	if start, shuffleItems, err = m.parseShuffle(arg, nPlayersApprox); err == nil {
-		return start, "", shuffleItems
+	if start, metadata, err = m.parseShuffle(arg, nPlayersApprox); err == nil {
+		return start, metadata
 	}
 	// Check for /flip 2..8
-	if start, lowerBound, err = m.parseRange(arg, nPlayersApprox); err == nil {
-		return start, lowerBound, nil
+	if start, metadata, err = m.parseRange(arg, nPlayersApprox); err == nil {
+		return start, metadata
 	}
 	// Just shuffle the one unknown thing
-	return flip.NewStartWithShuffle(m.clock.Now(), 1, nPlayersApprox), "", []string{arg}
+	return flip.NewStartWithShuffle(m.clock.Now(), 1, nPlayersApprox), flipTextMetadata{
+		ShuffleItems: []string{arg},
+	}
 }
 
 func (m *FlipManager) getHostMessageInfo(ctx context.Context, convID chat1.ConversationID) (res hostMessageInfo, err error) {
@@ -508,7 +566,7 @@ func (m *FlipManager) getHostMessageInfo(ctx context.Context, convID chat1.Conve
 
 func (m *FlipManager) DescribeFlipText(ctx context.Context, text string) string {
 	defer m.Trace(ctx, func() error { return nil }, "DescribeFlipText")()
-	start, lowerBound, shuffleItems := m.startFromText(text, 0)
+	start, metadata := m.startFromText(text, 0)
 	typ, err := start.Params.T()
 	if err != nil {
 		m.Debug(ctx, "DescribeFlipText: failed get start typ: %s", err)
@@ -516,17 +574,23 @@ func (m *FlipManager) DescribeFlipText(ctx context.Context, text string) string 
 	}
 	switch typ {
 	case flip.FlipType_BIG:
-		if lowerBound == "1" {
+		if metadata.LowerBound == "1" {
 			return fmt.Sprintf("*%s-sided die roll*", new(big.Int).SetBytes(start.Params.Big()))
 		}
-		lb, _ := new(big.Int).SetString(lowerBound, 10)
+		lb, _ := new(big.Int).SetString(metadata.LowerBound, 0)
 		ub := new(big.Int).Sub(new(big.Int).SetBytes(start.Params.Big()), new(big.Int).SetInt64(1))
-		return fmt.Sprintf("*Number in range %s..%s*", lowerBound,
+		return fmt.Sprintf("*Number in range %s..%s*", metadata.LowerBound,
 			new(big.Int).Add(lb, ub))
 	case flip.FlipType_BOOL:
 		return "*HEADS* or *TAILS*"
 	case flip.FlipType_SHUFFLE:
-		return fmt.Sprintf("*Shuffling %s*", strings.TrimRight(strings.Join(shuffleItems, ", "), " "))
+		if metadata.DeckShuffle {
+			return "*Shuffling a deck of cards*"
+		} else if metadata.HandCardCount > 0 {
+			return fmt.Sprintf("*Dealing hands of %d cards*", metadata.HandCardCount)
+		}
+		return fmt.Sprintf("*Shuffling %s*",
+			strings.TrimRight(strings.Join(metadata.ShuffleItems, ", "), " "))
 	}
 	return ""
 }
@@ -568,8 +632,9 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 
 	// Generate dev channel for game messages
 	topicName := m.gameTopicNameFromGameID(gameID)
-	conv, err := m.G().ChatHelper.NewConversation(ctx, uid, tlfName, &topicName, chat1.TopicType_DEV,
-		hostConv.GetMembersType(), keybase1.TLFVisibility_PRIVATE)
+	conv, err := m.G().ChatHelper.NewConversationWithMemberSourceConv(ctx, uid, tlfName, &topicName,
+		chat1.TopicType_DEV, hostConv.GetMembersType(),
+		keybase1.TLFVisibility_PRIVATE, &hostConvID)
 	if err != nil {
 		return err
 	}
@@ -593,12 +658,11 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 	}
 
 	// Record metadata of the host message into the game thread as the first message
-	start, lowerBound, shuffleItems := m.startFromText(text, nPlayersApprox)
+	start, metadata := m.startFromText(text, nPlayersApprox)
 	infoBody, err := json.Marshal(hostMessageInfo{
-		ConvID:       hostConvID,
-		MsgID:        sendRes.MsgID,
-		LowerBound:   lowerBound,
-		ShuffleItems: shuffleItems,
+		flipTextMetadata: metadata,
+		ConvID:           hostConvID,
+		MsgID:            sendRes.MsgID,
 	})
 	if err != nil {
 		return err

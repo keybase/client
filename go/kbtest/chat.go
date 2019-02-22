@@ -1306,6 +1306,12 @@ func (m *MockChatHelper) NewConversation(ctx context.Context, uid gregor1.UID, t
 	return chat1.ConversationLocal{}, nil
 }
 
+func (m *MockChatHelper) NewConversationWithMemberSourceConv(ctx context.Context, uid gregor1.UID, tlfName string,
+	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
+	vis keybase1.TLFVisibility, memberSourceConv *chat1.ConversationID) (chat1.ConversationLocal, error) {
+	return chat1.ConversationLocal{}, nil
+}
+
 func (m *MockChatHelper) JoinConversationByID(ctx context.Context, uid gregor1.UID,
 	convID chat1.ConversationID) error {
 	return nil
