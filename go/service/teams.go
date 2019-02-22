@@ -11,6 +11,7 @@ import (
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/offline"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
@@ -488,7 +489,7 @@ func (h *TeamsHandler) LoadTeamPlusApplicationKeys(ctx context.Context, arg keyb
 	argKey.SessionID = 0
 	argKey.IncludeKBFSKeys = false
 
-	err = h.service.offlineRPCCache.Serve(mctx, arg.Oa, "teams.loadTeamPlusApplicationKeys", true, argKey, resp, loader)
+	err = h.service.offlineRPCCache.Serve(mctx, arg.Oa, offline.Version(1), "teams.loadTeamPlusApplicationKeys", true, argKey, resp, loader)
 	return res, err
 
 }
