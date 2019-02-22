@@ -282,7 +282,7 @@ class User extends React.Component<Props, State> {
   }
 
   _renderOtherUsers = ({item, section, index}) =>
-    item.type === 'dummy' ? (
+    item.type === 'noFriends' ? (
       <Kb.Box2 direction="horizontal" style={styles.textEmpty} centerChildren={true}>
         <Kb.Text type="BodySmall">{item.text}</Kb.Text>
       </Kb.Box2>
@@ -323,7 +323,7 @@ class User extends React.Component<Props, State> {
     if (chunks.length === 0 && this.props.followingCount !== null && this.props.followingCount !== null) {
       chunks.push({
         text: this.state.selectedFollowing ? 'You are not following anyone.' : 'You have no followers.',
-        type: 'dummy',
+        type: 'noFriends',
       })
     }
 
