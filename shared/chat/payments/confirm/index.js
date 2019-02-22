@@ -16,6 +16,7 @@ const PaymentsConfirmLoading = (props: LoadingProps) => (
 type ErrorProps = {|
   error: string,
   onCancel: () => void,
+  onWallet: () => void,
 |}
 
 const _PaymentsConfirmError = (props: ErrorProps) => (
@@ -30,6 +31,15 @@ const _PaymentsConfirmError = (props: ErrorProps) => (
       <Kb.Text type="BodyExtrabold" style={styles.errorText}>
         {props.error}
       </Kb.Text>
+      <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
+        <Kb.Button type="Secondary" onClick={props.onCancel} style={styles.cancelButton} label="Cancel" />
+        <Kb.Button
+          style={styles.submitButton}
+          type="Primary"
+          onClick={props.onWallet}
+          label={'Set up wallet'}
+        />
+      </Kb.ButtonBar>
     </Kb.Box2>
   </Kb.Box2>
 )
@@ -68,6 +78,7 @@ type Props = {|
   loading: boolean,
   onAccept: () => void,
   onCancel: () => void,
+  onWallet: () => void,
   payments: Array<PaymentProps>,
   xlmTotal: string,
 |}
@@ -77,7 +88,7 @@ const PaymentsConfirm = (props: Props) => (
     {props.loading ? (
       <PaymentsConfirmLoading />
     ) : props.error ? (
-      <PaymentsConfirmError error={props.error} onCancel={props.onCancel} />
+      <PaymentsConfirmError error={props.error} onCancel={props.onCancel} onWallet={props.onWallet} />
     ) : (
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.totalContainer}>

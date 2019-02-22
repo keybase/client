@@ -10,6 +10,7 @@ const props = {
   loading: false,
   onAccept: Sb.action('onAccept'),
   onCancel: Sb.action('onCancel'),
+  onWallet: Sb.action('onWallet'),
   payments: [
     {
       displayAmount: '$1.00 USD',
