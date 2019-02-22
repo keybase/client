@@ -123,17 +123,22 @@ export const updateMeta = (
     // new is older, keep old
     return oldMeta
   } else if (oldMeta.inboxVersion === newMeta.inboxVersion) {
-    // same version, take data if new is trusted
-    if (newMeta.trustedState === 'trusted') {
+    // same version, only take data if untrusted -> trusted
+    if (newMeta.trustedState === 'trusted' && oldMeta.trustedState !== 'trusted') {
       // prettier-ignore
       return newMeta.withMutations(nm => {
-          // keep immutable stuff to reduce render thrashing
-          I.is(oldMeta.participants, nm.participants) && nm.set('participants', oldMeta.participants)
-          I.is(oldMeta.rekeyers, nm.rekeyers) && nm.set('rekeyers', oldMeta.rekeyers)
-          I.is(oldMeta.resetParticipants, nm.resetParticipants) && nm.set('resetParticipants', oldMeta.resetParticipants)
-          I.is(oldMeta.retentionPolicy, nm.retentionPolicy) && nm.set('retentionPolicy', oldMeta.retentionPolicy)
-          I.is(oldMeta.teamRetentionPolicy, nm.teamRetentionPolicy) && nm.set('teamRetentionPolicy', oldMeta.teamRetentionPolicy)
-        })
+        // keep immutable stuff to reduce render thrashing
+        I.is(oldMeta.participants, nm.participants) && nm.set('participants', oldMeta.participants)
+        I.is(oldMeta.rekeyers, nm.rekeyers) && nm.set('rekeyers', oldMeta.rekeyers)
+        I.is(oldMeta.resetParticipants, nm.resetParticipants) && nm.set('resetParticipants', oldMeta.resetParticipants)
+        I.is(oldMeta.retentionPolicy, nm.retentionPolicy) && nm.set('retentionPolicy', oldMeta.retentionPolicy)
+        I.is(oldMeta.teamRetentionPolicy, nm.teamRetentionPolicy) && nm.set('teamRetentionPolicy', oldMeta.teamRetentionPolicy)
+      })
+    }
+    if (newMeta.trustedState === 'trusted' && oldMeta.trustedState === 'trusted') {
+      // TODO DESKTOP-9068 check localInboxVersion and take newMeta if it's higher
+      // For now take oldMeta + new snippet in case the last message exploded
+      return oldMeta.set('snippet', newMeta.snippet).set('snippetDecoration', newMeta.snippetDecoration)
     }
     return oldMeta
   }
