@@ -128,11 +128,12 @@ func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 		vers, err := g.latestInboxVersion(ctx, uid)
 		if err != nil {
 			vers = newVers - 1
-			g.Debug(ctx, "WaitForTurn: failed to get current inbox version: %v. Proceeding with vers %d", err, vers)
+			g.Debug(ctx, "WaitForTurn: failed to get current inbox version: %v. Proceeding with vers %d",
+				err, vers)
 		}
 		// add extra time if we are multiple updates behind
 		dur := time.Duration(newVers-vers-1) * time.Second
-		if dur < time.Second {
+		if dur < 0 {
 			dur = 0
 		}
 		deadline = deadline.Add(dur)
