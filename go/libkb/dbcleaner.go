@@ -280,10 +280,6 @@ func (c *levelDbCleaner) cleanBatch(ctx context.Context, startKey []byte) (int, 
 			c.cache.Remove(c.cacheKey(key))
 		}
 	}
-	if err := c.db.Write(batch, nil); err != nil {
-		return 0, nil, err
-	}
-
 	key := make([]byte, len(iter.Key()))
 	copy(key, iter.Key())
 	// see if we have reached the end of the db, if so explicitly reset the
@@ -294,6 +290,9 @@ func (c *levelDbCleaner) cleanBatch(ctx context.Context, startKey []byte) (int, 
 	}
 	iter.Release()
 	if err := iter.Error(); err != nil {
+		return 0, nil, err
+	}
+	if err := c.db.Write(batch, nil); err != nil {
 		return 0, nil, err
 	}
 	// Compact the range we just deleted in so the size changes are reflected
