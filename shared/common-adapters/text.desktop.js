@@ -91,6 +91,7 @@ function fastGetStyle(
   selectable: ?boolean
 ) {
   const meta = metaData[type]
+  // positive color is in css
   const colorStyle = negative ? {color: Styles.globalColors.white} : null
   const lineClampStyle = lineClampNum ? lineClamp(lineClampNum) : null
   const clickableStyle = clickable ? Styles.desktopStyles.clickable : null
@@ -121,8 +122,8 @@ function externalGetStyle(
 ) {
   const meta = metaData[type]
   const sizeStyle = fontSizeToSizeStyle(meta.fontSize)
-  // positive color is in css
-  const colorStyle = negative ? {color: meta.colorForBackground.negative} : null
+  // pipe positive color through because caller probably isn't using class
+  const colorStyle = {color: meta.colorForBackground[negative ? 'negative' : 'positive']}
   const cursorStyle = meta.isLink ? {cursor: 'pointer'} : null
   const lineClampStyle = lineClampNum ? lineClamp(lineClampNum) : null
   const clickableStyle = clickable ? Styles.desktopStyles.clickable : null
