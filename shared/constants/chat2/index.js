@@ -138,7 +138,7 @@ export const isUserActivelyLookingAtThisThread = (
     const routePath = getPath(state.routeTree.routeState)
     if (isMobile) {
       chatThreadSelected =
-        routePath.size === 2 && routePath.get(0) === chatTab && routePath.get(1) === 'conversation'
+        routePath.size === 2 && routePath.get(0) === chatTab && routePath.get(1) === 'chatConversation'
     } else {
       chatThreadSelected = routePath.size >= 1 && routePath.get(0) === chatTab
     }

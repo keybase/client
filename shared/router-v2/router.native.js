@@ -14,6 +14,7 @@ import * as Shared from './router.shared'
 import {useScreens} from 'react-native-screens'
 import * as Shim from './shim.native'
 import {debounce} from 'lodash-es'
+import logger from '../logger'
 
 // turn on screens
 useScreens()
@@ -99,7 +100,12 @@ class RNApp extends React.PureComponent<any, any> {
     }
 
     const actions = Shared.oldActionToNewActions(old, nav._navigation) || []
-    actions.forEach(a => nav.dispatch(a))
+    try {
+      actions.forEach(a => nav.dispatch(a))
+    } catch (e) {
+      logger.error('Nav error', e)
+    }
+
     this._persistRoute()
   }
 
