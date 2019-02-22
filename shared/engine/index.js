@@ -129,6 +129,9 @@ class Engine {
   }
 
   _onDisconnect() {
+    Engine._dispatch({payload: undefined, type: 'engine-gen:disconnected'})
+
+    // TODO deprecate this version
     if (!this._onDisconnectHandlers) {
       return
     }
@@ -148,6 +151,11 @@ class Engine {
   // Called when we reconnect to the server
   _onConnected() {
     this._hasConnected = true
+
+    // dispatch the action version
+    Engine._dispatch({payload: undefined, type: 'engine-gen:connected'})
+
+    // TODO deprecate this older style
     if (!this._onConnectHandlers) {
       return
     }
