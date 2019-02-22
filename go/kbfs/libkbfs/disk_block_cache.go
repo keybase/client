@@ -605,20 +605,31 @@ func (cache *DiskBlockCacheLocal) Get(
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, NoPrefetch, err
 	}
 
+	var t, tGetDone, tUpdateDone time.Time
+	defer func() {
+		cache.log.CDebugf(ctx, "Cache %d Get BlockID=%s err=%v len=%d get-duration=%v update-duration=%v",
+			cache.cacheType, blockID.String(), err, len(buf), tGetDone.Sub(t), tUpdateDone.Sub(tGetDone))
+	}()
+
+	t = time.Now()
 	blockKey := blockID.Bytes()
 	entry, err := cache.blockDb.Get(blockKey, nil)
+	tGetDone = time.Now()
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, NoPrefetch,
 			NoSuchBlockError{blockID}
 	}
+
 	md, err := cache.getMetadataLocked(blockID, true)
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, NoPrefetch, err
 	}
 	err = cache.updateMetadataLocked(ctx, blockKey, md, unmetered)
+	tUpdateDone = time.Now()
 	if err != nil {
 		return nil, kbfscrypto.BlockCryptKeyServerHalf{}, NoPrefetch, err
 	}
+
 	buf, serverHalf, err = cache.decodeBlockCacheEntry(entry)
 	return buf, serverHalf, md.PrefetchStatus(), err
 }

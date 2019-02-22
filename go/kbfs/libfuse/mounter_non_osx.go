@@ -9,7 +9,13 @@ package libfuse
 import "bazil.org/fuse"
 
 func getPlatformSpecificMountOptions(dir string, platformParams PlatformParams) ([]fuse.MountOption, error) {
-	return []fuse.MountOption{}, nil
+	options := []fuse.MountOption{}
+	options = append(options, fuse.MaxReadahead(500*1024))
+	/*
+		options = append(options, fuse.WritebackCache())
+	*/
+	options = append(options, fuse.AsyncRead())
+	return options, nil
 }
 
 // GetPlatformSpecificMountOptionsForTest makes cross-platform tests work
