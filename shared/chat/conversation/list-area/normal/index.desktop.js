@@ -44,8 +44,17 @@ class Thread extends React.PureComponent<Props, State> {
   _pointerWrapperRef = React.createRef()
   // Not a state so we don't rerender, just mutate the dom
   _isScrolling = false
-  // When we're triggering scrolling we don't want our event subscribers to fire so we increment this value
+
+  // When we're triggering scrolling we don't want our event
+  // subscribers to fire so we increment this value.
+  //
+  // NOTE: Since scroll events don't correspond 1:1 to events that
+  // trigger scrolling, this has a high chance of getting 'stuck'
+  // above 0, e.g. when resizing a window. Skipping a few user-driven
+  // scroll events is harmless, but we want to clear these out when
+  // simulating user-driven scroll events, e.g. page up/page down.
   _ignoreScrollRefCount = 0
+
   // last height we saw from resize
   _scrollHeight: number = 0
 
@@ -99,7 +108,9 @@ class Thread extends React.PureComponent<Props, State> {
   _scrollDown = () => {
     const list = this._listRef.current
     if (list) {
-      this._logScrollTop(list, '_scrollDown', () => {
+      this._logAll(list, '_scrollDown', () => {
+        // User-driven scroll event, so clear ignore count.
+        this._ignoreScrollRefCount = 0
         list.scrollTop += list.clientHeight
       })
     }
@@ -108,7 +119,9 @@ class Thread extends React.PureComponent<Props, State> {
   _scrollUp = () => {
     const list = this._listRef.current
     if (list) {
-      this._logScrollTop(list, '_scrollUp', () => {
+      this._logAll(list, '_scrollUp', () => {
+        // User-driven scroll event, so clear ignore count.
+        this._ignoreScrollRefCount = 0
         list.scrollTop -= list.clientHeight
       })
     }
