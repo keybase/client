@@ -48,13 +48,15 @@ func (s *Flip) Preview(ctx context.Context, uid gregor1.UID, convID chat1.Conver
 	if s.G().GetAppType() == libkb.MobileAppType {
 		usage = fmt.Sprintf(flipMobileUsage, cur, "```", "```", "```", "```")
 	} else {
-		usage = fmt.Sprintf(flipDesktopUsage, "```", "```", "```", "```", cur)
+		usage = fmt.Sprintf(flipDesktopUsage, cur, "```", "```", "```", "```")
 	}
 	s.getChatUI().ChatCommandMarkdown(ctx, convID, usage)
 	s.displayed = true
 }
 
-const flipDesktopUsage = `Example commands: %s
+const flipDesktopUsage = `_Current Flip_: %s
+
+Example commands: %s
 /flip          coin flip
 /flip 6        roll a 6-sided die (1..6)
 /flip 10..20   pick a number 10 to 20 (inclusive)
@@ -63,9 +65,7 @@ const flipDesktopUsage = `Example commands: %s
 And for a quick game of face-up poker: %s		/flip cards 5 @user1 @user2 @user3
 		(shuffle a deck and deal 5 cards to 3 different people%s
 The blog post announcing this feature and how it works:
-https://keybase.io/coin-flipping
-
-_Current Flip_: %s`
+https://keybase.io/coin-flipping`
 
 const flipMobileUsage = `_Current Flip_: %s
 Example commands: %s

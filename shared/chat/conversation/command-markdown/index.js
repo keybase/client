@@ -5,7 +5,7 @@ import * as Styles from '../../../styles'
 
 type Props = {|
   text: string,
-  title: string,
+  title?: string,
 |}
 
 const CommandMarkdown = (props: Props) => {
