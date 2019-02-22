@@ -426,6 +426,7 @@ const styles = Styles.styleSheetCreate({
       backgroundColor: Styles.globalColors.white,
       borderBottomColor: Styles.globalColors.black_10,
       borderBottomWidth: 1,
+      marginTop: Styles.globalMargins.small,
     },
     isElectron: {
       alignSelf: 'stretch',
