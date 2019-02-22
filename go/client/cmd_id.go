@@ -17,6 +17,7 @@ import (
 
 type CmdID struct {
 	libkb.Contextified
+	json           bool
 	user           string
 	useDelegateUI  bool
 	skipProofCache bool
@@ -32,6 +33,7 @@ func (v *CmdID) ParseArgv(ctx *cli.Context) error {
 	if nargs == 1 {
 		v.user = ctx.Args()[0]
 	}
+	v.json = ctx.Bool("json")
 	v.useDelegateUI = ctx.Bool("ui")
 	v.skipProofCache = ctx.Bool("skip-proof-cache")
 	v.forceDisplay = ctx.Bool("force-display")
@@ -56,6 +58,10 @@ func (v *CmdID) makeArg() keybase1.Identify2Arg {
 func (v *CmdID) Run() error {
 	var cli keybase1.IdentifyClient
 	protocols := []rpc.Protocol{}
+
+	if ui, ok := v.G().UI.(*UI); v.json && ok {
+		ui.json = true
+	}
 
 	// always register this, even if ui is delegated, so that
 	// fallback to terminal UI works.
@@ -88,6 +94,10 @@ func NewCmdID(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 		Usage:        "Identify a user and check their signature chain",
 		Description:  "Identify a user and check their signature chain. Don't specify a username to identify yourself. You can also specify proof assertions like user@twitter.",
 		Flags: []cli.Flag{
+			cli.BoolFlag{
+				Name:  "j, json",
+				Usage: "Output requests as JSON",
+			},
 			cli.BoolFlag{
 				Name:      "ui",
 				Usage:     "Use identify UI.",
