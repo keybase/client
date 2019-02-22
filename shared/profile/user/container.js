@@ -27,6 +27,8 @@ const mapStateToProps = (state, ownProps) => {
   const d = Constants.getDetails(state, username)
   const followThem = Constants.followThem(state, username)
   const _userIsYou = username === state.config.username
+  const followersCount = state.tracker2.usernameToDetails.getIn([username, 'followersCount'])
+  const followingCount = state.tracker2.usernameToDetails.getIn([username, 'followingCount'])
 
   return {
     _assertions: d.assertions,
@@ -35,7 +37,9 @@ const mapStateToProps = (state, ownProps) => {
     backgroundColorType: headerBackgroundColorType(d.state, followThem),
     followThem,
     followers: state.tracker2.usernameToDetails.getIn([username, 'followers']) || emptySet,
+    followersCount,
     following: state.tracker2.usernameToDetails.getIn([username, 'following']) || emptySet,
+    followingCount,
     guiID: d.guiID,
     state: d.state,
     username,
@@ -74,6 +78,8 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   assertionKeys: stateProps._assertions ? stateProps._assertions.keySeq().toArray() : null,
   backgroundColorType: stateProps.backgroundColorType,
   followThem: stateProps.followThem,
+  followersCount: stateProps.followersCount,
+  followingCount: stateProps.followingCount,
   onBack: dispatchProps.onBack,
   onEditAvatar: stateProps._userIsYou ? dispatchProps._onEditAvatar : null,
   onReload: () => dispatchProps._onReload(stateProps.username, stateProps._userIsYou),

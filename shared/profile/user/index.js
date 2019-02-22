@@ -22,7 +22,9 @@ export type Props = {|
   backgroundColorType: BackgroundColorType,
   followThem: boolean,
   followers: Array<string>,
+  followersCount: ?number,
   following: Array<string>,
+  followingCount: ?number,
   onBack: () => void,
   onReload: () => void,
   onSearch: () => void,
@@ -117,6 +119,7 @@ const Proofs = p => {
 }
 
 type FriendshipTabsProps = {|
+  loading: boolean,
   onChangeFollowing: boolean => void,
   selectedFollowing: boolean,
   numFollowers: number,
@@ -139,7 +142,9 @@ class FriendshipTabs extends React.Component<FriendshipTabsProps> {
           following === this.props.selectedFollowing ? styles.followTabTextSelected : styles.followTabText
         }
       >
-        {following ? `Following (${this.props.numFollowing})` : `Followers (${this.props.numFollowers})`}
+        {following
+          ? `Following${!this.props.loading ? ` (${this.props.numFollowing})` : ''}`
+          : `Followers${!this.props.loading ? ` (${this.props.numFollowers})` : ''}`}
       </Kb.Text>
     </Kb.ClickableBox>
   )
@@ -263,9 +268,11 @@ class User extends React.Component<Props, State> {
         />
       )
     }
+    const loading = this.props.followersCount == null || this.props.followingCount == null
     return (
       <FriendshipTabs
         key="tabs"
+        loading={loading}
         numFollowers={this.props.followers.length}
         numFollowing={this.props.following.length}
         onChangeFollowing={this._changeFollowing}
@@ -309,12 +316,11 @@ class User extends React.Component<Props, State> {
   }
 
   render() {
-    console.warn(this.props.following)
     const friends = this.state.selectedFollowing ? this.props.following : this.props.followers
     const {itemsInARow, itemWidth} = widthToDimentions(this.state.width)
     // TODO memoize?
     let chunks = this.state.width ? chunk(friends, itemsInARow) : []
-    if (chunks.length === 0) {
+    if (chunks.length === 0 && this.props.followingCount !== null && this.props.followingCount !== null) {
       chunks.push({
         text: this.state.selectedFollowing ? 'You are not following anyone.' : 'You have no followers.',
         type: 'dummy',
