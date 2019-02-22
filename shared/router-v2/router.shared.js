@@ -3,7 +3,8 @@ import {StackActions, NavigationActions} from '@react-navigation/core'
 import shallowEqual from 'shallowequal'
 import * as RouteTreeGen from '../actions/route-tree-gen'
 import * as Constants from '../constants/router2'
-import {modalRoutes} from './routes'
+import {modalRoutes, routes} from './routes'
+import logger from '../logger'
 
 // Helper to convert old route tree actions to new actions. Likely goes away as we make
 // actual routing actions (or make RouteTreeGen append/up the only action)
@@ -58,7 +59,7 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
 
       // When we restore state we want the following stacks
       // [People, TheLastTabYouWereOn, MaybeAConversationIfTheLastTabYouWereOnIsChat]
-      const sa = [StackActions.push({params: undefined, routeName: 'tabs.peopleTab'})]
+      let sa = [StackActions.push({params: undefined, routeName: 'tabs.peopleTab'})]
 
       if (action.payload.path) {
         const p = action.payload.path.last
@@ -72,6 +73,12 @@ export const oldActionToNewActions = (action: any, navigation: any) => {
         } else if (p !== 'tabs.peopleTab') {
           sa.push(StackActions.push({params: undefined, routeName: p}))
         }
+      }
+
+      // validate sa
+      if (!sa.every(a => routes[a.routeName])) {
+        logger.error('Invalid route found, bailing on push', sa)
+        sa = []
       }
 
       // switch the switch and do a reset of the stack
