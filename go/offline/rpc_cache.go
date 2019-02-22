@@ -58,7 +58,7 @@ func dbKey(rpcName string, arg interface{}) (libkb.DbKey, error) {
 }
 
 func (c *RPCCache) get(m libkb.MetaContext, rpcName string, encrypted bool, arg interface{}, res interface{}) (found bool, err error) {
-	defer m.CTrace(fmt.Sprintf("RPCCache#get(%s, %v, %+v)", rpcName, encrypted, arg), func() error { return err })()
+	defer m.CTraceString(fmt.Sprintf("RPCCache#get(%s, %v, %+v)", rpcName, encrypted, arg), func() string { return fmt.Sprintf("(%v,%v)", found, err) })()
 	c.Lock()
 	defer c.Unlock()
 
@@ -70,12 +70,11 @@ func (c *RPCCache) get(m libkb.MetaContext, rpcName string, encrypted bool, arg 
 	if encrypted {
 		found, err = c.edb.Get(m.Ctx(), dbk, res)
 	} else {
-		found, err = m.G().LocalDb.GetInto(res, dbk)
+		found, err = m.G().LocalDb.GetIntoMsgpack(res, dbk)
 	}
 	if err != nil {
 		return false, err
 	}
-	m.CDebugf("Found: %v", found)
 	return found, err
 }
 
@@ -92,7 +91,7 @@ func (c *RPCCache) put(m libkb.MetaContext, rpcName string, encrypted bool, arg 
 	if encrypted {
 		err = c.edb.Put(m.Ctx(), dbk, res)
 	} else {
-		err = m.G().LocalDb.PutObj(dbk, nil, res)
+		err = m.G().LocalDb.PutObjMsgpack(dbk, nil, res)
 	}
 	return err
 }

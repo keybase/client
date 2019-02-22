@@ -500,6 +500,14 @@ func CTrace(ctx context.Context, log logger.Logger, msg string, f func() error) 
 	}
 }
 
+func CTraceString(ctx context.Context, log logger.Logger, msg string, f func() string) func() {
+	log = log.CloneWithAddedDepth(1)
+	log.CDebugf(ctx, "+ %s", msg)
+	return func() {
+		log.CDebugf(ctx, "- %s -> %s", msg, f())
+	}
+}
+
 func CTraceTimed(ctx context.Context, log logger.Logger, msg string, f func() error, cl clockwork.Clock) func() {
 	log = log.CloneWithAddedDepth(1)
 	log.CDebugf(ctx, "+ %s", msg)
