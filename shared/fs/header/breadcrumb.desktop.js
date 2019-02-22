@@ -37,7 +37,7 @@ const Breadcrumb = ({dropdownItems, shownItems}: Props) => (
           </Kb.Box>
         ) : (
           <Kb.Box style={styles.breadcrumbLastItemBox}>
-            <Kb.Text type="BodyBig" selectable={true}>
+            <Kb.Text type="BodyBig" selectable={true} style={styles.breadcrumbLastText}>
               <CommaSeparatedName type="BodyBig" name={item.name} elementStyle={styles.lastNameText} />
             </Kb.Text>
           </Kb.Box>
@@ -52,8 +52,12 @@ const Breadcrumb = ({dropdownItems, shownItems}: Props) => (
 
 const styles = Styles.styleSheetCreate({
   breadcrumbLastItemBox: {
+    maxWidth: '100%',
+  },
+  breadcrumbLastText: {
     display: 'flex',
     flexWrap: 'wrap',
+    maxWidth: '100%',
   },
   breadcrumbNonLastItemBox: Styles.platformStyles({
     isElectron: {

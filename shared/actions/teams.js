@@ -20,6 +20,7 @@ import * as NotificationsGen from './notifications-gen'
 import * as ConfigGen from './config-gen'
 import * as Chat2Gen from './chat2-gen'
 import * as GregorGen from './gregor-gen'
+import {uploadAvatarWaitingKey} from '../constants/profile'
 import engine from '../engine'
 import {isMobile} from '../constants/platform'
 import {chatTab, teamsTab} from '../constants/tabs'
@@ -373,8 +374,13 @@ const uploadAvatar = (_, action) => {
       sendChatNotification,
       teamname,
     },
-    Constants.teamWaitingKey(teamname)
-  ).then(() => RouteTreeGen.createNavigateUp())
+    uploadAvatarWaitingKey
+  )
+    .then(() => RouteTreeGen.createNavigateUp())
+    .catch(e => {
+      // error displayed in component
+      logger.warn(`Error uploading team avatar: ${e.message}`)
+    })
 }
 
 const editMembership = (_, action) => {

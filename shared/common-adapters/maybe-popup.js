@@ -18,6 +18,7 @@ const MaybePopup = isMobile
       cover?: boolean,
       styleCover?: any,
       styleContainer?: any,
+      styleClipContainer?: any,
     }) => (
       <PopupDialog
         onClose={props.onClose}
@@ -26,6 +27,7 @@ const MaybePopup = isMobile
         onMouseMove={props.onMouseMove}
         styleCover={collapseStyles([props.cover && _styleCover, props.styleCover])}
         styleContainer={props.cover ? {..._styleContainer, ...props.styleContainer} : {}}
+        styleClipContainer={props.styleClipContainer}
         children={props.children}
       />
     )

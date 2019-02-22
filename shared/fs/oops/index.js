@@ -135,6 +135,7 @@ const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.rounded,
+      backgroundColor: Styles.globalColors.white,
     },
     isElectron: {
       height: 380,

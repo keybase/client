@@ -21,7 +21,7 @@ type Props = {|
   onCreateProof: ?() => void,
   onWhatIsStellar: () => void,
   proofURL: string,
-  siteIcon: string, // TODO handle actual urls, for now just use iconfont
+  siteIcon: $ReadOnlyArray<Types.SiteIcon>,
   siteURL: string,
   state: Types.AssertionState,
   type: string,
@@ -273,6 +273,22 @@ const getMenu = p => {
   }
 }
 
+const siteIconToSrcSet = siteIcon =>
+  `-webkit-image-set(${siteIcon
+    .slice()
+    .sort((a, b) => a.width - b.width)
+    .map((si, idx) => `url(${si.path}) ${idx + 1}x`)
+    .join(', ')})`
+const siteIconToNativeSrcSet = siteIcon =>
+  siteIcon.map(si => ({height: si.width, uri: si.path, width: si.width}))
+
+const HoverOpacity = Styles.styled(Kb.Box)({
+  '&:hover': {
+    opacity: 1,
+  },
+  opacity: 0.5,
+})
+
 type State = {|showingMenu: boolean|}
 class Assertion extends React.PureComponent<Props, State> {
   state = {showingMenu: false}
@@ -280,6 +296,33 @@ class Assertion extends React.PureComponent<Props, State> {
   _hideMenu = () => this.setState({showingMenu: false})
   _ref = React.createRef()
   _getRef = () => this._ref.current
+  _siteIcon = () => {
+    // on mobile use `Kb.RequireImage`, desktop a box with background-image
+    let child
+    if (Styles.isMobile) {
+      child = <Kb.RequireImage src={siteIconToNativeSrcSet(this.props.siteIcon)} style={styles.siteIcon} />
+    } else {
+      const Container = this.props.isSuggestion ? HoverOpacity : Kb.Box
+      child = (
+        <Container
+          style={Styles.collapseStyles([
+            styles.siteIcon,
+            {
+              backgroundImage: siteIconToSrcSet(this.props.siteIcon),
+            },
+          ])}
+        />
+      )
+    }
+    return (
+      <Kb.ClickableBox
+        onClick={this.props.onCreateProof || this.props.onShowProof}
+        style={this.props.isSuggestion ? styles.halfOpacity : null}
+      >
+        {child}
+      </Kb.ClickableBox>
+    )
+  }
   render() {
     const p = this.props
     const {header, items} = getMenu(p)
@@ -300,11 +343,7 @@ class Assertion extends React.PureComponent<Props, State> {
           gapStart={true}
           gapEnd={true}
         >
-          <Kb.Icon
-            type={siteIcon(p.type)}
-            onClick={p.onCreateProof || p.onShowSite}
-            color={p.isSuggestion ? Styles.globalColors.black_50 : Styles.globalColors.black}
-          />
+          {this._siteIcon()}
           <Kb.Text type="Body" style={styles.textContainer}>
             <Value {...p} />
             {!p.isSuggestion && (
@@ -365,6 +404,9 @@ const styles = Styles.styleSheetCreate({
     maxWidth: 240,
     minWidth: 196,
   },
+  halfOpacity: Styles.platformStyles({
+    isMobile: {opacity: 0.5}, // desktop is handled by emotion
+  }),
   menuHeader: {
     borderBottomColor: Styles.globalColors.black_10,
     borderBottomWidth: 1,
@@ -373,6 +415,7 @@ const styles = Styles.styleSheetCreate({
   },
   metaContainer: {flexShrink: 0, paddingLeft: 20 + Styles.globalMargins.tiny * 2 - 4}, // icon spacing plus meta has 2 padding for some reason
   site: {color: Styles.globalColors.black_20},
+  siteIcon: {flexShrink: 0, height: 16, width: 16},
   stateIcon: {height: 17},
   strikeThrough: {textDecorationLine: 'line-through'},
   textContainer: {flexGrow: 1, flexShrink: 1, marginTop: -1},

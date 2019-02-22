@@ -412,8 +412,9 @@ func (d DummyCoinFlipManager) Stop(ctx context.Context) chan struct{} {
 func (d DummyCoinFlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID, tlfName, text string) error {
 	return nil
 }
-func (d DummyCoinFlipManager) MaybeInjectFlipMessage(ctx context.Context, msg chat1.MessageUnboxed,
-	convID chat1.ConversationID, topicType chat1.TopicType) {
+func (d DummyCoinFlipManager) MaybeInjectFlipMessage(ctx context.Context, boxedMsg chat1.MessageBoxed,
+	inboxVers chat1.InboxVers, uid gregor1.UID, convID chat1.ConversationID, topicType chat1.TopicType) bool {
+	return false
 }
 
 func (d DummyCoinFlipManager) LoadFlip(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,

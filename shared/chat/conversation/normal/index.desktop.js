@@ -124,7 +124,9 @@ class Conversation extends React.PureComponent<Props, State> {
         <ListArea
           isPending={this.props.isPending}
           onFocusInput={this.props.onFocusInput}
+          scrollListBottomCounter={this.props.scrollListBottomCounter}
           scrollListDownCounter={this.props.scrollListDownCounter}
+          scrollListTopCounter={this.props.scrollListTopCounter}
           scrollListUpCounter={this.props.scrollListUpCounter}
           conversationIDKey={this.props.conversationIDKey}
         />
@@ -133,7 +135,9 @@ class Conversation extends React.PureComponent<Props, State> {
         <InputArea
           isPending={this.props.isPending}
           focusInputCounter={this.props.focusInputCounter}
+          onRequestScrollBottom={this.props.onRequestScrollBottom}
           onRequestScrollDown={this.props.onRequestScrollDown}
+          onRequestScrollTop={this.props.onRequestScrollTop}
           onRequestScrollUp={this.props.onRequestScrollUp}
           conversationIDKey={this.props.conversationIDKey}
         />

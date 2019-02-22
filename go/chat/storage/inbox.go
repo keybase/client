@@ -813,9 +813,9 @@ func (i *Inbox) handleVersion(ctx context.Context, ourvers chat1.InboxVers, upda
 
 func (i *Inbox) NewConversation(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	conv chat1.Conversation) (err Error) {
+	defer i.Trace(ctx, func() error { return err }, "NewConversation")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
-	defer i.Trace(ctx, func() error { return err }, "NewConversation")()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 
 	i.Debug(ctx, "NewConversation: vers: %d convID: %s", vers, conv.GetConvID())
@@ -920,11 +920,31 @@ func (i *Inbox) promoteWriter(ctx context.Context, sender gregor1.UID, writers [
 	return res
 }
 
-func (i *Inbox) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
-	convID chat1.ConversationID, msg chat1.MessageBoxed, maxMsgs []chat1.MessageSummary) (err Error) {
+func (i *Inbox) UpdateInboxVersion(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers) (err Error) {
+	defer i.Trace(ctx, func() error { return err }, "UpdateInboxVersion")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
+	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
+	ibox, err := i.readDiskInbox(ctx, uid, true)
+	if err != nil {
+		if _, ok := err.(MissError); ok {
+			return nil
+		}
+		return err
+	}
+	var cont bool
+	if vers, cont, err = i.handleVersion(ctx, ibox.InboxVersion, vers); !cont {
+		return err
+	}
+	ibox.InboxVersion = vers
+	return i.writeDiskInbox(ctx, uid, ibox)
+}
+
+func (i *Inbox) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
+	convID chat1.ConversationID, msg chat1.MessageBoxed, maxMsgs []chat1.MessageSummary) (err Error) {
 	defer i.Trace(ctx, func() error { return err }, "NewMessage")()
+	locks.Inbox.Lock()
+	defer locks.Inbox.Unlock()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 
 	i.Debug(ctx, "NewMessage: vers: %d convID: %s", vers, convID)
@@ -1017,9 +1037,9 @@ func (i *Inbox) NewMessage(ctx context.Context, uid gregor1.UID, vers chat1.Inbo
 
 func (i *Inbox) ReadMessage(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	convID chat1.ConversationID, msgID chat1.MessageID) (err Error) {
+	defer i.Trace(ctx, func() error { return err }, "ReadMessage")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
-	defer i.Trace(ctx, func() error { return err }, "ReadMessage")()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 
 	i.Debug(ctx, "ReadMessage: vers: %d convID: %s", vers, convID)
@@ -1060,9 +1080,9 @@ func (i *Inbox) ReadMessage(ctx context.Context, uid gregor1.UID, vers chat1.Inb
 
 func (i *Inbox) SetStatus(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	convID chat1.ConversationID, status chat1.ConversationStatus) (err Error) {
+	defer i.Trace(ctx, func() error { return err }, "SetStatus")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
-	defer i.Trace(ctx, func() error { return err }, "SetStatus")()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 
 	i.Debug(ctx, "SetStatus: vers: %d convID: %s", vers, convID)
@@ -1098,9 +1118,9 @@ func (i *Inbox) SetStatus(ctx context.Context, uid gregor1.UID, vers chat1.Inbox
 
 func (i *Inbox) SetAppNotificationSettings(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	convID chat1.ConversationID, settings chat1.ConversationNotificationInfo) (err Error) {
+	defer i.Trace(ctx, func() error { return err }, "SetAppNotificationSettings")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
-	defer i.Trace(ctx, func() error { return err }, "SetAppNotificationSettings")()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 
 	i.Debug(ctx, "SetAppNotificationSettings: vers: %d convID: %s", vers, convID)
@@ -1141,9 +1161,9 @@ func (i *Inbox) SetAppNotificationSettings(ctx context.Context, uid gregor1.UID,
 // Does not delete any messages. Relies on separate server mechanism to delete clear max messages.
 func (i *Inbox) Expunge(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	convID chat1.ConversationID, expunge chat1.Expunge, maxMsgs []chat1.MessageSummary) (err Error) {
+	defer i.Trace(ctx, func() error { return err }, "Expunge")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
-	defer i.Trace(ctx, func() error { return err }, "Expunge")()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 
 	i.Debug(ctx, "Expunge: vers: %d convID: %s", vers, convID)
@@ -1186,9 +1206,9 @@ func (i *Inbox) Expunge(ctx context.Context, uid gregor1.UID, vers chat1.InboxVe
 
 func (i *Inbox) SubteamRename(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	convIDs []chat1.ConversationID) (err Error) {
+	defer i.Trace(ctx, func() error { return err }, "SubteamRename")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
-	defer i.Trace(ctx, func() error { return err }, "SubteamRename")()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 
 	i.Debug(ctx, "SubteamRename: vers: %d convIDs: %d", vers, len(convIDs))
@@ -1222,9 +1242,9 @@ func (i *Inbox) SubteamRename(ctx context.Context, uid gregor1.UID, vers chat1.I
 
 func (i *Inbox) SetConvRetention(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	convID chat1.ConversationID, policy chat1.RetentionPolicy) (err Error) {
+	defer i.Trace(ctx, func() error { return err }, "SetConvRetention")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
-	defer i.Trace(ctx, func() error { return err }, "SetConvRetention")()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 
 	i.Debug(ctx, "SetConvRetention: vers: %d convID: %s", vers, convID)
@@ -1258,9 +1278,9 @@ func (i *Inbox) SetConvRetention(ctx context.Context, uid gregor1.UID, vers chat
 // Update any local conversations with this team ID.
 func (i *Inbox) SetTeamRetention(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	teamID keybase1.TeamID, policy chat1.RetentionPolicy) (res []chat1.ConversationID, err Error) {
+	defer i.Trace(ctx, func() error { return err }, "SetTeamRetention")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
-	defer i.Trace(ctx, func() error { return err }, "SetTeamRetention")()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 
 	i.Debug(ctx, "SetTeamRetention: vers: %d teamID: %s", vers, teamID)
@@ -1296,9 +1316,9 @@ func (i *Inbox) SetTeamRetention(ctx context.Context, uid gregor1.UID, vers chat
 
 func (i *Inbox) SetConvSettings(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	convID chat1.ConversationID, convSettings *chat1.ConversationSettings) (err Error) {
+	defer i.Trace(ctx, func() error { return err }, "SetConvSettings")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
-	defer i.Trace(ctx, func() error { return err }, "SetConvSettings")()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 
 	i.Debug(ctx, "SetConvSettings: vers: %d convID: %s", vers, convID)
@@ -1331,9 +1351,9 @@ func (i *Inbox) SetConvSettings(ctx context.Context, uid gregor1.UID, vers chat1
 
 func (i *Inbox) UpgradeKBFSToImpteam(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	convID chat1.ConversationID) (err Error) {
+	defer i.Trace(ctx, func() error { return err }, "UpgradeKBFSToImpteam")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
-	defer i.Trace(ctx, func() error { return err }, "UpgradeKBFSToImpteam")()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 
 	i.Debug(ctx, "UpgradeKBFSToImpteam: vers: %d convID: %s", vers, convID)
@@ -1365,9 +1385,9 @@ func (i *Inbox) UpgradeKBFSToImpteam(ctx context.Context, uid gregor1.UID, vers 
 
 func (i *Inbox) TeamTypeChanged(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	convID chat1.ConversationID, teamType chat1.TeamType, notifInfo *chat1.ConversationNotificationInfo) (err Error) {
+	defer i.Trace(ctx, func() error { return err }, "TeamTypeChanged")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
-	defer i.Trace(ctx, func() error { return err }, "TeamTypeChanged")()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 
 	i.Debug(ctx, "TeamTypeChanged: vers: %d convID: %s typ: %v", vers, convID, teamType)
@@ -1401,9 +1421,9 @@ func (i *Inbox) TeamTypeChanged(ctx context.Context, uid gregor1.UID, vers chat1
 
 func (i *Inbox) TlfFinalize(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	convIDs []chat1.ConversationID, finalizeInfo chat1.ConversationFinalizeInfo) (err Error) {
+	defer i.Trace(ctx, func() error { return err }, "TlfFinalize")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
-	defer i.Trace(ctx, func() error { return err }, "TlfFinalize")()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 
 	i.Debug(ctx, "TlfFinalize: vers: %d convIDs: %v finalizeInfo: %v", vers, convIDs, finalizeInfo)
@@ -1439,9 +1459,9 @@ func (i *Inbox) TlfFinalize(ctx context.Context, uid gregor1.UID, vers chat1.Inb
 }
 
 func (i *Inbox) Version(ctx context.Context, uid gregor1.UID) (vers chat1.InboxVers, err Error) {
+	defer i.Trace(ctx, func() error { return err }, "Version")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
-	defer i.Trace(ctx, func() error { return err }, "Version")()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 
 	ibox, err := i.readDiskInbox(ctx, uid, true)
@@ -1454,9 +1474,9 @@ func (i *Inbox) Version(ctx context.Context, uid gregor1.UID) (vers chat1.InboxV
 }
 
 func (i *Inbox) ServerVersion(ctx context.Context, uid gregor1.UID) (vers int, err Error) {
+	defer i.Trace(ctx, func() error { return err }, "ServerVersion")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
-	defer i.Trace(ctx, func() error { return err }, "ServerVersion")()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 
 	ibox, err := i.readDiskInbox(ctx, uid, true)
@@ -1494,9 +1514,9 @@ func (i *Inbox) topicNameChanged(ctx context.Context, oldConv, newConv chat1.Con
 }
 
 func (i *Inbox) Sync(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convs []chat1.Conversation) (res InboxSyncRes, err Error) {
+	defer i.Trace(ctx, func() error { return err }, "Sync")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
-	defer i.Trace(ctx, func() error { return err }, "Sync")()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 
 	ibox, err := i.readDiskInbox(ctx, uid, true)
@@ -1565,9 +1585,9 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 	userJoined []chat1.Conversation, userRemoved []chat1.ConversationMember,
 	othersJoined []chat1.ConversationMember, othersRemoved []chat1.ConversationMember,
 	userReset []chat1.ConversationMember, othersReset []chat1.ConversationMember) (err Error) {
+	defer i.Trace(ctx, func() error { return err }, "MembershipUpdate")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
-	defer i.Trace(ctx, func() error { return err }, "MembershipUpdate")()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 
 	i.Debug(ctx, "MembershipUpdate: updating userJoined: %d userRemoved: %d othersJoined: %d othersRemoved: %d",
@@ -1678,9 +1698,9 @@ func (i *Inbox) MembershipUpdate(ctx context.Context, uid gregor1.UID, vers chat
 
 func (i *Inbox) ConversationsUpdate(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers,
 	convUpdates []chat1.ConversationUpdate) (err Error) {
+	defer i.Trace(ctx, func() error { return err }, "ConversationsUpdate")()
 	locks.Inbox.Lock()
 	defer locks.Inbox.Unlock()
-	defer i.Trace(ctx, func() error { return err }, "ConversationsUpdate")()
 	defer i.maybeNukeFn(func() Error { return err }, i.dbKey(uid))
 
 	i.Debug(ctx, "ConversationsUpdate: updating %d convs", len(convUpdates))

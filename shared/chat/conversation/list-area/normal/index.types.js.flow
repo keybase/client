@@ -11,6 +11,8 @@ export type Props = {|
   editingOrdinal: ?Types.Ordinal,
   lastMessageIsOurs: boolean,
   lastLoadMoreOrdinal: ?Types.Ordinal,
+  scrollListBottomCounter: number,
   scrollListDownCounter: number,
+  scrollListTopCounter: number,
   scrollListUpCounter: number,
 |}

@@ -1,6 +1,8 @@
 // @flow
+import * as React from 'react'
 import {namedConnect} from '../../util/container'
-import SortBar from './sortbar'
+import * as RowTypes from '../row/types'
+import SortBar, {height} from './sortbar'
 import * as I from 'immutable'
 import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
@@ -29,6 +31,23 @@ const mergeProps = ({sortSetting, _loadingPaths}, {sortSettingToAction}, {path}:
   sortSettingToAction,
 })
 
-export default namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'SortBar')(
-  SortBar
-)
+const ConnectedSortBar = namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'SortBar'
+)(SortBar)
+
+export default ConnectedSortBar
+
+export const asRows = (path: Types.Path): Array<RowTypes.RowItemWithKey> =>
+  Types.getPathLevel(path) !== 1
+    ? [
+        {
+          height,
+          key: 'sort-bar',
+          node: <ConnectedSortBar path={path} />,
+          rowType: 'header',
+        },
+      ]
+    : []

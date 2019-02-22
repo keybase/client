@@ -72,7 +72,12 @@ const followToArray = memoize((followers, following) => ({
 }))
 
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
-  assertionKeys: stateProps._assertions ? stateProps._assertions.keySeq().toArray() : null,
+  assertionKeys: stateProps._assertions
+    ? stateProps._assertions
+        .sort((a, b) => a.priority - b.priority)
+        .keySeq()
+        .toArray()
+    : null,
   backgroundColorType: stateProps.backgroundColorType,
   followThem: stateProps.followThem,
   onBack: dispatchProps.onBack,
