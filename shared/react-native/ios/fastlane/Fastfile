@@ -30,8 +30,14 @@ platform :ios do
       build_number: latest_testflight_build_number(version: version) + 4
     })
 
-    sigh(app_identifier: "keybase.ios")
-    sigh(app_identifier: "keybase.ios.KeybaseShare")
+    sigh(
+        app_identifier: "keybase.ios"
+        output_path: "~/.sigh"
+        )
+    sigh(
+        app_identifier: "keybase.ios.KeybaseShare"
+        output_path: "~/.sigh"
+    )
     gym(scheme: "Keybase") # Build your app - more options available
     pilot(
         changelog: changelog_from_git_commits(
