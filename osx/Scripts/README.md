@@ -22,8 +22,14 @@ sudo xcode-select -s /Applications/Xcode8.app/Contents/Developer
 ```
 
 Install the developer certificate chain by cloning the
-`keybase://team/keybase.keymasters/apple-dev` repo, and installing
-`keybase-cert.p12` (there's a cert.pw file in the same directory).
+`keybase://team/keybase.keymasters/apple-dev` repo, and installing the
+cert with `open keybase-cert.p12` (there's a cert.pw file in the same
+directory).
+
+Depending on your local xcode settings, you might also need to install
+the old developer cert, located in `keybase-dev-cert.p12`.  This won't
+be used to sign the final product, but it might be need for some of
+the interim steps, if your xcode setup pre-dates the new certificate.
 
 Open Xcode 8, go to "Xcode -> Preferences...", go to the "Accounts"
 tab, and click the + to "Add Apple ID...". Enter the gmail address

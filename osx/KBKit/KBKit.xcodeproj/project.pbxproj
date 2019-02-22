@@ -1599,9 +1599,11 @@
 				TargetAttributes = {
 					00010B0B1BE19F2100A9C285 = {
 						CreatedOnToolsVersion = 7.1;
+						DevelopmentTeam = 99229SGT5K;
 					};
 					00010B151BE19F2100A9C285 = {
 						CreatedOnToolsVersion = 7.1;
+						DevelopmentTeam = 99229SGT5K;
 					};
 				};
 			};
@@ -1973,8 +1975,10 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 479C84E44E80724FA433EBC6 /* Pods-KBKit.debug.xcconfig */;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "Developer ID Application: Keybase, Inc. (99229SGT5K)";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = 99229SGT5K;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -1992,8 +1996,10 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 09A69C34EE77C4A0563C93F3 /* Pods-KBKit.release.xcconfig */;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "Developer ID Application: Keybase, Inc. (99229SGT5K)";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = 99229SGT5K;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
@@ -2010,7 +2016,9 @@
 		00010B241BE19F2100A9C285 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "Developer ID Application: Keybase, Inc. (99229SGT5K)";
 				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 99229SGT5K;
 				INFOPLIST_FILE = KBKitTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = keybase.KBKitTests;
@@ -2021,7 +2029,9 @@
 		00010B251BE19F2100A9C285 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "Developer ID Application: Keybase, Inc. (99229SGT5K)";
 				COMBINE_HIDPI_IMAGES = YES;
+				DEVELOPMENT_TEAM = 99229SGT5K;
 				INFOPLIST_FILE = KBKitTests/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = keybase.KBKitTests;
