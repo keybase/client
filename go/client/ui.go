@@ -58,10 +58,16 @@ type BaseIdentifyUI struct {
 
 type identifyJSON struct {
 	Username         string                    `json:"username"`
+	LastTrack        *identifyJSONLastTrack    `json:"lastTrack"`
 	Cryptocurrencies []keybase1.Cryptocurrency `json:"cryptocurrencies"`
 	Stellar          *keybase1.StellarAccount  `json:"stellar"`
 	IdentifyKey      *keybase1.IdentifyKey     `json:"identifyKey"`
 	Proofs           []identifyJSONProofPair   `json:"proofs"`
+}
+
+type identifyJSONLastTrack struct {
+	Remote bool      `json:"remote"`
+	Time   time.Time `json:"time"`
 }
 
 type identifyJSONProofPair struct {
@@ -622,6 +628,14 @@ func (ui *BaseIdentifyUI) DisplayKey(key keybase1.IdentifyKey) error {
 
 func (ui *BaseIdentifyUI) ReportLastTrack(tl *keybase1.TrackSummary) error {
 	if t := libkb.ImportTrackSummary(tl); t != nil {
+		if ui.parent.json {
+			ui.jsonState.LastTrack = &identifyJSONLastTrack{
+				Remote: t.IsRemote(),
+				Time:   t.GetCTime(),
+			}
+			return nil
+		}
+
 		locally := ""
 		if !t.IsRemote() {
 			locally += "locally "
