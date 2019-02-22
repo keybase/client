@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/offline"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
@@ -132,7 +133,7 @@ func (h *KBFSHandler) GetKBFSTeamSettings(ctx context.Context, arg keybase1.GetK
 		}
 		return tmp, err
 	}
-	err = h.service.offlineRPCCache.Serve(mctx, arg.Oa, "kbfs.getKBFSTeamSettings", false, arg, retp, loader)
+	err = h.service.offlineRPCCache.Serve(mctx, arg.Oa, offline.Version(1), "kbfs.getKBFSTeamSettings", false, arg, retp, loader)
 	return ret, err
 }
 
