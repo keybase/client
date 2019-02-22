@@ -84,6 +84,12 @@ class _PlatformInput extends React.Component<PlatformInputPropsInternal, State> 
     } else if (e.key === 'PageUp') {
       this.props.onRequestScrollUp()
       return true
+    } else if (e.key === 'Home') {
+      this.props.onRequestScrollTop()
+      return true
+    } else if (e.key === 'End') {
+      this.props.onRequestScrollBottom()
+      return true
     }
 
     return false
