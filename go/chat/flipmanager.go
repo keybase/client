@@ -702,6 +702,7 @@ func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, boxedMsg chat1
 	msg, err := NewBoxer(m.G()).UnboxMessage(ctx, boxedMsg, conv.Conv, nil)
 	if err != nil {
 		m.Debug(ctx, "MaybeInjectFlipMessage: failed to unbox: %s", err)
+		return true
 	}
 	if err := storage.New(m.G(), nil).SetMaxMsgID(ctx, convID, uid, msg.GetMessageID()); err != nil {
 		m.Debug(ctx, "MaybeInjectFlipMessage: failed to write max msgid: %s", err)
