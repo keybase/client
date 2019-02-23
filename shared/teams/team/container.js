@@ -80,7 +80,7 @@ class Reloadable extends React.PureComponent<{
   render() {
     return (
       <Kb.Reloadable
-        waitingKeys={Constants.teamWaitingKey(this.props.teamname)}
+        waitingKeys={Constants.teamGetWaitingKey(this.props.teamname)}
         onReload={this.props._load}
         reloadOnMount={true}
       >

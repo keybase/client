@@ -529,7 +529,7 @@ function* getDetails(_, action) {
       {
         name: teamname,
       },
-      Constants.teamWaitingKey(teamname)
+      [Constants.teamWaitingKey(teamname), Constants.teamGetWaitingKey(teamname)]
     )
 
     // Don't allow the none default

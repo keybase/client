@@ -21,6 +21,7 @@ export const rpcMemberStatusToStatus = invert(RPCTypes.teamsTeamMemberStatus)
 export const teamsLoadedWaitingKey = 'teams:loaded'
 export const teamsAccessRequestWaitingKey = 'teams:accessRequests'
 export const teamWaitingKey = (teamname: Types.Teamname) => `team:${teamname}`
+export const teamGetWaitingKey = (teamname: Types.Teamname) => `teamGet:${teamname}`
 export const teamTarsWaitingKey = (teamname: Types.Teamname) => `teamTars:${teamname}`
 export const teamCreationWaitingKey = 'teamCreate'
 
