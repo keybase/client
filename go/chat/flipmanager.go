@@ -957,6 +957,28 @@ func (v *FlipVisualizer) fillRow(img *image.NRGBA, startY, cellHeight, cellWidth
 	}
 }
 
+func (v *FlipVisualizer) getHeights(numParts int) (res []int) {
+	res = make([]int, numParts)
+	rawHeight := float64(v.height) / float64(numParts)
+	floor := int(math.Floor(rawHeight))
+	ceil := int(math.Ceil(rawHeight))
+	if ceil == 1 {
+		for i := range res {
+			res[i] = 1
+		}
+		return res
+	}
+	for i := range res {
+		res[i] = floor
+	}
+	floorTotal := numParts * floor
+	shortFall := v.height - floorTotal
+	for i := 0; i < shortFall; i++ {
+		res[i] = ceil
+	}
+	return res
+}
+
 func (v *FlipVisualizer) Visualize(status *chat1.UICoinFlipStatus) {
 	numParts := len(status.Participants)
 	if numParts == 0 {
@@ -964,20 +986,18 @@ func (v *FlipVisualizer) Visualize(status *chat1.UICoinFlipStatus) {
 	}
 	commitmentImg := image.NewNRGBA(image.Rect(0, 0, v.width, v.height))
 	secretImg := image.NewNRGBA(image.Rect(0, 0, v.width, v.height))
-	cellHeight := int(math.Round(float64(v.height) / float64(numParts)))
 	cellWidth := v.width / 32
+	heights := v.getHeights(numParts)
+	startY := 0
 	for index, p := range status.Participants {
-		height := cellHeight
-		startY := index * cellHeight
-		if index == numParts-1 {
-			height = v.height - startY
-		}
+		height := heights[index]
 		if p.Reveal != nil {
 			v.fillRow(commitmentImg, startY, height, cellWidth, p.Commitment, v.commitmentMatchColors)
 			v.fillRow(secretImg, startY, height, cellWidth, *p.Reveal, v.secretColors)
 		} else {
 			v.fillRow(commitmentImg, startY, height, cellWidth, p.Commitment, v.commitmentColors)
 		}
+		startY += height
 	}
 	var commitmentBuf, secretBuf bytes.Buffer
 	png.Encode(&commitmentBuf, commitmentImg)
