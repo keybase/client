@@ -31,6 +31,7 @@ export type Props = {|
   reason: string,
   state: Types.DetailsState,
   suggestionKeys: ?Array<string>,
+  userIsYou: boolean,
   username: string,
 |}
 
@@ -334,7 +335,9 @@ class User extends React.Component<Props, State> {
     let chunks = this.state.width ? chunk(friends, itemsInARow) : []
     if (chunks.length === 0 && this.props.followingCount !== null && this.props.followingCount !== null) {
       chunks.push({
-        text: this.state.selectedFollowing ? 'You are not following anyone.' : 'You have no followers.',
+        text: this.state.selectedFollowing
+          ? `${this.props.userIsYou ? 'You are' : `${this.props.username} is`} not following anyone.`
+          : `${this.props.userIsYou ? 'You have' : `${this.props.username} has`} no followers.`,
         type: 'noFriends',
       })
     }
@@ -525,8 +528,8 @@ const styles = Styles.styleSheetCreate({
     paddingBottom: Styles.globalMargins.small,
   },
   textEmpty: {
-    paddingBottom: Styles.globalMargins.small,
-    paddingTop: Styles.globalMargins.small,
+    paddingBottom: Styles.globalMargins.large,
+    paddingTop: Styles.globalMargins.large,
   },
   typedBackgroundBlue: {backgroundColor: Styles.globalColors.blue},
   typedBackgroundGreen: {backgroundColor: Styles.globalColors.green},
