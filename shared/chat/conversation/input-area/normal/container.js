@@ -11,9 +11,7 @@ import Input, {type Props} from '.'
 type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
   focusInputCounter: number,
-  onRequestScrollBottom: () => void,
   onRequestScrollDown: () => void,
-  onRequestScrollTop: () => void,
   onRequestScrollUp: () => void,
 }
 
@@ -125,9 +123,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps): Props => ({
   onCancelEditing: () => dispatchProps._onCancelEditing(stateProps.conversationIDKey),
   onEditLastMessage: () => dispatchProps._onEditLastMessage(stateProps.conversationIDKey, stateProps._you),
   onFilePickerError: dispatchProps.onFilePickerError,
-  onRequestScrollBottom: ownProps.onRequestScrollBottom,
   onRequestScrollDown: ownProps.onRequestScrollDown,
-  onRequestScrollTop: ownProps.onRequestScrollTop,
   onRequestScrollUp: ownProps.onRequestScrollUp,
   onSubmit: (text: string) => {
     if (stateProps._editOrdinal) {
