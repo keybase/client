@@ -1079,6 +1079,14 @@
           "name": "resultText"
         },
         {
+          "type": "string",
+          "name": "commitmentVisualization"
+        },
+        {
+          "type": "string",
+          "name": "revealVisualization"
+        },
+        {
           "type": {
             "type": "array",
             "items": "UICoinFlipParticipant"

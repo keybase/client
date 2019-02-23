@@ -6,6 +6,8 @@ import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import CoinFlipParticipants from './participants'
 
 export type Props = {|
+  commitmentVis: string,
+  revealVis: string,
   progressText: string,
   resultText: string,
   isError: boolean,
@@ -29,6 +31,13 @@ class CoinFlip extends React.Component<Props, State> {
   _getAttachmentRef = () => {
     return this._partRef.current
   }
+  _revealSummary = () => {
+    const total = this.props.participants.length
+    const revealed = this.props.participants.reduce((r, p) => {
+      return r + (p.reveal ? 1 : 0)
+    }, 0)
+    return `${revealed} / ${total}`
+  }
   render() {
     const popup = (
       <CoinFlipParticipants
@@ -38,16 +47,19 @@ class CoinFlip extends React.Component<Props, State> {
         visible={this.state.showPopup}
       />
     )
+    const commitSrc = `data:image/png;base64, ${this.props.commitmentVis}`
+    const revealSrc = `data:image/png;base64, ${this.props.revealVis}`
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} gap="tiny">
-        <Kb.Box2 direction="vertical" fullWidth={true}>
-          <Kb.Text type="BodySmall">Progress</Kb.Text>
-          <Kb.Text
-            type="BodyItalic"
-            style={Styles.collapseStyles([styles.progress, this.props.isError ? styles.error : null])}
-          >
-            {this.props.progressText}
-          </Kb.Text>
+        <Kb.Box2 direction="horizontal" fullWidth={true} gap="small">
+          <Kb.Box2 direction="vertical">
+            <Kb.Text type="BodySmall">Commitments: {this.props.participants.length}</Kb.Text>
+            <img src={commitSrc} width="128" height="50" />
+          </Kb.Box2>
+          <Kb.Box2 direction="vertical">
+            <Kb.Text type="BodySmall">Reveals: {this._revealSummary()}</Kb.Text>
+            <img src={revealSrc} width="128" height="50" />
+          </Kb.Box2>
         </Kb.Box2>
         <Kb.Box2 direction="vertical" fullWidth={true}>
           <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
