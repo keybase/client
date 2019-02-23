@@ -2444,7 +2444,8 @@ func (cr *ConflictResolver) doOneAction(
 					}
 					uDir = cr.fbo.blocks.newDirDataWithDBMLocked(
 						lState, newPath, chargedTo,
-						mergedChains.mostRecentChainMDInfo, nil)
+						mergedChains.mostRecentChainMDInfo,
+						newDirBlockMapMemory())
 				}
 			}
 
@@ -3622,8 +3623,6 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	// "unmerged" ops need to be pushed as part of the MD update,
 	// while the "merged" ops need to be applied locally.
 
-	// dbm contains the modified directory blocks we need to sync
-	dbm := newDirBlockMapMemory()
 	// newFileBlocks contains the copies of the file blocks we need to
 	// sync.  If a block is indirect, we need to put it and add new
 	// references for all indirect pointers inside it.  If it is not
@@ -3639,6 +3638,8 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 		cr.config, dbc, mergedChains.mostRecentChainMDInfo, cr.fbo.branch())
 	newFileBlocks := newFileBlockMapDisk(
 		dirtyBcache, mergedChains.mostRecentChainMDInfo)
+	// dbm contains the modified directory blocks we need to sync
+	dbm := newDirBlockMapDisk(dirtyBcache, mergedChains.mostRecentChainMDInfo)
 
 	err = cr.doActions(ctx, lState, unmergedChains, mergedChains,
 		unmergedPaths, mergedPaths, actionMap, dbm, newFileBlocks, dirtyBcache)
