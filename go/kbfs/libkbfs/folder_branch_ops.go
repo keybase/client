@@ -3179,8 +3179,6 @@ func (fbo *folderBranchOps) GetNodeMetadata(ctx context.Context, node Node) (
 	return res, nil
 }
 
-type localBcache map[BlockPointer]*DirBlock
-
 // Returns whether the given error is one that shouldn't block the
 // removal of a file or directory.
 //
@@ -5208,7 +5206,7 @@ func (fbo *folderBranchOps) syncAllLocked(
 
 	bps := newBlockPutStateMemory(0)
 	resolvedPaths := make(map[BlockPointer]path)
-	lbc := make(localBcache)
+	dbm := newDirBlockMapMemory()
 
 	var cleanups []func(context.Context, *lockState, error)
 	defer func() {
@@ -5240,23 +5238,33 @@ func (fbo *folderBranchOps) syncAllLocked(
 			return err
 		}
 
-		lbc[dir.tailPointer()] = dblock
+		err = dbm.putBlock(ctx, dir.tailPointer(), dblock)
+		if err != nil {
+			return err
+		}
 		if !fbo.nodeCache.IsUnlinked(node) {
 			resolvedPaths[dir.tailPointer()] = dir
 		}
 
 		// Add the parent directory of this dirty directory to the
-		// `lbc`, to reflect the updated mtime/ctimes of the dirty
+		// `dbm`, to reflect the updated mtime/ctimes of the dirty
 		// directory.
 		if dir.hasValidParent() {
 			parentPath := dir.parentPath()
-			if _, ok := lbc[parentPath.tailPointer()]; !ok {
+			hasBlock, err := dbm.hasBlock(ctx, parentPath.tailPointer())
+			if err != nil {
+				return err
+			}
+			if !hasBlock {
 				parentBlock, err := fbo.blocks.GetDirtyDirCopy(
 					ctx, lState, md, *parentPath, blockWrite)
 				if err != nil {
 					return err
 				}
-				lbc[parentPath.tailPointer()] = parentBlock
+				err = dbm.putBlock(ctx, parentPath.tailPointer(), parentBlock)
+				if err != nil {
+					return err
+				}
 			}
 		}
 
@@ -5325,10 +5333,19 @@ func (fbo *folderBranchOps) syncAllLocked(
 				continue
 			}
 
-			dblock, ok := lbc[newPointer]
-			if !ok {
+			hasBlock, err := dbm.hasBlock(ctx, newPointer)
+			if err != nil {
+				return err
+			}
+			var dblock *DirBlock
+			if hasBlock {
+				dblock, err = dbm.getBlock(ctx, newPointer)
+				if err != nil {
+					return err
+				}
+			} else {
 				// New directories that aren't otherwise dirty need to
-				// be added to both the `lbc` and `resolvedPaths` so
+				// be added to both the `dbm` and `resolvedPaths` so
 				// they are properly synced, and removed from the
 				// dirty block list.
 				dblock, err = fbo.blocks.GetDirtyDirCopy(
@@ -5336,7 +5353,10 @@ func (fbo *folderBranchOps) syncAllLocked(
 				if err != nil {
 					return err
 				}
-				lbc[newPointer] = dblock
+				err = dbm.putBlock(ctx, newPointer, dblock)
+				if err != nil {
+					return err
+				}
 				if !fbo.nodeCache.IsUnlinked(newNode) {
 					resolvedPaths[newPointer] = newPath
 				}
@@ -5473,8 +5493,8 @@ func (fbo *folderBranchOps) syncAllLocked(
 		// Update the combined local block cache with this file's
 		// dirty entry.
 		if dirtyDe != nil {
-			fbo.blocks.mergeDirtyEntryWithLBC(
-				ctx, lState, file, md, lbc, *dirtyDe)
+			fbo.blocks.mergeDirtyEntryWithDBM(
+				ctx, lState, file, md, dbm, *dirtyDe)
 		}
 	}
 
@@ -5514,7 +5534,7 @@ func (fbo *folderBranchOps) syncAllLocked(
 	md.AddOp(newResolutionOp())
 	_, blocksToDelete, err := fbo.prepper.prepUpdateForPaths(
 		ctx, lState, md, syncChains, dummyHeadChains, tempIRMD, head,
-		resolvedPaths, lbc, fileBlocks, fbo.config.DirtyBlockCache(), bps,
+		resolvedPaths, dbm, fileBlocks, fbo.config.DirtyBlockCache(), bps,
 		prepFolderDontCopyIndirectFileBlocks)
 	if err != nil {
 		return err
@@ -5576,7 +5596,7 @@ func (fbo *folderBranchOps) syncAllLocked(
 
 	// Set the root directory entry times to their updated values,
 	// since the prepper doesn't do it for blocks that aren't in the
-	// `lbc`.
+	// `dbm`.
 	md.data.Dir.Mtime = rootDe.Mtime
 	md.data.Dir.Ctime = rootDe.Ctime
 
