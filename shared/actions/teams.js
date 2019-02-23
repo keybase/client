@@ -523,13 +523,15 @@ function* getDetails(_, action) {
   yield Saga.put(TeamsGen.createGetTeamOperations({teamname}))
   yield Saga.put(TeamsGen.createGetTeamPublicity({teamname}))
 
+  const waitingKeys = [Constants.teamWaitingKey(teamname), Constants.teamGetWaitingKey(teamname)]
+
   try {
     const unsafeDetails: RPCTypes.TeamDetails = yield* Saga.callPromise(
       RPCTypes.teamsTeamGetRpcPromise,
       {
         name: teamname,
       },
-      [Constants.teamWaitingKey(teamname), Constants.teamGetWaitingKey(teamname)]
+      waitingKeys
     )
 
     // Don't allow the none default
@@ -554,7 +556,7 @@ function* getDetails(_, action) {
         {
           teamName: teamname,
         },
-        Constants.teamWaitingKey(teamname)
+        waitingKeys
       )
     }
 
@@ -626,7 +628,7 @@ function* getDetails(_, action) {
     const {entries} = yield* Saga.callPromise(
       RPCTypes.teamsTeamGetSubteamsRpcPromise,
       {name: {parts: teamname.split('.')}},
-      Constants.teamWaitingKey(teamname)
+      waitingKeys
     )
     const subteams = (entries || []).reduce((arr, {name}) => {
       name.parts && arr.push(name.parts.join('.'))
