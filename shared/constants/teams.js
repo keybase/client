@@ -25,6 +25,7 @@ export const teamGetWaitingKey = (teamname: Types.Teamname) => `teamGet:${teamna
 export const teamTarsWaitingKey = (teamname: Types.Teamname) => `teamTars:${teamname}`
 export const teamCreationWaitingKey = 'teamCreate'
 
+export const addPeopleToTeamWaitingKey = (teamname: Types.Teamname) => `teamAddPeople:${teamname}`
 export const addToTeamByEmailWaitingKey = (teamname: Types.Teamname) => `teamAddByEmail:${teamname}`
 export const getChannelsWaitingKey = (teamname: Types.Teamname) => `getChannels:${teamname}`
 export const createChannelWaitingKey = (teamname: Types.Teamname) => `createChannel:${teamname}`
