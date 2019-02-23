@@ -2314,7 +2314,7 @@ func (cr *ConflictResolver) doOneAction(
 	ctx context.Context, lState *lockState,
 	unmergedChains, mergedChains *crChains, unmergedPath path,
 	mergedPaths map[BlockPointer]path, chargedTo keybase1.UserOrTeamID,
-	actionMap map[BlockPointer]crActionList, lbc localBcache,
+	actionMap map[BlockPointer]crActionList, dbm dirBlockMap,
 	doneActions map[BlockPointer]bool, newFileBlocks fileBlockMap,
 	dirtyBcache DirtyBlockCacheSimple) error {
 	unmergedMostRecent := unmergedPath.tailPointer()
@@ -2350,9 +2350,9 @@ func (cr *ConflictResolver) doOneAction(
 	// and the subsequent `newDirData` calls can assume it's
 	// locked already.
 	var unmergedDir *dirData
-	unmergedDir, cleanupFn := cr.fbo.blocks.newDirDataWithLBC(
+	unmergedDir, cleanupFn := cr.fbo.blocks.newDirDataWithDBM(
 		lState, unmergedPath, chargedTo,
-		unmergedChains.mostRecentChainMDInfo, nil)
+		unmergedChains.mostRecentChainMDInfo, newDirBlockMapMemory())
 	defer cleanupFn()
 
 	if unmergedPath.tailPointer() == mergedPath.tailPointer() {
@@ -2362,25 +2362,35 @@ func (cr *ConflictResolver) doOneAction(
 		// want to preserve those.  Therefore, we don't want the
 		// unmerged block to remain in the local block cache.
 		// Below we'll replace it with a new one instead.
-		delete(lbc, unmergedPath.tailPointer())
+		err := dbm.deleteBlock(ctx, unmergedPath.tailPointer())
+		if err != nil {
+			return err
+		}
 		cr.log.CDebugf(ctx, "Removing block for %v from the local cache",
 			unmergedPath.tailPointer())
 	}
 
-	_, blockExists := lbc[mergedPath.tailPointer()]
+	blockExists, err := dbm.hasBlock(ctx, mergedPath.tailPointer())
+	if err != nil {
+		return err
+	}
 	// If this is a recreate op and we haven't yet made a new
 	// block for it, then make a new one and put it in the local
 	// block cache.
 	if mergedChains.isDeleted(mergedPath.tailPointer()) && !blockExists {
-		lbc[mergedPath.tailPointer()] = NewDirBlock().(*DirBlock)
+		err := dbm.putBlock(
+			ctx, mergedPath.tailPointer(), NewDirBlock().(*DirBlock))
+		if err != nil {
+			return err
+		}
 	}
-	mergedDir := cr.fbo.blocks.newDirDataWithLBCLocked(
+	mergedDir := cr.fbo.blocks.newDirDataWithDBMLocked(
 		lState, mergedPath, chargedTo,
-		mergedChains.mostRecentChainMDInfo, lbc)
-	// Force the top block into the `lbc`.  `folderUpdatePrepper`
+		mergedChains.mostRecentChainMDInfo, dbm)
+	// Force the top block into the `dbm`.  `folderUpdatePrepper`
 	// requires this, even if the block isn't modified, to
 	// distinguish it from a file block.
-	_, err := mergedDir.getTopBlock(ctx, blockWrite)
+	_, err = mergedDir.getTopBlock(ctx, blockWrite)
 	if err != nil {
 		return err
 	}
@@ -2424,7 +2434,7 @@ func (cr *ConflictResolver) doOneAction(
 					// Use the specified `dirData`, and supply a
 					// `nil` local block cache to ensure that a)
 					// only clean blocks are used, as blocks in
-					// the `lbc` might have already been touched
+					// the `dbm` might have already been touched
 					// by previous actions, and b) no new blocks
 					// are cached.
 					newPath := path{
@@ -2432,7 +2442,7 @@ func (cr *ConflictResolver) doOneAction(
 						path: []pathNode{{
 							newPtr, mergedPath.tailName()}},
 					}
-					uDir = cr.fbo.blocks.newDirDataWithLBCLocked(
+					uDir = cr.fbo.blocks.newDirDataWithDBMLocked(
 						lState, newPath, chargedTo,
 						mergedChains.mostRecentChainMDInfo, nil)
 				}
@@ -2474,7 +2484,7 @@ func (cr *ConflictResolver) doOneAction(
 func (cr *ConflictResolver) doActions(ctx context.Context,
 	lState *lockState, unmergedChains, mergedChains *crChains,
 	unmergedPaths []path, mergedPaths map[BlockPointer]path,
-	actionMap map[BlockPointer]crActionList, lbc localBcache,
+	actionMap map[BlockPointer]crActionList, dbm dirBlockMap,
 	newFileBlocks fileBlockMap, dirtyBcache DirtyBlockCacheSimple) error {
 	mergedMD := mergedChains.mostRecentChainMDInfo
 	chargedTo, err := chargedToForTLF(
@@ -2498,7 +2508,7 @@ func (cr *ConflictResolver) doActions(ctx context.Context,
 	for _, unmergedPath := range unmergedPaths {
 		err := cr.doOneAction(
 			ctx, lState, unmergedChains, mergedChains, unmergedPath,
-			mergedPaths, chargedTo, actionMap, lbc, doneActions, newFileBlocks,
+			mergedPaths, chargedTo, actionMap, dbm, doneActions, newFileBlocks,
 			dirtyBcache)
 		if err != nil {
 			return err
@@ -3072,7 +3082,7 @@ func (cr *ConflictResolver) completeResolution(ctx context.Context,
 	lState *lockState, unmergedChains, mergedChains *crChains,
 	unmergedPaths []path, mergedPaths map[BlockPointer]path,
 	mostRecentUnmergedMD, mostRecentMergedMD ImmutableRootMetadata,
-	lbc localBcache, newFileBlocks fileBlockMap,
+	dbm dirBlockMap, newFileBlocks fileBlockMap,
 	dirtyBcache DirtyBlockCacheSimple, bps blockPutState,
 	writerLocked bool) (err error) {
 	md, err := cr.createResolvedMD(
@@ -3122,7 +3132,7 @@ func (cr *ConflictResolver) completeResolution(ctx context.Context,
 
 	updates, blocksToDelete, err := cr.prepper.prepUpdateForPaths(
 		ctx, lState, md, unmergedChains, mergedChains,
-		mostRecentUnmergedMD, mostRecentMergedMD, resolvedPaths, lbc,
+		mostRecentUnmergedMD, mostRecentMergedMD, resolvedPaths, dbm,
 		newFileBlocks, dirtyBcache, bps, prepFolderCopyIndirectFileBlocks)
 	if err != nil {
 		return err
@@ -3532,12 +3542,12 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 		//
 		// nothing to do
 		cr.log.CDebugf(ctx, "No updates to resolve, so finishing")
-		lbc := make(localBcache)
+		dbm := newDirBlockMapMemory()
 		newFileBlocks := newFileBlockMapMemory()
 		bps := newBlockPutStateMemory(0)
 		err = cr.completeResolution(ctx, lState, unmergedChains,
 			mergedChains, unmergedPaths, mergedPaths,
-			unmergedMDs[len(unmergedMDs)-1], mostRecentMergedMD, lbc,
+			unmergedMDs[len(unmergedMDs)-1], mostRecentMergedMD, dbm,
 			newFileBlocks, nil, bps, doLock)
 		return
 	}
@@ -3612,8 +3622,8 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	// "unmerged" ops need to be pushed as part of the MD update,
 	// while the "merged" ops need to be applied locally.
 
-	// lbc contains the modified directory blocks we need to sync
-	lbc := make(localBcache)
+	// dbm contains the modified directory blocks we need to sync
+	dbm := newDirBlockMapMemory()
 	// newFileBlocks contains the copies of the file blocks we need to
 	// sync.  If a block is indirect, we need to put it and add new
 	// references for all indirect pointers inside it.  If it is not
@@ -3631,7 +3641,7 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 		dirtyBcache, mergedChains.mostRecentChainMDInfo)
 
 	err = cr.doActions(ctx, lState, unmergedChains, mergedChains,
-		unmergedPaths, mergedPaths, actionMap, lbc, newFileBlocks, dirtyBcache)
+		unmergedPaths, mergedPaths, actionMap, dbm, newFileBlocks, dirtyBcache)
 	if err != nil {
 		return
 	}
@@ -3641,7 +3651,7 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 		return
 	}
 	cr.log.CDebugf(ctx, "Executed all actions, %d updated directory blocks",
-		len(lbc))
+		dbm.numBlocks())
 
 	// Step 4: finish up by syncing all the blocks, computing and
 	// putting the final resolved MD, and issuing all the local
@@ -3650,7 +3660,7 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 		0, cr.config, dbc, mergedChains.mostRecentChainMDInfo)
 	err = cr.completeResolution(ctx, lState, unmergedChains, mergedChains,
 		unmergedPaths, mergedPaths, unmergedMDs[len(unmergedMDs)-1],
-		mostRecentMergedMD, lbc, newFileBlocks, dirtyBcache, bps, doLock)
+		mostRecentMergedMD, dbm, newFileBlocks, dirtyBcache, bps, doLock)
 	if err != nil {
 		return
 	}

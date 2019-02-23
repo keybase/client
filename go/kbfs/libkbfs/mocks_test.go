@@ -11420,3 +11420,84 @@ func (mr *MockfileBlockMapMockRecorder) getFilenames(ctx, parentPtr interface{})
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "getFilenames", reflect.TypeOf((*MockfileBlockMap)(nil).getFilenames), ctx, parentPtr)
 }
+
+// MockdirBlockMap is a mock of dirBlockMap interface
+type MockdirBlockMap struct {
+	ctrl     *gomock.Controller
+	recorder *MockdirBlockMapMockRecorder
+}
+
+// MockdirBlockMapMockRecorder is the mock recorder for MockdirBlockMap
+type MockdirBlockMapMockRecorder struct {
+	mock *MockdirBlockMap
+}
+
+// NewMockdirBlockMap creates a new mock instance
+func NewMockdirBlockMap(ctrl *gomock.Controller) *MockdirBlockMap {
+	mock := &MockdirBlockMap{ctrl: ctrl}
+	mock.recorder = &MockdirBlockMapMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockdirBlockMap) EXPECT() *MockdirBlockMapMockRecorder {
+	return m.recorder
+}
+
+// putBlock mocks base method
+func (m *MockdirBlockMap) putBlock(ctx context.Context, ptr BlockPointer, block *DirBlock) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "putBlock", ctx, ptr, block)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// putBlock indicates an expected call of putBlock
+func (mr *MockdirBlockMapMockRecorder) putBlock(ctx, ptr, block interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "putBlock", reflect.TypeOf((*MockdirBlockMap)(nil).putBlock), ctx, ptr, block)
+}
+
+// getBlock mocks base method
+func (m *MockdirBlockMap) getBlock(ctx context.Context, ptr BlockPointer) (*DirBlock, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "getBlock", ctx, ptr)
+	ret0, _ := ret[0].(*DirBlock)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// getBlock indicates an expected call of getBlock
+func (mr *MockdirBlockMapMockRecorder) getBlock(ctx, ptr interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "getBlock", reflect.TypeOf((*MockdirBlockMap)(nil).getBlock), ctx, ptr)
+}
+
+// hasBlock mocks base method
+func (m *MockdirBlockMap) hasBlock(ctx context.Context, ptr BlockPointer) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "hasBlock", ctx, ptr)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// hasBlock indicates an expected call of hasBlock
+func (mr *MockdirBlockMapMockRecorder) hasBlock(ctx, ptr interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "hasBlock", reflect.TypeOf((*MockdirBlockMap)(nil).hasBlock), ctx, ptr)
+}
+
+// numBlocks mocks base method
+func (m *MockdirBlockMap) numBlocks() int {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "numBlocks")
+	ret0, _ := ret[0].(int)
+	return ret0
+}
+
+// numBlocks indicates an expected call of numBlocks
+func (mr *MockdirBlockMapMockRecorder) numBlocks() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "numBlocks", reflect.TypeOf((*MockdirBlockMap)(nil).numBlocks))
+}

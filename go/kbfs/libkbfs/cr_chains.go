@@ -297,8 +297,9 @@ func (cc *crChain) identifyType(ctx context.Context, fbo *folderBlockOps,
 		FolderBranch: fbo.folderBranch,
 		path:         []pathNode{{parentMostRecent, ""}},
 	}
-	parentDD, cleanupFn := fbo.newDirDataWithLBC(
-		makeFBOLockState(), parentPath, keybase1.UserOrTeamID(""), kmd, nil)
+	parentDD, cleanupFn := fbo.newDirDataWithDBM(
+		makeFBOLockState(), parentPath, keybase1.UserOrTeamID(""), kmd,
+		newDirBlockMapMemory())
 	defer cleanupFn()
 	entries, err := parentDD.getEntries(ctx)
 	if err != nil {

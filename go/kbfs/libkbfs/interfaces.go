@@ -2781,3 +2781,13 @@ type fileBlockMap interface {
 		*FileBlock, error)
 	getFilenames(ctx context.Context, parentPtr BlockPointer) ([]string, error)
 }
+
+type dirBlockMap interface {
+	putBlock(
+		ctx context.Context, ptr BlockPointer, block *DirBlock) error
+	getBlock(
+		ctx context.Context, ptr BlockPointer) (*DirBlock, error)
+	hasBlock(ctx context.Context, ptr BlockPointer) (bool, error)
+	deleteBlock(ctx context.Context, ptr BlockPointer) error
+	numBlocks() int
+}
