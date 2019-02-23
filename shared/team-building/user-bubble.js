@@ -125,6 +125,8 @@ const styles = Styles.styleSheetCreate({
     common: {},
     isElectron: {
       flexShrink: 1,
+      marginLeft: Styles.globalMargins.tiny,
+      marginRight: Styles.globalMargins.tiny,
     },
   }),
   container: Styles.platformStyles({

@@ -64,9 +64,11 @@ const TeamBox = (props: Props) => (
       {!!props.teamSoFar.length && !Styles.isMobile && <GoButton onClick={props.onFinishTeamBuilding} />}
     </Kb.Box2>
     <Kb.Box2 direction="horizontal" fullHeight={false} fullWidth={true} style={styles.bubbles}>
-      <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={false} style={styles.floatingBubbles}>
-        <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
-      </Kb.Box2>
+      <Kb.ScrollView horizontal={true}>
+        <Kb.Box2 direction="horizontal" fullHeight={true} fullWidth={false} style={styles.floatingBubbles}>
+          <UserBubbleCollection teamSoFar={props.teamSoFar} onRemove={props.onRemove} />
+        </Kb.Box2>
+      </Kb.ScrollView>
     </Kb.Box2>
   </Kb.Box2>
 )

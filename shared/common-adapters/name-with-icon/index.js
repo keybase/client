@@ -155,6 +155,7 @@ class NameWithIcon extends React.Component<NameWithIconProps> {
             this.props.horizontal
               ? Styles.collapseStyles([Styles.globalStyles.flexBoxColumn, this.props.metaStyle])
               : Styles.collapseStyles([
+                  Styles.globalStyles.flexBoxRow,
                   styles.metaStyle,
                   this.props.size === 'smaller'
                     ? styles.smallerWidthTextContainer
@@ -218,19 +219,14 @@ const styles = Styles.styleSheetCreate({
     maxWidth: '100%',
     width: '100%',
   },
-  smallerWidthText: Styles.platformStyles({
+  smallerWidthText: {},
+  smallerWidthTextContainer: Styles.platformStyles({
     isElectron: {
-      display: 'unset',
-      maxWidth: '48px',
+      color: Styles.globalColors.black_50,
       overflow: 'hidden',
       textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap',
-      width: '48px',
-      wordBreak: 'break-all',
+      width: 48,
     },
-  }),
-  smallerWidthTextContainer: Styles.platformStyles({
-    isElectron: {display: 'unset', maxWidth: '48px', textAlign: 'center', width: '48px'},
   }),
   vContainerStyle: {
     ...Styles.globalStyles.flexBoxColumn,
