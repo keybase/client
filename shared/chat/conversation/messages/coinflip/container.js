@@ -29,6 +29,7 @@ const mapStateToProps = (state, {flipGameID}: OwnProps) => {
         commitmentVis: status.commitmentVisualization,
         isError: status.phase === RPCChatTypes.chatUiUICoinFlipPhase.error,
         participants: status.participants || [],
+        progressText: status.progressText,
         resultText: status.resultText,
         revealVis: status.revealVisualization,
         showParticipants: participantStatuses.indexOf(status.phase) >= 0,
