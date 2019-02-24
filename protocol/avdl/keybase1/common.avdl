@@ -30,6 +30,9 @@ protocol Common {
   record UID {}
 
   @typedef("string")
+  record UserOrTeamID {}
+
+  @typedef("string")
   record DeviceID {}
 
   @typedef("string")

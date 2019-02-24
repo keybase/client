@@ -7,9 +7,6 @@ protocol teams {
   @typedef("string")
   record TeamID {}
 
-  @typedef("string")
-  record UserOrTeamID {}
-
   enum TeamRole {
     // These must be ordered by privilege.
     NONE_0,
@@ -524,6 +521,19 @@ protocol teams {
   record TeamIDAndName {
     TeamID id;
     TeamName name;
+  }
+
+  enum TeamType {
+    NONE_0,
+    LEGACY_1,
+    MODERN_2
+  }
+
+  // CompatibilityTeamID can refer to either a legacy TLF ID or a new-style team ID.
+  // Might eventually be useful but haven't found a need yet.
+  variant CompatibilityTeamID switch (TeamType typ) {
+    case LEGACY: TLFID;
+    case MODERN: TeamID;
   }
 
   // Sometimes during CLKR server will hint us that users are reset.
