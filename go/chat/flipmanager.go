@@ -974,11 +974,12 @@ func (v *FlipVisualizer) fillRow(img *image.NRGBA, startY, cellHeight, cellWidth
 }
 
 func (v *FlipVisualizer) Visualize(status *chat1.UICoinFlipStatus) {
+	cellWidth := int(math.Round(float64(v.width) / 32.0))
+	v.width = 32 * cellWidth
 	commitmentImg := image.NewNRGBA(image.Rect(0, 0, v.width, v.height))
 	secretImg := image.NewNRGBA(image.Rect(0, 0, v.width, v.height))
 	numParts := len(status.Participants)
 	if numParts > 0 {
-		cellWidth := int(math.Round(float64(v.width) / 32.0))
 		startY := 0
 		// just add these next 2 things
 		heightAccum := float64(0) // how far into the image we should be
