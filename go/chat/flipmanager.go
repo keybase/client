@@ -364,7 +364,7 @@ func (m *FlipManager) handleSummaryUpdate(ctx context.Context, gameID chat1.Flip
 	m.addResult(ctx, &status, update.Result, convID)
 	for _, p := range update.Players {
 		m.addParticipant(ctx, &status, flip.CommitmentUpdate{
-			User: p,
+			User: p.Player,
 		})
 	}
 	status.ProgressText = "Complete"

@@ -3,6 +3,7 @@ package flip
 import (
 	"context"
 	"io"
+	"sort"
 	"time"
 )
 
@@ -13,9 +14,15 @@ type GameMessageReplayed struct {
 
 type GameHistory []GameMessageReplayed
 
+type PlayerSummary struct {
+	Player UserDevice
+	Commitment Commitment
+	Secret *Secret
+}
+
 type GameSummary struct {
 	Err     error
-	Players []UserDevice
+	Players []PlayerSummary
 	Result  Result
 }
 
@@ -116,30 +123,45 @@ func replay(ctx context.Context, rh ReplayHelper, gh GameHistory) (*GameSummary,
 	go func() {
 		var ret GameSummary
 		found := false
-		players := make(map[UserDeviceKey]UserDevice)
+		players := make(map[UserDeviceKey]*PlayerSummary)
 		for msg := range game.gameUpdateCh {
 			switch {
 			case msg.Err != nil:
 				ret.Err = msg.Err
 			case msg.CommitmentComplete != nil:
-				ret.Players = extractUserDevices(msg.CommitmentComplete.Players)
-				for _, p := range ret.Players {
-					players[p.ToKey()] = p
+				for _, p := range msg.CommitmentComplete.Players {
+					players[p.Ud.ToKey()] = &PlayerSummary{
+						Player: p.Ud,
+						Commitment: p.C,
+					}
 				}
 			case msg.Reveal != nil:
-				delete(players, msg.Reveal.User.ToKey())
+				if p := players[msg.Reveal.User.ToKey()]; p != nil {
+					p.Secret = &msg.Reveal.Reveal
+				}
 			case msg.Result != nil:
 				ret.Result = *msg.Result
 				found = true
 			}
 		}
+
+		// Error case: we didn't get enough reveals, so we should plumb absentees out to caller
 		if !found && ret.Err == nil {
 			var ea AbsenteesError
 			for _, v := range players {
-				ea.Absentees = append(ea.Absentees, v)
+				if v.Secret == nil {
+					ea.Absentees = append(ea.Absentees, v.Player)
+				}
 			}
 			ret.Err = ea
 		}
+
+		// Whether success or failure, let's output the players who we found during the replay
+		for _, p := range players {
+			ret.Players = append(ret.Players, *p)
+		}
+		sort.Slice(ret.Players, func(i, j int) bool { return ret.Players[i].Player.LessThan(ret.Players[j].Player) })
+
 		summaryCh <- ret
 	}()
 
