@@ -2,6 +2,14 @@
 
 protocol teams {
 
+  import idl "common.avdl";
+
+  @typedef("string")
+  record TeamID {}
+
+  @typedef("string")
+  record UserOrTeamID {}
+
   enum TeamRole {
     // These must be ordered by privilege.
     NONE_0,
@@ -506,6 +514,16 @@ protocol teams {
   // matches the team name struct from api server
   record TeamName {
     array<TeamNamePart> parts;
+  }
+
+  record TeamIDWithVisibility {
+    TeamID teamID;
+    TLFVisibility visibility;
+  }
+
+  record TeamIDAndName {
+    TeamID id;
+    TeamName name;
   }
 
   // Sometimes during CLKR server will hint us that users are reset.

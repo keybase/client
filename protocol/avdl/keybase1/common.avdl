@@ -63,12 +63,6 @@ protocol Common {
   record TLFID {}
 
   @typedef("string")
-  record TeamID {}
-
-  @typedef("string")
-  record UserOrTeamID {}
-
-  @typedef("string")
   record GitRepoName {}
 
   @typedef("bytes")
@@ -96,16 +90,6 @@ protocol Common {
     ANY_0,
     PUBLIC_1,
     PRIVATE_2
-  }
-
-  record TeamIDWithVisibility {
-    TeamID teamID;
-    TLFVisibility visibility;
-  }
-
-  record TeamIDAndName {
-    TeamID id;
-    TeamName name;
   }
 
   @typedef("int64") @lint("ignore")
