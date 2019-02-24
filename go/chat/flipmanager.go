@@ -112,14 +112,15 @@ type FlipManager struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	dealer     *flip.Dealer
-	visualizer *FlipVisualizer
-	clock      clockwork.Clock
-	ri         func() chat1.RemoteInterface
-	shutdownMu sync.Mutex
-	shutdownCh chan struct{}
-	forceCh    chan struct{}
-	loadGameCh chan loadGameJob
+	dealer            *flip.Dealer
+	desktopVisualizer *FlipVisualizer
+	mobileVisualizer  *FlipVisualizer
+	clock             clockwork.Clock
+	ri                func() chat1.RemoteInterface
+	shutdownMu        sync.Mutex
+	shutdownCh        chan struct{}
+	forceCh           chan struct{}
+	loadGameCh        chan loadGameJob
 
 	gamesMu    sync.Mutex
 	games      *lru.Cache
@@ -129,15 +130,16 @@ type FlipManager struct {
 func NewFlipManager(g *globals.Context, ri func() chat1.RemoteInterface) *FlipManager {
 	games, _ := lru.New(100)
 	m := &FlipManager{
-		Contextified: globals.NewContextified(g),
-		DebugLabeler: utils.NewDebugLabeler(g.GetLog(), "FlipManager", false),
-		ri:           ri,
-		clock:        clockwork.NewRealClock(),
-		games:        games,
-		dirtyGames:   make(map[string]chat1.FlipGameID),
-		forceCh:      make(chan struct{}, 10),
-		loadGameCh:   make(chan loadGameJob, 100),
-		visualizer:   NewFlipVisualizer(128, 50),
+		Contextified:      globals.NewContextified(g),
+		DebugLabeler:      utils.NewDebugLabeler(g.GetLog(), "FlipManager", false),
+		ri:                ri,
+		clock:             clockwork.NewRealClock(),
+		games:             games,
+		dirtyGames:        make(map[string]chat1.FlipGameID),
+		forceCh:           make(chan struct{}, 10),
+		loadGameCh:        make(chan loadGameJob, 100),
+		desktopVisualizer: NewFlipVisualizer(256, 100),
+		mobileVisualizer:  NewFlipVisualizer(220, 100),
 	}
 	dealer := flip.NewDealer(m)
 	m.dealer = dealer
@@ -188,6 +190,13 @@ func (m *FlipManager) isStartMsgID(msgID chat1.MessageID) bool {
 	return chat1.MessageID(3) == msgID
 }
 
+func (m *FlipManager) getVisualizer() *FlipVisualizer {
+	if m.G().GetAppType() == libkb.MobileAppType {
+		return m.mobileVisualizer
+	}
+	return m.desktopVisualizer
+}
+
 func (m *FlipManager) notifyDirtyGames() {
 	m.gamesMu.Lock()
 	defer m.gamesMu.Unlock()
@@ -207,7 +216,7 @@ func (m *FlipManager) notifyDirtyGames() {
 	for _, dg := range m.dirtyGames {
 		if game, ok := m.games.Get(dg.String()); ok {
 			status := game.(chat1.UICoinFlipStatus)
-			m.visualizer.Visualize(&status)
+			m.getVisualizer().Visualize(&status)
 			updates = append(updates, status)
 		}
 	}
@@ -957,47 +966,30 @@ func (v *FlipVisualizer) fillRow(img *image.NRGBA, startY, cellHeight, cellWidth
 	}
 }
 
-func (v *FlipVisualizer) getHeights(numParts int) (res []int) {
-	res = make([]int, numParts)
-	rawHeight := float64(v.height) / float64(numParts)
-	floor := int(math.Floor(rawHeight))
-	ceil := int(math.Ceil(rawHeight))
-	if ceil == 1 {
-		for i := range res {
-			res[i] = 1
-		}
-		return res
-	}
-	for i := range res {
-		res[i] = floor
-	}
-	floorTotal := numParts * floor
-	shortFall := v.height - floorTotal
-	for i := 0; i < shortFall; i++ {
-		res[i] = ceil
-	}
-	return res
-}
-
 func (v *FlipVisualizer) Visualize(status *chat1.UICoinFlipStatus) {
-	numParts := len(status.Participants)
-	if numParts == 0 {
-		return
-	}
 	commitmentImg := image.NewNRGBA(image.Rect(0, 0, v.width, v.height))
 	secretImg := image.NewNRGBA(image.Rect(0, 0, v.width, v.height))
-	cellWidth := v.width / 32
-	heights := v.getHeights(numParts)
-	startY := 0
-	for index, p := range status.Participants {
-		height := heights[index]
-		if p.Reveal != nil {
-			v.fillRow(commitmentImg, startY, height, cellWidth, p.Commitment, v.commitmentMatchColors)
-			v.fillRow(secretImg, startY, height, cellWidth, *p.Reveal, v.secretColors)
-		} else {
-			v.fillRow(commitmentImg, startY, height, cellWidth, p.Commitment, v.commitmentColors)
+	numParts := len(status.Participants)
+	if numParts > 0 {
+		cellWidth := int(math.Round(float64(v.width) / 32.0))
+		startY := 0
+		// just add these next 2 things
+		heightAccum := float64(0) // how far into the image we should be
+		rawRowHeight := float64(v.height) / float64(numParts)
+		for _, p := range status.Participants {
+			heightAccum += rawRowHeight
+			rowHeight := int(math.Round(heightAccum - float64(startY)))
+			if rowHeight > 0 {
+				if p.Reveal != nil {
+					v.fillRow(commitmentImg, startY, rowHeight, cellWidth, p.Commitment,
+						v.commitmentMatchColors)
+					v.fillRow(secretImg, startY, rowHeight, cellWidth, *p.Reveal, v.secretColors)
+				} else {
+					v.fillRow(commitmentImg, startY, rowHeight, cellWidth, p.Commitment, v.commitmentColors)
+				}
+				startY += rowHeight
+			}
 		}
-		startY += height
 	}
 	var commitmentBuf, secretBuf bytes.Buffer
 	png.Encode(&commitmentBuf, commitmentImg)

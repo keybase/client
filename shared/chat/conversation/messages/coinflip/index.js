@@ -8,10 +8,10 @@ import CoinFlipParticipants from './participants'
 export type Props = {|
   commitmentVis: string,
   revealVis: string,
-  progressText: string,
   resultText: string,
   isError: boolean,
   participants: Array<RPCChatTypes.UICoinFlipParticipant>,
+  progressText: string,
   showParticipants: boolean,
 |}
 
@@ -51,16 +51,32 @@ class CoinFlip extends React.Component<Props, State> {
     const revealSrc = `data:image/png;base64, ${this.props.revealVis}`
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} gap="tiny">
-        <Kb.Box2 direction="horizontal" fullWidth={true} gap="small">
-          <Kb.Box2 direction="vertical">
-            <Kb.Text type="BodySmall">Commitments: {this.props.participants.length}</Kb.Text>
-            <img src={commitSrc} width="128" height="50" />
+        {this.props.isError ? (
+          <Kb.Text style={styles.error} type="BodyItalic">
+            {this.props.progressText}
+          </Kb.Text>
+        ) : (
+          <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
+            <Kb.Box2 direction="vertical">
+              <Kb.Text type="BodySmall">Commitments: {this.props.participants.length}</Kb.Text>
+              {this.props.commitmentVis.length > 0 ? (
+                <Kb.Image src={commitSrc} style={styles.progressVis} />
+              ) : (
+                <Kb.Box2 direction="vertical" style={styles.progressVis}>
+                  <Kb.Text type="BodyItalic">Starting flip...</Kb.Text>
+                </Kb.Box2>
+              )}
+            </Kb.Box2>
+            <Kb.Box2 direction="vertical">
+              <Kb.Text type="BodySmall">Secrets: {this._revealSummary()}</Kb.Text>
+              {this.props.revealVis.length > 0 ? (
+                <Kb.Image src={revealSrc} style={styles.progressVis} />
+              ) : (
+                <Kb.Box2 direction="vertical" style={styles.progressVis} />
+              )}
+            </Kb.Box2>
           </Kb.Box2>
-          <Kb.Box2 direction="vertical">
-            <Kb.Text type="BodySmall">Reveals: {this._revealSummary()}</Kb.Text>
-            <img src={revealSrc} width="128" height="50" />
-          </Kb.Box2>
-        </Kb.Box2>
+        )}
         <Kb.Box2 direction="vertical" fullWidth={true}>
           <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
             <Kb.Text type="BodySmall">Result</Kb.Text>
@@ -110,6 +126,16 @@ const styles = Styles.styleSheetCreate({
       cursor: 'text',
       userSelect: 'text',
       wordBreak: 'break-all',
+    },
+  }),
+  progressVis: Styles.platformStyles({
+    isElectron: {
+      height: 50,
+      width: 128,
+    },
+    isMobile: {
+      height: 50,
+      width: 112,
     },
   }),
   result: Styles.platformStyles({
