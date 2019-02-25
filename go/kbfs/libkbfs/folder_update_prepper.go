@@ -376,6 +376,13 @@ func (fup *folderUpdatePrepper) prepUpdateForPath(
 			for _, unref := range unrefs {
 				md.AddUnrefBlock(unref)
 			}
+			// Fetch the current block again, since `setEntry` might
+			// not modify the original `currBlock`, but some
+			// re-assembled version if the disk cache is in use.
+			currBlock, err = dbm.getBlock(ctx, currDD.rootBlockPointer())
+			if err != nil {
+				return path{}, DirEntry{}, err
+			}
 		}
 		currName = nextName
 
