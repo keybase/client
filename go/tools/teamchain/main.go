@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"os"
 
@@ -25,10 +26,16 @@ func main() {
 }
 
 func main2() (err error) {
-	if len(os.Args) != 2 {
-		return fmt.Errorf("Usage: tool <jsonfile>")
+	var silent bool
+	flag.BoolVar(&silent, "silent", false, "print nothing")
+	var filepath string
+	flag.StringVar(&filepath, "path", "", "path to file containing json team chain")
+	flag.Parse()
+	if filepath == "" {
+		flag.Usage()
+		return fmt.Errorf("missing required path flag")
 	}
-	filepath := os.Args[1]
+
 	var cf ChainFile
 	if filepath == "-" {
 		cf, err = readChainStdin()
@@ -60,7 +67,9 @@ func main2() (err error) {
 		}
 		state = &newState
 	}
-	fmt.Printf("%v\n", spew.Sdump(state))
+	if !silent {
+		fmt.Printf("%v\n", spew.Sdump(state))
+	}
 	return nil
 }
 
