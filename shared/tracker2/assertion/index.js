@@ -49,6 +49,25 @@ const stateToIcon = state => {
   }
 }
 
+// alternate versions of the ones from `stateToIcon` for the popup menu header
+const stateToDecorationIcon = state => {
+  switch (state) {
+    case 'checking':
+      return 'icon-proof-pending'
+    case 'valid':
+      return 'icon-proof-success'
+    case 'error':
+    case 'warning':
+    case 'revoked':
+      return 'icon-proof-broken'
+    case 'suggestion':
+      return 'icon-proof-unfinished'
+    default:
+      Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(state)
+      throw new Error('impossible')
+  }
+}
+
 const stateToValueTextStyle = state => {
   switch (state) {
     case 'revoked':
@@ -263,7 +282,10 @@ class Assertion extends React.PureComponent<Props, State> {
             style={styles.menuHeader}
             fullWidth={true}
           >
-            {this._siteIcon(true)}
+            <Kb.Box2 direction="vertical" style={styles.positionRelative}>
+              {this._siteIcon(true)}
+              <Kb.Icon type={stateToDecorationIcon(p.state)} style={styles.siteIconFullDecoration} />
+            </Kb.Box2>
             {!!this.props.timestamp && (
               <>
                 <Kb.Text type="BodySmall">Posted on</Kb.Text>
@@ -341,7 +363,6 @@ class Assertion extends React.PureComponent<Props, State> {
           <Kb.ClickableBox onClick={items ? this._toggleMenu : p.onShowProof}>
             <Kb.Box2 direction="horizontal" alignItems="center" gap="tiny">
               <Kb.Icon
-                boxStyle={styles.stateIcon}
                 type={stateToIcon(p.state)}
                 fontSize={20}
                 hoverColor={assertionColorToColor(p.color)}
@@ -398,6 +419,7 @@ const styles = Styles.styleSheetCreate({
     padding: Styles.globalMargins.small,
   },
   metaContainer: {flexShrink: 0, paddingLeft: 20 + Styles.globalMargins.tiny * 2 - 4}, // icon spacing plus meta has 2 padding for some reason
+  positionRelative: {position: 'relative'},
   site: {color: Styles.globalColors.black_20},
   siteIcon: {flexShrink: 0, height: 16, width: 16},
   siteIconFull: Styles.platformStyles({
@@ -414,7 +436,7 @@ const styles = Styles.styleSheetCreate({
       width: 64,
     },
   }),
-  stateIcon: {height: 17},
+  siteIconFullDecoration: {bottom: -8, position: 'absolute', right: -10},
   strikeThrough: {textDecorationLine: 'line-through'},
   textContainer: {flexGrow: 1, flexShrink: 1, marginTop: -1},
   tooltip: Styles.platformStyles({isElectron: {display: 'inline-flex'}}),
