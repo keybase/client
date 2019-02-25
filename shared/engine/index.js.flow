@@ -20,7 +20,6 @@ declare export class Engine {
   actionOnConnect(key: string, f: () => ?TypedActions): void;
   actionOnDisconnect(key: string, f: () => ?TypedActions): void;
   hasEverConnected(): void;
-  setIncomingCallMap(incomingCallMap: IncomingCallMapType): void;
   setCustomResponseIncomingCallMap(customResponseIncomingCallMap: CustomResponseIncomingCallMapType): void;
   createSession({
     incomingCallMap?: IncomingCallMapType,

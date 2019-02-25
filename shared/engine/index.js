@@ -25,10 +25,6 @@ import type {RPCError} from '../util/errors'
 type TypedActions = {type: any, error: boolean, payload: any}
 type WaitingKey = string | Array<string>
 
-type IncomingActionCreator = (
-  param: Object,
-  state: TypedState
-) => Effect | null | void | false | Array<Effect | null | void | false>
 type CustomResponseIncomingActionCreator = (
   param: Object,
   response: Object,
@@ -47,9 +43,6 @@ class Engine {
   // Helper we delegate actual calls to
   _rpcClient: createClientType
   // All incoming call handlers
-  _incomingActionCreators: {
-    [key: MethodKey]: IncomingActionCreator,
-  } = {}
   _customResponseIncomingActionCreators: {
     [key: MethodKey]: CustomResponseIncomingActionCreator,
   } = {}
@@ -229,25 +222,16 @@ class Engine {
       const session = this._sessionsMap[String(sessionID)]
       if (session && session.incomingCall(method, param, response)) {
         // Part of a session?
-        // // TODO deprecate _incomingActionCreators and replace with engine dispatched actions below
         // _customResponseIncomingActionCreators will just be a set of method strings which engine will rely on listeners to handle themselves
-      } else if (this._incomingActionCreators[method] || this._customResponseIncomingActionCreators[method]) {
+      } else if (this._customResponseIncomingActionCreators[method]) {
         // General incoming :: TODO deprecate
         rpcLog({method, reason: '[incoming]', type: 'engineInternal'})
 
-        let creator = this._incomingActionCreators[method]
-        let rawEffects
-        if (creator) {
-          // Handle it by default
-          response && response.result()
-          rawEffects = creator(param, Engine._getState())
-        } else {
-          if (!response) {
-            throw new Error("Expected response but there isn't any" + method)
-          }
-          creator = this._customResponseIncomingActionCreators[method]
-          rawEffects = creator(param, response, Engine._getState())
+        if (!response) {
+          throw new Error("Expected response but there isn't any" + method)
         }
+        let creator = this._customResponseIncomingActionCreators[method]
+        let rawEffects = creator(param, response, Engine._getState())
 
         const effects = (isArray(rawEffects) ? rawEffects : [rawEffects]).filter(Boolean)
         effects.forEach(effect => {
@@ -367,28 +351,9 @@ class Engine {
   }
 
   // Setup a handler for a rpc w/o a session (id = 0). We don't allow overlapping keys
-  setIncomingCallMap(incomingCallMap: any): void {
-    Object.keys(incomingCallMap).forEach(method => {
-      if (this._customResponseIncomingActionCreators[method] || this._incomingActionCreators[method]) {
-        rpcLog({
-          method,
-          reason: "duplicate incoming action creator!!! this isn't allowed",
-          type: 'engineInternal',
-        })
-        return
-      }
-      rpcLog({
-        method,
-        reason: '[register]',
-        type: 'engineInternal',
-      })
-      this._incomingActionCreators[method] = incomingCallMap[method]
-    })
-  }
-
   setCustomResponseIncomingCallMap(customResponseIncomingCallMap: any): void {
     Object.keys(customResponseIncomingCallMap).forEach(method => {
-      if (this._customResponseIncomingActionCreators[method] || this._incomingActionCreators[method]) {
+      if (this._customResponseIncomingActionCreators[method]) {
         rpcLog({
           method,
           reason: "duplicate incoming action creator!!! this isn't allowed",
