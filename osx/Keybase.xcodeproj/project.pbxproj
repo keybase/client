@@ -610,7 +610,6 @@
 					001C6B361B24F8630048F086 = {
 						CreatedOnToolsVersion = 6.3.2;
 						DevelopmentTeam = 99229SGT5K;
-						ProvisioningStyle = Manual;
 						SystemCapabilities = {
 							com.apple.ApplicationGroups.Mac = {
 								enabled = 1;
@@ -627,7 +626,6 @@
 						CreatedOnToolsVersion = 7.2;
 						DevelopmentTeam = 99229SGT5K;
 						LastSwiftMigration = 0830;
-						ProvisioningStyle = Manual;
 						SystemCapabilities = {
 							com.apple.ApplicationGroups.Mac = {
 								enabled = 1;
@@ -640,7 +638,6 @@
 					004624B01B2917AB00E218AC = {
 						CreatedOnToolsVersion = 6.3.2;
 						DevelopmentTeam = 99229SGT5K;
-						ProvisioningStyle = Manual;
 						SystemCapabilities = {
 							com.apple.ApplicationGroups.Mac = {
 								enabled = 1;
@@ -653,12 +650,10 @@
 					0057B0B31AE57A4900BFB0E7 = {
 						CreatedOnToolsVersion = 6.3;
 						DevelopmentTeam = 99229SGT5K;
-						ProvisioningStyle = Manual;
 					};
 					009E13651B27B39300C72B28 = {
 						CreatedOnToolsVersion = 6.3.2;
 						DevelopmentTeam = 99229SGT5K;
-						ProvisioningStyle = Manual;
 						SystemCapabilities = {
 							com.apple.ApplicationGroups.Mac = {
 								enabled = 1;
@@ -670,14 +665,13 @@
 					};
 					00AA750E1B27635D0069A6CC = {
 						CreatedOnToolsVersion = 6.3.2;
-						ProvisioningStyle = Manual;
 						TestTargetID = 00CC43481A3A9E6C006118A9;
 					};
 					00CC43481A3A9E6C006118A9 = {
 						CreatedOnToolsVersion = 6.1.1;
 						DevelopmentTeam = 99229SGT5K;
 						LastSwiftMigration = 0830;
-						ProvisioningStyle = Manual;
+						ProvisioningStyle = Automatic;
 						SystemCapabilities = {
 							com.apple.ApplicationGroups.Mac = {
 								enabled = 0;
@@ -1048,7 +1042,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Extensions/Share/Share.entitlements;
-				CODE_SIGN_IDENTITY = "Developer ID Application: Keybase, Inc. (99229SGT5K)";
+				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -1069,7 +1063,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Extensions/Share/Share.entitlements;
-				CODE_SIGN_IDENTITY = "Developer ID Application: Keybase, Inc. (99229SGT5K)";
+				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -1089,11 +1083,10 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Status/Status.entitlements;
-				CODE_SIGN_IDENTITY = "Developer ID Application: Keybase, Inc. (99229SGT5K)";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application: Keybase, Inc. (99229SGT5K)";
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = 99229SGT5K;
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = Status/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
@@ -1111,11 +1104,10 @@
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Status/Status.entitlements;
-				CODE_SIGN_IDENTITY = "Developer ID Application: Keybase, Inc. (99229SGT5K)";
-				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application: Keybase, Inc. (99229SGT5K)";
+				CODE_SIGN_IDENTITY = "Mac Developer";
+				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
-				DEVELOPMENT_TEAM = 99229SGT5K;
 				GCC_NO_COMMON_BLOCKS = YES;
 				INFOPLIST_FILE = Status/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
@@ -1130,7 +1122,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Extensions/FinderSync/FinderSync.entitlements;
-				CODE_SIGN_IDENTITY = "Developer ID Application: Keybase, Inc. (99229SGT5K)";
+				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -1151,7 +1143,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Extensions/FinderSync/FinderSync.entitlements;
-				CODE_SIGN_IDENTITY = "Developer ID Application: Keybase, Inc. (99229SGT5K)";
+				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -1170,7 +1162,6 @@
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "Developer ID Application: Keybase, Inc. (99229SGT5K)";
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = 99229SGT5K;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -1199,7 +1190,6 @@
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "Developer ID Application: Keybase, Inc. (99229SGT5K)";
 				COPY_PHASE_STRIP = NO;
-				DEVELOPMENT_TEAM = 99229SGT5K;
 				GCC_NO_COMMON_BLOCKS = YES;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
@@ -1222,7 +1212,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Extensions/Action/Action.entitlements;
-				CODE_SIGN_IDENTITY = "Developer ID Application: Keybase, Inc. (99229SGT5K)";
+				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -1243,7 +1233,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Extensions/Action/Action.entitlements;
-				CODE_SIGN_IDENTITY = "Developer ID Application: Keybase, Inc. (99229SGT5K)";
+				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -1261,11 +1251,8 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = YES;
-				CODE_SIGN_IDENTITY = "Mac Developer";
-				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				DEVELOPMENT_TEAM = "";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(DEVELOPER_FRAMEWORKS_DIR)",
 					"$(inherited)",
@@ -1279,7 +1266,6 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "me.rel.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Keybase.app/Contents/MacOS/Keybase";
 			};
 			name = Debug;
@@ -1289,11 +1275,8 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = YES;
-				CODE_SIGN_IDENTITY = "Mac Developer";
-				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
-				DEVELOPMENT_TEAM = "";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(DEVELOPER_FRAMEWORKS_DIR)",
 					"$(inherited)",
@@ -1303,7 +1286,6 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "me.rel.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				PROVISIONING_PROFILE_SPECIFIER = "";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Keybase.app/Contents/MacOS/Keybase";
 			};
 			name = Release;
@@ -1329,10 +1311,8 @@
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_IDENTITY = "Developer ID Application: Keybase, Inc. (99229SGT5K)";
-				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_IDENTITY = "-";
 				COPY_PHASE_STRIP = NO;
-				DEVELOPMENT_TEAM = 99229SGT5K;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -1378,11 +1358,9 @@
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_IDENTITY = "Developer ID Application: Keybase, Inc. (99229SGT5K)";
-				CODE_SIGN_STYLE = Manual;
+				CODE_SIGN_IDENTITY = "-";
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				DEVELOPMENT_TEAM = 99229SGT5K;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
@@ -1408,7 +1386,7 @@
 				CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Installer/Installer.entitlements;
-				CODE_SIGN_IDENTITY = "Developer ID Application: Keybase, Inc. (99229SGT5K)";
+				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = 99229SGT5K;
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
@@ -1434,7 +1412,7 @@
 				CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = YES;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_ENTITLEMENTS = Installer/Installer.entitlements;
-				CODE_SIGN_IDENTITY = "Developer ID Application: Keybase, Inc. (99229SGT5K)";
+				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
 				DEVELOPMENT_TEAM = 99229SGT5K;
