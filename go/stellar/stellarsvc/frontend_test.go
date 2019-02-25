@@ -604,7 +604,7 @@ func TestAcceptDisclaimer(t *testing.T) {
 	mctx := tcs[0].MetaContext()
 	_, err = stellar.CreateWallet(mctx)
 	require.Error(t, err)
-	require.True(t, libkb.IsAppStatusErrorCode(err, keybase1.StatusCode_SCStellarNeedDisclaimer))
+	require.True(t, libkb.IsAppStatusCode(err, keybase1.StatusCode_SCStellarNeedDisclaimer))
 
 	accepted, err = tcs[0].Srv.HasAcceptedDisclaimerLocal(context.Background(), 0)
 	require.NoError(t, err)
