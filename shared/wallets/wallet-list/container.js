@@ -1,18 +1,24 @@
 // @flow
 import {WalletList, type Props} from '.'
+import * as Constants from '../../constants/wallets'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import * as RouteTree from '../../route-tree'
 import * as Styles from '../../styles'
 import openURL from '../../util/open-url'
 import {connect} from '../../util/container'
-import {getAccountIDs, loadAccountsWaitingKey} from '../../constants/wallets'
 import {anyWaiting} from '../../constants/waiting'
 
 type OwnProps = {style: Styles.StylesCrossPlatform}
 
-const mapStateToProps = state => ({
-  accounts: getAccountIDs(state),
-  loading: anyWaiting(state, loadAccountsWaitingKey),
-})
+const mapStateToProps = state => {
+  const path = RouteTree.getPath(state.routeTree.routeState).last()
+  return {
+    accounts: Constants.getAccountIDs(state),
+    airdropSelected: path === 'airdrop' || path === 'airdropQualify',
+    inAirdrop: state.wallets.airdropState === 'accepted',
+    loading: anyWaiting(state, Constants.loadAccountsWaitingKey),
+  }
+}
 
 const mapDispatchToProps = dispatch => ({
   onAddNew: () => {
@@ -21,6 +27,9 @@ const mapDispatchToProps = dispatch => ({
         path: [{props: {backButton: false, showOnCreation: true}, selected: 'createNewAccount'}],
       })
     )
+  },
+  onJoinAirdrop: () => {
+    dispatch(RouteTreeGen.createNavigateAppend({path: ['airdrop']}))
   },
   onLinkExisting: () => {
     dispatch(
@@ -32,8 +41,11 @@ const mapDispatchToProps = dispatch => ({
 
 const mergeProps = (stateProps, dispatchProps, ownProps): Props => ({
   accountIDs: stateProps.accounts.toArray(),
+  airdropSelected: stateProps.airdropSelected,
+  inAirdrop: stateProps.inAirdrop,
   loading: stateProps.loading,
   onAddNew: dispatchProps.onAddNew,
+  onJoinAirdrop: dispatchProps.onJoinAirdrop,
   onLinkExisting: dispatchProps.onLinkExisting,
   onWhatIsStellar: dispatchProps.onWhatIsStellar,
   style: ownProps.style,
