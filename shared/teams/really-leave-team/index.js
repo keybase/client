@@ -44,7 +44,11 @@ const _ReallyLeaveTeam = (props: Props) => (
     >
       <Avatar teamname={props.name} size={64} />
       <Icon type="icon-team-leave-28" style={{marginRight: -60, marginTop: -20, zIndex: 1}} />
-      <Text type="Header" style={{marginBottom: globalMargins.large, marginTop: globalMargins.large}}>
+      <Text
+        center={true}
+        type="Header"
+        style={{marginBottom: globalMargins.large, marginTop: globalMargins.large}}
+      >
         Are you sure you want to leave {props.name}?
       </Text>
       <Text center={true} type="Body" style={{maxWidth: 430}}>

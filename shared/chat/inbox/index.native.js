@@ -25,7 +25,7 @@ const NoChats = () => (
     }}
   >
     <Kb.Icon type="icon-fancy-chat-103-x-75" style={{marginBottom: Styles.globalMargins.medium}} />
-    <Kb.Text type="BodySmallSemibold" backgroundMode="Terminal" style={{color: Styles.globalColors.black_50}}>
+    <Kb.Text type="BodySmallSemibold" negative={true} style={{color: Styles.globalColors.black_50}}>
       All conversations are end-to-end encrypted.
     </Kb.Text>
   </Kb.Box>
@@ -177,6 +177,7 @@ class Inbox extends React.PureComponent<Props, State> {
   _onEnsureSelection = () => this.props.onEnsureSelection()
   _onSelectUp = () => this.props.onSelectUp()
   _onSelectDown = () => this.props.onSelectDown()
+  _onDidFocus = () => this.props.onDeselectConversation()
 
   render() {
     this._dividerShowButton = false
@@ -205,6 +206,7 @@ class Inbox extends React.PureComponent<Props, State> {
     )
     return (
       <Kb.ErrorBoundary>
+        <Kb.NavigationEvents onDidFocus={this._onDidFocus} />
         <Kb.Box style={boxStyle}>
           <Kb.NativeFlatList
             ListHeaderComponent={HeadComponent}

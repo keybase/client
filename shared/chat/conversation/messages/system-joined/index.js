@@ -42,18 +42,10 @@ const JoinedUserNotice = (props: Props) => (
     username={props.author}
     bgColor={Styles.globalColors.blue4}
   >
-    <Kb.Text
-      type="BodySmallSemibold"
-      backgroundMode="Announcements"
-      style={{color: Styles.globalColors.black_50}}
-    >
+    <Kb.Text type="BodySmallSemibold" negative={true} style={{color: Styles.globalColors.black_50}}>
       {formatTimeForMessages(props.timestamp)}
     </Kb.Text>
-    <Kb.Text
-      type="BodySmallSemibold"
-      backgroundMode="Announcements"
-      style={{color: Styles.globalColors.black_50}}
-    >
+    <Kb.Text type="BodySmallSemibold" negative={true} style={{color: Styles.globalColors.black_50}}>
       {props.authorIsYou ? (
         'You'
       ) : (
@@ -78,7 +70,7 @@ const JoinedUserNotice = (props: Props) => (
     </Kb.Text>
     {props.authorIsYou && props.isBigTeam && (
       <Kb.Text
-        backgroundMode="Announcements"
+        negative={true}
         onClick={props.onManageChannels}
         style={{color: Styles.globalColors.blue}}
         type="BodySmallSemibold"

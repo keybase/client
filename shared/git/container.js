@@ -9,7 +9,7 @@ import {anyWaiting} from '../constants/waiting'
 import {compose, connect, isMobile, type RouteProps} from '../util/container'
 import {sortBy, partition} from 'lodash-es'
 
-type OwnProps = RouteProps<{}, {expandedSet: I.Set<string>}>
+type OwnProps = RouteProps<{}, {}>
 
 const sortRepos = git => sortBy(git, ['teamname', 'name'])
 
@@ -29,15 +29,14 @@ const getRepos = state => {
   }
 }
 
-const mapStateToProps = (state, {routeState}) => {
+const mapStateToProps = state => {
   return {
     ...getRepos(state),
-    expandedSet: routeState.get('expandedSet'),
     loading: anyWaiting(state, Constants.loadingWaitingKey),
   }
 }
 
-const mapDispatchToProps = (dispatch: any, {navigateAppend, setRouteState, routeState, navigateUp}) => ({
+const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp}) => ({
   _loadGit: () => dispatch(GitGen.createLoadGit()),
   onBack: () => dispatch(navigateUp()),
   onNewPersonalRepo: () => {
@@ -52,17 +51,30 @@ const mapDispatchToProps = (dispatch: any, {navigateAppend, setRouteState, route
     dispatch(GitGen.createSetError({error: null}))
     dispatch(navigateAppend([{props: {id}, selected: 'deleteRepo'}]))
   },
-  onToggleExpand: (id: string) => {
-    const old = routeState.get('expandedSet')
-    // TODO use unique id
-    setRouteState({expandedSet: old.has(id) ? old.delete(id) : old.add(id)})
-  },
 })
 
-class GitReloadable extends React.PureComponent<{
-  ...{|_loadGit: () => void|},
-  ...React.ElementConfig<typeof Git>,
-}> {
+// keep track in the module
+let _expandedSet = I.Set()
+
+class GitReloadable extends React.PureComponent<
+  {
+    ...{|_loadGit: () => void|},
+    ...$Diff<
+      React.ElementConfig<typeof Git>,
+      {
+        expandedSet: I.Set<string>,
+        onToggleExpand: string => void,
+      }
+    >,
+  },
+  {expandedSet: I.Set<string>}
+> {
+  state = {expandedSet: _expandedSet}
+  _toggleExpand = id => {
+    _expandedSet = _expandedSet.has(id) ? _expandedSet.delete(id) : _expandedSet.add(id)
+    this.setState({expandedSet: _expandedSet})
+  }
+
   render() {
     return (
       <Kb.Reloadable
@@ -72,12 +84,12 @@ class GitReloadable extends React.PureComponent<{
         reloadOnMount={true}
       >
         <Git
-          expandedSet={this.props.expandedSet}
+          expandedSet={this.state.expandedSet}
           loading={this.props.loading}
           onShowDelete={this.props.onShowDelete}
           onNewPersonalRepo={this.props.onNewPersonalRepo}
           onNewTeamRepo={this.props.onNewTeamRepo}
-          onToggleExpand={this.props.onToggleExpand}
+          onToggleExpand={this._toggleExpand}
           personals={this.props.personals}
           teams={this.props.teams}
           onBack={this.props.onBack}
@@ -89,13 +101,11 @@ class GitReloadable extends React.PureComponent<{
 
 const mergeProps = (s, d, o) => ({
   _loadGit: d._loadGit,
-  expandedSet: s.expandedSet,
   loading: s.loading,
   onBack: d.onBack,
   onNewPersonalRepo: d.onNewPersonalRepo,
   onNewTeamRepo: d.onNewTeamRepo,
   onShowDelete: d.onShowDelete,
-  onToggleExpand: d.onToggleExpand,
   personals: s.personals,
   teams: s.teams,
 })

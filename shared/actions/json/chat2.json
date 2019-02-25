@@ -551,6 +551,7 @@
       "messageID": "Types.MessageID",
       "collapse": "boolean"
     },
+    "toggleInfoPanel": { },
     "updateCoinFlipStatus": {
       "_description": "Update status of a coin flip game",
       "statuses": "Array<RPCChatTypes.UICoinFlipStatus>"

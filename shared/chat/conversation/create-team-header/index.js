@@ -10,7 +10,7 @@ type Props = {|
 const CreateTeamHeader = ({onShowNewTeamDialog}: Props) => (
   <Box style={stylesContainer}>
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-      <Text center={true} type="BodySmallSemibold" backgroundMode="HighRisk" >
+      <Text center={true} type="BodySmallSemibold" negative={true}>
         Create a team? You’ll be able to add and remove members as you wish.{' '}
       </Text>
       <Text
@@ -19,7 +19,7 @@ const CreateTeamHeader = ({onShowNewTeamDialog}: Props) => (
         onClick={onShowNewTeamDialog}
         underline={true}
         className="underline"
-        backgroundMode="Terminal"
+        negative={true}
       >
         Enter a team name
       </Text>

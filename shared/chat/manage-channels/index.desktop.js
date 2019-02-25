@@ -11,7 +11,7 @@ const HoverBox = Styles.styled(Kb.Box)({
 
 const Edit = ({onClick, style}: {onClick: () => void, style: Object}) => (
   <HoverBox style={style} onClick={onClick}>
-    <Kb.Icon style={{height: 12, marginRight: Styles.globalMargins.xtiny}} type="iconfont-edit" />
+    <Kb.Icon style={{marginRight: Styles.globalMargins.xtiny}} type="iconfont-edit" />
     <Kb.Text type="BodySmallPrimaryLink">Edit</Kb.Text>
   </HoverBox>
 )

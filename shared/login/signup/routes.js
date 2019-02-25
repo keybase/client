@@ -18,3 +18,13 @@ const children = {
 }
 
 export default children
+
+export const newRoutes = {
+  deviceName: {getScreen: () => DeviceName},
+  inviteCode: {getScreen: () => InviteCode},
+  passphraseSignup: {getScreen: () => PassphraseSignup},
+  requestInvite: {getScreen: () => RequestInvite},
+  requestInviteSuccess: {getScreen: () => RequestInviteSuccess},
+  signupError: {getScreen: () => SignupError},
+  usernameAndEmail: {getScreen: () => UsernameEmail},
+}

@@ -14,15 +14,15 @@ type Background =
 
 type TextType = $Keys<typeof allTextTypes>
 
-type Props = {
+type Props = {|
   allowFontScaling?: boolean,
   allowHighlightText?: boolean, // if true, highlighttext through refs works
-  backgroundMode?: Background,
   center?: boolean,
   children?: React.Node,
   className?: string,
   ellipsizeMode?: 'head' | 'middle' | 'tail' | 'clip', // mobile only, defines how ellipsis will be put in if `lineClamp` is supplied
   lineClamp?: ?number,
+  negative?: boolean,
   onClick?: ?(e: SyntheticEvent<>) => void | ?(() => void),
   onClickURL?: ?string,
   onLongPress?: () => void,
@@ -34,11 +34,14 @@ type Props = {
   title?: ?string,
   type: TextType,
   underline?: boolean,
-}
+|}
 
 type MetaType = {
   fontSize: number,
-  colorForBackgroundMode: {[key: Background]: ?string},
+  colorForBackground: {
+    positive: string,
+    negative: string,
+  },
   isLink?: true,
   styleOverride?: ?Object,
   isTerminal?: true,

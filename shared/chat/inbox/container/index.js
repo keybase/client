@@ -65,7 +65,7 @@ const mapDispatchToProps = (dispatch, {navigateAppend}) => ({
     dispatch(
       ff.newTeamBuildingForChat
         ? RouteTreeGen.createNavigateAppend({
-            path: [{props: {}, selected: 'newChat'}],
+            path: [{props: {}, selected: 'chatNewChat'}],
           })
         : Chat2Gen.createSetPendingMode({pendingMode: 'searchingForUsers'})
     ),
@@ -88,6 +88,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   allowShowFloatingButton: stateProps.allowShowFloatingButton,
   filter: stateProps.filter,
   neverLoaded: stateProps.neverLoaded,
+  onDeselectConversation: () => dispatchProps._onSelect(Constants.noConversationIDKey),
   onEnsureSelection: () => {
     // $ForceType
     if (stateProps.rows.find(r => r.conversationIDKey === stateProps._selectedConversationIDKey)) {
@@ -180,6 +181,11 @@ class InboxWrapper extends React.PureComponent<Props, State> {
   }
 }
 
-export default namedConnect<OwnProps, _, _, _, _>(mapStateToProps, mapDispatchToProps, mergeProps, 'Inbox')(
-  InboxWrapper
-)
+const Connected = namedConnect<OwnProps, _, _, _, _>(
+  mapStateToProps,
+  mapDispatchToProps,
+  mergeProps,
+  'Inbox'
+)(InboxWrapper)
+
+export default Connected

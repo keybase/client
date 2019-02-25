@@ -28,7 +28,11 @@ const ReallyRemoveMember = (props: Props) => (
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', flex: 1, padding: globalMargins.large}}>
       <Avatar username={props.member} size={64} />
       <Icon type="icon-team-leave-28" style={{marginRight: -60, marginTop: -20, zIndex: 1}} />
-      <Text type="Header" style={{marginBottom: globalMargins.large, marginTop: globalMargins.large}}>
+      <Text
+        type="Header"
+        center={true}
+        style={{marginBottom: globalMargins.large, marginTop: globalMargins.large}}
+      >
         Are you sure you want to remove {props.member} from {props.name}?
       </Text>
       <Text center={true} type="Body" style={{maxWidth: 450}}>

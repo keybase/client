@@ -19,6 +19,7 @@ export type ControlledRolePickerProps = {
   allowOwner?: boolean,
   allowAdmin?: boolean,
   headerTitle?: string,
+  ownerDisabledExp?: string,
   pluralizeRoleName?: boolean,
   showNotificationCheckbox?: boolean,
   sendNotificationChecked?: boolean,
@@ -39,6 +40,7 @@ const mapStateToProps = (state, {routeProps}) => {
   const addButtonLabel = routeProps.get('addButtonLabel')
   const allowAdmin = routeProps.get('allowAdmin')
   const allowOwner = routeProps.get('allowOwner')
+  const ownerDisabledExp = routeProps.get('ownerDisabledExp')
   const headerTitle = routeProps.get('headerTitle')
   const pluralizeRoleName = routeProps.get('pluralizeRoleName')
   const sendNotificationChecked = routeProps.get('sendNotificationChecked')
@@ -53,6 +55,7 @@ const mapStateToProps = (state, {routeProps}) => {
     controlled: true,
     currentType,
     headerTitle,
+    ownerDisabledExp,
     pluralizeRoleName,
     sendNotificationChecked,
     showSendNotification,

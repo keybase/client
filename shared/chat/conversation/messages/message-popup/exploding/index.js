@@ -101,13 +101,19 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
             </Box2>
           </Box2>
           <Box2 direction="horizontal">
-            <Text type="BodySmall">from device {deviceName}</Text>
+            <Text center={true} type="BodySmall">
+              from device {deviceName}
+            </Text>
           </Box2>
           <Box2 direction="horizontal">
-            <Text type="BodySmall">using exploding key</Text>
+            <Text center={true} type="BodySmall">
+              using exploding key
+            </Text>
           </Box2>
           <Box2 direction="horizontal">
-            <Text type="BodySmall">{formatTimeForPopup(timestamp)}</Text>
+            <Text center={true} type="BodySmall">
+              {formatTimeForPopup(timestamp)}
+            </Text>
           </Box2>
         </Box2>
         {!!deviceRevokedAt && (
@@ -129,9 +135,7 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
             styles.timerBox,
             {
               backgroundColor:
-                this.state.secondsLeft < oneMinuteInS
-                  ? Styles.globalColors.red
-                  : Styles.globalColors.black,
+                this.state.secondsLeft < oneMinuteInS ? Styles.globalColors.red : Styles.globalColors.black,
             },
           ])}
         >

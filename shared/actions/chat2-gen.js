@@ -95,6 +95,7 @@ export const setPendingStatus = 'chat2:setPendingStatus'
 export const setUnsentText = 'chat2:setUnsentText'
 export const setWalletsOld = 'chat2:setWalletsOld'
 export const staticConfigLoaded = 'chat2:staticConfigLoaded'
+export const toggleInfoPanel = 'chat2:toggleInfoPanel'
 export const toggleLocalReaction = 'chat2:toggleLocalReaction'
 export const toggleMessageCollapse = 'chat2:toggleMessageCollapse'
 export const toggleMessageReaction = 'chat2:toggleMessageReaction'
@@ -200,6 +201,7 @@ type _SetPendingStatusPayload = $ReadOnly<{|pendingStatus: Types.PendingStatus|}
 type _SetUnsentTextPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, text: ?HiddenString|}>
 type _SetWalletsOldPayload = void
 type _StaticConfigLoadedPayload = $ReadOnly<{|staticConfig: Types.StaticConfig|}>
+type _ToggleInfoPanelPayload = void
 type _ToggleLocalReactionPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, emoji: string, targetOrdinal: Types.Ordinal, username: string|}>
 type _ToggleMessageCollapsePayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, messageID: Types.MessageID, collapse: boolean|}>
 type _ToggleMessageReactionPayload = $ReadOnly<{|conversationIDKey: Types.ConversationIDKey, emoji: string, ordinal: Types.Ordinal|}>
@@ -424,6 +426,7 @@ export const createSetInboxFilter = (payload: _SetInboxFilterPayload) => ({paylo
 export const createSetPendingConversationUsers = (payload: _SetPendingConversationUsersPayload) => ({payload, type: setPendingConversationUsers})
 export const createSetPendingMode = (payload: _SetPendingModePayload) => ({payload, type: setPendingMode})
 export const createSetPendingStatus = (payload: _SetPendingStatusPayload) => ({payload, type: setPendingStatus})
+export const createToggleInfoPanel = (payload: _ToggleInfoPanelPayload) => ({payload, type: toggleInfoPanel})
 export const createToggleSmallTeamsExpanded = (payload: _ToggleSmallTeamsExpandedPayload) => ({payload, type: toggleSmallTeamsExpanded})
 export const createUpdateMoreToLoad = (payload: _UpdateMoreToLoadPayload) => ({payload, type: updateMoreToLoad})
 export const createUpdateNotificationSettings = (payload: _UpdateNotificationSettingsPayload) => ({payload, type: updateNotificationSettings})
@@ -512,6 +515,7 @@ export type SetPendingStatusPayload = {|+payload: _SetPendingStatusPayload, +typ
 export type SetUnsentTextPayload = {|+payload: _SetUnsentTextPayload, +type: 'chat2:setUnsentText'|}
 export type SetWalletsOldPayload = {|+payload: _SetWalletsOldPayload, +type: 'chat2:setWalletsOld'|}
 export type StaticConfigLoadedPayload = {|+payload: _StaticConfigLoadedPayload, +type: 'chat2:staticConfigLoaded'|}
+export type ToggleInfoPanelPayload = {|+payload: _ToggleInfoPanelPayload, +type: 'chat2:toggleInfoPanel'|}
 export type ToggleLocalReactionPayload = {|+payload: _ToggleLocalReactionPayload, +type: 'chat2:toggleLocalReaction'|}
 export type ToggleMessageCollapsePayload = {|+payload: _ToggleMessageCollapsePayload, +type: 'chat2:toggleMessageCollapse'|}
 export type ToggleMessageReactionPayload = {|+payload: _ToggleMessageReactionPayload, +type: 'chat2:toggleMessageReaction'|}
@@ -616,6 +620,7 @@ export type Actions =
   | SetUnsentTextPayload
   | SetWalletsOldPayload
   | StaticConfigLoadedPayload
+  | ToggleInfoPanelPayload
   | ToggleLocalReactionPayload
   | ToggleMessageCollapsePayload
   | ToggleMessageReactionPayload

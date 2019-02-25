@@ -546,6 +546,18 @@
       ],
       "response": "ExtendedStatus"
     },
+    "getClientStatus": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "ClientStatus"
+      }
+    },
     "getAllProvisionedUsernames": {
       "request": [
         {

@@ -1,4 +1,5 @@
 // @flow
+import * as React from 'react'
 import * as I from 'immutable'
 import * as Constants from '../../constants/tracker2'
 import * as Container from '../../util/container'
@@ -10,6 +11,7 @@ import Profile2 from '.'
 import {memoize} from '../../util/memoize'
 import type {RouteProps} from '../../route-tree/render-route'
 import type {Response} from 'react-native-image-picker'
+import {PeoplePageSearchBar} from '../../people/index.shared'
 
 type OwnProps = RouteProps<{username: string}, {}>
 const emptySet = I.OrderedSet()
@@ -23,17 +25,18 @@ const headerBackgroundColorType = (state, followThem) => {
 }
 
 const mapStateToProps = (state, ownProps) => {
-  const username = ownProps.routeProps.get('username')
+  const username = ownProps.routeProps
+    ? ownProps.routeProps.get('username')
+    : ownProps.navigation.getParam('username')
   const d = Constants.getDetails(state, username)
   const followThem = Constants.followThem(state, username)
-  const _userIsYou = username === state.config.username
+  const userIsYou = username === state.config.username
   const followersCount = state.tracker2.usernameToDetails.getIn([username, 'followersCount'])
   const followingCount = state.tracker2.usernameToDetails.getIn([username, 'followingCount'])
 
   return {
     _assertions: d.assertions,
-    _suggestionKeys: _userIsYou ? state.tracker2.proofSuggestions : null,
-    _userIsYou,
+    _suggestionKeys: userIsYou ? state.tracker2.proofSuggestions : null,
     backgroundColorType: headerBackgroundColorType(d.state, followThem),
     followThem,
     followers: state.tracker2.usernameToDetails.getIn([username, 'followers']) || emptySet,
@@ -43,6 +46,7 @@ const mapStateToProps = (state, ownProps) => {
     guiID: d.guiID,
     reason: d.reason,
     state: d.state,
+    userIsYou,
     username,
   }
 }
@@ -87,21 +91,48 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   followersCount: stateProps.followersCount,
   followingCount: stateProps.followingCount,
   onBack: dispatchProps.onBack,
-  onEditAvatar: stateProps._userIsYou ? dispatchProps._onEditAvatar : null,
-  onReload: () => dispatchProps._onReload(stateProps.username, stateProps._userIsYou),
+  onEditAvatar: stateProps.userIsYou ? dispatchProps._onEditAvatar : null,
+  onReload: () => dispatchProps._onReload(stateProps.username, stateProps.userIsYou),
   onSearch: dispatchProps.onSearch,
   reason: stateProps.reason,
   state: stateProps.state,
   suggestionKeys: stateProps._suggestionKeys
     ? stateProps._suggestionKeys.map(s => s.assertionKey).toArray()
     : null,
+  userIsYou: stateProps.userIsYou,
   username: stateProps.username,
   ...followToArray(stateProps.followers, stateProps.following),
 })
 
-export default Container.namedConnect<OwnProps, _, _, _, _>(
+const ConnectedHeader = Container.connect<{}, _, _, _, _>(
+  () => ({}),
+  dispatch => ({
+    onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
+    onSearch: () => {
+      dispatch(SearchGen.createSearchSuggestions({searchKey: 'profileSearch'}))
+      dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {}, selected: 'search'}]}))
+    },
+  }),
+  (s, d, o) => ({...o, ...s, ...d})
+)(PeoplePageSearchBar)
+
+const connected = Container.namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps,
   'Profile2'
 )(Profile2)
+
+// $FlowIssue lets fix this
+connected.navigationOptions = {
+  header: undefined,
+  headerTitle: hp => <ConnectedHeader />,
+  headerTitleContainerStyle: {
+    left: 60,
+    right: 20,
+  },
+  headerTransparent: true,
+  underNotch: true,
+}
+
+export default connected

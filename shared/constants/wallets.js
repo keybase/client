@@ -26,6 +26,34 @@ export const sendRequestFormRouteKey = 'sendReceiveForm'
 export const chooseAssetFormRouteKey = 'chooseAssetForm'
 export const confirmFormRouteKey = 'confirmForm'
 export const sendRequestFormRoutes = [sendRequestFormRouteKey, confirmFormRouteKey]
+export const airdropBannerKey = 'stellarHideAirdropBanner'
+
+export const makeAirdropQualification: I.RecordFactory<Types._AirdropQualification> = I.Record({
+  subTitle: '',
+  title: '',
+  valid: false,
+})
+
+export const makeAirdropDetailsLine: I.RecordFactory<Types._AirdropDetailsLine> = I.Record({
+  bullet: false,
+  text: '',
+})
+
+export const makeAirdropDetailsHeader: I.RecordFactory<Types._AirdropDetailsHeader> = I.Record({
+  body: '',
+  title: '',
+})
+
+export const makeAirdropDetailsSection: I.RecordFactory<Types._AirdropDetailsSection> = I.Record({
+  icon: '',
+  lines: I.List(),
+  section: '',
+})
+
+export const makeAirdropDetails: I.RecordFactory<Types._AirdropDetails> = I.Record({
+  header: makeAirdropDetailsHeader({}),
+  sections: I.List(),
+})
 
 export const makeInflationDestination: I.RecordFactory<Types._InflationDestination> = I.Record({
   address: '',
@@ -98,6 +126,10 @@ export const makeState: I.RecordFactory<Types._State> = I.Record({
   accountName: '',
   accountNameError: '',
   accountNameValidationState: 'none',
+  airdropDetails: makeAirdropDetails(),
+  airdropQualifications: I.List(),
+  airdropShowBanner: false,
+  airdropState: 'loading',
   assetsMap: I.Map(),
   buildCounter: 0,
   building: makeBuilding(),
@@ -469,6 +501,7 @@ export const inflationDestResultToAccountInflationDest = (res: RPCTypes.Inflatio
   })
 }
 
+export const airdropWaitingKey = 'wallets:airdrop'
 export const acceptDisclaimerWaitingKey = 'wallets:acceptDisclaimer'
 export const changeAccountNameWaitingKey = 'wallets:changeAccountName'
 export const createNewAccountWaitingKey = 'wallets:createNewAccount'

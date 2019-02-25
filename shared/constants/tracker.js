@@ -95,6 +95,7 @@ const initialTrackerState = (username: string): Types.TrackerState => ({
     followsYou: false,
     fullname: '', // TODO get this info,
     location: '', // TODO: get this information
+    registeredForAirdrop: false,
     showcasedTeams: [],
     uid: '',
   },

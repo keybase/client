@@ -10,9 +10,7 @@ type OwnProps = {
   conversationIDKey: Types.ConversationIDKey,
   debug?: boolean,
   onFocusInput: () => void,
-  scrollListBottomCounter: number,
   scrollListDownCounter: number,
-  scrollListTopCounter: number,
   scrollListUpCounter: number,
 }
 
@@ -49,9 +47,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   markInitiallyLoadedThreadAsRead: dispatchProps._markInitiallyLoadedThreadAsRead,
   messageOrdinals: stateProps.messageOrdinals.toList(),
   onFocusInput: ownProps.onFocusInput,
-  scrollListBottomCounter: ownProps.scrollListBottomCounter,
   scrollListDownCounter: ownProps.scrollListDownCounter,
-  scrollListTopCounter: ownProps.scrollListTopCounter,
   scrollListUpCounter: ownProps.scrollListUpCounter,
 })
 

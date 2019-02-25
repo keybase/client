@@ -36,10 +36,12 @@ export const logoutHandshake = 'config:logoutHandshake'
 export const logoutHandshakeWait = 'config:logoutHandshakeWait'
 export const mobileAppState = 'config:mobileAppState'
 export const openAppSettings = 'config:openAppSettings'
+export const persistRoute = 'config:persistRoute'
 export const pushLoaded = 'config:pushLoaded'
 export const restartHandshake = 'config:restartHandshake'
 export const setAccounts = 'config:setAccounts'
 export const setDeletedSelf = 'config:setDeletedSelf'
+export const setNavigator = 'config:setNavigator'
 export const setNotifySound = 'config:setNotifySound'
 export const setOpenAtLogin = 'config:setOpenAtLogin'
 export const setStartupDetails = 'config:setStartupDetails'
@@ -76,10 +78,12 @@ type _LogoutHandshakeWaitPayload = $ReadOnly<{|name: string, version: number, in
 type _LogoutPayload = void
 type _MobileAppStatePayload = $ReadOnly<{|nextAppState: 'active' | 'background' | 'inactive'|}>
 type _OpenAppSettingsPayload = void
+type _PersistRoutePayload = $ReadOnly<{|path: Array<any>|}>
 type _PushLoadedPayload = $ReadOnly<{|pushLoaded: boolean|}>
 type _RestartHandshakePayload = void
 type _SetAccountsPayload = $ReadOnly<{|defaultUsername: string, usernames: Array<string>|}>
 type _SetDeletedSelfPayload = $ReadOnly<{|deletedUsername: string|}>
+type _SetNavigatorPayload = $ReadOnly<{|navigator: any|}>
 type _SetNotifySoundPayload = $ReadOnly<{|sound: boolean, writeFile: boolean|}>
 type _SetOpenAtLoginPayload = $ReadOnly<{|open: boolean, writeFile: boolean|}>
 type _SetStartupDetailsPayload = $ReadOnly<{|startupWasFromPush: boolean, startupConversation: ?ChatTypes.ConversationIDKey, startupLink: string, startupTab: ?Tabs.Tab, startupFollowUser: string|}>
@@ -155,9 +159,11 @@ export const createLoadedAvatars = (payload: _LoadedAvatarsPayload) => ({payload
 export const createLoggedIn = (payload: _LoggedInPayload) => ({payload, type: loggedIn})
 export const createLoggedOut = (payload: _LoggedOutPayload) => ({payload, type: loggedOut})
 export const createMobileAppState = (payload: _MobileAppStatePayload) => ({payload, type: mobileAppState})
+export const createPersistRoute = (payload: _PersistRoutePayload) => ({payload, type: persistRoute})
 export const createPushLoaded = (payload: _PushLoadedPayload) => ({payload, type: pushLoaded})
 export const createSetAccounts = (payload: _SetAccountsPayload) => ({payload, type: setAccounts})
 export const createSetDeletedSelf = (payload: _SetDeletedSelfPayload) => ({payload, type: setDeletedSelf})
+export const createSetNavigator = (payload: _SetNavigatorPayload) => ({payload, type: setNavigator})
 export const createSetNotifySound = (payload: _SetNotifySoundPayload) => ({payload, type: setNotifySound})
 export const createSetOpenAtLogin = (payload: _SetOpenAtLoginPayload) => ({payload, type: setOpenAtLogin})
 export const createSetStartupDetails = (payload: _SetStartupDetailsPayload) => ({payload, type: setStartupDetails})
@@ -192,10 +198,12 @@ export type LogoutHandshakeWaitPayload = {|+payload: _LogoutHandshakeWaitPayload
 export type LogoutPayload = {|+payload: _LogoutPayload, +type: 'config:logout'|}
 export type MobileAppStatePayload = {|+payload: _MobileAppStatePayload, +type: 'config:mobileAppState'|}
 export type OpenAppSettingsPayload = {|+payload: _OpenAppSettingsPayload, +type: 'config:openAppSettings'|}
+export type PersistRoutePayload = {|+payload: _PersistRoutePayload, +type: 'config:persistRoute'|}
 export type PushLoadedPayload = {|+payload: _PushLoadedPayload, +type: 'config:pushLoaded'|}
 export type RestartHandshakePayload = {|+payload: _RestartHandshakePayload, +type: 'config:restartHandshake'|}
 export type SetAccountsPayload = {|+payload: _SetAccountsPayload, +type: 'config:setAccounts'|}
 export type SetDeletedSelfPayload = {|+payload: _SetDeletedSelfPayload, +type: 'config:setDeletedSelf'|}
+export type SetNavigatorPayload = {|+payload: _SetNavigatorPayload, +type: 'config:setNavigator'|}
 export type SetNotifySoundPayload = {|+payload: _SetNotifySoundPayload, +type: 'config:setNotifySound'|}
 export type SetOpenAtLoginPayload = {|+payload: _SetOpenAtLoginPayload, +type: 'config:setOpenAtLogin'|}
 export type SetStartupDetailsPayload = {|+payload: _SetStartupDetailsPayload, +type: 'config:setStartupDetails'|}
@@ -234,10 +242,12 @@ export type Actions =
   | LogoutPayload
   | MobileAppStatePayload
   | OpenAppSettingsPayload
+  | PersistRoutePayload
   | PushLoadedPayload
   | RestartHandshakePayload
   | SetAccountsPayload
   | SetDeletedSelfPayload
+  | SetNavigatorPayload
   | SetNotifySoundPayload
   | SetOpenAtLoginPayload
   | SetStartupDetailsPayload

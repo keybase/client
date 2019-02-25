@@ -2,7 +2,7 @@
 import React from 'react'
 import {Text} from '../../../../common-adapters'
 import UserNotice from '../user-notice'
-import {globalColors, isMobile} from '../../../../styles'
+import {globalColors} from '../../../../styles'
 
 type Props = {
   onShowNewTeamDialog: () => void,
@@ -10,7 +10,7 @@ type Props = {
 
 const CreateTeamNotice = ({onShowNewTeamDialog}: Props) => (
   <UserNotice username="" bgColor={globalColors.blue4}>
-    <Text type="BodySmallSemibold" style={isMobile ? {alignItems: 'center'} : {textAlign: 'center'}}>
+    <Text type="BodySmallSemibold" center={true}>
       Make it a team? You'll be able to add and delete members as you wish.{' '}
       <Text
         type="BodySmallPrimaryLink"

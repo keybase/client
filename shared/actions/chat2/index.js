@@ -22,6 +22,7 @@ import * as WalletTypes from '../../constants/types/wallets'
 import * as Tabs from '../../constants/tabs'
 import * as UsersGen from '../users-gen'
 import * as WaitingGen from '../waiting-gen'
+import * as Router2Constants from '../../constants/router2'
 import chatTeamBuildingSaga from './team-building'
 import * as TeamsConstants from '../../constants/teams'
 import logger from '../../logger'
@@ -1288,7 +1289,7 @@ function* messageSend(state, action) {
   // disable sending exploding messages if flag is false
   const ephemeralLifetime = Constants.getConversationExplodingMode(state, conversationIDKey)
   const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
-  const routeName = 'paymentsConfirm'
+  const routeName = 'chatPaymentsConfirm'
   const onShowConfirm = () => [
     Saga.put(Chat2Gen.createClearPaymentConfirmInfo()),
     Saga.put(
@@ -1761,7 +1762,7 @@ const attachmentPreviewSelect = (_, action) => {
       path: [
         {
           props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
-          selected: 'attachmentVideoFullscreen',
+          selected: 'chatAttachmentVideoFullscreen',
         },
       ],
     })
@@ -1772,7 +1773,7 @@ const attachmentPreviewSelect = (_, action) => {
         path: [
           {
             props: {},
-            selected: 'attachmentFullscreen',
+            selected: 'chatAttachmentFullscreen',
           },
         ],
       }),
@@ -1796,7 +1797,7 @@ const attachmentPasted = (_, action) => {
       },
     ]
     return RouteTreeGen.createNavigateAppend({
-      path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'attachmentGetTitles'}],
+      path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'}],
     })
   })
 }
@@ -2016,6 +2017,9 @@ const mobileNavigateOnSelect = (state, action) => {
 }
 
 const mobileChangeSelection = state => {
+  if (flags.useNewRouter) {
+    return
+  }
   const routePath = getPath(state.routeTree.routeState)
   const inboxSelected = routePath.size === 1 && routePath.get(0) === Tabs.chatTab
   if (inboxSelected) {
@@ -2559,6 +2563,27 @@ const unfurlResolvePrompt = (state, action) => {
   })
 }
 
+const toggleInfoPanel = (state, action) => {
+  if (flags.useNewRouter) {
+    const visible = Router2Constants.getVisiblePath()
+    if (visible[visible.length - 1]?.routeName === 'chatInfoPanel') {
+      return RouteTreeGen.createNavigateUp()
+    } else {
+      return RouteTreeGen.createNavigateAppend({
+        path: [{props: {conversationIDKey: state.chat2.selectedConversation}, selected: 'chatInfoPanel'}],
+      })
+    }
+  } else {
+    if (Constants.isInfoPanelOpen(state)) {
+      return RouteTreeGen.createNavigateTo({parentPath: [Tabs.chatTab], path: ['chatConversation']})
+    } else {
+      return RouteTreeGen.createNavigateAppend({
+        path: [{props: {conversationIDKey: state.chat2.selectedConversation}, selected: 'chatInfoPanel'}],
+      })
+    }
+  }
+}
+
 const unsentTextChanged = (state, action) => {
   const {conversationIDKey, text} = action.payload
   return RPCChatTypes.localUpdateUnsentTextRpcPromise({
@@ -2918,6 +2943,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     changePendingMode
   )
   yield* Saga.chainAction<Chat2Gen.OpenChatFromWidgetPayload>(Chat2Gen.openChatFromWidget, openChatFromWidget)
+  yield* Saga.chainAction<Chat2Gen.ToggleInfoPanelPayload>(Chat2Gen.toggleInfoPanel, toggleInfoPanel)
 
   // Exploding things
   yield* Saga.chainGenerator<Chat2Gen.SetConvExplodingModePayload>(

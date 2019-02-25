@@ -8,7 +8,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/types"
+	"github.com/keybase/client/go/externalstest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
@@ -236,4 +238,40 @@ func TestDecorateMentions(t *testing.T) {
 			c.channelNameMentions)
 		require.Equal(t, c.result, res)
 	}
+}
+
+type configUsernamer struct {
+	libkb.ConfigReader
+	username libkb.NormalizedUsername
+}
+
+func (c configUsernamer) GetUsername() libkb.NormalizedUsername {
+	return c.username
+}
+
+func TestAddUserToTlfName(t *testing.T) {
+	tc := externalstest.SetupTest(t, "chat-utils", 0)
+	g := globals.NewContext(tc.G, &globals.ChatContext{})
+	g.Env.SetConfig(
+		&configUsernamer{g.Env.GetConfig(), "charlie"}, g.Env.GetConfigWriter())
+
+	priv := keybase1.TLFVisibility_PRIVATE
+	mem := chat1.ConversationMembersType_IMPTEAMNATIVE
+	s := AddUserToTLFName(g, "alice,bob", priv, mem)
+	require.Equal(t, "alice,bob,charlie", s)
+	s = AddUserToTLFName(g, "charlie", priv, mem)
+	require.Equal(t, "charlie,charlie", s)
+	s = AddUserToTLFName(
+		g, "alice,bob (conflicted copy 2019-02-14 #1)", priv, mem)
+	require.Equal(t, "alice,bob,charlie (conflicted copy 2019-02-14 #1)", s)
+	s = AddUserToTLFName(
+		g, "alice#bob", priv, mem)
+	require.Equal(t, "alice,charlie#bob", s)
+	s = AddUserToTLFName(
+		g, "alice#bob (conflicted copy 2019-02-14 #1)", priv, mem)
+	require.Equal(t, "alice,charlie#bob (conflicted copy 2019-02-14 #1)", s)
+
+	pub := keybase1.TLFVisibility_PUBLIC
+	s = AddUserToTLFName(g, "alice,bob", pub, mem)
+	require.Equal(t, "alice,bob", s)
 }
