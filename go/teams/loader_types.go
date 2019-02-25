@@ -126,7 +126,7 @@ func (l ChainLinkUnpacked) LinkTriple() keybase1.LinkTriple {
 	}
 }
 
-func (s ChainLinkUnpacked) TeamAdmin() *SCTeamAdmin { return s.inner.TeamAdmin() }
+func (l ChainLinkUnpacked) TeamAdmin() *SCTeamAdmin { return l.inner.TeamAdmin() }
 
 func (i *SCChainLinkPayload) SignatureMetadata() keybase1.SignatureMetadata {
 	return keybase1.SignatureMetadata{
