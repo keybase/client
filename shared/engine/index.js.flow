@@ -16,6 +16,7 @@ declare export class Engine {
   // TODO maybe get rid of this, only used by tracker
   cancelSession(sessionID: any): void;
   rpc(): void;
+  sagasAreReady(): void;
   actionOnConnect(key: string, f: () => ?TypedActions): void;
   actionOnDisconnect(key: string, f: () => ?TypedActions): void;
   hasEverConnected(): void;

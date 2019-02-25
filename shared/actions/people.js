@@ -1,5 +1,4 @@
 // @flow
-import * as ConfigGen from './config-gen'
 import * as EngineGen from './engine-gen-gen'
 import * as PeopleGen from './people-gen'
 import * as Saga from '../util/saga'

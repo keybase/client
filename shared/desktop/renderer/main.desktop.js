@@ -50,6 +50,7 @@ function setupApp(store, runSagas) {
   disableDragDrop()
   const eng = makeEngine(store.dispatch, store.getState)
   runSagas?.()
+  eng.sagasAreReady()
 
   setupContextMenu(SafeElectron.getRemote().getCurrentWindow())
 

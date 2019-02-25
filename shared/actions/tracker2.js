@@ -2,13 +2,11 @@
 import * as Tracker2Gen from './tracker2-gen'
 import {getProfile as getProfileOLD, type GetProfilePayload as GetProfilePayloadOLD} from './tracker-gen'
 import * as EngineGen from './engine-gen-gen'
-import * as ConfigGen from './config-gen'
 import * as Saga from '../util/saga'
 import * as Constants from '../constants/tracker2'
 import flags from '../util/feature-flags'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import logger from '../logger'
-import engine from '../engine'
 
 const identify3Result = (_, action) => {
   const {guiID, result} = action.payload.params
@@ -34,17 +32,14 @@ const identify3UpdateRow = (_, action) =>
     guiID: action.payload.params.row.guiID,
   })
 
-const setupEngineListeners = () => {
-  engine().actionOnConnect('registerIdentify3UI', () => {
-    RPCTypes.delegateUiCtlRegisterIdentify3UIRpcPromise()
-      .then(() => {
-        logger.info('Registered identify ui')
-      })
-      .catch(error => {
-        logger.warn('error in registering identify ui: ', error)
-      })
-  })
-}
+const connected = () =>
+  RPCTypes.delegateUiCtlRegisterIdentify3UIRpcPromise()
+    .then(() => {
+      logger.info('Registered identify ui')
+    })
+    .catch(error => {
+      logger.warn('error in registering identify ui: ', error)
+    })
 
 const refreshChanged = (_, action) =>
   Tracker2Gen.createLoad({
@@ -189,11 +184,6 @@ function* tracker2Saga(): Saga.SagaGenerator<any, any> {
     return
   }
 
-  yield* Saga.chainAction<ConfigGen.SetupEngineListenersPayload>(
-    ConfigGen.setupEngineListeners,
-    setupEngineListeners
-  )
-
   yield* Saga.chainAction<EngineGen.Keybase1Identify3UiIdentify3UpdateUserCardPayload>(
     EngineGen.keybase1Identify3UiIdentify3UpdateUserCard,
     updateUserCard
@@ -228,6 +218,7 @@ function* tracker2Saga(): Saga.SagaGenerator<any, any> {
     EngineGen.keybase1Identify3UiIdentify3UpdateRow,
     identify3UpdateRow
   )
+  yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, connected)
 }
 
 export default tracker2Saga

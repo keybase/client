@@ -61,6 +61,8 @@ class Engine {
   _nextSessionID: number = 123
   // We call onDisconnect handlers only if we've actually disconnected (ie connected once)
   _hasConnected: boolean = false
+  // App tells us when the sagas are done loading so we can start emitting events
+  _sagasAreReady: boolean = false
   // So we can dispatch actions
   static _dispatch: Dispatch
   // Temporary helper for incoming call maps
@@ -148,12 +150,24 @@ class Engine {
     this._onDisconnectHandlers = handlers
   }
 
+  // We want to dispatch the connect action but only after sagas boot up
+  sagasAreReady = () => {
+    this._sagasAreReady = true
+    if (this._hasConnected) {
+      // dispatch the action version
+      Engine._dispatch({payload: undefined, type: 'engine-gen:connected'})
+    }
+  }
+
   // Called when we reconnect to the server
   _onConnected() {
     this._hasConnected = true
 
-    // dispatch the action version
-    Engine._dispatch({payload: undefined, type: 'engine-gen:connected'})
+    // Sagas already booted so they can get this
+    if (this._sagasAreReady) {
+      // dispatch the action version
+      Engine._dispatch({payload: undefined, type: 'engine-gen:connected'})
+    }
 
     // TODO deprecate this older style
     if (!this._onConnectHandlers) {
