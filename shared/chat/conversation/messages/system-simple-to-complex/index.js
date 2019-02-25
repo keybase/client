@@ -41,7 +41,7 @@ class ComplexTeamNotice extends React.PureComponent<Props> {
       >
         <Text
           type="BodySmallSemibold"
-          backgroundMode="Announcements"
+          negative={true}
           style={{color: globalColors.black_50, marginTop: globalMargins.tiny}}
         >
           {formatTimeForMessages(timestamp)}

@@ -15,7 +15,6 @@ const PoweredByStellar = () => (
       Powered by{' '}
       <Kb.Text
         type="BodySmallSemiboldSecondaryLink"
-        isLink={true}
         onClickURL="https://stellar.org"
         style={styles.textColor}
       >

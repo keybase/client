@@ -107,7 +107,6 @@ const UpgradeButton = ({onClick, type}: {onClick: () => void, type: 'upgrade' | 
 const DowngradeLink = ({onClick}) => (
   <Text
     type={'BodySmall'}
-    link={true}
     style={{color: globalColors.blue}}
     onClick={e => {
       onClick()
@@ -147,11 +146,7 @@ function PlanLevelRow({level, price, onInfo, variants, style, gigabytes}: PlanLe
     >
       <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
         <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
-          <Text
-            type={'BodySemibold'}
-            link={true}
-            style={{color: globalColors.blue, marginRight: globalMargins.xtiny}}
-          >
+          <Text type={'BodySemibold'} style={{color: globalColors.blue, marginRight: globalMargins.xtiny}}>
             {level}
           </Text>
           <Text type={'BodySmall'}>({price})</Text>
@@ -195,7 +190,7 @@ function PaymentInfo({
             **** {last4Digits} {isBroken ? ' (broken)' : ''}
           </Text>
         </Box>
-        <Text type="BodySmall" link={true} style={{color: globalColors.blue}} onClick={onChangePaymentInfo}>
+        <Text type="BodySmall" style={{color: globalColors.blue}} onClick={onChangePaymentInfo}>
           Update
         </Text>
       </Box>
@@ -271,7 +266,7 @@ function AccountEmail({
       <Box style={globalStyles.flexBoxColumn}>
         <Text type="BodySemibold">{email}</Text>
       </Box>
-      <Text type="Body" style={{color: globalColors.blue}} link={true} onClick={onChangeEmail}>
+      <Text type="Body" style={{color: globalColors.blue}} onClick={onChangeEmail}>
         Edit
       </Text>
     </Box>
@@ -307,7 +302,7 @@ function AccountPassphrase({onChangePassphrase}: {onChangePassphrase: () => void
       <Text type="Body" style={{flex: 1}}>
         •••••••••
       </Text>
-      <Text type="Body" style={{color: globalColors.blue}} link={true} onClick={onChangePassphrase}>
+      <Text type="Body" style={{color: globalColors.blue}} onClick={onChangePassphrase}>
         Edit
       </Text>
     </Box>
@@ -322,7 +317,7 @@ function AccountFirstPassphrase({onChangePassphrase}: {onChangePassphrase: () =>
       </Text>
       <Text type="Body">
         Not set! You should{' '}
-        <Text type="Body" style={{color: globalColors.blue}} link={true} onClick={onChangePassphrase}>
+        <Text type="Body" style={{color: globalColors.blue}} onClick={onChangePassphrase}>
           set a passphrase
         </Text>
         .

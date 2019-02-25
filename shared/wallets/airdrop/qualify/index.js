@@ -4,7 +4,6 @@ import * as Kb from '../../../common-adapters'
 import * as Types from '../../../constants/types/wallets'
 import * as Constants from '../../../constants/wallets'
 import * as Styles from '../../../styles'
-import openURL from '../../../util/open-url'
 import shallowEqual from 'shallowequal'
 
 type Props = {|
@@ -32,10 +31,10 @@ const Accepted = p =>
         <Kb.Box2 direction="vertical" style={styles.grow} />
         <Kb.Icon type="icon-fancy-airdrop-star-shining-happy-120" style={styles.star} />
         <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} alignItems="center">
-          <Kb.Text backgroundMode="Terminal" center={true} type="Header">
+          <Kb.Text negative={true} center={true} type="Header">
             You're in!
           </Kb.Text>
-          <Kb.Text backgroundMode="Terminal" center={true} type="Body">
+          <Kb.Text negative={true} center={true} type="Body">
             Your Lumens will show up in your default wallet account.
           </Kb.Text>
         </Kb.Box2>
@@ -43,19 +42,18 @@ const Accepted = p =>
         <Kb.Divider />
         <Kb.Box2 direction="vertical" style={styles.grow} />
         <Kb.Box2 direction="vertical" gap="xtiny" fullWidth={true} alignItems="center">
-          <Kb.Text backgroundMode="Terminal" center={true} type="BodySemibold">
+          <Kb.Text negative={true} center={true} type="BodySemibold">
             Now bring your friends!
           </Kb.Text>
           <Kb.Box2 direction={Styles.isMobile ? 'vertical' : 'horizontal'}>
-            <Kb.Text backgroundMode="Terminal" center={true} type="Body" style={styles.friendText}>
+            <Kb.Text negative={true} center={true} type="Body" style={styles.friendText}>
               Share this link:{' '}
             </Kb.Text>
             <Kb.Text
-              backgroundMode="Terminal"
+              negative={true}
               center={true}
               type="BodyPrimaryLink"
-              onClick={() => openURL('https://keybase.io/airdrop')}
-              selectable={true}
+              onClickURL="https://keybase.io/airdrop"
             >
               https://keybase.io/airdrop
             </Kb.Text>

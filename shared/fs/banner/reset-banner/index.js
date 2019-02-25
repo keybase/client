@@ -30,7 +30,7 @@ const Banner = ({resetParticipants, onReAddToTeam, onViewProfile, onOpenWithoutR
       style={{height: Styles.globalMargins.xlarge, margin: Styles.globalMargins.medium}}
     />
     <Kb.Box2 direction="vertical" centerChildren={true} style={styles.textIntro}>
-      <Kb.Text type="BodySemibold" backgroundMode="Terminal">
+      <Kb.Text type="BodySemibold" negative={true}>
         <Kb.ConnectedUsernames
           type="BodySemiboldLink"
           showAnd={true}
@@ -50,20 +50,20 @@ const Banner = ({resetParticipants, onReAddToTeam, onViewProfile, onOpenWithoutR
           (resetParticipants.length === 1 ? 'this account has' : 'these accounts have') +
           ' new keys.'}
       </Kb.Text>
-      <Kb.Text type="BodySemibold" backgroundMode="Terminal">
+      <Kb.Text type="BodySemibold" negative={true}>
         If you want to let them into this folder and the matching chat, you should either:
       </Kb.Text>
     </Kb.Box2>
     <Kb.Box2 direction="vertical" style={styles.listTextContainer}>
-      <Kb.Text type="BodySemibold" backgroundMode="Terminal" style={styles.listTextContent}>
+      <Kb.Text type="BodySemibold" negative={true} style={styles.listTextContent}>
         1. Be satisfied with their new proofs, or
       </Kb.Text>
-      <Kb.Text type="BodySemibold" backgroundMode="Terminal" style={styles.listTextContent}>
+      <Kb.Text type="BodySemibold" negative={true} style={styles.listTextContent}>
         2. Know them outside Keybase and have gotten a thumbs up from them.
       </Kb.Text>
     </Kb.Box2>
     <Kb.Box2 direction="vertical" centerChildren={true} style={styles.textDontLetThemIn}>
-      <Kb.Text type="BodySemibold" backgroundMode="Terminal">
+      <Kb.Text type="BodySemibold" negative={true}>
         Don't let them in until one of those is true.
       </Kb.Text>
     </Kb.Box2>
@@ -86,9 +86,9 @@ const Banner = ({resetParticipants, onReAddToTeam, onViewProfile, onOpenWithoutR
         </Kb.Box2>
       ))}
     </Kb.Box2>
-    <Kb.Text type="BodySemibold" backgroundMode="Terminal" style={styles.textOrUntil}>
+    <Kb.Text type="BodySemibold" negative={true} style={styles.textOrUntil}>
       Or until you're sure,{' '}
-      <Kb.Text type="BodySemiboldLink" backgroundMode="Terminal" onClick={onOpenWithoutResetUsers}>
+      <Kb.Text type="BodySemiboldLink" negative={true} onClick={onOpenWithoutResetUsers}>
         open a folder without any of them.
       </Kb.Text>
     </Kb.Text>
