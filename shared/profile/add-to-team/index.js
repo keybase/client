@@ -114,29 +114,35 @@ const AddToTeam = (props: Props) => {
           )}
         </Box2>
       </ScrollView>
-      <Box2 direction={isMobile ? 'vertical' : 'horizontal'} style={addToTeam}>
-        <Text style={addToTeamTitle} type="BodySmall">
-          {props.them} will be added as a
-        </Text>
-        <DropdownButton
-          toggleOpen={() =>
-            props.onOpenRolePicker(props.role, selectedRole => props.onRoleChange(selectedRole))
-          }
-          selected={DropdownItem(props.role)}
-          style={{width: isMobile ? '100%' : 100}}
-        />
+      <Box2 alignItems="center" direction="vertical" gap="tiny" style={addToTeam} noShrink={true}>
+        <Box2 alignItems="center" direction={isMobile ? 'vertical' : 'horizontal'} gap="tiny">
+          <Text type="BodySmall">{props.them} will be added as a</Text>
+          <DropdownButton
+            toggleOpen={() =>
+              props.onOpenRolePicker(props.role, selectedRole => props.onRoleChange(selectedRole))
+            }
+            selected={DropdownItem(props.role)}
+            style={{width: isMobile ? '100%' : 100}}
+          />
+        </Box2>
+        {props.role.toLowerCase() === 'owner' && (
+          <Text type="BodySmall" center={true}>
+            {props.them} will be added as an owner to teams you're an owner of, otherwise they'll be added as
+            an admin.
+          </Text>
+        )}
+        <ButtonBar fullWidth={true} style={buttonBar}>
+          {!isMobile && <Button type="Secondary" onClick={props.onBack} label="Cancel" />}
+          <Button
+            disabled={selectedTeamCount === 0}
+            fullWidth={isMobile}
+            style={addButton}
+            type="Primary"
+            onClick={() => props.onSave(props.role, props.selectedTeams)}
+            label={selectedTeamCount <= 1 ? 'Add to team' : `Add to ${selectedTeamCount} teams`}
+          />
+        </ButtonBar>
       </Box2>
-      <ButtonBar fullWidth={true} style={buttonBar}>
-        {!isMobile && <Button type="Secondary" onClick={props.onBack} label="Cancel" />}
-        <Button
-          disabled={selectedTeamCount === 0}
-          fullWidth={isMobile}
-          style={addButton}
-          type="Primary"
-          onClick={() => props.onSave(props.role, props.selectedTeams)}
-          label={selectedTeamCount <= 1 ? 'Add to team' : `Add to ${selectedTeamCount} teams`}
-        />
-      </ButtonBar>
     </Box2>
   )
 }
@@ -184,21 +190,13 @@ const styleTeamRow = platformStyles({
 
 const addToTeam = platformStyles({
   common: {
-    alignItems: 'center',
     marginLeft: globalMargins.small,
     marginRight: globalMargins.small,
   },
   isElectron: {
     marginTop: globalMargins.small,
   },
-})
-
-const addToTeamTitle = platformStyles({
-  isElectron: {
-    marginRight: globalMargins.tiny,
-  },
   isMobile: {
-    marginBottom: globalMargins.tiny,
     marginTop: globalMargins.tiny,
   },
 })
