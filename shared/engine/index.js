@@ -46,10 +46,6 @@ class Engine {
   _customResponseIncomingActionCreators: {
     [key: MethodKey]: CustomResponseIncomingActionCreator,
   } = {}
-  // Keyed methods that care when we disconnect. Is null while we're handing _onDisconnect
-  _onDisconnectHandlers: ?{[key: string]: () => ?TypedActions} = {}
-  // Keyed methods that care when we reconnect. Is null while we're handing _onConnect
-  _onConnectHandlers: ?{[key: string]: () => ?TypedActions} = {}
   // We generate sessionIDs monotonically
   _nextSessionID: number = 123
   // We call onDisconnect handlers only if we've actually disconnected (ie connected once)
@@ -125,22 +121,6 @@ class Engine {
 
   _onDisconnect() {
     Engine._dispatch({payload: undefined, type: 'engine-gen:disconnected'})
-
-    // TODO deprecate this version
-    if (!this._onDisconnectHandlers) {
-      return
-    }
-
-    const handlers = this._onDisconnectHandlers
-    // Don't allow mutation while we're handling the handlers
-    this._onDisconnectHandlers = null
-    Object.keys(handlers).forEach(k => {
-      const action = handlers[k]()
-      if (action) {
-        Engine._dispatch(action)
-      }
-    })
-    this._onDisconnectHandlers = handlers
   }
 
   // We want to dispatch the connect action but only after sagas boot up
@@ -161,22 +141,6 @@ class Engine {
       // dispatch the action version
       Engine._dispatch({payload: undefined, type: 'engine-gen:connected'})
     }
-
-    // TODO deprecate this older style
-    if (!this._onConnectHandlers) {
-      return
-    }
-
-    const handlers = this._onConnectHandlers
-    // Don't allow mutation while we're handling the handlers
-    this._onConnectHandlers = null
-    Object.keys(handlers).forEach(k => {
-      const action = handlers[k]()
-      if (action) {
-        Engine._dispatch(action)
-      }
-    })
-    this._onConnectHandlers = handlers
   }
 
   // Create and return the next unique session id
@@ -370,56 +334,10 @@ class Engine {
     })
   }
 
-  // Register a named callback when we disconnect from the server. Call if we're already disconnected. Callback should produce an action
-  actionOnDisconnect(key: string, f: () => void) {
-    if (!this._onDisconnectHandlers) {
-      throw new Error('Calling listenOnDisconnect while in the middle of _onDisconnect')
-    }
-
-    if (!f) {
-      throw new Error('Null callback sent to listenOnDisconnect')
-    }
-
-    // If we've actually connected and are now disconnected let's call this immediately
-    if (this._hasConnected && this._rpcClient.transport.needsConnect) {
-      const action = f()
-      if (action) {
-        Engine._dispatch(action)
-      }
-    }
-
-    // Regardless if we were connected or not, we'll add this to the callback fns
-    // that should be called when we disconnect.
-    this._onDisconnectHandlers[key] = f
-  }
-
   // Register a named callback when we fail to connect. Call if we're already disconnected
   hasEverConnected() {
     // If we've actually failed to connect already let's call this immediately
     return this._hasConnected
-  }
-
-  // Register a named callback when we reconnect to the server. Call if we're already connected
-  actionOnConnect(key: string, f: () => void) {
-    if (!this._onConnectHandlers) {
-      throw new Error('Calling listenOnConnect while in the middle of _onConnected')
-    }
-
-    if (!f) {
-      throw new Error('Null callback sent to listenOnConnect')
-    }
-
-    // The transport is already connected, so let's call this function right away
-    if (!this._rpcClient.transport.needsConnect) {
-      const action = f()
-      if (action) {
-        Engine._dispatch(action)
-      }
-    }
-
-    // Regardless if we were connected or not, we'll add this to the callback fns
-    // that should be called when we connect.
-    this._onConnectHandlers[key] = f
   }
 }
 
@@ -435,8 +353,6 @@ class FakeEngine {
   cancelSession(sessionID: SessionID) {}
   rpc() {}
   setFailOnError() {}
-  actionOnConnect(key: string, f: () => void) {}
-  actionOnDisconnect(key: string, f: () => void) {}
   hasEverConnected() {}
   setIncomingActionCreator(
     method: MethodKey,

@@ -580,20 +580,20 @@ const onUserChanged = (state, action) => {
   return actions
 }
 
+const onConnect = () => {
+  RPCTypes.delegateUiCtlRegisterIdentifyUIRpcPromise()
+    .then(response => {
+      logger.info('Registered identify ui')
+    })
+    .catch(error => {
+      logger.warn('error in registering identify ui: ', error)
+    })
+}
+
 const setupEngineListeners = () => {
   // TODO remove this
   const dispatch = engine().deprecatedGetDispatch()
   const getState = engine().deprecatedGetGetState()
-
-  engine().actionOnConnect('registerIdentifyUi', () => {
-    RPCTypes.delegateUiCtlRegisterIdentifyUIRpcPromise()
-      .then(response => {
-        logger.info('Registered identify ui')
-      })
-      .catch(error => {
-        logger.warn('error in registering identify ui: ', error)
-      })
-  })
 
   engine().setCustomResponseIncomingCallMap({
     'keybase.1.identifyUi.delegateIdentifyUI': (param, response, state) => {
@@ -667,6 +667,7 @@ function* trackerSaga(): Saga.SagaGenerator<any, any> {
     EngineGen.keybase1NotifyUsersUserChanged,
     onUserChanged
   )
+  yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, onConnect)
 }
 
 export default trackerSaga
