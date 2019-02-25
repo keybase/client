@@ -119,18 +119,16 @@ const AddToTeam = (props: Props) => {
           <Text type="BodySmall">{props.them} will be added as a</Text>
           <DropdownButton
             toggleOpen={() =>
-              props.onOpenRolePicker(props.role, selectedRole => props.onRoleChange(selectedRole))
+              props.onOpenRolePicker(
+                props.role,
+                selectedRole => props.onRoleChange(selectedRole),
+                props.selectedTeams
+              )
             }
             selected={DropdownItem(props.role)}
             style={{width: isMobile ? '100%' : 100}}
           />
         </Box2>
-        {props.role.toLowerCase() === 'owner' && (
-          <Text type="BodySmall" center={true}>
-            {props.them} will be added as an owner to teams you're an owner of. Otherwise they'll be added as
-            an admin.
-          </Text>
-        )}
         <ButtonBar fullWidth={true} style={buttonBar}>
           {!isMobile && <Button type="Secondary" onClick={props.onBack} label="Cancel" />}
           <Button

@@ -27,6 +27,7 @@ export type RolePickerProps = {
   allowAdmin?: boolean,
   allowOwner?: boolean,
   headerTitle?: string,
+  ownerDisabledExp?: string,
   pluralizeRoleName?: boolean,
   sendNotification: boolean,
   teamname: string,
@@ -44,46 +45,54 @@ const makeRoleOption = (
   role: TeamRoleType,
   selected: TeamRoleType,
   setSelected: TeamRoleType => void,
-  pluralizeRoleName?: boolean = false,
-  disabled?: boolean = false
-) => (
-  <ClickableBox
-    hoverColor={globalColors.black_05}
-    style={{
-      ...globalStyles.flexBoxRow,
-      alignItems: 'center',
-      backgroundColor: selected === role ? globalColors.blue : globalColors.white,
-      borderRadius: 0,
-      padding: globalMargins.tiny,
-      paddingLeft: globalMargins.small,
-      paddingRight: globalMargins.large,
-      width: '100%',
-    }}
-    onClick={() => setSelected(role)}
-  >
-    <Icon type="iconfont-check" style={{alignSelf: 'center'}} color={globalColors.white} />
-    <Box style={{...globalStyles.flexBoxColumn, paddingLeft: globalMargins.small}}>
-      <Box style={globalStyles.flexBoxRow}>
-        {!!roleIconMap[role] && (
-          <Icon
-            type={roleIconMap[role]}
-            style={{
-              marginRight: globalMargins.xtiny,
-            }}
-            color={selected === role ? globalColors.white : roleIconColorMap[role]}
-            fontSize={16}
-          />
-        )}
-        <Text style={{color: selected === role ? globalColors.white : globalColors.black}} type="BodyBig">
-          {pluralizeRoleName ? pluralize(typeToLabel[role]) : typeToLabel[role]}
-        </Text>
+  pluralizeRoleName: boolean = false,
+  disabledExp?: string
+) => {
+  const subtext = disabledExp ? (
+    <Text type="BodySmallError">{disabledExp}</Text>
+  ) : (
+    <Text negative={selected === role} type="BodySmall">
+      {role && roleDescMap[role]}
+    </Text>
+  )
+  const children = (
+    <Box style={styles.optionContainer}>
+      <Icon type="iconfont-check" style={{alignSelf: 'center'}} color={globalColors.white} />
+      <Box style={{...globalStyles.flexBoxColumn, paddingLeft: globalMargins.small}}>
+        <Box style={globalStyles.flexBoxRow}>
+          {!!roleIconMap[role] && (
+            <Icon
+              type={roleIconMap[role]}
+              style={{
+                marginRight: globalMargins.xtiny,
+              }}
+              color={selected === role ? globalColors.white : roleIconColorMap[role]}
+              fontSize={16}
+            />
+          )}
+          <Text style={{color: selected === role ? globalColors.white : globalColors.black}} type="BodyBig">
+            {pluralizeRoleName ? pluralize(typeToLabel[role]) : typeToLabel[role]}
+          </Text>
+        </Box>
+        {subtext}
       </Box>
-      <Text style={{color: selected === role ? globalColors.white : globalColors.black_50}} type="BodySmall">
-        {role && roleDescMap[role]}
-      </Text>
     </Box>
-  </ClickableBox>
-)
+  )
+  return disabledExp ? (
+    <Box style={styles.disabledOption}>{children}</Box>
+  ) : (
+    <ClickableBox
+      style={{
+        backgroundColor: selected === role ? globalColors.blue : globalColors.white,
+        width: '100%',
+      }}
+      hoverColor={globalColors.black_05}
+      onClick={disabledExp ? null : () => setSelected(role)}
+    >
+      {children}
+    </ClickableBox>
+  )
+}
 
 // 1. Display roles for user to pick from
 export const RoleOptions = ({
@@ -95,6 +104,7 @@ export const RoleOptions = ({
   allowAdmin = true,
   allowOwner = true,
   headerTitle,
+  ownerDisabledExp,
   pluralizeRoleName = false,
   setSendNotification,
   sendNotification,
@@ -108,7 +118,8 @@ export const RoleOptions = ({
         {headerTitle || (username ? `Select a role for ${username}:` : 'Select a role:')}
       </Text>
     </Box>
-    {allowOwner && makeRoleOption('owner', selectedRole, setSelectedRole, pluralizeRoleName)}
+    {allowOwner &&
+      makeRoleOption('owner', selectedRole, setSelectedRole, pluralizeRoleName, ownerDisabledExp)}
     {allowAdmin && makeRoleOption('admin', selectedRole, setSelectedRole, pluralizeRoleName)}
     {makeRoleOption('writer', selectedRole, setSelectedRole, pluralizeRoleName)}
     {makeRoleOption('reader', selectedRole, setSelectedRole, pluralizeRoleName)}
@@ -241,12 +252,25 @@ const styles = styleSheetCreate({
     paddingBottom: globalMargins.tiny,
     paddingTop: globalMargins.small,
   },
+  disabledOption: {
+    opacity: 0.7,
+    width: '100%',
+  },
   headerBox: {
     marginBottom: globalMargins.small,
     marginTop: globalMargins.small,
   },
   headerTitle: {
     color: globalColors.black_50,
+  },
+  optionContainer: {
+    ...globalStyles.flexBoxRow,
+    alignItems: 'center',
+    borderRadius: 0,
+    padding: globalMargins.tiny,
+    paddingLeft: globalMargins.small,
+    paddingRight: globalMargins.large,
+    width: '100%',
   },
   promptBox: {
     margin: globalMargins.tiny,
