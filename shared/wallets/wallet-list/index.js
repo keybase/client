@@ -63,7 +63,7 @@ const JoinAirdrop = p => (
       className="hover_background_color_blueGrey2"
     >
       <Kb.Icon type="icon-airdrop-star-32" style={Kb.iconCastPlatformStyles(styles.icon)} />
-      <Kb.Text backgroundMode={p.selected ? 'Terminal' : 'Normal'} type="BodySemibold">
+      <Kb.Text negative={p.selected} type="BodySemibold">
         {p.inAirdrop ? 'Airdrop' : 'Join the airdrop'}
       </Kb.Text>
     </Kb.Box2>
