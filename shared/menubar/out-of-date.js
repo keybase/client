@@ -23,30 +23,17 @@ const OutOfDate = ({outOfDate, updateNow}: Props) =>
       centerChildren={true}
       direction="vertical"
     >
-      <Kb.Text
-        backgroundMode="Information"
-        type="BodySmallSemibold"
-        style={outOfDate.critical ? styles.textCritical : undefined}
-      >
+      <Kb.Text type="BodySmallSemibold" style={outOfDate.critical ? styles.textCritical : undefined}>
         {getOutOfDateText(outOfDate)}
       </Kb.Text>
       {outOfDate.updating ? (
-        <Kb.Text
-          backgroundMode="Information"
-          type="BodySmallSemibold"
-          style={outOfDate.critical ? styles.textCritical : undefined}
-        >
+        <Kb.Text type="BodySmallSemibold" style={outOfDate.critical ? styles.textCritical : undefined}>
           Updating ...
         </Kb.Text>
       ) : (
-        <Kb.Text
-          backgroundMode="Information"
-          type="BodySmallSemibold"
-          style={outOfDate.critical ? styles.textCritical : undefined}
-        >
+        <Kb.Text type="BodySmallSemibold" style={outOfDate.critical ? styles.textCritical : undefined}>
           Please{' '}
           <Kb.Text
-            backgroundMode="Information"
             type="BodySmallSemibold"
             underline={!!updateNow}
             style={outOfDate.critical ? styles.textCritical : undefined}

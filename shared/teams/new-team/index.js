@@ -52,13 +52,13 @@ class Contents extends React.Component<Props> {
               backgroundColor: globalColors.blue,
             }}
           >
-            <Kb.Text center={true} type="BodySmallSemibold" backgroundMode="Announcements">
+            <Kb.Text center={true} type="BodySmallSemibold" negative={true}>
               {this._headerText()}
               {this.props.isSubteam && (
                 <Kb.Text
                   type="BodySmallSemiboldPrimaryLink"
                   style={{...globalStyles.fontSemibold}}
-                  backgroundMode="Announcements"
+                  negative={true}
                   onClickURL="https://keybase.io/docs/teams/design"
                 >
                   Learn more
@@ -75,11 +75,7 @@ class Contents extends React.Component<Props> {
                 borderTopRightRadius: 0,
               }}
             >
-              <Kb.Text
-                center={true} style={{width: '100%'}}
-                type="BodySmallSemibold"
-                backgroundMode="HighRisk"
-              >
+              <Kb.Text center={true} style={{width: '100%'}} type="BodySmallSemibold" negative={true}>
                 {errorText}
               </Kb.Text>
             </Kb.Box>

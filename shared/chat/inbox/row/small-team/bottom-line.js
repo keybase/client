@@ -36,7 +36,7 @@ class BottomLine extends PureComponent<Props> {
       content = (
         <Text
           type="BodySmallSemibold"
-          backgroundMode="Terminal"
+          negative={true}
           style={collapseStyles([
             styles.youAreResetText,
             {
@@ -49,7 +49,7 @@ class BottomLine extends PureComponent<Props> {
       )
     } else if (this.props.participantNeedToRekey) {
       content = (
-        <Text type="BodySmall" backgroundMode="Terminal" style={{color: this.props.subColor}}>
+        <Text type="BodySmall" negative={true} style={{color: this.props.subColor}}>
           Waiting for participants to rekey...
         </Text>
       )

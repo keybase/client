@@ -18,7 +18,7 @@ const YouAreReset = () => (
         padding: globalMargins.small,
       }}
     >
-      <Text type="BodySemibold" backgroundMode="Terminal" style={{textAlign: 'center'}}>
+      <Text type="BodySemibold" negative={true} style={{textAlign: 'center'}}>
         Since you reset your account, participants have to accept to let you back in.
       </Text>
     </Box>

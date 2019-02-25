@@ -11,13 +11,13 @@ type Props = {
 
 const OldProfileResetNotice = ({username, onOpenNewerConversation}: Props) => (
   <UserNotice style={{marginBottom: globalMargins.small}} username={username} bgColor={globalColors.red}>
-    <Text type="BodySmallSemibold" backgroundMode="Announcements">
+    <Text type="BodySmallSemibold" negative={true}>
       {username} reset their profile
     </Text>
-    <Text type="BodySmall" backgroundMode="Announcements">
+    <Text type="BodySmall" negative={true}>
       Their encryption keys were replaced with new ones.
     </Text>
-    <Text type="BodySmallPrimaryLink" backgroundMode="Announcements" onClick={onOpenNewerConversation}>
+    <Text type="BodySmallPrimaryLink" negative={true} onClick={onOpenNewerConversation}>
       Jump to new conversation
     </Text>
   </UserNotice>

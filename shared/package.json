@@ -166,6 +166,7 @@
     "react-navigation": "git://github.com/keybase/react-navigation#keybase-fixes-off-beta-12",
     "react-navigation-stack": "1.0.10",
     "react-redux": "5.1.1",
+    "react-spring": "7.2.0",
     "react-transition-group": "2.5.1",
     "react-virtualized-auto-sizer": "1.0.2",
     "react-waypoint": "8.1.0",

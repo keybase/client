@@ -18,11 +18,7 @@ const Row = ({username, onUsernameClicked}) => (
       <Avatar username={username} size={48} style={{marginRight: globalMargins.small, padding: 4}} />
       <Box style={innerRowStyle}>
         <Usernames inline={true} backgroundMode="Terminal" type="BodySemibold" users={[{username}]} />
-        <Text
-          type="BodySmall"
-          backgroundMode="Terminal"
-          style={{color: globalColors.blue3_40, lineHeight: 17}}
-        >
+        <Text type="BodySmall" negative={true} style={{color: globalColors.blue3_40, lineHeight: 17}}>
           Can rekey this chat by opening the Keybase app.
         </Text>
       </Box>
@@ -34,7 +30,8 @@ const ParticipantRekey = ({rekeyers, onShowProfile: onUsernameClicked}: Props) =
   <Box style={containerStyle}>
     <Box style={{...globalStyles.flexBoxRow, backgroundColor: globalColors.red, justifyContent: 'center'}}>
       <Text
-        center={true} backgroundMode="Terminal"
+        center={true}
+        negative={true}
         style={{paddingBottom: 8, paddingLeft: 24, paddingRight: 24, paddingTop: 8}}
         type="BodySemibold"
       >

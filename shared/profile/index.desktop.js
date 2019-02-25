@@ -144,12 +144,7 @@ class _StellarFederatedAddress extends React.PureComponent<
               ref={this.props.setAttachmentRef}
             >
               <Kb.WithTooltip text={this.props.showingMenu ? '' : 'Stellar Federation Address'}>
-                <Kb.Text
-                  inline={true}
-                  type="Body"
-                  className="hover-underline"
-                  style={stellarAddressNameStyle}
-                >
+                <Kb.Text type="Body" className="hover-underline" style={stellarAddressNameStyle}>
                   {this.props.stellarAddress}
                 </Kb.Text>
               </Kb.WithTooltip>
@@ -355,7 +350,7 @@ class ProfileRender extends React.PureComponent<Props, State> {
                 center={true}
                 style={{margin: Styles.globalMargins.tiny, width: '100%'}}
                 type="BodySemibold"
-                backgroundMode="HighRisk"
+                negative={true}
               >
                 {this.props.addUserToTeamsResults}
               </Kb.Text>
