@@ -35,6 +35,7 @@ import (
 	"github.com/keybase/client/go/home"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/offline"
 	"github.com/keybase/client/go/protocol/chat1"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -70,6 +71,7 @@ type Service struct {
 	teamUpgrader         *teams.Upgrader
 	avatarLoader         avatars.Source
 	walletState          *stellar.WalletState
+	offlineRPCCache      *offline.RPCCache
 }
 
 type Shutdowner interface {
@@ -94,6 +96,7 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		teamUpgrader:     teams.NewUpgrader(),
 		avatarLoader:     avatars.CreateSourceFromEnv(g),
 		walletState:      stellar.NewWalletState(g, remote.NewRemoteNet(g)),
+		offlineRPCCache:  offline.NewRPCCache(g),
 	}
 }
 
@@ -115,9 +118,9 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.DeviceProtocol(NewDeviceHandler(xp, g, d.gregor)),
 		keybase1.FavoriteProtocol(NewFavoriteHandler(xp, g)),
 		keybase1.TlfProtocol(newTlfHandler(xp, cg)),
-		keybase1.IdentifyProtocol(NewIdentifyHandler(xp, g)),
+		keybase1.IdentifyProtocol(NewIdentifyHandler(xp, g, d)),
 		keybase1.InstallProtocol(NewInstallHandler(xp, g)),
-		keybase1.KbfsProtocol(NewKBFSHandler(xp, g, d.ChatG())),
+		keybase1.KbfsProtocol(NewKBFSHandler(xp, g, d.ChatG(), d)),
 		keybase1.KbfsMountProtocol(NewKBFSMountHandler(xp, g)),
 		keybase1.LogProtocol(NewLogHandler(xp, logReg, g)),
 		keybase1.LoginProtocol(NewLoginHandler(xp, g)),
@@ -147,7 +150,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.SimpleFSProtocol(NewSimpleFSHandler(xp, g)),
 		keybase1.LogsendProtocol(NewLogsendHandler(xp, g)),
 		keybase1.AppStateProtocol(newAppStateHandler(xp, g)),
-		CancelingProtocol(g, keybase1.TeamsProtocol(NewTeamsHandler(xp, connID, cg, d.gregor)),
+		CancelingProtocol(g, keybase1.TeamsProtocol(NewTeamsHandler(xp, connID, cg, d)),
 			libkb.RPCCancelerReasonLogout),
 		keybase1.BadgerProtocol(newBadgerHandler(xp, g, d.badger)),
 		keybase1.MerkleProtocol(newMerkleHandler(xp, g)),
@@ -316,37 +319,13 @@ func (d *Service) Run() (err error) {
 
 func (d *Service) SetupCriticalSubServices() error {
 	epick := libkb.FirstErrorPicker{}
-	epick.Push(d.setupTeams())
-	epick.Push(d.setupStellar())
-	epick.Push(d.setupPVL())
-	epick.Push(d.setupParamProofStore())
-	epick.Push(d.setupEphemeralKeys())
-	return epick.Error()
-}
-
-func (d *Service) setupEphemeralKeys() error {
-	ephemeral.ServiceInit(d.G())
-	return nil
-}
-
-func (d *Service) setupTeams() error {
 	teams.ServiceInit(d.G())
-	return nil
-}
-
-func (d *Service) setupStellar() error {
 	stellar.ServiceInit(d.G(), d.walletState, d.badger)
-	return nil
-}
-
-func (d *Service) setupPVL() error {
 	pvl.NewPvlSourceAndInstall(d.G())
-	return nil
-}
-
-func (d *Service) setupParamProofStore() error {
 	externals.NewParamProofStoreAndInstall(d.G())
-	return nil
+	ephemeral.ServiceInit(d.G())
+	avatars.ServiceInit(d.G(), d.avatarLoader)
+	return epick.Error()
 }
 
 func (d *Service) RunBackgroundOperations(uir *UIRouter) {
@@ -375,11 +354,12 @@ func (d *Service) RunBackgroundOperations(uir *UIRouter) {
 }
 
 func (d *Service) purgeOldChatAttachmentData() {
-	purge := func(glob string) {
-		files, err := filepath.Glob(filepath.Join(d.G().GetCacheDir(), glob))
+	purge := func(dir, glob string) {
+		files, err := filepath.Glob(filepath.Join(dir, glob))
 		if err != nil {
 			d.G().Log.Debug("purgeOldChatAttachmentData: failed to get %s files: %s", glob, err)
 		} else {
+			d.G().Log.Debug("purgeOldChatAttachmentData: %d files to delete for %s", len(files), glob)
 			for _, f := range files {
 				if err := os.Remove(f); err != nil {
 					d.G().Log.Debug("purgeOldChatAttachmentData: failed to remove: name: %s err: %s", f, err)
@@ -387,8 +367,14 @@ func (d *Service) purgeOldChatAttachmentData() {
 			}
 		}
 	}
-	purge("kbchat*")
-	purge("prev*")
+	cacheDir := d.G().GetCacheDir()
+	oldCacheDir := filepath.Dir(cacheDir)
+	for _, dir := range []string{cacheDir, oldCacheDir} {
+		purge(dir, "kbchat*")
+		purge(dir, "avatar*")
+		purge(dir, "prev*")
+		purge(dir, "rncontacts*")
+	}
 }
 
 func (d *Service) startChatModules() {
@@ -1303,5 +1289,9 @@ func (d *Service) StartStandaloneChat(g *libkb.GlobalContext) error {
 
 // Called by CtlHandler after DbNuke finishes and succeeds.
 func (d *Service) onDbNuke(ctx context.Context) {
-	d.avatarLoader.OnCacheCleared(libkb.NewMetaContext(ctx, d.G()))
+	mctx := libkb.NewMetaContext(ctx, d.G())
+	d.avatarLoader.OnCacheCleared(mctx)
+	if srv := d.ChatG().AttachmentURLSrv; srv != nil {
+		srv.OnCacheCleared(mctx)
+	}
 }

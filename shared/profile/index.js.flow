@@ -8,6 +8,7 @@ import type {Folder} from '../constants/types/folders'
 
 export type Props = {
   addUserToTeamsResults: string,
+  showAirdrop?: boolean,
   isYou: boolean,
   loading: boolean,
   bioEditFns: ?BioEditFns,

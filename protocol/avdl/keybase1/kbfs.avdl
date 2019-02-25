@@ -63,7 +63,7 @@ protocol kbfs {
   /**
     getKBFSTeamSettings gets the settings written for the team in the team's sigchain.
   */
-  KBFSTeamSettings getKBFSTeamSettings(TeamID teamID);
+  KBFSTeamSettings getKBFSTeamSettings(TeamID teamID, OfflineAvailability oa);
 
   /**
     upgradeTLF upgrades a TLF to use implicit team keys

@@ -1197,19 +1197,23 @@ func (o UICoinFlipParticipant) DeepCopy() UICoinFlipParticipant {
 }
 
 type UICoinFlipStatus struct {
-	GameID       string                  `codec:"gameID" json:"gameID"`
-	Phase        UICoinFlipPhase         `codec:"phase" json:"phase"`
-	ProgressText string                  `codec:"progressText" json:"progressText"`
-	ResultText   string                  `codec:"resultText" json:"resultText"`
-	Participants []UICoinFlipParticipant `codec:"participants" json:"participants"`
+	GameID                  string                  `codec:"gameID" json:"gameID"`
+	Phase                   UICoinFlipPhase         `codec:"phase" json:"phase"`
+	ProgressText            string                  `codec:"progressText" json:"progressText"`
+	ResultText              string                  `codec:"resultText" json:"resultText"`
+	CommitmentVisualization string                  `codec:"commitmentVisualization" json:"commitmentVisualization"`
+	RevealVisualization     string                  `codec:"revealVisualization" json:"revealVisualization"`
+	Participants            []UICoinFlipParticipant `codec:"participants" json:"participants"`
 }
 
 func (o UICoinFlipStatus) DeepCopy() UICoinFlipStatus {
 	return UICoinFlipStatus{
-		GameID:       o.GameID,
-		Phase:        o.Phase.DeepCopy(),
-		ProgressText: o.ProgressText,
-		ResultText:   o.ResultText,
+		GameID:                  o.GameID,
+		Phase:                   o.Phase.DeepCopy(),
+		ProgressText:            o.ProgressText,
+		ResultText:              o.ResultText,
+		CommitmentVisualization: o.CommitmentVisualization,
+		RevealVisualization:     o.RevealVisualization,
 		Participants: (func(x []UICoinFlipParticipant) []UICoinFlipParticipant {
 			if x == nil {
 				return nil

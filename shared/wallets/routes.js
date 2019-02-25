@@ -23,6 +23,8 @@ const routeTree = () => {
     InflationDestination,
   } = require('./wallet/settings/popups')
   const Wallet = require('./wallet/container').default
+  const Airdrop = require('./airdrop/container').default
+  const AirdropQualify = require('./airdrop/qualify/container').default
 
   const createNewAccount = {
     children: {},
@@ -37,6 +39,15 @@ const routeTree = () => {
   }
 
   const walletChildren = {
+    airdrop: {
+      children: {
+        airdropQualify: {
+          component: AirdropQualify,
+          tags: makeLeafTags({layerOnTop: true}),
+        },
+      },
+      component: Airdrop,
+    },
     createNewAccount,
     exportSecretKey: {
       children: {},
@@ -119,20 +130,26 @@ const routeTree = () => {
 
 export default routeTree
 
+const sharedRoutes = {
+  airdrop: {getScreen: () => require('./airdrop/container').default},
+  airdropQualify: {getScreen: () => require('./airdrop/qualify/container').default},
+  createNewAccount: {getScreen: () => require('./create-account/container').default},
+  exportSecretKey: {getScreen: () => require('./export-secret-key/container').default},
+  linkExisting: {getScreen: () => require('./link-existing/container').default},
+  reallyRemoveAccount: {getScreen: () => require('./wallet/settings/popups').ReallyRemoveAccountPopup},
+  receive: {getScreen: () => require('./receive-modal/container').default},
+  removeAccount: {getScreen: () => require('./wallet/settings/popups').RemoveAccountPopup},
+  renameAccount: {getScreen: () => require('./wallet/settings/popups').RenameAccountPopup},
+  setDefaultAccount: {getScreen: () => require('./wallet/settings/popups').SetDefaultAccountPopup},
+  setInflation: {getScreen: () => require('./wallet/settings/popups').InflationDestination},
+  settings: {getScreen: () => require('./wallet/settings/container').default},
+  transactionDetails: {getScreen: () => require('./transaction-details/container').default},
+}
+
 const walletsSubRoutes = isMobile
   ? {}
   : {
-      createNewAccount: {getScreen: () => require('./create-account/container').default},
-      exportSecretKey: {getScreen: () => require('./export-secret-key/container').default},
-      linkExisting: {getScreen: () => require('./link-existing/container').default},
-      reallyRemoveAccount: {getScreen: () => require('./wallet/settings/popups').ReallyRemoveAccountPopup},
-      receive: {getScreen: () => require('./receive-modal/container').default},
-      removeAccount: {getScreen: () => require('./wallet/settings/popups').RemoveAccountPopup},
-      renameAccount: {getScreen: () => require('./wallet/settings/popups').RenameAccountPopup},
-      setDefaultAccount: {getScreen: () => require('./wallet/settings/popups').SetDefaultAccountPopup},
-      setInflation: {getScreen: () => require('./wallet/settings/popups').InflationDestination},
-      settings: {getScreen: () => require('./wallet/settings/container').default},
-      transactionDetails: {getScreen: () => require('./transaction-details/container').default},
+      ...sharedRoutes,
       wallet: {getScreen: () => require('./wallet/container').default},
     }
 
@@ -176,17 +193,7 @@ export const newRoutes = {
   },
   ...(isMobile
     ? {
-        createNewAccount: {getScreen: () => require('./create-account/container').default},
-        exportSecretKey: {getScreen: () => require('./export-secret-key/container').default},
-        linkExisting: {getScreen: () => require('./link-existing/container').default},
-        reallyRemoveAccount: {getScreen: () => require('./wallet/settings/popups').ReallyRemoveAccountPopup},
-        receive: {getScreen: () => require('./receive-modal/container').default},
-        removeAccount: {getScreen: () => require('./wallet/settings/popups').RemoveAccountPopup},
-        renameAccount: {getScreen: () => require('./wallet/settings/popups').RenameAccountPopup},
-        setDefaultAccount: {getScreen: () => require('./wallet/settings/popups').SetDefaultAccountPopup},
-        setInflation: {getScreen: () => require('./wallet/settings/popups').InflationDestination},
-        settings: {getScreen: () => require('./wallet/settings/container').default},
-        transactionDetails: {getScreen: () => require('./transaction-details/container').default},
+        ...sharedRoutes,
       }
     : {}),
 }

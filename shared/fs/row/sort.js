@@ -1,27 +1,28 @@
 // @flow
 import * as Types from '../../constants/types/fs'
+import * as RowTypes from './types'
 import * as Flow from '../../util/flow'
 import {memoize} from 'lodash-es'
 
-export type SortableTlfTypeRowItem = Types.TlfTypeRowItem & {
+export type SortableTlfTypeRowItem = RowTypes.TlfTypeRowItem & {
   type: 'folder',
 }
 
-export type SortableTlfRowItem = Types.TlfRowItem & {
+export type SortableTlfRowItem = RowTypes.TlfRowItem & {
   type: 'folder',
   isNew: boolean,
 }
 
-export type SortableStillRowItem = Types.StillRowItem & {
+export type SortableStillRowItem = RowTypes.StillRowItem & {
   type: Types.PathType,
   lastModifiedTimestamp: number,
 }
-export type SortableEditingRowItem = Types.EditingRowItem & {
+export type SortableEditingRowItem = RowTypes.EditingRowItem & {
   rowType: 'editing',
   editType: Types.EditType,
   type: Types.PathType,
 }
-export type SortableUploadingRowItem = Types.UploadingRowItem & {
+export type SortableUploadingRowItem = RowTypes.UploadingRowItem & {
   rowType: 'uploading',
   type: Types.PathType,
 }

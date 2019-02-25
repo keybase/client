@@ -5,6 +5,7 @@ import * as RPCStellarTypes from '../constants/types/rpc-stellar-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as WalletsGen from './wallets-gen'
+import * as GregorGen from './gregor-gen'
 import * as Chat2Gen from './chat2-gen'
 import * as ConfigGen from './config-gen'
 import * as NotificationsGen from './notifications-gen'
@@ -923,6 +924,85 @@ const exitFailedPayment = (state, action) => {
   ]
 }
 
+const changeAirdrop = (_, action) =>
+  RPCStellarTypes.localAirdropRegisterLocalRpcPromise(
+    {register: action.payload.accept},
+    Constants.airdropWaitingKey
+  ).then(() => WalletsGen.createUpdateAirdropState()) // reload
+
+type AirdropDetailsJSONType = ?{
+  header?: ?{
+    body?: ?string,
+    title?: ?string,
+  },
+  sections?: ?Array<?{
+    icon?: ?string,
+    section?: ?string,
+    lines?: ?Array<?{
+      bullet?: ?boolean,
+      text?: ?string,
+    }>,
+  }>,
+}
+const updateAirdropDetails = () =>
+  RPCStellarTypes.localAirdropDetailsLocalRpcPromise(undefined, Constants.airdropWaitingKey).then(s => {
+    const json: AirdropDetailsJSONType = JSON.parse(s)
+    return WalletsGen.createUpdatedAirdropDetails({
+      details: Constants.makeAirdropDetails({
+        header: Constants.makeAirdropDetailsHeader({
+          body: json?.header?.body || '',
+          title: json?.header?.title || '',
+        }),
+        sections: I.List(
+          (json?.sections || []).map(section =>
+            Constants.makeAirdropDetailsSection({
+              icon: section?.icon || '',
+              lines: I.List(
+                (section?.lines || []).map(l =>
+                  Constants.makeAirdropDetailsLine({bullet: l?.bullet || false, text: l?.text || ''})
+                )
+              ),
+              section: section?.section || '',
+            })
+          )
+        ),
+      }),
+    })
+  })
+
+const updateAirdropState = () =>
+  RPCStellarTypes.localAirdropStatusLocalRpcPromise(undefined, Constants.airdropWaitingKey).then(
+    ({state, rows}) => {
+      let airdropState = 'loading'
+      switch (state) {
+        case 'accepted':
+        case 'qualified':
+        case 'unqualified':
+          airdropState = state
+          break
+        default:
+          logger.error('Invalid airdropstate', state)
+      }
+
+      let airdropQualifications = (rows || []).map(r =>
+        Constants.makeAirdropQualification({
+          subTitle: r.subtitle || '',
+          title: r.title || '',
+          valid: r.valid || false,
+        })
+      )
+
+      return WalletsGen.createUpdatedAirdropState({airdropQualifications, airdropState})
+    }
+  )
+
+const hideAirdropBanner = () =>
+  GregorGen.createUpdateCategory({body: 'true', category: Constants.airdropBannerKey})
+const gregorPushState = (_, action) =>
+  WalletsGen.createUpdateAirdropBannerState({
+    show: !action.payload.state.find(i => i.item.category === Constants.airdropBannerKey),
+  })
+
 function* walletsSaga(): Saga.SagaGenerator<any, any> {
   if (!flags.walletsEnabled) {
     console.log('Wallets saga disabled')
@@ -1149,6 +1229,20 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
     ConfigGen.daemonHandshakeDone,
     readLastSentXLM
   )
+  yield* Saga.chainAction<WalletsGen.ChangeAirdropPayload>(WalletsGen.changeAirdrop, changeAirdrop)
+  yield* Saga.chainAction<WalletsGen.UpdateAirdropStatePayload | ConfigGen.DaemonHandshakeDonePayload>(
+    [WalletsGen.updateAirdropDetails, ConfigGen.daemonHandshakeDone],
+    updateAirdropDetails
+  )
+  yield* Saga.chainAction<WalletsGen.UpdateAirdropStatePayload | ConfigGen.DaemonHandshakeDonePayload>(
+    [WalletsGen.updateAirdropState, ConfigGen.daemonHandshakeDone],
+    updateAirdropState
+  )
+  yield* Saga.chainAction<WalletsGen.HideAirdropBannerPayload | WalletsGen.ChangeAirdropPayload>(
+    [WalletsGen.hideAirdropBanner, WalletsGen.changeAirdrop],
+    hideAirdropBanner
+  )
+  yield* Saga.chainAction<GregorGen.PushStatePayload>(GregorGen.pushState, gregorPushState)
 }
 
 export default walletsSaga

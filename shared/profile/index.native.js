@@ -165,6 +165,7 @@ class Profile extends Component<Props, State> {
     return (
       <UserBio
         type="Profile"
+        showAirdrop={this.props.showAirdrop}
         editFns={this.props.bioEditFns}
         avatarSize={AVATAR_SIZE}
         loading={loading}

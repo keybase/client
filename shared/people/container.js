@@ -6,8 +6,8 @@ import * as Types from '../constants/types/people'
 import * as Kb from '../common-adapters'
 import People, {Header} from '.'
 import * as PeopleGen from '../actions/people-gen'
-import {connect, type RouteProps} from '../util/container'
 import * as RouteTreeGen from '../actions/route-tree-gen'
+import {connect, type RouteProps, isMobile} from '../util/container'
 import {createSearchSuggestions} from '../actions/search-gen'
 import {createShowUserProfile} from '../actions/profile-gen'
 import * as WaitingConstants from '../constants/waiting'
@@ -43,6 +43,7 @@ type Props = {
   getData: (markViewed?: boolean) => void,
   onSearch: () => void,
   onClickUser: (username: string) => void,
+  showAirdrop: boolean,
   myUsername: string,
   waiting: boolean,
 }
@@ -68,6 +69,7 @@ class LoadOnMount extends React.PureComponent<Props> {
           getData={this._getData}
           onSearch={this._onSearch}
           onClickUser={this._onClickUser}
+          showAirdrop={this.props.showAirdrop}
         />
       </Kb.Reloadable>
     )
@@ -79,6 +81,7 @@ const mapStateToProps = state => ({
   myUsername: state.config.username,
   newItems: state.people.newItems,
   oldItems: state.people.oldItems,
+  showAirdrop: isMobile,
   waiting: WaitingConstants.anyWaiting(state, Constants.getPeopleDataWaitingKey),
 })
 
@@ -98,6 +101,7 @@ const mergeProps = (stateProps, dispatchProps) => {
     myUsername: stateProps.myUsername,
     newItems: stateProps.newItems,
     oldItems: stateProps.oldItems,
+    showAirdrop: stateProps.showAirdrop,
     waiting: stateProps.waiting,
     ...dispatchProps,
   }

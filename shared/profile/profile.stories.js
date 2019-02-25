@@ -40,6 +40,7 @@ const mockUserInfo = {
     followsYou: true,
     fullname: 'Chris Coyne',
     location: 'NYC & Maine',
+    registeredForAirdrop: false,
     showcasedTeams: [],
     uid: '0',
   },

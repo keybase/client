@@ -228,11 +228,17 @@ func TestInboxSourceLocalOnly(t *testing.T) {
 	useRemoteMock = false
 	defer func() { useRemoteMock = true }()
 
-	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
-		chat1.ConversationMembersType_IMPTEAMNATIVE)
+	listener := newServerChatListener()
+	ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener)
+	ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
+
 	ctx := ctc.as(t, users[0]).startCtx
 	tc := ctc.world.Tcs[users[0].Username]
 	uid := users[0].User.GetUID().ToBytes()
+
+	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+		chat1.ConversationMembersType_IMPTEAMNATIVE)
+	consumeNewConversation(t, listener, conv.Id)
 
 	attempt := func(mode types.InboxSourceDataSourceTyp, success bool) {
 		ib, err := tc.Context().InboxSource.ReadUnverified(ctx, uid, mode,

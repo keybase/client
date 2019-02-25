@@ -1,4 +1,5 @@
 // @flow
+import * as React from 'react'
 import * as Constants from '../../../constants/fs'
 import * as Types from '../../../constants/types/fs'
 import * as FsGen from '../../../actions/fs-gen'
@@ -8,7 +9,8 @@ import {isMobile} from '../../../constants/platform'
 import {createShowUserProfile} from '../../../actions/profile-gen'
 import {createGetProfile} from '../../../actions/tracker-gen'
 import {folderNameWithoutUsers} from '../../../util/kbfs'
-import Banner from '.'
+import Banner, {getHeight} from '.'
+import * as RowTypes from '../../row/types'
 
 type OwnProps = {|path: Types.Path|}
 
@@ -40,7 +42,6 @@ const mergeProps = (
 ) => {
   const resetParticipants = stateProps._tlf.resetParticipants.map(i => i.username).toArray()
   return {
-    isUserReset: !!stateProps._username && resetParticipants.includes(stateProps._username),
     onOpenWithoutResetUsers: () =>
       _onOpenWithoutResetUsers(
         path,
@@ -57,9 +58,26 @@ const mergeProps = (
   }
 }
 
-export default namedConnect<OwnProps, _, _, _, _>(
+const ConnectedBanner = namedConnect<OwnProps, _, _, _, _>(
   mapStateToProps,
   mapDispatchToProps,
   mergeProps,
   'ResetBanner'
 )(Banner)
+
+export default ConnectedBanner
+
+export const asRows = (
+  path: Types.Path,
+  resetBannerType: Types.ResetBannerType
+): Array<RowTypes.RowItemWithKey> =>
+  typeof resetBannerType === 'number'
+    ? [
+        {
+          height: getHeight(resetBannerType),
+          key: 'reset-banner',
+          node: <ConnectedBanner path={path} />,
+          rowType: 'header',
+        },
+      ]
+    : []

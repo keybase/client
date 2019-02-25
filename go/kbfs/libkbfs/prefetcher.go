@@ -407,7 +407,7 @@ func (p *blockPrefetcher) cancelQueuedPrefetch(ptr BlockPointer) {
 		delete(p.queuedPrefetchHandles, ptr)
 		p.log.Debug("cancelled queued prefetch for block %s", ptr)
 	} else {
-		p.log.Debug("nothing to cancel for block %s", ptr)
+		p.vlog.Log(libkb.VLog1, "nothing to cancel for block %s", ptr)
 	}
 }
 

@@ -29,7 +29,6 @@ type State = {
   scaledImageWidth: number,
   startingImageHeight: number,
   startingImageWidth: number,
-  submitting: boolean,
   viewingCenterX: number,
   viewingCenterY: number,
 }
@@ -63,7 +62,6 @@ class EditAvatar extends React.Component<_Props, State> {
       scaledImageWidth: 1,
       startingImageHeight: 1,
       startingImageWidth: 1,
-      submitting: false,
       viewingCenterX: 0,
       viewingCenterY: 0,
     }
@@ -236,7 +234,7 @@ class EditAvatar extends React.Component<_Props, State> {
   }
 
   _onMouseMove = (e: SyntheticMouseEvent<any>) => {
-    if (!this.state.dragging || this.state.submitting) return
+    if (!this.state.dragging || this.props.submitting) return
 
     const offsetLeft = clamp(
       this.state.dragStopX + e.pageX - this.state.dragStartX,
@@ -261,8 +259,6 @@ class EditAvatar extends React.Component<_Props, State> {
   }
 
   _onSave = () => {
-    this.setState({submitting: true})
-
     const x = this.state.offsetLeft * -1
     const y = this.state.offsetTop * -1
     const ratio =
@@ -280,6 +276,7 @@ class EditAvatar extends React.Component<_Props, State> {
     return (
       <Kb.MaybePopup
         onClose={this.props.onClose}
+        styleClipContainer={styles.overflowHidden}
         styleCover={Styles.collapseStyles([
           styles.cover,
           {
@@ -290,6 +287,7 @@ class EditAvatar extends React.Component<_Props, State> {
         onMouseDown={this._onMouseDown}
         onMouseMove={this._onMouseMove}
       >
+        {!!this.props.error && <Kb.Banner text={this.props.error} color="red" />}
         <Kb.Box
           className={Styles.classNames({dropping: this.state.dropping})}
           onDragLeave={this._onDragLeave}
@@ -363,7 +361,7 @@ class EditAvatar extends React.Component<_Props, State> {
           </HoverBox>
           {this.state.hasPreview && (
             <input
-              disabled={!this.state.hasPreview || this.state.submitting}
+              disabled={!this.state.hasPreview || this.props.submitting}
               min={1}
               max={10}
               onChange={this._onRangeChange}
@@ -374,18 +372,19 @@ class EditAvatar extends React.Component<_Props, State> {
             />
           )}
           <Kb.ButtonBar>
-            <Kb.Button
-              disabled={this.state.submitting}
+            <Kb.WaitingButton
               label={this.props.createdTeam ? 'Later, thanks' : 'Cancel'}
               onClick={this.props.onClose}
               type="Secondary"
+              waitingKey={this.props.waitingKey}
+              onlyDisable={true}
             />
             <Kb.WaitingButton
               disabled={!this.state.hasPreview}
               label="Save"
               onClick={this._onSave}
               type="Primary"
-              waitingKey={null}
+              waitingKey={this.props.waitingKey}
             />
           </Kb.ButtonBar>
         </Kb.Box>
@@ -456,6 +455,7 @@ const styles = Styles.styleSheetCreate({
   instructions: {
     maxWidth: 200,
   },
+  overflowHidden: {overflow: 'hidden'},
   spinner: {
     left: '50%',
     marginLeft: -30,

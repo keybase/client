@@ -79,10 +79,6 @@
       "usernames": "Array<string>"
     },
     "globalError": {"globalError": "null | Error | RPCError"},
-    "updateFollowing": {
-      "username": "string",
-      "isTracking": "boolean"
-    },
     "pushLoaded": {"pushLoaded": "boolean"},
     "setStartupDetails": {
       "startupWasFromPush": "boolean",

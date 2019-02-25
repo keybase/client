@@ -11,7 +11,6 @@ const profileRoute = () => {
   const EditProfile = require('./edit-profile/container').default
   const EditProfile2 = require('./edit-profile2/container').default
   const EditAvatar = require('./edit-avatar/container').default
-  const EditAvatarPlaceholder = require('./edit-avatar-placeholder/container').default
   const ProveEnterUsername = require('./prove-enter-username/container').default
   const ProveWebsiteChoice = require('./prove-website-choice/container').default
   const RevokeContainer = require('./revoke/container').default
@@ -58,9 +57,6 @@ const profileRoute = () => {
       editAvatar: {
         component: EditAvatar,
         tags: makeLeafTags({layerOnTop: !isMobile}),
-      },
-      editAvatarPlaceholder: {
-        component: EditAvatarPlaceholder,
       },
       editProfile: {
         component: EditProfile,
@@ -109,7 +105,6 @@ export const newRoutes = {
   addToTeam: {getScreen: () => require('./add-to-team/container').default},
   confirmOrPending: {getScreen: () => require('./confirm-or-pending/container').default},
   editAvatar: {getScreen: () => require('./edit-avatar/container').default},
-  editAvatarPlaceholder: {getScreen: () => require('./edit-avatar-placeholder/container').default},
   editProfile: {getScreen: () => require('./edit-profile/container').default},
   nonUserProfile: {getScreen: () => require('./non-user-profile/container').default},
   postProof: {getScreen: () => require('./post-proof/container').default},

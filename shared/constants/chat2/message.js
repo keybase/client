@@ -913,6 +913,7 @@ const outboxUIMessagetoMessage = (
         Types.numberToOrdinal(o.ordinal),
         errorReason
       )
+    case RPCChatTypes.commonMessageType.flip:
     case RPCChatTypes.commonMessageType.text:
       return makeMessageText({
         author: state.config.username || '',
