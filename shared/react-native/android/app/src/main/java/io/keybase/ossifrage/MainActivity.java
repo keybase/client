@@ -90,14 +90,24 @@ public class MainActivity extends ReactFragmentActivity {
         Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
         if (uri == null) return;
 
-        // Do something with the intent stream.
+        ReactContext reactContext = getReactContext();
+        if (reactContext == null) return;
+
+        WritableMap evt = Arguments.createMap();
+        evt.putString("uri", uri.toString());
+
+        DeviceEventManagerModule.RCTDeviceEventEmitter emitter = reactContext
+                .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class);
+        if (emitter != null) {
+            emitter.emit("androidIntentNotification", evt);
+        }
     }
 
     private void handleSendIntentMultipleStreams(Intent intent) {
-        ArrayList<Uri> uri = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
-        if (uri == null) return;
+        ArrayList<Uri> uris = intent.getParcelableArrayListExtra(Intent.EXTRA_STREAM);
+        if (uris == null) return;
 
-        // Do something with the intent streams.
+        // TODO: do something with the intent streams.
     }
 
     private void handleSendIntentText(Intent intent) {
