@@ -487,7 +487,7 @@ func (fd *fileData) write(ctx context.Context, data []byte, off Int64Offset,
 			// the hole and shift everything else over.
 			if needFillHole {
 				newDirtyPtrs, newUnrefs, bytes, err :=
-					fd.tree.shiftBlocksToFillHole(ctx, topBlock, rightParents)
+					fd.tree.shiftBlocksToFillHole(ctx, rightParents)
 				if err != nil {
 					return newDe, nil, unrefs, newlyDirtiedChildBytes, 0, err
 				}
