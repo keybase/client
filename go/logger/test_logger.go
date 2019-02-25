@@ -61,7 +61,7 @@ func (log *TestLogger) common(ctx context.Context, lvl logging.Level, useFatal b
 
 	if os.Getenv("KEYBASE_TEST_DUP_LOG_TO_STDOUT") != "" {
 		fmt.Printf(prepareString(ctx,
-			log.prefixCaller(log.extraDepth, lvl, fmts+"\n")), arg...)
+			log.prefixCaller(log.extraDepth, lvl, fmts))+"\n", arg...)
 	}
 
 	if ctx != nil {
