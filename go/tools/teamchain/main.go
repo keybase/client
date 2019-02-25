@@ -51,7 +51,9 @@ func main2() (err error) {
 			return err
 		}
 
-		signerX := teams.NewSignerX(keybase1.NewUserVersion(prelink.UID, prelink.EldestSeqno), false)
+		implicitAdmin := link.TeamAdmin() != nil // Assume all admin claims are OK.
+		signerX := teams.NewSignerX(
+			keybase1.NewUserVersion(prelink.UID, prelink.EldestSeqno), implicitAdmin)
 		newState, err := teams.AppendChainLink(mctx.Ctx(), g, reader, state, link, &signerX)
 		if err != nil {
 			return err
