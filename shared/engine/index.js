@@ -283,7 +283,7 @@ class Engine {
     return session
   }
 
-  // Cancel a session
+  // Cancel a session maybe deprecate, not used
   cancelSession(sessionID: SessionID) {
     const session = this._sessionsMap[String(sessionID)]
     if (session) {

@@ -286,6 +286,7 @@ function _serverCallMap(
 
         // cleanup bookkeeping
         delete sessionIDToUsername[sessionID]
+        // $FlowIssue exist but this is the only thing that uses it and this is going away
         engine().cancelSession(sessionID)
       })
 
