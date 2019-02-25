@@ -1242,7 +1242,7 @@ func (h *Server) runStellarSendUI(ctx context.Context, sessionID int, uid gregor
 	if err != nil {
 		errMessage := err.Error()
 		if libkb.IsAppStatusCode(err, keybase1.StatusCode_SCStellarMissingBundle) {
-			errMessage = "You don't have a wallet yet. Hop on over to the wallet tab."
+			errMessage = "Wallet needed to send money in chat."
 		}
 		ui.ChatStellarDataError(ctx, errMessage)
 		return res, err
