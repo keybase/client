@@ -1102,6 +1102,18 @@ func (bt *blockTree) ready(
 		}
 		off = nextBlockOff // Will be `nil` if there are no more blocks.
 
+		// Make sure there's only one copy of each pblock among all
+		// the paths, so `readyHelper` can update the blocks in place
+		// along any path, and they will all be updated.
+		for _, p := range dirtyLeafPaths {
+			for i := range parentBlocks {
+				if i == 0 || p[i-1].childBlockPtr() ==
+					parentBlocks[i-1].childBlockPtr() {
+					parentBlocks[i].pblock = p[i].pblock
+				}
+			}
+		}
+
 		dirtyLeafPaths = append(dirtyLeafPaths,
 			append(parentBlocks, parentBlockAndChildIndex{block, -1}))
 	}
