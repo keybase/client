@@ -527,10 +527,19 @@ func AppDidEnterBackground() bool {
 	convs, err := kbChatCtx.MessageDeliverer.ActiveDeliveries(ctx)
 	if err != nil {
 		kbCtx.Log.Debug("AppDidEnterBackground: failed to get active deliveries: %s", err)
-		return false
+		convs = nil
 	}
-	if len(convs) > 0 {
-		kbCtx.Log.Debug("AppDidEnterBackground: active deliveries in play, setting background active")
+	stayRunning := false
+	switch {
+	case len(convs) > 0:
+		kbCtx.Log.Debug("AppDidEnterBackground: active deliveries in progress")
+		stayRunning = true
+	case kbChatCtx.CoinFlipManager.HasActiveGames(ctx):
+		kbCtx.Log.Debug("AppDidEnterBackground: active coin flip games in progress")
+		stayRunning = true
+	}
+	if stayRunning {
+		kbCtx.Log.Debug("AppDidEnterBackground: setting background active")
 		kbCtx.AppState.Update(keybase1.AppState_BACKGROUNDACTIVE)
 		return true
 	}
