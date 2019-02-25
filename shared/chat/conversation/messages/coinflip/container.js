@@ -17,17 +17,21 @@ const mapStateToProps = (state, {flipGameID}: OwnProps) => {
   const status = state.chat2.getIn(['flipStatusMap', flipGameID])
   return !status
     ? {
+        commitmentVis: '',
         isError: false,
         participants: noParticipants,
-        progressText: 'Waiting for flip information...',
+        progressText: '',
         resultText: '',
+        revealVis: '',
         showParticipants: false,
       }
     : {
+        commitmentVis: status.commitmentVisualization,
         isError: status.phase === RPCChatTypes.chatUiUICoinFlipPhase.error,
         participants: status.participants || [],
         progressText: status.progressText,
         resultText: status.resultText,
+        revealVis: status.revealVisualization,
         showParticipants: participantStatuses.indexOf(status.phase) >= 0,
       }
 }

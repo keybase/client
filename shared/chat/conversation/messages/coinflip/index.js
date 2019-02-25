@@ -6,10 +6,12 @@ import * as RPCChatTypes from '../../../../constants/types/rpc-chat-gen'
 import CoinFlipParticipants from './participants'
 
 export type Props = {|
-  progressText: string,
+  commitmentVis: string,
+  revealVis: string,
   resultText: string,
   isError: boolean,
   participants: Array<RPCChatTypes.UICoinFlipParticipant>,
+  progressText: string,
   showParticipants: boolean,
 |}
 
@@ -29,6 +31,13 @@ class CoinFlip extends React.Component<Props, State> {
   _getAttachmentRef = () => {
     return this._partRef.current
   }
+  _revealSummary = () => {
+    const total = this.props.participants.length
+    const revealed = this.props.participants.reduce((r, p) => {
+      return r + (p.reveal ? 1 : 0)
+    }, 0)
+    return `${revealed} / ${total}`
+  }
   render() {
     const popup = (
       <CoinFlipParticipants
@@ -38,17 +47,36 @@ class CoinFlip extends React.Component<Props, State> {
         visible={this.state.showPopup}
       />
     )
+    const commitSrc = `data:image/png;base64, ${this.props.commitmentVis}`
+    const revealSrc = `data:image/png;base64, ${this.props.revealVis}`
     return (
       <Kb.Box2 direction="vertical" style={styles.container} fullWidth={true} gap="tiny">
-        <Kb.Box2 direction="vertical" fullWidth={true}>
-          <Kb.Text type="BodySmall">Progress</Kb.Text>
-          <Kb.Text
-            type="BodyItalic"
-            style={Styles.collapseStyles([styles.progress, this.props.isError ? styles.error : null])}
-          >
+        {this.props.isError ? (
+          <Kb.Text style={styles.error} type="BodyItalic">
             {this.props.progressText}
           </Kb.Text>
-        </Kb.Box2>
+        ) : (
+          <Kb.Box2 direction="horizontal" fullWidth={true} gap="tiny">
+            <Kb.Box2 direction="vertical">
+              <Kb.Text type="BodySmall">Commitments: {this.props.participants.length}</Kb.Text>
+              {this.props.commitmentVis.length > 0 ? (
+                <Kb.Image src={commitSrc} style={styles.progressVis} />
+              ) : (
+                <Kb.Box2 direction="vertical" style={styles.progressVis}>
+                  <Kb.Text type="BodyItalic">Starting flip...</Kb.Text>
+                </Kb.Box2>
+              )}
+            </Kb.Box2>
+            <Kb.Box2 direction="vertical">
+              <Kb.Text type="BodySmall">Secrets: {this._revealSummary()}</Kb.Text>
+              {this.props.revealVis.length > 0 ? (
+                <Kb.Image src={revealSrc} style={styles.progressVis} />
+              ) : (
+                <Kb.Box2 direction="vertical" style={styles.progressVis} />
+              )}
+            </Kb.Box2>
+          </Kb.Box2>
+        )}
         <Kb.Box2 direction="vertical" fullWidth={true}>
           <Kb.Box2 direction="horizontal" gap="tiny" fullWidth={true}>
             <Kb.Text type="BodySmall">Result</Kb.Text>
@@ -98,6 +126,16 @@ const styles = Styles.styleSheetCreate({
       cursor: 'text',
       userSelect: 'text',
       wordBreak: 'break-all',
+    },
+  }),
+  progressVis: Styles.platformStyles({
+    isElectron: {
+      height: 50,
+      width: 128,
+    },
+    isMobile: {
+      height: 50,
+      width: 112,
     },
   }),
   result: Styles.platformStyles({
