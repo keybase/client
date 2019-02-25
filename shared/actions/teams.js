@@ -656,12 +656,17 @@ function* addUserToTeams(state, action) {
   const errorAddingTo = []
   for (const team of teams) {
     try {
+      let rpcRole = RPCTypes.teamsTeamRole[role]
+      if (rpcRole === RPCTypes.teamsTeamRole.owner && Constants.getRole(state, team) !== 'owner') {
+        // can't add as owner if we're not an owner, add as admin instead
+        rpcRole = RPCTypes.teamsTeamRole.admin
+      }
       yield* Saga.callPromise(
         RPCTypes.teamsTeamAddMemberRpcPromise,
         {
           email: '',
           name: team,
-          role: role ? RPCTypes.teamsTeamRole[role] : RPCTypes.teamsTeamRole.none,
+          role: rpcRole,
           sendChatNotification: true,
           username: user,
         },

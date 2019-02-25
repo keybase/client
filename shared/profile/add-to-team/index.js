@@ -127,7 +127,7 @@ const AddToTeam = (props: Props) => {
         </Box2>
         {props.role.toLowerCase() === 'owner' && (
           <Text type="BodySmall" center={true}>
-            {props.them} will be added as an owner to teams you're an owner of, otherwise they'll be added as
+            {props.them} will be added as an owner to teams you're an owner of. Otherwise they'll be added as
             an admin.
           </Text>
         )}
