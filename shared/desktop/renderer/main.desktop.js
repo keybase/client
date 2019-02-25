@@ -189,7 +189,9 @@ function load() {
   initDesktopStyles()
   const {store, runSagas} = setupStore()
   setupApp(store, runSagas)
-  setupRoutes(store)
+  if (!flags.useNewRouter) {
+    setupRoutes(store)
+  }
   setupHMR(store)
   render(store, Main)
 }

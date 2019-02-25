@@ -72,7 +72,7 @@ const mapDispatchToProps = dispatch => ({
     }))
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'attachmentGetTitles'}],
+        path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'}],
       })
     )
   },

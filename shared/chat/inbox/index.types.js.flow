@@ -40,6 +40,7 @@ export type Props = {|
   filterFocusCount: number,
   neverLoaded: boolean,
   nowOverride?: number, // just for dumb rendering
+  onDeselectConversation: () => void,
   onEnsureSelection: () => void,
   onNewChat: () => void,
   onSelectUp: () => void,

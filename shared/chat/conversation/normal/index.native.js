@@ -42,7 +42,6 @@ class Conversation extends React.PureComponent<Props> {
         {this.props.threadLoadedOffline && <Offline />}
         <HeaderArea
           isPending={this.props.isPending}
-          infoPanelOpen={false}
           onToggleInfoPanel={this.props.onToggleInfoPanel}
           conversationIDKey={this.props.conversationIDKey}
         />
