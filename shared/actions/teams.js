@@ -668,7 +668,7 @@ function* addUserToTeams(state, action) {
         {
           email: '',
           name: team,
-          role: role ? RPCTypes.teamsTeamRole[role] : RPCTypes.teamsTeamRole.none,
+          role: RPCTypes.teamsTeamRole[role],
           sendChatNotification: true,
           username: user,
         },
