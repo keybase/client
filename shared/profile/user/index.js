@@ -21,7 +21,9 @@ export type Props = {|
   backgroundColorType: BackgroundColorType,
   followThem: boolean,
   followers: Array<string>,
+  followersCount: ?number,
   following: Array<string>,
+  followingCount: ?number,
   onBack: () => void,
   onReload: () => void,
   onSearch: () => void,
@@ -29,6 +31,7 @@ export type Props = {|
   reason: string,
   state: Types.DetailsState,
   suggestionKeys: ?Array<string>,
+  userIsYou: boolean,
   username: string,
 |}
 
@@ -114,6 +117,7 @@ const Proofs = p => {
 }
 
 type FriendshipTabsProps = {|
+  loading: boolean,
   onChangeFollowing: boolean => void,
   selectedFollowing: boolean,
   numFollowers: number,
@@ -124,6 +128,7 @@ class FriendshipTabs extends React.Component<FriendshipTabsProps> {
   _onClickFollowers = () => this.props.onChangeFollowing(false)
   _tab = following => (
     <Kb.ClickableBox
+      onClick={following ? this._onClickFollowing : this._onClickFollowers}
       style={Styles.collapseStyles([
         styles.followTab,
         following === this.props.selectedFollowing && styles.followTabSelected,
@@ -131,12 +136,13 @@ class FriendshipTabs extends React.Component<FriendshipTabsProps> {
     >
       <Kb.Text
         type="BodySmallSemibold"
-        onClick={following ? this._onClickFollowing : this._onClickFollowers}
         style={
           following === this.props.selectedFollowing ? styles.followTabTextSelected : styles.followTabText
         }
       >
-        {following ? `Following (${this.props.numFollowing})` : `Followers (${this.props.numFollowers})`}
+        {following
+          ? `Following${!this.props.loading ? ` (${this.props.numFollowing})` : ''}`
+          : `Followers${!this.props.loading ? ` (${this.props.numFollowers})` : ''}`}
       </Kb.Text>
     </Kb.ClickableBox>
   )
@@ -194,7 +200,7 @@ class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.bioAndProofs}>
         <Kb.Text
           type="BodySmallSemibold"
-          backgroundMode="Terminal"
+          negative={true}
           center={true}
           style={Styles.collapseStyles([styles.reason, colorTypeToStyle(this.props.backgroundColorType)])}
         >
@@ -229,7 +235,7 @@ class BioTeamProofs extends React.PureComponent<BioTeamProofsProps> {
         />
         <BioLayout {...this.props} />
         <Kb.Box2 direction="vertical" style={styles.proofs}>
-          <Kb.Text type="BodySmallSemibold" backgroundMode="Terminal" center={true} style={styles.reason}>
+          <Kb.Text type="BodySmallSemibold" negative={true} center={true} style={styles.reason}>
             {this.props.reason}
           </Kb.Text>
           <Teams username={this.props.username} />
@@ -274,9 +280,11 @@ class User extends React.Component<Props, State> {
         />
       )
     }
+    const loading = this.props.followersCount == null || this.props.followingCount == null
     return (
       <FriendshipTabs
         key="tabs"
+        loading={loading}
         numFollowers={this.props.followers.length}
         numFollowing={this.props.following.length}
         onChangeFollowing={this._changeFollowing}
@@ -285,9 +293,14 @@ class User extends React.Component<Props, State> {
     )
   }
 
-  _renderOtherUsers = ({item, section, index}) => (
-    <FriendRow key={'friend' + index} usernames={item} itemWidth={section.itemWidth} />
-  )
+  _renderOtherUsers = ({item, section, index}) =>
+    item.type === 'noFriends' ? (
+      <Kb.Box2 direction="horizontal" style={styles.textEmpty} centerChildren={true}>
+        <Kb.Text type="BodySmall">{item.text}</Kb.Text>
+      </Kb.Box2>
+    ) : (
+      <FriendRow key={'friend' + index} usernames={item} itemWidth={section.itemWidth} />
+    )
 
   _bioTeamProofsSection = {
     data: ['bioTeamProofs'],
@@ -319,7 +332,15 @@ class User extends React.Component<Props, State> {
     const friends = this.state.selectedFollowing ? this.props.following : this.props.followers
     const {itemsInARow, itemWidth} = widthToDimentions(this.state.width)
     // TODO memoize?
-    const chunks = this.state.width ? chunk(friends, itemsInARow) : []
+    let chunks = this.state.width ? chunk(friends, itemsInARow) : []
+    if (chunks.length === 0 && this.props.followingCount !== null && this.props.followingCount !== null) {
+      chunks.push({
+        text: this.state.selectedFollowing
+          ? `${this.props.userIsYou ? 'You are' : `${this.props.username} is`} not following anyone.`
+          : `${this.props.userIsYou ? 'You have' : `${this.props.username} has`} no followers.`,
+        type: 'noFriends',
+      })
+    }
 
     return (
       <Kb.Box2 direction="vertical" fullWidth={true} fullHeight={true} style={styles.container}>
@@ -394,13 +415,12 @@ const styles = Styles.styleSheetCreate({
     },
     isElectron: {
       borderBottomStyle: 'solid',
-      paddingBottom: Styles.globalMargins.tiny,
-      paddingLeft: Styles.globalMargins.small,
-      paddingRight: Styles.globalMargins.small,
-      paddingTop: Styles.globalMargins.medium,
+      height: 40,
+      minWidth: 120,
     },
     isMobile: {
-      height: Styles.globalMargins.medium,
+      borderRadius: 0,
+      height: 48,
       width: '50%',
     },
   }),
@@ -410,6 +430,7 @@ const styles = Styles.styleSheetCreate({
       backgroundColor: Styles.globalColors.white,
       borderBottomColor: Styles.globalColors.black_10,
       borderBottomWidth: 1,
+      marginTop: Styles.globalMargins.small,
     },
     isElectron: {
       alignSelf: 'stretch',
@@ -505,6 +526,10 @@ const styles = Styles.styleSheetCreate({
   teamShowcases: {
     flexShrink: 0,
     paddingBottom: Styles.globalMargins.small,
+  },
+  textEmpty: {
+    paddingBottom: Styles.globalMargins.large,
+    paddingTop: Styles.globalMargins.large,
   },
   typedBackgroundBlue: {backgroundColor: Styles.globalColors.blue},
   typedBackgroundGreen: {backgroundColor: Styles.globalColors.green},

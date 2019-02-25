@@ -164,6 +164,7 @@ class Profile extends Component<Props, State> {
     return (
       <UserBio
         type="Profile"
+        showAirdrop={this.props.showAirdrop}
         editFns={this.props.bioEditFns}
         avatarSize={AVATAR_SIZE}
         loading={loading}
@@ -302,7 +303,7 @@ class Profile extends Component<Props, State> {
             }}
           >
             <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, paddingLeft: 8}}>
-              <Kb.Text center={true} type="BodySemibold" backgroundMode="HighRisk">
+              <Kb.Text center={true} type="BodySemibold" negative={true}>
                 {this.props.addUserToTeamsResults}
               </Kb.Text>
             </Kb.Box>

@@ -85,6 +85,24 @@ func jsonLocalDbLookup(ops LocalDbOps, id DbKey) (*jsonw.Wrapper, error) {
 	return ret, err
 }
 
+func jsonLocalDbGetIntoMsgpack(ops LocalDbOps, obj interface{}, id DbKey) (found bool, err error) {
+	var buf []byte
+	buf, found, err = ops.Get(id)
+	if err != nil || !found {
+		return found, err
+	}
+	err = MsgpackDecode(obj, buf)
+	return true, err
+}
+
+func jsonLocalDbPutObjMsgpack(ops LocalDbOps, id DbKey, aliases []DbKey, obj interface{}) error {
+	bytes, err := MsgpackEncode(obj)
+	if err != nil {
+		return err
+	}
+	return ops.Put(id, aliases, bytes)
+}
+
 type JSONLocalDb struct {
 	engine LocalDb
 }
@@ -118,6 +136,14 @@ func (j *JSONLocalDb) PutObj(id DbKey, aliases []DbKey, obj interface{}) (err er
 
 func (j *JSONLocalDb) Lookup(id DbKey) (*jsonw.Wrapper, error) {
 	return jsonLocalDbLookup(j.engine, id)
+}
+
+func (j *JSONLocalDb) GetIntoMsgpack(obj interface{}, id DbKey) (found bool, err error) {
+	return jsonLocalDbGetIntoMsgpack(j.engine, obj, id)
+}
+
+func (j *JSONLocalDb) PutObjMsgpack(id DbKey, aliases []DbKey, obj interface{}) (err error) {
+	return jsonLocalDbPutObjMsgpack(j.engine, id, aliases, obj)
 }
 
 func (j *JSONLocalDb) OpenTransaction() (JSONLocalDbTransaction, error) {
@@ -177,6 +203,7 @@ const (
 	DBTeamChain         = 0x10
 	DBUserPlusAllKeysV1 = 0x19
 
+	DBOfflineRPC               = 0xbe
 	DBChatCollapses            = 0xbf
 	DBMerkleAudit              = 0xca
 	DBUnfurler                 = 0xcb

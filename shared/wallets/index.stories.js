@@ -14,8 +14,10 @@ import transactionDetails from './transaction-details/index.stories'
 import walletList from './wallet-list/index.stories'
 import wallet from './wallet/index.stories'
 import walletSwitcherRow from './wallet/header/wallet-switcher/wallet-row/index.stories'
+import airdrop from './airdrop/index.stories'
 
 const load = () => {
+  airdrop()
   asset()
   banner()
   common()

@@ -145,6 +145,10 @@
         {
           "name": "assertion",
           "type": "string"
+        },
+        {
+          "name": "oa",
+          "type": "OfflineAvailability"
         }
       ],
       "response": "UserOrTeamLite",

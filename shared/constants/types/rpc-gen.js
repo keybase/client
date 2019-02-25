@@ -67,6 +67,11 @@ export const commonMerkleTreeID = {
   kbfsPrivateteam: 3,
 }
 
+export const commonOfflineAvailability = {
+  none: 0,
+  bestEffort: 1,
+}
+
 export const commonSeqType = {
   none: 0,
   public: 1,
@@ -120,6 +125,7 @@ export const constantsStatusCode = {
   scexists: 230,
   sccanceled: 237,
   scinputcanceled: 239,
+  scoffline: 267,
   screloginrequired: 274,
   scresolutionfailed: 275,
   scprofilenotpublic: 276,

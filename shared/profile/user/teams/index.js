@@ -63,11 +63,11 @@ const TeamInfo = p => (
               onClick={() => p.onJoinTeam(p.name)}
             />
           )}
-          <Kb.Text type="BodySmall">
+          <Kb.Text center={true} type="BodySmall">
             Public admins:{' '}
             {
               <Kb.ConnectedUsernames
-                type="BodySmall"
+                type="BodySmallSemibold"
                 colorFollowing={true}
                 colorBroken={true}
                 onUsernameClicked="profile"

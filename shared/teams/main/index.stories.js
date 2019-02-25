@@ -25,7 +25,7 @@ const load = () => {
     ))
     .add('BetaNote', () => <BetaNote onReadMore={Sb.action('onReadMore')} />)
     .add('TeamList', () => (
-      <Box style={{maxWidth: 320}}>
+      <Box style={{display: 'flex', flexDirection: 'column', height: '100%', maxWidth: 320}}>
         <TeamList
           teamnames={teamnames}
           newTeams={[]}

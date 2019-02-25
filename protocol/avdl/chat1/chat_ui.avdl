@@ -305,6 +305,8 @@ protocol chatUi {
     UICoinFlipPhase phase;
     string progressText;
     string resultText;
+    string commitmentVisualization;
+    string revealVisualization;
     array<UICoinFlipParticipant> participants;
   }
   void chatCoinFlipStatus(int sessionID, array<UICoinFlipStatus> statuses);

@@ -18,6 +18,7 @@ const mapStateToProps = (state, ownProps) => {
     followsYou: Constants.followsYou(state, ownProps.username),
     fullname: d.fullname,
     location: d.location,
+    registeredForAirdrop: d.registeredForAirdrop,
   }
 }
 const mapDispatchToProps = dispatch => ({})
@@ -30,6 +31,7 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   fullname: stateProps.fullname,
   inTracker: ownProps.inTracker,
   location: stateProps.location,
+  registeredForAirdrop: stateProps.registeredForAirdrop,
 })
 
 export default Container.namedConnect<OwnProps, _, _, _, _>(

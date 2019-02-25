@@ -150,7 +150,8 @@ func (o ResolveIdentifyImplicitTeamRes) DeepCopy() ResolveIdentifyImplicitTeamRe
 }
 
 type Resolve3Arg struct {
-	Assertion string `codec:"assertion" json:"assertion"`
+	Assertion string              `codec:"assertion" json:"assertion"`
+	Oa        OfflineAvailability `codec:"oa" json:"oa"`
 }
 
 type Identify2Arg struct {
@@ -210,7 +211,7 @@ type NormalizeSocialAssertionArg struct {
 
 type IdentifyInterface interface {
 	// Resolve an assertion to a (UID,username) or (TeamID,teamname). On failure, returns an error.
-	Resolve3(context.Context, string) (UserOrTeamLite, error)
+	Resolve3(context.Context, Resolve3Arg) (UserOrTeamLite, error)
 	Identify2(context.Context, Identify2Arg) (Identify2Res, error)
 	IdentifyLite(context.Context, IdentifyLiteArg) (IdentifyLiteRes, error)
 	ResolveIdentifyImplicitTeam(context.Context, ResolveIdentifyImplicitTeamArg) (ResolveIdentifyImplicitTeamRes, error)
@@ -235,7 +236,7 @@ func IdentifyProtocol(i IdentifyInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]Resolve3Arg)(nil), args)
 						return
 					}
-					ret, err = i.Resolve3(ctx, typedArgs[0].Assertion)
+					ret, err = i.Resolve3(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -323,8 +324,7 @@ type IdentifyClient struct {
 }
 
 // Resolve an assertion to a (UID,username) or (TeamID,teamname). On failure, returns an error.
-func (c IdentifyClient) Resolve3(ctx context.Context, assertion string) (res UserOrTeamLite, err error) {
-	__arg := Resolve3Arg{Assertion: assertion}
+func (c IdentifyClient) Resolve3(ctx context.Context, __arg Resolve3Arg) (res UserOrTeamLite, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.identify.Resolve3", []interface{}{__arg}, &res)
 	return
 }

@@ -35,6 +35,7 @@ import (
 	"github.com/keybase/client/go/home"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/offline"
 	"github.com/keybase/client/go/protocol/chat1"
 	gregor1 "github.com/keybase/client/go/protocol/gregor1"
 	"github.com/keybase/client/go/protocol/keybase1"
@@ -70,6 +71,7 @@ type Service struct {
 	teamUpgrader         *teams.Upgrader
 	avatarLoader         avatars.Source
 	walletState          *stellar.WalletState
+	offlineRPCCache      *offline.RPCCache
 }
 
 type Shutdowner interface {
@@ -94,6 +96,7 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		teamUpgrader:     teams.NewUpgrader(),
 		avatarLoader:     avatars.CreateSourceFromEnv(g),
 		walletState:      stellar.NewWalletState(g, remote.NewRemoteNet(g)),
+		offlineRPCCache:  offline.NewRPCCache(g),
 	}
 }
 
@@ -115,9 +118,9 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.DeviceProtocol(NewDeviceHandler(xp, g, d.gregor)),
 		keybase1.FavoriteProtocol(NewFavoriteHandler(xp, g)),
 		keybase1.TlfProtocol(newTlfHandler(xp, cg)),
-		keybase1.IdentifyProtocol(NewIdentifyHandler(xp, g)),
+		keybase1.IdentifyProtocol(NewIdentifyHandler(xp, g, d)),
 		keybase1.InstallProtocol(NewInstallHandler(xp, g)),
-		keybase1.KbfsProtocol(NewKBFSHandler(xp, g, d.ChatG())),
+		keybase1.KbfsProtocol(NewKBFSHandler(xp, g, d.ChatG(), d)),
 		keybase1.KbfsMountProtocol(NewKBFSMountHandler(xp, g)),
 		keybase1.LogProtocol(NewLogHandler(xp, logReg, g)),
 		keybase1.LoginProtocol(NewLoginHandler(xp, g)),
@@ -147,7 +150,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.SimpleFSProtocol(NewSimpleFSHandler(xp, g)),
 		keybase1.LogsendProtocol(NewLogsendHandler(xp, g)),
 		keybase1.AppStateProtocol(newAppStateHandler(xp, g)),
-		CancelingProtocol(g, keybase1.TeamsProtocol(NewTeamsHandler(xp, connID, cg, d.gregor)),
+		CancelingProtocol(g, keybase1.TeamsProtocol(NewTeamsHandler(xp, connID, cg, d)),
 			libkb.RPCCancelerReasonLogout),
 		keybase1.BadgerProtocol(newBadgerHandler(xp, g, d.badger)),
 		keybase1.MerkleProtocol(newMerkleHandler(xp, g)),

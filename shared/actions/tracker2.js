@@ -17,7 +17,6 @@ const identify3Result = (_, action) => {
 
 const identify3ShowTracker = (_, action) => {
   const {guiID, assertion, reason, forceDisplay} = action.payload.params
-
   return Tracker2Gen.createLoad({
     assertion,
     forceDisplay: !!forceDisplay,
@@ -74,6 +73,7 @@ const updateUserCard = (state, action) => {
     fullname: card.fullName,
     guiID,
     location: card.location,
+    registeredForAirdrop: card.registeredForAirdrop,
     teamShowcase: (card.teamShowcase || []).map(t => ({
       description: t.description,
       isOpen: t.open,

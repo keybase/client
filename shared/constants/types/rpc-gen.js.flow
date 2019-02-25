@@ -1091,6 +1091,11 @@ export const commonMerkleTreeID = {
   kbfsPrivateteam: 3,
 }
 
+export const commonOfflineAvailability = {
+  none: 0,
+  bestEffort: 1,
+}
+
 export const commonSeqType = {
   none: 0,
   public: 1,
@@ -1144,6 +1149,7 @@ export const constantsStatusCode = {
   scexists: 230,
   sccanceled: 237,
   scinputcanceled: 239,
+  scoffline: 267,
   screloginrequired: 274,
   scresolutionfailed: 275,
   scprofilenotpublic: 276,
@@ -2367,6 +2373,10 @@ export type NaclSigningKeyPrivate = ?string
 export type NaclSigningKeyPublic = ?string
 export type NextMerkleRootRes = $ReadOnly<{res?: ?MerkleRootV2}>
 export type NotificationChannels = $ReadOnly<{session: Boolean, users: Boolean, kbfs: Boolean, kbfsdesktop: Boolean, kbfslegacy: Boolean, tracking: Boolean, favorites: Boolean, paperkeys: Boolean, keyfamily: Boolean, service: Boolean, app: Boolean, chat: Boolean, pgp: Boolean, kbfsrequest: Boolean, badges: Boolean, reachability: Boolean, team: Boolean, ephemeral: Boolean, chatkbfsedits: Boolean, chatdev: Boolean, deviceclone: Boolean, chatattachments: Boolean, wallet: Boolean, audit: Boolean}>
+export type OfflineAvailability =
+  | 0 // NONE_0
+  | 1 // BEST_EFFORT_1
+
 export type OpDescription = {asyncOp: 0, list: ?ListArgs} | {asyncOp: 1, listRecursive: ?ListArgs} | {asyncOp: 7, listRecursiveToDepth: ?ListToDepthArgs} | {asyncOp: 2, read: ?ReadArgs} | {asyncOp: 3, write: ?WriteArgs} | {asyncOp: 4, copy: ?CopyArgs} | {asyncOp: 5, move: ?MoveArgs} | {asyncOp: 6, remove: ?RemoveArgs} | {asyncOp: 8, getRevisions: ?GetRevisionsArgs}
 export type OpID = ?string
 export type OpProgress = $ReadOnly<{start: Time, endEstimate: Time, opType: AsyncOps, bytesTotal: Int64, bytesRead: Int64, bytesWritten: Int64, filesTotal: Int64, filesRead: Int64, filesWritten: Int64}>
@@ -2682,6 +2692,7 @@ export type StatusCode =
   | 230 // SCExists_230
   | 237 // SCCanceled_237
   | 239 // SCInputCanceled_239
+  | 267 // SCOffline_267
   | 274 // SCReloginRequired_274
   | 275 // SCResolutionFailed_275
   | 276 // SCProfileNotPublic_276

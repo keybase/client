@@ -357,4 +357,9 @@ protocol Common {
     int width;
   }
 
+  enum OfflineAvailability {
+    NONE_0,
+    BEST_EFFORT_1
+  }
+
 }

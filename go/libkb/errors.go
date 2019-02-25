@@ -2605,6 +2605,19 @@ func (e UserReverifyNeededError) Error() string {
 
 //=============================================================================
 
+type OfflineError struct {
+}
+
+func NewOfflineError() error {
+	return OfflineError{}
+}
+
+func (e OfflineError) Error() string {
+	return "Offline, and no cached results found"
+}
+
+//=============================================================================
+
 type VerboseError interface {
 	Error() string
 	Verbose() string

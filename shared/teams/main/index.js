@@ -2,6 +2,7 @@
 import * as React from 'react'
 import * as Styles from '../../styles'
 import * as Kb from '../../common-adapters'
+import * as I from 'immutable'
 import Header from './header'
 import Banner from './banner'
 import BetaNote from './beta-note'
@@ -22,7 +23,7 @@ type Props = {|
   teamNameToIsOpen: {[key: string]: boolean},
   teammembercounts: {[key: string]: number},
   teamnames: $ReadOnlyArray<string>,
-  teamresetusers: {[key: string]: Array<string>},
+  teamresetusers: {[key: string]: ?I.Set<string>},
   teamToRequest: {[key: string]: number},
   title?: string,
 |}
@@ -105,6 +106,7 @@ class Teams extends React.PureComponent<Props> {
         return <BetaNote onReadMore={this.props.onReadMore} />
       case 'team':
         const name = item.team
+        const resetUserCount = (this.props.teamresetusers[name] && this.props.teamresetusers[name].size) || 0
         return (
           <TeamRow
             firstItem={index === 1}
@@ -117,10 +119,7 @@ class Teams extends React.PureComponent<Props> {
             onOpenFolder={() => this._onOpenFolder(name)}
             onManageChat={() => this._onManageChat(name)}
             onViewTeam={() => this._onViewTeam(name)}
-            resetUserCount={
-              // $FlowIssue
-              this.props.teamresetusers[name]?.length ?? 0
-            }
+            resetUserCount={resetUserCount}
           />
         )
       default:
