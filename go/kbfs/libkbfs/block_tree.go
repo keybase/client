@@ -663,6 +663,10 @@ func (bt *blockTree) newRightBlock(
 	// the actual parent blocks here; we're only using its length to
 	// figure out how many levels need new blocks.
 	pblock := parentBlocks[lowestAncestorWithRoom].pblock
+	parentPtr := bt.rootBlockPointer()
+	if lowestAncestorWithRoom > 0 {
+		parentPtr = parentBlocks[lowestAncestorWithRoom-1].childBlockPtr()
+	}
 	for i := lowestAncestorWithRoom; i < len(parentBlocks); i++ {
 		newRID, err := bt.crypto.MakeTemporaryBlockID()
 		if err != nil {
@@ -688,11 +692,16 @@ func (bt *blockTree) newRightBlock(
 		pblock.AppendNewIndirectPtr(newPtr, off)
 		rightParentBlocks[i].pblock = pblock
 		rightParentBlocks[i].childIndex = pblock.NumIndirectPtrs() - 1
+		err = bt.cacher(ctx, parentPtr, pblock)
+		if err != nil {
+			return nil, nil, err
+		}
 
 		isInd := i != len(parentBlocks)-1
 		rblock := newBlock(isInd)
 		if isInd {
 			pblock = rblock
+			parentPtr = newPtr
 		}
 
 		err = bt.cacher(ctx, newPtr, rblock)
@@ -804,8 +813,7 @@ func (bt *blockTree) String() string {
 // pointers in the file as needed.  It returns any block pointers that
 // were dirtied in the process.
 func (bt *blockTree) shiftBlocksToFillHole(
-	ctx context.Context, newTopBlock BlockWithPtrs,
-	parents []parentBlockAndChildIndex) (
+	ctx context.Context, parents []parentBlockAndChildIndex) (
 	newDirtyPtrs []BlockPointer, newUnrefs []BlockInfo,
 	newlyDirtiedChildBytes int64, err error) {
 	// `parents` should represent the right side of the tree down to
@@ -973,18 +981,18 @@ func (bt *blockTree) markParentsDirty(
 	dirtyPtrs []BlockPointer, unrefs []BlockInfo, err error) {
 	parentPtr := bt.rootBlockPointer()
 	for _, pb := range parentBlocks {
-		if err := bt.cacher(ctx, parentPtr, pb.pblock); err != nil {
-			return nil, unrefs, err
-		}
 		dirtyPtrs = append(dirtyPtrs, parentPtr)
 		childInfo, _ := pb.childIPtr()
-		parentPtr = childInfo.BlockPointer
 
 		// Remember the size of each newly-dirtied child.
 		if childInfo.EncodedSize != 0 {
 			unrefs = append(unrefs, childInfo)
 			pb.clearEncodedSize()
 		}
+		if err := bt.cacher(ctx, parentPtr, pb.pblock); err != nil {
+			return nil, unrefs, err
+		}
+		parentPtr = childInfo.BlockPointer
 	}
 	return dirtyPtrs, unrefs, nil
 }

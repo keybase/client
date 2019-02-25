@@ -243,9 +243,7 @@ func (dd *dirData) processModifiedBlock(
 		}
 
 		// Shift it over if needed.
-		topBlock := rightParents[0].pblock
-		_, newUnrefs, _, err :=
-			dd.tree.shiftBlocksToFillHole(ctx, topBlock, rightParents)
+		_, newUnrefs, _, err := dd.tree.shiftBlocksToFillHole(ctx, rightParents)
 		if err != nil {
 			return nil, err
 		}
