@@ -1,5 +1,6 @@
 // @flow
 import * as Constants from '../../constants/fs'
+import * as EngineGen from '../engine-gen-gen'
 import * as FsGen from '../fs-gen'
 import * as I from 'immutable'
 import * as RPCTypes from '../../constants/types/rpc-gen'
