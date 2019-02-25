@@ -204,7 +204,7 @@ class UserInput extends Component<Props, State> {
             }}
           >
             <TextInput
-              autoFocus={flags.useNewRouter ? false : autoFocus}
+              autoFocus={autoFocus}
               autoCorrect={false}
               autoCapitalize={'none'}
               ref={el => {
