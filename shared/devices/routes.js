@@ -12,17 +12,13 @@ const routeTree = () => {
   const AddDevice = require('./add-device/container').default
   return makeRouteDefNode({
     children: {
-      deviceAdd: {
-        component: AddDevice,
-        tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile}),
-      },
-      deviceCodePage: {
+      codePage: {
         component: CodePage,
         tags: makeLeafTags({fullscreen: true, hideStatusBar: true}),
       },
-      deviceError: {
-        component: ErrorPage,
-        tags: makeLeafTags({fullscreen: true, hideStatusBar: true}),
+      deviceAdd: {
+        component: AddDevice,
+        tags: makeLeafTags({fullscreen: isMobile, layerOnTop: !isMobile}),
       },
       devicePage: {
         children: {
@@ -34,6 +30,10 @@ const routeTree = () => {
         component: DevicePage,
       },
       devicePaperKey: {component: PaperKey},
+      error: {
+        component: ErrorPage,
+        tags: makeLeafTags({fullscreen: true, hideStatusBar: true}),
+      },
     },
     component: Devices,
     initialState: {showingRevoked: false},
@@ -43,8 +43,6 @@ const routeTree = () => {
 
 export const newRoutes = {
   deviceAdd: {getScreen: () => require('./add-device/container').default},
-  deviceCodePage: {getScreen: () => require('../provision/code-page/container').default},
-  deviceError: {getScreen: () => require('../provision/error/container').default},
   devicePage: {getScreen: () => require('./device-page/container').default},
   devicePaperKey: {getScreen: () => require('./paper-key/container').default},
   deviceRevoke: {getScreen: () => require('./device-revoke/container').default},
