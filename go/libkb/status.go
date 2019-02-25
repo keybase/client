@@ -59,6 +59,7 @@ func GetClientStatus(m MetaContext) (res []keybase1.ClientStatus) {
 }
 
 func GetExtendedStatus(m MetaContext) (res keybase1.ExtendedStatus, err error) {
+	m = m.WithLogTag("EXTSTATUS")
 	defer m.CTraceTimed("GetExtendedStatus", func() error { return err })()
 	g := m.G()
 
