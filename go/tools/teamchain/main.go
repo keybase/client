@@ -29,7 +29,12 @@ func main2() (err error) {
 		return fmt.Errorf("Usage: tool <jsonfile>")
 	}
 	filepath := os.Args[1]
-	cf, err := readChainFile(filepath)
+	var cf ChainFile
+	if filepath == "-" {
+		cf, err = readChainStdin()
+	} else {
+		cf, err = readChainFile(filepath)
+	}
 	if err != nil {
 		return err
 	}
@@ -55,6 +60,11 @@ func main2() (err error) {
 	}
 	fmt.Printf("%v\n", spew.Sdump(state))
 	return nil
+}
+
+func readChainStdin() (res ChainFile, err error) {
+	err = json.NewDecoder(os.Stdin).Decode(&res)
+	return res, err
 }
 
 func readChainFile(path string) (res ChainFile, err error) {
