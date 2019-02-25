@@ -125,7 +125,7 @@ export function formatTimeForRevoked(time: number): string {
 
 export function formatTimeForAssertionPopup(time: number): string {
   const m = moment(time)
-  return m.format('ddd MMM D, YYYY')
+  return m.format('ddd MMM D, YYYY') // Wed Jan 5, 2018
 }
 
 export function daysToLabel(days: number): string {
