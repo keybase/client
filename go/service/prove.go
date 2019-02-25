@@ -89,6 +89,16 @@ func (ph *ProveHandler) StartProof(ctx context.Context, arg keybase1.StartProofA
 	return res, err
 }
 
+func (ph *ProveHandler) ValidateUsername(ctx context.Context, arg keybase1.ValidateUsernameArg) error {
+	mctx := libkb.NewMetaContext(ctx, ph.G())
+	serviceType := mctx.G().GetProofServices().GetServiceType(arg.Service)
+	if serviceType == nil {
+		return libkb.BadServiceError{Service: arg.Service}
+	}
+	_, err := serviceType.NormalizeRemoteName(mctx, arg.Remotename)
+	return err
+}
+
 // Prove handles the `keybase.1.checkProof` RPC.
 func (ph *ProveHandler) CheckProof(ctx context.Context, arg keybase1.CheckProofArg) (res keybase1.CheckProofStatus, err error) {
 	ctx = libkb.WithLogTag(ctx, "PV")
