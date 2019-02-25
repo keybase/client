@@ -22,7 +22,6 @@ import type {TypedState, Dispatch} from '../util/container'
 import type {RPCError} from '../util/errors'
 
 // Not the real type here to reduce merge time. This file has a .js.flow for importers
-type TypedActions = {type: any, error: boolean, payload: any}
 type WaitingKey = string | Array<string>
 
 type CustomResponseIncomingActionCreator = (
