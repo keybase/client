@@ -5,6 +5,7 @@ import * as RPCStellarTypes from '../constants/types/rpc-stellar-gen'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import * as Saga from '../util/saga'
 import * as WalletsGen from './wallets-gen'
+import * as EngineGen from './engine-gen-gen'
 import * as GregorGen from './gregor-gen'
 import * as Chat2Gen from './chat2-gen'
 import * as ConfigGen from './config-gen'
@@ -18,7 +19,6 @@ import * as Tabs from '../constants/tabs'
 import * as SettingsConstants from '../constants/settings'
 import * as I from 'immutable'
 import flags from '../util/feature-flags'
-import {getEngine} from '../engine'
 import {RPCError} from '../util/errors'
 import {isMobile} from '../constants/platform'
 import {actionHasError} from '../util/container'
@@ -736,52 +736,56 @@ const maybeNavigateToConversation = (state, action) => {
   })
 }
 
-const setupEngineListeners = () => {
-  getEngine().setIncomingCallMap({
-    'stellar.1.notify.accountDetailsUpdate': ({accountID, account}) =>
-      Saga.put(
-        WalletsGen.createAccountUpdateReceived({
-          account: Constants.accountResultToAccount(account),
-        })
-      ),
-    'stellar.1.notify.accountsUpdate': ({accounts}) =>
-      Saga.put(
-        WalletsGen.createAccountsReceived({
-          accounts: (accounts || []).map(account => {
-            if (!account.accountID) {
-              logger.error(
-                `Found empty accountID in accountsUpdate, name: ${account.name} isDefault: ${String(
-                  account.isDefault
-                )}`
-              )
-            }
-            return Constants.accountResultToAccount(account)
-          }),
-        })
-      ),
-    'stellar.1.notify.pendingPaymentsUpdate': ({accountID: _accountID, pending: _pending}) => {
-      if (!_pending) {
-        logger.warn(`pendingPaymentsUpdate: no pending payments in payload`)
-        return
-      }
-      const accountID = Types.stringToAccountID(_accountID)
-      const pending = _pending.map(p => Constants.rpcPaymentResultToPaymentResult(p, 'pending'))
-      return Saga.put(WalletsGen.createPendingPaymentsReceived({accountID, pending}))
-    },
-    'stellar.1.notify.recentPaymentsUpdate': ({accountID, firstPage: {payments, cursor, oldestUnread}}) =>
-      Saga.put(
-        WalletsGen.createRecentPaymentsReceived({
-          accountID: Types.stringToAccountID(accountID),
-          oldestUnread: oldestUnread ? Types.rpcPaymentIDToPaymentID(oldestUnread) : Types.noPaymentID,
-          paymentCursor: cursor,
-          payments: (payments || [])
-            .map(elem => Constants.rpcPaymentResultToPaymentResult(elem, 'history'))
-            .filter(Boolean),
-        })
-      ),
-    'stellar.1.ui.paymentReviewed': ({msg: {bid, reviewID, seqno, banners, nextButton}}) =>
-      Saga.put(WalletsGen.createReviewedPaymentReceived({banners, bid, nextButton, reviewID, seqno})),
+const accountDetailsUpdate = (_, action) =>
+  WalletsGen.createAccountUpdateReceived({
+    account: Constants.accountResultToAccount(action.payload.params.account),
   })
+
+const accountsUpdate = (_, action) =>
+  WalletsGen.createAccountsReceived({
+    accounts: (action.payload.params.accounts || []).map(account => {
+      if (!account.accountID) {
+        logger.error(
+          `Found empty accountID in accountsUpdate, name: ${account.name} isDefault: ${String(
+            account.isDefault
+          )}`
+        )
+      }
+      return Constants.accountResultToAccount(account)
+    }),
+  })
+
+const pendingPaymentsUpdate = (_, action) => {
+  const {accountID: _accountID, pending: _pending} = action.payload.params
+  if (!_pending) {
+    logger.warn(`pendingPaymentsUpdate: no pending payments in payload`)
+    return
+  }
+  const accountID = Types.stringToAccountID(_accountID)
+  const pending = _pending.map(p => Constants.rpcPaymentResultToPaymentResult(p, 'pending'))
+  return WalletsGen.createPendingPaymentsReceived({accountID, pending})
+}
+
+const recentPaymentsUpdate = (_, action) => {
+  const {
+    accountID,
+    firstPage: {payments, cursor, oldestUnread},
+  } = action.payload.params
+  return WalletsGen.createRecentPaymentsReceived({
+    accountID: Types.stringToAccountID(accountID),
+    oldestUnread: oldestUnread ? Types.rpcPaymentIDToPaymentID(oldestUnread) : Types.noPaymentID,
+    paymentCursor: cursor,
+    payments: (payments || [])
+      .map(elem => Constants.rpcPaymentResultToPaymentResult(elem, 'history'))
+      .filter(Boolean),
+  })
+}
+
+const paymentReviewed = (_, action) => {
+  const {
+    msg: {bid, reviewID, seqno, banners, nextButton},
+  } = action.payload.params
+  return WalletsGen.createReviewedPaymentReceived({banners, bid, nextButton, reviewID, seqno})
 }
 
 const maybeClearErrors = state => {
@@ -1168,11 +1172,6 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<WalletsGen.CancelRequestPayload>(WalletsGen.cancelRequest, cancelRequest)
   yield* Saga.chainAction<WalletsGen.CancelPaymentPayload>(WalletsGen.cancelPayment, cancelPayment)
 
-  yield* Saga.chainAction<ConfigGen.SetupEngineListenersPayload>(
-    ConfigGen.setupEngineListeners,
-    setupEngineListeners
-  )
-
   // Clear some errors on navigateUp, clear new txs on switchTab
   yield* Saga.chainAction<RouteTreeGen.NavigateUpPayload>(RouteTreeGen.navigateUp, maybeClearErrors)
   yield* Saga.chainAction<RouteTreeGen.SwitchToPayload>(RouteTreeGen.switchTo, maybeClearNewTxs)
@@ -1205,6 +1204,26 @@ function* walletsSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<ConfigGen.DaemonHandshakeDonePayload>(
     ConfigGen.daemonHandshakeDone,
     readLastSentXLM
+  )
+  yield* Saga.chainAction<EngineGen.Stellar1NotifyAccountDetailsUpdatePayload>(
+    EngineGen.stellar1NotifyAccountDetailsUpdate,
+    accountDetailsUpdate
+  )
+  yield* Saga.chainAction<EngineGen.Stellar1NotifyAccountsUpdatePayload>(
+    EngineGen.stellar1NotifyAccountsUpdate,
+    accountsUpdate
+  )
+  yield* Saga.chainAction<EngineGen.Stellar1NotifyPendingPaymentsUpdatePayload>(
+    EngineGen.stellar1NotifyPendingPaymentsUpdate,
+    pendingPaymentsUpdate
+  )
+  yield* Saga.chainAction<EngineGen.Stellar1NotifyRecentPaymentsUpdatePayload>(
+    EngineGen.stellar1NotifyRecentPaymentsUpdate,
+    recentPaymentsUpdate
+  )
+  yield* Saga.chainAction<EngineGen.Stellar1UiPaymentReviewedPayload>(
+    EngineGen.stellar1UiPaymentReviewed,
+    paymentReviewed
   )
   yield* Saga.chainAction<WalletsGen.ChangeAirdropPayload>(WalletsGen.changeAirdrop, changeAirdrop)
   yield* Saga.chainAction<WalletsGen.UpdateAirdropStatePayload | ConfigGen.DaemonHandshakeDonePayload>(

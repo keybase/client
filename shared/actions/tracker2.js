@@ -10,8 +10,31 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import logger from '../logger'
 import engine from '../engine'
 
+const identify3Result = (_, action) => {
+  const {guiID, result} = action.payload.params
+  return Tracker2Gen.createUpdateResult({guiID, reason: null, result: Constants.rpcResultToStatus(result)})
+}
+
+const identify3ShowTracker = (_, action) => {
+  const {guiID, assertion, reason, forceDisplay} = action.payload.params
+  return Tracker2Gen.createLoad({
+    assertion,
+    forceDisplay: !!forceDisplay,
+    fromDaemon: true,
+    guiID,
+    ignoreCache: false,
+    inTracker: true,
+    reason: reason.reason || '',
+  })
+}
+
+const identify3UpdateRow = (_, action) =>
+  Tracker2Gen.createUpdateAssertion({
+    assertion: Constants.rpcAssertionToAssertion(action.payload.params.row),
+    guiID: action.payload.params.row.guiID,
+  })
+
 const setupEngineListeners = () => {
-  // TODO move over to engine action
   engine().actionOnConnect('registerIdentify3UI', () => {
     RPCTypes.delegateUiCtlRegisterIdentify3UIRpcPromise()
       .then(() => {
@@ -20,32 +43,6 @@ const setupEngineListeners = () => {
       .catch(error => {
         logger.warn('error in registering identify ui: ', error)
       })
-  })
-  engine().setIncomingCallMap({
-    'keybase.1.NotifyUsers.userChanged': ({uid}) => null, // we ignore this
-    'keybase.1.identify3Ui.identify3Result': ({guiID, result}) =>
-      Saga.put(
-        Tracker2Gen.createUpdateResult({guiID, reason: null, result: Constants.rpcResultToStatus(result)})
-      ),
-    'keybase.1.identify3Ui.identify3ShowTracker': ({guiID, assertion, reason, forceDisplay}) =>
-      Saga.put(
-        Tracker2Gen.createLoad({
-          assertion,
-          forceDisplay: !!forceDisplay,
-          fromDaemon: true,
-          guiID,
-          ignoreCache: false,
-          inTracker: true,
-          reason: reason.reason || '',
-        })
-      ),
-    'keybase.1.identify3Ui.identify3UpdateRow': arg =>
-      Saga.put(
-        Tracker2Gen.createUpdateAssertion({
-          assertion: Constants.rpcAssertionToAssertion(arg.row),
-          guiID: arg.row.guiID,
-        })
-      ),
   })
 }
 
@@ -218,6 +215,19 @@ function* tracker2Saga(): Saga.SagaGenerator<any, any> {
   // TEMP until actions/tracker is deprecated
   yield* Saga.chainAction<GetProfilePayloadOLD>(getProfileOLD, _getProfileOLD) // TEMP
   // end TEMP until actions/tracker is deprecated
+  //
+  yield* Saga.chainAction<EngineGen.Keybase1Identify3UiIdentify3ResultPayload>(
+    EngineGen.keybase1Identify3UiIdentify3Result,
+    identify3Result
+  )
+  yield* Saga.chainAction<EngineGen.Keybase1Identify3UiIdentify3ShowTrackerPayload>(
+    EngineGen.keybase1Identify3UiIdentify3ShowTracker,
+    identify3ShowTracker
+  )
+  yield* Saga.chainAction<EngineGen.Keybase1Identify3UiIdentify3UpdateRowPayload>(
+    EngineGen.keybase1Identify3UiIdentify3UpdateRow,
+    identify3UpdateRow
+  )
 }
 
 export default tracker2Saga
