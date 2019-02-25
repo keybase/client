@@ -1,6 +1,7 @@
 // @flow strict
 export type FeatureFlags = {|
   admin: boolean,
+  airdrop: boolean,
   chatIndexProfilingEnabled: boolean,
   foldersInProfileTab: boolean,
   identify3: boolean,

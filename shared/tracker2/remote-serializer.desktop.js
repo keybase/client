@@ -19,6 +19,7 @@ export const serialize: any = {
   location: v => v,
   publishedTeams: (v, o) => (o && shallowEqual(v, o) ? undefined : v),
   reason: v => v,
+  registeredForAirdrop: v => v,
   state: v => v,
   teamShowcase: (v, o) => (o && shallowEqual(v, o) ? undefined : v.toJS()),
   username: v => v,

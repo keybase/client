@@ -416,6 +416,7 @@ class ProfileRender extends React.PureComponent<Props, State> {
                 loading={loading}
                 avatarSize={AVATAR_SIZE}
                 style={{marginTop: HEADER_TOP_SPACE}}
+                showAirdrop={this.props.showAirdrop}
                 username={this.props.username}
                 userInfo={this.props.userInfo}
                 currentlyFollowing={this.props.currentlyFollowing}

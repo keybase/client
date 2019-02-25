@@ -1199,7 +1199,7 @@ export type UICoinFlipPhase =
   | 2 // COMPLETE_2
   | 3 // ERROR_3
 
-export type UICoinFlipStatus = $ReadOnly<{gameID: String, phase: UICoinFlipPhase, progressText: String, resultText: String, participants?: ?Array<UICoinFlipParticipant>}>
+export type UICoinFlipStatus = $ReadOnly<{gameID: String, phase: UICoinFlipPhase, progressText: String, resultText: String, commitmentVisualization: String, revealVisualization: String, participants?: ?Array<UICoinFlipParticipant>}>
 export type UIMessage = {state: 1, valid: ?UIMessageValid} | {state: 2, error: ?MessageUnboxedError} | {state: 3, outbox: ?UIMessageOutbox} | {state: 4, placeholder: ?MessageUnboxedPlaceholder}
 export type UIMessageOutbox = $ReadOnly<{state: OutboxState, outboxID: String, messageType: MessageType, body: String, decoratedTextBody?: ?String, ctime: Gregor1.Time, ordinal: Double, isEphemeral: Boolean, flipGameID?: ?String, filename: String, title: String, preview?: ?MakePreviewRes}>
 export type UIMessageUnfurlInfo = $ReadOnly<{unfurlMessageID: MessageID, url: String, unfurl: UnfurlDisplay, isCollapsed: Boolean}>

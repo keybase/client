@@ -26,6 +26,7 @@ export const builtRequestReceived = 'wallets:builtRequestReceived'
 export const cancelPayment = 'wallets:cancelPayment'
 export const cancelRequest = 'wallets:cancelRequest'
 export const changeAccountName = 'wallets:changeAccountName'
+export const changeAirdrop = 'wallets:changeAirdrop'
 export const changeDisplayCurrency = 'wallets:changeDisplayCurrency'
 export const changeMobileOnlyMode = 'wallets:changeMobileOnlyMode'
 export const changedAccountName = 'wallets:changedAccountName'
@@ -44,6 +45,7 @@ export const displayCurrenciesReceived = 'wallets:displayCurrenciesReceived'
 export const displayCurrencyReceived = 'wallets:displayCurrencyReceived'
 export const exitFailedPayment = 'wallets:exitFailedPayment'
 export const exportSecretKey = 'wallets:exportSecretKey'
+export const hideAirdropBanner = 'wallets:hideAirdropBanner'
 export const inflationDestinationReceived = 'wallets:inflationDestinationReceived'
 export const linkExistingAccount = 'wallets:linkExistingAccount'
 export const linkedExistingAccount = 'wallets:linkedExistingAccount'
@@ -90,6 +92,11 @@ export const setBuildingTo = 'wallets:setBuildingTo'
 export const setInflationDestination = 'wallets:setInflationDestination'
 export const setLastSentXLM = 'wallets:setLastSentXLM'
 export const setReadyToReview = 'wallets:setReadyToReview'
+export const updateAirdropBannerState = 'wallets:updateAirdropBannerState'
+export const updateAirdropDetails = 'wallets:updateAirdropDetails'
+export const updateAirdropState = 'wallets:updateAirdropState'
+export const updatedAirdropDetails = 'wallets:updatedAirdropDetails'
+export const updatedAirdropState = 'wallets:updatedAirdropState'
 export const validateAccountName = 'wallets:validateAccountName'
 export const validateSecretKey = 'wallets:validateSecretKey'
 export const validatedAccountName = 'wallets:validatedAccountName'
@@ -111,6 +118,7 @@ type _BuiltRequestReceivedPayload = $ReadOnly<{|build: Types.BuiltRequest, forBu
 type _CancelPaymentPayload = $ReadOnly<{|showAccount?: boolean, paymentID: Types.PaymentID|}>
 type _CancelRequestPayload = $ReadOnly<{|conversationIDKey?: ChatTypes.ConversationIDKey, ordinal?: ChatTypes.Ordinal, requestID: StellarRPCTypes.KeybaseRequestID|}>
 type _ChangeAccountNamePayload = $ReadOnly<{|accountID: Types.AccountID, name: string|}>
+type _ChangeAirdropPayload = $ReadOnly<{|accept: boolean|}>
 type _ChangeDisplayCurrencyPayload = $ReadOnly<{|accountID: Types.AccountID, code: Types.CurrencyCode|}>
 type _ChangeMobileOnlyModePayload = $ReadOnly<{|accountID: Types.AccountID, enabled: boolean|}>
 type _ChangedAccountNamePayload = $ReadOnly<{|accountID: Types.AccountID|}>
@@ -131,6 +139,7 @@ type _DisplayCurrenciesReceivedPayload = $ReadOnly<{|currencies: Array<Types.Cur
 type _DisplayCurrencyReceivedPayload = $ReadOnly<{|accountID: ?Types.AccountID, currency: Types.Currency, setBuildingCurrency?: boolean|}>
 type _ExitFailedPaymentPayload = void
 type _ExportSecretKeyPayload = $ReadOnly<{|accountID: Types.AccountID|}>
+type _HideAirdropBannerPayload = void
 type _InflationDestinationReceivedPayload = $ReadOnly<{|accountID: Types.AccountID, selected: Types.AccountInflationDestination, options?: Array<Types.InflationDestination>|}>
 type _InflationDestinationReceivedPayloadError = $ReadOnly<{|error: string|}>
 type _LinkExistingAccountPayload = $ReadOnly<{|name: string, secretKey: HiddenString, showOnCreation?: boolean, setBuildingTo?: boolean|}>
@@ -179,6 +188,11 @@ type _SetBuildingToPayload = $ReadOnly<{|to: string|}>
 type _SetInflationDestinationPayload = $ReadOnly<{|accountID: Types.AccountID, destination: Types.AccountID, name: string|}>
 type _SetLastSentXLMPayload = $ReadOnly<{|lastSentXLM: boolean, writeFile: boolean|}>
 type _SetReadyToReviewPayload = $ReadOnly<{|readyToReview: boolean|}>
+type _UpdateAirdropBannerStatePayload = $ReadOnly<{|show: boolean|}>
+type _UpdateAirdropDetailsPayload = void
+type _UpdateAirdropStatePayload = void
+type _UpdatedAirdropDetailsPayload = $ReadOnly<{|details: Types.AirdropDetails|}>
+type _UpdatedAirdropStatePayload = $ReadOnly<{|airdropQualifications: Array<Types.AirdropQualification>, airdropState: Types.AirdropState|}>
 type _ValidateAccountNamePayload = $ReadOnly<{|name: string|}>
 type _ValidateSecretKeyPayload = $ReadOnly<{|secretKey: HiddenString|}>
 type _ValidatedAccountNamePayload = $ReadOnly<{|name: string|}>
@@ -471,6 +485,10 @@ export const createLinkedExistingAccountError = (payload: _LinkedExistingAccount
 export const createValidatedSecretKey = (payload: _ValidatedSecretKeyPayload) => ({payload, type: validatedSecretKey})
 export const createValidatedSecretKeyError = (payload: _ValidatedSecretKeyPayloadError) => ({error: true, payload, type: validatedSecretKey})
 /**
+ * Turn participation in airdrop on/off
+ */
+export const createChangeAirdrop = (payload: _ChangeAirdropPayload) => ({payload, type: changeAirdrop})
+/**
  * Update a payment with additional detail
  */
 export const createPaymentDetailReceived = (payload: _PaymentDetailReceivedPayload) => ({payload, type: paymentDetailReceived})
@@ -526,6 +544,12 @@ export const createSendAssetChoicesReceived = (payload: _SendAssetChoicesReceive
  * We received an updated account record
  */
 export const createAccountUpdateReceived = (payload: _AccountUpdateReceivedPayload) => ({payload, type: accountUpdateReceived})
+export const createHideAirdropBanner = (payload: _HideAirdropBannerPayload) => ({payload, type: hideAirdropBanner})
+export const createUpdateAirdropBannerState = (payload: _UpdateAirdropBannerStatePayload) => ({payload, type: updateAirdropBannerState})
+export const createUpdateAirdropDetails = (payload: _UpdateAirdropDetailsPayload) => ({payload, type: updateAirdropDetails})
+export const createUpdateAirdropState = (payload: _UpdateAirdropStatePayload) => ({payload, type: updateAirdropState})
+export const createUpdatedAirdropDetails = (payload: _UpdatedAirdropDetailsPayload) => ({payload, type: updatedAirdropDetails})
+export const createUpdatedAirdropState = (payload: _UpdatedAirdropStatePayload) => ({payload, type: updatedAirdropState})
 
 // Action Payloads
 export type AbandonPaymentPayload = {|+payload: _AbandonPaymentPayload, +type: 'wallets:abandonPayment'|}
@@ -542,6 +566,7 @@ export type BuiltRequestReceivedPayload = {|+payload: _BuiltRequestReceivedPaylo
 export type CancelPaymentPayload = {|+payload: _CancelPaymentPayload, +type: 'wallets:cancelPayment'|}
 export type CancelRequestPayload = {|+payload: _CancelRequestPayload, +type: 'wallets:cancelRequest'|}
 export type ChangeAccountNamePayload = {|+payload: _ChangeAccountNamePayload, +type: 'wallets:changeAccountName'|}
+export type ChangeAirdropPayload = {|+payload: _ChangeAirdropPayload, +type: 'wallets:changeAirdrop'|}
 export type ChangeDisplayCurrencyPayload = {|+payload: _ChangeDisplayCurrencyPayload, +type: 'wallets:changeDisplayCurrency'|}
 export type ChangeMobileOnlyModePayload = {|+payload: _ChangeMobileOnlyModePayload, +type: 'wallets:changeMobileOnlyMode'|}
 export type ChangedAccountNamePayload = {|+payload: _ChangedAccountNamePayload, +type: 'wallets:changedAccountName'|}
@@ -562,6 +587,7 @@ export type DisplayCurrenciesReceivedPayload = {|+payload: _DisplayCurrenciesRec
 export type DisplayCurrencyReceivedPayload = {|+payload: _DisplayCurrencyReceivedPayload, +type: 'wallets:displayCurrencyReceived'|}
 export type ExitFailedPaymentPayload = {|+payload: _ExitFailedPaymentPayload, +type: 'wallets:exitFailedPayment'|}
 export type ExportSecretKeyPayload = {|+payload: _ExportSecretKeyPayload, +type: 'wallets:exportSecretKey'|}
+export type HideAirdropBannerPayload = {|+payload: _HideAirdropBannerPayload, +type: 'wallets:hideAirdropBanner'|}
 export type InflationDestinationReceivedPayload = {|+payload: _InflationDestinationReceivedPayload, +type: 'wallets:inflationDestinationReceived'|}
 export type InflationDestinationReceivedPayloadError = {|+error: true, +payload: _InflationDestinationReceivedPayloadError, +type: 'wallets:inflationDestinationReceived'|}
 export type LinkExistingAccountPayload = {|+payload: _LinkExistingAccountPayload, +type: 'wallets:linkExistingAccount'|}
@@ -610,6 +636,11 @@ export type SetBuildingToPayload = {|+payload: _SetBuildingToPayload, +type: 'wa
 export type SetInflationDestinationPayload = {|+payload: _SetInflationDestinationPayload, +type: 'wallets:setInflationDestination'|}
 export type SetLastSentXLMPayload = {|+payload: _SetLastSentXLMPayload, +type: 'wallets:setLastSentXLM'|}
 export type SetReadyToReviewPayload = {|+payload: _SetReadyToReviewPayload, +type: 'wallets:setReadyToReview'|}
+export type UpdateAirdropBannerStatePayload = {|+payload: _UpdateAirdropBannerStatePayload, +type: 'wallets:updateAirdropBannerState'|}
+export type UpdateAirdropDetailsPayload = {|+payload: _UpdateAirdropDetailsPayload, +type: 'wallets:updateAirdropDetails'|}
+export type UpdateAirdropStatePayload = {|+payload: _UpdateAirdropStatePayload, +type: 'wallets:updateAirdropState'|}
+export type UpdatedAirdropDetailsPayload = {|+payload: _UpdatedAirdropDetailsPayload, +type: 'wallets:updatedAirdropDetails'|}
+export type UpdatedAirdropStatePayload = {|+payload: _UpdatedAirdropStatePayload, +type: 'wallets:updatedAirdropState'|}
 export type ValidateAccountNamePayload = {|+payload: _ValidateAccountNamePayload, +type: 'wallets:validateAccountName'|}
 export type ValidateSecretKeyPayload = {|+payload: _ValidateSecretKeyPayload, +type: 'wallets:validateSecretKey'|}
 export type ValidatedAccountNamePayload = {|+payload: _ValidatedAccountNamePayload, +type: 'wallets:validatedAccountName'|}
@@ -635,6 +666,7 @@ export type Actions =
   | CancelPaymentPayload
   | CancelRequestPayload
   | ChangeAccountNamePayload
+  | ChangeAirdropPayload
   | ChangeDisplayCurrencyPayload
   | ChangeMobileOnlyModePayload
   | ChangedAccountNamePayload
@@ -655,6 +687,7 @@ export type Actions =
   | DisplayCurrencyReceivedPayload
   | ExitFailedPaymentPayload
   | ExportSecretKeyPayload
+  | HideAirdropBannerPayload
   | InflationDestinationReceivedPayload
   | InflationDestinationReceivedPayloadError
   | LinkExistingAccountPayload
@@ -703,6 +736,11 @@ export type Actions =
   | SetInflationDestinationPayload
   | SetLastSentXLMPayload
   | SetReadyToReviewPayload
+  | UpdateAirdropBannerStatePayload
+  | UpdateAirdropDetailsPayload
+  | UpdateAirdropStatePayload
+  | UpdatedAirdropDetailsPayload
+  | UpdatedAirdropStatePayload
   | ValidateAccountNamePayload
   | ValidateSecretKeyPayload
   | ValidatedAccountNamePayload

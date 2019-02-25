@@ -76,6 +76,7 @@ const updateUserCard = (state, action) => {
     fullname: card.fullName,
     guiID,
     location: card.location,
+    registeredForAirdrop: card.registeredForAirdrop,
     teamShowcase: (card.teamShowcase || []).map(t => ({
       description: t.description,
       isOpen: t.open,

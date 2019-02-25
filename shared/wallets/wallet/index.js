@@ -47,7 +47,14 @@ class Wallet extends React.Component<Props> {
     const children = []
     if (item === 'notLoadedYet') {
       children.push(
-        <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.loadingBox} gap="tiny" gapStart={true}>
+        <Kb.Box2
+          key="notLoadedYet"
+          direction="horizontal"
+          fullWidth={true}
+          style={styles.loadingBox}
+          gap="tiny"
+          gapStart={true}
+        >
           <Kb.ProgressIndicator key="spinner" style={styles.spinner} type="Small" />
           <Kb.Text type="BodySmall">
             {section.title === 'Your assets' ? 'Loading assets...' : 'Loading payments...'}

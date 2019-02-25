@@ -135,6 +135,11 @@ export const updateMeta = (
         I.is(oldMeta.teamRetentionPolicy, nm.teamRetentionPolicy) && nm.set('teamRetentionPolicy', oldMeta.teamRetentionPolicy)
       })
     }
+    if (newMeta.trustedState === 'trusted' && oldMeta.trustedState === 'trusted') {
+      // TODO DESKTOP-9068 check localInboxVersion and take newMeta if it's higher
+      // For now take oldMeta + new snippet in case the last message exploded
+      return oldMeta.set('snippet', newMeta.snippet).set('snippetDecoration', newMeta.snippetDecoration)
+    }
     return oldMeta
   }
   // higher inbox version, use new
@@ -338,7 +343,10 @@ export const getChannelSuggestions = (state: TypedState, teamname: string) => {
   // partial list of channels that you have joined).
   const convs = state.teams.getIn(['teamNameToChannelInfos', teamname])
   if (convs) {
-    return convs.toIndexedSeq().toList().map(conv => conv.channelname)
+    return convs
+      .toIndexedSeq()
+      .toList()
+      .map(conv => conv.channelname)
   }
   return state.chat2.metaMap
     .filter(v => v.teamname === teamname)

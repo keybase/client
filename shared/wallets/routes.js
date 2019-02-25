@@ -19,6 +19,8 @@ const routeTree = () => {
     InflationDestination,
   } = require('./wallet/settings/popups')
   const Wallet = require('./wallet/container').default
+  const Airdrop = require('./airdrop/container').default
+  const AirdropQualify = require('./airdrop/qualify/container').default
 
   const createNewAccount = {
     children: {},
@@ -33,6 +35,15 @@ const routeTree = () => {
   }
 
   const walletChildren = {
+    airdrop: {
+      children: {
+        airdropQualify: {
+          component: AirdropQualify,
+          tags: makeLeafTags({layerOnTop: true}),
+        },
+      },
+      component: Airdrop,
+    },
     createNewAccount,
     exportSecretKey: {
       children: {},

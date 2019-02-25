@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"sync"
 	"testing"
 
 	"github.com/davecgh/go-spew/spew"
@@ -21,13 +22,41 @@ import (
 	service "github.com/keybase/client/go/service"
 	"github.com/keybase/client/go/teams"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
-	"github.com/stretchr/testify/require"
 	context "golang.org/x/net/context"
+	"github.com/stretchr/testify/require"
 )
+
+type fakeConnectivityMonitor struct {
+	sync.Mutex
+	res libkb.ConnectivityMonitorResult
+}
+
+func (f *fakeConnectivityMonitor) IsConnected(ctx context.Context) libkb.ConnectivityMonitorResult {
+	f.Lock()
+	defer f.Unlock()
+	return f.res
+}
+
+func (f *fakeConnectivityMonitor) Set(r libkb.ConnectivityMonitorResult) {
+	f.Lock()
+	defer f.Unlock()
+	f.res = r
+}
+
+func (f *fakeConnectivityMonitor) CheckReachability(ctx context.Context) error {
+	return nil
+}
 
 func TestRPCs(t *testing.T) {
 	tc := setupTest(t, "rpcs")
 	tc2 := cloneContext(tc)
+
+	// Set a connectivity manager we can control, and set NoGregor so that
+	// way it's not overwritten when we startup gregor.
+	fcm := fakeConnectivityMonitor{}
+	fcm.Set(libkb.ConnectivityMonitorYes)
+	tc.G.ConnectivityMonitor = &fcm
+	tc.G.Env.Test.NoGregor = true
 
 	defer tc.Cleanup()
 
@@ -66,6 +95,8 @@ func TestRPCs(t *testing.T) {
 	testMerkle(t, tc2.G)
 	stage("testConfig")
 	testConfig(t, tc2.G)
+	stage("testResolve3Offline")
+	testResolve3Offline(t, tc2.G, &fcm)
 
 	if err := client.CtlServiceStop(tc2.G); err != nil {
 		t.Fatal(err)
@@ -75,6 +106,31 @@ func TestRPCs(t *testing.T) {
 	if err := <-stopCh; err != nil {
 		t.Fatal(err)
 	}
+}
+
+func testResolve3Offline(t *testing.T, g *libkb.GlobalContext, fcm *fakeConnectivityMonitor) {
+	cli, err := client.GetIdentifyClient(g)
+	require.NoError(t, err)
+	fetch := func() {
+		arg := keybase1.Resolve3Arg{Assertion: "uid:eb72f49f2dde6429e5d78003dae0c919", Oa : keybase1.OfflineAvailability_BEST_EFFORT}
+		res, err := cli.Resolve3(context.TODO(), arg)
+		require.NoError(t, err)
+		require.Equal(t, "t_tracy", res.Name)
+	}
+	fetchFail := func(expectedError error) {
+		arg := keybase1.Resolve3Arg{Assertion: "no_such_user_yo", Oa : keybase1.OfflineAvailability_BEST_EFFORT}
+		_, err = cli.Resolve3(context.TODO(), arg)
+		require.Error(t, err)
+		require.IsType(t, expectedError, err)
+	}
+
+	fetch()
+	fcm.Set(libkb.ConnectivityMonitorNo)
+	fetch()
+	fetchFail(libkb.OfflineError{})
+	fcm.Set(libkb.ConnectivityMonitorYes)
+	fetch()
+	fetchFail(libkb.NotFoundError{})
 }
 
 func testIdentifyResolve3(t *testing.T, g *libkb.GlobalContext) {
@@ -87,13 +143,13 @@ func testIdentifyResolve3(t *testing.T, g *libkb.GlobalContext) {
 	// We don't want to hit the cache, since the previous lookup never hit the
 	// server.  For Resolve3, we have to, since we need a username.  So test that
 	// here.
-	if res, err := cli.Resolve3(context.TODO(), "uid:eb72f49f2dde6429e5d78003dae0c919"); err != nil {
+	if res, err := cli.Resolve3(context.TODO(), keybase1.Resolve3Arg{Assertion: "uid:eb72f49f2dde6429e5d78003dae0c919"}); err != nil {
 		t.Fatalf("Resolve failed: %v\n", err)
 	} else if res.Name != "t_tracy" {
 		t.Fatalf("Wrong username: %s != 't_tracy", res.Name)
 	}
 
-	if res, err := cli.Resolve3(context.TODO(), "t_tracy@rooter"); err != nil {
+	if res, err := cli.Resolve3(context.TODO(), keybase1.Resolve3Arg{Assertion: "t_tracy@rooter"}); err != nil {
 		t.Fatalf("Resolve3 failed: %v\n", err)
 	} else if res.Name != "t_tracy" {
 		t.Fatalf("Wrong name: %s != 't_tracy", res.Name)
@@ -101,13 +157,13 @@ func testIdentifyResolve3(t *testing.T, g *libkb.GlobalContext) {
 		t.Fatalf("Wrong uid for tracy: %s\n", res.Id)
 	}
 
-	if _, err := cli.Resolve3(context.TODO(), "foobag@rooter"); err == nil {
+	if _, err := cli.Resolve3(context.TODO(), keybase1.Resolve3Arg{Assertion: "foobag@rooter"}); err == nil {
 		t.Fatalf("expected an error on a bad resolve, but got none")
 	} else if _, ok := err.(libkb.ResolutionError); !ok {
 		t.Fatalf("Wrong error: wanted type %T but got (%v, %T)", libkb.ResolutionError{}, err, err)
 	}
 
-	if res, err := cli.Resolve3(context.TODO(), "t_tracy"); err != nil {
+	if res, err := cli.Resolve3(context.TODO(), keybase1.Resolve3Arg{Assertion: "t_tracy"}); err != nil {
 		t.Fatalf("Resolve3 failed: %v\n", err)
 	} else if res.Name != "t_tracy" {
 		t.Fatalf("Wrong name: %s != 't_tracy", res.Name)
