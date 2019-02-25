@@ -19,21 +19,21 @@ export default class ChannelPreview extends React.Component<Props, State> {
   render() {
     return (
       <Box style={styleContainer}>
-        <Text type="BodySemibold" backgroundMode="Announcements">
+        <Text type="BodySemibold" negative={true}>
           Would you like to join #{this.props.channelname}?
         </Text>
         {!this.state.clicked && (
           <Box2 direction="horizontal" gap="tiny">
-            <Text type="BodySemiboldLink" backgroundMode="Announcements" onClick={() => this._onClick(true)}>
+            <Text type="BodySemiboldLink" negative={true} onClick={() => this._onClick(true)}>
               Yes, join
             </Text>
-            <Text type="BodySemiboldLink" backgroundMode="Announcements" onClick={() => this._onClick(false)}>
+            <Text type="BodySemiboldLink" negative={true} onClick={() => this._onClick(false)}>
               No, thanks
             </Text>
           </Box2>
         )}
         {!!this.state.clicked && (
-          <Text type="BodySemibold" backgroundMode="Announcements">
+          <Text type="BodySemibold" negative={true}>
             {this.state.clicked === 'join' ? 'Joining...' : 'Leaving...'}
           </Text>
         )}

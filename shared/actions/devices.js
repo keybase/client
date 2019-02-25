@@ -85,13 +85,13 @@ const navigateAfterRevoked = (state, action) =>
   })
 
 const showRevokePage = () =>
-  RouteTreeGen.createNavigateTo({path: [...Constants.devicesTabLocation, 'devicePage', 'revokeDevice']})
+  RouteTreeGen.createNavigateTo({path: [...Constants.devicesTabLocation, 'devicePage', 'deviceRevoke']})
 
 const showDevicePage = () =>
   RouteTreeGen.createNavigateTo({path: [...Constants.devicesTabLocation, 'devicePage']})
 
 const showPaperKeyPage = () =>
-  RouteTreeGen.createNavigateTo({path: [...Constants.devicesTabLocation, 'paperKey']})
+  RouteTreeGen.createNavigateTo({path: [...Constants.devicesTabLocation, 'devicePaperKey']})
 
 let _wasOnDeviceTab = false
 const clearBadgesAfterNav = (state, action) => {

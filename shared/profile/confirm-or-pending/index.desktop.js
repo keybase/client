@@ -21,7 +21,7 @@ const Render = (props: Props) => {
           justifyContent: 'center',
         }}
       >
-        <Text backgroundMode="Success" type="BodySemibold">
+        <Text negative={true} type="BodySemibold">
           {title}
         </Text>
       </Box>

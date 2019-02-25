@@ -7,6 +7,8 @@ export type Props = {|
   contentContainerStyle?: StylesCrossPlatform,
   style?: StylesCrossPlatform,
   onScroll?: ?Function,
+  className?: ?string,
+  ref?: ?React.Ref<any>,
 
   // desktop only
   hideVerticalScroll?: boolean,
@@ -28,4 +30,6 @@ export type Props = {|
   refreshControl?: React.Element<any>,
 |}
 
-export default class ScrollView extends React.Component<Props> {}
+export default class ScrollView extends React.Component<Props> {
+  scrollTo: ?({x: number, y: number, animated?: boolean}) => void
+}

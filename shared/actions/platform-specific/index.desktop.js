@@ -254,18 +254,6 @@ const setupEngineListeners = () => {
   })
 }
 
-function* loadStartupDetails() {
-  yield Saga.put(
-    ConfigGen.createSetStartupDetails({
-      startupConversation: null,
-      startupFollowUser: '',
-      startupLink: '',
-      startupTab: null,
-      startupWasFromPush: false,
-    })
-  )
-}
-
 const copyToClipboard = (_, action) => {
   SafeElectron.getClipboard().writeText(action.payload.text)
 }
@@ -355,6 +343,4 @@ export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield Saga.spawn(initializeInputMonitor)
   yield Saga.spawn(handleWindowFocusEvents)
   yield Saga.spawn(initializeAppSettingsState)
-  // Start this immediately
-  yield Saga.spawn(loadStartupDetails)
 }

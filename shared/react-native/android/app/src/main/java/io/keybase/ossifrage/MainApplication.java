@@ -15,8 +15,12 @@ import com.imagepicker.ImagePickerPackage;
 import com.RNFetchBlob.RNFetchBlobPackage;
 import com.rt2zz.reactnativecontacts.ReactNativeContacts;
 import com.dylanvann.fastimage.FastImageViewPackage;
+
 import org.reactnative.camera.RNCameraPackage;
+
 import com.airbnb.android.react.lottie.LottiePackage;
+import com.swmansion.gesturehandler.react.RNGestureHandlerPackage;
+import com.swmansion.rnscreens.RNScreensPackage;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -30,71 +34,75 @@ import io.keybase.ossifrage.modules.BackgroundSyncJob;
 import io.keybase.ossifrage.modules.NativeLogger;
 
 public class MainApplication extends Application implements ReactApplication {
-  @Override
-  public void onCreate() {
-    NativeLogger.info("MainApplication created");
-    super.onCreate();
-    SoLoader.init(this, /* native exopackage */ false);
-    JobManager manager = JobManager.create(this);
-    manager.addJobCreator(new BackgroundJobCreator());
-
-    // Make sure exactly one background job is scheduled.
-    int numBackgroundJobs = manager.getAllJobRequestsForTag(BackgroundSyncJob.TAG).size();
-    if (numBackgroundJobs == 0) {
-        BackgroundSyncJob.scheduleJob();
-    } else if (numBackgroundJobs >1 ) {
-        manager.cancelAllForTag(BackgroundSyncJob.TAG);
-        BackgroundSyncJob.scheduleJob();
-    }
-  }
-
-  private final ReactNativeHost mReactNativeHost = new ReactNativeHost(this) {
-
     @Override
-    public boolean getUseDeveloperSupport() {
-      return BuildConfig.DEBUG;
+    public void onCreate() {
+        NativeLogger.info("MainApplication created");
+        super.onCreate();
+        SoLoader.init(this, /* native exopackage */ false);
+        JobManager manager = JobManager.create(this);
+        manager.addJobCreator(new BackgroundJobCreator());
+
+        // Make sure exactly one background job is scheduled.
+        int numBackgroundJobs = manager.getAllJobRequestsForTag(BackgroundSyncJob.TAG).size();
+        if (numBackgroundJobs == 0) {
+            BackgroundSyncJob.scheduleJob();
+        } else if (numBackgroundJobs > 1) {
+            manager.cancelAllForTag(BackgroundSyncJob.TAG);
+            BackgroundSyncJob.scheduleJob();
+        }
     }
 
-    @Override
-    protected List<ReactPackage> getPackages() {
-      if (BuildConfig.BUILD_TYPE == "storyBook") {
-        return Arrays.<ReactPackage>asList(
-          new MainReactPackage(),
-          new KBReactPackage() {
-            @Override
-            public List<NativeModule> createNativeModules(ReactApplicationContext reactApplicationContext) {
-              List<NativeModule> modules = new ArrayList<>();
-              modules.add(new StorybookConstants(reactApplicationContext));
-              return modules;
+    private final ReactNativeHost mReactNativeHost = new ReactNativeHost(this) {
+
+        @Override
+        public boolean getUseDeveloperSupport() {
+            return BuildConfig.DEBUG;
+        }
+
+        @Override
+        protected List<ReactPackage> getPackages() {
+            if (BuildConfig.BUILD_TYPE == "storyBook") {
+                return Arrays.<ReactPackage>asList(
+                        new MainReactPackage(),
+                        new KBReactPackage() {
+                            @Override
+                            public List<NativeModule> createNativeModules(ReactApplicationContext reactApplicationContext) {
+                                List<NativeModule> modules = new ArrayList<>();
+                                modules.add(new StorybookConstants(reactApplicationContext));
+                                return modules;
+                            }
+                        },
+                        new ReactNativePushNotificationPackage(),
+                        new RNCameraPackage(),
+                        new ImagePickerPackage(),
+                        new RNFetchBlobPackage(),
+                        new ReactNativeContacts(),
+                        new FastImageViewPackage(),
+                        new LottiePackage(),
+                        new RNGestureHandlerPackage(),
+                        new RNScreensPackage()
+                );
             }
-          },
-          new ReactNativePushNotificationPackage(),
-          new RNCameraPackage(),
-          new ImagePickerPackage(),
-          new RNFetchBlobPackage(),
-          new ReactNativeContacts(),
-          new FastImageViewPackage(),
-          new LottiePackage()
-        );
-      }
 
-      return Arrays.<ReactPackage>asList(
-              new MainReactPackage(),
-              new KBReactPackage(),
-              new ReactNativePushNotificationPackage(),
-              new RNCameraPackage(),
-              new ImagePickerPackage(),
-              new RNFetchBlobPackage(),
-              new ReactNativeContacts(),
-              new FastImageViewPackage(),
-              new LottiePackage()
-      );
+            return Arrays.<ReactPackage>asList(
+                    new MainReactPackage(),
+                    new KBReactPackage(),
+                    new ReactNativePushNotificationPackage(),
+                    new RNCameraPackage(),
+                    new ImagePickerPackage(),
+                    new RNFetchBlobPackage(),
+                    new ReactNativeContacts(),
+                    new FastImageViewPackage(),
+                    new LottiePackage(),
+                    new RNGestureHandlerPackage(),
+                    new RNScreensPackage()
+            );
+        }
+
+    };
+
+    @Override
+    public ReactNativeHost getReactNativeHost() {
+        return mReactNativeHost;
     }
-
-  };
-
-  @Override
-  public ReactNativeHost getReactNativeHost() {
-      return mReactNativeHost;
-  }
 }

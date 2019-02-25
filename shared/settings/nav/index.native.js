@@ -118,4 +118,4 @@ const styles = styleSheetCreate({
   },
 })
 
-export default HeaderHoc(SettingsNav)
+export default (flags.useNewRouter ? SettingsNav : HeaderHoc(SettingsNav))

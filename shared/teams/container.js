@@ -33,12 +33,7 @@ const mapDispatchToProps = (dispatch, {routePath}) => ({
   onCreateTeam: () => {
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [
-          {
-            props: {},
-            selected: 'showNewTeamDialog',
-          },
-        ],
+        path: [{props: {}, selected: 'showNewTeamDialog'}],
       })
     )
   },
@@ -47,7 +42,9 @@ const mapDispatchToProps = (dispatch, {routePath}) => ({
     dispatch(RouteTreeGen.createNavigateAppend({path: ['showJoinTeamDialog']}))
   },
   onManageChat: (teamname: Teamname) =>
-    dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'manageChannels'}]})),
+    dispatch(
+      RouteTreeGen.createNavigateAppend({path: [{props: {teamname}, selected: 'chatManageChannels'}]})
+    ),
   onOpenFolder: (teamname: Teamname) =>
     dispatch(
       FsGen.createOpenPathInFilesTab({path: FsTypes.stringToPath(`/keybase/team/${teamname}`), routePath})
@@ -100,7 +97,7 @@ class Reloadable extends React.PureComponent<{
   }
 }
 
-export default compose(
+const Connected = compose(
   connect<OwnProps, _, _, _, _>(
     mapStateToProps,
     mapDispatchToProps,
@@ -112,3 +109,11 @@ export default compose(
     },
   })
 )(Reloadable)
+
+// $FlowIssue lets fix this
+Connected.navigationOptions = {
+  header: undefined,
+  title: 'Teams',
+}
+
+export default Connected

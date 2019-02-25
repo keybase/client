@@ -192,13 +192,13 @@ func WarnOutdatedKBFS(g *libkb.GlobalContext, cl libkb.CommandLine) (err error) 
 		return err
 	}
 
-	extStatus, err := cli.GetExtendedStatus(context.TODO(), 0)
+	clientStatus, err := cli.GetClientStatus(context.TODO(), 0)
 	if err != nil {
 		return err
 	}
 	var kbfsClientVersion string
 
-	kbfs := getFirstClient(extStatus.Clients, keybase1.ClientType_KBFS)
+	kbfs := getFirstClient(clientStatus, keybase1.ClientType_KBFS)
 	if kbfs == nil {
 		g.Log.Debug("| KBFS not running; skip KBFS version check")
 		return nil

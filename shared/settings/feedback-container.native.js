@@ -176,7 +176,7 @@ const extraChatLogs = state => {
 }
 
 // TODO really shouldn't be doing this in connect, should do this with an action
-const mapStateToProps = (state, {routeProps}) => {
+const mapStateToProps = state => {
   return {
     chat: extraChatLogs(state),
     status: {

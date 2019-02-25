@@ -1,10 +1,17 @@
 package chat
 
 import (
+	"bytes"
 	"context"
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"image"
+	"image/color"
+	"image/png"
+	"math"
 	"math/big"
 	"sort"
 	"strconv"
@@ -110,13 +117,15 @@ type FlipManager struct {
 	globals.Contextified
 	utils.DebugLabeler
 
-	dealer     *flip.Dealer
-	clock      clockwork.Clock
-	ri         func() chat1.RemoteInterface
-	shutdownMu sync.Mutex
-	shutdownCh chan struct{}
-	forceCh    chan struct{}
-	loadGameCh chan loadGameJob
+	dealer            *flip.Dealer
+	desktopVisualizer *FlipVisualizer
+	mobileVisualizer  *FlipVisualizer
+	clock             clockwork.Clock
+	ri                func() chat1.RemoteInterface
+	shutdownMu        sync.Mutex
+	shutdownCh        chan struct{}
+	forceCh           chan struct{}
+	loadGameCh        chan loadGameJob
 
 	gamesMu    sync.Mutex
 	games      *lru.Cache
@@ -142,6 +151,8 @@ func NewFlipManager(g *globals.Context, ri func() chat1.RemoteInterface) *FlipMa
 		convParticipations:         make(map[string]convParticipationsRateLimit),
 		maxConvParticipations:      1000,
 		maxConvParticipationsReset: 5 * time.Minute,
+		desktopVisualizer:          NewFlipVisualizer(256, 100),
+		mobileVisualizer:           NewFlipVisualizer(220, 100),
 	}
 	dealer := flip.NewDealer(m)
 	m.dealer = dealer
@@ -192,6 +203,13 @@ func (m *FlipManager) isStartMsgID(msgID chat1.MessageID) bool {
 	return chat1.MessageID(3) == msgID
 }
 
+func (m *FlipManager) getVisualizer() *FlipVisualizer {
+	if m.G().GetAppType() == libkb.MobileAppType {
+		return m.mobileVisualizer
+	}
+	return m.desktopVisualizer
+}
+
 func (m *FlipManager) notifyDirtyGames() {
 	m.gamesMu.Lock()
 	defer m.gamesMu.Unlock()
@@ -210,7 +228,9 @@ func (m *FlipManager) notifyDirtyGames() {
 	var updates []chat1.UICoinFlipStatus
 	for _, dg := range m.dirtyGames {
 		if game, ok := m.games.Get(dg.String()); ok {
-			updates = append(updates, game.(chat1.UICoinFlipStatus))
+			status := game.(chat1.UICoinFlipStatus)
+			m.getVisualizer().Visualize(&status)
+			updates = append(updates, status)
 		}
 	}
 	if err := ui.ChatCoinFlipStatus(ctx, updates); err != nil {
@@ -219,7 +239,7 @@ func (m *FlipManager) notifyDirtyGames() {
 }
 
 func (m *FlipManager) notificationLoop(shutdownCh chan struct{}) {
-	duration := 200 * time.Millisecond
+	duration := 50 * time.Millisecond
 	next := m.clock.Now().Add(duration)
 	for {
 		select {
@@ -377,8 +397,15 @@ func (m *FlipManager) handleSummaryUpdate(ctx context.Context, gameID chat1.Flip
 	m.addResult(ctx, &status, update.Result, convID)
 	for _, p := range update.Players {
 		m.addParticipant(ctx, &status, flip.CommitmentUpdate{
-			User: p,
+			User:       p.Device,
+			Commitment: p.Commitment,
 		})
+		if p.Reveal != nil {
+			m.addReveal(ctx, &status, flip.RevealUpdate{
+				User:   p.Device,
+				Reveal: *p.Reveal,
+			})
+		}
 	}
 	status.ProgressText = "Complete"
 	m.games.Add(gameID.String(), status)
@@ -963,4 +990,91 @@ func (m *FlipManager) Me() flip.UserDevice {
 // clearGameCache should only be used by tests
 func (m *FlipManager) clearGameCache() {
 	m.games.Purge()
+}
+
+type FlipVisualizer struct {
+	width, height         int
+	commitmentColors      [256]color.RGBA
+	secretColors          [256]color.RGBA
+	commitmentMatchColors [256]color.RGBA
+}
+
+func NewFlipVisualizer(width, height int) *FlipVisualizer {
+	v := &FlipVisualizer{
+		height: height, // 50
+		width:  width,  // 128
+	}
+	for i := 0; i < 256; i++ {
+		v.commitmentColors[i] = color.RGBA{
+			R: uint8(i),
+			G: uint8((128 + i*5) % 128),
+			B: 255,
+			A: 128,
+		}
+		v.secretColors[i] = color.RGBA{
+			R: 255,
+			G: uint8(64 + i/2),
+			B: 0,
+			A: 255,
+		}
+		v.commitmentMatchColors[i] = color.RGBA{
+			R: uint8(i * 3 / 4),
+			G: uint8((192 + i*4) % 64),
+			B: 255,
+			A: 255,
+		}
+	}
+	return v
+}
+
+func (v *FlipVisualizer) fillCell(img *image.NRGBA, x, y, cellHeight, cellWidth int, b byte,
+	palette [256]color.RGBA) {
+	for i := x; i < x+cellWidth; i++ {
+		for j := y; j < y+cellHeight; j++ {
+			img.Set(i, j, palette[b])
+		}
+	}
+}
+
+func (v *FlipVisualizer) fillRow(img *image.NRGBA, startY, cellHeight, cellWidth int,
+	source string, palette [256]color.RGBA) {
+	b, _ := hex.DecodeString(source)
+	x := 0
+	for i := 0; i < len(b); i++ {
+		v.fillCell(img, x, startY, cellHeight, cellWidth, b[i], palette)
+		x += cellWidth
+	}
+}
+
+func (v *FlipVisualizer) Visualize(status *chat1.UICoinFlipStatus) {
+	cellWidth := int(math.Round(float64(v.width) / 32.0))
+	v.width = 32 * cellWidth
+	commitmentImg := image.NewNRGBA(image.Rect(0, 0, v.width, v.height))
+	secretImg := image.NewNRGBA(image.Rect(0, 0, v.width, v.height))
+	numParts := len(status.Participants)
+	if numParts > 0 {
+		startY := 0
+		// just add these next 2 things
+		heightAccum := float64(0) // how far into the image we should be
+		rawRowHeight := float64(v.height) / float64(numParts)
+		for _, p := range status.Participants {
+			heightAccum += rawRowHeight
+			rowHeight := int(math.Round(heightAccum - float64(startY)))
+			if rowHeight > 0 {
+				if p.Reveal != nil {
+					v.fillRow(commitmentImg, startY, rowHeight, cellWidth, p.Commitment,
+						v.commitmentMatchColors)
+					v.fillRow(secretImg, startY, rowHeight, cellWidth, *p.Reveal, v.secretColors)
+				} else {
+					v.fillRow(commitmentImg, startY, rowHeight, cellWidth, p.Commitment, v.commitmentColors)
+				}
+				startY += rowHeight
+			}
+		}
+	}
+	var commitmentBuf, secretBuf bytes.Buffer
+	png.Encode(&commitmentBuf, commitmentImg)
+	png.Encode(&secretBuf, secretImg)
+	status.CommitmentVisualization = base64.StdEncoding.EncodeToString(commitmentBuf.Bytes())
+	status.RevealVisualization = base64.StdEncoding.EncodeToString(secretBuf.Bytes())
 }

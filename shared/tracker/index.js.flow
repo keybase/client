@@ -6,6 +6,7 @@ import type {SimpleProofState, UserInfo, Proof} from '../constants/types/tracker
 // TODO we don't need both of these props
 export type TrackerProps = {
   actionBarReady: boolean,
+  showAirdrop: boolean,
   closed: boolean,
   currentlyFollowing: boolean,
   inviteLink?: ?string,
@@ -43,6 +44,7 @@ export type Props = {|
   lastAction: ?('followed' | 'refollowed' | 'unfollowed' | 'error'),
   loggedIn: boolean,
   myUsername?: string,
+  showAirdrop: boolean,
   name?: string,
   nonUser?: ?boolean,
   onChat: () => void,

@@ -45,7 +45,7 @@ class Header extends Component<Props> {
         {this.props.title && (
           <Text
             type="Header"
-            backgroundMode="Announcements"
+            negative={true}
             style={platformStyles({
               common: {flex: 1, ...globalStyles.flexBoxCenter, paddingTop: 6},
               isElectron: {cursor: 'default'},

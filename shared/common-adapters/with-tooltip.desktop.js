@@ -57,6 +57,7 @@ class WithTooltip extends React.Component<Props, State> {
             visible={!!this.props.text && this.state.visible}
             attachTo={this.state.attachmentRef && this._getAttachmentRef}
             position={this.props.position || 'top center'}
+            className={this.props.toastClassName}
           >
             <Text
               center={!Styles.isMobile}
