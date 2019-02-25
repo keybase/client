@@ -1,11 +1,10 @@
 // @flow
 import * as Chat2Gen from '../../../actions/chat2-gen'
-import * as Container from '../../../util/container'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as SettingsTabs from '../../../constants/settings'
 import * as Tabs from '../../../constants/tabs'
 import PaymentsConfirm from '.'
-import {namedConnect} from '../../../util/container'
+import {namedConnect, isMobile} from '../../../util/container'
 
 type OwnProps = {||}
 
@@ -31,7 +30,7 @@ const mapDispatchToProps = (dispatch, ownProps: OwnProps) => ({
   onWallet: () =>
     dispatch(
       RouteTreeGen.createNavigateTo({
-        path: Container.isMobile ? [Tabs.settingsTab, SettingsTabs.walletsTab] : [Tabs.walletsTab],
+        path: isMobile ? [Tabs.settingsTab, SettingsTabs.walletsTab] : [Tabs.walletsTab],
       })
     ),
 })
