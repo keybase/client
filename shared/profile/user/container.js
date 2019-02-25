@@ -26,19 +26,23 @@ const mapStateToProps = (state, ownProps) => {
   const username = ownProps.routeProps.get('username')
   const d = Constants.getDetails(state, username)
   const followThem = Constants.followThem(state, username)
-  const _userIsYou = username === state.config.username
+  const userIsYou = username === state.config.username
+  const followersCount = state.tracker2.usernameToDetails.getIn([username, 'followersCount'])
+  const followingCount = state.tracker2.usernameToDetails.getIn([username, 'followingCount'])
 
   return {
     _assertions: d.assertions,
-    _suggestionKeys: _userIsYou ? state.tracker2.proofSuggestions : null,
-    _userIsYou,
+    _suggestionKeys: userIsYou ? state.tracker2.proofSuggestions : null,
     backgroundColorType: headerBackgroundColorType(d.state, followThem),
     followThem,
     followers: state.tracker2.usernameToDetails.getIn([username, 'followers']) || emptySet,
+    followersCount,
     following: state.tracker2.usernameToDetails.getIn([username, 'following']) || emptySet,
+    followingCount,
     guiID: d.guiID,
     reason: d.reason,
     state: d.state,
+    userIsYou,
     username,
   }
 }
@@ -80,15 +84,18 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
     : null,
   backgroundColorType: stateProps.backgroundColorType,
   followThem: stateProps.followThem,
+  followersCount: stateProps.followersCount,
+  followingCount: stateProps.followingCount,
   onBack: dispatchProps.onBack,
-  onEditAvatar: stateProps._userIsYou ? dispatchProps._onEditAvatar : null,
-  onReload: () => dispatchProps._onReload(stateProps.username, stateProps._userIsYou),
+  onEditAvatar: stateProps.userIsYou ? dispatchProps._onEditAvatar : null,
+  onReload: () => dispatchProps._onReload(stateProps.username, stateProps.userIsYou),
   onSearch: dispatchProps.onSearch,
   reason: stateProps.reason,
   state: stateProps.state,
   suggestionKeys: stateProps._suggestionKeys
     ? stateProps._suggestionKeys.map(s => s.assertionKey).toArray()
     : null,
+  userIsYou: stateProps.userIsYou,
   username: stateProps.username,
   ...followToArray(stateProps.followers, stateProps.following),
 })

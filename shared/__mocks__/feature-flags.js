@@ -8,6 +8,7 @@ if (!__STORYBOOK__) {
 
 const ff: FeatureFlags = {
   admin: false,
+  airdrop: true,
   chatIndexProfilingEnabled: false,
   foldersInProfileTab: true,
   identify3: true,

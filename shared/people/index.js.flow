@@ -9,6 +9,7 @@ export type Props = {
   getData: (markViewed?: boolean) => void,
   onSearch: () => void,
   onClickUser: (username: string) => void,
+  showAirdrop: boolean,
   myUsername: string,
   waiting: boolean,
 }

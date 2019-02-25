@@ -94,27 +94,13 @@ class Thread extends React.PureComponent<Props, State> {
       }
     : (list, name, fn) => fn()
 
-  _scrollToBottom = (reason, source: 'from-user' | 'not-from-user' = 'not-from-user') => {
+  _scrollToBottom = reason => {
     const list = this._listRef.current
     if (list) {
       this._logAll(list, `_scrollToBottom(${reason})`, () => {
-        if (source === 'from-user') {
-          this._ignoreScrollRefCount = 0
-        } else {
-          this._ignoreScrollRefCount++
-        }
+        // ignore callbacks due to this change
+        this._ignoreScrollRefCount++
         list.scrollTop = list.scrollHeight - list.clientHeight
-      })
-    }
-  }
-
-  _scrollToTop = () => {
-    const list = this._listRef.current
-    if (list) {
-      this._logAll(list, '_scrollToTop', () => {
-        // User-driven scroll event, so clear ignore count.
-        this._ignoreScrollRefCount = 0
-        list.scrollTop = 0
       })
     }
   }
@@ -183,18 +169,6 @@ class Thread extends React.PureComponent<Props, State> {
     // someone requested we scroll up
     if (this.props.scrollListUpCounter !== prevProps.scrollListUpCounter) {
       this._scrollUp()
-      return
-    }
-
-    // someone requested we scroll to the top
-    if (this.props.scrollListTopCounter !== prevProps.scrollListTopCounter) {
-      this._scrollToTop()
-      return
-    }
-
-    // someone requested we scroll to the bottom
-    if (this.props.scrollListBottomCounter !== prevProps.scrollListBottomCounter) {
-      this._scrollToBottom('scrollListBottom', 'from-user')
       return
     }
 
@@ -577,6 +551,10 @@ class OrdinalWaypoint extends React.Component<OrdinalWaypointProps, OrdinalWaypo
     }
 
     if (!shallowEqual(this.props.ordinals, nextProps.ordinals)) {
+      shouldUpdate = true
+    }
+
+    if (this.state.height !== nextState.height) {
       shouldUpdate = true
     }
 

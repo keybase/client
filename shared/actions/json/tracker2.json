@@ -19,6 +19,7 @@
       "followsYou": "boolean",
       "fullname": "string",
       "location": "string",
+      "registeredForAirdrop": "boolean",
       "username": "string",
       "teamShowcase": "Array<Types._TeamShowcase>"
     },

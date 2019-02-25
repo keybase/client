@@ -1447,6 +1447,10 @@ func PresentMessageUnboxed(ctx context.Context, g *globals.Context, rawMsg chat1
 			body = rawMsg.Outbox().Msg.MessageBody.Text().Body
 			decoratedBody = new(string)
 			*decoratedBody = EscapeShrugs(ctx, body)
+		case chat1.MessageType_FLIP:
+			body = rawMsg.Outbox().Msg.MessageBody.Flip().Text
+			decoratedBody = new(string)
+			*decoratedBody = EscapeShrugs(ctx, body)
 		case chat1.MessageType_EDIT:
 			body = rawMsg.Outbox().Msg.MessageBody.Edit().Body
 		case chat1.MessageType_ATTACHMENT:

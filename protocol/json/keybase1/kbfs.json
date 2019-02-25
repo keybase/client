@@ -102,6 +102,10 @@
         {
           "name": "teamID",
           "type": "TeamID"
+        },
+        {
+          "name": "oa",
+          "type": "OfflineAvailability"
         }
       ],
       "response": "KBFSTeamSettings",

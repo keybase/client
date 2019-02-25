@@ -17,6 +17,7 @@ const MaybePopup = isMobile
       children: React.Node,
       cover?: boolean,
       styleCover?: any,
+      styleClipContainer?: any,
       styleContainer?: any,
       styleClipContainer?: any,
     }) => (

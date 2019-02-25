@@ -71,6 +71,10 @@ func (m MetaContext) CTrace(msg string, f func() error) func() {
 	return CTrace(m.ctx, m.g.Log.CloneWithAddedDepth(1), msg, f)
 }
 
+func (m MetaContext) CTraceString(msg string, f func() string) func() {
+	return CTraceString(m.ctx, m.g.Log.CloneWithAddedDepth(1), msg, f)
+}
+
 func (m MetaContext) CVTrace(lev VDebugLevel, msg string, f func() error) func() {
 	return m.g.CVTrace(m.ctx, lev, msg, f)
 }

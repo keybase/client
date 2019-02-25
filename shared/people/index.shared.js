@@ -8,6 +8,7 @@ import FollowNotification from './follow-notification'
 import Announcement from './announcement/container'
 import FollowSuggestions from './follow-suggestions'
 import {type Props} from '.'
+import AirdropBanner from '../wallets/airdrop/banner/container'
 
 export const itemToComponent: (Types.PeopleScreenItem, Props) => React.Node = (item, props) => {
   switch (item.type) {
@@ -69,6 +70,7 @@ export const PeoplePageSearchBar = (props: Props) => (
 
 export const PeoplePageList = (props: Props) => (
   <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, position: 'relative', width: '100%'}}>
+    {Styles.isMobile && <AirdropBanner />}
     {props.newItems.map(item => itemToComponent(item, props))}
     <FollowSuggestions suggestions={props.followSuggestions} />
     {props.oldItems.map(item => itemToComponent(item, props))}

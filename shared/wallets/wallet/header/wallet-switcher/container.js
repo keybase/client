@@ -24,6 +24,9 @@ const mapDispatchToProps = dispatch => ({
       })
     )
   },
+  onJoinAirdrop: () => {
+    dispatch(RouteTreeGen.createNavigateAppend({path: ['airdrop']}))
+  },
   onLinkExisting: () => {
     dispatch(
       RouteTreeGen.createNavigateAppend({path: [{props: {showOnCreation: true}, selected: 'linkExisting'}]})
@@ -35,6 +38,7 @@ const mapDispatchToProps = dispatch => ({
 const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   accountIDs: stateProps.accounts.toArray(),
   onAddNew: dispatchProps.onAddNew,
+  onJoinAirdrop: dispatchProps.onJoinAirdrop,
   onLinkExisting: dispatchProps.onLinkExisting,
   onWhatIsStellar: dispatchProps.onWhatIsStellar,
   ...ownProps,

@@ -56,12 +56,12 @@ class _DeleteChannel extends React.Component<Props, State> {
           containerStyle={styles.menuContainer}
         />
         <Kb.Text
-          type={disabled ? 'Body' : 'BodyPrimaryLink'}
+          type={'BodyBigLink'}
           style={styles.colorRed}
           onClick={this.props.toggleShowingMenu}
           ref={this.props.setAttachmentRef}
         >
-          Delete Channel
+          Delete channel
         </Kb.Text>
       </Kb.Box>
     )
@@ -104,7 +104,7 @@ const styles = Styles.styleSheetCreate({
   headerTextBottom: {color: Styles.globalColors.black_50},
   headerTextTop: {color: Styles.globalColors.black},
   menuContainer: {width: 196},
-  trashIcon: {height: 14, marginRight: Styles.globalMargins.tiny},
+  trashIcon: {marginRight: Styles.globalMargins.tiny},
 })
 
 const DeleteChannel = Kb.OverlayParentHOC(_DeleteChannel)
