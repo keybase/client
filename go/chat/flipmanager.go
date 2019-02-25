@@ -679,6 +679,16 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 	return m.dealer.StartFlipWithGameID(ctx, start, conv.GetConvID(), gameID)
 }
 
+func (m *FlipManager) shouldIgnoreInject(ctx context.Context, convID chat1.ConversationID,
+	gameID chat1.FlipGameID) bool {
+	if m.dealer.IsGameActive(ctx, convID, gameID) {
+		return false
+	}
+	// Ignore any flip messages for non-active games when not in the foreground
+	return m.G().GetAppType() == libkb.MobileAppType &&
+		m.G().AppState.State() != keybase1.AppState_FOREGROUND
+}
+
 // MaybeInjectFlipMessage implements the types.CoinFlipManager interface
 func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, boxedMsg chat1.MessageBoxed,
 	inboxVers chat1.InboxVers, uid gregor1.UID, convID chat1.ConversationID, topicType chat1.TopicType) bool {
@@ -721,11 +731,20 @@ func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, boxedMsg chat1
 		m.Debug(ctx, "MaybeInjectFlipMessage: bogus flip message with a non-flip body")
 		return true
 	}
+	// Check to see if we are going to participate from this inject
+	if m.shouldIgnoreInject(ctx, convID, body.Flip().GameID) {
+		m.Debug(ctx, "MaybeInjectFlipMessage: ignored flip message")
+		return true
+	}
 	if err := m.dealer.InjectIncomingChat(ctx, sender, convID, body.Flip().GameID,
 		flip.MakeGameMessageEncoded(body.Flip().Text), m.isStartMsgID(msg.GetMessageID())); err != nil {
 		m.Debug(ctx, "MaybeInjectFlipMessage: failed to inject: %s", err)
 	}
 	return true
+}
+
+func (m *FlipManager) HasActiveGames(ctx context.Context) bool {
+	return m.dealer.HasActiveGames(ctx)
 }
 
 func (m *FlipManager) loadGame(ctx context.Context, job loadGameJob) (err error) {

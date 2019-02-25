@@ -423,6 +423,8 @@ func (d DummyStellarSender) DecorateWithPayments(ctx context.Context, body strin
 
 type DummyCoinFlipManager struct{}
 
+var _ CoinFlipManager = (*DummyCoinFlipManager)(nil)
+
 func (d DummyCoinFlipManager) Start(ctx context.Context, uid gregor1.UID) {}
 func (d DummyCoinFlipManager) Stop(ctx context.Context) chan struct{} {
 	return nil
@@ -440,3 +442,7 @@ func (d DummyCoinFlipManager) LoadFlip(ctx context.Context, uid gregor1.UID, con
 }
 
 func (d DummyCoinFlipManager) DescribeFlipText(ctx context.Context, text string) string { return "" }
+
+func (d DummyCoinFlipManager) HasActiveGames(ctx context.Context) bool {
+	return false
+}

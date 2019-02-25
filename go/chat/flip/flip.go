@@ -214,3 +214,9 @@ func (d *Dealer) IsGameActive(ctx context.Context, conversationID chat1.Conversa
 	md, found := d.gameIDs[GameIDToKey(gameID)]
 	return found && md.ConversationID.Eq(conversationID)
 }
+
+func (d *Dealer) HasActiveGames(ctx context.Context) bool {
+	d.Lock()
+	defer d.Unlock()
+	return len(d.gameIDs) > 0
+}
