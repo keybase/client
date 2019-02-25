@@ -10,12 +10,12 @@ import {FileUpdate} from './files.desktop'
 
 const props = {
   badgeInfo: {
-    'tabs:chatTab': 0,
-    'tabs:folderTab': 0,
-    'tabs:fsTab': 0,
-    'tabs:gitTab': 0,
-    'tabs:peopleTab': 0,
-    'tabs:teamsTab': 0,
+    'tabs.chatTab': 0,
+    'tabs.folderTab': 0,
+    'tabs.fsTab': 0,
+    'tabs.gitTab': 0,
+    'tabs.peopleTab': 0,
+    'tabs.teamsTab': 0,
   },
   config: {
     avatars: {},
@@ -71,7 +71,7 @@ const load = () => {
         {...props}
         badgeInfo={{
           ...props.badgeInfo,
-          'tabs:fsTab': 2,
+          'tabs.fsTab': 2,
         }}
       />
     ))
@@ -80,7 +80,7 @@ const load = () => {
         {...props}
         badgeInfo={{
           ...props.badgeInfo,
-          'tabs:peopleTab': 3,
+          'tabs.peopleTab': 3,
         }}
       />
     ))
@@ -89,7 +89,7 @@ const load = () => {
         {...props}
         badgeInfo={{
           ...props.badgeInfo,
-          'tabs:chatTab': 6,
+          'tabs.chatTab': 6,
         }}
       />
     ))

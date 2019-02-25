@@ -15,6 +15,7 @@ import * as Saga from '../../util/saga'
 import * as PlatformSpecific from '../platform-specific'
 import * as RouteTreeGen from '../route-tree-gen'
 import * as Tabs from '../../constants/tabs'
+import * as Router2 from '../../constants/router2'
 import URL from 'url-parse'
 import appRouteTree from '../../app/routes-app'
 import loginRouteTree from '../../app/routes-login'
@@ -23,6 +24,7 @@ import {getEngine} from '../../engine'
 import {isMobile} from '../../constants/platform'
 import {type TypedState} from '../../constants/reducer'
 import {updateServerConfigLastLoggedIn} from '../../app/server-config'
+import flags from '../../util/feature-flags'
 
 const setupEngineListeners = () => {
   getEngine().actionOnDisconnect('daemonError', () => {
@@ -285,6 +287,23 @@ function* maybeDoneWithLogoutHandshake(state) {
 }
 
 let routeToInitialScreenOnce = false
+
+const routeToInitialScreen2 = state => {
+  if (!flags.useNewRouter) {
+    return
+  }
+
+  // bail if we don't have a navigator and loaded
+  if (!Router2._getNavigator()) {
+    return
+  }
+  if (!state.config.startupDetailsLoaded) {
+    return
+  }
+
+  return routeToInitialScreen(state)
+}
+
 // We figure out where to go (push, link, saved state, etc) once ever in a session
 const routeToInitialScreen = state => {
   if (routeToInitialScreenOnce) {
@@ -406,6 +425,16 @@ const updateServerConfig = (state: TypedState) =>
       logger.info('updateServerConfig fail', e)
     })
 
+const setNavigator = (state, action) => {
+  const navigator = action.payload.navigator
+  Router2._setNavigator(navigator)
+}
+
+const newNavigation = (_, action) => {
+  const n = Router2._getNavigator()
+  n && n.dispatchOldAction(action)
+}
+
 function* configSaga(): Saga.SagaGenerator<any, any> {
   // Tell all other sagas to register for incoming engine calls
   yield* Saga.chainAction<ConfigGen.InstallerRanPayload>(ConfigGen.installerRan, dispatchSetupEngineListeners)
@@ -439,11 +468,40 @@ function* configSaga(): Saga.SagaGenerator<any, any> {
     [ConfigGen.loggedIn, ConfigGen.loggedOut],
     switchRouteDef
   )
-  // Go to the correct starting screen
-  yield* Saga.chainAction<ConfigGen.DaemonHandshakeDonePayload>(
-    ConfigGen.daemonHandshakeDone,
-    routeToInitialScreen
-  )
+  if (flags.useNewRouter) {
+    // MUST go above routeToInitialScreen2 so we set the nav correctly
+    yield* Saga.chainAction<ConfigGen.SetNavigatorPayload>(ConfigGen.setNavigator, setNavigator)
+    // Go to the correct starting screen
+    yield* Saga.chainAction<ConfigGen.DaemonHandshakeDonePayload | ConfigGen.SetNavigatorPayload>(
+      [ConfigGen.daemonHandshakeDone, ConfigGen.setNavigator],
+      routeToInitialScreen2
+    )
+
+    yield* Saga.chainAction<
+      | RouteTreeGen.NavigateAppendPayload
+      | RouteTreeGen.NavigateToPayload
+      | RouteTreeGen.NavigateUpPayload
+      | RouteTreeGen.SwitchToPayload
+      | RouteTreeGen.SwitchRouteDefPayload
+      | RouteTreeGen.ClearModalsPayload
+    >(
+      [
+        RouteTreeGen.navigateAppend,
+        RouteTreeGen.navigateTo,
+        RouteTreeGen.navigateUp,
+        RouteTreeGen.switchTo,
+        RouteTreeGen.switchRouteDef,
+        RouteTreeGen.clearModals,
+      ],
+      newNavigation
+    )
+  } else {
+    // Go to the correct starting screen
+    yield* Saga.chainAction<ConfigGen.DaemonHandshakeDonePayload>(
+      ConfigGen.daemonHandshakeDone,
+      routeToInitialScreen
+    )
+  }
   // If you start logged in we don't get the incoming call from the daemon so we generate our own here
   yield* Saga.chainAction<ConfigGen.DaemonHandshakeDonePayload>(
     ConfigGen.daemonHandshakeDone,

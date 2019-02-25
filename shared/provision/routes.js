@@ -30,3 +30,15 @@ const children = {
 }
 
 export default children
+
+export const newRoutes = {
+  codePage: {getScreen: () => CodePage},
+  error: {getScreen: () => RegisterError},
+  gpgSign: {getScreen: () => GPGSign},
+  paperkey: {getScreen: () => PaperKey},
+  passphrase: {getScreen: () => Passphrase},
+  selectOtherDevice: {getScreen: () => SelectOtherDevice},
+  setPublicName: {getScreen: () => SetPublicName},
+  usernameOrEmail: {getScreen: () => UsernameOrEmail},
+}
+export const newModalRoutes = { }

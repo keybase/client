@@ -8,6 +8,7 @@ import FollowNotification from './follow-notification'
 import Announcement from './announcement/container'
 import FollowSuggestions from './follow-suggestions'
 import {type Props} from '.'
+import flags from '../util/feature-flags'
 import AirdropBanner from '../wallets/airdrop/banner/container'
 
 export const itemToComponent: (Types.PeopleScreenItem, Props) => React.Node = (item, props) => {
@@ -54,7 +55,7 @@ export const itemToComponent: (Types.PeopleScreenItem, Props) => React.Node = (i
   return null
 }
 
-export const PeoplePageSearchBar = (props: Props) => (
+export const PeoplePageSearchBar = (props: {onSearch: ?() => void}) => (
   <Kb.ClickableBox onClick={props.onSearch} style={styles.searchContainer}>
     <Kb.Icon
       color={Styles.globalColors.black_50}
@@ -93,8 +94,8 @@ const styles = Styles.styleSheetCreate({
       height: 24,
       marginLeft: Styles.globalMargins.small,
       marginRight: Styles.globalMargins.small,
-      marginTop: Styles.globalMargins.xsmall,
-      width: 240,
+      marginTop: flags.useNewRouter ? 0 : Styles.globalMargins.xsmall,
+      width: flags.useNewRouter ? '100%' : 240,
     },
     isMobile: {
       height: 32,
@@ -108,5 +109,6 @@ const styles = Styles.styleSheetCreate({
   },
   searchText: {
     color: Styles.globalColors.black_50,
+    maxWidth: flags.useNewRouter ? 240 : undefined,
   },
 })

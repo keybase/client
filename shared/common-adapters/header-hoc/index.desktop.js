@@ -4,21 +4,24 @@ import Text from '../text'
 import BackButton from '../back-button'
 import Box from '../box'
 import Icon from '../icon'
-import {collapseStyles, globalStyles, globalColors, globalMargins, desktopStyles} from '../../styles'
-import type {Props} from './types'
+import * as Styles from '../../styles'
+import type {Props, LeftActionProps} from './types'
+import flags from '../../util/feature-flags'
 
 export const HeaderHocHeader = ({
   headerStyle,
   customComponent,
   hideBackLabel,
   title,
+  titleComponent,
   onCancel,
   onBack,
+  rightActions,
   theme = 'light',
 }: Props) => (
-  <Box style={collapseStyles([_headerStyle, _headerStyleThemed[theme], headerStyle])}>
+  <Box style={Styles.collapseStyles([_headerStyle, _headerStyleThemed[theme], headerStyle])}>
     {customComponent}
-    {onBack && (
+    {onBack && !flags.useNewRouter && (
       <BackButton
         key="back"
         hideBackLabel={hideBackLabel}
@@ -28,7 +31,7 @@ export const HeaderHocHeader = ({
     )}
     {onCancel && (
       <Icon
-        style={collapseStyles([_styleClose, _styleCloseThemed[theme]])}
+        style={Styles.collapseStyles([_styleClose, _styleCloseThemed[theme]])}
         type="iconfont-close"
         onClick={onCancel}
       />
@@ -38,39 +41,82 @@ export const HeaderHocHeader = ({
         <Text type="Header">{title}</Text>
       </Box>
     )}
+    {titleComponent}
+    {(rightActions || []).map(a => (a ? a.custom : null))}
+  </Box>
+)
+
+// TODO use LeftAction above
+export const LeftAction = ({
+  badgeNumber,
+  disabled,
+  customCancelText,
+  hasTextTitle,
+  hideBackLabel,
+  leftAction,
+  leftActionText,
+  onLeftAction,
+  theme,
+}: LeftActionProps): React.Node => (
+  <Box style={Styles.collapseStyles([styles.leftAction, hasTextTitle && styles.grow])}>
+    {onLeftAction &&
+      (leftAction === 'cancel' ? (
+        <Text type="BodyBigLink" style={styles.action} onClick={onLeftAction}>
+          {leftActionText || customCancelText || 'Cancel'}
+        </Text>
+      ) : (
+        <BackButton
+          badgeNumber={badgeNumber}
+          hideBackLabel={hideBackLabel}
+          iconColor={
+            disabled
+              ? Styles.globalColors.black_10
+              : theme === 'dark'
+              ? Styles.globalColors.white
+              : Styles.globalColors.black_50
+          }
+          style={styles.action}
+          textStyle={disabled ? styles.disabledText : undefined}
+          onClick={disabled ? null : onLeftAction}
+        />
+      ))}
   </Box>
 )
 
 function HeaderHoc<P: {}>(WrappedComponent: React.ComponentType<P>) {
-  return (props: P & Props) => (
-    <Box style={_containerStyle}>
-      <HeaderHocHeader {...props} />
+  return (props: P & Props) =>
+    flags.useNewRouter ? (
       <WrappedComponent {...(props: P)} />
-    </Box>
-  )
+    ) : (
+      <Box style={_containerStyle}>
+        <HeaderHocHeader {...props} />
+        <WrappedComponent {...(props: P)} />
+      </Box>
+    )
 }
 
 const _containerStyle = {
-  ...globalStyles.flexBoxColumn,
+  ...Styles.globalStyles.flexBoxColumn,
   flex: 1,
 }
 
 const _headerStyle = {
-  ...globalStyles.flexBoxRow,
+  ...Styles.globalStyles.flexBoxRow,
   alignItems: 'center',
+  flexShrink: 0,
   justifyContent: 'flex-start',
-  minHeight: 48,
-  paddingLeft: globalMargins.small,
-  paddingRight: globalMargins.small,
+  minHeight: flags.useNewRouter ? undefined : 48,
+  paddingLeft: Styles.globalMargins.small,
+  paddingRight: Styles.globalMargins.small,
   position: 'relative',
 }
 
 const _headerStyleThemed = {
   dark: {
-    backgroundColor: globalColors.darkBlue3,
+    backgroundColor: Styles.globalColors.darkBlue3,
   },
   light: {
-    backgroundColor: globalColors.white,
+    backgroundColor: Styles.globalColors.white,
   },
 }
 
@@ -80,31 +126,31 @@ const _backButtonIconStyle = {
 
 const _backButtonIconStyleThemed = {
   dark: {
-    color: globalColors.white,
+    color: Styles.globalColors.white,
   },
   light: {
-    color: globalColors.black_50,
+    color: Styles.globalColors.black_50,
   },
 }
 
 const _styleClose = {
-  ...desktopStyles.clickable,
+  ...Styles.desktopStyles.clickable,
   position: 'absolute',
-  right: globalMargins.small,
-  top: globalMargins.small,
+  right: Styles.globalMargins.small,
+  top: Styles.globalMargins.small,
 }
 
 const _styleCloseThemed = {
   dark: {
-    color: globalColors.white_40,
+    color: Styles.globalColors.white_40,
   },
   light: {
-    color: globalColors.black_20,
+    color: Styles.globalColors.black_20,
   },
 }
 
 const _titleStyle = {
-  ...globalStyles.flexBoxRow,
+  ...Styles.globalStyles.flexBoxRow,
   alignItems: 'center',
   bottom: 0,
   flex: 1,
@@ -114,5 +160,36 @@ const _titleStyle = {
   right: 0,
   top: 0,
 }
+
+const styles = Styles.styleSheetCreate({
+  action: Styles.platformStyles({
+    common: {
+      opacity: 1,
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingLeft: Styles.globalMargins.tiny,
+      paddingRight: Styles.globalMargins.tiny,
+      paddingTop: Styles.globalMargins.tiny,
+    },
+  }),
+  disabledText: Styles.platformStyles({
+    isElectron: {
+      color: Styles.globalColors.black_50,
+    },
+  }),
+  grow: {
+    flexGrow: 1,
+  },
+  leftAction: Styles.platformStyles({
+    common: {
+      ...Styles.globalStyles.flexBoxColumn,
+      alignItems: 'flex-start',
+      flexShrink: 1,
+      justifyContent: 'flex-start',
+    },
+    isIOS: {
+      paddingLeft: Styles.globalMargins.tiny,
+    },
+  }),
+})
 
 export default HeaderHoc

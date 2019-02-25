@@ -1,16 +1,39 @@
 // @flow
 import * as React from 'react'
 import * as Kb from '../common-adapters'
+import * as Styles from '../styles'
 import {PeoplePageSearchBar, PeoplePageList} from './index.shared'
 import {type Props} from '.'
-import * as Styles from '../styles'
+import flags from '../util/feature-flags'
 
+export const Header = (props: Props) => (
+  <Kb.HeaderHocHeader
+    headerStyle={styles.header}
+    borderless={true}
+    rightActions={[
+      {
+        custom: (
+          <Kb.Avatar
+            key="avatar"
+            username={props.myUsername}
+            onClick={() => props.onClickUser(props.myUsername)}
+            size={32}
+          />
+        ),
+        label: 'Avatar',
+      },
+    ]}
+    titleComponent={<PeoplePageSearchBar {...props} />}
+  />
+)
 const People = (props: Props) => (
   <Kb.ScrollView style={styles.container}>
     {props.waiting && <Kb.ProgressIndicator style={styles.progress} />}
-    <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.searchContainer}>
-      <PeoplePageSearchBar {...props} />
-    </Kb.Box2>
+    {!flags.useNewRouter && (
+      <Kb.Box2 direction="horizontal" centerChildren={true} style={styles.searchContainer}>
+        <PeoplePageSearchBar {...props} />
+      </Kb.Box2>
+    )}
     <PeoplePageList {...props} />
   </Kb.ScrollView>
 )
@@ -18,6 +41,9 @@ const People = (props: Props) => (
 const styles = Styles.styleSheetCreate({
   container: {
     ...Styles.globalStyles.fullHeight,
+  },
+  header: {
+    flexGrow: 1,
   },
   progress: {
     height: 32,

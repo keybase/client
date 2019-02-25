@@ -1,0 +1,8 @@
+// @flow
+import * as React from 'react'
+
+type Props = {|
+  persistRoute: any => void,
+|}
+
+declare export default class Router extends React.Component<Props> {}

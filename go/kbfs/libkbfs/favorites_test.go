@@ -240,7 +240,7 @@ func TestFavoritesControlUserHistory(t *testing.T) {
 
 	// Put a thing in user history.
 	history := kbfsedits.NewTlfHistory()
-	err = history.AddNotifications(username, []string{"hello"})
+	_, err = history.AddNotifications(username, []string{"hello"})
 	require.NoError(t, err)
 	config.UserHistory().UpdateHistory(tlf.CanonicalName(tlfName), tlfType,
 		history, username)
