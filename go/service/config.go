@@ -118,6 +118,10 @@ func (h ConfigHandler) GetExtendedStatus(ctx context.Context, sessionID int) (re
 	return libkb.GetExtendedStatus(libkb.NewMetaContext(ctx, h.G()))
 }
 
+func (h ConfigHandler) GetClientStatus(ctx context.Context, sessionID int) (res []keybase1.ClientStatus, err error) {
+	return libkb.GetClientStatus(libkb.NewMetaContext(ctx, h.G())), nil
+}
+
 func (h ConfigHandler) GetAllProvisionedUsernames(ctx context.Context, sessionID int) (res keybase1.AllProvisionedUsernames, err error) {
 	defaultUsername, all, err := libkb.GetAllProvisionedUsernames(libkb.NewMetaContext(ctx, h.G()))
 	if err != nil {

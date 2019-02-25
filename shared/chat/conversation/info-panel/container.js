@@ -4,6 +4,7 @@ import * as Constants from '../../../constants/chat2'
 import * as React from 'react'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as Types from '../../../constants/types/chat2'
+import flags from '../../../util/feature-flags'
 import {InfoPanel} from '.'
 import {connect, isMobile, type RouteProps} from '../../../util/container'
 import {createShowUserProfile} from '../../../actions/profile-gen'
@@ -12,7 +13,8 @@ import {Box} from '../../../common-adapters'
 
 type OwnProps = {|
   conversationIDKey: Types.ConversationIDKey,
-  onBack: () => void,
+  onBack?: () => void,
+  onCancel?: () => void,
 |}
 
 const mapStateToProps = (state, ownProps: OwnProps) => {
@@ -55,14 +57,14 @@ const mapDispatchToProps = (dispatch, {conversationIDKey, onBack}: OwnProps) => 
   _onEditChannel: (teamname: string) =>
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {conversationIDKey, teamname}, selected: 'editChannel'}],
+        path: [{props: {conversationIDKey, teamname}, selected: 'chatEditChannel'}],
       })
     ),
   _onShowClearConversationDialog: () => {
     dispatch(Chat2Gen.createNavigateToThread())
     dispatch(
       RouteTreeGen.createNavigateAppend({
-        path: [{props: {conversationIDKey}, selected: 'deleteHistoryWarning'}],
+        path: [{props: {conversationIDKey}, selected: 'chatDeleteHistoryWarning'}],
       })
     )
   },
@@ -74,7 +76,7 @@ const mapDispatchToProps = (dispatch, {conversationIDKey, onBack}: OwnProps) => 
         path: [
           {
             props: {conversationIDKey},
-            selected: 'showBlockConversationDialog',
+            selected: 'chatShowBlockConversationDialog',
           },
         ],
       })
@@ -86,7 +88,7 @@ const mapDispatchToProps = (dispatch, {conversationIDKey, onBack}: OwnProps) => 
         path: [
           {
             props: {conversationIDKey},
-            selected: 'showNewTeamDialog',
+            selected: 'chatShowNewTeamDialog',
           },
         ],
       })
@@ -103,9 +105,11 @@ const mergeProps = (stateProps, dispatchProps, ownProps: OwnProps) => ({
   canSetMinWriterRole: stateProps.canSetMinWriterRole,
   canSetRetention: stateProps.canSetRetention,
   channelname: stateProps.channelname,
+  customCancelText: 'Done',
   description: stateProps.description,
   isPreview: stateProps.isPreview,
   onBack: ownProps.onBack,
+  onCancel: ownProps.onCancel,
   onEditChannel: () => dispatchProps._onEditChannel(stateProps.teamname),
   onJoinChannel: dispatchProps.onJoinChannel,
   onLeaveConversation: dispatchProps.onLeaveConversation,
@@ -161,7 +165,11 @@ class InfoPanelSelector extends React.PureComponent<Props> {
     }
 
     return isMobile ? (
-      <ConnectedInfoPanel onBack={this.props.onBack} conversationIDKey={this.props.conversationIDKey} />
+      <ConnectedInfoPanel
+        onBack={flags.useNewRouter ? undefined : this.props.onBack}
+        onCancel={flags.useNewRouter ? this.props.onBack : undefined}
+        conversationIDKey={this.props.conversationIDKey}
+      />
     ) : (
       <Box onClick={this.props.onBack} style={clickCatcherStyle}>
         <Box style={panelContainerStyle} onClick={evt => evt.stopPropagation()}>
@@ -172,19 +180,27 @@ class InfoPanelSelector extends React.PureComponent<Props> {
   }
 }
 
-const clickCatcherStyle = {bottom: 0, left: 80, position: 'absolute', right: 0, top: 38}
+const clickCatcherStyle = {
+  bottom: 0,
+  left: flags.useNewRouter ? 160 : 80,
+  position: 'absolute',
+  right: 0,
+  top: flags.useNewRouter ? 44 : 38,
+}
 const panelContainerStyle = {
   bottom: 0,
   display: 'flex',
   flexDirection: 'column',
   position: 'absolute',
   right: 0,
-  top: 0,
+  top: flags.useNewRouter ? 40 : 0,
   width: 320,
 }
 
-export default connect<SelectorOwnProps, _, _, _, _>(
+const InfoConnected = connect<SelectorOwnProps, _, _, _, _>(
   mapStateToSelectorProps,
   mapDispatchToSelectorProps,
   mergeSelectorProps
 )(InfoPanelSelector)
+
+export default InfoConnected

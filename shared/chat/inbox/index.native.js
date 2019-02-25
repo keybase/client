@@ -177,6 +177,7 @@ class Inbox extends React.PureComponent<Props, State> {
   _onEnsureSelection = () => this.props.onEnsureSelection()
   _onSelectUp = () => this.props.onSelectUp()
   _onSelectDown = () => this.props.onSelectDown()
+  _onDidFocus = () => this.props.onDeselectConversation()
 
   render() {
     this._dividerShowButton = false
@@ -205,6 +206,7 @@ class Inbox extends React.PureComponent<Props, State> {
     )
     return (
       <Kb.ErrorBoundary>
+        <Kb.NavigationEvents onDidFocus={this._onDidFocus} />
         <Kb.Box style={boxStyle}>
           <Kb.NativeFlatList
             ListHeaderComponent={HeadComponent}

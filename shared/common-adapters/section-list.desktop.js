@@ -25,8 +25,8 @@ class SectionList extends React.Component<Props, State> {
   _mounted = true
 
   componentDidUpdate(prevProps: Props, prevState: State) {
-    if (this.props.items !== prevProps.items) {
-      // Items changed so let's also reset the onEndReached call
+    if (this.props.sections !== prevProps.sections) {
+      // sections changed so let's also reset the onEndReached call
       this._onEndReached = once(() => this.props.onEndReached && this.props.onEndReached())
     }
   }
