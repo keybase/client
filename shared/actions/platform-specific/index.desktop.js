@@ -1,6 +1,7 @@
 // @flow
 import * as ConfigGen from '../config-gen'
 import * as ConfigConstants from '../../constants/config'
+import * as EngineGen from '../engine-gen-gen'
 import * as GregorGen from '../gregor-gen'
 import * as RPCTypes from '../../constants/types/rpc-gen'
 import * as SafeElectron from '../../util/safe-electron.desktop'
@@ -214,42 +215,44 @@ function* setupReachabilityWatcher() {
   }
 }
 
+const onExit = () => {
+  console.log('App exit requested')
+  SafeElectron.getApp().exit(0)
+}
+
+const onFSActivity = (state, action) => {
+  kbfsNotification(action.payload.params.notification, NotifyPopup, state)
+}
+
+const onPgpgKeySecret = () =>
+  RPCTypes.pgpPgpStorageDismissRpcPromise().catch(err => {
+    console.warn('Error in sending pgpPgpStorageDismissRpc:', err)
+  })
+
+const onShutdown = (_, action) => {
+  const {code} = action.payload.params
+  if (isWindows && code !== RPCTypes.ctlExitCode.restart) {
+    console.log('Quitting due to service shutdown with code: ', code)
+    // Quit just the app, not the service
+    SafeElectron.getApp().quit()
+  }
+}
+
+const onOutOfDate = (_, action) => {
+  const {upgradeTo, upgradeURI, upgradeMsg} = action.payload.params
+  const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
+  NotifyPopup('Client out of date!', {body}, 60 * 60)
+  // This is from the API server. Consider notifications from API server
+  // always critical.
+  return ConfigGen.createUpdateInfo({critical: true, isOutOfDate: true, message: upgradeMsg})
+}
+
 const setupEngineListeners = () => {
   getEngine().setCustomResponseIncomingCallMap({
     'keybase.1.logsend.prepareLogsend': (_, response) => {
       dumpLogs().then(() => {
         response && response.result()
       })
-    },
-  })
-  getEngine().setIncomingCallMap({
-    'keybase.1.NotifyApp.exit': () => {
-      console.log('App exit requested')
-      SafeElectron.getApp().exit(0)
-    },
-    'keybase.1.NotifyFS.FSActivity': ({notification}) =>
-      Saga.callUntyped(function*() {
-        const state = yield* Saga.selectState()
-        kbfsNotification(notification, NotifyPopup, state)
-      }),
-    'keybase.1.NotifyPGP.pgpKeyInSecretStoreFile': () => {
-      RPCTypes.pgpPgpStorageDismissRpcPromise().catch(err => {
-        console.warn('Error in sending pgpPgpStorageDismissRpc:', err)
-      })
-    },
-    'keybase.1.NotifyService.shutdown': request => {
-      if (isWindows && request.code !== RPCTypes.ctlExitCode.restart) {
-        console.log('Quitting due to service shutdown with code: ', request.code)
-        // Quit just the app, not the service
-        SafeElectron.getApp().quit()
-      }
-    },
-    'keybase.1.NotifySession.clientOutOfDate': ({upgradeTo, upgradeURI, upgradeMsg}) => {
-      const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
-      NotifyPopup('Client out of date!', {body}, 60 * 60)
-      // This is from the API server. Consider notifications from API server
-      // always critical.
-      return Saga.put(ConfigGen.createUpdateInfo({critical: true, isOutOfDate: true, message: upgradeMsg}))
     },
   })
 }
@@ -327,6 +330,23 @@ export function* platformConfigSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainGenerator<ConfigGen.SetupEngineListenersPayload>(
     ConfigGen.setupEngineListeners,
     startOutOfDateCheckLoop
+  )
+  yield* Saga.chainAction<EngineGen.Keybase1NotifyAppExitPayload>(EngineGen.keybase1NotifyAppExit, onExit)
+  yield* Saga.chainAction<EngineGen.Keybase1NotifyFSFSActivityPayload>(
+    EngineGen.keybase1NotifyFSFSActivity,
+    onFSActivity
+  )
+  yield* Saga.chainAction<EngineGen.Keybase1NotifyPGPPgpKeyInSecretStoreFilePayload>(
+    EngineGen.keybase1NotifyPGPPgpKeyInSecretStoreFile,
+    onPgpgKeySecret
+  )
+  yield* Saga.chainAction<EngineGen.Keybase1NotifyServiceShutdownPayload>(
+    EngineGen.keybase1NotifyServiceShutdown,
+    onShutdown
+  )
+  yield* Saga.chainAction<EngineGen.Keybase1NotifySessionClientOutOfDatePayload>(
+    EngineGen.keybase1NotifySessionClientOutOfDate,
+    onOutOfDate
   )
   yield* Saga.chainAction<ConfigGen.CopyToClipboardPayload>(ConfigGen.copyToClipboard, copyToClipboard)
   yield* Saga.chainAction<ConfigGen.UpdateNowPayload>(ConfigGen.updateNow, updateNow)
