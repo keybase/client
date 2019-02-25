@@ -23,7 +23,7 @@ type Props = {|
   teamNameToIsOpen: {[key: string]: boolean},
   teammembercounts: {[key: string]: number},
   teamnames: $ReadOnlyArray<string>,
-  teamresetusers: {[key: string]: I.Set<string>},
+  teamresetusers: {[key: string]: ?I.Set<string>},
   teamToRequest: {[key: string]: number},
   title?: string,
 |}
@@ -106,7 +106,7 @@ class Teams extends React.PureComponent<Props> {
         return <BetaNote onReadMore={this.props.onReadMore} />
       case 'team':
         const name = item.team
-        const resetUserCount = this.props.teamresetusers[name] && this.props.teamresetusers[name].size
+        const resetUserCount = (this.props.teamresetusers[name] && this.props.teamresetusers[name].size) || 0
         return (
           <TeamRow
             firstItem={index === 1}
