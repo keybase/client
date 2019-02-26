@@ -74,8 +74,12 @@ const listenForNativeAndroidIntentNotifications = emitter => {
   })
 
   // TODO: move this out of this file.
+  RNEmitter.addListener('onShareData', (evt) => {
+    logger.info('[ShareDataIntent]', evt)
+    emitter(RouteTreeGen.createNavigateTo({path: FsShared.fsRootRoute}))
+  })
   RNEmitter.addListener('onShareText', (evt) => {
-    logger.info('[ShareAndroidIntent]', evt)
+    logger.info('[ShareTextIntent]', evt)
     emitter(RouteTreeGen.createNavigateTo({path: FsShared.fsRootRoute}))
   })
 }
