@@ -29,7 +29,6 @@ const mapStateToProps = (state, {routeProps}) => {
 const mapDispatchToProps = (dispatch, {navigateUp, routeProps, navigateAppend}) => ({
   _onAddToTeams: (role: TeamRoleType, teams: Array<string>, user: string) => {
     dispatch(TeamsGen.createAddUserToTeams({role, teams, user}))
-    dispatch(navigateUp())
   },
   loadTeamList: () => dispatch(TeamsGen.createGetTeamProfileAddList({username: routeProps.get('username')})),
   onBack: () => {

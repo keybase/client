@@ -1,21 +1,7 @@
 // @flow
 import * as React from 'react'
 import {globalColors, globalMargins, isMobile, platformStyles, styleSheetCreate} from '../../styles'
-import {
-  Avatar,
-  Box2,
-  Button,
-  ButtonBar,
-  Checkbox,
-  ClickableBox,
-  DropdownButton,
-  Divider,
-  Meta,
-  PopupDialog,
-  ProgressIndicator,
-  ScrollView,
-  Text,
-} from '../../common-adapters'
+import * as Kb from '../../common-adapters'
 import {ROLE_PICKER_ZINDEX} from '../../constants/profile'
 import type {RowProps, Props} from './index'
 
@@ -68,6 +54,37 @@ const AddToTeam = (props: Props) => {
   const selectedTeamCount = Object.values(props.selectedTeams).filter(b => b).length
   return (
     <Box2 direction="vertical" style={styleContainer}>
+      {!!props.addUserToTeamsResults && (
+        <Box2
+          direction="horizontal"
+          style={Styles.collapseStyles([
+            styleScrollHeaderBg,
+            {
+              backgroundColor: Styles.globalColors.green,
+              minHeight: 40,
+            },
+          ])}
+        >
+          <Box2 direction="vertical" style={{flexGrow: 1}}>
+            <Text
+              center={true}
+              style={{margin: Styles.globalMargins.tiny, width: '100%'}}
+              type="BodySemibold"
+              backgroundMode="HighRisk"
+            >
+              {this.props.addUserToTeamsResults}
+            </Text>
+          </Box2>
+          <Box2 direction="vertical" style={{flexShrink: 1, justifyContent: 'center'}}>
+            <Icon
+              color={Styles.globalColors.black_50}
+              onClick={this.props.onClearAddUserToTeamsResults}
+              style={{padding: Styles.globalMargins.tiny}}
+              type="iconfont-close"
+            />
+          </Box2>
+        </Box2>
+      )}
       {!isMobile && (
         <Box2 direction="horizontal" style={{paddingBottom: globalMargins.large}}>
           <Text type="Header">Add</Text>
