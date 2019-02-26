@@ -13,7 +13,7 @@ type Props = {|
 |}
 
 const SectionDivider = (props: Props) => {
-  let collapsible = 'collapsed' in props
+  const collapsible = props.hasOwnProperty('collapsed')
   const children = (
     <Box2 direction="horizontal" gap="xtiny" alignItems="center" fullWidth={true} style={styles.container}>
       <Text type="BodySmallSemibold">{props.label}</Text>
