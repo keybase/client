@@ -50,7 +50,7 @@ class List2<T> extends PureComponent<Props<T>, void> {
           onEndReached={this.props.onEndReached}
           windowSize={this.props.windowSize || 10}
           debug={false /* set to true to debug the list */}
-          style={this.props.style}
+          contentContainerStyle={this.props.style}
         />
       </View>
     )
