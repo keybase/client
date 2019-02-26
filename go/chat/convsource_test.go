@@ -1227,7 +1227,7 @@ func TestConversationLockingDeadlock(t *testing.T) {
 	select {
 	case res := <-cb3:
 		require.Error(t, res.err)
-		require.IsType(t, errConvLockTabDeadlock, res.err)
+		require.IsType(t, utils.ErrConvLockTabDeadlock, res.err)
 	case <-time.After(20 * time.Second):
 		require.Fail(t, "never failed")
 	}

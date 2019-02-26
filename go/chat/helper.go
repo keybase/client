@@ -937,7 +937,7 @@ func (n *newConversationHelper) getNameInfo(ctx context.Context) (res types.Name
 		// NameInfoSource interface doesn't allow us to quickly lookup and create at the same time,
 		// so let's just do this manually here. Note: this will allow a user to dup impteamupgrade
 		// convs with unresolved assertions in them, the server can catch any normal convs being duped.
-		if override := GetOverrideNameInfoSource(ctx); override != nil {
+		if override, _ := types.CtxOverrideNameInfoSource(ctx); override != nil {
 			return override.LookupID(ctx, n.tlfName, isPublic)
 		}
 		team, _, impTeamName, err := teams.LookupOrCreateImplicitTeam(ctx, n.G().ExternalG(), n.tlfName,
@@ -1203,7 +1203,7 @@ func (n *newConversationHelper) makeFirstMessage(ctx context.Context, triple cha
 }
 
 func CreateNameInfoSource(ctx context.Context, g *globals.Context, membersType chat1.ConversationMembersType) types.NameInfoSource {
-	if override := GetOverrideNameInfoSource(ctx); override != nil {
+	if override, _ := types.CtxOverrideNameInfoSource(ctx); override != nil {
 		return override
 	}
 	switch membersType {
@@ -1218,11 +1218,4 @@ func CreateNameInfoSource(ctx context.Context, g *globals.Context, membersType c
 	}
 	g.GetLog().CDebugf(ctx, "createNameInfoSource: unknown members type, using KBFS: %v", membersType)
 	return NewKBFSNameInfoSource(g)
-}
-
-func GetOverrideNameInfoSource(ctx context.Context) types.NameInfoSource {
-	if override := ctx.Value(nameInfoOverrideKey); override != nil {
-		return override.(types.NameInfoSource)
-	}
-	return nil
 }

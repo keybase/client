@@ -101,7 +101,7 @@ func (h *Server) shouldSquashError(err error) bool {
 		return h.shouldSquashError(terr.Inner())
 	}
 	switch err {
-	case errConvLockTabDeadlock, context.Canceled:
+	case utils.ErrConvLockTabDeadlock, context.Canceled:
 		return true
 	}
 	return false
@@ -166,7 +166,7 @@ func (h *Server) suspendInboxSource(ctx context.Context) func() {
 func (h *Server) GetInboxNonblockLocal(ctx context.Context, arg chat1.GetInboxNonblockLocalArg) (res chat1.NonblockFetchRes, err error) {
 	var breaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &breaks, h.identNotifier)
-	ctx = makeLocalizerCancelableContext(ctx)
+	ctx = CtxAddLocalizerCancelable(ctx)
 	defer h.Trace(ctx, func() error { return err }, "GetInboxNonblockLocal")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()
 	defer func() { err = h.handleOfflineError(ctx, err, &res) }()
@@ -384,7 +384,7 @@ func (h *Server) GetInboxAndUnboxLocal(ctx context.Context, arg chat1.GetInboxAn
 	ctx = Context(ctx, h.G(), arg.IdentifyBehavior, &identBreaks, h.identNotifier)
 	if arg.Query != nil && arg.Query.TopicType != nil && *arg.Query.TopicType != chat1.TopicType_CHAT {
 		// make this cancelable for things like KBFS file edit convs
-		ctx = makeLocalizerCancelableContext(ctx)
+		ctx = CtxAddLocalizerCancelable(ctx)
 	}
 	defer h.Trace(ctx, func() error { return err }, "GetInboxAndUnboxLocal")()
 	defer func() { h.setResultRateLimit(ctx, &res) }()

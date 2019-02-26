@@ -26,22 +26,6 @@ type conversationLocalizer interface {
 	Name() string
 }
 
-type localizerCancelableKeyTyp int
-
-var localizerCancelableKey localizerCancelableKeyTyp
-
-func makeLocalizerCancelableContext(ctx context.Context) context.Context {
-	return context.WithValue(ctx, localizerCancelableKey, true)
-}
-
-func isLocalizerCancelableContext(ctx context.Context) bool {
-	val := ctx.Value(localizerCancelableKey)
-	if _, ok := val.(bool); ok {
-		return true
-	}
-	return false
-}
-
 type baseLocalizer struct {
 	globals.Contextified
 	utils.DebugLabeler
@@ -314,7 +298,7 @@ func (s *localizerPipeline) queue(ctx context.Context, uid gregor1.UID, convs []
 	}
 	job := newLocalizerPipelineJob(ctx, s.G(), uid, convs, retCh)
 	job.ctx, job.cancelFn = context.WithCancel(BackgroundContext(ctx, s.G()))
-	if isLocalizerCancelableContext(job.ctx) {
+	if types.IsLocalizerCancelableCtx(job.ctx) {
 		s.Debug(job.ctx, "queue: adding cancellable job")
 	}
 	s.jobQueue <- job
@@ -375,7 +359,7 @@ func (s *localizerPipeline) registerJobPull(ctx context.Context) (string, chan s
 	defer s.Unlock()
 	id := libkb.RandStringB64(3)
 	ch := make(chan struct{}, 1)
-	if isLocalizerCancelableContext(ctx) {
+	if types.IsLocalizerCancelableCtx(ctx) {
 		s.cancelChs[id] = ch
 	}
 	return id, ch
@@ -423,7 +407,7 @@ func (s *localizerPipeline) localizeJobPulled(job *localizerPipelineJob, stopCh 
 	s.Debug(job.ctx, "localizeJobPulled: pulling job: pending: %d completed: %d", job.numPending(),
 		job.numCompleted())
 	waitCh := make(chan struct{})
-	if !isLocalizerCancelableContext(job.ctx) {
+	if !types.IsLocalizerCancelableCtx(job.ctx) {
 		close(waitCh)
 	} else {
 		s.Debug(job.ctx, "localizeJobPulled: waiting for resume")

@@ -11,6 +11,7 @@ import (
 
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/chat/storage"
+	"github.com/keybase/client/go/chat/types"
 	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
@@ -261,7 +262,7 @@ func NewNameIdentifier(g *globals.Context) *NameIdentifier {
 func (t *NameIdentifier) Identify(ctx context.Context, names []string, private bool,
 	getTLFID func() keybase1.TLFID, getCanonicalName func() keybase1.CanonicalTlfName) (res []keybase1.TLFIdentifyFailure, err error) {
 	idNotifier := CtxIdentifyNotifier(ctx)
-	identBehavior, breaks, ok := IdentifyMode(ctx)
+	identBehavior, breaks, ok := types.IdentifyMode(ctx)
 	if !ok {
 		return res, fmt.Errorf("invalid context with no chat metadata")
 	}

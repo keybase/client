@@ -534,7 +534,7 @@ func (t *ImplicitTeamsNameInfoSource) identify(ctx context.Context, tlfID chat1.
 	names = append(names, impTeamName.Readers.KeybaseUsers...)
 
 	// identify the members in the conversation
-	identBehavior, _, ok := IdentifyMode(ctx)
+	identBehavior, _, ok := types.IdentifyMode(ctx)
 	if !ok {
 		return res, errors.New("invalid context with no chat metadata")
 	}

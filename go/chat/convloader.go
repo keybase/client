@@ -236,7 +236,7 @@ func (b *BackgroundConvLoader) isConvLoaderContext(ctx context.Context) bool {
 	return false
 }
 
-func (b *BackgroundConvLoader) setTestingNameInfoSource(ni types.NameInfoSource) {
+func (b *BackgroundConvLoader) setgNameInfoSource(ni types.NameInfoSource) {
 	b.Debug(context.TODO(), "setTestingNameInfoSource: setting to %T", ni)
 	b.testingNameInfoSource = ni
 }
@@ -439,7 +439,7 @@ func (b *BackgroundConvLoader) load(ictx context.Context, task clTask, uid grego
 	alKey := b.addActiveLoadLocked(al)
 	b.Unlock()
 	if b.testingNameInfoSource != nil {
-		ctx = CtxAddTestingNameInfoSource(ctx, b.testingNameInfoSource)
+		ctx = CtxAddOverrideNameInfoSource(ctx, b.testingNameInfoSource)
 		b.Debug(ctx, "setting testing nameinfo source: %T", b.testingNameInfoSource)
 	}
 	defer func() {
