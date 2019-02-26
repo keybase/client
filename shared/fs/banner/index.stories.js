@@ -83,6 +83,14 @@ export default () => {
     ))
     .add('SystemFileManagerIntegrationBanner - kext permissiion popup', () => (
       <KextPermissionPopup
+        isEnabling={false}
+        onCancel={Sb.action('onCancel')}
+        openSecurityPrefs={Sb.action('openSecurityPrefs')}
+      />
+    ))
+    .add('SystemFileManagerIntegrationBanner - kext permissiion popup - enabling', () => (
+      <KextPermissionPopup
+        isEnabling={true}
         onCancel={Sb.action('onCancel')}
         openSecurityPrefs={Sb.action('openSecurityPrefs')}
       />

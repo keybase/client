@@ -226,7 +226,7 @@ const driverEnableFuse = (state, action) =>
           FsGen.createDriverKextPermissionError(),
           ...(action.payload.isRetry ? [] : [RouteTreeGen.createNavigateAppend({path: ['kextPermission']})]),
         ]
-      : RPCTypes.installInstallKBFSRpcPromise()
+      : RPCTypes.installInstallKBFSRpcPromise() // restarts kbfsfuse
           .then(() => waitForMount(0))
           .then(() => FsGen.createRefreshDriverStatus())
   )
