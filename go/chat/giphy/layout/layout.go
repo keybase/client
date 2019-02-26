@@ -59,6 +59,7 @@ func layout(totalWidth int, widths []int) (finalRows [][]*image) {
 			row, nextIndex := pickRow(totalWidth, longRow, shortRow)
 			longRow = nil
 			index = nextIndex
+			curWidth = 0
 			finalRows = append(finalRows, row)
 		}
 	}
