@@ -1309,9 +1309,9 @@ function* messageSend(state, action) {
     stellarConfirmWindowResponse = response
     return Saga.put(Chat2Gen.createSetPaymentConfirmInfo({summary}))
   }
-  const onDataError = ({message}, response) => {
+  const onDataError = ({error}, response) => {
     stellarConfirmWindowResponse = response
-    return Saga.put(Chat2Gen.createSetPaymentConfirmInfoError({error: message}))
+    return Saga.put(Chat2Gen.createSetPaymentConfirmInfoError({error}))
   }
 
   try {

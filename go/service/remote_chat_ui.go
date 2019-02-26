@@ -4,6 +4,7 @@ import (
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/protocol/chat1"
+	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/go-framed-msgpack-rpc/rpc"
 )
 
@@ -87,10 +88,10 @@ func (r *RemoteChatUI) ChatStellarShowConfirm(ctx context.Context) error {
 	return r.cli.ChatStellarShowConfirm(ctx, r.sessionID)
 }
 
-func (r *RemoteChatUI) ChatStellarDataError(ctx context.Context, msg string) (bool, error) {
+func (r *RemoteChatUI) ChatStellarDataError(ctx context.Context, err keybase1.Status) (bool, error) {
 	return r.cli.ChatStellarDataError(ctx, chat1.ChatStellarDataErrorArg{
 		SessionID: r.sessionID,
-		Message:   msg,
+		Error:     err,
 	})
 }
 

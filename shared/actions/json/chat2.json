@@ -529,7 +529,7 @@
       "_description": "Set the payment confirm modal payment data",
       "summary": "RPCChatTypes.UIChatPaymentSummary",
       "canError": {
-        "error": "string"
+        "error": "RPCTypes.Status"
       }
     },
     "confirmScreenResponse": {

@@ -15,6 +15,7 @@ const PaymentsConfirmLoading = (props: LoadingProps) => (
 
 type ErrorProps = {|
   error: string,
+  errorIsNoWallet: boolean,
   onCancel: () => void,
   onWallet: () => void,
 |}
@@ -28,18 +29,20 @@ const _PaymentsConfirmError = (props: ErrorProps) => (
       fullHeight={true}
       style={styles.fullErrorContainer}
     >
-      <Kb.Text type="BodyExtrabold" style={styles.errorText}>
+      <Kb.Text type="BodyExtrabold" style={props.errorIsNoWallet ? styles.happyErrorText : styles.errorText}>
         {props.error}
       </Kb.Text>
-      <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
-        <Kb.Button type="Secondary" onClick={props.onCancel} style={styles.cancelButton} label="Cancel" />
-        <Kb.Button
-          style={styles.submitButton}
-          type="Primary"
-          onClick={props.onWallet}
-          label={'Set up wallet'}
-        />
-      </Kb.ButtonBar>
+      { props.errorIsNoWallet ?
+        <Kb.ButtonBar align="center" direction="row" fullWidth={true} style={styles.buttonBar}>
+          <Kb.Button type="Secondary" onClick={props.onCancel} style={styles.cancelButton} label="Cancel" />
+          <Kb.Button
+            style={styles.submitButton}
+            type="Primary"
+            onClick={props.onWallet}
+            label={'Set up wallet'}
+          />
+        </Kb.ButtonBar>
+        : null }
     </Kb.Box2>
   </Kb.Box2>
 )
@@ -75,6 +78,7 @@ const PaymentRow = (props: PaymentProps) => (
 type Props = {|
   displayTotal: string,
   error?: string,
+  errorIsNoWallet?: boolean,
   loading: boolean,
   onAccept: () => void,
   onCancel: () => void,
@@ -88,7 +92,7 @@ const PaymentsConfirm = (props: Props) => (
     {props.loading ? (
       <PaymentsConfirmLoading />
     ) : props.error ? (
-      <PaymentsConfirmError error={props.error} onCancel={props.onCancel} onWallet={props.onWallet} />
+      <PaymentsConfirmError error={props.error} errorIsNoWallet={props.errorIsNoWallet || false} onCancel={props.onCancel} onWallet={props.onWallet} />
     ) : (
       <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true} style={styles.container}>
         <Kb.Box2 direction="vertical" fullWidth={true} style={styles.totalContainer}>
@@ -170,6 +174,9 @@ const styles = Styles.styleSheetCreate({
   },
   errorText: {
     color: Styles.globalColors.red,
+  },
+  happyErrorText: {
+    color: Styles.globalColors.black,
   },
   fullErrorContainer: Styles.platformStyles({
     isElectron: {

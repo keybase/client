@@ -181,7 +181,7 @@ export type MessageTypes = {|
     outParam: Boolean,
   |},
   'chat.1.chatUi.chatStellarDataError': {|
-    inParam: $ReadOnly<{|message: String|}>,
+    inParam: $ReadOnly<{|error: Keybase1.Status|}>,
     outParam: Boolean,
   |},
   'chat.1.chatUi.chatStellarDone': {|

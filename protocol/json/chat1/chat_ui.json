@@ -1486,8 +1486,8 @@
           "type": "int"
         },
         {
-          "name": "message",
-          "type": "string"
+          "name": "error",
+          "type": "keybase1.Status"
         }
       ],
       "response": "boolean"

@@ -1240,11 +1240,11 @@ func (h *Server) runStellarSendUI(ctx context.Context, sessionID int, uid gregor
 	}()
 	uiSummary, toSend, err := h.G().StellarSender.DescribePayments(ctx, uid, convID, parsedPayments)
 	if err != nil {
-		errMessage := err.Error()
-		if libkb.IsAppStatusCode(err, keybase1.StatusCode_SCStellarMissingBundle) {
-			errMessage = "Wallet needed to send money in chat."
+		if err := libkb.ExportErrorAsStatus(h.G().GlobalContext, err); err != nil {
+			ui.ChatStellarDataError(ctx, *err)
+		} else {
+			h.Debug(ctx, "error exported to nothing") // should never happen
 		}
-		ui.ChatStellarDataError(ctx, errMessage)
 		return res, err
 	}
 	h.Debug(ctx, "runStellarSendUI: payments described, telling UI")

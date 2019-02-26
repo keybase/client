@@ -1,5 +1,6 @@
 // @flow
 import * as Chat2Gen from '../../../actions/chat2-gen'
+import * as RPCTypes from '../../../constants/types/rpc-gen'
 import * as RouteTreeGen from '../../../actions/route-tree-gen'
 import * as SettingsTabs from '../../../constants/settings'
 import * as Tabs from '../../../constants/tabs'
@@ -11,9 +12,11 @@ type OwnProps = {||}
 const mapStateToProps = (state, ownProps: OwnProps) => {
   const pinfo = state.chat2.paymentConfirmInfo
   const payments = pinfo?.summary?.payments || []
+  const errorIsNoWallet = pinfo?.error?.code == RPCTypes.constantsStatusCode.scstellarmissingbundle
   return {
     displayTotal: pinfo?.summary?.displayTotal,
-    error: pinfo?.error,
+    error: errorIsNoWallet ? "Wallet needed to send money in chat." : pinfo?.error?.desc,
+    errorIsNoWallet,
     loading: !pinfo,
     payments,
     xlmTotal: pinfo?.summary?.xlmTotal,
