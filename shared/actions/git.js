@@ -96,11 +96,14 @@ const clearBadgesAfterNav = (state, action) => {
   } else if (_wasOnGitTab) {
     _wasOnGitTab = false
     // clear badges
-    return RPCTypes.gregorDismissCategoryRpcPromise({
-      category: 'new_git_repo',
-    }).catch(logError)
+    return clearNavBadges()
   }
 }
+
+const clearNavBadges = () => console.log('AAA clerar badgessSSS')
+// RPCTypes.gregorDismissCategoryRpcPromise({
+// category: 'new_git_repo',
+// }).catch(logError)
 
 const handleIncomingGregor = (_, action) => {
   const gitMessages = action.payload.messages.filter(i => i.system === 'git')
@@ -174,7 +177,13 @@ function* gitSaga(): Saga.SagaGenerator<any, any> {
     NotificationsGen.receivedBadgeState,
     receivedBadgeState
   )
-  yield* Saga.chainAction<RouteTreeGen.SwitchToPayload>(RouteTreeGen.switchTo, clearBadgesAfterNav)
+
+  if (flags.useNewRouter) {
+    // clear on load
+    yield* Saga.chainAction<GitGen.LoadGitPayload>(GitGen.loadGit, clearNavBadges)
+  } else {
+    yield* Saga.chainAction<RouteTreeGen.SwitchToPayload>(RouteTreeGen.switchTo, clearBadgesAfterNav)
+  }
 
   // Gregor
   yield* Saga.chainAction<GregorGen.PushOOBMPayload>(GregorGen.pushOOBM, handleIncomingGregor)

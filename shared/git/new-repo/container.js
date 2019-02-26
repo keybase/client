@@ -20,6 +20,7 @@ const mapStateToProps = (state, {routeProps, navigation}) => ({
 
 const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp, routeProps, navigation}) => ({
   loadTeams: () => dispatch(TeamsGen.createGetTeams()),
+  onCancel: () => dispatch(navigateUp()),
   onClose: () => dispatch(navigateUp()),
   onCreate: (name: string, teamname: ?string, notifyTeam: boolean) => {
     const isTeam = navigation ? navigation.getParam('isTeam') : routeProps.get('isTeam')

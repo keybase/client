@@ -202,4 +202,4 @@ const _addIconStyle = {
   marginBottom: 27,
 }
 
-export default (flags.useNewRouter ? Kb.MaybePopupHoc(Styles.isMobile)(NewRepo) : NewRepo)
+export default (flags.useNewRouter ? Kb.HeaderOrPopup(NewRepo) : NewRepo)

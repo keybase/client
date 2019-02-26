@@ -19,6 +19,8 @@ export default function(state: Types.State = initialState, action: GitGen.Action
       return state.merge({error: action.payload.error})
     case GitGen.badgeAppForGit:
       return state.merge({isNew: I.Set(action.payload.ids)})
+    case GitGen.clearBadges:
+      return state.merge({isNew: I.Set()})
     // Clear errors
     case GitGen.loadGit:
     case GitGen.createPersonalRepo:
@@ -30,6 +32,7 @@ export default function(state: Types.State = initialState, action: GitGen.Action
     case GitGen.navToGit:
     case GitGen.navigateToTeamRepo:
     case GitGen.repoCreated:
+    case GitGen.clearNavBadges:
     case GitGen.repoDeleted:
     case GitGen.setTeamRepoSettings:
       return state

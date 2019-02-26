@@ -43,6 +43,12 @@
     "navigateToTeamRepo": {
       "repoID": "string",
       "teamname": "string"
+    },
+    "clearNavBadges": {
+      "_description": "clears the nav badges",
+    },
+    "clearBadges": {
+      "_description": "clears badges in the rows",
     }
   }
 }

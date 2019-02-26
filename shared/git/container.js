@@ -40,6 +40,7 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp}) => ({
   _loadGit: () => dispatch(GitGen.createLoadGit()),
+  clearBadges: () => dispatch(GitGen.createClearBadges()),
   onBack: () => dispatch(navigateUp()),
   onNewPersonalRepo: () => {
     dispatch(GitGen.createSetError({error: null}))
@@ -53,6 +54,18 @@ const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp}) => ({
     dispatch(GitGen.createSetError({error: null}))
     dispatch(navigateAppend([{props: {id}, selected: 'gitDeleteRepo'}]))
   },
+})
+
+const mergeProps = (stateProps, dispatchProps, ownProps) => ({
+  _loadGit: dispatchProps._loadGit,
+  clearBadges: dispatchProps.clearBadges,
+  loading: stateProps.loading,
+  onBack: dispatchProps.onBack,
+  onNewPersonalRepo: dispatchProps.onNewPersonalRepo,
+  onNewTeamRepo: dispatchProps.onNewTeamRepo,
+  onShowDelete: dispatchProps.onShowDelete,
+  personals: stateProps.personals,
+  teams: stateProps.teams,
 })
 
 // keep track in the module
@@ -77,40 +90,24 @@ class GitReloadable extends React.PureComponent<
     this.setState({expandedSet: _expandedSet})
   }
 
+  componentWillUnmount() {
+    this.props.clearBadges()
+  }
+
   render() {
+    const {_loadGit, clearBadges, ...rest} = this.props
     return (
       <Kb.Reloadable
         waitingKeys={Constants.loadingWaitingKey}
         onBack={isMobile ? this.props.onBack : undefined}
-        onReload={this.props._loadGit}
+        onReload={_loadGit}
         reloadOnMount={true}
       >
-        <Git
-          expandedSet={this.state.expandedSet}
-          loading={this.props.loading}
-          onShowDelete={this.props.onShowDelete}
-          onNewPersonalRepo={this.props.onNewPersonalRepo}
-          onNewTeamRepo={this.props.onNewTeamRepo}
-          onToggleExpand={this._toggleExpand}
-          personals={this.props.personals}
-          teams={this.props.teams}
-          onBack={this.props.onBack}
-        />
+        <Git expandedSet={this.state.expandedSet} onToggleExpand={this._toggleExpand} {...rest} />
       </Kb.Reloadable>
     )
   }
 }
-
-const mergeProps = (s, d, o) => ({
-  _loadGit: d._loadGit,
-  loading: s.loading,
-  onBack: d.onBack,
-  onNewPersonalRepo: d.onNewPersonalRepo,
-  onNewTeamRepo: d.onNewTeamRepo,
-  onShowDelete: d.onShowDelete,
-  personals: s.personals,
-  teams: s.teams,
-})
 
 export default compose(
   connect<OwnProps, _, _, _, _>(

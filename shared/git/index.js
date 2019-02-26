@@ -1,23 +1,13 @@
 // @flow
 import * as React from 'react'
 import * as I from 'immutable'
+import * as Kb from '../common-adapters'
+import * as Styles from '../styles'
 import Row from './row/container'
-import {
-  Box,
-  Text,
-  Icon,
-  ClickableBox,
-  ProgressIndicator,
-  ScrollView,
-  HeaderOnMobile,
-  FloatingMenu,
-  OverlayParentHOC,
-  type OverlayParentProps,
-} from '../common-adapters'
-import {globalStyles, globalColors, globalMargins, isMobile} from '../styles'
 
-type Props = {
+type Props = {|
   expandedSet: I.Set<string>,
+  clearBadges: () => void,
   loading: boolean,
   onShowDelete: (id: string) => void,
   onNewPersonalRepo: () => void,
@@ -25,19 +15,19 @@ type Props = {
   onToggleExpand: (id: string) => void,
   personals: Array<string>,
   teams: Array<string>,
-}
+|}
 
-class _Git extends React.Component<Props & OverlayParentProps, {}> {
+class _Git extends React.Component<Props & Kb.OverlayParentProps, {}> {
   _menuItems = [
     {
       onClick: () => this.props.onNewPersonalRepo(),
       title: 'New personal repository',
     },
     {
-      disabled: isMobile,
-      onClick: isMobile ? undefined : () => this.props.onNewTeamRepo(),
-      style: isMobile ? {paddingLeft: 0, paddingRight: 0} : {},
-      title: `New team repository${isMobile ? ' (desktop only)' : ''}`,
+      disabled: Styles.isMobile,
+      onClick: Styles.isMobile ? undefined : () => this.props.onNewTeamRepo(),
+      style: Styles.isMobile ? {paddingLeft: 0, paddingRight: 0} : {},
+      title: `New team repository${Styles.isMobile ? ' (desktop only)' : ''}`,
     },
   ]
 
@@ -50,45 +40,53 @@ class _Git extends React.Component<Props & OverlayParentProps, {}> {
 
   render() {
     return (
-      <Box style={_gitStyle}>
-        <ClickableBox
+      <Kb.Box style={_gitStyle}>
+        <Kb.ClickableBox
           ref={this.props.setAttachmentRef}
           style={_headerStyle}
           onClick={this.props.toggleShowingMenu}
         >
-          <Icon
+          <Kb.Icon
             type="iconfont-new"
-            style={{marginRight: globalMargins.tiny}}
-            color={globalColors.blue}
-            fontSize={isMobile ? 20 : 16}
+            style={{marginRight: Styles.globalMargins.tiny}}
+            color={Styles.globalColors.blue}
+            fontSize={Styles.isMobile ? 20 : 16}
           />
-          <Text type="BodyBigLink">New encrypted git repository...</Text>
-        </ClickableBox>
-        <ScrollView>
-          <Box style={_sectionHeaderStyle}>
-            <Text type="BodySmallSemibold">Personal</Text>
+          <Kb.Text type="BodyBigLink">New encrypted git repository...</Kb.Text>
+        </Kb.ClickableBox>
+        <Kb.ScrollView>
+          <Kb.Box style={_sectionHeaderStyle}>
+            <Kb.Text type="BodySmallSemibold">Personal</Kb.Text>
             {this.props.loading && (
-              <ProgressIndicator
-                style={{alignSelf: 'center', marginLeft: globalMargins.small, width: globalMargins.small}}
+              <Kb.ProgressIndicator
+                style={{
+                  alignSelf: 'center',
+                  marginLeft: Styles.globalMargins.small,
+                  width: Styles.globalMargins.small,
+                }}
               />
             )}
-          </Box>
+          </Kb.Box>
           {this.props.personals.map(p => (
             <Row key={p} {...this._rowPropsToProps(p)} />
           ))}
-          <Box style={_sectionHeaderStyle}>
-            <Text type="BodySmallSemibold">Team</Text>
+          <Kb.Box style={_sectionHeaderStyle}>
+            <Kb.Text type="BodySmallSemibold">Team</Kb.Text>
             {this.props.loading && (
-              <ProgressIndicator
-                style={{alignSelf: 'center', marginLeft: globalMargins.small, width: globalMargins.small}}
+              <Kb.ProgressIndicator
+                style={{
+                  alignSelf: 'center',
+                  marginLeft: Styles.globalMargins.small,
+                  width: Styles.globalMargins.small,
+                }}
               />
             )}
-          </Box>
+          </Kb.Box>
           {this.props.teams.map(p => (
             <Row key={p} {...this._rowPropsToProps(p)} />
           ))}
-        </ScrollView>
-        <FloatingMenu
+        </Kb.ScrollView>
+        <Kb.FloatingMenu
           attachTo={this.props.getAttachmentRef}
           closeOnSelect={true}
           items={this._menuItems}
@@ -96,33 +94,33 @@ class _Git extends React.Component<Props & OverlayParentProps, {}> {
           visible={this.props.showingMenu}
           position="bottom center"
         />
-      </Box>
+      </Kb.Box>
     )
   }
 }
-const Git = OverlayParentHOC(_Git)
+const Git = Kb.OverlayParentHOC(_Git)
 
 const _sectionHeaderStyle = {
-  ...globalStyles.flexBoxRow,
+  ...Styles.globalStyles.flexBoxRow,
   alignItems: 'center',
-  height: isMobile ? 32 : 24,
-  marginTop: globalMargins.small,
-  paddingLeft: globalMargins.tiny,
+  height: Styles.isMobile ? 32 : 24,
+  marginTop: Styles.globalMargins.small,
+  paddingLeft: Styles.globalMargins.tiny,
   width: '100%',
 }
 
 const _headerStyle = {
-  ...globalStyles.flexBoxCenter,
-  ...globalStyles.flexBoxRow,
+  ...Styles.globalStyles.flexBoxCenter,
+  ...Styles.globalStyles.flexBoxRow,
   flexShrink: 0,
   height: 48,
 }
 
 const _gitStyle = {
-  ...globalStyles.flexBoxColumn,
+  ...Styles.globalStyles.flexBoxColumn,
   height: '100%',
   position: 'relative',
   width: '100%',
 }
 
-export default HeaderOnMobile(Git)
+export default Kb.HeaderOnMobile(Git)
