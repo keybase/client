@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/gregor1"
+	"github.com/keybase/clockwork"
 	"github.com/stretchr/testify/require"
 )
 
@@ -374,4 +375,94 @@ func TestFlipManagerLoadFlip(t *testing.T) {
 		tc.Context().CoinFlipManager.(*FlipManager).clearGameCache()
 		testLoadFlip()
 	})
+}
+
+func TestFlipManagerRateLimit(t *testing.T) {
+	ctc := makeChatTestContext(t, "TestFlipManagerRateLimit", 2)
+	defer ctc.cleanup()
+	users := ctc.users()
+	useRemoteMock = false
+	defer func() { useRemoteMock = true }()
+
+	ui0 := kbtest.NewChatUI()
+	ui1 := kbtest.NewChatUI()
+	ctc.as(t, users[0]).h.mockChatUI = ui0
+	ctc.as(t, users[1]).h.mockChatUI = ui1
+	ctc.world.Tcs[users[0].Username].G.UIRouter = &fakeUIRouter{ui: ui0}
+	ctc.world.Tcs[users[1].Username].G.UIRouter = &fakeUIRouter{ui: ui1}
+	listener0 := newServerChatListener()
+	listener1 := newServerChatListener()
+	ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
+	ctc.as(t, users[1]).h.G().NotifyRouter.AddListener(listener1)
+	flip.DefaultCommitmentWindowMsec = 500
+	tc := ctc.world.Tcs[users[0].Username]
+	tc1 := ctc.world.Tcs[users[1].Username]
+	clock := clockwork.NewFakeClock()
+	flipmgr := tc.Context().CoinFlipManager.(*FlipManager)
+	flipmgr1 := tc1.Context().CoinFlipManager.(*FlipManager)
+	flipmgr.clock = clock
+	flipmgr1.clock = clock
+	flipmgr.testingServerClock = clock
+	flipmgr1.testingServerClock = clock
+	flipmgr.maxConvParticipations = 1
+	simRealClock := func(stopCh chan struct{}) {
+		t := time.NewTicker(100 * time.Millisecond)
+		for {
+			select {
+			case <-t.C:
+				clock.Advance(100 * time.Millisecond)
+			case <-stopCh:
+				return
+			}
+		}
+	}
+
+	conv := mustCreateConversationForTest(t, ctc, users[0], chat1.TopicType_CHAT,
+		chat1.ConversationMembersType_IMPTEAMNATIVE, ctc.as(t, users[1]).user())
+	mustPostLocalForTest(t, ctc, users[0], conv,
+		chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body: "/flip",
+		}))
+	consumeNewMsgRemote(t, listener0, chat1.MessageType_FLIP)
+	consumeNewMsgRemote(t, listener1, chat1.MessageType_FLIP)
+	stopCh := make(chan struct{})
+	go simRealClock(stopCh)
+	res := consumeFlipToResult(t, ui0, listener0, 2)
+	require.True(t, res == "HEADS" || res == "TAILS")
+	res1 := consumeFlipToResult(t, ui1, listener1, 2)
+	require.Equal(t, res, res1)
+	close(stopCh)
+
+	clock.Advance(time.Minute)
+	mustPostLocalForTest(t, ctc, users[1], conv,
+		chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body: "/flip",
+		}))
+	select {
+	case <-ui0.CoinFlipUpdates:
+		require.Fail(t, "no update for 0")
+	default:
+	}
+	consumeNewMsgRemote(t, listener0, chat1.MessageType_FLIP) // host message
+	stopCh = make(chan struct{})
+	go simRealClock(stopCh)
+	res = consumeFlipToResult(t, ui1, listener1, 1)
+	require.True(t, res == "HEADS" || res == "TAILS")
+	close(stopCh)
+
+	clock.Advance(10 * time.Minute)
+	mustPostLocalForTest(t, ctc, users[0], conv,
+		chat1.NewMessageBodyWithText(chat1.MessageText{
+			Body: "/flip",
+		}))
+	consumeNewMsgRemote(t, listener0, chat1.MessageType_FLIP)
+	consumeNewMsgRemote(t, listener1, chat1.MessageType_FLIP)
+	stopCh = make(chan struct{})
+	go simRealClock(stopCh)
+	res = consumeFlipToResult(t, ui0, listener0, 2)
+	require.True(t, res == "HEADS" || res == "TAILS")
+	res1 = consumeFlipToResult(t, ui1, listener1, 2)
+	require.Equal(t, res, res1)
+	close(stopCh)
+
 }
