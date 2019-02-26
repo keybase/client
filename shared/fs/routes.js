@@ -6,7 +6,7 @@ import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 const routeTree = () => {
   const Files = require('./container').default
   const {BarePreview} = require('./filepreview')
-  const SecurityPrefs = require('./common/security-prefs-container').default
+  const KextPermissionPopup = require('./banner/fileui-banner/kext-permission-popup-container').default
   const DestinationPicker = require('./destination-picker/container').default
   const SendLinkToChat = require('./send-link-to-chat/container').default
   const Oops = require('./oops/container').default
@@ -26,9 +26,17 @@ const routeTree = () => {
 
   const _commonChildren = {
     destinationPicker: () => makeRouteDefNode(_destinationPicker),
-    securityPrefs: {
-      component: SecurityPrefs,
-    },
+    ...(isMobile
+      ? {}
+      : {
+          kextPermission: {
+            component: KextPermissionPopup,
+            tags: makeLeafTags({
+              layerOnTop: true,
+              renderTopmostOnly: true,
+            }),
+          },
+        }),
     sendLinkToChat: {
       component: SendLinkToChat,
       tags: makeLeafTags({
@@ -79,7 +87,6 @@ export const newRoutes = {
   barePreview: {getScreen: () => require('./filepreview').BarePreview},
   destinationPicker: {getScreen: () => require('./destination-picker/container').default},
   oops: {getScreen: () => require('./oops/container').default},
-  securityPrefs: {getScreen: () => require('./common/security-prefs-container').default},
   sendLinkToChat: {getScreen: () => require('./send-link-to-chat/container').default},
   'tabs.fsTab': {getScreen: () => require('./container').default},
 }

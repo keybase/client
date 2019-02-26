@@ -1,90 +1,80 @@
 // @flow
 import * as React from 'react'
-import {Box, Text, Icon, Checkbox, ClickableBox} from '../../common-adapters'
-import {fileUIName, isMobile, isLinux} from '../../constants/platform'
-import {globalStyles, globalMargins, globalColors} from '../../styles'
-import FileBanner from '../../fs/banner/fileui-banner'
+import * as Types from '../../constants/types/fs'
+import * as Kb from '../../common-adapters'
+import {fileUIName, isLinux} from '../../constants/platform'
+import * as Styles from '../../styles'
+import FileUIBanner from '../../fs/banner/fileui-banner/container'
 
-type Props = {
-  kbfsEnabled: boolean,
-  inProgress: boolean,
-  showSecurityPrefsLink: boolean,
-  showSecurityPrefs: () => void,
-  onInstall: () => void,
-  onUninstall: () => void,
-}
+type Props = {|
+  driverStatus: Types.DriverStatus,
+  onEnable: () => void,
+  onDisable: () => void,
+  onShowKextPermissionPopup: () => void,
+|}
 
-const checkBoxComponent = (
-  <Box style={globalStyles.flexBoxColumn}>
-    <Text type="Body">Enable Keybase in {fileUIName}</Text>
-    <Text type="BodySmall">Access your Keybase files just like you normally do with your local files.</Text>
-  </Box>
+const EnableFileUI = (props: Props) => (
+  <Kb.Box style={Styles.globalStyles.flexBoxColumn}>
+    <Kb.Text type="Body">Enable Keybase in {fileUIName}</Kb.Text>
+    <Kb.Text type="BodySmall">
+      Access your Keybase files just like you normally do with your local files.
+    </Kb.Text>
+  </Kb.Box>
 )
 
-const Files = isMobile
-  ? () => <Box />
-  : ({kbfsEnabled, inProgress, showSecurityPrefsLink, onInstall, onUninstall, showSecurityPrefs}: Props) => (
-      <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-        <FileBanner
-          inProgress={inProgress}
-          kbfsEnabled={kbfsEnabled}
-          onInstall={onInstall}
-          onUninstall={onUninstall}
-          showBanner={true}
-        />
-        <Box style={mainContentStyle}>
-          {!isLinux && (
-            <Box>
-              <Box style={contentHeaderStyle}>
-                <Text type="BodySmallSemibold">{fileUIName} integration</Text>
-                <Icon
-                  type="iconfont-finder"
-                  style={contentHeaderIconStyle}
-                  fontSize={16}
-                  color={globalColors.black_20}
-                />
-                {showSecurityPrefsLink && (
-                  <ClickableBox style={actionNeededBoxStyle} onClick={showSecurityPrefs}>
-                    <Text style={actionNeededTextStyle} type="BodySmallSemibold">
-                      Action needed!
-                    </Text>
-                  </ClickableBox>
-                )}
-              </Box>
-              <Checkbox
-                onCheck={kbfsEnabled ? onUninstall : onInstall}
-                labelComponent={checkBoxComponent}
-                checked={kbfsEnabled}
-                disabled={inProgress}
-              />
-            </Box>
-          )}
-        </Box>
-      </Box>
-    )
+const isPending = (props: Props) =>
+  props.driverStatus.type === 'unknown' ||
+  (props.driverStatus.type === 'enabled' && props.driverStatus.isDisabling) ||
+  (props.driverStatus.type === 'disabled' && props.driverStatus.isEnabling)
 
-const mainContentStyle = {
-  ...globalStyles.flexBoxColumn,
-  flex: 1,
-  paddingLeft: globalMargins.tiny,
-  paddingTop: globalMargins.medium,
-}
+const Files = (props: Props) => (
+  <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
+    <FileUIBanner alwaysShow={true} />
+    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.mainContent}>
+      {!isLinux && (
+        <Kb.Box>
+          <Kb.Box2 direction="horizontal" gap="tiny" style={styles.contentHeader}>
+            <Kb.Text type="BodySmallSemibold">{fileUIName} integration</Kb.Text>
+            <Kb.Icon type="iconfont-finder" fontSize={16} color={Styles.globalColors.black_20} />
+            {isPending(props) && <Kb.ProgressIndicator style={styles.spinner} />}
+            {props.driverStatus.type === 'disabled' && props.driverStatus.kextPermissionError && (
+              <Kb.ClickableBox style={styles.actionNeededBox} onClick={props.onShowKextPermissionPopup}>
+                <Kb.Text style={styles.actionNeededText} type="BodySmallSemibold">
+                  Action needed!
+                </Kb.Text>
+              </Kb.ClickableBox>
+            )}
+          </Kb.Box2>
+          <Kb.Checkbox
+            onCheck={props.driverStatus.type === 'enabled' ? props.onDisable : props.onEnable}
+            labelComponent={<EnableFileUI {...props} />}
+            checked={props.driverStatus.type === 'enabled'}
+            disabled={isPending(props)}
+          />
+        </Kb.Box>
+      )}
+    </Kb.Box2>
+  </Kb.Box2>
+)
 
-const contentHeaderStyle = {
-  ...globalStyles.flexBoxRow,
-  paddingBottom: globalMargins.tiny,
-}
-
-const contentHeaderIconStyle = {
-  paddingLeft: globalMargins.tiny,
-}
-
-const actionNeededBoxStyle = {
-  marginLeft: globalMargins.medium,
-}
-
-const actionNeededTextStyle = {
-  color: globalColors.red,
-}
+const styles = Styles.styleSheetCreate({
+  actionNeededBox: {
+    marginLeft: Styles.globalMargins.medium,
+  },
+  actionNeededText: {
+    color: Styles.globalColors.red,
+  },
+  contentHeader: {
+    paddingBottom: Styles.globalMargins.tiny,
+  },
+  mainContent: {
+    paddingLeft: Styles.globalMargins.xsmall,
+    paddingTop: Styles.globalMargins.medium,
+  },
+  spinner: {
+    height: 16,
+    width: 16,
+  },
+})
 
 export default Files

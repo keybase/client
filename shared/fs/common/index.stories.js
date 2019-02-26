@@ -5,6 +5,7 @@ import {isMobile} from '../../constants/platform'
 import * as Sb from '../../stories/storybook'
 import * as Styles from '../../styles'
 import * as Types from '../../constants/types/fs'
+import * as Constants from '../../constants/fs'
 import * as Kb from '../../common-adapters'
 import PathItemAction from './path-item-action'
 import PathItemIcon, {type Size} from './path-item-icon'
@@ -80,6 +81,12 @@ export const commonProvider = {
   TlfInfo: ({path, mode}: PathItemInfoOwnProps) => ({
     mode,
     reset: ['foo', 'bar', 'cue'],
+  }),
+  TryEnableDriverOnFocus: () => ({
+    appFocusedCount: 1,
+    driverStatus: Constants.makeDriverStatusEnabled(),
+    onEnabled: Sb.action('onEnabled'),
+    refreshDriverStatus: Sb.action('refreshDriverStatus'),
   }),
 }
 
