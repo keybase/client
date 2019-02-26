@@ -32,31 +32,31 @@ const showUserEmailOnNoErrors = (state: TypedState) => {
     return (
       noErrors(state) && [
         RouteTreeGen.createNavigateUp(),
-        RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['usernameAndEmail']}),
+        RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupUsernameAndEmail']}),
       ]
     )
   } else {
     return (
       noErrors(state) &&
-      RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['usernameAndEmail']})
+      RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupUsernameAndEmail']})
     )
   }
 }
 
 const showInviteScreen = () =>
-  RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['inviteCode']})
+  RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupInviteCode']})
 
 const showInviteSuccessOnNoErrors = (state: TypedState) =>
   noErrors(state) &&
-  RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['requestInviteSuccess']})
+  RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupRequestInviteSuccess']})
 
 const goToLoginRoot = () => RouteTreeGen.createNavigateTo({parentPath: [loginTab], path: []})
 
 const showPassphraseOnNoErrors = (state: TypedState) =>
-  noErrors(state) && RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['passphraseSignup']})
+  noErrors(state) && RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupPassphrase']})
 
 const showDeviceScreenOnNoErrors = (state: TypedState) =>
-  noErrors(state) && RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['deviceName']})
+  noErrors(state) && RouteTreeGen.createNavigateAppend({parentPath: [loginTab], path: ['signupDeviceName']})
 
 const showErrorOrCleanupAfterSignup = (state: TypedState) =>
   noErrors(state)

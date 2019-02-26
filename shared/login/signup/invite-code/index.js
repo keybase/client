@@ -16,7 +16,7 @@ type State = {|
 |}
 
 class InviteCode extends React.Component<Props, State> {
-  state = {inviteCode: '', loading: true}
+  state = {inviteCode: '', loading: !__STORYSHOT__}
   _loadingID: ?TimeoutID
   _doneLoading = () => this.setState({loading: false})
 
