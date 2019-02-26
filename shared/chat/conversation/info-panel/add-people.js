@@ -7,13 +7,17 @@ import {teamsTab} from '../../../constants/tabs'
 
 type Props = {
   attachTo: () => ?React.Component<any>,
+  showChannelOption: boolean,
   visible: boolean,
   onAddPeople: () => void,
   onHidden: () => void,
 }
 
 const AddPeopleHow = (props: Props) => {
-  const items = [{onClick: props.onAddPeople, title: 'To team'}, {disabled: true, title: 'To channel'}]
+  const items = [{onClick: props.onAddPeople, title: 'To team'}]
+  if (props.showChannelOption) {
+    items.push({disabled: true, title: 'To channel'})
+  }
 
   return (
     <FloatingMenu
@@ -29,6 +33,7 @@ const AddPeopleHow = (props: Props) => {
 
 type OwnProps = {
   attachTo: () => ?React.Component<any>,
+  showChannelOption: boolean,
   onHidden: () => void,
   teamname: string,
   visible: boolean,
@@ -54,13 +59,14 @@ const ConnectedAddPeopleHow = connect<OwnProps, _, _, _, _>(
   (s, d, o) => ({...o, ...s, ...d})
 )(AddPeopleHow)
 
-const _AddPeople = (props: {teamname: string} & OverlayParentProps) => {
+const _AddPeople = (props: {smallTeam: boolean, teamname: string} & OverlayParentProps) => {
   return (
     <Box2 direction="horizontal" centerChildren={true}>
       <ConnectedAddPeopleHow
         attachTo={props.getAttachmentRef}
         visible={props.showingMenu}
         teamname={props.teamname}
+        showChannelOption={!props.smallTeam}
         onHidden={props.toggleShowingMenu}
       />
       <Button

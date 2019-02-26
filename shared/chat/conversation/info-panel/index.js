@@ -77,6 +77,7 @@ type AddPeopleRow = {
   type: 'add people',
   key: 'add people',
   teamname: string,
+  isSmallTeam: boolean,
 }
 
 type ParticipantRow = {|
@@ -292,7 +293,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
   _renderRow = (i: number, row: Row): React.Node => {
     switch (row.type) {
       case 'add people':
-        return <AddPeople key="add people" teamname={row.teamname} />
+        return <AddPeople key="add people" smallTeam={row.isSmallTeam} teamname={row.teamname} />
       case 'participant':
         return <Participant key={`participant ${row.key}`} {...row} />
 
@@ -453,6 +454,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           type: 'small team header',
         },
       ]
+      let addPeopleRow = false
       if (props.admin && props.teamname && !props.isPreview) {
         subHeaderRows.push(
           {
@@ -461,8 +463,9 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             marginTop: 8,
             type: 'divider',
           },
-          {key: 'add people', teamname: props.teamname, type: 'add people'}
+          {isSmallTeam: props.smallTeam, key: 'add people', teamname: props.teamname, type: 'add people'}
         )
+        addPeopleRow = true
       }
       if (props.smallTeam) {
         // Small team.
@@ -472,7 +475,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
           {
             key: nextKey(),
             marginBottom: 20,
-            marginTop: 20,
+            marginTop: addPeopleRow ? 8 : 20,
             type: 'divider',
           },
           {
