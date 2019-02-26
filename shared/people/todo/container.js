@@ -178,7 +178,7 @@ const GitRepoConnector = connect<TodoOwnProps, _, _, _, _>(
       dispatch(
         RouteTreeGen.createNavigateTo({
           parentPath: [Tabs.gitTab],
-          path: [{props: {isTeam: false}, selected: 'newRepo'}],
+          path: [{props: {isTeam: false}, selected: 'gitNewRepo'}],
         })
       )
       dispatch(RouteTreeGen.createSwitchTo({path: [Tabs.gitTab]}))

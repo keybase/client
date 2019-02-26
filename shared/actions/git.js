@@ -13,6 +13,7 @@ import * as Tabs from '../constants/tabs'
 import {isMobile} from '../constants/platform'
 import type {TypedState} from '../util/container'
 import {logError} from '../util/errors'
+import flags from '../util/feature-flags'
 
 const load = (state: TypedState) =>
   state.config.loggedIn &&
@@ -153,11 +154,13 @@ function* gitSaga(): Saga.SagaGenerator<any, any> {
   )
 
   // Nav*
-  yield* Saga.chainAction<GitGen.NavToGitPayload>(GitGen.navToGit, navToGit)
-  yield* Saga.chainAction<GitGen.RepoCreatedPayload | GitGen.RepoDeletedPayload>(
-    [GitGen.repoCreated, GitGen.repoDeleted],
-    navBack
-  )
+  if (!flags.useNewRouter) {
+    yield* Saga.chainAction<GitGen.NavToGitPayload>(GitGen.navToGit, navToGit)
+    yield* Saga.chainAction<GitGen.RepoCreatedPayload | GitGen.RepoDeletedPayload>(
+      [GitGen.repoCreated, GitGen.repoDeleted],
+      navBack
+    )
+  }
 
   // Loading
   yield* Saga.chainAction<GitGen.LoadedPayload>(GitGen.loaded, surfaceGlobalErrors)

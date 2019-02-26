@@ -4,6 +4,7 @@ import * as GitGen from '../../actions/git-gen'
 import * as Constants from '../../constants/git'
 import DeleteRepo from '.'
 import {connect, type RouteProps} from '../../util/container'
+import flags from '../../util/feature-flags'
 
 type OwnProps = RouteProps<{id: string}, {}>
 
@@ -25,6 +26,9 @@ const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp}) => ({
       ? GitGen.createDeleteTeamRepo({name, notifyTeam, teamname})
       : GitGen.createDeletePersonalRepo({name})
     dispatch(deleteAction)
+    if (flags.useNewRouter) {
+      dispatch(navigateUp())
+    }
   },
   onClose: () => dispatch(navigateUp()),
 })

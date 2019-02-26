@@ -1,7 +1,8 @@
 // @flow
 import * as React from 'react'
-import {Avatar, Box, Text, Icon, Input, Checkbox, ScrollView, WaitingButton} from '../../common-adapters'
-import {globalStyles, globalMargins, globalColors, isMobile} from '../../styles'
+import * as Kb from '../../common-adapters'
+import * as Styles from '../../styles'
+import flags from '../../util/feature-flags'
 
 type Props = {
   error: ?Error,
@@ -43,53 +44,56 @@ class DeleteRepo extends React.Component<Props, State> {
 
   render() {
     return (
-      <ScrollView>
-        <Box style={_containerStyle}>
+      <Kb.ScrollView>
+        <Kb.Box style={_containerStyle}>
           {!!this.props.error && (
-            <Box
+            <Kb.Box
               style={{
                 alignSelf: 'stretch',
-                backgroundColor: globalColors.red,
-                marginBottom: globalMargins.small,
-                padding: globalMargins.tiny,
+                backgroundColor: Styles.globalColors.red,
+                marginBottom: Styles.globalMargins.small,
+                padding: Styles.globalMargins.tiny,
               }}
             >
-              <Text type="Body" negative={true}>
+              <Kb.Text type="Body" negative={true}>
                 {this.props.error.message}
-              </Text>
-            </Box>
+              </Kb.Text>
+            </Kb.Box>
           )}
-          <Text type="Header" style={{marginBottom: 27}}>
+          <Kb.Text type="Header" style={{marginBottom: 27}}>
             Are you sure you want to delete this {this.props.teamname ? 'team ' : ''}
             repository?
-          </Text>
-          <Icon type={this.props.teamname ? 'icon-repo-team-delete-48' : 'icon-repo-personal-delete-48'} />
-          <Box
+          </Kb.Text>
+          <Kb.Icon type={this.props.teamname ? 'icon-repo-team-delete-48' : 'icon-repo-personal-delete-48'} />
+          <Kb.Box
             style={{
-              ...globalStyles.flexBoxRow,
+              ...Styles.globalStyles.flexBoxRow,
               alignItems: 'center',
-              marginBottom: globalMargins.medium,
+              marginBottom: Styles.globalMargins.medium,
             }}
           >
             {!!this.props.teamname && (
-              <Avatar
+              <Kb.Avatar
                 isTeam={true}
                 teamname={this.props.teamname}
                 size={16}
-                style={{marginRight: globalMargins.xtiny}}
+                style={{marginRight: Styles.globalMargins.xtiny}}
               />
             )}
-            <Text type="BodySemibold" style={{color: globalColors.red, textDecorationLine: 'line-through'}}>
+            <Kb.Text
+              type="BodySemibold"
+              style={{color: Styles.globalColors.red, textDecorationLine: 'line-through'}}
+            >
               {this.props.teamname ? `${this.props.teamname}/${this.props.name}` : this.props.name}
-            </Text>
-          </Box>
-          <Text center={true} type="Body" style={{marginBottom: globalMargins.medium}}>
+            </Kb.Text>
+          </Kb.Box>
+          <Kb.Text center={true} type="Body" style={{marginBottom: Styles.globalMargins.medium}}>
             {this.props.teamname
               ? 'This will permanently delete your remote files and history, and all members of the team will be notified.  This action cannot be undone.'
               : 'This will permanently delete your remote files and history. This action cannot be undone.'}
-          </Text>
-          <Text type="BodySemibold">Please type in the name of the repository to confirm:</Text>
-          <Input
+          </Kb.Text>
+          <Kb.Text type="BodySemibold">Please type in the name of the repository to confirm:</Kb.Text>
+          <Kb.Input
             autoFocus={true}
             value={this.state.name}
             onChangeText={name => this.setState({name})}
@@ -97,43 +101,43 @@ class DeleteRepo extends React.Component<Props, State> {
             hintText="Name of the repository"
           />
           {!!this.props.teamname && (
-            <Checkbox
+            <Kb.Checkbox
               label="Notify the team"
               checked={this.state.notifyTeam}
               onCheck={notifyTeam => this.setState({notifyTeam})}
-              style={{marginBottom: globalMargins.small, marginTop: globalMargins.xlarge}}
+              style={{marginBottom: Styles.globalMargins.small, marginTop: Styles.globalMargins.xlarge}}
             />
           )}
-          <Box style={{flex: 1}} />
-          <Box style={globalStyles.flexBoxRow}>
-            <WaitingButton
+          <Kb.Box style={{flex: 1}} />
+          <Kb.Box style={Styles.globalStyles.flexBoxRow}>
+            <Kb.WaitingButton
               type="Secondary"
               onClick={this.props.onClose}
               label="Cancel"
-              style={{marginRight: globalMargins.tiny}}
+              style={{marginRight: Styles.globalMargins.tiny}}
               waitingKey={this.props.waitingKey}
               onlyDisable={true}
             />
-            <WaitingButton
+            <Kb.WaitingButton
               type="Danger"
               onClick={this._onSubmit}
-              label={isMobile ? 'Delete' : 'Delete this repository'}
+              label={Styles.isMobile ? 'Delete' : 'Delete this repository'}
               disabled={!this._matchesName()}
               waitingKey={this.props.waitingKey}
             />
-          </Box>
-        </Box>
-      </ScrollView>
+          </Kb.Box>
+        </Kb.Box>
+      </Kb.ScrollView>
     )
   }
 }
 
 const _containerStyle = {
-  ...globalStyles.flexBoxColumn,
+  ...Styles.globalStyles.flexBoxColumn,
   alignItems: 'center',
   flex: 1,
   height: '100%',
-  padding: isMobile ? globalMargins.large : globalMargins.xlarge,
+  padding: Styles.isMobile ? Styles.globalMargins.large : Styles.globalMargins.xlarge,
 }
 
-export default DeleteRepo
+export default (flags.useNewRouter ? Kb.MaybePopupHoc(Styles.isMobile)(DeleteRepo) : DeleteRepo)

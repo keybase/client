@@ -7,6 +7,7 @@ import * as RPCChatTypes from './types/rpc-chat-gen'
 import {invert} from 'lodash-es'
 import {getPathProps} from '../route-tree'
 import {teamsTab} from './tabs'
+import {memoize} from '../util/memoize'
 
 import type {Service} from './types/search'
 import type {_RetentionPolicy, RetentionPolicy} from './types/retention-policy'
@@ -362,11 +363,8 @@ function sortTeamnames(a: string, b: string) {
   }
 }
 
-const getSortedTeamnames = (state: TypedState): Types.Teamname[] => {
-  let teamnames = state.teams.teamnames.toArray()
-  teamnames.sort(sortTeamnames)
-  return teamnames
-}
+const _memoizedSorted = memoize(names => names.toArray().sort(sortTeamnames))
+const getSortedTeamnames = (state: TypedState): Types.Teamname[] => _memoizedSorted(state.teams.teamnames)
 
 const isAdmin = (type: Types.MaybeTeamRoleType) => type === 'admin'
 const isOwner = (type: Types.MaybeTeamRoleType) => type === 'owner'

@@ -8,13 +8,13 @@ import * as Kb from '../common-adapters'
 import {anyWaiting} from '../constants/waiting'
 import {compose, connect, isMobile, type RouteProps} from '../util/container'
 import {sortBy, partition} from 'lodash-es'
+import {memoize} from '../util/memoize'
 
 type OwnProps = RouteProps<{}, {}>
 
 const sortRepos = git => sortBy(git, ['teamname', 'name'])
 
-const getRepos = state => {
-  const git = Constants.getIdToGit(state)
+const getRepos = memoize(git => {
   if (!git) {
     return {
       personals: [],
@@ -27,12 +27,14 @@ const getRepos = state => {
     personals: sortRepos(personals).map(g => g.id),
     teams: sortRepos(teams).map(g => g.id),
   }
-}
+})
 
 const mapStateToProps = state => {
+  const {personals, teams} = getRepos(Constants.getIdToGit(state))
   return {
-    ...getRepos(state),
     loading: anyWaiting(state, Constants.loadingWaitingKey),
+    personals,
+    teams,
   }
 }
 
@@ -41,15 +43,15 @@ const mapDispatchToProps = (dispatch: any, {navigateAppend, navigateUp}) => ({
   onBack: () => dispatch(navigateUp()),
   onNewPersonalRepo: () => {
     dispatch(GitGen.createSetError({error: null}))
-    dispatch(navigateAppend([{props: {isTeam: false}, selected: 'newRepo'}]))
+    dispatch(navigateAppend([{props: {isTeam: false}, selected: 'gitNewRepo'}]))
   },
   onNewTeamRepo: () => {
     dispatch(GitGen.createSetError({error: null}))
-    dispatch(navigateAppend([{props: {isTeam: true}, selected: 'newRepo'}]))
+    dispatch(navigateAppend([{props: {isTeam: true}, selected: 'gitNewRepo'}]))
   },
   onShowDelete: (id: string) => {
     dispatch(GitGen.createSetError({error: null}))
-    dispatch(navigateAppend([{props: {id}, selected: 'deleteRepo'}]))
+    dispatch(navigateAppend([{props: {id}, selected: 'gitDeleteRepo'}]))
   },
 })
 
