@@ -16,7 +16,7 @@ type Msg struct {
 func NewMsg(g *globals.Context) *Msg {
 	return &Msg{
 		baseCommand: newBaseCommand(g, "msg", "<conversation> <message>",
-			"Send a message to a conversation", "dm"),
+			"Send a message to a conversation", false, "dm"),
 	}
 }
 

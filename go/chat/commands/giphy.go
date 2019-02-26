@@ -37,7 +37,7 @@ func NewGiphy(g *globals.Context) *Giphy {
 		usage = "Post a random GIF"
 	}
 	return &Giphy{
-		baseCommand:  newBaseCommand(g, "giphy", "[search terms]", usage),
+		baseCommand:  newBaseCommand(g, "giphy", "[search terms]", usage, false),
 		shownResults: make(map[string]bool),
 		searcher:     defaultGiphySearcher{},
 	}
