@@ -73,7 +73,7 @@ class AddToChannel extends React.Component<Props, State> {
         gap="medium"
       >
         {!Styles.isMobile && <Kb.Text type="Header">{this.props.title}</Kb.Text>}
-        <Kb.Box2 direction="vertical" fullWidth={true} gap="small" style={{flex: 1}}>
+        <Kb.Box2 direction="vertical" fullWidth={true} gap="tiny" style={{flex: 1}}>
           <Kb.BoxGrow style={styles.listContainer}>
             <Kb.List2
               style={styles.list}
@@ -110,7 +110,7 @@ const styles = Styles.styleSheetCreate({
     },
   }),
   list: Styles.platformStyles({
-    isMobile: {paddingTop: Styles.globalMargins.small},
+    isMobile: {paddingTop: Styles.globalMargins.tiny},
   }),
   listContainer: {width: '100%'},
   userSubtext: Styles.platformStyles({
