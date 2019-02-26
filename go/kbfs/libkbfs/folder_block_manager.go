@@ -1022,7 +1022,9 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 	fbm.setReclamationCancel(cancel)
 	defer fbm.cancelReclamation()
 	nextPeriod := fbm.config.Mode().QuotaReclamationPeriod()
-	defer timer.Reset(nextPeriod)
+	defer func() {
+		timer.Reset(nextPeriod)
+	}()
 	defer fbm.reclamationGroup.Done()
 
 	// Don't set a context deadline.  For users that have written a
