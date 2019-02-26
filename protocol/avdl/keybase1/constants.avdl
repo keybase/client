@@ -16,6 +16,7 @@ protocol constants {
     SCExists_230,
     SCCanceled_237,
     SCInputCanceled_239,
+    SCOffline_267,
     SCReloginRequired_274,
     SCResolutionFailed_275,
     SCProfileNotPublic_276,

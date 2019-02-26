@@ -116,7 +116,7 @@ class StorybookErrorBoundary extends React.Component<
               whiteSpace: 'pre-line',
             }}
           >
-            <Kb.Text type="Terminal" backgroundMode="Terminal" selectable={true}>
+            <Kb.Text type="Terminal" negative={true} selectable={true}>
               {this.state.error && this.state.error.toString()}
               {this.state.info && this.state.info.componentStack}
             </Kb.Text>

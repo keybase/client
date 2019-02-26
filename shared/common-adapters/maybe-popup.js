@@ -1,5 +1,6 @@
 // @flow
 import * as React from 'react'
+import * as RouteTreeGen from '../actions/route-tree-gen'
 import Box from './box'
 import PopupDialog from './popup-dialog'
 import {connect} from '../util/container'
@@ -17,6 +18,7 @@ const MaybePopup = isMobile
       children: React.Node,
       cover?: boolean,
       styleCover?: any,
+      styleClipContainer?: any,
       styleContainer?: any,
       styleClipContainer?: any,
     }) => (
@@ -36,7 +38,7 @@ const MaybePopup = isMobile
 const DispatchNavUpHoc: any = connect<any, _, _, _, _>(
   () => ({}),
   (dispatch, {navigateUp}) => ({
-    connectedNavigateUp: () => dispatch(navigateUp()),
+    connectedNavigateUp: () => dispatch(navigateUp ? navigateUp() : RouteTreeGen.createNavigateUp()),
   }),
   (s, d, o) => ({...o, ...s, ...d})
 )
@@ -44,10 +46,30 @@ const DispatchNavUpHoc: any = connect<any, _, _, _, _>(
 // TODO properly type this
 const _MaybePopupHoc: any = (cover: boolean) => {
   return WrappedComponent => props => {
-    const onClose = props.onClose || props.connectedNavigateUp
+    const {
+      onClose,
+      connectedNavigateUp,
+      onMouseUp,
+      onMouseDown,
+      onMouseMove,
+      styleCover,
+      styleContainer,
+      styleClipContainer,
+      ...rest
+    } = props
+    const _onClose = onClose || connectedNavigateUp
     return (
-      <MaybePopup onClose={onClose} cover={!!cover}>
-        <WrappedComponent onClose={onClose} {...props} />
+      <MaybePopup
+        onClose={_onClose}
+        cover={!!cover}
+        onMouseUp={onMouseUp}
+        onMouseDown={onMouseDown}
+        onMouseMove={onMouseMove}
+        styleCover={styleCover}
+        styleContainer={styleContainer}
+        styleClipContainer={styleClipContainer}
+      >
+        <WrappedComponent onClose={_onClose} {...rest} />
       </MaybePopup>
     )
   }

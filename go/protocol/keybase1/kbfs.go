@@ -46,7 +46,8 @@ type CreateTLFArg struct {
 }
 
 type GetKBFSTeamSettingsArg struct {
-	TeamID TeamID `codec:"teamID" json:"teamID"`
+	TeamID TeamID              `codec:"teamID" json:"teamID"`
+	Oa     OfflineAvailability `codec:"oa" json:"oa"`
 }
 
 type UpgradeTLFArg struct {
@@ -88,7 +89,7 @@ type KbfsInterface interface {
 	// using the v2 Team-based system.
 	CreateTLF(context.Context, CreateTLFArg) error
 	// getKBFSTeamSettings gets the settings written for the team in the team's sigchain.
-	GetKBFSTeamSettings(context.Context, TeamID) (KBFSTeamSettings, error)
+	GetKBFSTeamSettings(context.Context, GetKBFSTeamSettingsArg) (KBFSTeamSettings, error)
 	// upgradeTLF upgrades a TLF to use implicit team keys
 	UpgradeTLF(context.Context, UpgradeTLFArg) error
 	// Encrypt cached favorites to store on disk.
@@ -202,7 +203,7 @@ func KbfsProtocol(i KbfsInterface) rpc.Protocol {
 						err = rpc.NewTypeError((*[1]GetKBFSTeamSettingsArg)(nil), args)
 						return
 					}
-					ret, err = i.GetKBFSTeamSettings(ctx, typedArgs[0].TeamID)
+					ret, err = i.GetKBFSTeamSettings(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -311,8 +312,7 @@ func (c KbfsClient) CreateTLF(ctx context.Context, __arg CreateTLFArg) (err erro
 }
 
 // getKBFSTeamSettings gets the settings written for the team in the team's sigchain.
-func (c KbfsClient) GetKBFSTeamSettings(ctx context.Context, teamID TeamID) (res KBFSTeamSettings, err error) {
-	__arg := GetKBFSTeamSettingsArg{TeamID: teamID}
+func (c KbfsClient) GetKBFSTeamSettings(ctx context.Context, __arg GetKBFSTeamSettingsArg) (res KBFSTeamSettings, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.kbfs.getKBFSTeamSettings", []interface{}{__arg}, &res)
 	return
 }

@@ -525,6 +525,10 @@ type GetExtendedStatusArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type GetClientStatusArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type GetAllProvisionedUsernamesArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -592,6 +596,7 @@ type SetRememberPassphraseArg struct {
 type ConfigInterface interface {
 	GetCurrentStatus(context.Context, int) (GetCurrentStatusRes, error)
 	GetExtendedStatus(context.Context, int) (ExtendedStatus, error)
+	GetClientStatus(context.Context, int) ([]ClientStatus, error)
 	GetAllProvisionedUsernames(context.Context, int) (AllProvisionedUsernames, error)
 	GetConfig(context.Context, int) (Config, error)
 	// Change user config.
@@ -645,6 +650,21 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetExtendedStatus(ctx, typedArgs[0].SessionID)
+					return
+				},
+			},
+			"getClientStatus": {
+				MakeArg: func() interface{} {
+					var ret [1]GetClientStatusArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetClientStatusArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetClientStatusArg)(nil), args)
+						return
+					}
+					ret, err = i.GetClientStatus(ctx, typedArgs[0].SessionID)
 					return
 				},
 			},
@@ -875,6 +895,12 @@ func (c ConfigClient) GetCurrentStatus(ctx context.Context, sessionID int) (res 
 func (c ConfigClient) GetExtendedStatus(ctx context.Context, sessionID int) (res ExtendedStatus, err error) {
 	__arg := GetExtendedStatusArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.config.getExtendedStatus", []interface{}{__arg}, &res)
+	return
+}
+
+func (c ConfigClient) GetClientStatus(ctx context.Context, sessionID int) (res []ClientStatus, err error) {
+	__arg := GetClientStatusArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.config.getClientStatus", []interface{}{__arg}, &res)
 	return
 }
 

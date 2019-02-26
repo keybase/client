@@ -326,6 +326,7 @@ type AttachmentFetcher interface {
 		ri func() chat1.RemoteInterface, signer s3.Signer) (io.ReadSeeker, error)
 	PutUploadedAsset(ctx context.Context, filename string, asset chat1.Asset) error
 	IsAssetLocal(ctx context.Context, asset chat1.Asset) (bool, error)
+	OnCacheCleared(mctx libkb.MetaContext)
 }
 
 type AttachmentURLSrv interface {
@@ -335,6 +336,7 @@ type AttachmentURLSrv interface {
 	GetUnfurlAssetURL(ctx context.Context, convID chat1.ConversationID, asset chat1.Asset) string
 	GetGiphyURL(ctx context.Context, giphyURL string) string
 	GetAttachmentFetcher() AttachmentFetcher
+	OnCacheCleared(mctx libkb.MetaContext)
 }
 
 type RateLimitedResult interface {
@@ -440,6 +442,7 @@ type CoinFlipManager interface {
 		uid gregor1.UID, convID chat1.ConversationID, topicType chat1.TopicType) bool
 	LoadFlip(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, gameID chat1.FlipGameID)
 	DescribeFlipText(ctx context.Context, text string) string
+	HasActiveGames(ctx context.Context) bool
 }
 
 type InternalError interface {

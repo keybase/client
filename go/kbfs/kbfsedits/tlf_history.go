@@ -104,9 +104,10 @@ func NewTlfHistory() *TlfHistory {
 // AddNotifications takes in a set of messages in this TLF by
 // `writer`, and adds them to the history.  Once done adding messages,
 // the caller should call `Recompute` to find out if more messages
-// should be added for any particular writer.
+// should be added for any particular writer.  It returns the maximum
+// known revision including an update from this writer.
 func (th *TlfHistory) AddNotifications(
-	writerName string, messages []string) (err error) {
+	writerName string, messages []string) (maxRev kbfsmd.Revision, err error) {
 	newEdits := make(notificationsByRevision, 0, len(messages))
 
 	// Unmarshal and sort the new messages.
@@ -139,10 +140,14 @@ func (th *TlfHistory) AddNotifications(
 	oldLen := len(wn.notifications)
 	newEdits = append(newEdits, wn.notifications...)
 	sort.Sort(newEdits)
+	if len(newEdits) > 0 {
+		maxRev = newEdits[0].Revision
+	}
+
 	wn.notifications = newEdits.uniquify()
 	if len(wn.notifications) == oldLen {
 		// No new messages.
-		return nil
+		return maxRev, nil
 	}
 	if !existed {
 		th.byWriter[writerName] = wn
@@ -150,7 +155,7 @@ func (th *TlfHistory) AddNotifications(
 	// Invalidate the cached results.
 	th.computed = false
 	th.cachedLoggedInUser = ""
-	return nil
+	return maxRev, nil
 }
 
 // AddUnflushedNotifications adds notifications to a special

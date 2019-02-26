@@ -2,6 +2,7 @@
 // TODO use waiting key
 import logger from '../logger'
 import * as UnlockFoldersGen from './unlock-folders-gen'
+import * as EngineGen from './engine-gen-gen'
 import * as ConfigGen from './config-gen'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
@@ -27,6 +28,18 @@ const openPopup = () => {
 const closePopup = () => {
   RPCTypes.rekeyRekeyStatusFinishRpcPromise()
   return UnlockFoldersGen.createCloseDone()
+}
+
+const refresh = (_, action) => {
+  const {problemSetDevices} = action.payload.params
+  // $ForceType may or may not be here, unclear and this flow is very rare so really hard to test
+  const sessionID = action.payload.params.sessionID
+  logger.info('Asked for rekey')
+  return UnlockFoldersGen.createNewRekeyPopup({
+    devices: problemSetDevices.devices || [],
+    problemSet: problemSetDevices.problemSet,
+    sessionID,
+  })
 }
 
 const setupEngineListeners = () => {
@@ -65,19 +78,6 @@ const setupEngineListeners = () => {
       response && response.result(session.id)
     },
   })
-  engine().setIncomingCallMap({
-    // else we get this also as part of delegateRekeyUI
-    'keybase.1.rekeyUI.refresh': ({sessionID, problemSetDevices}) => {
-      logger.info('Asked for rekey')
-      return Saga.put(
-        UnlockFoldersGen.createNewRekeyPopup({
-          devices: problemSetDevices.devices || [],
-          problemSet: problemSetDevices.problemSet,
-          sessionID,
-        })
-      )
-    },
-  })
 }
 
 function* unlockFoldersSaga(): Saga.SagaGenerator<any, any> {
@@ -91,6 +91,7 @@ function* unlockFoldersSaga(): Saga.SagaGenerator<any, any> {
     ConfigGen.setupEngineListeners,
     setupEngineListeners
   )
+  yield* Saga.chainAction<EngineGen.Keybase1RekeyUIRefreshPayload>(EngineGen.keybase1RekeyUIRefresh, refresh)
 }
 
 export default unlockFoldersSaga

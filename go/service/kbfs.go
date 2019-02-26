@@ -13,6 +13,7 @@ import (
 	"github.com/keybase/client/go/chat"
 	"github.com/keybase/client/go/chat/globals"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/offline"
 	"github.com/keybase/client/go/protocol/chat1"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/keybase/client/go/teams"
@@ -26,13 +27,15 @@ type KBFSHandler struct {
 	*BaseHandler
 	libkb.Contextified
 	globals.ChatContextified
+	service *Service
 }
 
-func NewKBFSHandler(xp rpc.Transporter, g *libkb.GlobalContext, cg *globals.ChatContext) *KBFSHandler {
+func NewKBFSHandler(xp rpc.Transporter, g *libkb.GlobalContext, cg *globals.ChatContext, service *Service) *KBFSHandler {
 	return &KBFSHandler{
 		BaseHandler:      NewBaseHandler(g, xp),
 		Contextified:     libkb.NewContextified(g),
 		ChatContextified: globals.NewChatContextified(cg),
+		service:          service,
 	}
 }
 
@@ -120,8 +123,18 @@ func (h *KBFSHandler) CreateTLF(ctx context.Context, arg keybase1.CreateTLFArg) 
 	return teams.CreateTLF(ctx, h.G(), arg)
 }
 
-func (h *KBFSHandler) GetKBFSTeamSettings(ctx context.Context, teamID keybase1.TeamID) (keybase1.KBFSTeamSettings, error) {
-	return teams.GetKBFSTeamSettings(ctx, h.G(), teamID.IsPublic(), teamID)
+func (h *KBFSHandler) GetKBFSTeamSettings(ctx context.Context, arg keybase1.GetKBFSTeamSettingsArg) (ret keybase1.KBFSTeamSettings, err error) {
+	mctx := libkb.NewMetaContext(ctx, h.G()).WithLogTag("SETTINGS")
+	retp := &ret
+	loader := func(mctx libkb.MetaContext) (interface{}, error) {
+		tmp, err := teams.GetKBFSTeamSettings(mctx.Ctx(), mctx.G(), arg.TeamID.IsPublic(), arg.TeamID)
+		if err == nil {
+			*retp = tmp
+		}
+		return tmp, err
+	}
+	err = h.service.offlineRPCCache.Serve(mctx, arg.Oa, offline.Version(1), "kbfs.getKBFSTeamSettings", false, arg, retp, loader)
+	return ret, err
 }
 
 func (h *KBFSHandler) UpgradeTLF(ctx context.Context, arg keybase1.UpgradeTLFArg) error {

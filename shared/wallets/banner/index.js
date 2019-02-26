@@ -19,14 +19,14 @@ const Banner = (props: Props) => (
     centerChildren={true}
     style={collapseStyles([styles.container, {backgroundColor: backgroundModeToColor[props.background]}])}
   >
-    <Text center={true} type="BodySmallSemibold" backgroundMode={props.background}>
+    <Text center={true} type="BodySmallSemibold" negative={true}>
       {props.text}
       {props.reviewProofs && (
         <Text
           type="BodySmallSemiboldPrimaryLink"
           center={true}
           style={styles.secondText}
-          backgroundMode={props.background}
+          negative={true}
           onClick={props.onAction}
         >
           Please review.
@@ -38,7 +38,7 @@ const Banner = (props: Props) => (
         type="BodySmallSemiboldPrimaryLink"
         center={true}
         style={styles.secondText}
-        backgroundMode={props.background}
+        negative={true}
         onClick={props.onAction}
       >
         Review payments

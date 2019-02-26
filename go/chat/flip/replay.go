@@ -13,9 +13,15 @@ type GameMessageReplayed struct {
 
 type GameHistory []GameMessageReplayed
 
+type GameHistoryPlayer struct {
+	Device     UserDevice
+	Commitment Commitment
+	Reveal     *Secret
+}
+
 type GameSummary struct {
 	Err     error
-	Players []UserDevice
+	Players []GameHistoryPlayer
 	Result  Result
 }
 
@@ -80,14 +86,6 @@ func runReplayLoop(ctx context.Context, game *Game, gh GameHistory) (err error) 
 	return nil
 }
 
-func extractUserDevices(v []UserDeviceCommitment) []UserDevice {
-	ret := make([]UserDevice, len(v))
-	for i, e := range v {
-		ret[i] = e.Ud
-	}
-	return ret
-}
-
 func Replay(ctx context.Context, rh ReplayHelper, gh GameHistory) (*GameSummary, error) {
 	ret, err := replay(ctx, rh, gh)
 	if err != nil {
@@ -116,18 +114,26 @@ func replay(ctx context.Context, rh ReplayHelper, gh GameHistory) (*GameSummary,
 	go func() {
 		var ret GameSummary
 		found := false
-		players := make(map[UserDeviceKey]UserDevice)
+		players := make(map[UserDeviceKey]*GameHistoryPlayer)
 		for msg := range game.gameUpdateCh {
 			switch {
 			case msg.Err != nil:
 				ret.Err = msg.Err
 			case msg.CommitmentComplete != nil:
-				ret.Players = extractUserDevices(msg.CommitmentComplete.Players)
-				for _, p := range ret.Players {
-					players[p.ToKey()] = p
+				for _, p := range msg.CommitmentComplete.Players {
+					ret.Players = append(ret.Players, GameHistoryPlayer{
+						Device:     p.Ud,
+						Commitment: p.C,
+					})
+				}
+				for index, p := range ret.Players {
+					players[p.Device.ToKey()] = &ret.Players[index]
 				}
 			case msg.Reveal != nil:
-				delete(players, msg.Reveal.User.ToKey())
+				if p, ok := players[msg.Reveal.User.ToKey()]; ok {
+					p.Reveal = &msg.Reveal.Reveal
+					delete(players, msg.Reveal.User.ToKey())
+				}
 			case msg.Result != nil:
 				ret.Result = *msg.Result
 				found = true
@@ -136,7 +142,7 @@ func replay(ctx context.Context, rh ReplayHelper, gh GameHistory) (*GameSummary,
 		if !found && ret.Err == nil {
 			var ea AbsenteesError
 			for _, v := range players {
-				ea.Absentees = append(ea.Absentees, v)
+				ea.Absentees = append(ea.Absentees, v.Device)
 			}
 			ret.Err = ea
 		}

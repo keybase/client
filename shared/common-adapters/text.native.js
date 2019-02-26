@@ -1,31 +1,23 @@
 // @flow
 import React, {Component} from 'react'
 import openURL from '../util/open-url'
-import {defaultColor, fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.native'
-import * as Styled from '../styles'
+import {fontSizeToSizeStyle, lineClamp, metaData} from './text.meta.native'
+import * as Styles from '../styles'
 import shallowEqual from 'shallowequal'
 import {NativeClipboard, NativeText, NativeStyleSheet, NativeAlert} from './native-wrappers.native'
-import type {Props, TextType, Background} from './text'
+import type {Props, TextType} from './text'
 
-const StyledText = Styled.styled(NativeText)({}, props => props.style)
+const StyledText = Styles.styled(NativeText)({}, props => props.style)
 
-const backgroundModes = [
-  'Normal',
-  'Announcements',
-  'Success',
-  'Information',
-  'HighRisk',
-  'Documentation',
-  'Terminal',
-]
+const modes = ['positive', 'negative']
 
 const styleMap = Object.keys(metaData).reduce(
   (map, type: TextType) => {
     const meta = metaData[type]
-    backgroundModes.forEach(mode => {
+    modes.forEach(mode => {
       map[`${type}:${mode}`] = {
         ...fontSizeToSizeStyle(meta.fontSize),
-        color: meta.colorForBackgroundMode[mode] || defaultColor(mode),
+        color: meta.colorForBackground[mode] || Styles.globalColors.black,
         ...meta.styleOverride,
       }
     })
@@ -88,18 +80,16 @@ class Text extends Component<Props> {
   }
 
   render() {
-    const baseStyle = styles[`${this.props.type}:${this.props.backgroundMode || 'Normal'}`]
-    const dynamicStyle = {
-      ...(this.props.backgroundMode === 'Normal'
-        ? {}
-        : _getStyle(
-            this.props.type,
-            this.props.backgroundMode,
-            this.props.lineClamp,
-            !!this.props.onClick,
-            !!this.props.underline
-          )),
-    }
+    const baseStyle = styles[`${this.props.type}:${this.props.negative ? 'negative' : 'positive'}`]
+    const dynamicStyle = this.props.negative
+      ? _getStyle(
+          this.props.type,
+          this.props.negative,
+          this.props.lineClamp,
+          !!this.props.onClick,
+          !!this.props.underline
+        )
+      : {}
 
     let style
     if (!Object.keys(dynamicStyle).length) {
@@ -142,16 +132,17 @@ class Text extends Component<Props> {
 // external things call this so leave the original alone
 function _getStyle(
   type: TextType,
-  backgroundMode?: Background = 'Normal',
+  negative?: boolean,
   lineClampNum?: ?number,
   clickable?: ?boolean,
   forceUnderline: boolean
 ) {
-  if (backgroundMode === 'Normal') {
+  if (!negative) {
     return forceUnderline ? {textDecorationLine: 'underline'} : {}
   }
+  // negative === true
   const meta = metaData[type]
-  const colorStyle = {color: meta.colorForBackgroundMode[backgroundMode] || defaultColor(backgroundMode)}
+  const colorStyle = {color: meta.colorForBackground.negative}
   const textDecoration = meta.isLink ? {textDecorationLine: 'underline'} : {}
 
   return {
@@ -159,16 +150,11 @@ function _getStyle(
     ...textDecoration,
   }
 }
-function getStyle(
-  type: TextType,
-  backgroundMode?: Background = 'Normal',
-  lineClampNum?: ?number,
-  clickable?: ?boolean
-) {
+function getStyle(type: TextType, negative?: boolean, lineClampNum?: ?number, clickable?: ?boolean) {
   const meta = metaData[type]
   const sizeStyle = fontSizeToSizeStyle(meta.fontSize)
-  const colorStyle = {color: meta.colorForBackgroundMode[backgroundMode] || defaultColor(backgroundMode)}
-  const textDecoration = meta.isLink && backgroundMode !== 'Normal' ? {textDecorationLine: 'underline'} : {}
+  const colorStyle = {color: meta.colorForBackground[negative ? 'negative' : 'positive']}
+  const textDecoration = meta.isLink && negative ? {textDecorationLine: 'underline'} : {}
 
   return {
     ...sizeStyle,

@@ -1,21 +1,32 @@
 // @flow
-// Switches between the route-tree router and the new router
-import React, {PureComponent} from 'react'
+// Switches between the route-tree router and the new router, will go away
+import * as React from 'react'
 import RenderRoute from '../route-tree/render-route'
+import Router from './router'
+import {connect} from '../util/container'
+import * as ConfigGen from '../actions/config-gen'
 import type {RouteDefNode, RouteStateNode, Path} from '../route-tree'
+
+type OwnProps = {|
+  useNewRouter: boolean,
+  oldRouteDef: RouteDefNode,
+  oldRouteState: RouteStateNode,
+  oldSetRouteState: (path: Path, partialState: {}) => void,
+|}
 
 type Props = {|
   useNewRouter: boolean,
   oldRouteDef: RouteDefNode,
   oldRouteState: RouteStateNode,
   oldSetRouteState: (path: Path, partialState: {}) => void,
-  newRoutePath: any, // TODO add a real type to this
+  updateNavigator: any => void,
+  persistRoute: any => void,
 |}
 
-class RouterSwitcheroo extends PureComponent<Props> {
+class RouterSwitcheroo extends React.PureComponent<Props> {
   render() {
     if (this.props.useNewRouter) {
-      return null
+      return <Router ref={r => this.props.updateNavigator(r)} persistRoute={this.props.persistRoute} />
     }
 
     return (
@@ -28,4 +39,13 @@ class RouterSwitcheroo extends PureComponent<Props> {
   }
 }
 
-export default RouterSwitcheroo
+const mapDispatchToProps = dispatch => ({
+  persistRoute: path => dispatch(ConfigGen.createPersistRoute({path})),
+  updateNavigator: navigator => dispatch(ConfigGen.createSetNavigator({navigator})),
+})
+
+export default connect<OwnProps, _, _, _, _>(
+  () => ({}),
+  mapDispatchToProps,
+  (s, d, o) => ({...o, ...s, ...d})
+)(RouterSwitcheroo)

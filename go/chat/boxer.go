@@ -640,7 +640,7 @@ func (b *Boxer) unboxV1(ctx context.Context, boxed chat1.MessageBoxed,
 
 	// Get at mention usernames
 	atMentions, atMentionUsernames, chanMention, channelNameMentions :=
-		b.getAtMentionInfo(ctx, clientHeader.Conv.Tlfid, membersType, body)
+		b.getAtMentionInfo(ctx, clientHeader.Conv.Tlfid, clientHeader.Conv.TopicType, membersType, body)
 
 	ierr = b.compareHeadersMBV1(ctx, boxed.ClientHeader, clientHeader)
 	if ierr != nil {
@@ -872,7 +872,7 @@ func (b *Boxer) unboxV2orV3orV4(ctx context.Context, boxed chat1.MessageBoxed,
 
 	// Get at mention usernames
 	atMentions, atMentionUsernames, chanMention, channelNameMentions :=
-		b.getAtMentionInfo(ctx, clientHeader.Conv.Tlfid, membersType, body)
+		b.getAtMentionInfo(ctx, clientHeader.Conv.Tlfid, clientHeader.Conv.TopicType, membersType, body)
 
 	clientHeader.HasPairwiseMacs = len(boxed.ClientHeader.PairwiseMacs) > 0
 
@@ -1157,7 +1157,7 @@ func (b *Boxer) getSenderInfoLocal(ctx context.Context, uid1 gregor1.UID, device
 	return username, deviceName, deviceType
 }
 
-func (b *Boxer) getAtMentionInfo(ctx context.Context, tlfID chat1.TLFID,
+func (b *Boxer) getAtMentionInfo(ctx context.Context, tlfID chat1.TLFID, topicType chat1.TopicType,
 	membersType chat1.ConversationMembersType, body chat1.MessageBody) (atMentions []gregor1.UID, atMentionUsernames []string, chanMention chat1.ChannelMention, channelNameMentions []chat1.ChannelNameMention) {
 	chanMention = chat1.ChannelMention_NONE
 	typ, err := body.MessageType()
@@ -1172,6 +1172,11 @@ func (b *Boxer) getAtMentionInfo(ctx context.Context, tlfID chat1.TLFID,
 			&b.DebugLabeler)
 		if membersType == chat1.ConversationMembersType_TEAM {
 			channelNameMentions = utils.ParseChannelNameMentions(ctx, body.Text().Body, uid, tlfID, tcs)
+		}
+	case chat1.MessageType_FLIP:
+		if topicType == chat1.TopicType_CHAT {
+			atMentions, chanMention = utils.ParseAtMentionedUIDs(ctx, body.Flip().Text,
+				b.G().GetUPAKLoader(), &b.DebugLabeler)
 		}
 	case chat1.MessageType_EDIT:
 		atMentions, chanMention = utils.ParseAtMentionedUIDs(ctx, body.Edit().Body, b.G().GetUPAKLoader(),

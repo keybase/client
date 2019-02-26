@@ -12,6 +12,7 @@ import * as RouteTreeGen from '../actions/route-tree-gen'
 import {connect, type RouteProps} from '../util/container'
 import {globalStyles} from '../styles'
 import RpcStats from './rpc-stats'
+import AirdropBanner from '../wallets/airdrop/banner/container'
 
 type OwnProps = RouteProps<{}, {}>
 
@@ -46,6 +47,7 @@ class Nav extends React.Component<Props> {
           )}
           <ErrorBoundary>
             <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
+              {routeSelected !== Tabs.loginTab && routeSelected !== Tabs.walletsTab && <AirdropBanner />}
               {/* We use a fixed key here so we don't remount components like chat. */}
               {visibleScreen.component({key: '0', shouldRender: true})}
               {layerScreens.map(r => r.leafComponent({shouldRender: true}))}

@@ -34,13 +34,16 @@ func CreateSourceFromEnv(g *libkb.GlobalContext) (s Source) {
 		// notification dismiss time should be adjusted as well.
 		s = NewFullCachingSource(time.Hour /* staleThreshold */, maxSize)
 	}
+	return s
+}
+
+func ServiceInit(g *libkb.GlobalContext, source Source) {
 	m := libkb.NewMetaContextBackground(g)
-	s.StartBackgroundTasks(m)
+	source.StartBackgroundTasks(m)
 	g.PushShutdownHook(func() error {
-		s.StopBackgroundTasks(m)
+		source.StopBackgroundTasks(m)
 		return nil
 	})
-	return s
 }
 
 func allocRes(res *keybase1.LoadAvatarsRes, usernames []string) {

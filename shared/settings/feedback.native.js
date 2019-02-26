@@ -77,7 +77,7 @@ class Feedback extends Component<Props> {
               paddingTop: globalMargins.tiny,
             }}
           >
-            <Text center={true} type="BodySmallSemibold" backgroundMode="Success" style={{flex: 1}}>
+            <Text center={true} type="BodySmallSemibold" negative={true} style={{flex: 1}}>
               Thanks! Your feedback was sent.
             </Text>
           </Box>

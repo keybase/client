@@ -18,6 +18,7 @@ import UserProofs from './user-proofs'
 import UserBio from './user-bio'
 import {stateColors} from '../util/tracker'
 import {ADD_TO_TEAM_ZINDEX, AVATAR_SIZE} from '../constants/profile'
+import flags from '../util/feature-flags'
 import type {UserTeamShowcase} from '../constants/types/rpc-gen'
 import type {Proof} from '../constants/types/tracker'
 import type {Props} from '.'
@@ -164,6 +165,7 @@ class Profile extends Component<Props, State> {
     return (
       <UserBio
         type="Profile"
+        showAirdrop={this.props.showAirdrop}
         editFns={this.props.bioEditFns}
         avatarSize={AVATAR_SIZE}
         loading={loading}
@@ -302,7 +304,7 @@ class Profile extends Component<Props, State> {
             }}
           >
             <Kb.Box style={{...Styles.globalStyles.flexBoxColumn, paddingLeft: 8}}>
-              <Kb.Text center={true} type="BodySemibold" backgroundMode="HighRisk">
+              <Kb.Text center={true} type="BodySemibold" negative={true}>
                 {this.props.addUserToTeamsResults}
               </Kb.Text>
             </Kb.Box>
@@ -419,7 +421,16 @@ class Profile extends Component<Props, State> {
   _renderSections = ({section}) => {
     if (section.title === 'profile') {
       const trackerStateColors = stateColors(this.props.currentlyFollowing, this.props.trackerState)
-      return (
+      return flags.useNewRouter ? (
+        <Kb.Box2
+          direction="vertical"
+          style={{
+            backgroundColor: trackerStateColors.header.background,
+            height: 48,
+            width: '100%',
+          }}
+        />
+      ) : (
         <Kb.HeaderHocHeader
           borderless={true}
           onLeftAction={this.props.onBack}
@@ -451,7 +462,7 @@ class Profile extends Component<Props, State> {
             borderBottomColor: Styles.globalColors.black_10,
             borderBottomWidth: 1,
             borderStyle: 'solid',
-            paddingTop: Styles.globalMargins.tiny + Styles.statusBarHeight,
+            paddingTop: Styles.globalMargins.tiny + Styles.statusBarHeight + (flags.useNewRouter ? 8 : 0),
           }}
         >
           {['Followers', 'Following'].map(f => (
@@ -541,7 +552,9 @@ class Profile extends Component<Props, State> {
 
     return (
       <Kb.Box style={Styles.globalStyles.fullHeight}>
-        <Kb.SafeAreaViewTop style={{backgroundColor: trackerStateColors.header.background, flexGrow: 0}} />
+        {flags.useNewRouter && (
+          <Kb.SafeAreaViewTop style={{backgroundColor: trackerStateColors.header.background, flexGrow: 0}} />
+        )}
         <Kb.NativeSectionList
           stickySectionHeadersEnabled={true}
           style={{...Styles.globalStyles.fullHeight, backgroundColor: trackerStateColors.header.background}}
@@ -724,7 +737,7 @@ const styleSearch = {
 }
 
 const styleSearchText = {
-  color: Styles.globalColors.white_75,
+  color: Styles.globalColors.white,
   fontSize: 16,
 }
 
@@ -755,3 +768,31 @@ const styleShowcasedTeamName = {
 }
 
 export default Profile
+
+// leaving this here as this whole file is going away
+export const Header = (props: Props) => {
+  return (
+    <Kb.HeaderHocHeader
+      borderless={true}
+      onLeftAction={props.onBack}
+      headerStyle={{
+        paddingLeft: 40,
+        paddingTop: 0,
+      }}
+      theme="dark"
+      titleComponent={
+        <Kb.ClickableBox onClick={props.onSearch} style={styleSearchContainer}>
+          <Kb.Icon
+            color={Styles.globalColors.white_75}
+            fontSize={20}
+            style={styleSearch}
+            type="iconfont-search"
+          />
+          <Kb.Text style={styleSearchText} type="BodySemibold">
+            Search people
+          </Kb.Text>
+        </Kb.ClickableBox>
+      }
+    />
+  )
+}
