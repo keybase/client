@@ -1741,7 +1741,6 @@ func (t *teamSigchainPlayer) sanityCheckInvites(
 				return nil, nil, fmt.Errorf("encountered invite of owner in non-root team")
 			}
 			if !signerIsExplicitOwner {
-				fmt.Printf("xxx sigID: %v\n", sigID)
 				if !hardcodedInviteRuleExceptionSigIDs[sigID] {
 					return nil, nil, fmt.Errorf("encountered invite of owner by non-owner")
 				}
