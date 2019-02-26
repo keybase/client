@@ -552,7 +552,7 @@ func (t *TeamSigChainState) IsInviteObsolete(id keybase1.TeamInviteID) bool {
 	return ok
 }
 
-// FindActiveKeybaseInvite finds and returns *first* Keybase-type
+// FindActiveKeybaseInvite finds and returns a Keybase-type
 // invite for given UID. Ordering here is not guaranteed, caller
 // shouldn't assume that returned invite will be the oldest/newest one
 // for the UID.

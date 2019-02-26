@@ -672,7 +672,6 @@ func MemberRole(ctx context.Context, g *libkb.GlobalContext, teamname, username 
 }
 
 func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, username string) error {
-
 	var inviteRequired bool
 	uv, err := loadUserVersionByUsername(ctx, g, username, false /* useTracking */)
 	if err != nil {
@@ -687,6 +686,15 @@ func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 		err = nil
 	}
 
+	me, err := loadMeForSignatures(ctx, g)
+	if err != nil {
+		return err
+	}
+
+	if me.GetNormalizedName().Eq(libkb.NewNormalizedUsername(username)) {
+		return Leave(ctx, g, teamname, false)
+	}
+
 	return RetryOnSigOldSeqnoError(ctx, g, func(ctx context.Context, _ int) error {
 		t, err := GetForTeamManagementByStringName(ctx, g, teamname, true)
 		if err != nil {
@@ -694,31 +702,21 @@ func RemoveMember(ctx context.Context, g *libkb.GlobalContext, teamname, usernam
 		}
 
 		if inviteRequired && !uv.Uid.Exists() {
-			// This branch only handles social invites. Keybase-type
-			// invites are handled by next removeMemberInvite call below.
+			// Remove a social (non-keybase) invite.
 			return removeMemberInvite(ctx, g, t, username, uv)
+		}
+
+		if _, _, found := t.FindActiveKeybaseInvite(uv.Uid); found {
+			// Remove keybase invites.
+			return removeKeybaseTypeInviteForUID(ctx, g, t, uv.Uid)
 		}
 
 		existingUV, err := t.UserVersionByUID(ctx, uv.Uid)
 		if err != nil {
-			// Try to remove as an keybase-invite
-			if ierr := removeKeybaseTypeInviteForUID(ctx, g, t, uv.Uid); ierr == nil {
-				return nil
-			}
-			return libkb.NotFoundError{Msg: fmt.Sprintf("user %q is not a member of team %q", username,
-				teamname)}
-		}
-
-		me, err := loadMeForSignatures(ctx, g)
-		if err != nil {
-			return err
-		}
-
-		if me.GetNormalizedName().Eq(libkb.NewNormalizedUsername(username)) {
-			return Leave(ctx, g, teamname, false)
+			return libkb.NotFoundError{Msg: fmt.Sprintf(
+				"user %q is not a member of team %q", username, teamname)}
 		}
 		req := keybase1.TeamChangeReq{None: []keybase1.UserVersion{existingUV}}
-
 		opts := ChangeMembershipOptions{
 			Permanent:       t.IsOpen(), // Ban for open teams only.
 			SkipKeyRotation: t.CanSkipKeyRotation(),
@@ -1316,7 +1314,8 @@ func ChangeTeamSettings(ctx context.Context, g *libkb.GlobalContext, teamName st
 	return err
 }
 
-func removeMemberInvite(ctx context.Context, g *libkb.GlobalContext, team *Team, username string, uv keybase1.UserVersion) error {
+func removeMemberInvite(ctx context.Context, g *libkb.GlobalContext, team *Team, username string, uv keybase1.UserVersion) (err error) {
+	g.CTrace(ctx, "removeMemberInvite", func() error { return err })
 	var lookingFor keybase1.TeamInviteName
 	var typ string
 	if !uv.IsNil() {
@@ -1368,14 +1367,12 @@ func removeMemberInviteOfType(ctx context.Context, g *libkb.GlobalContext, team 
 	return libkb.NotFoundError{}
 }
 
-func removeKeybaseTypeInviteForUID(ctx context.Context, g *libkb.GlobalContext, team *Team, uid keybase1.UID) error {
+func removeKeybaseTypeInviteForUID(ctx context.Context, g *libkb.GlobalContext, team *Team, uid keybase1.UID) (err error) {
+	g.CTrace(ctx, "removeKeybaseTypeInviteForUID", func() error { return err })
 	g.Log.CDebugf(ctx, "looking for active or obsolete keybase-type invite in %s for %s", team.Name(), uid)
 
 	// Remove all invites with given UID, so we don't have to worry
-	// about old teams that might have duplicates. Having to remove
-	// more than one should be rare because we do not allow adding
-	// duplicate pukless/crypto memberships anymore, and client tries
-	// to always remove old versions of memberships.
+	// about old teams that might have duplicates.
 
 	var toRemove []keybase1.TeamInviteID
 	allInvites := team.GetActiveAndObsoleteInvites()

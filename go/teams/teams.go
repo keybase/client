@@ -569,7 +569,7 @@ type ChangeMembershipOptions struct {
 }
 
 func (t *Team) ChangeMembershipWithOptions(ctx context.Context, req keybase1.TeamChangeReq, opts ChangeMembershipOptions) (err error) {
-	defer t.G().CTrace(ctx, "Team.ChangeMembershipPermanent", func() error { return err })()
+	defer t.G().CTrace(ctx, "Team.ChangeMembershipWithOptions", func() error { return err })()
 
 	if t.IsSubteam() && len(req.Owners) > 0 {
 		return NewSubteamOwnersError()
