@@ -11,6 +11,11 @@ import {isMobile} from '../../../constants/platform'
  * changes.
  *
  */
+const addedHeightPerResetUser = isMobile
+  ? 2 * Styles.globalMargins.large + Styles.globalMargins.tiny + Styles.globalMargins.small
+  : Styles.globalMargins.large + Styles.globalMargins.tiny
+const baseHeight = isMobile ? 440 : 378 // Change this when layout changes
+export const getHeight = (numResetUsers: number) => baseHeight + numResetUsers * addedHeightPerResetUser
 
 type Props = {
   resetParticipants: Array<string>,
@@ -94,13 +99,6 @@ const Banner = ({resetParticipants, onReAddToTeam, onViewProfile, onOpenWithoutR
     </Kb.Text>
   </Kb.Box2>
 )
-
-const addedHeightPerResetUser = isMobile
-  ? 2 * Styles.globalMargins.large + Styles.globalMargins.tiny + Styles.globalMargins.small
-  : Styles.globalMargins.large + Styles.globalMargins.tiny
-const baseHeight = isMobile ? 440 : 378 // Change this when layout changes
-
-export const getHeight = (numResetUsers: number) => baseHeight + numResetUsers * addedHeightPerResetUser
 
 const fixedHeight = height => ({
   height,

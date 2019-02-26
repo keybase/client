@@ -204,18 +204,6 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
         }
       })
     }
-    case FsGen.fuseStatusResult:
-      return state.merge({fuseStatus: action.payload.status})
-    case FsGen.setFlags:
-      return state.mergeIn(['flags'], action.payload)
-    case FsGen.installFuse:
-      return state.mergeIn(['flags'], {fuseInstalling: true, kextPermissionError: false})
-    case FsGen.installFuseResult:
-      // To prevent races, we overlap flags set to true. So we don't unset the
-      // fuseInstalling flag here.
-      return state.mergeIn(['flags'], action.payload)
-    case FsGen.installKBFS:
-      return state.mergeIn(['flags'], {kbfsInstalling: true})
     case FsGen.localHTTPServerInfo:
       return state.set('localHTTPServerInfo', Constants.makeLocalHTTPServer(action.payload))
     case FsGen.favoriteIgnore: // fallthrough
@@ -326,12 +314,37 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
       return state.set('kbfsDaemonConnected', true)
     case FsGen.kbfsDaemonDisconnected:
       return state.set('kbfsDaemonConnected', false)
+    case FsGen.setDriverStatus:
+      return state.update('fileUI', fileUI => fileUI.set('driverStatus', action.payload.driverStatus))
+    case FsGen.showFileUIBanner:
+      return state.update('fileUI', fileUI => fileUI.set('showingBanner', true))
+    case FsGen.hideFileUIBanner:
+      return state.update('fileUI', fileUI => fileUI.set('showingBanner', false))
+    case FsGen.driverEnable:
+      return state.update('fileUI', fileUI =>
+        fileUI.update('driverStatus', driverStatus =>
+          driverStatus.type === 'disabled' ? driverStatus.set('isEnabling', true) : driverStatus
+        )
+      )
+    case FsGen.driverKextPermissionError:
+      return state.update('fileUI', fileUI =>
+        fileUI.update('driverStatus', driverStatus =>
+          driverStatus.type === 'disabled'
+            ? driverStatus.set('kextPermissionError', true).set('isEnabling', false)
+            : driverStatus
+        )
+      )
+    case FsGen.driverDisable:
+      return state.update('fileUI', fileUI =>
+        fileUI.update('driverStatus', driverStatus =>
+          driverStatus.type === 'enabled' ? driverStatus.set('isDisabling', false) : driverStatus
+        )
+      )
     case FsGen.folderListLoad:
     case FsGen.placeholderAction:
     case FsGen.pathItemLoad:
     case FsGen.download:
     case FsGen.favoritesLoad:
-    case FsGen.fuseStatus:
     case FsGen.uninstallKBFSConfirm:
     case FsGen.notifySyncActivity:
     case FsGen.notifyTlfUpdate:
@@ -358,6 +371,7 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.closeMoveOrCopy:
     case FsGen.clearRefreshTag:
     case FsGen.loadPathMetadata:
+    case FsGen.refreshDriverStatus:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

@@ -21,7 +21,7 @@ type OwnProps = {|
 const mapStateToProps = (state, {path}) => ({
   _downloadKey: state.fs.pathItemActionMenu.downloadKey,
   _downloads: state.fs.downloads,
-  _fileUIEnabled: Constants.kbfsEnabled(state),
+  _fileUIEnabled: state.fs.fileUI.driverStatus === 'enabled',
   _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
   _username: state.config.username,
   _view: state.fs.pathItemActionMenu.view,

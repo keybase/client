@@ -13,7 +13,7 @@ type OwnProps = {|
 |}
 
 const mapStateToProps = (state, {path}: OwnProps) => ({
-  fileUIEnabled: Constants.kbfsEnabled(state),
+  fileUIEnabled: state.fs.fileUI.driverStatus === 'enabled',
   pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
 })
 

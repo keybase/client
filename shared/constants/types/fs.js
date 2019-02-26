@@ -240,17 +240,6 @@ export type Uploads = I.RecordOf<_Uploads>
 export type OpenDialogType = 'file' | 'directory' | 'both'
 export type MobilePickType = 'photo' | 'video' | 'mixed'
 
-export type _Flags = {
-  kbfsOpening: boolean,
-  kbfsInstalling: boolean,
-  fuseInstalling: boolean,
-  kextPermissionError: boolean,
-  securityPrefsPrompted: boolean,
-  showBanner: boolean,
-}
-
-export type Flags = I.RecordOf<_Flags>
-
 export type _LocalHTTPServer = {
   address: string,
   token: string,
@@ -312,6 +301,37 @@ export type _PathItemActionMenu = {
 }
 export type PathItemActionMenu = I.RecordOf<_PathItemActionMenu>
 
+export type _DriverStatusUnknown = {
+  type: 'unknown',
+}
+export type DriverStatusUnknown = I.RecordOf<_DriverStatusUnknown>
+
+export type _DriverStatusDisabled = {
+  type: 'disabled',
+  isEnabling: boolean,
+  isDismissed: boolean,
+  kextPermissionError: boolean,
+}
+export type DriverStatusDisabled = I.RecordOf<_DriverStatusDisabled>
+
+export type _DriverStatusEnabled = {
+  type: 'enabled',
+  dokanOutdated?: ?(true | string), // if string, is exec path
+  isDisabling: boolean,
+  isNew: boolean,
+}
+export type DriverStatusEnabled = I.RecordOf<_DriverStatusEnabled>
+
+export type DriverStatus = DriverStatusUnknown | DriverStatusDisabled | DriverStatusEnabled
+
+export type _FileUI = {
+  driverStatus: DriverStatus,
+  // This only controls if fileui-banner is shown in Folders view. The banner
+  // always shows in Settings/Files screen.
+  showingBanner: boolean,
+}
+export type FileUI = I.RecordOf<_FileUI>
+
 export type _State = {
   pathItems: PathItems,
   tlfs: Tlfs,
@@ -320,8 +340,7 @@ export type _State = {
   loadingPaths: I.Map<Path, I.Set<string>>,
   downloads: Downloads,
   uploads: Uploads,
-  fuseStatus: ?RPCTypes.FuseStatus,
-  flags: Flags,
+  fileUI: FileUI,
   kbfsDaemonConnected: boolean, // just that the daemon is connected, despite of online/offline
   localHTTPServerInfo: LocalHTTPServer,
   errors: I.Map<string, FsError>,

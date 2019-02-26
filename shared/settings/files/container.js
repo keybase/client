@@ -1,54 +1,30 @@
 // @flow
-import Files from './index'
+import Files from '.'
 import * as FsGen from '../../actions/fs-gen'
-import * as Constants from '../../constants/fs'
-import {connect, compose, lifecycle} from '../../util/container'
-import SecurityPrefsPromptingHoc from '../../fs/common/security-prefs-prompting-hoc'
 import * as RouteTreeGen from '../../actions/route-tree-gen'
+import {namedConnect} from '../../util/container'
+import {isMobile} from '../../constants/platform'
 
-type OwnProps = {|
-  shouldPromptSecurityPrefs: boolean,
-  showSecurityPrefsOnce: () => void,
-|}
-const mapStateToProps = state => {
-  const kbfsEnabled = Constants.kbfsEnabled(state)
-  return {
-    inProgress: state.fs.flags.fuseInstalling || state.fs.flags.kbfsInstalling || state.fs.flags.kbfsOpening,
-    kbfsEnabled,
-    showSecurityPrefsLink: !kbfsEnabled && state.fs.flags.kextPermissionError,
-  }
-}
+type OwnProps = {||}
+const mapStateToProps = state => ({
+  driverStatus: state.fs.fileUI.driverStatus,
+})
 
-const mapDispatchToProps = dispatch => {
-  return {
-    getFuseStatus: () => dispatch(FsGen.createFuseStatus()),
-    onInstall: () => dispatch(FsGen.createInstallFuse()),
-    onUninstall: () => dispatch(FsGen.createUninstallKBFSConfirm()),
-    showSecurityPrefs: () =>
-      dispatch(
-        RouteTreeGen.createNavigateAppend({
-          path: [
-            {
-              props: {},
-              selected: 'securityPrefs',
-            },
-          ],
-        })
-      ),
-  }
-}
+const mapDispatchToProps = dispatch => ({
+  onDisable: () => dispatch(FsGen.createDriverDisable()),
+  onEnable: () => dispatch(FsGen.createDriverEnable({})),
+  onShowKextPermissionPopup: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['kextPermission']})),
+})
 
-const ConnectedFiles = compose(
-  connect<OwnProps, _, _, _, _>(
-    mapStateToProps,
-    mapDispatchToProps,
-    (s, d, o) => ({...o, ...s, ...d})
-  ),
-  lifecycle({
-    componentDidMount() {
-      this.props.getFuseStatus()
-    },
-  })
-)(Files)
-
-export default SecurityPrefsPromptingHoc<OwnProps>(ConnectedFiles)
+export default (isMobile
+  ? () => null
+  : namedConnect<OwnProps, _, _, _, _>(
+      mapStateToProps,
+      mapDispatchToProps,
+      (s, d, o) => ({
+        ...s,
+        ...d,
+        ...o,
+      }),
+      'SettingsFiles'
+    )(Files))

@@ -111,7 +111,7 @@ const _rebaseKbfsPathToMountLocation = (kbfsPath: Types.Path, mountLocation: str
   )
 
 const openPathInSystemFileManager = (state, action) =>
-  Constants.kbfsEnabled(state)
+  state.fs.fileUI.driverStatus.type === 'enabled'
     ? RPCTypes.kbfsMountGetCurrentMountDirRpcPromise()
         .then(mountLocation =>
           _openPathInSystemFileManagerPromise(
@@ -148,57 +148,90 @@ function waitForMount(attempt: number) {
   })
 }
 
-const installKBFS = () =>
-  RPCTypes.installInstallKBFSRpcPromise()
-    .then(() => waitForMount(0))
-    .then(() => FsGen.createSetFlags({kbfsInstalling: false, showBanner: true}))
-
-const fuseStatusResultSaga = (_, {payload: {prevStatus, status}}) => {
-  // If our kextStarted status changed, finish KBFS install
-  if (status.kextStarted && prevStatus && !prevStatus.kextStarted) {
-    return FsGen.createInstallKBFS()
-  }
-}
-
-function* fuseStatusSaga(state) {
-  const prevStatus = state.fs.fuseStatus
-
-  let status = yield* Saga.callPromise(RPCTypes.installFuseStatusRpcPromise, {bundleVersion: ''})
-  if (isWindows && status.installStatus !== RPCTypes.installInstallStatus.installed) {
-    // Check if another Dokan we didn't install mounted the filesystem
-    const kbfsMount = yield* Saga.callPromise(RPCTypes.kbfsMountGetCurrentMountDirRpcPromise)
-    if (kbfsMount && fs.existsSync(kbfsMount)) {
-      status = {
-        ...status,
-        installAction: RPCTypes.installInstallAction.none,
-        installStatus: RPCTypes.installInstallStatus.installed,
-        kextStarted: true,
+const fuseStatusToDokanOutdated = isWindows
+  ? (status: RPCTypes.FuseStatus): ?(true | string) => {
+      if (status.installAction !== 2) {
+        return null
       }
+      if (status && status.status && status.status.fields) {
+        const field = status.status.fields.find(element => {
+          return element.key === 'uninstallString'
+        })
+        if (field) {
+          return field.value
+        }
+      }
+      return true
     }
+  : (status: ?RPCTypes.FuseStatus): ?(true | string) => null
+
+const fuseStatusToActions = (previousStatusType: 'enabled' | 'disabled' | 'unknown') => (
+  status: ?RPCTypes.FuseStatus
+) => {
+  if (!status) {
+    return FsGen.createSetDriverStatus({driverStatus: Constants.defaultDriverStatus})
   }
-  yield Saga.put(FsGen.createFuseStatusResult({prevStatus, status}))
+  return status.kextStarted
+    ? [
+        FsGen.createSetDriverStatus({
+          driverStatus: Constants.makeDriverStatusEnabled({
+            dokanOutdated: fuseStatusToDokanOutdated(status),
+          }),
+        }),
+        ...(previousStatusType === 'disabled' ? [FsGen.createShowFileUIBanner()] : []), // show banner for newly enabled
+      ]
+    : [
+        FsGen.createSetDriverStatus({driverStatus: Constants.makeDriverStatusDisabled()}),
+        ...(previousStatusType === 'enabled' ? [FsGen.createHideFileUIBanner()] : []), // hide banner for newly disabled
+        ...(previousStatusType === 'unknown' ? [FsGen.createShowFileUIBanner()] : []), // show banner for disabled on first load
+      ]
 }
 
-function* installFuseSaga() {
-  const result: RPCTypes.InstallResult = yield* Saga.callPromise(RPCTypes.installInstallFuseRpcPromise)
-  const fuseResults =
-    result && result.componentResults ? result.componentResults.filter(c => c.name === 'fuse') : []
-  const kextPermissionError =
-    fuseResults.length > 0 && fuseResults[0].exitCode === Constants.ExitCodeFuseKextPermissionError
+const refreshDriverStatus = state =>
+  RPCTypes.installFuseStatusRpcPromise({bundleVersion: ''})
+    .then(status =>
+      isWindows && status.installStatus !== RPCTypes.installInstallStatus.installed
+        ? RPCTypes.kbfsMountGetCurrentMountDirRpcPromise()
+            .then(
+              mountPoint =>
+                new Promise(resolve =>
+                  fs.access(mountPoint, fs.constants.F_OK, err => (err ? resolve(true) : resolve(false)))
+                )
+            )
+            .then(mountExists =>
+              mountExists
+                ? {
+                    ...status,
+                    installAction: RPCTypes.installInstallAction.none,
+                    installStatus: RPCTypes.installInstallStatus.installed,
+                    kextStarted: true,
+                  }
+                : status
+            )
+        : Promise.resolve(status)
+    )
+    .then(fuseStatusToActions(state.fs.fileUI.driverStatus.type))
 
-  if (kextPermissionError) {
-    // Add a small delay here, since on 10.13 the OS will be a little laggy
-    // when showing a kext permission error.
-    yield Saga.delay(1000)
-  }
+const fuseInstallResultIsKextPermissionError = result =>
+  result &&
+  result.componentResults &&
+  result.componentResults.findIndex(
+    c => c.name === 'fuse' && c.exitCode === Constants.ExitCodeFuseKextPermissionError
+  ) !== -1
 
-  yield Saga.put(FsGen.createInstallFuseResult({kextPermissionError}))
-  yield Saga.put(FsGen.createFuseStatus())
-  yield Saga.put(FsGen.createSetFlags({fuseInstalling: false}))
-  // TODO: do something like uninstallConfirmSaga here
-}
+const driverEnableFuse = (state, action) =>
+  RPCTypes.installInstallFuseRpcPromise().then(result =>
+    fuseInstallResultIsKextPermissionError(result)
+      ? [
+          FsGen.createDriverKextPermissionError(),
+          ...(action.payload.isRetry ? [] : [RouteTreeGen.createNavigateAppend({path: ['kextPermission']})]),
+        ]
+      : RPCTypes.installInstallKBFSRpcPromise()
+          .then(() => waitForMount(0))
+          .then(() => FsGen.createRefreshDriverStatus())
+  )
 
-function* uninstallKBFSConfirm(_, action: FsGen.UninstallKBFSConfirmPayload) {
+function* uninstallKBFSConfirm() {
   const resp = yield Saga.callUntyped(
     () =>
       new Promise((resolve, reject) =>
@@ -278,19 +311,22 @@ function installDokanSaga() {
 }
 
 const uninstallDokanPromise = state => {
-  const uninstallString = Constants.kbfsUninstallString(state)
-  if (!uninstallString) {
+  if (
+    state.fs.fileUI.driverStatus.type !== 'enabled' ||
+    typeof state.fs.fileUI.driverStatus.dokanOutdated !== 'string'
+  ) {
     return
   }
+  const execPath: string = state.fs.fileUI.driverStatus.dokanOutdated
   logger.info('Invoking dokan uninstaller')
   return new Promise(resolve => {
     try {
-      exec(uninstallString, {windowsHide: true}, resolve)
+      exec(execPath, {windowsHide: true}, resolve)
     } catch (e) {
       logger.error('uninstallDokan caught', e)
       resolve()
     }
-  }).then(() => FsGen.createFuseStatus())
+  }).then(() => FsGen.createRefreshDriverStatus())
 }
 
 const openAndUploadToPromise = (state: TypedState, action: FsGen.OpenAndUploadPayload) =>
@@ -335,27 +371,19 @@ function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
     FsGen.openPathInSystemFileManager,
     openPathInSystemFileManager
   )
-  yield* Saga.chainGenerator<FsGen.KbfsDaemonConnectedPayload | FsGen.FuseStatusPayload>(
-    [FsGen.kbfsDaemonConnected, FsGen.fuseStatus],
-    fuseStatusSaga
+  yield* Saga.chainAction<ConfigGen.SetupEngineListenersPayload | FsGen.RefreshDriverStatusPayload>(
+    [FsGen.kbfsDaemonConnected, FsGen.refreshDriverStatus],
+    refreshDriverStatus
   )
-  yield* Saga.chainAction<FsGen.FuseStatusResultPayload>(FsGen.fuseStatusResult, fuseStatusResultSaga)
-  yield* Saga.chainAction<FsGen.InstallKBFSPayload>(FsGen.installKBFS, installKBFS)
   yield* Saga.chainAction<FsGen.OpenAndUploadPayload>(FsGen.openAndUpload, openAndUpload)
   yield* Saga.chainAction<FsGen.UserFileEditsLoadPayload>(FsGen.userFileEditsLoad, loadUserFileEdits)
   yield* Saga.chainAction<FsGen.OpenFilesFromWidgetPayload>(FsGen.openFilesFromWidget, openFilesFromWidget)
   if (isWindows) {
-    yield* Saga.chainAction<FsGen.InstallFusePayload>(FsGen.installFuse, installDokanSaga)
-    yield* Saga.chainAction<FsGen.UninstallKBFSConfirmPayload>(
-      FsGen.uninstallKBFSConfirm,
-      uninstallDokanPromise
-    )
+    yield* Saga.chainAction<FsGen.DriverEnablePayload>(FsGen.driverEnable, installDokanSaga)
+    yield* Saga.chainAction<FsGen.DriverDisablePayload>(FsGen.driverDisable, uninstallDokanPromise)
   } else {
-    yield* Saga.chainGenerator<FsGen.InstallFusePayload>(FsGen.installFuse, installFuseSaga)
-    yield* Saga.chainGenerator<FsGen.UninstallKBFSConfirmPayload>(
-      FsGen.uninstallKBFSConfirm,
-      uninstallKBFSConfirm
-    )
+    yield* Saga.chainAction<FsGen.DriverEnablePayload>(FsGen.driverEnable, driverEnableFuse)
+    yield* Saga.chainGenerator<FsGen.DriverDisablePayload>(FsGen.driverDisable, uninstallKBFSConfirm)
   }
   yield* Saga.chainAction<FsGen.OpenSecurityPreferencesPayload>(
     FsGen.openSecurityPreferences,

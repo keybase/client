@@ -107,25 +107,20 @@
     "openPathInSystemFileManager": {
       "path": "Types.Path"
     },
-    "fuseStatus": {},
-    "fuseStatusResult": {
-      "prevStatus": "?RPCTypes.FuseStatus",
-      "status": "RPCTypes.FuseStatus"
-    },
-    "setFlags": {
-      "kbfsOpening?": "boolean",
-      "kbfsInstalling?": "boolean",
-      "fuseInstalling?": "boolean",
-      "kextPermissionError?": "boolean",
-      "securityPrefsPrompted?": "boolean",
-      "showBanner?": "boolean"
-    },
-    "installFuse": {},
-    "installFuseResult": {
-      "kextPermissionError": "boolean"
-    },
-    "installKBFS": {},
     "uninstallKBFSConfirm": {},
+
+    "refreshDriverStatus": {},
+    "setDriverStatus": {
+      "driverStatus": "Types.DriverStatus"
+    },
+    "hideFileUIBanner": {},
+    "showFileUIBanner": {},
+    "driverEnable": {
+      "isRetry?": "?boolean"
+    },
+    "driverDisable": {},
+    "driverKextPermissionError": {},
+
     "notifyTlfUpdate": {
       "tlfPath": "Types.Path"
     },

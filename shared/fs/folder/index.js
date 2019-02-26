@@ -27,7 +27,10 @@ const WithContent = (props: Props) => (
       routePath={props.routePath}
       headerRows={[
         ...resetBannerAsRows(props.path, props.resetBannerType),
-        ...fileUIBannerAsRows(props.path, props.shouldShowFileUIBanner),
+        // only show fileui banner at /keybase
+        ...(Types.getPathLevel(props.path) === 1
+          ? fileUIBannerAsRows(props.path, props.shouldShowFileUIBanner)
+          : []),
       ]}
     />
   </DropTarget>
