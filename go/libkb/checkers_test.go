@@ -50,6 +50,7 @@ var deviceNameTests = []checkerTest{
 	{input: "not😂ascii", valid: false},
 	{input: "John’s iPhone", valid: true},
 	{input: "absolute@unit", valid: false},
+	{input: "absolute(unit", valid: false},
 }
 
 func TestCheckDeviceName(t *testing.T) {
