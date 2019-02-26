@@ -1860,6 +1860,7 @@ export const tlfKeysTLFIdentifyBehavior = {
   kbfsChat: 11,
   resolveAndCheck: 12,
   guiProfile: 13,
+  kbfsInit: 14,
 }
 
 export const uPKKeyType = {
@@ -2908,6 +2909,7 @@ export type TLFIdentifyBehavior =
   | 11 // KBFS_CHAT_11
   | 12 // RESOLVE_AND_CHECK_12
   | 13 // GUI_PROFILE_13
+  | 14 // KBFS_INIT_14
 
 export type TLFIdentifyFailure = $ReadOnly<{user: User, breaks?: ?IdentifyTrackBreaks}>
 export type TLFQuery = $ReadOnly<{tlfName: String, identifyBehavior: TLFIdentifyBehavior}>
