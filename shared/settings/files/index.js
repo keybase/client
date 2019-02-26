@@ -5,6 +5,7 @@ import * as Kb from '../../common-adapters'
 import {fileUIName, isLinux} from '../../constants/platform'
 import * as Styles from '../../styles'
 import FileUIBanner from '../../fs/banner/fileui-banner/container'
+import RefreshDriverStatusOnMount from '../../fs/common/refresh-driver-status-on-mount'
 
 type Props = {|
   driverStatus: Types.DriverStatus,
@@ -27,34 +28,37 @@ const isPending = (props: Props) =>
   (props.driverStatus.type === 'enabled' && props.driverStatus.isDisabling) ||
   (props.driverStatus.type === 'disabled' && props.driverStatus.isEnabling)
 
-const Files = (props: Props) => (
-  <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
-    <FileUIBanner alwaysShow={true} />
-    <Kb.Box2 direction="vertical" fullWidth={true} style={styles.mainContent}>
-      {!isLinux && (
-        <Kb.Box>
-          <Kb.Box2 direction="horizontal" gap="tiny" style={styles.contentHeader}>
-            <Kb.Text type="BodySmallSemibold">{fileUIName} integration</Kb.Text>
-            <Kb.Icon type="iconfont-finder" fontSize={16} color={Styles.globalColors.black_20} />
-            {isPending(props) && <Kb.ProgressIndicator style={styles.spinner} />}
-            {props.driverStatus.type === 'disabled' && props.driverStatus.kextPermissionError && (
-              <Kb.ClickableBox style={styles.actionNeededBox} onClick={props.onShowKextPermissionPopup}>
-                <Kb.Text style={styles.actionNeededText} type="BodySmallSemibold">
-                  Action needed!
-                </Kb.Text>
-              </Kb.ClickableBox>
-            )}
-          </Kb.Box2>
-          <Kb.Checkbox
-            onCheck={props.driverStatus.type === 'enabled' ? props.onDisable : props.onEnable}
-            labelComponent={<EnableFileUI {...props} />}
-            checked={props.driverStatus.type === 'enabled'}
-            disabled={isPending(props)}
-          />
-        </Kb.Box>
-      )}
+export default (props: Props) => (
+  <>
+    <RefreshDriverStatusOnMount />
+    <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
+      <FileUIBanner alwaysShow={true} />
+      <Kb.Box2 direction="vertical" fullWidth={true} style={styles.mainContent}>
+        {!isLinux && (
+          <Kb.Box>
+            <Kb.Box2 direction="horizontal" gap="tiny" style={styles.contentHeader}>
+              <Kb.Text type="BodySmallSemibold">{fileUIName} integration</Kb.Text>
+              <Kb.Icon type="iconfont-finder" fontSize={16} color={Styles.globalColors.black_20} />
+              {isPending(props) && <Kb.ProgressIndicator style={styles.spinner} />}
+              {props.driverStatus.type === 'disabled' && props.driverStatus.kextPermissionError && (
+                <Kb.ClickableBox style={styles.actionNeededBox} onClick={props.onShowKextPermissionPopup}>
+                  <Kb.Text style={styles.actionNeededText} type="BodySmallSemibold">
+                    Action needed!
+                  </Kb.Text>
+                </Kb.ClickableBox>
+              )}
+            </Kb.Box2>
+            <Kb.Checkbox
+              onCheck={props.driverStatus.type === 'enabled' ? props.onDisable : props.onEnable}
+              labelComponent={<EnableFileUI {...props} />}
+              checked={props.driverStatus.type === 'enabled'}
+              disabled={isPending(props)}
+            />
+          </Kb.Box>
+        )}
+      </Kb.Box2>
     </Kb.Box2>
-  </Kb.Box2>
+  </>
 )
 
 const styles = Styles.styleSheetCreate({
@@ -76,5 +80,3 @@ const styles = Styles.styleSheetCreate({
     width: 16,
   },
 })
-
-export default Files

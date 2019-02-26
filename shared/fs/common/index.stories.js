@@ -77,6 +77,9 @@ export const commonProvider = {
     lastWriter: 'songgao_test',
     mode,
   }),
+  RefreshDriverStatusOnMount: () => ({
+    refresh: Sb.action('refresh'),
+  }),
   SendInAppAction: () => ({onClick: Sb.action('onClick')}),
   TlfInfo: ({path, mode}: PathItemInfoOwnProps) => ({
     mode,
