@@ -1,5 +1,6 @@
 // @flow
 import React, {PureComponent} from 'react'
+import Measure from 'react-measure'
 import ReactList from 'react-list'
 import {globalStyles, collapseStyles, styleSheetCreate, platformStyles} from '../styles'
 import logger from '../logger'
@@ -16,7 +17,39 @@ class List extends PureComponent<Props<any>, void> {
       return null
     }
     const item = this.props.items[index]
-    const children = this.props.renderItem(index, item)
+    let children
+
+    // If we're in dev, let's check our estimates
+    if (__DEV__ && !!this.props.itemSizeEstimator) {
+      const onResize = ({bounds}) => {
+        const height = Math.ceil(bounds.height)
+        // Neded to make flow happy, this isn't a problem because we check for null above
+        const heightEstimate = this.props.itemSizeEstimator ? this.props.itemSizeEstimator(index, {}) : 0
+
+        // Ignore cases where the height isn't ready yet
+        if (height > 5) {
+          const diff = Math.abs(height - heightEstimate)
+          if (diff > 5) {
+            console.warn(`Estimate for this item in List is off, check your estimates
+              Index: ${index}. Key: ${item[this.props.keyProperty || 'key']}
+              Measured: ${height}. Estimated: ${heightEstimate}
+            `)
+          }
+        }
+      }
+      children = (
+        <Measure bounds={true} onResize={onResize}>
+          {({measureRef, contentRect}) => (
+            <div ref={measureRef}>
+              {this.props.renderItem(index, item)}
+            </div>
+          )}
+        </Measure>
+      )
+    } else {
+      children = this.props.renderItem(index, item)
+    }
+
 
     if (this.props.indexAsKey) {
       // if indexAsKey is set, just use index.
