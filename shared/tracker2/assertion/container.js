@@ -34,8 +34,10 @@ const mapStateToProps = (state, ownProps) => {
     isYours: ownProps.username === state.config.username,
     proofURL: a.proofURL,
     siteIcon: a.siteIcon,
+    siteIconFull: a.siteIconFull,
     siteURL: a.siteURL,
     state: a.state,
+    timestamp: a.timestamp,
     type: a.type,
     value: a.value,
   }
@@ -82,8 +84,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => ({
   onWhatIsStellar: () => openUrl('https://keybase.io/what-is-stellar'),
   proofURL: stateProps.proofURL,
   siteIcon: stateProps.siteIcon,
+  siteIconFull: stateProps.siteIconFull,
   siteURL: stateProps.siteURL,
   state: stateProps.state,
+  timestamp: stateProps.timestamp,
   type: stateProps.type,
   value: stateProps.value,
 })
