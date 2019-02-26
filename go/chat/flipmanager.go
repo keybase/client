@@ -108,6 +108,11 @@ type loadGameJob struct {
 	convID chat1.ConversationID
 }
 
+type convParticipationsRateLimit struct {
+	count int
+	reset time.Time
+}
+
 type FlipManager struct {
 	globals.Contextified
 	utils.DebugLabeler
@@ -125,21 +130,32 @@ type FlipManager struct {
 	gamesMu    sync.Mutex
 	games      *lru.Cache
 	dirtyGames map[string]chat1.FlipGameID
+
+	partMu                     sync.Mutex
+	maxConvParticipations      int
+	maxConvParticipationsReset time.Duration
+	convParticipations         map[string]convParticipationsRateLimit
+
+	// testing only
+	testingServerClock clockwork.Clock
 }
 
 func NewFlipManager(g *globals.Context, ri func() chat1.RemoteInterface) *FlipManager {
 	games, _ := lru.New(100)
 	m := &FlipManager{
-		Contextified:      globals.NewContextified(g),
-		DebugLabeler:      utils.NewDebugLabeler(g.GetLog(), "FlipManager", false),
-		ri:                ri,
-		clock:             clockwork.NewRealClock(),
-		games:             games,
-		dirtyGames:        make(map[string]chat1.FlipGameID),
-		forceCh:           make(chan struct{}, 10),
-		loadGameCh:        make(chan loadGameJob, 100),
-		desktopVisualizer: NewFlipVisualizer(256, 100),
-		mobileVisualizer:  NewFlipVisualizer(220, 100),
+		Contextified:               globals.NewContextified(g),
+		DebugLabeler:               utils.NewDebugLabeler(g.GetLog(), "FlipManager", false),
+		ri:                         ri,
+		clock:                      clockwork.NewRealClock(),
+		games:                      games,
+		dirtyGames:                 make(map[string]chat1.FlipGameID),
+		forceCh:                    make(chan struct{}, 10),
+		loadGameCh:                 make(chan loadGameJob, 100),
+		convParticipations:         make(map[string]convParticipationsRateLimit),
+		maxConvParticipations:      1000,
+		maxConvParticipationsReset: 5 * time.Minute,
+		desktopVisualizer:          NewFlipVisualizer(256, 100),
+		mobileVisualizer:           NewFlipVisualizer(220, 100),
 	}
 	dealer := flip.NewDealer(m)
 	m.dealer = dealer
@@ -706,6 +722,57 @@ func (m *FlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID
 	return m.dealer.StartFlipWithGameID(ctx, start, conv.GetConvID(), gameID)
 }
 
+func (m *FlipManager) shouldIgnoreInject(ctx context.Context, hostConvID, flipConvID chat1.ConversationID,
+	gameID chat1.FlipGameID) bool {
+	if m.dealer.IsGameActive(ctx, flipConvID, gameID) {
+		return false
+	}
+	// Ignore any flip messages for non-active games when not in the foreground
+	appBkg := m.G().GetAppType() == libkb.MobileAppType &&
+		m.G().AppState.State() != keybase1.AppState_FOREGROUND
+	partViolation := m.isConvParticipationViolation(ctx, hostConvID)
+	return appBkg || partViolation
+}
+
+func (m *FlipManager) isConvParticipationViolation(ctx context.Context, convID chat1.ConversationID) bool {
+	m.partMu.Lock()
+	defer m.partMu.Unlock()
+	if rec, ok := m.convParticipations[convID.String()]; ok {
+		m.Debug(ctx, "isConvParticipationViolation: rec: %v", rec)
+		if rec.reset.Before(m.clock.Now()) {
+			return false
+		}
+		if rec.count >= m.maxConvParticipations {
+			m.Debug(ctx, "isConvParticipationViolation: violation: convID: %s remaining: %v",
+				convID, m.clock.Now().Sub(rec.reset))
+			return true
+		}
+		return false
+	}
+	return false
+}
+
+func (m *FlipManager) recordConvParticipation(ctx context.Context, convID chat1.ConversationID) {
+	m.partMu.Lock()
+	defer m.partMu.Unlock()
+	addNew := func() {
+		m.convParticipations[convID.String()] = convParticipationsRateLimit{
+			count: 1,
+			reset: m.clock.Now().Add(m.maxConvParticipationsReset),
+		}
+	}
+	if rec, ok := m.convParticipations[convID.String()]; ok {
+		if rec.reset.Before(m.clock.Now()) {
+			addNew()
+		} else {
+			rec.count++
+			m.convParticipations[convID.String()] = rec
+		}
+	} else {
+		addNew()
+	}
+}
+
 // MaybeInjectFlipMessage implements the types.CoinFlipManager interface
 func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, boxedMsg chat1.MessageBoxed,
 	inboxVers chat1.InboxVers, uid gregor1.UID, convID chat1.ConversationID, topicType chat1.TopicType) bool {
@@ -748,11 +815,26 @@ func (m *FlipManager) MaybeInjectFlipMessage(ctx context.Context, boxedMsg chat1
 		m.Debug(ctx, "MaybeInjectFlipMessage: bogus flip message with a non-flip body")
 		return true
 	}
+	// Check to see if we are going to participate from this inject
+	hmi, err := m.getHostMessageInfo(ctx, convID)
+	if err != nil {
+		m.Debug(ctx, "MaybeInjectFlipMessage: failed to get host message info: %s", err)
+		return true
+	}
+	if m.shouldIgnoreInject(ctx, hmi.ConvID, convID, body.Flip().GameID) {
+		m.Debug(ctx, "MaybeInjectFlipMessage: ignored flip message")
+		return true
+	}
+	m.recordConvParticipation(ctx, hmi.ConvID) // record the inject for rate limiting purposes
 	if err := m.dealer.InjectIncomingChat(ctx, sender, convID, body.Flip().GameID,
 		flip.MakeGameMessageEncoded(body.Flip().Text), m.isStartMsgID(msg.GetMessageID())); err != nil {
 		m.Debug(ctx, "MaybeInjectFlipMessage: failed to inject: %s", err)
 	}
 	return true
+}
+
+func (m *FlipManager) HasActiveGames(ctx context.Context) bool {
+	return m.dealer.HasActiveGames(ctx)
 }
 
 func (m *FlipManager) loadGame(ctx context.Context, job loadGameJob) (err error) {
@@ -873,6 +955,9 @@ func (m *FlipManager) Clock() clockwork.Clock {
 func (m *FlipManager) ServerTime(ctx context.Context) (res time.Time, err error) {
 	ctx = Context(ctx, m.G(), keybase1.TLFIdentifyBehavior_CHAT_SKIP, nil, nil)
 	defer m.Trace(ctx, func() error { return err }, "ServerTime")()
+	if m.testingServerClock != nil {
+		return m.testingServerClock.Now(), nil
+	}
 	sres, err := m.ri().ServerNow(ctx)
 	if err != nil {
 		return res, err
