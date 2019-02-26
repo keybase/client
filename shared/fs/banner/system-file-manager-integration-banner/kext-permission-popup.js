@@ -5,6 +5,7 @@ import * as Styles from '../../../styles'
 import TryEnableDriverOnFocus from '../../common/try-enable-driver-on-focus'
 
 type Props = {|
+  isEnabling: boolean,
   onCancel: () => void,
   openSecurityPrefs: () => void,
 |}
@@ -68,6 +69,16 @@ const InstallSecurityPrefs = (props: Props) => (
         Open Security & Privacy Settings
       </Kb.Text>
     </Kb.Box2>
+    {props.isEnabling && (
+      <Kb.Box style={styles.enablingContainer}>
+        <Kb.Box2 direction="vertical" gap="small" fullWidth={true} fullHeight={true} centerChildren={true}>
+          <Kb.ProgressIndicator white={true} />
+          <Kb.Text type="BodySmall" negative={true}>
+            Checking ...
+          </Kb.Text>
+        </Kb.Box2>
+      </Kb.Box>
+    )}
   </>
 )
 
@@ -80,6 +91,14 @@ const styles = Styles.styleSheetCreate({
     paddingRight: Styles.globalMargins.large,
     paddingTop: Styles.globalMargins.mediumLarge,
     width: 700,
+  },
+  enablingContainer: {
+    backgroundColor: Styles.globalColors.black_63,
+    bottom: 0,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
   },
   highlight: {
     backgroundColor: Styles.globalColors.black_05,
