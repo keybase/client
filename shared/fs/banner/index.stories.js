@@ -72,13 +72,20 @@ export default () => {
     .add('SystemFileManagerIntegrationBanner - enabled, dokanOutdated', () => (
       <SystemFileManagerIntegrationBanner
         {...commonSystemFileManagerIntegrationBannerActions}
-        driverStatus={Constants.makeDriverStatusEnabled({dokanOutdated: 'can-disable'})}
+        driverStatus={Constants.makeDriverStatusEnabled({
+          dokanOutdated: true,
+          dokanUninstallExecPath: 'c:\\blah',
+        })}
       />
     ))
     .add('SystemFileManagerIntegrationBanner - enabled, dokanOutdated, diabling', () => (
       <SystemFileManagerIntegrationBanner
         {...commonSystemFileManagerIntegrationBannerActions}
-        driverStatus={Constants.makeDriverStatusEnabled({dokanOutdated: 'can-disable', isDisabling: true})}
+        driverStatus={Constants.makeDriverStatusEnabled({
+          dokanOutdated: true,
+          dokanUninstallExecPath: 'c:\\blah',
+          isDisabling: true,
+        })}
       />
     ))
     .add('SystemFileManagerIntegrationBanner - kext permissiion popup', () => (

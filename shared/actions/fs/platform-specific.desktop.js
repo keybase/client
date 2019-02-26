@@ -148,22 +148,16 @@ function waitForMount(attempt: number) {
   })
 }
 
-const fuseStatusToDokanOutdated = isWindows
-  ? (status: RPCTypes.FuseStatus): ?(true | string) => {
-      if (status.installAction !== 2) {
-        return null
-      }
-      if (status && status.status && status.status.fields) {
-        const field = status.status.fields.find(element => {
-          return element.key === 'uninstallString'
-        })
-        if (field) {
-          return field.value
-        }
-      }
-      return true
+const fuseStatusToUninstallExecPath = isWindows
+  ? (status: RPCTypes.FuseStatus) => {
+      const field =
+        status &&
+        status.status &&
+        status.status.fields &&
+        status.status.fields.find(({key}) => key === 'uninstallString')
+      return field && field.value
     }
-  : (status: ?RPCTypes.FuseStatus): ?(true | string) => null
+  : (status: ?RPCTypes.FuseStatus) => null
 
 const fuseStatusToActions = (previousStatusType: 'enabled' | 'disabled' | 'unknown') => (
   status: ?RPCTypes.FuseStatus
@@ -175,7 +169,8 @@ const fuseStatusToActions = (previousStatusType: 'enabled' | 'disabled' | 'unkno
     ? [
         FsGen.createSetDriverStatus({
           driverStatus: Constants.makeDriverStatusEnabled({
-            dokanOutdated: fuseStatusToDokanOutdated(status),
+            dokanOutdated: status.installAction === 2,
+            dokanUninstallExecPath: fuseStatusToUninstallExecPath(status),
           }),
         }),
         ...(previousStatusType === 'disabled' ? [FsGen.createShowSystemFileManagerIntegrationBanner()] : []), // show banner for newly enabled
@@ -278,8 +273,8 @@ const openSecurityPreferences = () => {
 // Invoking the cached installer package has to happen from the topmost process
 // or it won't be visible to the user. The service also does this to support command line
 // operations.
-function installCachedDokan() {
-  return new Promise((resolve, reject) => {
+const installCachedDokan = () =>
+  new Promise((resolve, reject) => {
     logger.info('Invoking dokan installer')
     const dokanPath = path.resolve(String(process.env.LOCALAPPDATA), 'Keybase', 'DokanSetup_redist.exe')
     try {
@@ -304,22 +299,30 @@ function installCachedDokan() {
     })
 
     resolve()
-  })
-}
-
-function installDokanSaga() {
-  installCachedDokan()
-}
+  }).then(() => FsGen.createRefreshDriverStatus())
 
 const uninstallDokanPromise = state => {
-  if (
-    state.fs.sfmi.driverStatus.type !== 'enabled' ||
-    typeof state.fs.sfmi.driverStatus.dokanOutdated !== 'string'
-  ) {
+  if (state.fs.sfmi.driverStatus.type !== 'enabled') {
     return
   }
-  const execPath: string = state.fs.sfmi.driverStatus.dokanOutdated
-  logger.info('Invoking dokan uninstaller')
+  if (!state.fs.sfmi.driverStatus.dokanUninstallExecPath) {
+    return new Promise(resolve =>
+      SafeElectron.getDialog().showMessageBox(
+        null,
+        {
+          buttons: ['Got it'],
+          detail:
+            'It appears that Dokan was not installed as part of Keybase. Please use Dokan uninstaller to remove it.',
+          message: 'Please use Dokan uninstaller.',
+          type: 'info',
+        },
+        resp => resolve(FsGen.createRefreshDriverStatus())
+      )
+    )
+  }
+
+  const execPath: string = state.fs.sfmi.driverStatus.dokanUninstallExecPath
+  logger.info('Invoking dokan uninstaller', execPath)
   return new Promise(resolve => {
     try {
       exec(execPath, {windowsHide: true}, resolve)
@@ -380,7 +383,7 @@ function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<FsGen.UserFileEditsLoadPayload>(FsGen.userFileEditsLoad, loadUserFileEdits)
   yield* Saga.chainAction<FsGen.OpenFilesFromWidgetPayload>(FsGen.openFilesFromWidget, openFilesFromWidget)
   if (isWindows) {
-    yield* Saga.chainAction<FsGen.DriverEnablePayload>(FsGen.driverEnable, installDokanSaga)
+    yield* Saga.chainAction<FsGen.DriverEnablePayload>(FsGen.driverEnable, installCachedDokan)
     yield* Saga.chainAction<FsGen.DriverDisablePayload>(FsGen.driverDisable, uninstallDokanPromise)
   } else {
     yield* Saga.chainAction<FsGen.DriverEnablePayload>(FsGen.driverEnable, driverEnableFuse)
