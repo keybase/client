@@ -38,7 +38,7 @@ class List2<T> extends PureComponent<Props<T>, void> {
 
   render() {
     return (
-      <View style={Styles.collapseStyles([styles.outerView, this.props.style])}>
+      <View style={styles.outerView}>
         {/* need windowSize so iphone 6 doesn't have OOM issues */}
         <FlatList
           bounces={this.props.bounces}
@@ -50,6 +50,7 @@ class List2<T> extends PureComponent<Props<T>, void> {
           onEndReached={this.props.onEndReached}
           windowSize={this.props.windowSize || 10}
           debug={false /* set to true to debug the list */}
+          style={this.props.style}
         />
       </View>
     )
