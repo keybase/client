@@ -6,7 +6,6 @@ import * as TrackerGen from '../actions/tracker-gen'
 import * as Chat2Gen from '../actions/chat2-gen'
 import * as ConfigGen from '../actions/config-gen'
 import * as ProfileGen from '../actions/profile-gen'
-import * as TeamsGen from '../actions/teams-gen'
 import * as Constants from '../constants/tracker'
 import * as TrackerTypes from '../constants/types/tracker'
 import * as Types from '../constants/types/profile'
@@ -61,7 +60,6 @@ const mapStateToProps = (state, {routeProps, routeState, routePath}: OwnProps) =
   const youAreInTeams = isInSomeTeam(state)
 
   return {
-    addUserToTeamsResults: state.teams.addUserToTeamsResults,
     currentFriendshipsTab: routeState.get('currentFriendshipsTab'),
     myUsername,
     profileIsRoot: routePath.size === 1 && routePath.first() === peopleTab,
@@ -101,7 +99,6 @@ const mapDispatchToProps = (dispatch, {setRouteState}: OwnProps) => ({
   getProfile: (username: string) => dispatch(TrackerGen.createGetProfile({username})),
   onBack: () => dispatch(RouteTreeGen.createNavigateUp()),
   onChangeFriendshipsTab: currentFriendshipsTab => setRouteState({currentFriendshipsTab}),
-  onClearAddUserToTeamsResults: () => dispatch(TeamsGen.createSetAddUserToTeamsResults({results: ''})),
   onClickShowcaseOffer: () => dispatch(RouteTreeGen.createNavigateAppend({path: ['showcaseTeamOffer']})),
   onEditAvatar: (image?: Response) =>
     dispatch(RouteTreeGen.createNavigateAppend({path: [{props: {image}, selected: 'editAvatar'}]})),
@@ -164,7 +161,6 @@ const mergeProps = (stateProps, dispatchProps) => {
   const okProps = {
     ...stateProps.trackerState,
     ...dispatchProps,
-    addUserToTeamsResults: stateProps.addUserToTeamsResults,
     bioEditFns,
     currentFriendshipsTab: stateProps.currentFriendshipsTab,
     followers: stateProps.trackerState ? stateProps.trackerState.trackers : [],
@@ -177,7 +173,6 @@ const mergeProps = (stateProps, dispatchProps) => {
     onBack: stateProps.profileIsRoot ? null : dispatchProps.onBack,
     onBrowsePublicFolder: () => dispatchProps._onBrowsePublicFolder(username),
     onChat: () => dispatchProps._onChat(username),
-    onClearAddUserToTeamsResults: () => dispatchProps.onClearAddUserToTeamsResults(),
     onClickAvatar: () => dispatchProps._onClickAvatar(username),
     onClickShowcaseOffer: () => dispatchProps.onClickShowcaseOffer(),
     onCopyStellarAddress: () => {

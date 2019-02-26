@@ -7,7 +7,7 @@ import type {RowProps, Props} from './index'
 
 const TeamRow = (props: RowProps) => (
   <Kb.ClickableBox onClick={props.canAddThem ? props.onCheck : null}>
-    <Kb.Box2 direction="horizontal" style={styleTeamRow}>
+    <Kb.Box2 direction="horizontal" style={styles.teamRow}>
       <Kb.Checkbox disabled={!props.canAddThem} checked={props.checked} onCheck={props.onCheck} />
       <Kb.Box2 direction="vertical" style={{display: 'flex', position: 'relative'}}>
         <Kb.Avatar
@@ -26,7 +26,7 @@ const TeamRow = (props: RowProps) => (
             {props.name}
           </Kb.Text>
           {props.isOpen && (
-            <Kb.Meta title="open" style={styleMeta} backgroundColor={Styles.globalColors.green} />
+            <Kb.Meta title="open" style={styles.meta} backgroundColor={Styles.globalColors.green} />
           )}
         </Kb.Box2>
         <Kb.Box2 direction="horizontal" style={{alignSelf: 'flex-start'}}>
@@ -55,33 +55,16 @@ const DropdownItem = (item: string) => (
 const AddToTeam = (props: Props) => {
   const selectedTeamCount = Object.values(props.selectedTeams).filter(b => b).length
   return (
-    <Kb.Box2 direction="vertical" style={styleContainer}>
+    <Kb.Box2 direction="vertical" style={styles.container}>
       {!!props.addUserToTeamsResults && (
-        <Kb.Box2
-          direction="horizontal"
-          style={{
-            backgroundColor: Styles.globalColors.green,
-            minHeight: 40,
-          }}
-        >
-          <Kb.Box2 direction="vertical" style={{flexGrow: 1}}>
-            <Kb.Text
-              center={true}
-              style={{margin: Styles.globalMargins.tiny, width: '100%'}}
-              type="BodySemibold"
-              backgroundMode="HighRisk"
-            >
-              {this.props.addUserToTeamsResults}
-            </Kb.Text>
-          </Kb.Box2>
-          <Kb.Box2 direction="vertical" style={{flexShrink: 1, justifyContent: 'center'}}>
-            <Kb.Icon
-              color={Styles.globalColors.black_50}
-              onClick={this.props.onClearAddUserToTeamsResults}
-              style={{padding: Styles.globalMargins.tiny}}
-              type="iconfont-close"
-            />
-          </Kb.Box2>
+        <Kb.Box2 direction="horizontal" noShrink={true} style={styles.addUserToTeamsResults}>
+          <Kb.Text
+            style={{margin: Styles.globalMargins.tiny, width: '100%'}}
+            type="BodySemibold"
+            backgroundMode="HighRisk"
+          >
+            {props.addUserToTeamsResults}
+          </Kb.Text>
         </Kb.Box2>
       )}
       {!Styles.isMobile && (
@@ -130,8 +113,8 @@ const AddToTeam = (props: Props) => {
           )}
         </Kb.Box2>
       </Kb.ScrollView>
-      <Kb.Box2 direction={isMobile ? 'vertical' : 'horizontal'} style={addToTeam}>
-        <Kb.Text style={addToTeamTitle} type="BodySmall">
+      <Kb.Box2 direction={Styles.isMobile ? 'vertical' : 'horizontal'} style={styles.addToTeam}>
+        <Kb.Text style={styles.addToTeamTitle} type="BodySmall">
           {props.them} will be added as a
         </Kb.Text>
         <Kb.DropdownButton
@@ -139,15 +122,15 @@ const AddToTeam = (props: Props) => {
             props.onOpenRolePicker(props.role, selectedRole => props.onRoleChange(selectedRole))
           }
           selected={DropdownItem(props.role)}
-          style={{width: isMobile ? '100%' : 100}}
+          style={{width: Styles.isMobile ? '100%' : 100}}
         />
       </Kb.Box2>
-      <Kb.ButtonBar fullWidth={true} style={buttonBar}>
-        {!isMobile && <Kb.Button type="Secondary" onClick={props.onBack} label="Cancel" />}
+      <Kb.ButtonBar fullWidth={true} style={styles.buttonBar}>
+        {!Styles.isMobile && <Kb.Button type="Secondary" onClick={props.onBack} label="Cancel" />}
         <Kb.Button
           disabled={selectedTeamCount === 0}
           fullWidth={Styles.isMobile}
-          style={addButton}
+          style={styles.addButton}
           type="Primary"
           onClick={() => props.onSave(props.role, props.selectedTeams)}
           label={selectedTeamCount <= 1 ? 'Add to team' : `Add to ${selectedTeamCount} teams`}
@@ -157,85 +140,81 @@ const AddToTeam = (props: Props) => {
   )
 }
 
-const styleContainer = Styles.platformStyles({
-  common: {
-    alignItems: 'center',
-    flex: 1,
-    marginTop: 35,
-  },
-  isElectron: {
-    marginBottom: Styles.globalMargins.tiny,
-    width: 500,
-  },
-  isMobile: {
-    marginBottom: Styles.globalMargins.xtiny,
-    marginTop: 0,
-    width: '100%',
-  },
-})
-
-const styleMeta = {
-  alignSelf: 'center',
-  marginLeft: Styles.globalMargins.xtiny,
-  marginTop: 2,
-}
-
-const styleTeamRow = Styles.platformStyles({
-  common: {
-    alignItems: 'center',
-    paddingBottom: Styles.globalMargins.tiny,
-    paddingTop: Styles.globalMargins.tiny,
-    width: '100%',
-  },
-  isElectron: {
-    minHeight: 48,
-    paddingLeft: Styles.globalMargins.tiny,
-  },
-  isMobile: {
-    minHeight: 64,
-    paddingLeft: Styles.globalMargins.xsmall,
-    paddingRight: Styles.globalMargins.tiny,
-  },
-})
-
-const addToTeam = Styles.latformStyles({
-  common: {
-    alignItems: 'center',
-    marginLeft: Styles.globalMargins.small,
-    marginRight: Styles.globalMargins.small,
-  },
-  isElectron: {
-    marginTop: Styles.globalMargins.small,
-  },
-})
-
-const addToTeamTitle = Styles.platformStyles({
-  isElectron: {
-    marginRight: Styles.globalMargins.tiny,
-  },
-  isMobile: {
-    marginBottom: Styles.globalMargins.tiny,
-    marginTop: Styles.globalMargins.tiny,
-  },
-})
-
-const buttonBar = Styles.platformStyles({
-  isMobile: {
-    paddingLeft: Styles.globalMargins.xsmall,
-    paddingRight: Styles.globalMargins.xsmall,
-  },
-})
-
-const addButton = Styles.platformStyles({
-  isMobile: {
-    width: '100%',
-  },
-})
-
 const styles = Styles.styleSheetCreate({
+  addButton: Styles.platformStyles({
+    isMobile: {
+      width: '100%',
+    },
+  }),
+  addToTeam: Styles.platformStyles({
+    common: {
+      alignItems: 'center',
+      marginLeft: Styles.globalMargins.small,
+      marginRight: Styles.globalMargins.small,
+    },
+    isElectron: {
+      marginTop: Styles.globalMargins.small,
+    },
+  }),
+  addToTeamTitle: Styles.platformStyles({
+    isElectron: {
+      marginRight: Styles.globalMargins.tiny,
+    },
+    isMobile: {
+      marginBottom: Styles.globalMargins.tiny,
+      marginTop: Styles.globalMargins.tiny,
+    },
+  }),
+  addUserToTeamsResults: {
+    backgroundColor: Styles.globalColors.green,
+  },
+  buttonBar: Styles.platformStyles({
+    isMobile: {
+      paddingLeft: Styles.globalMargins.xsmall,
+      paddingRight: Styles.globalMargins.xsmall,
+    },
+  }),
+  container: Styles.platformStyles({
+    common: {
+      alignItems: 'center',
+      flex: 1,
+      marginTop: 35,
+    },
+    isElectron: {
+      marginBottom: Styles.globalMargins.tiny,
+      width: 500,
+    },
+    isMobile: {
+      marginBottom: Styles.globalMargins.xtiny,
+      marginTop: 0,
+      width: '100%',
+    },
+  }),
   divider: {
     marginLeft: 69,
   },
+  meta: {
+    alignSelf: 'center',
+    marginLeft: Styles.globalMargins.xtiny,
+    marginTop: 2,
+  },
+  teamRow: Styles.platformStyles({
+    common: {
+      alignItems: 'center',
+      paddingBottom: Styles.globalMargins.tiny,
+      paddingTop: Styles.globalMargins.tiny,
+      width: '100%',
+    },
+    isElectron: {
+      minHeight: 48,
+      paddingLeft: Styles.globalMargins.tiny,
+    },
+    isMobile: {
+      minHeight: 64,
+      paddingLeft: Styles.globalMargins.xsmall,
+      paddingRight: Styles.globalMargins.tiny,
+    },
+  }),
 })
 
 const PopupWrapped = (props: Props) => (

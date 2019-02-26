@@ -4,7 +4,6 @@ import * as Types from '../../constants/types/teams'
 import {type StylesCrossPlatform} from '../../styles'
 
 export type RowProps = {
-  addUserToTeamsResults: string,
   canAddThem: boolean,
   checked: boolean,
   disabledReason: string,
@@ -15,6 +14,7 @@ export type RowProps = {
 }
 
 export type Props = {
+  addUserToTeamsResults: string,
   customComponent?: ?React.Node,
   headerStyle?: StylesCrossPlatform,
   loaded: {[string]: boolean},
