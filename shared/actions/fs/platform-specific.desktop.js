@@ -187,27 +187,28 @@ const fuseStatusToActions = (previousStatusType: 'enabled' | 'disabled' | 'unkno
       ]
 }
 
+const windowsCheckMountFromOtherDokanInstall = status =>
+  RPCTypes.kbfsMountGetCurrentMountDirRpcPromise().then(mountPoint =>
+    mountPoint
+      ? new Promise(resolve => fs.access(mountPoint, fs.constants.F_OK, err => resolve(!err))).then(
+          mountExists =>
+            mountExists
+              ? {
+                  ...status,
+                  installAction: RPCTypes.installInstallAction.none,
+                  installStatus: RPCTypes.installInstallStatus.installed,
+                  kextStarted: true,
+                }
+              : status
+        )
+      : status
+  )
+
 const refreshDriverStatus = state =>
   RPCTypes.installFuseStatusRpcPromise({bundleVersion: ''})
     .then(status =>
       isWindows && status.installStatus !== RPCTypes.installInstallStatus.installed
-        ? RPCTypes.kbfsMountGetCurrentMountDirRpcPromise()
-            .then(
-              mountPoint =>
-                new Promise(resolve =>
-                  fs.access(mountPoint, fs.constants.F_OK, err => (err ? resolve(true) : resolve(false)))
-                )
-            )
-            .then(mountExists =>
-              mountExists
-                ? {
-                    ...status,
-                    installAction: RPCTypes.installInstallAction.none,
-                    installStatus: RPCTypes.installInstallStatus.installed,
-                    kextStarted: true,
-                  }
-                : status
-            )
+        ? windowsCheckMountFromOtherDokanInstall(status)
         : Promise.resolve(status)
     )
     .then(fuseStatusToActions(state.fs.sfmi.driverStatus.type))
