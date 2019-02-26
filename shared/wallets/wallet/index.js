@@ -94,17 +94,20 @@ class Wallet extends React.Component<Props> {
     return index
   }
 
-  _renderSectionHeader = ({section}) => (
-    <Kb.BackgroundRepeatBox
-      imageHeight={stripePatternSize}
-      imageName={stripePatternName}
-      imageWidth={stripePatternSize}
-      skipBackground={!section.stripeHeader}
-      style={styles.sectionHeader}
-    >
-      <Kb.Text type="BodySmallSemibold">{section.title}</Kb.Text>
-    </Kb.BackgroundRepeatBox>
-  )
+  _renderSectionHeader = ({section}) =>
+    section.stripeHeader ? (
+      <Kb.BackgroundRepeatBox
+        imageHeight={stripePatternSize}
+        imageName={stripePatternName}
+        imageWidth={stripePatternSize}
+        skipBackground={false}
+        style={styles.sectionHeader}
+      >
+        <Kb.Text type="BodySmallSemibold">{section.title}</Kb.Text>
+      </Kb.BackgroundRepeatBox>
+    ) : (
+      <Kb.SectionDivider label={section.title} />
+    )
 
   _onEndReached = () => {
     this.props.onLoadMore()

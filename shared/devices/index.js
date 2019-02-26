@@ -5,7 +5,10 @@ import * as Kb from '../common-adapters'
 import DeviceRow from './row/container'
 import * as Styles from '../styles'
 
-type Item = {key: string, id: Types.DeviceID, type: 'device'} | {key: string, type: 'revokedHeader'}
+type Item =
+  | {key: string, id: Types.DeviceID, type: 'device'}
+  | {key: string, type: 'revokedHeader'}
+  | {key: string, type: 'revokedNote'}
 
 type State = {
   revokedExpanded: boolean,
@@ -50,6 +53,12 @@ class Devices extends React.PureComponent<Props, State> {
           onToggleExpanded={this._toggleExpanded}
         />
       )
+    } else if (item.type === 'revokedNote') {
+      return (
+        <Kb.Text center={true} type="BodySmallSemibold" style={styles.revokedNote}>
+          Revoked devices will no longer be able to access your Keybase account.
+        </Kb.Text>
+      )
     } else {
       return <DeviceRow key={item.id} deviceID={item.id} firstItem={index === 0} />
     }
@@ -59,7 +68,9 @@ class Devices extends React.PureComponent<Props, State> {
     const items = [
       ...this.props.items,
       ...(this.props.items.length ? [{key: 'revokedHeader', type: 'revokedHeader'}] : []),
-      ...(this.state.revokedExpanded ? this.props.revokedItems : []),
+      ...(this.state.revokedExpanded
+        ? [{key: 'revokedNote', type: 'revokedNote'}, ...this.props.revokedItems]
+        : []),
     ]
 
     return (
@@ -84,6 +95,10 @@ const styles = Styles.styleSheetCreate({
     position: 'absolute',
     top: Styles.isMobile ? 22 : 14,
     width: 20,
+  },
+  revokedNote: {
+    ...Styles.padding(Styles.globalMargins.xtiny, Styles.globalMargins.small, 0),
+    width: '100%',
   },
 })
 
@@ -111,46 +126,8 @@ const headerStyles = Styles.styleSheetCreate({
 })
 
 const RevokedHeader = ({children, onToggleExpanded, expanded}) => (
-  <Kb.ClickableBox onClick={onToggleExpanded}>
-    <Kb.Box2 direction="vertical" fullWidth={true} gap="xtiny">
-      <Kb.Box2
-        direction="horizontal"
-        fullWidth={true}
-        gap="xtiny"
-        gapStart={true}
-        style={revokedHeaderStyles.textContainer}
-      >
-        <Kb.Text type="BodySmallSemibold" style={revokedHeaderStyles.text}>
-          Revoked devices{' '}
-          <Kb.Icon
-            boxStyle={revokedHeaderStyles.icon}
-            type={expanded ? 'iconfont-caret-down' : 'iconfont-caret-right'}
-            color={Styles.globalColors.black_50}
-            sizeType="Tiny"
-            fontSize={10}
-          />
-        </Kb.Text>
-      </Kb.Box2>
-      {expanded && (
-        <Kb.Text center={true} type="BodySmallSemibold" style={revokedHeaderStyles.desc}>
-          Revoked devices will no longer be able to access your Keybase account.
-        </Kb.Text>
-      )}
-    </Kb.Box2>
-  </Kb.ClickableBox>
+  <Kb.SectionDivider collapsed={!expanded} onToggleCollapsed={onToggleExpanded} label="Revoked devices" />
 )
-const revokedHeaderStyles = Styles.styleSheetCreate({
-  desc: {
-    alignSelf: 'center',
-    paddingLeft: Styles.globalMargins.small,
-    paddingRight: Styles.globalMargins.small,
-  },
-  icon: Styles.platformStyles({isElectron: {display: 'inline-block'}}),
-  text: {color: Styles.globalColors.black_50, paddingLeft: Styles.globalMargins.tiny},
-  textContainer: {
-    minHeight: Styles.isMobile ? 32 : 24,
-  },
-})
 
 const PaperKeyNudge = ({onAddDevice}) => (
   <Kb.ClickableBox onClick={onAddDevice}>
