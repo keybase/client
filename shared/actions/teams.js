@@ -349,6 +349,10 @@ const reAddToTeam = (state, action) => {
         if (isMobile) {
           // show profile card on mobile
           return ProfileGen.createShowUserProfile({username})
+        } else {
+          throw new Error(
+            `You follow ${username}, so you must first review their profile and follow them again before letting them back in`
+          )
         }
       }
     })
