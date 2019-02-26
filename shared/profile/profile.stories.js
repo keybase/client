@@ -107,6 +107,7 @@ const proofsDefault = [
 const props = {
   ...mockUserInfo,
   addUserToTeamsResults: '',
+  addUserToTeamsState: 'notStarted',
   bioEditFns: null,
   currentFriendshipsTab: 'Followers',
   currentlyFollowing: false,

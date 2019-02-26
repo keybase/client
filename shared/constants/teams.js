@@ -24,6 +24,7 @@ export const teamWaitingKey = (teamname: Types.Teamname) => `team:${teamname}`
 export const teamTarsWaitingKey = (teamname: Types.Teamname) => `teamTars:${teamname}`
 export const teamCreationWaitingKey = 'teamCreate'
 
+export const addUserToTeamsWaitingKey = (username: string) => `addUserToTeams:${username}`
 export const addToTeamByEmailWaitingKey = (teamname: Types.Teamname) => `teamAddByEmail:${teamname}`
 export const getChannelsWaitingKey = (teamname: Types.Teamname) => `getChannels:${teamname}`
 export const createChannelWaitingKey = (teamname: Types.Teamname) => `createChannel:${teamname}`
@@ -32,6 +33,7 @@ export const retentionWaitingKey = (teamname: Types.Teamname) => `teamRetention:
 export const addMemberWaitingKey = (teamname: Types.Teamname, username: string) =>
   `teamAdd:${teamname};${username}`
 // also for pending invites, hence id rather than username
+
 export const removeMemberWaitingKey = (teamname: Types.Teamname, id: string) => `teamRemove:${teamname};${id}`
 export const addToTeamSearchKey = 'addToTeamSearch'
 export const teamProfileAddListWaitingKey = 'teamProfileAddList'
@@ -100,6 +102,7 @@ export const makeRetentionPolicy: I.RecordFactory<_RetentionPolicy> = I.Record({
 
 export const makeState: I.RecordFactory<Types._State> = I.Record({
   addUserToTeamsResults: '',
+  addUserToTeamsState: 'notStarted',
   channelCreationError: '',
   emailInviteError: makeEmailInviteError(),
   newTeamRequests: I.List(),

@@ -15,6 +15,7 @@ export type RowProps = {
 
 export type Props = {
   addUserToTeamsResults: string,
+  addUserToTeamsState: Types.AddUserToTeamsState,
   customComponent?: ?React.Node,
   headerStyle?: StylesCrossPlatform,
   loaded: {[string]: boolean},

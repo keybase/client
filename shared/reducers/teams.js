@@ -16,7 +16,10 @@ const rootReducer = (state: Types.State = initialState, action: TeamsGen.Actions
     case TeamsGen.setTeamCreationError:
       return state.merge({teamCreationError: action.payload.error})
     case TeamsGen.setAddUserToTeamsResults:
-      return state.merge({addUserToTeamsResults: action.payload.results})
+      return state.merge({
+        addUserToTeamsResults: action.payload.results,
+        addUserToTeamsState: action.payload.error ? 'failed' : 'succeeded',
+      })
     case TeamsGen.setTeamInviteError:
       return state.merge({teamInviteError: action.payload.error})
     case TeamsGen.setTeamJoinError:
