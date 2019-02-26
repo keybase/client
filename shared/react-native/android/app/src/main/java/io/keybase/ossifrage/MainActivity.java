@@ -1,15 +1,19 @@
 package io.keybase.ossifrage;
 
 import android.annotation.TargetApi;
+import android.content.ContentResolver;
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.icu.util.Output;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Window;
+import android.webkit.MimeTypeMap;
 
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactActivityDelegate;
@@ -26,12 +30,17 @@ import com.facebook.react.ReactRootView;
 import com.swmansion.gesturehandler.react.RNGestureHandlerEnabledRootView;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.StandardCopyOption;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
+import java.util.UUID;
 
 import io.keybase.ossifrage.modules.KeybaseEngine;
 import io.keybase.ossifrage.modules.NativeLogger;
@@ -90,11 +99,37 @@ public class MainActivity extends ReactFragmentActivity {
         Uri uri = intent.getParcelableExtra(Intent.EXTRA_STREAM);
         if (uri == null) return;
 
+        String filePath = null;
+        if (uri.getScheme().equals("content")) {
+            ContentResolver resolver = getContentResolver();
+            String mimeType = resolver.getType(uri);
+            String extension = MimeTypeMap.getSingleton().getExtensionFromMimeType(mimeType);
+            String filename = String.format("%s.%s", UUID.randomUUID().toString(), extension);
+            File file = new File(getCacheDir(), filename);
+            try {
+                InputStream istream = resolver.openInputStream(uri);
+                OutputStream ostream = new FileOutputStream(file);
+
+                byte[] buf = new byte[64 * 1024];
+                int len;
+                while ((len = istream.read(buf)) != -1) {
+                    ostream.write(buf, 0, len);
+                }
+                filePath = file.getPath();
+            } catch (IOException ex) {
+                Log.w(TAG, "error writing shared file " + uri.toString());
+            }
+        } else {
+            filePath = uri.getPath();
+        }
+
+        if (filePath == null) return;
+
         ReactContext reactContext = getReactContext();
         if (reactContext == null) return;
 
         WritableMap evt = Arguments.createMap();
-        evt.putString("uri", uri.toString());
+        evt.putString("path", filePath);
 
         DeviceEventManagerModule.RCTDeviceEventEmitter emitter = reactContext
                 .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class);
