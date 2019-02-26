@@ -6,6 +6,7 @@ import * as Styles from '../../../../styles'
 import {smartPluralize} from '../../../../util/string'
 
 type Props = {|
+  onCancel: () => void,
   onSubmit: (usernames: Array<string>) => void,
   title: string,
   users: Array<{alreadyAdded: boolean, fullname: string, username: string}>,
@@ -83,6 +84,7 @@ class AddToChannel extends React.Component<Props, State> {
             />
           </Kb.BoxGrow>
           <Kb.ButtonBar direction="row">
+            {!Styles.isMobile && <Kb.Button type="Secondary" label="Cancel" onClick={this.props.onCancel} />}
             <Kb.Button
               disabled={!this.state.selected.size}
               type="Primary"
@@ -102,7 +104,7 @@ class AddToChannel extends React.Component<Props, State> {
 
 const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
-    isElectron: {height: 400, padding: Styles.globalMargins.small, width: 360},
+    isElectron: {height: 400, padding: Styles.globalMargins.small, width: 400},
     isMobile: {
       ...Styles.padding(0, 0, Styles.globalMargins.small, 0),
     },

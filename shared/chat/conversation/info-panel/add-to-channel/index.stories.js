@@ -4,6 +4,7 @@ import * as Sb from '../../../../stories/storybook'
 import AddToChannel from '.'
 
 const props = {
+  onCancel: Sb.action('onCancel'),
   onSubmit: Sb.action('onSubmit'),
   title: 'Add to #random',
   users: [
