@@ -1023,6 +1023,9 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 	defer fbm.cancelReclamation()
 	nextPeriod := fbm.config.Mode().QuotaReclamationPeriod()
 	defer func() {
+		// `nextPeriod` may be changed by later code in this function,
+		// to speed up the next QR cycle when we couldn't reclaim a
+		// complete set of blocks during this run.
 		timer.Reset(nextPeriod)
 	}()
 	defer fbm.reclamationGroup.Done()
