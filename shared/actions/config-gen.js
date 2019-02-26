@@ -45,7 +45,6 @@ export const setNavigator = 'config:setNavigator'
 export const setNotifySound = 'config:setNotifySound'
 export const setOpenAtLogin = 'config:setOpenAtLogin'
 export const setStartupDetails = 'config:setStartupDetails'
-export const setupEngineListeners = 'config:setupEngineListeners'
 export const showMain = 'config:showMain'
 export const startHandshake = 'config:startHandshake'
 export const swapRouter = 'config:swapRouter'
@@ -87,7 +86,6 @@ type _SetNavigatorPayload = $ReadOnly<{|navigator: any|}>
 type _SetNotifySoundPayload = $ReadOnly<{|sound: boolean, writeFile: boolean|}>
 type _SetOpenAtLoginPayload = $ReadOnly<{|open: boolean, writeFile: boolean|}>
 type _SetStartupDetailsPayload = $ReadOnly<{|startupWasFromPush: boolean, startupConversation: ?ChatTypes.ConversationIDKey, startupLink: string, startupTab: ?Tabs.Tab, startupFollowUser: string|}>
-type _SetupEngineListenersPayload = void
 type _ShowMainPayload = void
 type _StartHandshakePayload = void
 type _SwapRouterPayload = $ReadOnly<{|useNewRouter: boolean|}>
@@ -100,10 +98,6 @@ type _UpdateNowPayload = void
  * Sent whenever the mobile file picker encounters an error.
  */
 export const createFilePickerError = (payload: _FilePickerErrorPayload) => ({payload, type: filePickerError})
-/**
- * TODO  deprecate when sagas should start creating their incoming handlers / onConnect handlers
- */
-export const createSetupEngineListeners = (payload: _SetupEngineListenersPayload) => ({payload, type: setupEngineListeners})
 /**
  * desktop only: the installer ran and we can start up
  */
@@ -207,7 +201,6 @@ export type SetNavigatorPayload = {|+payload: _SetNavigatorPayload, +type: 'conf
 export type SetNotifySoundPayload = {|+payload: _SetNotifySoundPayload, +type: 'config:setNotifySound'|}
 export type SetOpenAtLoginPayload = {|+payload: _SetOpenAtLoginPayload, +type: 'config:setOpenAtLogin'|}
 export type SetStartupDetailsPayload = {|+payload: _SetStartupDetailsPayload, +type: 'config:setStartupDetails'|}
-export type SetupEngineListenersPayload = {|+payload: _SetupEngineListenersPayload, +type: 'config:setupEngineListeners'|}
 export type ShowMainPayload = {|+payload: _ShowMainPayload, +type: 'config:showMain'|}
 export type StartHandshakePayload = {|+payload: _StartHandshakePayload, +type: 'config:startHandshake'|}
 export type SwapRouterPayload = {|+payload: _SwapRouterPayload, +type: 'config:swapRouter'|}
@@ -251,7 +244,6 @@ export type Actions =
   | SetNotifySoundPayload
   | SetOpenAtLoginPayload
   | SetStartupDetailsPayload
-  | SetupEngineListenersPayload
   | ShowMainPayload
   | StartHandshakePayload
   | SwapRouterPayload

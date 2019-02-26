@@ -3,12 +3,11 @@ import logger from '../logger'
 import * as Constants from '../constants/tracker'
 import * as TrackerGen from '../actions/tracker-gen'
 import * as EngineGen from '../actions/engine-gen-gen'
-import * as ConfigGen from '../actions/config-gen'
 import * as Saga from '../util/saga'
 import * as RPCTypes from '../constants/types/rpc-gen'
 import flags from '../util/feature-flags'
 import {get} from 'lodash-es'
-import engine from '../engine'
+import {getEngine} from '../engine/require'
 import openUrl from '../util/open-url'
 import {requestIdleCallback} from '../util/idle-callback'
 import {isMobile} from '../constants/platform'
@@ -287,7 +286,7 @@ function _serverCallMap(
         // cleanup bookkeeping
         delete sessionIDToUsername[sessionID]
         // $FlowIssue exist but this is the only thing that uses it and this is going away
-        engine().cancelSession(sessionID)
+        getEngine().cancelSession(sessionID)
       })
 
       // if we're pending we still want to call onFinish
@@ -591,53 +590,45 @@ const onConnect = () => {
     })
 }
 
-const setupEngineListeners = () => {
-  // TODO remove this
-  const dispatch = engine().deprecatedGetDispatch()
-  const getState = engine().deprecatedGetGetState()
+const onDelegateUI = (state, action) => {
+  // $FlowIssue private api
+  const dispatch = getEngine().deprecatedGetDispatch()
+  // $FlowIssue private api
+  const getState = getEngine().deprecatedGetGetState()
 
-  engine().setCustomResponseIncomingCallMap({
-    'keybase.1.identifyUi.delegateIdentifyUI': (param, response, state) => {
-      // If we don't finish the session by our timeout, we'll display an error
-      const trackerTimeout = 1e3 * 60 * 5
-      let trackerTimeoutError = null
-
-      const onStart = username => {
-        // Don't do this on mobile
-        if (isMobile) {
-          return
-        }
-        trackerTimeoutError = setTimeout(() => {
-          dispatch(TrackerGen.createIdentifyFinishedError({error: 'Identify timed out', username}))
-        }, trackerTimeout)
-      }
-
-      const onFinish = () => {
-        session.end()
-        trackerTimeoutError && clearTimeout(trackerTimeoutError)
-      }
-
-      const cancelHandler = session => {
-        const username = sessionIDToUsername[session.getId()]
-
-        if (username) {
-          dispatch(
-            TrackerGen.createIdentifyFinishedError({
-              error: 'Identify timed out',
-              username,
-            })
-          )
-        }
-      }
-
-      const session = engine().createSession({
-        cancelHandler,
-        incomingCallMap: _serverCallMap(dispatch, getState, onStart, onFinish),
-      })
-
-      response && response.result(session.getId())
-    },
+  // If we don't finish the session by our timeout, we'll display an error
+  const trackerTimeout = 1e3 * 60 * 5
+  let trackerTimeoutError = null
+  const onStart = username => {
+    // Don't do this on mobile
+    if (isMobile) {
+      return
+    }
+    trackerTimeoutError = setTimeout(() => {
+      dispatch(TrackerGen.createIdentifyFinishedError({error: 'Identify timed out', username}))
+    }, trackerTimeout)
+  }
+  const onFinish = () => {
+    session.end()
+    trackerTimeoutError && clearTimeout(trackerTimeoutError)
+  }
+  const cancelHandler = session => {
+    const username = sessionIDToUsername[session.getId()]
+    if (username) {
+      dispatch(
+        TrackerGen.createIdentifyFinishedError({
+          error: 'Identify timed out',
+          username,
+        })
+      )
+    }
+  }
+  const session = getEngine().createSession({
+    cancelHandler,
+    incomingCallMap: _serverCallMap(dispatch, getState, onStart, onFinish),
   })
+  const response = action.payload.response
+  response && response.result(session.getId())
 }
 
 function* trackerSaga(): Saga.SagaGenerator<any, any> {
@@ -660,9 +651,10 @@ function* trackerSaga(): Saga.SagaGenerator<any, any> {
     yield Saga.spawn(_trackerTimer)
   }
 
-  yield* Saga.chainAction<ConfigGen.SetupEngineListenersPayload>(
-    ConfigGen.setupEngineListeners,
-    setupEngineListeners
+  getEngine().registerCustomResponse('keybase.1.identifyUi.delegateIdentifyUI')
+  yield* Saga.chainAction<EngineGen.Keybase1IdentifyUiDelegateIdentifyUIPayload>(
+    EngineGen.keybase1IdentifyUiDelegateIdentifyUI,
+    onDelegateUI
   )
   yield* Saga.chainAction<EngineGen.Keybase1NotifyUsersUserChangedPayload>(
     EngineGen.keybase1NotifyUsersUserChanged,

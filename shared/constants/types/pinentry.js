@@ -18,6 +18,7 @@ type _PinentryState = {
 
 export type PinentryState = I.RecordOf<_PinentryState>
 
+// TODO clean this up, we only allow one of these at a time so we can remove the sessionID entirely
 export type _State = {
   sessionIDToPinentry: I.Map<number, PinentryState>,
 }

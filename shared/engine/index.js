@@ -2,7 +2,6 @@
 // Handles sending requests to the daemon
 import logger from '../logger'
 import Session from './session'
-import * as ConfigGen from '../actions/config-gen'
 import {initEngine, initEngineSaga} from './require'
 import {convertToError} from '../util/errors'
 import {isMobile} from '../constants/platform'
@@ -11,9 +10,7 @@ import {printOutstandingRPCs, isTesting} from '../local-debug'
 import {resetClient, createClient, rpcLog} from './index.platform'
 import {createBatchChangeWaiting} from '../actions/waiting-gen'
 import engineSaga from './saga'
-import {isArray, throttle} from 'lodash-es'
-import {sagaMiddleware} from '../store/configure-store'
-import type {Effect} from 'redux-saga'
+import {throttle} from 'lodash-es'
 import type {CancelHandlerType} from './session'
 import type {createClientType} from './index.platform'
 import type {CustomResponseIncomingCallMapType, IncomingCallMapType} from '.'
@@ -23,12 +20,6 @@ import type {RPCError} from '../util/errors'
 
 // Not the real type here to reduce merge time. This file has a .js.flow for importers
 type WaitingKey = string | Array<string>
-
-type CustomResponseIncomingActionCreator = (
-  param: Object,
-  response: Object,
-  state: TypedState
-) => Effect | null | void | false | Array<Effect | null | void | false>
 
 function capitalize(s) {
   return s.charAt(0).toUpperCase() + s.slice(1)
@@ -41,10 +32,8 @@ class Engine {
   _sessionsMap: {[key: SessionIDKey]: Session} = {}
   // Helper we delegate actual calls to
   _rpcClient: createClientType
-  // All incoming call handlers
-  _customResponseIncomingActionCreators: {
-    [key: MethodKey]: CustomResponseIncomingActionCreator,
-  } = {}
+  // Set which actions we don't auto respond with so sagas can themselves
+  _customResponseAction: {[key: MethodKey]: true} = {}
   // We generate sessionIDs monotonically
   _nextSessionID: number = 123
   // We call onDisconnect handlers only if we've actually disconnected (ie connected once)
@@ -185,42 +174,22 @@ class Engine {
       const session = this._sessionsMap[String(sessionID)]
       if (session && session.incomingCall(method, param, response)) {
         // Part of a session?
-        // _customResponseIncomingActionCreators will just be a set of method strings which engine will rely on listeners to handle themselves
-      } else if (this._customResponseIncomingActionCreators[method]) {
-        // General incoming :: TODO deprecate
-        rpcLog({method, reason: '[incoming]', type: 'engineInternal'})
-
-        if (!response) {
-          throw new Error("Expected response but there isn't any" + method)
-        }
-        let creator = this._customResponseIncomingActionCreators[method]
-        let rawEffects = creator(param, response, Engine._getState())
-
-        const effects = (isArray(rawEffects) ? rawEffects : [rawEffects]).filter(Boolean)
-        effects.forEach(effect => {
-          let thrown
-          sagaMiddleware.run(function*(): Generator<any, any, any> {
-            try {
-              yield effect
-            } catch (e) {
-              thrown = e
-            }
-          })
-          if (thrown) {
-            Engine._dispatch(ConfigGen.createGlobalError({globalError: thrown}))
-          }
-        })
       } else {
         // Dispatch as an action
-        // Handle it by default
-        response && response.result()
+        const extra = {}
+        if (this._customResponseAction[method]) {
+          extra.response = response
+        } else {
+          // Not a custom response so we auto handle it
+          response && response.result()
+        }
         const type = method
           .replace(/'/g, '')
           .split('.')
           .map((p, idx) => (idx ? capitalize(p) : p))
           .join('')
         // $ForceType can't really type this easily
-        Engine._dispatch({payload: {params: param}, type: `engine-gen:${type}`})
+        Engine._dispatch({payload: {params: param, ...extra}, type: `engine-gen:${type}`})
       }
     }
   }
@@ -313,24 +282,12 @@ class Engine {
     resetClient(this._rpcClient)
   }
 
-  // Setup a handler for a rpc w/o a session (id = 0). We don't allow overlapping keys
-  setCustomResponseIncomingCallMap(customResponseIncomingCallMap: any): void {
-    Object.keys(customResponseIncomingCallMap).forEach(method => {
-      if (this._customResponseIncomingActionCreators[method]) {
-        rpcLog({
-          method,
-          reason: "duplicate incoming action creator!!! this isn't allowed",
-          type: 'engineInternal',
-        })
-        return
-      }
-      rpcLog({
-        method,
-        reason: '[register]',
-        type: 'engineInternal',
-      })
-      this._customResponseIncomingActionCreators[method] = customResponseIncomingCallMap[method]
-    })
+  registerCustomResponse = (method: string) => {
+    if (this._customResponseAction[method]) {
+      throw new Error('Dupe custom response handler registered: ' + method)
+    }
+
+    this._customResponseAction[method] = true
   }
 
   // Register a named callback when we fail to connect. Call if we're already disconnected

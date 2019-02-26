@@ -251,7 +251,6 @@ export default function(state: Types.State = initialState, action: Actions): Typ
     case ConfigGen.mobileAppState:
     case ConfigGen.openAppSettings:
     case ConfigGen.showMain:
-    case ConfigGen.setupEngineListeners:
     case ConfigGen.installerRan:
     case ConfigGen.copyToClipboard:
     case ConfigGen.checkForUpdate:

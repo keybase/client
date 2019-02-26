@@ -6,9 +6,6 @@
     "import {RPCError} from '../util/errors'",
   ],
   "actions": {
-    "setupEngineListeners": {
-      "_description": "TODO  deprecate when sagas should start creating their incoming handlers / onConnect handlers"
-    },
     "startHandshake": {
       "_description": "internal to config. should start the handshake process"
     },

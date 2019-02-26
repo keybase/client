@@ -356,8 +356,8 @@ function* platformSpecificSaga(): Saga.SagaGenerator<any, any> {
     FsGen.openPathInSystemFileManager,
     openPathInSystemFileManager
   )
-  yield* Saga.chainGenerator<ConfigGen.SetupEngineListenersPayload | FsGen.FuseStatusPayload>(
-    [ConfigGen.setupEngineListeners, FsGen.fuseStatus],
+  yield* Saga.chainGenerator<ConfigGen.InstallerRanPayload | FsGen.FuseStatusPayload>(
+    [ConfigGen.installerRan, FsGen.fuseStatus],
     fuseStatusSaga
   )
   yield* Saga.chainAction<FsGen.FuseStatusResultPayload>(FsGen.fuseStatusResult, fuseStatusResultSaga)

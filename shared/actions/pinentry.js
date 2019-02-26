@@ -1,21 +1,16 @@
 // @flow
 import logger from '../logger'
 import * as EngineGen from '../actions/engine-gen-gen'
-import * as ConfigGen from '../actions/config-gen'
 import * as PinentryGen from '../actions/pinentry-gen'
 import * as Saga from '../util/saga'
 import * as I from 'immutable'
 import * as RPCTypes from '../constants/types/rpc-gen'
-import engine from '../engine'
+import {getEngine} from '../engine/require'
 
-// We keep track of sessionID to response objects since this is initiated by the daemon
-type IncomingErrorCallback = (?{code?: number, desc?: string}) => void
-const sessionIDToResponse: {
-  [key: string]: {
-    error: IncomingErrorCallback,
-    result: ({+passphrase: string, +storeSecret: boolean}) => void,
-  },
-} = {}
+// stash response while we show the pinentry. The old code kept a map of this but this likely never worked. it seems like
+// core sends 0 over and over so it just gets stomped anyways. I have a larger change that removes this kind of flow but
+// its not worth implementing now
+let _response = null
 
 const onConnect = () => {
   RPCTypes.delegateUiCtlRegisterSecretUIRpcPromise()
@@ -27,29 +22,23 @@ const onConnect = () => {
     })
 }
 
-const setupEngineListeners = () => {
-  engine().setCustomResponseIncomingCallMap({
-    'keybase.1.secretUi.getPassphrase': (param, response) => {
-      logger.info('Asked for passphrase')
-      const {prompt, submitLabel, cancelLabel, windowTitle, retryLabel, features, type} = param.pinentry
-      const {sessionID} = param
+const onGetPassphrase = (state, action) => {
+  logger.info('Asked for passphrase')
+  const {pinentry} = action.payload.params
+  const {prompt, submitLabel, cancelLabel, windowTitle, retryLabel, features, type} = pinentry
 
-      // Stash response
-      sessionIDToResponse[String(sessionID)] = response
+  // Stash response
+  _response = action.payload.response
 
-      return Saga.put(
-        PinentryGen.createNewPinentry({
-          cancelLabel,
-          prompt,
-          retryLabel,
-          sessionID,
-          showTyping: features.showTyping,
-          submitLabel,
-          type,
-          windowTitle,
-        })
-      )
-    },
+  return PinentryGen.createNewPinentry({
+    cancelLabel,
+    prompt,
+    retryLabel,
+    sessionID: 0,
+    showTyping: features.showTyping,
+    submitLabel,
+    type,
+    windowTitle,
   })
 }
 
@@ -60,8 +49,13 @@ const onNewPinentry = (_, action) =>
   })
 
 const onSubmit = (_, action) => {
-  const {sessionID, passphrase} = action.payload
-  _respond(sessionID, {passphrase})
+  const {passphrase} = action.payload
+  if (_response) {
+    // $FlowIssue flow is correct in that we need store secret but we weren't sending it before and i don't want to change any existing behavior
+    _response.result({passphrase})
+    _response = null
+  }
+
   return PinentryGen.createDeleteEntity({
     ids: [action.payload.sessionID],
     keyPath: ['sessionIDToPinentry'],
@@ -69,41 +63,24 @@ const onSubmit = (_, action) => {
 }
 
 const onCancel = (_, action) => {
-  const {sessionID} = action.payload
-  _respond(sessionID, null, {
-    code: RPCTypes.constantsStatusCode.scinputcanceled,
-    desc: 'Input canceled',
-  })
+  if (_response) {
+    _response.error({code: RPCTypes.constantsStatusCode.scinputcanceled, desc: 'Input canceled'})
+    _response = null
+  }
   return PinentryGen.createDeleteEntity({
     ids: [action.payload.sessionID],
     keyPath: ['sessionIDToPinentry'],
   })
 }
 
-function _respond(sessionID: number, result: any, err: ?any): void {
-  const sessionKey = String(sessionID)
-  const response = sessionIDToResponse[sessionKey]
-  if (response == null) {
-    logger.info('lost response reference')
-    return
-  }
-
-  if (err != null) {
-    response.error(err)
-  } else {
-    response.result(result)
-  }
-
-  delete sessionIDToResponse[sessionKey]
-}
-
 function* pinentrySaga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<PinentryGen.OnSubmitPayload>(PinentryGen.onSubmit, onSubmit)
   yield* Saga.chainAction<PinentryGen.OnCancelPayload>(PinentryGen.onCancel, onCancel)
   yield* Saga.chainAction<PinentryGen.NewPinentryPayload>(PinentryGen.newPinentry, onNewPinentry)
-  yield* Saga.chainAction<ConfigGen.SetupEngineListenersPayload>(
-    ConfigGen.setupEngineListeners,
-    setupEngineListeners
+  getEngine().registerCustomResponse('keybase.1.secretUi.getPassphrase')
+  yield* Saga.chainAction<EngineGen.Keybase1SecretUiGetPassphrasePayload>(
+    EngineGen.keybase1SecretUiGetPassphrase,
+    onGetPassphrase
   )
   yield* Saga.chainAction<EngineGen.ConnectedPayload>(EngineGen.connected, onConnect)
 }

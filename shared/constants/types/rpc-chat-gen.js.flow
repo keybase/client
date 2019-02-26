@@ -20,7 +20,7 @@ export type String = string
 export type Uint = number
 export type Uint64 = number
 type WaitingKey = string | Array<string>
-type IncomingErrorCallback = (?{code?: number, desc?: string}) => void
+export type IncomingErrorCallback = (?{code?: number, desc?: string}) => void
 type IncomingReturn = Effect | null | void | false | Array<Effect | null | void | false>
 
 export type MessageTypes = {|
