@@ -7,7 +7,7 @@ import {isMobile} from '../../constants/platform'
 
 type OwnProps = {||}
 const mapStateToProps = state => ({
-  driverStatus: state.fs.fileUI.driverStatus,
+  driverStatus: state.fs.sfmi.driverStatus,
 })
 
 const mapDispatchToProps = dispatch => ({

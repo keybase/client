@@ -6,7 +6,8 @@ import {makeRouteDefNode, makeLeafTags} from '../route-tree'
 const routeTree = () => {
   const Files = require('./container').default
   const {BarePreview} = require('./filepreview')
-  const KextPermissionPopup = require('./banner/fileui-banner/kext-permission-popup-container').default
+  const KextPermissionPopup = require('./banner/system-file-manager-integration-banner/kext-permission-popup-container')
+    .default
   const DestinationPicker = require('./destination-picker/container').default
   const SendLinkToChat = require('./send-link-to-chat/container').default
   const Oops = require('./oops/container').default

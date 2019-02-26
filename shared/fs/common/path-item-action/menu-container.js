@@ -21,8 +21,8 @@ type OwnProps = {|
 const mapStateToProps = (state, {path}) => ({
   _downloadKey: state.fs.pathItemActionMenu.downloadKey,
   _downloads: state.fs.downloads,
-  _fileUIEnabled: state.fs.fileUI.driverStatus === 'enabled',
   _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
+  _sfmiEnabled: state.fs.sfmi.driverStatus === 'enabled',
   _username: state.config.username,
   _view: state.fs.pathItemActionMenu.view,
 })
@@ -139,9 +139,10 @@ const mergeProps = (stateProps, dispatchProps, ownProps) => {
     ignoreTlf: layout.ignoreTlf ? c(dispatchProps._ignoreTlf) : null,
     moveOrCopy: flags.moveOrCopy && layout.moveOrCopy ? c(dispatchProps._moveOrCopy) : null,
     saveMedia: layout.saveMedia ? getSaveMedia(stateProps, dispatchProps, c) : null,
-    showInSystemFileManager: layout.showInSystemFileManager
-      ? c(dispatchProps._showInSystemFileManager)
-      : null,
+    showInSystemFileManager:
+      layout.showInSystemFileManager && stateProps._sfmiEnabled
+        ? c(dispatchProps._showInSystemFileManager)
+        : null,
     // share items
     // eslint-disable-next-line sort-keys
     sendAttachmentToChat: null, // TODO

@@ -9,14 +9,14 @@ import Footer from '../footer/footer'
 import {isMobile} from '../../constants/platform'
 import Rows from '../row/rows-container'
 import DropTarget from './drop-target'
-import {asRows as fileUIBannerAsRows} from '../banner/fileui-banner/container'
+import {asRows as sfmiBannerAsRows} from '../banner/system-file-manager-integration-banner/container'
 import {asRows as resetBannerAsRows} from '../banner/reset-banner/container'
 
 type Props = {|
   onAttach?: ?(paths: Array<string>) => void,
   path: Types.Path,
   routePath: I.List<string>,
-  shouldShowFileUIBanner: boolean,
+  shouldShowSFMIBanner: boolean,
   resetBannerType: Types.ResetBannerType,
 |}
 
@@ -27,9 +27,9 @@ const WithContent = (props: Props) => (
       routePath={props.routePath}
       headerRows={[
         ...resetBannerAsRows(props.path, props.resetBannerType),
-        // only show fileui banner at /keybase
+        // only show sfmi banner at /keybase
         ...(Types.getPathLevel(props.path) === 1
-          ? fileUIBannerAsRows(props.path, props.shouldShowFileUIBanner)
+          ? sfmiBannerAsRows(props.path, props.shouldShowSFMIBanner)
           : []),
       ]}
     />

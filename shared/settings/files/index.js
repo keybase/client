@@ -4,7 +4,7 @@ import * as Types from '../../constants/types/fs'
 import * as Kb from '../../common-adapters'
 import {fileUIName, isLinux} from '../../constants/platform'
 import * as Styles from '../../styles'
-import FileUIBanner from '../../fs/banner/fileui-banner/container'
+import SystemFileManagerIntegrationBanner from '../../fs/banner/system-file-manager-integration-banner/container'
 import RefreshDriverStatusOnMount from '../../fs/common/refresh-driver-status-on-mount'
 
 type Props = {|
@@ -14,7 +14,7 @@ type Props = {|
   onShowKextPermissionPopup: () => void,
 |}
 
-const EnableFileUI = (props: Props) => (
+const EnableSystemFileManagerIntegration = (props: Props) => (
   <Kb.Box style={Styles.globalStyles.flexBoxColumn}>
     <Kb.Text type="Body">Enable Keybase in {fileUIName}</Kb.Text>
     <Kb.Text type="BodySmall">
@@ -32,7 +32,7 @@ export default (props: Props) => (
   <>
     <RefreshDriverStatusOnMount />
     <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
-      <FileUIBanner alwaysShow={true} />
+      <SystemFileManagerIntegrationBanner alwaysShow={true} />
       <Kb.Box2 direction="vertical" fullWidth={true} style={styles.mainContent}>
         {!isLinux && (
           <Kb.Box>
@@ -50,7 +50,7 @@ export default (props: Props) => (
             </Kb.Box2>
             <Kb.Checkbox
               onCheck={props.driverStatus.type === 'enabled' ? props.onDisable : props.onEnable}
-              labelComponent={<EnableFileUI {...props} />}
+              labelComponent={<EnableSystemFileManagerIntegration {...props} />}
               checked={props.driverStatus.type === 'enabled'}
               disabled={isPending(props)}
             />

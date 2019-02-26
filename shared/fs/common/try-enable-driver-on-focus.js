@@ -10,7 +10,7 @@ type OwnProps = {|
 
 const mapStateToProps = state => ({
   appFocusedCount: state.config.appFocusedCount,
-  driverStatus: state.fs.fileUI.driverStatus,
+  driverStatus: state.fs.sfmi.driverStatus,
 })
 
 const mapDispatchToProps = dispatch => ({

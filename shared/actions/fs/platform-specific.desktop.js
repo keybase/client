@@ -111,7 +111,7 @@ const _rebaseKbfsPathToMountLocation = (kbfsPath: Types.Path, mountLocation: str
   )
 
 const openPathInSystemFileManager = (state, action) =>
-  state.fs.fileUI.driverStatus.type === 'enabled'
+  state.fs.sfmi.driverStatus.type === 'enabled'
     ? RPCTypes.kbfsMountGetCurrentMountDirRpcPromise()
         .then(mountLocation =>
           _openPathInSystemFileManagerPromise(
@@ -178,12 +178,12 @@ const fuseStatusToActions = (previousStatusType: 'enabled' | 'disabled' | 'unkno
             dokanOutdated: fuseStatusToDokanOutdated(status),
           }),
         }),
-        ...(previousStatusType === 'disabled' ? [FsGen.createShowFileUIBanner()] : []), // show banner for newly enabled
+        ...(previousStatusType === 'disabled' ? [FsGen.createShowSystemFileManagerIntegrationBanner()] : []), // show banner for newly enabled
       ]
     : [
         FsGen.createSetDriverStatus({driverStatus: Constants.makeDriverStatusDisabled()}),
-        ...(previousStatusType === 'enabled' ? [FsGen.createHideFileUIBanner()] : []), // hide banner for newly disabled
-        ...(previousStatusType === 'unknown' ? [FsGen.createShowFileUIBanner()] : []), // show banner for disabled on first load
+        ...(previousStatusType === 'enabled' ? [FsGen.createHideSystemFileManagerIntegrationBanner()] : []), // hide banner for newly disabled
+        ...(previousStatusType === 'unknown' ? [FsGen.createShowSystemFileManagerIntegrationBanner()] : []), // show banner for disabled on first load
       ]
 }
 
@@ -210,7 +210,7 @@ const refreshDriverStatus = state =>
             )
         : Promise.resolve(status)
     )
-    .then(fuseStatusToActions(state.fs.fileUI.driverStatus.type))
+    .then(fuseStatusToActions(state.fs.sfmi.driverStatus.type))
 
 const fuseInstallResultIsKextPermissionError = result =>
   result &&
@@ -312,12 +312,12 @@ function installDokanSaga() {
 
 const uninstallDokanPromise = state => {
   if (
-    state.fs.fileUI.driverStatus.type !== 'enabled' ||
-    typeof state.fs.fileUI.driverStatus.dokanOutdated !== 'string'
+    state.fs.sfmi.driverStatus.type !== 'enabled' ||
+    typeof state.fs.sfmi.driverStatus.dokanOutdated !== 'string'
   ) {
     return
   }
-  const execPath: string = state.fs.fileUI.driverStatus.dokanOutdated
+  const execPath: string = state.fs.sfmi.driverStatus.dokanOutdated
   logger.info('Invoking dokan uninstaller')
   return new Promise(resolve => {
     try {

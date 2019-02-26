@@ -23,7 +23,8 @@ const routeTree = () => {
   const InviteGenerated = require('./invite-generated/container').default
   const Passphrase = require('./passphrase/container').default
   const UserEmail = require('./email/container').default
-  const KextPermissionPopup = require('../fs/banner/fileui-banner/kext-permission-popup-container').default
+  const KextPermissionPopup = require('../fs/banner/system-file-manager-integration-banner/kext-permission-popup-container')
+    .default
   return makeRouteDefNode({
     children: {
       [Constants.landingTab]: {
