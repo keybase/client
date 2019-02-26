@@ -114,7 +114,7 @@ func (idx *Indexer) Start(ctx context.Context, uid gregor1.UID) {
 }
 
 func (idx *Indexer) Stop(ctx context.Context) chan struct{} {
-	defer idx.Trace(ctx, func() error { return nil }, "Start")()
+	defer idx.Trace(ctx, func() error { return nil }, "Stop")()
 	idx.Lock()
 	defer idx.Unlock()
 
