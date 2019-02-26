@@ -738,7 +738,8 @@ func (m *FlipManager) isConvParticipationViolation(ctx context.Context, convID c
 	m.partMu.Lock()
 	defer m.partMu.Unlock()
 	if rec, ok := m.convParticipations[convID.String()]; ok {
-		m.Debug(ctx, "isConvParticipationViolation: rec: %v", rec)
+		m.Debug(ctx, "isConvParticipationViolation: rec: count: %d remain: %v", rec.count,
+			m.clock.Now().Sub(rec.reset))
 		if rec.reset.Before(m.clock.Now()) {
 			return false
 		}
