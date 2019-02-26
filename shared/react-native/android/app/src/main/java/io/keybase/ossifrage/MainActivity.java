@@ -99,7 +99,7 @@ public class MainActivity extends ReactFragmentActivity {
         DeviceEventManagerModule.RCTDeviceEventEmitter emitter = reactContext
                 .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class);
         if (emitter != null) {
-            emitter.emit("androidIntentNotification", evt);
+            emitter.emit("onShareData", evt);
         }
     }
 
@@ -124,6 +124,15 @@ public class MainActivity extends ReactFragmentActivity {
         if (emitter != null) {
             emitter.emit("onShareText", evt);
         }
+    }
+
+    private void handleIntent(Intent intent) {
+        if (intent == null) return;
+
+        this.handleNotificationIntent(intent);
+        this.handleSendIntentText(intent);
+        this.handleSendIntentStream(intent);
+        this.handleSendIntentMultipleStreams(intent);
     }
 
     @Override
@@ -151,15 +160,6 @@ public class MainActivity extends ReactFragmentActivity {
                 mainWindow.setBackgroundDrawableResource(R.color.white);
             }
         }, 300);
-
-        // Handle intents
-        Intent intent = getIntent();
-        if (intent == null) return;
-
-        this.handleNotificationIntent(intent);
-        this.handleSendIntentText(intent);
-        this.handleSendIntentStream(intent);
-        this.handleSendIntentMultipleStreams(intent);
     }
 
     @Override
@@ -211,12 +211,25 @@ public class MainActivity extends ReactFragmentActivity {
     protected void onResume() {
         super.onResume();
         Keybase.setAppStateForeground();
+        handleIntent(getIntent());
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Keybase.setAppStateForeground();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         Keybase.appWillExit(new KBPushNotifier(this));
+    }
+
+    @Override
+    public void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
     }
 
     /**
