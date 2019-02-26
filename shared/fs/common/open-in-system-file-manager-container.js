@@ -10,7 +10,7 @@ type OwnProps = {|
 |}
 
 const mapStateToProps = (state, {path}: OwnProps) => ({
-  driverEnabled: state.fs.sfmi.driverStatus.type === 'enable',
+  driverEnabled: state.fs.sfmi.driverStatus.type === 'enabled',
 })
 
 const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
