@@ -233,6 +233,7 @@ func (m *FlipManager) notifyDirtyGames() {
 		if game, ok := m.games.Get(dg.String()); ok {
 			status := game.(chat1.UICoinFlipStatus)
 			m.getVisualizer().Visualize(&status)
+			m.sortParticipants(&status) // do this after Visualize to not mess up time order
 			updates = append(updates, status)
 		}
 	}
@@ -258,6 +259,12 @@ func (m *FlipManager) notificationLoop(shutdownCh chan struct{}) {
 	}
 }
 
+func (m *FlipManager) sortParticipants(status *chat1.UICoinFlipStatus) {
+	sort.Slice(status.Participants, func(i, j int) bool {
+		return status.Participants[i].Username < status.Participants[j].Username
+	})
+}
+
 func (m *FlipManager) addParticipant(ctx context.Context, status *chat1.UICoinFlipStatus,
 	update flip.CommitmentUpdate) {
 	username, deviceName, _, err := m.G().GetUPAKLoader().LookupUsernameAndDevice(ctx,
@@ -273,9 +280,6 @@ func (m *FlipManager) addParticipant(ctx context.Context, status *chat1.UICoinFl
 		Username:   username.String(),
 		DeviceName: deviceName,
 		Commitment: update.Commitment.String(),
-	})
-	sort.Slice(status.Participants, func(i, j int) bool {
-		return status.Participants[i].Username < status.Participants[j].Username
 	})
 	endingS := ""
 	if len(status.Participants) > 1 {
