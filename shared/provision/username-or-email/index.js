@@ -27,12 +27,7 @@ const BadUsernameError = (props: {|onGoToSignup: () => void|}) => (
 )
 
 class UsernameOrEmail extends React.Component<Props, State> {
-  state: State
-
-  constructor(props: Props) {
-    super(props)
-    this.state = {usernameOrEmail: ''}
-  }
+  state = {usernameOrEmail: ''}
 
   render() {
     return (
