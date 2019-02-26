@@ -39,6 +39,7 @@ const (
 	listUserMethod      = "list-user-memberships"
 	removeMemberMethod  = "remove-member"
 	renameSubteamMethod = "rename-subteam"
+	listRequestsMethod  = "list-requests"
 )
 
 var validMethodsV1 = map[string]bool{
@@ -51,6 +52,7 @@ var validMethodsV1 = map[string]bool{
 	listUserMethod:      true,
 	removeMemberMethod:  true,
 	renameSubteamMethod: true,
+	listRequestsMethod:  true,
 }
 
 func (t *teamAPIHandler) handleV1(ctx context.Context, c Call, w io.Writer) error {
@@ -87,6 +89,8 @@ func (t *teamAPIHandler) handleV1(ctx context.Context, c Call, w io.Writer) erro
 		return t.removeMember(ctx, c, w)
 	case renameSubteamMethod:
 		return t.renameSubteam(ctx, c, w)
+	case listRequestsMethod:
+		return t.listRequests(ctx, c, w)
 	default:
 		return ErrInvalidMethod{name: c.Method, version: 1}
 	}
@@ -433,6 +437,38 @@ func (t *teamAPIHandler) renameSubteam(ctx context.Context, c Call, w io.Writer)
 		return t.encodeErr(c, err, w)
 	}
 	return t.encodeResult(c, nil, w)
+}
+
+type listRequestsOptions struct {
+	Team string `json:"team"`
+}
+
+func (c *listRequestsOptions) Check() error {
+	if c.Team == "" {
+		return nil
+	}
+
+	_, err := keybase1.TeamNameFromString(c.Team)
+	return err
+}
+
+func (t *teamAPIHandler) listRequests(ctx context.Context, c Call, w io.Writer) error {
+	var opts listRequestsOptions
+	if err := t.unmarshalOptions(c, &opts); err != nil {
+		return t.encodeErr(c, err, w)
+	}
+
+	arg := keybase1.TeamListRequestsArg{}
+	if opts.Team != "" {
+		arg.TeamName = &opts.Team
+	}
+
+	reqs, err := t.cli.TeamListRequests(ctx, arg)
+	if err != nil {
+		return t.encodeErr(c, err, w)
+	}
+
+	return t.encodeResult(c, reqs, w)
 }
 
 func (t *teamAPIHandler) requireOptionsV1(c Call) error {
