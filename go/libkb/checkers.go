@@ -14,7 +14,7 @@ import (
 
 var emailRE = regexp.MustCompile(`^\S+@\S+\.\S+$`)
 
-var deviceRE = regexp.MustCompile(`^[a-zA-Z0-9][ _'a-zA-Z0-9+-—–‘’]*$`)
+var deviceRE = regexp.MustCompile(`^[a-zA-Z0-9][ _'a-zA-Z0-9+\-—–‘’]*$`)
 var badDeviceRE = regexp.MustCompile(`  |[ '+_-]$|['+_-][ ]?['+_-]`)
 var normalizeDeviceRE = regexp.MustCompile(`[^a-zA-Z0-9]`)
 
