@@ -20,6 +20,7 @@ type OwnProps = RouteProps<{username: string}, {}>
 const mapStateToProps = (state, {routeProps}) => {
   return {
     _them: routeProps.get('username'),
+    addUserToTeamsResults: state.teams.addUserToTeamsResults,
     teamProfileAddList: state.teams.get('teamProfileAddList'),
     teamnames: Constants.getSortedTeamnames(state),
     waiting: WaitingConstants.anyWaiting(state, Constants.teamProfileAddListWaitingKey),
