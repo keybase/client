@@ -305,11 +305,6 @@ func (j *JournalManager) makeFBOForJournal(
 		return err
 	}
 
-	// TODO: since we're likely just initializing this TLF to get the
-	// unflushed edit history, it would be better to do it in a way
-	// that doesn't force an identify (which might lead to unexpected
-	// tracker popups).  But this situation is so rare, it's probably
-	// not worth all the plumbing that would take.
 	_, _, err = j.config.KBFSOps().GetRootNode(ctx, handle, MasterBranch)
 	return err
 }
@@ -332,16 +327,32 @@ func (j *JournalManager) MakeFBOsForExistingJournals(
 		tlfID := tlfID
 		tj := tj
 		go func() {
+			ctx := CtxWithRandomIDReplayable(
+				context.Background(), CtxFBOIDKey, CtxFBOOpID, j.log)
+
+			// Turn off tracker popups.
+			ctx, err := MakeExtendedIdentify(
+				ctx, keybase1.TLFIdentifyBehavior_KBFS_INIT)
+			if err != nil {
+				j.log.CWarningf(ctx, "Error making extended identify: %+v", err)
+			}
+
 			defer wg.Done()
 			j.log.CDebugf(ctx,
 				"Initializing FBO for non-empty journal: %s", tlfID)
 
-			err := j.makeFBOForJournal(ctx, tj, tlfID)
+			err = j.makeFBOForJournal(ctx, tj, tlfID)
 			if err != nil {
 				j.log.CWarningf(ctx,
 					"Error when making FBO for existing journal for %s: "+
 						"%+v", tlfID, err)
 			}
+
+			// The popups and errors were suppressed, but any errors would
+			// have been logged.  So just close out the extended identify.  If
+			// the user accesses the TLF directly, another proper identify
+			// should happen that shows errors.
+			_ = getExtendedIdentify(ctx).getTlfBreakAndClose()
 		}()
 	}
 	return &wg

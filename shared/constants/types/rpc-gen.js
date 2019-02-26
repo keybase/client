@@ -832,6 +832,7 @@ export const tlfKeysTLFIdentifyBehavior = {
   kbfsChat: 11,
   resolveAndCheck: 12,
   guiProfile: 13,
+  kbfsInit: 14,
 }
 
 export const uPKKeyType = {
