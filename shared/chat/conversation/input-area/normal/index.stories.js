@@ -112,6 +112,7 @@ const InputContainer = (props: Props) => {
     quoteText: '',
     sendTyping: Sb.action('sendTyping'),
     setUnsentText: Sb.action('setUnsentText'),
+    showCommandMarkdown: false,
     showWalletsIcon: !props.isEditing,
     suggestChannels: List(['general', 'random', 'spelunky', 'music', 'vidya-games']),
     suggestCommands: [
@@ -125,6 +126,7 @@ const InputContainer = (props: Props) => {
       {fullName: 'Mike Maxim', username: 'mikem'},
       {fullName: 'Alex Gessner', username: 'xgess'},
     ]),
+    unsentTextChanged: Sb.action('unsentTextChanged'),
     unsentTextRefresh: false,
   }
 

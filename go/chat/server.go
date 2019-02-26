@@ -1728,11 +1728,31 @@ func (h *Server) FindConversationsLocal(ctx context.Context,
 	return res, nil
 }
 
+func (h *Server) UpdateUnsentText(ctx context.Context, arg chat1.UpdateUnsentTextArg) (err error) {
+	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI, nil, h.identNotifier)
+	defer h.Trace(ctx, func() error { return err },
+		fmt.Sprintf("UpdateUnsentText convID: %s", arg.ConversationID))()
+	uid, err := utils.AssertLoggedInUID(ctx, h.G())
+	if err != nil {
+		return err
+	}
+
+	// Attempt to prefetch any unfurls in the background that are in the message text
+	go h.G().Unfurler.Prefetch(BackgroundContext(ctx, h.G()), uid, arg.ConversationID, arg.Text)
+
+	// Preview any slash commands in the text
+	go h.G().CommandsSource.PreviewBuiltinCommand(BackgroundContext(ctx, h.G()), uid,
+		arg.ConversationID, arg.Text)
+
+	return nil
+}
+
 func (h *Server) UpdateTyping(ctx context.Context, arg chat1.UpdateTypingArg) (err error) {
 	var identBreaks []keybase1.TLFIdentifyFailure
 	ctx = Context(ctx, h.G(), keybase1.TLFIdentifyBehavior_CHAT_GUI,
 		&identBreaks, h.identNotifier)
-	defer h.Trace(ctx, func() error { return err }, fmt.Sprintf("StartTyping(%s)", arg.ConversationID))()
+	defer h.Trace(ctx, func() error { return err },
+		fmt.Sprintf("UpdateTyping convID: %s", arg.ConversationID))()
 	uid, err := utils.AssertLoggedInUID(ctx, h.G())
 	if err != nil {
 		return err
@@ -1741,9 +1761,6 @@ func (h *Server) UpdateTyping(ctx context.Context, arg chat1.UpdateTypingArg) (e
 	if !h.G().Syncer.IsConnected(ctx) {
 		return nil
 	}
-	// Attempt to prefetch any unfurls in the background that are in the message text
-	go h.G().Unfurler.Prefetch(BackgroundContext(ctx, h.G()), uid, arg.ConversationID, arg.Text)
-
 	deviceID := make([]byte, libkb.DeviceIDLen)
 	if err := h.G().Env.GetDeviceID().ToBytes(deviceID); err != nil {
 		return err
@@ -1752,11 +1769,10 @@ func (h *Server) UpdateTyping(ctx context.Context, arg chat1.UpdateTypingArg) (e
 		Uid:      uid,
 		DeviceID: deviceID,
 		ConvID:   arg.ConversationID,
-		Typing:   len(arg.Text) > 0,
+		Typing:   arg.Typing,
 	}); err != nil {
 		h.Debug(ctx, "UpdateTyping: failed to hit the server: %s", err.Error())
 	}
-
 	return nil
 }
 
@@ -2104,7 +2120,7 @@ func (h *Server) SetConvRetentionLocal(ctx context.Context, arg chat1.SetConvRet
 		isInherit = true
 	}
 
-	rc, err := GetUnverifiedConv(ctx, h.G(), uid, arg.ConvID, types.InboxSourceDataSourceAll)
+	rc, err := utils.GetUnverifiedConv(ctx, h.G(), uid, arg.ConvID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		return err
 	}
@@ -2389,7 +2405,7 @@ func (h *Server) ResolveUnfurlPrompt(ctx context.Context, arg chat1.ResolveUnfur
 		return err
 	}
 	fetchAndUnfurl := func() error {
-		conv, err := GetUnverifiedConv(ctx, h.G(), uid, arg.ConvID, types.InboxSourceDataSourceAll)
+		conv, err := utils.GetUnverifiedConv(ctx, h.G(), uid, arg.ConvID, types.InboxSourceDataSourceAll)
 		if err != nil {
 			return err
 		}

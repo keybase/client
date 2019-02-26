@@ -30,10 +30,11 @@ func (d *Msg) Execute(ctx context.Context, uid gregor1.UID, convID chat1.Convers
 	if err != nil {
 		return err
 	}
-	conv, err := d.getConvByName(ctx, uid, toks[1])
+	conv, err := getConvByName(ctx, d.G(), uid, toks[1])
 	if err != nil {
 		return err
 	}
 	text = strings.Join(toks[2:], " ")
-	return d.G().ChatHelper.SendTextByIDNonblock(ctx, conv.GetConvID(), conv.Info.TlfName, text)
+	_, err = d.G().ChatHelper.SendTextByIDNonblock(ctx, conv.GetConvID(), conv.Info.TlfName, text, nil)
+	return err
 }

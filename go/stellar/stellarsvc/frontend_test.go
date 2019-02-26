@@ -756,8 +756,8 @@ func TestGetPaymentsLocal(t *testing.T) {
 	// set up notification listeners
 	listenerSender := newChatListener()
 	listenerRecip := newChatListener()
-	tcs[0].G.NotifyRouter.SetListener(listenerSender)
-	tcs[1].G.NotifyRouter.SetListener(listenerRecip)
+	tcs[0].G.NotifyRouter.AddListener(listenerSender)
+	tcs[1].G.NotifyRouter.AddListener(listenerRecip)
 
 	sendRes, err := srvSender.SendPaymentLocal(context.Background(), stellar1.SendPaymentLocalArg{
 		BypassBid:     true,
@@ -923,14 +923,14 @@ func TestGetPaymentsLocal(t *testing.T) {
 	}
 	details, err := srvSender.GetPaymentDetailsLocal(context.Background(), stellar1.GetPaymentDetailsLocalArg{
 		Id:        senderPayments[0].Payment.Id,
-		AccountID: &accountIDSender,
+		AccountID: accountIDSender,
 	})
 	require.NoError(t, err)
 	checkPaymentDetails(details, true)
 
 	details, err = srvRecip.GetPaymentDetailsLocal(context.Background(), stellar1.GetPaymentDetailsLocalArg{
 		Id:        recipPayments[0].Payment.Id,
-		AccountID: &accountIDRecip,
+		AccountID: accountIDRecip,
 	})
 	require.NoError(t, err)
 	checkPaymentDetails(details, false)
@@ -1126,7 +1126,7 @@ func TestSendToSelf(t *testing.T) {
 
 	pd, err := tcs[0].Srv.GetPaymentDetailsLocal(context.Background(), stellar1.GetPaymentDetailsLocalArg{
 		Id:        page.Payments[2].Payment.Id,
-		AccountID: &accountID1,
+		AccountID: accountID1,
 	})
 	require.NoError(t, err)
 	require.Equal(t, "100 XLM", pd.AmountDescription)
@@ -1143,7 +1143,7 @@ func TestSendToSelf(t *testing.T) {
 
 	pd, err = tcs[0].Srv.GetPaymentDetailsLocal(context.Background(), stellar1.GetPaymentDetailsLocalArg{
 		Id:        page.Payments[1].Payment.Id,
-		AccountID: &accountID1,
+		AccountID: accountID1,
 	})
 	require.NoError(t, err)
 	require.Equal(t, "200 XLM", pd.AmountDescription)
@@ -1160,7 +1160,7 @@ func TestSendToSelf(t *testing.T) {
 
 	pd, err = tcs[0].Srv.GetPaymentDetailsLocal(context.Background(), stellar1.GetPaymentDetailsLocalArg{
 		Id:        page.Payments[0].Payment.Id,
-		AccountID: &accountID2,
+		AccountID: accountID2,
 	})
 	require.NoError(t, err)
 	require.Equal(t, "300 XLM", pd.AmountDescription)
@@ -1212,12 +1212,11 @@ func TestPaymentDetailsEmptyAccId(t *testing.T) {
 	// Imagine this is the receiver reading chat.
 	paymentID := senderMsgs[0].Body.Sendpayment().PaymentID
 
-	detailsRes, err := tcs[0].Srv.GetPaymentDetailsLocal(context.Background(), stellar1.GetPaymentDetailsLocalArg{
-		// Chat uses nil AccountID because it does not know it. It
-		// derives delta and formatting (whether it's a debit or
+	detailsRes, err := tcs[0].Srv.GetGenericPaymentDetailsLocal(context.Background(), stellar1.GetGenericPaymentDetailsLocalArg{
+		// Chat/Loader does not know account IDs, just payment IDs.
+		// It derives delta and formatting (whether it's a debit or
 		// credit) by checking chat message sender and receiver.
-		AccountID: nil,
-		Id:        paymentID,
+		Id: paymentID,
 	})
 	require.NoError(t, err)
 	require.Equal(t, stellar1.BalanceDelta_NONE, detailsRes.Delta)
@@ -2533,8 +2532,8 @@ func TestMakeRequestLocalNotifications(t *testing.T) {
 	// set up notification listeners
 	listenerSender := newChatListener()
 	listenerRecip := newChatListener()
-	tcs[0].G.NotifyRouter.SetListener(listenerSender)
-	tcs[1].G.NotifyRouter.SetListener(listenerRecip)
+	tcs[0].G.NotifyRouter.AddListener(listenerSender)
+	tcs[1].G.NotifyRouter.AddListener(listenerRecip)
 
 	xlm := stellar1.AssetNative()
 	reqID, err := tcs[0].Srv.MakeRequestLocal(context.Background(), stellar1.MakeRequestLocalArg{

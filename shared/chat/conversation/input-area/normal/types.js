@@ -24,6 +24,7 @@ type CommonProps = {|
   onRequestScrollDown: () => void,
   onRequestScrollUp: () => void,
   onSubmit: (text: string) => void,
+  showCommandMarkdown: boolean,
   showWalletsIcon: boolean, // used on mobile to determine placeholder
 
   editText: string,
@@ -32,7 +33,8 @@ type CommonProps = {|
 
   getUnsentText: () => string,
   setUnsentText: (text: string) => void,
-  sendTyping: (text: string) => void,
+  sendTyping: (typing: boolean) => void,
+  unsentTextChanged: (text: string) => void,
 
   unsentTextRefresh: boolean,
 |}

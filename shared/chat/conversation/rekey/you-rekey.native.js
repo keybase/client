@@ -15,7 +15,7 @@ const YouRekey = ({onEnterPaperkey, onBack}: Props) => {
     >
       <Text
         center={true}
-        backgroundMode="Terminal"
+        negative={true}
         style={{paddingBottom: 8, paddingLeft: 24, paddingRight: 24, paddingTop: 8}}
         type="BodySemibold"
       >
@@ -31,7 +31,7 @@ const YouRekey = ({onEnterPaperkey, onBack}: Props) => {
         <Box
           style={{...globalStyles.flexBoxColumn, alignItems: 'stretch', flex: 1, justifyContent: 'center'}}
         >
-          <Text center={true} type="BodySmall" style={textStyle} backgroundMode="Terminal">
+          <Text center={true} type="BodySmall" style={textStyle} negative={true}>
             To unlock this conversation, open one of your other devices or enter a paperkey.
           </Text>
           <Button

@@ -202,6 +202,39 @@ func (s *baseConversationSource) MarkAsRead(ctx context.Context, convID chat1.Co
 	return nil
 }
 
+func (s *baseConversationSource) PullFull(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, reason chat1.GetThreadReason,
+	query *chat1.GetThreadQuery, maxPages *int) (res chat1.ThreadView, err error) {
+	pagination := &chat1.Pagination{
+		Num: 300,
+	}
+	if maxPages == nil {
+		defaultMaxPages := 10000
+		maxPages = &defaultMaxPages
+	}
+	for i := 0; !pagination.Last && i < *maxPages; i++ {
+		thread, err := s.G().ConvSource.Pull(ctx, convID, uid, reason, query, pagination)
+		if err != nil {
+			return res, err
+		}
+		res.Messages = append(res.Messages, thread.Messages...)
+		pagination.Next = thread.Pagination.Next
+		pagination.Last = thread.Pagination.Last
+	}
+	return res, nil
+}
+
+func (s *baseConversationSource) getUnreadlineRemote(ctx context.Context, convID chat1.ConversationID,
+	readMsgID chat1.MessageID) (*chat1.MessageID, error) {
+	res, err := s.ri().GetUnreadlineRemote(ctx, chat1.GetUnreadlineRemoteArg{
+		ConvID:    convID,
+		ReadMsgID: readMsgID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return res.UnreadlineID, nil
+}
+
 type RemoteConversationSource struct {
 	globals.Contextified
 	*baseConversationSource
@@ -252,7 +285,7 @@ func (s *RemoteConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	}
 
 	// Get conversation metadata
-	conv, err := GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
+	conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		return chat1.ThreadView{}, err
 	}
@@ -326,14 +359,7 @@ func (s *RemoteConversationSource) GetMessagesWithRemotes(ctx context.Context,
 
 func (s *RemoteConversationSource) GetUnreadline(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, readMsgID chat1.MessageID) (*chat1.MessageID, error) {
-	res, err := s.ri().GetUnreadlineRemote(ctx, chat1.GetUnreadlineRemoteArg{
-		ConvID:    convID,
-		ReadMsgID: readMsgID,
-	})
-	if err != nil {
-		return nil, err
-	}
-	return res.UnreadlineID, nil
+	return s.getUnreadlineRemote(ctx, convID, readMsgID)
 }
 
 func (s *RemoteConversationSource) Expunge(ctx context.Context,
@@ -581,7 +607,7 @@ func (s *HybridConversationSource) Push(ctx context.Context, convID chat1.Conver
 	defer s.lockTab.Release(ctx, uid, convID)
 
 	// Grab conversation information before pushing
-	conv, err := GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
+	conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		return decmsg, continuousUpdate, err
 	}
@@ -745,7 +771,7 @@ func (s *HybridConversationSource) Pull(ctx context.Context, convID chat1.Conver
 	defer s.lockTab.Release(ctx, uid, convID)
 
 	// Get conversation metadata
-	rconv, err := GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
+	rconv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 	var unboxConv types.UnboxConversationInfo
 	if err == nil {
 		conv := rconv.Conv
@@ -958,15 +984,15 @@ func (s *HybridConversationSource) Clear(ctx context.Context, convID chat1.Conve
 }
 
 func (s *HybridConversationSource) GetMessages(ctx context.Context, conv types.UnboxConversationInfo,
-	uid gregor1.UID, msgIDs []chat1.MessageID, threadReason *chat1.GetThreadReason) ([]chat1.MessageUnboxed, error) {
+	uid gregor1.UID, msgIDs []chat1.MessageID, threadReason *chat1.GetThreadReason) (res []chat1.MessageUnboxed, err error) {
+	defer s.Trace(ctx, func() error { return err }, "GetMessages")()
 	convID := conv.GetConvID()
 	if _, err := s.lockTab.Acquire(ctx, uid, convID); err != nil {
 		return nil, err
 	}
 	defer s.lockTab.Release(ctx, uid, convID)
 
-	rmsgsTab := make(map[chat1.MessageID]chat1.MessageUnboxed)
-
+	// Grab local messages
 	msgs, err := s.storage.FetchMessages(ctx, convID, uid, msgIDs)
 	if err != nil {
 		return nil, err
@@ -981,10 +1007,10 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, conv types.U
 	}
 
 	// Grab message from remote
+	rmsgsTab := make(map[chat1.MessageID]chat1.MessageUnboxed)
 	s.Debug(ctx, "GetMessages: convID: %s uid: %s total msgs: %d remote: %d", convID, uid, len(msgIDs),
 		len(remoteMsgs))
 	if len(remoteMsgs) > 0 {
-
 		// Insta fail if we are offline
 		if s.IsOffline(ctx) {
 			return nil, OfflineError{}
@@ -1017,7 +1043,6 @@ func (s *HybridConversationSource) GetMessages(ctx context.Context, conv types.U
 	}
 
 	// Form final result
-	var res []chat1.MessageUnboxed
 	for index, msg := range msgs {
 		if msg != nil {
 			res = append(res, *msg)
@@ -1101,19 +1126,23 @@ func (s *HybridConversationSource) GetMessagesWithRemotes(ctx context.Context,
 func (s *HybridConversationSource) GetUnreadline(ctx context.Context,
 	convID chat1.ConversationID, uid gregor1.UID, readMsgID chat1.MessageID) (unreadlineID *chat1.MessageID, err error) {
 	defer s.Trace(ctx, func() error { return err }, fmt.Sprintf("GetUnreadline: convID: %v, readMsgID: %v", convID, readMsgID))()
+
+	conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceLocalOnly)
+	if err != nil { // short circuit to the server
+		s.Debug(ctx, "unable to GetUnverifiedConv: %v", err)
+		return s.getUnreadlineRemote(ctx, convID, readMsgID)
+	}
+	// Don't bother checking anything if we don't have any unread messages.
+	if !conv.Conv.IsUnreadFromMsgID(readMsgID) {
+		return nil, nil
+	}
+
 	unreadlineID, err = storage.New(s.G(), s).FetchUnreadlineID(ctx, convID, uid, readMsgID)
 	if err != nil {
 		return nil, err
 	}
 	if unreadlineID == nil {
-		res, err := s.ri().GetUnreadlineRemote(ctx, chat1.GetUnreadlineRemoteArg{
-			ConvID:    convID,
-			ReadMsgID: readMsgID,
-		})
-		if err != nil {
-			return nil, err
-		}
-		unreadlineID = res.UnreadlineID
+		return s.getUnreadlineRemote(ctx, convID, readMsgID)
 	}
 	return unreadlineID, nil
 }
@@ -1123,7 +1152,7 @@ func (s *HybridConversationSource) notifyExpunge(ctx context.Context, uid gregor
 	if mergeRes.Expunged != nil {
 		var inboxItem *chat1.InboxUIItem
 		topicType := chat1.TopicType_NONE
-		conv, err := GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
+		conv, err := utils.GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 		if err != nil {
 			s.Debug(ctx, "notifyExpunge: failed to get conversations: %s", err)
 		} else {
@@ -1146,7 +1175,7 @@ func (s *HybridConversationSource) notifyUnfurls(ctx context.Context, uid gregor
 		return
 	}
 	s.Debug(ctx, "notifyUnfurls: notifying %d messages", len(msgs))
-	conv, err := GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
+	conv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
 		s.Debug(ctx, "notifyUnfurls: failed to get conv: %s", err)
 		return
@@ -1173,7 +1202,7 @@ func (s *HybridConversationSource) notifyReactionUpdates(ctx context.Context, ui
 	convID chat1.ConversationID, msgs []chat1.MessageUnboxed) {
 	s.Debug(ctx, "notifyReactionUpdates: %d msgs to update", len(msgs))
 	if len(msgs) > 0 {
-		conv, err := GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
+		conv, err := utils.GetVerifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceAll)
 		if err != nil {
 			s.Debug(ctx, "notifyReactionUpdates: failed to get conversations: %s", err)
 			return

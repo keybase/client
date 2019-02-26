@@ -747,6 +747,21 @@
         {
           "type": "boolean",
           "name": "isCollapsed"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "flipGameID"
+        },
+        {
+          "type": "boolean",
+          "name": "isDeleteable"
+        },
+        {
+          "type": "boolean",
+          "name": "isEditable"
         }
       ]
     },
@@ -788,6 +803,13 @@
         {
           "type": "boolean",
           "name": "isEphemeral"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "flipGameID"
         },
         {
           "type": "string",
@@ -964,6 +986,112 @@
             "items": "UIChatPayment"
           },
           "name": "payments"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GiphySearchResult",
+      "fields": [
+        {
+          "type": "string",
+          "name": "targetUrl"
+        },
+        {
+          "type": "string",
+          "name": "previewUrl"
+        },
+        {
+          "type": "int",
+          "name": "previewWidth"
+        },
+        {
+          "type": "int",
+          "name": "previewHeight"
+        },
+        {
+          "type": "boolean",
+          "name": "previewIsVideo"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "UICoinFlipPhase",
+      "symbols": [
+        "COMMITMENT_0",
+        "REVEALS_1",
+        "COMPLETE_2",
+        "ERROR_3"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UICoinFlipParticipant",
+      "fields": [
+        {
+          "type": "string",
+          "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "deviceID"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "string",
+          "name": "deviceName"
+        },
+        {
+          "type": "string",
+          "name": "commitment"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "reveal"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UICoinFlipStatus",
+      "fields": [
+        {
+          "type": "string",
+          "name": "gameID"
+        },
+        {
+          "type": "UICoinFlipPhase",
+          "name": "phase"
+        },
+        {
+          "type": "string",
+          "name": "progressText"
+        },
+        {
+          "type": "string",
+          "name": "resultText"
+        },
+        {
+          "type": "string",
+          "name": "commitmentVisualization"
+        },
+        {
+          "type": "string",
+          "name": "revealVisualization"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UICoinFlipParticipant"
+          },
+          "name": "participants"
         }
       ]
     }
@@ -1205,6 +1333,26 @@
       ],
       "response": null
     },
+    "chatGiphySearchResults": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "convID",
+          "type": "string"
+        },
+        {
+          "name": "results",
+          "type": {
+            "type": "array",
+            "items": "GiphySearchResult"
+          }
+        }
+      ],
+      "response": null
+    },
     "chatShowManageChannels": {
       "request": [
         {
@@ -1213,6 +1361,39 @@
         },
         {
           "name": "teamname",
+          "type": "string"
+        }
+      ],
+      "response": null
+    },
+    "chatCoinFlipStatus": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "statuses",
+          "type": {
+            "type": "array",
+            "items": "UICoinFlipStatus"
+          }
+        }
+      ],
+      "response": null
+    },
+    "chatCommandMarkdown": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "convID",
+          "type": "string"
+        },
+        {
+          "name": "text",
           "type": "string"
         }
       ],

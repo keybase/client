@@ -35,7 +35,6 @@ const _TeamHeader = (props: Props) => (
           You are not a member of this team.
         </Kb.Text>
         <Kb.Text
-          backgroundMode="Information"
           type="BodySemiboldLink"
           center={true}
           style={styles.addYourselfBannerText}
@@ -73,7 +72,7 @@ const _TeamHeader = (props: Props) => (
             styles.description,
             Styles.platformStyles({
               common: {
-                color: props.description ? Styles.globalColors.black_75 : Styles.globalColors.black_20,
+                color: props.description ? Styles.globalColors.black : Styles.globalColors.black_20,
               },
               isElectron: {
                 ...(props.description ? Styles.desktopStyles.editable : Styles.desktopStyles.clickable),

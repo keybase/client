@@ -4,7 +4,7 @@ import {isIOS} from '../constants/platform'
 
 const colors = {
   beige: '#FAF2ED',
-  black: '#000000',
+  black: 'rgba(0, 0, 0, 0.85)',
   black_05: 'rgba(0, 0, 0, 0.05)',
   black_05_on_white: 'rgb(242,242,242)',
   black_10: 'rgba(0, 0, 0, 0.10)',
@@ -16,9 +16,7 @@ const colors = {
   black_50_on_white: 'rgb(127,127,127)',
   black_60: 'rgba(0, 0, 0, 0.60)',
   black_63: 'rgba(0, 0, 0, 0.63)',
-  black_63_on_white: 'rgb(60, 60, 60)',
-  black_75: 'rgba(0, 0, 0, 0.75)',
-  black_75_on_white: 'rgb(64,64,64)',
+  black_on_white: 'rgb(38,38,38)',
   blue: '#4C8EFF',
   blue2: '#73A6FF',
   blue3: '#A8CCFF',
@@ -47,6 +45,7 @@ const colors = {
   // on iOS overdraw is eliminiated if we use white, on Android it's eliminated if it's transparent /shrug
   fastBlank: isIOS ? '#ffffff' : undefined,
   green: '#37BD99',
+  green2: '#0E8263',
   green3: '#E8FAF6',
   grey: '#cccccc',
   lightGrey: '#f0f0f0',

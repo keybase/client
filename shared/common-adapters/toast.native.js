@@ -60,7 +60,7 @@ const Toast = HOCTimers(_Toast)
 const styles = styleSheetCreate({
   container: {
     alignItems: 'center',
-    backgroundColor: globalColors.black_75,
+    backgroundColor: globalColors.black,
     borderRadius: 70,
     borderWidth: 0,
     display: 'flex',

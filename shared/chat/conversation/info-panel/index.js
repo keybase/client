@@ -28,7 +28,9 @@ const listStyle = {
         marginTop: -4 /* Necessary fix: adds 1px at the top so we hide the gray divider */,
       }),
 }
-
+const styleTurnIntoTeam = {
+  margin: globalMargins.small,
+}
 const Spacer = ({height}: {height: number}) => <Box style={{height, width: 1}} />
 
 type InfoPanelProps = {|
@@ -310,6 +312,7 @@ class _InfoPanel extends React.Component<InfoPanelProps> {
             key="turn into team"
             label="Turn into team"
             onClick={row.onShowNewTeamDialog}
+            style={styleTurnIntoTeam}
           />
         )
 

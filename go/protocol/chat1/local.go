@@ -208,6 +208,18 @@ func (o MessageHeadline) DeepCopy() MessageHeadline {
 	}
 }
 
+type MessageFlip struct {
+	Text   string     `codec:"text" json:"text"`
+	GameID FlipGameID `codec:"gameID" json:"gameID"`
+}
+
+func (o MessageFlip) DeepCopy() MessageFlip {
+	return MessageFlip{
+		Text:   o.Text,
+		GameID: o.GameID.DeepCopy(),
+	}
+}
+
 type MessageSystemType int
 
 const (
@@ -796,6 +808,7 @@ type MessageBody struct {
 	Sendpayment__        *MessageSendPayment          `codec:"sendpayment,omitempty" json:"sendpayment,omitempty"`
 	Requestpayment__     *MessageRequestPayment       `codec:"requestpayment,omitempty" json:"requestpayment,omitempty"`
 	Unfurl__             *MessageUnfurl               `codec:"unfurl,omitempty" json:"unfurl,omitempty"`
+	Flip__               *MessageFlip                 `codec:"flip,omitempty" json:"flip,omitempty"`
 }
 
 func (o *MessageBody) MessageType() (ret MessageType, err error) {
@@ -873,6 +886,11 @@ func (o *MessageBody) MessageType() (ret MessageType, err error) {
 	case MessageType_UNFURL:
 		if o.Unfurl__ == nil {
 			err = errors.New("unexpected nil value for Unfurl__")
+			return ret, err
+		}
+	case MessageType_FLIP:
+		if o.Flip__ == nil {
+			err = errors.New("unexpected nil value for Flip__")
 			return ret, err
 		}
 	}
@@ -1029,6 +1047,16 @@ func (o MessageBody) Unfurl() (res MessageUnfurl) {
 	return *o.Unfurl__
 }
 
+func (o MessageBody) Flip() (res MessageFlip) {
+	if o.MessageType__ != MessageType_FLIP {
+		panic("wrong case accessed")
+	}
+	if o.Flip__ == nil {
+		return
+	}
+	return *o.Flip__
+}
+
 func NewMessageBodyWithText(v MessageText) MessageBody {
 	return MessageBody{
 		MessageType__: MessageType_TEXT,
@@ -1131,6 +1159,13 @@ func NewMessageBodyWithUnfurl(v MessageUnfurl) MessageBody {
 	return MessageBody{
 		MessageType__: MessageType_UNFURL,
 		Unfurl__:      &v,
+	}
+}
+
+func NewMessageBodyWithFlip(v MessageFlip) MessageBody {
+	return MessageBody{
+		MessageType__: MessageType_FLIP,
+		Flip__:        &v,
 	}
 }
 
@@ -1242,6 +1277,13 @@ func (o MessageBody) DeepCopy() MessageBody {
 			tmp := (*x).DeepCopy()
 			return &tmp
 		})(o.Unfurl__),
+		Flip__: (func(x *MessageFlip) *MessageFlip {
+			if x == nil {
+				return nil
+			}
+			tmp := (*x).DeepCopy()
+			return &tmp
+		})(o.Flip__),
 	}
 }
 
@@ -5006,6 +5048,11 @@ type FindConversationsLocalArg struct {
 
 type UpdateTypingArg struct {
 	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
+	Typing         bool           `codec:"typing" json:"typing"`
+}
+
+type UpdateUnsentTextArg struct {
+	ConversationID ConversationID `codec:"conversationID" json:"conversationID"`
 	Text           string         `codec:"text" json:"text"`
 }
 
@@ -5175,6 +5222,7 @@ type LocalInterface interface {
 	MarkAsReadLocal(context.Context, MarkAsReadLocalArg) (MarkAsReadLocalRes, error)
 	FindConversationsLocal(context.Context, FindConversationsLocalArg) (FindConversationsLocalRes, error)
 	UpdateTyping(context.Context, UpdateTypingArg) error
+	UpdateUnsentText(context.Context, UpdateUnsentTextArg) error
 	JoinConversationLocal(context.Context, JoinConversationLocalArg) (JoinLeaveConversationLocalRes, error)
 	JoinConversationByIDLocal(context.Context, ConversationID) (JoinLeaveConversationLocalRes, error)
 	PreviewConversationByIDLocal(context.Context, ConversationID) (JoinLeaveConversationLocalRes, error)
@@ -5800,6 +5848,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 					return
 				},
 			},
+			"updateUnsentText": {
+				MakeArg: func() interface{} {
+					var ret [1]UpdateUnsentTextArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]UpdateUnsentTextArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]UpdateUnsentTextArg)(nil), args)
+						return
+					}
+					err = i.UpdateUnsentText(ctx, typedArgs[0])
+					return
+				},
+			},
 			"joinConversationLocal": {
 				MakeArg: func() interface{} {
 					var ret [1]JoinConversationLocalArg
@@ -6353,6 +6416,11 @@ func (c LocalClient) FindConversationsLocal(ctx context.Context, __arg FindConve
 
 func (c LocalClient) UpdateTyping(ctx context.Context, __arg UpdateTypingArg) (err error) {
 	err = c.Cli.Call(ctx, "chat.1.local.updateTyping", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LocalClient) UpdateUnsentText(ctx context.Context, __arg UpdateUnsentTextArg) (err error) {
+	err = c.Cli.Call(ctx, "chat.1.local.updateUnsentText", []interface{}{__arg}, nil)
 	return
 }
 

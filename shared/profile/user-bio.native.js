@@ -1,7 +1,7 @@
 // @flow
 import * as shared from './user-bio.shared'
 import React, {Component} from 'react'
-import {Box, Avatar, Text, Button, Placeholder} from '../common-adapters'
+import {Box, Avatar, Text, Button, Icon, Placeholder} from '../common-adapters'
 import type {AvatarSize} from '../common-adapters/avatar'
 import {globalStyles, globalColors, globalMargins} from '../styles'
 import {stateColors} from '../util/tracker'
@@ -84,14 +84,19 @@ class BioRender extends Component<Props> {
           />
         </Box>
         <Box style={stylesContent}>
-          <Text
-            type="HeaderBig"
-            selectable={true}
-            style={{...stylesUsername, color: trackerStateColors.username}}
-            onClick={onClickAvatar}
-          >
-            {username}
-          </Text>
+          <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
+            <Text
+              type="HeaderBig"
+              selectable={true}
+              style={{...stylesUsername, color: trackerStateColors.username}}
+              onClick={onClickAvatar}
+            >
+              {username}
+            </Text>
+            {this.props.showAirdrop && (
+              <Icon type="icon-airdrop-star-16" style={{marginLeft: 4, marginTop: 6}} />
+            )}
+          </Box>
           {!!userInfo.fullname && (
             <Text center={true} type="BodySemibold" selectable={true} style={stylesFullname}>
               {userInfo.fullname}
@@ -177,7 +182,7 @@ const stylesContent = {
 const stylesUsername = {
   marginTop: globalMargins.tiny,
 }
-const stylesFullname = {color: globalColors.black_75}
+const stylesFullname = {color: globalColors.black}
 const stylesFollowLabel = {
   color: globalColors.black_50,
   fontSize: 14,
@@ -196,7 +201,7 @@ const stylesFollowingCount = {
   color: globalColors.black_50,
   ...globalStyles.fontBold,
 }
-const stylesBio = {color: globalColors.black_75}
+const stylesBio = {color: globalColors.black}
 const stylesLocation = {marginTop: globalMargins.xtiny}
 const stylesPlaceholder = {marginTop: globalMargins.small}
 

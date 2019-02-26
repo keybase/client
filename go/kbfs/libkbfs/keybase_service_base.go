@@ -437,6 +437,13 @@ func (k *KeybaseServiceBase) ClientOutOfDate(ctx context.Context,
 	return nil
 }
 
+// RootAuditError implements keybase1.NotifyAuditInterface.
+func (k *KeybaseServiceBase) RootAuditError(ctx context.Context,
+	arg keybase1.RootAuditErrorArg) error {
+	k.log.CDebugf(ctx, "Merkle tree audit error: %v", arg.Message)
+	return nil
+}
+
 // ConvertIdentifyError converts a errors during identify into KBFS errors
 func ConvertIdentifyError(assertion string, err error) error {
 	switch err.(type) {
@@ -451,7 +458,7 @@ func ConvertIdentifyError(assertion string, err error) error {
 // Resolve implements the KeybaseService interface for KeybaseServiceBase.
 func (k *KeybaseServiceBase) Resolve(ctx context.Context, assertion string) (
 	kbname.NormalizedUsername, keybase1.UserOrTeamID, error) {
-	res, err := k.identifyClient.Resolve3(ctx, assertion)
+	res, err := k.identifyClient.Resolve3(ctx, keybase1.Resolve3Arg{Assertion: assertion})
 	if err != nil {
 		return kbname.NormalizedUsername(""), keybase1.UserOrTeamID(""),
 			ConvertIdentifyError(assertion, err)
@@ -894,7 +901,7 @@ func (k *KeybaseServiceBase) GetTeamSettings(
 	ctx context.Context, teamID keybase1.TeamID) (
 	keybase1.KBFSTeamSettings, error) {
 	// TODO: get invalidations from the server and cache the settings?
-	return k.kbfsClient.GetKBFSTeamSettings(ctx, teamID)
+	return k.kbfsClient.GetKBFSTeamSettings(ctx, keybase1.GetKBFSTeamSettingsArg{TeamID: teamID})
 }
 
 func (k *KeybaseServiceBase) getCurrentMerkleRoot(ctx context.Context) (

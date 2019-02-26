@@ -6,14 +6,20 @@ import * as Constants from '../constants/config'
 import * as ChatConstants from '../constants/chat2'
 import * as Tracker2Gen from '../actions/tracker2-gen'
 import * as DevicesGen from '../actions/devices-gen'
+import * as EngineGen from '../actions/engine-gen-gen'
 import * as ConfigGen from '../actions/config-gen'
 import * as Stats from '../engine/stats'
 import {isEOFError, isErrorTransient} from '../util/errors'
 import * as Flow from '../util/flow'
+import {isMobile} from '../constants/platform'
 
 const initialState = Constants.makeState()
 
-type Actions = ConfigGen.Actions | DevicesGen.RevokedPayload | Tracker2Gen.UpdatedDetailsPayload
+type Actions =
+  | ConfigGen.Actions
+  | DevicesGen.RevokedPayload
+  | Tracker2Gen.UpdatedDetailsPayload
+  | EngineGen.Keybase1NotifyTrackingTrackingChangedPayload
 
 export default function(state: Types.State = initialState, action: Actions): Types.State {
   switch (action.type) {
@@ -161,8 +167,8 @@ export default function(state: Types.State = initialState, action: Actions): Typ
       return state.merge({loggedIn: true})
     case ConfigGen.loggedOut:
       return state.merge({loggedIn: false})
-    case ConfigGen.updateFollowing: {
-      const {isTracking, username} = action.payload
+    case EngineGen.keybase1NotifyTrackingTrackingChanged: {
+      const {isTracking, username} = action.payload.params
       return state.updateIn(['following'], following =>
         isTracking ? following.add(username) : following.delete(username)
       )
@@ -220,7 +226,10 @@ export default function(state: Types.State = initialState, action: Actions): Typ
       return state.set('useNewRouter', action.payload.useNewRouter)
     }
     case ConfigGen.daemonHandshakeDone:
-      return state.merge({daemonHandshakeState: 'done'})
+      return state.merge({
+        daemonHandshakeState: 'done',
+        startupDetailsLoaded: isMobile ? state.startupDetailsLoaded : true,
+      })
     case ConfigGen.updateNow:
       return state.update('outOfDate', outOfDate => outOfDate && outOfDate.set('updating', true))
     case ConfigGen.updateInfo:
@@ -247,6 +256,8 @@ export default function(state: Types.State = initialState, action: Actions): Typ
     case ConfigGen.copyToClipboard:
     case ConfigGen.checkForUpdate:
     case ConfigGen.filePickerError:
+    case ConfigGen.persistRoute:
+    case ConfigGen.setNavigator:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

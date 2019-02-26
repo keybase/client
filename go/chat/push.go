@@ -128,21 +128,33 @@ func (g *gregorMessageOrderer) WaitForTurn(ctx context.Context, uid gregor1.UID,
 		vers, err := g.latestInboxVersion(ctx, uid)
 		if err != nil {
 			vers = newVers - 1
-			g.Debug(ctx, "WaitForTurn: failed to get current inbox version: %v. Proceeding with vers %d", err, vers)
+			g.Debug(ctx, "WaitForTurn: failed to get current inbox version: %v. Proceeding with vers %d",
+				err, vers)
 		}
+		// add extra time if we are multiple updates behind
+		dur := time.Duration(newVers-vers-1) * time.Second
+		if dur < 0 {
+			dur = 0
+		}
+		deadline = deadline.Add(dur)
 		waiters := g.addToWaitersLocked(ctx, uid, vers, newVers)
 		g.Unlock()
 		if len(waiters) == 0 {
 			return
 		}
-		g.Debug(ctx, "WaitForTurn: out of order update received, waiting on %d updates: vers: %d newVers: %d", len(waiters), vers, newVers)
+		waitBegin := g.clock.Now()
+		g.Debug(ctx,
+			"WaitForTurn: out of order update received, waiting on %d updates: vers: %d newVers: %d dur: %v",
+			len(waiters), vers, newVers, dur+time.Second)
 		ctx, cancel := context.WithCancel(ctx)
 		defer cancel()
 		select {
 		case <-g.waitOnWaiters(ctx, newVers, waiters):
-			g.Debug(ctx, "WaitForTurn: cleared by earlier messages: vers: %d", newVers)
+			g.Debug(ctx, "WaitForTurn: cleared by earlier messages: vers: %d wait: %v", newVers,
+				g.clock.Now().Sub(waitBegin))
 		case <-g.clock.AfterTime(deadline):
-			g.Debug(ctx, "WaitForTurn: timeout reached, charging forward: vers: %d", newVers)
+			g.Debug(ctx, "WaitForTurn: timeout reached, charging forward: vers: %d wait: %v", newVers,
+				g.clock.Now().Sub(waitBegin))
 			g.Lock()
 			g.cleanupAfterTimeoutLocked(uid, newVers)
 			g.Unlock()
@@ -501,6 +513,13 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				g.Debug(ctx, "chat activity: newMessage: outboxID is empty")
 			}
 
+			// Coin flip manager can completely handle the incoming message
+			if g.G().CoinFlipManager.MaybeInjectFlipMessage(ctx, nm.Message, nm.InboxVers, uid, nm.ConvID,
+				nm.TopicType) {
+				g.Debug(ctx, "chat activity: flip message handled, early out")
+				return
+			}
+
 			// Update typing status to stopped
 			g.typingMonitor.Update(ctx, chat1.TyperInfo{
 				Uid:      keybase1.UID(nm.Message.ClientHeader.Sender.String()),
@@ -522,6 +541,7 @@ func (g *PushHandler) Activity(ctx context.Context, m gregor.OutOfBandMessage) (
 				nm.Message, nm.MaxMsgs); err != nil {
 				g.Debug(ctx, "chat activity: unable to update inbox: %v", err)
 			}
+			// Check to see if this is a coin flip message
 
 			// If we have no error on this message, then notify the frontend
 			if pushErr == nil {

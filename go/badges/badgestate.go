@@ -276,6 +276,11 @@ func (b *BadgeState) UpdateWithGregor(ctx context.Context, gstate gregor.State) 
 				continue
 			}
 
+			if body.ResetUser.IsDelete {
+				b.log.CDebugf(ctx, "BadgeState ignoring member_out_from_reset for deleted user")
+				continue
+			}
+
 			msgID := item.Metadata().MsgID().(gregor1.MsgID)
 			m := keybase1.TeamMemberOutReset{
 				Teamname: body.TeamName,
@@ -369,8 +374,15 @@ func (b *BadgeState) updateWithChat(ctx context.Context, update chat1.UnreadUpda
 }
 
 // SetWalletAccountUnreadCount sets the unread count for a wallet account.
-func (b *BadgeState) SetWalletAccountUnreadCount(accountID stellar1.AccountID, unreadCount int) {
+// It returns true if the call changed the unread count for accountID.
+func (b *BadgeState) SetWalletAccountUnreadCount(accountID stellar1.AccountID, unreadCount int) bool {
 	b.Lock()
+	existingCount := b.walletUnreadMap[accountID]
 	b.walletUnreadMap[accountID] = unreadCount
 	b.Unlock()
+
+	// did this call change the unread count for this accountID?
+	changed := unreadCount != existingCount
+
+	return changed
 }

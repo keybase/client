@@ -54,7 +54,7 @@ class DeleteRepo extends React.Component<Props, State> {
                 padding: globalMargins.tiny,
               }}
             >
-              <Text type="Body" backgroundMode="Terminal">
+              <Text type="Body" negative={true}>
                 {this.props.error.message}
               </Text>
             </Box>

@@ -135,6 +135,11 @@ export const updateMeta = (
         I.is(oldMeta.teamRetentionPolicy, nm.teamRetentionPolicy) && nm.set('teamRetentionPolicy', oldMeta.teamRetentionPolicy)
       })
     }
+    if (newMeta.trustedState === 'trusted' && oldMeta.trustedState === 'trusted') {
+      // TODO DESKTOP-9068 check localInboxVersion and take newMeta if it's higher
+      // For now take oldMeta + new snippet in case the last message exploded
+      return oldMeta.set('snippet', newMeta.snippet).set('snippetDecoration', newMeta.snippetDecoration)
+    }
     return oldMeta
   }
   // higher inbox version, use new
@@ -330,13 +335,24 @@ export const getParticipantSuggestions = (state: TypedState, id: Types.Conversat
   return suggestions
 }
 
-export const getChannelSuggestions = (state: TypedState, teamname: string) =>
-  teamname
-    ? state.chat2.metaMap
-        .filter(v => v.teamname === teamname)
-        .map(v => v.channelname)
-        .toList()
-    : I.List()
+export const getChannelSuggestions = (state: TypedState, teamname: string) => {
+  if (!teamname) {
+    return I.List()
+  }
+  // First try channelinfos (all channels in a team), then try inbox (the
+  // partial list of channels that you have joined).
+  const convs = state.teams.getIn(['teamNameToChannelInfos', teamname])
+  if (convs) {
+    return convs
+      .toIndexedSeq()
+      .toList()
+      .map(conv => conv.channelname)
+  }
+  return state.chat2.metaMap
+    .filter(v => v.teamname === teamname)
+    .map(v => v.channelname)
+    .toList()
+}
 
 export const getCommands = (state: TypedState, id: Types.ConversationIDKey) => {
   const {commands} = getMeta(state, id)
@@ -371,10 +387,10 @@ export const getRowStyles = (meta: Types.ConversationMeta, isSelected: boolean, 
     : isSelected
     ? globalColors.white
     : hasUnread
-    ? globalColors.black_75
+    ? globalColors.black
     : globalColors.black_50
-  const usernameColor = isSelected ? globalColors.white : globalColors.black_75
-  const iconHoverColor = isSelected ? globalColors.white_75 : globalColors.black_75
+  const usernameColor = isSelected ? globalColors.white : globalColors.black
+  const iconHoverColor = isSelected ? globalColors.white_75 : globalColors.black
 
   return {
     backgroundColor,

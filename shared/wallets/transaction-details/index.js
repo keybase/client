@@ -176,7 +176,7 @@ const colorForStatus = (status: Types.StatusSimplified) => {
     case 'canceled':
       return Styles.globalColors.red
     default:
-      return Styles.globalColors.black_75
+      return Styles.globalColors.black
   }
 }
 
@@ -386,11 +386,7 @@ const TransactionDetails = (props: NotLoadingProps) => {
             props.yourRole === 'receiverOnly' &&
             props.counterpartyType === 'stellarPublicKey' && (
               <Kb.Box2 direction="horizontal" fullWidth={true} style={styles.warningBannerContainer}>
-                <Kb.Text
-                  type="BodySmallSemibold"
-                  backgroundMode="Information"
-                  style={styles.warningBannerText}
-                >
+                <Kb.Text type="BodySmallSemibold" style={styles.warningBannerText}>
                   Watch out for phishing attacks and dangerous websites.
                 </Kb.Text>
               </Kb.Box2>

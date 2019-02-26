@@ -7,6 +7,7 @@ import {globalColors, globalMargins, globalStyles, platformStyles} from '../../s
 import IconOrAvatar from '../icon-or-avatar'
 import {followingStateToStyle} from '../shared'
 import {getStyle as getTextStyle} from '../../common-adapters/text'
+import flags from '../../util/feature-flags'
 
 import type {UserDetails, Props} from './'
 
@@ -92,7 +93,7 @@ class UserItem extends Component<UserItemProps, UserItemState> {
             observe it being removed when the value changes. */}
         {isSelected && (
           <TextInput
-            autoFocus={true}
+            autoFocus={!flags.useNewRouter}
             onBlur={this._onDeselect}
             onChangeText={this._onChangeText}
             value=" "
@@ -264,7 +265,7 @@ const _pillTextStyle = platformStyles({
 const _inputStyle = platformStyles({
   isMobile: {
     ...getTextStyle('BodySemibold'),
-    color: globalColors.black_75,
+    color: globalColors.black,
     fontWeight: '600',
     height: 23,
     lineHeight: 21,

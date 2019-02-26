@@ -359,6 +359,7 @@ func (u *smuUser) perUserKeyUpgrade() error {
 }
 
 type smuTeam struct {
+	ID   keybase1.TeamID
 	name string
 }
 
@@ -399,7 +400,8 @@ func (u *smuUser) getTeamsClient() keybase1.TeamsClient {
 	return keybase1.TeamsClient{Cli: u.primaryDevice().rpcClient()}
 }
 
-func (u *smuUser) pollForMembershipUpdate(team smuTeam, kg keybase1.PerTeamKeyGeneration, poller func(d keybase1.TeamDetails) bool) keybase1.TeamDetails {
+func (u *smuUser) pollForMembershipUpdate(team smuTeam, keyGen keybase1.PerTeamKeyGeneration,
+	poller func(d keybase1.TeamDetails) bool) keybase1.TeamDetails {
 	wait := 100 * time.Millisecond
 	var totalWait time.Duration
 	i := 0
@@ -411,8 +413,8 @@ func (u *smuUser) pollForMembershipUpdate(team smuTeam, kg keybase1.PerTeamKeyGe
 		}
 		// If the caller specified a "poller" that means we should keep polling until
 		// the predicate turns true
-		if details.KeyGeneration == kg && (poller == nil || poller(details)) {
-			u.ctx.log.Debug("found key generation %d", kg)
+		if details.KeyGeneration == keyGen && (poller == nil || poller(details)) {
+			u.ctx.log.Debug("found key generation %d", keyGen)
 			return details
 		}
 		if i == 9 {
@@ -425,7 +427,7 @@ func (u *smuUser) pollForMembershipUpdate(team smuTeam, kg keybase1.PerTeamKeyGe
 		totalWait += wait
 		wait = wait * 2
 	}
-	u.ctx.t.Fatalf("Failed to find the needed key generation (%d) after %s of waiting (%d iterations)", kg, totalWait, i)
+	u.ctx.t.Fatalf("Failed to find the needed key generation (%d) after %s of waiting (%d iterations)", keyGen, totalWait, i)
 	return keybase1.TeamDetails{}
 }
 
@@ -451,27 +453,30 @@ func (u *smuUser) pollForTeamSeqnoLink(team smuTeam, toSeqno keybase1.Seqno) {
 }
 
 func (u *smuUser) createTeam(writers []*smuUser) smuTeam {
+	return u.createTeam2(nil, writers, nil, nil)
+}
+
+func (u *smuUser) createTeam2(readers, writers, admins, owners []*smuUser) smuTeam {
 	name := u.username + "t"
 	nameK1, err := keybase1.TeamNameFromString(name)
-	if err != nil {
-		u.ctx.t.Fatal(err)
-	}
+	require.NoError(u.ctx.t, err)
 	cli := u.getTeamsClient()
-	_, err = cli.TeamCreate(context.TODO(), keybase1.TeamCreateArg{Name: nameK1.String()})
-	if err != nil {
-		u.ctx.t.Fatal(err)
-	}
-	for _, w := range writers {
-		_, err = cli.TeamAddMember(context.TODO(), keybase1.TeamAddMemberArg{
-			Name:     name,
-			Username: w.username,
-			Role:     keybase1.TeamRole_WRITER,
-		})
-		if err != nil {
-			u.ctx.t.Fatal(err)
+	x, err := cli.TeamCreate(context.TODO(), keybase1.TeamCreateArg{Name: nameK1.String()})
+	require.NoError(u.ctx.t, err)
+	lists := [][]*smuUser{readers, writers, admins, owners}
+	roles := []keybase1.TeamRole{keybase1.TeamRole_READER,
+		keybase1.TeamRole_WRITER, keybase1.TeamRole_ADMIN, keybase1.TeamRole_OWNER}
+	for i, list := range lists {
+		for _, u2 := range list {
+			_, err = cli.TeamAddMember(context.TODO(), keybase1.TeamAddMemberArg{
+				Name:     name,
+				Username: u2.username,
+				Role:     roles[i],
+			})
+			require.NoError(u.ctx.t, err)
 		}
 	}
-	return smuTeam{name: name}
+	return smuTeam{ID: x.TeamID, name: name}
 }
 
 func (u *smuUser) lookupImplicitTeam(create bool, displayName string, public bool) smuImplicitTeam {
@@ -530,6 +535,15 @@ func (u *smuUser) addAdmin(team smuTeam, w *smuUser) {
 
 func (u *smuUser) addOwner(team smuTeam, w *smuUser) {
 	u.addTeamMember(team, w, keybase1.TeamRole_OWNER)
+}
+
+func (u *smuUser) editMember(team *smuTeam, username string, role keybase1.TeamRole) {
+	err := u.getTeamsClient().TeamEditMember(context.TODO(), keybase1.TeamEditMemberArg{
+		Name:     team.name,
+		Username: username,
+		Role:     role,
+	})
+	require.NoError(u.ctx.t, err)
 }
 
 func (u *smuUser) reAddUserAfterReset(team smuImplicitTeam, w *smuUser) {
@@ -671,6 +685,12 @@ func (u *smuUser) assertMemberInactive(team smuTeam, user *smuUser) {
 	active, err := u.isMemberActive(team, user)
 	require.NoError(u.ctx.t, err, "assertMemberInactive error: %s", err)
 	require.False(u.ctx.t, active, "user %s is active (expected inactive)", user.username)
+}
+
+func (u *smuUser) assertMemberMissing(team smuTeam, user *smuUser) {
+	_, err := u.teamMemberDetails(team, user)
+	require.Error(user.ctx.t, err, "member should not be found")
+	require.Equal(user.ctx.t, libkb.NotFoundError{}, err, "member should not be found")
 }
 
 func (u *smuUser) uid() keybase1.UID {

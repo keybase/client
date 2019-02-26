@@ -31,13 +31,13 @@ func SetupTest(tb libkb.TestingTB, name string) libkb.TestContext {
 
 type id3results struct {
 	resultType   keybase1.Identify3ResultType
-	rows         []keybase1.Identify3UpdateRowArg
+	rows         []keybase1.Identify3Row
 	cards        []keybase1.UserCard
 	timedOut     bool
 	userWasReset bool
 }
 
-func (r *id3results) pushRow(row keybase1.Identify3UpdateRowArg) {
+func (r *id3results) pushRow(row keybase1.Identify3Row) {
 	r.rows = append(r.rows, row)
 }
 
@@ -62,7 +62,7 @@ type fakeUI3 struct {
 func (f *fakeUI3) Identify3ShowTracker(context.Context, keybase1.Identify3ShowTrackerArg) error {
 	return nil
 }
-func (f *fakeUI3) Identify3UpdateRow(_ context.Context, row keybase1.Identify3UpdateRowArg) error {
+func (f *fakeUI3) Identify3UpdateRow(_ context.Context, row keybase1.Identify3Row) error {
 	f.Lock()
 	defer f.Unlock()
 	f.id3results.pushRow(row)
@@ -100,7 +100,7 @@ func (f *fakeUI3) results() id3results {
 	return f.id3results
 }
 
-func findRows(t *testing.T, haystack []keybase1.Identify3UpdateRowArg, needles []keybase1.Identify3UpdateRowArg) {
+func findRows(t *testing.T, haystack []keybase1.Identify3Row, needles []keybase1.Identify3Row) {
 	i := 0
 	for _, h := range haystack {
 		needle := needles[i]
@@ -179,28 +179,28 @@ func TestFollowUnfollowTracy(t *testing.T) {
 	require.Equal(t, len(res.cards), 1)
 	require.False(t, res.cards[0].YouFollowThem)
 
-	findRows(t, res.rows, []keybase1.Identify3UpdateRowArg{
-		keybase1.Identify3UpdateRowArg{
+	findRows(t, res.rows, []keybase1.Identify3Row{
+		keybase1.Identify3Row{
 			Key:   "twitter",
 			Value: "tacovontaco",
 			State: keybase1.Identify3RowState_CHECKING,
 			Color: keybase1.Identify3RowColor_GRAY,
 		},
-		keybase1.Identify3UpdateRowArg{
+		keybase1.Identify3Row{
 			Key:   "twitter",
 			Value: "tacovontaco",
 			State: keybase1.Identify3RowState_VALID,
 			Color: keybase1.Identify3RowColor_GREEN,
 		},
 	})
-	findRows(t, res.rows, []keybase1.Identify3UpdateRowArg{
-		keybase1.Identify3UpdateRowArg{
+	findRows(t, res.rows, []keybase1.Identify3Row{
+		keybase1.Identify3Row{
 			Key:   "https",
 			Value: "keybase.io",
 			State: keybase1.Identify3RowState_CHECKING,
 			Color: keybase1.Identify3RowColor_GRAY,
 		},
-		keybase1.Identify3UpdateRowArg{
+		keybase1.Identify3Row{
 			Key:   "https",
 			Value: "keybase.io",
 			State: keybase1.Identify3RowState_WARNING,
@@ -215,33 +215,33 @@ func TestFollowUnfollowTracy(t *testing.T) {
 	require.Equal(t, len(res.cards), 1)
 	require.True(t, res.cards[0].YouFollowThem)
 
-	findRows(t, res.rows, []keybase1.Identify3UpdateRowArg{
-		keybase1.Identify3UpdateRowArg{
+	findRows(t, res.rows, []keybase1.Identify3Row{
+		keybase1.Identify3Row{
 			Key:   "twitter",
 			Value: "tacovontaco",
 			State: keybase1.Identify3RowState_CHECKING,
 			Color: keybase1.Identify3RowColor_GRAY,
 		},
-		keybase1.Identify3UpdateRowArg{
+		keybase1.Identify3Row{
 			Key:   "twitter",
 			Value: "tacovontaco",
 			State: keybase1.Identify3RowState_VALID,
 			Color: keybase1.Identify3RowColor_GREEN,
 		},
 	})
-	findRows(t, res.rows, []keybase1.Identify3UpdateRowArg{
-		keybase1.Identify3UpdateRowArg{
+	findRows(t, res.rows, []keybase1.Identify3Row{
+		keybase1.Identify3Row{
 			Key:   "https",
 			Value: "keybase.io",
 			State: keybase1.Identify3RowState_CHECKING,
 			Color: keybase1.Identify3RowColor_GRAY,
 		},
-		keybase1.Identify3UpdateRowArg{
+		keybase1.Identify3Row{
 			Key:   "https",
 			Value: "keybase.io",
 			State: keybase1.Identify3RowState_WARNING,
-			Color: keybase1.Identify3RowColor_ORANGE,
-			Metas: []keybase1.Identify3RowMeta{keybase1.Identify3RowMeta{Color: keybase1.Identify3RowColor_ORANGE, Label: "ignored"}},
+			Color: keybase1.Identify3RowColor_GREEN,
+			Metas: []keybase1.Identify3RowMeta{keybase1.Identify3RowMeta{Color: keybase1.Identify3RowColor_GREEN, Label: "ignored"}},
 		},
 	})
 }
@@ -265,6 +265,7 @@ func runID3(t *testing.T, mctx libkb.MetaContext, user string, follow bool) id3r
 	res := fakeUI3.results()
 	for _, row := range res.rows {
 		checkIcon(t, row.Key, row.SiteIcon)
+		checkIcon(t, row.Key, row.SiteIconFull)
 		if row.Priority == 0 || row.Priority == 9999999 {
 			t.Fatalf("unexpected priority %v %v", row.Key, row.Priority)
 		}

@@ -5,19 +5,24 @@ package engine
 
 import (
 	"fmt"
+	"testing"
+	"time"
 
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/jsonhelpers"
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 type ProveUIMock struct {
 	username, recheck, overwrite, warning, checked bool
 	postID                                         string
-	hook                                           func(arg keybase1.OkToCheckArg) (bool, string, error)
+	outputInstructionsHook                         func(context.Context, keybase1.OutputInstructionsArg) error
+	okToCheckHook                                  func(context.Context, keybase1.OkToCheckArg) (bool, string, error)
+	checkingHook                                   func(context.Context, keybase1.CheckingArg) error
 }
 
 func (p *ProveUIMock) PromptOverwrite(_ context.Context, arg keybase1.PromptOverwriteArg) (bool, error) {
@@ -39,18 +44,29 @@ func (p *ProveUIMock) PreProofWarning(_ context.Context, arg keybase1.PreProofWa
 	return true, nil
 }
 
-func (p *ProveUIMock) OutputInstructions(_ context.Context, arg keybase1.OutputInstructionsArg) error {
+func (p *ProveUIMock) OutputInstructions(ctx context.Context, arg keybase1.OutputInstructionsArg) error {
+	if p.outputInstructionsHook != nil {
+		return p.outputInstructionsHook(ctx, arg)
+	}
 	return nil
 }
 
-func (p *ProveUIMock) OkToCheck(_ context.Context, arg keybase1.OkToCheckArg) (bool, error) {
+func (p *ProveUIMock) OkToCheck(ctx context.Context, arg keybase1.OkToCheckArg) (bool, error) {
 	if !p.checked {
 		p.checked = true
-		ok, postID, err := p.hook(arg)
+		ok, postID, err := p.okToCheckHook(ctx, arg)
 		p.postID = postID
 		return ok, err
 	}
 	return false, fmt.Errorf("Check should have worked the first time!")
+}
+
+func (p *ProveUIMock) Checking(ctx context.Context, arg keybase1.CheckingArg) (err error) {
+	if p.checkingHook != nil {
+		err = p.checkingHook(ctx, arg)
+	}
+	p.checked = true
+	return err
 }
 
 func (p *ProveUIMock) DisplayRecheckWarning(_ context.Context, arg keybase1.DisplayRecheckWarningArg) error {
@@ -74,7 +90,7 @@ func proveRooterWithSecretUI(g *libkb.GlobalContext, fu *FakeUser, secretUI libk
 
 	eng := NewProve(g, &arg)
 
-	hook := func(arg keybase1.OkToCheckArg) (bool, string, error) {
+	okToCheckHook := func(_ context.Context, arg keybase1.OkToCheckArg) (bool, string, error) {
 		sigID := eng.sigID
 		if sigID.IsNil() {
 			return false, "", fmt.Errorf("empty sigID; can't make a post")
@@ -98,7 +114,7 @@ func proveRooterWithSecretUI(g *libkb.GlobalContext, fu *FakeUser, secretUI libk
 		return ok, postID, err
 	}
 
-	proveUI := &ProveUIMock{hook: hook}
+	proveUI := &ProveUIMock{okToCheckHook: okToCheckHook}
 
 	uis := libkb.UIs{
 		LogUI:    g.UI.GetLogUI(),
@@ -122,7 +138,7 @@ func proveRooterFail(g *libkb.GlobalContext, fu *FakeUser, sigVersion libkb.SigV
 
 	eng := NewProve(g, &arg)
 
-	hook := func(arg keybase1.OkToCheckArg) (bool, string, error) {
+	okToCheckHook := func(_ context.Context, arg keybase1.OkToCheckArg) (bool, string, error) {
 		apiArg := libkb.APIArg{
 			Endpoint:    "rooter",
 			SessionType: libkb.APISessionTypeREQUIRED,
@@ -142,7 +158,7 @@ func proveRooterFail(g *libkb.GlobalContext, fu *FakeUser, sigVersion libkb.SigV
 		return ok, postID, err
 	}
 
-	proveUI := &ProveUIMock{hook: hook}
+	proveUI := &ProveUIMock{okToCheckHook: okToCheckHook}
 
 	uis := libkb.UIs{
 		LogUI:    g.UI.GetLogUI(),
@@ -178,7 +194,7 @@ func proveRooterOther(g *libkb.GlobalContext, fu *FakeUser, rooterUsername strin
 
 	eng := NewProve(g, &arg)
 
-	hook := func(arg keybase1.OkToCheckArg) (bool, string, error) {
+	okToCheckHook := func(_ context.Context, arg keybase1.OkToCheckArg) (bool, string, error) {
 		sigID := eng.sigID
 		if sigID.IsNil() {
 			return false, "", fmt.Errorf("empty sigID; can't make a post")
@@ -203,7 +219,7 @@ func proveRooterOther(g *libkb.GlobalContext, fu *FakeUser, rooterUsername strin
 		return ok, postID, err
 	}
 
-	proveUI := &ProveUIMock{hook: hook}
+	proveUI := &ProveUIMock{okToCheckHook: okToCheckHook}
 
 	uis := libkb.UIs{
 		LogUI:    g.UI.GetLogUI(),
@@ -240,8 +256,8 @@ func proveGubbleUniverse(tc libkb.TestContext, serviceName, endpoint string, fu 
 	}
 	eng := NewProve(g, &arg)
 
-	// Post the proof the gubble network and verify the sig hash
-	hook := func(arg keybase1.OkToCheckArg) (bool, string, error) {
+	// Post the proof to the gubble network and verify the sig hash
+	outputInstructionsHook := func(_ context.Context, _ keybase1.OutputInstructionsArg) error {
 		sigID := eng.sigID
 		require.False(tc.T, sigID.IsNil())
 
@@ -250,6 +266,7 @@ func proveGubbleUniverse(tc libkb.TestContext, serviceName, endpoint string, fu 
 			SessionType: libkb.APISessionTypeREQUIRED,
 			Args: libkb.HTTPArgs{
 				"sig_hash":      libkb.S{Val: sigID.String()},
+				"username":      libkb.S{Val: fu.Username},
 				"kb_username":   libkb.S{Val: fu.Username},
 				"kb_ua":         libkb.S{Val: libkb.UserAgent},
 				"json_redirect": libkb.B{Val: true},
@@ -284,13 +301,14 @@ func proveGubbleUniverse(tc libkb.TestContext, serviceName, endpoint string, fu 
 		require.True(tc.T, len(proofs) >= 1)
 		for _, proof := range proofs {
 			if proof.KbUsername == fu.Username && sigID.Equal(proof.SigHash) {
-				return true, sigID.String(), nil
+				return nil
 			}
 		}
-		return false, "", fmt.Errorf("proof not found")
+		assert.Fail(tc.T, "proof not found")
+		return nil
 	}
 
-	proveUI := &ProveUIMock{hook: hook}
+	proveUI := &ProveUIMock{outputInstructionsHook: outputInstructionsHook}
 	uis := libkb.UIs{
 		LogUI:    g.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),
@@ -298,6 +316,7 @@ func proveGubbleUniverse(tc libkb.TestContext, serviceName, endpoint string, fu 
 	}
 	m := libkb.NewMetaContextTODO(g).WithUIs(uis)
 	err := RunEngine2(m, eng)
+	checkFailed(tc.T.(testing.TB))
 	require.NoError(tc.T, err)
 	require.False(tc.T, proveUI.overwrite)
 	require.False(tc.T, proveUI.warning)
@@ -306,12 +325,11 @@ func proveGubbleUniverse(tc libkb.TestContext, serviceName, endpoint string, fu 
 	return eng.sigID
 }
 
-func proveGubbleSocialFail(g *libkb.GlobalContext, fu *FakeUser, sigVersion libkb.SigVersion) (*ProveUIMock, error) {
+func proveGubbleSocialFail(tc libkb.TestContext, fu *FakeUser, sigVersion libkb.SigVersion) {
+	g := tc.G
 	sv := keybase1.SigVersion(sigVersion)
 	proofService := g.GetProofServices().GetServiceType("gubble.social")
-	if proofService == nil {
-		return nil, fmt.Errorf("Unable to find gubble.social service")
-	}
+	require.NotNil(tc.T, proofService, "expected to find gubble.social service type")
 	arg := keybase1.StartProofArg{
 		Service:      proofService.GetTypeName(),
 		Username:     fu.Username,
@@ -321,38 +339,36 @@ func proveGubbleSocialFail(g *libkb.GlobalContext, fu *FakeUser, sigVersion libk
 	}
 
 	eng := NewProve(g, &arg)
-
-	hook := func(arg keybase1.OkToCheckArg) (bool, string, error) {
-		apiArg := libkb.APIArg{
-			Endpoint:    "gubble_social",
-			SessionType: libkb.APISessionTypeREQUIRED,
-			Args: libkb.HTTPArgs{
-				"sig_hash":      libkb.S{Val: "deadbeef"},
-				"kb_username":   libkb.S{Val: fu.Username},
-				"kb_ua":         libkb.S{Val: libkb.UserAgent},
-				"json_redirect": libkb.B{Val: true},
-			},
-		}
-		res, err := g.API.Post(apiArg)
-		ok := err == nil
-		var postID string
-		if ok {
-			pid, err := res.Body.AtKey("post_id").GetString()
-			if err == nil {
-				postID = pid
-			}
-		}
-		return ok, postID, err
-	}
-
-	proveUI := &ProveUIMock{hook: hook}
-
+	proveUI := &ProveUIMock{}
 	uis := libkb.UIs{
 		LogUI:    g.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),
 		ProveUI:  proveUI,
 	}
-	m := libkb.NewMetaContextTODO(g).WithUIs(uis)
-	err := RunEngine2(m, eng)
-	return proveUI, err
+	mctx := libkb.NewMetaContextTODO(g).WithUIs(uis)
+	mctx, cancel1 := mctx.WithTimeout(12 * time.Second)
+	defer cancel1()
+	mctx, cancel2 := libkb.NewMetaContextTODO(g).WithUIs(uis).WithContextCancel()
+	defer cancel2()
+
+	proveUI.checkingHook = func(_ context.Context, _ keybase1.CheckingArg) error {
+		if mctx.Ctx().Err() != nil {
+			// This is supposed to be the first thing to cancel the context.
+			assert.Fail(tc.T, "unexpectedly cancelled")
+		}
+		cancel2()
+		return nil
+	}
+
+	// This proof will never succeed, so the Prove engine would never stop of its own accord.
+	err := RunEngine2(mctx, eng)
+	require.Error(tc.T, err)
+	checkFailed(tc.T.(testing.TB))
+}
+
+func checkFailed(t testing.TB) {
+	if t.Failed() {
+		// The test failed. Possibly in anothe goroutine. Look earlier in the logs for the real failure.
+		require.FailNow(t, "test already failed")
+	}
 }

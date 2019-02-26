@@ -590,6 +590,7 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 	// find @ mentions
 	var atMentions []gregor1.UID
 	chanMention := chat1.ChannelMention_NONE
+
 	switch plaintext.ClientHeader.MessageType {
 	case chat1.MessageType_TEXT:
 		if err = checkHeaderBodyTypeMatch(); err != nil {
@@ -597,6 +598,14 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		}
 		atMentions, chanMention = utils.GetTextAtMentionedUIDs(ctx,
 			plaintext.MessageBody.Text(), s.G().GetUPAKLoader(), &s.DebugLabeler)
+	case chat1.MessageType_FLIP:
+		if err = checkHeaderBodyTypeMatch(); err != nil {
+			return res, err
+		}
+		if msg.ClientHeader.Conv.TopicType == chat1.TopicType_CHAT {
+			atMentions, chanMention = utils.ParseAtMentionedUIDs(ctx,
+				plaintext.MessageBody.Flip().Text, s.G().GetUPAKLoader(), &s.DebugLabeler)
+		}
 	case chat1.MessageType_EDIT:
 		if err = checkHeaderBodyTypeMatch(); err != nil {
 			return res, err
@@ -609,13 +618,6 @@ func (s *BlockingSender) Prepare(ctx context.Context, plaintext chat1.MessagePla
 		}
 		atMentions, chanMention = utils.SystemMessageMentions(ctx, plaintext.MessageBody.System(),
 			s.G().GetUPAKLoader())
-	}
-
-	if len(atMentions) > 0 {
-		s.Debug(ctx, "atMentions: %v", atMentions)
-	}
-	if chanMention != chat1.ChannelMention_NONE {
-		s.Debug(ctx, "channel mention: %v", chanMention)
 	}
 
 	// If we are sending a message, and we think the conversation is a KBFS conversation, then set a label
@@ -715,9 +717,9 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 	// otherwise we give up and return an error.
 	var conv chat1.Conversation
 	sender := gregor1.UID(s.G().Env.GetUID().ToBytes())
-	rc, err := GetUnverifiedConv(ctx, s.G(), sender, convID, types.InboxSourceDataSourceAll)
+	rc, err := utils.GetUnverifiedConv(ctx, s.G(), sender, convID, types.InboxSourceDataSourceAll)
 	if err != nil {
-		if err == errGetUnverifiedConvNotFound {
+		if err == utils.ErrGetUnverifiedConvNotFound {
 			// If we didn't find it, then just attempt to join it and see what happens
 			switch msg.ClientHeader.MessageType {
 			case chat1.MessageType_JOIN, chat1.MessageType_LEAVE:
@@ -731,7 +733,7 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 				}
 				// Force hit the remote here, so there is no race condition against the local
 				// inbox
-				rc, err = GetUnverifiedConv(ctx, s.G(), sender, convID,
+				rc, err = utils.GetUnverifiedConv(ctx, s.G(), sender, convID,
 					types.InboxSourceDataSourceRemoteOnly)
 				if err != nil {
 					s.Debug(ctx, "Send: failed to get conversation again, giving up: %s", err.Error())
@@ -816,6 +818,14 @@ func (s *BlockingSender) Send(ctx context.Context, convID chat1.ConversationID,
 					s.G().InboxSource.Clear(ctx, sender)
 					clearedCache = true
 				}
+				continue
+			case libkb.ChatEphemeralRetentionPolicyViolatedError:
+				s.Debug(ctx, "Send: failed because of invalid ephemeral policy, trying the whole thing again")
+				rc, err := utils.GetUnverifiedConv(ctx, s.G(), sender, convID, types.InboxSourceDataSourceRemoteOnly)
+				if err != nil {
+					return nil, nil, err
+				}
+				conv = rc.Conv
 				continue
 			case libkb.EphemeralPairwiseMACsMissingUIDsError:
 				merr := err.(libkb.EphemeralPairwiseMACsMissingUIDsError)

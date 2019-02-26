@@ -27,22 +27,24 @@ export default class NormalPreview extends React.PureComponent<NormalPreviewProp
 
   render() {
     return (
-      <Kb.Box style={styles.outerContainer}>
-        <Header path={this.props.path} routePath={this.props.routePath} />
-        <Kbfs.Errs />
-        <Kb.Divider />
-        <Kb.Box style={styles.greyContainer}>
-          <Kb.Box style={styles.contentContainer}>
-            <View
-              path={this.props.path}
-              routePath={this.props.routePath}
-              onLoadingStateChange={this._onLoadingStateChange}
-            />
+      <Kb.BoxGrow>
+        <Kb.Box2 direction="vertical" fullHeight={true} fullWidth={true}>
+          <Header path={this.props.path} routePath={this.props.routePath} />
+          <Kbfs.Errs />
+          <Kb.Divider />
+          <Kb.Box style={styles.greyContainer}>
+            <Kb.Box style={styles.contentContainer}>
+              <View
+                path={this.props.path}
+                routePath={this.props.routePath}
+                onLoadingStateChange={this._onLoadingStateChange}
+              />
+            </Kb.Box>
+            {this.state.loading && <Kb.ProgressIndicator style={styles.loading} />}
           </Kb.Box>
-          {this.state.loading && <Kb.ProgressIndicator style={styles.loading} />}
-        </Kb.Box>
-        <Footer />
-      </Kb.Box>
+          <Footer />
+        </Kb.Box2>
+      </Kb.BoxGrow>
     )
   }
 }
@@ -84,9 +86,4 @@ const styles = Styles.styleSheetCreate({
       top: 0,
     },
   }),
-  outerContainer: {
-    ...Styles.globalStyles.flexBoxColumn,
-    height: '100%',
-    position: 'relative',
-  },
 })

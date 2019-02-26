@@ -28,6 +28,7 @@ type ChatContext struct {
 	StellarPushHandler  types.OobmHandler
 	Unfurler            types.Unfurler                   // unfurl messages with URLs
 	CommandsSource      types.ConversationCommandsSource // source for / commands for conversations
+	CoinFlipManager     types.CoinFlipManager            // manage /flip games
 }
 
 type Context struct {

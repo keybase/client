@@ -147,7 +147,7 @@ const Tracker = (props: Props) => {
       <Kb.Text type="BodySmallSemibold" style={Styles.collapseStyles([styles.reason, {backgroundColor}])}>
         {props.reason}
       </Kb.Text>
-      <Kb.ScrollView style={styles.scrollView}>
+      <Kb.ScrollView style={styles.scrollView} hideVerticalScroll={true}>
         <Kb.Box2 direction="vertical">
           <Kb.Text type="BodySmallSemibold" style={styles.reasonInvisible}>
             {props.reason}
@@ -256,7 +256,10 @@ const styles = Styles.styleSheetCreate({
     ...reason,
     opacity: 0,
   },
-  scrollView: {...Styles.globalStyles.fillAbsolute, paddingBottom: Styles.globalMargins.small},
+  scrollView: {
+    ...Styles.globalStyles.fillAbsolute,
+    paddingBottom: Styles.globalMargins.small,
+  },
   spaceUnderButtons: {
     flexShrink: 0,
     height: barHeight,

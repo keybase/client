@@ -10,6 +10,7 @@ import {View} from 'react-native'
 import {globalStyles} from '../styles'
 import {isAndroid} from '../constants/platform'
 import {getPath} from '../route-tree'
+import flags from '../util/feature-flags'
 
 type OwnProps = {||}
 
@@ -18,12 +19,13 @@ type Props = {
   routeState: any,
   showPushPrompt: any,
   setRouteState: (path: any, partialState: any) => void,
+  useNewRouter: boolean,
   navigateUp: () => void,
 }
 
 class Main extends React.Component<Props> {
   componentDidMount() {
-    if (isAndroid) {
+    if (!flags.useNewRouter && isAndroid) {
       NativeBackHandler.addEventListener('hardwareBackPress', () => {
         if (getPath(this.props.routeState).size === 1) {
           return false
@@ -39,11 +41,11 @@ class Main extends React.Component<Props> {
       return <PushPrompt />
     }
 
+    // TODO likely collapse index.native/main.native/nav.native etc
     return (
       <React.Fragment>
         <RouterSwitcheroo
-          useNewRouter={false}
-          newRoutePath={[]}
+          useNewRouter={this.props.useNewRouter}
           oldRouteDef={this.props.routeDef}
           oldRouteState={this.props.routeState}
           oldSetRouteState={this.props.setRouteState}
@@ -64,6 +66,7 @@ const mapStateToProps = state => ({
   routeDef: state.routeTree.routeDef,
   routeState: state.routeTree.routeState,
   showPushPrompt: state.config.loggedIn && state.push.showPushPrompt,
+  useNewRouter: state.config.useNewRouter,
 })
 
 const mapDispatchToProps = dispatch => ({

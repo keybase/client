@@ -241,6 +241,8 @@ func (p ParsedStellarPayment) ToMini() libkb.MiniChatPayment {
 
 type DummyAttachmentFetcher struct{}
 
+var _ AttachmentFetcher = (*DummyAttachmentFetcher)(nil)
+
 func (d DummyAttachmentFetcher) FetchAttachment(ctx context.Context, w io.Writer,
 	convID chat1.ConversationID, asset chat1.Asset, r func() chat1.RemoteInterface, signer s3.Signer,
 	progress ProgressReporter) error {
@@ -264,8 +266,11 @@ func (d DummyAttachmentFetcher) PutUploadedAsset(ctx context.Context, filename s
 func (d DummyAttachmentFetcher) IsAssetLocal(ctx context.Context, asset chat1.Asset) (bool, error) {
 	return false, nil
 }
+func (d DummyAttachmentFetcher) OnCacheCleared(mctx libkb.MetaContext) {}
 
 type DummyAttachmentHTTPSrv struct{}
+
+var _ AttachmentURLSrv = (*DummyAttachmentHTTPSrv)(nil)
 
 func (d DummyAttachmentHTTPSrv) GetURL(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID,
 	preview bool) string {
@@ -285,7 +290,14 @@ func (d DummyAttachmentHTTPSrv) GetAttachmentFetcher() AttachmentFetcher {
 	return DummyAttachmentFetcher{}
 }
 
+func (d DummyAttachmentHTTPSrv) GetGiphyURL(ctx context.Context, giphyURL string) string {
+	return ""
+}
+func (d DummyAttachmentHTTPSrv) OnCacheCleared(mctx libkb.MetaContext) {}
+
 type DummyStellarLoader struct{}
+
+var _ StellarLoader = (*DummyStellarLoader)(nil)
 
 func (d DummyStellarLoader) LoadPayment(ctx context.Context, convID chat1.ConversationID, msgID chat1.MessageID, senderUsername string, paymentID stellar1.PaymentID) *chat1.UIPaymentInfo {
 	return nil
@@ -297,6 +309,8 @@ func (d DummyStellarLoader) LoadRequest(ctx context.Context, convID chat1.Conver
 
 type DummyEphemeralPurger struct{}
 
+var _ EphemeralPurger = (*DummyEphemeralPurger)(nil)
+
 func (d DummyEphemeralPurger) Start(ctx context.Context, uid gregor1.UID) {}
 func (d DummyEphemeralPurger) Stop(ctx context.Context) chan struct{} {
 	return nil
@@ -306,6 +320,8 @@ func (d DummyEphemeralPurger) Queue(ctx context.Context, purgeInfo chat1.Ephemer
 }
 
 type DummyIndexer struct{}
+
+var _ Indexer = (*DummyIndexer)(nil)
 
 func (d DummyIndexer) Start(ctx context.Context, uid gregor1.UID) {}
 func (d DummyIndexer) Stop(ctx context.Context) chan struct{} {
@@ -327,6 +343,8 @@ func (d DummyIndexer) IndexInbox(ctx context.Context, uid gregor1.UID) (map[stri
 
 type DummyNativeVideoHelper struct{}
 
+var _ NativeVideoHelper = (*DummyNativeVideoHelper)(nil)
+
 func (d DummyNativeVideoHelper) ThumbnailAndDuration(ctx context.Context, filename string) ([]byte, int, error) {
 	return nil, 0, nil
 }
@@ -341,6 +359,8 @@ const (
 )
 
 type DummyUnfurler struct{}
+
+var _ Unfurler = (*DummyUnfurler)(nil)
 
 func (d DummyUnfurler) UnfurlAndSend(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msg chat1.MessageUnboxed) {
@@ -380,6 +400,8 @@ func (d DummyUnfurler) SetSettings(ctx context.Context, uid gregor1.UID, setting
 
 type DummyStellarSender struct{}
 
+var _ StellarSender = (*DummyStellarSender)(nil)
+
 func (d DummyStellarSender) ParsePayments(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	body string) []ParsedStellarPayment {
 	return nil
@@ -397,4 +419,30 @@ func (d DummyStellarSender) SendPayments(ctx context.Context, convID chat1.Conve
 func (d DummyStellarSender) DecorateWithPayments(ctx context.Context, body string,
 	payments []chat1.TextPayment) string {
 	return body
+}
+
+type DummyCoinFlipManager struct{}
+
+var _ CoinFlipManager = (*DummyCoinFlipManager)(nil)
+
+func (d DummyCoinFlipManager) Start(ctx context.Context, uid gregor1.UID) {}
+func (d DummyCoinFlipManager) Stop(ctx context.Context) chan struct{} {
+	return nil
+}
+func (d DummyCoinFlipManager) StartFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID, tlfName, text string) error {
+	return nil
+}
+func (d DummyCoinFlipManager) MaybeInjectFlipMessage(ctx context.Context, boxedMsg chat1.MessageBoxed,
+	inboxVers chat1.InboxVers, uid gregor1.UID, convID chat1.ConversationID, topicType chat1.TopicType) bool {
+	return false
+}
+
+func (d DummyCoinFlipManager) LoadFlip(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	gameID chat1.FlipGameID) {
+}
+
+func (d DummyCoinFlipManager) DescribeFlipText(ctx context.Context, text string) string { return "" }
+
+func (d DummyCoinFlipManager) HasActiveGames(ctx context.Context) bool {
+	return false
 }

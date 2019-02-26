@@ -341,6 +341,7 @@ const messageMapReducer = (messageMap, action, pendingOutboxToOrdinal) => {
                 .set('mentionsAt', I.Set())
                 .set('reactions', I.Map())
                 .set('unfurls', I.Map())
+                .set('flipGameID', '')
             )
           )
         })
@@ -438,6 +439,21 @@ const rootReducer = (
           return show ? prompts.add(domain) : prompts.delete(domain)
         }
       )
+    case Chat2Gen.updateCoinFlipStatus: {
+      let fm = state.flipStatusMap
+      action.payload.statuses.forEach(s => {
+        fm = fm.set(s.gameID, s)
+      })
+      return state.set('flipStatusMap', fm)
+    }
+    case Chat2Gen.messageSend:
+      return state.setIn(['commandMarkdownMap', action.payload.conversationIDKey], '')
+    case Chat2Gen.setCommandMarkdown: {
+      const {conversationIDKey, text} = action.payload
+      return state.setIn(['commandMarkdownMap', conversationIDKey], text)
+    }
+    case Chat2Gen.giphyGotSearchResult:
+      return state.setIn(['giphyResultMap', action.payload.conversationIDKey], action.payload.results)
     case Chat2Gen.setInboxFilter:
       return state.set('inboxFilter', action.payload.filter)
     case Chat2Gen.setPendingMode:
@@ -523,7 +539,13 @@ const rootReducer = (
         const ordinals = state.messageOrdinals.get(conversationIDKey, I.OrderedSet())
         const found = ordinals.findLast(o => {
           const message = messageMap.get(o)
-          return message && message.type === 'text' && message.author === editLastUser && !message.exploded
+          return (
+            message &&
+            message.type === 'text' &&
+            message.author === editLastUser &&
+            !message.exploded &&
+            message.isEditable
+          )
         })
         if (found) {
           return editingMap.set(conversationIDKey, found)
@@ -910,6 +932,13 @@ const rootReducer = (
         return state.update('explodingModeLocks', el => el.delete(conversationIDKey))
       }
       return alreadyLocked ? state : state.setIn(['explodingModeLocks', conversationIDKey], mode)
+    case Chat2Gen.giphySend: {
+      let nextState = state
+      nextState = nextState.setIn(['giphyResultMap', action.payload.conversationIDKey], [])
+      return nextState.update('unsentTextMap', old =>
+        old.setIn([action.payload.conversationIDKey], new HiddenString(''))
+      )
+    }
     case Chat2Gen.setUnsentText:
       return state.update('unsentTextMap', old =>
         old.setIn([action.payload.conversationIDKey], action.payload.text)
@@ -917,7 +946,8 @@ const rootReducer = (
     case Chat2Gen.staticConfigLoaded:
       return state.set('staticConfig', action.payload.staticConfig)
     case Chat2Gen.metasReceived: {
-      const nextState = action.payload.fromInboxRefresh ? state.set('inboxHasLoaded', true) : state
+      let nextState = action.payload.fromInboxRefresh ? state.set('inboxHasLoaded', true) : state
+      nextState = action.payload.initialTrustedLoad ? state.set('trustedInboxHasLoaded', true) : state
       return nextState.withMutations(s => {
         s.set('metaMap', metaMapReducer(state.metaMap, action))
         s.set('messageMap', messageMapReducer(state.messageMap, action, state.pendingOutboxToOrdinal))
@@ -1011,7 +1041,6 @@ const rootReducer = (
     case Chat2Gen.markInitiallyLoadedThreadAsRead:
     case Chat2Gen.messageDeleteHistory:
     case Chat2Gen.messageReplyPrivately:
-    case Chat2Gen.messageSend:
     case Chat2Gen.metaHandleQueue:
     case Chat2Gen.metaNeedsUpdating:
     case Chat2Gen.metaRequestTrusted:
@@ -1035,8 +1064,10 @@ const rootReducer = (
     case Chat2Gen.prepareFulfillRequestForm:
     case Chat2Gen.unfurlResolvePrompt:
     case Chat2Gen.unfurlRemove:
+    case Chat2Gen.unsentTextChanged:
     case Chat2Gen.confirmScreenResponse:
     case Chat2Gen.toggleMessageCollapse:
+    case Chat2Gen.toggleInfoPanel:
       return state
     default:
       Flow.ifFlowComplainsAboutThisFunctionYouHaventHandledAllCasesInASwitch(action)

@@ -141,7 +141,7 @@ type GlobalContext struct {
 	// It is threadsafe to call methods on ActiveDevice which will always be non-nil.
 	// But don't access its members directly. If you're going to be changing out the
 	// user (and resetting the ActiveDevice), then you should hold the switchUserMu
-	switchUserMu *sync.Mutex
+	switchUserMu *VerboseLock
 	ActiveDevice *ActiveDevice
 
 	NetContext context.Context
@@ -188,7 +188,7 @@ func NewGlobalContext() *GlobalContext {
 		secretStoreMu:      new(sync.Mutex),
 		NewTriplesec:       NewSecureTriplesec,
 		ActiveDevice:       NewActiveDevice(),
-		switchUserMu:       new(sync.Mutex),
+		switchUserMu:       NewVerboseLock(VLog0, "switchUserMu"),
 		NetContext:         context.TODO(),
 		FeatureFlags:       NewFeatureFlagSet(),
 	}
@@ -272,8 +272,7 @@ func (g *GlobalContext) SetUPAKLoader(u UPAKLoader) {
 // simulateServiceRestart simulates what happens when a service restarts for the
 // purposes of testing.
 func (g *GlobalContext) simulateServiceRestart() {
-	g.switchUserMu.Lock()
-	defer g.switchUserMu.Unlock()
+	defer g.switchUserMu.Acquire(NewMetaContext(context.TODO(), g), "simulateServiceRestart")()
 	g.ActiveDevice.Clear()
 }
 
@@ -283,8 +282,7 @@ func (g *GlobalContext) Logout(ctx context.Context) (err error) {
 
 	defer mctx.CTrace("GlobalContext#Logout", func() error { return err })()
 
-	g.switchUserMu.Lock()
-	defer g.switchUserMu.Unlock()
+	defer g.switchUserMu.Acquire(NewMetaContext(ctx, g), "Logout")()
 
 	mctx.CDebugf("GlobalContext#Logout: after switchUserMu acquisition")
 

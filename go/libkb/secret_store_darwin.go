@@ -21,19 +21,27 @@ func (k KeychainSecretStore) serviceName(m MetaContext) string {
 	return m.G().GetStoredSecretServiceName()
 }
 
-func (k KeychainSecretStore) StoreSecret(m MetaContext, accountName NormalizedUsername, secret LKSecFullSecret) (err error) {
-	// Base64 encode to make it easy to work with Keychain Access (since we are using a password item and secret is not utf-8)
-	encodedSecret := base64.StdEncoding.EncodeToString(secret.Bytes())
-	item := keychain.NewGenericPassword(k.serviceName(m), string(accountName), "", []byte(encodedSecret), k.accessGroup(m))
+func (k KeychainSecretStore) makeKeychainItem(m MetaContext, accountName NormalizedUsername, encodedSecret []byte) keychain.Item {
+	item := keychain.NewGenericPassword(k.serviceName(m), string(accountName), "", encodedSecret, k.accessGroup(m))
 	item.SetSynchronizable(k.synchronizable())
 	item.SetAccessible(k.accessible())
+	return item
+}
+
+func (k KeychainSecretStore) StoreSecret(m MetaContext, accountName NormalizedUsername, secret LKSecFullSecret) (err error) {
+
+	item := k.makeKeychainItem(m, accountName, nil)
 	m.CDebugf("KeychainSecretStore.StoreSecret(%s): deleting item before adding new one", accountName)
 	err = keychain.DeleteItem(item)
 	if err != nil {
 		// error probably ok here?
 		m.CDebugf("KeychainSecretStore.StoreSecret(%s): DeleteItem error: %s", accountName, err)
 	}
+
 	m.CDebugf("KeychainSecretStore.StoreSecret(%s): adding item", accountName)
+	// Base64 encode to make it easy to work with Keychain Access (since we are using a password item and secret is not utf-8)
+	encodedSecret := base64.StdEncoding.EncodeToString(secret.Bytes())
+	item = k.makeKeychainItem(m, accountName, []byte(encodedSecret))
 	err = keychain.AddItem(item)
 	if err != nil {
 		m.CWarningf("KeychainSecretStore.StoreSecret(%s): AddItem error: %s", accountName, err)
@@ -81,7 +89,7 @@ func (k KeychainSecretStore) RetrieveSecret(m MetaContext, accountName Normalize
 	}
 	if encodedSecret == nil {
 		m.CDebugf("KeychainSecretStore.RetrieveSecret(%s) nil encodedSecret", accountName)
-		return LKSecFullSecret{}, SecretStoreError{Msg: "No secret for " + string(accountName)}
+		return LKSecFullSecret{}, NewErrSecretForUserNotFound(accountName)
 	}
 
 	secret, err := base64.StdEncoding.DecodeString(string(encodedSecret))

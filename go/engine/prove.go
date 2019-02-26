@@ -4,26 +4,31 @@
 package engine
 
 import (
+	"fmt"
 	"strings"
+	"time"
 
+	"github.com/keybase/client/go/externals"
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
 	jsonw "github.com/keybase/go-jsonw"
+	"golang.org/x/net/context"
 )
 
 // Prove is an engine used for proving ownership of remote accounts,
 // like Twitter, GitHub, etc.
 type Prove struct {
-	arg        *keybase1.StartProofArg
-	me         *libkb.User
-	st         libkb.ServiceType
-	supersede  bool
-	proof      *jsonw.Wrapper
-	sig        string
-	sigID      keybase1.SigID
-	postRes    *libkb.PostProofRes
-	signingKey libkb.GenericKey
-	sigInner   []byte
+	arg               *keybase1.StartProofArg
+	me                *libkb.User
+	serviceType       libkb.ServiceType
+	serviceParameters *keybase1.ProveParameters
+	supersede         bool
+	proof             *jsonw.Wrapper
+	sig               string
+	sigID             keybase1.SigID
+	postRes           *libkb.PostProofRes
+	signingKey        libkb.GenericKey
+	sigInner          []byte
 
 	remoteNameNormalized string
 
@@ -72,8 +77,8 @@ func (p *Prove) loadMe(m libkb.MetaContext) (err error) {
 }
 
 func (p *Prove) checkExists1(m libkb.MetaContext) (err error) {
-	proofs := p.me.IDTable().GetActiveProofsFor(p.st)
-	if len(proofs) != 0 && !p.arg.Force && p.st.LastWriterWins() {
+	proofs := p.me.IDTable().GetActiveProofsFor(p.serviceType)
+	if len(proofs) != 0 && !p.arg.Force && p.serviceType.LastWriterWins() {
 		lst := proofs[len(proofs)-1]
 		var redo bool
 		redo, err = m.UIs().ProveUI.PromptOverwrite(m.Ctx(), keybase1.PromptOverwriteArg{
@@ -94,7 +99,7 @@ func (p *Prove) checkExists1(m libkb.MetaContext) (err error) {
 func (p *Prove) promptRemoteName(m libkb.MetaContext) error {
 	// If the name is already supplied, there's no need to prompt.
 	if len(p.arg.Username) > 0 {
-		remoteNameNormalized, err := p.st.NormalizeRemoteName(m, p.arg.Username)
+		remoteNameNormalized, err := p.serviceType.NormalizeRemoteName(m, p.arg.Username)
 		if err == nil {
 			p.remoteNameNormalized = remoteNameNormalized
 		}
@@ -105,15 +110,16 @@ func (p *Prove) promptRemoteName(m libkb.MetaContext) error {
 	var normalizationError error
 	for {
 		un, err := m.UIs().ProveUI.PromptUsername(m.Ctx(), keybase1.PromptUsernameArg{
-			Prompt:    p.st.GetPrompt(),
-			PrevError: libkb.ExportErrorAsStatus(m.G(), normalizationError),
+			Prompt:     p.serviceType.GetPrompt(),
+			PrevError:  libkb.ExportErrorAsStatus(m.G(), normalizationError),
+			Parameters: p.serviceParameters,
 		})
 		if err != nil {
 			// Errors here are conditions like EOF. Return them rather than retrying.
 			return err
 		}
 		var remoteNameNormalized string
-		remoteNameNormalized, normalizationError = p.st.NormalizeRemoteName(m, un)
+		remoteNameNormalized, normalizationError = p.serviceType.NormalizeRemoteName(m, un)
 		if normalizationError == nil {
 			p.remoteNameNormalized = remoteNameNormalized
 			return nil
@@ -123,9 +129,9 @@ func (p *Prove) promptRemoteName(m libkb.MetaContext) error {
 
 func (p *Prove) checkExists2(m libkb.MetaContext) (err error) {
 	defer m.CTrace("Prove#CheckExists2", func() error { return err })()
-	if !p.st.LastWriterWins() {
+	if !p.serviceType.LastWriterWins() {
 		var found libkb.RemoteProofChainLink
-		for _, proof := range p.me.IDTable().GetActiveProofsFor(p.st) {
+		for _, proof := range p.me.IDTable().GetActiveProofsFor(p.serviceType) {
 			_, name := proof.ToKeyValuePair()
 			if libkb.Cicmp(name, p.remoteNameNormalized) {
 				found = proof
@@ -153,7 +159,7 @@ func (p *Prove) checkExists2(m libkb.MetaContext) (err error) {
 
 func (p *Prove) doPrechecks(m libkb.MetaContext) (err error) {
 	var w *libkb.Markup
-	w, err = p.st.PreProofCheck(m, p.remoteNameNormalized)
+	w, err = p.serviceType.PreProofCheck(m, p.remoteNameNormalized)
 	if w != nil {
 		if uierr := m.UIs().ProveUI.OutputPrechecks(m.Ctx(), keybase1.OutputPrechecksArg{Text: w.Export()}); uierr != nil {
 			m.CWarningf("prove ui OutputPrechecks call error: %s", uierr)
@@ -163,7 +169,7 @@ func (p *Prove) doPrechecks(m libkb.MetaContext) (err error) {
 }
 
 func (p *Prove) doWarnings(m libkb.MetaContext) (err error) {
-	if mu := p.st.PreProofWarning(p.remoteNameNormalized); mu != nil {
+	if mu := p.serviceType.PreProofWarning(p.remoteNameNormalized); mu != nil {
 		var ok bool
 		arg := keybase1.PreProofWarningArg{Text: mu.Export()}
 		if ok, err = m.UIs().ProveUI.PreProofWarning(m.Ctx(), arg); err == nil && !ok {
@@ -187,7 +193,7 @@ func (p *Prove) generateProof(m libkb.MetaContext) (err error) {
 
 	sigVersion := libkb.SigVersion(*p.arg.SigVersion)
 
-	if p.proof, err = p.me.ServiceProof(m, p.signingKey, p.st, p.remoteNameNormalized, sigVersion); err != nil {
+	if p.proof, err = p.me.ServiceProof(m, p.signingKey, p.serviceType, p.remoteNameNormalized, sigVersion); err != nil {
 		return err
 	}
 
@@ -213,12 +219,12 @@ func (p *Prove) generateProof(m libkb.MetaContext) (err error) {
 func (p *Prove) postProofToServer(m libkb.MetaContext) (err error) {
 	arg := libkb.PostProofArg{
 		Sig:               p.sig,
-		ProofType:         p.st.GetProofType(),
-		RemoteServiceType: p.st.GetTypeName(),
+		ProofType:         p.serviceType.GetProofType(),
+		RemoteServiceType: p.serviceType.GetTypeName(),
 		ID:                p.sigID,
 		Supersede:         p.supersede,
 		RemoteUsername:    p.remoteNameNormalized,
-		RemoteKey:         p.st.GetAPIArgKey(),
+		RemoteKey:         p.serviceType.GetAPIArgKey(),
 		SigningKey:        p.signingKey,
 	}
 	if libkb.SigVersion(*p.arg.SigVersion) == libkb.KeybaseSignatureV2 {
@@ -229,9 +235,9 @@ func (p *Prove) postProofToServer(m libkb.MetaContext) (err error) {
 }
 
 func (p *Prove) instructAction(m libkb.MetaContext) (err error) {
-	mkp := p.st.PostInstructions(p.remoteNameNormalized)
+	mkp := p.serviceType.PostInstructions(p.remoteNameNormalized)
 	var txt string
-	if txt, err = p.st.FormatProofText(m, p.postRes, p.me.GetNormalizedName().String(), p.sigID); err != nil {
+	if txt, err = p.serviceType.FormatProofText(m, p.postRes, p.me.GetNormalizedName().String(), p.remoteNameNormalized, p.sigID); err != nil {
 		return err
 	}
 	err = m.UIs().ProveUI.OutputInstructions(m.Ctx(), keybase1.OutputInstructionsArg{
@@ -243,7 +249,8 @@ func (p *Prove) instructAction(m libkb.MetaContext) (err error) {
 		// All of our proof verifying code (PVL) should already be flexible
 		// with surrounding whitespace, because users are pasting proofs by
 		// hand anyway.
-		Proof: strings.TrimSpace(txt),
+		Proof:      strings.TrimSpace(txt),
+		Parameters: p.serviceParameters,
 	})
 	if err != nil {
 		return err
@@ -276,6 +283,8 @@ func (p *Prove) checkAutoPost(m libkb.MetaContext, txt string) error {
 	return nil
 }
 
+// Keep asking the user whether they posted the proof
+// until it works or they give up.
 func (p *Prove) promptPostedLoop(m libkb.MetaContext) (err error) {
 	found := false
 	for i := 0; ; i++ {
@@ -283,7 +292,7 @@ func (p *Prove) promptPostedLoop(m libkb.MetaContext) (err error) {
 		var status keybase1.ProofStatus
 		var warn *libkb.Markup
 		retry, err = m.UIs().ProveUI.OkToCheck(m.Ctx(), keybase1.OkToCheckArg{
-			Name:    p.st.DisplayName(),
+			Name:    p.serviceType.DisplayName(),
 			Attempt: i,
 		})
 		if !retry || err != nil {
@@ -293,7 +302,7 @@ func (p *Prove) promptPostedLoop(m libkb.MetaContext) (err error) {
 		if found || err != nil {
 			break
 		}
-		warn, err = p.st.RecheckProofPosting(i, status, p.remoteNameNormalized)
+		warn, err = p.serviceType.RecheckProofPosting(i, status, p.remoteNameNormalized)
 		if warn != nil {
 			uierr := m.UIs().ProveUI.DisplayRecheckWarning(m.Ctx(), keybase1.DisplayRecheckWarningArg{
 				Text: warn.Export(),
@@ -313,19 +322,54 @@ func (p *Prove) promptPostedLoop(m libkb.MetaContext) (err error) {
 	return err
 }
 
+// Poll until the proof succeeds, limited to an hour.
+func (p *Prove) verifyLoop(m libkb.MetaContext) (err error) {
+	timeout := time.Hour
+	m, cancel := m.WithTimeout(timeout)
+	defer cancel()
+	uierr := m.UIs().ProveUI.Checking(m.Ctx(), keybase1.CheckingArg{
+		Name: p.serviceType.DisplayName(),
+	})
+	if uierr != nil {
+		m.CWarningf("prove ui Checking call error: %s", uierr)
+	}
+	for i := 0; ; i++ {
+		found, status, _, err := libkb.CheckPosted(m, p.postRes.ID)
+		if err != nil {
+			return err
+		}
+		m.CDebugf("Prove.verifyLoop round:%v found:%v status:%v", i, found, status)
+		if found {
+			return nil
+		}
+		wakeAt := m.G().Clock().Now().Add(2 * time.Second)
+		err = libkb.SleepUntilWithContext(m.Ctx(), m.G().Clock(), wakeAt)
+		if err != nil {
+			if err == context.DeadlineExceeded {
+				return fmt.Errorf("Timed out looking a proof after %v", timeout)
+			}
+			return err
+		}
+	}
+}
+
 func (p *Prove) checkProofText(m libkb.MetaContext) error {
 	m.CDebugf("p.postRes.Text: %q", p.postRes.Text)
 	m.CDebugf("p.sigID: %q", p.sigID)
-	return p.st.CheckProofText(p.postRes.Text, p.sigID, p.sig)
+	return p.serviceType.CheckProofText(p.postRes.Text, p.sigID, p.sig)
 }
 
 func (p *Prove) getServiceType(m libkb.MetaContext) (err error) {
-	p.st = m.G().GetProofServices().GetServiceType(p.arg.Service)
-	if p.st == nil {
+	p.serviceType = m.G().GetProofServices().GetServiceType(p.arg.Service)
+	if p.serviceType == nil {
 		return libkb.BadServiceError{Service: p.arg.Service}
 	}
-	if !p.st.CanMakeNewProofs(m) {
+	if !p.serviceType.CanMakeNewProofs(m) {
 		return libkb.ServiceDoesNotSupportNewProofsError{Service: p.arg.Service}
+	}
+	if serviceType, ok := p.serviceType.(*externals.GenericSocialProofServiceType); ok {
+		tmp := serviceType.ProveParameters(m)
+		p.serviceParameters = &tmp
 	}
 	return nil
 }
@@ -397,9 +441,17 @@ func (p *Prove) Run(m libkb.MetaContext) (err error) {
 		return nil
 	}
 
-	stage("PromptPostedLoop")
-	if err = p.promptPostedLoop(m); err != nil {
-		return err
+	stage("CheckStart")
+	if p.serviceParameters == nil {
+		stage("PromptPostedLoop")
+		if err = p.promptPostedLoop(m); err != nil {
+			return err
+		}
+	} else {
+		stage("VerifyLoop")
+		if err = p.verifyLoop(m); err != nil {
+			return err
+		}
 	}
 	m.UIs().LogUI.Notice("Success!")
 	return nil

@@ -133,7 +133,7 @@ func (i *UIAdapter) priority(key string) int {
 }
 
 // return true if we need an upgrade
-func (i *UIAdapter) setRowStatus(arg *keybase1.Identify3UpdateRowArg, lcr keybase1.LinkCheckResult) bool {
+func (i *UIAdapter) setRowStatus(arg *keybase1.Identify3Row, lcr keybase1.LinkCheckResult) bool {
 
 	needUpgrade := false
 	i.M().CDebugf("setRowStatus(lcr: %+v, cached: %+v, diff: %+v, remoteDiff: %+v, hint: %+v)",
@@ -175,7 +175,7 @@ func (i *UIAdapter) setRowStatus(arg *keybase1.Identify3UpdateRowArg, lcr keybas
 
 	// The proof failed, but we did "ignore" it, so it's OK
 	case lcr.ProofResult.State != keybase1.ProofState_OK && (lcr.RemoteDiff == nil || lcr.RemoteDiff.Type == keybase1.TrackDiffType_NONE):
-		arg.Color = keybase1.Identify3RowColor_ORANGE
+		arg.Color = keybase1.Identify3RowColor_GREEN
 		arg.State = keybase1.Identify3RowState_WARNING
 		arg.Metas = append(arg.Metas, keybase1.Identify3RowMeta{Color: arg.Color, Label: "ignored"})
 
@@ -201,11 +201,12 @@ func (i *UIAdapter) setRowStatus(arg *keybase1.Identify3UpdateRowArg, lcr keybas
 	return needUpgrade
 }
 
-func (i *UIAdapter) rowPartial(proof keybase1.RemoteProof, lcr *keybase1.LinkCheckResult) (row keybase1.Identify3UpdateRowArg) {
-	row = keybase1.Identify3UpdateRowArg{
+func (i *UIAdapter) rowPartial(proof keybase1.RemoteProof, lcr *keybase1.LinkCheckResult) (row keybase1.Identify3Row) {
+	row = keybase1.Identify3Row{
 		Key:      proof.Key,
 		Value:    proof.Value,
 		SigID:    proof.SigID,
+		Ctime:    proof.MTime, // It's what we've got.
 		Priority: i.priority(proof.Key),
 	}
 
@@ -262,6 +263,7 @@ func (i *UIAdapter) rowPartial(proof keybase1.RemoteProof, lcr *keybase1.LinkChe
 		row.SiteURL = humanURLOrSigchainURL
 	}
 	row.SiteIcon = externals.MakeIcons(i.M(), iconKey, "logo_black", 16)
+	row.SiteIconFull = externals.MakeIcons(i.M(), iconKey, "logo_full", 64)
 	return row
 }
 
@@ -316,15 +318,17 @@ func (i *UIAdapter) displayKey(key keybase1.IdentifyKey) {
 		return
 	}
 
-	arg := keybase1.Identify3UpdateRowArg{
+	arg := keybase1.Identify3Row{
 		Key:      "pgp",
 		Value:    hex.EncodeToString(key.PGPFingerprint),
 		SigID:    key.SigID,
+		Ctime:    0,
 		Priority: i.priority("pgp"),
 		SiteURL:  i.makeKeybaseProfileURL(),
 		// key.SigID is blank if the PGP key was there pre-sigchain
-		ProofURL: i.makeSigchainViewURL(key.SigID),
-		SiteIcon: externals.MakeIcons(i.M(), "pgp", "logo_black", 16),
+		ProofURL:     i.makeSigchainViewURL(key.SigID),
+		SiteIcon:     externals.MakeIcons(i.M(), "pgp", "logo_black", 16),
+		SiteIconFull: externals.MakeIcons(i.M(), "pgp", "logo_full", 64),
 	}
 
 	switch {
@@ -375,9 +379,10 @@ func (i *UIAdapter) plumbUncheckedProof(row keybase1.IdentifyRow) {
 	i.updateRow(arg)
 }
 
-func (i *UIAdapter) updateRow(arg keybase1.Identify3UpdateRowArg) error {
+func (i *UIAdapter) updateRow(arg keybase1.Identify3Row) error {
 	arg.GuiID = i.session.ID()
 	err := i.ui.Identify3UpdateRow(i.M().Ctx(), arg)
+	i.M().CDebugf("update row %+v", arg)
 	if err != nil {
 		i.M().CDebugf("Failed to send update row (%+v): %s", arg, err)
 	}
@@ -446,30 +451,34 @@ func (i *UIAdapter) plumbCryptocurrency(crypto keybase1.Cryptocurrency) {
 	default:
 		i.M().CDebugf("unrecgonized crypto family: %v, %v", crypto.Type, crypto.Family)
 	}
-	i.updateRow(keybase1.Identify3UpdateRowArg{
-		Key:      key,
-		Value:    crypto.Address,
-		Priority: i.priority(key),
-		State:    keybase1.Identify3RowState_VALID,
-		Color:    keybase1.Identify3RowColor_GREEN,
-		SigID:    crypto.SigID,
-		SiteURL:  i.makeSigchainViewURL(crypto.SigID),
-		SiteIcon: externals.MakeIcons(i.M(), key, "logo_black", 16),
-		ProofURL: i.makeSigchainViewURL(crypto.SigID),
+	i.updateRow(keybase1.Identify3Row{
+		Key:          key,
+		Value:        crypto.Address,
+		Priority:     i.priority(key),
+		State:        keybase1.Identify3RowState_VALID,
+		Color:        keybase1.Identify3RowColor_GREEN,
+		SigID:        crypto.SigID,
+		Ctime:        0,
+		SiteURL:      i.makeSigchainViewURL(crypto.SigID),
+		SiteIcon:     externals.MakeIcons(i.M(), key, "logo_black", 16),
+		SiteIconFull: externals.MakeIcons(i.M(), key, "logo_full", 64),
+		ProofURL:     i.makeSigchainViewURL(crypto.SigID),
 	})
 }
 
 func (i *UIAdapter) plumbStellarAccount(str keybase1.StellarAccount) {
-	i.updateRow(keybase1.Identify3UpdateRowArg{
-		Key:      "stellar",
-		Value:    str.FederationAddress,
-		Priority: i.priority("stellar"),
-		State:    keybase1.Identify3RowState_VALID,
-		Color:    keybase1.Identify3RowColor_GREEN,
-		SigID:    str.SigID,
-		SiteURL:  i.makeSigchainViewURL(str.SigID),
-		SiteIcon: externals.MakeIcons(i.M(), "stellar", "logo_black", 16),
-		ProofURL: i.makeSigchainViewURL(str.SigID),
+	i.updateRow(keybase1.Identify3Row{
+		Key:          "stellar",
+		Value:        str.FederationAddress,
+		Priority:     i.priority("stellar"),
+		State:        keybase1.Identify3RowState_VALID,
+		Color:        keybase1.Identify3RowColor_GREEN,
+		SigID:        str.SigID,
+		Ctime:        0,
+		SiteURL:      i.makeSigchainViewURL(str.SigID),
+		SiteIcon:     externals.MakeIcons(i.M(), "stellar", "logo_black", 16),
+		SiteIconFull: externals.MakeIcons(i.M(), "stellar", "logo_full", 64),
+		ProofURL:     i.makeSigchainViewURL(str.SigID),
 	})
 }
 
@@ -477,6 +486,9 @@ func (i *UIAdapter) plumbRevoked(row keybase1.RevokedProof) {
 	arg := i.rowPartial(row.Proof, nil)
 	arg.State = keybase1.Identify3RowState_REVOKED
 	arg.Color = keybase1.Identify3RowColor_RED
+	arg.Metas = append(arg.Metas,
+		keybase1.Identify3RowMeta{Color: arg.Color, Label: "revoked"},
+	)
 	i.updateRow(arg)
 }
 

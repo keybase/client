@@ -514,12 +514,15 @@ func TestRelayTransferInnards(t *testing.T) {
 	require.NoError(t, err)
 	appKey, teamID, err := relays.GetKey(m, recipient)
 	require.NoError(t, err)
+	sp, unlock := stellar.NewSeqnoProvider(libkb.NewMetaContextForTest(tcs[0].TestContext), tcs[0].Srv.walletState)
+	defer unlock()
 	out, err := relays.Create(relays.Input{
 		From:          senderAccountBundle.Signers[0],
 		AmountXLM:     "10.0005",
 		Note:          "hey",
 		EncryptFor:    appKey,
-		SeqnoProvider: stellar.NewSeqnoProvider(libkb.NewMetaContextForTest(tcs[0].TestContext), tcs[0].Srv.walletState),
+		SeqnoProvider: sp,
+		BaseFee:       100,
 	})
 	require.NoError(t, err)
 	_, err = libkb.ParseStellarAccountID(out.RelayAccountID.String())
@@ -559,7 +562,7 @@ func testRelaySBS(t *testing.T, yank bool) {
 	})
 	require.NoError(t, err)
 
-	details, err := tcs[0].Backend.PaymentDetails(context.Background(), tcs[0], sendRes.KbTxID.String())
+	details, err := tcs[0].Backend.PaymentDetailsGeneric(context.Background(), tcs[0], sendRes.KbTxID.String())
 	require.NoError(t, err)
 
 	claimant := 0
@@ -718,7 +721,7 @@ func testRelayReset(t *testing.T, yank bool) {
 	})
 	require.NoError(t, err)
 
-	details, err := tcs[0].Backend.PaymentDetails(context.Background(), tcs[0], sendRes.KbTxID.String())
+	details, err := tcs[0].Backend.PaymentDetailsGeneric(context.Background(), tcs[0], sendRes.KbTxID.String())
 	require.NoError(t, err)
 
 	typ, err := details.Summary.Typ()
@@ -1301,7 +1304,9 @@ func TestShutdown(t *testing.T) {
 
 	accountID := tcs[0].Backend.AddAccount()
 
+	tcs[0].Srv.walletState.SeqnoLock()
 	_, err := tcs[0].Srv.walletState.AccountSeqnoAndBump(context.Background(), accountID)
+	tcs[0].Srv.walletState.SeqnoUnlock()
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -2,7 +2,6 @@
 import * as React from 'react'
 import * as Types from '../../../constants/types/teams'
 import type {RetentionPolicy} from '../../../constants/types/retention-policy'
-import {retentionPolicies} from '../../../constants/teams'
 import {Box, Button, Checkbox, Text} from '../../../common-adapters'
 import {globalColors, globalMargins, globalStyles} from '../../../styles'
 import {isMobile} from '../../../constants/platform'
@@ -18,7 +17,7 @@ type Props = {|
   publicityTeam: boolean,
   openTeam: boolean,
   openTeamRole: Types.TeamRoleType,
-  savePublicity: (Types.PublicitySettings, boolean, RetentionPolicy) => void,
+  savePublicity: (Types.PublicitySettings, boolean, ?RetentionPolicy) => void,
   setOpenTeamRole: (
     newOpenTeamRole: Types.TeamRoleType,
     setNewOpenTeamRole: (Types.TeamRoleType) => void
@@ -35,7 +34,7 @@ type NewSettings = {|
   newPublicityTeam: boolean,
   newOpenTeam: boolean,
   newOpenTeamRole: Types.TeamRoleType,
-  newRetentionPolicy: RetentionPolicy,
+  newRetentionPolicy: ?RetentionPolicy,
 |}
 
 // new settings
@@ -62,7 +61,7 @@ const SetMemberShowcase = (props: SettingProps) => (
         <Box style={{...globalStyles.flexBoxColumn}}>
           <Text
             style={{
-              color: props.yourOperations.setMemberShowcase ? globalColors.black_75 : globalColors.grey,
+              color: props.yourOperations.setMemberShowcase ? globalColors.black : globalColors.grey,
             }}
             type="Body"
           >
@@ -192,7 +191,7 @@ export class Settings extends React.Component<Props, State> {
       newPublicityAnyMember: p.publicityAnyMember,
       newPublicityMember: p.publicityMember,
       newPublicityTeam: p.publicityTeam,
-      newRetentionPolicy: retentionPolicies.policyRetain, // placeholder
+      newRetentionPolicy: null,
       publicitySettingsChanged: false,
       retentionPolicyChanged: false,
       retentionPolicyDecreased: false,

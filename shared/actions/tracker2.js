@@ -10,8 +10,31 @@ import * as RPCTypes from '../constants/types/rpc-gen'
 import logger from '../logger'
 import engine from '../engine'
 
+const identify3Result = (_, action) => {
+  const {guiID, result} = action.payload.params
+  return Tracker2Gen.createUpdateResult({guiID, reason: null, result: Constants.rpcResultToStatus(result)})
+}
+
+const identify3ShowTracker = (_, action) => {
+  const {guiID, assertion, reason, forceDisplay} = action.payload.params
+  return Tracker2Gen.createLoad({
+    assertion,
+    forceDisplay: !!forceDisplay,
+    fromDaemon: true,
+    guiID,
+    ignoreCache: false,
+    inTracker: true,
+    reason: reason.reason || '',
+  })
+}
+
+const identify3UpdateRow = (_, action) =>
+  Tracker2Gen.createUpdateAssertion({
+    assertion: Constants.rpcAssertionToAssertion(action.payload.params.row),
+    guiID: action.payload.params.row.guiID,
+  })
+
 const setupEngineListeners = () => {
-  // TODO move over to engine action
   engine().actionOnConnect('registerIdentify3UI', () => {
     RPCTypes.delegateUiCtlRegisterIdentify3UIRpcPromise()
       .then(() => {
@@ -21,41 +44,17 @@ const setupEngineListeners = () => {
         logger.warn('error in registering identify ui: ', error)
       })
   })
-  engine().setIncomingCallMap({
-    'keybase.1.NotifyUsers.userChanged': ({uid}) => null, // we ignore this
-    'keybase.1.identify3Ui.identify3Result': ({guiID, result}) =>
-      Saga.put(
-        Tracker2Gen.createUpdateResult({guiID, reason: null, result: Constants.rpcResultToStatus(result)})
-      ),
-    'keybase.1.identify3Ui.identify3ShowTracker': ({guiID, assertion, reason, forceDisplay}) =>
-      Saga.put(
-        Tracker2Gen.createLoad({
-          assertion,
-          forceDisplay: !!forceDisplay,
-          fromDaemon: true,
-          guiID,
-          ignoreCache: false,
-          inTracker: true,
-          reason: reason.reason || '',
-        })
-      ),
-    'keybase.1.identify3Ui.identify3UpdateRow': row =>
-      Saga.put(
-        Tracker2Gen.createUpdateAssertion({
-          color: Constants.rpcRowColorToColor(row.color),
-          guiID: row.guiID,
-          metas: (row.metas || []).map(m => ({color: Constants.rpcRowColorToColor(m.color), label: m.label})),
-          proofURL: row.proofURL,
-          sigID: row.sigID,
-          siteIcon: '', // TODO
-          siteURL: row.siteURL,
-          state: Constants.rpcRowStateToAssertionState(row.state),
-          type: row.key,
-          value: row.value,
-        })
-      ),
-  })
 }
+
+const refreshChanged = (_, action) =>
+  Tracker2Gen.createLoad({
+    assertion: action.payload.params.username,
+    fromDaemon: false,
+    guiID: Constants.generateGUIID(),
+    ignoreCache: true,
+    inTracker: false,
+    reason: '',
+  })
 
 const updateUserCard = (state, action) => {
   const {guiID, card} = action.payload.params
@@ -74,6 +73,7 @@ const updateUserCard = (state, action) => {
     fullname: card.fullName,
     guiID,
     location: card.location,
+    registeredForAirdrop: card.registeredForAirdrop,
     teamShowcase: (card.teamShowcase || []).map(t => ({
       description: t.description,
       isOpen: t.open,
@@ -180,19 +180,7 @@ const loadFollow = (_, action) => {
 const getProofSuggestions = () =>
   RPCTypes.userProofSuggestionsRpcPromise().then(({suggestions, showMore}) =>
     Tracker2Gen.createProofSuggestionsUpdated({
-      suggestions: (suggestions || []).map(s =>
-        Constants.makeAssertion({
-          assertionKey: s.key,
-          color: 'gray',
-          metas: [],
-          proofURL: '',
-          siteIcon: '',
-          siteURL: '',
-          state: 'suggestion',
-          type: s.key,
-          value: s.profileText,
-        })
-      ),
+      suggestions: (suggestions || []).map(Constants.rpcSuggestionToAssertion),
     })
   )
 
@@ -219,9 +207,27 @@ function* tracker2Saga(): Saga.SagaGenerator<any, any> {
     Tracker2Gen.getProofSuggestions,
     getProofSuggestions
   )
+
+  yield* Saga.chainAction<EngineGen.Keybase1NotifyTrackingTrackingChangedPayload>(
+    EngineGen.keybase1NotifyTrackingTrackingChanged,
+    refreshChanged
+  )
   // TEMP until actions/tracker is deprecated
   yield* Saga.chainAction<GetProfilePayloadOLD>(getProfileOLD, _getProfileOLD) // TEMP
   // end TEMP until actions/tracker is deprecated
+  //
+  yield* Saga.chainAction<EngineGen.Keybase1Identify3UiIdentify3ResultPayload>(
+    EngineGen.keybase1Identify3UiIdentify3Result,
+    identify3Result
+  )
+  yield* Saga.chainAction<EngineGen.Keybase1Identify3UiIdentify3ShowTrackerPayload>(
+    EngineGen.keybase1Identify3UiIdentify3ShowTracker,
+    identify3ShowTracker
+  )
+  yield* Saga.chainAction<EngineGen.Keybase1Identify3UiIdentify3UpdateRowPayload>(
+    EngineGen.keybase1Identify3UiIdentify3UpdateRow,
+    identify3UpdateRow
+  )
 }
 
 export default tracker2Saga

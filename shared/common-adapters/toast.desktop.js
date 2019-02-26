@@ -7,14 +7,14 @@ import * as Styles from '../styles'
 const FadeBox = Styles.styled.div({
   ...Styles.transition('opacity'),
   '&.active': {opacity: 1},
-  '&.visible': {opacity: 1},
+  '&.visible': {display: 'flex', opacity: 1},
   opacity: 0,
 })
 
 export default (props: Props) => (
   <FloatingBox attachTo={props.attachTo} propagateOutsideClicks={true} position={props.position}>
     <FadeBox
-      className={Styles.classNames({visible: props.visible})}
+      className={Styles.classNames({visible: props.visible}, props.className)}
       style={Styles.collapseStyles([styles.container, props.containerStyle])}
     >
       {props.children}
@@ -25,10 +25,9 @@ export default (props: Props) => (
 const styles = Styles.styleSheetCreate({
   container: {
     alignItems: 'center',
-    backgroundColor: Styles.globalColors.black_75,
+    backgroundColor: Styles.globalColors.black,
     borderRadius: Styles.borderRadius,
     borderWidth: 0,
-    display: 'flex',
     justifyContent: 'center',
     margin: Styles.globalMargins.xtiny,
     paddingBottom: Styles.globalMargins.xtiny,

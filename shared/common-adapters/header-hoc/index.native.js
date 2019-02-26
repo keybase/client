@@ -7,7 +7,8 @@ import FloatingMenu from '../floating-menu'
 import Icon from '../icon'
 import SafeAreaView, {SafeAreaViewTop} from '../safe-area-view'
 import * as Styles from '../../styles'
-import type {Action, Props} from './types'
+import type {Action, Props, LeftActionProps} from './types'
+import flags from '../../util/feature-flags'
 
 const MAX_RIGHT_ACTIONS = 3
 type State = {|
@@ -44,7 +45,7 @@ export class HeaderHocHeader extends React.Component<Props, State> {
 
     const hasTextTitle = !!this.props.title && !this.props.titleComponent
 
-    return (
+    const header = (
       <Box
         style={Styles.collapseStyles([
           styles.header,
@@ -76,6 +77,7 @@ export class HeaderHocHeader extends React.Component<Props, State> {
         <LeftAction
           badgeNumber={this.props.badgeNumber}
           customCancelText={this.props.customCancelText}
+          disabled={false}
           hasTextTitle={hasTextTitle}
           hideBackLabel={this.props.hideBackLabel}
           leftAction={leftAction}
@@ -103,11 +105,14 @@ export class HeaderHocHeader extends React.Component<Props, State> {
         />
       </Box>
     )
+
+    return flags.useNewRouter && !this.props.underNotch ? <SafeAreaViewTop>{header}</SafeAreaViewTop> : header
   }
 }
 
-const LeftAction = ({
+export const LeftAction = ({
   badgeNumber,
+  disabled,
   customCancelText,
   hasTextTitle,
   hideBackLabel,
@@ -115,7 +120,7 @@ const LeftAction = ({
   leftActionText,
   onLeftAction,
   theme,
-}): React.Node => (
+}: LeftActionProps): React.Node => (
   <Box style={Styles.collapseStyles([styles.leftAction, hasTextTitle && styles.grow])}>
     {onLeftAction &&
       (leftAction === 'cancel' ? (
@@ -126,7 +131,13 @@ const LeftAction = ({
         <BackButton
           badgeNumber={badgeNumber}
           hideBackLabel={hideBackLabel}
-          iconColor={theme === 'dark' ? Styles.globalColors.white : Styles.globalColors.black_50}
+          iconColor={
+            disabled
+              ? Styles.globalColors.black_10
+              : theme === 'dark'
+              ? Styles.globalColors.white
+              : Styles.globalColors.black_50
+          }
           style={styles.action}
           onClick={onLeftAction}
         />
@@ -296,7 +307,7 @@ const styles = Styles.styleSheetCreate({
     ...Styles.globalStyles.flexBoxRow,
   },
   title: {
-    color: Styles.globalColors.black_75,
+    color: Styles.globalColors.black,
   },
   titleContainer: Styles.platformStyles({
     common: {

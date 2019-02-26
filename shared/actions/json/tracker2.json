@@ -19,6 +19,7 @@
       "followsYou": "boolean",
       "fullname": "string",
       "location": "string",
+      "registeredForAirdrop": "boolean",
       "username": "string",
       "teamShowcase": "Array<Types._TeamShowcase>"
     },
@@ -31,16 +32,8 @@
       "guiID": "string"
     },
     "updateAssertion": {
-      "guiID": "string",
-      "type": "string",
-      "value": "string",
-      "sigID": "string",
-      "siteURL": "string",
-      "siteIcon": "string",
-      "proofURL": "string",
-      "state": "Types.AssertionState",
-      "metas": "Array<Types._AssertionMeta>",
-      "color": "Types.AssertionColor"
+      "assertion": "Types.Assertion",
+      "guiID": "string"
     },
     "changeFollow": {
       "guiID": "string",

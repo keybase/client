@@ -14,7 +14,7 @@ import {serialize} from './remote-serializer.desktop'
 type OwnProps = {|username: string|}
 
 const MAX_TRACKERS = 5
-const windowOpts = {height: 470, width: 320}
+const windowOpts = {hasShadow: false, height: 470, transparent: true, width: 320}
 
 const trackerMapStateToProps = (state, ownProps) => {
   const d = Constants.getDetails(state, ownProps.username)
@@ -30,6 +30,7 @@ const trackerMapStateToProps = (state, ownProps) => {
     location: d.location,
     loggedIn: state.config.loggedIn,
     reason: d.reason,
+    registeredForAirdrop: d.registeredForAirdrop,
     state: d.state,
     teamShowcase: d.teamShowcase,
     waiting: state.waiting.counts.get(Constants.waitingKey) || 0,
@@ -50,6 +51,7 @@ const trackerMergeProps = (stateProps, dispatchProps, ownProps) => {
     isYou: stateProps.yourUsername === ownProps.username,
     location: stateProps.location,
     reason: stateProps.reason,
+    registeredForAirdrop: stateProps.registeredForAirdrop,
     state: stateProps.state,
     teamShowcase: stateProps.teamShowcase,
     username: ownProps.username,

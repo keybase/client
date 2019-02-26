@@ -13,6 +13,7 @@ import (
 	kbfsmd "github.com/keybase/client/go/kbfs/kbfsmd"
 	tlf "github.com/keybase/client/go/kbfs/tlf"
 	kbun "github.com/keybase/client/go/kbun"
+	libkb "github.com/keybase/client/go/libkb"
 	logger "github.com/keybase/client/go/logger"
 	chat1 "github.com/keybase/client/go/protocol/chat1"
 	keybase1 "github.com/keybase/client/go/protocol/keybase1"
@@ -95,6 +96,20 @@ func (m *MocklogMaker) MakeLogger(module string) logger.Logger {
 func (mr *MocklogMakerMockRecorder) MakeLogger(module interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeLogger", reflect.TypeOf((*MocklogMaker)(nil).MakeLogger), module)
+}
+
+// MakeVLogger mocks base method
+func (m *MocklogMaker) MakeVLogger(module string) *libkb.VDebugLog {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MakeVLogger", module)
+	ret0, _ := ret[0].(*libkb.VDebugLog)
+	return ret0
+}
+
+// MakeVLogger indicates an expected call of MakeVLogger
+func (mr *MocklogMakerMockRecorder) MakeVLogger(module interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeVLogger", reflect.TypeOf((*MocklogMaker)(nil).MakeVLogger), module)
 }
 
 // MockblockCacher is a mock of blockCacher interface
@@ -8870,6 +8885,20 @@ func (mr *MockInitModeMockRecorder) MaxCleanBlockCacheCapacity() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MaxCleanBlockCacheCapacity", reflect.TypeOf((*MockInitMode)(nil).MaxCleanBlockCacheCapacity))
 }
 
+// OldStorageRootCleaningEnabled mocks base method
+func (m *MockInitMode) OldStorageRootCleaningEnabled() bool {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "OldStorageRootCleaningEnabled")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+// OldStorageRootCleaningEnabled indicates an expected call of OldStorageRootCleaningEnabled
+func (mr *MockInitModeMockRecorder) OldStorageRootCleaningEnabled() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OldStorageRootCleaningEnabled", reflect.TypeOf((*MockInitMode)(nil).OldStorageRootCleaningEnabled))
+}
+
 // MockinitModeGetter is a mock of initModeGetter interface
 type MockinitModeGetter struct {
 	ctrl     *gomock.Controller
@@ -9021,6 +9050,20 @@ func (m *MockConfig) MakeLogger(module string) logger.Logger {
 func (mr *MockConfigMockRecorder) MakeLogger(module interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeLogger", reflect.TypeOf((*MockConfig)(nil).MakeLogger), module)
+}
+
+// MakeVLogger mocks base method
+func (m *MockConfig) MakeVLogger(module string) *libkb.VDebugLog {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "MakeVLogger", module)
+	ret0, _ := ret[0].(*libkb.VDebugLog)
+	return ret0
+}
+
+// MakeVLogger indicates an expected call of MakeVLogger
+func (mr *MockConfigMockRecorder) MakeVLogger(module interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MakeVLogger", reflect.TypeOf((*MockConfig)(nil).MakeVLogger), module)
 }
 
 // BlockCache mocks base method
@@ -11309,4 +11352,71 @@ func (m *MockblockPutStateCopiable) deepCopyWithBlacklist(ctx context.Context, b
 func (mr *MockblockPutStateCopiableMockRecorder) deepCopyWithBlacklist(ctx, blacklist interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "deepCopyWithBlacklist", reflect.TypeOf((*MockblockPutStateCopiable)(nil).deepCopyWithBlacklist), ctx, blacklist)
+}
+
+// MockfileBlockMap is a mock of fileBlockMap interface
+type MockfileBlockMap struct {
+	ctrl     *gomock.Controller
+	recorder *MockfileBlockMapMockRecorder
+}
+
+// MockfileBlockMapMockRecorder is the mock recorder for MockfileBlockMap
+type MockfileBlockMapMockRecorder struct {
+	mock *MockfileBlockMap
+}
+
+// NewMockfileBlockMap creates a new mock instance
+func NewMockfileBlockMap(ctrl *gomock.Controller) *MockfileBlockMap {
+	mock := &MockfileBlockMap{ctrl: ctrl}
+	mock.recorder = &MockfileBlockMapMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockfileBlockMap) EXPECT() *MockfileBlockMapMockRecorder {
+	return m.recorder
+}
+
+// putTopBlock mocks base method
+func (m *MockfileBlockMap) putTopBlock(ctx context.Context, parentPtr BlockPointer, childName string, topBlock *FileBlock) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "putTopBlock", ctx, parentPtr, childName, topBlock)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// putTopBlock indicates an expected call of putTopBlock
+func (mr *MockfileBlockMapMockRecorder) putTopBlock(ctx, parentPtr, childName, topBlock interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "putTopBlock", reflect.TypeOf((*MockfileBlockMap)(nil).putTopBlock), ctx, parentPtr, childName, topBlock)
+}
+
+// getTopBlock mocks base method
+func (m *MockfileBlockMap) getTopBlock(ctx context.Context, parentPtr BlockPointer, childName string) (*FileBlock, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "getTopBlock", ctx, parentPtr, childName)
+	ret0, _ := ret[0].(*FileBlock)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// getTopBlock indicates an expected call of getTopBlock
+func (mr *MockfileBlockMapMockRecorder) getTopBlock(ctx, parentPtr, childName interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "getTopBlock", reflect.TypeOf((*MockfileBlockMap)(nil).getTopBlock), ctx, parentPtr, childName)
+}
+
+// getFilenames mocks base method
+func (m *MockfileBlockMap) getFilenames(ctx context.Context, parentPtr BlockPointer) ([]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "getFilenames", ctx, parentPtr)
+	ret0, _ := ret[0].([]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// getFilenames indicates an expected call of getFilenames
+func (mr *MockfileBlockMapMockRecorder) getFilenames(ctx, parentPtr interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "getFilenames", reflect.TypeOf((*MockfileBlockMap)(nil).getFilenames), ctx, parentPtr)
 }

@@ -50,6 +50,9 @@ func (c ChatTestContext) Cleanup() {
 	if c.ChatG.InboxSource != nil {
 		<-c.ChatG.InboxSource.Stop(context.TODO())
 	}
+	if c.ChatG.CoinFlipManager != nil {
+		<-c.ChatG.CoinFlipManager.Stop(context.TODO())
+	}
 	c.TestContext.Cleanup()
 }
 
@@ -941,6 +944,10 @@ func (m *ChatRemoteMock) FailSharePost(ctx context.Context, _ chat1.FailSharePos
 	return errors.New("FailSharePost not mocked")
 }
 
+func (m *ChatRemoteMock) ServerNow(ctx context.Context) (res chat1.ServerNowRes, err error) {
+	return res, errors.New("ServerNow not mocked")
+}
+
 type NonblockInboxResult struct {
 	ConvID   chat1.ConversationID
 	Err      error
@@ -969,6 +976,9 @@ type ChatUI struct {
 	StellarDataError   chan string
 	StellarDone        chan struct{}
 	ShowManageChannels chan string
+	GiphyResults       chan []chat1.GiphySearchResult
+	CoinFlipUpdates    chan []chat1.UICoinFlipStatus
+	CommandMarkdown    chan string
 }
 
 func NewChatUI() *ChatUI {
@@ -984,6 +994,9 @@ func NewChatUI() *ChatUI {
 		StellarDataError:   make(chan string, 10),
 		StellarDone:        make(chan struct{}, 10),
 		ShowManageChannels: make(chan string, 10),
+		GiphyResults:       make(chan []chat1.GiphySearchResult, 10),
+		CoinFlipUpdates:    make(chan []chat1.UICoinFlipStatus, 10),
+		CommandMarkdown:    make(chan string, 10),
 	}
 }
 
@@ -1113,6 +1126,22 @@ func (c *ChatUI) ChatShowManageChannels(ctx context.Context, teamname string) er
 	return nil
 }
 
+func (c *ChatUI) ChatGiphySearchResults(ctx context.Context, convID chat1.ConversationID,
+	results []chat1.GiphySearchResult) error {
+	c.GiphyResults <- results
+	return nil
+}
+
+func (c *ChatUI) ChatCoinFlipStatus(ctx context.Context, updates []chat1.UICoinFlipStatus) error {
+	c.CoinFlipUpdates <- updates
+	return nil
+}
+
+func (c *ChatUI) ChatCommandMarkdown(ctx context.Context, convID chat1.ConversationID, text string) error {
+	c.CommandMarkdown <- text
+	return nil
+}
+
 type DummyAssetDeleter struct{}
 
 func NewDummyAssetDeleter() DummyAssetDeleter {
@@ -1166,12 +1195,12 @@ func (m *MockChatHelper) SendMsgByID(ctx context.Context, convID chat1.Conversat
 	return nil
 }
 func (m *MockChatHelper) SendTextByIDNonblock(ctx context.Context, convID chat1.ConversationID,
-	tlfName string, text string) error {
-	return nil
+	tlfName string, text string, outboxID *chat1.OutboxID) (chat1.OutboxID, error) {
+	return chat1.OutboxID{}, nil
 }
 func (m *MockChatHelper) SendMsgByIDNonblock(ctx context.Context, convID chat1.ConversationID,
-	tlfName string, body chat1.MessageBody, msgType chat1.MessageType) error {
-	return nil
+	tlfName string, body chat1.MessageBody, msgType chat1.MessageType, inOutboxID *chat1.OutboxID) (chat1.OutboxID, error) {
+	return chat1.OutboxID{}, nil
 }
 func (m *MockChatHelper) SendTextByName(ctx context.Context, name string, topicName *string,
 	membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, text string) error {
@@ -1206,12 +1235,12 @@ func (m *MockChatHelper) SendMsgByName(ctx context.Context, name string, topicNa
 	return nil
 }
 func (m *MockChatHelper) SendTextByNameNonblock(ctx context.Context, name string, topicName *string,
-	membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, text string) error {
-	return nil
+	membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, text string, outboxID *chat1.OutboxID) (chat1.OutboxID, error) {
+	return chat1.OutboxID{}, nil
 }
 func (m *MockChatHelper) SendMsgByNameNonblock(ctx context.Context, name string, topicName *string,
 	membersType chat1.ConversationMembersType, ident keybase1.TLFIdentifyBehavior, body chat1.MessageBody,
-	msgType chat1.MessageType) error {
+	msgType chat1.MessageType, outboxID *chat1.OutboxID) (chat1.OutboxID, error) {
 	m.SentMessages = append(m.SentMessages, MockMessage{
 		name:        name,
 		topicName:   topicName,
@@ -1220,7 +1249,7 @@ func (m *MockChatHelper) SendMsgByNameNonblock(ctx context.Context, name string,
 		Body:        body,
 		MsgType:     msgType,
 	})
-	return nil
+	return chat1.OutboxID{}, nil
 }
 
 func (m *MockChatHelper) FindConversations(ctx context.Context, name string,
@@ -1264,6 +1293,23 @@ func (m *MockChatHelper) UpgradeKBFSToImpteam(ctx context.Context, tlfName strin
 func (m *MockChatHelper) GetMessages(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 	msgIDs []chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason) ([]chat1.MessageUnboxed, error) {
 	return nil, nil
+}
+
+func (m *MockChatHelper) GetMessage(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
+	msgID chat1.MessageID, resolveSupersedes bool, reason *chat1.GetThreadReason) (chat1.MessageUnboxed, error) {
+	return chat1.MessageUnboxed{}, nil
+}
+
+func (m *MockChatHelper) NewConversation(ctx context.Context, uid gregor1.UID, tlfName string,
+	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
+	vis keybase1.TLFVisibility) (chat1.ConversationLocal, error) {
+	return chat1.ConversationLocal{}, nil
+}
+
+func (m *MockChatHelper) NewConversationWithMemberSourceConv(ctx context.Context, uid gregor1.UID, tlfName string,
+	topicName *string, topicType chat1.TopicType, membersType chat1.ConversationMembersType,
+	vis keybase1.TLFVisibility, memberSourceConv *chat1.ConversationID) (chat1.ConversationLocal, error) {
+	return chat1.ConversationLocal{}, nil
 }
 
 func (m *MockChatHelper) JoinConversationByID(ctx context.Context, uid gregor1.UID,

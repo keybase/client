@@ -16,6 +16,7 @@ export type Props = {|
   loading: boolean,
   avatarSize: AvatarSize,
   style?: any,
+  showAirdrop?: boolean,
   username: ?string,
   userInfo: ?UserInfo,
   trackerState: SimpleProofState,

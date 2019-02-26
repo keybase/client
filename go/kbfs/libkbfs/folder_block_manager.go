@@ -1379,6 +1379,30 @@ func (fbm *folderBlockManager) doCleanDiskCache(cacheType DiskBlockCacheType) (
 		// archive races (see comment below).
 		ptrs := getUnrefPointersFromMD(rmd, true)
 
+		// Cancel any prefetches for these blocks that might be in
+		// flight, to make sure they don't get put into the cache
+		// after we're done cleaning it.  Ideally we would cancel them
+		// in a particular order (the lowest level ones first, up to
+		// the root), but since we already do one round of
+		// prefetch-canceling as part of applying the MD and updating
+		// the pointers, doing a second round here should be good
+		// enough to catch any weird relationships between the
+		// pointers where one non-yet-canceled prefetch can revive the
+		// prefetch of an already-canceled child block.
+		for _, ptr := range ptrs {
+			fbm.config.BlockOps().Prefetcher().CancelPrefetch(ptr)
+			c, err := fbm.config.BlockOps().Prefetcher().
+				WaitChannelForBlockPrefetch(ctx, ptr)
+			if err != nil {
+				return err
+			}
+			select {
+			case <-c:
+			case <-ctx.Done():
+				return ctx.Err()
+			}
+		}
+
 		var ids []kbfsblock.ID
 		if cacheType == DiskBlockSyncCache {
 			// Wait for our own archives to complete, to make sure the

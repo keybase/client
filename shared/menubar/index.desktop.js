@@ -112,7 +112,7 @@ class MenubarRender extends React.Component<Props, State> {
             style={Kb.iconCastPlatformStyles(styles.logo)}
             color={Styles.globalColors.yellow}
           />
-          <Kb.Text type="Body" small={true} style={{alignSelf: 'center', marginTop: 6}}>
+          <Kb.Text type="Body" style={{alignSelf: 'center', marginTop: 6}}>
             You're logged out of Keybase!
           </Kb.Text>
           <Kb.ButtonBar direction="row">
@@ -172,7 +172,6 @@ class MenubarRender extends React.Component<Props, State> {
           />
           <Kb.Text
             type="Body"
-            small={true}
             style={{
               alignSelf: 'center',
               marginTop: 6,
@@ -288,7 +287,7 @@ class MenubarRender extends React.Component<Props, State> {
           >
             <Kb.Icon
               color={Styles.globalColors.darkBlue4}
-              hoverColor={Styles.globalColors.black_75}
+              hoverColor={Styles.globalColors.black}
               type="iconfont-nav-more"
               ref={this.attachmentRef}
             />

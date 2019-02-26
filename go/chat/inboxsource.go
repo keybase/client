@@ -429,6 +429,11 @@ func (s *RemoteInboxSource) UpgradeKBFSToImpteam(ctx context.Context, uid gregor
 	return conv, err
 }
 
+func (s *RemoteInboxSource) UpdateInboxVersion(ctx context.Context, uid gregor1.UID,
+	vers chat1.InboxVers) error {
+	return nil
+}
+
 type HybridInboxSource struct {
 	sync.Mutex
 	globals.Contextified
@@ -810,7 +815,8 @@ func (s *HybridInboxSource) TeamTypeChanged(ctx context.Context, uid gregor1.UID
 	defer s.Trace(ctx, func() error { return err }, "TeamTypeChanged")()
 
 	// Read the remote conversation so we can get the notification settings changes
-	remoteConv, err := GetUnverifiedConv(ctx, s.G(), uid, convID, types.InboxSourceDataSourceRemoteOnly)
+	remoteConv, err := utils.GetUnverifiedConv(ctx, s.G(), uid, convID,
+		types.InboxSourceDataSourceRemoteOnly)
 	if err != nil {
 		s.Debug(ctx, "TeamTypeChanged: failed to read team type conv: %s", err.Error())
 		return nil, err
@@ -998,6 +1004,11 @@ func (s *HybridInboxSource) SubteamRename(ctx context.Context, uid gregor1.UID, 
 		return nil, nil
 	}
 	return convs, nil
+}
+
+func (s *HybridInboxSource) UpdateInboxVersion(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers) (err error) {
+	defer s.Trace(ctx, func() error { return err }, "UpdateInboxVersion")()
+	return s.createInbox().UpdateInboxVersion(ctx, uid, vers)
 }
 
 func (s *HybridInboxSource) modConversation(ctx context.Context, debugLabel string, uid gregor1.UID, convID chat1.ConversationID,

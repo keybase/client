@@ -5,6 +5,7 @@ import * as Styles from '../../styles'
 import * as Flow from '../../util/flow'
 import {type AccountID} from '../../constants/types/wallets'
 import WalletRow from './wallet-row/container'
+import flags from '../../util/feature-flags'
 
 type AddProps = {
   onAddNew: () => void,
@@ -34,9 +35,7 @@ const _AddWallet = (props: AddProps & Kb.OverlayParentProps) => {
         className="hover_background_color_blueGrey2"
       >
         <Kb.Icon type="icon-wallet-placeholder-add-32" style={Kb.iconCastPlatformStyles(styles.icon)} />
-        <Kb.Text type="BodySemibold" style={{color: Styles.globalColors.purple}}>
-          Add an account
-        </Kb.Text>
+        <Kb.Text type="BodySemibold">Add an account</Kb.Text>
       </Kb.Box2>
       <Kb.FloatingMenu
         attachTo={props.getAttachmentRef}
@@ -52,28 +51,50 @@ const _AddWallet = (props: AddProps & Kb.OverlayParentProps) => {
 
 const AddWallet = Kb.OverlayParentHOC(_AddWallet)
 
+const JoinAirdrop = p => (
+  <Kb.ClickableBox onClick={p.onJoinAirdrop}>
+    <Kb.Box2
+      style={Styles.collapseStyles([
+        styles.joinAirdrop,
+        p.selected && {backgroundColor: Styles.globalColors.purple2},
+      ])}
+      direction="horizontal"
+      fullWidth={true}
+      className="hover_background_color_blueGrey2"
+    >
+      <Kb.Icon type="icon-airdrop-star-32" style={Kb.iconCastPlatformStyles(styles.icon)} />
+      <Kb.Text negative={p.selected} type="BodySemibold">
+        {p.inAirdrop ? 'Airdrop' : 'Join the airdrop'}
+      </Kb.Text>
+    </Kb.Box2>
+  </Kb.ClickableBox>
+)
+
 const WhatIsStellar = (props: {onWhatIsStellar: () => void}) => (
   <Kb.ClickableBox onClick={props.onWhatIsStellar} style={styles.whatIsStellar}>
     <Kb.Box2 centerChildren={true} direction="horizontal">
-      <Kb.Icon size={16} type="iconfont-info" />
-      <Kb.Text style={styles.infoText} type="BodySemibold">
+      <Kb.Icon sizeType={'Small'} type="iconfont-info" />
+      <Kb.Text style={styles.infoText} type="BodySmallSemibold">
         What is Stellar?
       </Kb.Text>
     </Kb.Box2>
   </Kb.ClickableBox>
 )
 
-type Props = {
+type Props = {|
   accountIDs: Array<AccountID>,
+  airdropSelected: boolean,
   style?: Styles.StylesCrossPlatform,
   loading: boolean,
+  inAirdrop: boolean,
   onAddNew: () => void,
+  onJoinAirdrop: () => void,
   onLinkExisting: () => void,
   onWhatIsStellar: () => void,
   title: string,
-}
+|}
 
-type Row = {type: 'wallet', accountID: AccountID} | {type: 'add wallet'}
+type Row = {type: 'wallet', accountID: AccountID} | {type: 'add wallet'} | {type: 'join airdrop'}
 
 class WalletList extends React.Component<Props> {
   _renderRow = (i: number, row: Row): React.Node => {
@@ -86,6 +107,15 @@ class WalletList extends React.Component<Props> {
             key={row.type}
             onAddNew={this.props.onAddNew}
             onLinkExisting={this.props.onLinkExisting}
+          />
+        )
+      case 'join airdrop':
+        return (
+          <JoinAirdrop
+            key={row.type}
+            onJoinAirdrop={this.props.onJoinAirdrop}
+            inAirdrop={this.props.inAirdrop}
+            selected={this.props.airdropSelected}
           />
         )
       default:
@@ -102,9 +132,15 @@ class WalletList extends React.Component<Props> {
         </Kb.Box2>
       )
     }
+
     const rows = this.props.accountIDs.map(accountID => ({accountID, key: accountID, type: 'wallet'}))
+
     const addWallet = 'add wallet'
     rows.push({key: addWallet, type: addWallet})
+    if (flags.airdrop) {
+      const joinAirdrop = 'join airdrop'
+      rows.push({key: joinAirdrop, type: joinAirdrop})
+    }
 
     return (
       <>
@@ -130,9 +166,15 @@ const styles = Styles.styleSheetCreate({
     position: 'relative',
     top: -1,
   },
+  joinAirdrop: {
+    alignItems: 'center',
+    borderColor: Styles.globalColors.black_10,
+    borderStyle: `solid`,
+    borderTopWidth: 1,
+    height: rowHeight,
+  },
   progressIndicator: {height: 30, width: 30},
   whatIsStellar: {
-    backgroundColor: Styles.globalColors.blue5,
     height: Styles.globalMargins.large,
     justifyContent: 'center',
     width: '100%',

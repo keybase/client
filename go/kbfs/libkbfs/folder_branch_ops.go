@@ -357,16 +357,20 @@ type folderBranchOps struct {
 	editChannels              chan editChannelActivity
 	refreshEditHistoryChannel chan struct{}
 
-	cancelEditsLock sync.Mutex
+	editsLock sync.Mutex
 	// Cancels the goroutine currently waiting on edits
 	cancelEdits context.CancelFunc
+	// This channel gets created when chat monitoring starts, and
+	// closed when it ends, so we can avoid sending messages to the
+	// monitorer when they won't be read.
+	editMonitoringInProgress chan struct{}
+	launchEditMonitor        sync.Once
 
 	branchChanges      kbfssync.RepeatedWaitGroup
 	mdFlushes          kbfssync.RepeatedWaitGroup
 	forcedFastForwards kbfssync.RepeatedWaitGroup
 	editActivity       kbfssync.RepeatedWaitGroup
 	partialSyncs       kbfssync.RepeatedWaitGroup
-	launchEditMonitor  sync.Once
 
 	muLastGetHead sync.Mutex
 	// We record a timestamp everytime getHead or getTrustedHead is called, and
@@ -464,7 +468,7 @@ func newFolderBranchOps(
 		syncNeededChan:            make(chan struct{}, 1),
 		editHistory:               kbfsedits.NewTlfHistory(),
 		editChannels:              make(chan editChannelActivity, 100),
-		refreshEditHistoryChannel: make(chan struct{}),
+		refreshEditHistoryChannel: make(chan struct{}, 1),
 	}
 	fbo.prepper = folderUpdatePrepper{
 		config:       config,
@@ -516,6 +520,10 @@ func (fbo *folderBranchOps) Shutdown(ctx context.Context) error {
 				return err
 			}
 		}
+	}
+
+	if err := fbo.fbm.waitForArchives(ctx); err != nil {
+		return err
 	}
 
 	close(fbo.shutdownChan)
@@ -767,8 +775,13 @@ func (fbo *folderBranchOps) startMonitorChat(tlfName tlf.CanonicalName) {
 		return
 	}
 
+	fbo.editsLock.Lock()
+	defer fbo.editsLock.Unlock()
+
 	fbo.launchEditMonitor.Do(func() {
-		// The first event should initialize all the data.
+		// The first event should initialize all the data.  No need to
+		// check the monitoring channel here; we already know
+		// monitoring hasn't been started yet.
 		fbo.editActivity.Add(1)
 		fbo.editChannels <- editChannelActivity{nil, "", ""}
 		go fbo.monitorEditsChat(tlfName)
@@ -994,7 +1007,7 @@ func (fbo *folderBranchOps) kickOffPartialSync(
 		defer fbo.headLock.Unlock(lState)
 		if rmd.Revision() != fbo.latestMergedRevision {
 			fbo.log.CDebugf(
-				partialSyncCtx, "Latest merged changed is now %d, not %d; "+
+				partialSyncCtx, "Latest merged revision is now %d, not %d; "+
 					"aborting partial sync", fbo.latestMergedRevision,
 				rmd.Revision())
 			return nil
@@ -1028,10 +1041,6 @@ func (fbo *folderBranchOps) makeRecentFilesSyncConfig(
 	keybase1.FolderSyncConfig, error) {
 	syncConfig := keybase1.FolderSyncConfig{
 		Mode: keybase1.FolderSyncMode_DISABLED,
-	}
-	err := fbo.editActivity.Wait(ctx)
-	if err != nil {
-		return keybase1.FolderSyncConfig{}, err
 	}
 	h := rmd.GetTlfHandle()
 	history := fbo.config.UserHistory().GetTlfHistory(
@@ -1074,9 +1083,15 @@ func (fbo *folderBranchOps) kickOffPartialSyncIfNeeded(
 		if !fbo.config.Mode().TLFEditHistoryEnabled() {
 			return
 		}
-		syncConfig, err = fbo.makeRecentFilesSyncConfig(ctx, rmd)
+		err := fbo.editActivity.Wait(ctx)
 		if err != nil {
 			fbo.log.CDebugf(ctx, "Error waiting for edit activity: %+v", err)
+			return
+		}
+		syncConfig, err = fbo.makeRecentFilesSyncConfig(ctx, rmd)
+		if err != nil {
+			fbo.log.CDebugf(ctx,
+				"Error making recent files sync config: %+v", err)
 			return
 		}
 	}
@@ -5267,7 +5282,7 @@ func (fbo *folderBranchOps) syncAllLocked(
 	fbo.log.LazyTrace(ctx, "Processing %d op(s)", len(fbo.dirOps))
 
 	newBlocks := make(map[BlockPointer]bool)
-	fileBlocks := make(fileBlockMap)
+	fileBlocks := newFileBlockMapMemory()
 	parentsToAddChainsFor := make(map[BlockPointer]bool)
 	for _, dop := range fbo.dirOps {
 		// Copy the op before modifying it, in case there's an error
@@ -5429,10 +5444,10 @@ func (fbo *folderBranchOps) syncAllLocked(
 		}
 		resolvedPaths[file.tailPointer()] = file
 		parent := file.parentPath().tailPointer()
-		if _, ok := fileBlocks[parent]; !ok {
-			fileBlocks[parent] = make(map[string]*FileBlock)
+		err = fileBlocks.putTopBlock(ctx, parent, file.tailName(), fblock)
+		if err != nil {
+			return err
 		}
-		fileBlocks[parent][file.tailName()] = fblock
 
 		// Collect its `afterUpdateFn` along with all the others, so
 		// they all get invoked under the same lock, to avoid any
@@ -7936,13 +7951,16 @@ func (fbo *folderBranchOps) ClearPrivateFolderMD(ctx context.Context) {
 		// Cancel the edits goroutine and forget the old history, evem
 		// for public folders, since some of the state in the history
 		// is dependent on your login state.
-		fbo.cancelEditsLock.Lock()
-		defer fbo.cancelEditsLock.Unlock()
+		fbo.editsLock.Lock()
+		defer fbo.editsLock.Unlock()
 		if fbo.cancelEdits != nil {
 			fbo.cancelEdits()
 			fbo.cancelEdits = nil
 		}
 		fbo.editHistory = kbfsedits.NewTlfHistory()
+		// Allow the edit monitor to be re-launched later whenever the
+		// MD is set again.
+		fbo.launchEditMonitor = sync.Once{}
 		fbo.convLock.Lock()
 		defer fbo.convLock.Unlock()
 		fbo.convID = nil
@@ -8355,14 +8373,33 @@ func (fbo *folderBranchOps) InvalidateNodeAndChildren(
 	return nil
 }
 
+func (fbo *folderBranchOps) getEditMonitoringChannel() <-chan struct{} {
+	fbo.editsLock.Lock()
+	defer fbo.editsLock.Unlock()
+	return fbo.editMonitoringInProgress
+}
+
 // NewNotificationChannel implements the KBFSOps interface for
 // folderBranchOps.
 func (fbo *folderBranchOps) NewNotificationChannel(
 	ctx context.Context, handle *TlfHandle, convID chat1.ConversationID,
 	channelName string) {
+	monitoringCh := fbo.getEditMonitoringChannel()
+	if monitoringCh == nil {
+		fbo.log.CDebugf(ctx,
+			"Ignoring new notification channel while edits are unmonitored")
+		return
+	}
+
 	fbo.log.CDebugf(ctx, "New notification channel: %s %s", convID, channelName)
 	fbo.editActivity.Add(1)
-	fbo.editChannels <- editChannelActivity{convID, channelName, ""}
+	select {
+	case fbo.editChannels <- editChannelActivity{convID, channelName, ""}:
+	case <-monitoringCh:
+		fbo.editActivity.Done()
+		fbo.log.CDebugf(ctx, "Edit monitoring stopped while trying to "+
+			"send new notification channel")
+	}
 }
 
 // PushConnectionStatusChange pushes human readable connection status changes.
@@ -8373,17 +8410,39 @@ func (fbo *folderBranchOps) PushConnectionStatusChange(service string, newStatus
 		return
 	}
 
-	if newStatus == nil {
-		fbo.log.CDebugf(nil, "Asking for an edit re-init after reconnection")
-		fbo.editActivity.Add(1)
-		fbo.editChannels <- editChannelActivity{nil, "", ""}
+	if newStatus != nil {
+		return
+	}
+
+	monitoringCh := fbo.getEditMonitoringChannel()
+	if monitoringCh == nil {
+		return
+	}
+
+	fbo.log.CDebugf(nil, "Asking for an edit re-init after reconnection")
+	fbo.editActivity.Add(1)
+	select {
+	case fbo.editChannels <- editChannelActivity{nil, "", ""}:
+	case <-monitoringCh:
+		fbo.editActivity.Done()
+		fbo.log.CDebugf(nil, "Edit monitoring stopped while trying to "+
+			"ask for a re-init")
 	}
 }
 
 func (fbo *folderBranchOps) receiveNewEditChat(
 	convID chat1.ConversationID, message string) {
+	monitoringCh := fbo.getEditMonitoringChannel()
+	if monitoringCh == nil {
+		return
+	}
+
 	fbo.editActivity.Add(1)
-	fbo.editChannels <- editChannelActivity{convID, "", message}
+	select {
+	case fbo.editChannels <- editChannelActivity{convID, "", message}:
+	case <-monitoringCh:
+		fbo.editActivity.Done()
+	}
 }
 
 func (fbo *folderBranchOps) initEditChatChannels(
@@ -8425,7 +8484,7 @@ func (fbo *folderBranchOps) getEditMessages(
 			id, err)
 		return nil
 	}
-	err = fbo.editHistory.AddNotifications(channelName, messages)
+	_, err = fbo.editHistory.AddNotifications(channelName, messages)
 	if err != nil {
 		fbo.log.CWarningf(ctx, "Couldn't add messages for conv %s: %+v",
 			id, err)
@@ -8480,6 +8539,35 @@ func (fbo *folderBranchOps) recomputeEditHistory(
 		tlfName, fbo.id().Type(), fbo.editHistory, string(session.Name))
 }
 
+func (fbo *folderBranchOps) kickOffEditActivityPartialSync(
+	ctx context.Context, lState *lockState, rmd ImmutableRootMetadata) (
+	err error) {
+	defer func() {
+		if err != nil {
+			fbo.deferLog.CDebugf(ctx, "Couldn't kick off partial sync "+
+				"for edit activity: %+v", err)
+		}
+	}()
+
+	syncConfig, err := fbo.getProtocolSyncConfigUnlocked(ctx, lState, rmd)
+	if err != nil {
+		return err
+	}
+	if syncConfig.Mode != keybase1.FolderSyncMode_DISABLED {
+		return nil
+	}
+
+	fbo.log.CDebugf(ctx, "Kicking off partial sync for revision %d "+
+		"due to new edit message", rmd.Revision())
+
+	syncConfig, err = fbo.makeRecentFilesSyncConfig(ctx, rmd)
+	if err != nil {
+		return err
+	}
+	fbo.kickOffPartialSync(ctx, lState, syncConfig, rmd)
+	return nil
+}
+
 func (fbo *folderBranchOps) handleEditActivity(
 	ctx context.Context,
 	a editChannelActivity,
@@ -8490,8 +8578,13 @@ func (fbo *folderBranchOps) handleEditActivity(
 	idToNameRet map[string]string,
 	nameToIDRet map[string]chat1.ConversationID,
 	nameToNextPageRet map[string][]byte, err error) {
+	var rmd ImmutableRootMetadata
+	lState := makeFBOLockState()
 	defer func() {
 		fbo.recomputeEditHistory(ctx, tlfName, nameToIDRet, nameToNextPageRet)
+		if rmd != (ImmutableRootMetadata{}) {
+			_ = fbo.kickOffEditActivityPartialSync(ctx, lState, rmd)
+		}
 		fbo.editActivity.Done()
 	}()
 
@@ -8512,9 +8605,24 @@ func (fbo *folderBranchOps) handleEditActivity(
 	}
 	if a.message != "" {
 		fbo.log.CDebugf(ctx, "New edit message for %s", name)
-		err := fbo.editHistory.AddNotifications(name, []string{a.message})
+		maxRev, err := fbo.editHistory.AddNotifications(
+			name, []string{a.message})
 		if err != nil {
 			return nil, nil, nil, err
+		}
+		// If the new edits reference the latest merged revision, then
+		// the MD has already kicked off a partial sync.  Since this
+		// edit might trigger a different partial sync, we should
+		// start another one as well by setting `rmd` and letting the
+		// `defer` above kick one off.
+		latestMergedRev := fbo.getLatestMergedRevision(lState)
+		if maxRev == latestMergedRev {
+			rmd, err = getSingleMD(
+				ctx, fbo.config, fbo.id(), kbfsmd.NullBranchID, maxRev,
+				kbfsmd.Merged, nil)
+			if err != nil {
+				return nil, nil, nil, err
+			}
 		}
 	} else {
 		fbo.log.CDebugf(ctx, "New edit channel for %s", name)
@@ -8541,9 +8649,18 @@ func (fbo *folderBranchOps) monitorEditsChat(tlfName tlf.CanonicalName) {
 	defer cancelFunc()
 	fbo.log.CDebugf(ctx, "Starting kbfs-edits chat monitoring")
 
-	fbo.cancelEditsLock.Lock()
+	monitoringCh := make(chan struct{})
+	fbo.editsLock.Lock()
 	fbo.cancelEdits = cancelFunc
-	fbo.cancelEditsLock.Unlock()
+	fbo.editMonitoringInProgress = monitoringCh
+	fbo.editsLock.Unlock()
+
+	defer func() {
+		fbo.editsLock.Lock()
+		fbo.editMonitoringInProgress = nil
+		fbo.editsLock.Unlock()
+		close(monitoringCh)
+	}()
 
 	idToName := make(map[string]string)
 	nameToID := make(map[string]chat1.ConversationID)
@@ -8566,6 +8683,7 @@ func (fbo *folderBranchOps) monitorEditsChat(tlfName tlf.CanonicalName) {
 				return
 			}
 		case <-ctx.Done():
+			fbo.log.CDebugf(ctx, "Chat monitoring was canceled")
 			return
 		}
 	}

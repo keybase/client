@@ -2,7 +2,7 @@
 // TODO deprecate
 import * as shared from './user-bio.shared'
 import React, {Component} from 'react'
-import {Avatar, Box, Button, Text, Placeholder} from '../common-adapters'
+import {Avatar, Box, Button, Text, Icon, Placeholder} from '../common-adapters'
 import {globalStyles, globalColors, globalMargins, platformStyles, desktopStyles} from '../styles'
 import {stateColors} from '../util/tracker'
 import type {AvatarSize} from '../common-adapters/avatar'
@@ -107,14 +107,19 @@ class BioRender extends Component<Props> {
             />
           </Box>
           <Box style={{...stylesContent, ...desktopStyles.fadeOpacity, opacity: loading ? 0 : 1}}>
-            <Text
-              type="HeaderBig"
-              selectable={true}
-              style={{...stylesUsername, color: trackerStateColors.username}}
-              onClick={onClickAvatar}
-            >
-              {username}
-            </Text>
+            <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
+              <Text
+                type="HeaderBig"
+                selectable={true}
+                style={{...stylesUsername, color: trackerStateColors.username}}
+                onClick={onClickAvatar}
+              >
+                {username}
+              </Text>
+              {userInfo.registeredForAirdrop && (
+                <Icon type="icon-airdrop-star-16" style={{marginLeft: 4, marginTop: 6}} />
+              )}
+            </Box>
             <Text center={true} type="BodyBig" selectable={true} style={stylesFullname} {...nameTweaks}>
               {userInfo.fullname}
             </Text>
@@ -239,7 +244,7 @@ const stylesUsername = {
   marginTop: 7,
 }
 const stylesFullname = {
-  color: globalColors.black_75,
+  color: globalColors.black,
 }
 const stylesFollowLabel = platformStyles({
   isElectron: {

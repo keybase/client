@@ -28,6 +28,9 @@ func (i *id3FakeUIRouter) GetChatUI() (ChatUI, error)                           
 func (i *id3FakeUIRouter) GetIdentify3UIAdapter(MetaContext) (IdentifyUI, error) {
 	return nil, nil
 }
+func (i *id3FakeUIRouter) DumpUIs() map[UIKind]ConnectionID {
+	return nil
+}
 func (i *id3FakeUIRouter) Shutdown() {}
 
 func (i *id3FakeUIRouter) GetIdentify3UI(MetaContext) (keybase1.Identify3UiInterface, error) {
@@ -49,7 +52,7 @@ func (i *id3FakeUI) assertAndCleanState(t *testing.T, expected []keybase1.Identi
 func (i *id3FakeUI) Identify3ShowTracker(context.Context, keybase1.Identify3ShowTrackerArg) error {
 	return nil
 }
-func (i *id3FakeUI) Identify3UpdateRow(context.Context, keybase1.Identify3UpdateRowArg) error {
+func (i *id3FakeUI) Identify3UpdateRow(context.Context, keybase1.Identify3Row) error {
 	return nil
 }
 func (i *id3FakeUI) Identify3UpdateUserCard(context.Context, keybase1.Identify3UpdateUserCardArg) error {

@@ -4341,6 +4341,7 @@ func TestKBFSOpsPartialSync(t *testing.T) {
 	var u1 kbname.NormalizedUsername = "u1"
 	config, _, ctx, cancel := kbfsOpsConcurInit(t, u1)
 	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
+	config.vdebugSetting = "vlog2"
 
 	name := "u1"
 	h, err := ParseTlfHandle(
@@ -4560,6 +4561,7 @@ func TestKBFSOpsRecentHistorySync(t *testing.T) {
 	defer kbfsConcurTestShutdown(t, config, ctx, cancel)
 	// kbfsOpsConcurInit turns off notifications, so turn them back on.
 	config.mode = modeTest{NewInitModeFromType(InitDefault)}
+	config.vdebugSetting = "vlog2"
 
 	name := "u1"
 	h, err := ParseTlfHandle(
@@ -4615,14 +4617,6 @@ func TestKBFSOpsRecentHistorySync(t *testing.T) {
 	checkStatus(aNode, FinishedPrefetch)
 
 	t.Log("Writer adds a file, which gets prefetched")
-	// Disable updates for the reader until after the edit
-	// notification is sent and delivered.  This reflects a real issue
-	// in production where the MD update can be delivered and
-	// processed before the edit notification, and thus the new
-	// activity wouldn't be properly prefetched.  TODO(KBFS-3698): fix
-	// this in production and remove this disabling.
-	c, err := DisableUpdatesForTesting(config, rootNode.GetFolderBranch())
-	require.NoError(t, err)
 	bNode, _, err := kbfsOps2.CreateFile(ctx, aNode, "b", false, NoExcl)
 	require.NoError(t, err)
 	err = kbfsOps2.Write(ctx, bNode, []byte("bdata"), 0)
@@ -4631,7 +4625,6 @@ func TestKBFSOpsRecentHistorySync(t *testing.T) {
 	require.NoError(t, err)
 	err = kbfsOps2.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
 	require.NoError(t, err)
-	c <- struct{}{}
 
 	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch(), nil)
 	require.NoError(t, err)

@@ -93,7 +93,7 @@ function ProofRow({proof, onClickStatus, onClickProfile, hasMenu, style}: ProofR
             ) : (
               <Icon type={proofStatusIconType} fontSize={26} color={shared.proofColor(proof, true)} />
             ))}
-          {hasMenu && <Icon type="iconfont-caret-down" />}
+          {hasMenu && <Icon type="iconfont-caret-down" sizeType="Tiny" />}
         </Box>
       </ClickableBox>
     </Box>
@@ -208,7 +208,7 @@ const styleService = {
   padding: iconServicePadding,
 }
 const styleServiceContainer = {
-  color: globalColors.black_75,
+  color: globalColors.black,
   fontSize: 20,
 }
 const styleStatusIconTouchable = {

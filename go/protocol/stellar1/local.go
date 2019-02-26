@@ -995,9 +995,14 @@ type MarkAsReadLocalArg struct {
 }
 
 type GetPaymentDetailsLocalArg struct {
-	SessionID int        `codec:"sessionID" json:"sessionID"`
-	AccountID *AccountID `codec:"accountID,omitempty" json:"accountID,omitempty"`
-	Id        PaymentID  `codec:"id" json:"id"`
+	SessionID int       `codec:"sessionID" json:"sessionID"`
+	AccountID AccountID `codec:"accountID" json:"accountID"`
+	Id        PaymentID `codec:"id" json:"id"`
+}
+
+type GetGenericPaymentDetailsLocalArg struct {
+	SessionID int       `codec:"sessionID" json:"sessionID"`
+	Id        PaymentID `codec:"id" json:"id"`
 }
 
 type GetDisplayCurrenciesLocalArg struct {
@@ -1299,6 +1304,7 @@ type LocalInterface interface {
 	GetPendingPaymentsLocal(context.Context, GetPendingPaymentsLocalArg) ([]PaymentOrErrorLocal, error)
 	MarkAsReadLocal(context.Context, MarkAsReadLocalArg) error
 	GetPaymentDetailsLocal(context.Context, GetPaymentDetailsLocalArg) (PaymentDetailsLocal, error)
+	GetGenericPaymentDetailsLocal(context.Context, GetGenericPaymentDetailsLocalArg) (PaymentDetailsLocal, error)
 	GetDisplayCurrenciesLocal(context.Context, int) ([]CurrencyLocal, error)
 	ValidateAccountIDLocal(context.Context, ValidateAccountIDLocalArg) error
 	ValidateSecretKeyLocal(context.Context, ValidateSecretKeyLocalArg) error
@@ -1460,6 +1466,21 @@ func LocalProtocol(i LocalInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetPaymentDetailsLocal(ctx, typedArgs[0])
+					return
+				},
+			},
+			"getGenericPaymentDetailsLocal": {
+				MakeArg: func() interface{} {
+					var ret [1]GetGenericPaymentDetailsLocalArg
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[1]GetGenericPaymentDetailsLocalArg)
+					if !ok {
+						err = rpc.NewTypeError((*[1]GetGenericPaymentDetailsLocalArg)(nil), args)
+						return
+					}
+					ret, err = i.GetGenericPaymentDetailsLocal(ctx, typedArgs[0])
 					return
 				},
 			},
@@ -2279,6 +2300,11 @@ func (c LocalClient) MarkAsReadLocal(ctx context.Context, __arg MarkAsReadLocalA
 
 func (c LocalClient) GetPaymentDetailsLocal(ctx context.Context, __arg GetPaymentDetailsLocalArg) (res PaymentDetailsLocal, err error) {
 	err = c.Cli.Call(ctx, "stellar.1.local.getPaymentDetailsLocal", []interface{}{__arg}, &res)
+	return
+}
+
+func (c LocalClient) GetGenericPaymentDetailsLocal(ctx context.Context, __arg GetGenericPaymentDetailsLocalArg) (res PaymentDetailsLocal, err error) {
+	err = c.Cli.Call(ctx, "stellar.1.local.getGenericPaymentDetailsLocal", []interface{}{__arg}, &res)
 	return
 }
 

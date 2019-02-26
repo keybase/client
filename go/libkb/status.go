@@ -48,17 +48,24 @@ func getPlatformInfo() keybase1.PlatformInfo {
 	}
 }
 
+func GetClientStatus(m MetaContext) (res []keybase1.ClientStatus) {
+	if m.G().ConnectionManager != nil {
+		res = m.G().ConnectionManager.ListAllLabeledConnections()
+		for i, client := range res {
+			res[i].NotificationChannels = m.G().NotifyRouter.GetChannels(ConnectionID(client.ConnectionID))
+		}
+	}
+	return res
+}
+
 func GetExtendedStatus(m MetaContext) (res keybase1.ExtendedStatus, err error) {
-	defer m.CTrace("GetExtendedStatus", func() error { return err })()
+	m = m.WithLogTag("EXTSTATUS")
+	defer m.CTraceTimed("GetExtendedStatus", func() error { return err })()
 	g := m.G()
 
 	res.Standalone = g.Env.GetStandalone()
 	res.LogDir = g.Env.GetLogDir()
-
-	// Should work in standalone mode too
-	if g.ConnectionManager != nil {
-		res.Clients = g.ConnectionManager.ListAllLabeledConnections()
-	}
+	res.Clients = GetClientStatus(m)
 
 	if err = g.GetFullSelfer().WithSelf(m.Ctx(), func(me *User) error {
 		ckf := me.GetComputedKeyFamily()
@@ -135,6 +142,14 @@ func GetExtendedStatus(m MetaContext) (res keybase1.ExtendedStatus, err error) {
 	res.LocalChatDbStats = strings.Split(g.LocalChatDb.Stats(), "\n")
 	if cacheSizeInfo, err := CacheSizeInfo(g); err == nil {
 		res.CacheDirSizeInfo = cacheSizeInfo
+	}
+
+	if g.UIRouter != nil {
+		uiMapping := map[string]int{}
+		for k, v := range g.UIRouter.DumpUIs() {
+			uiMapping[k.String()] = int(v)
+		}
+		res.UiRouterMapping = uiMapping
 	}
 
 	return res, nil

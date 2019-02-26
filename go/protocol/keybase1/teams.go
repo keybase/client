@@ -1498,6 +1498,7 @@ type TeamResetUser struct {
 	Username    string `codec:"username" json:"username"`
 	Uid         UID    `codec:"uid" json:"uid"`
 	EldestSeqno Seqno  `codec:"eldestSeqno" json:"eldest_seqno"`
+	IsDelete    bool   `codec:"isDelete" json:"is_delete"`
 }
 
 func (o TeamResetUser) DeepCopy() TeamResetUser {
@@ -1505,6 +1506,7 @@ func (o TeamResetUser) DeepCopy() TeamResetUser {
 		Username:    o.Username,
 		Uid:         o.Uid.DeepCopy(),
 		EldestSeqno: o.EldestSeqno.DeepCopy(),
+		IsDelete:    o.IsDelete,
 	}
 }
 
@@ -2862,11 +2864,12 @@ type TeamReAddMemberAfterResetArg struct {
 }
 
 type LoadTeamPlusApplicationKeysArg struct {
-	SessionID       int             `codec:"sessionID" json:"sessionID"`
-	Id              TeamID          `codec:"id" json:"id"`
-	Application     TeamApplication `codec:"application" json:"application"`
-	Refreshers      TeamRefreshers  `codec:"refreshers" json:"refreshers"`
-	IncludeKBFSKeys bool            `codec:"includeKBFSKeys" json:"includeKBFSKeys"`
+	SessionID       int                 `codec:"sessionID" json:"sessionID"`
+	Id              TeamID              `codec:"id" json:"id"`
+	Application     TeamApplication     `codec:"application" json:"application"`
+	Refreshers      TeamRefreshers      `codec:"refreshers" json:"refreshers"`
+	IncludeKBFSKeys bool                `codec:"includeKBFSKeys" json:"includeKBFSKeys"`
+	Oa              OfflineAvailability `codec:"oa" json:"oa"`
 }
 
 type GetTeamRootIDArg struct {
@@ -2997,7 +3000,9 @@ type TeamsInterface interface {
 	TeamReAddMemberAfterReset(context.Context, TeamReAddMemberAfterResetArg) error
 	// * loadTeamPlusApplicationKeys loads team information for applications like KBFS and Chat.
 	// * If refreshers are non-empty, then force a refresh of the cache if the requirements
-	// * of the refreshers aren't met.
+	// * of the refreshers aren't met. If OfflineAvailability is set to BEST_EFFORT, and the
+	// * client is currently offline (or thinks it's offline), then the refreshers are overridden
+	// * and ignored, and stale data might still be returned.
 	LoadTeamPlusApplicationKeys(context.Context, LoadTeamPlusApplicationKeysArg) (TeamPlusApplicationKeys, error)
 	GetTeamRootID(context.Context, TeamID) (TeamID, error)
 	GetTeamShowcase(context.Context, string) (TeamShowcase, error)
@@ -3969,7 +3974,9 @@ func (c TeamsClient) TeamReAddMemberAfterReset(ctx context.Context, __arg TeamRe
 
 // * loadTeamPlusApplicationKeys loads team information for applications like KBFS and Chat.
 // * If refreshers are non-empty, then force a refresh of the cache if the requirements
-// * of the refreshers aren't met.
+// * of the refreshers aren't met. If OfflineAvailability is set to BEST_EFFORT, and the
+// * client is currently offline (or thinks it's offline), then the refreshers are overridden
+// * and ignored, and stale data might still be returned.
 func (c TeamsClient) LoadTeamPlusApplicationKeys(ctx context.Context, __arg LoadTeamPlusApplicationKeysArg) (res TeamPlusApplicationKeys, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.teams.loadTeamPlusApplicationKeys", []interface{}{__arg}, &res)
 	return

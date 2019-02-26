@@ -293,7 +293,7 @@ describe('shows revoke page correctly', () => {
     const {dispatch, getState} = init
     const deviceID = Types.stringToDeviceID('456')
     dispatch(DevicesGen.createShowRevokePage({deviceID}))
-    expect(getRoute(getState)).toEqual(I.List([Tabs.devicesTab, 'devicePage', 'revokeDevice']))
+    expect(getRoute(getState)).toEqual(I.List([Tabs.devicesTab, 'devicePage', 'deviceRevoke']))
     expect(getState().devices.selectedDeviceID).toEqual(deviceID)
   })
 
@@ -360,7 +360,7 @@ describe('shows paperkey page correctly', () => {
   it('shows paperkey page', () => {
     const {dispatch, getState} = init
     dispatch(DevicesGen.createShowPaperKeyPage())
-    expect(getRoute(getState)).toEqual(I.List([Tabs.devicesTab, 'paperKey']))
+    expect(getRoute(getState)).toEqual(I.List([Tabs.devicesTab, 'devicePaperKey']))
   })
 
   it('creates a paperkey', () => {

@@ -105,7 +105,7 @@ func TestChatSrvUnfurl(t *testing.T) {
 		tc := ctc.world.Tcs[users[0].Username]
 		ri := ctc.as(t, users[0]).ri
 		listener0 := newServerChatListener()
-		ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener0)
+		ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
 		httpSrv := newDummyHTTPSrv(t)
 		httpAddr := httpSrv.Start()
 		defer httpSrv.Stop()
@@ -151,40 +151,6 @@ func TestChatSrvUnfurl(t *testing.T) {
 			return nil
 		}
 
-		t.Logf("send for prompt")
-		msg := chat1.NewMessageBodyWithText(chat1.MessageText{Body: fmt.Sprintf("http://%s", httpAddr)})
-		origID := mustPostLocalForTest(t, ctc, users[0], conv, msg)
-		t.Logf("origid: %v", origID)
-		consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
-		select {
-		case notificationID := <-listener0.unfurlPrompt:
-			require.Equal(t, origID, notificationID)
-		case <-time.After(timeout):
-			require.Fail(t, "no prompt")
-		}
-		t.Logf("whitelist and resolve")
-		require.NoError(t, ctc.as(t, users[0]).chatLocalHandler().ResolveUnfurlPrompt(ctx,
-			chat1.ResolveUnfurlPromptArg{
-				ConvID:           conv.Id,
-				MsgID:            origID,
-				Result:           chat1.NewUnfurlPromptResultWithAccept("0.1"),
-				IdentifyBehavior: keybase1.TLFIdentifyBehavior_GUI,
-			}))
-		consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT) // from whitelist add
-		select {
-		case <-listener0.newMessageRemote:
-			require.Fail(t, "no unfurl yet")
-		default:
-		}
-		recvSingleRetry()
-		require.Nil(t, recvUnfurl())
-
-		t.Logf("try it again and fail")
-		tc.Context().MessageDeliverer.ForceDeliverLoop(context.TODO())
-		recvSingleRetry()
-		require.Nil(t, recvUnfurl())
-
-		t.Logf("now work")
 		recvAndCheckUnfurlMsg := func(msgID chat1.MessageID) {
 			var outboxID chat1.OutboxID
 			select {
@@ -244,10 +210,43 @@ func TestChatSrvUnfurl(t *testing.T) {
 			default:
 			}
 		}
-		// now that we we can succeed, clear our cached value so we don't serve
-		// back the cached error
+
+		t.Logf("send for prompt")
+		msg := chat1.NewMessageBodyWithText(chat1.MessageText{Body: fmt.Sprintf("http://%s", httpAddr)})
+		origID := mustPostLocalForTest(t, ctc, users[0], conv, msg)
+		t.Logf("origid: %v", origID)
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT)
+		select {
+		case notificationID := <-listener0.unfurlPrompt:
+			require.Equal(t, origID, notificationID)
+		case <-time.After(timeout):
+			require.Fail(t, "no prompt")
+		}
+		t.Logf("whitelist and resolve")
+		require.NoError(t, ctc.as(t, users[0]).chatLocalHandler().ResolveUnfurlPrompt(ctx,
+			chat1.ResolveUnfurlPromptArg{
+				ConvID:           conv.Id,
+				MsgID:            origID,
+				Result:           chat1.NewUnfurlPromptResultWithAccept("0.1"),
+				IdentifyBehavior: keybase1.TLFIdentifyBehavior_GUI,
+			}))
+		consumeNewMsgRemote(t, listener0, chat1.MessageType_TEXT) // from whitelist add
+		select {
+		case <-listener0.newMessageRemote:
+			require.Fail(t, "no unfurl yet")
+		default:
+		}
+		recvSingleRetry()
+		require.Nil(t, recvUnfurl())
+
+		t.Logf("try it again and fail")
+		tc.Context().MessageDeliverer.ForceDeliverLoop(context.TODO())
+		recvSingleRetry()
+		require.Nil(t, recvUnfurl())
+
+		t.Logf("now work")
+		// now that we we can succeed
 		httpSrv.succeed = true
-		clock.Advance(2 * 10 * time.Minute) // unfurl.DefaultCacheTime
 
 		tc.Context().MessageDeliverer.ForceDeliverLoop(context.TODO())
 		recvSingleRetry()

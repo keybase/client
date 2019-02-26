@@ -6,6 +6,7 @@ package libkbfs
 
 import (
 	"container/heap"
+	lru "github.com/hashicorp/golang-lru"
 	"io"
 	"reflect"
 	"sync"
@@ -14,6 +15,7 @@ import (
 	"github.com/eapache/channels"
 	"github.com/keybase/client/go/kbfs/kbfsblock"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/pkg/errors"
 	"golang.org/x/net/context"
@@ -111,6 +113,7 @@ type blockPtrLookup struct {
 type blockRetrievalQueue struct {
 	config blockRetrievalConfig
 	log    logger.Logger
+	vlog   *libkb.VDebugLog
 	// protects ptrs, insertionCount, and the heap
 	mtx sync.RWMutex
 	// queued or in progress retrievals
@@ -137,8 +140,8 @@ type blockRetrievalQueue struct {
 	// prefetcher for handling prefetching scenarios
 	prefetcher Prefetcher
 
-	prefetchStatusLock    sync.Mutex
-	prefetchStatusForTest map[kbfsblock.ID]PrefetchStatus
+	prefetchStatusLock           sync.Mutex
+	prefetchStatusForNoDiskCache *lru.Cache
 }
 
 var _ BlockRetriever = (*blockRetrievalQueue)(nil)
@@ -158,6 +161,7 @@ func newBlockRetrievalQueue(
 	q := &blockRetrievalQueue{
 		config:           config,
 		log:              config.MakeLogger(""),
+		vlog:             config.MakeVLogger(""),
 		ptrs:             make(map[blockPtrLookup]*blockRetrieval),
 		heap:             &blockRetrievalHeap{},
 		workerCh:         NewInfiniteChannelWrapper(),
@@ -263,41 +267,57 @@ func (brq *blockRetrievalQueue) notifyWorker(priority int) {
 	brq.sendWork(workerCh)
 }
 
-func (brq *blockRetrievalQueue) initPrefetchStatusCacheLocked() {
-	if brq.prefetchStatusForTest != nil {
-		return
-	}
+func (brq *blockRetrievalQueue) initPrefetchStatusCacheLocked() error {
 	if !brq.config.IsTestMode() && brq.config.Mode().Type() != InitSingleOp {
 		// If the disk block cache directory can't be accessed due to
 		// permission errors (happens sometimes on iOS for some
 		// reason), we might need to rely on this in-memory map.
-		// TODO(KBFS-3750): make it an LRU cache.
 		brq.log.Warning("No disk block cache is initialized when not testing")
 	}
 	brq.log.CDebugf(nil, "Using a local cache for prefetch status")
-	brq.prefetchStatusForTest = make(map[kbfsblock.ID]PrefetchStatus)
+	var err error
+	cache, err := lru.New(10000)
+	if err == nil {
+		brq.prefetchStatusForNoDiskCache = cache
+	}
+	return err
 }
 
 func (brq *blockRetrievalQueue) getPrefetchStatus(
-	id kbfsblock.ID) PrefetchStatus {
+	id kbfsblock.ID) (PrefetchStatus, error) {
 	brq.prefetchStatusLock.Lock()
 	defer brq.prefetchStatusLock.Unlock()
-	if brq.prefetchStatusForTest == nil {
-		brq.initPrefetchStatusCacheLocked()
+	if brq.prefetchStatusForNoDiskCache == nil {
+		err := brq.initPrefetchStatusCacheLocked()
+		if err != nil {
+			return NoPrefetch, err
+		}
 	}
-	return brq.prefetchStatusForTest[id]
+	status, ok := brq.prefetchStatusForNoDiskCache.Get(id)
+	if !ok {
+		return NoPrefetch, nil
+	}
+	return status.(PrefetchStatus), nil
 }
 
 func (brq *blockRetrievalQueue) setPrefetchStatus(
-	id kbfsblock.ID, prefetchStatus PrefetchStatus) {
+	id kbfsblock.ID, prefetchStatus PrefetchStatus) error {
 	brq.prefetchStatusLock.Lock()
 	defer brq.prefetchStatusLock.Unlock()
-	if brq.prefetchStatusForTest == nil {
-		brq.initPrefetchStatusCacheLocked()
+	if brq.prefetchStatusForNoDiskCache == nil {
+		err := brq.initPrefetchStatusCacheLocked()
+		if err != nil {
+			return err
+		}
 	}
-	if prefetchStatus > brq.prefetchStatusForTest[id] {
-		brq.prefetchStatusForTest[id] = prefetchStatus
+	if brq.prefetchStatusForNoDiskCache == nil {
+		panic("nil???")
 	}
+	status, ok := brq.prefetchStatusForNoDiskCache.Get(id)
+	if !ok || prefetchStatus > status.(PrefetchStatus) {
+		brq.prefetchStatusForNoDiskCache.Add(id, prefetchStatus)
+	}
+	return nil
 }
 
 // PutInCaches implements the BlockRetriever interface for
@@ -315,8 +335,7 @@ func (brq *blockRetrievalQueue) PutInCaches(ctx context.Context,
 	}
 	dbc := brq.config.DiskBlockCache()
 	if dbc == nil {
-		brq.setPrefetchStatus(ptr.ID, prefetchStatus)
-		return nil
+		return brq.setPrefetchStatus(ptr.ID, prefetchStatus)
 	}
 	err = dbc.UpdateMetadata(ctx, tlfID, ptr.ID, prefetchStatus, cacheType)
 	switch errors.Cause(err).(type) {
@@ -324,10 +343,10 @@ func (brq *blockRetrievalQueue) PutInCaches(ctx context.Context,
 	case NoSuchBlockError:
 		// TODO: Add the block to the DBC. This is complicated because we
 		// need the serverHalf.
-		brq.log.CDebugf(ctx, "Block %s missing for disk block "+
-			"cache metadata update", ptr.ID)
+		brq.vlog.CLogf(ctx, libkb.VLog1,
+			"Block %s missing for disk block cache metadata update", ptr.ID)
 	default:
-		brq.log.CDebugf(ctx, "Error updating metadata: %+v", err)
+		brq.vlog.CLogf(ctx, libkb.VLog1, "Error updating metadata: %+v", err)
 	}
 	// All disk cache errors are fatal
 	return err
@@ -344,7 +363,7 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 	if err == nil {
 		if dbc == nil {
 			block.Set(cachedBlock)
-			return brq.getPrefetchStatus(ptr.ID), nil
+			return brq.getPrefetchStatus(ptr.ID)
 		}
 
 		prefetchStatus, err := dbc.GetPrefetchStatus(
@@ -384,10 +403,8 @@ func (brq *blockRetrievalQueue) checkCaches(ctx context.Context,
 func (brq *blockRetrievalQueue) request(ctx context.Context,
 	priority int, kmd KeyMetadata, ptr BlockPointer, block Block,
 	lifetime BlockCacheLifetime, action BlockRequestAction) <-chan error {
-	if action != BlockRequestSolo {
-		brq.log.CDebugf(ctx, "Request of %v, action=%s, priority=%d",
-			ptr, action, priority)
-	}
+	brq.vlog.CLogf(ctx, libkb.VLog1,
+		"Request of %v, action=%s, priority=%d", ptr, action, priority)
 
 	// Only continue if we haven't been shut down
 	ch := make(chan error, 1)
@@ -412,7 +429,8 @@ func (brq *blockRetrievalQueue) request(ctx context.Context,
 	prefetchStatus, err := brq.checkCaches(ctx, kmd, ptr, block, action)
 	if err == nil {
 		if action != BlockRequestSolo {
-			brq.log.CDebugf(ctx, "Found %v in caches: %s", ptr, prefetchStatus)
+			brq.vlog.CLogf(
+				ctx, libkb.VLog1, "Found %v in caches: %s", ptr, prefetchStatus)
 		}
 		if action.PrefetchTracked() {
 			brq.Prefetcher().ProcessBlockForPrefetch(ctx, ptr, block, kmd,
@@ -469,7 +487,14 @@ func (brq *blockRetrievalQueue) request(ctx context.Context,
 		}
 		break
 	}
-	brq.log.CDebugf(ctx, "Scheduling request of %v", ptr)
+	if br.index == -1 {
+		// Log newly-scheduled requests via the normal logger, so we
+		// can understand why the bserver fetches certain blocks, and
+		// be able to time the request from start to finish.
+		brq.log.CDebugf(ctx,
+			"Scheduling request of %v, action=%s, priority=%d",
+			ptr, action, priority)
+	}
 	br.reqMtx.Lock()
 	defer br.reqMtx.Unlock()
 	br.requests = append(br.requests, &blockRetrievalRequest{
@@ -503,9 +528,10 @@ func (brq *blockRetrievalQueue) request(ctx context.Context,
 		}
 	}
 	// Update the action if needed.
-	brq.log.CDebugf(ctx, "Combining actions %d and %d", action, br.action)
+	brq.vlog.CLogf(
+		ctx, libkb.VLog1, "Combining actions %d and %d", action, br.action)
 	br.action = action.Combine(br.action)
-	brq.log.CDebugf(ctx, "Got action %d", br.action)
+	brq.vlog.CLogf(ctx, libkb.VLog2, "Got action %d", br.action)
 	return ch
 }
 
@@ -573,6 +599,16 @@ func (brq *blockRetrievalQueue) FinalizeRequest(
 				retrieval.cacheLifetime, NoPrefetch, retrieval.action)
 		} else {
 			brq.Prefetcher().CancelPrefetch(retrieval.blockPtr)
+		}
+	} else {
+		// Even if the block is not being tracked by the prefetcher,
+		// we still want to put it in the block caches.
+		err = brq.PutInCaches(
+			retrieval.ctx, retrieval.blockPtr, retrieval.kmd.TlfID(), block,
+			retrieval.cacheLifetime, NoPrefetch, retrieval.action.CacheType())
+		if err != nil {
+			brq.log.CDebugf(
+				retrieval.ctx, "Couldn't put block in cache: %+v", err)
 		}
 	}
 

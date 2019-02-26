@@ -16,6 +16,7 @@ import {
 } from '../route-tree'
 import {loginRouteTreeTitle, appRouteTreeTitle} from '../app/route-constants'
 import {isValidInitialTabString} from '../constants/tabs'
+import flags from '../util/feature-flags'
 
 // This makes an empty one which isn't really allowed, we always init it before anything really happens
 const initialState = Constants.makeState()
@@ -155,6 +156,9 @@ function routeStateReducer(routeDef, routeState, action) {
 }
 
 export default function routeTreeReducer(state: Types.State = initialState, action: any): Types.State {
+  if (flags.useNewRouter) {
+    return state
+  }
   let {loggedInUserNavigated, routeDef, routeState} = state
   if (action.type === RouteTreeGen.resetStore) {
     routeDef = firstRouteDef || initialState.routeDef

@@ -78,6 +78,8 @@ type ConversationSource interface {
 		query *chat1.GetThreadQuery, pagination *chat1.Pagination) (chat1.ThreadView, error)
 	PullLocalOnly(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID,
 		query *chat1.GetThreadQuery, p *chat1.Pagination, maxPlaceholders int) (chat1.ThreadView, error)
+	PullFull(ctx context.Context, convID chat1.ConversationID, uid gregor1.UID, reason chat1.GetThreadReason,
+		query *chat1.GetThreadQuery, maxPages *int) (chat1.ThreadView, error)
 	GetMessages(ctx context.Context, conv UnboxConversationInfo, uid gregor1.UID, msgIDs []chat1.MessageID,
 		reason *chat1.GetThreadReason) ([]chat1.MessageUnboxed, error)
 	GetMessagesWithRemotes(ctx context.Context, conv chat1.Conversation, uid gregor1.UID,
@@ -182,6 +184,7 @@ type InboxSource interface {
 	SetConvSettings(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convID chat1.ConversationID,
 		convSettings *chat1.ConversationSettings) (*chat1.ConversationLocal, error)
 	SubteamRename(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers, convIDs []chat1.ConversationID) ([]chat1.ConversationLocal, error)
+	UpdateInboxVersion(ctx context.Context, uid gregor1.UID, vers chat1.InboxVers) error
 
 	GetInboxQueryLocalToRemote(ctx context.Context,
 		lquery *chat1.GetInboxLocalQuery) (*chat1.GetInboxQuery, NameInfo, error)
@@ -323,6 +326,7 @@ type AttachmentFetcher interface {
 		ri func() chat1.RemoteInterface, signer s3.Signer) (io.ReadSeeker, error)
 	PutUploadedAsset(ctx context.Context, filename string, asset chat1.Asset) error
 	IsAssetLocal(ctx context.Context, asset chat1.Asset) (bool, error)
+	OnCacheCleared(mctx libkb.MetaContext)
 }
 
 type AttachmentURLSrv interface {
@@ -330,7 +334,9 @@ type AttachmentURLSrv interface {
 		preview bool) string
 	GetPendingPreviewURL(ctx context.Context, outboxID chat1.OutboxID) string
 	GetUnfurlAssetURL(ctx context.Context, convID chat1.ConversationID, asset chat1.Asset) string
+	GetGiphyURL(ctx context.Context, giphyURL string) string
 	GetAttachmentFetcher() AttachmentFetcher
+	OnCacheCleared(mctx libkb.MetaContext)
 }
 
 type RateLimitedResult interface {
@@ -406,8 +412,8 @@ type Unfurler interface {
 
 type ConversationCommand interface {
 	Match(ctx context.Context, text string) bool
-	Execute(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, tlfName string, text string) error
-	Preview(ctx context.Context, text string) error
+	Execute(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, tlfName, text string) error
+	Preview(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, text string)
 	Name() string
 	Usage() string
 	Description() string
@@ -426,6 +432,17 @@ type ConversationCommandsSource interface {
 	GetBuiltinCommandType(ctx context.Context, c ConversationCommandsSpec) chat1.ConversationBuiltinCommandTyp
 	AttemptBuiltinCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID,
 		tlfName string, body chat1.MessageBody) (bool, error)
+	PreviewBuiltinCommand(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, text string)
+}
+
+type CoinFlipManager interface {
+	Resumable
+	StartFlip(ctx context.Context, uid gregor1.UID, hostConvID chat1.ConversationID, tlfName, text string) error
+	MaybeInjectFlipMessage(ctx context.Context, boxedMsg chat1.MessageBoxed, inboxVers chat1.InboxVers,
+		uid gregor1.UID, convID chat1.ConversationID, topicType chat1.TopicType) bool
+	LoadFlip(ctx context.Context, uid gregor1.UID, convID chat1.ConversationID, gameID chat1.FlipGameID)
+	DescribeFlipText(ctx context.Context, text string) string
+	HasActiveGames(ctx context.Context) bool
 }
 
 type InternalError interface {

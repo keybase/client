@@ -155,6 +155,20 @@
       ]
     },
     {
+      "type": "record",
+      "name": "MessageFlip",
+      "fields": [
+        {
+          "type": "string",
+          "name": "text"
+        },
+        {
+          "type": "FlipGameID",
+          "name": "gameID"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "MessageSystemType",
       "symbols": [
@@ -644,6 +658,13 @@
             "def": false
           },
           "body": "MessageUnfurl"
+        },
+        {
+          "label": {
+            "name": "FLIP",
+            "def": false
+          },
+          "body": "MessageFlip"
         }
       ]
     },
@@ -3837,6 +3858,19 @@
       "response": "FindConversationsLocalRes"
     },
     "updateTyping": {
+      "request": [
+        {
+          "name": "conversationID",
+          "type": "ConversationID"
+        },
+        {
+          "name": "typing",
+          "type": "boolean"
+        }
+      ],
+      "response": null
+    },
+    "updateUnsentText": {
       "request": [
         {
           "name": "conversationID",

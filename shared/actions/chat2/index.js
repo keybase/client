@@ -22,8 +22,9 @@ import * as WalletTypes from '../../constants/types/wallets'
 import * as Tabs from '../../constants/tabs'
 import * as UsersGen from '../users-gen'
 import * as WaitingGen from '../waiting-gen'
+import * as Router2Constants from '../../constants/router2'
 import chatTeamBuildingSaga from './team-building'
-import {hasCanPerform, retentionPolicyToServiceRetentionPolicy, teamRoleByEnum} from '../../constants/teams'
+import * as TeamsConstants from '../../constants/teams'
 import logger from '../../logger'
 import engine from '../../engine'
 import {isMobile} from '../../constants/platform'
@@ -88,7 +89,13 @@ function* inboxRefresh(state, action) {
       .filter(Boolean)
     // Check if some of our existing stored metas might no longer be valid
     return Saga.put(
-      Chat2Gen.createMetasReceived({clearExistingMessages, clearExistingMetas, fromInboxRefresh: true, metas})
+      Chat2Gen.createMetasReceived({
+        clearExistingMessages,
+        clearExistingMetas,
+        fromInboxRefresh: true,
+        initialTrustedLoad: reason === 'initialTrustedLoad',
+        metas,
+      })
     )
   }
 
@@ -668,7 +675,7 @@ const onChatSetConvSettings = (_, action) => {
     conv.convSettings &&
     conv.convSettings.minWriterRoleInfo &&
     conv.convSettings.minWriterRoleInfo.role
-  const role = newRole && teamRoleByEnum[newRole]
+  const role = newRole && TeamsConstants.teamRoleByEnum[newRole]
   logger.info(`ChatHandler: got new minWriterRole ${role || ''} for convID ${conversationIDKey}`)
   if (role && role !== 'none') {
     return Chat2Gen.createSaveMinWriterRole({conversationIDKey, role})
@@ -1282,7 +1289,7 @@ function* messageSend(state, action) {
   // disable sending exploding messages if flag is false
   const ephemeralLifetime = Constants.getConversationExplodingMode(state, conversationIDKey)
   const ephemeralData = ephemeralLifetime !== 0 ? {ephemeralLifetime} : {}
-  const routeName = 'paymentsConfirm'
+  const routeName = 'chatPaymentsConfirm'
   const onShowConfirm = () => [
     Saga.put(Chat2Gen.createClearPaymentConfirmInfo()),
     Saga.put(
@@ -1755,7 +1762,7 @@ const attachmentPreviewSelect = (_, action) => {
       path: [
         {
           props: {conversationIDKey: message.conversationIDKey, ordinal: message.ordinal},
-          selected: 'attachmentVideoFullscreen',
+          selected: 'chatAttachmentVideoFullscreen',
         },
       ],
     })
@@ -1766,7 +1773,7 @@ const attachmentPreviewSelect = (_, action) => {
         path: [
           {
             props: {},
-            selected: 'attachmentFullscreen',
+            selected: 'chatAttachmentFullscreen',
           },
         ],
       }),
@@ -1790,7 +1797,7 @@ const attachmentPasted = (_, action) => {
       },
     ]
     return RouteTreeGen.createNavigateAppend({
-      path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'attachmentGetTitles'}],
+      path: [{props: {conversationIDKey, pathAndOutboxIDs}, selected: 'chatAttachmentGetTitles'}],
     })
   })
 }
@@ -1833,10 +1840,10 @@ function* attachmentsUpload(state, action) {
 
 // Tell service we're typing
 const sendTyping = (_, action) => {
-  const {conversationIDKey, text} = action.payload
+  const {conversationIDKey, typing} = action.payload
   return RPCChatTypes.localUpdateTypingRpcPromise({
     conversationID: Types.keyToConversationID(conversationIDKey),
-    text: text.stringValue(),
+    typing,
   })
 }
 
@@ -1935,8 +1942,22 @@ const loadCanUserPerform = (state, action) => {
   if (!teamname) {
     return
   }
-  if (!hasCanPerform(state, teamname)) {
+  if (!TeamsConstants.hasCanPerform(state, teamname)) {
     return TeamsGen.createGetTeamOperations({teamname})
+  }
+}
+
+// Get the full channel names/descs for a team if we don't already have them.
+function* loadChannelInfos(state, action) {
+  const {conversationIDKey} = action.payload
+  const meta = Constants.getMeta(state, conversationIDKey)
+  const teamname = meta.teamname
+  if (!teamname) {
+    return
+  }
+  if (!TeamsConstants.hasChannelInfos(state, teamname)) {
+    yield Saga.callUntyped(Saga.delay, 4000)
+    yield Saga.put(TeamsGen.createGetChannels({teamname}))
   }
 }
 
@@ -1996,6 +2017,9 @@ const mobileNavigateOnSelect = (state, action) => {
 }
 
 const mobileChangeSelection = state => {
+  if (flags.useNewRouter) {
+    return
+  }
   const routePath = getPath(state.routeTree.routeState)
   const inboxSelected = routePath.size === 1 && routePath.get(0) === Tabs.chatTab
   if (inboxSelected) {
@@ -2119,7 +2143,7 @@ const setConvRetentionPolicy = (_, action) => {
   const convID = Types.keyToConversationID(conversationIDKey)
   let servicePolicy: ?RPCChatTypes.RetentionPolicy
   try {
-    servicePolicy = retentionPolicyToServiceRetentionPolicy(policy)
+    servicePolicy = TeamsConstants.retentionPolicyToServiceRetentionPolicy(policy)
     if (servicePolicy) {
       return RPCChatTypes.localSetConvRetentionLocalRpcPromise({
         convID,
@@ -2539,6 +2563,61 @@ const unfurlResolvePrompt = (state, action) => {
   })
 }
 
+const toggleInfoPanel = (state, action) => {
+  if (flags.useNewRouter) {
+    const visible = Router2Constants.getVisiblePath()
+    if (visible[visible.length - 1]?.routeName === 'chatInfoPanel') {
+      return RouteTreeGen.createNavigateUp()
+    } else {
+      return RouteTreeGen.createNavigateAppend({
+        path: [{props: {conversationIDKey: state.chat2.selectedConversation}, selected: 'chatInfoPanel'}],
+      })
+    }
+  } else {
+    if (Constants.isInfoPanelOpen(state)) {
+      return RouteTreeGen.createNavigateTo({parentPath: [Tabs.chatTab], path: ['chatConversation']})
+    } else {
+      return RouteTreeGen.createNavigateAppend({
+        path: [{props: {conversationIDKey: state.chat2.selectedConversation}, selected: 'chatInfoPanel'}],
+      })
+    }
+  }
+}
+
+const unsentTextChanged = (state, action) => {
+  const {conversationIDKey, text} = action.payload
+  return RPCChatTypes.localUpdateUnsentTextRpcPromise({
+    conversationID: Types.keyToConversationID(conversationIDKey),
+    text: text.stringValue(),
+  })
+}
+
+const onGiphyResults = (state, action) => {
+  const {convID, results} = action.payload.params
+  return Chat2Gen.createGiphyGotSearchResult({
+    conversationIDKey: Types.stringToConversationIDKey(convID),
+    results: results || [],
+  })
+}
+
+const giphySend = (state, action) => {
+  const {conversationIDKey, url} = action.payload
+  return Chat2Gen.createMessageSend({conversationIDKey, text: url})
+}
+
+const onChatCoinFlipStatus = (status, action) => {
+  const {statuses} = action.payload.params
+  return Chat2Gen.createUpdateCoinFlipStatus({statuses: statuses || []})
+}
+
+const onChatCommandMarkdown = (status, action) => {
+  const {convID, text} = action.payload.params
+  return Chat2Gen.createSetCommandMarkdown({
+    conversationIDKey: Types.stringToConversationIDKey(convID),
+    text,
+  })
+}
+
 const openChatFromWidget = (state, {payload: {conversationIDKey}}) => [
   ConfigGen.createShowMain(),
   RouteTreeGen.createSwitchTo({path: [Tabs.chatTab]}),
@@ -2743,7 +2822,10 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   )
   yield* Saga.chainAction<Chat2Gen.SelectConversationPayload>(Chat2Gen.selectConversation, loadCanUserPerform)
 
-  // Unfurl
+  // Giphy
+  yield* Saga.chainAction<Chat2Gen.UnsentTextChangedPayload>(Chat2Gen.unsentTextChanged, unsentTextChanged)
+  yield* Saga.chainAction<Chat2Gen.GiphySendPayload>(Chat2Gen.giphySend, giphySend)
+
   yield* Saga.chainAction<Chat2Gen.UnfurlResolvePromptPayload>(
     Chat2Gen.unfurlResolvePrompt,
     unfurlResolvePrompt
@@ -2861,6 +2943,7 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     changePendingMode
   )
   yield* Saga.chainAction<Chat2Gen.OpenChatFromWidgetPayload>(Chat2Gen.openChatFromWidget, openChatFromWidget)
+  yield* Saga.chainAction<Chat2Gen.ToggleInfoPanelPayload>(Chat2Gen.toggleInfoPanel, toggleInfoPanel)
 
   // Exploding things
   yield* Saga.chainGenerator<Chat2Gen.SetConvExplodingModePayload>(
@@ -2885,6 +2968,11 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
   yield* Saga.chainAction<Chat2Gen.PrepareFulfillRequestFormPayload>(
     Chat2Gen.prepareFulfillRequestForm,
     prepareFulfillRequestForm
+  )
+
+  yield* Saga.chainGenerator<Chat2Gen.SelectConversationPayload>(
+    Chat2Gen.selectConversation,
+    loadChannelInfos
   )
 
   yield* Saga.chainAction<EngineGen.Chat1NotifyChatChatPromptUnfurlPayload>(
@@ -2947,9 +3035,21 @@ function* chat2Saga(): Saga.SagaGenerator<any, any> {
     EngineGen.chat1NotifyChatNewChatActivity,
     onNewChatActivity
   )
+  yield* Saga.chainAction<EngineGen.Chat1ChatUiChatGiphySearchResultsPayload>(
+    EngineGen.chat1ChatUiChatGiphySearchResults,
+    onGiphyResults
+  )
   yield* Saga.chainAction<EngineGen.Chat1ChatUiChatShowManageChannelsPayload>(
     EngineGen.chat1ChatUiChatShowManageChannels,
     onChatShowManageChannels
+  )
+  yield* Saga.chainAction<EngineGen.Chat1ChatUiChatCoinFlipStatusPayload>(
+    EngineGen.chat1ChatUiChatCoinFlipStatus,
+    onChatCoinFlipStatus
+  )
+  yield* Saga.chainAction<EngineGen.Chat1ChatUiChatCommandMarkdownPayload>(
+    EngineGen.chat1ChatUiChatCommandMarkdown,
+    onChatCommandMarkdown
   )
 
   yield* Saga.chainAction<ConfigGen.SetupEngineListenersPayload>(

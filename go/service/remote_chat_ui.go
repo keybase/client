@@ -101,9 +101,33 @@ func (r *RemoteChatUI) ChatStellarDone(ctx context.Context, canceled bool) error
 	})
 }
 
+func (r *RemoteChatUI) ChatGiphySearchResults(ctx context.Context, convID chat1.ConversationID,
+	results []chat1.GiphySearchResult) error {
+	return r.cli.ChatGiphySearchResults(ctx, chat1.ChatGiphySearchResultsArg{
+		SessionID: r.sessionID,
+		ConvID:    convID.String(),
+		Results:   results,
+	})
+}
+
 func (r *RemoteChatUI) ChatShowManageChannels(ctx context.Context, teamname string) error {
 	return r.cli.ChatShowManageChannels(ctx, chat1.ChatShowManageChannelsArg{
 		SessionID: r.sessionID,
 		Teamname:  teamname,
+	})
+}
+
+func (r *RemoteChatUI) ChatCoinFlipStatus(ctx context.Context, statuses []chat1.UICoinFlipStatus) error {
+	return r.cli.ChatCoinFlipStatus(ctx, chat1.ChatCoinFlipStatusArg{
+		SessionID: r.sessionID,
+		Statuses:  statuses,
+	})
+}
+
+func (r *RemoteChatUI) ChatCommandMarkdown(ctx context.Context, convID chat1.ConversationID, text string) error {
+	return r.cli.ChatCommandMarkdown(ctx, chat1.ChatCommandMarkdownArg{
+		SessionID: r.sessionID,
+		ConvID:    convID.String(),
+		Text:      text,
 	})
 }

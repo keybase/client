@@ -28,7 +28,7 @@ func (h *Unhide) Execute(ctx context.Context, uid gregor1.UID, _ chat1.Conversat
 	if err != nil {
 		return err
 	}
-	conv, err := h.getConvByName(ctx, uid, toks[1])
+	conv, err := getConvByName(ctx, h.G(), uid, toks[1])
 	if err != nil {
 		return err
 	}

@@ -39,7 +39,7 @@ export type Props = {|
   waiting?: boolean,
   small?: boolean,
   fullWidth?: boolean,
-  backgroundMode?: 'Normal' | 'Terminal' | 'Red' | 'Green' | 'Blue' | 'Black',
+  backgroundMode?: 'Normal' | 'Terminal' | 'Red' | 'Green' | 'Blue' | 'Black' | 'Purple',
   className?: string,
 |}
 
@@ -60,6 +60,7 @@ class Button extends React.Component<Props> {
           Blue: 'Blue',
           Green: 'Green',
           Normal: '',
+          Purple: 'Purple',
           Red: 'Red',
           Terminal: 'OnTerminal',
         }[this.props.backgroundMode]
@@ -181,6 +182,7 @@ const containerStyles = styleSheetCreate({
   PrimaryColoredBackgroundBlack: {...common, backgroundColor: globalColors.white},
   PrimaryColoredBackgroundBlue: {...common, backgroundColor: globalColors.white},
   PrimaryColoredBackgroundGreen: {...common, backgroundColor: globalColors.white},
+  PrimaryColoredBackgroundPurple: {...common, backgroundColor: globalColors.white},
   PrimaryColoredBackgroundRed: {...common, backgroundColor: globalColors.white},
   PrimaryGreen: {...common, backgroundColor: globalColors.green},
   PrimaryGreenActive: platformStyles({
@@ -194,24 +196,34 @@ const containerStyles = styleSheetCreate({
   }),
   PrimaryPrivate: {...common, backgroundColor: globalColors.darkBlue2},
   Secondary: {...common, backgroundColor: globalColors.lightGrey2},
-  SecondaryColoredBackground: {...common, backgroundColor: globalColors.black_20},
+  SecondaryColoredBackgroundBlack: {...common, backgroundColor: globalColors.black_20},
+  SecondaryColoredBackgroundBlue: {...common, backgroundColor: globalColors.black_20},
+  SecondaryColoredBackgroundGreen: {...common, backgroundColor: globalColors.black_20},
+  SecondaryColoredBackgroundPurple: {...common, backgroundColor: globalColors.black_20},
+  SecondaryColoredBackgroundRed: {...common, backgroundColor: globalColors.black_20},
   SecondaryOnTerminal: {...common, backgroundColor: globalColors.blue_30},
   Wallet: {...common, backgroundColor: globalColors.purple2},
 })
 
 const labelStyles = styleSheetCreate({
-  CustomLabel: {color: globalColors.black_75, textAlign: 'center'},
+  CustomLabel: {color: globalColors.black, textAlign: 'center'},
   DangerLabel: commonLabel,
   PrimaryColoredBackgroundLabelBlack: {...commonLabel, color: globalColors.black},
   PrimaryColoredBackgroundLabelBlue: {...commonLabel, color: globalColors.blue},
   PrimaryColoredBackgroundLabelGreen: {...commonLabel, color: globalColors.green},
+  PrimaryColoredBackgroundLabelPurple: {...commonLabel, color: globalColors.purple},
   PrimaryColoredBackgroundLabelRed: {...commonLabel, color: globalColors.red},
   PrimaryGreenActiveLabel: {...commonLabel, color: globalColors.green},
   PrimaryGreenLabel: commonLabel,
   PrimaryLabel: commonLabel,
   PrimaryPrivateLabel: commonLabel,
   SecondaryColoredBackgroundLabel: {...commonLabel, color: globalColors.white},
-  SecondaryLabel: {...commonLabel, color: globalColors.black_75},
+  SecondaryColoredBackgroundLabelBlack: {...commonLabel, color: globalColors.white},
+  SecondaryColoredBackgroundLabelBlue: {...commonLabel, color: globalColors.white},
+  SecondaryColoredBackgroundLabelGreen: {...commonLabel, color: globalColors.white},
+  SecondaryColoredBackgroundLabelPurple: {...commonLabel, color: globalColors.white},
+  SecondaryColoredBackgroundLabelRed: {...commonLabel, color: globalColors.white},
+  SecondaryLabel: {...commonLabel, color: globalColors.black},
   SecondaryLabelOnTerminal: {...commonLabel, color: globalColors.white},
   WalletLabel: commonLabel,
 })

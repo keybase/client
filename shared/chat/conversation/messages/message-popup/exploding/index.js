@@ -82,7 +82,7 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
         <Icon style={styles.headerIcon} type={headerIconType} />
         <Box2 direction="vertical" style={styles.messageInfoContainer}>
           <Box2 direction="vertical">
-            <Text type="BodySmall" style={{color: Styles.globalColors.black_75}}>
+            <Text type="BodySmall" style={{color: Styles.globalColors.black}}>
               EXPLODING MESSAGE
             </Text>
           </Box2>
@@ -101,13 +101,19 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
             </Box2>
           </Box2>
           <Box2 direction="horizontal">
-            <Text type="BodySmall">from device {deviceName}</Text>
+            <Text center={true} type="BodySmall">
+              from device {deviceName}
+            </Text>
           </Box2>
           <Box2 direction="horizontal">
-            <Text type="BodySmall">using exploding key</Text>
+            <Text center={true} type="BodySmall">
+              using exploding key
+            </Text>
           </Box2>
           <Box2 direction="horizontal">
-            <Text type="BodySmall">{formatTimeForPopup(timestamp)}</Text>
+            <Text center={true} type="BodySmall">
+              {formatTimeForPopup(timestamp)}
+            </Text>
           </Box2>
         </Box2>
         {!!deviceRevokedAt && (
@@ -129,9 +135,7 @@ class ExplodingPopupHeader extends React.Component<PropsWithTimer<Props>, State>
             styles.timerBox,
             {
               backgroundColor:
-                this.state.secondsLeft < oneMinuteInS
-                  ? Styles.globalColors.red
-                  : Styles.globalColors.black_75,
+                this.state.secondsLeft < oneMinuteInS ? Styles.globalColors.red : Styles.globalColors.black,
             },
           ])}
         >

@@ -44,8 +44,9 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 	mctx.CDebugf("Batch size: %d", len(arg.Payments))
 
 	// prepare the payments
-	prepared, err := PrepareBatchPayments(mctx, walletState, senderSeed, arg.Payments)
+	prepared, unlock, err := PrepareBatchPayments(mctx, walletState, senderSeed, arg.Payments)
 	if err != nil {
+		walletState.SeqnoUnlock()
 		return res, err
 	}
 
@@ -54,6 +55,7 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 	// make a listener that will get payment status updates
 	listenerID, listenerCh, err := DefaultLoader(mctx.G()).GetListener()
 	if err != nil {
+		unlock()
 		return res, err
 	}
 	defer DefaultLoader(mctx.G()).RemoveListener(listenerID)
@@ -65,6 +67,7 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 	// need to submit tx one at a time, in order
 	for i := 0; i < len(prepared); i++ {
 		if prepared[i] == nil {
+			unlock()
 			// this should never happen
 			return res, errors.New("batch prepare failed")
 		}
@@ -86,6 +89,9 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 		bpResult.StatusDescription = stellar1.PaymentStatusRevMap[bpResult.Status]
 		resultList[i] = bpResult
 	}
+
+	// release the lock before waiting for the payments
+	unlock()
 
 	res.AllSubmittedTime = stellar1.ToTimeMs(time.Now())
 
@@ -147,15 +153,17 @@ func Batch(mctx libkb.MetaContext, walletState *WalletState, arg stellar1.BatchL
 // PrepareBatchPayments prepares a list of payments to be submitted.
 // Each payment is prepared concurrently.
 // (this is an exposed function to make testing from outside this package easier)
-func PrepareBatchPayments(mctx libkb.MetaContext, walletState *WalletState, senderSeed stellarnet.SeedStr, payments []stellar1.BatchPaymentArg) ([]*MiniPrepared, error) {
+func PrepareBatchPayments(mctx libkb.MetaContext, walletState *WalletState, senderSeed stellarnet.SeedStr, payments []stellar1.BatchPaymentArg) ([]*MiniPrepared, func(), error) {
 	mctx.CDebugf("preparing %d batch payments", len(payments))
+
+	baseFee := walletState.BaseFee(mctx)
 
 	prepared := make(chan *MiniPrepared)
 
-	sp := NewSeqnoProvider(mctx, walletState)
+	sp, unlock := NewSeqnoProvider(mctx, walletState)
 	for _, payment := range payments {
 		go func(p stellar1.BatchPaymentArg) {
-			prepared <- prepareBatchPayment(mctx, walletState, sp, senderSeed, p)
+			prepared <- prepareBatchPayment(mctx, walletState, sp, senderSeed, p, baseFee)
 		}(payment)
 	}
 
@@ -166,10 +174,10 @@ func PrepareBatchPayments(mctx libkb.MetaContext, walletState *WalletState, send
 	}
 	sort.Slice(preparedList, func(a, b int) bool { return preparedList[a].Seqno < preparedList[b].Seqno })
 
-	return preparedList, nil
+	return preparedList, unlock, nil
 }
 
-func prepareBatchPayment(mctx libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, senderSeed stellarnet.SeedStr, payment stellar1.BatchPaymentArg) *MiniPrepared {
+func prepareBatchPayment(mctx libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, senderSeed stellarnet.SeedStr, payment stellar1.BatchPaymentArg, baseFee uint64) *MiniPrepared {
 	recipient, err := LookupRecipient(mctx, stellarcommon.RecipientInput(payment.Recipient), false /* isCLI for identify purposes */)
 	if err != nil {
 		mctx.CDebugf("LookupRecipient error: %s", err)
@@ -180,12 +188,12 @@ func prepareBatchPayment(mctx libkb.MetaContext, remoter remote.Remoter, sp buil
 	}
 
 	if recipient.AccountID == nil {
-		return prepareBatchPaymentRelay(mctx, remoter, sp, senderSeed, payment, recipient)
+		return prepareBatchPaymentRelay(mctx, remoter, sp, senderSeed, payment, recipient, baseFee)
 	}
-	return prepareBatchPaymentDirect(mctx, remoter, sp, senderSeed, payment, recipient)
+	return prepareBatchPaymentDirect(mctx, remoter, sp, senderSeed, payment, recipient, baseFee)
 }
 
-func prepareBatchPaymentDirect(mctx libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, senderSeed stellarnet.SeedStr, payment stellar1.BatchPaymentArg, recipient stellarcommon.Recipient) *MiniPrepared {
+func prepareBatchPaymentDirect(mctx libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, senderSeed stellarnet.SeedStr, payment stellar1.BatchPaymentArg, recipient stellarcommon.Recipient, baseFee uint64) *MiniPrepared {
 	result := &MiniPrepared{Username: libkb.NewNormalizedUsername(payment.Recipient)}
 	funded, err := isAccountFunded(mctx.Ctx(), remoter, stellar1.AccountID(recipient.AccountID.String()))
 	if err != nil {
@@ -209,9 +217,9 @@ func prepareBatchPaymentDirect(mctx libkb.MetaContext, remoter remote.Remoter, s
 
 	var signResult stellarnet.SignResult
 	if funded {
-		signResult, err = stellarnet.PaymentXLMTransaction(senderSeed, *recipient.AccountID, payment.Amount, "", sp, nil)
+		signResult, err = stellarnet.PaymentXLMTransaction(senderSeed, *recipient.AccountID, payment.Amount, "", sp, nil, baseFee)
 	} else {
-		signResult, err = stellarnet.CreateAccountXLMTransaction(senderSeed, *recipient.AccountID, payment.Amount, "", sp, nil)
+		signResult, err = stellarnet.CreateAccountXLMTransaction(senderSeed, *recipient.AccountID, payment.Amount, "", sp, nil, baseFee)
 	}
 	if err != nil {
 		result.Error = err
@@ -241,7 +249,7 @@ func prepareBatchPaymentDirect(mctx libkb.MetaContext, remoter remote.Remoter, s
 	return result
 }
 
-func prepareBatchPaymentRelay(mctx libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, senderSeed stellarnet.SeedStr, payment stellar1.BatchPaymentArg, recipient stellarcommon.Recipient) *MiniPrepared {
+func prepareBatchPaymentRelay(mctx libkb.MetaContext, remoter remote.Remoter, sp build.SequenceProvider, senderSeed stellarnet.SeedStr, payment stellar1.BatchPaymentArg, recipient stellarcommon.Recipient, baseFee uint64) *MiniPrepared {
 	result := &MiniPrepared{Username: libkb.NewNormalizedUsername(payment.Recipient)}
 
 	if isAmountLessThanMin(payment.Amount, minAmountRelayXLM) {
@@ -262,6 +270,7 @@ func prepareBatchPaymentRelay(mctx libkb.MetaContext, remoter remote.Remoter, sp
 		EncryptFor:    appKey,
 		SeqnoProvider: sp,
 		Timebounds:    nil,
+		BaseFee:       baseFee,
 	})
 	if err != nil {
 		result.Error = err

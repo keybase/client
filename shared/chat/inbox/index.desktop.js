@@ -1,10 +1,10 @@
 // @flow
 import * as Types from '../../constants/types/chat2'
 import * as React from 'react'
+import * as Styles from '../../styles'
 import AutoSizer from 'react-virtualized-auto-sizer'
 import {VariableSizeList} from 'react-window'
 import {ErrorBoundary} from '../../common-adapters'
-import {globalStyles, globalColors} from '../../styles'
 import {makeRow} from './row'
 import BuildTeam from './row/build-team/container'
 import ChatInboxHeader from './row/chat-inbox-header/container'
@@ -28,6 +28,7 @@ class Inbox extends React.PureComponent<Props, State> {
 
   _mounted: boolean = false
   _list: ?VariableSizeList<any>
+  _clearedFilterCount: number = 0
 
   componentDidUpdate(prevProps: Props) {
     let listRowsResized = false
@@ -39,6 +40,9 @@ class Inbox extends React.PureComponent<Props, State> {
     if (!!prevProps.filter !== !!this.props.filter) {
       listRowsResized = true
     }
+    if (prevProps.filter !== this.props.filter && this._list) {
+      this._list.scrollTo(0)
+    }
 
     // list changed
     if (this.props.rows.length !== prevProps.rows.length) {
@@ -49,8 +53,12 @@ class Inbox extends React.PureComponent<Props, State> {
       this._list && this._list.resetAfterIndex(0)
     }
 
-    if (this.props.selectedIndex !== prevProps.selectedIndex && this.props.selectedIndex >= 0 && this._list) {
-      this._list.scrollToItem(this.props.selectedIndex)
+    if (this.props.filter && this.props.selectedConversationIDKey !== prevProps.selectedConversationIDKey) {
+      const selectedIndex = this.props.rows.findIndex(
+        // $ForceType
+        r => r.conversationIDKey === this.props.selectedConversationIDKey
+      )
+      selectedIndex >= 0 && this._list && this._list.scrollToItem(selectedIndex)
     }
   }
 
@@ -76,7 +84,9 @@ class Inbox extends React.PureComponent<Props, State> {
 
   _itemRenderer = (index, style) => {
     const row = this.props.rows[index]
-    const divStyle = virtualListMarks ? {...style, backgroundColor: 'purple', overflow: 'hidden'} : style
+    const divStyle = virtualListMarks
+      ? Styles.collapseStyles([style, {backgroundColor: 'purple', overflow: 'hidden'}])
+      : style
     if (row.type === 'divider') {
       return (
         <div style={divStyle}>
@@ -93,8 +103,9 @@ class Inbox extends React.PureComponent<Props, State> {
     const conversationIDKey: Types.ConversationIDKey = row.conversationIDKey
     const teamname = row.teamname
 
+    // pointer events on so you can click even right after a scroll
     return (
-      <div style={divStyle}>
+      <div style={Styles.collapseStyles([divStyle, {pointerEvents: 'auto'}])}>
         {makeRow({
           channelname: (row.type === 'big' && row.channelname) || '',
           conversationIDKey,
@@ -108,6 +119,13 @@ class Inbox extends React.PureComponent<Props, State> {
 
   _onItemsRendered = debounce(({visibleStartIndex, visibleStopIndex}) => {
     if (this.props.filter.length) {
+      return
+    }
+    if (this.props.clearedFilterCount > this._clearedFilterCount) {
+      // just cleared out filter
+      // re-rendering normal inbox for the first time
+      // no new / potentially out of date rows here
+      this._clearedFilterCount = this.props.clearedFilterCount
       return
     }
     const toUnbox = this.props.rows.slice(visibleStartIndex, visibleStopIndex + 1).reduce((arr, r) => {
@@ -148,7 +166,7 @@ class Inbox extends React.PureComponent<Props, State> {
     )
     return (
       <ErrorBoundary>
-        <div style={_containerStyle}>
+        <div style={styles.container}>
           <ChatInboxHeader
             filterFocusCount={this.props.filterFocusCount}
             focusFilter={this.props.focusFilter}
@@ -158,7 +176,7 @@ class Inbox extends React.PureComponent<Props, State> {
             onSelectDown={this._onSelectDown}
           />
           <NewConversation />
-          <div style={_listStyle}>
+          <div style={styles.list}>
             <AutoSizer>
               {({height, width}) => (
                 <VariableSizeList
@@ -183,17 +201,20 @@ class Inbox extends React.PureComponent<Props, State> {
   }
 }
 
-const _containerStyle = {
-  ...globalStyles.flexBoxColumn,
-  backgroundColor: globalColors.blueGrey,
-  contain: 'strict',
-  height: '100%',
-  maxWidth: inboxWidth,
-  minWidth: inboxWidth,
-  position: 'relative',
-}
-
-const _listStyle = {flex: 1}
+const styles = Styles.styleSheetCreate({
+  container: Styles.platformStyles({
+    isElectron: {
+      ...Styles.globalStyles.flexBoxColumn,
+      backgroundColor: Styles.globalColors.blueGrey,
+      contain: 'strict',
+      height: '100%',
+      maxWidth: inboxWidth,
+      minWidth: inboxWidth,
+      position: 'relative',
+    },
+  }),
+  list: {flex: 1},
+})
 
 export default Inbox
 export type {RowItem, RowItemSmall, RowItemBig, RouteState}

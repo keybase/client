@@ -82,7 +82,19 @@ func (r DummyChatUI) ChatStellarDone(ctx context.Context, arg chat1.ChatStellarD
 	return nil
 }
 
+func (r DummyChatUI) ChatGiphySearchResults(ctx context.Context, arg chat1.ChatGiphySearchResultsArg) error {
+	return nil
+}
+
 func (r DummyChatUI) ChatShowManageChannels(ctx context.Context, arg chat1.ChatShowManageChannelsArg) error {
+	return nil
+}
+
+func (r DummyChatUI) ChatCoinFlipStatus(ctx context.Context, arg chat1.ChatCoinFlipStatusArg) error {
+	return nil
+}
+
+func (r DummyChatUI) ChatCommandMarkdown(ctx context.Context, arg chat1.ChatCommandMarkdownArg) error {
 	return nil
 }
 

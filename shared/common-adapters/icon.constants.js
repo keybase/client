@@ -56,6 +56,26 @@ const iconMeta_ = {
     isFont: false,
     require: require('../images/icons/icon-addon-lock-hover-16.png'),
   },
+  'icon-airdrop-star-16': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-airdrop-star-16.png'),
+  },
+  'icon-airdrop-star-32': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-airdrop-star-32.png'),
+  },
+  'icon-airdrop-star-48': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-airdrop-star-48.png'),
+  },
+  'icon-airdrop-star-64': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-airdrop-star-64.png'),
+  },
   'icon-bitcoin-logo-48': {
     extension: 'png',
     isFont: false,
@@ -165,6 +185,41 @@ const iconMeta_ = {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-facebook-visibility-static.png'),
+  },
+  'icon-fancy-airdrop-friends-120': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-fancy-airdrop-friends-120.png'),
+  },
+  'icon-fancy-airdrop-star-faded-120': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-fancy-airdrop-star-faded-120.png'),
+  },
+  'icon-fancy-airdrop-star-faded-loading-120': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-fancy-airdrop-star-faded-loading-120.png'),
+  },
+  'icon-fancy-airdrop-star-faded-sad-120': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-fancy-airdrop-star-faded-sad-120.png'),
+  },
+  'icon-fancy-airdrop-star-shining-120': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-fancy-airdrop-star-shining-120.png'),
+  },
+  'icon-fancy-airdrop-star-shining-80': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-fancy-airdrop-star-shining-80.png'),
+  },
+  'icon-fancy-airdrop-star-shining-happy-120': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-fancy-airdrop-star-shining-happy-120.png'),
   },
   'icon-fancy-bomb-desktop-150-72': {
     extension: 'png',
@@ -300,6 +355,21 @@ const iconMeta_ = {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-fancy-unfurl-preview-mobile-128-128.png'),
+  },
+  'icon-fancy-user-card-desktop-80-99': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-fancy-user-card-desktop-80-99.png'),
+  },
+  'icon-fancy-user-card-desktop-star-80-99': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-fancy-user-card-desktop-star-80-99.png'),
+  },
+  'icon-fancy-user-card-mobile-120-149': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-fancy-user-card-mobile-120-149.png'),
   },
   'icon-file-24': {
     extension: 'png',
@@ -1315,6 +1385,11 @@ const iconMeta_ = {
     extension: 'png',
     isFont: false,
     require: require('../images/icons/icon-play-64.png'),
+  },
+  'icon-powered-by-giphy-120-26': {
+    extension: 'png',
+    isFont: false,
+    require: require('../images/icons/icon-powered-by-giphy-120-26.png'),
   },
   'icon-progress-grey-animated': {
     extension: 'gif',

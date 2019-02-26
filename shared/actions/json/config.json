@@ -79,10 +79,6 @@
       "usernames": "Array<string>"
     },
     "globalError": {"globalError": "null | Error | RPCError"},
-    "updateFollowing": {
-      "username": "string",
-      "isTracking": "boolean"
-    },
     "pushLoaded": {"pushLoaded": "boolean"},
     "setStartupDetails": {
       "startupWasFromPush": "boolean",
@@ -101,12 +97,14 @@
     },
     "setDeletedSelf": {"deletedUsername": "string"},
     "swapRouter": {"useNewRouter": "boolean"},
+    "persistRoute": {"path": "Array<any>"},
+    "setNavigator": {"navigator": "any"},
     "loggedOut": {},
     "loggedIn": {"causedByStartup": "boolean"},
     "updateMenubarWindowID": {"id": "number"},
     "copyToClipboard": {"text": "string"},
     "checkForUpdate": {},
     "updateInfo": {"isOutOfDate": "boolean", "critical": "boolean", "message?": "string"},
-    "updateNow": {}
+    "updateNow": {},
   }
 }

@@ -113,6 +113,7 @@ export const serviceMessageTypeToMessageTypes = (t: RPCChatTypes.MessageType): A
     case RPCChatTypes.commonMessageType.deletehistory:
     case RPCChatTypes.commonMessageType.reaction:
     case RPCChatTypes.commonMessageType.unfurl:
+    case RPCChatTypes.commonMessageType.flip:
       return []
     default:
       // $FlowIssue need these to be opaque types
@@ -181,8 +182,11 @@ export const makeMessageText: I.RecordFactory<MessageTypes._MessageText> = I.Rec
   ...makeMessageCommon,
   ...makeMessageExplodable,
   decoratedText: null,
+  flipGameID: null,
   inlinePaymentIDs: null,
   inlinePaymentSuccessful: false,
+  isDeleteable: true,
+  isEditable: true,
   mentionsAt: I.Set(),
   mentionsChannel: 'none',
   mentionsChannelName: I.Map(),
@@ -205,6 +209,8 @@ export const makeMessageAttachment: I.RecordFactory<MessageTypes._MessageAttachm
   fileURLCached: false,
   inlineVideoPlayable: false,
   isCollapsed: false,
+  isDeleteable: true,
+  isEditable: false,
   previewHeight: 0,
   previewTransferState: null,
   previewURL: '',
@@ -678,14 +684,27 @@ const validUIMessagetoMessage = (
   }
 
   switch (m.messageBody.messageType) {
+    case RPCChatTypes.commonMessageType.flip:
     case RPCChatTypes.commonMessageType.text:
-      const messageText = m.messageBody.text
-      const rawText: string = messageText?.body ?? ''
-      const payments = messageText?.payments ?? null
+      let rawText
+      let payments
+      switch (m.messageBody.messageType) {
+        case RPCChatTypes.commonMessageType.flip:
+          rawText = m.messageBody.flip?.text ?? ''
+          break
+        case RPCChatTypes.commonMessageType.text:
+          const messageText = m.messageBody.text
+          rawText = messageText?.body ?? ''
+          payments = messageText?.payments ?? null
+          break
+        default:
+          rawText = ''
+      }
       return makeMessageText({
         ...common,
         ...explodable,
         decoratedText: m.decoratedTextBody ? new HiddenString(m.decoratedTextBody) : null,
+        flipGameID: m.flipGameID,
         hasBeenEdited: m.superseded,
         inlinePaymentIDs: payments
           ? I.List(
@@ -702,6 +721,8 @@ const validUIMessagetoMessage = (
         inlinePaymentSuccessful: m.paymentInfos
           ? m.paymentInfos.some(pi => successfulInlinePaymentStatuses.includes(pi.statusDescription))
           : false,
+        isDeleteable: m.isDeleteable,
+        isEditable: m.isEditable,
         mentionsAt: I.Set(m.atMentions || []),
         mentionsChannel: channelMentionToMentionsChannel(m.channelMention),
         mentionsChannelName: I.Map(
@@ -766,6 +787,8 @@ const validUIMessagetoMessage = (
         fileURLCached,
         inlineVideoPlayable,
         isCollapsed: m.isCollapsed,
+        isDeleteable: m.isDeleteable,
+        isEditable: m.isEditable,
         previewHeight: pre.height,
         previewURL,
         previewWidth: pre.width,
@@ -890,6 +913,7 @@ const outboxUIMessagetoMessage = (
         Types.numberToOrdinal(o.ordinal),
         errorReason
       )
+    case RPCChatTypes.commonMessageType.flip:
     case RPCChatTypes.commonMessageType.text:
       return makeMessageText({
         author: state.config.username || '',
@@ -899,6 +923,7 @@ const outboxUIMessagetoMessage = (
         deviceType: isMobile ? 'mobile' : 'desktop',
         errorReason,
         exploding: o.isEphemeral,
+        flipGameID: o.flipGameID,
         ordinal: Types.numberToOrdinal(o.ordinal),
         outboxID: Types.stringToOutboxID(o.outboxID),
         submitState: 'pending',

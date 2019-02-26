@@ -72,7 +72,7 @@ func (t *DNSServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
 }
 
 func (t *DNSServiceType) FormatProofText(ctx libkb.MetaContext, ppr *libkb.PostProofRes,
-	kbUsername string, sigID keybase1.SigID) (string, error) {
+	kbUsername, remoteUsername string, sigID keybase1.SigID) (string, error) {
 	return (ppr.Text + "\n"), nil
 }
 

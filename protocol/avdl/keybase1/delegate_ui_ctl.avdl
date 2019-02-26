@@ -10,7 +10,6 @@ protocol delegateUiCtl {
   void registerHomeUI();
   void registerIdentify3UI();
   void registerChatUI();
-
   void registerGregorFirehose();
 
   /**

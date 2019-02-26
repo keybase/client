@@ -21,6 +21,10 @@ func (f *fakeUIRouter) GetChatUI() (libkb.ChatUI, error) {
 	return f.ui, nil
 }
 
+func (f *fakeUIRouter) DumpUIs() map[libkb.UIKind]libkb.ConnectionID {
+	return nil
+}
+
 func (f *fakeUIRouter) Shutdown() {}
 
 func TestChatCommands(t *testing.T) {
@@ -57,8 +61,8 @@ func TestChatCommands(t *testing.T) {
 	listener0 := newServerChatListener()
 	listener1 := newServerChatListener()
 	ctc.as(t, users[0]).h.mockChatUI = ui
-	ctc.as(t, users[0]).h.G().NotifyRouter.SetListener(listener0)
-	ctc.as(t, users[1]).h.G().NotifyRouter.SetListener(listener1)
+	ctc.as(t, users[0]).h.G().NotifyRouter.AddListener(listener0)
+	ctc.as(t, users[1]).h.G().NotifyRouter.AddListener(listener1)
 	ctc.world.Tcs[users[0].Username].G.UIRouter = &fakeUIRouter{ui: ui}
 	ctc.world.Tcs[users[0].Username].ChatG.Syncer.(*Syncer).isConnected = true
 	ctc.world.Tcs[users[1].Username].ChatG.Syncer.(*Syncer).isConnected = true

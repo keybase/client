@@ -220,7 +220,7 @@ func ExtensionInit(homeDir string, mobileSharedHome string, logFile string, runM
 		return err
 	}
 	extensionListener = newExtensionNotifyListener(gc)
-	kbCtx.NotifyRouter.SetListener(extensionListener)
+	kbCtx.NotifyRouter.AddListener(extensionListener)
 	kbChatCtx.InboxSource = chat.NewRemoteInboxSource(gc, func() chat1.RemoteInterface { return extensionRi })
 	kbChatCtx.EphemeralPurger.Start(context.Background(), uid) // need to start this to send
 	kbChatCtx.MessageDeliverer.Start(context.Background(), uid)

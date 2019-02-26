@@ -4,6 +4,10 @@
     {
       "path": "common.avdl",
       "type": "idl"
+    },
+    {
+      "path": "notify_ctl.avdl",
+      "type": "idl"
     }
   ],
   "types": [
@@ -98,6 +102,24 @@
     },
     {
       "type": "record",
+      "name": "ClientStatus",
+      "fields": [
+        {
+          "type": "ClientDetails",
+          "name": "details"
+        },
+        {
+          "type": "int",
+          "name": "connectionID"
+        },
+        {
+          "type": "NotificationChannels",
+          "name": "notificationChannels"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "PlatformInfo",
       "fields": [
         {
@@ -136,6 +158,10 @@
       "type": "record",
       "name": "DirSizeInfo",
       "fields": [
+        {
+          "type": "int",
+          "name": "numFiles"
+        },
         {
           "type": "string",
           "name": "name"
@@ -229,7 +255,7 @@
         {
           "type": {
             "type": "array",
-            "items": "ClientDetails"
+            "items": "ClientStatus"
           },
           "name": "Clients",
           "lint": "ignore"
@@ -269,6 +295,13 @@
             "items": "DirSizeInfo"
           },
           "name": "cacheDirSizeInfo"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "int"
+          },
+          "name": "uiRouterMapping"
         }
       ]
     },
@@ -512,6 +545,18 @@
         }
       ],
       "response": "ExtendedStatus"
+    },
+    "getClientStatus": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "ClientStatus"
+      }
     },
     "getAllProvisionedUsernames": {
       "request": [

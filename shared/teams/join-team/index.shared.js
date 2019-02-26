@@ -32,7 +32,7 @@ export const SuccessComponent = ({successTeamName, onBack}: Props) => (
         style={{margin: globalMargins.tiny, width: '100%'}}
         center={true}
         type="BodySemibold"
-        backgroundMode="Announcements"
+        negative={true}
       >
         Your request is on its way!
       </Text>

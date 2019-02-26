@@ -219,6 +219,17 @@
         {
           "type": "boolean",
           "name": "unread"
+        },
+        {
+          "type": "boolean",
+          "name": "isInflation"
+        },
+        {
+          "type": [
+            null,
+            "string"
+          ],
+          "name": "inflationSource"
         }
       ]
     },
@@ -700,6 +711,16 @@
           "jsonkey": "timeout"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "NetworkOptions",
+      "fields": [
+        {
+          "type": "uint64",
+          "name": "baseFee"
+        }
+      ]
     }
   ],
   "messages": {
@@ -755,6 +776,10 @@
         },
         {
           "name": "skipPending",
+          "type": "boolean"
+        },
+        {
+          "name": "includeMulti",
           "type": "boolean"
         }
       ],
@@ -968,6 +993,15 @@
     "ping": {
       "request": [],
       "response": "string"
+    },
+    "networkOptions": {
+      "request": [
+        {
+          "name": "caller",
+          "type": "keybase1.UserVersion"
+        }
+      ],
+      "response": "NetworkOptions"
     }
   },
   "namespace": "stellar.1"

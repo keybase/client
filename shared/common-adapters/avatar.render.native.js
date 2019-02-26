@@ -155,7 +155,7 @@ class AvatarRender extends React.PureComponent<Props, State> {
               style={{
                 bottom: this.props.isTeam ? -2 : 0,
                 position: 'absolute',
-                right: this.props.isTeam ? -18 : 0,
+                right: this.props.isTeam ? -28 : 0,
               }}
             />
           )}

@@ -41,7 +41,7 @@ const NoteAndMemo = (props: Props) => (
 
 const styles = Styles.styleSheetCreate({
   bodyText: {
-    color: Styles.globalColors.black_75,
+    color: Styles.globalColors.black,
   },
   headingText: {
     color: Styles.globalColors.blue,

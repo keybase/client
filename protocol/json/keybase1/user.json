@@ -232,6 +232,10 @@
         {
           "type": "string",
           "name": "username"
+        },
+        {
+          "type": "string",
+          "name": "fullname"
         }
       ]
     },
@@ -323,6 +327,10 @@
         {
           "type": "string",
           "name": "reason"
+        },
+        {
+          "type": "boolean",
+          "name": "setPassphrase"
         }
       ]
     }

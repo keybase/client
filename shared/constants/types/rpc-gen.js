@@ -67,6 +67,11 @@ export const commonMerkleTreeID = {
   kbfsPrivateteam: 3,
 }
 
+export const commonOfflineAvailability = {
+  none: 0,
+  bestEffort: 1,
+}
+
 export const commonSeqType = {
   none: 0,
   public: 1,
@@ -120,6 +125,7 @@ export const constantsStatusCode = {
   scexists: 230,
   sccanceled: 237,
   scinputcanceled: 239,
+  scoffline: 267,
   screloginrequired: 274,
   scresolutionfailed: 275,
   scprofilenotpublic: 276,
@@ -992,6 +998,7 @@ export const trackCheckTrackingRpcPromise = (params, waitingKey) => new Promise(
 export const trackDismissWithTokenRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.track.dismissWithToken', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const trackTrackWithTokenRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.track.trackWithToken', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const trackUntrackRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.track.untrack', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
+export const userCanLogoutRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.canLogout', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const userInterestingPeopleRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.interestingPeople', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const userListTrackers2RpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.listTrackers2', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))
 export const userLoadHasRandomPwRpcPromise = (params, waitingKey) => new Promise((resolve, reject) => engine()._rpcOutgoing({method: 'keybase.1.user.loadHasRandomPw', params, callback: (error, result) => (error ? reject(error) : resolve(result)), waitingKey}))

@@ -5,6 +5,7 @@ import {Box, Text, Icon} from '../common-adapters'
 import {globalStyles, globalColors} from '../styles'
 import {reachabilityReachable} from '../constants/types/rpc-gen'
 import {ignoreDisconnectOverlay} from '../local-debug.desktop'
+import flags from '../util/feature-flags'
 
 import type {Props} from './index'
 
@@ -39,7 +40,7 @@ const overlayFillStyle = {
   justifyContent: 'center',
 }
 
-const textStyle = { color: globalColors.white }
+const textStyle = {color: globalColors.white}
 
 const overlayRowStyle = {
   ...globalStyles.flexBoxRow,
@@ -52,7 +53,7 @@ const overlayRowStyle = {
 const containerOverlayStyle = {
   ...globalStyles.flexBoxColumn,
   bottom: 0,
-  left: 80,
+  left: flags.useNewRouter ? 0 : 80,
   position: 'absolute',
   right: 0,
   top: 0,

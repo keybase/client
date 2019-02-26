@@ -5,17 +5,21 @@
 package libkbfs
 
 import (
+	"context"
 	"encoding/base64"
 	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/keybase/client/go/kbfs/kbfscrypto"
 	"github.com/keybase/client/go/kbfs/kbfsmd"
 	"github.com/keybase/client/go/kbfs/tlf"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol/keybase1"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 )
 
 // Runs fn (which may block) in a separate goroutine and waits for it
@@ -66,9 +70,9 @@ var PrereleaseBuild string
 // VersionString returns semantic version string
 func VersionString() string {
 	if PrereleaseBuild != "" {
-		return fmt.Sprintf("%s-%s", Version, PrereleaseBuild)
+		return fmt.Sprintf("%s-%s", libkb.Version, PrereleaseBuild)
 	}
-	return Version
+	return libkb.Version
 }
 
 // CtxBackgroundSyncKeyType is the type for a context background sync key.
@@ -185,7 +189,10 @@ func getHandleFromFolderName(
 	return GetHandleFromFolderNameAndType(ctx, kbpki, idGetter, tlfName, t)
 }
 
-func isWriterFromHandle(
+// IsWriterFromHandle checks whether the given UID is a writer for the
+// given handle.  It understands team-keyed handles as well as
+// classically-keyed handles.
+func IsWriterFromHandle(
 	ctx context.Context, h *TlfHandle, checker kbfsmd.TeamMembershipChecker,
 	uid keybase1.UID, verifyingKey kbfscrypto.VerifyingKey) (
 	bool, error) {
@@ -247,4 +254,62 @@ func IsOnlyWriterInNonTeamTlf(ctx context.Context, kbpki KBPKI,
 		return false
 	}
 	return tlf.UserIsOnlyWriter(session.Name, h.GetCanonicalName())
+}
+
+const (
+	// GitStorageRootPrefix is the prefix of the temp storage root
+	// directory made for single-op git operations.
+	GitStorageRootPrefix = "kbfsgit"
+	// ConflictStorageRootPrefix is the prefix of the temp directory
+	// made for the conflict resolution disk cache.
+	ConflictStorageRootPrefix = "kbfs_conflict_disk_cache"
+
+	minAgeForStorageCleanup = 24 * time.Hour
+)
+
+func cleanOldTempStorageRoots(config Config) {
+	log := config.MakeLogger("")
+	ctx := CtxWithRandomIDReplayable(
+		context.Background(), CtxInitKey, CtxInitID, log)
+
+	storageRoot := config.StorageRoot()
+	d, err := os.Open(storageRoot)
+	if err != nil {
+		log.CDebugf(ctx, "Error opening storage root %s: %+v", storageRoot, err)
+		return
+	}
+	defer d.Close()
+
+	fis, err := d.Readdir(0)
+	if err != nil {
+		log.CDebugf(ctx, "Error reading storage root %s: %+v", storageRoot, err)
+		return
+	}
+
+	modTimeCutoff := config.Clock().Now().Add(-minAgeForStorageCleanup)
+	cleanedOne := false
+	for _, fi := range fis {
+		if fi.ModTime().After(modTimeCutoff) {
+			continue
+		}
+
+		if !strings.HasPrefix(fi.Name(), GitStorageRootPrefix) &&
+			!strings.HasPrefix(fi.Name(), ConflictStorageRootPrefix) {
+			continue
+		}
+
+		cleanedOne = true
+		dir := filepath.Join(storageRoot, fi.Name())
+		log.CDebugf(ctx, "Cleaning up old storage root %s, "+
+			"last modified at %s", dir, fi.ModTime())
+		err = os.RemoveAll(dir)
+		if err != nil {
+			log.CDebugf(ctx, "Error deleting %s: %+v", dir, err)
+			continue
+		}
+	}
+
+	if cleanedOne {
+		log.CDebugf(ctx, "Done cleaning old storage roots")
+	}
 }

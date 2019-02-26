@@ -463,8 +463,12 @@ func (r *RemoteClientMock) PendingPayments(ctx context.Context, accountID stella
 	return r.Backend.PendingPayments(ctx, r.Tc, accountID, limit)
 }
 
-func (r *RemoteClientMock) PaymentDetails(ctx context.Context, txID string) (res stellar1.PaymentDetails, err error) {
-	return r.Backend.PaymentDetails(ctx, r.Tc, txID)
+func (r *RemoteClientMock) PaymentDetails(ctx context.Context, accountID stellar1.AccountID, txID string) (res stellar1.PaymentDetails, err error) {
+	return r.Backend.PaymentDetails(ctx, r.Tc, accountID, txID)
+}
+
+func (r *RemoteClientMock) PaymentDetailsGeneric(ctx context.Context, txID string) (res stellar1.PaymentDetails, err error) {
+	return r.Backend.PaymentDetailsGeneric(ctx, r.Tc, txID)
 }
 
 func (r *RemoteClientMock) Details(ctx context.Context, accountID stellar1.AccountID) (stellar1.AccountDetails, error) {
@@ -517,6 +521,10 @@ func (r *RemoteClientMock) SetInflationDestination(ctx context.Context, signedTx
 
 func (r *RemoteClientMock) GetInflationDestinations(ctx context.Context) (ret []stellar1.PredefinedInflationDestination, err error) {
 	return r.Backend.GetInflationDestinations(ctx, r.Tc)
+}
+
+func (r *RemoteClientMock) NetworkOptions(ctx context.Context) (stellar1.NetworkOptions, error) {
+	return stellar1.NetworkOptions{BaseFee: 100}, nil
 }
 
 var _ remote.Remoter = (*RemoteClientMock)(nil)
@@ -891,8 +899,22 @@ func (r *BackendMock) PendingPayments(ctx context.Context, tc *TestContext, acco
 	return res, nil
 }
 
-func (r *BackendMock) PaymentDetails(ctx context.Context, tc *TestContext, txID string) (res stellar1.PaymentDetails, err error) {
+func (r *BackendMock) PaymentDetails(ctx context.Context, tc *TestContext, accountID stellar1.AccountID, txID string) (res stellar1.PaymentDetails, err error) {
 	defer tc.G.CTraceTimed(ctx, "BackendMock.PaymentDetails", func() error { return err })()
+	if accountID.IsNil() {
+		return res, errors.New("PaymentDetails requires AccountID")
+	}
+	r.Lock()
+	defer r.Unlock()
+	p := r.txLog.Find(txID)
+	if p == nil {
+		return res, fmt.Errorf("BackendMock: tx not found: '%v'", txID)
+	}
+	return *p, nil
+}
+
+func (r *BackendMock) PaymentDetailsGeneric(ctx context.Context, tc *TestContext, txID string) (res stellar1.PaymentDetails, err error) {
+	defer tc.G.CTraceTimed(ctx, "BackendMock.PaymentDetailsGeneric", func() error { return err })()
 	r.Lock()
 	defer r.Unlock()
 	p := r.txLog.Find(txID)

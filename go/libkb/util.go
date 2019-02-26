@@ -490,7 +490,22 @@ func TraceTimed(log logger.Logger, msg string, f func() error) func() {
 func CTrace(ctx context.Context, log logger.Logger, msg string, f func() error) func() {
 	log = log.CloneWithAddedDepth(1)
 	log.CDebugf(ctx, "+ %s", msg)
-	return func() { log.CDebugf(ctx, "- %s -> %s", msg, ErrToOk(f())) }
+	return func() {
+		err := f()
+		if err != nil {
+			log.CDebugf(ctx, "- %s -> %v %T", msg, err, err)
+		} else {
+			log.CDebugf(ctx, "- %s -> ok", msg)
+		}
+	}
+}
+
+func CTraceString(ctx context.Context, log logger.Logger, msg string, f func() string) func() {
+	log = log.CloneWithAddedDepth(1)
+	log.CDebugf(ctx, "+ %s", msg)
+	return func() {
+		log.CDebugf(ctx, "- %s -> %s", msg, f())
+	}
 }
 
 func CTraceTimed(ctx context.Context, log logger.Logger, msg string, f func() error, cl clockwork.Clock) func() {
@@ -498,7 +513,12 @@ func CTraceTimed(ctx context.Context, log logger.Logger, msg string, f func() er
 	log.CDebugf(ctx, "+ %s", msg)
 	start := cl.Now()
 	return func() {
-		log.CDebugf(ctx, "- %s -> %v [time=%s]", msg, f(), cl.Since(start))
+		err := f()
+		if err != nil {
+			log.CDebugf(ctx, "- %s -> %v %T [time=%s]", msg, err, err, cl.Since(start))
+		} else {
+			log.CDebugf(ctx, "- %s -> ok [time=%s]", msg, cl.Since(start))
+		}
 	}
 }
 
@@ -984,17 +1004,18 @@ func RuntimeGroup() keybase1.RuntimeGroup {
 }
 
 // DirSize walks the file tree the size of the given directory
-func DirSize(dirPath string) (size uint64, err error) {
+func DirSize(dirPath string) (size uint64, numFiles int, err error) {
 	err = filepath.Walk(dirPath, func(_ string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
 		if !info.IsDir() {
 			size += uint64(info.Size())
+			numFiles++
 		}
 		return nil
 	})
-	return size, err
+	return size, numFiles, err
 }
 
 func CacheSizeInfo(g *GlobalContext) (info []keybase1.DirSizeInfo, err error) {
@@ -1005,24 +1026,28 @@ func CacheSizeInfo(g *GlobalContext) (info []keybase1.DirSizeInfo, err error) {
 	}
 
 	var totalSize uint64
+	var totalFiles int
 	for _, file := range files {
 		if !file.IsDir() {
 			totalSize += uint64(file.Size())
 			continue
 		}
 		dirPath := filepath.Join(cacheDir, file.Name())
-		size, err := DirSize(dirPath)
+		size, numFiles, err := DirSize(dirPath)
 		if err != nil {
 			return nil, err
 		}
 		totalSize += size
+		totalFiles += numFiles
 		info = append(info, keybase1.DirSizeInfo{
 			Name:      dirPath,
+			NumFiles:  numFiles,
 			HumanSize: humanize.Bytes(size),
 		})
 	}
 	info = append(info, keybase1.DirSizeInfo{
 		Name:      cacheDir,
+		NumFiles:  totalFiles,
 		HumanSize: humanize.Bytes(totalSize),
 	})
 	return info, nil

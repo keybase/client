@@ -54,7 +54,7 @@ const NoAccess = (props: Props) => (
   <Kb.Box2 direction="vertical" style={styles.container}>
     {!isMobile && (
       <Kb.Box2 direction="horizontal" centerChildren={true} fullWidth={true} style={styles.header}>
-        <Kb.Text type="BodySemibold" backgroundMode="HighRisk">
+        <Kb.Text type="BodySemibold" negative={true}>
           Oops.
         </Kb.Text>
       </Kb.Box2>
@@ -80,7 +80,7 @@ const NonExistent = (props: Props) => (
   <Kb.Box2 direction="vertical" style={styles.container}>
     {!isMobile && (
       <Kb.Box2 direction="horizontal" centerChildren={true} fullWidth={true} style={styles.header}>
-        <Kb.Text type="BodySemibold" backgroundMode="HighRisk">
+        <Kb.Text type="BodySemibold" negative={true}>
           Oops.
         </Kb.Text>
       </Kb.Box2>
@@ -135,6 +135,7 @@ const styles = Styles.styleSheetCreate({
   container: Styles.platformStyles({
     common: {
       ...Styles.globalStyles.rounded,
+      backgroundColor: Styles.globalColors.white,
     },
     isElectron: {
       height: 380,

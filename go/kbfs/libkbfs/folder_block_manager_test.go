@@ -685,6 +685,7 @@ func TestFolderBlockManagerCleanSyncCache(t *testing.T) {
 	var userName kbname.NormalizedUsername = "test_user"
 	config, _, ctx, cancel := kbfsOpsInitNoMocks(t, userName)
 	defer kbfsTestShutdownNoMocks(t, config, ctx, cancel)
+	config.vdebugSetting = "vlog2"
 
 	config.EnableDiskLimiter(tempdir)
 	config.loadSyncedTlfsLocked()

@@ -70,6 +70,7 @@
       "opID": "RPCTypes.OpID"
     },
     "downloadSuccess": {
+      "intent": "Types.DownloadIntent",
       "key": "string",
       "mimeType": "string"
     },

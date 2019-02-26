@@ -21,9 +21,11 @@ export const rpcMemberStatusToStatus = invert(RPCTypes.teamsTeamMemberStatus)
 export const teamsLoadedWaitingKey = 'teams:loaded'
 export const teamsAccessRequestWaitingKey = 'teams:accessRequests'
 export const teamWaitingKey = (teamname: Types.Teamname) => `team:${teamname}`
+export const teamGetWaitingKey = (teamname: Types.Teamname) => `teamGet:${teamname}`
 export const teamTarsWaitingKey = (teamname: Types.Teamname) => `teamTars:${teamname}`
 export const teamCreationWaitingKey = 'teamCreate'
 
+export const addPeopleToTeamWaitingKey = (teamname: Types.Teamname) => `teamAddPeople:${teamname}`
 export const addToTeamByEmailWaitingKey = (teamname: Types.Teamname) => `teamAddByEmail:${teamname}`
 export const getChannelsWaitingKey = (teamname: Types.Teamname) => `getChannels:${teamname}`
 export const createChannelWaitingKey = (teamname: Types.Teamname) => `createChannel:${teamname}`
@@ -254,6 +256,9 @@ const getCanPerform = (state: TypedState, teamname: Types.Teamname): RPCTypes.Te
 const hasCanPerform = (state: TypedState, teamname: Types.Teamname): boolean =>
   state.teams.hasIn(['teamNameToCanPerform', teamname])
 
+const hasChannelInfos = (state: TypedState, teamname: Types.Teamname): boolean =>
+  state.teams.hasIn(['teamNameToChannelInfos', teamname])
+
 const getTeamMemberCount = (state: TypedState, teamname: Types.Teamname): number =>
   state.teams.getIn(['teammembercounts', teamname], 0)
 
@@ -455,6 +460,7 @@ export {
   getRole,
   getCanPerform,
   hasCanPerform,
+  hasChannelInfos,
   getEmailInviteError,
   getTeamMemberCount,
   userIsActiveInTeamHelper,

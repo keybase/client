@@ -549,63 +549,6 @@ export type ResetMetadata = {
   resetParticipants: Array<string>,
 }
 
-export type TlfTypeRowItem = {
-  rowType: 'tlf-type',
-  name: TlfType,
-}
-
-export type TlfRowItem = {
-  rowType: 'tlf',
-  tlfType: TlfType,
-  name: string,
-}
-
-export type StillRowItem = {
-  rowType: 'still',
-  path: Path,
-  name: string,
-}
-
-export type EditingRowItem = {
-  rowType: 'editing',
-  editID: EditID,
-  name: string,
-}
-
-export type UploadingRowItem = {
-  rowType: 'uploading',
-  name: string,
-  path: Path,
-}
-
-export type PlaceholderRowItem = {
-  rowType: 'placeholder',
-  name: string,
-  type: 'folder' | 'file',
-}
-
-export type EmptyRowItem = {
-  rowType: 'empty',
-}
-
-export type RowItem =
-  | TlfTypeRowItem
-  | TlfRowItem
-  | StillRowItem
-  | EditingRowItem
-  | UploadingRowItem
-  | PlaceholderRowItem
-  | EmptyRowItem
-
-export type RowItemWithKey =
-  | ({key: string} & TlfTypeRowItem)
-  | ({key: string} & TlfRowItem)
-  | ({key: string} & StillRowItem)
-  | ({key: string} & EditingRowItem)
-  | ({key: string} & UploadingRowItem)
-  | ({key: string} & PlaceholderRowItem)
-  | ({key: string} & EmptyRowItem)
-
 // RefreshTag is used by components in FsGen.folderListLoad and
 // FsGen.mimeTypeLoad actions, to indicate that it's interested in refreshing
 // such data if some FS activity notification indicates it may have changed.
@@ -616,3 +559,5 @@ export type RowItemWithKey =
 export type RefreshTag = 'main' | 'path-item-action-popup' | 'destination-picker'
 
 export type PathItemBadge = 'upload' | 'download' | 'new' | 'rekey' | number
+
+export type ResetBannerType = 'none' | 'self' | number

@@ -11,7 +11,7 @@ export const ExplodingMeta = ({explodingModeSeconds}: {explodingModeSeconds: num
   }
   return (
     <Kb.Meta
-      backgroundColor={Styles.globalColors.black_75_on_white}
+      backgroundColor={Styles.globalColors.black_on_white}
       noUppercase={true}
       style={styles.timeBadge}
       size="Small"
