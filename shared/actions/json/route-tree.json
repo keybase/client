@@ -27,7 +27,7 @@
     },
     "navigateAppend": {
       "path": "RCConstants.PropsPath<any>",
-      "parentPath?": "?RCConstants.Path"
+      "parentPath?": "?RCConstants.Path",
     },
     "navigateUp": {},
     "putActionIfOnPath": {
