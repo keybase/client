@@ -12,7 +12,6 @@ export const resetStore = 'common:resetStore' // not a part of git but is handle
 export const typePrefix = 'git:'
 export const badgeAppForGit = 'git:badgeAppForGit'
 export const clearBadges = 'git:clearBadges'
-export const clearNavBadges = 'git:clearNavBadges'
 export const createPersonalRepo = 'git:createPersonalRepo'
 export const createTeamRepo = 'git:createTeamRepo'
 export const deletePersonalRepo = 'git:deletePersonalRepo'
@@ -29,7 +28,6 @@ export const setTeamRepoSettings = 'git:setTeamRepoSettings'
 // Payload Types
 type _BadgeAppForGitPayload = $ReadOnly<{|ids: Array<string>|}>
 type _ClearBadgesPayload = void
-type _ClearNavBadgesPayload = void
 type _CreatePersonalRepoPayload = $ReadOnly<{|name: string|}>
 type _CreateTeamRepoPayload = $ReadOnly<{|name: string, teamname: string, notifyTeam: boolean|}>
 type _DeletePersonalRepoPayload = $ReadOnly<{|name: string|}>
@@ -48,10 +46,6 @@ type _SetTeamRepoSettingsPayload = $ReadOnly<{|chatDisabled: boolean, channelNam
  * clears badges in the rows
  */
 export const createClearBadges = (payload: _ClearBadgesPayload) => ({payload, type: clearBadges})
-/**
- * clears the nav badges
- */
-export const createClearNavBadges = (payload: _ClearNavBadgesPayload) => ({payload, type: clearNavBadges})
 export const createBadgeAppForGit = (payload: _BadgeAppForGitPayload) => ({payload, type: badgeAppForGit})
 export const createCreatePersonalRepo = (payload: _CreatePersonalRepoPayload) => ({payload, type: createPersonalRepo})
 export const createCreateTeamRepo = (payload: _CreateTeamRepoPayload) => ({payload, type: createTeamRepo})
@@ -69,7 +63,6 @@ export const createSetTeamRepoSettings = (payload: _SetTeamRepoSettingsPayload) 
 // Action Payloads
 export type BadgeAppForGitPayload = {|+payload: _BadgeAppForGitPayload, +type: 'git:badgeAppForGit'|}
 export type ClearBadgesPayload = {|+payload: _ClearBadgesPayload, +type: 'git:clearBadges'|}
-export type ClearNavBadgesPayload = {|+payload: _ClearNavBadgesPayload, +type: 'git:clearNavBadges'|}
 export type CreatePersonalRepoPayload = {|+payload: _CreatePersonalRepoPayload, +type: 'git:createPersonalRepo'|}
 export type CreateTeamRepoPayload = {|+payload: _CreateTeamRepoPayload, +type: 'git:createTeamRepo'|}
 export type DeletePersonalRepoPayload = {|+payload: _DeletePersonalRepoPayload, +type: 'git:deletePersonalRepo'|}
@@ -88,7 +81,6 @@ export type SetTeamRepoSettingsPayload = {|+payload: _SetTeamRepoSettingsPayload
 export type Actions =
   | BadgeAppForGitPayload
   | ClearBadgesPayload
-  | ClearNavBadgesPayload
   | CreatePersonalRepoPayload
   | CreateTeamRepoPayload
   | DeletePersonalRepoPayload

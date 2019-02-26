@@ -38,7 +38,6 @@ export default function(state: Types.State = initialState, action: GitGen.Action
     case GitGen.navToGit:
     case GitGen.navigateToTeamRepo:
     case GitGen.repoCreated:
-    case GitGen.clearNavBadges:
     case GitGen.repoDeleted:
     case GitGen.setTeamRepoSettings:
       return state
