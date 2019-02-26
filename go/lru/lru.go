@@ -78,13 +78,11 @@ func (c *Cache) Get(ctx context.Context, lctx libkb.LRUContext, k libkb.LRUKeyer
 		tmp := reflect.New(c.typ)
 		ret = tmp.Interface()
 
-		err = jsonw.EnsureMaxDepthBytesDefault([]byte(w.Data))
-		if err != nil {
+		if err = jsonw.EnsureMaxDepthBytesDefault([]byte(w.Data)); err != nil {
 			return nil, err
 		}
 
-		err = json.Unmarshal([]byte(w.Data), ret)
-		if err != nil {
+		if err = json.Unmarshal([]byte(w.Data), ret); err != nil {
 			return nil, err
 		}
 	}

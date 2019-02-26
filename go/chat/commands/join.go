@@ -16,7 +16,7 @@ type Join struct {
 
 func NewJoin(g *globals.Context) *Join {
 	return &Join{
-		baseCommand: newBaseCommand(g, "join", "", "Join a team channel"),
+		baseCommand: newBaseCommand(g, "join", "", "Join a team channel", false),
 	}
 }
 

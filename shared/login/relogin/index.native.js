@@ -59,7 +59,7 @@ class LoginRender extends Component<Props> {
             <Kb.WaitingButton
               disabled={!this.props.passphrase}
               waitingKey={Constants.waitingKey}
-              style={{marginTop: 0}}
+              style={{marginTop: 0, width: '100%'}}
               fullWidth={true}
               type="Primary"
               label="Log in"

@@ -6,16 +6,16 @@
   ],
   "actions": {
     "startProvision": {},
-    "provisionError": { "error": "?HiddenString" },
-    "submitUsernameOrEmail": { "usernameOrEmail": "string" },
-    "submitPassphrase": { "passphrase": "HiddenString", },
-    "submitPaperkey": { "paperkey": "HiddenString", },
-    "submitTextCode": { "phrase": "HiddenString" },
-    "submitDeviceSelect": { "name": "string" },
-    "submitDeviceName": { "name": "string" },
-    "submitGPGMethod": { "exportKey": "boolean" },
-    "switchToGPGSignOnly": { "importError": "string" },
-    "submitGPGSignOK": { "accepted": "boolean" },
+    "provisionError": {"error": "?HiddenString"},
+    "submitUsernameOrEmail": {"usernameOrEmail": "string"},
+    "submitPassphrase": {"passphrase": "HiddenString"},
+    "submitPaperkey": {"paperkey": "HiddenString"},
+    "submitTextCode": {"phrase": "HiddenString"},
+    "submitDeviceSelect": {"name": "string"},
+    "submitDeviceName": {"name": "string"},
+    "submitGPGMethod": {"exportKey": "boolean"},
+    "switchToGPGSignOnly": {"importError": "string"},
+    "submitGPGSignOK": {"accepted": "boolean"},
     "showDeviceListPage": {
       "_description": "Show the list of devices the user can use to provision a device",
       "devices": "Array<Types.Device>"
@@ -34,12 +34,15 @@
       "fromDeviceAdd": "boolean"
     },
     "showGPGPage": {},
+    "showInlineError": {
+      "inlineError": "RPCError"
+    },
     "showPassphrasePage": {
       "error": "?HiddenString"
     },
     "showPaperkeyPage": {
       "error": "?HiddenString"
     },
-    "addNewDevice": { "otherDeviceType": ["'desktop'", "'mobile'"] },
+    "addNewDevice": {"otherDeviceType": ["'desktop'", "'mobile'"]}
   }
 }

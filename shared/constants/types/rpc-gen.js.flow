@@ -304,6 +304,10 @@ export type MessageTypes = {|
     inParam: $ReadOnly<{|address: String, force: Boolean, wantedFamily: String, sigVersion?: ?SigVersion|}>,
     outParam: RegisterAddressRes,
   |},
+  'keybase.1.ctl.dbClean': {|
+    inParam: $ReadOnly<{|force: Boolean, dbType: DbType|}>,
+    outParam: void,
+  |},
   'keybase.1.ctl.dbNuke': {|
     inParam: void,
     outParam: void,
@@ -3357,6 +3361,7 @@ declare export function configSetValueRpcPromise(params: $PropertyType<$Property
 declare export function configStartUpdateIfNeededRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.startUpdateIfNeeded'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.startUpdateIfNeeded'>, 'outParam'>>
 declare export function configWaitForClientRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.waitForClient'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.config.waitForClient'>, 'outParam'>>
 declare export function cryptocurrencyRegisterAddressRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.cryptocurrency.registerAddress'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.cryptocurrency.registerAddress'>, 'outParam'>>
+declare export function ctlDbCleanRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.ctl.dbClean'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.ctl.dbClean'>, 'outParam'>>
 declare export function ctlDbNukeRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.ctl.dbNuke'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.ctl.dbNuke'>, 'outParam'>>
 declare export function delegateUiCtlRegisterChatUIRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.delegateUiCtl.registerChatUI'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.delegateUiCtl.registerChatUI'>, 'outParam'>>
 declare export function delegateUiCtlRegisterGregorFirehoseFilteredRpcPromise(params: $PropertyType<$PropertyType<MessageTypes, 'keybase.1.delegateUiCtl.registerGregorFirehoseFiltered'>, 'inParam'>, waitingKey?: WaitingKey): Promise<$PropertyType<$PropertyType<MessageTypes, 'keybase.1.delegateUiCtl.registerGregorFirehoseFiltered'>, 'outParam'>>

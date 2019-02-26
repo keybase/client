@@ -139,7 +139,19 @@ class Input extends React.Component<InputProps, InputState> {
     this.props.setUnsentText(text)
     this._lastText = text
     throttled(this.props.sendTyping, !!text)
-    debounced(this.props.unsentTextChanged, text)
+
+    // check if input matches a command with help text,
+    // skip debouncing unsentText if so
+    let skipDebounce = false
+    if (text.length <= this._maxCmdLength) {
+      skipDebounce = !!this.props.suggestCommands.find(sc => sc.hasHelpText && `/${sc.name}` === text)
+    }
+    if (skipDebounce) {
+      debounced.cancel()
+      this.props.unsentTextChanged(text)
+    } else {
+      debounced(this.props.unsentTextChanged, text)
+    }
   }
 
   _onKeyDown = (e: SyntheticKeyboardEvent<>, isComposingIME: boolean) => {

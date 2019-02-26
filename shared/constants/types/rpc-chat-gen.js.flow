@@ -783,7 +783,7 @@ export type ConversationBuiltinCommandTyp =
   | 3 // BIGTEAM_3
   | 4 // BIGTEAMGENERAL_4
 
-export type ConversationCommand = $ReadOnly<{description: String, name: String, usage: String, username?: ?String}>
+export type ConversationCommand = $ReadOnly<{description: String, name: String, usage: String, hasHelpText: Boolean, username?: ?String}>
 export type ConversationCommandGroups = {typ: 0, builtin: ?ConversationBuiltinCommandTyp} | {typ: 1, custom: ?ConversationCommandGroupsCustom}
 export type ConversationCommandGroupsCustom = $ReadOnly<{commands?: ?Array<ConversationCommand>}>
 export type ConversationCommandGroupsTyp =

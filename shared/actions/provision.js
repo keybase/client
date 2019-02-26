@@ -407,7 +407,13 @@ function* startProvisioning(state) {
     ProvisioningManager.getSingleton().done(
       'provision call done w/ error' + finalError ? finalError.message : ' unknown error'
     )
-    yield Saga.put(ProvisionGen.createShowFinalErrorPage({finalError, fromDeviceAdd: false}))
+    // If it's a non-existent username, allow the opportunity to
+    // correct it right there on the page.
+    if (finalError.code === RPCTypes.constantsStatusCode.scnotfound) {
+      yield Saga.put(ProvisionGen.createShowInlineError({inlineError: finalError}))
+    } else {
+      yield Saga.put(ProvisionGen.createShowFinalErrorPage({finalError, fromDeviceAdd: false}))
+    }
   }
 }
 

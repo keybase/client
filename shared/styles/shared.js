@@ -64,8 +64,8 @@ export const platformStyles = (options: {|
 /* eslint-disable sort-keys */
 export const padding = (top: number, right?: number, bottom?: number, left?: number) => ({
   paddingTop: top,
-  paddingRight: right || top,
-  paddingBottom: bottom || top,
-  paddingLeft: left || right || top,
+  paddingRight: right ?? top,
+  paddingBottom: bottom ?? top,
+  paddingLeft: left ?? right ?? top,
 })
 /* eslint-enable sort-keys */

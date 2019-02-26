@@ -63,7 +63,6 @@ const styles = Styles.styleSheetCreate({
 
 const _metaStyle = {
   alignSelf: 'flex-start',
-  marginLeft: 6,
 }
 
 export default DeviceRow
