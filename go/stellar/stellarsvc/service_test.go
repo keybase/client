@@ -1326,7 +1326,7 @@ func TestShutdown(t *testing.T) {
 		go func() {
 			_, err := tcs[0].Srv.BalancesLocal(context.Background(), accountID)
 			if err != nil {
-				t.Fatal(err)
+				t.Error(err)
 			}
 			wg.Done()
 		}()
