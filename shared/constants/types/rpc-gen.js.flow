@@ -2090,7 +2090,7 @@ export type FSErrorType =
 
 export type FSFolderEditHistory = $ReadOnly<{folder: Folder, serverTime: Time, history?: ?Array<FSFolderWriterEditHistory>}>
 export type FSFolderWriterEdit = $ReadOnly<{filename: String, notificationType: FSNotificationType, serverTime: Time}>
-export type FSFolderWriterEditHistory = $ReadOnly<{writerName: String, edits?: ?Array<FSFolderWriterEdit>}>
+export type FSFolderWriterEditHistory = $ReadOnly<{writerName: String, edits?: ?Array<FSFolderWriterEdit>, deletes?: ?Array<FSFolderWriterEdit>}>
 export type FSNotification = $ReadOnly<{filename: String, status: String, statusCode: FSStatusCode, notificationType: FSNotificationType, errorType: FSErrorType, params: {[key: string]: String}, writerUid: UID, localTime: Time, folderType: FolderType}>
 export type FSNotificationType =
   | 0 // ENCRYPTING_0

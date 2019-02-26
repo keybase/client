@@ -229,6 +229,7 @@ func (o FSFolderWriterEdit) DeepCopy() FSFolderWriterEdit {
 type FSFolderWriterEditHistory struct {
 	WriterName string               `codec:"writerName" json:"writerName"`
 	Edits      []FSFolderWriterEdit `codec:"edits" json:"edits"`
+	Deletes    []FSFolderWriterEdit `codec:"deletes" json:"deletes"`
 }
 
 func (o FSFolderWriterEditHistory) DeepCopy() FSFolderWriterEditHistory {
@@ -245,6 +246,17 @@ func (o FSFolderWriterEditHistory) DeepCopy() FSFolderWriterEditHistory {
 			}
 			return ret
 		})(o.Edits),
+		Deletes: (func(x []FSFolderWriterEdit) []FSFolderWriterEdit {
+			if x == nil {
+				return nil
+			}
+			ret := make([]FSFolderWriterEdit, len(x))
+			for i, v := range x {
+				vCopy := v.DeepCopy()
+				ret[i] = vCopy
+			}
+			return ret
+		})(o.Deletes),
 	}
 }
 
