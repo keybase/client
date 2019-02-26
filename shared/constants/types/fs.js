@@ -310,15 +310,18 @@ export type _DriverStatusDisabled = {
   type: 'disabled',
   isEnabling: boolean,
   isDismissed: boolean,
+  // macOS only
   kextPermissionError: boolean,
 }
 export type DriverStatusDisabled = I.RecordOf<_DriverStatusDisabled>
 
 export type _DriverStatusEnabled = {
   type: 'enabled',
-  dokanOutdated?: ?(true | string), // if string, is exec path
   isDisabling: boolean,
   isNew: boolean,
+  // windows only
+  dokanOutdated: boolean,
+  dokanUninstallExecPath?: ?string,
 }
 export type DriverStatusEnabled = I.RecordOf<_DriverStatusEnabled>
 

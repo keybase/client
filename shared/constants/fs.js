@@ -188,7 +188,8 @@ export const makeDriverStatusUnknown: I.RecordFactory<Types._DriverStatusUnknown
 })
 
 export const makeDriverStatusEnabled: I.RecordFactory<Types._DriverStatusEnabled> = I.Record({
-  dokanOutdated: null,
+  dokanOutdated: false,
+  dokanUninstallExecPath: null,
   isDisabling: false,
   isNew: false,
   type: 'enabled',

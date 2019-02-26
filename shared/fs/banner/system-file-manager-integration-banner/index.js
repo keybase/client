@@ -106,12 +106,12 @@ const Enabled = (props: Props) => {
         okIcon={false}
         title="Dokan is outdated."
         body={
-          props.driverStatus.dokanOutdated === 'can-disable'
+          props.driverStatus.dokanUninstallExecPath
             ? 'A newer version of Dokan is available. It is reccomended that the current version be uninstalled before installing this update.'
             : 'A newer version of Dokan is available. Please remove the old version before installing it.'
         }
         button={
-          props.driverStatus.dokanOutdated === 'can-disable'
+          props.driverStatus.dokanUninstallExecPath
             ? {
                 action: props.onDisable,
                 buttonText: 'Yes, uninstall',
