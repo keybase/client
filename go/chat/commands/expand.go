@@ -15,7 +15,7 @@ type Expand struct {
 
 func NewExpand(g *globals.Context) *Expand {
 	return &Expand{
-		baseCommand: newBaseCommand(g, "expand", "", "Expand all inline previews"),
+		baseCommand: newBaseCommand(g, "expand", "", "Expand all inline previews", false),
 	}
 }
 

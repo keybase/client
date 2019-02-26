@@ -14,7 +14,7 @@ type Leave struct {
 
 func NewLeave(g *globals.Context) *Leave {
 	return &Leave{
-		baseCommand: newBaseCommand(g, "leave", "", "Leave the current team channel"),
+		baseCommand: newBaseCommand(g, "leave", "", "Leave the current team channel", false),
 	}
 }
 

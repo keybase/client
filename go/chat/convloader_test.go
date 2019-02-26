@@ -31,7 +31,7 @@ func setupLoaderTest(t *testing.T) (context.Context, *kbtest.ChatTestContext, *k
 		MessageBody: chat1.MessageBody{},
 	}
 	prepareRes, err := baseSender.Prepare(ctx, firstMessagePlaintext,
-		chat1.ConversationMembersType_KBFS, nil)
+		chat1.ConversationMembersType_IMPTEAMNATIVE, nil)
 	firstMessageBoxed := prepareRes.Boxed
 	require.NoError(t, err)
 	res, err := ri.NewConversationRemote2(ctx, chat1.NewConversationRemote2Arg{

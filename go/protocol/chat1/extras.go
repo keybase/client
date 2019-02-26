@@ -1986,6 +1986,13 @@ func (i EphemeralPurgeInfo) String() string {
 		i.ConvID, i.IsActive, i.NextPurgeTime.Time(), i.MinUnexplodedID)
 }
 
+func (i EphemeralPurgeInfo) Eq(o EphemeralPurgeInfo) bool {
+	return (i.IsActive == o.IsActive &&
+		i.MinUnexplodedID == o.MinUnexplodedID &&
+		i.NextPurgeTime == o.NextPurgeTime &&
+		i.ConvID.Eq(o.ConvID))
+}
+
 func (r ReactionMap) HasReactionFromUser(reactionText, username string) (found bool, reactionMsgID MessageID) {
 	reactions, ok := r.Reactions[reactionText]
 	if !ok {

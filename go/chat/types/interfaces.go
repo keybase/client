@@ -417,6 +417,7 @@ type ConversationCommand interface {
 	Name() string
 	Usage() string
 	Description() string
+	HasHelpText() bool
 	Export() chat1.ConversationCommand
 }
 

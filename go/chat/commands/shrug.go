@@ -14,7 +14,7 @@ type Shrug struct {
 
 func NewShrug(g *globals.Context) *Shrug {
 	return &Shrug{
-		baseCommand: newBaseCommand(g, "shrug", "", `Appends ¯\_(ツ)_/¯ to your message`),
+		baseCommand: newBaseCommand(g, "shrug", "", `Appends ¯\_(ツ)_/¯ to your message`, false),
 	}
 }
 
