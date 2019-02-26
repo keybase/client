@@ -141,6 +141,7 @@ func TestLevelDb(t *testing.T) {
 
 				// cleaner will not clean the key since it was recently used
 				err = db.cleaner.clean(context.TODO(), true /* force */)
+				require.NoError(t, err)
 				_, found, err := db.Get(key)
 				require.NoError(t, err)
 				require.True(t, found)
@@ -150,6 +151,7 @@ func TestLevelDb(t *testing.T) {
 
 				db.cleaner.clearCache()
 				err = db.cleaner.clean(context.TODO(), true /* force */)
+				require.NoError(t, err)
 				_, found, err = db.Get(key)
 				require.NoError(t, err)
 				require.False(t, found)

@@ -201,6 +201,14 @@ func (c *levelDbCleaner) clean(ctx context.Context, force bool) (err error) {
 	c.Unlock()
 
 	defer c.G().CTraceTimed(ctx, fmt.Sprintf("levelDbCleaner(%s) clean, config: %v", c.dbName, c.config), func() error { return err })()
+	defer func() {
+		c.Lock()
+		defer c.Unlock()
+		c.lastKey = key
+		c.lastRun = c.G().GetClock().Now()
+		c.running = false
+	}()
+
 	dbSize, err := c.getDbSize(ctx)
 	if err != nil {
 		return err
@@ -218,10 +226,10 @@ func (c *levelDbCleaner) clean(ctx context.Context, force bool) (err error) {
 		select {
 		case <-c.cancelCh:
 			c.log(ctx, "aborting clean, %d runs, canceled", i)
-			break
+			return nil
 		case <-c.stopCh:
 			c.log(ctx, "aborting clean %d runs, stopped", i)
-			break
+			return nil
 		default:
 		}
 
@@ -247,13 +255,7 @@ func (c *levelDbCleaner) clean(ctx context.Context, force bool) (err error) {
 		}
 		time.Sleep(c.config.SleepInterval)
 	}
-
 	c.log(ctx, "clean complete. purged %d items total, dbSize: %v", totalNumPurged, humanize.Bytes(dbSize))
-	c.Lock()
-	c.lastKey = key
-	c.lastRun = c.G().GetClock().Now()
-	c.running = false
-	c.Unlock()
 	return nil
 }
 
