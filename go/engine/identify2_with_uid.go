@@ -353,7 +353,7 @@ func (e *Identify2WithUID) run(m libkb.MetaContext) {
 	// If no identifyUI was specified (because running the background)
 	// then don't do anything.
 	if m.UIs().IdentifyUI != nil {
-		m.UIs().IdentifyUI.Cancel()
+		m.UIs().IdentifyUI.Cancel(m)
 	}
 }
 
@@ -639,7 +639,7 @@ func (e *Identify2WithUID) insertTrackToken(m libkb.MetaContext, outcome *libkb.
 	if err != nil {
 		return err
 	}
-	return m.UIs().IdentifyUI.ReportTrackToken(e.trackToken)
+	return m.UIs().IdentifyUI.ReportTrackToken(m, e.trackToken)
 }
 
 // CCLCheckCompleted is triggered whenever a remote proof check completes.
@@ -800,20 +800,20 @@ func (e *Identify2WithUID) runIdentifyUI(m libkb.MetaContext) (err error) {
 	iui := m.UIs().IdentifyUI
 
 	m.CDebugf("| IdentifyUI.Start(%s)", e.them.GetName())
-	if err = iui.Start(e.them.GetName(), e.arg.Reason, e.arg.ForceDisplay); err != nil {
+	if err = iui.Start(m, e.them.GetName(), e.arg.Reason, e.arg.ForceDisplay); err != nil {
 		return err
 	}
 	for _, k := range e.identifyKeys {
-		if err = iui.DisplayKey(k); err != nil {
+		if err = iui.DisplayKey(m, k); err != nil {
 			return err
 		}
 	}
 	m.CDebugf("| IdentifyUI.ReportLastTrack(%s)", e.them.GetName())
-	if err = iui.ReportLastTrack(libkb.ExportTrackSummary(e.state.TrackLookup(), e.them.GetName())); err != nil {
+	if err = iui.ReportLastTrack(m, libkb.ExportTrackSummary(e.state.TrackLookup(), e.them.GetName())); err != nil {
 		return err
 	}
 	m.CDebugf("| IdentifyUI.LaunchNetworkChecks(%s)", e.them.GetName())
-	if err = iui.LaunchNetworkChecks(e.state.ExportToUncheckedIdentity(e.G()), e.them.Export()); err != nil {
+	if err = iui.LaunchNetworkChecks(m, e.state.ExportToUncheckedIdentity(e.G()), e.them.Export()); err != nil {
 		return err
 	}
 
@@ -853,7 +853,7 @@ func (e *Identify2WithUID) runIdentifyUI(m libkb.MetaContext) (err error) {
 	// use Confirm to display the IdentifyOutcome
 	outcome := e.state.Result()
 	outcome.TrackOptions = e.trackOptions
-	e.confirmResult, err = iui.Confirm(outcome.Export(e.G()))
+	e.confirmResult, err = iui.Confirm(m, outcome.Export(e.G()))
 	if err != nil {
 		m.CDebugf("| Failure in iui.Confirm")
 		return err
@@ -861,7 +861,7 @@ func (e *Identify2WithUID) runIdentifyUI(m libkb.MetaContext) (err error) {
 
 	e.insertTrackToken(m, outcome)
 
-	if err = iui.Finish(); err != nil {
+	if err = iui.Finish(m); err != nil {
 		m.CDebugf("| Failure in iui.Finish")
 		return err
 	}

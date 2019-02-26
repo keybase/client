@@ -16,7 +16,6 @@ import (
 // state machine that was previously implemented in JS.
 type UIAdapter struct {
 	sync.Mutex
-	libkb.MetaContextified
 	session     *libkb.Identify3Session
 	ui          keybase1.Identify3UiInterface
 	username    string
@@ -34,10 +33,9 @@ var _ libkb.IdentifyUI = (*UIAdapter)(nil)
 
 func NewUIAdapter(mctx libkb.MetaContext, ui keybase1.Identify3UiInterface) (*UIAdapter, error) {
 	ret := &UIAdapter{
-		MetaContextified: libkb.NewMetaContextified(mctx),
-		ui:               ui,
+		ui: ui,
 	}
-	ret.initPriorityMap()
+	ret.initPriorityMap(mctx)
 	return ret, nil
 }
 
@@ -77,7 +75,7 @@ func NewUIAdapterWithSession(mctx libkb.MetaContext, ui keybase1.Identify3UiInte
 	return ret, nil
 }
 
-func (i *UIAdapter) Start(user string, reason keybase1.IdentifyReason, force bool) error {
+func (i *UIAdapter) Start(mctx libkb.MetaContext, user string, reason keybase1.IdentifyReason, force bool) error {
 	i.Lock()
 	i.username = user
 	i.Unlock()
@@ -92,16 +90,16 @@ func (i *UIAdapter) Start(user string, reason keybase1.IdentifyReason, force boo
 		ForceDisplay: true,
 	}
 
-	err := i.ui.Identify3ShowTracker(i.M().Ctx(), arg)
+	err := i.ui.Identify3ShowTracker(mctx.Ctx(), arg)
 	if err != nil {
-		i.M().CDebugf("Failed to call Identify3ShowTracker: %s", err)
+		mctx.CDebugf("Failed to call Identify3ShowTracker: %s", err)
 	}
 	return err
 }
 
-func (i *UIAdapter) initPriorityMap() {
+func (i *UIAdapter) initPriorityMap(mctx libkb.MetaContext) {
 	i.priorityMap = make(map[string]int)
-	for _, displayConfig := range i.M().G().GetProofServices().ListDisplayConfigs() {
+	for _, displayConfig := range mctx.G().GetProofServices().ListDisplayConfigs() {
 		i.priorityMap[displayConfig.Key] = displayConfig.Priority
 		var altKey string
 		switch displayConfig.Key {
@@ -133,10 +131,10 @@ func (i *UIAdapter) priority(key string) int {
 }
 
 // return true if we need an upgrade
-func (i *UIAdapter) setRowStatus(arg *keybase1.Identify3Row, lcr keybase1.LinkCheckResult) bool {
+func (i *UIAdapter) setRowStatus(mctx libkb.MetaContext, arg *keybase1.Identify3Row, lcr keybase1.LinkCheckResult) bool {
 
 	needUpgrade := false
-	i.M().CDebugf("setRowStatus(lcr: %+v, cached: %+v, diff: %+v, remoteDiff: %+v, hint: %+v)",
+	mctx.CDebugf("setRowStatus(lcr: %+v, cached: %+v, diff: %+v, remoteDiff: %+v, hint: %+v)",
 		lcr, lcr.Cached, lcr.Diff, lcr.RemoteDiff, lcr.Hint)
 
 	switch {
@@ -195,13 +193,13 @@ func (i *UIAdapter) setRowStatus(arg *keybase1.Identify3Row, lcr keybase1.LinkCh
 		arg.Metas = append(arg.Metas, keybase1.Identify3RowMeta{Color: arg.Color, Label: "unreachable"})
 
 	default:
-		i.M().CWarningf("unhandled ID3 setRowStatus")
+		mctx.CWarningf("unhandled ID3 setRowStatus")
 
 	}
 	return needUpgrade
 }
 
-func (i *UIAdapter) rowPartial(proof keybase1.RemoteProof, lcr *keybase1.LinkCheckResult) (row keybase1.Identify3Row) {
+func (i *UIAdapter) rowPartial(mctx libkb.MetaContext, proof keybase1.RemoteProof, lcr *keybase1.LinkCheckResult) (row keybase1.Identify3Row) {
 	row = keybase1.Identify3Row{
 		Key:      proof.Key,
 		Value:    proof.Value,
@@ -215,7 +213,7 @@ func (i *UIAdapter) rowPartial(proof keybase1.RemoteProof, lcr *keybase1.LinkChe
 		humanURLOrSigchainURL = lcr.Hint.HumanUrl
 	}
 	if len(humanURLOrSigchainURL) == 0 {
-		humanURLOrSigchainURL = i.makeSigchainViewURL(proof.SigID)
+		humanURLOrSigchainURL = i.makeSigchainViewURL(mctx, proof.SigID)
 	}
 
 	iconKey := proof.Key
@@ -238,7 +236,7 @@ func (i *UIAdapter) rowPartial(proof keybase1.RemoteProof, lcr *keybase1.LinkChe
 		iconKey = "facebook"
 	case keybase1.ProofType_GENERIC_SOCIAL:
 		row.SiteURL = humanURLOrSigchainURL
-		serviceType := i.G().GetProofServices().GetServiceType(proof.Key)
+		serviceType := mctx.G().GetProofServices().GetServiceType(proof.Key)
 		if serviceType != nil {
 			if serviceType, ok := serviceType.(*externals.GenericSocialProofServiceType); ok {
 				profileURL, err := serviceType.ProfileURL(proof.Value)
@@ -247,7 +245,7 @@ func (i *UIAdapter) rowPartial(proof keybase1.RemoteProof, lcr *keybase1.LinkChe
 				}
 			}
 		}
-		row.ProofURL = i.makeSigchainViewURL(proof.SigID)
+		row.ProofURL = i.makeSigchainViewURL(mctx, proof.SigID)
 	case keybase1.ProofType_GENERIC_WEB_SITE:
 		protocol := "https"
 		if proof.Key != "https" {
@@ -257,63 +255,63 @@ func (i *UIAdapter) rowPartial(proof keybase1.RemoteProof, lcr *keybase1.LinkChe
 		iconKey = "web"
 	case keybase1.ProofType_DNS:
 		row.SiteURL = fmt.Sprintf("http://%v", proof.Value)
-		row.ProofURL = i.makeSigchainViewURL(proof.SigID)
+		row.ProofURL = i.makeSigchainViewURL(mctx, proof.SigID)
 		iconKey = "web"
 	default:
 		row.SiteURL = humanURLOrSigchainURL
 	}
-	row.SiteIcon = externals.MakeIcons(i.M(), iconKey, "logo_black", 16)
-	row.SiteIconFull = externals.MakeIcons(i.M(), iconKey, "logo_full", 64)
+	row.SiteIcon = externals.MakeIcons(mctx, iconKey, "logo_black", 16)
+	row.SiteIconFull = externals.MakeIcons(mctx, iconKey, "logo_full", 64)
 	return row
 }
 
-func (i *UIAdapter) finishRemoteCheck(proof keybase1.RemoteProof, lcr keybase1.LinkCheckResult) error {
+func (i *UIAdapter) finishRemoteCheck(mctx libkb.MetaContext, proof keybase1.RemoteProof, lcr keybase1.LinkCheckResult) error {
 	if lcr.BreaksTracking {
 		i.session.SetTrackBroken()
 	}
 
-	arg := i.rowPartial(proof, &lcr)
-	needUpgrade := i.setRowStatus(&arg, lcr)
+	arg := i.rowPartial(mctx, proof, &lcr)
+	needUpgrade := i.setRowStatus(mctx, &arg, lcr)
 	if needUpgrade {
 		i.session.SetNeedUpgrade()
 	}
 
-	i.updateRow(arg)
+	i.updateRow(mctx, arg)
 	return nil
 }
 
-func (i *UIAdapter) FinishWebProofCheck(proof keybase1.RemoteProof, lcr keybase1.LinkCheckResult) error {
-	return i.finishRemoteCheck(proof, lcr)
+func (i *UIAdapter) FinishWebProofCheck(mctx libkb.MetaContext, proof keybase1.RemoteProof, lcr keybase1.LinkCheckResult) error {
+	return i.finishRemoteCheck(mctx, proof, lcr)
 }
 
-func (i *UIAdapter) FinishSocialProofCheck(proof keybase1.RemoteProof, lcr keybase1.LinkCheckResult) error {
-	return i.finishRemoteCheck(proof, lcr)
+func (i *UIAdapter) FinishSocialProofCheck(mctx libkb.MetaContext, proof keybase1.RemoteProof, lcr keybase1.LinkCheckResult) error {
+	return i.finishRemoteCheck(mctx, proof, lcr)
 }
 
-func (i *UIAdapter) Confirm(*keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error) {
+func (i *UIAdapter) Confirm(libkb.MetaContext, *keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error) {
 	return keybase1.ConfirmResult{}, nil
 }
 
-func (i *UIAdapter) DisplayCryptocurrency(cc keybase1.Cryptocurrency) error {
-	i.plumbCryptocurrency(cc)
+func (i *UIAdapter) DisplayCryptocurrency(mctx libkb.MetaContext, cc keybase1.Cryptocurrency) error {
+	i.plumbCryptocurrency(mctx, cc)
 	return nil
 }
 
-func (i *UIAdapter) DisplayStellarAccount(s keybase1.StellarAccount) error {
-	i.plumbStellarAccount(s)
+func (i *UIAdapter) DisplayStellarAccount(mctx libkb.MetaContext, s keybase1.StellarAccount) error {
+	i.plumbStellarAccount(mctx, s)
 	return nil
 }
 
-func (i *UIAdapter) DisplayKey(key keybase1.IdentifyKey) error {
+func (i *UIAdapter) DisplayKey(mctx libkb.MetaContext, key keybase1.IdentifyKey) error {
 	if key.BreaksTracking {
 		i.session.SetTrackBroken()
 	}
-	i.checkEldest(key)
-	i.displayKey(key)
+	i.checkEldest(mctx, key)
+	i.displayKey(mctx, key)
 	return nil
 }
 
-func (i *UIAdapter) displayKey(key keybase1.IdentifyKey) {
+func (i *UIAdapter) displayKey(mctx libkb.MetaContext, key keybase1.IdentifyKey) {
 	if key.PGPFingerprint == nil {
 		return
 	}
@@ -324,11 +322,11 @@ func (i *UIAdapter) displayKey(key keybase1.IdentifyKey) {
 		SigID:    key.SigID,
 		Ctime:    0,
 		Priority: i.priority("pgp"),
-		SiteURL:  i.makeKeybaseProfileURL(),
+		SiteURL:  i.makeKeybaseProfileURL(mctx),
 		// key.SigID is blank if the PGP key was there pre-sigchain
-		ProofURL:     i.makeSigchainViewURL(key.SigID),
-		SiteIcon:     externals.MakeIcons(i.M(), "pgp", "logo_black", 16),
-		SiteIconFull: externals.MakeIcons(i.M(), "pgp", "logo_full", 64),
+		ProofURL:     i.makeSigchainViewURL(mctx, key.SigID),
+		SiteIcon:     externals.MakeIcons(mctx, "pgp", "logo_black", 16),
+		SiteIconFull: externals.MakeIcons(mctx, "pgp", "logo_full", 64),
 	}
 
 	switch {
@@ -344,20 +342,20 @@ func (i *UIAdapter) displayKey(key keybase1.IdentifyKey) {
 		arg.Metas = append(arg.Metas, keybase1.Identify3RowMeta{Color: arg.Color, Label: "new"})
 	}
 
-	i.updateRow(arg)
+	i.updateRow(mctx, arg)
 }
 
-func (i *UIAdapter) checkEldest(key keybase1.IdentifyKey) {
+func (i *UIAdapter) checkEldest(mctx libkb.MetaContext, key keybase1.IdentifyKey) {
 	if key.TrackDiff == nil || key.TrackDiff.Type != keybase1.TrackDiffType_NEW_ELDEST {
 		return
 	}
-	err := i.ui.Identify3UserReset(i.M().Ctx(), i.session.ID())
+	err := i.ui.Identify3UserReset(mctx.Ctx(), i.session.ID())
 	if err != nil {
-		i.M().CDebugf("Error sending user reset message: %s", err)
+		mctx.CDebugf("Error sending user reset message: %s", err)
 	}
 }
 
-func (i *UIAdapter) ReportLastTrack(track *keybase1.TrackSummary) error {
+func (i *UIAdapter) ReportLastTrack(mctx libkb.MetaContext, track *keybase1.TrackSummary) error {
 	if track != nil {
 		i.Lock()
 		i.iFollowThem = true
@@ -366,25 +364,25 @@ func (i *UIAdapter) ReportLastTrack(track *keybase1.TrackSummary) error {
 	return nil
 }
 
-func (i *UIAdapter) plumbUncheckedProofs(proofs []keybase1.IdentifyRow) {
+func (i *UIAdapter) plumbUncheckedProofs(mctx libkb.MetaContext, proofs []keybase1.IdentifyRow) {
 	for _, proof := range proofs {
-		i.plumbUncheckedProof(proof)
+		i.plumbUncheckedProof(mctx, proof)
 	}
 }
 
-func (i *UIAdapter) plumbUncheckedProof(row keybase1.IdentifyRow) {
-	arg := i.rowPartial(row.Proof, nil)
+func (i *UIAdapter) plumbUncheckedProof(mctx libkb.MetaContext, row keybase1.IdentifyRow) {
+	arg := i.rowPartial(mctx, row.Proof, nil)
 	arg.State = keybase1.Identify3RowState_CHECKING
 	arg.Color = keybase1.Identify3RowColor_GRAY
-	i.updateRow(arg)
+	i.updateRow(mctx, arg)
 }
 
-func (i *UIAdapter) updateRow(arg keybase1.Identify3Row) error {
+func (i *UIAdapter) updateRow(mctx libkb.MetaContext, arg keybase1.Identify3Row) error {
 	arg.GuiID = i.session.ID()
-	err := i.ui.Identify3UpdateRow(i.M().Ctx(), arg)
-	i.M().CDebugf("update row %+v", arg)
+	err := i.ui.Identify3UpdateRow(mctx.Ctx(), arg)
+	mctx.CDebugf("update row %+v", arg)
 	if err != nil {
-		i.M().CDebugf("Failed to send update row (%+v): %s", arg, err)
+		mctx.CDebugf("Failed to send update row (%+v): %s", arg, err)
 	}
 	return err
 }
@@ -399,9 +397,9 @@ func (i *UIAdapter) shouldSkipSendResult() bool {
 	return false
 }
 
-func (i *UIAdapter) sendResult(typ keybase1.Identify3ResultType) error {
+func (i *UIAdapter) sendResult(mctx libkb.MetaContext, typ keybase1.Identify3ResultType) error {
 	if i.shouldSkipSendResult() {
-		i.M().CDebugf("Skipping send result, already done")
+		mctx.CDebugf("Skipping send result, already done")
 		return nil
 	}
 	arg := keybase1.Identify3ResultArg{
@@ -409,15 +407,15 @@ func (i *UIAdapter) sendResult(typ keybase1.Identify3ResultType) error {
 		Result: typ,
 	}
 
-	err := i.ui.Identify3Result(i.M().Ctx(), arg)
+	err := i.ui.Identify3Result(mctx.Ctx(), arg)
 	if err != nil {
-		i.M().CDebugf("Failed to send result (%+v): %s", arg, err)
+		mctx.CDebugf("Failed to send result (%+v): %s", arg, err)
 	}
 	return err
 }
 
-func (i *UIAdapter) makeKeybaseProfileURL() string {
-	url := libkb.SiteURILookup[i.M().G().Env.GetRunMode()]
+func (i *UIAdapter) makeKeybaseProfileURL(mctx libkb.MetaContext) string {
+	url := libkb.SiteURILookup[mctx.G().Env.GetRunMode()]
 	var parts []string
 	if url == "" {
 		return url
@@ -426,8 +424,8 @@ func (i *UIAdapter) makeKeybaseProfileURL() string {
 	return strings.Join(parts, "/")
 }
 
-func (i *UIAdapter) makeSigchainViewURL(s keybase1.SigID) string {
-	url := libkb.SiteURILookup[i.M().G().Env.GetRunMode()]
+func (i *UIAdapter) makeSigchainViewURL(mctx libkb.MetaContext, s keybase1.SigID) string {
+	url := libkb.SiteURILookup[mctx.G().Env.GetRunMode()]
 	var parts []string
 	if url == "" {
 		return url
@@ -441,7 +439,7 @@ func (i *UIAdapter) makeSigchainViewURL(s keybase1.SigID) string {
 	return strings.Join(parts, "/")
 }
 
-func (i *UIAdapter) plumbCryptocurrency(crypto keybase1.Cryptocurrency) {
+func (i *UIAdapter) plumbCryptocurrency(mctx libkb.MetaContext, crypto keybase1.Cryptocurrency) {
 	key := crypto.Type
 	switch crypto.Family {
 	case string(libkb.CryptocurrencyFamilyBitcoin):
@@ -449,9 +447,9 @@ func (i *UIAdapter) plumbCryptocurrency(crypto keybase1.Cryptocurrency) {
 	case string(libkb.CryptocurrencyFamilyZCash):
 		key = "zcash"
 	default:
-		i.M().CDebugf("unrecgonized crypto family: %v, %v", crypto.Type, crypto.Family)
+		mctx.CDebugf("unrecgonized crypto family: %v, %v", crypto.Type, crypto.Family)
 	}
-	i.updateRow(keybase1.Identify3Row{
+	i.updateRow(mctx, keybase1.Identify3Row{
 		Key:          key,
 		Value:        crypto.Address,
 		Priority:     i.priority(key),
@@ -459,15 +457,15 @@ func (i *UIAdapter) plumbCryptocurrency(crypto keybase1.Cryptocurrency) {
 		Color:        keybase1.Identify3RowColor_GREEN,
 		SigID:        crypto.SigID,
 		Ctime:        0,
-		SiteURL:      i.makeSigchainViewURL(crypto.SigID),
-		SiteIcon:     externals.MakeIcons(i.M(), key, "logo_black", 16),
-		SiteIconFull: externals.MakeIcons(i.M(), key, "logo_full", 64),
-		ProofURL:     i.makeSigchainViewURL(crypto.SigID),
+		SiteURL:      i.makeSigchainViewURL(mctx, crypto.SigID),
+		SiteIcon:     externals.MakeIcons(mctx, key, "logo_black", 16),
+		SiteIconFull: externals.MakeIcons(mctx, key, "logo_full", 64),
+		ProofURL:     i.makeSigchainViewURL(mctx, crypto.SigID),
 	})
 }
 
-func (i *UIAdapter) plumbStellarAccount(str keybase1.StellarAccount) {
-	i.updateRow(keybase1.Identify3Row{
+func (i *UIAdapter) plumbStellarAccount(mctx libkb.MetaContext, str keybase1.StellarAccount) {
+	i.updateRow(mctx, keybase1.Identify3Row{
 		Key:          "stellar",
 		Value:        str.FederationAddress,
 		Priority:     i.priority("stellar"),
@@ -475,45 +473,45 @@ func (i *UIAdapter) plumbStellarAccount(str keybase1.StellarAccount) {
 		Color:        keybase1.Identify3RowColor_GREEN,
 		SigID:        str.SigID,
 		Ctime:        0,
-		SiteURL:      i.makeSigchainViewURL(str.SigID),
-		SiteIcon:     externals.MakeIcons(i.M(), "stellar", "logo_black", 16),
-		SiteIconFull: externals.MakeIcons(i.M(), "stellar", "logo_full", 64),
-		ProofURL:     i.makeSigchainViewURL(str.SigID),
+		SiteURL:      i.makeSigchainViewURL(mctx, str.SigID),
+		SiteIcon:     externals.MakeIcons(mctx, "stellar", "logo_black", 16),
+		SiteIconFull: externals.MakeIcons(mctx, "stellar", "logo_full", 64),
+		ProofURL:     i.makeSigchainViewURL(mctx, str.SigID),
 	})
 }
 
-func (i *UIAdapter) plumbRevoked(row keybase1.RevokedProof) {
-	arg := i.rowPartial(row.Proof, nil)
+func (i *UIAdapter) plumbRevoked(mctx libkb.MetaContext, row keybase1.RevokedProof) {
+	arg := i.rowPartial(mctx, row.Proof, nil)
 	arg.State = keybase1.Identify3RowState_REVOKED
 	arg.Color = keybase1.Identify3RowColor_RED
 	arg.Metas = append(arg.Metas,
 		keybase1.Identify3RowMeta{Color: arg.Color, Label: "revoked"},
 	)
-	i.updateRow(arg)
+	i.updateRow(mctx, arg)
 }
 
-func (i *UIAdapter) plumbRevokeds(rows []keybase1.RevokedProof) {
+func (i *UIAdapter) plumbRevokeds(mctx libkb.MetaContext, rows []keybase1.RevokedProof) {
 	for _, row := range rows {
-		i.plumbRevoked(row)
+		i.plumbRevoked(mctx, row)
 	}
 }
 
-func (i *UIAdapter) LaunchNetworkChecks(id *keybase1.Identity, user *keybase1.User) error {
+func (i *UIAdapter) LaunchNetworkChecks(mctx libkb.MetaContext, id *keybase1.Identity, user *keybase1.User) error {
 
 	if id.BreaksTracking {
 		i.session.SetTrackBroken()
 	}
-	i.plumbUncheckedProofs(id.Proofs)
-	i.plumbRevokeds(id.RevokedDetails)
+	i.plumbUncheckedProofs(mctx, id.Proofs)
+	i.plumbRevokeds(mctx, id.RevokedDetails)
 
 	return nil
 }
 
-func (i *UIAdapter) DisplayTrackStatement(string) error {
+func (i *UIAdapter) DisplayTrackStatement(libkb.MetaContext, string) error {
 	return nil
 }
 
-func (i *UIAdapter) DisplayUserCard(card keybase1.UserCard) error {
+func (i *UIAdapter) DisplayUserCard(mctx libkb.MetaContext, card keybase1.UserCard) error {
 
 	// Do not take the server's word on this! Overwrite with what we got above.
 	// Depends on the fact this gets called after ReportLastTrack, which is currently
@@ -526,15 +524,15 @@ func (i *UIAdapter) DisplayUserCard(card keybase1.UserCard) error {
 		GuiID: i.session.ID(),
 		Card:  card,
 	}
-	err := i.ui.Identify3UpdateUserCard(i.M().Ctx(), arg)
+	err := i.ui.Identify3UpdateUserCard(mctx.Ctx(), arg)
 	if err != nil {
-		i.M().CDebugf("Failed to send update card: %s", err)
+		mctx.CDebugf("Failed to send update card: %s", err)
 	}
 	return nil
 }
 
-func (i *UIAdapter) ReportTrackToken(token keybase1.TrackToken) error {
-	outcome, err := i.M().G().TrackCache().Get(token)
+func (i *UIAdapter) ReportTrackToken(mctx libkb.MetaContext, token keybase1.TrackToken) error {
+	outcome, err := mctx.G().TrackCache().Get(token)
 	if err != nil {
 		return err
 	}
@@ -542,18 +540,18 @@ func (i *UIAdapter) ReportTrackToken(token keybase1.TrackToken) error {
 	return nil
 }
 
-func (i *UIAdapter) Cancel() error {
-	i.sendResult(keybase1.Identify3ResultType_CANCELED)
+func (i *UIAdapter) Cancel(mctx libkb.MetaContext) error {
+	i.sendResult(mctx, keybase1.Identify3ResultType_CANCELED)
 	return nil
 }
 
-func (i *UIAdapter) Finish() error {
-	i.sendResult(i.session.ResultType())
+func (i *UIAdapter) Finish(mctx libkb.MetaContext) error {
+	i.sendResult(mctx, i.session.ResultType())
 	return nil
 }
-func (i *UIAdapter) DisplayTLFCreateWithInvite(keybase1.DisplayTLFCreateWithInviteArg) error {
+func (i *UIAdapter) DisplayTLFCreateWithInvite(libkb.MetaContext, keybase1.DisplayTLFCreateWithInviteArg) error {
 	return nil
 }
-func (i *UIAdapter) Dismiss(string, keybase1.DismissReason) error {
+func (i *UIAdapter) Dismiss(libkb.MetaContext, string, keybase1.DismissReason) error {
 	return nil
 }
