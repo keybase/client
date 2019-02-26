@@ -72,7 +72,7 @@ func TransformRequestDetails(mctx libkb.MetaContext, details stellar1.RequestDet
 	}
 
 	if details.Currency != nil {
-		amountDesc, err := FormatCurrency(mctx, details.Amount, *details.Currency, FmtRound)
+		amountDesc, err := FormatCurrency(mctx, details.Amount, *details.Currency, stellarnet.Round)
 		if err != nil {
 			amountDesc = details.Amount
 			mctx.CDebugf("error formatting external currency: %s", err)
@@ -326,7 +326,7 @@ func formatWorth(mctx libkb.MetaContext, amount, currency *string) (worth, worth
 		return "", "", nil
 	}
 
-	worth, err = FormatCurrencyWithCodeSuffix(mctx, *amount, stellar1.OutsideCurrencyCode(*currency), FmtRound)
+	worth, err = FormatCurrencyWithCodeSuffix(mctx, *amount, stellar1.OutsideCurrencyCode(*currency), stellarnet.Round)
 	if err != nil {
 		return "", "", err
 	}
