@@ -12,6 +12,7 @@ type ConversationCommand struct {
 	Description string  `codec:"description" json:"description"`
 	Name        string  `codec:"name" json:"name"`
 	Usage       string  `codec:"usage" json:"usage"`
+	HasHelpText bool    `codec:"hasHelpText" json:"hasHelpText"`
 	Username    *string `codec:"username,omitempty" json:"username,omitempty"`
 }
 
@@ -20,6 +21,7 @@ func (o ConversationCommand) DeepCopy() ConversationCommand {
 		Description: o.Description,
 		Name:        o.Name,
 		Usage:       o.Usage,
+		HasHelpText: o.HasHelpText,
 		Username: (func(x *string) *string {
 			if x == nil {
 				return nil

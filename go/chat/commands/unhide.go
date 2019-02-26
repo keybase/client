@@ -14,7 +14,7 @@ type Unhide struct {
 
 func NewUnhide(g *globals.Context) *Unhide {
 	return &Unhide{
-		baseCommand: newBaseCommand(g, "unhide", "<conversation>", "Unhide <conversation>"),
+		baseCommand: newBaseCommand(g, "unhide", "<conversation>", "Unhide <conversation>", false),
 	}
 }
 
