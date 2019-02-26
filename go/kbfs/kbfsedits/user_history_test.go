@@ -47,6 +47,11 @@ func TestUserHistorySimple(t *testing.T) {
 		privSharedAlice = append(privSharedAlice, privSharedNN.encode(t))
 	}
 	privSharedTimeAlice := keybase1.ToTime(now)
+	// Alice deletes something from private shared TLF (it shouldn't
+	// affect the overall server time for the TLF).
+	now = now.Add(1 * time.Minute)
+	_ = privSharedNN.make("a", NotificationDelete, aliceUID, nil, now)
+	privSharedAlice = append(privSharedAlice, privSharedNN.encode(t))
 
 	// Alice writes to public TLF.
 	var publicAlice []string
@@ -100,27 +105,28 @@ func TestUserHistorySimple(t *testing.T) {
 		serverTime keybase1.Time
 		writer     string
 		num        int
+		numDeletes int
 	}
 	expected := []expectInfo{
 		// private home alice
 		{
 			string(privHomeName), keybase1.FolderType_PRIVATE,
-			privHomeTime, aliceName, 3,
+			privHomeTime, aliceName, 3, 0,
 		},
 		// private shared bob
 		{
 			string(privSharedName), keybase1.FolderType_PRIVATE,
-			privSharedTimeBob, bobName, 3,
+			privSharedTimeBob, bobName, 3, 0,
 		},
 		// public alice
 		{
 			string(publicName), keybase1.FolderType_PUBLIC,
-			publicTime, aliceName, 3,
+			publicTime, aliceName, 3, 0,
 		},
 		// private shared alice
 		{
 			string(privSharedName), keybase1.FolderType_PRIVATE,
-			privSharedTimeAlice, aliceName, 3,
+			privSharedTimeAlice, aliceName, 3, 1,
 		},
 	}
 

@@ -403,6 +403,7 @@ func TestKeybaseDaemonRPCEditList(t *testing.T) {
 					NotificationType: keybase1.FSNotificationType_FILE_MODIFIED,
 					ServerTime:       keybase1.ToTime(second),
 				}},
+				Deletes: []keybase1.FSFolderWriterEdit{},
 			},
 			{
 				WriterName: "u1",
@@ -411,6 +412,7 @@ func TestKeybaseDaemonRPCEditList(t *testing.T) {
 					NotificationType: keybase1.FSNotificationType_FILE_MODIFIED,
 					ServerTime:       keybase1.ToTime(first),
 				}},
+				Deletes: []keybase1.FSFolderWriterEdit{},
 			},
 		},
 	}
