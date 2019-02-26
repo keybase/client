@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/chat/types"
+	"github.com/keybase/client/go/chat/utils"
 	"github.com/keybase/client/go/kbtest"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol/chat1"
@@ -1099,13 +1100,13 @@ func TestConversationLocking(t *testing.T) {
 	for i := 0; i < acquires; i++ {
 		hcs.lockTab.Release(ctx, uid, conv.GetConvID())
 	}
-	require.Zero(t, len(hcs.lockTab.convLocks))
+	require.Zero(t, hcs.lockTab.NumLocks())
 
 	t.Logf("Trace 2 properly blocked by Trace 1")
 	ctx2 := Context(context.TODO(), tc.Context(), keybase1.TLFIdentifyBehavior_CHAT_CLI,
 		&breaks, NewCachingIdentifyNotifier(tc.Context()))
 	blockCb := make(chan struct{}, 5)
-	hcs.lockTab.blockCb = &blockCb
+	hcs.lockTab.SetBlockCb(&blockCb)
 	cb := make(chan acquireRes)
 	blocked, err := timedAcquire(ctx, t, hcs, uid, conv.GetConvID())
 	require.NoError(t, err)
@@ -1135,7 +1136,7 @@ func TestConversationLocking(t *testing.T) {
 		require.Fail(t, "not blocked")
 	}
 	require.True(t, hcs.lockTab.Release(ctx2, uid, conv.GetConvID()))
-	require.Zero(t, len(hcs.lockTab.convLocks))
+	require.Zero(t, hcs.lockTab.NumLocks())
 
 	t.Logf("No trace")
 	blocked, err = timedAcquire(context.TODO(), t, hcs, uid, conv.GetConvID())
@@ -1144,7 +1145,7 @@ func TestConversationLocking(t *testing.T) {
 	blocked, err = timedAcquire(context.TODO(), t, hcs, uid, conv.GetConvID())
 	require.NoError(t, err)
 	require.False(t, blocked)
-	require.Zero(t, len(hcs.lockTab.convLocks))
+	require.Zero(t, hcs.lockTab.NumLocks())
 }
 
 func TestConversationLockingDeadlock(t *testing.T) {
@@ -1190,7 +1191,7 @@ func TestConversationLockingDeadlock(t *testing.T) {
 	require.False(t, blocked)
 
 	blockCb := make(chan struct{}, 5)
-	hcs.lockTab.blockCb = &blockCb
+	hcs.lockTab.SetBlockCb(&blockCb)
 	cb := make(chan acquireRes)
 	go func() {
 		blocked, err = hcs.lockTab.Acquire(ctx, uid, conv2.GetConvID())
@@ -1202,7 +1203,7 @@ func TestConversationLockingDeadlock(t *testing.T) {
 		require.Fail(t, "not blocked")
 	}
 
-	hcs.lockTab.maxAcquireRetries = 1
+	hcs.lockTab.SetMaxAcquireRetries(1)
 	cb2 := make(chan acquireRes)
 	go func() {
 		blocked, err = hcs.lockTab.Acquire(ctx2, uid, conv3.GetConvID())

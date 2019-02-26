@@ -236,7 +236,7 @@ func (b *BackgroundConvLoader) isConvLoaderContext(ctx context.Context) bool {
 	return false
 }
 
-func (b *BackgroundConvLoader) setgNameInfoSource(ni types.NameInfoSource) {
+func (b *BackgroundConvLoader) setTestingNameInfoSource(ni types.NameInfoSource) {
 	b.Debug(context.TODO(), "setTestingNameInfoSource: setting to %T", ni)
 	b.testingNameInfoSource = ni
 }

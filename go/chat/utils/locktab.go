@@ -42,10 +42,22 @@ func NewConversationLockTab(g *globals.Context) *ConversationLockTab {
 	}
 }
 
+func (c *ConversationLockTab) SetMaxAcquireRetries(n int) {
+	c.Lock()
+	defer c.Unlock()
+	c.maxAcquireRetries = n
+}
+
 func (c *ConversationLockTab) SetBlockCb(ch *chan struct{}) {
 	c.Lock()
 	defer c.Unlock()
 	c.blockCb = ch
+}
+
+func (c *ConversationLockTab) NumLocks() int {
+	c.Lock()
+	defer c.Unlock()
+	return len(c.convLocks)
 }
 
 func (c *ConversationLockTab) key(uid gregor1.UID, convID chat1.ConversationID) string {

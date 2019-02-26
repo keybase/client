@@ -1408,7 +1408,7 @@ func TestChatMessageBodyHashReplay(t *testing.T) {
 		// Generate an encryption key and create a fake finder to fetch it.
 		key := cryptKey(t)
 		finder := NewKeyFinderMock([]keybase1.CryptKey{*key})
-		boxerContext := context.WithValue(context.Background(), kfKey, finder)
+		boxerContext := context.WithValue(context.Background(), types.KfKey, finder)
 
 		// This message has an all zeros ConversationIDTriple, but that's fine. We
 		// can still extract the ConvID from it.
@@ -1460,7 +1460,7 @@ func TestChatMessagePrevPointerInconsistency(t *testing.T) {
 		// Generate an encryption key and create a fake finder to fetch it.
 		key := cryptKey(t)
 		finder := NewKeyFinderMock([]keybase1.CryptKey{*key})
-		boxerContext := context.WithValue(context.Background(), kfKey, finder)
+		boxerContext := context.WithValue(context.Background(), types.KfKey, finder)
 
 		// Everything below will use the zero convID.
 		convID := chat1.ConversationIDTriple{}.ToConversationID([2]byte{0, 0})
@@ -1549,7 +1549,7 @@ func TestChatMessageBadConvID(t *testing.T) {
 		// Generate an encryption key and create a fake finder to fetch it.
 		key := cryptKey(t)
 		finder := NewKeyFinderMock([]keybase1.CryptKey{*key})
-		boxerContext := context.WithValue(context.Background(), kfKey, finder)
+		boxerContext := context.WithValue(context.Background(), types.KfKey, finder)
 
 		// This message has an all zeros ConversationIDTriple, but that's fine. We
 		// can still extract the ConvID from it.

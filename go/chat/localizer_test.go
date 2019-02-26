@@ -104,7 +104,7 @@ func TestLocalizerPipeline(t *testing.T) {
 	pipeline.resume(ctx)
 
 	t.Logf("suspend (cancelable)")
-	ctx = LocalizerCancelableCtx(ctx)
+	ctx = CtxAddLocalizerCancelable(ctx)
 	localizeCh = runLocalize()
 	job = getJob()
 	noRes(localizeCh)
@@ -117,7 +117,7 @@ func TestLocalizerPipeline(t *testing.T) {
 	resClosed(localizeCh)
 
 	t.Logf("suspend multiple")
-	ctx = LocalizerCancelableCtx(ctx)
+	ctx = CtxAddLocalizerCancelable(ctx)
 	localizeCh = runLocalize()
 	job = getJob()
 	noRes(localizeCh)

@@ -67,7 +67,7 @@ func TestChatKBFSUpgradeMixed(t *testing.T) {
 		keybase1.TeamApplication_CHAT, cres.CryptKeys))
 
 	conv.Conv.Metadata.MembersType = chat1.ConversationMembersType_IMPTEAMUPGRADE
-	ctx = CtxAddTestingNameInfoSource(ctx, nil)
+	ctx = CtxAddOverrideNameInfoSource(ctx, nil)
 	header = chat1.MessageClientHeader{
 		TlfPublic:   false,
 		TlfName:     u.Username,

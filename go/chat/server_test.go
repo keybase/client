@@ -187,7 +187,7 @@ func newTestContext(tc *kbtest.ChatTestContext) context.Context {
 
 func newTestContextWithTlfMock(tc *kbtest.ChatTestContext, tlfMock types.NameInfoSource) context.Context {
 	ctx := newTestContext(tc)
-	return CtxAddTestingNameInfoSource(ctx, tlfMock)
+	return CtxAddOverrideNameInfoSource(ctx, tlfMock)
 }
 
 type testUISource struct {
@@ -648,7 +648,7 @@ func sweepPollForDeletion(t *testing.T, ctc *chatTestContext, asUser *kbtest.Fak
 	var upto chat1.MessageID
 	for i := 0; ; i++ {
 		ctx := Context(context.Background(), tc.h.G(), keybase1.TLFIdentifyBehavior_CLI, nil, nil)
-		trace, _ := CtxTrace(ctx)
+		trace, _ := types.CtxTrace(ctx)
 		t.Logf("+ RetentionSweepConv(%v) (uptoWant %v) [chat-trace=%v]", convID.String(), uptoWant, trace)
 		res, err := tc.ri.RetentionSweepConv(ctx, convID)
 		t.Logf("- RetentionSweepConv res: %+v", res)
