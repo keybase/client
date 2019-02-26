@@ -3,6 +3,7 @@ package layout
 import (
 	"errors"
 	"fmt"
+	"math"
 )
 
 const minWidth = 200
@@ -37,6 +38,9 @@ func (i *image) dup() *image {
 }
 
 func (i *image) compress(desired int) {
+	if i.width() <= minWidth {
+		return
+	}
 	compressed := desired
 	if i.width()-compressed < minWidth {
 		compressed = i.width() - minWidth
@@ -103,7 +107,7 @@ func compressRow(totalWidth int, row []*image) (compressed []*image, err error) 
 	fmt.Printf("compressRow: totalWidth: %d width: %d\n", totalWidth, groupWidth(row))
 	for pass := 0; pass < maxCompressPasses; pass++ {
 		totalCompression := groupWidth(compressed) - totalWidth
-		imageComp := totalCompression / numCompressables(compressed)
+		imageComp := int(math.Ceil(float64(totalCompression) / float64(numCompressables(compressed))))
 		fmt.Printf("compressRow: pass: %d row: total: %d comp: %d\n", pass, totalCompression, imageComp)
 		for _, im := range compressed {
 			im.compress(imageComp)
@@ -128,7 +132,7 @@ func expandRow(totalWidth int, row []*image) (expanded []*image) {
 		if expandables == 0 {
 			return expanded
 		}
-		imageExp := totalExpansion / numExpandables(expanded)
+		imageExp := int(math.Ceil(float64(totalExpansion) / float64(numExpandables(expanded))))
 		fmt.Printf("expandRow: pass %d total: %d exp: %d\n", pass, totalExpansion, imageExp)
 		for _, im := range expanded {
 			im.expand(imageExp)
