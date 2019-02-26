@@ -14,6 +14,7 @@ import TlfInfo from './tlf-info'
 import Loading from './loading'
 import KbfsDaemonNotRunning from './kbfs-daemon-not-running'
 import Errs from './errs'
+import OpenInSystemFileManager from './open-in-system-file-manager'
 import {type OwnProps as PathItemIconOwnProps} from './path-item-icon-container'
 import {type OwnProps as PathItemInfoOwnProps} from './path-item-info-container'
 
@@ -59,8 +60,8 @@ export const commonProvider = {
     errs: [],
   }),
   ConnectedOpenInSystemFileManager: () => ({
-    installFuse: Sb.action('installFuse'),
-    kbfsEnabled: false,
+    driverEnabled: false,
+    enableDriver: Sb.action('enableDriver'),
     openInSystemFileManager: Sb.action('openInSystemFileManager'),
   }),
   PathItemAction: pathItemActionProps,
@@ -210,6 +211,22 @@ const load = () => {
       </Kb.Box2>
     ))
     .add('KbfsDaemonNotRunning', () => <KbfsDaemonNotRunning />)
+    .add('OpenInSystemFileManager', () => (
+      <Kb.Box2 direction="vertical" gap="small">
+        <Kb.Text type="Body">disabled</Kb.Text>
+        <OpenInSystemFileManager
+          driverEnabled={false}
+          openInSystemFileManager={Sb.action('openInSystemFileManager')}
+          enableDriver={Sb.action('enableDriver')}
+        />
+        <Kb.Text type="Body">enabled</Kb.Text>
+        <OpenInSystemFileManager
+          driverEnabled={true}
+          openInSystemFileManager={Sb.action('openInSystemFileManager')}
+          enableDriver={Sb.action('enableDriver')}
+        />
+      </Kb.Box2>
+    ))
 
   Sb.storiesOf('Files/PathItemIcon', module)
     .add('tlf list', () => (
