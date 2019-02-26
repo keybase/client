@@ -22,7 +22,7 @@ type Props = {|
   onDisable: () => void,
 |}
 
-type FileUIBannerProps = {
+type BannerProps = {
   backgroundColor: string,
   okIcon: boolean,
   onDismiss?: ?() => void,
@@ -35,7 +35,7 @@ type FileUIBannerProps = {
   },
 }
 
-const FileUIBanner = (props: FileUIBannerProps) => (
+const Banner = (props: BannerProps) => (
   <Kb.Box2
     direction="horizontal"
     fullWidth={true}
@@ -92,7 +92,7 @@ const FileUIBanner = (props: FileUIBannerProps) => (
 )
 
 const ThisShouldNotHappen = () => (
-  <FileUIBanner backgroundColor={Styles.globalColors.black} okIcon={false} title="This should not happen." />
+  <Banner backgroundColor={Styles.globalColors.black} okIcon={false} title="This should not happen." />
 )
 
 const Enabled = (props: Props) => {
@@ -101,7 +101,7 @@ const Enabled = (props: Props) => {
   }
   if (props.driverStatus.dokanOutdated) {
     return (
-      <FileUIBanner
+      <Banner
         backgroundColor={Styles.globalColors.blue}
         okIcon={false}
         title="Dokan is outdated."
@@ -127,7 +127,7 @@ const Enabled = (props: Props) => {
     // the rare case where user disables finder integration, and goes to Files
     // tab before it's done. Just show a simple banner in this case.
     return (
-      <FileUIBanner
+      <Banner
         backgroundColor={Styles.globalColors.blue}
         okIcon={false}
         title={`Disabling Keybase in ${fileUIName} ...`}
@@ -135,7 +135,7 @@ const Enabled = (props: Props) => {
     )
   }
   return (
-    <FileUIBanner
+    <Banner
       backgroundColor={Styles.globalColors.green}
       okIcon={true}
       title={`Keybase is enabled in your ${fileUIName}.`}
@@ -148,7 +148,7 @@ export default (props: Props) => {
   switch (props.driverStatus.type) {
     case 'disabled':
       return (
-        <FileUIBanner
+        <Banner
           backgroundColor={Styles.globalColors.blue}
           okIcon={false}
           title={`Enable Keybase in ${fileUIName}?`}
@@ -165,7 +165,7 @@ export default (props: Props) => {
       return <Enabled {...props} />
     case 'unknown':
       return props.alwaysShow ? (
-        <FileUIBanner
+        <Banner
           backgroundColor={Styles.globalColors.blue}
           okIcon={false}
           title={'Loading'}

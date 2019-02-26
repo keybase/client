@@ -4,8 +4,8 @@ import * as Types from '../../constants/types/fs'
 import * as Constants from '../../constants/fs'
 import * as Sb from '../../stories/storybook'
 import ResetBanner from './reset-banner'
-import FileUIBanner from './fileui-banner'
-import KextPermissionPopup from './fileui-banner/kext-permission-popup'
+import SystemFileManagerIntegrationBanner from './system-file-manager-integration-banner'
+import KextPermissionPopup from './system-file-manager-integration-banner/kext-permission-popup'
 import {commonProvider} from '../common/index.stories'
 
 const resetBannerCommon = {
@@ -14,22 +14,22 @@ const resetBannerCommon = {
   onViewProfile: (username: string) => Sb.action(`onViewProfile(${username})`),
 }
 
-const commonFileUIBannerActions = {
+const commonSystemFileManagerIntegrationBannerActions = {
   onDisable: Sb.action('onDisable'),
   onDismiss: Sb.action('onDismiss'),
   onEnable: Sb.action('onEnable'),
 }
 
 export const bannerProvider = {
-  FileUIBanner: ({alwaysShow}: any) => ({
-    alwaysShow,
-    ...commonFileUIBannerActions,
-    driverStatus: Constants.makeDriverStatusUnknown(),
-  }),
   ResetBanner: ({path}: {path: Types.Path}) => ({
     ...resetBannerCommon,
     isUserReset: Types.pathToString(path) === '/keybase/private/me,reset',
     resetParticipants: Types.pathToString(path).includes('reset') ? ['foo'] : [],
+  }),
+  SystemFileManagerIntegrationBanner: ({alwaysShow}: any) => ({
+    alwaysShow,
+    ...commonSystemFileManagerIntegrationBannerActions,
+    driverStatus: Constants.makeDriverStatusUnknown(),
   }),
 }
 
@@ -45,40 +45,43 @@ export default () => {
     .add('ResetBanner - other', () => (
       <ResetBanner isUserReset={false} resetParticipants={['reset1', 'reset3']} {...resetBannerCommon} />
     ))
-    .add('FileUIBanner - disabled', () => (
-      <FileUIBanner {...commonFileUIBannerActions} driverStatus={Constants.makeDriverStatusDisabled()} />
+    .add('SystemFileManagerIntegrationBanner - disabled', () => (
+      <SystemFileManagerIntegrationBanner
+        {...commonSystemFileManagerIntegrationBannerActions}
+        driverStatus={Constants.makeDriverStatusDisabled()}
+      />
     ))
-    .add('FileUIBanner - disabled, enabling', () => (
-      <FileUIBanner
-        {...commonFileUIBannerActions}
+    .add('SystemFileManagerIntegrationBanner - disabled, enabling', () => (
+      <SystemFileManagerIntegrationBanner
+        {...commonSystemFileManagerIntegrationBannerActions}
         driverStatus={Constants.makeDriverStatusDisabled({isEnabling: true})}
       />
     ))
-    .add('FileUIBanner - enabled, new', () => (
-      <FileUIBanner
-        {...commonFileUIBannerActions}
+    .add('SystemFileManagerIntegrationBanner - enabled, new', () => (
+      <SystemFileManagerIntegrationBanner
+        {...commonSystemFileManagerIntegrationBannerActions}
         driverStatus={Constants.makeDriverStatusEnabled({isNew: true})}
       />
     ))
-    .add('FileUIBanner - enabled, disabling', () => (
-      <FileUIBanner
-        {...commonFileUIBannerActions}
+    .add('SystemFileManagerIntegrationBanner - enabled, disabling', () => (
+      <SystemFileManagerIntegrationBanner
+        {...commonSystemFileManagerIntegrationBannerActions}
         driverStatus={Constants.makeDriverStatusEnabled({isDisabling: true})}
       />
     ))
-    .add('FileUIBanner - enabled, dokanOutdated', () => (
-      <FileUIBanner
-        {...commonFileUIBannerActions}
+    .add('SystemFileManagerIntegrationBanner - enabled, dokanOutdated', () => (
+      <SystemFileManagerIntegrationBanner
+        {...commonSystemFileManagerIntegrationBannerActions}
         driverStatus={Constants.makeDriverStatusEnabled({dokanOutdated: 'can-disable'})}
       />
     ))
-    .add('FileUIBanner - enabled, dokanOutdated, diabling', () => (
-      <FileUIBanner
-        {...commonFileUIBannerActions}
+    .add('SystemFileManagerIntegrationBanner - enabled, dokanOutdated, diabling', () => (
+      <SystemFileManagerIntegrationBanner
+        {...commonSystemFileManagerIntegrationBannerActions}
         driverStatus={Constants.makeDriverStatusEnabled({dokanOutdated: 'can-disable', isDisabling: true})}
       />
     ))
-    .add('FileUIBanner - kext permissiion popup', () => (
+    .add('SystemFileManagerIntegrationBanner - kext permissiion popup', () => (
       <KextPermissionPopup
         onCancel={Sb.action('onCancel')}
         openSecurityPrefs={Sb.action('openSecurityPrefs')}

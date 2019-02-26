@@ -315,28 +315,28 @@ export default function(state: Types.State = initialState, action: FsGen.Actions
     case FsGen.kbfsDaemonDisconnected:
       return state.set('kbfsDaemonConnected', false)
     case FsGen.setDriverStatus:
-      return state.update('fileUI', fileUI => fileUI.set('driverStatus', action.payload.driverStatus))
-    case FsGen.showFileUIBanner:
-      return state.update('fileUI', fileUI => fileUI.set('showingBanner', true))
-    case FsGen.hideFileUIBanner:
-      return state.update('fileUI', fileUI => fileUI.set('showingBanner', false))
+      return state.update('sfmi', sfmi => sfmi.set('driverStatus', action.payload.driverStatus))
+    case FsGen.showSystemFileManagerIntegrationBanner:
+      return state.update('sfmi', sfmi => sfmi.set('showingBanner', true))
+    case FsGen.hideSystemFileManagerIntegrationBanner:
+      return state.update('sfmi', sfmi => sfmi.set('showingBanner', false))
     case FsGen.driverEnable:
-      return state.update('fileUI', fileUI =>
-        fileUI.update('driverStatus', driverStatus =>
+      return state.update('sfmi', sfmi =>
+        sfmi.update('driverStatus', driverStatus =>
           driverStatus.type === 'disabled' ? driverStatus.set('isEnabling', true) : driverStatus
         )
       )
     case FsGen.driverKextPermissionError:
-      return state.update('fileUI', fileUI =>
-        fileUI.update('driverStatus', driverStatus =>
+      return state.update('sfmi', sfmi =>
+        sfmi.update('driverStatus', driverStatus =>
           driverStatus.type === 'disabled'
             ? driverStatus.set('kextPermissionError', true).set('isEnabling', false)
             : driverStatus
         )
       )
     case FsGen.driverDisable:
-      return state.update('fileUI', fileUI =>
-        fileUI.update('driverStatus', driverStatus =>
+      return state.update('sfmi', sfmi =>
+        sfmi.update('driverStatus', driverStatus =>
           driverStatus.type === 'enabled' ? driverStatus.set('isDisabling', false) : driverStatus
         )
       )

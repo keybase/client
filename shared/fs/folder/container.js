@@ -10,7 +10,7 @@ const mapStateToProps = (state, {path}) => ({
   _pathItem: state.fs.pathItems.get(path, Constants.unknownPathItem),
   _username: state.config.username,
   resetBannerType: Constants.resetBannerType(state, path),
-  shouldShowFileUIBanner: state.fs.fileUI.showingBanner,
+  shouldShowSFMIBanner: state.fs.sfmi.showingBanner,
 })
 
 const mapDispatchToProps = (dispatch, {path}: OwnProps) => ({
@@ -24,7 +24,7 @@ const mergeProps = (stateProps, dispatchProps, {path, routePath}) => ({
   path,
   resetBannerType: stateProps.resetBannerType,
   routePath,
-  shouldShowFileUIBanner: stateProps.shouldShowFileUIBanner,
+  shouldShowSFMIBanner: stateProps.shouldShowSFMIBanner,
 })
 
 type OwnProps = {|
